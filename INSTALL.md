@@ -92,6 +92,9 @@ data saves to that device only. The next parts add the shared database.
 4. Left sidebar → **Project Settings** (gear) → **API**. Copy two values into a scratch
    note — you'll paste them in Part 4:
    - **Project URL** → looks like `https://abcdwxyz.supabase.co`
+     ⚠️ Just that. The page also shows a **RESTful endpoint** ending in `/rest/v1` right
+     beside it — that is **not** the one. (If you grab it by mistake, the app trims it
+     for you now, but paste the plain project URL.)
    - **anon public** key → a long string starting `eyJ...`
 
 ---
@@ -144,7 +147,8 @@ Google needs to know your app exists; Supabase needs Google's credentials.
 3. Under **Account & cloud sync**, paste:
    - **Supabase project URL** (from Part 2, step 4)
    - **Anon public key** (same place)
-   - → **Save & enable cloud**
+   - → **Test** to check the connection (it will tell you if the key is wrong, the URL is
+     unreachable, or the Google provider isn't switched on), then **Save & enable cloud**
 4. The **Continue with Google** button appears. Click it, pick your Google account.
 5. You'll bounce to Google and back. The screen should say you're signed in with your
    email, and it immediately pushes your local data up to the database.
@@ -219,5 +223,7 @@ People pay to *see their history*, not to write it.
 | Sign-in loops back with an error | The app URL isn't in Supabase's Redirect URLs | Part 3, step 5 — must match exactly, trailing slash included |
 | "redirect_uri_mismatch" from Google | The callback URI in Google Cloud is wrong | Part 3a, step 3 — it must be your **Supabase** URL + `/auth/v1/callback`, not your app's URL |
 | Signed in, but nothing syncs | The SQL didn't run | Part 2, step 3 — re-run `supabase-setup.sql`; check Table Editor shows `app_state` |
+| `{"message":"No API key found in request"}` | App version older than v2.02 | Re-upload the latest `index.html` |
+| `PGRST125 · Invalid path specified in request URL` | The Project URL had `/rest/v1` on the end, so sign-in hit the database instead of auth | Fixed in v2.03 (the app trims it); re-upload `index.html`, then re-paste the plain project URL and hit **Test** |
 | Phone still shows the old version | Service worker cache | Bump `CACHE` in `sw.js`, or delete the app from your home screen and re-add |
 | App loads but Settings shows setup fields again | Browser storage cleared | Just paste the URL/key again, or bake them in (Optional section) |
