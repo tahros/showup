@@ -138,7 +138,9 @@ Google needs to know your app exists; Supabase needs Google's credentials.
 ## Part 4 — Connect the app and sign in (2 min)
 
 1. Open your live app: `https://YOUR-USERNAME.github.io/showup/`
-2. Go to **Stats** tab → scroll to the bottom → **⚙︎ Settings, backup & sync**.
+2. Tap the **⚙ gear** in the top-right corner of the app.
+   *(It's also at the bottom of the **Stats** tab, under a "Settings" heading — either
+   route opens the same screen.)*
 3. Under **Account & cloud sync**, paste:
    - **Supabase project URL** (from Part 2, step 4)
    - **Anon public key** (same place)
