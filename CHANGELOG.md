@@ -1,5 +1,29 @@
 # ShowUp — changelog
 
+## v2.09.1 — HOTFIX: the data-loss bug
+What happened: deleting/re-adding the home-screen app (e.g. to refresh the icon)
+wipes iOS localStorage. That should be fine — the cloud has everything — but two
+bugs compounded:
+1. SILENT SYNC DEATH. When the Supabase token refresh failed, the app signed
+   itself out quietly. Every push afterwards was a silent no-op, so the cloud
+   copy went stale while the app looked synced.
+2. PUSH-BEFORE-PULL CLOBBER. Push replaces the whole cloud document. On a fresh
+   install, any save that fired before the boot-time pull finished (logging a
+   set, a settings write) pushed the near-empty local state OVER the cloud copy
+   that still held history.
+
+Fixes:
+- Pull-before-push gate: a device that hasn't successfully merge-pulled this boot
+  physically cannot push. First push after a fresh install is guaranteed to be a
+  superset of the cloud. Verified against the exact reinstall scenario.
+- Sync failures are loud now: expired sign-in shows a toast + a red dot on the
+  gear button; Settings shows a "Not syncing" banner whenever local workouts
+  exist without a session.
+- Rolling local backup: one snapshot per day (last 5 kept) under separate
+  localStorage keys, as a belt against any future app-level clobber.
+
+Recovery notes for data lost before this fix: see the chat.
+
 ## v2.09 — Session flow: workouts now have a beginning and an end
 The organizing idea (Sungjee's): a session is a continuous flow of sets with a
 clear start and finish, at three levels — exercise, body part, whole workout.
