@@ -1,5 +1,23 @@
 # ShowUp — changelog
 
+## v2.14 — Edit in place + the session meter
+Closes the last two items from the July feedback batch.
+
+- **Hold a logged set (~0.5s) to edit it** — weight and reps for lifts (reps
+  accepts a comma list for multi-set rows), distance/min/sec for runs. The tile
+  being edited gets a blue outline, a light haptic tick fires where supported,
+  and the follow-up click is swallowed so a hold can never accidentally delete.
+  A plain tap still deletes; scrolling cancels the hold. Hint now reads
+  "Tap a set to delete it — hold to edit."
+- **Session meter** on the part board, under today's logged list: a bar filling
+  toward your USUAL session for that part — the per-session average across all
+  918 days of history plus app-logged days (today excluded, since today is the
+  thing being measured). Grows with every set; at 100% the bar brightens and the
+  percentage turns blue. Runs measure km instead of volume. This is the "how is
+  today adding to the overall picture" visual — placed on the part board because
+  that's where CHEST · TODAY lives. (The progression chart already shows today's
+  top set live at the exercise level.)
+
 ## v2.13 — Your history moves into Supabase (stage 1)
 The 4–5 years of workout history (918 days, 7,845 rows, back to 2021-12-13) now
 lives in your Supabase row, not just inside index.html. Every push carries the
