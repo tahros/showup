@@ -1,5 +1,62 @@
 # ShowUp — changelog
 
+## v2.09 — Session flow: workouts now have a beginning and an end
+The organizing idea (Sungjee's): a session is a continuous flow of sets with a
+clear start and finish, at three levels — exercise, body part, whole workout.
+
+- **Complete buttons at every level.** "✓ Complete <exercise>" at the bottom of the
+  exercise page; "✓ Complete <part>" under the part's logged list; "✓ Complete
+  workout" on the Today tab. Completing the last open exercise in a part quietly
+  completes the part. Logging a new set to anything completed reopens it — and its
+  parents — because you can absolutely train chest twice in a day.
+- **Live mode.** While the workout is open (first set → Complete workout) the
+  header burns red — the one place red now means "heart pumping" rather than
+  "record". Completing the workout cools it back down. Live mode belongs to the
+  workout, not the exercise: you're still training between exercises.
+- **Rest count-up.** A ticking m:ss clock sits in the live header, restarting at
+  every logged set. It's a glance-value only — nothing is logged — and it survives
+  an app reload mid-gym.
+- **Suggested sets are shortcut keys now.** Tap one to log that w×r — as many
+  times as you like; chips never disappear on use. Each has a ✕ to dismiss it for
+  today (persisted). Max 6 show at once; dismissing one slides the next in. Once
+  you've started logging, the zone shrinks to a one-line horizontal strip so it
+  stops eating screen. "Log all" logs exactly the visible chips.
+- **Go-To dedup.** An exercise you're currently working lives ONLY in the
+  "· today" list; it leaves Go-To/Sometimes until you complete it, then returns
+  tagged "✓ done today".
+
+## v2.08 — Feedback batch 1: nine fixes
+- FIX double-tap zoom: tapping +/− quickly no longer zooms the page
+  (touch-action: manipulation). Chart pinch-zoom is unaffected.
+- FIX duplicate "Carried over from…" text: the static note under the Suggested
+  Session header is gone; the ⓘ bubble is now the only place it lives.
+- SIMPLER header: the "✓ showed up ·" prefix is dropped (the mark says it), and
+  the kg/lb and light/dark buttons moved into Settings under a new Display card —
+  they're set-and-forget, not every-session controls. Header is now: mark, date,
+  one status line, streak, gear.
+- MOVED "Heaviest / Best set" lines from the top of the exercise page to the very
+  bottom, under everything. Their "(−0 days ago)" oddity is fixed too: now reads
+  "today" / "yesterday" / "N days ago". Bottom of every page also gained real
+  padding against the home indicator.
+- INVERTED "Pace by month": faster months now sit lower, as requested.
+- BODYWEIGHT moves (Dip etc.): tiles and shortcut chips now read "BW × 12" instead
+  of "0 kg × 12", and the logger starts at bodyweight instead of a fake 20 kg.
+  Adding plates still works — type a weight and it reads "bodyweight + N".
+- DEFAULT WEIGHT is now saved per exercise: every change (stepper, typing, or
+  tapping a shortcut set) persists, so the exercise opens at exactly the weight
+  you last used, forever, until you change it again.
+- PLATE LINE simplified: "(1×25 + 1×2.5)" tally removed — it's now just
+  "20 kg bar + 10 kg per side".
+- ABOUT the "40 kg → 10.8 per side" report: the math was right — (40−20)/2 = 10
+  exactly — which means the stored weight was actually 41.6, almost certainly
+  drift from an lb-era value seeding the default. Two of the fixes above kill
+  this class of bug: inferred defaults now snap to clean stepper increments, and
+  your explicit per-exercise defaults are saved verbatim.
+
+Next: v2.09 = session flow (complete exercise/part/workout, live workout mode,
+rest count-up, suggested-as-shortcuts with ✕, Go-To dedup). v2.10 = duplicate/edit
+logged sets + today-vs-history visual. v2.11 = per-exercise progression.
+
 ## v2.07.4 — Logo goes monochrome
 - The mark is now pure black-and-white: both the shaft and the arrowhead are chalk.
   The accent blue is out of the logo entirely (it was in the v2.07.3 cut).
