@@ -1,5 +1,20 @@
 # ShowUp — changelog
 
+## v2.07.1 — Standalone-mode fixes
+- FIX: header no longer hides under the iPhone status bar / Dynamic Island when the
+  app is installed to the home screen. The page opts into edge-to-edge rendering
+  (viewport-fit=cover) and the bottom nav already padded for the home indicator,
+  but the header never got the matching top inset. In Safari the browser chrome
+  masked it; standalone exposed it. Header now pads by env(safe-area-inset-top).
+- FIX: theme (and any setting or set) could be lost if the app was closed within
+  ~350ms of the change. Saves are debounced, and iOS kills a home-screen app the
+  instant it's swiped away — the pending write simply died. This is why dark/light
+  seemed not to stick. Now a pagehide/visibilitychange flush writes synchronously
+  to localStorage the moment the app is backgrounded.
+- FIX: no more wrong-theme flash at launch. A one-line pre-paint script applies the
+  saved theme from a tiny mirror key before any CSS renders, instead of waiting for
+  the async data load.
+
 ## v2.07 — Motion pass
 Modern motion behaviors (the shadcn/Animate-UI language), implemented natively —
 zero dependencies, still one file. Guiding rule: if removing an animation makes the
