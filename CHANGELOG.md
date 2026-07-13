@@ -1,5 +1,37 @@
 # ShowUp — changelog
 
+## v2.14.3 — Portrait only
+- The app no longer follows the phone into landscape. Three layers, because
+  platforms differ: the manifest declares portrait (honored by Android and
+  desktop installs), screen.orientation.lock('portrait') is attempted at boot
+  where the API allows it, and on iPhone — where Apple gives web apps no way to
+  hard-lock — a full-screen veil covers the app in landscape ("Portrait only ·
+  Rotate your phone back") so it never renders sideways.
+- The veil is CSS-only, phone-scoped (coarse pointer + short viewport), so
+  iPads and desktop windows are unaffected, and it can't break rendering.
+- Deliberately NOT done: the rotate-the-DOM-90° hack — it fights the sticky
+  header, fixed nav, and safe-area insets, and fails in exactly the janky ways
+  this app avoids.
+
+## v2.14.2 — Header truth + scroll float
+- BUGFIX first: the ← was appearing on EVERY screen (your part-board screenshot),
+  not just inside exercises. Cause: .icobtn's display rule sat later in the
+  stylesheet than .hback's display:none at equal specificity, so it won. The back
+  button is now header-scoped (higher specificity, ordering-proof) and appears
+  only in exercise mode.
+- The ← follows Apple's HIG: the whole icon-button family is now a 44×44pt touch
+  target (up from 38), with a larger, heavier chevron. It reads as a button.
+- The logo is out of the header — the top-left is the back button's slot inside
+  an exercise, and empty otherwise. The mark lives on in the app icon.
+- The duplicate exercise title is gone: the page-level H1 was repeating what the
+  sticky header already says. One name, one place.
+- The session meter now reads as an explanation, not content: gray (surface2)
+  fill with a dashed border, its bar track flipped to keep contrast.
+- NEW scroll float: any card, zone, KPI row, or table that starts below the fold
+  drifts up 16px into place as it scrolls into view (IntersectionObserver; fires
+  once per render; fully disabled under Reduce Motion; guarded so motion can
+  never break rendering).
+
 ## v2.14.1 — Contextual back button
 - The redundant "← Legs" row on the exercise page is gone — the header already
   names the exercise and part right above it.
