@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v2.14.1 — Contextual back button
+- The redundant "← Legs" row on the exercise page is gone — the header already
+  names the exercise and part right above it.
+- In its place, the header's top-left slot is now contextual: inside an exercise,
+  the brand arrow swaps for a bordered ← button (same circular styling as the
+  gear, so it unmistakably reads as tappable) that returns to the part board.
+  Leave the exercise and the mark comes back. Same footprint, zero new chrome.
+- Settings keeps its own ← Back; nothing else moved.
+
 ## v2.14 — Edit in place + the session meter
 Closes the last two items from the July feedback batch.
 
