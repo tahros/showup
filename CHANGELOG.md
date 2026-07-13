@@ -1,5 +1,21 @@
 # ShowUp — changelog
 
+## v2.11 — Supabase-only, constant sync, and screenshot fixes
+- REMOVED "Backup to GitHub" entirely (markup, handlers, and the CSV machinery
+  with it). One sync system: Supabase. The bar-weight inputs — which quietly
+  shared GitHub's save button — got their own "Save bar weights".
+- REMOVED both CSV exports ("Export today" on the part board, "Export everything"
+  in History). The sheet era is over; the cloud is the backup.
+- CONSTANT SYNC: on top of the ~1s push after every change, the app now pushes on
+  every tab switch (debounced) and on every backgrounding/close — the close-time
+  push uses fetch keepalive so it completes even as iOS suspends the app.
+- Display buttons ("kg · km" / "Light ◐") are the same size now — a stale header
+  CSS rule was still targeting #unitBtn after the button moved to Settings.
+- Header status line never wraps: one line with ellipsis, and "3.45km" tightened.
+- Lift tab: today's logged exercises are visually distinct — accent left border,
+  faint blue tint, ● while open, ✓ once completed.
+- Today tab: "N sets →" columns align perfectly (right column no-wrap + pinned).
+
 ## v2.10.2 — Sync, the simple way + the Run cascade
 Sync direction is now one sentence: THE PHONE IS THE SOURCE OF TRUTH.
 - Cloud → phone happens exactly twice: first open on an empty device (restore),
