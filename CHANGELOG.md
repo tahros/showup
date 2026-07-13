@@ -1,5 +1,40 @@
 # ShowUp — changelog
 
+## v2.10.2 — Sync, the simple way + the Run cascade
+Sync direction is now one sentence: THE PHONE IS THE SOURCE OF TRUTH.
+- Cloud → phone happens exactly twice: first open on an empty device (restore),
+  and the moment you sign in (initial sync). Routine app opens no longer pull.
+- Phone → cloud happens everywhere else: automatically ~1s after every change,
+  and pull-to-refresh now force-pushes SYNCHRONOUSLY before reloading.
+- Why this fixes the "Supabase overrides my data" feeling: the old boot-time pull
+  merged by union, and a union can't represent deletions — delete a set, pull to
+  refresh before the debounced push fired, and the deleted set resurrected from
+  the cloud. Now deletions ride the forced push and stay dead.
+- Settings keeps "Pull ↓" as the one explicit restore-from-cloud action, and its
+  copy now explains the direction in plain words.
+- Safety unchanged: a device that hasn't restored yet still cannot overwrite the
+  cloud (the v2.09.1 reinstall protection).
+
+Also: completing the LAST open exercise or part now completes the whole workout.
+Morning run → tap "✓ Complete Run" → header cools. No second trip to Today
+required. Logging anything later reopens everything, as before.
+
+## v2.10.1 — Rest timer: deleting a set now lets go of the clock
+Reported: after deleting a logged set, the red header stayed on with the timer
+still ticking. Root cause was two-fold:
+- The timer anchored to the moment of the LAST LOGGED set — and deleting that set
+  never moved the anchor. Sets now carry a timestamp (`at`), and every removal
+  path (tap-to-delete, remove-exercise ✕, Clear today's, Undo) re-anchors the
+  clock to the newest remaining set, or stops it when none remain.
+- The red header itself was often CORRECT: a morning run keeps the workout open
+  all day (by design — complete it to close it), so deleting an evening lift set
+  leaves the header live. What was silly was a rest clock ticking for hours. The
+  timer now hides after 30 minutes without a set — 30+ minutes isn't "rest
+  between sets". The header stays red until you Complete the workout.
+Verified against the exact scenario: run 3h ago → timer hidden, header live →
+lift set → 0:00 ticking → delete it → header still live (run open), timer quiet →
+remove everything → header cools.
+
 ## v2.10 — Logger polish (feedback batch)
 - Suggested row moved BELOW "Log a set" — the primary action leads the page.
 - Your latest logged set now leads the Suggested strip (blue-outlined chip):
