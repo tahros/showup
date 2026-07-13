@@ -1,5 +1,39 @@
 # ShowUp — changelog
 
+## v2.13 — Your history moves into Supabase (stage 1)
+The 4–5 years of workout history (918 days, 7,845 rows, back to 2021-12-13) now
+lives in your Supabase row, not just inside index.html. Every push carries the
+full imported history under doc.archive, converted to the app's own day format.
+
+- Verified against the seed's own ground truth before shipping: an independent
+  recount of the pushed payload gives exactly 7,845 rows, 1,477.6 km, and
+  8,035,814 kg of lift volume — byte-for-byte agreement with the embedded totals.
+- The app still RENDERS from the embedded seed for now — zero behavioral change,
+  by design. This release is about where the data LIVES.
+- Settings shows the archive line under your account, so you can always see what
+  the cloud holds. You can also see the raw data yourself: Supabase → Table
+  Editor → app_state → doc → archive.
+- Push payload grows to ~0.5 MB per sync. Acceptable for now; goes away in
+  stage 2, when the archive becomes the app's actual working data.
+
+Stage 2 (v3.0, planned): the app computes all stats from raw days at boot, the
+archive merges into days as the single source of truth, and the embedded seed
+leaves index.html entirely — gated on a deep-diff harness proving derived stats
+match the embedded ones exactly.
+
+## v2.12 — Progression + Readiness
+- NEW **Progression chart** on every exercise page (below Logged today): top set
+  per session as a line, last ~14 sessions plus everything logged since. Red dots
+  mark TRUE PRs — the first session that tied or beat your all-time max, checked
+  against full history, not just the visible window. The latest session pulses
+  blue; first/last dates anchor the x-axis. Bodyweight-only moves (all-zero
+  history) chart top REPS instead. Hidden when under 3 sessions exist.
+- NEW **Readiness board** on Today (pre-gym), replacing the Rotation chips: each
+  main part is a bar filling toward how often you usually train it. Full blue
+  bar = due. Sorted most-ready-first, each row shows "Nd / every Md", and tapping
+  a row jumps straight into that part. Same data as before (your actual training
+  intervals) — now glanceable instead of readable.
+
 ## v2.11 — Supabase-only, constant sync, and screenshot fixes
 - REMOVED "Backup to GitHub" entirely (markup, handlers, and the CSV machinery
   with it). One sync system: Supabase. The bar-weight inputs — which quietly
