@@ -1,5 +1,26 @@
 # ShowUp — changelog
 
+## v2.07.4 — Logo goes monochrome
+- The mark is now pure black-and-white: both the shaft and the arrowhead are chalk.
+  The accent blue is out of the logo entirely (it was in the v2.07.3 cut).
+- All icons re-cut from the mono source: icon-192, icon-512, apple-touch-icon (180),
+  maskable-512.
+- Header mark simplified to a single currentColor — it still flips white on the
+  live-blue header, but the special-case rule for the accent arrowhead is gone.
+
+## v2.07.3 — New logo
+- NEW mark: a geometric up-arrow. Built on a 512 grid — 54px stroke, round caps,
+  arrowhead legs at exactly 45°, shaft on the vertical axis. Shaft in chalk, head in
+  the accent blue, so the mark uses the app's own palette rather than being flat
+  monochrome.
+- Replaces the generic bar-graph placeholder everywhere: icon-192, icon-512,
+  apple-touch-icon (180), plus a new maskable 512 (glyph scaled to a 72% safe zone
+  so Android's circle crop can't clip the arrowhead).
+- The mark now also sits in the app header, left of the date. It inherits the theme
+  (chalk in dark, ink in light) and flips fully white when the header goes live-blue
+  mid-session, so the accent-colored head can't disappear into the accent background.
+- Service worker pre-caches the icons; favicon added.
+
 ## v2.07.2 — Pull to refresh
 - NEW: hold the page down from the very top and let go — a circular indicator
   follows the pull, the arrow flips blue at the trigger point (72px), and on
