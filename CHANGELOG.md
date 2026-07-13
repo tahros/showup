@@ -1,5 +1,24 @@
 # ShowUp — changelog
 
+## v2.10 — Logger polish (feedback batch)
+- Suggested row moved BELOW "Log a set" — the primary action leads the page.
+- Your latest logged set now leads the Suggested strip (blue-outlined chip):
+  one tap duplicates it. Duplicate weights/reps dedupe so the strip stays tight.
+- The ⓘ bubble now includes a plain-text readout of the whole last session
+  ("Last session — Tue 7/7: 50×23 · 60×4 · 60×4 …") above the shortcut chips.
+- Bigger − / + steppers (76px wide, up from 56) — and each tap flashes the weight
+  red with a tiny scale pop. A little adrenaline, contained to 300ms.
+- Tapping the weight (or any numeric field: reps, distance, min, sec, bar) selects
+  the whole number — type straight over it, no manual deleting.
+- "Clear today's N" / "Move to another lift →" now share one row, one line each.
+- "✓ Complete …" buttons are now solid accent blue — unmissable.
+- Sticky header FIXED: it was declared sticky all along, but body{overflow-x:hidden}
+  silently disables sticky on iOS. Switched to overflow-x:clip, which clips without
+  creating a scroll container. Header (and the rest count-up) now stays put while
+  you scroll.
+- After "Complete workout", the "Continue <part> →" chips disappear from Today.
+  The exercise rows stay tappable — logging a set resumes everything, per v2.09.
+
 ## v2.09.1 — HOTFIX: the data-loss bug
 What happened: deleting/re-adding the home-screen app (e.g. to refresh the icon)
 wipes iOS localStorage. That should be fine — the cloud has everything — but two
