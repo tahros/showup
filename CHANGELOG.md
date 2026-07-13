@@ -1,5 +1,41 @@
 # ShowUp — changelog
 
+## v2.07 — Motion pass
+Modern motion behaviors (the shadcn/Animate-UI language), implemented natively —
+zero dependencies, still one file. Guiding rule: if removing an animation makes the
+UI harder to understand, it earns its place; otherwise it's decoration and it's out.
+Everything below vanishes under iOS "Reduce Motion", and the whole pass is wrapped
+so a motion failure can never break rendering.
+
+- **Tab transitions** — switching tabs cross-fades with a 3px drift via the View
+  Transitions API (iOS 18+ Safari; older browsers just get the instant swap).
+  In-view re-renders (logging a set, toggling a setting) intentionally do NOT
+  transition, so mid-workout logging never flashes.
+- **Tap feedback** — buttons, part cards, exercise rows and set tiles press in
+  ~4.5% with a 130ms spring. Confirms the touch; biggest win for in-gym use.
+- **Set-save moment** — the set you just logged springs into its tile; if it ties
+  or beats your best weight, one red pulse radiates out. Red still = records only.
+- **KPI count-ups** — plain numbers (1,478 km, streaks, session counts) tick up
+  over 450ms with ease-out. Paces and dates don't move.
+- **Staggered entrance** — cards and headers rise 8px with a 40ms stagger, capped
+  at 9 steps so long pages never feel slow.
+- **Chart draw-in** — every line chart sweeps left-to-right (consistency, YoY run,
+  pace); single-series bars grow from their baseline (weekly run, monthly training,
+  weekday). Stacked composition segments intentionally excluded — growing them
+  independently would tear the stack apart mid-animation.
+
+## v2.06 — Cloud credentials baked in
+- The Supabase project URL and anon key are now embedded in index.html, so a fresh
+  device (new phone, cleared Safari, incognito) never asks for them — Settings goes
+  straight to "Continue with Google". This was the chicken-and-egg on the iPhone:
+  the credentials lived in each device's localStorage, but a new device needed them
+  BEFORE it could sign in and sync.
+- The URL was embedded as the bare origin (the pasted /rest/v1 variant is trimmed).
+- Safe to embed: the anon key is public by design — every browser using the app sends
+  it anyway, and row-level security is what actually protects the data.
+- If values are ever saved manually in Settings, those still override the baked-in
+  ones (useful if the database ever moves).
+
 ## v2.05 — Run folds into Stats
 - The Run tab is gone after one version; nav is back to 4 tabs. The whole Run story
   now lives inside Stats, between "Every month, by part" and Records.

@@ -1,4 +1,4 @@
-const CACHE = 'showup-v2.06';
+const CACHE = 'showup-v2.07';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)));
