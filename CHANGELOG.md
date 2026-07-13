@@ -1,5 +1,18 @@
 # ShowUp — changelog
 
+## v2.07.2 — Pull to refresh
+- NEW: hold the page down from the very top and let go — a circular indicator
+  follows the pull, the arrow flips blue at the trigger point (72px), and on
+  release the whole app refreshes.
+- One gesture does three things in order: flushes any pending save (so nothing
+  is lost), asks the service worker to check for a newer app version, then
+  reloads — and the boot sequence cloud-pulls when signed in. So it means both
+  "freshest data" and "freshest app".
+- Pulls that start inside a zoomable chart are ignored, so the gesture never
+  fights pinch-zoom. Pulls only begin when the page is scrolled to the very top;
+  normal scrolling is untouched. The native rubber-band bounce is disabled
+  (overscroll-behavior) so the two effects don't stack.
+
 ## v2.07.1 — Standalone-mode fixes
 - FIX: header no longer hides under the iPhone status bar / Dynamic Island when the
   app is installed to the home screen. The page opts into edge-to-edge rendering
