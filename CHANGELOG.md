@@ -1,5 +1,34 @@
 # ShowUp — changelog
 
+## v2.14.4 — HOTFIX: doubled sets + stuck versions
+Two bugs, one update.
+
+DOUBLED SETS (root cause: Postgres jsonb). Supabase stores the cloud document as
+jsonb, which re-sorts object keys — a set leaves the phone as {part,ex,w,reps,at}
+and returns as {at,ex,part,reps,w}. The pull merge deduped by raw JSON.stringify,
+so the same set in two key orders looked different, and any Pull ↓ into non-empty
+local data duplicated EVERYTHING — which constant-sync then pushed back to the
+cloud, cementing it.
+- The merge now uses a key-order-insensitive signature. Verified: a pull of the
+  same day with jsonb-reordered keys adds exactly zero sets.
+- AUTOMATIC REPAIR at boot and after every pull: exact-duplicate sets sharing the
+  same `at` timestamp are provably clones (two real sets can't be logged in the
+  same millisecond) and are collapsed; a toast reports how many. Intentional
+  repeats (e.g. 8 real 70×10 dips) carry distinct timestamps and are untouched,
+  and pre-timestamp history is never touched at all. The repaired state pushes to
+  the cloud, cleaning it too. Verified against the exact broken state from the
+  screenshot: 10 sets → 5 (4 real dips + 1 run), old days untouched.
+
+STUCK VERSION (root cause: cache-first index.html). The service worker served the
+app shell cache-first forever, so a deployed update only appeared after the new
+worker activated — which the pull-to-refresh reload raced past.
+- The worker now serves stale-while-revalidate: instant from cache, refreshed in
+  the background.
+- The app auto-reloads ONCE when a new worker takes control (flushing saves
+  first), so a deployed version goes live within seconds of the next launch.
+- Expect one self-reload the first time you open v2.14.4 — that's the mechanism
+  working.
+
 ## v2.14.3 — Portrait only
 - The app no longer follows the phone into landscape. Three layers, because
   platforms differ: the manifest declares portrait (honored by Android and
