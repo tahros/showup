@@ -1,5 +1,22 @@
 # ShowUp — changelog
 
+## v2.17 — Wrap-around swipe, swipe cue, "I trained today", and the bounce
+- Swipe now WRAPS: right from Today lands on History, left from History lands on
+  Today. The four tabs are a loop, not a line.
+- A large translucent chevron appears on the edge you're swiping toward, growing
+  more opaque the further you drag (35% → 100% over 90px), and vanishes on
+  release. You can see the swipe register before you commit to it.
+- The header now says you TRAINED today: once a workout is logged and completed,
+  the status line is prefixed with an accent ✓ ("✓ 4 sets · Legs · 3.45km").
+  While a workout is live you get the pulsing red dot + timer instead, so the two
+  states never compete — ✓ means done, ● means now.
+- BOUNCE restored. Building pull-to-refresh in v2.07.2 required disabling the
+  native overscroll bounce, which flattened the whole app. Now: the top edge still
+  belongs to pull-to-refresh, but the bottom edge springs again — drag past the
+  end and the content stretches with diminishing returns (÷2.6, capped at 80px),
+  then snaps back with a slight overshoot, the way an Apple list does. Purely
+  visual; no scroll state is touched.
+
 ## v2.16 — Refresh in place, a pull you can feel, swipe between tabs
 - Pull-to-refresh no longer dumps you back on Today. Your tab, selected part, and
   open exercise are stashed before the reload and restored after — you land
