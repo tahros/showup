@@ -1,5 +1,19 @@
 # ShowUp — changelog
 
+## v2.16 — Refresh in place, a pull you can feel, swipe between tabs
+- Pull-to-refresh no longer dumps you back on Today. Your tab, selected part, and
+  open exercise are stashed before the reload and restored after — you land
+  exactly where you were. (Also applies to the auto-reload when a new version
+  installs.)
+- The page now FOLLOWS your pull: the whole view slides down with your finger and
+  springs back on release. The little arrow was never enough feedback on its own.
+- NEW swipe navigation: swipe left/right to move along the nav —
+  Today ↔ Lift ↔ Stats ↔ History. Clamps at both ends. Deliberately inert inside
+  an exercise page (← owns that axis there), on horizontally scrollable strips
+  (suggested chips, heatmap), on zoomable charts, and on set tiles, so it never
+  steals a gesture that already means something. A swipe must be clearly sideways
+  (1.5× more horizontal than vertical) and at least 60px, so scrolling is safe.
+
 ## v2.15 — Live-red semantics, Toss-grade dark mode, and a broken toast
 - BUGFIX (the "error at the bottom"): the v2.14.3 portrait-lock patch accidentally
   swallowed the #toast CSS selector, so every toast since then rendered as naked
