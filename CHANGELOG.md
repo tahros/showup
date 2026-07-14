@@ -1,5 +1,25 @@
 # ShowUp — changelog
 
+## v2.15 — Live-red semantics, Toss-grade dark mode, and a broken toast
+- BUGFIX (the "error at the bottom"): the v2.14.3 portrait-lock patch accidentally
+  swallowed the #toast CSS selector, so every toast since then rendered as naked
+  text at the bottom of the screen. Selector restored; stylesheet brace-balanced
+  and verified.
+- Settings gear is a TOGGLE now: tap it in Settings and you return to exactly the
+  screen you came from (Stats → Settings → Stats), nav highlight included.
+- ONE COLOR LANGUAGE for "now": while an exercise is open, its part tile AND its
+  row on the part board go live-red with a pulsing dot — matching the red header —
+  so tiles, rows, and header all agree on what you're doing right now. Completing
+  flips both to gray with "✅ today" (tile dims to 55%, row loses its tint). 🔥 is
+  reserved for in-progress; ✅ means done.
+- DARK MODE lifted toward Toss-style legibility: background #17181D, surfaces
+  #20222A / #2B2E38 with clearer separation, lines #3C404C, secondary text up
+  from #8B909C to #A2A8B6, faint text up to #747A8A. Same design, more light.
+- BUTTON TYPE UNIFIED: all ghost buttons share one 14px size (the Undo row no
+  longer mismatches Clear/Move — nor anything else at that level).
+- Progression chart labels reduced (7 → 5.5 in chart units) per the screenshot;
+  no more billboard-sized axis dates.
+
 ## v2.14.4 — HOTFIX: doubled sets + stuck versions
 Two bugs, one update.
 
