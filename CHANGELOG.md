@@ -1,5 +1,21 @@
 # ShowUp — changelog
 
+## v2.18 — The motivation layer
+- NEW **progressive-overload nudge**, in the Log-a-set card directly under the
+  stepper it's about to change: "Same 60 kg for 3 sessions — try 62.5?" One tap
+  sets the weight (and saves it as that exercise's default). ✕ dismisses it until
+  the weight actually moves — it can't nag you at the same number twice. Fires
+  only at 3+ identical top sets, and never on bodyweight-only moves, whose
+  progression is reps, not load.
+- NEW **milestone crossing**: passing any 100-unit boundary (1,500 km is imminent)
+  is now a real event — recorded once, announced once, never nagged.
+- NEW **yearly goal** in the Run section: declare a target and the app tracks it
+  honestly — a progress bar with a tick marking where you SHOULD be today, an
+  ahead/behind figure, and your projected year-end total. Unset, it just tells you
+  what you're projecting and offers a suggestion based on last year.
+- Fixed a temporal-dead-zone bug caught in testing: the goal card referenced the
+  year-totals map before the chart built it.
+
 ## v2.17 — Wrap-around swipe, swipe cue, "I trained today", and the bounce
 - Swipe now WRAPS: right from Today lands on History, left from History lands on
   Today. The four tabs are a loop, not a line.
