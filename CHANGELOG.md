@@ -1,5 +1,17 @@
 # ShowUp — changelog
 
+## v2.18.2 — The nudge learns what weights actually exist
+- "Try 24.5 kg" on a dumbbell exercise was nonsense — no rack on earth has 24.5s.
+  The suggested next weight now comes from YOUR OWN HISTORY first: the smallest
+  weight above your plateau that you've actually used on that exercise (for
+  Dumbbell Combination at 22, that's 25 — you've lifted it before, it exists).
+  Only when nothing above exists in history does it fall back to an increment,
+  and that increment is now equipment-honest: +2 kg for dumbbells, +2.5 kg for
+  bars and machines, +5 lb in imperial.
+- Layout fixed: the suggestion button was inheriting width:100% from the base
+  button style, crushing the text into a one-word-per-line column. Text now gets
+  the row (flex:1), the button hugs its label, nothing wraps.
+
 ## v2.18.1 — Gym feedback: four fixes
 - "Days trained, by month": the current month reads correctly now — the trained
   count sits INSIDE the filled bar in white, the number above the dashed outline
