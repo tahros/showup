@@ -1,5 +1,20 @@
 # ShowUp — changelog
 
+## v2.18.1 — Gym feedback: four fixes
+- "Days trained, by month": the current month reads correctly now — the trained
+  count sits INSIDE the filled bar in white, the number above the dashed outline
+  is days elapsed (16 as of 7/16), and the summary line says both ("10 trained ·
+  6 rested / 16 days into 07").
+- "Every month, by part" scrolls sideways again: the chart's horizontal axis was
+  being stolen by tab-swipe. The scroll container is now on the swipe blocklist,
+  same as the heatmap and suggestion strip.
+- Records: the pace unit ("/km") joins the bold mono figure instead of dangling
+  in the body font.
+- Logged sets are now visibly DONE: gray fill, dimmed (72%), no accent border —
+  while Suggested chips keep their outline and blue reps. The two can no longer
+  be confused, which matters because tapping a logged tile deletes it. (The set
+  you just saved springs in at full opacity before settling into the dim state.)
+
 ## v2.18 — The motivation layer
 - NEW **progressive-overload nudge**, in the Log-a-set card directly under the
   stepper it's about to change: "Same 60 kg for 3 sessions — try 62.5?" One tap
