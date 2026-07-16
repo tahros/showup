@@ -1,5 +1,24 @@
 # ShowUp — changelog
 
+## v2.19.1 — HOTFIX: completion state travels between devices
+Reported: laptop refreshed onto v2.19, pulled today's session — and showed the
+workout as LIVE (red) although it was completed on the phone.
+
+Cause: a transitional hole. Days completed BEFORE v2.19 carry no edit stamp, so
+they merge via the legacy union path — which merged the sets array but silently
+dropped the completion flags (doneAll / doneEx / donePart). Sets arrived,
+completion didn't.
+
+Fix: the legacy union now merges completion state too — completed anywhere means
+completed everywhere (doneAll OR, done-lists unioned, lastAt maxed, dismissed
+suggestions combined). Logging a new set still reopens the day as always, and
+from that moment the day is stamped and lives under clean per-day
+last-writer-wins.
+
+Verified against the exact report: laptop with unstamped mid-workout copy pulls
+the phone's completed copy → completion arrives, no set duplication, header
+cools, ✓ prefix shows; a fresh set reopens and stamps the day.
+
 ## v2.19 — Multi-device sync, done properly
 The laptop joined the phone, exposing v2.10.2's stated limitation: with routine
 pulls disabled, a second device shows its own stale copy forever. The sync model
