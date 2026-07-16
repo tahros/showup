@@ -1,5 +1,32 @@
 # ShowUp — changelog
 
+## v2.19 — Multi-device sync, done properly
+The laptop joined the phone, exposing v2.10.2's stated limitation: with routine
+pulls disabled, a second device shows its own stale copy forever. The sync model
+graduates:
+
+- **Per-day last-writer-wins.** Every mutation stamps its day (`upd`). Pulls
+  compare day by day: the newer version of each day wins WHOLE — which means
+  deletions finally propagate between devices (deleting a set makes your copy
+  newer, so the deletion travels). Days from before v2.19 have no stamp and keep
+  the old key-order-safe union merge.
+- **Every device pulls on open**, and again when a tab regains focus after 2+
+  minutes away — the laptop left open overnight catches up the moment you return.
+- **Strict pull-before-push, no exceptions.** The old "established device may push
+  without pulling" shortcut is gone; it was safe for one device and dangerous for
+  two. Offline, changes stay local and push after the next successful pull.
+- Settings copy updated: "Devices sync on open and on return, day by day — the
+  newest edit of each day wins everywhere."
+
+Verified against the exact reported divergence: stale laptop boots → today's
+session appears; laptop deletes a set → phone receives the deletion; a locally
+newer day survives a pull of older cloud data.
+
+Honest edge to know: if you train the SAME day on BOTH devices without either
+syncing in between, the day with the later edit wins whole. For one human with
+one body, that's a corner case — flag it if it ever bites and I'll do set-level
+merging.
+
 ## v2.18.2 — The nudge learns what weights actually exist
 - "Try 24.5 kg" on a dumbbell exercise was nonsense — no rack on earth has 24.5s.
   The suggested next weight now comes from YOUR OWN HISTORY first: the smallest
