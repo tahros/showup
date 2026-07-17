@@ -1,5 +1,25 @@
 # ShowUp — changelog
 
+## v3.2.1 — The seed leaves the building
+The 918-day embedded seed literal is GONE: **650 KB → 194 KB (71% smaller)**.
+SEED0 now carries only static config — catalog, exercise→part map, equipment
+types (7.5 KB) — plus empty maps for safety. History lives where v3.0 put it:
+doc.days in Supabase + localStorage, derived at boot.
+
+- Fresh installs boot EMPTY (all tabs render, first set logs cleanly — one
+  null-guard added to History's year loop) or restore fully from the cloud on
+  sign-in. This is the substrate v3.1 Clean Slate builds on.
+- Migrated devices are untouched: their days live in storage, not the file.
+- Disaster recovery: the full seed is preserved forever in git tag
+  **v3.2-last-seed** (and every tag back to v3.0).
+- Gate note: shipped ahead of the full gym-week gate at Sungjee's call — with
+  the gate's purpose already served by the byte-exact harness, in-app
+  verification, and three days of live use; and with SEED0's fallback value
+  actually NEGATIVE post-unit-conversion (it held mile/lb-ledger numbers).
+
+Smoke-verified: migrated-device boot, fresh empty boot (all tabs + first set),
+fresh device + cloud restore.
+
 ## v3.2 — Daily Fire + iron-true suggestions
 - NEW **Daily Fire** on the Today tab, mid-session: today's total volume drawn as
   a red line climbing the sorted distribution of ALL your past lift days (60-bar
