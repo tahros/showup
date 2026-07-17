@@ -1,5 +1,18 @@
 # ShowUp — changelog
 
+## v2.19.4 — Red where the work is, bodyweight in Settings, bar edits that reach
+- The part you're ACTIVELY working now shows it: selected + live = solid red tile
+  with a slow breathing dim (2.2s cycle; off under Reduce Motion). Red mode is
+  finally consistent from header to tile to row.
+- **Bodyweight** joins the bar weights in Settings. Bodyweight moves (Pull Up,
+  Dip…) default their weight to it, and the loadline reads "your bodyweight ·
+  70 kg" when it matches — or points you to Settings when unset. Focus-selects
+  like every numeric field.
+- The in-lift bar editor now offers TWO scopes: "This lift" (per-exercise
+  override, as before) or "All barbell / All Smith" — which updates the universal
+  setting and clears this exercise's override so the global actually applies.
+  No more editing the same bar twice in two places.
+
 ## v2.19.3 — The nudge understands modality
 "Try 72.5 kg" on Pull Up meant "gain 2.5 kg of body mass" — nonsense. The nudge
 now knows what kind of movement it's looking at:
