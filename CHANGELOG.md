@@ -1,5 +1,23 @@
 # ShowUp — changelog
 
+## v2.19.8 — The part-tile state table (rules first, then paint)
+After several rounds of visual patches collided (pale-pink-with-white-text
+tiles), the tile system was rebuilt from an explicit state table, agreed with
+Sungjee before implementation:
+
+|                    | selected            | not selected                    |
+| ACTIVE (red mode)  | RED fill, white text| white, thin red border, 🔥      |
+| COMPLETED today    | BLUE fill, ✅       | white, dimmed 65%, ✅           |
+| RECENT             | BLUE fill           | white                           |
+| DORMANT            | —                   | gray, dimmed 45%                |
+
+- Fill = what you're viewing; red fill only ever means "viewing the active part".
+- Suggested pick = thin DASHED accent border, idle days only, never in red mode.
+- All v2.19.4–v2.19.6 tile rules (breathe animation, tinted selection, .55 dim,
+  pulsing tile text) are REMOVED, not just overridden — every selector now has
+  exactly one authority in the stylesheet, verified by an automated check that
+  counts rule occurrences and asserts the winning declaration.
+
 ## v2.19.7 — Only you complete a body part: the Reopen button
 The part board now ALWAYS carries the part-level control:
 - Part open → "✓ Complete <part>" (unchanged).
