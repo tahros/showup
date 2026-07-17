@@ -1,5 +1,18 @@
 # ShowUp — changelog
 
+## v2.19.6 — Part tiles that tell the truth, calmly
+- The ACTIVE part tile is now a steady **red border** — no fill takeover, no
+  dimming animation. Selected adds only a faint red tint. Calm and unambiguous.
+- The blue "suggested part" highlight (the rotation's pick) is suppressed during
+  red mode: no suggestions while you're mid-workout. Idle, it returns unchanged.
+- A part no longer dims until YOU complete it. Previously, completing the last
+  open exercise auto-completed the part — so finishing Pull Up dimmed all of
+  Back while you were still training it. Part-openness is now a part-level
+  fact: sets exist and you haven't hit "Complete <part>". The one-tap cascade
+  survives exactly where it belongs — single-exercise parts (Complete Run still
+  closes everything). "Complete <part>" closes the day only when every trained
+  part is explicitly completed. Logging a new set still reopens, as always.
+
 ## v2.19.5 — Red mode reaches the Today tab
 - Today's per-exercise rows now speak the same language as the Lift tab: an OPEN
   exercise is red with a pulsing ● and tinted row; a completed one is gray with
