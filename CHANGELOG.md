@@ -1,5 +1,21 @@
 # ShowUp — changelog
 
+## v3.2.2 — Rest days exist only in the past tense
+Sungjee, at the gym door before opening time, was told "REST DAY, SO FAR · 1
+rest day in a row" — while the streak flame on the same screen said 🔥 2d.
+The app was counting an empty TODAY as an already-decided rest day.
+
+Now an empty today is UNWRITTEN, not rested:
+- gap (rest-days-in-a-row) counts completed days only — the walk starts at
+  yesterday. Trained yesterday → "2d streak · today unwritten" (agrees with
+  the flame). Real rest run → "N rest days in a row · today unwritten".
+- "N rest days in the last 21" no longer counts an empty today.
+- Year-% divides by elapsed days EXCLUDING an unwritten today — the morning
+  no longer dilutes your consistency before you've had the chance to train.
+- Header: "Rest day, so far" → "Nothing logged yet".
+- Today's calendar square: dashed outline (pending), not rest-empty. It fills
+  when you train; it only becomes a rest square at midnight, retroactively.
+
 ## v3.2.1 — The seed leaves the building
 The 918-day embedded seed literal is GONE: **650 KB → 194 KB (71% smaller)**.
 SEED0 now carries only static config — catalog, exercise→part map, equipment
