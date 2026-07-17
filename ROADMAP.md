@@ -108,3 +108,4 @@ competition.
 - 2026-07-17: Cohorts pseudonymous, cheering-first (Sungjee)
 - 2026-07-18: Sheet-era units decoded per equipment (miles; smith=kg, dumbbell=lb-of-kg-iron, barbell=per-side-lb+45lb bar, stacks=lb); benchmark week = 07-13 onward (Sungjee)
 - 2026-07-18: Historical corrections are stamped in-app migrations with pre-conversion backups — never manual data edits (pattern)
+- 2026-07-18: Rest is ABSENCE, never declared — "absence IS a choice." An empty today is unwritten until midnight; no rest-marking UI, ever (Sungjee)
