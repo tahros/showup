@@ -1,5 +1,22 @@
 # ShowUp — changelog
 
+## v2.19.2 — Red mode follows you + the flag ping-pong ends + plate-honest nudges
+- COMPLETION CONVERGENCE, finished: v2.19.1 fixed the flag merge, but a device
+  that had already pushed a flag-less copy could keep the cloud flag-less — the
+  "laptop stays red" ping-pong. Every pre-v2.19 day now gets a deterministic
+  stamp (lastAt, or noon of that day) at boot AND on the remote side of every
+  pull, so both devices agree on every day's age. Equal stamps merge flags; any
+  real edit stamps Date.now() and wins outright. The asymmetry is structurally
+  gone.
+- RED MODE (official name, per Sungjee) now follows the work: returning to the
+  Lift tab mid-workout lands on the part of your latest OPEN set — not the
+  rotation's suggestion. Off red mode, the default pick is unchanged.
+- PLATE-HONEST nudge increments, per unit system. "45 → try 47.5" meant a
+  nonsense 13.75 kg per side. Fallback increments now land on buildable weights:
+  barbell/smith +5 kg (one 2.5 plate per side) or +10 lb; dumbbells +2 kg / +5 lb;
+  machines +2.5 kg / +5 lb. History-first suggestion unchanged — the fallback
+  only fires at your all-time max.
+
 ## v2.19.1 — HOTFIX: completion state travels between devices
 Reported: laptop refreshed onto v2.19, pulled today's session — and showed the
 workout as LIVE (red) although it was completed on the phone.
