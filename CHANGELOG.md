@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v2.19.9 — Pulsation returns, as color
+Per Sungjee: the v2.19.8 state table stays exactly as agreed, and the active
+part gets its pulse back — as COLOR oscillation on the red elements only, never
+a whole-tile brightness dim:
+- Active, not selected: the red border and 🔥 breathe between two reds (1.8s).
+- Active, selected: the red fill itself pulses between --live and a deeper red;
+  the white text stays solid and fully legible throughout.
+- Off under Reduce Motion, like all motion in the app.
+
 ## v2.19.8 — The part-tile state table (rules first, then paint)
 After several rounds of visual patches collided (pale-pink-with-white-text
 tiles), the tile system was rebuilt from an explicit state table, agreed with
