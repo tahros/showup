@@ -1,5 +1,34 @@
 # ShowUp — changelog
 
+## v3.0 — The Foundation: single source of truth
+The seed stops being the truth. All stats now derive at boot from raw days;
+your Supabase doc.days holds the full 918-day history as ordinary, editable,
+syncable data.
+
+- **deriveAll()**: rebuilds every stat map (totals, monthly, PRs, per-exercise
+  history, frequencies, rep patterns, last-session data) from raw days at boot,
+  in ~tens of ms. The builder was proven BYTE-EXACT against the embedded seed in
+  an offline harness across all 918 days / 7,845 rows, then re-verified in-app:
+  all ten time-independent maps identical; totals 918 · 1,477.6 km · 8,035,814 kg.
+- Reverse-engineered semantics now encoded (and documented in the source):
+  partCount counts rows not days; partDays/exFreq are 365-day windows; monthly
+  sets are lifts-only; PR excludes Run while repFreq includes it; repFreq ties
+  break by first appearance; lastSess skips rep-less sessions; monthly km is a
+  raw-float sum with decimal-correct rounding (Python and JS disagree at .x5).
+- **Windows now anchor at TODAY** — "last 365 days" finally means the last 365
+  days, not 365 days before the July import. totals.last lands on yesterday, so
+  every existing live-today code path works unchanged.
+- **migrateV3()**: one-time, stamped, non-destructive — bootstrap history merges
+  into days wherever a day doesn't already exist; app-logged days are never
+  touched. A pre-migration dailyBackup snapshots first.
+- Pulls re-derive; pushes drop the duplicate archive payload.
+- The embedded seed remains in-file as SEED0 (migration source + fallback) for
+  exactly one release: v3.0.1 strips it (~75% file shrink) after a full gym week
+  on derived stats, per the roadmap gate.
+
+Rollback: tag v2.19.10 (and v2.19.1) restore the pre-foundation app; data
+remains compatible in both directions.
+
 ## v2.19.10 — Go-To tiers learn recency
 Reported: Incline Barbell Bench Press sat in "Sometimes" despite being trained
 4 days ago, while Flat Smith Bench held "Go-To" at 1486 days ago / 0× this year.
