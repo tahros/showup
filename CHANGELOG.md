@@ -1,5 +1,20 @@
 # ShowUp — changelog
 
+## v3.2 — Daily Fire + iron-true suggestions
+- NEW **Daily Fire** on the Today tab, mid-session: today's total volume drawn as
+  a red line climbing the sorted distribution of ALL your past lift days (60-bar
+  sparkline of the full 915-day distribution). Headline gives your standing —
+  "bigger than 71% of your 915 lift days", or "#12 biggest lift day of 915" once
+  you're in the top quartile — and each added set shows a ▲N ranks-gained chip.
+  Run-only days get the km variant against all 900 run days. Disappears on rest
+  days; distribution recomputes after any pull.
+- Nudge suggestions are now IRON, never arithmetic (Sungjee's rule: no decimals,
+  ever). Every candidate — history-first included — snaps to buildable loads:
+  kg mode barbell/smith = bar + whole 5 kg steps (one 2.5 plate per side, using
+  your per-exercise bar setting), dumbbells = whole-kg bells, stacks = 5s;
+  lb mode = 10 lb bar steps / 5 lb bells and stacks. Snapped value must strictly
+  beat the plateau. The converted 61.2 kg Row plateau now suggests exactly 65.
+
 ## v3.0.3 — History duplicates fixed
 Reported: History showed duplicate entries. Cause: allDays() (the History day
 detail source) merged SEED.sessions with DB.days by CONCATENATION — safe before
