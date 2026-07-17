@@ -1,5 +1,5 @@
 # ShowUp — Product Roadmap
-*Last updated: 2026-07-17 · Owner: Sungjee · Living document*
+*Last updated: 2026-07-18 · Owner: Sungjee · Living document*
 
 ## Mission
 Days > volume. ShowUp exists to make **showing up** the thing people optimize,
@@ -27,7 +27,7 @@ who they are; they want one that finally reflects it.
 
 ---
 
-## v3.0 — The Foundation  *(next; dedicated session; rollback tags in place)*
+## v3.0 — The Foundation  *(SHIPPED 2026-07-18: v3.0 → v3.0.3)*
 The seed leaves index.html. All stats derive at boot from raw days; the Supabase
 archive merges into `days` as the single source of truth.
 - Boot-time derivation of all stat maps, gated on a **diff harness** proving
@@ -35,7 +35,11 @@ archive merges into `days` as the single source of truth.
 - Archive → days migration, stamped for per-day LWW sync.
 - index.html shrinks ~75%; push payload stops carrying the duplicate archive.
 - Seed retained one release as dormant fallback; stripped in v3.0.1.
-**Gate:** harness passes byte-exact; Sungjee daily-drives one full gym week.
+**Gate:** harness byte-exact ✅ (all 13 maps, 7,845 rows) · gym-week daily-drive: IN PROGRESS (counts from 07-18, post unit corrections).
+Shipped along the way: v3.0.1 true kilometers (sheet runs were miles → 2,377.8 km);
+v3.0.2 true weights (per-equipment ledger decoding, benchmark-calibrated → 6,522,091 kg,
+Squat PR 120.2); v3.0.3 History de-duplication + consumer audit.
+**v3.0.4 (pending gate): strip embedded SEED0 → ~75% file shrink.**
 
 ## v3.1 — Clean Slate  *(minor · the hand-off build)*
 A new Google account boots to an honest, welcoming empty app.
@@ -102,3 +106,5 @@ competition.
 - 2026-07-17: Monetize depth, never data (Sungjee + Claude)
 - 2026-07-17: Serverless until 10+ committed users (Sungjee)
 - 2026-07-17: Cohorts pseudonymous, cheering-first (Sungjee)
+- 2026-07-18: Sheet-era units decoded per equipment (miles; smith=kg, dumbbell=lb-of-kg-iron, barbell=per-side-lb+45lb bar, stacks=lb); benchmark week = 07-13 onward (Sungjee)
+- 2026-07-18: Historical corrections are stamped in-app migrations with pre-conversion backups — never manual data edits (pattern)
