@@ -1,5 +1,33 @@
 # ShowUp — changelog
 
+## v3.0.2 — The ledger, decoded: true weights
+The sheet's weight column wasn't one unit — it was a five-year ledger with
+per-equipment conventions, decoded with Sungjee against his benchmark week
+(entries from Mon 2026-07-13 = honest total kg) and calibrated on real data:
+
+| equipment      | sheet convention              | conversion                              | example |
+|----------------|-------------------------------|------------------------------------------|---------|
+| smith          | already total kg              | UNTOUCHED (calibration exact: 60→60)     | 60 → 60 |
+| dumbbell       | lb ledger of kg iron          | ×0.45359, snap 1 kg bells                | 26.45 → 12 |
+| barbell        | PER-SIDE lb, 45 lb bar excl.  | (2×side+45)×0.45359, 0.1 kg              | Row 45 → 61.2 |
+| machine/cable  | lb stack faces                | ×0.45359, snap 2.5 kg stack              | Fly 100 → 45 |
+| Pull Up        | 70 = his kg bodyweight        | stays 70                                 | 70 → 70 |
+| Dip            | noise values (25/50)          | all → 70 (full-bodyweight movement)      | 25 → 70 |
+| Leg Raises     | meaningless weights           | all → 0 (bodyweight label, no fake volume)| 20 → 0 |
+| Chest Squeeze  | lb plate                      | ×0.45359, 1.25 kg grid                   | 25 → 11.25 |
+
+Cut: rows before 2026-07-13. One targeted post-cut fix: Dumbbell Combination
+22 → 10 (admitted leftover habit; true bell is 10 kg).
+
+Headlines: lifetime volume corrects to **6,522,091 kg** true (was 8,035,814
+mislabeled). Squat PR becomes **120.2 kg** (110/side + bar), Deadlift **138.3**.
+All PRs, session meters, and history-first nudge suggestions now operate on
+physically true, plate-real numbers.
+
+Safety: pre-conversion snapshot at localStorage['showup:bak:preunits'];
+idempotent via synced flag; converted days stamped for cross-device LWW;
+runs (v3.0.1) untouched and verified.
+
 ## v3.0.1 — True kilometers
 Sungjee flagged that pre-app data was "logged as lbs and miles." Forensics on
 all 7,845 rows said: half right —
