@@ -1,5 +1,19 @@
 # ShowUp — changelog
 
+## v3.0.3 — History duplicates fixed
+Reported: History showed duplicate entries. Cause: allDays() (the History day
+detail source) merged SEED.sessions with DB.days by CONCATENATION — safe before
+v3.0 when the two were disjoint (archive ≤ 07-10, app ≥ 07-11), but since v3.0
+SEED.sessions is DERIVED FROM DB.days, so every historical day existed in both
+sources and every set rendered twice.
+
+Fix: DB.days now REPLACES in the merge — it is the source of truth. A full audit
+of every other SEED.sessions consumer (runDays, avgSessionVol, monthly
+composition chart, overload-nudge history) confirmed they were already guarded
+by d>totals.last or Set-deduped; allDays was the sole offender.
+
+Side benefit: History day details now display the converted true weights.
+
 ## v3.0.2 — The ledger, decoded: true weights
 The sheet's weight column wasn't one unit — it was a five-year ledger with
 per-equipment conventions, decoded with Sungjee against his benchmark week
