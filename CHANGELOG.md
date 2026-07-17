@@ -1,5 +1,23 @@
 # ShowUp — changelog
 
+## v3.0.1 — True kilometers
+Sungjee flagged that pre-app data was "logged as lbs and miles." Forensics on
+all 7,845 rows said: half right —
+- DISTANCES were miles: 901-run median pace of 12.7–14.5 min/unit only makes
+  sense in miles (12.7 min/mi = 7'54"/km, matching the app-measured 7'46"/km);
+  zero conversion artifacts meant raw treadmill readings.
+- WEIGHTS were always kg: Pull Up/Dip read 70 (his kg bodyweight) in every year;
+  2026 sheet weights numerically match app-logged kg from the same week.
+
+So: migrateMiles() converts Run distances ×1.609344 for sheet-era days only
+(≤ 2026-07-10), leaves every weight untouched, stamps converted days so the
+fix syncs to all devices, and is idempotent via a synced flag. Milestone
+bookkeeping catches up silently.
+
+The headline: 1,477.6 miles = **2,377.8 km**. The 1,500 km "upcoming"
+milestone was crossed in 2023. Verified: totals.vol and every PR bit-identical;
+double-boot does not double-convert.
+
 ## v3.0 — The Foundation: single source of truth
 The seed stops being the truth. All stats now derive at boot from raw days;
 your Supabase doc.days holds the full 918-day history as ordinary, editable,
