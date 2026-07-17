@@ -1,5 +1,18 @@
 # ShowUp — changelog
 
+## v2.19.10 — Go-To tiers learn recency
+Reported: Incline Barbell Bench Press sat in "Sometimes" despite being trained
+4 days ago, while Flat Smith Bench held "Go-To" at 1486 days ago / 0× this year.
+Two causes, two fixes:
+- A 'core' pin (tier override) made Flat Smith unconditionally Go-To forever.
+  Pins now expire after 365 days without training the movement.
+- The Go-To gate required 3+ sessions in the trailing-year count, which is
+  anchored to the imported history — a NEW staple could never qualify. Now a
+  repeated recent habit is Go-To on its own: 2+ sessions in the last 60 days,
+  whatever the lifetime count says. Switching staples (Smith → Barbell incline)
+  is reflected within weeks, not next year. The frequency path remains as a
+  second door for long-standing staples.
+
 ## v2.19.9 — Pulsation returns, as color
 Per Sungjee: the v2.19.8 state table stays exactly as agreed, and the active
 part gets its pulse back — as COLOR oscillation on the red elements only, never
