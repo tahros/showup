@@ -1,5 +1,20 @@
 # ShowUp — changelog
 
+## v2.19.3 — The nudge understands modality
+"Try 72.5 kg" on Pull Up meant "gain 2.5 kg of body mass" — nonsense. The nudge
+now knows what kind of movement it's looking at:
+
+- **Bodyweight** (pull ups, dips, etc.): progression is REPS. Plateau at the same
+  top reps for 3+ sessions → "Same 12 reps for 14 sessions — one more?" Tapping
+  the button prefills the reps box with the target. Dismissal is keyed to that
+  rep count, so it only returns when your reps actually move.
+- **Free weight / Smith**: plate-honest weight steps (+5 kg total, one 2.5 per
+  side; +10 lb imperial) — as of v2.19.2, unchanged.
+- **Dumbbells**: rack steps (+2 kg / +5 lb) — unchanged.
+- **Machines**: stack steps (+2.5 kg / +5 lb) — unchanged.
+- History-first still applies to all weighted modes: a weight you've used before
+  always beats a computed increment.
+
 ## v2.19.2 — Red mode follows you + the flag ping-pong ends + plate-honest nudges
 - COMPLETION CONVERGENCE, finished: v2.19.1 fixed the flag merge, but a device
   that had already pushed a flag-less copy could keep the cloud flag-less — the
