@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v2.19.5 — Red mode reaches the Today tab
+- Today's per-exercise rows now speak the same language as the Lift tab: an OPEN
+  exercise is red with a pulsing ● and tinted row; a completed one is gray with
+  ✓. One glance at Today tells you exactly where you are mid-workout.
+- "Continue <part> →" appears only for parts with something OPEN to continue.
+  Completed Run no longer begs for continuation — the Run row itself stays
+  tappable if you genuinely want to add another run (which reopens it, as
+  always).
+
 ## v2.19.4 — Red where the work is, bodyweight in Settings, bar edits that reach
 - The part you're ACTIVELY working now shows it: selected + live = solid red tile
   with a slow breathing dim (2.2s cycle; off under Reduce Motion). Red mode is
