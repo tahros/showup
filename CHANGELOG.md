@@ -1,5 +1,16 @@
 # ShowUp — changelog
 
+## v2.19.7 — Only you complete a body part: the Reopen button
+The part board now ALWAYS carries the part-level control:
+- Part open → "✓ Complete <part>" (unchanged).
+- Part completed → "<part> completed ✓ — Reopen": one tap removes the completion,
+  reopens the workout (red mode resumes), un-dims the tile, and stamps the day
+  for sync. Individual exercise ✓s are preserved — reopening the part doesn't
+  forget which exercises you finished.
+No more being stuck when a completion happened that you disagree with (including
+ones the pre-v2.19.6 auto-cascade applied). Only you decide when a body part is
+done — and now you can un-decide too.
+
 ## v2.19.6 — Part tiles that tell the truth, calmly
 - The ACTIVE part tile is now a steady **red border** — no fill takeover, no
   dimming animation. Selected adds only a faint red tint. Calm and unambiguous.
