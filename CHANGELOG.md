@@ -1,5 +1,26 @@
 # ShowUp — changelog
 
+## v3.1.13 — Stats decluttered: two charts that answer questions
+Sungjee's verdict on the stacked monthly chart ("I HATE scrolling a chart")
+and the radar ("doesn't further my understanding nor prompt any action"):
+both deleted outright. Replaced by two scroll-free views, one question each:
+
+- **Showing up, every month** — a year × month grid, days-trained per cell,
+  darker = more, dashed outline on the month still being written. Five years
+  of history on one phone screen, scroll-free by construction. (This is also
+  the image the future monthly report card will reuse.)
+- **Last 30 days, vs your usual** — sessions per part against YOUR OWN
+  12-month rhythm, worst drift sorted first: "Back 1 · usually 4 ↓". The
+  tick on each bar is your usual; on-pace parts stay quiet; parts with no
+  established rhythm and no recent activity are hidden entirely. The baseline
+  is you, not an implied ideal — so the only output is the thing quietly
+  slipping before you noticed.
+
+Bug caught in testing: partDays is an array of dates, not a count — the
+first drift build divided an array by 365 and NaN silently disabled every
+threshold. One .length restored the math; scenario tests (slipping / steady
+/ ancient) all pass.
+
 ## v3.1.12 — Tap the red header to return to your session
 In live mode the header IS the session — tapping it now jumps straight to
 the active exercise: the most recent set today whose part is still open
