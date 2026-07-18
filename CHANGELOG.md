@@ -1,5 +1,20 @@
 # ShowUp — changelog
 
+## v3.1.5 — Onboarding actually renders (CSS variable hotfix)
+Sungjee signed out on his phone and got a collage: transparent overlay, black
+serif logo, the Today hero bleeding through. Root cause: v3.1's CSS referenced
+var(--bg)/--fg/--card — names that DON'T EXIST in the theme (real names:
+--ground/--chalk/--surface). Buttons survived only because the app styles
+<button> globally. jsdom tests assert DOM, not paint, so it sailed through.
+
+Fixed: all 8 bad references renamed; #onb and #demoBar (which live on <body>,
+outside the app wrapper's cascade) now carry their own font-family and color.
+Added a permanent build check: every var(--x) used in the stylesheet must be
+defined in :root or set at runtime — undefined names now fail the build.
+
+Sign back in: the overlay greets you properly, and the cloud restores all
+918 days.
+
 ## v3.1.4 — Last Time: one row per weight, both eras
 Sungjee's two screenshots caught a data-shape leak: sheet-era sessions stored
 one row per weight (35 kg | 25 20 20 16) while app-era logging writes one row
