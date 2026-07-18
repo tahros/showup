@@ -1,5 +1,9 @@
 # ShowUp — changelog
 
+## v3.1.11 — Plate hint on two lines
+"20 kg bar + 15 kg per side" wrapped mid-thought. Now: bar on line one,
+per-side on line two, no plus sign. Reads at a glance from the rack.
+
 ## v3.1.10 — Plate diagram updates as you type
 The bar-loading hint ("20 kg bar + 15 kg per side") recomputed on +/− taps
 and chips but not on manual weight entry — type 60 and it kept showing 50's
