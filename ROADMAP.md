@@ -109,3 +109,33 @@ competition.
 - 2026-07-18: Sheet-era units decoded per equipment (miles; smith=kg, dumbbell=lb-of-kg-iron, barbell=per-side-lb+45lb bar, stacks=lb); benchmark week = 07-13 onward (Sungjee)
 - 2026-07-18: Historical corrections are stamped in-app migrations with pre-conversion backups — never manual data edits (pattern)
 - 2026-07-18: Rest is ABSENCE, never declared — "absence IS a choice." An empty today is unwritten until midnight; no rest-marking UI, ever (Sungjee)
+
+
+## Execution order — locked 2026-07-18 (post v3.1.4)
+
+**Wave 1 — ship now, no gates (retention fuel before hand-off):**
+1. v3.2.3 Streak-at-risk: evening + unwritten today + streak alive → calm visual
+   urgency (never calls it rest; "streak ends at midnight" framing). Tiny.
+2. v3.2.4 Monthly report card: shareable image — days trained, volume, km,
+   streak, month heat-strip. Feeds the daily-writing distribution habit. Medium.
+3. v3.3 Data out: CSV export + local backup file (download/restore) + one-time
+   Google Sheet export. The "leaving is easy" pillar gets a UI — trust proof
+   BEFORE asking friends to invest days. Medium.
+
+**Then STOP building and hand off. GTM Phase 1 governs everything after.**
+
+**Wave 2 — gated on first friends (their confusion is the backlog):**
+4. v3.1.x onboarding fixes from watching real installs.
+5. v3.4 Custom exercises — triggered by the first real catalog gap, not before.
+
+**Wave 3 — gated on Phase 1 retention (week-two gate):**
+6. v4.0 Routine Engine: named session templates, learned per-part ordering.
+7. v5.0 Import: paste-your-spreadsheet wizard (reuse the per-equipment unit
+   forensics from the v3.0.2 decoding as an import feature) + auto-updating
+   Sheet mirror. The wedge for 3+yr J-type loggers.
+
+**Wave 4 — gated on Phase 2 (public launch traction):**
+8. v6.0 Premium (depth, never data) + pseudonymous cheering-first cohorts.
+
+**Standing watch-items:** 2,400 km milestone (~fires this week); 2026 km goal
+revisit (owner: Sungjee); true-units sanity during gym week; PAT revocation.
