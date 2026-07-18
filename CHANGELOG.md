@@ -1,5 +1,16 @@
 # ShowUp — changelog
 
+## v3.1.1 — Logout means goodbye (safely)
+Spec from Sungjee: sync only ever happens signed-in (already true — every
+push/pull is token-gated), and signing out should return the device to a
+fresh onboarding.
+
+signOut() is now a full detach: final cloud push FIRST, then wipe the local
+copy, backups, and session, then reload into onboarding. If the push can't
+be confirmed (offline, expired token), the app asks before discarding —
+declining leaves everything intact and you stay signed in. Signing back in
+restores the full history from the cloud. Demo data skips the push.
+
 ## v3.1 — Clean Slate: the hand-off build
 ShowUp can now be handed to a stranger. (Ships after v3.2.x — roadmap names,
 not chronology.)
