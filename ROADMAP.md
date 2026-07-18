@@ -41,7 +41,7 @@ v3.0.2 true weights (per-equipment ledger decoding, benchmark-calibrated → 6,5
 Squat PR 120.2); v3.0.3 History de-duplication + consumer audit.
 **v3.0.4 (pending gate): strip embedded SEED0 → ~75% file shrink.**
 
-## v3.1 — Clean Slate  *(minor · the hand-off build)*
+## v3.1 — Clean Slate  *(SHIPPED 2026-07-18; gate open: first unassisted friend install)*  *(minor · the hand-off build)*
 A new Google account boots to an honest, welcoming empty app.
 - Empty states for every screen; nothing assumes history exists.
 - 3-screen chip onboarding: pick parts (six-part default, editable), custom

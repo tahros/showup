@@ -55,6 +55,31 @@ try{document.documentElement.dataset.theme=localStorage.getItem('showup-theme')|
   .firedot{animation:pulse 1.6s ease-in-out infinite}
   @media (prefers-reduced-motion:reduce){.firedot{animation:none}}
   .strip i.pend{background:transparent;border:1.5px dashed var(--muted);opacity:.8}
+  #onb{position:fixed;inset:0;z-index:90;background:var(--bg);display:flex;align-items:center;justify-content:center}
+  #onb[hidden]{display:none}
+  .onbwrap{width:min(420px,92vw)}
+  .onbcard{padding:8px 6px}
+  .onblogo{font-size:34px;font-weight:800;letter-spacing:-.5px;margin-bottom:6px}
+  .onbtag{margin:0 0 22px;line-height:1.5}
+  .onbcard h3{margin:0 0 6px;font-size:20px}
+  .onbnote{font-size:12px;color:var(--muted);margin:8px 0 14px}
+  .onbbtn{display:block;width:100%;padding:13px;margin:8px 0;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--fg);font-size:15px;font-weight:600}
+  .onbbtn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+  .onbbtn.ghost{background:transparent;color:var(--muted)}
+  .onbchips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 18px}
+  .onbchip{padding:9px 14px;border-radius:999px;border:1.5px solid var(--line);background:var(--card);color:var(--muted);font-size:14px;font-weight:600}
+  .onbchip.sel{border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 12%, transparent)}
+  .onbrow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:14px 0;font-size:14px}
+  .onbrow input{width:90px;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--fg);text-align:right;font-family:var(--mono)}
+  .onbseg button{padding:8px 14px;border:1px solid var(--line);background:var(--card);color:var(--muted);font-weight:700}
+  .onbseg button.sel{background:var(--accent);border-color:var(--accent);color:#fff}
+  .onbseg button:first-child{border-radius:10px 0 0 10px}.onbseg button:last-child{border-radius:0 10px 10px 0}
+  #demoBar{position:fixed;top:0;left:0;right:0;z-index:80;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 14px;background:var(--record);color:#fff;font-size:12px;font-weight:700;letter-spacing:.4px}
+  #demoBar[hidden]{display:none}
+  #demoBar button{padding:5px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.5);background:transparent;color:#fff;font-size:12px;font-weight:700}
+  .emptyhero{text-align:center;padding:34px 20px}
+  .emptyhero h3{margin:0 0 8px;font-size:20px}
+  .onbctas{margin-top:18px}
   .resttimer{display:none;font-family:var(--mono);font-size:14px;font-weight:700;color:#fff;letter-spacing:.02em}
   header.live .resttimer{display:inline}
   .resttimer::before{content:'●';font-size:8px;margin-right:6px;vertical-align:2px;
@@ -570,7 +595,7 @@ try{document.documentElement.dataset.theme=localStorage.getItem('showup-theme')|
 </div>
 
 <script>
-const APP_VERSION = 'v3.2.2';
+const APP_VERSION = 'v3.1';
 const SEED0 = {catalog:{"Chest":["Incline Smith Machine Bench Press","Flat Smith Machine Bench Press","Incline Dumbbell Bench Press","Chest Press","Pectoral Fly","Cable Fly Up","Cable Fly Down","Chest Squeeze","Dip","Barbell Bench Press","Incline Barbell Bench Press","Decline Barbell Bench Press","Dumbbell Bench Press","Decline Dumbbell Bench Press","Machine Chest Press","Cable Crossover","Incline Cable Fly","Low Cable Fly","Dumbbell Pullover","Landmine Press","Svend Press","Push Up","Weighted Push Up"],"Back":["Pull Up","Lat Pull Down","Bent-Over Row","Row","Deadlift","Chin Up","Weighted Pull Up","Seated Cable Row","Single-Arm Dumbbell Row","T-Bar Row","Pendlay Row","Barbell Shrug","Rack Pull","Straight-Arm Pulldown","Close-Grip Lat Pull Down","Inverted Row","Chest-Supported Row","Machine Row"],"Shoulder":["Dumbbell Press","Dumbbell Side Raise","Dumbbell Front Raise","Dumbbell Combination","Dumbbell Bent Over Side Raise","Rear Deltoids","Overhead Barbell Press","Arnold Press","Machine Shoulder Press","Cable Lateral Raise","Face Pull","Upright Row","Reverse Pec Deck","Landmine Lateral Raise","Cable Rear Delt Fly"],"Legs":["Squat","Dumbbell Lunge","Front Squat","Hack Squat","Leg Press","Romanian Deadlift","Bulgarian Split Squat","Walking Lunge","Leg Extension","Lying Leg Curl","Seated Leg Curl","Hip Thrust","Goblet Squat","Standing Calf Raise","Seated Calf Raise","Step Up"],"Biceps":["Barbell Curl","Dumbbell Curl","Hammer Curl","EZ Bar Curl","Preacher Curl","Cable Curl","Incline Dumbbell Curl","Concentration Curl","Spider Curl","Reverse Curl","Cable Hammer Curl"],"Triceps":["Overhead Triceps Extension","Close Grip Bench Press","Triceps Pushdown","Rope Pushdown","Skull Crusher","Bench Dip","Dumbbell Kickback","Overhead Cable Extension","Diamond Push Up"],"Sixpack":["Hanging Leg Raise","Leg Raise","Plank","Cable Crunch","Russian Twist","Ab Wheel Rollout","Bicycle Crunch","Sit Up","Decline Sit Up","Mountain Climber","Side Plank"],"Run":["Run"]},ex2part:{"Incline Smith Machine Bench Press":"Chest","Flat Smith Machine Bench Press":"Chest","Incline Dumbbell Bench Press":"Chest","Chest Press":"Chest","Pectoral Fly":"Chest","Cable Fly Up":"Chest","Cable Fly Down":"Chest","Chest Squeeze":"Chest","Dip":"Chest","Barbell Bench Press":"Chest","Incline Barbell Bench Press":"Chest","Decline Barbell Bench Press":"Chest","Dumbbell Bench Press":"Chest","Decline Dumbbell Bench Press":"Chest","Machine Chest Press":"Chest","Cable Crossover":"Chest","Incline Cable Fly":"Chest","Low Cable Fly":"Chest","Dumbbell Pullover":"Chest","Landmine Press":"Chest","Svend Press":"Chest","Push Up":"Chest","Weighted Push Up":"Chest","Pull Up":"Back","Lat Pull Down":"Back","Bent-Over Row":"Back","Row":"Back","Deadlift":"Back","Chin Up":"Back","Weighted Pull Up":"Back","Seated Cable Row":"Back","Single-Arm Dumbbell Row":"Back","T-Bar Row":"Back","Pendlay Row":"Back","Barbell Shrug":"Back","Rack Pull":"Back","Straight-Arm Pulldown":"Back","Close-Grip Lat Pull Down":"Back","Inverted Row":"Back","Chest-Supported Row":"Back","Machine Row":"Back","Dumbbell Press":"Shoulder","Dumbbell Side Raise":"Shoulder","Dumbbell Front Raise":"Shoulder","Dumbbell Combination":"Shoulder","Dumbbell Bent Over Side Raise":"Shoulder","Rear Deltoids":"Shoulder","Overhead Barbell Press":"Shoulder","Arnold Press":"Shoulder","Machine Shoulder Press":"Shoulder","Cable Lateral Raise":"Shoulder","Face Pull":"Shoulder","Upright Row":"Shoulder","Reverse Pec Deck":"Shoulder","Landmine Lateral Raise":"Shoulder","Cable Rear Delt Fly":"Shoulder","Squat":"Legs","Dumbbell Lunge":"Legs","Front Squat":"Legs","Hack Squat":"Legs","Leg Press":"Legs","Romanian Deadlift":"Legs","Bulgarian Split Squat":"Legs","Walking Lunge":"Legs","Leg Extension":"Legs","Lying Leg Curl":"Legs","Seated Leg Curl":"Legs","Hip Thrust":"Legs","Goblet Squat":"Legs","Standing Calf Raise":"Legs","Seated Calf Raise":"Legs","Step Up":"Legs","Barbell Curl":"Biceps","Dumbbell Curl":"Biceps","Hammer Curl":"Biceps","EZ Bar Curl":"Biceps","Preacher Curl":"Biceps","Cable Curl":"Biceps","Incline Dumbbell Curl":"Biceps","Concentration Curl":"Biceps","Spider Curl":"Biceps","Reverse Curl":"Biceps","Cable Hammer Curl":"Biceps","Overhead Triceps Extension":"Triceps","Close Grip Bench Press":"Triceps","Triceps Pushdown":"Triceps","Rope Pushdown":"Triceps","Skull Crusher":"Triceps","Bench Dip":"Triceps","Dumbbell Kickback":"Triceps","Overhead Cable Extension":"Triceps","Diamond Push Up":"Triceps","Hanging Leg Raise":"Sixpack","Leg Raise":"Sixpack","Plank":"Sixpack","Cable Crunch":"Sixpack","Russian Twist":"Sixpack","Ab Wheel Rollout":"Sixpack","Bicycle Crunch":"Sixpack","Sit Up":"Sixpack","Decline Sit Up":"Sixpack","Mountain Climber":"Sixpack","Side Plank":"Sixpack","Run":"Run"},equip:{"Incline Smith Machine Bench Press":"smith","Flat Smith Machine Bench Press":"smith","Incline Dumbbell Bench Press":"dumbbell","Chest Press":"machine","Pectoral Fly":"machine","Cable Fly Up":"cable","Cable Fly Down":"cable","Chest Squeeze":"body","Dip":"body","Barbell Bench Press":"barbell","Incline Barbell Bench Press":"barbell","Decline Barbell Bench Press":"barbell","Dumbbell Bench Press":"dumbbell","Decline Dumbbell Bench Press":"dumbbell","Machine Chest Press":"machine","Cable Crossover":"cable","Incline Cable Fly":"cable","Low Cable Fly":"cable","Dumbbell Pullover":"dumbbell","Landmine Press":"barbell","Svend Press":"dumbbell","Push Up":"body","Weighted Push Up":"body","Pull Up":"body","Lat Pull Down":"cable","Bent-Over Row":"barbell","Row":"cable","Deadlift":"barbell","Chin Up":"body","Weighted Pull Up":"body","Seated Cable Row":"cable","Single-Arm Dumbbell Row":"dumbbell","T-Bar Row":"barbell","Pendlay Row":"barbell","Barbell Shrug":"barbell","Rack Pull":"barbell","Straight-Arm Pulldown":"cable","Close-Grip Lat Pull Down":"cable","Inverted Row":"body","Chest-Supported Row":"cable","Machine Row":"cable","Dumbbell Press":"dumbbell","Dumbbell Side Raise":"dumbbell","Dumbbell Front Raise":"dumbbell","Dumbbell Combination":"dumbbell","Dumbbell Bent Over Side Raise":"dumbbell","Rear Deltoids":"machine","Overhead Barbell Press":"barbell","Arnold Press":"dumbbell","Machine Shoulder Press":"machine","Cable Lateral Raise":"cable","Face Pull":"cable","Upright Row":"barbell","Reverse Pec Deck":"machine","Landmine Lateral Raise":"cable","Cable Rear Delt Fly":"cable","Squat":"barbell","Dumbbell Lunge":"dumbbell","Front Squat":"barbell","Hack Squat":"machine","Leg Press":"machine","Romanian Deadlift":"barbell","Bulgarian Split Squat":"dumbbell","Walking Lunge":"dumbbell","Leg Extension":"machine","Lying Leg Curl":"machine","Seated Leg Curl":"machine","Hip Thrust":"barbell","Goblet Squat":"barbell","Standing Calf Raise":"machine","Seated Calf Raise":"machine","Step Up":"dumbbell","Barbell Curl":"barbell","Dumbbell Curl":"dumbbell","Hammer Curl":"dumbbell","EZ Bar Curl":"barbell","Preacher Curl":"barbell","Cable Curl":"cable","Incline Dumbbell Curl":"dumbbell","Concentration Curl":"dumbbell","Spider Curl":"dumbbell","Reverse Curl":"barbell","Cable Hammer Curl":"cable","Overhead Triceps Extension":"machine","Close Grip Bench Press":"barbell","Triceps Pushdown":"cable","Rope Pushdown":"cable","Skull Crusher":"barbell","Bench Dip":"body","Dumbbell Kickback":"dumbbell","Overhead Cable Extension":"cable","Diamond Push Up":"body","Hanging Leg Raise":"body","Leg Raise":"body","Plank":"body","Cable Crunch":"cable","Russian Twist":"body","Ab Wheel Rollout":"body","Bicycle Crunch":"body","Sit Up":"body","Decline Sit Up":"body","Mountain Climber":"body","Side Plank":"body","Run":"run"},sessions:{},dates:[],monthly:{},pr:{},hist:{},last:{},lastSess:{},repFreq:{},exFreq:{},exLast:{},partCount:{},partLast:{},partDays:{},totals:{sessions:0,first:null,last:'0000-00-00',km:0,vol:0}};
 /* v3.2.1: the 918-day seed literal is GONE (~75% of this file). History lives
    in doc.days (Supabase + localStorage). Full seed preserved forever in git
@@ -705,6 +730,7 @@ async function cloudTest(){
   }catch(e){ toast('Cannot reach '+url+' — check the URL'); }
 }
 function signInGoogle(){
+  if(DB.settings.demo){ DB.days={}; delete DB.settings.demo; save(); }   // real life starts clean
   if(!cloudReady()) return toast('Set the Supabase URL & key in Settings first');
   const {url,anon}=cloudCfg();
   const back=location.origin+location.pathname;
@@ -773,7 +799,7 @@ async function cloudPull(){
       headers:{apikey:cloudCfg().anon,Authorization:'Bearer '+tok}});
     if(!r.ok) return toast('Cloud pull failed ('+r.status+')');
     const rows=await r.json();
-    if(!rows.length){ pulledOK=true; cloudPush(); return; }   // cloud confirmed empty: safe to seed
+    if(!rows.length){ pulledOK=true; cloudPush(); maybeOnboard(); return; }   // cloud confirmed empty: safe to seed
     const remote=rows[0].doc||{};
     let merged=0;
     for(const [d,rv] of Object.entries(remote.days||{})){
@@ -806,6 +832,7 @@ async function cloudPull(){
     if(fixed) merged=Math.max(0,merged-fixed);
     _avgVol=null;
     pulledOK=true;                                        // local is now a superset of the cloud
+    maybeOnboard();
     save(); render();
     if(merged) toast('Cloud: merged '+merged+' item(s)');
   }catch(e){}
@@ -835,6 +862,7 @@ function buildArchive(){
 }
 let cloudTimer=null;
 async function cloudPushNow(keepalive){
+  if(DB.settings.demo) return false;               // demo data never leaves the device
   const tok=await freshToken(); if(!tok){ syncState('signedout'); return false; }
   if(!pulledOK) return false;   // a device that hasn't restored yet never overwrites the cloud
   try{
@@ -1534,14 +1562,16 @@ function trainingPlan(){
       live: days.length>=8
     };
   }
+  const myp=DB.settings.myParts;
+  const allow=p=>!myp||myp.includes(p)||!!(byPart[p]&&byPart[p].length);   // onboarding pick; history always wins
   for(const p of Object.keys(SEED.catalog))
-    if(!info[p]) info[p]={days:0,last:SEED.partLast[p]||null,since:SEED.partLast[p]?daysAgo(SEED.partLast[p]):999,gap:7,soloRate:0,live:false};
+    if(allow(p)&&!info[p]) info[p]={days:0,last:SEED.partLast[p]||null,since:SEED.partLast[p]?daysAgo(SEED.partLast[p]):999,gap:7,soloRate:0,live:false};
 
   const score=p=>info[p].since/info[p].gap;
   const live=Object.keys(info).filter(p=>info[p].live&&p!=='Run');
   const mains=live.filter(p=>info[p].soloRate>=0.4).sort((a,b)=>score(b)-score(a));
   const addons=live.filter(p=>info[p].soloRate<0.4).sort((a,b)=>score(b)-score(a));
-  const dormant=Object.keys(SEED.catalog).filter(p=>p!=='Run'&&!info[p].live);
+  const dormant=Object.keys(SEED.catalog).filter(p=>p!=='Run'&&info[p]&&!info[p].live);
 
   const pick=mains[0]||null;
   // an add-on is worth suggesting only if it's overdue on its own cycle
@@ -1754,7 +1784,132 @@ function dailyFireHTML(){
     <div class="note" style="margin:4px 0 0">Every set moves the red line right. All ${fmt(n)} days are on this chart.</div>
   </div>`;
 }
+/* ============ v3.1 Clean Slate: onboarding · demo · honest empty states ============ */
+function hasAnyDays(){ return Object.values(DB.days).some(v=>v.w&&v.w.length); }
+let onbStep=1, onbSel=null, onbUnit='kg';
+function onbEl(){ let el=document.getElementById('onb'); if(!el){ el=document.createElement('div'); el.id='onb'; document.body.appendChild(el);} return el; }
+function demoEl(){ let el=document.getElementById('demoBar'); if(!el){ el=document.createElement('div'); el.id='demoBar'; el.hidden=true; document.body.appendChild(el);} return el; }
+function maybeOnboard(){
+  if(DB.settings.onboarded||DB.settings.demo) return;
+  if(hasAnyDays()||SEED.totals.sessions>0){ DB.settings.onboarded='auto'; save(); return; }
+  const signedIn=!!localStorage.getItem(SKEY);
+  if(signedIn&&!pulledOK) return;                  // cloud may still hold their history — wait for the verdict
+  onbStep=signedIn?2:1; onbRender();
+}
+function onbRender(){
+  const el=onbEl(); el.hidden=false;
+  if(!onbSel) onbSel=new Set(Object.keys(SEED0.catalog));
+  let b='';
+  if(onbStep===1){
+    b=`<div class="onbcard">
+      <div class="onblogo">ShowUp</div>
+      <p class="onbtag">Show up. The rest is bookkeeping.<br><span class="muted">A training log that celebrates days, not numbers.</span></p>
+      <button class="onbbtn pri" data-onbact="signin">Sign in with Google</button>
+      <button class="onbbtn" data-onbact="local">Continue on this device</button>
+      <button class="onbbtn ghost" data-onbact="demo">Explore with sample data</button>
+      <p class="onbnote">Sign-in syncs across devices. Local works fully offline — you can sign in later.</p></div>`;
+  }else if(onbStep===2){
+    b=`<div class="onbcard">
+      <h3>What do you train?</h3>
+      <p class="onbnote">Tap to toggle. Everything stays available — this just shapes your suggestions.</p>
+      <div class="onbchips">${Object.keys(SEED0.catalog).map(p=>
+        `<button class="onbchip ${onbSel.has(p)?'sel':''}" data-onbp="${p}">${p}</button>`).join('')}</div>
+      <button class="onbbtn pri" data-onbact="toStep3">Continue</button>
+      <button class="onbbtn ghost" data-onbact="skip">Skip — it's all in Settings anyway</button></div>`;
+  }else{
+    const lb=onbUnit==='lb';
+    b=`<div class="onbcard">
+      <h3>Your numbers</h3>
+      <div class="onbrow"><span>Units</span>
+        <span class="onbseg"><button class="${lb?'':'sel'}" data-onbu="kg">kg</button><button class="${lb?'sel':''}" data-onbu="lb">lb</button></span></div>
+      <div class="onbrow"><span>Bodyweight <span class="muted">(for pull-ups, dips)</span></span>
+        <input id="onbBw" type="number" inputmode="decimal" placeholder="${lb?'154':'70'}"></div>
+      <div class="onbrow"><span>Barbell bar</span>
+        <input id="onbBar" type="number" inputmode="decimal" value="${lb?'45':'20'}"></div>
+      <button class="onbbtn pri" data-onbact="finish">Start showing up</button>
+      <button class="onbbtn ghost" data-onbact="skip">Skip</button></div>`;
+  }
+  el.innerHTML=`<div class="onbwrap">${b}</div>`;
+}
+function onbFinish(skip){
+  if(!skip){
+    DB.settings.myParts=[...onbSel];
+    DB.settings.unit=onbUnit;
+    const bw=parseFloat(document.getElementById('onbBw')?.value);
+    if(bw>0) DB.settings.bodyKg=onbUnit==='lb'?+(bw*0.45359237).toFixed(1):bw;
+    const bar=parseFloat(document.getElementById('onbBar')?.value);
+    if(bar>0) DB.settings.barKg=onbUnit==='lb'?+(bar*0.45359237).toFixed(1):bar;
+  }
+  DB.settings.onboarded=APP_VERSION; DB.settingsAt=Date.now();
+  save(true); onbEl().hidden=true; render();
+}
+/* ---- demo: 70 days of clearly-borrowed life ---- */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
+function demoLoad(){
+  const rnd=mulberry32(918); DB.days={};
+  const rot=['Chest','Back','Legs','Shoulder']; let pi=0;
+  for(let i=70;i>=1;i--){
+    const c=new Date(todayISO+'T00:00'); c.setDate(c.getDate()-i);
+    const d=c.toLocaleDateString('en-CA');
+    if(rnd()<0.2&&i>1) continue;
+    const w=[]; let at=1;
+    if(rnd()<0.85){
+      const p=rot[pi++%rot.length];
+      for(const ex of SEED0.catalog[p].slice(0,3)){
+        const e=SEED0.equip[ex]||'machine';
+        const base=e==='barbell'?40:e==='smith'?30:e==='dumbbell'?10:25;
+        const wt=base+Math.floor((70-i)/18)*(e==='dumbbell'?2:5);
+        for(let k=0;k<3;k++) w.push({part:p,ex,w:wt,reps:[10+Math.floor(rnd()*5)],at:at++});
+      }
+    }
+    if(rnd()<0.55) w.push({part:'Run',ex:'Run',w:+(2.5+rnd()*1.7).toFixed(2),reps:[],mins:Math.round(20+rnd()*14),at:at++});
+    if(w.length) DB.days[d]={w,lastAt:at-1,upd:Date.now()};
+  }
+  DB.settings.demo=true; save();
+  SEED=deriveAll(); _fireDist=null;
+  onbEl().hidden=true; demoBarSync(); render();
+  toast('Demo data loaded — nothing here syncs anywhere');
+}
+function demoClear(){
+  DB.days={}; delete DB.settings.demo; delete DB.settings.onboarded; delete DB.settings.myParts;
+  save(); SEED=deriveAll(); _fireDist=null;
+  demoBarSync(); render(); maybeOnboard();
+}
+function demoBarSync(){
+  const el=demoEl();
+  el.hidden=!DB.settings.demo;
+  if(DB.settings.demo) el.innerHTML=`<span>DEMO DATA — explore freely</span><button data-onbact="democlear">Use for real</button>`;
+}
+function emptyHero(which){
+  const cta=`<div class="onbctas"><button class="onbbtn pri" data-onbact="golift">Log your first set</button>
+    <button class="onbbtn ghost" data-onbact="demo">Explore with sample data</button></div>`;
+  if(which==='stats') return `<div class="card emptyhero"><h3>Nothing to count yet</h3>
+    <p class="muted">This tab will hold your streaks, year consistency, records, and lifetime volume — all derived from days you log. It starts working at one set.</p>${cta}</div>`;
+  if(which==='history') return `<div class="card emptyhero"><h3>No history yet</h3>
+    <p class="muted">Every day you train lands here, forever. That can start today.</p>${cta}</div>`;
+  return `<div class="card emptyhero"><h3>Your first day starts with one set</h3>
+    <p class="muted">ShowUp counts days, not perfection. Log one set and today turns blue — the streak takes care of itself.</p>${cta}</div>`;
+}
+document.addEventListener('click',e=>{
+  const chip=e.target.closest('[data-onbp]');
+  if(chip){ const p=chip.dataset.onbp; onbSel.has(p)&&onbSel.size>1?onbSel.delete(p):onbSel.add(p); onbRender(); return; }
+  const u=e.target.closest('[data-onbu]');
+  if(u){ onbUnit=u.dataset.onbu; onbRender(); return; }
+  const a=e.target.closest('[data-onbact]');
+  if(!a) return;
+  const act=a.dataset.onbact;
+  if(act==='signin') signInGoogle();
+  else if(act==='local'){ onbStep=2; onbRender(); }
+  else if(act==='toStep3'){ onbStep=3; onbRender(); }
+  else if(act==='skip') onbFinish(true);
+  else if(act==='finish') onbFinish(false);
+  else if(act==='demo') demoLoad();
+  else if(act==='democlear') demoClear();
+  else if(act==='golift'){ view='lift'; render(); }
+});
 function renderToday(){
+  if(SEED.totals.sessions===0 && !((DB.days[todayISO]||{}).w||[]).length){
+    $('#view').innerHTML=emptyHero('today'); return; }
   const P=trainingPlan();
   const t=day(todayISO);
   const logged=t.w.length>0;
@@ -2613,6 +2768,7 @@ function runStatsHTML(){
 /* ---------- Stats: days first ---------- */
 const YEAR_COLORS={ '2022':'var(--faint)','2023':'var(--muted)','2024':'var(--accent-dim)','2025':'var(--accent-soft)','2026':'var(--accent)' };
 function renderStats(){
+  if(SEED.totals.sessions===0 && !hasAnyDays()){ $('#view').innerHTML=emptyHero('stats'); return; }
   const dates=workoutDates();
   const curves=yearCurves();
   const monthKey=todayISO.slice(0,7);
@@ -2913,6 +3069,7 @@ function renderStats(){
 
 /* ---------- History ---------- */
 function renderHistory(){
+  if(SEED.totals.sessions===0 && !hasAnyDays()){ $('#view').innerHTML=emptyHero('history'); return; }
   const dates=workoutDates();
   const detail=allDays();
   if(!hist.y){ hist.y=+thisYear; hist.m=+todayISO.slice(5,7); }
@@ -3571,6 +3728,7 @@ function motionPass(){
   const fixed=repairDupes();
   if(fixed){ save(); toast(`Repaired ${fixed} duplicated set${fixed>1?'s':''}`); }
   checkMilestone();
+  demoBarSync(); maybeOnboard();
   lastSetAt=(DB.days[todayISO]&&DB.days[todayISO].lastAt)||null;
   await loadSession();
   render();

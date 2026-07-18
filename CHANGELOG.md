@@ -1,5 +1,29 @@
 # ShowUp — changelog
 
+## v3.1 — Clean Slate: the hand-off build
+ShowUp can now be handed to a stranger. (Ships after v3.2.x — roadmap names,
+not chronology.)
+
+- **Onboarding**, three screens, chips only: (1) sign in with Google /
+  continue local / explore demo; (2) pick your parts — six-part taxonomy
+  preselected, tap to toggle, history always wins over the filter;
+  (3) units, bodyweight, bar weight. Skippable; everything editable in
+  Settings. Signed-in users with cloud history never see it (the overlay
+  waits for the pull verdict).
+- **Honest empty states** on Today, Stats, and History — what this tab will
+  become, and a "log your first set" path. No boards of zeros.
+- **Demo mode**: 70 days of deterministic sample training behind a persistent
+  banner. Demo data never syncs (push hard-blocked); signing in wipes it;
+  "Use for real" clears back to onboarding.
+- **Part filter**: myParts shapes Lift ordering and Train-Next suggestions
+  for new users; any part with real history always shows.
+- **INSTALL.md rewritten** two-audience: friends get the URL + Google sign-in
+  (zero install — multi-user has worked since the strip); self-hosters get
+  fork → Pages → supabase-setup.sql → paste config in Settings. No code edits.
+
+Gate (unchanged, and not skippable — it IS the hypothesis): a friend installs
+unassisted and logs a real workout.
+
 ## v3.2.2 — Rest days exist only in the past tense
 Sungjee, at the gym door before opening time, was told "REST DAY, SO FAR · 1
 rest day in a row" — while the streak flame on the same screen said 🔥 2d.
