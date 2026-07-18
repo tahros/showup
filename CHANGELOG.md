@@ -1,5 +1,23 @@
 # ShowUp — changelog
 
+## v3.1.6 — Fresh-slate visuals: three fixes from real-phone testing
+Sungjee's sign-out tour caught three visual bugs the DOM tests can't see:
+
+- **Selected + dormant tile was washed out**: .partcard.dead{opacity:.45} was
+  declared after .sel and won the cascade — a selected dormant part rendered
+  at 45% accent. Selection is now the single authority (.sel.dead{opacity:1}).
+- **"dormant" on day zero**: with no history, every part fell into the dormant
+  bucket — absurd for a brand-new user. Virgin state (no sessions, no days)
+  now renders all parts neutral with a "new" sublabel; verdicts like dormant
+  only appear once there's history to judge (demo included).
+- **Never-logged exercise rows dropped their .dim class**: the "Never tried"
+  section header already says it; per-row dimming fought other styles and
+  looked broken. Full tiles, muted subtext.
+- **Demo bar respects the iPhone notch**: padding-top includes
+  env(safe-area-inset-top), and the bar pushes app content down by its own
+  height so it never hides the header (was invisible under the Dynamic
+  Island on iPhone 17 Pro).
+
 ## v3.1.5 — Onboarding actually renders (CSS variable hotfix)
 Sungjee signed out on his phone and got a collage: transparent overlay, black
 serif logo, the Today hero bleeding through. Root cause: v3.1's CSS referenced
