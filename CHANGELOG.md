@@ -1,5 +1,15 @@
 # ShowUp — changelog
 
+## v3.1.14 — Live-mode color corrections (Sungjee's annotations)
+- The red header's subtitle ("CHEST · 1 SET LOGGED") now renders white as it
+  always should have. Root cause was juicier than a CSS tweak: the exercise
+  header branch returned before the line that clears the ✓ donetoday class,
+  so a stale blue checkmark from the last idle render haunted the red header.
+  Cleared on entry; live subtitle white incl. any ✓ pseudo-element.
+- "Continue <part> →" wears the live red during a live session — the one
+  element still speaking blue inside a red workout. When the session has
+  gone cold, it stays accent blue (resuming from idle is an accent action).
+
 ## v3.1.13 — Stats decluttered: two charts that answer questions
 Sungjee's verdict on the stacked monthly chart ("I HATE scrolling a chart")
 and the radar ("doesn't further my understanding nor prompt any action"):
