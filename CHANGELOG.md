@@ -1,5 +1,10 @@
 # ShowUp — changelog
 
+## v3.1.10 — Plate diagram updates as you type
+The bar-loading hint ("20 kg bar + 15 kg per side") recomputed on +/− taps
+and chips but not on manual weight entry — type 60 and it kept showing 50's
+breakdown. One input listener later, the plate math follows every keystroke.
+
 ## v3.1.9 — The Run view shows its history
 The Last Time card (v3.1.2) explicitly excluded Run, leaving the Run screen
 a bare input form with 900+ runs invisible behind it. Now: RECENT RUNS —
