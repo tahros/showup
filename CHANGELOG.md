@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v3.1.3 — Swipe back from an exercise
+Sungjee: inside "Incline Barbell Bench Press", a swipe should mean BACK to
+Lift, not a tab hop. Agreed, and generalized: at drill-down depth a decisive
+horizontal swipe — EITHER direction — pops back to the part list (your part
+stays selected); at tab level swipes switch tabs as before. The edge hint
+shows ‹ with your part name while dragging. Swipes beginning on inputs,
+chip strips, heatmaps, and charts remain inert, and the back button still
+works. You can no longer accidentally tab-hop out of a lift.
+
 ## v3.1.2 — "Last time" replaces the PR footer
 The exercise screen's bottom panel now answers the one mid-workout question:
 what did I do last time? Full previous session, nicely laid out — each weight
