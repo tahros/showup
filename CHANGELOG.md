@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v3.1.2 — "Last time" replaces the PR footer
+The exercise screen's bottom panel now answers the one mid-workout question:
+what did I do last time? Full previous session, nicely laid out — each weight
+on its own row with rep chips (16 kg | 15 14 12), a Wed · 3 days ago stamp,
+and a sets + total-volume footer. Mid-workout it shows the PREVIOUS session,
+never today's own sets. Never-logged exercises get "today writes the first
+line." Heaviest/Best-set moved out (they live in Records); suggested-set
+chips up top are unchanged.
+
 ## v3.1.1 — Logout means goodbye (safely)
 Spec from Sungjee: sync only ever happens signed-in (already true — every
 push/pull is token-gated), and signing out should return the device to a

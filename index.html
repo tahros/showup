@@ -80,6 +80,16 @@ try{document.documentElement.dataset.theme=localStorage.getItem('showup-theme')|
   .emptyhero{text-align:center;padding:34px 20px}
   .emptyhero h3{margin:0 0 8px;font-size:20px}
   .onbctas{margin-top:18px}
+  .lastcard{margin-top:26px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--card)}
+  .lasthead{display:flex;justify-content:space-between;align-items:baseline;font-size:11px;letter-spacing:.8px;color:var(--muted);font-weight:700;margin-bottom:8px}
+  .lasthead .ago{letter-spacing:0;font-weight:600;font-family:var(--mono)}
+  .lastrow{display:flex;align-items:center;gap:12px;padding:5px 0;border-top:1px dashed var(--line)}
+  .lastrow:first-of-type{border-top:none}
+  .lastw{min-width:74px;font-weight:700;font-size:15px}
+  .lastw .u{font-size:11px;color:var(--muted);font-weight:600}
+  .lastreps{display:flex;flex-wrap:wrap;gap:5px}
+  .repchip{font-style:normal;font-family:var(--mono);font-size:12.5px;font-weight:700;padding:3px 8px;border-radius:8px;background:color-mix(in srgb,var(--accent) 13%, transparent);color:var(--accent)}
+  .lastfoot{margin-top:8px;font-size:11px;color:var(--muted)}
   .resttimer{display:none;font-family:var(--mono);font-size:14px;font-weight:700;color:#fff;letter-spacing:.02em}
   header.live .resttimer{display:inline}
   .resttimer::before{content:'●';font-size:8px;margin-right:6px;vertical-align:2px;
@@ -595,7 +605,7 @@ try{document.documentElement.dataset.theme=localStorage.getItem('showup-theme')|
 </div>
 
 <script>
-const APP_VERSION = 'v3.1.1';
+const APP_VERSION = 'v3.1.2';
 const SEED0 = {catalog:{"Chest":["Incline Smith Machine Bench Press","Flat Smith Machine Bench Press","Incline Dumbbell Bench Press","Chest Press","Pectoral Fly","Cable Fly Up","Cable Fly Down","Chest Squeeze","Dip","Barbell Bench Press","Incline Barbell Bench Press","Decline Barbell Bench Press","Dumbbell Bench Press","Decline Dumbbell Bench Press","Machine Chest Press","Cable Crossover","Incline Cable Fly","Low Cable Fly","Dumbbell Pullover","Landmine Press","Svend Press","Push Up","Weighted Push Up"],"Back":["Pull Up","Lat Pull Down","Bent-Over Row","Row","Deadlift","Chin Up","Weighted Pull Up","Seated Cable Row","Single-Arm Dumbbell Row","T-Bar Row","Pendlay Row","Barbell Shrug","Rack Pull","Straight-Arm Pulldown","Close-Grip Lat Pull Down","Inverted Row","Chest-Supported Row","Machine Row"],"Shoulder":["Dumbbell Press","Dumbbell Side Raise","Dumbbell Front Raise","Dumbbell Combination","Dumbbell Bent Over Side Raise","Rear Deltoids","Overhead Barbell Press","Arnold Press","Machine Shoulder Press","Cable Lateral Raise","Face Pull","Upright Row","Reverse Pec Deck","Landmine Lateral Raise","Cable Rear Delt Fly"],"Legs":["Squat","Dumbbell Lunge","Front Squat","Hack Squat","Leg Press","Romanian Deadlift","Bulgarian Split Squat","Walking Lunge","Leg Extension","Lying Leg Curl","Seated Leg Curl","Hip Thrust","Goblet Squat","Standing Calf Raise","Seated Calf Raise","Step Up"],"Biceps":["Barbell Curl","Dumbbell Curl","Hammer Curl","EZ Bar Curl","Preacher Curl","Cable Curl","Incline Dumbbell Curl","Concentration Curl","Spider Curl","Reverse Curl","Cable Hammer Curl"],"Triceps":["Overhead Triceps Extension","Close Grip Bench Press","Triceps Pushdown","Rope Pushdown","Skull Crusher","Bench Dip","Dumbbell Kickback","Overhead Cable Extension","Diamond Push Up"],"Sixpack":["Hanging Leg Raise","Leg Raise","Plank","Cable Crunch","Russian Twist","Ab Wheel Rollout","Bicycle Crunch","Sit Up","Decline Sit Up","Mountain Climber","Side Plank"],"Run":["Run"]},ex2part:{"Incline Smith Machine Bench Press":"Chest","Flat Smith Machine Bench Press":"Chest","Incline Dumbbell Bench Press":"Chest","Chest Press":"Chest","Pectoral Fly":"Chest","Cable Fly Up":"Chest","Cable Fly Down":"Chest","Chest Squeeze":"Chest","Dip":"Chest","Barbell Bench Press":"Chest","Incline Barbell Bench Press":"Chest","Decline Barbell Bench Press":"Chest","Dumbbell Bench Press":"Chest","Decline Dumbbell Bench Press":"Chest","Machine Chest Press":"Chest","Cable Crossover":"Chest","Incline Cable Fly":"Chest","Low Cable Fly":"Chest","Dumbbell Pullover":"Chest","Landmine Press":"Chest","Svend Press":"Chest","Push Up":"Chest","Weighted Push Up":"Chest","Pull Up":"Back","Lat Pull Down":"Back","Bent-Over Row":"Back","Row":"Back","Deadlift":"Back","Chin Up":"Back","Weighted Pull Up":"Back","Seated Cable Row":"Back","Single-Arm Dumbbell Row":"Back","T-Bar Row":"Back","Pendlay Row":"Back","Barbell Shrug":"Back","Rack Pull":"Back","Straight-Arm Pulldown":"Back","Close-Grip Lat Pull Down":"Back","Inverted Row":"Back","Chest-Supported Row":"Back","Machine Row":"Back","Dumbbell Press":"Shoulder","Dumbbell Side Raise":"Shoulder","Dumbbell Front Raise":"Shoulder","Dumbbell Combination":"Shoulder","Dumbbell Bent Over Side Raise":"Shoulder","Rear Deltoids":"Shoulder","Overhead Barbell Press":"Shoulder","Arnold Press":"Shoulder","Machine Shoulder Press":"Shoulder","Cable Lateral Raise":"Shoulder","Face Pull":"Shoulder","Upright Row":"Shoulder","Reverse Pec Deck":"Shoulder","Landmine Lateral Raise":"Shoulder","Cable Rear Delt Fly":"Shoulder","Squat":"Legs","Dumbbell Lunge":"Legs","Front Squat":"Legs","Hack Squat":"Legs","Leg Press":"Legs","Romanian Deadlift":"Legs","Bulgarian Split Squat":"Legs","Walking Lunge":"Legs","Leg Extension":"Legs","Lying Leg Curl":"Legs","Seated Leg Curl":"Legs","Hip Thrust":"Legs","Goblet Squat":"Legs","Standing Calf Raise":"Legs","Seated Calf Raise":"Legs","Step Up":"Legs","Barbell Curl":"Biceps","Dumbbell Curl":"Biceps","Hammer Curl":"Biceps","EZ Bar Curl":"Biceps","Preacher Curl":"Biceps","Cable Curl":"Biceps","Incline Dumbbell Curl":"Biceps","Concentration Curl":"Biceps","Spider Curl":"Biceps","Reverse Curl":"Biceps","Cable Hammer Curl":"Biceps","Overhead Triceps Extension":"Triceps","Close Grip Bench Press":"Triceps","Triceps Pushdown":"Triceps","Rope Pushdown":"Triceps","Skull Crusher":"Triceps","Bench Dip":"Triceps","Dumbbell Kickback":"Triceps","Overhead Cable Extension":"Triceps","Diamond Push Up":"Triceps","Hanging Leg Raise":"Sixpack","Leg Raise":"Sixpack","Plank":"Sixpack","Cable Crunch":"Sixpack","Russian Twist":"Sixpack","Ab Wheel Rollout":"Sixpack","Bicycle Crunch":"Sixpack","Sit Up":"Sixpack","Decline Sit Up":"Sixpack","Mountain Climber":"Sixpack","Side Plank":"Sixpack","Run":"Run"},equip:{"Incline Smith Machine Bench Press":"smith","Flat Smith Machine Bench Press":"smith","Incline Dumbbell Bench Press":"dumbbell","Chest Press":"machine","Pectoral Fly":"machine","Cable Fly Up":"cable","Cable Fly Down":"cable","Chest Squeeze":"body","Dip":"body","Barbell Bench Press":"barbell","Incline Barbell Bench Press":"barbell","Decline Barbell Bench Press":"barbell","Dumbbell Bench Press":"dumbbell","Decline Dumbbell Bench Press":"dumbbell","Machine Chest Press":"machine","Cable Crossover":"cable","Incline Cable Fly":"cable","Low Cable Fly":"cable","Dumbbell Pullover":"dumbbell","Landmine Press":"barbell","Svend Press":"dumbbell","Push Up":"body","Weighted Push Up":"body","Pull Up":"body","Lat Pull Down":"cable","Bent-Over Row":"barbell","Row":"cable","Deadlift":"barbell","Chin Up":"body","Weighted Pull Up":"body","Seated Cable Row":"cable","Single-Arm Dumbbell Row":"dumbbell","T-Bar Row":"barbell","Pendlay Row":"barbell","Barbell Shrug":"barbell","Rack Pull":"barbell","Straight-Arm Pulldown":"cable","Close-Grip Lat Pull Down":"cable","Inverted Row":"body","Chest-Supported Row":"cable","Machine Row":"cable","Dumbbell Press":"dumbbell","Dumbbell Side Raise":"dumbbell","Dumbbell Front Raise":"dumbbell","Dumbbell Combination":"dumbbell","Dumbbell Bent Over Side Raise":"dumbbell","Rear Deltoids":"machine","Overhead Barbell Press":"barbell","Arnold Press":"dumbbell","Machine Shoulder Press":"machine","Cable Lateral Raise":"cable","Face Pull":"cable","Upright Row":"barbell","Reverse Pec Deck":"machine","Landmine Lateral Raise":"cable","Cable Rear Delt Fly":"cable","Squat":"barbell","Dumbbell Lunge":"dumbbell","Front Squat":"barbell","Hack Squat":"machine","Leg Press":"machine","Romanian Deadlift":"barbell","Bulgarian Split Squat":"dumbbell","Walking Lunge":"dumbbell","Leg Extension":"machine","Lying Leg Curl":"machine","Seated Leg Curl":"machine","Hip Thrust":"barbell","Goblet Squat":"barbell","Standing Calf Raise":"machine","Seated Calf Raise":"machine","Step Up":"dumbbell","Barbell Curl":"barbell","Dumbbell Curl":"dumbbell","Hammer Curl":"dumbbell","EZ Bar Curl":"barbell","Preacher Curl":"barbell","Cable Curl":"cable","Incline Dumbbell Curl":"dumbbell","Concentration Curl":"dumbbell","Spider Curl":"dumbbell","Reverse Curl":"barbell","Cable Hammer Curl":"cable","Overhead Triceps Extension":"machine","Close Grip Bench Press":"barbell","Triceps Pushdown":"cable","Rope Pushdown":"cable","Skull Crusher":"barbell","Bench Dip":"body","Dumbbell Kickback":"dumbbell","Overhead Cable Extension":"cable","Diamond Push Up":"body","Hanging Leg Raise":"body","Leg Raise":"body","Plank":"body","Cable Crunch":"cable","Russian Twist":"body","Ab Wheel Rollout":"body","Bicycle Crunch":"body","Sit Up":"body","Decline Sit Up":"body","Mountain Climber":"body","Side Plank":"body","Run":"run"},sessions:{},dates:[],monthly:{},pr:{},hist:{},last:{},lastSess:{},repFreq:{},exFreq:{},exLast:{},partCount:{},partLast:{},partDays:{},totals:{sessions:0,first:null,last:'0000-00-00',km:0,vol:0}};
 /* v3.2.1: the 918-day seed literal is GONE (~75% of this file). History lives
    in doc.days (Supabase + localStorage). Full seed preserved forever in git
@@ -1616,6 +1626,7 @@ function longestStreak(){
   }
   return best;
 }
+function wd2(iso){ return new Date(iso+'T00:00').toLocaleDateString('en-US',{weekday:'short'}); }
 function daysBetween(a,b){return Math.round((new Date(b+'T00:00')-new Date(a+'T00:00'))/864e5);}
 
 /* year-over-year cumulative consistency: workout days so far / days elapsed  (the Dashboard bottom chart) */
@@ -2343,10 +2354,39 @@ function renderLift(){
   const l=lastFor(ex),p=prFor(ex);
   let h=``;   // the sticky header already shows the exercise + part
 
+  /* v3.1.2: the footer answers ONE question — "what did I do last time?" —
+     the full previous session, so today has a target. (PRs live in Records.)
+     lastFor() would include today mid-workout; this variant excludes it. */
+  const lastPrev=(()=>{
+    const mine=Object.entries(DB.days)
+      .filter(([d,v])=>d<todayISO&&v.w.some(s=>s.ex===ex))
+      .sort((a,b)=>a[0]<b[0]?1:-1)[0];
+    const seed=SEED.last[ex];
+    if(mine&&(!seed||mine[0]>seed.d))
+      return {d:mine[0],sets:mine[1].w.filter(s=>s.ex===ex).map(s=>[s.w,s.reps,s.mins,s.secs])};
+    return seed||null;
+  })();
   let prFoot='';
-  if(!isRun&&p.mw){
-    prFoot=`<div class="prline" style="margin-top:26px"><span class="lbl">Heaviest:</span> <b>${wLabel(ex,p.mw)}${isBody(ex)&&p.mw<=0.01?'':' '+U()} × ${p.mwr}</b> <span class="ago">(${agoStr(p.mwd)})</span></div>`;
-    if(p.bv) prFoot+=`<div class="prline"><span class="lbl">Best set:</span> <b>${wDisp(p.bvw)} ${U()} × ${p.bvr} = ${vDisp(p.bv)} ${U()}</b> <span class="ago">(${agoStr(p.bvd)})</span></div>`;
+  if(!isRun){
+    if(lastPrev){
+      const rows=lastPrev.sets.map(([w2,reps,mins,secs])=>{
+        const chips=(reps&&reps.length)
+          ? reps.map(r2=>`<i class="repchip">${r2}</i>`).join('')
+          : (mins!=null?`<i class="repchip">${mins}${secs?`'${String(secs).padStart(2,'0')}`:'′'}</i>`:'');
+        const wtxt=isBody(ex)&&w2<=0.01?'BW':`${wDisp(w2)} <span class="u">${U()}</span>`;
+        return `<div class="lastrow"><span class="lastw mono">${wtxt}</span><span class="lastreps">${chips}</span></div>`;
+      }).join('');
+      const vol=lastPrev.sets.reduce((a,[w2,reps])=>a+w2*(reps||[]).reduce((x,y)=>x+y,0),0);
+      const nsets=lastPrev.sets.reduce((a,[,reps])=>a+Math.max(1,(reps||[]).length),0);
+      prFoot=`<div class="lastcard">
+        <div class="lasthead"><span>LAST TIME</span><span class="ago">${wd2(lastPrev.d)} · ${agoStr(lastPrev.d)}</span></div>
+        ${rows}
+        <div class="lastfoot mono">${nsets} set${nsets>1?'s':''}${vol>0?` · ${vDisp(vol)} ${U()} total`:''}</div>
+      </div>`;
+    }else{
+      prFoot=`<div class="lastcard first"><div class="lasthead"><span>LAST TIME</span></div>
+        <div class="muted" style="font-size:13px">Never logged — today writes the first line.</div></div>`;
+    }
   }
 
   // ---- suggested sets: shortcut keys, not a to-do list. Tap = log that w×r
