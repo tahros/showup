@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v3.1.12 — Tap the red header to return to your session
+In live mode the header IS the session — tapping it now jumps straight to
+the active exercise: the most recent set today whose part is still open
+(completed parts are skipped, so after closing Chest a tap lands on Back).
+Buttons inside the header — back, gear, demo bar — keep their own behavior;
+tapping the header while already on that exercise does nothing. Cursor
+affordance added in live mode.
+
 ## v3.1.11 — Plate hint on two lines
 "20 kg bar + 15 kg per side" wrapped mid-thought. Now: bar on line one,
 per-side on line two, no plus sign. Reads at a glance from the rack.
