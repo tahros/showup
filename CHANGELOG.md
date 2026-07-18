@@ -1,5 +1,20 @@
 # ShowUp — changelog
 
+## v3.1.15 — Closing the last exercise ends the session, instantly
+Sungjee closed every exercise (all ✓) and the header stayed red for an hour.
+Root cause: multi-exercise parts deliberately stay open when an exercise is
+✕-closed ("maybe more exercises coming") — so closing the LAST one left every
+checkmark lit but doneAll unset, and only the separate Complete-workout
+button could end live mode.
+
+The grace now yields when it has nothing left to protect: if the ✕ just
+closed the final open exercise of the day, all parts complete and doneAll
+sets — red ends on the spot, the ✓ appears in the header, and the
+"Workout complete" toast fires. Closing one-of-two still keeps the part
+open as designed, and reopening a part re-lights live mode. Full cycle
+verified: open → close one (live) → close last (instant off) → reopen (red
+returns).
+
 ## v3.1.14 — Live-mode color corrections (Sungjee's annotations)
 - The red header's subtitle ("CHEST · 1 SET LOGGED") now renders white as it
   always should have. Root cause was juicier than a CSS tweak: the exercise
