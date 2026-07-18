@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v3.1.9 — The Run view shows its history
+The Last Time card (v3.1.2) explicitly excluded Run, leaving the Run screen
+a bare input form with 900+ runs invisible behind it. Now: RECENT RUNS —
+the last 8, newest first, each as date · distance · time · computed pace
+(Fri 7/17 · 3.93 km · 30'31" · 7'46"/km), footer with this-month and
+lifetime totals. Rows without a recorded time render distance-only. Same
+visual language as Last Time on lifts.
+
 ## v3.1.8 — Demo bar bleeds both edges
 v3.1.7's header-resident bar came up 36px short on the right: a flex item's
 outer size is basis + margins, so flex-basis:100% with -18px side margins
