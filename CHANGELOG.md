@@ -1,5 +1,11 @@
 # ShowUp — changelog
 
+## v3.1.8 — Demo bar bleeds both edges
+v3.1.7's header-resident bar came up 36px short on the right: a flex item's
+outer size is basis + margins, so flex-basis:100% with -18px side margins
+paints past the left edge but stops short of the right. Basis now pre-pays
+the margins (flex:0 0 calc(100% + 36px)) — full-width red, both edges.
+
 ## v3.1.7 — Demo bar joins the header (gap fixed)
 The v3.1.6 fix over-corrected: the fixed bar's measured height (safe-area
 included) was added as body padding ON TOP of the header's own notch
