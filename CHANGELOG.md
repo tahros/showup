@@ -1,5 +1,19 @@
 # ShowUp — changelog
 
+## v3.1.4 — Last Time: one row per weight, both eras
+Sungjee's two screenshots caught a data-shape leak: sheet-era sessions stored
+one row per weight (35 kg | 25 20 20 16) while app-era logging writes one row
+per set (50 kg | 23, 50 kg | 20, …) — so identical workouts rendered as 3
+compact rows or 12 sprawling ones depending on when they were logged.
+
+The card now folds CONSECUTIVE same-weight sets at display time: his Monday
+bench session collapses 12 rows → 3 (50 | 23 20 16 16 · 75 | 2 2 2 2 ·
+45 | 16 15 20 15), byte-for-byte the same sets and total. Consecutive, not
+global — returning to a weight later stays its own line, preserving the
+session's narrative order. Bare 0 kg marker rows (sheet-era empty-bar
+artifacts) carry no information and are dropped from display. Storage
+untouched; this is rendering only.
+
 ## v3.1.3 — Swipe back from an exercise
 Sungjee: inside "Incline Barbell Bench Press", a swipe should mean BACK to
 Lift, not a tab hop. Agreed, and generalized: at drill-down depth a decisive
