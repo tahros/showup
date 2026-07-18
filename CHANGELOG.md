@@ -1,5 +1,17 @@
 # ShowUp — changelog
 
+## v3.1.7 — Demo bar joins the header (gap fixed)
+The v3.1.6 fix over-corrected: the fixed bar's measured height (safe-area
+included) was added as body padding ON TOP of the header's own notch
+allowance — safe-area counted twice, producing a big dead gap under the bar.
+
+Rearchitected instead of re-measured: the demo strip now lives INSIDE the
+sticky, already-notch-aware header as its first child, bleeding over the
+header's top/side padding with a red repaint of the status-bar zone. No fixed
+positioning, no JS measurement, no body offsets — the sticky header simply
+carries it, always visible, zero gap. Old inline body padding is cleared on
+boot for devices coming from v3.1.6.
+
 ## v3.1.6 — Fresh-slate visuals: three fixes from real-phone testing
 Sungjee's sign-out tour caught three visual bugs the DOM tests can't see:
 
