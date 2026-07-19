@@ -1,5 +1,26 @@
 # ShowUp — changelog
 
+## v3.3.8 — D3 flagship: the buildable-iron ruler
+The weight picker from the apps Sungjee studied, made honest. Under the
+stepper in the Log-a-set zone: a draggable ruler beneath a fixed accent
+pointer. Drag to scrub weight; release and it snaps. The difference from
+every app that inspired it: EVERY TICK IS A WEIGHT THAT PHYSICALLY EXISTS
+for this exercise's equipment. Barbell/Smith ticks are bar + plate pairs
+(20, 25, 30… anchored at YOUR bar); machine ticks are the stack. There is
+no tick at 72.5 because there is no 72.5. Snapping isn't a correction —
+the impossible weights simply aren't on the ruler.
+
+- One source of truth: wLaw(ex) now feeds BOTH the ruler and the ± stepper,
+  so they can never disagree about what iron exists.
+- While dragging: the weight readout, plate line and the Add-set consequence
+  all update live — scrub and watch per-side plates change.
+- The ± stepper and typing remain (gestures always have fallbacks); typed
+  odd values are still respected as your truth.
+- No ruler on Run or bodyweight moves — you can't drag gravity.
+
+Verified: bar-anchored labels all buildable, three-tick drag lands exactly,
+non-conforming release snaps, Run/body excluded, stepper unchanged.
+
 ## v3.3.7 — Four fixes from Sungjee's gym screenshots (two are mine to own)
 - **The stepper finally obeys the iron.** "26.3 kg per side" was impossible
   weight — and the investigation's answer to "why has this NOT been fixed":

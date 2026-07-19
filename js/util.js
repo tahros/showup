@@ -294,6 +294,14 @@ function reopen(ex,part){
 }
 const isBody=ex=>equipOf(ex)==='body';
 const snapW=kg=>{const s=STEP();const u=toU(kg);return toKg(Math.round(u/s)*s);}   // clean stepper multiples
+/* v3.3.8: ONE source of truth for what weights physically exist.
+   Returns display-unit {s: step, a: anchor}. Barbell/smith: plate pairs
+   anchored at the bar. Everything else: the plain step from zero. */
+function wLaw(ex){
+  const eq=equipOf(ex);
+  if(eq==='barbell'||eq==='smith') return {s:isLb()?10:5, a:toU(barKg(ex))};
+  return {s:STEP(), a:0};
+}
 function saveExW(ex,kg){ if(!ex) return; DB.settings.exW=DB.settings.exW||{}; DB.settings.exW[ex]=kg; }
 const wLabel=(ex,kg)=>isBody(ex)&&kg<=0.01?'BW':`${wDisp(kg)}`;   // free-weight moves read as bodyweight
 const PLATES_KG=[25,20,15,10,5,2.5,1.25];

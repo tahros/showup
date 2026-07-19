@@ -165,10 +165,8 @@ document.addEventListener('click',e=>{
        totals anchored at the bar. Non-conforming values snap to the next
        buildable total in the pressed direction (72.5 + -> 75, - -> 70).
        Other equipment keeps its old step exactly. */
-    const dir=+wb.dataset.w, eq=equipOf(lift.ex);
-    const pair=(eq==='barbell'||eq==='smith');
-    const s=pair?(isLb()?10:5):STEP();
-    const anchor=pair?toU(barKg(lift.ex)):0;
+    const dir=+wb.dataset.w;
+    const {s,a:anchor}=wLaw(lift.ex);
     const cur=(+($('#wv').value||0));
     const k=(cur-anchor)/s;
     const shown=Math.max(anchor,anchor+(dir>0?Math.floor(k+1e-9)+1:Math.ceil(k-1e-9)-1)*s);
@@ -177,6 +175,7 @@ document.addEventListener('click',e=>{
     const wvEl=$('#wv');
     wvEl.value=Math.round(shown*10)/10;
     wvEl.classList.remove('wflash'); void wvEl.offsetWidth; wvEl.classList.add('wflash');
+    if(typeof rulSync==='function') rulSync(true);
     refreshLoad();return;
   }
   const rb=e.target.closest('[data-rep]');
