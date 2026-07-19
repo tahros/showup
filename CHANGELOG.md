@@ -1,5 +1,15 @@
 # ShowUp — changelog
 
+## v3.3.4 — Selection inversion (design workstream, Influences item 7)
+Selected states — part cards on Lift, filter chips, month chips on History —
+now invert: chalk fill, ground ink, instead of accent fill. Readable at
+arm's length mid-set, and semantically cleaner under the one-authority law:
+ACCENT is now exclusively the app's voice (due, suggested, hot), LIVE RED
+is exclusively the session, and INVERSION is exclusively your choice. Live
+red still outranks selection on a live part card, unchanged. Because both
+sides of the inversion are palette variables, it renders correctly in dark
+and light themes with no extra rules. CSS-only; DOM byte-identical.
+
 ## v3.3.3 — Dark-mode black-text fix (forensic) + quieter date
 Sungjee's screenshot: core-record names rendering near-black on the dark
 theme. Pixel-sampled the screenshot rather than guessing: background was
