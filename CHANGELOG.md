@@ -1,5 +1,20 @@
 # ShowUp — changelog
 
+## v3.3.2 — Type-scale courage (design workstream, from the influences study)
+Studied Sungjee's screenshots of Stoic, Ladder and a workout-onboarding app;
+the distilled lessons now live in DESIGN.md ("Influences"). First lesson
+applied — extreme typographic hierarchy, one hero per screen:
+
+- Today's date: 19 → 24px, weight 800, tighter tracking — the screen's anchor.
+- Daily Fire volume: 20 → 32px — the mid-session hero earns display size.
+- Streak number and lead KPI: 30 → 38px.
+- Section labels (TRAIN NEXT, READINESS…): 12 → 10.5px, wider tracking,
+  25% quieter — labels recede so numbers can lead. The whole point of the
+  ratio: when the hero is big, everything else can whisper.
+
+CSS-only: the snapshot harness confirms the DOM is byte-identical, so this
+release carries zero behavioural risk by construction.
+
 ## v3.3.1 — "Bars & bodyweight" (Sungjee: bodyweight isn't a bar)
 The settings section holding barbell, Smith bar AND bodyweight was titled
 "Bar weights", which is wrong about a third of its contents — bodyweight
