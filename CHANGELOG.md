@@ -1,5 +1,23 @@
 # ShowUp — changelog
 
+## v3.2.4 — Monthly report card (Wave 1; per the ROADMAP spec)
+Stats gains a Report Card: any month rendered as a 1080×1350 shareable
+image — day heat-strip across the top (trained = accent, rest = outline,
+future = dashed), four big numbers (days trained in the warm record tone,
+kg lifted, distance run, best streak), and a footer with the all-time count
+("N days of showing up") and the app URL. ‹ › flips months; Share opens a
+preview overlay → native share sheet (file share), with a PNG download
+fallback. Empty months disable the button rather than sharing a blank.
+
+Correctness the hard way: the first build recomputed volume from assumed
+row shapes and produced NaN — the derived session rows store reps as an
+ARRAY and an effective weight with bar/bodyweight math baked in. Rewritten
+to the exact fireDist/dailyFireHTML formulas and cross-checked equal to the
+canon in tests, so the card can never disagree with the fire chart. Canvas
+drawing uses arcTo paths (no roundRect dependency) and degrades to a toast
+where 2D canvas is unavailable. Inherits the D1 aesthetic: the image has no
+explanatory text at all.
+
 ## v3.2.3-d1 — The Tesla pass, part one: explanations behind the dot
 First D1 release of the design workstream (DESIGN.md). Pure subtraction:
 every always-visible MECHANICS explainer — ten of them — folded into an ⓘ
