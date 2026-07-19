@@ -471,6 +471,7 @@ function paint(){
 }
 let lastView=null;
 function render(){
+  document.body.dataset.view=view;
   renderHeader();
   // tab switches cross-fade via the View Transitions API; in-view re-renders
   // (logging a set, toggling a setting) must NOT flash, so they paint directly

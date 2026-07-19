@@ -1,5 +1,26 @@
 # ShowUp — changelog
 
+## v3.3.11 — De-AI pass, T1–T3 (trial; revert tag: v3.3.10-pre-deai)
+Prompted by a thread Sungjee agreed with: the left-accent-bar box is the
+signature tell of AI-generated design — and every h2 in ShowUp wore one.
+North star for this pass: ShowUp is a 918-day paper training log that
+became software. Ledgers have rules and stamped numbers, not boxes.
+
+- **T1 — accent bars removed.** The mono uppercase tracked labels carry
+  hierarchy alone; the bar was decoration.
+- **T2 — Stats de-carded.** Reading surface = ledger page: content sits on
+  the ground under hairline top rules, full-bleed. Box chrome now survives
+  only on action surfaces, where a card MEANS tappable.
+- **T3 — radii sharpened.** 27 declarations: 14/13→8, 12/11→7, 10/9→6.
+  Pills and small radii untouched. Friendly-app soft → instrument.
+
+**REVERT (guaranteed):** this release is css/app.css + one body-attribute
+line in app.js. Tag `v3.3.10-pre-deai` marks the exact prior state; a
+pristine copy also sits at work/refactor/css_pre_deai.css. Restoring the
+old css (+ version bump) undoes everything — DOM hashes were verified
+identical across all 8 harness screens, so there is nothing else to undo.
+Judged by use, like the inversion and the ruler before it.
+
 ## v3.3.10 — Never-tried list: alphabetical
 Sungjee, signed out, saw the fresh-account Chest list in raw seed order —
 "seems random," and it is: seed order is MY data-file order, meaningless to

@@ -108,3 +108,11 @@ Today/Lift are ACTION surfaces mid-workout — dots stay. The D1 target
 - Grid month-expand, fire scrub, Last-Time prefill: SHIPPED v3.3.9.
 - History day-swipe: N/A — History is an accordion, no detail view to page.
 - D2 closed with the milestone moment (v3.3.9).
+
+### De-AI workstream (2026-07-20, v3.3.11) — trial, revertable
+Tell inventory: left accent bars (the canonical AI pattern — we had them on
+every h2), uniform card grid, 12–16px friendly radii, single generic accent.
+North star: the paper ledger the app grew from. T1 bars removed, T2 Stats
+de-carded (chrome = tappable, a semantic), T3 radii sharpened. T4 (History
+as literal ledger: mono columns, date stamps, hairlines) PENDING Sungjee's
+verdict on T1–T3. Revert tag: v3.3.10-pre-deai.

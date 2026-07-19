@@ -50,17 +50,17 @@
   .onbtag{margin:0 0 22px;line-height:1.5}
   .onbcard h3{margin:0 0 6px;font-size:20px}
   .onbnote{font-size:12px;color:var(--muted);margin:8px 0 14px}
-  .onbbtn{display:block;width:100%;padding:13px;margin:8px 0;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--chalk);font-size:15px;font-weight:600}
+  .onbbtn{display:block;width:100%;padding:13px;margin:8px 0;border-radius:7px;border:1px solid var(--line);background:var(--surface);color:var(--chalk);font-size:15px;font-weight:600}
   .onbbtn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
   .onbbtn.ghost{background:transparent;color:var(--muted)}
   .onbchips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 18px}
   .onbchip{padding:9px 14px;border-radius:999px;border:1.5px solid var(--line);background:var(--surface);color:var(--muted);font-size:14px;font-weight:600}
   .onbchip.sel{border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 12%, transparent)}
   .onbrow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:14px 0;font-size:14px}
-  .onbrow input{width:90px;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--chalk);text-align:right;font-family:var(--mono)}
+  .onbrow input{width:90px;padding:9px;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--chalk);text-align:right;font-family:var(--mono)}
   .onbseg button{padding:8px 14px;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-weight:700}
   .onbseg button.sel{background:var(--accent);border-color:var(--accent);color:#fff}
-  .onbseg button:first-child{border-radius:10px 0 0 10px}.onbseg button:last-child{border-radius:0 10px 10px 0}
+  .onbseg button:first-child{border-radius:6px 0 0 10px}.onbseg button:last-child{border-radius:0 10px 10px 0}
   /* lives as the header's first child: bleeds over the header's own top/side
      padding (incl. its safe-area allowance), repaints that zone red, and the
      sticky header carries it — no fixed positioning, no body offsets. */
@@ -76,7 +76,7 @@
   .emptyhero{text-align:center;padding:34px 20px}
   .emptyhero h3{margin:0 0 8px;font-size:20px}
   .onbctas{margin-top:18px}
-  .lastcard{margin-top:26px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+  .lastcard{margin-top:26px;padding:12px 14px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
   .lasthead{display:flex;justify-content:space-between;align-items:baseline;font-size:11px;letter-spacing:.8px;color:var(--muted);font-weight:700;margin-bottom:8px}
   .lasthead .ago{letter-spacing:0;font-weight:600;font-family:var(--mono)}
   .lastrow{display:flex;align-items:center;gap:12px;padding:5px 0;border-top:1px dashed var(--line)}
@@ -144,6 +144,14 @@
   .mexpDots i.f{border-style:dashed;opacity:.6}
   .lastrow[data-lw]{cursor:pointer}
   .lastrow[data-lw]:active{background:var(--surface2)}
+  /* v3.3.11 T2: Stats is a LEDGER page — content sits on the ground under
+     hairline rules. Box chrome survives only on action surfaces, where a
+     card means "tappable". Revert: restore css/app.css from tag
+     v3.3.10-pre-deai (this release is CSS + one body-attr line). */
+  body[data-view="stats"] #view .card{
+    background:transparent;border:none;box-shadow:none;border-radius:0;
+    border-top:1px solid var(--line);padding:12px 0 2px}
+  body[data-view="stats"] #view h2{margin-bottom:2px}
   .resttimer{display:none;font-family:var(--mono);font-size:14px;font-weight:700;color:#fff;letter-spacing:.02em}
   header.live .resttimer{display:inline}
   .resttimer::before{content:'●';font-size:8px;margin-right:6px;vertical-align:2px;
@@ -160,7 +168,7 @@
   .settile.editing{outline:2px solid var(--accent);outline-offset:1px}
   .editcard .row input{width:100%}
   .nudge{position:relative;display:flex;align-items:center;gap:12px;margin-top:10px;
-    padding:11px 36px 11px 13px;border-radius:12px;
+    padding:11px 36px 11px 13px;border-radius:7px;
     background:color-mix(in srgb,var(--accent) 8%,var(--surface));
     border:1px solid var(--accent-soft);font-size:13px;line-height:1.4}
   .nudge>span{flex:1;min-width:0}
@@ -198,7 +206,7 @@
   .brandrow>div{min-width:0}
   .hbtns{display:flex;gap:8px;align-items:center}
   .icobtn{
-    width:44px;height:44px;border-radius:13px;border:1px solid var(--line);
+    width:44px;height:44px;border-radius:8px;border:1px solid var(--line);
     background:var(--surface);color:var(--chalk);font-size:18px;cursor:pointer;
     display:grid;place-items:center;
   }
@@ -212,8 +220,6 @@
   h2{font-family:var(--disp);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;opacity:.75;
      color:var(--chalk);font-weight:600;margin:30px 0 10px;
      display:flex;align-items:center;gap:8px}
-  h2::before{content:'';width:3px;height:12px;border-radius:2px;background:var(--accent);flex:0 0 auto}
-  h2.quiet::before{background:var(--line)}
   h2:first-child{margin-top:4px}
   h2 .hi{color:var(--accent);font-weight:700}
   .ibtn{width:20px;height:20px;border-radius:50%;border:0;background:var(--chalk);color:var(--ground);
@@ -222,7 +228,7 @@
   .tipbubble{position:absolute;top:26px;left:0;z-index:35;width:min(300px,80vw);
     background:#16181D;color:#F4F5F8;font-family:var(--mono);font-size:12.5px;font-weight:400;
     line-height:1.62;letter-spacing:0;text-transform:none;
-    padding:12px 14px;border-radius:11px;box-shadow:0 8px 24px rgba(0,0,0,.42)}
+    padding:12px 14px;border-radius:7px;box-shadow:0 8px 24px rgba(0,0,0,.42)}
   .tipbubble::before{content:'';position:absolute;top:-5px;left:24px;width:10px;height:10px;
     background:#16181D;transform:rotate(45deg)}
   /* flip up when the bottom nav would clip it; flip left at the screen edge */
@@ -230,7 +236,7 @@
   .tipbubble.up::before{top:auto;bottom:-5px}
   .tipbubble.right{left:auto;right:0}
   .tipbubble.right::before{left:auto;right:24px}
-  .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:var(--shadow)}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px;box-shadow:var(--shadow)}
   .row{display:flex;align-items:center;gap:10px}
   .spread{justify-content:space-between}
   .muted{color:var(--muted)} .mono{font-family:var(--mono)}
@@ -247,7 +253,7 @@
   .chip.due .n{color:var(--accent);opacity:.75}
   /* list items */
   .item{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;
-    background:var(--surface);border:1px solid var(--line);border-radius:12px;
+    background:var(--surface);border:1px solid var(--line);border-radius:7px;
     padding:13px 14px;margin-bottom:8px;color:var(--chalk);font:inherit;text-align:left;cursor:pointer;box-shadow:var(--shadow)}
   .item .sub{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:2px}
   /* live = red (matches the header); completed = gray ✅ — tiles and rows agree */
@@ -273,7 +279,7 @@
   .item[data-ex]>span:last-child{flex:none;white-space:nowrap;margin-left:auto}
   .partgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
   .partcard{display:flex;flex-direction:column;align-items:flex-start;gap:1px;
-    background:var(--surface);border:1px solid var(--line);border-radius:10px;
+    background:var(--surface);border:1px solid var(--line);border-radius:6px;
     padding:8px 9px;color:var(--chalk);font:inherit;text-align:left;cursor:pointer;box-shadow:var(--shadow)}
   .partcard b{font-weight:600;font-size:13px;line-height:1.25}
   .partcard .ps{font-family:var(--mono);font-size:10px;color:var(--muted);white-space:nowrap}
@@ -311,7 +317,7 @@
   .item.logrow{gap:8px;padding:10px 10px 10px 14px}
   .logmain{flex:1;min-width:0;background:none;border:0;color:var(--chalk);font:inherit;text-align:left;cursor:pointer;padding:0}
   .logmain b{font-weight:500}
-  .xbtn{flex:0 0 40px;height:40px;border-radius:10px;border:1px solid var(--line);
+  .xbtn{flex:0 0 40px;height:40px;border-radius:6px;border:1px solid var(--line);
     background:var(--surface2);color:var(--muted);font-size:14px;cursor:pointer}
   .xbtn:active{border-color:var(--record);color:var(--record)}
   .item.goto{padding:18px 16px;border-left:3px solid var(--accent)}
@@ -323,23 +329,23 @@
   .pr-top{color:var(--chalk);font-size:12px;font-weight:600}
   .pr-side{color:var(--muted);font-size:10px;margin-top:2px;white-space:nowrap}
   .loadline{font-family:var(--mono);font-size:12px;color:var(--muted);
-    background:var(--surface2);border-radius:10px;padding:9px 10px;margin-top:-4px;margin-bottom:12px;
+    background:var(--surface2);border-radius:6px;padding:9px 10px;margin-top:-4px;margin-bottom:12px;
     display:flex;align-items:center;gap:10px}
   .ll-viz{flex:0 0 104px;display:flex;justify-content:center}   /* fixed width: text never shifts */
   .ll-text{flex:1;min-width:0}
   .ll-bar{flex:0 0 auto;background:var(--surface);border:1px solid var(--line);color:var(--muted);
-    font-family:var(--mono);font-size:11px;line-height:1.35;border-radius:10px;
+    font-family:var(--mono);font-size:11px;line-height:1.35;border-radius:6px;
     padding:8px 12px;min-height:44px;min-width:64px;cursor:pointer;text-align:center}
   .ll-bar b{color:var(--chalk);font-size:12px}
   .ll-bar.save{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
-  .barinput{width:100%;background:var(--surface);border:1px solid var(--accent);border-radius:10px;
+  .barinput{width:100%;background:var(--surface);border:1px solid var(--accent);border-radius:6px;
     color:var(--chalk);font-family:var(--mono);font-weight:700;font-size:18px;padding:9px 11px}
   .barinput:focus{outline:none}
   .barviz{display:flex;align-items:center;gap:2px;height:28px}
   .barviz .bar{height:4px;width:22px;background:var(--muted);border-radius:2px;opacity:.7}
   .barviz .pl{border-radius:2px;background:var(--accent);width:6px}
   /* last session, tappable */
-  .zone{background:var(--surface);border:1px solid var(--line);border-radius:14px;
+  .zone{background:var(--surface);border:1px solid var(--line);border-radius:8px;
     padding:13px 14px;margin-top:14px;box-shadow:var(--shadow)}
   .zone.prime{border-color:var(--accent-soft)}
   .zonehead{display:flex;justify-content:space-between;align-items:center;
@@ -349,13 +355,13 @@
   .zone .repgrid button,.zone .fld,.zone .repcustom input{background:var(--ground)}
   .zone .wsel{background:var(--ground)}
   .foldrow{display:flex;justify-content:space-between;align-items:center;width:100%;
-    background:none;border:1px dashed var(--line);border-radius:12px;padding:11px 14px;
+    background:none;border:1px dashed var(--line);border-radius:7px;padding:11px 14px;
     color:var(--muted);font:inherit;font-family:var(--mono);font-size:12px;cursor:pointer;margin-top:14px}
   .foldrow .hi{color:var(--accent);font-weight:700}
   .chev{background:none;border:0;color:var(--muted);font-size:12px;cursor:pointer;padding:2px 6px}
   .lastsets{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
   .lastset{display:flex;align-items:baseline;gap:5px;background:var(--surface);
-    border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;
+    border:1px solid var(--line);border-radius:6px;padding:10px 12px;cursor:pointer;
     font-family:var(--mono);color:var(--chalk);box-shadow:var(--shadow)}
   .lastset:active{border-color:var(--accent);background:var(--accent-soft)}
   .lastset .ls-w{font-weight:700;font-size:15px}
@@ -363,7 +369,7 @@
   .lastset .ls-x{color:var(--muted);font-size:11px}
   .lastset .ls-r{font-weight:700;font-size:15px;color:var(--accent)}
   .repcustom{display:flex;gap:8px;margin-top:8px}
-  .repcustom input{flex:1;min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:12px;
+  .repcustom input{flex:1;min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:7px;
     color:var(--chalk);font-family:var(--mono);font-size:16px;padding:12px 14px;min-width:0}
   .repcustom input:focus{outline:none;border-color:var(--accent)}
   /* lift */
@@ -375,7 +381,7 @@
   .prline b{font-weight:700}
   .prline .lbl,.prline .ago{color:var(--muted);font-weight:500}
   .wsel{display:flex;align-items:center;margin:16px 0 12px;
-        border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface)}
+        border:1px solid var(--line);border-radius:7px;overflow:hidden;background:var(--surface)}
   .wsel button{flex:0 0 76px;height:60px;background:var(--surface2);border:0;color:var(--chalk);
     font-family:var(--mono);font-size:24px;cursor:pointer}
   @keyframes wflash{0%{color:var(--live);transform:scale(1.12)}100%{color:inherit;transform:none}}
@@ -387,14 +393,14 @@
   .wsel .val input:focus{outline:none}
   .wsel .unit{font-size:12px;color:var(--muted)}
   .repgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:7px}
-  .repgrid button{aspect-ratio:1/1;background:var(--surface);border:1px solid var(--line);border-radius:10px;
+  .repgrid button{aspect-ratio:1/1;background:var(--surface);border:1px solid var(--line);border-radius:6px;
     color:var(--chalk);font-family:var(--mono);font-weight:700;font-size:16px;cursor:pointer;box-shadow:var(--shadow)}
   .repgrid button:active{background:var(--accent);color:#fff;border-color:var(--accent)}
   .sets{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px;min-height:4px}
   /* logged = done = quiet: gray fill, muted text, no accent border. Suggested chips
      keep their outline + blue reps, so a glance says which is which (and which one
      deletes on tap). */
-  .settile{display:flex;align-items:baseline;gap:6px;padding:9px 11px;border-radius:10px;
+  .settile{display:flex;align-items:baseline;gap:6px;padding:9px 11px;border-radius:6px;
     background:var(--surface2);border:1px solid transparent;font-family:var(--mono);font-size:14px;
     cursor:pointer;opacity:.72}
   .settile .w{color:var(--chalk)}
@@ -408,13 +414,13 @@
   .tot b{color:var(--chalk);font-weight:700}
   .delta.up{color:var(--accent)} .delta.down{color:var(--record)}
   .runrow{display:flex;gap:10px;margin:14px 0}
-  .fld{flex:1;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+  .fld{flex:1;background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:10px 12px}
   .fld label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.08em;
     text-transform:uppercase;color:var(--muted);margin-bottom:4px}
   .fld input{width:100%;background:none;border:0;color:var(--chalk);font-family:var(--mono);font-weight:700;font-size:22px}
   .fld input:focus{outline:none}
   .fld.text input{font-size:14px;font-weight:500;font-family:var(--body)}
-  .btn{width:100%;padding:15px;border-radius:12px;border:0;background:var(--accent);color:#fff;
+  .btn{width:100%;padding:15px;border-radius:7px;border:0;background:var(--accent);color:#fff;
     font:inherit;font-weight:700;font-size:15px;cursor:pointer;margin-top:4px}
   .btn.ghost{font-size:14px;background:none;border:1px solid var(--line);color:var(--muted);font-weight:500}
   /* stats */
@@ -432,7 +438,7 @@
   .vsrow .bar i{display:block;height:100%}
   .vsrow .p{font-family:var(--mono);font-size:11px;flex:0 0 32px;text-align:right}
   .kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-  .kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow)}
+  .kpi{background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:12px 14px;box-shadow:var(--shadow)}
   .kpi .v{font-family:var(--mono);font-weight:700;font-size:24px;line-height:1.15}
   .kpis .kpi:first-child .v{font-size:38px;letter-spacing:-.02em}
   .kpis .kpi:nth-child(3):last-child{grid-column:1/-1}
@@ -570,7 +576,7 @@
   .cov .cv{flex:0 0 40px;text-align:right;font-family:var(--mono);font-size:12px}
   .mchips{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
   .mchip{display:flex;flex-direction:column;align-items:center;gap:1px;background:var(--surface);
-    border:1px solid var(--line);border-radius:9px;padding:6px 2px;color:var(--chalk);
+    border:1px solid var(--line);border-radius:6px;padding:6px 2px;color:var(--chalk);
     font:inherit;cursor:pointer;box-shadow:var(--shadow)}
   .mchip span{font-family:var(--mono);font-size:10px;color:var(--muted)}
   .mchip b{font-family:var(--mono);font-size:12px;font-weight:700}
@@ -584,7 +590,7 @@
   .cal .cd.on{background:var(--accent);color:#fff;font-weight:700}
   .cal .cd.fut{opacity:.35;background:none}
   .cal .cd.now{outline:2px solid var(--chalk);outline-offset:1px}
-  .day{border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:8px;overflow:hidden;box-shadow:var(--shadow)}
+  .day{border:1px solid var(--line);border-radius:7px;background:var(--surface);margin-bottom:8px;overflow:hidden;box-shadow:var(--shadow)}
   .day summary{padding:13px 14px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center}
   .day summary::-webkit-details-marker{display:none}
   .day .d{font-family:var(--mono);font-size:13px}
@@ -605,7 +611,7 @@
   .jumps{display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 14px}
   .jumps button{background:var(--surface);border:1px solid var(--line);color:var(--muted);
     font-family:var(--mono);font-size:10px;letter-spacing:.05em;text-transform:uppercase;
-    border-radius:14px;padding:5px 11px;cursor:pointer}
+    border-radius:8px;padding:5px 11px;cursor:pointer}
   .mstone{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px}
   .mstone .big{font-family:var(--mono);font-size:26px;color:var(--chalk);font-weight:600}
   .mstone .goal{font-family:var(--mono);font-size:11px;color:var(--muted)}
