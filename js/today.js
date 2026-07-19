@@ -54,8 +54,10 @@ function dailyFireHTML(){
       <span class="firerank">${line2}${gained?` <b class="firegain">▲${gained}</b>`:''}</span></div>
     <svg viewBox="0 0 ${W} ${H+8}" width="100%" height="${H+8}" aria-hidden="true">
       ${bars}
-      <line x1="${mx.toFixed(1)}" y1="0" x2="${mx.toFixed(1)}" y2="${H}" stroke="var(--live)" stroke-width="2.5"></line>
-      <circle cx="${mx.toFixed(1)}" cy="${H}" r="3.5" fill="var(--live)" class="firedot"></circle>
+      <g class="fireMk" data-mx="${mx.toFixed(1)}">
+        <line x1="${mx.toFixed(1)}" y1="0" x2="${mx.toFixed(1)}" y2="${H}" stroke="var(--live)" stroke-width="2.5"></line>
+        <circle cx="${mx.toFixed(1)}" cy="${H}" r="3.5" fill="var(--live)" class="firedot"></circle>
+      </g>
     </svg>
     ${iBtn('fire',`Today vs every day you've trained, sorted smallest to biggest. Every set moves the red line right — all ${fmt(n)} days are on this chart.`)}
   </div>`;
@@ -308,6 +310,7 @@ function renderToday(){
   if(isLive()) h+=`<button class="btn done" id="doneAllBtn">✓ Complete workout</button>`;
   h+=`<h2 class="quiet">Rhythm</h2>`+rhythmCard();
   $('#view').innerHTML=h;
+  fireGlide();
 }
 
 /* ---------- Lift ---------- */
@@ -443,4 +446,24 @@ function histFor(ex){
     if(i>=0) pts[i]={d,w,r}; else pts.push({d,w,r});
   }
   return pts.sort((a,b)=>a.d.localeCompare(b.d)).slice(-14);
+}
+
+
+/* D2: the marker GLIDES to its new rank — one motion, ≤400ms, honest events only */
+let _fireGl=null;
+function fireGlide(){
+  const g=document.querySelector('.fireMk'); if(!g) return;
+  const nx=parseFloat(g.dataset.mx);
+  const prev=_fireGl;
+  _fireGl={d:todayISO,x:nx};
+  if(!prev||prev.d!==todayISO||Math.abs(prev.x-nx)<0.5) return;
+  if(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches) return;
+  g.style.transition='none';
+  g.style.transform=`translateX(${(prev.x-nx).toFixed(1)}px)`;
+  requestAnimationFrame(()=>{requestAnimationFrame(()=>{
+    g.style.transition='transform .38s cubic-bezier(.2,.8,.3,1)';
+    g.style.transform='translateX(0)';
+  });});
+  const gain=document.querySelector('.firegain');
+  if(gain) gain.classList.add('fresh');
 }

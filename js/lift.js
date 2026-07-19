@@ -372,6 +372,9 @@ function renderLift(){
       ?`<div class="settile${anim}${lift.editSet===idx?' editing':''}" data-del="${idx}"><span class="w">${dDisp(s.w)} ${DU()}</span><span class="x">${s.mins||0}'${String(s.secs||0).padStart(2,'0')}"</span></div>`
       :`<div class="settile ${isPR?'pr':''}${anim}${lift.editSet===idx?' editing':''}" data-del="${idx}"><span class="w">${wLabel(ex,s.w)}</span><span class="x">${isBody(ex)&&s.w<=0.01?'×':U()+' ×'}</span><span class="w">${s.reps[0]}</span></div>`;
   });
+  if(lift.justSaved) volCountUp();
+  else{ const ve=document.getElementById('volNum');
+        if(ve) _lastVol={ex:lift.ex,v:parseFloat(ve.dataset.kg||'0')}; }
   lift.justSaved=false;
   h+=`</div>`;
   if(todaySets.length){
@@ -390,7 +393,7 @@ function renderLift(){
       const v=todaySets.reduce((a,s)=>a+volOf(s),0);
       const lastVol=ls?ls.sets.reduce((a,s)=>a+s.w*s.r,0):0;
       const d=lastVol?Math.round((v/lastVol-1)*100):0;
-      h+=`<div class="tot"><span>Volume <b>${vDisp(v)} ${U()}</b> · ${todaySets.length} sets</span>
+      h+=`<div class="tot"><span>Volume <b><span id="volNum" data-kg="${v}">${vDisp(v)}</span> ${U()}</b> · ${todaySets.length} sets</span>
           ${lastVol?`<span class="delta ${d>=0?'up':'down'}">${d>=0?'+':''}${d}% vs ${wd(ls.d)}</span>`:''}</div>`;
     }
     const es=(lift.editSet!=null)?t.w[lift.editSet]:null;
@@ -707,3 +710,22 @@ function updAddPreview(){
   btn.innerHTML=`Add set<span class="addsub">→ <b>${fmt(Math.round(nv))}</b> ${U()}${gain>0?` ▲${gain}`:''}</span>`;
 }
 document.addEventListener('input',e=>{ if(e.target&&e.target.id==='rc') updAddPreview(); });
+
+
+/* D2: the day's volume COUNTS UP to its new total after a save */
+let _lastVol={ex:null,v:0};
+function volCountUp(){
+  const el=document.getElementById('volNum'); if(!el) return;
+  const nv=parseFloat(el.dataset.kg||'0');
+  const from=(_lastVol.ex===lift.ex)?_lastVol.v:null;
+  _lastVol={ex:lift.ex,v:nv};
+  if(from===null||from>=nv) return;
+  if(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches) return;
+  const t0=performance.now(), D=350;
+  const step=now=>{
+    const p=Math.min(1,(now-t0)/D), e=1-Math.pow(1-p,3);
+    el.textContent=vDisp(from+(nv-from)*e);
+    if(p<1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}

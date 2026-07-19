@@ -1,5 +1,24 @@
 # ShowUp — changelog
 
+## v3.3.6 — D2 juice: the set-logged moment (glide + count-up)
+The two missing pieces of game feel on the app's most important event,
+per DESIGN.md D2 — honest events only, one motion each, ≤400ms:
+
+- **The fire marker glides.** After logging, when Today re-renders, the red
+  line doesn't teleport to its new rank — it slides there, 380ms ease-out,
+  from exactly where it stood. Your set visibly MOVES the line. The fresh
+  ▲rank chip floats in alongside it (400ms).
+- **The volume counts up.** The exercise footer's total no longer jumps:
+  it counts from the old total to the new one over 350ms, cubic ease-out.
+  The number you just earned arrives like a number being earned.
+- The set-chip spring already existed (savedpr/springin) and now completes
+  the trio: chip lands, total counts, marker glides.
+
+All three respect prefers-reduced-motion (instant, no animation). One
+pre-existing edge documented: climbing from rank zero leaves ▲ silent (the
+prev&& guard treats rank 0 as no-previous) — unreachable in real sessions,
+left untouched per the no-rewrites rule.
+
 ## v3.3.5 — Blue selection restored · onboarding polish · the button that answers first
 Three requests in one release:
 
