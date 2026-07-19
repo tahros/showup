@@ -139,3 +139,42 @@ competition.
 
 **Standing watch-items:** 2,400 km milestone (~fires this week); 2026 km goal
 revisit (owner: Sungjee); true-units sanity during gym week; PAT revocation.
+
+
+## Upcoming versions — planned changes (written 2026-07-18, post v3.1.15)
+
+Each entry = what WILL change. When shipped, the CHANGELOG entry records what
+DID change and which request drove it.
+
+### v3.2.3 — Streak-at-risk (tiny)
+- After 18:00, today unwritten, streak alive: flame + streak count shift to a
+  warm at-risk tone; dashed today-square warms to match; rhythm board gains
+  one line: "streak ends at midnight." Nothing else. Never calls today rest.
+
+### v3.2.4 — Monthly report card (medium)
+- Shareable image (canvas → PNG → share sheet): month heat-strip, days
+  trained, volume, km, streak, and the consistency-grid row for the month.
+  Inherits the D1 decluttered aesthetic — ships AFTER D1.
+
+### v3.3 — Data out (medium)
+- Settings → Export: CSV of all days/sets; JSON backup file download +
+  restore; one-time Google Sheet export. "Leaving is easy" gets buttons.
+
+### ── HAND-OFF: URL to friend #1. Wave 2 is written by their confusion. ──
+
+### v3.4 — Custom exercises (gated on first real catalog gap)
+- Add-exercise flow per part; custom entries flow through derive/sync/catalog.
+
+### v4.0 — Routine Engine (gated on Phase-1 week-two retention)
+- Named session templates; learned per-part exercise ordering; one-tap
+  "run my usual Chest day."
+
+### v5.0 — Import (gated on Phase 2)
+- Paste-your-spreadsheet wizard; per-equipment unit decoding (the v3.0.2
+  forensics, productized); optional auto-updating Sheet mirror.
+
+### v6.0 — Premium + cohorts (gated on Phase 2 traction)
+- Depth paid, data never; pseudonymous cheering-first cohorts.
+
+### Design workstream (parallel — see DESIGN.md)
+- D1 Declutter (Tesla pass) → D2 Juice (game feel) → D3 Touchable data.
