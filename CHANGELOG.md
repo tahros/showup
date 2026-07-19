@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v3.3.10 — Never-tried list: alphabetical
+Sungjee, signed out, saw the fresh-account Chest list in raw seed order —
+"seems random," and it is: seed order is MY data-file order, meaningless to
+anyone else. Never-tried exercises now sort alphabetically. Considered and
+rejected: equipment grouping (headers-within-headers for a list a stranger
+scans once). The deeper fix — a curated starter order for brand-new
+accounts — belongs to the Phase-0 onboarding work, noted in ROADMAP.
+
 ## v3.3.9 — Ruler retired · the milestone moment · D3 complete
 - **Ruler removed** (Sungjee: clunky and distracting). The D3 flagship is
   retired after one real session — recorded in DESIGN.md next to the

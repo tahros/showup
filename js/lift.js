@@ -112,7 +112,7 @@ function renderLift(){
     };
     const goto=list.filter(x=>x.tier==='goto').sort((a,b)=>b.freq-a.freq||(b.last||'').localeCompare(a.last||''));
     const some=list.filter(x=>x.tier==='sometimes').sort((a,b)=>(b.last||'').localeCompare(a.last||''));
-    const fresh=list.filter(x=>x.tier==='new');
+    const fresh=list.filter(x=>x.tier==='new').sort((a,b)=>a.ex.localeCompare(b.ex));
     if(goto.length){
       h+=`<h2>${lift.part} · go-to</h2>`;
       goto.forEach(x=>h+=row(x,true));
