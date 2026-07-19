@@ -108,9 +108,8 @@
   #hStreak.atrisk{color:var(--record);font-weight:800}
   .strip i.pend.atrisk{border-color:var(--record);opacity:1}
   .atriskTxt{color:var(--record)}
-  .notei{display:block;margin-top:6px}
-  .notei .ibtn{position:static}
-  .tipnote{margin-top:6px}
+  .notei{position:relative;display:inline-block;margin-top:6px}
+  .notei .ibtn{margin-left:0}
   .rephead{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
   .repline{font-size:12px;color:var(--muted);margin-bottom:10px}
   .btn.ghost{background:var(--surface2);color:var(--chalk);border-color:var(--line)}

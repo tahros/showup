@@ -110,10 +110,13 @@ function rhythmCard(){
 /* D1 (DESIGN.md): explanations live behind a dot, where the sentence used
    to be. Tap ⓘ → the old note expands in place; tap again → gone. */
 function iBtn(id,text){
-  return `<span class="notei"><button class="ibtn tipi" data-tip="${id}" aria-label="What is this?">i</button><span class="tipnote note" id="tip-${id}" hidden>${text}</span></span>`;
+  return `<span class="notei"><button class="ibtn tipi" data-tip="${id}" aria-label="What is this?">i</button><span class="tipbubble" id="tip-${id}" hidden>${text}</span></span>`;
 }
 document.addEventListener('click',e=>{
-  const b=e.target.closest('.tipi'); if(!b) return;
+  const b=e.target.closest('.tipi');
+  const open=document.querySelector('.tipbubble:not([hidden])');
+  if(open&&(!b||open.id!=='tip-'+b.dataset.tip)) open.hidden=true;   // one bubble at a time
+  if(!b) return;
   const t=document.getElementById('tip-'+b.dataset.tip);
   if(t) t.hidden=!t.hidden;
 });

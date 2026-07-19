@@ -1,5 +1,22 @@
 # ShowUp — changelog
 
+## v3.2.6 — Info-dots use the black speech bubble
+Sungjee's screenshot: the D1 explainers expanded as plain grey text inside
+the card, not as the dark bubble the SUGGESTED ⓘ already used. Same
+mechanism, wrong dress. All ten dots now render `.tipbubble` — the existing
+dark floating card with its little arrow — anchored to the dot instead of
+reflowing the card. Two consequences: tapping ⓘ no longer pushes the layout
+around (the bubble floats above it), and only one bubble is open at a time,
+so a second tap elsewhere closes the first. One explanation surface for the
+whole app, per the one-authority rule.
+
+Verification note: the snapshot harness was reporting phantom diffs on
+screens with no changes — the header's live rest timer ticks during a run,
+so hashes drifted between captures taken minutes apart. The clock is now
+normalised out of the hash. With that fixed, exactly the expected screens
+changed (Today, Stats, Settings-version) and Lift/History were untouched —
+which is the point of having the harness at all.
+
 ## v3.2.5 — Refactor: one file becomes a shell + 12 modules (no behaviour change)
 Sungjee's request: split index.html so future work reads a small file instead
 of 220 KB, without a framework, build step, or any redesign.
