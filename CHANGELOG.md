@@ -1,5 +1,19 @@
 # ShowUp — changelog
 
+## v3.3.1 — "Bars & bodyweight" (Sungjee: bodyweight isn't a bar)
+The settings section holding barbell, Smith bar AND bodyweight was titled
+"Bar weights", which is wrong about a third of its contents — bodyweight
+isn't bar math, it's what Pull Up, Dip and other bodyweight lifts count as.
+Section renamed to "Bars & bodyweight", the button reduced to "Save" (the
+heading already says what's being saved), and the explainer gained one line
+naming what bodyweight is actually for.
+
+Harness note: the version string renders in the Stats sync line as well as
+the Settings footer, so version-only bumps kept flagging Stats as changed.
+The normaliser now masks any vN.N.N anywhere, proven by hashing identical
+code under two different version numbers. Third fix to this tool today —
+each one was the tool being right and my explanation being wrong.
+
 ## v3.3.0 — Data out (Wave 1, final feature before hand-off)
 Settings gains "Your data": four buttons that make leaving easy.
 
