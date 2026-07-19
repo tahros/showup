@@ -1,5 +1,15 @@
 # ShowUp — changelog
 
+## v3.2.3 — Streak-at-risk (Wave 1, item 1; per the ROADMAP spec)
+After 18:00, with today unwritten and a streak alive: the header flame and
+count warm to the record tone, the dashed today-square warms to match, and
+the rhythm board's line becomes "Nd streak · ends at midnight." That is the
+entire intervention — no banners, no guilt copy, and consistent with
+rest-is-absence it never claims today IS anything. Verified across four
+states: at-risk evening, calm daytime, no-streak evening (nothing warms),
+and trained-today (impossible to trigger). Threshold exposed as RISK_HOUR
+for testability.
+
 ## v3.1.15 — Closing the last exercise ends the session, instantly
 Sungjee closed every exercise (all ✓) and the header stayed red for an hour.
 Root cause: multi-exercise parts deliberately stay open when an exercise is
