@@ -52,5 +52,95 @@ function renderSync(){
       <div class="note">Logged weight is the total including the bar, so per-side = (total − bar) ÷ 2. Set the Smith bar to 0 if you log Smith work as plates only.</div>
       <button class="btn" id="barSave" style="margin-top:10px">Save bar weights</button>
     </div>
+    <h2>Your data</h2>
+    <div class="card">
+      <div class="note" style="margin-bottom:10px">${fmt(Object.keys(DB.days).filter(d=>(DB.days[d].w||[]).length).length)} days on this device — yours to take anywhere. Weights export in kg, distance in km (the stored truth), whatever the display unit.</div>
+      <div class="row" style="gap:8px">
+        <button class="btn ghost" id="expCsv" style="flex:1;margin:0">CSV ↓</button>
+        <button class="btn ghost" id="expSheet" style="flex:1;margin:0">Copy for Sheets</button>
+      </div>
+      <div class="row" style="gap:8px;margin-top:8px">
+        <button class="btn ghost" id="expJson" style="flex:1;margin:0">Backup ↓</button>
+        <button class="btn ghost" id="impJson" style="flex:1;margin:0">Restore…</button>
+      </div>
+      <input type="file" id="impFile" accept=".json,application/json" hidden>
+    </div>
     <div class="note" style="text-align:center;margin-top:18px;opacity:.7">ShowUp ${APP_VERSION}</div>`;
 }
+
+
+/* ---------- v3.3: data out ---------- */
+const EXP_HEAD=['date','part','exercise','weight_kg','reps','set_no','mins','secs','distance_km'];
+function exportRows(){
+  const out=[];
+  for(const d of Object.keys(DB.days).sort()){
+    for(const s of (DB.days[d].w||[])){
+      if(s.ex==='Run') out.push([d,'Run','Run','','','',s.mins||0,s.secs||0,s.w||0]);
+      else (s.reps&&s.reps.length?s.reps:[0]).forEach((r,i)=>out.push([d,s.part||'',s.ex||'',s.w??'',r,i+1,'','','']));
+    }
+  }
+  return out;
+}
+function tableText(sep){
+  const esc=v=>{v=String(v);return sep===','&&/[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};
+  return [EXP_HEAD.join(sep)].concat(exportRows().map(r=>r.map(esc).join(sep))).join('\n');
+}
+function dlFile(name,mime,text){
+  try{
+    const b=new Blob([text],{type:mime});
+    if(navigator.canShare){
+      const f=new File([b],name,{type:mime});
+      if(navigator.canShare({files:[f]})){ navigator.share({files:[f]}).catch(()=>{}); return; }
+    }
+    const a=document.createElement('a');
+    a.href=(URL.createObjectURL?URL.createObjectURL(b):'data:'+mime+';charset=utf-8,'+encodeURIComponent(text));
+    a.download=name; a.click();
+    if(URL.createObjectURL) setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  }catch(e){ toast('Export failed on this device'); }
+}
+async function copyForSheets(){
+  const t=tableText('\t');
+  try{ await navigator.clipboard.writeText(t); toast('Copied — paste into a blank Google Sheet'); }
+  catch(e){
+    try{
+      const ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta);
+      ta.select(); document.execCommand('copy'); ta.remove();
+      toast('Copied — paste into a blank Google Sheet');
+    }catch(e2){ toast('Copy failed — use CSV instead'); }
+  }
+}
+function restoreBackup(file){
+  if(DB.settings.demo){ toast('Exit the demo first'); return; }
+  const rd=new FileReader();
+  rd.onload=()=>{
+    try{
+      const j=JSON.parse(rd.result);
+      const doc=j.doc||j;
+      if(!doc||typeof doc.days!=='object') throw 0;
+      const mine=Object.keys(DB.days).filter(d=>(DB.days[d].w||[]).length).length;
+      const theirs=Object.keys(doc.days).filter(d=>(doc.days[d].w||[]).length).length;
+      if(!confirm(`Replace the data on this device with this backup?\n\nThis device: ${mine} days → backup: ${theirs} days.\n\nA safety copy of current data is kept locally, and the restored data will sync to the cloud as the newest version.`)) return;
+      localStorage.setItem('showup:bak:prerestore', JSON.stringify(DB));
+      doc.settings=doc.settings||{};
+      if(DB.settings.cloud&&!doc.settings.cloud) doc.settings.cloud=DB.settings.cloud;   // keep this device's DB config
+      const now=Date.now();
+      for(const d of Object.keys(doc.days)) doc.days[d].upd=now;                          // restore wins LWW everywhere
+      DB=doc; save();
+      toast('Restored — reloading');
+      setTimeout(()=>{ try{location.reload();}catch(e){} },600);
+    }catch(e){ toast('Not a ShowUp backup file'); }
+  };
+  rd.readAsText(file);
+}
+document.addEventListener('click',e=>{
+  if(e.target.id==='expCsv'){ dlFile('showup-export-'+todayISO+'.csv','text/csv',tableText(',')); return; }
+  if(e.target.id==='expSheet'){ copyForSheets(); return; }
+  if(e.target.id==='expJson'){ dlFile('showup-backup-'+todayISO+'.json','application/json',
+    JSON.stringify({app:'showup',v:APP_VERSION,exported:new Date().toISOString(),doc:DB})); return; }
+  if(e.target.id==='impJson'){ const i=document.getElementById('impFile'); if(i) i.click(); return; }
+});
+document.addEventListener('change',e=>{
+  if(e.target.id==='impFile'&&e.target.files&&e.target.files[0]){
+    restoreBackup(e.target.files[0]); e.target.value='';
+  }
+});

@@ -156,9 +156,10 @@ DID change and which request drove it.
   trained, volume, km, streak, and the consistency-grid row for the month.
   Inherits the D1 decluttered aesthetic — ships AFTER D1.
 
-### v3.3 — Data out (medium)
-- Settings → Export: CSV of all days/sets; JSON backup file download +
-  restore; one-time Google Sheet export. "Leaving is easy" gets buttons.
+### v3.3 — Data out (medium) — SHIPPED v3.3.0
+- Settings → "Your data": CSV of all sets; JSON backup download + restore
+  (safety copy + LWW re-stamp); Sheets via clipboard TSV instead of the
+  Sheets API — new OAuth scopes rejected in favour of one paste.
 
 ### ── HAND-OFF: URL to friend #1. Wave 2 is written by their confusion. ──
 

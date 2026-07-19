@@ -1,5 +1,31 @@
 # ShowUp — changelog
 
+## v3.3.0 — Data out (Wave 1, final feature before hand-off)
+Settings gains "Your data": four buttons that make leaving easy.
+
+- **CSV ↓** — every set ever, one row per set: date, part, exercise,
+  weight_kg, reps, set_no, mins, secs, distance_km. Weights in kg and
+  distance in km — the stored truth — regardless of display unit. Proper
+  quoting for names containing commas/quotes. Shares as a file where the
+  share sheet supports it, downloads otherwise.
+- **Copy for Sheets** — the same table as tab-separated text on the
+  clipboard: open a blank Google Sheet, paste, done. This replaces the
+  planned Sheets-API export deliberately: writing to a user's Sheet would
+  require new Google OAuth scopes, and minimal permissions beats one fewer
+  paste. ROADMAP updated to match.
+- **Backup ↓** — the entire document (days + settings) as JSON, stamped
+  with version and export time.
+- **Restore…** — picks a backup file, shows exactly what will happen
+  ("this device: N days → backup: M days"), keeps a local safety copy of
+  current data first, preserves this device's database config, and stamps
+  every restored day as newest so the restore wins last-write-wins sync
+  everywhere. Blocked in demo mode. Invalid files get a calm toast, not a
+  broken state.
+
+Verified: row/escaping correctness incl. hostile exercise names, share/
+download fallback chain without modern APIs, clipboard fallback chain,
+and a full restore round-trip (replace + safety copy + upd re-stamp).
+
 ## v3.2.7 — The bubble stays readable
 Sungjee's screenshot: the speech bubble opened at the bottom of Readiness and
 was clipped by the nav bar, cutting the sentence in half. Two causes, both
