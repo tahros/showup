@@ -1,5 +1,19 @@
 # ShowUp — changelog
 
+## v3.2.7 — The bubble stays readable
+Sungjee's screenshot: the speech bubble opened at the bottom of Readiness and
+was clipped by the nav bar, cutting the sentence in half. Two causes, both
+fixed: the bubble sat at z-index 15 while the nav sits at 30 (so it rendered
+UNDERNEATH it), and it always opened downward regardless of room.
+
+- z-index raised above the nav.
+- On open it measures itself: if the nav would clip it, it flips ABOVE the
+  dot (arrow flips too); if it would run off the right edge, it aligns to the
+  edge instead. Falls back to the old placement when there's no layout to
+  measure, so nothing breaks in tests or odd browsers.
+- Type up from 11px to 12.5px with more line-height and padding, and a
+  slightly wider max — mono at 11px was tight for two-line explanations.
+
 ## v3.2.6 — Info-dots use the black speech bubble
 Sungjee's screenshot: the D1 explainers expanded as plain grey text inside
 the card, not as the dark bubble the SUGGESTED ⓘ already used. Same

@@ -188,12 +188,17 @@
   .ibtn{width:20px;height:20px;border-radius:50%;border:0;background:var(--chalk);color:var(--ground);
     font-family:var(--mono);font-size:11px;font-weight:700;cursor:pointer;margin-left:6px;
     line-height:20px;padding:0;vertical-align:middle}
-  .tipbubble{position:absolute;top:26px;left:0;z-index:15;width:min(260px,72vw);
-    background:#16181D;color:#F2F3F6;font-family:var(--mono);font-size:11px;font-weight:400;
-    line-height:1.55;letter-spacing:0;text-transform:none;
-    padding:10px 12px;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,.35)}
+  .tipbubble{position:absolute;top:26px;left:0;z-index:35;width:min(300px,80vw);
+    background:#16181D;color:#F4F5F8;font-family:var(--mono);font-size:12.5px;font-weight:400;
+    line-height:1.62;letter-spacing:0;text-transform:none;
+    padding:12px 14px;border-radius:11px;box-shadow:0 8px 24px rgba(0,0,0,.42)}
   .tipbubble::before{content:'';position:absolute;top:-5px;left:24px;width:10px;height:10px;
     background:#16181D;transform:rotate(45deg)}
+  /* flip up when the bottom nav would clip it; flip left at the screen edge */
+  .tipbubble.up{top:auto;bottom:26px}
+  .tipbubble.up::before{top:auto;bottom:-5px}
+  .tipbubble.right{left:auto;right:0}
+  .tipbubble.right::before{left:auto;right:24px}
   .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:var(--shadow)}
   .row{display:flex;align-items:center;gap:10px}
   .spread{justify-content:space-between}

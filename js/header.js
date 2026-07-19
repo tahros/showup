@@ -118,5 +118,16 @@ document.addEventListener('click',e=>{
   if(open&&(!b||open.id!=='tip-'+b.dataset.tip)) open.hidden=true;   // one bubble at a time
   if(!b) return;
   const t=document.getElementById('tip-'+b.dataset.tip);
-  if(t) t.hidden=!t.hidden;
+  if(!t) return;
+  t.hidden=!t.hidden;
+  if(t.hidden) return;
+  /* place it where it can actually be read: above the dot if the nav would
+     clip it, left-aligned to the edge if it would run off screen */
+  t.classList.remove('up','right');
+  const r=t.getBoundingClientRect();
+  if(!r.height) return;                                  // no layout (tests) — leave default
+  const nv=document.querySelector('nav');
+  const navH=nv?nv.getBoundingClientRect().height:64;
+  if(r.bottom>window.innerHeight-navH-10) t.classList.add('up');
+  if(r.right>window.innerWidth-10) t.classList.add('right');
 });
