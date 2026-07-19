@@ -338,7 +338,7 @@ function renderLift(){
     h+=`<div class="repgrid">${reps.map(r=>`<button data-rep="${r}">${r}</button>`).join('')}</div>
         <div class="repcustom">
           <input id="rc" type="number" inputmode="numeric" placeholder="reps">
-          <button class="btn" id="addrep" style="margin:0;flex:0 0 auto;min-width:96px;padding-left:14px;padding-right:14px">Add set</button>
+          <button class="btn" id="addrep" style="margin:0;flex:0 0 142px">Add set</button>
         </div></div>`;
   }
 

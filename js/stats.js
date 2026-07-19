@@ -91,7 +91,7 @@ function renderStats(){
     const c=curves[y], cur=y===thisYear;
     h+=`<span class="${cur?'cur':''}"><i style="background:${YEAR_COLORS[y]}"></i>${y}<b>${Math.round(c.curve[c.end-1]*100)}%</b></span>`;
   }
-  h+=`</div>${iBtn('yearpct','% of days trained, cumulative through each year.')}</div>`;
+  h+=`</div><div class="note">% of days trained, cumulative through each year</div></div>`;
 
   // heatmap: 26 weeks, weekday rail on the left, months across the top
   const detail=allDays();
@@ -183,7 +183,7 @@ function renderStats(){
         <text x="${x+13}" y="${108-bh}" text-anchor="middle" font-family="var(--mono)" font-size="8" fill="${strongest?'var(--accent)':'var(--muted)'}" font-weight="${strongest?700:400}">${Math.round(p*100)}%</text>
         <text x="${x+13}" y="127" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="${strongest?'var(--chalk)':'var(--muted)'}" font-weight="${strongest?700:400}">${lab}</text>`;
   });
-  h+=`</svg>${iBtn('weekday','% of each weekday trained, last 365 days.')}</div>`;
+  h+=`</svg><div class="note">% of each weekday trained, last 365 days</div></div>`;
 
   // month-by-month composition — the sheet's "Which part am I missing out?" chart
   /* v3.1.13: the stacked-months chart and the radar are gone (Sungjee's
@@ -211,7 +211,7 @@ function renderStats(){
       h+=`<span class="mg-c mono ${k===mNow?'cur':''}" style="${n?`background:color-mix(in srgb, var(--accent) ${a}%, transparent)`:''}">${out?'':(n||'·')}</span>`;
     }
   }
-  h+=`</div>${iBtn('grid','Days trained each month — the whole history on one screen. Darker = more days. Dashed = this month, still being written.')}</div>`;
+  h+=`</div><div class="note">Days trained each month — the whole history on one screen. Darker = more days. Dashed = this month, still being written.</div></div>`;
 
   /* --- "What's quietly slipping?" — last 30 days vs YOUR 12-month rhythm --- */
   const isoAgo=n=>{const c=new Date(todayISO+'T00:00');c.setDate(c.getDate()-n);return c.toLocaleDateString('en-CA');};
@@ -245,7 +245,7 @@ function renderStats(){
         <span class="dr-n mono ${flag}">${dd.now} <span class="muted">· usually ${usualTxt}</span>${flag==='down'?' ↓':flag==='up'?' ↑':''}</span>
       </div>`;
     }
-    h+=`${iBtn('drift','Sessions per part against your own 12-month rhythm — the tick is your usual. ↓ = quietly slipping.')}</div>`;
+    h+=`<div class="note">Sessions per part against your own 12-month rhythm — the tick is your usual. ↓ = quietly slipping.</div></div>`;
   }
 
   /* --- v3.2.4: monthly report card — the month as one shareable image --- */

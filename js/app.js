@@ -161,7 +161,17 @@ document.addEventListener('click',e=>{
   }
   const wb=e.target.closest('[data-w]');
   if(wb){
-    const shown=Math.max(0,(+($('#wv').value||0))+(+wb.dataset.w)*STEP());
+    /* v3.3.7: plates load in PAIRS — barbell/smith move in 5 kg (10 lb)
+       totals anchored at the bar. Non-conforming values snap to the next
+       buildable total in the pressed direction (72.5 + -> 75, - -> 70).
+       Other equipment keeps its old step exactly. */
+    const dir=+wb.dataset.w, eq=equipOf(lift.ex);
+    const pair=(eq==='barbell'||eq==='smith');
+    const s=pair?(isLb()?10:5):STEP();
+    const anchor=pair?toU(barKg(lift.ex)):0;
+    const cur=(+($('#wv').value||0));
+    const k=(cur-anchor)/s;
+    const shown=Math.max(anchor,anchor+(dir>0?Math.floor(k+1e-9)+1:Math.ceil(k-1e-9)-1)*s);
     lift.weight=toKg(shown);
     saveExW(lift.ex,lift.weight);save(true);
     const wvEl=$('#wv');

@@ -172,9 +172,9 @@
   header.live .streak{color:#fff}
   header.live .icobtn{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.3);color:#fff}
   header.live .icobtn small{color:#fff;opacity:.95}
-  header.exmode .h-date{font-size:15px;line-height:1.25;max-width:56vw;
+  header.exmode .h-date{font-size:17px;line-height:1.25;max-width:56vw;
     display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-  .h-date{font-family:var(--disp);font-weight:700;font-size:21px;letter-spacing:-.015em}
+  .h-date{font-family:var(--disp);font-weight:700;font-size:19px;letter-spacing:-.01em}
   .h-sub{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .brandrow>div{min-width:0}
@@ -345,7 +345,7 @@
   .lastset .ls-x{color:var(--muted);font-size:11px}
   .lastset .ls-r{font-weight:700;font-size:15px;color:var(--accent)}
   .repcustom{display:flex;gap:8px;margin-top:8px}
-  .repcustom input{flex:1;background:var(--surface);border:1px solid var(--line);border-radius:12px;
+  .repcustom input{flex:1;min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:12px;
     color:var(--chalk);font-family:var(--mono);font-size:16px;padding:12px 14px;min-width:0}
   .repcustom input:focus{outline:none;border-color:var(--accent)}
   /* lift */

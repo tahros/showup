@@ -93,3 +93,9 @@ our wedge is URL → first set in under a minute), invented composite scores
 ("Life Score" = fake game pieces), and atmosphere-over-legibility theming.
 The meta-principle: design the MOMENT, not the screen — every view spends
 its whole visual budget on its one action.
+
+### Amendment (2026-07-20, v3.3.7): progressive disclosure is per-surface
+Sungjee's verdict: ⓘ dots off the Stats tab, sentences back. Stats is a
+READING surface — you're there to study, so explanations belong in view.
+Today/Lift are ACTION surfaces mid-workout — dots stay. The D1 target
+"zero always-visible notes" is amended to "zero on action surfaces."

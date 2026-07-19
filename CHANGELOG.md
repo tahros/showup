@@ -1,5 +1,27 @@
 # ShowUp — changelog
 
+## v3.3.7 — Four fixes from Sungjee's gym screenshots (two are mine to own)
+- **The stepper finally obeys the iron.** "26.3 kg per side" was impossible
+  weight — and the investigation's answer to "why has this NOT been fixed":
+  the buildable-iron law (v3.2.1) was only ever implemented in SUGGESTIONS
+  (snapSug); the ± stepper itself always moved a flat 2.5 kg for every
+  equipment type. The rule existed; the stepper was never taught it. Now:
+  barbell/smith move in 5 kg (10 lb) totals anchored at the bar — plates
+  load in pairs — and a non-conforming value snaps to the next buildable
+  total in the pressed direction (72.5 + → 75, − → 70), clamped at the
+  empty bar. Typed values are still respected as-is; machines/dumbbells
+  keep their old step untouched.
+- **Add set button un-broken** (my v3.3.5 regression): switching it to
+  auto-width let the reps input's implicit min-width:auto force flex
+  overflow — the input collapsed and the button bled past the card. Fixed
+  basis (142px, room for the consequence line) + min-width:0 on the input.
+- **Stats tab: sentences, not dots** (Sungjee's verdict): the four ⓘ on
+  Stats (grid, drift, weekday, year-%) are plain visible notes again. The
+  dots on Today and in the Run view stay. Recorded in DESIGN.md: progressive
+  disclosure judged per-surface, not globally — reading-surfaces read.
+- **Type meets in the middle**: header date 21 → 19px; exercise title in
+  the red header 15 → 17px.
+
 ## v3.3.6 — D2 juice: the set-logged moment (glide + count-up)
 The two missing pieces of game feel on the app's most important event,
 per DESIGN.md D2 — honest events only, one motion each, ≤400ms:
