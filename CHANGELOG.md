@@ -1313,3 +1313,4 @@ so a motion failure can never break rendering.
 A run row is `[part, exercise, distance, reps[], Minutes, Seconds]` — the Minutes and
 Seconds columns of the Log sheet. Distance is stored in km (your Analysis tab calls it
 "KM Ran") and converted for display when the app is in imperial mode.
+
