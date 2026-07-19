@@ -1,5 +1,22 @@
 # ShowUp — changelog
 
+## v3.2.3-d1 — The Tesla pass, part one: explanations behind the dot
+First D1 release of the design workstream (DESIGN.md). Pure subtraction:
+every always-visible MECHANICS explainer — ten of them — folded into an ⓘ
+dot sitting exactly where the sentence used to be. Tap: the old note expands
+in place; tap again: gone. Converted: Daily Fire, Readiness, Logged-today
+(hold-to-edit hint), goal tick, cumulative-km chart, pace chart, year-%
+chart, weekday chart, consistency grid, drift view.
+
+Deliberately KEPT visible: data lines ("Last 4 weeks: 137 km over 27 runs",
+goal projection) because they're content not explanation, and all Settings
+prose because Settings is the manual. Reused the existing SUGGESTED ⓘ
+pattern — one mechanism, not two.
+
+Deferred within D1: Stats dashboard compression (kept this diff
+subtraction-only) and first-visit-shows-once. Gate: a week of real use
+without missing any removed sentence.
+
 ## v3.2.3 — Streak-at-risk (Wave 1, item 1; per the ROADMAP spec)
 After 18:00, with today unwritten and a streak alive: the header flame and
 count warm to the record tone, the dashed today-square warms to match, and

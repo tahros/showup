@@ -123,6 +123,9 @@ try{document.documentElement.dataset.theme=localStorage.getItem('showup-theme')|
   #hStreak.atrisk{color:var(--record);font-weight:800}
   .strip i.pend.atrisk{border-color:var(--record);opacity:1}
   .atriskTxt{color:var(--record)}
+  .notei{display:block;margin-top:6px}
+  .notei .ibtn{position:static}
+  .tipnote{margin-top:6px}
   .resttimer{display:none;font-family:var(--mono);font-size:14px;font-weight:700;color:#fff;letter-spacing:.02em}
   header.live .resttimer{display:inline}
   .resttimer::before{content:'●';font-size:8px;margin-right:6px;vertical-align:2px;
@@ -640,7 +643,7 @@ try{document.documentElement.dataset.theme=localStorage.getItem('showup-theme')|
 </div>
 
 <script>
-const APP_VERSION = 'v3.2.3';
+const APP_VERSION = 'v3.2.3-d1';
 const SEED0 = {catalog:{"Chest":["Incline Smith Machine Bench Press","Flat Smith Machine Bench Press","Incline Dumbbell Bench Press","Chest Press","Pectoral Fly","Cable Fly Up","Cable Fly Down","Chest Squeeze","Dip","Barbell Bench Press","Incline Barbell Bench Press","Decline Barbell Bench Press","Dumbbell Bench Press","Decline Dumbbell Bench Press","Machine Chest Press","Cable Crossover","Incline Cable Fly","Low Cable Fly","Dumbbell Pullover","Landmine Press","Svend Press","Push Up","Weighted Push Up"],"Back":["Pull Up","Lat Pull Down","Bent-Over Row","Row","Deadlift","Chin Up","Weighted Pull Up","Seated Cable Row","Single-Arm Dumbbell Row","T-Bar Row","Pendlay Row","Barbell Shrug","Rack Pull","Straight-Arm Pulldown","Close-Grip Lat Pull Down","Inverted Row","Chest-Supported Row","Machine Row"],"Shoulder":["Dumbbell Press","Dumbbell Side Raise","Dumbbell Front Raise","Dumbbell Combination","Dumbbell Bent Over Side Raise","Rear Deltoids","Overhead Barbell Press","Arnold Press","Machine Shoulder Press","Cable Lateral Raise","Face Pull","Upright Row","Reverse Pec Deck","Landmine Lateral Raise","Cable Rear Delt Fly"],"Legs":["Squat","Dumbbell Lunge","Front Squat","Hack Squat","Leg Press","Romanian Deadlift","Bulgarian Split Squat","Walking Lunge","Leg Extension","Lying Leg Curl","Seated Leg Curl","Hip Thrust","Goblet Squat","Standing Calf Raise","Seated Calf Raise","Step Up"],"Biceps":["Barbell Curl","Dumbbell Curl","Hammer Curl","EZ Bar Curl","Preacher Curl","Cable Curl","Incline Dumbbell Curl","Concentration Curl","Spider Curl","Reverse Curl","Cable Hammer Curl"],"Triceps":["Overhead Triceps Extension","Close Grip Bench Press","Triceps Pushdown","Rope Pushdown","Skull Crusher","Bench Dip","Dumbbell Kickback","Overhead Cable Extension","Diamond Push Up"],"Sixpack":["Hanging Leg Raise","Leg Raise","Plank","Cable Crunch","Russian Twist","Ab Wheel Rollout","Bicycle Crunch","Sit Up","Decline Sit Up","Mountain Climber","Side Plank"],"Run":["Run"]},ex2part:{"Incline Smith Machine Bench Press":"Chest","Flat Smith Machine Bench Press":"Chest","Incline Dumbbell Bench Press":"Chest","Chest Press":"Chest","Pectoral Fly":"Chest","Cable Fly Up":"Chest","Cable Fly Down":"Chest","Chest Squeeze":"Chest","Dip":"Chest","Barbell Bench Press":"Chest","Incline Barbell Bench Press":"Chest","Decline Barbell Bench Press":"Chest","Dumbbell Bench Press":"Chest","Decline Dumbbell Bench Press":"Chest","Machine Chest Press":"Chest","Cable Crossover":"Chest","Incline Cable Fly":"Chest","Low Cable Fly":"Chest","Dumbbell Pullover":"Chest","Landmine Press":"Chest","Svend Press":"Chest","Push Up":"Chest","Weighted Push Up":"Chest","Pull Up":"Back","Lat Pull Down":"Back","Bent-Over Row":"Back","Row":"Back","Deadlift":"Back","Chin Up":"Back","Weighted Pull Up":"Back","Seated Cable Row":"Back","Single-Arm Dumbbell Row":"Back","T-Bar Row":"Back","Pendlay Row":"Back","Barbell Shrug":"Back","Rack Pull":"Back","Straight-Arm Pulldown":"Back","Close-Grip Lat Pull Down":"Back","Inverted Row":"Back","Chest-Supported Row":"Back","Machine Row":"Back","Dumbbell Press":"Shoulder","Dumbbell Side Raise":"Shoulder","Dumbbell Front Raise":"Shoulder","Dumbbell Combination":"Shoulder","Dumbbell Bent Over Side Raise":"Shoulder","Rear Deltoids":"Shoulder","Overhead Barbell Press":"Shoulder","Arnold Press":"Shoulder","Machine Shoulder Press":"Shoulder","Cable Lateral Raise":"Shoulder","Face Pull":"Shoulder","Upright Row":"Shoulder","Reverse Pec Deck":"Shoulder","Landmine Lateral Raise":"Shoulder","Cable Rear Delt Fly":"Shoulder","Squat":"Legs","Dumbbell Lunge":"Legs","Front Squat":"Legs","Hack Squat":"Legs","Leg Press":"Legs","Romanian Deadlift":"Legs","Bulgarian Split Squat":"Legs","Walking Lunge":"Legs","Leg Extension":"Legs","Lying Leg Curl":"Legs","Seated Leg Curl":"Legs","Hip Thrust":"Legs","Goblet Squat":"Legs","Standing Calf Raise":"Legs","Seated Calf Raise":"Legs","Step Up":"Legs","Barbell Curl":"Biceps","Dumbbell Curl":"Biceps","Hammer Curl":"Biceps","EZ Bar Curl":"Biceps","Preacher Curl":"Biceps","Cable Curl":"Biceps","Incline Dumbbell Curl":"Biceps","Concentration Curl":"Biceps","Spider Curl":"Biceps","Reverse Curl":"Biceps","Cable Hammer Curl":"Biceps","Overhead Triceps Extension":"Triceps","Close Grip Bench Press":"Triceps","Triceps Pushdown":"Triceps","Rope Pushdown":"Triceps","Skull Crusher":"Triceps","Bench Dip":"Triceps","Dumbbell Kickback":"Triceps","Overhead Cable Extension":"Triceps","Diamond Push Up":"Triceps","Hanging Leg Raise":"Sixpack","Leg Raise":"Sixpack","Plank":"Sixpack","Cable Crunch":"Sixpack","Russian Twist":"Sixpack","Ab Wheel Rollout":"Sixpack","Bicycle Crunch":"Sixpack","Sit Up":"Sixpack","Decline Sit Up":"Sixpack","Mountain Climber":"Sixpack","Side Plank":"Sixpack","Run":"Run"},equip:{"Incline Smith Machine Bench Press":"smith","Flat Smith Machine Bench Press":"smith","Incline Dumbbell Bench Press":"dumbbell","Chest Press":"machine","Pectoral Fly":"machine","Cable Fly Up":"cable","Cable Fly Down":"cable","Chest Squeeze":"body","Dip":"body","Barbell Bench Press":"barbell","Incline Barbell Bench Press":"barbell","Decline Barbell Bench Press":"barbell","Dumbbell Bench Press":"dumbbell","Decline Dumbbell Bench Press":"dumbbell","Machine Chest Press":"machine","Cable Crossover":"cable","Incline Cable Fly":"cable","Low Cable Fly":"cable","Dumbbell Pullover":"dumbbell","Landmine Press":"barbell","Svend Press":"dumbbell","Push Up":"body","Weighted Push Up":"body","Pull Up":"body","Lat Pull Down":"cable","Bent-Over Row":"barbell","Row":"cable","Deadlift":"barbell","Chin Up":"body","Weighted Pull Up":"body","Seated Cable Row":"cable","Single-Arm Dumbbell Row":"dumbbell","T-Bar Row":"barbell","Pendlay Row":"barbell","Barbell Shrug":"barbell","Rack Pull":"barbell","Straight-Arm Pulldown":"cable","Close-Grip Lat Pull Down":"cable","Inverted Row":"body","Chest-Supported Row":"cable","Machine Row":"cable","Dumbbell Press":"dumbbell","Dumbbell Side Raise":"dumbbell","Dumbbell Front Raise":"dumbbell","Dumbbell Combination":"dumbbell","Dumbbell Bent Over Side Raise":"dumbbell","Rear Deltoids":"machine","Overhead Barbell Press":"barbell","Arnold Press":"dumbbell","Machine Shoulder Press":"machine","Cable Lateral Raise":"cable","Face Pull":"cable","Upright Row":"barbell","Reverse Pec Deck":"machine","Landmine Lateral Raise":"cable","Cable Rear Delt Fly":"cable","Squat":"barbell","Dumbbell Lunge":"dumbbell","Front Squat":"barbell","Hack Squat":"machine","Leg Press":"machine","Romanian Deadlift":"barbell","Bulgarian Split Squat":"dumbbell","Walking Lunge":"dumbbell","Leg Extension":"machine","Lying Leg Curl":"machine","Seated Leg Curl":"machine","Hip Thrust":"barbell","Goblet Squat":"barbell","Standing Calf Raise":"machine","Seated Calf Raise":"machine","Step Up":"dumbbell","Barbell Curl":"barbell","Dumbbell Curl":"dumbbell","Hammer Curl":"dumbbell","EZ Bar Curl":"barbell","Preacher Curl":"barbell","Cable Curl":"cable","Incline Dumbbell Curl":"dumbbell","Concentration Curl":"dumbbell","Spider Curl":"dumbbell","Reverse Curl":"barbell","Cable Hammer Curl":"cable","Overhead Triceps Extension":"machine","Close Grip Bench Press":"barbell","Triceps Pushdown":"cable","Rope Pushdown":"cable","Skull Crusher":"barbell","Bench Dip":"body","Dumbbell Kickback":"dumbbell","Overhead Cable Extension":"cable","Diamond Push Up":"body","Hanging Leg Raise":"body","Leg Raise":"body","Plank":"body","Cable Crunch":"cable","Russian Twist":"body","Ab Wheel Rollout":"body","Bicycle Crunch":"body","Sit Up":"body","Decline Sit Up":"body","Mountain Climber":"body","Side Plank":"body","Run":"run"},sessions:{},dates:[],monthly:{},pr:{},hist:{},last:{},lastSess:{},repFreq:{},exFreq:{},exLast:{},partCount:{},partLast:{},partDays:{},totals:{sessions:0,first:null,last:'0000-00-00',km:0,vol:0}};
 /* v3.2.1: the 918-day seed literal is GONE (~75% of this file). History lives
    in doc.days (Supabase + localStorage). Full seed preserved forever in git
@@ -1828,6 +1831,16 @@ function rhythmCard(){
   return h;
 }
 
+/* D1 (DESIGN.md): explanations live behind a dot, where the sentence used
+   to be. Tap ⓘ → the old note expands in place; tap again → gone. */
+function iBtn(id,text){
+  return `<span class="notei"><button class="ibtn tipi" data-tip="${id}" aria-label="What is this?">i</button><span class="tipnote note" id="tip-${id}" hidden>${text}</span></span>`;
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('.tipi'); if(!b) return;
+  const t=document.getElementById('tip-'+b.dataset.tip);
+  if(t) t.hidden=!t.hidden;
+});
 /* ---------- Daily Fire: today vs every day you've ever trained ---------- */
 let _fireDist=null;
 function fireDist(kind){
@@ -1884,7 +1897,7 @@ function dailyFireHTML(){
       <line x1="${mx.toFixed(1)}" y1="0" x2="${mx.toFixed(1)}" y2="${H}" stroke="var(--live)" stroke-width="2.5"></line>
       <circle cx="${mx.toFixed(1)}" cy="${H}" r="3.5" fill="var(--live)" class="firedot"></circle>
     </svg>
-    <div class="note" style="margin:4px 0 0">Every set moves the red line right. All ${fmt(n)} days are on this chart.</div>
+    ${iBtn('fire',`Today vs every day you've trained, sorted smallest to biggest. Every set moves the red line right — all ${fmt(n)} days are on this chart.`)}
   </div>`;
 }
 /* ============ v3.1 Clean Slate: onboarding · demo · honest empty states ============ */
@@ -2073,7 +2086,7 @@ function renderToday(){
               <span class="rmeta">${i1.since===0?'today':i1.since+'d'} <em>/ ${Math.round(i1.gap)}d</em></span>
             </button>`;
       });
-      h+=`<div class="note" style="margin:6px 2px 4px">Each bar fills toward how often you usually train that part. Full = due — tap to start.</div></div>`;
+      h+=`${iBtn('ready','Each bar fills toward how often you usually train that part. Full = due — tap to start.')}</div>`;
     }
     $('#view').innerHTML=h; return;
   }
@@ -2680,7 +2693,7 @@ function renderLift(){
               <button class="btn ghost" id="editCancel" style="margin:0;flex:0 0 96px">Cancel</button>
             </div></div>`;
     }
-    h+=`<div class="note">Tap a set to delete it — <b>hold to edit</b>. Undo is one tap away.</div></div>`;
+    h+=`${iBtn('sets','Tap a set to delete it — hold to edit. Undo is one tap away.')}</div>`;
   }else if(undoStack.length){
     h+=`<button class="btn ghost" id="undoBtn" style="margin-top:12px">↺ Undo — ${undoStack[undoStack.length-1].label}</button>`;
   }
@@ -2823,7 +2836,7 @@ function runStatsHTML(){
         <div class="tot">
           <span class="${ahead>=0?'up':'down'}"><b>${ahead>=0?'+':''}${Math.round(ahead)} ${DU()}</b> ${ahead>=0?'ahead of':'behind'} pace</span>
           <span>projecting <b>${Math.round(projected)}</b></span></div>
-        <div class="note">The tick marks where you should be today. <button class="linky" id="goalEdit">Change goal</button></div>
+        <div class="note" style="display:flex;align-items:center;gap:8px"><button class="linky" id="goalEdit">Change goal</button>${iBtn('goal','The tick marks where you should be today.')}</div>
       </div>`;
     }else{
       const lastYr=days.filter(r=>r.d.startsWith(String(+thisYear-1)))
@@ -2907,7 +2920,7 @@ function runStatsHTML(){
          fill="${YEAR_COLORS[L.y]||'var(--muted)'}" font-weight="${L.cur?700:400}">${L.y.slice(2)}</text>`;
   h+=`</svg></div><div class="legend1">`;
   for(const y of years) h+=`<span><i style="background:${YEAR_COLORS[y]||'var(--muted)'}"></i>${y} · ${Math.round(yTot[y])}</span>`;
-  h+=`</div><div class="note">Cumulative ${DU()} by day of year. ${thisYear} is still running.</div></div>`;
+  h+=`</div>${iBtn('cumkm',`Cumulative ${DU()} by day of year. ${thisYear} is still running.`)}</div>`;
 
   /* --- pace, by month (timed runs only; lower is faster) --- */
   const pm={};
@@ -2932,7 +2945,7 @@ function runStatsHTML(){
           <text x="${x.toFixed(1)}" y="107" text-anchor="middle" font-family="var(--mono)" font-size="6.5" fill="${latest?'var(--accent)':'var(--muted)'}">${m.slice(5)}</text>`;
     });
     h+=`<polyline points="${poly.trim()}" fill="none" stroke="var(--accent)" stroke-width="1.2" stroke-linejoin="round"></polyline>
-        </svg></div><div class="note">Minutes per ${DU()}, timed runs only — faster months sit lower. Fastest in red, this month in blue.</div></div>`;
+        </svg></div>${iBtn('pace',`Minutes per ${DU()}, timed runs only — faster months sit lower. Fastest in red, this month in blue.`)}</div>`;
   }
 
   /* --- records --- */
@@ -3040,7 +3053,7 @@ function renderStats(){
     const c=curves[y], cur=y===thisYear;
     h+=`<span class="${cur?'cur':''}"><i style="background:${YEAR_COLORS[y]}"></i>${y}<b>${Math.round(c.curve[c.end-1]*100)}%</b></span>`;
   }
-  h+=`</div><div class="note">% of days trained, cumulative through each year</div></div>`;
+  h+=`</div>${iBtn('yearpct','% of days trained, cumulative through each year.')}</div>`;
 
   // heatmap: 26 weeks, weekday rail on the left, months across the top
   const detail=allDays();
@@ -3132,7 +3145,7 @@ function renderStats(){
         <text x="${x+13}" y="${108-bh}" text-anchor="middle" font-family="var(--mono)" font-size="8" fill="${strongest?'var(--accent)':'var(--muted)'}" font-weight="${strongest?700:400}">${Math.round(p*100)}%</text>
         <text x="${x+13}" y="127" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="${strongest?'var(--chalk)':'var(--muted)'}" font-weight="${strongest?700:400}">${lab}</text>`;
   });
-  h+=`</svg><div class="note">% of each weekday trained, last 365 days</div></div>`;
+  h+=`</svg>${iBtn('weekday','% of each weekday trained, last 365 days.')}</div>`;
 
   // month-by-month composition — the sheet's "Which part am I missing out?" chart
   /* v3.1.13: the stacked-months chart and the radar are gone (Sungjee's
@@ -3160,7 +3173,7 @@ function renderStats(){
       h+=`<span class="mg-c mono ${k===mNow?'cur':''}" style="${n?`background:color-mix(in srgb, var(--accent) ${a}%, transparent)`:''}">${out?'':(n||'·')}</span>`;
     }
   }
-  h+=`</div><div class="note">Days trained each month — the whole history on one screen. Darker = more days. Dashed = this month, still being written.</div></div>`;
+  h+=`</div>${iBtn('grid','Days trained each month — the whole history on one screen. Darker = more days. Dashed = this month, still being written.')}</div>`;
 
   /* --- "What's quietly slipping?" — last 30 days vs YOUR 12-month rhythm --- */
   const isoAgo=n=>{const c=new Date(todayISO+'T00:00');c.setDate(c.getDate()-n);return c.toLocaleDateString('en-CA');};
@@ -3194,7 +3207,7 @@ function renderStats(){
         <span class="dr-n mono ${flag}">${dd.now} <span class="muted">· usually ${usualTxt}</span>${flag==='down'?' ↓':flag==='up'?' ↑':''}</span>
       </div>`;
     }
-    h+=`<div class="note">Sessions per part against your own 12-month rhythm — the tick is your usual. ↓ = quietly slipping.</div></div>`;
+    h+=`${iBtn('drift','Sessions per part against your own 12-month rhythm — the tick is your usual. ↓ = quietly slipping.')}</div>`;
   }
 
   // the whole Run story lives here now (was its own tab in v2.04 — reverted)
