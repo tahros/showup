@@ -1,5 +1,25 @@
-const CACHE = 'showup-v3.2.4';
-const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png'];
+const CACHE = 'showup-v3.2.5';
+const SHELL = [
+  './',
+  './index.html',
+  './manifest.webmanifest',
+  './css/app.css?v=3.2.5',
+  './js/core.js?v=3.2.5',
+  './js/derive.js?v=3.2.5',
+  './js/util.js?v=3.2.5',
+  './js/header.js?v=3.2.5',
+  './js/report.js?v=3.2.5',
+  './js/today.js?v=3.2.5',
+  './js/lift.js?v=3.2.5',
+  './js/stats.js?v=3.2.5',
+  './js/history.js?v=3.2.5',
+  './js/settings.js?v=3.2.5',
+  './js/app.js?v=3.2.5',
+  './icon-192.png',
+  './icon-512.png',
+  './icon-maskable-512.png',
+  './apple-touch-icon.png'
+];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)));
   self.skipWaiting();

@@ -1,5 +1,32 @@
 # ShowUp — changelog
 
+## v3.2.5 — Refactor: one file becomes a shell + 12 modules (no behaviour change)
+Sungjee's request: split index.html so future work reads a small file instead
+of 220 KB, without a framework, build step, or any redesign.
+
+- `index.html` is now a 2.6 KB shell (meta, DOM skeleton, one inline pre-paint
+  theme script, ordered asset tags). Styles → `css/app.css`. Logic → eleven
+  `js/*.js` files: core, derive, util, header, report, today, lift, stats,
+  history, settings, app.
+- **Classic scripts, not ES modules** — ordered `<script src>` shares one
+  global scope, which is semantically identical to the old single block. The
+  split was therefore a pure move: no export/import rewiring, no logic edits.
+  Cut points were contiguous line ranges on existing section boundaries.
+- **Atomic deploys preserved.** Every asset URL carries `?v=3.2.5`, so a new
+  index.html cannot pair with a stale cached file — the one real risk of
+  multi-file PWAs. `sw.js` SHELL lists all 12 assets; cache bumped.
+- **New build checks** (`buildcheck.py`): every referenced asset must exist,
+  carry the current version stamp, and appear in the service-worker SHELL;
+  CSS vars must be defined; the shell must stay under 8 KB with no inline
+  styles.
+- **Verification:** a snapshot harness renders eight screens (Today, Lift,
+  part view, exercise view, Stats, report-card month nav, History, Settings)
+  plus ten behavioural probes, and hashes the DOM. Baseline captured before
+  any edit; every stage had to reproduce the hashes exactly. Final state is
+  byte-identical to v3.2.4 against a version-matched baseline. Safety tag
+  `v3.2.4-last-onefile` marks the pre-refactor commit.
+- New `ARCHITECTURE.md` maps features to files.
+
 ## v3.2.4 — Monthly report card (Wave 1; per the ROADMAP spec)
 Stats gains a Report Card: any month rendered as a 1080×1350 shareable
 image — day heat-strip across the top (trained = accent, rest = outline,

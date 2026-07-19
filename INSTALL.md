@@ -41,3 +41,6 @@ No code edits required — the app reads your Supabase config from Settings.
 - Daily local backups are kept automatically; sync is per-day last-write-wins
   across devices.
 - Leaving is easy by design: your data is one `select doc from app_state` away.
+
+Note (v3.2.5): the app is now a shell plus `css/` and `js/` folders — fork or
+copy the whole repo, not a single file. See ARCHITECTURE.md for the map.
