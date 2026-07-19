@@ -116,3 +116,11 @@ North star: the paper ledger the app grew from. T1 bars removed, T2 Stats
 de-carded (chrome = tappable, a semantic), T3 radii sharpened. T4 (History
 as literal ledger: mono columns, date stamps, hairlines) PENDING Sungjee's
 verdict on T1–T3. Revert tag: v3.3.10-pre-deai.
+
+### De-AI pass: REVERTED (v3.3.12, 2026-07-20)
+T1-T3 shipped and were reverted the same session — "awful" on the real
+screen. Third revert of the workstream. What it taught: ShowUp's chrome
+wasn't decoration standing in for taste. The cards carried grouping the
+mono type couldn't hold alone, and the accent bars anchored the tracked
+uppercase labels. A critique of generic AI design was correct in general
+and wrong for this app. T4 dropped. Doctrine unchanged: judged by use.

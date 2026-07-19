@@ -1,5 +1,18 @@
 # ShowUp — changelog
 
+## v3.3.12 — De-AI pass reverted in full
+Sungjee's verdict on T1-T3, on the real screen: awful. Reverted whole —
+css/app.css restored byte-for-byte from the pre-change copy (md5 match),
+and the one body-attribute line removed from app.js. Accent bars back,
+Stats cards back, 14/12/10px radii back. DOM hashes identical across all
+8 harness screens before and after, so nothing else was touched.
+
+Third trial-and-revert of the design workstream (selection inversion,
+buildable-iron ruler, now the de-AI pass). Recorded, not mourned: the
+thread's critique was about generic AI output, and ShowUp's chrome turned
+out to be doing real work — a card meant something, the bars gave the mono
+labels an anchor. T4 (History as literal ledger) is dropped with the rest.
+
 ## v3.3.11 — De-AI pass, T1–T3 (trial; revert tag: v3.3.10-pre-deai)
 Prompted by a thread Sungjee agreed with: the left-accent-bar box is the
 signature tell of AI-generated design — and every h2 in ShowUp wore one.
