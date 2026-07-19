@@ -1,4 +1,5 @@
 :root{
+    color-scheme:dark;
     --ground:#17181D; --surface:#20222A; --surface2:#2B2E38; --line:#3C404C;
     --accent:#5B7BFF; --accent-soft:#3A4A8C; --accent-dim:#95A4E8;
     --record:#E05545;                       /* the only non-blue: personal records */
@@ -9,6 +10,7 @@
     --mono:'IBM Plex Mono',ui-monospace,monospace;
   }
   :root[data-theme="light"]{
+    color-scheme:light;
     --ground:#F2F3F6; --surface:#FFFFFF; --surface2:#E8EAF0; --line:#D6D9E2;
     --accent:#2F4BD8; --accent-soft:#C3CCF5; --accent-dim:#8892C4;
     --record:#C33A2C;
@@ -16,7 +18,7 @@
     --chalk:#191B21; --muted:#6B7080; --faint:#9AA0AE; --shadow:0 1px 3px rgba(20,25,40,.07);
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  html,body{margin:0;background:var(--ground)}
+  html,body{margin:0;background:var(--ground);color:var(--chalk)}
   #app{
     max-width:520px;margin:0 auto;min-height:100vh;
     background:var(--ground);color:var(--chalk);
@@ -161,7 +163,7 @@
   header.live .icobtn small{color:#fff;opacity:.95}
   header.exmode .h-date{font-size:15px;line-height:1.25;max-width:56vw;
     display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-  .h-date{font-family:var(--disp);font-weight:800;font-size:24px;letter-spacing:-.02em}
+  .h-date{font-family:var(--disp);font-weight:700;font-size:21px;letter-spacing:-.015em}
   .h-sub{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .brandrow>div{min-width:0}
@@ -412,7 +414,7 @@
   td,th{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left}
   th{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500}
   td.n{font-family:var(--mono);text-align:right;white-space:nowrap}
-  .rec-core td b{font-weight:600}
+  .rec-core td b{font-weight:600;color:var(--chalk)}
   .rec-core td.n b{font-weight:700}
   .rec-other{margin-top:2px}
   .rec-other td{color:var(--muted);font-size:12px;padding:6px}

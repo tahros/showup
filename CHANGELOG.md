@@ -1,5 +1,28 @@
 # ShowUp — changelog
 
+## v3.3.3 — Dark-mode black-text fix (forensic) + quieter date
+Sungjee's screenshot: core-record names rendering near-black on the dark
+theme. Pixel-sampled the screenshot rather than guessing: background was
+exactly --ground, other-tier names exactly --muted, but the affected names
+were TRUE BLACK (0,0,0) — a color that exists nowhere in either palette.
+True black is the browser's DEFAULT ink, which means those glyphs were
+being re-inked outside our stylesheet: iOS Safari's per-site "force dark"
+(or a darkener extension) misclassifying bold table text on a site that
+never declared its color scheme.
+
+Three-layer fix:
+- `color-scheme: dark` declared on :root (light theme declares light) plus
+  the matching <meta> — forced-dark features now know the site is already
+  dark and stand down. Root cause.
+- body itself now carries color:var(--chalk) — no element can ever fall
+  through to UA black again, whatever misclassifies. Seatbelt.
+- The affected rows get explicit ink — darkeners skip already-colored
+  text. Belt and braces.
+
+Also per Sungjee's verdict on v3.3.2: the header date was too loud —
+dialed from 24px/800 to 21px/700. The hierarchy stays; the shout goes.
+DOM byte-identical per the harness.
+
 ## v3.3.2 — Type-scale courage (design workstream, from the influences study)
 Studied Sungjee's screenshots of Stoic, Ladder and a workout-onboarding app;
 the distilled lessons now live in DESIGN.md ("Influences"). First lesson
