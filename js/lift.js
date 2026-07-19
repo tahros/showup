@@ -338,7 +338,7 @@ function renderLift(){
     h+=`<div class="repgrid">${reps.map(r=>`<button data-rep="${r}">${r}</button>`).join('')}</div>
         <div class="repcustom">
           <input id="rc" type="number" inputmode="numeric" placeholder="reps">
-          <button class="btn" id="addrep" style="margin:0;flex:0 0 96px">Add set</button>
+          <button class="btn" id="addrep" style="margin:0;flex:0 0 auto;min-width:96px;padding-left:14px;padding-right:14px">Add set</button>
         </div></div>`;
   }
 
@@ -687,3 +687,23 @@ function runStatsHTML(){
       </table>`;
   return h;
 }
+
+
+/* ---------- D2: live consequence on the Add set button ---------- */
+function updAddPreview(){
+  const rc=document.getElementById('rc'), btn=document.getElementById('addrep');
+  if(!rc||!btn) return;
+  const r=parseInt(rc.value,10);
+  if(!(r>0)||!lift.weight){ btn.textContent='Add set'; return; }
+  const t=day(todayISO);
+  let cur=0; for(const s of t.w) if(s.ex!=='Run') cur+=s.w*(s.reps||[]).reduce((a,b)=>a+b,0);
+  const nv=cur+lift.weight*r;
+  const dist=fireDist('vol');
+  let gain=0;
+  if(dist.length>=30){
+    const rank=x=>{let lo=0,hi=dist.length;while(lo<hi){const m=(lo+hi)>>1;if(dist[m]<=x)lo=m+1;else hi=m;}return lo;};
+    gain=rank(nv)-rank(cur);
+  }
+  btn.innerHTML=`Add set<span class="addsub">→ <b>${fmt(Math.round(nv))}</b> ${U()}${gain>0?` ▲${gain}`:''}</span>`;
+}
+document.addEventListener('input',e=>{ if(e.target&&e.target.id==='rc') updAddPreview(); });

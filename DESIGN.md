@@ -79,7 +79,9 @@ What earns the "premium" feel, distilled:
 
 Adopted into phases:
 - D1.5 type-scale pass — SHIPPED v3.3.2.
-- D1.5 selection inversion for part cards/chips.
+- D1.5 selection inversion — tried v3.3.4, REVERTED v3.3.5. Sungjee's verdict
+  after real use: selection reads better in accent blue. Accent = app voice +
+  your selections; red = live. The trial is the process working.
 - Onboarding: "How to ShowUp" gestures screen; reassurance lines at sign-in
   and demo.
 - D2: live-consequence Add set ("Add set → 7,660 kg · ▲3").

@@ -91,6 +91,7 @@ function onbRender(){
       <button class="onbbtn pri" data-onbact="signin">Sign in with Google</button>
       <button class="onbbtn" data-onbact="local">Continue on this device</button>
       <button class="onbbtn ghost" data-onbact="demo">Explore with sample data</button>
+      <div class="onbnote">Sign in or not — your training stays on your device and stays yours. Export everything from Settings, anytime. The demo never syncs and clears with one tap.</div>
       <p class="onbnote">Sign-in syncs across devices. Local works fully offline — you can sign in later.</p></div>`;
   }else if(onbStep===2){
     b=`<div class="onbcard">
@@ -100,7 +101,7 @@ function onbRender(){
         `<button class="onbchip ${onbSel.has(p)?'sel':''}" data-onbp="${p}">${p}</button>`).join('')}</div>
       <button class="onbbtn pri" data-onbact="toStep3">Continue</button>
       <button class="onbbtn ghost" data-onbact="skip">Skip — it's all in Settings anyway</button></div>`;
-  }else{
+  }else if(onbStep===3){
     const lb=onbUnit==='lb';
     b=`<div class="onbcard">
       <h3>Your numbers</h3>
@@ -110,8 +111,15 @@ function onbRender(){
         <input id="onbBw" type="number" inputmode="decimal" placeholder="${lb?'154':'70'}"></div>
       <div class="onbrow"><span>Barbell bar</span>
         <input id="onbBar" type="number" inputmode="decimal" value="${lb?'45':'20'}"></div>
-      <button class="onbbtn pri" data-onbact="finish">Start showing up</button>
+      <button class="onbbtn pri" data-onbact="toStep4">Continue</button>
       <button class="onbbtn ghost" data-onbact="skip">Skip</button></div>`;
+  }else if(onbStep===4){
+    b=`<div class="onbcard">
+      <h3>How to ShowUp</h3>
+      <div class="onbges"><span class="gi">‹</span><span><b>Swipe right</b> inside an exercise<span class="muted">back to the part list</span></span></div>
+      <div class="onbges"><span class="gi">⊙</span><span><b>Hold a logged set</b><span class="muted">edit it — tap once to delete</span></span></div>
+      <div class="onbges"><span class="gi">▮</span><span><b>Tap the header when it's red</b><span class="muted">jump straight to your active exercise</span></span></div>
+      <button class="onbbtn pri" data-onbact="finish">Start showing up</button></div>`;
   }
   el.innerHTML=`<div class="onbwrap">${b}</div>`;
 }
@@ -187,6 +195,7 @@ document.addEventListener('click',e=>{
   if(act==='signin') signInGoogle();
   else if(act==='local'){ onbStep=2; onbRender(); }
   else if(act==='toStep3'){ onbStep=3; onbRender(); }
+  else if(act==='toStep4'){ onbStep=4; onbRender(); }
   else if(act==='skip') onbFinish(true);
   else if(act==='finish') onbFinish(false);
   else if(act==='demo') demoLoad();

@@ -1,5 +1,27 @@
 # ShowUp — changelog
 
+## v3.3.5 — Blue selection restored · onboarding polish · the button that answers first
+Three requests in one release:
+
+- **Selection back to blue** (Sungjee's verdict): the v3.3.4 chalk-inversion
+  experiment is reverted — selected part cards, chips and month chips wear
+  accent blue again. Recorded in DESIGN.md: tried, judged in real use,
+  rejected. That's the workstream working as designed.
+- **Onboarding, finished**: a reassurance line on the first screen ("your
+  training stays yours — export anytime; the demo never syncs"), and a new
+  final step, "How to ShowUp" — the three gestures taught once (swipe right
+  to go back, hold a set to edit, tap the red header to jump to your active
+  exercise), then trusted forever. Closes the deferred first-visit-education
+  item and Influences items 8 and 9.
+- **D2 begins — live consequence on Add set** (Influences item 5): type reps
+  and the button itself answers before you press: "Add set → 7,660 kg ▲3" —
+  today's total volume after this set, and how many past days it overtakes
+  on the fire chart. Empty input, plain button. The numbers are the game
+  pieces; the CTA now plays them.
+
+Verified: full four-step onboarding walk, preview math against the day's
+canonical volume, harness clean with only the exercise screen changed.
+
 ## v3.3.4 — Selection inversion (design workstream, Influences item 7)
 Selected states — part cards on Lift, filter chips, month chips on History —
 now invert: chalk fill, ground ink, instead of accent fill. Readable at
