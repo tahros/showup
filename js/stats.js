@@ -208,10 +208,10 @@ function renderStats(){
       const n=mDays[k]||0;
       const out=k<m0||k>mNow;
       const a=n?Math.round(14+74*n/gMax):0;
-      h+=`<span class="mg-c mono ${k===mNow?'cur':''}" style="${n?`background:color-mix(in srgb, var(--accent) ${a}%, transparent)`:''}">${out?'':(n||'·')}</span>`;
+      h+=`<span class="mg-c mono ${k===mNow?'cur':''}" ${out?'':`data-mk="${k}"`} style="${n?`background:color-mix(in srgb, var(--accent) ${a}%, transparent)`:''}">${out?'':(n||'·')}</span>`;
     }
   }
-  h+=`</div><div class="note">Days trained each month — the whole history on one screen. Darker = more days. Dashed = this month, still being written.</div></div>`;
+  h+=`</div><div id="mexp"></div><div class="note">Days trained each month — the whole history on one screen. Darker = more days. Dashed = this month, still being written. Tap a month to open it.</div></div>`;
 
   /* --- "What's quietly slipping?" — last 30 days vs YOUR 12-month rhythm --- */
   const isoAgo=n=>{const c=new Date(todayISO+'T00:00');c.setDate(c.getDate()-n);return c.toLocaleDateString('en-CA');};
@@ -292,3 +292,22 @@ function renderStats(){
       <div class="note" style="text-align:center">${session?`Signed in as ${session.user.email||'—'}`:'Not signed in — data is on this device only'} · ${APP_VERSION}</div>`;
   $('#view').innerHTML=h;
 }
+
+
+/* ---------- D3: tap a grid month, it opens in place ---------- */
+let _mexpK=null;
+document.addEventListener('click',e=>{
+  const c=e.target.closest('.mg-c[data-mk]'); if(!c) return;
+  const box=document.getElementById('mexp'); if(!box) return;
+  const k=c.dataset.mk;
+  if(_mexpK===k){ _mexpK=null; box.innerHTML=''; return; }
+  _mexpK=k;
+  const base=new Date(todayISO+'T00:00'); base.setDate(1);
+  const tgt=new Date(k+'-01T00:00');
+  const off=(base.getFullYear()-tgt.getFullYear())*12+(base.getMonth()-tgt.getMonth());
+  const rd=repData(off);
+  box.innerHTML=`<div class="mexpIn">
+    <div class="repline mono">${rd.label} — ${rd.nD} day${rd.nD===1?'':'s'} · ${fmt(Math.round(rd.vol))} kg · ${rd.km.toFixed(1)} ${DU()}${rd.mx>1?` · best streak ${rd.mx}d`:''}</div>
+    <div class="mexpDots">${rd.days.map(d=>`<i class="${d.fut?'f':(d.tr?'t':'')}" title="${d.d}"></i>`).join('')}</div>
+  </div>`;
+});

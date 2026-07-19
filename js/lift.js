@@ -213,7 +213,7 @@ function renderLift(){
           ? reps.map(r2=>`<i class="repchip">${r2}</i>`).join('')
           : (mins!=null?`<i class="repchip">${mins}${secs?`'${String(secs).padStart(2,'0')}`:'′'}</i>`:'');
         const wtxt=isBody(ex)&&w2<=0.01?'BW':`${wDisp(w2)} <span class="u">${U()}</span>`;
-        return `<div class="lastrow"><span class="lastw mono">${wtxt}</span><span class="lastreps">${chips}</span></div>`;
+        return `<div class="lastrow" data-lw="${w2}" role="button"><span class="lastw mono">${wtxt}</span><span class="lastreps">${chips}</span></div>`;
       }).join('');
       const vol=folded.reduce((a,[w2,reps])=>a+w2*(reps||[]).reduce((x,y)=>x+y,0),0);
       const nsets=folded.reduce((a,[,reps])=>a+Math.max(1,(reps||[]).length),0);
@@ -327,8 +327,7 @@ function renderLift(){
     h+=`<div class="zone prime"><div class="zonehead"><span>Log a set</span></div>
         <div class="wsel" style="margin-top:10px"><button data-w="-1">−</button>
         <div class="val"><input id="wv" type="number" inputmode="decimal" step="${STEP()}" value="${wDisp(lift.weight)}"><span class="unit">${U()}</span></div>
-        <button data-w="1">+</button></div>
-        ${rulerHTML(ex)}`;
+        <button data-w="1">+</button></div>`;
     if(usesPlates(ex)){
       h+=`<div class="loadline" id="ll">${loadInner(ex,lift.weight)}</div>`;
     }else if(loadLine(ex,lift.weight)){
@@ -373,7 +372,6 @@ function renderLift(){
       ?`<div class="settile${anim}${lift.editSet===idx?' editing':''}" data-del="${idx}"><span class="w">${dDisp(s.w)} ${DU()}</span><span class="x">${s.mins||0}'${String(s.secs||0).padStart(2,'0')}"</span></div>`
       :`<div class="settile ${isPR?'pr':''}${anim}${lift.editSet===idx?' editing':''}" data-del="${idx}"><span class="w">${wLabel(ex,s.w)}</span><span class="x">${isBody(ex)&&s.w<=0.01?'×':U()+' ×'}</span><span class="w">${s.reps[0]}</span></div>`;
   });
-  rulSync(false);
   if(lift.justSaved) volCountUp();
   else{ const ve=document.getElementById('volNum');
         if(ve) _lastVol={ex:lift.ex,v:parseFloat(ve.dataset.kg||'0')}; }
@@ -733,62 +731,14 @@ function volCountUp(){
 }
 
 
-/* ---------- D3 flagship: the buildable-iron ruler ----------
-   A draggable ruler under a fixed center pointer, like the pickers in the
-   apps Sungjee studied — except every tick here is a weight that PHYSICALLY
-   EXISTS for this exercise's equipment: barbell ticks are bar + plate
-   pairs; machine ticks are the stack. Drag scrubs, release snaps. The ± 
-   stepper and typing remain as the discoverable fallback. */
-const RUL_PPT=14;                       // px per tick
-function rulerHTML(ex){
-  const eq=equipOf(ex);
-  if(eq==='body'||ex==='Run') return '';
-  const {s,a}=wLaw(ex);
-  const NT=Math.ceil((isLb()?600:300)/s);          // generous range above anchor
-  let ticks='';
-  for(let i=0;i<=NT;i++){
-    const v=a+i*s;
-    const major=i%4===0;
-    ticks+=`<i class="${major?'M':''}" style="left:${i*RUL_PPT}px">${major?`<em>${(Math.round(v*10)/10)}</em>`:''}</i>`;
-  }
-  return `<div class="ruler" id="ruler" data-s="${s}" data-a="${a}">
-    <div class="rul-pin"></div>
-    <div class="rul-strip" id="rulStrip" style="width:${NT*RUL_PPT+2}px">${ticks}</div>
-  </div>`;
-}
-function rulSync(animate){
-  const r=document.getElementById('ruler'), st=document.getElementById('rulStrip');
-  if(!r||!st) return;
-  const s=+r.dataset.s, a=+r.dataset.a;
-  const cur=+(document.getElementById('wv')||{}).value||a;
-  const x=r.clientWidth/2-((cur-a)/s)*RUL_PPT;
-  st.style.transition=animate?'transform .14s ease-out':'none';
-  st.style.transform=`translateX(${x}px)`;
-}
-let _rul=null;
-document.addEventListener('pointerdown',e=>{
-  const r=e.target.closest('#ruler'); if(!r) return;
-  _rul={x0:e.clientX,v0:+($('#wv').value||0)};
-  e.preventDefault();
-});
-document.addEventListener('pointermove',e=>{
-  if(!_rul) return;
-  const r=document.getElementById('ruler'); if(!r){_rul=null;return;}
-  const s=+r.dataset.s, a=+r.dataset.a;
-  const raw=Math.max(a,_rul.v0-(e.clientX-_rul.x0)/RUL_PPT*s);
-  $('#wv').value=Math.round(raw*10)/10;
-  rulSync(false); refreshLoad();
-  if(typeof updAddPreview==='function') updAddPreview();
-});
-document.addEventListener('pointerup',e=>{
-  if(!_rul) return; _rul=null;
-  const r=document.getElementById('ruler'); if(!r) return;
-  const s=+r.dataset.s, a=+r.dataset.a;
-  const raw=+($('#wv').value||0);
-  const snapped=Math.max(a,a+Math.round((raw-a)/s)*s);
-  $('#wv').value=Math.round(snapped*10)/10;
-  lift.weight=toKg(snapped);
+/* D3: tap a Last Time row — that weight loads into the logger */
+document.addEventListener('click',e=>{
+  const row=e.target.closest('.lastrow[data-lw]'); if(!row) return;
+  const wv=document.getElementById('wv'); if(!wv) return;
+  lift.weight=+row.dataset.lw;
   saveExW(lift.ex,lift.weight); save(true);
-  rulSync(true); refreshLoad();
+  wv.value=wDisp(lift.weight);
+  wv.classList.remove('wflash'); void wv.offsetWidth; wv.classList.add('wflash');
+  refreshLoad();
   if(typeof updAddPreview==='function') updAddPreview();
 });

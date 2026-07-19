@@ -99,3 +99,12 @@ Sungjee's verdict: ⓘ dots off the Stats tab, sentences back. Stats is a
 READING surface — you're there to study, so explanations belong in view.
 Today/Lift are ACTION surfaces mid-workout — dots stay. The D1 target
 "zero always-visible notes" is amended to "zero on action surfaces."
+
+### D3 ledger (2026-07-20, v3.3.9)
+- Buildable-iron ruler: SHIPPED v3.3.8, RETIRED v3.3.9 after one real
+  session — "clunky and distracting." wLaw survives as the invisible law
+  behind the stepper. Second trial-and-revert of the workstream; the
+  doctrine is judged by use, not by how good it sounded in the study.
+- Grid month-expand, fire scrub, Last-Time prefill: SHIPPED v3.3.9.
+- History day-swipe: N/A — History is an accordion, no detail view to page.
+- D2 closed with the milestone moment (v3.3.9).

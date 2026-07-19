@@ -175,7 +175,6 @@ document.addEventListener('click',e=>{
     const wvEl=$('#wv');
     wvEl.value=Math.round(shown*10)/10;
     wvEl.classList.remove('wflash'); void wvEl.offsetWidth; wvEl.classList.add('wflash');
-    if(typeof rulSync==='function') rulSync(true);
     refreshLoad();return;
   }
   const rb=e.target.closest('[data-rep]');

@@ -1,5 +1,29 @@
 # ShowUp — changelog
 
+## v3.3.9 — Ruler retired · the milestone moment · D3 complete
+- **Ruler removed** (Sungjee: clunky and distracting). The D3 flagship is
+  retired after one real session — recorded in DESIGN.md next to the
+  inversion trial. What SURVIVES it: wLaw(ex), the single source of truth
+  for buildable weights, still governs the ± stepper invisibly. The law
+  outlived the instrument.
+- **The milestone moment** (D2 closes): when a lifetime hundred falls, the
+  toast is replaced by one earned full-screen beat — the number huge in
+  mono, LIFETIME KILOMETERS beneath it, a thin rule, "crossed Mon, 7/20 ·
+  day 923 of showing up," tap anywhere to return. One 380ms entrance, none
+  under reduced-motion, no confetti. Fires once per hundred (guard
+  verified). The 2,400 crossing — ~19 km out — will be its first real fire.
+- **D3, the rest**:
+  - Tap any month in the consistency grid → it opens in place: the month's
+    line (days · kg · km · best streak, from the report-card engine) and a
+    dot per day. Tap again to close.
+  - Scrub the Daily Fire chart → "1,496 kg would be #17 of 34" — read-only
+    what-if against your whole history; the real line returns the moment
+    you lift your finger.
+  - Tap a Last Time weight row → that weight loads into the logger, flash
+    and plate line included.
+  - History day-swipe: N/A by structure (History is an accordion, not a
+    paged detail view) — recorded in DESIGN.md rather than forced.
+
 ## v3.3.8 — D3 flagship: the buildable-iron ruler
 The weight picker from the apps Sungjee studied, made honest. Under the
 stepper in the Log-a-set zone: a draggable ruler beneath a fixed accent

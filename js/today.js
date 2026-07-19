@@ -451,6 +451,29 @@ function histFor(ex){
 
 /* D2: the marker GLIDES to its new rank — one motion, ≤400ms, honest events only */
 let _fireGl=null;
+/* D3: scrub the fire chart — "what would X kg rank?" Read-only; text
+   restores the moment you lift your finger. */
+let _fireScrub=null;
+document.addEventListener('pointerdown',e=>{
+  const svg=e.target.closest('.firecard svg'); if(!svg) return;
+  const rk=svg.closest('.firecard').querySelector('.firerank'); if(!rk) return;
+  _fireScrub={svg,rk,orig:rk.innerHTML};
+});
+document.addEventListener('pointermove',e=>{
+  if(!_fireScrub) return;
+  const {svg,rk}=_fireScrub;
+  const b=svg.getBoundingClientRect(); if(!b.width) return;
+  const frac=Math.min(1,Math.max(0,(e.clientX-b.left)/b.width));
+  const kind=(day(todayISO).w||[]).some(s=>s.ex!=='Run')?'vol':'km';
+  const dist=fireDist(kind); if(!dist.length) return;
+  const idx=Math.min(dist.length-1,Math.floor(frac*dist.length));
+  const v=dist[idx];
+  rk.innerHTML=`<b>${kind==='km'?dDisp(v)+' '+DU():fmt(Math.round(toU(v)))+' '+U()}</b> would be #${fmt(dist.length-idx)} of ${fmt(dist.length)}`;
+});
+const _fireScrubEnd=()=>{ if(!_fireScrub) return; _fireScrub.rk.innerHTML=_fireScrub.orig; _fireScrub=null; };
+document.addEventListener('pointerup',_fireScrubEnd);
+document.addEventListener('pointercancel',_fireScrubEnd);
+
 function fireGlide(){
   const g=document.querySelector('.fireMk'); if(!g) return;
   const nx=parseFloat(g.dataset.mx);
@@ -466,4 +489,27 @@ function fireGlide(){
   });});
   const gain=document.querySelector('.firegain');
   if(gain) gain.classList.add('fresh');
+}
+
+
+/* ---------- D2 close: the milestone moment ----------
+   One earned full-screen beat when a lifetime hundred falls. Iron-themed:
+   the number, the unit, the day count. No confetti. Tap anywhere to return.
+   One entrance motion, 380ms, none under reduced-motion. */
+function msMoment(hit){
+  let ov=document.getElementById('msOv');
+  if(!ov){
+    ov=document.createElement('div'); ov.id='msOv';
+    document.body.appendChild(ov);
+    ov.addEventListener('click',()=>{ ov.style.display='none'; });
+  }
+  const totalDays=SEED.totals.sessions+((((DB.days[todayISO]||{}).w)||[]).length?1:0);
+  ov.innerHTML=`<div class="msIn">
+    <div class="msNum mono">${fmt(hit)}</div>
+    <div class="msUnit mono">LIFETIME ${DU()==='km'?'KILOMETERS':'MILES'}</div>
+    <hr class="msRule">
+    <div class="msSub mono">crossed ${wd(todayISO)} · day ${fmt(totalDays)} of showing up</div>
+    <div class="msTap">tap to continue</div>
+  </div>`;
+  ov.style.display='flex';
 }

@@ -126,18 +126,24 @@
   .firegain.fresh{animation:gainfloat .4s ease-out}
   @keyframes gainfloat{from{opacity:0;transform:translateY(5px) scale(.85)}to{opacity:1;transform:none}}
   @media (prefers-reduced-motion:reduce){.firegain.fresh{animation:none}.fireMk{transition:none!important}}
-  .ruler{position:relative;height:46px;margin-top:10px;overflow:hidden;border-radius:10px;
-    background:var(--ground);touch-action:pan-y;cursor:grab;user-select:none}
-  .ruler:active{cursor:grabbing}
-  .rul-pin{position:absolute;left:50%;top:4px;bottom:12px;width:2.5px;margin-left:-1.25px;
-    background:var(--accent);border-radius:2px;z-index:2;pointer-events:none}
-  .rul-pin::after{content:'';position:absolute;left:50%;bottom:-5px;width:7px;height:7px;
-    transform:translateX(-50%) rotate(45deg);background:var(--accent);border-radius:1.5px}
-  .rul-strip{position:absolute;top:0;bottom:0;left:0;will-change:transform}
-  .rul-strip i{position:absolute;top:9px;width:1.5px;height:14px;background:var(--line);border-radius:1px}
-  .rul-strip i.M{height:21px;background:var(--faint)}
-  .rul-strip i em{position:absolute;top:24px;left:50%;transform:translateX(-50%);
-    font-style:normal;font-family:var(--mono);font-size:10px;color:var(--muted);white-space:nowrap}
+  #msOv{position:fixed;inset:0;z-index:95;display:none;align-items:center;justify-content:center;
+    background:var(--ground);cursor:pointer}
+  .msIn{text-align:center;animation:msin .38s cubic-bezier(.2,.8,.3,1)}
+  @keyframes msin{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){.msIn{animation:none}}
+  .msNum{font-size:76px;font-weight:700;letter-spacing:-.03em;color:var(--chalk);line-height:1}
+  .msUnit{font-size:12px;letter-spacing:.22em;color:var(--muted);margin-top:10px}
+  .msRule{border:none;border-top:1px solid var(--line);width:120px;margin:22px auto}
+  .msSub{font-size:12px;color:var(--muted)}
+  .msTap{font-family:var(--mono);font-size:10px;color:var(--faint);margin-top:34px;letter-spacing:.14em;text-transform:uppercase}
+  .mg-c[data-mk]{cursor:pointer}
+  #mexp .mexpIn{margin:10px 0 4px;padding-top:10px;border-top:1px dashed var(--line)}
+  .mexpDots{display:flex;flex-wrap:wrap;gap:3.5px;margin-top:8px}
+  .mexpDots i{width:15px;height:15px;border-radius:4.5px;background:var(--accent)}
+  .mexpDots i:not(.t){background:transparent;border:1.5px solid var(--line)}
+  .mexpDots i.f{border-style:dashed;opacity:.6}
+  .lastrow[data-lw]{cursor:pointer}
+  .lastrow[data-lw]:active{background:var(--surface2)}
   .resttimer{display:none;font-family:var(--mono);font-size:14px;font-weight:700;color:#fff;letter-spacing:.02em}
   header.live .resttimer{display:inline}
   .resttimer::before{content:'●';font-size:8px;margin-right:6px;vertical-align:2px;
