@@ -123,11 +123,18 @@ document.addEventListener('click',e=>{
   if(t.hidden) return;
   /* place it where it can actually be read: above the dot if the nav would
      clip it, left-aligned to the edge if it would run off screen */
+  /* v3.3.13: bubbles float above EVERYTHING — position:fixed at the dot,
+     so no card, transform or stacking context can ever cut one off. */
   t.classList.remove('up','right');
+  t.classList.add('float');
+  t.style.left='8px'; t.style.top='8px'; t.style.bottom='auto';
   const r=t.getBoundingClientRect();
   if(!r.height) return;                                  // no layout (tests) — leave default
+  const br=b.getBoundingClientRect();
   const nv=document.querySelector('nav');
   const navH=nv?nv.getBoundingClientRect().height:64;
-  if(r.bottom>window.innerHeight-navH-10) t.classList.add('up');
-  if(r.right>window.innerWidth-10) t.classList.add('right');
+  const L=Math.min(Math.max(8,br.left-10), window.innerWidth-r.width-8);
+  let T=br.bottom+9;
+  if(T+r.height>window.innerHeight-navH-8){ T=br.top-9-r.height; t.classList.add('up'); }
+  t.style.left=L+'px'; t.style.top=T+'px';
 });

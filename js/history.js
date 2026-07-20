@@ -70,7 +70,7 @@ function renderHistory(){
       const bits=[];
       if(vol)bits.push(vDisp(vol)+' '+U());
       if(km)bits.push(dDisp(km)+DU());
-      h+=`<details class="day"><summary>
+      h+=`<details class="day" data-d="${d}"><summary>
           <span><span class="d">${pretty(d)}</span><div class="s">${parts||'—'}</div></span>
           <span class="s">${bits.join(' · ')}</span></summary><div class="body">`;
       list.forEach(s=>{
@@ -87,4 +87,9 @@ function renderHistory(){
     h+=`<div class="note" style="margin-top:12px">No training logged this month.</div>`;
   }
   $('#view').innerHTML=h;
+  if(window._histTarget){
+    const el=document.querySelector(`details.day[data-d="${window._histTarget}"]`);
+    if(el){ el.open=true; if(el.scrollIntoView) setTimeout(()=>el.scrollIntoView({block:'start',behavior:'smooth'}),60); }
+    window._histTarget=null;
+  }
 }

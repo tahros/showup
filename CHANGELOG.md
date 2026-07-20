@@ -1,6 +1,34 @@
 # ShowUp — changelog
 
-## v3.3.12 — De-AI pass reverted in full
+## v3.3.13 (2026-07-20) — The workout-feedback seven
+1. **Speech bubbles float free.** ⓘ bubbles now portal to position:fixed at
+   the dot — no card, transform, or stacking context can ever clip one.
+2. **Live Continue button is finally red — and breathes.** The .livego class
+   existed since red-mode, but .chip.on outranked it in specificity: the law
+   said red, the cascade said blue. Now red wins, with a slow 1.8s pulse
+   (none under reduced-motion). Red = live, everywhere, including the way in.
+3. **Fonts: the actual bug found.** Buttons never inherit font-family — every
+   circled "FONT off" element (Share/Close, year pills, month cells) was a
+   <button> silently using the system face. One rule fixes the class:
+   button,input,select,textarea{font-family:inherit}. The report canvas gets
+   its own fix: canvases can't see CSS fonts, so if Plex isn't loaded yet it
+   drew in a substitute — now it redraws the moment the real fonts land.
+4. **Blue dates are tappable** (Sungjee asked "what do you think?" — yes:
+   blue already means interactive here, dates shouldn't be the exception).
+   "+0% vs Tue, 7/14" and the LAST TIME date both jump to that exact day in
+   History, opened and scrolled into view.
+5. **Mid-workout, the chart answers today.** While the session is live, the
+   exercise view's Progression yields to TODAY · LIVE: one bar per set,
+   height = weight, reps under each bar, all-time best as a dashed line —
+   a PR set turns its bar red. Complete the session and Progression returns.
+6. **YoY charts: tap a year to isolate it.** Both the consistency chart and
+   the run cumulative chart — tap a legend year, every other line fades to
+   14%; tap again to restore.
+7. **The changelog remembers its dates.** Every version header now carries
+   its ship date, recovered from git commit history. Pre-repo entries (the
+   single-file era) are honestly undated — those dates were never recorded.
+
+## v3.3.12 (2026-07-19) — De-AI pass reverted in full
 Sungjee's verdict on T1-T3, on the real screen: awful. Reverted whole —
 css/app.css restored byte-for-byte from the pre-change copy (md5 match),
 and the one body-attribute line removed from app.js. Accent bars back,
@@ -13,7 +41,7 @@ thread's critique was about generic AI output, and ShowUp's chrome turned
 out to be doing real work — a card meant something, the bars gave the mono
 labels an anchor. T4 (History as literal ledger) is dropped with the rest.
 
-## v3.3.11 — De-AI pass, T1–T3 (trial; revert tag: v3.3.10-pre-deai)
+## v3.3.11 (2026-07-19) — De-AI pass, T1–T3 (trial; revert tag: v3.3.10-pre-deai)
 Prompted by a thread Sungjee agreed with: the left-accent-bar box is the
 signature tell of AI-generated design — and every h2 in ShowUp wore one.
 North star for this pass: ShowUp is a 918-day paper training log that
@@ -34,7 +62,7 @@ old css (+ version bump) undoes everything — DOM hashes were verified
 identical across all 8 harness screens, so there is nothing else to undo.
 Judged by use, like the inversion and the ruler before it.
 
-## v3.3.10 — Never-tried list: alphabetical
+## v3.3.10 (2026-07-19) — Never-tried list: alphabetical
 Sungjee, signed out, saw the fresh-account Chest list in raw seed order —
 "seems random," and it is: seed order is MY data-file order, meaningless to
 anyone else. Never-tried exercises now sort alphabetically. Considered and
@@ -42,7 +70,7 @@ rejected: equipment grouping (headers-within-headers for a list a stranger
 scans once). The deeper fix — a curated starter order for brand-new
 accounts — belongs to the Phase-0 onboarding work, noted in ROADMAP.
 
-## v3.3.9 — Ruler retired · the milestone moment · D3 complete
+## v3.3.9 (2026-07-19) — Ruler retired · the milestone moment · D3 complete
 - **Ruler removed** (Sungjee: clunky and distracting). The D3 flagship is
   retired after one real session — recorded in DESIGN.md next to the
   inversion trial. What SURVIVES it: wLaw(ex), the single source of truth
@@ -66,7 +94,7 @@ accounts — belongs to the Phase-0 onboarding work, noted in ROADMAP.
   - History day-swipe: N/A by structure (History is an accordion, not a
     paged detail view) — recorded in DESIGN.md rather than forced.
 
-## v3.3.8 — D3 flagship: the buildable-iron ruler
+## v3.3.8 (2026-07-19) — D3 flagship: the buildable-iron ruler
 The weight picker from the apps Sungjee studied, made honest. Under the
 stepper in the Log-a-set zone: a draggable ruler beneath a fixed accent
 pointer. Drag to scrub weight; release and it snaps. The difference from
@@ -87,7 +115,7 @@ the impossible weights simply aren't on the ruler.
 Verified: bar-anchored labels all buildable, three-tick drag lands exactly,
 non-conforming release snaps, Run/body excluded, stepper unchanged.
 
-## v3.3.7 — Four fixes from Sungjee's gym screenshots (two are mine to own)
+## v3.3.7 (2026-07-19) — Four fixes from Sungjee's gym screenshots (two are mine to own)
 - **The stepper finally obeys the iron.** "26.3 kg per side" was impossible
   weight — and the investigation's answer to "why has this NOT been fixed":
   the buildable-iron law (v3.2.1) was only ever implemented in SUGGESTIONS
@@ -109,7 +137,7 @@ non-conforming release snaps, Run/body excluded, stepper unchanged.
 - **Type meets in the middle**: header date 21 → 19px; exercise title in
   the red header 15 → 17px.
 
-## v3.3.6 — D2 juice: the set-logged moment (glide + count-up)
+## v3.3.6 (2026-07-19) — D2 juice: the set-logged moment (glide + count-up)
 The two missing pieces of game feel on the app's most important event,
 per DESIGN.md D2 — honest events only, one motion each, ≤400ms:
 
@@ -128,7 +156,7 @@ pre-existing edge documented: climbing from rank zero leaves ▲ silent (the
 prev&& guard treats rank 0 as no-previous) — unreachable in real sessions,
 left untouched per the no-rewrites rule.
 
-## v3.3.5 — Blue selection restored · onboarding polish · the button that answers first
+## v3.3.5 (2026-07-19) — Blue selection restored · onboarding polish · the button that answers first
 Three requests in one release:
 
 - **Selection back to blue** (Sungjee's verdict): the v3.3.4 chalk-inversion
@@ -150,7 +178,7 @@ Three requests in one release:
 Verified: full four-step onboarding walk, preview math against the day's
 canonical volume, harness clean with only the exercise screen changed.
 
-## v3.3.4 — Selection inversion (design workstream, Influences item 7)
+## v3.3.4 (2026-07-19) — Selection inversion (design workstream, Influences item 7)
 Selected states — part cards on Lift, filter chips, month chips on History —
 now invert: chalk fill, ground ink, instead of accent fill. Readable at
 arm's length mid-set, and semantically cleaner under the one-authority law:
@@ -160,7 +188,7 @@ red still outranks selection on a live part card, unchanged. Because both
 sides of the inversion are palette variables, it renders correctly in dark
 and light themes with no extra rules. CSS-only; DOM byte-identical.
 
-## v3.3.3 — Dark-mode black-text fix (forensic) + quieter date
+## v3.3.3 (2026-07-19) — Dark-mode black-text fix (forensic) + quieter date
 Sungjee's screenshot: core-record names rendering near-black on the dark
 theme. Pixel-sampled the screenshot rather than guessing: background was
 exactly --ground, other-tier names exactly --muted, but the affected names
@@ -183,7 +211,7 @@ Also per Sungjee's verdict on v3.3.2: the header date was too loud —
 dialed from 24px/800 to 21px/700. The hierarchy stays; the shout goes.
 DOM byte-identical per the harness.
 
-## v3.3.2 — Type-scale courage (design workstream, from the influences study)
+## v3.3.2 (2026-07-19) — Type-scale courage (design workstream, from the influences study)
 Studied Sungjee's screenshots of Stoic, Ladder and a workout-onboarding app;
 the distilled lessons now live in DESIGN.md ("Influences"). First lesson
 applied — extreme typographic hierarchy, one hero per screen:
@@ -198,7 +226,7 @@ applied — extreme typographic hierarchy, one hero per screen:
 CSS-only: the snapshot harness confirms the DOM is byte-identical, so this
 release carries zero behavioural risk by construction.
 
-## v3.3.1 — "Bars & bodyweight" (Sungjee: bodyweight isn't a bar)
+## v3.3.1 (2026-07-19) — "Bars & bodyweight" (Sungjee: bodyweight isn't a bar)
 The settings section holding barbell, Smith bar AND bodyweight was titled
 "Bar weights", which is wrong about a third of its contents — bodyweight
 isn't bar math, it's what Pull Up, Dip and other bodyweight lifts count as.
@@ -212,7 +240,7 @@ The normaliser now masks any vN.N.N anywhere, proven by hashing identical
 code under two different version numbers. Third fix to this tool today —
 each one was the tool being right and my explanation being wrong.
 
-## v3.3.0 — Data out (Wave 1, final feature before hand-off)
+## v3.3.0 (2026-07-19) — Data out (Wave 1, final feature before hand-off)
 Settings gains "Your data": four buttons that make leaving easy.
 
 - **CSV ↓** — every set ever, one row per set: date, part, exercise,
@@ -238,7 +266,7 @@ Verified: row/escaping correctness incl. hostile exercise names, share/
 download fallback chain without modern APIs, clipboard fallback chain,
 and a full restore round-trip (replace + safety copy + upd re-stamp).
 
-## v3.2.7 — The bubble stays readable
+## v3.2.7 (2026-07-19) — The bubble stays readable
 Sungjee's screenshot: the speech bubble opened at the bottom of Readiness and
 was clipped by the nav bar, cutting the sentence in half. Two causes, both
 fixed: the bubble sat at z-index 15 while the nav sits at 30 (so it rendered
@@ -252,7 +280,7 @@ UNDERNEATH it), and it always opened downward regardless of room.
 - Type up from 11px to 12.5px with more line-height and padding, and a
   slightly wider max — mono at 11px was tight for two-line explanations.
 
-## v3.2.6 — Info-dots use the black speech bubble
+## v3.2.6 (2026-07-19) — Info-dots use the black speech bubble
 Sungjee's screenshot: the D1 explainers expanded as plain grey text inside
 the card, not as the dark bubble the SUGGESTED ⓘ already used. Same
 mechanism, wrong dress. All ten dots now render `.tipbubble` — the existing
@@ -269,7 +297,7 @@ normalised out of the hash. With that fixed, exactly the expected screens
 changed (Today, Stats, Settings-version) and Lift/History were untouched —
 which is the point of having the harness at all.
 
-## v3.2.5 — Refactor: one file becomes a shell + 12 modules (no behaviour change)
+## v3.2.5 (2026-07-19) — Refactor: one file becomes a shell + 12 modules (no behaviour change)
 Sungjee's request: split index.html so future work reads a small file instead
 of 220 KB, without a framework, build step, or any redesign.
 
@@ -296,7 +324,7 @@ of 220 KB, without a framework, build step, or any redesign.
   `v3.2.4-last-onefile` marks the pre-refactor commit.
 - New `ARCHITECTURE.md` maps features to files.
 
-## v3.2.4 — Monthly report card (Wave 1; per the ROADMAP spec)
+## v3.2.4 (2026-07-19) — Monthly report card (Wave 1; per the ROADMAP spec)
 Stats gains a Report Card: any month rendered as a 1080×1350 shareable
 image — day heat-strip across the top (trained = accent, rest = outline,
 future = dashed), four big numbers (days trained in the warm record tone,
@@ -314,7 +342,7 @@ drawing uses arcTo paths (no roundRect dependency) and degrades to a toast
 where 2D canvas is unavailable. Inherits the D1 aesthetic: the image has no
 explanatory text at all.
 
-## v3.2.3-d1 — The Tesla pass, part one: explanations behind the dot
+## v3.2.3-d1 (2026-07-19) — The Tesla pass, part one: explanations behind the dot
 First D1 release of the design workstream (DESIGN.md). Pure subtraction:
 every always-visible MECHANICS explainer — ten of them — folded into an ⓘ
 dot sitting exactly where the sentence used to be. Tap: the old note expands
@@ -331,7 +359,7 @@ Deferred within D1: Stats dashboard compression (kept this diff
 subtraction-only) and first-visit-shows-once. Gate: a week of real use
 without missing any removed sentence.
 
-## v3.2.3 — Streak-at-risk (Wave 1, item 1; per the ROADMAP spec)
+## v3.2.3 (2026-07-19) — Streak-at-risk (Wave 1, item 1; per the ROADMAP spec)
 After 18:00, with today unwritten and a streak alive: the header flame and
 count warm to the record tone, the dashed today-square warms to match, and
 the rhythm board's line becomes "Nd streak · ends at midnight." That is the
@@ -341,7 +369,7 @@ states: at-risk evening, calm daytime, no-streak evening (nothing warms),
 and trained-today (impossible to trigger). Threshold exposed as RISK_HOUR
 for testability.
 
-## v3.1.15 — Closing the last exercise ends the session, instantly
+## v3.1.15 (2026-07-18) — Closing the last exercise ends the session, instantly
 Sungjee closed every exercise (all ✓) and the header stayed red for an hour.
 Root cause: multi-exercise parts deliberately stay open when an exercise is
 ✕-closed ("maybe more exercises coming") — so closing the LAST one left every
@@ -356,7 +384,7 @@ open as designed, and reopening a part re-lights live mode. Full cycle
 verified: open → close one (live) → close last (instant off) → reopen (red
 returns).
 
-## v3.1.14 — Live-mode color corrections (Sungjee's annotations)
+## v3.1.14 (2026-07-18) — Live-mode color corrections (Sungjee's annotations)
 - The red header's subtitle ("CHEST · 1 SET LOGGED") now renders white as it
   always should have. Root cause was juicier than a CSS tweak: the exercise
   header branch returned before the line that clears the ✓ donetoday class,
@@ -366,7 +394,7 @@ returns).
   element still speaking blue inside a red workout. When the session has
   gone cold, it stays accent blue (resuming from idle is an accent action).
 
-## v3.1.13 — Stats decluttered: two charts that answer questions
+## v3.1.13 (2026-07-18) — Stats decluttered: two charts that answer questions
 Sungjee's verdict on the stacked monthly chart ("I HATE scrolling a chart")
 and the radar ("doesn't further my understanding nor prompt any action"):
 both deleted outright. Replaced by two scroll-free views, one question each:
@@ -387,7 +415,7 @@ first drift build divided an array by 365 and NaN silently disabled every
 threshold. One .length restored the math; scenario tests (slipping / steady
 / ancient) all pass.
 
-## v3.1.12 — Tap the red header to return to your session
+## v3.1.12 (2026-07-18) — Tap the red header to return to your session
 In live mode the header IS the session — tapping it now jumps straight to
 the active exercise: the most recent set today whose part is still open
 (completed parts are skipped, so after closing Chest a tap lands on Back).
@@ -395,16 +423,16 @@ Buttons inside the header — back, gear, demo bar — keep their own behavior;
 tapping the header while already on that exercise does nothing. Cursor
 affordance added in live mode.
 
-## v3.1.11 — Plate hint on two lines
+## v3.1.11 (2026-07-18) — Plate hint on two lines
 "20 kg bar + 15 kg per side" wrapped mid-thought. Now: bar on line one,
 per-side on line two, no plus sign. Reads at a glance from the rack.
 
-## v3.1.10 — Plate diagram updates as you type
+## v3.1.10 (2026-07-18) — Plate diagram updates as you type
 The bar-loading hint ("20 kg bar + 15 kg per side") recomputed on +/− taps
 and chips but not on manual weight entry — type 60 and it kept showing 50's
 breakdown. One input listener later, the plate math follows every keystroke.
 
-## v3.1.9 — The Run view shows its history
+## v3.1.9 (2026-07-18) — The Run view shows its history
 The Last Time card (v3.1.2) explicitly excluded Run, leaving the Run screen
 a bare input form with 900+ runs invisible behind it. Now: RECENT RUNS —
 the last 8, newest first, each as date · distance · time · computed pace
@@ -412,13 +440,13 @@ the last 8, newest first, each as date · distance · time · computed pace
 lifetime totals. Rows without a recorded time render distance-only. Same
 visual language as Last Time on lifts.
 
-## v3.1.8 — Demo bar bleeds both edges
+## v3.1.8 (2026-07-18) — Demo bar bleeds both edges
 v3.1.7's header-resident bar came up 36px short on the right: a flex item's
 outer size is basis + margins, so flex-basis:100% with -18px side margins
 paints past the left edge but stops short of the right. Basis now pre-pays
 the margins (flex:0 0 calc(100% + 36px)) — full-width red, both edges.
 
-## v3.1.7 — Demo bar joins the header (gap fixed)
+## v3.1.7 (2026-07-18) — Demo bar joins the header (gap fixed)
 The v3.1.6 fix over-corrected: the fixed bar's measured height (safe-area
 included) was added as body padding ON TOP of the header's own notch
 allowance — safe-area counted twice, producing a big dead gap under the bar.
@@ -430,7 +458,7 @@ positioning, no JS measurement, no body offsets — the sticky header simply
 carries it, always visible, zero gap. Old inline body padding is cleared on
 boot for devices coming from v3.1.6.
 
-## v3.1.6 — Fresh-slate visuals: three fixes from real-phone testing
+## v3.1.6 (2026-07-18) — Fresh-slate visuals: three fixes from real-phone testing
 Sungjee's sign-out tour caught three visual bugs the DOM tests can't see:
 
 - **Selected + dormant tile was washed out**: .partcard.dead{opacity:.45} was
@@ -448,7 +476,7 @@ Sungjee's sign-out tour caught three visual bugs the DOM tests can't see:
   height so it never hides the header (was invisible under the Dynamic
   Island on iPhone 17 Pro).
 
-## v3.1.5 — Onboarding actually renders (CSS variable hotfix)
+## v3.1.5 (2026-07-18) — Onboarding actually renders (CSS variable hotfix)
 Sungjee signed out on his phone and got a collage: transparent overlay, black
 serif logo, the Today hero bleeding through. Root cause: v3.1's CSS referenced
 var(--bg)/--fg/--card — names that DON'T EXIST in the theme (real names:
@@ -463,7 +491,7 @@ defined in :root or set at runtime — undefined names now fail the build.
 Sign back in: the overlay greets you properly, and the cloud restores all
 918 days.
 
-## v3.1.4 — Last Time: one row per weight, both eras
+## v3.1.4 (2026-07-18) — Last Time: one row per weight, both eras
 Sungjee's two screenshots caught a data-shape leak: sheet-era sessions stored
 one row per weight (35 kg | 25 20 20 16) while app-era logging writes one row
 per set (50 kg | 23, 50 kg | 20, …) — so identical workouts rendered as 3
@@ -477,7 +505,7 @@ session's narrative order. Bare 0 kg marker rows (sheet-era empty-bar
 artifacts) carry no information and are dropped from display. Storage
 untouched; this is rendering only.
 
-## v3.1.3 — Swipe back from an exercise
+## v3.1.3 (2026-07-18) — Swipe back from an exercise
 Sungjee: inside "Incline Barbell Bench Press", a swipe should mean BACK to
 Lift, not a tab hop. Agreed, and generalized: at drill-down depth a decisive
 horizontal swipe — EITHER direction — pops back to the part list (your part
@@ -486,7 +514,7 @@ shows ‹ with your part name while dragging. Swipes beginning on inputs,
 chip strips, heatmaps, and charts remain inert, and the back button still
 works. You can no longer accidentally tab-hop out of a lift.
 
-## v3.1.2 — "Last time" replaces the PR footer
+## v3.1.2 (2026-07-18) — "Last time" replaces the PR footer
 The exercise screen's bottom panel now answers the one mid-workout question:
 what did I do last time? Full previous session, nicely laid out — each weight
 on its own row with rep chips (16 kg | 15 14 12), a Wed · 3 days ago stamp,
@@ -495,7 +523,7 @@ never today's own sets. Never-logged exercises get "today writes the first
 line." Heaviest/Best-set moved out (they live in Records); suggested-set
 chips up top are unchanged.
 
-## v3.1.1 — Logout means goodbye (safely)
+## v3.1.1 (2026-07-18) — Logout means goodbye (safely)
 Spec from Sungjee: sync only ever happens signed-in (already true — every
 push/pull is token-gated), and signing out should return the device to a
 fresh onboarding.
@@ -506,7 +534,7 @@ be confirmed (offline, expired token), the app asks before discarding —
 declining leaves everything intact and you stay signed in. Signing back in
 restores the full history from the cloud. Demo data skips the push.
 
-## v3.1 — Clean Slate: the hand-off build
+## v3.1 (2026-07-18) — Clean Slate: the hand-off build
 ShowUp can now be handed to a stranger. (Ships after v3.2.x — roadmap names,
 not chronology.)
 
@@ -530,7 +558,7 @@ not chronology.)
 Gate (unchanged, and not skippable — it IS the hypothesis): a friend installs
 unassisted and logs a real workout.
 
-## v3.2.2 — Rest days exist only in the past tense
+## v3.2.2 (2026-07-17) — Rest days exist only in the past tense
 Sungjee, at the gym door before opening time, was told "REST DAY, SO FAR · 1
 rest day in a row" — while the streak flame on the same screen said 🔥 2d.
 The app was counting an empty TODAY as an already-decided rest day.
@@ -546,7 +574,7 @@ Now an empty today is UNWRITTEN, not rested:
 - Today's calendar square: dashed outline (pending), not rest-empty. It fills
   when you train; it only becomes a rest square at midnight, retroactively.
 
-## v3.2.1 — The seed leaves the building
+## v3.2.1 (2026-07-17) — The seed leaves the building
 The 918-day embedded seed literal is GONE: **650 KB → 194 KB (71% smaller)**.
 SEED0 now carries only static config — catalog, exercise→part map, equipment
 types (7.5 KB) — plus empty maps for safety. History lives where v3.0 put it:
@@ -566,7 +594,7 @@ doc.days in Supabase + localStorage, derived at boot.
 Smoke-verified: migrated-device boot, fresh empty boot (all tabs + first set),
 fresh device + cloud restore.
 
-## v3.2 — Daily Fire + iron-true suggestions
+## v3.2 (2026-07-17) — Daily Fire + iron-true suggestions
 - NEW **Daily Fire** on the Today tab, mid-session: today's total volume drawn as
   a red line climbing the sorted distribution of ALL your past lift days (60-bar
   sparkline of the full 915-day distribution). Headline gives your standing —
@@ -581,7 +609,7 @@ fresh device + cloud restore.
   lb mode = 10 lb bar steps / 5 lb bells and stacks. Snapped value must strictly
   beat the plateau. The converted 61.2 kg Row plateau now suggests exactly 65.
 
-## v3.0.3 — History duplicates fixed
+## v3.0.3 (2026-07-17) — History duplicates fixed
 Reported: History showed duplicate entries. Cause: allDays() (the History day
 detail source) merged SEED.sessions with DB.days by CONCATENATION — safe before
 v3.0 when the two were disjoint (archive ≤ 07-10, app ≥ 07-11), but since v3.0
@@ -595,7 +623,7 @@ by d>totals.last or Set-deduped; allDays was the sole offender.
 
 Side benefit: History day details now display the converted true weights.
 
-## v3.0.2 — The ledger, decoded: true weights
+## v3.0.2 (2026-07-17) — The ledger, decoded: true weights
 The sheet's weight column wasn't one unit — it was a five-year ledger with
 per-equipment conventions, decoded with Sungjee against his benchmark week
 (entries from Mon 2026-07-13 = honest total kg) and calibrated on real data:
@@ -623,7 +651,7 @@ Safety: pre-conversion snapshot at localStorage['showup:bak:preunits'];
 idempotent via synced flag; converted days stamped for cross-device LWW;
 runs (v3.0.1) untouched and verified.
 
-## v3.0.1 — True kilometers
+## v3.0.1 (2026-07-17) — True kilometers
 Sungjee flagged that pre-app data was "logged as lbs and miles." Forensics on
 all 7,845 rows said: half right —
 - DISTANCES were miles: 901-run median pace of 12.7–14.5 min/unit only makes
@@ -641,7 +669,7 @@ The headline: 1,477.6 miles = **2,377.8 km**. The 1,500 km "upcoming"
 milestone was crossed in 2023. Verified: totals.vol and every PR bit-identical;
 double-boot does not double-convert.
 
-## v3.0 — The Foundation: single source of truth
+## v3.0 (2026-07-17) — The Foundation: single source of truth
 The seed stops being the truth. All stats now derive at boot from raw days;
 your Supabase doc.days holds the full 918-day history as ordinary, editable,
 syncable data.
@@ -670,7 +698,7 @@ syncable data.
 Rollback: tag v2.19.10 (and v2.19.1) restore the pre-foundation app; data
 remains compatible in both directions.
 
-## v2.19.10 — Go-To tiers learn recency
+## v2.19.10 (2026-07-17) — Go-To tiers learn recency
 Reported: Incline Barbell Bench Press sat in "Sometimes" despite being trained
 4 days ago, while Flat Smith Bench held "Go-To" at 1486 days ago / 0× this year.
 Two causes, two fixes:
@@ -683,7 +711,7 @@ Two causes, two fixes:
   is reflected within weeks, not next year. The frequency path remains as a
   second door for long-standing staples.
 
-## v2.19.9 — Pulsation returns, as color
+## v2.19.9 (2026-07-17) — Pulsation returns, as color
 Per Sungjee: the v2.19.8 state table stays exactly as agreed, and the active
 part gets its pulse back — as COLOR oscillation on the red elements only, never
 a whole-tile brightness dim:
@@ -692,7 +720,7 @@ a whole-tile brightness dim:
   the white text stays solid and fully legible throughout.
 - Off under Reduce Motion, like all motion in the app.
 
-## v2.19.8 — The part-tile state table (rules first, then paint)
+## v2.19.8 (2026-07-17) — The part-tile state table (rules first, then paint)
 After several rounds of visual patches collided (pale-pink-with-white-text
 tiles), the tile system was rebuilt from an explicit state table, agreed with
 Sungjee before implementation:
@@ -710,7 +738,7 @@ Sungjee before implementation:
   exactly one authority in the stylesheet, verified by an automated check that
   counts rule occurrences and asserts the winning declaration.
 
-## v2.19.7 — Only you complete a body part: the Reopen button
+## v2.19.7 (2026-07-17) — Only you complete a body part: the Reopen button
 The part board now ALWAYS carries the part-level control:
 - Part open → "✓ Complete <part>" (unchanged).
 - Part completed → "<part> completed ✓ — Reopen": one tap removes the completion,
@@ -721,7 +749,7 @@ No more being stuck when a completion happened that you disagree with (including
 ones the pre-v2.19.6 auto-cascade applied). Only you decide when a body part is
 done — and now you can un-decide too.
 
-## v2.19.6 — Part tiles that tell the truth, calmly
+## v2.19.6 (2026-07-17) — Part tiles that tell the truth, calmly
 - The ACTIVE part tile is now a steady **red border** — no fill takeover, no
   dimming animation. Selected adds only a faint red tint. Calm and unambiguous.
 - The blue "suggested part" highlight (the rotation's pick) is suppressed during
@@ -734,7 +762,7 @@ done — and now you can un-decide too.
   closes everything). "Complete <part>" closes the day only when every trained
   part is explicitly completed. Logging a new set still reopens, as always.
 
-## v2.19.5 — Red mode reaches the Today tab
+## v2.19.5 (2026-07-17) — Red mode reaches the Today tab
 - Today's per-exercise rows now speak the same language as the Lift tab: an OPEN
   exercise is red with a pulsing ● and tinted row; a completed one is gray with
   ✓. One glance at Today tells you exactly where you are mid-workout.
@@ -743,7 +771,7 @@ done — and now you can un-decide too.
   tappable if you genuinely want to add another run (which reopens it, as
   always).
 
-## v2.19.4 — Red where the work is, bodyweight in Settings, bar edits that reach
+## v2.19.4 (2026-07-17) — Red where the work is, bodyweight in Settings, bar edits that reach
 - The part you're ACTIVELY working now shows it: selected + live = solid red tile
   with a slow breathing dim (2.2s cycle; off under Reduce Motion). Red mode is
   finally consistent from header to tile to row.
@@ -756,7 +784,7 @@ done — and now you can un-decide too.
   setting and clears this exercise's override so the global actually applies.
   No more editing the same bar twice in two places.
 
-## v2.19.3 — The nudge understands modality
+## v2.19.3 (2026-07-17) — The nudge understands modality
 "Try 72.5 kg" on Pull Up meant "gain 2.5 kg of body mass" — nonsense. The nudge
 now knows what kind of movement it's looking at:
 
@@ -771,7 +799,7 @@ now knows what kind of movement it's looking at:
 - History-first still applies to all weighted modes: a weight you've used before
   always beats a computed increment.
 
-## v2.19.2 — Red mode follows you + the flag ping-pong ends + plate-honest nudges
+## v2.19.2 (2026-07-17) — Red mode follows you + the flag ping-pong ends + plate-honest nudges
 - COMPLETION CONVERGENCE, finished: v2.19.1 fixed the flag merge, but a device
   that had already pushed a flag-less copy could keep the cloud flag-less — the
   "laptop stays red" ping-pong. Every pre-v2.19 day now gets a deterministic
@@ -788,7 +816,7 @@ now knows what kind of movement it's looking at:
   machines +2.5 kg / +5 lb. History-first suggestion unchanged — the fallback
   only fires at your all-time max.
 
-## v2.19.1 — HOTFIX: completion state travels between devices
+## v2.19.1 (2026-07-16) — HOTFIX: completion state travels between devices
 Reported: laptop refreshed onto v2.19, pulled today's session — and showed the
 workout as LIVE (red) although it was completed on the phone.
 
@@ -807,7 +835,7 @@ Verified against the exact report: laptop with unstamped mid-workout copy pulls
 the phone's completed copy → completion arrives, no set duplication, header
 cools, ✓ prefix shows; a fresh set reopens and stamps the day.
 
-## v2.19 — Multi-device sync, done properly
+## v2.19 (2026-07-16) — Multi-device sync, done properly
 The laptop joined the phone, exposing v2.10.2's stated limitation: with routine
 pulls disabled, a second device shows its own stale copy forever. The sync model
 graduates:
@@ -834,7 +862,7 @@ syncing in between, the day with the later edit wins whole. For one human with
 one body, that's a corner case — flag it if it ever bites and I'll do set-level
 merging.
 
-## v2.18.2 — The nudge learns what weights actually exist
+## v2.18.2 (2026-07-16) — The nudge learns what weights actually exist
 - "Try 24.5 kg" on a dumbbell exercise was nonsense — no rack on earth has 24.5s.
   The suggested next weight now comes from YOUR OWN HISTORY first: the smallest
   weight above your plateau that you've actually used on that exercise (for
@@ -846,7 +874,7 @@ merging.
   button style, crushing the text into a one-word-per-line column. Text now gets
   the row (flex:1), the button hugs its label, nothing wraps.
 
-## v2.18.1 — Gym feedback: four fixes
+## v2.18.1 (2026-07-16) — Gym feedback: four fixes
 - "Days trained, by month": the current month reads correctly now — the trained
   count sits INSIDE the filled bar in white, the number above the dashed outline
   is days elapsed (16 as of 7/16), and the summary line says both ("10 trained ·
@@ -861,7 +889,7 @@ merging.
   be confused, which matters because tapping a logged tile deletes it. (The set
   you just saved springs in at full opacity before settling into the dim state.)
 
-## v2.18 — The motivation layer
+## v2.18 (2026-07-14) — The motivation layer
 - NEW **progressive-overload nudge**, in the Log-a-set card directly under the
   stepper it's about to change: "Same 60 kg for 3 sessions — try 62.5?" One tap
   sets the weight (and saves it as that exercise's default). ✕ dismisses it until
@@ -877,7 +905,7 @@ merging.
 - Fixed a temporal-dead-zone bug caught in testing: the goal card referenced the
   year-totals map before the chart built it.
 
-## v2.17 — Wrap-around swipe, swipe cue, "I trained today", and the bounce
+## v2.17 (2026-07-14) — Wrap-around swipe, swipe cue, "I trained today", and the bounce
 - Swipe now WRAPS: right from Today lands on History, left from History lands on
   Today. The four tabs are a loop, not a line.
 - A large translucent chevron appears on the edge you're swiping toward, growing
@@ -894,7 +922,7 @@ merging.
   then snaps back with a slight overshoot, the way an Apple list does. Purely
   visual; no scroll state is touched.
 
-## v2.16 — Refresh in place, a pull you can feel, swipe between tabs
+## v2.16 (2026-07-14) — Refresh in place, a pull you can feel, swipe between tabs
 - Pull-to-refresh no longer dumps you back on Today. Your tab, selected part, and
   open exercise are stashed before the reload and restored after — you land
   exactly where you were. (Also applies to the auto-reload when a new version
@@ -908,7 +936,7 @@ merging.
   steals a gesture that already means something. A swipe must be clearly sideways
   (1.5× more horizontal than vertical) and at least 60px, so scrolling is safe.
 
-## v2.15 — Live-red semantics, Toss-grade dark mode, and a broken toast
+## v2.15 (2026-07-14) — Live-red semantics, Toss-grade dark mode, and a broken toast
 - BUGFIX (the "error at the bottom"): the v2.14.3 portrait-lock patch accidentally
   swallowed the #toast CSS selector, so every toast since then rendered as naked
   text at the bottom of the screen. Selector restored; stylesheet brace-balanced
@@ -1327,3 +1355,8 @@ A run row is `[part, exercise, distance, reps[], Minutes, Seconds]` — the Minu
 Seconds columns of the Log sheet. Distance is stored in km (your Analysis tab calls it
 "KM Ran") and converted for display when the app is in imperial mode.
 
+---
+*Dates recovered from git commit history (v3.3.13 backfill). Entries without
+a date predate this repository — the single-file era before version control —
+and their exact ship dates were never recorded. From here on, every entry
+carries its date at release time.*

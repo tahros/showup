@@ -137,6 +137,15 @@ document.addEventListener('click',e=>{
     document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b===nav));
     return render();
   }
+  const ld=e.target.closest('.linkdate[data-histd]');
+  if(ld){
+    const iso=ld.dataset.histd;
+    hist.y=+iso.slice(0,4); hist.m=+iso.slice(5,7);
+    window._histTarget=iso;
+    view='history';
+    document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v==='history'));
+    return render();
+  }
   const go=e.target.closest('[data-go]');
   if(go){
     view='lift';lift={part:go.dataset.go,ex:null,weight:0};

@@ -218,7 +218,7 @@ function renderLift(){
       const vol=folded.reduce((a,[w2,reps])=>a+w2*(reps||[]).reduce((x,y)=>x+y,0),0);
       const nsets=folded.reduce((a,[,reps])=>a+Math.max(1,(reps||[]).length),0);
       prFoot=`<div class="lastcard">
-        <div class="lasthead"><span>LAST TIME</span><span class="ago">${wd2(lastPrev.d)} · ${agoStr(lastPrev.d)}</span></div>
+        <div class="lasthead"><span>LAST TIME</span><button class="ago linkdate" data-histd="${lastPrev.d}">${wd2(lastPrev.d)} · ${agoStr(lastPrev.d)}</button></div>
         ${rows}
         <div class="lastfoot mono">${nsets} set${nsets>1?'s':''}${vol>0?` · ${vDisp(vol)} ${U()} total`:''}</div>
       </div>`;
@@ -394,7 +394,7 @@ function renderLift(){
       const lastVol=ls?ls.sets.reduce((a,s)=>a+s.w*s.r,0):0;
       const d=lastVol?Math.round((v/lastVol-1)*100):0;
       h+=`<div class="tot"><span>Volume <b><span id="volNum" data-kg="${v}">${vDisp(v)}</span> ${U()}</b> · ${todaySets.length} sets</span>
-          ${lastVol?`<span class="delta ${d>=0?'up':'down'}">${d>=0?'+':''}${d}% vs ${wd(ls.d)}</span>`:''}</div>`;
+          ${lastVol?`<button class="delta linkdate ${d>=0?'up':'down'}" data-histd="${ls.d}">${d>=0?'+':''}${d}% vs ${wd(ls.d)}</button>`:''}</div>`;
     }
     const es=(lift.editSet!=null)?t.w[lift.editSet]:null;
     if(es&&es.ex===ex){
@@ -425,7 +425,7 @@ function renderLift(){
   }else if(undoStack.length){
     h+=`<button class="btn ghost" id="undoBtn" style="margin-top:12px">↺ Undo — ${undoStack[undoStack.length-1].label}</button>`;
   }
-  if(!isRun) h+=progChart(ex);
+  if(!isRun) h+=(isLive()&&todaySets.length?liveBars(ex,todaySets,p):progChart(ex));
   if(exOpen(ex)) h+=`<button class="btn done" id="doneExBtn">✓ Complete ${ex}</button>`;
   h+=prFoot;
   $('#view').innerHTML=h;
@@ -635,7 +635,7 @@ function runStatsHTML(){
     }
     const cur=y===thisYear;
     const lx=30+(end/366)*270, ly=140-c/yMax*120;
-    h+=`<polyline points="${path.trim()}" fill="none" stroke="${YEAR_COLORS[y]||'var(--muted)'}" stroke-width="${cur?2:1.2}" stroke-linejoin="round"></polyline>`;
+    h+=`<polyline data-yr="${y}" points="${path.trim()}" fill="none" stroke="${YEAR_COLORS[y]||'var(--muted)'}" stroke-width="${cur?2:1.2}" stroke-linejoin="round"></polyline>`;
     if(cur) h+=`<circle class="beacon" cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="3.2" fill="var(--accent)"></circle>`;
     labels.push({y,lx,ly,cur});
   }
@@ -644,10 +644,10 @@ function runStatsHTML(){
   for(let i=1;i<labels.length;i++)
     if(labels[i].ly-labels[i-1].ly<8) labels[i].ly=labels[i-1].ly+8;
   for(const L of labels)
-    h+=`<text x="${Math.min(L.lx+(L.cur?6:4),316).toFixed(1)}" y="${(L.ly+2.5).toFixed(1)}" font-family="var(--mono)" font-size="7.5"
+    h+=`<text data-yr="${L.y}" x="${Math.min(L.lx+(L.cur?6:4),316).toFixed(1)}" y="${(L.ly+2.5).toFixed(1)}" font-family="var(--mono)" font-size="7.5"
          fill="${YEAR_COLORS[L.y]||'var(--muted)'}" font-weight="${L.cur?700:400}">${L.y.slice(2)}</text>`;
   h+=`</svg></div><div class="legend1">`;
-  for(const y of years) h+=`<span><i style="background:${YEAR_COLORS[y]||'var(--muted)'}"></i>${y} · ${Math.round(yTot[y])}</span>`;
+  for(const y of years) h+=`<span data-yr="${y}" role="button">${''}<i style="background:${YEAR_COLORS[y]||'var(--muted)'}"></i>${y} · ${Math.round(yTot[y])}</span>`;
   h+=`</div>${iBtn('cumkm',`Cumulative ${DU()} by day of year. ${thisYear} is still running.`)}</div>`;
 
   /* --- pace, by month (timed runs only; lower is faster) --- */
@@ -742,3 +742,31 @@ document.addEventListener('click',e=>{
   refreshLoad();
   if(typeof updAddPreview==='function') updAddPreview();
 });
+
+
+/* ---------- v3.3.13: mid-workout, the chart answers TODAY ----------
+   While the session is live, "Progression" (a reading-time chart) yields to
+   the working question: what have I lifted RIGHT NOW? One bar per set of
+   this exercise, height = weight, reps under each bar, your all-time best
+   as a dashed line for context. Finish the session and Progression returns. */
+function liveBars(ex,sets,p){
+  const W=330,H=132,base=104;
+  const mx=Math.max(p.mw||0,...sets.map(s=>s.w),1)*1.08;
+  const n=sets.length, gap=Math.min(46,(W-24)/n), bw=Math.min(30,gap-6);
+  let h=`<h2>Today · live</h2><div class="card"><svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto">`;
+  if(p.mw){
+    const by=base-(p.mw/mx)*86;
+    h+=`<line x1="10" y1="${by.toFixed(1)}" x2="${W-46}" y2="${by.toFixed(1)}" stroke="var(--record)" stroke-width="0.8" stroke-dasharray="3 3" opacity=".7"></line>
+        <text x="${W-42}" y="${(by+2.5).toFixed(1)}" font-family="var(--mono)" font-size="7.5" fill="var(--record)">best ${wDisp(p.mw)}</text>`;
+  }
+  sets.forEach((s,i)=>{
+    const bh=Math.max(3,(s.w/mx)*86), x=12+i*gap;
+    const pr=s.w>=(p.mw||Infinity);
+    h+=`<rect x="${x.toFixed(1)}" y="${(base-bh).toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="3" fill="${pr?'var(--record)':'var(--accent)'}"></rect>
+        <text x="${(x+bw/2).toFixed(1)}" y="${(base-bh-4).toFixed(1)}" text-anchor="middle" font-family="var(--mono)" font-size="8" font-weight="700" fill="var(--chalk)">${wDisp(s.w)}</text>
+        <text x="${(x+bw/2).toFixed(1)}" y="${base+12}" text-anchor="middle" font-family="var(--mono)" font-size="7.5" fill="var(--muted)">×${(s.reps||[])[0]||''}</text>`;
+  });
+  h+=`<text x="12" y="${H-4}" font-family="var(--mono)" font-size="7.5" fill="var(--muted)">${n} set${n>1?'s':''} this session · bar height = weight</text>`;
+  h+=`</svg></div>`;
+  return h;
+}

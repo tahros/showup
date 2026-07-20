@@ -144,6 +144,21 @@
   .mexpDots i.f{border-style:dashed;opacity:.6}
   .lastrow[data-lw]{cursor:pointer}
   .lastrow[data-lw]:active{background:var(--surface2)}
+  .tipbubble.float{position:fixed;z-index:96;top:auto;left:auto;right:auto;bottom:auto}
+  button,input,select,textarea{font-family:inherit}
+  .chip.on.livego{background:var(--live);border-color:var(--live);color:#fff;
+    animation:livepulse 1.8s ease-in-out infinite}
+  @keyframes livepulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--live) 45%,transparent)}
+    50%{box-shadow:0 0 0 9px color-mix(in srgb,var(--live) 0%,transparent)}}
+  @media (prefers-reduced-motion:reduce){.chip.on.livego{animation:none}}
+  .delta.linkdate,.ago.linkdate{background:none;border:none;padding:0;cursor:pointer;
+    text-decoration:underline dotted;text-underline-offset:3px}
+  .delta.linkdate{color:var(--accent)} .delta.linkdate.down{color:var(--record)}
+  .legend1 [data-yr]{cursor:pointer;border-radius:8px;padding:2px 6px}
+  .legend1 [data-yr].selY{background:var(--surface2);outline:1px solid var(--line)}
+  .card[data-ysel] svg [data-yr]{opacity:.14;transition:opacity .18s}
+  .card[data-ysel] svg [data-yr].selY{opacity:1;stroke-width:2.6}
+  .card[data-ysel] svg text[data-yr].selY{opacity:1}
   .resttimer{display:none;font-family:var(--mono);font-size:14px;font-weight:700;color:#fff;letter-spacing:.02em}
   header.live .resttimer{display:inline}
   .resttimer::before{content:'●';font-size:8px;margin-right:6px;vertical-align:2px;

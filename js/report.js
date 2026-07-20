@@ -36,6 +36,20 @@ function drawRep(rd){
   const x=cv.getContext('2d'); if(!x) return null;
   const V=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim()||'#888';
   const SANS='"IBM Plex Sans",system-ui,sans-serif', MONO='"IBM Plex Mono",ui-monospace,monospace';
+  /* v3.3.13: canvas never inherits CSS fonts — if Plex isn't loaded yet the
+     browser silently substitutes system faces. Draw now with whatever exists,
+     and redraw once the real fonts land. */
+  if(document.fonts&&document.fonts.status!=='loaded'&&!drawRep._rearm){
+    drawRep._rearm=true;
+    document.fonts.ready.then(()=>{
+      drawRep._rearm=false;
+      const ov=document.getElementById('repOv');
+      if(ov&&ov.style.display!=='none'&&typeof repOff!=='undefined'){
+        const img=ov.querySelector('img');
+        if(img) img.src=drawRep(repData(repOff)).toDataURL('image/png');
+      }
+    });
+  }
   x.fillStyle=V('--ground'); x.fillRect(0,0,1080,1350);
   x.fillStyle=V('--chalk'); x.font='700 84px '+SANS; x.textBaseline='alphabetic';
   x.fillText(rd.label,72,180);

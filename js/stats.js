@@ -78,18 +78,18 @@ function renderStats(){
       pts+=`${x.toFixed(1)},${yy.toFixed(1)} `;
     }
     const cur=y===thisYear;
-    h+=`<polyline points="${pts}" fill="none" stroke="${YEAR_COLORS[y]||'var(--muted)'}"
+    h+=`<polyline data-yr="${y}" points="${pts}" fill="none" stroke="${YEAR_COLORS[y]||'var(--muted)'}"
          stroke-width="${cur?2.2:1.1}" opacity="${cur?1:.7}" stroke-linejoin="round"></polyline>`;
     // end-of-line % label
     const lx=26+((end-1)/366)*274, ly2=140-curve[end-1]*120;
-    h+=`<text x="${Math.min(lx+4,312)}" y="${ly2+2.5}" font-family="var(--mono)" font-size="7"
+    h+=`<text data-yr="${y}" x="${Math.min(lx+4,312)}" y="${ly2+2.5}" font-family="var(--mono)" font-size="7"
           fill="${YEAR_COLORS[y]||'var(--muted)'}" font-weight="${cur?700:400}">${Math.round(curve[end-1]*100)}%</text>`;
     if(cur) h+=`<circle class="beacon" cx="${lx}" cy="${ly2}" r="3.2" fill="var(--accent)"></circle>`;
   }
   h+=`</svg></div><div class="legend1">`;
   for(const y of years){
     const c=curves[y], cur=y===thisYear;
-    h+=`<span class="${cur?'cur':''}"><i style="background:${YEAR_COLORS[y]}"></i>${y}<b>${Math.round(c.curve[c.end-1]*100)}%</b></span>`;
+    h+=`<span class="${cur?'cur':''}" data-yr="${y}" role="button"><i style="background:${YEAR_COLORS[y]}"></i>${y}<b>${Math.round(c.curve[c.end-1]*100)}%</b></span>`;
   }
   h+=`</div><div class="note">% of days trained, cumulative through each year</div></div>`;
 
@@ -310,4 +310,20 @@ document.addEventListener('click',e=>{
     <div class="repline mono">${rd.label} — ${rd.nD} day${rd.nD===1?'':'s'} · ${fmt(Math.round(rd.vol))} kg · ${rd.km.toFixed(1)} ${DU()}${rd.mx>1?` · best streak ${rd.mx}d`:''}</div>
     <div class="mexpDots">${rd.days.map(d=>`<i class="${d.fut?'f':(d.tr?'t':'')}" title="${d.d}"></i>`).join('')}</div>
   </div>`;
+});
+
+
+/* ---------- v3.3.13: tap a year in any YoY legend — isolate its line ---------- */
+document.addEventListener('click',e=>{
+  const yb=e.target.closest('.legend1 [data-yr]'); if(!yb) return;
+  const card=yb.closest('.card'); if(!card) return;
+  const yr=yb.dataset.yr;
+  const marks=card.querySelectorAll('svg [data-yr], .legend1 [data-yr]');
+  if(card.dataset.ysel===yr){
+    delete card.dataset.ysel;
+    marks.forEach(m=>m.classList.remove('selY'));
+  }else{
+    card.dataset.ysel=yr;
+    marks.forEach(m=>m.classList.toggle('selY',m.dataset.yr===yr));
+  }
 });
