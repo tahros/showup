@@ -1,5 +1,21 @@
 # ShowUp — changelog
 
+## v3.3.15 (2026-07-20) — The fire needle obeys the red law
+Sungjee asked when the Daily Fire card appears and disappears, and whether
+it should survive workout completion. Answers, now encoded:
+
+- It appears with the first set of the day and stays the whole day — it's
+  the day's receipt, and the day is this app's atomic unit. It leaves the
+  next morning with the new blank day. Unchanged, and defended: hiding the
+  receipt at the moment of achievement would repeat the mistake v3.3.14
+  fixed.
+- But his confusion caught a real violation: the needle stayed LIVE-RED on
+  a completed day. Red means "in motion" — that's the law — so a red needle
+  on a sealed day whispered "still going," which is exactly why he went
+  looking for the Complete button. Now: red needle while the session is
+  live, accent-blue once the day is sealed. Same card, same number, honest
+  color. State is legible at a glance.
+
 ## v3.3.14 (2026-07-20) — Completion gets a voice
 Sungjee: "I'm missing Complete today's workout — where did it go?" Answer:
 it did its job and left. Completing the last open exercise auto-completes

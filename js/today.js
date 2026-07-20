@@ -55,8 +55,8 @@ function dailyFireHTML(){
     <svg viewBox="0 0 ${W} ${H+8}" width="100%" height="${H+8}" aria-hidden="true">
       ${bars}
       <g class="fireMk" data-mx="${mx.toFixed(1)}">
-        <line x1="${mx.toFixed(1)}" y1="0" x2="${mx.toFixed(1)}" y2="${H}" stroke="var(--live)" stroke-width="2.5"></line>
-        <circle cx="${mx.toFixed(1)}" cy="${H}" r="3.5" fill="var(--live)" class="firedot"></circle>
+        <line x1="${mx.toFixed(1)}" y1="0" x2="${mx.toFixed(1)}" y2="${H}" stroke="${isLive()?'var(--live)':'var(--accent)'}" stroke-width="2.5"></line>
+        <circle cx="${mx.toFixed(1)}" cy="${H}" r="3.5" fill="${isLive()?'var(--live)':'var(--accent)'}" class="firedot"></circle>
       </g>
     </svg>
     ${iBtn('fire',`Today vs every day you've trained, sorted smallest to biggest. Every set moves the red line right — all ${fmt(n)} days are on this chart.`)}
