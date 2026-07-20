@@ -372,9 +372,17 @@ function renderLift(){
       ?`<div class="settile${anim}${lift.editSet===idx?' editing':''}" data-del="${idx}"><span class="w">${dDisp(s.w)} ${DU()}</span><span class="x">${s.mins||0}'${String(s.secs||0).padStart(2,'0')}"</span></div>`
       :`<div class="settile ${isPR?'pr':''}${anim}${lift.editSet===idx?' editing':''}" data-del="${idx}"><span class="w">${wLabel(ex,s.w)}</span><span class="x">${isBody(ex)&&s.w<=0.01?'×':U()+' ×'}</span><span class="w">${s.reps[0]}</span></div>`;
   });
-  if(lift.justSaved) volCountUp();
-  else{ const ve=document.getElementById('volNum');
-        if(ve) _lastVol={ex:lift.ex,v:parseFloat(ve.dataset.kg||'0')}; }
+  /* v3.3.18: capture FROM values off the still-mounted previous render.
+     The animations run AFTER the innerHTML swap (end of this branch) —
+     running them here animated nodes that were about to be discarded,
+     which is why the v3.3.6 count-up always jumped instead of counting. */
+  {
+    const ve=document.getElementById('volNum');
+    if(ve) _lastVol={ex:lift.ex,v:parseFloat(ve.dataset.kg||'0')};
+    const lb=document.querySelector('.lbNow');
+    _lbPrev = lb ? {ex:lift.ex,v:parseFloat(lb.dataset.v||'0')} : {ex:null,v:0};
+  }
+  lift._animSave=lift.justSaved;
   lift.justSaved=false;
   h+=`</div>`;
   if(todaySets.length){
@@ -425,10 +433,11 @@ function renderLift(){
   }else if(undoStack.length){
     h+=`<button class="btn ghost" id="undoBtn" style="margin-top:12px">↺ Undo — ${undoStack[undoStack.length-1].label}</button>`;
   }
-  if(!isRun) h+=(isLive()&&todaySets.length?liveBars(ex,todaySets,p):progChart(ex));
+  if(!isRun) h+=(isLive()&&todaySets.length?liveBars(ex,todaySets):progChart(ex));
   if(exOpen(ex)) h+=`<button class="btn done" id="doneExBtn">✓ Complete ${ex}</button>`;
   h+=prFoot;
   $('#view').innerHTML=h;
+  if(lift._animSave){ lift._animSave=false; volCountUp(); lbGrow(); }
 }
 
 /* The session this exercise was last done in — strictly BEFORE today.
@@ -743,30 +752,66 @@ document.addEventListener('click',e=>{
   if(typeof updAddPreview==='function') updAddPreview();
 });
 
-
-/* ---------- v3.3.13: mid-workout, the chart answers TODAY ----------
-   While the session is live, "Progression" (a reading-time chart) yields to
-   the working question: what have I lifted RIGHT NOW? One bar per set of
-   this exercise, height = weight, reps under each bar, your all-time best
-   as a dashed line for context. Finish the session and Progression returns. */
-function liveBars(ex,sets,p){
-  const W=330,H=132,base=104;
-  const mx=Math.max(p.mw||0,...sets.map(s=>s.w),1)*1.08;
-  const n=sets.length, gap=Math.min(46,(W-24)/n), bw=Math.min(30,gap-6);
-  let h=`<h2>Today · live</h2><div class="card"><svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto">`;
-  if(p.mw){
-    const by=base-(p.mw/mx)*86;
-    h+=`<line x1="10" y1="${by.toFixed(1)}" x2="${W-46}" y2="${by.toFixed(1)}" stroke="var(--record)" stroke-width="0.8" stroke-dasharray="3 3" opacity=".7"></line>
-        <text x="${W-42}" y="${(by+2.5).toFixed(1)}" font-family="var(--mono)" font-size="7.5" fill="var(--record)">best ${wDisp(p.mw)}</text>`;
+/* ---------- v3.3.18: the live chart speaks the Daily Fire's language ----------
+   Sungjee's spec, from his own Sheet dashboard: mid-workout he wants to see
+   TODAY RISING against this exercise's history — not six identical bars.
+   Grammar is the fire card's: gray bars are your past sessions, the red bar
+   is you, right now. It GROWS with every set (380ms rise), breathes gently
+   while the session is live, and hunts the dashed all-time-best line. Cross
+   the line and the label concedes: "best — beaten". */
+function exSessionVols(ex){
+  const by={};
+  for(const [d,rows] of Object.entries(SEED.sessions))
+    for(const r of rows) if(r[1]===ex&&(r[3]||[]).length)
+      by[d]=(by[d]||0)+r[2]*r[3].reduce((a,b)=>a+b,0);
+  for(const [d,v] of Object.entries(DB.days)){
+    if(d<=SEED.totals.last||d===todayISO) continue;
+    for(const s of v.w) if(s.ex===ex&&(s.reps||[]).length)
+      by[d]=(by[d]||0)+volOf(s);
   }
-  sets.forEach((s,i)=>{
-    const bh=Math.max(3,(s.w/mx)*86), x=12+i*gap;
-    const pr=s.w>=(p.mw||Infinity);
-    h+=`<rect x="${x.toFixed(1)}" y="${(base-bh).toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="3" fill="${pr?'var(--record)':'var(--accent)'}"></rect>
-        <text x="${(x+bw/2).toFixed(1)}" y="${(base-bh-4).toFixed(1)}" text-anchor="middle" font-family="var(--mono)" font-size="8" font-weight="700" fill="var(--chalk)">${wDisp(s.w)}</text>
-        <text x="${(x+bw/2).toFixed(1)}" y="${base+12}" text-anchor="middle" font-family="var(--mono)" font-size="7.5" fill="var(--muted)">×${(s.reps||[])[0]||''}</text>`;
+  delete by[todayISO];
+  return Object.entries(by).sort((a,b)=>a[0].localeCompare(b[0])).map(([d,v])=>({d,v}));
+}
+function liveBars(ex,sets){
+  const hist=exSessionVols(ex);
+  const now=sets.reduce((a,s)=>a+volOf(s),0);
+  const shown=hist.slice(-15);
+  const best=Math.max(...hist.map(h=>h.v),1);
+  const beaten=now>best;
+  const mx=Math.max(best,now,...shown.map(h=>h.v))*1.1;
+  const W=330,H=138,base=106;
+  const n=shown.length+1, gap=Math.min(24,(W-70)/n), bw=Math.max(6,Math.min(16,gap-4));
+  let h=`<h2>Today · live</h2><div class="card">
+    <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto">`;
+  const by=base-(best/mx)*88;
+  h+=`<line x1="8" y1="${by.toFixed(1)}" x2="${W-8}" y2="${by.toFixed(1)}" stroke="var(--record)" stroke-width="0.8" stroke-dasharray="3 3" opacity=".75"></line>
+      <text x="${W-10}" y="${(by-4).toFixed(1)}" text-anchor="end" font-family="var(--mono)" font-size="7.5" fill="var(--record)">${beaten?'best — beaten ✓':`best ${fmt(Math.round(toU(best)))}`}</text>`;
+  shown.forEach((s2,i2)=>{
+    const bh=Math.max(2.5,(s2.v/mx)*88), x=10+i2*gap;
+    h+=`<rect x="${x.toFixed(1)}" y="${(base-bh).toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="2" fill="var(--line)"></rect>`;
   });
-  h+=`<text x="12" y="${H-4}" font-family="var(--mono)" font-size="7.5" fill="var(--muted)">${n} set${n>1?'s':''} this session · bar height = weight</text>`;
+  const nh=Math.max(3,(now/mx)*88), nx=10+shown.length*gap;
+  h+=`<rect class="lbNow" data-v="${now}" x="${nx.toFixed(1)}" y="${(base-nh).toFixed(1)}" width="${Math.max(bw,12).toFixed(1)}" height="${nh.toFixed(1)}" rx="2.5" fill="var(--live)"></rect>
+      <text x="${(nx+Math.max(bw,12)/2).toFixed(1)}" y="${(base-nh-5).toFixed(1)}" text-anchor="middle" font-family="var(--mono)" font-size="8.5" font-weight="700" fill="${beaten?'var(--record)':'var(--live)'}">${vDisp(now)}</text>
+      <text x="${(nx+Math.max(bw,12)/2).toFixed(1)}" y="${base+11}" text-anchor="middle" font-family="var(--mono)" font-size="7.5" font-weight="700" fill="var(--live)">now</text>`;
+  const beats=shown.filter(s2=>now>s2.v).length;
+  h+=`<text x="10" y="${H-4}" font-family="var(--mono)" font-size="7.5" fill="var(--muted)">${sets.length} set${sets.length>1?'s':''} · beats ${beats} of your last ${shown.length} ${ex} sessions</text>`;
   h+=`</svg></div>`;
   return h;
+}
+/* the red bar RISES: scaleY from the previous total to the new one */
+let _lbPrev={ex:null,v:0};
+function lbGrow(){
+  const r=document.querySelector('.lbNow'); if(!r){ _lbPrev={ex:null,v:0}; return; }
+  const nv=parseFloat(r.dataset.v||'0');
+  const from=(_lbPrev.ex===lift.ex)?_lbPrev.v:null;
+  _lbPrev={ex:lift.ex,v:nv};
+  if(from===null||from<=0||from>=nv) return;
+  if(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches) return;
+  r.style.transition='none';
+  r.style.transform=`scaleY(${(from/nv).toFixed(3)})`;
+  requestAnimationFrame(()=>{requestAnimationFrame(()=>{
+    r.style.transition='transform .38s cubic-bezier(.2,.8,.3,1)';
+    r.style.transform='scaleY(1)';
+  });});
 }

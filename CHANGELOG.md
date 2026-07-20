@@ -1,5 +1,27 @@
 # ShowUp — changelog
 
+## v3.3.18 (2026-07-20) — The live chart Sungjee actually asked for
+v3.3.13's per-set bars were rejected on sight: six identical rectangles
+say nothing. His spec, drawn from his own Google Sheet dashboard: show
+TODAY RISING against this exercise's history.
+
+The new chart speaks the Daily Fire's grammar — gray bars are your past,
+red is you, now: your last 15 sessions of this exercise as gray bars, and
+today as a red bar at the right edge that GROWS with a 380ms rise every
+time a set lands, breathing gently (1.8s) while the session is live. The
+dashed line is your all-time best session for this lift — cross it and
+the label concedes: "best — beaten ✓". Footer keeps honest score: "6 sets
+· beats 12 of your last 15 Squat sessions". Sealed day: Progression
+returns.
+
+Found and fixed while building it: the post-save animation hooks (count-up,
+fire-state capture) have run BEFORE the innerHTML swap since v3.3.6 —
+animating nodes that were about to be discarded. The count-up has jumped,
+never counted, this whole time; the chip spring carried the moment. Now:
+FROM-values are captured off the still-mounted old render, animations run
+after the swap, on nodes that exist. Verified live: bar rises 1,200→1,500
+on the mounted node, count-up tweens the mounted number.
+
 ## v3.3.17 (2026-07-20) — The calendar answers the tap it always invited
 Sungjee, on the History calendar: "thought these were supposed to be
 tappable — no?" No argument: v3.3.13 made dates ELSEWHERE jump to History

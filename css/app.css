@@ -161,6 +161,10 @@
   .card[data-ysel] svg text[data-yr].selY{opacity:1}
   .cd[data-hd]{cursor:pointer}
   .cd[data-hd]:active{transform:scale(.92)}
+  .lbNow{transform-box:fill-box;transform-origin:center bottom;
+    animation:lbpulse 1.8s ease-in-out infinite}
+  @keyframes lbpulse{0%,100%{opacity:1}50%{opacity:.8}}
+  @media (prefers-reduced-motion:reduce){.lbNow{animation:none}}
   .resttimer{display:none;font-family:var(--mono);font-size:14px;font-weight:700;color:#fff;letter-spacing:.02em}
   header.live .resttimer{display:inline}
   .resttimer::before{content:'●';font-size:8px;margin-right:6px;vertical-align:2px;
