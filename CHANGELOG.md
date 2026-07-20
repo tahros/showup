@@ -1,5 +1,15 @@
 # ShowUp — changelog
 
+## v3.3.20 (2026-07-20) — Re-seal, corrected: runs live in donePart
+v3.3.19's re-seal asked "is every remaining EXERCISE in doneEx?" — but runs
+are sealed at the PART level (donePart), so any day containing a run could
+never re-seal: Sungjee's red bar stayed up, correctly reported within the
+hour. The predicate is now coverage-based: a remaining set counts as
+completed if its exercise is done OR its part is done — the same dual
+convention the completion cascade itself writes. Verified against his exact
+day: Run (part-sealed) + Squat (exercise-sealed) → add a set → delete it →
+day re-seals, red bar stands down, run still counted.
+
 ## v3.3.19 (2026-07-20) — The mystery blob, and days that walk backward
 - **The white blur behind the Dynamic Island, identified.** It was the
   pull-to-refresh spinner: its "hidden" position was a flat -58px from a
