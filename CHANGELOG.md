@@ -1,5 +1,24 @@
 # ShowUp — changelog
 
+## v3.3.21 (2026-07-21) — Safe juice: frosted chrome, live glow
+First release cut from the visual-upgrade spec, filtered through the design
+doctrine. Adopted: backdrop blur on header/nav and an ambient glow under the
+live header. Rejected from the spec (recorded here so it stays rejected):
+`!important` frosted header (would have silenced the red live header), gold +
+green as new color authorities (violates one-authority law), the IBM Plex →
+Space Grotesk swap (drops the load-bearing mono), blanket 44px targets and
+uniform 14px radii (fight surfaces that are deliberately dense/varied). The
+spec's press-feedback item was already shipped — the D2 juice block has had
+scale(.955) on every tappable since v3.3.x.
+- **Frosted chrome, gated.** Header and nav go 82% translucent with
+  blur(14px) saturate(160%) — but only inside an `@supports` block, so any
+  browser without backdrop-filter keeps the solid readable fallback. Colors
+  are `color-mix`ed from `--ground`/`--surface`, so the coming OLED
+  ground-darkening carries through with zero extra work.
+- **Live never whispers.** `header.live` stays 92% solid red under blur and
+  gains a soft downward glow (`--live` at 45%, static shadow — no new
+  animation, reduced-motion unaffected).
+
 ## v3.3.20 (2026-07-20) — Re-seal, corrected: runs live in donePart
 v3.3.19's re-seal asked "is every remaining EXERCISE in doneEx?" — but runs
 are sealed at the PART level (donePart), so any day containing a run could

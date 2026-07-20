@@ -32,7 +32,21 @@
     display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;
     transition:background .35s,border-color .35s;
   }
-  header.live{background:var(--live);border-color:var(--live)}
+  header.live{background:var(--live);border-color:var(--live);
+    box-shadow:0 6px 24px -6px color-mix(in srgb,var(--live) 45%,transparent)}
+  /* v3.3.21 frosted chrome: only where backdrop-filter actually works, so the
+     solid fallback above stays readable everywhere else. Colors are mixed from
+     the theme vars, so any future ground change carries through for free.
+     header.live keeps 92% solid red — live must never whisper. */
+  @supports ((-webkit-backdrop-filter:blur(1px)) or (backdrop-filter:blur(1px))){
+    header{background:color-mix(in srgb,var(--ground) 82%,transparent);
+      -webkit-backdrop-filter:blur(14px) saturate(160%);
+      backdrop-filter:blur(14px) saturate(160%)}
+    header.live{background:color-mix(in srgb,var(--live) 92%,transparent)}
+    nav{background:color-mix(in srgb,var(--surface) 82%,transparent);
+      -webkit-backdrop-filter:blur(14px) saturate(160%);
+      backdrop-filter:blur(14px) saturate(160%)}
+  }
   .h-sub.donetoday::before{content:'✓ ';color:var(--accent);font-weight:700;
     font-size:12px;letter-spacing:0}
   .firecard .firehead{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:8px}
