@@ -159,6 +159,8 @@
   .card[data-ysel] svg [data-yr]{opacity:.14;transition:opacity .18s}
   .card[data-ysel] svg [data-yr].selY{opacity:1;stroke-width:2.6}
   .card[data-ysel] svg text[data-yr].selY{opacity:1}
+  .cd[data-hd]{cursor:pointer}
+  .cd[data-hd]:active{transform:scale(.92)}
   .resttimer{display:none;font-family:var(--mono);font-size:14px;font-weight:700;color:#fff;letter-spacing:.02em}
   header.live .resttimer{display:inline}
   .resttimer::before{content:'●';font-size:8px;margin-right:6px;vertical-align:2px;

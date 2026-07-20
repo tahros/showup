@@ -51,7 +51,7 @@ function renderHistory(){
   for(let d=1;d<=dim;d++){
     const iso=`${key}-${String(d).padStart(2,'0')}`;
     const on=dates.has(iso), today=iso===todayISO, fut=iso>todayISO;
-    h+=`<span class="cd ${on?'on':''} ${today?'now':''} ${fut?'fut':''}">${d}</span>`;
+    h+=`<span class="cd ${on?'on':''} ${today?'now':''} ${fut?'fut':''}" ${on?`data-hd="${iso}" role="button"`:''}>${d}</span>`;
   }
   h+=`</div>
       <div class="tot" style="margin-top:12px">
@@ -93,3 +93,16 @@ function renderHistory(){
     window._histTarget=null;
   }
 }
+
+
+/* v3.3.17: the calendar cells are the most obvious tap targets in History —
+   a trained day opens its session in the list below and scrolls to it.
+   Rest days stay inert: there is nothing to open, and that's the point. */
+document.addEventListener('click',e=>{
+  const c=e.target.closest('.cd[data-hd]'); if(!c) return;
+  const el=document.querySelector(`details.day[data-d="${c.dataset.hd}"]`);
+  if(!el) return;
+  document.querySelectorAll('details.day[open]').forEach(o=>{ if(o!==el) o.open=false; });
+  el.open=true;
+  if(el.scrollIntoView) el.scrollIntoView({block:'start',behavior:'smooth'});
+});

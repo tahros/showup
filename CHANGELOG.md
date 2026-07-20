@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v3.3.17 (2026-07-20) — The calendar answers the tap it always invited
+Sungjee, on the History calendar: "thought these were supposed to be
+tappable — no?" No argument: v3.3.13 made dates ELSEWHERE jump to History
+while the calendar itself — the most obvious tap targets on the screen —
+stayed inert. Now a trained day opens its session in the list below and
+scrolls to it; opening one closes the others. Rest days stay inert: there
+is nothing to open, and that's the point.
+
 ## v3.3.16 (2026-07-20) — The bubble wins for good: portaled to <body>
 v3.3.13's fix (position:fixed in place) lost to a deeper opponent than
 z-index: every #view card enters with the `rise` animation, fill-mode:both
