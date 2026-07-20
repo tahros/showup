@@ -3,6 +3,7 @@
    shares one global scope with its siblings, loaded in order by index.html. */
 /* ---------- header ---------- */
 function renderHeader(){
+  const _tf=document.getElementById('tipFloat'); if(_tf) _tf.hidden=true;
   const live=isLive();
   const trained=(day(todayISO).w||[]).length>0;
   const hdr=document.querySelector('header');
@@ -112,29 +113,42 @@ function rhythmCard(){
 function iBtn(id,text){
   return `<span class="notei"><button class="ibtn tipi" data-tip="${id}" aria-label="What is this?">i</button><span class="tipbubble" id="tip-${id}" hidden>${text}</span></span>`;
 }
+/* v3.3.16: the bubble is PORTALED — one #tipFloat node living directly on
+   <body>, filled from the tip's content on demand. Why: every #view>.card
+   carries the `rise` entrance animation with fill-mode:both, and a filled
+   transform animation keeps a stacking context alive forever (WebKit honors
+   the fill). Any bubble rendered inside a card can be painted over by every
+   later card, whatever its z-index — v3.3.13's in-place fixed positioning
+   lost to exactly this. A body-level node has no ancestor but body: nothing
+   left to trap it, nothing left to clip it. */
+function tipFloatEl(){
+  let tf=document.getElementById('tipFloat');
+  if(!tf){
+    tf=document.createElement('span');
+    tf.id='tipFloat'; tf.className='tipbubble float'; tf.hidden=true;
+    document.body.appendChild(tf);
+  }
+  return tf;
+}
 document.addEventListener('click',e=>{
   const b=e.target.closest('.tipi');
-  const open=document.querySelector('.tipbubble:not([hidden])');
-  if(open&&(!b||open.id!=='tip-'+b.dataset.tip)) open.hidden=true;   // one bubble at a time
-  if(!b) return;
-  const t=document.getElementById('tip-'+b.dataset.tip);
-  if(!t) return;
-  t.hidden=!t.hidden;
-  if(t.hidden) return;
-  /* place it where it can actually be read: above the dot if the nav would
-     clip it, left-aligned to the edge if it would run off screen */
-  /* v3.3.13: bubbles float above EVERYTHING — position:fixed at the dot,
-     so no card, transform or stacking context can ever cut one off. */
-  t.classList.remove('up','right');
-  t.classList.add('float');
-  t.style.left='8px'; t.style.top='8px'; t.style.bottom='auto';
-  const r=t.getBoundingClientRect();
-  if(!r.height) return;                                  // no layout (tests) — leave default
+  const tf=tipFloatEl();
+  if(!b){ tf.hidden=true; return; }                       // any other tap closes
+  if(!tf.hidden&&tf.dataset.tip===b.dataset.tip){ tf.hidden=true; return; }
+  const src=document.getElementById('tip-'+b.dataset.tip);
+  if(!src) return;
+  tf.innerHTML=src.innerHTML;
+  tf.dataset.tip=b.dataset.tip;
+  tf.classList.remove('up');
+  tf.hidden=false;
+  tf.style.left='8px'; tf.style.top='8px'; tf.style.bottom='auto';
+  const r=tf.getBoundingClientRect();
+  if(!r.height) return;                                   // no layout (tests) — leave default
   const br=b.getBoundingClientRect();
   const nv=document.querySelector('nav');
   const navH=nv?nv.getBoundingClientRect().height:64;
   const L=Math.min(Math.max(8,br.left-10), window.innerWidth-r.width-8);
   let T=br.bottom+9;
-  if(T+r.height>window.innerHeight-navH-8){ T=br.top-9-r.height; t.classList.add('up'); }
-  t.style.left=L+'px'; t.style.top=T+'px';
+  if(T+r.height>window.innerHeight-navH-8){ T=br.top-9-r.height; tf.classList.add('up'); }
+  tf.style.left=L+'px'; tf.style.top=T+'px';
 });

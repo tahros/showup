@@ -1,5 +1,19 @@
 # ShowUp — changelog
 
+## v3.3.16 (2026-07-20) — The bubble wins for good: portaled to <body>
+v3.3.13's fix (position:fixed in place) lost to a deeper opponent than
+z-index: every #view card enters with the `rise` animation, fill-mode:both
+— and a FILLED transform animation keeps a stacking context alive forever.
+A bubble rendered inside any card can therefore be painted over by every
+later card, no matter its z-index. Sungjee's screenshot — a black strip
+squeezed between the Run and Legs cards — is that spec behavior, verbatim.
+
+The fix removes the fight: one #tipFloat node lives directly on <body>,
+filled from the tapped dot's content, positioned at the dot, flipping above
+when the nav would clip. No ancestor but body — nothing left to trap it,
+nothing left to clip it. Any outside tap closes it; the same dot toggles
+it; every re-render sweeps a stale one away. Full cycle verified.
+
 ## v3.3.15 (2026-07-20) — The fire needle obeys the red law
 Sungjee asked when the Daily Fire card appears and disappears, and whether
 it should survive workout completion. Answers, now encoded:
