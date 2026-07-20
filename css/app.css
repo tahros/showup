@@ -1,6 +1,6 @@
 :root{--sat:env(safe-area-inset-top,0px);
     color-scheme:dark;
-    --ground:#17181D; --surface:#20222A; --surface2:#2B2E38; --line:#3C404C;
+    --ground:#0C0E13; --surface:#171A21; --surface2:#232733; --line:#343947;
     --accent:#5B7BFF; --accent-soft:#3A4A8C; --accent-dim:#95A4E8;
     --record:#E05545;                       /* the only non-blue: personal records */
     --live:#C93A2B;                         /* the header while your heart is pumping */

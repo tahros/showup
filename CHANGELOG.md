@@ -1,5 +1,19 @@
 # ShowUp — changelog
 
+## v3.3.22 (2026-07-21) — OLED trial: the ground drops three stops
+Dark theme only; light theme untouched. `--ground` #17181D → #0C0E13, with
+surfaces and lines stepping down in formation (#171A21 / #232733 / #343947)
+so relative elevation reads the same — everything just sits deeper. Went to
+#0C0E13 rather than the spec's #080A0F to keep the slight blue cast that is
+the app's temperature. Trial release under the standard rule: one workout
+under gym lights decides; revert is the one palette line.
+
+Also unified while in the neighborhood: index.html carried TWO theme-color
+metas (#121317 and #17181D — the first stale since some forgotten era) and
+the manifest still said #121317. All three now agree on #0C0E13, so the
+status bar finally matches the ground it sits on. Frosted chrome from
+v3.3.21 follows automatically — its colors are mixed from the vars.
+
 ## v3.3.21 (2026-07-21) — Safe juice: frosted chrome, live glow
 First release cut from the visual-upgrade spec, filtered through the design
 doctrine. Adopted: backdrop blur on header/nav and an ambient glow under the
