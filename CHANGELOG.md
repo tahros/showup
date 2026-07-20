@@ -1,5 +1,22 @@
 # ShowUp — changelog
 
+## v3.3.25 (2026-07-21) — T4: bold means data now
+37 declarations of 700 meant bold meant nothing. Every bold site got a
+verdict: is this a number you produced, or chrome? Fifteen chrome sites
+demote to 600 — CTAs (.btn, .btn.done, .nudgego, .ll-bar.save), the ⓘ dot,
+the record chip's text (its punch is the red, not the weight), labels
+(.lasthead, h2 .hi), selection states already carried by inversion
+(.cal .cd.on, .wdl.hiw), overlay text, and the exercise title. Twenty-two
+data sites keep 700/800: weights, reps, totals, timers, KPIs, the milestone
+number, the numeric pickers (.barinput, .repgrid buttons — the number IS
+the button), records, and the streak at-risk alarm.
+
+One deliberate exception: .h-date stays 700. In an app whose thesis is
+days > volume, the date is not chrome — it is the datum. The masthead
+keeps its weight.
+
+Bold now answers one question: did you lift this?
+
 ## v3.3.24 (2026-07-21) — T3 scale collapse; frost turned up per gym verdict
 Gym verdict on v3.3.21's chrome: right idea, too subtle. Header and nav go
 82% → 70% opaque with blur stepped 14 → 16px so the content ghosting through
