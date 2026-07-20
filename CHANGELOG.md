@@ -1,5 +1,26 @@
 # ShowUp — changelog
 
+## v3.3.23 (2026-07-21) — Type system: three tracking registers, one hero tier
+The creative-director review found 26 font sizes, 16 letter-spacing values in
+two units, and 37 declarations of bold — sediment, not a system. This release
+takes the two approved cuts (T1+T2); the scale collapse (T3) waits its turn.
+
+- **T1 — tracking tokenized.** Sixteen values become three registers:
+  `--track-num:-.02em` (heroes and display titles, 7 sites),
+  `--track-label:.08em` (working micro-caps: column headers, KPI labels,
+  nav, header sub, 8 sites), `--track-wide:.16em` (ceremonial kickers: h2
+  section labels, part labels, milestone unit, 4 sites). Every px-unit
+  tracking is dead (.8px/.4px/-.5px). The rest-timer's .02em removed —
+  mono digits need no tracking. Planned as TWO tokens; the file overruled
+  the plan: h2's wide tracking is the identity the accent bars anchor
+  (de-AI lesson), so the wide register earned its token rather than being
+  flattened into the label one.
+- **T2 — one hero tier.** The Daily Fire number — the most important number
+  in the app — sat at 32px while Rhythm and the first KPI shouted at 38px.
+  The lead now matches the supporting cast: 38px, token tracking, weight
+  unchanged.
+No layout, color, or markup changes; jsdom boot byte-identical.
+
 ## v3.3.22 (2026-07-21) — OLED trial: the ground drops three stops
 Dark theme only; light theme untouched. `--ground` #17181D → #0C0E13, with
 surfaces and lines stepping down in formation (#171A21 / #232733 / #343947)
