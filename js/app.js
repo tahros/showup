@@ -279,6 +279,11 @@ document.addEventListener('click',e=>{
     snapshot(`cleared ${n} ${lift.ex} sets`);
     t.w=t.w.filter(s=>s.ex!==lift.ex);
     DB.days[todayISO].w=t.w;
+    /* v3.3.19: removing a set must also walk the day's state BACK.
+       If everything that remains was already completed, the day re-seals
+       (red bar returns to normal); if nothing remains, the day is blank. */
+    if(!t.w.length){ t.doneAll=false; t.doneEx=[]; t.donePart=[]; }
+    else if(!t.w.some(s2=>!(t.doneEx||[]).includes(s2.ex))) t.doneAll=true;
     reanchorRest();
     save();renderHeader();toast(`Cleared ${n} sets — undo below`);return renderLift();
   }
@@ -359,6 +364,11 @@ document.addEventListener('click',e=>{
     const s=t.w[+del.dataset.del];
     snapshot(`deleted ${wDisp(s.w)}${U()}×${s.reps[0]||''}`);
     t.w.splice(+del.dataset.del,1);
+    /* v3.3.19: removing a set must also walk the day's state BACK.
+       If everything that remains was already completed, the day re-seals
+       (red bar returns to normal); if nothing remains, the day is blank. */
+    if(!t.w.length){ t.doneAll=false; t.doneEx=[]; t.donePart=[]; }
+    else if(!t.w.some(s2=>!(t.doneEx||[]).includes(s2.ex))) t.doneAll=true;
     reanchorRest();
     save();renderHeader();return renderLift();
   }

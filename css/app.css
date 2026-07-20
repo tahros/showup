@@ -1,4 +1,4 @@
-:root{
+:root{--sat:env(safe-area-inset-top,0px);
     color-scheme:dark;
     --ground:#17181D; --surface:#20222A; --surface2:#2B2E38; --line:#3C404C;
     --accent:#5B7BFF; --accent-soft:#3A4A8C; --accent-dim:#95A4E8;
@@ -552,7 +552,7 @@
     background:var(--surface);border:1px solid var(--line);
     box-shadow:0 3px 12px rgba(0,0,0,.28);
     display:flex;align-items:center;justify-content:center;
-    transform:translateY(-58px);pointer-events:none}
+    transform:translateY(calc(-58px - env(safe-area-inset-top,0px)));pointer-events:none}
   #ptr svg{width:16px;height:16px;stroke:var(--muted);transition:transform .18s,stroke .18s}
   #ptr.arm svg{transform:rotate(180deg);stroke:var(--accent)}
   #ptr.spin svg{animation:ptrspin .7s linear infinite;stroke:var(--accent)}

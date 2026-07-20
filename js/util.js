@@ -114,6 +114,13 @@
 (()=>{
   const el=document.getElementById('ptr'); if(!el) return;
   const THRESH=72, DRAG=0.5;
+  /* v3.3.19: the resting hide offset must clear the Dynamic Island. The old
+     flat -58px predates notched safe-areas: with ~59px of inset, "hidden"
+     landed ~7px from the top edge — a white circle parked behind the island,
+     Sungjee's mystery blob. Hide by the element's own height + inset. */
+  const satEl=getComputedStyle(document.documentElement).getPropertyValue('--sat');
+  const SAT=parseFloat(satEl)||0;
+  const HIDE=-(58+SAT);
   let y0=null, pulling=false, dist=0, fired=false;
   addEventListener('touchstart',e=>{
     if(fired) return;
@@ -128,7 +135,7 @@
     e.preventDefault();
     dist=Math.max(0,dy)*DRAG;
     el.style.transition='none';
-    el.style.transform=`translateY(${Math.min(dist,110)-58}px)`;
+    el.style.transform=`translateY(${Math.min(dist,110)+HIDE}px)`;
     el.classList.toggle('arm',dist>=THRESH);
     // the page itself follows the finger — that's the feedback a tiny arrow can't give
     document.body.classList.add('pulling');
@@ -137,7 +144,7 @@
   },{passive:false});
   const settle=()=>{
     el.style.transition='transform .25s cubic-bezier(.2,.8,.25,1)';
-    el.style.transform='translateY(-58px)';
+    el.style.transform=`translateY(${HIDE}px)`;
     el.classList.remove('arm');
     document.body.classList.remove('pulling');
     document.body.classList.add('settling');

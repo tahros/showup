@@ -1,5 +1,22 @@
 # ShowUp — changelog
 
+## v3.3.19 (2026-07-20) — The mystery blob, and days that walk backward
+- **The white blur behind the Dynamic Island, identified.** It was the
+  pull-to-refresh spinner: its "hidden" position was a flat -58px from a
+  top anchor that INCLUDES the safe-area inset (~59px on modern iPhones) —
+  net effect, a white 36px circle with a soft shadow resting ~7px from the
+  screen edge, peeking out around the island. The offset predates notches.
+  Now it hides by its own height PLUS the inset (CSS + the drag math both),
+  so hidden means hidden on every iPhone.
+- **Deleting a set walks the day's state back.** Adding a set to a sealed
+  day reopens it (correct) — but deleting that set left the day stuck
+  live-red with nothing actually open. Now removal re-runs the completion
+  logic: if everything that remains was already completed, the day re-seals
+  and the red bar stands down; if nothing remains, the day is blank again.
+  Applies to single-set delete and "Clear today's N" both. Verified through
+  the full cycle: sealed → add (live) → delete (sealed) → delete last
+  (blank).
+
 ## v3.3.18 (2026-07-20) — The live chart Sungjee actually asked for
 v3.3.13's per-set bars were rejected on sight: six identical rectangles
 say nothing. His spec, drawn from his own Google Sheet dashboard: show
