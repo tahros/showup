@@ -308,6 +308,8 @@ function renderToday(){
   });
   h+=`</div>`;
   if(isLive()) h+=`<button class="btn done" id="doneAllBtn">✓ Complete workout</button>`;
+  else if(t.w.length&&t.doneAll)
+    h+=`<div class="note mono" style="text-align:center;margin:14px 0 4px">✓ Workout complete · ${t.w.length} sets — logging another set reopens it</div>`;
   h+=`<h2 class="quiet">Rhythm</h2>`+rhythmCard();
   $('#view').innerHTML=h;
   fireGlide();

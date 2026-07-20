@@ -1,5 +1,19 @@
 # ShowUp — changelog
 
+## v3.3.14 (2026-07-20) — Completion gets a voice
+Sungjee: "I'm missing Complete today's workout — where did it go?" Answer:
+it did its job and left. Completing the last open exercise auto-completes
+the whole workout (a cascade that has existed since red mode), and the
+button is gated on the session being live — so it vanished the moment the
+day was done. The toast announced it; toasts are missable mid-gym.
+
+The real gap: completion only spoke through ABSENCE, and absence here means
+rest, not achievement. Now a finished day says so where the button stood:
+"✓ Workout complete · 5 sets — logging another set reopens it." One quiet
+mono line, no card, no ceremony. And the promise it makes is verified:
+logging any new set clears doneAll and brings the live session — and the
+button — back.
+
 ## v3.3.13 (2026-07-20) — The workout-feedback seven
 1. **Speech bubbles float free.** ⓘ bubbles now portal to position:fixed at
    the dot — no card, transform, or stacking context can ever clip one.
