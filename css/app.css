@@ -40,13 +40,13 @@
      the theme vars, so any future ground change carries through for free.
      header.live keeps 92% solid red — live must never whisper. */
   @supports ((-webkit-backdrop-filter:blur(1px)) or (backdrop-filter:blur(1px))){
-    header{background:color-mix(in srgb,var(--ground) 82%,transparent);
-      -webkit-backdrop-filter:blur(14px) saturate(160%);
-      backdrop-filter:blur(14px) saturate(160%)}
+    header{background:color-mix(in srgb,var(--ground) 70%,transparent);
+      -webkit-backdrop-filter:blur(16px) saturate(160%);
+      backdrop-filter:blur(16px) saturate(160%)}
     header.live{background:color-mix(in srgb,var(--live) 92%,transparent)}
-    nav{background:color-mix(in srgb,var(--surface) 82%,transparent);
-      -webkit-backdrop-filter:blur(14px) saturate(160%);
-      backdrop-filter:blur(14px) saturate(160%)}
+    nav{background:color-mix(in srgb,var(--surface) 70%,transparent);
+      -webkit-backdrop-filter:blur(16px) saturate(160%);
+      backdrop-filter:blur(16px) saturate(160%)}
   }
   .h-sub.donetoday::before{content:'✓ ';color:var(--accent);font-weight:700;
     font-size:12px;letter-spacing:0}
@@ -99,17 +99,17 @@
   .lastw{min-width:74px;font-weight:700;font-size:15px}
   .lastw .u{font-size:11px;color:var(--muted);font-weight:600}
   .lastreps{display:flex;flex-wrap:wrap;gap:5px}
-  .repchip{font-style:normal;font-family:var(--mono);font-size:12.5px;font-weight:700;padding:3px 8px;border-radius:8px;background:color-mix(in srgb,var(--accent) 13%, transparent);color:var(--accent)}
+  .repchip{font-style:normal;font-family:var(--mono);font-size:13px;font-weight:700;padding:3px 8px;border-radius:8px;background:color-mix(in srgb,var(--accent) 13%, transparent);color:var(--accent)}
   .lastfoot{margin-top:8px;font-size:11px;color:var(--muted)}
   .runhist .lastrow{display:grid;grid-template-columns:1fr auto auto auto;gap:12px;align-items:baseline}
   .runhist .runD{color:var(--muted);font-size:12px}
-  .runhist .runT{font-size:12.5px}
+  .runhist .runT{font-size:13px}
   .runhist .runP{color:var(--muted);font-size:12px;min-width:74px;text-align:right}
   header.live{cursor:pointer}
   .mgrid{display:grid;grid-template-columns:30px repeat(12,1fr);gap:3px;align-items:center}
   .mg-h{font-size:9px;color:var(--faint);text-align:center;font-family:var(--mono)}
   .mg-y{font-size:10px;color:var(--muted)}
-  .mg-c{height:24px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:9.5px;color:var(--chalk)}
+  .mg-c{height:24px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--chalk)}
   .mg-c.cur{outline:1.5px dashed var(--muted);outline-offset:-1.5px}
   .driftrow{display:grid;grid-template-columns:66px 1fr auto;gap:10px;align-items:center;padding:7px 0;border-top:1px dashed var(--line)}
   .driftrow:first-of-type{border-top:none}
@@ -118,7 +118,7 @@
   .dr-bar i{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:var(--accent)}
   .dr-bar i.down{background:var(--record)}
   .dr-bar em{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--faint);border-radius:1px}
-  .dr-n{font-size:11.5px}
+  .dr-n{font-size:12px}
   .dr-n.down{color:var(--record)}
   .dr-n.up{color:var(--accent)}
   .chip.livego{background:var(--live);border-color:var(--live);color:#fff}
@@ -136,7 +136,7 @@
   .onbges b{font-weight:600}
   .onbges .muted{display:block;font-size:12px}
   .onbnote{font-size:12px;color:var(--muted);margin-top:9px;line-height:1.5}
-  #addrep .addsub{display:block;font-family:var(--mono);font-size:9.5px;font-weight:500;opacity:.85;margin-top:1px}
+  #addrep .addsub{display:block;font-family:var(--mono);font-size:10px;font-weight:500;opacity:.85;margin-top:1px}
   #addrep .addsub b{color:#fff}
   .firegain.fresh{animation:gainfloat .4s ease-out}
   @keyframes gainfloat{from{opacity:0;transform:translateY(5px) scale(.85)}to{opacity:1;transform:none}}
@@ -240,12 +240,12 @@
   }
   /* back appears ONLY inside an exercise; header-scoped selectors out-rank
      .icobtn's display so ordering can never leak it onto other screens again */
-  header .hback{display:none;font-size:21px;font-weight:600;padding-bottom:2px}
+  header .hback{display:none;font-size:20px;font-weight:600;padding-bottom:2px}
   header.exmode .hback{display:grid}
   .streak{font-family:var(--mono);font-size:12px;color:var(--record);font-weight:600;white-space:nowrap;margin-right:2px}
   html{touch-action:manipulation}   /* no double-tap zoom mid-set; pan/pinch unaffected */
   main{padding:18px 18px calc(28px + env(safe-area-inset-bottom))}
-  h2{font-family:var(--disp);font-size:10.5px;letter-spacing:var(--track-wide);text-transform:uppercase;opacity:.75;
+  h2{font-family:var(--disp);font-size:10px;letter-spacing:var(--track-wide);text-transform:uppercase;opacity:.75;
      color:var(--chalk);font-weight:600;margin:30px 0 10px;
      display:flex;align-items:center;gap:8px}
   h2::before{content:'';width:3px;height:12px;border-radius:2px;background:var(--accent);flex:0 0 auto}
@@ -256,7 +256,7 @@
     font-family:var(--mono);font-size:11px;font-weight:700;cursor:pointer;margin-left:6px;
     line-height:20px;padding:0;vertical-align:middle}
   .tipbubble{position:absolute;top:26px;left:0;z-index:35;width:min(300px,80vw);
-    background:#16181D;color:#F4F5F8;font-family:var(--mono);font-size:12.5px;font-weight:400;
+    background:#16181D;color:#F4F5F8;font-family:var(--mono);font-size:13px;font-weight:400;
     line-height:1.62;letter-spacing:0;text-transform:none;
     padding:12px 14px;border-radius:11px;box-shadow:0 8px 24px rgba(0,0,0,.42)}
   .tipbubble::before{content:'';position:absolute;top:-5px;left:24px;width:10px;height:10px;
@@ -400,11 +400,11 @@
   .lastset .ls-r{font-weight:700;font-size:15px;color:var(--accent)}
   .repcustom{display:flex;gap:8px;margin-top:8px}
   .repcustom input{flex:1;min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:12px;
-    color:var(--chalk);font-family:var(--mono);font-size:16px;padding:12px 14px;min-width:0}
+    color:var(--chalk);font-family:var(--mono);font-size:17px;padding:12px 14px;min-width:0}
   .repcustom input:focus{outline:none;border-color:var(--accent)}
   /* lift */
   .back{background:none;border:0;color:var(--muted);font:inherit;font-size:13px;padding:0 0 12px;cursor:pointer}
-  .exhead{font-family:var(--disp);font-weight:700;font-size:22px;letter-spacing:var(--track-num);margin:0 0 4px}
+  .exhead{font-family:var(--disp);font-weight:700;font-size:20px;letter-spacing:var(--track-num);margin:0 0 4px}
   .lastline{font-family:var(--mono);font-size:12px;color:var(--muted);margin-bottom:2px}
   .lastline b{color:var(--accent);font-weight:500}
   .prline{font-family:var(--mono);font-size:12px;color:var(--chalk);line-height:1.7}
@@ -417,14 +417,14 @@
   @keyframes wflash{0%{color:var(--live);transform:scale(1.12)}100%{color:inherit;transform:none}}
   .wsel .val input.wflash{animation:wflash .3s ease}
   .wsel button:active{background:var(--accent-soft)}
-  .wsel .val{flex:1;text-align:center;font-family:var(--mono);font-weight:700;font-size:26px}
+  .wsel .val{flex:1;text-align:center;font-family:var(--mono);font-weight:700;font-size:24px}
   .wsel .val input{width:70%;background:none;border:0;color:var(--chalk);text-align:center;
-    font-family:var(--mono);font-weight:700;font-size:26px}
+    font-family:var(--mono);font-weight:700;font-size:24px}
   .wsel .val input:focus{outline:none}
   .wsel .unit{font-size:12px;color:var(--muted)}
   .repgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:7px}
   .repgrid button{aspect-ratio:1/1;background:var(--surface);border:1px solid var(--line);border-radius:10px;
-    color:var(--chalk);font-family:var(--mono);font-weight:700;font-size:16px;cursor:pointer;box-shadow:var(--shadow)}
+    color:var(--chalk);font-family:var(--mono);font-weight:700;font-size:17px;cursor:pointer;box-shadow:var(--shadow)}
   .repgrid button:active{background:var(--accent);color:#fff;border-color:var(--accent)}
   .sets{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px;min-height:4px}
   /* logged = done = quiet: gray fill, muted text, no accent border. Suggested chips
@@ -447,7 +447,7 @@
   .fld{flex:1;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
   .fld label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:var(--track-label);
     text-transform:uppercase;color:var(--muted);margin-bottom:4px}
-  .fld input{width:100%;background:none;border:0;color:var(--chalk);font-family:var(--mono);font-weight:700;font-size:22px}
+  .fld input{width:100%;background:none;border:0;color:var(--chalk);font-family:var(--mono);font-weight:700;font-size:20px}
   .fld input:focus{outline:none}
   .fld.text input{font-size:14px;font-weight:500;font-family:var(--body)}
   .btn{width:100%;padding:15px;border-radius:12px;border:0;background:var(--accent);color:#fff;
@@ -643,7 +643,7 @@
     font-family:var(--mono);font-size:10px;letter-spacing:var(--track-label);text-transform:uppercase;
     border-radius:14px;padding:5px 11px;cursor:pointer}
   .mstone{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px}
-  .mstone .big{font-family:var(--mono);font-size:26px;color:var(--chalk);font-weight:600}
+  .mstone .big{font-family:var(--mono);font-size:24px;color:var(--chalk);font-weight:600}
   .mstone .goal{font-family:var(--mono);font-size:11px;color:var(--muted)}
   .mbar{height:8px;border-radius:4px;background:var(--line);overflow:hidden}
   .mbar{position:relative}

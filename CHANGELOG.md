@@ -1,5 +1,22 @@
 # ShowUp — changelog
 
+## v3.3.24 (2026-07-21) — T3 scale collapse; frost turned up per gym verdict
+Gym verdict on v3.3.21's chrome: right idea, too subtle. Header and nav go
+82% → 70% opaque with blur stepped 14 → 16px so the content ghosting through
+stays legible. header.live holds at 92% solid — live never whispers.
+
+T3: the type scale collapses 26 sizes → 17. Every half-pixel size is dead
+(9.5/10.5/11.5/12.5 — the tells of drift, each merged to its neighbor), and
+the near-duplicate clusters fold: 16/17→17 — UP only, because 16px is iOS
+Safari's zoom-on-focus floor for inputs and the logger input sat exactly on
+it; 21/22→20 (exhead demotes slightly, deliberate); 26→24. 32px retired
+itself when the Fire number joined the hero tier in v3.3.23. Observed, not
+touched: the tip bubble hardcodes #16181D from the pre-OLED palette — it
+still reads correctly as an elevated bubble and is inverted by design, but
+it's the one hex in the file that answers to no variable. The nine-step
+ladder remains the target; next pass folds 8/9, 13/14, and 18/19 if this
+one survives the gym.
+
 ## v3.3.23 (2026-07-21) — Type system: three tracking registers, one hero tier
 The creative-director review found 26 font sizes, 16 letter-spacing values in
 two units, and 37 declarations of bold — sediment, not a system. This release
