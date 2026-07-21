@@ -1,5 +1,17 @@
 # ShowUp — changelog
 
+## v3.3.29 (2026-07-21) — The selected part shimmers
+Gym report: no sheen on the selected body part. Root cause was a plain
+omission — the part-tile state table (documented at css line 317) says
+selected = BLUE fill (.partcard.sel), and that surface never joined the
+sheen system. It has now, as .partcard.sel:not(.liveP) — the :not matters
+because the same tile in red mode (live session) is a signal, and signals
+don't get decorated. The suggested tile (.hot, dashed border, e.g. the
+Train Next pick before you tap it) stays matte deliberately: it's a border
+treatment on gray, not a blue surface — if it should glow too, that's a
+one-line tint change to the hot state, on request.
+
+
 ## v3.3.28 (2026-07-21) — Sheen reaches Lift, Stats, History
 Verdict-driven follow-up: the other tabs showed no shimmer because their
 blue lives in different forms. Three additions:
