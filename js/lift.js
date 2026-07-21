@@ -360,7 +360,7 @@ function renderLift(){
   h+=sugHTML;
 
   if(todaySets.length){
-    h+=`<div class="zone"><div class="zonehead"><span>Logged today · <b class="hi">${todaySets.length}</b> sets</span></div>`;
+    h+=`<div class="zone logged"><div class="zonehead"><span>Logged today · <b class="hi">${todaySets.length}</b> sets</span></div>`;
   }
   h+=`<div class="sets">`;
   todaySets.forEach((s,ti)=>{

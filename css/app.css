@@ -379,6 +379,13 @@
   .zone{background:var(--surface);border:1px solid var(--line);border-radius:14px;
     padding:13px 14px;margin-top:14px;box-shadow:var(--shadow)}
   .zone.prime{border-color:var(--accent-soft)}
+  /* v3.3.32: logged = done = quiet, now at container level too. The block
+     recedes to the page ground and drops its lift shadow — a well cut into
+     the page rather than a card sitting on it. Set tiles keep --surface2, so
+     they still step off the tray in BOTH themes (light: tiles darker than
+     tray; dark: lighter). Suggested/Last-time zones stay raised: they're
+     still-live invitations, and only finished work sinks. */
+  .zone.logged{background:var(--ground);box-shadow:none}
   .zonehead{display:flex;justify-content:space-between;align-items:center;
     font-family:var(--disp);font-size:12px;letter-spacing:var(--track-wide);text-transform:uppercase;
     font-weight:600;color:var(--chalk)}

@@ -1,5 +1,24 @@
 # ShowUp — changelog
 
+## v3.3.32 (2026-07-21) — The logged block sinks into the page
+Mid-session screenshot: "the logged box could be gray (close to white)."
+Done — .zone.logged takes var(--ground) and drops its shadow, so finished
+work reads as a well cut into the page rather than a card sitting on it.
+This is the existing "logged = done = quiet" rule (documented at .settile)
+finally applied at container level instead of only to the tiles.
+
+Two notes on execution. The class is new: bare .zone was ambiguous —
+the Suggested zone also renders bare when nothing is logged yet, so a
+CSS-only :not() selector would have tinted Suggested on an empty day.
+One word in lift.js removes the ambiguity. And the tiles deliberately
+stay --surface2, which keeps them stepping off the tray in both themes
+(light: tiles darker than tray; dark: lighter) — though the light-theme
+delta halves (#FFF→#E8EAF0 becomes #F2F3F6→#E8EAF0). If that reads muddy
+under gym lights, the fix is inverting the tiles to --surface: a recessed
+tray holding white chips. Held back deliberately — it would make finished
+sets louder, against the quiet rule.
+
+
 ## v3.3.31 (2026-07-21) — Continue means continue
 Mid-workout screenshot (day 919 in progress): tapping "Continue Shoulder"
 landed on the part view; Sungjee wants the exercise he's between sets of —
