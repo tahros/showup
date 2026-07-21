@@ -1,5 +1,27 @@
 # ShowUp — changelog
 
+## v3.3.38 (2026-07-21) — History gets dense; the digest counts sets
+Four notes off the first real use of the part axis.
+
+- **Years on one line.** The row goes nowrap with horizontal scroll and
+  smaller chips. Scroll rather than shrink-to-fit because 2027 is coming
+  and a grid that fits six will not fit ten; the row now degrades by
+  scrolling instead of by wrapping.
+- **Months smaller.** Padding, gaps and both type sizes come down; the
+  12-chip grid loses roughly a third of its height.
+- **Body parts smaller.** Same density treatment as the years, which fits
+  four per row instead of three.
+- **Sets, not just the biggest workout.** The chart caption now reads
+  "last 14 · biggest 9,886 kg · 214 sets", each PR row carries its
+  lifetime set count, and the all-time line reads "199 sessions · 4,102
+  sets". Run keeps its own vocabulary throughout — runs, longest, no set
+  counts, because a distance isn't a set.
+
+The three selector rows are navigation, not content, and they were eating
+the screen before any data appeared. This is the same reasoning as
+v3.3.36's shorter calendar, applied one level up.
+
+
 ## v3.3.37 (2026-07-21) — History gets a second axis: body part
 "I can either select the date from the calendar or body parts... so I can
 see how consistent I've been and whether I've grown."

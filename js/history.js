@@ -31,7 +31,14 @@ function partSessions(part,detail){
   }
   return out.sort((a,b)=>a.d<b.d?-1:1);
 }
-function partDigest(part,sess){
+function partExSets(part,detail){
+  const m={};
+  for(const list of Object.values(detail))
+    for(const s of list) if(s.part===part&&s.ex)
+      m[s.ex]=(m[s.ex]||0)+((s.reps||[]).length||1);   // a run counts as one
+  return m;
+}
+function partDigest(part,sess,exSets){
   if(!sess.length) return '';
   const isRun=part==='Run';
   const val=s=>isRun?s.km:s.vol;
@@ -62,16 +69,23 @@ function partDigest(part,sess){
     const bh=Math.max(2,(val(s)/mx)*58), x=10+i*gap;
     ch+=`<rect x="${x.toFixed(1)}" y="${(base-bh).toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="2" fill="${i===n-1?'var(--accent)':'var(--line)'}"></rect>`;
   });
-  ch+=`<text x="10" y="${H-4}" font-family="var(--mono)" font-size="7.5" fill="var(--muted)">last ${n} session${n>1?'s':''} · biggest ${disp(mx)}</text></svg>`;
+  const setsShown=shown.reduce((a,s)=>a+s.sets,0);
+  const cap=isRun
+    ? `last ${n} run${n>1?'s':''} · longest ${disp(mx)}`
+    : `last ${n} · biggest ${disp(mx)} · ${fmt(setsShown)} sets`;
+  ch+=`<text x="10" y="${H-4}" font-family="var(--mono)" font-size="7.5" fill="var(--muted)">${cap}</text></svg>`;
 
   let prs='';
   if(!isRun){
     const list=(SEED.catalog[part]||[])
       .filter(e=>SEED.pr[e]&&SEED.pr[e].mw>0)
-      .sort((a,b)=>(SEED.exFreq[b]||0)-(SEED.exFreq[a]||0)).slice(0,3);
+      .sort((a,b)=>((SEED.exFreq[b]||0)-(SEED.exFreq[a]||0))||((exSets[b]||0)-(exSets[a]||0)))
+      .slice(0,3);
     if(list.length) prs=`<div class="prlist">`+list.map(e=>{
       const r=SEED.pr[e];
-      return `<div class="prrow"><span class="e">${e}</span><span class="v mono">${wDisp(r.mw)} ${U()} × ${r.mwr}</span></div>`;
+      return `<div class="prrow"><span class="e">${e}</span>`
+        +`<span class="s mono">${fmt(exSets[e]||0)} sets</span>`
+        +`<span class="v mono">${wDisp(r.mw)} ${U()} × ${r.mwr}</span></div>`;
     }).join('')+`</div>`;
   }
   const gTxt=growth===null?'':`<span class="mono ${growth>=0?'up':'down'}">${growth>=0?'+':''}${growth}% vs the 5 before</span>`;
@@ -85,7 +99,7 @@ function partDigest(part,sess){
         <span>${since===0?'trained today':`${since}d since`}</span>
       </div>
       ${ch}
-      <div class="tot" style="margin-top:2px"><span>${gTxt}</span><span>${fmt(sess.length)} sessions all time</span></div>
+      <div class="tot" style="margin-top:2px"><span>${gTxt}</span><span>${isRun?`${fmt(sess.length)} runs all time`:`${fmt(sess.length)} sessions · ${fmt(sess.reduce((a,s)=>a+s.sets,0))} sets`}</span></div>
       ${prs}
     </div>`;
 }
@@ -110,7 +124,7 @@ function renderHistory(){
 
   const firstYear=SEED.totals.first?+SEED.totals.first.slice(0,4):+thisYear;
   const years=[]; for(let y=firstYear; y<=+thisYear; y++) years.push(y);
-  let h=`<div class="chips" style="margin-bottom:8px">`;
+  let h=`<div class="chips ychips">`;
   years.forEach(y=>{
     const n=[...dates].filter(d=>+d.slice(0,4)===y).length;
     h+=`<button class="chip ${y===hist.y?'on':''}" data-histy="${y}">${y}<span class="n">${n}d</span></button>`;
@@ -127,14 +141,14 @@ function renderHistory(){
 
   // body-part selector — the second way in
   const allParts=Object.keys(SEED.catalog||{}).filter(pt=>Object.values(pMap).some(s=>s.has(pt)));
-  h+=`<h2 class="quiet">Body part</h2><div class="chips" style="margin-bottom:8px">
+  h+=`<h2 class="quiet">Body part</h2><div class="chips pchips">
         <button class="chip ${P?'':'on'}" data-histp="">All</button>`;
   allParts.forEach(pt=>{
     const n=Object.values(pMap).filter(s=>s.has(pt)).length;
     h+=`<button class="chip ${pt===P?'on':''}" data-histp="${pt}">${pt}<span class="n">${fmt(n)}d</span></button>`;
   });
   h+=`</div>`;
-  if(P) h+=partDigest(P,partSessions(P,detail));
+  if(P) h+=partDigest(P,partSessions(P,detail),partExSets(P,detail));
 
   // month calendar
   const key=`${hist.y}-${String(hist.m).padStart(2,'0')}`;

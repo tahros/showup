@@ -672,14 +672,27 @@
   .prlist{margin-top:10px;padding-top:9px;border-top:1px dashed var(--line)}
   .prrow{display:flex;justify-content:space-between;align-items:baseline;gap:10px;
     font-size:13px;padding:3px 0}
-  .prrow .e{color:var(--chalk);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .prrow .e{color:var(--chalk);min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .prrow .s{color:var(--faint);font-size:11px;flex:none}
   .prrow .v{color:var(--muted);font-size:12px;flex:none}
+  /* v3.3.38: History's three selector rows are navigation, not content — they
+     were eating the screen before the data started. Years hold ONE line and
+     scroll sideways once they outgrow it (2027 will arrive); months and parts
+     just get denser. */
+  .ychips{flex-wrap:nowrap;overflow-x:auto;gap:5px;margin-bottom:7px;
+    scrollbar-width:none;-ms-overflow-style:none;padding-bottom:1px}
+  .ychips::-webkit-scrollbar{display:none}
+  .ychips .chip{flex:none;font-size:12px;padding:6px 11px}
+  .ychips .chip .n{font-size:10px;margin-left:4px}
+  .pchips{gap:5px;margin-bottom:8px}
+  .pchips .chip{font-size:12px;padding:6px 11px}
+  .pchips .chip .n{font-size:10px;margin-left:4px}
   .mchips{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
-  .mchip{display:flex;flex-direction:column;align-items:center;gap:1px;background:var(--surface);
-    border:1px solid var(--line);border-radius:9px;padding:6px 2px;color:var(--chalk);
+  .mchip{display:flex;flex-direction:column;align-items:center;gap:0;background:var(--surface);
+    border:1px solid var(--line);border-radius:8px;padding:4px 2px;color:var(--chalk);
     font:inherit;cursor:pointer;box-shadow:var(--shadow)}
-  .mchip span{font-family:var(--mono);font-size:10px;color:var(--muted)}
-  .mchip b{font-family:var(--mono);font-size:12px;font-weight:700}
+  .mchip span{font-family:var(--mono);font-size:9px;color:var(--muted);line-height:1.35}
+  .mchip b{font-family:var(--mono);font-size:11px;font-weight:700;line-height:1.25}
   .mchip.on{background:var(--accent);border-color:var(--accent)}
   .mchip.on span,.mchip.on b{color:#fff}
   .mchip.dim{opacity:.45}
