@@ -1,5 +1,24 @@
 # ShowUp — changelog
 
+## v3.3.41 (2026-07-21) — The digest drops what it was repeating
+Two removals, marked in red on a gym screenshot.
+
+- **The PR rows are gone.** Three exercises with best-set and lifetime set
+  counts. They answered an exercise-level question inside a part-level
+  card, and the exercise view already answers it better.
+- **"261 sessions" is gone.** It restated the number already printed on the
+  chip directly above it ("Shoulder 261d") — the same figure twice, one
+  card apart.
+
+What the footer says instead is what the chip cannot: **5,061 sets all
+time**. Run, which has no sets, states total distance — also new, since its
+chip already carries the day count.
+
+Deleted with them, since nothing else used any of it: partExSets(), the
+exSets parameter, and the .prlist/.prrow styles. partDigest(part,sess,opts)
+is now a three-argument function.
+
+
 ## v3.3.40 (2026-07-21) — Last Time leads; Today's hero goes part-level
 **Exercise view: Last Time above Progression.** Last Time is what you act
 on between sets — the numbers you're about to match. Progression is context

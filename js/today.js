@@ -94,7 +94,7 @@ function todayHeroHTML(){
   if(part){
     const detail=allDays();
     const sess=partSessions(part,detail);
-    if(sess.length) return partDigest(part,sess,partExSets(part,detail),{head:`${part} · live`,live:true});
+    if(sess.length) return partDigest(part,sess,{head:`${part} · live`,live:true});
   }
   return dailyFireHTML();
 }

@@ -669,12 +669,6 @@
   .pdigest{margin-top:10px}
   .pdigest .mono.up{color:var(--accent)}
   .pdigest .mono.down{color:var(--record)}
-  .prlist{margin-top:10px;padding-top:9px;border-top:1px dashed var(--line)}
-  .prrow{display:flex;justify-content:space-between;align-items:baseline;gap:10px;
-    font-size:13px;padding:3px 0}
-  .prrow .e{color:var(--chalk);min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .prrow .s{color:var(--faint);font-size:11px;flex:none}
-  .prrow .v{color:var(--muted);font-size:12px;flex:none}
   /* v3.3.38: History's three selector rows are navigation, not content — they
      were eating the screen before the data started. Years hold ONE line and
      scroll sideways once they outgrow it (2027 will arrive); months and parts
