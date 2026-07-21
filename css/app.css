@@ -161,11 +161,11 @@
   .lastrow[data-lw]:active{background:var(--surface2)}
   .tipbubble.float{position:fixed;z-index:96;top:auto;left:auto;right:auto;bottom:auto}
   button,input,select,textarea{font-family:inherit}
-  .chip.on.livego{background:var(--live);border-color:var(--live);color:#fff;
+  .chip.on.livego,.btn.livego{background:var(--live);border-color:var(--live);color:#fff;
     animation:livepulse 1.8s ease-in-out infinite}
   @keyframes livepulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--live) 45%,transparent)}
     50%{box-shadow:0 0 0 9px color-mix(in srgb,var(--live) 0%,transparent)}}
-  @media (prefers-reduced-motion:reduce){.chip.on.livego{animation:none}}
+  @media (prefers-reduced-motion:reduce){.chip.on.livego,.btn.livego{animation:none}}
   .delta.linkdate,.ago.linkdate{background:none;border:none;padding:0;cursor:pointer;
     text-decoration:underline dotted;text-underline-offset:3px}
   .delta.linkdate{color:var(--accent)} .delta.linkdate.down{color:var(--record)}
@@ -231,7 +231,6 @@
      surface. */
   .btnrow{display:flex;gap:8px;margin-top:12px}
   .btnrow .btn{margin-top:0;flex:1;min-width:0;white-space:nowrap}
-  .btn.livego{background:var(--live);color:#fff}
   .btn.ghost.done{background:none;border:1px solid var(--accent);color:var(--accent);
     font-size:15px;font-weight:600}
   .btn.done:active{filter:brightness(.9)}

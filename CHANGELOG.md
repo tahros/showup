@@ -1,5 +1,22 @@
 # ShowUp — changelog
 
+## v3.3.35 (2026-07-21) — Both Continues pulse
+Two screenshots side by side: Today's "Continue Shoulder →" pulses (the
+v3.3.13 red pulse), the part view's new "Continue →" (v3.3.33) doesn't.
+Same intent, same colour, different heartbeat.
+
+Fixed by widening the existing rule rather than writing a second one:
+`.chip.on.livego,.btn.livego` now share the fill AND the livepulse
+animation, and the reduced-motion guard covers both. One keyframes block,
+one behaviour — a lookalike copy would have been free to drift.
+
+Cascade trap avoided: v3.3.33's standalone `.btn.livego{background;color}`
+sat LATER in the file at equal specificity, so leaving it would have reset
+`animation` to none and silently killed the pulse it was meant to enable.
+Collapsed into the shared rule. Sheen still excludes .livego — red gets
+its own signal animation, never decorative shimmer.
+
+
 ## v3.3.34 (2026-07-21) — The Today hero follows the lift you're doing
 Two asks off three mid-session screenshots.
 
