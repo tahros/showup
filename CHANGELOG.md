@@ -1,5 +1,19 @@
 # ShowUp — changelog
 
+## v3.3.30 (2026-07-21) — The month calendar shimmers
+Annotated screenshot: the History calendar's trained days, circled. The
+v3.3.27 exclusion called calendar cells "micro" — wrong at rendered size,
+as the screenshot proved (they're larger than the strip squares the whole
+sheen system started from). Corrected as a container sweep on .cal —
+one band crossing the month, lighting the blue trained cells as it passes,
+near-invisible on the gray rest days. Per-cell animation was rejected:
+identical selectors share a phase, and thirteen cells flashing in unison
+is a slot machine. Same inset-pseudo technique as the strip and heatmap;
+no overflow clipping, so today's chalk outline (which draws outside its
+cell) survives. The absolutely-positioned pseudo stays out of the grid
+flow — no phantom eighth column.
+
+
 ## v3.3.29 (2026-07-21) — The selected part shimmers
 Gym report: no sheen on the selected body part. Root cause was a plain
 omission — the part-tile state table (documented at css line 317) says

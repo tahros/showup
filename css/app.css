@@ -467,11 +467,11 @@
      no two surfaces ever flash together. ---- */
   .chip.on:not(.livego),.btn:not(.ghost),.nudge .nudgego,.ll-bar.save,
   .onbbtn.pri,.vs .vsrow:first-child .bar i,.heatwrap,.mchip.on,
-  .partcard.sel:not(.liveP){position:relative}
+  .partcard.sel:not(.liveP),.cal{position:relative}
   .strip::after,.chip.on:not(.livego)::after,.btn:not(.ghost)::after,
   .nudge .nudgego::after,.ll-bar.save::after,.onbbtn.pri::after,
   .vs .vsrow:first-child .bar i::after,.heatwrap::after,.mchip.on::after,
-  .partcard.sel:not(.liveP)::after{
+  .partcard.sel:not(.liveP)::after,.cal::after{
     content:'';position:absolute;inset:0;pointer-events:none;border-radius:inherit;
     background:linear-gradient(105deg,transparent 44%,rgba(255,255,255,.35) 50%,transparent 56%);
     background-size:300% 100%;background-position:100% 0;
@@ -482,6 +482,9 @@
   .chip.on:not(.livego)::after{animation-duration:4.8s;animation-delay:.5s}
   .mchip.on::after{animation-duration:5.2s;animation-delay:.9s}
   .partcard.sel:not(.liveP)::after{animation-duration:5s;animation-delay:.7s}
+  .cal::after{mix-blend-mode:overlay;border-radius:0;animation-duration:4.4s;animation-delay:.2s;
+    background:linear-gradient(105deg,transparent 44%,rgba(255,255,255,.5) 50%,transparent 56%);
+    background-size:300% 100%}
   .heatwrap::after{mix-blend-mode:overlay;border-radius:0;animation-duration:4.6s;animation-delay:.3s;
     background:linear-gradient(105deg,transparent 44%,rgba(255,255,255,.5) 50%,transparent 56%);
     background-size:300% 100%}
@@ -491,7 +494,7 @@
     .strip::after,.chip.on:not(.livego)::after,.btn:not(.ghost)::after,
     .nudge .nudgego::after,.ll-bar.save::after,.onbbtn.pri::after,
     .vs .vsrow:first-child .bar i::after,.heatwrap::after,.mchip.on::after,
-    .partcard.sel:not(.liveP)::after{animation:none;background:none}}
+    .partcard.sel:not(.liveP)::after,.cal::after{animation:none;background:none}}
   .strip i{flex:1;height:22px;border-radius:3px;background:var(--surface2);border:1px solid var(--line)}
   .strip i.on{background:var(--accent);border-color:var(--accent)}
   .strip i.now{outline:2px solid var(--chalk);outline-offset:1px}
