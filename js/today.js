@@ -77,11 +77,24 @@ function liveExNow(){
   }
   return null;
 }
-function todayHeroHTML(){
+function livePartNow(){
   const ex=liveExNow();
-  if(ex){
-    const sets=dayMeta().w.filter(s=>s.ex===ex);
-    if(sets.length) return liveBars(ex,sets,`${ex} · live`);
+  if(!ex) return null;
+  const t=dayMeta();
+  for(let i=t.w.length-1;i>=0;i--) if(t.w[i].ex===ex) return t.w[i].part||null;
+  return null;
+}
+/* v3.3.40: the Today hero shows the PART's progression, not the exercise's.
+   The exercise chart already sits at the bottom of the exercise view — the
+   same chart twice taught nothing new. Part level answers a question that
+   screen can't: how does today's whole Shoulder session compare to the last
+   fourteen. Today's bar is red while the session is live. */
+function todayHeroHTML(){
+  const part=livePartNow();
+  if(part){
+    const detail=allDays();
+    const sess=partSessions(part,detail);
+    if(sess.length) return partDigest(part,sess,partExSets(part,detail),{head:`${part} · live`,live:true});
   }
   return dailyFireHTML();
 }

@@ -38,7 +38,8 @@ function partExSets(part,detail){
       m[s.ex]=(m[s.ex]||0)+((s.reps||[]).length||1);   // a run counts as one
   return m;
 }
-function partDigest(part,sess,exSets){
+function partDigest(part,sess,exSets,opts){
+  opts=opts||{};
   if(!sess.length) return '';
   const isRun=part==='Run';
   const val=s=>isRun?s.km:s.vol;
@@ -67,7 +68,9 @@ function partDigest(part,sess,exSets){
   let ch=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto">`;
   shown.forEach((s,i)=>{
     const bh=Math.max(2,(val(s)/mx)*58), x=10+i*gap;
-    ch+=`<rect x="${x.toFixed(1)}" y="${(base-bh).toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="2" fill="${i===n-1?'var(--accent)':'var(--line)'}"></rect>`;
+    const newest=i===n-1;
+    const fill=newest?(opts.live&&s.d===todayISO?'var(--live)':'var(--accent)'):'var(--line)';
+    ch+=`<rect class="${newest&&opts.live?'lbNow':''}" x="${x.toFixed(1)}" y="${(base-bh).toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="2" fill="${fill}"></rect>`;
   });
   const setsShown=shown.reduce((a,s)=>a+s.sets,0);
   const cap=isRun
@@ -89,7 +92,7 @@ function partDigest(part,sess,exSets){
     }).join('')+`</div>`;
   }
   const gTxt=growth===null?'':`<span class="mono ${growth>=0?'up':'down'}">${growth>=0?'+':''}${growth}% vs the 5 before</span>`;
-  return `<div class="card pdigest">
+  return `${opts.head?`<h2>${opts.head}</h2>`:''}<div class="card pdigest">
       <div class="row spread" style="margin-bottom:8px">
         <b style="font-family:var(--disp)">${part}</b>
         <span class="mono muted" style="font-size:12px"><b style="color:var(--accent)">${yrN}</b> days in ${thisYear}</span>

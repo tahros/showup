@@ -439,9 +439,12 @@ function renderLift(){
   }else if(undoStack.length){
     h+=`<button class="btn ghost" id="undoBtn" style="margin-top:12px">↺ Undo — ${undoStack[undoStack.length-1].label}</button>`;
   }
+  /* v3.3.40: Last Time leads. It is the thing you act on between sets — the
+     numbers you're about to match — while Progression is context you read
+     once. The terminal action stays last. */
+  h+=prFoot;
   if(!isRun) h+=(isLive()&&todaySets.length?liveBars(ex,todaySets):progChart(ex));
   if(exOpen(ex)) h+=`<button class="btn done" id="doneExBtn">✓ Complete ${ex}</button>`;
-  h+=prFoot;
   $('#view').innerHTML=h;
   if(lift._animSave){ lift._animSave=false; volCountUp(); lbGrow(); }
 }

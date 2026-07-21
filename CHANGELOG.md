@@ -1,5 +1,32 @@
 # ShowUp — changelog
 
+## v3.3.40 (2026-07-21) — Last Time leads; Today's hero goes part-level
+**Exercise view: Last Time above Progression.** Last Time is what you act
+on between sets — the numbers you're about to match. Progression is context
+you read once. The terminal Complete button stays last, so the screen now
+runs template → context → action.
+
+**Today's live hero is the PART digest, not the exercise chart.** The
+exercise chart already sits at the bottom of the exercise view; showing the
+identical chart on Today taught nothing new. The part digest answers a
+question that screen cannot: how does today's whole Shoulder session
+compare to the last fourteen — with cadence, growth, and the part's PRs.
+Today's bar is red while the session is live (it carries .lbNow, so it
+breathes too) and settles to accent once sealed. Daily Fire still returns
+when the day is done.
+
+partDigest() gained an optional opts {head, live}; History's call site is
+untouched and passes nothing, so one card serves both tabs.
+
+Measured rather than assumed: at the real 918-day archive size, allDays()
+costs 3.6ms and the new live hero renders in 60ms against Daily Fire's
+71ms — the replacement is CHEAPER than what it replaced, so no caching was
+added. (jsdom numbers; a phone is far quicker. perf.js kept as a tool.)
+
+Observed, not fixed: History session rows for legacy sets with no reps
+render a dangling "14 kg ×". Real bug, wrong release — say the word.
+
+
 ## v3.3.39 (2026-07-21) — The red bar bug, closed properly
 Three fixes from gym use.
 
