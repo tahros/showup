@@ -291,6 +291,13 @@ function renderStats(){
       <button class="btn ghost" id="settingsBtn">⚙︎ Settings, account &amp; sync</button>
       <div class="note" style="text-align:center">${session?`Signed in as ${session.user.email||'—'}`:'Not signed in — data is on this device only'} · ${APP_VERSION}</div>`;
   $('#view').innerHTML=h;
+  /* v3.3.42: the 6-month heatmap runs oldest → newest, so its default
+     scroll position showed January and hid today. Park it at the right
+     edge — the current week is the whole point of the strip. scrollLeft on
+     the scroller itself, never scrollIntoView, which would drag the page. */
+  document.querySelectorAll('.heatcols,.heat').forEach(el=>{
+    if(el.scrollWidth>el.clientWidth) el.scrollLeft=el.scrollWidth;
+  });
 }
 
 

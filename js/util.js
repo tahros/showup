@@ -45,7 +45,8 @@
   const TABS=['today','lift','stats','history'];
   let sx=0, sy=0, tracking=false, decided=false, horiz=false, popMode=false;
   const blocked=t=>t.closest('[data-zoom]')||t.closest('.zone.mini .lastsets')||
-                   t.closest('.heat')||t.closest('input')||t.closest('.settile')||
+                   t.closest('.heat')||t.closest('.heatcols')||   // the rail scrolls too
+                   t.closest('input')||t.closest('.settile')||
                    t.closest('.ychips')||      // v3.3.39: History's year strip scrolls sideways
                    t.closest('.compscroll');   // sideways-scrolling chart owns its axis
   addEventListener('touchstart',e=>{

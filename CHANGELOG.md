@@ -1,5 +1,20 @@
 # ShowUp — changelog
 
+## v3.3.42 (2026-07-21) — The heatmap opens on today
+The Last 6 Months strip runs oldest → newest, so its default scroll
+position showed January and pushed the current week off the right edge —
+every visit to Stats started with a manual scroll to find today. Both
+scrollers (.heatcols and .heat) are now parked at their right edge after
+render. scrollLeft on the element itself, never scrollIntoView, which would
+also drag the page vertically — same rule as v3.3.39's year strip.
+
+Caught while in there: the tab-swipe blocklist named .heat but not
+.heatcols, which is the element that actually scrolls. Swiping on the
+month-label rail could hop tabs mid-drag. Both are excluded now, and
+test-scrollpos.js asserts the blocklist covers every sideways scroller in
+the app so the next one added can't quietly repeat this.
+
+
 ## v3.3.41 (2026-07-21) — The digest drops what it was repeating
 Two removals, marked in red on a gym screenshot.
 
