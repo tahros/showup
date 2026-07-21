@@ -1,5 +1,23 @@
 # ShowUp — changelog
 
+## v3.3.28 (2026-07-21) — Sheen reaches Lift, Stats, History
+Verdict-driven follow-up: the other tabs showed no shimmer because their
+blue lives in different forms. Three additions:
+- **Selected chips, app-wide.** The [data-go] scoping widens to all
+  .chip.on (livego still excluded) — this lights Lift's equipment and
+  part selectors. Safe because selection is single-select in practice;
+  if a multi-.on surface ever appears, this is the line to re-scope.
+- **Stats heatmap.** Sweep on .heatwrap — the fixed outer frame, NOT .heat
+  itself, which is the scroll container (a pseudo pinned there would
+  scroll away with the columns). Overlay blend, strip-style.
+- **History month chips.** .mchip.on joins with its own cycle.
+Corrected en route: .kpi.accent was considered and rejected — only its
+number is accent-colored; the card is gray surface, and text doesn't
+shimmer. Known gap, named honestly: the Stats bar charts are SVG rects,
+and CSS pseudo-elements cannot attach to SVG children — those bars stay
+matte until a release adds an SVG-native sweep (gradient + SMIL or a JS
+overlay). Repchips also stay matte: 13% tint, dozens per screen.
+
 ## v3.3.27 (2026-07-21) — Sheen everywhere it earns its light; rhythm tightened
 Gym verdict on v3.3.26: sheen fantastic, dwell too long. Cycle shortened —
 sweep now occupies 70% of a faster loop (strip 6.5s→4.2s; the pause between
