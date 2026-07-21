@@ -1,5 +1,40 @@
 # ShowUp — changelog
 
+## v3.3.44 (2026-07-21) — Settings stop disappearing
+Root cause of the vanishing bodyweight. Two defects, compounding.
+
+**1. The push forged a timestamp.** cloudPush stamped the cloud document
+with `DB.settingsAt||Date.now()`. A context that had never recorded WHEN
+its settings changed minted a brand-new timestamp at push time — so its
+STALE settings outranked every other context's real ones. Any second
+context (an old tab, a backgrounded PWA, a laptop) could push settings it
+had never updated, stamped "now", and the next pull would overwrite good
+settings with them. Now `||0`: a device that doesn't know when its settings
+changed must never claim they changed just now.
+
+**2. Thirteen call sites forgot save(true).** Of 25 sites that mutate
+DB.settings, only 12 marked the change. The rest left settingsAt stale, so
+the edit lost the very next pull — custom exercises and onboarding state
+included. Rather than patch 13 call sites and wait for the 26th to forget,
+save() now notices when settings actually changed (signature diff, ignoring
+lastCloud/lastSync, which change every sync and are not edits) and stamps
+them itself.
+
+The settings merge moved into adoptRemoteSettings(), which is a real
+function instead of four lines buried in a try/catch — so it can be tested,
+and so adopting the cloud's settings records the new signature and isn't
+mistaken for a local edit on the following save.
+
+**Why bodyweight specifically?** It wasn't. barKg and smithKg fall back to
+`??20`, so a wiped settings object still renders "20 / 20" and looks
+healthy. bodyKg has no sensible default, so it alone renders as "—". Every
+other setting was equally at risk and equally silent.
+
+test-settings.js: 15 assertions covering both defects, including that a
+stale unstamped remote cannot overwrite, that local-only keys survive an
+adopt, and that the push no longer forges a timestamp.
+
+
 ## v3.3.43 (2026-07-21) — Sessions open, and read like the Last Time card
 **Open by default.** Every day in History's session list now renders
 expanded. No tapping to see what you did. The calendar tap still scrolls a
