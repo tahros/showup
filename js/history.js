@@ -180,13 +180,28 @@ function renderHistory(){
       const bits=[];
       if(vol)bits.push(vDisp(vol)+' '+U());
       if(km)bits.push(dDisp(km)+DU());
-      h+=`<details class="day" data-d="${d}"><summary>
+      /* v3.3.43: open by default, and grouped the way the LAST TIME card
+         groups — weight on the left, reps as chips.
+         Grouping is by exercise GLOBALLY (first-appearance order), not by
+         consecutive runs: supersets alternate Side Raise / Front Raise /
+         Side Raise, so consecutive grouping would read WORSE than the flat
+         list it replaces. Within one exercise, folding stays consecutive,
+         which keeps that exercise's own narrative (16 → 20 → back to 12). */
+      const byEx=[], seen={};
+      for(const s of list){
+        if(!(s.ex in seen)){ seen[s.ex]=byEx.length; byEx.push({ex:s.ex,sets:[]}); }
+        byEx[seen[s.ex]].sets.push([s.w,s.reps||[],s.mins,s.secs]);
+      }
+      h+=`<details class="day" open data-d="${d}"><summary>
           <span><span class="d">${pretty(d)}</span><div class="s">${parts||'—'}</div></span>
           <span class="s">${bits.join(' · ')}</span></summary><div class="body">`;
-      list.forEach(s=>{
-        h+=s.ex==='Run'
-          ?`<div><b>Run</b> — ${dDisp(s.w)} ${DU()} · ${s.mins||0}'${String(s.secs||0).padStart(2,'0')}"</div>`
-          :`<div><b>${s.ex}</b> — ${wDisp(s.w)} ${U()} × ${s.reps.join(', ')}</div>`;
+      byEx.forEach(g=>{
+        const folded=foldSets(g.sets);
+        if(!folded.length) return;
+        const n=g.sets.reduce((a,s)=>a+((s[1]||[]).length||1),0);
+        h+=`<div class="exgrp"><div class="lasthead"><span>${g.ex}</span>`
+          +`<span class="ago">${n} set${n>1?'s':''}</span></div>`
+          +setRows(g.ex,folded,false)+`</div>`;
       });
       h+=`</div></details>`;
     });
@@ -219,7 +234,6 @@ document.addEventListener('click',e=>{
   const c=e.target.closest('.cd[data-hd]'); if(!c) return;
   const el=document.querySelector(`details.day[data-d="${c.dataset.hd}"]`);
   if(!el) return;
-  document.querySelectorAll('details.day[open]').forEach(o=>{ if(o!==el) o.open=false; });
-  el.open=true;
+  el.open=true;                      // v3.3.43: days are open by default; nothing else closes
   if(el.scrollIntoView) el.scrollIntoView({block:'start',behavior:'smooth'});
 });

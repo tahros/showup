@@ -286,6 +286,33 @@ function resealDay(t){
   t.donePart=(t.donePart||[]).filter(x=>liveP.has(x));
   t.doneAll=!t.w.some(s=>!(t.doneEx.includes(s.ex)||t.donePart.includes(s.part)));
 }
+/* v3.3.43: one formatter for "a session, grouped by weight". Lift's LAST TIME
+   card and History's session detail now render through the same two functions,
+   so the two can't drift the way the re-seal predicate did.
+   Folding is CONSECUTIVE, not global: returning to a weight later in the
+   session stays its own line, which keeps the session's narrative. */
+function foldSets(sets){
+  const folded=[];
+  for(const [w2,reps,mins,secs] of sets){
+    if((!reps||!reps.length)&&mins==null&&w2<=0.01) continue;   // bare marker rows carry nothing
+    const prev=folded[folded.length-1];
+    if(prev&&prev[0]===w2&&prev[2]==null&&mins==null) prev[1]=prev[1].concat(reps||[]);
+    else folded.push([w2,(reps||[]).slice(),mins,secs]);
+  }
+  return folded;
+}
+function setRows(ex,folded,tappable){
+  return folded.map(([w2,reps,mins,secs])=>{
+    const chips=(reps&&reps.length)
+      ? reps.map(r2=>`<i class="repchip">${r2}</i>`).join('')
+      : (mins!=null?`<i class="repchip">${mins}${secs?`'${String(secs).padStart(2,'0')}`:'′'}</i>`:'');
+    const wtxt = ex==='Run'
+      ? `${dDisp(w2)} <span class="u">${DU()}</span>`
+      : (isBody(ex)&&w2<=0.01 ? 'BW' : `${wDisp(w2)} <span class="u">${U()}</span>`);
+    return `<div class="lastrow"${tappable?` data-lw="${w2}" role="button"`:''}>`
+      +`<span class="lastw mono">${wtxt}</span><span class="lastreps">${chips}</span></div>`;
+  }).join('');
+}
 function dayMeta(){const t=day(todayISO);t.doneEx=t.doneEx||[];t.donePart=t.donePart||[];t.sugX=t.sugX||{};return t;}
 const isLive =()=>{const t=day(todayISO);return t.w.length>0&&!t.doneAll;};
 /* v3.2.3: evening + unwritten today + living streak = at risk. One warm tone,

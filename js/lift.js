@@ -207,20 +207,8 @@ function renderLift(){
          (Consecutive, not global: returning to a weight later stays its own
          line — the card keeps the session's narrative order.)
          Bare marker rows (0 kg, no reps, no time) carry nothing: dropped. */
-      const folded=[];
-      for(const [w2,reps,mins,secs] of lastPrev.sets){
-        if((!reps||!reps.length)&&mins==null&&w2<=0.01) continue;
-        const prev=folded[folded.length-1];
-        if(prev&&prev[0]===w2&&prev[2]==null&&mins==null) prev[1]=prev[1].concat(reps||[]);
-        else folded.push([w2,(reps||[]).slice(),mins,secs]);
-      }
-      const rows=folded.map(([w2,reps,mins,secs])=>{
-        const chips=(reps&&reps.length)
-          ? reps.map(r2=>`<i class="repchip">${r2}</i>`).join('')
-          : (mins!=null?`<i class="repchip">${mins}${secs?`'${String(secs).padStart(2,'0')}`:'′'}</i>`:'');
-        const wtxt=isBody(ex)&&w2<=0.01?'BW':`${wDisp(w2)} <span class="u">${U()}</span>`;
-        return `<div class="lastrow" data-lw="${w2}" role="button"><span class="lastw mono">${wtxt}</span><span class="lastreps">${chips}</span></div>`;
-      }).join('');
+      const folded=foldSets(lastPrev.sets);            // v3.3.43: shared with History
+      const rows=setRows(ex,folded,true);
       const vol=folded.reduce((a,[w2,reps])=>a+w2*(reps||[]).reduce((x,y)=>x+y,0),0);
       const nsets=folded.reduce((a,[,reps])=>a+Math.max(1,(reps||[]).length),0);
       prFoot=`<div class="lastcard">

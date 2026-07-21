@@ -1,5 +1,33 @@
 # ShowUp — changelog
 
+## v3.3.43 (2026-07-21) — Sessions open, and read like the Last Time card
+**Open by default.** Every day in History's session list now renders
+expanded. No tapping to see what you did. The calendar tap still scrolls a
+date into view, but it no longer collapses the other days — with everything
+open, that would have hidden exactly what this release stops hiding.
+
+**Grouped, not one row per set.** Detail now uses the LAST TIME card's
+format: weight on the left, reps as chips. Today's session goes from 20
+flat rows to 3 exercise blocks with 5 weight rows.
+
+The grouping rule matters. Exercises are grouped GLOBALLY, by first
+appearance — not by consecutive runs. Supersets alternate Side Raise /
+Front Raise / Side Raise, so consecutive grouping would have read *worse*
+than the flat list it replaces. Within one exercise, folding stays
+consecutive, so returning to a weight later still gets its own line and
+that exercise keeps its narrative.
+
+**One formatter, two screens.** foldSets() and setRows() move to util.js;
+Lift's LAST TIME card and History's detail both render through them, with
+a flag for tappability (Lift rows set a weight; History rows are inert).
+Fourteen inline lines in lift.js become two. This is the resealDay lesson
+applied before the bug rather than after: the same logic in two places is
+the same logic drifting in two places.
+
+Side effect worth naming: the dangling "14 kg ×" on legacy sets with empty
+reps is gone. foldSets drops bare marker rows, so they never reach the DOM.
+
+
 ## v3.3.42 (2026-07-21) — The heatmap opens on today
 The Last 6 Months strip runs oldest → newest, so its default scroll
 position showed January and pushed the current week off the right edge —
