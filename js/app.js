@@ -148,7 +148,15 @@ document.addEventListener('click',e=>{
   }
   const go=e.target.closest('[data-go]');
   if(go){
-    view='lift';lift={part:go.dataset.go,ex:null,weight:0};
+    // v3.3.31: Continue means continue — an OPEN part jumps straight into its
+    // last-logged exercise (you're between sets of it; back is one tap if not).
+    // Start / add-on / Run keep landing on the part: nothing logged yet, or the
+    // Run view owns itself. Fresh lift object, so no stale editor state rides in.
+    const goP=go.dataset.go;
+    const goEx=(goP!=='Run'&&partOpen(goP))
+      ? (([...day(todayISO).w].reverse().find(s=>s.part===goP&&s.ex)||{}).ex||null)
+      : null;
+    view='lift';lift={part:goP,ex:goEx,weight:0};
     document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v==='lift'));
     return render();
   }

@@ -1,5 +1,19 @@
 # ShowUp — changelog
 
+## v3.3.31 (2026-07-21) — Continue means continue
+Mid-workout screenshot (day 919 in progress): tapping "Continue Shoulder"
+landed on the part view; Sungjee wants the exercise he's between sets of —
+Dumbbell Press. The data-go router now resolves an OPEN part to its
+last-logged exercise today and lands there directly; back to the part list
+stays one tap away. Unchanged on purpose: Start and the add-on + (nothing
+logged yet — the part view is where you choose), sealed parts, and Run
+(the Run view owns itself). The lift object is rebuilt fresh on this path,
+so no stale editor state rides along. First behavioral-test release since
+the container reset: jsdom boot + injected day fixture + synthetic clicks,
+four routing cases asserted (open→exercise, sealed→part, untouched→part,
+Run→part).
+
+
 ## v3.3.30 (2026-07-21) — The month calendar shimmers
 Annotated screenshot: the History calendar's trained days, circled. The
 v3.3.27 exclusion called calendar cells "micro" — wrong at rendered size,
