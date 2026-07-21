@@ -1,5 +1,23 @@
 # ShowUp — changelog
 
+## v3.3.27 (2026-07-21) — Sheen everywhere it earns its light; rhythm tightened
+Gym verdict on v3.3.26: sheen fantastic, dwell too long. Cycle shortened —
+sweep now occupies 70% of a faster loop (strip 6.5s→4.2s; the pause between
+passes roughly halves). Request: sheen on ALL blue surfaces. Implemented as
+a consolidated system on every accent surface of meaningful size: primary
+buttons (.btn, not ghost), the nudge CTA, the logger save bar, the
+onboarding Start, the current-year progress fill, plus the original strip
+and Start chip. Four desynchronized cycle groups (4.2/4.8/5/5.4s, offset
+delays) so no two surfaces flash together — synchronized shimmer reads as
+a system event, desynchronized reads as material.
+
+Excluded, deliberately, from "all": anything red (live and at-risk carry
+signals, and signals don't get decorated), plain selected chips (state,
+not invitation — a Lift screen with five chips shimmering is a slot
+machine), and micro surfaces (calendar cells, h2 kicker bars, nav bar,
+fire needle) where motion at that size is noise, not light. One keyframes,
+one reduced-motion guard covering all seven selectors.
+
 ## v3.3.26 (2026-07-21) — The screenshot four: sheen, sheen, info, nav bar
 Annotated gym screenshot, four items, plus one straggler it flushed out.
 1. **Rhythm strip sheen.** A subtle white band sweeps the 21-day strip left
