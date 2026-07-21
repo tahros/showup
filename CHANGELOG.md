@@ -1,5 +1,29 @@
 # ShowUp — changelog
 
+## v3.3.33 (2026-07-21) — An open part offers both exits
+Mid-session screenshot: the part view offered only "Complete Shoulder".
+Now it offers the pair — Continue and Complete, side by side, whenever
+the part is open.
+
+- **Continue** reuses the data-go router, so it resolves to the exercise
+  you're mid-way through exactly as v3.3.31's Today button does. One code
+  path, one behavior, wherever you tap Continue.
+- **Complete** keeps id donePartBtn and its existing handler untouched.
+
+Two judgment calls. Continue keeps the fill and Complete takes an outline:
+two filled blues side by side are indistinguishable once a session goes
+non-live, and the hierarchy matches usage — Continue is tapped many times
+a session, Complete once. Continue goes red only while isLive(), matching
+Today's Continue exactly; an open-but-not-live part shows it in accent.
+
+Doctrine repair caught in verification: .btn.livego would have inherited
+the sheen system's .btn:not(.ghost) rule, putting decorative shimmer on a
+red live control. All three sheen selector sites now exclude .livego —
+red stays matte, everywhere, permanently. Ten-case behavioral test added
+(test-exitpair.js) covering both states, the seal collapse, and the
+sheen exemption.
+
+
 ## v3.3.32 (2026-07-21) — The logged block sinks into the page
 Mid-session screenshot: "the logged box could be gray (close to white)."
 Done — .zone.logged takes var(--ground) and drops its shadow, so finished

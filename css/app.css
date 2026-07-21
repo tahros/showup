@@ -218,6 +218,17 @@
   #gearBtn.warn::after{content:'';position:absolute;top:4px;right:4px;width:8px;height:8px;
     border-radius:50%;background:var(--record);border:1.5px solid var(--surface)}
   .btn.done{background:var(--accent);border:1px solid var(--accent);color:#fff;font-weight:600;margin-top:12px}
+  /* v3.3.33: the open-part exit pair. Two filled blues side by side would be
+     indistinguishable when the session isn't live, so Complete takes the
+     outline and Continue keeps the fill — which also matches how often each
+     is tapped. .ghost on Complete is doing double duty: it excludes the
+     button from the sheen system, which has no business on a transparent
+     surface. */
+  .btnrow{display:flex;gap:8px;margin-top:12px}
+  .btnrow .btn{margin-top:0;flex:1;min-width:0;white-space:nowrap}
+  .btn.livego{background:var(--live);color:#fff}
+  .btn.ghost.done{background:none;border:1px solid var(--accent);color:var(--accent);
+    font-size:15px;font-weight:600}
   .btn.done:active{filter:brightness(.9)}
   .brandrow{display:flex;align-items:center;gap:11px;min-width:0}
   header.live .h-date{color:#fff}
@@ -472,10 +483,10 @@
      cal cells, h2 kicker bars, nav bar, fire needle — where motion at
      that size is noise, not light. Groups run desynchronized cycles so
      no two surfaces ever flash together. ---- */
-  .chip.on:not(.livego),.btn:not(.ghost),.nudge .nudgego,.ll-bar.save,
+  .chip.on:not(.livego),.btn:not(.ghost):not(.livego),.nudge .nudgego,.ll-bar.save,
   .onbbtn.pri,.vs .vsrow:first-child .bar i,.heatwrap,.mchip.on,
   .partcard.sel:not(.liveP),.cal{position:relative}
-  .strip::after,.chip.on:not(.livego)::after,.btn:not(.ghost)::after,
+  .strip::after,.chip.on:not(.livego)::after,.btn:not(.ghost):not(.livego)::after,
   .nudge .nudgego::after,.ll-bar.save::after,.onbbtn.pri::after,
   .vs .vsrow:first-child .bar i::after,.heatwrap::after,.mchip.on::after,
   .partcard.sel:not(.liveP)::after,.cal::after{
@@ -498,7 +509,7 @@
   .vs .vsrow:first-child .bar i::after{animation-duration:5s;animation-delay:.8s}
   @keyframes sheen{0%{background-position:100% 0}70%{background-position:0% 0}100%{background-position:0% 0}}
   @media (prefers-reduced-motion:reduce){
-    .strip::after,.chip.on:not(.livego)::after,.btn:not(.ghost)::after,
+    .strip::after,.chip.on:not(.livego)::after,.btn:not(.ghost):not(.livego)::after,
     .nudge .nudgego::after,.ll-bar.save::after,.onbbtn.pri::after,
     .vs .vsrow:first-child .bar i::after,.heatwrap::after,.mchip.on::after,
     .partcard.sel:not(.liveP)::after,.cal::after{animation:none;background:none}}

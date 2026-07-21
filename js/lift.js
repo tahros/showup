@@ -81,7 +81,13 @@ function renderLift(){
               <div class="tot"><span><b>${disp(cur)}</b> today</span><span>usual ≈ ${disp(usual)}</span></div>
             </div>`;
       }
-      if(partOpen(lift.part)) h+=`<button class="btn done" id="donePartBtn">✓ Complete ${lift.part}</button>`;
+      /* v3.3.33: an open part offers BOTH exits. Continue reuses the data-go
+         router, so it lands on the exercise you're mid-way through (v3.3.31);
+         Complete seals. Continue leads — you tap it many times a session and
+         Complete once. */
+      if(partOpen(lift.part)) h+=`<div class="btnrow">
+            <button class="btn ${isLive()?'livego':''}" data-go="${lift.part}">Continue →</button>
+            <button class="btn ghost done" id="donePartBtn">✓ Complete</button></div>`;
       else if(dayMeta().donePart.includes(lift.part))
         h+=`<button class="btn ghost" id="reopenPartBtn" style="margin-top:12px">${lift.part} completed ✓ — Reopen</button>`;
     }
