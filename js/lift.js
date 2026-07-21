@@ -252,7 +252,7 @@ function renderLift(){
       sugHTML+=`<div class="zone ${mini?'mini':''}">
           <div class="zonehead">
             <span style="position:relative">Suggested
-              <button class="ibtn" id="infoBtn" aria-label="What is this?">i</button>
+              <button class="ibtn" id="infoBtn" aria-label="What is this?">info</button>
               ${lift.info?`<span class="tipbubble">${ls
                 ?(ls.from?`Carried over from ${ls.from} (${wd(ls.d)}).`:`From your last ${ex} session — ${when}.`)
                 :`Your latest set, ready to repeat.`}

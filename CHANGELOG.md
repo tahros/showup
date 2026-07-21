@@ -1,5 +1,25 @@
 # ShowUp — changelog
 
+## v3.3.26 (2026-07-21) — The screenshot four: sheen, sheen, info, nav bar
+Annotated gym screenshot, four items, plus one straggler it flushed out.
+1. **Rhythm strip sheen.** A subtle white band sweeps the 21-day strip left
+   to right every 6.5s. Implemented as a background-position sweep on an
+   inset:0 pseudo — NOT overflow clipping, which would have amputated
+   today's chalk outline (it draws outside the strip box). Overlay blend
+   makes it read on the blue trained squares and near-vanish on empties.
+2. **Start CTA sheen.** Same effect on `.chip.on[data-go]` at a slower,
+   offset cycle so the two never flash in sync. Scoped `:not(.livego)` —
+   the red Continue button carries the live signal and gets no decorative
+   motion mixed into it. Both sheens die under prefers-reduced-motion.
+3. **ⓘ writes itself out.** The 20px glyph dot becomes a pill that says
+   INFO — mono micro-caps, label tracking, same chalk-inverse. Both
+   generators updated (header tip portal + lift infoBtn); aria unchanged.
+4. **Nav active bar.** The current tab gets a 24×3px accent bar under its
+   label — selection no longer carried by text color alone.
+Straggler: the rhythm card's "% of year" was inline-styled 22px in
+header.js — a size T3 retired but couldn't see (JS was out of scope then).
+Now 20, on the ladder.
+
 ## v3.3.25 (2026-07-21) — T4: bold means data now
 37 declarations of 700 meant bold meant nothing. Every bold site got a
 verdict: is this a number you produced, or chrome? Fifteen chrome sites
