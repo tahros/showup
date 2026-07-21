@@ -1,5 +1,41 @@
 # ShowUp — changelog
 
+## v3.3.34 (2026-07-21) — The Today hero follows the lift you're doing
+Two asks off three mid-session screenshots.
+
+**Today's hero swaps while live.** Daily Fire's percentile is demotivating
+mid-workout by construction — the day's running total starts every session
+at the bottom of its own 921-day distribution, so it reads "bigger than 11%"
+while you're actually having a good session. So while a session is live,
+Today shows the v3.3.18 live chart for the exercise you're on: last 15
+sessions in gray, today red and breathing, dashed all-time-best, and the
+line that actually motivates — "beats 14 of your last 15". Daily Fire
+returns the moment the day is sealed, when a whole-day percentile is the
+honest summary.
+
+The live lift = the most recently logged, not-yet-sealed, non-Run exercise
+today. Runs are skipped deliberately: logging a run mid-lift-session would
+otherwise hijack the hero, and the Run view owns its own charts.
+liveBars() took an optional heading param — default unchanged, so the Lift
+view still says "Today · live" while Today says "Dumbbell Press · live".
+
+**The part meter goes red while live.** "Today vs your usual SHOULDER
+session" is a live bar, so it follows the rule the header and fire needle
+already follow: red while in motion, accent once sealed.
+
+Known gap: the grow animation (lbGrow) keys on lift.ex and won't fire for
+the Today copy, so the bar appears at full height rather than growing. The
+CSS breathe still runs. Wiring growth to Today needs shared-state work that
+didn't belong in this release.
+
+Test note worth recording: the first run of test-todayhero.js "failed"
+three assertions that were fixture poverty, not bugs — Daily Fire silently
+skips under 30 lift days and the usual-meter needs history, exactly as the
+handoff warned. The corrected fixture builds 40 real-shaped days with runs.
+The second correction was mine: isLive() is "today has sets and the day
+isn't sealed", NOT the rest timer — lastSetAt was the wrong lever.
+
+
 ## v3.3.33 (2026-07-21) — An open part offers both exits
 Mid-session screenshot: the part view offered only "Complete Shoulder".
 Now it offers the pair — Continue and Complete, side by side, whenever

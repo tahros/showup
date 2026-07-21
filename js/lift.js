@@ -77,7 +77,7 @@ function renderLift(){
                 <span class="mono muted" style="font-size:11px;letter-spacing:.05em;text-transform:uppercase">Today vs your usual ${lift.part} session</span>
                 <span class="mono" style="font-weight:700;color:${pct>=100?'var(--accent)':'var(--chalk)'}">${pct}%</span>
               </div>
-              <div class="smeter"><i style="width:${Math.min(100,pct)}%" class="${pct>=100?'over':''}"></i></div>
+              <div class="smeter"><i style="width:${Math.min(100,pct)}%" class="${pct>=100?'over ':''}${isLive()?'live':''}"></i></div>
               <div class="tot"><span><b>${disp(cur)}</b> today</span><span>usual ≈ ${disp(usual)}</span></div>
             </div>`;
       }
@@ -778,7 +778,7 @@ function exSessionVols(ex){
   delete by[todayISO];
   return Object.entries(by).sort((a,b)=>a[0].localeCompare(b[0])).map(([d,v])=>({d,v}));
 }
-function liveBars(ex,sets){
+function liveBars(ex,sets,head){
   const hist=exSessionVols(ex);
   const now=sets.reduce((a,s)=>a+volOf(s),0);
   const shown=hist.slice(-15);
@@ -787,7 +787,7 @@ function liveBars(ex,sets){
   const mx=Math.max(best,now,...shown.map(h=>h.v))*1.1;
   const W=330,H=138,base=106;
   const n=shown.length+1, gap=Math.min(24,(W-70)/n), bw=Math.max(6,Math.min(16,gap-4));
-  let h=`<h2>Today · live</h2><div class="card">
+  let h=`<h2>${head||'Today · live'}</h2><div class="card">
     <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto">`;
   const by=base-(best/mx)*88;
   h+=`<line x1="8" y1="${by.toFixed(1)}" x2="${W-8}" y2="${by.toFixed(1)}" stroke="var(--record)" stroke-width="0.8" stroke-dasharray="3 3" opacity=".75"></line>

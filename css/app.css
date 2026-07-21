@@ -192,6 +192,11 @@
   .smeter{height:9px;border-radius:5px;background:var(--surface2);overflow:hidden;position:relative}
   .smeter i{display:block;height:100%;border-radius:5px;background:var(--accent);opacity:.75;transition:width .5s cubic-bezier(.2,.8,.25,1)}
   .smeter i.over{opacity:1;box-shadow:0 0 8px color-mix(in srgb,var(--accent) 60%,transparent)}
+  /* v3.3.34: the part meter is a live bar — red while the session is in
+     motion, accent once it's sealed. Same rule as the header and the fire
+     needle: if it's red, something is still moving. */
+  .smeter i.live{background:var(--live)}
+  .smeter i.over.live{box-shadow:0 0 8px color-mix(in srgb,var(--live) 60%,transparent)}
   .settile{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   .settile.editing{outline:2px solid var(--accent);outline-offset:1px}
   .editcard .row input{width:100%}

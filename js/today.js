@@ -62,6 +62,29 @@ function dailyFireHTML(){
     ${iBtn('fire',`Today vs every day you've trained, sorted smallest to biggest. Every set moves the red line right — all ${fmt(n)} days are on this chart.`)}
   </div>`;
 }
+/* v3.3.34: while a session is live, the Today hero follows the lift you're
+   actually doing — the same chart the exercise view shows (v3.3.18), because
+   "beats 14 of your last 15" is fuel mid-set and "bigger than 11% of 921 days"
+   is not: the day's total starts every session at the bottom of its own
+   distribution. Daily Fire returns the moment the day is sealed, when the
+   whole-day percentile is the honest summary. */
+function liveExNow(){
+  if(!isLive()) return null;
+  const t=dayMeta();
+  for(let i=t.w.length-1;i>=0;i--){
+    const s=t.w[i];
+    if(s.ex&&s.ex!=='Run'&&!t.doneEx.includes(s.ex)) return s.ex;
+  }
+  return null;
+}
+function todayHeroHTML(){
+  const ex=liveExNow();
+  if(ex){
+    const sets=dayMeta().w.filter(s=>s.ex===ex);
+    if(sets.length) return liveBars(ex,sets,`${ex} · live`);
+  }
+  return dailyFireHTML();
+}
 /* ============ v3.1 Clean Slate: onboarding · demo · honest empty states ============ */
 function hasAnyDays(){ return Object.values(DB.days).some(v=>v.w&&v.w.length); }
 let onbStep=1, onbSel=null, onbUnit='kg';
@@ -263,7 +286,7 @@ function renderToday(){
   }
 
   // ---- mid-session: what am I doing right now
-  h+=dailyFireHTML();
+  h+=todayHeroHTML();
   h+=`<h2>Training today${doneLift.length?` · <b class="hi">${doneLift.join(' · ')}</b>`:''}</h2>`;
   const byPart={};
   t.w.forEach(s=>{(byPart[s.part]=byPart[s.part]||[]).push(s);});
