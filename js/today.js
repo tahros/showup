@@ -18,50 +18,6 @@ function fireDist(kind){
   _fireDist={kind,v};
   return v;
 }
-function dailyFireHTML(){
-  const t=day(todayISO);
-  let vol=0, km=0;
-  for(const s of (t.w||[])){
-    if(s.ex==='Run') km+=s.w;
-    else vol+=s.w*(s.reps||[]).reduce((a,b)=>a+b,0);
-  }
-  const kind=vol>0?'vol':(km>0?'km':null);
-  if(!kind) return '';
-  const val=kind==='vol'?vol:km;
-  const dist=fireDist(kind);
-  if(dist.length<30) return '';
-  let lo=0,hi=dist.length;
-  while(lo<hi){const m=(lo+hi)>>1; if(dist[m]<=val)lo=m+1; else hi=m;}
-  const beat=lo, n=dist.length, pct=Math.round(100*beat/n);
-  const rankFromTop=n-beat+1;
-  const prev=+(sessionStorage.getItem('fire:'+kind)||0);
-  sessionStorage.setItem('fire:'+kind, String(beat));
-  const gained=prev&&beat>prev?beat-prev:0;
-  const W=320,H=44,N=60;
-  let bars='';
-  for(let i=0;i<N;i++){
-    const q=dist[Math.min(n-1,Math.floor(i*n/N))];
-    const bh=Math.max(2,(q/dist[n-1])*H);
-    bars+=`<rect x="${(i*(W/N)).toFixed(1)}" y="${(H-bh).toFixed(1)}" width="${(W/N-1.2).toFixed(1)}" height="${bh.toFixed(1)}" rx="1" fill="var(--line)"></rect>`;
-  }
-  const mx=Math.min(W-2,(beat/n)*W);
-  const label=kind==='vol'?`${fmt(Math.round(val))} kg`:`${dDisp(val)} ${DU()}`;
-  const line2=rankFromTop<=Math.ceil(n*0.25)
-    ? `your <b>#${fmt(rankFromTop)}</b> biggest ${kind==='vol'?'lift day':'run day'} of <b>${fmt(n)}</b>`
-    : `bigger than <b>${pct}%</b> of your ${fmt(n)} ${kind==='vol'?'lift':'run'} days`;
-  return `<h2>Daily fire</h2><div class="card firecard">
-    <div class="firehead"><span class="mono big">${label}</span>
-      <span class="firerank">${line2}${gained?` <b class="firegain">▲${gained}</b>`:''}</span></div>
-    <svg viewBox="0 0 ${W} ${H+8}" width="100%" height="${H+8}" aria-hidden="true">
-      ${bars}
-      <g class="fireMk" data-mx="${mx.toFixed(1)}">
-        <line x1="${mx.toFixed(1)}" y1="0" x2="${mx.toFixed(1)}" y2="${H}" stroke="${isLive()?'var(--live)':'var(--accent)'}" stroke-width="2.5"></line>
-        <circle cx="${mx.toFixed(1)}" cy="${H}" r="3.5" fill="${isLive()?'var(--live)':'var(--accent)'}" class="firedot"></circle>
-      </g>
-    </svg>
-    ${iBtn('fire',`Today vs every day you've trained, sorted smallest to biggest. Every set moves the red line right — all ${fmt(n)} days are on this chart.`)}
-  </div>`;
-}
 /* v3.3.34: while a session is live, the Today hero follows the lift you're
    actually doing — the same chart the exercise view shows (v3.3.18), because
    "beats 14 of your last 15" is fuel mid-set and "bigger than 11% of 921 days"
@@ -89,6 +45,10 @@ function livePartNow(){
    same chart twice taught nothing new. Part level answers a question that
    screen can't: how does today's whole Shoulder session compare to the last
    fourteen. Today's bar is red while the session is live. */
+/* v3.3.45: Daily Fire is gone and Rhythm takes the top slot. The pre-gym
+   branch already opened with Rhythm, so Today now leads with the same card
+   in both states. A live session still leads with the part digest — that's
+   the one thing more urgent than rhythm while you're mid-set. */
 function todayHeroHTML(){
   const part=livePartNow();
   if(part){
@@ -96,7 +56,7 @@ function todayHeroHTML(){
     const sess=partSessions(part,detail);
     if(sess.length) return partDigest(part,sess,{head:`${part} · live`,live:true});
   }
-  return dailyFireHTML();
+  return `<h2 class="quiet">Rhythm</h2>`+rhythmCard();
 }
 /* ============ v3.1 Clean Slate: onboarding · demo · honest empty states ============ */
 function hasAnyDays(){ return Object.values(DB.days).some(v=>v.w&&v.w.length); }
@@ -346,9 +306,7 @@ function renderToday(){
   if(isLive()) h+=`<button class="btn done" id="doneAllBtn">✓ Complete workout</button>`;
   else if(t.w.length&&t.doneAll)
     h+=`<div class="note mono" style="text-align:center;margin:14px 0 4px">✓ Workout complete · ${t.w.length} sets — logging another set reopens it</div>`;
-  h+=`<h2 class="quiet">Rhythm</h2>`+rhythmCard();
   $('#view').innerHTML=h;
-  fireGlide();
 }
 
 /* ---------- Lift ---------- */
@@ -488,46 +446,6 @@ function histFor(ex){
 
 
 /* D2: the marker GLIDES to its new rank — one motion, ≤400ms, honest events only */
-let _fireGl=null;
-/* D3: scrub the fire chart — "what would X kg rank?" Read-only; text
-   restores the moment you lift your finger. */
-let _fireScrub=null;
-document.addEventListener('pointerdown',e=>{
-  const svg=e.target.closest('.firecard svg'); if(!svg) return;
-  const rk=svg.closest('.firecard').querySelector('.firerank'); if(!rk) return;
-  _fireScrub={svg,rk,orig:rk.innerHTML};
-});
-document.addEventListener('pointermove',e=>{
-  if(!_fireScrub) return;
-  const {svg,rk}=_fireScrub;
-  const b=svg.getBoundingClientRect(); if(!b.width) return;
-  const frac=Math.min(1,Math.max(0,(e.clientX-b.left)/b.width));
-  const kind=(day(todayISO).w||[]).some(s=>s.ex!=='Run')?'vol':'km';
-  const dist=fireDist(kind); if(!dist.length) return;
-  const idx=Math.min(dist.length-1,Math.floor(frac*dist.length));
-  const v=dist[idx];
-  rk.innerHTML=`<b>${kind==='km'?dDisp(v)+' '+DU():fmt(Math.round(toU(v)))+' '+U()}</b> would be #${fmt(dist.length-idx)} of ${fmt(dist.length)}`;
-});
-const _fireScrubEnd=()=>{ if(!_fireScrub) return; _fireScrub.rk.innerHTML=_fireScrub.orig; _fireScrub=null; };
-document.addEventListener('pointerup',_fireScrubEnd);
-document.addEventListener('pointercancel',_fireScrubEnd);
-
-function fireGlide(){
-  const g=document.querySelector('.fireMk'); if(!g) return;
-  const nx=parseFloat(g.dataset.mx);
-  const prev=_fireGl;
-  _fireGl={d:todayISO,x:nx};
-  if(!prev||prev.d!==todayISO||Math.abs(prev.x-nx)<0.5) return;
-  if(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches) return;
-  g.style.transition='none';
-  g.style.transform=`translateX(${(prev.x-nx).toFixed(1)}px)`;
-  requestAnimationFrame(()=>{requestAnimationFrame(()=>{
-    g.style.transition='transform .38s cubic-bezier(.2,.8,.3,1)';
-    g.style.transform='translateX(0)';
-  });});
-  const gain=document.querySelector('.firegain');
-  if(gain) gain.classList.add('fresh');
-}
 
 
 /* ---------- D2 close: the milestone moment ----------

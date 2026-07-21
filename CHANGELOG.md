@@ -1,5 +1,32 @@
 # ShowUp — changelog
 
+## v3.3.45 (2026-07-21) — Rhythm takes the top; Daily Fire is gone
+Daily Fire is deleted, and Rhythm moves into the slot it occupied at the
+top of Today.
+
+The pre-gym branch of Today already opened with Rhythm, so this makes the
+tab consistent: Rhythm is the first card whether or not you've logged
+anything. It also removes a duplicate — Rhythm was rendering twice in the
+logged branch's lifetime, once at the bottom of the screen and (now) once
+at the top.
+
+A LIVE session still leads with the part digest. That's the one thing more
+urgent than rhythm while you're mid-set, and it's where v3.3.40 put it.
+Consequence worth naming: Rhythm is not on screen during a live session,
+only once the day seals. Easy to change if that's wrong.
+
+Removed with the card, since nothing else used any of it: dailyFireHTML(),
+fireGlide(), the _fireGl glide state, the pointer scrub handlers, the
+.firecard/.firerank/.firegain/.firedot styles and the gainfloat keyframe.
+
+**Kept deliberately: fireDist().** lift.js:710 uses the same distribution
+for its own comparison, so the data helper stays even though the card that
+introduced it is gone. Deleting it would have taken the exercise view down
+with it.
+
+today.js drops ~4.1KB, app.css ~0.7KB.
+
+
 ## v3.3.44 (2026-07-21) — Settings stop disappearing
 Root cause of the vanishing bodyweight. Two defects, compounding.
 
