@@ -46,6 +46,7 @@
   let sx=0, sy=0, tracking=false, decided=false, horiz=false, popMode=false;
   const blocked=t=>t.closest('[data-zoom]')||t.closest('.zone.mini .lastsets')||
                    t.closest('.heat')||t.closest('input')||t.closest('.settile')||
+                   t.closest('.ychips')||      // v3.3.39: History's year strip scrolls sideways
                    t.closest('.compscroll');   // sideways-scrolling chart owns its axis
   addEventListener('touchstart',e=>{
     if(e.touches.length!==1||view==='sync') return;
@@ -271,6 +272,19 @@ const agoStr=d=>{const n=daysAgo(d);return n<=0?'today':n===1?'yesterday':`${n} 
      level 1  body part — open while any of its exercises are open
      level 2  exercise  — open from its first set until "Complete <exercise>"
    Logging a new set to anything completed reopens it (and its parents). */
+/* v3.3.39: the day's completion state, recomputed from scratch after ANY
+   removal. This predicate has now been got wrong twice — v3.3.19 tested
+   doneEx only (runs seal at part level), and v3.3.20 fixed two of the three
+   removal paths but not data-dropex, so removing a whole exercise left the
+   header red. One function, every caller, no fourth drift. */
+function resealDay(t){
+  if(!t.w.length){ t.doneAll=false; t.doneEx=[]; t.donePart=[]; return; }
+  const live=new Set(t.w.map(s=>s.ex));
+  t.doneEx=(t.doneEx||[]).filter(x=>live.has(x));          // drop seals for exercises that are gone
+  const liveP=new Set(t.w.map(s=>s.part));
+  t.donePart=(t.donePart||[]).filter(x=>liveP.has(x));
+  t.doneAll=!t.w.some(s=>!(t.doneEx.includes(s.ex)||t.donePart.includes(s.part)));
+}
 function dayMeta(){const t=day(todayISO);t.doneEx=t.doneEx||[];t.donePart=t.donePart||[];t.sugX=t.sugX||{};return t;}
 const isLive =()=>{const t=day(todayISO);return t.w.length>0&&!t.doneAll;};
 /* v3.2.3: evening + unwritten today + living streak = at risk. One warm tone,

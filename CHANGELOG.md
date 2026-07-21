@@ -1,5 +1,27 @@
 # ShowUp — changelog
 
+## v3.3.39 (2026-07-21) — The red bar bug, closed properly
+Three fixes from gym use.
+
+**The red header, third occurrence — root-caused this time.** Removing a
+whole exercise with its ✕ left the header red on a finished day. The
+predicate itself was fine; the problem is that it lived in THREE removal
+paths and data-dropex never got the v3.3.20 correction. Extracted to
+resealDay(t) in util.js, called by all three. It also now drops seals for
+exercises that no longer exist, which the inline copies never did. The
+inline duplicates are gone, so a fourth path can't drift. Eleven-case
+regression test (test-reseal.js) built from the real day shape: a sealed
+Shoulder, a Run sealed at PART level, and an open exercise being removed.
+
+**Swipe no longer steals the year strip.** The tab-swipe handler already
+excluded horizontally scrolling surfaces; .ychips just wasn't on the list
+because it didn't exist when the list was written.
+
+**The selected year is visible without hunting for it.** After render the
+strip centres its active chip — via scrollLeft, not scrollIntoView, which
+would also drag the page vertically to reach it.
+
+
 ## v3.3.38 (2026-07-21) — History gets dense; the digest counts sets
 Four notes off the first real use of the part axis.
 

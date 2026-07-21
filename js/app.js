@@ -280,6 +280,7 @@ document.addEventListener('click',e=>{
     const n=t.w.filter(s=>s.ex===ex2).length;
     snapshot(`removed ${n} ${ex2} set${n>1?'s':''}`);
     DB.days[todayISO].w=t.w.filter(s=>s.ex!==ex2);
+    resealDay(dayMeta());                 // v3.3.39: the path v3.3.20 missed
     reanchorRest();
     save();renderHeader();toast(`${ex2} removed from today`);return renderLift();
   }
@@ -294,8 +295,7 @@ document.addEventListener('click',e=>{
        PART is done — runs are sealed at the part level, which the v3.3.19
        exercise-only test missed (Sungjee's red bar stayed up because his
        Run was in donePart, not doneEx). */
-    if(!t.w.length){ t.doneAll=false; t.doneEx=[]; t.donePart=[]; }
-    else if(!t.w.some(s2=>!((t.doneEx||[]).includes(s2.ex)||(t.donePart||[]).includes(s2.part)))) t.doneAll=true;
+    resealDay(t);
     reanchorRest();
     save();renderHeader();toast(`Cleared ${n} sets — undo below`);return renderLift();
   }
@@ -381,8 +381,7 @@ document.addEventListener('click',e=>{
        PART is done — runs are sealed at the part level, which the v3.3.19
        exercise-only test missed (Sungjee's red bar stayed up because his
        Run was in donePart, not doneEx). */
-    if(!t.w.length){ t.doneAll=false; t.doneEx=[]; t.donePart=[]; }
-    else if(!t.w.some(s2=>!((t.doneEx||[]).includes(s2.ex)||(t.donePart||[]).includes(s2.part)))) t.doneAll=true;
+    resealDay(t);
     reanchorRest();
     save();renderHeader();return renderLift();
   }

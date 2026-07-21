@@ -212,6 +212,13 @@ function renderHistory(){
     h+=`<div class="note" style="margin-top:12px">${P?`No ${P} logged this month.`:'No training logged this month.'}</div>`;
   }
   $('#view').innerHTML=h;
+  /* v3.3.39: centre the selected year in its strip. scrollLeft rather than
+     scrollIntoView, which would also scroll the page vertically to reach it. */
+  {
+    const strip=document.querySelector('.ychips');
+    const on=strip&&strip.querySelector('.chip.on');
+    if(strip&&on) strip.scrollLeft=Math.max(0,on.offsetLeft-(strip.clientWidth-on.offsetWidth)/2);
+  }
   if(window._histTarget){
     const el=document.querySelector(`details.day[data-d="${window._histTarget}"]`);
     if(el){ el.open=true; if(el.scrollIntoView) setTimeout(()=>el.scrollIntoView({block:'start',behavior:'smooth'}),60); }
