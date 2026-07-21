@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v3.3.36 (2026-07-21) — The month gets shorter
+Gym note: the History month is too tall. Calendar cells go from square to
+1.45:1 landscape — a 6-row month drops roughly a third of its height and
+hands that screen space back to the sessions list underneath. The grid
+still reads: 7 columns, same gaps, same states. Cells stay below the 44px
+touch ideal, as they already did — the dense-grid exception from v3.3.27
+still applies, and a trained day is a generous target at this width.
+
+
 ## v3.3.35 (2026-07-21) — Both Continues pulse
 Two screenshots side by side: Today's "Continue Shoulder →" pulses (the
 v3.3.13 red pulse), the part view's new "Continue →" (v3.3.33) doesn't.

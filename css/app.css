@@ -674,8 +674,11 @@
   .mchip.dim{opacity:.45}
   .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
   .cal .cw{font-family:var(--mono);font-size:9px;color:var(--muted);padding:2px 0}
+  /* v3.3.36: cells were square, so a 6-row month ate ~290px of vertical space
+     for information that reads fine at 2/3 the height. Landscape cells keep the
+     grid legible while giving the sessions list back a third of the screen. */
   .cal .cd{font-family:var(--mono);font-size:11px;color:var(--muted);
-    aspect-ratio:1/1;display:grid;place-items:center;border-radius:8px;background:var(--surface2)}
+    aspect-ratio:1.45/1;display:grid;place-items:center;border-radius:8px;background:var(--surface2)}
   .cal .cd.on{background:var(--accent);color:#fff;font-weight:600}
   .cal .cd.fut{opacity:.35;background:none}
   .cal .cd.now{outline:2px solid var(--chalk);outline-offset:1px}
