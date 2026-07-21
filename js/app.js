@@ -254,6 +254,8 @@ document.addEventListener('click',e=>{
     return renderHistory(); }
   const hm=e.target.closest('[data-histm]');
   if(hm){ hist.m=+hm.dataset.histm; return renderHistory(); }
+  const hp=e.target.closest('[data-histp]');
+  if(hp){ const v=hp.dataset.histp; hist.part=(v&&v!==hist.part)?v:null; return renderHistory(); }
   if(e.target.id==='infoBtn'){ lift.info=!lift.info; return renderLift(); }
   if(e.target.closest('#toggleSuggest')){
     const cur = lift.suggestOpen==null ? day(todayISO).w.some(s=>s.ex===lift.ex)===false : lift.suggestOpen;

@@ -1,5 +1,36 @@
 # ShowUp — changelog
 
+## v3.3.37 (2026-07-21) — History gets a second axis: body part
+"I can either select the date from the calendar or body parts... so I can
+see how consistent I've been and whether I've grown."
+
+A Body part chip row (All + every part with history, each with its lifetime
+day count) sits between the month chips and the calendar. Selecting one
+filters EVERY date surface below it rather than replacing them — month
+counts, the calendar's blue days, the month totals line, and the session
+list, which also narrows to that part's sets inside each day. So the two
+selectors compose: pick Shoulder, then walk the months and watch the
+calendar answer. Tapping the active part again clears it.
+
+Above the calendar, a digest card answers the two questions directly:
+- **Consistency** — days trained this year, median cadence over the last
+  365 days ("every ~6d"), and days since.
+- **Growth** — last 14 sessions as bars with the latest in accent, plus
+  the mean of the last 5 sessions vs the 5 before it as one signed
+  percentage. Five is enough to survive one light day and short enough to
+  still mean "lately". It needs 10 sessions of history before it will
+  claim a trend at all.
+- **PRs** — the part's three most-trained exercises with their best set.
+  Run has no PR rows (a distance isn't a lifted weight) but keeps its
+  chart in km.
+
+Data note: built off allDays(), not SEED.partDays — deriveAll caps partDays
+at 365 days for the frequency logic, and History has to see all 918.
+
+Also in this release's sibling v3.3.36: the calendar lost a third of its
+height, which is what made room for all of the above.
+
+
 ## v3.3.36 (2026-07-21) — The month gets shorter
 Gym note: the History month is too tall. Calendar cells go from square to
 1.45:1 landscape — a 6-row month drops roughly a third of its height and
