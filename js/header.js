@@ -64,9 +64,8 @@ function rhythm(){
   return {pct,lyPct,ly,trainedYTD,restYTD,elapsed,gap,strip,rest21,trainedToday};
 }
 function rhythmCard(){
-  const r=rhythm(), ly=r.ly;
-  const pctN=Math.round(r.pct*100), lyN=r.lyPct!=null?Math.round(r.lyPct*100):null;
-  const delta=lyN!=null?pctN-lyN:null;
+  const r=rhythm();
+  const pctN=Math.round(r.pct*100);   // v3.3.52: ly/delta gone with the vs-bars
   const lead = r.trainedToday
     ? `<b class="big ok">Trained today</b>`
     : r.gap===0
@@ -90,20 +89,11 @@ function rhythmCard(){
   h+=`</div>
     <div class="mono muted" style="font-size:10px;display:flex;justify-content:space-between;margin-top:4px">
       <span>3 weeks ago</span><span>today</span></div>`;
-  if(lyN!=null){
-    const w1=Math.max(2,pctN), w2=Math.max(2,lyN);
-    h+=`<div class="vs">
-          <div class="vsrow"><span class="y">${thisYear}</span>
-            <span class="bar"><i style="width:${w1}%;background:var(--accent)"></i></span>
-            <span class="p">${pctN}%</span></div>
-          <div class="vsrow"><span class="y">${ly}</span>
-            <span class="bar"><i style="width:${w2}%;background:var(--muted)"></i></span>
-            <span class="p">${lyN}%</span></div>
-          <div class="mono" style="font-size:11px;margin-top:6px;color:${delta>=0?'var(--accent)':'var(--record)'}">
-            ${delta>=0?'+':''}${delta} points vs the same day last year
-            <span class="muted">· ${r.trainedYTD} trained / ${r.restYTD} rested of ${r.elapsed} days</span></div>
-        </div>`;
-  }
+  /* v3.3.52: the two-bar year comparison becomes the full cumulative chart —
+     every year's line, not just this-vs-last as bars. One renderer shared
+     with Stats (consistencyChartHTML in stats.js; classic scripts, one
+     global scope, called at render time so definition order is irrelevant). */
+  h+=`<div class="rchart">${consistencyChartHTML()}</div>`;
   h+=`</div>`;
   return h;
 }
