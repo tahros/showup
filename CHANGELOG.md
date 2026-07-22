@@ -1,5 +1,19 @@
 # ShowUp — changelog
 
+## v3.3.50 (2026-07-22) — Dismiss badge, seated for good
+v3.3.49 stopped the clip but seated the × on top of the reps. Now it's
+fully inside the chip's top-right corner with real room made for it: the
+chip's text gets 28px of right padding, so "65 kg × 20" ends 7px before the
+badge begins. No overhang (the v3.3.49 clip guard still passes), no overlap.
+
+I first tried a right-only overhang to tuck it tighter — and my own
+buildcheck guard from v3.3.49 rejected it, correctly: a right overhang
+clips at the app's edge for a long enough value on a narrow enough phone.
+Kept the guard strict and made honest room instead. The no-overlap geometry
+(text padding >= badge width + offset) is now checked arithmetically, not
+by eye.
+
+
 ## v3.3.49 (2026-07-22) — Dismiss badge clip, actually fixed
 Third attempt, first correct one. v3.3.46 and v3.3.47 both read this as a
 missing-space problem and added padding. It was never space.
