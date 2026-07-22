@@ -1,5 +1,25 @@
 # ShowUp — changelog
 
+## v3.3.54 (2026-07-23) — Info returns to an "i" beside its title
+Position and label only; the tap-for-tip behaviour is untouched.
+
+Every info affordance now sits directly beside its section title as a small
+circular "i" (17px, lowercase — an uppercase I-dot reads as a letter). Five
+were living at the bottoms of their cards and moved up: Readiness, Logged
+today, the year goal (its note row keeps only "Change goal"), Year over
+year, and Pace by month. Suggested's own button was already beside its
+title and only changed label.
+
+The .notei wrapper loses its note-row top margin and its margin-left
+override — both were for the old placement under card content; beside a
+title the button's own 6px gap is the right one.
+
+The portaled tip (v3.3.16) needed no changes: the open handler is
+document-delegated on .tipi and the bubble mounts on <body>, so it works
+identically from inside an h2. Asserted from the new position: the dot is
+in the zonehead, labelled "i", and clicking it fills #tipFloat.
+
+
 ## v3.3.53 (2026-07-23) — Revert v3.3.52
 Sungjee's call, same day: the full cumulative chart inside the Rhythm card
 comes back out, and the two-bar this-year-vs-last comparison returns, with

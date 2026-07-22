@@ -111,7 +111,7 @@ function rhythmCard(){
 /* D1 (DESIGN.md): explanations live behind a dot, where the sentence used
    to be. Tap ⓘ → the old note expands in place; tap again → gone. */
 function iBtn(id,text){
-  return `<span class="notei"><button class="ibtn tipi" data-tip="${id}" aria-label="What is this?">info</button><span class="tipbubble" id="tip-${id}" hidden>${text}</span></span>`;
+  return `<span class="notei"><button class="ibtn tipi" data-tip="${id}" aria-label="What is this?">i</button><span class="tipbubble" id="tip-${id}" hidden>${text}</span></span>`;
 }
 /* v3.3.16: the bubble is PORTALED — one #tipFloat node living directly on
    <body>, filled from the tip's content on demand. Why: every #view>.card

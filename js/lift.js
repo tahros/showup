@@ -246,7 +246,7 @@ function renderLift(){
       sugHTML+=`<div class="zone ${mini?'mini':''}">
           <div class="zonehead">
             <span style="position:relative">Suggested
-              <button class="ibtn" id="infoBtn" aria-label="What is this?">info</button>
+              <button class="ibtn" id="infoBtn" aria-label="What is this?">i</button>
               ${lift.info?`<span class="tipbubble">${ls
                 ?(ls.from?`Carried over from ${ls.from} (${wd(ls.d)}).`:`From your last ${ex} session — ${when}.`)
                 :`Your latest set, ready to repeat.`}
@@ -354,7 +354,7 @@ function renderLift(){
   h+=sugHTML;
 
   if(todaySets.length){
-    h+=`<div class="zone logged"><div class="zonehead"><span>Logged today · <b class="hi">${todaySets.length}</b> sets</span></div>`;
+    h+=`<div class="zone logged"><div class="zonehead"><span>Logged today · <b class="hi">${todaySets.length}</b> sets ${iBtn('sets','Tap a set to delete it — hold to edit. Undo is one tap away.')}</span></div>`;
   }
   h+=`<div class="sets">`;
   todaySets.forEach((s,ti)=>{
@@ -423,7 +423,7 @@ function renderLift(){
               <button class="btn ghost" id="editCancel" style="margin:0;flex:0 0 96px">Cancel</button>
             </div></div>`;
     }
-    h+=`${iBtn('sets','Tap a set to delete it — hold to edit. Undo is one tap away.')}</div>`;
+    h+=`</div>`;
   }else if(undoStack.length){
     h+=`<button class="btn ghost" id="undoBtn" style="margin-top:12px">↺ Undo — ${undoStack[undoStack.length-1].label}</button>`;
   }
@@ -564,7 +564,7 @@ function runStatsHTML(){
       const shouldBe=goal*doyNow/yLen;
       const ahead=ytd-shouldBe;
       const pct=Math.min(100,ytd/goal*100);
-      h+=`<h2>${thisYear} goal</h2><div class="card">
+      h+=`<h2>${thisYear} goal ${iBtn('goal','The tick marks where you should be today.')}</h2><div class="card">
         <div class="mstone"><span class="big">${Math.round(ytd)}</span>
           <span class="goal">of ${fmt(goal)} ${DU()}</span></div>
         <div class="mbar"><i style="width:${Math.max(2,pct).toFixed(1)}%"></i>
@@ -572,7 +572,7 @@ function runStatsHTML(){
         <div class="tot">
           <span class="${ahead>=0?'up':'down'}"><b>${ahead>=0?'+':''}${Math.round(ahead)} ${DU()}</b> ${ahead>=0?'ahead of':'behind'} pace</span>
           <span>projecting <b>${Math.round(projected)}</b></span></div>
-        <div class="note" style="display:flex;align-items:center;gap:8px"><button class="linky" id="goalEdit">Change goal</button>${iBtn('goal','The tick marks where you should be today.')}</div>
+        <div class="note"><button class="linky" id="goalEdit">Change goal</button></div>
       </div>`;
     }else{
       const lastYr=days.filter(r=>r.d.startsWith(String(+thisYear-1)))
@@ -619,7 +619,7 @@ function runStatsHTML(){
   const dataMax=Math.max(...Object.values(yTot),1);
   const step=Math.max(10,Math.round(dataMax/4/10)*10);        // 361 -> 90, 180, 270, 360
   const yMax=Math.max(dataMax,step*4);
-  h+=`<h2>Year over year</h2><div class="card">
+  h+=`<h2>Year over year ${iBtn('cumkm',`Cumulative ${DU()} by day of year. ${thisYear} is still running.`)}</h2><div class="card">
       <div class="zoom" data-zoom><div class="zoomhint">pinch / scroll to zoom · double-tap to reset</div>
       <svg viewBox="0 0 340 170" style="width:100%;height:auto">`;
   for(let g=0;g<=4;g++){
@@ -656,7 +656,7 @@ function runStatsHTML(){
          fill="${YEAR_COLORS[L.y]||'var(--muted)'}" font-weight="${L.cur?700:400}">${L.y.slice(2)}</text>`;
   h+=`</svg></div><div class="legend1">`;
   for(const y of years) h+=`<span data-yr="${y}" role="button">${''}<i style="background:${YEAR_COLORS[y]||'var(--muted)'}"></i>${y} · ${Math.round(yTot[y])}</span>`;
-  h+=`</div>${iBtn('cumkm',`Cumulative ${DU()} by day of year. ${thisYear} is still running.`)}</div>`;
+  h+=`</div></div>`;
 
   /* --- pace, by month (timed runs only; lower is faster) --- */
   const pm={};
@@ -668,7 +668,7 @@ function runStatsHTML(){
     const lo=Math.min(...paces.map(p=>p[1])), hi=Math.max(...paces.map(p=>p[1]));
     const span=Math.max(hi-lo,30);                     // never flatten a near-identical year
     const base=lo-span*0.25, top=hi+span*0.25;
-    h+=`<h2>Pace, by month</h2><div class="card">
+    h+=`<h2>Pace, by month ${iBtn('pace',`Minutes per ${DU()}, timed runs only — faster months sit lower. Fastest in red, this month in blue.`)}</h2><div class="card">
         <div class="zoom" data-zoom><svg viewBox="0 0 330 118" style="width:100%;height:auto">`;
     let poly='';
     paces.forEach(([m,p],i)=>{
@@ -681,7 +681,7 @@ function runStatsHTML(){
           <text x="${x.toFixed(1)}" y="107" text-anchor="middle" font-family="var(--mono)" font-size="6.5" fill="${latest?'var(--accent)':'var(--muted)'}">${m.slice(5)}</text>`;
     });
     h+=`<polyline points="${poly.trim()}" fill="none" stroke="var(--accent)" stroke-width="1.2" stroke-linejoin="round"></polyline>
-        </svg></div>${iBtn('pace',`Minutes per ${DU()}, timed runs only — faster months sit lower. Fastest in red, this month in blue.`)}</div>`;
+        </svg></div></div>`;
   }
 
   /* --- records --- */
