@@ -1,5 +1,32 @@
 # ShowUp — changelog
 
+## v3.3.48 (2026-07-22) — Weekday chart un-broken
+The weekday bars rendered as giant overlapping blocks. My fault, from
+v3.3.46: to make that chart testable I gave its SVG <rect>s the class
+`wdbar` — not knowing an old, dead `.wdbar{flex:1;width:100%}` HTML-bar rule
+was still in the stylesheet from a previous chart iteration. `flex` and
+`width:100%` on an SVG rect inside a flex-free SVG is what ballooned them.
+jsdom has no layout, so every behavioral test passed while the chart was
+visibly broken on the phone.
+
+Three things done, not one:
+- Renamed the rect hook to `wd-col`, which nothing styles.
+- Deleted the dead `.wdbars/.wdcol/.wdp/.wdbar` block — five rules with zero
+  live consumers, confirmed by grep across every module before removal.
+- Added a buildcheck guard: any SVG rect class that also matches a CSS rule
+  setting flex or width now fails the build. This is the exact seam no
+  behavioral test can see, so it belongs in the structural checks. Verified
+  it fires on the offending pattern and passes once clean.
+
+Also froze test-sessfmt.js, which started failing today for an unrelated
+reason: its fixture keyed off "the first details.day" and placed a prior
+session at today−5, so when the real date rolled to 7/22 the dates
+collided and a phantom group appeared. Now scoped to today's card by
+data-d and the prior session pushed to today−40. Confirmed the frozen test
+passes on every stage back to v3.3.43 — the grouping was always correct;
+the test was rotting against the wall clock.
+
+
 ## v3.3.47 (2026-07-21) — Dismiss badge, corrected
 v3.3.46 read the clip as horizontal and added a right margin. It was
 vertical: the dismiss ✕ sits 7px above its chip and the suggested list gave

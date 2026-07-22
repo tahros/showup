@@ -185,7 +185,7 @@ function renderStats(){
   ['S','M','T','W','T','F','S'].forEach((lab,i)=>{
     const p=wdPct[i], today=i===wdToday, best=i===bestI;
     const bh=Math.max(2,p*96), x=32+i*41;
-    h+=`<rect class="gbar wdbar" x="${x}" y="${112-bh}" width="26" height="${bh}" rx="4"
+    h+=`<rect class="gbar wd-col" x="${x}" y="${112-bh}" width="26" height="${bh}" rx="4"
           fill="${today?'var(--accent)':'var(--accent-dim)'}" opacity="${today?1:.6}"></rect>`;
     if(best) h+=`<text x="${x+13}" y="${104-bh}" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="var(--muted)">▲</text>`;
     h+=`<text x="${x+13}" y="${today?108-bh:(best?96-bh:108-bh)}" text-anchor="middle" font-family="var(--mono)" font-size="8" fill="${today?'var(--accent)':'var(--muted)'}" font-weight="${today?700:400}">${Math.round(p*100)}%</text>
