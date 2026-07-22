@@ -1,20 +1,18 @@
 # ShowUp — changelog
 
-## v3.3.52 (2026-07-23) — Rhythm carries the full year chart
-The Rhythm card's two-bar this-year-vs-last comparison becomes the full
-cumulative consistency chart — every year's line, the same graph that lives
-in Stats, with pinch-zoom and the tap-a-year-to-isolate legend both working
-in place (the legend handler was already document-delegated and scoped to
-the nearest card, so it came along free).
+## v3.3.53 (2026-07-23) — Revert v3.3.52
+Sungjee's call, same day: the full cumulative chart inside the Rhythm card
+comes back out, and the two-bar this-year-vs-last comparison returns, with
+its "+N points vs the same day last year" sentence. Byte-for-byte the
+v3.3.51 UI under a new version stamp.
 
-Extracted to one shared consistencyChartHTML() in stats.js, called by both
-tabs — the foldSets/resealDay rule again: the same picture in two places is
-the same picture drifting in two places. The vs-bars markup, its dead
-variables in rhythmCard, and every orphaned .vs rule (including its entries
-inside the four sheen selector lists) are deleted.
+Recorded, as ever, as a trial worth having run: the chart reads well in
+Stats where you go to study, but the Rhythm card is a glance surface, and
+two bars answer "am I ahead of last year" faster than five lines do.
 
-The "+16 points vs the same day last year" sentence goes with the bars; the
-chart states the same comparison continuously, for all years at once.
+v3.3.52's consistencyChartHTML() extraction dies with the revert (Stats
+returns to its inline chart). If the shared-renderer shape is ever wanted
+again, the v3.3.52 commit (6b28ee6) has it whole.
 
 
 ## v3.3.51 (2026-07-22) — The logger loses a third of its height

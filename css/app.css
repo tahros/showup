@@ -474,8 +474,6 @@
   .rhythm .big.ok{font-size:20px;color:var(--accent)}
   .rhythm .unit{font-family:var(--mono);font-size:12px;color:var(--muted);margin-left:4px}
   .strip{display:flex;gap:3px;margin-top:14px;position:relative}
-  .rhythm .rchart{margin-top:12px;padding-top:10px;border-top:1px dashed var(--line)}
-  .rhythm .rchart .legend1{margin-top:6px}
   /* ---- sheen system (v3.3.27): accent surfaces of meaningful size.
      Excluded by design: anything red/live (signals don't get decorated),
      plain selected chips (state, not invitation), and micro surfaces —
@@ -483,11 +481,11 @@
      that size is noise, not light. Groups run desynchronized cycles so
      no two surfaces ever flash together. ---- */
   .chip.on:not(.livego),.btn:not(.ghost):not(.livego),.nudge .nudgego,.ll-bar.save,
-  .onbbtn.pri,.heatwrap,.mchip.on,
+  .onbbtn.pri,.vs .vsrow:first-child .bar i,.heatwrap,.mchip.on,
   .partcard.sel:not(.liveP),.cal{position:relative}
   .strip::after,.chip.on:not(.livego)::after,.btn:not(.ghost):not(.livego)::after,
   .nudge .nudgego::after,.ll-bar.save::after,.onbbtn.pri::after,
-  .heatwrap::after,.mchip.on::after,
+  .vs .vsrow:first-child .bar i::after,.heatwrap::after,.mchip.on::after,
   .partcard.sel:not(.liveP)::after,.cal::after{
     content:'';position:absolute;inset:0;pointer-events:none;border-radius:inherit;
     background:linear-gradient(105deg,transparent 44%,rgba(255,255,255,.35) 50%,transparent 56%);
@@ -505,15 +503,22 @@
   .heatwrap::after{mix-blend-mode:overlay;border-radius:0;animation-duration:4.6s;animation-delay:.3s;
     background:linear-gradient(105deg,transparent 44%,rgba(255,255,255,.5) 50%,transparent 56%);
     background-size:300% 100%}
+  .vs .vsrow:first-child .bar i::after{animation-duration:5s;animation-delay:.8s}
   @keyframes sheen{0%{background-position:100% 0}70%{background-position:0% 0}100%{background-position:0% 0}}
   @media (prefers-reduced-motion:reduce){
     .strip::after,.chip.on:not(.livego)::after,.btn:not(.ghost):not(.livego)::after,
     .nudge .nudgego::after,.ll-bar.save::after,.onbbtn.pri::after,
-    .heatwrap::after,.mchip.on::after,
+    .vs .vsrow:first-child .bar i::after,.heatwrap::after,.mchip.on::after,
     .partcard.sel:not(.liveP)::after,.cal::after{animation:none;background:none}}
   .strip i{flex:1;height:22px;border-radius:3px;background:var(--surface2);border:1px solid var(--line)}
   .strip i.on{background:var(--accent);border-color:var(--accent)}
   .strip i.now{outline:2px solid var(--chalk);outline-offset:1px}
+  .vs{margin-top:14px;padding-top:12px;border-top:1px dashed var(--line)}
+  .vsrow{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .vsrow .y{font-family:var(--mono);font-size:11px;color:var(--muted);flex:0 0 34px}
+  .vsrow .bar{flex:1;height:8px;border-radius:4px;background:var(--surface2);overflow:hidden}
+  .vsrow .bar i{display:block;height:100%}
+  .vsrow .p{font-family:var(--mono);font-size:11px;flex:0 0 32px;text-align:right}
   .kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
   .kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow)}
   .kpi .v{font-family:var(--mono);font-weight:700;font-size:24px;line-height:1.15}

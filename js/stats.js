@@ -2,47 +2,6 @@
    Extracted verbatim from index.html (v3.2.5 refactor). Classic script:
    shares one global scope with its siblings, loaded in order by index.html. */
 /* ---------- Stats: days first ---------- */
-/* v3.3.52: the cumulative year-lines chart, extracted so Today's Rhythm card
-   and Stats render the SAME chart through one function — the foldSets lesson:
-   the same picture in two places is the same picture drifting in two places. */
-function consistencyChartHTML(curves){
-  curves=curves||yearCurves();
-  let h=`<div class="zoom" data-zoom><div class="zoomhint">pinch / scroll to zoom · double-tap to reset</div>
-      <svg viewBox="0 0 340 170" style="width:100%;height:auto">`;
-  for(const g of [0,0.25,0.5,0.75,1]){
-    const y=140-g*120;
-    h+=`<line x1="26" y1="${y}" x2="300" y2="${y}" stroke="var(--line)" stroke-width="0.6" ${g?'stroke-dasharray="2 3"':''}></line>
-        <text x="22" y="${y+3}" text-anchor="end" font-family="var(--mono)" font-size="7" fill="var(--muted)">${g*100}%</text>`;
-  }
-  ['J','F','M','A','M','J','J','A','S','O','N','D'].forEach((m,i)=>{
-    const x=26+((i*30.4+15)/366)*274;
-    h+=`<line x1="${x}" y1="140" x2="${x}" y2="143" stroke="var(--line)" stroke-width="0.6"></line>
-        <text x="${x}" y="152" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="var(--muted)">${m}</text>`;
-  });
-  const years=Object.keys(curves).filter(y=>y>='2022').sort();
-  for(const y of years){
-    const {curve,end}=curves[y];
-    let pts='';
-    for(let d=0;d<end;d+=2){
-      const x=26+(d/366)*274, yy=140-curve[d]*120;
-      pts+=`${x.toFixed(1)},${yy.toFixed(1)} `;
-    }
-    const cur=y===thisYear;
-    h+=`<polyline data-yr="${y}" points="${pts}" fill="none" stroke="${YEAR_COLORS[y]||'var(--muted)'}"
-         stroke-width="${cur?2.2:1.1}" opacity="${cur?1:.7}" stroke-linejoin="round"></polyline>`;
-    const lx=26+((end-1)/366)*274, ly2=140-curve[end-1]*120;
-    h+=`<text data-yr="${y}" x="${Math.min(lx+4,312)}" y="${ly2+2.5}" font-family="var(--mono)" font-size="7"
-          fill="${YEAR_COLORS[y]||'var(--muted)'}" font-weight="${cur?700:400}">${Math.round(curve[end-1]*100)}%</text>`;
-    if(cur) h+=`<circle class="beacon" cx="${lx}" cy="${ly2}" r="3.2" fill="var(--accent)"></circle>`;
-  }
-  h+=`</svg></div><div class="legend1">`;
-  for(const y of years){
-    const c2=curves[y], cur=y===thisYear;
-    h+=`<span class="${cur?'cur':''}" data-yr="${y}" role="button"><i style="background:${YEAR_COLORS[y]}"></i>${y}<b>${Math.round(c2.curve[c2.end-1]*100)}%</b></span>`;
-  }
-  h+=`</div><div class="note">% of days trained, cumulative through each year</div>`;
-  return h;
-}
 const YEAR_COLORS={ '2022':'var(--faint)','2023':'var(--muted)','2024':'var(--accent-dim)','2025':'var(--accent-soft)','2026':'var(--accent)' };
 function renderStats(){
   if(SEED.totals.sessions===0 && !hasAnyDays()){ $('#view').innerHTML=emptyHero('stats'); return; }
@@ -94,8 +53,45 @@ function renderStats(){
       })()}
     </div>`;
 
-  // consistency chart — shared with Today's Rhythm card (v3.3.52)
-  h+=`<h2>Consistency, year over year</h2><div class="card">${consistencyChartHTML(curves)}</div>`;
+  // consistency chart — the Dashboard bottom graph
+  h+=`<h2>Consistency, year over year</h2><div class="card">
+      <div class="zoom" data-zoom><div class="zoomhint">pinch / scroll to zoom · double-tap to reset</div>
+      <svg viewBox="0 0 340 170" style="width:100%;height:auto">`;
+  // y grid + labels
+  for(const g of [0,0.25,0.5,0.75,1]){
+    const y=140-g*120;
+    h+=`<line x1="26" y1="${y}" x2="300" y2="${y}" stroke="var(--line)" stroke-width="0.6" ${g?'stroke-dasharray="2 3"':''}></line>
+        <text x="22" y="${y+3}" text-anchor="end" font-family="var(--mono)" font-size="7" fill="var(--muted)">${g*100}%</text>`;
+  }
+  // x months
+  ['J','F','M','A','M','J','J','A','S','O','N','D'].forEach((m,i)=>{
+    const x=26+((i*30.4+15)/366)*274;
+    h+=`<line x1="${x}" y1="140" x2="${x}" y2="143" stroke="var(--line)" stroke-width="0.6"></line>
+        <text x="${x}" y="152" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="var(--muted)">${m}</text>`;
+  });
+  const years=Object.keys(curves).filter(y=>y>='2022').sort();
+  for(const y of years){
+    const {curve,end}=curves[y];
+    let pts='';
+    for(let d=0;d<end;d+=2){
+      const x=26+(d/366)*274, yy=140-curve[d]*120;
+      pts+=`${x.toFixed(1)},${yy.toFixed(1)} `;
+    }
+    const cur=y===thisYear;
+    h+=`<polyline data-yr="${y}" points="${pts}" fill="none" stroke="${YEAR_COLORS[y]||'var(--muted)'}"
+         stroke-width="${cur?2.2:1.1}" opacity="${cur?1:.7}" stroke-linejoin="round"></polyline>`;
+    // end-of-line % label
+    const lx=26+((end-1)/366)*274, ly2=140-curve[end-1]*120;
+    h+=`<text data-yr="${y}" x="${Math.min(lx+4,312)}" y="${ly2+2.5}" font-family="var(--mono)" font-size="7"
+          fill="${YEAR_COLORS[y]||'var(--muted)'}" font-weight="${cur?700:400}">${Math.round(curve[end-1]*100)}%</text>`;
+    if(cur) h+=`<circle class="beacon" cx="${lx}" cy="${ly2}" r="3.2" fill="var(--accent)"></circle>`;
+  }
+  h+=`</svg></div><div class="legend1">`;
+  for(const y of years){
+    const c=curves[y], cur=y===thisYear;
+    h+=`<span class="${cur?'cur':''}" data-yr="${y}" role="button"><i style="background:${YEAR_COLORS[y]}"></i>${y}<b>${Math.round(c.curve[c.end-1]*100)}%</b></span>`;
+  }
+  h+=`</div><div class="note">% of days trained, cumulative through each year</div></div>`;
 
   // heatmap: 26 weeks, weekday rail on the left, months across the top
   const detail=allDays();
