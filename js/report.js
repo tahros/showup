@@ -91,7 +91,7 @@ function repOvEl(){
   let ov=document.getElementById('repOv');
   if(ov) return ov;
   ov=document.createElement('div'); ov.id='repOv';
-  ov.style.cssText='position:fixed;inset:0;background:rgba(20,22,26,.78);z-index:90;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(20,22,26,.78);z-index:90;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px;font-family:var(--body)';   // v3.3.46: overlay lives on <body>, outside #app — set the family or the buttons fall back to the OS font
   ov.innerHTML=`<img id="repImg" style="max-width:min(88vw,420px);border-radius:14px;box-shadow:0 18px 60px rgba(0,0,0,.45)">
     <div style="display:flex;gap:10px">
       <button class="btn" id="repDo" style="margin:0">Share</button>

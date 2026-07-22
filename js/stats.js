@@ -168,6 +168,13 @@ function renderStats(){
   }
   const wdPct=wdC.map((n,i)=>n/wdT[i]);
   const wdBest=Math.max(...wdPct);
+  /* v3.3.46: the accent marks TODAY's weekday — the row you're standing in —
+     not the statistically strongest one. The strongest still gets a quiet
+     caret above its bar so the pattern stays visible without competing with
+     today for the one loud colour. (Ties: first match wins the caret; today
+     always wins the accent even if today is also the strongest.) */
+  const wdToday=new Date(todayISO+'T00:00').getDay();
+  const bestI=wdPct.indexOf(wdBest);
   h+=`<h2>Which days you show up</h2><div class="card">
       <svg viewBox="0 0 330 140" style="width:100%;height:auto">`;
   for(const g of [0,25,50,75,100]){
@@ -176,14 +183,15 @@ function renderStats(){
         <text x="21" y="${y+3}" text-anchor="end" font-family="var(--mono)" font-size="7" fill="var(--muted)">${g}</text>`;
   }
   ['S','M','T','W','T','F','S'].forEach((lab,i)=>{
-    const p=wdPct[i], strongest=p===wdBest;
+    const p=wdPct[i], today=i===wdToday, best=i===bestI;
     const bh=Math.max(2,p*96), x=32+i*41;
-    h+=`<rect class="gbar" x="${x}" y="${112-bh}" width="26" height="${bh}" rx="4"
-          fill="${strongest?'var(--accent)':'var(--accent-dim)'}" opacity="${strongest?1:.6}"></rect>
-        <text x="${x+13}" y="${108-bh}" text-anchor="middle" font-family="var(--mono)" font-size="8" fill="${strongest?'var(--accent)':'var(--muted)'}" font-weight="${strongest?700:400}">${Math.round(p*100)}%</text>
-        <text x="${x+13}" y="127" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="${strongest?'var(--chalk)':'var(--muted)'}" font-weight="${strongest?700:400}">${lab}</text>`;
+    h+=`<rect class="gbar wdbar" x="${x}" y="${112-bh}" width="26" height="${bh}" rx="4"
+          fill="${today?'var(--accent)':'var(--accent-dim)'}" opacity="${today?1:.6}"></rect>`;
+    if(best) h+=`<text x="${x+13}" y="${104-bh}" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="var(--muted)">▲</text>`;
+    h+=`<text x="${x+13}" y="${today?108-bh:(best?96-bh:108-bh)}" text-anchor="middle" font-family="var(--mono)" font-size="8" fill="${today?'var(--accent)':'var(--muted)'}" font-weight="${today?700:400}">${Math.round(p*100)}%</text>
+        <text x="${x+13}" y="127" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="${today?'var(--chalk)':'var(--muted)'}" font-weight="${today?700:400}">${lab}</text>`;
   });
-  h+=`</svg><div class="note">% of each weekday trained, last 365 days</div></div>`;
+  h+=`</svg><div class="note">% of each weekday trained, last 365 days · ▲ your strongest</div></div>`;
 
   // month-by-month composition — the sheet's "Which part am I missing out?" chart
   /* v3.1.13: the stacked-months chart and the radar are gone (Sungjee's

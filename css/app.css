@@ -202,7 +202,7 @@
     font-family:var(--mono);white-space:nowrap;
     background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
   .nudge .nudgex{position:absolute;top:50%;right:8px;transform:translateY(-50%)}
-  .lschip{position:relative;display:inline-block}
+  .lschip{position:relative;display:inline-block;margin-right:7px}   /* v3.3.46: the -7px dismiss badge was clipped by the card edge */
   .lschip .lsx{position:absolute;top:-7px;right:-7px;width:20px;height:20px;border-radius:50%;
     background:var(--surface2);border:1px solid var(--line);color:var(--muted);
     font-size:10px;line-height:1;padding:0;z-index:1}
@@ -539,7 +539,7 @@
     background:var(--surface2);color:var(--muted);font-size:12px;cursor:pointer;vertical-align:middle}
   .tmove:active{border-color:var(--accent);color:var(--accent)}
   td.n b{color:var(--accent)}
-  .heat{display:flex;gap:3px;overflow-x:auto;padding-bottom:4px}
+  .heat{display:flex;gap:3px;overflow-x:auto;padding:2px 4px 4px 0}   /* v3.3.46: room for today's outline at the right edge */
   .heat .wk{display:flex;flex-direction:column;gap:3px}
   .heat i{width:12px;height:12px;border-radius:3px;background:var(--surface2);display:block;border:1px solid var(--line)}
   .heat i[data-l="1"]{background:var(--accent-soft);border-color:var(--accent-soft)}

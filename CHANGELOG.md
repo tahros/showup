@@ -1,5 +1,29 @@
 # ShowUp — changelog
 
+## v3.3.46 (2026-07-21) — Four bits of polish
+Straight off four screenshots.
+
+- **Heatmap outline no longer clips.** Today's cell carries a 2px outline
+  with 1px offset; the scroller had no room on its trailing edge, so the
+  right side of the box was shaved. Added padding to the right and top.
+- **Weekday chart highlights TODAY, not the strongest day.** The accent was
+  marking your statistically strongest weekday. Now it marks the weekday
+  you're actually in — today — because that's the row you're reading the
+  chart from. The strongest day still shows, but quietly: a small ▲ above
+  its bar, with a legend note. One loud colour, and it belongs to now.
+- **Share button font fixed.** The report overlay is mounted on <body>,
+  outside #app, so its buttons were inheriting the OS font instead of IBM
+  Plex — "Share" and "Close" ended up in different faces. The overlay now
+  sets font-family explicitly.
+- **Dismiss × no longer clipped.** The suggested-set badge sits at
+  right:-7px and the card edge was cropping it; the chip gains a matching
+  right margin.
+
+test-statspolish.js pins the two that are logic, not just pixels: the
+accent bar is today's column (not the strongest), the ▲ marks the strongest
+and never sits over today, and the overlay carries the app font.
+
+
 ## v3.3.45 (2026-07-21) — Rhythm takes the top; Daily Fire is gone
 Daily Fire is deleted, and Rhythm moves into the slot it occupied at the
 top of Today.
