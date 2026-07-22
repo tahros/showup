@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v3.3.47 (2026-07-21) — Dismiss badge, corrected
+v3.3.46 read the clip as horizontal and added a right margin. It was
+vertical: the dismiss ✕ sits 7px above its chip and the suggested list gave
+it no headroom, so the card's top edge shaved it. Fixed by adding 8px of
+top padding to the list — one more than the overhang — and trimming the
+v3.3.46 right margin from 7px back to 2px, since that was the wrong axis and
+left the right side looking loose.
+
+
 ## v3.3.46 (2026-07-21) — Four bits of polish
 Straight off four screenshots.
 
