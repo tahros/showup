@@ -1,5 +1,28 @@
 # ShowUp — changelog
 
+## v3.3.49 (2026-07-22) — Dismiss badge clip, actually fixed
+Third attempt, first correct one. v3.3.46 and v3.3.47 both read this as a
+missing-space problem and added padding. It was never space.
+
+Root cause: #app sets `overflow-x:clip`. Per the CSS spec, you cannot pair
+`clip` on one axis with `visible` on the other — the visible axis computes
+to `auto`. So #app clips VERTICALLY too, and the dismiss badge, sitting at
+`top:-7px` above its chip near the top of the scrolled content, got shaved
+by that clip. No amount of padding on the chip or the list could help,
+because the clipping element was a distant ancestor, not a nearby gap.
+
+Fix: the badge no longer overhangs anything. It's seated INSIDE the chip's
+top-right corner (top:3px right:3px), the chip gets right padding so the ×
+doesn't sit on the numbers, and the v3.3.47 headroom hack is reverted since
+it was treating the wrong cause.
+
+Guard added to buildcheck: if #app clips and the dismiss badge has any
+negative offset, the build fails. Verified it fires on the exact v3.3.46-48
+markup and passes on this fix. This is the check that would have stopped me
+shipping the wrong fix twice — a structural assertion matching the real
+failure mode, since jsdom has no layout and no behavioral test could see it.
+
+
 ## v3.3.48 (2026-07-22) — Weekday chart un-broken
 The weekday bars rendered as giant overlapping blocks. My fault, from
 v3.3.46: to make that chart testable I gave its SVG <rect>s the class
