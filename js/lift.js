@@ -462,8 +462,10 @@ function repChoices(ex){
   (SEED.repFreq[ex]||[]).forEach((r,i)=>c[r]=(c[r]||0)+(8-i));
   for(const [,v] of Object.entries(DB.days))
     for(const s of v.w) if(s.ex===ex) s.reps.forEach(r=>c[r]=(c[r]||0)+3);
-  let list=Object.keys(c).map(Number).sort((a,b)=>c[b]-c[a]).slice(0,12);
-  if(list.length<6) list=[...new Set([...list,5,6,8,10,12,15])].slice(0,12);
+  /* v3.3.51: 8 tiles, one row. Twelve tiles cost two rows of the logger's
+     height for options 9-12 that frequency already ranked as rare. */
+  let list=Object.keys(c).map(Number).sort((a,b)=>c[b]-c[a]).slice(0,8);
+  if(list.length<6) list=[...new Set([...list,5,6,8,10,12,15,20,25])].slice(0,8);
   return list.sort((a,b)=>a-b);
 }
 /* load line inner: fixed-width bar picture so the text never shifts */

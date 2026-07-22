@@ -1,5 +1,21 @@
 # ShowUp — changelog
 
+## v3.3.51 (2026-07-22) — The logger loses a third of its height
+Three densifications off two gym screenshots.
+
+- **Rep tiles: 12 → 8, one row.** Twelve square tiles cost two rows for
+  options 9-12 that the frequency ranking had already marked as rare. Eight
+  fit one line at ~37px each — dense-grid tappable — and the tiles drop the
+  square ratio for a fixed 40px height. The grid goes from ~110px to 40px.
+- **Stepper 60 → 48px, load line slimmer.** Same thumb targets, less tower.
+- **Suggested chips denser.** Padding and gaps come down; the dismiss badge
+  shrinks with them. The v3.3.50 geometry check re-run with the new numbers:
+  the reps still clear the badge by 3px, and the clip guard stays green.
+
+Log a Set drops roughly 90px all told; Suggested drops a chip-row's worth
+on a six-suggestion day.
+
+
 ## v3.3.50 (2026-07-22) — Dismiss badge, seated for good
 v3.3.49 stopped the clip but seated the × on top of the reps. Now it's
 fully inside the chip's top-right corner with real room made for it: the
