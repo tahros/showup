@@ -212,7 +212,7 @@ function renderLift(){
          (Consecutive, not global: returning to a weight later stays its own
          line — the card keeps the session's narrative order.)
          Bare marker rows (0 kg, no reps, no time) carry nothing: dropped. */
-      const folded=foldSets(lastPrev.sets);            // v3.3.43: shared with History
+      const folded=foldSets(lastPrev.sets,ex);         // v3.3.43: shared with History
       const rows=setRows(ex,folded,true);
       const vol=folded.reduce((a,[w2,reps])=>a+w2*(reps||[]).reduce((x,y)=>x+y,0),0);
       const nsets=folded.reduce((a,[,reps])=>a+Math.max(1,(reps||[]).length),0);

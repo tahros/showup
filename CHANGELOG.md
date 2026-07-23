@@ -1,5 +1,24 @@
 # ShowUp — changelog
 
+## v3.3.63 (2026-07-24) — Repless rows with a real weight, gone too
+v3.3.62 caught the empty GROUPS. These are empty ROWS inside a group that
+has real sets — "12 kg" with no chips under eight legitimate presses.
+
+foldSets dropped a marker only when it had no reps AND a near-zero weight.
+A legacy row carrying 12 kg with reps:[] failed the weight half of that
+test and survived, printing a bare weight with nothing beside it. Reps are
+the content of a lift, so the weight clause is gone: no reps, no row —
+whatever the number.
+
+Run is the one exemption and now says so explicitly. A run is described by
+its distance and time and legitimately carries no reps, so foldSets takes
+the exercise name and never drops one. Both callers (History detail and
+Lift's LAST TIME card) pass it.
+
+Counts were already right — the press still reads 8 sets, because a
+repless entry contributes zero. Only the row was lying.
+
+
 ## v3.3.62 (2026-07-24) — Empty legacy rows stop pretending to be sets
 "There are no logged sets, but I still see these."
 

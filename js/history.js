@@ -265,7 +265,7 @@ function renderHistory(){
         h+=`<div class="exgrp"><div class="lasthead"><span>${g.ex}</span>`
           +`<span class="ago">${n} set${n>1?'s':''}</span></div>`;
         if(!editing){
-          const folded=foldSets(g.sets);
+          const folded=foldSets(g.sets,g.ex);
           h+= folded.length?setRows(g.ex,folded,false):'';
         }else{
           h+=`<div class="hsets">`;

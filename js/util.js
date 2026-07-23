@@ -291,10 +291,16 @@ function resealDay(t){
    so the two can't drift the way the re-seal predicate did.
    Folding is CONSECUTIVE, not global: returning to a weight later in the
    session stays its own line, which keeps the session's narrative. */
-function foldSets(sets){
+function foldSets(sets,ex){
+  /* v3.3.63: a LIFT with no reps carries nothing, whatever its weight. The
+     old test also demanded w<=0.01, so a legacy "12 kg, reps:[]" marker
+     survived and printed a bare weight row with no chips. Reps ARE the
+     content of a lift; only a run is described by its distance and time, so
+     Run is the sole exemption. */
+  const isRunEx = ex==='Run';
   const folded=[];
   for(const [w2,reps,mins,secs] of sets){
-    if((!reps||!reps.length)&&mins==null&&w2<=0.01) continue;   // bare marker rows carry nothing
+    if(!isRunEx && (!reps||!reps.length) && mins==null) continue;   // bare marker rows carry nothing
     const prev=folded[folded.length-1];
     if(prev&&prev[0]===w2&&prev[2]==null&&mins==null) prev[1]=prev[1].concat(reps||[]);
     else folded.push([w2,(reps||[]).slice(),mins,secs]);
