@@ -2,6 +2,11 @@
    Extracted verbatim from index.html (v3.2.5 refactor). Classic script:
    shares one global scope with its siblings, loaded in order by index.html. */
 function renderLift(){
+  /* v3.3.57: one entrance per part selection. The flag is consumed here so a
+     mid-session re-render (logging a set) never re-bounces the list, and a
+     jump straight into an exercise can't leave it armed for later. */
+  const _enter=lift.enterAnim; lift.enterAnim=false;
+  let _ei=0;
   const P=trainingPlan();
   const t=day(todayISO);
 
@@ -105,7 +110,7 @@ function renderLift(){
       const side=(p.mw&&usesPlates(ex))?`${wDisp((p.mw-barKg(ex))/2)}${U()} / side`:'';
       const mine=!!customs()[ex];
       const eq=EQUIP_LABEL[equipOf(ex)]||'';
-      return `<div class="item logrow ${big?'goto':''}" style="${big?'':'padding:10px 10px 10px 14px'}">
+      return `<div class="item logrow ${big?'goto':''}${_enter?' enter':''}" style="--i:${Math.min(_ei++,10)};${big?'':'padding:10px 10px 10px 14px'}">
             <button class="logmain" data-ex="${ex}">
               <b>${ex}</b><div class="sub">${meta}${mine?` · yours · ${eq.toLowerCase()}`:''}</div>
             </button>

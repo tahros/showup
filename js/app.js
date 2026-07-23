@@ -161,7 +161,7 @@ document.addEventListener('click',e=>{
     return render();
   }
   const pt=e.target.closest('[data-part]:not([data-ex])');
-  if(pt){lift.part=pt.dataset.part;lift.ex=null;lift.weight=0;return render();}
+  if(pt){lift.part=pt.dataset.part;lift.ex=null;lift.weight=0;lift.enterAnim=true;return render();}   // v3.3.57: the arriving list gets its one entrance
   const ex=e.target.closest('[data-ex]');
   if(ex){
     lift.part=ex.dataset.part||lift.part; lift.ex=ex.dataset.ex;

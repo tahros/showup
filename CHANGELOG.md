@@ -1,5 +1,29 @@
 # ShowUp — changelog
 
+## v3.3.57 (2026-07-23) — Exercises arrive when a part is chosen
+"I'd love to see the exercises pop out a bit more. Shimmer? Drop shadow?
+Animate?"
+
+Answer: entrance motion, deliberately not the other two. Sheen already
+means "selected / primary action" in this app — shimmering a whole list
+would dilute the one signal it carries. A heavier drop shadow is permanent
+decoration that makes every later visit heavier. But choosing a part is a
+MOMENT, and the exercise list is its answer — so the cards now arrive:
+each rises 7px and fades in over 260ms with a 40ms stagger (capped at ten,
+so long lists don't trail off forever).
+
+Once, and only once. The animation is armed by the part tap and consumed
+by the next render, so logging a set mid-session never re-bounces the
+list, and jumping straight into an exercise (Continue) can't leave the
+flag primed to fire on some later, unrelated visit. Four-case test
+(test-enter.js) pins exactly those semantics through the real click
+handler.
+
+fill-mode is `backwards`, never `both` — a finished card must leave no
+transform and no stacking context (the v3.3.16 tip-bubble lesson).
+prefers-reduced-motion turns the whole thing off.
+
+
 ## v3.3.56 (2026-07-23) — Rep tiles follow the weight
 "If I increase the weight, the more likely my reps will decrease."
 

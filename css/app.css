@@ -139,7 +139,7 @@
     background:var(--ground);cursor:pointer}
   .msIn{text-align:center;animation:msin .38s cubic-bezier(.2,.8,.3,1)}
   @keyframes msin{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
-  @media (prefers-reduced-motion:reduce){.msIn{animation:none}}
+  @media (prefers-reduced-motion:reduce){.msIn{animation:none}.item.logrow.enter{animation:none}}
   .msNum{font-size:76px;font-weight:700;letter-spacing:var(--track-num);color:var(--chalk);line-height:1}
   .msUnit{font-size:12px;letter-spacing:var(--track-wide);color:var(--muted);margin-top:10px}
   .msRule{border:none;border-top:1px solid var(--line);width:120px;margin:22px auto}
@@ -595,6 +595,12 @@
   @keyframes prflash{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--record) 55%,transparent)}
     100%{box-shadow:0 0 0 14px transparent}}
   @keyframes sweep{to{stroke-dashoffset:0}}
+  /* v3.3.57: exercise cards ARRIVE when a part is chosen — a 7px rise with a
+     40ms stagger, once. fill-mode:backwards, never both: a finished card must
+     leave no transform and no stacking context (the v3.3.16 lesson). */
+  .item.logrow.enter{animation:cardin .26s cubic-bezier(.2,.8,.25,1) backwards;
+    animation-delay:calc(var(--i,0)*40ms)}
+  @keyframes cardin{from{opacity:0;transform:translateY(7px)}}
   @keyframes grow{from{transform:scaleY(.02)}to{transform:none}}
 
   /* 1. tab switching — View Transitions API (iOS 18+); a quiet 3px drift + fade */
