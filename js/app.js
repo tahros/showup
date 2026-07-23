@@ -47,7 +47,7 @@ document.addEventListener('click',e=>{
     DB.settings.nudgeX[lift.ex]=isNaN(+v)?v:+v;   // 'r12' for reps-mode, number for weight
     save(true);return renderLift();
   }
-  if(e.target.id==='editSave'&&lift.editSet!=null){
+  if(e.target.closest('#editSave')&&lift.editSet!=null){
     const es=t.w[lift.editSet];
     if(es){
       snapshot(`edited ${es.ex} set`);
@@ -67,8 +67,8 @@ document.addEventListener('click',e=>{
     }
     lift.editSet=null;return renderLift();
   }
-  if(e.target.id==='editCancel'){ lift.editSet=null; return renderLift(); }
-  if(e.target.id==='doneExBtn'&&lift.ex){
+  if(e.target.closest('#editCancel')){ lift.editSet=null; return renderLift(); }
+  if(e.target.closest('#doneExBtn')&&lift.ex){
     const m=dayMeta(); m.upd=Date.now();
     if(!m.doneEx.includes(lift.ex)) m.doneEx.push(lift.ex);
     // Cascade only when this part has ONE exercise today (the "Complete Run" flow).
@@ -90,14 +90,14 @@ document.addEventListener('click',e=>{
     toast(m.doneAll?`Workout complete — ${m.w.length} sets. Cool down 🔥`:`${lift.ex} complete ✓`);
     lift.ex=null;return render();
   }
-  if(e.target.id==='reopenPartBtn'&&lift.part){
+  if(e.target.closest('#reopenPartBtn')&&lift.part){
     const m=dayMeta(); m.upd=Date.now();
     m.donePart=m.donePart.filter(p=>p!==lift.part);
     m.doneAll=false;                       // a reopened part reopens the workout
     save();renderHeader();toast(`${lift.part} reopened — back at it`);
     return render();
   }
-  if(e.target.id==='donePartBtn'&&lift.part){
+  if(e.target.closest('#donePartBtn')&&lift.part){
     const m=dayMeta(); m.upd=Date.now();
     m.w.filter(s=>s.part===lift.part).forEach(s=>{ if(!m.doneEx.includes(s.ex)) m.doneEx.push(s.ex); });
     if(!m.donePart.includes(lift.part)) m.donePart.push(lift.part);
@@ -105,7 +105,7 @@ document.addEventListener('click',e=>{
     save();renderHeader();
     toast(m.doneAll?`Workout complete — ${m.w.length} sets. Cool down 🔥`:`${lift.part} complete ✓`);return render();
   }
-  if(e.target.id==='doneAllBtn'){
+  if(e.target.closest('#doneAllBtn')){
     const m=dayMeta(); m.upd=Date.now();
     m.w.forEach(s=>{ if(!m.doneEx.includes(s.ex)) m.doneEx.push(s.ex);
                      if(!m.donePart.includes(s.part)) m.donePart.push(s.part); });
@@ -202,7 +202,7 @@ document.addEventListener('click',e=>{
     reopen(lift.ex,lift.part);
     lift.justSaved=true;save();renderHeader();return renderLift();
   }
-  if(e.target.id==='addrep'){
+  if(e.target.closest('#addrep')){
     const r=Math.round(+($('#rc').value||0));
     if(!r||r<1) return toast('Enter a rep count');
     lift.weight=toKg(+($('#wv').value||0));
@@ -220,11 +220,11 @@ document.addEventListener('click',e=>{
     saveExW(lift.ex,w);
     lift.justSaved=true;save();renderHeader();toast(`${wDisp(w)}${U()} × ${r} logged`);return renderLift();
   }
-  if(e.target.id==='addEx'){ lift.adding=true; return renderLift(); }
-  if(e.target.id==='cancelEx'){ lift.adding=false; return renderLift(); }
+  if(e.target.closest('#addEx')){ lift.adding=true; return renderLift(); }
+  if(e.target.closest('#cancelEx')){ lift.adding=false; return renderLift(); }
   const ne=e.target.closest('[data-newequip]');
   if(ne){ lift.newEquip=ne.dataset.newequip; return renderLift(); }
-  if(e.target.id==='saveEx'){
+  if(e.target.closest('#saveEx')){
     const name=($('#newExName').value||'').trim();
     if(!name) return toast('Name it first');
     if(SEED.equip[name]||customs()[name]) return toast('That exercise already exists');
@@ -256,24 +256,24 @@ document.addEventListener('click',e=>{
   if(hm){ hist.m=+hm.dataset.histm; return renderHistory(); }
   const hp=e.target.closest('[data-histp]');
   if(hp){ const v=hp.dataset.histp; hist.part=(v&&v!==hist.part)?v:null; return renderHistory(); }
-  if(e.target.id==='infoBtn'){ lift.info=!lift.info; return renderLift(); }
+  if(e.target.closest('#infoBtn')){ lift.info=!lift.info; return renderLift(); }
   if(e.target.closest('#toggleSuggest')){
     const cur = lift.suggestOpen==null ? day(todayISO).w.some(s=>s.ex===lift.ex)===false : lift.suggestOpen;
     lift.suggestOpen=!cur; return renderLift();
   }
-  if(e.target.id==='copySets'){
+  if(e.target.closest('#copySets')){
     const ls2=suggestedFor(lift.ex);
     lift.copy={mode:'suggestion', sets:ls2?[...ls2.sets]:[], d:ls2?.d||null};
     return renderLift();
   }
-  if(e.target.id==='moveToday'){
+  if(e.target.closest('#moveToday')){
     touchToday();
     lift.copy={mode:'today',
       sets:t.w.filter(s=>s.ex===lift.ex).flatMap(s=>s.reps.map(r=>({w:s.w,r}))), d:null};
     return renderLift();
   }
   if(e.target.closest('[data-cancelcopy]')){ lift.copy=false; return renderLift(); }
-  if(e.target.id==='undoBtn') return undo();
+  if(e.target.closest('#undoBtn')) return undo();
   const dx=e.target.closest('[data-dropex]');
   if(dx){
     const ex2=dx.dataset.dropex;
@@ -284,7 +284,7 @@ document.addEventListener('click',e=>{
     reanchorRest();
     save();renderHeader();toast(`${ex2} removed from today`);return renderLift();
   }
-  if(e.target.id==='clearToday'){
+  if(e.target.closest('#clearToday')){
     const n=t.w.filter(s=>s.ex===lift.ex).length;
     if(!n) return;
     snapshot(`cleared ${n} ${lift.ex} sets`);
@@ -320,7 +320,7 @@ document.addEventListener('click',e=>{
     renderHeader();
     return renderLift();
   }
-  if(e.target.id==='repeatAll'){
+  if(e.target.closest('#repeatAll')){
     const ls=suggestedFor(lift.ex);
     const dis=new Set(dayMeta().sugX[lift.ex]||[]);
     const mine=t.w.filter(s=>s.ex===lift.ex);
@@ -361,7 +361,7 @@ document.addEventListener('click',e=>{
     lift.editBar=false;
     save(true);toast(`Bar set to ${wDisp(kg)}${U()} for ${ex2}`);return renderLift();
   }
-  if(e.target.id==='addrun'){
+  if(e.target.closest('#addrun')){
     const dist=+($('#rk').value||0);
     if(!dist)return toast('Distance needed');
     const km=fromD(dist);
@@ -385,21 +385,21 @@ document.addEventListener('click',e=>{
     reanchorRest();
     save();renderHeader();return renderLift();
   }
-  if(e.target.id==='googleBtn') return signInGoogle();
-  if(e.target.id==='signOutBtn') return signOut();
-  if(e.target.id==='cloudPullBtn') return cloudPull();
-  if(e.target.id==='cloudTest'){
+  if(e.target.closest('#googleBtn')) return signInGoogle();
+  if(e.target.closest('#signOutBtn')) return signOut();
+  if(e.target.closest('#cloudPullBtn')) return cloudPull();
+  if(e.target.closest('#cloudTest')){
     DB.settings.cloud={url:$('#cloudUrl').value, anon:$('#cloudAnon').value};
     save(true);
     return cloudTest();
   }
-  if(e.target.id==='cloudSave'){
+  if(e.target.closest('#cloudSave')){
     DB.settings.cloud={url:$('#cloudUrl').value, anon:$('#cloudAnon').value};
     save(true);
     toast(cloudReady()?'Using '+cloudCfg().url:'Both fields are needed');
     return renderSync();
   }
-  if(e.target.id==='barSave'){
+  if(e.target.closest('#barSave')){
     DB.settings.barKg=toKg(+($('#barW').value||0))||20;
     DB.settings.smithKg=toKg(+($('#smithW').value||0));
     const bw=+($('#bodyW').value||0);

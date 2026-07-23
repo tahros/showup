@@ -1,5 +1,30 @@
 # ShowUp — changelog
 
+## v3.3.58 (2026-07-23) — Add set works with the preview showing
+"When the letters appear in the button, a set is not registered."
+
+Exactly right, and root-caused: the click router tested
+`e.target.id==='addrep'` — an EXACT identity check. When updAddPreview
+injects "→ 11,325 kg ▲4" into the button, the button gains a <span> and a
+<b>; a tap landing on those makes e.target the span, the identity check
+fails, and the tap dies. With no preview the button holds only a text
+node, so e.target is the button itself — which is why it "works fine
+without the letters".
+
+Fixed at the class, not the instance: all 23 exact-id checks in the click
+router became `e.target.closest('#id')` — a button's descendants must
+count as the button. Only addrep had children TODAY, but only because the
+preview adds them at runtime; any button that later gains a <b> or an icon
+would have inherited this bug silently. The two input-event checks (wv,
+rc) stay as identity: inputs have no children.
+
+test-addsub.js drives the real handlers: types reps so the preview
+renders, then clicks the inner <b>, the inner <span>, and the plain
+button — all three must log. Verified in both directions: five-for-five
+on this build, and the preview taps FAIL on v3.3.57, reproducing the gym
+bug exactly.
+
+
 ## v3.3.57 (2026-07-23) — Exercises arrive when a part is chosen
 "I'd love to see the exercises pop out a bit more. Shimmer? Drop shadow?
 Animate?"
