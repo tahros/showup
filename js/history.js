@@ -262,7 +262,14 @@ function showCalReturn(){
   });
   document.body.appendChild(b);      // body, not #view: never clipped, dies with killCalReturn
   if(typeof IntersectionObserver!=='undefined'){
+    /* v3.3.60: IO fires an INITIAL callback with the current state the moment
+       observe() is called — and at tap time the calendar is still on screen,
+       so that first report says "intersecting" and killed the pill at birth.
+       That's why "I don't see anything after tapping". Skip report #1; only a
+       genuine RE-entry of the calendar dismisses. */
+    let birth=true;
     _calRetIO=new IntersectionObserver(es=>{
+      if(birth){ birth=false; return; }
       if(es.some(x=>x.isIntersecting)) killCalReturn();
     },{threshold:0.15});
     _calRetIO.observe(cal);

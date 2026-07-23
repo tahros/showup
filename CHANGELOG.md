@@ -1,5 +1,26 @@
 # ShowUp — changelog
 
+## v3.3.60 (2026-07-23) — The return pill actually appears; the date lands visible
+Two fixes to yesterday's calendar jump, both root-caused.
+
+**"I don't see anything after tapping."** The pill was killing itself at
+birth. IntersectionObserver fires a mandatory INITIAL callback with the
+current state the instant observe() is called — and at tap time the
+calendar is still on screen, so that first report said "intersecting" and
+the auto-hide removed the pill before the smooth scroll had moved a pixel.
+The birth report is now skipped; only a genuine re-entry of the calendar
+dismisses. Proven both ways: the shimmed-IO test fails on v3.3.59 exactly
+at the birth case and passes here.
+
+**The tapped date landed hidden under the header.** The header is
+position:sticky, and scrollIntoView(block:'start') aligns the target with
+the top of the scrollport — which the sticky header then covers, hiding
+the very date line you tapped for. Every History scroll target (.day
+cards, and .cal for the pill's return trip) now carries
+scroll-margin-top:calc(safe-area + 86px), so the browser itself reserves
+the header's height. No JS offset math, works for both jump directions.
+
+
 ## v3.3.59 (2026-07-23) — A return ticket for the calendar jump
 Tapping a calendar date teleports you down into that day's session — and
 left you there. Now the way back appears exactly at that moment and

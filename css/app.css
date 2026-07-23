@@ -707,6 +707,12 @@
   .cal .cd.on{background:var(--accent);color:#fff;font-weight:600}
   .cal .cd.fut{opacity:.35;background:none}
   .cal .cd.now{outline:2px solid var(--chalk);outline-offset:1px}
+  /* v3.3.60: the header is sticky, so a scrollIntoView(block:start) target
+     lands UNDERNEATH it — the tapped date's own header line was hidden.
+     scroll-margin reserves the header's height (+ safe area + breath) for
+     every scroll target in History: the day cards, and the calendar for the
+     return-pill trip back. */
+  .day,.cal{scroll-margin-top:calc(env(safe-area-inset-top,0px) + 86px)}
   .day{border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:8px;overflow:hidden;box-shadow:var(--shadow)}
   .day summary{padding:13px 14px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center}
   .day summary::-webkit-details-marker{display:none}
