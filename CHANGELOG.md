@@ -1,5 +1,26 @@
 # ShowUp — changelog
 
+## v3.3.59 (2026-07-23) — A return ticket for the calendar jump
+Tapping a calendar date teleports you down into that day's session — and
+left you there. Now the way back appears exactly at that moment and
+nowhere else: a floating "↑ calendar" pill above the tab bar.
+
+It expires three ways, so it can never go stale:
+- **Tap it** — glides back to the calendar and removes itself.
+- **Scroll back yourself** — an IntersectionObserver watches the calendar;
+  the moment it's back on screen the pill leaves (guarded, so environments
+  without IO simply skip the auto-hide).
+- **Any render or tab switch** — the pill lives on <body> (never clipped by
+  the view), so render() and renderHistory() both kill it explicitly.
+
+Accent, not red — it's navigation, not a live signal. No permanent chrome:
+when you haven't jumped, History looks exactly as it did yesterday.
+
+test-calreturn.js: eight cases through the real click handlers — absent
+before any tap, present after, removed by its own tap / a re-render / a
+tab switch, and rapid double-taps keep exactly one pill.
+
+
 ## v3.3.58 (2026-07-23) — Add set works with the preview showing
 "When the letters appear in the button, a set is not registered."
 

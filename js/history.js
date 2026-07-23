@@ -211,6 +211,7 @@ function renderHistory(){
   }else{
     h+=`<div class="note" style="margin-top:12px">${P?`No ${P} logged this month.`:'No training logged this month.'}</div>`;
   }
+  killCalReturn();                  // v3.3.59: a re-render invalidates the return ticket
   $('#view').innerHTML=h;
   /* v3.3.39: centre the selected year in its strip. scrollLeft rather than
      scrollIntoView, which would also scroll the page vertically to reach it. */
@@ -236,4 +237,34 @@ document.addEventListener('click',e=>{
   if(!el) return;
   el.open=true;                      // v3.3.43: days are open by default; nothing else closes
   if(el.scrollIntoView) el.scrollIntoView({block:'start',behavior:'smooth'});
+  showCalReturn();                   // v3.3.59: a return ticket for the teleport
 });
+
+/* v3.3.59: tapping a date teleports you down the page, so the way back
+   appears exactly then and nowhere else — a floating "↑ calendar" pill above
+   the tab bar. It expires three ways: tap it (glide back), the calendar
+   scrolls back into view on its own (IntersectionObserver, where available),
+   or any re-render wipes it with the view. No permanent chrome. */
+let _calRetIO=null;
+function killCalReturn(){
+  const b=document.getElementById('calReturn'); if(b) b.remove();
+  if(_calRetIO){ _calRetIO.disconnect(); _calRetIO=null; }
+}
+function showCalReturn(){
+  killCalReturn();
+  const cal=document.querySelector('.cal'); if(!cal) return;
+  const b=document.createElement('button');
+  b.id='calReturn'; b.className='calreturn';
+  b.innerHTML='↑ calendar';
+  b.addEventListener('click',()=>{
+    killCalReturn();
+    cal.scrollIntoView&&cal.scrollIntoView({block:'start',behavior:'smooth'});
+  });
+  document.body.appendChild(b);      // body, not #view: never clipped, dies with killCalReturn
+  if(typeof IntersectionObserver!=='undefined'){
+    _calRetIO=new IntersectionObserver(es=>{
+      if(es.some(x=>x.isIntersecting)) killCalReturn();
+    },{threshold:0.15});
+    _calRetIO.observe(cal);
+  }
+}
