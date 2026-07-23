@@ -723,6 +723,24 @@
   /* v3.3.43: session detail reuses the LAST TIME row styles, so it must NOT
      inherit the old one-row-per-set border rule — the grouped rows draw
      their own dashed separators. */
+  /* v3.3.61: past-day editing. The Edit control is quiet until used; edit
+     mode itself is unmistakable (accent ring on the card) so you always know
+     the record is open for writing. */
+  .dayedit{margin-left:10px;font-family:var(--mono);font-size:10px;letter-spacing:var(--track-label);
+    text-transform:uppercase;background:var(--surface2);border:1px solid var(--line);
+    color:var(--muted);border-radius:999px;padding:3px 9px;cursor:pointer}
+  .day.editing{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent-soft)}
+  .day.editing .dayedit{background:var(--accent);border-color:var(--accent);color:#fff}
+  .hsets{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+  .hset{position:relative;display:flex;align-items:baseline;gap:6px;background:var(--surface2);
+    border:1px solid var(--line);border-radius:9px;padding:8px 26px 8px 10px;cursor:pointer;
+    font-family:var(--mono);font-size:13px;color:var(--chalk)}
+  .hset .muted{font-size:12px}
+  .hsx{position:absolute;top:4px;right:4px;width:16px;height:16px;border-radius:50%;
+    background:var(--ground);border:1px solid var(--line);color:var(--muted);
+    font-size:9px;line-height:1;display:flex;align-items:center;justify-content:center;font-style:normal}
+  .hadd{margin-top:7px;font-family:var(--mono);font-size:11px;color:var(--accent);
+    background:none;border:1px dashed var(--line);border-radius:9px;padding:6px 12px;cursor:pointer}
   .day .body .exgrp+.exgrp{margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
   .day .body .lasthead{font-size:10px;margin-bottom:4px;color:var(--faint)}
   .day .body .lastw{min-width:64px;font-size:14px}

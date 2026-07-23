@@ -1,5 +1,39 @@
 # ShowUp — changelog
 
+## v3.3.61 (2026-07-24) — Past sessions are editable
+Edit, delete and add sets on any day the app holds locally.
+
+**Deliberate, never accidental.** A day is inert until you tap its own
+Edit control; only then do its sets become tiles you can tap or ✕. Past
+data is a record — a thumb landing mid-scroll must never rewrite three
+weeks ago. Done exits, and edit mode also clears itself on any re-render,
+if the day empties out, and the moment you leave History: every state the
+app walks into, it walks out of.
+
+**Addressed by entry, so legacy rows work.** A set is identified by its
+index in the day's stored array plus its index within that entry's reps,
+so a sheet-imported row carrying reps:[30,30,30,30] is editable set by
+set — not as one indivisible block.
+
+**Changing one set's weight splits it out** rather than silently
+re-weighing its siblings. Edit the second of four 16 kg presses to 20 kg
+and you get three at 16 and one at 20, which is what actually happened in
+the gym.
+
+**One writer.** Every mutation funnels through commitPastDay(): it drops
+emptied entries, deletes the day if nothing is left, re-seals it with
+resealDay(), and re-runs deriveAll() — so the calendar, month totals and
+part digests can never show numbers the data no longer supports. The test
+asserts that re-derive explicitly, not just the array edit.
+
+Older months that live only in the sheet show no Edit control: there are
+no local entries to point at, and offering the button would be a lie.
+
+test-pastedit.js: sixteen cases through the real handlers, including the
+split-on-weight-change, the multi-rep delete, add-with-catalog-part-lookup,
+and edit mode closing on a tab change.
+
+
 ## v3.3.60 (2026-07-23) — The return pill actually appears; the date lands visible
 Two fixes to yesterday's calendar jump, both root-caused.
 

@@ -507,6 +507,7 @@ function paint(){
 let lastView=null;
 function render(){
   if(typeof killCalReturn==='function') killCalReturn();   // v3.3.59: the return ticket dies with any view change
+  if(view!=='history'&&typeof hist!=='undefined'){ hist.edit=null; hist.editSet=null; }   // v3.3.61: leaving History closes edit mode
   renderHeader();
   // tab switches cross-fade via the View Transitions API; in-view re-renders
   // (logging a set, toggling a setting) must NOT flash, so they paint directly

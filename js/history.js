@@ -2,6 +2,48 @@
    Extracted verbatim from index.html (v3.2.5 refactor). Classic script:
    shares one global scope with its siblings, loaded in order by index.html. */
 /* ---------- History ---------- */
+/* v3.3.61: past sessions are editable, but only deliberately. A day enters
+   edit mode by its own Edit button; until then the record is inert, so a
+   thumb landing mid-scroll can never rewrite three weeks ago. Every state
+   walks back out: Done exits, and any re-render or tab change clears it. */
+function partForEx(ex,d){
+  for(const [pt,list] of Object.entries(SEED.catalog||{})) if((list||[]).includes(ex)) return pt;
+  const w=((DB.days[d]||{}).w)||[];
+  const hit=w.find(s=>s.ex===ex);
+  return hit?hit.part:'';
+}
+function hsetEditor(d){
+  const es=hist.editSet; if(!es) return '';
+  const w=((DB.days[d]||{}).w)||[];
+  const s=es.wi!=null?w[es.wi]:null;
+  const isRun=es.ex==='Run';
+  const wv=s?(isRun?dDisp(s.w):wDisp(s.w)):'';
+  const rv=s&&!isRun?((s.reps||[])[es.ri]??''):'';
+  return `<div class="card editcard hsedit" style="margin-top:8px">
+      <div class="mono muted" style="font-size:11px;margin-bottom:8px">${es.wi==null?'ADD':'EDIT'} — ${es.ex}</div>
+      <div class="row" style="gap:8px">
+        <div class="fld"><label>${isRun?'Distance '+DU():'Weight '+U()}</label>
+          <input id="hsW" type="number" inputmode="decimal" step="${isRun?'0.01':STEP()}" value="${wv}"></div>
+        ${isRun
+          ?`<div class="fld"><label>Min</label><input id="hsM" type="number" inputmode="numeric" value="${s?(s.mins||0):0}"></div>
+            <div class="fld"><label>Sec</label><input id="hsS" type="number" inputmode="numeric" value="${s?(s.secs||0):0}"></div>`
+          :`<div class="fld"><label>Reps</label><input id="hsR" type="number" inputmode="numeric" value="${rv}"></div>`}
+      </div>
+      <div class="row" style="gap:8px;margin-top:10px">
+        <button class="btn" id="hsSave" style="margin:0">Save</button>
+        <button class="btn ghost" id="hsCancel" style="margin:0;flex:0 0 96px">Cancel</button>
+      </div></div>`;
+}
+/* one writer for every past-day mutation: stamp the day, re-derive, persist.
+   deriveAll() must run or the calendar, digests and totals keep stale numbers. */
+function commitPastDay(d,label){
+  const t=DB.days[d]; if(!t) return;
+  t.w=t.w.filter(s=>s.ex==='Run'||(s.reps||[]).length);   // drop emptied entries
+  if(!t.w.length){ delete DB.days[d]; }
+  else { t.upd=Date.now(); resealDay(t); }
+  SEED=deriveAll(); _fireDist=null;
+  save(); renderHeader(); toast(label);
+}
 /* v3.3.37: History gains a second axis. Dates answer "when did I train";
    body parts answer "how consistent have I been with THIS, and have I grown".
    Selecting a part filters every date surface below it — year counts, month
@@ -187,21 +229,52 @@ function renderHistory(){
          Side Raise, so consecutive grouping would read WORSE than the flat
          list it replaces. Within one exercise, folding stays consecutive,
          which keeps that exercise's own narrative (16 → 20 → back to 12). */
+      /* v3.3.61: editing addresses the ORIGINAL entry index in DB.days[d].w,
+         so a legacy row carrying reps:[20,20,20,20] stays precisely editable
+         set-by-set. Only locally stored days can be edited — older months
+         live in the sheet and have no entries to point at. */
+      const dayW=((DB.days[d]||{}).w)||[];
+      const editable=dayW.length>0;
+      const editing=editable&&hist.edit===d;
       const byEx=[], seen={};
-      for(const s of list){
-        if(!(s.ex in seen)){ seen[s.ex]=byEx.length; byEx.push({ex:s.ex,sets:[]}); }
+      dayW.forEach((s,wi)=>{
+        if(P&&s.part!==P) return;
+        if(!(s.ex in seen)){ seen[s.ex]=byEx.length; byEx.push({ex:s.ex,sets:[],idx:[]}); }
+        byEx[seen[s.ex]].sets.push([s.w,s.reps||[],s.mins,s.secs]);
+        byEx[seen[s.ex]].idx.push(wi);
+      });
+      if(!byEx.length) for(const s of list){
+        if(!(s.ex in seen)){ seen[s.ex]=byEx.length; byEx.push({ex:s.ex,sets:[],idx:[]}); }
         byEx[seen[s.ex]].sets.push([s.w,s.reps||[],s.mins,s.secs]);
       }
-      h+=`<details class="day" open data-d="${d}"><summary>
+      h+=`<details class="day${editing?' editing':''}" open data-d="${d}"><summary>
           <span><span class="d">${pretty(d)}</span><div class="s">${parts||'—'}</div></span>
-          <span class="s">${bits.join(' · ')}</span></summary><div class="body">`;
+          <span class="s">${bits.join(' · ')}${editable?`<button class="dayedit" data-hedit="${d}">${editing?'Done':'Edit'}</button>`:''}</span></summary><div class="body">`;
       byEx.forEach(g=>{
-        const folded=foldSets(g.sets);
-        if(!folded.length) return;
         const n=g.sets.reduce((a,s)=>a+((s[1]||[]).length||1),0);
         h+=`<div class="exgrp"><div class="lasthead"><span>${g.ex}</span>`
-          +`<span class="ago">${n} set${n>1?'s':''}</span></div>`
-          +setRows(g.ex,folded,false)+`</div>`;
+          +`<span class="ago">${n} set${n>1?'s':''}</span></div>`;
+        if(!editing){
+          const folded=foldSets(g.sets);
+          h+= folded.length?setRows(g.ex,folded,false):'';
+        }else{
+          h+=`<div class="hsets">`;
+          g.idx.forEach(wi=>{
+            const s=dayW[wi];
+            if(s.ex==='Run'){
+              h+=`<button class="hset" data-hs="${wi}"><span class="mono">${dDisp(s.w)} ${DU()}</span>`
+                +`<span class="mono muted">${s.mins||0}'${String(s.secs||0).padStart(2,'0')}"</span>`
+                +`<i class="hsx" data-hdel="${wi}:-1">✕</i></button>`;
+            }else (s.reps||[]).forEach((r,ri)=>{
+              h+=`<button class="hset" data-hs="${wi}:${ri}"><span class="mono">${wLabel(g.ex,s.w)}</span>`
+                +`<span class="mono muted">× ${r}</span>`
+                +`<i class="hsx" data-hdel="${wi}:${ri}">✕</i></button>`;
+            });
+          });
+          h+=`</div><button class="hadd" data-hadd="${g.ex}">+ set</button>`;
+          if(hist.editSet&&hist.editSet.d===d&&hist.editSet.ex===g.ex) h+=hsetEditor(d);
+        }
+        h+=`</div>`;
       });
       h+=`</div></details>`;
     });
@@ -211,6 +284,7 @@ function renderHistory(){
   }else{
     h+=`<div class="note" style="margin-top:12px">${P?`No ${P} logged this month.`:'No training logged this month.'}</div>`;
   }
+  if(hist.edit&&!DB.days[hist.edit]){ hist.edit=null; hist.editSet=null; }   // v3.3.61: the day may have been emptied
   killCalReturn();                  // v3.3.59: a re-render invalidates the return ticket
   $('#view').innerHTML=h;
   /* v3.3.39: centre the selected year in its strip. scrollLeft rather than
@@ -231,7 +305,75 @@ function renderHistory(){
 /* v3.3.17: the calendar cells are the most obvious tap targets in History —
    a trained day opens its session in the list below and scrolls to it.
    Rest days stay inert: there is nothing to open, and that's the point. */
+/* v3.3.61: past-day editing handlers. Delegated, and every one of them
+   funnels through commitPastDay so a mutation can't skip the re-derive. */
 document.addEventListener('click',e=>{
+  const ed=e.target.closest('[data-hedit]');
+  if(ed){ const d=ed.dataset.hedit;
+    hist.edit=(hist.edit===d)?null:d; hist.editSet=null; return renderHistory(); }
+
+  const del=e.target.closest('[data-hdel]');
+  if(del){
+    e.stopPropagation();
+    const d=hist.edit, t=DB.days[d]; if(!t) return;
+    const [wi,ri]=del.dataset.hdel.split(':').map(Number);
+    const s=t.w[wi]; if(!s) return;
+    if(ri<0||s.ex==='Run'){ t.w.splice(wi,1); }
+    else { s.reps.splice(ri,1); }
+    hist.editSet=null;
+    commitPastDay(d,'Set deleted'); return renderHistory();
+  }
+
+  const hs=e.target.closest('[data-hs]');
+  if(hs){
+    const d=hist.edit, t=DB.days[d]; if(!t) return;
+    const [wi,ri]=hs.dataset.hs.split(':').map(Number);
+    const s=t.w[wi]; if(!s) return;
+    hist.editSet={d,ex:s.ex,wi,ri:isNaN(ri)?0:ri};
+    return renderHistory();
+  }
+
+  const ad=e.target.closest('[data-hadd]');
+  if(ad){
+    const d=hist.edit; if(!DB.days[d]) return;
+    hist.editSet={d,ex:ad.dataset.hadd,wi:null,ri:0};
+    return renderHistory();
+  }
+
+  if(e.target.closest('#hsCancel')){ hist.editSet=null; return renderHistory(); }
+
+  if(e.target.closest('#hsSave')){
+    const es=hist.editSet; if(!es) return;
+    const d=es.d, t=DB.days[d]; if(!t) return;
+    const isRun=es.ex==='Run';
+    const wIn=+((document.getElementById('hsW')||{}).value||0);
+    if(!wIn&&!isRun&&!isBody(es.ex)) return toast('Weight needed');
+    if(isRun){
+      if(!wIn) return toast('Distance needed');
+      const mins=+((document.getElementById('hsM')||{}).value||0);
+      const secs=+((document.getElementById('hsS')||{}).value||0);
+      if(es.wi==null) t.w.push({part:partForEx(es.ex,d)||'Run',ex:es.ex,w:fromD(wIn),mins,secs,reps:[]});
+      else { const s=t.w[es.wi]; s.w=fromD(wIn); s.mins=mins; s.secs=secs; }
+    }else{
+      const r=Math.round(+((document.getElementById('hsR')||{}).value||0));
+      if(!(r>0)) return toast('Enter reps');
+      const kg=toKg(wIn);
+      if(es.wi==null){
+        t.w.push({part:partForEx(es.ex,d),ex:es.ex,w:kg,reps:[r]});
+      }else{
+        const s=t.w[es.wi];
+        if((s.reps||[]).length>1&&Math.abs(s.w-kg)>0.001){
+          /* one set of a multi-rep entry changed WEIGHT — split it out rather
+             than silently re-weighing its siblings */
+          s.reps.splice(es.ri,1);
+          t.w.splice(es.wi+1,0,{part:s.part,ex:s.ex,w:kg,reps:[r]});
+        }else{ s.w=kg; s.reps[es.ri]=r; }
+      }
+    }
+    hist.editSet=null;
+    commitPastDay(d,es.wi==null?'Set added':'Set updated'); return renderHistory();
+  }
+
   const c=e.target.closest('.cd[data-hd]'); if(!c) return;
   const el=document.querySelector(`details.day[data-d="${c.dataset.hd}"]`);
   if(!el) return;
