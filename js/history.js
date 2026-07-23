@@ -218,7 +218,10 @@ function renderHistory(){
       if(!list.length) return;
       const vol=list.reduce((a,s)=>a+volOf(s),0);
       const km=list.filter(s=>s.ex==='Run').reduce((a,s)=>a+s.w,0);
-      const parts=[...new Set(list.map(s=>s.part).filter(Boolean))].join(' · ');
+      /* v3.3.62: a part whose only entry is an empty legacy marker isn't a
+         part you trained — don't name it in the summary. */
+      const parts=[...new Set(list.filter(s=>s.ex==='Run'||(s.reps||[]).length)
+                                  .map(s=>s.part).filter(Boolean))].join(' · ');
       const bits=[];
       if(vol)bits.push(vDisp(vol)+' '+U());
       if(km)bits.push(dDisp(km)+DU());
@@ -251,7 +254,14 @@ function renderHistory(){
           <span><span class="d">${pretty(d)}</span><div class="s">${parts||'—'}</div></span>
           <span class="s">${bits.join(' · ')}${editable?`<button class="dayedit" data-hedit="${d}">${editing?'Done':'Edit'}</button>`:''}</span></summary><div class="body">`;
       byEx.forEach(g=>{
-        const n=g.sets.reduce((a,s)=>a+((s[1]||[]).length||1),0);
+        /* v3.3.62: a set is a REP. Legacy sheet rows carry reps:[] as bare
+           markers — they render nothing, so counting them as 1 printed
+           "1 set" above an empty group. Runs are the one entry that is
+           itself a set. A group with nothing real to show is skipped
+           entirely, which v3.3.61 stopped doing when it replaced the old
+           `if(!folded.length) return`. */
+        const n=g.sets.reduce((a,s)=>a+(g.ex==='Run'?1:(s[1]||[]).length),0);
+        if(!n) return;
         h+=`<div class="exgrp"><div class="lasthead"><span>${g.ex}</span>`
           +`<span class="ago">${n} set${n>1?'s':''}</span></div>`;
         if(!editing){

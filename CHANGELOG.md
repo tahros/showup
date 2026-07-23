@@ -1,5 +1,33 @@
 # ShowUp — changelog
 
+## v3.3.62 (2026-07-24) — Empty legacy rows stop pretending to be sets
+"There are no logged sets, but I still see these."
+
+Two causes, one of them mine from yesterday.
+
+**A v3.3.61 regression.** The old read path skipped a whole exercise group
+when folding produced no rows (`if(!folded.length) return`). Rewriting that
+block for edit mode dropped the skip, so groups with nothing to show still
+printed their header and their "+ set" button. Restored, and it now applies
+to both views.
+
+**The set count counted entries, not reps.** `(reps||[]).length||1` scored
+a bare marker row as one set — hence "1 set" above an empty group. A set is
+a rep; a run is the one entry that is itself a set. The day summary already
+counted correctly, so only the group headers were lying.
+
+Also: a part whose only entry is an empty marker is no longer named in the
+day summary — you didn't train Biceps because a dead row says so.
+
+These markers are sheet-import residue: a weight with no reps, contributing
+zero to every total. They're left in storage rather than silently migrated,
+and commitPastDay() already sweeps them from any day you edit — so they
+clear as you touch them, and nothing is rewritten behind your back.
+
+Verified both ways: the new assertions fail on v3.3.61 exactly at the
+empty-group case.
+
+
 ## v3.3.61 (2026-07-24) — Past sessions are editable
 Edit, delete and add sets on any day the app holds locally.
 
