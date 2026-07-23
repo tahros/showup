@@ -30,7 +30,10 @@
     position:sticky;top:0;z-index:20;background:var(--ground);
     border-bottom:1px solid var(--line);
     padding:calc(14px + env(safe-area-inset-top,0px)) 18px 12px;
-    display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;
+    display:flex;flex-wrap:nowrap;align-items:center;justify-content:space-between;gap:10px;
+    /* v3.3.55: NEVER wrap. A long exercise title used to push the timer and
+       gear onto a second row. The title truncates instead — the bar is one
+       row, always. */
     transition:background .35s,border-color .35s;
   }
   header.live{background:var(--live);border-color:var(--live);
@@ -226,20 +229,20 @@
   .btn.ghost.done{background:none;border:1px solid var(--accent);color:var(--accent);
     font-size:15px;font-weight:600}
   .btn.done:active{filter:brightness(.9)}
-  .brandrow{display:flex;align-items:center;gap:11px;min-width:0}
+  .brandrow{display:flex;align-items:center;gap:11px;min-width:0;flex:1 1 auto;overflow:hidden}
   header.live .h-date{color:#fff}
   header.live .h-sub{color:rgba(255,255,255,.92)}
   header.live .h-sub.donetoday::before{color:#fff}
   header.live .streak{color:#fff}
   header.live .icobtn{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.3);color:#fff}
   header.live .icobtn small{color:#fff;opacity:.95}
-  header.exmode .h-date{font-size:17px;line-height:1.25;max-width:56vw;
-    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-  .h-date{font-family:var(--disp);font-weight:700;font-size:19px;letter-spacing:var(--track-num)}
+  header.exmode .h-date{font-size:17px;line-height:1.25}
+  .h-date{font-family:var(--disp);font-weight:700;font-size:19px;letter-spacing:var(--track-num);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .h-sub{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:var(--track-label);text-transform:uppercase;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .brandrow>div{min-width:0}
-  .hbtns{display:flex;gap:8px;align-items:center}
+  .hbtns{display:flex;gap:8px;align-items:center;flex:0 0 auto}   /* v3.3.55: controls never shrink and never wrap */
   .icobtn{
     width:44px;height:44px;border-radius:13px;border:1px solid var(--line);
     background:var(--surface);color:var(--chalk);font-size:18px;cursor:pointer;

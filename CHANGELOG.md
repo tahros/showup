@@ -1,5 +1,31 @@
 # ShowUp — changelog
 
+## v3.3.55 (2026-07-23) — The header is one row, always
+A long exercise title ("Incline Barbell Bench Press") pushed the rest timer
+and the gear button onto a second row, doubling the header's height.
+
+Root cause: <header> was `display:flex; flex-wrap:wrap`. Nothing forbade a
+second row — the wrap was the designed escape valve for exactly the case
+that must never happen. Now `flex-wrap:nowrap`, with .brandrow taking
+`flex:1 1 auto; overflow:hidden` (it yields) and .hbtns `flex:0 0 auto`
+(the controls never shrink and never move).
+
+The title itself also had `-webkit-line-clamp:2` inside a `max-width:56vw`
+cap, so it could stand two lines tall on its own. It's now one line with an
+ellipsis, and flex-shrink decides its width — which adapts to whether the
+rest timer is showing, instead of guessing at 56vw.
+
+Guard added to buildcheck: the header rule must not set flex-wrap:wrap,
+must explicitly state nowrap, and .h-date must be able to truncate. All
+three fire against the v3.3.54 stylesheet and pass on this one. Same
+reasoning as the v3.3.49 clip guard — jsdom has no layout, so a rule that
+can only break visually gets a structural assertion.
+
+(The .h-date regex needed line-anchoring to avoid matching
+`header.live .h-date{color:#fff}` — the same trap the .lastset geometry
+check hit in v3.3.50.)
+
+
 ## v3.3.54 (2026-07-23) — Info returns to an "i" beside its title
 Position and label only; the tap-for-tip behaviour is untouched.
 
