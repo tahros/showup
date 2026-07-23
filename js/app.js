@@ -424,11 +424,14 @@ document.addEventListener('input',e=>{
   if(e.target&&e.target.id==='wv') refreshLoad();
 });
 function refreshLoad(){
-  const ll=$('#ll'); if(!ll||!lift.ex) return;
-  const kg=toKg(+($('#wv').value||0));
-  ll.innerHTML = usesPlates(lift.ex)
-    ? loadInner(lift.ex,kg)
-    : `<span class="ll-text">${loadLine(lift.ex,kg)}</span>`;
+  const ll=$('#ll');
+  if(ll&&lift.ex){
+    const kg=toKg(+($('#wv').value||0));
+    ll.innerHTML = usesPlates(lift.ex)
+      ? loadInner(lift.ex,kg)
+      : `<span class="ll-text">${loadLine(lift.ex,kg)}</span>`;
+  }
+  refreshReps();   // v3.3.56: the rep tiles follow the weight, same funnel
 }
 
 /* ---------- pinch / wheel zoom for charts ---------- */

@@ -328,7 +328,7 @@ function renderLift(){
       h+=`<div class="loadline" id="ll"><span class="ll-text">${loadLine(ex,lift.weight)}</span></div>`;
     }
     // rep buttons drawn from what you actually do for THIS exercise
-    const reps=repChoices(ex);
+    const reps=repChoices(ex,lift.weight);   // v3.3.56: tiles follow the weight
     h+=`<div class="repgrid">${reps.map(r=>`<button data-rep="${r}">${r}</button>`).join('')}</div>
         <div class="repcustom">
           <input id="rc" type="number" inputmode="numeric" placeholder="reps">
@@ -457,16 +457,66 @@ function lastSession(ex){
   return {d:seed.d, sets};
 }
 /* rep buttons: the rep counts you actually use for this lift, plus today's */
-function repChoices(ex){
+/* v3.3.56: rep tiles follow the WEIGHT. Two layers:
+   1) EVIDENCE — reps actually done within 3% of the chosen weight,
+      recency-weighted. Truth outranks any model, so these fill first.
+   2) MODEL — a per-exercise strength curve from the last 90 days' sets via
+      Epley (1RM ≈ w·(1+r/30)); the estimate is the median of the top five,
+      so one grinder set can't skew it. Inverted at the chosen weight
+      (r = 30·(1RM/w − 1)) it predicts reps for weights NEVER lifted — a
+      heavier bar naturally yields fewer reps, fitted to this lifter rather
+      than a generic table. A spread around the prediction fills what
+      evidence didn't.
+   Bodyweight moves and no-weight calls keep the old frequency tiles — a
+   weight-independent movement shouldn't pretend otherwise. */
+function repChoices(ex,wKg){
   const c={};
   (SEED.repFreq[ex]||[]).forEach((r,i)=>c[r]=(c[r]||0)+(8-i));
   for(const [,v] of Object.entries(DB.days))
-    for(const s of v.w) if(s.ex===ex) s.reps.forEach(r=>c[r]=(c[r]||0)+3);
-  /* v3.3.51: 8 tiles, one row. Twelve tiles cost two rows of the logger's
-     height for options 9-12 that frequency already ranked as rare. */
-  let list=Object.keys(c).map(Number).sort((a,b)=>c[b]-c[a]).slice(0,8);
+    for(const s of v.w) if(s.ex===ex) (s.reps||[]).forEach(r=>c[r]=(c[r]||0)+3);
+  const freq=Object.keys(c).map(Number).sort((a,b)=>c[b]-c[a]);
+  if(wKg==null||wKg<=0.01||isBody(ex)){
+    let list=freq.slice(0,8);
+    if(list.length<6) list=[...new Set([...list,5,6,8,10,12,15,20,25])].slice(0,8);
+    return list.sort((a,b)=>a-b);
+  }
+  // layer 1: evidence at this weight (±3%), last year counts double-and-a-half
+  const yr=new Date(todayISO+'T00:00'); yr.setDate(yr.getDate()-365);
+  const yrISO=yr.toLocaleDateString('en-CA');
+  const ev={};
+  for(const [d,v] of Object.entries(DB.days))
+    for(const s of v.w)
+      if(s.ex===ex&&s.w>0&&Math.abs(s.w-wKg)<=wKg*0.03)
+        (s.reps||[]).forEach(r=>ev[r]=(ev[r]||0)+(d>=yrISO?5:2));
+  let list=Object.keys(ev).map(Number).sort((a,b)=>ev[b]-ev[a]).slice(0,8);
+  // layer 2: the strength curve fills the rest
+  const d90=new Date(todayISO+'T00:00'); d90.setDate(d90.getDate()-90);
+  const d90ISO=d90.toLocaleDateString('en-CA');
+  const es=[];
+  for(const [d,v] of Object.entries(DB.days)){
+    if(d<d90ISO) continue;
+    for(const s of v.w) if(s.ex===ex&&s.w>0)
+      (s.reps||[]).forEach(r=>{ if(r>=1&&r<=35) es.push(s.w*(1+r/30)); });
+  }
+  if(list.length<8&&es.length>=3){
+    es.sort((a,b)=>b-a);
+    const top=es.slice(0,5), rm=top[Math.floor(top.length/2)];
+    const base=Math.min(35,Math.max(1,Math.round(30*(rm/wKg-1))));
+    for(const d of [0,-2,2,-4,4,-3,3,-6,6,-8,8]){
+      const r=base+d;
+      if(r>=1&&r<=35&&!list.includes(r)) list.push(r);
+      if(list.length>=8) break;
+    }
+  }
+  for(const r of freq){ if(list.length>=8) break; if(!list.includes(r)) list.push(r); }
   if(list.length<6) list=[...new Set([...list,5,6,8,10,12,15,20,25])].slice(0,8);
-  return list.sort((a,b)=>a-b);
+  return list.slice(0,8).sort((a,b)=>a-b);
+}
+/* the grid refresh every weight-change path funnels into (via refreshLoad) */
+function refreshReps(){
+  const g=document.querySelector('.repgrid'); if(!g||!lift.ex) return;
+  const kg=toKg(+(document.getElementById('wv')?.value||0));
+  g.innerHTML=repChoices(lift.ex,kg).map(r=>`<button data-rep="${r}">${r}</button>`).join('');
 }
 /* load line inner: fixed-width bar picture so the text never shifts */
 function loadInner(ex,kg){

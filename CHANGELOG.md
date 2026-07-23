@@ -1,5 +1,36 @@
 # ShowUp — changelog
 
+## v3.3.56 (2026-07-23) — Rep tiles follow the weight
+"If I increase the weight, the more likely my reps will decrease."
+
+The rep tiles were weight-blind: one frequency-ranked list per exercise,
+whatever the bar said. Now repChoices(ex, weight) builds them in two
+layers:
+
+1. **Evidence first.** Reps you actually did within 3% of the chosen
+   weight, recency-weighted (the last year counts more). Truth outranks any
+   model, so these fill tiles before anything predicted.
+2. **Your strength curve fills the rest.** From the last 90 days' sets, an
+   Epley estimate of the exercise's 1RM (median of the top five, so one
+   grinder set can't skew it), inverted at the chosen weight:
+   reps = 30·(1RM/w − 1). This is what answers a weight you've NEVER
+   lifted — at 75 kg it offers honest singles-to-tens instead of the 20s
+   it used to copy from your 50 kg work.
+
+At real data: 35 kg → 25-35 reps, 50 kg → 16-27, 60 kg → 4-18, 75 kg
+(never lifted) → 1-11. Bodyweight moves keep the frequency tiles — a
+weight-independent movement shouldn't pretend otherwise.
+
+The grid re-tiles through refreshLoad(), the funnel every weight change
+already flows through — stepper, suggested-chip taps, Last Time rows, and
+manual typing all update the tiles live, no re-render.
+
+test-repweight.js: ten assertions, including the monotonic law itself
+(median tiles at 75 < at 50 <= at 35), evidence priority at each lifted
+weight, sane predictions at never-lifted weights, bodyweight indifference,
+and the DOM re-tiling on manual input.
+
+
 ## v3.3.55 (2026-07-23) — The header is one row, always
 A long exercise title ("Incline Barbell Bench Press") pushed the rest timer
 and the gear button onto a second row, doubling the header's height.
