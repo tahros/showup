@@ -1,5 +1,31 @@
 # ShowUp — changelog
 
+## v3.3.76 (2026-07-25) — The greeting learns the clock, and counts to a thousand
+
+The greeting word now tracks five bands instead of three: Early (before 5),
+Morning, Afternoon, Evening, Late (after 22). One word each. 4am deserved
+better than 'Morning' and 11pm better than 'Evening', and a single dry word
+is all the variation this card gets — anything chattier curdles by the third
+read. `helloPart(hr)` is pure so the clock is testable.
+
+The subline stays a receipt. Its one new behaviour: inside the last 75 days
+before a round milestone it counts down — '928 days in · 72 to 1,000.' —
+which is live for this archive today. A countdown is a fact; that is why it
+gets in and a compliment does not. On the day itself the count rolls past
+and the line goes quiet again.
+
+The name still comes from Settings → You; the card has read it since
+v3.3.66. Nothing prompts for it, deliberately.
+
+An enforcement worth recording: the test asserts that no string literal in
+the greeting functions contains an exclamation mark. The first draft of that
+assertion tried to regex-subtract JS negation operators from the source and
+failed on its own cleverness; it now extracts the string literals and checks
+those. Guard the strings, not the syntax.
+
+Suite at 53 — all five bands, full 24-hour coverage, the countdown window,
+the rollover, and silence at zero.
+
 ## v3.3.75 (2026-07-25) — The legend behaves on a phone, and the card's labels become the legend
 
 **In-app legend, three fixes from one screenshot.** It hijacked the tab swipe:

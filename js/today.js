@@ -208,13 +208,27 @@ document.addEventListener('click',e=>{
    trained yet today" and it leaves the moment the first set lands, like every
    other live state in this app. A permanent name banner is wallpaper in three
    days; this one is only ever seen on arrival. */
+/* v3.3.76 — variation without cringe. The word tracks the clock through five
+   bands, one word each, so 4am and 11pm get their own dry nod instead of a
+   wrong 'Morning'/'Evening'. Pure function so the clock can be tested.
+   The subline stays a receipt — the day count — and inside the last 75 days
+   before a round thousand it counts down to it, because that is a fact, not
+   a compliment. No exclamation marks anywhere in this card, ever. */
+function helloPart(hr){
+  return hr<5?'Early':hr<12?'Morning':hr<18?'Afternoon':hr<22?'Evening':'Late';
+}
+function helloSub(d){
+  if(!d) return '';
+  const next=[1000,1500,2000,2500,3000,4000,5000].find(m=>m>d);
+  return next&&next-d<=75 ? `${fmt(d)} days in · ${next-d} to ${fmt(next)}.`
+                          : `${fmt(d)} days in.`;
+}
 function helloCard(){
   const n=firstName();
-  const hr=new Date().getHours();
-  const part=hr<12?'Morning':hr<18?'Afternoon':'Evening';
-  const d=SEED.totals.sessions;
+  const part=helloPart(new Date().getHours());
+  const sub=helloSub(SEED.totals.sessions);
   return `<div class="hello"><span class="hi">${part}${n?', '+n:''}.</span>${
-    d?`<span class="hisub">${fmt(d)} days in.</span>`:''}</div>`;
+    sub?`<span class="hisub">${sub}</span>`:''}</div>`;
 }
 function renderToday(){
   if(SEED.totals.sessions===0 && !((DB.days[todayISO]||{}).w||[]).length){

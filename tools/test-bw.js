@@ -20,6 +20,10 @@ w.document.dispatchEvent(new w.Event("DOMContentLoaded", { bubbles: true }));
 const run = c => vm.runInContext(c, ctx);
 
 let fail = 0;
+const ok = (name, cond) => {
+  console.log((cond ? "PASS" : "FAIL"), name, "\u2192", cond);
+  if (!cond) fail++;
+};
 const check = (name, expr, want) => {
   const got = run(expr), ok = String(got) === String(want);
   console.log((ok?"PASS":"FAIL"), name, "→", got);
@@ -124,6 +128,26 @@ run(`${fresh} DB.settings.name=null; delete DB.days[todayISO]; renderToday();`);
 check("nameless greeting still renders (strangers get one too)",
       `/class="hello"/.test($('#view').innerHTML)`, true);
 check("...and carries no stray comma", `/, \./.test($('#view').innerHTML)`, false);
+
+// ---- 11b. the clock, in five dry words (v3.3.76) --------------------------
+check("4am is Early, not Morning", `helloPart(4)`, "Early");
+check("8am is Morning", `helloPart(8)`, "Morning");
+check("1pm is Afternoon", `helloPart(13)`, "Afternoon");
+check("7pm is Evening", `helloPart(19)`, "Evening");
+check("11pm is Late, not Evening", `helloPart(23)`, "Late");
+check("the bands cover every hour", `[...Array(24).keys()].every(h=>helloPart(h))`, true);
+
+// the subline is a receipt, never a compliment
+check("plain day count outside a milestone window", `helloSub(700)`, "700 days in.");
+check("inside 75 of a round thousand it counts down", `helloSub(928)`, "928 days in \u00b7 72 to 1,000.");
+check("the milestone day itself rolls to the next window", `helloSub(1000)`, "1,000 days in.");
+check("...and 1500 is a milestone too", `helloSub(1460)`, "1,460 days in \u00b7 40 to 1,500.");
+check("zero days is silence, not zero", `helloSub(0)`, "");
+const todaySrc = fs.readFileSync(path.join(dir, "js/today.js"), "utf8");
+const hello = (todaySrc.match(/function helloPart[\s\S]*?function renderToday/) || [""])[0];
+const strings = [...hello.matchAll(/'[^']*'|`[^`]*`/g)].map(m => m[0]).join("");
+ok("no exclamation mark can reach the greeting (its strings carry none)",
+   !strings.includes("!"));
 
 // ---- 12. Settings exposes the fields it claims to ------------------------
 run(`${fresh} renderSync();`);
