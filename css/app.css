@@ -489,11 +489,16 @@
   .rhythm .unit{font-family:var(--mono);font-size:12px;color:var(--muted);margin-left:4px}
   /* v3.3.59: the calendar return ticket. Accent, not red — it's navigation,
      not a live signal. Sits above the tab bar + safe area. */
-  .calreturn{position:fixed;left:50%;transform:translateX(-50%);
+  /* v3.3.65: the app-wide up control. Right-anchored rather than centred so
+     it never sits over the content you're reading, and hidden via [hidden]
+     so a single boolean drives it. */
+  .calreturn{position:fixed;right:14px;
     bottom:calc(64px + env(safe-area-inset-bottom,0px) + 10px);z-index:60;
     font-family:var(--mono);font-size:12px;letter-spacing:var(--track-label);
     background:var(--accent);color:#fff;border:0;border-radius:999px;
-    padding:9px 16px;box-shadow:0 4px 14px rgba(0,0,0,.18);cursor:pointer}
+    padding:9px 15px;box-shadow:0 4px 14px rgba(0,0,0,.22);cursor:pointer;
+    animation:cardin .2s ease backwards}
+  .calreturn[hidden]{display:none}
   .strip{display:flex;gap:3px;margin-top:14px;position:relative}
   /* ---- sheen system (v3.3.27): accent surfaces of meaningful size.
      Excluded by design: anything red/live (signals don't get decorated),

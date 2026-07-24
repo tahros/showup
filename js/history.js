@@ -399,26 +399,19 @@ document.addEventListener('click',e=>{
    or any re-render wipes it with the view. No permanent chrome. */
 let _calRetIO=null;
 function killCalReturn(){
-  const b=document.getElementById('calReturn'); if(b) b.remove();
+  if(typeof clearBackTarget==='function') clearBackTarget();
   if(_calRetIO){ _calRetIO.disconnect(); _calRetIO=null; }
 }
+/* v3.3.65: History no longer owns a pill of its own — it tells the shared
+   up-control that "up" temporarily means "back to the calendar". */
 function showCalReturn(){
   killCalReturn();
   const cal=document.querySelector('.cal'); if(!cal) return;
-  const b=document.createElement('button');
-  b.id='calReturn'; b.className='calreturn';
-  b.innerHTML='↑ calendar';
-  b.addEventListener('click',()=>{
-    killCalReturn();
-    cal.scrollIntoView&&cal.scrollIntoView({block:'start',behavior:'smooth'});
-  });
-  document.body.appendChild(b);      // body, not #view: never clipped, dies with killCalReturn
+  setBackTarget('calendar',()=>document.querySelector('.cal'));
   if(typeof IntersectionObserver!=='undefined'){
-    /* v3.3.60: IO fires an INITIAL callback with the current state the moment
-       observe() is called — and at tap time the calendar is still on screen,
-       so that first report says "intersecting" and killed the pill at birth.
-       That's why "I don't see anything after tapping". Skip report #1; only a
-       genuine RE-entry of the calendar dismisses. */
+    /* v3.3.60: IO fires a mandatory INITIAL callback with the current state —
+       at tap time the calendar is still on screen, so that first report would
+       clear the target at birth. Skip report #1. */
     let birth=true;
     _calRetIO=new IntersectionObserver(es=>{
       if(birth){ birth=false; return; }

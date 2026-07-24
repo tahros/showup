@@ -319,6 +319,38 @@ function setRows(ex,folded,tappable){
       +`<span class="lastw mono">${wtxt}</span><span class="lastreps">${chips}</span></div>`;
   }).join('');
 }
+/* v3.3.65: one floating "up" control for the whole app. It appears whenever
+   you're deep enough in a view for the top to be a trek, and its LABEL always
+   names where it will actually take you — "top" normally, or "calendar" while
+   History has armed a jump-back after a date tap. One element, no ambiguity. */
+let _backTo=null, _topRaf=0;
+function topBtn(){
+  let b=document.getElementById('calReturn');
+  if(!b){
+    b=document.createElement('button');
+    b.id='calReturn'; b.className='calreturn'; b.hidden=true;
+    b.addEventListener('click',()=>{
+      const t=_backTo; clearBackTarget();
+      const el=t&&t.getEl&&t.getEl();
+      if(el&&el.scrollIntoView) el.scrollIntoView({block:'start',behavior:'smooth'});
+      else window.scrollTo({top:0,behavior:'smooth'});
+    });
+    document.body.appendChild(b);
+  }
+  return b;
+}
+function syncTopBtn(){
+  const b=topBtn();
+  const deep=(window.scrollY||0)>520;
+  b.hidden=!(deep||_backTo);         // an armed jump-back shows regardless of depth
+  b.textContent=_backTo?`↑ ${_backTo.label}`:'↑ top';
+}
+function setBackTarget(label,getEl){ _backTo={label,getEl}; syncTopBtn(); }
+function clearBackTarget(){ _backTo=null; syncTopBtn(); }
+addEventListener('scroll',()=>{
+  if(_topRaf) return;
+  _topRaf=requestAnimationFrame(()=>{ _topRaf=0; syncTopBtn(); });
+},{passive:true});
 function dayMeta(){const t=day(todayISO);t.doneEx=t.doneEx||[];t.donePart=t.donePart||[];t.sugX=t.sugX||{};return t;}
 const isLive =()=>{const t=day(todayISO);return t.w.length>0&&!t.doneAll;};
 /* v3.2.3: evening + unwritten today + living streak = at risk. One warm tone,

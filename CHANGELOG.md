@@ -1,5 +1,28 @@
 # ShowUp — changelog
 
+## v3.3.65 (2026-07-24) — One up button, everywhere
+The calendar return pill becomes a general scroll-to-top control, available
+on every tab whenever you're deep enough in a view for the top to be a trek
+(past ~520px).
+
+One element, and its LABEL always names where it will actually take you:
+"↑ top" normally, "↑ calendar" while History has armed a jump-back after a
+date tap. Two floating buttons would have been clutter and a coin-flip
+about which does what; one whose text is honest costs nothing.
+
+It moved from History into util.js since it belongs to the app, not to one
+tab — History now just tells it that "up" temporarily means the calendar.
+The scroll listener is rAF-throttled and passive, so it can't fight the
+scroll it's watching. Right-anchored rather than centred so it never sits
+over the text you're reading, and driven by [hidden] so a single boolean
+controls it.
+
+test-calreturn.js gains the app-wide cases: hidden at rest, appears when
+scrolled deep, says "top" when that's the truth, works on Stats as well as
+History, and hides again on return. The calendar-target cases all still
+hold, including the v3.3.60 IO birth-report guard.
+
+
 ## v3.3.64 (2026-07-24) — The go-to card asks to be pressed
 "When I open this in the morning, this should tempt me to press it. Nothing
 happened."
