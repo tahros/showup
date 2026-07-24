@@ -1,5 +1,50 @@
 # ShowUp — changelog
 
+## v3.3.72 (2026-07-24) — The year grid as a 1:1 share card
+
+The month grid is the most compelling thing this app owns — the whole history
+on one screen — so it is the first block to leave the app as an image. Square,
+1080×1080, because 1:1 is the one ratio every platform takes uncropped. The
+report card stays 4:5, which reads better in a feed.
+
+The day count leads the card. It is the app's authority number and it should
+be the first thing a stranger's eye lands on, above a grid that proves it.
+Footer carries the date span and the URL.
+
+**Almost none of this was new.** `report.js` already had the canvas renderer,
+the theme-var colour resolution, the `navigator.canShare({files})` path with a
+download fallback, and — the expensive part — the v3.3.13 font rearm, because
+canvas never inherits CSS faces. What was added: a square renderer, and
+`showCard(drawFn,label)` so one overlay and one share path serve any card.
+
+`gridData()` is extracted so the HTML grid and the canvas card read one source.
+The paint is genuinely duplicated — canvas cannot reuse a `<span>` — but the
+arithmetic is not, which is the half that actually drifts.
+
+**The router bug that was sitting there.** `report.js` matched on
+`e.target.id===` throughout — the exact pattern that cost real sets in the gym
+in v3.3.58. `#repDo` has no children today, so it worked. It is `closest()`
+now, and the test asserts the old form is gone from the file.
+
+**New suite `test-sharecard.js`, 27 assertions, and it closes a blind spot.**
+The harness stubs `getContext` to a no-op Proxy, which made every canvas
+invisible to every test. This suite installs a RECORDING context instead: each
+draw call and property set is logged, so the card is asserted structurally —
+1080×1080; the day count drawn first; exactly one glyph per in-range month and
+none outside; a tinted cell per month with days; alpha between .14 and .88 so
+darker really is more; the current month dashed exactly once and the dash
+cleared after; then the whole path from button to overlay to a named PNG
+handed to `navigator.share`.
+
+It still cannot tell you the card looks good. It can tell you it drew what it
+said it drew.
+
+Animation was considered and cut. Safari has had MediaRecorder since iOS 14.5
+and writes MP4, but the canvas route specifically is unreliable there —
+`captureStream` tracks come back without valid capabilities and WebKit 181663
+has `stop()` freezing the page, with the blob never arriving. The realistic
+fallback is a GIF encoder dependency in an app with a 2.7KB shell. Not worth it.
+
 ## v3.3.71 (2026-07-24) — One sentence
 
 The `bw` tip was 367 characters, 62 words, four sentences. Measured against

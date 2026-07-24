@@ -12,7 +12,7 @@ index.html + css/ + js/ + sw.js only.
     node smoke.js stageNN
     for t in todayhero settings sessfmt histpart reseal scrollpos exitpair \
              continue statspolish repweight enter addsub calreturn pastedit bw \
-             bwcard; do
+             bwcard sharecard; do
       node test-$t.js stageNN >/dev/null 2>&1 && echo "$t OK" || echo "$t FAIL"
     done
 

@@ -10,6 +10,23 @@ const YEAR_COLORS={ '2022':'var(--faint)','2023':'var(--muted)','2024':'var(--ac
    No goal line, no trend verdict, no red/green. This app scores attendance,
    not your body — the number is context for load maths and a quiet record. */
 let bwEdit=false;
+/* v3.3.72 — the month grid's DATA, lifted out so the HTML grid and the canvas
+   share card read one source. The PAINT is duplicated on purpose (canvas
+   cannot reuse a <span>), but the arithmetic must not be — that is exactly
+   how resealDay() and foldSets() were born. */
+function gridData(){
+  const mDays={};
+  for(const d of Object.keys(SEED.sessions)) mDays[d.slice(0,7)]=(mDays[d.slice(0,7)]||0)+1;
+  if(((DB.days[todayISO]||{}).w||[]).length){
+    const mk=todayISO.slice(0,7); mDays[mk]=(mDays[mk]||0)+1;
+  }
+  const first=SEED.totals.first||todayISO;
+  return { mDays, first,
+    y0:+first.slice(0,4), y1:+todayISO.slice(0,4),
+    max:Math.max(...Object.values(mDays),1),
+    m0:first.slice(0,7), mNow:todayISO.slice(0,7),
+    total:SEED.totals.sessions+((((DB.days[todayISO]||{}).w)||[]).length?1:0) };
+}
 function bwCard(){
   const ds=bwDays(), cur=bwNow();
   let body;
@@ -276,14 +293,8 @@ function renderStats(){
      two scroll-free views that each answer ONE question. */
 
   /* --- "Have I kept showing up?" — every month ever, one screen --- */
-  const mDays={};
-  for(const d of Object.keys(SEED.sessions)) mDays[d.slice(0,7)]=(mDays[d.slice(0,7)]||0)+1;
-  if((DB.days[todayISO]&&DB.days[todayISO].w||[]).length){
-    const mk=todayISO.slice(0,7); mDays[mk]=(mDays[mk]||0)+1;
-  }
-  const gy0=+((SEED.totals.first||todayISO).slice(0,4)), gy1=+todayISO.slice(0,4);
-  const gMax=Math.max(...Object.values(mDays),1);
-  const m0=(SEED.totals.first||todayISO).slice(0,7), mNow=todayISO.slice(0,7);
+  const _gd=gridData();
+  const mDays=_gd.mDays, gy0=_gd.y0, gy1=_gd.y1, gMax=_gd.max, m0=_gd.m0, mNow=_gd.mNow;
   h+=`<h2 id="secParts">Showing up, every month</h2><div class="card">
       <div class="mgrid"><span></span>${'JFMAMJJASOND'.split('').map(c=>`<span class="mg-h">${c}</span>`).join('')}`;
   for(let y=gy0;y<=gy1;y++){
@@ -296,7 +307,8 @@ function renderStats(){
       h+=`<span class="mg-c mono ${k===mNow?'cur':''}" ${out?'':`data-mk="${k}"`} style="${n?`background:color-mix(in srgb, var(--accent) ${a}%, transparent)`:''}">${out?'':(n||'·')}</span>`;
     }
   }
-  h+=`</div><div id="mexp"></div><div class="note">Days trained each month — the whole history on one screen. Darker = more days. Dashed = this month, still being written. Tap a month to open it.</div></div>`;
+  h+=`</div><div id="mexp"></div><div class="note">Days trained each month — the whole history on one screen. Darker = more days. Dashed = this month, still being written. Tap a month to open it.</div>
+      <button class="btn ghost" id="gridShare">Share as image</button></div>`;
 
   /* --- "What's quietly slipping?" — last 30 days vs YOUR 12-month rhythm --- */
   const isoAgo=n=>{const c=new Date(todayISO+'T00:00');c.setDate(c.getDate()-n);return c.toLocaleDateString('en-CA');};

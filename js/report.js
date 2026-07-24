@@ -86,6 +86,79 @@ function drawRep(rd){
   x.fillText('tahros.github.io/showup',1008,1290); x.textAlign='left';
   return cv;
 }
+/* ---------- v3.3.72 share cards ---------- */
+/* The year grid as a 1:1 card. Square because it is the one ratio every
+   platform accepts uncropped; the report card stays 4:5, which reads better
+   in a feed. Both go out through the same overlay and the same share path. */
+function drawGrid(gd){
+  const S=1080;
+  const cv=document.createElement('canvas'); cv.width=S; cv.height=S;
+  const x=cv.getContext('2d'); if(!x) return null;
+  const V=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim()||'#888';
+  const SANS='"IBM Plex Sans",system-ui,sans-serif', MONO='"IBM Plex Mono",ui-monospace,monospace';
+  /* canvas normalises whatever colour it is handed, so use it to resolve the
+     theme var to #rrggbb — the cells need an alpha tint, which is what
+     color-mix(... N%, transparent) does in the CSS grid. */
+  x.fillStyle=V('--accent');
+  const AC=x.fillStyle;
+  const hx=(typeof AC==='string'&&/^#[0-9a-f]{6}$/i.test(AC))?AC:'#5B7BFF';
+  const rgb=[1,3,5].map(i=>parseInt(hx.slice(i,i+2),16));
+  const tint=a=>`rgba(${rgb[0]},${rgb[1]},${rgb[2]},${a})`;
+  const rr=(px,py,w,h,r)=>{ x.beginPath(); x.moveTo(px+r,py);
+    x.arcTo(px+w,py,px+w,py+h,r); x.arcTo(px+w,py+h,px,py+h,r);
+    x.arcTo(px,py+h,px,py,r); x.arcTo(px,py,px+w,py,r); x.closePath(); };
+
+  x.fillStyle=V('--ground'); x.fillRect(0,0,S,S);
+
+  const P=76;
+  // the streak number is the authority — it leads
+  x.textBaseline='alphabetic'; x.textAlign='left';
+  x.fillStyle=V('--chalk'); x.font='700 132px '+SANS;
+  x.fillText(String(gd.total),P,P+126);
+  const tw=(x.measureText(String(gd.total))||{}).width||0;
+  x.fillStyle=V('--muted'); x.font='500 40px '+MONO;
+  x.fillText('days',P+tw+20,P+126);
+  x.textAlign='right'; x.font='500 34px '+MONO;
+  x.fillText('ShowUp',S-P,P+54);
+  x.textAlign='left'; x.fillStyle=V('--faint'); x.font='500 28px '+MONO;
+  x.fillText('SHOWING UP, EVERY MONTH',P,P+188);
+
+  const years=[]; for(let y=gd.y0;y<=gd.y1;y++) years.push(y);
+  const cols=13, cw=(S-P*2)/cols, top=P+248;
+  const rh=Math.min(cw,(S-top-P-80)/(years.length+1));
+
+  x.textAlign='center'; x.textBaseline='middle';
+  x.fillStyle=V('--faint'); x.font='500 26px '+MONO;
+  'JFMAMJJASOND'.split('').forEach((c,i)=>x.fillText(c,P+cw*(i+1)+cw/2,top+rh/2));
+
+  years.forEach((y,r)=>{
+    const py=top+rh*(r+1);
+    x.textAlign='right'; x.fillStyle=V('--muted'); x.font='500 26px '+MONO;
+    x.fillText("'"+String(y).slice(2),P+cw*0.9,py+rh/2);
+    x.textAlign='center';
+    for(let m=1;m<=12;m++){
+      const k=`${y}-${String(m).padStart(2,'0')}`;
+      const n=gd.mDays[k]||0;
+      if(k<gd.m0||k>gd.mNow) continue;                 // outside the log: nothing, not a zero
+      const cx=P+cw*m+3, cy=py+3, w=cw-6, hh=rh-6;
+      if(n){ x.fillStyle=tint(+(0.14+0.74*n/gd.max).toFixed(3)); rr(cx,cy,w,hh,9); x.fill(); }
+      if(k===gd.mNow){                                  // this month is still being written
+        x.strokeStyle=V('--accent'); x.lineWidth=2.5; x.setLineDash([6,5]);
+        rr(cx,cy,w,hh,9); x.stroke(); x.setLineDash([]);
+      }
+      x.fillStyle=n?V('--chalk'):V('--faint'); x.font='500 26px '+MONO;
+      x.fillText(n?String(n):'\u00b7',cx+w/2,cy+hh/2);
+    }
+  });
+
+  x.textBaseline='alphabetic'; x.textAlign='left';
+  x.fillStyle=V('--faint'); x.font='500 26px '+MONO;
+  x.fillText(`${gd.first} \u2192 ${todayISO}`,P,S-P+8);
+  x.textAlign='right';
+  x.fillText('tahros.github.io/showup',S-P,S-P+8);
+  return cv;
+}
+
 let _repCv=null;
 function repOvEl(){
   let ov=document.getElementById('repOv');
@@ -100,24 +173,31 @@ function repOvEl(){
   document.body.appendChild(ov);
   return ov;
 }
-async function makeRepImage(){
+/* v3.3.72: one overlay, one share path, any card. Fonts are awaited BEFORE
+   the draw — canvas never inherits CSS faces (v3.3.13). */
+async function showCard(drawFn,label){
   try{
     if(document.fonts&&document.fonts.ready) await document.fonts.ready;
-    const rd=repData(repOff);
-    const cv=drawRep(rd);
+    const cv=drawFn();
     if(!cv){ toast('Canvas unavailable on this device'); return; }
-    _repCv={cv,label:rd.label};
+    _repCv={cv,label};
     repOvEl().style.display='flex';
     document.getElementById('repImg').src=cv.toDataURL('image/png');
   }catch(e){ toast('Could not draw the image'); }
 }
+function makeRepImage(){ const rd=repData(repOff); return showCard(()=>drawRep(rd),rd.label); }
+function makeGridImage(){ const gd=gridData(); return showCard(()=>drawGrid(gd),`${gd.total}-days`); }
 document.addEventListener('click',e=>{
-  if(e.target.id==='repPrev'){ repOff++; if(view==='stats') render(); return; }
-  if(e.target.id==='repNext'&&repOff>0){ repOff--; if(view==='stats') render(); return; }
-  if(e.target.id==='repShare'){ makeRepImage(); return; }
-  if(e.target.id==='repClose'){ repOvEl().style.display='none'; return; }
-  if(e.target.id==='repDo'&&_repCv){
-    const name='showup-'+_repCv.label.toLowerCase().replace(/ /g,'-')+'.png';
+  /* v3.3.72: closest(), not e.target.id — a button that gains a child at
+     runtime silently stops responding (the v3.3.58 lesson, in the gym). */
+  const hit=id=>!!(e.target.closest&&e.target.closest('#'+id));
+  if(hit('repPrev')){ repOff++; if(view==='stats') render(); return; }
+  if(hit('repNext')&&repOff>0){ repOff--; if(view==='stats') render(); return; }
+  if(hit('repShare')){ makeRepImage(); return; }
+  if(hit('gridShare')){ makeGridImage(); return; }
+  if(hit('repClose')){ repOvEl().style.display='none'; return; }
+  if(hit('repDo')&&_repCv){
+    const name='showup-'+String(_repCv.label).toLowerCase().replace(/[^a-z0-9]+/g,'-')+'.png';
     _repCv.cv.toBlob(b=>{
       const f=new File([b],name,{type:'image/png'});
       if(navigator.canShare&&navigator.canShare({files:[f]})) navigator.share({files:[f]}).catch(()=>{});
