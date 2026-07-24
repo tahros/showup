@@ -187,10 +187,23 @@ module.exports = settled.then(() => {
     const yPct = run(`(function(){ const cs=yearCurves(), y=todayISO.slice(0,4);
       return cs[y]?Math.round(cs[y].curve[cs[y].end-1]*100)+'%':null; })()`);
     ok("this year's percentage is the headline", yPct !== null && ytexts[0] === yPct, ytexts[0]);
+    // v3.3.75: the labels ARE the legend
+    const yFonts = calls.filter(c => c[0] === "set:font").map(c => String(c[1]));
+    ok("the headline stepped down from 132 to 96", yFonts.some(f => /96px/.test(f)) && !yFonts.some(f => /132px/.test(f)));
     const yYears = run(`Object.keys(yearCurves()).filter(y=>y>='2022').sort().length`);
-    const legendEntries = ytexts.filter(t => /^\d{4} \d+%$/.test(t));
-    ok("one legend entry per year", legendEntries.length === Number(yYears),
-       `${legendEntries.length}/${yYears}`);
+    ok("the legend row is gone", !ytexts.some(t => /^\d{4} \d+%$/.test(t)));
+    const tickYears = ytexts.filter(t => /^'\d\d$/.test(t));
+    ok("each past year is labelled at its line end", tickYears.length === Number(yYears) - 1,
+       `${tickYears.length}/${Number(yYears)-1}`);
+    const curLabel = run(`todayISO.slice(0,4)`) + " \u00b7 " + yPct;
+    ok("this year carries 'YYYY \u00b7 NN%' at its endpoint",
+       ytexts.some(t => t === curLabel), curLabel);
+    // collision nudge: no two past labels closer than the line height
+    const labelYs = calls.filter(c => c[0] === "fillText" && /^'\d\d$/.test(String(c[1])))
+                         .map(c => c[3]).sort((a, b) => a - b);
+    let clash = false;
+    for (let i = 1; i < labelYs.length; i++) if (labelYs[i] - labelYs[i-1] < 34 - 1e-6) clash = true;
+    ok("...and endpoint labels never overlap", !clash, labelYs.map(v=>Math.round(v)).join(","));
     // this year draws LAST so it sits on top of the greys
     const widths = calls.filter(c => c[0] === "set:lineWidth").map(c => c[1]).filter(v => v >= 3);
     ok("the current year is the boldest line and drawn last",
@@ -207,6 +220,16 @@ module.exports = settled.then(() => {
     const yoyTip = (fs.readFileSync(path.join(dir, "js/stats.js"), "utf8")
       .match(/iBtn\('yoy',"([^"]*)"/) || [])[1] || "";
     ok("...tip within one breath", yoyTip.length > 0 && yoyTip.length <= 120, yoyTip.length + " chars");
+
+    // ---- 8b. the in-app legend behaves on a phone (v3.3.75) --------------
+    const utilSrc = fs.readFileSync(path.join(dir, "js/util.js"), "utf8");
+    ok("the legend owns its horizontal gesture (no tab-swipe hijack)",
+       /closest\('\.legend1'\)/.test(utilSrc));
+    ok("stats parks the legend at its right edge so this year is on screen",
+       /'\.heatcols,\.heat,\.legend1'/.test(fs.readFileSync(path.join(dir, "js/stats.js"), "utf8")));
+    const cssSrc = fs.readFileSync(path.join(dir, "css/app.css"), "utf8");
+    ok("legend chips cannot be crushed by flex (flex:0 0 auto on the chip)",
+       /\.legend1 \[data-yr\]\{[^}]*flex:0 0 auto/.test(cssSrc));
 
     // ---- 9. the v3.3.58 lesson, enforced at the source -------------------
     const repSrc = fs.readFileSync(path.join(dir, "js/report.js"), "utf8");

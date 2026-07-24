@@ -165,7 +165,7 @@
   .delta.linkdate,.ago.linkdate{background:none;border:none;padding:0;cursor:pointer;
     text-decoration:underline dotted;text-underline-offset:3px}
   .delta.linkdate{color:var(--accent)} .delta.linkdate.down{color:var(--record)}
-  .legend1 [data-yr]{cursor:pointer;border-radius:8px;padding:2px 6px}
+  .legend1 [data-yr]{cursor:pointer;border-radius:8px;padding:2px 5px;flex:0 0 auto}
   .legend1 [data-yr].selY{background:var(--surface2);outline:1px solid var(--line)}
   .card[data-ysel] svg [data-yr]{opacity:.14;transition:opacity .18s}
   .card[data-ysel] svg [data-yr].selY{opacity:1;stroke-width:2.6}
@@ -667,12 +667,12 @@
   @media (prefers-reduced-motion:reduce){.beacon,.heat i.today,.strip i.now{animation:none}}
   .zoomhint{position:absolute;top:6px;right:8px;font-family:var(--mono);font-size:9px;
     color:var(--muted);pointer-events:none;opacity:.75}
-  .legend1{display:flex;gap:10px;margin-top:10px;overflow-x:auto;padding-bottom:2px}
+  .legend1{display:flex;gap:6px;margin-top:10px;overflow-x:auto;padding-bottom:2px}
   .legend1 span{font-family:var(--mono);font-size:10px;color:var(--muted);display:flex;align-items:center;
     gap:4px;white-space:nowrap;flex:0 0 auto}
   .legend1 span.cur{color:var(--chalk)}
   .legend1 span b{font-weight:700}
-  .legend1 i{width:12px;height:3px;border-radius:2px;display:inline-block}
+  .legend1 i{width:10px;height:3px;border-radius:2px;display:inline-block}
   .heatwrap{display:flex;gap:6px}
   .wdrail{display:flex;flex-direction:column;gap:3px;padding-top:14px;flex:0 0 12px}
   .wdrail span{height:12px;font-family:var(--mono);font-size:8px;color:var(--muted);line-height:12px}

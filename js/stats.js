@@ -398,7 +398,7 @@ function renderStats(){
      scroll position showed January and hid today. Park it at the right
      edge — the current week is the whole point of the strip. scrollLeft on
      the scroller itself, never scrollIntoView, which would drag the page. */
-  document.querySelectorAll('.heatcols,.heat').forEach(el=>{
+  document.querySelectorAll('.heatcols,.heat,.legend1').forEach(el=>{
     if(el.scrollWidth>el.clientWidth) el.scrollLeft=el.scrollWidth;
   });
 }

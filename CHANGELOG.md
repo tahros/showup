@@ -1,5 +1,30 @@
 # ShowUp — changelog
 
+## v3.3.75 (2026-07-25) — The legend behaves on a phone, and the card's labels become the legend
+
+**In-app legend, three fixes from one screenshot.** It hijacked the tab swipe:
+it scrolls sideways, so it joins the gesture blocklist beside `.ychips` and
+`.heatcols` — the third time a horizontal scroller has needed this, each
+found by swiping on a phone. It hid the current year: it now parks at its
+right edge on render, the v3.3.42 heatmap rule (newest is the whole point).
+And it was too loose: gap 10→6, chip padding trimmed, swatch 12→10, with
+`flex:0 0 auto` on chips so flex can never crush them.
+
+**The card's typography, reworked from the annotations.** The 132px headline
+dropped to 96 — dominant over the 28px kicker without shouting — and the
+legend row is deleted. The labels ARE the legend now: each past year sits at
+its own line's end on the right margin as a muted '22-style tick, which is
+where the eye already is when it follows a line; and this year carries
+'2026 · 62%' in accent bold above its beacon. Endpoint labels nudge apart
+when years finish at similar percentages, so nothing overlaps in any data.
+
+The plot area grew in both directions from the space the legend and the
+oversized headline gave back.
+
+Suite at 53 — the 96px step-down, the legend row's absence, one tick per
+past year, the '2026 · 62%' endpoint label, the collision nudge, the gesture
+blocklist entry, and the park-at-right rule.
+
 ## v3.3.74 (2026-07-24) — The consistency chart ships as a card, and GIF is settled
 
 **The caption moved behind the dot** — the `yoy` tip, 79 characters — and

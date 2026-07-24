@@ -180,23 +180,25 @@ function drawYoy(curves){
   x.fillStyle=V('--ground'); x.fillRect(0,0,S,S);
   const P=76;
 
-  // this year's number is the headline
+  // this year's number is the headline — 96px: dominant but not shouting,
+  // a clear step above the 28px kicker without crowding the top margin
   const cNow=curves[thisYear];
   const pctNow=cNow?Math.round(cNow.curve[cNow.end-1]*100):null;
   x.textBaseline='alphabetic'; x.textAlign='left';
   if(pctNow!=null){
-    x.fillStyle=V('--chalk'); x.font='700 132px '+SANS;
-    x.fillText(pctNow+'%',P,P+126);
+    x.fillStyle=V('--chalk'); x.font='700 96px '+SANS;
+    x.fillText(pctNow+'%',P,P+96);
     const tw=(x.measureText(pctNow+'%')||{}).width||0;
-    x.fillStyle=V('--muted'); x.font='500 40px '+MONO;
-    x.fillText('of '+thisYear+', trained',P+tw+20,P+126);
+    x.fillStyle=V('--muted'); x.font='500 36px '+MONO;
+    x.fillText('of '+thisYear+', trained',P+tw+18,P+96);
   }
   x.textAlign='right'; x.fillStyle=V('--muted'); x.font='500 34px '+MONO;
-  x.fillText('ShowUp',S-P,P+54);
+  x.fillText('ShowUp',S-P,P+50);
   x.textAlign='left'; x.fillStyle=V('--faint'); x.font='500 28px '+MONO;
-  x.fillText('CONSISTENCY, YEAR OVER YEAR',P,P+188);
+  x.fillText('CONSISTENCY, YEAR OVER YEAR',P,P+152);
 
-  const L=P+70, R=S-P, T=P+250, B=S-P-170, W=R-L, H=B-T;
+  // right margin reserved for the year labels that replace the legend
+  const L=P+70, R=S-P-118, T=P+212, B=S-P-96, W=R-L, H=B-T;
   // y grid
   x.textAlign='right'; x.textBaseline='middle'; x.font='500 26px '+MONO;
   for(const g of [0,0.25,0.5,0.75,1]){
@@ -213,6 +215,7 @@ function drawYoy(curves){
     x.fillText(m,mx,B+34);
   });
   // past years first, this year last so it sits on top
+  const ends=[];
   for(const y of years.filter(y=>y!==thisYear).concat(years.includes(thisYear)?[thisYear]:[])){
     const {curve,end}=curves[y], cur=y===thisYear;
     x.strokeStyle=CV(YEAR_COLORS[y]||'var(--muted)');
@@ -224,25 +227,37 @@ function drawYoy(curves){
       d===0?x.moveTo(px,py):x.lineTo(px,py);
     }
     x.stroke();
+    ends.push({y, cur, ex:L+((end-1)/366)*W, ey:B-curve[end-1]*H,
+               pct:Math.round(curve[end-1]*100)});
     if(cur){
-      const lx=L+((end-1)/366)*W, ly=B-curve[end-1]*H;
+      const e=ends[ends.length-1];
       x.fillStyle=V('--accent');
-      x.beginPath(); x.arc(lx,ly,10,0,Math.PI*2); x.fill();
+      x.beginPath(); x.arc(e.ex,e.ey,10,0,Math.PI*2); x.fill();
     }
   }
-  // legend
-  x.textBaseline='alphabetic'; x.textAlign='left'; x.font='500 28px '+MONO;
-  let lx=P;
-  for(const y of years){
-    const c=curves[y], cur=y===thisYear;
-    x.fillStyle=CV(YEAR_COLORS[y]||'var(--muted)');
-    x.fillRect(lx,S-P-64,26,10);
-    x.fillStyle=cur?V('--chalk'):V('--muted');
-    x.font=(cur?'700':'500')+' 28px '+MONO;
-    const lbl=y+' '+Math.round(c.curve[c.end-1]*100)+'%';
-    x.fillText(lbl,lx+36,S-P-54);
-    lx+=36+(x.measureText(lbl)||{}).width+34;
+  /* the labels ARE the legend — each year sits at its own line's end, which
+     is where the eye already is when it follows the line. Past years: year
+     only, muted, on the right margin, nudged apart when endpoints collide.
+     This year: '2026 · 62%' in accent bold above its beacon. */
+  const past=ends.filter(e=>!e.cur).sort((a,b)=>a.ey-b.ey);
+  const LH=34;
+  for(let i=1;i<past.length;i++)
+    if(past[i].ey-past[i-1].ey<LH) past[i].ey=past[i-1].ey+LH;
+  x.textBaseline='middle'; x.textAlign='left'; x.font='500 28px '+MONO;
+  for(const e of past){
+    x.fillStyle=CV(YEAR_COLORS[e.y]||'var(--muted)');
+    x.fillText("'"+String(e.y).slice(2),R+16,e.ey);
   }
+  const eNow=ends.find(e=>e.cur);
+  if(eNow){
+    x.textBaseline='alphabetic'; x.textAlign='center';
+    x.fillStyle=V('--accent'); x.font='700 40px '+MONO;
+    const label=eNow.y+' · '+eNow.pct+'%';
+    const cx2=Math.max(P+((x.measureText(label)||{}).width||0)/2,
+                       Math.min(eNow.ex, R-((x.measureText(label)||{}).width||0)/2));
+    x.fillText(label,cx2,eNow.ey-30);
+  }
+  x.textBaseline='alphabetic'; x.textAlign='left';
   x.fillStyle=V('--faint'); x.font='500 26px '+MONO;
   x.fillText('% of days trained, cumulative',P,S-P+8);
   x.textAlign='right';
