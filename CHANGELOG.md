@@ -1,5 +1,26 @@
 # ShowUp — changelog
 
+## v3.3.77 (2026-07-25) — One name field, honestly labelled
+
+A First/Last split was proposed and declined. The app has exactly one
+consumer of the name — the greeting — so a Last Name field would collect
+data that feeds nothing, the same reason Height was cut from the You card in
+v3.3.66. It would also encode Western name order: a family-name-first user
+typing naturally into First/Last gets greeted by their surname, which is the
+exact failure the split was meant to prevent.
+
+The field's real identity is "what the app calls you", and now the label
+says so. The note states the one rule — first word is used — and once a
+name exists it shows the contract live: “Greets you as Sungjee.”
+
+A test lesson worth keeping: the hostile-name assertion first failed against
+the serialized HTML, which was the assertion's bug, not the app's —
+attribute values legally carry '<' unescaped, so the input's value tripped
+the regex. Injection checks must ask the DOM (is there a real <b> element
+with the injected content?), not grep the serialization.
+
+Suite at 57.
+
 ## v3.3.76 (2026-07-25) — The greeting learns the clock, and counts to a thousand
 
 The greeting word now tracks five bands instead of three: Early (before 5),

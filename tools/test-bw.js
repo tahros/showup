@@ -157,6 +157,23 @@ for (const [id, label] of [["youName","name"],["youBw","weight"],["youSave","sav
   console.log((ok?"PASS":"FAIL"), `settings renders the ${label} field →`, ok);
   if (!ok) fail++;
 }
+// v3.3.77 — one name field, and the first-word rule is stated
+run(`DB.settings.name='Sungjee Kim'; renderSync();`);
+const nameNote = sv();
+ok("the settings card states what it will call you",
+   /Greets you as <b>Sungjee<\/b>/.test(nameNote));
+ok("...and there is exactly ONE name field, not First/Last",
+   (nameNote.match(/id="youName"/g) || []).length === 1 && !/[Ll]ast [Nn]ame/.test(nameNote));
+run(`DB.settings.name=null; renderSync();`);
+ok("...nameless, it explains the first-word rule instead",
+   /Only the first word is used/.test(sv()));
+run(`DB.settings.name='<b>Hax</b> Kim'; renderSync();`);
+// Ask the DOM, not the serialized string: injection would produce a real <b>
+// element containing exactly 'Hax'; escaping renders it as visible text. The
+// serialized form is a trap — attribute values legally carry '<' unescaped.
+ok("...and the note escapes a hostile name too",
+   run(`![...$('#view').querySelectorAll('b')].some(b=>b.textContent==='Hax')`));
+run(`DB.settings.name=null; renderSync();`);
 const hasSex = /data-sex="m"/.test(sv()) && /data-sex="f"/.test(sv());
 console.log((hasSex?"PASS":"FAIL"), "settings renders the sex segment →", hasSex);
 if (!hasSex) fail++;

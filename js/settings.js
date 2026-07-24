@@ -41,8 +41,11 @@ function renderSync(){
     </div>
     <h2>You</h2>
     <div class="card">
-      <div class="fld text" style="margin-bottom:8px"><label>Name</label>
+      <div class="fld text" style="margin-bottom:8px"><label>Name — what the app calls you</label>
         <input id="youName" value="${hesc(DB.settings.name||'')}" placeholder="—" autocapitalize="words" maxlength="40"></div>
+      <div class="note" style="margin:-2px 0 10px">${firstName()
+        ? `Greets you as <b>${firstName()}</b> — the first word of whatever you type.`
+        : `Only the first word is used — “Sungjee Kim” greets as Sungjee. Type exactly what you want to be called.`}</div>
       <div class="row" style="gap:8px;align-items:stretch">
         <div class="fld" style="flex:1"><label>Weight (${U()})</label>
           <input id="youBw" type="number" inputmode="decimal" step="0.1" value="${bwNow()>0?wDisp(bwNow()):''}" placeholder="—"></div>
