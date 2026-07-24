@@ -48,7 +48,10 @@ const ys1 = d1.split(/(?=[ML])/).map(s => parseFloat(s.replace(/^[ML]\s*/, "").s
 const flat = ys1.length >= 2 && Math.max(...ys1) === Math.min(...ys1);
 console.log((flat?"PASS":"FAIL"), "a single weigh-in draws a FLAT line to today \u2192", flat);
 if (!flat) fail++;
-check("...and the note explains the flatness", `/holds flat/.test(bwCard())`, true);
+check("...and the flatness is explained behind the dot", `/data-tip="bw"/.test(bwCard())`, true);
+check("...with the explanation in the bubble, not inline",
+      `bwCard().indexOf('holds flat') > bwCard().indexOf('tip-bw')`, true);
+check("...and no loose prose left under the chart", `/class="note"/.test(bwCard())`, false);
 
 // ---- 3. two entries draw a STEP path --------------------------------------
 run(`setBw('2025-03-01', 68);`);
@@ -70,6 +73,8 @@ if (!carried) fail++;
 check("the net change is stated neutrally", `/-2 kg net/.test(bwCard())`, true);
 check("no goal line is drawn", `/goal/i.test(bwCard())`, false);
 check("the axis is labelled so the line can be read", `/stroke-dasharray="2 3"/.test(bwCard())`, true);
+check("the net change moved into the bubble", `/kg net/.test(bwCard())`, true);
+check("...and is not left as inline prose", `/class="note"/.test(bwCard())`, false);
 // NB: use indexOf, not a regex — inside a template literal `\(` collapses to
 // `(`, which silently turned the escaped parens into a capture group.
 check("...with the current value at the line's end",
@@ -86,10 +91,18 @@ if (!spreadOK) fail++;
 // ---- 5. the inline weigh-in: edit → save → recorded on TODAY --------------
 run(`${fresh} setBw('2024-01-10',70); view='stats'; renderStats();`);
 check("stats renders the weight section", `/id="secWeight"/.test($('#view').innerHTML)`, true);
+check("...above Report card (so above Last 30 days too)",
+      `$('#view').innerHTML.indexOf('secWeight') < $('#view').innerHTML.indexOf('Report card')`, true);
+check("...and above the Records heading",
+      `$('#view').innerHTML.indexOf('secWeight') < $('#view').innerHTML.indexOf('<h2 id="secRecords"')`, true);
+check("this fixture has no drift rows at all", `/Last 30 days/.test($('#view').innerHTML)`, false);
+check("...and the weight card renders anyway (it precedes the conditional)",
+      `/id="secWeight"/.test($('#view').innerHTML)`, true);
 run(`bwEdit=true;`);
 check("edit mode offers an input", `/id="bwIn"/.test(bwCard())`, true);
 check("...prefilled with the current weight", `/value="70"/.test(bwCard())`, true);
 check("...and a save button", `/id="bwSave"/.test(bwCard())`, true);
+check("...and keeps its inline rule while you type", `/silence means unchanged/.test(bwCard())`, true);
 
 run(`${fresh} setBw('2024-01-10',70); bwEdit=false; view='stats'; renderStats();
      $('#view').querySelector('#bwEditBtn').click();`);

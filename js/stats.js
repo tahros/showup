@@ -12,7 +12,7 @@ const YEAR_COLORS={ '2022':'var(--faint)','2023':'var(--muted)','2024':'var(--ac
 let bwEdit=false;
 function bwCard(){
   const ds=bwDays(), cur=bwNow();
-  let body;
+  let body, tip='';
 
   if(bwEdit){
     body=`<div class="fld"><label>Weight today (${U()})</label>
@@ -75,14 +75,14 @@ function bwCard(){
                 font-size="8" font-weight="700" fill="var(--accent)">${n1(toU(cur))}</text>
           <text x="32" y="99" font-family="var(--mono)" font-size="7" fill="var(--muted)">${md(first)}</text>
           <text x="300" y="99" text-anchor="end" font-family="var(--mono)" font-size="7" fill="var(--muted)">today</text>
-        </svg></div>
-        <div class="note">${ds.length===1
-          ? `One weigh-in, so the line holds flat at ${wDisp(cur)} ${U()} all the way to today — that IS the record. It bends the day you enter a different number.`
-          : `${ds.length} weigh-ins · ${delta===0?'no net change':`${delta>0?'+':''}${delta} ${U()} net`} since ${md(first)}. Flat stretches are days you didn't measure, not days you didn't change.`}</div>`;
+        </svg></div>`;
+      tip = ds.length===1
+        ? `One weigh-in on record, so the line holds flat at ${wDisp(cur)} ${U()} all the way to today — flat IS the record, not a gap. It bends the day you enter a different number. Enter a weight only when it changes; silence means unchanged.`
+        : `${ds.length} weigh-ins · ${delta===0?'no net change':`${delta>0?'+':''}${delta} ${U()} net`} since ${md(first)}. Flat stretches are days you didn't measure, not days you didn't change. Enter a weight only when it changes; silence means unchanged.`;
     }
     body=head+chart;
   }
-  return `<h2 id="secWeight">Your weight</h2><div class="card">${body}</div>`;
+  return `<h2 id="secWeight">Your weight ${tip?iBtn('bw',tip):''}</h2><div class="card">${body}</div>`;
 }
 function renderStats(){
   if(SEED.totals.sessions===0 && !hasAnyDays()){ $('#view').innerHTML=emptyHero('stats'); return; }
@@ -320,6 +320,7 @@ function renderStats(){
     drift.push({p,now,usual,ratio:usual>0?now/usual:2});
   }
   drift.sort((a,b)=>a.ratio-b.ratio);
+  h+=bwCard();                       // v3.3.69: you, before the part-by-part drift
   if(drift.length){
     h+=`<h2>Last 30 days, vs your usual</h2><div class="card">`;
     for(const dd of drift){
@@ -355,7 +356,6 @@ function renderStats(){
   h+=runStatsHTML();
 
   // records — kept, but demoted below the days story
-  h+=bwCard();
   h+=`<h2 id="secRecords">Records</h2>`;
   for(const part of Object.keys(SEED.catalog)){
     if(part==='Run') continue;

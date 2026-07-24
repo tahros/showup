@@ -1,5 +1,34 @@
 # ShowUp — changelog
 
+## v3.3.69 (2026-07-24) — The weight note goes behind the dot, and moves up
+
+Two notes of prose sat under the weight chart explaining what a flat line
+means. That is exactly what D1 in DESIGN.md exists to prevent: explanations
+live behind a dot, where the sentence used to be. Both are now the `bw` tip on
+the section title, using the same `iBtn` every other explained section uses.
+The net-change figure went in with them — the labelled axis and the value at
+the end of the line already carry that visually.
+
+The editor keeps its one inline line ("silence means unchanged"), deliberately.
+That is not an explanation of a chart you're looking at; it is the rule you
+need at the instant you're typing a number, and burying it behind a tap would
+be the wrong trade.
+
+**Your weight moves above "Last 30 days, vs your usual."** It now sits directly
+after the run records, before the part-by-part drift. The insertion point is
+*before* the `if(drift.length)` conditional that owns that heading, so the card
+renders whether or not you have drift rows — which the test fixture happens to
+exercise, since it has none.
+
+`test-bwcard.js` at 50 assertions: the tip carries the prose, no `.note`
+survives under the chart, the editor keeps its inline rule, and the section
+orders ahead of both Report card and the Records heading.
+
+**Harness note:** the ordering assertion first failed against plain
+`'secRecords'`, which matches the jump CHIP at the top of the view long before
+the heading. Anchor ordering checks on the tag, not the id fragment — the same
+class of error as the bare `.foo{` CSS regexes in v3.3.50 and v3.3.55.
+
 ## v3.3.68 (2026-07-24) — The weigh-in editor, and a chart that actually draws
 
 **The bug, plainly: I broke the editor's layout in v3.3.67 and shipped it.**
