@@ -108,6 +108,24 @@ function migrateV3(){
    bodyweight) in every year → weights kg. Convert Run distances only,
    for days on or before the sheet-era boundary. Idempotent via synced flag;
    converted days are stamped so LWW carries the fix to every device. */
+/* v3.3.66: bodyweight moves from a scalar setting to a dated series. The scalar
+   carried no history, so every past bodyweight lift was valued at today's
+   weight. Seed ONE entry at the first logged day, which makes the whole archive
+   read at that weight — for this archive that is not a guess: the v3.0.1
+   forensics found Pull Up/Dip = 70 in every sheet-era year. Idempotent via a
+   synced flag; the seeded day is stamped so LWW carries it to every device. */
+function migrateBw(){
+  if(DB.settings.bwSeeded) return 0;
+  DB.settings.bwSeeded=APP_VERSION;
+  if(Object.keys(DB.days).some(d=>DB.days[d].bw>0)) return 0;   // a series already exists
+  const kg=DB.settings.bodyKg;
+  if(!(kg>0)) return 0;                                          // nothing to carry over
+  const first=Object.keys(DB.days).filter(d=>(DB.days[d].w||[]).length).sort()[0];
+  if(!first) return 0;
+  DB.days[first].bw=+(+kg).toFixed(1);
+  DB.days[first].upd=Date.now();
+  return 1;
+}
 function migrateMiles(){
   if(DB.settings.miConverted) return 0;
   const CUT='2026-07-10';                       // last sheet-era day (SEED0.totals.last)

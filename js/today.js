@@ -102,7 +102,9 @@ function onbRender(){
   }else if(onbStep===3){
     const lb=onbUnit==='lb';
     b=`<div class="onbcard">
-      <h3>Your numbers</h3>
+      <h3>About you</h3>
+      <div class="onbrow"><span>Name <span class="muted">(so the app can say hello)</span></span>
+        <input id="onbName" type="text" autocapitalize="words" maxlength="40" placeholder="—"></div>
       <div class="onbrow"><span>Units</span>
         <span class="onbseg"><button class="${lb?'':'sel'}" data-onbu="kg">kg</button><button class="${lb?'sel':''}" data-onbu="lb">lb</button></span></div>
       <div class="onbrow"><span>Bodyweight <span class="muted">(for pull-ups, dips)</span></span>
@@ -125,6 +127,8 @@ function onbFinish(skip){
   if(!skip){
     DB.settings.myParts=[...onbSel];
     DB.settings.unit=onbUnit;
+    const nm=(document.getElementById('onbName')?.value||'').trim().slice(0,40);
+    if(nm) DB.settings.name=nm;
     const bw=parseFloat(document.getElementById('onbBw')?.value);
     if(bw>0) DB.settings.bodyKg=onbUnit==='lb'?+(bw*0.45359237).toFixed(1):bw;
     const bar=parseFloat(document.getElementById('onbBar')?.value);
@@ -200,6 +204,18 @@ document.addEventListener('click',e=>{
   else if(act==='democlear') demoClear();
   else if(act==='golift'){ view='lift'; render(); }
 });
+/* v3.3.66 — the greeting is a STATE, not decoration. It belongs to "hasn't
+   trained yet today" and it leaves the moment the first set lands, like every
+   other live state in this app. A permanent name banner is wallpaper in three
+   days; this one is only ever seen on arrival. */
+function helloCard(){
+  const n=firstName();
+  const hr=new Date().getHours();
+  const part=hr<12?'Morning':hr<18?'Afternoon':'Evening';
+  const d=SEED.totals.sessions;
+  return `<div class="hello"><span class="hi">${part}${n?', '+n:''}.</span>${
+    d?`<span class="hisub">${fmt(d)} days in.</span>`:''}</div>`;
+}
 function renderToday(){
   if(SEED.totals.sessions===0 && !((DB.days[todayISO]||{}).w||[]).length){
     $('#view').innerHTML=emptyHero('today'); return; }
@@ -216,6 +232,7 @@ function renderToday(){
 
   if(!logged){
     // ---- before the gym: what should I train
+    h+=helloCard();
     h+=rhythmCard();
     h+=`<h2>Train next</h2>`;
     if(P.pick){

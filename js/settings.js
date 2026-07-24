@@ -39,17 +39,30 @@ function renderSync(){
           <div class="note" style="margin-top:8px">One-time setup — see INSTALL.md — create the free database, run one SQL file, switch on Google sign-in.</div>`}
       `}
     </div>
-    <h2>Bars &amp; bodyweight</h2>
+    <h2>You</h2>
+    <div class="card">
+      <div class="fld text" style="margin-bottom:8px"><label>Name</label>
+        <input id="youName" value="${hesc(DB.settings.name||'')}" placeholder="—" autocapitalize="words" maxlength="40"></div>
+      <div class="row" style="gap:8px;align-items:stretch">
+        <div class="fld" style="flex:1"><label>Weight (${U()})</label>
+          <input id="youBw" type="number" inputmode="decimal" step="0.1" value="${bwNow()>0?wDisp(bwNow()):''}" placeholder="—"></div>
+        <div class="fld" style="flex:1"><label>Sex</label>
+          <span class="seg" style="display:flex;margin-top:4px">
+            <button data-sex="m" class="${DB.settings.sex==='m'?'sel':''}">M</button>
+            <button data-sex="f" class="${DB.settings.sex==='f'?'sel':''}">F</button></span></div>
+      </div>
+      <div class="note">${bwLast()?`Last change recorded ${pretty(bwLast())}. `:''}Enter a weight only when it <b>changes</b> — silence means unchanged, and the app reads back the weight in force on any given day. It's what Pull Up, Dip and other bodyweight lifts count as. Sex is stored for strength standards in a later release; nothing today reads it.</div>
+      <button class="btn" id="youSave" style="margin-top:10px">Save</button>
+    </div>
+    <h2>Bars</h2>
     <div class="card">
       <div class="row" style="gap:8px">
         <div class="fld" style="flex:1"><label>Barbell (${U()})</label>
           <input id="barW" type="number" inputmode="decimal" step="0.5" value="${wDisp(DB.settings.barKg??20)}"></div>
         <div class="fld" style="flex:1"><label>Smith bar (${U()})</label>
           <input id="smithW" type="number" inputmode="decimal" step="0.5" value="${wDisp(DB.settings.smithKg??20)}"></div>
-        <div class="fld" style="flex:1"><label>Bodyweight (${U()})</label>
-          <input id="bodyW" type="number" inputmode="decimal" step="0.5" value="${DB.settings.bodyKg?wDisp(DB.settings.bodyKg):''}" placeholder="—"></div>
       </div>
-      <div class="note">Logged weight is the total including the bar, so per-side = (total − bar) ÷ 2. Set the Smith bar to 0 if you log Smith work as plates only. Bodyweight isn't a bar — it's what Pull Up, Dip and other bodyweight lifts count as.</div>
+      <div class="note">Logged weight is the total including the bar, so per-side = (total − bar) ÷ 2. Set the Smith bar to 0 if you log Smith work as plates only.</div>
       <button class="btn" id="barSave" style="margin-top:10px">Save</button>
     </div>
     <h2>Your data</h2>

@@ -87,6 +87,18 @@ _hd = re.search(r'^\s*\.h-date\{([^}]*)\}', css, re.M)
 if _hd and 'text-overflow:ellipsis' not in _hd.group(1):
     fail.append(".h-date cannot truncate — a long title will force the header wider or taller")
 
+# -- the arrival greeting is ONE row (v3.3.66)
+#    .hello puts a free-text name beside the day count, both nowrap. A long
+#    name must truncate rather than push the count off-screen or onto a second
+#    line. jsdom has no layout, so assert it structurally.
+_hello = re.search(r'^\s*\.hello\{([^}]*)\}', css, re.M)
+if _hello:
+    if not re.search(r'flex-wrap:\s*nowrap', _hello.group(1)):
+        fail.append(".hello does not state flex-wrap:nowrap — the greeting can break onto two rows")
+    _hi = re.search(r'^\s*\.hello \.hi\{([^}]*)\}', css, re.M)
+    if not _hi or 'text-overflow:ellipsis' not in _hi.group(1):
+        fail.append(".hello .hi cannot truncate — a long name will push the day count off-screen")
+
 # -- shell size
 n = len(idx.encode())
 if n >= 8192: fail.append(f"index.html shell is {n} bytes (limit 8192)")

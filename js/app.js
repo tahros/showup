@@ -402,9 +402,28 @@ document.addEventListener('click',e=>{
   if(e.target.closest('#barSave')){
     DB.settings.barKg=toKg(+($('#barW').value||0))||20;
     DB.settings.smithKg=toKg(+($('#smithW').value||0));
-    const bw=+($('#bodyW').value||0);
-    DB.settings.bodyKg=bw>0?toKg(bw):null;
-    save(true);return toast('Weights saved');
+    save(true);return toast('Bar weights saved');
+  }
+  if(e.target.closest('[data-sex]')){
+    const v=e.target.closest('[data-sex]').dataset.sex;
+    DB.settings.sex = DB.settings.sex===v ? null : v;
+    save(true); return renderSync();
+  }
+  /* v3.3.66 — one Save for "you". The weight field is a WEIGH-IN: a number that
+     differs from the current one records a change on today; an unchanged number
+     records nothing, which is exactly the "silence means the same" rule. */
+  if(e.target.closest('#youSave')){
+    const nm=($('#youName').value||'').trim().slice(0,40);
+    DB.settings.name = nm || null;
+    const raw=+($('#youBw').value||0);
+    const kg = raw>0 ? +toKg(raw).toFixed(1) : 0;
+    const cur = bwNow();
+    let moved=false;
+    if(kg>0 && Math.abs(kg-cur)>0.05){ setBw(todayISO, kg); moved=true; }
+    else if(kg<=0 && cur>0 && $('#youBw').value.trim()===''){ /* blank left alone */ }
+    save(true);
+    renderSync();
+    return toast(moved?`Weight ${wDisp(kg)} ${U()} — recorded today`:'Saved');
   }
 });
 
@@ -571,7 +590,8 @@ function motionPass(){
   SEED=deriveAll(); _fireDist=null;                  // miles fix needs runDays() → derive first
   const mi=migrateMiles();
   const un=migrateUnits();
-  if(mig||mi||un){ save(true); }
+  const bwm=migrateBw();
+  if(mig||mi||un||bwm){ save(true); }
   if(mi||un) SEED=deriveAll(); _fireDist=null;           // re-derive on converted history
   if(mi||un) setTimeout(()=>toast(`Units corrected — true totals: ${fmt(Math.round(SEED.totals.km))} km · ${fmt(SEED.totals.vol)} kg lifted`),900);
   stampLegacyDays();

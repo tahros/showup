@@ -177,6 +177,44 @@ document.addEventListener('visibilitychange', ()=>{
 });
 function day(d){ if(!DB.days[d]) DB.days[d]={w:[]}; return DB.days[d]; }
 
+/* ---------- bodyweight as a dated series (v3.3.66) ----------
+   A weigh-in is an EVENT on a day, not a setting. Entering a weight means "it
+   changed today"; entering nothing means "unchanged". So the series is sparse
+   and read by carry-forward. Days already sync per-day (newest wins), already
+   back up and already restore — bodyweight rides along for free, and there is
+   no second structure to drift out of step with the first.
+
+   Why this replaces a scalar: DB.settings.bodyKg had no history, so a Pull Up
+   logged in 2024 was valued at TODAY's bodyweight. bwAt() values it at the
+   weight in force on the day it happened.
+
+   bodyKg SURVIVES as the derived CURRENT value so every existing consumer
+   (lift.js:326, loadLine) keeps working untouched.
+
+   A weigh-in day carrying no sets stays invisible to deriveAll(), which skips
+   days with no rows — recording weight can never inflate the day count. */
+function bwDays(){ return Object.keys(DB.days).filter(d=>DB.days[d].bw>0).sort(); }
+function bwAt(iso){
+  const ds=bwDays();
+  if(!ds.length) return DB.settings.bodyKg||0;      // no series yet: fall back to the setting
+  let hit=null;
+  for(const d of ds){ if(d<=iso) hit=d; else break; }
+  return DB.days[hit||ds[0]].bw;                    // before the first entry: the earliest known
+}
+const bwNow=()=>bwAt(todayISO);
+const bwLast=()=>{ const ds=bwDays(); return ds.length?ds[ds.length-1]:null; };
+/* record a change. kg<=0 clears the entry for that day. */
+function setBw(iso,kg){
+  const t=day(iso);
+  if(kg>0) t.bw=+(+kg).toFixed(1); else delete t.bw;
+  t.upd=Date.now();
+  const cur=bwNow();
+  DB.settings.bodyKg=cur>0?cur:null;                // keep the derived current value in step
+}
+/* user-entered text lands in innerHTML — escape it once, here. */
+function hesc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+const firstName=()=>hesc((DB.settings.name||'').trim().split(/\s+/)[0]||'');
+
 /* suggestion overrides: "use THESE sets as the plan for exercise X, today" */
 function sugOv(){
   if(!DB.suggest || DB.suggest.date!==todayISO) DB.suggest={date:todayISO, byEx:{}};

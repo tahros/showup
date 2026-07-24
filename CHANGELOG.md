@@ -1,5 +1,56 @@
 # ShowUp — changelog
 
+## v3.3.66 (2026-07-24) — Bodyweight has a history, and the app knows your name
+
+Bodyweight was a single number in Settings. That made a Pull Up logged in
+2024 worth whatever you weigh today — a quiet correctness bug hiding inside
+what looked like a missing feature.
+
+A weigh-in is now an EVENT on a day: `DB.days[iso].bw`. Enter a weight and
+it means "this changed today"; enter nothing and it means "unchanged".
+Reads carry forward from the most recent entry, and reads before the first
+entry backfill from the earliest one, so there is no window that answers
+zero. `bwAt(iso)` is the only way to ask.
+
+It deliberately reuses days rather than adding a structure beside them.
+Days already sync per-day newest-wins, already export in Backup, already
+restore, and already have past-day editing. A second store would have been
+a second thing to drift — `resealDay()` and `foldSets()` were both born from
+exactly that mistake.
+
+`settings.bodyKg` survives as the derived CURRENT value, so lift.js and
+loadLine() are untouched. v3.3.67 will switch them to bwAt() so historical
+bodyweight lifts finally value correctly.
+
+The migration seeds ONE entry at the first logged day from the old scalar,
+which makes the whole archive read at that weight. For this archive that
+isn't a guess: the v3.0.1 forensics found Pull Up/Dip = 70 in every
+sheet-era year.
+
+A weigh-in-only day carries no sets, and deriveAll() skips days with no
+rows — so recording your weight can never inflate the day count. There is a
+test that says so, because that number is the entire product.
+
+**Personal.** Settings gains a "You" card: name, weight, sex. Onboarding
+step 3 becomes "About you" and asks for a name. Height was requested and
+deliberately left out — nothing in the app or the roadmap reads stature, and
+a field that feeds nothing is how a log starts feeling like a form. Sex is
+stored for strength standards later and says so plainly.
+
+The greeting is a STATE, not a banner. It sits above Rhythm only while you
+haven't trained yet, and it leaves the moment the first set lands — every
+state the app walks into, it walks out of. A permanent "Hey Sungjee" would
+be wallpaper by Thursday. Free text now reaches innerHTML, so `hesc()`
+escapes it.
+
+buildcheck gains a fourth structural guard: `.hello` must not wrap and the
+name must be able to truncate, or a long name pushes the day count off a
+360px screen. Same class of bug as the header wrap in v3.3.55.
+
+New suite `test-bw.js` — 41 assertions covering carry-forward, backfill,
+segment boundaries, clearing, the migration's idempotence, the LWW union,
+name escaping, the greeting's arrival and departure, and the streak guard.
+
 ## v3.3.65 (2026-07-24) — One up button, everywhere
 The calendar return pill becomes a general scroll-to-top control, available
 on every tab whenever you're deep enough in a view for the top to be a trek
