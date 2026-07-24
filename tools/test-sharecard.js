@@ -115,6 +115,25 @@ ok("...darker means more days (max month is the strongest)",
    Math.max(...alphas) <= 0.88 + 1e-9 && Math.min(...alphas) >= 0.14 - 1e-9,
    `${Math.min(...alphas)}–${Math.max(...alphas)}`);
 
+// ---- 5b. the month in progress is DIMMER, in both themes ----------------
+// Alpha, not a colour, so light and dark behave the same. The existing bound
+// above passed this by luck; assert the rule itself.
+check("mgAlpha dims the current month", `mgAlpha(3,3,true) < mgAlpha(3,3,false)`, true);
+check("...by a fixed fraction, not a colour swap", `+(mgAlpha(3,3,true)/mgAlpha(3,3,false)).toFixed(2)`, 0.45);
+check("...and an empty month is still nothing", `mgAlpha(0,3,true)`, 0);
+const curAlpha = run(`(function(){ const g=gridData();
+  return +mgAlpha(g.mDays[g.mNow]||0, g.max, true).toFixed(3); })()`);
+const lastTint = parseFloat(tints[tints.length - 1].split(",")[3]);
+ok("the card paints this month \u2014 the last cell drawn \u2014 at the dimmed alpha",
+   lastTint === Number(curAlpha), `${lastTint} vs ${curAlpha}`);
+const fullAlpha = run(`(function(){ const g=gridData();
+  return +mgAlpha(g.mDays[g.mNow]||0, g.max, false).toFixed(3); })()`);
+ok("...not the full one a finished month would get",
+   lastTint < Number(fullAlpha), `${lastTint} < ${fullAlpha}`);
+ok("the grid and the card share one alpha rule (not two)",
+   /mgAlpha\(n,gd\.max,k===gd\.mNow\)/.test(fs.readFileSync(path.join(dir,"js/report.js"),"utf8")) &&
+   /mgAlpha\(n,gMax,k===mNow\)/.test(statsSrc));
+
 // ---- 6. this month is dashed, and the dash is put back ------------------
 const dashes = calls.filter(c => c[0] === "setLineDash");
 ok("the current month is stroked dashed", dashes.some(c => (c[1] || []).length > 0));
@@ -127,6 +146,14 @@ ok("...and the dash is cleared after, so nothing else inherits it",
 // ---- 7. the whole path: button → overlay → shareable file ----------------
 run(`view='stats'; renderStats();`);
 ok("stats offers the share button", /id="gridShare"/.test(run(`$('#view').innerHTML`)));
+// the paragraph under the grid moved behind the dot (DESIGN.md D1)
+const gridHtml = run(`$('#view').innerHTML`);
+ok("the grid explains itself behind an i", /data-tip="mgrid"/.test(gridHtml));
+ok("...and no paragraph is left under it", !/the whole history on one screen/.test(gridHtml));
+const mgTip = (fs.readFileSync(path.join(dir, "js/stats.js"), "utf8")
+  .match(/iBtn\('mgrid',"([^"]*)"/) || [])[1] || "";
+ok("...within the app's one-breath range", mgTip.length > 0 && mgTip.length <= 120,
+   mgTip.length + " chars");
 run(`$('#view').querySelector('#gridShare').click();`);
 // showCard awaits document.fonts.ready; drain the microtask queue
 run(`Promise.resolve()`);

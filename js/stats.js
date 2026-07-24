@@ -14,6 +14,11 @@ let bwEdit=false;
    share card read one source. The PAINT is duplicated on purpose (canvas
    cannot reuse a <span>), but the arithmetic must not be — that is exactly
    how resealDay() and foldSets() were born. */
+/* v3.3.73 — the month in progress is DIMMER, not merely dashed. Its count is
+   partial and must not read as a finished one. Expressed as alpha rather than
+   a colour, so it behaves identically in light and dark. Shared by the HTML
+   grid and the canvas card. */
+function mgAlpha(n,max,cur){ return n?(0.14+0.74*n/max)*(cur?0.45:1):0; }
 function gridData(){
   const mDays={};
   for(const d of Object.keys(SEED.sessions)) mDays[d.slice(0,7)]=(mDays[d.slice(0,7)]||0)+1;
@@ -295,7 +300,7 @@ function renderStats(){
   /* --- "Have I kept showing up?" — every month ever, one screen --- */
   const _gd=gridData();
   const mDays=_gd.mDays, gy0=_gd.y0, gy1=_gd.y1, gMax=_gd.max, m0=_gd.m0, mNow=_gd.mNow;
-  h+=`<h2 id="secParts">Showing up, every month</h2><div class="card">
+  h+=`<h2 id="secParts">Showing up, every month ${iBtn('mgrid',"Days trained each month — darker is more, dashed is still being written; tap one to open it.")}</h2><div class="card">
       <div class="mgrid"><span></span>${'JFMAMJJASOND'.split('').map(c=>`<span class="mg-h">${c}</span>`).join('')}`;
   for(let y=gy0;y<=gy1;y++){
     h+=`<span class="mg-y mono">'${String(y).slice(2)}</span>`;
@@ -303,12 +308,12 @@ function renderStats(){
       const k=`${y}-${String(m).padStart(2,'0')}`;
       const n=mDays[k]||0;
       const out=k<m0||k>mNow;
-      const a=n?Math.round(14+74*n/gMax):0;
+      const a=Math.round(mgAlpha(n,gMax,k===mNow)*100);
       h+=`<span class="mg-c mono ${k===mNow?'cur':''}" ${out?'':`data-mk="${k}"`} style="${n?`background:color-mix(in srgb, var(--accent) ${a}%, transparent)`:''}">${out?'':(n||'·')}</span>`;
     }
   }
-  h+=`</div><div id="mexp"></div><div class="note">Days trained each month — the whole history on one screen. Darker = more days. Dashed = this month, still being written. Tap a month to open it.</div>
-      <button class="btn ghost" id="gridShare">Share as image</button></div>`;
+  h+=`</div><div id="mexp"></div>
+      <button class="btn ghost" id="gridShare" style="margin-top:12px">Share as image</button></div>`;
 
   /* --- "What's quietly slipping?" — last 30 days vs YOUR 12-month rhythm --- */
   const isoAgo=n=>{const c=new Date(todayISO+'T00:00');c.setDate(c.getDate()-n);return c.toLocaleDateString('en-CA');};

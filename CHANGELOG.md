@@ -1,5 +1,31 @@
 # ShowUp — changelog
 
+## v3.3.73 (2026-07-24) — The grid explains itself behind a dot, and this month reads as unfinished
+
+The paragraph under the month grid was 165 characters of prose sitting between
+the data and the share button. It is the `mgrid` tip now, at 92 — inside the
+41–94 range every other tip in the app occupies, and inside the 120-character
+cap buildcheck started enforcing two versions ago. The cap did its job: the
+original text could not have shipped as a tip without being cut.
+
+**July reads as unfinished now.** It was tinted at full strength like any
+completed month and merely outlined dashed, so a partial count looked like a
+finished one — a month three days old sat as dark as a month of twenty-three.
+Its fill is now dimmed to 45%, the dash is drawn in accent rather than muted so
+it stays crisp against the lighter cell, and the number goes muted.
+
+Dimming is expressed as **alpha, not a colour**, which is what makes it correct
+in light and dark without a second rule. `mgAlpha(n,max,cur)` is shared by the
+HTML grid and the canvas share card, so the two can never disagree about what
+"in progress" looks like — the same reason `gridData()` was extracted last
+version.
+
+`test-sharecard.js` at 36 assertions. The dimming check had to be made
+positional: the current month is the last in-range cell drawn, and membership
+alone was not enough, because another month with the same day count produces
+an identical full-strength alpha and the flat call log cannot tell the two
+cells apart. The first version of that assertion passed by luck.
+
 ## v3.3.72 (2026-07-24) — The year grid as a 1:1 share card
 
 The month grid is the most compelling thing this app owns — the whole history

@@ -141,7 +141,7 @@ function drawGrid(gd){
       const n=gd.mDays[k]||0;
       if(k<gd.m0||k>gd.mNow) continue;                 // outside the log: nothing, not a zero
       const cx=P+cw*m+3, cy=py+3, w=cw-6, hh=rh-6;
-      if(n){ x.fillStyle=tint(+(0.14+0.74*n/gd.max).toFixed(3)); rr(cx,cy,w,hh,9); x.fill(); }
+      if(n){ x.fillStyle=tint(+mgAlpha(n,gd.max,k===gd.mNow).toFixed(3)); rr(cx,cy,w,hh,9); x.fill(); }
       if(k===gd.mNow){                                  // this month is still being written
         x.strokeStyle=V('--accent'); x.lineWidth=2.5; x.setLineDash([6,5]);
         rr(cx,cy,w,hh,9); x.stroke(); x.setLineDash([]);

@@ -109,7 +109,7 @@
   .mg-h{font-size:9px;color:var(--faint);text-align:center;font-family:var(--mono)}
   .mg-y{font-size:10px;color:var(--muted)}
   .mg-c{height:24px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--chalk)}
-  .mg-c.cur{outline:1.5px dashed var(--muted);outline-offset:-1.5px}
+  .mg-c.cur{outline:1.5px dashed var(--accent);outline-offset:-1.5px;color:var(--muted)}
   .driftrow{display:grid;grid-template-columns:66px 1fr auto;gap:10px;align-items:center;padding:7px 0;border-top:1px dashed var(--line)}
   .driftrow:first-of-type{border-top:none}
   .dr-p{font-size:13px;font-weight:600}
