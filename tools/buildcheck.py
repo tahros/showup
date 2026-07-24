@@ -113,6 +113,24 @@ if _btnw and 'width:100%' in _btnw.group(1):
                 fail.append(f"{pathlib.Path(_jsf).name}: a .btn uses flex:0 0 auto while .btn is "
                             f"width:100% — it will overflow its row (see v3.3.68). Use .btnrow.")
 
+# -- a tip is ONE breath, not a paragraph (v3.3.71)
+#    The bw tip shipped at 367 chars / 62 words / 4 sentences and covered the
+#    chart it was describing. Measured against the five tips that predate it
+#    (41-94 chars, 8-18 words, 1-2 sentences) it was 3.9x the longest. Cap it
+#    structurally so the next one cannot drift either. Tips must be inline
+#    literals at the iBtn call site, as all of them now are.
+TIP_MAX = 120
+for _jsf in _glob.glob(str(d/"js"/"*.js")):
+    _src = pathlib.Path(_jsf).read_text()
+    for _m in re.finditer(r"iBtn\(\s*'[^']+'\s*,\s*(`[^`]*`|'(?:[^'\\]|\\.)*'|\"(?:[^\"\\]|\\.)*\")", _src):
+        _t = re.sub(r'\$\{[^}]*\}', 'XX', _m.group(1)[1:-1])
+        if len(_t) > TIP_MAX:
+            fail.append(f"{pathlib.Path(_jsf).name}: an iBtn tip is {len(_t)} chars "
+                        f"(cap {TIP_MAX}) \u2014 tips are one sentence (see v3.3.71): {_t[:48]}...")
+    if re.search(r"iBtn\(\s*'[^']+'\s*,\s*[A-Za-z_$][\w$]*\s*\)", _src):
+        fail.append(f"{pathlib.Path(_jsf).name}: an iBtn tip is passed as a variable \u2014 "
+                    f"inline the literal so its length can be checked (see v3.3.71)")
+
 # -- shell size
 n = len(idx.encode())
 if n >= 8192: fail.append(f"index.html shell is {n} bytes (limit 8192)")

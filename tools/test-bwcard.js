@@ -180,10 +180,13 @@ if (!tipA || tipA !== tipB) fail++;
 const hasNumbers = /\d/.test(tipA.replace(/&#?\w+;/g, ""));
 console.log((hasNumbers ? "FAIL" : "PASS"), "...and quotes no figure from the log \u2192", !hasNumbers);
 if (hasNumbers) fail++;
-check("...while still naming the display unit", `/lowest and highest recorded kg/.test(bwCard())`, true);
-run(`DB.settings.unit='lb';`);
-check("...which follows the unit toggle", `/lowest and highest recorded lb/.test(bwCard())`, true);
-run(`DB.settings.unit='kg';`);
+// A tip is one breath. The five that predate this one run 41-94 chars; this
+// shipped at 367 and covered the chart it described.
+const tipLen = tipA.replace(/&#39;/g, "'").length;
+const oneBreath = tipLen <= 120 && (tipA.match(/\./g) || []).length === 1;
+console.log((oneBreath ? "PASS" : "FAIL"),
+            `the tip is one sentence within the app's range \u2192 ${tipLen} chars`);
+if (!oneBreath) fail++;
 
 // the dot is offered in every state, including the empty one
 run(`${fresh} DB.settings.bodyKg=null; DB.days={};`);

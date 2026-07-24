@@ -13,7 +13,6 @@ let bwEdit=false;
 function bwCard(){
   const ds=bwDays(), cur=bwNow();
   let body;
-  const tip=`Every weigh-in you've recorded, over time. The line STEPS instead of curving because between two entries the app knows nothing — a flat stretch is days you didn't measure, not days you didn't change, and the last weight carries forward to today. The dashed lines mark your lowest and highest recorded ${U()}. Record a weight only when it changes; silence means unchanged.`;
 
   if(bwEdit){
     body=`<div class="fld"><label>Weight today (${U()})</label>
@@ -79,7 +78,7 @@ function bwCard(){
     }
     body=head+chart;
   }
-  return `<h2 id="secWeight">Your weight ${iBtn('bw',tip)}</h2><div class="card">${body}</div>`;
+  return `<h2 id="secWeight">Your weight ${iBtn('bw',"Your recorded weights over time — flat stretches are days you didn't measure.")}</h2><div class="card">${body}</div>`;
 }
 function renderStats(){
   if(SEED.totals.sessions===0 && !hasAnyDays()){ $('#view').innerHTML=emptyHero('stats'); return; }

@@ -25,6 +25,7 @@ index.html + css/ + js/ + sw.js only.
   * `header` must never wrap; `.h-date` must truncate (v3.3.55)
   * `.hello` must not wrap; the name must truncate (v3.3.66)
   * no `.btn` may be `flex:0 0 auto` while `.btn` is `width:100%` (v3.3.68)
+  * no `iBtn` tip over 120 chars, and none passed as a variable (v3.3.71)
 - `smoke.js DIR` — boots all 11 scripts in jsdom, asserts header + view render
 - `deploy.py DIR "msg" file...` — GitHub API blobs → tree → commit → ref PATCH
 - `perf.js DIR` — render timing at real archive scale (918+ days)

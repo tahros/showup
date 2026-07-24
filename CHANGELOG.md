@@ -1,5 +1,32 @@
 # ShowUp — changelog
 
+## v3.3.71 (2026-07-24) — One sentence
+
+The `bw` tip was 367 characters, 62 words, four sentences. Measured against
+the five tips that predate it — `goal` 41, `cumkm` 50, `sets` 60, `ready` 87,
+`pace` 94 — it was **3.9x the longest text in the app**, and the bubble was
+tall enough to cover the chart it was explaining.
+
+    Your recorded weights over time — flat stretches are days you didn't measure.
+
+77 characters. What it is, then the single non-obvious thing about it. The
+rest was me writing the reasoning from the changelog into the product, which
+nobody opens a fitness app to read.
+
+Everything cut was already stated elsewhere: the axis labels mark the low and
+high, the line visibly steps, and the editor already carries "silence means
+unchanged" at the moment you're typing a number. The tip was the fourth place
+the same idea appeared.
+
+It is also inlined at the `iBtn` call site now, like the other five. The
+`const tip=` indirection existed only because the text had grown too long to
+sit in the call — which was itself the signal.
+
+**buildcheck gains a sixth guard:** no `iBtn` tip may exceed 120 characters,
+and no tip may be passed as a variable (which would hide its length from the
+check). Verified by breaking it. Six guards now, and every one was added after
+shipping the thing it catches.
+
 ## v3.3.70 (2026-07-24) — The weight tip explains the chart, not your numbers
 
 The `bw` tip recited the reader's data: how many weigh-ins, the current weight,
