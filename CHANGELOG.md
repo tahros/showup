@@ -1,5 +1,32 @@
 # ShowUp — changelog
 
+## v3.3.64 (2026-07-24) — The go-to card asks to be pressed
+"When I open this in the morning, this should tempt me to press it. Nothing
+happened."
+
+Both halves were true, and they had different causes.
+
+**Nothing happened, literally.** v3.3.57's entrance was armed only by a part
+TAP. Opening the app restores the part from saved state with no tap at all —
+so the one moment the invitation matters was the one moment it stayed still.
+The trigger is now "the list you're looking at changed", compared against the
+last rendered part. That covers the tap, the morning boot, and back-
+navigation, while logging a set (same part) still never re-bounces.
+
+**And it was too quiet to see.** 7px on a single-card list, where the stagger
+contributes nothing, is imperceptible. Now 14px with a slight scale over
+340ms — arrival, not a bounce.
+
+**The card had no affordance at all.** Today's TRAIN NEXT says "Start →";
+this said nothing — just text on a white card, giving the eye no reason to
+believe it was pressable. Go-to cards now carry an accent → at their right
+edge that leans forward on press. Same invitation, same colour, sized for a
+glance.
+
+Verified both ways: the new assertions fail on v3.3.63 at exactly the
+restored-part case and the missing chevron.
+
+
 ## v3.3.63 (2026-07-24) — Repless rows with a real weight, gone too
 v3.3.62 caught the empty GROUPS. These are empty ROWS inside a group that
 has real sets — "12 kg" with no chips under eight legitimate presses.

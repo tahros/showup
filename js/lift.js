@@ -1,11 +1,16 @@
 /* ShowUp — lift.js
    Extracted verbatim from index.html (v3.2.5 refactor). Classic script:
    shares one global scope with its siblings, loaded in order by index.html. */
+let _lastLiftPart='\u0000';   // v3.3.64: sentinel — first render always counts as a change
 function renderLift(){
-  /* v3.3.57: one entrance per part selection. The flag is consumed here so a
-     mid-session re-render (logging a set) never re-bounces the list, and a
-     jump straight into an exercise can't leave it armed for later. */
-  const _enter=lift.enterAnim; lift.enterAnim=false;
+  /* v3.3.64: the entrance fires when the LIST YOU'RE LOOKING AT CHANGES —
+     not only on a part tap. Opening the app in the morning restores the part
+     from saved state with no tap at all, which is exactly the moment the
+     invitation matters and exactly the moment v3.3.57 stayed still.
+     Comparing against the last rendered part covers tap, boot, and back-
+     navigation, while logging a set (same part) still never re-bounces. */
+  const _enter = lift.enterAnim || _lastLiftPart!==lift.part;
+  lift.enterAnim=false; _lastLiftPart=lift.part;
   let _ei=0;
   const P=trainingPlan();
   const t=day(todayISO);
@@ -113,6 +118,7 @@ function renderLift(){
       return `<div class="item logrow ${big?'goto':''}${_enter?' enter':''}" style="--i:${Math.min(_ei++,10)};${big?'':'padding:10px 10px 10px 14px'}">
             <button class="logmain" data-ex="${ex}">
               <b>${ex}</b><div class="sub">${meta}${mine?` · yours · ${eq.toLowerCase()}`:''}</div>
+              ${big?'<span class="gochev" aria-hidden="true">→</span>':''}
             </button>
             <span class="pr-cell">
               <span class="pr-top">${p.mw?wDisp(p.mw)+U():''}</span>

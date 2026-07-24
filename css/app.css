@@ -360,6 +360,14 @@
   .partcard.sel.dead{opacity:1}   /* selection is the single authority */
   .item.dim{opacity:.45}
   .item.logrow{gap:8px;padding:10px 10px 10px 14px}
+  /* v3.3.64: go-to cards had no affordance saying they were pressable —
+     Today's TRAIN NEXT has "Start →", this had only text. The chevron is the
+     same invitation in the same accent, sized for a glance not a shout. */
+  .gochev{position:absolute;right:12px;top:50%;transform:translateY(-50%);
+    color:var(--accent);font-size:17px;line-height:1;opacity:.75;
+    transition:transform .18s ease,opacity .18s ease}
+  .logrow.goto .logmain{position:relative;padding-right:34px}
+  .logrow.goto .logmain:active .gochev{transform:translateY(-50%) translateX(3px);opacity:1}
   .logmain{flex:1;min-width:0;background:none;border:0;color:var(--chalk);font:inherit;text-align:left;cursor:pointer;padding:0}
   .logmain b{font-weight:500}
   .xbtn{flex:0 0 40px;height:40px;border-radius:10px;border:1px solid var(--line);
@@ -605,9 +613,11 @@
   /* v3.3.57: exercise cards ARRIVE when a part is chosen — a 7px rise with a
      40ms stagger, once. fill-mode:backwards, never both: a finished card must
      leave no transform and no stacking context (the v3.3.16 lesson). */
-  .item.logrow.enter{animation:cardin .26s cubic-bezier(.2,.8,.25,1) backwards;
-    animation-delay:calc(var(--i,0)*40ms)}
-  @keyframes cardin{from{opacity:0;transform:translateY(7px)}}
+  .item.logrow.enter{animation:cardin .34s cubic-bezier(.2,.9,.25,1) backwards;
+    animation-delay:calc(var(--i,0)*45ms)}
+  /* v3.3.64: 7px was invisible on a single-card list. A 14px rise with a
+     slight scale reads as arrival without becoming a bounce. */
+  @keyframes cardin{from{opacity:0;transform:translateY(14px) scale(.985)}}
   @keyframes grow{from{transform:scaleY(.02)}to{transform:none}}
 
   /* 1. tab switching — View Transitions API (iOS 18+); a quiet 3px drift + fade */
