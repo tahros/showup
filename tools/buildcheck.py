@@ -131,6 +131,17 @@ for _jsf in _glob.glob(str(d/"js"/"*.js")):
         fail.append(f"{pathlib.Path(_jsf).name}: an iBtn tip is passed as a variable \u2014 "
                     f"inline the literal so its length can be checked (see v3.3.71)")
 
+# -- installed-app zoom doctrine (v3.3.78): page zoom off, chart zoom on
+#    The viewport must pin scale (iOS honours it only in standalone, which is
+#    exactly the split we want), html must keep touch-action:manipulation,
+#    and chart surfaces must keep touch-action:none so their own pinch works.
+if 'user-scalable=no' not in idx:
+    fail.append("viewport meta lost user-scalable=no \u2014 installed app will pinch-zoom (v3.3.78)")
+if not re.search(r'html\{[^}]*touch-action:manipulation', css):
+    fail.append("html lost touch-action:manipulation \u2014 double-tap zoom returns (v3.3.78)")
+if not re.search(r'\.zoom\{[^}]*touch-action:none', css):
+    fail.append(".zoom lost touch-action:none \u2014 chart pinch will fight the page (v3.3.78)")
+
 # -- shell size
 n = len(idx.encode())
 if n >= 8192: fail.append(f"index.html shell is {n} bytes (limit 8192)")

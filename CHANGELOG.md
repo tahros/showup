@@ -1,5 +1,25 @@
 # ShowUp — changelog
 
+## v3.3.78 (2026-07-25) — Page zoom off where the app is installed, chart zoom untouched
+
+The viewport now pins scale: `maximum-scale=1, user-scalable=no`. iOS ignores
+the directive in Safari tabs and honours it in standalone — which is exactly
+the split wanted. The browser keeps zoom for anyone who needs it (the
+accessibility objection is answered by the platform itself, where the public
+first arrives), and only the installed app — where someone chose app
+behaviour — behaves like an app. The failure this kills: an accidental pinch
+mid-set leaving the app stuck half-zoomed with no obvious way back.
+
+Chart pinch is unaffected. `.zoom` surfaces are `touch-action:none` with
+their own gesture code; they never depended on browser zoom.
+
+buildcheck gains a three-way coherence guard: the viewport must keep
+`user-scalable=no`, `html` must keep `touch-action:manipulation`, and `.zoom`
+must keep `touch-action:none`. The zoom doctrine is one decision expressed in
+three files, and losing any leg half-applies it. Verified by breaking it.
+
+One-line change, seventh guard, suite unchanged at green.
+
 ## v3.3.77 (2026-07-25) — One name field, honestly labelled
 
 A First/Last split was proposed and declined. The app has exactly one
