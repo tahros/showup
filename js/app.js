@@ -401,6 +401,7 @@ document.addEventListener('click',e=>{
   }
   if(e.target.closest('#bwEditBtn')){ bwEdit=true; renderStats();
     setTimeout(()=>{const i=$('#bwIn'); if(i){i.focus();i.select();}},0); return; }
+  if(e.target.closest('#bwCancel')){ bwEdit=false; renderStats(); return; }
   if(e.target.closest('#bwSave')){
     const raw=+($('#bwIn').value||0);
     const kg=raw>0?+toKg(raw).toFixed(1):0;

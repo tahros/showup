@@ -38,11 +38,17 @@ check("no entries and no scalar → the Add affordance", `/id="bwEditBtn"/.test(
 check("...and it says so plainly", `/No weight recorded yet/.test(bwCard())`, true);
 check("...with no chart drawn", `/<svg/.test(bwCard())`, false);
 
-// ---- 2. one entry is a NUMBER, not a flat line ----------------------------
+// ---- 2. ONE entry still draws: a flat line is the true shape of the record -
 run(`${fresh} setBw('2024-01-10', 70);`);
-check("one entry draws no chart", `/<svg/.test(bwCard())`, false);
+check("one entry DOES draw a chart", `/<svg/.test(bwCard())`, true);
 check("...it states the value", `/70 <span/.test(bwCard())`, true);
 check("...and names it unchanged since the entry", `/unchanged since/.test(bwCard())`, true);
+const d1 = (run(`bwCard()`).match(/<path d="([^"]+)"/) || [])[1] || "";
+const ys1 = d1.split(/(?=[ML])/).map(s => parseFloat(s.replace(/^[ML]\s*/, "").split(/\s+/)[1])).filter(n => !isNaN(n));
+const flat = ys1.length >= 2 && Math.max(...ys1) === Math.min(...ys1);
+console.log((flat?"PASS":"FAIL"), "a single weigh-in draws a FLAT line to today \u2192", flat);
+if (!flat) fail++;
+check("...and the note explains the flatness", `/holds flat/.test(bwCard())`, true);
 
 // ---- 3. two entries draw a STEP path --------------------------------------
 run(`setBw('2025-03-01', 68);`);
@@ -63,6 +69,11 @@ console.log((carried?"PASS":"FAIL"), "the last weight extends to today →", car
 if (!carried) fail++;
 check("the net change is stated neutrally", `/-2 kg net/.test(bwCard())`, true);
 check("no goal line is drawn", `/goal/i.test(bwCard())`, false);
+check("the axis is labelled so the line can be read", `/stroke-dasharray="2 3"/.test(bwCard())`, true);
+// NB: use indexOf, not a regex — inside a template literal `\(` collapses to
+// `(`, which silently turned the escaped parens into a capture group.
+check("...with the current value at the line's end",
+      `bwCard().indexOf('font-weight="700" fill="var(--accent)">68') > -1`, true);
 
 // ---- 4. a near-flat series must not amplify into noise --------------------
 run(`${fresh} setBw('2024-01-10',70); setBw('2025-03-01',70.2);`);
@@ -88,6 +99,24 @@ check("saving closes the editor", `bwEdit`, false);
 check("...records the change against TODAY", `DB.days[todayISO].bw`, 68.5);
 check("...and the current value follows", `bwNow()`, 68.5);
 check("...and the derived scalar follows too", `DB.settings.bodyKg`, 68.5);
+
+// ---- 5b. Cancel backs out without recording anything ----------------------
+run(`${fresh} setBw('2024-01-10',70); delete DB.days[todayISO];
+     bwEdit=false; view='stats'; renderStats();
+     $('#view').querySelector('#bwEditBtn').click();`);
+check("edit mode offers a way out", `!!$('#bwCancel')`, true);
+run(`$('#bwIn').value='55'; $('#bwCancel').click();`);
+check("cancel closes the editor", `bwEdit`, false);
+check("...and records nothing", `!!(DB.days[todayISO]&&DB.days[todayISO].bw)`, false);
+
+// ---- 5c. the layout bug of v3.3.67: .btn is width:100% -------------------
+const statsSrc = fs.readFileSync(path.join(dir, "js/stats.js"), "utf8");
+const overflows = /<button[^>]*class="btn[^"]*"[^>]*flex:\s*0\s+0\s+auto/.test(statsSrc);
+console.log((overflows?"FAIL":"PASS"), "no .btn is pinned flex:0 0 auto (it would overflow) \u2192", !overflows);
+if (overflows) fail++;
+const usesBtnrow = /class="btnrow"/.test(statsSrc);
+console.log((usesBtnrow?"PASS":"FAIL"), "the editor uses .btnrow for its buttons \u2192", usesBtnrow);
+if (!usesBtnrow) fail++;
 
 // ---- 6. an UNCHANGED number records nothing — the whole rule --------------
 run(`${fresh} setBw('2024-01-10',70); delete DB.days[todayISO];

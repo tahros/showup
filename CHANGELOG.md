@@ -1,5 +1,49 @@
 # ShowUp — changelog
 
+## v3.3.68 (2026-07-24) — The weigh-in editor, and a chart that actually draws
+
+**The bug, plainly: I broke the editor's layout in v3.3.67 and shipped it.**
+`.btn` is `width:100%`. I put one in a flex row with `flex:0 0 auto`, which
+resolves its basis to the FULL container width and then forbids it from
+shrinking — so Save demanded the whole card, overflowed the right edge, and
+crushed the field beside it to min-content, wrapping "WEIGHT TODAY (KG)" onto
+three lines around a clipped input. `.btnrow` has existed in this app for
+exactly this situation and is what I should have used.
+
+The editor is now a full-width field with `.btnrow` beneath it: Cancel and
+Save, both `flex:1`. Cancel is new — there was previously no way out of edit
+mode without saving, which is its own small violation of "every state the app
+walks into, it walks out of".
+
+buildcheck gains a fifth guard: while `.btn` is `width:100%`, no `.btn` in any
+JS source may carry `flex:0 0 auto`. Verified by breaking it on purpose. This
+is the fourth guard added *after* shipping the bug it catches — jsdom has no
+layout, so the DOM was flawless and every one of the 16 suites passed.
+
+**The chart now draws from the first weigh-in, not the second.** Withholding
+it at n=1 was wrong. "70 kg since January 2024" is not a pretend trend — it
+is the actual shape of this history, flat because the weight held, and flat is
+information. The note under it says so and names the day it will bend.
+
+The axis is labelled now, which is the other half of why it read as
+unsatisfying: dashed gridlines at the true min and max with their values, the
+first date and "today" on the x, and the current weight printed at the end of
+the line.
+
+Still a line rather than bars, deliberately. A bar encodes magnitude from
+zero: 68 against 70 kg drawn from zero is an invisible difference, and drawn
+from a 66 baseline it lies about proportion. A step line over an explicit
+non-zero axis is the honest form for a quantity that never goes near zero.
+
+`test-bwcard.js` grows to 41 assertions — the flat single-entry line, the
+axis labels, the end-of-line value, Cancel recording nothing, and a source
+assertion that no `.btn` is pinned `flex:0 0 auto`.
+
+**Harness note:** one of those new assertions failed for a reason worth
+writing down. Inside a JS template literal `\(` collapses to `(`, so an
+escaped-paren regex silently became a capture group and stopped matching. Use
+`indexOf` for literal markup checks.
+
 ## v3.3.67 (2026-07-24) — The weight series, made visible
 
 **A correction to what v3.3.66 claimed.** That entry said a Pull Up logged in

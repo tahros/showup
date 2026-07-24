@@ -15,11 +15,12 @@ function bwCard(){
   let body;
 
   if(bwEdit){
-    body=`<div class="row" style="gap:8px;align-items:stretch">
-        <div class="fld" style="flex:1"><label>Weight today (${U()})</label>
-          <input id="bwIn" type="number" inputmode="decimal" step="0.1"
-                 value="${cur>0?wDisp(cur):''}" placeholder="—"></div>
-        <button class="btn" id="bwSave" style="margin:0;flex:0 0 auto">Save</button>
+    body=`<div class="fld"><label>Weight today (${U()})</label>
+        <input id="bwIn" type="number" inputmode="decimal" step="0.1"
+               value="${cur>0?wDisp(cur):''}" placeholder="—"></div>
+      <div class="btnrow">
+        <button class="btn ghost" id="bwCancel">Cancel</button>
+        <button class="btn" id="bwSave">Save</button>
       </div>
       <div class="note">Recorded against today. Enter it only when it has changed — silence means unchanged.</div>`;
   }else if(!ds.length){
@@ -37,15 +38,24 @@ function bwCard(){
         <button class="chip" id="bwEditBtn">Update</button></div>`;
 
     let chart='';
-    if(ds.length>1){
+    {
       const pts=ds.map(d=>({t:Date.parse(d+'T00:00'), v:toU(DB.days[d].bw)}));
-      const t0=pts[0].t, t1=Math.max(Date.parse(todayISO+'T00:00'), pts[pts.length-1].t);
+      const t0=pts[0].t, t1=Math.max(Date.parse(todayISO+'T00:00')+864e5, pts[pts.length-1].t);
       const span=Math.max(1,t1-t0);
-      let lo=Math.min(...pts.map(p=>p.v)), hi=Math.max(...pts.map(p=>p.v));
+      const vals=pts.map(p=>p.v);
+      const minV=Math.min(...vals), maxV=Math.max(...vals);
+      let lo=minV, hi=maxV;
       if(hi-lo<2){ const m=(hi+lo)/2; lo=m-1; hi=m+1; }         // a near-flat series must not amplify into noise
-      const pad=(hi-lo)*0.18; lo-=pad; hi+=pad;
-      const X=t=>10+(t-t0)/span*306;
-      const Y=v=>90-(v-lo)/(hi-lo)*72;
+      const pad=(hi-lo)*0.22; lo-=pad; hi+=pad;
+      const X=t=>32+(t-t0)/span*268;
+      const Y=v=>84-(v-lo)/(hi-lo)*66;
+      const n1=v=>String(Math.round(v*10)/10);
+      let grid='';
+      for(const gv of (minV===maxV?[minV]:[maxV,minV])){
+        const gy=Y(gv);
+        grid+=`<line x1="32" y1="${gy.toFixed(1)}" x2="300" y2="${gy.toFixed(1)}" stroke="var(--line)" stroke-width="0.6" stroke-dasharray="2 3"></line>
+               <text x="28" y="${(gy+2.5).toFixed(1)}" text-anchor="end" font-family="var(--mono)" font-size="7" fill="var(--muted)">${n1(gv)}</text>`;
+      }
       let d='', prevY=0, dots='';
       pts.forEach((p,i)=>{
         const x=X(p.t), y=Y(p.v);
@@ -56,16 +66,19 @@ function bwCard(){
       });
       d+=` L ${X(t1).toFixed(1)} ${prevY.toFixed(1)}`;           // carry the last weight forward to today
       const delta=+(toU(DB.days[last].bw)-toU(DB.days[first].bw)).toFixed(1);
-      chart=`<div class="zoom" data-zoom><svg viewBox="0 0 330 108" style="width:100%;height:auto">
+      chart=`<div class="zoom" data-zoom><svg viewBox="0 0 330 104" style="width:100%;height:auto">
+          ${grid}
           <path d="${d}" fill="none" stroke="var(--accent)" stroke-width="1.6"
                 stroke-linejoin="round" stroke-linecap="round"></path>
           ${dots}
-          <text x="10" y="104" font-family="var(--mono)" font-size="7" fill="var(--muted)">${md(first)}</text>
-          <text x="316" y="104" text-anchor="end" font-family="var(--mono)" font-size="7" fill="var(--muted)">today</text>
+          <text x="${X(t1).toFixed(1)}" y="${(prevY-5).toFixed(1)}" text-anchor="end" font-family="var(--mono)"
+                font-size="8" font-weight="700" fill="var(--accent)">${n1(toU(cur))}</text>
+          <text x="32" y="99" font-family="var(--mono)" font-size="7" fill="var(--muted)">${md(first)}</text>
+          <text x="300" y="99" text-anchor="end" font-family="var(--mono)" font-size="7" fill="var(--muted)">today</text>
         </svg></div>
-        <div class="note">${ds.length} weigh-ins · ${delta===0?'no net change':`${delta>0?'+':''}${delta} ${U()} net`} since ${md(first)}. Flat stretches are days you didn't measure, not days you didn't change.</div>`;
-    }else{
-      chart=`<div class="note">One entry so far, so every day reads at it. Record another whenever the number moves and this becomes a line.</div>`;
+        <div class="note">${ds.length===1
+          ? `One weigh-in, so the line holds flat at ${wDisp(cur)} ${U()} all the way to today — that IS the record. It bends the day you enter a different number.`
+          : `${ds.length} weigh-ins · ${delta===0?'no net change':`${delta>0?'+':''}${delta} ${U()} net`} since ${md(first)}. Flat stretches are days you didn't measure, not days you didn't change.`}</div>`;
     }
     body=head+chart;
   }

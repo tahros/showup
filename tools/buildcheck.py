@@ -99,6 +99,20 @@ if _hello:
     if not _hi or 'text-overflow:ellipsis' not in _hi.group(1):
         fail.append(".hello .hi cannot truncate — a long name will push the day count off-screen")
 
+# -- .btn is width:100%, so it must never be flex:0 0 auto (v3.3.68)
+#    A .btn dropped into a flex row with flex:0 0 auto resolves its basis to
+#    the FULL container width and then refuses to shrink: it overflows the card
+#    and crushes whatever shares the row down to min-content. jsdom has no
+#    layout and this renders perfectly in the DOM, so assert it at the source.
+_btnw = re.search(r'^\s*\.btn\{([^}]*)\}', css, re.M)
+if _btnw and 'width:100%' in _btnw.group(1):
+    for _jsf in _glob.glob(str(d/"js"/"*.js")):
+        _src = pathlib.Path(_jsf).read_text()
+        for _m in re.finditer(r'<button[^>]*class=\\?"btn[^"\\]*\\?"[^>]*>', _src):
+            if re.search(r'flex:\s*0\s+0\s+auto', _m.group(0)):
+                fail.append(f"{pathlib.Path(_jsf).name}: a .btn uses flex:0 0 auto while .btn is "
+                            f"width:100% — it will overflow its row (see v3.3.68). Use .btnrow.")
+
 # -- shell size
 n = len(idx.encode())
 if n >= 8192: fail.append(f"index.html shell is {n} bytes (limit 8192)")
