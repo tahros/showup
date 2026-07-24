@@ -48,10 +48,8 @@ const ys1 = d1.split(/(?=[ML])/).map(s => parseFloat(s.replace(/^[ML]\s*/, "").s
 const flat = ys1.length >= 2 && Math.max(...ys1) === Math.min(...ys1);
 console.log((flat?"PASS":"FAIL"), "a single weigh-in draws a FLAT line to today \u2192", flat);
 if (!flat) fail++;
-check("...and the flatness is explained behind the dot", `/data-tip="bw"/.test(bwCard())`, true);
-check("...with the explanation in the bubble, not inline",
-      `bwCard().indexOf('holds flat') > bwCard().indexOf('tip-bw')`, true);
-check("...and no loose prose left under the chart", `/class="note"/.test(bwCard())`, false);
+check("...and it is explained behind the dot", `/data-tip="bw"/.test(bwCard())`, true);
+check("...with no loose prose left under the chart", `/class="note"/.test(bwCard())`, false);
 
 // ---- 3. two entries draw a STEP path --------------------------------------
 run(`setBw('2025-03-01', 68);`);
@@ -70,11 +68,9 @@ const lastX = xs[xs.length - 1];
 const carried = lastX > xs[xs.length - 2] - 0.001;
 console.log((carried?"PASS":"FAIL"), "the last weight extends to today →", carried);
 if (!carried) fail++;
-check("the net change is stated neutrally", `/-2 kg net/.test(bwCard())`, true);
 check("no goal line is drawn", `/goal/i.test(bwCard())`, false);
 check("the axis is labelled so the line can be read", `/stroke-dasharray="2 3"/.test(bwCard())`, true);
-check("the net change moved into the bubble", `/kg net/.test(bwCard())`, true);
-check("...and is not left as inline prose", `/class="note"/.test(bwCard())`, false);
+check("...and no inline prose survives here either", `/class="note"/.test(bwCard())`, false);
 // NB: use indexOf, not a regex — inside a template literal `\(` collapses to
 // `(`, which silently turned the escaped parens into a capture group.
 check("...with the current value at the line's end",
@@ -168,5 +164,29 @@ for (const f of ["js/lift.js", "js/stats.js", "js/history.js", "js/header.js"]) 
 run(`${fresh} setBw('2024-01-10',70); setBw(todayISO, 66);
      lift.part='Back'; lift.ex='Pull Up'; lift.weight=0; renderLift();`);
 check("a bodyweight lift defaults to the CURRENT weigh-in", `lift.weight`, 66);
+
+// ---- 10. the tip explains the CHART, never the reader's data -------------
+const tipOf = () => {
+  const m = run(`bwCard()`).match(/id="tip-bw"[^>]*>([\s\S]*?)<\/span>/);
+  return m ? m[1] : "";
+};
+run(`${fresh} setBw('2024-01-10', 70);`);
+const tipA = tipOf();
+run(`${fresh} setBw('2024-01-10', 81.4); setBw('2024-06-15', 77); setBw('2025-03-01', 92.6);`);
+const tipB = tipOf();
+console.log((tipA && tipA === tipB ? "PASS" : "FAIL"),
+            "the tip is identical across totally different data \u2192", tipA === tipB);
+if (!tipA || tipA !== tipB) fail++;
+const hasNumbers = /\d/.test(tipA.replace(/&#?\w+;/g, ""));
+console.log((hasNumbers ? "FAIL" : "PASS"), "...and quotes no figure from the log \u2192", !hasNumbers);
+if (hasNumbers) fail++;
+check("...while still naming the display unit", `/lowest and highest recorded kg/.test(bwCard())`, true);
+run(`DB.settings.unit='lb';`);
+check("...which follows the unit toggle", `/lowest and highest recorded lb/.test(bwCard())`, true);
+run(`DB.settings.unit='kg';`);
+
+// the dot is offered in every state, including the empty one
+run(`${fresh} DB.settings.bodyKg=null; DB.days={};`);
+check("the empty state still explains itself", `/data-tip="bw"/.test(bwCard())`, true);
 
 process.exit(fail ? 1 : 0);

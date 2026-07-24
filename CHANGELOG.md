@@ -1,5 +1,29 @@
 # ShowUp — changelog
 
+## v3.3.70 (2026-07-24) — The weight tip explains the chart, not your numbers
+
+The `bw` tip recited the reader's data: how many weigh-ins, the current weight,
+the net delta, the date of the first entry. It was the only tip in the app
+whose text changed with the log. Every other one describes the thing you are
+looking at — "the tick marks where you should be today", "faster months sit
+lower" — and interpolates nothing but the display unit.
+
+It is now invariant: what the chart plots, why the line steps rather than
+curves, what a flat stretch means, what the dashed lines mark, and the one rule
+for entering a weight. The only thing that varies is kg/lb.
+
+The net-change figure is gone from the copy entirely rather than relocated. The
+labelled min/max gridlines and the value printed at the end of the line already
+show it, and re-siting a number that the chart states twice is how a card gets
+crowded. Its now-dead `delta` binding went with it — the same logic living in
+two places is the same logic drifting in two places, and unread logic is just
+the degenerate case.
+
+The test asserts invariance directly: render the card against 1 weigh-in at
+70 kg and against 3 ranging 77–92.6, and the bubble must come back
+byte-identical. It must also contain no digit at all, and it must follow the
+unit toggle. 52 assertions.
+
 ## v3.3.69 (2026-07-24) — The weight note goes behind the dot, and moves up
 
 Two notes of prose sat under the weight chart explaining what a flat line

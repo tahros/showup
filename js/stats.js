@@ -12,7 +12,8 @@ const YEAR_COLORS={ '2022':'var(--faint)','2023':'var(--muted)','2024':'var(--ac
 let bwEdit=false;
 function bwCard(){
   const ds=bwDays(), cur=bwNow();
-  let body, tip='';
+  let body;
+  const tip=`Every weigh-in you've recorded, over time. The line STEPS instead of curving because between two entries the app knows nothing — a flat stretch is days you didn't measure, not days you didn't change, and the last weight carries forward to today. The dashed lines mark your lowest and highest recorded ${U()}. Record a weight only when it changes; silence means unchanged.`;
 
   if(bwEdit){
     body=`<div class="fld"><label>Weight today (${U()})</label>
@@ -65,7 +66,6 @@ function bwCard(){
         dots+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.4" fill="var(--accent)"></circle>`;
       });
       d+=` L ${X(t1).toFixed(1)} ${prevY.toFixed(1)}`;           // carry the last weight forward to today
-      const delta=+(toU(DB.days[last].bw)-toU(DB.days[first].bw)).toFixed(1);
       chart=`<div class="zoom" data-zoom><svg viewBox="0 0 330 104" style="width:100%;height:auto">
           ${grid}
           <path d="${d}" fill="none" stroke="var(--accent)" stroke-width="1.6"
@@ -76,13 +76,10 @@ function bwCard(){
           <text x="32" y="99" font-family="var(--mono)" font-size="7" fill="var(--muted)">${md(first)}</text>
           <text x="300" y="99" text-anchor="end" font-family="var(--mono)" font-size="7" fill="var(--muted)">today</text>
         </svg></div>`;
-      tip = ds.length===1
-        ? `One weigh-in on record, so the line holds flat at ${wDisp(cur)} ${U()} all the way to today — flat IS the record, not a gap. It bends the day you enter a different number. Enter a weight only when it changes; silence means unchanged.`
-        : `${ds.length} weigh-ins · ${delta===0?'no net change':`${delta>0?'+':''}${delta} ${U()} net`} since ${md(first)}. Flat stretches are days you didn't measure, not days you didn't change. Enter a weight only when it changes; silence means unchanged.`;
     }
     body=head+chart;
   }
-  return `<h2 id="secWeight">Your weight ${tip?iBtn('bw',tip):''}</h2><div class="card">${body}</div>`;
+  return `<h2 id="secWeight">Your weight ${iBtn('bw',tip)}</h2><div class="card">${body}</div>`;
 }
 function renderStats(){
   if(SEED.totals.sessions===0 && !hasAnyDays()){ $('#view').innerHTML=emptyHero('stats'); return; }
