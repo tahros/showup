@@ -153,7 +153,7 @@ function renderStats(){
     </div>`;
 
   // consistency chart — the Dashboard bottom graph
-  h+=`<h2>Consistency, year over year</h2><div class="card">
+  h+=`<h2>Consistency, year over year ${iBtn('yoy',"% of days trained so far each year — the bold line is this year, still running.")}</h2><div class="card">
       <div class="zoom" data-zoom><div class="zoomhint">pinch / scroll to zoom · double-tap to reset</div>
       <svg viewBox="0 0 340 170" style="width:100%;height:auto">`;
   // y grid + labels
@@ -190,7 +190,7 @@ function renderStats(){
     const c=curves[y], cur=y===thisYear;
     h+=`<span class="${cur?'cur':''}" data-yr="${y}" role="button"><i style="background:${YEAR_COLORS[y]}"></i>${y}<b>${Math.round(c.curve[c.end-1]*100)}%</b></span>`;
   }
-  h+=`</div><div class="note">% of days trained, cumulative through each year</div></div>`;
+  h+=`</div><button class="btn ghost" id="yoyShare" style="margin-top:12px">Share as image</button></div>`;
 
   // heatmap: 26 weeks, weekday rail on the left, months across the top
   const detail=allDays();

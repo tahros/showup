@@ -159,6 +159,97 @@ function drawGrid(gd){
   return cv;
 }
 
+/* The consistency chart as a 1:1 card. Same doctrine as drawGrid: the current
+   year is the only saturated line (red stays LIVE-only; accent is the year
+   being written), past years step back in the same greys/soft blues the SVG
+   uses. YEAR_COLORS holds CSS vars, so each is resolved through the canvas
+   colour parser at draw time. */
+function drawYoy(curves){
+  const S=1080;
+  const cv=document.createElement('canvas'); cv.width=S; cv.height=S;
+  const x=cv.getContext('2d'); if(!x) return null;
+  const V=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim()||'#888';
+  const CV=spec=>{ x.fillStyle='#000';
+    x.fillStyle=/^var\((--[^)]+)\)$/.test(spec)?V(spec.match(/^var\((--[^)]+)\)$/)[1]):spec;
+    return x.fillStyle; };
+  const SANS='"IBM Plex Sans",system-ui,sans-serif', MONO='"IBM Plex Mono",ui-monospace,monospace';
+  const thisYear=todayISO.slice(0,4);
+  const years=Object.keys(curves).filter(y=>y>='2022').sort();
+  if(!years.length) return null;
+
+  x.fillStyle=V('--ground'); x.fillRect(0,0,S,S);
+  const P=76;
+
+  // this year's number is the headline
+  const cNow=curves[thisYear];
+  const pctNow=cNow?Math.round(cNow.curve[cNow.end-1]*100):null;
+  x.textBaseline='alphabetic'; x.textAlign='left';
+  if(pctNow!=null){
+    x.fillStyle=V('--chalk'); x.font='700 132px '+SANS;
+    x.fillText(pctNow+'%',P,P+126);
+    const tw=(x.measureText(pctNow+'%')||{}).width||0;
+    x.fillStyle=V('--muted'); x.font='500 40px '+MONO;
+    x.fillText('of '+thisYear+', trained',P+tw+20,P+126);
+  }
+  x.textAlign='right'; x.fillStyle=V('--muted'); x.font='500 34px '+MONO;
+  x.fillText('ShowUp',S-P,P+54);
+  x.textAlign='left'; x.fillStyle=V('--faint'); x.font='500 28px '+MONO;
+  x.fillText('CONSISTENCY, YEAR OVER YEAR',P,P+188);
+
+  const L=P+70, R=S-P, T=P+250, B=S-P-170, W=R-L, H=B-T;
+  // y grid
+  x.textAlign='right'; x.textBaseline='middle'; x.font='500 26px '+MONO;
+  for(const g of [0,0.25,0.5,0.75,1]){
+    const gy=B-g*H;
+    x.strokeStyle=V('--line'); x.lineWidth=1.5;
+    if(g) x.setLineDash([6,7]);
+    x.beginPath(); x.moveTo(L,gy); x.lineTo(R,gy); x.stroke(); x.setLineDash([]);
+    x.fillStyle=V('--muted'); x.fillText(g*100+'%',L-14,gy);
+  }
+  // x months
+  x.textAlign='center'; x.fillStyle=V('--muted');
+  'JFMAMJJASOND'.split('').forEach((m,i)=>{
+    const mx=L+((i*30.4+15)/366)*W;
+    x.fillText(m,mx,B+34);
+  });
+  // past years first, this year last so it sits on top
+  for(const y of years.filter(y=>y!==thisYear).concat(years.includes(thisYear)?[thisYear]:[])){
+    const {curve,end}=curves[y], cur=y===thisYear;
+    x.strokeStyle=CV(YEAR_COLORS[y]||'var(--muted)');
+    x.lineWidth=cur?7:3.5;
+    x.lineJoin='round'; x.lineCap='round';
+    x.beginPath();
+    for(let d=0;d<end;d+=2){
+      const px=L+(d/366)*W, py=B-curve[d]*H;
+      d===0?x.moveTo(px,py):x.lineTo(px,py);
+    }
+    x.stroke();
+    if(cur){
+      const lx=L+((end-1)/366)*W, ly=B-curve[end-1]*H;
+      x.fillStyle=V('--accent');
+      x.beginPath(); x.arc(lx,ly,10,0,Math.PI*2); x.fill();
+    }
+  }
+  // legend
+  x.textBaseline='alphabetic'; x.textAlign='left'; x.font='500 28px '+MONO;
+  let lx=P;
+  for(const y of years){
+    const c=curves[y], cur=y===thisYear;
+    x.fillStyle=CV(YEAR_COLORS[y]||'var(--muted)');
+    x.fillRect(lx,S-P-64,26,10);
+    x.fillStyle=cur?V('--chalk'):V('--muted');
+    x.font=(cur?'700':'500')+' 28px '+MONO;
+    const lbl=y+' '+Math.round(c.curve[c.end-1]*100)+'%';
+    x.fillText(lbl,lx+36,S-P-54);
+    lx+=36+(x.measureText(lbl)||{}).width+34;
+  }
+  x.fillStyle=V('--faint'); x.font='500 26px '+MONO;
+  x.fillText('% of days trained, cumulative',P,S-P+8);
+  x.textAlign='right';
+  x.fillText('tahros.github.io/showup',S-P,S-P+8);
+  return cv;
+}
+
 let _repCv=null;
 function repOvEl(){
   let ov=document.getElementById('repOv');
@@ -187,6 +278,7 @@ async function showCard(drawFn,label){
 }
 function makeRepImage(){ const rd=repData(repOff); return showCard(()=>drawRep(rd),rd.label); }
 function makeGridImage(){ const gd=gridData(); return showCard(()=>drawGrid(gd),`${gd.total}-days`); }
+function makeYoyImage(){ const cs=yearCurves(); return showCard(()=>drawYoy(cs),'consistency-'+todayISO.slice(0,4)); }
 document.addEventListener('click',e=>{
   /* v3.3.72: closest(), not e.target.id — a button that gains a child at
      runtime silently stops responding (the v3.3.58 lesson, in the gym). */
@@ -195,6 +287,7 @@ document.addEventListener('click',e=>{
   if(hit('repNext')&&repOff>0){ repOff--; if(view==='stats') render(); return; }
   if(hit('repShare')){ makeRepImage(); return; }
   if(hit('gridShare')){ makeGridImage(); return; }
+  if(hit('yoyShare')){ makeYoyImage(); return; }
   if(hit('repClose')){ repOvEl().style.display='none'; return; }
   if(hit('repDo')&&_repCv){
     const name='showup-'+String(_repCv.label).toLowerCase().replace(/[^a-z0-9]+/g,'-')+'.png';

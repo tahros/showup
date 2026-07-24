@@ -1,5 +1,37 @@
 # ShowUp — changelog
 
+## v3.3.74 (2026-07-24) — The consistency chart ships as a card, and GIF is settled
+
+**The caption moved behind the dot** — the `yoy` tip, 79 characters — and
+"Share as image" took its place. Same overlay, same share path, same recording-
+context test rig as the grid card.
+
+The card is 1080×1080 with this year's percentage as the headline, every year's
+curve beneath it, and the legend with final numbers. The current year is the
+only saturated line, drawn last so it sits on top of the greys, at double
+weight, with the beacon dot at its tip — the SVG's hierarchy, restated in
+canvas. `yearCurves()` already lived in util.js, so unlike the grid there was
+no arithmetic to extract; the card is a second painter over the same source,
+which is the pattern working as intended.
+
+**The GIF question is settled with receipts, and the answer is no.**
+Instagram is unanimous across every source: a .gif upload posts as a static
+first frame — feed, Reels, carousel — and the only animated route is
+conversion to MP4. LinkedIn is genuinely mixed: GIFs in personal feed posts
+have animated since mid-2024, but behaviour still differs between desktop,
+the mobile app, and app versions, and several current guides still call it
+static. So the format animates nowhere reliably — static on Instagram,
+unreliable on LinkedIn — and the honest animated path is MP4, which is the
+canvas→MediaRecorder route already ruled out on iOS in v3.3.72 (capture
+tracks without valid capabilities, WebKit 181663's freeze on stop). A GIF
+encoder dependency that produces a file Instagram freezes anyway is the
+worst of both. Share cards stay still images; the loop, if ever, is a
+post-Phase-1 question.
+
+`test-sharecard.js` at 46 assertions — the yoy card's headline, one legend
+entry per year, the current year boldest and drawn last, the caption gone
+from the DOM, the tip within one breath.
+
 ## v3.3.73 (2026-07-24) — The grid explains itself behind a dot, and this month reads as unfinished
 
 The paragraph under the month grid was 165 characters of prose sitting between

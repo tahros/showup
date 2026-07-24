@@ -178,7 +178,37 @@ module.exports = settled.then(() => {
        !!(shared && /^showup-926-days\.png$/.test(shared.files[0].name)),
        shared && shared.files && shared.files[0].name);
 
-    // ---- 8. the v3.3.58 lesson, enforced at the source -------------------
+    // ---- 8. the consistency card (v3.3.74) -------------------------------
+    calls = [];
+    const ycv = run(`drawYoy(yearCurves())`);
+    ok("the consistency card renders", !!ycv);
+    ok("...square too", ycv && ycv.width === 1080 && ycv.height === 1080);
+    const ytexts = calls.filter(c => c[0] === "fillText").map(c => String(c[1]));
+    const yPct = run(`(function(){ const cs=yearCurves(), y=todayISO.slice(0,4);
+      return cs[y]?Math.round(cs[y].curve[cs[y].end-1]*100)+'%':null; })()`);
+    ok("this year's percentage is the headline", yPct !== null && ytexts[0] === yPct, ytexts[0]);
+    const yYears = run(`Object.keys(yearCurves()).filter(y=>y>='2022').sort().length`);
+    const legendEntries = ytexts.filter(t => /^\d{4} \d+%$/.test(t));
+    ok("one legend entry per year", legendEntries.length === Number(yYears),
+       `${legendEntries.length}/${yYears}`);
+    // this year draws LAST so it sits on top of the greys
+    const widths = calls.filter(c => c[0] === "set:lineWidth").map(c => c[1]).filter(v => v >= 3);
+    ok("the current year is the boldest line and drawn last",
+       widths.length >= 2 && widths[widths.length - 1] === Math.max(...widths),
+       widths.join(","));
+    ok("the URL is on this card too", ytexts.some(t => t.includes("tahros.github.io/showup")));
+    // the caption moved behind the dot
+    run(`view='stats'; renderStats();`);
+    const yoyHtml = run(`$('#view').innerHTML`);
+    ok("the chart explains itself behind an i", /data-tip="yoy"/.test(yoyHtml));
+    ok("...and the loose caption is gone",
+       !/cumulative through each year/.test(yoyHtml));
+    ok("...with a share button in its place", /id="yoyShare"/.test(yoyHtml));
+    const yoyTip = (fs.readFileSync(path.join(dir, "js/stats.js"), "utf8")
+      .match(/iBtn\('yoy',"([^"]*)"/) || [])[1] || "";
+    ok("...tip within one breath", yoyTip.length > 0 && yoyTip.length <= 120, yoyTip.length + " chars");
+
+    // ---- 9. the v3.3.58 lesson, enforced at the source -------------------
     const repSrc = fs.readFileSync(path.join(dir, "js/report.js"), "utf8");
     ok("report.js router no longer uses e.target.id===", !/e\.target\.id===/.test(repSrc));
     ok("...it asks closest() instead", /closest\('#'\+id\)/.test(repSrc));
