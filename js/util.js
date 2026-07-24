@@ -446,7 +446,7 @@ function loadLine(ex,totalKg){
   if(!usesPlates(ex)) {
     const e=equipOf(ex);
     if(e==='dumbbell') return `${wDisp(totalKg)} ${U()} per hand`;
-    if(e==='body')     return totalKg>0&&Math.abs(totalKg-(DB.settings.bodyKg||-1))<0.01 ? `your bodyweight · ${wDisp(totalKg)} ${U()}`
+    if(e==='body')     return totalKg>0&&Math.abs(totalKg-(bwNow()||-1))<0.01 ? `your bodyweight · ${wDisp(totalKg)} ${U()}`
                        : totalKg>0 ? `bodyweight + ${wDisp(totalKg)} ${U()}` : 'bodyweight — set yours in ⚙ Settings';
     return '';
   }

@@ -399,6 +399,20 @@ document.addEventListener('click',e=>{
     toast(cloudReady()?'Using '+cloudCfg().url:'Both fields are needed');
     return renderSync();
   }
+  if(e.target.closest('#bwEditBtn')){ bwEdit=true; renderStats();
+    setTimeout(()=>{const i=$('#bwIn'); if(i){i.focus();i.select();}},0); return; }
+  if(e.target.closest('#bwSave')){
+    const raw=+($('#bwIn').value||0);
+    const kg=raw>0?+toKg(raw).toFixed(1):0;
+    const cur=bwNow();
+    bwEdit=false;
+    if(kg>0 && Math.abs(kg-cur)>0.05){
+      setBw(todayISO, kg); save(true); renderStats();
+      return toast(`Weight ${wDisp(kg)} ${U()} — recorded today`);
+    }
+    renderStats();
+    return toast(kg>0?'Unchanged — nothing recorded':'No weight entered');
+  }
   if(e.target.closest('#barSave')){
     DB.settings.barKg=toKg(+($('#barW').value||0))||20;
     DB.settings.smithKg=toKg(+($('#smithW').value||0));

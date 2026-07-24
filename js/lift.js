@@ -323,7 +323,7 @@ function renderLift(){
     if(lift.weight===0||lift.weight==null){
       const savedW=(DB.settings.exW||{})[ex];
       if(savedW!=null) lift.weight=savedW;                     // your default, exactly as you set it
-      else if(isBody(ex)) lift.weight=DB.settings.bodyKg||0;   // your bodyweight (Settings), else BW=0
+      else if(isBody(ex)) lift.weight=bwNow()||0;              // v3.3.67: what you weigh NOW, per the series
       else{
         const top=ls&&ls.sets.length?Math.max(...ls.sets.map(s=>s.w)):null;
         lift.weight=top!=null?snapW(top):toKg(isLb()?45:20);   // inferred weights snap to clean steps

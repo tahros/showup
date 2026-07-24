@@ -1,5 +1,52 @@
 # ShowUp — changelog
 
+## v3.3.67 (2026-07-24) — The weight series, made visible
+
+**A correction to what v3.3.66 claimed.** That entry said a Pull Up logged in
+2024 was "valued at today's bodyweight". That is wrong, and I should have read
+the call sites before writing it. Bodyweight sets store their own `w` (70 for
+this archive), so past volume and past display were always correct. Every
+consumer of the scalar was present-tense: the logger's default weight for a new
+bodyweight set, and the live caption. The dated series is still the right shape
+— but its payoff is a record going forward, not a repair of the past.
+
+Both live sites now read `bwNow()`. No app-logic file reads
+`DB.settings.bodyKg` any more; it survives only as the derived cache, written
+by `setBw()`. The test asserts that directly against lift/stats/history/header,
+so the scalar cannot creep back in.
+
+**Stats gains a Your weight card**, and the weigh-in lives there rather than in
+Settings — two taps from opening the app.
+
+It draws a STEP line. Between two weigh-ins the app knows nothing, and
+carry-forward is literally a step function; a smooth curve would draw days you
+never measured, which is a lie a chart has no business telling. The note under
+it says so: flat stretches are days you didn't measure, not days you didn't
+change. The last weight extends to today rather than stopping at the last dot.
+
+Degradation is deliberate. Zero entries: one quiet line and an Add. One entry:
+the number and "unchanged since —", no chart, because a single point drawn as
+a flat line pretends to be a trend. Two or more: the step. A near-flat series
+clamps to a 2-unit window so a 0.2 kg move can't fill the box and read as
+drama.
+
+No goal line, no trend verdict, no red/green, and **no weigh-in prompt on
+Today**. Arrival stays about training. The card is discoverable in Stats
+without ever asking you for a number — an app that scores attendance has no
+business nagging you about your body.
+
+Entering the same number records nothing, which is the whole rule made
+literal: enter a weight when it changes, and silence means unchanged.
+
+New suite `test-bwcard.js` — 32 assertions including the step geometry itself
+(interior segments must share an x), the flat-series clamp, the unchanged
+no-op, and the streak guard re-checked through the real UI path.
+
+**Ritual note:** the blanket count-based version bump nearly rewrote the
+`// v3.3.66:` provenance comment in core.js. The assertion caught it. The
+APP_VERSION bump is line-anchored from now on — same lesson as the CSS regexes
+in v3.3.50 and v3.3.55.
+
 ## v3.3.66 (2026-07-24) — Bodyweight has a history, and the app knows your name
 
 Bodyweight was a single number in Settings. That made a Pull Up logged in

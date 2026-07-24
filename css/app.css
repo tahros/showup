@@ -804,6 +804,8 @@
   .note{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:8px;line-height:1.6}
   /* v3.3.66 arrival greeting — quiet by design: it is a state, not a banner */
   .hello{display:flex;align-items:baseline;gap:8px;margin:2px 0 12px;flex-wrap:nowrap}
+  .bwnow{font-family:var(--mono);font-weight:700;font-size:26px;color:var(--chalk);line-height:1}
+  .bwsub{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:4px}
   .hello .hi{font-family:var(--disp);font-weight:600;font-size:17px;color:var(--chalk);
     white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis}
   .hello .hisub{font-family:var(--mono);font-size:11px;color:var(--muted);white-space:nowrap;flex:0 0 auto}

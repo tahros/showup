@@ -3,6 +3,74 @@
    shares one global scope with its siblings, loaded in order by index.html. */
 /* ---------- Stats: days first ---------- */
 const YEAR_COLORS={ '2022':'var(--faint)','2023':'var(--muted)','2024':'var(--accent-dim)','2025':'var(--accent-soft)','2026':'var(--accent)' };
+/* v3.3.67 — your weight, drawn as the sparse series it actually is.
+   A STEP line, not a curve: between two weigh-ins the app knows nothing, and
+   carry-forward is literally a step function. A smooth line would draw days
+   you never measured, which is a lie the chart has no business telling.
+   No goal line, no trend verdict, no red/green. This app scores attendance,
+   not your body — the number is context for load maths and a quiet record. */
+let bwEdit=false;
+function bwCard(){
+  const ds=bwDays(), cur=bwNow();
+  let body;
+
+  if(bwEdit){
+    body=`<div class="row" style="gap:8px;align-items:stretch">
+        <div class="fld" style="flex:1"><label>Weight today (${U()})</label>
+          <input id="bwIn" type="number" inputmode="decimal" step="0.1"
+                 value="${cur>0?wDisp(cur):''}" placeholder="—"></div>
+        <button class="btn" id="bwSave" style="margin:0;flex:0 0 auto">Save</button>
+      </div>
+      <div class="note">Recorded against today. Enter it only when it has changed — silence means unchanged.</div>`;
+  }else if(!ds.length){
+    body=`<div class="row spread">
+        <span class="mono muted" style="font-size:12px">No weight recorded yet.</span>
+        <button class="chip" id="bwEditBtn">Add</button></div>`;
+  }else{
+    const first=ds[0], last=ds[ds.length-1];
+    const since=daysAgo(last);
+    const head=`<div class="row spread" style="align-items:flex-end">
+        <div><div class="bwnow">${wDisp(cur)} <span style="font-size:13px;font-weight:500">${U()}</span></div>
+          <div class="bwsub">${ds.length>1
+            ? `last change ${pretty(last)} · ${since===0?'today':since+'d ago'}`
+            : `unchanged since ${pretty(first)}`}</div></div>
+        <button class="chip" id="bwEditBtn">Update</button></div>`;
+
+    let chart='';
+    if(ds.length>1){
+      const pts=ds.map(d=>({t:Date.parse(d+'T00:00'), v:toU(DB.days[d].bw)}));
+      const t0=pts[0].t, t1=Math.max(Date.parse(todayISO+'T00:00'), pts[pts.length-1].t);
+      const span=Math.max(1,t1-t0);
+      let lo=Math.min(...pts.map(p=>p.v)), hi=Math.max(...pts.map(p=>p.v));
+      if(hi-lo<2){ const m=(hi+lo)/2; lo=m-1; hi=m+1; }         // a near-flat series must not amplify into noise
+      const pad=(hi-lo)*0.18; lo-=pad; hi+=pad;
+      const X=t=>10+(t-t0)/span*306;
+      const Y=v=>90-(v-lo)/(hi-lo)*72;
+      let d='', prevY=0, dots='';
+      pts.forEach((p,i)=>{
+        const x=X(p.t), y=Y(p.v);
+        d += i===0 ? `M ${x.toFixed(1)} ${y.toFixed(1)}`
+                   : ` L ${x.toFixed(1)} ${prevY.toFixed(1)} L ${x.toFixed(1)} ${y.toFixed(1)}`;
+        prevY=y;
+        dots+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.4" fill="var(--accent)"></circle>`;
+      });
+      d+=` L ${X(t1).toFixed(1)} ${prevY.toFixed(1)}`;           // carry the last weight forward to today
+      const delta=+(toU(DB.days[last].bw)-toU(DB.days[first].bw)).toFixed(1);
+      chart=`<div class="zoom" data-zoom><svg viewBox="0 0 330 108" style="width:100%;height:auto">
+          <path d="${d}" fill="none" stroke="var(--accent)" stroke-width="1.6"
+                stroke-linejoin="round" stroke-linecap="round"></path>
+          ${dots}
+          <text x="10" y="104" font-family="var(--mono)" font-size="7" fill="var(--muted)">${md(first)}</text>
+          <text x="316" y="104" text-anchor="end" font-family="var(--mono)" font-size="7" fill="var(--muted)">today</text>
+        </svg></div>
+        <div class="note">${ds.length} weigh-ins · ${delta===0?'no net change':`${delta>0?'+':''}${delta} ${U()} net`} since ${md(first)}. Flat stretches are days you didn't measure, not days you didn't change.</div>`;
+    }else{
+      chart=`<div class="note">One entry so far, so every day reads at it. Record another whenever the number moves and this becomes a line.</div>`;
+    }
+    body=head+chart;
+  }
+  return `<h2 id="secWeight">Your weight</h2><div class="card">${body}</div>`;
+}
 function renderStats(){
   if(SEED.totals.sessions===0 && !hasAnyDays()){ $('#view').innerHTML=emptyHero('stats'); return; }
   const dates=workoutDates();
@@ -274,6 +342,7 @@ function renderStats(){
   h+=runStatsHTML();
 
   // records — kept, but demoted below the days story
+  h+=bwCard();
   h+=`<h2 id="secRecords">Records</h2>`;
   for(const part of Object.keys(SEED.catalog)){
     if(part==='Run') continue;
