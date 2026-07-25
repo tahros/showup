@@ -90,7 +90,8 @@ function rhythmCard(){
     : r.gap===0
       ? `<div class="rcap">streak · ${streakAtRisk()?'<b class="atriskTxt">ends at midnight</b>':'today unwritten'}</div>`
       : `<div class="rcap">rest day${r.gap>1?'s':''} in a row · today unwritten</div>`;
-  let h=`<div class="card rhythm">
+  const _rest=!!(DB.days[todayISO]&&DB.days[todayISO].rest&&!((DB.days[todayISO].w)||[]).length);
+  let h=`<div class="card rhythm${_rest?' resting':''}">
     <div class="rgrid">
       ${leadNum}
       <div class="rpct">${pctN}%</div>

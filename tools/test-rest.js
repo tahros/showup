@@ -77,6 +77,10 @@ check("...and wears the restchip class", `$('#hStreak').classList.contains('rest
 check("...and the header wears .resting \u2014 the mirror of .live",
       `document.querySelector('header').classList.contains('resting')`, true);
 check("...never both states at once", `document.querySelector('header').classList.contains('live')`, false);
+// v3.3.90: the card follows the day's state too
+run(`view='today'; render();`);
+check("...and the rhythm card wears .resting",
+      `!!document.querySelector('#view .rhythm.resting')`, true);
 run(`view='today'; render();`);
 ok("SCOPE: the hero still says 'ends at midnight' \u2014 header chip only, no soothing",
    /ends at midnight/.test(run(`$('#view').innerHTML`)));
@@ -148,6 +152,32 @@ ok("the declared state borrows no red (--live/--record stay out of it)",
 // isn't a rest rule (one colour, one meaning, nowhere else).
 const chipRule = (cssSrc.match(/#hStreak\.restchip\{[^}]*\}/) || [""])[0];
 ok("the chip wears the one green", /var\(--rest\)/.test(chipRule) && !/--live|--record/.test(chipRule), chipRule);
+
+// ---- v3.3.90: louder wash, and an honest boundary on what turns green -----
+const washPct = (cssSrc.match(/header\.resting\{background:color-mix\(in srgb,var\(--rest\) (\d+)%/) || [])[1];
+ok("the wash is loud enough to register (\u226540%)", +washPct >= 40, washPct + "%");
+const kfPcts = [...cssSrc.matchAll(/@keyframes restbreathe\{[^}]*?(\d+)%,var\(--ground\)\)\}\s*50%\{background:color-mix\(in srgb,var\(--rest\) (\d+)%/g)];
+const breatheRule = (cssSrc.match(/@keyframes restbreathe\{[\s\S]*?\}\}/) || [""])[0];
+const nums = [...breatheRule.matchAll(/var\(--rest\) (\d+)%/g)].map(m => +m[1]);
+ok("...and still breathes below its peak", nums.length === 2 && nums[1] < nums[0], nums.join("\u2192"));
+// LIVE must remain the louder of the two states \u2014 rest may whisper, live never
+const livePct = (cssSrc.match(/header\.live\{background:color-mix\(in srgb,var\(--live\) (\d+)%/) || [])[1];
+ok("LIVE stays louder than REST", +livePct > +washPct, `live ${livePct}% vs rest ${washPct}%`);
+
+// the boundary: today-numbers go green, PAST TRAINED DAYS DO NOT
+const restCard = cssSrc.match(/\.rhythm\.resting[^{]*\{[^}]*\}/g) || [];
+const joined = restCard.join(" ");
+ok("the card's numbers turn green while resting",
+   /\.rpct/.test(joined) && /var\(--rest\)/.test(joined));
+ok("...today's pending strip cell turns green", /strip i\.pend/.test(joined));
+ok("...but filled strip cells (.on = a day TRAINED) are never repainted",
+   !restCard.some(r => /\.strip i\.on/.test(r.split("{")[0])),
+   restCard.map(r => r.split("{")[0].trim()).join(" | "));
+// specificity: the rest rule must come AFTER the accent rule it overrides
+const accentAt = cssSrc.indexOf(".rhythm .big.ok{");
+const restAt = cssSrc.indexOf(".rhythm.resting .big");
+ok("...and the rest rule is authored after the accent rule it overrides",
+   restAt > accentAt && accentAt > -1, `accent@${accentAt} rest@${restAt}`);
 ok("--rest is defined in both themes", (cssSrc.match(/--rest:#/g) || []).length === 2);
 ok("header.resting exists and washes with --rest",
    /header\.resting\{[^}]*var\(--rest\)/.test(cssSrc));
@@ -177,11 +207,20 @@ const frostAt = cssSrc.indexOf("restbreathe-frost 7s");
 ok("...and the reduced-motion kill exists", killAt > -1);
 ok("...placed after the frost branch so animation:none actually wins",
    killAt > frostAt && frostAt > -1, `frost@${frostAt} kill@${killAt}`);
-// SCOPE: the hero card stays uncoloured — facts don't take moods
+/* SCOPE, revised in v3.3.90. v3.3.81 asserted the hero card took NO rest
+   colour at all, on "facts don't take moods". v3.3.90 narrows rather than
+   abandons that: the card's BACKGROUND is still never tinted — no mood is
+   painted over the data — but the today-state numbers follow today's state,
+   and the historical strip is untouched. The surviving rule is the sharper
+   one: colour may describe TODAY, never repaint the RECORD. */
 run(FIX); run(`day(todayISO).rest=true; day(todayISO).upd=Date.now(); view='today'; render();`);
-ok("the hero card takes no rest tint (no rest-class inside the view)",
-   !/class="[^"]*rest[^"]*"[^>]*>[^<]*streak/.test(run(`$('#view').innerHTML`)) &&
-   !run(`!![...$('#view').querySelectorAll('.zone,.card,.hero')].find(el=>[...el.classList].some(c=>/rest/i.test(c)&&c!=='restbtn'))`));
+ok("the rhythm card's background is still never tinted (facts take no mood)",
+   !(cssSrc.match(/\.rhythm\.resting[^{]*\{[^}]*\}/g) || [])
+     .some(r => /background/.test(r)),
+   (cssSrc.match(/\.rhythm\.resting[^{]*\{[^}]*\}/g) || []).join(" | "));
+ok("...and no OTHER card in the view picks up a rest class",
+   !run(`!![...$('#view').querySelectorAll('.card')].find(el=>
+      [...el.classList].some(c=>/^rest/i.test(c)) && !el.classList.contains('rhythm'))`));
 run(`delete DB.days[todayISO].rest;`);
 
 process.exit(fail ? 1 : 0);

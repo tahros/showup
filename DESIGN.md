@@ -82,9 +82,12 @@ Adopted into phases:
 - D1.5 selection inversion — tried v3.3.4, REVERTED v3.3.5. Sungjee's verdict
   after real use: selection reads better in accent blue. Accent = app voice +
   your selections; red = live. The trial is the process working.
-- Green = declared rest, and nothing else (v3.3.81). The mirror of red:
-  one colour, one meaning. The header washes at 28% while the leaf is up;
-  data surfaces stay uncoloured — facts don't take moods.
+- Green = declared rest, and nothing else (v3.3.81, refined v3.3.90). The
+  mirror of red: one colour, one meaning. The header washes while the leaf
+  is up, and the Rhythm card's TODAY-numbers wear it too. The boundary:
+  **colour may describe today; it may never repaint the record.** Past
+  trained days in the strip keep accent — painting them green would say
+  they were rest days. Card backgrounds stay untinted: facts take no mood.
 - Onboarding: "How to ShowUp" gestures screen; reassurance lines at sign-in
   and demo.
 - D2: live-consequence Add set ("Add set → 7,660 kg · ▲3").

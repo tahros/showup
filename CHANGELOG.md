@@ -1,5 +1,39 @@
 # ShowUp — changelog
 
+## v3.3.90 (2026-07-25) — The rest state gets loud enough to mean it
+
+**The wash was too polite.** 28% over the ground barely registered on a
+phone in daylight. It is 48% now, breathing to 36%, with a firmer border.
+LIVE remains louder at 92% — asserted, not assumed, because the ratio
+between the two states is the whole point: live must never whisper, rest
+may.
+
+**The Rhythm card follows the day.** While the leaf is up, "5d" and "62%"
+wear the rest green, and today's pending cell in the 21-day strip takes a
+green dashed border instead of grey.
+
+**What deliberately does NOT turn green: the filled cells of the strip.**
+Those mark days you trained. Painting them green would say those days were
+rest days — a false statement about the record. Today's cell changes
+because today genuinely is a declared rest; the previous twenty do not.
+
+This narrows a rule rather than breaking one. v3.3.81 asserted the hero
+card took no rest colour at all, on "facts don't take moods". That
+assertion failed this build, and the honest response was to revise it
+rather than delete it. The surviving rule is sharper: **colour may describe
+today; it may never repaint the record.** Card backgrounds are still never
+tinted, and the test now checks exactly that — no `background` property in
+any `.rhythm.resting` rule.
+
+DESIGN.md carries the refined boundary.
+
+One authoring note: `.rhythm .big.ok` already sets accent, so the rest rule
+is written with equal-or-higher specificity AND placed after it. The test
+asserts the source ORDER of the two rules — the `.chip.on` /
+`.chip.on.livego` lesson from v3.3.50, applied before it could bite.
+
+`test-rest.js` at 50.
+
 ## v3.3.89 (2026-07-25) — One painter, two charts; the jump chips go
 
 **The distance chart ships as a share card.** "Share as image" now sits under
