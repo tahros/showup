@@ -1,5 +1,30 @@
 # ShowUp — changelog
 
+## v3.3.82 (2026-07-25) — The resting header breathes
+
+The green wash now dims to 19% and back over ~7 seconds — a resting breath.
+The live pulse is 1.6s and sharp; rest is more than four times slower and
+never sharp, and the test enforces the ratio, not just the presence. Border
+stays still: only the air moves.
+
+Implementation notes that mattered: background keyframes on the header
+itself, no pseudo-element overlay — the `fill-mode:both` stacking-context
+trap is why nothing position-absolute goes near the header. Two keyframe
+blocks, solid and frosted, because the two branches paint different
+backgrounds. And the `prefers-reduced-motion` kill is placed AFTER the
+`@supports` frost branch in document order — equal specificity means later
+wins, so a kill placed before the frost rule would silently lose the
+cascade exactly where backdrop-filter works. The test asserts the document
+ORDER of the kill, not merely its existence.
+
+Two assertion regexes needed repair on the way: keyframe stop selectors
+(`50%`) legitimately carry `var(--rest)` without saying "rest", so the
+one-meaning scan now strips restbreathe blocks before judging the rest; and
+the transform/opacity check now parses balanced keyframe blocks instead of
+lazily running past a closing brace into unrelated rules.
+
+`test-rest.js` at 41.
+
 ## v3.3.81 (2026-07-25) — Green becomes a word: the resting header
 
 The ask was to tint the hero card green on a declared rest day. Declined for

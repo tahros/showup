@@ -44,7 +44,13 @@
      28% wash of the one green in the palette — the day feels different, the
      data stays uncoloured. */
   header.resting{background:color-mix(in srgb,var(--rest) 28%,var(--ground));
-    border-color:color-mix(in srgb,var(--rest) 45%,var(--line))}
+    border-color:color-mix(in srgb,var(--rest) 45%,var(--line));
+    animation:restbreathe 7s ease-in-out infinite}
+  /* v3.3.82: the wash breathes — a resting breath, ~7s, dimming to 19% and
+     back. The live pulse is 1.6s and sharp; rest is four times slower and
+     never sharp. Border stays still: only the air moves. */
+  @keyframes restbreathe{0%,100%{background:color-mix(in srgb,var(--rest) 28%,var(--ground))}
+    50%{background:color-mix(in srgb,var(--rest) 19%,var(--ground))}}
   /* v3.3.21 frosted chrome: only where backdrop-filter actually works, so the
      solid fallback above stays readable everywhere else. Colors are mixed from
      the theme vars, so any future ground change carries through for free.
@@ -54,7 +60,10 @@
       -webkit-backdrop-filter:blur(16px) saturate(160%);
       backdrop-filter:blur(16px) saturate(160%)}
     header.live{background:color-mix(in srgb,var(--live) 92%,transparent)}
-    header.resting{background:color-mix(in srgb,var(--rest) 24%,transparent)}
+    header.resting{background:color-mix(in srgb,var(--rest) 24%,transparent);
+      animation:restbreathe-frost 7s ease-in-out infinite}
+    @keyframes restbreathe-frost{0%,100%{background:color-mix(in srgb,var(--rest) 24%,transparent)}
+      50%{background:color-mix(in srgb,var(--rest) 15%,transparent)}}
     nav{background:color-mix(in srgb,var(--surface) 70%,transparent);
       -webkit-backdrop-filter:blur(16px) saturate(160%);
       backdrop-filter:blur(16px) saturate(160%)}
@@ -319,7 +328,8 @@
     animation:pulse 1.6s ease-in-out infinite;display:inline-block}
   .item.todayrow.fin b::before{content:'✓ ';color:var(--muted);font-size:11px;animation:none}
   @media (prefers-reduced-motion:reduce){
-    .item.todayrow b::before{animation:none}}
+    .item.todayrow b::before{animation:none}
+    header.resting{animation:none}}   /* v3.3.82: after the @supports branch, so none wins */
   .item b{font-weight:500}
   .readyrow{display:flex;align-items:center;gap:10px;width:100%;background:none;border:0;
     color:var(--chalk);font:inherit;text-align:left;cursor:pointer;padding:9px 4px;

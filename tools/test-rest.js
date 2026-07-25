@@ -151,9 +151,32 @@ ok("the chip wears the one green", /var\(--rest\)/.test(chipRule) && !/--live|--
 ok("--rest is defined in both themes", (cssSrc.match(/--rest:#/g) || []).length === 2);
 ok("header.resting exists and washes with --rest",
    /header\.resting\{[^}]*var\(--rest\)/.test(cssSrc));
-const restUses = [...cssSrc.matchAll(/^[^\n{]*\{[^}]*var\(--rest\)[^}]*\}/gm)].map(m => m[0].split("{")[0].trim());
+// keyframe stops (0%,100%,50%) inside restbreathe* blocks ARE rest rules;
+// strip those blocks first, then demand every remaining user of --rest be
+// rest-named. A keyframes block nests one level: outer{ stops{...} }.
+const KF = /@keyframes restbreathe[^{]*\{(?:[^{}]*\{[^}]*\})*[^}]*\}/g;
+const kfBlocks = cssSrc.match(KF) || [];
+const stripped = cssSrc.replace(KF, "");
+const restUses = [...stripped.matchAll(/^[^\n{]*\{[^}]*var\(--rest\)[^}]*\}/gm)].map(m => m[0].split("{")[0].trim());
 ok("...and --rest appears ONLY in rest rules (one meaning, nowhere else)",
    restUses.length > 0 && restUses.every(sel => /rest/i.test(sel)), restUses.join(" | "));
+
+// ---- v3.3.82: the wash breathes, slowly, and can be stilled ---------------
+const breathe = (cssSrc.match(/header\.resting\{[^}]*animation:restbreathe ([\d.]+)s[^}]*\}/) || []);
+ok("the resting header breathes", breathe.length > 0);
+ok("...at a resting pace \u2014 at least 4x slower than the 1.6s live pulse",
+   breathe[1] && parseFloat(breathe[1]) >= 6.4, breathe[1] + "s");
+ok("...in both keyframe branches (solid and frosted)",
+   /@keyframes restbreathe\{/.test(cssSrc) && /@keyframes restbreathe-frost\{/.test(cssSrc));
+ok("...never animating transform or opacity of content \u2014 background only",
+   kfBlocks.length === 2 && kfBlocks.every(b => !/transform|opacity/.test(b)));
+// the reduced-motion kill must come AFTER the @supports frost branch, or the
+// frost animation re-wins the cascade \u2014 assert document order, not presence
+const killAt = cssSrc.indexOf("header.resting{animation:none}");
+const frostAt = cssSrc.indexOf("restbreathe-frost 7s");
+ok("...and the reduced-motion kill exists", killAt > -1);
+ok("...placed after the frost branch so animation:none actually wins",
+   killAt > frostAt && frostAt > -1, `frost@${frostAt} kill@${killAt}`);
 // SCOPE: the hero card stays uncoloured — facts don't take moods
 run(FIX); run(`day(todayISO).rest=true; day(todayISO).upd=Date.now(); view='today'; render();`);
 ok("the hero card takes no rest tint (no rest-class inside the view)",
