@@ -51,12 +51,11 @@ function renderLift(){
     });
     h+=`</div>`;
 
-    // today's sets, filtered to the selected part
+    // today's sets, filtered to the selected part. The whole section —
+    // header included — appears with the first set and not before (v3.3.87).
     const mine=t.w.filter(s=>s.part===lift.part);
-    h+=`<h2>${lift.part} · today</h2>`;
-    if(!mine.length){
-      h+=`<div class="card muted" style="font-size:13px">Nothing logged for ${lift.part} today. Pick an exercise below.</div>`;
-    }else{
+    if(mine.length){
+      h+=`<h2>${lift.part} · today</h2>`;
       const byEx={};
       mine.forEach(s=>{(byEx[s.ex]=byEx[s.ex]||[]).push(s);});
       for(const [ex,list] of Object.entries(byEx)){

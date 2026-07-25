@@ -43,4 +43,25 @@ expect("open part → last exercise",   click("Shoulder"), {view:"lift", part:"S
 expect("sealed part → part view",     click("Back"),     {view:"lift", part:"Back",     ex:null});
 expect("untouched part → part view",  click("Chest"),    {view:"lift", part:"Chest",    ex:null});
 expect("Run → part view (owns itself)", click("Run"),    {view:"lift", part:"Run",      ex:null});
+// ---- v3.3.87: the "· today" section appears WITH the first set ------------
+// (this suite's expect() is JSON-shaped; a plain boolean helper for these)
+const okb = (name, got, want) => {
+  const ok = got === want;
+  console.log((ok?"PASS":"FAIL"), name, "\u2192", got);
+  if (!ok) fail++;
+};
+run(`delete DB.days[todayISO]; SEED=deriveAll();
+     view='lift'; lift={part:'Chest',ex:null,weight:0}; render();`);
+okb("no sets today: the section header is absent",
+    run(`$('#view').innerHTML.includes('Chest · today')`), false);
+okb("...and the old empty-card copy is gone from the app entirely",
+    run(`$('#view').innerHTML.includes('Nothing logged for')`), false);
+run(`day(todayISO).w.push({part:'Chest',ex:'Chest Press',w:40,reps:[10],at:Date.now()});
+     SEED=deriveAll(); render();`);
+okb("first set lands: the section appears",
+    run(`$('#view').innerHTML.includes('Chest · today')`), true);
+run(`lift.part='Back'; render();`);
+okb("...but only for the part that HAS sets (Back stays sectionless)",
+    run(`$('#view').innerHTML.includes('Back · today')`), false);
+
 process.exit(fail ? 1 : 0);

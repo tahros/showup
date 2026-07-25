@@ -1,5 +1,24 @@
 # ShowUp — changelog
 
+## v3.3.87 (2026-07-25) — Absence is shown by absence
+
+The "· today" section on the Lift part view rendered before it had anything
+to say: a header, then a card reading "Nothing logged for Shoulder today.
+Pick an exercise below." A whole section whose only content was that it had
+no content — an anti-receipt — with an instruction that instructed the
+obvious, since the Go-To list sits directly under it.
+
+The section — header included — now appears with the first set and not
+before. This is the greeting rule and the rest doctrine generalized: states
+appear when they exist and are not narrated when they don't.
+
+Asserted in test-continue: header absent with no sets, the old copy gone
+from the app entirely, the section appearing on the first set, and
+appearing only for the part that has sets. One harness note: this suite's
+`expect()` is JSON-shaped for the continue-flow checks, so the new
+assertions carry their own boolean helper — third idiom mismatch of the
+day, each caught by the run, none by the eye.
+
 ## v3.3.86 (2026-07-25) — Two invisible lines, and Readiness leaves Today
 
 **The alignment.** 5d and 62% were two stacked columns aligned at their
