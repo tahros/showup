@@ -95,16 +95,25 @@ check("Rhythm appears exactly once", `document.querySelectorAll('#view .rhythm')
 check("Daily Fire is gone",          `!!document.querySelector('#view .firecard')`, false);
 check("Rhythm is the FIRST card",
       `document.querySelector('#view h2').textContent.trim().toLowerCase()`, "rhythm");
-// v3.3.53: v3.3.52's chart-in-Rhythm was reverted — the vs-bars are back.
-// They render only when last year has data (lyN!=null), so seed one.
+// Lineage of this block: v3.3.52 tried a chart in Rhythm; v3.3.53 reverted
+// to the vs-bars (form question: chart vs bars). v3.3.83 removes the block
+// from Today entirely (presence question) on the app's FIRST outside
+// feedback — "too complicated" — because it duplicated the Stats Report
+// Card above the fold. Seed last year to prove absence isn't just no-data.
 run(`
   {const d=new Date(todayISO+'T00:00'); d.setFullYear(d.getFullYear()-1);
    for(let i=0;i<10;i++){ const c2=new Date(d); c2.setDate(c2.getDate()-i*3);
      DB.days[c2.toLocaleDateString('en-CA')]={w:[{part:'Legs',ex:'Squat',w:60,reps:[10]}],upd:1};}
    SEED=deriveAll(); _fireDist=null; view='today'; render();}
 `);
-check("vs-bars are back",
-      `!!document.querySelector('#view .rhythm .vs')`, true);
+check("vs-bars are gone from Today even WITH last-year data (v3.3.83)",
+      `!!document.querySelector('#view .rhythm .vs')`, false);
+check("...the rest-days caption is gone (the strip already shows it)",
+      `/rest days? in the last 21/.test($('#view').innerHTML)`, false);
+check("...and the % keeps its one-word year anchor",
+      `!!(document.querySelector('#view .rhythm')&&new RegExp('>'+todayISO.slice(0,4)+'<').test(document.querySelector('#view .rhythm').innerHTML))`, true);
+check("...while the naked long label is gone",
+      `/of \\d{4} trained/.test($('#view').innerHTML)`, false);
 check("no chart inside Rhythm",
       `!!document.querySelector('#view .rhythm .rchart')`, false);
 

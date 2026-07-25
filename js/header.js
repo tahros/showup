@@ -91,13 +91,10 @@ function rhythmCard(){
       : `<b class="big">${r.gap}</b><span class="unit"> rest day${r.gap>1?'s':''} in a row · today unwritten</span>`;
   let h=`<div class="card rhythm">
     <div class="row spread" style="align-items:flex-end">
-      <div>${lead}
-        <div class="mono muted" style="font-size:11px;margin-top:2px">
-          ${r.rest21} rest day${r.rest21===1?'':'s'} in the last 21</div>
-      </div>
+      <div>${lead}</div>
       <div style="text-align:right">
         <div class="mono" style="font-size:20px;font-weight:700;color:var(--accent)">${pctN}%</div>
-        <div class="mono muted" style="font-size:10px">of ${thisYear} trained</div>
+        <div class="mono muted" style="font-size:10px">${thisYear}</div>
       </div>
     </div>
     <div class="strip">`;
@@ -107,20 +104,10 @@ function rhythmCard(){
   h+=`</div>
     <div class="mono muted" style="font-size:10px;display:flex;justify-content:space-between;margin-top:4px">
       <span>3 weeks ago</span><span>today</span></div>`;
-  if(lyN!=null){
-    const w1=Math.max(2,pctN), w2=Math.max(2,lyN);
-    h+=`<div class="vs">
-          <div class="vsrow"><span class="y">${thisYear}</span>
-            <span class="bar"><i style="width:${w1}%;background:var(--accent)"></i></span>
-            <span class="p">${pctN}%</span></div>
-          <div class="vsrow"><span class="y">${ly}</span>
-            <span class="bar"><i style="width:${w2}%;background:var(--muted)"></i></span>
-            <span class="p">${lyN}%</span></div>
-          <div class="mono" style="font-size:11px;margin-top:6px;color:${delta>=0?'var(--accent)':'var(--record)'}">
-            ${delta>=0?'+':''}${delta} points vs the same day last year
-            <span class="muted">· ${r.trainedYTD} trained / ${r.restYTD} rested of ${r.elapsed} days</span></div>
-        </div>`;
-  }
+  /* v3.3.83: the year-vs-year block moved OUT of Today — it was the Stats
+     Report Card duplicated above the fold, and the first outside feedback
+     called the result complicated. rhythm() still computes lyPct/delta for
+     Stats; Today just stopped repeating it. */
   h+=`</div>`;
   return h;
 }

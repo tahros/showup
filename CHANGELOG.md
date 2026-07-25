@@ -1,5 +1,33 @@
 # ShowUp — changelog
 
+## v3.3.83 (2026-07-25) — Today gets minimal: the first outside feedback lands
+
+Someone other than the maker looked at Today and said "too complicated."
+That is the app's first external design signal, and it outranks internal
+taste in both directions.
+
+The cut is exactly the duplicated half of the Rhythm card. The year-vs-year
+block — bars, percentages, the +N points delta, trained/rested counts — is
+the Stats Report Card nearly verbatim; Today was carrying a second copy of
+Stats above the fold. And "N rest days in the last 21" captioned a strip
+that is already visible directly below it. Today answers *what now*; Stats
+answers *how's it going*.
+
+What stays: the streak lead, the 21-day strip with its two date labels, and
+the year percentage — which keeps a one-word anchor ("2026") because a
+naked 62% is its own kind of complicated. The full label and the comparison
+still live one tab away, where they always also lived.
+
+Lineage matters here and is recorded in the test: v3.3.52 tried a chart in
+this block and v3.3.53 reverted to the bars — that was a FORM question
+(chart vs bars), answered by the maker. v3.3.83 is a PRESENCE question (on
+Today at all), answered by the first stranger. The assertion that guarded
+the bars back in now guards their absence, with last-year data seeded so
+the absence is proven against data, not against emptiness.
+
+rhythm() still computes everything it did — Stats consumes it; Today just
+stopped repeating it.
+
 ## v3.3.82 (2026-07-25) — The resting header breathes
 
 The green wash now dims to 19% and back over ~7 seconds — a resting breath.
