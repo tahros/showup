@@ -1,5 +1,12 @@
 # ShowUp — Product Roadmap
-*Last updated: 2026-07-18 · Owner: Sungjee · Living document*
+*Last updated: 2026-07-25 · Owner: Sungjee · Living document*
+
+> **Reconciliation note (2026-07-25).** This document went a week without an
+> update while v3.3.1 → v3.3.92 shipped. Four of its statements had gone
+> stale and are corrected below: Wave 1 is complete (v3.2.4 was already
+> built), the no-rest-UI standing decision was reversed, import tooling
+> landed early in operator form, and the 1,000-day milestone now has a date.
+> **The hand-off gate remains the only open gate, and it is still closed.**
 
 ## Mission
 Days > volume. ShowUp exists to make **showing up** the thing people optimize,
@@ -109,11 +116,34 @@ competition.
 - 2026-07-18: Sheet-era units decoded per equipment (miles; smith=kg, dumbbell=lb-of-kg-iron, barbell=per-side-lb+45lb bar, stacks=lb); benchmark week = 07-13 onward (Sungjee)
 - 2026-07-18: Historical corrections are stamped in-app migrations with pre-conversion backups — never manual data edits (pattern)
 - 2026-07-18: Rest is ABSENCE, never declared — "absence IS a choice." An empty today is unwritten until midnight; no rest-marking UI, ever (Sungjee)
+- **2026-07-25: REVERSED — declared rest ships (v3.3.79).** Proposed by
+  Sungjee after a two-turn argument; a rhythm-streak alternative was
+  considered and rejected as too complex. The reversal holds *because* four
+  lines were agreed first and are enforced by test, not by memory:
+  (1) declaring rest NEVER touches streak math — the fire still resets, so
+  the streak keeps forgiving nothing and stays a receipt;
+  (2) undeclared rest stays first-class — declared and undeclared produce
+  byte-identical derived totals, so 928 days of history lose nothing;
+  (3) training always wins — the first set clears the flag in `save()`, the
+  one gate every mutation passes;
+  (4) the app never asks — no prompt exists, asserted by grepping string
+  literals for question-shaped phrases.
+  What the original decision was protecting — that rest can never be bought,
+  gamed, or turned into a task — survives intact. Only the *rendering* of an
+  intentional rest day changed. Symbol 🍃 (Sungjee's, over the drafted 🌙:
+  moon says sleep, leaf says growth).
+- 2026-07-25: Colour tokens have GRADES — a wash grade cannot also be an ink
+  (v3.3.92). WCAG floors are computed in buildcheck, not remembered.
+- 2026-07-25: YEAR_COLORS is a validated exception to no-categorical-palettes;
+  it licenses nothing else (Sungjee).
+- 2026-07-25: No blue default header. Colour is spent on events, not on brand
+  — a state colour only reads as a state when the default is silence
+  (Sungjee, rejecting the colour-spec proposal).
 
 
 ## Execution order — locked 2026-07-18 (post v3.1.4)
 
-**Wave 1 — ship now, no gates (retention fuel before hand-off):**
+**Wave 1 — COMPLETE as of 2026-07-25. All three items shipped.**
 1. v3.2.3 Streak-at-risk: evening + unwritten today + streak alive → calm visual
    urgency (never calls it rest; "streak ends at midnight" framing). Tiny.
 2. v3.2.4 Monthly report card: shareable image — days trained, volume, km,
@@ -121,8 +151,21 @@ competition.
 3. v3.3 Data out: CSV export + local backup file (download/restore) + one-time
    Google Sheet export. The "leaving is easy" pillar gets a UI — trust proof
    BEFORE asking friends to invest days. Medium.
+   → SHIPPED v3.3.0. Sheets via clipboard TSV; new OAuth scopes rejected.
 
 **Then STOP building and hand off. GTM Phase 1 governs everything after.**
+
+> **What actually happened (recorded 2026-07-25, without excuse).** Ninety-one
+> releases shipped past this stop line — v3.3.1 through v3.3.92 — none of them
+> gated, all of them driven by annotated gym screenshots from the one existing
+> user. The work was good: Today was cut down after the app's first outside
+> feedback ("too complicated"), bodyweight became a dated series, declared rest
+> shipped, three share cards exist, the colour system was audited against WCAG
+> with the floors now enforced in buildcheck, and the import converters were
+> written. But *none of it was asked for by this plan*, and the gate it was
+> supposed to precede is still closed. The lesson is recorded here rather than
+> softened: a stop line that only one person can enforce is not a gate, it is
+> a preference. The hand-off is now the only sanctioned next action.
 
 **Wave 2 — gated on first friends (their confusion is the backlog):**
 4. v3.1.x onboarding fixes from watching real installs.
@@ -133,12 +176,36 @@ competition.
 7. v5.0 Import: paste-your-spreadsheet wizard (reuse the per-equipment unit
    forensics from the v3.0.2 decoding as an import feature) + auto-updating
    Sheet mirror. The wedge for 3+yr J-type loggers.
+   → **Partially landed early, in OPERATOR form (v3.3.88).** `tools/` now
+   holds `convert_strong.py`, `convert_hevy.py`, `import_validate.py` and a
+   shared policy library, all proven end-to-end by `test-import.js`. They run
+   on the founder's computer and emit the app's own Backup JSON, which Restore
+   already accepts — so concierge migration works today. The in-app wizard
+   (widened file picker, converter ported to JS, unmapped-exercise UI) remains
+   v5.0 and remains gated.
+   → **UNRESOLVED TENSION.** This roadmap's stated audience is "lifters with
+   3+ years of history whose data lives in notebooks and Excel files." That
+   audience cannot self-onboard until v5.0, which is gated on Phase 2 — the
+   public launch meant to attract them. Either Phase 1 recruits non-trackers
+   (contradicting the stated audience), or concierge migration is the official
+   Phase-1 intake path and belongs in this document as such.
+   **Owner: Sungjee. Open.**
 
 **Wave 4 — gated on Phase 2 (public launch traction):**
 8. v6.0 Premium (depth, never data) + pseudonymous cheering-first cohorts.
 
-**Standing watch-items:** 2,400 km milestone (~fires this week); 2026 km goal
-revisit (owner: Sungjee); true-units sanity during gym week; PAT revocation.
+**Standing watch-items:** 2026 km goal revisit — **still unset**, 430 km logged
+in 2026 vs 581 finishing 2025 (owner: Sungjee); PAT rotation — the current
+token was pasted through a chat session on 2026-07-25 and should be rotated.
+
+**Dated launch asset — the 1,000th day, approx. 2026-10-05.** 928 days logged
+as of 2026-07-25; the greeting already counts down ("72 to 1,000"). This is
+unrepeatable and it is the strongest narrative hook the product will ever
+have. Two things depend on it: the Show HN essay, and §12 of the colour spec
+— the earned-moment treatment for crossing it, which is the only remaining
+"make it more fun" work with a real deadline. Phase 1 retention data needs to
+exist BEFORE this date, which means recruitment happens in July, not
+September.
 
 
 ## Upcoming versions — planned changes (written 2026-07-18, post v3.1.15)
@@ -151,10 +218,14 @@ DID change and which request drove it.
   warm at-risk tone; dashed today-square warms to match; rhythm board gains
   one line: "streak ends at midnight." Nothing else. Never calls today rest.
 
-### v3.2.4 — Monthly report card (medium)
-- Shareable image (canvas → PNG → share sheet): month heat-strip, days
-  trained, volume, km, streak, and the consistency-grid row for the month.
-  Inherits the D1 decluttered aesthetic — ships AFTER D1.
+### v3.2.4 — Monthly report card (medium) — **SHIPPED** (verified 2026-07-25)
+- Stats → "Report card": month label, day heat-strip, days trained, volume,
+  km, in-month best streak, `N days of showing up` footer and the URL.
+  Month navigation via ‹ ›; "Share as image" renders 1080×1350 to the share
+  sheet. `repData()` / `drawRep()` in `js/report.js`.
+- Three further share cards shipped beyond this spec: the all-time year grid
+  (v3.3.72), consistency year-over-year (v3.3.74), and cumulative distance
+  (v3.3.89, via one parameterised painter shared with consistency).
 
 ### v3.3 — Data out (medium) — SHIPPED v3.3.0
 - Settings → "Your data": CSV of all sets; JSON backup download + restore
