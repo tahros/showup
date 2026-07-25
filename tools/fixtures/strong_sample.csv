@@ -1,0 +1,11 @@
+Date;Workout Name;Duration;Exercise Name;Set Order;Weight (kg);Reps;Distance;Seconds;Notes;Workout Notes;RPE
+2024-03-04 07:12:00;Push A;55m;Bench Press (Barbell);1;60;8;;;;;8
+2024-03-04 07:12:00;Push A;55m;Bench Press (Barbell);2;60;8;;;;;8.5
+2024-03-04 07:12:00;Push A;55m;Bench Press (Barbell);W;40;10;;;;warmup;
+2024-03-04 07:12:00;Push A;55m;Lateral Raise (Dumbbell);1;10;15;;;;;
+2024-03-06 18:40:00;Legs;60m;Squat (Barbell);1;100;5;;;;;9
+2024-03-06 18:40:00;Legs;60m;Squat (Barbell);2;100;5;;;;;9
+2024-03-06 18:40:00;Legs;60m;Running;1;;;3.2;1200;;;
+2024-03-08 07:00:00;Pull;45m;Deadlift (Barbell);1;140;5;;;;;
+2024-03-08 07:00:00;Pull;45m;Mystery Machine Thing;1;30;12;;;;;
+2024-03-08 07:00:00;Pull;45m;Bent Over Row (Barbell);1;0;0;;;;;

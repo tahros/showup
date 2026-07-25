@@ -149,11 +149,15 @@ function restoreBackup(file){
   rd.readAsText(file);
 }
 document.addEventListener('click',e=>{
-  if(e.target.id==='expCsv'){ dlFile('showup-export-'+todayISO+'.csv','text/csv',tableText(',')); return; }
-  if(e.target.id==='expSheet'){ copyForSheets(); return; }
-  if(e.target.id==='expJson'){ dlFile('showup-backup-'+todayISO+'.json','application/json',
+  /* v3.3.88: closest(), never e.target.id — a button that gains a child at
+     runtime silently dies (v3.3.58, real lost sets). These are the Backup/
+     Restore buttons the whole import pipeline funnels through. */
+  const hit=id=>!!(e.target.closest&&e.target.closest('#'+id));
+  if(hit('expCsv')){ dlFile('showup-export-'+todayISO+'.csv','text/csv',tableText(',')); return; }
+  if(hit('expSheet')){ copyForSheets(); return; }
+  if(hit('expJson')){ dlFile('showup-backup-'+todayISO+'.json','application/json',
     JSON.stringify({app:'showup',v:APP_VERSION,exported:new Date().toISOString(),doc:DB})); return; }
-  if(e.target.id==='impJson'){ const i=document.getElementById('impFile'); if(i) i.click(); return; }
+  if(hit('impJson')){ const i=document.getElementById('impFile'); if(i) i.click(); return; }
 });
 document.addEventListener('change',e=>{
   if(e.target.id==='impFile'&&e.target.files&&e.target.files[0]){

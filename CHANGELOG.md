@@ -1,5 +1,53 @@
 # ShowUp — changelog
 
+## v3.3.88 (2026-07-25) — The import pipeline: Strong and Hevy walk in
+
+The research settled the strategy: Strong's CSV is the de-facto interchange
+format (Hevy imports it; other tools convert INTO it), Hevy's header is
+documented and stable, and the incumbents have two public weaknesses —
+Strong cannot re-import its own export, and Hevy permits one import per
+account. ShowUp's Backup JSON already round-trips, so the converters
+translate into the format the app already accepts. No new import surface;
+Restore IS the importer.
+
+New in `tools/`:
+- `convert_strong.py` — sniffs comma/semicolon, reads the unit out of the
+  weight HEADER ('Weight (kg)' vs '(lbs)'), warm-up markers, cardio rows
+  → Run entries.
+- `convert_hevy.py` — both start_time formats ('22 Dec 2025, 08:00' and
+  ISO), weight_kg with weight_lbs fallback, set_type, distance/duration →
+  Run. rpe and superset_id are dropped and REPORTED dropped — pretending
+  to import fields the app doesn't store would be a lie.
+- `import_validate.py` — preflight where every check is a scar with a
+  version number: reps:[] marker rows (v3.3.61), missing upd stamps,
+  insane weights, future days, bodyweight range, duplicate-explosion days.
+- `importlib_showup.py` — the policy in one place: one row = one set,
+  kg canonical, warm-ups count (days>volume), zero-content rows are
+  skipped and named, and UNKNOWN exercise names STOP the run and write
+  mapping_todo.json for the operator. A guessed body part is a corrupted
+  archive; the converter refuses to guess.
+
+`test-import.js` runs the REAL python on fixture CSVs, restores the output
+through Restore's own adoption logic, and asserts what deriveAll()
+concludes: day counts, kg fidelity, part mappings, the run's minutes, the
+skipped rows' absence, and — the closing move — that the app's own Backup
+validates --strict, so the round trip is a circle.
+
+The suite also caught its own false PASS on the way in: a relative tools
+path under cwd:/tmp made python exit 2 for "can't open file", which
+coincidentally matched the converter's bail code. The assertion now
+requires the UNMAPPED message, not just the number. Exit codes are not
+semantics.
+
+One product change rode along: settings.js's click router used
+`e.target.id===` — the v3.3.58 pattern — on the Backup/Restore buttons the
+entire pipeline funnels through. It asks closest() now, asserted at the
+source.
+
+Concierge protocol for the first migrations: victim's file → converter →
+mapping_todo round-trip with them → validate --strict → they Restore.
+Every confirmed mapping accretes into EXACT for the next person.
+
 ## v3.3.87 (2026-07-25) — Absence is shown by absence
 
 The "· today" section on the Lift part view rendered before it had anything
