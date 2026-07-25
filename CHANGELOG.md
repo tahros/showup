@@ -1,5 +1,26 @@
 # ShowUp — changelog
 
+## v3.3.84 (2026-07-25) — Two numbers, two captions, one strip
+
+The Rhythm card settles into its minimal shape: 5d and 62% share the top
+line, "streak · today unwritten" and "of 2026" share the caption line
+beneath, then the strip, dated on the right only. "3 weeks ago" captioned a
+length the strip already shows; "of" returned because "62% · 2026" read as
+two facts instead of one.
+
+The lead's other variants keep the shape: a gap day shows the gap count
+over its caption; a trained day shows "Trained today" alone.
+
+The symmetry is asserted — caption under the number as a sibling DIV, the
+anchor phrase, the strip's single date — with the streak-variant check made
+self-contained because the fixture at that point has trained today, whose
+lead is caption-less by design.
+
+Two test stumbles, both prior lessons re-stepped-in and re-recorded: a `\/`
+inside a template-literal expression collapsed before the vm saw it (the
+v3.3.68 rule — indexOf for literal markup — now applied where it was first
+written down), and an assertion assumed a fixture state it wasn't in.
+
 ## v3.3.83 (2026-07-25) — Today gets minimal: the first outside feedback lands
 
 Someone other than the maker looked at Today and said "too complicated."

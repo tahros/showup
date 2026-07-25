@@ -84,17 +84,18 @@ function rhythmCard(){
   const r=rhythm(), ly=r.ly;
   const pctN=Math.round(r.pct*100), lyN=r.lyPct!=null?Math.round(r.lyPct*100):null;
   const delta=lyN!=null?pctN-lyN:null;
+  const CAP='class="mono muted" style="font-size:11px;margin-top:2px"';
   const lead = r.trainedToday
     ? `<b class="big ok">Trained today</b>`
     : r.gap===0
-      ? `<b class="big ok">${currentStreak()}d</b><span class="unit"> streak · ${streakAtRisk()?'<b class="atriskTxt">ends at midnight</b>':'today unwritten'}</span>`
-      : `<b class="big">${r.gap}</b><span class="unit"> rest day${r.gap>1?'s':''} in a row · today unwritten</span>`;
+      ? `<b class="big ok">${currentStreak()}d</b><div ${CAP}>streak · ${streakAtRisk()?'<b class="atriskTxt">ends at midnight</b>':'today unwritten'}</div>`
+      : `<b class="big">${r.gap}</b><div ${CAP}>rest day${r.gap>1?'s':''} in a row · today unwritten</div>`;
   let h=`<div class="card rhythm">
-    <div class="row spread" style="align-items:flex-end">
+    <div class="row spread" style="align-items:flex-start">
       <div>${lead}</div>
       <div style="text-align:right">
         <div class="mono" style="font-size:20px;font-weight:700;color:var(--accent)">${pctN}%</div>
-        <div class="mono muted" style="font-size:10px">${thisYear}</div>
+        <div class="mono muted" style="font-size:10px;margin-top:2px">of ${thisYear}</div>
       </div>
     </div>
     <div class="strip">`;
@@ -102,8 +103,7 @@ function rhythmCard(){
     h+=`<i class="${s.on?'on':''} ${s.today?(s.on?'now':(streakAtRisk()?'now pend atrisk':'now pend')):''}" title="${s.iso}"></i>`;
   });
   h+=`</div>
-    <div class="mono muted" style="font-size:10px;display:flex;justify-content:space-between;margin-top:4px">
-      <span>3 weeks ago</span><span>today</span></div>`;
+    <div class="mono muted" style="font-size:10px;text-align:right;margin-top:4px">today</div>`;
   /* v3.3.83: the year-vs-year block moved OUT of Today — it was the Stats
      Report Card duplicated above the fold, and the first outside feedback
      called the result complicated. rhythm() still computes lyPct/delta for

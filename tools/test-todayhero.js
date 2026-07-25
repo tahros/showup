@@ -110,8 +110,27 @@ check("vs-bars are gone from Today even WITH last-year data (v3.3.83)",
       `!!document.querySelector('#view .rhythm .vs')`, false);
 check("...the rest-days caption is gone (the strip already shows it)",
       `/rest days? in the last 21/.test($('#view').innerHTML)`, false);
-check("...and the % keeps its one-word year anchor",
-      `!!(document.querySelector('#view .rhythm')&&new RegExp('>'+todayISO.slice(0,4)+'<').test(document.querySelector('#view .rhythm').innerHTML))`, true);
+// v3.3.84: the anchor gained its "of" back — assert the phrase, and the
+// two-column symmetry: numbers on the top line, captions beneath, and the
+// strip dating itself on the right only.
+check("...and the % anchor reads 'of <year>'",
+      `!!(document.querySelector('#view .rhythm')&&document.querySelector('#view .rhythm').innerHTML.includes('of '+todayISO.slice(0,4)))`, true);
+check("...the strip keeps only its right-hand date",
+      `/3 weeks ago/.test($('#view').innerHTML)`, false);
+// indexOf, not a regex — the v3.3.68 lesson: \/ collapses inside a template
+// literal before the vm ever sees it.
+check("......while 'today' stays", `(function(){const m=document.querySelector('#view .rhythm');
+      return !!m&&m.innerHTML.indexOf('today</div>')>-1;})()`, true);
+// the symmetry needs the STREAK variant — the fixture above has trained
+// today, whose lead is a bare "Trained today". Flip to untrained, assert,
+// restore.
+check("...and the streak caption sits UNDER the number, not beside it",
+      `(function(){const kept=DB.days[todayISO]; delete DB.days[todayISO];
+        SEED=deriveAll(); render();
+        const m=document.querySelector('#view .rhythm .big');
+        const ok=!!(m&&m.nextElementSibling&&m.nextElementSibling.tagName==='DIV');
+        DB.days[todayISO]=kept; SEED=deriveAll(); render();
+        return ok;})()`, true);
 check("...while the naked long label is gone",
       `/of \\d{4} trained/.test($('#view').innerHTML)`, false);
 check("no chart inside Rhythm",
