@@ -279,25 +279,11 @@ function renderToday(){
     }
     const rest=P.mains.slice(1);
     if(rest.length){
-      // readiness: a disclosure, not a board (v3.3.85). Collapsed by default;
-      // the header carries the one receipt that matters at a glance.
-      const rOpen=!!DB.settings.readyOpen;
+      /* v3.3.86: the Readiness board is gone from Today — the Lift tab's
+         part list IS that board, and Today keeps a door instead of a copy.
+         One receipt survives on the door: the due count. */
       const nDue=rest.filter(p=>P.score(p)>=1).length;
-      h+=`<h2 class="quiet readyhead" id="readyHead">Readiness${nDue?` <span class="rduecount">· ${nDue} due</span>`:''} <span class="rcaret">${rOpen?'▾':'▸'}</span> ${iBtn('ready','Each bar fills toward how often you usually train that part. Full = due — tap to start.')}</h2>`;
-      if(rOpen){
-        h+=`<div class="card" style="padding:8px 10px">`;
-        rest.slice().sort((a,b)=>P.score(b)-P.score(a)).forEach(p=>{
-          const i1=P.info[p];
-          const pct=Math.min(100,Math.round(i1.since/Math.max(1,i1.gap)*100));
-          const due=P.score(p)>=1;
-          h+=`<button class="readyrow" data-go="${p}">
-                <span class="rname">${p}</span>
-                <span class="rbar"><i class="${due?'due':''}" style="width:${pct}%"></i></span>
-                <span class="rmeta">${i1.since===0?'today':i1.since+'d'} <em>/ ${Math.round(i1.gap)}d</em></span>
-              </button>`;
-        });
-        h+=`</div>`;
-      }
+      h+=`<button class="btn ghost" id="goLift" style="margin-top:14px">Train other parts${nDue?` · ${nDue} due`:''} →</button>`;
     }
     $('#view').innerHTML=h; return;
   }

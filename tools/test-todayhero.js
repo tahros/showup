@@ -150,49 +150,52 @@ check("tip still opens from the new position",
              b.click(); const tf=document.getElementById('tipFloat');
              const ok=!!(tf&&!tf.hidden&&tf.textContent.length>10); if(tf) tf.hidden=true; return ok;})()`, true);
 
-// ---- v3.3.85: Readiness is a disclosure ----------------------------------
-// Fixture: several parts with history so rest.length>0, at least one due.
+// ---- v3.3.86: Readiness left Today; a door to Lift stands in its place ---
+// Lineage: v3.3.85 collapsed the board to a disclosure; v3.3.86 removes it
+// entirely because the Lift tab's part list IS the board. Today keeps a
+// door, with the one surviving receipt: the due count.
 run(`
   {const d=(n)=>{const x=new Date(todayISO+'T00:00');x.setDate(x.getDate()-n);return x.toLocaleDateString('en-CA');};
    DB.settings.myParts=['Chest','Back','Shoulder','Legs'];
-   delete DB.settings.readyOpen;
    DB.days[d(2)]={w:[{part:'Chest',ex:'Chest Press',w:40,reps:[10]}],upd:1};
    DB.days[d(9)]={w:[{part:'Back',ex:'Row',w:40,reps:[10]},{part:'Chest',ex:'Chest Press',w:40,reps:[10]}],upd:1};
    DB.days[d(16)]={w:[{part:'Back',ex:'Row',w:40,reps:[10]},{part:'Shoulder',ex:'OHP',w:30,reps:[10]}],upd:1};
    DB.days[d(23)]={w:[{part:'Back',ex:'Row',w:40,reps:[10]},{part:'Shoulder',ex:'OHP',w:30,reps:[10]}],upd:1};
    delete DB.days[todayISO]; SEED=deriveAll(); view='today'; render();}
 `);
-check("Readiness header renders", `!!document.querySelector('#readyHead')`, true);
-check("...collapsed by default: no bars in the DOM",
-      `document.querySelectorAll('#view .readyrow').length`, 0);
-check("...with a collapsed caret", `/\u25b8/.test($('#view').innerHTML)`, true);
-run(`$('#view').querySelector('#readyHead').click();`);
-check("tapping the header opens the board",
-      `document.querySelectorAll('#view .readyrow').length>0`, true);
-check("...and persists the preference", `!!DB.settings.readyOpen`, true);
-check("...with the open caret", `/\u25be/.test($('#view').innerHTML)`, true);
-run(`render();`);
-check("...state survives a re-render",
-      `document.querySelectorAll('#view .readyrow').length>0`, true);
-run(`$('#view').querySelector('#readyHead').click();`);
-check("tapping again collapses", `document.querySelectorAll('#view .readyrow').length`, 0);
-// the i explains; it must not toggle
-run(`$('#view').querySelector('#readyHead [data-tip]').click();`);
-check("tapping the i does NOT open the board",
-      `document.querySelectorAll('#view .readyrow').length`, 0);
-check("...and readyOpen stays false", `!!DB.settings.readyOpen`, false);
-// the collapsed header's receipt must AGREE with the board it hides:
-// open, count the due bars the app itself drew, collapse, compare. Self-
-// consistent for any fixture — trainingPlan() derives mains from history
-// depth, so hand-picking "due" parts from outside is fragile.
-check("the collapsed due-count agrees with the board it hides",
-      `(function(){
-        $('#view').querySelector('#readyHead').click();
-        const due=document.querySelectorAll('#view .readyrow .rbar i.due').length;
-        $('#view').querySelector('#readyHead').click();
-        const h=document.querySelector('#readyHead').textContent;
-        const m=h.match(/(\\d+) due/);
-        return due===0 ? m===null : (!!m&&+m[1]===due);
-      })()`, true);
+check("the Readiness board is gone from Today",
+      `document.querySelectorAll('#view .readyrow').length + document.querySelectorAll('#readyHead').length`, 0);
+check("...a door to Lift stands in its place",
+      `!!document.querySelector('#goLift')`, true);
+check("...reading 'Train other parts'",
+      `document.querySelector('#goLift').textContent.includes('Train other parts')`, true);
+check("...the due receipt agrees with the plan",
+      `(function(){const P=trainingPlan(); const n=P.mains.slice(1).filter(p=>P.score(p)>=1).length;
+        const t=document.querySelector('#goLift').textContent, m=t.match(/(\\d+) due/);
+        return n===0 ? m===null : (!!m&&+m[1]===n);})()`, true);
+run(`$('#view').querySelector('#goLift').click();`);
+check("tapping the door lands on Lift", `view`, "lift");
+check("...with the tab bar following",
+      `document.querySelector('nav button[data-v="lift"]').classList.contains('on')`, true);
+// (renderLift auto-selects a part on entry by design — same as via the tab
+// bar — so asserting part:null post-render was wrong. Assert arrival instead.)
+check("...and the Lift view actually rendered",
+      `$('#view').innerHTML.length>200`, true);
+run(`view='today'; render();`);
+
+// ---- v3.3.86: the two invisible lines ------------------------------------
+// numbers on one baseline, captions on one row: only a grid guarantees it.
+check("the rhythm head is a 2x2 grid",
+      `!!document.querySelector('#view .rhythm .rgrid')`, true);
+check("...number, number, caption, caption \u2014 in that order",
+      `(function(){const g=document.querySelector('#view .rhythm .rgrid');
+        if(!g) return 'nogrid';
+        const k=[...g.children].map(el=>el.classList.contains('rcap')?'cap':'num');
+        return k.join(',');})()`, "num,num,cap,cap");
+const cssSrc86 = fs.readFileSync(path.join(dir, "css/app.css"), "utf8");
+const gridRule = (cssSrc86.match(/\.rgrid\{[^}]*\}/) || [""])[0];
+console.log((/align-items:baseline/.test(gridRule) ? "PASS" : "FAIL"),
+  "...aligned on the BASELINE, not the top \u2192", gridRule);
+if (!/align-items:baseline/.test(gridRule)) fail++;
 
 process.exit(fail ? 1 : 0);

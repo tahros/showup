@@ -1,5 +1,31 @@
 # ShowUp — changelog
 
+## v3.3.86 (2026-07-25) — Two invisible lines, and Readiness leaves Today
+
+**The alignment.** 5d and 62% were two stacked columns aligned at their
+tops, and a 38px number's top is not a 20px number's top's equal — the
+annotation's two invisible lines drifted. The head is now a 2×2 grid with
+`align-items:baseline`: both numbers on one baseline, both captions on one
+row. The grid shape is invariant across every variant — the trained-today
+lead keeps the year percentage beside it (the first cut of this patch
+dropped it silently; the harness caught the regression before it shipped)
+— and the test asserts the cell order and the baseline rule itself.
+
+**Readiness leaves Today.** v3.3.85's disclosure lasted one release, and
+the reasoning that killed it is the same reasoning that created it, taken
+one step further: the Lift tab's part list IS the readiness board. A
+collapsed copy of a whole tab is still a copy. Today keeps a door —
+"Train other parts · N due →" — that lands on Lift with the tab bar
+following. The due count survives as the door's one receipt.
+
+Trial-and-revert, recorded as ever: 85 collapsed it, 86 removed it, and
+the test lineage says so. The `readyOpen` setting is orphaned but harmless
+in existing stores; nothing reads it.
+
+`test-todayhero.js` at 37 — board absent, door present and labelled, due
+receipt agreeing with trainingPlan(), the door landing on Lift, grid cell
+order num,num,cap,cap, and the baseline rule in the CSS.
+
 ## v3.3.85 (2026-07-25) — Readiness becomes a disclosure
 
 Train Next and Readiness were the same cadence data twice: Train Next is the

@@ -84,19 +84,18 @@ function rhythmCard(){
   const r=rhythm(), ly=r.ly;
   const pctN=Math.round(r.pct*100), lyN=r.lyPct!=null?Math.round(r.lyPct*100):null;
   const delta=lyN!=null?pctN-lyN:null;
-  const CAP='class="mono muted" style="font-size:11px;margin-top:2px"';
-  const lead = r.trainedToday
-    ? `<b class="big ok">Trained today</b>`
+  const leadNum = r.trainedToday ? `<b class="big ok">Trained today</b>`
+    : r.gap===0 ? `<b class="big ok">${currentStreak()}d</b>` : `<b class="big">${r.gap}</b>`;
+  const leadCap = r.trainedToday ? `<div class="rcap"></div>`
     : r.gap===0
-      ? `<b class="big ok">${currentStreak()}d</b><div ${CAP}>streak · ${streakAtRisk()?'<b class="atriskTxt">ends at midnight</b>':'today unwritten'}</div>`
-      : `<b class="big">${r.gap}</b><div ${CAP}>rest day${r.gap>1?'s':''} in a row · today unwritten</div>`;
+      ? `<div class="rcap">streak · ${streakAtRisk()?'<b class="atriskTxt">ends at midnight</b>':'today unwritten'}</div>`
+      : `<div class="rcap">rest day${r.gap>1?'s':''} in a row · today unwritten</div>`;
   let h=`<div class="card rhythm">
-    <div class="row spread" style="align-items:flex-start">
-      <div>${lead}</div>
-      <div style="text-align:right">
-        <div class="mono" style="font-size:20px;font-weight:700;color:var(--accent)">${pctN}%</div>
-        <div class="mono muted" style="font-size:10px;margin-top:2px">of ${thisYear}</div>
-      </div>
+    <div class="rgrid">
+      ${leadNum}
+      <div class="rpct">${pctN}%</div>
+      ${leadCap}
+      <div class="rcap r">of ${thisYear}</div>
     </div>
     <div class="strip">`;
   r.strip.forEach(s=>{

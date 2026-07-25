@@ -399,10 +399,10 @@ document.addEventListener('click',e=>{
     toast(cloudReady()?'Using '+cloudCfg().url:'Both fields are needed');
     return renderSync();
   }
-  if(e.target.closest('#readyHead')){
-    if(e.target.closest('[data-tip]')) return;  // the i explains; it must not toggle
-    DB.settings.readyOpen=!DB.settings.readyOpen;
-    save(true); render(); return;
+  if(e.target.closest('#goLift')){
+    view='lift'; lift={part:null,ex:null,weight:0};   // the tab's own entry state
+    document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v==='lift'));
+    return render();
   }
   if(e.target.closest('#restBtn')){
     const t=day(todayISO);
