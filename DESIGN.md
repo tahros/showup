@@ -84,7 +84,9 @@ Adopted into phases:
   your selections; red = live. The trial is the process working.
 - Green = declared rest, and nothing else (v3.3.81, refined v3.3.90). The
   mirror of red: one colour, one meaning. The header washes while the leaf
-  is up, and the Rhythm card's TODAY-numbers wear it too. The boundary:
+  is up, and the Rhythm card is FRAMED in it (v3.3.91 — recolouring the
+  numbers was tried in v3.3.90 and reverted; a figure that changes colour
+  reads as a different KIND of data). The boundary:
   **colour may describe today; it may never repaint the record.** Past
   trained days in the strip keep accent — painting them green would say
   they were rest days. Card backgrounds stay untinted: facts take no mood.

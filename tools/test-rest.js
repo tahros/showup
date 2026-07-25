@@ -167,17 +167,28 @@ ok("LIVE stays louder than REST", +livePct > +washPct, `live ${livePct}% vs rest
 // the boundary: today-numbers go green, PAST TRAINED DAYS DO NOT
 const restCard = cssSrc.match(/\.rhythm\.resting[^{]*\{[^}]*\}/g) || [];
 const joined = restCard.join(" ");
-ok("the card's numbers turn green while resting",
-   /\.rpct/.test(joined) && /var\(--rest\)/.test(joined));
-ok("...today's pending strip cell turns green", /strip i\.pend/.test(joined));
+/* v3.3.91 reverses v3.3.90's recolouring: the numbers stay accent and the
+   FRAME carries the state. Tried, judged by use, reverted — the record
+   stays. What survives from 90 is the boundary it established. */
+ok("the card is FRAMED green while resting, not recoloured",
+   /border-color/.test(joined) && /var\(--rest\)/.test(joined), joined.slice(0,90));
+ok("...and the numbers keep accent (no colour rule on .big/.rpct)",
+   !/\.rhythm\.resting[^{]*\.(big|rpct)[^{]*\{[^}]*color:var\(--rest\)/.test(cssSrc));
+ok("...today's pending strip cell still marks the declared rest",
+   /strip i\.pend/.test(joined));
 ok("...but filled strip cells (.on = a day TRAINED) are never repainted",
    !restCard.some(r => /\.strip i\.on/.test(r.split("{")[0])),
    restCard.map(r => r.split("{")[0].trim()).join(" | "));
-// specificity: the rest rule must come AFTER the accent rule it overrides
-const accentAt = cssSrc.indexOf(".rhythm .big.ok{");
-const restAt = cssSrc.indexOf(".rhythm.resting .big");
-ok("...and the rest rule is authored after the accent rule it overrides",
-   restAt > accentAt && accentAt > -1, `accent@${accentAt} rest@${restAt}`);
+// the breath must stay a breath: same slow tempo, wider swing
+const frostRule = (cssSrc.match(/@keyframes restbreathe-frost\{[\s\S]*?\}\}/) || [""])[0];
+const fN = [...frostRule.matchAll(/var\(--rest\) (\d+)%/g)].map(m => +m[1]);
+ok("the frosted branch breathes with a readable amplitude (\u226520 points)",
+   fN.length === 2 && (fN[0] - fN[1]) >= 20, fN.join("\u2192"));
+ok("...and the solid branch too",
+   nums.length === 2 && (nums[0] - nums[1]) >= 20, nums.join("\u2192"));
+const secs = (cssSrc.match(/animation:restbreathe ([\d.]+)s/) || [])[1];
+ok("...at an unchanged resting tempo (\u22656.4s, 4\u00d7 the live pulse)",
+   +secs >= 6.4, secs + "s");
 ok("--rest is defined in both themes", (cssSrc.match(/--rest:#/g) || []).length === 2);
 ok("header.resting exists and washes with --rest",
    /header\.resting\{[^}]*var\(--rest\)/.test(cssSrc));

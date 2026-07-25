@@ -43,14 +43,14 @@
   /* v3.3.81: the mirror state. LIVE burns at 92% solid; declared rest is a
      28% wash of the one green in the palette — the day feels different, the
      data stays uncoloured. */
-  header.resting{background:color-mix(in srgb,var(--rest) 48%,var(--ground));
+  header.resting{background:color-mix(in srgb,var(--rest) 52%,var(--ground));
     border-color:color-mix(in srgb,var(--rest) 70%,var(--line));
     animation:restbreathe 7s ease-in-out infinite}
   /* v3.3.82: the wash breathes — a resting breath, ~7s, dimming to 19% and
      back. The live pulse is 1.6s and sharp; rest is four times slower and
      never sharp. Border stays still: only the air moves. */
-  @keyframes restbreathe{0%,100%{background:color-mix(in srgb,var(--rest) 48%,var(--ground))}
-    50%{background:color-mix(in srgb,var(--rest) 36%,var(--ground))}}
+  @keyframes restbreathe{0%,100%{background:color-mix(in srgb,var(--rest) 52%,var(--ground))}
+    50%{background:color-mix(in srgb,var(--rest) 28%,var(--ground))}}
   /* v3.3.21 frosted chrome: only where backdrop-filter actually works, so the
      solid fallback above stays readable everywhere else. Colors are mixed from
      the theme vars, so any future ground change carries through for free.
@@ -60,10 +60,10 @@
       -webkit-backdrop-filter:blur(16px) saturate(160%);
       backdrop-filter:blur(16px) saturate(160%)}
     header.live{background:color-mix(in srgb,var(--live) 92%,transparent)}
-    header.resting{background:color-mix(in srgb,var(--rest) 42%,transparent);
+    header.resting{background:color-mix(in srgb,var(--rest) 52%,transparent);
       animation:restbreathe-frost 7s ease-in-out infinite}
-    @keyframes restbreathe-frost{0%,100%{background:color-mix(in srgb,var(--rest) 42%,transparent)}
-      50%{background:color-mix(in srgb,var(--rest) 32%,transparent)}}
+    @keyframes restbreathe-frost{0%,100%{background:color-mix(in srgb,var(--rest) 52%,transparent)}
+      50%{background:color-mix(in srgb,var(--rest) 26%,transparent)}}
     nav{background:color-mix(in srgb,var(--surface) 70%,transparent);
       -webkit-backdrop-filter:blur(16px) saturate(160%);
       backdrop-filter:blur(16px) saturate(160%)}
@@ -569,10 +569,12 @@
   .strip i{flex:1;height:22px;border-radius:3px;background:var(--surface2);border:1px solid var(--line)}
   .strip i.on{background:var(--accent);border-color:var(--accent)}
   .strip i.now{outline:2px solid var(--chalk);outline-offset:1px}
-  /* v3.3.90: while today is a declared rest, the card's TODAY-numbers wear
-     the rest green. Past trained days keep accent — history did not change
-     because today is a rest day. */
-  .rhythm.resting .big, .rhythm.resting .big.ok, .rhythm.resting .rpct{color:var(--rest)}
+  /* v3.3.91: rest is signalled by the FRAME. The numbers stay accent —
+     recolouring the figures made the card read as a different KIND of data
+     rather than the same data on a rest day. Border + today's pending cell
+     carry the state; the record keeps its colour. */
+  .rhythm.resting{border-color:color-mix(in srgb,var(--rest) 55%,var(--line));
+    box-shadow:0 0 0 1px color-mix(in srgb,var(--rest) 22%,transparent),var(--shadow)}
   .rhythm.resting .strip i.pend{border-color:var(--rest);opacity:1}
   .vs{margin-top:14px;padding-top:12px;border-top:1px dashed var(--line)}
   .vsrow{display:flex;align-items:center;gap:8px;margin-bottom:6px}

@@ -1,5 +1,30 @@
 # ShowUp — changelog
 
+## v3.3.91 (2026-07-25) — Rest is a frame, not a repaint
+
+**v3.3.90's green numbers are reverted after one release.** Seen in daylight,
+"5d" and "62%" in green read as a different *kind* of data rather than the
+same data on a rest day — the figures are the app's voice and the voice
+shouldn't change with the weather. They are accent again, permanently.
+
+The state moved to the **frame**: the Rhythm card takes a green border and a
+1px green halo while the leaf is up. Same information, stated around the
+data instead of through it. Today's pending cell in the strip keeps its
+green edge — that one is a border too, and it marks a real declared rest.
+
+Trial-and-revert, one release apart, recorded rather than quietly dropped.
+What survives from v3.3.90 is the rule it established, which the revert did
+not touch: colour may describe today; it may never repaint the record.
+
+**The breath got wider, not faster.** 48→36 was a 12-point swing on a
+translucent layer — too small to read as motion on a phone. It is 52→28
+now, 24 points, on both the solid and frosted branches. The 7-second tempo
+is unchanged, and the test asserts both: amplitude ≥20 points AND tempo
+≥6.4s, so nobody can make it visible later by speeding it into a pulse.
+Live pulses; rest breathes.
+
+`test-rest.js` at 53.
+
 ## v3.3.90 (2026-07-25) — The rest state gets loud enough to mean it
 
 **The wash was too polite.** 28% over the ground barely registered on a
