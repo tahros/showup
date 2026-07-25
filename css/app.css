@@ -803,6 +803,8 @@
   #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
   .note{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:8px;line-height:1.6}
   /* v3.3.66 arrival greeting — quiet by design: it is a state, not a banner */
+  .restbtn{margin-top:10px}
+  .restbtn.on{border-color:var(--accent-soft);color:var(--chalk)}  /* declared: quiet, not lit */
   .hello{display:flex;align-items:baseline;gap:8px;margin:2px 0 12px;flex-wrap:nowrap}
   .bwnow{font-family:var(--mono);font-weight:700;font-size:26px;color:var(--chalk);line-height:1}
   .bwsub{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:4px}

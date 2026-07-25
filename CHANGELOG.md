@@ -1,5 +1,45 @@
 # ShowUp — changelog
 
+## v3.3.79 (2026-07-25) — The declared rest day
+
+A Rest day button in Today, agreed line by line before a byte was written:
+
+**One — it never touches the streak math.** Declaring rest changes what today
+means, not what tomorrow counts. The fire still resets; the 928 stays a
+receipt with no forgiveness in it. Self-administered streak insurance is the
+trap this feature was most at risk of becoming, and the honest limit was
+stated and accepted before build.
+
+**Two — undeclared rest stays first-class.** The flag exists in no derived
+total; declared and undeclared rest produce byte-identical numbers, and the
+test asserts exactly that. 928 days of undeclared history lose nothing.
+
+**Three — training always wins.** The first set clears the flag, structurally:
+in save(), the one gate every mutation passes through, not at the six
+set-push call sites (the v3.3.45 lesson). A weigh-in save leaves a declared
+rest day standing — you can weigh yourself while resting.
+
+**Four — the app never asks.** No prompt exists; the suite greps the string
+literals for question-shaped phrases and finds none.
+
+The symbol is 🍃, proposed over the drafted 🌙 and adopted for a real
+reason: the moon says sleep; the leaf says growth, and growth is what a rest
+day physiologically is. Fire is the burn, leaf is the regrowth. The chip
+reads '🍃 rest' where the fire sits, the at-risk pulse stands down on the
+chip only — the hero keeps its unchanged 'ends at midnight', because the
+chip states a decision, not a promise.
+
+Scope held deliberately small: today-only (no retroactive declaring), and
+the flag stores from day one but renders only in the header — data outlives
+UI, so if the leaf earns a place in History later, the record will already
+be there. `rest:true` rides the per-day LWW exactly as `bw` does.
+
+New suite `test-rest.js`, 25 assertions — the four lines, the toggle, the
+chip, the sync carry, and that the declared state borrows no red. Two test
+lessons re-learned: freeze RISK_HOUR against the wall clock (sessfmt again),
+and never grep for `rest?` — it matches the ternary operator, not a
+question.
+
 ## v3.3.78 (2026-07-25) — Page zoom off where the app is installed, chart zoom untouched
 
 The viewport now pins scale: `maximum-scale=1, user-scalable=no`. iOS ignores

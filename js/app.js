@@ -399,6 +399,12 @@ document.addEventListener('click',e=>{
     toast(cloudReady()?'Using '+cloudCfg().url:'Both fields are needed');
     return renderSync();
   }
+  if(e.target.closest('#restBtn')){
+    const t=day(todayISO);
+    if(t.rest) delete t.rest; else t.rest=true;   // toggle; no confirm, no prompt
+    t.upd=Date.now();
+    save(true); render(); return;
+  }
   if(e.target.closest('#bwEditBtn')){ bwEdit=true; renderStats();
     setTimeout(()=>{const i=$('#bwIn'); if(i){i.focus();i.select();}},0); return; }
   if(e.target.closest('#bwCancel')){ bwEdit=false; renderStats(); return; }

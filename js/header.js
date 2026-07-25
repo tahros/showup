@@ -31,8 +31,21 @@ function renderHeader(){
   // done today, workout closed → a plain, permanent ✓. Live → the pulsing dot instead.
   sub.classList.toggle('donetoday', trained && !live);
   const s=currentStreak();
-  $('#hStreak').textContent=s?'🔥 '+s+'d':'';
-  $('#hStreak').classList.toggle('atrisk', streakAtRisk());
+  /* v3.3.79: a DECLARED rest day shows the leaf where the fire sits — the
+     header's one-emoji vocabulary, second word. Fire is the burn, leaf is
+     the regrowth. The streak MATH is untouched: the moment sets exist the
+     flag is already gone (cleared in save()), so this branch can only hold
+     on a genuinely restful day. The hero card below keeps its unchanged
+     'ends at midnight' honesty — the chip states the decision, not a
+     promise. */
+  const _rt=DB.days&&DB.days[todayISO];
+  if(_rt&&_rt.rest&&!(_rt.w||[]).length){
+    $('#hStreak').textContent='🍃 rest';
+    $('#hStreak').classList.remove('atrisk');
+  }else{
+    $('#hStreak').textContent=s?'🔥 '+s+'d':'';
+    $('#hStreak').classList.toggle('atrisk', streakAtRisk());
+  }
 }
 
 /* How the year is actually going: rest days, the current gap, and last year at

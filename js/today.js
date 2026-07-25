@@ -248,6 +248,13 @@ function renderToday(){
     // ---- before the gym: what should I train
     h+=helloCard();
     h+=rhythmCard();
+    /* v3.3.79: annotation, never homework. The button sits here; it never
+       prompts, never nags, and an undeclared rest day is not a lesser rest
+       day. Tap again to undo — every state walks out. Gone the moment a
+       set lands (the whole !logged branch is). */
+    const _rest=!!(DB.days[todayISO]&&DB.days[todayISO].rest);
+    h+=`<button class="btn ghost restbtn ${_rest?'on':''}" id="restBtn">${
+      _rest?'🍃 Resting today · tap to undo':'🍃 Rest day'}</button>`;
     h+=`<h2>Train next</h2>`;
     if(P.pick){
       const i0=P.info[P.pick];
