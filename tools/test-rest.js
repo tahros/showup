@@ -69,11 +69,16 @@ run(`renderHeader();`);
 check("the chip shows the leaf", `$('#hStreak').textContent`, "\u{1F343} rest");
 check("...and drops the at-risk pulse (the chip states a decision)",
       `$('#hStreak').classList.contains('atrisk')`, false);
+// v3.3.80: the chip's BASE rule is record-red (the fire earns it, the leaf
+// must not inherit it). jsdom sees no colour, so assert the mechanism: the
+// class flips, and its rule reads muted with no red variable in it.
+check("...and wears the muted restchip class", `$('#hStreak').classList.contains('restchip')`, true);
 run(`view='today'; render();`);
 ok("SCOPE: the hero still says 'ends at midnight' \u2014 header chip only, no soothing",
    /ends at midnight/.test(run(`$('#view').innerHTML`)));
 run(`day(todayISO).rest=false; delete DB.days[todayISO].rest; renderHeader();`);
 check("undeclared, the fire returns", `$('#hStreak').textContent`, "\u{1F525} 3d");
+check("...and sheds the restchip class with it", `$('#hStreak').classList.contains('restchip')`, false);
 
 // ---- 2. LINE TWO: undeclared rest is first-class --------------------------
 // an undeclared rest day and a declared one are indistinguishable in every
@@ -131,5 +136,8 @@ const cssSrc = fs.readFileSync(path.join(dir, "css/app.css"), "utf8");
 const restRule = (cssSrc.match(/\.restbtn\.on\{[^}]*\}/) || [""])[0];
 ok("the declared state borrows no red (--live/--record stay out of it)",
    restRule.length > 0 && !/--live|--record/.test(restRule), restRule);
+const chipRule = (cssSrc.match(/#hStreak\.restchip\{[^}]*\}/) || [""])[0];
+ok("the rest chip is muted \u2014 red is LIVE only, and no one-off green enters the palette",
+   /var\(--muted\)/.test(chipRule) && !/--live|--record|green|#0f0|#00ff00/i.test(chipRule), chipRule);
 
 process.exit(fail ? 1 : 0);

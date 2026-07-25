@@ -1,5 +1,27 @@
 # ShowUp — changelog
 
+## v3.3.80 (2026-07-25) — The leaf sheds the fire's red
+
+v3.3.79 shipped the rest chip red, and the first gym screenshot caught it.
+Root cause: the chip's BASE rule is `color:var(--record)` — the fire earns
+red permanently, not only via `.atrisk`, and removing `.atrisk` in the rest
+branch left the base rule standing. jsdom sees no colour; the eighth
+first-screenshot-only bug of this line of work.
+
+Fixed as doctrine, not taste: **red is LIVE only**, and a declared rest day
+is the least live state the app has. The chip now wears `.restchip` —
+muted text — in the rest branch and sheds it in the fire branch.
+
+Green text was proposed and declined with reasons: the leaf emoji already
+carries the green, doubling it in text makes rest a celebrated state (one
+step down the gamified-rest road refused in v3.3.79), and a one-off colour
+used by a single chip is how a palette rots. Rest is absence; the text
+recedes. It is one variable to flip if living with muted says otherwise.
+
+`test-rest.js` at 28 — the class flips on in the rest branch, off in the
+fire branch, and the rule itself is asserted muted with no red variable and
+no green literal in it.
+
 ## v3.3.79 (2026-07-25) — The declared rest day
 
 A Rest day button in Today, agreed line by line before a byte was written:

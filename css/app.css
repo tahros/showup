@@ -122,6 +122,7 @@
   .dr-n.up{color:var(--accent)}
   .chip.livego{background:var(--live);border-color:var(--live);color:#fff}
   #hStreak.atrisk{color:var(--record);font-weight:800}
+  #hStreak.restchip{color:var(--muted);font-weight:600}  /* v3.3.80: red is LIVE only; the leaf carries the green */
   .strip i.pend.atrisk{border-color:var(--record);opacity:1}
   .atriskTxt{color:var(--record)}
   .notei{position:relative;display:inline-block}   /* v3.3.54: lives beside titles now — no note-row top margin, and the ibtn's own 6px gap applies */

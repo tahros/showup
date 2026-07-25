@@ -42,8 +42,10 @@ function renderHeader(){
   if(_rt&&_rt.rest&&!(_rt.w||[]).length){
     $('#hStreak').textContent='🍃 rest';
     $('#hStreak').classList.remove('atrisk');
+    $('#hStreak').classList.add('restchip');
   }else{
     $('#hStreak').textContent=s?'🔥 '+s+'d':'';
+    $('#hStreak').classList.remove('restchip');
     $('#hStreak').classList.toggle('atrisk', streakAtRisk());
   }
 }
