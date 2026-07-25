@@ -279,19 +279,25 @@ function renderToday(){
     }
     const rest=P.mains.slice(1);
     if(rest.length){
-      // readiness board: each part fills toward its usual interval. Full bar = due.
-      h+=`<h2 class="quiet">Readiness ${iBtn('ready','Each bar fills toward how often you usually train that part. Full = due — tap to start.')}</h2><div class="card" style="padding:8px 10px">`;
-      rest.slice().sort((a,b)=>P.score(b)-P.score(a)).forEach(p=>{
-        const i1=P.info[p];
-        const pct=Math.min(100,Math.round(i1.since/Math.max(1,i1.gap)*100));
-        const due=P.score(p)>=1;
-        h+=`<button class="readyrow" data-go="${p}">
-              <span class="rname">${p}</span>
-              <span class="rbar"><i class="${due?'due':''}" style="width:${pct}%"></i></span>
-              <span class="rmeta">${i1.since===0?'today':i1.since+'d'} <em>/ ${Math.round(i1.gap)}d</em></span>
-            </button>`;
-      });
-      h+=`</div>`;
+      // readiness: a disclosure, not a board (v3.3.85). Collapsed by default;
+      // the header carries the one receipt that matters at a glance.
+      const rOpen=!!DB.settings.readyOpen;
+      const nDue=rest.filter(p=>P.score(p)>=1).length;
+      h+=`<h2 class="quiet readyhead" id="readyHead">Readiness${nDue?` <span class="rduecount">· ${nDue} due</span>`:''} <span class="rcaret">${rOpen?'▾':'▸'}</span> ${iBtn('ready','Each bar fills toward how often you usually train that part. Full = due — tap to start.')}</h2>`;
+      if(rOpen){
+        h+=`<div class="card" style="padding:8px 10px">`;
+        rest.slice().sort((a,b)=>P.score(b)-P.score(a)).forEach(p=>{
+          const i1=P.info[p];
+          const pct=Math.min(100,Math.round(i1.since/Math.max(1,i1.gap)*100));
+          const due=P.score(p)>=1;
+          h+=`<button class="readyrow" data-go="${p}">
+                <span class="rname">${p}</span>
+                <span class="rbar"><i class="${due?'due':''}" style="width:${pct}%"></i></span>
+                <span class="rmeta">${i1.since===0?'today':i1.since+'d'} <em>/ ${Math.round(i1.gap)}d</em></span>
+              </button>`;
+        });
+        h+=`</div>`;
+      }
     }
     $('#view').innerHTML=h; return;
   }

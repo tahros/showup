@@ -399,6 +399,11 @@ document.addEventListener('click',e=>{
     toast(cloudReady()?'Using '+cloudCfg().url:'Both fields are needed');
     return renderSync();
   }
+  if(e.target.closest('#readyHead')){
+    if(e.target.closest('[data-tip]')) return;  // the i explains; it must not toggle
+    DB.settings.readyOpen=!DB.settings.readyOpen;
+    save(true); render(); return;
+  }
   if(e.target.closest('#restBtn')){
     const t=day(todayISO);
     if(t.rest) delete t.rest; else t.rest=true;   // toggle; no confirm, no prompt

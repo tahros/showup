@@ -1,5 +1,29 @@
 # ShowUp — changelog
 
+## v3.3.85 (2026-07-25) — Readiness becomes a disclosure
+
+Train Next and Readiness were the same cadence data twice: Train Next is the
+answer ("Shoulder · 4d since · usually every 6d"), the per-part bars are the
+working-out. Working-out lives behind a tap — that is D1, applied one
+section further down than v3.3.83 applied it.
+
+Readiness now renders as its header alone, collapsed by default. Tap to
+open; the preference persists in settings (auto-stamped, synced). The i
+still explains, and tapping it does NOT toggle the disclosure — guarded and
+asserted. The header keeps exactly one receipt: "· N due", accent, shown
+only when something is waiting — a glance still answers whether to look.
+
+Demoted, not deleted: every bar, every tap-to-start row is one tap away,
+unchanged.
+
+The due-count test earned a design note: hand-picking "due" parts from
+outside is fragile because trainingPlan() derives mains from history depth,
+so the assertion is self-consistent instead — open the board, count the due
+bars the app itself drew, collapse, and require the header's receipt to
+equal that count, including the zero case where the receipt must be absent.
+
+`test-todayhero.js` at 38.
+
 ## v3.3.84 (2026-07-25) — Two numbers, two captions, one strip
 
 The Rhythm card settles into its minimal shape: 5d and 62% share the top
