@@ -586,6 +586,26 @@ function longestStreak(){
 function wd2(iso){ return new Date(iso+'T00:00').toLocaleDateString('en-US',{weekday:'short'}); }
 function daysBetween(a,b){return Math.round((new Date(b+'T00:00')-new Date(a+'T00:00'))/864e5);}
 
+/* v3.3.89: cumulative distance by day of year, in DISPLAY units — the same
+   shape yearCurves() returns, so one canvas renderer serves both charts.
+   Shared by the SVG in runStatsHTML() and the share card. */
+function runYearCurves(){
+  const days=runDays(), per={};
+  for(const r of days){ const y=r.d.slice(0,4); (per[y]=per[y]||[]).push([doy(r.d),toD(r.km)]); }
+  const out={};
+  for(const [y,list] of Object.entries(per)){
+    list.sort((a,b)=>a[0]-b[0]);
+    const end = y===thisYear ? doy(todayISO) : ((+y%4===0)?366:365);
+    const curve=new Float32Array(end); let c=0,i=0;
+    for(let d=1;d<=end;d++){
+      while(i<list.length&&list[i][0]<=d){ c+=list[i][1]; i++; }
+      curve[d-1]=c;
+    }
+    out[y]={curve,end,total:c};
+  }
+  return out;
+}
+
 /* year-over-year cumulative consistency: workout days so far / days elapsed  (the Dashboard bottom chart) */
 function yearCurves(){
   const dates=workoutDates();

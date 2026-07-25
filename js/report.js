@@ -164,7 +164,16 @@ function drawGrid(gd){
    being written), past years step back in the same greys/soft blues the SVG
    uses. YEAR_COLORS holds CSS vars, so each is resolved through the canvas
    colour parser at draw time. */
-function drawYoy(curves){
+/* v3.3.89: parameterised so the consistency chart and the distance chart
+   share one painter. The two differ only in scale and wording; duplicating
+   250 lines of canvas for that is exactly the drift this codebase keeps
+   paying down. */
+function drawYoy(curves,o){
+  o=o||{};
+  const fmtAxis = o.fmtAxis || (v=>Math.round(v*100)+'%');
+  const fmtBig  = o.fmtBig  || (v=>Math.round(v*100)+'%');
+  const kicker  = o.kicker  || 'CONSISTENCY, YEAR OVER YEAR';
+  const footer  = o.footer  || '% of days trained, cumulative';
   const S=1080;
   const cv=document.createElement('canvas'); cv.width=S; cv.height=S;
   const x=cv.getContext('2d'); if(!x) return null;
@@ -183,30 +192,32 @@ function drawYoy(curves){
   // this year's number is the headline — 96px: dominant but not shouting,
   // a clear step above the 28px kicker without crowding the top margin
   const cNow=curves[thisYear];
-  const pctNow=cNow?Math.round(cNow.curve[cNow.end-1]*100):null;
+  const pctNow=cNow?cNow.curve[cNow.end-1]:null;
   x.textBaseline='alphabetic'; x.textAlign='left';
   if(pctNow!=null){
+    const big=fmtBig(pctNow);
     x.fillStyle=V('--chalk'); x.font='700 96px '+SANS;
-    x.fillText(pctNow+'%',P,P+96);
-    const tw=(x.measureText(pctNow+'%')||{}).width||0;
+    x.fillText(big,P,P+96);
+    const tw=(x.measureText(big)||{}).width||0;
     x.fillStyle=V('--muted'); x.font='500 36px '+MONO;
-    x.fillText('of '+thisYear+', trained',P+tw+18,P+96);
+    x.fillText(o.sub||('of '+thisYear+', trained'),P+tw+18,P+96);
   }
   x.textAlign='right'; x.fillStyle=V('--muted'); x.font='500 34px '+MONO;
   x.fillText('ShowUp',S-P,P+50);
   x.textAlign='left'; x.fillStyle=V('--faint'); x.font='500 28px '+MONO;
-  x.fillText('CONSISTENCY, YEAR OVER YEAR',P,P+152);
+  x.fillText(kicker,P,P+152);
 
   // right margin reserved for the year labels that replace the legend
   const L=P+70, R=S-P-118, T=P+212, B=S-P-96, W=R-L, H=B-T;
   // y grid
   x.textAlign='right'; x.textBaseline='middle'; x.font='500 26px '+MONO;
-  for(const g of [0,0.25,0.5,0.75,1]){
-    const gy=B-g*H;
+  const yMax=o.yMax||1;
+  for(const g of (o.ticks||[0,0.25,0.5,0.75,1])){
+    const gy=B-(g/yMax)*H;
     x.strokeStyle=V('--line'); x.lineWidth=1.5;
     if(g) x.setLineDash([6,7]);
     x.beginPath(); x.moveTo(L,gy); x.lineTo(R,gy); x.stroke(); x.setLineDash([]);
-    x.fillStyle=V('--muted'); x.fillText(g*100+'%',L-14,gy);
+    x.fillStyle=V('--muted'); x.fillText(fmtAxis(g),L-14,gy);
   }
   // x months
   x.textAlign='center'; x.fillStyle=V('--muted');
@@ -223,12 +234,12 @@ function drawYoy(curves){
     x.lineJoin='round'; x.lineCap='round';
     x.beginPath();
     for(let d=0;d<end;d+=2){
-      const px=L+(d/366)*W, py=B-curve[d]*H;
+      const px=L+(d/366)*W, py=B-(curve[d]/yMax)*H;
       d===0?x.moveTo(px,py):x.lineTo(px,py);
     }
     x.stroke();
-    ends.push({y, cur, ex:L+((end-1)/366)*W, ey:B-curve[end-1]*H,
-               pct:Math.round(curve[end-1]*100)});
+    ends.push({y, cur, ex:L+((end-1)/366)*W, ey:B-(curve[end-1]/yMax)*H,
+               pct:fmtBig(curve[end-1])});
     if(cur){
       const e=ends[ends.length-1];
       x.fillStyle=V('--accent');
@@ -252,14 +263,14 @@ function drawYoy(curves){
   if(eNow){
     x.textBaseline='alphabetic'; x.textAlign='center';
     x.fillStyle=V('--accent'); x.font='700 40px '+MONO;
-    const label=eNow.y+' · '+eNow.pct+'%';
+    const label=eNow.y+' · '+eNow.pct;
     const cx2=Math.max(P+((x.measureText(label)||{}).width||0)/2,
                        Math.min(eNow.ex, R-((x.measureText(label)||{}).width||0)/2));
     x.fillText(label,cx2,eNow.ey-30);
   }
   x.textBaseline='alphabetic'; x.textAlign='left';
   x.fillStyle=V('--faint'); x.font='500 26px '+MONO;
-  x.fillText('% of days trained, cumulative',P,S-P+8);
+  x.fillText(footer,P,S-P+8);
   x.textAlign='right';
   x.fillText('tahros.github.io/showup',S-P,S-P+8);
   return cv;
@@ -294,6 +305,17 @@ async function showCard(drawFn,label){
 function makeRepImage(){ const rd=repData(repOff); return showCard(()=>drawRep(rd),rd.label); }
 function makeGridImage(){ const gd=gridData(); return showCard(()=>drawGrid(gd),`${gd.total}-days`); }
 function makeYoyImage(){ const cs=yearCurves(); return showCard(()=>drawYoy(cs),'consistency-'+todayISO.slice(0,4)); }
+function makeRunYoyImage(){
+  const cs=runYearCurves();
+  const tot=Math.max(...Object.values(cs).map(c=>c.total),1);
+  const step=Math.max(10,Math.round(tot/4/10)*10);
+  return showCard(()=>drawYoy(cs,{
+    yMax:Math.max(tot,step*4), ticks:[0,step,step*2,step*3,step*4],
+    fmtAxis:v=>String(Math.round(v)), fmtBig:v=>String(Math.round(v)),
+    kicker:'DISTANCE, YEAR OVER YEAR', sub:DU()+' in '+thisYear,
+    footer:'cumulative '+DU()+' by day of year'
+  }),'distance-'+todayISO.slice(0,4));
+}
 document.addEventListener('click',e=>{
   /* v3.3.72: closest(), not e.target.id — a button that gains a child at
      runtime silently stops responding (the v3.3.58 lesson, in the gym). */
@@ -303,6 +325,7 @@ document.addEventListener('click',e=>{
   if(hit('repShare')){ makeRepImage(); return; }
   if(hit('gridShare')){ makeGridImage(); return; }
   if(hit('yoyShare')){ makeYoyImage(); return; }
+  if(hit('runShare')){ makeRunYoyImage(); return; }
   if(hit('repClose')){ repOvEl().style.display='none'; return; }
   if(hit('repDo')&&_repCv){
     const name='showup-'+String(_repCv.label).toLowerCase().replace(/[^a-z0-9]+/g,'-')+'.png';

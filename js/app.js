@@ -126,9 +126,6 @@ document.addEventListener('click',e=>{
     document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
     return render();
   }
-  const jump=e.target.closest('[data-jump]');
-  if(jump){const el=document.getElementById(jump.dataset.jump);
-    if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); return;}
   const nav=e.target.closest('nav button');
   if(nav){
     if(session) cloudPush();

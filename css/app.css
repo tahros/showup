@@ -624,7 +624,7 @@
       transition:opacity .5s cubic-bezier(.2,.8,.25,1),transform .5s cubic-bezier(.2,.8,.25,1)}
 
     /* 5. cards + headers rise in with a stagger (JS sets --i per element) */
-    #view>.card,#view>h2,#view>.kpis,#view>table,#view>.jumps{
+    #view>.card,#view>h2,#view>.kpis,#view>table{
       animation:rise .34s cubic-bezier(.2,.8,.25,1) both;
       animation-delay:calc(var(--i,0)*40ms)}
 
@@ -803,10 +803,6 @@
     bottom:5px;width:24px;height:3px;border-radius:2px;background:var(--accent)}
   nav button.on span{filter:none}
   .recdate{display:block;font-size:9px;color:var(--muted);font-weight:400;margin-top:1px}
-  .jumps{display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 14px}
-  .jumps button{background:var(--surface);border:1px solid var(--line);color:var(--muted);
-    font-family:var(--mono);font-size:10px;letter-spacing:var(--track-label);text-transform:uppercase;
-    border-radius:14px;padding:5px 11px;cursor:pointer}
   .mstone{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px}
   .mstone .big{font-family:var(--mono);font-size:24px;color:var(--chalk);font-weight:600}
   .mstone .goal{font-family:var(--mono);font-size:11px;color:var(--muted)}

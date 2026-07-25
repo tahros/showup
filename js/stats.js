@@ -125,13 +125,7 @@ function renderStats(){
   const lyAtSamePoint=lyCurve?lyCurve.curve[Math.min(elapsed,lyCurve.end)-1]:null;
   const diff=lyAtSamePoint!=null?Math.round((consNow-lyAtSamePoint)*100):null;
 
-  let h=`<div class="jumps">
-      <button data-jump="secDays">Days</button>
-      <button data-jump="secParts">Parts</button>
-      <button data-jump="secRun">Run</button>
-      <button data-jump="secRecords">Records</button>
-    </div>
-    <h2 id="secDays">Show up — that's the whole game</h2>
+  let h=`<h2 id="secDays">Show up — that's the whole game</h2>
     <div class="kpis">
       <div class="kpi accent"><div class="v">${Math.round(consNow*100)}%</div><div class="l">of ${thisYear}, trained</div>
         ${diff!=null?`<div class="d ${diff>=0?'delta up':'delta down'}">${diff>=0?'+':''}${diff} pts vs ${lastYear} today</div>`:''}</div>

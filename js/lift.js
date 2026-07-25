@@ -672,10 +672,9 @@ function runStatsHTML(){
       <span>16-week avg ${wkAvg.toFixed(1)} ${DU()}</span></div></div>`;
 
   /* --- year over year, cumulative distance --- */
-  const yc={};
-  for(const r of days){const y=r.d.slice(0,4); (yc[y]=yc[y]||[]).push([doy(r.d),toD(r.km)]);}
-  const years=Object.keys(yc).filter(y=>y>='2022').sort();
-  const yTot={}; for(const y of years) yTot[y]=yc[y].reduce((a,p)=>a+p[1],0);
+  const RC=runYearCurves();                       // v3.3.89: one source, two painters
+  const years=Object.keys(RC).filter(y=>y>='2022').sort();
+  const yTot={}; for(const y of years) yTot[y]=RC[y].total;
   const dataMax=Math.max(...Object.values(yTot),1);
   const step=Math.max(10,Math.round(dataMax/4/10)*10);        // 361 -> 90, 180, 270, 360
   const yMax=Math.max(dataMax,step*4);
@@ -693,12 +692,10 @@ function runStatsHTML(){
   });
   const labels=[];
   for(const y of years){
-    const pts=yc[y].sort((a,b)=>a[0]-b[0]);
+    const cv=RC[y].curve, end=RC[y].end;
     let c=0, path='';
-    const end = y===thisYear ? doy(todayISO) : ((+y%4===0)?366:365);
-    let i=0;
     for(let d=1;d<=end;d++){
-      while(i<pts.length&&pts[i][0]<=d){c+=pts[i][1];i++;}
+      c=cv[d-1];
       if(d===1||d===end||d%3===0) path+=`${(30+(d/366)*270).toFixed(1)},${(140-c/yMax*120).toFixed(1)} `;
     }
     const cur=y===thisYear;
@@ -716,7 +713,7 @@ function runStatsHTML(){
          fill="${YEAR_COLORS[L.y]||'var(--muted)'}" font-weight="${L.cur?700:400}">${L.y.slice(2)}</text>`;
   h+=`</svg></div><div class="legend1">`;
   for(const y of years) h+=`<span data-yr="${y}" role="button">${''}<i style="background:${YEAR_COLORS[y]||'var(--muted)'}"></i>${y} · ${Math.round(yTot[y])}</span>`;
-  h+=`</div></div>`;
+  h+=`</div><button class="btn ghost" id="runShare" style="margin-top:12px">Share as image</button></div>`;
 
   /* --- pace, by month (timed runs only; lower is faster) --- */
   const pm={};

@@ -1,5 +1,42 @@
 # ShowUp — changelog
 
+## v3.3.89 (2026-07-25) — One painter, two charts; the jump chips go
+
+**The distance chart ships as a share card.** "Share as image" now sits under
+Run → Year over year, matching the consistency chart.
+
+It reuses `drawYoy()` rather than adding a second renderer. The two charts
+differ only in scale and wording — percent vs distance — so the painter is
+parameterised (`fmtAxis`, `fmtBig`, `kicker`, `sub`, `footer`, `yMax`,
+`ticks`) and there is still exactly one of it. Duplicating 250 lines of
+canvas for a unit change is precisely the drift `resealDay()`, `foldSets()`,
+`gridData()` and `mgAlpha()` were each extracted to stop.
+
+`runYearCurves()` joins them: the SVG in `runStatsHTML()` and the share card
+now read one cumulative-distance source instead of computing it twice. The
+test asserts both call it and that only one `drawYoy` exists.
+
+**The jump chips are gone.** DAYS / PARTS / RUN / RECORDS was a table of
+contents duplicating the section headings directly below it — the same
+duplication argument that removed the year-vs-year block from Today
+(v3.3.83) and the Readiness board (v3.3.86). It also sat above the fold on
+the app's most data-rich screen, so the first thing Stats showed was
+navigation rather than a number. The accent section headers are strong
+scroll anchors and the app-wide "↑ top" button already covers get-me-back.
+
+The `[data-jump]` click handler and the `.jumps` CSS went with them —
+nothing emitted them any more, and unread logic is the degenerate case of
+the same-logic-in-two-places problem.
+
+**Honest cost:** Stats is the longest screen in the app, and this removes
+its only wayfinding. If scrolling past four sections to reach Records
+becomes annoying in real use, the answer is a shorter Stats page, not the
+chips back.
+
+`test-sharecard.js` at 66 — including a regression guard that the
+consistency card kept its percent axis, percent headline and own kicker
+through the generalisation.
+
 ## v3.3.88 (2026-07-25) — The import pipeline: Strong and Hevy walk in
 
 The research settled the strategy: Strong's CSV is the de-facto interchange

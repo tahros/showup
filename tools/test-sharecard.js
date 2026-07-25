@@ -231,6 +231,54 @@ module.exports = settled.then(() => {
     ok("legend chips cannot be crushed by flex (flex:0 0 auto on the chip)",
        /\.legend1 \[data-yr\]\{[^}]*flex:0 0 auto/.test(cssSrc));
 
+    // ---- 8c. v3.3.89: ONE painter, two charts --------------------------
+    // The consistency card must be UNCHANGED by the generalisation. Its
+    // axis is still percent, its headline still percent.
+    calls = [];
+    run(`drawYoy(yearCurves())`);
+    const cTexts = calls.filter(c => c[0] === "fillText").map(c => String(c[1]));
+    ok("consistency card kept its percent axis after generalisation",
+       cTexts.includes("0%") && cTexts.includes("100%"));
+    ok("...and its percent headline", /^\d+%$/.test(cTexts[0]), cTexts[0]);
+    ok("...and its own kicker", cTexts.includes("CONSISTENCY, YEAR OVER YEAR"));
+
+    // seed runs across two years so the distance card has something to draw
+    run(`(function(){ const y=+todayISO.slice(0,4);
+      const add=(iso,km)=>{ (DB.days[iso]=DB.days[iso]||{w:[]}).w.push(
+        {part:'Run',ex:'Run',w:km,reps:[],mins:30,secs:0}); DB.days[iso].upd=1; };
+      for(let i=1;i<=8;i++) add((y-1)+'-0'+i+'-05', 5);
+      add(y+'-01-10',6); add(y+'-02-10',7); add(y+'-03-10',8);
+      SEED=deriveAll(); })()`);
+    calls = [];
+    const rcv = run(`drawYoy(runYearCurves(),{yMax:100,ticks:[0,25,50,75,100],
+      fmtAxis:v=>String(Math.round(v)),fmtBig:v=>String(Math.round(v)),
+      kicker:'DISTANCE, YEAR OVER YEAR',sub:'km in '+thisYear,
+      footer:'cumulative km by day of year'})`);
+    ok("the distance card renders at 1080\u00d71080", !!rcv && rcv.width === 1080 && rcv.height === 1080);
+    const rTexts = calls.filter(c => c[0] === "fillText").map(c => String(c[1]));
+    ok("...with a plain-number axis, no percent signs",
+       rTexts.includes("0") && rTexts.includes("100") && !rTexts.some(t => /^\d+%$/.test(t)));
+    ok("...its own kicker", rTexts.includes("DISTANCE, YEAR OVER YEAR"));
+    ok("...and a distance footer", rTexts.some(t => /cumulative km/.test(t)));
+
+    // one source of arithmetic: the SVG and the card both read runYearCurves()
+    const liftSrc = fs.readFileSync(path.join(dir, "js/lift.js"), "utf8");
+    const repSrc2 = fs.readFileSync(path.join(dir, "js/report.js"), "utf8");
+    ok("the run SVG reads runYearCurves()", /const RC=runYearCurves\(\)/.test(liftSrc));
+    ok("...and so does the share card (not a second cumulative loop)",
+       /runYearCurves\(\)/.test(repSrc2));
+    ok("...and only ONE drawYoy exists", (repSrc2.match(/function drawYoy/g) || []).length === 1);
+
+    // the button, and the chips' absence
+    run(`view='stats'; renderStats();`);
+    ok("the run chart offers a share button",
+       /id="runShare"/.test(run(`$('#view').innerHTML`)));
+    ok("the jump chips are gone from Stats (v3.3.89)",
+       !/data-jump=/.test(run(`$('#view').innerHTML`)));
+    ok("...while the section headings they indexed remain",
+       /id="secDays"/.test(run(`$('#view').innerHTML`)) &&
+       /id="secRecords"/.test(run(`$('#view').innerHTML`)));
+
     // ---- 9. the v3.3.58 lesson, enforced at the source -------------------
     const repSrc = fs.readFileSync(path.join(dir, "js/report.js"), "utf8");
     ok("report.js router no longer uses e.target.id===", !/e\.target\.id===/.test(repSrc));
