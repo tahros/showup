@@ -8,6 +8,8 @@ function renderHeader(){
   const trained=(day(todayISO).w||[]).length>0;
   const hdr=document.querySelector('header');
   hdr.classList.toggle('live',live);
+  const _rd=DB.days&&DB.days[todayISO];
+  hdr.classList.toggle('resting', !!(_rd&&_rd.rest&&!(_rd.w||[]).length));  // v3.3.81: the mirror of live
   const inEx = view==='lift' && lift.ex && !lift.copy;
   hdr.classList.toggle('exmode',!!inEx);
   if(inEx){

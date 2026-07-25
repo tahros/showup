@@ -3,6 +3,7 @@
     --ground:#0C0E13; --surface:#171A21; --surface2:#232733; --line:#343947;
     --accent:#5B7BFF; --accent-soft:#3A4A8C; --accent-dim:#95A4E8;
     --record:#E05545;                       /* the only non-blue: personal records */
+    --rest:#3E5C46;                         /* v3.3.81: declared rest — green's ONE meaning */
     --live:#C93A2B;                         /* the header while your heart is pumping */
     --chalk:#F0F1F6; --muted:#A2A8B6; --faint:#747A8A; --shadow:none;
     --track-num:-.02em; --track-label:.08em; --track-wide:.16em;
@@ -15,6 +16,7 @@
     --ground:#F2F3F6; --surface:#FFFFFF; --surface2:#E8EAF0; --line:#D6D9E2;
     --accent:#2F4BD8; --accent-soft:#C3CCF5; --accent-dim:#8892C4;
     --record:#C33A2C;
+    --rest:#79A884;                         /* declared rest, light theme */
     --live:#BE3324;
     --chalk:#191B21; --muted:#6B7080; --faint:#9AA0AE; --shadow:0 1px 3px rgba(20,25,40,.07);
   }
@@ -38,6 +40,11 @@
   }
   header.live{background:var(--live);border-color:var(--live);
     box-shadow:0 6px 24px -6px color-mix(in srgb,var(--live) 45%,transparent)}
+  /* v3.3.81: the mirror state. LIVE burns at 92% solid; declared rest is a
+     28% wash of the one green in the palette — the day feels different, the
+     data stays uncoloured. */
+  header.resting{background:color-mix(in srgb,var(--rest) 28%,var(--ground));
+    border-color:color-mix(in srgb,var(--rest) 45%,var(--line))}
   /* v3.3.21 frosted chrome: only where backdrop-filter actually works, so the
      solid fallback above stays readable everywhere else. Colors are mixed from
      the theme vars, so any future ground change carries through for free.
@@ -47,6 +54,7 @@
       -webkit-backdrop-filter:blur(16px) saturate(160%);
       backdrop-filter:blur(16px) saturate(160%)}
     header.live{background:color-mix(in srgb,var(--live) 92%,transparent)}
+    header.resting{background:color-mix(in srgb,var(--rest) 24%,transparent)}
     nav{background:color-mix(in srgb,var(--surface) 70%,transparent);
       -webkit-backdrop-filter:blur(16px) saturate(160%);
       backdrop-filter:blur(16px) saturate(160%)}
@@ -122,7 +130,7 @@
   .dr-n.up{color:var(--accent)}
   .chip.livego{background:var(--live);border-color:var(--live);color:#fff}
   #hStreak.atrisk{color:var(--record);font-weight:800}
-  #hStreak.restchip{color:var(--muted);font-weight:600}  /* v3.3.80: red is LIVE only; the leaf carries the green */
+  #hStreak.restchip{color:var(--rest);font-weight:700}  /* v3.3.81: the chip joins the one green */
   .strip i.pend.atrisk{border-color:var(--record);opacity:1}
   .atriskTxt{color:var(--record)}
   .notei{position:relative;display:inline-block}   /* v3.3.54: lives beside titles now — no note-row top margin, and the ibtn's own 6px gap applies */

@@ -1,5 +1,35 @@
 # ShowUp — changelog
 
+## v3.3.81 (2026-07-25) — Green becomes a word: the resting header
+
+The ask was to tint the hero card green on a declared rest day. Declined for
+the hero, granted for the header, and the distinction is the release:
+
+**The hero card is the receipts surface.** Streak, 62%, the year bars — none
+of those facts change when rest is declared, and tinting a container of
+numbers paints a mood onto data. Facts don't take moods. (It would also have
+broken the v3.3.79 scope: the flag renders in the header only.)
+
+**The header already speaks in colour.** LIVE turns it 92% solid red — the
+app's most global signal that today is burning. Declared rest is the exact
+mirror state and now takes the mirror treatment: `header.resting`, a 28%
+wash of the palette's new and only green. Live must never whisper; rest may.
+
+This is a **promotion, not a decoration**: `--rest` joins `--record` and
+`--live` as a semantic colour with exactly one meaning, defined in both
+themes, and DESIGN.md gains the line beside the red one — *Green = declared
+rest, and nothing else.* The chip's text joins it (v3.3.80's muted was the
+right instinct against decorative green; a semantic green supersedes it).
+
+The discipline is asserted, not promised: the test extracts every CSS rule
+that touches `var(--rest)` and requires every selector to be a rest rule —
+one colour, one meaning, nowhere else, enforced the way the tip-length cap
+is. Plus: the header wears `.resting` only while the leaf is up, sheds it
+when a set lands, never holds it and `.live` at once, and the hero card
+carries no rest class at all.
+
+`test-rest.js` at 35.
+
 ## v3.3.80 (2026-07-25) — The leaf sheds the fire's red
 
 v3.3.79 shipped the rest chip red, and the first gym screenshot caught it.

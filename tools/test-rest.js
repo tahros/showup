@@ -72,7 +72,11 @@ check("...and drops the at-risk pulse (the chip states a decision)",
 // v3.3.80: the chip's BASE rule is record-red (the fire earns it, the leaf
 // must not inherit it). jsdom sees no colour, so assert the mechanism: the
 // class flips, and its rule reads muted with no red variable in it.
-check("...and wears the muted restchip class", `$('#hStreak').classList.contains('restchip')`, true);
+check("...and wears the restchip class", `$('#hStreak').classList.contains('restchip')`, true);
+// v3.3.81: the header takes the mirror-of-live wash while the leaf is up
+check("...and the header wears .resting \u2014 the mirror of .live",
+      `document.querySelector('header').classList.contains('resting')`, true);
+check("...never both states at once", `document.querySelector('header').classList.contains('live')`, false);
 run(`view='today'; render();`);
 ok("SCOPE: the hero still says 'ends at midnight' \u2014 header chip only, no soothing",
    /ends at midnight/.test(run(`$('#view').innerHTML`)));
@@ -99,6 +103,8 @@ check("the first set clears the flag through save() \u2014 no call-site audit",
 run(`renderHeader();`);
 ok("...and the header shows the fire again, not the leaf",
    run(`$('#hStreak').textContent`).includes("\u{1F525}"));
+check("...and sheds the resting wash with it",
+      `document.querySelector('header').classList.contains('resting')`, false);
 run(`view='today'; render();`);
 ok("...and the button is gone with the whole unlogged branch",
    !/id="restBtn"/.test(run(`$('#view').innerHTML`)));
@@ -136,8 +142,23 @@ const cssSrc = fs.readFileSync(path.join(dir, "css/app.css"), "utf8");
 const restRule = (cssSrc.match(/\.restbtn\.on\{[^}]*\}/) || [""])[0];
 ok("the declared state borrows no red (--live/--record stay out of it)",
    restRule.length > 0 && !/--live|--record/.test(restRule), restRule);
+// v3.3.81: green is PROMOTED to a semantic colour — --rest — with exactly one
+// meaning, mirroring red. Assert the discipline: --rest is defined in both
+// themes, the chip and header.resting use it, and it appears in NO rule that
+// isn't a rest rule (one colour, one meaning, nowhere else).
 const chipRule = (cssSrc.match(/#hStreak\.restchip\{[^}]*\}/) || [""])[0];
-ok("the rest chip is muted \u2014 red is LIVE only, and no one-off green enters the palette",
-   /var\(--muted\)/.test(chipRule) && !/--live|--record|green|#0f0|#00ff00/i.test(chipRule), chipRule);
+ok("the chip wears the one green", /var\(--rest\)/.test(chipRule) && !/--live|--record/.test(chipRule), chipRule);
+ok("--rest is defined in both themes", (cssSrc.match(/--rest:#/g) || []).length === 2);
+ok("header.resting exists and washes with --rest",
+   /header\.resting\{[^}]*var\(--rest\)/.test(cssSrc));
+const restUses = [...cssSrc.matchAll(/^[^\n{]*\{[^}]*var\(--rest\)[^}]*\}/gm)].map(m => m[0].split("{")[0].trim());
+ok("...and --rest appears ONLY in rest rules (one meaning, nowhere else)",
+   restUses.length > 0 && restUses.every(sel => /rest/i.test(sel)), restUses.join(" | "));
+// SCOPE: the hero card stays uncoloured — facts don't take moods
+run(FIX); run(`day(todayISO).rest=true; day(todayISO).upd=Date.now(); view='today'; render();`);
+ok("the hero card takes no rest tint (no rest-class inside the view)",
+   !/class="[^"]*rest[^"]*"[^>]*>[^<]*streak/.test(run(`$('#view').innerHTML`)) &&
+   !run(`!![...$('#view').querySelectorAll('.zone,.card,.hero')].find(el=>[...el.classList].some(c=>/rest/i.test(c)&&c!=='restbtn'))`));
+run(`delete DB.days[todayISO].rest;`);
 
 process.exit(fail ? 1 : 0);
