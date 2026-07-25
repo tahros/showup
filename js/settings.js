@@ -18,10 +18,10 @@ function renderSync(){
       ${session?`
         <div class="row spread" style="margin-bottom:10px">
           <span><b>${session.user.email||'Signed in'}</b>
-            <div class="note" style="margin:2px 0 0">Devices sync on open and on return, day by day — the newest edit of each day wins everywhere, so deletions travel too. Every change pushes ~1s later, and pull-to-refresh force-pushes before reloading.</div>
-        <div class="note" style="margin:6px 0 0">Your full history — ${fmt(SEED.totals.sessions)} days · ${SEED.totals.km} km — lives in doc.days as the single source of truth (v3.0).</div></span>
+            <div class="note" style="margin:2px 0 0">Devices sync on open and on return, day by day.</div>
+        <div class="note" style="margin:6px 0 0">Your full history — ${fmt(SEED.totals.sessions)} days · ${SEED.totals.km} km.</div></span>
         </div>
-        <div class="note">Database: ${cloudCfg().url}<br>Last cloud sync: ${DB.settings.lastCloud?new Date(DB.settings.lastCloud).toLocaleString():'—'}</div>
+        <div class="note">Last cloud sync: ${DB.settings.lastCloud?new Date(DB.settings.lastCloud).toLocaleString():'—'}</div>
         <div class="row" style="gap:8px;margin-top:10px">
           <button class="btn ghost" id="cloudPullBtn" style="margin:0">Pull ↓</button>
           <button class="btn ghost" id="signOutBtn" style="margin:0">Sign out</button>
@@ -54,7 +54,7 @@ function renderSync(){
             <button data-sex="m" class="${DB.settings.sex==='m'?'sel':''}">M</button>
             <button data-sex="f" class="${DB.settings.sex==='f'?'sel':''}">F</button></span></div>
       </div>
-      <div class="note">${bwLast()?`Last change recorded ${pretty(bwLast())}. `:''}Enter a weight only when it <b>changes</b> — silence means unchanged, and the app reads back the weight in force on any given day. It's what Pull Up, Dip and other bodyweight lifts count as. Sex is stored for strength standards in a later release; nothing today reads it.</div>
+      <div class="note">Enter a weight only when it <b>changes</b> — silence means unchanged, and the app reads back the weight in force on any given day.</div>
       <button class="btn" id="youSave" style="margin-top:10px">Save</button>
     </div>
     <h2>Bars</h2>

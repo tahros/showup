@@ -70,4 +70,36 @@ const forged = /settingsAt:\s*DB\.settingsAt\s*\|\|\s*Date\.now\(\)/.test(src);
 console.log((forged?"FAIL":"PASS"), "push does not forge a settings timestamp →", !forged);
 if (forged) fail++;
 
+// ---- v3.3.94: Settings prose says what a stranger needs, not how it works --
+run(`view='settings'; renderSync();`);
+const sv94 = () => run(`$('#view').innerHTML`);
+for (const [what, phrase] of [
+  ["LWW mechanics",        "newest edit of each day wins"],
+  ["push timing",          "pushes ~1s later"],
+  ["the internal key",     "doc.days"],
+  ["a version reference",  "(v3.0)"],
+  ["the database host",    "supabase.co"],
+  ["a duplicated date",    "Last change recorded"],
+  ["bodyweight-lift internals", "Pull Up, Dip"],
+  ["an unused-field note", "nothing today reads it"],
+]) check(`Settings no longer explains ${what}`, `/${phrase.replace(/[.*+?^$()|[\]\\]/g,"\\$&")}/.test($('#view').innerHTML)`, false);
+
+// what survives is what a stranger actually needs. The account card only
+// renders when signed in, so sign in for these three — asserting them on a
+// signed-out fixture would have "passed" by absence in the negative checks
+// above and proven nothing here.
+run(`session={user:{email:'t@example.com'}}; renderSync();`);
+check("...sync is still stated", `/Devices sync on open and on return/.test($('#view').innerHTML)`, true);
+check("...what they own is still stated", `/Your full history/.test($('#view').innerHTML)`, true);
+check("...last sync time survives", `/Last cloud sync/.test($('#view').innerHTML)`, true);
+// and re-run the two that matter most against the SIGNED-IN card
+check("...no LWW essay in the signed-in card", `/newest edit of each day wins/.test($('#view').innerHTML)`, false);
+check("...no database host in the signed-in card", `$('#view').innerHTML.indexOf('supabase')>-1`, false);
+run(`session=null; renderSync();`);
+check("...and the one non-obvious rule survives",
+      `/silence means unchanged/.test($('#view').innerHTML)`, true);
+// the database URL must not ride along in screenshots
+check("no Supabase host anywhere in the rendered app",
+      `$('#view').innerHTML.indexOf('supabase')>-1`, false);
+
 process.exit(fail ? 1 : 0);

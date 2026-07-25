@@ -1,5 +1,41 @@
 # ShowUp — changelog
 
+## v3.3.94 (2026-07-25) — Settings stops explaining itself
+
+Four passages cut from Settings, measured the way v3.3.71 measured the tips:
+longest note 272 → 158 chars, total prose 1,395 → 1,025.
+
+What went, and why each was written for an audience of one:
+- The LWW essay — "the newest edit of each day wins everywhere, so deletions
+  travel too. Every change pushes ~1s later, and pull-to-refresh
+  force-pushes before reloading." Correct, and a description of the
+  implementation. A stranger needs to know sync happens, not how conflicts
+  resolve.
+- "lives in doc.days as the single source of truth (v3.0)" — an internal
+  key and a version number, in the UI.
+- **The database host.** `Database: https://….supabase.co` sat in the
+  settings card and therefore in every screenshot ever taken of it. Not a
+  secret, but it is infrastructure on a user's screen, and it travels
+  further than intended. A test now asserts the string `supabase` appears
+  nowhere in the rendered app.
+- "Last change recorded …" (already shown on the Stats weight card), plus
+  the sentences explaining that bodyweight feeds Pull Up and Dip, and that
+  Sex is stored for a future release and unused today. Explaining an unused
+  field is worse than the field.
+
+What survives is what a stranger needs: sync happens, this is what you own,
+this is when it last synced, and the one genuinely non-obvious rule —
+*silence means unchanged*.
+
+Nine phrases are asserted absent and four asserted present. A test-design
+note: the three survival checks first “failed” because the account card only
+renders when signed in — they would have been meaningless run against a
+signed-out fixture, where the negative checks pass by absence and prove
+nothing. They now sign in first, and two of the negative checks are re-run
+against the signed-in card for the same reason.
+
+`test-settings.js` at 30.
+
 ## v3.3.93 (2026-07-25) — Knowing who uses it, without becoming what we're not
 
 The question was how to tell whether a hand-recruited tester actually uses
