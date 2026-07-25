@@ -3,7 +3,10 @@
     --ground:#0C0E13; --surface:#171A21; --surface2:#232733; --line:#343947;
     --accent:#5B7BFF; --accent-soft:#3A4A8C; --accent-dim:#95A4E8;
     --record:#E05545;                       /* the only non-blue: personal records */
-    --rest:#3E5C46;                         /* v3.3.81: declared rest — green's ONE meaning */
+    --rest:#3E5C46;                         /* v3.3.81: declared rest — green's ONE meaning (wash/frame grade) */
+    --rest-ink:#8DB596;                     /* v3.3.92: rest as TEXT — same hue, text-grade. A wash colour
+                                               cannot also be an ink: 1.69:1 on its own wash proved it */
+    --chart-soft:#616EA3;                   /* v3.3.92: 2025's year line — accent-soft was 2.10:1 as a stroke */
     --live:#C93A2B;                         /* the header while your heart is pumping */
     --chalk:#F0F1F6; --muted:#A2A8B6; --faint:#747A8A; --shadow:none;
     --track-num:-.02em; --track-label:.08em; --track-wide:.16em;
@@ -16,9 +19,13 @@
     --ground:#F2F3F6; --surface:#FFFFFF; --surface2:#E8EAF0; --line:#D6D9E2;
     --accent:#2F4BD8; --accent-soft:#C3CCF5; --accent-dim:#8892C4;
     --record:#C33A2C;
-    --rest:#79A884;                         /* declared rest, light theme */
+    --rest:#79A884;                         /* declared rest, light theme (wash/frame grade) */
+    --rest-ink:#3B5742;                     /* rest as text, light */
+    --chart-soft:#7F859F;                   /* 2025's line, light — C3CCF5 was 1.58:1 on white */
     --live:#BE3324;
-    --chalk:#191B21; --muted:#6B7080; --faint:#9AA0AE; --shadow:0 1px 3px rgba(20,25,40,.07);
+    /* v3.3.92: muted 4.10:1 on surface2 and faint 2.62:1 on white failed AA;
+       darkened along their own hue, nothing else moved */
+    --chalk:#191B21; --muted:#626776; --faint:#8C929E; --shadow:0 1px 3px rgba(20,25,40,.07);
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;background:var(--ground);color:var(--chalk)}
@@ -139,7 +146,7 @@
   .dr-n.up{color:var(--accent)}
   .chip.livego{background:var(--live);border-color:var(--live);color:#fff}
   #hStreak.atrisk{color:var(--record);font-weight:800}
-  #hStreak.restchip{color:var(--rest);font-weight:700}  /* v3.3.81: the chip joins the one green */
+  #hStreak.restchip{color:var(--rest-ink);font-weight:700}  /* v3.3.92: ink grade — the wash grade was 1.69:1 on its own wash */
   .strip i.pend.atrisk{border-color:var(--record);opacity:1}
   .atriskTxt{color:var(--record)}
   .notei{position:relative;display:inline-block}   /* v3.3.54: lives beside titles now — no note-row top margin, and the ibtn's own 6px gap applies */
@@ -301,6 +308,10 @@
   .tipbubble.up::before{top:auto;bottom:-5px}
   .tipbubble.right{left:auto;right:0}
   .tipbubble.right::before{left:auto;right:24px}
+  /* v3.3.92: keyboard focus is visible app-wide. :focus-visible only fires
+     for keyboard/AT navigation, so touch behaviour is untouched. */
+  button:focus-visible,[role="button"]:focus-visible,input:focus-visible,
+  select:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:var(--shadow)}
   .row{display:flex;align-items:center;gap:10px}
   .spread{justify-content:space-between}

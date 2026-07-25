@@ -1,5 +1,55 @@
 # ShowUp — changelog
 
+## v3.3.92 (2026-07-25) — The colour audit: ink and wash part ways
+
+Implementation report for the colour-system spec (v2.0), per its §16
+format. Governing decisions confirmed with the maker first: NO blue default
+header (rejected — it violates the spec's own quiet-between-events law and
+would dilute red/green); canonical hues preserved (no cosmetic recolor);
+YEAR_COLORS kept as a validated exception; existing token vocabulary kept,
+missing tokens only.
+
+**The audit.** Every load-bearing token pair was computed against WCAG in
+both themes. Dark theme: one real failure. Light theme: five. The worst was
+structural, not cosmetic: `--rest` — a wash-grade colour — was also serving
+as the rest chip's TEXT, scoring 1.69:1 (dark) and 1.58:1 (light) against
+its own wash. A background grade cannot moonlight as an ink.
+
+**Changes:**
+- `--rest-ink` (#8DB596 dark / #3B5742 light): rest as text, same hue,
+  text grade. The chip writes in it now. One-meaning discipline extends to
+  the ink — asserted.
+- Light `--muted` #6B7080→#626776 (was 4.10:1 on surface2) and light
+  `--faint` #9AA0AE→#8C929E (was 2.62:1) — darkened along their own hue.
+- `--chart-soft` (#616EA3 dark / #7F859F light): 2025's year line.
+  `--accent-soft` is a background grade and scored 2.10:1 / 1.58:1 as a
+  chart stroke; the new token is the same family at stroke grade.
+  accent-soft itself is untouched everywhere it serves as a background.
+- Keyboard focus is visible app-wide: `:focus-visible` outlines in accent,
+  2px, offset 2. Touch behaviour unaffected — the pseudo-class only fires
+  for keyboard/AT navigation. This was the app's largest accessibility gap.
+
+**The guard.** buildcheck gains its eighth structural check: it parses both
+theme blocks and COMPUTES the contrast of every audited pair, including
+rest-ink against the 52% wash it actually sits on. The WCAG floor is
+arithmetic, so it is now a build failure, not a hope. Verified by breaking
+it.
+
+**Remaining raw hexes, and why:** `#fff` on accent/live/record controls is
+the *-on convention (computed white-on-live = 5.09/5.69, passing); the
+share-overlay chrome (#16181D) is theme-independent by design; onboarding
+gradients predate the token layer and sit outside data surfaces.
+
+**Conflicts found between spec and product, resolved:** blue default header
+(rejected above); §11.3's no-categorical-palette vs YEAR_COLORS — the ramp
+is blue+neutrals with direct end-labels, weight redundancy, and stable
+year identity; documented in DESIGN.md as a validated exception that
+licenses nothing else; the spec's `[data-theme="dark"]` blocks fold into
+`:root` because dark is this app's default; "one file" is actually eleven
+plus the stylesheet — the audit covered all of them.
+
+`test-rest.js` at 55, `test-sharecard.js` at 68, buildcheck at 8 guards.
+
 ## v3.3.91 (2026-07-25) — Rest is a frame, not a repaint
 
 **v3.3.90's green numbers are reverted after one release.** Seen in daylight,

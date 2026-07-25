@@ -2,7 +2,13 @@
    Extracted verbatim from index.html (v3.2.5 refactor). Classic script:
    shares one global scope with its siblings, loaded in order by index.html. */
 /* ---------- Stats: days first ---------- */
-const YEAR_COLORS={ '2022':'var(--faint)','2023':'var(--muted)','2024':'var(--accent-dim)','2025':'var(--accent-soft)','2026':'var(--accent)' };
+/* v3.3.92: '2025' moves from accent-soft (a BACKGROUND grade — 2.10:1 dark /
+   1.58:1 light as a stroke) to --chart-soft, the same hue at chart grade.
+   The mapping itself is a validated exception to no-categorical-palettes:
+   it is a blue+neutral lightness ramp with direct end-labels, weight
+   redundancy on the current year, and stable year identity across the
+   consistency chart, distance chart, and both share cards. */
+const YEAR_COLORS={ '2022':'var(--faint)','2023':'var(--muted)','2024':'var(--accent-dim)','2025':'var(--chart-soft)','2026':'var(--accent)' };
 /* v3.3.67 — your weight, drawn as the sparse series it actually is.
    A STEP line, not a curve: between two weigh-ins the app knows nothing, and
    carry-forward is literally a step function. A smooth line would draw days

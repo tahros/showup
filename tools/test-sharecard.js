@@ -279,6 +279,14 @@ module.exports = settled.then(() => {
        /id="secDays"/.test(run(`$('#view').innerHTML`)) &&
        /id="secRecords"/.test(run(`$('#view').innerHTML`)));
 
+    // ---- 8d. v3.3.92: 2025's line moved to chart grade -------------------
+    const statsSrc92 = fs.readFileSync(path.join(dir, "js/stats.js"), "utf8");
+    ok("YEAR_COLORS keeps stable identity with 2025 on --chart-soft",
+       /'2025':'var\(--chart-soft\)'/.test(statsSrc92) &&
+       /'2026':'var\(--accent\)'/.test(statsSrc92));
+    ok("...and --chart-soft is defined in both themes",
+       (fs.readFileSync(path.join(dir, "css/app.css"), "utf8").match(/--chart-soft:#/g) || []).length === 2);
+
     // ---- 9. the v3.3.58 lesson, enforced at the source -------------------
     const repSrc = fs.readFileSync(path.join(dir, "js/report.js"), "utf8");
     ok("report.js router no longer uses e.target.id===", !/e\.target\.id===/.test(repSrc));

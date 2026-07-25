@@ -142,6 +142,46 @@ if not re.search(r'html\{[^}]*touch-action:manipulation', css):
 if not re.search(r'\.zoom\{[^}]*touch-action:none', css):
     fail.append(".zoom lost touch-action:none \u2014 chart pinch will fight the page (v3.3.78)")
 
+# -- token contrast (v3.3.92): the WCAG floor is arithmetic, so it is a
+#    guard. Every pair below failed or nearly failed the first audit; a
+#    token edit that re-breaks one fails the build, not the user's eyes.
+import re as _re
+def _blk(css, sel):
+    m=_re.search(_re.escape(sel)+r"\{(.*?)\}", css, _re.S)
+    return m.group(1) if m else ""
+def _tok(blk, name):
+    m=_re.search(r"--"+name+r":\s*(#[0-9A-Fa-f]{6})", blk)
+    return m.group(1) if m else None
+def _rl(h):
+    r,g,b=(int(h[i:i+2],16)/255 for i in (1,3,5))
+    f=lambda v: v/12.92 if v<=0.03928 else ((v+0.055)/1.055)**2.4
+    return 0.2126*f(r)+0.7152*f(g)+0.0722*f(b)
+def _cr(a,b):
+    x,y=_rl(a),_rl(b); return (max(x,y)+0.05)/(min(x,y)+0.05)
+def _mix(a,b,pa):
+    return "#"+"".join(f"{round(int(a[i:i+2],16)*pa+int(b[i:i+2],16)*(1-pa)):02X}" for i in (1,3,5))
+_dark=_blk(css,":root"); _light=_blk(css,':root[data-theme="light"]')
+for _name,_blkc in (("dark",_dark),("light",_light)):
+    T={k:_tok(_blkc,k) or _tok(_dark,k) for k in
+       ("ground","surface","surface2","accent","record","rest","rest-ink","chart-soft","muted","faint","chalk","live")}
+    if not all(T.values()):
+        fail.append(f"contrast guard: missing token in {_name} theme: "+",".join(k for k,v in T.items() if not v)); continue
+    _wash=_mix(T["rest"],T["ground"],0.52)
+    for _fg,_bg,_need,_what in (
+        (T["rest-ink"],_wash,4.5,"rest ink on its wash"),
+        (T["muted"],T["surface2"],4.5,"muted on surface2"),
+        (T["muted"],T["surface"],4.5,"muted on surface"),
+        (T["faint"],T["surface"],3.0,"faint on surface"),
+        (T["chart-soft"],T["surface"],3.0,"chart-soft stroke on surface"),
+        (T["accent"],T["surface"],4.5,"accent small text on surface"),
+        (T["record"],T["surface"],4.5,"record text on surface"),
+        ("#FFFFFF",T["live"],4.5,"white on live header"),
+        (T["chalk"],T["surface"],7.0,"chalk on surface (reading text \u2192 AAA-ish)"),
+    ):
+        _r=_cr(_fg,_bg)
+        if _r<_need:
+            fail.append(f"contrast: {_what} = {_r:.2f} (< {_need}) in {_name} theme (v3.3.92)")
+
 # -- shell size
 n = len(idx.encode())
 if n >= 8192: fail.append(f"index.html shell is {n} bytes (limit 8192)")

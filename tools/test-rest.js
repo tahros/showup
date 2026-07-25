@@ -151,7 +151,11 @@ ok("the declared state borrows no red (--live/--record stay out of it)",
 // themes, the chip and header.resting use it, and it appears in NO rule that
 // isn't a rest rule (one colour, one meaning, nowhere else).
 const chipRule = (cssSrc.match(/#hStreak\.restchip\{[^}]*\}/) || [""])[0];
-ok("the chip wears the one green", /var\(--rest\)/.test(chipRule) && !/--live|--record/.test(chipRule), chipRule);
+// v3.3.92: the chip writes in INK grade. Wash and ink are the same hue at
+// different lightness; using the wash as text scored 1.69:1 on itself.
+ok("the chip wears the rest INK (text grade), not the wash",
+   /var\(--rest-ink\)/.test(chipRule) && !/--live|--record/.test(chipRule), chipRule);
+ok("--rest-ink is defined in both themes", (cssSrc.match(/--rest-ink:#/g) || []).length === 2);
 
 // ---- v3.3.90: louder wash, and an honest boundary on what turns green -----
 const washPct = (cssSrc.match(/header\.resting\{background:color-mix\(in srgb,var\(--rest\) (\d+)%/) || [])[1];
@@ -190,6 +194,10 @@ const secs = (cssSrc.match(/animation:restbreathe ([\d.]+)s/) || [])[1];
 ok("...at an unchanged resting tempo (\u22656.4s, 4\u00d7 the live pulse)",
    +secs >= 6.4, secs + "s");
 ok("--rest is defined in both themes", (cssSrc.match(/--rest:#/g) || []).length === 2);
+// one-meaning discipline extends to the ink
+const inkUses = [...cssSrc.matchAll(/^[^\n{]*\{[^}]*var\(--rest-ink\)[^}]*\}/gm)].map(m => m[0].split("{")[0].trim());
+ok("--rest-ink appears ONLY in rest rules too",
+   inkUses.length > 0 && inkUses.every(sel => /rest/i.test(sel)), inkUses.join(" | "));
 ok("header.resting exists and washes with --rest",
    /header\.resting\{[^}]*var\(--rest\)/.test(cssSrc));
 // keyframe stops (0%,100%,50%) inside restbreathe* blocks ARE rest rules;

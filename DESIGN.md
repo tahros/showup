@@ -82,6 +82,15 @@ Adopted into phases:
 - D1.5 selection inversion — tried v3.3.4, REVERTED v3.3.5. Sungjee's verdict
   after real use: selection reads better in accent blue. Accent = app voice +
   your selections; red = live. The trial is the process working.
+- Colour tokens come in GRADES (v3.3.92): a wash/frame grade cannot also be
+  an ink. --rest washes; --rest-ink writes. Any state colour used as text
+  gets its own text-grade token at the same hue, and buildcheck computes
+  the WCAG floor for every load-bearing pair in both themes.
+- YEAR_COLORS is a validated exception to no-categorical-palettes: a
+  blue+neutral lightness ramp (faint/muted/accent-dim/chart-soft/accent)
+  with stable per-year identity across the consistency chart, distance
+  chart, and both share cards; direct end-labels and current-year weight
+  carry identification in grayscale. It licenses nothing else.
 - Green = declared rest, and nothing else (v3.3.81, refined v3.3.90). The
   mirror of red: one colour, one meaning. The header washes while the leaf
   is up, and the Rhythm card is FRAMED in it (v3.3.91 — recolouring the
