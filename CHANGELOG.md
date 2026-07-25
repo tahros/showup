@@ -1,5 +1,49 @@
 # ShowUp — changelog
 
+## v3.3.93 (2026-07-25) — Knowing who uses it, without becoming what we're not
+
+The question was how to tell whether a hand-recruited tester actually uses
+the app. The answer required no app change at all, and that is the point.
+
+`app_state` already holds one row per signed-in user: the whole archive plus
+a sync timestamp. `auth.users` already holds signup and last-sign-in. Every
+retention question is a query against data the user chose to sync. Shipping
+analytics INTO an app whose pitch is that it is not an engagement business
+would have been the wrong trade for information already sitting in the
+backend.
+
+**`tools/beta_status.py`** — an operator tool, like the converters. Reads
+Supabase with the service key, prints one line per tester.
+
+**The metric it exists for:** days logged ON OR AFTER signup. You cannot
+import a day that had not happened yet, so any day dated after the account
+existed was logged by that person, in the app, deliberately. An imported
+archive can be 900 days long and prove nothing:
+
+    archive 928 / own 0   → they looked at their history and left
+    archive 928 / own 11  → the product replaced their old habit
+
+The fixture encodes the four testers the founder will actually meet — the
+migrant who stayed, the migrant who bounced, the from-zero starter, and the
+person who signed in and never logged. The bounced migrant is the failure
+mode the Phase-1 gate exists to catch, and no other number reveals it.
+
+Also derived: the roadmap's week-two gate (days logged 8–14 days after
+signup), 7/14/30-day activity, declared rest days, and last sync.
+
+**Restraint, asserted rather than promised.** The tool never reads `ex`,
+`reps`, or `part` — the test greps its own source to prove it — and prints
+the disclosure in its own output. A second assertion sweeps every app file
+for `sendBeacon`, `gtag`, `analytics`, `mixpanel`, `posthog`, `amplitude`
+and requires all of them absent, so a future release cannot quietly add
+telemetry while this tool exists.
+
+**Tell the testers.** They are people you recruited by hand: “I can see when
+your app last synced and how many days you've logged — not what you lifted,
+because I won't look.” Then don't look.
+
+New suite `test-beta.js`, 27 assertions. Harness at 20 suites.
+
 ## v3.3.92 (2026-07-25) — The colour audit: ink and wash part ways
 
 Implementation report for the colour-system spec (v2.0), per its §16
