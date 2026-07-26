@@ -124,7 +124,7 @@ function renderStats(){
 
   const thisYearDays=[...dates].filter(d=>d.startsWith(thisYear)).length;
   const trainedToday=dates.has(todayISO);
-  const elapsed=Math.max(1,doy(todayISO)-(trainedToday?0:1));   // unwritten today doesn't count against you
+  const elapsed=elapsedDays();                                  // v3.3.95: one definition, shared with the chart
   const consNow=thisYearDays/elapsed;
   const lastYear=String(+thisYear-1);
   const lyCurve=curves[lastYear];

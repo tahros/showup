@@ -57,7 +57,7 @@ function renderHeader(){
 function rhythm(){
   const dates=workoutDates();
   const trainedToday=dates.has(todayISO);
-  const elapsed=Math.max(1,doy(todayISO)-(trainedToday?0:1));   // unwritten today doesn't count against you
+  const elapsed=elapsedDays();                                  // v3.3.95: one definition, shared with the chart
   const trainedYTD=[...dates].filter(d=>d.startsWith(thisYear)).length;
   const restYTD=elapsed-trainedYTD;
   const curves=yearCurves();

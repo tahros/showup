@@ -1,5 +1,47 @@
 # ShowUp — changelog
 
+## v3.3.95 (2026-07-26) — One fraction, one denominator
+
+**Reported from a screenshot: the KPI card said 62%, the chart beacon and its
+legend said 61%. Same fact, same screen, two numbers.**
+
+Root cause. The app has a rule — *an unwritten today does not count against
+you; you have not missed it until midnight* — expressed as
+`elapsed = doy(today) - (trainedToday ? 0 : 1)`. That line was written twice,
+in `header.js` and `stats.js`. `yearCurves()`, which draws the chart, had
+never heard of it and always divided by `doy(today)`.
+
+So on any day with nothing logged yet: 127 trained days became 127/206 in the
+KPI and 127/207 in the chart. 61.65% and 61.35%. They round to 62 and 61.
+
+The bug was equally present the day before and every unwritten day before
+that — rounding simply landed both on the same integer. It became visible
+only when the two fractions straddled a boundary, which is the worst kind of
+arithmetic bug: correct-looking for months, then wrong with no change to the
+code that broke it.
+
+**Fix:** `elapsedDays()` in util.js, called by all three. Not two agreeing
+implementations — one implementation. Reproduced before the fix at day 207
+with 127 trained (62% vs 61%) and verified after (62% vs 62%).
+
+`runYearCurves()` shares the same `end` line and is deliberately untouched:
+cumulative distance has no denominator, so there was nothing to disagree
+about. The first patch attempt aborted on that ambiguity — the anchor matched
+both functions — and the all-or-nothing patch guard meant nothing was written
+rather than the wrong function edited.
+
+**Tests:** the two values are asserted equal across twelve differently-shaped
+years, plus equal after rounding, plus source-level guards that
+`elapsedDays()` is defined once and that no file open-codes the rule again.
+
+A test-design correction worth recording: the property assertion first
+demanded bit-identical float64 and failed 11 of 12 — on a 4e-9 difference,
+with the code already correct. The curve is stored in a `Float32Array`; the
+comparison now runs through `Math.fround()`. Match the storage, not the
+ideal.
+
+`test-statspolish.js` at 13.
+
 ## v3.3.94 (2026-07-25) — Settings stops explaining itself
 
 Four passages cut from Settings, measured the way v3.3.71 measured the tips:

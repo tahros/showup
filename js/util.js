@@ -607,6 +607,15 @@ function runYearCurves(){
 }
 
 /* year-over-year cumulative consistency: workout days so far / days elapsed  (the Dashboard bottom chart) */
+/* v3.3.95: how much of this year has counted so far. An unwritten today does
+   not count against you — you have not missed it until midnight. That rule
+   lived in header.js and stats.js and yearCurves() had never heard of it, so
+   the KPI divided by 206 while the chart divided by 207 and the same fact
+   rendered as 62% and 61% on one screen. Now there is one function and the
+   two numbers are the SAME arithmetic, not merely agreeing arithmetic. */
+function elapsedDays(){
+  return Math.max(1, doy(todayISO) - (((DB.days[todayISO]||{}).w||[]).length ? 0 : 1));
+}
 function yearCurves(){
   const dates=workoutDates();
   const perYear={};
@@ -614,7 +623,7 @@ function yearCurves(){
   const out={};
   for(const [y,list] of Object.entries(perYear)){
     list.sort((a,b)=>a-b);
-    const end = y===thisYear ? doy(todayISO) : ((+y%4===0)?366:365);
+    const end = y===thisYear ? elapsedDays() : ((+y%4===0)?366:365);
     const curve=new Float32Array(end); let c=0,i=0;
     for(let d=1;d<=end;d++){
       while(i<list.length&&list[i]<=d){c++;i++;}

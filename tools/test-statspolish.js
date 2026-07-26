@@ -68,4 +68,79 @@ run(`repOvEl();`);   // build the overlay directly
 check("report overlay uses the app font",
       `(()=>{const ov=document.getElementById('repOv'); return ov?/var\\(--body\\)/.test(ov.style.fontFamily)||ov.style.fontFamily.includes('Plex')||/--body/.test(ov.getAttribute('style')):'no-overlay';})()`, true);
 
+// ---- v3.3.95: one fraction, one denominator ------------------------------
+// The KPI card and the consistency chart render the same fact. They used
+// different denominators on an unwritten day, so 62% and 61% appeared on one
+// screen. These assert they are now the SAME arithmetic, not merely close.
+const kpiExpr = `(function(){const dates=workoutDates();
+  const el=elapsedDays();
+  return [...dates].filter(d=>d.startsWith(thisYear)).length/el;})()`;
+const curveExpr = `(function(){const c=yearCurves()[thisYear]; return c.curve[c.end-1];})()`;
+
+// the exact reported case: day 207 of the year, 127 trained, today unwritten
+check("elapsedDays() drops an unwritten today from the denominator",
+      `(function(){delete DB.days[todayISO]; SEED=deriveAll();
+        return elapsedDays()===doy(todayISO)-1;})()`, true);
+check("...and counts it once it is written",
+      `(function(){DB.days[todayISO]={w:[{part:'Chest',ex:'Chest Press',w:40,reps:[10]}],upd:1};
+        SEED=deriveAll(); const r=elapsedDays()===doy(todayISO);
+        delete DB.days[todayISO]; SEED=deriveAll(); return r;})()`, true);
+
+/* property: across many shapes of year the two are the SAME arithmetic.
+   The curve is stored in a Float32Array, so it is compared through
+   Math.fround() — demanding bit-identical float64 of a float32 store was
+   the first draft's error, and it failed 11/12 on a 4e-9 difference while
+   the code was already correct. Match the storage, not the ideal. */
+check("KPI and chart endpoint are the same arithmetic across 12 year shapes",
+      `(function(){
+        const kept=JSON.parse(JSON.stringify(DB.days));
+        let bad=0;
+        for(const step of [2,3,4,5,6,7,8,9,10,11,13,17]){
+          DB.days={}; const y=+todayISO.slice(0,4), D=doy(todayISO);
+          for(let d=1; d<D; d+=step){
+            const dt=new Date(y,0,d);
+            DB.days[dt.toLocaleDateString('en-CA')]=
+              {w:[{part:'Chest',ex:'Chest Press',w:40,reps:[10]}],upd:1};
+          }
+          delete DB.days[todayISO]; SEED=deriveAll();
+          const a=${kpiExpr}, b=${curveExpr};
+          if(Math.fround(a)!==b) bad++;
+        }
+        DB.days=kept; SEED=deriveAll();
+        return bad;})()`, 0);
+
+// and identical AFTER rounding, which is what the screen actually shows
+check("...and render as the same integer percent",
+      `(function(){
+        const kept=JSON.parse(JSON.stringify(DB.days));
+        let bad=0;
+        for(const step of [2,3,5,7,11]){
+          DB.days={}; const y=+todayISO.slice(0,4), D=doy(todayISO);
+          for(let d=1; d<D; d+=step){
+            const dt=new Date(y,0,d);
+            DB.days[dt.toLocaleDateString('en-CA')]=
+              {w:[{part:'Chest',ex:'Chest Press',w:40,reps:[10]}],upd:1};
+          }
+          delete DB.days[todayISO]; SEED=deriveAll();
+          if(Math.round(${kpiExpr}*100)!==Math.round(${curveExpr}*100)) bad++;
+        }
+        DB.days=kept; SEED=deriveAll();
+        return bad;})()`, 0);
+
+// the rule cannot drift back into a second copy
+const utilSrc95  = fs.readFileSync(path.join(dir, "js/util.js"), "utf8");
+const headSrc95  = fs.readFileSync(path.join(dir, "js/header.js"), "utf8");
+const statsSrc95 = fs.readFileSync(path.join(dir, "js/stats.js"), "utf8");
+console.log((/function elapsedDays\(\)/.test(utilSrc95) ? "PASS" : "FAIL"),
+  "elapsedDays() is defined once, in util.js");
+if (!/function elapsedDays\(\)/.test(utilSrc95)) fail++;
+const openCoded = [headSrc95, statsSrc95, utilSrc95]
+  .filter(s => /doy\(todayISO\)\s*-\s*\(\s*trainedToday/.test(s)).length;
+console.log((openCoded === 0 ? "PASS" : "FAIL"),
+  "no file open-codes the elapsed rule any more \u2192", openCoded);
+if (openCoded !== 0) fail++;
+console.log((/elapsedDays\(\)/.test(headSrc95) && /elapsedDays\(\)/.test(statsSrc95) ? "PASS" : "FAIL"),
+  "header.js and stats.js both call it");
+if (!(/elapsedDays\(\)/.test(headSrc95) && /elapsedDays\(\)/.test(statsSrc95))) fail++;
+
 process.exit(fail ? 1 : 0);
