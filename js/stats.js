@@ -135,7 +135,10 @@ function renderStats(){
     <div class="kpis">
       <div class="kpi accent"><div class="v">${Math.round(consNow*100)}%</div><div class="l">of ${thisYear}, trained</div>
         ${diff!=null?`<div class="d ${diff>=0?'delta up':'delta down'}">${diff>=0?'+':''}${diff} pts vs ${lastYear} today</div>`:''}</div>
-      <div class="kpi accent"><div class="v">${currentStreak()}</div><div class="l">day streak · best ${longestStreak()}</div></div>
+      <div class="kpi accent"><div class="v">${currentStreak()}</div><div class="l">day streak · best ${longestStreak()}${(()=>{
+        const cb=comebacks();   // v3.3.97: never stopping and always returning, one card, equals
+        return cb.n?`<br>${cb.n} comeback${cb.n===1?'':'s'} · longest break: ${cb.longest}d`:'';
+      })()}</div></div>
       ${(()=>{
         const dNow=+todayISO.slice(8);
         const cur=(monthCounts[monthKey]||0)/dNow;

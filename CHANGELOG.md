@@ -1,5 +1,50 @@
 # ShowUp — changelog
 
+## v3.3.97 (2026-07-26) — Comebacks: the longevity twin of the streak
+
+Born from a brainstorm about bringing longevity into the app without
+predicting anything. A horizon/life-expectancy card was designed, argued,
+and scrapped by the maker — the app renders receipts, and a death date is a
+claim. What survived the scrap is the observation that longevity is already
+IN the data: a streak measures never stopping, but a practice that lasts
+years is made of RETURNING. The record contains every gap ever survived;
+nothing was counting them.
+
+`comebacks()` counts them. Five lines were agreed before code, each now an
+assertion:
+
+1. **A comeback = training again after 7+ days away.** Fixed threshold — an
+   adaptive one was rejected as unexplainable in a 120-char tip. The test's
+   cadence case is the important one: a normal 6-day part rotation yields
+   ZERO, because scheduling is not returning. Boundary asserted exactly: 6
+   days away is nothing, 7 is a comeback.
+2. **Declared rest days are invisible to gaps.** A 🍃 interrupting a gap
+   would be comeback insurance — the corruption the rest doctrine's first
+   line forbids, extended to a new number. Holds by construction
+   (workoutDates() contains only trained days); proven by test anyway.
+3. **Only closed gaps count.** The open gap you are in is not a comeback in
+   progress; rendering it would be a nudge in a costume.
+4. **Every return counts, sticky or not.** Requiring returns to last would
+   turn a count into a grade. Depth is carried by the companion figure,
+   longest break returned from.
+5. **Zero renders as nothing.** The line appears with the first comeback —
+   absence is shown by absence.
+
+Renders as a second caption on the streak KPI in Stats: `34 comebacks ·
+longest break: 11d` under `day streak · best N`. One card holding both
+philosophies — never stopping and always returning — as equals is the
+message. No colour, no animation, never in Today.
+
+Honest note recorded at spec time: with a most-days cadence this number is
+likely near zero for the founder's own archive. It is the first feature
+built for the Phase-1 users — whose records will be gap-riddled — rather
+than for the maker, and a gap-riddled record that still counts 34 returns
+is exactly the sustainability argument the app exists to make.
+
+Derived at read time like everything else: filling an old gap by past-day
+edit dissolves its comeback, asserted. New suite `test-comeback.js`, 16
+assertions. Harness at 22 suites.
+
 ## v3.3.96 (2026-07-26) — System / Light / Dark
 
 Three preferences resolving to two themes. The Display card's two-state

@@ -601,6 +601,30 @@ function currentStreak(){
   const y=new Date(todayISO+'T00:00');y.setDate(y.getDate()-1);
   return streakFrom(dates,y.toLocaleDateString('en-CA'));   // today just hasn't happened yet
 }
+/* v3.3.97: comebacks — the longevity twin of the streak. A streak measures
+   never stopping; a practice that lasts years is made of RETURNING. Five
+   agreed lines, each an assertion in test-comeback.js:
+   (1) a comeback = training again after 7+ days away — fixed threshold,
+       explainable in one tip; adaptive thresholds were rejected as
+       unexplainable in 120 chars. A normal 5–6 day cadence yields ZERO.
+   (2) declared rest days are invisible — a 🍃 interrupting a gap would be
+       comeback insurance, the corruption the rest doctrine forbids.
+       workoutDates() already contains only trained days, so this holds by
+       construction; the test proves it anyway.
+   (3) only CLOSED gaps count — the open gap you're in is not a comeback in
+       progress, and rendering it would be a nudge in a costume.
+   (4) every return counts, sticky or not — requiring returns to "last"
+       would turn a count into a grade.
+   (5) zero renders as nothing — handled at the render site. */
+function comebacks(){
+  const arr=[...workoutDates()].sort();
+  let n=0, longest=0;
+  for(let i=1;i<arr.length;i++){
+    const gap=daysBetween(arr[i-1],arr[i])-1;   // days AWAY between two trained days
+    if(gap>=7){ n++; if(gap>longest) longest=gap; }
+  }
+  return {n, longest};
+}
 function longestStreak(){
   const arr=[...workoutDates()].sort();
   let best=0,run=0,prev=null;
