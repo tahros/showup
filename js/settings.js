@@ -9,10 +9,14 @@ function renderSync(){
     <div class="card" style="border-color:var(--record)"><b>Not syncing.</b>
       <div class="note" style="margin-top:4px">Workouts logged on this device stay on this device until you sign in below. If the app is ever deleted or reinstalled, unsynced data is lost.</div></div>`:''}
     <h2>Display</h2>
-    <div class="card"><div class="row" style="gap:8px">
-      <button class="btn ghost" id="unitBtn" style="flex:1;margin:0">${isLb()?'lb · mi':'kg · km'}</button>
-      <button class="btn ghost" id="themeBtn" style="flex:1;margin:0">${DB.settings.theme==='light'?'Light ◐':'Dark ◐'}</button>
-    </div></div>
+    <div class="card">
+      <button class="btn ghost" id="unitBtn" style="margin:0">${isLb()?'lb · mi':'kg · km'}</button>
+      <span class="seg" style="display:flex;margin-top:8px">
+        <button data-thm="system" class="${DB.settings.theme==='system'?'sel':''}">System</button>
+        <button data-thm="light" class="${DB.settings.theme==='light'?'sel':''}">Light</button>
+        <button data-thm="dark" class="${DB.settings.theme!=='system'&&DB.settings.theme!=='light'?'sel':''}">Dark</button>
+      </span>
+    </div>
     <h2>Account & cloud sync</h2>
     <div class="card">
       ${session?`

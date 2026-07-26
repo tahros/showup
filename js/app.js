@@ -8,10 +8,9 @@ document.addEventListener('click',e=>{
     DB.settings.unit=isLb()?'kg':'lb';
     save(true);toast(isLb()?'Imperial — lb & miles':'Metric — kg & km');return render();
   }
-  if(e.target.closest('#themeBtn')){
-    DB.settings.theme=DB.settings.theme==='light'?'dark':'light';
-    applyTheme();save(true);
-    if(view==='sync') render();
+  if(e.target.closest('[data-thm]')){
+    DB.settings.theme=e.target.closest('[data-thm]').dataset.thm;   // v3.3.96
+    applyTheme();save(true);render();
     return;
   }
   const gs=e.target.closest('#goalSet')||e.target.closest('#goalEdit');

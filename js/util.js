@@ -273,10 +273,37 @@ function avgSessionVol(part){
   }
   return _avgVol[part]||0;
 }
+/* v3.3.96: three preferences — 'system', 'light', 'dark' — resolving to two
+   themes. Anything unrecognised still resolves dark, so a settings blob from
+   an older build behaves exactly as it did.
+
+   Two things must stay true and are easy to break:
+   • localStorage 'showup-theme' holds the RESOLVED theme, never 'system'.
+     index.html reads it before any script runs to paint the right background
+     on the first frame; storing 'system' there would reintroduce the flash.
+   • On 'system' the app follows the OS while OPEN. Resolving once at boot
+     would leave the app in yesterday's theme when the phone flips at sunset,
+     so a media-query listener is attached (once) and re-applies. */
+function systemTheme(){
+  try{ return matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'; }
+  catch(e){ return 'dark'; }
+}
+let _themeWatched=false;
 function applyTheme(){
-  const t=DB.settings.theme==='light'?'light':'dark';
+  const pref=DB.settings.theme;
+  const t = pref==='system' ? systemTheme() : (pref==='light'?'light':'dark');
   document.documentElement.dataset.theme=t;
   try{localStorage.setItem('showup-theme',t);}catch(e){}
+  const m=document.querySelector('meta[name="theme-color"]');
+  if(m) m.setAttribute('content', t==='light'?'#F2F3F6':'#0C0E13');
+  if(!_themeWatched){
+    _themeWatched=true;
+    try{
+      const mq=matchMedia('(prefers-color-scheme: light)');
+      const on=()=>{ if(DB.settings.theme==='system') applyTheme(); };
+      if(mq.addEventListener) mq.addEventListener('change',on); else mq.addListener(on);
+    }catch(e){}
+  }
 }
 /* weights are always STORED in kg; the unit setting only changes what you see and type */
 const LB=2.20462, MI=0.621371;

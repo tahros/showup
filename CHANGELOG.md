@@ -1,5 +1,44 @@
 # ShowUp — changelog
 
+## v3.3.96 (2026-07-26) — System / Light / Dark
+
+Three preferences resolving to two themes. The Display card's two-state
+toggle becomes a segmented control matching the M/F idiom already used in
+the You card.
+
+**System means system, continuously.** Resolving the OS preference once at
+boot would leave the app in yesterday's theme when a phone flips at sunset,
+so a `prefers-color-scheme` listener is attached (once, guarded) and
+re-applies on change. Asserted with a fake media query that can be flipped
+mid-test: on 'system' the applied theme follows; on an explicit preference
+it does not.
+
+**The anti-flash contract is the fragile part.** `index.html` paints from
+`localStorage['showup-theme']` before any script runs. That key must
+therefore hold a RESOLVED theme — writing 'system' into it would put the
+literal string on `documentElement.dataset.theme` on the first frame and
+reintroduce the flash this app removed long ago. Three assertions guard it:
+the key is never 'system', it always holds light or dark, and it tracks the
+resolution across an OS flip. A fourth asserts index.html still reads that
+key with a dark fallback.
+
+**`theme-color` now follows too** (#F2F3F6 light / #0C0E13 dark). It had been
+pinned to the dark ground since it was written, so the installed app's status
+bar never matched the light theme.
+
+**Back-compat is exact.** Anything not 'system' or 'light' still resolves
+dark — tested against 'dark', undefined, null, '' and a junk value — and a
+legacy 'dark' blob lights the Dark segment rather than leaving all three
+blank. New installs seed `theme:'system'`; the seed only applies when no
+saved settings exist, so nobody's current choice moves.
+
+A harness note: the settings screen's view name is `'sync'`, not
+`'settings'` — historical. A fixture using the wrong name renders fine
+through `renderSync()` but makes the handler's `render()` throw on an
+unknown view, which is how this was found.
+
+New suite `test-theme.js`, 26 assertions. Harness at 21 suites.
+
 ## v3.3.95 (2026-07-26) — One fraction, one denominator
 
 **Reported from a screenshot: the KPI card said 62%, the chart beacon and its
