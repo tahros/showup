@@ -39,6 +39,16 @@ unknown view, which is how this was found.
 
 New suite `test-theme.js`, 26 assertions. Harness at 21 suites.
 
+**Deploy note.** The first push of this release (`a8d01ad`) landed on main
+with correct bytes but GitHub Pages never enqueued a build for it — the
+build record one second later reported `built` against the PREVIOUS commit.
+Pages drops a trigger occasionally; the fine-grained PAT cannot request one
+(403, no `pages` scope), so a follow-up commit is the remedy. Two ritual
+lessons: poll for `built <expected-sha>`, never for `built` alone — the
+loop exited satisfied on a stale record — and treat "content correct at the
+commit" and "content published" as two separate checks, because they can
+disagree.
+
 ## v3.3.95 (2026-07-26) — One fraction, one denominator
 
 **Reported from a screenshot: the KPI card said 62%, the chart beacon and its
