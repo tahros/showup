@@ -73,21 +73,29 @@ ok("two relapses, two comebacks \u2014 the count is a count, not a grade",
 ok("longest break is the max across all comebacks",
    seed([1,9,50]) === '{"n":2,"longest":40}', seed([1,9,50]));
 
-// ---- LINE 5 + render: the card, and zero as silence ------------------------
+// ---- v3.3.101: removed from the Stats card, kept as a derived stat --------
+// The maker marked the "N comebacks \u00b7 Nd" line for removal: it was the
+// tallest content in the 3-up KPI row, and CSS grid stretches every cell to
+// match the tallest \u2014 the visible dead space under the OTHER two cards was
+// that stretch, not their own padding. Removing the line fixed both symptoms
+// with one change.
+//
+// comebacks() itself is untouched \u2014 it is not dead code in the harmful
+// sense (v3.3.89's jump-chip handler, which nothing called and explained
+// nothing): it is a correct, tested derivation with no current display
+// site, same shape as fireDist() in today.js (v3.3.90's "deliberately
+// preserved" note). Kept on purpose, flagged honestly, pending the maker's
+// call on whether it resurfaces elsewhere.
 seed([1,10,11,25]);
 run(`view='stats'; render();`);
 const sv = () => run(`$('#view').innerHTML`);
-// v3.3.100: compacted to "2 comebacks \u00b7 13d" when the KPI row went 3-up \u2014
-// same facts, fewer words; "longest break:" was label, not information.
-ok("the streak KPI carries the comeback line",
-   /2 comebacks \u00b7 13d/.test(sv()), (sv().match(/comeback[^<]*/)||[])[0]);
-ok("...singular reads 'comeback'", (seed([1,9]), run(`view='stats'; render(); /1 comeback \u00b7/.test($('#view').innerHTML)`)));
-ok("zero renders as NOTHING \u2014 absence is shown by absence",
-   (seed([1,2,3]), run(`view='stats'; render(); !/comeback/.test($('#view').innerHTML)`)));
-// no colour, no urgency: the line must not carry live/record/rest classes
-seed([1,10,11,25]); run(`view='stats'; render();`);
-ok("the comeback line wears no state colour",
-   !/class="[^"]*(atrisk|livego|restchip)[^"]*"[^>]*>[^<]*comeback/.test(sv()));
+ok("v3.3.101: comebacks no longer renders anywhere in Stats",
+   !/comeback/.test(sv()), sv().includes("comeback") ? "still present" : "absent, as intended");
+ok("...even though the derivation still finds them (2, longest 13)",
+   run(`JSON.stringify(comebacks())`) === '{"n":2,"longest":13}');
+ok("...and the streak KPI card has exactly two children now (value, label — no third .d)",
+   run(`document.querySelector('.kpis .kpi:last-child').children.length`) === 2,
+   run(`document.querySelector('.kpis .kpi:last-child').children.length`));
 
 // ---- past-day edits update it (derived, not stored) ------------------------
 seed([1,9]);

@@ -1,5 +1,39 @@
 # ShowUp — changelog
 
+## v3.3.101 (2026-07-26) — One root cause, two marks
+
+From a screenshot: dead space at the top of the Days hero, and dead space
+under the year and month cards, with the comeback line crossed out on the
+streak card. Two fixes, one of them upstream of the other.
+
+**The comeback line is removed from the Stats card.** It was the tallest
+content in the 3-up row — label wrapping plus the comeback text pushed that
+cell to four visual lines against three for its neighbours — and CSS grid
+stretches every cell in a row to match the tallest. The empty space the
+maker circled under 62% and 65% was that stretch, not their own padding;
+removing the taller sibling's content closed both gaps in one change.
+
+`comebacks()` itself is untouched: still correct, still tested, now with
+zero callers. Not dead code in the harmful sense (v3.3.89's removed jump-chip
+handler, which explained nothing and nothing used) — a working derivation
+kept on purpose, same shape as `fireDist()` in today.js. Flagged honestly
+rather than silently orphaned; whether it resurfaces elsewhere is open.
+
+**The hero's top gap was a real CSS bug, unrelated to the comeback removal.**
+`align-items:baseline` measured "928"'s own text baseline against the FIRST
+LINE of the two-line label span beside it, leaving a gap above the label
+equal to the number's ascent overshoot. Changed to `center`.
+
+A test-design note against the harness's own limits: a first assertion
+checked that all three compact cards have equal CHILD COUNT, on the theory
+that this was the mechanism. It wasn't — the actual gap came from text
+WRAPPING, which jsdom cannot measure without real layout, and the three
+cards had equal child counts even in the broken screenshot. The assertion
+tested the wrong invariant and was removed with the reasoning left in place
+rather than kept as a green that meant nothing.
+
+`test-comeback.js` at 15, `test-statspolish.js` at 26.
+
 ## v3.3.100 (2026-07-26) — Hierarchy by width: the hero row
 
 One release after Days joined the KPIs, the maker's screenshot showed the

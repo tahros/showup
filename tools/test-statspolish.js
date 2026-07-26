@@ -181,7 +181,27 @@ check("four cards total: hero + three",
       `document.querySelectorAll('.kpis .kpi').length`, 4);
 check("...and the three compact cards never say 'trained' \u2014 the heading says the game",
       `[...document.querySelectorAll('.kpis .kpi:not(.hero) .l')].some(l=>/trained/.test(l.textContent))`, false);
-check("the streak card sits last with its comebacks beneath",
+check("the streak card sits last",
       `/streak/.test(document.querySelector('.kpis .kpi:last-child .l').textContent)`, true);
+
+/* v3.3.101, an honest limit: the dead space the maker circled came from
+   TEXT WRAPPING (the streak label + comeback line wrapping to 4 visual
+   lines vs 3 for the other cards), not from a difference in child COUNT —
+   all three cards had 3 children before this release too. jsdom does not
+   run real layout, so wrap-driven height cannot be asserted here; a first
+   attempt at a "same child count" check was written, found to test the
+   wrong invariant (2 vs 3 now, not the cause of the original gap), and
+   removed rather than kept as a misleading green. Confirmed by the
+   screenshot the maker sends back, not by this harness. */
+
+// ---- v3.3.101: the hero row is vertically centred, not baseline-aligned.
+// baseline alignment measured the number's own text baseline against the
+// FIRST LINE of the two-line label span, leaving a gap above the label
+// equal to the number's ascent overshoot \u2014 the dead space the maker
+// circled at the top of the hero card.
+const cssSrc101 = fs.readFileSync(path.join(dir, "css/app.css"), "utf8");
+console.log((/\.kpi\.hero\{grid-column:1\/-1;display:flex;align-items:center/.test(cssSrc101) ? "PASS" : "FAIL"),
+  "the hero row centres its number against its label block");
+if (!/\.kpi\.hero\{grid-column:1\/-1;display:flex;align-items:center/.test(cssSrc101)) fail++;
 
 process.exit(fail ? 1 : 0);

@@ -594,7 +594,7 @@
   .vsrow .bar i{display:block;height:100%}
   .vsrow .p{font-family:var(--mono);font-size:11px;flex:0 0 32px;text-align:right}
   .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-  .kpi.hero{grid-column:1/-1;display:flex;align-items:baseline;gap:14px;padding:14px 16px 12px}
+  .kpi.hero{grid-column:1/-1;display:flex;align-items:center;gap:14px;padding:14px 16px 12px}
   .kpi.hero .l{margin-top:0}
   .kpi.hero .d{margin-top:2px}
   .kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow)}

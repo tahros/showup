@@ -169,10 +169,7 @@ function renderStats(){
           <div class="l">of ${new Date(+thisYear,+monthKey.slice(5)-1,1).toLocaleDateString('en-US',{month:'short'})}</div>
           <div class="d mono" style="color:${diff>=0?'var(--accent)':'var(--record)'}">${diff>=0?'+':''}${diff} vs ${pName}</div></div>`;
       })()}
-      <div class="kpi"><div class="v">${currentStreak()}</div><div class="l">streak · best ${longestStreak()}</div>${(()=>{
-        const cb=comebacks();
-        return cb.n?`<div class="d">${cb.n} comeback${cb.n===1?'':'s'} · ${cb.longest}d</div>`:'';
-      })()}</div>
+      <div class="kpi"><div class="v">${currentStreak()}</div><div class="l">streak · best ${longestStreak()}</div></div>
     </div>`;
 
   // consistency chart — the Dashboard bottom graph
