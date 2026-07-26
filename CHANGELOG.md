@@ -1,5 +1,33 @@
 # ShowUp — changelog
 
+## v3.3.99 (2026-07-26) — The game itself, finally under its own heading
+
+Spotted by the maker from a screenshot: the Stats section titled "Show up —
+that's the whole game" contained the year percentage, the month percentage,
+the streak — every number EXCEPT the game. Total days lived in the greeting,
+in Settings, behind the grid, and nowhere under the heading that names it.
+
+Now it leads. First KPI card: **928 · days of showing up**, with the
+lifetime pace as its caption — "55% of all days since Dec 2021" — the
+truest denominator the app has, straight from the longevity brainstorm. The
+value is msLiveTotal(), the same live-total rule the month grid uses, so
+logging today's first set moves both together; asserted equal.
+
+One accent per section: the flagship carries it, and the year/streak cards
+drop to chalk — they are derived from this number and now read like it. The
+existing :first-child rule hands Days the 38px type automatically, and with
+four cards the July card stops spanning and the block settles into a 2×2.
+
+The lifetime span honours the unwritten-today rule (v3.3.95) in its
+denominator, so the pace never dips a point at breakfast.
+
+One test-design note repeated from earlier suites: a parity check compared
+fresh arithmetic against a DOM left one derive behind by the previous
+assertion — re-render before comparing. Stale-fixture bugs remain the
+harness's most common failure.
+
+`test-statspolish.js` at 19.
+
 ## v3.3.98 (2026-07-26) — Milestones: celebrations that pop, with nothing on the hook
 
 The ladder: 10 · 20 · 30 · 50 · 100 · 200 · 300 · 500 · 1,000, then every

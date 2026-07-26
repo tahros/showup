@@ -133,9 +133,26 @@ function renderStats(){
 
   let h=`<h2 id="secDays">Show up — that's the whole game</h2>
     <div class="kpis">
-      <div class="kpi accent"><div class="v">${Math.round(consNow*100)}%</div><div class="l">of ${thisYear}, trained</div>
+      ${(()=>{
+        /* v3.3.99: the game itself, finally under its own heading. Total days
+           is THE number — the greeting says it, Settings says it, and the
+           section titled "that's the whole game" somehow didn't. First card,
+           flagship type via :first-child, and the section's ONE accent: the
+           percentages are derived from this number and read chalk. Caption is
+           the lifetime pace — receipts at life scale, the truest denominator
+           the app has. */
+        const total=msLiveTotal(), first=SEED.totals.first;
+        let cap='';
+        if(first){
+          const span=Math.max(1,daysBetween(first,todayISO)+1-((((DB.days[todayISO]||{}).w)||[]).length?0:1));
+          const since=new Date(first+'T00:00').toLocaleDateString('en-US',{month:'short',year:'numeric'});
+          cap=`<div class="d">${Math.round(total/span*100)}% of all days since ${since}</div>`;
+        }
+        return `<div class="kpi accent"><div class="v">${fmt(total)}</div><div class="l">days of showing up</div>${cap}</div>`;
+      })()}
+      <div class="kpi"><div class="v">${Math.round(consNow*100)}%</div><div class="l">of ${thisYear}, trained</div>
         ${diff!=null?`<div class="d ${diff>=0?'delta up':'delta down'}">${diff>=0?'+':''}${diff} pts vs ${lastYear} today</div>`:''}</div>
-      <div class="kpi accent"><div class="v">${currentStreak()}</div><div class="l">day streak · best ${longestStreak()}${(()=>{
+      <div class="kpi"><div class="v">${currentStreak()}</div><div class="l">day streak · best ${longestStreak()}${(()=>{
         const cb=comebacks();   // v3.3.97: never stopping and always returning, one card, equals
         return cb.n?`<br>${cb.n} comeback${cb.n===1?'':'s'} · longest break: ${cb.longest}d`:'';
       })()}</div></div>

@@ -143,4 +143,27 @@ console.log((/elapsedDays\(\)/.test(headSrc95) && /elapsedDays\(\)/.test(statsSr
   "header.js and stats.js both call it");
 if (!(/elapsedDays\(\)/.test(headSrc95) && /elapsedDays\(\)/.test(statsSrc95))) fail++;
 
+// ---- v3.3.99: the game itself leads the KPIs -------------------------------
+run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
+  for(let i=1;i<=40;i++){const d=new Date(t); d.setDate(d.getDate()-i);
+    DB.days[d.toLocaleDateString('en-CA')]={w:[{part:'Chest',ex:'Chest Press',w:40,reps:[10]}],upd:1};}
+  SEED=deriveAll(); view='stats'; render();})()`);
+check("the Days card is the FIRST kpi",
+      `/days of showing up/.test(document.querySelector('.kpis .kpi:first-child').innerHTML)`, true);
+check("...showing the live total", `document.querySelector('.kpis .kpi:first-child .v').textContent`, "40");
+check("...with the lifetime-pace caption",
+      `/% of all days since/.test(document.querySelector('.kpis .kpi:first-child').innerHTML)`, true);
+check("...and the section's ONE accent lives there",
+      `document.querySelectorAll('.kpis .kpi.accent').length===1 && document.querySelector('.kpis .kpi.accent')===document.querySelector('.kpis .kpi:first-child')`, true);
+// logging today moves the number — the card is live, like the grid total
+check("logging today increments it to 41",
+      `(function(){day(todayISO).w.push({part:'Back',ex:'Row',w:40,reps:[10],at:Date.now()});
+        SEED=deriveAll(); render();
+        const v=document.querySelector('.kpis .kpi:first-child .v').textContent;
+        day(todayISO).w.pop(); SEED=deriveAll(); return v;})()`, "41");
+// and it agrees with the month grid's total — one live-total rule everywhere
+check("kpi total and grid total are the same arithmetic",
+      `(function(){render(); // the previous check left the DOM one derive behind
+        return document.querySelector('.kpis .kpi:first-child .v').textContent===String(gridData().total);})()`, true);
+
 process.exit(fail ? 1 : 0);
