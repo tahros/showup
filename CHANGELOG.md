@@ -27,6 +27,14 @@ position.
 
 `test-statspolish.js` at 25; `test-comeback.js` at 16.
 
+**Deploy note.** Second occurrence of the Pages build-drop (first: v3.3.96):
+`0baea88` landed on main while the previous commit's build was in flight,
+and no build was ever enqueued for it — latest stayed `built adff02a`
+through two full polling windows. Same remedy, this commit. Pattern worth
+naming now that it has repeated: pushing while a Pages build is running
+risks the trigger being swallowed; the ritual's answer is unchanged — poll
+for `built <exact-sha>` and never claim shipped until it appears.
+
 ## v3.3.99 (2026-07-26) — The game itself, finally under its own heading
 
 Spotted by the maker from a screenshot: the Stats section titled "Show up —
