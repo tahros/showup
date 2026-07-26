@@ -593,11 +593,13 @@
   .vsrow .bar{flex:1;height:8px;border-radius:4px;background:var(--surface2);overflow:hidden}
   .vsrow .bar i{display:block;height:100%}
   .vsrow .p{font-family:var(--mono);font-size:11px;flex:0 0 32px;text-align:right}
-  .kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .kpi.hero{grid-column:1/-1;display:flex;align-items:baseline;gap:14px;padding:14px 16px 12px}
+  .kpi.hero .l{margin-top:0}
+  .kpi.hero .d{margin-top:2px}
   .kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow)}
   .kpi .v{font-family:var(--mono);font-weight:700;font-size:24px;line-height:1.15}
-  .kpis .kpi:first-child .v{font-size:38px;letter-spacing:var(--track-num)}
-  .kpis .kpi:nth-child(3):last-child{grid-column:1/-1}
+  .kpis .kpi.hero .v{font-size:40px;letter-spacing:var(--track-num)}
   .kpi .l{font-family:var(--mono);font-size:10px;letter-spacing:var(--track-label);text-transform:uppercase;color:var(--muted);margin-top:3px}
   .kpi .d{font-family:var(--mono);font-size:10px;margin-top:3px}
   .kpi.accent .v{color:var(--accent)}

@@ -148,14 +148,13 @@ function renderStats(){
           const since=new Date(first+'T00:00').toLocaleDateString('en-US',{month:'short',year:'numeric'});
           cap=`<div class="d">${Math.round(total/span*100)}% of all days since ${since}</div>`;
         }
-        return `<div class="kpi accent"><div class="v">${fmt(total)}</div><div class="l">days of showing up</div>${cap}</div>`;
+        /* v3.3.100: the hero takes the whole row — number left, words right,
+           so hierarchy comes from WIDTH and the row stays short. */
+        return `<div class="kpi hero accent"><div class="v">${fmt(total)}</div>
+          <span><div class="l">days of showing up</div>${cap}</span></div>`;
       })()}
-      <div class="kpi"><div class="v">${Math.round(consNow*100)}%</div><div class="l">of ${thisYear}, trained</div>
-        ${diff!=null?`<div class="d ${diff>=0?'delta up':'delta down'}">${diff>=0?'+':''}${diff} pts vs ${lastYear} today</div>`:''}</div>
-      <div class="kpi"><div class="v">${currentStreak()}</div><div class="l">day streak · best ${longestStreak()}${(()=>{
-        const cb=comebacks();   // v3.3.97: never stopping and always returning, one card, equals
-        return cb.n?`<br>${cb.n} comeback${cb.n===1?'':'s'} · longest break: ${cb.longest}d`:'';
-      })()}</div></div>
+      <div class="kpi"><div class="v">${Math.round(consNow*100)}%</div><div class="l">of ${thisYear}</div>
+        ${diff!=null?`<div class="d ${diff>=0?'delta up':'delta down'}">${diff>=0?'+':''}${diff} vs ${lastYear}</div>`:''}</div>
       ${(()=>{
         const dNow=+todayISO.slice(8);
         const cur=(monthCounts[monthKey]||0)/dNow;
@@ -167,9 +166,13 @@ function renderStats(){
         const diff=Math.round((cur-pDays/pN)*100);
         const pName=pv.toLocaleDateString('en-US',{month:'short'});
         return `<div class="kpi"><div class="v">${Math.round(cur*100)}%</div>
-          <div class="l">of ${new Date(+thisYear,+monthKey.slice(5)-1,1).toLocaleDateString('en-US',{month:'long'})}, trained</div>
-          <div class="d mono" style="color:${diff>=0?'var(--accent)':'var(--record)'}">${diff>=0?'+':''}${diff} pts vs ${pName} (day ${pN})</div></div>`;
+          <div class="l">of ${new Date(+thisYear,+monthKey.slice(5)-1,1).toLocaleDateString('en-US',{month:'short'})}</div>
+          <div class="d mono" style="color:${diff>=0?'var(--accent)':'var(--record)'}">${diff>=0?'+':''}${diff} vs ${pName}</div></div>`;
       })()}
+      <div class="kpi"><div class="v">${currentStreak()}</div><div class="l">streak · best ${longestStreak()}</div>${(()=>{
+        const cb=comebacks();
+        return cb.n?`<div class="d">${cb.n} comeback${cb.n===1?'':'s'} · ${cb.longest}d</div>`:'';
+      })()}</div>
     </div>`;
 
   // consistency chart — the Dashboard bottom graph

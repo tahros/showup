@@ -166,4 +166,22 @@ check("kpi total and grid total are the same arithmetic",
       `(function(){render(); // the previous check left the DOM one derive behind
         return document.querySelector('.kpis .kpi:first-child .v').textContent===String(gridData().total);})()`, true);
 
+// ---- v3.3.100: hero row + one 3-up row --------------------------------------
+run(`view='stats'; render();`);
+check("the Days card is the hero, spanning its own row",
+      `document.querySelector('.kpis .kpi:first-child').classList.contains('hero')`, true);
+const cssSrc100 = fs.readFileSync(path.join(dir, "css/app.css"), "utf8");
+console.log((/\.kpi\.hero\{grid-column:1\/-1/.test(cssSrc100) ? "PASS" : "FAIL"),
+  "hero spans the full grid width");
+if (!/\.kpi\.hero\{grid-column:1\/-1/.test(cssSrc100)) fail++;
+console.log((/\.kpis\{display:grid;grid-template-columns:repeat\(3,1fr\)/.test(cssSrc100) ? "PASS" : "FAIL"),
+  "the row beneath is 3-up");
+if (!/\.kpis\{display:grid;grid-template-columns:repeat\(3,1fr\)/.test(cssSrc100)) fail++;
+check("four cards total: hero + three",
+      `document.querySelectorAll('.kpis .kpi').length`, 4);
+check("...and the three compact cards never say 'trained' \u2014 the heading says the game",
+      `[...document.querySelectorAll('.kpis .kpi:not(.hero) .l')].some(l=>/trained/.test(l.textContent))`, false);
+check("the streak card sits last with its comebacks beneath",
+      `/streak/.test(document.querySelector('.kpis .kpi:last-child .l').textContent)`, true);
+
 process.exit(fail ? 1 : 0);

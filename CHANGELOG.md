@@ -1,5 +1,32 @@
 # ShowUp — changelog
 
+## v3.3.100 (2026-07-26) — Hierarchy by width: the hero row
+
+One release after Days joined the KPIs, the maker's screenshot showed the
+2×2 grid making it merely first-among-equals. Requested: clear hierarchy,
+minimal height.
+
+**Row one is the game:** 928 full-width, number left and words right on one
+baseline, so the hero costs ~70px. **Row two is everything derived:** of
+2026 · of Jul · streak, three-up.
+
+The compaction pass that makes 3-up fit is subtraction, not shrinkage:
+- ", trained" dropped from the percentage labels — the section heading
+  already names the game, and no compact card repeats it (asserted).
+- "pts" and "today" dropped from the deltas: "+15 vs 2025" carries the
+  same receipt.
+- July → Jul; "(day 26)" dropped — same-day comparison is the card's
+  premise, not information.
+- The comeback line compacts to "8 comebacks · 35d" — "longest break:"
+  was label, not information. Its v3.3.97 assertion was updated with a
+  dated note, deliberately, not silently.
+
+The obsolete 2-col span rule (.kpi:nth-child(3):last-child) went with the
+restructure; the hero owns its type size by class now rather than by
+position.
+
+`test-statspolish.js` at 25; `test-comeback.js` at 16.
+
 ## v3.3.99 (2026-07-26) — The game itself, finally under its own heading
 
 Spotted by the maker from a screenshot: the Stats section titled "Show up —

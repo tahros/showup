@@ -77,8 +77,10 @@ ok("longest break is the max across all comebacks",
 seed([1,10,11,25]);
 run(`view='stats'; render();`);
 const sv = () => run(`$('#view').innerHTML`);
+// v3.3.100: compacted to "2 comebacks \u00b7 13d" when the KPI row went 3-up \u2014
+// same facts, fewer words; "longest break:" was label, not information.
 ok("the streak KPI carries the comeback line",
-   /2 comebacks \u00b7 longest break: 13d/.test(sv()), (sv().match(/comeback[^<]*/)||[])[0]);
+   /2 comebacks \u00b7 13d/.test(sv()), (sv().match(/comeback[^<]*/)||[])[0]);
 ok("...singular reads 'comeback'", (seed([1,9]), run(`view='stats'; render(); /1 comeback \u00b7/.test($('#view').innerHTML)`)));
 ok("zero renders as NOTHING \u2014 absence is shown by absence",
    (seed([1,2,3]), run(`view='stats'; render(); !/comeback/.test($('#view').innerHTML)`)));
