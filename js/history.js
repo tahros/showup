@@ -12,6 +12,12 @@ function partForEx(ex,d){
   const hit=w.find(s=>s.ex===ex);
   return hit?hit.part:'';
 }
+function msMarkFor(d){
+  const i=[...SEED.dates].sort().indexOf(d);
+  if(i<0) return 0;
+  const nth=i+1;
+  return msLadder(nth)?nth:0;
+}
 function hsetEditor(d){
   const es=hist.editSet; if(!es) return '';
   const w=((DB.days[d]||{}).w)||[];
@@ -251,7 +257,7 @@ function renderHistory(){
         byEx[seen[s.ex]].sets.push([s.w,s.reps||[],s.mins,s.secs]);
       }
       h+=`<details class="day${editing?' editing':''}" open data-d="${d}"><summary>
-          <span><span class="d">${pretty(d)}</span><div class="s">${parts||'—'}</div></span>
+          <span><span class="d">${pretty(d)}</span><div class="s">${(m=>m?`Day ${fmt(m)} · `:'')(msMarkFor(d))}${parts||'—'}</div></span>
           <span class="s">${bits.join(' · ')}${editable?`<button class="dayedit" data-hedit="${d}">${editing?'Done':'Edit'}</button>`:''}</span></summary><div class="body">`;
       byEx.forEach(g=>{
         /* v3.3.62: a set is a REP. Legacy sheet rows carry reps:[] as bare

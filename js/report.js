@@ -292,6 +292,44 @@ function repOvEl(){
 }
 /* v3.3.72: one overlay, one share path, any card. Fonts are awaited BEFORE
    the draw — canvas never inherits CSS faces (v3.3.13). */
+/* v3.3.98: milestone card — the day count huge over a faded all-time month
+   grid. Receipts as celebration; same 1080 family as the others. */
+function drawMilestone(n){
+  const S=1080, cv=document.createElement('canvas'); cv.width=S; cv.height=S;
+  const x=cv.getContext('2d');
+  // per-drawer helpers, matching the file's idiom (V is function-local in
+  // every drawer here — drawMilestone borrowed one that didn't exist)
+  const V=nm=>getComputedStyle(document.documentElement).getPropertyValue(nm).trim()||'#888';
+  const SANS='"IBM Plex Sans",system-ui,sans-serif', MONO='"IBM Plex Mono",ui-monospace,monospace';
+  x.fillStyle=V('--ground'); x.fillRect(0,0,S,S);
+  // faded grid of every month ever, oldest first
+  const gd=gridData(); const keys=Object.keys(gd.mDays).sort();
+  const cols=12, cell=Math.min(64,Math.floor((S-160)/cols)), gap=10;
+  const rows=Math.ceil(keys.length/cols);
+  const gx=(S-cols*cell-(cols-1)*gap)/2, gy=Math.max(150,(S-rows*cell-(rows-1)*gap)/2);
+  x.globalAlpha=0.5;
+  keys.forEach((k,i)=>{
+    const r=Math.floor(i/cols), c0=i%cols;
+    x.fillStyle=V('--accent');
+    x.globalAlpha=0.10+0.38*gd.mDays[k]/gd.max;
+    x.fillRect(gx+c0*(cell+gap), gy+r*(cell+gap), cell, cell);
+  });
+  x.globalAlpha=1;
+  const tier=msTier(n);
+  x.textAlign='center'; x.textBaseline='alphabetic';
+  x.fillStyle=V('--muted'); x.font='600 44px '+MONO;
+  x.fillText('DAY', S/2, S/2-150);
+  x.fillStyle=tier==='thousand'?V('--accent'):V('--chalk');
+  x.font='700 '+(tier==='thousand'?300:240)+'px '+SANS;
+  x.fillText(fmt(n), S/2, S/2+90);
+  x.fillStyle=V('--chalk'); x.font='500 40px '+MONO;
+  x.fillText(msLine(n).replace(/\u2019/g,"'"), S/2, S/2+200);
+  x.fillStyle=V('--muted'); x.font='500 30px '+MONO;
+  x.textAlign='left';
+  x.fillText('tahros.github.io/showup', 64, S-64);
+  return cv;
+}
+function makeMilestoneImage(n){ return showCard(()=>drawMilestone(n),'day-'+n); }
 async function showCard(drawFn,label){
   try{
     if(document.fonts&&document.fonts.ready) await document.fonts.ready;

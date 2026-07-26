@@ -400,6 +400,16 @@ document.addEventListener('click',e=>{
     document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v==='lift'));
     return render();
   }
+  if(e.target.closest('#msDismiss')){
+    const el=e.target.closest('.msmoment');
+    DB.settings.msAck=Math.max(DB.settings.msAck||0, +(el&&el.dataset.ms||0));
+    save(true); render(); return;   // permanent; no "remind me later" exists
+  }
+  if(e.target.closest('#msShare')){
+    const el=e.target.closest('.msmoment');
+    makeMilestoneImage(+(el&&el.dataset.ms||0));
+    return;   // sharing does NOT dismiss — the moment outlives the share tap
+  }
   if(e.target.closest('#restBtn')){
     const t=day(todayISO);
     if(t.rest) delete t.rest; else t.rest=true;   // toggle; no confirm, no prompt

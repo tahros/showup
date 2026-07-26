@@ -230,12 +230,29 @@ function helloCard(){
   return `<div class="hello"><span class="hi">${part}${n?', '+n:''}.</span>${
     sub?`<span class="hisub">${sub}</span>`:''}</div>`;
 }
+/* count-up: the number climbs from the previous rung, ~1.6s ease-out, once
+   per render of a pending moment. Reduced motion → static, guarded by the
+   media query at call time. Inline animation, no fill-mode, no stacking. */
+function msCountUp(){
+  const el=document.querySelector('.msmoment .msnum'); if(!el) return;
+  try{ if(matchMedia('(prefers-reduced-motion: reduce)').matches) return; }catch(e){}
+  const from=+el.dataset.from||0, to=+el.dataset.to||0; if(to<=from) return;
+  const t0=performance.now(), dur=1600;
+  const step=(t)=>{
+    const p=Math.min(1,(t-t0)/dur), e2=1-Math.pow(1-p,3);
+    el.textContent=fmt(Math.round(from+(to-from)*e2));
+    if(p<1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
 function renderToday(){
   if(SEED.totals.sessions===0 && !((DB.days[todayISO]||{}).w||[]).length){
     $('#view').innerHTML=emptyHero('today'); return; }
   const P=trainingPlan();
   const t=day(todayISO);
   const logged=t.w.length>0;
+  msFloorInit();
+  const msN=msPending();
   const donePartsRaw=[...new Set(t.w.map(s=>s.part))];
   const doneLift=donePartsRaw.filter(p=>p!=='Run');
   const ranRaw=t.w.some(s=>s.ex==='Run');
@@ -243,6 +260,28 @@ function renderToday(){
   const pct=cur?Math.round(cur.curve[cur.end-1]*100):0;
 
   let h='';
+  if(msN){
+    const tier=msTier(msN);
+    /* thousand tier: the record itself is the spectacle — the month grid
+       cascades in square by square and the number lands on top. No
+       confetti; the fireworks are the receipts. */
+    let cascade='';
+    if(tier==='thousand'){
+      const gd=gridData(); const keys=Object.keys(gd.mDays).sort();
+      cascade='<div class="msgrid">'+keys.map((k,i)=>
+        `<i style="opacity:${(0.25+0.75*gd.mDays[k]/gd.max).toFixed(2)};animation-delay:${Math.min(i*28,1600)}ms"></i>`).join('')+'</div>';
+    }
+    h+=`<div class="card msmoment ${tier}" data-ms="${msN}">
+      ${cascade}
+      <div class="mskick">DAY</div>
+      <div class="msnum" data-from="${msPrevRung(msN)}" data-to="${msN}">${fmt(msN)}</div>
+      <div class="msline">${msLine(msN)}</div>
+      <div class="row" style="gap:8px;margin-top:14px">
+        <button class="btn ghost" id="msShare" style="flex:1;margin:0">Share as image</button>
+        <button class="btn ghost" id="msDismiss" style="flex:1;margin:0">Carry on</button>
+      </div>
+    </div>`;
+  }
 
   if(!logged){
     // ---- before the gym: what should I train
@@ -285,7 +324,7 @@ function renderToday(){
       const nDue=rest.filter(p=>P.score(p)>=1).length;
       h+=`<button class="btn ghost" id="goLift" style="margin-top:14px">Train other parts${nDue?` · ${nDue} due`:''} →</button>`;
     }
-    $('#view').innerHTML=h; return;
+    $('#view').innerHTML=h; msCountUp(); return;
   }
 
   // ---- mid-session: what am I doing right now
@@ -336,7 +375,7 @@ function renderToday(){
   if(isLive()) h+=`<button class="btn done" id="doneAllBtn">✓ Complete workout</button>`;
   else if(t.w.length&&t.doneAll)
     h+=`<div class="note mono" style="text-align:center;margin:14px 0 4px">✓ Workout complete · ${t.w.length} sets — logging another set reopens it</div>`;
-  $('#view').innerHTML=h;
+  $('#view').innerHTML=h; msCountUp();
 }
 
 /* ---------- Lift ---------- */

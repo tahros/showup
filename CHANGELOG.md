@@ -1,5 +1,62 @@
 # ShowUp — changelog
 
+## v3.3.98 (2026-07-26) — Milestones: celebrations that pop, with nothing on the hook
+
+The ladder: 10 · 20 · 30 · 50 · 100 · 200 · 300 · 500 · 1,000, then every
+100 ("500 is too big, man" — the maker; ~two a year at a most-days cadence).
+It celebrates TOTALS, never streaks: a total is irreversible, so celebrating
+it threatens nothing. Streak milestones are where engagement bait lives — a
+celebrated thing that can die is a hook. Comebacks stay uncelebrated for the
+mirror reason: honouring a lapse-and-return with fanfare would incentivise
+the lapse.
+
+The maker's ruling on tone, adopted: fun is not the same as farming, and
+celebrations should POP — big, bold, statements. The implementation makes
+them pop by TYPE, MOTION, and the record itself, not by punctuation (no
+milestone line contains an exclamation mark — asserted) and not by confetti.
+
+**The moment.** Top of Today, that day only: DAY over the number in 76px
+mono, counting up from the previous rung (~1.6s ease-out, reduced-motion →
+static), one dry line ("A month of days. Most quit here — you didn't."),
+Share as image, and Carry on.
+
+**The thousand tier is bigger, as directed:** accent-flooded card, 92px
+white number, and the spectacle is the user's own record — every month
+they've ever trained cascades in square by square before the number lands.
+The fireworks are the receipts.
+
+**The anti-bait rules, each an assertion:**
+- High-water floor at first run — no retroactive fireworks. The founder's
+  first moment will be day 1,000 (≈ Oct 5), not a backlog of nine.
+- A restored/imported archive initialises its floor to its own total and
+  fires nothing — migration is honoured, never celebrated. Asserted through
+  Restore's own adoption shape.
+- Once per rung, acknowledgement synced in settings.
+- Several rungs crossed at once (bulk past-edits) → ONE moment, the
+  largest. A queue of celebrations is a slot machine.
+- Dismissal is one tap and permanent; no "remind me later" exists. Sharing
+  does not dismiss.
+- Never in Lift — the gym is for the gym. Never a sound, notification, or
+  badge; nothing exists that can fire while the app is closed.
+- The greeting's countdown stays thousands-only — "3 more to day 10" never
+  exists; anticipation-farming is the mechanism, not the size.
+
+**The line in History** (maker's call): milestone days state their ordinal
+— "Day 500 · Back, Legs" — derived at render from the day's position in
+the sorted record, so every PAST milestone is marked too, including ones
+that predate the feature. The celebration is once; the fact is forever.
+
+**Share card:** DAY N huge over the faded all-time month grid, 1080×1080,
+same family, URL footer. User-initiated sharing is the only distribution
+this feature does.
+
+Build notes: drawMilestone first borrowed V() from an enclosing scope that
+doesn't exist — every drawer in report.js defines its own; it does now too.
+One test fixture failed against its own arithmetic (106 seeded days claimed
+to cross 300) — the fixture was corrected, not the code.
+
+New suite `test-milestone.js`, 24 assertions. Harness at 23 suites.
+
 ## v3.3.97 (2026-07-26) — Comebacks: the longevity twin of the streak
 
 Born from a brainstorm about bringing longevity into the app without

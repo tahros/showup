@@ -845,6 +845,22 @@
   #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
   .note{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:8px;line-height:1.6}
   /* v3.3.66 arrival greeting — quiet by design: it is a state, not a banner */
+  /* v3.3.98: the milestone moment. Bold by TYPE and MOTION — the voice
+     stays dry even at full volume. Thousand tier floods accent and lets the
+     record itself cascade in. */
+  .msmoment{text-align:center;padding:26px 16px 18px;overflow:hidden;position:relative}
+  .msmoment .mskick{font-family:var(--mono);font-size:13px;letter-spacing:.3em;color:var(--muted)}
+  .msmoment .msnum{font-family:var(--mono);font-weight:700;font-size:76px;line-height:1.05;
+    color:var(--chalk);letter-spacing:var(--track-num);margin:2px 0 4px}
+  .msmoment .msline{font-family:var(--mono);font-size:13px;color:var(--muted)}
+  .msmoment.thousand{background:var(--accent);border-color:var(--accent)}
+  .msmoment.thousand .mskick,.msmoment.thousand .msline{color:rgba(255,255,255,.85)}
+  .msmoment.thousand .msnum{color:#fff;font-size:92px}
+  .msmoment.thousand .btn.ghost{border-color:rgba(255,255,255,.5);color:#fff}
+  .msgrid{display:grid;grid-template-columns:repeat(12,1fr);gap:3px;margin:0 auto 14px;max-width:340px}
+  .msgrid i{aspect-ratio:1;border-radius:2px;background:#fff;animation:mscell .5s ease-out both}
+  @keyframes mscell{from{opacity:0;transform:scale(.4)}to{transform:scale(1)}}
+  @media (prefers-reduced-motion:reduce){.msgrid i{animation:none;opacity:1 !important}}
   .restbtn{margin-top:10px}
   .restbtn.on{border-color:var(--accent-soft);color:var(--chalk)}  /* declared: quiet, not lit */
   .hello{display:flex;align-items:baseline;gap:8px;margin:2px 0 12px;flex-wrap:nowrap}

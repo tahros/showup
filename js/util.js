@@ -616,6 +616,59 @@ function currentStreak(){
    (4) every return counts, sticky or not — requiring returns to "last"
        would turn a count into a grade.
    (5) zero renders as nothing — handled at the render site. */
+/* v3.3.98: the milestone ladder — celebrated TOTALS, never streaks. A total
+   is irreversible, so celebrating it threatens nothing; streak milestones
+   are where engagement bait lives (a celebrated thing that can die). Dense
+   where a practice is fragile, then every 100 — roughly two a year at a
+   most-days cadence (Sungjee: "500 is too big, man"). Thousands are a
+   bigger tier: same ritual, taller volume.
+
+   Anti-bait rules, each an assertion in test-milestone.js:
+   • high-water floor at first run — no retroactive fireworks, and a
+     restored/imported archive initialises its floor to its own total, so
+     migration is honoured, never celebrated;
+   • fires once per rung, acknowledgement synced in settings;
+   • if several rungs are crossed at once (bulk past-edits), ONE moment for
+     the largest — a queue of celebrations is a slot machine;
+   • dismissal is one tap and permanent; ignoring a celebration costs
+     nothing — that is the line between a gift and a hook. */
+function msLadder(n){
+  return n>=1000 ? n%100===0 : [10,20,30,50,100,200,300,500].includes(n);
+}
+function msTier(n){ return n>=1000 && n%1000===0 ? 'thousand' : 'regular'; }
+function msPrevRung(n){
+  let p=0;
+  for(let k=10;k<n;k++) if(msLadder(k)) p=k;
+  return p;
+}
+function msLiveTotal(){
+  return SEED.totals.sessions + ((((DB.days[todayISO]||{}).w)||[]).length && !SEED.sessions[todayISO] ? 1 : 0);
+}
+function msFloorInit(){
+  if(DB.settings.msFloor==null){ DB.settings.msFloor=msLiveTotal(); save(true); }
+}
+function msPending(){
+  if(DB.settings.msFloor==null) return 0;
+  const total=msLiveTotal(), ack=Math.max(DB.settings.msAck||0, DB.settings.msFloor);
+  let best=0;
+  for(let k=ack+1;k<=total;k++) if(msLadder(k)) best=k;   // largest crossed, one moment
+  return best;
+}
+/* one dry line per neighbourhood — deterministic, never random, and bold by
+   type not punctuation: the app's voice does not use exclamation marks even
+   at full volume. */
+function msLine(n){
+  if(n>=1000&&n%1000===0) return fmt(n)+' days. The long game, kept.';
+  if(n>=1000) return fmt(n)+' days of showing up.';
+  return ({10:'Ten days. It\u2019s a thing now.',
+           20:'Twenty days. The habit is winning.',
+           30:'A month of days. Most quit here \u2014 you didn\u2019t.',
+           50:'Fifty days. This is who you are now.',
+           100:'A hundred days of showing up.',
+           200:'Two hundred. The couch lost.',
+           300:'Three hundred days. Quietly relentless.',
+           500:'Five hundred days. Half the mountain.'})[n]||fmt(n)+' days of showing up.';
+}
 function comebacks(){
   const arr=[...workoutDates()].sort();
   let n=0, longest=0;
