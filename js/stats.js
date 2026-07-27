@@ -76,7 +76,7 @@ function bwCard(){
       if(hi-lo<2){ const m=(hi+lo)/2; lo=m-1; hi=m+1; }         // a near-flat series must not amplify into noise
       const pad=(hi-lo)*0.22; lo-=pad; hi+=pad;
       const X=t=>32+(t-t0)/span*268;
-      const Y=v=>84-(v-lo)/(hi-lo)*66;
+      const Y=v=>95-(v-lo)/(hi-lo)*75;   // v3.3.113: baseline 84→95, span 66→75 (×1.135 into the 118 box)
       const n1=v=>String(Math.round(v*10)/10);
       let grid='';
       for(const gv of (minV===maxV?[minV]:[maxV,minV])){
@@ -93,15 +93,15 @@ function bwCard(){
         dots+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.4" fill="var(--accent)"></circle>`;
       });
       d+=` L ${X(t1).toFixed(1)} ${prevY.toFixed(1)}`;           // carry the last weight forward to today
-      chart=`<div class="zoom" data-zoom><svg viewBox="0 0 330 104" style="width:100%;height:auto">
+      chart=`<div class="zoom" data-zoom><svg viewBox="0 0 330 118" style="width:100%;height:auto">
           ${grid}
           <path d="${d}" fill="none" stroke="var(--accent)" stroke-width="1.6"
                 stroke-linejoin="round" stroke-linecap="round"></path>
           ${dots}
           <text x="${X(t1).toFixed(1)}" y="${(prevY-5).toFixed(1)}" text-anchor="end" font-family="var(--mono)"
                 font-size="8" font-weight="700" fill="var(--accent)">${n1(toU(cur))}</text>
-          <text x="32" y="99" font-family="var(--mono)" font-size="7" fill="var(--muted)">${md(first)}</text>
-          <text x="300" y="99" text-anchor="end" font-family="var(--mono)" font-size="7" fill="var(--muted)">today</text>
+          <text x="32" y="112" font-family="var(--mono)" font-size="7" fill="var(--muted)">${md(first)}</text>
+          <text x="300" y="112" text-anchor="end" font-family="var(--mono)" font-size="7" fill="var(--muted)">today</text>
         </svg></div>`;
     }
     body=head+chart;
@@ -311,20 +311,20 @@ function renderStats(){
   const bestI=wdPct.indexOf(wdBest);
   cut('dbm');
   h+=`<h2>Weekdays${hActs('wd',"Which weekdays you actually show up — today is in accent, and the caret marks your strongest.")}</h2><div class="card">
-      <svg viewBox="0 0 330 140" style="width:100%;height:auto">`;
+      <svg viewBox="0 0 330 118" style="width:100%;height:auto">`;   // v3.3.113: 140→118
   for(const g of [0,25,50,75,100]){
-    const y=112-g/100*96;
+    const y=94-g/100*81;      // v3.3.113: baseline 112→94, span 96→81
     h+=`<line x1="24" y1="${y}" x2="316" y2="${y}" stroke="var(--line)" stroke-width="0.6" ${g?'stroke-dasharray="2 3"':''}></line>
         <text x="21" y="${y+3}" text-anchor="end" font-family="var(--mono)" font-size="7" fill="var(--muted)">${g}</text>`;
   }
   ['S','M','T','W','T','F','S'].forEach((lab,i)=>{
     const p=wdPct[i], today=i===wdToday, best=i===bestI;
-    const bh=Math.max(2,p*96), x=32+i*41;
-    h+=`<rect class="gbar wd-col" x="${x}" y="${112-bh}" width="26" height="${bh}" rx="4"
+    const bh=Math.max(2,p*81), x=32+i*41;
+    h+=`<rect class="gbar wd-col" x="${x}" y="${94-bh}" width="26" height="${bh}" rx="4"
           fill="${today?'var(--accent)':'var(--accent-dim)'}" opacity="${today?1:.6}"></rect>`;
-    if(best) h+=`<text x="${x+13}" y="${104-bh}" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="var(--muted)">▲</text>`;
-    h+=`<text x="${x+13}" y="${today?108-bh:(best?96-bh:108-bh)}" text-anchor="middle" font-family="var(--mono)" font-size="8" fill="${today?'var(--accent)':'var(--muted)'}" font-weight="${today?700:400}">${Math.round(p*100)}%</text>
-        <text x="${x+13}" y="127" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="${today?'var(--chalk)':'var(--muted)'}" font-weight="${today?700:400}">${lab}</text>`;
+    if(best) h+=`<text x="${x+13}" y="${86-bh}" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="var(--muted)">▲</text>`;
+    h+=`<text x="${x+13}" y="${today?90-bh:(best?78-bh:90-bh)}" text-anchor="middle" font-family="var(--mono)" font-size="8" fill="${today?'var(--accent)':'var(--muted)'}" font-weight="${today?700:400}">${Math.round(p*100)}%</text>
+        <text x="${x+13}" y="109" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="${today?'var(--chalk)':'var(--muted)'}" font-weight="${today?700:400}">${lab}</text>`;
   });
   h+=`</svg><div class="note">% of each weekday trained, last 365 days · ▲ your strongest</div></div>`;
 

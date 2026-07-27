@@ -1,5 +1,41 @@
 # ShowUp — changelog
 
+## v3.3.113 (2026-07-27) — Two chart shapes, not four
+
+Part three of the Stats review, closing it.
+
+The maker's read was that section heights fluctuated because of the "Share
+as image" button. The button was a symptom; the cause was that the charts
+render at `width:100%; height:auto`, so their height IS their viewBox
+aspect ratio — and there were **four** of them: Weight at 0.315, the bar
+charts at 0.358, Weekdays at 0.424, and the two year-over-year line charts
+at 0.500.
+
+Now there are two. **Tall (340×170, 0.500)** for the two year-over-year line
+charts — five series, a scrubber, a full year across the x-axis; they earn
+the height. **Short (330×118, 0.358)** for everything else. Five of the
+seven charts already sat on one of those two; only Weight and Weekdays were
+outliers.
+
+Both outliers were **rescaled to fill the new box, not padded into it** — a
+card that is the right height but half empty is not the same thing as a
+chart that fits. Weight's baseline moved 84→95 and its span 66→75 (×1.135);
+Weekdays' baseline moved 112→94 and its span 96→81 (×0.843), along with the
+four label offsets that hang off that baseline.
+
+Rescaling by hand is exactly the kind of change that clips something
+quietly, so the test walks every chart's rendered geometry and asserts
+nothing draws below its own viewBox — plus, specifically for Weight, that
+every plotted point still lands inside the plot area rather than in the
+axis-label margin.
+
+A fixture note: `renderStats()` early-returns on an empty archive, so a
+first attempt to inspect the weight chart reported "no weight section" and
+looked like a regression. It needed training days AND weigh-ins; the chart
+was fine all along.
+
+`test-statspolish.js` at 45.
+
 ## v3.3.112 (2026-07-27) — One action group per header
 
 Part two of the Stats review. Every section header now ends with the same

@@ -307,4 +307,58 @@ const maxTip = Math.max(...JSON.parse(tipLens));
 console.log((maxTip <= 120 ? "PASS" : "FAIL"), "every tip fits in one breath (\u2264120 chars)", "\u2192", "longest " + maxTip);
 if (maxTip > 120) fail++;
 
+// ---- v3.3.113: two chart shapes, not four -------------------------------
+// Weight was 0.315, Weekdays 0.424, the bar charts 0.358 and the two YoY
+// line charts 0.500 \u2014 which is why section heights looked arbitrary.
+run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
+  for(let i=1;i<=400;i++){const d=new Date(t); d.setDate(d.getDate()-i);
+    const iso=d.toLocaleDateString('en-CA');
+    DB.days[iso]={w:[{part:'Chest',ex:'Chest Press',w:40,reps:[10],at:1}],upd:1};
+    if(i%3===0) DB.days[iso].w.push({part:'Run',ex:'Run',w:5,reps:[],mins:30,secs:0,at:1});}
+  SEED=deriveAll();
+  setBw('2025-02-01',72); setBw('2025-09-01',70.5); setBw(todayISO,70);
+  SEED=deriveAll(); view='stats'; render();})()`);
+
+// icons are 16x16 SVGs; charts are the ones living inside a .card
+const shapes = JSON.parse(run(`JSON.stringify([...document.querySelectorAll('#view .card svg')]
+  .map(s=>{const v=(s.getAttribute('viewBox')||'').split(/\\s+/).map(Number);
+    return {w:v[2],h:v[3],r:+(v[3]/v[2]).toFixed(3)};}).filter(x=>x.w>100))`));
+const ratios = [...new Set(shapes.map(s => s.r))].sort();
+console.log((ratios.length === 2 ? "PASS" : "FAIL"),
+  "chart shapes collapse to exactly two", "\u2192", ratios.join(" and ") + ` across ${shapes.length} charts`);
+if (ratios.length !== 2) fail++;
+console.log((ratios.join(",") === "0.358,0.5" ? "PASS" : "FAIL"),
+  "...the short box and the tall box", "\u2192", ratios.join(","));
+if (ratios.join(",") !== "0.358,0.5") fail++;
+
+// only the two year-over-year line charts earn the tall box
+const tall = shapes.filter(s => s.r === 0.5).length;
+console.log((tall === 2 ? "PASS" : "FAIL"),
+  "only the two year-over-year charts are tall", "\u2192", tall);
+if (tall !== 2) fail++;
+
+// rescaling must not push anything outside its own box
+const overflow = JSON.parse(run(`JSON.stringify([...document.querySelectorAll('#view .card svg')]
+  .map(s=>{const v=(s.getAttribute('viewBox')||'').split(/\\s+/).map(Number);
+    if(v[2]<=100) return null;
+    let m=0; s.querySelectorAll('*').forEach(e=>{
+      ['y','y1','y2','cy'].forEach(a=>{const n=parseFloat(e.getAttribute(a)); if(!isNaN(n)) m=Math.max(m,n);});
+      const hh=parseFloat(e.getAttribute('height')), yy=parseFloat(e.getAttribute('y'));
+      if(!isNaN(hh)&&!isNaN(yy)) m=Math.max(m,yy+hh);});
+    return m>v[3]+0.5 ? {box:v[2]+'x'+v[3], lowest:+m.toFixed(1)} : null;}).filter(Boolean))`));
+console.log((overflow.length === 0 ? "PASS" : "FAIL"),
+  "no chart draws below its own viewBox after rescaling", "\u2192",
+  overflow.length ? JSON.stringify(overflow) : "all fit");
+if (overflow.length) fail++;
+
+// the weight chart specifically \u2014 it was rescaled by 1.135 and is easy to clip
+check("the weight chart sits in the short box",
+      `(function(){const el=document.querySelector('#secWeight');
+        const svg=el&&el.nextElementSibling?el.nextElementSibling.querySelector('svg'):null;
+        return svg?svg.getAttribute('viewBox'):'none';})()`, "0 0 330 118");
+check("...with every plotted point inside its plot area",
+      `(function(){const el=document.querySelector('#secWeight');
+        const svg=el.nextElementSibling.querySelector('svg');
+        return [...svg.querySelectorAll('circle')].every(c=>{const y=+c.getAttribute('cy'); return y>=18&&y<=96;});})()`, true);
+
 process.exit(fail ? 1 : 0);
