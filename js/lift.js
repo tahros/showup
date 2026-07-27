@@ -373,8 +373,8 @@ function renderLift(){
     const fresh=lift.justSaved&&ti===todaySets.length-1;
     const anim=fresh?(isPR?' savedpr':' saved'):'';
     h+=isRun
-      ?`<div class="settile${anim}${lift.editSet===idx?' editing':''}" data-del="${idx}"><span class="w">${dDisp(s.w)} ${DU()}</span><span class="x">${s.mins||0}'${String(s.secs||0).padStart(2,'0')}"</span></div>`
-      :`<div class="settile ${isPR?'pr':''}${anim}${lift.editSet===idx?' editing':''}" data-del="${idx}"><span class="w">${wLabel(ex,s.w)}</span><span class="x">${isBody(ex)&&s.w<=0.01?'×':U()+' ×'}</span><span class="w">${s.reps[0]}</span></div>`;
+      ?`<div class="settile${anim}${lift.editSet===idx?' editing':''}" data-del="${idx}"><span class="w">${dDisp(s.w)}<small>${DU()}</small></span><span class="x">${s.mins||0}'${String(s.secs||0).padStart(2,'0')}"</span></div>`
+      :`<div class="settile ${isPR?'pr':''}${anim}${lift.editSet===idx?' editing':''}" data-del="${idx}"><span class="w">${wLabel(ex,s.w)}${isBody(ex)&&s.w<=0.01?'':`<small>${U()}</small>`}</span><span class="x">×</span><span class="w">${s.reps[0]}</span></div>`;
   });
   /* v3.3.18: capture FROM values off the still-mounted previous render.
      The animations run AFTER the innerHTML swap (end of this branch) —

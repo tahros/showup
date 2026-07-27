@@ -1,5 +1,48 @@
 # ShowUp — changelog
 
+## v3.3.103 (2026-07-26) — The badge, flush; the number and its unit, one word
+
+Two fixes from a screenshot of the Suggested and Logged Today chips.
+
+**The dismiss badge moves to the true corner — flush, not floating.** It
+was inset 3px from both edges, which sat it straddling the pill's own 9px
+rounded corner: part of the circle over the fill, part over the curved
+cutaway where the pill has no fill at all, reading as neither properly
+inside nor properly pinned. The first fix attempt reached for the familiar
+overhanging notification-badge look (negative top/right) — and buildcheck's
+own v3.3.49 guard caught it immediately: `#app` sets `overflow-x:clip`,
+which per spec forces `overflow-y` to compute `auto` too, so any negative
+offset here risks being shaved at the page edge. That guard exists because
+this exact mistake was made twice before, in v3.3.46–48. The correct fix
+stays non-negative: the badge sits flush at (0,0). `.lschip` has no
+`overflow:hidden` of its own, so a flush badge simply caps the corner's
+curve completely — fully pinned, no float, and no clip risk anywhere.
+
+**Logged Today's number and its unit are now one visual word.** "16 kg"
+had a gap "16" never had in the Suggested chip's "16kg" because the two
+pieces lived in SEPARATE flex children of a `gap:6px` row — the layout gap
+was rendering INSIDE what should have read as one label. Fixed by nesting
+the unit as `<small>` inside the weight span, the same pattern the
+Suggested chip already used correctly. The separator span now carries only
+`×`. A bodyweight set, which has no unit, renders no `<small>` at all —
+asserted, so an empty tag can't sneak back in.
+
+**A real bug caught by the full regression, not the standalone check.** The
+first version of this release's own test used a regex containing HTML
+closing tags (`</small>`, `</span>`). The literal slashes inside those tags
+collapsed the escaping meant to protect them across the vm bridge — a
+failure mode already written into this harness's own notes — and the
+regex terminated early, throwing `SyntaxError: Invalid regular expression
+flags` instead of failing cleanly. Worse: because a stack-trace crash never
+prints the word "FAIL", a hasty standalone check (grep for FAIL, count
+PASS) read as clean at 12/12 when the true count was 16 and four
+assertions had silently never run. Fixed by switching to `.includes()` for
+any check whose content contains a literal `/`, and the regression re-run
+now explicitly greps every suite's full output for crash signatures, not
+just its exit code.
+
+`test-repweight.js` at 16.
+
 ## v3.3.102 (2026-07-26) — The part digest card, ~15% shorter
 
 Requested from a screenshot of the Shoulder · LIVE card on Today. The bar

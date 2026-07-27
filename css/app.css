@@ -231,8 +231,8 @@
     font-family:var(--mono);white-space:nowrap;
     background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
   .nudge .nudgex{position:absolute;top:50%;right:8px;transform:translateY(-50%)}
-  .lschip{position:relative;display:inline-block}   /* v3.3.50: badge fully inside; no overhang, no clip risk */
-  .lschip .lsx{position:absolute;top:3px;right:3px;width:16px;height:16px;border-radius:50%;
+  .lschip{position:relative;display:inline-block}   /* v3.3.103: badge flush at the corner, never negative — see .lsx and the v3.3.49 buildcheck guard */
+  .lschip .lsx{position:absolute;top:0;right:0;width:16px;height:16px;border-radius:50%;
     background:var(--surface2);border:1px solid var(--line);color:var(--muted);
     font-size:10px;line-height:1;padding:0;z-index:1;
     display:flex;align-items:center;justify-content:center}   /* v3.3.50: fully inside the corner — zero overhang (respects the clip guard), reps cleared by chip padding below */
@@ -501,6 +501,7 @@
   .settile .w{color:var(--chalk)}
   .settile.saved,.settile.savedpr{opacity:1}
   .settile .w{font-weight:700}
+  .settile .w small{font-weight:400;font-size:10px;color:var(--muted);margin-left:1px}   /* v3.3.103: matches .ls-w small — the unit rides WITH its number, no gap */
   .settile .x{color:var(--muted);font-size:11px}
   .settile.pr{border-color:var(--record)}
   .settile.pr .w{color:var(--record)}
