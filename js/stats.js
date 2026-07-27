@@ -175,7 +175,8 @@ function renderStats(){
   // consistency chart — the Dashboard bottom graph
   h+=`<h2>Consistency, year over year ${iBtn('yoy',"% of days trained so far each year — the bold line is this year, still running.")}</h2><div class="card">
       <div class="zoom" data-zoom><div class="zoomhint">pinch / scroll to zoom · double-tap to reset</div>
-      <svg viewBox="0 0 340 170" style="width:100%;height:auto">`;
+      <svg viewBox="0 0 340 170" style="width:100%;height:auto"
+        data-scrub="pct" data-sx0="26" data-sxw="274" data-sy0="140" data-syh="120" data-smax="1">`;
   // y grid + labels
   for(const g of [0,0.25,0.5,0.75,1]){
     const y=140-g*120;

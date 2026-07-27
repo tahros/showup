@@ -487,6 +487,103 @@ function refreshLoad(){
 }
 
 /* ---------- pinch / wheel zoom for charts ---------- */
+/* v3.3.108: the scrubber — press the chart and a thin guide follows your
+   finger, reading every curve at that day. The interaction finance apps use
+   (Robinhood, Apple Stocks); without it these curves are only legible at
+   their endpoints.
+
+   It costs no new gesture. bindZoom already owns pointers here, and a
+   single finger currently does NOTHING at default zoom — panning is gated
+   on being zoomed in. So: 1 finger + not zoomed = scrub, 1 finger + zoomed
+   = pan (unchanged), 2 fingers = pinch (unchanged), double-tap = reset
+   (unchanged). `[data-zoom]` is already first in the tab-swipe blocklist,
+   so a horizontal drag can't change tabs, and `.zoom` is already
+   touch-action:none, so it can't scroll the page either.
+
+   It is driven entirely by data-attributes on the <svg>, so it works for
+   any line chart that declares its geometry — no per-chart wiring, one
+   implementation for the consistency and distance charts both.
+
+   Readout reuses what's on screen: the legend's values swap to the
+   scrubbed day and the zoom hint becomes the date. Nothing new appears
+   except the guide and its dots. */
+function bindScrub(box, svg, getVb){
+  if(!svg.hasAttribute('data-scrub')) return null;
+  const A=n=>+svg.getAttribute(n);
+  const sx0=A('data-sx0'), sxw=A('data-sxw'), sy0=A('data-sy0'), syh=A('data-syh'), smax=A('data-smax');
+  const pct=svg.getAttribute('data-scrub')==='pct';
+  const lines=[...svg.querySelectorAll('polyline[data-yr]')].map(pl=>({
+    yr:pl.getAttribute('data-yr'), color:pl.getAttribute('stroke'),
+    pts:(pl.getAttribute('points')||'').trim().split(/\s+/).filter(Boolean)
+        .map(p=>p.split(',').map(Number)).filter(p=>p.length===2&&!isNaN(p[0]))
+  })).filter(L=>L.pts.length>1);
+  if(!lines.length) return null;
+
+  const NS='http://www.w3.org/2000/svg';
+  const g=document.createElementNS(NS,'g');
+  g.setAttribute('class','scrubg'); g.style.display='none'; g.style.pointerEvents='none';
+  const vline=document.createElementNS(NS,'line');
+  vline.setAttribute('y1',String(sy0-syh)); vline.setAttribute('y2',String(sy0));
+  vline.setAttribute('stroke','var(--chalk)'); vline.setAttribute('stroke-width','0.7'); vline.setAttribute('opacity','.45');
+  g.appendChild(vline);
+  const dots=lines.map(L=>{
+    const c=document.createElementNS(NS,'circle');
+    c.setAttribute('r','2.4'); c.setAttribute('fill',L.color);
+    c.setAttribute('stroke','var(--surface)'); c.setAttribute('stroke-width','0.8');
+    g.appendChild(c); return c;
+  });
+  svg.appendChild(g);
+
+  const legend=box.parentElement?box.parentElement.querySelector('.legend1'):null;
+  const hint=box.querySelector('.zoomhint');
+  const hint0=hint?hint.textContent:'';
+  const val0=new Map();
+  if(legend) legend.querySelectorAll('[data-yr]').forEach(s=>{
+    const b=s.querySelector('b'); if(b) val0.set(s.getAttribute('data-yr'), b.textContent);
+  });
+
+  const yAt=(pts,x)=>{
+    if(x<pts[0][0]-0.01||x>pts[pts.length-1][0]+0.01) return null;   // year hasn't reached this day
+    for(let i=1;i<pts.length;i++){
+      if(pts[i][0]>=x){
+        const [x0,y0]=pts[i-1], [x1,y1]=pts[i];
+        return x1===x0 ? y1 : y0+(y1-y0)*((x-x0)/(x1-x0));
+      }
+    }
+    return pts[pts.length-1][1];
+  };
+  const show=clientX=>{
+    const r=box.getBoundingClientRect(), vb=getVb();
+    const ux=vb[0]+((clientX-r.left)/r.width)*vb[2];
+    const x=Math.max(sx0,Math.min(sx0+sxw,ux));
+    vline.setAttribute('x1',x.toFixed(1)); vline.setAttribute('x2',x.toFixed(1));
+    lines.forEach((L,i)=>{
+      const y=yAt(L.pts,x);
+      if(y==null){ dots[i].style.display='none'; }
+      else { dots[i].style.display=''; dots[i].setAttribute('cx',x.toFixed(1)); dots[i].setAttribute('cy',y.toFixed(1)); }
+      if(legend){
+        const b=legend.querySelector(`[data-yr="${L.yr}"] b`);
+        if(b) b.textContent = y==null ? '\u2013'
+          : (pct ? Math.round(smax*(sy0-y)/syh*100)+'%' : String(Math.round(smax*(sy0-y)/syh)));
+      }
+    });
+    if(hint){
+      const doyN=Math.max(1,Math.min(366,Math.round((x-sx0)/sxw*366)));
+      hint.textContent=new Date(2025,0,Math.min(365,doyN))
+        .toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    }
+    g.style.display='';
+  };
+  const hide=()=>{
+    g.style.display='none';
+    if(hint) hint.textContent=hint0;
+    if(legend) val0.forEach((t,yr)=>{
+      const b=legend.querySelector(`[data-yr="${yr}"] b`); if(b) b.textContent=t;
+    });
+  };
+  return {show,hide};
+}
+
 function bindZoom(box){
   if(box.dataset.bound) return;
   box.dataset.bound='1';
@@ -518,15 +615,20 @@ function bindZoom(box){
 
   box.addEventListener('wheel',e=>{e.preventDefault();const [x,y]=rel(e);zoomAt(x,y,e.deltaY<0?1.15:1/1.15);},{passive:false});
 
+  const scrub=bindScrub(box,svg,()=>vb);
+  const zoomed=()=>vb[2]<vb0[2]-0.5;
+
   const pts=new Map(); let d0=0,w0=0,mid=[0,0],last=null,tap=0;
   box.addEventListener('pointerdown',e=>{
     box.setPointerCapture(e.pointerId); pts.set(e.pointerId,rel(e));
     if(pts.size===2){const [a,b]=[...pts.values()];
-      d0=Math.hypot(a[0]-b[0],a[1]-b[1]); w0=vb[2]; mid=[(a[0]+b[0])/2,(a[1]+b[1])/2];}
+      d0=Math.hypot(a[0]-b[0],a[1]-b[1]); w0=vb[2]; mid=[(a[0]+b[0])/2,(a[1]+b[1])/2];
+      if(scrub) scrub.hide();}                     // a second finger means zoom, not read
     else{ last=rel(e);
       const now=Date.now();
       if(now-tap<300){ vb=[...vb0]; apply(); }
-      tap=now; }
+      tap=now;
+      if(scrub&&!zoomed()) scrub.show(e.clientX); }
   });
   box.addEventListener('pointermove',e=>{
     if(!pts.has(e.pointerId)) return;
@@ -541,9 +643,12 @@ function bindZoom(box){
       vb[0]-=(p[0]-last[0])/r.width*vb[2];
       vb[1]-=(p[1]-last[1])/r.height*vb[3];
       last=p; clamp(); apply(); e.preventDefault();
+    }else if(pts.size===1 && scrub){
+      scrub.show(e.clientX); e.preventDefault();   // reading, not panning
     }
   });
-  const up=e=>{pts.delete(e.pointerId); if(pts.size<2)d0=0; if(!pts.size)last=null;};
+  const up=e=>{pts.delete(e.pointerId); if(pts.size<2)d0=0; if(!pts.size)last=null;
+    if(!pts.size&&scrub) scrub.hide();};
   box.addEventListener('pointerup',up);
   box.addEventListener('pointercancel',up);
 }

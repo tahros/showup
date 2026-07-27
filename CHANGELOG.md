@@ -1,5 +1,48 @@
 # ShowUp — changelog
 
+## v3.3.108 (2026-07-27) — The scrubber
+
+Press and hold a line chart and a thin guide follows your finger, reading
+every curve at that day. The interaction finance apps use — Robinhood,
+Apple Stocks — usually called a scrubber or crosshair. Without it these
+curves were only legible at their endpoints.
+
+**It costs no new gesture.** `bindZoom` already owns pointers on these
+charts, and a single finger did NOTHING at default zoom: panning is gated
+on already being zoomed in. So the map is now 1 finger + not zoomed =
+scrub, 1 finger + zoomed = pan (unchanged), 2 fingers = pinch (unchanged),
+double-tap = reset (unchanged). A second finger dismisses the guide — that
+is a zoom, not a read. `[data-zoom]` was already first in the tab-swipe
+blocklist and `.zoom` already carries `touch-action:none`, so a horizontal
+drag can neither change tabs nor scroll the page.
+
+**One implementation, driven by data-attributes.** The svg declares its own
+geometry (`data-scrub`, `data-sx0/sxw/sy0/syh/smax`) and `bindScrub()`
+reads values straight off the rendered `<polyline points>` — so it serves
+the consistency chart and the distance chart identically, and any future
+line chart opts in by declaring six attributes. Charts that don't opt in
+grow nothing, asserted.
+
+**The readout reuses what's already on screen.** The legend's values swap
+to the scrubbed day and swap back exactly on release; the zoom hint becomes
+the date under your finger. Nothing new appears except the guide and its
+dots. A year that hasn't reached the scrubbed day shows an en-dash rather
+than a fabricated value. The distance legend's total gained a `<b>` so both
+legends expose the same element.
+
+**Test-design note.** The first fixture trained every 2 days flat, which
+makes cumulative consistency ~50% at EVERY point of the year — so scrubbing
+anywhere returned the endpoint value and the suite could not distinguish a
+working scrubber from a broken one. It passed anyway. The fixture now runs
+each year hot for 100 days then sparse, so the curve genuinely falls: the
+assertions read 100% in early February, 46% by mid-December, a dash for the
+unreached current year, and exact restoration of the year-end totals on
+release. A second assertion was also comparing "restored" against a value
+captured AFTER the first press, and so proved nothing; it captures the true
+originals first now.
+
+New suite `test-scrub.js`, 20 assertions. Harness at 24 suites.
+
 ## v3.3.107 (2026-07-27) — The day figure, one size down
 
 38px borrowed the Stats hero's size without its context: that card owns a

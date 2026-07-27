@@ -696,7 +696,8 @@ function runStatsHTML(){
   const yMax=Math.max(dataMax,step*4);
   h+=`<h2>Year over year ${iBtn('cumkm',`Cumulative ${DU()} by day of year. ${thisYear} is still running.`)}</h2><div class="card">
       <div class="zoom" data-zoom><div class="zoomhint">pinch / scroll to zoom · double-tap to reset</div>
-      <svg viewBox="0 0 340 170" style="width:100%;height:auto">`;
+      <svg viewBox="0 0 340 170" style="width:100%;height:auto"
+        data-scrub="dist" data-sx0="30" data-sxw="270" data-sy0="140" data-syh="120" data-smax="${yMax}">`;
   for(let g=0;g<=4;g++){
     const y=140-(g*step)/yMax*120;
     h+=`<line x1="30" y1="${y.toFixed(1)}" x2="300" y2="${y.toFixed(1)}" stroke="var(--line)" stroke-width="0.6" ${g?'stroke-dasharray="2 3"':''}></line>
@@ -728,7 +729,9 @@ function runStatsHTML(){
     h+=`<text data-yr="${L.y}" x="${Math.min(L.lx+(L.cur?6:4),316).toFixed(1)}" y="${(L.ly+2.5).toFixed(1)}" font-family="var(--mono)" font-size="7.5"
          fill="${YEAR_COLORS[L.y]||'var(--muted)'}" font-weight="${L.cur?700:400}">${L.y.slice(2)}</text>`;
   h+=`</svg></div><div class="legend1">`;
-  for(const y of years) h+=`<span data-yr="${y}" role="button">${''}<i style="background:${YEAR_COLORS[y]||'var(--muted)'}"></i>${y} · ${Math.round(yTot[y])}</span>`;
+  // v3.3.108: the value wears <b>, matching the consistency legend — the
+  // scrubber swaps that element, so both legends must expose it the same way
+  for(const y of years) h+=`<span data-yr="${y}" role="button"><i style="background:${YEAR_COLORS[y]||'var(--muted)'}"></i>${y} · <b>${Math.round(yTot[y])}</b></span>`;
   h+=`</div><button class="btn ghost" id="runShare" style="margin-top:12px">Share as image</button></div>`;
 
   /* --- pace, by month (timed runs only; lower is faster) --- */
