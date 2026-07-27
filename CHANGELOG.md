@@ -44,6 +44,17 @@ must read strings only. Re-verified by injecting a real exclamation into
 
 `test-todayhero.js` at 53, `test-bw.js` at 57.
 
+**Deploy note — third Pages build-drop** (after v3.3.96 and v3.3.100).
+`9641ced` landed on main while the previous build was still in flight and
+no build was ever enqueued for it. Compounding it, the verify script's
+final line printed "PUBLISHED AND VERIFIED" on the strength of the
+byte-comparison alone, while the SHA poll had quietly timed out on the
+PREVIOUS commit — so a correct-but-unpublished release briefly reported as
+shipped. The byte-check answers "are the right bytes at this commit?"; only
+the poll answers "did Pages publish it?", and the script must not claim the
+second on evidence of the first. Both conditions are now required before
+the success line prints.
+
 ## v3.3.105 (2026-07-27) — A specificity coin-flip, not a decision
 
 From a screenshot: a large empty gap between the header and the "Rhythm"
