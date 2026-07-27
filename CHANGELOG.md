@@ -1,5 +1,45 @@
 # ShowUp — changelog
 
+## v3.3.110 (2026-07-27) — An app, not a document
+
+Reported while scrubbing: iOS pops Copy / Look Up / Translate over the
+chart. A long press is simultaneously "scrub this curve" and "select this
+text", and iOS resolves the tie in favour of selection.
+
+**The decision, not just the fix.** ShowUp is an application shell, not a
+document. Selection is off by default now, restored deliberately.
+
+Every surface here already owns a gesture — charts scrub, pinch and
+double-tap; tiles tap-to-delete and hold-to-edit; chips select — so text
+selection competes with all of them. And the failure is asymmetric: an
+accidental callout blocks the UI mid-gesture, whereas a missing selection on
+a label like "DAYS OF SHOWING UP" costs nothing, because there is nothing
+there worth copying.
+
+The codebase had already been answering this one element at a time.
+`.settile` and `.readyhead` each got `user-select:none` reactively, after
+each one broke. That is whack-a-mole — the default was wrong, not those two
+elements — and both spot-fixes are subsumed by the base rule now.
+
+**Restored deliberately:** `input`, `textarea`, `select`, and an explicit
+`.selectable`. The inputs are not optional — three code paths call
+`.select()` programmatically (bodyweight entry, rep fields, and the Sheets
+clipboard fallback). The account email in Settings wears `.selectable`,
+being a real identifier someone may want to copy. The share-card overlay
+mounts on `<body>`, outside `#app`, so long-press to save the image is
+untouched.
+
+**The honest cost:** iOS Translate-via-selection is gone. Accepted — the
+app's text is short labels and numbers, and anyone needing translation needs
+the whole app translated, not a word at a time. VoiceOver is unaffected; it
+reads the DOM, not selections. Getting your data out remains Export/Backup,
+which was always the better path than selecting text off a screen.
+
+Also removed: three orphaned `.readyhead` rules, dead since the Readiness
+board was deleted in v3.3.86.
+
+`test-scrub.js` at 31.
+
 ## v3.3.109 (2026-07-27) — The readout moves above the hand
 
 Two reports from using the new scrubber, one root cause: the legend was

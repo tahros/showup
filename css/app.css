@@ -29,6 +29,21 @@
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;background:var(--ground);color:var(--chalk)}
+  /* v3.3.110: this is an APPLICATION shell, not a document. Every surface
+     in it owns a gesture — charts scrub/pinch/double-tap, tiles tap-to-delete
+     and hold-to-edit, chips select — and iOS resolves a tie between "select
+     text" and "run the gesture" in favour of selection, popping the
+     Copy/Look Up/Translate callout over the UI mid-drag. Selection is off by
+     default and restored deliberately below.
+     Two spot-fixes (.settile, .readyhead) previously did this reactively,
+     one element at a time, after each one broke; they are subsumed here.
+     The share-card overlay mounts on <body>, OUTSIDE #app, so long-press to
+     save the image keeps working. */
+  #app{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+  /* restored where the content is genuinely the user's, or an identifier
+     worth copying. inputs are not optional: three code paths call .select()
+     programmatically (bodyweight, rep fields, the Sheets clipboard fallback). */
+  input,textarea,select,.selectable{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
   #app{
     max-width:520px;margin:0 auto;min-height:100vh;
     background:var(--ground);color:var(--chalk);
@@ -218,7 +233,6 @@
      needle: if it's red, something is still moving. */
   .smeter i.live{background:var(--live)}
   .smeter i.over.live{box-shadow:0 0 8px color-mix(in srgb,var(--live) 60%,transparent)}
-  .settile{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   .settile.editing{outline:2px solid var(--accent);outline-offset:1px}
   .editcard .row input{width:100%}
   .nudge{position:relative;display:flex;align-items:center;gap:12px;margin-top:10px;
@@ -419,9 +433,6 @@
      A targeted selector settles it by actual specificity, not by which
      rule got written last. */
   h2.quiet:first-child{margin-top:4px}
-  .readyhead{cursor:pointer;user-select:none;-webkit-user-select:none}
-  .readyhead .rcaret{font-size:11px;color:var(--faint)}
-  .readyhead .rduecount{font-family:var(--mono);font-size:11px;color:var(--accent);font-weight:600}
   .pr-cell{display:flex;flex-direction:column;align-items:flex-end;flex:0 0 auto;font-family:var(--mono)}
   .pr-top{color:var(--chalk);font-size:12px;font-weight:600}
   .pr-side{color:var(--muted);font-size:10px;margin-top:2px;white-space:nowrap}

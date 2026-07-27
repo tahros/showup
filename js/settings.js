@@ -21,7 +21,7 @@ function renderSync(){
     <div class="card">
       ${session?`
         <div class="row spread" style="margin-bottom:10px">
-          <span><b>${session.user.email||'Signed in'}</b>
+          <span><b class="selectable">${session.user.email||'Signed in'}</b>
             <div class="note" style="margin:2px 0 0">Devices sync on open and on return, day by day.</div>
         <div class="note" style="margin:6px 0 0">Your full history — ${fmt(SEED.totals.sessions)} days · ${SEED.totals.km} km.</div></span>
         </div>

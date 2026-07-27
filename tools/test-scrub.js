@@ -195,4 +195,34 @@ ok("the legend wraps instead of scrolling", /flex-wrap:wrap/.test(lg) && !/overf
 ok("the value column has a reserved width (no jitter while scrubbing)",
    /\.legend1 span b\{[^}]*min-width/.test(cssSrc109.replace(/\n/g, "")));
 
+// ---- v3.3.110: selection is off by default, restored deliberately --------
+// The scrubber's own failure mode: iOS pops Copy/Look Up/Translate over the
+// chart mid-drag, because a long press is BOTH "scrub" and "select text"
+// and iOS picks selection.
+const css110 = fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\n/g, "");
+const appRule = (css110.match(/#app\{[^}]*user-select[^}]*\}/) || [""])[0];
+ok("the app shell disables text selection by default",
+   /user-select:none/.test(appRule) && /-webkit-user-select:none/.test(appRule), appRule);
+ok("...and suppresses the long-press callout that blocks the gesture",
+   /-webkit-touch-callout:none/.test(appRule));
+
+// the exceptions must exist, or typing and the clipboard fallback break
+const okRule = (css110.match(/input,textarea,select,\.selectable\{[^}]*\}/) || [""])[0];
+ok("inputs, textareas and .selectable keep selection",
+   /user-select:text/.test(okRule), okRule);
+ok("...which matters because code calls .select() programmatically",
+   /\.select\(\)/.test(fs.readFileSync(path.join(dir, "js/app.js"), "utf8")) ||
+   /\.select\(\)/.test(fs.readFileSync(path.join(dir, "js/settings.js"), "utf8")));
+
+// the account email is a real identifier \u2014 it stays copyable
+run(`session={user:{email:'t@example.com'}}; view='sync'; renderSync();`);
+ok("the account email is still selectable",
+   run(`!!document.querySelector('.selectable')`) &&
+   /t@example\.com/.test(run(`document.querySelector('.selectable').textContent`)));
+run(`session=null;`);
+
+// the reactive spot-fixes are gone, subsumed by the base rule
+ok("the per-element spot-fixes are gone (no whack-a-mole left behind)",
+   !/\.settile\{-webkit-user-select:none/.test(css110) && !/\.readyhead\{/.test(css110));
+
 process.exit(fail ? 1 : 0);
