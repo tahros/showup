@@ -1,5 +1,42 @@
 # ShowUp — changelog
 
+## v3.3.104 (2026-07-27) — The set you just logged, where you can see it
+
+Reported from a live session: after ~8 sets the Logged Today grid runs past
+the fold, so a set you just logged lands somewhere off-screen — the save
+flash animates where nobody is looking, and the section reads as
+congestion.
+
+The screen was conflating two different needs. **"Did my set land?"** is
+immediate and belongs at the point of action. **"What have I done today?"**
+is review, and can wait. One long chronological grid served the second
+poorly and the first not at all.
+
+**Confirmation moved to the point of action.** Three code paths log a set —
+tapping a rep tile, the Add set button, and tapping a Suggested chip. Only
+the third one toasted; the other two logged silently. All three now call
+one shared `setToast()`, which also fixes a latent bug none of them
+handled: a bodyweight set read as "0kg × 20" and now reads "BW × 20". A
+toast is visible wherever you happen to be scrolled, which is exactly what
+the grid stopped being.
+
+**The list leads with the newest and stays short.** Most recent six,
+newest first, with `Show all N` when there are more. Two rows tall no
+matter how long the session runs — a shorter section, not a scroll aid for
+a long one, consistent with how the jump chips were handled in v3.3.89.
+
+Reversing matches what this same screen already does one card above: the
+Suggested row puts your latest set first ("one tap duplicates it"). The
+live surface is recency-ordered; chronological review is History's job.
+
+Two things that could have broken quietly and are asserted instead: the
+reversal is display-only, so `data-del` still resolves to the true array
+index (the first tile now points at the LAST entry — checked); and the
+fresh-save animation is matched by set IDENTITY rather than by position,
+since the newest set is no longer the last thing rendered.
+
+`test-repweight.js` at 28.
+
 ## v3.3.103 (2026-07-26) — The badge, flush; the number and its unit, one word
 
 Two fixes from a screenshot of the Suggested and Logged Today chips.

@@ -196,7 +196,7 @@ document.addEventListener('click',e=>{
     saveExW(lift.ex,lift.weight);
     t.w.push({part:lift.part,ex:lift.ex,w:lift.weight,reps:[+rb.dataset.rep],at:Date.now()});
     reopen(lift.ex,lift.part);
-    lift.justSaved=true;save();renderHeader();return renderLift();
+    lift.justSaved=true;save();renderHeader();setToast(lift.ex,lift.weight,+rb.dataset.rep);return renderLift();
   }
   if(e.target.closest('#addrep')){
     const r=Math.round(+($('#rc').value||0));
@@ -205,7 +205,7 @@ document.addEventListener('click',e=>{
     saveExW(lift.ex,lift.weight);
     t.w.push({part:lift.part,ex:lift.ex,w:lift.weight,reps:[r],at:Date.now()});
     reopen(lift.ex,lift.part);
-    lift.justSaved=true;save();renderHeader();return renderLift();
+    lift.justSaved=true;save();renderHeader();setToast(lift.ex,lift.weight,r);return renderLift();
   }
   const rs=e.target.closest('[data-rep-w]');
   if(rs){
@@ -214,8 +214,9 @@ document.addEventListener('click',e=>{
     reopen(lift.ex,lift.part);
     lift.weight=w;
     saveExW(lift.ex,w);
-    lift.justSaved=true;save();renderHeader();toast(`${wDisp(w)}${U()} × ${r} logged`);return renderLift();
+    lift.justSaved=true;save();renderHeader();setToast(lift.ex,w,r);return renderLift();
   }
+  if(e.target.closest('#allSets')){ lift.allSets=!lift.allSets; return renderLift(); }
   if(e.target.closest('#addEx')){ lift.adding=true; return renderLift(); }
   if(e.target.closest('#cancelEx')){ lift.adding=false; return renderLift(); }
   const ne=e.target.closest('[data-newequip]');

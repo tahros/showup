@@ -120,4 +120,54 @@ run(`(function(){DB.days={}; day(todayISO).w.push({part:'Chest',ex:'Push Up',w:0
 check("a bodyweight set renders no unit at all (not even an empty <small>)",
       `document.querySelector('.settile').innerHTML.includes('<small>')`, false);
 
+// ---- v3.3.104: the newest set leads, and the list stays short ------------
+// Seed 11 sets so the cap (6) is exercised, newest = 11 reps.
+run(`(function(){DB.days={};
+  for(let i=1;i<=11;i++) day(todayISO).w.push({part:'Chest',ex:'Chest Press',w:16,reps:[i],at:Date.now()+i});
+  SEED=deriveAll(); lift.ex='Chest Press'; lift.part='Chest'; lift.allSets=false;
+  view='lift'; render();})()`);
+check("a long session shows only the recent handful, not all 11",
+      `document.querySelectorAll('.settile').length`, 6);
+check("...and the NEWEST set is the first tile, where it cannot be missed",
+      `document.querySelector('.settile').textContent.includes('11')`, true);
+check("...with the oldest of the visible six last",
+      `[...document.querySelectorAll('.settile')].pop().textContent.includes('6')`, true);
+check("an expand control appears, naming the full count",
+      `document.querySelector('#allSets').textContent`, "Show all 11");
+
+// expanding shows everything, still newest-first
+run(`document.querySelector('#allSets').click();`);
+check("expanding reveals all 11", `document.querySelectorAll('.settile').length`, 11);
+check("...still newest-first", `document.querySelector('.settile').textContent.includes('11')`, true);
+check("...and the control offers the way back", `document.querySelector('#allSets').textContent`, "Show recent only");
+run(`lift.allSets=false; render();`);
+
+// a short session needs no control at all — absence shown by absence
+run(`(function(){DB.days={};
+  for(let i=1;i<=3;i++) day(todayISO).w.push({part:'Chest',ex:'Chest Press',w:16,reps:[i],at:Date.now()+i});
+  SEED=deriveAll(); view='lift'; render();})()`);
+check("a short session shows every set and no expand control",
+      `document.querySelectorAll('.settile').length===3 && !document.querySelector('#allSets')`, true);
+
+// deletion still targets the right set despite the reversed render order
+check("the first tile's data-del points at the LAST array entry (reversal is display-only)",
+      `+document.querySelector('.settile').dataset.del === day(todayISO).w.length-1`, true);
+
+// the save flash follows the set, not a position
+run(`(function(){lift.justSaved=true; render();})()`);
+check("the fresh-save animation lands on the newest tile, now at the front",
+      `document.querySelector('.settile').className.includes('saved')`, true);
+
+// ---- v3.3.104: every log path confirms, at the point of action -----------
+const appSrc104 = fs.readFileSync(path.join(dir, "js/app.js"), "utf8");
+const logPaths = (appSrc104.match(/lift\.justSaved=true;save\(\);renderHeader\(\);/g) || []).length;
+const toasted = (appSrc104.match(/lift\.justSaved=true;save\(\);renderHeader\(\);setToast\(/g) || []).length;
+console.log((logPaths === toasted && toasted >= 3 ? "PASS" : "FAIL"),
+  "every log path calls setToast \u2014", `${toasted}/${logPaths}`);
+if (!(logPaths === toasted && toasted >= 3)) fail++;
+// and it reads correctly for a bodyweight lift
+check("the confirmation says BW for a bodyweight set, not '0kg'",
+      `(function(){let m=''; const o=toast; toast=t=>m=t;
+        setToast('Push Up',0,20); toast=o; return m;})()`, "BW \u00d7 20 logged");
+
 process.exit(fail ? 1 : 0);

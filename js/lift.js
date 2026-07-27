@@ -366,11 +366,24 @@ function renderLift(){
   if(todaySets.length){
     h+=`<div class="zone logged"><div class="zonehead"><span>Logged today · <b class="hi">${todaySets.length}</b> sets ${iBtn('sets','Tap a set to delete it — hold to edit. Undo is one tap away.')}</span></div>`;
   }
+  /* v3.3.104: newest leads, and only the recent handful shows.
+     The complaint: after ~8 sets the grid runs past the fold, so a set you
+     just logged lands somewhere you cannot see — the save flash animates
+     off-screen and the section reads as congestion.
+     Reversing matches what this screen already does one card up: the
+     Suggested row puts your LATEST set first ("one tap duplicates it").
+     The live surface is recency-ordered; chronological review is History's
+     job. Capping keeps the section two rows tall no matter how long the
+     session runs — shorter section, not a scroll aid for a long one. */
+  const CAP=6;
+  const newest=todaySets.length?todaySets[todaySets.length-1]:null;
+  const capped=todaySets.length>CAP&&!lift.allSets;
+  const ordered=(capped?todaySets.slice(-CAP):todaySets).slice().reverse();
   h+=`<div class="sets">`;
-  todaySets.forEach((s,ti)=>{
+  ordered.forEach(s=>{
     const idx=t.w.indexOf(s);
     const isPR=!isRun&&s.reps.length&&s.w>=p.mw;
-    const fresh=lift.justSaved&&ti===todaySets.length-1;
+    const fresh=lift.justSaved&&s===newest;   // identity, not position — the newest moved to the front
     const anim=fresh?(isPR?' savedpr':' saved'):'';
     h+=isRun
       ?`<div class="settile${anim}${lift.editSet===idx?' editing':''}" data-del="${idx}"><span class="w">${dDisp(s.w)}<small>${DU()}</small></span><span class="x">${s.mins||0}'${String(s.secs||0).padStart(2,'0')}"</span></div>`
@@ -389,6 +402,9 @@ function renderLift(){
   lift._animSave=lift.justSaved;
   lift.justSaved=false;
   h+=`</div>`;
+  if(todaySets.length>CAP)
+    h+=`<button class="btn ghost" id="allSets" style="margin:8px 0 0;width:100%">${
+      lift.allSets?'Show recent only':`Show all ${todaySets.length}`}</button>`;
   if(todaySets.length){
     h+=`<div class="row" style="gap:8px;margin-top:10px">
           <button class="btn ghost" id="clearToday" style="margin:0;flex:1;white-space:nowrap;padding:12px 6px">Clear today's ${todaySets.length}</button>

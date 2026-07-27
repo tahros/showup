@@ -238,6 +238,13 @@ const EQUIP_LABEL={barbell:'Barbell (bar + plates)',smith:'Smith machine',dumbbe
 
 /* ---------- helpers ---------- */
 const $=s=>document.querySelector(s);
+/* v3.3.104: every log path says the same sentence. Confirmation belongs at
+   the point of ACTION — a toast is visible wherever you are scrolled, which
+   the Logged Today grid is not once a session runs long. One of the three
+   log paths already toasted; the other two didn't, and none handled BW. */
+function setToast(ex,w,r){
+  toast(`${isBody(ex)&&w<=0.01?'BW':wDisp(w)+U()} × ${r} logged`);
+}
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2000);}
 function fmt(n){return n.toLocaleString('en-US');}
 function pretty(d){const [y,m,dd]=d.split('-').map(Number);return new Date(y,m-1,dd).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});}
