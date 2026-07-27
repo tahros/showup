@@ -257,6 +257,20 @@ check("...the caption names what the number counts",
 check("the day figure carries a one-step count-up range",
       `(function(){const e=document.querySelector('.rhythm .big.dayn');
         return (+e.dataset.to - +e.dataset.from)===1;})()`, true);
+// v3.3.107: pin the HIERARCHY, not a magic number \u2014 the day figure must
+// outrank the secondary percentage and stay under the 38px .big used by the
+// gap variant, which owns the card alone when it appears.
+const cssSrc107 = fs.readFileSync(path.join(dir, "css/app.css"), "utf8");
+const px = (sel) => {
+  const m = cssSrc107.match(new RegExp(sel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\{[^}]*font-size:(\\d+)px"));
+  return m ? +m[1] : null;
+};
+const dayPx = px(".rhythm .big.dayn"), bigPx = px(".rhythm .big"), pctPx = px(".rgrid .rpct");
+console.log((dayPx > pctPx && dayPx < bigPx ? "PASS" : "FAIL"),
+  "the day figure outranks the percentage and sits under the full-card .big",
+  `\u2192 ${pctPx} < ${dayPx} < ${bigPx}`);
+if (!(dayPx > pctPx && dayPx < bigPx)) fail++;
+
 // the year % survives as the secondary stat \u2014 this replaced the LABEL, not it
 check("the year percentage is still there as the secondary figure",
       `/of \\d{4}/.test(document.querySelector('.rhythm').textContent)`, true);

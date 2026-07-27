@@ -1,5 +1,19 @@
 # ShowUp — changelog
 
+## v3.3.107 (2026-07-27) — The day figure, one size down
+
+38px borrowed the Stats hero's size without its context: that card owns a
+full row, while this one shares with the 21-day strip and a secondary
+percentage. 28px keeps it clearly primary without crowding.
+
+The test pins the HIERARCHY rather than the number — the day figure must
+outrank the secondary percentage and stay under the 38px `.big` used by the
+gap variant (which does own the card alone when it appears). Currently
+20 < 28 < 38; a future resize can shift the values but cannot silently
+invert the order.
+
+`test-todayhero.js` at 54.
+
 ## v3.3.106 (2026-07-27) — Training should not delete the number it moved
 
 The maker on the Rhythm card once a session is done: boring, and a moving
