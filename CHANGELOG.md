@@ -1,5 +1,40 @@
 # ShowUp — changelog
 
+## v3.3.105 (2026-07-27) — A specificity coin-flip, not a decision
+
+From a screenshot: a large empty gap between the header and the "Rhythm"
+heading, once today's session is over.
+
+`h2.quiet` sets `margin-top:24px`. `h2:first-child` sets `margin-top:4px`.
+Element+class and element+pseudo-class carry IDENTICAL specificity, so when
+both rules match the same element — which Rhythm's heading does, once a
+session is sealed and no exercise is live — the winner is whichever rule
+was written LATER in the file. `.quiet` happens to appear after
+`:first-child`, so it won by coincidence of where it was typed, not by any
+design intent. The 24px gap was never a decision; it was a coin-flip that
+came up wrong.
+
+Fixed with `h2.quiet:first-child{margin-top:4px}` — a targeted selector
+with genuinely HIGHER specificity than either rule alone, so the outcome no
+longer depends on source order and can't flip again if the stylesheet gets
+reordered later.
+
+**A build note on the test itself.** `renderToday()` has two branches with
+different opening markup: before anything's logged, it opens with
+`helloCard()+rhythmCard()` and never renders a "Rhythm" heading at all;
+after a session is logged AND sealed (`doneAll`), `todayHeroHTML()` is the
+only path that ever renders it, and only then is it genuinely `#view`'s
+first child. The first two fixture attempts landed in the wrong branch
+entirely — once with no history (hit the cold-start empty state), once
+with history but nothing logged today (hit the pre-gym branch), once with
+today logged but not sealed (hit the LIVE partDigest branch, not Rhythm) —
+each testing a heading that particular branch doesn't render. The working
+fixture seeds past days, logs and SEALS today's session (`doneAll=true`,
+matching `isLive()`'s exact condition), which is what the screenshot's
+state actually was.
+
+`test-todayhero.js` at 40.
+
 ## v3.3.104 (2026-07-27) — The set you just logged, where you can see it
 
 Reported from a live session: after ~8 sets the Logged Today grid runs past

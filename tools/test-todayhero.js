@@ -198,4 +198,40 @@ console.log((/align-items:baseline/.test(gridRule) ? "PASS" : "FAIL"),
   "...aligned on the BASELINE, not the top \u2192", gridRule);
 if (!/align-items:baseline/.test(gridRule)) fail++;
 
+// ---- v3.3.105: the Rhythm heading sits close, not with the .quiet 24px ----
+// jsdom doesn't run layout/cascade resolution through getComputedStyle for
+// custom stylesheets reliably across environments, so this checks the CSS
+// SOURCE directly for the specificity fix rather than a computed pixel
+// value \u2014 the actual bug was two equal-specificity rules racing on
+// source order, and that's what has to stay fixed.
+const cssSrc105 = fs.readFileSync(path.join(dir, "css/app.css"), "utf8");
+console.log((/h2\.quiet:first-child\{margin-top:4px\}/.test(cssSrc105) ? "PASS" : "FAIL"),
+  "a genuinely higher-specificity rule pins h2.quiet:first-child to 4px");
+if (!/h2\.quiet:first-child\{margin-top:4px\}/.test(cssSrc105)) fail++;
+
+// and confirm this is actually reachable: when no session is live, Rhythm's
+// heading IS #view's first child, so the new rule is the one that applies.
+/* renderToday() has TWO branches with entirely different opening markup:
+   !logged (nothing trained yet today) opens with helloCard()+rhythmCard(),
+   no "Rhythm" heading at all; logged (today has a set) is the ONLY branch
+   that calls todayHeroHTML() \u2014 and only there is "Rhythm" a genuine h2.
+   The maker's screenshot showed 20 sets already logged, i.e. the SECOND
+   branch \u2014 so the fixture must land there too, not merely have past
+   history. First attempt left today empty and landed in the wrong branch
+   entirely, testing a heading that branch never renders. */
+run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
+  for(const off of [2,4,6]){ const d=new Date(t); d.setDate(d.getDate()-off);
+    DB.days[d.toLocaleDateString('en-CA')]={w:[{part:'Chest',ex:'Chest Press',w:40,reps:[10]}],upd:1}; }
+  day(todayISO).w.push({part:'Shoulder',ex:'Dumbbell Press',w:20,reps:[15],at:Date.now()});
+  day(todayISO).doneAll=true;   // sealed, matching the screenshot's post-session state \u2014
+                                 // isLive() is length>0 && !doneAll, so this is what actually
+                                 // takes the branch out of "Shoulder \u00b7 live" and into Rhythm
+  lift.part=null; lift.ex=null;
+  SEED=deriveAll(); DB.settings.msFloor=msLiveTotal(); DB.settings.msAck=msLiveTotal();
+  view='today'; render();})()`);
+check("with no live session, the Rhythm heading is #view's first child",
+      `document.querySelector('#view').firstElementChild.textContent`, "Rhythm");
+check("...and it carries the quiet class this fix targets",
+      `document.querySelector('#view').firstElementChild.classList.contains('quiet')`, true);
+
 process.exit(fail ? 1 : 0);
