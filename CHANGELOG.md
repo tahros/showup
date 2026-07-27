@@ -38,6 +38,13 @@ purpose is catching a section that silently gains an icon opening nothing.
 
 Harness at 25 suites.
 
+**Deploy note — fifth Pages build-drop, and the cause is now fixed.**
+`f55bf9a` landed while the previous build was in flight and no build was
+enqueued for it. All five drops (v3.3.96, .100, .106, .113, .114) share that
+one cause, and each was patched with a throwaway follow-up commit. `deploy.py`
+now WAITS for any in-flight build to finish before pushing — removing the
+cause rather than repeating the remedy.
+
 ## v3.3.113 (2026-07-27) — Two chart shapes, not four
 
 Part three of the Stats review, closing it.
