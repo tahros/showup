@@ -228,7 +228,7 @@ function renderStats(){
   // heatmap: 26 weeks, weekday rail on the left, months across the top
   const detail=allDays();
   cut('cons');
-  h+=`<h2>Last 6 months${hActs('heat',"Every day of the last 26 weeks — one column per week, filled squares are days you trained.")}</h2><div class="card"><div class="heatwrap">
+  h+=`<h2>Last 6 months${hActs('heat',"Every day of the last 26 weeks — one column per week, filled squares are days you trained.",'heatShare')}</h2><div class="card"><div class="heatwrap">
         <div class="wdrail">${['S','M','T','W','T','F','S'].map(d=>`<span>${d}</span>`).join('')}</div>
         <div class="heatcols"><div class="heatscroll">`;
   const start2=new Date(todayISO+'T00:00');
@@ -257,7 +257,7 @@ function renderStats(){
   const daysInMonth=new Date(+thisYear,+monthKey.slice(5),0).getDate();
   const trainedThis=monthCounts[monthKey]||0;
   cut('last6');
-  h+=`<h2>Days by month${hActs('dbm',"Days trained each month — the dashed line marks 20. This month is still filling.")}</h2><div class="card">
+  h+=`<h2>Days by month${hActs('dbm',"Days trained each month — the dashed line marks 20. This month is still filling.",'dbmShare')}</h2><div class="card">
       <div class="zoom" data-zoom><div class="zoomhint">pinch to zoom</div>
       <svg viewBox="0 0 330 118" style="width:100%;height:auto">
       <line x1="8" y1="${94-20/31*80}" x2="316" y2="${94-20/31*80}" stroke="var(--line)" stroke-width="0.6" stroke-dasharray="2 3"></line>
@@ -294,13 +294,8 @@ function renderStats(){
   }
 
   // which weekdays you show up — last 365 days, on an absolute 0–100% scale
-  const wdC=[0,0,0,0,0,0,0], wdT=[0,0,0,0,0,0,0];
-  for(let i=0;i<365;i++){
-    const c=new Date(todayISO+'T00:00'); c.setDate(c.getDate()-i);
-    const w=c.getDay(); wdT[w]++;
-    if(dates.has(c.toLocaleDateString('en-CA'))) wdC[w]++;
-  }
-  const wdPct=wdC.map((n,i)=>n/wdT[i]);
+  const _wd=wdDist();                       // v3.3.114: one source, svg + card
+  const wdPct=_wd.pct;
   const wdBest=Math.max(...wdPct);
   /* v3.3.46: the accent marks TODAY's weekday — the row you're standing in —
      not the statistically strongest one. The strongest still gets a quiet
@@ -310,7 +305,7 @@ function renderStats(){
   const wdToday=new Date(todayISO+'T00:00').getDay();
   const bestI=wdPct.indexOf(wdBest);
   cut('dbm');
-  h+=`<h2>Weekdays${hActs('wd',"Which weekdays you actually show up — today is in accent, and the caret marks your strongest.")}</h2><div class="card">
+  h+=`<h2>Weekdays${hActs('wd',"Which weekdays you actually show up — today is in accent, and the caret marks your strongest.",'wdShare')}</h2><div class="card">
       <svg viewBox="0 0 330 118" style="width:100%;height:auto">`;   // v3.3.113: 140→118
   for(const g of [0,25,50,75,100]){
     const y=94-g/100*81;      // v3.3.113: baseline 112→94, span 96→81

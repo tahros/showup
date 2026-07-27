@@ -673,7 +673,7 @@ function runStatsHTML(){
   const wkMax=Math.max(...wks.map(w=>wkBy[w]||0),1);
   const wkAvg=wks.filter(w=>w!==thisWk).reduce((a,w)=>a+(wkBy[w]||0),0)/Math.max(1,wks.length-1);
   cut('goal');
-  h+=`<h2>Every week${hActs('eweek',"Distance per week — the dashed line is your average. The last bar is still filling.")}</h2><div class="card">
+  h+=`<h2>Every week${hActs('eweek',"Distance per week — the dashed line is your average. The last bar is still filling.",'weekShare')}</h2><div class="card">
       <div class="zoom" data-zoom><svg viewBox="0 0 330 118" style="width:100%;height:auto">`;
   if(wkAvg){
     const ay=94-wkAvg/wkMax*80;
@@ -752,7 +752,7 @@ function runStatsHTML(){
     const span=Math.max(hi-lo,30);                     // never flatten a near-identical year
     const base=lo-span*0.25, top=hi+span*0.25;
     cut('dist');
-    h+=`<h2>Pace${hActs('pace',`Minutes per ${DU()}, timed runs only — faster months sit lower. Fastest in red, this month in blue.`)}</h2><div class="card">
+    h+=`<h2>Pace${hActs('pace',`Minutes per ${DU()}, timed runs only — faster months sit lower. Fastest in red, this month in blue.`,'paceShare')}</h2><div class="card">
         <div class="zoom" data-zoom><svg viewBox="0 0 330 118" style="width:100%;height:auto">`;
     let poly='';
     paces.forEach(([m,p],i)=>{

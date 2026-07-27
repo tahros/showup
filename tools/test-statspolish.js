@@ -280,10 +280,15 @@ console.log((dataHeads.every(r => r.lastIsActs) ? "PASS" : "FAIL"),
 if (!dataHeads.every(r => r.lastIsActs)) fail++;
 
 // the download icon appears ONLY where a card exists \u2014 absence is deliberate
+/* v3.3.114: five more cards were built, so the expected set grows from
+   three to eight. Kept EXPLICIT rather than loosened to "some sections have
+   icons" \u2014 the point of this assertion is that a section cannot silently
+   gain an icon that opens nothing, or lose one that works. */
 const withDl = hd.filter(r => r.d).map(r => r.t).sort().join(",");
-console.log((withDl === "Consistency,Distance,Every month" ? "PASS" : "FAIL"),
-  "the download icon appears only where a share card exists", "\u2192", withDl);
-if (withDl !== "Consistency,Distance,Every month") fail++;
+const EXPECT_DL = "Consistency,Days by month,Distance,Every month,Every week,Last 6 months,Pace,Weekdays";
+console.log((withDl === EXPECT_DL ? "PASS" : "FAIL"),
+  "the download icon appears on exactly the sections with a card", "\u2192", withDl);
+if (withDl !== EXPECT_DL) fail++;
 
 // the in-card buttons are gone, not duplicated
 check("no 'Share as image' button survives in any card body",

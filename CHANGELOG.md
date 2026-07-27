@@ -1,5 +1,43 @@
 # ShowUp — changelog
 
+## v3.3.114 (2026-07-27) — Five more cards, two more painters
+
+Share cards for Days by month, Last 6 months, Weekdays, Pace and Every week.
+Eight of the fifteen Stats sections are shareable now, up from three.
+
+**Two painters, not five.** The four older cards each hand-drew their own
+frame; these share `cardFrame()` for the headline/kicker/footer/URL, then
+`drawSeries()` (kind `bars` or `line`) covers four of them and `drawHeat()`
+covers the calendar. Five cards, ~130 lines, because the differences between
+them are data and wording, not drawing.
+
+**The data moved out of the render functions first.** `wdDist()`,
+`weekSeries()`, `paceSeries()` and `heatSeries()` are pure functions in
+util.js now, and the on-screen SVG reads the same ones — the weekday chart's
+inline 365-day loop was deleted in favour of `wdDist()`. Adding a card by
+duplicating the arithmetic is exactly the drift `resealDay()`, `foldSets()`,
+`gridData()`, `elapsedDays()` and `runYearCurves()` were each extracted to
+stop, and it would have been the easy way to do this.
+
+**Two headlines were wrong on the first pass and only visible in the test
+output.** Every week led with "0 km this week" — honest, and useless on a
+Monday morning; it leads with the weekly average now, which is stable and is
+already the chart's reference line. Weekdays led with "S", which does not
+say whether that is Sunday or Saturday; it spells the day out.
+
+New suite `test-cards.js`, 27 assertions. It drives the real painters
+through a recording 2D context and counts what actually reaches the canvas,
+because "the button is wired" and "the card draws something" are different
+claims — every card is checked for real geometry, its own kicker, and the
+URL footer. A final assertion walks every `.shareb` in the DOM and requires
+a matching router handler, so an icon can never open nothing.
+
+The v3.3.112 assertion pinning which sections carry the icon was updated
+from three names to eight — kept explicit rather than loosened, since its
+purpose is catching a section that silently gains an icon opening nothing.
+
+Harness at 25 suites.
+
 ## v3.3.113 (2026-07-27) — Two chart shapes, not four
 
 Part three of the Stats review, closing it.

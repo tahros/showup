@@ -272,6 +272,133 @@ function drawMilestone(n){
   return cv;
 }
 function makeMilestoneImage(n){ return showCard(()=>drawMilestone(n),'day-'+n); }
+function makeDbmImage(){
+  const ms=Object.entries(gridData().mDays).sort().slice(-12);
+  return showCard(()=>drawSeries({kind:'bars',
+    big:String(ms.length?ms[ms.length-1][1]:0), sub:'days this month',
+    kicker:'DAYS BY MONTH', footer:'days trained each month',
+    vals:ms.map(m=>m[1]), hi:ms.length-1, ref:20, floor:20,
+    labels:ms.map(m=>m[0].slice(5))}),'days-by-month');
+}
+function makeWdImage(){
+  const d=wdDist(), N=['S','M','T','W','T','F','S'];
+  const FULL=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  return showCard(()=>drawSeries({kind:'bars',
+    big:FULL[d.best], sub:'is your strongest day',   // 'S' would not say which one
+    kicker:'WEEKDAYS', footer:'% of each weekday trained, last 365 days',
+    vals:d.pct, hi:d.best, labels:N}),'weekdays');
+}
+function makeWeekImage(){
+  const w=weekSeries();
+  return showCard(()=>drawSeries({kind:'bars',
+    big:String(Math.round(w.avg||0)), sub:DU()+' in a typical week',
+    kicker:'EVERY WEEK', footer:'distance per week \u00b7 dashed line is your average',
+    vals:w.wks.map(k=>w.by[k]||0), hi:w.wks.length-1, ref:w.avg,
+    labels:w.wks.map(k=>k.slice(5).replace('-','/'))}),'every-week');
+}
+function makePaceImage(){
+  const ps=paceSeries();
+  const fmtP=s=>Math.floor(s/60)+"'"+String(Math.round(s%60)).padStart(2,'0')+'"';
+  const best=ps.reduce((b,p,i)=>(p[1]&&(!ps[b]||!ps[b][1]||p[1]<ps[b][1]))?i:b,0);
+  return showCard(()=>drawSeries({kind:'line',
+    big:ps.length?fmtP(ps[ps.length-1][1]):'\u2014', sub:'per '+DU()+' this month',
+    kicker:'PACE', footer:'minutes per '+DU()+', timed runs only',
+    vals:ps.map(p=>p[1]), hi:best,
+    labels:ps.map(p=>p[0].slice(5))}),'pace');
+}
+function makeHeatImage(){
+  const cols=heatSeries();
+  const n=cols.reduce((a,c)=>a+c.filter(d=>d.on).length,0);
+  return showCard(()=>drawHeat({cols,
+    big:String(n), sub:'days in 26 weeks',
+    kicker:'LAST 6 MONTHS', footer:'one column per week'}),'last-6-months');
+}
+/* v3.3.114: one frame, one plot, five cards. The four older cards each
+   hand-drew their own frame; these share it, because they differ only in
+   data and wording. kind:'bars' | 'line' | 'heat'. */
+function cardFrame(x,S,o){
+  const V=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim()||'#888';
+  const SANS='"IBM Plex Sans",system-ui,sans-serif', MONO='"IBM Plex Mono",ui-monospace,monospace';
+  const P=64;
+  x.fillStyle=V('--ground'); x.fillRect(0,0,S,S);
+  x.textAlign='left'; x.textBaseline='alphabetic';
+  x.fillStyle=V('--chalk'); x.font='700 96px '+SANS;
+  x.fillText(o.big,P,P+96);
+  const tw=(x.measureText(o.big)||{width:0}).width||0;
+  x.fillStyle=V('--muted'); x.font='500 36px '+MONO;
+  x.fillText(o.sub||'',P+tw+18,P+96);
+  x.font='600 30px '+MONO; x.fillStyle=V('--muted');
+  x.fillText(o.kicker,P,P+152);
+  x.font='500 30px '+MONO; x.fillStyle=V('--muted');
+  x.fillText(o.footer||'',P,S-116);
+  x.fillText('tahros.github.io/showup',P,S-64);
+  return {V,SANS,MONO,P,L:P,R:S-P,T:250,B:S-200};
+}
+function drawSeries(o){
+  const S=1080, cv=document.createElement('canvas'); cv.width=S; cv.height=S;
+  const x=cv.getContext('2d');
+  const F=cardFrame(x,S,o), V=F.V, MONO=F.MONO;
+  const L=F.L, R=F.R, T=F.T, B=F.B, W=R-L, H=B-T;
+  const vals=o.vals, n=vals.length||1;
+  const max=Math.max(...vals.filter(v=>typeof v==='number'&&isFinite(v)), o.floor||0, 1e-9);
+  const Y=v=>B-(v/max)*H;
+  // reference line
+  if(o.ref!=null&&isFinite(o.ref)&&o.ref>0){
+    x.strokeStyle=V('--line'); x.lineWidth=2; x.setLineDash([6,8]);
+    x.beginPath(); x.moveTo(L,Y(o.ref)); x.lineTo(R,Y(o.ref)); x.stroke(); x.setLineDash([]);
+  }
+  if(o.kind==='line'){
+    x.strokeStyle=V('--accent'); x.lineWidth=6; x.lineJoin='round'; x.lineCap='round';
+    x.beginPath();
+    vals.forEach((v,i)=>{ const px=L+(n===1?W/2:(i/(n-1))*W); const py=Y(v);
+      i?x.lineTo(px,py):x.moveTo(px,py); });
+    x.stroke();
+    vals.forEach((v,i)=>{ const px=L+(n===1?W/2:(i/(n-1))*W);
+      x.fillStyle=(i===o.hi)?V('--record'):V('--accent');
+      x.beginPath(); x.arc(px,Y(v),9,0,7); x.fill(); });
+  }else{
+    const gap=W/n, bw=Math.min(gap*0.62,70);
+    vals.forEach((v,i)=>{
+      const px=L+i*gap+(gap-bw)/2, py=Y(v), hh=Math.max(4,B-py);
+      x.fillStyle=(i===o.hi)?V('--accent'):V('--accent-dim');
+      x.globalAlpha=(i===o.hi)?1:0.65;
+      const r=Math.min(10,bw/2);
+      x.beginPath(); x.moveTo(px+r,py); x.arcTo(px+bw,py,px+bw,py+hh,r);
+      x.arcTo(px+bw,py+hh,px,py+hh,r); x.lineTo(px,py+hh);
+      x.arcTo(px,py+hh,px,py,r); x.arcTo(px,py,px+bw,py,r); x.fill();
+      x.globalAlpha=1;
+    });
+  }
+  // x labels, thinned so they never collide
+  x.textAlign='center'; x.fillStyle=V('--muted'); x.font='500 26px '+MONO;
+  const step=Math.ceil(n/12);
+  (o.labels||[]).forEach((t,i)=>{
+    if(i%step && i!==n-1) return;
+    const px=o.kind==='line' ? L+(n===1?W/2:(i/(n-1))*W) : L+i*(W/n)+(W/n)/2;
+    x.fillText(t,px,B+46);
+  });
+  x.textAlign='left';
+  return cv;
+}
+function drawHeat(o){
+  const S=1080, cv=document.createElement('canvas'); cv.width=S; cv.height=S;
+  const x=cv.getContext('2d');
+  const F=cardFrame(x,S,o), V=F.V;
+  const cols=o.cols, L=F.L, T=F.T+40;
+  const cw=Math.floor((S-F.P*2)/cols.length), cell=Math.min(cw-4,28), gap=4;
+  cols.forEach((col,ci)=>{
+    col.forEach((d,ri)=>{
+      const px=L+ci*(cell+gap), py=T+ri*(cell+gap);
+      if(d.fut){ x.strokeStyle=V('--line'); x.lineWidth=2; x.strokeRect(px,py,cell,cell); return; }
+      x.fillStyle=d.on?V('--accent'):V('--surface2');
+      x.beginPath(); const r=6;
+      x.moveTo(px+r,py); x.arcTo(px+cell,py,px+cell,py+cell,r);
+      x.arcTo(px+cell,py+cell,px,py+cell,r); x.arcTo(px,py+cell,px,py,r);
+      x.arcTo(px,py,px+cell,py,r); x.fill();
+    });
+  });
+  return cv;
+}
 async function showCard(drawFn,label){
   try{
     if(document.fonts&&document.fonts.ready) await document.fonts.ready;
@@ -302,6 +429,11 @@ document.addEventListener('click',e=>{
   if(hit('gridShare')){ makeGridImage(); return; }
   if(hit('yoyShare')){ makeYoyImage(); return; }
   if(hit('runShare')){ makeRunYoyImage(); return; }
+  if(hit('dbmShare')){ makeDbmImage(); return; }
+  if(hit('wdShare')){ makeWdImage(); return; }
+  if(hit('weekShare')){ makeWeekImage(); return; }
+  if(hit('paceShare')){ makePaceImage(); return; }
+  if(hit('heatShare')){ makeHeatImage(); return; }
   if(hit('repClose')){ repOvEl().style.display='none'; return; }
   if(hit('repDo')&&_repCv){
     const name='showup-'+String(_repCv.label).toLowerCase().replace(/[^a-z0-9]+/g,'-')+'.png';

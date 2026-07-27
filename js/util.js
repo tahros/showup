@@ -675,6 +675,51 @@ function msLine(n){
            300:'Three hundred days. Quietly relentless.',
            500:'Five hundred days. Half the mountain.'})[n]||fmt(n)+' days of showing up.';
 }
+/* v3.3.114: each chart's data becomes a function so the on-screen SVG and
+   the share card read the SAME numbers. Previously these were computed
+   inline inside the render functions, which meant a card could only be
+   added by duplicating the arithmetic — the drift this codebase keeps
+   paying down (resealDay, foldSets, gridData, elapsedDays, runYearCurves). */
+function wdDist(){
+  const dates=workoutDates(), c=[0,0,0,0,0,0,0], t=[0,0,0,0,0,0,0];
+  for(let i=0;i<365;i++){
+    const d=new Date(todayISO+'T00:00'); d.setDate(d.getDate()-i);
+    const w=d.getDay(); t[w]++;
+    if(dates.has(d.toLocaleDateString('en-CA'))) c[w]++;
+  }
+  const pct=c.map((n,i)=>t[i]?n/t[i]:0);
+  return {pct, best:pct.indexOf(Math.max(...pct)), today:new Date(todayISO+'T00:00').getDay()};
+}
+function weekSeries(){
+  const days=runDays(), by={};
+  for(const r of days) by[weekOf(r.d)]=(by[weekOf(r.d)]||0)+toD(r.km);
+  const thisWk=weekOf(todayISO);
+  const wks=Object.keys(by).sort().slice(-16);
+  if(!wks.includes(thisWk)) wks.push(thisWk);
+  const avg=wks.filter(w=>w!==thisWk).reduce((a,w)=>a+(by[w]||0),0)/Math.max(1,wks.length-1);
+  return {wks, by, avg, thisWk};
+}
+function paceSeries(){
+  const days=runDays(), pm={};
+  for(const r of days){ if(r.timed<=0) continue;
+    const k=r.d.slice(0,7); const e=pm[k]||(pm[k]={sec:0,d:0}); e.sec+=r.sec; e.d+=toD(r.timed); }
+  return Object.entries(pm).sort().slice(-12).map(([k,v])=>[k, v.d? v.sec/v.d : 0]);
+}
+function heatSeries(){
+  const dates=workoutDates(), out=[];
+  const end=new Date(todayISO+'T00:00');
+  end.setDate(end.getDate()-end.getDay()+6);          // through the current week's Saturday
+  for(let w=25;w>=0;w--){
+    const col=[];
+    for(let d=0;d<7;d++){
+      const c=new Date(end); c.setDate(c.getDate()-(w*7)+(d-6));
+      const iso=c.toLocaleDateString('en-CA');
+      col.push({iso, on:dates.has(iso), fut:iso>todayISO});
+    }
+    out.push(col);
+  }
+  return out;
+}
 function comebacks(){
   const arr=[...workoutDates()].sort();
   let n=0, longest=0;
