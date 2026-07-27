@@ -48,7 +48,6 @@
                    t.closest('.heat')||t.closest('.heatcols')||   // the rail scrolls too
                    t.closest('input')||t.closest('.settile')||
                    t.closest('.ychips')||      // v3.3.39: History's year strip scrolls sideways
-                   t.closest('.legend1')||     // v3.3.75: the year legend scrolls sideways too
                    t.closest('.compscroll');   // sideways-scrolling chart owns its axis
   addEventListener('touchstart',e=>{
     if(e.touches.length!==1||view==='sync') return;

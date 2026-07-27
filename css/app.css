@@ -730,11 +730,17 @@
   @media (prefers-reduced-motion:reduce){.beacon,.heat i.today,.strip i.now{animation:none}}
   .zoomhint{position:absolute;top:6px;right:8px;font-family:var(--mono);font-size:9px;
     color:var(--muted);pointer-events:none;opacity:.75}
-  .legend1{display:flex;gap:6px;margin-top:10px;overflow-x:auto;padding-bottom:2px}
+  /* v3.3.109: WRAPS instead of scrolling — a horizontal scroller silently
+     hid years (the current one worst of all, since it sorts last), which is
+     unusable when the legend doubles as the scrub readout. Sits above the
+     chart now, so a scrubbing hand never covers it. */
+  .legend1{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 8px;padding-bottom:0}
   .legend1 span{font-family:var(--mono);font-size:10px;color:var(--muted);display:flex;align-items:center;
     gap:4px;white-space:nowrap;flex:0 0 auto}
   .legend1 span.cur{color:var(--chalk)}
-  .legend1 span b{font-weight:700}
+  /* the value column holds its width so a live scrub doesn't make the whole
+     row twitch as 100% becomes 45% */
+  .legend1 span b{font-weight:700;min-width:4ch;text-align:right;display:inline-block}
   .legend1 i{width:10px;height:3px;border-radius:2px;display:inline-block}
   .heatwrap{display:flex;gap:6px}
   .wdrail{display:flex;flex-direction:column;gap:3px;padding-top:14px;flex:0 0 12px}

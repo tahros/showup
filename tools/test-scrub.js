@@ -166,4 +166,33 @@ ok("charts without data-scrub get no scrub layer",
         .every(s=>!s.querySelector('.scrubg'))`),
    run(`[...document.querySelectorAll('[data-zoom] svg')].filter(s=>!s.hasAttribute('data-scrub')).length`) + " opted out");
 
+// ---- v3.3.109: the readout sits above the chart, and shows EVERY year ----
+// Both reported problems: the legend sat under the scrubbing hand, and it
+// scrolled, so years (the current one worst of all \u2014 it sorts last) were
+// simply off-screen.
+ok("the legend precedes the chart in the DOM",
+   run(`(function(){const card=document.querySelector('.legend1').parentElement;
+     const kids=[...card.children];
+     return kids.indexOf(card.querySelector('.legend1')) < kids.indexOf(card.querySelector('[data-zoom]'));})()`),
+   "legend before chart");
+
+// every year with a curve must have a legend entry \u2014 none may be hidden
+ok("every plotted year has a legend entry (none scrolled out of existence)",
+   run(`(function(){
+     const plotted=[...document.querySelectorAll('[data-scrub] polyline[data-yr]')].map(p=>p.getAttribute('data-yr')).sort().join(',');
+     const listed=[...document.querySelectorAll('.legend1 [data-yr]')].map(s=>s.getAttribute('data-yr')).sort().join(',');
+     return plotted===listed;})()`),
+   run(`[...document.querySelectorAll('.legend1 [data-yr]')].map(s=>s.getAttribute('data-yr')).join(',')`));
+
+ok("...including the CURRENT year, which sorts last and scrolled off before",
+   run(`!!document.querySelector('.legend1 [data-yr="'+thisYear+'"]')`));
+
+// and it can no longer scroll anything out of view
+const cssSrc109 = fs.readFileSync(path.join(dir, "css/app.css"), "utf8");
+const lg = (cssSrc109.match(/\.legend1\{[^}]*\}/) || [""])[0];
+ok("the legend wraps instead of scrolling", /flex-wrap:wrap/.test(lg) && !/overflow-x/.test(lg), lg);
+// values hold their column so a live scrub doesn't make the row twitch
+ok("the value column has a reserved width (no jitter while scrubbing)",
+   /\.legend1 span b\{[^}]*min-width/.test(cssSrc109.replace(/\n/g, "")));
+
 process.exit(fail ? 1 : 0);

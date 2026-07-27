@@ -1,5 +1,40 @@
 # ShowUp — changelog
 
+## v3.3.109 (2026-07-27) — The readout moves above the hand
+
+Two reports from using the new scrubber, one root cause: the legend was
+doing two jobs — static reference and live readout — while positioned and
+sized for only the first.
+
+**It sat below the chart**, which is exactly where the scrubbing hand is.
+It's above the chart now, so the numbers are in clear sight while a finger
+is on the curve.
+
+**It scrolled sideways, so years were simply absent.** `.legend1` was
+`overflow-x:auto` with unshrinkable chips — a horizontal scroller. The
+current year sorts LAST, so it was the first thing pushed off-screen, which
+is why 2026 was missing. It wraps now: every plotted year is on screen at
+all times, asserted by comparing the set of plotted `polyline[data-yr]`
+against the set of legend entries.
+
+There was already a workaround for this in the codebase, from v3.3.75:
+stats parked the legend scrolled to its right edge, precisely so the
+current year would be visible. It didn't hold. The workaround is removed
+along with its cause — a wrapping legend has no right edge to park at.
+
+The value column reserves its width, so a live scrub doesn't make the whole
+row twitch as 100% becomes 45%.
+
+**Two v3.3.75 assertions were revised, not deleted.** The legend had earned
+two exceptions for being a sideways scroller: a tab-swipe block and the
+scroll-parking above. Both are now unjustified, and the surviving invariant
+is sharper — those exceptions exist for, and only for, things that actually
+scroll sideways. The tests assert the legend wraps, claims no swipe
+exception, needs no parking, AND that `.heatcols`/`.heat`, which genuinely
+do scroll, keep theirs.
+
+`test-scrub.js` at 25, `test-sharecard.js` at 70.
+
 ## v3.3.108 (2026-07-27) — The scrubber
 
 Press and hold a line chart and a thin guide follows your finger, reading

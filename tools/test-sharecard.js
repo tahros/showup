@@ -223,10 +223,25 @@ module.exports = settled.then(() => {
 
     // ---- 8b. the in-app legend behaves on a phone (v3.3.75) --------------
     const utilSrc = fs.readFileSync(path.join(dir, "js/util.js"), "utf8");
-    ok("the legend owns its horizontal gesture (no tab-swipe hijack)",
-       /closest\('\.legend1'\)/.test(utilSrc));
-    ok("stats parks the legend at its right edge so this year is on screen",
-       /'\.heatcols,\.heat,\.legend1'/.test(fs.readFileSync(path.join(dir, "js/stats.js"), "utf8")));
+    /* v3.3.109 revises both v3.3.75 assertions rather than deleting them.
+       The legend used to scroll sideways, which earned it two exceptions: a
+       tab-swipe block and a scroll-park at the right edge so the current
+       year stayed visible. It WRAPS now, so every year is on screen at all
+       times \u2014 the parking had been the workaround for the scroller hiding
+       the current year, which is precisely the bug it failed to prevent.
+       The surviving invariant is that those two exceptions exist for, and
+       only for, things that actually scroll sideways. */
+    const statsSrc75 = fs.readFileSync(path.join(dir, "js/stats.js"), "utf8");
+    const legendCss = (fs.readFileSync(path.join(dir, "css/app.css"), "utf8")
+      .match(/\.legend1\{[^}]*\}/) || [""])[0];
+    ok("the legend wraps rather than scrolling sideways",
+       /flex-wrap:wrap/.test(legendCss) && !/overflow-x:auto/.test(legendCss), legendCss);
+    ok("...so it no longer claims a tab-swipe exception",
+       !/closest\('\.legend1'\)/.test(utilSrc));
+    ok("...and no longer needs scroll-parking to reveal the current year",
+       !/\.heatcols,\.heat,\.legend1/.test(statsSrc75));
+    ok("the things that DO scroll sideways keep their parking",
+       /'\.heatcols,\.heat'/.test(statsSrc75));
     const cssSrc = fs.readFileSync(path.join(dir, "css/app.css"), "utf8");
     ok("legend chips cannot be crushed by flex (flex:0 0 auto on the chip)",
        /\.legend1 \[data-yr\]\{[^}]*flex:0 0 auto/.test(cssSrc));

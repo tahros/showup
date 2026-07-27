@@ -695,6 +695,12 @@ function runStatsHTML(){
   const step=Math.max(10,Math.round(dataMax/4/10)*10);        // 361 -> 90, 180, 270, 360
   const yMax=Math.max(dataMax,step*4);
   h+=`<h2>Year over year ${iBtn('cumkm',`Cumulative ${DU()} by day of year. ${thisYear} is still running.`)}</h2><div class="card">
+      `;
+  // v3.3.109: legend above the chart — it is the scrub readout, and it was
+  // sitting under the scrubbing hand
+  h+=`<div class="legend1">`;
+  for(const y of years) h+=`<span class="${y===thisYear?'cur':''}" data-yr="${y}" role="button"><i style="background:${YEAR_COLORS[y]||'var(--muted)'}"></i>${y} · <b>${Math.round(yTot[y])}</b></span>`;
+  h+=`</div>
       <div class="zoom" data-zoom><div class="zoomhint">pinch / scroll to zoom · double-tap to reset</div>
       <svg viewBox="0 0 340 170" style="width:100%;height:auto"
         data-scrub="dist" data-sx0="30" data-sxw="270" data-sy0="140" data-syh="120" data-smax="${yMax}">`;
@@ -728,11 +734,7 @@ function runStatsHTML(){
   for(const L of labels)
     h+=`<text data-yr="${L.y}" x="${Math.min(L.lx+(L.cur?6:4),316).toFixed(1)}" y="${(L.ly+2.5).toFixed(1)}" font-family="var(--mono)" font-size="7.5"
          fill="${YEAR_COLORS[L.y]||'var(--muted)'}" font-weight="${L.cur?700:400}">${L.y.slice(2)}</text>`;
-  h+=`</svg></div><div class="legend1">`;
-  // v3.3.108: the value wears <b>, matching the consistency legend — the
-  // scrubber swaps that element, so both legends must expose it the same way
-  for(const y of years) h+=`<span data-yr="${y}" role="button"><i style="background:${YEAR_COLORS[y]||'var(--muted)'}"></i>${y} · <b>${Math.round(yTot[y])}</b></span>`;
-  h+=`</div><button class="btn ghost" id="runShare" style="margin-top:12px">Share as image</button></div>`;
+  h+=`</svg></div><button class="btn ghost" id="runShare" style="margin-top:12px">Share as image</button></div>`;
 
   /* --- pace, by month (timed runs only; lower is faster) --- */
   const pm={};

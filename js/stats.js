@@ -174,6 +174,18 @@ function renderStats(){
 
   // consistency chart — the Dashboard bottom graph
   h+=`<h2>Consistency, year over year ${iBtn('yoy',"% of days trained so far each year — the bold line is this year, still running.")}</h2><div class="card">
+      `;
+  /* v3.3.109: the legend moves ABOVE the chart. While scrubbing it IS the
+     readout, and below the chart it sat under the hand doing the scrubbing.
+     It also has to be built before the chart is emitted, so `years` is
+     resolved up here now. */
+  const years=Object.keys(curves).filter(y=>y>='2022').sort();
+  h+=`<div class="legend1">`;
+  for(const y of years){
+    const c=curves[y], cur=y===thisYear;
+    h+=`<span class="${cur?'cur':''}" data-yr="${y}" role="button"><i style="background:${YEAR_COLORS[y]}"></i>${y}<b>${Math.round(c.curve[c.end-1]*100)}%</b></span>`;
+  }
+  h+=`</div>
       <div class="zoom" data-zoom><div class="zoomhint">pinch / scroll to zoom · double-tap to reset</div>
       <svg viewBox="0 0 340 170" style="width:100%;height:auto"
         data-scrub="pct" data-sx0="26" data-sxw="274" data-sy0="140" data-syh="120" data-smax="1">`;
@@ -189,7 +201,6 @@ function renderStats(){
     h+=`<line x1="${x}" y1="140" x2="${x}" y2="143" stroke="var(--line)" stroke-width="0.6"></line>
         <text x="${x}" y="152" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="var(--muted)">${m}</text>`;
   });
-  const years=Object.keys(curves).filter(y=>y>='2022').sort();
   for(const y of years){
     const {curve,end}=curves[y];
     let pts='';
@@ -206,12 +217,7 @@ function renderStats(){
           fill="${YEAR_COLORS[y]||'var(--muted)'}" font-weight="${cur?700:400}">${Math.round(curve[end-1]*100)}%</text>`;
     if(cur) h+=`<circle class="beacon" cx="${lx}" cy="${ly2}" r="3.2" fill="var(--accent)"></circle>`;
   }
-  h+=`</svg></div><div class="legend1">`;
-  for(const y of years){
-    const c=curves[y], cur=y===thisYear;
-    h+=`<span class="${cur?'cur':''}" data-yr="${y}" role="button"><i style="background:${YEAR_COLORS[y]}"></i>${y}<b>${Math.round(c.curve[c.end-1]*100)}%</b></span>`;
-  }
-  h+=`</div><button class="btn ghost" id="yoyShare" style="margin-top:12px">Share as image</button></div>`;
+  h+=`</svg></div><button class="btn ghost" id="yoyShare" style="margin-top:12px">Share as image</button></div>`;
 
   // heatmap: 26 weeks, weekday rail on the left, months across the top
   const detail=allDays();
@@ -419,7 +425,11 @@ function renderStats(){
      scroll position showed January and hid today. Park it at the right
      edge — the current week is the whole point of the strip. scrollLeft on
      the scroller itself, never scrollIntoView, which would drag the page. */
-  document.querySelectorAll('.heatcols,.heat,.legend1').forEach(el=>{
+  /* v3.3.109: .legend1 dropped from this list — it wraps now instead of
+     scrolling, so there is no right edge to park at. This parking was the
+     workaround for the scroller hiding the current year, which is exactly
+     the bug it failed to prevent. */
+  document.querySelectorAll('.heatcols,.heat').forEach(el=>{
     if(el.scrollWidth>el.clientWidth) el.scrollLeft=el.scrollWidth;
   });
 }
