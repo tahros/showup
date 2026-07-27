@@ -1,5 +1,44 @@
 # ShowUp — changelog
 
+## v3.3.112 (2026-07-27) — One action group per header
+
+Part two of the Stats review. Every section header now ends with the same
+right-aligned group: the (i), and — where a share card exists — a download
+icon. The eye finds them in one place instead of hunting mid-title for a
+tip and below the card for a button.
+
+**Nine sections gained a tip.** Show up, Days by month, Last 6 months,
+Weekdays, Run, Next milestone, Every week, and both Records tables. They
+follow the rule the existing tips already set: *what it measures — how to
+read it*, sentence case, one breath. buildcheck's 120-char guard passed
+them, and a test now reads every rendered tip and asserts the longest fits.
+
+**The download icon appears only where a card exists** — Consistency, Every
+month, Distance. Making it universal would mean hand-writing a 1080×1080
+canvas renderer for a dozen more sections, and nobody shares a records
+table. Shown selectively, its absence reads as deliberate; a test pins the
+exact three, so a future section can't quietly acquire or lose one.
+
+The (i) stays chalk and the download is accent — passive explains, active
+does something.
+
+**The three "Share as image" buttons moved out of the card bodies and into
+the headers, keeping their original ids.** That meant the router needed no
+change at all. Because "the button still exists" and "the button still
+works" are different claims, the test stubs `showCard` and clicks all three,
+asserting each reaches a card renderer.
+
+**Two process notes.** The patch script's first run had a wrong anchor
+(`h+=` where the source says `let h=`) and died mid-way with header.js and
+the CSS already written — the all-or-nothing guarantee holds per patch()
+call, not across a script, so the tree was restored from the previous stage
+and reapplied rather than patched forward from a half-done state. And two
+v3.3.75 assertions grepped the source for `iBtn('mgrid',...)`, which broke
+when the identical tip text moved into `hActs()`; they accept either caller
+now, so they assert the tip rather than its wrapper.
+
+`test-statspolish.js` at 39, `test-sharecard.js` at 70.
+
 ## v3.3.111 (2026-07-27) — Stats, in the order the maker asked for
 
 Part one of a three-part Stats review. This release: order, removals,

@@ -260,4 +260,51 @@ console.log((run(`typeof drawRep`) === "undefined" ? "PASS" : "FAIL"),
   "...while drawRep() went with its section");
 if (run(`typeof drawRep`) !== "undefined") fail++;
 
+// ---- v3.3.112: one action group per header ------------------------------
+const HD = () => run(`JSON.stringify([...document.querySelectorAll('#view h2')].map(h=>({
+  t:(h.childNodes[0]&&h.childNodes[0].nodeType===3?h.childNodes[0].textContent:h.textContent).trim(),
+  i:!!h.querySelector('.tipi'), d:!!h.querySelector('.shareb'),
+  lastIsActs: h.lastElementChild ? h.lastElementChild.classList.contains('hacts') : false,
+  quiet:h.classList.contains('quiet')})))`);
+const hd = JSON.parse(HD());
+const dataHeads = hd.filter(r => !r.quiet && r.t !== "Settings");
+
+console.log((dataHeads.every(r => r.i) ? "PASS" : "FAIL"),
+  "every data section carries an (i)", "\u2192",
+  dataHeads.filter(r => !r.i).map(r => r.t).join("|") || "all " + dataHeads.length);
+if (!dataHeads.every(r => r.i)) fail++;
+
+console.log((dataHeads.every(r => r.lastIsActs) ? "PASS" : "FAIL"),
+  "...and the action group is the LAST child, so it sits hard right", "\u2192",
+  dataHeads.filter(r => !r.lastIsActs).map(r => r.t).join("|") || "all");
+if (!dataHeads.every(r => r.lastIsActs)) fail++;
+
+// the download icon appears ONLY where a card exists \u2014 absence is deliberate
+const withDl = hd.filter(r => r.d).map(r => r.t).sort().join(",");
+console.log((withDl === "Consistency,Distance,Every month" ? "PASS" : "FAIL"),
+  "the download icon appears only where a share card exists", "\u2192", withDl);
+if (withDl !== "Consistency,Distance,Every month") fail++;
+
+// the in-card buttons are gone, not duplicated
+check("no 'Share as image' button survives in any card body",
+      `/Share as image/.test($('#view').innerHTML)`, false);
+
+// the ids were preserved, so the router still fires \u2014 the real risk of the move
+check("the header share buttons keep the original ids the router listens for",
+      `['yoyShare','gridShare','runShare'].every(id=>!!document.querySelector('h2 .shareb#'+id))`, true);
+let fired = 0;
+run(`__origShow = showCard; showCard = () => { globalThis.__fired = (globalThis.__fired||0)+1; return null; };`);
+run(`document.querySelector('#yoyShare').click(); document.querySelector('#gridShare').click(); document.querySelector('#runShare').click();`);
+fired = run(`globalThis.__fired||0`);
+run(`showCard = __origShow;`);
+console.log((fired === 3 ? "PASS" : "FAIL"),
+  "...and all three still reach a card renderer when tapped", "\u2192", fired + "/3");
+if (fired !== 3) fail++;
+
+// tips stay within the one-breath budget buildcheck enforces
+const tipLens = run(`JSON.stringify([...document.querySelectorAll('#view .tipbubble')].map(t=>t.textContent.length))`);
+const maxTip = Math.max(...JSON.parse(tipLens));
+console.log((maxTip <= 120 ? "PASS" : "FAIL"), "every tip fits in one breath (\u2264120 chars)", "\u2192", "longest " + maxTip);
+if (maxTip > 120) fail++;
+
 process.exit(fail ? 1 : 0);

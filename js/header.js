@@ -125,6 +125,20 @@ function rhythmCard(){
 
 /* D1 (DESIGN.md): explanations live behind a dot, where the sentence used
    to be. Tap ⓘ → the old note expands in place; tap again → gone. */
+/* v3.3.112: one action group per section header, always right-aligned.
+   Every data section carries the (i); the download icon appears only where a
+   share card actually exists, so its absence reads as deliberate rather than
+   missing. The (i) is chalk (passive: explains), download is accent (active:
+   does something) — and the ids are the SAME ids the old in-card buttons
+   used, so the router needed no change at all. */
+const DL_ICON='<svg viewBox="0 0 16 16" width="10" height="10" aria-hidden="true">'+
+  '<path d="M8 2.5v6.5M5.2 6.6 8 9.4l2.8-2.8" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>'+
+  '<path d="M4.2 12.6h7.6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>';
+function hActs(id,text,shareId){
+  return `<span class="hacts">${iBtn(id,text)}${shareId
+    ? `<button class="ibtn shareb" id="${shareId}" aria-label="Save as image">${DL_ICON}</button>`
+    : ''}</span>`;
+}
 function iBtn(id,text){
   return `<span class="notei"><button class="ibtn tipi" data-tip="${id}" aria-label="What is this?">i</button><span class="tipbubble" id="tip-${id}" hidden>${text}</span></span>`;
 }

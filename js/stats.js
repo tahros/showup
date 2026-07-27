@@ -106,7 +106,7 @@ function bwCard(){
     }
     body=head+chart;
   }
-  return `<h2 id="secWeight">Weight ${iBtn('bw',"Your recorded weights over time — flat stretches are days you didn't measure.")}</h2><div class="card">${body}</div>`;
+  return `<h2 id="secWeight">Weight${hActs('bw',"Your recorded weights over time — flat stretches are days you didn't measure.")}</h2><div class="card">${body}</div>`;
 }
 /* v3.3.111: sections are cut into a buffer as they're built, then emitted
    in one declared order at the bottom. Reordering Stats used to mean moving
@@ -136,7 +136,7 @@ function renderStats(){
   const lyAtSamePoint=lyCurve?lyCurve.curve[Math.min(elapsed,lyCurve.end)-1]:null;
   const diff=lyAtSamePoint!=null?Math.round((consNow-lyAtSamePoint)*100):null;
 
-  let h=`<h2 id="secDays">Show up — that's the whole game</h2>
+  let h=`<h2 id="secDays">Show up — that's the whole game${hActs('kpis',"Days trained all time, then this year, this month, and your current run of consecutive days.")}</h2>
     <div class="kpis">
       ${(()=>{
         /* v3.3.99: the game itself, finally under its own heading. Total days
@@ -179,7 +179,7 @@ function renderStats(){
 
   // consistency chart — the Dashboard bottom graph
   cut('kpis');
-  h+=`<h2>Consistency ${iBtn('yoy',"% of days trained so far each year — the bold line is this year, still running.")}</h2><div class="card">
+  h+=`<h2>Consistency${hActs('yoy',"% of days trained so far each year — the bold line is this year, still running.",'yoyShare')}</h2><div class="card">
       `;
   /* v3.3.109: the legend moves ABOVE the chart. While scrubbing it IS the
      readout, and below the chart it sat under the hand doing the scrubbing.
@@ -223,12 +223,12 @@ function renderStats(){
           fill="${YEAR_COLORS[y]||'var(--muted)'}" font-weight="${cur?700:400}">${Math.round(curve[end-1]*100)}%</text>`;
     if(cur) h+=`<circle class="beacon" cx="${lx}" cy="${ly2}" r="3.2" fill="var(--accent)"></circle>`;
   }
-  h+=`</svg></div><button class="btn ghost" id="yoyShare" style="margin-top:12px">Share as image</button></div>`;
+  h+=`</svg></div></div>`;   // v3.3.112: share moved to the header
 
   // heatmap: 26 weeks, weekday rail on the left, months across the top
   const detail=allDays();
   cut('cons');
-  h+=`<h2>Last 6 months</h2><div class="card"><div class="heatwrap">
+  h+=`<h2>Last 6 months${hActs('heat',"Every day of the last 26 weeks — one column per week, filled squares are days you trained.")}</h2><div class="card"><div class="heatwrap">
         <div class="wdrail">${['S','M','T','W','T','F','S'].map(d=>`<span>${d}</span>`).join('')}</div>
         <div class="heatcols"><div class="heatscroll">`;
   const start2=new Date(todayISO+'T00:00');
@@ -257,7 +257,7 @@ function renderStats(){
   const daysInMonth=new Date(+thisYear,+monthKey.slice(5),0).getDate();
   const trainedThis=monthCounts[monthKey]||0;
   cut('last6');
-  h+=`<h2>Days by month</h2><div class="card">
+  h+=`<h2>Days by month${hActs('dbm',"Days trained each month — the dashed line marks 20. This month is still filling.")}</h2><div class="card">
       <div class="zoom" data-zoom><div class="zoomhint">pinch to zoom</div>
       <svg viewBox="0 0 330 118" style="width:100%;height:auto">
       <line x1="8" y1="${94-20/31*80}" x2="316" y2="${94-20/31*80}" stroke="var(--line)" stroke-width="0.6" stroke-dasharray="2 3"></line>
@@ -310,7 +310,7 @@ function renderStats(){
   const wdToday=new Date(todayISO+'T00:00').getDay();
   const bestI=wdPct.indexOf(wdBest);
   cut('dbm');
-  h+=`<h2>Weekdays</h2><div class="card">
+  h+=`<h2>Weekdays${hActs('wd',"Which weekdays you actually show up — today is in accent, and the caret marks your strongest.")}</h2><div class="card">
       <svg viewBox="0 0 330 140" style="width:100%;height:auto">`;
   for(const g of [0,25,50,75,100]){
     const y=112-g/100*96;
@@ -337,7 +337,7 @@ function renderStats(){
   const _gd=gridData();
   const mDays=_gd.mDays, gy0=_gd.y0, gy1=_gd.y1, gMax=_gd.max, m0=_gd.m0, mNow=_gd.mNow;
   cut('wd');
-  h+=`<h2 id="secParts">Every month ${iBtn('mgrid',"Days trained each month — darker is more, dashed is still being written; tap one to open it.")}</h2><div class="card">
+  h+=`<h2 id="secParts">Every month${hActs('mgrid',"Days trained each month — darker is more, dashed is still being written; tap one to open it.",'gridShare')}</h2><div class="card">
       <div class="mgrid"><span></span>${'JFMAMJJASOND'.split('').map(c=>`<span class="mg-h">${c}</span>`).join('')}`;
   for(let y=gy0;y<=gy1;y++){
     h+=`<span class="mg-y mono">'${String(y).slice(2)}</span>`;
@@ -350,7 +350,7 @@ function renderStats(){
     }
   }
   h+=`</div><div id="mexp"></div>
-      <button class="btn ghost" id="gridShare" style="margin-top:12px">Share as image</button></div>`;
+      </div>`;   // v3.3.112: share moved to the header
 
   cut('em');
   /* v3.3.111: "Last 30 days, vs your usual" removed on the maker's call — no
@@ -370,7 +370,7 @@ function renderStats(){
   h+=runStatsHTML();
 
   // records — kept, but demoted below the days story
-  h+=`<h2 id="secRecords">Records</h2>`;
+  h+=`<h2 id="secRecords">Records${hActs('prs',"Your heaviest logged set for each exercise, with the day you did it.")}</h2>`;
   for(const part of Object.keys(SEED.catalog)){
     if(part==='Run') continue;
     const rows=catFor(part).map(e=>[e,prFor(e),exTier(e)]).filter(([,p])=>p.mw>0).sort((a,b)=>b[1].mw-a[1].mw);

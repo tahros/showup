@@ -150,8 +150,12 @@ ok("stats offers the share button", /id="gridShare"/.test(run(`$('#view').innerH
 const gridHtml = run(`$('#view').innerHTML`);
 ok("the grid explains itself behind an i", /data-tip="mgrid"/.test(gridHtml));
 ok("...and no paragraph is left under it", !/the whole history on one screen/.test(gridHtml));
+/* v3.3.112: accept either call shape. These greps pinned iBtn('mgrid',...)
+   and broke when the tip moved into hActs() \u2014 the tip text was unchanged,
+   only its caller. Matching both keeps the assertion about the TIP rather
+   than about which helper happens to wrap it. */
 const mgTip = (fs.readFileSync(path.join(dir, "js/stats.js"), "utf8")
-  .match(/iBtn\('mgrid',"([^"]*)"/) || [])[1] || "";
+  .match(/(?:iBtn|hActs)\('mgrid',"([^"]*)"/) || [])[1] || "";
 ok("...within the app's one-breath range", mgTip.length > 0 && mgTip.length <= 120,
    mgTip.length + " chars");
 run(`$('#view').querySelector('#gridShare').click();`);
@@ -218,7 +222,7 @@ module.exports = settled.then(() => {
        !/cumulative through each year/.test(yoyHtml));
     ok("...with a share button in its place", /id="yoyShare"/.test(yoyHtml));
     const yoyTip = (fs.readFileSync(path.join(dir, "js/stats.js"), "utf8")
-      .match(/iBtn\('yoy',"([^"]*)"/) || [])[1] || "";
+      .match(/(?:iBtn|hActs)\('yoy',"([^"]*)"/) || [])[1] || "";
     ok("...tip within one breath", yoyTip.length > 0 && yoyTip.length <= 120, yoyTip.length + " chars");
 
     // ---- 8b. the in-app legend behaves on a phone (v3.3.75) --------------
