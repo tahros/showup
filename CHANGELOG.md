@@ -36,6 +36,14 @@ was fine all along.
 
 `test-statspolish.js` at 45.
 
+**Deploy note — fourth Pages build-drop** (after v3.3.96, .100 and .106).
+`e7c579c` landed on main while the previous build was in flight and no build
+was enqueued for it; ten polling rounds showed the prior commit still
+`built`. Same remedy as before: a follow-up commit. The success line stayed
+silent this time, which is the v3.3.106 fix working — it now requires the
+SHA poll AND the byte-check, so a correct-but-unpublished release can no
+longer report itself as shipped.
+
 ## v3.3.112 (2026-07-27) — One action group per header
 
 Part two of the Stats review. Every section header now ends with the same
