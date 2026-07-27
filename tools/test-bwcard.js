@@ -87,8 +87,20 @@ if (!spreadOK) fail++;
 // ---- 5. the inline weigh-in: edit → save → recorded on TODAY --------------
 run(`${fresh} setBw('2024-01-10',70); view='stats'; renderStats();`);
 check("stats renders the weight section", `/id="secWeight"/.test($('#view').innerHTML)`, true);
-check("...above Report card (so above Last 30 days too)",
-      `$('#view').innerHTML.indexOf('secWeight') < $('#view').innerHTML.indexOf('Report card')`, true);
+/* v3.3.111 revises this rather than deleting it. The original (v3.3.69)
+   pinned Weight above "Report card" and "Last 30 days, vs your usual" —
+   both sections the maker has now removed, so the assertion pointed at
+   markup that no longer exists. The surviving intent is the one that
+   mattered: Weight closes the days story and sits BEFORE the Run block. */
+/* Anchored on secRecords, which always renders — the Run block does NOT
+   when a fixture has no runs, so anchoring there returns -1 and the
+   comparison silently inverts. The next check already pins the same
+   boundary, so this one just states the days-story side. */
+check("...below the Weekdays chart, closing the days story",
+      `$('#view').innerHTML.indexOf('secWeight') > $('#view').innerHTML.indexOf('Weekdays')`, true);
+// the removed sections must be gone from every render, not merely reordered
+check("Report card no longer renders", `/Report card/.test($('#view').innerHTML)`, false);
+check("Last 30 days no longer renders", `/vs your usual/.test($('#view').innerHTML)`, false);
 check("...and above the Records heading",
       `$('#view').innerHTML.indexOf('secWeight') < $('#view').innerHTML.indexOf('<h2 id="secRecords"')`, true);
 check("this fixture has no drift rows at all", `/Last 30 days/.test($('#view').innerHTML)`, false);

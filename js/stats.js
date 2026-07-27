@@ -106,9 +106,14 @@ function bwCard(){
     }
     body=head+chart;
   }
-  return `<h2 id="secWeight">Your weight ${iBtn('bw',"Your recorded weights over time — flat stretches are days you didn't measure.")}</h2><div class="card">${body}</div>`;
+  return `<h2 id="secWeight">Weight ${iBtn('bw',"Your recorded weights over time — flat stretches are days you didn't measure.")}</h2><div class="card">${body}</div>`;
 }
+/* v3.3.111: sections are cut into a buffer as they're built, then emitted
+   in one declared order at the bottom. Reordering Stats used to mean moving
+   long blocks of markup around; now it means editing one line. The order
+   below is the maker's, from the v3.3.111 review. */
 function renderStats(){
+  const _S={}; const cut=k=>{ _S[k]=h; h=''; };
   if(SEED.totals.sessions===0 && !hasAnyDays()){ $('#view').innerHTML=emptyHero('stats'); return; }
   const dates=workoutDates();
   const curves=yearCurves();
@@ -173,7 +178,8 @@ function renderStats(){
     </div>`;
 
   // consistency chart — the Dashboard bottom graph
-  h+=`<h2>Consistency, year over year ${iBtn('yoy',"% of days trained so far each year — the bold line is this year, still running.")}</h2><div class="card">
+  cut('kpis');
+  h+=`<h2>Consistency ${iBtn('yoy',"% of days trained so far each year — the bold line is this year, still running.")}</h2><div class="card">
       `;
   /* v3.3.109: the legend moves ABOVE the chart. While scrubbing it IS the
      readout, and below the chart it sat under the hand doing the scrubbing.
@@ -221,6 +227,7 @@ function renderStats(){
 
   // heatmap: 26 weeks, weekday rail on the left, months across the top
   const detail=allDays();
+  cut('cons');
   h+=`<h2>Last 6 months</h2><div class="card"><div class="heatwrap">
         <div class="wdrail">${['S','M','T','W','T','F','S'].map(d=>`<span>${d}</span>`).join('')}</div>
         <div class="heatcols"><div class="heatscroll">`;
@@ -249,7 +256,8 @@ function renderStats(){
   const dayOfMonth=+todayISO.slice(8);
   const daysInMonth=new Date(+thisYear,+monthKey.slice(5),0).getDate();
   const trainedThis=monthCounts[monthKey]||0;
-  h+=`<h2>Days trained, by month</h2><div class="card">
+  cut('last6');
+  h+=`<h2>Days by month</h2><div class="card">
       <div class="zoom" data-zoom><div class="zoomhint">pinch to zoom</div>
       <svg viewBox="0 0 330 118" style="width:100%;height:auto">
       <line x1="8" y1="${94-20/31*80}" x2="316" y2="${94-20/31*80}" stroke="var(--line)" stroke-width="0.6" stroke-dasharray="2 3"></line>
@@ -301,7 +309,8 @@ function renderStats(){
      always wins the accent even if today is also the strongest.) */
   const wdToday=new Date(todayISO+'T00:00').getDay();
   const bestI=wdPct.indexOf(wdBest);
-  h+=`<h2>Which days you show up</h2><div class="card">
+  cut('dbm');
+  h+=`<h2>Weekdays</h2><div class="card">
       <svg viewBox="0 0 330 140" style="width:100%;height:auto">`;
   for(const g of [0,25,50,75,100]){
     const y=112-g/100*96;
@@ -327,7 +336,8 @@ function renderStats(){
   /* --- "Have I kept showing up?" — every month ever, one screen --- */
   const _gd=gridData();
   const mDays=_gd.mDays, gy0=_gd.y0, gy1=_gd.y1, gMax=_gd.max, m0=_gd.m0, mNow=_gd.mNow;
-  h+=`<h2 id="secParts">Showing up, every month ${iBtn('mgrid',"Days trained each month — darker is more, dashed is still being written; tap one to open it.")}</h2><div class="card">
+  cut('wd');
+  h+=`<h2 id="secParts">Every month ${iBtn('mgrid',"Days trained each month — darker is more, dashed is still being written; tap one to open it.")}</h2><div class="card">
       <div class="mgrid"><span></span>${'JFMAMJJASOND'.split('').map(c=>`<span class="mg-h">${c}</span>`).join('')}`;
   for(let y=gy0;y<=gy1;y++){
     h+=`<span class="mg-y mono">'${String(y).slice(2)}</span>`;
@@ -342,55 +352,19 @@ function renderStats(){
   h+=`</div><div id="mexp"></div>
       <button class="btn ghost" id="gridShare" style="margin-top:12px">Share as image</button></div>`;
 
-  /* --- "What's quietly slipping?" — last 30 days vs YOUR 12-month rhythm --- */
-  const isoAgo=n=>{const c=new Date(todayISO+'T00:00');c.setDate(c.getDate()-n);return c.toLocaleDateString('en-CA');};
-  const cut30=isoAgo(30), last30={};
-  for(const [d,rows] of Object.entries(SEED.sessions)) if(d>=cut30){
-    for(const p of new Set(rows.map(r=>r[0]).filter(p=>p&&p!=='Run'&&p!=='Rest')))
-      last30[p]=(last30[p]||0)+1;
-  }
-  const tw=(DB.days[todayISO]&&DB.days[todayISO].w)||[];
-  for(const p of new Set(tw.map(s=>s.part).filter(p=>p&&p!=='Run')))
-    last30[p]=(last30[p]||0)+1;
-  const drift=[];
-  for(const p of Object.keys(SEED.catalog)){
-    if(p==='Run') continue;
-    const usual=((SEED.partDays[p]||[]).length)/365*30, now=(last30[p]||0);
-    if(usual<0.5&&!now) continue;
-    drift.push({p,now,usual,ratio:usual>0?now/usual:2});
-  }
-  drift.sort((a,b)=>a.ratio-b.ratio);
+  cut('em');
+  /* v3.3.111: "Last 30 days, vs your usual" removed on the maker's call — no
+     value found in it. Its entire last30/drift computation went with it;
+     nothing else read those. */
   h+=bwCard();                       // v3.3.69: you, before the part-by-part drift
-  if(drift.length){
-    h+=`<h2>Last 30 days, vs your usual</h2><div class="card">`;
-    for(const dd of drift){
-      const flag=dd.ratio<0.6?'down':(dd.ratio>1.4?'up':'ok');
-      const span=Math.max(dd.usual*1.6,1);
-      const w2=Math.min(100,Math.round(100*dd.now/span));
-      const tick=Math.min(96,Math.round(100*dd.usual/span));
-      const usualTxt=dd.usual>=0.75?String(Math.round(dd.usual)):'<1';
-      h+=`<div class="driftrow">
-        <span class="dr-p">${dd.p}</span>
-        <span class="dr-bar"><i class="${flag}" style="width:${w2}%"></i><em style="left:${tick}%"></em></span>
-        <span class="dr-n mono ${flag}">${dd.now} <span class="muted">· usually ${usualTxt}</span>${flag==='down'?' ↓':flag==='up'?' ↑':''}</span>
-      </div>`;
-    }
-    h+=`<div class="note">Sessions per part against your own 12-month rhythm — the tick is your usual. ↓ = quietly slipping.</div></div>`;
-  }
+  cut('wt');
 
-  /* --- v3.2.4: monthly report card — the month as one shareable image --- */
-  {
-    const rd=repData(repOff);
-    h+=`<h2>Report card</h2><div class="card">
-      <div class="rephead">
-        <button class="chip" id="repPrev">‹</button>
-        <b>${rd.label}</b>
-        <button class="chip" id="repNext" ${repOff?'':'disabled'}>›</button>
-      </div>
-      <div class="repline mono">${rd.nD} day${rd.nD===1?'':'s'} · ${fmt(Math.round(rd.vol))} kg · ${rd.km.toFixed(1)} ${DU()} · best streak ${rd.mx}d</div>
-      <button class="btn" id="repShare" ${rd.nD?'':'disabled'}>Share as image</button>
-    </div>`;
-  }
+  /* v3.3.111: "Report card" removed on the maker's call. repData() SURVIVES —
+     the month grid's tap-to-expand still reads it; only the section, its
+     month nav and its share card are gone. */
+
+  // sections emit in one declared order (v3.3.111)
+  h = _S.kpis + _S.cons + _S.em + _S.dbm + _S.last6 + _S.wd + _S.wt;
 
   // the whole Run story lives here now (was its own tab in v2.04 — reverted)
   h+=runStatsHTML();
@@ -446,7 +420,7 @@ document.addEventListener('click',e=>{
   const base=new Date(todayISO+'T00:00'); base.setDate(1);
   const tgt=new Date(k+'-01T00:00');
   const off=(base.getFullYear()-tgt.getFullYear())*12+(base.getMonth()-tgt.getMonth());
-  const rd=repData(off);
+  const rd=repData(off);   // v3.3.111: the only remaining caller
   box.innerHTML=`<div class="mexpIn">
     <div class="repline mono">${rd.label} — ${rd.nD} day${rd.nD===1?'':'s'} · ${fmt(Math.round(rd.vol))} kg · ${rd.km.toFixed(1)} ${DU()}${rd.mx>1?` · best streak ${rd.mx}d`:''}</div>
     <div class="mexpDots">${rd.days.map(d=>`<i class="${d.fut?'f':(d.tr?'t':'')}" title="${d.d}"></i>`).join('')}</div>

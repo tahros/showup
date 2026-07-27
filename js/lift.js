@@ -605,6 +605,7 @@ function runStatsHTML(){
   const ytd=days.filter(r=>r.d.startsWith(thisYear)).reduce((a,r)=>a+toD(r.km),0);
   const streak=runStreak(days);
 
+  const _R={}; const cut=k=>{ _R[k]=h; h=''; };   // v3.3.111: see renderStats
   let h=`<h2 id="secRun">Run</h2>
     <div class="kpis">
       <div class="kpi accent"><div class="v">${fmt(Math.round(total))}</div><div class="l">${DU()}, all time</div>
@@ -623,6 +624,7 @@ function runStatsHTML(){
   const etaDays=rate>0?Math.ceil(left/rate):null;
   const eta=etaDays!=null?(()=>{const d=new Date(todayISO+'T00:00');d.setDate(d.getDate()+etaDays);
     return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});})():null;
+  cut('run');
   h+=`<h2>Next milestone</h2><div class="card">
       <div class="mstone"><span class="big">${left.toFixed(1)} ${DU()}</span>
         <span class="goal">to ${fmt(next)}</span></div>
@@ -631,6 +633,7 @@ function runStatsHTML(){
         ${eta?`<span>on this pace · <b>${eta}</b></span>`:''}</div>
       <div class="note">Last 4 weeks: ${recSum.toFixed(1)} ${DU()} over ${recent.length} runs.</div></div>`;
 
+  cut('ms');
   /* ---- this year: declared goal, honest pace ---- */
   {
     const doyNow=doy(todayISO), yLen=(+thisYear%4===0)?366:365;
@@ -669,6 +672,7 @@ function runStatsHTML(){
   if(!wks.includes(thisWk)) wks.push(thisWk);
   const wkMax=Math.max(...wks.map(w=>wkBy[w]||0),1);
   const wkAvg=wks.filter(w=>w!==thisWk).reduce((a,w)=>a+(wkBy[w]||0),0)/Math.max(1,wks.length-1);
+  cut('goal');
   h+=`<h2>Every week</h2><div class="card">
       <div class="zoom" data-zoom><svg viewBox="0 0 330 118" style="width:100%;height:auto">`;
   if(wkAvg){
@@ -694,7 +698,8 @@ function runStatsHTML(){
   const dataMax=Math.max(...Object.values(yTot),1);
   const step=Math.max(10,Math.round(dataMax/4/10)*10);        // 361 -> 90, 180, 270, 360
   const yMax=Math.max(dataMax,step*4);
-  h+=`<h2>Year over year ${iBtn('cumkm',`Cumulative ${DU()} by day of year. ${thisYear} is still running.`)}</h2><div class="card">
+  cut('week');
+  h+=`<h2>Distance ${iBtn('cumkm',`Cumulative ${DU()} by day of year. ${thisYear} is still running.`)}</h2><div class="card">
       `;
   // v3.3.109: legend above the chart — it is the scrub readout, and it was
   // sitting under the scrubbing hand
@@ -746,7 +751,8 @@ function runStatsHTML(){
     const lo=Math.min(...paces.map(p=>p[1])), hi=Math.max(...paces.map(p=>p[1]));
     const span=Math.max(hi-lo,30);                     // never flatten a near-identical year
     const base=lo-span*0.25, top=hi+span*0.25;
-    h+=`<h2>Pace, by month ${iBtn('pace',`Minutes per ${DU()}, timed runs only — faster months sit lower. Fastest in red, this month in blue.`)}</h2><div class="card">
+    cut('dist');
+    h+=`<h2>Pace ${iBtn('pace',`Minutes per ${DU()}, timed runs only — faster months sit lower. Fastest in red, this month in blue.`)}</h2><div class="card">
         <div class="zoom" data-zoom><svg viewBox="0 0 330 118" style="width:100%;height:auto">`;
     let poly='';
     paces.forEach(([m,p],i)=>{
@@ -768,6 +774,10 @@ function runStatsHTML(){
   const mo={}; for(const r of days) mo[r.d.slice(0,7)]=(mo[r.d.slice(0,7)]||0)+toD(r.km);
   const bestMo=Object.entries(mo).sort((a,b)=>b[1]-a[1])[0];
   const bestWk=Object.entries(wkBy).sort((a,b)=>b[1]-a[1])[0];
+  cut('pace');
+  // v3.3.111: the maker's order — Run, then the distance story, then the
+  // rest; goal and Records keep their existing trailing position.
+  h = _R.run + _R.dist + _R.ms + _R.pace + _R.week + _R.goal + h;
   h+=`<h2>Records</h2><table class="rec-core">
       <tr><th>Longest run</th><td class="n"><b>${dDisp(long.km)} ${DU()}</b><span class="recdate">${md(long.d)}</span></td></tr>
       ${fast?`<tr><th>Fastest pace</th><td class="n"><b>${paceStr(paceOf(fast))} /${DU()}</b><span class="recdate">${md(fast.d)}</span></td></tr>`:''}

@@ -2,7 +2,6 @@
    Extracted verbatim from index.html (v3.2.5 refactor). Classic script:
    shares one global scope with its siblings, loaded in order by index.html. */
 /* ---------- v3.2.4 report card engine ---------- */
-let repOff=0;
 function repData(off){
   const base=new Date(todayISO+'T00:00'); base.setDate(1); base.setMonth(base.getMonth()-off);
   const y=base.getFullYear(), m=base.getMonth();
@@ -31,65 +30,8 @@ function repData(off){
   const totalAll=SEED.totals.sessions+((((DB.days[todayISO]||{}).w)||[]).length?1:0);
   return {label:base.toLocaleString('en-US',{month:'long'})+' '+y, days, nD, vol, km, mx, totalAll};
 }
-function drawRep(rd){
-  const cv=document.createElement('canvas'); cv.width=1080; cv.height=1350;
-  const x=cv.getContext('2d'); if(!x) return null;
-  const V=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim()||'#888';
-  const SANS='"IBM Plex Sans",system-ui,sans-serif', MONO='"IBM Plex Mono",ui-monospace,monospace';
-  /* v3.3.13: canvas never inherits CSS fonts — if Plex isn't loaded yet the
-     browser silently substitutes system faces. Draw now with whatever exists,
-     and redraw once the real fonts land. */
-  if(document.fonts&&document.fonts.status!=='loaded'&&!drawRep._rearm){
-    drawRep._rearm=true;
-    document.fonts.ready.then(()=>{
-      drawRep._rearm=false;
-      const ov=document.getElementById('repOv');
-      if(ov&&ov.style.display!=='none'&&typeof repOff!=='undefined'){
-        const img=ov.querySelector('img');
-        if(img) img.src=drawRep(repData(repOff)).toDataURL('image/png');
-      }
-    });
-  }
-  x.fillStyle=V('--ground'); x.fillRect(0,0,1080,1350);
-  x.fillStyle=V('--chalk'); x.font='700 84px '+SANS; x.textBaseline='alphabetic';
-  x.fillText(rd.label,72,180);
-  x.fillStyle=V('--muted'); x.font='500 30px '+MONO; x.textAlign='right';
-  x.fillText('ShowUp',1008,176); x.textAlign='left';
-  // heat strip
-  const n=rd.days.length, W=936, cw=W/n, y0=260, ch=96;
-  const rr=(px,py,w2,h2,r)=>{ x.beginPath();
-    x.moveTo(px+r,py); x.arcTo(px+w2,py,px+w2,py+h2,r); x.arcTo(px+w2,py+h2,px,py+h2,r);
-    x.arcTo(px,py+h2,px,py,r); x.arcTo(px,py,px+w2,py,r); x.closePath(); };
-  for(let i=0;i<n;i++){
-    const d=rd.days[i], px=72+i*cw;
-    if(d.fut){ x.strokeStyle=V('--line'); x.setLineDash([4,5]); rr(px+2,y0,cw-5,ch,9); x.stroke(); x.setLineDash([]); }
-    else if(d.tr){ x.fillStyle=V('--accent'); rr(px+2,y0,cw-5,ch,9); x.fill(); }
-    else { x.strokeStyle=V('--line'); rr(px+2,y0,cw-5,ch,9); x.stroke(); }
-    x.fillStyle=d.tr?V('--accent'):V('--faint'); x.font='500 19px '+MONO; x.textAlign='center';
-    x.fillText(String(d.d),px+cw/2,y0+ch+34);
-  }
-  x.textAlign='left';
-  // four numbers
-  const stat=(px,py,big,lab,warm)=>{
-    x.fillStyle=warm?V('--record'):V('--chalk'); x.font='700 96px '+SANS; x.fillText(big,px,py);
-    x.fillStyle=V('--muted'); x.font='500 27px '+MONO; x.fillText(lab.toUpperCase(),px,py+46);
-  };
-  stat(72,610,String(rd.nD),'days trained',true);
-  stat(560,610,fmt(Math.round(rd.vol)),'kg lifted',false);
-  stat(72,850,rd.km?rd.km.toFixed(1):'0',(DU()==='km'?'km':'mi')+' run',false);
-  stat(560,850,rd.mx+'d','best streak',false);
-  // footer
-  x.strokeStyle=V('--line'); x.beginPath(); x.moveTo(72,1230); x.lineTo(1008,1230); x.stroke();
-  x.fillStyle=V('--muted'); x.font='500 30px '+MONO;
-  x.fillText(fmt(rd.totalAll)+' days of showing up',72,1290);
-  x.fillStyle=V('--faint'); x.font='500 24px '+MONO; x.textAlign='right';
-  x.fillText('tahros.github.io/showup',1008,1290); x.textAlign='left';
-  return cv;
-}
-/* ---------- v3.3.72 share cards ---------- */
-/* The year grid as a 1:1 card. Square because it is the one ratio every
-   platform accepts uncropped; the report card stays 4:5, which reads better
-   in a feed. Both go out through the same overlay and the same share path. */
+/* v3.3.111: drawRep() removed with the Report card section. repData() stays
+   in this file — the month grid's expand still uses it. */
 function drawGrid(gd){
   const S=1080;
   const cv=document.createElement('canvas'); cv.width=S; cv.height=S;
@@ -340,7 +282,6 @@ async function showCard(drawFn,label){
     document.getElementById('repImg').src=cv.toDataURL('image/png');
   }catch(e){ toast('Could not draw the image'); }
 }
-function makeRepImage(){ const rd=repData(repOff); return showCard(()=>drawRep(rd),rd.label); }
 function makeGridImage(){ const gd=gridData(); return showCard(()=>drawGrid(gd),`${gd.total}-days`); }
 function makeYoyImage(){ const cs=yearCurves(); return showCard(()=>drawYoy(cs),'consistency-'+todayISO.slice(0,4)); }
 function makeRunYoyImage(){
@@ -358,9 +299,6 @@ document.addEventListener('click',e=>{
   /* v3.3.72: closest(), not e.target.id — a button that gains a child at
      runtime silently stops responding (the v3.3.58 lesson, in the gym). */
   const hit=id=>!!(e.target.closest&&e.target.closest('#'+id));
-  if(hit('repPrev')){ repOff++; if(view==='stats') render(); return; }
-  if(hit('repNext')&&repOff>0){ repOff--; if(view==='stats') render(); return; }
-  if(hit('repShare')){ makeRepImage(); return; }
   if(hit('gridShare')){ makeGridImage(); return; }
   if(hit('yoyShare')){ makeYoyImage(); return; }
   if(hit('runShare')){ makeRunYoyImage(); return; }

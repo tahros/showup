@@ -1,5 +1,50 @@
 # ShowUp — changelog
 
+## v3.3.111 (2026-07-27) — Stats, in the order the maker asked for
+
+Part one of a three-part Stats review. This release: order, removals,
+titles. Header icons and chart heights follow.
+
+**Order is now declared, not incidental.** Sections used to render in
+whatever order their code happened to sit in, so reordering meant moving
+long blocks of markup. Each section is now cut into a buffer as it's built
+and emitted from one line at the bottom of `renderStats()` — and the same
+technique inside `runStatsHTML()`. Reordering Stats is now a one-line edit.
+
+The order, top to bottom: Show up · Consistency · Every month · Days by
+month · Last 6 months · Weekdays · Weight · Run · Distance · Next
+milestone · Pace · Every week · {year} goal · Records · per-part ·
+Settings. Asserted as a sequence, so it can't drift back.
+
+**Two sections removed** on the maker's call: *Report card* and *Last 30
+days, vs your usual*. Both took their machinery with them — the entire
+last30/drift computation existed only to feed the second, and `drawRep()`,
+`makeRepImage()`, `repOff` and three router handlers only fed the first.
+Eleven orphaned CSS rules went too.
+
+**`repData()` survives, and that mattered.** It looked like dead code after
+the Report card was cut, but the month grid's tap-to-expand reads it. A test
+now asserts `repData` exists while `drawRep` does not, so the distinction
+survives the next person who greps for unused functions.
+
+**Titles follow one rule:** short noun phrase, no comma-qualifier — if it
+needs a qualifier, that belongs in the (i). `Consistency, year over year` →
+**Consistency**; `Days trained, by month` → **Days by month**; `Which days
+you show up` → **Weekdays**; `Your weight` → **Weight**; `Showing up,
+every month` → **Every month**; the run chart's `Year over year` →
+**Distance**; `Pace, by month` → **Pace**. `Show up — that's the whole
+game` is left alone: it's the thesis, not a label.
+
+**Test notes.** A v3.3.69 assertion pinned Weight above "Report card" —
+markup that no longer exists — and was revised to the surviving intent
+rather than deleted. Its first rewrite anchored on the Run block, which does
+NOT render in a fixture without runs, so `indexOf` returned -1 and the
+comparison silently inverted; it anchors on an always-present section now.
+And the order assertion's first draft split heading text on the letter
+"i" to strip the tip, which decapitated "Consistency" at its own first i.
+
+`test-statspolish.js` at 32, `test-bwcard.js` at 53.
+
 ## v3.3.110 (2026-07-27) — An app, not a document
 
 Reported while scrubbing: iOS pops Copy / Look Up / Translate over the

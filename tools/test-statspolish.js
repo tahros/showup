@@ -210,4 +210,54 @@ console.log((/\.kpi\.hero\{grid-column:1\/-1;display:flex;align-items:center/.te
   "the hero row centres its number against its label block");
 if (!/\.kpi\.hero\{grid-column:1\/-1;display:flex;align-items:center/.test(cssSrc101)) fail++;
 
+// ---- v3.3.111: the section order is declared, not incidental ------------
+run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
+  for(let i=1;i<=400;i++){const d=new Date(t); d.setDate(d.getDate()-i);
+    const iso=d.toLocaleDateString('en-CA');
+    DB.days[iso]={w:[{part:'Chest',ex:'Chest Press',w:40,reps:[10],at:1}],upd:1};
+    if(i%3===0) DB.days[iso].w.push({part:'Run',ex:'Run',w:5,reps:[],mins:30,secs:0,at:1});}
+  DB.settings.bw=[{d:todayISO,w:70}];
+  SEED=deriveAll(); view='stats'; render();})()`);
+
+/* Strip the (i) tip's text, which is appended inside the same <h2>. Splitting
+   on the letter "i" was the first attempt and it decapitated "Consistency"
+   at its own first i. Take the heading's first text node instead \u2014 the
+   title is authored before the iBtn markup. */
+const heads = () => run(`JSON.stringify([...document.querySelectorAll('#view h2')]
+  .map(h=>(h.childNodes[0]&&h.childNodes[0].nodeType===3?h.childNodes[0].textContent:h.textContent).trim()))`);
+const H = JSON.parse(heads());
+const idx = t => H.findIndex(x => x.startsWith(t));
+
+// the maker's order, top to bottom
+const WANT = ["Show up", "Consistency", "Every month", "Days by month",
+              "Last 6 months", "Weekdays", "Weight", "Run", "Distance",
+              "Next milestone", "Pace", "Every week"];
+let lastAt = -1, orderOK = true, broke = "";
+for (const t of WANT) {
+  const at = idx(t);
+  if (at < 0) { orderOK = false; broke = t + " missing"; break; }
+  if (at < lastAt) { orderOK = false; broke = t + " out of order"; break; }
+  lastAt = at;
+}
+console.log((orderOK ? "PASS" : "FAIL"), "Stats sections render in the declared order", "\u2192", broke || H.slice(0,12).join(" \u2192 "));
+if (!orderOK) fail++;
+
+// the two removed sections are gone everywhere
+check("Report card is gone", `/Report card/.test($('#view').innerHTML)`, false);
+check("Last 30 days vs your usual is gone", `/vs your usual/.test($('#view').innerHTML)`, false);
+
+// titles follow the rule: no comma-qualifiers left in the retitled set
+const commaTitles = H.filter(t => /^(Consistency|Days by month|Weekdays|Weight|Distance|Pace)\b/.test(t) && t.includes(","));
+console.log((commaTitles.length === 0 ? "PASS" : "FAIL"),
+  "retitled sections carry no comma-qualifier (it belongs in the tip)", "\u2192", commaTitles.join("|") || "none");
+if (commaTitles.length) fail++;
+
+// repData survived the Report card removal \u2014 the month grid still needs it
+console.log((typeof run(`typeof repData`) === "string" && run(`typeof repData`) === "function" ? "PASS" : "FAIL"),
+  "repData() survives (the month grid's expand reads it)");
+if (run(`typeof repData`) !== "function") fail++;
+console.log((run(`typeof drawRep`) === "undefined" ? "PASS" : "FAIL"),
+  "...while drawRep() went with its section");
+if (run(`typeof drawRep`) !== "undefined") fail++;
+
 process.exit(fail ? 1 : 0);
