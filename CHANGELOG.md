@@ -1,5 +1,45 @@
 # ShowUp — changelog
 
+## v3.3.115 (2026-07-27) — Cards that mirror the screen
+
+The maker on yesterday's five cards: Days by month, Last 6 months and
+Weekdays were "so bad". Correct — they were built from a generic painter
+that took the numbers and drew its own idea of a chart, so they were
+approximations of the data rather than pictures of the chart.
+
+**They now map the SVG's own coordinate system onto the canvas.** Each of
+those charts is authored in a 330×118 viewBox, so `vbMap()` supplies one
+scale factor and the drawing loop is ported line for line — same bar
+positions, same rounded corners, same opacities (0.55 / 0.6 for past, 1 for
+current), same label offsets, same gridlines. Fidelity is structural: if the
+chart changes, porting it is a copy rather than a redesign.
+
+What that recovered, concretely: **Days by month** regains its dashed
+20-day reference line, its dashed days-elapsed outline on the current month,
+and the trained-count-inside-the-bar treatment. **Weekdays** regains its
+0/25/50/75/100 gridlines with labels, the ▲ over the strongest day, the
+per-bar percentages, and today drawn in accent against accent-dim.
+**Last 6 months** regains its weekday rail down the left and month labels
+across the top, drawn only where the month turns over — it had been a bare
+grid of squares.
+
+Pace and Every week keep the generic painter; their on-screen shapes are a
+plain line and plain bars, which it already matches.
+
+**Icons: larger and back beside the title.** (i) 17→21px, the download glyph
+10→13px, and `margin-left:auto` dropped from the action group — the maker's
+call after living with them hard-right for one release.
+
+**The tests now compare the card against its own chart**, not against
+"did it draw something". They pull the `<text>` nodes out of the rendered
+SVG and require the card to emit the same month labels and the same seven
+percentages. That caught a real subtlety immediately: `cardFrame()` always
+emits five texts of its own first (big, sub, kicker, footer, url), and the
+card's headline "23" was being counted as a month label, so the sets never
+lined up. The comparison skips the frame now.
+
+`test-cards.js` at 39.
+
 ## v3.3.114 (2026-07-27) — Five more cards, two more painters
 
 Share cards for Days by month, Last 6 months, Weekdays, Pace and Every week.

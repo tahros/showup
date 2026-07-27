@@ -274,19 +274,18 @@ function drawMilestone(n){
 function makeMilestoneImage(n){ return showCard(()=>drawMilestone(n),'day-'+n); }
 function makeDbmImage(){
   const ms=Object.entries(gridData().mDays).sort().slice(-12);
-  return showCard(()=>drawSeries({kind:'bars',
-    big:String(ms.length?ms[ms.length-1][1]:0), sub:'days this month',
-    kicker:'DAYS BY MONTH', footer:'days trained each month',
-    vals:ms.map(m=>m[1]), hi:ms.length-1, ref:20, floor:20,
-    labels:ms.map(m=>m[0].slice(5))}),'days-by-month');
+  const mk=todayISO.slice(0,7), dom=+todayISO.slice(8);
+  const trained=(gridData().mDays[mk])||0;
+  return showCard(()=>drawDbm({ms, monthKey:mk, dayOfMonth:dom,
+    big:String(trained), sub:'trained of '+dom+' days',
+    kicker:'DAYS BY MONTH', footer:'days trained each month \u00b7 dashes mark 20'}),'days-by-month');
 }
 function makeWdImage(){
-  const d=wdDist(), N=['S','M','T','W','T','F','S'];
+  const d=wdDist();
   const FULL=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  return showCard(()=>drawSeries({kind:'bars',
+  return showCard(()=>drawWd({pct:d.pct, best:d.best, today:d.today,
     big:FULL[d.best], sub:'is your strongest day',   // 'S' would not say which one
-    kicker:'WEEKDAYS', footer:'% of each weekday trained, last 365 days',
-    vals:d.pct, hi:d.best, labels:N}),'weekdays');
+    kicker:'WEEKDAYS', footer:'% of each weekday trained, last 365 days'}),'weekdays');
 }
 function makeWeekImage(){
   const w=weekSeries();
@@ -334,6 +333,24 @@ function cardFrame(x,S,o){
   x.fillText('tahros.github.io/showup',P,S-64);
   return {V,SANS,MONO,P,L:P,R:S-P,T:250,B:S-200};
 }
+/* v3.3.115: these three cards now reproduce the on-screen chart rather than
+   approximating it. Each SVG is authored in a 330x118 viewBox, so the card
+   maps that coordinate system straight onto the canvas: one scale factor,
+   the same drawing loop, the same labels and opacities. Fidelity by
+   construction \u2014 if the chart changes, porting the loop is a copy, not a
+   redesign. The generic drawSeries() stays for Pace and Every week, whose
+   on-screen shapes it already matches. */
+function vbMap(S,vbW,top){
+  const P=64, W=S-P*2, k=W/vbW;
+  return {k,P,W, X:x=>P+x*k, Y:y=>top+y*k, F:px=>Math.round(px*k)};
+}
+function rrect(x,px,py,w,h,r){
+  const rr=Math.min(r,w/2,h/2);
+  x.beginPath();
+  x.moveTo(px+rr,py); x.arcTo(px+w,py,px+w,py+h,rr);
+  x.arcTo(px+w,py+h,px,py+h,rr); x.arcTo(px,py+h,px,py,rr);
+  x.arcTo(px,py,px+w,py,rr); x.fill();
+}
 function drawSeries(o){
   const S=1080, cv=document.createElement('canvas'); cv.width=S; cv.height=S;
   const x=cv.getContext('2d');
@@ -342,7 +359,6 @@ function drawSeries(o){
   const vals=o.vals, n=vals.length||1;
   const max=Math.max(...vals.filter(v=>typeof v==='number'&&isFinite(v)), o.floor||0, 1e-9);
   const Y=v=>B-(v/max)*H;
-  // reference line
   if(o.ref!=null&&isFinite(o.ref)&&o.ref>0){
     x.strokeStyle=V('--line'); x.lineWidth=2; x.setLineDash([6,8]);
     x.beginPath(); x.moveTo(L,Y(o.ref)); x.lineTo(R,Y(o.ref)); x.stroke(); x.setLineDash([]);
@@ -362,14 +378,9 @@ function drawSeries(o){
       const px=L+i*gap+(gap-bw)/2, py=Y(v), hh=Math.max(4,B-py);
       x.fillStyle=(i===o.hi)?V('--accent'):V('--accent-dim');
       x.globalAlpha=(i===o.hi)?1:0.65;
-      const r=Math.min(10,bw/2);
-      x.beginPath(); x.moveTo(px+r,py); x.arcTo(px+bw,py,px+bw,py+hh,r);
-      x.arcTo(px+bw,py+hh,px,py+hh,r); x.lineTo(px,py+hh);
-      x.arcTo(px,py+hh,px,py,r); x.arcTo(px,py,px+bw,py,r); x.fill();
-      x.globalAlpha=1;
+      rrect(x,px,py,bw,hh,10); x.globalAlpha=1;
     });
   }
-  // x labels, thinned so they never collide
   x.textAlign='center'; x.fillStyle=V('--muted'); x.font='500 26px '+MONO;
   const step=Math.ceil(n/12);
   (o.labels||[]).forEach((t,i)=>{
@@ -380,23 +391,113 @@ function drawSeries(o){
   x.textAlign='left';
   return cv;
 }
+
+/* --- Days by month: ports the svg loop at stats.js verbatim ------------- */
+function drawDbm(o){
+  const S=1080, cv=document.createElement('canvas'); cv.width=S; cv.height=S;
+  const x=cv.getContext('2d');
+  const F=cardFrame(x,S,o), V=F.V, MONO=F.MONO;
+  const M=vbMap(S,330,F.T+30);
+  const refY=94-20/31*80;
+  x.strokeStyle=V('--line'); x.lineWidth=Math.max(1,M.F(0.6)); x.setLineDash([M.F(2),M.F(3)]);
+  x.beginPath(); x.moveTo(M.X(8),M.Y(refY)); x.lineTo(M.X(316),M.Y(refY)); x.stroke(); x.setLineDash([]);
+  x.fillStyle=V('--muted'); x.font='500 '+M.F(7)+'px '+MONO; x.textAlign='left';
+  x.fillText('20',M.X(319),M.Y(96-20/31*80));
+  o.ms.forEach(([m,n],i)=>{
+    const cur=m===o.monthKey;
+    const bh=Math.max(2,n/31*80), px=8+i*25.5;
+    if(cur){
+      const gh=o.dayOfMonth/31*80;
+      x.strokeStyle=V('--accent'); x.lineWidth=Math.max(1,M.F(0.8)); x.setLineDash([M.F(2),M.F(2)]);
+      x.strokeRect(M.X(px),M.Y(94-gh),M.F(17),M.F(gh)); x.setLineDash([]);
+    }
+    x.fillStyle=V('--accent'); x.globalAlpha=cur?1:0.55;
+    rrect(x,M.X(px),M.Y(94-bh),M.F(17),M.F(bh),M.F(3)); x.globalAlpha=1;
+    x.textAlign='center'; x.font='500 '+M.F(7)+'px '+MONO;
+    if(cur){
+      const gh=o.dayOfMonth/31*80;
+      x.fillStyle=V('--muted'); x.fillText(String(o.dayOfMonth),M.X(px+8.5),M.Y(94-gh-3));
+      x.fillStyle='#fff'; x.font='700 '+M.F(7)+'px '+MONO;
+      x.fillText(String(n),M.X(px+8.5),M.Y(Math.min(91,94-bh+9)));
+    }else{
+      x.fillStyle=V('--muted'); x.fillText(String(n),M.X(px+8.5),M.Y(94-bh-3));
+    }
+    x.fillStyle=cur?V('--accent'):V('--muted'); x.font='500 '+M.F(7)+'px '+MONO;
+    x.fillText(m.slice(5),M.X(px+8.5),M.Y(107));
+  });
+  x.textAlign='left';
+  return cv;
+}
+
+/* --- Weekdays: ports the svg loop verbatim, gridlines and all ----------- */
+function drawWd(o){
+  const S=1080, cv=document.createElement('canvas'); cv.width=S; cv.height=S;
+  const x=cv.getContext('2d');
+  const F=cardFrame(x,S,o), V=F.V, MONO=F.MONO;
+  const M=vbMap(S,330,F.T+30);
+  for(const g of [0,25,50,75,100]){
+    const y=94-g/100*81;
+    x.strokeStyle=V('--line'); x.lineWidth=Math.max(1,M.F(0.6));
+    if(g) x.setLineDash([M.F(2),M.F(3)]);
+    x.beginPath(); x.moveTo(M.X(24),M.Y(y)); x.lineTo(M.X(316),M.Y(y)); x.stroke(); x.setLineDash([]);
+    x.fillStyle=V('--muted'); x.font='500 '+M.F(7)+'px '+MONO; x.textAlign='right';
+    x.fillText(String(g),M.X(21),M.Y(y+3));
+  }
+  const N=['S','M','T','W','T','F','S'];
+  N.forEach((lab,i)=>{
+    const p=o.pct[i], today=i===o.today, best=i===o.best;
+    const bh=Math.max(2,p*81), px=32+i*41;
+    x.fillStyle=today?V('--accent'):V('--accent-dim');
+    x.globalAlpha=today?1:0.6;
+    rrect(x,M.X(px),M.Y(94-bh),M.F(26),M.F(bh),M.F(4)); x.globalAlpha=1;
+    x.textAlign='center';
+    if(best){ x.fillStyle=V('--muted'); x.font='500 '+M.F(9)+'px '+MONO;
+      x.fillText('\u25b2',M.X(px+13),M.Y(86-bh)); }
+    x.fillStyle=V('--muted'); x.font='500 '+M.F(8)+'px '+MONO;
+    x.fillText(Math.round(p*100)+'%',M.X(px+13),M.Y(today?90-bh:(best?78-bh:90-bh)));
+    x.fillStyle=today?V('--chalk'):V('--muted'); x.font='500 '+M.F(9)+'px '+MONO;
+    x.fillText(lab,M.X(px+13),M.Y(109));
+  });
+  x.textAlign='left';
+  return cv;
+}
+
+/* --- Last 6 months: the heatmap, with its weekday rail and month row --- */
 function drawHeat(o){
   const S=1080, cv=document.createElement('canvas'); cv.width=S; cv.height=S;
   const x=cv.getContext('2d');
-  const F=cardFrame(x,S,o), V=F.V;
-  const cols=o.cols, L=F.L, T=F.T+40;
-  const cw=Math.floor((S-F.P*2)/cols.length), cell=Math.min(cw-4,28), gap=4;
+  const F=cardFrame(x,S,o), V=F.V, MONO=F.MONO;
+  const P=64, cols=o.cols;
+  const rail=46, gap=5;
+  const cell=Math.floor((S-P*2-rail-gap*(cols.length-1))/cols.length);
+  const gridL=P+rail, top=F.T+70;
+  // weekday rail, matching the on-screen .wdrail
+  x.fillStyle=V('--faint'); x.font='500 22px '+MONO; x.textAlign='right'; x.textBaseline='middle';
+  ['S','M','T','W','T','F','S'].forEach((d,r)=>
+    x.fillText(d,P+rail-14,top+r*(cell+gap)+cell/2));
+  // month labels across the top, only where the month turns over
+  x.textAlign='left'; x.textBaseline='alphabetic';
+  x.fillStyle=V('--muted'); x.font='500 22px '+MONO;
+  let lastM=-1;
   cols.forEach((col,ci)=>{
-    col.forEach((d,ri)=>{
-      const px=L+ci*(cell+gap), py=T+ri*(cell+gap);
-      if(d.fut){ x.strokeStyle=V('--line'); x.lineWidth=2; x.strokeRect(px,py,cell,cell); return; }
-      x.fillStyle=d.on?V('--accent'):V('--surface2');
-      x.beginPath(); const r=6;
-      x.moveTo(px+r,py); x.arcTo(px+cell,py,px+cell,py+cell,r);
-      x.arcTo(px+cell,py+cell,px,py+cell,r); x.arcTo(px,py+cell,px,py,r);
-      x.arcTo(px,py,px+cell,py,r); x.fill();
-    });
+    const m=new Date(col[0].iso+'T00:00').getMonth();
+    if(m!==lastM){
+      x.fillText(new Date(col[0].iso+'T00:00').toLocaleDateString('en-US',{month:'short'}),
+                 gridL+ci*(cell+gap), top-16);
+      lastM=m;
+    }
   });
+  cols.forEach((col,ci)=>col.forEach((d,ri)=>{
+    const px=gridL+ci*(cell+gap), py=top+ri*(cell+gap);
+    x.globalAlpha=d.fut?0.35:1;
+    x.fillStyle=d.on?V('--accent'):V('--surface2');
+    rrect(x,px,py,cell,cell,4);
+    x.globalAlpha=1;
+    if(d.iso===todayISO){
+      x.strokeStyle=V('--chalk'); x.lineWidth=3;
+      x.strokeRect(px-2,py-2,cell+4,cell+4);
+    }
+  }));
   return cv;
 }
 async function showCard(drawFn,label){

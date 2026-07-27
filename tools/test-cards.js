@@ -97,4 +97,71 @@ const unwired = JSON.parse(wired).filter(id => !handlers.includes(`hit('${id}')`
 ok("every share icon on screen has a router handler", unwired.length === 0,
    unwired.length ? unwired.join(",") : JSON.parse(wired).length + " wired");
 
+// ---- v3.3.115: the three cards must MIRROR the on-screen chart -----------
+// Not "does it draw something" \u2014 does it draw the same thing. Each card is
+// compared against the labels its own SVG renders.
+const svgTexts = (sel) => run(`(function(){
+  const el=[...document.querySelectorAll('#view h2')].find(h=>h.textContent.indexOf(${JSON.stringify(sel)})===0);
+  if(!el) return '[]';
+  let n=el.nextElementSibling, svg=n?n.querySelector('svg'):null;
+  if(!svg) return '[]';
+  return JSON.stringify([...svg.querySelectorAll('text')].map(t=>t.textContent.trim()));})()`);
+
+// --- Days by month ---------------------------------------------------------
+const dbmSvg = JSON.parse(svgTexts("Days by month"));
+const dbmCard = paints("makeDbmImage").texts;
+ok("the Days-by-month card carries the same 20-day reference label as the chart",
+   dbmSvg.includes("20") && dbmCard.includes("20"));
+/* cardFrame() always emits exactly five texts first \u2014 big, sub, kicker,
+   footer, url \u2014 which the SVG has no equivalent of. Compare only the plot
+   labels after them, or the card's own headline ("23" trained) gets counted
+   as a month label and the sets never line up. */
+const FRAME_TEXTS = 5;
+const dbmMonths = dbmSvg.filter(t => /^\d{2}$/.test(t));
+const cardMonths = dbmCard.slice(FRAME_TEXTS).filter(t => /^\d{2}$/.test(t));
+ok("...and the same month labels, in the same count",
+   dbmMonths.length > 0 && dbmMonths.join(",") === cardMonths.join(","),
+   `svg ${dbmMonths.join("")} vs card ${cardMonths.join("")}`);
+
+// --- Weekdays --------------------------------------------------------------
+const wdSvg = JSON.parse(svgTexts("Weekdays"));
+const wdCard = paints("makeWdImage").texts;
+ok("the Weekdays card draws the same 0/25/50/75/100 gridline labels",
+   ["0","25","50","75","100"].every(g => wdCard.includes(g)),
+   wdCard.filter(t => /^\d+$/.test(t)).join(","));
+const wdPctSvg = wdSvg.filter(t => /%$/.test(t)).join(",");
+const wdPctCard = wdCard.slice(FRAME_TEXTS).filter(t => /%$/.test(t)).join(",");
+ok("...and the same seven percentages as the chart",
+   wdPctSvg.length > 0 && wdPctSvg === wdPctCard,
+   `svg ${wdPctSvg} vs card ${wdPctCard}`);
+ok("...including the caret over the strongest day", wdCard.includes("\u25b2"));
+ok("...and the SMTWTFS letters", wdCard.filter(t => /^[SMTWF]$/.test(t)).length === 7,
+   wdCard.filter(t => /^[SMTWF]$/.test(t)).join(""));
+
+// --- Last 6 months ---------------------------------------------------------
+const heatCard = paints("makeHeatImage");
+ok("the heat card draws 26x7 cells plus the rail",
+   heatCard.shapes >= 182, heatCard.shapes + " shape ops");
+ok("...with the weekday rail letters",
+   heatCard.texts.filter(t => /^[SMTWF]$/.test(t)).length === 7,
+   heatCard.texts.filter(t => /^[SMTWF]$/.test(t)).join(""));
+ok("...and month labels across the top",
+   heatCard.texts.some(t => /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)$/.test(t)),
+   heatCard.texts.filter(t => /^[A-Z][a-z]{2}$/.test(t)).join(","));
+
+// the shared coordinate mapper is what makes fidelity structural
+const rep115 = fs.readFileSync(path.join(dir, "js/report.js"), "utf8");
+ok("one vbMap() maps the svg coordinate system for all three",
+   (rep115.match(/function vbMap/g) || []).length === 1 &&
+   ["drawDbm", "drawWd"].every(f => new RegExp(f + "[\\s\\S]{0,900}vbMap\\(").test(rep115)));
+
+// ---- v3.3.115: icons are larger and beside the title --------------------
+const css115 = fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\n/g, "");
+const ib = (css115.match(/\.ibtn\{[^}]*\}/) || [""])[0];
+const sz = +((ib.match(/width:(\d+)px/) || [])[1] || 0);
+ok("the (i) grew", sz >= 20, sz + "px");
+const hacts = (css115.match(/h2 \.hacts\{[^}]*\}/) || [""])[0];
+ok("...and the group sits beside the title, not pushed right",
+   !/margin-left:auto/.test(hacts), hacts);
+
 process.exit(fail ? 1 : 0);
