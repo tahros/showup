@@ -104,11 +104,11 @@ function partDigest(part,sess,opts){
   }
   const shown=sess.slice(-14), n=shown.length;
   const mx=Math.max(...shown.map(val),1);
-  const W=330,H=92,base=72;
+  const W=330,H=78,base=61;   // v3.3.102: ~15% shorter, same proportions
   const gap=Math.min(26,(W-20)/Math.max(n,1)), bw=Math.max(5,Math.min(18,gap-4));
   let ch=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto">`;
   shown.forEach((s,i)=>{
-    const bh=Math.max(2,(val(s)/mx)*58), x=10+i*gap;
+    const bh=Math.max(2,(val(s)/mx)*49), x=10+i*gap;
     const newest=i===n-1;
     const fill=newest?(opts.live&&s.d===todayISO?'var(--live)':'var(--accent)'):'var(--line)';
     ch+=`<rect class="${newest&&opts.live?'lbNow':''}" x="${x.toFixed(1)}" y="${(base-bh).toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="2" fill="${fill}"></rect>`;
@@ -124,11 +124,11 @@ function partDigest(part,sess,opts){
     : `${fmt(sess.reduce((a,s)=>a+s.sets,0))} sets all time`;
   const gTxt=growth===null?'':`<span class="mono ${growth>=0?'up':'down'}">${growth>=0?'+':''}${growth}% vs the 5 before</span>`;
   return `${opts.head?`<h2>${opts.head}</h2>`:''}<div class="card pdigest">
-      <div class="row spread" style="margin-bottom:8px">
+      <div class="row spread" style="margin-bottom:6px">
         <b style="font-family:var(--disp)">${part}</b>
         <span class="mono muted" style="font-size:12px"><b style="color:var(--accent)">${yrN}</b> days in ${thisYear}</span>
       </div>
-      <div class="tot" style="margin-bottom:10px">
+      <div class="tot" style="margin-bottom:8px">
         <span>${cadence?`every ~${cadence}d`:'not enough history yet'}</span>
         <span>${since===0?'trained today':`${since}d since`}</span>
       </div>

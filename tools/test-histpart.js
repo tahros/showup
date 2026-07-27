@@ -91,4 +91,28 @@ run(`hist.part='Chest'; renderHistory();`);
 check("empty filter names the part",
       `/No Chest logged this month/.test(document.querySelector('#view').textContent)`, true);
 
+// ---- v3.3.102: the digest chart is shorter, on request ---------------------
+// height ~15% down (92→78 viewBox units), same proportions preserved so
+// the bars still read the same shape, just on a shorter canvas.
+run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
+  for(let i=0;i<20;i++){const d=new Date(t); d.setDate(d.getDate()-i*3);
+    DB.days[d.toLocaleDateString('en-CA')]={w:[{part:'Shoulder',ex:'Dumbbell Press',w:20,reps:[10]}],upd:1};}
+  SEED=deriveAll(); hist.part='Shoulder'; view='history'; render();})()`);
+const svgH = run(`(document.querySelector('.pdigest svg').getAttribute('viewBox')||'').split(' ')[3]`);
+check("the digest chart viewBox is shorter than before (was 92)", `${svgH}<92 && ${svgH}>0`, true);
+check("...specifically 78, the ~15% target", svgH, "78");
+// the bars must still reach proportionally as far up the shorter canvas —
+// the shrink should not also silently flatten the chart
+const bh = run(`(function(){
+  const rs=[...document.querySelectorAll('.pdigest svg rect')];
+  const hs=rs.map(r=>+r.getAttribute('height'));
+  return Math.max(...hs);})()`);
+check("the tallest bar still reaches close to its old proportional height (~48, was 58)",
+      `${bh}>=44 && ${bh}<=52`, true);
+// and the card must still render cleanly — no leftover references to the
+// old constants anywhere nearby
+const histSrc = fs.readFileSync(path.join(dir, "js/history.js"), "utf8");
+check("no stray reference to the old H=92 / base=72 / *58 constants remains",
+      `${!/H=92|base=72|\*58\)/.test(histSrc)}`, "true");
+
 process.exit(fail ? 1 : 0);

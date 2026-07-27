@@ -1,5 +1,31 @@
 # ShowUp — changelog
 
+## v3.3.102 (2026-07-26) — The part digest card, ~15% shorter
+
+Requested from a screenshot of the Shoulder · LIVE card on Today. The bar
+chart's viewBox drops from 92 to 78 units, the baseline and max-bar height
+scaled to match (same proportions, shorter canvas), and the two internal
+margins around it tighten by 2px each so the shrink reads through the whole
+card, not just the chart. Every day-part page that renders this card —
+Today's live digest, History's part filter — gets it for free; there is
+only one `partDigestCard()`.
+
+**A pre-existing, unrelated test bug was found and fixed along the way.**
+Full regression turned up a failure in `test-statspolish.js` that also
+failed against YESTERDAY's build — confirming it had nothing to do with
+today's change. Its weekday-distribution fixture hardcoded "Monday is the
+strongest day, today is a Wednesday," true when the test was written and
+false the day this suite happened to run on an actual Monday: the fixture's
+designated strongest day collided with today's real weekday on the
+calendar, and the guard it existed to prove ("the caret and the accent bar
+are never the same bar") failed for a reason that had nothing to do with
+the app. Fixed to compute the strongest day three weekdays off from
+whatever today actually is, so the fixture can never again collide with
+its own run date. A quiet reminder that hardcoded dates in fixtures are
+themselves a kind of technical debt with a fuse.
+
+`test-histpart.js` at 25, `test-statspolish.js` at 26.
+
 ## v3.3.101 (2026-07-26) — One root cause, two marks
 
 From a screenshot: dead space at the top of the Days hero, and dead space

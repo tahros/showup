@@ -26,24 +26,30 @@ const check = (name, expr, want) => {
 };
 
 // Build 365 days where the STRONGEST weekday is deliberately NOT today, so
-// "accent = today" and "caret = strongest" are distinguishable. todayISO is
-// a Wednesday in the app's world (2026-07-22). Make Monday the strongest by
-// training every Monday and only a few Wednesdays.
+// "accent = today" and "caret = strongest" stay distinguishable regardless
+// of which day this suite happens to run on. v3.3.102: this used to hardcode
+// Monday-as-strongest on the assumption todayISO was a Wednesday (true when
+// written, false the day this suite ran on an actual Monday — the fixture's
+// "strongest" day collided with today's weekday by the calendar, not by any
+// app bug, and the guard it existed to prove failed for the wrong reason).
+// The strongest day is now always three weekdays off from whatever today
+// is, so the fixture can never again collide with the date it runs on.
 run(`
   const base=new Date(todayISO+'T00:00');
+  const strongDow=(base.getDay()+3)%7;                 // always 3 off from today
   for(let i=0;i<365;i++){
     const c=new Date(base); c.setDate(c.getDate()-i);
     const dow=c.getDay();               // 0 Sun .. 6 Sat
     const iso=c.toLocaleDateString('en-CA');
-    // Mondays always; Wednesdays only 1 in 5 — Monday must win 'strongest'
-    if(dow===1 || (dow===3 && i%5===0)) DB.days[iso]={w:[{part:'Back',ex:'Pull Up',w:70,reps:[8]}],upd:1};
+    // strongDow always; today's own weekday only 1 in 5 — strongDow must win
+    if(dow===strongDow || (dow===base.getDay() && i%5===0)) DB.days[iso]={w:[{part:'Back',ex:'Pull Up',w:70,reps:[8]}],upd:1};
   }
   SEED=deriveAll(); _fireDist=null;
   view='stats'; render();
 `);
 
 const todayDow = run(`new Date(todayISO+'T00:00').getDay()`);
-console.log("     (today's weekday index:", todayDow + ", 3 = Wed)");
+console.log("     (today's weekday index:", todayDow + ", strongest is always 3 off from it now)");
 
 // the accent bar is today's column. Bars are drawn left→right S,M,T,W,T,F,S.
 check("exactly one accent (today) bar",
