@@ -234,4 +234,51 @@ check("with no live session, the Rhythm heading is #view's first child",
 check("...and it carries the quiet class this fix targets",
       `document.querySelector('#view').firstElementChild.classList.contains('quiet')`, true);
 
+// ---- v3.3.106: the trained state leads with the number that MOVED --------
+// Fixture: past history + today logged AND sealed (doneAll), matching the
+// screenshot's state \u2014 see the v3.3.105 note about renderToday's branches.
+run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
+  for(let i=1;i<=40;i++){ const d=new Date(t); d.setDate(d.getDate()-i);
+    DB.days[d.toLocaleDateString('en-CA')]={w:[{part:'Chest',ex:'Chest Press',w:40,reps:[10]}],upd:1}; }
+  day(todayISO).w.push({part:'Shoulder',ex:'Dumbbell Press',w:20,reps:[15],at:Date.now()});
+  day(todayISO).doneAll=true; lift.part=null; lift.ex=null;
+  SEED=deriveAll(); DB.settings.msFloor=msLiveTotal(); DB.settings.msAck=msLiveTotal();
+  view='today'; render();})()`);
+
+check("the trained card leads with the live day total, not a label",
+      `document.querySelector('.rhythm .big.dayn').textContent`, "41");
+check("...the old 'Trained today' label is gone",
+      `document.querySelector('#view').innerHTML.includes('Trained today')`, false);
+check("...and its caption is no longer empty",
+      `document.querySelector('.rhythm .rcap').textContent.trim().length > 0`, true);
+check("...the caption names what the number counts",
+      `document.querySelector('.rhythm .rcap').textContent.includes('days in')`, true);
+// the number the count-up will animate FROM is yesterday's total, not zero
+check("the day figure carries a one-step count-up range",
+      `(function(){const e=document.querySelector('.rhythm .big.dayn');
+        return (+e.dataset.to - +e.dataset.from)===1;})()`, true);
+// the year % survives as the secondary stat \u2014 this replaced the LABEL, not it
+check("the year percentage is still there as the secondary figure",
+      `/of \\d{4}/.test(document.querySelector('.rhythm').textContent)`, true);
+
+// the sanctioned countdown appears only inside 75 days of a thousand
+check("no thousands countdown when far from one", `msNearThousand(400)`, "null");
+check("...and one inside the window",
+      `JSON.stringify(msNearThousand(940))`, '{"next":1000,"left":60}');
+check("...exactly 75 out is still inside", `JSON.stringify(msNearThousand(925))`, '{"next":1000,"left":75}');
+check("...76 is outside", `msNearThousand(924)`, "null");
+// one definition, shared \u2014 the greeting must route through it too
+const todaySrc106 = fs.readFileSync(path.join(dir, "js/today.js"), "utf8");
+console.log(((todaySrc106.match(/\[1000,1500,2000,2500,3000,4000,5000\]/g) || []).length === 1 ? "PASS" : "FAIL"),
+  "the thousands ladder is defined exactly once");
+if ((todaySrc106.match(/\[1000,1500,2000,2500,3000,4000,5000\]/g) || []).length !== 1) fail++;
+console.log((/function helloSub[\s\S]{0,200}msNearThousand/.test(todaySrc106) ? "PASS" : "FAIL"),
+  "...and the greeting routes through it");
+if (!/function helloSub[\s\S]{0,200}msNearThousand/.test(todaySrc106)) fail++;
+
+// the NOT-trained states are untouched by all of this
+run(`(function(){day(todayISO).w=[]; delete day(todayISO).doneAll; SEED=deriveAll(); render();})()`);
+check("an untrained day still leads with the streak, not the day count",
+      `!!document.querySelector('.rhythm .big.dayn')`, false);
+
 process.exit(fail ? 1 : 0);

@@ -537,6 +537,11 @@
   .rgrid .rcap{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:2px}
   .rgrid .rcap.r{text-align:right;font-size:10px}
   .rhythm .big.ok{font-size:20px;color:var(--accent)}
+  /* v3.3.106: the day count is the flagship figure, sized and coloured like
+     the Stats hero it mirrors. Authored AFTER .big.ok — equal specificity,
+     so source order decides (the v3.3.105 lesson, applied deliberately). */
+  .rhythm .big.dayn{font-size:38px;color:var(--accent)}
+  .rgrid .rcap .nearms{color:var(--accent);font-weight:700}
   .rhythm .unit{font-family:var(--mono);font-size:12px;color:var(--muted);margin-left:4px}
   /* v3.3.59: the calendar return ticket. Accent, not red — it's navigation,
      not a live signal. Sits above the tab bar + safe area. */

@@ -144,7 +144,14 @@ check("the milestone day itself rolls to the next window", `helloSub(1000)`, "1,
 check("...and 1500 is a milestone too", `helloSub(1460)`, "1,460 days in \u00b7 40 to 1,500.");
 check("zero days is silence, not zero", `helloSub(0)`, "");
 const todaySrc = fs.readFileSync(path.join(dir, "js/today.js"), "utf8");
-const hello = (todaySrc.match(/function helloPart[\s\S]*?function renderToday/) || [""])[0];
+const helloRaw = (todaySrc.match(/function helloPart[\s\S]*?function renderToday/) || [""])[0];
+/* v3.3.106: strip COMMENTS before hunting string literals. The extractor
+   pairs up apostrophes, so a single "can't" or "doesn't" in a comment opens
+   a phantom string that swallows the code after it \u2014 including any
+   legitimate `if(!el)` \u2014 and this guard then fails for a reason that has
+   nothing to do with the greeting. The assertion is about what the greeting
+   can SAY, so it must read strings only. */
+const hello = helloRaw.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/[^\n]*/g, "$1");
 const strings = [...hello.matchAll(/'[^']*'|`[^`]*`/g)].map(m => m[0]).join("");
 ok("no exclamation mark can reach the greeting (its strings carry none)",
    !strings.includes("!"));

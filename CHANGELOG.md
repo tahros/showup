@@ -1,5 +1,49 @@
 # ShowUp — changelog
 
+## v3.3.106 (2026-07-27) — Training should not delete the number it moved
+
+The maker on the Rhythm card once a session is done: boring, and a moving
+percentage isn't inspiring.
+
+The diagnosis was specific. "Trained today" is a LABEL, and one the strip's
+own outlined `today` cell already carries — so the trained state said
+nothing new and left its caption slot literally empty
+(`<div class="rcap"></div>`). Meanwhile `helloCard()`, the only place Today
+shows the day count, renders exclusively in the `!logged` branch. So the
+act of training REMOVED the app's north-star number from the screen and
+replaced it with a redundant label beside a figure that moves 0.3 points a
+day. No wonder it read as static.
+
+Now the trained state leads with the figure that moved *because you showed
+up* — the live day total, at flagship size and accent, mirroring the Stats
+hero — and the empty caption carries "days in", plus the thousands
+countdown when one is close.
+
+**No compliment was added, deliberately.** The doctrine is receipts, not
+claims, and the app does not congratulate. Encouragement here means finding
+the fact that is genuinely encouraging and showing THAT: the number went up
+today, and it went up because of something you did. `test-bw.js`'s
+no-exclamation guard still holds over the greeting.
+
+The number ticks over once from yesterday's total — an earned response to a
+real event, gated to once per app open so it never becomes a decoration
+that replays on every tab switch, and skipped under reduced motion.
+`msCountUp()` and the new day counter now share one `countUpEl()`.
+
+`msNearThousand()` is extracted so the greeting and the card cannot drift:
+thousands only, inside 75 days, asserted at both boundaries (75 in, 76
+out), with the ladder array asserted to exist exactly once.
+
+**A test bug fixed on the way.** The greeting's no-exclamation guard failed
+against correct code: it finds string literals by pairing apostrophes, so a
+single "can't" in a NEW COMMENT opened a phantom string that swallowed the
+code after it, including a legitimate `if(!el)`. The extractor now strips
+comments first — the assertion is about what the greeting can say, so it
+must read strings only. Re-verified by injecting a real exclamation into
+`helloSub` and confirming the guard fires, then restoring.
+
+`test-todayhero.js` at 53, `test-bw.js` at 57.
+
 ## v3.3.105 (2026-07-27) — A specificity coin-flip, not a decision
 
 From a screenshot: a large empty gap between the header and the "Rhythm"

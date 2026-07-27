@@ -84,9 +84,20 @@ function rhythmCard(){
   const r=rhythm(), ly=r.ly;
   const pctN=Math.round(r.pct*100), lyN=r.lyPct!=null?Math.round(r.lyPct*100):null;
   const delta=lyN!=null?pctN-lyN:null;
-  const leadNum = r.trainedToday ? `<b class="big ok">Trained today</b>`
+  /* v3.3.106: "Trained today" was a LABEL, and one the strip's own `today`
+     cell already carries — so the trained state said nothing new and left
+     its caption slot literally empty. Worse, helloCard() (the only place
+     Today shows the day count) renders solely in the !logged branch, so
+     the act of training REMOVED the north-star number from the screen.
+     Now the trained state leads with the figure that moved because you
+     showed up, and the empty caption carries the sanctioned countdown. */
+  const _total=msLiveTotal();
+  const _near=msNearThousand(_total);
+  const leadNum = r.trainedToday
+      ? `<b class="big dayn" data-from="${Math.max(0,_total-1)}" data-to="${_total}">${fmt(_total)}</b>`
     : r.gap===0 ? `<b class="big ok">${currentStreak()}d</b>` : `<b class="big">${r.gap}</b>`;
-  const leadCap = r.trainedToday ? `<div class="rcap"></div>`
+  const leadCap = r.trainedToday
+      ? `<div class="rcap">days in${_near?` · <b class="nearms">${_near.left} to ${fmt(_near.next)}</b>`:''}</div>`
     : r.gap===0
       ? `<div class="rcap">streak · ${streakAtRisk()?'<b class="atriskTxt">ends at midnight</b>':'today unwritten'}</div>`
       : `<div class="rcap">rest day${r.gap>1?'s':''} in a row · today unwritten</div>`;

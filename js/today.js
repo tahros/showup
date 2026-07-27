@@ -217,11 +217,18 @@ document.addEventListener('click',e=>{
 function helloPart(hr){
   return hr<5?'Early':hr<12?'Morning':hr<18?'Afternoon':hr<22?'Evening':'Late';
 }
+/* v3.3.106: the ONE anticipation the milestone doctrine sanctions —
+   thousands only, and only inside 75 days (v3.3.98: no countdowns to small
+   rungs, because anticipation-farming is the mechanism, not the size).
+   Extracted so the greeting and the Rhythm card can't drift apart. */
+function msNearThousand(d){
+  const next=[1000,1500,2000,2500,3000,4000,5000].find(m=>m>d);
+  return next&&next-d<=75 ? {next, left:next-d} : null;
+}
 function helloSub(d){
   if(!d) return '';
-  const next=[1000,1500,2000,2500,3000,4000,5000].find(m=>m>d);
-  return next&&next-d<=75 ? `${fmt(d)} days in · ${next-d} to ${fmt(next)}.`
-                          : `${fmt(d)} days in.`;
+  const n=msNearThousand(d);
+  return n ? `${fmt(d)} days in · ${n.left} to ${fmt(n.next)}.` : `${fmt(d)} days in.`;
 }
 function helloCard(){
   const n=firstName();
@@ -233,17 +240,26 @@ function helloCard(){
 /* count-up: the number climbs from the previous rung, ~1.6s ease-out, once
    per render of a pending moment. Reduced motion → static, guarded by the
    media query at call time. Inline animation, no fill-mode, no stacking. */
-function msCountUp(){
-  const el=document.querySelector('.msmoment .msnum'); if(!el) return;
+function countUpEl(el,dur){
+  if(!el) return;
   try{ if(matchMedia('(prefers-reduced-motion: reduce)').matches) return; }catch(e){}
   const from=+el.dataset.from||0, to=+el.dataset.to||0; if(to<=from) return;
-  const t0=performance.now(), dur=1600;
+  const t0=performance.now();
   const step=(t)=>{
     const p=Math.min(1,(t-t0)/dur), e2=1-Math.pow(1-p,3);
     el.textContent=fmt(Math.round(from+(to-from)*e2));
     if(p<1) requestAnimationFrame(step);
   };
   requestAnimationFrame(step);
+}
+function msCountUp(){ countUpEl(document.querySelector('.msmoment .msnum'),1600); }
+/* the day number ticks over ONCE per app open, not on every tab switch —
+   an earned response to a real event, not a decoration that repeats. */
+let _dayUpPlayed=false;
+function dayCountUp(){
+  if(_dayUpPlayed) return;
+  const el=document.querySelector('.rhythm .big.dayn'); if(!el) return;
+  _dayUpPlayed=true; countUpEl(el,900);
 }
 function renderToday(){
   if(SEED.totals.sessions===0 && !((DB.days[todayISO]||{}).w||[]).length){
@@ -324,7 +340,7 @@ function renderToday(){
       const nDue=rest.filter(p=>P.score(p)>=1).length;
       h+=`<button class="btn ghost" id="goLift" style="margin-top:14px">Train other parts${nDue?` · ${nDue} due`:''} →</button>`;
     }
-    $('#view').innerHTML=h; msCountUp(); return;
+    $('#view').innerHTML=h; msCountUp(); dayCountUp(); return;
   }
 
   // ---- mid-session: what am I doing right now
@@ -375,7 +391,7 @@ function renderToday(){
   if(isLive()) h+=`<button class="btn done" id="doneAllBtn">✓ Complete workout</button>`;
   else if(t.w.length&&t.doneAll)
     h+=`<div class="note mono" style="text-align:center;margin:14px 0 4px">✓ Workout complete · ${t.w.length} sets — logging another set reopens it</div>`;
-  $('#view').innerHTML=h; msCountUp();
+  $('#view').innerHTML=h; msCountUp(); dayCountUp();
 }
 
 /* ---------- Lift ---------- */
