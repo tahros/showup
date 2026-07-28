@@ -1,5 +1,22 @@
 # ShowUp — changelog
 
+## v3.3.135 (2026-07-29) — 931 out of what
+
+**"931 days" never said out of what.** The span was already printed along the
+bottom of the card — 2021-12-13 to today — so the denominator was present but
+never as a fraction, and the one number a stranger needs to read the card was
+the one they had to compute. The headline now reads "931 of 1,690 days":
+elapsed days since the first entry, inclusive of both ends, the same window
+the footer states.
+
+Same move as v3.3.133 on Last 6 months, and for the same reason: a count
+without its denominator is a number, not a rate, and this app's whole claim
+is about rate.
+
+The assertion that matched the label "days" exactly was replaced rather than
+loosened — it now checks the fraction is stated, that the denominator equals
+elapsed days since the first entry, and that the count never exceeds it.
+
 ## v3.3.134 (2026-07-28) — The Pace card was a scale bug, not a spacing bug
 
 **The white space was the symptom.** `drawSeries` scaled lines from 0 to max.

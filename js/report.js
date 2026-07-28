@@ -58,8 +58,14 @@ function drawGrid(gd){
   x.fillStyle=V('--chalk'); x.font='700 132px '+SANS;
   x.fillText(String(gd.total),P,P+126);
   const tw=(x.measureText(String(gd.total))||{}).width||0;
+  /* v3.3.135: "931 days" never said out of what. The span was already printed
+     along the bottom, so the denominator was on the card but never as a
+     fraction. Elapsed days since the first entry, inclusive of both ends —
+     the same window the footer states, now countable. */
+  const spanDays=Math.round(
+    (new Date(todayISO+'T00:00') - new Date((gd.first||todayISO)+'T00:00'))/86400000)+1;
   x.fillStyle=V('--muted'); x.font='500 40px '+MONO;
-  x.fillText('days',P+tw+20,P+126);
+  x.fillText('of '+spanDays.toLocaleString()+' days',P+tw+20,P+126);
   x.textAlign='right'; x.font='500 34px '+MONO;
   x.fillText('ShowUp',S-P,P+54);
   x.textAlign='left'; x.fillStyle=V('--faint'); x.font='500 28px '+MONO;

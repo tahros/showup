@@ -84,7 +84,19 @@ const sets  = calls.filter(c => c[0] === "set:fillStyle").map(c => String(c[1]))
 // ---- 3. the streak number leads ------------------------------------------
 const total = run(`String(gridData().total)`);
 ok("the day count is drawn", texts.includes(total), total);
-ok("...labelled as days", texts.includes("days"));
+/* v3.3.135: the label carries the denominator now — "of 1,690 days" — so an
+   exact match on "days" no longer holds. Assert the FRACTION is stated, and
+   that the denominator is the elapsed span rather than an arbitrary number. */
+const denom = texts.find(t => /^of [\d,]+ days$/.test(t));
+ok("...labelled with the span it is out of", !!denom, denom || texts.slice(0,4).join(" | "));
+if (denom) {
+  const shown = +denom.replace(/\D/g, "");
+  const expect = run(`(function(){const gd=gridData();
+      return Math.round((new Date(todayISO+'T00:00')-new Date((gd.first||todayISO)+'T00:00'))/86400000)+1;})()`);
+  ok("...and that span is days elapsed since the first entry", shown === expect,
+     shown + " vs " + expect);
+  ok("...with the count never exceeding it", +total <= shown, total + " of " + shown);
+}
 ok("...before anything else on the card", texts.indexOf(total) === 0);
 ok("the app is named", texts.includes("ShowUp"));
 // v3.3.133: no card carries the URL any more; "ShowUp" above is the provenance
