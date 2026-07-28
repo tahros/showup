@@ -193,6 +193,22 @@ for _name, _blkc, _ground_name in (("dark", _dark, "ground"), ("light", _light, 
         if _r < 2.0:
             fail.append(f"part colour --p-{_m.group(1)} = {_r:.2f}:1 on {_name} ground (< 2.0) (v3.3.121)")
 
+# -- card rhythm (v3.3.138): the containers stacked down the Lift view are
+#    different classes with the same job — a card in a column. They drifted
+#    apart once (.lastcard sat at 26px against .zone's 14px, which read as a
+#    section break under "Logged today" that nobody intended). One number,
+#    asserted, so the next person to touch either rule has to touch both.
+_margins = {}
+for _cls in ("zone", "lastcard"):
+    _m = _re.search(r"\.%s\{[^}]*?margin-top:\s*(\d+)px" % _cls, css)
+    if not _m:
+        fail.append(f"card rhythm: .{_cls} has no margin-top to check (v3.3.138)")
+    else:
+        _margins[_cls] = int(_m.group(1))
+if len(_margins) == 2 and len(set(_margins.values())) != 1:
+    fail.append("card rhythm: " + ", ".join(f".{k}={v}px" for k, v in _margins.items())
+                + " — stacked cards must share one margin (v3.3.138)")
+
 # -- shell size
 n = len(idx.encode())
 if n >= 8192: fail.append(f"index.html shell is {n} bytes (limit 8192)")

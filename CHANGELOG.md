@@ -1,5 +1,22 @@
 # ShowUp — changelog
 
+## v3.3.138 (2026-07-29) — One rhythm down the column
+
+**`.lastcard` sat 26px below the card above it; every `.zone` sits at 14px.**
+So the gap under "Logged today" read as a section break that nobody had
+decided to put there — two containers doing the same job, a card in a
+column, with different ideas about spacing. Now both are 14px.
+
+The run-history card carries the same class and gets the same correction,
+which is right: it is also a card in a column.
+
+**A buildcheck guard went in with the fix.** The two rules are in different
+parts of the stylesheet, written at different times, and nothing connected
+them — which is exactly how they drifted in the first place. Guard #10 reads
+both margins and fails the build if they disagree, so the next person to
+change either has to change both. Verified by reverting the fix and watching
+the build fail with the precise message, then re-applying it.
+
 ## v3.3.137 (2026-07-29) — The suggestions follow the weight
 
 **The rep tiles have followed the weight since v3.3.56; the suggested chips
