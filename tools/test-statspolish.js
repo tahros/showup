@@ -243,7 +243,10 @@ console.log((orderOK ? "PASS" : "FAIL"), "Stats sections render in the declared 
 if (!orderOK) fail++;
 
 // the two removed sections are gone everywhere
-check("Report card is gone", `/Report card/.test($('#view').innerHTML)`, false);
+// v3.3.130: Report card is BACK — as the one share surface, last before Settings
+check("Report card renders", `/Report card/.test($('#view').innerHTML)`, true);
+check("...and sits after Records, as the exit",
+      `$('#view').innerHTML.indexOf('secReport') > $('#view').innerHTML.indexOf('secRecords')`, true);
 check("Last 30 days vs your usual is gone", `/vs your usual/.test($('#view').innerHTML)`, false);
 
 // titles follow the rule: no comma-qualifiers left in the retitled set
@@ -279,32 +282,39 @@ console.log((dataHeads.every(r => r.lastIsActs) ? "PASS" : "FAIL"),
   dataHeads.filter(r => !r.lastIsActs).map(r => r.t).join("|") || "all");
 if (!dataHeads.every(r => r.lastIsActs)) fail++;
 
-// the download icon appears ONLY where a card exists \u2014 absence is deliberate
-/* v3.3.114: five more cards were built, so the expected set grows from
-   three to eight. Kept EXPLICIT rather than loosened to "some sections have
-   icons" \u2014 the point of this assertion is that a section cannot silently
-   gain an icon that opens nothing, or lose one that works. */
+/* v3.3.130: the per-section download icon is gone entirely. The assertion it
+   used to make — "a section cannot silently gain an icon that opens nothing"
+   — is made at the registry now (test-cards), where an unregistered card is
+   unreachable. Here we only hold the line that no section grew one back. */
 const withDl = hd.filter(r => r.d).map(r => r.t).sort().join(",");
-const EXPECT_DL = "Consistency,Days by month,Distance,Every month,Every week,Last 6 months,Pace,Weekdays";
-console.log((withDl === EXPECT_DL ? "PASS" : "FAIL"),
-  "the download icon appears on exactly the sections with a card", "\u2192", withDl);
-if (withDl !== EXPECT_DL) fail++;
+console.log((withDl === "" ? "PASS" : "FAIL"),
+  "no section header carries a share icon any more", "→", withDl || "none");
+if (withDl !== "") fail++;
 
-// the in-card buttons are gone, not duplicated
-check("no 'Share as image' button survives in any card body",
-      `/Share as image/.test($('#view').innerHTML)`, false);
+/* v3.3.130: "Share as image" comes back \u2014 but exactly once, in the report
+   card. The original assertion guarded against it being duplicated across
+   every card body, and that is still the thing worth guarding. */
+check("'Share as image' appears exactly once in the whole tab",
+      `($('#view').innerHTML.match(/Share as image/g)||[]).length`, 1);
 
-// the ids were preserved, so the router still fires \u2014 the real risk of the move
-check("the header share buttons keep the original ids the router listens for",
-      `['yoyShare','gridShare','runShare'].every(id=>!!document.querySelector('h2 .shareb#'+id))`, true);
-let fired = 0;
-run(`__origShow = showCard; showCard = () => { globalThis.__fired = (globalThis.__fired||0)+1; return null; };`);
-run(`document.querySelector('#yoyShare').click(); document.querySelector('#gridShare').click(); document.querySelector('#runShare').click();`);
-fired = run(`globalThis.__fired||0`);
-run(`showCard = __origShow;`);
-console.log((fired === 3 ? "PASS" : "FAIL"),
-  "...and all three still reach a card renderer when tapped", "\u2192", fired + "/3");
-if (fired !== 3) fail++;
+/* v3.3.130: the risk moved. It used to be "did the ids survive the move" \u2014
+   now it is "does the one button reach a renderer, and does rotating change
+   WHICH card it reaches". A share button that always sends card 1 would look
+   perfectly fine on screen. */
+run(`__origShow = showCard; globalThis.__sent=[];
+     showCard = (fn,label) => { globalThis.__sent.push(label); return null; };`);
+run(`_repIdx=0; document.querySelector('#repShare').click();
+     document.querySelector('#repNext').click();
+     document.querySelector('#repShare').click();`);
+const sent = run(`JSON.stringify(globalThis.__sent)`);
+run(`showCard = __origShow; _repIdx=0;`);
+const sentA = JSON.parse(sent);
+console.log((sentA.length === 2 ? "PASS" : "FAIL"),
+  "the share button reaches a card renderer when tapped", "\u2192", sentA.length + "/2");
+if (sentA.length !== 2) fail++;
+console.log((sentA.length === 2 && sentA[0] !== sentA[1] ? "PASS" : "FAIL"),
+  "...and rotating changes WHICH card it sends", "\u2192", sentA.join(" then "));
+if (!(sentA.length === 2 && sentA[0] !== sentA[1])) fail++;
 
 // tips stay within the one-breath budget buildcheck enforces
 const tipLens = run(`JSON.stringify([...document.querySelectorAll('#view .tipbubble')].map(t=>t.textContent.length))`);

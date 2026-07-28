@@ -46,11 +46,18 @@ run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
   }
   SEED=deriveAll(); view='stats'; render();})()`);
 
-// ---- the icons are present and wired ---------------------------------------
-const WANT = ["dbmShare", "heatShare", "wdShare", "paceShare", "weekShare"];
-for (const id of WANT)
-  ok(`${id} icon renders in a section header`,
-     run(`!!document.querySelector('h2 .shareb#${id}')`));
+/* ---- v3.3.130: the registry replaced the icons ----------------------------
+   There is no longer a share control per section, so "does the icon render"
+   is not a question any more. The equivalent question is whether the card is
+   REGISTERED \u2014 a card missing from shareCards() is unreachable exactly the
+   way a missing icon used to be. */
+ok("no per-section share icon survives", run(`document.querySelectorAll('.shareb').length`) === 0,
+   run(`document.querySelectorAll('.shareb').length`) + " left");
+const REG = JSON.parse(run(`JSON.stringify(shareCards().map(c=>c.id))`));
+for (const id of ["dbm", "heat", "wd", "pace", "week", "grid", "yoy", "dist"])
+  ok(`${id} is registered as a shareable card`, REG.includes(id), REG.join(","));
+ok("every registered card has a label and a file name",
+   run(`shareCards().every(c=>c.label&&typeof c.file==='function'&&c.file().length>0)`));
 
 // ---- the data functions agree with what the screen shows -------------------
 ok("wdDist() is the single source the weekday chart also reads",
@@ -65,20 +72,22 @@ ok("heatSeries() is 26 weeks of 7 days",
    run(`(function(){const c=heatSeries(); return c.length===26 && c.every(x=>x.length===7);})()`));
 
 // ---- each painter actually paints -----------------------------------------
-const paints = (maker) => {
+const paints = (id) => {
   calls = [];
-  run(`__o=showCard; showCard=(fn)=>{ fn(); return null; }; ${maker}(); showCard=__o;`);
+  // v3.3.130: draw straight off the registry row \u2014 no showCard stub needed,
+  // because draw() returns a canvas and shows nothing by itself.
+  run(`shareCards().find(c=>c.id===${JSON.stringify(id)}).draw();`);
   const shapes = calls.filter(c => ["fill", "stroke", "fillRect", "strokeRect"].includes(c[0])).length;
   const texts = calls.filter(c => c[0] === "fillText").map(c => String(c[1]));
   return { shapes, texts };
 };
 for (const [maker, kicker] of [
-  ["makeDbmImage", "DAYS BY MONTH"], ["makeWdImage", "WEEKDAYS"],
-  ["makeWeekImage", "EVERY WEEK"], ["makePaceImage", "PACE"],
-  ["makeHeatImage", "LAST 6 MONTHS"],
+  ["dbm", "DAYS BY MONTH"], ["wd", "WEEKDAYS"],
+  ["week", "EVERY WEEK"], ["pace", "PACE"],
+  ["heat", "LAST 6 MONTHS"],
 ]) {
   const r = paints(maker);
-  ok(`${maker} draws real geometry`, r.shapes >= 8, r.shapes + " shape ops");
+  ok(`the ${maker} card draws real geometry`, r.shapes >= 8, r.shapes + " shape ops");
   ok(`...labelled ${kicker}`, r.texts.includes(kicker), r.texts.slice(0, 3).join(" | "));
   ok(`...and carries the URL footer`, r.texts.some(t => /tahros\.github\.io/.test(t)));
 }
@@ -90,12 +99,22 @@ ok("...and one drawSeries() covers bars and line",
    (rep.match(/function drawSeries/g) || []).length === 1 &&
    /kind==='line'/.test(rep));
 
-// ---- every share id in the DOM has a handler ------------------------------
-const wired = run(`JSON.stringify([...document.querySelectorAll('.shareb')].map(b=>b.id))`);
-const handlers = rep;
-const unwired = JSON.parse(wired).filter(id => !handlers.includes(`hit('${id}')`));
-ok("every share icon on screen has a router handler", unwired.length === 0,
-   unwired.length ? unwired.join(",") : JSON.parse(wired).length + " wired");
+/* ---- v3.3.130: one surface, so wiring is three ids, not eight -------------
+   The old assertion existed because eight icons each needed their own router
+   line and one could silently go missing. That failure mode is gone by
+   construction; what replaces it is that every REGISTERED card must actually
+   draw, which the loop above covers, plus the carousel controls being wired. */
+for (const id of ["repPrev", "repNext", "repShare"])
+  ok(`${id} has a router handler`, rep.includes(`hit('${id}')`));
+ok("rotating past the end wraps instead of dead-ending", run(`(function(){
+     const n=shareCards().length; _repIdx=0; repRotate(-1);
+     const back=_repIdx; _repIdx=n-1; repRotate(1);
+     const fwd=_repIdx; _repIdx=0;
+     return back===n-1 && fwd===0;})()`));
+ok("...and every card in the registry is reachable by rotating", run(`(function(){
+     const n=shareCards().length; const seen=new Set(); _repIdx=0;
+     for(let i=0;i<n;i++){ seen.add(shareCards()[_repIdx].id); repRotate(1); }
+     _repIdx=0; return seen.size===n;})()`));
 
 // ---- v3.3.115: the three cards must MIRROR the on-screen chart -----------
 // Not "does it draw something" \u2014 does it draw the same thing. Each card is

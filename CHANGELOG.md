@@ -1,5 +1,50 @@
 # ShowUp — changelog
 
+## v3.3.130 (2026-07-28) — One share surface, and a quieter i
+
+**Seven share buttons were seven doors to one room.** Every section header
+carried its own blue download icon, each wired to its own router line and its
+own `make*Image()` wrapper. They are all gone. In their place, "Report card"
+returns at the bottom of Stats — rotate with ‹ ›, see the card you are about
+to send, then send it.
+
+The thing that made this cheap was already true: the share painters have
+always drawn on canvas from the same data functions as the live charts, not
+from the rendered SVG. So this release is not a rework of sharing, it is a
+rework of entry points. `shareCards()` is now one list — label, file name,
+draw — and adding a card is adding a row. There is no second place to
+register one, which was the actual defect: a card could be built and then
+never reachable because nobody added a router line.
+
+The run cards (Distance, Every week, Pace) are withheld from anyone who has
+not run. An empty Pace card is not a card, it is a bug with a title.
+
+**The rotation index is clamped, not trusted.** If the card list shrinks
+under a stale index — rotate to Pace, delete your runs — `repCardAt()` wraps
+it back into range rather than returning undefined. The index also lives at
+module scope, so logging a set does not snap you back to card one.
+
+**Deliberately not built: month stepping.** The old v3.3.111 Report card
+stepped through months with ‹ ›. Those arrows now step through card types,
+and nesting a second meaning inside the same control is the kind of thing
+that reads fine to the person who built it and confuses everyone else. One
+axis. If stepping back to June is missed, it can return as its own control on
+its own card.
+
+**The i lost its disc.** A filled chalk circle beside every heading read as a
+control demanding attention, when it is a footnote you consult maybe twice.
+It is a muted glyph now, sitting close to the title. The ink shrank; the tap
+target did not — 6px of padding with a matching negative margin keeps it
+around 22px, because a smaller target would just be a worse button.
+
+Eleven assertions across four suites were inverted rather than deleted:
+they encoded "Report card is gone" and "the download icon appears on exactly
+these eight sections", which were true and are now false. The one that
+mattered most got rewritten rather than dropped — it used to check that the
+share ids survived a move, and now checks that rotating changes *which* card
+the button sends. A carousel that always sends card one would look perfectly
+correct on screen.
+
 ## v3.3.129 (2026-07-28) — Taller plots, and labels that cannot collide
 
 **Four charts were too short to hold their own furniture.** Consistency and

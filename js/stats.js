@@ -366,7 +366,7 @@ function renderStats(){
         <div class="pmixsum" id="pmixSum"></div>
       </div>`;
   cut('pmix');
-  h+=`<h2>Consistency${hActs('yoy',"% of days trained so far each year — the bold line is this year, still running.",'yoyShare')}</h2><div class="card">
+  h+=`<h2>Consistency${hActs('yoy',"% of days trained so far each year — the bold line is this year, still running.")}</h2><div class="card">
       `;
   /* v3.3.109: the legend moves ABOVE the chart. While scrubbing it IS the
      readout, and below the chart it sat under the hand doing the scrubbing.
@@ -428,7 +428,7 @@ function renderStats(){
   // heatmap: 26 weeks, weekday rail on the left, months across the top
   const detail=allDays();
   cut('cons');
-  h+=`<h2>Last 6 months${hActs('heat',"Every day of the last 26 weeks — one column per week, filled squares are days you trained.",'heatShare')}</h2><div class="card"><div class="heatwrap">
+  h+=`<h2>Last 6 months${hActs('heat',"Every day of the last 26 weeks — one column per week, filled squares are days you trained.")}</h2><div class="card"><div class="heatwrap">
         <div class="wdrail">${['S','M','T','W','T','F','S'].map(d=>`<span>${d}</span>`).join('')}</div>
         <div class="heatcols"><div class="heatscroll">`;
   const start2=new Date(todayISO+'T00:00');
@@ -457,7 +457,7 @@ function renderStats(){
   const daysInMonth=new Date(+thisYear,+monthKey.slice(5),0).getDate();
   const trainedThis=monthCounts[monthKey]||0;
   cut('last6');
-  h+=`<h2>Days by month${hActs('dbm',"Days trained each month — the dashed line marks 20. This month is still filling.",'dbmShare')}</h2><div class="card">
+  h+=`<h2>Days by month${hActs('dbm',"Days trained each month — the dashed line marks 20. This month is still filling.")}</h2><div class="card">
       <div class="zoomhint">pinch to zoom</div>
       <div class="zoom" data-zoom>
       <svg viewBox="0 0 330 150" style="width:100%;height:auto">
@@ -506,7 +506,7 @@ function renderStats(){
   const wdToday=new Date(todayISO+'T00:00').getDay();
   const bestI=wdPct.indexOf(wdBest);
   cut('dbm');
-  h+=`<h2>Weekdays${hActs('wd',"Which weekdays you actually show up — today is in accent, and the caret marks your strongest.",'wdShare')}</h2><div class="card">
+  h+=`<h2>Weekdays${hActs('wd',"Which weekdays you actually show up — today is in accent, and the caret marks your strongest.")}</h2><div class="card">
       <svg viewBox="0 0 330 150" style="width:100%;height:auto">`;   // v3.3.129: 118→150 (v3.3.113 had cut 140→118; at that height the caret and the % label had nowhere to go)
   for(const g of [0,25,50,75,100]){
     const y=126-g/100*113;    // v3.3.129: baseline 94→126, span 81→113
@@ -540,7 +540,7 @@ function renderStats(){
   const _gd=gridData();
   const mDays=_gd.mDays, gy0=_gd.y0, gy1=_gd.y1, gMax=_gd.max, m0=_gd.m0, mNow=_gd.mNow;
   cut('wd');
-  h+=`<h2 id="secParts">Every month${hActs('mgrid',"Days trained each month — darker is more, dashed is still being written; tap one to open it.",'gridShare')}</h2><div class="card">
+  h+=`<h2 id="secParts">Every month${hActs('mgrid',"Days trained each month — darker is more, dashed is still being written; tap one to open it.")}</h2><div class="card">
       <div class="mgrid"><span></span>${'JFMAMJJASOND'.split('').map(c=>`<span class="mg-h">${c}</span>`).join('')}`;
   for(let y=gy0;y<=gy1;y++){
     h+=`<span class="mg-y mono">'${String(y).slice(2)}</span>`;
@@ -562,10 +562,22 @@ function renderStats(){
   h+=bwCard();                       // v3.3.69: you, before the part-by-part drift
   cut('wt');
 
-  /* v3.3.111: "Report card" removed on the maker's call. repData() SURVIVES —
-     the month grid's tap-to-expand still reads it; only the section, its
-     month nav and its share card are gone. */
-
+  /* v3.3.130: "Report card" RETURNS, but not as the v3.3.111 section that
+     was removed. That one was a month-stepper with its own share card. This
+     one is the app's single share surface: rotate to the card you want, then
+     send it. Every per-section share button is gone in favour of it. */
+  h+=`<h2 id="secReport">Report card${hActs('rep',"Rotate to the card you want, then send it. These are the same numbers you just scrolled past, framed for sharing.")}</h2>
+      <div class="card repcard" id="repCard">
+        <div class="repnav">
+          <button class="repar" id="repPrev" aria-label="Previous card">‹</button>
+          <div class="repttl" id="repTtl">&nbsp;</div>
+          <button class="repar" id="repNext" aria-label="Next card">›</button>
+        </div>
+        <div class="repthumbwrap"><img id="repThumb" alt="" class="repthumb"></div>
+        <div class="note repdots" id="repDots"></div>
+        <button class="btn" id="repShare">Share as image</button>
+      </div>`;
+  cut('rep');
   // sections emit in one declared order (v3.3.111)
   h = _S.kpis + _S.pmix + _S.cons + _S.em + _S.dbm + _S.last6 + _S.wd + _S.wt;
 
@@ -594,6 +606,8 @@ function renderStats(){
     }
   }
 
+  h+=_S.rep;                         // v3.3.130: the exit — you have seen the numbers, here is the receipt
+
   h+=`<h2>Settings</h2>
       <button class="btn ghost" id="settingsBtn">⚙︎ Settings, account &amp; sync</button>
       <div class="note" style="text-align:center">${session?`Signed in as ${session.user.email||'—'}`:'Not signed in — data is on this device only'} · ${APP_VERSION}</div>`;
@@ -609,6 +623,7 @@ function renderStats(){
   document.querySelectorAll('.heatcols,.heat').forEach(el=>{
     if(el.scrollWidth>el.clientWidth) el.scrollLeft=el.scrollWidth;
   });
+  if(typeof paintRepCard==='function') paintRepCard();   // v3.3.130: fill the report card preview
 }
 
 

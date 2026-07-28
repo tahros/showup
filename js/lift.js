@@ -673,7 +673,7 @@ function runStatsHTML(){
   const wkMax=Math.max(...wks.map(w=>wkBy[w]||0),1);
   const wkAvg=wks.filter(w=>w!==thisWk).reduce((a,w)=>a+(wkBy[w]||0),0)/Math.max(1,wks.length-1);
   cut('goal');
-  h+=`<h2>Every week${hActs('eweek',"Distance per week — the dashed line is your average. The last bar is still filling.",'weekShare')}</h2><div class="card">
+  h+=`<h2>Every week${hActs('eweek',"Distance per week — the dashed line is your average. The last bar is still filling.")}</h2><div class="card">
       <div class="zoom" data-zoom><svg viewBox="0 0 330 118" style="width:100%;height:auto">`;
   if(wkAvg){
     const ay=94-wkAvg/wkMax*80;
@@ -699,7 +699,7 @@ function runStatsHTML(){
   const step=Math.max(10,Math.round(dataMax/4/10)*10);        // 361 -> 90, 180, 270, 360
   const yMax=Math.max(dataMax,step*4);
   cut('week');
-  h+=`<h2>Distance${hActs('cumkm',`Cumulative ${DU()} by day of year. ${thisYear} is still running.`,'runShare')}</h2><div class="card">
+  h+=`<h2>Distance${hActs('cumkm',`Cumulative ${DU()} by day of year. ${thisYear} is still running.`)}</h2><div class="card">
       `;
   // v3.3.109: legend above the chart — it is the scrub readout, and it was
   // sitting under the scrubbing hand
@@ -755,7 +755,7 @@ function runStatsHTML(){
     const span=Math.max(hi-lo,30);                     // never flatten a near-identical year
     const base=lo-span*0.25, top=hi+span*0.25;
     cut('dist');
-    h+=`<h2>Pace${hActs('pace',`Minutes per ${DU()}, timed runs only — faster months sit lower. Fastest in red, this month in blue.`,'paceShare')}</h2><div class="card">
+    h+=`<h2>Pace${hActs('pace',`Minutes per ${DU()}, timed runs only — faster months sit lower. Fastest in red, this month in blue.`)}</h2><div class="card">
         <div class="zoom" data-zoom><svg viewBox="0 0 330 118" style="width:100%;height:auto">`;
     let poly='';
     paces.forEach(([m,p],i)=>{

@@ -145,7 +145,13 @@ ok("...and the dash is cleared after, so nothing else inherits it",
 
 // ---- 7. the whole path: button → overlay → shareable file ----------------
 run(`view='stats'; renderStats();`);
-ok("stats offers the share button", /id="gridShare"/.test(run(`$('#view').innerHTML`)));
+/* v3.3.130: the seven per-section buttons collapsed into one carousel. The
+   path under test is the same — control → overlay → file — but there is now
+   exactly one entry point to it. */
+ok("stats offers exactly one share control", /id="repShare"/.test(run(`$('#view').innerHTML`)));
+ok("...and no per-section share icon survives anywhere",
+   run(`document.querySelectorAll('.shareb').length`) === 0,
+   run(`document.querySelectorAll('.shareb').length`) + " left");
 // the paragraph under the grid moved behind the dot (DESIGN.md D1)
 const gridHtml = run(`$('#view').innerHTML`);
 ok("the grid explains itself behind an i", /data-tip="mgrid"/.test(gridHtml));

@@ -272,45 +272,69 @@ function drawMilestone(n){
   return cv;
 }
 function makeMilestoneImage(n){ return showCard(()=>drawMilestone(n),'day-'+n); }
-function makeDbmImage(){
-  const ms=Object.entries(gridData().mDays).sort().slice(-12);
-  const mk=todayISO.slice(0,7), dom=+todayISO.slice(8);
-  const trained=(gridData().mDays[mk])||0;
-  return showCard(()=>drawDbm({ms, monthKey:mk, dayOfMonth:dom,
-    big:String(trained), sub:'trained of '+dom+' days',
-    kicker:'DAYS BY MONTH', footer:'days trained each month \u00b7 dashes mark 20'}),'days-by-month');
-}
-function makeWdImage(){
-  const d=wdDist();
+/* v3.3.130: ONE list, one share surface. Each row is a card: what to call it,
+   what to name the file, and the draw that returns its canvas. Adding a card
+   is adding a row — there is no second place to register it, which is the
+   whole reason the per-section buttons went away. `draw` returns a canvas and
+   nothing else; showing it is the caller's business, so the same row feeds
+   both the small preview and the full-size share. */
+function shareCards(){
   const FULL=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  return showCard(()=>drawWd({pct:d.pct, best:d.best, today:d.today,
-    big:FULL[d.best], sub:'is your strongest day',   // 'S' would not say which one
-    kicker:'WEEKDAYS', footer:'% of each weekday trained, last 365 days'}),'weekdays');
-}
-function makeWeekImage(){
-  const w=weekSeries();
-  return showCard(()=>drawSeries({kind:'bars',
-    big:String(Math.round(w.avg||0)), sub:DU()+' in a typical week',
-    kicker:'EVERY WEEK', footer:'distance per week \u00b7 dashed line is your average',
-    vals:w.wks.map(k=>w.by[k]||0), hi:w.wks.length-1, ref:w.avg,
-    labels:w.wks.map(k=>k.slice(5).replace('-','/'))}),'every-week');
-}
-function makePaceImage(){
-  const ps=paceSeries();
   const fmtP=s=>Math.floor(s/60)+"'"+String(Math.round(s%60)).padStart(2,'0')+'"';
-  const best=ps.reduce((b,p,i)=>(p[1]&&(!ps[b]||!ps[b][1]||p[1]<ps[b][1]))?i:b,0);
-  return showCard(()=>drawSeries({kind:'line',
-    big:ps.length?fmtP(ps[ps.length-1][1]):'\u2014', sub:'per '+DU()+' this month',
-    kicker:'PACE', footer:'minutes per '+DU()+', timed runs only',
-    vals:ps.map(p=>p[1]), hi:best,
-    labels:ps.map(p=>p[0].slice(5))}),'pace');
-}
-function makeHeatImage(){
-  const cols=heatSeries();
-  const n=cols.reduce((a,c)=>a+c.filter(d=>d.on).length,0);
-  return showCard(()=>drawHeat({cols,
-    big:String(n), sub:'days in 26 weeks',
-    kicker:'LAST 6 MONTHS', footer:'one column per week'}),'last-6-months');
+  const L=[
+    {id:'grid', label:'Every month', file:()=>`${gridData().total}-days`,
+     draw:()=>drawGrid(gridData())},
+    {id:'yoy', label:'Consistency', file:()=>'consistency-'+todayISO.slice(0,4),
+     draw:()=>drawYoy(yearCurves())},
+    {id:'dbm', label:'Days by month', file:()=>'days-by-month', draw:()=>{
+      const gd=gridData(), mk=todayISO.slice(0,7), dom=+todayISO.slice(8);
+      return drawDbm({ms:Object.entries(gd.mDays).sort().slice(-12), monthKey:mk, dayOfMonth:dom,
+        big:String(gd.mDays[mk]||0), sub:'trained of '+dom+' days',
+        kicker:'DAYS BY MONTH', footer:'days trained each month \u00b7 dashes mark 20'});
+    }},
+    {id:'wd', label:'Weekdays', file:()=>'weekdays', draw:()=>{
+      const d=wdDist();
+      return drawWd({pct:d.pct, best:d.best, today:d.today,
+        big:FULL[d.best], sub:'is your strongest day',   // 'S' would not say which one
+        kicker:'WEEKDAYS', footer:'% of each weekday trained, last 365 days'});
+    }},
+    {id:'heat', label:'Last 6 months', file:()=>'last-6-months', draw:()=>{
+      const cols=heatSeries();
+      return drawHeat({cols, big:String(cols.reduce((a,c)=>a+c.filter(d=>d.on).length,0)),
+        sub:'days in 26 weeks', kicker:'LAST 6 MONTHS', footer:'one column per week'});
+    }}
+  ];
+  /* the run cards only exist if you have run. An empty Pace card is not a
+     card, it is a bug with a title. */
+  const runs=(typeof runDays==='function')?runDays():[];
+  if(runs.length){
+    L.push({id:'week', label:'Every week', file:()=>'every-week', draw:()=>{
+      const w=weekSeries();
+      return drawSeries({kind:'bars',
+        big:String(Math.round(w.avg||0)), sub:DU()+' in a typical week',
+        kicker:'EVERY WEEK', footer:'distance per week \u00b7 dashed line is your average',
+        vals:w.wks.map(k=>w.by[k]||0), hi:w.wks.length-1, ref:w.avg,
+        labels:w.wks.map(k=>k.slice(5).replace('-','/'))});
+    }});
+    L.push({id:'dist', label:'Distance', file:()=>'distance-'+todayISO.slice(0,4), draw:()=>{
+      const cs=runYearCurves();
+      const tot=Math.max(...Object.values(cs).map(c=>c.total),1);
+      const step=Math.max(10,Math.round(tot/4/10)*10);
+      return drawYoy(cs,{yMax:Math.max(tot,step*4), ticks:[0,step,step*2,step*3,step*4],
+        fmtAxis:v=>String(Math.round(v)), fmtBig:v=>String(Math.round(v)),
+        kicker:'DISTANCE, YEAR OVER YEAR', sub:DU()+' in '+thisYear,
+        footer:'cumulative '+DU()+' by day of year'});
+    }});
+    if(runs.some(r=>r.timed>0)) L.push({id:'pace', label:'Pace', file:()=>'pace', draw:()=>{
+      const ps=paceSeries();
+      const best=ps.reduce((b,p,i)=>(p[1]&&(!ps[b]||!ps[b][1]||p[1]<ps[b][1]))?i:b,0);
+      return drawSeries({kind:'line',
+        big:ps.length?fmtP(ps[ps.length-1][1]):'\u2014', sub:'per '+DU()+' this month',
+        kicker:'PACE', footer:'minutes per '+DU()+', timed runs only',
+        vals:ps.map(p=>p[1]), hi:best, labels:ps.map(p=>p[0].slice(5))});
+    }});
+  }
+  return L;
 }
 /* v3.3.114: one frame, one plot, five cards. The four older cards each
    hand-drew their own frame; these share it, because they differ only in
@@ -510,31 +534,56 @@ async function showCard(drawFn,label){
     document.getElementById('repImg').src=cv.toDataURL('image/png');
   }catch(e){ toast('Could not draw the image'); }
 }
-function makeGridImage(){ const gd=gridData(); return showCard(()=>drawGrid(gd),`${gd.total}-days`); }
-function makeYoyImage(){ const cs=yearCurves(); return showCard(()=>drawYoy(cs),'consistency-'+todayISO.slice(0,4)); }
-function makeRunYoyImage(){
-  const cs=runYearCurves();
-  const tot=Math.max(...Object.values(cs).map(c=>c.total),1);
-  const step=Math.max(10,Math.round(tot/4/10)*10);
-  return showCard(()=>drawYoy(cs,{
-    yMax:Math.max(tot,step*4), ticks:[0,step,step*2,step*3,step*4],
-    fmtAxis:v=>String(Math.round(v)), fmtBig:v=>String(Math.round(v)),
-    kicker:'DISTANCE, YEAR OVER YEAR', sub:DU()+' in '+thisYear,
-    footer:'cumulative '+DU()+' by day of year'
-  }),'distance-'+todayISO.slice(0,4));
+/* v3.3.130: makeGridImage/makeYoyImage/makeRunYoyImage deleted — their
+   draws are rows in shareCards() now. makeMilestoneImage stays: the
+   milestone toast fires it directly, outside the carousel. */
+/* v3.3.130: the Report card carousel. Index lives at module scope so the
+   card you rotated to survives a Stats re-render (logging a set re-renders
+   the tab, and snapping back to card 1 every time would make rotation
+   feel broken rather than stateful). */
+let _repIdx=0;
+function repCardAt(){
+  const L=shareCards();
+  if(!L.length) return null;
+  _repIdx=((_repIdx%L.length)+L.length)%L.length;   // wrap both ways
+  return {card:L[_repIdx], n:L.length};
+}
+async function paintRepCard(){
+  const box=document.getElementById('repCard');
+  if(!box) return;
+  const at=repCardAt();
+  if(!at) return;
+  const ttl=document.getElementById('repTtl');
+  const img=document.getElementById('repThumb');
+  if(ttl) ttl.textContent=at.card.label;
+  const dots=document.getElementById('repDots');
+  if(dots) dots.textContent=at.n>1?`${_repIdx+1} / ${at.n}`:'';
+  if(!img) return;
+  /* draw lazily, one card at a time. Painting all eight up front would
+     burn eight 1080px canvases to show one. */
+  try{
+    if(document.fonts&&document.fonts.ready) await document.fonts.ready;
+    const cv=at.card.draw();
+    if(cv) img.src=cv.toDataURL('image/png');
+  }catch(e){ /* preview is a nicety; the share button still works */ }
+}
+function repRotate(step){
+  const L=shareCards();
+  if(!L.length) return;
+  _repIdx=((_repIdx+step)%L.length+L.length)%L.length;
+  paintRepCard();
 }
 document.addEventListener('click',e=>{
   /* v3.3.72: closest(), not e.target.id — a button that gains a child at
      runtime silently stops responding (the v3.3.58 lesson, in the gym). */
   const hit=id=>!!(e.target.closest&&e.target.closest('#'+id));
-  if(hit('gridShare')){ makeGridImage(); return; }
-  if(hit('yoyShare')){ makeYoyImage(); return; }
-  if(hit('runShare')){ makeRunYoyImage(); return; }
-  if(hit('dbmShare')){ makeDbmImage(); return; }
-  if(hit('wdShare')){ makeWdImage(); return; }
-  if(hit('weekShare')){ makeWeekImage(); return; }
-  if(hit('paceShare')){ makePaceImage(); return; }
-  if(hit('heatShare')){ makeHeatImage(); return; }
+  if(hit('repPrev')){ repRotate(-1); return; }
+  if(hit('repNext')){ repRotate(1); return; }
+  if(hit('repShare')){
+    const at=repCardAt();
+    if(at) showCard(at.card.draw, at.card.file());
+    return;
+  }
   if(hit('repClose')){ repOvEl().style.display='none'; return; }
   if(hit('repDo')&&_repCv){
     const name='showup-'+String(_repCv.label).toLowerCase().replace(/[^a-z0-9]+/g,'-')+'.png';
