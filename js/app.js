@@ -486,6 +486,9 @@ function refreshLoad(){
       : `<span class="ll-text">${loadLine(lift.ex,kg)}</span>`;
   }
   refreshReps();   // v3.3.56: the rep tiles follow the weight, same funnel
+  refreshSug();    // v3.3.137: and so do the suggested chips — one funnel, so
+                   // the loadline, tiles and chips can never disagree about
+                   // what the current weight is
 }
 
 /* ---------- pinch / wheel zoom for charts ---------- */

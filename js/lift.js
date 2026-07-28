@@ -238,18 +238,27 @@ function renderLift(){
   //      Rendered BELOW "Log a set" (v2.10); built here because the log zone
   //      needs `ls` for its default weight.
   const ls=suggestedFor(ex);
+  /* v3.3.137: the weight is resolved HERE, before the suggested chips are
+     built. It used to be settled inside the log zone further down — which is
+     rendered below but built after — so the chips were partitioned against
+     whatever weight the PREVIOUS exercise left behind. Nothing depended on
+     the old position; the resolver only needs `ls`, which is on the line
+     above. */
+  if(!isRun&&(lift.weight===0||lift.weight==null)){
+    const savedW=(DB.settings.exW||{})[ex];
+    if(savedW!=null) lift.weight=savedW;                     // your default, exactly as you set it
+    else if(isBody(ex)) lift.weight=bwNow()||0;              // v3.3.67: what you weigh NOW, per the series
+    else{
+      const top=ls&&ls.sets.length?Math.max(...ls.sets.map(s=>s.w)):null;
+      lift.weight=top!=null?snapW(top):toKg(isLb()?45:20);   // inferred weights snap to clean steps
+    }
+  }
   let sugHTML='';
   {
     const when=ls?(daysAgo(ls.d)===1?'yesterday':`${daysAgo(ls.d)}d ago`):'';
     const dis=new Set(dayMeta().sugX[ex]||[]);
     const lastToday=(!isRun&&todaySets.length)?todaySets[todaySets.length-1]:null;
-    let pool=[];
-    if(lastToday&&lastToday.reps.length)
-      pool.push({w:lastToday.w,r:lastToday.reps[0],key:`now|${lastToday.w}|${lastToday.reps[0]}`,now:true});
-    (ls?ls.sets:[]).forEach((s,i)=>pool.push({w:s.w,r:s.r,key:`${s.w}|${s.r}|${i}`}));
-    const seenWR=new Set();
-    pool=pool.filter(c=>{const k=`${c.w}x${c.r}`;if(seenWR.has(k))return false;seenWR.add(k);return true;});
-    const chips=pool.filter(c=>!dis.has(c.key)).slice(0,6);
+    const chips=sugChips(ex,ls,lastToday,dis,lift.weight);
     if(chips.length){
       const mini=todaySets.length>0;
       const lastLine=ls?`Last session — ${wd(ls.d)}: ${ls.sets.map(s=>`${isBody(ex)&&s.w<=0.01?'BW':wDisp(s.w)}×${s.r}`).join(' · ')}`:'';
@@ -265,15 +274,7 @@ function renderLift(){
             </span>
           </div>
           <div class="lastsets">`;
-      chips.forEach(c=>{
-        sugHTML+=`<span class="lschip">
-              <button class="lastset ${c.now?'now':''}" data-rep-w="${c.w}" data-rep-r="${c.r}">
-                <span class="ls-w">${isBody(ex)&&c.w<=0.01?'BW':`${wDisp(c.w)}<small>${U()}</small>`}</span>
-                <span class="ls-x">×</span>
-                <span class="ls-r">${c.r}</span></button>
-              <button class="lsx" data-sugx="${c.key}" aria-label="Dismiss">✕</button>
-            </span>`;
-      });
+      sugHTML+=sugChipsHTML(ex,chips);
       sugHTML+=`</div>`;
       if(!mini) sugHTML+=`<div class="row" style="gap:8px;margin-top:10px">
             <button class="btn ghost" id="repeatAll" style="margin:0">Log all ${chips.length}</button>
@@ -319,15 +320,6 @@ function renderLift(){
       </div>`;
     }
   }else{
-    if(lift.weight===0||lift.weight==null){
-      const savedW=(DB.settings.exW||{})[ex];
-      if(savedW!=null) lift.weight=savedW;                     // your default, exactly as you set it
-      else if(isBody(ex)) lift.weight=bwNow()||0;              // v3.3.67: what you weigh NOW, per the series
-      else{
-        const top=ls&&ls.sets.length?Math.max(...ls.sets.map(s=>s.w)):null;
-        lift.weight=top!=null?snapW(top):toKg(isLb()?45:20);   // inferred weights snap to clean steps
-      }
-    }
     h+=`<div class="zone prime"><div class="zonehead"><span>Log a set</span></div>
         <div class="wsel" style="margin-top:10px"><button data-w="-1">−</button>
         <div class="val"><input id="wv" type="number" inputmode="decimal" step="${STEP()}" value="${wDisp(lift.weight)}"><span class="unit">${U()}</span></div>
@@ -539,6 +531,62 @@ function repChoices(ex,wKg){
   return list.slice(0,8).sort((a,b)=>a-b);
 }
 /* the grid refresh every weight-change path funnels into (via refreshLoad) */
+/* v3.3.137: the suggested chips follow the weight, the same way the rep
+   tiles have since v3.3.56. Pool building lives here so renderLift and
+   refreshSug cannot disagree about what the chips are.
+
+   The reorder is a STABLE PARTITION, not a sort: chips matching the current
+   weight move to the front keeping their relative order, everything else
+   follows keeping its own. Two properties fall out of that, and both are
+   the point —
+     · when the weight matches the last logged set (the default the screen
+       opens in) NOTHING moves, so the feature is invisible until you
+       actually steer the weight somewhere;
+     · "your latest logged set leads" therefore still holds in that default,
+       and only yields once you have deliberately changed the weight, which
+       is itself a stated intent.
+   Nearest-weight matching was considered and rejected: near-misses would
+   reshuffle on every tap of +, turning a stable list into a moving target
+   under your thumb. Exact match only — and a weight with no match at all
+   leaves the order alone rather than shuffling for the sake of it. */
+function sugChips(ex,ls,lastToday,dis,curKg){
+  let pool=[];
+  if(lastToday&&lastToday.reps.length)
+    pool.push({w:lastToday.w,r:lastToday.reps[0],key:`now|${lastToday.w}|${lastToday.reps[0]}`,now:true});
+  (ls?ls.sets:[]).forEach((s,i)=>pool.push({w:s.w,r:s.r,key:`${s.w}|${s.r}|${i}`}));
+  const seenWR=new Set();
+  pool=pool.filter(c=>{const k=`${c.w}x${c.r}`;if(seenWR.has(k))return false;seenWR.add(k);return true;});
+  pool=pool.filter(c=>!dis.has(c.key));
+  if(curKg!=null&&isFinite(curKg)){
+    // float-safe compare: weights are stored in kg and can carry lb-conversion dust
+    const hit=c=>Math.abs(c.w-curKg)<0.05;
+    if(pool.some(hit)) pool=[...pool.filter(hit),...pool.filter(c=>!hit(c))];
+  }
+  return pool.slice(0,6);
+}
+function sugChipsHTML(ex,chips){
+  return chips.map(c=>`<span class="lschip">
+              <button class="lastset ${c.now?'now':''}" data-rep-w="${c.w}" data-rep-r="${c.r}">
+                <span class="ls-w">${isBody(ex)&&c.w<=0.01?'BW':`${wDisp(c.w)}<small>${U()}</small>`}</span>
+                <span class="ls-x">\u00d7</span>
+                <span class="ls-r">${c.r}</span></button>
+              <button class="lsx" data-sugx="${c.key}" aria-label="Dismiss">\u2715</button>
+            </span>`).join('');
+}
+/* rewrites only the chip row — same targeted-update discipline as
+   refreshReps, so stepping the weight never rebuilds the card or steals
+   focus from the rep input */
+function refreshSug(){
+  const row=document.querySelector('.lastsets');
+  if(!row||!lift.ex||lift.ex==='Run') return;
+  const kg=toKg(+(document.getElementById('wv')?.value||0));
+  const ls=suggestedFor(lift.ex);
+  const t=DB.days[todayISO]||{w:[]};
+  const todaySets=(t.w||[]).filter(x=>x.ex===lift.ex&&x.reps&&x.reps.length);
+  const lastToday=todaySets.length?todaySets[todaySets.length-1]:null;
+  const dis=new Set(dayMeta().sugX[lift.ex]||[]);
+  row.innerHTML=sugChipsHTML(lift.ex,sugChips(lift.ex,ls,lastToday,dis,kg));
+}
 function refreshReps(){
   const g=document.querySelector('.repgrid'); if(!g||!lift.ex) return;
   const kg=toKg(+(document.getElementById('wv')?.value||0));

@@ -1,5 +1,39 @@
 # ShowUp — changelog
 
+## v3.3.137 (2026-07-29) — The suggestions follow the weight
+
+**The rep tiles have followed the weight since v3.3.56; the suggested chips
+never joined them.** They do now, through the same `refreshLoad()` funnel, so
+the load line, the rep tiles and the chips cannot disagree about what weight
+you are looking at.
+
+The reorder is a **stable partition, not a sort**: chips matching the current
+weight move to the front keeping their relative order, the rest follow
+keeping theirs. Two properties fall out of that, and both are the point.
+When the weight already matches the last logged set — the state the screen
+opens in — nothing moves at all, so the feature is invisible until you
+actually steer the weight somewhere. And "your latest logged set leads"
+therefore still holds in that default, yielding only once you have
+deliberately changed the weight, which is itself a stated intent.
+
+Nearest-weight matching was considered and rejected: near-misses would
+reshuffle on every tap of `+`, turning a stable list into a moving target
+under your thumb. Exact match only, and a weight with no match leaves the
+order alone rather than shuffling for the sake of motion.
+
+**A latent bug surfaced while wiring this.** The suggested block is BUILT
+before the log zone even though it RENDERS below it, and the log zone was
+where `lift.weight` got resolved — so partitioning the chips there would have
+compared them against whatever weight the previous exercise left behind. The
+resolver moved up to sit directly under `suggestedFor()`, which is the only
+thing it needed. Nothing depended on its old position.
+
+The test drives the real stepper rather than calling the sort directly, and
+its most important assertion is a negative one: in the default state the chip
+order must be byte-identical before and after a refresh. A reorder feature
+that quietly rearranged the opening screen would be a regression wearing a
+feature's clothes.
+
 ## v3.3.136 (2026-07-29) — The rate, quietly
 
 **The percentage goes in the corner the URL left empty.** Removing the URL in
