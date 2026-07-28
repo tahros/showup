@@ -1,5 +1,38 @@
 # ShowUp — changelog
 
+## v3.3.128 (2026-07-28) — A wider plot, and selection off everywhere
+
+**The consistency chart's plot was using 80% of its own width.** Margins of
+26 left and 40 right on a 340 viewBox, most of it reserved for labels that
+did not need it. The plot now runs 20→322, about 10% wider, with the y-axis
+labels moved in to match. Assertions check the actual drawn extent: nothing
+crosses the right edge, nothing clips on the left, and the year end-labels
+still fit between the plot edge and the box.
+
+**Text selection was still possible outside `#app`.** The v3.3.110 rule was
+scoped to the app shell, and the share overlay mounts on `<body>` —
+deliberately, so long-press could still save the card image — which meant
+its buttons were selectable. That is what the maker hit: selection handles
+over "Close".
+
+Fixed for the overlay, with the IMAGE keeping its callout, since long-press
+to save is the one long-press that should work.
+
+**The audit for this found a second one I did not know about.** Rather than
+naming the overlay, the assertion walks every element mounted outside `#app`
+and requires each to be covered by a no-select rule — and immediately
+flagged the floating "top" button, real visible text with the same gap.
+Covered too. The assertion checks coverage rather than counting known
+elements, so the next thing mounted on `<body>` fails until it is handled.
+
+Two test-matching corrections on the way, neither a code fault: the rules
+are grouped (`#repOv,.calreturn{…}`) so a per-selector regex missed them,
+and the top button's id is `calReturn` while its class is `.calreturn` —
+comparing only the id against a class selector reported uncovered when it
+was covered, differing by case.
+
+`test-scrub.js` at 38.
+
 ## v3.3.127 (2026-07-28) — Wider bars, and numbers that read
 
 **Bars 25% wider** — columns 12→15, bars 10→12.5, gap held at a hairline.

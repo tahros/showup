@@ -70,8 +70,8 @@ const pu = (id=1) => run(`(function(){const b=${BOX};
 // ---- the chart declares its geometry --------------------------------------
 ok("the consistency chart opts in with its geometry",
    run(`${SVG}.getAttribute('data-scrub')`) === "pct" &&
-   run(`+${SVG}.getAttribute('data-sx0')`) === 26 &&
-   run(`+${SVG}.getAttribute('data-sxw')`) === 274);
+   run(`+${SVG}.getAttribute('data-sx0')`) === 20 &&
+   run(`+${SVG}.getAttribute('data-sxw')`) === 302);   // v3.3.128: widened
 
 // ---- hidden until touched ---------------------------------------------------
 ok("no guide before you touch the chart",
@@ -232,5 +232,69 @@ run(`session=null;`);
 // the reactive spot-fixes are gone, subsumed by the base rule
 ok("the per-element spot-fixes are gone (no whack-a-mole left behind)",
    !/\.settile\{-webkit-user-select:none/.test(css110) && !/\.readyhead\{/.test(css110));
+
+// ---- v3.3.128: the consistency plot is wider -----------------------------
+// re-render: earlier blocks leave the view on other fixtures
+run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
+  for(let i=1;i<=400;i+=2){const d=new Date(t); d.setDate(d.getDate()-i);
+    DB.days[d.toLocaleDateString('en-CA')]={w:[{part:'Chest',ex:'Press',w:40,reps:[10],at:1}],upd:1};}
+  SEED=deriveAll(); view='stats'; render();})()`);
+const svgEl = `document.querySelector('[data-scrub="pct"]')`;
+ok("the plot spans more of its viewBox than before",
+   run(`+${svgEl}.getAttribute('data-sxw')`) === 302 &&
+   run(`+${svgEl}.getAttribute('data-sx0')`) === 20,
+   run(`${svgEl}.getAttribute('data-sx0')`) + ".." +
+   (run(`+${svgEl}.getAttribute('data-sx0')`) + run(`+${svgEl}.getAttribute('data-sxw')`)));
+// widening must not push anything past the right edge, nor clip the y labels
+const bounds = JSON.parse(run(`JSON.stringify((function(){
+  const s=${svgEl}, vb=(s.getAttribute('viewBox')||'').split(/\\s+/).map(Number);
+  let minX=1e9, maxX=-1e9;
+  s.querySelectorAll('text,line,circle,polyline').forEach(e=>{
+    ['x','x1','x2','cx'].forEach(a=>{const v=parseFloat(e.getAttribute(a));
+      if(!isNaN(v)){ minX=Math.min(minX,v); maxX=Math.max(maxX,v); }});
+    const pts=e.getAttribute('points');
+    if(pts) pts.trim().split(/\\s+/).forEach(pt=>{const x=parseFloat(pt.split(',')[0]);
+      if(!isNaN(x)){ minX=Math.min(minX,x); maxX=Math.max(maxX,x); }});
+  });
+  return {w:vb[2], minX:+minX.toFixed(1), maxX:+maxX.toFixed(1)};})())`));
+ok("nothing is drawn past the right edge", bounds.maxX <= bounds.w,
+   `max x ${bounds.maxX} of ${bounds.w}`);
+ok("...and the y-axis labels still have room on the left", bounds.minX >= 0,
+   `min x ${bounds.minX}`);
+// the end labels sit right of the plot, inside the box
+ok("the year end-labels fit between the plot edge and the box edge",
+   bounds.maxX > 302 && bounds.maxX <= 340, "rightmost " + bounds.maxX);
+
+// ---- v3.3.128: selection is off on the share overlay too ----------------
+const css128 = fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\n/g, "");
+/* match against the SELECTOR LIST of every no-select rule, since these are
+   grouped (`#repOv,.calreturn{...}`) and a per-selector regex misses them. */
+// strip comments first, or their text lands in the "selector list"
+const cssNoCmt = css128.replace(/\/\*[\s\S]*?\*\//g, "");
+const noSelectSelectors = (cssNoCmt.match(/[^{}]+\{[^}]*user-select:none[^}]*\}/g) || [])
+  .map(r => r.split("{")[0]).join(",");
+ok("the share overlay disables selection", /#repOv/.test(noSelectSelectors),
+   noSelectSelectors.slice(0, 80));
+ok("...but the card image keeps its long-press to save",
+   /#repOv img\{[^}]*-webkit-touch-callout:default/.test(css128));
+/* Everything mounted outside #app needs covering, not just the overlay.
+   This audit found the floating "top" button too \u2014 real visible text, same
+   gap. The assertion checks coverage rather than counting known elements,
+   so the next thing mounted on <body> fails until it is handled. */
+/* collect BOTH id and class for each element. The top button is id
+   "calReturn" but class ".calreturn" \u2014 comparing only the id against a
+   class selector said uncovered when it is covered, differing by case. */
+const outside = JSON.parse(run(`JSON.stringify(
+  [...document.body.children]
+    .filter(el=>el.id!=='app'&&el.tagName!=='SCRIPT'&&el.tagName!=='STYLE')
+    .map(el=>({id:el.id||'', cls:(el.className||'').toString()})))`));
+const covered = outside.filter(el =>
+  [el.id, ...el.cls.split(/\s+/)].filter(Boolean)
+    .some(k => new RegExp(`[#.]${k}\\b`).test(noSelectSelectors)));
+ok("every element mounted outside #app has selection disabled",
+   covered.length === outside.length,
+   outside.length
+     ? `${covered.length}/${outside.length}: ${outside.map(e=>e.id||e.cls).join(",")}`
+     : "none mounted");
 
 process.exit(fail ? 1 : 0);

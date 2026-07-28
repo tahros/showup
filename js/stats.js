@@ -381,16 +381,16 @@ function renderStats(){
   h+=`</div>
       <div class="zoom" data-zoom><div class="zoomhint">pinch / scroll to zoom · double-tap to reset</div>
       <svg viewBox="0 0 340 170" style="width:100%;height:auto"
-        data-scrub="pct" data-sx0="26" data-sxw="274" data-sy0="140" data-syh="120" data-smax="1">`;
+        data-scrub="pct" data-sx0="20" data-sxw="302" data-sy0="140" data-syh="120" data-smax="1">`;
   // y grid + labels
   for(const g of [0,0.25,0.5,0.75,1]){
     const y=140-g*120;
-    h+=`<line x1="26" y1="${y}" x2="300" y2="${y}" stroke="var(--line)" stroke-width="0.6" ${g?'stroke-dasharray="2 3"':''}></line>
-        <text x="22" y="${y+3}" text-anchor="end" font-family="var(--mono)" font-size="7" fill="var(--muted)">${g*100}%</text>`;
+    h+=`<line x1="20" y1="${y}" x2="322" y2="${y}" stroke="var(--line)" stroke-width="0.6" ${g?'stroke-dasharray="2 3"':''}></line>
+        <text x="16" y="${y+3}" text-anchor="end" font-family="var(--mono)" font-size="7" fill="var(--muted)">${g*100}%</text>`;
   }
   // x months
   ['J','F','M','A','M','J','J','A','S','O','N','D'].forEach((m,i)=>{
-    const x=26+((i*30.4+15)/366)*274;
+    const x=20+((i*30.4+15)/366)*302;
     h+=`<line x1="${x}" y1="140" x2="${x}" y2="143" stroke="var(--line)" stroke-width="0.6"></line>
         <text x="${x}" y="152" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="var(--muted)">${m}</text>`;
   });
@@ -398,14 +398,14 @@ function renderStats(){
     const {curve,end}=curves[y];
     let pts='';
     for(let d=0;d<end;d+=2){
-      const x=26+(d/366)*274, yy=140-curve[d]*120;
+      const x=20+(d/366)*302, yy=140-curve[d]*120;
       pts+=`${x.toFixed(1)},${yy.toFixed(1)} `;
     }
     const cur=y===thisYear;
     h+=`<polyline data-yr="${y}" points="${pts}" fill="none" stroke="${YEAR_COLORS[y]||'var(--muted)'}"
          stroke-width="${cur?2.2:1.1}" opacity="${cur?1:.7}" stroke-linejoin="round"></polyline>`;
     // end-of-line % label
-    const lx=26+((end-1)/366)*274, ly2=140-curve[end-1]*120;
+    const lx=20+((end-1)/366)*302, ly2=140-curve[end-1]*120;
     h+=`<text data-yr="${y}" x="${Math.min(lx+4,312)}" y="${ly2+2.5}" font-family="var(--mono)" font-size="7"
           fill="${YEAR_COLORS[y]||'var(--muted)'}" font-weight="${cur?700:400}">${Math.round(curve[end-1]*100)}%</text>`;
     if(cur) h+=`<circle class="beacon" cx="${lx}" cy="${ly2}" r="3.2" fill="var(--accent)"></circle>`;
