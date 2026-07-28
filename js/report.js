@@ -95,9 +95,7 @@ function drawGrid(gd){
 
   x.textBaseline='alphabetic'; x.textAlign='left';
   x.fillStyle=V('--faint'); x.font='500 26px '+MONO;
-  x.fillText(`${gd.first} \u2192 ${todayISO}`,P,S-P+8);
-  x.textAlign='right';
-  x.fillText('tahros.github.io/showup',S-P,S-P+8);
+  x.fillText(`${gd.first} \u2192 ${todayISO}`,P,S-P+8);   // v3.3.133: URL dropped; the span IS the receipt
   return cv;
 }
 
@@ -149,8 +147,17 @@ function drawYoy(curves,o){
   x.textAlign='left'; x.fillStyle=V('--faint'); x.font='500 28px '+MONO;
   x.fillText(kicker,P,P+152);
 
+  /* v3.3.133: plot is 25% shorter and CENTRED between the kicker and the
+     caption, instead of hanging off the header with dead space beneath.
+     The band is computed the same way cardFrame does it, so the two card
+     families sit their art in the same place. drawYoy paints its own frame
+     (it predates cardFrame), which is why the arithmetic is repeated here
+     rather than shared — worth folding together the next time this file is
+     opened for structural work. */
+  const AT=P+180, AB=S-P-120;
+  const H=(AB-AT)*0.75, T=AT+((AB-AT)-H)/2, B=T+H;
   // right margin reserved for the year labels that replace the legend
-  const L=P+70, R=S-P-118, T=P+212, B=S-P-96, W=R-L, H=B-T;
+  const L=P+70, R=S-P-118, W=R-L;
   // y grid
   x.textAlign='right'; x.textBaseline='middle'; x.font='500 26px '+MONO;
   const yMax=o.yMax||1;
@@ -214,7 +221,7 @@ function drawYoy(curves,o){
   x.fillStyle=V('--faint'); x.font='500 26px '+MONO;
   x.fillText(footer,P,S-P+8);
   x.textAlign='right';
-  x.fillText('tahros.github.io/showup',S-P,S-P+8);
+  x.fillText(todayISO,S-P,S-P+8);   // v3.3.133: the date the receipt was taken
   return cv;
 }
 
@@ -266,10 +273,7 @@ function drawMilestone(n){
   x.fillText(fmt(n), S/2, S/2+90);
   x.fillStyle=V('--chalk'); x.font='500 40px '+MONO;
   x.fillText(msLine(n).replace(/\u2019/g,"'"), S/2, S/2+200);
-  x.fillStyle=V('--muted'); x.font='500 30px '+MONO;
-  x.textAlign='left';
-  x.fillText('tahros.github.io/showup', 64, S-64);
-  return cv;
+  return cv;   // v3.3.133: URL dropped here too — no card in the family carries it
 }
 function makeMilestoneImage(n){ return showCard(()=>drawMilestone(n),'day-'+n); }
 /* v3.3.130: ONE list, one share surface. Each row is a card: what to call it,
@@ -300,8 +304,10 @@ function shareCards(){
     }},
     {id:'heat', label:'Last 6 months', file:()=>'last-6-months', draw:()=>{
       const cols=heatSeries();
+      const span=cols.length*7;      // v3.3.133: the denominator, so 116 has something to be 116 OF
       return drawHeat({cols, big:String(cols.reduce((a,c)=>a+c.filter(d=>d.on).length,0)),
-        sub:'days in 26 weeks', kicker:'LAST 6 MONTHS', footer:'one column per week'});
+        sub:`days in ${cols.length} weeks (${span} days)`,
+        kicker:'LAST 6 MONTHS', footer:'one column per week'});
     }}
   ];
   /* the run cards only exist if you have run. An empty Pace card is not a
@@ -331,7 +337,8 @@ function shareCards(){
       return drawSeries({kind:'line',
         big:ps.length?fmtP(ps[ps.length-1][1]):'\u2014', sub:'per '+DU()+' this month',
         kicker:'PACE', footer:'minutes per '+DU()+', timed runs only',
-        vals:ps.map(p=>p[1]), hi:best, labels:ps.map(p=>p[0].slice(5))});
+        vals:ps.map(p=>p[1]), hi:best, labels:ps.map(p=>p[0].slice(5)),
+        fmtPt:fmtP});      // v3.3.133: point labels read as pace, not seconds
     }});
   }
   return L;
@@ -352,10 +359,24 @@ function cardFrame(x,S,o){
   x.fillText(o.sub||'',P+tw+18,P+96);
   x.font='600 30px '+MONO; x.fillStyle=V('--muted');
   x.fillText(o.kicker,P,P+152);
+  /* v3.3.133: the URL stamp is gone from every card. The "ShowUp" wordmark
+     already says where a receipt came from, and the URL was buying a second
+     mention at the cost of a whole line. The caption moves down into the
+     space it vacated. */
   x.font='500 30px '+MONO; x.fillStyle=V('--muted');
-  x.fillText(o.footer||'',P,S-116);
-  x.fillText('tahros.github.io/showup',P,S-64);
-  return {V,SANS,MONO,P,L:P,R:S-P,T:250,B:S-200};
+  x.fillText(o.footer||'',P,S-90);
+  if(o.stamp){                     // bottom-right: today's date, opposite the caption
+    x.textAlign='right'; x.fillStyle=V('--faint');
+    x.fillText(o.stamp,S-P,S-90); x.textAlign='left';
+  }
+  /* v3.3.133: AT/AB describe the band a plot may occupy — below the kicker,
+     above the caption. Painters centre themselves inside it rather than
+     hardcoding a top, which is what left the dead strip under every chart.
+     T/B stay for callers that still want the old full-bleed rect. */
+  const AT=P+192, AB=S-136;
+  return {V,SANS,MONO,P,L:P,R:S-P,T:250,B:S-200,AT,AB,
+          /* centre a plot of height h in the band */
+          mid:h=>AT+Math.max(0,((AB-AT)-h)/2)};
 }
 /* v3.3.115: these three cards now reproduce the on-screen chart rather than
    approximating it. Each SVG is authored in a 330x118 viewBox, so the card
@@ -368,6 +389,15 @@ function vbMap(S,vbW,top){
   const P=64, W=S-P*2, k=W/vbW;
   return {k,P,W, X:x=>P+x*k, Y:y=>top+y*k, F:px=>Math.round(px*k)};
 }
+/* v3.3.133: same map, but the top is derived so the viewBox sits centred in
+   the frame's plot band instead of hanging off the header. vbH is the used
+   height of the viewBox, not its declared one — Days by month declares 118
+   but only paints down to ~109, and centring on the declared box would push
+   the art high by the difference. */
+function vbMapCentered(S,vbW,vbH,F){
+  const P=64, k=(S-P*2)/vbW;
+  return vbMap(S,vbW,F.mid(vbH*k));
+}
 function rrect(x,px,py,w,h,r){
   const rr=Math.min(r,w/2,h/2);
   x.beginPath();
@@ -379,10 +409,31 @@ function drawSeries(o){
   const S=1080, cv=document.createElement('canvas'); cv.width=S; cv.height=S;
   const x=cv.getContext('2d');
   const F=cardFrame(x,S,o), V=F.V, MONO=F.MONO;
-  const L=F.L, R=F.R, T=F.T, B=F.B, W=R-L, H=B-T;
+  /* v3.3.133: both series cards centre in the frame's band. Every week (bars)
+     additionally loses 25% of its height — it was a wall of tall columns that
+     said less than a shorter one would. Pace (line) keeps its full height:
+     it is a nearly flat series, and squashing it further would flatten the
+     only variation it has to show. */
+  const bars=o.kind!=='line';
+  const H=(F.AB-F.AT-70)*(bars?0.75:1);
+  const T=F.mid(H+70), B=T+H;
+  const L=F.L, R=F.R, W=R-L;
   const vals=o.vals, n=vals.length||1;
   const max=Math.max(...vals.filter(v=>typeof v==='number'&&isFinite(v)), o.floor||0, 1e-9);
   const Y=v=>B-(v/max)*H;
+  /* v3.3.133: bars get a y-axis and dotted rules. Without them a shorter bar
+     was only "shorter than the others" — you could not read how far a past
+     run actually went, which is the question the card exists to answer. */
+  if(bars){
+    x.textAlign='right'; x.textBaseline='middle'; x.font='500 26px '+MONO;
+    for(const g of [0,0.5,1]){
+      const gy=B-g*H;
+      if(g){ x.strokeStyle=V('--line'); x.lineWidth=1.5; x.setLineDash([6,7]);
+        x.beginPath(); x.moveTo(L,gy); x.lineTo(R,gy); x.stroke(); x.setLineDash([]); }
+      x.fillStyle=V('--faint'); x.fillText(String(Math.round(max*g)),L-14,gy);
+    }
+    x.textBaseline='alphabetic';
+  }
   if(o.ref!=null&&isFinite(o.ref)&&o.ref>0){
     x.strokeStyle=V('--line'); x.lineWidth=2; x.setLineDash([6,8]);
     x.beginPath(); x.moveTo(L,Y(o.ref)); x.lineTo(R,Y(o.ref)); x.stroke(); x.setLineDash([]);
@@ -393,9 +444,24 @@ function drawSeries(o){
     vals.forEach((v,i)=>{ const px=L+(n===1?W/2:(i/(n-1))*W); const py=Y(v);
       i?x.lineTo(px,py):x.moveTo(px,py); });
     x.stroke();
+    /* v3.3.133: every point is labelled, and the LATEST point stays accent
+       (it used to inherit the record colour when it happened to be fastest)
+       but draws larger. "Where am I now" should be found by size, not by a
+       colour that means something else. */
+    const last=n-1;
     vals.forEach((v,i)=>{ const px=L+(n===1?W/2:(i/(n-1))*W);
-      x.fillStyle=(i===o.hi)?V('--record'):V('--accent');
-      x.beginPath(); x.arc(px,Y(v),9,0,7); x.fill(); });
+      x.fillStyle=(i===o.hi&&i!==last)?V('--record'):V('--accent');
+      x.beginPath(); x.arc(px,Y(v),i===last?16:9,0,7); x.fill(); });
+    x.textAlign='center'; x.font='500 24px '+MONO;
+    const fmt=o.fmtPt||(v=>String(Math.round(v)));
+    vals.forEach((v,i)=>{
+      const px=L+(n===1?W/2:(i/(n-1))*W);
+      // alternate above/below so 12 labels on a flat line never touch
+      const above=i%2===0;
+      x.fillStyle=(i===last)?V('--accent'):V('--faint');
+      x.font=(i===last?'700 26px ':'500 24px ')+MONO;
+      x.fillText(fmt(v),px,Y(v)+(above?-30:44));
+    });
   }else{
     const gap=W/n, bw=Math.min(gap*0.62,70);
     vals.forEach((v,i)=>{
@@ -404,14 +470,25 @@ function drawSeries(o){
       x.globalAlpha=(i===o.hi)?1:0.65;
       rrect(x,px,py,bw,hh,10); x.globalAlpha=1;
     });
+    // v3.3.133: the most recent bar carries its value — the one number here
+    const li=n-1, lpx=L+li*gap+gap/2;
+    x.textAlign='center'; x.fillStyle=V('--accent'); x.font='700 30px '+MONO;
+    x.fillText(String(Math.round(vals[li])),lpx,Y(vals[li])-18);
   }
   x.textAlign='center'; x.fillStyle=V('--muted'); x.font='500 26px '+MONO;
-  const step=Math.ceil(n/12);
-  (o.labels||[]).forEach((t,i)=>{
-    if(i%step && i!==n-1) return;
-    const px=o.kind==='line' ? L+(n===1?W/2:(i/(n-1))*W) : L+i*(W/n)+(W/n)/2;
-    x.fillText(t,px,B+46);
-  });
+  /* v3.3.133: bars label the OLDEST and NEWEST week only. Nine dates across
+     the foot was a ruler nobody read; the span is the useful fact. */
+  const lab=o.labels||[];
+  if(bars){
+    [0,n-1].forEach(i=>{ if(lab[i]==null) return;
+      x.fillText(lab[i],L+i*(W/n)+(W/n)/2,B+46); });
+  }else{
+    const step=Math.ceil(n/12);
+    lab.forEach((t,i)=>{
+      if(i%step && i!==n-1) return;
+      x.fillText(t,L+(n===1?W/2:(i/(n-1))*W),B+46);
+    });
+  }
   x.textAlign='left';
   return cv;
 }
@@ -421,7 +498,7 @@ function drawDbm(o){
   const S=1080, cv=document.createElement('canvas'); cv.width=S; cv.height=S;
   const x=cv.getContext('2d');
   const F=cardFrame(x,S,o), V=F.V, MONO=F.MONO;
-  const M=vbMap(S,330,F.T+30);
+  const M=vbMapCentered(S,330,109,F);   // v3.3.133: painted height is ~109 of the 118 box
   const refY=94-20/31*80;
   x.strokeStyle=V('--line'); x.lineWidth=Math.max(1,M.F(0.6)); x.setLineDash([M.F(2),M.F(3)]);
   x.beginPath(); x.moveTo(M.X(8),M.Y(refY)); x.lineTo(M.X(316),M.Y(refY)); x.stroke(); x.setLineDash([]);
@@ -458,7 +535,7 @@ function drawWd(o){
   const S=1080, cv=document.createElement('canvas'); cv.width=S; cv.height=S;
   const x=cv.getContext('2d');
   const F=cardFrame(x,S,o), V=F.V, MONO=F.MONO;
-  const M=vbMap(S,330,F.T+30);
+  const M=vbMapCentered(S,330,112,F);   // v3.3.133
   for(const g of [0,25,50,75,100]){
     const y=94-g/100*81;
     x.strokeStyle=V('--line'); x.lineWidth=Math.max(1,M.F(0.6));
@@ -475,10 +552,16 @@ function drawWd(o){
     x.globalAlpha=today?1:0.6;
     rrect(x,M.X(px),M.Y(94-bh),M.F(26),M.F(bh),M.F(4)); x.globalAlpha=1;
     x.textAlign='center';
-    if(best){ x.fillStyle=V('--muted'); x.font='500 '+M.F(9)+'px '+MONO;
-      x.fillText('\u25b2',M.X(px+13),M.Y(86-bh)); }
+    /* v3.3.133: the SAME collision the live chart had at v3.3.129 — the %
+       label's y branched on today/best while the caret sat at a fixed
+       offset, so a day that was BOTH drew them on top of each other. The
+       card carried the bug because it ports the loop verbatim. Same fix:
+       one unconditional stack, bar -> % (4 up) -> caret (11 above the %). */
+    const pctY=90-bh;
     x.fillStyle=V('--muted'); x.font='500 '+M.F(8)+'px '+MONO;
-    x.fillText(Math.round(p*100)+'%',M.X(px+13),M.Y(today?90-bh:(best?78-bh:90-bh)));
+    x.fillText(Math.round(p*100)+'%',M.X(px+13),M.Y(pctY));
+    if(best){ x.fillStyle=V('--muted'); x.font='500 '+M.F(9)+'px '+MONO;
+      x.fillText('\u25b2',M.X(px+13),M.Y(pctY-11)); }
     x.fillStyle=today?V('--chalk'):V('--muted'); x.font='500 '+M.F(9)+'px '+MONO;
     x.fillText(lab,M.X(px+13),M.Y(109));
   });
@@ -494,7 +577,11 @@ function drawHeat(o){
   const P=64, cols=o.cols;
   const rail=46, gap=5;
   const cell=Math.floor((S-P*2-rail-gap*(cols.length-1))/cols.length);
-  const gridL=P+rail, top=F.T+70;
+  /* v3.3.133: centre the grid in the band. The month row sits 16px above the
+     first cell, so the block being centred is 7 rows PLUS that label strip —
+     centring the cells alone would ride high by the label's height. */
+  const gridH=7*cell+6*gap, labelStrip=38;
+  const gridL=P+rail, top=F.mid(gridH+labelStrip)+labelStrip;
   // weekday rail, matching the on-screen .wdrail
   x.fillStyle=V('--faint'); x.font='500 22px '+MONO; x.textAlign='right'; x.textBaseline='middle';
   ['S','M','T','W','T','F','S'].forEach((d,r)=>

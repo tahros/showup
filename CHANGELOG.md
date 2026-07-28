@@ -1,5 +1,54 @@
 # ShowUp — changelog
 
+## v3.3.133 (2026-07-28) — The share cards, squared up
+
+**Seven cards reviewed on the phone, seven notes, one release.** Most of the
+work landed in `cardFrame()`, which every card but two already shares.
+
+**The URL is gone from all of them.** `tahros.github.io/showup` was buying a
+second mention of provenance at the cost of a whole line, when the "ShowUp"
+wordmark already says it. Removed from the milestone card too — no card in
+the family carries it now, which matters more than any one card keeping it.
+
+**Plots are vertically centred.** Every painter used to hardcode a top under
+the header, which left a dead strip above the caption on every card. The
+frame now hands back a band (below the kicker, above the caption) and a
+`mid()` that centres a plot of given height inside it. `vbMapCentered()` does
+the same for the three cards that map an SVG viewBox — centred on their
+PAINTED height, not the declared box, or they ride high by the difference.
+
+**Consistency and Every week lost 25% of their height.** Pace deliberately
+did not: it is a nearly flat series, and squashing it further would flatten
+the only variation it has to show.
+
+**The weekday caret was colliding with its own percentage** — the same bug
+fixed on the live chart at v3.3.129, present here because the card ports that
+loop verbatim. Same fix, same unconditional stack: bar, then the percentage,
+then the caret above it. Position no longer depends on which flags are set.
+
+**Every week** now labels only the oldest and newest week instead of nine
+dates nobody read, puts a value above the most recent bar, and gains a y-axis
+with dotted rules — without them a short bar was only "shorter than the
+others", which is not the question the card exists to answer.
+
+**Pace** labels every point in pace format rather than raw seconds,
+alternating above and below the line so twelve labels on a flat series never
+touch. The latest point is larger and stays accent — it used to inherit the
+record colour whenever it happened to also be the fastest, which made "where
+am I now" and "where was I best" the same mark.
+
+**Consistency** stamps the date the receipt was taken, bottom right, where
+the URL used to sit. **Last 6 months** names its denominator — "116 days in
+26 weeks (182 days)" — so the number has something to be 116 of.
+
+Two assertions inverted (both asserted the URL was present) and a new
+test-cardframe.js records every canvas call and reasons about the result:
+centring is checked as "is the gap above about the gap below" rather than
+against magic numbers, so a re-tune of the frame does not silently break it.
+One assertion in it is explicitly NOT checked on canvas — jsdom cannot
+resolve CSS custom properties, so the pace point's colour is verified in the
+source rather than allowed to pass vacuously.
+
 ## v3.3.132 (2026-07-28) — Every week, read at a glance
 
 **A Strava chart the maker admired for being minimal, taken apart for what

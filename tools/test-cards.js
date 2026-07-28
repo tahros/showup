@@ -89,7 +89,10 @@ for (const [maker, kicker] of [
   const r = paints(maker);
   ok(`the ${maker} card draws real geometry`, r.shapes >= 8, r.shapes + " shape ops");
   ok(`...labelled ${kicker}`, r.texts.includes(kicker), r.texts.slice(0, 3).join(" | "));
-  ok(`...and carries the URL footer`, r.texts.some(t => /tahros\.github\.io/.test(t)));
+  // v3.3.133: the URL stamp was removed from every card — the wordmark carries
+  // provenance now. Inverted rather than deleted: a card must NOT grow one back.
+  ok(`...and carries no URL stamp`, !r.texts.some(t => /tahros\.github\.io/.test(t)),
+     r.texts.filter(t => /tahros/.test(t)).join(",") || "none");
 }
 
 // ---- the frame is shared, not copy-pasted ---------------------------------

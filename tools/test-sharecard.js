@@ -87,7 +87,9 @@ ok("the day count is drawn", texts.includes(total), total);
 ok("...labelled as days", texts.includes("days"));
 ok("...before anything else on the card", texts.indexOf(total) === 0);
 ok("the app is named", texts.includes("ShowUp"));
-ok("the URL is on the card", texts.some(t => t.includes("tahros.github.io/showup")));
+// v3.3.133: no card carries the URL any more; "ShowUp" above is the provenance
+ok("no URL stamp on the card", !texts.some(t => t.includes("tahros.github.io/showup")),
+   texts.filter(t => /tahros/.test(t)).join(",") || "none");
 
 // ---- 4. every month in range is drawn, and nothing outside it ------------
 const inRange = run(`(function(){
