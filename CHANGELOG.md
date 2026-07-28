@@ -1,5 +1,45 @@
 # ShowUp — changelog
 
+## v3.3.120 (2026-07-27) — Part mix: a scale, a ramp, and the way back
+
+Seven changes to the part-mix chart. One of them undoes a decision two
+releases old, correctly.
+
+**Shades of blue.** The categorical palette is gone, which returns this
+chart to the app's original no-categorical rule — the v3.3.116 exception is
+spent rather than extended. Sourced across Tailwind's sky/blue/indigo/cyan
+so the ramp carries a little hue drift, because pure lightness cannot hold
+eight steps: on a dark ground, eight levels each clearing 3:1 against it AND
+separating from each other do not FIT in the luminance range available. That
+is arithmetic, not preference. A **hairline separator** is stroked between
+stacked segments and carries the boundary instead, which is what lets the
+mutual floor sit at 1.12.
+
+**A fixed y-axis** beside the scroller, so the scale stays readable however
+far back you have travelled, with **five labelled guides** across the plot.
+Axis and plot both call one `pmixMax()` — two maxima would mean the labels
+quietly lie about the bars.
+
+**A soft vertical rule at every month change**, with the month named beside
+it, and a compact legend above the chart.
+
+**A jump-to-latest button** appears bottom-right once you are more than a
+screen from today, fades in rather than pops, and rides the wrapper's own
+smooth scrolling. Back-loading explicitly SUPPRESSES that smoothness while
+it restores position — gliding the view across the weeks it just prepended
+is the exact opposite of holding it still. Both motions are disabled under
+reduced-motion.
+
+**The v3.3.119 colour guard was rewritten, not relaxed.** It assumed a
+categorical palette, where two fills sharing a hue meant a collision — so
+against a deliberate ramp it flagged all 28 pairs of a palette working
+exactly as intended. The property that actually matters either way is that
+any two fills be distinguishable by SOMETHING: different hue, or enough
+luminance between them. It now tests that, and separately asserts the
+separator exists, since that is what makes the low floor honest.
+
+`test-pmix.js` at 43.
+
 ## v3.3.119 (2026-07-27) — The maker's palette, minus what the guards refused
 
 Family assignment by the maker; steps dark -300 / light -500. Six of eight

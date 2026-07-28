@@ -29,22 +29,49 @@ function mgAlpha(n,max,cur){ return n?(0.14+0.74*n/max)*(cur?0.45:1):0; }
    column is legible on a phone; the wrapper scrolls and PMIX_DAYS grows
    when you reach the left edge. */
 let PMIX_DAYS=56;
-/* v3.3.117: wider columns and a taller plot — the first pass was too squat
-   to read — plus room beneath for a rotated date on EVERY column, the way
-   the spreadsheet labels its x-axis. */
 const PMIX_COLW=17, PMIX_H=232, PMIX_TOP=8, PMIX_BASE=150;
+const PMIX_AXW=34;
+/* v3.3.120: the plot's vertical scale must be identical in the fixed axis
+   and the scrolling body, so BOTH read this one function. */
+function pmixMax(rows){ return Math.max(...rows.map(r=>r.total), 1); }
+const pmixTick=v=> v>=1000 ? (v/1000).toFixed(v>=10000?0:1).replace(/\.0$/,'')+'k' : String(Math.round(v));
+function pmixAxisSvg(rows){
+  const max=pmixMax(rows);
+  let s=`<svg class="pmixaxis" viewBox="0 0 ${PMIX_AXW} ${PMIX_H}" width="${PMIX_AXW}"
+      height="${PMIX_H}" style="height:${PMIX_H}px">`;
+  for(let i=0;i<=4;i++){
+    const y=PMIX_BASE-(i/4)*(PMIX_BASE-PMIX_TOP);
+    s+=`<text x="${PMIX_AXW-4}" y="${(y+2.5).toFixed(1)}" text-anchor="end"
+         font-family="var(--mono)" font-size="7" fill="var(--muted)">${pmixTick(max*i/4)}</text>`;
+  }
+  return s+`</svg>`;
+}
 function partMixSvg(days){
   const rows=partMix(days);
   if(!rows.length) return '';
-  const max=Math.max(...rows.map(r=>r.total),1);
+  const max=pmixMax(rows);
   const W=Math.max(320,rows.length*PMIX_COLW+16);
   let s=`<svg viewBox="0 0 ${W} ${PMIX_H}" width="${W}" height="${PMIX_H}"
       style="height:${PMIX_H}px" data-pmix>`;
-  for(const g of [0,0.5,1]){
-    const y=PMIX_BASE-g*(PMIX_BASE-PMIX_TOP);
-    s+=`<line x1="8" y1="${y.toFixed(1)}" x2="${W-8}" y2="${y.toFixed(1)}"
-         stroke="var(--line)" stroke-width="0.6"${g?' stroke-dasharray="2 3"':''}></line>`;
+  // horizontal guides at every axis tick, so the labels beside them mean something
+  for(let i=0;i<=4;i++){
+    const y=PMIX_BASE-(i/4)*(PMIX_BASE-PMIX_TOP);
+    s+=`<line x1="4" y1="${y.toFixed(1)}" x2="${W-4}" y2="${y.toFixed(1)}"
+         stroke="var(--line)" stroke-width="0.6"${i?' stroke-dasharray="2 3"':''}></line>`;
   }
+  // a soft rule wherever the month turns over
+  let prevM=null;
+  rows.forEach((r,i)=>{
+    const m=r.d.slice(0,7);
+    if(prevM!==null && m!==prevM){
+      const x=8+i*PMIX_COLW-2;
+      s+=`<line x1="${x}" y1="${PMIX_TOP}" x2="${x}" y2="${PMIX_BASE+4}"
+           stroke="var(--line)" stroke-width="0.8" opacity="0.55"></line>
+          <text x="${x+3}" y="${PMIX_TOP+7}" font-family="var(--mono)" font-size="7"
+           fill="var(--faint)">${new Date(r.d+'T00:00').toLocaleDateString('en-US',{month:'short'})}</text>`;
+    }
+    prevM=m;
+  });
   rows.forEach((r,i)=>{
     const x=8+i*PMIX_COLW, bw=PMIX_COLW-4;
     let y=PMIX_BASE;
@@ -53,7 +80,8 @@ function partMixSvg(days){
       const hh=(n/max)*(PMIX_BASE-PMIX_TOP);
       y-=hh;
       s+=`<rect x="${x}" y="${y.toFixed(1)}" width="${bw}" height="${hh.toFixed(1)}"
-           fill="${PART_COLORS[p]||'var(--muted)'}" data-pt="${p}"></rect>`;
+           fill="${PART_COLORS[p]||'var(--muted)'}" data-pt="${p}"
+           stroke="var(--ground)" stroke-width="0.5"></rect>`;
     }
     // every column names its day, rotated — as the spreadsheet does
     const lab=(+r.d.slice(5,7))+'/'+(+r.d.slice(8,10));
@@ -223,9 +251,13 @@ function renderStats(){
      maker's call. Scrolls sideways and loads older weeks at its left edge. */
   h+=`<h2>Part mix${hActs('pmix',"Volume per body part each training day. Runs are excluded — km don't sum with kg.")}</h2>
       <div class="card">
-        <div class="legend1">${Object.keys(SEED.catalog).filter(p=>p!=='Run').map(p=>
+        <div class="pmixlgd">${Object.keys(SEED.catalog).filter(p=>p!=='Run').map(p=>
           `<span data-pt="${p}"><i style="background:${PART_COLORS[p]||'var(--muted)'}"></i>${p}</span>`).join('')}</div>
-        <div class="pmixwrap" id="pmixWrap">${partMixSvg(PMIX_DAYS)}</div>
+        <div class="pmixbox">
+          ${pmixAxisSvg(partMix(PMIX_DAYS))}
+          <div class="pmixwrap" id="pmixWrap">${partMixSvg(PMIX_DAYS)}</div>
+          <button class="pmixnow" id="pmixNow" aria-label="Back to latest">→</button>
+        </div>
       </div>`;
   cut('pmix');
   h+=`<h2>Consistency${hActs('yoy',"% of days trained so far each year — the bold line is this year, still running.",'yoyShare')}</h2><div class="card">

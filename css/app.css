@@ -13,26 +13,16 @@
        mean exactly one thing in this app and a body part is not it, which
        is why Back is not red and Legs are not green as they are in the
        maker's spreadsheet. Data hues only; licenses nothing else. */
-    /* v3.3.119: the maker's family assignment, Tailwind 3.4.19 (MIT).
-       Dark -300, light -500, with two forced exceptions noted below.
-       Chest yellow · Back pink · Shoulder purple · Legs blue ·
-       Biceps slate · Triceps stone · Sixpack teal · Run gray.
-
-       Three deviations from the request, each forced by a guard:
-       • Back asked for RED and Shoulder for ORANGE. red-500 sits 5° from
-         the LIVE red and orange-500 20° — there is no red that is not the
-         red. pink (330°) is the closest legal hue to red; purple (271°)
-         replaces orange, since amber is legal on hue but only 1.94:1 on
-         the light ground.
-       • Triceps asked for GRAY and Run for STONE, swapped here: slate and
-         gray are 3–5° apart and read as the same colour, and Biceps/Triceps
-         stack side by side. stone is warm (25°) against slate's 215°, so
-         the two neutrals on screen are now tellable apart. Run takes zinc
-         (240°) rather than gray: gray collides with slate too, and a
-         defined-but-duplicate colour is a trap for whoever renders Run
-         later. Three greys, genuinely distinct: cool, warm, pure. */
-    --p-chest:#fde047; --p-back:#f9a8d4; --p-shoulder:#d8b4fe; --p-legs:#93c5fd;
-    --p-biceps:#cbd5e1; --p-triceps:#d6d3d1; --p-sixpack:#5eead4; --p-run:#d4d4d8;
+    /* v3.3.120: back to one hue — the maker asked for shades of blue, which
+       returns this chart to the app's original no-categorical rule. Sourced
+       from Tailwind 3.4.19 across sky/blue/indigo/cyan so the ramp has some
+       hue drift to help it separate, since pure lightness alone cannot
+       carry eight steps: on a dark ground, eight levels each clearing 3:1
+       and separating from each other do not FIT in the available luminance
+       range. A hairline separator between stacked segments carries the
+       boundary instead, which is why the mutual floor can sit at 1.12. */
+    --p-chest:#cffafe; --p-back:#bfdbfe; --p-shoulder:#93c5fd; --p-legs:#06b6d4;
+    --p-biceps:#818cf8; --p-triceps:#3b82f6; --p-sixpack:#6366f1; --p-run:#0e7490;
     --chart-soft:#616EA3;                   /* v3.3.92: 2025's year line — accent-soft was 2.10:1 as a stroke */
     --live:#C93A2B;                         /* the header while your heart is pumping */
     --chalk:#F0F1F6; --muted:#A2A8B6; --faint:#747A8A; --shadow:none;
@@ -48,13 +38,11 @@
     --record:#C33A2C;
     --rest:#79A884;                         /* declared rest, light theme (wash/frame grade) */
     --rest-ink:#3B5742;                     /* rest as text, light */
-    /* light theme takes -500, EXCEPT the two that cannot be seen at it:
-       yellow-500 measures 1.73:1 on this near-white ground and teal-500
-       2.24:1, both under the 3:1 floor for a chart fill. Chest is -700
-       (4.44) and Sixpack -600 (3.37). Warm and cyan hues carry too much
-       luminance to clear 3:1 at a mid step — preference cannot fix that. */
-    --p-chest:#a16207; --p-back:#ec4899; --p-shoulder:#a855f7; --p-legs:#3b82f6;
-    --p-biceps:#64748b; --p-triceps:#78716c; --p-sixpack:#0d9488; --p-run:#71717a;
+    /* the same ramp, run downward: on a near-white ground the fills have to
+       be DARKER than it, so the light theme walks sky/blue/indigo/cyan from
+       600 to 900 instead of 100 to 700. */
+    --p-chest:#0891b2; --p-back:#6366f1; --p-shoulder:#0e7490; --p-legs:#4f46e5;
+    --p-biceps:#075985; --p-triceps:#1e40af; --p-sixpack:#3730a3; --p-run:#312e81;
     --chart-soft:#7F859F;                   /* 2025's line, light — C3CCF5 was 1.58:1 on white */
     --live:#BE3324;
     /* v3.3.92: muted 4.10:1 on surface2 and faint 2.62:1 on white failed AA;
@@ -778,8 +766,29 @@
      chart now, so a scrubbing hand never covers it. */
   /* v3.3.116: the part-mix chart scrolls sideways and loads older weeks as
      you reach its left edge, so it owns its horizontal gesture. */
-  .pmixwrap{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;touch-action:pan-x}
+  /* v3.3.120: a fixed y-axis beside a scrolling plot, so the scale stays
+     readable however far back you are. */
+  .pmixbox{position:relative;display:flex;align-items:flex-start;gap:2px}
+  .pmixaxis{flex:0 0 auto}
+  .pmixwrap{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;
+    touch-action:pan-x;scroll-behavior:smooth;flex:1 1 auto}
   .pmixwrap > svg{display:block}
+  /* jump back to today. Fades rather than pops, and is out of the way of a
+     scrolling thumb. */
+  .pmixnow{position:absolute;right:6px;bottom:26px;z-index:2;
+    width:30px;height:30px;border-radius:50%;border:0;cursor:pointer;
+    background:var(--accent);color:#fff;font-family:var(--mono);font-size:14px;
+    line-height:30px;text-align:center;padding:0;box-shadow:var(--shadow);
+    opacity:0;pointer-events:none;transform:translateX(6px);
+    transition:opacity .18s ease,transform .18s ease}
+  .pmixnow.on{opacity:1;pointer-events:auto;transform:translateX(0)}
+  .pmixlgd{display:flex;flex-wrap:wrap;gap:4px 10px;margin:0 0 8px}
+  .pmixlgd span{display:inline-flex;align-items:center;gap:4px;
+    font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.02em}
+  .pmixlgd i{width:8px;height:8px;border-radius:2px;flex:0 0 auto}
+  @media (prefers-reduced-motion:reduce){
+    .pmixwrap{scroll-behavior:auto}
+    .pmixnow{transition:none}}
   .legend1{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 8px;padding-bottom:0}
   .legend1 span{font-family:var(--mono);font-size:10px;color:var(--muted);display:flex;align-items:center;
     gap:4px;white-space:nowrap;flex:0 0 auto}

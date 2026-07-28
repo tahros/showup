@@ -99,12 +99,16 @@ ok("light-theme part fills are all darker than the light ground",
 ok("the two themes use different steps, not the same hex",
    dParts.every((p,i) => p.toLowerCase() !== lParts[i].toLowerCase()));
 
-/* v3.3.119: clearing the GROUND is not the same as being tellable apart
-   from EACH OTHER. The maker's first assignment put slate on Biceps and
-   gray on Triceps \u2014 3\u20135\u00b0 apart, effectively one colour \u2014 and those two
-   stack side by side. A categorical palette fails at that, not at contrast.
-   Two fills may share a hue only if their saturation clearly separates them
-   (a vivid blue beside a grey-blue is fine; two greys are not). */
+/* v3.3.120 rewrites the v3.3.119 rule. That version assumed a CATEGORICAL
+   palette, where two fills sharing a hue meant a collision. The palette is
+   now a deliberate blue RAMP, where every pair shares a hue by design and
+   separation comes from lightness \u2014 so the old rule flagged all 28 pairs
+   against a palette that is working as intended.
+   The property that actually matters either way: any two fills must be
+   distinguishable by SOMETHING. Different hue, or enough luminance between
+   them. The floor is 1.12 rather than higher because a hairline separator
+   is stroked between stacked segments, which carries the boundary the ramp
+   cannot \u2014 asserted separately below. */
 const hueSat = hx => {
   const r = parseInt(hx.slice(1,3),16)/255, g = parseInt(hx.slice(3,5),16)/255, b = parseInt(hx.slice(5,7),16)/255;
   const mx = Math.max(r,g,b), mn = Math.min(r,g,b), d = mx-mn, l = (mx+mn)/2;
@@ -114,15 +118,35 @@ const hueSat = hx => {
   return [h, d/(1-Math.abs(2*l-1))];
 };
 const hueGap = (a,b) => { const d = Math.abs(a-b)%360; return Math.min(d, 360-d); };
+const lumOf2 = hx => {
+  const c = [1,3,5].map(i => parseInt(hx.slice(i,i+2),16)/255)
+    .map(v => v <= 0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4));
+  return 0.2126*c[0] + 0.7152*c[1] + 0.0722*c[2];
+};
+const ratio = (a,b) => { const x = lumOf2(a), y = lumOf2(b);
+  return (Math.max(x,y)+0.05)/(Math.min(x,y)+0.05); };
 for (const [label, set] of [["dark", dParts], ["light", lParts]]) {
   const bad = [];
   for (let i = 0; i < set.length; i++) for (let j = i+1; j < set.length; j++) {
-    const [h1,s1] = hueSat(set[i]), [h2,s2] = hueSat(set[j]);
-    if (hueGap(h1,h2) < 20 && Math.abs(s1-s2) < 0.35) bad.push(`${set[i]}~${set[j]}`);
+    const [h1] = hueSat(set[i]), [h2] = hueSat(set[j]);
+    if (hueGap(h1,h2) < 20 && ratio(set[i],set[j]) < 1.12) bad.push(`${set[i]}~${set[j]}`);
   }
+  const worst = (() => { let m = 99;
+    for (let i = 0; i < set.length; i++) for (let j = i+1; j < set.length; j++)
+      m = Math.min(m, ratio(set[i],set[j]));
+    return m.toFixed(2); })();
   ok(`no two ${label} part colours are mutually indistinguishable`,
-     bad.length === 0, bad.join(" ") || set.length + " colours, all separable");
+     bad.length === 0, bad.join(" ") || `${set.length} colours, closest pair ${worst}:1`);
 }
+// the separator is what lets the ramp work at all
+const statsSrc120 = fs.readFileSync(path.join(dir, "js/stats.js"), "utf8");
+ok("stacked segments are separated by a hairline, so touching blues still read",
+   /stroke="var\(--ground\)" stroke-width="0\.5"/.test(statsSrc120));
+// and the ramp really is one hue family now
+const hues = dParts.map(p => hueSat(p)[0]);
+ok("the palette is a single blue family, not categorical",
+   hues.every(h => h >= 165 && h <= 250),
+   hues.map(Math.round).sort((a,b)=>a-b).join(","));
 const live = (css.match(/--live:(#[0-9A-Fa-f]{6})/g) || []).map(s => s.split(":")[1].toUpperCase());
 const rest = (css.match(/--rest:(#[0-9A-Fa-f]{6})/g) || []).map(s => s.split(":")[1].toUpperCase());
 ok("no part colour reuses the LIVE red or the REST green",
@@ -175,9 +199,9 @@ ok("part colours appear only via PART_COLORS, never hand-written into a rule",
 ok("PART_COLORS covers every catalog part",
    run(`Object.keys(SEED.catalog).every(p=>!!PART_COLORS[p])`),
    run(`Object.keys(SEED.catalog).join(',')`));
-ok("the legend names every stacked part (7 \u2014 Run left the stack in v3.3.117)",
-   run(`document.querySelectorAll('.legend1 [data-pt]').length`) === 7,
-   run(`[...document.querySelectorAll('.legend1 [data-pt]')].map(s=>s.dataset.pt).join(',')`));
+ok("the compact legend names every stacked part (7 \u2014 Run left the stack in v3.3.117)",
+   run(`document.querySelectorAll('.pmixlgd [data-pt]').length`) === 7,
+   run(`[...document.querySelectorAll('.pmixlgd [data-pt]')].map(s=>s.dataset.pt).join(',')`));
 
 // ---- LAZY BACK-LOADING: the view must not jump ---------------------------
 // jsdom has no layout, so scrollWidth is 0; drive the widths explicitly and
@@ -234,5 +258,59 @@ ok("...and opens parked at today, not at the oldest day",
 // ---- it owns its horizontal gesture --------------------------------------
 ok("the chart is in the tab-swipe blocklist (it scrolls sideways)",
    /closest\('\.pmixwrap'\)/.test(fs.readFileSync(path.join(dir, "js/util.js"), "utf8")));
+
+// ---- v3.3.120: the chart's furniture -------------------------------------
+run(`view='stats'; render();`);
+
+// a y-axis that does not scroll away
+ok("a fixed y-axis sits beside the scroller",
+   run(`!!document.querySelector('.pmixbox > .pmixaxis')`) &&
+   run(`!!document.querySelector('.pmixbox > .pmixwrap')`));
+const axisTicks = run(`[...document.querySelectorAll('.pmixaxis text')].map(t=>t.textContent)`);
+ok("...labelled at five levels", axisTicks.length === 5, axisTicks.join(","));
+ok("...starting at zero and rising", axisTicks[0] === "0" && axisTicks[4] !== "0");
+
+// guides that line up with those labels
+ok("the plot draws a guide for every axis tick",
+   run(`[...document.querySelectorAll('#pmixWrap svg > line')]
+        .filter(l=>l.getAttribute('y1')===l.getAttribute('y2')).length`) === 5);
+
+// axis and plot must share one scale or the labels lie
+ok("axis and plot compute their maximum from ONE function",
+   /function pmixMax/.test(fs.readFileSync(path.join(dir, "js/stats.js"), "utf8")) &&
+   (fs.readFileSync(path.join(dir, "js/stats.js"), "utf8").match(/pmixMax\(/g) || []).length >= 3);
+
+// month rules
+const vlines = run(`[...document.querySelectorAll('#pmixWrap svg line')]
+  .filter(l=>l.getAttribute('x1')===l.getAttribute('x2')).length`);
+ok("a soft vertical rule marks each month change", vlines >= 1, vlines + " rules");
+ok("...and it is soft, not a hard line",
+   run(`[...document.querySelectorAll('#pmixWrap svg line')]
+        .filter(l=>l.getAttribute('x1')===l.getAttribute('x2'))
+        .every(l=>+l.getAttribute('opacity')<1)`));
+
+// the way back
+ok("a jump-to-latest button exists", run(`!!document.getElementById('pmixNow')`));
+ok("...hidden until you have actually scrolled away",
+   run(`!document.getElementById('pmixNow').classList.contains('on')`));
+run(`(function(){const b=document.getElementById('pmixWrap');
+  Object.defineProperty(b,'clientWidth',{get(){return 300;},configurable:true});
+  Object.defineProperty(b,'scrollWidth',{get(){return 2000;},configurable:true});
+  b.scrollLeft=0; b.dispatchEvent(new Event('scroll'));})()`);
+ok("...appears once you are far from today",
+   run(`document.getElementById('pmixNow').classList.contains('on')`));
+run(`document.getElementById('pmixNow').click();`);
+ok("...and tapping it returns to the right edge",
+   run(`document.getElementById('pmixWrap').scrollLeft`) === 2000);
+
+// motion
+const css120 = fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\n/g, "");
+ok("the scroller animates smoothly", /\.pmixwrap\{[^}]*scroll-behavior:smooth/.test(css120));
+ok("...the button fades rather than pops", /\.pmixnow\{[^}]*transition:opacity/.test(css120));
+ok("...and reduced motion turns both off",
+   /prefers-reduced-motion:reduce\)\{[^}]*\.pmixwrap\{scroll-behavior:auto\}[^}]*\.pmixnow\{transition:none\}/.test(css120));
+// loading backwards must NOT glide \u2014 that is the one place smooth is wrong
+ok("back-loading suppresses smooth scrolling while it restores the view",
+   /scrollBehavior='auto'/.test(fs.readFileSync(path.join(dir, "js/app.js"), "utf8")));
 
 process.exit(fail ? 1 : 0);

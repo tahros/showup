@@ -86,6 +86,12 @@ Adopted into phases:
   an ink. --rest washes; --rest-ink writes. Any state colour used as text
   gets its own text-grade token at the same hue, and buildcheck computes
   the WCAG floor for every load-bearing pair in both themes.
+- PART_COLORS became a single-hue BLUE RAMP in v3.3.120, which returns this
+  chart to the app's original no-categorical rule — the v3.3.116 exception is
+  spent, not extended. Eight lightness steps cannot all clear 3:1 against a
+  ground AND separate from each other (the range does not fit), so a hairline
+  separator is stroked between stacked segments and carries the boundary. The
+  mutual floor is therefore 1.12, not higher.
 - PART_COLORS is sourced from Tailwind CSS 3.4.19 (MIT), not hand-mixed
   (v3.3.118): dark theme takes the -300 step, light theme -600, one family
   per part. Sourcing beats mixing here because the requirement is eight

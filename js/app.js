@@ -593,6 +593,15 @@ function bindPmix(){
   if(!box||box.dataset.bound) return;
   box.dataset.bound='1';
   box.scrollLeft=box.scrollWidth;              // today, not January
+  const now=document.getElementById('pmixNow');
+  /* v3.3.120: the way back. Appears only once you have actually travelled,
+     and rides the wrapper's scroll-behavior:smooth rather than animating
+     by hand. */
+  const syncNow=()=>{ if(!now) return;
+    const far=box.scrollWidth-box.clientWidth-box.scrollLeft;
+    now.classList.toggle('on', far>40); };
+  if(now) now.addEventListener('click',()=>{ box.scrollLeft=box.scrollWidth; syncNow(); });
+  box.addEventListener('scroll',syncNow,{passive:true});
   /* v3.3.117: the first version read box.scrollWidth to work out how much
      had been prepended. After innerHTML that value has not reflowed yet, so
      the delta came back 0, scrollLeft stayed at 0, the next scroll event
@@ -609,8 +618,14 @@ function bindPmix(){
     const prev=PMIX_DAYS;
     PMIX_DAYS=Math.min(total,PMIX_DAYS+56);
     const added=(PMIX_DAYS-prev)*PMIX_COLW;
+    /* the restore must NOT animate — scroll-behavior:smooth would glide the
+       view across the newly prepended weeks instead of holding it still,
+       which is the opposite of what loading backwards is for. */
+    const sb=box.style.scrollBehavior; box.style.scrollBehavior='auto';
     box.innerHTML=partMixSvg(PMIX_DAYS);
     box.scrollLeft=added+box.scrollLeft;       // computed, not measured
+    box.style.scrollBehavior=sb;
+    syncNow();
     requestAnimationFrame(()=>{ busy=false; });
   },{passive:true});
 }
