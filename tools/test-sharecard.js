@@ -96,6 +96,18 @@ if (denom) {
   ok("...and that span is days elapsed since the first entry", shown === expect,
      shown + " vs " + expect);
   ok("...with the count never exceeding it", +total <= shown, total + " of " + shown);
+  /* v3.3.136: the footer states the same relationship as a rate. Two derived
+     numbers on one card is exactly where they drift apart, so this asserts
+     they AGREE rather than merely that both are present. */
+  const pct = texts.find(t => /^\d+% of days$/.test(t));
+  ok("the footer states the rate", !!pct, pct || "missing");
+  if (pct) {
+    const shownPct = +pct.replace(/\D/g, "");
+    ok("...and it agrees with the fraction above it",
+       shownPct === Math.round(+total / shown * 100),
+       pct + " vs " + total + "/" + shown);
+    ok("...and is a real percentage", shownPct >= 0 && shownPct <= 100, String(shownPct));
+  }
 }
 ok("...before anything else on the card", texts.indexOf(total) === 0);
 ok("the app is named", texts.includes("ShowUp"));

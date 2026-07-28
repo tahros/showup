@@ -102,6 +102,16 @@ function drawGrid(gd){
   x.textBaseline='alphabetic'; x.textAlign='left';
   x.fillStyle=V('--faint'); x.font='500 26px '+MONO;
   x.fillText(`${gd.first} \u2192 ${todayISO}`,P,S-P+8);   // v3.3.133: URL dropped; the span IS the receipt
+  /* v3.3.136: the rate, quietly, in the corner the URL left empty. It sits
+     opposite the span deliberately — read together the footer is one
+     sentence: over THIS window, THIS share of days. Kept at the footer's
+     own size and faint colour so it stays metadata; a second big number up
+     top would compete with the count instead of qualifying it. */
+  if(spanDays>0){
+    x.textAlign='right';
+    x.fillText(Math.round(gd.total/spanDays*100)+'% of days',S-P,S-P+8);
+    x.textAlign='left';
+  }
   return cv;
 }
 

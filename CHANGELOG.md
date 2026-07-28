@@ -1,5 +1,21 @@
 # ShowUp — changelog
 
+## v3.3.136 (2026-07-29) — The rate, quietly
+
+**The percentage goes in the corner the URL left empty.** Removing the URL in
+v3.3.133 balanced the card's top but not its bottom — the span sat alone at
+the left with nothing opposite it. "55% of days" fills that corner at the
+footer's own size and faint colour, so the two read as one sentence: over
+this window, this share of days.
+
+Deliberately not a second headline. The count leads and the rate qualifies
+it; a large percentage beside a large day count would make the reader choose
+which number the card is about.
+
+Two derived figures on one card is where they drift apart, so the assertion
+checks they AGREE — that the stated percentage equals the stated fraction —
+rather than only that both are present.
+
 ## v3.3.135 (2026-07-29) — 931 out of what
 
 **"931 days" never said out of what.** The span was already printed along the
