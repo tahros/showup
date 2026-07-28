@@ -365,4 +365,76 @@ ok("focus survives loading older weeks (the new rects get it too)",
         .filter(r=>r.dataset.pt!=='Legs').every(r=>r.style.opacity==='0.12')`));
 run(`pmixSetFocus('Legs');`);
 
+// ---- v3.3.123: the readout no longer says the total twice ---------------
+// On a one-part day the part total IS the day total; printing both read as
+// "Legs 6k 6k kg".
+run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
+  const d=new Date(t); d.setDate(d.getDate()-1);
+  DB.days[d.toLocaleDateString('en-CA')]={w:[{part:'Legs',ex:'Squat',w:100,reps:[10],at:1}],upd:1};
+  const e=new Date(t); e.setDate(e.getDate()-2);
+  DB.days[e.toLocaleDateString('en-CA')]={w:[{part:'Legs',ex:'Squat',w:100,reps:[10],at:1},
+                                             {part:'Back',ex:'Row',w:50,reps:[10],at:1}],upd:1};
+  SEED=deriveAll(); view='stats'; render();})()`);
+const readTxt = i => { run(`pmixReadout(${i})`);
+  return run(`document.getElementById('pmixRead').textContent.replace(/\\s+/g,' ').trim()`); };
+const one = readTxt(1), two = readTxt(0);
+ok("a one-part day states its figure once",
+   (one.match(/1k|1,000|1000/g) || []).length <= 1, one);
+ok("...and still names the unit", /kg|lb/.test(one), one);
+ok("a multi-part day still totals them", /\d/.test(two) && two.split("\u00b7").length >= 2, two);
+
+// ---- tapping a bar is tapping its legend --------------------------------
+run(`view='stats'; render(); PMIX_FOCUS=null; pmixApplyFocus();`);
+run(`(function(){const b=document.getElementById('pmixWrap');
+  b.getBoundingClientRect=()=>({left:0,top:0,width:340,height:232,right:340,bottom:232});
+  b.scrollLeft=0;
+  const seg=b.querySelector('rect[data-pt="Back"]');
+  seg.dispatchEvent(new PointerEvent('pointerdown',{pointerId:1,clientX:20,clientY:60,bubbles:true}));
+  b.dispatchEvent(new PointerEvent('pointerup',{pointerId:1,clientX:20,clientY:60,bubbles:true}));})()`);
+ok("tapping a segment isolates that part, exactly like its legend chip",
+   run(`PMIX_FOCUS`) === "Back", run(`PMIX_FOCUS`));
+ok("...and the legend shows it selected",
+   run(`document.querySelector('.pmixlgd [data-pt="Back"]').classList.contains('on')`));
+// a DRAG must scrub, not select
+run(`pmixSetFocus('Back');`);   // clear
+run(`(function(){const b=document.getElementById('pmixWrap');
+  const seg=b.querySelector('rect[data-pt="Back"]');
+  seg.dispatchEvent(new PointerEvent('pointerdown',{pointerId:2,clientX:20,clientY:60,bubbles:true}));
+  b.dispatchEvent(new PointerEvent('pointermove',{pointerId:2,clientX:120,clientY:60,bubbles:true}));
+  b.dispatchEvent(new PointerEvent('pointerup',{pointerId:2,clientX:120,clientY:60,bubbles:true}));})()`);
+ok("dragging across the chart scrubs without selecting anything",
+   run(`PMIX_FOCUS`) === null, String(run(`PMIX_FOCUS`)));
+
+// ---- the summary line ----------------------------------------------------
+const sum = () => run(`document.getElementById('pmixSum').textContent.replace(/\\s+/g,' ').trim()`);
+ok("a summary sits below the chart", run(`!!document.getElementById('pmixSum')`));
+ok("...speaking about all lifts when nothing is selected", /All lifts/.test(sum()), sum());
+run(`pmixSetFocus('Legs');`);
+ok("...and about the selected part when one is", /Legs/.test(sum()) && !/All lifts/.test(sum()), sum());
+ok("...reporting a total, a session count and an average",
+   /\d/.test(sum()) && /session/.test(sum()) && /avg/.test(sum()), sum());
+run(`pmixSetFocus('Legs');`);
+
+// ---- the sticky year -----------------------------------------------------
+ok("a year label sits outside the plot", run(`!!document.getElementById('pmixYr')`));
+ok("...and names the year at the current scroll position",
+   /^\d{4}$/.test(run(`document.getElementById('pmixYr').textContent`)),
+   run(`document.getElementById('pmixYr').textContent`));
+// scrolling to a column in a different year must swap it
+run(`(function(){DB.days={}; const mk=(iso,p)=>DB.days[iso]={w:[{part:p,ex:'X',w:40,reps:[10],at:1}],upd:1};
+  for(let i=1;i<=40;i++){const d=new Date('2025-06-01T00:00'); d.setDate(d.getDate()+i);
+    mk(d.toLocaleDateString('en-CA'),'Chest');}
+  for(let i=1;i<=40;i++){const d=new Date('2026-06-01T00:00'); d.setDate(d.getDate()+i);
+    mk(d.toLocaleDateString('en-CA'),'Back');}
+  SEED=deriveAll(); view='stats'; render();
+  const b=document.getElementById('pmixWrap');
+  b.getBoundingClientRect=()=>({left:0,top:0,width:340,height:232,right:340,bottom:232});
+  b.scrollLeft=0; b.dispatchEvent(new Event('scroll'));})()`);
+const yEarly = run(`document.getElementById('pmixYr').textContent`);
+run(`(function(){const b=document.getElementById('pmixWrap');
+  b.scrollLeft=60*PMIX_COLW; b.dispatchEvent(new Event('scroll'));})()`);
+const yLate = run(`document.getElementById('pmixYr').textContent`);
+ok("the year swaps as you scroll across a year boundary",
+   yEarly === "2025" && yLate === "2026", yEarly + " \u2192 " + yLate);
+
 process.exit(fail ? 1 : 0);

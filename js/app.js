@@ -624,15 +624,41 @@ function bindPmix(){
     cols.forEach(c2=>c2.classList.toggle('on', +c2.dataset.col===i));
     pmixReadout(i>=0 ? i : null);
   };
-  let scrub=false;
-  box.addEventListener('pointerdown',e=>{ scrub=true; readAt(e.clientX); },{passive:true});
-  box.addEventListener('pointermove',e=>{ if(scrub) readAt(e.clientX); },{passive:true});
-  const endScrub=()=>{ if(!scrub) return; scrub=false;
+  /* v3.3.123: a DRAG scrubs, a TAP selects. Tapping a stacked segment is
+     the same act as tapping that part's name in the legend — which is the
+     shortest route from "what is this bar" to "show me all of these". */
+  let scrub=false, moved=false, downX=0, downPt=null;
+  box.addEventListener('pointerdown',e=>{
+    scrub=true; moved=false; downX=e.clientX;
+    const t=e.target && e.target.getAttribute ? e.target.getAttribute('data-pt') : null;
+    downPt=t; readAt(e.clientX);
+  },{passive:true});
+  box.addEventListener('pointermove',e=>{
+    if(!scrub) return;
+    if(Math.abs(e.clientX-downX)>6) moved=true;
+    readAt(e.clientX);
+  },{passive:true});
+  const endScrub=e=>{
+    if(!scrub) return; scrub=false;
     box.querySelectorAll('rect[data-col].on').forEach(c2=>c2.classList.remove('on'));
-    pmixReadout(null); };
+    pmixReadout(null);
+    if(!moved && downPt) pmixSetFocus(downPt);   // a tap on a segment = its legend
+    downPt=null;
+  };
   box.addEventListener('pointerup',endScrub,{passive:true});
   box.addEventListener('pointercancel',endScrub,{passive:true});
   box.addEventListener('pointerleave',endScrub,{passive:true});
+
+  // the year label follows the left edge of what you are looking at
+  const yr=document.getElementById('pmixYr');
+  const syncYr=()=>{ if(!yr||!PMIX_YEARS.length) return;
+    const i=Math.max(0,Math.min(PMIX_YEARS.length-1,
+      Math.round((box.scrollLeft-8)/PMIX_COLW)));
+    const y=PMIX_YEARS[i];
+    if(yr.textContent!==y) yr.textContent=y;
+  };
+  box.addEventListener('scroll',syncYr,{passive:true});
+  syncYr();
 }
 function bindZoom(box){
   if(box.dataset.bound) return;

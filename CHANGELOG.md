@@ -1,5 +1,28 @@
 # ShowUp — changelog
 
+## v3.3.123 (2026-07-28) — Part mix: tap a bar, read the trend, find the year
+
+**"6k 6k kg" was a real bug.** On a one-part day the part total IS the day
+total, and the readout printed both. The total only earns its place when
+there is more than one part to add up.
+
+**Tapping a bar is now the same act as tapping its legend chip** — the
+shortest route from "what is this bar" to "show me all of these". A DRAG
+still scrubs; a TAP selects, distinguished by a 6px movement threshold, so
+scrubbing across the chart never selects by accident. Asserted both ways.
+
+**A summary sits below the chart**: total, session count, average, and a
+trend. With a part isolated it speaks about that part; otherwise about every
+lift. The trend compares the most recent third of the SESSIONS THAT COUNT
+against the third before — sessions, not calendar days, so a quiet fortnight
+does not read as a decline in something you simply did not train.
+
+**The year rides just outside the plot, top-left, and swaps as you cross a
+boundary.** Scroll back past January and it becomes 2025. Asserted by
+seeding two years and scrolling between them.
+
+`test-pmix.js` at 70.
+
 ## v3.3.122 (2026-07-28) — Part mix: scrubbable, yearly, and no longer lurching
 
 **On the volume discrepancy — it is not a bug.** `SEED0.sessions` ships

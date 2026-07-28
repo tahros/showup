@@ -48,10 +48,39 @@ function pmixReadout(i){
   const rows=partMix(PMIX_DAYS);
   if(i==null||!rows[i]){ el.innerHTML=el.dataset.idle||''; return; }
   const r=rows[i];
-  const parts=Object.keys(SEED.catalog).filter(p=>r.by[p])
-    .map(p=>`<b style="color:${PART_COLORS[p]}">${p}</b> ${pmixTick(r.by[p])}`).join(' \u00b7 ');
-  el.innerHTML=`<span class="pmxd">${pretty(r.d)}</span> ${parts||'\u2014'}
-    <span class="pmxt">${pmixTick(r.total)} ${U()}</span>`;
+  const names=Object.keys(SEED.catalog).filter(p=>r.by[p]);
+  const parts=names.map(p=>`<b style="color:${PART_COLORS[p]}">${p}</b> ${pmixTick(r.by[p])}`).join(' \u00b7 ');
+  /* v3.3.123: on a one-part day the part total IS the day total, so printing
+     both read as "Legs 6k 6k kg". The total only earns its place when there
+     is more than one part to add up. */
+  const tot = names.length>1 ? ` <span class="pmxt">${pmixTick(r.total)} ${U()}</span>`
+                             : ` <span class="pmxt">${U()}</span>`;
+  el.innerHTML=`<span class="pmxd">${pretty(r.d)}</span> ${parts||'\u2014'}${tot}`;
+}
+/* v3.3.123: what the chart adds up to, and which way it is going. With a
+   part isolated it speaks about that part; otherwise about every lift.
+   Trend compares the most recent third of the SESSIONS THAT COUNT against
+   the third before it — sessions, not calendar days, so a quiet fortnight
+   does not read as a decline in something you simply did not train. */
+function pmixSummary(){
+  const el=document.getElementById('pmixSum'); if(!el) return;
+  const rows=partMix(PMIX_DAYS), P=PMIX_FOCUS;
+  const vals=rows.map(r=>P?(r.by[P]||0):r.total).filter(v=>v>0);
+  if(!vals.length){ el.textContent=''; return; }
+  const sum=vals.reduce((a,b)=>a+b,0), avg=sum/vals.length;
+  let trend='';
+  if(vals.length>=6){
+    const k=Math.floor(vals.length/3);
+    const recent=vals.slice(-k).reduce((a,b)=>a+b,0)/k;
+    const before=vals.slice(-2*k,-k).reduce((a,b)=>a+b,0)/k;
+    if(before>0){
+      const d=Math.round((recent/before-1)*100);
+      trend=` · <b class="${d>=0?'up':'dn'}">${d>=0?'+':''}${d}%</b> vs earlier`;
+    }
+  }
+  el.innerHTML=`${P?`<b style="color:${PART_COLORS[P]}">${P}</b>`:'All lifts'}
+    · ${pmixTick(sum)} ${U()} across ${vals.length} session${vals.length===1?'':'s'}
+    · ${pmixTick(avg)} avg${trend}`;
 }
 function pmixApplyFocus(){
   const wrap=document.getElementById('pmixWrap');
@@ -62,6 +91,7 @@ function pmixApplyFocus(){
     s.classList.toggle('on',  PMIX_FOCUS===s.dataset.pt);
     s.classList.toggle('off', !!PMIX_FOCUS && PMIX_FOCUS!==s.dataset.pt);
   });
+  pmixSummary();
 }
 function pmixSetFocus(part){
   PMIX_FOCUS = (PMIX_FOCUS===part) ? null : part;
@@ -76,6 +106,7 @@ function pmixSetFocus(part){
     wrap.scrollLeft=keep; wrap.style.scrollBehavior=sb;
   }
   pmixApplyFocus();
+  pmixSummary();
 }
 const PMIX_COLW=17, PMIX_H=232, PMIX_TOP=8, PMIX_BASE=150;
 const PMIX_AXW=34;
@@ -94,8 +125,10 @@ function pmixAxisSvg(rows){
   }
   return s+`</svg>`;
 }
+let PMIX_YEARS=[];      // v3.3.123: column index -> year, for the sticky label
 function partMixSvg(days){
   const rows=partMix(days);
+  PMIX_YEARS=rows.map(r=>r.d.slice(0,4));
   if(!rows.length) return '';
   const max=pmixMax(rows);
   const W=Math.max(320,rows.length*PMIX_COLW+16);
@@ -322,10 +355,12 @@ function renderStats(){
         <div class="pmixread" id="pmixRead" data-idle="Press a day to read it"
           >Press a day to read it</div>
         <div class="pmixbox">
+          <span class="pmixyr" id="pmixYr"></span>
           ${pmixAxisSvg(partMix(PMIX_DAYS))}
           <div class="pmixwrap" id="pmixWrap">${partMixSvg(PMIX_DAYS)}</div>
           <button class="pmixnow" id="pmixNow" aria-label="Back to latest">→</button>
         </div>
+        <div class="pmixsum" id="pmixSum"></div>
       </div>`;
   cut('pmix');
   h+=`<h2>Consistency${hActs('yoy',"% of days trained so far each year — the bold line is this year, still running.",'yoyShare')}</h2><div class="card">

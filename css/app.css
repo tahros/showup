@@ -791,7 +791,17 @@
     color:var(--muted);margin:0 0 6px}
   .pmixread .pmxd{color:var(--chalk);font-weight:700}
   .pmixread .pmxt{color:var(--chalk);font-weight:700}
-  .pmixcol{fill:transparent}
+  /* v3.3.123: the year rides just outside the plot, top-left, and swaps as
+     you scroll past a boundary — so a deep scroll always says where it is. */
+  .pmixyr{position:absolute;left:0;top:-2px;z-index:2;
+    font-family:var(--mono);font-size:9px;font-weight:700;color:var(--muted);
+    background:var(--surface);padding:0 4px;border-radius:3px;pointer-events:none}
+  .pmixsum{text-align:center;font-family:var(--mono);font-size:9px;
+    color:var(--muted);margin:8px 0 0;line-height:1.5}
+  .pmixsum b{color:var(--chalk)}
+  .pmixsum b.up{color:var(--accent)}
+  .pmixsum b.dn{color:var(--record)}
+  .pmixcol{fill:transparent;cursor:pointer}
   .pmixcol.on{fill:var(--chalk);opacity:.07}
   /* v3.3.121: tap a name to isolate it. A single-hue ramp cannot be matched
      to a legend by eye — that is the cost of the ramp, and this is the
