@@ -1,5 +1,41 @@
 # ShowUp — changelog
 
+## v3.3.119 (2026-07-27) — The maker's palette, minus what the guards refused
+
+Family assignment by the maker; steps dark -300 / light -500. Six of eight
+landed exactly as asked. Three did not, each for a measured reason.
+
+**Back asked for RED, Shoulder for ORANGE.** `red-500` sits 5° from the LIVE
+red and `orange-500` 20° — there is no red that is not the red, which is
+what makes it a state colour. Back takes **pink** (330°), the closest legal
+hue to red; Shoulder takes **purple** (271°), because amber is legal on hue
+but measures 1.94:1 on the light ground.
+
+**Light -500 could not hold for two of them.** `yellow-500` reads 1.73:1 on
+the near-white ground and `teal-500` 2.24:1, both under the 3:1 floor a
+chart fill owes. Chest is `yellow-700` (4.44) and Sixpack `teal-600` (3.37).
+Warm and cyan hues carry too much luminance to clear 3:1 at a mid step; that
+is physics rather than preference, and the maker's earlier instinct to go
+two steps lighter would have made Chest invisible at 1.38:1.
+
+**A new guard caught a failure the contrast floor could not see.** Biceps
+asked for slate and Triceps for gray — 3–5° apart, effectively one colour,
+and those two stack side by side. Clearing the GROUND is not the same as
+being tellable apart from EACH OTHER, so `test-pmix.js` now compares every
+pair of part colours and fails any two that share a hue without clearly
+separated saturation. Triceps takes **stone** (warm, 25°) against slate's
+215°, and Run takes **zinc** (240°) rather than gray, which collides with
+slate too. Three greys that are genuinely distinct: cool, warm, pure.
+
+Run's colour never renders in this chart — it was excluded in v3.3.117 — but
+a defined-yet-duplicate token is a trap for whoever renders it next, so it
+was fixed rather than exempted.
+
+Final: Chest yellow · Back pink · Shoulder purple · Legs blue · Biceps slate
+· Triceps stone · Sixpack teal · Run zinc.
+
+`test-pmix.js` at 26.
+
 ## v3.3.118 (2026-07-27) — PART_COLORS, sourced rather than mixed
 
 Tier 1 of adopting Tailwind's palette. Scoped deliberately to PART_COLORS:

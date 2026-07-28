@@ -98,6 +98,31 @@ ok("light-theme part fills are all darker than the light ground",
 // and they are genuinely different values, not one theme pasted into both
 ok("the two themes use different steps, not the same hex",
    dParts.every((p,i) => p.toLowerCase() !== lParts[i].toLowerCase()));
+
+/* v3.3.119: clearing the GROUND is not the same as being tellable apart
+   from EACH OTHER. The maker's first assignment put slate on Biceps and
+   gray on Triceps \u2014 3\u20135\u00b0 apart, effectively one colour \u2014 and those two
+   stack side by side. A categorical palette fails at that, not at contrast.
+   Two fills may share a hue only if their saturation clearly separates them
+   (a vivid blue beside a grey-blue is fine; two greys are not). */
+const hueSat = hx => {
+  const r = parseInt(hx.slice(1,3),16)/255, g = parseInt(hx.slice(3,5),16)/255, b = parseInt(hx.slice(5,7),16)/255;
+  const mx = Math.max(r,g,b), mn = Math.min(r,g,b), d = mx-mn, l = (mx+mn)/2;
+  if (!d) return [0, 0];
+  let h = mx===r ? ((g-b)/d)%6 : mx===g ? (b-r)/d+2 : (r-g)/d+4;
+  h *= 60; if (h < 0) h += 360;
+  return [h, d/(1-Math.abs(2*l-1))];
+};
+const hueGap = (a,b) => { const d = Math.abs(a-b)%360; return Math.min(d, 360-d); };
+for (const [label, set] of [["dark", dParts], ["light", lParts]]) {
+  const bad = [];
+  for (let i = 0; i < set.length; i++) for (let j = i+1; j < set.length; j++) {
+    const [h1,s1] = hueSat(set[i]), [h2,s2] = hueSat(set[j]);
+    if (hueGap(h1,h2) < 20 && Math.abs(s1-s2) < 0.35) bad.push(`${set[i]}~${set[j]}`);
+  }
+  ok(`no two ${label} part colours are mutually indistinguishable`,
+     bad.length === 0, bad.join(" ") || set.length + " colours, all separable");
+}
 const live = (css.match(/--live:(#[0-9A-Fa-f]{6})/g) || []).map(s => s.split(":")[1].toUpperCase());
 const rest = (css.match(/--rest:(#[0-9A-Fa-f]{6})/g) || []).map(s => s.split(":")[1].toUpperCase());
 ok("no part colour reuses the LIVE red or the REST green",
