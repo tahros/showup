@@ -1,5 +1,30 @@
 # ShowUp — changelog
 
+## v3.3.126 (2026-07-28) — Part mix: release means release
+
+**What an empty-space tap means now depends on the state.** Landing on a
+segment always picks that part. Landing on empty space picks the column's
+part only when nothing is being followed — once you ARE following one, empty
+space RELEASES rather than switching you to whatever bar happens to sit
+under your finger. The maker's read is the right one: once you are following
+something, blank space means get me out, not take me somewhere else.
+
+Both states are asserted, plus the case that must keep working: landing on a
+real segment while following something else still switches to it.
+
+**The left gutter is 26% narrower** (axis 34→25) — it was holding far more
+room than "13k" needs.
+
+**The newest column pulses**, so "where is today" needs no scrolling to
+answer. It pulses the COLUMN rather than the bars, deliberately: a CSS
+animation beats inline style, so animating the bars would override the
+opacity that focus-dimming sets and the two would fight. Asserted that the
+pulse never touches a bar, and that it holds still under reduced motion.
+
+**More air** between the legend, the hint, and the plot (6→14px each).
+
+`test-pmix.js` at 83.
+
 ## v3.3.125 (2026-07-28) — One interaction, and height that follows content
 
 **The scrubber is gone.** Tapping is the only interaction now and it does

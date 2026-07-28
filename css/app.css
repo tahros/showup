@@ -786,9 +786,9 @@
     transition:opacity .18s ease,transform .18s ease}
   .pmixnow.on{opacity:1;pointer-events:auto;transform:translateX(0)}
   /* v3.3.122: centred, per the maker */
-  .pmixlgd{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 10px;margin:0 0 6px}
+  .pmixlgd{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 10px;margin:0 0 14px}   /* v3.3.126: 6→14 */
   .pmixread{min-height:15px;text-align:center;font-family:var(--mono);font-size:9px;
-    color:var(--muted);margin:0 0 6px}
+    color:var(--muted);margin:0 0 14px}   /* v3.3.126: 6→14 */
   .pmixread .pmxd{color:var(--chalk);font-weight:700}
   .pmixread .pmxt{color:var(--chalk);font-weight:700}
   /* v3.3.123: the year rides just outside the plot, top-left, and swaps as
@@ -802,6 +802,14 @@
   .pmixsum b.up{color:var(--accent)}
   .pmixsum b.dn{color:var(--record)}
   .pmixcol{fill:transparent;cursor:pointer}
+  /* v3.3.126: the newest column breathes, so "where is today" needs no
+     scrolling to answer. It pulses the COLUMN, not the bars — an animation
+     on the bars would override the inline opacity that focus-dimming sets,
+     and the two would fight. */
+  .pmixcol.latest{fill:var(--accent);animation:pmixlatest 2.4s ease-in-out infinite}
+  @keyframes pmixlatest{0%,100%{opacity:.13}50%{opacity:.04}}
+  @media (prefers-reduced-motion:reduce){
+    .pmixcol.latest{animation:none;opacity:.10}}
   /* v3.3.121: tap a name to isolate it. A single-hue ramp cannot be matched
      to a legend by eye — that is the cost of the ramp, and this is the
      answer to it. */

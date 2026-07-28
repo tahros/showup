@@ -109,7 +109,7 @@ function pmixSetFocus(part){
    content ended near y=182 — rotated dates run from PMIX_BASE+6 down about
    26px — leaving ~50px of empty box under every render. */
 const PMIX_COLW=12, PMIX_H=186, PMIX_TOP=8, PMIX_BASE=150;
-const PMIX_AXW=34;
+const PMIX_AXW=25;   // v3.3.126: 34→25, ~26% of the left gutter reclaimed
 /* v3.3.120: the plot's vertical scale must be identical in the fixed axis
    and the scrolling body, so BOTH read this one function. */
 function pmixMax(rows){ return Math.max(...rows.map(r=>r.total), 1); }
@@ -164,8 +164,9 @@ function partMixSvg(days){
        >${rows[0].d.slice(0,4)}</text>`;
   rows.forEach((r,i)=>{
     const x=8+i*PMIX_COLW, bw=PMIX_COLW-2;
-    s+=`<rect class="pmixcol" data-col="${i}" x="${x-2}" y="${PMIX_TOP}"
-         width="${PMIX_COLW}" height="${PMIX_BASE-PMIX_TOP}"></rect>`;
+    s+=`<rect class="pmixcol${i===rows.length-1?' latest':''}" data-col="${i}"
+         x="${x-2}" y="${PMIX_TOP}" width="${PMIX_COLW}"
+         height="${PMIX_BASE-PMIX_TOP}"></rect>`;
     let y=PMIX_BASE;
     for(const p of Object.keys(SEED.catalog)){
       const n=r.by[p]; if(!n) continue;

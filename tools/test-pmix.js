@@ -565,4 +565,67 @@ ok("partMix computes volume ONLY through volOf()",
    /volOf\(s\)/.test(pmCode) && !/reps\[0\]/.test(pmCode), 
    /reps\[0\]/.test(pmCode) ? "still has reps[0]" : "volOf only");
 
+// ---- v3.3.126: what an empty-space tap means depends on the state --------
+run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
+  const mk=(off,parts)=>{const d=new Date(t); d.setDate(d.getDate()-off);
+    DB.days[d.toLocaleDateString('en-CA')]={
+      w:parts.map(p=>({part:p,ex:'X',w:40,reps:[10],at:1})),upd:1};};
+  mk(1,['Legs']); mk(2,['Chest']); mk(3,['Back']);
+  for(let i=4;i<14;i++) mk(i,['Chest']);
+  SEED=deriveAll(); view='stats'; render();
+  const b=document.getElementById('pmixWrap');
+  b.getBoundingClientRect=()=>({left:0,top:0,width:340,height:186,right:340,bottom:186});
+  b.scrollLeft=0; PMIX_FOCUS=null; pmixApplyFocus();})()`);
+
+const N = run(`partMix(999).length`);
+const tapEmpty = (col) => run(`(function(){const b=document.getElementById('pmixWrap');
+  const x=8+${col}*PMIX_COLW+3;
+  const bg=b.querySelector('rect[data-col="${col}"]');
+  bg.dispatchEvent(new PointerEvent('pointerdown',{pointerId:9,clientX:x,clientY:12,bubbles:true}));
+  b.dispatchEvent(new PointerEvent('pointerup',{pointerId:9,clientX:x,clientY:12,bubbles:true}));})()`);
+
+// nothing followed yet: empty space still picks a single-part column
+tapEmpty(N - 1);
+ok("with nothing followed, empty space still selects that column's part",
+   run(`PMIX_FOCUS`) === "Legs", String(run(`PMIX_FOCUS`)));
+
+// now following Legs: empty space over a DIFFERENT column must RELEASE,
+// not silently switch to whatever is under the finger
+tapEmpty(N - 3);
+ok("while following one, empty space over another column releases instead of switching",
+   run(`PMIX_FOCUS`) === null, String(run(`PMIX_FOCUS`)));
+
+// but landing on an actual segment still switches
+run(`pmixSetFocus('Chest');`);
+run(`(function(){const b=document.getElementById('pmixWrap');
+  const seg=b.querySelector('rect[data-pt="Back"]');
+  seg.dispatchEvent(new PointerEvent('pointerdown',{pointerId:10,clientX:30,clientY:100,bubbles:true}));
+  b.dispatchEvent(new PointerEvent('pointerup',{pointerId:10,clientX:30,clientY:100,bubbles:true}));})()`);
+ok("...while landing on a real segment switches to it",
+   run(`PMIX_FOCUS`) === "Back", String(run(`PMIX_FOCUS`)));
+run(`pmixSetFocus('Back');`);
+
+// ---- the newest column is marked ----------------------------------------
+ok("exactly one column is marked latest",
+   run(`document.querySelectorAll('#pmixWrap .pmixcol.latest').length`) === 1);
+ok("...and it is the last one",
+   run(`+document.querySelector('#pmixWrap .pmixcol.latest').dataset.col`) === N - 1,
+   run(`document.querySelector('#pmixWrap .pmixcol.latest').dataset.col`) + " of " + (N-1));
+const css126 = fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\n/g, "");
+ok("...it pulses",
+   /\.pmixcol\.latest\{[^}]*animation:pmixlatest/.test(css126));
+ok("...and holds still under reduced motion",
+   /prefers-reduced-motion:reduce\)\{[^}]*\.pmixcol\.latest\{animation:none/.test(css126));
+/* the pulse must sit on the COLUMN, never the bars: a CSS animation beats
+   inline style, so animating the bars would override the opacity that
+   focus-dimming sets and the two would fight. */
+ok("the pulse never touches the bars themselves",
+   !/rect\[data-pt\][^{]*\{[^}]*animation:pmixlatest/.test(css126));
+
+// ---- spacing -------------------------------------------------------------
+ok("the legend and the hint have room before the chart",
+   /\.pmixlgd\{[^}]*margin:0 0 14px/.test(css126) &&
+   /\.pmixread\{[^}]*margin:0 0 14px/.test(css126));
+ok("the left gutter is narrower", run(`PMIX_AXW`) === 25, "axis width " + run(`PMIX_AXW`));
+
 process.exit(fail ? 1 : 0);

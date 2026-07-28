@@ -620,29 +620,38 @@ function bindPmix(){
      segment; tapping anywhere else in a single-part column picks its part,
      so you never have to hit a thin bar exactly. A drag still scrolls and
      must never select, so movement past 6px cancels the tap. */
-  let downX=0, downY=0, moved=false, downPt=null;
-  const partAt=(target,clientX)=>{
+  let downX=0, downY=0, moved=false, downAct=null;
+  /* v3.3.126: what a tap MEANS depends on whether you are already following
+     something. Landing on a segment always picks that part. Landing on empty
+     space picks the column's part only when nothing is being followed — once
+     you ARE following one, empty space means release, not "switch me to
+     whatever bar happens to be under here". */
+  const actionAt=(target,clientX)=>{
     const direct=target && target.getAttribute ? target.getAttribute('data-pt') : null;
-    if(direct) return direct;
+    if(direct) return {focus:direct};
+    if(PMIX_FOCUS) return {clear:true};
     const r=box.getBoundingClientRect();
     const i=Math.floor((clientX-r.left+box.scrollLeft-8)/PMIX_COLW);
     const rows=partMix(PMIX_DAYS);
     if(i<0||!rows[i]) return null;
     const names=Object.keys(rows[i].by);
-    return names.length===1 ? names[0] : null;   // ambiguous stacks need the segment
+    return names.length===1 ? {focus:names[0]} : null;   // ambiguous stacks need the segment
   };
   box.addEventListener('pointerdown',e=>{
     downX=e.clientX; downY=e.clientY; moved=false;
-    downPt=partAt(e.target,e.clientX);
+    downAct=actionAt(e.target,e.clientX);
   },{passive:true});
   box.addEventListener('pointermove',e=>{
     if(Math.abs(e.clientX-downX)>6||Math.abs(e.clientY-downY)>6) moved=true;
   },{passive:true});
   box.addEventListener('pointerup',()=>{
-    if(!moved && downPt) pmixSetFocus(downPt);
-    downPt=null;
+    if(!moved && downAct){
+      if(downAct.clear) pmixSetFocus(PMIX_FOCUS);   // toggling the current one releases it
+      else pmixSetFocus(downAct.focus);
+    }
+    downAct=null;
   },{passive:true});
-  box.addEventListener('pointercancel',()=>{ downPt=null; },{passive:true});
+  box.addEventListener('pointercancel',()=>{ downAct=null; },{passive:true});
 
   // the year label follows the left edge of what you are looking at
   const yr=document.getElementById('pmixYr');
