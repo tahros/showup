@@ -379,37 +379,50 @@ function renderStats(){
     h+=`<span class="${cur?'cur':''}" data-yr="${y}" role="button"><i style="background:${YEAR_COLORS[y]}"></i>${y}<b>${Math.round(c.curve[c.end-1]*100)}%</b></span>`;
   }
   h+=`</div>
-      <div class="zoom" data-zoom><div class="zoomhint">pinch / scroll to zoom · double-tap to reset</div>
-      <svg viewBox="0 0 340 170" style="width:100%;height:auto"
-        data-scrub="pct" data-sx0="20" data-sxw="302" data-sy0="140" data-syh="120" data-smax="1">`;
+      <div class="zoomhint">pinch / scroll to zoom · double-tap to reset</div>
+      <div class="zoom" data-zoom>
+      <svg viewBox="0 0 340 220" style="width:100%;height:auto"
+        data-scrub="pct" data-sx0="20" data-sxw="302" data-sy0="190" data-syh="170" data-smax="1">`;
+  /* v3.3.129: 170 -> 220 tall. baseline 140 -> 190, span 120 -> 170. The
+     data-sy0/data-syh anchors MUST track the geometry or the legend reports
+     the wrong % while scrubbing — the readout is derived from them. */
   // y grid + labels
   for(const g of [0,0.25,0.5,0.75,1]){
-    const y=140-g*120;
+    const y=190-g*170;
     h+=`<line x1="20" y1="${y}" x2="322" y2="${y}" stroke="var(--line)" stroke-width="0.6" ${g?'stroke-dasharray="2 3"':''}></line>
         <text x="16" y="${y+3}" text-anchor="end" font-family="var(--mono)" font-size="7" fill="var(--muted)">${g*100}%</text>`;
   }
   // x months
   ['J','F','M','A','M','J','J','A','S','O','N','D'].forEach((m,i)=>{
     const x=20+((i*30.4+15)/366)*302;
-    h+=`<line x1="${x}" y1="140" x2="${x}" y2="143" stroke="var(--line)" stroke-width="0.6"></line>
-        <text x="${x}" y="152" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="var(--muted)">${m}</text>`;
+    h+=`<line x1="${x}" y1="190" x2="${x}" y2="193" stroke="var(--line)" stroke-width="0.6"></line>
+        <text x="${x}" y="202" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="var(--muted)">${m}</text>`;
   });
+  /* v3.3.129: end-of-line % tags used to be emitted inline, so four years
+     finishing within a few points of each other stacked into an unreadable
+     smear (60/57 in the field report). Collect them, nudge apart, THEN
+     emit — the same pass the distance chart has used since v3.3.89. */
+  const endLabels=[];
   for(const y of years){
     const {curve,end}=curves[y];
     let pts='';
     for(let d=0;d<end;d+=2){
-      const x=20+(d/366)*302, yy=140-curve[d]*120;
+      const x=20+(d/366)*302, yy=190-curve[d]*170;
       pts+=`${x.toFixed(1)},${yy.toFixed(1)} `;
     }
     const cur=y===thisYear;
     h+=`<polyline data-yr="${y}" points="${pts}" fill="none" stroke="${YEAR_COLORS[y]||'var(--muted)'}"
          stroke-width="${cur?2.2:1.1}" opacity="${cur?1:.7}" stroke-linejoin="round"></polyline>`;
-    // end-of-line % label
-    const lx=20+((end-1)/366)*302, ly2=140-curve[end-1]*120;
-    h+=`<text data-yr="${y}" x="${Math.min(lx+4,312)}" y="${ly2+2.5}" font-family="var(--mono)" font-size="7"
-          fill="${YEAR_COLORS[y]||'var(--muted)'}" font-weight="${cur?700:400}">${Math.round(curve[end-1]*100)}%</text>`;
+    const lx=20+((end-1)/366)*302, ly2=190-curve[end-1]*170;
+    endLabels.push({y,lx,ly:ly2,cur,pct:Math.round(curve[end-1]*100)});
     if(cur) h+=`<circle class="beacon" cx="${lx}" cy="${ly2}" r="3.2" fill="var(--accent)"></circle>`;
   }
+  endLabels.sort((a,b)=>a.ly-b.ly);
+  for(let i=1;i<endLabels.length;i++)
+    if(endLabels[i].ly-endLabels[i-1].ly<8) endLabels[i].ly=endLabels[i-1].ly+8;
+  for(const L of endLabels)
+    h+=`<text data-yr="${L.y}" x="${Math.min(L.lx+4,312).toFixed(1)}" y="${(L.ly+2.5).toFixed(1)}" font-family="var(--mono)" font-size="7"
+          fill="${YEAR_COLORS[L.y]||'var(--muted)'}" font-weight="${L.cur?700:400}">${L.pct}%</text>`;
   h+=`</svg></div></div>`;   // v3.3.112: share moved to the header
 
   // heatmap: 26 weeks, weekday rail on the left, months across the top
@@ -445,28 +458,29 @@ function renderStats(){
   const trainedThis=monthCounts[monthKey]||0;
   cut('last6');
   h+=`<h2>Days by month${hActs('dbm',"Days trained each month — the dashed line marks 20. This month is still filling.",'dbmShare')}</h2><div class="card">
-      <div class="zoom" data-zoom><div class="zoomhint">pinch to zoom</div>
-      <svg viewBox="0 0 330 118" style="width:100%;height:auto">
-      <line x1="8" y1="${94-20/31*80}" x2="316" y2="${94-20/31*80}" stroke="var(--line)" stroke-width="0.6" stroke-dasharray="2 3"></line>
-      <text x="319" y="${96-20/31*80}" font-family="var(--mono)" font-size="7" fill="var(--muted)">20</text>`;
+      <div class="zoomhint">pinch to zoom</div>
+      <div class="zoom" data-zoom>
+      <svg viewBox="0 0 330 150" style="width:100%;height:auto">
+      <line x1="8" y1="${126-20/31*112}" x2="316" y2="${126-20/31*112}" stroke="var(--line)" stroke-width="0.6" stroke-dasharray="2 3"></line>
+      <text x="319" y="${128-20/31*112}" font-family="var(--mono)" font-size="7" fill="var(--muted)">20</text>`;
   ms.forEach(([m,n],i)=>{
     const cur=m===monthKey;
-    const bh=Math.max(2,n/31*80), x=8+i*25.5;
+    const bh=Math.max(2,n/31*112), x=8+i*25.5;   // v3.3.129: span 80 -> 112, baseline 94 -> 126
     if(cur){                                  // dashed outline = days elapsed, so a short bar isn't misread
-      const gh=dayOfMonth/31*80;
-      h+=`<rect x="${x}" y="${94-gh}" width="17" height="${gh}" rx="3" fill="none"
+      const gh=dayOfMonth/31*112;
+      h+=`<rect x="${x}" y="${126-gh}" width="17" height="${gh}" rx="3" fill="none"
             stroke="var(--accent)" stroke-width="0.8" stroke-dasharray="2 2"></rect>`;
     }
-    h+=`<rect class="gbar" x="${x}" y="${94-bh}" width="17" height="${bh}" rx="3" fill="var(--accent)" opacity="${cur?1:.55}"></rect>`;
+    h+=`<rect class="gbar" x="${x}" y="${126-bh}" width="17" height="${bh}" rx="3" fill="var(--accent)" opacity="${cur?1:.55}"></rect>`;
     if(cur){
       // trained count sits INSIDE the fill; the number above the dashes is days elapsed
-      const gh=dayOfMonth/31*80;
-      h+=`<text x="${x+8.5}" y="${94-gh-3}" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="var(--muted)">${dayOfMonth}</text>
-          <text x="${x+8.5}" y="${Math.min(91,94-bh+9)}" text-anchor="middle" font-family="var(--mono)" font-size="7" font-weight="700" fill="#fff">${n}</text>`;
+      const gh=dayOfMonth/31*112;
+      h+=`<text x="${x+8.5}" y="${126-gh-3}" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="var(--muted)">${dayOfMonth}</text>
+          <text x="${x+8.5}" y="${Math.min(123,126-bh+9)}" text-anchor="middle" font-family="var(--mono)" font-size="7" font-weight="700" fill="#fff">${n}</text>`;
     }else{
-      h+=`<text x="${x+8.5}" y="${94-bh-3}" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="var(--muted)">${n}</text>`;
+      h+=`<text x="${x+8.5}" y="${126-bh-3}" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="var(--muted)">${n}</text>`;
     }
-    h+=`<text x="${x+8.5}" y="107" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="${cur?'var(--accent)':'var(--muted)'}">${m.slice(5)}</text>`;
+    h+=`<text x="${x+8.5}" y="139" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="${cur?'var(--accent)':'var(--muted)'}">${m.slice(5)}</text>`;
   });
   h+=`</svg></div>
       <div class="tot"><span><b>${trainedThis}</b> trained · ${dayOfMonth-trainedThis} rested</span><span>${dayOfMonth} days into ${monthKey.slice(5)}</span></div></div>`;
@@ -493,20 +507,27 @@ function renderStats(){
   const bestI=wdPct.indexOf(wdBest);
   cut('dbm');
   h+=`<h2>Weekdays${hActs('wd',"Which weekdays you actually show up — today is in accent, and the caret marks your strongest.",'wdShare')}</h2><div class="card">
-      <svg viewBox="0 0 330 118" style="width:100%;height:auto">`;   // v3.3.113: 140→118
+      <svg viewBox="0 0 330 150" style="width:100%;height:auto">`;   // v3.3.129: 118→150 (v3.3.113 had cut 140→118; at that height the caret and the % label had nowhere to go)
   for(const g of [0,25,50,75,100]){
-    const y=94-g/100*81;      // v3.3.113: baseline 112→94, span 96→81
+    const y=126-g/100*113;    // v3.3.129: baseline 94→126, span 81→113
     h+=`<line x1="24" y1="${y}" x2="316" y2="${y}" stroke="var(--line)" stroke-width="0.6" ${g?'stroke-dasharray="2 3"':''}></line>
         <text x="21" y="${y+3}" text-anchor="end" font-family="var(--mono)" font-size="7" fill="var(--muted)">${g}</text>`;
   }
   ['S','M','T','W','T','F','S'].forEach((lab,i)=>{
     const p=wdPct[i], today=i===wdToday, best=i===bestI;
-    const bh=Math.max(2,p*81), x=32+i*41;
-    h+=`<rect class="gbar wd-col" x="${x}" y="${94-bh}" width="26" height="${bh}" rx="4"
+    const bh=Math.max(2,p*113), x=32+i*41;
+    h+=`<rect class="gbar wd-col" x="${x}" y="${126-bh}" width="26" height="${bh}" rx="4"
           fill="${today?'var(--accent)':'var(--accent-dim)'}" opacity="${today?1:.6}"></rect>`;
-    if(best) h+=`<text x="${x+13}" y="${86-bh}" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="var(--muted)">▲</text>`;
-    h+=`<text x="${x+13}" y="${today?90-bh:(best?78-bh:90-bh)}" text-anchor="middle" font-family="var(--mono)" font-size="8" fill="${today?'var(--accent)':'var(--muted)'}" font-weight="${today?700:400}">${Math.round(p*100)}%</text>
-        <text x="${x+13}" y="109" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="${today?'var(--chalk)':'var(--muted)'}" font-weight="${today?700:400}">${lab}</text>`;
+    /* v3.3.129: one stack, always the same order — bar, then % 4 above it,
+       then the caret 11 above that. The old code branched the % position on
+       today/best and put the caret at a fixed 8 above the bar, so a day that
+       was BOTH today and strongest (Tue, in the field report) drew them 4
+       units apart, on top of each other. Position no longer depends on
+       which flags are set, so no combination can collide. */
+    const pctY=126-bh-4;
+    h+=`<text x="${x+13}" y="${pctY}" text-anchor="middle" font-family="var(--mono)" font-size="8" fill="${today?'var(--accent)':'var(--muted)'}" font-weight="${today?700:400}">${Math.round(p*100)}%</text>`;
+    if(best) h+=`<text x="${x+13}" y="${pctY-11}" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="var(--muted)">▲</text>`;
+    h+=`<text x="${x+13}" y="141" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="${today?'var(--chalk)':'var(--muted)'}" font-weight="${today?700:400}">${lab}</text>`;
   });
   h+=`</svg><div class="note">% of each weekday trained, last 365 days · ▲ your strongest</div></div>`;
 

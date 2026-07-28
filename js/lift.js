@@ -706,17 +706,20 @@ function runStatsHTML(){
   h+=`<div class="legend1">`;
   for(const y of years) h+=`<span class="${y===thisYear?'cur':''}" data-yr="${y}" role="button"><i style="background:${YEAR_COLORS[y]||'var(--muted)'}"></i>${y} · <b>${Math.round(yTot[y])}</b></span>`;
   h+=`</div>
-      <div class="zoom" data-zoom><div class="zoomhint">pinch / scroll to zoom · double-tap to reset</div>
-      <svg viewBox="0 0 340 170" style="width:100%;height:auto"
-        data-scrub="dist" data-sx0="30" data-sxw="270" data-sy0="140" data-syh="120" data-smax="${yMax}">`;
+      <div class="zoomhint">pinch / scroll to zoom · double-tap to reset</div>
+      <div class="zoom" data-zoom>
+      <svg viewBox="0 0 340 220" style="width:100%;height:auto"
+        data-scrub="dist" data-sx0="30" data-sxw="270" data-sy0="190" data-syh="170" data-smax="${yMax}">`;
+  /* v3.3.129: 170 -> 220 tall. baseline 140 -> 190, span 120 -> 170.
+     data-sy0/data-syh must track this or the scrub readout lies. */
   for(let g=0;g<=4;g++){
-    const y=140-(g*step)/yMax*120;
+    const y=190-(g*step)/yMax*170;
     h+=`<line x1="30" y1="${y.toFixed(1)}" x2="300" y2="${y.toFixed(1)}" stroke="var(--line)" stroke-width="0.6" ${g?'stroke-dasharray="2 3"':''}></line>
         <text x="26" y="${(y+3).toFixed(1)}" text-anchor="end" font-family="var(--mono)" font-size="7" fill="var(--muted)">${g===4?`${g*step}${DU()}`:g*step}</text>`;
   }
   ['J','F','M','A','M','J','J','A','S','O','N','D'].forEach((m,i)=>{
     const x=30+((i*30.4+15)/366)*270;
-    h+=`<text x="${x.toFixed(1)}" y="152" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="var(--muted)">${m}</text>`;
+    h+=`<text x="${x.toFixed(1)}" y="202" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="var(--muted)">${m}</text>`;
   });
   const labels=[];
   for(const y of years){
@@ -724,10 +727,10 @@ function runStatsHTML(){
     let c=0, path='';
     for(let d=1;d<=end;d++){
       c=cv[d-1];
-      if(d===1||d===end||d%3===0) path+=`${(30+(d/366)*270).toFixed(1)},${(140-c/yMax*120).toFixed(1)} `;
+      if(d===1||d===end||d%3===0) path+=`${(30+(d/366)*270).toFixed(1)},${(190-c/yMax*170).toFixed(1)} `;
     }
     const cur=y===thisYear;
-    const lx=30+(end/366)*270, ly=140-c/yMax*120;
+    const lx=30+(end/366)*270, ly=190-c/yMax*170;
     h+=`<polyline data-yr="${y}" points="${path.trim()}" fill="none" stroke="${YEAR_COLORS[y]||'var(--muted)'}" stroke-width="${cur?2:1.2}" stroke-linejoin="round"></polyline>`;
     if(cur) h+=`<circle class="beacon" cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="3.2" fill="var(--accent)"></circle>`;
     labels.push({y,lx,ly,cur});

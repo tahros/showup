@@ -537,7 +537,8 @@ function bindScrub(box, svg, getVb){
   svg.appendChild(g);
 
   const legend=box.parentElement?box.parentElement.querySelector('.legend1'):null;
-  const hint=box.querySelector('.zoomhint');
+  // v3.3.129: the hint is a sibling of .zoom now, not a child
+  const hint=box.parentElement?box.parentElement.querySelector('.zoomhint'):null;
   const hint0=hint?hint.textContent:'';
   const val0=new Map();
   if(legend) legend.querySelectorAll('[data-yr]').forEach(s=>{
@@ -672,7 +673,7 @@ function bindZoom(box){
   let vb=[...vb0];
   const apply=()=>{
     svg.setAttribute('viewBox',vb.join(' '));                       // vector-crisp at any zoom
-    const hint=box.querySelector('.zoomhint');
+    const hint=box.parentElement?box.parentElement.querySelector('.zoomhint'):null;   // v3.3.129: sibling, not child
     if(hint) hint.style.opacity = (vb[2] < vb0[2]-0.5) ? 0 : .75;
   };
   const clamp=()=>{

@@ -767,8 +767,14 @@
   .heat i.today{outline:2px solid var(--chalk);outline-offset:1px;animation:pulse 1.6s ease-in-out infinite}
   .strip i.now{animation:pulse 1.6s ease-in-out infinite}
   @media (prefers-reduced-motion:reduce){.beacon,.heat i.today,.strip i.now{animation:none}}
-  .zoomhint{position:absolute;top:6px;right:8px;font-family:var(--mono);font-size:9px;
-    color:var(--muted);pointer-events:none;opacity:.75}
+  /* v3.3.129: the hint sits ABOVE the plot, not on top of it. Inside the
+     box it overlapped chart furniture (the days-elapsed number on Days by
+     month worst of all), and it doubles as the scrub date readout — same
+     argument that moved the legend up in v3.3.109. It is a SIBLING of
+     .zoom now, so app.js looks for it on the parent card, not the box. */
+  .zoomhint{font-family:var(--mono);font-size:9px;color:var(--muted);
+    pointer-events:none;opacity:.75;text-align:right;margin:0 2px 4px;
+    min-height:11px;line-height:11px}
   /* v3.3.109: WRAPS instead of scrolling — a horizontal scroller silently
      hid years (the current one worst of all, since it sorts last), which is
      unusable when the legend doubles as the scrub readout. Sits above the

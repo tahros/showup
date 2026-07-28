@@ -1,5 +1,47 @@
 # ShowUp — changelog
 
+## v3.3.129 (2026-07-28) — Taller plots, and labels that cannot collide
+
+**Four charts were too short to hold their own furniture.** Consistency and
+Distance go 340×170 → 340×220 (baseline 140→190, span 120→170); Days by month
+and Weekdays go 330×118 → 330×150 (baseline 94→126). Weekdays reverses the
+v3.3.113 compaction on purpose — at 118 the caret and the percentage had
+nowhere to live. Weight and Pace were left at 118: they were not in the
+request, and a chart is not improved by being taller on principle.
+
+The `data-sy0`/`data-syh` scrub anchors moved in lockstep with the geometry.
+They are the only thing standing between the legend and a confident lie —
+the live readout is derived from them, so a drifted anchor does not crash,
+it just reports the wrong percentage under your finger.
+
+**The zoom hint sat on top of the plot it described.** On Days by month it
+landed squarely on the days-elapsed number. `.zoomhint` is no longer
+absolutely positioned inside `.zoom`; it is a static right-aligned line above
+it, the same move and the same argument as the v3.3.109 legend — it doubles
+as the scrub date readout, and above the chart it is never under the hand
+doing the scrubbing. Being a sibling now, `app.js` looks for it on the parent
+card; miss that and the date readout and the zoom fade break silently.
+
+**Tuesday was both today and the strongest weekday, so it drew both labels in
+the same place.** The percentage's y branched on today/best while the caret
+sat at a fixed offset above the bar, which put them 4 units apart in the one
+combination where both were drawn. The stack is now unconditional — bar, then
+the percentage 4 above it, then the caret 11 above that. Position no longer
+depends on which flags are set, so no combination can collide. Measured gap:
+11.
+
+**The consistency chart's year-end tags smeared together** when years finished
+within a few points of each other (60/57). They are now collected, nudged
+apart, then emitted — the same pass the distance chart has used since
+v3.3.89, rather than a second mechanism doing the same job differently.
+
+`test-scrub.js` hardcoded `"0 0 340 170"` as the double-tap reset target, so
+making the plot taller failed a test of a gesture that had not changed. It
+reads the baseline off the chart now. New `test-chartsize.js` drives the real
+painter with today forced to also be the strongest weekday — the exact
+collision case — and measures the drawn gaps rather than trusting the source.
+
+
 ## v3.3.128 (2026-07-28) — A wider plot, and selection off everywhere
 
 **The consistency chart's plot was using 80% of its own width.** Margins of

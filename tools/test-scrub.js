@@ -128,11 +128,15 @@ ok("a second finger dismisses the guide (pinch wins)",
 pu(1); pu(2);
 
 // double-tap still resets the viewBox
+// v3.3.129: the expected value is READ from the chart before we disturb it.
+// It used to be the literal "0 0 340 170", so making the plot taller failed
+// a test of the reset gesture, which had not changed at all.
+const VB0 = run(`${SVG}.getAttribute('viewBox')`);
 run(`${BOX}.querySelector('svg').setAttribute('viewBox','60 20 100 50');`);
 pd(150); pu(); pd(150); pu();
 ok("double-tap still resets the zoom",
-   run(`${SVG}.getAttribute('viewBox')`) === "0 0 340 170",
-   run(`${SVG}.getAttribute('viewBox')`));
+   run(`${SVG}.getAttribute('viewBox')`) === VB0,
+   run(`${SVG}.getAttribute('viewBox')`) + " vs " + VB0);
 
 // when zoomed IN, one finger must still PAN, not scrub
 run(`(function(){const b=${BOX}; const s=b.querySelector('svg');
