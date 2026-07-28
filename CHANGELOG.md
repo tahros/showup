@@ -1,5 +1,17 @@
 # ShowUp — changelog
 
+## v3.3.131 (2026-07-28) — The i finds its middle
+
+**Two verdicts in one day, both right.** The v3.3.130 filled disc shouted;
+the bare glyph that replaced it whispered into the heading and vanished
+(maker's verdict, same afternoon, from the phone). The middle is a dim
+outlined circle — `var(--line)` border, muted glyph, no fill. Visibly a
+button, not demanding anything.
+
+Same-day trial-and-adjust, recorded as such. The padding/negative-margin
+trick from v3.3.130 goes with the bare glyph; the 22px circle itself is the
+tap target now, which is simpler and the same size to a thumb.
+
 ## v3.3.130 (2026-07-28) — One share surface, and a quieter i
 
 **Seven share buttons were seven doors to one room.** Every section header

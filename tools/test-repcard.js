@@ -149,8 +149,11 @@ const css = fs.readFileSync(path.join(dir, "css/app.css"), "utf8");
 const ibtn = (css.match(/\.ibtn\{[^}]*\}/) || [""])[0];
 ok("the i is no longer a filled disc", !/background:var\(--chalk\)/.test(ibtn), ibtn.slice(0, 60));
 ok("...it uses the muted colour", /color:var\(--muted\)/.test(ibtn));
-ok("...and keeps a padded tap target despite the smaller ink",
-   /padding:6px/.test(ibtn) && /margin:-6px/.test(ibtn), ibtn.match(/padding:[^;]*/) + " " + (ibtn.match(/margin:[^;]*/)||""));
+/* v3.3.131: the bare glyph was too quiet (maker's verdict) \u2014 a dim outlined
+   circle now, and the 22px circle itself is the tap target. */
+ok("...inside a dim outlined circle", /border:1px solid var\(--line\)/.test(ibtn) && /border-radius:50%/.test(ibtn));
+ok("...whose circle is the ~22px tap target",
+   /width:22px/.test(ibtn) && /height:22px/.test(ibtn), (ibtn.match(/width:[^;]*/)||"") + "");
 
 console.log(fail ? "\n" + fail + " FAILED" : "\nALL PASS");
 process.exit(fail ? 1 : 0);

@@ -336,16 +336,17 @@
      mark. */
   /* v3.3.130: the filled disc is gone. A solid chalk circle beside every
      heading read as a control demanding attention, when it is a footnote you
-     consult maybe twice. It is a muted glyph sitting close to the title now
-     — but the TAP TARGET stays ~22px via padding and a negative margin, or
-     it becomes untappable with gym hands. Shrinking the ink is the point;
-     shrinking the target would just be a worse button. */
-  .ibtn{border:0;background:none;color:var(--muted);
-    font-family:var(--mono);font-size:11px;font-weight:600;cursor:pointer;
-    text-transform:lowercase;padding:6px;margin:-6px -6px -6px 0;
-    line-height:1;text-align:center;vertical-align:middle;display:inline-block;
-    opacity:.55;transition:opacity .12s ease}
-  .ibtn:active{opacity:1}
+     consult maybe twice. */
+  /* v3.3.131: the bare glyph went too far the other way — it disappeared
+     into the heading (maker's verdict, same day). A dim outlined circle
+     lands between the two: visibly a button, not shouting. The 22px circle
+     IS the tap target now, so the padding/negative-margin trick is gone. */
+  .ibtn{border:1px solid var(--line);border-radius:50%;background:none;color:var(--muted);
+    font-family:var(--mono);font-size:10px;font-weight:600;cursor:pointer;
+    text-transform:lowercase;width:22px;height:22px;line-height:20px;padding:0;
+    text-align:center;vertical-align:middle;display:inline-block;
+    transition:background .12s ease}
+  .ibtn:active{background:var(--line)}
   @media (prefers-reduced-motion:reduce){.ibtn{transition:none}}
   h2 .hacts{margin-left:1px}
   /* ---- v3.3.130: report card — the app's one share surface ---- */
