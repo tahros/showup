@@ -29,7 +29,10 @@ function mgAlpha(n,max,cur){ return n?(0.14+0.74*n/max)*(cur?0.45:1):0; }
    column is legible on a phone; the wrapper scrolls and PMIX_DAYS grows
    when you reach the left edge. */
 let PMIX_DAYS=56;
-const PMIX_COLW=13, PMIX_H=150, PMIX_TOP=10, PMIX_BASE=118;
+/* v3.3.117: wider columns and a taller plot — the first pass was too squat
+   to read — plus room beneath for a rotated date on EVERY column, the way
+   the spreadsheet labels its x-axis. */
+const PMIX_COLW=17, PMIX_H=232, PMIX_TOP=8, PMIX_BASE=150;
 function partMixSvg(days){
   const rows=partMix(days);
   if(!rows.length) return '';
@@ -42,9 +45,8 @@ function partMixSvg(days){
     s+=`<line x1="8" y1="${y.toFixed(1)}" x2="${W-8}" y2="${y.toFixed(1)}"
          stroke="var(--line)" stroke-width="0.6"${g?' stroke-dasharray="2 3"':''}></line>`;
   }
-  let lastM=-1;
   rows.forEach((r,i)=>{
-    const x=8+i*PMIX_COLW, bw=PMIX_COLW-3;
+    const x=8+i*PMIX_COLW, bw=PMIX_COLW-4;
     let y=PMIX_BASE;
     for(const p of Object.keys(SEED.catalog)){
       const n=r.by[p]; if(!n) continue;
@@ -53,12 +55,11 @@ function partMixSvg(days){
       s+=`<rect x="${x}" y="${y.toFixed(1)}" width="${bw}" height="${hh.toFixed(1)}"
            fill="${PART_COLORS[p]||'var(--muted)'}" data-pt="${p}"></rect>`;
     }
-    const m=+r.d.slice(5,7);
-    if(m!==lastM){
-      s+=`<text x="${x}" y="${PMIX_BASE+16}" font-family="var(--mono)" font-size="8"
-           fill="var(--muted)">${new Date(r.d+'T00:00').toLocaleDateString('en-US',{month:'short'})}</text>`;
-      lastM=m;
-    }
+    // every column names its day, rotated — as the spreadsheet does
+    const lab=(+r.d.slice(5,7))+'/'+(+r.d.slice(8,10));
+    s+=`<text x="${x+bw/2}" y="${PMIX_BASE+6}" transform="rotate(-90 ${x+bw/2} ${PMIX_BASE+6})"
+         text-anchor="end" font-family="var(--mono)" font-size="7"
+         fill="var(--muted)">${lab}</text>`;
   });
   s+=`</svg>`;
   return s;
@@ -220,9 +221,9 @@ function renderStats(){
   /* v3.3.116: part mix — which parts got worked, day by day, so an
      under-served one is visible by its absence. Second from the top on the
      maker's call. Scrolls sideways and loads older weeks at its left edge. */
-  h+=`<h2>Part mix${hActs('pmix',"Sets per body part on each training day — scroll back for older weeks.")}</h2>
+  h+=`<h2>Part mix${hActs('pmix',"Volume per body part each training day. Runs are excluded — km don't sum with kg.")}</h2>
       <div class="card">
-        <div class="legend1">${Object.keys(SEED.catalog).map(p=>
+        <div class="legend1">${Object.keys(SEED.catalog).filter(p=>p!=='Run').map(p=>
           `<span data-pt="${p}"><i style="background:${PART_COLORS[p]||'var(--muted)'}"></i>${p}</span>`).join('')}</div>
         <div class="pmixwrap" id="pmixWrap">${partMixSvg(PMIX_DAYS)}</div>
       </div>`;

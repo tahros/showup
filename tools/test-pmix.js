@@ -50,10 +50,19 @@ ok("Part mix is the second section", run(`(function(){
 ok("partMix() returns one row per training day, newest last",
    run(`(function(){const r=partMix(10);
      return r.length===10 && r[9].d>r[0].d;})()`));
-ok("...counting SETS, not volume",
+ok("v3.3.117: counting VOLUME (weight x reps), not sets",
    run(`(function(){const r=partMix(1)[0];
      const w=(DB.days[r.d]||{}).w||[];
-     return r.total===w.length;})()`), run(`JSON.stringify(partMix(1)[0].by)`));
+     const vol=w.filter(s=>s.part!=='Run'&&s.ex!=='Run')
+                .reduce((a,s)=>a+(+s.w||0)*((s.reps&&s.reps[0])||0),0);
+     return r.total===vol;})()`), run(`JSON.stringify(partMix(1)[0])`));
+ok("...and Run is excluded from the stack (km don't sum with kg)",
+   run(`(function(){const t=new Date(todayISO+'T00:00'); const d=new Date(t); d.setDate(d.getDate()-3);
+     const iso=d.toLocaleDateString('en-CA');
+     DB.days[iso]={w:[{part:'Run',ex:'Run',w:5,reps:[],mins:30,secs:0,at:1}],upd:1};
+     SEED=deriveAll();
+     const row=partMix(999).find(r=>r.d===iso);
+     return !row || !row.by.Run;})()`));
 ok("...and a rest day contributes no column",
    run(`(function(){const t=new Date(todayISO+'T00:00'); const d=new Date(t); d.setDate(d.getDate()-500);
      const iso=d.toLocaleDateString('en-CA');
@@ -64,6 +73,15 @@ ok("...and a rest day contributes no column",
 const css = fs.readFileSync(path.join(dir, "css/app.css"), "utf8");
 const partVars = [...css.matchAll(/--p-[a-z]+:(#[0-9A-Fa-f]{6})/g)].map(m => m[1].toUpperCase());
 ok("eight part colours are defined per theme", partVars.length === 16, partVars.length + " total");
+// v3.3.117: softened. Nothing should be poster-paint saturated any more.
+const satAll = partVars.map(hx => {
+  const r = parseInt(hx.slice(1,3),16)/255, g = parseInt(hx.slice(3,5),16)/255, b = parseInt(hx.slice(5,7),16)/255;
+  const mx = Math.max(r,g,b), mn = Math.min(r,g,b), d = mx-mn, l = (mx+mn)/2;
+  return { hx, l, s: d === 0 ? 0 : d/(1-Math.abs(2*l-1)) };
+});
+ok("the palette is soft, not poster paint (every colour is light)",
+   satAll.every(c => c.l >= 0.45),
+   "darkest " + satAll.slice().sort((a,b)=>a.l-b.l)[0].hx);
 const live = (css.match(/--live:(#[0-9A-Fa-f]{6})/g) || []).map(s => s.split(":")[1].toUpperCase());
 const rest = (css.match(/--rest:(#[0-9A-Fa-f]{6})/g) || []).map(s => s.split(":")[1].toUpperCase());
 ok("no part colour reuses the LIVE red or the REST green",
@@ -116,7 +134,9 @@ ok("part colours appear only via PART_COLORS, never hand-written into a rule",
 ok("PART_COLORS covers every catalog part",
    run(`Object.keys(SEED.catalog).every(p=>!!PART_COLORS[p])`),
    run(`Object.keys(SEED.catalog).join(',')`));
-ok("the legend names every part", run(`document.querySelectorAll('.legend1 [data-pt]').length`) === 8);
+ok("the legend names every stacked part (7 \u2014 Run left the stack in v3.3.117)",
+   run(`document.querySelectorAll('.legend1 [data-pt]').length`) === 7,
+   run(`[...document.querySelectorAll('.legend1 [data-pt]')].map(s=>s.dataset.pt).join(',')`));
 
 // ---- LAZY BACK-LOADING: the view must not jump ---------------------------
 // jsdom has no layout, so scrollWidth is 0; drive the widths explicitly and
@@ -125,24 +145,48 @@ const beforeCols = run(`document.querySelectorAll('#pmixWrap rect[data-pt]').len
 const beforeDays = run(`PMIX_DAYS`);
 ok("it opens showing recent weeks, not the whole archive",
    beforeDays === 56 && beforeCols > 0, beforeDays + " days");
-run(`(function(){
-  const box=document.getElementById('pmixWrap');
-  Object.defineProperty(box,'scrollWidth',{get(){return this.__w||1000;},configurable:true});
-  box.__w=1000; box.scrollLeft=0;
-  box.dispatchEvent(new Event('scroll'));
-})()`);
+/* v3.3.117 \u2014 the bug this reproduces: scrollWidth does not reflow inside
+   the handler, so the old code measured a delta of 0, left scrollLeft at 0,
+   and the next scroll event saw scrollLeft<80 and loaded again, running to
+   the first day in one flick. jsdom reports scrollWidth 0 always, which is
+   exactly the failing condition \u2014 so a correct implementation must still
+   move the view, computing the width it added rather than measuring it. */
+run(`(function(){const box=document.getElementById('pmixWrap');
+  box.scrollLeft=0; box.dispatchEvent(new Event('scroll'));})()`);
 ok("reaching the left edge loads an older chunk",
    run(`PMIX_DAYS`) > beforeDays, beforeDays + " \u2192 " + run(`PMIX_DAYS`));
-ok("...and it stops at the end of the archive",
+ok("...and the view is pushed right by the width added, not left at zero",
+   run(`document.getElementById('pmixWrap').scrollLeft`) > 0,
+   "scrollLeft " + run(`document.getElementById('pmixWrap').scrollLeft`));
+ok("...by exactly columns-added x column-width",
+   run(`document.getElementById('pmixWrap').scrollLeft`) === 56 * run(`PMIX_COLW`),
+   run(`document.getElementById('pmixWrap').scrollLeft`) + " vs " + (56 * run(`PMIX_COLW`)));
+// THE regression: a burst of scroll events (one momentum flick) must load
+// at most one chunk, because busy stays locked until the next frame.
+/* The invariant is "at most one chunk per burst". Under a synchronous burst
+   the rAF that clears `busy` never runs, so the correct result is 0 loaded \u2014
+   the lock holding. A first draft demanded exactly 56 and failed against
+   working code, which was the test misreading its own environment. */
+ok("a burst of scroll events loads AT MOST one chunk, not the whole archive",
+   run(`(function(){const box=document.getElementById('pmixWrap');
+     const before=PMIX_DAYS;
+     for(let i=0;i<15;i++){ box.scrollLeft=0; box.dispatchEvent(new Event('scroll')); }
+     return PMIX_DAYS-before;})()`) <= 56,
+   "delta " + run(`(function(){const b=PMIX_DAYS; return b;})()`));
+ok("...and it never runs past the end of the archive",
    run(`(function(){const total=[...workoutDates()].length;
      const box=document.getElementById('pmixWrap');
-     for(let i=0;i<20;i++){ box.scrollLeft=0; box.dispatchEvent(new Event('scroll')); }
+     for(let n=0;n<30;n++){ box.scrollLeft=0; box.dispatchEvent(new Event('scroll'));
+       globalThis.__raf&&globalThis.__raf(); }
      return PMIX_DAYS<=total;})()`), run(`PMIX_DAYS`) + " days");
 
 // the scroll-restore arithmetic is what stops the jump
 const appSrc = fs.readFileSync(path.join(dir, "js/app.js"), "utf8");
-ok("the loader restores scroll by exactly the width it added",
-   /box\.scrollLeft \+= box\.scrollWidth-before/.test(appSrc));
+ok("the loader COMPUTES the width it added rather than measuring scrollWidth",
+   /const added=\(PMIX_DAYS-prev\)\*PMIX_COLW/.test(appSrc) &&
+   !/scrollWidth-before/.test(appSrc));
+ok("...and holds the re-entry lock until the next frame",
+   /requestAnimationFrame\(\(\)=>\{ busy=false; \}\)/.test(appSrc));
 ok("...and opens parked at today, not at the oldest day",
    /box\.scrollLeft=box\.scrollWidth;/.test(appSrc));
 

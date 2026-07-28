@@ -13,8 +13,11 @@
        mean exactly one thing in this app and a body part is not it, which
        is why Back is not red and Legs are not green as they are in the
        maker's spreadsheet. Data hues only; licenses nothing else. */
-    --p-chest:#6B8CFF; --p-back:#C77DFF; --p-shoulder:#3FB8AF; --p-legs:#E8A33D;
-    --p-biceps:#E86FA9; --p-triceps:#8C9EB5; --p-sixpack:#7ED3F7; --p-run:#B08968;
+    /* v3.3.117: softened toward pastel — the first set read as poster paint
+       against a data surface. Hues kept (they are what tells the parts
+       apart), saturation and lightness pulled back. */
+    --p-chest:#A8B8F0; --p-back:#D4B0E8; --p-shoulder:#8FCFC8; --p-legs:#EBC98A;
+    --p-biceps:#F0AEC8; --p-triceps:#B4BECB; --p-sixpack:#A9DCEF; --p-run:#C9AE95;
     --chart-soft:#616EA3;                   /* v3.3.92: 2025's year line — accent-soft was 2.10:1 as a stroke */
     --live:#C93A2B;                         /* the header while your heart is pumping */
     --chalk:#F0F1F6; --muted:#A2A8B6; --faint:#747A8A; --shadow:none;
@@ -30,8 +33,10 @@
     --record:#C33A2C;
     --rest:#79A884;                         /* declared rest, light theme (wash/frame grade) */
     --rest-ink:#3B5742;                     /* rest as text, light */
-    --p-chest:#3355D8; --p-back:#8B3FD1; --p-shoulder:#1B8C84; --p-legs:#A8681A;
-    --p-biceps:#C4407C; --p-triceps:#5C6B80; --p-sixpack:#2C87AD; --p-run:#7A5A3C;
+    /* light theme sits a shade deeper: the same softness has to survive a
+       white ground rather than a near-black one */
+    --p-chest:#7E93DB; --p-back:#B98FD1; --p-shoulder:#63B3AA; --p-legs:#D2A85E;
+    --p-biceps:#DB8FAE; --p-triceps:#94A0B0; --p-sixpack:#7FC0D8; --p-run:#AF9179;
     --chart-soft:#7F859F;                   /* 2025's line, light — C3CCF5 was 1.58:1 on white */
     --live:#BE3324;
     /* v3.3.92: muted 4.10:1 on surface2 and faint 2.62:1 on white failed AA;

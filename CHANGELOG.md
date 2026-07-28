@@ -1,5 +1,49 @@
 # ShowUp — changelog
 
+## v3.3.117 (2026-07-27) — Part mix, corrected
+
+Five corrections from the maker, two of them real bugs.
+
+**The palette was poster paint.** Softened toward pastel: hues kept, since
+hue is what tells the parts apart, but saturation and lightness pulled back
+(#6B8CFF → #A8B8F0 and so on), with the light theme a shade deeper so the
+same softness survives a white ground. The v3.3.116 state-colour guard was
+re-run against the new values BEFORE writing them, and a new assertion
+requires every part colour to be light — so nobody can quietly saturate it
+back.
+
+**Volume, not sets** — the maker's original intent, and what the spreadsheet
+plotted. **Run leaves the stack**: its `w` field holds kilometres, and
+kilometres do not sum with kilograms. The spreadsheet drew Run as a separate
+line for exactly that reason. The legend drops to seven.
+
+**Every column names its day**, rotated, as the spreadsheet does. Columns
+are wider (13→17) and the plot taller (150→232) — the first pass was too
+squat to read.
+
+**The scroll ran away, and the cause was measurement.** Reaching the left
+edge loaded older weeks by reading `box.scrollWidth` to learn how much had
+been prepended — but scrollWidth has not reflowed inside the handler, so the
+delta came back 0, `scrollLeft` stayed at 0, the next scroll event saw
+`scrollLeft<80` and loaded again. One flick ran the chart to the first day.
+Two fixes: the width added is now COMPUTED from the data (columns × column
+width) rather than measured, and the re-entry lock is held until the next
+animation frame instead of being released synchronously, which never
+blocked anything.
+
+The test reproduces that exactly — jsdom reports `scrollWidth` as 0 always,
+which is precisely the failing condition, so a correct implementation must
+still move the view. It asserts the view is pushed right by exactly
+columns-added × column-width, and that a burst of fifteen scroll events
+loads at most one chunk.
+
+A test-design note: the burst assertion first demanded exactly one chunk and
+failed against working code — under a synchronous burst the rAF that clears
+the lock never runs, so zero loaded IS the lock holding. The invariant is
+"at most one", and the test says that now.
+
+`test-pmix.js` at 22.
+
 ## v3.3.116 (2026-07-27) — Part mix
 
 A new chart, second from the top: one column per training day, stacked by

@@ -681,10 +681,11 @@ function msLine(n){
    inline inside the render functions, which meant a card could only be
    added by duplicating the arithmetic — the drift this codebase keeps
    paying down (resealDay, foldSets, gridData, elapsedDays, runYearCurves). */
-/* v3.3.116: sets per part per training day, newest last. Sets, not volume —
-   tonnage is not comparable across parts (one Legs day dwarfs a month of
-   Biceps and would flatten everything else), and days > volume argues for
-   the count anyway. */
+/* v3.3.117: VOLUME per part per training day, newest last — the maker's
+   original intent, and what the spreadsheet this came from plotted.
+   Run is excluded from the stack: its `w` field holds kilometres, and
+   kilometres do not sum with kilograms. The spreadsheet drew Run as a
+   separate LINE for exactly that reason. */
 const PART_COLORS={Chest:'var(--p-chest)',Back:'var(--p-back)',Shoulder:'var(--p-shoulder)',
   Legs:'var(--p-legs)',Biceps:'var(--p-biceps)',Triceps:'var(--p-triceps)',
   Sixpack:'var(--p-sixpack)',Run:'var(--p-run)'};
@@ -694,7 +695,13 @@ function partMix(days){
   for(const d of take){
     const w=(DB.days[d]||{}).w||(SEED.sessions[d]||[]);
     const by={};
-    for(const s of w){ const p=s.part||'—'; by[p]=(by[p]||0)+1; }
+    for(const s of w){
+      const p=s.part||'—';
+      if(p==='Run'||s.ex==='Run') continue;            // km don't sum with kg
+      const reps=(s.reps&&s.reps[0])||0;
+      const vol=(+s.w||0)*reps;
+      if(vol>0) by[p]=(by[p]||0)+vol;
+    }
     out.push({d, by, total:Object.values(by).reduce((a,b)=>a+b,0)});
   }
   return out;

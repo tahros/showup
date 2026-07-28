@@ -593,17 +593,25 @@ function bindPmix(){
   if(!box||box.dataset.bound) return;
   box.dataset.bound='1';
   box.scrollLeft=box.scrollWidth;              // today, not January
+  /* v3.3.117: the first version read box.scrollWidth to work out how much
+     had been prepended. After innerHTML that value has not reflowed yet, so
+     the delta came back 0, scrollLeft stayed at 0, the next scroll event
+     saw scrollLeft<60 and loaded again — and the chart ran all the way to
+     the first day in one flick. The width added is knowable from the DATA
+     (columns x column width), so it is computed, not measured, and a real
+     lock stops re-entry until the next frame. */
   let busy=false;
   box.addEventListener('scroll',()=>{
-    if(busy||box.scrollLeft>60) return;
+    if(busy||box.scrollLeft>80) return;
     const total=[...workoutDates()].length;
     if(PMIX_DAYS>=total) return;
     busy=true;
-    const before=box.scrollWidth;
+    const prev=PMIX_DAYS;
     PMIX_DAYS=Math.min(total,PMIX_DAYS+56);
+    const added=(PMIX_DAYS-prev)*PMIX_COLW;
     box.innerHTML=partMixSvg(PMIX_DAYS);
-    box.scrollLeft += box.scrollWidth-before;  // hold the view still
-    busy=false;
+    box.scrollLeft=added+box.scrollLeft;       // computed, not measured
+    requestAnimationFrame(()=>{ busy=false; });
   },{passive:true});
 }
 function bindZoom(box){
