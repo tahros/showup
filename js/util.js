@@ -698,8 +698,12 @@ function partMix(days){
     for(const s of w){
       const p=s.part||'—';
       if(p==='Run'||s.ex==='Run') continue;            // km don't sum with kg
-      const reps=(s.reps&&s.reps[0])||0;
-      const vol=(+s.w||0)*reps;
+      /* v3.3.124: volOf(), not a private formula. A stored entry may hold a
+         REPS ARRAY — Pull Up 70kg [12,10,10,8] is one entry worth four sets —
+         and the old `reps[0]` counted only the first, reporting 840 where
+         the day was 2,800. Every other surface in the app already called
+         volOf(); this one reimplemented it and got it wrong. */
+      const vol=volOf(s);
       if(vol>0) by[p]=(by[p]||0)+vol;
     }
     out.push({d, by, total:Object.values(by).reduce((a,b)=>a+b,0)});

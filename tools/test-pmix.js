@@ -437,4 +437,71 @@ const yLate = run(`document.getElementById('pmixYr').textContent`);
 ok("the year swaps as you scroll across a year boundary",
    yEarly === "2025" && yLate === "2026", yEarly + " \u2192 " + yLate);
 
+/* ---- v3.3.124: THE bug the maker found -----------------------------------
+   Part Mix reported 2.5k for a day History called 9,190 kg. Cause: partMix
+   computed volume with its own formula, `w * reps[0]`, while every other
+   surface calls volOf() = `w * sum(reps)`. A stored entry may hold a reps
+   ARRAY \u2014 Pull Up 70kg [12,10,10,8] is one entry worth four sets \u2014 so the
+   private formula counted one set in four.
+
+   My earlier "verification" was wrong for a specific reason worth keeping:
+   I reconstructed a day from a SCREENSHOT's display and checked my formula
+   against my own reconstruction. It agreed with itself. It never agreed
+   with volOf(). This assertion compares against the app's function instead,
+   over every day, which is the only check that could have caught it. */
+run(`(function(){DB.days={};
+  const t=new Date(todayISO+'T00:00');
+  const mk=(off,w)=>{const d=new Date(t); d.setDate(d.getDate()-off);
+    DB.days[d.toLocaleDateString('en-CA')]={w,upd:1};};
+  // the maker's Fri Jul 10, stored folded exactly as History shows it
+  mk(3,[{part:'Back',ex:'Pull Up',w:70,reps:[12,10,10,8],at:1},
+        {part:'Back',ex:'Bent-Over Row',w:61.2,reps:[20,20,15,20],at:1},
+        {part:'Back',ex:'Lat Pull Down',w:45,reps:[10,10,10,10],at:1}]);
+  // and a day stored UNfolded, one entry per set, which must still agree
+  mk(5,[{part:'Chest',ex:'Press',w:40,reps:[10],at:1},
+        {part:'Chest',ex:'Press',w:40,reps:[10],at:1},
+        {part:'Legs',ex:'Squat',w:80,reps:[8],at:1}]);
+  mk(7,[{part:'Back',ex:'Row',w:30,reps:[10,15,10,15],at:1},
+        {part:'Run',ex:'Run',w:5,reps:[],mins:30,secs:0,at:1}]);
+  SEED=deriveAll(); view='stats'; render();})()`);
+
+const mism = run(`JSON.stringify((function(){
+  const bad=[];
+  for(const r of partMix(999)){
+    const w=(DB.days[r.d]||{}).w||(SEED.sessions[r.d]||[]);
+    const truth=w.filter(s=>s.part!=='Run'&&s.ex!=='Run').reduce((a,s)=>a+volOf(s),0);
+    if(Math.abs(truth-r.total)>0.001) bad.push({d:r.d,chart:r.total,volOf:truth});
+  }
+  return bad;})())`);
+ok("partMix agrees with the app's own volOf() on every day",
+   JSON.parse(mism).length === 0, mism);
+
+// the reported day, by its real number
+ok("the maker's Jul 10 reads 9,190 not 2,514",
+   run(`(function(){const t=new Date(todayISO+'T00:00'); const d=new Date(t); d.setDate(d.getDate()-3);
+     const iso=d.toLocaleDateString('en-CA');
+     return (partMix(999).find(r=>r.d===iso)||{}).total;})()`) === 9190);
+
+// folded and unfolded storage must give the same answer for the same work
+ok("a folded entry and four separate sets total the same",
+   run(`(function(){
+     const folded=[{part:'Back',ex:'Row',w:30,reps:[10,15,10,15],at:1}];
+     const split=[10,15,10,15].map(r=>({part:'Back',ex:'Row',w:30,reps:[r],at:1}));
+     const v=a=>a.reduce((s,x)=>s+volOf(x),0);
+     return v(folded)===v(split) && v(folded)===1500;})()`));
+
+// partMix must never carry a private volume formula again
+const utilSrc124 = fs.readFileSync(path.join(dir, "js/util.js"), "utf8");
+// slice to the NEXT function declaration \u2014 a brace-matching regex trips on
+// the nested for-loops inside partMix
+const pmStart = utilSrc124.indexOf("function partMix(days){");
+const pmBody = utilSrc124.slice(pmStart, utilSrc124.indexOf("\nfunction ", pmStart + 10));
+/* strip comments before grepping the body \u2014 the fix's own comment explains
+   what `reps[0]` used to do, and an un-stripped grep flags the explanation
+   as if it were the bug. Exactly the v3.3.106 failure, in a new place. */
+const pmCode = pmBody.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/[^\n]*/g, "$1");
+ok("partMix computes volume ONLY through volOf()",
+   /volOf\(s\)/.test(pmCode) && !/reps\[0\]/.test(pmCode), 
+   /reps\[0\]/.test(pmCode) ? "still has reps[0]" : "volOf only");
+
 process.exit(fail ? 1 : 0);

@@ -1,5 +1,45 @@
 # ShowUp — changelog
 
+## v3.3.124 (2026-07-28) — The maker was right; Part Mix was wrong
+
+Part Mix reported **2.5k** for a day History calls **9,190 kg**. The maker
+said something was off. I said it wasn't. The maker was right.
+
+**Cause.** `partMix()` computed volume with its own formula, `w * reps[0]`,
+while every other surface in the app calls `volOf()` = `w * sum(reps)`. A
+stored entry may hold a REPS ARRAY — `Pull Up 70kg [12,10,10,8]` is one
+entry worth four sets — so the private formula counted one set in four.
+Fri Jul 10: Pull Up 70×40, Bent-Over Row 61.2×75, Lat Pull Down 45×40 =
+9,190. The old formula read 70×12 + 61.2×20 + 45×10 = 2,514.
+
+**Why my earlier check missed it, which is the part worth keeping.** I
+reconstructed a day from a SCREENSHOT's display and verified my formula
+against my own reconstruction. It agreed with itself. It never once agreed
+with `volOf()`. A check that validates an assumption against the same
+assumption proves nothing, and it read as confirmation.
+
+The fix is one line — call `volOf()` — and it is the drift this codebase
+keeps paying down: `resealDay()`, `foldSets()`, `gridData()`,
+`elapsedDays()`, `runYearCurves()` were each extracted because the same
+arithmetic in two places eventually disagrees. This was the same mistake,
+made by me, in a new function.
+
+**The regression test compares partMix against volOf() on every day**, over
+folded and unfolded storage both, and is verified to FAIL on the previous
+build with the exact numbers from the report (chart 2514, volOf 9190). A
+second assertion forbids partMix from ever carrying a private volume
+formula again.
+
+Every other `reps[0]` in the app was audited: all are display labels or
+suggestion values, none compute volume.
+
+A test-design note: that last assertion first failed against correct code,
+because the fix's own comment explains what `reps[0]` used to do and the
+grep flagged the explanation as the bug. Comments are stripped before
+grepping now — the same failure as v3.3.106, in a new place.
+
+`test-pmix.js` at 74.
+
 ## v3.3.123 (2026-07-28) — Part mix: tap a bar, read the trend, find the year
 
 **"6k 6k kg" was a real bug.** On a one-part day the part total IS the day
