@@ -82,6 +82,11 @@ Adopted into phases:
 - D1.5 selection inversion — tried v3.3.4, REVERTED v3.3.5. Sungjee's verdict
   after real use: selection reads better in accent blue. Accent = app voice +
   your selections; red = live. The trial is the process working.
+- Chart height follows CONTENT, not a fixed ratio (v3.3.125, reversing
+  v3.3.113's two-shape rule on the maker's call). The old rule existed to
+  stop section heights looking arbitrary, but it made charts pad themselves
+  to hit a shape — part mix carried ~50px of empty box. What is enforced
+  instead is that a chart may not waste its own height.
 - Colour tokens come in GRADES (v3.3.92): a wash/frame grade cannot also be
   an ink. --rest washes; --rest-ink writes. Any state colour used as text
   gets its own text-grade token at the same hue, and buildcheck computes

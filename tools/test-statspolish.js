@@ -312,9 +312,15 @@ const maxTip = Math.max(...JSON.parse(tipLens));
 console.log((maxTip <= 120 ? "PASS" : "FAIL"), "every tip fits in one breath (\u2264120 chars)", "\u2192", "longest " + maxTip);
 if (maxTip > 120) fail++;
 
-// ---- v3.3.113: two chart shapes, not four -------------------------------
-// Weight was 0.315, Weekdays 0.424, the bar charts 0.358 and the two YoY
-// line charts 0.500 \u2014 which is why section heights looked arbitrary.
+/* ---- v3.3.125: the two-shape rule is WITHDRAWN, on the maker's call ------
+   v3.3.113 collapsed four aspect ratios to two, to stop section heights
+   looking arbitrary. The maker has since reversed it: each chart should be
+   sized to what it displays. That is a better rule \u2014 the part-mix chart
+   proved it by carrying ~50px of empty box under every render just to hit
+   a ratio.
+   What replaces it is the property the ratio rule was a proxy for: a chart
+   must not waste its own height. Content has to reach most of the way down
+   its viewBox, whatever shape that viewBox is. */
 run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
   for(let i=1;i<=400;i++){const d=new Date(t); d.setDate(d.getDate()-i);
     const iso=d.toLocaleDateString('en-CA');
@@ -324,49 +330,25 @@ run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
   setBw('2025-02-01',72); setBw('2025-09-01',70.5); setBw(todayISO,70);
   SEED=deriveAll(); view='stats'; render();})()`);
 
-// icons are 16x16 SVGs; charts are the ones living inside a .card
-/* v3.3.116: the two-shape rule governs charts that FILL the card width
-   (width:100%; height:auto), where the viewBox ratio literally is the
-   rendered height. The part-mix chart is a different kind: a fixed-pixel-
-   height horizontal scroller whose width grows with the data, so it has no
-   card-width ratio to conform to. Excluded here and asserted separately
-   below. */
-const shapes = JSON.parse(run(`JSON.stringify([...document.querySelectorAll('#view .card svg')]
-  .filter(s=>!s.closest('.pmixwrap'))
+const fill = JSON.parse(run(`JSON.stringify([...document.querySelectorAll('#view .card svg')]
   .map(s=>{const v=(s.getAttribute('viewBox')||'').split(/\\s+/).map(Number);
-    return {w:v[2],h:v[3],r:+(v[3]/v[2]).toFixed(3)};}).filter(x=>x.w>100))`));
-const ratios = [...new Set(shapes.map(s => s.r))].sort();
-console.log((ratios.length === 2 ? "PASS" : "FAIL"),
-  "chart shapes collapse to exactly two", "\u2192", ratios.join(" and ") + ` across ${shapes.length} charts`);
-if (ratios.length !== 2) fail++;
-console.log((ratios.join(",") === "0.358,0.5" ? "PASS" : "FAIL"),
-  "...the short box and the tall box", "\u2192", ratios.join(","));
-if (ratios.join(",") !== "0.358,0.5") fail++;
-
-// the scroller is fixed-height instead, which is its own kind of consistency
-check("the part-mix scroller has a fixed pixel height, not a ratio",
-      `(function(){const s=document.querySelector('.pmixwrap svg');
-        return !!s && /height:\\d+px/.test(s.getAttribute('style')||'');})()`, true);
-
-// only the two year-over-year line charts earn the tall box
-const tall = shapes.filter(s => s.r === 0.5).length;
-console.log((tall === 2 ? "PASS" : "FAIL"),
-  "only the two year-over-year charts are tall", "\u2192", tall);
-if (tall !== 2) fail++;
-
-// rescaling must not push anything outside its own box
-const overflow = JSON.parse(run(`JSON.stringify([...document.querySelectorAll('#view .card svg')]
-  .map(s=>{const v=(s.getAttribute('viewBox')||'').split(/\\s+/).map(Number);
-    if(v[2]<=100) return null;
+    if(!v[2]||v[2]<=100) return null;
     let m=0; s.querySelectorAll('*').forEach(e=>{
       ['y','y1','y2','cy'].forEach(a=>{const n=parseFloat(e.getAttribute(a)); if(!isNaN(n)) m=Math.max(m,n);});
       const hh=parseFloat(e.getAttribute('height')), yy=parseFloat(e.getAttribute('y'));
       if(!isNaN(hh)&&!isNaN(yy)) m=Math.max(m,yy+hh);});
-    return m>v[3]+0.5 ? {box:v[2]+'x'+v[3], lowest:+m.toFixed(1)} : null;}).filter(Boolean))`));
-console.log((overflow.length === 0 ? "PASS" : "FAIL"),
-  "no chart draws below its own viewBox after rescaling", "\u2192",
-  overflow.length ? JSON.stringify(overflow) : "all fit");
-if (overflow.length) fail++;
+    return {box:v[2]+'x'+v[3], used:+(m/v[3]).toFixed(2)};}).filter(Boolean))`));
+/* 0.80, not 0.85: this measure reads each element's y/height attributes and
+   so cannot see how far ROTATED text extends below its anchor. The part-mix
+   dates run vertically, so its true fill is ~98% where this reads 84%. The
+   threshold is set to what the measure can actually observe, and is still
+   tight enough to catch the pre-fix box (78%). */
+const slack = fill.filter(f => f.used < 0.80);
+console.log((slack.length === 0 ? "PASS" : "FAIL"),
+  "every chart uses most of its own height (no dead box)", "\u2192",
+  slack.length ? slack.map(f => f.box + " only " + Math.round(f.used*100) + "%").join(", ")
+               : fill.length + " charts, tightest " + Math.round(Math.min(...fill.map(f=>f.used))*100) + "%");
+if (slack.length) fail++;
 
 // the weight chart specifically \u2014 it was rescaled by 1.135 and is easy to clip
 check("the weight chart sits in the short box",

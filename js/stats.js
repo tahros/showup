@@ -42,20 +42,15 @@ let PMIX_FOCUS=null;
 /* v3.3.122: press a column and read that day out in full. The chart is
    discrete, so this is an index lookup rather than the interpolation the
    line charts need. */
-function pmixReadout(i){
+/* v3.3.125: the drag-scrubber is gone. Tapping is the only interaction now
+   and it does one thing — follow a body part — so this line says that, and
+   says what you are following once you have chosen. */
+function pmixHint(){
   const el=document.getElementById('pmixRead');
   if(!el) return;
-  const rows=partMix(PMIX_DAYS);
-  if(i==null||!rows[i]){ el.innerHTML=el.dataset.idle||''; return; }
-  const r=rows[i];
-  const names=Object.keys(SEED.catalog).filter(p=>r.by[p]);
-  const parts=names.map(p=>`<b style="color:${PART_COLORS[p]}">${p}</b> ${pmixTick(r.by[p])}`).join(' \u00b7 ');
-  /* v3.3.123: on a one-part day the part total IS the day total, so printing
-     both read as "Legs 6k 6k kg". The total only earns its place when there
-     is more than one part to add up. */
-  const tot = names.length>1 ? ` <span class="pmxt">${pmixTick(r.total)} ${U()}</span>`
-                             : ` <span class="pmxt">${U()}</span>`;
-  el.innerHTML=`<span class="pmxd">${pretty(r.d)}</span> ${parts||'\u2014'}${tot}`;
+  el.innerHTML = PMIX_FOCUS
+    ? `Showing <b style="color:${PART_COLORS[PMIX_FOCUS]}">${PMIX_FOCUS}</b> · tap again to show all`
+    : 'Tap a bar or a name to follow one body part';
 }
 /* v3.3.123: what the chart adds up to, and which way it is going. With a
    part isolated it speaks about that part; otherwise about every lift.
@@ -91,6 +86,7 @@ function pmixApplyFocus(){
     s.classList.toggle('on',  PMIX_FOCUS===s.dataset.pt);
     s.classList.toggle('off', !!PMIX_FOCUS && PMIX_FOCUS!==s.dataset.pt);
   });
+  pmixHint();
   pmixSummary();
 }
 function pmixSetFocus(part){
@@ -108,7 +104,11 @@ function pmixSetFocus(part){
   pmixApplyFocus();
   pmixSummary();
 }
-const PMIX_COLW=17, PMIX_H=232, PMIX_TOP=8, PMIX_BASE=150;
+/* v3.3.125: columns 17→12 and bars 13→10 (≈20% narrower, gap halved), so
+   more of the archive is legible at once. PMIX_H 232→186 because the drawn
+   content ended near y=182 — rotated dates run from PMIX_BASE+6 down about
+   26px — leaving ~50px of empty box under every render. */
+const PMIX_COLW=12, PMIX_H=186, PMIX_TOP=8, PMIX_BASE=150;
 const PMIX_AXW=34;
 /* v3.3.120: the plot's vertical scale must be identical in the fixed axis
    and the scrolling body, so BOTH read this one function. */
@@ -163,7 +163,7 @@ function partMixSvg(days){
        font-weight="700" fill="var(--muted)" data-yrmark="${rows[0].d.slice(0,4)}"
        >${rows[0].d.slice(0,4)}</text>`;
   rows.forEach((r,i)=>{
-    const x=8+i*PMIX_COLW, bw=PMIX_COLW-4;
+    const x=8+i*PMIX_COLW, bw=PMIX_COLW-2;
     s+=`<rect class="pmixcol" data-col="${i}" x="${x-2}" y="${PMIX_TOP}"
          width="${PMIX_COLW}" height="${PMIX_BASE-PMIX_TOP}"></rect>`;
     let y=PMIX_BASE;
@@ -352,8 +352,7 @@ function renderStats(){
       <div class="card">
         <div class="pmixlgd">${Object.keys(SEED.catalog).filter(p=>p!=='Run').map(p=>
           `<span data-pt="${p}"><i style="background:${PART_COLORS[p]||'var(--muted)'}"></i>${p}</span>`).join('')}</div>
-        <div class="pmixread" id="pmixRead" data-idle="Press a day to read it"
-          >Press a day to read it</div>
+        <div class="pmixread" id="pmixRead">Tap a bar or a name to follow one body part</div>
         <div class="pmixbox">
           <span class="pmixyr" id="pmixYr"></span>
           ${pmixAxisSvg(partMix(PMIX_DAYS))}

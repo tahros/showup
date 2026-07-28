@@ -1,5 +1,45 @@
 # ShowUp — changelog
 
+## v3.3.125 (2026-07-28) — One interaction, and height that follows content
+
+**The scrubber is gone.** Tapping is the only interaction now and it does
+one thing: follow a body part. Tapping ANYWHERE in a single-part column
+works — you never have to hit a thin bar exactly — while an ambiguous stack
+still needs its segment, because guessing which of two parts you meant would
+be worse than doing nothing. A drag scrolls and never selects; movement past
+6px cancels the tap.
+
+The line above the chart says what tapping does, then says what you are
+following once you have chosen. The old per-day readout is removed — which
+also retires the "6k 6k kg" class of bug entirely, since nothing prints a
+part total beside a day total any more.
+
+**Columns 17→12, bars 13→10** — about 20% narrower with the gap halved, so
+more of the archive is legible at once.
+
+**The dead space is gone.** The box was 232 tall while the drawn content
+ended near 182 — rotated dates run from the baseline down about 26px — so
+every render carried ~50px of empty card. It is 186 now.
+
+**The two-shape rule is WITHDRAWN**, on the maker's call. v3.3.113 collapsed
+four aspect ratios to two so section heights would stop looking arbitrary;
+each chart should be sized to what it displays instead. Part mix proved the
+point by padding itself to hit a ratio. What replaces it is the property the
+ratio rule was a proxy for: **a chart may not waste its own height.** The
+assertion measures drawn extent against viewBox height and fails under 80%
+— verified to fail the previous build at 67%. Its threshold is 80 rather
+than 85 because the measure reads y/height attributes and cannot see how far
+ROTATED text extends, which is documented where it is set.
+
+**Three test-design corrections**, all the same root cause: assertions
+inheriting whatever fixture ran last. The month-rule check failed against a
+fixture of consecutive days that crossed no boundary; the label check failed
+against a fixture with no Chest in it. Both seed their own data now. And
+excising the readout function accidentally took `pmixSummary()` with it —
+it sat between the two — caught by the suite and restored verbatim.
+
+`test-pmix.js` at 73.
+
 ## v3.3.124 (2026-07-28) — The maker was right; Part Mix was wrong
 
 Part Mix reported **2.5k** for a day History calls **9,190 kg**. The maker

@@ -220,24 +220,72 @@ ok("...so nothing prepends and no scroll correction exists",
 ok("...and it still opens parked at today",
    /box\.scrollLeft=box\.scrollWidth;/.test(fs.readFileSync(path.join(dir, "js/app.js"), "utf8")));
 
-// ---- the scrubber --------------------------------------------------------
-const rd = () => run(`document.getElementById('pmixRead').textContent.replace(/\\s+/g,' ').trim()`);
-ok("a readout line sits above the chart", run(`!!document.getElementById('pmixRead')`));
-ok("...idle until pressed", /Press a day/.test(rd()), rd());
+/* ---- v3.3.125: the scrubber is gone -------------------------------------
+   Tapping is the only interaction now, and it does one thing: follow a body
+   part. Tapping anywhere in a single-part column works \u2014 you never have to
+   hit a thin bar exactly \u2014 while an ambiguous stack still needs its
+   segment. A drag scrolls and must never select. */
+const hint = () => run(`document.getElementById('pmixRead').textContent.replace(/\\s+/g,' ').trim()`);
+ok("the line above says what tapping does", /Tap a bar or a name/.test(hint()), hint());
+ok("...and no drag-readout function survives",
+   !/pmixReadout/.test(fs.readFileSync(path.join(dir, "js/stats.js"), "utf8")) &&
+   !/pmixReadout/.test(fs.readFileSync(path.join(dir, "js/app.js"), "utf8")));
+
+run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
+  const mk=(off,w)=>{const d=new Date(t); d.setDate(d.getDate()-off);
+    DB.days[d.toLocaleDateString('en-CA')]={w,upd:1};};
+  mk(1,[{part:'Legs',ex:'Squat',w:100,reps:[10,10],at:1}]);              // single part
+  mk(2,[{part:'Back',ex:'Row',w:50,reps:[10],at:1},
+        {part:'Chest',ex:'Press',w:40,reps:[10],at:1}]);                 // ambiguous stack
+  for(let i=3;i<12;i++) mk(i,[{part:'Legs',ex:'Squat',w:80,reps:[8],at:1}]);
+  SEED=deriveAll(); view='stats'; render();
+  const b=document.getElementById('pmixWrap');
+  b.getBoundingClientRect=()=>({left:0,top:0,width:340,height:186,right:340,bottom:186});
+  b.scrollLeft=0;})()`);
+
+// tap the EMPTY area above a single-part column: still selects that part
+const lastCol = run(`partMix(999).length-1`);
 run(`(function(){const b=document.getElementById('pmixWrap');
-  b.getBoundingClientRect=()=>({left:0,top:0,width:340,height:232,right:340,bottom:232});
-  b.scrollLeft=0;
-  b.dispatchEvent(new PointerEvent('pointerdown',{pointerId:1,clientX:8+2*17,clientY:60,bubbles:true}));})()`);
-ok("pressing a column reads that day out", !/Press a day/.test(rd()) && rd().length > 0, rd());
-ok("...naming the parts trained that day",
-   run(`document.querySelectorAll('#pmixRead b').length`) >= 1,
-   run(`[...document.querySelectorAll('#pmixRead b')].map(b=>b.textContent).join(',')`));
-ok("...and highlighting the column under the finger",
-   run(`document.querySelectorAll('#pmixWrap rect[data-col].on').length`) === 1);
-run(`document.getElementById('pmixWrap').dispatchEvent(new PointerEvent('pointerup',{pointerId:1,bubbles:true}));`);
-ok("releasing clears both the highlight and the readout",
-   run(`document.querySelectorAll('#pmixWrap rect[data-col].on').length`) === 0 &&
-   /Press a day/.test(rd()));
+  const x=8+${lastCol}*PMIX_COLW+3;
+  const bg=b.querySelector('rect[data-col="${lastCol}"]');
+  bg.dispatchEvent(new PointerEvent('pointerdown',{pointerId:1,clientX:x,clientY:12,bubbles:true}));
+  b.dispatchEvent(new PointerEvent('pointerup',{pointerId:1,clientX:x,clientY:12,bubbles:true}));})()`);
+ok("tapping anywhere in a single-part column follows that part",
+   run(`PMIX_FOCUS`) === "Legs", String(run(`PMIX_FOCUS`)));
+ok("...and the hint now names what is being followed",
+   /Showing/.test(hint()) && /Legs/.test(hint()), hint());
+run(`pmixSetFocus('Legs');`);
+
+// a drag must scroll, never select
+run(`(function(){const b=document.getElementById('pmixWrap');
+  const bg=b.querySelector('rect[data-col="${lastCol}"]');
+  bg.dispatchEvent(new PointerEvent('pointerdown',{pointerId:2,clientX:40,clientY:12,bubbles:true}));
+  b.dispatchEvent(new PointerEvent('pointermove',{pointerId:2,clientX:140,clientY:12,bubbles:true}));
+  b.dispatchEvent(new PointerEvent('pointerup',{pointerId:2,clientX:140,clientY:12,bubbles:true}));})()`);
+ok("dragging scrolls without selecting", run(`PMIX_FOCUS`) === null, String(run(`PMIX_FOCUS`)));
+
+// geometry
+ok("columns are tighter and bars narrower",
+   run(`PMIX_COLW`) === 12 &&
+   /bw=PMIX_COLW-2/.test(fs.readFileSync(path.join(dir, "js/stats.js"), "utf8")),
+   "colw " + run(`PMIX_COLW`));
+ok("the box no longer carries dead space under the labels",
+   run(`PMIX_H`) === 186, "height " + run(`PMIX_H`));
+
+/* restore a fixture that spans months and parts \u2014 the tap tests above
+   deliberately seed 11 consecutive days, which crosses no month boundary,
+   and the assertions further down still expect month rules to exist. */
+run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
+  const P=['Chest','Back','Shoulder','Legs','Biceps','Triceps','Sixpack'];
+  for(let i=1;i<=200;i++){
+    const d=new Date(t); d.setDate(d.getDate()-i);
+    if(i%7===0) continue;
+    const w=[]; const p=P[i%P.length];
+    for(let k=0;k<3+(i%4);k++) w.push({part:p,ex:'X',w:40,reps:[10],at:1});
+    if(i%3===0) w.push({part:'Run',ex:'Run',w:5,reps:[],mins:28,secs:0,at:1});
+    DB.days[d.toLocaleDateString('en-CA')]={w,upd:1};
+  }
+  SEED=deriveAll(); view='stats'; render();})()`);
 
 // ---- the year has to be findable ----------------------------------------
 ok("the chart marks years, not just months",
@@ -247,6 +295,15 @@ ok("...including at the very first column, so the left edge is never mute",
    run(`!!document.querySelector('#pmixWrap [data-yrmark]')`));
 
 // ---- isolating a part now labels it --------------------------------------
+/* seed its own data: this assertion used to inherit whatever fixture ran
+   last, and a fixture without Chest made it fail for a reason that had
+   nothing to do with labelling. */
+run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
+  for(let i=1;i<=20;i++){const d=new Date(t); d.setDate(d.getDate()-i);
+    DB.days[d.toLocaleDateString('en-CA')]={w:[
+      {part:'Chest',ex:'Press',w:40,reps:[10],at:1},
+      {part:'Back',ex:'Row',w:50,reps:[10],at:1}],upd:1};}
+  SEED=deriveAll(); view='stats'; render(); PMIX_FOCUS=null; pmixApplyFocus();})()`);
 run(`pmixSetFocus('Chest');`);
 ok("isolating a part writes its values above the bars",
    run(`document.querySelectorAll('#pmixWrap [data-lbl="Chest"]').length`) > 0,
@@ -287,7 +344,12 @@ ok("axis and plot compute their maximum from ONE function",
    /function pmixMax/.test(fs.readFileSync(path.join(dir, "js/stats.js"), "utf8")) &&
    (fs.readFileSync(path.join(dir, "js/stats.js"), "utf8").match(/pmixMax\(/g) || []).length >= 3);
 
-// month rules
+// month rules \u2014 seeds its own span, since a fixture of consecutive days
+// crosses no boundary and would fail this for the wrong reason
+run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
+  for(let i=1;i<=120;i++){const d=new Date(t); d.setDate(d.getDate()-i);
+    DB.days[d.toLocaleDateString('en-CA')]={w:[{part:'Chest',ex:'Press',w:40,reps:[10],at:1}],upd:1};}
+  SEED=deriveAll(); view='stats'; render();})()`);
 const vlines = run(`[...document.querySelectorAll('#pmixWrap svg line')]
   .filter(l=>l.getAttribute('x1')===l.getAttribute('x2')).length`);
 ok("a soft vertical rule marks each month change", vlines >= 1, vlines + " rules");
@@ -375,13 +437,12 @@ run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
   DB.days[e.toLocaleDateString('en-CA')]={w:[{part:'Legs',ex:'Squat',w:100,reps:[10],at:1},
                                              {part:'Back',ex:'Row',w:50,reps:[10],at:1}],upd:1};
   SEED=deriveAll(); view='stats'; render();})()`);
-const readTxt = i => { run(`pmixReadout(${i})`);
-  return run(`document.getElementById('pmixRead').textContent.replace(/\\s+/g,' ').trim()`); };
-const one = readTxt(1), two = readTxt(0);
-ok("a one-part day states its figure once",
-   (one.match(/1k|1,000|1000/g) || []).length <= 1, one);
-ok("...and still names the unit", /kg|lb/.test(one), one);
-ok("a multi-part day still totals them", /\d/.test(two) && two.split("\u00b7").length >= 2, two);
+/* v3.3.125: the per-day readout is gone with the scrubber, so the "6k 6k kg"
+   duplication it fixed can no longer occur \u2014 there is nothing that prints a
+   part total and a day total side by side. The summary line below the chart
+   is the surviving figure, and it is asserted separately. */
+ok("no per-day readout survives to duplicate a total",
+   !/pmixReadout/.test(fs.readFileSync(path.join(dir, "js/stats.js"), "utf8")));
 
 // ---- tapping a bar is tapping its legend --------------------------------
 run(`view='stats'; render(); PMIX_FOCUS=null; pmixApplyFocus();`);

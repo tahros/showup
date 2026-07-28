@@ -615,39 +615,34 @@ function bindPmix(){
      prepending and nothing to correct — which is what removes the lurch.
      What lives here now is the scrubber: press or drag across the plot and
      the line above reads that day out. */
-  const readAt=clientX=>{
-    const svg=box.querySelector('svg'); if(!svg) return;
+  /* v3.3.125: no scrubber. One interaction: tap a column, follow that body
+     part; tap again to release. Tapping a stacked segment picks that
+     segment; tapping anywhere else in a single-part column picks its part,
+     so you never have to hit a thin bar exactly. A drag still scrolls and
+     must never select, so movement past 6px cancels the tap. */
+  let downX=0, downY=0, moved=false, downPt=null;
+  const partAt=(target,clientX)=>{
+    const direct=target && target.getAttribute ? target.getAttribute('data-pt') : null;
+    if(direct) return direct;
     const r=box.getBoundingClientRect();
-    const x=clientX-r.left+box.scrollLeft;
-    const i=Math.floor((x-8)/PMIX_COLW);
-    const cols=box.querySelectorAll('rect[data-col]');
-    cols.forEach(c2=>c2.classList.toggle('on', +c2.dataset.col===i));
-    pmixReadout(i>=0 ? i : null);
+    const i=Math.floor((clientX-r.left+box.scrollLeft-8)/PMIX_COLW);
+    const rows=partMix(PMIX_DAYS);
+    if(i<0||!rows[i]) return null;
+    const names=Object.keys(rows[i].by);
+    return names.length===1 ? names[0] : null;   // ambiguous stacks need the segment
   };
-  /* v3.3.123: a DRAG scrubs, a TAP selects. Tapping a stacked segment is
-     the same act as tapping that part's name in the legend — which is the
-     shortest route from "what is this bar" to "show me all of these". */
-  let scrub=false, moved=false, downX=0, downPt=null;
   box.addEventListener('pointerdown',e=>{
-    scrub=true; moved=false; downX=e.clientX;
-    const t=e.target && e.target.getAttribute ? e.target.getAttribute('data-pt') : null;
-    downPt=t; readAt(e.clientX);
+    downX=e.clientX; downY=e.clientY; moved=false;
+    downPt=partAt(e.target,e.clientX);
   },{passive:true});
   box.addEventListener('pointermove',e=>{
-    if(!scrub) return;
-    if(Math.abs(e.clientX-downX)>6) moved=true;
-    readAt(e.clientX);
+    if(Math.abs(e.clientX-downX)>6||Math.abs(e.clientY-downY)>6) moved=true;
   },{passive:true});
-  const endScrub=e=>{
-    if(!scrub) return; scrub=false;
-    box.querySelectorAll('rect[data-col].on').forEach(c2=>c2.classList.remove('on'));
-    pmixReadout(null);
-    if(!moved && downPt) pmixSetFocus(downPt);   // a tap on a segment = its legend
+  box.addEventListener('pointerup',()=>{
+    if(!moved && downPt) pmixSetFocus(downPt);
     downPt=null;
-  };
-  box.addEventListener('pointerup',endScrub,{passive:true});
-  box.addEventListener('pointercancel',endScrub,{passive:true});
-  box.addEventListener('pointerleave',endScrub,{passive:true});
+  },{passive:true});
+  box.addEventListener('pointercancel',()=>{ downPt=null; },{passive:true});
 
   // the year label follows the left edge of what you are looking at
   const yr=document.getElementById('pmixYr');

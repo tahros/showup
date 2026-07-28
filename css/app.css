@@ -802,7 +802,6 @@
   .pmixsum b.up{color:var(--accent)}
   .pmixsum b.dn{color:var(--record)}
   .pmixcol{fill:transparent;cursor:pointer}
-  .pmixcol.on{fill:var(--chalk);opacity:.07}
   /* v3.3.121: tap a name to isolate it. A single-hue ramp cannot be matched
      to a legend by eye — that is the cost of the ramp, and this is the
      answer to it. */
