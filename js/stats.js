@@ -28,11 +28,31 @@ function mgAlpha(n,max,cur){ return n?(0.14+0.74*n/max)*(cur?0.45:1):0; }
 /* v3.3.116: one column per training day, stacked by part. Sized so a
    column is legible on a phone; the wrapper scrolls and PMIX_DAYS grows
    when you reach the left edge. */
-let PMIX_DAYS=56;
+/* v3.3.122: the whole archive renders at once. Loading backwards meant
+   prepending columns and then correcting scrollLeft, and correcting
+   scrollLeft mid-momentum is what produced the lurch the maker hit. A
+   typical day carries one or two parts, so ~930 days is a couple of
+   thousand rects — cheap enough that lazy loading bought nothing but the
+   bug. */
+let PMIX_DAYS=99999;
 /* v3.3.121: tapping a legend name isolates that part. Applied by mutating
    the rendered rects rather than re-rendering, so the scroll position — and
    any weeks loaded backwards — survive the tap. */
 let PMIX_FOCUS=null;
+/* v3.3.122: press a column and read that day out in full. The chart is
+   discrete, so this is an index lookup rather than the interpolation the
+   line charts need. */
+function pmixReadout(i){
+  const el=document.getElementById('pmixRead');
+  if(!el) return;
+  const rows=partMix(PMIX_DAYS);
+  if(i==null||!rows[i]){ el.innerHTML=el.dataset.idle||''; return; }
+  const r=rows[i];
+  const parts=Object.keys(SEED.catalog).filter(p=>r.by[p])
+    .map(p=>`<b style="color:${PART_COLORS[p]}">${p}</b> ${pmixTick(r.by[p])}`).join(' \u00b7 ');
+  el.innerHTML=`<span class="pmxd">${pretty(r.d)}</span> ${parts||'\u2014'}
+    <span class="pmxt">${pmixTick(r.total)} ${U()}</span>`;
+}
 function pmixApplyFocus(){
   const wrap=document.getElementById('pmixWrap');
   if(wrap) wrap.querySelectorAll('rect[data-pt]').forEach(r=>{
@@ -45,6 +65,16 @@ function pmixApplyFocus(){
 }
 function pmixSetFocus(part){
   PMIX_FOCUS = (PMIX_FOCUS===part) ? null : part;
+  /* labels only exist for the focused part, so this re-renders — scroll is
+     saved and restored by hand, and smooth scrolling is suppressed across
+     the swap so it does not glide. */
+  const wrap=document.getElementById('pmixWrap');
+  if(wrap){
+    const keep=wrap.scrollLeft, sb=wrap.style.scrollBehavior;
+    wrap.style.scrollBehavior='auto';
+    wrap.innerHTML=partMixSvg(PMIX_DAYS);
+    wrap.scrollLeft=keep; wrap.style.scrollBehavior=sb;
+  }
   pmixApplyFocus();
 }
 const PMIX_COLW=17, PMIX_H=232, PMIX_TOP=8, PMIX_BASE=150;
@@ -77,21 +107,32 @@ function partMixSvg(days){
     s+=`<line x1="4" y1="${y.toFixed(1)}" x2="${W-4}" y2="${y.toFixed(1)}"
          stroke="var(--line)" stroke-width="0.6"${i?' stroke-dasharray="2 3"':''}></line>`;
   }
-  // a soft rule wherever the month turns over
-  let prevM=null;
+  /* soft rule at each month; a firmer one, labelled, at each year — without
+     it a scroll into 2023 looks exactly like a scroll into 2026. */
+  let prevM=null, prevY=null;
   rows.forEach((r,i)=>{
-    const m=r.d.slice(0,7);
-    if(prevM!==null && m!==prevM){
-      const x=8+i*PMIX_COLW-2;
+    const m=r.d.slice(0,7), y=r.d.slice(0,4), x=8+i*PMIX_COLW-2;
+    if(prevY!==null && y!==prevY){
+      s+=`<line x1="${x}" y1="${PMIX_TOP}" x2="${x}" y2="${PMIX_BASE+4}"
+           stroke="var(--muted)" stroke-width="1.4" opacity="0.85"></line>
+          <text x="${x+3}" y="${PMIX_TOP+7}" font-family="var(--mono)" font-size="8"
+           font-weight="700" fill="var(--muted)" data-yrmark="${y}">${y}</text>`;
+    }else if(prevM!==null && m!==prevM){
       s+=`<line x1="${x}" y1="${PMIX_TOP}" x2="${x}" y2="${PMIX_BASE+4}"
            stroke="var(--line)" stroke-width="0.8" opacity="0.55"></line>
           <text x="${x+3}" y="${PMIX_TOP+7}" font-family="var(--mono)" font-size="7"
            fill="var(--faint)">${new Date(r.d+'T00:00').toLocaleDateString('en-US',{month:'short'})}</text>`;
     }
-    prevM=m;
+    prevM=m; prevY=y;
   });
+  // the first visible column names its year too, so the left edge is never mute
+  s+=`<text x="10" y="${PMIX_TOP+7}" font-family="var(--mono)" font-size="8"
+       font-weight="700" fill="var(--muted)" data-yrmark="${rows[0].d.slice(0,4)}"
+       >${rows[0].d.slice(0,4)}</text>`;
   rows.forEach((r,i)=>{
     const x=8+i*PMIX_COLW, bw=PMIX_COLW-4;
+    s+=`<rect class="pmixcol" data-col="${i}" x="${x-2}" y="${PMIX_TOP}"
+         width="${PMIX_COLW}" height="${PMIX_BASE-PMIX_TOP}"></rect>`;
     let y=PMIX_BASE;
     for(const p of Object.keys(SEED.catalog)){
       const n=r.by[p]; if(!n) continue;
@@ -100,6 +141,13 @@ function partMixSvg(days){
       s+=`<rect x="${x}" y="${y.toFixed(1)}" width="${bw}" height="${hh.toFixed(1)}"
            fill="${PART_COLORS[p]||'var(--muted)'}" data-pt="${p}"
            stroke="var(--ground)" stroke-width="0.5"></rect>`;
+    }
+    // while a part is isolated, that part's own volume is written above it
+    if(PMIX_FOCUS && r.by[PMIX_FOCUS]){
+      const v=r.by[PMIX_FOCUS], top=PMIX_BASE-(v/max)*(PMIX_BASE-PMIX_TOP);
+      s+=`<text x="${x+bw/2}" y="${(top-3).toFixed(1)}" text-anchor="middle"
+           font-family="var(--mono)" font-size="6.5" fill="var(--chalk)"
+           data-lbl="${PMIX_FOCUS}">${pmixTick(v)}</text>`;
     }
     // every column names its day, rotated — as the spreadsheet does
     const lab=(+r.d.slice(5,7))+'/'+(+r.d.slice(8,10));
@@ -271,6 +319,8 @@ function renderStats(){
       <div class="card">
         <div class="pmixlgd">${Object.keys(SEED.catalog).filter(p=>p!=='Run').map(p=>
           `<span data-pt="${p}"><i style="background:${PART_COLORS[p]||'var(--muted)'}"></i>${p}</span>`).join('')}</div>
+        <div class="pmixread" id="pmixRead" data-idle="Press a day to read it"
+          >Press a day to read it</div>
         <div class="pmixbox">
           ${pmixAxisSvg(partMix(PMIX_DAYS))}
           <div class="pmixwrap" id="pmixWrap">${partMixSvg(PMIX_DAYS)}</div>

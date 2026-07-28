@@ -1,5 +1,45 @@
 # ShowUp — changelog
 
+## v3.3.122 (2026-07-28) — Part mix: scrubbable, yearly, and no longer lurching
+
+**On the volume discrepancy — it is not a bug.** `SEED0.sessions` ships
+empty, so the archive could not be audited from here and was not guessed at.
+What could be checked is the arithmetic, against a day already visible in a
+screenshot: Dumbbell Press 4,296 + Side Raise 960 + Front Raise 480 = 5,736,
+exactly what the app displays for that Shoulder day. One set is
+`weight × reps`, a 20-set day lands near 5.7k, and the same weights across
+5 sets land near 1.4k — which is the range of the small bars. The ratio in
+the chart is SETS PER DAY. The new scrubber makes that checkable per day
+instead of inferred.
+
+**The lurch is gone by removing its cause.** Loading backwards meant
+prepending columns and then correcting `scrollLeft`, and correcting
+scrollLeft mid-momentum is a visible jump no easing hides. The whole archive
+renders up front instead — a day carries one or two parts, so ~930 days is a
+couple of thousand rects, and the lazy path bought nothing but the bug.
+
+**A scrubber.** Press or drag across the plot and the line above names the
+date, each part trained with its volume, and the day's total; the column
+under the finger lifts. Discrete columns, so this is an index lookup rather
+than the interpolation the line charts need.
+
+**Years are findable.** A firm labelled rule at every year change, the
+existing soft rule at every month, and the first column names its year so
+the left edge is never mute.
+
+**Isolating a part now labels it** — values written above that part's bars,
+and only that part's. Legend is centred.
+
+**Six assertions were replaced rather than deleted**: they tested the
+lazy-loading mechanism that no longer exists. Their replacements assert the
+outcome that mattered — every training day rendered, nothing prepending, no
+scroll correction, still parked at today. And the smooth-scroll hazard moved
+rather than vanished: isolating a part re-renders the plot, so the
+suppression now lives in `pmixSetFocus()`, with the assertion following it
+there.
+
+`test-pmix.js` at 57.
+
 ## v3.3.121 (2026-07-27) — Light enough to see, tappable enough to read
 
 **The light theme was near-black, and my own guard caused it.** I set a 3:1

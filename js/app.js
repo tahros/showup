@@ -611,26 +611,28 @@ function bindPmix(){
      the first day in one flick. The width added is knowable from the DATA
      (columns x column width), so it is computed, not measured, and a real
      lock stops re-entry until the next frame. */
-  let busy=false;
-  box.addEventListener('scroll',()=>{
-    if(busy||box.scrollLeft>80) return;
-    const total=[...workoutDates()].length;
-    if(PMIX_DAYS>=total) return;
-    busy=true;
-    const prev=PMIX_DAYS;
-    PMIX_DAYS=Math.min(total,PMIX_DAYS+56);
-    const added=(PMIX_DAYS-prev)*PMIX_COLW;
-    /* the restore must NOT animate — scroll-behavior:smooth would glide the
-       view across the newly prepended weeks instead of holding it still,
-       which is the opposite of what loading backwards is for. */
-    const sb=box.style.scrollBehavior; box.style.scrollBehavior='auto';
-    box.innerHTML=partMixSvg(PMIX_DAYS);
-    box.scrollLeft=added+box.scrollLeft;       // computed, not measured
-    box.style.scrollBehavior=sb;
-    pmixApplyFocus();                          // the new rects need the focus too
-    syncNow();
-    requestAnimationFrame(()=>{ busy=false; });
-  },{passive:true});
+  /* v3.3.122: the whole archive is rendered up front, so there is no
+     prepending and nothing to correct — which is what removes the lurch.
+     What lives here now is the scrubber: press or drag across the plot and
+     the line above reads that day out. */
+  const readAt=clientX=>{
+    const svg=box.querySelector('svg'); if(!svg) return;
+    const r=box.getBoundingClientRect();
+    const x=clientX-r.left+box.scrollLeft;
+    const i=Math.floor((x-8)/PMIX_COLW);
+    const cols=box.querySelectorAll('rect[data-col]');
+    cols.forEach(c2=>c2.classList.toggle('on', +c2.dataset.col===i));
+    pmixReadout(i>=0 ? i : null);
+  };
+  let scrub=false;
+  box.addEventListener('pointerdown',e=>{ scrub=true; readAt(e.clientX); },{passive:true});
+  box.addEventListener('pointermove',e=>{ if(scrub) readAt(e.clientX); },{passive:true});
+  const endScrub=()=>{ if(!scrub) return; scrub=false;
+    box.querySelectorAll('rect[data-col].on').forEach(c2=>c2.classList.remove('on'));
+    pmixReadout(null); };
+  box.addEventListener('pointerup',endScrub,{passive:true});
+  box.addEventListener('pointercancel',endScrub,{passive:true});
+  box.addEventListener('pointerleave',endScrub,{passive:true});
 }
 function bindZoom(box){
   if(box.dataset.bound) return;

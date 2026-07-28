@@ -785,7 +785,14 @@
     opacity:0;pointer-events:none;transform:translateX(6px);
     transition:opacity .18s ease,transform .18s ease}
   .pmixnow.on{opacity:1;pointer-events:auto;transform:translateX(0)}
-  .pmixlgd{display:flex;flex-wrap:wrap;gap:4px 10px;margin:0 0 8px}
+  /* v3.3.122: centred, per the maker */
+  .pmixlgd{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 10px;margin:0 0 6px}
+  .pmixread{min-height:15px;text-align:center;font-family:var(--mono);font-size:9px;
+    color:var(--muted);margin:0 0 6px}
+  .pmixread .pmxd{color:var(--chalk);font-weight:700}
+  .pmixread .pmxt{color:var(--chalk);font-weight:700}
+  .pmixcol{fill:transparent}
+  .pmixcol.on{fill:var(--chalk);opacity:.07}
   /* v3.3.121: tap a name to isolate it. A single-hue ramp cannot be matched
      to a legend by eye — that is the cost of the ramp, and this is the
      answer to it. */

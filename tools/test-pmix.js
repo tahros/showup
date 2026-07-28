@@ -203,57 +203,64 @@ ok("the compact legend names every stacked part (7 \u2014 Run left the stack in 
    run(`document.querySelectorAll('.pmixlgd [data-pt]').length`) === 7,
    run(`[...document.querySelectorAll('.pmixlgd [data-pt]')].map(s=>s.dataset.pt).join(',')`));
 
-// ---- LAZY BACK-LOADING: the view must not jump ---------------------------
-// jsdom has no layout, so scrollWidth is 0; drive the widths explicitly and
-// assert the arithmetic that keeps the view still.
-const beforeCols = run(`document.querySelectorAll('#pmixWrap rect[data-pt]').length`);
-const beforeDays = run(`PMIX_DAYS`);
-ok("it opens showing recent weeks, not the whole archive",
-   beforeDays === 56 && beforeCols > 0, beforeDays + " days");
-/* v3.3.117 \u2014 the bug this reproduces: scrollWidth does not reflow inside
-   the handler, so the old code measured a delta of 0, left scrollLeft at 0,
-   and the next scroll event saw scrollLeft<80 and loaded again, running to
-   the first day in one flick. jsdom reports scrollWidth 0 always, which is
-   exactly the failing condition \u2014 so a correct implementation must still
-   move the view, computing the width it added rather than measuring it. */
-run(`(function(){const box=document.getElementById('pmixWrap');
-  box.scrollLeft=0; box.dispatchEvent(new Event('scroll'));})()`);
-ok("reaching the left edge loads an older chunk",
-   run(`PMIX_DAYS`) > beforeDays, beforeDays + " \u2192 " + run(`PMIX_DAYS`));
-ok("...and the view is pushed right by the width added, not left at zero",
-   run(`document.getElementById('pmixWrap').scrollLeft`) > 0,
-   "scrollLeft " + run(`document.getElementById('pmixWrap').scrollLeft`));
-ok("...by exactly columns-added x column-width",
-   run(`document.getElementById('pmixWrap').scrollLeft`) === 56 * run(`PMIX_COLW`),
-   run(`document.getElementById('pmixWrap').scrollLeft`) + " vs " + (56 * run(`PMIX_COLW`)));
-// THE regression: a burst of scroll events (one momentum flick) must load
-// at most one chunk, because busy stays locked until the next frame.
-/* The invariant is "at most one chunk per burst". Under a synchronous burst
-   the rAF that clears `busy` never runs, so the correct result is 0 loaded \u2014
-   the lock holding. A first draft demanded exactly 56 and failed against
-   working code, which was the test misreading its own environment. */
-ok("a burst of scroll events loads AT MOST one chunk, not the whole archive",
-   run(`(function(){const box=document.getElementById('pmixWrap');
-     const before=PMIX_DAYS;
-     for(let i=0;i<15;i++){ box.scrollLeft=0; box.dispatchEvent(new Event('scroll')); }
-     return PMIX_DAYS-before;})()`) <= 56,
-   "delta " + run(`(function(){const b=PMIX_DAYS; return b;})()`));
-ok("...and it never runs past the end of the archive",
-   run(`(function(){const total=[...workoutDates()].length;
-     const box=document.getElementById('pmixWrap');
-     for(let n=0;n<30;n++){ box.scrollLeft=0; box.dispatchEvent(new Event('scroll'));
-       globalThis.__raf&&globalThis.__raf(); }
-     return PMIX_DAYS<=total;})()`), run(`PMIX_DAYS`) + " days");
+/* ---- v3.3.122: the whole archive renders up front -----------------------
+   Lazy back-loading is GONE, and with it the lurch the maker reported.
+   The cause was structural: prepending columns means correcting scrollLeft,
+   and correcting scrollLeft mid-momentum is a visible jump no easing can
+   hide. A day carries one or two parts, so the full archive is a couple of
+   thousand rects \u2014 the lazy path bought nothing but the bug. These
+   assertions replace the six that tested the removed mechanism. */
+ok("the chart renders every training day, not a window",
+   run(`document.querySelectorAll('#pmixWrap rect[data-col]').length`) ===
+   run(`[...workoutDates()].length`),
+   run(`document.querySelectorAll('#pmixWrap rect[data-col]').length`) + " columns");
+ok("...so nothing prepends and no scroll correction exists",
+   !/scrollLeft=added/.test(fs.readFileSync(path.join(dir, "js/app.js"), "utf8")) &&
+   !/PMIX_DAYS=Math\.min/.test(fs.readFileSync(path.join(dir, "js/app.js"), "utf8")));
+ok("...and it still opens parked at today",
+   /box\.scrollLeft=box\.scrollWidth;/.test(fs.readFileSync(path.join(dir, "js/app.js"), "utf8")));
 
-// the scroll-restore arithmetic is what stops the jump
-const appSrc = fs.readFileSync(path.join(dir, "js/app.js"), "utf8");
-ok("the loader COMPUTES the width it added rather than measuring scrollWidth",
-   /const added=\(PMIX_DAYS-prev\)\*PMIX_COLW/.test(appSrc) &&
-   !/scrollWidth-before/.test(appSrc));
-ok("...and holds the re-entry lock until the next frame",
-   /requestAnimationFrame\(\(\)=>\{ busy=false; \}\)/.test(appSrc));
-ok("...and opens parked at today, not at the oldest day",
-   /box\.scrollLeft=box\.scrollWidth;/.test(appSrc));
+// ---- the scrubber --------------------------------------------------------
+const rd = () => run(`document.getElementById('pmixRead').textContent.replace(/\\s+/g,' ').trim()`);
+ok("a readout line sits above the chart", run(`!!document.getElementById('pmixRead')`));
+ok("...idle until pressed", /Press a day/.test(rd()), rd());
+run(`(function(){const b=document.getElementById('pmixWrap');
+  b.getBoundingClientRect=()=>({left:0,top:0,width:340,height:232,right:340,bottom:232});
+  b.scrollLeft=0;
+  b.dispatchEvent(new PointerEvent('pointerdown',{pointerId:1,clientX:8+2*17,clientY:60,bubbles:true}));})()`);
+ok("pressing a column reads that day out", !/Press a day/.test(rd()) && rd().length > 0, rd());
+ok("...naming the parts trained that day",
+   run(`document.querySelectorAll('#pmixRead b').length`) >= 1,
+   run(`[...document.querySelectorAll('#pmixRead b')].map(b=>b.textContent).join(',')`));
+ok("...and highlighting the column under the finger",
+   run(`document.querySelectorAll('#pmixWrap rect[data-col].on').length`) === 1);
+run(`document.getElementById('pmixWrap').dispatchEvent(new PointerEvent('pointerup',{pointerId:1,bubbles:true}));`);
+ok("releasing clears both the highlight and the readout",
+   run(`document.querySelectorAll('#pmixWrap rect[data-col].on').length`) === 0 &&
+   /Press a day/.test(rd()));
+
+// ---- the year has to be findable ----------------------------------------
+ok("the chart marks years, not just months",
+   run(`document.querySelectorAll('#pmixWrap [data-yrmark]').length`) >= 1,
+   run(`[...document.querySelectorAll('#pmixWrap [data-yrmark]')].map(t=>t.textContent).join(',')`));
+ok("...including at the very first column, so the left edge is never mute",
+   run(`!!document.querySelector('#pmixWrap [data-yrmark]')`));
+
+// ---- isolating a part now labels it --------------------------------------
+run(`pmixSetFocus('Chest');`);
+ok("isolating a part writes its values above the bars",
+   run(`document.querySelectorAll('#pmixWrap [data-lbl="Chest"]').length`) > 0,
+   run(`document.querySelectorAll('#pmixWrap [data-lbl="Chest"]').length`) + " labels");
+ok("...and only for that part",
+   run(`[...document.querySelectorAll('#pmixWrap [data-lbl]')].every(t=>t.dataset.lbl==='Chest')`));
+run(`pmixSetFocus('Chest');`);
+ok("clearing the focus removes the labels",
+   run(`document.querySelectorAll('#pmixWrap [data-lbl]').length`) === 0);
+
+// ---- legend alignment ----------------------------------------------------
+ok("the legend is centred",
+   /\.pmixlgd\{[^}]*justify-content:center/.test(
+     fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\n/g, "")));
 
 // ---- it owns its horizontal gesture --------------------------------------
 ok("the chart is in the tab-swipe blocklist (it scrolls sideways)",
@@ -309,9 +316,12 @@ ok("the scroller animates smoothly", /\.pmixwrap\{[^}]*scroll-behavior:smooth/.t
 ok("...the button fades rather than pops", /\.pmixnow\{[^}]*transition:opacity/.test(css120));
 ok("...and reduced motion turns both off",
    /prefers-reduced-motion:reduce\)\{[^}]*\.pmixwrap\{scroll-behavior:auto\}[^}]*\.pmixnow\{transition:none\}/.test(css120));
-// loading backwards must NOT glide \u2014 that is the one place smooth is wrong
-ok("back-loading suppresses smooth scrolling while it restores the view",
-   /scrollBehavior='auto'/.test(fs.readFileSync(path.join(dir, "js/app.js"), "utf8")));
+/* v3.3.122: back-loading is gone, but the same hazard moved \u2014 isolating a
+   part re-renders the plot, and a smooth wrapper would glide the view
+   during the swap. The suppression now lives in pmixSetFocus(). */
+ok("re-rendering for focus suppresses smooth scrolling and restores position",
+   /scrollBehavior='auto'/.test(fs.readFileSync(path.join(dir, "js/stats.js"), "utf8")) &&
+   /wrap\.scrollLeft=keep/.test(fs.readFileSync(path.join(dir, "js/stats.js"), "utf8")));
 
 // ---- v3.3.121: legible in light mode, and matchable ----------------------
 // The light ramp was 600-900 (near-black) because a 3:1 fill floor on a
