@@ -73,15 +73,31 @@ ok("...and a rest day contributes no column",
 const css = fs.readFileSync(path.join(dir, "css/app.css"), "utf8");
 const partVars = [...css.matchAll(/--p-[a-z]+:(#[0-9A-Fa-f]{6})/g)].map(m => m[1].toUpperCase());
 ok("eight part colours are defined per theme", partVars.length === 16, partVars.length + " total");
-// v3.3.117: softened. Nothing should be poster-paint saturated any more.
-const satAll = partVars.map(hx => {
-  const r = parseInt(hx.slice(1,3),16)/255, g = parseInt(hx.slice(3,5),16)/255, b = parseInt(hx.slice(5,7),16)/255;
-  const mx = Math.max(r,g,b), mn = Math.min(r,g,b), d = mx-mn, l = (mx+mn)/2;
-  return { hx, l, s: d === 0 ? 0 : d/(1-Math.abs(2*l-1)) };
-});
-ok("the palette is soft, not poster paint (every colour is light)",
-   satAll.every(c => c.l >= 0.45),
-   "darkest " + satAll.slice().sort((a,b)=>a.l-b.l)[0].hx);
+/* v3.3.118 replaces the v3.3.117 "every colour is light" check, which was
+   only ever true because BOTH themes then used pastels. The real invariant
+   is directional: dark-theme fills must be lighter than the dark ground and
+   light-theme fills darker than the light ground, each clearing 3:1 against
+   its OWN surface. buildcheck enforces the ratio; this pins the direction,
+   which is what stops a theme's palette being pasted into the other. */
+const blockOf = name => (css.match(new RegExp(name + "\\{[^}]*\\}")) || [""])[0];
+const darkBlk = blockOf(":root"), lightBlk = blockOf(':root\\[data-theme="light"\\]');
+const lumOf = hx => {
+  const c = [1,3,5].map(i => parseInt(hx.slice(i,i+2),16)/255)
+    .map(v => v <= 0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4));
+  return 0.2126*c[0] + 0.7152*c[1] + 0.0722*c[2];
+};
+const grab = blk => [...blk.matchAll(/--p-[a-z]+:\s*(#[0-9A-Fa-f]{6})/g)].map(m => m[1]);
+const groundOf = blk => (blk.match(/--ground:\s*(#[0-9A-Fa-f]{6})/) || [])[1];
+const dParts = grab(darkBlk), lParts = grab(lightBlk);
+ok("dark-theme part fills are all lighter than the dark ground",
+   dParts.length === 8 && dParts.every(p => lumOf(p) > lumOf(groundOf(darkBlk))),
+   dParts.length + " colours");
+ok("light-theme part fills are all darker than the light ground",
+   lParts.length === 8 && lParts.every(p => lumOf(p) < lumOf(groundOf(lightBlk))),
+   lParts.length + " colours");
+// and they are genuinely different values, not one theme pasted into both
+ok("the two themes use different steps, not the same hex",
+   dParts.every((p,i) => p.toLowerCase() !== lParts[i].toLowerCase()));
 const live = (css.match(/--live:(#[0-9A-Fa-f]{6})/g) || []).map(s => s.split(":")[1].toUpperCase());
 const rest = (css.match(/--rest:(#[0-9A-Fa-f]{6})/g) || []).map(s => s.split(":")[1].toUpperCase());
 ok("no part colour reuses the LIVE red or the REST green",

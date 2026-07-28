@@ -182,6 +182,17 @@ for _name,_blkc in (("dark",_dark),("light",_light)):
         if _r<_need:
             fail.append(f"contrast: {_what} = {_r:.2f} (< {_need}) in {_name} theme (v3.3.92)")
 
+# -- part colours (v3.3.118): chart fills are graphical objects, so they owe
+#    3:1 against their own theme's ground. This floor is what rejected
+#    yellow-600 (2.65) and amber-600 (2.87) during the Tailwind mapping;
+#    without it the palette would have shipped a Legs bar you cannot see.
+for _name, _blkc, _ground_name in (("dark", _dark, "ground"), ("light", _light, "ground")):
+    _g = _tok(_blkc, _ground_name) or _tok(_dark, _ground_name)
+    for _m in _re.finditer(r"--p-([a-z]+):\s*(#[0-9A-Fa-f]{6})", _blkc):
+        _r = _cr(_m.group(2), _g)
+        if _r < 3.0:
+            fail.append(f"part colour --p-{_m.group(1)} = {_r:.2f}:1 on {_name} ground (< 3.0) (v3.3.118)")
+
 # -- shell size
 n = len(idx.encode())
 if n >= 8192: fail.append(f"index.html shell is {n} bytes (limit 8192)")

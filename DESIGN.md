@@ -86,6 +86,14 @@ Adopted into phases:
   an ink. --rest washes; --rest-ink writes. Any state colour used as text
   gets its own text-grade token at the same hue, and buildcheck computes
   the WCAG floor for every load-bearing pair in both themes.
+- PART_COLORS is sourced from Tailwind CSS 3.4.19 (MIT), not hand-mixed
+  (v3.3.118): dark theme takes the -300 step, light theme -600, one family
+  per part. Sourcing beats mixing here because the requirement is eight
+  colours that are MUTUALLY distinguishable and equally weighted, which is
+  what a tuned ramp gives and eyeballing does not. Family choice is
+  constrained by the state hues, not by taste: rose and amber/orange were
+  rejected for sitting 12–20° from the LIVE red. Only PART_COLORS is
+  sourced this way — the semantic tokens keep their canonical hues.
 - PART_COLORS is the SECOND validated exception to no-categorical-palettes
   (v3.3.116), granted for the part-mix chart where eight series must be told
   apart at a glance and a lightness ramp cannot do it. It deliberately dodges

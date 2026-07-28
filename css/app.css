@@ -13,11 +13,17 @@
        mean exactly one thing in this app and a body part is not it, which
        is why Back is not red and Legs are not green as they are in the
        maker's spreadsheet. Data hues only; licenses nothing else. */
-    /* v3.3.117: softened toward pastel — the first set read as poster paint
-       against a data surface. Hues kept (they are what tells the parts
-       apart), saturation and lightness pulled back. */
-    --p-chest:#A8B8F0; --p-back:#D4B0E8; --p-shoulder:#8FCFC8; --p-legs:#EBC98A;
-    --p-biceps:#F0AEC8; --p-triceps:#B4BECB; --p-sixpack:#A9DCEF; --p-run:#C9AE95;
+    /* v3.3.118: sourced from Tailwind CSS 3.4.19 (MIT), not hand-mixed.
+       Dark theme takes the -300 step (-400 for the two near-neutrals, which
+       are too pale at 300); light theme takes -600. Family per part:
+       indigo violet teal yellow pink slate sky stone.
+       Two families were REJECTED on the state-hue guard, not on taste:
+       rose (350°, 15° from the LIVE red) and amber/orange at the darker
+       steps (26°/17°). Legs is yellow-700 in light theme specifically —
+       yellow-600 reads only 2.65:1 on the near-white ground, and warm hues
+       cannot clear 3:1 without darkening into the red. */
+    --p-chest:#a5b4fc; --p-back:#c4b5fd; --p-shoulder:#5eead4; --p-legs:#fde047;
+    --p-biceps:#f9a8d4; --p-triceps:#94a3b8; --p-sixpack:#7dd3fc; --p-run:#a8a29e;
     --chart-soft:#616EA3;                   /* v3.3.92: 2025's year line — accent-soft was 2.10:1 as a stroke */
     --live:#C93A2B;                         /* the header while your heart is pumping */
     --chalk:#F0F1F6; --muted:#A2A8B6; --faint:#747A8A; --shadow:none;
@@ -33,10 +39,9 @@
     --record:#C33A2C;
     --rest:#79A884;                         /* declared rest, light theme (wash/frame grade) */
     --rest-ink:#3B5742;                     /* rest as text, light */
-    /* light theme sits a shade deeper: the same softness has to survive a
-       white ground rather than a near-black one */
-    --p-chest:#7E93DB; --p-back:#B98FD1; --p-shoulder:#63B3AA; --p-legs:#D2A85E;
-    --p-biceps:#DB8FAE; --p-triceps:#94A0B0; --p-sixpack:#7FC0D8; --p-run:#AF9179;
+    /* light theme takes -600 (Legs -700; see the dark-theme note) */
+    --p-chest:#4f46e5; --p-back:#7c3aed; --p-shoulder:#0d9488; --p-legs:#a16207;
+    --p-biceps:#db2777; --p-triceps:#475569; --p-sixpack:#0284c7; --p-run:#57534e;
     --chart-soft:#7F859F;                   /* 2025's line, light — C3CCF5 was 1.58:1 on white */
     --live:#BE3324;
     /* v3.3.92: muted 4.10:1 on surface2 and faint 2.62:1 on white failed AA;

@@ -1,5 +1,43 @@
 # ShowUp — changelog
 
+## v3.3.118 (2026-07-27) — PART_COLORS, sourced rather than mixed
+
+Tier 1 of adopting Tailwind's palette. Scoped deliberately to PART_COLORS:
+the semantic tokens keep their canonical hues, per the maker's v3.3.92
+ruling against cosmetic recolouring.
+
+**No dependency was added.** Tailwind is a build-step tool and this app has
+no build step; what was wanted is the palette, which is MIT-licensed data.
+The real values were pulled from `tailwindcss@3.4.19` on npm rather than
+recalled, then mapped: indigo / violet / teal / yellow / pink / slate / sky
+/ stone, at -300 in dark (-400 for the two near-neutrals, too pale at 300)
+and -600 in light.
+
+**Two families were rejected by the guard, not by taste.** `rose` sits at
+350°, fifteen degrees from the LIVE red, and would have put a body part in
+the app's one red. `amber-700` and `orange-700` sit at 26° and 17°. Pink
+and yellow are what survived the constraint that no part colour may read as
+a state colour.
+
+**The contrast floor changed the mapping twice.** Chart fills are graphical
+objects and owe 3:1 against their own ground. On the near-white light
+theme, `amber-600` measured 2.87 and `yellow-600` 2.65 — warm hues carry too
+much luminance to clear 3:1 without darkening into the red. Legs is
+`yellow-700` (4.44) for that reason alone.
+
+That floor is now a **build guard**: buildcheck computes every `--p-*`
+against its own theme's ground and fails under 3.0. Verified by putting
+`yellow-600` back and watching it fail at 2.65. Without it this palette
+would have shipped a Legs bar nobody could see — twice.
+
+**A v3.3.117 assertion was replaced, not deleted.** It required every part
+colour to be light, which held only while both themes used pastels. The real
+invariant is directional — dark fills lighter than the dark ground, light
+fills darker than the light ground — plus a check that the two themes use
+genuinely different values rather than one pasted into both.
+
+`test-pmix.js` at 24. buildcheck at 9 guards.
+
 ## v3.3.117 (2026-07-27) — Part mix, corrected
 
 Five corrections from the maker, two of them real bugs.
