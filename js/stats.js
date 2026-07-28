@@ -29,6 +29,24 @@ function mgAlpha(n,max,cur){ return n?(0.14+0.74*n/max)*(cur?0.45:1):0; }
    column is legible on a phone; the wrapper scrolls and PMIX_DAYS grows
    when you reach the left edge. */
 let PMIX_DAYS=56;
+/* v3.3.121: tapping a legend name isolates that part. Applied by mutating
+   the rendered rects rather than re-rendering, so the scroll position — and
+   any weeks loaded backwards — survive the tap. */
+let PMIX_FOCUS=null;
+function pmixApplyFocus(){
+  const wrap=document.getElementById('pmixWrap');
+  if(wrap) wrap.querySelectorAll('rect[data-pt]').forEach(r=>{
+    r.style.opacity = (!PMIX_FOCUS || r.dataset.pt===PMIX_FOCUS) ? '' : '0.12';
+  });
+  document.querySelectorAll('.pmixlgd [data-pt]').forEach(s=>{
+    s.classList.toggle('on',  PMIX_FOCUS===s.dataset.pt);
+    s.classList.toggle('off', !!PMIX_FOCUS && PMIX_FOCUS!==s.dataset.pt);
+  });
+}
+function pmixSetFocus(part){
+  PMIX_FOCUS = (PMIX_FOCUS===part) ? null : part;
+  pmixApplyFocus();
+}
 const PMIX_COLW=17, PMIX_H=232, PMIX_TOP=8, PMIX_BASE=150;
 const PMIX_AXW=34;
 /* v3.3.120: the plot's vertical scale must be identical in the fixed axis

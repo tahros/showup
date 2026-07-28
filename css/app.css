@@ -38,11 +38,14 @@
     --record:#C33A2C;
     --rest:#79A884;                         /* declared rest, light theme (wash/frame grade) */
     --rest-ink:#3B5742;                     /* rest as text, light */
-    /* the same ramp, run downward: on a near-white ground the fills have to
-       be DARKER than it, so the light theme walks sky/blue/indigo/cyan from
-       600 to 900 instead of 100 to 700. */
-    --p-chest:#0891b2; --p-back:#6366f1; --p-shoulder:#0e7490; --p-legs:#4f46e5;
-    --p-biceps:#075985; --p-triceps:#1e40af; --p-sixpack:#3730a3; --p-run:#312e81;
+    /* v3.3.121: lifted out of the 600–900 range, which read as near-black.
+       The darkness was caused by my own 3:1 fill floor: on a near-white
+       ground, 3:1 MEANS dark. That floor is right for a lone graphic, but
+       these are stacked segments — each one's neighbours are other segments,
+       separated by a stroke, inside an axis and guides. The floor is 2.0 for
+       fills now (see buildcheck) and this ramp spans 2.29–6.82. */
+    --p-chest:#60a5fa; --p-back:#818cf8; --p-shoulder:#3b82f6; --p-legs:#6366f1;
+    --p-biceps:#2563eb; --p-triceps:#0369a1; --p-sixpack:#1d4ed8; --p-run:#075985;
     --chart-soft:#7F859F;                   /* 2025's line, light — C3CCF5 was 1.58:1 on white */
     --live:#BE3324;
     /* v3.3.92: muted 4.10:1 on surface2 and faint 2.62:1 on white failed AA;
@@ -783,8 +786,17 @@
     transition:opacity .18s ease,transform .18s ease}
   .pmixnow.on{opacity:1;pointer-events:auto;transform:translateX(0)}
   .pmixlgd{display:flex;flex-wrap:wrap;gap:4px 10px;margin:0 0 8px}
-  .pmixlgd span{display:inline-flex;align-items:center;gap:4px;
-    font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.02em}
+  /* v3.3.121: tap a name to isolate it. A single-hue ramp cannot be matched
+     to a legend by eye — that is the cost of the ramp, and this is the
+     answer to it. */
+  .pmixlgd span{display:inline-flex;align-items:center;gap:4px;cursor:pointer;
+    font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.02em;
+    transition:opacity .15s ease,color .15s ease}
+  .pmixlgd span.on{color:var(--chalk);font-weight:700}
+  .pmixlgd span.off{opacity:.4}
+  #pmixWrap rect[data-pt]{transition:opacity .15s ease}
+  @media (prefers-reduced-motion:reduce){
+    .pmixlgd span,#pmixWrap rect[data-pt]{transition:none}}
   .pmixlgd i{width:8px;height:8px;border-radius:2px;flex:0 0 auto}
   @media (prefers-reduced-motion:reduce){
     .pmixwrap{scroll-behavior:auto}

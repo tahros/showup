@@ -1,5 +1,27 @@
 # ShowUp — changelog
 
+## v3.3.121 (2026-07-27) — Light enough to see, tappable enough to read
+
+**The light theme was near-black, and my own guard caused it.** I set a 3:1
+floor for part fills in v3.3.118 — and on a near-white ground, 3:1 MEANS
+dark, so the ramp had nowhere to sit but 600–900. That floor is right for a
+lone graphic; it is wrong for stacked segments, whose neighbours are other
+segments, separated by a stroke, inside an axis and labelled guides. The
+fill floor is 2.0 now and the light ramp spans 2.29–6.82 instead of
+3.32–14 — blue-400 at the top where it was sky-800.
+
+**"Hard to pin point which exercise corresponds to which color" is the
+ramp's real cost**, and more colours is not the fix — that is what a single
+hue buys. Tapping a name in the legend now isolates it: every other part
+drops to 12% and the legend marks which one is live. Tap again to clear.
+
+It is applied by mutating the rendered rects rather than re-rendering, so
+scroll position and any weeks loaded backwards survive the tap — and the
+back-loader re-applies it, since prepending weeks replaces every rect.
+Asserted, because that is exactly the kind of state that silently resets.
+
+`test-pmix.js` at 51.
+
 ## v3.3.120 (2026-07-27) — Part mix: a scale, a ramp, and the way back
 
 Seven changes to the part-mix chart. One of them undoes a decision two

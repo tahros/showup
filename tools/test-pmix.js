@@ -313,4 +313,46 @@ ok("...and reduced motion turns both off",
 ok("back-loading suppresses smooth scrolling while it restores the view",
    /scrollBehavior='auto'/.test(fs.readFileSync(path.join(dir, "js/app.js"), "utf8")));
 
+// ---- v3.3.121: legible in light mode, and matchable ----------------------
+// The light ramp was 600-900 (near-black) because a 3:1 fill floor on a
+// near-white ground FORCES darkness. Floor is 2.0 for stacked fills now.
+const lightGround = groundOf(lightBlk);
+const lightRatios = lParts.map(p => {
+  const a = lumOf(p), b = lumOf(lightGround);
+  return (Math.max(a,b)+0.05)/(Math.min(a,b)+0.05);
+});
+ok("every light fill clears the 2.0 floor", Math.min(...lightRatios) >= 2.0,
+   "range " + Math.min(...lightRatios).toFixed(2) + "-" + Math.max(...lightRatios).toFixed(2));
+ok("...and the ramp is no longer near-black (its lightest is well off the floor)",
+   Math.min(...lightRatios) < 3.0,
+   "lightest " + Math.min(...lightRatios).toFixed(2) + ":1");
+ok("buildcheck enforces the same 2.0 floor it was relaxed to",
+   /_r < 2\.0/.test(fs.readFileSync(path.join(dir, "tools/buildcheck.py"), "utf8")));
+
+// tap-to-isolate: the answer to "which colour is which part"
+run(`view='stats'; render(); PMIX_FOCUS=null; pmixApplyFocus();`);
+ok("nothing is dimmed before you tap",
+   run(`[...document.querySelectorAll('#pmixWrap rect[data-pt]')].every(r=>!r.style.opacity)`));
+run(`pmixSetFocus('Back');`);
+ok("tapping a part dims every other part",
+   run(`[...document.querySelectorAll('#pmixWrap rect[data-pt]')]
+        .every(r=>r.dataset.pt==='Back' ? !r.style.opacity : r.style.opacity==='0.12')`));
+ok("...and marks the legend so the pairing is unambiguous",
+   run(`document.querySelector('.pmixlgd [data-pt="Back"]').classList.contains('on')`) &&
+   run(`document.querySelector('.pmixlgd [data-pt="Chest"]').classList.contains('off')`));
+run(`pmixSetFocus('Back');`);
+ok("tapping the same part again clears the focus",
+   run(`PMIX_FOCUS`) === null &&
+   run(`[...document.querySelectorAll('#pmixWrap rect[data-pt]')].every(r=>!r.style.opacity)`));
+
+// focus must survive a backwards load, which replaces every rect
+run(`pmixSetFocus('Legs');`);
+run(`(function(){const b=document.getElementById('pmixWrap'); b.scrollLeft=0;
+  b.dispatchEvent(new Event('scroll'));})()`);
+ok("focus survives loading older weeks (the new rects get it too)",
+   run(`PMIX_FOCUS`) === "Legs" &&
+   run(`[...document.querySelectorAll('#pmixWrap rect[data-pt]')]
+        .filter(r=>r.dataset.pt!=='Legs').every(r=>r.style.opacity==='0.12')`));
+run(`pmixSetFocus('Legs');`);
+
 process.exit(fail ? 1 : 0);

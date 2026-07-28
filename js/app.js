@@ -216,6 +216,8 @@ document.addEventListener('click',e=>{
     saveExW(lift.ex,w);
     lift.justSaved=true;save();renderHeader();setToast(lift.ex,w,r);return renderLift();
   }
+  const _pl=e.target.closest('.pmixlgd [data-pt]');
+  if(_pl){ pmixSetFocus(_pl.dataset.pt); return; }   // v3.3.121
   if(e.target.closest('#allSets')){ lift.allSets=!lift.allSets; return renderLift(); }
   if(e.target.closest('#addEx')){ lift.adding=true; return renderLift(); }
   if(e.target.closest('#cancelEx')){ lift.adding=false; return renderLift(); }
@@ -625,6 +627,7 @@ function bindPmix(){
     box.innerHTML=partMixSvg(PMIX_DAYS);
     box.scrollLeft=added+box.scrollLeft;       // computed, not measured
     box.style.scrollBehavior=sb;
+    pmixApplyFocus();                          // the new rects need the focus too
     syncNow();
     requestAnimationFrame(()=>{ busy=false; });
   },{passive:true});
