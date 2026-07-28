@@ -1,5 +1,46 @@
 # ShowUp — changelog
 
+## v3.3.134 (2026-07-28) — The Pace card was a scale bug, not a spacing bug
+
+**The white space was the symptom.** `drawSeries` scaled lines from 0 to max.
+Pace values sit within a few percent of each other, so every point mapped
+into the top sliver of the plot, the remaining 90% was structurally empty,
+and the month labels stranded at the foot of an empty box. Re-centring would
+have moved the emptiness around without removing it.
+
+Lines may now declare their own y-range. The Pace row pads lo/hi by 25% each
+side with a 30-second span floor — the same guard the live chart has carried
+since it was written ("never flatten a near-identical year"). The rule is
+spelled out in both places rather than shared, because the card and the chart
+are different coordinate systems and the thing that must agree is the rule,
+not the arithmetic.
+
+**Bars deliberately cannot do this.** A bar chart cut off at a non-zero
+baseline overstates the differences between its bars. Every week stays
+zero-based on principle, and the option is gated on `kind==='line'` so it
+cannot be handed to a bar chart by accident.
+
+The line block is 55% of the band now and centres WITH its labels, so the
+x-axis follows the art instead of sitting at the bottom of the frame.
+
+**A correction to v3.3.133.** That entry claimed Pace kept full height "to
+preserve the variation it has to show". Wrong diagnosis: the variation was
+not being preserved by the height, it was being destroyed by the scale.
+
+**And the test that should have caught it.** v3.3.133's centring assertion
+passed on this card, because it measured the bounding box of all drawn art —
+and "line pinned at the top, labels stranded at the bottom" has a perfectly
+centred bounding box. It measured the frame and called it the composition.
+Two assertions now measure density instead: the points must spread across a
+real fraction of the plot, and the gap between the lowest point and the month
+labels must be bounded. The bounding-box check stays, but can no longer pass
+on its own.
+
+One stale assertion went with it — "the bars plot is shorter than the
+full-height line plot" encoded the design this release overturns, and
+comparing the two heights was never the interesting question. Replaced with
+band containment for both.
+
 ## v3.3.133 (2026-07-28) — The share cards, squared up
 
 **Seven cards reviewed on the phone, seven notes, one release.** Most of the

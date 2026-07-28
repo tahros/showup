@@ -139,13 +139,20 @@ if (wkLabels.length === 2)
      Math.round(wkLabels[0].x) + " / " + Math.round(wkLabels[1].x));
 const dashed = week.filter(r => r[0] === "setLineDash" && Array.isArray(r[1]) && r[1].length);
 ok("...and draws dotted horizontal rules", dashed.length >= 2, dashed.length + " dash runs");
-// the bars plot must be shorter than the line plot, which keeps full height
+/* v3.3.134: this used to assert "bars are shorter than the full-height line".
+   That encoded a design that is now gone — the line block is 55% and centres
+   with its labels, so bars are the taller of the two. Comparing them said
+   nothing anyone cares about. What matters is that BOTH stay inside the
+   band the frame gave them, and that the bars kept their 25% cut. */
 const barYs = bandOf(week).filter(v => v > 240 && v < 940);
 const paceYs = bandOf(drawCard("pace")).filter(v => v > 240 && v < 940);
-const barH = Math.max(...barYs) - Math.min(...barYs);
-const paceH = Math.max(...paceYs) - Math.min(...paceYs);
-ok("the bars plot is shorter than the full-height line plot", barH < paceH,
-   "bars " + Math.round(barH) + " vs pace " + Math.round(paceH));
+const inBand = ys => ys.length && Math.min(...ys) > 250 && Math.max(...ys) < 950;
+ok("the bars plot stays inside its band", inBand(barYs),
+   Math.round(Math.min(...barYs)) + ".." + Math.round(Math.max(...barYs)));
+ok("the line plot stays inside its band", inBand(paceYs),
+   Math.round(Math.min(...paceYs)) + ".." + Math.round(Math.max(...paceYs)));
+ok("bars keep their 25% cut and the line takes 55% of the band",
+   /\(bars\?0\.75:0\.55\)/.test(fs.readFileSync(path.join(dir, "js/report.js"), "utf8")));
 
 // ---- 6. Pace: every point labelled, latest bigger and still accent --------
 const pace = drawCard("pace");
@@ -157,8 +164,33 @@ ok("every pace point carries a label", paceLabels.length === nPts,
 const arcs = pace.filter(r => r[0] === "arc").map(r => +r[3]);   // [op,cx,cy,r,...]
 ok("the latest pace point is the largest", arcs.length > 1 && arcs[arcs.length - 1] > Math.max(...arcs.slice(0, -1)),
    "radii " + arcs.join(","));
-/* the last point must be accent, not the record colour — find the fillStyle
-   set immediately before the final arc */
+/* ---- 6a. the pace line USES its plot, it does not hug the top ------------
+   The v3.3.133 centring assertion passed on a visibly broken card: the line
+   sat in the top sliver, the x-labels sat at the foot of an empty box, and
+   the bounding box of "art at top + labels at bottom" is perfectly centred.
+   Measuring the frame was not enough. These two measure the DENSITY. */
+const paceArcs = pace.filter(r => r[0] === "arc").map(r => ({ y: +r[2], r: +r[3] }));
+ok("the pace card plots its points", paceArcs.length >= 3, paceArcs.length + " points");
+const pTop = Math.min(...paceArcs.map(a => a.y)), pBot = Math.max(...paceArcs.map(a => a.y));
+const paceSpread = pBot - pTop;
+ok("the points spread across the plot, not pinned to the top",
+   paceSpread > 90, "spread " + Math.round(paceSpread) + "px");
+/* and the x-labels must follow the art rather than stranding at the foot of
+   an empty box */
+const paceXLabels = textAt(pace).filter(r => /^\d{2}$/.test(r.t));
+ok("the pace card labels its months", paceXLabels.length >= 3, paceXLabels.length + " labels");
+if (paceXLabels.length) {
+  const lblY = Math.max(...paceXLabels.map(r => r.y));
+  ok("...directly beneath the line, not stranded below empty space",
+     lblY - pBot < 260, "gap " + Math.round(lblY - pBot) + "px below lowest point");
+}
+/* the scale rule itself: a near-flat series must not be flattened further,
+   and bars must never adopt a non-zero baseline */
+const rsrc = fs.readFileSync(path.join(dir, "js/report.js"), "utf8");
+ok("the pace card pads its range like the live chart does",
+   /Math\.max\(hi-lo,30\)/.test(rsrc), "30s span floor present");
+ok("...and only LINES may declare a range — bars stay zero-based",
+   /const ranged = !bars &&/.test(rsrc));
 const lastArcIdx = pace.map(r => r[0]).lastIndexOf("arc");
 let lastFill = null;
 for (let i = lastArcIdx; i >= 0; i--) if (pace[i][0] === "SET:fillStyle") { lastFill = pace[i][1]; break; }

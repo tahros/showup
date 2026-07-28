@@ -334,10 +334,20 @@ function shareCards(){
     if(runs.some(r=>r.timed>0)) L.push({id:'pace', label:'Pace', file:()=>'pace', draw:()=>{
       const ps=paceSeries();
       const best=ps.reduce((b,p,i)=>(p[1]&&(!ps[b]||!ps[b][1]||p[1]<ps[b][1]))?i:b,0);
+      /* v3.3.134: same scale guard as the live chart (lift.js) — pad the
+         range 25% each side and never let a near-identical year collapse
+         into a flat line. Duplicated deliberately: the card and the chart
+         are different coordinate systems, and the ONE thing that must match
+         is the rule, which is why the 30-second floor is spelled out here
+         rather than inferred. */
+      const pv=ps.map(p=>p[1]);
+      const lo=Math.min(...pv), hi=Math.max(...pv);
+      const span=Math.max(hi-lo,30);
       return drawSeries({kind:'line',
         big:ps.length?fmtP(ps[ps.length-1][1]):'\u2014', sub:'per '+DU()+' this month',
         kicker:'PACE', footer:'minutes per '+DU()+', timed runs only',
-        vals:ps.map(p=>p[1]), hi:best, labels:ps.map(p=>p[0].slice(5)),
+        vals:pv, hi:best, labels:ps.map(p=>p[0].slice(5)),
+        yLo:lo-span*0.25, yHi:hi+span*0.25,
         fmtPt:fmtP});      // v3.3.133: point labels read as pace, not seconds
     }});
   }
@@ -415,12 +425,26 @@ function drawSeries(o){
      it is a nearly flat series, and squashing it further would flatten the
      only variation it has to show. */
   const bars=o.kind!=='line';
-  const H=(F.AB-F.AT-70)*(bars?0.75:1);
-  const T=F.mid(H+70), B=T+H;
+  /* v3.3.134: a line may declare its own y-range. Pace values sit within a
+     few percent of each other, so scaling 0->max pinned every point into the
+     top sliver and left the rest of the plot structurally empty — the
+     whitespace read as a centring bug but was a SCALE bug. The live chart has
+     always scaled lo->hi (lift.js, "never flatten a near-identical year");
+     the card simply never got that logic.
+     Bars deliberately CANNOT do this: a bar cut off at a non-zero baseline
+     overstates the differences between bars. Zero-based on principle. */
+  const ranged = !bars && o.yLo!=null && o.yHi!=null && isFinite(o.yLo) && isFinite(o.yHi) && o.yHi>o.yLo;
+  /* the line block is shorter than the bars block and centres WITH its
+     labels, so the x-axis follows the art instead of sitting at the foot of
+     an empty box */
+  const LBL=70;
+  const H=(F.AB-F.AT-LBL)*(bars?0.75:0.55);
+  const T=F.mid(H+LBL), B=T+H;
   const L=F.L, R=F.R, W=R-L;
   const vals=o.vals, n=vals.length||1;
   const max=Math.max(...vals.filter(v=>typeof v==='number'&&isFinite(v)), o.floor||0, 1e-9);
-  const Y=v=>B-(v/max)*H;
+  const Y = ranged ? (v=>B-((v-o.yLo)/(o.yHi-o.yLo))*H)
+                   : (v=>B-(v/max)*H);
   /* v3.3.133: bars get a y-axis and dotted rules. Without them a shorter bar
      was only "shorter than the others" — you could not read how far a past
      run actually went, which is the question the card exists to answer. */
