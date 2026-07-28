@@ -1,5 +1,23 @@
 # ShowUp — changelog
 
+## v3.3.127 (2026-07-28) — Wider bars, and numbers that read
+
+**Bars 25% wider** — columns 12→15, bars 10→12.5, gap held at a hairline.
+
+**Thousands separators.** `pmixTick()` had its own formatter, and once the
+archive grew the k-value itself ran past a thousand: a lifetime total
+rendered as `6620k`, digits running together. It goes through `fmt()` now,
+the function the rest of the app already uses, so it reads `6,620k`.
+Everything smaller is unchanged — 9.2k, 13k, 940 — asserted, because a
+formatter change is exactly the kind of fix that quietly breaks the values
+it was not aimed at.
+
+That is the second private formatter found in this chart after v3.3.124's
+private volume formula. Both were written here instead of reused, and both
+were wrong in a way the shared version was not.
+
+`test-pmix.js` at 87.
+
 ## v3.3.126 (2026-07-28) — Part mix: release means release
 
 **What an empty-space tap means now depends on the state.** Landing on a

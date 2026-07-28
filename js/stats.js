@@ -108,12 +108,15 @@ function pmixSetFocus(part){
    more of the archive is legible at once. PMIX_H 232→186 because the drawn
    content ended near y=182 — rotated dates run from PMIX_BASE+6 down about
    26px — leaving ~50px of empty box under every render. */
-const PMIX_COLW=12, PMIX_H=186, PMIX_TOP=8, PMIX_BASE=150;
+const PMIX_COLW=15, PMIX_H=186, PMIX_TOP=8, PMIX_BASE=150;   // v3.3.127: bars 10→12.5, exactly 25% wider
 const PMIX_AXW=25;   // v3.3.126: 34→25, ~26% of the left gutter reclaimed
 /* v3.3.120: the plot's vertical scale must be identical in the fixed axis
    and the scrolling body, so BOTH read this one function. */
 function pmixMax(rows){ return Math.max(...rows.map(r=>r.total), 1); }
-const pmixTick=v=> v>=1000 ? (v/1000).toFixed(v>=10000?0:1).replace(/\.0$/,'')+'k' : String(Math.round(v));
+/* v3.3.127: thousands separators. A lifetime total renders as 6,620k rather
+   than 6620k — the k-value itself runs past a thousand once the archive is
+   large, and the digits ran together. fmt() already exists for this. */
+const pmixTick=v=> v>=1000 ? fmt(+(v/1000).toFixed(v>=10000?0:1))+'k' : fmt(Math.round(v));
 function pmixAxisSvg(rows){
   const max=pmixMax(rows);
   let s=`<svg class="pmixaxis" viewBox="0 0 ${PMIX_AXW} ${PMIX_H}" width="${PMIX_AXW}"
@@ -163,7 +166,7 @@ function partMixSvg(days){
        font-weight="700" fill="var(--muted)" data-yrmark="${rows[0].d.slice(0,4)}"
        >${rows[0].d.slice(0,4)}</text>`;
   rows.forEach((r,i)=>{
-    const x=8+i*PMIX_COLW, bw=PMIX_COLW-2;
+    const x=8+i*PMIX_COLW, bw=PMIX_COLW-2.5;
     s+=`<rect class="pmixcol${i===rows.length-1?' latest':''}" data-col="${i}"
          x="${x-2}" y="${PMIX_TOP}" width="${PMIX_COLW}"
          height="${PMIX_BASE-PMIX_TOP}"></rect>`;

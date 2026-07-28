@@ -265,10 +265,12 @@ run(`(function(){const b=document.getElementById('pmixWrap');
 ok("dragging scrolls without selecting", run(`PMIX_FOCUS`) === null, String(run(`PMIX_FOCUS`)));
 
 // geometry
-ok("columns are tighter and bars narrower",
-   run(`PMIX_COLW`) === 12 &&
-   /bw=PMIX_COLW-2/.test(fs.readFileSync(path.join(dir, "js/stats.js"), "utf8")),
-   "colw " + run(`PMIX_COLW`));
+ok("v3.3.127: bars are 25% wider than v3.3.125's 10 units",
+   run(`PMIX_COLW`) === 15 &&
+   /bw=PMIX_COLW-2\.5/.test(fs.readFileSync(path.join(dir, "js/stats.js"), "utf8")),
+   "colw " + run(`PMIX_COLW`) + ", bar " + (run(`PMIX_COLW`) - 2.5));
+ok("...and the gap stays hairline",
+   run(`PMIX_COLW`) - (run(`PMIX_COLW`) - 2.5) === 2.5);
 ok("the box no longer carries dead space under the labels",
    run(`PMIX_H`) === 186, "height " + run(`PMIX_H`));
 
@@ -627,5 +629,17 @@ ok("the legend and the hint have room before the chart",
    /\.pmixlgd\{[^}]*margin:0 0 14px/.test(css126) &&
    /\.pmixread\{[^}]*margin:0 0 14px/.test(css126));
 ok("the left gutter is narrower", run(`PMIX_AXW`) === 25, "axis width " + run(`PMIX_AXW`));
+
+// ---- v3.3.127: thousands separators ------------------------------------
+// A lifetime total pushes the k-value itself past a thousand, and "6620k"
+// ran its digits together.
+ok("big totals carry a thousands separator",
+   run(`pmixTick(6620000)`) === "6,620k", run(`pmixTick(6620000)`));
+ok("...and smaller values are untouched",
+   run(`pmixTick(9190)`) === "9.2k" && run(`pmixTick(940)`) === "940" &&
+   run(`pmixTick(13000)`) === "13k",
+   [run(`pmixTick(9190)`), run(`pmixTick(940)`), run(`pmixTick(13000)`)].join(" "));
+ok("...it goes through the app's own fmt(), not a private formatter",
+   /fmt\(\+\(v\/1000\)/.test(fs.readFileSync(path.join(dir, "js/stats.js"), "utf8")));
 
 process.exit(fail ? 1 : 0);
