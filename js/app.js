@@ -584,6 +584,28 @@ function bindScrub(box, svg, getVb){
   return {show,hide};
 }
 
+/* v3.3.116: the part-mix chart opens at TODAY (its right edge) and loads
+   older weeks when you reach the left. Scroll position is restored by the
+   exact width added, so the view does not jump under the finger — the
+   whole point of loading backwards. */
+function bindPmix(){
+  const box=document.getElementById('pmixWrap');
+  if(!box||box.dataset.bound) return;
+  box.dataset.bound='1';
+  box.scrollLeft=box.scrollWidth;              // today, not January
+  let busy=false;
+  box.addEventListener('scroll',()=>{
+    if(busy||box.scrollLeft>60) return;
+    const total=[...workoutDates()].length;
+    if(PMIX_DAYS>=total) return;
+    busy=true;
+    const before=box.scrollWidth;
+    PMIX_DAYS=Math.min(total,PMIX_DAYS+56);
+    box.innerHTML=partMixSvg(PMIX_DAYS);
+    box.scrollLeft += box.scrollWidth-before;  // hold the view still
+    busy=false;
+  },{passive:true});
+}
 function bindZoom(box){
   if(box.dataset.bound) return;
   box.dataset.bound='1';
@@ -658,6 +680,7 @@ const MOTION_OK=typeof matchMedia==='function' ? matchMedia('(prefers-reduced-mo
 function paint(){
   ({today:renderToday,lift:renderLift,stats:renderStats,history:renderHistory,sync:renderSync})[view]();
   document.querySelectorAll('[data-zoom]').forEach(bindZoom);
+  bindPmix();
   if(MOTION_OK){ try{ motionPass(); }catch(_e){ /* motion is decoration — it never gets to break the app */ } }
   window.scrollTo(0,0);
 }

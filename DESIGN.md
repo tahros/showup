@@ -86,6 +86,13 @@ Adopted into phases:
   an ink. --rest washes; --rest-ink writes. Any state colour used as text
   gets its own text-grade token at the same hue, and buildcheck computes
   the WCAG floor for every load-bearing pair in both themes.
+- PART_COLORS is the SECOND validated exception to no-categorical-palettes
+  (v3.3.116), granted for the part-mix chart where eight series must be told
+  apart at a glance and a lightness ramp cannot do it. It deliberately dodges
+  the LIVE red and the REST green — those hues mean one thing each and a body
+  part is not it — so Back is not red and Legs are not green, unlike the
+  spreadsheet this chart came from. Data hues only, used solely as chart
+  fills, and it licenses nothing else.
 - YEAR_COLORS is a validated exception to no-categorical-palettes: a
   blue+neutral lightness ramp (faint/muted/accent-dim/chart-soft/accent)
   with stable per-year identity across the consistency chart, distance

@@ -325,7 +325,14 @@ run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
   SEED=deriveAll(); view='stats'; render();})()`);
 
 // icons are 16x16 SVGs; charts are the ones living inside a .card
+/* v3.3.116: the two-shape rule governs charts that FILL the card width
+   (width:100%; height:auto), where the viewBox ratio literally is the
+   rendered height. The part-mix chart is a different kind: a fixed-pixel-
+   height horizontal scroller whose width grows with the data, so it has no
+   card-width ratio to conform to. Excluded here and asserted separately
+   below. */
 const shapes = JSON.parse(run(`JSON.stringify([...document.querySelectorAll('#view .card svg')]
+  .filter(s=>!s.closest('.pmixwrap'))
   .map(s=>{const v=(s.getAttribute('viewBox')||'').split(/\\s+/).map(Number);
     return {w:v[2],h:v[3],r:+(v[3]/v[2]).toFixed(3)};}).filter(x=>x.w>100))`));
 const ratios = [...new Set(shapes.map(s => s.r))].sort();
@@ -335,6 +342,11 @@ if (ratios.length !== 2) fail++;
 console.log((ratios.join(",") === "0.358,0.5" ? "PASS" : "FAIL"),
   "...the short box and the tall box", "\u2192", ratios.join(","));
 if (ratios.join(",") !== "0.358,0.5") fail++;
+
+// the scroller is fixed-height instead, which is its own kind of consistency
+check("the part-mix scroller has a fixed pixel height, not a ratio",
+      `(function(){const s=document.querySelector('.pmixwrap svg');
+        return !!s && /height:\\d+px/.test(s.getAttribute('style')||'');})()`, true);
 
 // only the two year-over-year line charts earn the tall box
 const tall = shapes.filter(s => s.r === 0.5).length;

@@ -1,5 +1,49 @@
 # ShowUp — changelog
 
+## v3.3.116 (2026-07-27) — Part mix
+
+A new chart, second from the top: one column per training day, stacked by
+body part, so an under-served part shows up by its absence. Ported from the
+maker's Google Sheets dashboard — the "Which part to work out?" chart that
+predates this app.
+
+**Sets, not volume.** Tonnage is not comparable across parts — one Legs day
+dwarfs a month of Biceps and would flatten everything else — and days >
+volume argues for the count regardless.
+
+**PART_COLORS is a second validated exception**, agreed with the maker
+before building. Eight series have to be distinguishable at a glance and a
+lightness ramp cannot do it; this is the case where categorical colour is
+the correct encoding rather than decoration.
+
+It does NOT reproduce the spreadsheet's palette. **Back is not red and Legs
+are not green**, because those two hues mean exactly one thing each in this
+app — LIVE and declared rest — and a body part is not it. The guard is
+saturation-aware: a part colour passes if it is far in hue from the state
+hues OR too desaturated to read as one (Run's brown sits near red on the
+wheel at 0.31 saturation against the LIVE red's 0.65). A hue-only first
+draft failed those browns, which was the test being blunt rather than the
+palette being wrong. The stronger guard is scope — asserted — that part
+colours only ever appear as chart fills, which `--live` and `--rest` never
+are.
+
+**It loads backwards.** Opens on the last 8 weeks parked at today, and
+pulls in another 8 as you reach the left edge, restoring scroll by exactly
+the width added so the view does not jump under your finger. It stops at
+the end of the archive. Being a sideways scroller, it joins the tab-swipe
+blocklist.
+
+**Two existing assertions needed scoping, both broken by my own addition.**
+The v3.3.113 two-shape rule governs charts that FILL the card width, where
+the viewBox ratio literally is the rendered height; this chart is a
+fixed-pixel-height scroller whose width grows with data, so it is excluded
+and asserted to have a fixed height instead. And the v3.3.109 legend-order
+check used the first `.legend1` in the document — now this chart's — whose
+card holds no zoomable chart, so it was passing or failing on section order
+rather than on the thing under test.
+
+New suite `test-pmix.js`, 16 assertions. Harness at 26 suites.
+
 ## v3.3.115 (2026-07-27) — Cards that mirror the screen
 
 The maker on yesterday's five cards: Days by month, Last 6 months and

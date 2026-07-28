@@ -25,6 +25,44 @@ let bwEdit=false;
    a colour, so it behaves identically in light and dark. Shared by the HTML
    grid and the canvas card. */
 function mgAlpha(n,max,cur){ return n?(0.14+0.74*n/max)*(cur?0.45:1):0; }
+/* v3.3.116: one column per training day, stacked by part. Sized so a
+   column is legible on a phone; the wrapper scrolls and PMIX_DAYS grows
+   when you reach the left edge. */
+let PMIX_DAYS=56;
+const PMIX_COLW=13, PMIX_H=150, PMIX_TOP=10, PMIX_BASE=118;
+function partMixSvg(days){
+  const rows=partMix(days);
+  if(!rows.length) return '';
+  const max=Math.max(...rows.map(r=>r.total),1);
+  const W=Math.max(320,rows.length*PMIX_COLW+16);
+  let s=`<svg viewBox="0 0 ${W} ${PMIX_H}" width="${W}" height="${PMIX_H}"
+      style="height:${PMIX_H}px" data-pmix>`;
+  for(const g of [0,0.5,1]){
+    const y=PMIX_BASE-g*(PMIX_BASE-PMIX_TOP);
+    s+=`<line x1="8" y1="${y.toFixed(1)}" x2="${W-8}" y2="${y.toFixed(1)}"
+         stroke="var(--line)" stroke-width="0.6"${g?' stroke-dasharray="2 3"':''}></line>`;
+  }
+  let lastM=-1;
+  rows.forEach((r,i)=>{
+    const x=8+i*PMIX_COLW, bw=PMIX_COLW-3;
+    let y=PMIX_BASE;
+    for(const p of Object.keys(SEED.catalog)){
+      const n=r.by[p]; if(!n) continue;
+      const hh=(n/max)*(PMIX_BASE-PMIX_TOP);
+      y-=hh;
+      s+=`<rect x="${x}" y="${y.toFixed(1)}" width="${bw}" height="${hh.toFixed(1)}"
+           fill="${PART_COLORS[p]||'var(--muted)'}" data-pt="${p}"></rect>`;
+    }
+    const m=+r.d.slice(5,7);
+    if(m!==lastM){
+      s+=`<text x="${x}" y="${PMIX_BASE+16}" font-family="var(--mono)" font-size="8"
+           fill="var(--muted)">${new Date(r.d+'T00:00').toLocaleDateString('en-US',{month:'short'})}</text>`;
+      lastM=m;
+    }
+  });
+  s+=`</svg>`;
+  return s;
+}
 function gridData(){
   const mDays={};
   for(const d of Object.keys(SEED.sessions)) mDays[d.slice(0,7)]=(mDays[d.slice(0,7)]||0)+1;
@@ -179,6 +217,16 @@ function renderStats(){
 
   // consistency chart — the Dashboard bottom graph
   cut('kpis');
+  /* v3.3.116: part mix — which parts got worked, day by day, so an
+     under-served one is visible by its absence. Second from the top on the
+     maker's call. Scrolls sideways and loads older weeks at its left edge. */
+  h+=`<h2>Part mix${hActs('pmix',"Sets per body part on each training day — scroll back for older weeks.")}</h2>
+      <div class="card">
+        <div class="legend1">${Object.keys(SEED.catalog).map(p=>
+          `<span data-pt="${p}"><i style="background:${PART_COLORS[p]||'var(--muted)'}"></i>${p}</span>`).join('')}</div>
+        <div class="pmixwrap" id="pmixWrap">${partMixSvg(PMIX_DAYS)}</div>
+      </div>`;
+  cut('pmix');
   h+=`<h2>Consistency${hActs('yoy',"% of days trained so far each year — the bold line is this year, still running.",'yoyShare')}</h2><div class="card">
       `;
   /* v3.3.109: the legend moves ABOVE the chart. While scrubbing it IS the
@@ -359,7 +407,7 @@ function renderStats(){
      month nav and its share card are gone. */
 
   // sections emit in one declared order (v3.3.111)
-  h = _S.kpis + _S.cons + _S.em + _S.dbm + _S.last6 + _S.wd + _S.wt;
+  h = _S.kpis + _S.pmix + _S.cons + _S.em + _S.dbm + _S.last6 + _S.wd + _S.wt;
 
   // the whole Run story lives here now (was its own tab in v2.04 — reverted)
   h+=runStatsHTML();

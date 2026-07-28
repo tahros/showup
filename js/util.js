@@ -48,6 +48,7 @@
                    t.closest('.heat')||t.closest('.heatcols')||   // the rail scrolls too
                    t.closest('input')||t.closest('.settile')||
                    t.closest('.ychips')||      // v3.3.39: History's year strip scrolls sideways
+                   t.closest('.pmixwrap')||   // v3.3.116: part mix scrolls sideways
                    t.closest('.compscroll');   // sideways-scrolling chart owns its axis
   addEventListener('touchstart',e=>{
     if(e.touches.length!==1||view==='sync') return;
@@ -680,6 +681,24 @@ function msLine(n){
    inline inside the render functions, which meant a card could only be
    added by duplicating the arithmetic — the drift this codebase keeps
    paying down (resealDay, foldSets, gridData, elapsedDays, runYearCurves). */
+/* v3.3.116: sets per part per training day, newest last. Sets, not volume —
+   tonnage is not comparable across parts (one Legs day dwarfs a month of
+   Biceps and would flatten everything else), and days > volume argues for
+   the count anyway. */
+const PART_COLORS={Chest:'var(--p-chest)',Back:'var(--p-back)',Shoulder:'var(--p-shoulder)',
+  Legs:'var(--p-legs)',Biceps:'var(--p-biceps)',Triceps:'var(--p-triceps)',
+  Sixpack:'var(--p-sixpack)',Run:'var(--p-run)'};
+function partMix(days){
+  const out=[], iso=[...workoutDates()].sort();
+  const take=iso.slice(-Math.max(1,days));
+  for(const d of take){
+    const w=(DB.days[d]||{}).w||(SEED.sessions[d]||[]);
+    const by={};
+    for(const s of w){ const p=s.part||'—'; by[p]=(by[p]||0)+1; }
+    out.push({d, by, total:Object.values(by).reduce((a,b)=>a+b,0)});
+  }
+  return out;
+}
 function wdDist(){
   const dates=workoutDates(), c=[0,0,0,0,0,0,0], t=[0,0,0,0,0,0,0];
   for(let i=0;i<365;i++){

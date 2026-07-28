@@ -6,6 +6,15 @@
     --rest:#3E5C46;                         /* v3.3.81: declared rest — green's ONE meaning (wash/frame grade) */
     --rest-ink:#8DB596;                     /* v3.3.92: rest as TEXT — same hue, text-grade. A wash colour
                                                cannot also be an ink: 1.69:1 on its own wash proved it */
+    /* v3.3.116: PART_COLORS — the SECOND validated exception to
+       no-categorical-palettes, granted for the part-mix chart where eight
+       series must be told apart at a glance and a lightness ramp cannot do
+       it. Deliberately dodges --live red and --rest green: those hues each
+       mean exactly one thing in this app and a body part is not it, which
+       is why Back is not red and Legs are not green as they are in the
+       maker's spreadsheet. Data hues only; licenses nothing else. */
+    --p-chest:#6B8CFF; --p-back:#C77DFF; --p-shoulder:#3FB8AF; --p-legs:#E8A33D;
+    --p-biceps:#E86FA9; --p-triceps:#8C9EB5; --p-sixpack:#7ED3F7; --p-run:#B08968;
     --chart-soft:#616EA3;                   /* v3.3.92: 2025's year line — accent-soft was 2.10:1 as a stroke */
     --live:#C93A2B;                         /* the header while your heart is pumping */
     --chalk:#F0F1F6; --muted:#A2A8B6; --faint:#747A8A; --shadow:none;
@@ -21,6 +30,8 @@
     --record:#C33A2C;
     --rest:#79A884;                         /* declared rest, light theme (wash/frame grade) */
     --rest-ink:#3B5742;                     /* rest as text, light */
+    --p-chest:#3355D8; --p-back:#8B3FD1; --p-shoulder:#1B8C84; --p-legs:#A8681A;
+    --p-biceps:#C4407C; --p-triceps:#5C6B80; --p-sixpack:#2C87AD; --p-run:#7A5A3C;
     --chart-soft:#7F859F;                   /* 2025's line, light — C3CCF5 was 1.58:1 on white */
     --live:#BE3324;
     /* v3.3.92: muted 4.10:1 on surface2 and faint 2.62:1 on white failed AA;
@@ -742,6 +753,10 @@
      hid years (the current one worst of all, since it sorts last), which is
      unusable when the legend doubles as the scrub readout. Sits above the
      chart now, so a scrubbing hand never covers it. */
+  /* v3.3.116: the part-mix chart scrolls sideways and loads older weeks as
+     you reach its left edge, so it owns its horizontal gesture. */
+  .pmixwrap{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;touch-action:pan-x}
+  .pmixwrap > svg{display:block}
   .legend1{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 8px;padding-bottom:0}
   .legend1 span{font-family:var(--mono);font-size:10px;color:var(--muted);display:flex;align-items:center;
     gap:4px;white-space:nowrap;flex:0 0 auto}

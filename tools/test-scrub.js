@@ -170,8 +170,16 @@ ok("charts without data-scrub get no scrub layer",
 // Both reported problems: the legend sat under the scrubbing hand, and it
 // scrolled, so years (the current one worst of all \u2014 it sorts last) were
 // simply off-screen.
+/* v3.3.116: scoped to a card that actually holds a zoomable chart. The
+   part-mix card also carries a .legend1 and now sits earlier in the DOM,
+   so querySelector('.legend1') found a card with no [data-zoom] in it and
+   indexOf returned -1 \u2014 a pass/fail decided by section order rather than
+   by the thing under test. */
 ok("the legend precedes the chart in the DOM",
-   run(`(function(){const card=document.querySelector('.legend1').parentElement;
+   run(`(function(){
+     const card=[...document.querySelectorAll('.card')]
+       .find(c=>c.querySelector('.legend1') && c.querySelector('[data-zoom]'));
+     if(!card) return false;
      const kids=[...card.children];
      return kids.indexOf(card.querySelector('.legend1')) < kids.indexOf(card.querySelector('[data-zoom]'));})()`),
    "legend before chart");
