@@ -1,5 +1,35 @@
 # ShowUp — changelog
 
+## v3.3.132 (2026-07-28) — Every week, read at a glance
+
+**A Strava chart the maker admired for being minimal, taken apart for what
+made it readable.** Not its features — its restraint. Four things it does:
+month names at boundaries instead of a label per point, two y-ticks instead
+of a ladder, exactly one emphasised point carrying the only number on the
+plot, everything else just shape. Every week now does the same, all by
+subtraction:
+
+- **Month names at the boundary**, not a week number under every bar. MAY ·
+  JUN · JUL where the month turns — our own heatmap's convention, derived
+  from the Sunday key each bar already has, not imported from Strava.
+- **One number on the whole chart:** this week, bold, on the accent bar. The
+  fifteen past bars lose their value labels. You were never reading them; you
+  were reading the shape, and now the shape is all that is there.
+- **Y-axis is 0 and the peak.** Nothing between.
+- **Past bars dim to accent-dim**, so this week is the one thing lit.
+
+**Kept, against Strava: the dashed average line.** Strava shows a peak to
+celebrate; the average shows a baseline to measure against. "This week versus
+my own normal" is a days-over-volume question, and the baseline is what
+answers it. Bars stayed too — a line gliding between points hides a zero-km
+week, and in an attendance record an empty week is not noise, it is the
+fact.
+
+`weekNum()` went with the per-week labels; nothing else read the sheet's week
+number. New test-everyweek.js checks the subtraction held: exactly one bar
+keeps a number, month names land where months actually turn, and the average
+line survives.
+
 ## v3.3.131 (2026-07-28) — The i finds its middle
 
 **Two verdicts in one day, both right.** The v3.3.130 filled disc shouted;

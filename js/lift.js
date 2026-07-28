@@ -595,7 +595,8 @@ function runStreak(days){
 const weekOf=iso=>{const [y,m,dd]=iso.split('-').map(Number);
   const dt=new Date(y,m-1,dd); dt.setDate(dt.getDate()-dt.getDay());   // Sunday start, like the sheet
   return dt.toLocaleDateString('en-CA');};
-const weekNum=sunISO=>Math.ceil(doy(sunISO)/7);                        // the sheet's Week Num
+// v3.3.132: weekNum removed — Every week labels by month boundary now, and
+// nothing else read the sheet's week number.
 
 function runStatsHTML(){
   const days=runDays();
@@ -673,22 +674,45 @@ function runStatsHTML(){
   const wkMax=Math.max(...wks.map(w=>wkBy[w]||0),1);
   const wkAvg=wks.filter(w=>w!==thisWk).reduce((a,w)=>a+(wkBy[w]||0),0)/Math.max(1,wks.length-1);
   cut('goal');
-  h+=`<h2>Every week${hActs('eweek',"Distance per week — the dashed line is your average. The last bar is still filling.")}</h2><div class="card">
+  /* v3.3.132: restyled toward the Strava "This week" read — the value the
+     maker admired for being minimal. FOUR moves, all subtraction:
+       1. month names at boundaries, not a label per week (our own heatmap
+          convention, not Strava's — MAY · JUN · JUL where the month turns)
+       2. exactly ONE data label: this week, on the accent bar. Past bars
+          lose their numbers entirely. Shape, not a lookup table.
+       3. y-axis is 0 and peak, nothing between.
+       4. bars stay. A line glides over a zero-km week; a bar leaves a gap,
+          and absence is data in an attendance record.
+     KEPT, against Strava: the dashed average line. "This week vs my own
+     normal" is a days-over-volume question; a baseline answers it, a peak
+     does not. */
+  h+=`<h2>Every week${hActs('eweek',"Distance per week — the dashed line is your average, the filled bar is this week.")}</h2><div class="card">
       <div class="zoom" data-zoom><svg viewBox="0 0 330 118" style="width:100%;height:auto">`;
+  // y-axis: 0 and peak only
+  h+=`<text x="319" y="16" font-family="var(--mono)" font-size="7" fill="var(--muted)">${Math.round(wkMax)}</text>
+      <text x="319" y="96" font-family="var(--mono)" font-size="7" fill="var(--muted)">0</text>`;
   if(wkAvg){
     const ay=94-wkAvg/wkMax*80;
-    h+=`<line x1="8" y1="${ay.toFixed(1)}" x2="316" y2="${ay.toFixed(1)}" stroke="var(--line)" stroke-width="0.6" stroke-dasharray="2 3"></line>
-        <text x="319" y="${(ay+2.5).toFixed(1)}" font-family="var(--mono)" font-size="7" fill="var(--muted)">${Math.round(wkAvg)}</text>`;
+    h+=`<line x1="8" y1="${ay.toFixed(1)}" x2="308" y2="${ay.toFixed(1)}" stroke="var(--line)" stroke-width="0.6" stroke-dasharray="2 3"></line>
+        <text x="308" y="${(ay-3).toFixed(1)}" text-anchor="end" font-family="var(--mono)" font-size="7" fill="var(--muted)">avg ${Math.round(wkAvg)}</text>`;
   }
   const bw=Math.min(17,(300/wks.length)-2), gap=300/wks.length;
+  let lastMonth=-1;
   wks.forEach((w,i)=>{
     const cur=w===thisWk, v=wkBy[w]||0;
     const bh=Math.max(2,v/wkMax*80), x=8+i*gap;
-    h+=`<rect class="gbar" x="${x.toFixed(1)}" y="${(94-bh).toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="3" fill="var(--accent)" opacity="${cur?1:.55}"></rect>
-        <text x="${(x+bw/2).toFixed(1)}" y="${(91-bh).toFixed(1)}" text-anchor="middle" font-family="var(--mono)" font-size="6.5" fill="var(--muted)">${Math.round(v)}</text>
-        <text x="${(x+bw/2).toFixed(1)}" y="107" text-anchor="middle" font-family="var(--mono)" font-size="6.5" fill="${cur?'var(--accent)':'var(--muted)'}">${weekNum(w)}</text>`;
+    h+=`<rect class="gbar" x="${x.toFixed(1)}" y="${(94-bh).toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="3" fill="${cur?'var(--accent)':'var(--accent-dim)'}" opacity="${cur?1:.5}"></rect>`;
+    // only this week carries a number — everything else is shape
+    if(cur) h+=`<text x="${(x+bw/2).toFixed(1)}" y="${(91-bh).toFixed(1)}" text-anchor="middle" font-family="var(--mono)" font-size="8" font-weight="700" fill="var(--accent)">${Math.round(v)}</text>`;
+    // month label at the boundary — first bar of a new month, using the Sunday key
+    const mth=new Date(w+'T00:00').getMonth();
+    if(mth!==lastMonth){
+      lastMonth=mth;
+      const name=new Date(w+'T00:00').toLocaleDateString('en-US',{month:'short'}).toUpperCase();
+      h+=`<text x="${x.toFixed(1)}" y="107" font-family="var(--mono)" font-size="7" fill="var(--muted)">${name}</text>`;
+    }
   });
-  h+=`</svg></div><div class="tot"><span><b>${(wkBy[thisWk]||0).toFixed(1)} ${DU()}</b> this week (wk ${weekNum(thisWk)})</span>
+  h+=`</svg></div><div class="tot"><span><b>${(wkBy[thisWk]||0).toFixed(1)} ${DU()}</b> this week</span>
       <span>16-week avg ${wkAvg.toFixed(1)} ${DU()}</span></div></div>`;
 
   /* --- year over year, cumulative distance --- */
