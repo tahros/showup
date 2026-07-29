@@ -1,5 +1,49 @@
 # ShowUp — changelog
 
+## v3.3.139 (2026-07-29) — Swipe the cards, save the set
+
+**Swipe anywhere on the report card, and anywhere on the share image.** The
+arrows still work; they are no longer the only way. One gesture reader serves
+both surfaces and both call the same `repRotate`, so there is still exactly
+one place that knows how to advance a card.
+
+A swipe commits only on horizontal INTENT — at least 44px, and at least 1.5x
+more sideways than vertical. Both surfaces sit inside a page you scroll
+vertically, and a carousel that rotates while you are trying to scroll past
+it would be worse than one with no swipe at all. Pointer events rather than
+touch, so a trackpad drag works the same way.
+
+**The line that makes it work is in the tab-swipe blocklist.** `#repCard`
+joins `[data-zoom]` and the other strips that own their own horizontal axis.
+Without it every card swipe would also change tab — the single most likely
+way this feature could have shipped broken.
+
+**The arrows moved to the vertical midline**, absolutely positioned against
+the card, flanking the preview where your thumb already is. The title
+reclaims the full width.
+
+**Overlay swipe keeps `_repCv` in step with what is on screen.** If it did
+not, Share would send the card you were looking at BEFORE the swipe — which
+looks completely fine right up until the wrong image lands in someone's
+chat. The carousel underneath follows too, so closing the overlay leaves you
+where you were. Swipe is gated on the overlay having been opened from the
+carousel: the milestone card is drawn outside the registry, and swiping there
+would teleport "day 900" to an unrelated chart.
+
+**Save all N** draws every registered card and hands the whole set to the
+share sheet in one call, where iOS "Save Images" writes them to the camera
+roll together. Stated plainly because it is a real limit: a PWA cannot write
+to the camera roll directly — there is no API — so one share sheet with every
+image is the honest best. Desktop falls back to spaced sequential downloads.
+The count comes from the registry, so someone who has never run is offered
+five, not eight.
+
+Gesture code is the least jsdom-verifiable thing in this app — the thresholds
+can only really be judged with a thumb. The test covers what IS decidable:
+that horizontal fires and vertical does not, that a twitch does not, that the
+blocklist entry exists, and that the label `_repCv` carries always matches
+the card being displayed.
+
 ## v3.3.138 (2026-07-29) — One rhythm down the column
 
 **`.lastcard` sat 26px below the card above it; every `.zone` sits at 14px.**

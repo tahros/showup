@@ -49,6 +49,7 @@
                    t.closest('input')||t.closest('.settile')||
                    t.closest('.ychips')||      // v3.3.39: History's year strip scrolls sideways
                    t.closest('.pmixwrap')||   // v3.3.116: part mix scrolls sideways
+                   t.closest('#repCard')||    // v3.3.139: the card carousel owns its own left/right
                    t.closest('.compscroll');   // sideways-scrolling chart owns its axis
   addEventListener('touchstart',e=>{
     if(e.touches.length!==1||view==='sync') return;

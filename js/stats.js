@@ -576,6 +576,7 @@ function renderStats(){
         <div class="repthumbwrap"><img id="repThumb" alt="" class="repthumb"></div>
         <div class="note repdots" id="repDots"></div>
         <button class="btn" id="repShare">Share as image</button>
+        <button class="btn ghost" id="repAll" style="margin:8px 0 0">Save all ${shareCards().length}</button>
       </div>`;
   cut('rep');
   // sections emit in one declared order (v3.3.111)

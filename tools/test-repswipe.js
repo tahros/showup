@@ -1,0 +1,158 @@
+// test-repswipe.js DIR — v3.3.139: swipe the carousel, swipe the overlay,
+// save the set.
+//
+// Gesture code is the least verifiable thing in this app: jsdom has no
+// layout and no real pointer stack, so the thresholds themselves can only be
+// proven on a phone. What CAN be proven here is the decision logic — that a
+// horizontal drag commits, a vertical one does not, a short one does not —
+// and the integration facts that would silently break things: the card being
+// in the tab-swipe blocklist, and _repCv following what is on screen so
+// Share sends the card you are looking at.
+const { JSDOM } = require("jsdom");
+const fs = require("fs"), path = require("path"), vm = require("vm");
+const dir = process.argv[2] || ".";
+
+const html = fs.readFileSync(path.join(dir, "index.html"), "utf8");
+const order = [...html.matchAll(/src="(js\/[^?"]+)\?v=/g)].map(m => m[1]);
+const dom = new JSDOM(html.replace(/<script[^>]*src=[^>]*><\/script>/g, ""), {
+  url: "https://tahros.github.io/showup/", runScripts: "outside-only", pretendToBeVisual: true });
+const w = dom.window, ctx = dom.getInternalVMContext();
+w.fetch = () => Promise.reject(new Error("offline"));
+w.matchMedia = w.matchMedia || (() => ({ matches:false, addEventListener(){}, removeEventListener(){}, addListener(){} }));
+w.navigator.vibrate = () => {}; w.scrollTo = () => {};
+w.performance = w.performance || { now: () => Date.now() };
+w.HTMLCanvasElement.prototype.getContext = function(){ return new Proxy({ measureText: () => ({ width: 10 }) },
+  { get: (o,k) => k in o ? o[k] : () => ({}), set: () => true }); };
+w.HTMLCanvasElement.prototype.toDataURL = () => "data:image/png;base64,AA";
+w.HTMLCanvasElement.prototype.toBlob = function(cb){ cb(new w.Blob(["x"], { type: "image/png" })); };
+w.Element.prototype.setPointerCapture = function(){};
+w.Element.prototype.releasePointerCapture = function(){};
+// jsdom has no PointerEvent; MouseEvent carries the fields the binder reads
+if (!w.PointerEvent) w.PointerEvent = class extends w.MouseEvent {
+  constructor(t, o = {}) { super(t, o); this.pointerId = o.pointerId || 1; this.pointerType = o.pointerType || "touch"; }
+};
+
+for (const s of order) vm.runInContext(fs.readFileSync(path.join(dir, s), "utf8"), ctx, { filename: s });
+w.document.dispatchEvent(new w.Event("DOMContentLoaded", { bubbles: true }));
+const run = c => vm.runInContext(c, ctx);
+
+let fail = 0;
+const ok = (name, cond, extra) => {
+  console.log((cond ? "PASS" : "FAIL"), name, extra === undefined ? "" : "\u2192 " + extra);
+  if (!cond) fail++;
+};
+
+run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
+  for(let i=0;i<400;i++){
+    const d=new Date(t); d.setDate(d.getDate()-i);
+    const iso=d.toLocaleDateString('en-CA');
+    if(i%4===0) continue;
+    DB.days[iso]={w:[{part:'Chest',ex:'Chest Press',w:40,reps:[10],at:1},
+                     {part:'Run',ex:'Run',w:4,reps:[],mins:26,secs:0,at:2}],upd:1};
+  }
+  SEED=deriveAll(); view='stats'; render();})()`);
+
+// drag helper: down at (x0,y0), up at (x0+dx, y0+dy)
+const drag = (sel, dx, dy) => run(`(function(){
+  const el=document.querySelector(${JSON.stringify(sel)}); if(!el) return false;
+  el.dispatchEvent(new PointerEvent('pointerdown',{pointerId:1,clientX:200,clientY:300,bubbles:true,button:0}));
+  el.dispatchEvent(new PointerEvent('pointerup',{pointerId:1,clientX:${200}+(${dx}),clientY:${300}+(${dy}),bubbles:true,button:0}));
+  return true;})()`);
+const idx = () => run(`_repIdx`);
+const title = () => run(`document.getElementById('repTtl').textContent`);
+
+// ---- 1. the carousel exists and swipe is bound ---------------------------
+ok("the report card renders", run(`!!document.getElementById('repCard')`));
+ok("swipe is bound to the card", run(`!!document.getElementById('repCard')._swipeBound`));
+
+// ---- 2. horizontal drag rotates, in the natural direction ---------------
+run(`_repIdx=0; paintRepCard();`);
+const n = run(`shareCards().length`);
+drag("#repCard", -120, 4);
+ok("dragging LEFT advances to the next card", idx() === 1, "idx " + idx());
+drag("#repCard", 120, -4);
+ok("dragging RIGHT goes back", idx() === 0, "idx " + idx());
+
+// ---- 3. the decisions that stop it firing by accident -------------------
+run(`_repIdx=0;`);
+drag("#repCard", -20, 0);
+ok("a short drag is a twitch, not a swipe", idx() === 0, "idx " + idx());
+drag("#repCard", -60, 200);
+ok("a mostly-vertical drag is a scroll, not a swipe", idx() === 0, "idx " + idx());
+drag("#repCard", -300, 10);
+ok("a decisive horizontal drag still fires", idx() === 1, "idx " + idx());
+
+// ---- 4. wrapping still holds through the gesture ------------------------
+run(`_repIdx=${'0'};`);
+drag("#repCard", 120, 0);
+ok("swiping back from the first card wraps to the last", idx() === n - 1, idx() + "/" + n);
+run(`_repIdx=0;`);
+
+// ---- 5. the arrows still work, and are centred --------------------------
+run(`document.getElementById('repNext').click();`);
+ok("the next arrow still rotates", idx() === 1, "idx " + idx());
+run(`document.getElementById('repPrev').click();`);
+ok("the prev arrow still rotates", idx() === 0, "idx " + idx());
+const css = fs.readFileSync(path.join(dir, "css/app.css"), "utf8");
+const repar = (css.match(/\.repar\{[^}]*\}/) || [""])[0];
+ok("the arrows are absolutely positioned", /position:absolute/.test(repar), repar.slice(0, 50));
+ok("...at the vertical midline", /top:50%/.test(repar) && /translateY\(-50%\)/.test(repar));
+ok("...with the card as their positioning context",
+   /\.repcard\{[^}]*position:relative/.test(css));
+ok("...one on each edge", /#repPrev\{left:/.test(css) && /#repNext\{right:/.test(css));
+
+// ---- 6. THE INTEGRATION FACT: the card owns its own horizontal axis -----
+/* without this the tab-swipe gesture fires too and every card swipe also
+   changes tab — the single most likely way this feature breaks */
+ok("the card is in the tab-swipe blocklist",
+   /closest\('#repCard'\)/.test(fs.readFileSync(path.join(dir, "js/util.js"), "utf8")));
+
+// ---- 7. overlay swipe, and the card it would SHARE ----------------------
+run(`_repIdx=0; document.getElementById('repShare').click();`);
+const label0 = run(`_repCv&&_repCv.label`);
+ok("opening the overlay records the card on screen", !!label0, String(label0));
+ok("...and marks it as carousel-opened", run(`_repFromCarousel`) === true);
+ok("swipe is bound to the overlay image", run(`!!document.getElementById('repImg')._swipeBound`));
+
+run(`ovRotate(1)`);
+// ovRotate is async; settle the microtask queue
+run(`Promise.resolve()`);
+setTimeout(() => {
+  const label1 = run(`_repCv&&_repCv.label`);
+  ok("swiping the overlay changes the card it would share", label1 !== label0,
+     label0 + " \u2192 " + label1);
+  ok("...and the label matches the index now shown",
+     label1 === run(`shareCards()[_repIdx].file()`), String(label1));
+  ok("...and the carousel underneath followed", title() === run(`shareCards()[_repIdx].label`),
+     title());
+
+  // ---- 8. the milestone overlay must NOT swipe -------------------------
+  run(`_repFromCarousel=false; _repIdx=0;`);
+  const before = run(`_repIdx`);
+  run(`ovRotate(1)`);
+  ok("a milestone overlay ignores swipes", run(`_repIdx`) === before,
+     "idx stayed " + run(`_repIdx`));
+
+  // ---- 9. save all ----------------------------------------------------
+  ok("the save-all button renders", run(`!!document.getElementById('repAll')`));
+  ok("...and counts the registry, not a hardcoded 8",
+     /Save all \d+/.test(run(`document.getElementById('repAll').textContent`)) &&
+     +run(`document.getElementById('repAll').textContent`).replace(/\D/g, "") === n,
+     run(`document.getElementById('repAll').textContent`) + " vs " + n + " cards");
+
+  run(`globalThis.__shared=null;
+       navigator.canShare=()=>true;
+       navigator.share=o=>{ globalThis.__shared=o.files.map(f=>f.name); return Promise.resolve(); };`);
+  run(`saveAllCards()`);
+  setTimeout(() => {
+    const shared = run(`globalThis.__shared`);
+    ok("save-all hands every card to the share sheet at once",
+       Array.isArray(shared) && shared.length === n, (shared || []).length + "/" + n);
+    if (Array.isArray(shared)) {
+      ok("...each with its own filename", new Set(shared).size === shared.length, shared.join(" "));
+      ok("...all named for ShowUp", shared.every(s => /^showup-.+\.png$/.test(s)), shared[0]);
+    }
+    console.log(fail ? "\n" + fail + " FAILED" : "\nALL PASS");
+    process.exit(fail ? 1 : 0);
+  }, 120);
+}, 60);

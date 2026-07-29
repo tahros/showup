@@ -247,7 +247,7 @@ function repOvEl(){
   if(ov) return ov;
   ov=document.createElement('div'); ov.id='repOv';
   ov.style.cssText='position:fixed;inset:0;background:rgba(20,22,26,.78);z-index:90;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px;font-family:var(--body)';   // v3.3.46: overlay lives on <body>, outside #app — set the family or the buttons fall back to the OS font
-  ov.innerHTML=`<img id="repImg" style="max-width:min(88vw,420px);border-radius:14px;box-shadow:0 18px 60px rgba(0,0,0,.45)">
+  ov.innerHTML=`<img id="repImg" draggable="false" style="max-width:min(88vw,420px);border-radius:14px;box-shadow:0 18px 60px rgba(0,0,0,.45);touch-action:pan-y;user-select:none;-webkit-user-drag:none">
     <div style="display:flex;gap:10px">
       <button class="btn" id="repDo" style="margin:0">Share</button>
       <button class="btn ghost" id="repClose" style="margin:0">Close</button>
@@ -651,15 +651,89 @@ function drawHeat(o){
   }));
   return cv;
 }
-async function showCard(drawFn,label){
+async function showCard(drawFn,label,fromCarousel){
   try{
     if(document.fonts&&document.fonts.ready) await document.fonts.ready;
     const cv=drawFn();
     if(!cv){ toast('Canvas unavailable on this device'); return; }
     _repCv={cv,label};
+    /* v3.3.139: swiping the overlay only makes sense when it was opened FROM
+       the carousel. The milestone card is drawn outside the registry, so a
+       swipe there would teleport you from "day 900" to an unrelated chart. */
+    _repFromCarousel=!!fromCarousel;
     repOvEl().style.display='flex';
     document.getElementById('repImg').src=cv.toDataURL('image/png');
+    bindOvSwipe();
   }catch(e){ toast('Could not draw the image'); }
+}
+let _repFromCarousel=false;
+/* redraw the overlay in place, and keep the carousel underneath in step so
+   closing lands you where you left off */
+async function ovRotate(step){
+  if(!_repFromCarousel) return;
+  const L=shareCards();
+  if(!L.length) return;
+  _repIdx=((_repIdx+step)%L.length+L.length)%L.length;
+  const card=L[_repIdx];
+  try{
+    if(document.fonts&&document.fonts.ready) await document.fonts.ready;
+    const cv=card.draw();
+    if(!cv) return;
+    /* _repCv MUST follow what is on screen. If it does not, Share sends the
+       card you were looking at BEFORE the swipe — which looks like nothing
+       is wrong until the image lands in someone's chat. */
+    _repCv={cv,label:card.file()};
+    const img=document.getElementById('repImg');
+    if(img) img.src=cv.toDataURL('image/png');
+    paintRepCard();
+  }catch(e){ /* leave the overlay on the card it already has */ }
+}
+/* v3.3.139: every card, one gesture. A PWA cannot write to the Camera Roll
+   directly — there is no API for it — so the honest best is to hand iOS all
+   the images in a single share sheet, where "Save Images" writes the set in
+   one tap. Desktop has no share sheet for files, so it falls back to
+   sequential downloads, spaced so the browser does not treat the burst as a
+   popup storm. */
+async function saveAllCards(){
+  const btn=document.getElementById('repAll');
+  const L=shareCards();
+  if(!L.length) return;
+  const was=btn?btn.textContent:'';
+  if(btn){ btn.disabled=true; btn.textContent='Drawing '+L.length+'\u2026'; }
+  try{
+    if(document.fonts&&document.fonts.ready) await document.fonts.ready;
+    const files=[];
+    for(const c of L){
+      const cv=c.draw();
+      if(!cv) continue;
+      const blob=await new Promise(res=>cv.toBlob(res,'image/png'));
+      if(!blob) continue;
+      files.push(new File([blob],'showup-'+String(c.file()).toLowerCase().replace(/[^a-z0-9]+/g,'-')+'.png',{type:'image/png'}));
+    }
+    if(!files.length){ toast('Could not draw the cards'); return; }
+    if(navigator.canShare&&navigator.canShare({files})){
+      await navigator.share({files});
+    }else{
+      // one at a time, or the browser blocks the burst
+      for(const f of files){
+        const a=document.createElement('a');
+        a.href=URL.createObjectURL(f); a.download=f.name; a.click();
+        setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+        await new Promise(r=>setTimeout(r,300));
+      }
+      toast(files.length+' cards saved');
+    }
+  }catch(e){
+    if(!e||e.name!=='AbortError') toast('Could not save the cards');   // AbortError = you closed the sheet
+  }finally{
+    if(btn){ btn.disabled=false; btn.textContent=was; }
+  }
+}
+function bindOvSwipe(){
+  /* bound to the IMAGE, not the overlay: a drag that starts on Share or
+     Close should press that button, not rotate the card behind it */
+  const img=document.getElementById('repImg');
+  if(img) bindSwipe(img,step=>ovRotate(step));
 }
 /* v3.3.130: makeGridImage/makeYoyImage/makeRunYoyImage deleted — their
    draws are rows in shareCards() now. makeMilestoneImage stays: the
@@ -668,6 +742,37 @@ async function showCard(drawFn,label){
    card you rotated to survives a Stats re-render (logging a set re-renders
    the tab, and snapping back to card 1 every time would make rotation
    feel broken rather than stateful). */
+/* v3.3.139: one gesture reader, used by the carousel and by the overlay.
+   Commits only on horizontal INTENT — a long enough drag that is also
+   decisively more sideways than vertical — because both surfaces sit inside
+   a page you scroll vertically, and a carousel that rotates while you are
+   trying to scroll past it is worse than one with no swipe at all.
+   Pointer events, not touch: the same code then works with a trackpad drag
+   and a mouse, and pointer capture keeps the gesture alive if the finger
+   leaves the element mid-drag. */
+const SWIPE_MIN=44, SWIPE_RATIO=1.5;
+function bindSwipe(el,onSwipe){
+  if(!el||el._swipeBound) return;
+  el._swipeBound=true;
+  let x0=0,y0=0,id=null;
+  el.addEventListener('pointerdown',e=>{
+    if(e.pointerType==='mouse'&&e.button!==0) return;
+    id=e.pointerId; x0=e.clientX; y0=e.clientY;
+  });
+  const end=e=>{
+    if(id===null||e.pointerId!==id) return;
+    id=null;
+    const dx=e.clientX-x0, dy=e.clientY-y0;
+    if(Math.abs(dx)<SWIPE_MIN) return;             // a twitch, not a swipe
+    if(Math.abs(dx)<Math.abs(dy)*SWIPE_RATIO) return;   // that was a scroll
+    onSwipe(dx<0?1:-1);                            // drag left = next card
+  };
+  el.addEventListener('pointerup',end);
+  el.addEventListener('pointercancel',()=>{id=null;});
+}
+function bindRepSwipe(){
+  bindSwipe(document.getElementById('repCard'),step=>repRotate(step));
+}
 let _repIdx=0;
 function repCardAt(){
   const L=shareCards();
@@ -678,6 +783,7 @@ function repCardAt(){
 async function paintRepCard(){
   const box=document.getElementById('repCard');
   if(!box) return;
+  bindRepSwipe();   // v3.3.139: idempotent — the card is rebuilt on every Stats render
   const at=repCardAt();
   if(!at) return;
   const ttl=document.getElementById('repTtl');
@@ -704,11 +810,12 @@ document.addEventListener('click',e=>{
   /* v3.3.72: closest(), not e.target.id — a button that gains a child at
      runtime silently stops responding (the v3.3.58 lesson, in the gym). */
   const hit=id=>!!(e.target.closest&&e.target.closest('#'+id));
+  if(hit('repAll')){ saveAllCards(); return; }
   if(hit('repPrev')){ repRotate(-1); return; }
   if(hit('repNext')){ repRotate(1); return; }
   if(hit('repShare')){
     const at=repCardAt();
-    if(at) showCard(at.card.draw, at.card.file());
+    if(at) showCard(at.card.draw, at.card.file(), true);   // v3.3.139: swipeable
     return;
   }
   if(hit('repClose')){ repOvEl().style.display='none'; return; }
