@@ -209,6 +209,20 @@ if len(_margins) == 2 and len(set(_margins.values())) != 1:
     fail.append("card rhythm: " + ", ".join(f".{k}={v}px" for k, v in _margins.items())
                 + " — stacked cards must share one margin (v3.3.138)")
 
+# -- modal gesture isolation (v3.3.140): overlays mounted on <body> sit
+#    OUTSIDE #app, so the global touch gestures (tab-swipe, pull-to-refresh)
+#    track them unless explicitly blocked. That shipped as a real bug: the
+#    share overlay rotated its card AND changed tab underneath. Any
+#    position:fixed;inset:0 overlay is a modal by definition, so every one of
+#    them must appear in both blocklists. Catches the NEXT one, not this one.
+_util = (d/"js/util.js").read_text()
+for _m in _re.finditer(r"#([A-Za-z][\w-]*)\{[^}]*position:fixed[^}]*inset:0[^}]*\}", css):
+    _id = _m.group(1)
+    _hits = _util.count("#" + _id)
+    if _hits < 2:
+        fail.append(f"modal #{_id} is position:fixed;inset:0 but appears in "
+                    f"{_hits} of the 2 gesture blocklists in util.js (v3.3.140)")
+
 # -- shell size
 n = len(idx.encode())
 if n >= 8192: fail.append(f"index.html shell is {n} bytes (limit 8192)")

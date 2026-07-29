@@ -107,6 +107,42 @@ ok("...one on each edge", /#repPrev\{left:/.test(css) && /#repNext\{right:/.test
 ok("the card is in the tab-swipe blocklist",
    /closest\('#repCard'\)/.test(fs.readFileSync(path.join(dir, "js/util.js"), "utf8")));
 
+/* ---- 6a. v3.3.140: and the OVERLAY does too -----------------------------
+   The v3.3.139 check above passed while the popup was broken, because it
+   asserted a selector existed in the source rather than that the page stayed
+   put. Worse, the drag helper dispatches PointerEvents and the tab gesture
+   listens for TouchEvents — so the tab-swipe never even ran in this suite.
+   These fire real touch events and assert the view does not move. */
+const touchSwipe = sel => run(`(function(){
+  const el=document.querySelector(${JSON.stringify(sel)}); if(!el) return 'no el';
+  const mk=(t,x)=>{ const ev=new Event(t,{bubbles:true,cancelable:true});
+    ev.touches=t==='touchend'?[]:[{clientX:x,clientY:300}];
+    ev.changedTouches=[{clientX:x,clientY:300}];
+    return ev; };
+  el.dispatchEvent(mk('touchstart',300));
+  el.dispatchEvent(mk('touchmove',120));
+  el.dispatchEvent(mk('touchend',120));
+  return view;})()`);
+
+run(`view='stats'; render(); _repIdx=0;`);
+run(`document.getElementById('repShare').click();`);
+const viewAfterOv = touchSwipe("#repImg");
+ok("a touch-swipe on the share image does NOT change tab",
+   viewAfterOv === "stats", "view = " + viewAfterOv);
+const viewAfterBackdrop = touchSwipe("#repOv");
+ok("...nor does one on the overlay backdrop",
+   viewAfterBackdrop === "stats", "view = " + viewAfterBackdrop);
+run(`document.getElementById('repOv').style.display='none';`);
+
+ok("every full-screen modal is inert to the tab-swipe", (() => {
+  const u = fs.readFileSync(path.join(dir, "js/util.js"), "utf8");
+  return ["#repOv", "#onb", "#msOv"].every(id => u.includes(id));
+})());
+ok("...and to pull-to-refresh", (() => {
+  const u = fs.readFileSync(path.join(dir, "js/util.js"), "utf8");
+  return (u.match(/#repOv/g) || []).length >= 2;
+})());
+
 // ---- 7. overlay swipe, and the card it would SHARE ----------------------
 run(`_repIdx=0; document.getElementById('repShare').click();`);
 const label0 = run(`_repCv&&_repCv.label`);

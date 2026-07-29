@@ -44,12 +44,21 @@
 (()=>{
   const TABS=['today','lift','stats','history'];
   let sx=0, sy=0, tracking=false, decided=false, horiz=false, popMode=false;
+  /* v3.3.140: modals mounted on <body>, OUTSIDE #app. This gesture listens
+     globally, so a swipe inside an open overlay was tracked here in parallel
+     with the overlay's own handler — the share image rotated AND the page
+     changed tab underneath it. Each is position:fixed;inset:0, so while one
+     is open every touch lands inside it and closest() catches the lot,
+     including drags starting on its buttons. Nothing inside a modal should
+     ever move the page beneath it. */
+  const MODALS='#repOv,#onb,#msOv,#portraitveil';
   const blocked=t=>t.closest('[data-zoom]')||t.closest('.zone.mini .lastsets')||
                    t.closest('.heat')||t.closest('.heatcols')||   // the rail scrolls too
                    t.closest('input')||t.closest('.settile')||
                    t.closest('.ychips')||      // v3.3.39: History's year strip scrolls sideways
                    t.closest('.pmixwrap')||   // v3.3.116: part mix scrolls sideways
                    t.closest('#repCard')||    // v3.3.139: the card carousel owns its own left/right
+                   t.closest(MODALS)||        // v3.3.140: and nothing under a modal moves
                    t.closest('.compscroll');   // sideways-scrolling chart owns its axis
   addEventListener('touchstart',e=>{
     if(e.touches.length!==1||view==='sync') return;
@@ -129,7 +138,9 @@
   addEventListener('touchstart',e=>{
     if(fired) return;
     if(scrollY>0){y0=null;return;}
-    if(e.target.closest('[data-zoom]')){y0=null;return;}
+    // v3.3.140: same hole as the tab-swipe had — dragging DOWN on an open
+    // overlay would pull-to-refresh the page behind it
+    if(e.target.closest('[data-zoom]')||e.target.closest('#repOv,#onb,#msOv,#portraitveil')){y0=null;return;}
     y0=e.touches[0].clientY; pulling=false; dist=0;
   },{passive:true});
   addEventListener('touchmove',e=>{

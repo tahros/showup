@@ -1,5 +1,38 @@
 # ShowUp — changelog
 
+## v3.3.140 (2026-07-29) — Nothing under a modal moves
+
+**The share overlay rotated its card AND changed tab underneath it.** The
+tab-swipe listens globally and consults a blocklist; v3.3.139 added
+`#repCard` to it, but the overlay is `#repOv`, mounted on `<body>` outside
+`#app` since v3.3.46 so its dim layer can cover the chrome. So a touch on the
+share image passed the blocklist, the tab gesture tracked it in parallel with
+the overlay's own handler, and both fired.
+
+Fixed for the whole class rather than the one instance. Every
+`position:fixed;inset:0` overlay is a modal by definition, and while one is
+open every touch lands inside it — so one selector list covers the image, the
+buttons and the backdrop. The same hole existed in pull-to-refresh, where a
+downward drag on an open overlay would refresh the page behind it; closed in
+the same pass.
+
+**A buildcheck guard now enumerates modals from the stylesheet** and fails
+the build if one is missing from either blocklist. It immediately found a
+fourth nobody had considered: `#portraitveil`, the landscape "rotate your
+phone" screen at z-index 999. Swiping while it showed changed tabs invisibly
+behind it. That is the guard earning its place on the first run.
+
+**Why the tests missed it, which matters more than the bug.** The v3.3.139
+assertion checked that the string `#repCard` appeared in the blocklist — an
+artifact, not a behaviour — and passed while the popup was broken. Worse, the
+drag helper dispatches PointerEvents while the tab gesture listens for
+TouchEvents, so the gesture under test never ran at all. The suite now fires
+real touch events at the open overlay and asserts `view` does not change.
+Verified by reverting the fix and watching it report `view = history`, then
+re-applying. Second time in three releases that a passing assertion was
+measuring the wrong thing; the pattern is asserting the artifact instead of
+the effect.
+
 ## v3.3.139 (2026-07-29) — Swipe the cards, save the set
 
 **Swipe anywhere on the report card, and anywhere on the share image.** The
