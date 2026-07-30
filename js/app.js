@@ -113,12 +113,8 @@ document.addEventListener('click',e=>{
     toast(`Workout complete — ${m.w.length} sets. Cool down 🔥`);
     return render();
   }
-  const sx=e.target.closest('[data-sugx]');
-  if(sx&&lift.ex){
-    const m=dayMeta();
-    m.sugX[lift.ex]=[...(m.sugX[lift.ex]||[]),sx.dataset.sugx];
-    save();return renderLift();
-  }
+  // v3.3.141: chip dismissal removed with the Suggested zone. dayMeta().sugX
+  // stays defined — old days carry the key and the merge in core.js reads it.
   if(e.target.closest('#settingsBtn')||e.target.closest('#gearBtn')){
     if(view==='sync'){ view=prevView||'today'; }
     else { prevView=view; view='sync'; }
@@ -255,16 +251,9 @@ document.addEventListener('click',e=>{
   if(hm){ hist.m=+hm.dataset.histm; return renderHistory(); }
   const hp=e.target.closest('[data-histp]');
   if(hp){ const v=hp.dataset.histp; hist.part=(v&&v!==hist.part)?v:null; return renderHistory(); }
-  if(e.target.closest('#infoBtn')){ lift.info=!lift.info; return renderLift(); }
-  if(e.target.closest('#toggleSuggest')){
-    const cur = lift.suggestOpen==null ? day(todayISO).w.some(s=>s.ex===lift.ex)===false : lift.suggestOpen;
-    lift.suggestOpen=!cur; return renderLift();
-  }
-  if(e.target.closest('#copySets')){
-    const ls2=suggestedFor(lift.ex);
-    lift.copy={mode:'suggestion', sets:ls2?[...ls2.sets]:[], d:ls2?.d||null};
-    return renderLift();
-  }
+  // v3.3.141: #infoBtn, #toggleSuggest and #copySets all belonged to the
+  // Suggested zone and went with it. (#toggleSuggest had been dead markup
+  // for some time — no element carried that id.)
   if(e.target.closest('#moveToday')){
     touchToday();
     lift.copy={mode:'today',
@@ -319,24 +308,8 @@ document.addEventListener('click',e=>{
     renderHeader();
     return renderLift();
   }
-  if(e.target.closest('#repeatAll')){
-    const ls=suggestedFor(lift.ex);
-    const dis=new Set(dayMeta().sugX[lift.ex]||[]);
-    const mine=t.w.filter(s=>s.ex===lift.ex);
-    const lastToday=mine.length?mine[mine.length-1]:null;
-    let pool=[];
-    if(lastToday&&lastToday.reps&&lastToday.reps.length)
-      pool.push({w:lastToday.w,r:lastToday.reps[0],key:`now|${lastToday.w}|${lastToday.reps[0]}`});
-    (ls?ls.sets:[]).forEach((s,i)=>pool.push({w:s.w,r:s.r,key:`${s.w}|${s.r}|${i}`}));
-    const seenWR=new Set();
-    pool=pool.filter(c=>{const k=`${c.w}x${c.r}`;if(seenWR.has(k))return false;seenWR.add(k);return true;});
-    const chips=pool.filter(c=>!dis.has(c.key)).slice(0,6);
-    if(!chips.length) return;
-    snapshot(`logged ${chips.length} sets`);
-    chips.forEach(s=>t.w.push({part:lift.part,ex:lift.ex,w:s.w,reps:[s.r],at:Date.now()}));
-    reopen(lift.ex,lift.part);
-    save();renderHeader();toast(`${chips.length} sets logged`);return renderLift();
-  }
+  // v3.3.141: #repeatAll ("Log all N") was the Suggested zone's bulk action
+  //           and went with it.
   if(e.target.closest('[data-editbar]')){ lift.editBar=true; return renderLift(); }
   if(e.target.closest('[data-cancelbar]')){ lift.editBar=false; return renderLift(); }
   const sba=e.target.closest('[data-savebarall]');
@@ -486,9 +459,8 @@ function refreshLoad(){
       : `<span class="ll-text">${loadLine(lift.ex,kg)}</span>`;
   }
   refreshReps();   // v3.3.56: the rep tiles follow the weight, same funnel
-  refreshSug();    // v3.3.137: and so do the suggested chips — one funnel, so
-                   // the loadline, tiles and chips can never disagree about
-                   // what the current weight is
+  // v3.3.141: refreshSug went with the Suggested zone; refreshReps now
+  // carries the suggestion dot, so one call still covers everything.
 }
 
 /* ---------- pinch / wheel zoom for charts ---------- */

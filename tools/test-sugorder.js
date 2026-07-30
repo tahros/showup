@@ -1,11 +1,12 @@
-// test-sugorder.js DIR — v3.3.137: the suggested chips follow the weight.
+// test-sugorder.js DIR — v3.3.141: the suggestion DOT follows the weight.
 //
-// Driven through the real stepper, because the property that matters is not
-// "sugChips() sorts an array" but "tapping + reorders what is on screen
-// without rebuilding the card". The most important assertion here is the
-// NEGATIVE one: in the default state, where the weight already matches the
-// last logged set, nothing may move. A reorder feature that quietly changes
-// the opening screen would be a regression dressed as a feature.
+// v3.3.137 built a weight-following reorder for the Suggested chips. v3.3.141
+// deleted that whole section: it sat above "Logged today" showing chips that
+// looked identical to the records below, one a command and the other a
+// receipt. The guidance moved onto the rep tiles as a dot. The PROPERTIES
+// under test are the same ones the chips had — follows the weight, exact
+// match only, nothing marked when nothing matches — so the suite was
+// rewritten rather than deleted.
 const { JSDOM } = require("jsdom");
 const fs = require("fs"), path = require("path"), vm = require("vm");
 const dir = process.argv[2] || ".";
@@ -50,95 +51,70 @@ run(`(function(){
   lift={ex:${JSON.stringify(EX)},part:'Chest',weight:75};
   view='lift'; render();})()`);
 
-const chipWs = () => JSON.parse(run(
-  `JSON.stringify([...document.querySelectorAll('.lastsets .lastset')].map(b=>+b.dataset.repW))`));
-const chipPairs = () => JSON.parse(run(
-  `JSON.stringify([...document.querySelectorAll('.lastsets .lastset')].map(b=>b.dataset.repW+'x'+b.dataset.repR))`));
+const dotted = () => JSON.parse(run(
+  `JSON.stringify([...document.querySelectorAll('.repgrid button.sug')].map(b=>+b.dataset.rep))`));
+const tiles = () => JSON.parse(run(
+  `JSON.stringify([...document.querySelectorAll('.repgrid button')].map(b=>+b.dataset.rep))`));
 const setWv = v => run(`(function(){const el=document.getElementById('wv'); el.value=${v};
   el.dispatchEvent(new Event('input',{bubbles:true}));})()`);
 
-// ---- 1. the opening state matches the screenshot --------------------------
-const opening = chipPairs();
-ok("the chips render", opening.length > 0, opening.join(" "));
-ok("the just-logged 75x3 leads on open", opening[0] === "75x3", opening.join(" "));
-ok("...with the 50s behind it", opening.slice(1).every(p => p.startsWith("50")), opening.join(" "));
+// ---- 1. the Suggested zone is gone --------------------------------------
+ok("no Suggested zone renders", run(`!document.querySelector('.lastsets')`));
+ok("...and nothing says 'Suggested'", !/Suggested/.test(run(`$('#view').innerHTML`)));
+ok("...and its bulk actions went with it",
+   run(`!document.getElementById('repeatAll') && !document.getElementById('copySets')`));
 
-// ---- 2. THE INVISIBILITY PROPERTY ----------------------------------------
-/* weight already equals the leading chip, so a refresh must change nothing */
-setWv(75);
-ok("stepping to the weight already shown changes nothing",
-   chipPairs().join(" ") === opening.join(" "),
-   chipPairs().join(" "));
+// ---- 2. Last time took its place ----------------------------------------
+const viewHTML = run(`$('#view').innerHTML`);
+ok("Last time renders", /LAST TIME/i.test(viewHTML));
+ok("...above Logged today, where Suggested used to sit",
+   viewHTML.search(/LAST TIME/i) < viewHTML.indexOf('Logged today'),
+   "lastTime@" + viewHTML.search(/LAST TIME/i) + " logged@" + viewHTML.indexOf('Logged today'));
 
-// ---- 3. changing the weight floats the matching chips up -----------------
+// ---- 3. the dot marks last session's reps at the current weight ---------
 setWv(50);
-const at50 = chipPairs();
-ok("at 50, the 50s lead", at50[0].startsWith("50"), at50.join(" "));
-ok("...all of them, before any other weight",
-   at50.filter(p => p.startsWith("50")).length ===
-   at50.findIndex(p => !p.startsWith("50")) || !at50.some(p => !p.startsWith("50")),
-   at50.join(" "));
-ok("...and the 75 is still present, not filtered away",
-   at50.some(p => p === "75x3"), at50.join(" "));
-ok("...and no chip was lost or duplicated",
-   at50.slice().sort().join() === opening.slice().sort().join(),
-   at50.join(" "));
+const at50 = dotted();
+ok("the tiles render", tiles().length > 0, tiles().join(","));
+ok("at 50, last session's reps at 50 are dotted", at50.length > 0, at50.join(",") || "none");
+ok("...and every dotted rep was actually done at 50 last session",
+   at50.every(r => run(`suggestedFor(${JSON.stringify(EX)}).sets.some(s=>Math.abs(s.w-50)<0.05&&s.r===${'' + r})`)),
+   at50.join(","));
+ok("...and every such rep that has a tile is dotted", (() => {
+  const want = JSON.parse(run(`JSON.stringify([...new Set(
+    suggestedFor(${JSON.stringify(EX)}).sets.filter(s=>Math.abs(s.w-50)<0.05).map(s=>s.r))])`));
+  const shown = tiles();
+  return want.filter(r => shown.includes(r)).every(r => at50.includes(r));
+})(), at50.join(","));
 
-// relative order within the matching group is preserved
-const fiftiesOpen = opening.filter(p => p.startsWith("50"));
-const fiftiesAt50 = at50.filter(p => p.startsWith("50"));
-ok("...and the 50s keep their own relative order",
-   fiftiesAt50.join() === fiftiesOpen.join(),
-   fiftiesAt50.join(" ") + "  vs  " + fiftiesOpen.join(" "));
-
-// ---- 4. back to 75 restores the original order ---------------------------
+// ---- 4. the marks move with the weight ----------------------------------
 setWv(75);
-ok("stepping back restores the opening order",
-   chipPairs().join(" ") === opening.join(" "), chipPairs().join(" "));
+const at75 = dotted();
+ok("stepping to 75 changes which reps are dotted", at75.join() !== at50.join(),
+   "50:[" + at50.join(",") + "] 75:[" + at75.join(",") + "]");
+ok("...and nothing from the 50kg session is still marked",
+   !at75.some(r => at50.includes(r) && !run(
+     `suggestedFor(${JSON.stringify(EX)}).sets.some(s=>Math.abs(s.w-75)<0.05&&s.r===${'' + r})`)),
+   at75.join(","));
 
-// ---- 5. a weight with NO match leaves the order alone --------------------
+// ---- 5. a weight with no history marks nothing --------------------------
 setWv(65);
-ok("an unmatched weight does not shuffle anything",
-   chipPairs().join(" ") === opening.join(" "), chipPairs().join(" "));
+ok("an unmatched weight dots nothing at all", dotted().length === 0, dotted().join(","));
 
-// ---- 6. the real stepper button drives it, not just typed input ----------
-run(`(function(){document.getElementById('wv').value=75;
-  const b=[...document.querySelectorAll('[data-w]')].find(b=>b.dataset.w==='-1');
-  b.click();})()`);
-const afterStep = +run(`document.getElementById('wv').value`);
-ok("the minus button moved the weight", afterStep < 75, String(afterStep));
-ok("...and the chip row reflects the new weight", (() => {
-  const ws = chipWs();
-  const match = ws.filter(v => Math.abs(v - run(`toKg(${afterStep})`)) < 0.05);
-  return !match.length || Math.abs(ws[0] - run(`toKg(${afterStep})`)) < 0.05;
-})(), afterStep + " \u2192 " + chipPairs().join(" "));
-
-// ---- 7. dismissals survive a reorder -------------------------------------
-run(`(function(){
-  const el=document.getElementById('wv'); el.value=75;
-  el.dispatchEvent(new Event('input',{bubbles:true}));
-  const x=document.querySelector('.lastsets .lsx');
-  if(x) x.click();})()`);
-const afterDismiss = chipPairs();
-ok("dismissing removes a chip", afterDismiss.length === opening.length - 1,
-   afterDismiss.length + " vs " + opening.length);
+// ---- 6. the stepper button drives it too --------------------------------
 setWv(50);
-ok("...and it stays dismissed after a reorder",
-   chipPairs().length === afterDismiss.length,
-   chipPairs().join(" "));
+const before = dotted().join();
+run(`(function(){const b=[...document.querySelectorAll('[data-w]')].find(b=>b.dataset.w==='1'); b.click();})()`);
+ok("the plus button re-marks the tiles", dotted().join() !== before || dotted().length === 0,
+   "was [" + before + "] now [" + dotted().join(",") + "]");
 
-// ---- 8. the refresh is targeted, not a full re-render --------------------
-ok("refreshLoad drives the chips through one funnel",
-   /refreshSug\(\);/.test(fs.readFileSync(path.join(dir, "js/app.js"), "utf8")));
-ok("...and refreshSug rewrites only the chip row", (() => {
-  const src = fs.readFileSync(path.join(dir, "js/lift.js"), "utf8");
-  const fn = (src.match(/function refreshSug\(\)\{[\s\S]*?\n\}/) || [""])[0];
-  return /\.lastsets/.test(fn) && !/renderLift\(\)/.test(fn);
-})());
-ok("the weight is resolved before the chips are built", (() => {
-  const src = fs.readFileSync(path.join(dir, "js/lift.js"), "utf8");
-  return src.indexOf("lift.weight===0") < src.indexOf("sugChips(ex,ls");
-})(), "resolver precedes the chip build");
+// ---- 7. the dot is a footnote, not a second button ----------------------
+const css = fs.readFileSync(path.join(dir, "css/app.css"), "utf8");
+ok("the mark is a dot, not an outline",
+   /\.repgrid button\.sug::after\{[^}]*border-radius:50%/.test(css));
+ok("...and does not change the tile's own border",
+   !/\.repgrid button\.sug\{[^}]*border(?!-radius)/.test(css));
+ok("...and stays out of the layout, so the grid never reflows",
+   /\.repgrid button\.sug::after\{[^}]*position:absolute/.test(css));
 
 console.log(fail ? "\n" + fail + " FAILED" : "\nALL PASS");
 process.exit(fail ? 1 : 0);

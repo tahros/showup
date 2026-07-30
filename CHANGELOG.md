@@ -1,5 +1,42 @@
 # ShowUp — changelog
 
+## v3.3.141 (2026-07-29) — The Suggested zone goes; the dot arrives
+
+**Three chips, identical shape, opposite meanings.** "Suggested 60kg × 20"
+sat directly above "Logged today · 60kg × 20 · 60kg × 20" — one a command,
+two a receipt, rendered in the same visual grammar. No amount of restyling
+fixes a section whose job is already done by the control above it: the rep
+tiles have followed the weight since v3.3.56, so the chips were largely
+repeating guidance the tiles already gave.
+
+The zone is deleted. What it knew — last session's sets at the weight now
+showing — became **a dot on the matching rep tiles**. A dot rather than an
+outline, because this is a footnote, not an instruction; the tile has to keep
+reading as a plain choice among eight. It is `position:absolute` so the grid
+never reflows as marks move with the weight.
+
+**This deletes the weight-following reorder shipped three days ago in
+v3.3.137.** That is the system working, not waste — the pool computation from
+that release is exactly what the dot needed, so the work moved rather than
+died, and the test suite was rewritten around the same properties (follows
+the weight, exact match only, nothing marked when nothing matches) rather
+than thrown away.
+
+**Last time moves up** into the vacated slot: input, then what you did last
+session, then what you have done today. Reference sits beside the decision it
+informs.
+
+**What is genuinely lost**, so it is a decision and not an accident: the
+chips logged a complete weight×reps pair in one tap. Repeating an old set at
+a weight other than the one showing is now two gestures — set the weight, tap
+the tile. Judged worth it: the stepper and tiles are the primary path, and
+the zone's cost in confusion exceeded that occasional second tap.
+
+Gone with it: `#repeatAll`, `#copySets`, `#infoBtn`, chip dismissal, and
+`#toggleSuggest` — which turned out to have been dead markup for some time,
+a handler with no element. `dayMeta().sugX` stays defined; old days carry the
+key and the cloud merge still reads it.
+
 ## v3.3.140 (2026-07-29) — Nothing under a modal moves
 
 **The share overlay rotated its card AND changed tab underneath it.** The

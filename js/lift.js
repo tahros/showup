@@ -253,36 +253,11 @@ function renderLift(){
       lift.weight=top!=null?snapW(top):toKg(isLb()?45:20);   // inferred weights snap to clean steps
     }
   }
-  let sugHTML='';
-  {
-    const when=ls?(daysAgo(ls.d)===1?'yesterday':`${daysAgo(ls.d)}d ago`):'';
-    const dis=new Set(dayMeta().sugX[ex]||[]);
-    const lastToday=(!isRun&&todaySets.length)?todaySets[todaySets.length-1]:null;
-    const chips=sugChips(ex,ls,lastToday,dis,lift.weight);
-    if(chips.length){
-      const mini=todaySets.length>0;
-      const lastLine=ls?`Last session — ${wd(ls.d)}: ${ls.sets.map(s=>`${isBody(ex)&&s.w<=0.01?'BW':wDisp(s.w)}×${s.r}`).join(' · ')}`:'';
-      sugHTML+=`<div class="zone ${mini?'mini':''}">
-          <div class="zonehead">
-            <span style="position:relative">Suggested
-              <button class="ibtn" id="infoBtn" aria-label="What is this?">i</button>
-              ${lift.info?`<span class="tipbubble">${ls
-                ?(ls.from?`Carried over from ${ls.from} (${wd(ls.d)}).`:`From your last ${ex} session — ${when}.`)
-                :`Your latest set, ready to repeat.`}
-                Shortcuts — tap to log that set, ✕ to dismiss.
-                ${lastLine?`<span class="tipline">${lastLine}</span>`:''}</span>`:''}
-            </span>
-          </div>
-          <div class="lastsets">`;
-      sugHTML+=sugChipsHTML(ex,chips);
-      sugHTML+=`</div>`;
-      if(!mini) sugHTML+=`<div class="row" style="gap:8px;margin-top:10px">
-            <button class="btn ghost" id="repeatAll" style="margin:0">Log all ${chips.length}</button>
-            <button class="btn ghost" id="copySets" style="margin:0">Copy suggestion →</button>
-          </div>`;
-      sugHTML+=`</div>`;
-    }
-  }
+  /* v3.3.141: the Suggested zone is GONE. It sat directly above "Logged
+     today" showing chips that looked identical to the records below it —
+     same shape, same type, one a command and the other a receipt. Its
+     guidance rides on the rep tiles as a dot now, in the control you were
+     already using, and Last time takes its place in the column. */
 
   if(isRun){
     h+=`<div class="zone prime"><div class="zonehead"><span>Log a run</span></div>
@@ -330,8 +305,8 @@ function renderLift(){
       h+=`<div class="loadline" id="ll"><span class="ll-text">${loadLine(ex,lift.weight)}</span></div>`;
     }
     // rep buttons drawn from what you actually do for THIS exercise
-    const reps=repChoices(ex,lift.weight);   // v3.3.56: tiles follow the weight
-    h+=`<div class="repgrid">${reps.map(r=>`<button data-rep="${r}">${r}</button>`).join('')}</div>
+    // v3.3.56: tiles follow the weight · v3.3.141: and carry the suggestion dot
+    h+=`<div class="repgrid">${repTilesHTML(ex,lift.weight)}</div>
         <div class="repcustom">
           <input id="rc" type="number" inputmode="numeric" placeholder="reps">
           <button class="btn" id="addrep" style="margin:0;flex:0 0 142px">Add set</button>
@@ -353,7 +328,7 @@ function renderLift(){
       </div>`;
   }
 
-  h+=sugHTML;
+  h+=prFoot;   // v3.3.141: Last time sits where Suggested was
 
   if(todaySets.length){
     h+=`<div class="zone logged"><div class="zonehead"><span>Logged today · <b class="hi">${todaySets.length}</b> sets ${iBtn('sets','Tap a set to delete it — hold to edit. Undo is one tap away.')}</span></div>`;
@@ -448,7 +423,6 @@ function renderLift(){
   /* v3.3.40: Last Time leads. It is the thing you act on between sets — the
      numbers you're about to match — while Progression is context you read
      once. The terminal action stays last. */
-  h+=prFoot;
   if(!isRun) h+=(isLive()&&todaySets.length?liveBars(ex,todaySets):progChart(ex));
   if(exOpen(ex)) h+=`<button class="btn done" id="doneExBtn">✓ Complete ${ex}</button>`;
   $('#view').innerHTML=h;
@@ -549,48 +523,32 @@ function repChoices(ex,wKg){
    reshuffle on every tap of +, turning a stable list into a moving target
    under your thumb. Exact match only — and a weight with no match at all
    leaves the order alone rather than shuffling for the sake of it. */
-function sugChips(ex,ls,lastToday,dis,curKg){
-  let pool=[];
-  if(lastToday&&lastToday.reps.length)
-    pool.push({w:lastToday.w,r:lastToday.reps[0],key:`now|${lastToday.w}|${lastToday.reps[0]}`,now:true});
-  (ls?ls.sets:[]).forEach((s,i)=>pool.push({w:s.w,r:s.r,key:`${s.w}|${s.r}|${i}`}));
-  const seenWR=new Set();
-  pool=pool.filter(c=>{const k=`${c.w}x${c.r}`;if(seenWR.has(k))return false;seenWR.add(k);return true;});
-  pool=pool.filter(c=>!dis.has(c.key));
-  if(curKg!=null&&isFinite(curKg)){
-    // float-safe compare: weights are stored in kg and can carry lb-conversion dust
-    const hit=c=>Math.abs(c.w-curKg)<0.05;
-    if(pool.some(hit)) pool=[...pool.filter(hit),...pool.filter(c=>!hit(c))];
-  }
-  return pool.slice(0,6);
+/* v3.3.141: sugChips / sugChipsHTML / refreshSug deleted with the zone they
+   served. What they computed — last session's sets, filtered to the current
+   weight — survives as sugReps() below, feeding a dot on the rep tiles. */
+/* v3.3.141: the dot. Reps you did last session at the weight now showing —
+   a footnote on the tiles, not a second list competing with them. Last
+   session only: today's sets are already visible in "Logged today", and
+   marking them here would say the same thing twice. Exact weight match, the
+   same rule the chips used, so the marks move as you step the weight. */
+function sugReps(ex,kg){
+  const out=new Set();
+  if(kg==null||!isFinite(kg)) return out;
+  const ls=suggestedFor(ex);
+  if(!ls||!ls.sets) return out;
+  for(const s of ls.sets) if(Math.abs(s.w-kg)<0.05) out.add(s.r);
+  return out;
 }
-function sugChipsHTML(ex,chips){
-  return chips.map(c=>`<span class="lschip">
-              <button class="lastset ${c.now?'now':''}" data-rep-w="${c.w}" data-rep-r="${c.r}">
-                <span class="ls-w">${isBody(ex)&&c.w<=0.01?'BW':`${wDisp(c.w)}<small>${U()}</small>`}</span>
-                <span class="ls-x">\u00d7</span>
-                <span class="ls-r">${c.r}</span></button>
-              <button class="lsx" data-sugx="${c.key}" aria-label="Dismiss">\u2715</button>
-            </span>`).join('');
-}
-/* rewrites only the chip row — same targeted-update discipline as
-   refreshReps, so stepping the weight never rebuilds the card or steals
-   focus from the rep input */
-function refreshSug(){
-  const row=document.querySelector('.lastsets');
-  if(!row||!lift.ex||lift.ex==='Run') return;
-  const kg=toKg(+(document.getElementById('wv')?.value||0));
-  const ls=suggestedFor(lift.ex);
-  const t=DB.days[todayISO]||{w:[]};
-  const todaySets=(t.w||[]).filter(x=>x.ex===lift.ex&&x.reps&&x.reps.length);
-  const lastToday=todaySets.length?todaySets[todaySets.length-1]:null;
-  const dis=new Set(dayMeta().sugX[lift.ex]||[]);
-  row.innerHTML=sugChipsHTML(lift.ex,sugChips(lift.ex,ls,lastToday,dis,kg));
+function repTilesHTML(ex,kg){
+  const mark=sugReps(ex,kg);
+  return repChoices(ex,kg).map(r=>
+    `<button data-rep="${r}"${mark.has(r)?' class="sug" aria-label="'+r+' reps, done last time"':''}>${r}</button>`
+  ).join('');
 }
 function refreshReps(){
   const g=document.querySelector('.repgrid'); if(!g||!lift.ex) return;
   const kg=toKg(+(document.getElementById('wv')?.value||0));
-  g.innerHTML=repChoices(lift.ex,kg).map(r=>`<button data-rep="${r}">${r}</button>`).join('');
+  g.innerHTML=repTilesHTML(lift.ex,kg);
 }
 /* load line inner: fixed-width bar picture so the text never shifts */
 function loadInner(ex,kg){
