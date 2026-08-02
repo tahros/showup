@@ -24,11 +24,21 @@ const check = (name, expr, want) => {
   if (!ok) fail++;
 };
 
-// fixture: this month, alternating Shoulder / Legs days, plus runs.
+// fixture: alternating Shoulder / Legs days, plus runs.
 // Shoulder volume climbs over time so "growth" has something real to find.
+/* v3.3.142: the fixture used to seed days 1..24 of the CURRENT month and
+   stop at today — so on the 2nd of a month it seeded exactly ONE day and no
+   runs at all, and three assertions failed for want of data. It passed for
+   ~26 days a month and failed for the rest, which is the worst kind of test:
+   green when you look, red when you don't. It now anchors on a month that
+   has actually elapsed — the current one if 24 days are in the bag, else the
+   one before — and points the calendar at whatever it chose. */
 run(`
   const mk=(iso,rows)=>{ DB.days[iso]={w:rows,upd:Date.now()}; };
-  const M=todayISO.slice(0,7);
+  const dom=+todayISO.slice(8);
+  let AY=+todayISO.slice(0,4), AM=+todayISO.slice(5,7);
+  if(dom<=24){ AM--; if(AM===0){ AM=12; AY--; } }
+  const M=AY+'-'+String(AM).padStart(2,'0');
   for(let d=1;d<=24;d++){
     const iso=M+'-'+String(d).padStart(2,'0');
     if(iso>=todayISO) break;
@@ -39,9 +49,13 @@ run(`
     mk(iso,rows);
   }
   SEED=deriveAll(); _fireDist=null;
-  hist={y:+thisYear,m:+todayISO.slice(5,7),part:null};
+  hist={y:AY,m:AM,part:null};
   view='history'; render();
 `);
+// the fixture is worthless if it did not actually seed — assert it, or a
+// starved run reports failures that look like app bugs
+const seeded = run(`Object.keys(DB.days).length`);
+check("the fixture seeded a full month", `${seeded} >= 20`, true);
 
 check("part chips render",       `document.querySelectorAll('[data-histp]').length > 1`, true);
 check("All is selected by default", `document.querySelector('[data-histp=""]').classList.contains('on')`, true);

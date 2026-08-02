@@ -1,5 +1,43 @@
 # ShowUp — changelog
 
+## v3.3.142 (2026-08-02) — The icon becomes a sentence
+
+**Bar overhead, one filled cell below.** The old icon is replaced across all
+four assets (192, 512, maskable-512, apple-touch) with the mark chosen after
+two exploration rounds: a barbell — full-width bar, collars set inboard so it
+cannot be read as a rule — above a single filled heatmap cell. The cell is
+the app's atom: one day, done. The bar says what kind of day. Together they
+say the whole product without a letter.
+
+Two roads not taken, so they stay decisions: **SUP** (S + UP) died because
+the sketch read as SUK and the acronym belongs to paddleboarding; the
+**three-cell streak row** variant was drawn, argued for, and declined —
+one cell, not three. Background is the app's own `#0C0E13`; marks are white;
+maskable variant scales the mark to 78% for the crop safe zone.
+
+Rendered with Pillow at 4× supersample, so edges are clean at 32 px where a
+home-screen icon actually lives. Filenames unchanged — the SW cache bump
+refetches them, but iOS freezes `apple-touch-icon` at install time, so
+existing home-screen installs keep the old icon until removed and re-added.
+New installs get the new mark immediately.
+
+**A handoff claim that did not survive checking.** The staging notes recorded
+test-cards, test-sharecard and test-histpart as pre-existing failures caused
+by clicking per-section share buttons deleted in v3.3.133. A control run says
+otherwise: test-cards (36) and test-sharecard (35) pass cleanly — those
+assertions were inverted in v3.3.133 itself, at the time. Only test-histpart
+failed, for an unrelated reason.
+
+**test-histpart was date-fragile, and today exposed it.** Its fixture seeded
+days 1..24 of the CURRENT month and stopped at today, so on the 2nd it seeded
+exactly one day and zero runs, and three assertions failed for want of data.
+It passed for roughly 26 days a month and failed for the rest — green
+whenever anyone happened to look. The fixture now anchors on a month that has
+actually elapsed (the current one if 24 days are in the bag, else the one
+before) and points the calendar at whatever it chose; verified across month
+and year boundaries. It also asserts up front that it seeded at all, because
+a starved fixture reports failures that read like app bugs.
+
 ## v3.3.141 (2026-07-29) — The Suggested zone goes; the dot arrives
 
 **Three chips, identical shape, opposite meanings.** "Suggested 60kg × 20"
