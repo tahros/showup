@@ -221,6 +221,26 @@
   .mexpDots i.f{border-style:dashed;opacity:.6}
   .lastrow[data-lw]{cursor:pointer}
   .lastrow[data-lw]:active{background:var(--surface2)}
+  /* ---- v3.3.144: THIS SESSION — one card, one grammar ---- */
+  /* the .tight log zone: the "Log a set" caption is gone, so the padding it
+     justified goes with it. Tap targets untouched. */
+  .zone.tight{padding:11px 14px 12px}
+  .zone.tight .loadline{padding:5px 10px;margin-top:8px;margin-bottom:8px}
+  .zone.tight .wsel{margin-top:0}
+  .sessedit{background:none;border:1px solid var(--line);border-radius:8px;
+    padding:3px 10px;color:var(--muted);cursor:pointer;font-size:11px}
+  .sessedit:active{background:var(--line)}
+  /* today reads full-strength; last time steps back — the same move past
+     years make on the Consistency chart. Dimmed, not restyled: one grammar,
+     two distances. */
+  .sess-then{margin-top:12px;padding-top:10px;border-top:1px solid var(--line);opacity:.62}
+  .sess-then .lasthead{margin-bottom:4px}
+  .sess-now{margin-bottom:2px}
+  /* the save flash lives on the newest chip now — the settile that used to
+     carry it only exists in EDIT mode */
+  .repchip.fresh{animation:chipflash .9s ease-out 1}
+  @keyframes chipflash{0%{background:var(--accent);color:#fff}100%{}}
+  @media (prefers-reduced-motion:reduce){.repchip.fresh{animation:none}}
   .tipbubble.float{position:fixed;z-index:96;top:auto;left:auto;right:auto;bottom:auto}
   button,input,select,textarea{font-family:inherit}
   .chip.on.livego,.btn.livego{background:var(--live);border-color:var(--live);color:#fff;

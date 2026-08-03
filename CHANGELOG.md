@@ -1,5 +1,48 @@
 # ShowUp — changelog
 
+## v3.3.144 (2026-08-03) — This session: one card, one grammar
+
+**The maker's sketch beat the staged plan.** The plan on the table shaved
+chrome to make room for the returning Suggested strip; the sketch removed the
+problem instead. "Last time" and "Logged today" were two cards saying the
+same kind of thing in two grammars — and today's sets only looked different
+because they doubled as delete buttons. Move the destruction behind EDIT and
+that reason evaporates.
+
+**THIS SESSION** replaces both. Today's sets render in the History grammar —
+weight-grouped rows of rep chips, folded by `foldSets()` like everywhere else
+— full-strength on top; last time sits dimmed below, stepped back the way
+past years step back on the Consistency chart. One visual rule, app-wide:
+rows of blue chips are a record. The volume footer and the vs-last delta keep
+their places inside the card.
+
+**EDIT gates the destruction.** Read mode arms nothing. EDIT shows one tile
+per individual set with its ✕, plus Clear, Move, and Undo; DONE disarms. The
+cost, priced deliberately: deleting a mis-logged set is two taps instead of
+one. In exchange the accidental-delete hazard mid-set is gone — a chip that
+looks like information no longer acts like a button. The (i) moved onto the
+card and explains EDIT, because with deletion behind a mode, that tip is
+where its discoverability lives.
+
+**The Suggested strip returns** — compact form only, third state in three
+releases (chips → dot → both), and recorded as the system working: the maker
+recalled it because the one-tap complete w×r log was the part that mattered.
+The tall variant's "Log all N" / "Copy suggestion" stay gone. The restored
+chip-tap carries `undoInvalidate()` — it was removed as an orphan before the
+v3.3.143 rule existed, so the restoration is not a revert, it is a re-wire.
+The dot stays; the v3.3.137 weight-follow partition is back with the strip.
+
+**"Log a set" lost its caption.** A stepper, tiles and an Add button do not
+need naming; the zone border already groups them (the v3.3.130 argument,
+applied to a header). With the merge recovering ~200px on its own, the
+compression stayed gentle — tap targets untouched.
+
+Casualties of the merge, all deliberate: the 6-set CAP and "Show all"
+(EDIT shows everything), the settile save-flash (the newest rep chip
+flashes instead), and `#allSets`. test-session.js drives the whole surface:
+the gate (read mode arms nothing), the two-tap delete end to end, the fold,
+the dimming, and the blunt empty states.
+
 ## v3.3.143 (2026-08-03) — Undo is for things that were taken away
 
 **"Why is there an Undo after logging a run?"** Because run logging was the

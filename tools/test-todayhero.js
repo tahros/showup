@@ -141,12 +141,15 @@ check("no chart inside Rhythm",
 // guarantees today's sets exist there, unlike Readiness (needs the pre-gym
 // planning board) or the Run charts (need run history).
 run(`view='lift'; lift={part:'Shoulder',ex:'Dumbbell Press',weight:16}; render();`);
-check("Logged-today head carries the i dot",
-      `!!document.querySelector('#view .zonehead .ibtn.tipi')`, true);
+/* v3.3.144: the Logged-today zone merged into the THIS SESSION card, and
+   the (i) moved with it — it now explains EDIT, which is where deletion
+   went. Same three mechanics, new host. */
+check("the session-card head carries the i dot",
+      `!!document.querySelector('#view .lastcard.sess .ibtn.tipi')`, true);
 check("i dot label is 'i', not 'info'",
-      `document.querySelector('#view .zonehead .ibtn.tipi').textContent`, "i");
+      `document.querySelector('#view .lastcard.sess .ibtn.tipi').textContent`, "i");
 check("tip still opens from the new position",
-      `(()=>{const b=document.querySelector('#view .zonehead .ibtn.tipi');
+      `(()=>{const b=document.querySelector('#view .lastcard.sess .ibtn.tipi');
              b.click(); const tf=document.getElementById('tipFloat');
              const ok=!!(tf&&!tf.hidden&&tf.textContent.length>10); if(tf) tf.hidden=true; return ok;})()`, true);
 

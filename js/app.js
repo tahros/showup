@@ -113,8 +113,12 @@ document.addEventListener('click',e=>{
     toast(`Workout complete — ${m.w.length} sets. Cool down 🔥`);
     return render();
   }
-  // v3.3.141: chip dismissal removed with the Suggested zone. dayMeta().sugX
-  // stays defined — old days carry the key and the merge in core.js reads it.
+  const sx=e.target.closest('[data-sugx]');
+  if(sx&&lift.ex){   // v3.3.144: back with the strip
+    const m=dayMeta();
+    m.sugX[lift.ex]=[...(m.sugX[lift.ex]||[]),sx.dataset.sugx];
+    save();return renderLift();
+  }
   if(e.target.closest('#settingsBtn')||e.target.closest('#gearBtn')){
     if(view==='sync'){ view=prevView||'today'; }
     else { prevView=view; view='sync'; }
@@ -157,7 +161,7 @@ document.addEventListener('click',e=>{
   const ex=e.target.closest('[data-ex]');
   if(ex){
     lift.part=ex.dataset.part||lift.part; lift.ex=ex.dataset.ex;
-    lift.weight=0; lift.editBar=false; lift.copy=false; lift.suggestOpen=null; lift.info=false; lift.editSet=null;
+    lift.weight=0; lift.editBar=false; lift.copy=false; lift.suggestOpen=null; lift.info=false; lift.editSet=null; lift.editToday=false;
     view='lift';                                   // <- was missing: Today stayed on Today
     document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v==='lift'));
     return render();
@@ -205,15 +209,22 @@ document.addEventListener('click',e=>{
     reopen(lift.ex,lift.part);
     lift.justSaved=true;save();renderHeader();setToast(lift.ex,lift.weight,r);return renderLift();
   }
-  /* v3.3.143: the [data-rep-w] handler is gone. It logged a complete
-     weight×reps pair from a Suggested chip, and the chips went in v3.3.141 —
-     nothing has emitted that attribute since. A live handler with no
-     element, same shape as the #toggleSuggest leftover found in that
-     release; missed then because I swept the ids and not the data
-     attributes. */
+  const rs=e.target.closest('[data-rep-w]');
+  if(rs){
+    /* v3.3.144: restored with the strip (removed as an orphan in v3.3.143
+       after the chips went in v3.3.141). One tap logs the complete pair. */
+    const w=+rs.dataset.repW, r=+rs.dataset.repR;
+    t.w.push({part:lift.part,ex:lift.ex,w,reps:[r],at:Date.now()});
+    undoInvalidate();   // v3.3.143: new work makes an older snapshot unsafe
+    reopen(lift.ex,lift.part);
+    lift.weight=w;
+    saveExW(lift.ex,w);
+    lift.justSaved=true;save();renderHeader();setToast(lift.ex,w,r);return renderLift();
+  }
   const _pl=e.target.closest('.pmixlgd [data-pt]');
   if(_pl){ pmixSetFocus(_pl.dataset.pt); return; }   // v3.3.121
-  if(e.target.closest('#allSets')){ lift.allSets=!lift.allSets; return renderLift(); }
+  if(e.target.closest('#sessEdit')){ lift.editToday=!lift.editToday; lift.editSet=null; return renderLift(); }
+  // v3.3.144: #allSets removed with the CAP — edit mode shows every set
   if(e.target.closest('#addEx')){ lift.adding=true; return renderLift(); }
   if(e.target.closest('#cancelEx')){ lift.adding=false; return renderLift(); }
   const ne=e.target.closest('[data-newequip]');
@@ -460,8 +471,7 @@ function refreshLoad(){
       : `<span class="ll-text">${loadLine(lift.ex,kg)}</span>`;
   }
   refreshReps();   // v3.3.56: the rep tiles follow the weight, same funnel
-  // v3.3.141: refreshSug went with the Suggested zone; refreshReps now
-  // carries the suggestion dot, so one call still covers everything.
+  refreshSug();    // v3.3.144: the strip follows the weight again (v3.3.137 rule)
 }
 
 /* ---------- pinch / wheel zoom for charts ---------- */

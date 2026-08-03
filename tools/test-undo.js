@@ -102,8 +102,12 @@ const invalidations = (appSrc.match(/undoInvalidate\(\)/g) || []).length;
 ok("every path that logs a set invalidates the stack",
    invalidations === pushes && pushes >= 3, invalidations + " guards / " + pushes + " pushes");
 
-// ---- 5. the orphaned chip handler is gone ------------------------------
-ok("the dead [data-rep-w] handler was removed", !/data-rep-w/.test(appSrc.replace(/\/\*[\s\S]*?\*\//g, "")));
+/* ---- 5. v3.3.144: the chip handler is BACK — with the invalidation rule.
+   Removed in v3.3.143 as an orphan; the strip's return re-orphans the
+   removal. What must hold now is that the restored path carries the guard,
+   which section 4's pushes===invalidations census already enforces — this
+   just states the restoration explicitly. */
+ok("the [data-rep-w] handler is restored", /data-rep-w/.test(appSrc.replace(/\/\*[\s\S]*?\*\//g, "")));
 
 console.log(fail ? "\n" + fail + " FAILED" : "\nALL PASS");
 process.exit(fail ? 1 : 0);

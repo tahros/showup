@@ -58,18 +58,44 @@ const tiles = () => JSON.parse(run(
 const setWv = v => run(`(function(){const el=document.getElementById('wv'); el.value=${v};
   el.dispatchEvent(new Event('input',{bubbles:true}));})()`);
 
-// ---- 1. the Suggested zone is gone --------------------------------------
-ok("no Suggested zone renders", run(`!document.querySelector('.lastsets')`));
-ok("...and nothing says 'Suggested'", !/Suggested/.test(run(`$('#view').innerHTML`)));
-ok("...and its bulk actions went with it",
+/* ---- 1. v3.3.144: the strip is BACK — compact form only ----------------
+   Cut in v3.3.141, recalled two releases later: the one-tap complete w×r
+   log was the part that mattered. The tall variant stays gone. */
+ok("the compact Suggested strip renders", run(`!!document.querySelector('.zone.mini .lastsets')`));
+ok("...but the tall variant's bulk actions stay gone",
    run(`!document.getElementById('repeatAll') && !document.getElementById('copySets')`));
+ok("a chip tap logs the complete pair", (() => {
+  const before = run(`day(todayISO).w.length`);
+  run(`document.querySelector('[data-rep-w]').click()`);
+  return run(`day(todayISO).w.length`) === before + 1;
+})());
+ok("...and clears any stale undo snapshot (the v3.3.143 rule)",
+   run(`undoStack.length`) === 0, String(run(`undoStack.length`)));
+// the v3.3.137 weight-follow property, back with the strip
+ok("chips matching the stepper weight lead", (() => {
+  run(`(function(){const el=document.getElementById('wv'); el.value='50';
+       el.dispatchEvent(new Event('input',{bubbles:true}));})()`);
+  const ws = JSON.parse(run(`JSON.stringify([...document.querySelectorAll('.zone.mini [data-rep-w]')].map(b=>+b.dataset.repW))`));
+  const hasMatch = ws.some(w => Math.abs(w - 50) < 0.05);
+  return !hasMatch || Math.abs(ws[0] - 50) < 0.05;
+})());
 
 // ---- 2. Last time took its place ----------------------------------------
 const viewHTML = run(`$('#view').innerHTML`);
 ok("Last time renders", /LAST TIME/i.test(viewHTML));
-ok("...above Logged today, where Suggested used to sit",
-   viewHTML.search(/LAST TIME/i) < viewHTML.indexOf('Logged today'),
-   "lastTime@" + viewHTML.search(/LAST TIME/i) + " logged@" + viewHTML.indexOf('Logged today'));
+ok("...and the old standalone zone is gone", !/Logged today/.test(viewHTML));
+/* v3.3.144: "Logged today" no longer exists — LAST TIME is the dimmed
+   lower group of the This-session card, so it must render INSIDE it and
+   AFTER today's rows. */
+ok("...as the dimmed group inside the session card",
+   run(`!!document.querySelector('.lastcard.sess .sess-then')`));
+/* asserted on the DOM, not on indexOf — the (i) tip text also contains the
+   words "last time", which a string search happily matched first */
+ok("...after today's rows, not before", run(`(function(){
+     const card=document.querySelector('.lastcard.sess'); if(!card) return false;
+     const now=card.querySelector('.sess-now'), then=card.querySelector('.sess-then');
+     return !!(now&&then&&(now.compareDocumentPosition(then)&Node.DOCUMENT_POSITION_FOLLOWING));
+   })()`));
 
 // ---- 3. the dot marks last session's reps at the current weight ---------
 setWv(50);

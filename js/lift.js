@@ -208,26 +208,20 @@ function renderLift(){
       return {d:mine[0],sets:mine[1].w.filter(s=>s.ex===ex).map(s=>[s.w,s.reps,s.mins,s.secs])};
     return seed||null;
   })();
-  let prFoot='';
+  /* v3.3.144: LAST TIME is no longer its own card. It becomes the dimmed
+     lower group of the "This session" card — same grammar as today's rows,
+     stepped back the way past years step back on the Consistency chart. The
+     fragment is built here (it needs lastPrev) and composed below. */
+  let lastGroup='';
   if(!isRun){
     if(lastPrev){
-      /* v3.1.4: one row per weight, however the sets were stored. Sheet-era
-         rows arrive pre-grouped; app-era logging writes one row per set —
-         fold CONSECUTIVE same-weight sets so both eras read identically.
-         (Consecutive, not global: returning to a weight later stays its own
-         line — the card keeps the session's narrative order.)
-         Bare marker rows (0 kg, no reps, no time) carry nothing: dropped. */
       const folded=foldSets(lastPrev.sets,ex);         // v3.3.43: shared with History
-      const rows=setRows(ex,folded,true);
-      const vol=folded.reduce((a,[w2,reps])=>a+w2*(reps||[]).reduce((x,y)=>x+y,0),0);
-      const nsets=folded.reduce((a,[,reps])=>a+Math.max(1,(reps||[]).length),0);
-      prFoot=`<div class="lastcard">
+      lastGroup=`<div class="sess-then">
         <div class="lasthead"><span>LAST TIME</span><button class="ago linkdate" data-histd="${lastPrev.d}">${wd2(lastPrev.d)} · ${agoStr(lastPrev.d)}</button></div>
-        ${rows}
-        <div class="lastfoot mono">${nsets} set${nsets>1?'s':''}${vol>0?` · ${vDisp(vol)} ${U()} total`:''}</div>
+        ${setRows(ex,folded,true)}
       </div>`;
     }else{
-      prFoot=`<div class="lastcard first"><div class="lasthead"><span>LAST TIME</span></div>
+      lastGroup=`<div class="sess-then"><div class="lasthead"><span>LAST TIME</span></div>
         <div class="muted" style="font-size:13px">Never logged — today writes the first line.</div></div>`;
     }
   }
@@ -295,8 +289,12 @@ function renderLift(){
       </div>`;
     }
   }else{
-    h+=`<div class="zone prime"><div class="zonehead"><span>Log a set</span></div>
-        <div class="wsel" style="margin-top:10px"><button data-w="-1">−</button>
+    /* v3.3.144: the "Log a set" caption is gone — a stepper, tiles and an
+       Add button do not need naming, and the zone border already groups
+       them (the v3.3.130 argument, applied to a header instead of an icon).
+       .tight trims the padding the caption used to justify. */
+    h+=`<div class="zone prime tight">
+        <div class="wsel"><button data-w="-1">−</button>
         <div class="val"><input id="wv" type="number" inputmode="decimal" step="${STEP()}" value="${wDisp(lift.weight)}"><span class="unit">${U()}</span></div>
         <button data-w="1">+</button></div>`;
     if(usesPlates(ex)){
@@ -311,6 +309,15 @@ function renderLift(){
           <input id="rc" type="number" inputmode="numeric" placeholder="reps">
           <button class="btn" id="addrep" style="margin:0;flex:0 0 142px">Add set</button>
         </div></div>`;
+    /* v3.3.144: the Suggested strip, back — compact form only. One tap logs
+       the complete w×r pair, which is the thing the dot could not do. */
+    {
+      const dis=new Set(dayMeta().sugX[ex]||[]);
+      const lastToday=todaySets.length?todaySets[todaySets.length-1]:null;
+      const chips=sugChips(ex,ls,lastToday,dis,lift.weight);
+      if(chips.length)
+        h+=`<div class="zone mini"><div class="lastsets">${sugChipsHTML(ex,chips)}</div></div>`;
+    }
   }
 
   // the nudge sits directly under the stepper it's about to change
@@ -328,98 +335,108 @@ function renderLift(){
       </div>`;
   }
 
-  h+=prFoot;   // v3.3.141: Last time sits where Suggested was
-
-  if(todaySets.length){
-    h+=`<div class="zone logged"><div class="zonehead"><span>Logged today · <b class="hi">${todaySets.length}</b> sets ${iBtn('sets','Tap a set to delete it — hold to edit. Undo is one tap away.')}</span></div>`;
-  }
-  /* v3.3.104: newest leads, and only the recent handful shows.
-     The complaint: after ~8 sets the grid runs past the fold, so a set you
-     just logged lands somewhere you cannot see — the save flash animates
-     off-screen and the section reads as congestion.
-     Reversing matches what this screen already does one card up: the
-     Suggested row puts your LATEST set first ("one tap duplicates it").
-     The live surface is recency-ordered; chronological review is History's
-     job. Capping keeps the section two rows tall no matter how long the
-     session runs — shorter section, not a scroll aid for a long one. */
-  const CAP=6;
-  const newest=todaySets.length?todaySets[todaySets.length-1]:null;
-  const capped=todaySets.length>CAP&&!lift.allSets;
-  const ordered=(capped?todaySets.slice(-CAP):todaySets).slice().reverse();
-  h+=`<div class="sets">`;
-  ordered.forEach(s=>{
-    const idx=t.w.indexOf(s);
-    const isPR=!isRun&&s.reps.length&&s.w>=p.mw;
-    const fresh=lift.justSaved&&s===newest;   // identity, not position — the newest moved to the front
-    const anim=fresh?(isPR?' savedpr':' saved'):'';
-    h+=isRun
-      ?`<div class="settile${anim}${lift.editSet===idx?' editing':''}" data-del="${idx}"><span class="w">${dDisp(s.w)}<small>${DU()}</small></span><span class="x">${s.mins||0}'${String(s.secs||0).padStart(2,'0')}"</span></div>`
-      :`<div class="settile ${isPR?'pr':''}${anim}${lift.editSet===idx?' editing':''}" data-del="${idx}"><span class="w">${wLabel(ex,s.w)}${isBody(ex)&&s.w<=0.01?'':`<small>${U()}</small>`}</span><span class="x">×</span><span class="w">${s.reps[0]}</span></div>`;
-  });
-  /* v3.3.18: capture FROM values off the still-mounted previous render.
-     The animations run AFTER the innerHTML swap (end of this branch) —
-     running them here animated nodes that were about to be discarded,
-     which is why the v3.3.6 count-up always jumped instead of counting. */
+  /* ======== v3.3.144: THIS SESSION — one card, one grammar =============
+     "Last time" and "Logged today" were two cards saying the same kind of
+     thing in two grammars, and today's sets only looked different because
+     they doubled as delete buttons. The destructive affordances moved
+     behind EDIT, so today can render in the History grammar — weight-
+     grouped rows of rep chips — and the two cards collapse into one.
+     Today reads full-strength on top; last time reads dimmed below, the
+     same way past years step back on the Consistency chart. */
   {
-    const ve=document.getElementById('volNum');
-    if(ve) _lastVol={ex:lift.ex,v:parseFloat(ve.dataset.kg||'0')};
-    const lb=document.querySelector('.lbNow');
-    _lbPrev = lb ? {ex:lift.ex,v:parseFloat(lb.dataset.v||'0')} : {ex:null,v:0};
-  }
-  lift._animSave=lift.justSaved;
-  lift.justSaved=false;
-  h+=`</div>`;
-  if(todaySets.length>CAP)
-    h+=`<button class="btn ghost" id="allSets" style="margin:8px 0 0;width:100%">${
-      lift.allSets?'Show recent only':`Show all ${todaySets.length}`}</button>`;
-  if(todaySets.length){
-    h+=`<div class="row" style="gap:8px;margin-top:10px">
+    const editing=!!lift.editToday;
+    /* the (i) explains what EDIT hides — with deletion now behind a mode,
+       this tip is where its discoverability lives */
+    h+=`<div class="lastcard sess"><div class="lasthead"><span>THIS SESSION ${iBtn('sess','Today on top, last time dimmed below. EDIT to remove or change a set — Undo lives there too.')}</span>${
+        todaySets.length?`<button class="ago sessedit" id="sessEdit">${editing?'DONE':'EDIT'}</button>`:''}</div>`;
+
+    if(!todaySets.length){
+      h+=`<div class="muted" style="font-size:13px">Nothing yet — log the first set.</div>`;
+    }else if(!editing){
+      /* read mode: fold today exactly the way History folds a day */
+      const folded=foldSets(todaySets.map(s=>[s.w,s.reps,s.mins,s.secs]),ex);
+      /* the newest chip carries the save flash — the settile that used to
+         host it only exists in edit mode now */
+      let rows=setRows(ex,folded,false);
+      if(lift.justSaved){
+        const k=rows.lastIndexOf('<i class="repchip">');
+        if(k>=0) rows=rows.slice(0,k)+'<i class="repchip fresh">'+rows.slice(k+'<i class="repchip">'.length);
+      }
+      h+=`<div class="sess-now">${rows}</div>`;
+    }else{
+      /* EDIT: each individual set is a tile with its ✕ — the pre-v3.3.144
+         "Logged today" surface, now opt-in instead of always armed */
+      const ordered=todaySets.slice().reverse();
+      h+=`<div class="sets">`;
+      ordered.forEach(s=>{
+        const idx=t.w.indexOf(s);
+        const isPR=!isRun&&s.reps.length&&s.w>=p.mw;
+        h+=isRun
+          ?`<div class="settile${lift.editSet===idx?' editing':''}" data-del="${idx}"><span class="w">${dDisp(s.w)}<small>${DU()}</small></span><span class="x">${s.mins||0}'${String(s.secs||0).padStart(2,'0')}"</span></div>`
+          :`<div class="settile ${isPR?'pr':''}${lift.editSet===idx?' editing':''}" data-del="${idx}"><span class="w">${wLabel(ex,s.w)}${isBody(ex)&&s.w<=0.01?'':`<small>${U()}</small>`}</span><span class="x">×</span><span class="w">${s.reps[0]}</span></div>`;
+      });
+      h+=`</div>
+        <div class="row" style="gap:8px;margin-top:10px">
           <button class="btn ghost" id="clearToday" style="margin:0;flex:1;white-space:nowrap;padding:12px 6px">Clear today's ${todaySets.length}</button>
           <button class="btn ghost" id="moveToday" style="margin:0;flex:1;white-space:nowrap;padding:12px 6px">Move to another lift →</button>
         </div>
         ${undoStack.length?`<button class="btn ghost" id="undoBtn" style="margin-top:8px">↺ Undo — ${undoStack[undoStack.length-1].label}</button>`:''}`;
-    if(isRun){
-      const km=todaySets.reduce((a,s)=>a+s.w,0);
-      const sec=todaySets.reduce((a,s)=>a+(s.mins||0)*60+(s.secs||0),0);
-      const pace=km?sec/toD(km):0;
-      h+=`<div class="tot"><span>Today <b>${dDisp(km)} ${DU()}</b></span>
-          <span>pace <b>${Math.floor(pace/60)}'${String(Math.round(pace%60)).padStart(2,'0')}"</b>/${DU()}</span></div>`;
-    }else{
-      const v=todaySets.reduce((a,s)=>a+volOf(s),0);
-      const lastVol=ls?ls.sets.reduce((a,s)=>a+s.w*s.r,0):0;
-      const d=lastVol?Math.round((v/lastVol-1)*100):0;
-      h+=`<div class="tot"><span>Volume <b><span id="volNum" data-kg="${v}">${vDisp(v)}</span> ${U()}</b> · ${todaySets.length} sets</span>
-          ${lastVol?`<button class="delta linkdate ${d>=0?'up':'down'}" data-histd="${ls.d}">${d>=0?'+':''}${d}% vs ${wd(ls.d)}</button>`:''}</div>`;
+      const es=(lift.editSet!=null)?t.w[lift.editSet]:null;
+      if(es&&es.ex===ex){
+        h+=isRun
+          ?`<div class="card editcard" style="margin-top:10px">
+              <div class="mono muted" style="font-size:11px;margin-bottom:8px">EDIT RUN</div>
+              <div class="row" style="gap:8px">
+                <div class="fld"><label>Distance ${DU()}</label><input id="edW" type="number" inputmode="decimal" step="0.01" value="${dDisp(es.w)}"></div>
+                <div class="fld"><label>Min</label><input id="edM" type="number" inputmode="numeric" value="${es.mins||0}"></div>
+                <div class="fld"><label>Sec</label><input id="edS" type="number" inputmode="numeric" value="${es.secs||0}"></div>
+              </div>
+              <div class="row" style="gap:8px;margin-top:10px">
+                <button class="btn" id="editSave" style="margin:0">Save</button>
+                <button class="btn ghost" id="editCancel" style="margin:0;flex:0 0 96px">Cancel</button>
+              </div></div>`
+          :`<div class="card editcard" style="margin-top:10px">
+              <div class="mono muted" style="font-size:11px;margin-bottom:8px">EDIT SET</div>
+              <div class="row" style="gap:8px">
+                <div class="fld"><label>Weight ${U()}</label><input id="edW" type="number" inputmode="decimal" step="${STEP()}" value="${wDisp(es.w)}"></div>
+                <div class="fld"><label>Reps</label><input id="edR" type="text" inputmode="numeric" value="${es.reps.join(',')}"></div>
+              </div>
+              <div class="row" style="gap:8px;margin-top:10px">
+                <button class="btn" id="editSave" style="margin:0">Save</button>
+                <button class="btn ghost" id="editCancel" style="margin:0;flex:0 0 96px">Cancel</button>
+              </div></div>`;
+      }
     }
-    const es=(lift.editSet!=null)?t.w[lift.editSet]:null;
-    if(es&&es.ex===ex){
-      h+=isRun
-        ?`<div class="card editcard" style="margin-top:10px">
-            <div class="mono muted" style="font-size:11px;margin-bottom:8px">EDIT RUN</div>
-            <div class="row" style="gap:8px">
-              <div class="fld"><label>Distance ${DU()}</label><input id="edW" type="number" inputmode="decimal" step="0.01" value="${dDisp(es.w)}"></div>
-              <div class="fld"><label>Min</label><input id="edM" type="number" inputmode="numeric" value="${es.mins||0}"></div>
-              <div class="fld"><label>Sec</label><input id="edS" type="number" inputmode="numeric" value="${es.secs||0}"></div>
-            </div>
-            <div class="row" style="gap:8px;margin-top:10px">
-              <button class="btn" id="editSave" style="margin:0">Save</button>
-              <button class="btn ghost" id="editCancel" style="margin:0;flex:0 0 96px">Cancel</button>
-            </div></div>`
-        :`<div class="card editcard" style="margin-top:10px">
-            <div class="mono muted" style="font-size:11px;margin-bottom:8px">EDIT SET</div>
-            <div class="row" style="gap:8px">
-              <div class="fld"><label>Weight ${U()}</label><input id="edW" type="number" inputmode="decimal" step="${STEP()}" value="${wDisp(es.w)}"></div>
-              <div class="fld"><label>Reps</label><input id="edR" type="text" inputmode="numeric" value="${es.reps.join(',')}"></div>
-            </div>
-            <div class="row" style="gap:8px;margin-top:10px">
-              <button class="btn" id="editSave" style="margin:0">Save</button>
-              <button class="btn ghost" id="editCancel" style="margin:0;flex:0 0 96px">Cancel</button>
-            </div></div>`;
+
+    /* footer: today's volume against last session — unchanged math */
+    if(todaySets.length){
+      if(isRun){
+        const km=todaySets.reduce((a,s)=>a+s.w,0);
+        const sec=todaySets.reduce((a,s)=>a+(s.mins||0)*60+(s.secs||0),0);
+        const pace=km?sec/toD(km):0;
+        h+=`<div class="tot"><span>Today <b>${dDisp(km)} ${DU()}</b></span>
+            <span>pace <b>${Math.floor(pace/60)}'${String(Math.round(pace%60)).padStart(2,'0')}"</b>/${DU()}</span></div>`;
+      }else{
+        const v=todaySets.reduce((a,s)=>a+volOf(s),0);
+        const lastVol=ls?ls.sets.reduce((a,s)=>a+s.w*s.r,0):0;
+        const d=lastVol?Math.round((v/lastVol-1)*100):0;
+        h+=`<div class="tot"><span>Volume <b><span id="volNum" data-kg="${v}">${vDisp(v)}</span> ${U()}</b> · ${todaySets.length} sets</span>
+            ${lastVol?`<button class="delta linkdate ${d>=0?'up':'down'}" data-histd="${ls.d}">${d>=0?'+':''}${d}% vs ${wd(ls.d)}</button>`:''}</div>`;
+      }
     }
+
+    h+=lastGroup;      // the dimmed then-group closes the card
     h+=`</div>`;
-  }else if(undoStack.length){
-    h+=`<button class="btn ghost" id="undoBtn" style="margin-top:12px">↺ Undo — ${undoStack[undoStack.length-1].label}</button>`;
+    if(!todaySets.length&&undoStack.length)
+      h+=`<button class="btn ghost" id="undoBtn" style="margin-top:12px">↺ Undo — ${undoStack[undoStack.length-1].label}</button>`;
   }
+  {
+    const ve=document.getElementById('volNum');
+    if(ve) _lastVol={ex:lift.ex,v:parseFloat(ve.dataset.kg||'0')};
+  }
+  lift._animSave=lift.justSaved;
+  lift.justSaved=false;
+
   /* v3.3.40: Last Time leads. It is the thing you act on between sets — the
      numbers you're about to match — while Progression is context you read
      once. The terminal action stays last. */
@@ -523,9 +540,46 @@ function repChoices(ex,wKg){
    reshuffle on every tap of +, turning a stable list into a moving target
    under your thumb. Exact match only — and a weight with no match at all
    leaves the order alone rather than shuffling for the sake of it. */
-/* v3.3.141: sugChips / sugChipsHTML / refreshSug deleted with the zone they
-   served. What they computed — last session's sets, filtered to the current
-   weight — survives as sugReps() below, feeding a dot on the rep tiles. */
+/* v3.3.144: the Suggested strip RETURNS — the maker recalled it two releases
+   after cutting it: the one-tap complete w×r log turned out to be the part
+   that mattered mid-set. It comes back in the COMPACT strip form only; the
+   tall variant's "Log all N" / "Copy suggestion" buttons stay gone, and the
+   v3.3.137 weight-follow partition comes back with it. The dot stays too —
+   different surface, zero height. */
+function sugChips(ex,ls,lastToday,dis,curKg){
+  let pool=[];
+  if(lastToday&&lastToday.reps.length)
+    pool.push({w:lastToday.w,r:lastToday.reps[0],key:`now|${lastToday.w}|${lastToday.reps[0]}`,now:true});
+  (ls?ls.sets:[]).forEach((s,i)=>pool.push({w:s.w,r:s.r,key:`${s.w}|${s.r}|${i}`}));
+  const seenWR=new Set();
+  pool=pool.filter(c=>{const k=`${c.w}x${c.r}`;if(seenWR.has(k))return false;seenWR.add(k);return true;});
+  pool=pool.filter(c=>!dis.has(c.key));
+  if(curKg!=null&&isFinite(curKg)){
+    const hit=c=>Math.abs(c.w-curKg)<0.05;   // float-safe: kg can carry lb-conversion dust
+    if(pool.some(hit)) pool=[...pool.filter(hit),...pool.filter(c=>!hit(c))];
+  }
+  return pool.slice(0,6);
+}
+function sugChipsHTML(ex,chips){
+  return chips.map(c=>`<span class="lschip">
+              <button class="lastset ${c.now?'now':''}" data-rep-w="${c.w}" data-rep-r="${c.r}">
+                <span class="ls-w">${isBody(ex)&&c.w<=0.01?'BW':`${wDisp(c.w)}<small>${U()}</small>`}</span>
+                <span class="ls-x">×</span>
+                <span class="ls-r">${c.r}</span></button>
+              <button class="lsx" data-sugx="${c.key}" aria-label="Dismiss">✕</button>
+            </span>`).join('');
+}
+function refreshSug(){
+  const row=document.querySelector('.zone.mini .lastsets');
+  if(!row||!lift.ex||lift.ex==='Run') return;
+  const kg=toKg(+(document.getElementById('wv')?.value||0));
+  const ls=suggestedFor(lift.ex);
+  const t=DB.days[todayISO]||{w:[]};
+  const todaySets=(t.w||[]).filter(x=>x.ex===lift.ex&&x.reps&&x.reps.length);
+  const lastToday=todaySets.length?todaySets[todaySets.length-1]:null;
+  const dis=new Set(dayMeta().sugX[lift.ex]||[]);
+  row.innerHTML=sugChipsHTML(lift.ex,sugChips(lift.ex,ls,lastToday,dis,kg));
+}
 /* v3.3.141: the dot. Reps you did last session at the weight now showing —
    a footnote on the tiles, not a second list competing with them. Last
    session only: today's sets are already visible in "Logged today", and
