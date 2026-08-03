@@ -191,6 +191,7 @@ document.addEventListener('click',e=>{
     lift.weight=toKg(+($('#wv').value||0));
     saveExW(lift.ex,lift.weight);
     t.w.push({part:lift.part,ex:lift.ex,w:lift.weight,reps:[+rb.dataset.rep],at:Date.now()});
+    undoInvalidate();   // v3.3.143: new work makes an older snapshot unsafe to restore
     reopen(lift.ex,lift.part);
     lift.justSaved=true;save();renderHeader();setToast(lift.ex,lift.weight,+rb.dataset.rep);return renderLift();
   }
@@ -200,18 +201,16 @@ document.addEventListener('click',e=>{
     lift.weight=toKg(+($('#wv').value||0));
     saveExW(lift.ex,lift.weight);
     t.w.push({part:lift.part,ex:lift.ex,w:lift.weight,reps:[r],at:Date.now()});
+    undoInvalidate();   // v3.3.143
     reopen(lift.ex,lift.part);
     lift.justSaved=true;save();renderHeader();setToast(lift.ex,lift.weight,r);return renderLift();
   }
-  const rs=e.target.closest('[data-rep-w]');
-  if(rs){
-    const w=+rs.dataset.repW, r=+rs.dataset.repR;
-    t.w.push({part:lift.part,ex:lift.ex,w,reps:[r],at:Date.now()});
-    reopen(lift.ex,lift.part);
-    lift.weight=w;
-    saveExW(lift.ex,w);
-    lift.justSaved=true;save();renderHeader();setToast(lift.ex,w,r);return renderLift();
-  }
+  /* v3.3.143: the [data-rep-w] handler is gone. It logged a complete
+     weight×reps pair from a Suggested chip, and the chips went in v3.3.141 —
+     nothing has emitted that attribute since. A live handler with no
+     element, same shape as the #toggleSuggest leftover found in that
+     release; missed then because I swept the ids and not the data
+     attributes. */
   const _pl=e.target.closest('.pmixlgd [data-pt]');
   if(_pl){ pmixSetFocus(_pl.dataset.pt); return; }   // v3.3.121
   if(e.target.closest('#allSets')){ lift.allSets=!lift.allSets; return renderLift(); }
@@ -337,8 +336,10 @@ document.addEventListener('click',e=>{
     const dist=+($('#rk').value||0);
     if(!dist)return toast('Distance needed');
     const km=fromD(dist);
-    snapshot(`logged ${dDisp(km)}${DU()} run`);
+    /* v3.3.143: no snapshot. Logging a run is additive and the run can just
+       be deleted; this was the only additive action pushing an Undo button. */
     t.w.push({part:'Run',ex:'Run',w:km,reps:[],mins:+($('#rm').value||0),secs:+($('#rs').value||0),at:Date.now()});
+    undoInvalidate();
     reopen('Run','Run');
     save();renderHeader();return renderLift();
   }

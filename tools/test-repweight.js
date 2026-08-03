@@ -162,7 +162,12 @@ check("the fresh-save animation lands on the newest tile, now at the front",
 const appSrc104 = fs.readFileSync(path.join(dir, "js/app.js"), "utf8");
 const logPaths = (appSrc104.match(/lift\.justSaved=true;save\(\);renderHeader\(\);/g) || []).length;
 const toasted = (appSrc104.match(/lift\.justSaved=true;save\(\);renderHeader\(\);setToast\(/g) || []).length;
-console.log((logPaths === toasted && toasted >= 3 ? "PASS" : "FAIL"),
+/* v3.3.143: floor 3 -> 2. It counted the log paths that existed at v3.3.104
+   — rep tile, custom entry, and the Suggested chip — and the chip path was
+   deleted with the chips. The invariant under test is logPaths === toasted,
+   that every path which logs also confirms; the floor is only a guard
+   against the regex matching nothing at all. */
+console.log((logPaths === toasted && toasted >= 2 ? "PASS" : "FAIL"),
   "every log path calls setToast \u2014", `${toasted}/${logPaths}`);
 if (!(logPaths === toasted && toasted >= 3)) fail++;
 // and it reads correctly for a bodyweight lift

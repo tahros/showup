@@ -1,5 +1,39 @@
 # ShowUp — changelog
 
+## v3.3.143 (2026-08-03) — Undo is for things that were taken away
+
+**"Why is there an Undo after logging a run?"** Because run logging was the
+only ADDITIVE action in the app that snapshotted — logging a set never did —
+which is exactly why it read as out of place. A run can simply be deleted;
+offering to undo it was a button for a problem that did not exist. The
+snapshot is gone, and with it the button.
+
+Undo itself stays. It is the only recovery for the things that actually take
+work away: the ✕ that drops a whole exercise from today, "Clear today's N",
+and Move. Those delete several sets in one tap and nothing else can bring
+them back.
+
+**Asking the question turned up a data-loss bug.** A snapshot is a photograph
+of the day BEFORE a removal, and `undo()` restores it wholesale. The stack
+was never invalidated — so: drop an exercise, log new sets, then tap the Undo
+button still sitting there, and the day reverts to the photograph and the new
+sets are gone. Silently, with no warning, from a button that looked like
+safety. Logging anything now clears the stack, because once new work exists
+the old photograph is no longer safe to apply. Verified by disabling the
+guard and watching the test report three sets restored over one destroyed.
+
+**A second orphan from v3.3.141.** The `[data-rep-w]` handler still logged a
+complete weight×reps pair from a Suggested chip — and the chips were deleted
+two releases ago, so nothing had emitted that attribute since. A live handler
+with no element, the same shape as the `#toggleSuggest` leftover found in
+that release, and missed for the same reason: I swept the ids and not the
+data attributes. Removed.
+
+test-repweight's floor of "at least 3 log paths" dropped to 2 with it. That
+number was a headcount taken at v3.3.104, when the chip was one of the three;
+the invariant it exists to protect — every path that logs also confirms —
+is unchanged.
+
 ## v3.3.142 (2026-08-02) — The icon becomes a sentence
 
 **Bar overhead, one filled cell below.** The old icon is replaced across all
