@@ -1,5 +1,20 @@
 # ShowUp — changelog
 
+## v3.3.146 (2026-08-04) — Done today is a go-to today
+
+**A deadlift after 1,162 days away sat in "Sometimes" while its sets were on
+today's board** — the app disagreeing with the day. The tier rule wanted two
+recent sessions or an established habit before calling anything a go-to,
+which is right for history and wrong for right now.
+
+One line: `ago===0` is a go-to. Self-correcting by construction — tomorrow
+`ago=1` and the habit heuristics take over, so a single visit cannot fake a
+staple; it only counts as one while it IS one. The explicit 'other' pin
+still outranks the day: a lift demoted by hand stays demoted. Sorting is
+untouched, so a freshly-revived lift joins the go-to group at the bottom
+with its "✓ done today" — the staples you have not done yet stay on top,
+which is what you will tap next.
+
 ## v3.3.145 (2026-08-04) — The strip gets its name back
 
 **v3.3.144 restored the chips but not the label above them**, so the strip

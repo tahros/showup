@@ -419,6 +419,14 @@ function exTier(ex){
   const ago=daysAgo(last);
   if(ov==='core') return ago<=365 ? 'goto' : 'sometimes';   // pins expire after a year away
   if(ov==='other') return 'sometimes';
+  /* v3.3.146: what you did TODAY is today's staple, whatever the lifetime
+     count says — a deadlift after 1,162 days away sat in "Sometimes" while
+     its sets were on the board, which read as the app disagreeing with the
+     day. Self-correcting by construction: tomorrow ago=1 and the habit
+     heuristics below take over, so one visit does not fake a staple — it
+     only counts as one while it IS one. The explicit 'other' pin above
+     still wins: a lift you demoted by hand stays demoted. */
+  if(ago===0) return 'goto';
   // A repeated RECENT habit is a go-to, whatever the lifetime count says —
   // switching staples (Smith → Barbell incline) shows up here within weeks.
   const recent60=histFor(ex).filter(p=>daysAgo(p.d)<=60).length;

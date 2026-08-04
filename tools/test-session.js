@@ -128,5 +128,27 @@ ok("...and offers no EDIT for nothing", run(`!document.getElementById('sessEdit'
 ok("...while last time still shows below",
    run(`!!document.querySelector('.sess-then .lastrow')`));
 
+/* ---- 8. v3.3.146: done today = go-to today -------------------------------
+   A lift last touched 1,162 days ago sat in "Sometimes" while its sets were
+   on today's board. The day's own facts outrank the lifetime count — and
+   only for the day, so one visit cannot fake a staple. */
+run(`(function(){
+  DB.days={};
+  DB.days[todayISO]={w:[{part:'Back',ex:'Deadlift',w:138,reps:[3],at:1}],upd:1};
+  const m=dayMeta(); m.doneEx=['Deadlift'];   // completed, so it is back in the tiers
+  SEED=deriveAll();})()`);
+ok("a lift done today is a go-to today, whatever its history",
+   run(`exTier('Deadlift')`) === "goto", run(`exTier('Deadlift')`));
+ok("...but one visit does not fake a staple tomorrow", run(`(function(){
+     const y=new Date(todayISO+'T00:00'); y.setDate(y.getDate()-1);
+     const iso=y.toLocaleDateString('en-CA');
+     DB.days={}; DB.days[iso]={w:[{part:'Back',ex:'Deadlift',w:138,reps:[3],at:1}],upd:1};
+     SEED=deriveAll(); return exTier('Deadlift');})()`) === "sometimes",
+   "yesterday-only → " + run(`exTier('Deadlift')`));
+ok("...and an explicit 'other' pin still outranks the day", run(`(function(){
+     DB.days={}; DB.days[todayISO]={w:[{part:'Back',ex:'Deadlift',w:138,reps:[3],at:1}],upd:1};
+     DB.settings.tierOv={Deadlift:'other'}; SEED=deriveAll();
+     const t=exTier('Deadlift'); delete DB.settings.tierOv.Deadlift; return t;})()`) === "sometimes");
+
 console.log(fail ? "\n" + fail + " FAILED" : "\nALL PASS");
 process.exit(fail ? 1 : 0);
