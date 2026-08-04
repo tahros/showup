@@ -360,7 +360,7 @@ function renderLift(){
     const editing=!!lift.editToday;
     /* the (i) explains what EDIT hides — with deletion now behind a mode,
        this tip is where its discoverability lives */
-    h+=`<div class="lastcard sess"><div class="lasthead"><span>THIS SESSION ${iBtn('sess','Today on top, last time dimmed below. EDIT to remove or change a set — Undo lives there too.')}</span>${
+    h+=`<div class="lastcard sess"><div class="lasthead"><span>THIS SESSION ${iBtn('sess','Today on top, last time dimmed below. EDIT to remove or change a set.')}</span>${
         todaySets.length?`<button class="ago sessedit" id="sessEdit">${editing?'DONE':'EDIT'}</button>`:''}</div>`;
 
     if(!todaySets.length){
@@ -440,7 +440,14 @@ function renderLift(){
 
     h+=lastGroup;      // the dimmed then-group closes the card
     h+=`</div>`;
-    if(!todaySets.length&&undoStack.length)
+    /* v3.3.150: Undo shows WHEREVER there is something to undo, not only
+       behind EDIT. Since v3.3.143 the stack clears on any log, so a
+       non-empty stack means "you just destroyed something and have logged
+       nothing since" — precisely the moment the way back must be in plain
+       sight. The button self-expires on the next set, so it cannot become
+       permanent chrome. EDIT keeps its own copy inside; skip the outer one
+       there or the same action renders twice. */
+    if(!editing&&undoStack.length)
       h+=`<button class="btn ghost" id="undoBtn" style="margin-top:12px">↺ Undo — ${undoStack[undoStack.length-1].label}</button>`;
   }
   {

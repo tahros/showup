@@ -1,5 +1,20 @@
 # ShowUp — changelog
 
+## v3.3.150 (2026-08-05) — Undo, in plain sight
+
+**"Where did Undo go?" — behind EDIT, which was the answer and the bug.**
+The v3.3.144 merge tucked the button inside edit mode, so delete a set, tap
+DONE, and the way back silently hid. But since v3.3.143 the stack clears on
+any log, so a non-empty stack means exactly one thing: you just destroyed
+something and have logged nothing since — the one moment the button must be
+visible without hunting.
+
+Undo now renders under the session card whenever there is something to undo,
+in EDIT or out of it. It self-expires on the next set, so it cannot become
+permanent chrome — the v3.3.143 rule is what makes the always-visible
+placement safe. The (i) tip dropped its "Undo lives there too" line, which
+had been documenting the hiding place instead of fixing it.
+
 ## v3.3.149 (2026-08-04) — The clock keeps running after you finish
 
 **The timer already existed; its stop rule was wrong.** The header's `● 0:14`

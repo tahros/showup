@@ -109,5 +109,29 @@ ok("every path that logs a set invalidates the stack",
    just states the restoration explicitly. */
 ok("the [data-rep-w] handler is restored", /data-rep-w/.test(appSrc.replace(/\/\*[\s\S]*?\*\//g, "")));
 
+/* ---- 6. v3.3.150: the way back is in plain sight ------------------------
+   "Where did Undo go?" — it was hiding behind EDIT. A non-empty stack means
+   a destruction with nothing logged since (the v3.3.143 rule), which is
+   exactly when the button must be visible without hunting. */
+fresh();
+run(`lift.editToday=true; renderLift();`);
+run(`document.querySelector('.lastcard.sess [data-del]').click();`);
+run(`lift.editToday=false; renderLift();`);
+ok("after deleting and leaving EDIT, Undo is still visible", undoShown());
+ok("...and it works from there", (() => {
+  const before = setsToday();
+  run(`document.getElementById('undoBtn').click();`);
+  return setsToday() === before + 1;
+})());
+ok("...and once restored (stack empty) the button is gone", !undoShown());
+/* logging expires it — the property that keeps it from becoming chrome */
+fresh();
+run(`snapshot('deleted a set'); day(todayISO).w.pop(); SEED=deriveAll(); renderLift();`);
+ok("visible right after a removal", undoShown());
+run(`document.querySelector('.repgrid button').click();`);
+ok("logging a set makes it vanish", !undoShown());
+ok("...and the tip no longer claims Undo lives behind EDIT",
+   !/Undo lives there/.test(fs.readFileSync(path.join(dir, "js/lift.js"), "utf8")));
+
 console.log(fail ? "\n" + fail + " FAILED" : "\nALL PASS");
 process.exit(fail ? 1 : 0);
