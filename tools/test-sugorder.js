@@ -64,7 +64,13 @@ const setWv = v => run(`(function(){const el=document.getElementById('wv'); el.v
 ok("the compact Suggested strip renders", run(`!!document.querySelector('.zone.mini .lastsets')`));
 /* v3.3.145: it renders WITH its name — v3.3.144 shipped the chips as an
    anonymous row, and the maker's first field note was the missing label */
-ok("...labelled 'Suggested'", /Suggested/.test(run(`document.querySelector('.zone.mini').textContent`)));
+ok("...labelled 'SUGGESTED'", /SUGGESTED/.test(run(`document.querySelector('.zone.mini').textContent`)));
+/* v3.3.147: and labelled in the SAME class as its peers — the header font
+   mismatch was two classes doing one job, fixed by unification, so this
+   asserts the class, not a size that could drift again */
+ok("...as a .lasthead, the same class THIS SESSION uses",
+   run(`!!document.querySelector('.zone.mini .lasthead')`)
+   && run(`!document.querySelector('.zone.mini .zonehead')`));
 ok("...with a working (i)", run(`(function(){
      const b=document.querySelector('.zone.mini .ibtn.tipi'); if(!b) return false;
      b.click(); const tf=document.getElementById('tipFloat');

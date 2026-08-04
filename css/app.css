@@ -296,7 +296,7 @@
     background:var(--surface2);border:1px solid var(--line);color:var(--muted);
     font-size:10px;line-height:1;padding:0;z-index:1;
     display:flex;align-items:center;justify-content:center}   /* v3.3.50: fully inside the corner — zero overhang (respects the clip guard), reps cleared by chip padding below */
-  .zone.mini .zonehead{margin-bottom:6px}
+  .zone.mini .lasthead{margin-bottom:6px}   /* v3.3.147: the strip's head is a .lasthead now */
   .zone.mini .lastsets{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:8px;padding:4px 0 2px;
     -webkit-overflow-scrolling:touch;scrollbar-width:none}
   .zone.mini .lastsets::-webkit-scrollbar{display:none}

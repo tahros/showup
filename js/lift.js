@@ -321,7 +321,12 @@ function renderLift(){
            rendered as an anonymous row of buttons. The (i) uses the modern
            iBtn -> tipFloat path, not the old #infoBtn toggle that went in
            v3.3.141. */
-        h+=`<div class="zone mini"><div class="zonehead"><span>Suggested ${iBtn('sug',
+        /* v3.3.147: SUGGESTED is a peer label to THIS SESSION and LAST TIME,
+           so it uses the SAME class — .lasthead — not a second header style
+           tuned to look similar. It rendered 12px chalk in the display face
+           against their 11px muted, and the mismatch read as a mistake
+           because it was one. Caps are literal in lasthead labels. */
+        h+=`<div class="zone mini"><div class="lasthead"><span>SUGGESTED ${iBtn('sug',
              ls?`From your last ${ex} session — tap to log that exact set, ✕ to dismiss it for today. Your latest set today leads.`
                :'Your latest set, ready to repeat — tap to log it again.')}</span></div>
            <div class="lastsets">${sugChipsHTML(ex,chips)}</div></div>`;

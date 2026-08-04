@@ -1,5 +1,18 @@
 # ShowUp — changelog
 
+## v3.3.147 (2026-08-04) — One header class for peer labels
+
+**"Why is Suggested sized differently?" Because it was a mistake.** The strip
+head used `.zonehead` — 12px, chalk, the display face — while THIS SESSION
+and LAST TIME beside it use `.lasthead` at 11px muted. Two classes doing one
+job, the same disease as the v3.3.138 margin drift, caught the same way: on
+the phone, stacked next to its peers.
+
+Fixed by unification, not by matching constants: SUGGESTED is a `.lasthead`
+now, so this pair cannot drift again — there is no second number to keep in
+sync. `.zonehead` survives only where it is genuinely a different thing: the
+control-zone caption on "Log a run". The test asserts the CLASS, not a size.
+
 ## v3.3.146 (2026-08-04) — Done today is a go-to today
 
 **A deadlift after 1,162 days away sat in "Sometimes" while its sets were on
