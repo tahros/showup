@@ -62,6 +62,13 @@ const setWv = v => run(`(function(){const el=document.getElementById('wv'); el.v
    Cut in v3.3.141, recalled two releases later: the one-tap complete w×r
    log was the part that mattered. The tall variant stays gone. */
 ok("the compact Suggested strip renders", run(`!!document.querySelector('.zone.mini .lastsets')`));
+/* v3.3.145: it renders WITH its name — v3.3.144 shipped the chips as an
+   anonymous row, and the maker's first field note was the missing label */
+ok("...labelled 'Suggested'", /Suggested/.test(run(`document.querySelector('.zone.mini').textContent`)));
+ok("...with a working (i)", run(`(function(){
+     const b=document.querySelector('.zone.mini .ibtn.tipi'); if(!b) return false;
+     b.click(); const tf=document.getElementById('tipFloat');
+     const ok=!!(tf&&!tf.hidden&&tf.textContent.length>10); if(tf) tf.hidden=true; return ok;})()`));
 ok("...but the tall variant's bulk actions stay gone",
    run(`!document.getElementById('repeatAll') && !document.getElementById('copySets')`));
 ok("a chip tap logs the complete pair", (() => {

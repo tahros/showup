@@ -316,7 +316,15 @@ function renderLift(){
       const lastToday=todaySets.length?todaySets[todaySets.length-1]:null;
       const chips=sugChips(ex,ls,lastToday,dis,lift.weight);
       if(chips.length)
-        h+=`<div class="zone mini"><div class="lastsets">${sugChipsHTML(ex,chips)}</div></div>`;
+        /* v3.3.145: the head came back with the strip this time. v3.3.144
+           restored the chips but not the label above them, so the strip
+           rendered as an anonymous row of buttons. The (i) uses the modern
+           iBtn -> tipFloat path, not the old #infoBtn toggle that went in
+           v3.3.141. */
+        h+=`<div class="zone mini"><div class="zonehead"><span>Suggested ${iBtn('sug',
+             ls?`From your last ${ex} session — tap to log that exact set, ✕ to dismiss it for today. Your latest set today leads.`
+               :'Your latest set, ready to repeat — tap to log it again.')}</span></div>
+           <div class="lastsets">${sugChipsHTML(ex,chips)}</div></div>`;
     }
   }
 

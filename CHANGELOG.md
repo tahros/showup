@@ -1,5 +1,18 @@
 # ShowUp — changelog
 
+## v3.3.145 (2026-08-04) — The strip gets its name back
+
+**v3.3.144 restored the chips but not the label above them**, so the strip
+rendered as an anonymous row of buttons — the maker's first field note. The
+"Suggested" head returns with an (i), rebuilt on the modern iBtn → tipFloat
+path rather than the old `#infoBtn` toggle, which went out with the zone in
+v3.3.141 and stays gone. The tip says what a tap does and what ✕ does, which
+for a row of look-alike chips is the difference between a shortcut and a
+mystery.
+
+The suite now asserts the strip renders WITH its name — the restoration
+test checked the chips existed and never asked whether they were labelled.
+
 ## v3.3.144 (2026-08-03) — This session: one card, one grammar
 
 **The maker's sketch beat the staged plan.** The plan on the table shaved
