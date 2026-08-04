@@ -97,7 +97,10 @@ run(`lift={part:'Shoulder',ex:'Dumbbell Press'}; view='lift'; render();`);
 check("LAST TIME card still renders", `!!document.querySelector('.lastcard')`, true);
 check("LAST TIME rows still tappable",
       `!!document.querySelector('.lastcard .lastrow[data-lw]')`, true);
-check("LAST TIME still has its footer",
-      `/sets/.test(document.querySelector('.lastfoot').textContent)`, true);
+/* v3.3.148: .lastfoot went with the v3.3.144 merge — LAST TIME is the
+   dimmed group of THIS SESSION now and the card's own .tot carries the
+   numbers. This assertion crashed the suite silently from that release. */
+check("LAST TIME lives inside the session card, not alone",
+      `!!document.querySelector('.lastcard.sess .sess-then')`, true);
 
 process.exit(fail ? 1 : 0);

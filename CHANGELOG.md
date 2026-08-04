@@ -1,5 +1,40 @@
 # ShowUp — changelog
 
+## v3.3.148 (2026-08-04) — The button holds still, and the suite tells the truth
+
+**The visible fix is small.** The Add set button grew when you typed reps —
+the live volume preview is a second line, so the button gained a line's
+height and the reps input, stretching to the flex row, grew with it. The
+whole control jumped under a thumb mid-entry. `#addrep` is a constant 51px
+box now (its one-line height) that centres its content; the preview
+compresses into the same box instead of enlarging it.
+
+**The invisible find is the release.** Writing the assertion for that fix
+crashed test-repweight — and the gate did not notice, because the ad-hoc
+suite loop counted `FAIL` lines and a suite that CRASHES prints none. Checked
+properly: FOUR suites were crashing. test-cards and test-sharecard since
+v3.3.130 — each still drove one per-section share button the carousel
+replaced, my rewrites missed one call site apiece — and test-repweight and
+test-sessfmt since the v3.3.144 merge. Every "suite green" reported in that
+window was partially false: the suites passed their early assertions, died
+mid-file, and everything after the crash point went unexecuted for up to
+fourteen releases.
+
+`tools/runsuite.sh` is the correction: it runs every suite and fails on any
+non-zero exit, distinguishing CRASH (died, no FAIL lines) from FAIL. Exit
+codes were always the contract — `process.exit(1)` on failure, node's own 1
+on a crash; the old loop just ignored them. The ritual runs through it now.
+
+The four suites are repaired, not lobotomised: the dead share-button flows
+route through the carousel; unreachable pre-v3.3.130 assertions inverted
+(URL absent, date stamp present, no per-section buttons); the stale
+FRAME_TEXTS count followed the URL it still counted; the vbMap census learned
+about vbMapCentered; the CAP block asserts its replacement (EDIT shows all,
+read mode folds); the save-flash assertion moved to the chip that inherited
+it. This is the fourth measuring-the-wrong-thing incident this cycle, and the
+worst, because the other three were single assertions passing hollow — these
+were whole suite-tails not running at all.
+
 ## v3.3.147 (2026-08-04) — One header class for peer labels
 
 **"Why is Suggested sized differently?" Because it was a mistake.** The strip

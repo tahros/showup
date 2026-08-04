@@ -97,8 +97,12 @@ console.log((!/(?:top|right):\s*-\d/.test(lsxRule) ? "PASS" : "FAIL"),
 if (/(?:top|right):\s*-\d/.test(lsxRule)) fail++;
 
 // ---- v3.3.103: Logged Today's number and unit are one visual word --------
+/* v3.3.148: settiles are EDIT-mode-only since v3.3.144 — read mode renders
+   the History grammar. The tile-anatomy checks below still matter (the tile
+   is the edit surface), so enter EDIT before inspecting. The old render
+   crashed here silently from that release on. */
 run(`(function(){DB.days={}; day(todayISO).w.push({part:'Chest',ex:'Chest Press',w:16,reps:[35],at:Date.now()});
-  SEED=deriveAll(); lift.ex='Chest Press'; lift.part='Chest'; view='lift'; render();})()`);
+  SEED=deriveAll(); lift.ex='Chest Press'; lift.part='Chest'; lift.editToday=true; view='lift'; render();})()`);
 // house lesson, repeated: a regex containing HTML closing tags collapses its
 // own \/ escaping across this template-literal boundary before it ever
 // reaches vm, so the regex terminates early on the first real "/" and the
@@ -121,42 +125,36 @@ check("a bodyweight set renders no unit at all (not even an empty <small>)",
       `document.querySelector('.settile').innerHTML.includes('<small>')`, false);
 
 // ---- v3.3.104: the newest set leads, and the list stays short ------------
-// Seed 11 sets so the cap (6) is exercised, newest = 11 reps.
+// Seed 11 sets. v3.3.148: the CAP and #allSets died in the v3.3.144 merge —
+// EDIT mode shows every set, read mode folds them into rows. This block
+// asserted the cap for four releases after it was removed, crashing the
+// suite silently at the #allSets deref. It now asserts the REPLACEMENT
+// behaviour on both surfaces.
 run(`(function(){DB.days={};
   for(let i=1;i<=11;i++) day(todayISO).w.push({part:'Chest',ex:'Chest Press',w:16,reps:[i],at:Date.now()+i});
-  SEED=deriveAll(); lift.ex='Chest Press'; lift.part='Chest'; lift.allSets=false;
+  SEED=deriveAll(); lift.ex='Chest Press'; lift.part='Chest'; lift.editToday=true;
   view='lift'; render();})()`);
-check("a long session shows only the recent handful, not all 11",
-      `document.querySelectorAll('.settile').length`, 6);
+check("EDIT shows every one of the 11 sets — no cap, no expand control",
+      `document.querySelectorAll('.settile').length===11 && !document.querySelector('#allSets')`, true);
 check("...and the NEWEST set is the first tile, where it cannot be missed",
       `document.querySelector('.settile').textContent.includes('11')`, true);
-check("...with the oldest of the visible six last",
-      `[...document.querySelectorAll('.settile')].pop().textContent.includes('6')`, true);
-check("an expand control appears, naming the full count",
-      `document.querySelector('#allSets').textContent`, "Show all 11");
-
-// expanding shows everything, still newest-first
-run(`document.querySelector('#allSets').click();`);
-check("expanding reveals all 11", `document.querySelectorAll('.settile').length`, 11);
-check("...still newest-first", `document.querySelector('.settile').textContent.includes('11')`, true);
-check("...and the control offers the way back", `document.querySelector('#allSets').textContent`, "Show recent only");
-run(`lift.allSets=false; render();`);
-
-// a short session needs no control at all — absence shown by absence
-run(`(function(){DB.days={};
-  for(let i=1;i<=3;i++) day(todayISO).w.push({part:'Chest',ex:'Chest Press',w:16,reps:[i],at:Date.now()+i});
-  SEED=deriveAll(); view='lift'; render();})()`);
-check("a short session shows every set and no expand control",
-      `document.querySelectorAll('.settile').length===3 && !document.querySelector('#allSets')`, true);
-
 // deletion still targets the right set despite the reversed render order
 check("the first tile's data-del points at the LAST array entry (reversal is display-only)",
       `+document.querySelector('.settile').dataset.del === day(todayISO).w.length-1`, true);
+// read mode: rows, not tiles — the fold is the cap now
+run(`lift.editToday=false; render();`);
+check("read mode folds 11 same-weight sets into ONE row",
+      `document.querySelectorAll('.sess-now .lastrow').length`, 1);
+check("...carrying all 11 chips", `document.querySelectorAll('.sess-now .repchip').length`, 11);
 
-// the save flash follows the set, not a position
+// the save flash follows the set — on the newest CHIP now, the tile's
+// successor since v3.3.144 (the tile only exists in EDIT mode)
 run(`(function(){lift.justSaved=true; render();})()`);
-check("the fresh-save animation lands on the newest tile, now at the front",
-      `document.querySelector('.settile').className.includes('saved')`, true);
+check("the fresh-save flash lands on the newest chip",
+      `!!document.querySelector('.sess-now .repchip.fresh')`, true);
+check("...which is the LAST chip, the set just logged",
+      `[...document.querySelectorAll('.sess-now .repchip')].pop().className.includes('fresh')`, true);
+
 
 // ---- v3.3.104: every log path confirms, at the point of action -----------
 const appSrc104 = fs.readFileSync(path.join(dir, "js/app.js"), "utf8");
@@ -174,5 +172,27 @@ if (!(logPaths === toasted && toasted >= 3)) fail++;
 check("the confirmation says BW for a bodyweight set, not '0kg'",
       `(function(){let m=''; const o=toast; toast=t=>m=t;
         setToast('Push Up',0,20); toast=o; return m;})()`, "BW \u00d7 20 logged");
+
+/* ---- v3.3.148: the preview cannot resize the button --------------------
+   jsdom has no layout, so the constant-height property is asserted where it
+   is decided: the stylesheet pins #addrep to an explicit height with flex
+   centring, and the sub-line carries no margin to push past it. Stated
+   plainly: the true fix is judged on the phone; this stops the RULE from
+   silently disappearing. */
+{
+  const css148 = fs.readFileSync(path.join(dir, "css/app.css"), "utf8");
+  const btnRule = (css148.match(/#addrep\{[^}]*\}/) || [""])[0];
+  check("the Add set button has a pinned height", `${/height:\d+px/.test(btnRule)}`, true);
+  check("...and centres its content instead of growing around it",
+        `${/flex-direction:column/.test(btnRule) && /justify-content:center/.test(btnRule)}`, true);
+  const subRule = (css148.match(/#addrep \.addsub\{[^}]*\}/) || [""])[0];
+  check("...and the preview line adds no margin of its own", `${!/margin-top/.test(subRule)}`, true);
+  run(`lift.weight=16; document.getElementById('rc')?(document.getElementById('rc').value='12'):0; updAddPreview();`);
+  check("typing reps still writes the preview",
+        `/addsub/.test((document.getElementById('addrep')||{innerHTML:''}).innerHTML)`, true);
+  run(`document.getElementById('rc')?(document.getElementById('rc').value=''):0; updAddPreview();`);
+  check("clearing reps restores the plain label",
+        `(document.getElementById('addrep')||{textContent:''}).textContent`, "Add set");
+}
 
 process.exit(fail ? 1 : 0);

@@ -131,14 +131,18 @@ const svgTexts = (sel) => run(`(function(){
 
 // --- Days by month ---------------------------------------------------------
 const dbmSvg = JSON.parse(svgTexts("Days by month"));
-const dbmCard = paints("makeDbmImage").texts;
+const dbmCard = paints("dbm").texts;
 ok("the Days-by-month card carries the same 20-day reference label as the chart",
    dbmSvg.includes("20") && dbmCard.includes("20"));
 /* cardFrame() always emits exactly five texts first \u2014 big, sub, kicker,
    footer, url \u2014 which the SVG has no equivalent of. Compare only the plot
    labels after them, or the card's own headline ("23" trained) gets counted
    as a month label and the sets never line up. */
-const FRAME_TEXTS = 5;
+/* v3.3.148: 5 -> 4. The frame lost its URL line in v3.3.133 and this count
+   was never followed, so slice(5) ate the first PLOT label and the month
+   sets could never match again — one of the assertions this suite crashed
+   before reaching for fourteen releases. big, sub, kicker, footer. */
+const FRAME_TEXTS = 4;
 const dbmMonths = dbmSvg.filter(t => /^\d{2}$/.test(t));
 const cardMonths = dbmCard.slice(FRAME_TEXTS).filter(t => /^\d{2}$/.test(t));
 ok("...and the same month labels, in the same count",
@@ -147,7 +151,7 @@ ok("...and the same month labels, in the same count",
 
 // --- Weekdays --------------------------------------------------------------
 const wdSvg = JSON.parse(svgTexts("Weekdays"));
-const wdCard = paints("makeWdImage").texts;
+const wdCard = paints("wd").texts;
 ok("the Weekdays card draws the same 0/25/50/75/100 gridline labels",
    ["0","25","50","75","100"].every(g => wdCard.includes(g)),
    wdCard.filter(t => /^\d+$/.test(t)).join(","));
@@ -161,7 +165,7 @@ ok("...and the SMTWTFS letters", wdCard.filter(t => /^[SMTWF]$/.test(t)).length 
    wdCard.filter(t => /^[SMTWF]$/.test(t)).join(""));
 
 // --- Last 6 months ---------------------------------------------------------
-const heatCard = paints("makeHeatImage");
+const heatCard = paints("heat");
 ok("the heat card draws 26x7 cells plus the rail",
    heatCard.shapes >= 182, heatCard.shapes + " shape ops");
 ok("...with the weekday rail letters",
@@ -171,11 +175,15 @@ ok("...and month labels across the top",
    heatCard.texts.some(t => /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)$/.test(t)),
    heatCard.texts.filter(t => /^[A-Z][a-z]{2}$/.test(t)).join(","));
 
-// the shared coordinate mapper is what makes fidelity structural
+// the shared coordinate mapper is what makes fidelity structural.
+// v3.3.148: since v3.3.133 the painters go through vbMapCentered, which
+// DELEGATES to vbMap — one mapper family, one extra hop. Assert the chain,
+// not the old headcount.
 const rep115 = fs.readFileSync(path.join(dir, "js/report.js"), "utf8");
-ok("one vbMap() maps the svg coordinate system for all three",
-   (rep115.match(/function vbMap/g) || []).length === 1 &&
-   ["drawDbm", "drawWd"].every(f => new RegExp(f + "[\\s\\S]{0,900}vbMap\\(").test(rep115)));
+ok("both painters centre through vbMapCentered",
+   ["drawDbm", "drawWd"].every(f => new RegExp(f + "[\\s\\S]{0,900}vbMapCentered\\(").test(rep115)));
+ok("...which delegates to the one true vbMap",
+   /function vbMapCentered[\s\S]{0,300}return vbMap\(/.test(rep115));
 
 // ---- v3.3.115: icons are larger and beside the title --------------------
 const css115 = fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\n/g, "");

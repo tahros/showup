@@ -190,7 +190,12 @@ const mgTip = (fs.readFileSync(path.join(dir, "js/stats.js"), "utf8")
   .match(/(?:iBtn|hActs)\('mgrid',"([^"]*)"/) || [])[1] || "";
 ok("...within the app's one-breath range", mgTip.length > 0 && mgTip.length <= 120,
    mgTip.length + " chars");
-run(`$('#view').querySelector('#gridShare').click();`);
+/* v3.3.148: #gridShare died in v3.3.130 — the carousel is the one door now.
+   This click was a null deref that crashed the suite silently for fourteen
+   releases; everything below here never ran. Rotate to the grid card and go
+   through the real button. */
+run(`_repIdx=shareCards().findIndex(c=>c.id==='grid');
+     document.getElementById('repShare').click();`);
 // showCard awaits document.fonts.ready; drain the microtask queue
 run(`Promise.resolve()`);
 const settled = new Promise(r => setTimeout(r, 50));
@@ -245,14 +250,18 @@ module.exports = settled.then(() => {
     ok("the current year is the boldest line and drawn last",
        widths.length >= 2 && widths[widths.length - 1] === Math.max(...widths),
        widths.join(","));
-    ok("the URL is on this card too", ytexts.some(t => t.includes("tahros.github.io/showup")));
+    // v3.3.148: inverted — the URL left every card in v3.3.133; the date
+    // stamp stands where it stood. This line was unreachable until today.
+    ok("no URL on this card either", !ytexts.some(t => t.includes("tahros.github.io/showup")));
+    ok("...the date stamp stands in its corner", ytexts.includes(run(`todayISO`)));
     // the caption moved behind the dot
     run(`view='stats'; renderStats();`);
     const yoyHtml = run(`$('#view').innerHTML`);
     ok("the chart explains itself behind an i", /data-tip="yoy"/.test(yoyHtml));
     ok("...and the loose caption is gone",
        !/cumulative through each year/.test(yoyHtml));
-    ok("...with a share button in its place", /id="yoyShare"/.test(yoyHtml));
+    // v3.3.148: the per-section button died in v3.3.130 — the carousel is the door
+    ok("...and no per-section share button returned", !/id="yoyShare"/.test(yoyHtml));
     const yoyTip = (fs.readFileSync(path.join(dir, "js/stats.js"), "utf8")
       .match(/(?:iBtn|hActs)\('yoy',"([^"]*)"/) || [])[1] || "";
     ok("...tip within one breath", yoyTip.length > 0 && yoyTip.length <= 120, yoyTip.length + " chars");
@@ -322,8 +331,8 @@ module.exports = settled.then(() => {
 
     // the button, and the chips' absence
     run(`view='stats'; renderStats();`);
-    ok("the run chart offers a share button",
-       /id="runShare"/.test(run(`$('#view').innerHTML`)));
+    ok("the run chart offers no per-section share button (carousel only)",
+       !/id="runShare"/.test(run(`$('#view').innerHTML`)));
     ok("the jump chips are gone from Stats (v3.3.89)",
        !/data-jump=/.test(run(`$('#view').innerHTML`)));
     ok("...while the section headings they indexed remain",
