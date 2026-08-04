@@ -216,11 +216,19 @@ document.addEventListener('change',e=>{
 });
 function tickRest(){
   const el=$('#hTimer'); if(!el) return;
-  if(isLive()&&lastSetAt){
-    const s=Math.max(0,Math.floor((Date.now()-lastSetAt)/1000));
-    if(s>1800){ el.textContent=''; return; }   // 30+ min isn't "rest between sets" anymore
-    el.textContent=`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
-  } else el.textContent='';
+  /* v3.3.149: the WIDER rule. This used to require isLive(), so tapping
+     ✓ Complete stopped the clock for the rest of the visit — finish a part,
+     start prepping the next exercise, and there was nothing to read. But
+     "time since my last set" is useful whenever it is short, whatever has
+     been marked done; the 30-minute guard already says "you left".
+     lastSetAt is null until something is logged today, so a rest day and an
+     unwritten morning still show nothing. */
+  const show = !!lastSetAt && Math.floor((Date.now()-lastSetAt)/1000)<=1800;
+  el.classList.toggle('on',show);          // visibility is the timer's own, not the header's
+  el.classList.toggle('done',show&&!isLive());
+  if(!show){ el.textContent=''; return; }
+  const s=Math.max(0,Math.floor((Date.now()-lastSetAt)/1000));
+  el.textContent=`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
 }
 setInterval(tickRest,1000);
 /* hold a set tile ~0.5s to edit it; a plain tap still deletes.

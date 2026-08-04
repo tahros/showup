@@ -1,5 +1,35 @@
 # ShowUp — changelog
 
+## v3.3.149 (2026-08-04) — The clock keeps running after you finish
+
+**The timer already existed; its stop rule was wrong.** The header's `● 0:14`
+anchors to your last set and survives moving between exercises — which is
+exactly the between-lifts reading you want. But it died on `isLive()`, and
+live ends when the WORKOUT is completed. Finish Back, tap ✓ Complete, start
+prepping a bonus Pull Up, and the clock was dark precisely when you wanted to
+know how long you had been standing there.
+
+Now only the 30-minute guard ends it. "Time since my last set" is worth
+reading whenever it is short, whatever has been marked done; past half an
+hour it means you left, which is what the guard already said.
+
+**Two gates had to move, and the second was the interesting one.**
+`tickRest()` refused to write text unless live — and the CSS displayed the
+span only under `header.live`. Loosening the JavaScript alone would have
+written a perfectly correct time into a `display:none` element: green in any
+DOM test, invisible on the phone. The timer owns its visibility now.
+
+Two consequences that fell out of crossing the boundary the rule was built
+against: the timer was `color:#fff`, fine on the red live bar and invisible
+on the light idle one, so it is muted by default and white only under
+`header.live`. And the leading dot pulses to say "in progress" — after
+completion that would be a small lie, so a done timer keeps the dot and
+stops the pulse. Still counting, no longer claiming.
+
+The test drives all three states and the boundary at 1799/1801 seconds, and
+was verified by restoring the `isLive()` gate and watching five assertions
+fail before re-applying the fix.
+
 ## v3.3.148 (2026-08-04) — The button holds still, and the suite tells the truth
 
 **The visible fix is small.** The Add set button grew when you typed reps —
