@@ -101,6 +101,27 @@ function renderLift(){
         h+=`<button class="btn ghost" id="reopenPartBtn" style="margin-top:12px">${lift.part} completed ✓ — Reopen</button>`;
     }
 
+    /* v3.3.151: LAST TIME at the part level — the session's SHAPE. The
+       exercise page got this in v3.3.144; the part page answered "what do I
+       usually pick" but never "what did last time look like, in order".
+       Same grammar, one level up: exgrp blocks in the order they were done,
+       each row tappable into its lift, done-today rows checked off — a
+       playbook you never had to author, read from the record. */
+    if(lift.part!=='Run'){
+      const lp=lastPartSession(lift.part);
+      if(lp){
+        h+=`<div class="lastcard partlast"><div class="lasthead"><span>LAST TIME · ${lift.part.toUpperCase()} ${iBtn('plast',"Last "+lift.part+" session, in the order you did it. Tap an exercise to pick up where its bar is loaded — ✓ marks what you have already repeated today.")}</span><button class="ago linkdate" data-histd="${lp.d}">${wd2(lp.d)} · ${agoStr(lp.d)}</button></div>`;
+        for(const g of lp.groups){
+          const doneNow=t.w.some(x=>x.ex===g.ex&&(x.reps||[]).length);
+          const n=g.sets.reduce((a,st)=>a+((st[1]||[]).length||0),0);
+          h+=`<div class="exgrp plrow${doneNow?' pldone':''}" data-ex="${g.ex}" role="button" tabindex="0">
+                <div class="lasthead"><span>${doneNow?'✓ ':''}${g.ex}</span><span class="ago">${n} set${n>1?'s':''}</span></div>
+                ${setRows(g.ex,foldSets(g.sets,g.ex),false)}</div>`;
+        }
+        h+=`</div>`;
+      }
+    }
+
     // exercises, split by how much of a staple they are for you.
     // Anything currently OPEN today already sits in the "· today" list above —
     // it only returns to its tier once you complete it.
@@ -469,6 +490,31 @@ function renderLift(){
 /* The session this exercise was last done in — strictly BEFORE today.
    Today's logging never rewrites it, so it stays a stable template you can
    copy from, repeat, or compare against. */
+/* v3.3.151: lastSession's sibling, one level up. The most recent day this
+   PART was trained, with its exercises in the order they were done —
+   a session's shape, not a frequency ranking. Groups key on first
+   occurrence, so alternating supersets fold into one group per exercise,
+   exactly as History's day view reads them. Two eras, same rule as
+   lastSession: the app day wins only if it is newer than the sheet's. */
+function lastPartSession(part){
+  const mine=Object.entries(DB.days)
+    .filter(([d,v])=>d<todayISO && (v.w||[]).some(x=>x.part===part&&(x.reps||[]).length))
+    .sort((a,b)=>b[0].localeCompare(a[0]))[0];
+  const seedD=Object.keys(SEED.sessions)
+    .filter(d=>d<todayISO && SEED.sessions[d].some(r=>r[0]===part&&r[1]!=='Run'))
+    .sort().pop();
+  const groups=[], byEx={};
+  const add=(ex,set)=>{ let g=byEx[ex]; if(!g){ g={ex,sets:[]}; byEx[ex]=g; groups.push(g); } g.sets.push(set); };
+  let d=null;
+  if(mine&&(!seedD||mine[0]>seedD)){
+    d=mine[0];
+    for(const x of mine[1].w) if(x.part===part&&(x.reps||[]).length) add(x.ex,[x.w,x.reps,x.mins,x.secs]);
+  }else if(seedD){
+    d=seedD;
+    for(const r of SEED.sessions[seedD]) if(r[0]===part&&r[1]!=='Run') add(r[1],[r[2],r[3],r[4],r[5]]);
+  }
+  return d&&groups.length?{d,groups}:null;
+}
 function lastSession(ex){
   const mine=Object.entries(DB.days)
     .filter(([d,v])=>d<todayISO && v.w.some(s=>s.ex===ex))

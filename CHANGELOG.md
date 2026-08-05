@@ -1,5 +1,33 @@
 # ShowUp — changelog
 
+## v3.3.151 (2026-08-05) — The session's shape, one level up
+
+**The exercise page answers "what did I do last time here"; the part page
+only answered "what do I usually pick".** Neither answered the question you
+carry into a Chest day: what did last Chest session look like, as a sequence
+— which exercises, what order, how many sets. That shape lived only in
+History, a tab away.
+
+**LAST TIME · CHEST** now sits between the part header and the tiers. Same
+grammar as everything else — exgrp blocks, weight-grouped rep chips, the
+dated history link — but per exercise, in the order they were done, read by
+`lastPartSession()`: lastSession's sibling one level up, same two-era rule
+(the app day wins only if newer than the sheet's). Alternating supersets
+fold to one group per exercise, exactly as History reads them; runs stay out.
+
+**Every row is a door.** Tap an exercise and you land in it — the existing
+`data-ex` router, nothing new — which quietly makes the card an ordered
+playbook you can walk: row one, log, back, row two. Exercises already
+repeated today are checked and stepped back to 55%, so the card reads as
+"here is the shape, here is how far through it you are" — a checklist nobody
+had to author, read from the record. The app still prescribes nothing; it
+shows what showing up looked like last Wednesday.
+
+Deliberately not done: reordering the go-to tiles by last-session order (the
+tiers answer "what is mine", the card answers "what happened" — merging them
+worsens both), and any "typical session" synthesis (the last real session,
+dated, is honest; if it was a weird day the link is right there).
+
 ## v3.3.150 (2026-08-05) — Undo, in plain sight
 
 **"Where did Undo go?" — behind EDIT, which was the answer and the bug.**

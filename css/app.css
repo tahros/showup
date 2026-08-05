@@ -242,6 +242,16 @@
      years make on the Consistency chart. Dimmed, not restyled: one grammar,
      two distances. */
   .sess-then{margin-top:12px;padding-top:10px;border-top:1px solid var(--line);opacity:.62}
+  /* ---- v3.3.151: LAST TIME at the part level — the session's shape ---- */
+  .partlast{margin-top:14px}
+  .partlast>.lasthead{margin-bottom:10px}
+  .plrow{padding:8px 10px;margin:0 -10px;border-radius:10px;cursor:pointer}
+  .plrow .lasthead{margin-bottom:2px}
+  .plrow:active{background:var(--surface2)}
+  .plrow+.plrow{border-top:1px dashed var(--line);border-radius:0 0 10px 10px}
+  /* repeated today: settled, not shouting — the ✓ in the row says it */
+  .plrow.pldone{opacity:.55}
+  .plrow.pldone:active{background:none}
   .sess-then .lasthead{margin-bottom:4px}
   .sess-now{margin-bottom:2px}
   /* the save flash lives on the newest chip now — the settile that used to
