@@ -1,5 +1,39 @@
 # ShowUp — changelog
 
+## v3.3.152 (2026-08-05) — The disclosure audit
+
+**Every (i) in the app, audited against the maker's disclosure rulebook.**
+Twenty-one tips inventoried; the full decision table shipped as
+TIPS-AUDIT.md. The verdicts: six REMOVED (sess, run, next-milestone,
+run-records, KPIs, records — each repeated labels already visible beside
+it), one moved INLINE (the part card's tip becomes a line under its heading,
+the rulebook's own worked correction), fourteen RETAINED as tooltips with
+copy cut to one question apiece — the longest surviving tip is 78
+characters against the old worst of 150+.
+
+**The component learned the rulebook's manners.** Tips now open ABOVE their
+trigger — triggers live in section headings, so opening downward covered
+exactly the chart being explained, which the maker's Legs screenshot caught
+in the wild. Prose renders in the body face at 15px/1.45 instead of mono
+13px: the readability rules apply to prose, and these bubbles are the app's
+only prose — mono stays everywhere it labels data. The 22px icon carries a
+44px tap target via an inset pseudo-element. Every trigger has a specific
+aria-label ("About the pace chart", not "Info"), aria-expanded kept truthful
+by the open handler, and the portal announces via role=status. Single-open
+and tap-outside-dismiss already held; now they are asserted.
+
+**The checkmark stopped being a bare symbol.** The part card's ✓ carries
+aria-label="completed today", per the rule that symbols name their meaning.
+
+One near-miss worth recording: while repairing test-statspolish, a botched
+replacement briefly left a check PRINTING pass on one condition while
+SCORING another — the measuring-the-wrong-thing disease, freshly authored.
+The runsuite gate caught it as a silent exit-1 within minutes, which is the
+system working exactly as built in v3.3.148.
+
+Out of scope by the rulebook's own rule 17: the onboarding card (first-use
+education, one card, dismissible) and all business logic.
+
 ## v3.3.151 (2026-08-05) — The session's shape, one level up
 
 **The exercise page answers "what did I do last time here"; the part page

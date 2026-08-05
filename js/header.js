@@ -135,11 +135,14 @@ function rhythmCard(){
    seven entry points to one action; they now collapse into the Report card
    carousel at the bottom of Stats. hActs keeps its name and its call sites —
    it just has nothing left to do but the tip. */
-function hActs(id,text){
-  return `<span class="hacts">${iBtn(id,text)}</span>`;
+function hActs(id,text,label){
+  return `<span class="hacts">${iBtn(id,text,label)}</span>`;
 }
-function iBtn(id,text){
-  return `<span class="notei"><button class="ibtn tipi" data-tip="${id}" aria-label="What is this?">i</button><span class="tipbubble" id="tip-${id}" hidden>${text}</span></span>`;
+/* v3.3.152: per the disclosure rulebook — every trigger carries a SPECIFIC
+   accessibility label ("About the pace chart"), not a generic "Info", plus
+   aria-expanded that the open handler keeps truthful. */
+function iBtn(id,text,label){
+  return `<span class="notei"><button class="ibtn tipi" data-tip="${id}" aria-label="${label||'About this section'}" aria-expanded="false" aria-controls="tipFloat">i</button><span class="tipbubble" id="tip-${id}" hidden>${text}</span></span>`;
 }
 /* v3.3.16: the bubble is PORTALED — one #tipFloat node living directly on
    <body>, filled from the tip's content on demand. Why: every #view>.card
@@ -154,21 +157,26 @@ function tipFloatEl(){
   if(!tf){
     tf=document.createElement('span');
     tf.id='tipFloat'; tf.className='tipbubble float'; tf.hidden=true;
+    tf.setAttribute('role','status');   // v3.3.152: announce on open, no focus move
     document.body.appendChild(tf);
   }
   return tf;
 }
+const _tipExpand=v=>{document.querySelectorAll('.tipi[aria-expanded="true"]')
+  .forEach(x=>x.setAttribute('aria-expanded','false'));
+  if(v) v.setAttribute('aria-expanded','true');};
 document.addEventListener('click',e=>{
   const b=e.target.closest('.tipi');
   const tf=tipFloatEl();
-  if(!b){ tf.hidden=true; return; }                       // any other tap closes
-  if(!tf.hidden&&tf.dataset.tip===b.dataset.tip){ tf.hidden=true; return; }
+  if(!b){ tf.hidden=true; _tipExpand(null); return; }     // any other tap closes
+  if(!tf.hidden&&tf.dataset.tip===b.dataset.tip){ tf.hidden=true; _tipExpand(null); return; }
   const src=document.getElementById('tip-'+b.dataset.tip);
   if(!src) return;
   tf.innerHTML=src.innerHTML;
   tf.dataset.tip=b.dataset.tip;
   tf.classList.remove('up');
   tf.hidden=false;
+  _tipExpand(b);
   tf.style.left='8px'; tf.style.top='8px'; tf.style.bottom='auto';
   const r=tf.getBoundingClientRect();
   if(!r.height) return;                                   // no layout (tests) — leave default
@@ -176,7 +184,15 @@ document.addEventListener('click',e=>{
   const nv=document.querySelector('nav');
   const navH=nv?nv.getBoundingClientRect().height:64;
   const L=Math.min(Math.max(8,br.left-10), window.innerWidth-r.width-8);
-  let T=br.bottom+9;
-  if(T+r.height>window.innerHeight-navH-8){ T=br.top-9-r.height; tf.classList.add('up'); }
+  /* v3.3.152: prefer ABOVE the trigger. Triggers sit in section headings,
+     so the content being explained is BELOW them — opening downward covered
+     exactly the thing the tip was describing (the rulebook's screenshot
+     caught this on the Legs card). Flip below only near the top edge. */
+  let T=br.top-9-r.height;
+  if(T<8){ T=br.bottom+9; }
+  else tf.classList.add('up');
+  if(T+r.height>window.innerHeight-navH-8&&!tf.classList.contains('up')){
+    T=Math.max(8,br.top-9-r.height); tf.classList.add('up');
+  }
   tf.style.left=L+'px'; tf.style.top=T+'px';
 });

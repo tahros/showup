@@ -141,17 +141,45 @@ check("no chart inside Rhythm",
 // guarantees today's sets exist there, unlike Readiness (needs the pre-gym
 // planning board) or the Run charts (need run history).
 run(`view='lift'; lift={part:'Shoulder',ex:'Dumbbell Press',weight:16}; render();`);
-/* v3.3.144: the Logged-today zone merged into the THIS SESSION card, and
-   the (i) moved with it — it now explains EDIT, which is where deletion
-   went. Same three mechanics, new host. */
-check("the session-card head carries the i dot",
-      `!!document.querySelector('#view .lastcard.sess .ibtn.tipi')`, true);
-check("i dot label is 'i', not 'info'",
-      `document.querySelector('#view .lastcard.sess .ibtn.tipi').textContent`, "i");
-check("tip still opens from the new position",
-      `(()=>{const b=document.querySelector('#view .lastcard.sess .ibtn.tipi');
+/* v3.3.152 disclosure audit: the session (i) is REMOVED — EDIT is a
+   labelled control and Undo self-surfaces, so the tip only repeated the
+   interface. The tip MECHANICS still need a host, so they retarget to the
+   Stats weight tip, and gain the audit's new contracts: aria-expanded
+   toggling, single-open, and specific labels. */
+check("the session card carries NO i dot any more",
+      `!document.querySelector('#view .lastcard.sess .ibtn.tipi')`, true);
+run(`view='stats'; render();`);
+check("a retained tip trigger renders (Stats · Weight)",
+      `!!document.querySelector('#secWeight .ibtn.tipi')`, true);
+check("its aria label is specific, not 'Info'",
+      `document.querySelector('#secWeight .ibtn.tipi').getAttribute('aria-label')`,
+      "About the weight chart");
+check("tip opens, and the trigger reports expanded",
+      `(()=>{const b=document.querySelector('#secWeight .ibtn.tipi');
              b.click(); const tf=document.getElementById('tipFloat');
-             const ok=!!(tf&&!tf.hidden&&tf.textContent.length>10); if(tf) tf.hidden=true; return ok;})()`, true);
+             return !!(tf&&!tf.hidden&&tf.textContent.length>10)
+                    && b.getAttribute('aria-expanded')==='true';})()`, true);
+check("opening a second tip closes the first (single-open)",
+      `(()=>{const a=document.querySelector('#secWeight .ibtn.tipi');
+             const b2=document.querySelector('.ibtn.tipi[data-tip="yoy"]');
+             if(!b2) return 'no yoy trigger';
+             b2.click(); const tf=document.getElementById('tipFloat');
+             return tf.dataset.tip==='yoy' && a.getAttribute('aria-expanded')==='false'
+                    && b2.getAttribute('aria-expanded')==='true';})()`, true);
+check("tapping outside closes and collapses",
+      `(()=>{document.body.click(); const tf=document.getElementById('tipFloat');
+             return tf.hidden===true
+                    && !document.querySelector('.tipi[aria-expanded="true"]');})()`, true);
+{
+  const css152 = fs.readFileSync(path.join(dir, "css/app.css"), "utf8");
+  const bodyFace = /\.tipbubble\{[^}]*font-family:var\(--body\);font-size:15px/.test(css152);
+  console.log((bodyFace ? "PASS" : "FAIL"), "tip prose uses the body face at 15px, not mono");
+  if (!bodyFace) fail++;
+  const hit44 = /\.ibtn\.tipi::after\{[^}]*inset:-11px/.test(css152);
+  console.log((hit44 ? "PASS" : "FAIL"), "the 22px icon carries a 44px hit area");
+  if (!hit44) fail++;
+}
+run(`view='today'; render();`);
 
 // ---- v3.3.86: Readiness left Today; a door to Lift stands in its place ---
 // Lineage: v3.3.85 collapsed the board to a disclosure; v3.3.86 removes it

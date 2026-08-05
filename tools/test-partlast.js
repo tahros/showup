@@ -64,6 +64,16 @@ ok("the LAST TIME · CHEST card renders", !!card());
 ok("...named for the part",
    /LAST TIME · CHEST/.test(run(`document.querySelector('.partlast .lasthead').textContent`)));
 ok("...dated with the history link", run(`!!document.querySelector('.partlast .linkdate')`));
+/* v3.3.152 disclosure audit: the (i) became the rulebook's inline line, and
+   the ✓ names its meaning in accessibility metadata instead of standing
+   alone as a symbol. */
+ok("...its (i) is gone", run(`!document.querySelector('.partlast .ibtn.tipi')`));
+ok("...replaced by the inline helper line",
+   /Tap an exercise to use its previous weight/.test(run(`document.querySelector('.partlast .inlinehelp').textContent`)));
+ok("...and the checkmark carries an aria-label", run(`(function(){
+     const r=[...document.querySelectorAll('.partlast .plrow')].find(r=>r.classList.contains('pldone'));
+     const c=r&&r.querySelector('[aria-label="completed today"]');
+     return !!c;})()`));
 /* anchored on the FIRST tier heading of any kind — in this fixture the
    go-to tier is legitimately empty (its candidates are open today or too
    rare), which the original anchor mistook for a placement failure */

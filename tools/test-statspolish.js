@@ -272,15 +272,22 @@ const HD = () => run(`JSON.stringify([...document.querySelectorAll('#view h2')].
 const hd = JSON.parse(HD());
 const dataHeads = hd.filter(r => !r.quiet && r.t !== "Settings");
 
-console.log((dataHeads.every(r => r.i) ? "PASS" : "FAIL"),
-  "every data section carries an (i)", "\u2192",
-  dataHeads.filter(r => !r.i).map(r => r.t).join("|") || "all " + dataHeads.length);
-if (!dataHeads.every(r => r.i)) fail++;
+/* v3.3.152 disclosure audit: five sections deliberately carry NO (i) —
+   their tips repeated visible labels (kpis, run, nextms, and both Records).
+   The invariant is no longer "every head has one" but "exactly the audited
+   set has none", so a tip silently vanishing elsewhere still fails. */
+const NO_TIP = new Set(["Show up — that's the whole game","Run","Next milestone","Records"]);
+const bare = dataHeads.filter(r => !r.i);
+console.log((bare.every(r => NO_TIP.has(r.t)) && dataHeads.some(r => r.i) ? "PASS" : "FAIL"),
+  "only the audited sections lack an (i)", "\u2192",
+  bare.map(r => r.t).join("|") || "none bare");
+if (!(bare.every(r => NO_TIP.has(r.t)) && dataHeads.some(r => r.i))) fail++;
 
-console.log((dataHeads.every(r => r.lastIsActs) ? "PASS" : "FAIL"),
-  "...and the action group is the LAST child, so it sits hard right", "\u2192",
-  dataHeads.filter(r => !r.lastIsActs).map(r => r.t).join("|") || "all");
-if (!dataHeads.every(r => r.lastIsActs)) fail++;
+const withActs = dataHeads.filter(r => r.i);
+console.log((withActs.every(r => r.lastIsActs) ? "PASS" : "FAIL"),
+  "...and where an action group exists it is the LAST child, hard right", "\u2192",
+  withActs.filter(r => !r.lastIsActs).map(r => r.t).join("|") || "all " + withActs.length);
+if (!withActs.every(r => r.lastIsActs)) fail++;
 
 /* v3.3.130: the per-section download icon is gone entirely. The assertion it
    used to make — "a section cannot silently gain an icon that opens nothing"

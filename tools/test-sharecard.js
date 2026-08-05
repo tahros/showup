@@ -186,8 +186,9 @@ ok("...and no paragraph is left under it", !/the whole history on one screen/.te
    and broke when the tip moved into hActs() \u2014 the tip text was unchanged,
    only its caller. Matching both keeps the assertion about the TIP rather
    than about which helper happens to wrap it. */
+/* v3.3.152: quote-agnostic — the audit rewrote tips with single quotes */
 const mgTip = (fs.readFileSync(path.join(dir, "js/stats.js"), "utf8")
-  .match(/(?:iBtn|hActs)\('mgrid',"([^"]*)"/) || [])[1] || "";
+  .match(/(?:iBtn|hActs)\('mgrid',["']([^"']*)["']/) || [])[1] || "";
 ok("...within the app's one-breath range", mgTip.length > 0 && mgTip.length <= 120,
    mgTip.length + " chars");
 /* v3.3.148: #gridShare died in v3.3.130 — the carousel is the one door now.
@@ -263,7 +264,7 @@ module.exports = settled.then(() => {
     // v3.3.148: the per-section button died in v3.3.130 — the carousel is the door
     ok("...and no per-section share button returned", !/id="yoyShare"/.test(yoyHtml));
     const yoyTip = (fs.readFileSync(path.join(dir, "js/stats.js"), "utf8")
-      .match(/(?:iBtn|hActs)\('yoy',"([^"]*)"/) || [])[1] || "";
+      .match(/(?:iBtn|hActs)\('yoy',["']([^"']*)["']/) || [])[1] || "";
     ok("...tip within one breath", yoyTip.length > 0 && yoyTip.length <= 120, yoyTip.length + " chars");
 
     // ---- 8b. the in-app legend behaves on a phone (v3.3.75) --------------

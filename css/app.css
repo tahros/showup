@@ -421,13 +421,23 @@
   .repdots{margin:0 0 10px;font-family:var(--mono)}
   .repcard .btn{margin:0}
   .repcard .btn:disabled{opacity:.6}
+  /* v3.3.152: explanatory text in the BODY face, not the mono display face —
+     the rulebook's readability rules (15px, 1.45 line height, sentence case)
+     apply to prose, and these bubbles are the app's only prose. Mono stays
+     everywhere it labels data. */
   .tipbubble{position:absolute;top:26px;left:0;z-index:35;width:min(300px,80vw);
-    background:#16181D;color:#F4F5F8;font-family:var(--mono);font-size:13px;font-weight:400;
-    line-height:1.62;letter-spacing:0;text-transform:none;
-    padding:12px 14px;border-radius:11px;box-shadow:0 8px 24px rgba(0,0,0,.42)}
+    background:#16181D;color:#F4F5F8;font-family:var(--body);font-size:15px;font-weight:400;
+    line-height:1.45;letter-spacing:0;text-transform:none;text-align:left;
+    padding:14px;border-radius:11px;box-shadow:0 8px 24px rgba(0,0,0,.42)}
   .tipbubble::before{content:'';position:absolute;top:-5px;left:24px;width:10px;height:10px;
     background:#16181D;transform:rotate(45deg)}
   /* flip up when the bottom nav would clip it; flip left at the screen edge */
+  /* the visible (i) stays 22px; its TAP target is 44px, per the rulebook */
+  .ibtn.tipi{position:relative}
+  .ibtn.tipi::after{content:'';position:absolute;inset:-11px}
+  /* v3.3.152: the plast tip became this inline line (rulebook's own fix) */
+  .inlinehelp{font-family:var(--body);font-size:13px;line-height:1.4;color:var(--muted);
+    margin:2px 0 10px;text-align:left}
   .tipbubble.up{top:auto;bottom:26px}
   .tipbubble.up::before{top:auto;bottom:-5px}
   .tipbubble.right{left:auto;right:0}

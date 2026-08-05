@@ -110,12 +110,13 @@ function renderLift(){
     if(lift.part!=='Run'){
       const lp=lastPartSession(lift.part);
       if(lp){
-        h+=`<div class="lastcard partlast"><div class="lasthead"><span>LAST TIME · ${lift.part.toUpperCase()} ${iBtn('plast',"Last "+lift.part+" session, in the order you did it. Tap an exercise to pick up where its bar is loaded — ✓ marks what you have already repeated today.")}</span><button class="ago linkdate" data-histd="${lp.d}">${wd2(lp.d)} · ${agoStr(lp.d)}</button></div>`;
+        h+=`<div class="lastcard partlast"><div class="lasthead"><span>LAST TIME · ${lift.part.toUpperCase()}</span><button class="ago linkdate" data-histd="${lp.d}">${wd2(lp.d)} · ${agoStr(lp.d)}</button></div>
+          <div class="inlinehelp">Tap an exercise to use its previous weight. A checkmark means you completed it today.</div>`;
         for(const g of lp.groups){
           const doneNow=t.w.some(x=>x.ex===g.ex&&(x.reps||[]).length);
           const n=g.sets.reduce((a,st)=>a+((st[1]||[]).length||0),0);
           h+=`<div class="exgrp plrow${doneNow?' pldone':''}" data-ex="${g.ex}" role="button" tabindex="0">
-                <div class="lasthead"><span>${doneNow?'✓ ':''}${g.ex}</span><span class="ago">${n} set${n>1?'s':''}</span></div>
+                <div class="lasthead"><span>${doneNow?'<span aria-label="completed today">✓</span> ':''}${g.ex}</span><span class="ago">${n} set${n>1?'s':''}</span></div>
                 ${setRows(g.ex,foldSets(g.sets,g.ex),false)}</div>`;
         }
         h+=`</div>`;
@@ -347,9 +348,7 @@ function renderLift(){
            tuned to look similar. It rendered 12px chalk in the display face
            against their 11px muted, and the mismatch read as a mistake
            because it was one. Caps are literal in lasthead labels. */
-        h+=`<div class="zone mini"><div class="lasthead"><span>SUGGESTED ${iBtn('sug',
-             ls?`From your last ${ex} session — tap to log that exact set, ✕ to dismiss it for today. Your latest set today leads.`
-               :'Your latest set, ready to repeat — tap to log it again.')}</span></div>
+        h+=`<div class="zone mini"><div class="lasthead"><span>SUGGESTED ${iBtn('sug','Tap a set to log it again.','About suggested sets')}</span></div>
            <div class="lastsets">${sugChipsHTML(ex,chips)}</div></div>`;
     }
   }
@@ -381,7 +380,7 @@ function renderLift(){
     const editing=!!lift.editToday;
     /* the (i) explains what EDIT hides — with deletion now behind a mode,
        this tip is where its discoverability lives */
-    h+=`<div class="lastcard sess"><div class="lasthead"><span>THIS SESSION ${iBtn('sess','Today on top, last time dimmed below. EDIT to remove or change a set.')}</span>${
+    h+=`<div class="lastcard sess"><div class="lasthead"><span>THIS SESSION</span>${
         todaySets.length?`<button class="ago sessedit" id="sessEdit">${editing?'DONE':'EDIT'}</button>`:''}</div>`;
 
     if(!todaySets.length){
@@ -733,7 +732,7 @@ function runStatsHTML(){
   const streak=runStreak(days);
 
   const _R={}; const cut=k=>{ _R[k]=h; h=''; };   // v3.3.111: see renderStats
-  let h=`<h2 id="secRun">Run${hActs('run',"Every run you have logged — total distance, this year's, and your current run streak.")}</h2>
+  let h=`<h2 id="secRun">Run</h2>
     <div class="kpis">
       <div class="kpi accent"><div class="v">${fmt(Math.round(total))}</div><div class="l">${DU()}, all time</div>
         <div class="d mono">${days.length} runs since ${md(days[0].d)}</div></div>
@@ -752,7 +751,7 @@ function runStatsHTML(){
   const eta=etaDays!=null?(()=>{const d=new Date(todayISO+'T00:00');d.setDate(d.getDate()+etaDays);
     return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});})():null;
   cut('run');
-  h+=`<h2>Next milestone${hActs('nextms',"The next round distance you will cross, and how far is left to it.")}</h2><div class="card">
+  h+=`<h2>Next milestone</h2><div class="card">
       <div class="mstone"><span class="big">${left.toFixed(1)} ${DU()}</span>
         <span class="goal">to ${fmt(next)}</span></div>
       <div class="mbar"><i style="width:${Math.max(2,Math.min(100,(total-prev)/STEP_M*100)).toFixed(1)}%"></i></div>
@@ -770,7 +769,7 @@ function runStatsHTML(){
       const shouldBe=goal*doyNow/yLen;
       const ahead=ytd-shouldBe;
       const pct=Math.min(100,ytd/goal*100);
-      h+=`<h2>${thisYear} goal${hActs('goal','The tick marks where you should be today.')}</h2><div class="card">
+      h+=`<h2>${thisYear} goal${hActs('goal','The tick marks where you should be today.','About the goal bar')}</h2><div class="card">
         <div class="mstone"><span class="big">${Math.round(ytd)}</span>
           <span class="goal">of ${fmt(goal)} ${DU()}</span></div>
         <div class="mbar"><i style="width:${Math.max(2,pct).toFixed(1)}%"></i>
@@ -784,7 +783,7 @@ function runStatsHTML(){
       const lastYr=days.filter(r=>r.d.startsWith(String(+thisYear-1)))
                        .reduce((a,r)=>a+toD(r.km),0);          // yTot isn't built yet here
       const suggest=Math.round((lastYr||projected||300)/50)*50+50;
-      h+=`<h2>${thisYear} goal${hActs('goal2',"Set a distance target for the year and this becomes a pace bar.")}</h2><div class="card">
+      h+=`<h2>${thisYear} goal${hActs('goal2','Set a yearly distance target to turn this into a pace bar.','About the yearly goal')}</h2><div class="card">
         <div class="note" style="margin:0 0 10px">No goal set. You're projecting <b>${Math.round(projected)} ${DU()}</b> this year at your current rate.</div>
         <button class="btn ghost" id="goalSet" data-suggest="${suggest}" style="margin:0">Set a ${thisYear} goal →</button>
       </div>`;
@@ -812,7 +811,7 @@ function runStatsHTML(){
      KEPT, against Strava: the dashed average line. "This week vs my own
      normal" is a days-over-volume question; a baseline answers it, a peak
      does not. */
-  h+=`<h2>Every week${hActs('eweek',"Distance per week — the dashed line is your average, the filled bar is this week.")}</h2><div class="card">
+  h+=`<h2>Every week${hActs('eweek','Distance per week. Dashed line: your average; filled bar: this week.','About the weekly chart')}</h2><div class="card">
       <div class="zoom" data-zoom><svg viewBox="0 0 330 118" style="width:100%;height:auto">`;
   // y-axis: 0 and peak only
   h+=`<text x="319" y="16" font-family="var(--mono)" font-size="7" fill="var(--muted)">${Math.round(wkMax)}</text>
@@ -849,7 +848,7 @@ function runStatsHTML(){
   const step=Math.max(10,Math.round(dataMax/4/10)*10);        // 361 -> 90, 180, 270, 360
   const yMax=Math.max(dataMax,step*4);
   cut('week');
-  h+=`<h2>Distance${hActs('cumkm',`Cumulative ${DU()} by day of year. ${thisYear} is still running.`)}</h2><div class="card">
+  h+=`<h2>Distance${hActs('cumkm',`Cumulative ${DU()} by day of year. ${thisYear} is still running.`,'About the distance chart')}</h2><div class="card">
       `;
   // v3.3.109: legend above the chart — it is the scrub readout, and it was
   // sitting under the scrubbing hand
@@ -905,7 +904,7 @@ function runStatsHTML(){
     const span=Math.max(hi-lo,30);                     // never flatten a near-identical year
     const base=lo-span*0.25, top=hi+span*0.25;
     cut('dist');
-    h+=`<h2>Pace${hActs('pace',`Minutes per ${DU()}, timed runs only — faster months sit lower. Fastest in red, this month in blue.`)}</h2><div class="card">
+    h+=`<h2>Pace${hActs('pace',`Minutes per ${DU()} for timed runs — lower is faster. Red marks your fastest month.`,'About the pace chart')}</h2><div class="card">
         <div class="zoom" data-zoom><svg viewBox="0 0 330 118" style="width:100%;height:auto">`;
     let poly='';
     paces.forEach(([m,p],i)=>{
@@ -931,7 +930,7 @@ function runStatsHTML(){
   // v3.3.111: the maker's order — Run, then the distance story, then the
   // rest; goal and Records keep their existing trailing position.
   h = _R.run + _R.dist + _R.ms + _R.pace + _R.week + _R.goal + h;
-  h+=`<h2>Records${hActs('runrec',"Your best run for each measure — longest, fastest, and the days they happened.")}</h2><table class="rec-core">
+  h+=`<h2>Records</h2><table class="rec-core">
       <tr><th>Longest run</th><td class="n"><b>${dDisp(long.km)} ${DU()}</b><span class="recdate">${md(long.d)}</span></td></tr>
       ${fast?`<tr><th>Fastest pace</th><td class="n"><b>${paceStr(paceOf(fast))} /${DU()}</b><span class="recdate">${md(fast.d)}</span></td></tr>`:''}
       <tr><th>Biggest week</th><td class="n"><b>${bestWk[1].toFixed(1)} ${DU()}</b><span class="recdate">week of ${md(bestWk[0])}</span></td></tr>
