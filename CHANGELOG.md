@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v3.3.155 (2026-08-06) — Growth, in plain words
+
+**"+13% vs the 5 before" read as a riddle to the first outside user.** Now:
+"volume up 13% vs your previous 5 sessions" — what moved, and against what.
+Fewer than 10 sessions already rendered nothing, so a new user never meets a
+percentage with no baseline behind it. The maker chose repair over removal:
+the number stays for those with the history to back it.
+
 ## v3.3.154 (2026-08-06) — The first stranger's fixes
 
 Three fixes from the first outside user's first session — his brother's

@@ -76,10 +76,13 @@ check("calendar days all contain Shoulder",
 check("session rows only show Shoulder sets",
       `[...document.querySelectorAll('details.day .body div b')].every(b=>b.textContent==='Dumbbell Press')`, true);
 check("digest charts something", `!!document.querySelector('.pdigest svg rect')`, true);
-check("growth computed",         `/vs the 5 before/.test(document.querySelector('.pdigest').textContent)`, true);
+check("growth computed, in plain words",
+      `/vs your previous 5 sessions/.test(document.querySelector('.pdigest').textContent)`, true);
 check("PR list gone (v3.3.41)",  `document.querySelectorAll('.pdigest .prrow').length`, 0);
+/* v3.3.155: the growth label now legitimately says "5 sessions"; the
+   v3.3.41 check was about a "12 sessions" COUNT stat. Exclude the label. */
 check("session count gone (v3.3.41)",
-      `/\\d+ sessions/.test(document.querySelector('.pdigest').textContent)`, false);
+      `/\\d+ sessions/.test(document.querySelector('.pdigest').textContent.replace(/previous 5 sessions/,''))`, false);
 check("chart caption states sets",
       `/\\d+ sets/.test(document.querySelector('.pdigest svg text').textContent)`, true);
 check("all-time line states sets",

@@ -122,7 +122,11 @@ function partDigest(part,sess,opts){
   const allTime=isRun
     ? `${dDisp(sess.reduce((a,s)=>a+s.km,0))} ${DU()} all time`
     : `${fmt(sess.reduce((a,s)=>a+s.sets,0))} sets all time`;
-  const gTxt=growth===null?'':`<span class="mono ${growth>=0?'up':'down'}">${growth>=0?'+':''}${growth}% vs the 5 before</span>`;
+  /* v3.3.155: "+13% vs the 5 before" read as a riddle to the first outside
+     user. Plain words: what moved, and against what. growth===null (fewer
+     than 10 sessions) already renders nothing — a new user never sees a
+     percentage with no baseline behind it. */
+  const gTxt=growth===null?'':`<span class="mono ${growth>=0?'up':'down'}">volume ${growth>=0?'up':'down'} ${Math.abs(growth)}% vs your previous 5 sessions</span>`;
   return `${opts.head?`<h2>${opts.head}</h2>`:''}<div class="card pdigest">
       <div class="row spread" style="margin-bottom:6px">
         <b style="font-family:var(--disp)">${part}</b>
