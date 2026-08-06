@@ -1,5 +1,22 @@
 # ShowUp — changelog
 
+## v3.3.153 (2026-08-06) — The Run view reads today-first too
+
+**Recent runs sat above THIS SESSION**, so the run you just logged rendered
+underneath eight days of history — inverted against every other exercise,
+where today has led since v3.3.144. Worse in combination: today's run is
+deliberately absent from the recent list (deriveAll seals days at midnight;
+today is live), so a fresh run looked missing from the top of the screen and
+buried at the bottom of it simultaneously.
+
+The history card now renders below the session card: your run, then the
+record it joins at midnight. Built where it was (it needs the `runs` scan),
+emitted after the session block — a deferral, not a rewrite.
+
+One self-caught slip: the deferred variable's declaration first landed in
+the WRONG function (an anchor string that existed twice), and the honest
+suite runner flagged 9 suites red before the mistake travelled anywhere.
+
 ## v3.3.152 (2026-08-05) — The disclosure audit
 
 **Every (i) in the app, audited against the maker's disclosure rulebook.**

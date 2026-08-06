@@ -254,6 +254,7 @@ function renderLift(){
   //      Rendered BELOW "Log a set" (v2.10); built here because the log zone
   //      needs `ls` for its default weight.
   const ls=suggestedFor(ex);
+  let runHist='';   // v3.3.153: built in the run branch, emitted below the session card
   /* v3.3.137: the weight is resolved HERE, before the suggested chips are
      built. It used to be settled inside the log zone further down — which is
      rendered below but built after — so the chips were partitioned against
@@ -284,6 +285,7 @@ function renderLift(){
         </div><button class="btn" id="addrun">Add run</button></div>`;
     /* v3.1.9: the Run view finally shows its history — recent runs with
        date · distance · time · pace, same visual language as Last Time. */
+    // v3.3.153: deferred — see the emit point after the session card
     const runs=[];
     for(const [d,rows] of Object.entries(SEED.sessions))
       for(const r of rows) if(r[1]==='Run'&&r[2]>0) runs.push({d,km:r[2],mins:r[4],secs:r[5]});
@@ -304,7 +306,15 @@ function renderLift(){
         </div>`).join('');
       const mo=todayISO.slice(0,7);
       const moKm=(SEED.monthly[mo]&&SEED.monthly[mo].km)||0;
-      h+=`<div class="lastcard runhist">
+      /* v3.3.153: BUILT here (it needs `runs`), EMITTED after the session
+         card. Recent runs sat above THIS SESSION, so the run you just
+         logged rendered underneath eight days of history — inverted
+         against every other exercise, where today has led since v3.3.144.
+         Today's run is deliberately absent from this list (deriveAll seals
+         days at midnight; today is live), which made the inversion read
+         even worse: your run seemed missing from the top and buried at
+         the bottom at the same time. */
+      runHist=`<div class="lastcard runhist">
         <div class="lasthead"><span>RECENT RUNS</span><span class="ago">last ${shown.length} of ${fmt(runs.length)}</span></div>
         ${rows2}
         <div class="lastfoot mono">${dDisp(moKm)} ${DU()} this month · ${fmt(Math.round(SEED.totals.km))} ${DU()} lifetime</div>
@@ -469,6 +479,7 @@ function renderLift(){
        there or the same action renders twice. */
     if(!editing&&undoStack.length)
       h+=`<button class="btn ghost" id="undoBtn" style="margin-top:12px">↺ Undo — ${undoStack[undoStack.length-1].label}</button>`;
+    h+=runHist;   // v3.3.153: today first, then the history it joins at midnight
   }
   {
     const ve=document.getElementById('volNum');

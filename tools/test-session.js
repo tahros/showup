@@ -150,5 +150,28 @@ ok("...and an explicit 'other' pin still outranks the day", run(`(function(){
      DB.settings.tierOv={Deadlift:'other'}; SEED=deriveAll();
      const t=exTier('Deadlift'); delete DB.settings.tierOv.Deadlift; return t;})()`) === "sometimes");
 
+/* ---- 9. v3.3.153: the Run view reads today-first too --------------------
+   Recent runs sat ABOVE the session card, so a just-logged run rendered
+   under eight days of history — inverted against every other exercise. */
+run(`(function(){
+  DB.days={};
+  const prev=new Date(todayISO+'T00:00'); prev.setDate(prev.getDate()-1);
+  DB.days[prev.toLocaleDateString('en-CA')]={w:[{part:'Run',ex:'Run',w:3.48,reps:[],mins:27,secs:17,at:1}],upd:1};
+  DB.days[todayISO]={w:[{part:'Run',ex:'Run',w:3.6,reps:[],mins:28,secs:17,at:9}],upd:1};
+  SEED=deriveAll();
+  lift={ex:'Run',part:'Run',weight:0,editToday:false};
+  view='lift'; render();})()`);
+ok("the run history card still renders", run(`!!document.querySelector('.runhist')`));
+ok("...BELOW the session card, today first", run(`(function(){
+     const sess=document.querySelector('.lastcard.sess');
+     const hist=document.querySelector('.runhist');
+     return !!(sess&&hist&&(sess.compareDocumentPosition(hist)&Node.DOCUMENT_POSITION_FOLLOWING));
+   })()`));
+ok("...and today's run lives in the session card, not the list", (() => {
+  const sess = run(`document.querySelector('.lastcard.sess').textContent`);
+  const hist = run(`document.querySelector('.runhist').textContent`);
+  return /3\.60|3\.6/.test(sess) && !/3\.60/.test(hist) && /3\.48/.test(hist);
+})());
+
 console.log(fail ? "\n" + fail + " FAILED" : "\nALL PASS");
 process.exit(fail ? 1 : 0);
