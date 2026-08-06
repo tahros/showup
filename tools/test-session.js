@@ -173,5 +173,36 @@ ok("...and today's run lives in the session card, not the list", (() => {
   return /3\.60|3\.6/.test(sess) && !/3\.60/.test(hist) && /3\.48/.test(hist);
 })());
 
+/* ---- 10. v3.3.157: the rename is a MIGRATION, not a find-and-replace ---- */
+run(`(function(){
+  DB.days={}; DB.settings.exW={'Row':33,'Seated Cable Row':40,'Pectoral Fly':50};
+  DB.settings.tierOv={'Dumbbell Press':'core'};
+  DB.days['2024-01-05']={w:[
+    {part:'Back',ex:'Row',w:33,reps:[12],at:1},
+    {part:'Chest',ex:'Pectoral Fly',w:50,reps:[20],at:2},
+    {part:'Shoulder',ex:'Dumbbell Side Raise',w:12,reps:[20],at:3}],upd:1,
+    doneEx:['Row'],sugX:{'Lat Pull Down':['a']}};
+  globalThis.__mig=migrateExNames();})()`);
+ok("old-named history rows are rewritten",
+   run(`DB.days['2024-01-05'].w.map(s=>s.ex).join('|')`)
+   === "Seated Cable Row|Chest Fly|Lateral Raise",
+   run(`DB.days['2024-01-05'].w.map(s=>s.ex).join('|')`));
+ok("...and the changed day's upd was bumped so it wins the cloud merge",
+   run(`DB.days['2024-01-05'].upd`) > 1);
+ok("doneEx and sugX keys follow", run(`DB.days['2024-01-05'].doneEx[0]`) === "Seated Cable Row"
+   && run(`!!DB.days['2024-01-05'].sugX['Lat Pulldown']`));
+ok("a settings collision keeps the TARGET's value (Row merges into Seated Cable Row)",
+   run(`DB.settings.exW['Seated Cable Row']`) === 40 && run(`DB.settings.exW['Row']`) === undefined);
+ok("non-colliding settings keys just move",
+   run(`DB.settings.exW['Chest Fly']`) === 50 && run(`DB.settings.tierOv['Dumbbell Shoulder Press']`) === "core");
+ok("the migration is idempotent", run(`migrateExNames()`) === 0);
+ok("no old name survives in the catalog", run(`(function(){
+     const all=Object.values(SEED0.catalog).flat();
+     return ['Row','Pectoral Fly','Lat Pull Down','Dumbbell Press','Dumbbell Side Raise']
+       .every(o=>!all.includes(o));})()`));
+ok("...and every new name is catalogued with part + equip", run(`(function(){
+     return ['Seated Cable Row','Chest Fly','Lat Pulldown','Dumbbell Shoulder Press','Lateral Raise']
+       .every(n=>Object.values(SEED0.catalog).flat().includes(n)&&SEED0.ex2part[n]&&SEED0.equip[n]);})()`));
+
 console.log(fail ? "\n" + fail + " FAILED" : "\nALL PASS");
 process.exit(fail ? 1 : 0);

@@ -1,5 +1,25 @@
 # ShowUp — changelog
 
+## v3.3.157 (2026-08-06) — Standard names, migrated not replaced
+
+**Five names move to their globally standard forms**, per the review the
+first outside user prompted: Pectoral Fly → Chest Fly, Lat Pull Down → Lat
+Pulldown (Close-Grip variant too, or the catalog contradicts itself),
+Dumbbell Press → Dumbbell Shoulder Press, Dumbbell Side Raise → Lateral
+Raise, and Row MERGES into the pre-existing Seated Cable Row.
+
+**900+ days of history are keyed by these strings, so this ships as a
+load-time migration.** Idempotent — a migrated DB passes through untouched.
+Collision-safe — the Row merge keeps the target's settings value when both
+keys exist. Cloud-safe — changed days get their upd bumped so migrated
+names WIN the merge instead of being resurrected by a stale device. The map
+stays in the code forever: an old-named day arriving from a backup or an
+un-updated device is rewritten on its next load. doneEx, sugX and the
+exW/tierOv settings bags all follow.
+
+Canonical English stays the storage key; Korean display labels (사이드
+레터럴 레이즈 and kin) are a separate localisation layer for Phase 2.
+
 ## v3.3.156 (2026-08-06) — The tab says Train
 
 **"Why is it called Lift? It has Run in it."** The first outside user was
