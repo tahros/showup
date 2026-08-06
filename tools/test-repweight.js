@@ -195,4 +195,27 @@ check("the confirmation says BW for a bodyweight set, not '0kg'",
         `(document.getElementById('addrep')||{textContent:''}).textContent`, "Add set");
 }
 
+/* ---- v3.3.154: the stranger-user fixes -------------------------------- */
+{
+  run(`(function(){DB.days={}; SEED=deriveAll();
+    lift={ex:'Chest Press',part:'Chest',weight:16}; view='lift'; render();})()`);
+  const before = run(`JSON.stringify([...document.querySelectorAll('.repgrid [data-rep]')].map(b=>b.dataset.rep))`);
+  run(`document.querySelector('.repgrid [data-rep]').click();
+       document.querySelector('.repgrid [data-rep]').click();
+       document.querySelector('.repgrid [data-rep]').click();`);
+  const after = run(`JSON.stringify([...document.querySelectorAll('.repgrid [data-rep]')].map(b=>b.dataset.rep))`);
+  check("logging three sets does not move the rep tiles", `${before===after}`, true);
+  run(`(function(){const el=document.getElementById('wv'); el.value=String(+el.value+10);
+       el.dispatchEvent(new Event('input',{bubbles:true}));})()`);
+  const stepped = run(`JSON.stringify([...document.querySelectorAll('.repgrid [data-rep]')].map(b=>b.dataset.rep))`);
+  check("...but stepping the weight still rebuilds them", `${stepped!==before}`, true);
+  check("tiles read as reps: \u00d7 before every number",
+        `document.querySelectorAll('.repgrid button .rx').length===document.querySelectorAll('.repgrid [data-rep]').length`, true);
+  run(`view='stats'; render(); document.querySelector('#secWeight .ibtn.tipi').click();`);
+  check("scrolling closes an open tip",
+        `(()=>{document.dispatchEvent(new Event('scroll'));
+              return document.getElementById('tipFloat').hidden===true
+                     && !document.querySelector('.tipi[aria-expanded="true"]');})()`, true);
+}
+
 process.exit(fail ? 1 : 0);

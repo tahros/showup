@@ -628,6 +628,9 @@
   .wsel .val input:focus{outline:none}
   .wsel .unit{font-size:12px;color:var(--muted)}
   .repgrid{display:grid;grid-template-columns:repeat(8,1fr);gap:5px}   /* v3.3.51: one row of 8 */
+  /* v3.3.154: the × is quiet — the number stays the target, the × is the label */
+  .repgrid button .rx{color:var(--faint);font-size:11px;margin-right:1px}
+  .repgrid button:active .rx{color:#fff}
   .repgrid button{height:40px;background:var(--surface);border:1px solid var(--line);border-radius:9px;
     color:var(--chalk);font-family:var(--mono);font-weight:700;font-size:15px;cursor:pointer;box-shadow:var(--shadow)}
   .repgrid button:active{background:var(--accent);color:#fff;border-color:var(--accent)}

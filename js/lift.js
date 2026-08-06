@@ -670,9 +670,21 @@ function sugReps(ex,kg){
   return out;
 }
 function repTilesHTML(ex,kg){
+  /* v3.3.154: STABLE for the visit. The first stranger user tapped the same
+     rep tile three sets running and on the third the row had reordered under
+     his thumb — logging re-derived the choices. Same law as the v3.3.137
+     chip decision: no moving targets under thumbs. The tile list is cached
+     per (exercise, weight); logging cannot move it, only leaving the
+     exercise or stepping the weight rebuilds it. The suggestion dots still
+     refresh — marks may change, positions may not. */
+  if(!lift._tiles||lift._tiles.ex!==ex||Math.abs(lift._tiles.kg-kg)>=0.05)
+    lift._tiles={ex,kg,list:repChoices(ex,kg)};
   const mark=sugReps(ex,kg);
-  return repChoices(ex,kg).map(r=>
-    `<button data-rep="${r}"${mark.has(r)?' class="sug" aria-label="'+r+' reps, done last time"':''}>${r}</button>`
+  /* v3.3.154: ×12, not 12 — bare numbers under a weight stepper read as
+     weight presets (the same stranger's other trip). × is the app's own
+     rep grammar: every record already says "50kg × 10". */
+  return lift._tiles.list.map(r=>
+    `<button data-rep="${r}"${mark.has(r)?' class="sug" aria-label="'+r+' reps, done last time"':''}><span class="rx">×</span>${r}</button>`
   ).join('');
 }
 function refreshReps(){

@@ -1,5 +1,30 @@
 # ShowUp — changelog
 
+## v3.3.154 (2026-08-06) — The first stranger's fixes
+
+Three fixes from the first outside user's first session — his brother's
+feedback, triaged: two bugs and the single highest mislogging risk.
+
+**Rep tiles hold still for the visit.** He tapped the same tile three sets
+running and on the third the row had reordered under his thumb — logging
+re-derived the choices. Same law as the v3.3.137 chip decision: no moving
+targets under thumbs. The tile list is cached per (exercise, weight);
+logging cannot move it, only leaving the exercise or stepping the weight
+rebuilds it. The suggestion dots still refresh — marks may change,
+positions may not.
+
+**Tiles read ×12, not 12.** Bare numbers directly under a weight stepper
+read as weight presets — the most dangerous misread in the app, because a
+mislogged first session poisons both the data and the trust. × is already
+the app's rep grammar: every record says "50kg × 10". The × renders faint;
+the number stays the target.
+
+**An open tip closes on scroll.** The bubble is position:fixed, so scrolling
+detached it from its trigger and it floated over unrelated content until
+the next tap — a hole in Tuesday's disclosure audit, found by a stranger in
+a day. Capture-phase and passive, so nested scrollers count and the scroll
+never janks.
+
 ## v3.3.153 (2026-08-06) — The Run view reads today-first too
 
 **Recent runs sat above THIS SESSION**, so the run you just logged rendered

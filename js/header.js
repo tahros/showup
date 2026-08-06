@@ -162,6 +162,16 @@ function tipFloatEl(){
   }
   return tf;
 }
+/* v3.3.154: the bubble is position:fixed, so scrolling detached it from its
+   trigger and it floated over unrelated content until the next tap — the
+   rulebook says close when context moves, and the first stranger user found
+   the gap in a day. Capture-phase so scrolls inside nested containers count;
+   passive so the scroll itself never janks. */
+document.addEventListener('scroll',()=>{
+  const tf=document.getElementById('tipFloat');
+  if(tf&&!tf.hidden){ tf.hidden=true;
+    document.querySelectorAll('.tipi[aria-expanded="true"]').forEach(x=>x.setAttribute('aria-expanded','false')); }
+},{capture:true,passive:true});
 const _tipExpand=v=>{document.querySelectorAll('.tipi[aria-expanded="true"]')
   .forEach(x=>x.setAttribute('aria-expanded','false'));
   if(v) v.setAttribute('aria-expanded','true');};
