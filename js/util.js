@@ -75,7 +75,7 @@
     if(popMode){                                           // back-pop: ‹ on the left edge, both directions
       el.className='l on';
       el.firstElementChild.textContent='‹';
-      el.title=lift.part||'Lift';
+      el.title=lift.part||'Train';
       el.style.setProperty('--p',Math.min(1,Math.abs(dx)/90));
       el.firstElementChild.style.opacity=(0.35+0.65*Math.min(1,Math.abs(dx)/90)).toFixed(2);
       return;

@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v3.3.156 (2026-08-06) — The tab says Train
+
+**"Why is it called Lift? It has Run in it."** The first outside user was
+right: the name lied a little. The tab is Train now — a verb, it covers both
+kinds of showing up, and it sits as a plain word beside TODAY, STATS and
+HISTORY. The internal view id stays `lift`; renaming state to match a label
+would churn every file for zero user value.
+
 ## v3.3.155 (2026-08-06) — Growth, in plain words
 
 **"+13% vs the 5 before" read as a riddle to the first outside user.** Now:
