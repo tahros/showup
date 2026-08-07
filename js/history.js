@@ -212,10 +212,39 @@ function renderHistory(){
   for(let d=1;d<=dim;d++){
     const iso=`${key}-${String(d).padStart(2,'0')}`;
     const on=dates.has(iso), today=iso===todayISO, fut=iso>todayISO;
-    h+=`<span class="cd ${on?'on':''} ${today?'now':''} ${fut?'fut':''}" ${on?`data-hd="${iso}" role="button"`:''}>${d}</span>`;
+    /* v3.3.160: retro logging. An EMPTY day within the last 7 becomes a
+       door — tap it and a quiet form opens for that date. The record is a
+       record of training, not of logging discipline, so a backfilled day
+       repairs the streak the moment deriveAll ingests it. Older than 7
+       days stays sealed: available, but minimal. */
+    const bf=!on&&!fut&&!today&&(()=>{const a=new Date(todayISO+'T00:00'),b=new Date(iso+'T00:00');
+      const dd=(a-b)/86400000; return dd>=1&&dd<=7;})();
+    h+=`<span class="cd ${on?'on':''} ${today?'now':''} ${fut?'fut':''} ${bf?'bf':''}" ${on?`data-hd="${iso}" role="button"`:(bf?`data-backfill="${iso}" role="button" aria-label="Log a workout for ${iso}"`:'')}>${d}</span>`;
   }
-  h+=`</div>
-      <div class="tot" style="margin-top:12px">
+  h+=`</div>`;
+  if(hist.bf&&hist.bf.startsWith(key)){
+    const B=hist.bf, isR=hist.bfPart==='Run';
+    const parts=Object.keys(SEED0.catalog);
+    h+=`<div class="card bfcard" style="margin-top:12px">
+      <div class="lasthead"><span>LOG A PAST DAY</span><span class="ago">${B}</span></div>
+      <div class="chips" style="margin-bottom:8px">${parts.map(pt=>`<button class="chip ${hist.bfPart===pt?'on':''}" data-bfpart="${pt}">${pt}</button>`).join('')}</div>
+      ${hist.bfPart?(isR
+        ?`<div class="row" style="gap:8px">
+            <div class="fld"><label>Distance ${DU()}</label><input id="bfKm" type="number" inputmode="decimal" step="0.01"></div>
+            <div class="fld"><label>Min</label><input id="bfMin" type="number" inputmode="numeric"></div>
+            <div class="fld"><label>Sec</label><input id="bfSec" type="number" inputmode="numeric"></div></div>`
+        :`<div class="fld text" style="margin-bottom:8px"><label>Exercise</label>
+            <input id="bfEx" type="text" list="bfExList" placeholder="e.g. Squat">
+            <datalist id="bfExList">${(SEED0.catalog[hist.bfPart]||[]).map(x=>`<option value="${x}">`).join('')}</datalist></div>
+          <div class="row" style="gap:8px">
+            <div class="fld"><label>Weight ${U()}</label><input id="bfW" type="number" inputmode="decimal" step="0.5"></div>
+            <div class="fld"><label>Reps (comma for sets)</label><input id="bfR" type="text" inputmode="numeric" placeholder="10,10,8"></div></div>`)
+       :''}
+      <div class="row" style="gap:8px;margin-top:10px">
+        <button class="btn" id="bfAdd" style="margin:0" ${hist.bfPart?'':'disabled'}>Add to ${B.slice(5)}</button>
+        <button class="btn ghost" id="bfClose" style="margin:0;flex:0 0 96px">Close</button></div></div>`;
+  }
+  h+=`<div class="tot" style="margin-top:12px">
         <span>${mm.sets?fmt(mm.sets)+' sets':''}${mm.sets&&mm.km?' · ':''}${mm.km?dDisp(mm.km)+' '+DU():''}</span>
         <span>${mm.vol?vDisp(mm.vol)+' '+U()+' lifted':''}</span></div></div>`;
 
@@ -328,6 +357,28 @@ function renderHistory(){
 /* v3.3.61: past-day editing handlers. Delegated, and every one of them
    funnels through commitPastDay so a mutation can't skip the re-derive. */
 document.addEventListener('click',e=>{
+  const bfc=e.target.closest('[data-backfill]');
+  if(bfc){ hist.bf=bfc.dataset.backfill; hist.bfPart=null; return render(); }
+  if(e.target.closest('[data-bfpart]')){ hist.bfPart=e.target.closest('[data-bfpart]').dataset.bfpart; return render(); }
+  if(e.target.closest('#bfClose')){ hist.bf=null; hist.bfPart=null; return render(); }
+  if(e.target.closest('#bfAdd')&&hist.bf&&hist.bfPart){
+    const B=hist.bf, d=(DB.days[B]=DB.days[B]||{w:[]}); d.w=d.w||[];
+    if(hist.bfPart==='Run'){
+      const km=+(document.getElementById('bfKm').value||0);
+      if(!(km>0)) return toast('Enter a distance');
+      d.w.push({part:'Run',ex:'Run',w:km,reps:[],mins:+(document.getElementById('bfMin').value||0),secs:+(document.getElementById('bfSec').value||0),at:Date.now()});
+    }else{
+      const ex=(document.getElementById('bfEx').value||'').trim();
+      const wv=toKg(+(document.getElementById('bfW').value||0));
+      const reps=(document.getElementById('bfR').value||'').split(',').map(x=>Math.round(+x)).filter(x=>x>0);
+      if(!ex||!reps.length) return toast('Exercise and reps needed');
+      for(const r of reps) d.w.push({part:hist.bfPart,ex,w:wv,reps:[r],at:Date.now()});
+    }
+    d.upd=Date.now();               // backfill must win the cloud merge
+    save(); SEED=deriveAll(); _fireDist=null; renderHeader();   // streak repairs here
+    toast('Logged for '+B.slice(5));
+    return render();
+  }
   const ed=e.target.closest('[data-hedit]');
   if(ed){ const d=ed.dataset.hedit;
     hist.edit=(hist.edit===d)?null:d; hist.editSet=null; return renderHistory(); }

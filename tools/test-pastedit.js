@@ -170,4 +170,30 @@ check("the RUN survives (distance+time, no reps)",
 run(`view='today'; render();`);
 check("tab change exits edit mode", `hist.edit`, "null");
 
+/* ---- v3.3.160: retro logging — the door, the write, the streak ---------- */
+run(`(function(){
+  const y=new Date(todayISO+'T00:00'); y.setDate(y.getDate()-1);
+  window.YD=y.toLocaleDateString('en-CA');
+  const o=new Date(todayISO+'T00:00'); o.setDate(o.getDate()-9);
+  window.OLD=o.toLocaleDateString('en-CA');
+  DB.days={}; DB.days[todayISO]={w:[{part:'Back',ex:'Pull Up',w:70,reps:[10],at:1}],upd:1};
+  SEED=deriveAll();
+  hist={y:+YD.slice(0,4),m:+YD.slice(5,7),part:null,bf:null,bfPart:null};
+  view='history'; render();})()`);
+check("an empty yesterday is a tappable door", `!!document.querySelector('[data-backfill="'+YD+'"]')`, true);
+check("a day 9 back is NOT offered",
+      `(OLD.slice(0,7)!==YD.slice(0,7)) || !document.querySelector('[data-backfill="'+OLD+'"]')`, true);
+run(`document.querySelector('[data-backfill="'+YD+'"]').click();
+     document.querySelector('[data-bfpart="Legs"]').click();
+     document.getElementById('bfEx').value='Squat';
+     document.getElementById('bfW').value='60';
+     document.getElementById('bfR').value='10,10,8';
+     document.getElementById('bfAdd').click();`);
+check("three comma'd reps land as three sets on YESTERDAY",
+      `DB.days[YD].w.length`, 3);
+check("...as Squat at 60", `DB.days[YD].w[0].ex+'@'+DB.days[YD].w[0].w`, "Squat@60");
+check("...with upd stamped so it wins the cloud merge", `DB.days[YD].upd>1`, true);
+check("the streak REPAIRED: yesterday now counts in the derived record",
+      `SEED.dates.includes(YD)`, true);
+
 process.exit(fail ? 1 : 0);

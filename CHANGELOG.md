@@ -1,5 +1,20 @@
 # ShowUp — changelog
 
+## v3.3.160 (2026-08-07) — Log a past day
+
+**The record is a record of training, not of logging discipline.** An empty
+day within the last 7 becomes a dashed, tappable door in History's calendar;
+tap it and a quiet form opens for that date — part, exercise (catalog
+datalist), weight, comma'd reps for multiple sets, or distance and time for
+a run. The write stamps upd so a backfilled day wins the cloud merge, and
+the streak repairs the moment deriveAll ingests it — position (1), chosen
+deliberately: punishing a midnight lapse would contradict an app that
+records attendance.
+
+Older than 7 days stays sealed, and the Train view never grows a date
+picker: today stays the default reality, and backfilling is a deliberate
+walk to where past days live. Available, minimal.
+
 ## v3.3.159 (2026-08-07) — Target pace
 
 **What the first runner user actually meant.** THIS MONTH's setter gains a
