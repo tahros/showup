@@ -539,7 +539,7 @@ function moGoalCardHTML(){
       const TP=+(DB.settings.tgtPace||0);
       const fmtP=x=>`${Math.floor(x/60)}'${String(Math.round(x%60)).padStart(2,'0')}"`;
       const editingGoal=!!DB.settings._moEdit;
-      h+=`<div class="lastcard moGoal"><div class="lasthead"><span>THIS MONTH</span><span class="ago">${dDisp(moAll)} ${DU()}</span></div>`;
+      h+=`<div class="lastcard moGoal"><div class="lasthead"><span>THIS MONTH</span></div>`;
       if(G>0&&!editingGoal){
         const left=Math.max(0,G-moAll), pct=Math.min(100,Math.round(moAll/G*100));
         h+=`<div class="mgbar"><i style="width:${pct}%"></i></div>
@@ -984,11 +984,41 @@ function runStatsHTML(){
       const col=latest?'var(--accent)':fastest?'var(--record)':'var(--accent)';
       poly+=`${x.toFixed(1)},${y.toFixed(1)} `;
       h+=`<circle ${latest?'class="beacon"':''} cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${latest?3.2:fastest?3:2}" fill="${col}"></circle>
-          <text x="${x.toFixed(1)}" y="${(y-6).toFixed(1)}" text-anchor="middle" font-family="var(--mono)" font-size="6.5" font-weight="${latest?700:400}" fill="${latest?'var(--accent)':fastest?'var(--record)':'var(--muted)'}">${paceStr(p)}</text>
-          <text x="${x.toFixed(1)}" y="107" text-anchor="middle" font-family="var(--mono)" font-size="6.5" fill="${latest?'var(--accent)':'var(--muted)'}">${m.slice(5)}</text>`;
+          <text x="${x.toFixed(1)}" y="${(y-6).toFixed(1)}" text-anchor="middle" font-family="var(--mono)" font-size="9.5" font-weight="${latest?700:400}" fill="${latest?'var(--accent)':fastest?'var(--record)':'var(--muted)'}">${paceStr(p)}</text>
+          <text x="${x.toFixed(1)}" y="109" text-anchor="middle" font-family="var(--mono)" font-size="9.5" fill="${latest?'var(--accent)':'var(--muted)'}">${m.slice(5)}</text>`;
     });
     h+=`<polyline points="${poly.trim()}" fill="none" stroke="var(--accent)" stroke-width="1.2" stroke-linejoin="round"></polyline>
         </svg></div></div>`;
+    /* v3.3.162: the month's running, in the metrics runners expect —
+       distance so far, a CALENDAR-RATE projection (dull and honest: km/day
+       elapsed × days in month), average pace, time on feet, longest run,
+       count and average length. One home for month km; THIS MONTH keeps
+       the goal and drops its duplicate readout. */
+    {
+      const mo=todayISO.slice(0,7), dim2=new Date(+mo.slice(0,4),+mo.slice(5,7),0).getDate();
+      const elapsed=+todayISO.slice(8);
+      let km=0,sec=0,n=0,longest=0;
+      const scan=(w,mins,secs)=>{km+=w;n++;if(w>longest)longest=w;if(mins!=null)sec+=(mins*60)+(secs||0);};
+      for(const d of Object.keys(SEED.sessions)) if(d.startsWith(mo))
+        for(const r of SEED.sessions[d]) if(r[1]==='Run') scan(r[2],r[4],r[5]);
+      for(const x of (day(todayISO).w||[])) if(x.ex==='Run') scan(x.w,x.mins,x.secs);
+      if(n){
+        const proj=km/elapsed*dim2;
+        const pace=sec&&km?sec/toD(km):0;
+        const fp=x=>`${Math.floor(x/60)}'${String(Math.round(x%60)).padStart(2,'0')}"`;
+        const hh=Math.floor(sec/3600), mm2=Math.round(sec%3600/60);
+        h+=`<h2>Running · ${new Date(todayISO+'T00:00').toLocaleDateString('en-US',{month:'long'})}</h2>
+        <div class="card"><div class="kpis" style="margin:0">
+          <div class="kpi"><b>${dDisp(km)}</b><span>${DU()} so far</span></div>
+          <div class="kpi"><b>≈${Math.round(proj)}</b><span>${DU()} projected</span></div>
+          <div class="kpi"><b>${pace?fp(pace):'—'}</b><span>avg /${DU()}</span></div>
+          <div class="kpi"><b>${hh}:${String(mm2).padStart(2,'0')}</b><span>time on feet</span></div>
+          <div class="kpi"><b>${dDisp(longest)}</b><span>longest ${DU()}</span></div>
+          <div class="kpi"><b>${n}</b><span>runs · avg ${dDisp(km/n)} ${DU()}</span></div>
+        </div></div>`;
+      }
+    }
+
   }
 
   /* --- records --- */

@@ -277,6 +277,7 @@ function bwCard(){
     body=head+chart;
   }
   return `<h2 id="secWeight">Weight${hActs('bw',"Flat stretches are days you didn't weigh in.",'About the weight chart')}</h2><div class="card">${body}</div>`;
+
 }
 /* v3.3.111: sections are cut into a buffer as they're built, then emitted
    in one declared order at the bottom. Reordering Stats used to mean moving
@@ -352,7 +353,6 @@ function renderStats(){
   /* v3.3.116: part mix — which parts got worked, day by day, so an
      under-served one is visible by its absence. Second from the top on the
      maker's call. Scrolls sideways and loads older weeks at its left edge. */
-  h+=moGoalCardHTML();   // v3.3.161: monthly goal, near the top of Stats
   h+=`<h2>Part mix${hActs('pmix',"Volume per body part per day. Runs excluded — km don't add to kg.",'About the part mix')}</h2>
       <div class="card">
         <div class="pmixlgd">${Object.keys(SEED.catalog).filter(p=>p!=='Run').map(p=>
@@ -561,6 +561,7 @@ function renderStats(){
      value found in it. Its entire last30/drift computation went with it;
      nothing else read those. */
   h+=bwCard();                       // v3.3.69: you, before the part-by-part drift
+  h+=moGoalCardHTML();               // v3.3.162: the goal sits under Weight, above RUN
   cut('wt');
 
   /* v3.3.130: "Report card" RETURNS, but not as the v3.3.111 section that

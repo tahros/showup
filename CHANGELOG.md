@@ -1,5 +1,20 @@
 # ShowUp — changelog
 
+## v3.3.162 (2026-08-07) — The runner's month
+
+**THIS MONTH moved up** to sit directly under Weight, above the RUN tiles —
+where the maker circled. It also lost its km readout: one number, one home.
+
+**The pace chart's labels grew** from 6.5 to 9.5 viewBox units (~12px on
+screen) — they were sized for the maker's eyes at his desk, not a phone at
+arm's length.
+
+**RUNNING · <month>** is new, beneath Pace: distance so far, a
+calendar-rate projection (km per elapsed day × days in month — dull and
+honest, no hot-streak optimism), average pace, time on feet, longest run,
+and run count with average length. The metrics a Strava runner expects,
+in the app's own grammar, from data already in hand.
+
 ## v3.3.161 (2026-08-07) — THIS MONTH moves to Stats, and the keypad can type the pace
 
 **The card moved off the logging path.** A monthly goal is a statistic

@@ -277,7 +277,8 @@ const dataHeads = hd.filter(r => !r.quiet && r.t !== "Settings");
    The invariant is no longer "every head has one" but "exactly the audited
    set has none", so a tip silently vanishing elsewhere still fails. */
 const NO_TIP = new Set(["Show up — that's the whole game","Run","Next milestone","Records"]);
-const bare = dataHeads.filter(r => !r.i);
+const NO_TIP_PRE = ["Running \u00b7"];   // v3.3.162: month-named, tipless by audit
+const bare = dataHeads.filter(r => !r.i && !NO_TIP_PRE.some(pfx => r.t.startsWith(pfx)));
 console.log((bare.every(r => NO_TIP.has(r.t)) && dataHeads.some(r => r.i) ? "PASS" : "FAIL"),
   "only the audited sections lack an (i)", "\u2192",
   bare.map(r => r.t).join("|") || "none bare");

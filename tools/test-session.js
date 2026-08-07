@@ -250,5 +250,18 @@ ok("a 7'30 target pace parses and projects 10k at 75'00",
 ok("...with recent pace shown beside it for the honest gap",
    /recent/.test(run(`document.querySelector('.moGoal .lastfoot').textContent`)));
 
+/* ---- 13. v3.3.162: the month metrics card ------------------------------- */
+ok("RUNNING · month card renders on Stats with a run this month",
+   /Running \u00b7/.test(run(`$('#view').innerHTML`)));
+ok("...projection is calendar-rate (km/elapsed \u00d7 days-in-month)", (() => {
+  const km = 4, el = +run(`todayISO.slice(8)`),
+        dim = run(`new Date(+todayISO.slice(0,4),+todayISO.slice(5,7),0).getDate()`);
+  return new RegExp("\u2248"+Math.round(km/el*dim)).test(run(`$('#view').innerHTML`));
+})());
+ok("THIS MONTH no longer duplicates the km readout",
+   !/ago">[\d.]+ km/.test(run(`document.querySelector('.moGoal').outerHTML`)));
+ok("pace chart labels are readable (9.5 units \u2248 12px)",
+   /font-size="9.5"/.test(fs.readFileSync(path.join(dir, "js/lift.js"), "utf8")));
+
 console.log(fail ? "\n" + fail + " FAILED" : "\nALL PASS");
 process.exit(fail ? 1 : 0);
