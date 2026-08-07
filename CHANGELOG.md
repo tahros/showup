@@ -1,5 +1,15 @@
 # ShowUp — changelog
 
+## v3.3.163 (2026-08-07) — The runner's month, in the app's own voice
+
+**"Freaking too boring" — correct.** Six identical bordered tiles was a
+spreadsheet wearing a card. The answer was the app's existing grammar, not
+decoration: ONE hero number (17.66 km, with the ≈projection inline in
+accent), a fill bar showing how far into that projection the month has
+come, and one quiet mono line carrying pace, time on feet, longest, count
+and average. Same data, one third the chrome, a hierarchy instead of a
+grid. Deletion, as usual, was the design.
+
 ## v3.3.162 (2026-08-07) — The runner's month
 
 **THIS MONTH moved up** to sit directly under Weight, above the RUN tiles —

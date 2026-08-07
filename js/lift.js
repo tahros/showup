@@ -1008,14 +1008,12 @@ function runStatsHTML(){
         const fp=x=>`${Math.floor(x/60)}'${String(Math.round(x%60)).padStart(2,'0')}"`;
         const hh=Math.floor(sec/3600), mm2=Math.round(sec%3600/60);
         h+=`<h2>Running · ${new Date(todayISO+'T00:00').toLocaleDateString('en-US',{month:'long'})}</h2>
-        <div class="card"><div class="kpis" style="margin:0">
-          <div class="kpi"><b>${dDisp(km)}</b><span>${DU()} so far</span></div>
-          <div class="kpi"><b>≈${Math.round(proj)}</b><span>${DU()} projected</span></div>
-          <div class="kpi"><b>${pace?fp(pace):'—'}</b><span>avg /${DU()}</span></div>
-          <div class="kpi"><b>${hh}:${String(mm2).padStart(2,'0')}</b><span>time on feet</span></div>
-          <div class="kpi"><b>${dDisp(longest)}</b><span>longest ${DU()}</span></div>
-          <div class="kpi"><b>${n}</b><span>runs · avg ${dDisp(km/n)} ${DU()}</span></div>
-        </div></div>`;
+        <div class="card">
+          <div class="kpi hero" style="margin-bottom:10px"><b>${dDisp(km)}</b>
+            <span>${DU()} so far — on pace for <b style="color:var(--accent)">≈${Math.round(proj)} ${DU()}</b></span></div>
+          <div class="mgbar"><i style="width:${Math.min(100,Math.round(km/proj*100))}%"></i></div>
+          <div class="lastfoot mono" style="margin-top:10px">${pace?fp(pace)+'/'+DU()+' · ':''}${hh}:${String(mm2).padStart(2,'0')} on feet · longest ${dDisp(longest)} · ${n} run${n>1?'s':''} · avg ${dDisp(km/n)} ${DU()}</div>
+        </div>`;
       }
     }
 

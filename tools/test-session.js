@@ -253,6 +253,11 @@ ok("...with recent pace shown beside it for the honest gap",
 /* ---- 13. v3.3.162: the month metrics card ------------------------------- */
 ok("RUNNING · month card renders on Stats with a run this month",
    /Running \u00b7/.test(run(`$('#view').innerHTML`)));
+ok("...as ONE hero + bar + mono line, not a tile grid (v3.3.163)", run(`(function(){
+     const h2=[...document.querySelectorAll('#view h2')].find(h=>/Running \u00b7/.test(h.textContent));
+     const c=h2&&h2.nextElementSibling;
+     return !!(c&&c.querySelector('.kpi.hero')&&c.querySelector('.mgbar')&&c.querySelector('.lastfoot')
+               &&c.querySelectorAll('.kpi').length===1);})()`));
 ok("...projection is calendar-rate (km/elapsed \u00d7 days-in-month)", (() => {
   const km = 4, el = +run(`todayISO.slice(8)`),
         dim = run(`new Date(+todayISO.slice(0,4),+todayISO.slice(5,7),0).getDate()`);
