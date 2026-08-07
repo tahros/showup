@@ -3,6 +3,7 @@
    shares one global scope with its siblings, loaded in order by index.html. */
 /* ---------- events ---------- */
 document.addEventListener('click',e=>{
+  if(checkDate()) return;   // v3.3.158: the day rolled mid-tap — re-render, next tap lands right
   const t=day(todayISO);
   if(e.target.closest('#unitBtn')){
     DB.settings.unit=isLb()?'kg':'lb';
@@ -223,6 +224,12 @@ document.addEventListener('click',e=>{
   }
   const _pl=e.target.closest('.pmixlgd [data-pt]');
   if(_pl){ pmixSetFocus(_pl.dataset.pt); return; }   // v3.3.121
+  if(e.target.closest('#moGoalSet')){
+    const v=Math.round(+(document.getElementById('moGoalIn').value||0));
+    if(v>0){ DB.settings.moGoal=v; save(); }
+    return renderLift();
+  }
+  if(e.target.closest('#moGoalEdit')){ DB.settings.moGoal=0; save(); return renderLift(); }
   if(e.target.closest('#sessEdit')){ lift.editToday=!lift.editToday; lift.editSet=null; return renderLift(); }
   // v3.3.144: #allSets removed with the CAP — edit mode shows every set
   if(e.target.closest('#addEx')){ lift.adding=true; return renderLift(); }
@@ -399,6 +406,7 @@ document.addEventListener('click',e=>{
     return;   // sharing does NOT dismiss — the moment outlives the share tap
   }
   if(e.target.closest('#restBtn')){
+    if(checkDate()) return;   // v3.3.158: same guard, second entry point
     const t=day(todayISO);
     if(t.rest) delete t.rest; else t.rest=true;   // toggle; no confirm, no prompt
     t.upd=Date.now();

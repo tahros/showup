@@ -1,5 +1,24 @@
 # ShowUp — changelog
 
+## v3.3.158 (2026-08-07) — Midnight holds, and a month has a goal
+
+**The stranger user could not log after midnight.** A rollover guard
+existed — visibilitychange plus a 60-second interval — but iOS resumes a
+PWA without reliably firing visibilitychange, and intervals sleep with the
+app, so todayISO stayed on yesterday exactly when he tried to log. The real
+guard now runs INSIDE the tap handler, at the moment staleness can hurt: a
+tap on a stale day rolls the date, re-derives (yesterday just sealed —
+stats ingest it, the rest timer re-anchors), re-renders, and the next tap
+lands in the real today. pageshow and focus joined the backstops.
+
+**THIS MONTH (C9–12).** The first runner user's cluster, shipped as one
+card on the Run view: a monthly distance goal — "no one plans a year,
+people plan a month" — with a progress bar, the distance left to it, runs
+in the last 7 days, and what your recent median pace means at 10 km. One
+stored number reused every month: a goal is a standard, not a calendar
+entry. The yearly bar survives untouched — it tracks the maker's 2,500 km
+arc; this card tracks a month.
+
 ## v3.3.157 (2026-08-06) — Standard names, migrated not replaced
 
 **Five names move to their globally standard forms**, per the review the

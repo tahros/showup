@@ -480,6 +480,41 @@ function renderLift(){
     if(!editing&&undoStack.length)
       h+=`<button class="btn ghost" id="undoBtn" style="margin-top:12px">↺ Undo — ${undoStack[undoStack.length-1].label}</button>`;
     h+=runHist;   // v3.3.153: today first, then the history it joins at midnight
+    /* v3.3.158 (C9-12, the first runner user's cluster): a MONTHLY goal —
+       "no one plans a year, people plan a month" — with the distance left
+       to it, how often you ran in the last 7 days, and what your recent
+       pace means at 10 km. The yearly bar below survives untouched: it
+       tracks the maker's 2,500 km arc; this card tracks a month. One
+       stored number (settings.moGoal) reused every month — a goal is a
+       standard, not a calendar entry. */
+    if(!isRun){}else{
+      const mo=todayISO.slice(0,7);
+      const moPast=(SEED.monthly[mo]&&SEED.monthly[mo].km)||0;
+      const moToday=t.w.filter(x=>x.ex==='Run').reduce((a,x)=>a+x.w,0);
+      const moAll=moPast+moToday;
+      const wk=(()=>{let n=0;for(let i=0;i<7;i++){const d=new Date(todayISO+'T00:00');d.setDate(d.getDate()-i);
+        const iso=d.toLocaleDateString('en-CA');
+        if((DB.days[iso]&&(DB.days[iso].w||[]).some(x=>x.ex==='Run'))) n++;}return n;})();
+      const paces=[];
+      for(const d of Object.keys(SEED.sessions).sort().slice(-30))
+        for(const r of SEED.sessions[d]) if(r[1]==='Run'&&r[4]) paces.push(((r[4]*60)+(r[5]||0))/toD(r[2]));
+      const recent=paces.slice(-5).sort((x,y)=>x-y);
+      const med=recent.length?recent[Math.floor(recent.length/2)]:0;
+      const tenK=med?med*10:0;
+      const G=+(DB.settings.moGoal||0);
+      h+=`<div class="lastcard moGoal"><div class="lasthead"><span>THIS MONTH</span><span class="ago">${dDisp(moAll)} ${DU()}</span></div>`;
+      if(G>0){
+        const left=Math.max(0,G-moAll), pct=Math.min(100,Math.round(moAll/G*100));
+        h+=`<div class="mgbar"><i style="width:${pct}%"></i></div>
+            <div class="tot"><span>${left>0?`<b>${dDisp(left)} ${DU()}</b> to go · goal ${G} ${DU()}`:`goal ${G} ${DU()} — <b>done</b>`}</span>
+            <button class="ago" id="moGoalEdit">edit</button></div>`;
+      }else{
+        h+=`<div class="row" style="gap:8px">
+            <div class="fld"><label>Goal ${DU()} / month</label><input id="moGoalIn" type="number" inputmode="numeric" placeholder="40"></div>
+            <button class="btn" id="moGoalSet" style="margin:0;flex:0 0 96px;align-self:flex-end">Set</button></div>`;
+      }
+      h+=`<div class="lastfoot mono">${wk} run${wk===1?'':'s'} in the last 7 days${tenK?` · 10${DU()} ≈ ${Math.floor(tenK/60)}'${String(Math.round(tenK%60)).padStart(2,'0')}" at your recent pace`:''}</div></div>`;
+    }
   }
   {
     const ve=document.getElementById('volNum');

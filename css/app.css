@@ -241,6 +241,8 @@
   /* today reads full-strength; last time steps back — the same move past
      years make on the Consistency chart. Dimmed, not restyled: one grammar,
      two distances. */
+  .mgbar{height:8px;border-radius:4px;background:var(--surface2);overflow:hidden;margin:2px 0 8px}
+  .mgbar i{display:block;height:100%;background:var(--accent);border-radius:4px}
   .sess-then{margin-top:12px;padding-top:10px;border-top:1px solid var(--line);opacity:.62}
   /* ---- v3.3.151: LAST TIME at the part level — the session's shape ---- */
   .partlast{margin-top:14px}

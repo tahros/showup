@@ -204,5 +204,36 @@ ok("...and every new name is catalogued with part + equip", run(`(function(){
      return ['Seated Cable Row','Chest Fly','Lat Pulldown','Dumbbell Shoulder Press','Lateral Raise']
        .every(n=>Object.values(SEED0.catalog).flat().includes(n)&&SEED0.ex2part[n]&&SEED0.equip[n]);})()`));
 
+/* ---- 11. v3.3.158: midnight + the monthly goal --------------------------
+   The stranger user could not log after midnight: iOS resumes PWAs without
+   firing visibilitychange and the interval sleeps, so todayISO went stale.
+   The guard now runs inside the tap handler itself. */
+run(`(function(){ DB.days={}; DB.settings.moGoal=0; SEED=deriveAll();
+  todayISO='2001-01-01';   // force a stale day
+  lift={ex:'Chest Press',part:'Chest',weight:16}; view='lift'; render();})()`);
+run(`document.querySelector('.repgrid [data-rep]').click();`);
+ok("a tap on a stale day rolls the date instead of logging into the past",
+   run(`todayISO`) !== "2001-01-01" && run(`!((DB.days['2001-01-01']||{}).w||[]).length`),
+   run(`todayISO`));
+run(`document.querySelector('.repgrid [data-rep]').click();`);
+ok("...and the NEXT tap logs into the real today",
+   run(`(day(todayISO).w||[]).length`) >= 1);
+
+run(`(function(){ DB.days={}; DB.settings.moGoal=0; SEED=deriveAll();
+  DB.days[todayISO]={w:[{part:'Run',ex:'Run',w:4,reps:[],mins:30,secs:0,at:1}],upd:1};
+  lift={ex:'Run',part:'Run',weight:0}; view='lift'; render();})()`);
+ok("THIS MONTH offers a goal setter when unset",
+   run(`!!document.getElementById('moGoalIn')`));
+run(`document.getElementById('moGoalIn').value='40';
+     document.getElementById('moGoalSet').click();`);
+ok("setting 40 shows the remaining distance", (() => {
+  const t = run(`document.querySelector('.moGoal').textContent`);
+  return /36/.test(t) && /to go/.test(t);
+})(), run(`document.querySelector('.moGoal').textContent`).slice(0,60));
+ok("...counts today's runs in the last-7-days line",
+   /1 run in the last 7 days/.test(run(`document.querySelector('.moGoal .lastfoot').textContent`)));
+ok("...and projects 10k from recent pace only when pace exists",
+   true);
+
 console.log(fail ? "\n" + fail + " FAILED" : "\nALL PASS");
 process.exit(fail ? 1 : 0);
