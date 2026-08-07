@@ -352,6 +352,7 @@ function renderStats(){
   /* v3.3.116: part mix — which parts got worked, day by day, so an
      under-served one is visible by its absence. Second from the top on the
      maker's call. Scrolls sideways and loads older weeks at its left edge. */
+  h+=moGoalCardHTML();   // v3.3.161: monthly goal, near the top of Stats
   h+=`<h2>Part mix${hActs('pmix',"Volume per body part per day. Runs excluded — km don't add to kg.",'About the part mix')}</h2>
       <div class="card">
         <div class="pmixlgd">${Object.keys(SEED.catalog).filter(p=>p!=='Run').map(p=>

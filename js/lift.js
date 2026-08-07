@@ -487,41 +487,7 @@ function renderLift(){
        tracks the maker's 2,500 km arc; this card tracks a month. One
        stored number (settings.moGoal) reused every month — a goal is a
        standard, not a calendar entry. */
-    if(!isRun){}else{
-      const mo=todayISO.slice(0,7);
-      const moPast=(SEED.monthly[mo]&&SEED.monthly[mo].km)||0;
-      const moToday=t.w.filter(x=>x.ex==='Run').reduce((a,x)=>a+x.w,0);
-      const moAll=moPast+moToday;
-      const wk=(()=>{let n=0;for(let i=0;i<7;i++){const d=new Date(todayISO+'T00:00');d.setDate(d.getDate()-i);
-        const iso=d.toLocaleDateString('en-CA');
-        if((DB.days[iso]&&(DB.days[iso].w||[]).some(x=>x.ex==='Run'))) n++;}return n;})();
-      const paces=[];
-      for(const d of Object.keys(SEED.sessions).sort().slice(-30))
-        for(const r of SEED.sessions[d]) if(r[1]==='Run'&&r[4]) paces.push(((r[4]*60)+(r[5]||0))/toD(r[2]));
-      const recent=paces.slice(-5).sort((x,y)=>x-y);
-      const med=recent.length?recent[Math.floor(recent.length/2)]:0;
-      const tenK=med?med*10:0;
-      const G=+(DB.settings.moGoal||0);
-      /* v3.3.159: target pace — what the first runner user actually meant.
-         Stored as seconds per km; the 10k line projects the TARGET when set,
-         with recent shown beside it for the honest gap. */
-      const TP=+(DB.settings.tgtPace||0);
-      const fmtP=x=>`${Math.floor(x/60)}'${String(Math.round(x%60)).padStart(2,'0')}"`;
-      const editingGoal=!!DB.settings._moEdit;
-      h+=`<div class="lastcard moGoal"><div class="lasthead"><span>THIS MONTH</span><span class="ago">${dDisp(moAll)} ${DU()}</span></div>`;
-      if(G>0&&!editingGoal){
-        const left=Math.max(0,G-moAll), pct=Math.min(100,Math.round(moAll/G*100));
-        h+=`<div class="mgbar"><i style="width:${pct}%"></i></div>
-            <div class="tot"><span>${left>0?`<b>${dDisp(left)} ${DU()}</b> to go · goal ${G} ${DU()}`:`goal ${G} ${DU()} — <b>done</b>`}</span>
-            <button class="ago" id="moGoalEdit">edit</button></div>`;
-      }else{
-        h+=`<div class="row" style="gap:8px">
-            <div class="fld"><label>Goal ${DU()} / month</label><input id="moGoalIn" type="number" inputmode="numeric" placeholder="40" value="${G||''}"></div>
-            <div class="fld"><label>Target pace /${DU()}</label><input id="moPaceIn" type="text" inputmode="numeric" placeholder="7'30" value="${TP?fmtP(TP):''}"></div>
-            <button class="btn" id="moGoalSet" style="margin:0;flex:0 0 72px;align-self:flex-end">Set</button></div>`;
-      }
-      h+=`<div class="lastfoot mono">${wk} run${wk===1?'':'s'} in the last 7 days${TP?` · 10${DU()} ≈ ${fmtP(TP*10)} at target ${fmtP(TP)} (recent ${med?fmtP(med):'—'})`:(tenK?` · 10${DU()} ≈ ${fmtP(tenK)} at your recent pace`:'')}</div></div>`;
-    }
+    // v3.3.161: THIS MONTH moved to the Stats tab — moGoalCardHTML()
   }
   {
     const ve=document.getElementById('volNum');
@@ -548,6 +514,46 @@ function renderLift(){
    occurrence, so alternating supersets fold into one group per exercise,
    exactly as History's day view reads them. Two eras, same rule as
    lastSession: the app day wins only if it is newer than the sheet's. */
+/* v3.3.161: THIS MONTH lives on Stats now — a goal is a statistic about the
+   month, and the maker moved it off the logging path. Same card, one home. */
+function moGoalCardHTML(){
+  let h='';
+
+      const mo=todayISO.slice(0,7);
+      const moPast=(SEED.monthly[mo]&&SEED.monthly[mo].km)||0;
+      const moToday=day(todayISO).w.filter(x=>x.ex==='Run').reduce((a,x)=>a+x.w,0);
+      const moAll=moPast+moToday;
+      const wk=(()=>{let n=0;for(let i=0;i<7;i++){const d=new Date(todayISO+'T00:00');d.setDate(d.getDate()-i);
+        const iso=d.toLocaleDateString('en-CA');
+        if((DB.days[iso]&&(DB.days[iso].w||[]).some(x=>x.ex==='Run'))) n++;}return n;})();
+      const paces=[];
+      for(const d of Object.keys(SEED.sessions).sort().slice(-30))
+        for(const r of SEED.sessions[d]) if(r[1]==='Run'&&r[4]) paces.push(((r[4]*60)+(r[5]||0))/toD(r[2]));
+      const recent=paces.slice(-5).sort((x,y)=>x-y);
+      const med=recent.length?recent[Math.floor(recent.length/2)]:0;
+      const tenK=med?med*10:0;
+      const G=+(DB.settings.moGoal||0);
+      /* v3.3.159: target pace — what the first runner user actually meant.
+         Stored as seconds per km; the 10k line projects the TARGET when set,
+         with recent shown beside it for the honest gap. */
+      const TP=+(DB.settings.tgtPace||0);
+      const fmtP=x=>`${Math.floor(x/60)}'${String(Math.round(x%60)).padStart(2,'0')}"`;
+      const editingGoal=!!DB.settings._moEdit;
+      h+=`<div class="lastcard moGoal"><div class="lasthead"><span>THIS MONTH</span><span class="ago">${dDisp(moAll)} ${DU()}</span></div>`;
+      if(G>0&&!editingGoal){
+        const left=Math.max(0,G-moAll), pct=Math.min(100,Math.round(moAll/G*100));
+        h+=`<div class="mgbar"><i style="width:${pct}%"></i></div>
+            <div class="tot"><span>${left>0?`<b>${dDisp(left)} ${DU()}</b> to go · goal ${G} ${DU()}`:`goal ${G} ${DU()} — <b>done</b>`}</span>
+            <button class="ago" id="moGoalEdit">edit</button></div>`;
+      }else{
+        h+=`<div class="row" style="gap:8px">
+            <div class="fld"><label>Goal ${DU()} / month</label><input id="moGoalIn" type="number" inputmode="numeric" placeholder="40" value="${G||''}"></div>
+            <div class="fld"><label>Target pace /${DU()}</label><input id="moPaceIn" type="text" inputmode="numeric" placeholder="730" value="${TP?fmtP(TP):''}"></div>
+            <button class="btn" id="moGoalSet" style="margin:0;flex:0 0 72px;align-self:flex-end">Set</button></div>`;
+      }
+      h+=`<div class="lastfoot mono">${wk} run${wk===1?'':'s'} in the last 7 days${TP?` · 10${DU()} ≈ ${fmtP(TP*10)} at target ${fmtP(TP)} (recent ${med?fmtP(med):'—'})`:(tenK?` · 10${DU()} ≈ ${fmtP(tenK)} at your recent pace`:'')}</div></div>`;
+  return h;
+}
 function lastPartSession(part){
   const mine=Object.entries(DB.days)
     .filter(([d,v])=>d<todayISO && (v.w||[]).some(x=>x.part===part&&(x.reps||[]).length))

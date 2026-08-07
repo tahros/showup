@@ -1,5 +1,18 @@
 # ShowUp — changelog
 
+## v3.3.161 (2026-08-07) — THIS MONTH moves to Stats, and the keypad can type the pace
+
+**The card moved off the logging path.** A monthly goal is a statistic
+about the month, not a mid-run control — it sits near the top of Stats now,
+and the Run view slims back down. The goal handlers render the CURRENT view
+instead of assuming the Lift one, which the move itself exposed.
+
+**The pace field demanded a character its own keyboard could not type.**
+inputmode=numeric summons a keypad with no apostrophe — so bare digits now
+parse: 730 is 7'30, 1015 is 10'15. Separators still work if pasted. Found
+by the maker one screenshot after shipping; the field was tested by
+JavaScript, which types characters keyboards do not offer.
+
 ## v3.3.160 (2026-08-07) — Log a past day
 
 **The record is a record of training, not of logging discipline.** An empty

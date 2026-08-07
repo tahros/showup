@@ -221,8 +221,8 @@ ok("...and the NEXT tap logs into the real today",
 
 run(`(function(){ DB.days={}; DB.settings.moGoal=0; SEED=deriveAll();
   DB.days[todayISO]={w:[{part:'Run',ex:'Run',w:4,reps:[],mins:30,secs:0,at:1}],upd:1};
-  lift={ex:'Run',part:'Run',weight:0}; view='lift'; render();})()`);
-ok("THIS MONTH offers a goal setter when unset",
+  lift={ex:'Run',part:'Run',weight:0}; view='stats'; render();})()`);
+ok("THIS MONTH renders on STATS and offers a setter when unset",
    run(`!!document.getElementById('moGoalIn')`));
 run(`document.getElementById('moGoalIn').value='40';
      document.getElementById('moGoalSet').click();`);
@@ -239,7 +239,10 @@ ok("...and projects 10k from recent pace only when pace exists",
 run(`document.querySelector('#moGoalEdit')?document.querySelector('#moGoalEdit').click():renderLift()`);
 ok("edit reopens the setter with the goal PREFILLED, not wiped",
    run(`document.getElementById('moGoalIn')&&document.getElementById('moGoalIn').value`) === "40");
-run(`document.getElementById('moPaceIn').value="7'30";
+ok("...and no monthly card remains on the Run view", run(`(function(){
+     const v=view; view='lift'; render(); const gone=!document.querySelector('.moGoal');
+     view=v; render(); return gone;})()`));
+run(`document.getElementById('moPaceIn').value="730";   // bare keypad digits
      document.getElementById('moGoalSet').click();`);
 ok("a 7'30 target pace parses and projects 10k at 75'00",
    /75'00" at target 7'30"/.test(run(`document.querySelector('.moGoal .lastfoot').textContent`)),

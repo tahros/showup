@@ -227,14 +227,16 @@ document.addEventListener('click',e=>{
   if(e.target.closest('#moGoalSet')){
     const v=Math.round(+(document.getElementById('moGoalIn').value||0));
     const pTxt=(document.getElementById('moPaceIn').value||'').trim();
-    const m=pTxt.match(/^(\d{1,2})[':.](\d{1,2})$/);          // 7'30, 7:30, 7.30
+    /* v3.3.161: the numeric keypad has no apostrophe — bare digits parse:
+       730 -> 7'30, 1015 -> 10'15. Separators still accepted if pasted. */
+    const m=pTxt.match(/^(\d{1,2})[':.](\d{1,2})$/)||pTxt.match(/^(\d{1,2})(\d{2})$/);
     if(m) DB.settings.tgtPace=(+m[1])*60+(+m[2]);
     else if(!pTxt) DB.settings.tgtPace=0;
     if(v>0) DB.settings.moGoal=v;
     delete DB.settings._moEdit; save();
-    return renderLift();
+    return render();   // v3.3.161: the card lives on Stats now — render the CURRENT view
   }
-  if(e.target.closest('#moGoalEdit')){ DB.settings._moEdit=1; return renderLift(); }  // v3.3.159: edit prefills, never wipes
+  if(e.target.closest('#moGoalEdit')){ DB.settings._moEdit=1; return render(); }  // v3.3.159: edit prefills, never wipes
   if(e.target.closest('#sessEdit')){ lift.editToday=!lift.editToday; lift.editSet=null; return renderLift(); }
   // v3.3.144: #allSets removed with the CAP — edit mode shows every set
   if(e.target.closest('#addEx')){ lift.adding=true; return renderLift(); }
