@@ -1,5 +1,17 @@
 # ShowUp — changelog
 
+## v3.3.159 (2026-08-07) — Target pace
+
+**What the first runner user actually meant.** THIS MONTH's setter gains a
+target pace (7'30-style input; 7:30 and 7.30 parse too), stored as seconds
+per km. The 10k line now projects the TARGET when one is set — with your
+recent median beside it, because the gap between the two is the honest
+number. No target set → the recent-pace projection stands as before.
+
+**Edit prefills instead of wiping.** The goal editor reopens with your
+numbers in the fields — v3.3.158's clear-and-retype was crude and lasted
+one day.
+
 ## v3.3.158 (2026-08-07) — Midnight holds, and a month has a goal
 
 **The stranger user could not log after midnight.** A rollover guard

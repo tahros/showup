@@ -235,5 +235,17 @@ ok("...counts today's runs in the last-7-days line",
 ok("...and projects 10k from recent pace only when pace exists",
    true);
 
+/* ---- 12. v3.3.159: target pace, and edit that never wipes --------------- */
+run(`document.querySelector('#moGoalEdit')?document.querySelector('#moGoalEdit').click():renderLift()`);
+ok("edit reopens the setter with the goal PREFILLED, not wiped",
+   run(`document.getElementById('moGoalIn')&&document.getElementById('moGoalIn').value`) === "40");
+run(`document.getElementById('moPaceIn').value="7'30";
+     document.getElementById('moGoalSet').click();`);
+ok("a 7'30 target pace parses and projects 10k at 75'00",
+   /75'00" at target 7'30"/.test(run(`document.querySelector('.moGoal .lastfoot').textContent`)),
+   run(`document.querySelector('.moGoal .lastfoot').textContent`).slice(-70));
+ok("...with recent pace shown beside it for the honest gap",
+   /recent/.test(run(`document.querySelector('.moGoal .lastfoot').textContent`)));
+
 console.log(fail ? "\n" + fail + " FAILED" : "\nALL PASS");
 process.exit(fail ? 1 : 0);

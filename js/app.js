@@ -226,10 +226,15 @@ document.addEventListener('click',e=>{
   if(_pl){ pmixSetFocus(_pl.dataset.pt); return; }   // v3.3.121
   if(e.target.closest('#moGoalSet')){
     const v=Math.round(+(document.getElementById('moGoalIn').value||0));
-    if(v>0){ DB.settings.moGoal=v; save(); }
+    const pTxt=(document.getElementById('moPaceIn').value||'').trim();
+    const m=pTxt.match(/^(\d{1,2})[':.](\d{1,2})$/);          // 7'30, 7:30, 7.30
+    if(m) DB.settings.tgtPace=(+m[1])*60+(+m[2]);
+    else if(!pTxt) DB.settings.tgtPace=0;
+    if(v>0) DB.settings.moGoal=v;
+    delete DB.settings._moEdit; save();
     return renderLift();
   }
-  if(e.target.closest('#moGoalEdit')){ DB.settings.moGoal=0; save(); return renderLift(); }
+  if(e.target.closest('#moGoalEdit')){ DB.settings._moEdit=1; return renderLift(); }  // v3.3.159: edit prefills, never wipes
   if(e.target.closest('#sessEdit')){ lift.editToday=!lift.editToday; lift.editSet=null; return renderLift(); }
   // v3.3.144: #allSets removed with the CAP — edit mode shows every set
   if(e.target.closest('#addEx')){ lift.adding=true; return renderLift(); }
