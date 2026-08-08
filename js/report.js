@@ -376,33 +376,91 @@ function shareCards(){
    History, in the share-card language: date big, volume beside it, one mono
    line per exercise. Reuses the whole existing pipeline (showCard overlay,
    its Share button, navigator.share with download fallback). */
+/* v3.3.167: the day receipt IS the History session card, redrawn at share
+   size — same anatomy the maker circled: header row (date + parts left,
+   volume · km right), then per exercise a solid rule, name / "N sets" on a
+   dashed rule, and the weight beside rounded rep chips in accent-on-tint.
+   Height is computed from content (1080 wide, capped at 1350), so a
+   two-lift day shares as a short card, a six-lift day as a tall one. */
 function drawDayCard(x,S,d){
   const V=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim()||'#888';
-  const MONO='"IBM Plex Mono",ui-monospace,monospace';
+  const SANS='"IBM Plex Sans",system-ui,sans-serif', MONO='"IBM Plex Mono",ui-monospace,monospace';
+  const AC=V('--accent');
+  const tint=(hex,a)=>{const m=hex.replace('#','');const n=m.length===3?m.split('').map(c=>c+c).join(''):m;
+    return `rgba(${parseInt(n.slice(0,2),16)},${parseInt(n.slice(2,4),16)},${parseInt(n.slice(4,6),16)},${a})`;};
+  const rr=(x0,y0,w,h,r2)=>{x.beginPath();
+    x.moveTo(x0+r2,y0);x.arcTo(x0+w,y0,x0+w,y0+h,r2);x.arcTo(x0+w,y0+h,x0,y0+h,r2);
+    x.arcTo(x0,y0+h,x0,y0,r2);x.arcTo(x0,y0,x0+w,y0,r2);x.closePath();};
+  const dash=(y,on)=>{x.save();x.setLineDash(on?[5,7]:[]);x.strokeStyle=V('--line');x.lineWidth=2;
+    x.beginPath();x.moveTo(104,y);x.lineTo(S-104,y);x.stroke();x.restore();};
+
   const rows=(d===todayISO?(DB.days[d]?.w||[]).map(s2=>[s2.part,s2.ex,s2.w,s2.reps||[],s2.mins,s2.secs]):(SEED.sessions[d]||[]));
-  let vol=0,km=0; const by=[],seen={};
+  let vol=0,km=0,sets=0,tmin=null,tsec=0; const by=[],seen={},parts=[];
   for(const r2 of rows){
-    if(r2[1]==='Run'){ km+=r2[2]; continue; }
-    vol+=r2[2]*(r2[3]||[]).reduce((a,b)=>a+b,0);
-    if(!(r2[1] in seen)){ seen[r2[1]]=by.length; by.push({ex:r2[1],w:r2[2],reps:[]}); }
-    by[seen[r2[1]]].reps.push(...(r2[3]||[]));
+    if(!parts.includes(r2[0])) parts.push(r2[0]);
+    if(r2[1]==='Run'){ km+=r2[2]; if(r2[4]!=null){tmin=(tmin||0)+r2[4];tsec+=r2[5]||0;} sets++; continue; }
+    vol+=r2[2]*(r2[3]||[]).reduce((a,b)=>a+b,0); sets+=(r2[3]||[]).length;
+    const k2=r2[1]+'@'+r2[2];
+    if(!(k2 in seen)){ seen[k2]=by.length; by.push({ex:r2[1],w:r2[2],reps:[]}); }
+    by[seen[k2]].reps.push(...(r2[3]||[]));
   }
+  const groups=by.slice(0,10);
+  const BLK=178, HEAD=210, FOOT=96;
+  const H=Math.min(1350,Math.max(640,HEAD+(km?BLK:0)+groups.length*BLK+FOOT));
+  const cv2=x.canvas; if(cv2&&cv2.height!==H) cv2.height=H;
+
+  x.fillStyle=V('--ground'); x.fillRect(0,0,S,H);
+  x.fillStyle=V('--surface'); rr(40,40,S-80,H-80,40); x.fill();
+  x.textBaseline='alphabetic';
+
   const dt=new Date(d+'T00:00');
-  cardFrame(x,S,{big:dt.toLocaleDateString('en-US',{weekday:'short'})+', '+dt.toLocaleDateString('en-US',{month:'short',day:'numeric'}),
-    sub:(vol?fmt(Math.round(toU(vol)))+' '+U():'')+(km?(vol?' · ':'')+dDisp(km)+' '+DU():''),
-    kicker:'SHOWUP · SESSION',
-    footer:rows.length?'':'a rest day, on the record'});
-  let y=300;
-  x.font='500 32px '+MONO;
-  if(km){ x.fillStyle=V('--chalk');
-    const t=rows.find(r2=>r2[1]==='Run');
-    x.fillText('Run  '+dDisp(km)+' '+DU()+(t&&t[4]!=null?'  ·  '+t[4]+"'"+String(t[5]||0).padStart(2,'0')+'"':''),64,y); y+=52; }
-  for(const g of by.slice(0,14)){
-    x.fillStyle=V('--muted'); x.fillText(g.ex,64,y);
-    x.fillStyle=V('--chalk');
-    x.fillText(wDisp(g.w)+U()+' \u00d7 '+g.reps.join(','),64,y+40);
-    y+=96; if(y>S-80) break;
+  x.textAlign='left'; x.fillStyle=V('--chalk'); x.font='700 58px '+SANS;
+  x.fillText(dt.toLocaleDateString('en-US',{weekday:'short'})+', '+dt.toLocaleDateString('en-US',{month:'short',day:'numeric'}),104,146);
+  x.fillStyle=V('--muted'); x.font='500 30px '+MONO;
+  x.fillText(parts.join(' · '),104,196);
+  x.textAlign='right';
+  x.fillText((vol?fmt(Math.round(toU(vol)))+' '+U():'')+(km?(vol?' · ':'')+dDisp(km)+' '+DU():''),S-104,146);
+  x.textAlign='left';
+
+  let y=HEAD+70;
+  const block=(name,nSets,draw)=>{
+    x.save();x.strokeStyle=V('--line');x.lineWidth=2;x.beginPath();x.moveTo(104,y-64);x.lineTo(S-104,y-64);x.stroke();x.restore();
+    x.fillStyle=V('--muted'); x.font='500 30px '+MONO; x.fillText(name,104,y);
+    x.textAlign='right'; x.fillText(nSets,S-104,y); x.textAlign='left';
+    dash(y+18,true);
+    draw(y+86); y+=BLK;
+  };
+  const chips=(vals,x0,yv)=>{
+    x.font='700 34px '+MONO;
+    let cx=x0;
+    for(const v of vals){
+      const t=String(v), tw=x.measureText(t).width, cw=tw+40;
+      x.fillStyle=tint(AC.startsWith('#')?AC:'#4f46e5',0.13); rr(cx,yv-40,cw,58,16); x.fill();
+      x.fillStyle=AC; x.fillText(t,cx+20,yv);
+      cx+=cw+18; if(cx>S-180) break;
+    }
+  };
+  if(km){
+    const t=(tmin!=null)?`${tmin+Math.floor(tsec/60)}'${String(tsec%60).padStart(2,'0')}`:null;
+    block('Run',(rows.filter(r2=>r2[1]==='Run').length)+' set'+(rows.filter(r2=>r2[1]==='Run').length>1?'s':''),yv=>{
+      x.fillStyle=V('--chalk'); x.font='700 48px '+SANS; x.fillText(dDisp(km),104,yv);
+      x.fillStyle=V('--muted'); x.font='500 28px '+MONO;
+      x.fillText(DU(),104+x.measureText(' ').width+ (x.font='700 48px '+SANS, x.measureText(dDisp(km)).width)+14,(x.font='500 28px '+MONO,yv));
+      if(t) chips([t],104+((x.font='700 48px '+SANS),x.measureText(dDisp(km)).width)+110,yv);
+    });
   }
+  for(const g of groups){
+    block(g.ex,g.reps.length+' set'+(g.reps.length>1?'s':''),yv=>{
+      x.fillStyle=V('--chalk'); x.font='700 48px '+SANS; x.fillText(wDisp(g.w),104,yv);
+      const ww=x.measureText(wDisp(g.w)).width;
+      x.fillStyle=V('--muted'); x.font='500 28px '+MONO; x.fillText(U(),104+ww+12,yv);
+      chips(g.reps,104+ww+110,yv);
+    });
+    if(y>H-60) break;
+  }
+  x.fillStyle=V('--muted'); x.font='600 26px '+MONO;
+  x.fillText('SHOWUP',104,H-64);
+  x.textAlign='right'; x.fillText(sets+' sets',S-104,H-64); x.textAlign='left';
 }
 function cardFrame(x,S,o){
   const V=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim()||'#888';

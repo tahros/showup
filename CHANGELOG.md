@@ -1,5 +1,25 @@
 # ShowUp — changelog
 
+## v3.3.167 (2026-08-08) — The receipt is the session card
+
+**The share image now IS the History day card, redrawn at share size** —
+the anatomy the maker circled: date and parts on the left, volume · km on
+the right, then per exercise a solid rule, name over a dashed rule with its
+set count, and the weight beside rounded rep chips in accent-on-tint. The
+generic big-number frame is gone from this card; the thing being shared is
+the thing on screen.
+
+**Nicely proportioned means content-sized:** 1080 wide, height computed
+from the day — a two-lift day shares as a short card, a six-lift day as a
+tall one, capped at 1350 (the 4:5 the feeds expect). Same-exercise
+different-weight sets group separately, exactly as History renders them.
+SHOWUP sits quietly at the foot with the day's set count.
+
+One build note: the drawn output was verified by DUMPING the actual
+fillText stream ("Fri, Aug 7 | Legs | Squat | 3 sets | 60 | kg | 10 10 8")
+before trusting any regex over it — template literals eat backslash-b, and
+that class of assertion has lied before.
+
 ## v3.3.166 (2026-08-08) — Share a day
 
 **Every non-empty day in History carries a Share button beside Edit.** It

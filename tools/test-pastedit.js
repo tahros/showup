@@ -204,7 +204,7 @@ check("tapping it opens the share overlay", `repOvEl().style.display!=='none'`, 
 check("...loaded with THAT day's card", `_repCv&&_repCv.label`, "showup-"+run("YD"));
 check("...whose draw lists the backfilled Squat", `(function(){
    let out=''; const x=new Proxy({},{get:(o,k)=>k==='measureText'?()=>({width:10}):(k==='fillText'?(t)=>{out+=t+'|'}:()=>({})),set:()=>true});
-   drawDayCard(x,1080,YD); return /Squat/.test(out)&&/60kg/.test(out.replace(/\s/g,''));})()`, true);
+   drawDayCard(x,1080,YD); return /Squat/.test(out)&&/\\b60\\b/.test(out)&&/sets/.test(out);})()`, true);
 run(`repOvEl().style.display='none';`);
 
 process.exit(fail ? 1 : 0);
