@@ -243,8 +243,13 @@ function suggestedFor(ex){
 
 /* exercises you add yourself, stored alongside the built-in catalog */
 const customs=()=>DB.settings.custom||{};                       // {name:{part,equip}}
-const catFor=part=>[...SEED.catalog[part],
-  ...Object.entries(customs()).filter(([,c])=>c.part===part).map(([n])=>n)];
+/* v3.3.165: listings respect the per-user home. An exercise overridden AWAY
+   from its catalog part leaves that list; one overridden INTO a part joins
+   it — so Deadlift-on-Legs appears under Legs and only Legs. */
+const catFor=part=>[
+  ...SEED.catalog[part].filter(ex=>!(DB.settings.partOv&&DB.settings.partOv[ex]&&DB.settings.partOv[ex]!==part)),
+  ...Object.entries(customs()).filter(([,c])=>c.part===part).map(([n])=>n),
+  ...Object.entries(DB.settings.partOv||{}).filter(([ex,p])=>p===part&&SEED0.ex2part[ex]!==part).map(([ex])=>ex)];
 const equipOf=ex=>customs()[ex]?.equip || SEED.equip[ex] || 'machine';
 const EQUIP_LABEL={barbell:'Barbell (bar + plates)',smith:'Smith machine',dumbbell:'Dumbbell (per hand)',
   cable:'Cable',machine:'Machine',body:'Bodyweight'};

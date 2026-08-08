@@ -1,5 +1,30 @@
 # ShowUp — changelog
 
+## v3.3.165 (2026-08-08) — Exercises with two homes
+
+**Deadlift on leg day is exactly as correct as Deadlift on back day** — the
+catalog default is convention, not law. Nine dual-home exercises now carry a
+quiet row at the bottom of their view — "Counts as BACK · move to Legs" —
+and the move is gated by a native confirm that states the contract plainly:
+from now on it lists and logs under the new part; everything already logged
+stays exactly as trained.
+
+The nine: Deadlift and Rack Pull (Back↔Legs), Romanian Deadlift
+(Legs↔Back), Dip and Close Grip Bench Press and Bench Dip (Chest↔Triceps),
+Barbell Shrug (Back↔Shoulder), Dumbbell Pullover (Chest↔Back), Chin Up
+(Back↔Biceps).
+
+**Forward-only by construction:** logged rows already carry the part they
+were trained under, so history needs no migration and gets none — the
+override only redirects listings and future logging. Moving an exercise
+back to its catalog home deletes the override entirely: settings carry
+differences, not restatements. The maker keeps Deadlift on Back, where he
+actually trains it; the option exists for the users who don't.
+
+One catch during build: the move button first carried data-ex, which the
+exercise-open router upstream hijacks — the tap reopened the lift instead
+of moving it. The behavioural test caught it before any phone did.
+
 ## v3.3.164 (2026-08-08) — Scrub the live bars
 
 **Drag across the Today · live chart and the line above it reads

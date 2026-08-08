@@ -224,6 +224,14 @@ document.addEventListener('click',e=>{
   }
   const _pl=e.target.closest('.pmixlgd [data-pt]');
   if(_pl){ pmixSetFocus(_pl.dataset.pt); return; }   // v3.3.121
+  if(e.target.closest('#dualMove')){
+    const b=e.target.closest('#dualMove'), ex2=b.dataset.dex, to=b.dataset.dto;   // not data-ex: the exercise router would hijack the tap
+    if(!confirm(`Move ${ex2} to ${to}?\n\nFrom now on it lists and logs under ${to}. Everything already logged stays exactly as trained.`)) return;
+    partOv()[ex2]=to;
+    if(homePartOf(ex2)===SEED0.ex2part[ex2]) delete DB.settings.partOv[ex2];   // moved back home: no override needed
+    lift.part=to; save();
+    return renderLift();
+  }
   if(e.target.closest('#moGoalSet')){
     const v=Math.round(+(document.getElementById('moGoalIn').value||0));
     const pTxt=(document.getElementById('moPaceIn').value||'').trim();

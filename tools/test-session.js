@@ -294,5 +294,33 @@ ok("the chart is inert to the tab-swipe",
 ok("...and vertical page scroll stays alive (touch-action:pan-y)",
    /touch-action:pan-y/.test(run(`document.querySelector('.lbsvg').getAttribute('style')`)));
 
+/* ---- 15. v3.3.165: dual-home exercises — confirmed, forward-only -------- */
+run(`(function(){
+  DB.days={}; DB.settings.partOv={};
+  const p1=new Date(todayISO+'T00:00'); p1.setDate(p1.getDate()-4);
+  window.PD=p1.toLocaleDateString('en-CA');
+  DB.days[PD]={w:[{part:'Back',ex:'Deadlift',w:80,reps:[5],at:1}],upd:1};
+  SEED=deriveAll();
+  lift={ex:'Deadlift',part:'Back',weight:80,editToday:false}; view='lift'; render();})()`);
+ok("Deadlift offers its other home", run(`(function(){
+     const b=document.getElementById('dualMove');
+     return !!(b&&/Legs/.test(b.textContent));})()`));
+run(`window.confirm=()=>false; document.getElementById('dualMove').click();`);
+ok("declining the confirm moves NOTHING",
+   run(`!DB.settings.partOv['Deadlift'] && catFor('Back').includes('Deadlift')`));
+run(`window.confirm=()=>true; document.getElementById('dualMove').click();`);
+ok("confirming moves the listing: under Legs, gone from Back",
+   run(`catFor('Legs').includes('Deadlift') && !catFor('Back').includes('Deadlift')`));
+ok("...and the view followed to Legs", run(`lift.part`) === "Legs");
+run(`document.querySelector('.repgrid [data-rep]').click();`);
+ok("forward logging stores the NEW part",
+   run(`[...day(todayISO).w].pop().part`) === "Legs");
+ok("...while history stays exactly as trained",
+   run(`DB.days[PD].w[0].part`) === "Back");
+ok("moving back home removes the override entirely", (() => {
+  run(`document.getElementById('dualMove').click();`);   // confirm still ()=>true
+  return run(`!DB.settings.partOv['Deadlift'] && catFor('Back').includes('Deadlift')`);
+})());
+
 console.log(fail ? "\n" + fail + " FAILED" : "\nALL PASS");
 process.exit(fail ? 1 : 0);

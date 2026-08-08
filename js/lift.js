@@ -480,6 +480,14 @@ function renderLift(){
     if(!editing&&undoStack.length)
       h+=`<button class="btn ghost" id="undoBtn" style="margin-top:12px">↺ Undo — ${undoStack[undoStack.length-1].label}</button>`;
     h+=runHist;   // v3.3.153: today first, then the history it joins at midnight
+    /* v3.3.165: dual-home exercises offer their other home — quiet, at the
+       bottom, confirmed before anything moves, forward-only by nature
+       (rows already carry the part they were trained under). */
+    if(DUAL[ex]){
+      const home=homePartOf(ex), other=DUAL[ex].find(p=>p!==home)||DUAL[ex][0];
+      h+=`<div class="tot dualrow" style="margin-top:12px"><span class="mono muted" style="font-size:11px">Counts as ${home.toUpperCase()}</span>
+          <button class="ago" id="dualMove" data-dex="${ex}" data-dto="${other}">move to ${other}</button></div>`;
+    }
     /* v3.3.158 (C9-12, the first runner user's cluster): a MONTHLY goal —
        "no one plans a year, people plan a month" — with the distance left
        to it, how often you ran in the last 7 days, and what your recent
