@@ -196,4 +196,15 @@ check("...with upd stamped so it wins the cloud merge", `DB.days[YD].upd>1`, tru
 check("the streak REPAIRED: yesterday now counts in the derived record",
       `SEED.dates.includes(YD)`, true);
 
+/* ---- v3.3.166: share a day from History --------------------------------- */
+check("every non-empty day carries a Share button beside Edit",
+      `!!document.querySelector('[data-dshare="'+YD+'"]')`, true);
+run(`document.querySelector('[data-dshare="'+YD+'"]').click();`);
+check("tapping it opens the share overlay", `repOvEl().style.display!=='none'`, true);
+check("...loaded with THAT day's card", `_repCv&&_repCv.label`, "showup-"+run("YD"));
+check("...whose draw lists the backfilled Squat", `(function(){
+   let out=''; const x=new Proxy({},{get:(o,k)=>k==='measureText'?()=>({width:10}):(k==='fillText'?(t)=>{out+=t+'|'}:()=>({})),set:()=>true});
+   drawDayCard(x,1080,YD); return /Squat/.test(out)&&/60kg/.test(out.replace(/\s/g,''));})()`, true);
+run(`repOvEl().style.display='none';`);
+
 process.exit(fail ? 1 : 0);

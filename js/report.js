@@ -372,6 +372,38 @@ function shareCards(){
 /* v3.3.114: one frame, one plot, five cards. The four older cards each
    hand-drew their own frame; these share it, because they differ only in
    data and wording. kind:'bars' | 'line' | 'heat'. */
+/* v3.3.166: a single DAY as a shareable receipt — the session card from
+   History, in the share-card language: date big, volume beside it, one mono
+   line per exercise. Reuses the whole existing pipeline (showCard overlay,
+   its Share button, navigator.share with download fallback). */
+function drawDayCard(x,S,d){
+  const V=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim()||'#888';
+  const MONO='"IBM Plex Mono",ui-monospace,monospace';
+  const rows=(d===todayISO?(DB.days[d]?.w||[]).map(s2=>[s2.part,s2.ex,s2.w,s2.reps||[],s2.mins,s2.secs]):(SEED.sessions[d]||[]));
+  let vol=0,km=0; const by=[],seen={};
+  for(const r2 of rows){
+    if(r2[1]==='Run'){ km+=r2[2]; continue; }
+    vol+=r2[2]*(r2[3]||[]).reduce((a,b)=>a+b,0);
+    if(!(r2[1] in seen)){ seen[r2[1]]=by.length; by.push({ex:r2[1],w:r2[2],reps:[]}); }
+    by[seen[r2[1]]].reps.push(...(r2[3]||[]));
+  }
+  const dt=new Date(d+'T00:00');
+  cardFrame(x,S,{big:dt.toLocaleDateString('en-US',{weekday:'short'})+', '+dt.toLocaleDateString('en-US',{month:'short',day:'numeric'}),
+    sub:(vol?fmt(Math.round(toU(vol)))+' '+U():'')+(km?(vol?' · ':'')+dDisp(km)+' '+DU():''),
+    kicker:'SHOWUP · SESSION',
+    footer:rows.length?'':'a rest day, on the record'});
+  let y=300;
+  x.font='500 32px '+MONO;
+  if(km){ x.fillStyle=V('--chalk');
+    const t=rows.find(r2=>r2[1]==='Run');
+    x.fillText('Run  '+dDisp(km)+' '+DU()+(t&&t[4]!=null?'  ·  '+t[4]+"'"+String(t[5]||0).padStart(2,'0')+'"':''),64,y); y+=52; }
+  for(const g of by.slice(0,14)){
+    x.fillStyle=V('--muted'); x.fillText(g.ex,64,y);
+    x.fillStyle=V('--chalk');
+    x.fillText(wDisp(g.w)+U()+' \u00d7 '+g.reps.join(','),64,y+40);
+    y+=96; if(y>S-80) break;
+  }
+}
 function cardFrame(x,S,o){
   const V=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim()||'#888';
   const SANS='"IBM Plex Sans",system-ui,sans-serif', MONO='"IBM Plex Mono",ui-monospace,monospace';

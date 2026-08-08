@@ -1,5 +1,23 @@
 # ShowUp — changelog
 
+## v3.3.166 (2026-08-08) — Share a day
+
+**Every non-empty day in History carries a Share button beside Edit.** It
+opens the existing share overlay loaded with that day as a receipt in the
+share-card language: date big, volume and distance beside it, SHOWUP ·
+SESSION kicker, then one block per exercise — name muted, weight × reps in
+chalk — with the run's distance and time up top. Fourteen exercises fit
+before the card politely stops.
+
+Nothing new was invented to do it: drawDayCard() feeds the same showCard()
+overlay whose Share button already speaks navigator.share with a download
+fallback. The one catch: showCard wants a canvas MAKER, not a painter — the
+first wiring handed it the wrong shape and the behavioural test caught the
+overlay opening empty.
+
+Today's card reads from the live day; sealed days read from the derived
+record — the same boundary as everywhere else.
+
 ## v3.3.165 (2026-08-08) — Exercises with two homes
 
 **Deadlift on leg day is exactly as correct as Deadlift on back day** — the

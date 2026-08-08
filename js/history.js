@@ -291,7 +291,7 @@ function renderHistory(){
       }
       h+=`<details class="day${editing?' editing':''}" open data-d="${d}"><summary>
           <span><span class="d">${pretty(d)}</span><div class="s">${(m=>m?`Day ${fmt(m)} · `:'')(msMarkFor(d))}${parts||'—'}</div></span>
-          <span class="s">${bits.join(' · ')}${editable?`<button class="dayedit" data-hedit="${d}">${editing?'Done':'Edit'}</button>`:''}</span></summary><div class="body">`;
+          <span class="s">${bits.join(' · ')}${editable?`<button class="dayedit" data-dshare="${d}" aria-label="Share this day as an image">Share</button><button class="dayedit" data-hedit="${d}">${editing?'Done':'Edit'}</button>`:''}</span></summary><div class="body">`;
       byEx.forEach(g=>{
         /* v3.3.62: a set is a REP. Legacy sheet rows carry reps:[] as bare
            markers — they render nothing, so counting them as 1 printed
@@ -379,6 +379,14 @@ document.addEventListener('click',e=>{
     toast('Logged for '+B.slice(5));
     return render();
   }
+  const sh=e.target.closest('[data-dshare]');
+  if(sh){ const d=sh.dataset.dshare;
+    showCard(()=>{                 // showCard wants a canvas MAKER, not a painter
+      const cv=document.createElement('canvas'); cv.width=cv.height=1080;
+      const x=cv.getContext('2d'); if(!x) return null;
+      drawDayCard(x,1080,d); return cv;
+    },'showup-'+d,false);
+    return; }
   const ed=e.target.closest('[data-hedit]');
   if(ed){ const d=ed.dataset.hedit;
     hist.edit=(hist.edit===d)?null:d; hist.editSet=null; return renderHistory(); }
