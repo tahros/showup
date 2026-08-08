@@ -58,6 +58,7 @@
                    t.closest('.ychips')||      // v3.3.39: History's year strip scrolls sideways
                    t.closest('.pmixwrap')||   // v3.3.116: part mix scrolls sideways
                    t.closest('#repCard')||    // v3.3.139: the card carousel owns its own left/right
+                   t.closest('.lbwrap')||     // v3.3.164: scrubbing the live bars is not a tab swipe
                    t.closest(MODALS)||        // v3.3.140: and nothing under a modal moves
                    t.closest('.compscroll');   // sideways-scrolling chart owns its axis
   addEventListener('touchstart',e=>{

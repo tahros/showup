@@ -268,5 +268,31 @@ ok("THIS MONTH no longer duplicates the km readout",
 ok("pace chart labels are readable (9.5 units \u2248 12px)",
    /font-size="9.5"/.test(fs.readFileSync(path.join(dir, "js/lift.js"), "utf8")));
 
+/* ---- 14. v3.3.164: scrubbing the live bars ------------------------------ */
+run(`(function(){
+  DB.days={};
+  const p1=new Date(todayISO+'T00:00'); p1.setDate(p1.getDate()-4);
+  DB.days[p1.toLocaleDateString('en-CA')]={w:[{part:'Back',ex:'Deadlift',w:80,reps:[2],at:1},{part:'Back',ex:'Deadlift',w:80,reps:[3],at:2}],upd:1};
+  DB.days[todayISO]={w:[{part:'Back',ex:'Deadlift',w:80,reps:[6],at:9}],upd:1};
+  SEED=deriveAll();
+  lift={ex:'Deadlift',part:'Back',weight:80,editToday:false}; view='lift'; render();})()`);
+ok("history bars carry date and volume", run(`(function(){
+     const b=document.querySelector('.lbbar:not(.lbNow)');
+     return !!(b&&b.dataset.d&&+b.dataset.v===400&&b.dataset.cx);})()`));
+ok("the now bar is scrubbable too, dated today",
+   run(`document.querySelector('.lbNow').dataset.d`) === run(`todayISO`));
+ok("a pointerdown on the chart writes DATE · VOLUME into the readout", run(`(function(){
+     const svg=document.querySelector('.lbsvg');
+     const b=document.querySelector('.lbbar:not(.lbNow)');
+     svg.getBoundingClientRect=()=>({left:0,width:330});
+     svg.dispatchEvent(new MouseEvent('pointerdown',{clientX:+b.dataset.cx,bubbles:true}));
+     return document.querySelector('.lbread').textContent;})()`).includes("400"));
+ok("...and highlights the bar under the finger",
+   run(`document.querySelector('.lbbar:not(.lbNow)').getAttribute('fill')`) === "var(--accent)");
+ok("the chart is inert to the tab-swipe",
+   /closest\('\.lbwrap'\)/.test(fs.readFileSync(path.join(dir, "js/util.js"), "utf8")));
+ok("...and vertical page scroll stays alive (touch-action:pan-y)",
+   /touch-action:pan-y/.test(run(`document.querySelector('.lbsvg').getAttribute('style')`)));
+
 console.log(fail ? "\n" + fail + " FAILED" : "\nALL PASS");
 process.exit(fail ? 1 : 0);

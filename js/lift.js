@@ -502,6 +502,7 @@ function renderLift(){
   if(!isRun) h+=(isLive()&&todaySets.length?liveBars(ex,todaySets):progChart(ex));
   if(exOpen(ex)) h+=`<button class="btn done" id="doneExBtn">✓ Complete ${ex}</button>`;
   $('#view').innerHTML=h;
+  bindLbScrub();   // v3.3.164: idempotent, every render of the live chart
   if(lift._animSave){ lift._animSave=false; volCountUp(); lbGrow(); }
 }
 
@@ -1119,23 +1120,55 @@ function liveBars(ex,sets,head){
   const mx=Math.max(best,now,...shown.map(h=>h.v))*1.1;
   const W=330,H=138,base=106;
   const n=shown.length+1, gap=Math.min(24,(W-70)/n), bw=Math.max(6,Math.min(16,gap-4));
-  let h=`<h2>${head||'Today · live'}</h2><div class="card">
-    <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto">`;
+  /* v3.3.164: the chart is scrubbable — drag across the bars and the line
+     above reads DATE · VOLUME for whichever bar is under your finger. The
+     readout sits ABOVE the chart (the v3.3.109 lesson: below it, it hides
+     under the hand doing the scrubbing). */
+  let h=`<h2>${head||'Today · live'}</h2><div class="card lbwrap">
+    <div class="lbread mono">&nbsp;</div>
+    <svg class="lbsvg" viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;touch-action:pan-y">`;
   const by=base-(best/mx)*88;
   h+=`<line x1="8" y1="${by.toFixed(1)}" x2="${W-8}" y2="${by.toFixed(1)}" stroke="var(--record)" stroke-width="0.8" stroke-dasharray="3 3" opacity=".75"></line>
       <text x="${W-10}" y="${(by-4).toFixed(1)}" text-anchor="end" font-family="var(--mono)" font-size="7.5" fill="var(--record)">${beaten?'best — beaten ✓':`best ${fmt(Math.round(toU(best)))}`}</text>`;
   shown.forEach((s2,i2)=>{
     const bh=Math.max(2.5,(s2.v/mx)*88), x=10+i2*gap;
-    h+=`<rect x="${x.toFixed(1)}" y="${(base-bh).toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="2" fill="var(--line)"></rect>`;
+    h+=`<rect class="lbbar" data-d="${s2.d}" data-v="${s2.v}" data-cx="${(x+bw/2).toFixed(1)}" x="${x.toFixed(1)}" y="${(base-bh).toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="2" fill="var(--line)"></rect>`;
   });
   const nh=Math.max(3,(now/mx)*88), nx=10+shown.length*gap;
-  h+=`<rect class="lbNow" data-v="${now}" x="${nx.toFixed(1)}" y="${(base-nh).toFixed(1)}" width="${Math.max(bw,12).toFixed(1)}" height="${nh.toFixed(1)}" rx="2.5" fill="var(--live)"></rect>
+  h+=`<rect class="lbNow lbbar" data-d="${todayISO}" data-v="${now}" data-cx="${(nx+Math.max(bw,12)/2).toFixed(1)}" x="${nx.toFixed(1)}" y="${(base-nh).toFixed(1)}" width="${Math.max(bw,12).toFixed(1)}" height="${nh.toFixed(1)}" rx="2.5" fill="var(--live)"></rect>
       <text x="${(nx+Math.max(bw,12)/2).toFixed(1)}" y="${(base-nh-5).toFixed(1)}" text-anchor="middle" font-family="var(--mono)" font-size="8.5" font-weight="700" fill="${beaten?'var(--record)':'var(--live)'}">${vDisp(now)}</text>
       <text x="${(nx+Math.max(bw,12)/2).toFixed(1)}" y="${base+11}" text-anchor="middle" font-family="var(--mono)" font-size="7.5" font-weight="700" fill="var(--live)">now</text>`;
   const beats=shown.filter(s2=>now>s2.v).length;
   h+=`<text x="10" y="${H-4}" font-family="var(--mono)" font-size="7.5" fill="var(--muted)">${sets.length} set${sets.length>1?'s':''} · beats ${beats} of your last ${shown.length} ${ex} sessions</text>`;
   h+=`</svg></div>`;
   return h;
+}
+/* v3.3.164: scrub — pointer x → nearest bar → readout + highlight. Bound
+   per-render (idempotent flag), pointer events so trackpads work too. */
+function bindLbScrub(){
+  const svg=document.querySelector('.lbsvg');
+  if(!svg||svg._scrub) return; svg._scrub=true;
+  const read=svg.parentElement.querySelector('.lbread');
+  const pick=e=>{
+    const r=svg.getBoundingClientRect();
+    const vx=(e.clientX-r.left)/r.width*330;
+    let best=null,bd=1e9;
+    svg.querySelectorAll('.lbbar').forEach(b=>{
+      const d=Math.abs(+b.dataset.cx-vx);
+      if(d<bd){bd=d;best=b;}
+    });
+    if(!best) return;
+    svg.querySelectorAll('.lbbar').forEach(b=>{
+      if(b.classList.contains('lbNow')) return;
+      b.setAttribute('fill',b===best?'var(--accent)':'var(--line)');
+    });
+    const d=best.dataset.d, v=+best.dataset.v;
+    read.textContent=(d===todayISO?'today':`${wd2(d)} ${d.slice(5).replace('-','/')}`)+` · ${vDisp(v)} ${U()}`;
+  };
+  svg.addEventListener('pointerdown',e=>{svg._on=true;pick(e);});
+  svg.addEventListener('pointermove',e=>{if(svg._on)pick(e);});
+  const off=()=>{svg._on=false;};   // readout persists — the answer stays readable
+  svg.addEventListener('pointerup',off); svg.addEventListener('pointercancel',off);
 }
 /* the red bar RISES: scaleY from the previous total to the new one */
 let _lbPrev={ex:null,v:0};

@@ -1,5 +1,19 @@
 # ShowUp — changelog
 
+## v3.3.164 (2026-08-08) — Scrub the live bars
+
+**Drag across the Today · live chart and the line above it reads
+DATE · VOLUME** for whichever bar sits under your finger — the bar
+highlights in accent, the readout persists on release so the answer stays
+readable, and the "now" bar answers as today. The readout sits ABOVE the
+chart, the v3.3.109 lesson: below it, it hides under the hand doing the
+scrubbing.
+
+Two guards make the motion safe: the card joined the tab-swipe blocklist
+(a horizontal scrub is not a request to change screens — the class of bug
+v3.3.140 closed for modals), and the SVG carries touch-action:pan-y so
+vertical page scrolling through the chart still works.
+
 ## v3.3.163 (2026-08-07) — The runner's month, in the app's own voice
 
 **"Freaking too boring" — correct.** Six identical bordered tiles was a

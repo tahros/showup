@@ -243,6 +243,8 @@
      two distances. */
   .cd.bf{border:1px dashed var(--line);color:var(--faint);cursor:pointer}
   .cd.bf:active{background:var(--surface2)}
+  .lbread{font-size:12px;color:var(--chalk);min-height:16px;margin-bottom:4px}
+  .lbsvg .lbbar{cursor:pointer}
   .mgbar{height:8px;border-radius:4px;background:var(--surface2);overflow:hidden;margin:2px 0 8px}
   .mgbar i{display:block;height:100%;background:var(--accent);border-radius:4px}
   .sess-then{margin-top:12px;padding-top:10px;border-top:1px solid var(--line);opacity:.62}
