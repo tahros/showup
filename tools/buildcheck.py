@@ -256,6 +256,23 @@ if _re.search(r'data-skin="minimal"[^{]*\{[^}]*--live:', css):
 if "showup-skin" not in idx:
     fail.append("index.html pre-paint lost the skin — cold starts flash Classic (v3.3.168)")
 
+# -- Bottom-anchored fixed chrome (v3.3.179): nav and the calendar-return
+#    button are pinned to the viewport bottom, where iOS only re-anchors
+#    position:fixed at the END of a scroll gesture. Without an explicit
+#    compositing layer they visibly hang mid-screen mid-scroll. This guard
+#    keeps the hint attached to BOTH — it was found in Minimal but the base
+#    sheet owns the bug, so a skin-only fix would have left Classic broken.
+_layer = _re.search(r"nav,\.calreturn\{([^}]*)\}", css)
+if not _layer:
+    fail.append("bottom-anchored fixed chrome lost its compositing rule (v3.3.179)")
+else:
+    _body = _layer.group(1)
+    if "translateZ(0)" not in _body or "will-change" not in _body:
+        fail.append("nav/.calreturn compositing hint incomplete — "
+                    "needs translateZ(0) AND will-change or iOS hangs them mid-scroll (v3.3.179)")
+if _re.search(r'data-skin="minimal"\]\s*nav\{[^}]*overflow:hidden', css):
+    fail.append("minimal nav re-added overflow:hidden — extra iOS layer trigger (v3.3.179)")
+
 # -- shell size
 n = len(idx.encode())
 if n >= 8192: fail.append(f"index.html shell is {n} bytes (limit 8192)")

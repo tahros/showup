@@ -1056,6 +1056,17 @@
   nav button.on::after{content:'';position:absolute;left:50%;transform:translateX(-50%);
     bottom:5px;width:24px;height:3px;border-radius:2px;background:var(--accent)}
   nav button.on span{filter:none}
+  /* v3.3.179: bottom-anchored fixed chrome gets its own compositing layer.
+     Reported against Minimal — the nav pill and the "↑ top" button both hung
+     mid-screen during a scroll — but the bug is in the BASE and Classic has
+     it too: iOS re-anchors position:fixed elements to the visual viewport
+     only at the end of a scroll gesture, so anything bottom-anchored lags
+     behind the URL-bar resize. At bottom:0 the lag has nowhere visible to
+     go; a pill inset from the edge shows it plainly. Promoting both to
+     their own layer makes iOS carry them with the viewport instead of
+     repainting them after the fact. Fixes Classic as well as Minimal. */
+  nav,.calreturn{transform:translateZ(0);-webkit-transform:translateZ(0);
+    will-change:transform;backface-visibility:hidden;-webkit-backface-visibility:hidden}
   .recdate{display:block;font-size:9px;color:var(--muted);font-weight:400;margin-top:1px}
   .mstone{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px}
   .mstone .big{font-family:var(--mono);font-size:24px;color:var(--chalk);font-weight:600}
@@ -1175,7 +1186,7 @@
   :root[data-skin="minimal"] nav{
     left:14px;right:14px;bottom:calc(10px + env(safe-area-inset-bottom,0px));
     max-width:492px;border-top:0;border-radius:26px;background:var(--pill);
-    padding-bottom:0;box-shadow:var(--pill-shadow);overflow:hidden;
+    padding-bottom:0;box-shadow:var(--pill-shadow);
     -webkit-backdrop-filter:none;backdrop-filter:none}
   :root[data-skin="minimal"] nav button{color:var(--pill-ink);padding:13px 4px 15px}
   :root[data-skin="minimal"] nav button.on{color:var(--pill-accent)}
