@@ -283,6 +283,94 @@ function bwCard(){
    in one declared order at the bottom. Reordering Stats used to mean moving
    long blocks of markup around; now it means editing one line. The order
    below is the maker's, from the v3.3.111 review. */
+/* ================= v3.3.181 — Rep zones (Stats only) =================
+   Question-addressed: "where do my working sets land?" Born from a real
+   blind spot — 12 incline press sets on one day, all under 5 or over 14
+   reps, zero in 6–12, and no surface said so. This card is that mirror.
+   Register: counts of SETS (tonnage stays demoted), blunt empty buckets
+   (an empty 6–12 renders "0 sets" plainly — no warning color; red means
+   live and this is not live), read-only (Stats never writes).
+   Boundaries are named constants with ONE definition site — "pairs of
+   numbers that should be one constant" is a recorded anti-pattern here,
+   and buildcheck holds the door. */
+const REPZONE_MAX_STRENGTH=5;      // 1..5 reps  → strength
+const REPZONE_MAX_GROWTH=12;       // 6..12 reps → growth; 13+ → endurance
+const REPZONE_LABELS=[
+  ['<'+(REPZONE_MAX_STRENGTH+1),'strength'],
+  [(REPZONE_MAX_STRENGTH+1)+'\u2013'+REPZONE_MAX_GROWTH,'growth'],
+  [(REPZONE_MAX_GROWTH+1)+'+','endurance']];
+function repZone(reps){
+  return reps<=REPZONE_MAX_STRENGTH?0:reps<=REPZONE_MAX_GROWTH?1:2;
+}
+const rz={ex:null,n:10};
+/* every date's rows, today included — the same merge the day receipt uses,
+   so the mirror reads the canonical record, not a reconstruction */
+function rzAllSessions(){
+  const out=SEED.dates.map(d=>[d,SEED.sessions[d]]);
+  const t=((DB.days[todayISO]||{}).w||[]).map(s2=>[s2.part,s2.ex,s2.w,s2.reps||[]]);
+  if(t.length) out.push([todayISO,t]);
+  return out;
+}
+function rzExercises(){
+  const seen={};
+  for(const [,rows] of rzAllSessions())
+    for(const r of rows) if(r[1]!=='Run'&&(r[3]||[]).length) seen[r[1]]=1;
+  return Object.keys(seen);
+}
+function repZoneData(ex,N){
+  /* "last N sessions OF THAT EXERCISE": days it was actually trained,
+     newest first — not last N calendar days */
+  const sess=rzAllSessions()
+    .filter(([,rows])=>rows.some(r=>r[1]===ex&&(r[3]||[]).length))
+    .sort((a,b)=>a[0]<b[0]?1:-1).slice(0,N);
+  const counts=[0,0,0];
+  for(const [,rows] of sess) for(const r of rows){
+    if(r[1]!==ex) continue;
+    for(const rep of (r[3]||[])) counts[repZone(rep)]++;   // reps:[] (runs/cardio) adds nothing
+  }
+  return {counts,used:sess.length};
+}
+function repZoneCard(){
+  const exs=rzExercises();
+  if(!exs.length) return `<div class="note">No weighted sets yet. The zones will be here when the sets are.</div>`;
+  /* default: the most recently trained exercise — the card opens on
+     something real, usually the one just questioned */
+  if(!rz.ex||!exs.includes(rz.ex)){
+    const last={}; for(const [d,rows] of rzAllSessions())
+      for(const r of rows) if(r[1]!=='Run'&&(r[3]||[]).length) last[r[1]]=d;
+    rz.ex=exs.sort((a,b)=>last[a]<last[b]?1:-1)[0];
+  }
+  const byPart={};
+  for(const e of exs)(byPart[homePartOf(e)||'Other']=byPart[homePartOf(e)||'Other']||[]).push(e);
+  const {counts,used}=repZoneData(rz.ex,rz.n);
+  const max=Math.max(...counts,1);
+  let h2=`<select id="rzEx" class="rzsel" aria-label="Exercise">`;
+  for(const part of Object.keys(byPart)){
+    h2+=`<optgroup label="${part}">`;
+    for(const e of byPart[part].sort()) h2+=`<option ${e===rz.ex?'selected':''}>${e}</option>`;
+    h2+=`</optgroup>`;
+  }
+  h2+=`</select>
+    <span class="seg rzseg">${[5,10,20].map(n=>
+      `<button data-rzn="${n}" class="${rz.n===n?'sel':''}">${n}</button>`).join('')}</span>
+    <div class="rzrows">`;
+  REPZONE_LABELS.forEach(([range,name],i)=>{
+    h2+=`<div class="rzrow">
+      <span class="rzlab">${range}<i>${name}</i></span>
+      <span class="rzbar"><i style="width:${counts[i]?Math.round(counts[i]/max*100):0}%"></i></span>
+      <span class="rzn"><b>${counts[i]}</b> set${counts[i]===1?'':'s'}</span>
+    </div>`;
+  });
+  h2+=`</div><div class="note rznote">last ${used} session${used===1?'':'s'} of ${rz.ex} \u00b7 runs excluded</div>`;
+  return h2;
+}
+document.addEventListener('change',e=>{
+  if(e.target&&e.target.id==='rzEx'){ rz.ex=e.target.value; render(); }
+});
+document.addEventListener('click',e=>{
+  const b=e.target.closest&&e.target.closest('[data-rzn]');
+  if(b){ rz.n=+b.dataset.rzn; render(); }
+});
 function renderStats(){
   const _S={}; const cut=k=>{ _S[k]=h; h=''; };
   if(SEED.totals.sessions===0 && !hasAnyDays()){ $('#view').innerHTML=emptyHero('stats'); return; }
@@ -367,6 +455,9 @@ function renderStats(){
         <div class="pmixsum" id="pmixSum"></div>
       </div>`;
   cut('pmix');
+  h+=`<h2>Rep zones${hActs('rz','Sets per rep range for one exercise. Counting sets, not kilograms; runs excluded. An empty bucket is the finding.','About rep zones')}</h2>
+      <div class="card rzcard">${repZoneCard()}</div>`;
+  cut('rz');
   h+=`<h2>Consistency${hActs('yoy','Percent of days trained, per year. The bold line is this year.','About the consistency chart')}</h2><div class="card">
       `;
   /* v3.3.109: the legend moves ABOVE the chart. While scrubbing it IS the
@@ -582,7 +673,7 @@ function renderStats(){
       </div>`;
   cut('rep');
   // sections emit in one declared order (v3.3.111)
-  h = _S.kpis + _S.pmix + _S.cons + _S.em + _S.dbm + _S.last6 + _S.wd + _S.wt;
+  h = _S.kpis + _S.pmix + _S.rz + _S.cons + _S.em + _S.dbm + _S.last6 + _S.wd + _S.wt;
 
   // the whole Run story lives here now (was its own tab in v2.04 — reverted)
   h+=runStatsHTML();

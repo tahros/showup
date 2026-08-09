@@ -1134,6 +1134,25 @@
   .hello .hisub{font-family:var(--mono);font-size:11px;color:var(--muted);white-space:nowrap;flex:0 0 auto}
   @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 
+  /* v3.3.181 rep zones — existing tokens only, so every ink here is already
+     under the theme contrast guard: numbers chalk, labels muted, unit words
+     faint, bars accent on a soft accent track. NO red anywhere — an empty
+     bucket states itself in the same voice as a full one. */
+  .rzsel{width:100%;font-family:var(--mono);font-size:13px;color:var(--chalk);
+    background:var(--surface);border:1px solid var(--line);border-radius:10px;
+    padding:9px 10px;margin-bottom:8px}
+  .rzseg{display:flex;margin-bottom:12px}
+  .rzrows{display:flex;flex-direction:column;gap:10px}
+  .rzrow{display:grid;grid-template-columns:74px 1fr auto;gap:10px;align-items:center}
+  .rzlab{font-family:var(--mono);font-size:12px;color:var(--muted)}
+  .rzlab i{display:block;font-style:normal;font-size:9px;letter-spacing:var(--track-label);
+    text-transform:uppercase;color:var(--faint)}
+  .rzbar{height:10px;border-radius:5px;background:color-mix(in srgb,var(--accent) 12%,var(--surface))}
+  .rzbar i{display:block;height:100%;border-radius:5px;background:var(--accent);min-width:0}
+  .rzn{font-family:var(--mono);font-size:12px;color:var(--faint);white-space:nowrap}
+  .rzn b{color:var(--chalk);font-size:14px;font-weight:600}
+  .rznote{margin-top:10px}
+
   /* ================= v3.3.168 — MINIMAL, the default skin =================
      A theme LAYER, orthogonal to light/dark: <html data-skin="minimal|classic">
      rides beside data-theme, resolved in applyTheme() and pre-painted by
@@ -1207,5 +1226,7 @@
   :root[data-skin="minimal"] nav button{color:var(--pill-ink);padding:13px 4px 15px}
   :root[data-skin="minimal"] nav button.on{color:var(--pill-accent)}
   :root[data-skin="minimal"] nav button.on::after{background:var(--pill-accent);bottom:7px}
+  :root[data-skin="minimal"] .rzsel{background:var(--ground);border-color:transparent}
+  :root[data-skin="minimal"] .rzbar{background:color-mix(in srgb,var(--accent) 10%,var(--ground))}
   :root[data-skin="minimal"] #app{padding-bottom:110px}   /* the pill floats — content clears it */
   :root[data-skin="minimal"] #toast{bottom:118px}

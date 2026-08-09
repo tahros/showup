@@ -285,6 +285,20 @@ if not _re.search(r"\.day summary>span:first-child\{[^}]*min-width:0", css):
     fail.append("session head left column lost min-width:0 — it cannot shrink, "
                 "so it pushes the controls off (v3.3.180)")
 
+# -- Rep zones (v3.3.181): bucket boundaries are named constants with ONE
+#    definition site. "Pairs of numbers that should be one constant" is a
+#    recorded anti-pattern; a second literal 5 or 12 in the bucketer, the
+#    labels, or a future view is exactly how the buckets drift apart.
+_stats = (d/"js/stats.js").read_text()
+for _cn in ("REPZONE_MAX_STRENGTH", "REPZONE_MAX_GROWTH"):
+    _defs = _re.findall(r"const\s+" + _cn + r"\s*=", _stats)
+    if len(_defs) != 1:
+        fail.append(f"rep zones: {_cn} defined {len(_defs)} times — one definition site required (v3.3.181)")
+    if not _re.search(_cn + r"\b", _stats.replace("const " + _cn, "", 1)):
+        fail.append(f"rep zones: {_cn} defined but never referenced — the buckets are not using it (v3.3.181)")
+if _re.search(r"repZone\s*\(\s*reps\s*\)\s*\{[^}]*[^_A-Z](5|12)[^0-9]", _stats):
+    fail.append("rep zones: bucketer contains an inline boundary literal — use the named constants (v3.3.181)")
+
 # -- shell size
 n = len(idx.encode())
 if n >= 8192: fail.append(f"index.html shell is {n} bytes (limit 8192)")
