@@ -455,7 +455,14 @@ function drawDayCard(x,S,d){
      this as "too wide" below the chips and "uneven" under the header,
      because those two gaps were set independently at 58 and 42 while the
      air above the name worked out to 34. One constant, three call sites. */
-  const RULE_AIR=34, CAP=24, DG=18, SUB=106;
+  /* v3.3.177: RULE_AIR 34 / DG 18 measured 33 above the name and 17 below —
+     a 3.3:2 split the maker still read as lopsided. v3.3.178 narrows it to
+     28/20 as asked. Both constants carry a +1: the maker measures ink edge
+     to ink edge, and the rule and the dashed hairline each eat a pixel to
+     antialiasing, so 29/21 here is what a screenshot ruler reads as 28/20.
+     RULE_AIR still drives VR and the header gap, so the rules stay
+     symmetric about their own faces as it moves. */
+  const RULE_AIR=29, CAP=24, DG=21, SUB=106;
   const RN=RULE_AIR+CAP;                  /* rule → name baseline */
   const VR=RULE_AIR-(SUB-CH)/2;           /* band edge → next rule */
   const GH=k=>RN+DG+VR+SUB*k;
@@ -472,7 +479,7 @@ function drawDayCard(x,S,d){
   const CARD_AIR=44, DESC=8;
   const TOP=FRAME+CARD_AIR, ICON=52;
   const NAMEY=TOP+ICON/2+9, DATEY=NAMEY+68, PARTY=DATEY+48;
-  const HEAD=PARTY+40;
+  const HEAD=PARTY+RULE_AIR+6;    /* +6: the parts line's descender */
   const FOOT=CARD_AIR+DESC+44;    /* frame air + descender + footer baseline lift */
   const H=Math.max(640,HEAD+(km?GH(1):0)+groups.reduce((a,g)=>a+GH(g.subs.length),0)+FOOT);
   const cv2=x.canvas; if(cv2&&cv2.height!==H) cv2.height=H;

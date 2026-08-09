@@ -69,10 +69,10 @@ check("all 16 sets counted in the footer", texts.some(c => String(c[1]) === "16"
 
 // ---- v3.3.173: grouped by EXERCISE (the Last-time card's logic) — the
 // seeded day is 4 exercises across 7 weights, so 4 blocks, 7 sub-rows
-// height (v3.3.177: CARD_AIR 44 → TOP 88, HEAD 279, FOOT 96):
-// HEAD 279 + 3×GH(2)=299 + GH(1)=193 + FOOT 96
+// height (v3.3.178: RULE_AIR 29, DG 21 → RN 53, VR 6; GH(k)=53+21+6+106k):
+// HEAD 274 + 3×GH(2)=292 + GH(1)=186 + FOOT 96
 const H = run("window._cv.height");
-check("canvas height = content (279+3*299+193+96)", H, 279 + 3*299 + 193 + 96);
+check("canvas height = content (274+3*292+186+96)", H, 274 + 3*292 + 186 + 96);
 
 // ---- v3.3.176: every solid rule carries EQUAL air on both faces.
 // below the rule: name cap top = baseline-24; above it: previous chip box
@@ -80,10 +80,16 @@ check("canvas height = content (279+3*299+193+96)", H, 279 + 3*299 + 193 + 96);
 const nameYs = texts.filter(c => ["Cable Crossover","Dip","Incline Dumbbell Bench Press"].includes(String(c[1]))).map(c => c[3]).sort((a,b)=>a-b);
 const ruleYs = [...new Set(calls.filter(c => c[0] === "moveTo" && c[1] === 96).map(c => c[2]))].sort((a,b)=>a-b);
 const airBelow = nameYs.map(ny => ny - 24 - ruleYs.filter(r => r < ny - 24).pop());
-check("air below every solid rule is RULE_AIR", airBelow.every(a => a === 34), true);
+check("air below every solid rule is RULE_AIR", airBelow.every(a => a === 29), true);
+// the maker's ask, in the units the maker measures (ink edge to ink edge,
+// each line eating a pixel to antialiasing): 28 above the name, 20 below
+check("...which a screenshot ruler reads as 28px above the name", 29 - 1, 28);
+const dashUnderName = [...new Set(calls.filter(c => c[0] === "moveTo" && c[1] === 96).map(c => c[2]))]
+  .filter(yv => yv > nameYs[0] && yv < nameYs[0] + 40)[0];
+check("...and 20px below it", (dashUnderName - nameYs[0]) - 1, 20);
 // the header's first rule gets the same air as any other (was 42 vs 58)
 const partsY = texts.find(c => String(c[1]) === "Chest" && c[3] < 320)[3];
-check("header rule sits 40px under the parts line", ruleYs[0] - partsY, 40);
+check("header rule derives from RULE_AIR too", ruleYs[0] - partsY, 29 + 6);
 
 // ---- v3.3.177: the card's two ends are balanced — air from the frame to
 // the nearest ink is CARD_AIR at the top, and CARD_AIR at the bottom once
