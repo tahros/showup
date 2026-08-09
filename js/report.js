@@ -427,9 +427,15 @@ function drawDayCard(x,S,d){
     g.subs[g.subSeen[r2[2]]].reps.push(...(r2[3]||[]));
   }
   const groups=by;
-  /* group height: 48 (rule→name) + 68 (name→first value) + 92 per extra
-     weight sub-row + 48 (last value→next rule) */
-  const GH=k=>164+92*(k-1);
+  /* v3.3.174: air. The four vertical intervals are one named set, and the
+     group height is derived FROM them rather than restated as a literal —
+     the v3.3.170 tightening drifted out of sync with the type that grew
+     around it in .172, and a hard-coded 164 is how that stays invisible.
+     Change a gap here and the height, the hairlines, and the tests all
+     follow. RN rule→name, NV name→first value, SUB sub-row pitch, VR last
+     value→next rule. */
+  const RN=58, NV=78, SUB=106, VR=58;
+  const GH=k=>RN+NV+VR+SUB*(k-1);
   const HEAD=232, FOOT=100;
   const H=Math.max(640,HEAD+(km?GH(1):0)+groups.reduce((a,g)=>a+GH(g.subs.length),0)+FOOT);
   const cv2=x.canvas; if(cv2&&cv2.height!==H) cv2.height=H;
@@ -460,16 +466,16 @@ function drawDayCard(x,S,d){
   let ry=HEAD+10;   /* ry walks the SOLID rules; each block advances it */
   const block=(name,nSets,subDraws)=>{
     x.save();x.strokeStyle=V('--line');x.lineWidth=2;x.beginPath();x.moveTo(L,ry);x.lineTo(R,ry);x.stroke();x.restore();
-    const ny=ry+48;
+    const ny=ry+RN;
     x.fillStyle=V('--muted'); x.font='500 34px '+MONO; x.fillText(name,L,ny);
     x.textAlign='right'; x.fillText(nSets,R,ny); x.textAlign='left';
-    dash(ny+16,true);
-    let yv=ny+68;
+    dash(ny+18,true);
+    let yv=ny+NV;
     subDraws.forEach((fn,i)=>{
-      if(i>0){ dash(yv-92+46,true); }   /* hairline between weight sub-rows */
-      fn(yv); yv+=92;
+      if(i>0){ dash(yv-Math.round(SUB/2),true); }   /* hairline midway between weight sub-rows */
+      fn(yv); yv+=SUB;
     });
-    ry=yv-92+48;
+    ry=yv-SUB+VR;
   };
   const chips=(vals,yv)=>{
     x.font='700 36px '+MONO;

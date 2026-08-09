@@ -69,9 +69,13 @@ check("all 16 sets counted in the footer", texts.some(c => String(c[1]) === "16"
 
 // ---- v3.3.173: grouped by EXERCISE (the Last-time card's logic) — the
 // seeded day is 4 exercises across 7 weights, so 4 blocks, 7 sub-rows
-// height: HEAD 232 + 3×(164+92) [two-weight groups] + 164 [one-weight] + FOOT 100
+// height (v3.3.174 rhythm: RN58+NV78+VR58 = 194 per group, SUB 106 per extra
+// weight): HEAD 232 + 3×(194+106) [two-weight groups] + 194 [one-weight] + FOOT 100
 const H = run("window._cv.height");
-check("canvas height = content (232+3*256+164+100)", H, 232 + 3*256 + 164 + 100);
+check("canvas height = content (232+3*300+194+100)", H, 232 + 3*300 + 194 + 100);
+// the sub-row pitch is the ask: weight baselines inside a group sit SUB apart
+const wYs = texts.filter(c => ["45","55"].includes(String(c[1])) && c[2] === 72).map(c => c[3]).sort((a,b)=>a-b);
+check("weight sub-rows sit 106px apart", wYs.length >= 2 && wYs[1] - wYs[0], 106);
 // each exercise name is drawn exactly ONCE — the ex@weight split is gone
 for (const [ex, subs] of [["Incline Smith Machine Bench Press",2],["Cable Crossover",2],["Dip",2],["Incline Dumbbell Bench Press",1]])
   check(`"${ex}" drawn once (not per weight)`, texts.filter(c => String(c[1]) === ex).length, 1);
