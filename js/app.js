@@ -14,6 +14,11 @@ document.addEventListener('click',e=>{
     applyTheme();save(true);render();
     return;
   }
+  if(e.target.closest('[data-skn]')){
+    DB.settings.skin=e.target.closest('[data-skn]').dataset.skn;    // v3.3.168: 'minimal' | 'classic'
+    applyTheme();save(true);render();
+    return;
+  }
   const gs=e.target.closest('#goalSet')||e.target.closest('#goalEdit');
   if(gs){
     const cur=(DB.settings.kmGoal||{})[thisYear]||+(gs.dataset.suggest||0);

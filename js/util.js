@@ -318,7 +318,17 @@ function applyTheme(){
   const pref=DB.settings.theme;
   const t = pref==='system' ? systemTheme() : (pref==='light'?'light':'dark');
   document.documentElement.dataset.theme=t;
-  try{localStorage.setItem('showup-theme',t);}catch(e){}
+  /* v3.3.168: the SKIN rides the same rail as the theme — one applier, one
+     pre-paint read, one storage slot each. Two values: 'minimal' (default)
+     and 'classic'. Absence and anything unrecognised resolve MINIMAL, so
+     every existing device wakes up in Minimal and Classic is the opt-out —
+     the same resolution shape as the theme's unrecognised→dark. Stored
+     RESOLVED for the same reason as the theme: index.html paints both
+     attributes before any script runs, and a value that needs resolving
+     would reintroduce the first-frame flash. */
+  const sk = DB.settings.skin==='classic' ? 'classic' : 'minimal';
+  document.documentElement.dataset.skin=sk;
+  try{localStorage.setItem('showup-theme',t);localStorage.setItem('showup-skin',sk);}catch(e){}
   const m=document.querySelector('meta[name="theme-color"]');
   if(m) m.setAttribute('content', t==='light'?'#F2F3F6':'#0C0E13');
   if(!_themeWatched){

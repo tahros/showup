@@ -223,6 +223,39 @@ for _m in _re.finditer(r"#([A-Za-z][\w-]*)\{[^}]*position:fixed[^}]*inset:0[^}]*
         fail.append(f"modal #{_id} is position:fixed;inset:0 but appears in "
                     f"{_hits} of the 2 gesture blocklists in util.js (v3.3.140)")
 
+# -- Minimal skin (v3.3.168): the DEFAULT skin is a chrome layer, not an ink
+#    layer. Three guards: (1) its token blocks may only define an allowlisted
+#    set, so every contrast pair the theme guard cleared above is still the
+#    pair on screen — the skin cannot quietly restyle an ink out from under
+#    its own audit; (2) the pill chrome it introduces is a NEW ink-on-ground
+#    pair, so it owes the same 4.5 arithmetic as every other small-text ink;
+#    (3) --live is untouchable anywhere under the skin selector — red-means-
+#    live is a law, not a style. Plus: the pre-paint must carry the skin, or
+#    every cold start flashes Classic for one frame.
+_sk_d = _blk(css, ':root[data-skin="minimal"]')
+_sk_l = _blk(css, ':root[data-skin="minimal"][data-theme="light"]')
+if not _sk_d or not _sk_l:
+    fail.append("minimal skin: token blocks missing (dark AND light are required) (v3.3.168)")
+else:
+    _allow = {"line", "shadow", "pill", "pill-ink", "pill-accent"}
+    for _bn, _bc in (("dark", _sk_d), ("light", _sk_l)):
+        _bad = [t for t in _re.findall(r"--([a-z][a-z-]*):", _bc) if t not in _allow]
+        if _bad:
+            fail.append(f"minimal skin ({_bn}) defines non-chrome tokens: "
+                        + ",".join(_bad) + " — the skin is chrome, not ink (v3.3.168)")
+        _p, _pi, _pa = _tok(_bc, "pill"), _tok(_bc, "pill-ink"), _tok(_bc, "pill-accent")
+        if not all((_p, _pi, _pa)):
+            fail.append(f"minimal skin ({_bn}): pill token trio incomplete (v3.3.168)")
+        else:
+            for _fg, _what in ((_pi, "pill ink"), (_pa, "pill accent")):
+                _r = _cr(_fg, _p)
+                if _r < 4.5:
+                    fail.append(f"contrast: {_what} on pill = {_r:.2f} (< 4.5) in minimal/{_bn} (v3.3.168)")
+if _re.search(r'data-skin="minimal"[^{]*\{[^}]*--live:', css):
+    fail.append("minimal skin redefines --live — red-means-live is a law (v3.3.168)")
+if "showup-skin" not in idx:
+    fail.append("index.html pre-paint lost the skin — cold starts flash Classic (v3.3.168)")
+
 # -- shell size
 n = len(idx.encode())
 if n >= 8192: fail.append(f"index.html shell is {n} bytes (limit 8192)")

@@ -16,6 +16,10 @@ function renderSync(){
         <button data-thm="light" class="${DB.settings.theme==='light'?'sel':''}">Light</button>
         <button data-thm="dark" class="${DB.settings.theme!=='system'&&DB.settings.theme!=='light'?'sel':''}">Dark</button>
       </span>
+      <span class="seg" style="display:flex;margin-top:8px">
+        <button data-skn="minimal" class="${DB.settings.skin!=='classic'?'sel':''}">Minimal</button>
+        <button data-skn="classic" class="${DB.settings.skin==='classic'?'sel':''}">Classic</button>
+      </span>
     </div>
     <h2>Account & cloud sync</h2>
     <div class="card">

@@ -1106,3 +1106,72 @@
     white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis}
   .hello .hisub{font-family:var(--mono);font-size:11px;color:var(--muted);white-space:nowrap;flex:0 0 auto}
   @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+  /* ================= v3.3.168 — MINIMAL, the default skin =================
+     A theme LAYER, orthogonal to light/dark: <html data-skin="minimal|classic">
+     rides beside data-theme, resolved in applyTheme() and pre-painted by
+     index.html. Classic is the entire sheet above, untouched — these rules
+     only ever ADD under [data-skin="minimal"], so switching back is exact.
+     The grammar (from the Bench Press mockup): floating cards over a quiet
+     ground, near-zero borders, sans-forward tabular numerals, value-chalk /
+     unit-faint pairs, generous row heights, and a dark pill for the nav in
+     BOTH themes. Chrome only — the skin defines no ink tokens, so every
+     contrast pair the theme guard clears is still the pair on screen
+     (buildcheck enforces the allowlist). Red-means-live is untouched.
+     Specificity note: :root[data-skin] prefixes lift every rule past the
+     base sheet, which SHADOWS stateful variants (.chip.on, .zone.prime,
+     .seg .sel …) — each one the base sheet styles is re-asserted here.
+     That list is the price of the layer; pay it in full or a state dies. */
+  :root[data-skin="minimal"]{
+    --line:#242938;
+    --shadow:0 1px 2px rgba(0,0,0,.28),0 10px 30px rgba(0,0,0,.32);
+    --pill:#1C202A; --pill-ink:#A7ADBB; --pill-accent:#9DB0FF;
+  }
+  :root[data-skin="minimal"][data-theme="light"]{
+    --line:#E9EAEF;
+    --shadow:0 1px 2px rgba(22,26,40,.05),0 10px 30px rgba(22,26,40,.09);
+    --pill:#14161C; --pill-ink:#A7ADBB; --pill-accent:#9DB0FF;
+  }
+  /* floating cards: the border's job moves to the shadow */
+  :root[data-skin="minimal"] :is(.card,.zone,.lastcard,.day,.kpi){
+    border-color:transparent;box-shadow:var(--shadow)}
+  :root[data-skin="minimal"] :is(.card,.zone,.lastcard){border-radius:18px}
+  :root[data-skin="minimal"] .card{padding:16px}
+  :root[data-skin="minimal"] .zone.prime{border-color:var(--accent-soft)}   /* re-assert */
+  :root[data-skin="minimal"] .zone.logged{background:var(--ground);box-shadow:none}
+  /* generous rows */
+  :root[data-skin="minimal"] .lastrow{padding:8px 0}
+  :root[data-skin="minimal"] .day .body .lastrow{padding:7px 0}
+  /* sans-forward numerals — tabular, so nothing moves under a thumb */
+  :root[data-skin="minimal"] :is(.rhythm .big,.mstone .big,.bwnow,.msmoment .msnum,.kpi .v,.fld input,.wsel .val input,.lastw){
+    font-family:var(--disp);font-variant-numeric:tabular-nums}
+  /* value-chalk / unit-faint */
+  :root[data-skin="minimal"] :is(.lastw .u,.wsel .unit,.rhythm .unit,.chip .n){color:var(--faint)}
+  :root[data-skin="minimal"] .chip.on .n{color:inherit}                     /* re-assert */
+  /* chips: filled, borderless — every stateful border re-asserted */
+  :root[data-skin="minimal"] .chip{background:var(--surface2);border-color:var(--surface2)}
+  :root[data-skin="minimal"] .chip.on{background:var(--accent);border-color:var(--accent)}
+  :root[data-skin="minimal"] .chip.due{border-color:var(--accent)}
+  :root[data-skin="minimal"] :is(.chip.livego,.chip.on.livego){background:var(--live);border-color:var(--live)}
+  /* ghost buttons: filled, borderless — states re-asserted */
+  :root[data-skin="minimal"] .btn.ghost{background:var(--surface2);border-color:var(--surface2)}
+  :root[data-skin="minimal"] .btn.ghost.done{background:none;border-color:var(--accent)}
+  :root[data-skin="minimal"] .restbtn.on{border-color:var(--accent-soft)}
+  :root[data-skin="minimal"] .msmoment.thousand .btn.ghost{background:none;border-color:rgba(255,255,255,.5)}
+  /* fields sink into the card; segs become a filled track */
+  :root[data-skin="minimal"] .fld{background:var(--ground);border-color:transparent}
+  :root[data-skin="minimal"] :is(.seg button,.onbseg button){background:var(--surface2);border-color:var(--surface2)}
+  :root[data-skin="minimal"] :is(.seg button.sel,.onbseg button.sel){background:var(--accent);border-color:var(--accent)}
+  /* the dark pill — nav floats, dark in BOTH themes (the mockup's chrome).
+     Ink is its own token pair, guarded at 4.5 like every other ink. Wins
+     over the @supports frosted nav on specificity, not order. */
+  :root[data-skin="minimal"] nav{
+    left:14px;right:14px;bottom:calc(10px + env(safe-area-inset-bottom,0px));
+    max-width:492px;border-top:0;border-radius:26px;background:var(--pill);
+    padding-bottom:0;box-shadow:0 10px 30px rgba(0,0,0,.30);overflow:hidden;
+    -webkit-backdrop-filter:none;backdrop-filter:none}
+  :root[data-skin="minimal"] nav button{color:var(--pill-ink);padding:13px 4px 15px}
+  :root[data-skin="minimal"] nav button.on{color:var(--pill-accent)}
+  :root[data-skin="minimal"] nav button.on::after{background:var(--pill-accent);bottom:7px}
+  :root[data-skin="minimal"] #app{padding-bottom:110px}   /* the pill floats — content clears it */
+  :root[data-skin="minimal"] #toast{bottom:118px}
