@@ -394,6 +394,16 @@ function drawDayCard(x,S,d){
   const dash=(y,on)=>{x.save();x.setLineDash(on?[5,7]:[]);x.strokeStyle=V('--line');x.lineWidth=2;
     x.beginPath();x.moveTo(104,y);x.lineTo(S-104,y);x.stroke();x.restore();};
 
+  /* v3.3.171: the receipt is set on a SWISS GRID (maker's annotated spec).
+     Three vertical guides, held everywhere: L (margin) for names, weights,
+     date, wordmark; CHIP for every rep chip and the run's time chip — the
+     chip column no longer drifts with the width of the weight beside it;
+     COLR for every count, LEFT-aligned so "1 set" and "16 sets" start on
+     the same line instead of ragging as right-flush strings. Header meta
+     (volume · km) stays flush to the right margin, mirroring the date's
+     flush left. Type steps down one level: date 58→42, values 48→38 —
+     the grid carries the hierarchy, the sizes stop shouting. */
+  const L=104, CHIP=320, COLR=S-104-180;
   const rows=(d===todayISO?(DB.days[d]?.w||[]).map(s2=>[s2.part,s2.ex,s2.w,s2.reps||[],s2.mins,s2.secs]):(SEED.sessions[d]||[]));
   let vol=0,km=0,sets=0,tmin=null,tsec=0; const by=[],seen={},parts=[];
   for(const r2 of rows){
@@ -423,7 +433,7 @@ function drawDayCard(x,S,d){
   x.textBaseline='alphabetic';
 
   const dt=new Date(d+'T00:00');
-  x.textAlign='left'; x.fillStyle=V('--chalk'); x.font='700 58px '+SANS;
+  x.textAlign='left'; x.fillStyle=V('--chalk'); x.font='700 42px '+SANS;
   x.fillText(dt.toLocaleDateString('en-US',{weekday:'short'})+', '+dt.toLocaleDateString('en-US',{month:'short',day:'numeric'}),104,146);
   x.fillStyle=V('--muted'); x.font='500 30px '+MONO;
   x.fillText(parts.join(' · '),104,196);
@@ -435,43 +445,43 @@ function drawDayCard(x,S,d){
   const block=(name,nSets,draw)=>{
     x.save();x.strokeStyle=V('--line');x.lineWidth=2;x.beginPath();x.moveTo(104,y-48);x.lineTo(S-104,y-48);x.stroke();x.restore();
     x.fillStyle=V('--muted'); x.font='500 30px '+MONO; x.fillText(name,104,y);
-    x.textAlign='right'; x.fillText(nSets,S-104,y); x.textAlign='left';
+    x.fillText(nSets,COLR,y);
     dash(y+14,true);
     draw(y+64); y+=BLK;
   };
-  const chips=(vals,x0,yv)=>{
-    x.font='700 34px '+MONO;
-    let cx=x0;
+  const chips=(vals,yv)=>{
+    x.font='700 30px '+MONO;
+    let cx=CHIP;
     for(const v of vals){
-      const t=String(v), tw=x.measureText(t).width, cw=tw+40;
-      x.fillStyle=tint(AC.startsWith('#')?AC:'#4f46e5',0.13); rr(cx,yv-40,cw,58,16); x.fill();
-      x.fillStyle=AC; x.fillText(t,cx+20,yv);
-      cx+=cw+18; if(cx>S-180) break;
+      const t=String(v), tw=x.measureText(t).width, cw=tw+32;
+      x.fillStyle=tint(AC.startsWith('#')?AC:'#4f46e5',0.13); rr(cx,yv-34,cw,50,14); x.fill();
+      x.fillStyle=AC; x.fillText(t,cx+16,yv);
+      cx+=cw+16; if(cx>S-180) break;
     }
   };
   if(km){
     const t=(tmin!=null)?`${tmin+Math.floor(tsec/60)}'${String(tsec%60).padStart(2,'0')}`:null;
     block('Run',(rows.filter(r2=>r2[1]==='Run').length)+' set'+(rows.filter(r2=>r2[1]==='Run').length>1?'s':''),yv=>{
-      x.fillStyle=V('--chalk'); x.font='700 48px '+SANS; x.fillText(dDisp(km),104,yv);
-      x.fillStyle=V('--muted'); x.font='500 28px '+MONO;
-      x.fillText(DU(),104+x.measureText(' ').width+ (x.font='700 48px '+SANS, x.measureText(dDisp(km)).width)+14,(x.font='500 28px '+MONO,yv));
-      if(t) chips([t],104+((x.font='700 48px '+SANS),x.measureText(dDisp(km)).width)+110,yv);
+      x.fillStyle=V('--chalk'); x.font='700 38px '+SANS; x.fillText(dDisp(km),L,yv);
+      const dw=x.measureText(dDisp(km)).width;
+      x.fillStyle=V('--muted'); x.font='500 24px '+MONO; x.fillText(DU(),L+dw+12,yv);
+      if(t) chips([t],yv);
     });
   }
   for(const g of groups){
     block(g.ex,g.reps.length+' set'+(g.reps.length>1?'s':''),yv=>{
-      x.fillStyle=V('--chalk'); x.font='700 48px '+SANS; x.fillText(wDisp(g.w),104,yv);
+      x.fillStyle=V('--chalk'); x.font='700 38px '+SANS; x.fillText(wDisp(g.w),L,yv);
       const ww=x.measureText(wDisp(g.w)).width;
-      x.fillStyle=V('--muted'); x.font='500 28px '+MONO; x.fillText(U(),104+ww+12,yv);
-      chips(g.reps,104+ww+110,yv);
+      x.fillStyle=V('--muted'); x.font='500 24px '+MONO; x.fillText(U(),L+ww+12,yv);
+      chips(g.reps,yv);
     });
   }
   /* v3.3.170: the receipt says WHOSE day it is (maker's ask). The name the
      app greets you by, beside the wordmark; unset name = wordmark alone. */
   const nm=(typeof firstName==='function'&&firstName())?firstName().toUpperCase():'';
   x.fillStyle=V('--muted'); x.font='600 26px '+MONO;
-  x.fillText('SHOWUP'+(nm?' \u00b7 '+nm:''),104,H-64);
-  x.textAlign='right'; x.fillText(sets+' sets',S-104,H-64); x.textAlign='left';
+  x.fillText('SHOWUP'+(nm?' \u00b7 '+nm:''),L,H-64);
+  x.fillText(sets+' sets',COLR,H-64);
 }
 function cardFrame(x,S,o){
   const V=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim()||'#888';

@@ -80,6 +80,22 @@ check("footer clears the last group by ≥ 38px", footY - groupTextMaxY >= 38, t
 
 // ---- the receipt says whose day it is
 check("footer carries the name beside the wordmark", has("SHOWUP \u00b7 SUNGJEE"), true);
+
+// ---- v3.3.171: the Swiss grid holds — three guides, asserted as positions
+// chip column: the FIRST chip of every group starts at CHIP+16 (=336),
+// regardless of how wide the weight beside it is ("0" and "45" alike)
+const repXs = texts.filter(c => /^\d+$/.test(String(c[1])) && c[2] > 200).map(c => c[2]);
+check("7 groups each open their chips on the guide", repXs.filter(xv => xv === 336).length >= 7, true);
+check("no chip starts left of the guide", repXs.filter(xv => xv < 336).length, 0);
+// counts column: every "N set(s)" starts at COLR (=796), footer included
+const countXs = texts.filter(c => /sets?$/.test(String(c[1]))).map(c => c[2]);
+check("all counts start on the right guide", countXs.every(xv => xv === 796) && countXs.length >= 8, true);
+// type scale: date 42, values 38 — the old shouting sizes are gone
+const fonts = calls.filter(c => c[0] === "set:font").map(c => String(c[1]));
+check("date is 42px", fonts.some(f => f.includes("42px")), true);
+check("values are 38px", fonts.some(f => f.includes("700 38px")), true);
+check("58px and 48px are gone", fonts.some(f => f.includes("58px") || f.includes("48px")), false);
+
 run("DB.settings.name='';");
 calls = [];
 run("drawDayCard(window._cv.getContext('2d'),1080,todayISO);");
