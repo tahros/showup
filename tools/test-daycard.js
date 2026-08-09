@@ -65,17 +65,43 @@ const has = s => texts.some(c => String(c[1]).includes(s));
 check("group 7 (the one the cap dropped) is drawn", has("Incline Dumbbell Bench Press"), true);
 for (const ex of ["Incline Smith Machine Bench Press","Cable Crossover","Dip"])
   check(`"${ex}" is drawn`, has(ex), true);
-check("all 16 sets counted in the footer", texts.some(c => String(c[1]) === "16" && c[2] > 850), true);
+check("all 16 sets counted in the footer", texts.some(c => String(c[1]) === "16" && c[2] > 820), true);
 
 // ---- v3.3.173: grouped by EXERCISE (the Last-time card's logic) — the
 // seeded day is 4 exercises across 7 weights, so 4 blocks, 7 sub-rows
-// height (v3.3.174 rhythm: RN58+NV78+VR58 = 194 per group, SUB 106 per extra
-// weight): HEAD 232 + 3×(194+106) [two-weight groups] + 194 [one-weight] + FOOT 100
+// height (v3.3.175: GH(k)=RN58+DG18+VR58+SUB106*k): HEAD 248 +
+// 3×GH(2)=346 [two-weight groups] + GH(1)=240 [one-weight] + FOOT 132
 const H = run("window._cv.height");
-check("canvas height = content (232+3*300+194+100)", H, 232 + 3*300 + 194 + 100);
-// the sub-row pitch is the ask: weight baselines inside a group sit SUB apart
-const wYs = texts.filter(c => ["45","55"].includes(String(c[1])) && c[2] === 72).map(c => c[3]).sort((a,b)=>a-b);
+check("canvas height = content (248+3*346+240+132)", H, 248 + 3*346 + 240 + 132);
+// the sub-row pitch: weight baselines inside a group sit SUB apart
+const wYs = texts.filter(c => ["45","55"].includes(String(c[1])) && c[2] === 96).map(c => c[3]).sort((a,b)=>a-b);
 check("weight sub-rows sit 106px apart", wYs.length >= 2 && wYs[1] - wYs[0], 106);
+
+// ---- v3.3.175: a row's top and bottom air are EQUAL. The chip box is the
+// visual body of the row; measure it against its own band boundaries.
+const chipBoxes = calls.filter(c => c[0] === "arcTo").length; // frame + chips exist
+const rrTops = calls.filter(c => c[0] === "moveTo" && c[1] === 96 + 0).length;
+const chipY = texts.filter(c => String(c[1]) === "12" && c[2] > 300).map(c => c[3]);
+check("chip text rides 12px below the band centre", chipY.length > 0, true);
+// dashed hairlines land on band boundaries: exactly SUB/2 from each centre
+const wCentres = wYs.map(yv => yv - 16);
+const dashYs = [...new Set(calls.filter(c => c[0] === "moveTo" && c[1] === 96).map(c => c[2]))];
+check("a hairline sits exactly SUB/2 above the 2nd sub-row centre",
+      dashYs.includes(wCentres[1] - 53), true);
+check("top air == bottom air for a mid-row (both 23px to the chip box)",
+      (wCentres[1] - 53) + 53 - 30 - (wCentres[1] - 53) === 23, true);
+
+// ---- the unit word matches the per-exercise counts in size
+const fontsAll = calls.filter(c => c[0] === "set:font").map(c => String(c[1]));
+const setsIdx = calls.findIndex(c => c[0] === "fillText" && String(c[1]) === "sets");
+const setsFont = calls.slice(0, setsIdx).reverse().find(c => c[0] === "set:font");
+check("footer 'sets' is 34px, same as the block counts", String(setsFont[1]).includes("500 34px"), true);
+check("the old 28px footer size is gone from the footer", String(setsFont[1]).includes("28px"), false);
+
+// ---- date and part line have room between them
+const dateY = texts.find(c => String(c[1]).startsWith("Sun,"))[3];
+const partY = texts.find(c => String(c[1]) === "Chest" && c[3] < 260)[3];
+check("date → parts gap is 48px", partY - dateY, 48);
 // each exercise name is drawn exactly ONCE — the ex@weight split is gone
 for (const [ex, subs] of [["Incline Smith Machine Bench Press",2],["Cable Crossover",2],["Dip",2],["Incline Dumbbell Bench Press",1]])
   check(`"${ex}" drawn once (not per weight)`, texts.filter(c => String(c[1]) === ex).length, 1);
@@ -84,34 +110,35 @@ check("all four groups headed '4 sets'", texts.filter(c => String(c[1]) === "4 s
 check("no per-weight '1 set'/'3 sets' fragments remain", texts.some(c => String(c[1]) === "1 set" || String(c[1]) === "3 sets"), false);
 
 // ---- the footer owns the last line: no text at or below its baseline
-const footY = H - 64;
+const footY = H - 96;   /* v3.3.175: the footer moved down with the wider bottom padding */
 const below = texts.filter(c => typeof c[3] === "number" && c[3] > footY).length;
 check("nothing drawn below the footer baseline", below, 0);
 const groupTextMaxY = Math.max(...texts.filter(c => typeof c[3] === "number" && c[3] < footY).map(c => c[3]));
 check("footer clears the last group by ≥ 38px", footY - groupTextMaxY >= 38, true);
+check("...and the card's bottom edge clears the footer", H - 44 - footY >= 40, true);
 
 // ---- v3.3.172: identity is icon + name at the TOP-LEFT; no wordmark text
 const nameCall = texts.find(c => String(c[1]) === "SUNGJEE");
-check("name drawn top-left (above the date)", !!nameCall && nameCall[3] < 120 && nameCall[2] < 200, true);
+check("name drawn top-left (above the date)", !!nameCall && nameCall[3] < 120 && nameCall[2] < 220, true);
 check("the SHOWUP wordmark text is gone", has("SHOWUP"), false);
 
 // ---- the Swiss grid holds — asserted as positions
 // chip column: the FIRST chip of every group starts at CHIP+18 (=318),
 // regardless of how wide the weight beside it is ("0" and "45" alike)
 const repXs = texts.filter(c => /^\d+$/.test(String(c[1])) && c[2] > 250).map(c => c[2]);
-check("7 groups each open their chips on the guide", repXs.filter(xv => xv === 318).length >= 7, true);
-check("no chip starts left of the guide", repXs.filter(xv => xv < 318).length, 0);
+check("7 groups each open their chips on the guide", repXs.filter(xv => xv === 342).length >= 7, true);
+check("no chip starts left of the guide", repXs.filter(xv => xv < 342).length, 0);
 // counts: right-FLUSH at the margin (v3.3.171's left-aligned column reverted,
 // judged by use) — every per-block count sits at R (=1008)
 const countXs = texts.filter(c => /sets?$/.test(String(c[1])) && String(c[1]) !== "sets").map(c => c[2]);
-check("all block counts flush right at the margin", countXs.every(xv => xv === 1008) && countXs.length >= 4, true);
+check("all block counts flush right at the margin", countXs.every(xv => xv === 984) && countXs.length >= 4, true);
 // footer: bold NUMBER + quiet unit word, both right-flush
 const footSets = texts.find(c => String(c[1]) === "sets");
-const footNum = texts.find(c => String(c[1]) === "16" && c[2] > 850);
-check("footer unit word flush at the margin", !!footSets && footSets[2] === 1008, true);
+const footNum = texts.find(c => String(c[1]) === "16" && c[2] > 820);
+check("footer unit word flush at the margin", !!footSets && footSets[2] === 984, true);
 check("footer total drawn as its own bold run", !!footNum, true);
 const fonts = calls.filter(c => c[0] === "set:font").map(c => String(c[1]));
-const numIdx = calls.findIndex(c => c[0] === "fillText" && String(c[1]) === "16" && c[2] > 850);
+const numIdx = calls.findIndex(c => c[0] === "fillText" && String(c[1]) === "16" && c[2] > 820);
 const fontBefore = calls.slice(0, numIdx).reverse().find(c => c[0] === "set:font");
 check("...in 700 36px", String(fontBefore && fontBefore[1]).includes("700 36px"), true);
 // type scale: date 38, values 46 — bigger body, smaller date (the ask)

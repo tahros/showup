@@ -404,7 +404,11 @@ function drawDayCard(x,S,d){
      inside the fixed 1080 width; the grid stays, the type regains share
      size. Date lands at 38: smaller than v3.3.171's 42 (the ask) even as
      the body grows around it. */
-  const L=72, CHIP=300, R=S-72;
+  /* v3.3.175: wider margins on all four sides (maker's ask) — the card
+     frame, the text margins, and the footer's bottom air all step out
+     together; the chip guide moves with L so the weight→chips gutter is
+     unchanged. */
+  const FRAME=44, L=96, CHIP=324, R=S-96;
   const dash=(y,on)=>{x.save();x.setLineDash(on?[5,7]:[]);x.strokeStyle=V('--line');x.lineWidth=2;
     x.beginPath();x.moveTo(L,y);x.lineTo(R,y);x.stroke();x.restore();};
 
@@ -434,14 +438,21 @@ function drawDayCard(x,S,d){
      Change a gap here and the height, the hairlines, and the tests all
      follow. RN rule→name, NV name→first value, SUB sub-row pitch, VR last
      value→next rule. */
-  const RN=58, NV=78, SUB=106, VR=58;
-  const GH=k=>RN+NV+VR+SUB*(k-1);
-  const HEAD=232, FOOT=100;
+  /* v3.3.175: sub-rows are CENTRE-addressed. Baseline-addressed rows put
+     the chip band at yv-42..yv+18 between hairlines at yv±53 — 11px of air
+     above, 35 below, which is the lopsided padding the maker saw. A row is
+     now a band of height SUB with a centre; the chip box, the value and the
+     unit all hang off that centre, so top and bottom air are equal BY
+     CONSTRUCTION rather than by two offsets happening to agree.
+     RN rule→name, DG name→dashed hairline, SUB row band, VR band→next rule. */
+  const RN=58, DG=18, SUB=106, VR=58;
+  const GH=k=>RN+DG+VR+SUB*k;
+  const HEAD=248, FOOT=132;
   const H=Math.max(640,HEAD+(km?GH(1):0)+groups.reduce((a,g)=>a+GH(g.subs.length),0)+FOOT);
   const cv2=x.canvas; if(cv2&&cv2.height!==H) cv2.height=H;
 
   x.fillStyle=V('--ground'); x.fillRect(0,0,S,H);
-  x.fillStyle=V('--surface'); rr(40,40,S-80,H-80,40); x.fill();
+  x.fillStyle=V('--surface'); rr(FRAME,FRAME,S-FRAME*2,H-FRAME*2,40); x.fill();
   x.textBaseline='alphabetic'; x.textAlign='left';
 
   /* identity: icon + name, top-left. Icon is the app tile, rounded-clipped;
@@ -461,7 +472,7 @@ function drawDayCard(x,S,d){
   x.textAlign='right';
   x.fillText((vol?fmt(Math.round(toU(vol)))+' '+U():'')+(km?(vol?' \u00b7 ':'')+dDisp(km)+' '+DU():''),R,168);
   x.textAlign='left';
-  x.font='500 28px '+MONO; x.fillText(parts.join(' \u00b7 '),L,208);
+  x.font='500 28px '+MONO; x.fillText(parts.join(' \u00b7 '),L,216);
 
   let ry=HEAD+10;   /* ry walks the SOLID rules; each block advances it */
   const block=(name,nSets,subDraws)=>{
@@ -469,50 +480,53 @@ function drawDayCard(x,S,d){
     const ny=ry+RN;
     x.fillStyle=V('--muted'); x.font='500 34px '+MONO; x.fillText(name,L,ny);
     x.textAlign='right'; x.fillText(nSets,R,ny); x.textAlign='left';
-    dash(ny+18,true);
-    let yv=ny+NV;
+    dash(ny+DG,true);
+    let cy=ny+DG+SUB/2;          /* centre of the first row band */
     subDraws.forEach((fn,i)=>{
-      if(i>0){ dash(yv-Math.round(SUB/2),true); }   /* hairline midway between weight sub-rows */
-      fn(yv); yv+=SUB;
+      if(i>0){ dash(cy-SUB/2,true); }   /* hairline on the band boundary */
+      fn(cy); cy+=SUB;
     });
-    ry=yv-SUB+VR;
+    ry=cy-SUB+SUB/2+VR;
   };
-  const chips=(vals,yv)=>{
+  const CH=60;                   /* chip box height, centred on the band */
+  const chips=(vals,cy)=>{
     x.font='700 36px '+MONO;
     let cx=CHIP;
     for(const v of vals){
       const t=String(v), tw=x.measureText(t).width, cw=tw+36;
-      x.fillStyle=tint(AC.startsWith('#')?AC:'#4f46e5',0.13); rr(cx,yv-42,cw,60,16); x.fill();
-      x.fillStyle=AC; x.fillText(t,cx+18,yv);
-      cx+=cw+16; if(cx>S-160) break;
+      x.fillStyle=tint(AC.startsWith('#')?AC:'#4f46e5',0.13); rr(cx,cy-CH/2,cw,CH,16); x.fill();
+      x.fillStyle=AC; x.fillText(t,cx+18,cy+12);
+      cx+=cw+16; if(cx>S-180) break;
     }
   };
   if(km){
     const t=(tmin!=null)?`${tmin+Math.floor(tsec/60)}'${String(tsec%60).padStart(2,'0')}`:null;
-    block('Run',(rows.filter(r2=>r2[1]==='Run').length)+' set'+(rows.filter(r2=>r2[1]==='Run').length>1?'s':''),[yv=>{
-      x.fillStyle=V('--chalk'); x.font='700 46px '+SANS; x.fillText(dDisp(km),L,yv);
+    block('Run',(rows.filter(r2=>r2[1]==='Run').length)+' set'+(rows.filter(r2=>r2[1]==='Run').length>1?'s':''),[cy=>{
+      x.fillStyle=V('--chalk'); x.font='700 46px '+SANS; x.fillText(dDisp(km),L,cy+16);
       const dw=x.measureText(dDisp(km)).width;
-      x.fillStyle=V('--muted'); x.font='500 26px '+MONO; x.fillText(DU(),L+dw+12,yv);
-      if(t) chips([t],yv);
+      x.fillStyle=V('--muted'); x.font='500 26px '+MONO; x.fillText(DU(),L+dw+12,cy+16);
+      if(t) chips([t],cy);
     }]);
   }
   for(const g of groups){
     const n=g.subs.reduce((a,s2)=>a+s2.reps.length,0);
-    block(g.ex,n+' set'+(n>1?'s':''),g.subs.map(s2=>yv=>{
-      x.fillStyle=V('--chalk'); x.font='700 46px '+SANS; x.fillText(wDisp(s2.w),L,yv);
+    block(g.ex,n+' set'+(n>1?'s':''),g.subs.map(s2=>cy=>{
+      x.fillStyle=V('--chalk'); x.font='700 46px '+SANS; x.fillText(wDisp(s2.w),L,cy+16);
       const ww=x.measureText(wDisp(s2.w)).width;
-      x.fillStyle=V('--muted'); x.font='500 26px '+MONO; x.fillText(U(),L+ww+12,yv);
-      chips(s2.reps,yv);
+      x.fillStyle=V('--muted'); x.font='500 26px '+MONO; x.fillText(U(),L+ww+12,cy+16);
+      chips(s2.reps,cy);
     }));
   }
   /* footer: the total alone, number BOLD — "18" carries the day, "sets"
      whispers the unit */
   x.textAlign='right';
-  x.fillStyle=V('--muted'); x.font='500 28px '+MONO;
+  /* v3.3.175: the unit word is set at the SAME size as the per-exercise
+     counts above it (34px) — it was 28 and read as a different word. */
+  x.fillStyle=V('--muted'); x.font='500 34px '+MONO;
   const sw=x.measureText('sets').width;
-  x.fillText('sets',R,H-64);
+  x.fillText('sets',R,H-96);
   x.fillStyle=V('--chalk'); x.font='700 36px '+MONO;
-  x.fillText(String(sets),R-sw-12,H-64);
+  x.fillText(String(sets),R-sw-14,H-96);
   x.textAlign='left';
 }
 let _dayIcon=null;
