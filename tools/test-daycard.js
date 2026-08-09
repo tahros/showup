@@ -19,7 +19,7 @@ w.navigator.vibrate = () => {}; w.scrollTo = () => {};
 
 let calls = [];
 const METHODS = ["fillRect","clearRect","fillText","strokeText","beginPath","moveTo","lineTo",
-  "arcTo","arc","rect","closePath","fill","stroke","setLineDash","save","restore",
+  "arcTo","arc","rect","closePath","fill","stroke","setLineDash","save","restore","clip",
   "translate","scale","drawImage"];
 w.HTMLCanvasElement.prototype.getContext = function () {
   const t = { canvas: this };
@@ -65,11 +65,11 @@ const has = s => texts.some(c => String(c[1]).includes(s));
 check("group 7 (the one the cap dropped) is drawn", has("Incline Dumbbell Bench Press"), true);
 for (const ex of ["Incline Smith Machine Bench Press","Cable Crossover","Dip"])
   check(`"${ex}" is drawn`, has(ex), true);
-check("all 16 sets counted in the footer", has("16 sets"), true);
+check("all 16 sets counted in the footer", texts.some(c => String(c[1]) === "16" && c[2] > 850), true);
 
-// ---- height is computed, not capped: HEAD 210 + 7×146 + FOOT 96
+// ---- height is computed, not capped: HEAD 232 + 7×160 + FOOT 100
 const H = run("window._cv.height");
-check("canvas height = content (210+7*146+96)", H, 210 + 7*146 + 96);
+check("canvas height = content (232+7*160+100)", H, 232 + 7*160 + 100);
 
 // ---- the footer owns the last line: no text at or below its baseline
 const footY = H - 64;
@@ -78,29 +78,47 @@ check("nothing drawn below the footer baseline", below, 0);
 const groupTextMaxY = Math.max(...texts.filter(c => typeof c[3] === "number" && c[3] < footY).map(c => c[3]));
 check("footer clears the last group by ≥ 38px", footY - groupTextMaxY >= 38, true);
 
-// ---- the receipt says whose day it is
-check("footer carries the name beside the wordmark", has("SHOWUP \u00b7 SUNGJEE"), true);
+// ---- v3.3.172: identity is icon + name at the TOP-LEFT; no wordmark text
+const nameCall = texts.find(c => String(c[1]) === "SUNGJEE");
+check("name drawn top-left (above the date)", !!nameCall && nameCall[3] < 120 && nameCall[2] < 200, true);
+check("the SHOWUP wordmark text is gone", has("SHOWUP"), false);
 
-// ---- v3.3.171: the Swiss grid holds — three guides, asserted as positions
-// chip column: the FIRST chip of every group starts at CHIP+16 (=336),
+// ---- the Swiss grid holds — asserted as positions
+// chip column: the FIRST chip of every group starts at CHIP+18 (=318),
 // regardless of how wide the weight beside it is ("0" and "45" alike)
-const repXs = texts.filter(c => /^\d+$/.test(String(c[1])) && c[2] > 200).map(c => c[2]);
-check("7 groups each open their chips on the guide", repXs.filter(xv => xv === 336).length >= 7, true);
-check("no chip starts left of the guide", repXs.filter(xv => xv < 336).length, 0);
-// counts column: every "N set(s)" starts at COLR (=796), footer included
-const countXs = texts.filter(c => /sets?$/.test(String(c[1]))).map(c => c[2]);
-check("all counts start on the right guide", countXs.every(xv => xv === 796) && countXs.length >= 8, true);
-// type scale: date 42, values 38 — the old shouting sizes are gone
+const repXs = texts.filter(c => /^\d+$/.test(String(c[1])) && c[2] > 250).map(c => c[2]);
+check("7 groups each open their chips on the guide", repXs.filter(xv => xv === 318).length >= 7, true);
+check("no chip starts left of the guide", repXs.filter(xv => xv < 318).length, 0);
+// counts: right-FLUSH at the margin (v3.3.171's left-aligned column reverted,
+// judged by use) — every per-block count sits at R (=1008)
+const countXs = texts.filter(c => /sets?$/.test(String(c[1])) && String(c[1]) !== "sets").map(c => c[2]);
+check("all block counts flush right at the margin", countXs.every(xv => xv === 1008) && countXs.length >= 7, true);
+// footer: bold NUMBER + quiet unit word, both right-flush
+const footSets = texts.find(c => String(c[1]) === "sets");
+const footNum = texts.find(c => String(c[1]) === "16" && c[2] > 850);
+check("footer unit word flush at the margin", !!footSets && footSets[2] === 1008, true);
+check("footer total drawn as its own bold run", !!footNum, true);
 const fonts = calls.filter(c => c[0] === "set:font").map(c => String(c[1]));
-check("date is 42px", fonts.some(f => f.includes("42px")), true);
-check("values are 38px", fonts.some(f => f.includes("700 38px")), true);
-check("58px and 48px are gone", fonts.some(f => f.includes("58px") || f.includes("48px")), false);
+const numIdx = calls.findIndex(c => c[0] === "fillText" && String(c[1]) === "16" && c[2] > 850);
+const fontBefore = calls.slice(0, numIdx).reverse().find(c => c[0] === "set:font");
+check("...in 700 36px", String(fontBefore && fontBefore[1]).includes("700 36px"), true);
+// type scale: date 38, values 46 — bigger body, smaller date (the ask)
+check("date is 38px", fonts.some(f => f.includes("700 38px")), true);
+check("values are 46px", fonts.some(f => f.includes("700 46px")), true);
+check("42px and 58px and 48px are gone", fonts.some(f => f.includes("42px") || f.includes("58px") || f.includes("48px")), false);
+
+// ---- the icon: drawn when the bitmap arrived, skipped (never fatal) when not
+check("no bitmap → no drawImage, receipt still whole", calls.some(c => c[0] === "drawImage"), false);
+calls = [];
+run("_dayIcon={complete:true,naturalWidth:192,naturalHeight:192}; drawDayCard(window._cv.getContext('2d'),1080,todayISO); _dayIcon=null;");
+check("bitmap present → icon drawn", calls.some(c => c[0] === "drawImage"), true);
 
 run("DB.settings.name='';");
 calls = [];
 run("drawDayCard(window._cv.getContext('2d'),1080,todayISO);");
 const texts2 = calls.filter(c => c[0] === "fillText");
-check("no name → wordmark alone", texts2.some(c => String(c[1]) === "SHOWUP"), true);
+check("no name → no identity text, receipt still whole", texts2.some(c => String(c[1]) === "SUNGJEE" || String(c[1]) === "SHOWUP"), false);
+check("...and the day still draws", texts2.some(c => String(c[1]).includes("Incline Dumbbell Bench Press")), true);
 
 process.exit(fail ? 1 : 0);
 })();

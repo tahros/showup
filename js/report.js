@@ -391,19 +391,23 @@ function drawDayCard(x,S,d){
   const rr=(x0,y0,w,h,r2)=>{x.beginPath();
     x.moveTo(x0+r2,y0);x.arcTo(x0+w,y0,x0+w,y0+h,r2);x.arcTo(x0+w,y0+h,x0,y0+h,r2);
     x.arcTo(x0,y0+h,x0,y0,r2);x.arcTo(x0,y0,x0+w,y0,r2);x.closePath();};
+  /* v3.3.172: second annotated pass. (1) counts return to RIGHT-FLUSH at the
+     margin — the v3.3.171 left-aligned counts column is a same-day revert,
+     judged by use: on the phone the ragged right edge read worse than the
+     ragged starts. (2) The identity moves to the TOP-LEFT as icon + name;
+     the SHOWUP wordmark is gone — the icon IS the wordmark now. The bitmap
+     is preloaded in showCard (async already for fonts); drawing degrades to
+     name-only if it never arrived, because a receipt must never fail over a
+     logo. (3) Footer keeps only the total, number BOLD in chalk, unit word
+     quiet. (4) Everything steps UP — margins 104→72, names 30→34, values
+     38→46, chips 30→36 — the v3.3.170/171 tightening shrank the content
+     inside the fixed 1080 width; the grid stays, the type regains share
+     size. Date lands at 38: smaller than v3.3.171's 42 (the ask) even as
+     the body grows around it. */
+  const L=72, CHIP=300, R=S-72;
   const dash=(y,on)=>{x.save();x.setLineDash(on?[5,7]:[]);x.strokeStyle=V('--line');x.lineWidth=2;
-    x.beginPath();x.moveTo(104,y);x.lineTo(S-104,y);x.stroke();x.restore();};
+    x.beginPath();x.moveTo(L,y);x.lineTo(R,y);x.stroke();x.restore();};
 
-  /* v3.3.171: the receipt is set on a SWISS GRID (maker's annotated spec).
-     Three vertical guides, held everywhere: L (margin) for names, weights,
-     date, wordmark; CHIP for every rep chip and the run's time chip — the
-     chip column no longer drifts with the width of the weight beside it;
-     COLR for every count, LEFT-aligned so "1 set" and "16 sets" start on
-     the same line instead of ragging as right-flush strings. Header meta
-     (volume · km) stays flush to the right margin, mirroring the date's
-     flush left. Type steps down one level: date 58→42, values 48→38 —
-     the grid carries the hierarchy, the sizes stop shouting. */
-  const L=104, CHIP=320, COLR=S-104-180;
   const rows=(d===todayISO?(DB.days[d]?.w||[]).map(s2=>[s2.part,s2.ex,s2.w,s2.reps||[],s2.mins,s2.secs]):(SEED.sessions[d]||[]));
   let vol=0,km=0,sets=0,tmin=null,tsec=0; const by=[],seen={},parts=[];
   for(const r2 of rows){
@@ -414,75 +418,95 @@ function drawDayCard(x,S,d){
     if(!(k2 in seen)){ seen[k2]=by.length; by.push({ex:r2[1],w:r2[2],reps:[]}); }
     by[seen[k2]].reps.push(...(r2[3]||[]));
   }
-  /* v3.3.170: the receipt shows the WHOLE day, always. v3.3.166 capped H at
-     1350 (Instagram's 4:5) and sliced groups at 10 — both truncate the
-     record, and truncation shipped invisibly: the 7th group of a real chest
-     day fell off the bottom and the footer overlapped the 6th. The record
-     outranks the aspect ratio: H is computed from content with NO cap, the
-     slice is gone, and a big day simply shares tall. Spacing tightened at
-     the same time (maker's ask): BLK 178→146 with the internal offsets
-     rescaled — chip bottom (yv+18) still clears the next block's top rule
-     (yv+34) by 16px, asserted in test-daycard. */
   const groups=by;
-  const BLK=146, HEAD=210, FOOT=96;
+  const BLK=160, HEAD=232, FOOT=100;
   const H=Math.max(640,HEAD+(km?BLK:0)+groups.length*BLK+FOOT);
   const cv2=x.canvas; if(cv2&&cv2.height!==H) cv2.height=H;
 
   x.fillStyle=V('--ground'); x.fillRect(0,0,S,H);
   x.fillStyle=V('--surface'); rr(40,40,S-80,H-80,40); x.fill();
-  x.textBaseline='alphabetic';
+  x.textBaseline='alphabetic'; x.textAlign='left';
+
+  /* identity: icon + name, top-left. Icon is the app tile, rounded-clipped;
+     absent bitmap degrades to name alone, absent name to icon alone. */
+  let ix=L;
+  if(typeof _dayIcon!=='undefined'&&_dayIcon&&_dayIcon.complete&&_dayIcon.naturalWidth){
+    x.save(); rr(L,58,52,52,13); x.clip(); x.drawImage(_dayIcon,L,58,52,52); x.restore();
+    ix=L+52+16;
+  }
+  const nm=(typeof firstName==='function'&&firstName())?firstName().toUpperCase():'';
+  if(nm){ x.fillStyle=V('--muted'); x.font='600 26px '+MONO; x.fillText(nm,ix,95); }
 
   const dt=new Date(d+'T00:00');
-  x.textAlign='left'; x.fillStyle=V('--chalk'); x.font='700 42px '+SANS;
-  x.fillText(dt.toLocaleDateString('en-US',{weekday:'short'})+', '+dt.toLocaleDateString('en-US',{month:'short',day:'numeric'}),104,146);
-  x.fillStyle=V('--muted'); x.font='500 30px '+MONO;
-  x.fillText(parts.join(' · '),104,196);
+  x.fillStyle=V('--chalk'); x.font='700 38px '+SANS;
+  x.fillText(dt.toLocaleDateString('en-US',{weekday:'short'})+', '+dt.toLocaleDateString('en-US',{month:'short',day:'numeric'}),L,168);
+  x.fillStyle=V('--muted'); x.font='500 32px '+MONO;
   x.textAlign='right';
-  x.fillText((vol?fmt(Math.round(toU(vol)))+' '+U():'')+(km?(vol?' · ':'')+dDisp(km)+' '+DU():''),S-104,146);
+  x.fillText((vol?fmt(Math.round(toU(vol)))+' '+U():'')+(km?(vol?' \u00b7 ':'')+dDisp(km)+' '+DU():''),R,168);
   x.textAlign='left';
+  x.font='500 28px '+MONO; x.fillText(parts.join(' \u00b7 '),L,208);
 
   let y=HEAD+58;
   const block=(name,nSets,draw)=>{
-    x.save();x.strokeStyle=V('--line');x.lineWidth=2;x.beginPath();x.moveTo(104,y-48);x.lineTo(S-104,y-48);x.stroke();x.restore();
-    x.fillStyle=V('--muted'); x.font='500 30px '+MONO; x.fillText(name,104,y);
-    x.fillText(nSets,COLR,y);
-    dash(y+14,true);
-    draw(y+64); y+=BLK;
+    x.save();x.strokeStyle=V('--line');x.lineWidth=2;x.beginPath();x.moveTo(L,y-48);x.lineTo(R,y-48);x.stroke();x.restore();
+    x.fillStyle=V('--muted'); x.font='500 34px '+MONO; x.fillText(name,L,y);
+    x.textAlign='right'; x.fillText(nSets,R,y); x.textAlign='left';
+    dash(y+16,true);
+    draw(y+68); y+=BLK;
   };
   const chips=(vals,yv)=>{
-    x.font='700 30px '+MONO;
+    x.font='700 36px '+MONO;
     let cx=CHIP;
     for(const v of vals){
-      const t=String(v), tw=x.measureText(t).width, cw=tw+32;
-      x.fillStyle=tint(AC.startsWith('#')?AC:'#4f46e5',0.13); rr(cx,yv-34,cw,50,14); x.fill();
-      x.fillStyle=AC; x.fillText(t,cx+16,yv);
-      cx+=cw+16; if(cx>S-180) break;
+      const t=String(v), tw=x.measureText(t).width, cw=tw+36;
+      x.fillStyle=tint(AC.startsWith('#')?AC:'#4f46e5',0.13); rr(cx,yv-42,cw,60,16); x.fill();
+      x.fillStyle=AC; x.fillText(t,cx+18,yv);
+      cx+=cw+16; if(cx>S-160) break;
     }
   };
   if(km){
     const t=(tmin!=null)?`${tmin+Math.floor(tsec/60)}'${String(tsec%60).padStart(2,'0')}`:null;
     block('Run',(rows.filter(r2=>r2[1]==='Run').length)+' set'+(rows.filter(r2=>r2[1]==='Run').length>1?'s':''),yv=>{
-      x.fillStyle=V('--chalk'); x.font='700 38px '+SANS; x.fillText(dDisp(km),L,yv);
+      x.fillStyle=V('--chalk'); x.font='700 46px '+SANS; x.fillText(dDisp(km),L,yv);
       const dw=x.measureText(dDisp(km)).width;
-      x.fillStyle=V('--muted'); x.font='500 24px '+MONO; x.fillText(DU(),L+dw+12,yv);
+      x.fillStyle=V('--muted'); x.font='500 26px '+MONO; x.fillText(DU(),L+dw+12,yv);
       if(t) chips([t],yv);
     });
   }
   for(const g of groups){
     block(g.ex,g.reps.length+' set'+(g.reps.length>1?'s':''),yv=>{
-      x.fillStyle=V('--chalk'); x.font='700 38px '+SANS; x.fillText(wDisp(g.w),L,yv);
+      x.fillStyle=V('--chalk'); x.font='700 46px '+SANS; x.fillText(wDisp(g.w),L,yv);
       const ww=x.measureText(wDisp(g.w)).width;
-      x.fillStyle=V('--muted'); x.font='500 24px '+MONO; x.fillText(U(),L+ww+12,yv);
+      x.fillStyle=V('--muted'); x.font='500 26px '+MONO; x.fillText(U(),L+ww+12,yv);
       chips(g.reps,yv);
     });
   }
-  /* v3.3.170: the receipt says WHOSE day it is (maker's ask). The name the
-     app greets you by, beside the wordmark; unset name = wordmark alone. */
-  const nm=(typeof firstName==='function'&&firstName())?firstName().toUpperCase():'';
-  x.fillStyle=V('--muted'); x.font='600 26px '+MONO;
-  x.fillText('SHOWUP'+(nm?' \u00b7 '+nm:''),L,H-64);
-  x.fillText(sets+' sets',COLR,H-64);
+  /* footer: the total alone, number BOLD — "18" carries the day, "sets"
+     whispers the unit */
+  x.textAlign='right';
+  x.fillStyle=V('--muted'); x.font='500 28px '+MONO;
+  const sw=x.measureText('sets').width;
+  x.fillText('sets',R,H-64);
+  x.fillStyle=V('--chalk'); x.font='700 36px '+MONO;
+  x.fillText(String(sets),R-sw-12,H-64);
+  x.textAlign='left';
 }
+let _dayIcon=null;
+function ensureDayIcon(){
+  /* v3.3.172: the receipt's logo mark, kicked off ONCE at load and never
+     awaited. The first cut awaited it inside showCard, and the suite went
+     red for the exact right reason: an environment where the image never
+     loads (jsdom; a stalled fetch on a real device) hung the overlay behind
+     a logo. The record must never wait on a logo any more than fail over
+     one — the mark rides along when the bitmap is there, and the receipt is
+     whole either way. By first share the SW-cached PNG has long arrived. */
+  try{
+    const im=new Image();
+    im.onload=()=>{ if(im.naturalWidth) _dayIcon=im; };
+    im.src='icon-192.png';
+  }catch(e){}
+}
+try{ ensureDayIcon(); }catch(e){}
 function cardFrame(x,S,o){
   const V=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim()||'#888';
   const SANS='"IBM Plex Sans",system-ui,sans-serif', MONO='"IBM Plex Mono",ui-monospace,monospace';
