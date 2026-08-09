@@ -459,13 +459,21 @@ function drawDayCard(x,S,d){
   const RN=RULE_AIR+CAP;                  /* rule → name baseline */
   const VR=RULE_AIR-(SUB-CH)/2;           /* band edge → next rule */
   const GH=k=>RN+DG+VR+SUB*k;
-  /* v3.3.176: the identity row drops to TOP=FRAME+PAD so the air above the
-     icon equals the air beside it — the maker's "too narrow" was the top
-     padding alone still sitting on its pre-v3.3.175 number (14px against
-     52 at the sides). Everything below it moves down as one. */
-  const PAD=L-FRAME, TOP=FRAME+PAD, ICON=52;
-  const NAMEY=TOP+ICON/2+9, DATEY=NAMEY+75, PARTY=DATEY+48;
-  const HEAD=PARTY+40, FOOT=132;
+  /* v3.3.177: the card's top and bottom air are ONE constant. v3.3.176 tied
+     the top to the SIDE padding (52) while the bottom worked out to 44 from
+     the footer's own numbers — two ends of the same card, set from two
+     different references, which is the imbalance the maker saw. CARD_AIR is
+     now measured the same way at both ends: from the frame to the nearest
+     ink, counting the footer's descender. Vertical air is deliberately a
+     touch tighter than the 52 at the sides — a tall card reads better with
+     the ends drawn in slightly, and the ask was "balanced", not "equal".
+     The identity→date step also comes in 75→68, so the header stack above
+     the first rule stops running away from the footer block below. */
+  const CARD_AIR=44, DESC=8;
+  const TOP=FRAME+CARD_AIR, ICON=52;
+  const NAMEY=TOP+ICON/2+9, DATEY=NAMEY+68, PARTY=DATEY+48;
+  const HEAD=PARTY+40;
+  const FOOT=CARD_AIR+DESC+44;    /* frame air + descender + footer baseline lift */
   const H=Math.max(640,HEAD+(km?GH(1):0)+groups.reduce((a,g)=>a+GH(g.subs.length),0)+FOOT);
   const cv2=x.canvas; if(cv2&&cv2.height!==H) cv2.height=H;
 
@@ -541,9 +549,9 @@ function drawDayCard(x,S,d){
      counts above it (34px) — it was 28 and read as a different word. */
   x.fillStyle=V('--muted'); x.font='500 34px '+MONO;
   const sw=x.measureText('sets').width;
-  x.fillText('sets',R,H-96);
+  x.fillText('sets',R,H-(CARD_AIR+DESC+44));
   x.fillStyle=V('--chalk'); x.font='700 36px '+MONO;
-  x.fillText(String(sets),R-sw-14,H-96);
+  x.fillText(String(sets),R-sw-14,H-(CARD_AIR+DESC+44));
   x.textAlign='left';
 }
 let _dayIcon=null;

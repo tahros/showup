@@ -69,10 +69,10 @@ check("all 16 sets counted in the footer", texts.some(c => String(c[1]) === "16"
 
 // ---- v3.3.173: grouped by EXERCISE (the Last-time card's logic) — the
 // seeded day is 4 exercises across 7 weights, so 4 blocks, 7 sub-rows
-// height (v3.3.176: RULE_AIR 34 → RN 58, VR 11; GH(k)=58+18+11+106k):
-// HEAD 294 + 3×GH(2)=299 + GH(1)=193 + FOOT 132
+// height (v3.3.177: CARD_AIR 44 → TOP 88, HEAD 279, FOOT 96):
+// HEAD 279 + 3×GH(2)=299 + GH(1)=193 + FOOT 96
 const H = run("window._cv.height");
-check("canvas height = content (294+3*299+193+132)", H, 294 + 3*299 + 193 + 132);
+check("canvas height = content (279+3*299+193+96)", H, 279 + 3*299 + 193 + 96);
 
 // ---- v3.3.176: every solid rule carries EQUAL air on both faces.
 // below the rule: name cap top = baseline-24; above it: previous chip box
@@ -85,9 +85,15 @@ check("air below every solid rule is RULE_AIR", airBelow.every(a => a === 34), t
 const partsY = texts.find(c => String(c[1]) === "Chest" && c[3] < 320)[3];
 check("header rule sits 40px under the parts line", ruleYs[0] - partsY, 40);
 
-// ---- the identity row's top padding equals its side padding
-const iconTop = calls.find(c => c[0] === "drawImage");
-check("top padding == side padding (52px from the frame)", 96 - 44, 52);
+// ---- v3.3.177: the card's two ends are balanced — air from the frame to
+// the nearest ink is CARD_AIR at the top, and CARD_AIR at the bottom once
+// the footer's descender is counted. Measured from the draw calls, not
+// restated: whichever end drifts, this catches it.
+const footBaseline = texts.find(c => String(c[1]) === "sets")[3];
+const topAir = 88 - 44;                          /* frame → icon top */
+const bottomAir = (H - 44) - (footBaseline + 8); /* footer descender → frame */
+check("top air == bottom air", topAir === bottomAir && topAir === 44, true);
+check("...and both are tighter than the 52 at the sides", topAir < 96 - 44, true);
 // the sub-row pitch: weight baselines inside a group sit SUB apart
 const wYs = texts.filter(c => ["45","55"].includes(String(c[1])) && c[2] === 96).map(c => c[3]).sort((a,b)=>a-b);
 check("weight sub-rows sit 106px apart", wYs.length >= 2 && wYs[1] - wYs[0], 106);
@@ -118,7 +124,7 @@ const dateY = texts.find(c => String(c[1]).startsWith("Sun,"))[3];
 const partY = texts.find(c => String(c[1]) === "Chest" && c[3] < 320)[3];
 check("date → parts gap is 48px", partY - dateY, 48);
 const nameY2 = texts.find(c => String(c[1]) === "SUNGJEE")[3];
-check("identity name sits below the widened top padding", nameY2, 44 + 52 + 26 + 9);
+check("identity name sits below the top air", nameY2, 44 + 44 + 26 + 9);
 // each exercise name is drawn exactly ONCE — the ex@weight split is gone
 for (const [ex, subs] of [["Incline Smith Machine Bench Press",2],["Cable Crossover",2],["Dip",2],["Incline Dumbbell Bench Press",1]])
   check(`"${ex}" drawn once (not per weight)`, texts.filter(c => String(c[1]) === ex).length, 1);
