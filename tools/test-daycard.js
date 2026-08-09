@@ -67,9 +67,17 @@ for (const ex of ["Incline Smith Machine Bench Press","Cable Crossover","Dip"])
   check(`"${ex}" is drawn`, has(ex), true);
 check("all 16 sets counted in the footer", texts.some(c => String(c[1]) === "16" && c[2] > 850), true);
 
-// ---- height is computed, not capped: HEAD 232 + 7×160 + FOOT 100
+// ---- v3.3.173: grouped by EXERCISE (the Last-time card's logic) — the
+// seeded day is 4 exercises across 7 weights, so 4 blocks, 7 sub-rows
+// height: HEAD 232 + 3×(164+92) [two-weight groups] + 164 [one-weight] + FOOT 100
 const H = run("window._cv.height");
-check("canvas height = content (232+7*160+100)", H, 232 + 7*160 + 100);
+check("canvas height = content (232+3*256+164+100)", H, 232 + 3*256 + 164 + 100);
+// each exercise name is drawn exactly ONCE — the ex@weight split is gone
+for (const [ex, subs] of [["Incline Smith Machine Bench Press",2],["Cable Crossover",2],["Dip",2],["Incline Dumbbell Bench Press",1]])
+  check(`"${ex}" drawn once (not per weight)`, texts.filter(c => String(c[1]) === ex).length, 1);
+// counts are per-exercise TOTALS: all four groups logged 4 sets
+check("all four groups headed '4 sets'", texts.filter(c => String(c[1]) === "4 sets").length, 4);
+check("no per-weight '1 set'/'3 sets' fragments remain", texts.some(c => String(c[1]) === "1 set" || String(c[1]) === "3 sets"), false);
 
 // ---- the footer owns the last line: no text at or below its baseline
 const footY = H - 64;
@@ -92,7 +100,7 @@ check("no chip starts left of the guide", repXs.filter(xv => xv < 318).length, 0
 // counts: right-FLUSH at the margin (v3.3.171's left-aligned column reverted,
 // judged by use) — every per-block count sits at R (=1008)
 const countXs = texts.filter(c => /sets?$/.test(String(c[1])) && String(c[1]) !== "sets").map(c => c[2]);
-check("all block counts flush right at the margin", countXs.every(xv => xv === 1008) && countXs.length >= 7, true);
+check("all block counts flush right at the margin", countXs.every(xv => xv === 1008) && countXs.length >= 4, true);
 // footer: bold NUMBER + quiet unit word, both right-flush
 const footSets = texts.find(c => String(c[1]) === "sets");
 const footNum = texts.find(c => String(c[1]) === "16" && c[2] > 850);

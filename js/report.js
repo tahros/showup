@@ -409,18 +409,29 @@ function drawDayCard(x,S,d){
     x.beginPath();x.moveTo(L,y);x.lineTo(R,y);x.stroke();x.restore();};
 
   const rows=(d===todayISO?(DB.days[d]?.w||[]).map(s2=>[s2.part,s2.ex,s2.w,s2.reps||[],s2.mins,s2.secs]):(SEED.sessions[d]||[]));
-  let vol=0,km=0,sets=0,tmin=null,tsec=0; const by=[],seen={},parts=[];
+  /* v3.3.173: grouped like the LAST-TIME card (maker's ask) — one block per
+     EXERCISE, its name and TOTAL set count once, then a sub-row per weight.
+     v3.3.166 grouped by exercise@weight, which re-introduced "Incline
+     Barbell Bench Press" three times for a three-weight pyramid; the Last
+     Session card already solved this shape, so the receipt follows its
+     logic. Sub-rows keep logged order; dashed hairlines separate weights
+     WITHIN an exercise, solid rules separate exercises. */
+  let vol=0,km=0,sets=0,tmin=null,tsec=0; const by=[],seenEx={},parts=[];
   for(const r2 of rows){
     if(!parts.includes(r2[0])) parts.push(r2[0]);
     if(r2[1]==='Run'){ km+=r2[2]; if(r2[4]!=null){tmin=(tmin||0)+r2[4];tsec+=r2[5]||0;} sets++; continue; }
     vol+=r2[2]*(r2[3]||[]).reduce((a,b)=>a+b,0); sets+=(r2[3]||[]).length;
-    const k2=r2[1]+'@'+r2[2];
-    if(!(k2 in seen)){ seen[k2]=by.length; by.push({ex:r2[1],w:r2[2],reps:[]}); }
-    by[seen[k2]].reps.push(...(r2[3]||[]));
+    if(!(r2[1] in seenEx)){ seenEx[r2[1]]=by.length; by.push({ex:r2[1],subs:[],subSeen:{}}); }
+    const g=by[seenEx[r2[1]]];
+    if(!(r2[2] in g.subSeen)){ g.subSeen[r2[2]]=g.subs.length; g.subs.push({w:r2[2],reps:[]}); }
+    g.subs[g.subSeen[r2[2]]].reps.push(...(r2[3]||[]));
   }
   const groups=by;
-  const BLK=160, HEAD=232, FOOT=100;
-  const H=Math.max(640,HEAD+(km?BLK:0)+groups.length*BLK+FOOT);
+  /* group height: 48 (rule→name) + 68 (name→first value) + 92 per extra
+     weight sub-row + 48 (last value→next rule) */
+  const GH=k=>164+92*(k-1);
+  const HEAD=232, FOOT=100;
+  const H=Math.max(640,HEAD+(km?GH(1):0)+groups.reduce((a,g)=>a+GH(g.subs.length),0)+FOOT);
   const cv2=x.canvas; if(cv2&&cv2.height!==H) cv2.height=H;
 
   x.fillStyle=V('--ground'); x.fillRect(0,0,S,H);
@@ -446,13 +457,19 @@ function drawDayCard(x,S,d){
   x.textAlign='left';
   x.font='500 28px '+MONO; x.fillText(parts.join(' \u00b7 '),L,208);
 
-  let y=HEAD+58;
-  const block=(name,nSets,draw)=>{
-    x.save();x.strokeStyle=V('--line');x.lineWidth=2;x.beginPath();x.moveTo(L,y-48);x.lineTo(R,y-48);x.stroke();x.restore();
-    x.fillStyle=V('--muted'); x.font='500 34px '+MONO; x.fillText(name,L,y);
-    x.textAlign='right'; x.fillText(nSets,R,y); x.textAlign='left';
-    dash(y+16,true);
-    draw(y+68); y+=BLK;
+  let ry=HEAD+10;   /* ry walks the SOLID rules; each block advances it */
+  const block=(name,nSets,subDraws)=>{
+    x.save();x.strokeStyle=V('--line');x.lineWidth=2;x.beginPath();x.moveTo(L,ry);x.lineTo(R,ry);x.stroke();x.restore();
+    const ny=ry+48;
+    x.fillStyle=V('--muted'); x.font='500 34px '+MONO; x.fillText(name,L,ny);
+    x.textAlign='right'; x.fillText(nSets,R,ny); x.textAlign='left';
+    dash(ny+16,true);
+    let yv=ny+68;
+    subDraws.forEach((fn,i)=>{
+      if(i>0){ dash(yv-92+46,true); }   /* hairline between weight sub-rows */
+      fn(yv); yv+=92;
+    });
+    ry=yv-92+48;
   };
   const chips=(vals,yv)=>{
     x.font='700 36px '+MONO;
@@ -466,20 +483,21 @@ function drawDayCard(x,S,d){
   };
   if(km){
     const t=(tmin!=null)?`${tmin+Math.floor(tsec/60)}'${String(tsec%60).padStart(2,'0')}`:null;
-    block('Run',(rows.filter(r2=>r2[1]==='Run').length)+' set'+(rows.filter(r2=>r2[1]==='Run').length>1?'s':''),yv=>{
+    block('Run',(rows.filter(r2=>r2[1]==='Run').length)+' set'+(rows.filter(r2=>r2[1]==='Run').length>1?'s':''),[yv=>{
       x.fillStyle=V('--chalk'); x.font='700 46px '+SANS; x.fillText(dDisp(km),L,yv);
       const dw=x.measureText(dDisp(km)).width;
       x.fillStyle=V('--muted'); x.font='500 26px '+MONO; x.fillText(DU(),L+dw+12,yv);
       if(t) chips([t],yv);
-    });
+    }]);
   }
   for(const g of groups){
-    block(g.ex,g.reps.length+' set'+(g.reps.length>1?'s':''),yv=>{
-      x.fillStyle=V('--chalk'); x.font='700 46px '+SANS; x.fillText(wDisp(g.w),L,yv);
-      const ww=x.measureText(wDisp(g.w)).width;
+    const n=g.subs.reduce((a,s2)=>a+s2.reps.length,0);
+    block(g.ex,n+' set'+(n>1?'s':''),g.subs.map(s2=>yv=>{
+      x.fillStyle=V('--chalk'); x.font='700 46px '+SANS; x.fillText(wDisp(s2.w),L,yv);
+      const ww=x.measureText(wDisp(s2.w)).width;
       x.fillStyle=V('--muted'); x.font='500 26px '+MONO; x.fillText(U(),L+ww+12,yv);
-      chips(g.reps,yv);
-    });
+      chips(s2.reps,yv);
+    }));
   }
   /* footer: the total alone, number BOLD — "18" carries the day, "sets"
      whispers the unit */
