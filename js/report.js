@@ -404,9 +404,18 @@ function drawDayCard(x,S,d){
     if(!(k2 in seen)){ seen[k2]=by.length; by.push({ex:r2[1],w:r2[2],reps:[]}); }
     by[seen[k2]].reps.push(...(r2[3]||[]));
   }
-  const groups=by.slice(0,10);
-  const BLK=178, HEAD=210, FOOT=96;
-  const H=Math.min(1350,Math.max(640,HEAD+(km?BLK:0)+groups.length*BLK+FOOT));
+  /* v3.3.170: the receipt shows the WHOLE day, always. v3.3.166 capped H at
+     1350 (Instagram's 4:5) and sliced groups at 10 — both truncate the
+     record, and truncation shipped invisibly: the 7th group of a real chest
+     day fell off the bottom and the footer overlapped the 6th. The record
+     outranks the aspect ratio: H is computed from content with NO cap, the
+     slice is gone, and a big day simply shares tall. Spacing tightened at
+     the same time (maker's ask): BLK 178→146 with the internal offsets
+     rescaled — chip bottom (yv+18) still clears the next block's top rule
+     (yv+34) by 16px, asserted in test-daycard. */
+  const groups=by;
+  const BLK=146, HEAD=210, FOOT=96;
+  const H=Math.max(640,HEAD+(km?BLK:0)+groups.length*BLK+FOOT);
   const cv2=x.canvas; if(cv2&&cv2.height!==H) cv2.height=H;
 
   x.fillStyle=V('--ground'); x.fillRect(0,0,S,H);
@@ -422,13 +431,13 @@ function drawDayCard(x,S,d){
   x.fillText((vol?fmt(Math.round(toU(vol)))+' '+U():'')+(km?(vol?' · ':'')+dDisp(km)+' '+DU():''),S-104,146);
   x.textAlign='left';
 
-  let y=HEAD+70;
+  let y=HEAD+58;
   const block=(name,nSets,draw)=>{
-    x.save();x.strokeStyle=V('--line');x.lineWidth=2;x.beginPath();x.moveTo(104,y-64);x.lineTo(S-104,y-64);x.stroke();x.restore();
+    x.save();x.strokeStyle=V('--line');x.lineWidth=2;x.beginPath();x.moveTo(104,y-48);x.lineTo(S-104,y-48);x.stroke();x.restore();
     x.fillStyle=V('--muted'); x.font='500 30px '+MONO; x.fillText(name,104,y);
     x.textAlign='right'; x.fillText(nSets,S-104,y); x.textAlign='left';
-    dash(y+18,true);
-    draw(y+86); y+=BLK;
+    dash(y+14,true);
+    draw(y+64); y+=BLK;
   };
   const chips=(vals,x0,yv)=>{
     x.font='700 34px '+MONO;
@@ -456,10 +465,12 @@ function drawDayCard(x,S,d){
       x.fillStyle=V('--muted'); x.font='500 28px '+MONO; x.fillText(U(),104+ww+12,yv);
       chips(g.reps,104+ww+110,yv);
     });
-    if(y>H-60) break;
   }
+  /* v3.3.170: the receipt says WHOSE day it is (maker's ask). The name the
+     app greets you by, beside the wordmark; unset name = wordmark alone. */
+  const nm=(typeof firstName==='function'&&firstName())?firstName().toUpperCase():'';
   x.fillStyle=V('--muted'); x.font='600 26px '+MONO;
-  x.fillText('SHOWUP',104,H-64);
+  x.fillText('SHOWUP'+(nm?' \u00b7 '+nm:''),104,H-64);
   x.textAlign='right'; x.fillText(sets+' sets',S-104,H-64); x.textAlign='left';
 }
 function cardFrame(x,S,o){
