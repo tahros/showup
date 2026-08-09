@@ -445,9 +445,27 @@ function drawDayCard(x,S,d){
      unit all hang off that centre, so top and bottom air are equal BY
      CONSTRUCTION rather than by two offsets happening to agree.
      RN rule→name, DG name→dashed hairline, SUB row band, VR band→next rule. */
-  const RN=58, DG=18, SUB=106, VR=58;
+  const CH=60;                   /* chip box height, centred on its row band */
+  /* v3.3.175: sub-rows are CENTRE-addressed (see below).
+     v3.3.176: every SOLID RULE now carries the same air on both faces —
+     RULE_AIR, one constant. Above it sits the previous block's chip box
+     (already (SUB-CH)/2 clear of the band edge, so VR only makes up the
+     difference); below it sits the next exercise name (whose cap top is
+     CAP under its baseline, so RN is RULE_AIR plus that cap). The maker saw
+     this as "too wide" below the chips and "uneven" under the header,
+     because those two gaps were set independently at 58 and 42 while the
+     air above the name worked out to 34. One constant, three call sites. */
+  const RULE_AIR=34, CAP=24, DG=18, SUB=106;
+  const RN=RULE_AIR+CAP;                  /* rule → name baseline */
+  const VR=RULE_AIR-(SUB-CH)/2;           /* band edge → next rule */
   const GH=k=>RN+DG+VR+SUB*k;
-  const HEAD=248, FOOT=132;
+  /* v3.3.176: the identity row drops to TOP=FRAME+PAD so the air above the
+     icon equals the air beside it — the maker's "too narrow" was the top
+     padding alone still sitting on its pre-v3.3.175 number (14px against
+     52 at the sides). Everything below it moves down as one. */
+  const PAD=L-FRAME, TOP=FRAME+PAD, ICON=52;
+  const NAMEY=TOP+ICON/2+9, DATEY=NAMEY+75, PARTY=DATEY+48;
+  const HEAD=PARTY+40, FOOT=132;
   const H=Math.max(640,HEAD+(km?GH(1):0)+groups.reduce((a,g)=>a+GH(g.subs.length),0)+FOOT);
   const cv2=x.canvas; if(cv2&&cv2.height!==H) cv2.height=H;
 
@@ -459,22 +477,22 @@ function drawDayCard(x,S,d){
      absent bitmap degrades to name alone, absent name to icon alone. */
   let ix=L;
   if(typeof _dayIcon!=='undefined'&&_dayIcon&&_dayIcon.complete&&_dayIcon.naturalWidth){
-    x.save(); rr(L,58,52,52,13); x.clip(); x.drawImage(_dayIcon,L,58,52,52); x.restore();
-    ix=L+52+16;
+    x.save(); rr(L,TOP,ICON,ICON,13); x.clip(); x.drawImage(_dayIcon,L,TOP,ICON,ICON); x.restore();
+    ix=L+ICON+16;
   }
   const nm=(typeof firstName==='function'&&firstName())?firstName().toUpperCase():'';
-  if(nm){ x.fillStyle=V('--muted'); x.font='600 26px '+MONO; x.fillText(nm,ix,95); }
+  if(nm){ x.fillStyle=V('--muted'); x.font='600 26px '+MONO; x.fillText(nm,ix,NAMEY); }
 
   const dt=new Date(d+'T00:00');
   x.fillStyle=V('--chalk'); x.font='700 38px '+SANS;
-  x.fillText(dt.toLocaleDateString('en-US',{weekday:'short'})+', '+dt.toLocaleDateString('en-US',{month:'short',day:'numeric'}),L,168);
+  x.fillText(dt.toLocaleDateString('en-US',{weekday:'short'})+', '+dt.toLocaleDateString('en-US',{month:'short',day:'numeric'}),L,DATEY);
   x.fillStyle=V('--muted'); x.font='500 32px '+MONO;
   x.textAlign='right';
-  x.fillText((vol?fmt(Math.round(toU(vol)))+' '+U():'')+(km?(vol?' \u00b7 ':'')+dDisp(km)+' '+DU():''),R,168);
+  x.fillText((vol?fmt(Math.round(toU(vol)))+' '+U():'')+(km?(vol?' \u00b7 ':'')+dDisp(km)+' '+DU():''),R,DATEY);
   x.textAlign='left';
-  x.font='500 28px '+MONO; x.fillText(parts.join(' \u00b7 '),L,216);
+  x.font='500 28px '+MONO; x.fillText(parts.join(' \u00b7 '),L,PARTY);
 
-  let ry=HEAD+10;   /* ry walks the SOLID rules; each block advances it */
+  let ry=HEAD;      /* ry walks the SOLID rules; each block advances it */
   const block=(name,nSets,subDraws)=>{
     x.save();x.strokeStyle=V('--line');x.lineWidth=2;x.beginPath();x.moveTo(L,ry);x.lineTo(R,ry);x.stroke();x.restore();
     const ny=ry+RN;
@@ -488,7 +506,6 @@ function drawDayCard(x,S,d){
     });
     ry=cy-SUB+SUB/2+VR;
   };
-  const CH=60;                   /* chip box height, centred on the band */
   const chips=(vals,cy)=>{
     x.font='700 36px '+MONO;
     let cx=CHIP;

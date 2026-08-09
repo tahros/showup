@@ -69,10 +69,25 @@ check("all 16 sets counted in the footer", texts.some(c => String(c[1]) === "16"
 
 // ---- v3.3.173: grouped by EXERCISE (the Last-time card's logic) — the
 // seeded day is 4 exercises across 7 weights, so 4 blocks, 7 sub-rows
-// height (v3.3.175: GH(k)=RN58+DG18+VR58+SUB106*k): HEAD 248 +
-// 3×GH(2)=346 [two-weight groups] + GH(1)=240 [one-weight] + FOOT 132
+// height (v3.3.176: RULE_AIR 34 → RN 58, VR 11; GH(k)=58+18+11+106k):
+// HEAD 294 + 3×GH(2)=299 + GH(1)=193 + FOOT 132
 const H = run("window._cv.height");
-check("canvas height = content (248+3*346+240+132)", H, 248 + 3*346 + 240 + 132);
+check("canvas height = content (294+3*299+193+132)", H, 294 + 3*299 + 193 + 132);
+
+// ---- v3.3.176: every solid rule carries EQUAL air on both faces.
+// below the rule: name cap top = baseline-24; above it: previous chip box
+// bottom = band edge + (SUB-CH)/2 back off, then VR.
+const nameYs = texts.filter(c => ["Cable Crossover","Dip","Incline Dumbbell Bench Press"].includes(String(c[1]))).map(c => c[3]).sort((a,b)=>a-b);
+const ruleYs = [...new Set(calls.filter(c => c[0] === "moveTo" && c[1] === 96).map(c => c[2]))].sort((a,b)=>a-b);
+const airBelow = nameYs.map(ny => ny - 24 - ruleYs.filter(r => r < ny - 24).pop());
+check("air below every solid rule is RULE_AIR", airBelow.every(a => a === 34), true);
+// the header's first rule gets the same air as any other (was 42 vs 58)
+const partsY = texts.find(c => String(c[1]) === "Chest" && c[3] < 320)[3];
+check("header rule sits 40px under the parts line", ruleYs[0] - partsY, 40);
+
+// ---- the identity row's top padding equals its side padding
+const iconTop = calls.find(c => c[0] === "drawImage");
+check("top padding == side padding (52px from the frame)", 96 - 44, 52);
 // the sub-row pitch: weight baselines inside a group sit SUB apart
 const wYs = texts.filter(c => ["45","55"].includes(String(c[1])) && c[2] === 96).map(c => c[3]).sort((a,b)=>a-b);
 check("weight sub-rows sit 106px apart", wYs.length >= 2 && wYs[1] - wYs[0], 106);
@@ -100,8 +115,10 @@ check("the old 28px footer size is gone from the footer", String(setsFont[1]).in
 
 // ---- date and part line have room between them
 const dateY = texts.find(c => String(c[1]).startsWith("Sun,"))[3];
-const partY = texts.find(c => String(c[1]) === "Chest" && c[3] < 260)[3];
+const partY = texts.find(c => String(c[1]) === "Chest" && c[3] < 320)[3];
 check("date → parts gap is 48px", partY - dateY, 48);
+const nameY2 = texts.find(c => String(c[1]) === "SUNGJEE")[3];
+check("identity name sits below the widened top padding", nameY2, 44 + 52 + 26 + 9);
 // each exercise name is drawn exactly ONCE — the ex@weight split is gone
 for (const [ex, subs] of [["Incline Smith Machine Bench Press",2],["Cable Crossover",2],["Dip",2],["Incline Dumbbell Bench Press",1]])
   check(`"${ex}" drawn once (not per weight)`, texts.filter(c => String(c[1]) === ex).length, 1);
@@ -119,7 +136,7 @@ check("...and the card's bottom edge clears the footer", H - 44 - footY >= 40, t
 
 // ---- v3.3.172: identity is icon + name at the TOP-LEFT; no wordmark text
 const nameCall = texts.find(c => String(c[1]) === "SUNGJEE");
-check("name drawn top-left (above the date)", !!nameCall && nameCall[3] < 120 && nameCall[2] < 220, true);
+check("name drawn top-left (above the date)", !!nameCall && nameCall[3] < 200 && nameCall[2] < 220, true);
 check("the SHOWUP wordmark text is gone", has("SHOWUP"), false);
 
 // ---- the Swiss grid holds — asserted as positions
