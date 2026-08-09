@@ -1013,7 +1013,23 @@
      return-pill trip back. */
   .day,.cal{scroll-margin-top:calc(env(safe-area-inset-top,0px) + 86px)}
   .day{border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:8px;overflow:hidden;box-shadow:var(--shadow)}
-  .day summary{padding:13px 14px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center}
+  .day summary{padding:13px 14px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;
+    align-items:flex-start;gap:10px}
+  /* v3.3.180: the session head is TWO COLUMNS, not one inline flow. The right
+     side was a bare text node followed by two buttons, so a long part list
+     ("Run · Back · Biceps") grew the left column and the right flow broke
+     wherever it happened to land — volume and Share on one line, Edit
+     orphaned and centred beneath. Now: the left column may shrink and wrap
+     (min-width:0 is what actually permits that inside a flex row), the
+     right column is its own flex line that never splits the number from
+     its controls, and when the head is genuinely too narrow the controls
+     drop BELOW the volume as a unit instead of jumbling. align-items goes
+     to flex-start so a two-line left column no longer drags the right one
+     down to its centre. */
+  .day summary>span:first-child{min-width:0;flex:1 1 auto}
+  .day summary>span:last-child{display:flex;align-items:center;justify-content:flex-end;
+    flex:0 1 auto;flex-wrap:wrap;gap:6px 8px;text-align:right}
+  .day summary>span:last-child>.dayedit{margin-left:0}
   .day summary::-webkit-details-marker{display:none}
   .day .d{font-family:var(--mono);font-size:13px}
   .day .s{font-family:var(--mono);font-size:11px;color:var(--muted)}

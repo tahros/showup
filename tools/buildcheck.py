@@ -273,6 +273,18 @@ else:
 if _re.search(r'data-skin="minimal"\]\s*nav\{[^}]*overflow:hidden', css):
     fail.append("minimal nav re-added overflow:hidden — extra iOS layer trigger (v3.3.179)")
 
+# -- Session head (v3.3.180): the right column carries the volume string and
+#    the Share/Edit controls together. If it loses its own flex context the
+#    three collapse back into one inline flow and wrap into each other the
+#    moment a day has three body parts.
+_headcol = _re.search(r"\.day summary>span:last-child\{([^}]*)\}", css)
+if not _headcol or "display:flex" not in _headcol.group(1):
+    fail.append("session head right column is not a flex line — "
+                "volume and controls will re-jumble on long part lists (v3.3.180)")
+if not _re.search(r"\.day summary>span:first-child\{[^}]*min-width:0", css):
+    fail.append("session head left column lost min-width:0 — it cannot shrink, "
+                "so it pushes the controls off (v3.3.180)")
+
 # -- shell size
 n = len(idx.encode())
 if n >= 8192: fail.append(f"index.html shell is {n} bytes (limit 8192)")

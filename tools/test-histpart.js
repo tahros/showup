@@ -132,4 +132,32 @@ const histSrc = fs.readFileSync(path.join(dir, "js/history.js"), "utf8");
 check("no stray reference to the old H=92 / base=72 / *58 constants remains",
       `${!/H=92|base=72|\*58\)/.test(histSrc)}`, "true");
 
+// ---- v3.3.180: the session head's structure, asserted where jsdom can
+// actually see it. Layout itself is CSS (buildcheck guards that), but the
+// invariant that MATTERS is compositional: the volume string and both
+// controls must live in ONE element, so no wrap can ever separate a day's
+// number from the buttons that act on it. A three-part day is the case
+// that broke it in the wild.
+run(`(function(){
+  /* seed into whichever month the fixture left History showing, so the day
+     is actually on screen rather than one month out of view */
+  const iso=[...document.querySelectorAll('.day')][0].dataset.d; window._headISO=iso;
+  DB.days[iso]={w:[
+    {part:'Run',ex:'Run',w:3.48,reps:[],mins:27,secs:17},
+    {part:'Back',ex:'Deadlift',w:80,reps:[2,3,3,2]},
+    {part:'Biceps',ex:'EZ Bar Curl',w:20,reps:[10,10,10,10]}],upd:1};
+  SEED=deriveAll(); hist.part=null; view='history'; render();})()`);
+const HEAD = `document.querySelector('.day[data-d="'+window._headISO+'"]>summary')`;
+check("the three-part day renders a session head", `!!${HEAD}`, true);
+check("the head has exactly two columns", `${HEAD}.children.length`, 2);
+check("all three parts land in the LEFT column",
+      `(function(){const l=${HEAD}.firstElementChild.textContent;
+        return ['Run','Back','Biceps'].every(p=>l.includes(p));})()`, true);
+check("volume and BOTH controls share the right column",
+      `(function(){const r=${HEAD}.lastElementChild;
+        return r.querySelectorAll('.dayedit').length===2 && /kg/.test(r.textContent);})()`, true);
+check("...so no wrap can split a control away from its day",
+      `document.querySelectorAll('.day>summary [data-dshare]').length ===
+       document.querySelectorAll('.day>summary>span:last-child [data-dshare]').length`, true);
+
 process.exit(fail ? 1 : 0);
