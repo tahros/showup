@@ -237,7 +237,7 @@ _sk_l = _blk(css, ':root[data-skin="minimal"][data-theme="light"]')
 if not _sk_d or not _sk_l:
     fail.append("minimal skin: token blocks missing (dark AND light are required) (v3.3.168)")
 else:
-    _allow = {"line", "shadow", "pill", "pill-ink", "pill-accent"}
+    _allow = {"line", "shadow", "pill", "pill-ink", "pill-accent", "pill-shadow"}
     for _bn, _bc in (("dark", _sk_d), ("light", _sk_l)):
         _bad = [t for t in _re.findall(r"--([a-z][a-z-]*):", _bc) if t not in _allow]
         if _bad:
