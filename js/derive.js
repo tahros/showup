@@ -5,7 +5,10 @@ function deriveAll(){
   const S={};
   for(const d of Object.keys(DB.days).sort()){
     if(d>=todayISO) continue;
-    const rows=(DB.days[d].w||[]).map(s=>[s.part,s.ex,s.w,s.reps||[],s.mins??null,s.secs??null]);
+    /* v3.3.191: index 6 carries the canonical id so readers can count by
+       identity instead of by the display string. Positions 0–5 are
+       unchanged — every existing consumer keeps working. */
+    const rows=(DB.days[d].w||[]).map(s=>[s.part,s.ex,s.w,s.reps||[],s.mins??null,s.secs??null,s.cid]);
     if(rows.length) S[d]=rows;
   }
   const days=Object.keys(S).sort();

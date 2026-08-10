@@ -76,6 +76,11 @@ function renderSync(){
       <div class="note">Logged weight is the total including the bar, so per-side = (total − bar) ÷ 2. Set the Smith bar to 0 if you log Smith work as plates only.</div>
       <button class="btn" id="barSave" style="margin-top:10px">Save</button>
     </div>
+    <h2>Same exercise, two names</h2>
+    <div class="card">
+      <div class="note" style="margin-bottom:10px">If the same movement got logged under two names, fold one into the other. The app never does this on its own \u2014 only genuinely different movements should stay apart.</div>
+      ${mergeUI()}
+    </div>
     <h2>Your data</h2>
     <div class="card">
       <div class="note" style="margin-bottom:10px">${fmt(Object.keys(DB.days).filter(d=>(DB.days[d].w||[]).length).length)} days on this device — yours to take anywhere. Weights export in kg, distance in km (the stored truth), whatever the display unit.</div>
@@ -122,6 +127,28 @@ function dlFile(name,mime,text){
     if(URL.createObjectURL) setTimeout(()=>URL.revokeObjectURL(a.href),4000);
   }catch(e){ toast('Export failed on this device'); }
 }
+/* v3.3.191: merge is USER-INITIATED and shaped like the destructive action
+   it is — pick two, read a plain sentence about what happens, confirm. The
+   confirm is honest that it does not un-merge: re-splitting is not built,
+   and a reassuring word here would be a lie the record pays for. */
+let _mg={from:'',to:''};
+function mergeUI(){
+  const ids=Object.keys(canon()).sort((a,b)=>canonName(a).localeCompare(canonName(b)));
+  if(ids.length<2) return `<div class="note">Nothing to merge yet.</div>`;
+  const opt=(sel,skip)=>ids.filter(i=>i!==skip)
+    .map(i=>`<option value="${i}" ${i===sel?'selected':''}>${canonName(i)}</option>`).join('');
+  const n=_mg.from?canonSets(_mg.from):0;
+  return `<select id="mgFrom" class="rzsel"><option value="">Fold this\u2026</option>${opt(_mg.from,_mg.to)}</select>
+    <select id="mgTo" class="rzsel" style="margin-top:8px"><option value="">\u2026into this</option>${opt(_mg.to,_mg.from)}</select>
+    ${_mg.from&&_mg.to?`<div class="note" style="margin-top:10px">${fmt(n)} set${n===1?'':'s'} will move to \u201c${canonName(_mg.to)}\u201d, and \u201c${canonName(_mg.from)}\u201d will become another name for it. There is no un-merge \u2014 you would have to re-log or restore a backup.</div>
+    <button class="btn ghost" id="mgGo" style="margin-top:10px">Fold \u201c${canonName(_mg.from)}\u201d in</button>`:''}`;
+}
+function canonSets(id){
+  let n=0;
+  for(const d of Object.values(DB.days))
+    for(const s2 of (d.w||[])) if(s2.cid===id) n+=(s2.reps||[]).length||1;
+  return n;
+}
 async function copyForSheets(){
   const t=tableText('\t');
   try{ await navigator.clipboard.writeText(t); toast('Copied — paste into a blank Google Sheet'); }
@@ -163,11 +190,22 @@ document.addEventListener('click',e=>{
   const hit=id=>!!(e.target.closest&&e.target.closest('#'+id));
   if(hit('expCsv')){ dlFile('showup-export-'+todayISO+'.csv','text/csv',tableText(',')); return; }
   if(hit('expSheet')){ copyForSheets(); return; }
+  if(hit('mgGo')){
+    const from=_mg.from,to=_mg.to; if(!from||!to) return;
+    const moved=canonMerge(from,to);
+    _mg={from:'',to:''};
+    SEED=deriveAll(); _fireDist=null;
+    toast(`${fmt(moved)} set${moved===1?'':'s'} moved to ${canonName(to)}`);
+    render(); return;
+  }
   if(hit('expJson')){ dlFile('showup-backup-'+todayISO+'.json','application/json',
     JSON.stringify({app:'showup',v:APP_VERSION,exported:new Date().toISOString(),doc:DB})); return; }
   if(hit('impJson')){ const i=document.getElementById('impFile'); if(i) i.click(); return; }
 });
 document.addEventListener('change',e=>{
+  if(e.target&&(e.target.id==='mgFrom'||e.target.id==='mgTo')){
+    _mg[e.target.id==='mgFrom'?'from':'to']=e.target.value; render(); return;
+  }
   if(e.target.id==='impFile'&&e.target.files&&e.target.files[0]){
     restoreBackup(e.target.files[0]); e.target.value='';
   }

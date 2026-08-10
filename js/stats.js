@@ -315,25 +315,32 @@ const rz={sel:{}};
    so the mirror reads the canonical record, not a reconstruction */
 function rzAllSessions(){
   const out=SEED.dates.map(d=>[d,SEED.sessions[d]]);
-  const t=((DB.days[todayISO]||{}).w||[]).map(s2=>[s2.part,s2.ex,s2.w,s2.reps||[]]);
+  const t=((DB.days[todayISO]||{}).w||[]).map(s2=>[s2.part,s2.ex,s2.w,s2.reps||[],s2.mins,s2.secs,s2.cid]);
   if(t.length) out.push([todayISO,t]);
   return out;
 }
+/* v3.3.191: Rep Zones counts by CANONICAL ID, not by the logged string.
+   Renaming an exercise used to split its history into two series — the
+   series you were reading would simply lose everything logged under the
+   old name. Ids are resolved from the row's cid when migration has stamped
+   it, else derived from the string (no minting: a read-only view must
+   never write to the record). Display is always the display name. */
+const rowCid=r=>r[6]||canonId(r[1],false)||r[1];
 function rzExercises(){
   const seen={};
   for(const [,rows] of rzAllSessions())
-    for(const r of rows) if(r[1]!=='Run'&&(r[3]||[]).length) seen[r[1]]=1;
+    for(const r of rows) if(r[1]!=='Run'&&(r[3]||[]).length) seen[rowCid(r)]=1;
   return Object.keys(seen);
 }
 function repZoneData(ex,N){
   /* "last N sessions OF THAT EXERCISE": days it was actually trained,
      newest first — not last N calendar days */
   const sess=rzAllSessions()
-    .filter(([,rows])=>rows.some(r=>r[1]===ex&&(r[3]||[]).length))
+    .filter(([,rows])=>rows.some(r=>rowCid(r)===ex&&(r[3]||[]).length))
     .sort((a,b)=>a[0]<b[0]?1:-1).slice(0,N);
   const counts=[0,0,0];
   for(const [,rows] of sess) for(const r of rows){
-    if(r[1]!==ex) continue;
+    if(rowCid(r)!==ex) continue;
     for(const rep of (r[3]||[])) counts[repZone(rep)]++;   // reps:[] (runs/cardio) adds nothing
   }
   const ds=sess.map(x=>x[0]).sort();
@@ -347,12 +354,12 @@ function repZoneData(ex,N){
    cloud's solid edge moving is the honest version. */
 function repZoneSets(ex,N){
   const sess=rzAllSessions()
-    .filter(([,rows])=>rows.some(r=>r[1]===ex&&(r[3]||[]).length))
+    .filter(([,rows])=>rows.some(r=>rowCid(r)===ex&&(r[3]||[]).length))
     .sort((a,b)=>a[0]<b[0]?1:-1).slice(0,N);
   const dots={};
   sess.forEach(([,rows],age)=>{
     for(const r of rows){
-      if(r[1]!==ex) continue;
+      if(rowCid(r)!==ex) continue;
       for(const rep of (r[3]||[])){
         const k=r[2]+'@'+rep;
         if(!dots[k]) dots[k]={w:r[2],rep,n:0,age};
@@ -430,14 +437,15 @@ function rzGotoOf(part,byPart,last){
     const seen={};
     for(const r of rows){
       if(r[1]==='Run'||!(r[3]||[]).length) continue;
-      sets[r[1]]=(sets[r[1]]||0)+r[3].length;
-      if(!seen[r[1]]){ seen[r[1]]=1; sess[r[1]]=(sess[r[1]]||0)+1; }
+      const id=rowCid(r);
+      sets[id]=(sets[id]||0)+r[3].length;
+      if(!seen[id]){ seen[id]=1; sess[id]=(sess[id]||0)+1; }
     }
   }
   const rank=(a,b)=>(sess[b]||0)-(sess[a]||0)||(sets[b]||0)-(sets[a]||0)
                     ||(last[a]<last[b]?1:last[a]>last[b]?-1:0);
   const inP=(byPart[part]||[]).slice().sort(rank);
-  const g=inP.filter(e=>exTier(e)==='goto');
+  const g=inP.filter(e=>exTier(canonName(e))==='goto');
   return g.length?g:inP.slice(0,1);
 }
 /* v3.3.189: the lift rail's tap handler. It went missing in the v3.3.188
@@ -465,9 +473,9 @@ function repZoneSections(){
   if(!exs.length) return `<h2>Rep zones${hActs('rz','Sets per rep range, last '+REPZONE_WINDOW+' sessions. Bigger dot = a repeated set; newer sessions solid. Runs excluded.','About rep zones')}</h2>
     <div class="card"><div class="note">No weighted sets yet. The zones will be here when the sets are.</div></div>`;
   const byPart={};
-  for(const e of exs)(byPart[homePartOf(e)||'Other']=byPart[homePartOf(e)||'Other']||[]).push(e);
+  for(const e of exs)(byPart[homePartOf(canonName(e))||'Other']=byPart[homePartOf(canonName(e))||'Other']||[]).push(e);
   const last={}; for(const [d,rows] of rzAllSessions())
-    for(const r of rows) if(r[1]!=='Run'&&(r[3]||[]).length) last[r[1]]=d;
+    for(const r of rows) if(r[1]!=='Run'&&(r[3]||[]).length) last[rowCid(r)]=d;
   /* catalog order, but the part that matters TODAY leads — trained today,
      else trainingPlan's next pick (the same authority as Today's card). */
   let order=[...Object.keys(SEED.catalog).filter(pt=>pt!=='Run'&&byPart[pt]),
@@ -486,7 +494,7 @@ function repZoneSections(){
     out+=`<h2>Rep zones \u00b7 ${part}${part===order[0]?hActs('rz','Sets per rep range, last '+REPZONE_WINDOW+' sessions. Bigger dot = a repeated set; newer sessions solid. Runs excluded.','About rep zones'):''}</h2>
       <div class="card rzcard" data-rzcard="${part}">
         <div class="rzlifts">${shown.map(e=>
-          `<button class="chip ${e===ex?'on':''}" data-rzx="${e}" data-rzpart="${part}">${e}</button>`).join('')}</div>
+          `<button class="chip ${e===ex?'on':''}" data-rzx="${e}" data-rzpart="${part}">${canonName(e)}</button>`).join('')}</div>
         <div class="rzbody">${rzBody(ex)}</div>`;
     out+=`</div>`;
   }
