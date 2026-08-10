@@ -271,5 +271,44 @@ run(`window._before=JSON.stringify(DB.days);`);
 run(`rz.sel={Chest:'Incline Barbell Bench Press'}; render();`);
 check("rendering rep zones writes nothing", `JSON.stringify(DB.days)===window._before`, true);
 
+// ---- v3.3.195: three parts by default, the rest behind an in-place expander
+run(`(function(){
+  const D=n=>{const d=new Date();d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA');};
+  /* five trained parts so the cut is real */
+  DB.days[D(2)].w.push({part:'Shoulder',ex:'Lateral Raise',w:8,reps:[15],at:30});
+  DB.days[D(2)].w.push({part:'Triceps',ex:'Rope Pushdown',w:20,reps:[12],at:31});
+  SEED=deriveAll(); _rzAll=false; rz.sel={}; render();})()`);
+check("only three part sections render by default",
+      `document.querySelectorAll('.rzcard').length`, 3);
+check("the expander names how many more there are",
+      `/All parts \u00b7 \\d+ more/.test(document.querySelector('[data-rzmore]').textContent)`, true);
+check("today's/lead part still heads the three",
+      `[...document.querySelectorAll('#view h2')].find(h=>/^Rep zones/.test(h.textContent)).textContent.length>0`, true);
+check("expanding opens in place — #view is not rebuilt",
+      `(function(){const v=document.querySelector('#view'); v._k2=1;
+        document.querySelector('[data-rzmore]').click();
+        return v._k2===1 && document.querySelectorAll('.rzcard').length>3;})()`, true);
+check("...and the control now offers fewer",
+      `/Fewer parts/.test(document.querySelector('[data-rzmore]').textContent)`, true);
+run(`document.querySelector('[data-rzmore]').click();`);
+check("collapsing returns to three", `document.querySelectorAll('.rzcard').length`, 3);
+
+// ---- v3.3.195: rails hold at most the TOP 2 lifts
+run(`(function(){
+  const D=n=>{const d=new Date();d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA');};
+  /* a third goto Back lift, least used of the three */
+  for(const n of [4,11]) DB.days[D(n)]={w:[...(DB.days[D(n)]?DB.days[D(n)].w:[]),
+    {part:'Back',ex:'Lat Pulldown',w:50,reps:[10],at:40+n}],upd:1};
+  SEED=deriveAll(); _rzAll=true; rz.sel={}; render();})()`);
+check("a rail offers at most two lifts",
+      `[...document.querySelectorAll('.rzlifts')].every(r=>r.querySelectorAll('.chip').length<=2)`, true);
+/* fixture note: the Deadlift loop's whole-day writes clobbered two SCR days,
+   so SCR holds 1 session vs Lat Pulldown's 2 — LP correctly makes the cut */
+check("...and Back's two are the most-used two, Deadlift first",
+      `[...document.querySelectorAll('[data-rzcard="Back"] .rzlifts .chip')].map(c=>c.textContent).join('|')`, "Deadlift|Lat Pulldown");
+check("...the least-used lift is the one cut",
+      `[...document.querySelectorAll('[data-rzcard="Back"] .rzlifts .chip')].every(c=>c.textContent!=='Seated Cable Row')`, true);
+run(`_rzAll=false;`);
+
 process.exit(fail ? 1 : 0);
 })();

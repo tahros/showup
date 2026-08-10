@@ -446,7 +446,11 @@ function rzGotoOf(part,byPart,last){
                     ||(last[a]<last[b]?1:last[a]>last[b]?-1:0);
   const inP=(byPart[part]||[]).slice().sort(rank);
   const g=inP.filter(e=>exTier(canonName(e))==='goto');
-  return g.length?g:inP.slice(0,1);
+  /* v3.3.195: TOP 2 ONLY (maker's call) — the rail is the part's centre of
+     gravity, not its inventory. Ranking is unchanged (sessions, sets,
+     recency), so the two that carry the part lead and the rest simply
+     aren't offered here. */
+  return (g.length?g:inP.slice(0,1)).slice(0,2);
 }
 /* v3.3.189: the lift rail's tap handler. It went missing in the v3.3.188
    per-part rewrite — the replacement targeted the v3.3.187 handler text,
@@ -482,11 +486,22 @@ function repZoneSections(){
              ...Object.keys(byPart).filter(pt=>!(pt in SEED.catalog))];
   const todayParts=[...new Set(((DB.days[todayISO]||{}).w||[])
     .filter(s2=>s2.ex!=='Run'&&(s2.reps||[]).length).map(s2=>s2.part))];
-  const lead=todayParts.find(pt=>byPart[pt])||(byPart[trainingPlan().pick]?trainingPlan().pick:null);
+  const plan=trainingPlan();
+  const lead=todayParts.find(pt=>byPart[pt])||(byPart[plan.pick]?plan.pick:null);
+  /* v3.3.195: THREE parts by default — the ones that matter now. Lead is
+     today's part (else the plan's pick, the same authority as Today's
+     Train-next card); the next two are the most DUE by the plan's own
+     since/gap ratio. Not a picker: a "choose your parts" setting would be
+     configuration the cadence data already answers, and it would go stale
+     the week your split changes. The rest sit behind one expander that
+     opens IN PLACE (the v3.3.190 lesson — no scroll jump). */
+  const due=pt=>{const i0=plan.info&&plan.info[pt];return i0?i0.since/Math.max(1,i0.gap):0;};
+  order.sort((a,b)=>due(b)-due(a));
   if(lead) order=[lead,...order.filter(pt=>pt!==lead)];
+  const shownParts=_rzAll?order:order.slice(0,RZ_PARTS_SHOWN);
 
-  let out='';
-  for(const part of order){
+  let out='<div id="rzwrap">';
+  for(const part of shownParts){
     const shown=rzGotoOf(part,byPart,last);
     if(!shown.length) continue;
     if(!rz.sel[part]||!shown.includes(rz.sel[part])) rz.sel[part]=shown[0];
@@ -498,8 +513,19 @@ function repZoneSections(){
         <div class="rzbody">${rzBody(ex)}</div>`;
     out+=`</div>`;
   }
-  return out;
+  if(order.length>RZ_PARTS_SHOWN)
+    out+=`<button class="btn ghost rzmore" data-rzmore>${_rzAll
+      ?'Fewer parts':'All parts \u00b7 '+(order.length-RZ_PARTS_SHOWN)+' more'}</button>`;
+  return out+'</div>';
 }
+const RZ_PARTS_SHOWN=3;
+let _rzAll=false;
+document.addEventListener('click',e=>{
+  if(!(e.target.closest&&e.target.closest('[data-rzmore]'))) return;
+  _rzAll=!_rzAll;
+  const wrap=document.querySelector('#rzwrap');
+  if(wrap) wrap.outerHTML=repZoneSections(); else render();
+});
 /* v3.3.190: the bars + chart of ONE lift, on their own — so a chip tap can
    swap this alone instead of re-rendering Stats. A full render() reset the
    scroll to the top of the tab, which made picking a lift feel like
