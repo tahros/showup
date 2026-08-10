@@ -393,7 +393,7 @@ function repZoneScatterSvg(){
           fill="var(--accent)" opacity="${op.toFixed(2)}"
           data-w="${d.w}" data-rep="${d.rep}" data-n="${d.n}" data-age="${d.age}"></circle>`;
   }
-  h2+=`</svg><div class="note rzscatnote">newest sessions solid \u00b7 older fade \u00b7 bigger dot = repeated set</div>`;
+  h2+=`</svg>`;
   return h2;
 }
 function repZoneCard(){
@@ -420,8 +420,8 @@ function repZoneCard(){
     h2+=`</optgroup>`;
   }
   h2+=`</select>
-    <span class="seg rzseg">${[5,10,20].map(n=>
-      `<button data-rzn="${n}" class="${rz.n===n?'sel':''}">${n}</button>`).join('')}</span>
+    <span class="rzsegrow"><i>last</i><span class="seg rzseg">${[5,10,20].map(n=>
+      `<button data-rzn="${n}" class="${rz.n===n?'sel':''}">${n}</button>`).join('')}</span><i>sessions</i></span>
     <div class="rzrows">`;
   REPZONE_LABELS.forEach(([range,name],i)=>{
     h2+=`<div class="rzrow">
@@ -430,7 +430,8 @@ function repZoneCard(){
       <span class="rzn"><b>${counts[i]}</b> set${counts[i]===1?'':'s'}</span>
     </div>`;
   });
-  h2+=`</div>${repZoneScatterSvg()}<div class="note rznote">last ${used} session${used===1?'':'s'} of ${rz.ex} \u00b7 runs excluded</div>`;
+  h2+=`</div>${repZoneScatterSvg()}`;
+  if(used<rz.n) h2+=`<div class="note rznote">only ${used} session${used===1?'':'s'} logged</div>`;
   return h2;
 }
 document.addEventListener('change',e=>{
@@ -524,7 +525,7 @@ function renderStats(){
         <div class="pmixsum" id="pmixSum"></div>
       </div>`;
   cut('pmix');
-  h+=`<h2>Rep zones${hActs('rz','Sets per rep range for one exercise. Counting sets, not kilograms; runs excluded. An empty bucket is the finding.','About rep zones')}</h2>
+  h+=`<h2>Rep zones${hActs('rz','Sets per rep range, last N sessions. Bigger dot = a repeated set; newer sessions solid. Runs excluded.','About rep zones')}</h2>
       <div class="card rzcard">${repZoneCard()}</div>`;
   cut('rz');
   h+=`<h2>Consistency${hActs('yoy','Percent of days trained, per year. The bold line is this year.','About the consistency chart')}</h2><div class="card">

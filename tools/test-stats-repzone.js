@@ -86,6 +86,17 @@ check("exercise selector renders with the exercise chosen",
       `document.querySelector('#rzEx').value`, "Incline Barbell Bench Press");
 check("window seg renders 5/10/20",
       `[...document.querySelectorAll('[data-rzn]')].map(b=>b.dataset.rzn).join(',')`, "5,10,20");
+// v3.3.184: the numbers say what they are — "last [5|10|20] sessions"
+check("the seg is labelled as sessions",
+      `document.querySelector('.rzsegrow').textContent.includes('last') &&
+       document.querySelector('.rzsegrow').textContent.includes('sessions')`, true);
+check("the two-line footer is gone",
+      `!document.querySelector('.rzscatnote') &&
+       !/runs excluded/.test(document.querySelector('.rzcard').textContent)`, true);
+check("a short-record note appears only when the window can't fill",
+      `(function(){const had=!!document.querySelector('.rznote');   /* n=1, used=1 → none */
+        rz.n=20; render(); const has=!!document.querySelector('.rznote');
+        rz.n=1; render(); return !had && has;})()`, true);
 
 // ---- 4. single definition site (structural, per the suite's idiom)
 const statsSrc = fs.readFileSync(path.join(dir, "js/stats.js"), "utf8");
