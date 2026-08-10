@@ -330,15 +330,84 @@ function repZoneData(ex,N){
   }
   return {counts,used:sess.length};
 }
+/* v3.3.183: the scatter's dots — every set of the window as (weight, reps),
+   AGGREGATED by exact position: count sizes the dot (two identical sets are
+   one bigger dot, never a jittered fake position), and age drives opacity
+   (0 = the newest session; older sessions fade). Recency IS the trend here:
+   weight×reps has no time axis, so a fitted line would be a fiction — the
+   cloud's solid edge moving is the honest version. */
+function repZoneSets(ex,N){
+  const sess=rzAllSessions()
+    .filter(([,rows])=>rows.some(r=>r[1]===ex&&(r[3]||[]).length))
+    .sort((a,b)=>a[0]<b[0]?1:-1).slice(0,N);
+  const dots={};
+  sess.forEach(([,rows],age)=>{
+    for(const r of rows){
+      if(r[1]!==ex) continue;
+      for(const rep of (r[3]||[])){
+        const k=r[2]+'@'+rep;
+        if(!dots[k]) dots[k]={w:r[2],rep,n:0,age};
+        dots[k].n++; dots[k].age=Math.min(dots[k].age,age);
+      }
+    }
+  });
+  return {dots:Object.values(dots),used:sess.length};
+}
+function repZoneScatterSvg(){
+  const {dots,used}=repZoneSets(rz.ex,rz.n);
+  if(!dots.length) return '';
+  const W=340,H=190,X0=34,XW=W-X0-8,Y0=H-26,YH=Y0-14;
+  const reps=Math.max(REPZONE_MAX_GROWTH+3,...dots.map(d=>d.rep));
+  const ws=dots.map(d=>d.w);
+  let wLo=Math.min(...ws),wHi=Math.max(...ws);
+  if(wLo===wHi){wLo-=5;wHi+=5;} const pad=(wHi-wLo)*0.12; wLo-=pad; wHi+=pad;
+  const x=rep=>X0+(rep/(reps+1))*XW;
+  const y=w2=>Y0-((w2-wLo)/(wHi-wLo))*YH;
+  /* zone bands from the SAME constants as the buckets — one definition site.
+     Boundaries sit at n+0.5 so integer reps land inside their band. */
+  const b1=x(REPZONE_MAX_STRENGTH+0.5), b2=x(REPZONE_MAX_GROWTH+0.5);
+  let h2=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto" class="rzscat" aria-label="Weight by reps per set">`;
+  h2+=`<rect x="${b1.toFixed(1)}" y="${(Y0-YH).toFixed(1)}" width="${(b2-b1).toFixed(1)}" height="${YH}"
+        fill="var(--accent)" opacity="0.07"></rect>`;
+  for(const bx of [b1,b2])
+    h2+=`<line x1="${bx.toFixed(1)}" y1="${Y0-YH}" x2="${bx.toFixed(1)}" y2="${Y0}" stroke="var(--line)" stroke-width="0.8" stroke-dasharray="3 3"></line>`;
+  REPZONE_LABELS.forEach(([range],i)=>{
+    const cx=[(X0+b1)/2,(b1+b2)/2,(b2+X0+XW)/2][i];
+    h2+=`<text x="${cx.toFixed(1)}" y="${Y0-YH+9}" text-anchor="middle" font-family="var(--mono)" font-size="7.5" fill="var(--faint)">${range}</text>`;
+  });
+  // y ticks: lo / mid / hi weight
+  for(const wv of [wLo+pad,(wLo+wHi)/2,wHi-pad]){
+    const yy=y(wv);
+    h2+=`<line x1="${X0}" y1="${yy.toFixed(1)}" x2="${X0+XW}" y2="${yy.toFixed(1)}" stroke="var(--line)" stroke-width="0.5" stroke-dasharray="2 4"></line>
+        <text x="${X0-4}" y="${(yy+2.5).toFixed(1)}" text-anchor="end" font-family="var(--mono)" font-size="7" fill="var(--muted)">${wDisp(wv)}</text>`;
+  }
+  // x ticks every 5 reps
+  for(let rv=5;rv<=reps;rv+=5)
+    h2+=`<text x="${x(rv).toFixed(1)}" y="${Y0+12}" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="var(--muted)">${rv}</text>`;
+  h2+=`<line x1="${X0}" y1="${Y0}" x2="${X0+XW}" y2="${Y0}" stroke="var(--line)" stroke-width="0.8"></line>`;
+  // dots: newest solid, oldest faint; count sizes
+  for(const d of dots.sort((a,b)=>b.age-a.age)){
+    const op=used>1?(0.35+0.65*(1-d.age/(used-1))):1;
+    const r=(3.2+1.6*Math.sqrt(d.n-1)).toFixed(1);
+    h2+=`<circle cx="${x(d.rep).toFixed(1)}" cy="${y(d.w).toFixed(1)}" r="${r}"
+          fill="var(--accent)" opacity="${op.toFixed(2)}"
+          data-w="${d.w}" data-rep="${d.rep}" data-n="${d.n}" data-age="${d.age}"></circle>`;
+  }
+  h2+=`</svg><div class="note rzscatnote">newest sessions solid \u00b7 older fade \u00b7 bigger dot = repeated set</div>`;
+  return h2;
+}
 function repZoneCard(){
   const exs=rzExercises();
   if(!exs.length) return `<div class="note">No weighted sets yet. The zones will be here when the sets are.</div>`;
-  /* default: the most recently trained exercise — the card opens on
-     something real, usually the one just questioned */
+  /* v3.3.183 default: the APP chooses the core lift — most recently trained
+     exercise whose tier is 'goto' (the same curated tier Records uses, ↑↓
+     overrides respected). Fallback: most recent of any tier. The person can
+     still pick anything; the app just opens on the big one. */
   if(!rz.ex||!exs.includes(rz.ex)){
     const last={}; for(const [d,rows] of rzAllSessions())
       for(const r of rows) if(r[1]!=='Run'&&(r[3]||[]).length) last[r[1]]=d;
-    rz.ex=exs.sort((a,b)=>last[a]<last[b]?1:-1)[0];
+    const byRecent=exs.slice().sort((a,b)=>last[a]<last[b]?1:-1);
+    rz.ex=byRecent.find(e=>exTier(e)==='goto')||byRecent[0];
   }
   const byPart={};
   for(const e of exs)(byPart[homePartOf(e)||'Other']=byPart[homePartOf(e)||'Other']||[]).push(e);
@@ -361,7 +430,7 @@ function repZoneCard(){
       <span class="rzn"><b>${counts[i]}</b> set${counts[i]===1?'':'s'}</span>
     </div>`;
   });
-  h2+=`</div><div class="note rznote">last ${used} session${used===1?'':'s'} of ${rz.ex} \u00b7 runs excluded</div>`;
+  h2+=`</div>${repZoneScatterSvg()}<div class="note rznote">last ${used} session${used===1?'':'s'} of ${rz.ex} \u00b7 runs excluded</div>`;
   return h2;
 }
 document.addEventListener('change',e=>{

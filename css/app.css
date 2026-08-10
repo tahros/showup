@@ -1152,6 +1152,8 @@
   .rzn{font-family:var(--mono);font-size:12px;color:var(--faint);white-space:nowrap}
   .rzn b{color:var(--chalk);font-size:14px;font-weight:600}
   .rznote{margin-top:10px}
+  .rzscat{margin-top:14px;display:block}
+  .rzscatnote{margin-top:4px;font-size:10px}
 
   /* ================= v3.3.168 — MINIMAL, the default skin =================
      A theme LAYER, orthogonal to light/dark: <html data-skin="minimal|classic">

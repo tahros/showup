@@ -96,6 +96,50 @@ check("REPZONE_MAX_GROWTH defined exactly once",
 check("the bucketer references the constants, not literals",
       `${/repZone\(reps\)\{\s*return reps<=REPZONE_MAX_STRENGTH\?0:reps<=REPZONE_MAX_GROWTH\?1:2;/.test(statsSrc.replace(/\n/g,''))}`, "true");
 
+// ---- v3.3.183: the scatter. Same window, same constants, dots from the
+// canonical record. The fixture day is the newest session; the 9 weekly
+// 60kg×8 singles collapse into ONE count-9 dot.
+run(`rz.n=10; render();`);
+check("scatter renders under the bars", `!!document.querySelector('.rzcard .rzscat')`, true);
+check("zone band boundaries: two dashed verticals", 
+      `document.querySelectorAll('.rzscat line[stroke-dasharray="3 3"]').length`, 2);
+check("the growth band is a shaded rect", 
+      `document.querySelectorAll('.rzscat rect').length`, 1);
+check("band labels come from REPZONE_LABELS",
+      `[...document.querySelectorAll('.rzscat text')].slice(0,3).map(t=>t.textContent).join('|')`, "<6|6\u201312|13+");
+// count-sizing: the nine identical 60×8 sets are one dot, data-n=9
+check("repeated sets are ONE bigger dot, not nine",
+      `document.querySelectorAll('.rzscat circle[data-w="60"][data-rep="8"]').length`, 1);
+check("...carrying its count", `document.querySelector('.rzscat circle[data-rep="8"]').dataset.n`, 9);
+check("...and drawn larger than a single-count dot",
+      `+document.querySelector('.rzscat circle[data-rep="8"]').getAttribute('r') >
+       +document.querySelector('.rzscat circle[data-rep="30"]').getAttribute('r')`, true);
+// recency: the fixture day (newest, age 0) is solid; a week-old single fades
+check("newest session's dots are age 0, opacity 1",
+      `document.querySelector('.rzscat circle[data-rep="30"]').dataset.age === "0" &&
+       document.querySelector('.rzscat circle[data-rep="30"]').getAttribute('opacity') === "1.00"`, true);
+check("older sets fade",
+      `+document.querySelector('.rzscat circle[data-rep="8"]').getAttribute('opacity') < 1`, true);
+// bands derive from the constants — structural, per the suite's idiom
+check("band geometry references the named constants",
+      `${/REPZONE_MAX_STRENGTH\+0\.5/.test(statsSrc) && /REPZONE_MAX_GROWTH\+0\.5/.test(statsSrc)}`, "true");
+check("no literal 5\.5 or 12\.5 in the scatter",
+      `${/[^0-9](5\.5|12\.5)[^0-9]/.test(statsSrc.split('repZoneScatterSvg')[1].split('function repZoneCard')[0])}`, "false");
+
+// ---- the app CHOOSES the core lift: a goto-tier exercise wins the default
+run(`(function(){
+  const D=n=>{const d=new Date();d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA');};
+  /* Squat: trained 10× recently (goto tier). Lunge: trained once, more
+     recently (would win a pure-recency default). */
+  for(let i=1;i<=10;i++) DB.days[D(2+i*3)]={w:[{part:'Legs',ex:'Squat',w:100,reps:[5]}],upd:1};
+  DB.days[D(1)]={w:[{part:'Legs',ex:'Dumbbell Lunge',w:20,reps:[10]}],upd:1};
+  SEED=deriveAll(); rz.ex=null; render();})()`);
+check("Lunge is the most recent lift of all", 
+      `exLastFor('Dumbbell Lunge') > exLastFor('Incline Barbell Bench Press')`, true);
+check("...but a one-off is not a core lift", `exTier('Dumbbell Lunge')==='goto'`, false);
+check("...so the default skips it for the most recent GOTO lift",
+      `rz.ex!=='Dumbbell Lunge' && exTier(rz.ex)`, "goto");
+
 // ---- Stats never writes: rendering the card must not touch the record
 run(`window._before=JSON.stringify(DB.days);`);
 run(`render();`);
