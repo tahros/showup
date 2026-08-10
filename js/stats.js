@@ -307,7 +307,7 @@ function repZone(reps){
    "only N sessions logged" note still tells the truth when the record is
    shorter than it. */
 const REPZONE_WINDOW=10;
-const rz={ex:null};
+const rz={ex:null,part:null};
 /* every date's rows, today included — the same merge the day receipt uses,
    so the mirror reads the canonical record, not a reconstruction */
 function rzAllSessions(){
@@ -417,28 +417,49 @@ function repZoneCard(){
      Within the chosen part: most recently trained goto-tier exercise;
      fallbacks walk outward (any exercise of the part, then any goto, then
      most recent) so the card never opens empty while sets exist. */
-  if(!rz.ex||!exs.includes(rz.ex)){
-    const last={}; for(const [d,rows] of rzAllSessions())
-      for(const r of rows) if(r[1]!=='Run'&&(r[3]||[]).length) last[r[1]]=d;
-    const byRecent=exs.slice().sort((a,b)=>last[a]<last[b]?1:-1);
+  /* v3.3.187: the today/next-part default runs ONLY while no part has been
+     chosen. It fires on rz.ex too — but a part tap intentionally nulls
+     rz.ex, and letting the default run then would override the tap with
+     the default's own part (the bug: tapping Chest snapped back to Legs).
+     With a part chosen, the per-part resolution below picks the lift. */
+  if(!rz.part&&(!rz.ex||!exs.includes(rz.ex))){
+    const last0={}; for(const [d,rows] of rzAllSessions())
+      for(const r of rows) if(r[1]!=='Run'&&(r[3]||[]).length) last0[r[1]]=d;
+    const byRecent=exs.slice().sort((a,b)=>last0[a]<last0[b]?1:-1);
     const todayParts=[...new Set(((DB.days[todayISO]||{}).w||[])
       .filter(s2=>s2.ex!=='Run'&&(s2.reps||[]).length).map(s2=>s2.part))];
     const part=todayParts.length?todayParts[0]:(trainingPlan().pick||null);
     const inPart=part?byRecent.filter(e=>homePartOf(e)===part):[];
     rz.ex=inPart.find(e=>exTier(e)==='goto')||inPart[0]
         ||byRecent.find(e=>exTier(e)==='goto')||byRecent[0];
+    rz.part=rz.ex?homePartOf(rz.ex):null;
   }
+  /* v3.3.187: the dropdown is gone (maker's call) — two rows of chips.
+     Row 1: body parts with any weighted history, in catalog order.
+     Row 2: the selected part's GO-TO lifts only (the same curated tier as
+     Records) — the full catalog was too many names to scan. A part whose
+     lifts are all one-offs still gets its single most recent lift, so a
+     tap always lands somewhere. */
   const byPart={};
   for(const e of exs)(byPart[homePartOf(e)||'Other']=byPart[homePartOf(e)||'Other']||[]).push(e);
+  const last={}; for(const [d,rows] of rzAllSessions())
+    for(const r of rows) if(r[1]!=='Run'&&(r[3]||[]).length) last[r[1]]=d;
+  const partOrder=[...Object.keys(SEED.catalog).filter(pt=>pt!=='Run'&&byPart[pt]),
+                   ...Object.keys(byPart).filter(pt=>!(pt in SEED.catalog))];
+  const gotoOf=pt=>{
+    const inP=(byPart[pt]||[]).slice().sort((a,b)=>last[a]<last[b]?1:-1);
+    const g=inP.filter(e=>exTier(e)==='goto');
+    return g.length?g:inP.slice(0,1);
+  };
+  if(!rz.part||!byPart[rz.part]) rz.part=rz.ex&&byPart[homePartOf(rz.ex)]?homePartOf(rz.ex):partOrder[0];
+  const shown=gotoOf(rz.part);
+  if(!rz.ex||!shown.includes(rz.ex)) rz.ex=shown[0];
   const {counts,used}=repZoneData(rz.ex,REPZONE_WINDOW);
   const max=Math.max(...counts,1);
-  let h2=`<select id="rzEx" class="rzsel" aria-label="Exercise">`;
-  for(const part of Object.keys(byPart)){
-    h2+=`<optgroup label="${part}">`;
-    for(const e of byPart[part].sort()) h2+=`<option ${e===rz.ex?'selected':''}>${e}</option>`;
-    h2+=`</optgroup>`;
-  }
-  h2+=`</select>
+  let h2=`<div class="chips rzparts">${partOrder.map(pt=>
+      `<button class="chip ${pt===rz.part?'on':''}" data-rzp="${pt}">${pt}</button>`).join('')}</div>
+    <div class="chips rzlifts">${shown.map(e=>
+      `<button class="chip ${e===rz.ex?'on':''}" data-rzx="${e}">${e}</button>`).join('')}</div>
     <div class="rzrows">`;
   REPZONE_LABELS.forEach(([range,name],i)=>{
     h2+=`<div class="rzrow">
@@ -451,8 +472,11 @@ function repZoneCard(){
   if(used<REPZONE_WINDOW) h2+=`<div class="note rznote">only ${used} session${used===1?'':'s'} logged</div>`;
   return h2;
 }
-document.addEventListener('change',e=>{
-  if(e.target&&e.target.id==='rzEx'){ rz.ex=e.target.value; render(); }
+document.addEventListener('click',e=>{
+  const pc=e.target.closest&&e.target.closest('[data-rzp]');
+  if(pc){ rz.part=pc.dataset.rzp; rz.ex=null; render(); return; }
+  const xc=e.target.closest&&e.target.closest('[data-rzx]');
+  if(xc){ rz.ex=xc.dataset.rzx; render(); }
 });
 
 function renderStats(){

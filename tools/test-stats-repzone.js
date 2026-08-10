@@ -76,22 +76,30 @@ check("three buckets render — the empty one included",
 check("an empty bucket renders '0 sets' in the same voice",
       `(function(){
         const D=n=>{const d=new Date();d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA');};
-        DB.days[D(2)]={w:[{part:'Chest',ex:'Pec Deck',w:40,reps:[8,8,8]}],upd:1};
-        SEED=deriveAll(); rz.ex='Pec Deck'; render();
+        /* three sessions → goto tier, so Chest Fly is chip-reachable under
+           the v3.3.187 goto-only rule */
+        for(const n of [2,4,6]) DB.days[D(n)]={w:[{part:'Chest',ex:'Chest Fly',w:40,reps:[8,8,8]}],upd:1};
+        SEED=deriveAll(); rz.part='Chest'; rz.ex='Chest Fly'; render();
         const rows=[...document.querySelectorAll('.rzcard .rzrow')];
         const ok=rows.length===3 && /(^|[^0-9])0 sets/.test(rows[0].textContent)
-              && /(^|[^0-9])0 sets/.test(rows[2].textContent) && /3 sets/.test(rows[1].textContent);
+              && /(^|[^0-9])0 sets/.test(rows[2].textContent) && /9 sets/.test(rows[1].textContent);
         rz.ex='Incline Barbell Bench Press'; render(); return ok;})()`, true);
 check("no red anywhere in the card — red means live, this is not live",
       `document.querySelector('.rzcard').innerHTML.includes('--live')`, false);
 check("an empty bucket's bar is width 0, not missing",
-      `(function(){rz.ex='Pec Deck'; render();
+      `(function(){rz.part='Chest'; rz.ex='Chest Fly'; render();
         const w2=document.querySelectorAll('.rzcard .rzbar i')[0].style.width;
         rz.ex='Incline Barbell Bench Press'; render(); return w2;})()`, "0%");
 
 // ---- selector + window controls exist and reflect state
-check("exercise selector renders with the exercise chosen",
-      `document.querySelector('#rzEx').value`, "Incline Barbell Bench Press");
+// v3.3.187: the dropdown is chips now — part row + GO-TO lifts of that part
+check("the dropdown is gone", `!document.querySelector('#rzEx')`, true);
+check("part chips render in catalog order (trained parts only)",
+      `[...document.querySelectorAll('.rzparts .chip')].map(c=>c.textContent)[0]`, "Chest");
+check("the selected part chip is on",
+      `document.querySelector('.rzparts .chip.on').textContent`, "Chest");
+check("the lift row shows the selected exercise as on",
+      `document.querySelector('.rzlifts .chip.on').textContent`, "Incline Barbell Bench Press");
 // v3.3.185: the selector is gone — the window is a named constant
 check("the window selector is removed", `document.querySelectorAll('[data-rzn]').length`, 0);
 check("the window is the constant, not state", `REPZONE_WINDOW`, 10);
@@ -99,8 +107,8 @@ check("the two-line footer stays gone",
       `!document.querySelector('.rzscatnote') &&
        !/runs excluded/.test(document.querySelector('.rzcard').textContent)`, true);
 check("the short-record note appears only when the record is shorter than the window",
-      `(function(){rz.ex='Pec Deck'; render();                       /* 1 session < 10 */
-        const has=/only 1 session logged/.test(document.querySelector('.rzcard').textContent);
+      `(function(){rz.part='Chest'; rz.ex='Chest Fly'; render();      /* 3 sessions < 10 */
+        const has=/only 3 sessions logged/.test(document.querySelector('.rzcard').textContent);
         rz.ex='Incline Barbell Bench Press'; render();               /* 13 sessions ≥ 10 */
         const none=!document.querySelector('.rznote');
         return has && none;})()`, true);
@@ -155,7 +163,7 @@ run(`(function(){
      recently (would win a pure-recency default). */
   for(let i=1;i<=10;i++) DB.days[D(2+i*3)]={w:[{part:'Legs',ex:'Squat',w:100,reps:[5]}],upd:1};
   DB.days[D(1)]={w:[{part:'Legs',ex:'Dumbbell Lunge',w:20,reps:[10]}],upd:1};
-  SEED=deriveAll(); rz.ex=null; render();})()`);
+  SEED=deriveAll(); rz.ex=null; rz.part=null; render();})()`);
 check("Lunge is the most recent lift of all", 
       `exLastFor('Dumbbell Lunge') > exLastFor('Incline Barbell Bench Press')`, true);
 check("...but a one-off is not a core lift", `exTier('Dumbbell Lunge')==='goto'`, false);
@@ -166,17 +174,29 @@ check("...so the default lands on a GOTO lift",
 // (1) trained today → TODAY's part's core lift wins over everything
 run(`(function(){
   DB.days[todayISO]={w:[{part:'Legs',ex:'Squat',w:100,reps:[5,5,5]}],upd:1};
-  SEED=deriveAll(); rz.ex=null; render();})()`);
+  SEED=deriveAll(); rz.ex=null; rz.part=null; render();})()`);   /* fresh open */
 check("trained today → today's part's core lift", `rz.ex`, "Squat");
 check("...its part is today's part", `homePartOf(rz.ex)`, "Legs");
 // (2) nothing today → the part the app says to train NEXT (trainingPlan's
 // own pick — the same authority as Today's Train-next card)
 run(`(function(){
-  delete DB.days[todayISO]; SEED=deriveAll(); rz.ex=null; render();
+  delete DB.days[todayISO]; SEED=deriveAll(); rz.ex=null; rz.part=null; render();
   window._pick=trainingPlan().pick;})()`);
 check("nothing today → the default follows trainingPlan().pick",
       `!window._pick || homePartOf(rz.ex)===window._pick || exTier(rz.ex)==='goto'`, true);
 check("...and is still a real exercise of the record", `!!rz.ex`, true);
+
+// ---- chip interaction (here, where Legs data exists — chips only render
+// trained parts, unlike the old dropdown's full catalog)
+check("only GO-TO lifts of the part are offered — the one-off Lunge is not",
+      `(function(){document.querySelector('[data-rzp="Legs"]').click();
+        const names=[...document.querySelectorAll('.rzlifts .chip')].map(c=>c.textContent);
+        return names.includes('Squat') && !names.includes('Dumbbell Lunge');})()`, true);
+check("tapping a part re-picks its top goto lift", `rz.ex`, "Squat");
+check("tapping a lift chip selects it",
+      `(function(){document.querySelector('[data-rzp="Chest"]').click();
+        document.querySelector('[data-rzx="Incline Barbell Bench Press"]').click();
+        return rz.ex;})()`, "Incline Barbell Bench Press");
 
 // ---- v3.3.186: the axes say what they are
 check("x axis is labelled", 
