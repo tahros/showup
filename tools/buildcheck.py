@@ -320,6 +320,19 @@ for _bad in ("falling behind", "you should", "keep it up", "well done", "--live"
     if _bad in _igcopy.lower():
         fail.append(f"intent gaps: out-of-register copy or colour ({_bad!r}) (v3.3.192)")
 
+# -- Class/CSS coupling (v3.3.193): a class emitted by JS with no rule in the
+#    sheet ships an unstyled feature. This happened twice in a row — the edits
+#    adding the merge picker's and the intent-gap list's styles both anchored
+#    on a selector deleted two releases earlier, so they silently changed
+#    nothing and the gate had nothing to say. These are the classes those two
+#    features depend on; a missing one now fails the build.
+_need_css = ["rzsel", "igrows", "igrow", "igname", "igwhen", "igx",
+             "rzlifts", "rzrow", "rzbar", "rzn", "rzscat"]
+for _cls in _need_css:
+    if not _re.search(r"\." + _cls + r"[\s,{:+>]", css):
+        fail.append(f"class .{_cls} is emitted by JS but has no CSS rule — "
+                    f"feature would ship unstyled (v3.3.193)")
+
 # -- shell size
 n = len(idx.encode())
 if n >= 8192: fail.append(f"index.html shell is {n} bytes (limit 8192)")

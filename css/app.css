@@ -1141,6 +1141,23 @@
   /* v3.3.188: the primary lifts sit on ONE line and scroll sideways — a
      wrapping chip cloud pushed the chart below the fold on parts with four
      or five staples. */
+  /* v3.3.193 — styles for the merge picker (v3.3.191) and the intent-gap
+     list (v3.3.192). BOTH shipped unstyled: the edits that should have added
+     them anchored on `.rzparts{`, a selector deleted in v3.3.188 when the
+     part chips became sections. A string replace whose anchor is gone
+     changes nothing and says nothing — buildcheck now asserts these
+     selectors exist so the next miss fails the gate instead of the phone. */
+  .rzsel{width:100%;font-family:var(--mono);font-size:13px;color:var(--chalk);
+    background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px 10px}
+  :root[data-skin="minimal"] .rzsel{background:var(--ground);border-color:transparent}
+  .igrows{display:flex;flex-direction:column;gap:2px}
+  .igrow{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:baseline;padding:9px 0}
+  .igrow+.igrow{border-top:1px solid var(--line)}
+  .igname{font-family:var(--mono);font-size:13px;color:var(--chalk)}
+  .igwhen{font-family:var(--mono);font-size:11px;color:var(--faint);white-space:nowrap}
+  .igwhen b{color:var(--muted);font-size:13px;font-weight:600}
+  .igx{background:none;border:0;color:var(--faint);font-size:16px;line-height:1;
+    padding:0 2px;cursor:pointer;align-self:center}
   .rzlifts{display:flex;gap:6px;overflow-x:auto;overflow-y:hidden;
     margin:0 -14px 14px;padding:0 14px 2px;scrollbar-width:none;
     -webkit-overflow-scrolling:touch}
