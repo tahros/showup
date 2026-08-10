@@ -302,7 +302,12 @@ const REPZONE_LABELS=[
 function repZone(reps){
   return reps<=REPZONE_MAX_STRENGTH?0:reps<=REPZONE_MAX_GROWTH?1:2;
 }
-const rz={ex:null,n:10};
+/* v3.3.185: the window selector is gone (maker's call — one more control
+   than the question needs). The window is a CONSTANT, not state; the
+   "only N sessions logged" note still tells the truth when the record is
+   shorter than it. */
+const REPZONE_WINDOW=10;
+const rz={ex:null};
 /* every date's rows, today included — the same merge the day receipt uses,
    so the mirror reads the canonical record, not a reconstruction */
 function rzAllSessions(){
@@ -354,7 +359,7 @@ function repZoneSets(ex,N){
   return {dots:Object.values(dots),used:sess.length};
 }
 function repZoneScatterSvg(){
-  const {dots,used}=repZoneSets(rz.ex,rz.n);
+  const {dots,used}=repZoneSets(rz.ex,REPZONE_WINDOW);
   if(!dots.length) return '';
   const W=340,H=190,X0=34,XW=W-X0-8,Y0=H-26,YH=Y0-14;
   const reps=Math.max(REPZONE_MAX_GROWTH+3,...dots.map(d=>d.rep));
@@ -411,7 +416,7 @@ function repZoneCard(){
   }
   const byPart={};
   for(const e of exs)(byPart[homePartOf(e)||'Other']=byPart[homePartOf(e)||'Other']||[]).push(e);
-  const {counts,used}=repZoneData(rz.ex,rz.n);
+  const {counts,used}=repZoneData(rz.ex,REPZONE_WINDOW);
   const max=Math.max(...counts,1);
   let h2=`<select id="rzEx" class="rzsel" aria-label="Exercise">`;
   for(const part of Object.keys(byPart)){
@@ -420,8 +425,6 @@ function repZoneCard(){
     h2+=`</optgroup>`;
   }
   h2+=`</select>
-    <span class="rzsegrow"><i>last</i><span class="seg rzseg">${[5,10,20].map(n=>
-      `<button data-rzn="${n}" class="${rz.n===n?'sel':''}">${n}</button>`).join('')}</span><i>sessions</i></span>
     <div class="rzrows">`;
   REPZONE_LABELS.forEach(([range,name],i)=>{
     h2+=`<div class="rzrow">
@@ -431,16 +434,13 @@ function repZoneCard(){
     </div>`;
   });
   h2+=`</div>${repZoneScatterSvg()}`;
-  if(used<rz.n) h2+=`<div class="note rznote">only ${used} session${used===1?'':'s'} logged</div>`;
+  if(used<REPZONE_WINDOW) h2+=`<div class="note rznote">only ${used} session${used===1?'':'s'} logged</div>`;
   return h2;
 }
 document.addEventListener('change',e=>{
   if(e.target&&e.target.id==='rzEx'){ rz.ex=e.target.value; render(); }
 });
-document.addEventListener('click',e=>{
-  const b=e.target.closest&&e.target.closest('[data-rzn]');
-  if(b){ rz.n=+b.dataset.rzn; render(); }
-});
+
 function renderStats(){
   const _S={}; const cut=k=>{ _S[k]=h; h=''; };
   if(SEED.totals.sessions===0 && !hasAnyDays()){ $('#view').innerHTML=emptyHero('stats'); return; }
@@ -525,7 +525,7 @@ function renderStats(){
         <div class="pmixsum" id="pmixSum"></div>
       </div>`;
   cut('pmix');
-  h+=`<h2>Rep zones${hActs('rz','Sets per rep range, last N sessions. Bigger dot = a repeated set; newer sessions solid. Runs excluded.','About rep zones')}</h2>
+  h+=`<h2>Rep zones${hActs('rz','Sets per rep range, last '+REPZONE_WINDOW+' sessions. Bigger dot = a repeated set; newer sessions solid. Runs excluded.','About rep zones')}</h2>
       <div class="card rzcard">${repZoneCard()}</div>`;
   cut('rz');
   h+=`<h2>Consistency${hActs('yoy','Percent of days trained, per year. The bold line is this year.','About the consistency chart')}</h2><div class="card">
@@ -743,7 +743,7 @@ function renderStats(){
       </div>`;
   cut('rep');
   // sections emit in one declared order (v3.3.111)
-  h = _S.kpis + _S.pmix + _S.rz + _S.cons + _S.em + _S.dbm + _S.last6 + _S.wd + _S.wt;
+  h = _S.kpis + _S.rz + _S.pmix + _S.cons + _S.em + _S.dbm + _S.last6 + _S.wd + _S.wt;
 
   // the whole Run story lives here now (was its own tab in v2.04 — reverted)
   h+=runStatsHTML();

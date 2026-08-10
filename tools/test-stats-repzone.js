@@ -69,34 +69,45 @@ check("N=5: fixture + 4 singles",
       `JSON.stringify(repZoneData('Incline Barbell Bench Press',5).counts)`, "[4,4,8]");
 
 // ---- 3b. the empty bucket RENDERS — present, count 0, no red
-run(`rz.ex='Incline Barbell Bench Press'; rz.n=1; view='stats'; render();`);
+run(`rz.ex='Incline Barbell Bench Press'; view='stats'; render();`);
 check("stats renders the rep-zone card", `!!document.querySelector('.rzcard')`, true);
 check("three buckets render — the empty one included",
       `document.querySelectorAll('.rzcard .rzrow').length`, 3);
-check("the 6–12 bucket states '0 sets' plainly",
-      `(function(){const r=[...document.querySelectorAll('.rzcard .rzrow')][1];
-        return r.textContent.includes('6\\u201312') && /(^|[^0-9])0 sets/.test(r.textContent);})()`, true);
+check("an empty bucket renders '0 sets' in the same voice",
+      `(function(){
+        const D=n=>{const d=new Date();d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA');};
+        DB.days[D(2)]={w:[{part:'Chest',ex:'Pec Deck',w:40,reps:[8,8,8]}],upd:1};
+        SEED=deriveAll(); rz.ex='Pec Deck'; render();
+        const rows=[...document.querySelectorAll('.rzcard .rzrow')];
+        const ok=rows.length===3 && /(^|[^0-9])0 sets/.test(rows[0].textContent)
+              && /(^|[^0-9])0 sets/.test(rows[2].textContent) && /3 sets/.test(rows[1].textContent);
+        rz.ex='Incline Barbell Bench Press'; render(); return ok;})()`, true);
 check("no red anywhere in the card — red means live, this is not live",
       `document.querySelector('.rzcard').innerHTML.includes('--live')`, false);
-check("the empty bucket's bar is width 0, not missing",
-      `document.querySelectorAll('.rzcard .rzbar i')[1].style.width`, "0%");
+check("an empty bucket's bar is width 0, not missing",
+      `(function(){rz.ex='Pec Deck'; render();
+        const w2=document.querySelectorAll('.rzcard .rzbar i')[0].style.width;
+        rz.ex='Incline Barbell Bench Press'; render(); return w2;})()`, "0%");
 
 // ---- selector + window controls exist and reflect state
 check("exercise selector renders with the exercise chosen",
       `document.querySelector('#rzEx').value`, "Incline Barbell Bench Press");
-check("window seg renders 5/10/20",
-      `[...document.querySelectorAll('[data-rzn]')].map(b=>b.dataset.rzn).join(',')`, "5,10,20");
-// v3.3.184: the numbers say what they are — "last [5|10|20] sessions"
-check("the seg is labelled as sessions",
-      `document.querySelector('.rzsegrow').textContent.includes('last') &&
-       document.querySelector('.rzsegrow').textContent.includes('sessions')`, true);
-check("the two-line footer is gone",
+// v3.3.185: the selector is gone — the window is a named constant
+check("the window selector is removed", `document.querySelectorAll('[data-rzn]').length`, 0);
+check("the window is the constant, not state", `REPZONE_WINDOW`, 10);
+check("the two-line footer stays gone",
       `!document.querySelector('.rzscatnote') &&
        !/runs excluded/.test(document.querySelector('.rzcard').textContent)`, true);
-check("a short-record note appears only when the window can't fill",
-      `(function(){const had=!!document.querySelector('.rznote');   /* n=1, used=1 → none */
-        rz.n=20; render(); const has=!!document.querySelector('.rznote');
-        rz.n=1; render(); return !had && has;})()`, true);
+check("the short-record note appears only when the record is shorter than the window",
+      `(function(){rz.ex='Pec Deck'; render();                       /* 1 session < 10 */
+        const has=/only 1 session logged/.test(document.querySelector('.rzcard').textContent);
+        rz.ex='Incline Barbell Bench Press'; render();               /* 13 sessions ≥ 10 */
+        const none=!document.querySelector('.rznote');
+        return has && none;})()`, true);
+// v3.3.185: Rep zones sits right after the ShowUp hero, before Part mix
+check("Rep zones renders before Part mix",
+      `(function(){const t=document.querySelector('#view').innerHTML;
+        return t.indexOf('Rep zones') < t.indexOf('Part mix') && t.indexOf('Rep zones')>-1;})()`, true);
 
 // ---- 4. single definition site (structural, per the suite's idiom)
 const statsSrc = fs.readFileSync(path.join(dir, "js/stats.js"), "utf8");
@@ -110,7 +121,7 @@ check("the bucketer references the constants, not literals",
 // ---- v3.3.183: the scatter. Same window, same constants, dots from the
 // canonical record. The fixture day is the newest session; the 9 weekly
 // 60kg×8 singles collapse into ONE count-9 dot.
-run(`rz.n=10; render();`);
+run(`render();`);
 check("scatter renders under the bars", `!!document.querySelector('.rzcard .rzscat')`, true);
 check("zone band boundaries: two dashed verticals", 
       `document.querySelectorAll('.rzscat line[stroke-dasharray="3 3"]').length`, 2);

@@ -41,10 +41,12 @@ run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
   SEED=deriveAll(); view='stats'; render();})()`);
 
 // ---- position ------------------------------------------------------------
-ok("Part mix is the second section", run(`(function(){
+/* v3.3.185: Rep zones moved to the top of Stats (maker's call), so Part mix
+   is now the THIRD section. The assertion moves with the spec. */
+ok("Part mix is the third section, after Rep zones", run(`(function(){
   const hs=[...document.querySelectorAll('#view h2')];
   const t=h=>(h.childNodes[0]&&h.childNodes[0].nodeType===3?h.childNodes[0].textContent:h.textContent).trim();
-  return t(hs[1]);})()`) === "Part mix");
+  return t(hs[1])+'|'+t(hs[2]);})()`) === "Rep zones|Part mix");
 
 // ---- the data is sets, per part, per training day -------------------------
 ok("partMix() returns one row per training day, newest last",
