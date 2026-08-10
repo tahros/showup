@@ -243,6 +243,29 @@ check("x axis is labelled",
 check("y axis is labelled with the unit",
       `${CH}.querySelector('.rzscat .rzylab') && ${CH}.querySelector('.rzscat .rzylab').textContent`, "weight (kg)");
 
+// ---- v3.3.190: a chip tap must NOT re-render the page. Selecting a lift
+// used to call render(), which reset scroll to the top of Stats — the
+// reader lost their place every time they asked a question.
+check("tapping a lift swaps only that card's body, leaving the DOM around it",
+      `(function(){
+        rz.sel={}; render();
+        const view=document.querySelector('#view');
+        const card=document.querySelector('[data-rzcard="Chest"]');
+        const stamp=Symbol('kept'); view[stamp]=1; card[stamp]=1;   /* identity witnesses */
+        const railBefore=card.querySelector('.rzlifts');
+        const bodyBefore=card.querySelector('.rzbody').innerHTML;
+        card.querySelector('[data-rzx="Chest Fly"]').click();
+        const card2=document.querySelector('[data-rzcard="Chest"]');
+        return view[stamp]===1                       /* #view was not rebuilt */
+            && card2===card && card2[stamp]===1      /* the card node survived */
+            && card2.querySelector('.rzlifts')===railBefore   /* the rail, too */
+            && card2.querySelector('.rzbody').innerHTML!==bodyBefore;})()`, true);
+check("...and the chart actually changed to the new lift",
+      `document.querySelector('[data-rzcard="Chest"] .rzlifts .chip.on').textContent`, "Chest Fly");
+check("...while other parts' cards are untouched",
+      `(function(){const l=document.querySelector('[data-rzcard="Legs"] .rzlifts .chip.on');
+        return !!l && l.textContent==='Squat';})()`, true);
+
 // ---- Stats never writes: rendering the card must not touch the record
 run(`window._before=JSON.stringify(DB.days);`);
 run(`rz.sel={Chest:'Incline Barbell Bench Press'}; render();`);

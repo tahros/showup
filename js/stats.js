@@ -448,8 +448,17 @@ function rzGotoOf(part,byPart,last){
 document.addEventListener('click',e=>{
   const xc=e.target.closest&&e.target.closest('[data-rzx]');
   if(!xc) return;
-  rz.sel[xc.dataset.rzpart]=xc.dataset.rzx;
-  render();
+  const part=xc.dataset.rzpart, ex=xc.dataset.rzx;
+  rz.sel[part]=ex;
+  /* surgical: repaint this card's body only. Stats is read-only, nothing
+     else on the page depends on which lift is selected, and a full render()
+     would throw the reader back to the top of the tab. Falls back to a full
+     render only if the card isn't in the DOM (defensive; shouldn't happen). */
+  const card=xc.closest('[data-rzcard]'), body=card&&card.querySelector('.rzbody');
+  if(!body){ render(); return; }
+  card.querySelectorAll('.rzlifts .chip').forEach(c=>
+    c.classList.toggle('on',c.dataset.rzx===ex));
+  body.innerHTML=rzBody(ex);
 });
 function repZoneSections(){
   const exs=rzExercises();
@@ -474,24 +483,31 @@ function repZoneSections(){
     if(!shown.length) continue;
     if(!rz.sel[part]||!shown.includes(rz.sel[part])) rz.sel[part]=shown[0];
     const ex=rz.sel[part];
-    const {counts}=repZoneData(ex,REPZONE_WINDOW);
-    const max=Math.max(...counts,1);
     out+=`<h2>Rep zones \u00b7 ${part}${part===order[0]?hActs('rz','Sets per rep range, last '+REPZONE_WINDOW+' sessions. Bigger dot = a repeated set; newer sessions solid. Runs excluded.','About rep zones'):''}</h2>
       <div class="card rzcard" data-rzcard="${part}">
         <div class="rzlifts">${shown.map(e=>
           `<button class="chip ${e===ex?'on':''}" data-rzx="${e}" data-rzpart="${part}">${e}</button>`).join('')}</div>
-        <div class="rzrows">`;
-    REPZONE_LABELS.forEach(([range,name],i)=>{
-      out+=`<div class="rzrow">
-        <span class="rzlab">${range}<i>${name}</i></span>
-        <span class="rzbar"><i style="width:${counts[i]?Math.round(counts[i]/max*100):0}%"></i></span>
-        <span class="rzn"><b>${counts[i]}</b> set${counts[i]===1?'':'s'}</span>
-      </div>`;
-    });
-    out+=`</div>${repZoneScatterSvg(ex)}`;
+        <div class="rzbody">${rzBody(ex)}</div>`;
     out+=`</div>`;
   }
   return out;
+}
+/* v3.3.190: the bars + chart of ONE lift, on their own — so a chip tap can
+   swap this alone instead of re-rendering Stats. A full render() reset the
+   scroll to the top of the tab, which made picking a lift feel like
+   leaving the page you were reading. */
+function rzBody(ex){
+  const {counts}=repZoneData(ex,REPZONE_WINDOW);
+  const max=Math.max(...counts,1);
+  let out=`<div class="rzrows">`;
+  REPZONE_LABELS.forEach(([range,name],i)=>{
+    out+=`<div class="rzrow">
+      <span class="rzlab">${range}<i>${name}</i></span>
+      <span class="rzbar"><i style="width:${counts[i]?Math.round(counts[i]/max*100):0}%"></i></span>
+      <span class="rzn"><b>${counts[i]}</b> set${counts[i]===1?'':'s'}</span>
+    </div>`;
+  });
+  return out+`</div>`+repZoneScatterSvg(ex);
 }
 function renderStats(){
   const _S={}; const cut=k=>{ _S[k]=h; h=''; };
