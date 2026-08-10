@@ -1158,7 +1158,6 @@
      against it, not written blind. 52px reads as a real section break
      between the KPI row and the first Rep-zone card. */
   .rzh{margin-top:52px}
-  .rzmore{width:100%;margin:2px 0 4px}
   .mcrow{display:grid;grid-template-columns:78px 1fr auto;gap:10px;align-items:center;
     padding:10px 0;cursor:pointer}
   .mcrow+.mcrow,.mcinner+.mcrow{border-top:1px solid var(--line)}

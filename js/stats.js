@@ -310,7 +310,7 @@ const REPZONE_WINDOW=10;
 /* v3.3.188: Rep zones breaks out per body part — one section each, so the
    part chips are gone and selection is per-part (a lift chosen for Back
    stays chosen when you scroll past Chest). */
-const rz={sel:{}};
+const rz={grp:null,ex:null};
 /* every date's rows, today included — the same merge the day receipt uses,
    so the mirror reads the canonical record, not a reconstruction */
 function rzAllSessions(){
@@ -426,122 +426,75 @@ function repZoneScatterSvg(ex){
   h2+=`</svg>`;
   return h2;
 }
-/* v3.3.188: the go-to lifts of one part, most recent first. A part whose
-   lifts are all one-offs still shows its single most recent lift, so every
-   section has something to say. */
-function rzGotoOf(part,byPart,last){
-  /* v3.3.189: ORDER BY WEIGHT OF USE, not recency. Sorting by last-trained
-     put Back's default on "Seated Cable Row" — a real lift, but not the one
-     that carries the part. The lift you've done most sessions of is the
-     part's centre of gravity; sets break ties (a 5-set day outranks a
-     1-set cameo), then recency. Deadlift and Pull Up win Back on the
-     record, without a hand-maintained list of "big lifts". */
-  const sess={},sets={};
-  for(const [,rows] of rzAllSessions()){
-    const seen={};
+/* v3.3.198 — ONE Rep-zone section. The per-part sections, the three-part
+   default and the expander are all gone (maker's call, one release later):
+   a body-part DROPDOWN plus a single card says the same thing with one
+   control and no scroll. The exercise rail is ordered by SETS LOGGED,
+   most to least — the part's centre of gravity by the plainest possible
+   measure — and an exercise with no sets never appears, because a rep-zone
+   chart of nothing is not a finding. Parts are visible groups (v3.3.194),
+   so Biceps+Triceps read as Arms and Sixpack as Core. */
+function rzSetsById(){
+  const sets={};
+  for(const [,rows] of rzAllSessions())
     for(const r of rows){
       if(r[1]==='Run'||!(r[3]||[]).length) continue;
-      const id=rowCid(r);
-      sets[id]=(sets[id]||0)+r[3].length;
-      if(!seen[id]){ seen[id]=1; sess[id]=(sess[id]||0)+1; }
+      const id=rowCid(r); sets[id]=(sets[id]||0)+r[3].length;
     }
-  }
-  const rank=(a,b)=>(sess[b]||0)-(sess[a]||0)||(sets[b]||0)-(sets[a]||0)
-                    ||(last[a]<last[b]?1:last[a]>last[b]?-1:0);
-  const inP=(byPart[part]||[]).slice().sort(rank);
-  const g=inP.filter(e=>exTier(canonName(e))==='goto');
-  /* v3.3.196: ALL go-to lifts — the same set the Train tab calls Go-To, in
-     weight-of-use order. v3.3.195's top-2 cap is reverted one release later:
-     the rail scrolls, so a cap bought nothing and hid lifts the person is
-     actively running. Tier still gates it; only go-to lifts appear. */
-  return g.length?g:inP.slice(0,1);
+  return sets;
 }
-/* v3.3.189: the lift rail's tap handler. It went missing in the v3.3.188
-   per-part rewrite — the replacement targeted the v3.3.187 handler text,
-   which the rewrite had already changed, so the edit no-op'd and the chips
-   shipped inert for one release. Selection is keyed by PART, so each
-   section remembers its own lift. */
-document.addEventListener('click',e=>{
-  const xc=e.target.closest&&e.target.closest('[data-rzx]');
-  if(!xc) return;
-  const part=xc.dataset.rzpart, ex=xc.dataset.rzx;
-  rz.sel[part]=ex;
-  /* surgical: repaint this card's body only. Stats is read-only, nothing
-     else on the page depends on which lift is selected, and a full render()
-     would throw the reader back to the top of the tab. Falls back to a full
-     render only if the card isn't in the DOM (defensive; shouldn't happen). */
-  const card=xc.closest('[data-rzcard]'), body=card&&card.querySelector('.rzbody');
-  if(!body){ render(); return; }
-  card.querySelectorAll('.rzlifts .chip').forEach(c=>
-    c.classList.toggle('on',c.dataset.rzx===ex));
-  body.innerHTML=rzBody(ex);
-});
 function repZoneSections(){
-  const exs=rzExercises();
-  if(!exs.length) return `<h2>Rep zones${hActs('rz','Sets per rep range, last '+REPZONE_WINDOW+' sessions. Bigger dot = a repeated set; newer sessions solid. Runs excluded.','About rep zones')}</h2>
-    <div class="card"><div class="note">No weighted sets yet. The zones will be here when the sets are.</div></div>`;
-  /* v3.3.196: sections are VISIBLE GROUPS (the v3.3.194 taxonomy), not raw
-     catalog parts — Biceps and Triceps read as one "Arms", Sixpack as
-     "Core". Display-level only: the ledger still stores the underlying
-     part, so nothing about logging or History changes. */
+  const exs=rzExercises();                       // already sets-only
+  if(!exs.length) return `<h2 class="rzh">Rep zones${hActs('rz','Sets per rep range, last '+REPZONE_WINDOW+' sessions. Bigger dot = a repeated set; newer sessions solid. Runs excluded.','About rep zones')}</h2>
+    <div class="card rzcard"><div class="note">No weighted sets yet. The zones will be here when the sets are.</div></div>`;
+  const sets=rzSetsById();
   const byPart={};
   for(const e of exs){
     const g2=PART_VISIBLE[homePartOf(canonName(e))]||homePartOf(canonName(e))||'Other';
     (byPart[g2]=byPart[g2]||[]).push(e);
   }
-  const last={}; for(const [d,rows] of rzAllSessions())
-    for(const r of rows) if(r[1]!=='Run'&&(r[3]||[]).length) last[rowCid(r)]=d;
-  /* catalog order, but the part that matters TODAY leads — trained today,
-     else trainingPlan's next pick (the same authority as Today's card). */
-  let order=[...VISIBLE_GROUPS.filter(pt=>byPart[pt]),
-             ...Object.keys(byPart).filter(pt=>!VISIBLE_GROUPS.includes(pt))];
-  const todayParts=[...new Set(((DB.days[todayISO]||{}).w||[])
-    .filter(s2=>s2.ex!=='Run'&&(s2.reps||[]).length)
-    .map(s2=>PART_VISIBLE[s2.part]||s2.part))];
-  const plan=trainingPlan();
-  const pickG=PART_VISIBLE[plan.pick]||plan.pick;
-  const lead=todayParts.find(pt=>byPart[pt])||(byPart[pickG]?pickG:null);
-  /* v3.3.195: THREE parts by default — the ones that matter now. Lead is
-     today's part (else the plan's pick, the same authority as Today's
-     Train-next card); the next two are the most DUE by the plan's own
-     since/gap ratio. Not a picker: a "choose your parts" setting would be
-     configuration the cadence data already answers, and it would go stale
-     the week your split changes. The rest sit behind one expander that
-     opens IN PLACE (the v3.3.190 lesson — no scroll jump). */
-  /* a group's dueness is its most-due member — Arms is due when either
-     Biceps or Triceps is */
-  const due=g2=>Math.max(0,...Object.keys(plan.info||{})
-    .filter(pt=>(PART_VISIBLE[pt]||pt)===g2)
-    .map(pt=>plan.info[pt].since/Math.max(1,plan.info[pt].gap)));
-  order.sort((a,b)=>due(b)-due(a));
-  if(lead) order=[lead,...order.filter(pt=>pt!==lead)];
-  const shownParts=_rzAll?order:order.slice(0,RZ_PARTS_SHOWN);
-
-  let out='<div id="rzwrap">';
-  for(const part of shownParts){
-    const shown=rzGotoOf(part,byPart,last);
-    if(!shown.length) continue;
-    if(!rz.sel[part]||!shown.includes(rz.sel[part])) rz.sel[part]=shown[0];
-    const ex=rz.sel[part];
-    out+=`<h2 class="rzh">Rep zones \u00b7 ${part}${part===order[0]?hActs('rz','Sets per rep range, last '+REPZONE_WINDOW+' sessions. Bigger dot = a repeated set; newer sessions solid. Runs excluded.','About rep zones'):''}</h2>
-      <div class="card rzcard" data-rzcard="${part}">
-        <div class="rzlifts">${shown.map(e=>
-          `<button class="chip ${e===ex?'on':''}" data-rzx="${e}" data-rzpart="${part}">${canonName(e)}</button>`).join('')}</div>
-        <div class="rzbody">${rzBody(ex)}</div>`;
-    out+=`</div>`;
+  const order=[...VISIBLE_GROUPS.filter(pt=>byPart[pt]),
+               ...Object.keys(byPart).filter(pt=>!VISIBLE_GROUPS.includes(pt))];
+  /* opens on the group that matters today: trained today, else the plan's
+     next pick — the same authority as Today's Train-next card */
+  if(!rz.grp||!byPart[rz.grp]){
+    const plan=trainingPlan();
+    const todayG=[...new Set(((DB.days[todayISO]||{}).w||[])
+      .filter(s2=>s2.ex!=='Run'&&(s2.reps||[]).length)
+      .map(s2=>PART_VISIBLE[s2.part]||s2.part))].find(g2=>byPart[g2]);
+    const pickG=PART_VISIBLE[plan.pick]||plan.pick;
+    rz.grp=todayG||(byPart[pickG]?pickG:order[0]);
   }
-  if(order.length>RZ_PARTS_SHOWN)
-    out+=`<button class="btn ghost rzmore" data-rzmore>${_rzAll
-      ?'Fewer parts':'All parts \u00b7 '+(order.length-RZ_PARTS_SHOWN)+' more'}</button>`;
-  return out+'</div>';
+  const shown=byPart[rz.grp].slice().sort((a,b)=>(sets[b]||0)-(sets[a]||0)
+    ||canonName(a).localeCompare(canonName(b)));
+  if(!rz.ex||!shown.includes(rz.ex)) rz.ex=shown[0];
+  return `<h2 class="rzh">Rep zones${hActs('rz','Sets per rep range, last '+REPZONE_WINDOW+' sessions. Bigger dot = a repeated set; newer sessions solid. Runs excluded.','About rep zones')}</h2>
+    <div class="card rzcard" data-rzcard="${rz.grp}">
+      <select id="rzGrp" class="rzsel" aria-label="Body part">${order.map(g2=>
+        `<option value="${g2}" ${g2===rz.grp?'selected':''}>${g2}</option>`).join('')}</select>
+      <div class="rzlifts">${shown.map(e=>
+        `<button class="chip ${e===rz.ex?'on':''}" data-rzx="${e}" data-rzpart="${rz.grp}">${canonName(e)}</button>`).join('')}</div>
+      <div class="rzbody">${rzBody(rz.ex)}</div>
+    </div>`;
 }
-const RZ_PARTS_SHOWN=3;
-let _rzAll=false;
+/* v3.3.198: the lift-chip handler. Deleted TWICE now by rewrites of the
+   surrounding section builder (v3.3.188, and again here) — it lives next to
+   the dropdown handler so the two are found and moved together. Swaps the
+   card body in place: no render(), no scroll jump. */
 document.addEventListener('click',e=>{
-  if(!(e.target.closest&&e.target.closest('[data-rzmore]'))) return;
-  _rzAll=!_rzAll;
-  const wrap=document.querySelector('#rzwrap');
-  if(wrap) wrap.outerHTML=repZoneSections(); else render();
+  const xc=e.target.closest&&e.target.closest('[data-rzx]');
+  if(!xc) return;
+  rz.ex=xc.dataset.rzx;
+  const card=xc.closest('.rzcard'), body=card&&card.querySelector('.rzbody');
+  if(!body){ render(); return; }
+  card.querySelectorAll('.rzlifts .chip').forEach(c=>c.classList.toggle('on',c.dataset.rzx===rz.ex));
+  body.innerHTML=rzBody(rz.ex);
+});
+document.addEventListener('change',e=>{
+  if(!e.target||e.target.id!=='rzGrp') return;
+  rz.grp=e.target.value; rz.ex=null;              // the new part picks its own top lift
+  const card=document.querySelector('.rzcard');
+  if(card) card.outerHTML=repZoneSections().split('</h2>')[1]; else render();
 });
 /* v3.3.190: the bars + chart of ONE lift, on their own — so a chip tap can
    swap this alone instead of re-rendering Stats. A full render() reset the
