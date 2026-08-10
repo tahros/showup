@@ -506,6 +506,107 @@ document.addEventListener('change',e=>{
    swap this alone instead of re-rendering Stats. A full render() reset the
    scroll to the top of the tab, which made picking a lift feel like
    leaving the page you were reading. */
+/* ============ v3.3.200 — the reading ============
+   A DELIBERATE SECOND EXCEPTION to Stats' statement-of-fact register, the
+   first being Today's "Train next". Everywhere else Stats describes; here it
+   proposes a weight. That was a considered call (maker's spec, this session),
+   not a leak — the register guard below carries its own allowlist so a later
+   reader sees the decision instead of assuming the rule rotted.
+
+   Three hard rules, each load-bearing:
+   1. EVERY weight traces to a set actually performed. Nothing is extrapolated
+      from thin air.
+   2. Strength targets derive ONLY from sets of <= E1RM_MAX_REPS. Epley-style
+      estimates degrade badly past ~10 reps, and a confident wrong number here
+      is a heavy bar. With no short sets the reading REFUSES and says so.
+   3. Every proposed weight passes through snapW() — the app's own stepper
+      authority — so it lands on increments the person actually uses.
+   Rep floor of REading_MIN_REPS keeps the arithmetic off singles.
+   A balanced lift with weight climbing gets NO reading: silence is what makes
+   the lines mean something when they appear. */
+const E1RM_MAX_REPS=10;         // above this an estimate is not trustworthy
+const READING_MIN_REPS=3;       // never propose singles or doubles
+const READING_PCT=0.85;         // share of estimated max for a 3-5 rep top set
+const READING_LONG_SHARE=0.6;   // "most sets land long" threshold
+const READING_LONG_ANCHOR=0.75; // share of estimated max for a mid-rep restart
+const e1rm=(w,reps)=>reps>0&&reps<=E1RM_MAX_REPS?w*(1+reps/30):null;   // Epley
+function repZoneReading(ex){
+  const {dots,used}=repZoneSets(ex,REPZONE_WINDOW);
+  if(!dots.length) return null;
+  const counts=[0,0,0];
+  for(const d of dots) counts[repZone(d.rep)]+=d.n;
+  const total=counts[0]+counts[1]+counts[2];
+  const short=dots.filter(d=>d.rep<=E1RM_MAX_REPS);
+  const best=short.reduce((a,d)=>{const e=e1rm(d.w,d.rep);return e>(a?a.e:0)?{e,w:d.w,rep:d.rep}:a;},null);
+  const out=[];
+
+  /* --- Strength: only speaks when the zone is empty --- */
+  if(!counts[0]){
+    if(!best) out.push(['Strength (under '+(REPZONE_MAX_STRENGTH+1)+' reps)',
+      'Empty. Not enough short sets to read a weight from.']);
+    else out.push(['Strength (under '+(REPZONE_MAX_STRENGTH+1)+' reps)',
+      'Empty. Try '+wDisp(snapW(best.e*READING_PCT))+U()+' \u00d7 '
+      +READING_MIN_REPS+'\u2013'+REPZONE_MAX_STRENGTH+'.']);
+  }
+  /* --- Growth: double progression, off the person's own top-of-range sets --- */
+  if(counts[1]){
+    const top=dots.filter(d=>d.rep===REPZONE_MAX_GROWTH)
+      .reduce((a,d)=>d.w>(a?a.w:-1)?d:a,null);
+    const bestG=dots.filter(d=>d.rep>REPZONE_MAX_STRENGTH&&d.rep<=REPZONE_MAX_GROWTH)
+      .reduce((a,d)=>d.w>(a?a.w:-1)||(a&&d.w===a.w&&d.rep>a.rep)?d:a,null);
+    let line;
+    if(top&&top.n>=2)
+      line='You hit '+wDisp(top.w)+U()+' \u00d7 '+REPZONE_MAX_GROWTH+' twice \u2014 go to '
+           +wDisp(snapW(top.w+toKg(STEP())))+U()+'.';
+    else if(bestG)
+      line='Best is '+wDisp(bestG.w)+U()+' \u00d7 '+bestG.rep+' \u2014 stay here until '
+           +REPZONE_MAX_GROWTH+'.';
+    if(line) out.push([`Growth (${REPZONE_MAX_STRENGTH+1}\u2013${REPZONE_MAX_GROWTH})`,
+      counts[1]+' set'+(counts[1]===1?'':'s')+'. '+line]);
+  }
+  /* --- Long sets: the proportion, then ONE concrete next session --- */
+  if(counts[2]&&total&&counts[2]/total>=READING_LONG_SHARE){
+    /* v3.3.200: "N of every M" in gym language. The share is approximated by
+       the closest small fraction (denominators 2-5) so it reads as a habit,
+       not a statistic. Earlier arithmetic here produced "6 in every 6" —
+       true-ish and meaningless; a ratio must have a smaller numerator. */
+    const share=counts[2]/total;
+    let n=0,m=0,err=9;
+    for(let d=2;d<=5;d++){
+      const k=Math.round(share*d);
+      if(k<1||k>=d) continue;
+      const e=Math.abs(k/d-share);
+      if(e<err){err=e;n=k;m=d;}
+    }
+    const anchor=dots.filter(d=>d.rep>REPZONE_MAX_STRENGTH&&d.rep<=REPZONE_MAX_GROWTH)
+      .reduce((a,d)=>d.w>(a?a.w:-1)?d:a,null)
+      ||(best?{w:snapW(best.e*READING_LONG_ANCHOR),rep:REPZONE_MAX_STRENGTH+3}:null);
+    const lines=[m?('About '+n+' of every '+m+' sets land here.')
+                  :'Almost every set lands here.'];
+    if(anchor) lines.push('Next '+canonName(ex)+' day, start at '+wDisp(anchor.w)+U()
+      +' \u00d7 '+Math.max(READING_MIN_REPS,Math.min(REPZONE_MAX_GROWTH,anchor.rep))+'.');
+    out.push([`Long sets (${REPZONE_MAX_GROWTH+1}+)`,lines.join('\n')]);
+  }
+  return out.length?out:null;
+}
+function readingCard(ex){
+  const r=repZoneReading(ex);
+  if(!r) return '';
+  if(DB.settings.rdHide) return `<button class="rdtoggle" data-rdtoggle>reading \u25be</button>`;
+  return `<div class="rdbox">
+    <div class="rdhead"><span>${canonName(ex)}</span>
+      <button class="rdtoggle" data-rdtoggle>hide \u25b4</button></div>
+    ${r.map(([h,b])=>`<div class="rdrow"><div class="rdz">${h}</div>${
+      b.split('\n').map(l=>`<div class="rdl">${l}</div>`).join('')}</div>`).join('')}
+  </div>`;
+}
+document.addEventListener('click',e=>{
+  if(!(e.target.closest&&e.target.closest('[data-rdtoggle]'))) return;
+  DB.settings.rdHide=!DB.settings.rdHide;      // preference, never the ledger
+  DB.settingsAt=Date.now(); save(true);
+  const card=document.querySelector('.rzcard'), body=card&&card.querySelector('.rzbody');
+  if(body) body.innerHTML=rzBody(rz.ex); else render();
+});
 function rzBody(ex){
   const {counts}=repZoneData(ex,REPZONE_WINDOW);
   const max=Math.max(...counts,1);
@@ -517,7 +618,7 @@ function rzBody(ex){
       <span class="rzn"><b>${counts[i]}</b> set${counts[i]===1?'':'s'}</span>
     </div>`;
   });
-  return out+`</div>`+repZoneScatterSvg(ex);
+  return out+`</div>`+repZoneScatterSvg(ex)+readingCard(ex);
 }
 /* ============ v3.3.192 — intent gaps ============
    Question-addressed: "what did I mean to train, and haven't?" The ledger

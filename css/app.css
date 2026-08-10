@@ -1180,6 +1180,18 @@
   .igwhen b{color:var(--muted);font-size:13px;font-weight:600}
   .igx{background:none;border:0;color:var(--faint);font-size:16px;line-height:1;
     padding:0 2px;cursor:pointer;align-self:center}
+  /* v3.3.200 the reading — quiet box under the chart, no accent fill and no
+     red: it proposes, it does not alarm. */
+  .rdbox{margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+  .rdhead{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+  .rdhead>span{font-family:var(--mono);font-size:11px;letter-spacing:var(--track-label);
+    text-transform:uppercase;color:var(--muted)}
+  .rdrow{margin-bottom:12px}
+  .rdrow:last-child{margin-bottom:0}
+  .rdz{font-family:var(--mono);font-size:11px;color:var(--faint);margin-bottom:3px}
+  .rdl{font-family:var(--mono);font-size:13px;color:var(--chalk);line-height:1.5}
+  .rdtoggle{background:none;border:0;padding:0;cursor:pointer;
+    font-family:var(--mono);font-size:11px;color:var(--faint)}
   .rzlifts{display:flex;gap:6px;overflow-x:auto;overflow-y:hidden;
     margin:12px -14px 14px;padding:0 14px 2px;scrollbar-width:none;
     -webkit-overflow-scrolling:touch}
