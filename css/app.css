@@ -1,8 +1,23 @@
 :root{--sat:env(safe-area-inset-top,0px);
     color-scheme:dark;
-    --ground:#0C0E13; --surface:#171A21; --surface2:#232733; --line:#343947;
-    --accent:#5B7BFF; --accent-soft:#3A4A8C; --accent-dim:#95A4E8;
-    --record:#E05545;                       /* the only non-blue: personal records */
+    /* v3.3.202 (Dark Mode V3, step 2): surfaces and the two fills that carry
+       white or coloured text.
+       - the canvas drops and the card lifts, so a card reads off the screen
+         without needing a border (1.11 -> 1.15). The handoff's own control
+         surface (#273242) was REJECTED: at that lightness --faint falls to
+         4.32 and --record to 3.43 on it. Separation you can only buy by
+         pushing text under the floor is not separation worth having, so
+         --surface2 holds at its ceiling.
+       - --accent as a FILL carried white text at 3.67:1 — below AA, on every
+         selected chip and segmented control in the app. The handoff's
+         accentFill value fixes it at 4.65 and still clears the 3:1 graphic
+         floor against the canvas (4.27). --accent-ink keeps accent-as-text.
+       - --record sat at 3.94:1 on --surface2, unguarded because the contrast
+         loop only ever checked it against --surface. Lifted along its own
+         hue to clear 4.5 on both. */
+    --ground:#070A0E; --surface:#151B25; --surface2:#232733; --line:#364354;
+    --accent:#4C6BE3; --accent-soft:#3A4A8C; --accent-dim:#95A4E8;
+    --record:#E36758;                       /* the only non-blue: personal records */
     --rest:#3E5C46;                         /* v3.3.81: declared rest — green's ONE meaning (wash/frame grade) */
     --rest-ink:#8DB596;                     /* v3.3.92: rest as TEXT — same hue, text-grade. A wash colour
                                                cannot also be an ink: 1.69:1 on its own wash proved it */
@@ -46,9 +61,13 @@
   }
   :root[data-theme="light"]{
     color-scheme:light;
+    /* v3.3.202: light's --record was 4.41:1 on --surface2 — the same
+       unguarded gap as dark's, found by the same new check. Deepened along
+       its hue to 4.88. Surfaces are unchanged: light already separates by
+       1.20 and darkening --surface2 further would push --faint under. */
     --ground:#F2F3F6; --surface:#FFFFFF; --surface2:#E8EAF0; --line:#D6D9E2;
     --accent:#2F4BD8; --accent-soft:#C3CCF5; --accent-dim:#8892C4;
-    --record:#C33A2C;
+    --record:#B83528;
     --rest:#79A884;                         /* declared rest, light theme (wash/frame grade) */
     --rest-ink:#3B5742;                     /* rest as text, light */
     /* v3.3.121: lifted out of the 600–900 range, which read as near-black.

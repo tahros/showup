@@ -184,7 +184,16 @@ for _name,_blkc in (("dark",_dark),("light",_light)):
         (T["accent-ink"],T["surface2"],4.5,"accent ink on surface2"),
         (T["accent-ink"],T["ground"],4.5,"accent ink on ground"),
         (T["chart-soft"],T["surface"],3.0,"chart-soft stroke on surface"),
-        (T["accent"],T["surface"],4.5,"accent small text on surface"),
+        # v3.3.202: --accent is a FILL now, not an ink (--accent-ink took the
+        # text job). So the thing that owes 4.5 is the WHITE LABEL on it --
+        # selected chips, segmented controls, primary buttons all put #fff on
+        # this colour, and it was 3.67:1 for the app's whole life. As a
+        # graphic it still owes 3:1 against the canvas.
+        ("#FFFFFF",T["accent"],4.5,"white label on accent fill"),
+        (T["accent"],T["ground"],3.0,"accent fill as a graphic on ground"),
+        # v3.3.202: record was only ever checked on --surface, and sat at
+        # 3.94 (dark) / 4.41 (light) on --surface2 unnoticed.
+        (T["record"],T["surface2"],4.5,"record text on surface2"),
         (T["record"],T["surface"],4.5,"record text on surface"),
         ("#FFFFFF",T["live"],4.5,"white on live header"),
         (T["chalk"],T["surface"],7.0,"chalk on surface (reading text \u2192 AAA-ish)"),
