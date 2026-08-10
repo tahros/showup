@@ -361,7 +361,7 @@ function repZoneSets(ex,N){
 function repZoneScatterSvg(){
   const {dots,used}=repZoneSets(rz.ex,REPZONE_WINDOW);
   if(!dots.length) return '';
-  const W=340,H=190,X0=34,XW=W-X0-8,Y0=H-26,YH=Y0-14;
+  const W=340,H=202,X0=34,XW=W-X0-8,Y0=H-38,YH=Y0-14;
   const reps=Math.max(REPZONE_MAX_GROWTH+3,...dots.map(d=>d.rep));
   const ws=dots.map(d=>d.w);
   let wLo=Math.min(...ws),wHi=Math.max(...ws);
@@ -390,6 +390,9 @@ function repZoneScatterSvg(){
   for(let rv=5;rv<=reps;rv+=5)
     h2+=`<text x="${x(rv).toFixed(1)}" y="${Y0+12}" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="var(--muted)">${rv}</text>`;
   h2+=`<line x1="${X0}" y1="${Y0}" x2="${X0+XW}" y2="${Y0}" stroke="var(--line)" stroke-width="0.8"></line>`;
+  /* v3.3.186: the axes say what they are (maker's ask) */
+  h2+=`<text x="${(X0+XW/2).toFixed(1)}" y="${H-4}" text-anchor="middle" font-family="var(--mono)" font-size="7.5" fill="var(--muted)" class="rzxlab">reps per set</text>`;
+  h2+=`<text x="8" y="${(Y0-YH/2).toFixed(1)}" text-anchor="middle" font-family="var(--mono)" font-size="7.5" fill="var(--muted)" class="rzylab" transform="rotate(-90 8 ${(Y0-YH/2).toFixed(1)})">weight (${U()})</text>`;
   // dots: newest solid, oldest faint; count sizes
   for(const d of dots.sort((a,b)=>b.age-a.age)){
     const op=used>1?(0.35+0.65*(1-d.age/(used-1))):1;
@@ -404,15 +407,26 @@ function repZoneScatterSvg(){
 function repZoneCard(){
   const exs=rzExercises();
   if(!exs.length) return `<div class="note">No weighted sets yet. The zones will be here when the sets are.</div>`;
-  /* v3.3.183 default: the APP chooses the core lift — most recently trained
-     exercise whose tier is 'goto' (the same curated tier Records uses, ↑↓
-     overrides respected). Fallback: most recent of any tier. The person can
-     still pick anything; the app just opens on the big one. */
+  /* v3.3.186 default (maker's spec): the mirror opens on the part that
+     matters TODAY —
+       1. trained today → today's part's core lift (the sets just logged
+          are the ones worth questioning), or
+       2. not yet → the core lift of the part the app says to train NEXT,
+          from trainingPlan().pick — the SAME authority Today's "Train
+          next" card uses, not a second heuristic.
+     Within the chosen part: most recently trained goto-tier exercise;
+     fallbacks walk outward (any exercise of the part, then any goto, then
+     most recent) so the card never opens empty while sets exist. */
   if(!rz.ex||!exs.includes(rz.ex)){
     const last={}; for(const [d,rows] of rzAllSessions())
       for(const r of rows) if(r[1]!=='Run'&&(r[3]||[]).length) last[r[1]]=d;
     const byRecent=exs.slice().sort((a,b)=>last[a]<last[b]?1:-1);
-    rz.ex=byRecent.find(e=>exTier(e)==='goto')||byRecent[0];
+    const todayParts=[...new Set(((DB.days[todayISO]||{}).w||[])
+      .filter(s2=>s2.ex!=='Run'&&(s2.reps||[]).length).map(s2=>s2.part))];
+    const part=todayParts.length?todayParts[0]:(trainingPlan().pick||null);
+    const inPart=part?byRecent.filter(e=>homePartOf(e)===part):[];
+    rz.ex=inPart.find(e=>exTier(e)==='goto')||inPart[0]
+        ||byRecent.find(e=>exTier(e)==='goto')||byRecent[0];
   }
   const byPart={};
   for(const e of exs)(byPart[homePartOf(e)||'Other']=byPart[homePartOf(e)||'Other']||[]).push(e);

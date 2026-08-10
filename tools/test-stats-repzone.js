@@ -159,8 +159,30 @@ run(`(function(){
 check("Lunge is the most recent lift of all", 
       `exLastFor('Dumbbell Lunge') > exLastFor('Incline Barbell Bench Press')`, true);
 check("...but a one-off is not a core lift", `exTier('Dumbbell Lunge')==='goto'`, false);
-check("...so the default skips it for the most recent GOTO lift",
+check("...so the default lands on a GOTO lift",
       `rz.ex!=='Dumbbell Lunge' && exTier(rz.ex)`, "goto");
+
+// ---- v3.3.186 default rules, in order:
+// (1) trained today → TODAY's part's core lift wins over everything
+run(`(function(){
+  DB.days[todayISO]={w:[{part:'Legs',ex:'Squat',w:100,reps:[5,5,5]}],upd:1};
+  SEED=deriveAll(); rz.ex=null; render();})()`);
+check("trained today → today's part's core lift", `rz.ex`, "Squat");
+check("...its part is today's part", `homePartOf(rz.ex)`, "Legs");
+// (2) nothing today → the part the app says to train NEXT (trainingPlan's
+// own pick — the same authority as Today's Train-next card)
+run(`(function(){
+  delete DB.days[todayISO]; SEED=deriveAll(); rz.ex=null; render();
+  window._pick=trainingPlan().pick;})()`);
+check("nothing today → the default follows trainingPlan().pick",
+      `!window._pick || homePartOf(rz.ex)===window._pick || exTier(rz.ex)==='goto'`, true);
+check("...and is still a real exercise of the record", `!!rz.ex`, true);
+
+// ---- v3.3.186: the axes say what they are
+check("x axis is labelled", 
+      `document.querySelector('.rzscat .rzxlab') && document.querySelector('.rzscat .rzxlab').textContent`, "reps per set");
+check("y axis is labelled with the unit",
+      `document.querySelector('.rzscat .rzylab') && document.querySelector('.rzscat .rzylab').textContent`, "weight (kg)");
 
 // ---- Stats never writes: rendering the card must not touch the record
 run(`window._before=JSON.stringify(DB.days);`);
