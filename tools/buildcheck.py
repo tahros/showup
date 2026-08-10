@@ -299,6 +299,27 @@ for _cn in ("REPZONE_MAX_STRENGTH", "REPZONE_MAX_GROWTH"):
 if _re.search(r"repZone\s*\(\s*reps\s*\)\s*\{[^}]*[^_A-Z](5|12)[^0-9]", _stats):
     fail.append("rep zones: bucketer contains an inline boundary literal — use the named constants (v3.3.181)")
 
+# -- Intent gaps (v3.3.192): one threshold, one definition site. A second
+#    literal 21 in the query, the copy, or a later view is exactly how the
+#    list and the sentence describing it drift apart.
+_defs = _re.findall(r"const\s+INTENT_GAP_DAYS\s*=", _stats)
+if len(_defs) != 1:
+    fail.append(f"intent gaps: INTENT_GAP_DAYS defined {len(_defs)} times — one definition site required (v3.3.192)")
+_ig = _re.search(r"function intentGaps\(\)\{.*?\n\}", _stats, _re.S)
+if _ig and _re.search(r"[^A-Z_](21)[^0-9]", _ig.group(0)):
+    fail.append("intent gaps: inline threshold literal in the query — use INTENT_GAP_DAYS (v3.3.192)")
+#    Register guard: this section states facts. Scolding, scoring and streak
+#    language are out of register, and red is reserved for live.
+#    Scan EMITTED COPY only — block comments explain the rule by naming the
+#    words it forbids, so scanning them would fail the clean build (it did).
+_igstart = _stats.rfind("/*", 0, _stats.find("v3.3.192 — intent gaps"))
+_igsec = _stats[_igstart:_stats.find("function renderStats")]
+_igcopy = _re.sub(r"/\*.*?\*/", "", _igsec, flags=_re.S)
+_igcopy = _re.sub(r"//[^\n]*", "", _igcopy)
+for _bad in ("falling behind", "you should", "keep it up", "well done", "--live", "streak"):
+    if _bad in _igcopy.lower():
+        fail.append(f"intent gaps: out-of-register copy or colour ({_bad!r}) (v3.3.192)")
+
 # -- shell size
 n = len(idx.encode())
 if n >= 8192: fail.append(f"index.html shell is {n} bytes (limit 8192)")

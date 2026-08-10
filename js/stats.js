@@ -517,6 +517,60 @@ function rzBody(ex){
   });
   return out+`</div>`+repZoneScatterSvg(ex);
 }
+/* ============ v3.3.192 — intent gaps ============
+   Question-addressed: "what did I mean to train, and haven't?" The ledger
+   already answers it — exercises carrying a weight and zero sets are stated
+   intentions that never became training, and they sit there for weeks. This
+   surfaces them. No taxonomy, no recommender, no prescriptions; it proposes
+   nothing the person hasn't already written down themselves.
+
+   Register: statement of fact. No scolding, no encouragement, no score, no
+   percentage of compliance, no streak language. Red is reserved for live.
+   An empty list is a good outcome stated in one plain line, not congratulated.
+
+   Keyed by CANONICAL ID (Phase 1), so a renamed exercise cannot appear as a
+   stale ghost beside its own active self. */
+const INTENT_GAP_DAYS=21;
+const retired=()=>DB.settings.retired||(DB.settings.retired={});
+function intentGaps(){
+  const lastReal={},seen={};
+  const scan=(iso,rows)=>{
+    for(const r of rows){
+      if(r[1]==='Run') continue;
+      const id=rowCid(r); if(!id) continue;
+      seen[id]=r[1];                                   // display via canonName, this is a fallback
+      if((r[3]||[]).length) lastReal[id]=lastReal[id]&&lastReal[id]>iso?lastReal[id]:iso;
+    }
+  };
+  for(const [iso,rows] of Object.entries(SEED.sessions)) scan(iso,rows);
+  scan(todayISO,((DB.days[todayISO]||{}).w||[])
+    .map(s2=>[s2.part,s2.ex,s2.w,s2.reps||[],s2.mins,s2.secs,s2.cid]));
+  const out=[];
+  for(const id of Object.keys(seen)){
+    if(retired()[id]) continue;
+    const last=lastReal[id];
+    const days=last?daysAgo(last):null;               // null = never a completed set
+    if(days!==null&&days<=INTENT_GAP_DAYS) continue;
+    out.push({id,name:canonName(id)||seen[id],days});
+  }
+  /* never-logged first (the strongest signal), then longest-idle */
+  return out.sort((a,b)=>(a.days===null?-1:0)-(b.days===null?-1:0)||(b.days||0)-(a.days||0));
+}
+function intentGapCard(){
+  const gaps=intentGaps();
+  if(!gaps.length) return `<div class="note">Nothing stated and untrained.</div>`;
+  return `<div class="igrows">${gaps.map(g=>`<div class="igrow">
+    <span class="igname">${g.name}</span>
+    <span class="igwhen">${g.days===null?'never logged with reps':`<b>${g.days}</b> days`}</span>
+    <button class="igx" data-igretire="${g.id}" aria-label="Stop showing ${g.name}">\u00d7</button>
+  </div>`).join('')}</div>`;
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest&&e.target.closest('[data-igretire]');
+  if(!b) return;
+  retired()[b.dataset.igretire]=1;                    // preference, never the ledger
+  DB.settingsAt=Date.now(); save(true); render();
+});
 function renderStats(){
   const _S={}; const cut=k=>{ _S[k]=h; h=''; };
   if(SEED.totals.sessions===0 && !hasAnyDays()){ $('#view').innerHTML=emptyHero('stats'); return; }
@@ -601,6 +655,9 @@ function renderStats(){
         <div class="pmixsum" id="pmixSum"></div>
       </div>`;
   cut('pmix');
+  h+=`<h2>Stated, not trained${hActs('ig','Exercises in your log with no completed set in the last '+INTENT_GAP_DAYS+' days, or none ever. Tap \u00d7 to stop showing one.','About stated, not trained')}</h2>
+      <div class="card igcard">${intentGapCard()}</div>`;
+  cut('ig');
   h+=repZoneSections();
   cut('rz');
   h+=`<h2>Consistency${hActs('yoy','Percent of days trained, per year. The bold line is this year.','About the consistency chart')}</h2><div class="card">
@@ -818,7 +875,7 @@ function renderStats(){
       </div>`;
   cut('rep');
   // sections emit in one declared order (v3.3.111)
-  h = _S.kpis + _S.rz + _S.pmix + _S.cons + _S.em + _S.dbm + _S.last6 + _S.wd + _S.wt;
+  h = _S.kpis + _S.rz + _S.pmix + _S.ig + _S.cons + _S.em + _S.dbm + _S.last6 + _S.wd + _S.wt;
 
   // the whole Run story lives here now (was its own tab in v2.04 — reverted)
   h+=runStatsHTML();

@@ -76,6 +76,11 @@ function renderSync(){
       <div class="note">Logged weight is the total including the bar, so per-side = (total − bar) ÷ 2. Set the Smith bar to 0 if you log Smith work as plates only.</div>
       <button class="btn" id="barSave" style="margin-top:10px">Save</button>
     </div>
+    ${Object.keys(DB.settings.retired||{}).length?`<h2>Hidden from \u201cStated, not trained\u201d</h2>
+    <div class="card"><div class="note" style="margin-bottom:10px">These stay in your history \u2014 they just stopped being listed.</div>
+      <div class="chips">${Object.keys(DB.settings.retired).map(id=>
+        `<button class="chip" data-igback="${id}">${canonName(id)} \u21ba</button>`).join('')}</div>
+    </div>`:''}
     <h2>Same exercise, two names</h2>
     <div class="card">
       <div class="note" style="margin-bottom:10px">If the same movement got logged under two names, fold one into the other. The app never does this on its own \u2014 only genuinely different movements should stay apart.</div>
@@ -190,6 +195,9 @@ document.addEventListener('click',e=>{
   const hit=id=>!!(e.target.closest&&e.target.closest('#'+id));
   if(hit('expCsv')){ dlFile('showup-export-'+todayISO+'.csv','text/csv',tableText(',')); return; }
   if(hit('expSheet')){ copyForSheets(); return; }
+  const _ib=e.target.closest&&e.target.closest('[data-igback]');
+  if(_ib){ delete DB.settings.retired[_ib.dataset.igback];
+    DB.settingsAt=Date.now(); save(true); render(); return; }
   if(hit('mgGo')){
     const from=_mg.from,to=_mg.to; if(!from||!to) return;
     const moved=canonMerge(from,to);
