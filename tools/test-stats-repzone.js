@@ -104,19 +104,42 @@ check("every card has exactly one lift row",
       `[...document.querySelectorAll('.rzcard')].every(c=>c.querySelectorAll('.rzlifts').length===1)`, true);
 check("the Chest card marks its selected lift",
       `${CH}.querySelector('.rzlifts .chip.on').textContent`, "Incline Barbell Bench Press");
+// v3.3.189: the rail is ordered by weight of use — sessions, then sets, then
+// recency — so the part's centre of gravity leads, not the latest cameo
+check("the most-trained lift leads the rail, not the most recent",
+      `(function(){
+        const D=n=>{const d=new Date();d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA');};
+        for(let i=1;i<=8;i++) DB.days[D(1+i*4)]={w:[{part:'Back',ex:'Deadlift',w:100,reps:[5,5,5,5]}],upd:1};
+        for(const n of [1,9,17]) DB.days[D(n)]={w:[{part:'Back',ex:'Seated Cable Row',w:40,reps:[12]}],upd:1};
+        SEED=deriveAll(); rz.sel={}; render();
+        return document.querySelector('[data-rzcard="Back"] .rzlifts .chip').textContent;})()`, "Deadlift");
+check("...and that is what the Back section opens on",
+      `document.querySelector('[data-rzcard="Back"] .rzlifts .chip.on').textContent`, "Deadlift");
+check("the more-recent cameo is still offered, just not first",
+      `[...document.querySelectorAll('[data-rzcard="Back"] .rzlifts .chip')].map(c=>c.textContent).includes('Seated Cable Row')`, true);
 check("the window selector is removed", `document.querySelectorAll('[data-rzn]').length`, 0);
 check("the window is the constant, not state", `REPZONE_WINDOW`, 10);
 check("the legend line stays gone",
       `!document.querySelector('.rzscatnote') && !/runs excluded/.test(${CH}.textContent)`, true);
-// v3.3.188: the footer states the drawn window — span + count, always
-check("footer gives a YY/MM/DD date range and the session count",
-      `/Date range: \\d\\d\\/\\d\\d\\/\\d\\d \u2013 \\d\\d\\/\\d\\d\\/\\d\\d; 10 sessions logged/
-        .test(${CH}.querySelector('.rznote').textContent)`, true);
-check("...and it reports the true span for a short record",
-      `(function(){rz.sel={Chest:'Chest Fly'}; render();
-        const t=document.querySelector('[data-rzcard="Chest"]').querySelector('.rznote').textContent;
-        rz.sel={Chest:'Incline Barbell Bench Press'}; render(); return /3 sessions logged/.test(t);})()`, true);
-check("the old 'only N sessions' phrasing is gone", `/only \\d+ session/.test(${CH}.textContent)`, false);
+// v3.3.189: the card ends at the chart — no footer text at all
+check("no footer note under the chart", `!${CH}.querySelector('.rznote')`, true);
+check("no date-range text anywhere in the card", `/Date range/.test(${CH}.textContent)`, false);
+check("the old 'only N sessions' phrasing stays gone", `/only \\d+ session/.test(${CH}.textContent)`, false);
+
+// ---- v3.3.189: the lift rail scrolls sideways, so it must be exempt from
+// the tab-swipe gesture — otherwise a sideways drag changes tabs
+check("the lift rail is on the tab-swipe blocklist",
+      `${(fs.readFileSync(path.join(dir,"js/util.js"),"utf8").includes("closest('.rzlifts')"))}`, "true");
+
+// ---- v3.3.189: dots never touch the plot edges
+check("every dot clears the plot top and bottom by its own radius",
+      `(function(){
+        const svg=${CH}.querySelector('.rzscat');
+        const band=svg.querySelector('rect');
+        const top=+band.getAttribute('y'), h=+band.getAttribute('height');
+        return [...svg.querySelectorAll('circle')].every(c=>{
+          const cy=+c.getAttribute('cy'), r=+c.getAttribute('r');
+          return cy-r > top && cy+r < top+h;});})()`, true);
 // v3.3.185: Rep zones sits right after the ShowUp hero, before Part mix
 check("Rep zones renders before Part mix",
       `(function(){const t=document.querySelector('#view').innerHTML;
@@ -206,10 +229,13 @@ check("only GO-TO lifts of the part are offered — the one-off Lunge is not",
           .map(c=>c.textContent);
         return names.includes('Squat') && !names.includes('Dumbbell Lunge');})()`, true);
 check("tapping a lift chip selects it within ITS part",
-      `(function(){document.querySelector('[data-rzcard="Chest"] [data-rzx="Chest Fly"]').click();
+      `(function(){rz.sel={}; render();
+        document.querySelector('[data-rzcard="Chest"] [data-rzx="Chest Fly"]').click();
         return rz.sel['Chest'];})()`, "Chest Fly");
-check("...and leaves other parts' selections alone",
-      `rz.sel['Legs']`, "Squat");
+check("...and leaves other parts untouched (they keep their own default)",
+      `(function(){document.querySelector('[data-rzcard="Legs"] [data-rzx="Squat"]').click();
+        document.querySelector('[data-rzcard="Chest"] [data-rzx="Incline Barbell Bench Press"]').click();
+        return rz.sel['Legs'];})()`, "Squat");
 
 // ---- v3.3.186: the axes say what they are
 check("x axis is labelled", 

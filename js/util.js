@@ -60,7 +60,8 @@
                    t.closest('#repCard')||    // v3.3.139: the card carousel owns its own left/right
                    t.closest('.lbwrap')||     // v3.3.164: scrubbing the live bars is not a tab swipe
                    t.closest(MODALS)||        // v3.3.140: and nothing under a modal moves
-                   t.closest('.compscroll');   // sideways-scrolling chart owns its axis
+                   t.closest('.compscroll')||  // sideways-scrolling chart owns its axis
+                   t.closest('.rzlifts');      // v3.3.189: the rep-zone lift rail scrolls sideways too
   addEventListener('touchstart',e=>{
     if(e.touches.length!==1||view==='sync') return;
     if(blocked(e.target)) return;

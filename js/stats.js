@@ -369,7 +369,14 @@ function repZoneScatterSvg(ex){
   const reps=Math.max(REPZONE_MAX_GROWTH+3,...dots.map(d=>d.rep));
   const ws=dots.map(d=>d.w);
   let wLo=Math.min(...ws),wHi=Math.max(...ws);
-  if(wLo===wHi){wLo-=5;wHi+=5;} const pad=(wHi-wLo)*0.12; wLo-=pad; wHi+=pad;
+  if(wLo===wHi){wLo-=5;wHi+=5;}
+  /* v3.3.189: pad the weight axis so the largest dot never kisses the plot
+     edge. The old 12% was computed before radius existed; the biggest dot
+     is ~8px, so the pad must cover it in DATA units as well as clear the
+     band labels up top. */
+  const span=wHi-wLo, maxR=3.2+1.6*Math.sqrt(Math.max(...dots.map(d=>d.n))-1);
+  const pad=Math.max(span*0.18,span*(maxR+6)/Math.max(1,YH));
+  wLo-=pad; wHi+=pad;
   const x=rep=>X0+(rep/(reps+1))*XW;
   const y=w2=>Y0-((w2-wLo)/(wHi-wLo))*YH;
   /* zone bands from the SAME constants as the buckets — one definition site.
@@ -385,7 +392,7 @@ function repZoneScatterSvg(ex){
     h2+=`<text x="${cx.toFixed(1)}" y="${Y0-YH+9}" text-anchor="middle" font-family="var(--mono)" font-size="7.5" fill="var(--faint)">${range}</text>`;
   });
   // y ticks: lo / mid / hi weight
-  for(const wv of [wLo+pad,(wLo+wHi)/2,wHi-pad]){
+  for(const wv of [Math.min(...ws),(wLo+wHi)/2,Math.max(...ws)]){
     const yy=y(wv);
     h2+=`<line x1="${X0}" y1="${yy.toFixed(1)}" x2="${X0+XW}" y2="${yy.toFixed(1)}" stroke="var(--line)" stroke-width="0.5" stroke-dasharray="2 4"></line>
         <text x="${X0-4}" y="${(yy+2.5).toFixed(1)}" text-anchor="end" font-family="var(--mono)" font-size="7" fill="var(--muted)">${wDisp(wv)}</text>`;
@@ -412,10 +419,38 @@ function repZoneScatterSvg(ex){
    lifts are all one-offs still shows its single most recent lift, so every
    section has something to say. */
 function rzGotoOf(part,byPart,last){
-  const inP=(byPart[part]||[]).slice().sort((a,b)=>last[a]<last[b]?1:-1);
+  /* v3.3.189: ORDER BY WEIGHT OF USE, not recency. Sorting by last-trained
+     put Back's default on "Seated Cable Row" — a real lift, but not the one
+     that carries the part. The lift you've done most sessions of is the
+     part's centre of gravity; sets break ties (a 5-set day outranks a
+     1-set cameo), then recency. Deadlift and Pull Up win Back on the
+     record, without a hand-maintained list of "big lifts". */
+  const sess={},sets={};
+  for(const [,rows] of rzAllSessions()){
+    const seen={};
+    for(const r of rows){
+      if(r[1]==='Run'||!(r[3]||[]).length) continue;
+      sets[r[1]]=(sets[r[1]]||0)+r[3].length;
+      if(!seen[r[1]]){ seen[r[1]]=1; sess[r[1]]=(sess[r[1]]||0)+1; }
+    }
+  }
+  const rank=(a,b)=>(sess[b]||0)-(sess[a]||0)||(sets[b]||0)-(sets[a]||0)
+                    ||(last[a]<last[b]?1:last[a]>last[b]?-1:0);
+  const inP=(byPart[part]||[]).slice().sort(rank);
   const g=inP.filter(e=>exTier(e)==='goto');
   return g.length?g:inP.slice(0,1);
 }
+/* v3.3.189: the lift rail's tap handler. It went missing in the v3.3.188
+   per-part rewrite — the replacement targeted the v3.3.187 handler text,
+   which the rewrite had already changed, so the edit no-op'd and the chips
+   shipped inert for one release. Selection is keyed by PART, so each
+   section remembers its own lift. */
+document.addEventListener('click',e=>{
+  const xc=e.target.closest&&e.target.closest('[data-rzx]');
+  if(!xc) return;
+  rz.sel[xc.dataset.rzpart]=xc.dataset.rzx;
+  render();
+});
 function repZoneSections(){
   const exs=rzExercises();
   if(!exs.length) return `<h2>Rep zones${hActs('rz','Sets per rep range, last '+REPZONE_WINDOW+' sessions. Bigger dot = a repeated set; newer sessions solid. Runs excluded.','About rep zones')}</h2>
@@ -439,7 +474,7 @@ function repZoneSections(){
     if(!shown.length) continue;
     if(!rz.sel[part]||!shown.includes(rz.sel[part])) rz.sel[part]=shown[0];
     const ex=rz.sel[part];
-    const {counts,used,first,last:lastD}=repZoneData(ex,REPZONE_WINDOW);
+    const {counts}=repZoneData(ex,REPZONE_WINDOW);
     const max=Math.max(...counts,1);
     out+=`<h2>Rep zones \u00b7 ${part}${part===order[0]?hActs('rz','Sets per rep range, last '+REPZONE_WINDOW+' sessions. Bigger dot = a repeated set; newer sessions solid. Runs excluded.','About rep zones'):''}</h2>
       <div class="card rzcard" data-rzcard="${part}">
@@ -454,15 +489,10 @@ function repZoneSections(){
       </div>`;
     });
     out+=`</div>${repZoneScatterSvg(ex)}`;
-    /* v3.3.188: the footer states the window it actually drew — the span of
-       dates and how many sessions fell in it. Replaces "only N sessions
-       logged", which only spoke up when the record was short. */
-    if(used) out+=`<div class="note rznote">Date range: ${ymd(first)} \u2013 ${ymd(lastD)}; ${used} session${used===1?'':'s'} logged</div>`;
     out+=`</div>`;
   }
   return out;
 }
-function ymd(iso){ return iso?iso.slice(2).replace(/-/g,'/'):''; }
 function renderStats(){
   const _S={}; const cut=k=>{ _S[k]=h; h=''; };
   if(SEED.totals.sessions===0 && !hasAnyDays()){ $('#view').innerHTML=emptyHero('stats'); return; }
