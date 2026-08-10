@@ -465,6 +465,11 @@ function repZoneSections(){
     const pickG=PART_VISIBLE[plan.pick]||plan.pick;
     rz.grp=todayG||(byPart[pickG]?pickG:order[0]);
   }
+  /* v3.3.199: ordered by TOTAL SETS LOGGED, most first — and the number is
+     printed on the chip. The maker read the rail as mis-sorted; with the
+     count invisible there was no way to tell a sorting bug from a surprising
+     history. Now the order is checkable at a glance, and the chip and the
+     comparator read the same value. */
   const shown=byPart[rz.grp].slice().sort((a,b)=>(sets[b]||0)-(sets[a]||0)
     ||canonName(a).localeCompare(canonName(b)));
   if(!rz.ex||!shown.includes(rz.ex)) rz.ex=shown[0];
@@ -473,7 +478,8 @@ function repZoneSections(){
       <select id="rzGrp" class="rzsel" aria-label="Body part">${order.map(g2=>
         `<option value="${g2}" ${g2===rz.grp?'selected':''}>${g2}</option>`).join('')}</select>
       <div class="rzlifts">${shown.map(e=>
-        `<button class="chip ${e===rz.ex?'on':''}" data-rzx="${e}" data-rzpart="${rz.grp}">${canonName(e)}</button>`).join('')}</div>
+        `<button class="chip ${e===rz.ex?'on':''}" data-rzx="${e}" data-rzpart="${rz.grp}"
+          >${canonName(e)}<i>${sets[e]||0}</i></button>`).join('')}</div>
       <div class="rzbody">${rzBody(rz.ex)}</div>
     </div>`;
 }

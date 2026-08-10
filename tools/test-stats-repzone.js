@@ -105,7 +105,7 @@ check("the card has exactly one lift row",
 check("the dropdown lists visible groups, not raw parts",
       `[...document.querySelector('#rzGrp').options].map(o=>o.value).some(v=>v==='Biceps'||v==='Sixpack')`, false);
 check("the Chest card marks its selected lift",
-      `${CH}.querySelector('.rzlifts .chip.on').textContent`, "Incline Barbell Bench Press");
+      `${CH}.querySelector('.rzlifts .chip.on').firstChild.textContent`, "Incline Barbell Bench Press");
 // v3.3.189: the rail is ordered by weight of use — sessions, then sets, then
 // recency — so the part's centre of gravity leads, not the latest cameo
 check("the most-trained lift leads the rail, not the most recent",
@@ -114,11 +114,11 @@ check("the most-trained lift leads the rail, not the most recent",
         for(let i=1;i<=8;i++) DB.days[D(1+i*4)]={w:[{part:'Back',ex:'Deadlift',w:100,reps:[5,5,5,5]}],upd:1};
         for(const n of [1,9,17]) DB.days[D(n)]={w:[{part:'Back',ex:'Seated Cable Row',w:40,reps:[12]}],upd:1};
         SEED=deriveAll(); rz.grp=null; rz.ex=null; render();
-        return (rz.grp='Back',rz.ex=null,render(),document.querySelector('.rzcard .rzlifts .chip')).textContent;})()`, "Deadlift");
+        return (rz.grp='Back',rz.ex=null,render(),document.querySelector('.rzcard .rzlifts .chip')).firstChild.textContent;})()`, "Deadlift");
 check("...and that is what the Back section opens on",
-      `(rz.grp='Back',rz.ex=null,render(),document.querySelector('.rzcard .rzlifts .chip.on')).textContent`, "Deadlift");
+      `(rz.grp='Back',rz.ex=null,render(),document.querySelector('.rzcard .rzlifts .chip.on')).firstChild.textContent`, "Deadlift");
 check("the more-recent cameo is still offered, just not first",
-      `[...(rz.grp='Back',rz.ex=null,render(),document.querySelectorAll('.rzcard .rzlifts .chip'))].map(c=>c.textContent).includes('Seated Cable Row')`, true);
+      `[...(rz.grp='Back',rz.ex=null,render(),document.querySelectorAll('.rzcard .rzlifts .chip'))].map(c=>c.firstChild.textContent).includes('Seated Cable Row')`, true);
 check("the window selector is removed", `document.querySelectorAll('[data-rzn]').length`, 0);
 check("the window is the constant, not state", `REPZONE_WINDOW`, 10);
 check("the legend line stays gone",
@@ -199,9 +199,10 @@ run(`(function(){
 check("Lunge is the most recent lift of all", 
       `exLastFor('Dumbbell Lunge') > exLastFor('Incline Barbell Bench Press')`, true);
 check("...but a one-off is not a core lift", `exTier('Dumbbell Lunge')==='goto'`, false);
-check("...so the Legs section opens on a GOTO lift, not the one-off",
-      `(function(){const c=(rz.grp='Legs',rz.ex=null,render(),document.querySelector('.rzcard .rzlifts .chip.on')).textContent;
-        return c!=='Dumbbell Lunge' && exTier(c);})()`, "goto");
+// v3.3.198 dropped the tier gate: the rail is sets-ordered, so the most-used
+// lift leads and the one-off simply ranks last — not excluded, just honest
+check("...so the Legs card opens on the most-used lift, not the recent one-off",
+      `(rz.grp='Legs',rz.ex=null,render(),document.querySelector('.rzcard .rzlifts .chip.on')).firstChild.textContent`, "Squat");
 
 // ---- v3.3.186 default rules, in order:
 // (1) trained today → TODAY's part's core lift wins over everything
@@ -210,7 +211,7 @@ run(`(function(){
   SEED=deriveAll(); rz.grp=null; rz.ex=null; render();})()`);   /* fresh open */
 check("trained today → the dropdown opens on today's group", `rz.grp`, "Legs");
 check("...and that section opens on the part's core lift",
-      `(rz.grp='Legs',rz.ex=null,render(),document.querySelector('.rzcard .rzlifts .chip.on')).textContent`, "Squat");
+      `(rz.grp='Legs',rz.ex=null,render(),document.querySelector('.rzcard .rzlifts .chip.on')).firstChild.textContent`, "Squat");
 // v3.3.196: sections speak in VISIBLE GROUPS — Biceps+Triceps fold to Arms
 check("a Biceps lift lands in an 'Arms' section, not 'Biceps'",
       `(function(){
@@ -224,7 +225,7 @@ check("a Biceps lift lands in an 'Arms' section, not 'Biceps'",
         const opts=[...document.querySelector('#rzGrp').options].map(o=>o.value);
         return opts.includes('Arms') && !opts.includes('Biceps') && !opts.includes('Triceps');})()`, true);
 check("...and both arm lifts share that one section's rail",
-      `[...(rz.grp='Arms',rz.ex=null,render(),document.querySelectorAll('.rzcard .rzlifts .chip'))].map(c=>c.textContent).sort().join('|')`, "Barbell Curl|Rope Pushdown");
+      `[...(rz.grp='Arms',rz.ex=null,render(),document.querySelectorAll('.rzcard .rzlifts .chip'))].map(c=>c.firstChild.textContent).sort().join('|')`, "Barbell Curl|Rope Pushdown");
 check("Sixpack reads as Core",
       `(function(){
         const D=n=>{const d=new Date();d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA');};
@@ -251,7 +252,7 @@ run(`render();`);
 // v3.3.198: the rail is every exercise WITH SETS, ordered most→least
 check("the rail is ordered by sets logged, most first",
       `(function(){const names=[...(rz.grp='Legs',rz.ex=null,render(),document.querySelectorAll('.rzcard .rzlifts .chip'))]
-          .map(c=>c.textContent);
+          .map(c=>c.firstChild.textContent);
         return names[0]==='Squat' && names.includes('Dumbbell Lunge')
             && names.indexOf('Squat')<names.indexOf('Dumbbell Lunge');})()`, true);
 check("an exercise with no sets logged never appears",
@@ -260,12 +261,12 @@ check("an exercise with no sets logged never appears",
         DB.days[D(1)]={w:[{part:'Legs',ex:'Leg Extension',w:40,reps:[],at:99}],upd:1};
         SEED=deriveAll(); rz.grp='Legs'; rz.ex=null; render();
         return [...document.querySelectorAll('.rzcard .rzlifts .chip')]
-          .every(c=>c.textContent!=='Leg Extension');})()`, true);
+          .every(c=>c.firstChild.textContent!=='Leg Extension');})()`, true);
 /* chips carry the canonical ID in data-rzx; find them by their visible name */
 check("tapping a lift chip selects it",
       `(function(){rz.grp='Chest'; rz.ex=null; render();
         [...document.querySelectorAll('.rzcard .rzlifts .chip')]
-          .find(c=>c.textContent==='Chest Fly').click();
+          .find(c=>c.firstChild.textContent==='Chest Fly').click();
         return canonName(rz.ex);})()`, "Chest Fly");
 check("...and switching the dropdown re-picks that group's top lift",
       `(function(){rz.grp='Legs'; rz.ex=null; render(); return rz.ex;})()`, "Squat");
@@ -287,14 +288,14 @@ check("tapping a lift swaps only that card's body, leaving the DOM around it",
         const stamp=Symbol('kept'); view[stamp]=1; card[stamp]=1;   /* identity witnesses */
         const railBefore=card.querySelector('.rzlifts');
         const bodyBefore=card.querySelector('.rzbody').innerHTML;
-        [...card.querySelectorAll('.rzlifts .chip')].find(c=>c.textContent==='Chest Fly').click();
+        [...card.querySelectorAll('.rzlifts .chip')].find(c=>c.firstChild.textContent==='Chest Fly').click();
         const card2=document.querySelector('.rzcard');
         return view[stamp]===1                       /* #view was not rebuilt */
             && card2===card && card2[stamp]===1      /* the card node survived */
             && card2.querySelector('.rzlifts')===railBefore   /* the rail, too */
             && card2.querySelector('.rzbody').innerHTML!==bodyBefore;})()`, true);
 check("...and the chart actually changed to the new lift",
-      `document.querySelector('.rzcard .rzlifts .chip.on').textContent`, "Chest Fly");
+      `document.querySelector('.rzcard .rzlifts .chip.on').firstChild.textContent`, "Chest Fly");
 check("...and the dropdown still names the shown group",
       `document.querySelector('#rzGrp').value`, "Chest");
 
@@ -302,6 +303,29 @@ check("...and the dropdown still names the shown group",
 run(`window._before=JSON.stringify(DB.days);`);
 run(`rz.grp='Chest'; rz.ex='Incline Barbell Bench Press'; render();`);
 check("rendering rep zones writes nothing", `JSON.stringify(DB.days)===window._before`, true);
+
+// ---- v3.3.199: the rail states the number it is sorted by, and the order
+// matches it exactly — the ordering is now checkable, not just claimed.
+run(`(function(){
+  const D=n=>{const d=new Date();d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA');};
+  DB.days={}; DB.settings.canon={};
+  /* Chest: 3 lifts, deliberately most-sets LAST in log order */
+  DB.days[D(2)]={w:[{part:'Chest',ex:'Dip',w:0,reps:[10],at:1}],upd:1};
+  DB.days[D(4)]={w:[{part:'Chest',ex:'Chest Fly',w:40,reps:[10,10,10],at:2}],upd:1};
+  for(const n of [6,8,10]) DB.days[D(n)]={w:[
+    {part:'Chest',ex:'Incline Barbell Bench Press',w:60,reps:[8,8,8,8,8],at:10+n}],upd:1};
+  migrateCanon(); SEED=deriveAll(); rz.grp='Chest'; rz.ex=null; render();})()`);
+check("the chip with the most sets leads, whatever the log order",
+      `document.querySelector('.rzcard .rzlifts .chip').firstChild.textContent`, "Incline Barbell Bench Press");
+check("every chip prints the set count it is sorted by",
+      `[...document.querySelectorAll('.rzcard .rzlifts .chip')].map(c=>c.querySelector('i').textContent).join(',')`, "15,3,1");
+check("...and the printed counts are in descending order",
+      `(function(){const n=[...document.querySelectorAll('.rzcard .rzlifts .chip')]
+        .map(c=>+c.querySelector('i').textContent);
+        return n.every((v,i)=>i===0||n[i-1]>=v);})()`, true);
+check("the printed count equals the exercise's real total",
+      `(function(){const sets=rzSetsById();
+        return sets[canonId('Incline Barbell Bench Press',false)];})()`, 15);
 
 process.exit(fail ? 1 : 0);
 })();
