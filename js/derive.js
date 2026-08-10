@@ -13,6 +13,10 @@
    like "Pull-Up or Lat Pulldown" name two DISTINCT lifts in the ledger, and
    folding them is the merge Phase 1 exists to forbid. */
 const VISIBLE_GROUPS=['Chest','Back','Shoulders','Arms','Legs','Glutes','Core'];
+/* v3.3.196: catalog part → visible group. One map, used by every surface
+   that speaks in groups; the ledger keeps storing the underlying part. */
+const PART_VISIBLE={Chest:'Chest',Back:'Back',Shoulder:'Shoulders',Legs:'Legs',
+  Biceps:'Arms',Triceps:'Arms',Sixpack:'Core',Run:'Run'};
 const MUSCLE_VISIBLE={chest:'Chest',lats:'Back','upper-back':'Back',shoulders:'Shoulders',
   biceps:'Arms',triceps:'Arms',quads:'Legs',hamstrings:'Legs',calves:'Legs',
   glutes:'Glutes',core:'Core'};

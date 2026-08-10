@@ -372,7 +372,11 @@ function repZoneSets(ex,N){
 function repZoneScatterSvg(ex){
   const {dots,used}=repZoneSets(ex,REPZONE_WINDOW);
   if(!dots.length) return '';
-  const W=340,H=202,X0=34,XW=W-X0-8,Y0=H-38,YH=Y0-14;
+  /* v3.3.196: the plot's own inset. Band labels now sit ABOVE the plot
+     rather than inside its top edge, and the x-axis sits well below the
+     lowest dot — the maker circled dots touching both frames. TOPPAD is
+     the label strip; BOTPAD is axis air. */
+  const W=340,H=232,TOPPAD=30,BOTPAD=30,X0=34,XW=W-X0-8,Y0=H-16-BOTPAD,YH=Y0-TOPPAD;
   const reps=Math.max(REPZONE_MAX_GROWTH+3,...dots.map(d=>d.rep));
   const ws=dots.map(d=>d.w);
   let wLo=Math.min(...ws),wHi=Math.max(...ws);
@@ -396,7 +400,7 @@ function repZoneScatterSvg(ex){
     h2+=`<line x1="${bx.toFixed(1)}" y1="${Y0-YH}" x2="${bx.toFixed(1)}" y2="${Y0}" stroke="var(--line)" stroke-width="0.8" stroke-dasharray="3 3"></line>`;
   REPZONE_LABELS.forEach(([range],i)=>{
     const cx=[(X0+b1)/2,(b1+b2)/2,(b2+X0+XW)/2][i];
-    h2+=`<text x="${cx.toFixed(1)}" y="${Y0-YH+9}" text-anchor="middle" font-family="var(--mono)" font-size="7.5" fill="var(--faint)">${range}</text>`;
+    h2+=`<text x="${cx.toFixed(1)}" y="${(Y0-YH-9).toFixed(1)}" text-anchor="middle" font-family="var(--mono)" font-size="7.5" fill="var(--faint)">${range}</text>`;
   });
   // y ticks: lo / mid / hi weight
   for(const wv of [Math.min(...ws),(wLo+wHi)/2,Math.max(...ws)]){
@@ -409,7 +413,7 @@ function repZoneScatterSvg(ex){
     h2+=`<text x="${x(rv).toFixed(1)}" y="${Y0+12}" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="var(--muted)">${rv}</text>`;
   h2+=`<line x1="${X0}" y1="${Y0}" x2="${X0+XW}" y2="${Y0}" stroke="var(--line)" stroke-width="0.8"></line>`;
   /* v3.3.186: the axes say what they are (maker's ask) */
-  h2+=`<text x="${(X0+XW/2).toFixed(1)}" y="${H-4}" text-anchor="middle" font-family="var(--mono)" font-size="7.5" fill="var(--muted)" class="rzxlab">reps per set</text>`;
+  h2+=`<text x="${(X0+XW/2).toFixed(1)}" y="${H-6}" text-anchor="middle" font-family="var(--mono)" font-size="7.5" fill="var(--muted)" class="rzxlab">reps per set</text>`;
   h2+=`<text x="8" y="${(Y0-YH/2).toFixed(1)}" text-anchor="middle" font-family="var(--mono)" font-size="7.5" fill="var(--muted)" class="rzylab" transform="rotate(-90 8 ${(Y0-YH/2).toFixed(1)})">weight (${U()})</text>`;
   // dots: newest solid, oldest faint; count sizes
   for(const d of dots.sort((a,b)=>b.age-a.age)){
@@ -446,11 +450,11 @@ function rzGotoOf(part,byPart,last){
                     ||(last[a]<last[b]?1:last[a]>last[b]?-1:0);
   const inP=(byPart[part]||[]).slice().sort(rank);
   const g=inP.filter(e=>exTier(canonName(e))==='goto');
-  /* v3.3.195: TOP 2 ONLY (maker's call) — the rail is the part's centre of
-     gravity, not its inventory. Ranking is unchanged (sessions, sets,
-     recency), so the two that carry the part lead and the rest simply
-     aren't offered here. */
-  return (g.length?g:inP.slice(0,1)).slice(0,2);
+  /* v3.3.196: ALL go-to lifts — the same set the Train tab calls Go-To, in
+     weight-of-use order. v3.3.195's top-2 cap is reverted one release later:
+     the rail scrolls, so a cap bought nothing and hid lifts the person is
+     actively running. Tier still gates it; only go-to lifts appear. */
+  return g.length?g:inP.slice(0,1);
 }
 /* v3.3.189: the lift rail's tap handler. It went missing in the v3.3.188
    per-part rewrite — the replacement targeted the v3.3.187 handler text,
@@ -476,18 +480,27 @@ function repZoneSections(){
   const exs=rzExercises();
   if(!exs.length) return `<h2>Rep zones${hActs('rz','Sets per rep range, last '+REPZONE_WINDOW+' sessions. Bigger dot = a repeated set; newer sessions solid. Runs excluded.','About rep zones')}</h2>
     <div class="card"><div class="note">No weighted sets yet. The zones will be here when the sets are.</div></div>`;
+  /* v3.3.196: sections are VISIBLE GROUPS (the v3.3.194 taxonomy), not raw
+     catalog parts — Biceps and Triceps read as one "Arms", Sixpack as
+     "Core". Display-level only: the ledger still stores the underlying
+     part, so nothing about logging or History changes. */
   const byPart={};
-  for(const e of exs)(byPart[homePartOf(canonName(e))||'Other']=byPart[homePartOf(canonName(e))||'Other']||[]).push(e);
+  for(const e of exs){
+    const g2=PART_VISIBLE[homePartOf(canonName(e))]||homePartOf(canonName(e))||'Other';
+    (byPart[g2]=byPart[g2]||[]).push(e);
+  }
   const last={}; for(const [d,rows] of rzAllSessions())
     for(const r of rows) if(r[1]!=='Run'&&(r[3]||[]).length) last[rowCid(r)]=d;
   /* catalog order, but the part that matters TODAY leads — trained today,
      else trainingPlan's next pick (the same authority as Today's card). */
-  let order=[...Object.keys(SEED.catalog).filter(pt=>pt!=='Run'&&byPart[pt]),
-             ...Object.keys(byPart).filter(pt=>!(pt in SEED.catalog))];
+  let order=[...VISIBLE_GROUPS.filter(pt=>byPart[pt]),
+             ...Object.keys(byPart).filter(pt=>!VISIBLE_GROUPS.includes(pt))];
   const todayParts=[...new Set(((DB.days[todayISO]||{}).w||[])
-    .filter(s2=>s2.ex!=='Run'&&(s2.reps||[]).length).map(s2=>s2.part))];
+    .filter(s2=>s2.ex!=='Run'&&(s2.reps||[]).length)
+    .map(s2=>PART_VISIBLE[s2.part]||s2.part))];
   const plan=trainingPlan();
-  const lead=todayParts.find(pt=>byPart[pt])||(byPart[plan.pick]?plan.pick:null);
+  const pickG=PART_VISIBLE[plan.pick]||plan.pick;
+  const lead=todayParts.find(pt=>byPart[pt])||(byPart[pickG]?pickG:null);
   /* v3.3.195: THREE parts by default — the ones that matter now. Lead is
      today's part (else the plan's pick, the same authority as Today's
      Train-next card); the next two are the most DUE by the plan's own
@@ -495,7 +508,11 @@ function repZoneSections(){
      configuration the cadence data already answers, and it would go stale
      the week your split changes. The rest sit behind one expander that
      opens IN PLACE (the v3.3.190 lesson — no scroll jump). */
-  const due=pt=>{const i0=plan.info&&plan.info[pt];return i0?i0.since/Math.max(1,i0.gap):0;};
+  /* a group's dueness is its most-due member — Arms is due when either
+     Biceps or Triceps is */
+  const due=g2=>Math.max(0,...Object.keys(plan.info||{})
+    .filter(pt=>(PART_VISIBLE[pt]||pt)===g2)
+    .map(pt=>plan.info[pt].since/Math.max(1,plan.info[pt].gap)));
   order.sort((a,b)=>due(b)-due(a));
   if(lead) order=[lead,...order.filter(pt=>pt!==lead)];
   const shownParts=_rzAll?order:order.slice(0,RZ_PARTS_SHOWN);
@@ -506,7 +523,7 @@ function repZoneSections(){
     if(!shown.length) continue;
     if(!rz.sel[part]||!shown.includes(rz.sel[part])) rz.sel[part]=shown[0];
     const ex=rz.sel[part];
-    out+=`<h2>Rep zones \u00b7 ${part}${part===order[0]?hActs('rz','Sets per rep range, last '+REPZONE_WINDOW+' sessions. Bigger dot = a repeated set; newer sessions solid. Runs excluded.','About rep zones'):''}</h2>
+    out+=`<h2 class="rzh">Rep zones \u00b7 ${part}${part===order[0]?hActs('rz','Sets per rep range, last '+REPZONE_WINDOW+' sessions. Bigger dot = a repeated set; newer sessions solid. Runs excluded.','About rep zones'):''}</h2>
       <div class="card rzcard" data-rzcard="${part}">
         <div class="rzlifts">${shown.map(e=>
           `<button class="chip ${e===ex?'on':''}" data-rzx="${e}" data-rzpart="${part}">${canonName(e)}</button>`).join('')}</div>

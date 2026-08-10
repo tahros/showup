@@ -210,6 +210,26 @@ const LEAD = `[...document.querySelectorAll('#view h2')].find(h=>/^Rep zones/.te
 check("trained today → today's part leads the sections", `/Legs/.test(${LEAD})`, true);
 check("...and that section opens on the part's core lift",
       `document.querySelector('[data-rzcard="Legs"] .rzlifts .chip.on').textContent`, "Squat");
+// v3.3.196: sections speak in VISIBLE GROUPS — Biceps+Triceps fold to Arms
+check("a Biceps lift lands in an 'Arms' section, not 'Biceps'",
+      `(function(){
+        const D=n=>{const d=new Date();d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA');};
+        /* uncontended dates: whole-day writes here previously clobbered the
+           Chest Fly fixture and quietly demoted it out of go-to tier */
+        for(const n of [12,15,18]) DB.days[D(n)]={w:[
+          {part:'Biceps',ex:'Barbell Curl',w:30,reps:[10],at:60+n},
+          {part:'Triceps',ex:'Rope Pushdown',w:20,reps:[12],at:70+n}],upd:1};
+        SEED=deriveAll(); _rzAll=true; rz.sel={}; render();
+        return !!document.querySelector('[data-rzcard="Arms"]') && !document.querySelector('[data-rzcard="Biceps"]');})()`, true);
+check("...and both arm lifts share that one section's rail",
+      `[...document.querySelectorAll('[data-rzcard="Arms"] .rzlifts .chip')].map(c=>c.textContent).sort().join('|')`, "Barbell Curl|Rope Pushdown");
+check("Sixpack reads as Core",
+      `(function(){
+        const D=n=>{const d=new Date();d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA');};
+        for(const n of [13,16,19]) DB.days[D(n)]={w:[{part:'Sixpack',ex:'Cable Crunch',w:30,reps:[15],at:80+n}],upd:1};
+        SEED=deriveAll(); rz.sel={}; render();
+        return !!document.querySelector('[data-rzcard="Core"]') && !document.querySelector('[data-rzcard="Sixpack"]');})()`, true);
+run(`_rzAll=false;`);
 // (2) nothing today → the part the app says to train NEXT (trainingPlan's
 // own pick — the same authority as Today's Train-next card)
 run(`(function(){
@@ -222,8 +242,9 @@ check("nothing today → the leading section is the app's next pick (when that p
 check("...and every part still gets a section", 
       `document.querySelectorAll('.rzcard').length >= 2`, true);
 
-// ---- chip interaction (here, where Legs data exists — chips only render
-// trained parts, unlike the old dropdown's full catalog)
+// ---- chip interaction. v3.3.196: only three sections render by default, so
+// expand first — this block needs Legs AND Chest on screen at once.
+run(`_rzAll=true; render();`);
 check("only GO-TO lifts of the part are offered — the one-off Lunge is not",
       `(function(){const names=[...document.querySelectorAll('[data-rzcard="Legs"] .rzlifts .chip')]
           .map(c=>c.textContent);
@@ -300,14 +321,18 @@ run(`(function(){
   for(const n of [4,11]) DB.days[D(n)]={w:[...(DB.days[D(n)]?DB.days[D(n)].w:[]),
     {part:'Back',ex:'Lat Pulldown',w:50,reps:[10],at:40+n}],upd:1};
   SEED=deriveAll(); _rzAll=true; rz.sel={}; render();})()`);
-check("a rail offers at most two lifts",
-      `[...document.querySelectorAll('.rzlifts')].every(r=>r.querySelectorAll('.chip').length<=2)`, true);
-/* fixture note: the Deadlift loop's whole-day writes clobbered two SCR days,
-   so SCR holds 1 session vs Lat Pulldown's 2 — LP correctly makes the cut */
-check("...and Back's two are the most-used two, Deadlift first",
-      `[...document.querySelectorAll('[data-rzcard="Back"] .rzlifts .chip')].map(c=>c.textContent).join('|')`, "Deadlift|Lat Pulldown");
-check("...the least-used lift is the one cut",
-      `[...document.querySelectorAll('[data-rzcard="Back"] .rzlifts .chip')].every(c=>c.textContent!=='Seated Cable Row')`, true);
+// v3.3.196: the top-2 cap is reverted — the rail carries every GO-TO lift
+/* Lat Pulldown holds 2 sessions here, Seated Cable Row 1 (an earlier
+   whole-day write took two of its days) — so two Back lifts clear go-to
+   tier, and BOTH are offered: the cap is gone, the tier gate is not. */
+check("the rail carries every go-to Back lift, not a capped two",
+      `document.querySelectorAll('[data-rzcard="Back"] .rzlifts .chip').length`, 2);
+check("...and the sub-tier lift is excluded by TIER, not by a cap",
+      `(function(){const names=[...document.querySelectorAll('[data-rzcard="Back"] .rzlifts .chip')]
+          .map(c=>c.textContent);
+        return !names.includes('Seated Cable Row') && exTier('Seated Cable Row')!=='goto';})()`, true);
+check("...still ordered by weight of use, Deadlift first",
+      `document.querySelector('[data-rzcard="Back"] .rzlifts .chip').textContent`, "Deadlift");
 run(`_rzAll=false;`);
 
 process.exit(fail ? 1 : 0);
