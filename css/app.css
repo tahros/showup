@@ -1138,9 +1138,14 @@
      under the theme contrast guard: numbers chalk, labels muted, unit words
      faint, bars accent on a soft accent track. NO red anywhere — an empty
      bucket states itself in the same voice as a full one. */
-  .rzparts{margin-bottom:8px}
-  .rzlifts{margin-bottom:14px}
-  .rzparts .chip,.rzlifts .chip{font-size:12px}
+  /* v3.3.188: the primary lifts sit on ONE line and scroll sideways — a
+     wrapping chip cloud pushed the chart below the fold on parts with four
+     or five staples. */
+  .rzlifts{display:flex;gap:6px;overflow-x:auto;overflow-y:hidden;
+    margin:0 -14px 14px;padding:0 14px 2px;scrollbar-width:none;
+    -webkit-overflow-scrolling:touch}
+  .rzlifts::-webkit-scrollbar{display:none}
+  .rzlifts .chip{font-size:12px;flex:0 0 auto;white-space:nowrap}
   .rzrows{display:flex;flex-direction:column;gap:10px}
   .rzrow{display:grid;grid-template-columns:74px 1fr auto;gap:10px;align-items:center}
   .rzlab{font-family:var(--mono);font-size:12px;color:var(--muted)}

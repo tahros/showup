@@ -307,7 +307,10 @@ function repZone(reps){
    "only N sessions logged" note still tells the truth when the record is
    shorter than it. */
 const REPZONE_WINDOW=10;
-const rz={ex:null,part:null};
+/* v3.3.188: Rep zones breaks out per body part — one section each, so the
+   part chips are gone and selection is per-part (a lift chosen for Back
+   stays chosen when you scroll past Chest). */
+const rz={sel:{}};
 /* every date's rows, today included — the same merge the day receipt uses,
    so the mirror reads the canonical record, not a reconstruction */
 function rzAllSessions(){
@@ -333,7 +336,8 @@ function repZoneData(ex,N){
     if(r[1]!==ex) continue;
     for(const rep of (r[3]||[])) counts[repZone(rep)]++;   // reps:[] (runs/cardio) adds nothing
   }
-  return {counts,used:sess.length};
+  const ds=sess.map(x=>x[0]).sort();
+  return {counts,used:sess.length,first:ds[0],last:ds[ds.length-1]};
 }
 /* v3.3.183: the scatter's dots — every set of the window as (weight, reps),
    AGGREGATED by exact position: count sizes the dot (two identical sets are
@@ -358,8 +362,8 @@ function repZoneSets(ex,N){
   });
   return {dots:Object.values(dots),used:sess.length};
 }
-function repZoneScatterSvg(){
-  const {dots,used}=repZoneSets(rz.ex,REPZONE_WINDOW);
+function repZoneScatterSvg(ex){
+  const {dots,used}=repZoneSets(ex,REPZONE_WINDOW);
   if(!dots.length) return '';
   const W=340,H=202,X0=34,XW=W-X0-8,Y0=H-38,YH=Y0-14;
   const reps=Math.max(REPZONE_MAX_GROWTH+3,...dots.map(d=>d.rep));
@@ -404,81 +408,61 @@ function repZoneScatterSvg(){
   h2+=`</svg>`;
   return h2;
 }
-function repZoneCard(){
+/* v3.3.188: the go-to lifts of one part, most recent first. A part whose
+   lifts are all one-offs still shows its single most recent lift, so every
+   section has something to say. */
+function rzGotoOf(part,byPart,last){
+  const inP=(byPart[part]||[]).slice().sort((a,b)=>last[a]<last[b]?1:-1);
+  const g=inP.filter(e=>exTier(e)==='goto');
+  return g.length?g:inP.slice(0,1);
+}
+function repZoneSections(){
   const exs=rzExercises();
-  if(!exs.length) return `<div class="note">No weighted sets yet. The zones will be here when the sets are.</div>`;
-  /* v3.3.186 default (maker's spec): the mirror opens on the part that
-     matters TODAY —
-       1. trained today → today's part's core lift (the sets just logged
-          are the ones worth questioning), or
-       2. not yet → the core lift of the part the app says to train NEXT,
-          from trainingPlan().pick — the SAME authority Today's "Train
-          next" card uses, not a second heuristic.
-     Within the chosen part: most recently trained goto-tier exercise;
-     fallbacks walk outward (any exercise of the part, then any goto, then
-     most recent) so the card never opens empty while sets exist. */
-  /* v3.3.187: the today/next-part default runs ONLY while no part has been
-     chosen. It fires on rz.ex too — but a part tap intentionally nulls
-     rz.ex, and letting the default run then would override the tap with
-     the default's own part (the bug: tapping Chest snapped back to Legs).
-     With a part chosen, the per-part resolution below picks the lift. */
-  if(!rz.part&&(!rz.ex||!exs.includes(rz.ex))){
-    const last0={}; for(const [d,rows] of rzAllSessions())
-      for(const r of rows) if(r[1]!=='Run'&&(r[3]||[]).length) last0[r[1]]=d;
-    const byRecent=exs.slice().sort((a,b)=>last0[a]<last0[b]?1:-1);
-    const todayParts=[...new Set(((DB.days[todayISO]||{}).w||[])
-      .filter(s2=>s2.ex!=='Run'&&(s2.reps||[]).length).map(s2=>s2.part))];
-    const part=todayParts.length?todayParts[0]:(trainingPlan().pick||null);
-    const inPart=part?byRecent.filter(e=>homePartOf(e)===part):[];
-    rz.ex=inPart.find(e=>exTier(e)==='goto')||inPart[0]
-        ||byRecent.find(e=>exTier(e)==='goto')||byRecent[0];
-    rz.part=rz.ex?homePartOf(rz.ex):null;
-  }
-  /* v3.3.187: the dropdown is gone (maker's call) — two rows of chips.
-     Row 1: body parts with any weighted history, in catalog order.
-     Row 2: the selected part's GO-TO lifts only (the same curated tier as
-     Records) — the full catalog was too many names to scan. A part whose
-     lifts are all one-offs still gets its single most recent lift, so a
-     tap always lands somewhere. */
+  if(!exs.length) return `<h2>Rep zones${hActs('rz','Sets per rep range, last '+REPZONE_WINDOW+' sessions. Bigger dot = a repeated set; newer sessions solid. Runs excluded.','About rep zones')}</h2>
+    <div class="card"><div class="note">No weighted sets yet. The zones will be here when the sets are.</div></div>`;
   const byPart={};
   for(const e of exs)(byPart[homePartOf(e)||'Other']=byPart[homePartOf(e)||'Other']||[]).push(e);
   const last={}; for(const [d,rows] of rzAllSessions())
     for(const r of rows) if(r[1]!=='Run'&&(r[3]||[]).length) last[r[1]]=d;
-  const partOrder=[...Object.keys(SEED.catalog).filter(pt=>pt!=='Run'&&byPart[pt]),
-                   ...Object.keys(byPart).filter(pt=>!(pt in SEED.catalog))];
-  const gotoOf=pt=>{
-    const inP=(byPart[pt]||[]).slice().sort((a,b)=>last[a]<last[b]?1:-1);
-    const g=inP.filter(e=>exTier(e)==='goto');
-    return g.length?g:inP.slice(0,1);
-  };
-  if(!rz.part||!byPart[rz.part]) rz.part=rz.ex&&byPart[homePartOf(rz.ex)]?homePartOf(rz.ex):partOrder[0];
-  const shown=gotoOf(rz.part);
-  if(!rz.ex||!shown.includes(rz.ex)) rz.ex=shown[0];
-  const {counts,used}=repZoneData(rz.ex,REPZONE_WINDOW);
-  const max=Math.max(...counts,1);
-  let h2=`<div class="chips rzparts">${partOrder.map(pt=>
-      `<button class="chip ${pt===rz.part?'on':''}" data-rzp="${pt}">${pt}</button>`).join('')}</div>
-    <div class="chips rzlifts">${shown.map(e=>
-      `<button class="chip ${e===rz.ex?'on':''}" data-rzx="${e}">${e}</button>`).join('')}</div>
-    <div class="rzrows">`;
-  REPZONE_LABELS.forEach(([range,name],i)=>{
-    h2+=`<div class="rzrow">
-      <span class="rzlab">${range}<i>${name}</i></span>
-      <span class="rzbar"><i style="width:${counts[i]?Math.round(counts[i]/max*100):0}%"></i></span>
-      <span class="rzn"><b>${counts[i]}</b> set${counts[i]===1?'':'s'}</span>
-    </div>`;
-  });
-  h2+=`</div>${repZoneScatterSvg()}`;
-  if(used<REPZONE_WINDOW) h2+=`<div class="note rznote">only ${used} session${used===1?'':'s'} logged</div>`;
-  return h2;
-}
-document.addEventListener('click',e=>{
-  const pc=e.target.closest&&e.target.closest('[data-rzp]');
-  if(pc){ rz.part=pc.dataset.rzp; rz.ex=null; render(); return; }
-  const xc=e.target.closest&&e.target.closest('[data-rzx]');
-  if(xc){ rz.ex=xc.dataset.rzx; render(); }
-});
+  /* catalog order, but the part that matters TODAY leads — trained today,
+     else trainingPlan's next pick (the same authority as Today's card). */
+  let order=[...Object.keys(SEED.catalog).filter(pt=>pt!=='Run'&&byPart[pt]),
+             ...Object.keys(byPart).filter(pt=>!(pt in SEED.catalog))];
+  const todayParts=[...new Set(((DB.days[todayISO]||{}).w||[])
+    .filter(s2=>s2.ex!=='Run'&&(s2.reps||[]).length).map(s2=>s2.part))];
+  const lead=todayParts.find(pt=>byPart[pt])||(byPart[trainingPlan().pick]?trainingPlan().pick:null);
+  if(lead) order=[lead,...order.filter(pt=>pt!==lead)];
 
+  let out='';
+  for(const part of order){
+    const shown=rzGotoOf(part,byPart,last);
+    if(!shown.length) continue;
+    if(!rz.sel[part]||!shown.includes(rz.sel[part])) rz.sel[part]=shown[0];
+    const ex=rz.sel[part];
+    const {counts,used,first,last:lastD}=repZoneData(ex,REPZONE_WINDOW);
+    const max=Math.max(...counts,1);
+    out+=`<h2>Rep zones \u00b7 ${part}${part===order[0]?hActs('rz','Sets per rep range, last '+REPZONE_WINDOW+' sessions. Bigger dot = a repeated set; newer sessions solid. Runs excluded.','About rep zones'):''}</h2>
+      <div class="card rzcard" data-rzcard="${part}">
+        <div class="rzlifts">${shown.map(e=>
+          `<button class="chip ${e===ex?'on':''}" data-rzx="${e}" data-rzpart="${part}">${e}</button>`).join('')}</div>
+        <div class="rzrows">`;
+    REPZONE_LABELS.forEach(([range,name],i)=>{
+      out+=`<div class="rzrow">
+        <span class="rzlab">${range}<i>${name}</i></span>
+        <span class="rzbar"><i style="width:${counts[i]?Math.round(counts[i]/max*100):0}%"></i></span>
+        <span class="rzn"><b>${counts[i]}</b> set${counts[i]===1?'':'s'}</span>
+      </div>`;
+    });
+    out+=`</div>${repZoneScatterSvg(ex)}`;
+    /* v3.3.188: the footer states the window it actually drew — the span of
+       dates and how many sessions fell in it. Replaces "only N sessions
+       logged", which only spoke up when the record was short. */
+    if(used) out+=`<div class="note rznote">Date range: ${ymd(first)} \u2013 ${ymd(lastD)}; ${used} session${used===1?'':'s'} logged</div>`;
+    out+=`</div>`;
+  }
+  return out;
+}
+function ymd(iso){ return iso?iso.slice(2).replace(/-/g,'/'):''; }
 function renderStats(){
   const _S={}; const cut=k=>{ _S[k]=h; h=''; };
   if(SEED.totals.sessions===0 && !hasAnyDays()){ $('#view').innerHTML=emptyHero('stats'); return; }
@@ -563,8 +547,7 @@ function renderStats(){
         <div class="pmixsum" id="pmixSum"></div>
       </div>`;
   cut('pmix');
-  h+=`<h2>Rep zones${hActs('rz','Sets per rep range, last '+REPZONE_WINDOW+' sessions. Bigger dot = a repeated set; newer sessions solid. Runs excluded.','About rep zones')}</h2>
-      <div class="card rzcard">${repZoneCard()}</div>`;
+  h+=repZoneSections();
   cut('rz');
   h+=`<h2>Consistency${hActs('yoy','Percent of days trained, per year. The bold line is this year.','About the consistency chart')}</h2><div class="card">
       `;
