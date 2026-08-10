@@ -73,8 +73,10 @@ check("the axis is labelled so the line can be read", `/stroke-dasharray="2 3"/.
 check("...and no inline prose survives here either", `/class="note"/.test(bwCard())`, false);
 // NB: use indexOf, not a regex — inside a template literal `\(` collapses to
 // `(`, which silently turned the escaped parens into a capture group.
+/* v3.3.201: accent-as-TEXT moved to --accent-ink (fill and ink split), so
+   the value label reads through the ink token now. */
 check("...with the current value at the line's end",
-      `bwCard().indexOf('font-weight="700" fill="var(--accent)">68') > -1`, true);
+      `bwCard().indexOf('font-weight="700" fill="var(--accent-ink)">68') > -1`, true);
 
 // ---- 4. a near-flat series must not amplify into noise --------------------
 run(`${fresh} setBw('2024-01-10',70); setBw('2025-03-01',70.2);`);

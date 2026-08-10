@@ -269,7 +269,7 @@ function bwCard(){
                 stroke-linejoin="round" stroke-linecap="round"></path>
           ${dots}
           <text x="${X(t1).toFixed(1)}" y="${(prevY-5).toFixed(1)}" text-anchor="end" font-family="var(--mono)"
-                font-size="8" font-weight="700" fill="var(--accent)">${n1(toU(cur))}</text>
+                font-size="8" font-weight="700" fill="var(--accent-ink)">${n1(toU(cur))}</text>
           <text x="32" y="112" font-family="var(--mono)" font-size="7" fill="var(--muted)">${md(first)}</text>
           <text x="300" y="112" text-anchor="end" font-family="var(--mono)" font-size="7" fill="var(--muted)">today</text>
         </svg></div>`;

@@ -25,7 +25,20 @@
     --p-biceps:#818cf8; --p-triceps:#3b82f6; --p-sixpack:#6366f1; --p-run:#0e7490;
     --chart-soft:#616EA3;                   /* v3.3.92: 2025's year line — accent-soft was 2.10:1 as a stroke */
     --live:#C93A2B;                         /* the header while your heart is pumping */
-    --chalk:#F0F1F6; --muted:#A2A8B6; --faint:#747A8A; --shadow:none;
+    /* v3.3.201: text ramp lifted per the Dark Mode V3 handoff. The failure
+       being fixed is --faint, which sat at 4.06:1 on --surface and 2.60:1 on
+       light --surface2 — BELOW the 4.5 floor, while carrying unit-faint
+       grammar, day counts and chart annotations: the exact text that has to
+       survive a dim gym at low brightness. Values verified against every
+       ground each token actually sits on (surface, surface2, ground), not
+       just the one the handoff tabulated. Worst-ground: chalk 14.39,
+       muted 8.74, faint 4.97. */
+    --chalk:#FAFBFD; --muted:#BEC7D5; --faint:#8996A9; --shadow:none;
+    /* v3.3.201: accent as INK, split from accent as FILL — the handoff's one
+       genuinely new idea. One blue cannot do both jobs: a fill needs to be
+       dark enough for white text, an ink light enough to read on a dark
+       card. --accent stays the fill; this is for accent-coloured TEXT. */
+    --accent-ink:#8BA5FF;
     --track-num:-.02em; --track-label:.08em; --track-wide:.16em;
     --disp:'IBM Plex Sans',system-ui,sans-serif;
     --body:'IBM Plex Sans',system-ui,sans-serif;
@@ -49,8 +62,15 @@
     --chart-soft:#7F859F;                   /* 2025's line, light — C3CCF5 was 1.58:1 on white */
     --live:#BE3324;
     /* v3.3.92: muted 4.10:1 on surface2 and faint 2.62:1 on white failed AA;
-       darkened along their own hue, nothing else moved */
-    --chalk:#191B21; --muted:#626776; --faint:#8C929E; --shadow:0 1px 3px rgba(20,25,40,.07);
+       darkened along their own hue, nothing else moved.
+       v3.3.201: the handoff is dark-only, so light's counterpart was derived
+       here rather than copied. --faint was still 2.60:1 on --surface2; the
+       new value clears 4.5 on the WORST ground it sits on (surface2, 4.51).
+       --muted moved with it: at the old value the two levels collapsed to a
+       1.25x step and the hierarchy stopped reading. Now 1.71x, matching
+       dark's ladder. */
+    --chalk:#191B21; --muted:#4C5260; --faint:#646A77; --shadow:0 1px 3px rgba(20,25,40,.07);
+    --accent-ink:#2A44C8;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;background:var(--ground);color:var(--chalk)}
@@ -121,7 +141,7 @@
       -webkit-backdrop-filter:blur(16px) saturate(160%);
       backdrop-filter:blur(16px) saturate(160%)}
   }
-  .h-sub.donetoday::before{content:'✓ ';color:var(--accent);font-weight:600;
+  .h-sub.donetoday::before{content:'✓ ';color:var(--accent-ink);font-weight:600;
     font-size:12px;letter-spacing:0}
   .strip i.pend{background:transparent;border:1.5px dashed var(--muted);opacity:.8}
   #onb{position:fixed;inset:0;z-index:90;background:var(--ground);color:var(--chalk);font-family:var(--body);display:flex;align-items:center;justify-content:center;overflow:auto}
@@ -172,7 +192,7 @@
   .lastw{min-width:74px;font-weight:700;font-size:15px}
   .lastw .u{font-size:11px;color:var(--muted);font-weight:600}
   .lastreps{display:flex;flex-wrap:wrap;gap:5px}
-  .repchip{font-style:normal;font-family:var(--mono);font-size:13px;font-weight:700;padding:3px 8px;border-radius:8px;background:color-mix(in srgb,var(--accent) 13%, transparent);color:var(--accent)}
+  .repchip{font-style:normal;font-family:var(--mono);font-size:13px;font-weight:700;padding:3px 8px;border-radius:8px;background:color-mix(in srgb,var(--accent) 13%, transparent);color:var(--accent-ink)}
   .lastfoot{margin-top:8px;font-size:11px;color:var(--muted)}
   .runhist .lastrow{display:grid;grid-template-columns:1fr auto auto auto;gap:12px;align-items:baseline}
   .runhist .runD{color:var(--muted);font-size:12px}
@@ -196,7 +216,7 @@
   .btn.ghost{background:var(--surface2);color:var(--chalk);border-color:var(--line)}
   .onbges{display:flex;align-items:center;gap:14px;padding:11px 2px;border-top:1px dashed var(--line)}
   .onbges:first-of-type{border-top:none}
-  .onbges .gi{font-family:var(--mono);font-size:15px;flex:0 0 34px;text-align:center;color:var(--accent)}
+  .onbges .gi{font-family:var(--mono);font-size:15px;flex:0 0 34px;text-align:center;color:var(--accent-ink)}
   .onbges b{font-weight:600}
   .onbges .muted{display:block;font-size:12px}
   .onbnote{font-size:12px;color:var(--muted);margin-top:9px;line-height:1.5}
@@ -274,7 +294,7 @@
   @media (prefers-reduced-motion:reduce){.chip.on.livego,.btn.livego{animation:none}}
   .delta.linkdate,.ago.linkdate{background:none;border:none;padding:0;cursor:pointer;
     text-decoration:underline dotted;text-underline-offset:3px}
-  .delta.linkdate{color:var(--accent)} .delta.linkdate.down{color:var(--record)}
+  .delta.linkdate{color:var(--accent-ink)} .delta.linkdate.down{color:var(--record)}
   .legend1 [data-yr]{cursor:pointer;border-radius:8px;padding:2px 5px;flex:0 0 auto}
   .legend1 [data-yr].selY{background:var(--surface2);outline:1px solid var(--line)}
   .card[data-ysel] svg [data-yr]{opacity:.14;transition:opacity .18s}
@@ -346,7 +366,7 @@
      surface. */
   .btnrow{display:flex;gap:8px;margin-top:12px}
   .btnrow .btn{margin-top:0;flex:1;min-width:0;white-space:nowrap}
-  .btn.ghost.done{background:none;border:1px solid var(--accent);color:var(--accent);
+  .btn.ghost.done{background:none;border:1px solid var(--accent);color:var(--accent-ink);
     font-size:15px;font-weight:600}
   .btn.done:active{filter:brightness(.9)}
   .brandrow{display:flex;align-items:center;gap:11px;min-width:0;flex:1 1 auto;overflow:hidden}
@@ -386,7 +406,7 @@
   h2 .hacts{display:inline-flex;align-items:center;gap:6px;flex:0 0 auto}
   h2.quiet::before{background:var(--line)}
   h2:first-child{margin-top:4px}
-  h2 .hi{color:var(--accent);font-weight:600}
+  h2 .hi{color:var(--accent-ink);font-weight:600}
   /* v3.3.54: the INFO pill returns to a small "i" dot beside its section
      title. Same affordance, a word's less shouting; the tap target keeps
      ~18px via the circle. lowercase — an "I" dot reads as a letter, not a

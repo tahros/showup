@@ -908,7 +908,7 @@ function runStatsHTML(){
     const bh=Math.max(2,v/wkMax*80), x=8+i*gap;
     h+=`<rect class="gbar" x="${x.toFixed(1)}" y="${(94-bh).toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="3" fill="${cur?'var(--accent)':'var(--accent-dim)'}" opacity="${cur?1:.5}"></rect>`;
     // only this week carries a number — everything else is shape
-    if(cur) h+=`<text x="${(x+bw/2).toFixed(1)}" y="${(91-bh).toFixed(1)}" text-anchor="middle" font-family="var(--mono)" font-size="8" font-weight="700" fill="var(--accent)">${Math.round(v)}</text>`;
+    if(cur) h+=`<text x="${(x+bw/2).toFixed(1)}" y="${(91-bh).toFixed(1)}" text-anchor="middle" font-family="var(--mono)" font-size="8" font-weight="700" fill="var(--accent-ink)">${Math.round(v)}</text>`;
     // month label at the boundary — first bar of a new month, using the Sunday key
     const mth=new Date(w+'T00:00').getMonth();
     if(mth!==lastMonth){

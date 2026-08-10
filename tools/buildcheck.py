@@ -163,7 +163,7 @@ def _mix(a,b,pa):
 _dark=_blk(css,":root"); _light=_blk(css,':root[data-theme="light"]')
 for _name,_blkc in (("dark",_dark),("light",_light)):
     T={k:_tok(_blkc,k) or _tok(_dark,k) for k in
-       ("ground","surface","surface2","accent","record","rest","rest-ink","chart-soft","muted","faint","chalk","live")}
+       ("ground","surface","surface2","accent","accent-ink","record","rest","rest-ink","chart-soft","muted","faint","chalk","live")}
     if not all(T.values()):
         fail.append(f"contrast guard: missing token in {_name} theme: "+",".join(k for k,v in T.items() if not v)); continue
     _wash=_mix(T["rest"],T["ground"],0.52)
@@ -171,7 +171,18 @@ for _name,_blkc in (("dark",_dark),("light",_light)):
         (T["rest-ink"],_wash,4.5,"rest ink on its wash"),
         (T["muted"],T["surface2"],4.5,"muted on surface2"),
         (T["muted"],T["surface"],4.5,"muted on surface"),
-        (T["faint"],T["surface"],3.0,"faint on surface"),
+        # v3.3.201: was 3.0 -- the loophole that let --faint ship at 4.06:1
+        # (dark) and 2.60:1 on light --surface2. Faint carries unit-faint
+        # grammar, day counts and chart annotations: real text a person has to
+        # read at low brightness, so it owes the full 4.5 on EVERY ground it
+        # sits on, not just the one that happened to be checked.
+        (T["faint"],T["surface"],4.5,"faint on surface"),
+        (T["faint"],T["surface2"],4.5,"faint on surface2"),
+        (T["faint"],T["ground"],4.5,"faint on ground"),
+        (T["muted"],T["ground"],4.5,"muted on ground"),
+        (T["accent-ink"],T["surface"],4.5,"accent ink on surface"),
+        (T["accent-ink"],T["surface2"],4.5,"accent ink on surface2"),
+        (T["accent-ink"],T["ground"],4.5,"accent ink on ground"),
         (T["chart-soft"],T["surface"],3.0,"chart-soft stroke on surface"),
         (T["accent"],T["surface"],4.5,"accent small text on surface"),
         (T["record"],T["surface"],4.5,"record text on surface"),
