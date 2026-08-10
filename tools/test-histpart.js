@@ -160,4 +160,38 @@ check("...so no wrap can split a control away from its day",
       `document.querySelectorAll('.day>summary [data-dshare]').length ===
        document.querySelectorAll('.day>summary>span:last-child [data-dshare]').length`, true);
 
-process.exit(fail ? 1 : 0);
+// ---- v3.3.182: copy the viewed month as text. The builder is asserted as
+// a pure function against the canonical record; the copier is asserted for
+// its two REQUIRED effects — clipboard payload and the toast notice.
+run(`(function(){
+  const iso=window._headISO;                      /* the seeded 3-part day */
+  hist.y=+iso.slice(0,4); hist.m=+iso.slice(5,7); /* view ITS month */
+  window._mt=monthText();})()`);
+check("month text opens with the ShowUp header + month name",
+      `/^ShowUp \u2014 [A-Z][a-z]+ 20\\d\\d/.test(window._mt)`, true);
+check("the seeded day is present, exercise-grouped",
+      `window._mt.includes('Deadlift: 80kg\u00d72/3/3/2 (4 sets)')`, true);
+check("the run line carries distance and time",
+      `/Run: 3\.48 km in 27'17/.test(window._mt)`, true);
+check("chronological: header line precedes its exercises",
+      `window._mt.indexOf('Deadlift:') > window._mt.indexOf('ShowUp')`, true);
+check("only the viewed month: no other month's dates leak in",
+      `(function(){const m=new Date(hist.y,hist.m-1,1).toLocaleDateString('en-US',{month:'short'});
+        return [...window._mt.matchAll(/^[A-Z][a-z]{2}, ([A-Z][a-z]{2}) /gm)].every(x=>x[1]===m);})()`, true);
+check("the part filter does NOT filter the export",
+      `(function(){hist.part='Back'; const t=monthText(); hist.part=null;
+        return t.includes('EZ Bar Curl');})()`, true);
+// the copier: stub the clipboard, click the button, demand both effects
+run(`window._clip=null;
+  Object.defineProperty(navigator,'clipboard',{value:{writeText:t=>{window._clip=t;return Promise.resolve();}},configurable:true});
+  render();`);
+check("the Copy month button renders in History",
+      `!!document.querySelector('[data-mcopy]')`, true);
+run(`window._mtAtClick=monthText(); document.querySelector('[data-mcopy]').click();`);
+setTimeout(() => {
+  check("clicking it puts the month text on the clipboard",
+        `window._clip===window._mtAtClick && window._clip.length>0`, true);
+  check("...and shows the notice", `document.querySelector('#toast').textContent`, "Month copied as text");
+  check("...toast is visibly on", `document.querySelector('#toast').classList.contains('on')`, true);
+  process.exit(fail ? 1 : 0);
+}, 40);

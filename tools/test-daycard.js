@@ -126,7 +126,9 @@ check("footer 'sets' is 34px, same as the block counts", String(setsFont[1]).inc
 check("the old 28px footer size is gone from the footer", String(setsFont[1]).includes("28px"), false);
 
 // ---- date and part line have room between them
-const dateY = texts.find(c => String(c[1]).startsWith("Sun,"))[3];
+/* v3.3.182: was startsWith("Sun,") — written on a Sunday, died at midnight.
+   The date line is "Ddd, Mmm N" whatever day it is. */
+const dateY = texts.find(c => /^[A-Z][a-z]{2}, [A-Z][a-z]{2} \d/.test(String(c[1])))[3];
 const partY = texts.find(c => String(c[1]) === "Chest" && c[3] < 320)[3];
 check("date → parts gap is 48px", partY - dateY, 48);
 const nameY2 = texts.find(c => String(c[1]) === "SUNGJEE")[3];
