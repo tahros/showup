@@ -361,6 +361,18 @@ for _bad in (r"(?<![.a-z])target", "ideal", "behind", "warning", "should", "--li
     if _re.search(_bad, _mccopy.lower()):
         fail.append(f"muscle coverage: out-of-register copy or colour ({_bad!r}) (v3.3.194)")
 
+# -- Section spacing (v3.3.197): .rzh exists to ADD air above the Rep-zone
+#    headings. It competes with the base h2 margin, so a value at or below
+#    that base silently tightens the layout instead of loosening it — which
+#    is exactly how v3.3.196 shipped a 4px REDUCTION as a padding fix.
+_h2m = _re.search(r"\bh2\{[^}]*margin:\s*(\d+)px", css)
+_rzh = _re.search(r"\.rzh\{[^}]*margin-top:\s*(\d+)px", css)
+if not _h2m or not _rzh:
+    fail.append("section spacing: h2 base margin or .rzh margin-top missing (v3.3.197)")
+elif int(_rzh.group(1)) <= int(_h2m.group(1)):
+    fail.append(f"section spacing: .rzh margin-top {_rzh.group(1)}px is not greater than the "
+                f"h2 base {_h2m.group(1)}px — it tightens instead of adding air (v3.3.197)")
+
 # -- shell size
 n = len(idx.encode())
 if n >= 8192: fail.append(f"index.html shell is {n} bytes (limit 8192)")

@@ -1152,7 +1152,12 @@
   :root[data-skin="minimal"] .rzsel{background:var(--ground);border-color:transparent}
   /* v3.3.194 muscle coverage — dots are the last 7 days, oldest left.
      Trained = accent, untrained = a quiet track. No red anywhere. */
-  .rzh{margin-top:26px}
+  /* v3.3.197: base h2 already carries margin:30px 0 10px, so v3.3.196's
+     26px OVERRODE it downward — the heading got 4px tighter, the opposite
+     of the ask. A rule that competes with a base margin must be read
+     against it, not written blind. 52px reads as a real section break
+     between the KPI row and the first Rep-zone card. */
+  .rzh{margin-top:52px}
   .rzmore{width:100%;margin:2px 0 4px}
   .mcrow{display:grid;grid-template-columns:78px 1fr auto;gap:10px;align-items:center;
     padding:10px 0;cursor:pointer}
