@@ -1,6 +1,104 @@
 /* ShowUp — derive.js
    Extracted verbatim from index.html (v3.2.5 refactor). Classic script:
    shares one global scope with its siblings, loaded in order by index.html. */
+/* ============ v3.3.194 — muscle–exercise taxonomy ============
+   Two layers (per spec). Layer 1: seven VISIBLE groups — the vocabulary the
+   app speaks. Layer 2: ten INTERNAL muscles — the resolution the data
+   keeps. Every internal muscle rolls up to exactly one visible group.
+   Primary-muscle attribution only: one completed set credits ONE muscle.
+   Secondary muscles are RECORDED for a few big compounds but NEVER counted —
+   double-counting would let one deadlift paint three groups green.
+   The spec's 30 movement patterns are absorbed into this mapping over the
+   app's real catalog rather than injected as new selectable names: entries
+   like "Pull-Up or Lat Pulldown" name two DISTINCT lifts in the ledger, and
+   folding them is the merge Phase 1 exists to forbid. */
+const VISIBLE_GROUPS=['Chest','Back','Shoulders','Arms','Legs','Glutes','Core'];
+const MUSCLE_VISIBLE={chest:'Chest',lats:'Back','upper-back':'Back',shoulders:'Shoulders',
+  biceps:'Arms',triceps:'Arms',quads:'Legs',hamstrings:'Legs',calves:'Legs',
+  glutes:'Glutes',core:'Core'};
+const EX_MUSCLE={
+  /* Chest — all pressing/fly patterns */
+  'Incline Smith Machine Bench Press':'chest','Flat Smith Machine Bench Press':'chest',
+  'Incline Dumbbell Bench Press':'chest','Chest Press':'chest','Chest Fly':'chest',
+  'Cable Fly Up':'chest','Cable Fly Down':'chest','Chest Squeeze':'chest','Dip':'chest',
+  'Barbell Bench Press':'chest','Incline Barbell Bench Press':'chest',
+  'Decline Barbell Bench Press':'chest','Dumbbell Bench Press':'chest',
+  'Decline Dumbbell Bench Press':'chest','Machine Chest Press':'chest',
+  'Cable Crossover':'chest','Incline Cable Fly':'chest','Low Cable Fly':'chest',
+  'Dumbbell Pullover':'chest','Landmine Press':'chest','Svend Press':'chest',
+  'Push Up':'chest','Weighted Push Up':'chest',
+  /* Back — vertical pulls → lats; rows/hinges/shrugs → upper-back or as noted */
+  'Pull Up':'lats','Lat Pulldown':'lats','Chin Up':'lats','Weighted Pull Up':'lats',
+  'Straight-Arm Pulldown':'lats','Close-Grip Lat Pulldown':'lats',
+  'Bent-Over Row':'upper-back','Seated Cable Row':'upper-back',
+  'Single-Arm Dumbbell Row':'upper-back','T-Bar Row':'upper-back','Pendlay Row':'upper-back',
+  'Inverted Row':'upper-back','Chest-Supported Row':'upper-back','Machine Row':'upper-back',
+  'Barbell Shrug':'upper-back',
+  'Deadlift':'hamstrings','Rack Pull':'upper-back',
+  /* Shoulder */
+  'Dumbbell Shoulder Press':'shoulders','Lateral Raise':'shoulders',
+  'Dumbbell Front Raise':'shoulders','Dumbbell Combination':'shoulders',
+  'Dumbbell Bent Over Side Raise':'shoulders','Rear Deltoids':'shoulders',
+  'Overhead Barbell Press':'shoulders','Arnold Press':'shoulders',
+  'Machine Shoulder Press':'shoulders','Cable Lateral Raise':'shoulders',
+  'Face Pull':'shoulders','Upright Row':'shoulders','Reverse Pec Deck':'shoulders',
+  'Landmine Lateral Raise':'shoulders','Cable Rear Delt Fly':'shoulders',
+  /* Legs — squat/lunge → quads; curls/RDL → hamstrings; thrust → glutes; calf → calves */
+  'Squat':'quads','Front Squat':'quads','Hack Squat':'quads','Leg Press':'quads',
+  'Goblet Squat':'quads','Leg Extension':'quads','Bulgarian Split Squat':'quads',
+  'Dumbbell Lunge':'quads','Walking Lunge':'quads','Step Up':'quads',
+  'Romanian Deadlift':'hamstrings','Lying Leg Curl':'hamstrings','Seated Leg Curl':'hamstrings',
+  'Hip Thrust':'glutes',
+  'Standing Calf Raise':'calves','Seated Calf Raise':'calves',
+  /* Arms */
+  'Barbell Curl':'biceps','Dumbbell Curl':'biceps','Hammer Curl':'biceps',
+  'EZ Bar Curl':'biceps','Preacher Curl':'biceps','Cable Curl':'biceps',
+  'Incline Dumbbell Curl':'biceps','Concentration Curl':'biceps','Spider Curl':'biceps',
+  'Reverse Curl':'biceps','Cable Hammer Curl':'biceps',
+  'Overhead Triceps Extension':'triceps','Close Grip Bench Press':'triceps',
+  'Triceps Pushdown':'triceps','Rope Pushdown':'triceps','Skull Crusher':'triceps',
+  'Bench Dip':'triceps','Dumbbell Kickback':'triceps','Overhead Cable Extension':'triceps',
+  'Diamond Push Up':'triceps',
+  /* Core */
+  'Hanging Leg Raise':'core','Leg Raise':'core','Plank':'core','Cable Crunch':'core',
+  'Russian Twist':'core','Ab Wheel Rollout':'core','Bicycle Crunch':'core','Sit Up':'core',
+  'Decline Sit Up':'core','Mountain Climber':'core','Side Plank':'core'};
+/* recorded, never counted */
+const EX_MUSCLE_2ND={'Deadlift':['glutes','upper-back'],'Squat':['glutes','core'],
+  'Romanian Deadlift':['glutes'],'Hip Thrust':['hamstrings'],'Dip':['triceps'],
+  'Barbell Bench Press':['triceps','shoulders'],'Pull Up':['biceps'],
+  'Bent-Over Row':['lats','biceps'],'Overhead Barbell Press':['triceps'],
+  'Bulgarian Split Squat':['glutes'],'Dumbbell Lunge':['glutes'],'Walking Lunge':['glutes']};
+const PART_FALLBACK={Chest:'chest',Back:'upper-back',Shoulder:'shoulders',
+  Biceps:'biceps',Triceps:'triceps',Sixpack:'core'};   // Legs deliberately absent
+function exMuscle(ex,part){
+  return EX_MUSCLE[ex]||PART_FALLBACK[part]||'unassigned';
+}
+/* last-7-days coverage: per visible group, the distinct DAYS (first — days
+   over volume) and completed sets; per internal muscle the same, plus the
+   per-day dot strip. Reads the canonical merge every other reader uses. */
+function muscleCoverage(){
+  const days=[]; for(let i=6;i>=0;i--){
+    const d=new Date(todayISO+'T00:00'); d.setDate(d.getDate()-i);
+    days.push(d.toLocaleDateString('en-CA'));
+  }
+  const g={}; for(const v of VISIBLE_GROUPS) g[v]={days:new Set(),sets:0,dots:days.map(()=>false),mus:{}};
+  days.forEach((iso,di)=>{
+    const rows=iso===todayISO
+      ?((DB.days[iso]||{}).w||[]).map(s2=>[s2.part,s2.ex,s2.w,s2.reps||[]])
+      :(SEED.sessions[iso]||[]);
+    for(const r of rows){
+      if(r[1]==='Run'||!(r[3]||[]).length) continue;
+      const m=exMuscle(r[1],r[0]);
+      const vis=MUSCLE_VISIBLE[m]||({Legs:'Legs'})[r[0]]||MUSCLE_VISIBLE[PART_FALLBACK[r[0]]]||'Core';
+      const gg=g[vis]; if(!gg) continue;
+      gg.days.add(iso); gg.sets+=r[3].length; gg.dots[di]=true;
+      gg.mus[m]=gg.mus[m]||{days:new Set(),sets:0};
+      gg.mus[m].days.add(iso); gg.mus[m].sets+=r[3].length;
+    }
+  });
+  return {days,groups:g};
+}
 function deriveAll(){
   const S={};
   for(const d of Object.keys(DB.days).sort()){

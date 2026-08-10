@@ -333,6 +333,34 @@ for _cls in _need_css:
         fail.append(f"class .{_cls} is emitted by JS but has no CSS rule — "
                     f"feature would ship unstyled (v3.3.193)")
 
+# -- Muscle taxonomy (v3.3.194): three structural laws. (1) Every catalog
+#    exercise except Run maps to a primary muscle — an unmapped one silently
+#    falls to a part fallback and the coverage card under-reports. (2) Every
+#    mapped muscle belongs to exactly one visible group. (3) Register: the
+#    coverage card states days; targets, warnings and prescriptions are out.
+_dv = (d/"js/derive.js").read_text()
+_exm = dict(_re.findall(r"'([^']+)':'([a-z-]+)'", _dv[_dv.find("const EX_MUSCLE="):_dv.find("const EX_MUSCLE_2ND")]))
+_mv  = dict(_re.findall(r"'?([a-z-]+)'?:'([A-Za-z]+)'", _dv[_dv.find("const MUSCLE_VISIBLE="):_dv.find("const EX_MUSCLE=")]))
+_cat = _re.findall(r'"([^"]+)":"(?:Chest|Back|Shoulder|Legs|Biceps|Triceps|Sixpack)"', core)
+_missing = [e for e in _cat if e not in _exm]
+if _missing:
+    fail.append(f"muscle taxonomy: {len(_missing)} catalog exercise(s) unmapped: "
+                + ", ".join(_missing[:4]) + ("…" if len(_missing)>4 else "") + " (v3.3.194)")
+_badm = sorted({m for m in _exm.values() if m not in _mv})
+if _badm:
+    fail.append("muscle taxonomy: primary muscle(s) with no visible group: "
+                + ",".join(_badm) + " (v3.3.194)")
+_mcsec = _stats[_stats.rfind("/*",0,_stats.find("v3.3.194 — muscle coverage")):_stats.find("function renderStats")]
+_mctip = _re.search(r"hActs\('mc','([^']*)'", _stats)
+_mcsec += "\n" + (_mctip.group(1) if _mctip else "")
+_mch2 = _re.search(r"<h2>Muscle coverage[^`]*`", _stats)
+_mcsec += "\n" + (_mch2.group(0) if _mch2 else "")
+_mccopy = _re.sub(r"/\*.*?\*/","",_mcsec,flags=_re.S); _mccopy=_re.sub(r"//[^\n]*","",_mccopy)
+#    'target' must not match e.target (code, not copy) — require a word edge
+for _bad in (r"(?<![.a-z])target", "ideal", "behind", "warning", "should", "--live"):
+    if _re.search(_bad, _mccopy.lower()):
+        fail.append(f"muscle coverage: out-of-register copy or colour ({_bad!r}) (v3.3.194)")
+
 # -- shell size
 n = len(idx.encode())
 if n >= 8192: fail.append(f"index.html shell is {n} bytes (limit 8192)")

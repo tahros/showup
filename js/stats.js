@@ -571,6 +571,40 @@ document.addEventListener('click',e=>{
   retired()[b.dataset.igretire]=1;                    // preference, never the ledger
   DB.settingsAt=Date.now(); save(true); render();
 });
+/* ============ v3.3.194 — muscle coverage (7 days) ============
+   Register: statement of trained days. No targets, no ideal frequency, no
+   warnings — an untrained group is a light dot row and "0 days", in the
+   same voice as a full one. Tap a group to open its internal receipt
+   in place (no render(): the v3.3.190 lesson — a reader mid-scroll stays
+   where they are). */
+let _mcOpen=null;
+function muscleCard(){
+  const {days,groups}=muscleCoverage();
+  return VISIBLE_GROUPS.map(v=>{
+    const gg=groups[v];
+    const open=_mcOpen===v;
+    let inner='';
+    if(open){
+      const rows=Object.entries(gg.mus).sort((a,b)=>b[1].days.size-a[1].days.size);
+      inner=`<div class="mcinner">${rows.length?rows.map(([m,st])=>
+        `<div class="mcirow"><span class="mciname">${m}</span>
+          <span class="mciwhen"><b>${st.days.size}</b> day${st.days.size===1?'':'s'} \u00b7 ${st.sets} set${st.sets===1?'':'s'}</span></div>`).join('')
+        :`<div class="note">No sets in the last 7 days.</div>`}</div>`;
+    }
+    return `<div class="mcrow ${open?'open':''}" data-mcg="${v}">
+      <span class="mcname">${v}</span>
+      <span class="mcdots">${gg.dots.map(on=>`<i class="${on?'on':''}"></i>`).join('')}</span>
+      <span class="mcn"><b>${gg.days.size}</b> day${gg.days.size===1?'':'s'} \u00b7 ${gg.sets} set${gg.sets===1?'':'s'}</span>
+    </div>${inner}`;
+  }).join('');
+}
+document.addEventListener('click',e=>{
+  const r=e.target.closest&&e.target.closest('[data-mcg]');
+  if(!r) return;
+  _mcOpen=_mcOpen===r.dataset.mcg?null:r.dataset.mcg;
+  const card=document.querySelector('.mccard');
+  if(card) card.innerHTML=muscleCard(); else render();
+});
 function renderStats(){
   const _S={}; const cut=k=>{ _S[k]=h; h=''; };
   if(SEED.totals.sessions===0 && !hasAnyDays()){ $('#view').innerHTML=emptyHero('stats'); return; }
@@ -655,6 +689,9 @@ function renderStats(){
         <div class="pmixsum" id="pmixSum"></div>
       </div>`;
   cut('pmix');
+  h+=`<h2>Muscle coverage \u00b7 7 days${hActs('mc','Days each group trained in the last 7, by each set\u2019s primary muscle. Tap a group for detail. Runs excluded.','About muscle coverage')}</h2>
+      <div class="card mccard">${muscleCard()}</div>`;
+  cut('mc');
   h+=`<h2>Stated, not trained${hActs('ig','Exercises in your log with no completed set in the last '+INTENT_GAP_DAYS+' days, or none ever. Tap \u00d7 to stop showing one.','About stated, not trained')}</h2>
       <div class="card igcard">${intentGapCard()}</div>`;
   cut('ig');
@@ -875,7 +912,7 @@ function renderStats(){
       </div>`;
   cut('rep');
   // sections emit in one declared order (v3.3.111)
-  h = _S.kpis + _S.rz + _S.pmix + _S.ig + _S.cons + _S.em + _S.dbm + _S.last6 + _S.wd + _S.wt;
+  h = _S.kpis + _S.rz + _S.pmix + _S.mc + _S.ig + _S.cons + _S.em + _S.dbm + _S.last6 + _S.wd + _S.wt;
 
   // the whole Run story lives here now (was its own tab in v2.04 — reverted)
   h+=runStatsHTML();
