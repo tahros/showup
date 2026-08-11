@@ -282,394 +282,177 @@ function bwCard(){
    in one declared order at the bottom. Reordering Stats used to mean moving
    long blocks of markup around; now it means editing one line. The order
    below is the maker's, from the v3.3.111 review. */
-/* ================= v3.3.181 — Rep zones (Stats only) =================
-   Question-addressed: "where do my working sets land?" Born from a real
-   blind spot — 12 incline press sets on one day, all under 5 or over 14
-   reps, zero in 6–12, and no surface said so. This card is that mirror.
-   Register: counts of SETS (tonnage stays demoted), blunt empty buckets
-   (an empty 6–12 renders "0 sets" plainly — no warning color; red means
-   live and this is not live), read-only (Stats never writes).
-   Boundaries are named constants with ONE definition site — "pairs of
-   numbers that should be one constant" is a recorded anti-pattern here,
-   and buildcheck holds the door. */
-const REPZONE_MAX_STRENGTH=5;      // 1..5 reps  → strength
-const REPZONE_MAX_GROWTH=12;       // 6..12 reps → growth; 13+ → endurance
-const REPZONE_LABELS=[
-  ['<'+(REPZONE_MAX_STRENGTH+1),'strength'],
-  [(REPZONE_MAX_STRENGTH+1)+'\u2013'+REPZONE_MAX_GROWTH,'growth'],
-  [(REPZONE_MAX_GROWTH+1)+'+','endurance']];
-function repZone(reps){
-  return reps<=REPZONE_MAX_STRENGTH?0:reps<=REPZONE_MAX_GROWTH?1:2;
-}
-/* v3.3.185: the window selector is gone (maker's call — one more control
-   than the question needs). The window is a CONSTANT, not state; the
-   "only N sessions logged" note still tells the truth when the record is
-   shorter than it. */
-const REPZONE_WINDOW=10;
-/* v3.3.206: dot radius = DOT_MIN + DOT_GROW*sqrt(count-1). The floor makes a
-   single-set dot a real touch target; the growth keeps repeats heavier, so
-   size still encodes count rather than every dot going uniform. */
-const DOT_MIN=5.5,DOT_GROW=2.2;
-/* v3.3.188: Rep zones breaks out per body part — one section each, so the
-   part chips are gone and selection is per-part (a lift chosen for Back
-   stays chosen when you scroll past Chest). */
-const rz={grp:null,ex:null};
-/* every date's rows, today included — the same merge the day receipt uses,
-   so the mirror reads the canonical record, not a reconstruction */
-function rzAllSessions(){
+/* ================= v3.3.209 — Growth Audit (Stats only) ================
+   Rep Zones described where repetitions landed, then labelled 6–12 as
+   "growth" and 13+ as "endurance". That was too much information and too
+   much certainty: rep count alone cannot tell whether a set caused growth.
+
+   Growth Audit uses only observable facts. Coverage is the last 7 days
+   against the person's four preceding 7-day blocks. Exercise progress is
+   compared only within the SAME canonical exercise: a new set must match or
+   exceed an earlier set on both load and reps, and improve at least one.
+   Four recent exposures without such a comparable best earns REVIEW — never
+   "wasted". With fewer than three workouts, the whole card stays in BUILDING
+   BASELINE and makes no progress judgment. */
+const GA_RECENT_DAYS=7;
+const GA_BASELINE_BLOCKS=4;
+const GA_HISTORY_DAYS=42;
+const GA_LEARN_SESSIONS=3;
+const GA_REVIEW_EXPOSURES=4;
+const ga={grp:null};
+/* canonical identity survives display-name edits and merges */
+const rowCid=r=>r[6]||canonId(r[1],false)||r[1];
+function gaAllSessions(){
   const out=SEED.dates.map(d=>[d,SEED.sessions[d]]);
-  const t=((DB.days[todayISO]||{}).w||[]).map(s2=>[s2.part,s2.ex,s2.w,s2.reps||[],s2.mins,s2.secs,s2.cid]);
+  const t=((DB.days[todayISO]||{}).w||[]).map(s2=>
+    [s2.part,s2.ex,s2.w,s2.reps||[],s2.mins,s2.secs,s2.cid]);
   if(t.length) out.push([todayISO,t]);
   return out;
 }
-/* v3.3.191: Rep Zones counts by CANONICAL ID, not by the logged string.
-   Renaming an exercise used to split its history into two series — the
-   series you were reading would simply lose everything logged under the
-   old name. Ids are resolved from the row's cid when migration has stamped
-   it, else derived from the string (no minting: a read-only view must
-   never write to the record). Display is always the display name. */
-const rowCid=r=>r[6]||canonId(r[1],false)||r[1];
-function rzExercises(){
-  const seen={};
-  for(const [,rows] of rzAllSessions())
-    for(const r of rows) if(r[1]!=='Run'&&(r[3]||[]).length) seen[rowCid(r)]=1;
-  return Object.keys(seen);
+function gaGroupForRow(r){
+  const m=exMuscle(r[1],r[0]);
+  return MUSCLE_VISIBLE[m]||PART_VISIBLE[r[0]]||r[0];
 }
-function repZoneData(ex,N){
-  /* "last N sessions OF THAT EXERCISE": days it was actually trained,
-     newest first — not last N calendar days */
-  const sess=rzAllSessions()
-    .filter(([,rows])=>rows.some(r=>rowCid(r)===ex&&(r[3]||[]).length))
-    .sort((a,b)=>a[0]<b[0]?1:-1).slice(0,N);
-  const counts=[0,0,0];
-  for(const [,rows] of sess) for(const r of rows){
-    if(rowCid(r)!==ex) continue;
-    for(const rep of (r[3]||[])) counts[repZone(rep)]++;   // reps:[] (runs/cardio) adds nothing
-  }
-  const ds=sess.map(x=>x[0]).sort();
-  return {counts,used:sess.length,first:ds[0],last:ds[ds.length-1]};
-}
-/* v3.3.183: the scatter's dots — every set of the window as (weight, reps),
-   AGGREGATED by exact position: count sizes the dot (two identical sets are
-   one bigger dot, never a jittered fake position), and age drives opacity
-   (0 = the newest session; older sessions fade). Recency IS the trend here:
-   weight×reps has no time axis, so a fitted line would be a fiction — the
-   cloud's solid edge moving is the honest version. */
-function repZoneSets(ex,N){
-  const sess=rzAllSessions()
-    .filter(([,rows])=>rows.some(r=>rowCid(r)===ex&&(r[3]||[]).length))
-    .sort((a,b)=>a[0]<b[0]?1:-1).slice(0,N);
-  const dots={};
-  sess.forEach(([iso,rows],age)=>{
-    for(const r of rows){
-      if(rowCid(r)!==ex) continue;
-      for(const rep of (r[3]||[])){
-        const k=r[2]+'@'+rep;
-        /* v3.3.206: `last` is the most recent session this exact weight x rep
-           appeared in. Sessions arrive newest-first, so the first one to
-           create the dot is already the latest — but take the max anyway
-           rather than depending on the sort order staying that way. */
-        if(!dots[k]) dots[k]={w:r[2],rep,n:0,age,last:iso};
-        dots[k].n++; dots[k].age=Math.min(dots[k].age,age);
-        if(iso>dots[k].last) dots[k].last=iso;
-      }
-    }
-  });
-  return {dots:Object.values(dots),used:sess.length};
-}
-function repZoneScatterSvg(ex){
-  const {dots,used}=repZoneSets(ex,REPZONE_WINDOW);
-  if(!dots.length) return '';
-  /* v3.3.196: the plot's own inset. Band labels now sit ABOVE the plot
-     rather than inside its top edge, and the x-axis sits well below the
-     lowest dot — the maker circled dots touching both frames. TOPPAD is
-     the label strip; BOTPAD is axis air. */
-  /* v3.3.205: axis geometry as NAMED GAPS rather than tuned literals, so the
-     two spacings the maker asked about are each one number.
-       AXIS_LAB_X  air between the rotated "weight (kg)" and the tick numbers
-       TICK_GAP_X  air between a y tick number and the plot's left edge
-       TICK_GAP_Y  air between the axis line and the x tick numbers
-       XLAB_GAP    air between the x tick numbers and "reps per set"
-     H is DERIVED from the last of them — previously H was fixed and the
-     label was placed from the bottom, so the two moved independently and
-     the gap drifted. */
-  const W=340,TOPPAD=30,BOTPAD=30;
-  const AXIS_LAB_X=9,TICK_GAP_X=8,TICK_GAP_Y=12,XLAB_GAP=13;
-  const X0=52,XW=W-X0-8;                 // was 34: the y label had no room
-  const Y0=TOPPAD+164,YH=Y0-TOPPAD;
-  const H=Y0+TICK_GAP_Y+XLAB_GAP+6;
-  const reps=Math.max(REPZONE_MAX_GROWTH+3,...dots.map(d=>d.rep));
-  const ws=dots.map(d=>d.w);
-  let wLo=Math.min(...ws),wHi=Math.max(...ws);
-  if(wLo===wHi){wLo-=5;wHi+=5;}
-  /* v3.3.189: pad the weight axis so the largest dot never kisses the plot
-     edge. The old 12% was computed before radius existed; the biggest dot
-     is ~8px, so the pad must cover it in DATA units as well as clear the
-     band labels up top. */
-  const span=wHi-wLo, maxR=DOT_MIN+DOT_GROW*Math.sqrt(Math.max(...dots.map(d=>d.n))-1);
-  const pad=Math.max(span*0.18,span*(maxR+6)/Math.max(1,YH));
-  wLo-=pad; wHi+=pad;
-  const x=rep=>X0+(rep/(reps+1))*XW;
-  const y=w2=>Y0-((w2-wLo)/(wHi-wLo))*YH;
-  /* zone bands from the SAME constants as the buckets — one definition site.
-     Boundaries sit at n+0.5 so integer reps land inside their band. */
-  const b1=x(REPZONE_MAX_STRENGTH+0.5), b2=x(REPZONE_MAX_GROWTH+0.5);
-  let h2=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto" class="rzscat" aria-label="Weight by reps per set">`;
-  /* v3.3.207: a transparent backdrop over the whole plot. Without it an <svg>
-     only receives pointer events where something is actually drawn, so a
-     finger landing between dots produced NO event and the nearest-dot
-     snapping never ran — the exact failure the snapping exists to prevent. */
-  h2+=`<rect class="rzpad" x="${X0}" y="${(Y0-YH).toFixed(1)}" width="${XW}" height="${YH}"
-        fill="transparent"></rect>`;
-  h2+=`<rect x="${b1.toFixed(1)}" y="${(Y0-YH).toFixed(1)}" width="${(b2-b1).toFixed(1)}" height="${YH}"
-        fill="var(--accent)" opacity="0.07"></rect>`;
-  for(const bx of [b1,b2])
-    h2+=`<line x1="${bx.toFixed(1)}" y1="${Y0-YH}" x2="${bx.toFixed(1)}" y2="${Y0}" stroke="var(--line)" stroke-width="0.8" stroke-dasharray="3 3"></line>`;
-  REPZONE_LABELS.forEach(([range],i)=>{
-    const cx=[(X0+b1)/2,(b1+b2)/2,(b2+X0+XW)/2][i];
-    h2+=`<text x="${cx.toFixed(1)}" y="${(Y0-YH-9).toFixed(1)}" text-anchor="middle" font-family="var(--mono)" font-size="7.5" fill="var(--faint)">${range}</text>`;
-  });
-  // y ticks: lo / mid / hi weight
-  for(const wv of [Math.min(...ws),(wLo+wHi)/2,Math.max(...ws)]){
-    const yy=y(wv);
-    h2+=`<line x1="${X0}" y1="${yy.toFixed(1)}" x2="${X0+XW}" y2="${yy.toFixed(1)}" stroke="var(--line)" stroke-width="0.5" stroke-dasharray="2 4"></line>
-        <text x="${X0-TICK_GAP_X}" y="${(yy+2.5).toFixed(1)}" text-anchor="end" font-family="var(--mono)" font-size="7" fill="var(--muted)">${wDisp(wv)}</text>`;
-  }
-  // x ticks every 5 reps
-  for(let rv=5;rv<=reps;rv+=5)
-    h2+=`<text x="${x(rv).toFixed(1)}" y="${Y0+TICK_GAP_Y}" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="var(--muted)">${rv}</text>`;
-  h2+=`<line x1="${X0}" y1="${Y0}" x2="${X0+XW}" y2="${Y0}" stroke="var(--line)" stroke-width="0.8"></line>`;
-  /* v3.3.186: the axes say what they are (maker's ask) */
-  h2+=`<text x="${(X0+XW/2).toFixed(1)}" y="${Y0+TICK_GAP_Y+XLAB_GAP}" text-anchor="middle" font-family="var(--mono)" font-size="7.5" fill="var(--muted)" class="rzxlab">reps per set</text>`;
-  h2+=`<text x="${AXIS_LAB_X}" y="${(Y0-YH/2).toFixed(1)}" text-anchor="middle" font-family="var(--mono)" font-size="7.5" fill="var(--muted)" class="rzylab" transform="rotate(-90 ${AXIS_LAB_X} ${(Y0-YH/2).toFixed(1)})">weight (${U()})</text>`;
-  // dots: newest solid, oldest faint; count sizes
-  for(const d of dots.sort((a,b)=>b.age-a.age)){
-    const op=used>1?(0.35+0.65*(1-d.age/(used-1))):1;
-    /* v3.3.206: radius from the named DOT_MIN/DOT_GROW constants — the floor
-       makes a single-set dot a real target, the growth keeps repeats heavier.
-       Count is still the encoding; the dots got bigger, not uniform. */
-    const r=(DOT_MIN+DOT_GROW*Math.sqrt(d.n-1)).toFixed(1);
-    /* v3.3.205: each dot is tappable. The hit target is a transparent circle
-       at a thumb-sized radius behind the visible one — a 3px dot is not a
-       tap target, and growing the dot to be tappable would lie about count. */
-    /* the tap target is gone: with snapping, the nearest dot wins from
-       anywhere in the plot, so a per-dot hit circle is dead weight. The dot
-       carries its own geometry for the distance sort instead. */
-    h2+=`<circle class="rzdot" cx="${x(d.rep).toFixed(1)}" cy="${y(d.w).toFixed(1)}" r="${r}"
-          fill="var(--accent)" opacity="${op.toFixed(2)}"
-          data-w="${d.w}" data-rep="${d.rep}" data-n="${d.n}" data-age="${d.age}"
-          data-last="${d.last}"></circle>`;
-  }
-  /* the readout lives in ONE fixed place under the chart instead of floating
-     beside the dot: no positioning maths, nothing to clip at the card edge,
-     and the chart never reflows when it fills. */
-  /* v3.3.206: the selection is a HALO ring, not a stroke on the dot — at
-     these radii a stroke reads as "slightly darker", which is exactly the
-     "which one is selected?" problem. A detached ring outside the dot is
-     unmistakable, and being one element it can move with the scrub without
-     touching every circle. */
-  h2+=`<circle class="rzhalo" r="0" cx="0" cy="0" fill="none"
-        stroke="var(--chalk)" stroke-width="1.6" opacity="0" pointer-events="none"></circle>`;
-  h2+=`</svg><div class="rzcap" data-rzcap>&nbsp;</div>`;
-  return h2;
-}
-/* v3.3.198 — ONE Rep-zone section. The per-part sections, the three-part
-   default and the expander are all gone (maker's call, one release later):
-   a body-part DROPDOWN plus a single card says the same thing with one
-   control and no scroll. The exercise rail is ordered by SETS LOGGED,
-   most to least — the part's centre of gravity by the plainest possible
-   measure — and an exercise with no sets never appears, because a rep-zone
-   chart of nothing is not a finding. Parts are visible groups (v3.3.194),
-   so Biceps+Triceps read as Arms and Sixpack as Core. */
-function rzSetsById(){
-  const sets={};
-  for(const [,rows] of rzAllSessions())
+/* One entry per canonical exercise, with one session per actual training day.
+   Folded sheet rows and one-row-per-set app data become the same point list. */
+function gaExerciseSessions(){
+  const out={};
+  for(const [iso,rows] of gaAllSessions()){
+    const onDay={};
     for(const r of rows){
       if(r[1]==='Run'||!(r[3]||[]).length) continue;
-      const id=rowCid(r); sets[id]=(sets[id]||0)+r[3].length;
+      const id=rowCid(r), e=onDay[id]=onDay[id]||{
+        d:iso,id,name:canonName(id)||r[1],group:gaGroupForRow(r),points:[],sets:0};
+      for(const rep of r[3]) e.points.push({w:+r[2]||0,rep:+rep||0});
+      e.sets+=r[3].length;
     }
-  return sets;
+    for(const [id,e] of Object.entries(onDay)){
+      const x=out[id]=out[id]||{id,name:e.name,group:e.group,sessions:[],sets:0};
+      x.name=e.name; x.group=e.group; x.sessions.push(e); x.sets+=e.sets;
+    }
+  }
+  return out;
 }
-function repZoneSections(){
-  const exs=rzExercises();                       // already sets-only
-  if(!exs.length) return `<h2 class="rzh">Rep zones${hActs('rz','Sets per rep range, last '+REPZONE_WINDOW+' sessions. Bigger dot = a repeated set; newer sessions solid. Runs excluded.','About rep zones')}</h2>
-    <div class="card rzcard"><div class="note">No weighted sets yet. The zones will be here when the sets are.</div></div>`;
-  const sets=rzSetsById();
-  const byPart={};
-  for(const e of exs){
-    const g2=PART_VISIBLE[homePartOf(canonName(e))]||homePartOf(canonName(e))||'Other';
-    (byPart[g2]=byPart[g2]||[]).push(e);
+const gaDominates=(a,b)=>a.w>=b.w&&a.rep>=b.rep&&(a.w>b.w||a.rep>b.rep);
+function gaExerciseState(ex){
+  const recent=ex.sessions.filter(s=>{const a=daysAgo(s.d);return a>=0&&a<GA_HISTORY_DAYS;}).slice(-6);
+  const n=recent.length, allN=ex.sessions.length;
+  if(n===0) return {key:'inactive',label:'No recent work',detail:`Last trained ${daysAgo(ex.sessions.at(-1).d)} days ago`,n};
+  if(n<GA_LEARN_SESSIONS){
+    const fresh=allN===1&&n===1;
+    return {key:fresh?'new':'learning',label:fresh?'New':'Learning',
+      detail:fresh?'First session logged':`${n} of ${GA_LEARN_SESSIONS} recent sessions`,n};
   }
-  const order=[...VISIBLE_GROUPS.filter(pt=>byPart[pt]),
-               ...Object.keys(byPart).filter(pt=>!VISIBLE_GROUPS.includes(pt))];
-  /* opens on the group that matters today: trained today, else the plan's
-     next pick — the same authority as Today's Train-next card */
-  if(!rz.grp||!byPart[rz.grp]){
-    const plan=trainingPlan();
-    const todayG=[...new Set(((DB.days[todayISO]||{}).w||[])
-      .filter(s2=>s2.ex!=='Run'&&(s2.reps||[]).length)
-      .map(s2=>PART_VISIBLE[s2.part]||s2.part))].find(g2=>byPart[g2]);
-    const pickG=PART_VISIBLE[plan.pick]||plan.pick;
-    rz.grp=todayG||(byPart[pickG]?pickG:order[0]);
+  let frontier=recent[0].points.slice(),lastGain=0,lastDetail='';
+  for(let i=1;i<n;i++){
+    let gain=false,detail='';
+    for(const p of recent[i].points){
+      const same=frontier.filter(q=>q.w===p.w&&q.rep<p.rep).sort((a,b)=>b.rep-a.rep)[0];
+      const heavier=frontier.filter(q=>q.rep===p.rep&&q.w<p.w).sort((a,b)=>b.w-a.w)[0];
+      if(frontier.some(q=>gaDominates(p,q))){
+        gain=true;
+        if(same) detail=`+${p.rep-same.rep} rep${p.rep-same.rep===1?'':'s'} at ${wDisp(p.w)} ${U()}`;
+        else if(heavier) detail=`Heavier at ${p.rep} reps`;
+        else detail='New comparable best';
+      }
+    }
+    const all=[...frontier,...recent[i].points];
+    frontier=all.filter((p,pi)=>!all.some((q,qi)=>qi!==pi&&gaDominates(q,p)))
+      .filter((p,pi,a)=>a.findIndex(q=>q.w===p.w&&q.rep===p.rep)===pi);
+    if(gain){lastGain=i;lastDetail=detail;}
   }
-  /* v3.3.199: ordered by TOTAL SETS LOGGED, most first — and the number is
-     printed on the chip. The maker read the rail as mis-sorted; with the
-     count invisible there was no way to tell a sorting bug from a surprising
-     history. Now the order is checkable at a glance, and the chip and the
-     comparator read the same value. */
-  const shown=byPart[rz.grp].slice().sort((a,b)=>(sets[b]||0)-(sets[a]||0)
-    ||canonName(a).localeCompare(canonName(b)));
-  if(!rz.ex||!shown.includes(rz.ex)) rz.ex=shown[0];
-  return `<h2 class="rzh">Rep zones${hActs('rz','Sets per rep range, last '+REPZONE_WINDOW+' sessions. Bigger dot = a repeated set; newer sessions solid. Runs excluded.','About rep zones')}</h2>
-    <div class="card rzcard" data-rzcard="${rz.grp}">
-      <select id="rzGrp" class="rzsel" aria-label="Body part">${order.map(g2=>
-        `<option value="${g2}" ${g2===rz.grp?'selected':''}>${g2}</option>`).join('')}</select>
-      <div class="rzlifts">${shown.map(e=>
-        `<button class="chip ${e===rz.ex?'on':''}" data-rzx="${e}" data-rzpart="${rz.grp}"
-          >${canonName(e)}<i>${sets[e]||0}</i></button>`).join('')}</div>
-      <div class="rzbody">${rzBody(rz.ex)}</div>
+  const since=n-1-lastGain;
+  if(lastGain>0&&since<=1)
+    return {key:'progressing',label:'Progressing',detail:lastDetail||'Comparable best moved',n};
+  if(n>=GA_REVIEW_EXPOSURES&&since>=GA_REVIEW_EXPOSURES-1)
+    return {key:'review',label:'Review',detail:`${since+1} sessions without a new comparable best`,n};
+  return {key:'ready',label:'Baseline ready',detail:`${n} recent sessions compared`,n};
+}
+function growthAuditData(){
+  const exMap=gaExerciseSessions(),strengthDays=new Set();
+  const groups=Object.fromEntries(VISIBLE_GROUPS.map(g=>[g,{name:g,blocks:[0,0,0,0,0],days:new Set(),ex:[]}]))
+  for(const [iso,rows] of gaAllSessions()){
+    let has=false;
+    for(const r of rows){
+      if(r[1]==='Run'||!(r[3]||[]).length) continue;
+      has=true; const g=groups[gaGroupForRow(r)],ago=daysAgo(iso);
+      if(g&&ago>=0&&ago<GA_RECENT_DAYS*(GA_BASELINE_BLOCKS+1)){
+        const b=Math.floor(ago/GA_RECENT_DAYS); g.blocks[b]+=r[3].length;
+        if(b===0) g.days.add(iso);
+      }
+    }
+    if(has) strengthDays.add(iso);
+  }
+  for(const ex of Object.values(exMap)){
+    const g=groups[ex.group]; if(!g) continue;
+    const st=gaExerciseState(ex),last=ex.sessions.at(-1).d;
+    g.ex.push({...ex,state:st,last,ago:daysAgo(last)});
+  }
+  const mature=strengthDays.size>=GA_LEARN_SESSIONS;
+  const priority={review:0,progressing:1,learning:2,new:2,ready:3,inactive:4};
+  for(const g of Object.values(groups)){
+    g.ex.sort((a,b)=>(priority[a.state.key]??9)-(priority[b.state.key]??9)||a.ago-b.ago||a.name.localeCompare(b.name));
+    const previous=g.blocks.slice(1),active=previous.filter(n=>n>0).length;
+    g.baseline=active>=2?previous.reduce((a,b)=>a+b,0)/GA_BASELINE_BLOCKS:null;
+    const current=g.blocks[0],activeEx=g.ex.filter(e=>e.ago<GA_HISTORY_DAYS);
+    if(!mature) g.state={key:'building',label:'Building baseline'};
+    else if(current===0) g.state={key:'none',label:'No recent work'};
+    else if(g.baseline!==null&&current<g.baseline*.65) g.state={key:'below',label:'Below your pattern'};
+    else if(activeEx.some(e=>e.state.key==='review')) g.state={key:'review',label:'Review'};
+    else if(activeEx.some(e=>e.state.key==='progressing')) g.state={key:'progressing',label:'Progressing'};
+    else if(activeEx.some(e=>e.state.key==='learning'||e.state.key==='new')) g.state={key:'learning',label:'Learning'};
+    else g.state={key:'ready',label:'Baseline ready'};
+  }
+  return {groups,strengthDays:strengthDays.size,mature};
+}
+function gaAction(g,data){
+  if(!data.mature) return `Keep logging normal workouts. Growth Audit starts comparing after ${GA_LEARN_SESSIONS} workouts.`;
+  if(!g.blocks[0]) return g.ex.length
+    ?`${g.ex[0].name} was last trained ${g.ex[0].ago} day${g.ex[0].ago===1?'':'s'} ago.`
+    :'No completed sets recorded for this group.';
+  if(g.state.key==='below') return 'Your last 7 days are below your own recent pattern.';
+  const review=g.ex.find(e=>e.ago<GA_HISTORY_DAYS&&e.state.key==='review');
+  if(review) return `Review ${review.name}: ${review.state.detail.toLowerCase()}.`;
+  const moving=g.ex.find(e=>e.ago<GA_HISTORY_DAYS&&e.state.key==='progressing');
+  if(moving) return `Keep ${moving.name}: ${moving.state.detail.toLowerCase()}.`;
+  const learning=g.ex.find(e=>e.ago<GA_HISTORY_DAYS&&['new','learning'].includes(e.state.key));
+  if(learning) return `Keep logging ${learning.name}: ${learning.state.detail.toLowerCase()}.`;
+  return 'Baseline ready. No change suggested from the recorded work.';
+}
+function growthAuditSection(){
+  const data=growthAuditData(),groups=data.groups;
+  if(!ga.grp||!groups[ga.grp]){
+    const today=VISIBLE_GROUPS.find(v=>groups[v].days.has(todayISO));
+    const pick=PART_VISIBLE[trainingPlan().pick]||trainingPlan().pick;
+    ga.grp=today||(groups[pick]?pick:null)||VISIBLE_GROUPS.slice().sort((a,b)=>groups[b].blocks[0]-groups[a].blocks[0])[0];
+  }
+  const g=groups[ga.grp],recent=g.ex.filter(e=>e.ago<GA_HISTORY_DAYS);
+  const shown=(recent.length?recent:g.ex).slice(0,4);
+  const base=g.baseline===null?'':` · recent pattern ${fmt(+g.baseline.toFixed(1))}`;
+  const learning=!data.mature?`<div class="gabase"><b>Building your baseline</b>
+    <span>${Math.min(data.strengthDays,GA_LEARN_SESSIONS)} of ${GA_LEARN_SESSIONS} workouts logged</span>
+    <small>No progress or review judgment yet.</small></div>`:
+    `<div class="gabase"><b>Recent pattern</b><span>7 days compared with your four earlier 7-day blocks</span></div>`;
+  return `<h2 class="gah">Growth audit${hActs('ga','Coverage uses your recent pattern. Progress compares weight and reps within the same exercise. It never guesses effort.','About Growth audit')}</h2>
+    <div class="card gacard" data-gacard="${ga.grp}">
+      <select id="gaGrp" class="gasel" aria-label="Body part">${VISIBLE_GROUPS.map(v=>
+        `<option value="${v}" ${v===ga.grp?'selected':''}>${v}</option>`).join('')}</select>
+      ${learning}
+      <div class="gahead"><span><b>${ga.grp}</b><small>${g.blocks[0]} completed set${g.blocks[0]===1?'':'s'} · ${g.days.size} day${g.days.size===1?'':'s'}${base}</small></span>
+        <i class="gastate ${g.state.key}">${g.state.label}</i></div>
+      <div class="garows">${shown.length?shown.map(e=>`<div class="garow">
+        <span><b>${e.name}</b><small>${e.state.detail}</small></span>
+        <i class="gabadge ${e.state.key}">${e.state.label}</i></div>`).join(''):
+        `<div class="note">No completed sets recorded for this group.</div>`}</div>
+      <div class="ganext"><b>What the record says</b><span>${gaAction(g,data)}</span></div>
     </div>`;
 }
-/* v3.3.198: the lift-chip handler. Deleted TWICE now by rewrites of the
-   surrounding section builder (v3.3.188, and again here) — it lives next to
-   the dropdown handler so the two are found and moved together. Swaps the
-   card body in place: no render(), no scroll jump. */
-/* v3.3.206 — reading the scatter by touch.
-   Precision was the problem: a dot is a few pixels and a fingertip is not.
-   So the plot snaps to the NEAREST dot from anywhere inside it, measured in
-   SCREEN pixels rather than data units — visual proximity is what a finger
-   means, and measuring in data units would make the tall weight axis punish
-   vertical misses more than horizontal ones.
-
-   Snapping is unlimited by design (maker's call): a distance cap would blank
-   the readout mid-drag in empty corners, which reads as broken. The cost is
-   that a far-away dot can be selected, which is why the selection is a halo
-   you cannot miss.
-
-   Gesture grammar follows bindScrub (v3.3.108): the surface is on the
-   tab-swipe blocklist and touch-action:none, so a horizontal drag cannot
-   change tabs and a vertical one cannot scroll the page. The reading STAYS
-   after release. */
-function rzPick(svg,clientX,clientY){
-  const dots=[...svg.querySelectorAll('.rzdot')];
-  if(!dots.length) return null;
-  const box=svg.getBoundingClientRect();
-  const vb=(svg.getAttribute('viewBox')||'0 0 1 1').split(/\s+/).map(Number);
-  const sx=box.width/(vb[2]||1), sy=box.height/(vb[3]||1);
-  let best=null,bd=Infinity;
-  for(const d of dots){
-    const px=box.left+(+d.getAttribute('cx'))*sx;
-    const py=box.top +(+d.getAttribute('cy'))*sy;
-    const dist=(px-clientX)**2+(py-clientY)**2;
-    if(dist<bd){ bd=dist; best=d; }
-  }
-  return best;
-}
-function rzSelect(svg,dot){
-  if(!svg||!dot) return;
-  const halo=svg.querySelector('.rzhalo');
-  if(halo){
-    halo.setAttribute('cx',dot.getAttribute('cx'));
-    halo.setAttribute('cy',dot.getAttribute('cy'));
-    halo.setAttribute('r',String((+dot.getAttribute('r'))+5));
-    halo.setAttribute('opacity','1');
-  }
-  svg.querySelectorAll('.rzdot.on').forEach(c=>c.classList.remove('on'));
-  dot.classList.add('on');
-  const cap=svg.parentNode&&svg.parentNode.querySelector('[data-rzcap]');
-  if(!cap) return;
-  const n=+dot.dataset.n;
-  cap.innerHTML=`<b>${wDisp(+dot.dataset.w)}</b>${U()} \u00d7 <b>${dot.dataset.rep}</b> reps`
-    +(n>1?` \u00b7 ${n} sets`:'')
-    +` \u00b7 ${rzWhen(dot.dataset.last)}`;
-}
-function rzClear(svg){
-  if(!svg) return;
-  const halo=svg.querySelector('.rzhalo');
-  if(halo) halo.setAttribute('opacity','0');
-  svg.querySelectorAll('.rzdot.on').forEach(c=>c.classList.remove('on'));
-  const cap=svg.parentNode&&svg.parentNode.querySelector('[data-rzcap]');
-  if(cap) cap.innerHTML='&nbsp;';
-}
-/* "Aug 7", with the year only when it is not this one */
-function rzWhen(iso){
-  if(!iso) return '';
-  const d=new Date(iso+'T00:00');
-  const opts={month:'short',day:'numeric'};
-  if(iso.slice(0,4)!==todayISO.slice(0,4)) opts.year='numeric';
-  return d.toLocaleDateString('en-US',opts);
-}
-/* one pointer binding for the plot: press, drag, release */
-function bindRzScrub(svg){
-  if(!svg||svg._rzBound) return; svg._rzBound=1;
-  let down=false;
-  const at=e=>rzPick(svg,e.clientX,e.clientY);
-  const start=e=>{
-    if(e.isPrimary===false) return;              // second finger of a pinch
-    down=true;
-    if(svg.setPointerCapture&&e.pointerId!=null){ try{svg.setPointerCapture(e.pointerId);}catch(_){} }
-    const d=at(e);
-    /* pressing the already-selected dot toggles the reading off */
-    if(d&&d.classList.contains('on')){
-      rzClear(svg); down=false; return;
-    }
-    rzSelect(svg,d);
-  };
-  const move=e=>{ if(!down) return; e.preventDefault(); rzSelect(svg,at(e)); };
-  const end=()=>{ down=false; };                 // the reading stays
-  /* v3.3.207: POINTER EVENTS ONLY. Binding touch* alongside them meant a
-     phone fired both for a single tap, so start() ran twice — the first run
-     selected the dot, the second saw it already selected and toggled it off.
-     Net effect on a phone: nothing ever appeared selected, while a mouse
-     (which fires only pointerdown) worked perfectly. touch-action:none on
-     .rzscat is what stops the page scrolling, so no touch listener is
-     needed for that either. */
-  svg.addEventListener('pointerdown',start);
-  svg.addEventListener('pointermove',move);
-  svg.addEventListener('pointerup',end);
-  svg.addEventListener('pointercancel',end);
-}
-document.addEventListener('click',e=>{
-  const xc=e.target.closest&&e.target.closest('[data-rzx]');
-  if(!xc) return;
-  rz.ex=xc.dataset.rzx;
-  const card=xc.closest('.rzcard'), body=card&&card.querySelector('.rzbody');
-  if(!body){ render(); return; }
-  card.querySelectorAll('.rzlifts .chip').forEach(c=>c.classList.toggle('on',c.dataset.rzx===rz.ex));
-  body.innerHTML=rzBody(rz.ex);
-  rzBindAll();
-});
 document.addEventListener('change',e=>{
-  if(!e.target||e.target.id!=='rzGrp') return;
-  rz.grp=e.target.value; rz.ex=null;              // the new part picks its own top lift
-  const card=document.querySelector('.rzcard');
-  if(card) card.outerHTML=repZoneSections().split('</h2>')[1]; else render();
-  rzBindAll();
+  if(!e.target||e.target.id!=='gaGrp') return;
+  ga.grp=e.target.value;
+  const card=document.querySelector('.gacard');
+  if(card) card.outerHTML=growthAuditSection().split('</h2>')[1]; else render();
 });
-/* v3.3.190: the bars + chart of ONE lift, on their own — so a chip tap can
-   swap this alone instead of re-rendering Stats. A full render() reset the
-   scroll to the top of the tab, which made picking a lift feel like
-   leaving the page you were reading. */
-/* v3.3.206: bind after every path that puts a scatter in the DOM — full
-   render, lift-chip swap, and dropdown swap. The binding is idempotent
-   (svg._rzBound), so calling it more than once is free; missing one of the
-   three would ship a chart that silently ignores touch. */
-function rzBindAll(){
-  document.querySelectorAll('.rzcard .rzscat').forEach(bindRzScrub);
-}
-function rzBody(ex){
-  const {counts}=repZoneData(ex,REPZONE_WINDOW);
-  const max=Math.max(...counts,1);
-  let out=`<div class="rzrows">`;
-  REPZONE_LABELS.forEach(([range,name],i)=>{
-    out+=`<div class="rzrow">
-      <span class="rzlab">${range}<i>${name}</i></span>
-      <span class="rzbar"><i style="width:${counts[i]?Math.round(counts[i]/max*100):0}%"></i></span>
-      <span class="rzn"><b>${counts[i]}</b> set${counts[i]===1?'':'s'}</span>
-    </div>`;
-  });
-  return out+`</div>`+repZoneScatterSvg(ex);
-}
 /* ============ v3.3.192 — intent gaps ============
    Question-addressed: "what did I mean to train, and haven't?" The ledger
    already answers it — exercises carrying a weight and zero sets are stated
@@ -847,7 +630,7 @@ function renderStats(){
   h+=`<h2>Stated, not trained${hActs('ig','Exercises in your log with no completed set in the last '+INTENT_GAP_DAYS+' days, or none ever. Tap \u00d7 to stop showing one.','About stated, not trained')}</h2>
       <div class="card igcard">${intentGapCard()}</div>`;
   cut('ig');
-  h+=repZoneSections();
+  h+=growthAuditSection();
   cut('rz');
   h+=`<h2>Consistency${hActs('yoy','Percent of days trained, per year. The bold line is this year.','About the consistency chart')}</h2><div class="card">
       `;
@@ -1097,7 +880,6 @@ function renderStats(){
       <button class="btn ghost" id="settingsBtn">⚙︎ Settings, account &amp; sync</button>
       <div class="note" style="text-align:center">${session?`Signed in as ${session.user.email||'—'}`:'Not signed in — data is on this device only'} · ${APP_VERSION}</div>`;
   $('#view').innerHTML=h;
-  rzBindAll();
   /* v3.3.42: the 6-month heatmap runs oldest → newest, so its default
      scroll position showed January and hid today. Park it at the right
      edge — the current week is the whole point of the strip. scrollLeft on

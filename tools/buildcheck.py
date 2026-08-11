@@ -305,19 +305,23 @@ if not _re.search(r"\.day summary>span:first-child\{[^}]*min-width:0", css):
     fail.append("session head left column lost min-width:0 — it cannot shrink, "
                 "so it pushes the controls off (v3.3.180)")
 
-# -- Rep zones (v3.3.181): bucket boundaries are named constants with ONE
-#    definition site. "Pairs of numbers that should be one constant" is a
-#    recorded anti-pattern; a second literal 5 or 12 in the bucketer, the
-#    labels, or a future view is exactly how the buckets drift apart.
+# -- Growth Audit (v3.3.209): time/confidence thresholds have one definition
+#    site, the retired Rep-zone claim is gone, and comparison remains strictly
+#    exercise-local. These are product truth guards, not formatting checks.
 _stats = (d/"js/stats.js").read_text()
-for _cn in ("REPZONE_MAX_STRENGTH", "REPZONE_MAX_GROWTH"):
+for _cn in ("GA_RECENT_DAYS", "GA_BASELINE_BLOCKS", "GA_HISTORY_DAYS",
+            "GA_LEARN_SESSIONS", "GA_REVIEW_EXPOSURES"):
     _defs = _re.findall(r"const\s+" + _cn + r"\s*=", _stats)
     if len(_defs) != 1:
-        fail.append(f"rep zones: {_cn} defined {len(_defs)} times — one definition site required (v3.3.181)")
+        fail.append(f"growth audit: {_cn} defined {len(_defs)} times — one definition site required (v3.3.209)")
     if not _re.search(_cn + r"\b", _stats.replace("const " + _cn, "", 1)):
-        fail.append(f"rep zones: {_cn} defined but never referenced — the buckets are not using it (v3.3.181)")
-if _re.search(r"repZone\s*\(\s*reps\s*\)\s*\{[^}]*[^_A-Z](5|12)[^0-9]", _stats):
-    fail.append("rep zones: bucketer contains an inline boundary literal — use the named constants (v3.3.181)")
+        fail.append(f"growth audit: {_cn} defined but never referenced (v3.3.209)")
+_stats_code = _re.sub(r"/\*.*?\*/", "", _stats, flags=_re.S)
+_stats_code = _re.sub(r"//[^\n]*", "", _stats_code)
+if "Rep zones" in _stats_code or _re.search(r"\brepZone(?:Data|Sets|ScatterSvg)?\s*\(", _stats_code):
+    fail.append("growth audit: retired Rep-zone UI or bucketing logic survives (v3.3.209)")
+if "function gaExerciseState" not in _stats or "gaDominates" not in _stats:
+    fail.append("growth audit: exercise-local comparable-best logic is missing (v3.3.209)")
 
 # -- Intent gaps (v3.3.192): one threshold, one definition site. A second
 #    literal 21 in the query, the copy, or a later view is exactly how the
@@ -346,8 +350,9 @@ for _bad in ("falling behind", "you should", "keep it up", "well done", "--live"
 #    on a selector deleted two releases earlier, so they silently changed
 #    nothing and the gate had nothing to say. These are the classes those two
 #    features depend on; a missing one now fails the build.
-_need_css = ["rzsel", "igrows", "igrow", "igname", "igwhen", "igx",
-             "rzlifts", "rzrow", "rzbar", "rzn", "rzscat", "rzh", "rzcap", "rzdot", "rzhalo", "rzpad", "mcrow", "mcdots", "mcinner"]
+_need_css = ["gasel", "gabase", "gahead", "gastate", "garows", "garow",
+             "gabadge", "ganext", "gah", "igrows", "igrow", "igname",
+             "igwhen", "igx", "mcrow", "mcdots", "mcinner"]
 for _cls in _need_css:
     # v3.3.205: a compound selector (.rzdot.on{) is still a rule for .rzdot,
     # as is an attribute or descendant form. The original character set
@@ -384,26 +389,22 @@ for _bad in (r"(?<![.a-z])target", "ideal", "behind", "warning", "should", "--li
     if _re.search(_bad, _mccopy.lower()):
         fail.append(f"muscle coverage: out-of-register copy or colour ({_bad!r}) (v3.3.194)")
 
-# -- Section spacing (v3.3.197): .rzh exists to ADD air above the Rep-zone
+# -- Section spacing (v3.3.209): .gah exists to ADD air above Growth Audit
 #    headings. It competes with the base h2 margin, so a value at or below
 #    that base silently tightens the layout instead of loosening it — which
 #    is exactly how v3.3.196 shipped a 4px REDUCTION as a padding fix.
 _h2m = _re.search(r"\bh2\{[^}]*margin:\s*(\d+)px", css)
-_rzh = _re.search(r"\.rzh\{[^}]*margin-top:\s*(\d+)px", css)
-if not _h2m or not _rzh:
-    fail.append("section spacing: h2 base margin or .rzh margin-top missing (v3.3.197)")
-elif int(_rzh.group(1)) <= int(_h2m.group(1)):
-    fail.append(f"section spacing: .rzh margin-top {_rzh.group(1)}px is not greater than the "
-                f"h2 base {_h2m.group(1)}px — it tightens instead of adding air (v3.3.197)")
+_gah = _re.search(r"\.gah\{[^}]*margin-top:\s*(\d+)px", css)
+if not _h2m or not _gah:
+    fail.append("section spacing: h2 base margin or .gah margin-top missing (v3.3.209)")
+elif int(_gah.group(1)) <= int(_h2m.group(1)):
+    fail.append(f"section spacing: .gah margin-top {_gah.group(1)}px is not greater than the "
+                f"h2 base {_h2m.group(1)}px — it tightens instead of adding air (v3.3.209)")
 
-# -- Handler presence (v3.3.198): the rep-zone chip and dropdown handlers have
-#    now been silently deleted TWICE by rewrites of the section builder they
-#    sit inside. An emitted control with no listener ships an inert UI that
-#    looks perfect in a screenshot. If the markup exists, the listener must.
-for _ctl, _hook in (("data-rzx", "closest('[data-rzx]')"), ("id=\"rzGrp\"", "id!=='rzGrp'")):
-    if _ctl in _stats and _hook not in _stats:
-        fail.append(f"rep zones: {_ctl} is emitted but has no click/change handler — "
-                    f"the control would be inert (v3.3.198)")
+# -- Handler presence (v3.3.209): a perfect-looking body-part selector with no
+#    listener is still broken. Keep the emitted control and delegated hook paired.
+if 'id="gaGrp"' in _stats and "id!=='gaGrp'" not in _stats:
+    fail.append("growth audit: gaGrp is emitted but has no change handler (v3.3.209)")
 
 # -- shell size
 n = len(idx.encode())

@@ -91,13 +91,13 @@ check("three sets of one new exercise mint exactly one entry",
       `Object.values(canon()).filter(e=>e.name==='Meadows Row').length`, 1);
 
 // ---- 6. REGRESSION: renaming the display name must not split the series.
-// This is the latent Rep Zones bug the layer exists to fix.
+// Growth Audit compares one canonical exercise, never a mutable label.
 run(`(function(){
   const D=n=>{const d=new Date();d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA');};
   DB.settings.canon={}; DB.days={};
   for(const n of [3,10,17]) DB.days[D(n)]={w:[{part:'Chest',ex:'Chest Fly',w:40,reps:[10,10],at:n}],upd:1};
   migrateCanon(); SEED=deriveAll();
-  window._beforeSets=repZoneData('chest-fly',10).counts.reduce((a,b)=>a+b,0);
+  window._beforeSets=gaExerciseSessions()['chest-fly'].sets;
   /* the person renames it — display name only, id untouched */
   canon()['chest-fly'].name='Cable Chest Fly';
   for(const d of Object.values(DB.days)) for(const s2 of (d.w||[])) s2.ex='Cable Chest Fly';
@@ -105,7 +105,7 @@ run(`(function(){
 check("a rename does not mint a second id",
       `Object.keys(canon()).length`, 1);
 check("...and the series keeps every set it had",
-      `repZoneData('chest-fly',10).counts.reduce((a,b)=>a+b,0)===window._beforeSets && window._beforeSets>0`, true);
+      `gaExerciseSessions()['chest-fly'].sets===window._beforeSets && window._beforeSets>0`, true);
 check("...under the new display name",
       `canonName('chest-fly')`, "Cable Chest Fly");
 
@@ -131,7 +131,7 @@ check("name-keyed user state travelled with the merge (working weight)",
       `DB.settings.exW['Chest Fly']`, 20);
 check("...and the part override", `DB.settings.partOv['Chest Fly']`, "Chest");
 check("the merged series counts BOTH exercises' sets",
-      `repZoneData('chest-fly',10).counts.reduce((a,b)=>a+b,0)`, 5);
+      `gaExerciseSessions()['chest-fly'].sets`, 5);
 
 // ---- the Settings affordance: honest in both states
 run(`_mg={from:'',to:''}; view='sync'; render();`);

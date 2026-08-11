@@ -43,17 +43,15 @@ run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
   SEED=deriveAll(); view='stats'; render();})()`);
 
 // ---- position ------------------------------------------------------------
-/* v3.3.185: Rep zones moved to the top of Stats. v3.3.188: it broke out into
-   ONE SECTION PER BODY PART, so Session Build's index is no longer fixed —
-   the invariant that survives is ORDER: every Rep-zone section precedes
-   Session Build, and Session Build follows the last of them immediately. */
-ok("Session Build follows the Rep-zone sections", run(`(function(){
+/* v3.3.209: Growth Audit replaces Rep Zones at the top of Stats. Session
+   Build follows it immediately. */
+ok("Session Build follows Growth Audit", run(`(function(){
   const hs=[...document.querySelectorAll('#view h2')];
   const t=h=>(h.childNodes[0]&&h.childNodes[0].nodeType===3?h.childNodes[0].textContent:h.textContent).trim();
   const names=hs.map(t);
-  const rzIdx=names.map((n,i)=>/^Rep zones/.test(n)?i:-1).filter(i=>i>-1);
+  const gaIdx=names.indexOf('Growth audit');
   const pmIdx=names.indexOf('Session build');
-  return rzIdx.length>0 && pmIdx===rzIdx[rzIdx.length-1]+1 && rzIdx[0]===1;})()`) === true);
+  return gaIdx===1 && pmIdx===gaIdx+1;})()`) === true);
 
 // ---- the data is sets, per part, per training day -------------------------
 ok("partMix() returns one row per training day, newest last",

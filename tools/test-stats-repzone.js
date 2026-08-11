@@ -1,8 +1,5 @@
-// test-stats-repzone.js DIR — v3.3.181 Rep zones in Stats.
-// The view exists because of one real day: 12 incline press sets, none in
-// 6–12. The fixture IS that day, and the empty middle bucket is the point.
-// Suite asserts effects against the canonical record — actual logged reps
-// per set — never against a reconstruction. Exit codes, no FAIL-grep.
+// test-stats-repzone.js DIR — v3.3.209 Growth Audit replaces Rep Zones.
+// The filename stays so the all-suite runner keeps the historical gate.
 const { JSDOM } = require("jsdom");
 const fs = require("fs"), path = require("path"), vm = require("vm");
 const dir = process.argv[2] || ".";
@@ -10,447 +7,122 @@ const dir = process.argv[2] || ".";
 const html = fs.readFileSync(path.join(dir, "index.html"), "utf8");
 const order = [...html.matchAll(/src="(js\/[^?"]+)\?v=/g)].map(m => m[1]);
 const dom = new JSDOM(html.replace(/<script[^>]*src=[^>]*><\/script>/g, ""), {
-  url: "https://tahros.github.io/showup/", runScripts: "outside-only", pretendToBeVisual: true });
-const w = dom.window, ctx = dom.getInternalVMContext();
-w.fetch = () => Promise.reject(new Error("offline"));
-w.matchMedia = w.matchMedia || (() => ({ matches:false, addEventListener(){}, removeEventListener(){} }));
-w.navigator.vibrate = () => {}; w.scrollTo = () => {};
-w.HTMLCanvasElement.prototype.getContext = function(){ return new Proxy({}, { get: () => () => ({}) }); };
-for (const s of order) vm.runInContext(fs.readFileSync(path.join(dir, s), "utf8"), ctx, { filename: s });
-w.document.dispatchEvent(new w.Event("DOMContentLoaded", { bubbles: true }));
-const run = c => vm.runInContext(c, ctx);
+  url:"https://tahros.github.io/showup/", runScripts:"outside-only", pretendToBeVisual:true });
+const w=dom.window, ctx=dom.getInternalVMContext();
+w.fetch=()=>Promise.reject(new Error("offline"));
+w.matchMedia=w.matchMedia||(()=>({matches:false,addEventListener(){},removeEventListener(){}}));
+w.navigator.vibrate=()=>{}; w.scrollTo=()=>{};
+w.HTMLCanvasElement.prototype.getContext=function(){return new Proxy({measureText:()=>({width:10})},
+  {get:(o,k)=>k in o?o[k]:()=>({}),set:()=>true});};
+w.HTMLCanvasElement.prototype.toDataURL=function(){return "data:image/png;base64,";};
+for(const s of order) vm.runInContext(fs.readFileSync(path.join(dir,s),"utf8"),ctx,{filename:s});
+w.document.dispatchEvent(new w.Event("DOMContentLoaded",{bubbles:true}));
+const run=c=>vm.runInContext(c,ctx);
 
-let fail = 0;
-const check = (name, expr, want) => {
-  const got = run(expr), ok = String(got) === String(want);
-  console.log((ok?"PASS":"FAIL"), name, "→", got);
-  if (!ok) fail++;
+let fail=0;
+const check=(name,expr,want)=>{
+  const got=run(expr),ok=String(got)===String(want);
+  console.log(ok?"PASS":"FAIL",name,"→",got); if(!ok) fail++;
 };
+const statsSrc=fs.readFileSync(path.join(dir,"js/stats.js"),"utf8");
 
-(async () => {
-await new Promise(r => setTimeout(r, 80));
+run(`window._D=n=>{const d=new Date(todayISO+'T00:00');d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA')};
+window._mk=(n,rows)=>DB.days[_D(n)]={w:rows,upd:1};
+window._reset=()=>{DB.days={};DB.settings.canon={};ga.grp=null;};
+window._finish=()=>{migrateCanon();SEED=deriveAll();view='stats';render();};`);
 
-// ---- 1. bucketing: all four boundary values, asserted explicitly
-check("5 reps → strength (<6)",   `repZone(5)`, 0);
-check("6 reps → growth (6–12)",   `repZone(6)`, 1);
-check("12 reps → growth (6–12)",  `repZone(12)`, 1);
-check("13 reps → endurance (13+)",`repZone(13)`, 2);
+// ---- cold start: facts, never a premature verdict -----------------------
+run(`_reset();_mk(1,[{part:'Chest',ex:'Chest Press',w:40,reps:[8,8],at:1}]);_finish();ga.grp='Chest';render();`);
+check("Growth Audit replaces the Rep-zone heading",
+  `[...document.querySelectorAll('#view h2')].some(h=>h.textContent.startsWith('Growth audit'))`,true);
+check("the retired heading is absent",`!/Rep zones/i.test(document.querySelector('#view').textContent)`,true);
+check("a first workout stays in Building baseline",`document.querySelector('.gastate').textContent.trim()`,"Building baseline");
+check("the cold-start receipt says one of three workouts",`/1 of 3 workouts logged/.test(document.querySelector('.gabase').textContent)`,true);
+check("cold start makes no Progressing or Review judgment",
+  `!/Progressing|Review/.test(document.querySelector('.gacard').textContent)`,true);
 
-// ---- fixture: the Aug 5 incline session, verbatim, plus a run (exclusion)
-// 50×{25,30,27,23} 75×{4,3,3,2} 45×{25,23,15,18} → buckets 4 / 0 / 8
-run(`(function(){
-  const D=n=>{const d=new Date();d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA');};
-  DB.days={};
-  DB.days[D(3)]={w:[
-    {part:'Run',ex:'Run',w:3.48,reps:[],mins:27,secs:17},
-    {part:'Chest',ex:'Incline Barbell Bench Press',w:50,reps:[25,30,27,23]},
-    {part:'Chest',ex:'Incline Barbell Bench Press',w:75,reps:[4,3,3,2]},
-    {part:'Chest',ex:'Incline Barbell Bench Press',w:45,reps:[25,23,15,18]}],upd:1};
-  /* 12 older sessions of the same exercise, one per week, all growth-zone —
-     the window test needs an 11th-oldest to exclude */
-  for(let i=1;i<=12;i++)
-    DB.days[D(3+i*7)]={w:[{part:'Chest',ex:'Incline Barbell Bench Press',w:60,reps:[8]}],upd:1};
-  SEED=deriveAll();
-})()`);
+run(`_reset();_mk(3,[{part:'Chest',ex:'Chest Press',w:40,reps:[8],at:1}]);
+  _mk(1,[{part:'Chest',ex:'Chest Press',w:40,reps:[8],at:2}]);_finish();ga.grp='Chest';render();`);
+check("two comparable sessions are Learning",`gaExerciseState(gaExerciseSessions()['chest-press']).label`,"Learning");
+check("...and state exactly two of three recent sessions",`gaExerciseState(gaExerciseSessions()['chest-press']).detail`,"2 of 3 recent sessions");
 
-// ---- 2 & 3. exclusion + the blunt empty bucket, from the canonical record
-check("Aug-5 fixture buckets 4 / 0 / 8 over its own session",
-      `JSON.stringify(repZoneData('Incline Barbell Bench Press',1).counts)`, "[4,0,8]");
-check("the run contributed to no bucket (4+0+8 = every weighted set)",
-      `repZoneData('Incline Barbell Bench Press',1).counts.reduce((a,b)=>a+b,0)`, 12);
+// ---- exercise-local observable progress ---------------------------------
+run(`_reset();
+  _mk(5,[{part:'Chest',ex:'Chest Press',w:40,reps:[8],at:1}]);
+  _mk(3,[{part:'Chest',ex:'Chest Press',w:40,reps:[9],at:2}]);
+  _mk(1,[{part:'Chest',ex:'Chest Press',w:40,reps:[10],at:3}]);
+  _finish();ga.grp='Chest';render();`);
+check("more reps at the same weight is Progressing",`gaExerciseState(gaExerciseSessions()['chest-press']).label`,"Progressing");
+check("the reason is printed, not hidden in a score",`document.querySelector('.garow small').textContent`,"+1 rep at 40 kg");
+check("the group conclusion names what moved",`/Keep Chest Press/.test(document.querySelector('.ganext').textContent)`,true);
 
-// ---- 5. window: N=10 spans the fixture day + 9 weekly sessions = 21 sets;
-// the 10 older growth singles are excluded — including the 11th-oldest
-check("N=10 window: 12 fixture sets + 9 growth singles",
-      `JSON.stringify(repZoneData('Incline Barbell Bench Press',10).counts)`, "[4,9,8]");
-check("N=20 widens to all 12 singles (proves 10 was the window, not the data)",
-      `JSON.stringify(repZoneData('Incline Barbell Bench Press',20).counts)`, "[4,12,8]");
-check("N=5: fixture + 4 singles", 
-      `JSON.stringify(repZoneData('Incline Barbell Bench Press',5).counts)`, "[4,4,8]");
+run(`_reset();
+  _mk(5,[{part:'Chest',ex:'Chest Press',w:40,reps:[8],at:1}]);
+  _mk(3,[{part:'Chest',ex:'Chest Press',w:42,reps:[8],at:2}]);
+  _mk(1,[{part:'Chest',ex:'Chest Press',w:44,reps:[8],at:3}]);
+  _finish();`);
+check("more weight at the same reps is also comparable progress",`gaExerciseState(gaExerciseSessions()['chest-press']).label`,"Progressing");
 
-// ---- 3b. the empty bucket RENDERS — present, count 0, no red
-run(`rz.grp=null; rz.ex=null; view='stats'; render();`);
-// v3.3.198: ONE card, one heading, a body-part dropdown
-check("exactly one rep-zone card renders", `document.querySelectorAll('.rzcard').length`, 1);
-check("one heading, unqualified by part",
-      `[...document.querySelectorAll('#view h2')].filter(h=>/^Rep zones/.test(h.textContent)).length`, 1);
-check("the body-part control is a dropdown", `!!document.querySelector('#rzGrp')`, true);
-run(`rz.grp='Chest'; rz.ex=null; render();`);
-const CH = `document.querySelector('.rzcard')`;
-check("three buckets render — the empty one included",
-      `${CH}.querySelectorAll('.rzrow').length`, 3);
-check("an empty bucket renders '0 sets' in the same voice",
-      `(function(){
-        const D=n=>{const d=new Date();d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA');};
-        /* three sessions → goto tier, so Chest Fly is chip-reachable under
-           the v3.3.187 goto-only rule */
-        for(const n of [2,4,6]) DB.days[D(n)]={w:[{part:'Chest',ex:'Chest Fly',w:40,reps:[8,8,8]}],upd:1};
-        SEED=deriveAll(); rz.grp='Chest'; rz.ex='Chest Fly'; render();
-        const rows=[...document.querySelector('[data-rzcard="Chest"]').querySelectorAll('.rzrow')];
-        const ok=rows.length===3 && /(^|[^0-9])0 sets/.test(rows[0].textContent)
-              && /(^|[^0-9])0 sets/.test(rows[2].textContent) && /9 sets/.test(rows[1].textContent);
-        rz.grp='Chest'; rz.ex='Incline Barbell Bench Press'; render(); return ok;})()`, true);
-check("no red anywhere in the card — red means live, this is not live",
-      `${CH}.innerHTML.includes('--live')`, false);
-check("an empty bucket's bar is width 0, not missing",
-      `(function(){rz.grp='Chest'; rz.ex='Chest Fly'; render();
-        const w2=document.querySelector('[data-rzcard="Chest"]').querySelectorAll('.rzbar i')[0].style.width;
-        rz.grp='Chest'; rz.ex='Incline Barbell Bench Press'; render(); return w2;})()`, "0%");
+// ---- Review requires four unchanged exposures ---------------------------
+run(`_reset();for(const n of [7,5,3,1])_mk(n,[{part:'Back',ex:'Seated Cable Row',w:50,reps:[10],at:n}]);
+  _finish();ga.grp='Back';render();`);
+check("four unchanged sessions earn Review",`gaExerciseState(gaExerciseSessions()['seated-cable-row']).label`,"Review");
+check("the card states the evidence",`/4 sessions without a new comparable best/.test(document.querySelector('.garow').textContent)`,true);
+check("Review never becomes a claim that work was wasted",`!/waste/i.test(document.querySelector('.gacard').textContent)`,true);
 
-// ---- selector + window controls exist and reflect state
-// v3.3.187: the dropdown is chips now — part row + GO-TO lifts of that part
-check("the part chip row is gone", `!document.querySelector('.rzparts')`, true);
-check("the card has exactly one lift row",
-      `document.querySelectorAll('.rzcard .rzlifts').length`, 1);
-check("the dropdown lists visible groups, not raw parts",
-      `[...document.querySelector('#rzGrp').options].map(o=>o.value).some(v=>v==='Biceps'||v==='Sixpack')`, false);
-check("the Chest card marks its selected lift",
-      `${CH}.querySelector('.rzlifts .chip.on').firstChild.textContent`, "Incline Barbell Bench Press");
-// v3.3.189: the rail is ordered by weight of use — sessions, then sets, then
-// recency — so the part's centre of gravity leads, not the latest cameo
-check("the most-trained lift leads the rail, not the most recent",
-      `(function(){
-        const D=n=>{const d=new Date();d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA');};
-        for(let i=1;i<=8;i++) DB.days[D(1+i*4)]={w:[{part:'Back',ex:'Deadlift',w:100,reps:[5,5,5,5]}],upd:1};
-        for(const n of [1,9,17]) DB.days[D(n)]={w:[{part:'Back',ex:'Seated Cable Row',w:40,reps:[12]}],upd:1};
-        SEED=deriveAll(); rz.grp=null; rz.ex=null; render();
-        return (rz.grp='Back',rz.ex=null,render(),document.querySelector('.rzcard .rzlifts .chip')).firstChild.textContent;})()`, "Deadlift");
-check("...and that is what the Back section opens on",
-      `(rz.grp='Back',rz.ex=null,render(),document.querySelector('.rzcard .rzlifts .chip.on')).firstChild.textContent`, "Deadlift");
-check("the more-recent cameo is still offered, just not first",
-      `[...(rz.grp='Back',rz.ex=null,render(),document.querySelectorAll('.rzcard .rzlifts .chip'))].map(c=>c.firstChild.textContent).includes('Seated Cable Row')`, true);
-check("the window selector is removed", `document.querySelectorAll('[data-rzn]').length`, 0);
-check("the window is the constant, not state", `REPZONE_WINDOW`, 10);
-check("the legend line stays gone",
-      `!document.querySelector('.rzscatnote') && !/runs excluded/.test(${CH}.textContent)`, true);
-// v3.3.189: the card ends at the chart — no footer text at all
-check("no footer note under the chart", `!${CH}.querySelector('.rznote')`, true);
-check("no date-range text anywhere in the card", `/Date range/.test(${CH}.textContent)`, false);
-check("the old 'only N sessions' phrasing stays gone", `/only \\d+ session/.test(${CH}.textContent)`, false);
+// ---- coverage is personal and rolling, not a universal target -----------
+run(`_reset();
+  _mk(15,[{part:'Shoulder',ex:'Lateral Raise',w:10,reps:[12,12,12,12,12,12,12,12],at:1}]);
+  _mk(8,[{part:'Shoulder',ex:'Lateral Raise',w:10,reps:[12,12,12,12,12,12,12,12],at:2}]);
+  _mk(1,[{part:'Shoulder',ex:'Lateral Raise',w:10,reps:[12,12],at:3}]);
+  _finish();ga.grp='Shoulders';render();`);
+check("a sparse current week reads Below your pattern",`document.querySelector('.gastate').textContent.trim()`,"Below your pattern");
+check("the conclusion explicitly says it is the user's own pattern",`/your own recent pattern/.test(document.querySelector('.ganext').textContent)`,true);
+check("the baseline compares four earlier rolling blocks",`/four earlier 7-day blocks/.test(document.querySelector('.gabase').textContent)`,true);
 
-// ---- v3.3.189: the lift rail scrolls sideways, so it must be exempt from
-// the tab-swipe gesture — otherwise a sideways drag changes tabs
-check("the lift rail is on the tab-swipe blocklist",
-      `${(fs.readFileSync(path.join(dir,"js/util.js"),"utf8").includes("closest('.rzlifts')"))}`, "true");
+// ---- no recent work is a fact, not a prescription -----------------------
+run(`_reset();
+  _mk(15,[{part:'Back',ex:'Lat Pulldown',w:45,reps:[10,10],at:1}]);
+  _mk(8,[{part:'Back',ex:'Lat Pulldown',w:45,reps:[10,10],at:2}]);
+  _mk(1,[{part:'Chest',ex:'Chest Press',w:40,reps:[10],at:3}]);
+  _finish();ga.grp='Back';render();`);
+check("a mature record can say No recent work",`document.querySelector('.gastate').textContent.trim()`,"No recent work");
+check("it reports when the exercise was last trained",`/last trained 8 days ago/i.test(document.querySelector('.ganext').textContent)`,true);
 
-// ---- v3.3.189: dots never touch the plot edges
-check("every dot clears the plot top and bottom by its own radius",
-      `(function(){
-        const svg=${CH}.querySelector('.rzscat');
-        const band=svg.querySelector('rect');
-        const top=+band.getAttribute('y'), h=+band.getAttribute('height');
-        /* .rzdot only: the halo is a parked circle at 0,0 until something is
-           selected, and it is not data */
-        return [...svg.querySelectorAll('.rzdot')].every(c=>{
-          const cy=+c.getAttribute('cy'), r=+c.getAttribute('r');
-          return cy-r > top && cy+r < top+h;});})()`, true);
-// v3.3.208: Rep zones sits right after the ShowUp hero, before Session Build
-check("Rep zones renders before Session Build",
-      `(function(){const t=document.querySelector('#view').innerHTML;
-        return t.indexOf('Rep zones') < t.indexOf('Session build') && t.indexOf('Rep zones')>-1;})()`, true);
-check("the part that matters today leads the sections",
-      `[...document.querySelectorAll('#view h2')].filter(h=>/^Rep zones/.test(h.textContent)).length >= 1`, true);
+// ---- a long archive does not overrule a changed current baseline --------
+run(`_reset();
+  for(const n of [80,70,60])_mk(n,[{part:'Legs',ex:'Squat',w:80,reps:[8],at:n}]);
+  _mk(1,[{part:'Legs',ex:'Squat',w:60,reps:[10],at:1}]);
+  _finish();`);
+check("old sessions outside six weeks do not manufacture current confidence",
+  `gaExerciseState(gaExerciseSessions()['squat']).label`,"Learning");
+check("the old archive still prevents the exercise being called brand-new",
+  `gaExerciseState(gaExerciseSessions()['squat']).detail`,"1 of 3 recent sessions");
 
-// ---- 4. single definition site (structural, per the suite's idiom)
-const statsSrc = fs.readFileSync(path.join(dir, "js/stats.js"), "utf8");
-check("REPZONE_MAX_STRENGTH defined exactly once",
-      `${(statsSrc.match(/const\s+REPZONE_MAX_STRENGTH\s*=/g)||[]).length}`, 1);
-check("REPZONE_MAX_GROWTH defined exactly once",
-      `${(statsSrc.match(/const\s+REPZONE_MAX_GROWTH\s*=/g)||[]).length}`, 1);
-check("the bucketer references the constants, not literals",
-      `${/repZone\(reps\)\{\s*return reps<=REPZONE_MAX_STRENGTH\?0:reps<=REPZONE_MAX_GROWTH\?1:2;/.test(statsSrc.replace(/\n/g,''))}`, "true");
+// ---- one compact control, no information cloud --------------------------
+run(`_reset();
+  _mk(2,[{part:'Chest',ex:'Chest Press',w:40,reps:[8],at:1}]);
+  _mk(1,[{part:'Back',ex:'Lat Pulldown',w:45,reps:[10],at:2}]);
+  _mk(0,[{part:'Shoulder',ex:'Lateral Raise',w:10,reps:[12],at:3}]);
+  _finish();ga.grp=null;render();`);
+check("today's trained group opens by default",`ga.grp`,"Shoulders");
+check("the selector uses the seven visible groups",`document.querySelectorAll('#gaGrp option').length`,7);
+check("the card shows at most four exercise receipts",`document.querySelectorAll('.gacard .garow').length<=4`,true);
+check("there is no scatterplot, axis, zone bar, or exercise chip rail",
+  `!document.querySelector('.rzscat,.rzbar,.rzlifts,.gahead svg')`,true);
+check("the UI never asks for RIR or reps left",`!/RIR|reps? (?:left|remaining)|clean reps/i.test(document.querySelector('.gacard').textContent)`,true);
 
-// ---- v3.3.183: the scatter. Same window, same constants, dots from the
-// canonical record. The fixture day is the newest session; the 9 weekly
-// 60kg×8 singles collapse into ONE count-9 dot.
-run(`rz.grp='Chest'; rz.ex='Incline Barbell Bench Press'; render();`);
-check("scatter renders under the bars", `!!${CH}.querySelector('.rzscat')`, true);
-check("zone band boundaries: two dashed verticals", 
-      `${CH}.querySelectorAll('.rzscat line[stroke-dasharray="3 3"]').length`, 2);
-check("the growth band is a shaded rect",
-      `${CH}.querySelectorAll('.rzscat rect:not(.rzpad)').length`, 1);
-check("band labels come from REPZONE_LABELS",
-      `[...${CH}.querySelectorAll('.rzscat text')].slice(0,3).map(t=>t.textContent).join('|')`, "<6|6\u201312|13+");
-// count-sizing: the nine identical 60×8 sets are one dot, data-n=9
-check("repeated sets are ONE bigger dot, not nine",
-      `${CH}.querySelectorAll('.rzscat circle[data-w="60"][data-rep="8"]').length`, 1);
-check("...carrying its count", `${CH}.querySelector('.rzscat circle[data-rep="8"]').dataset.n`, 9);
-check("...and drawn larger than a single-count dot",
-      `+${CH}.querySelector('.rzscat circle[data-rep="8"]').getAttribute('r') >
-       +${CH}.querySelector('.rzscat circle[data-rep="30"]').getAttribute('r')`, true);
-// recency: the fixture day (newest, age 0) is solid; a week-old single fades
-check("newest session's dots are age 0, opacity 1",
-      `${CH}.querySelector('.rzscat circle[data-rep="30"]').dataset.age === "0" &&
-       ${CH}.querySelector('.rzscat circle[data-rep="30"]').getAttribute('opacity') === "1.00"`, true);
-check("older sets fade",
-      `+${CH}.querySelector('.rzscat circle[data-rep="8"]').getAttribute('opacity') < 1`, true);
-// bands derive from the constants — structural, per the suite's idiom
-check("band geometry references the named constants",
-      `${/REPZONE_MAX_STRENGTH\+0\.5/.test(statsSrc) && /REPZONE_MAX_GROWTH\+0\.5/.test(statsSrc)}`, "true");
-check("no literal 5\.5 or 12\.5 in the scatter",
-      `${/[^0-9](5\.5|12\.5)[^0-9]/.test(statsSrc.split('repZoneScatterSvg')[1].split('function repZoneCard')[0])}`, "false");
+run(`(function(){const s=document.querySelector('#gaGrp');s.value='Back';s.dispatchEvent(new Event('change',{bubbles:true}));})()`);
+check("changing the group replaces the card in place",`document.querySelector('.gacard').dataset.gacard`,"Back");
+check("...without losing the selected value",`document.querySelector('#gaGrp').value`,"Back");
 
-// ---- the app CHOOSES the core lift: a goto-tier exercise wins the default
-run(`(function(){
-  const D=n=>{const d=new Date();d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA');};
-  /* Squat: trained 10× recently (goto tier). Lunge: trained once, more
-     recently (would win a pure-recency default). */
-  for(let i=1;i<=10;i++) DB.days[D(2+i*3)]={w:[{part:'Legs',ex:'Squat',w:100,reps:[5]}],upd:1};
-  DB.days[D(1)]={w:[{part:'Legs',ex:'Dumbbell Lunge',w:20,reps:[10]}],upd:1};
-  SEED=deriveAll(); rz.grp=null; rz.ex=null; render();})()`);
-check("Lunge is the most recent lift of all", 
-      `exLastFor('Dumbbell Lunge') > exLastFor('Incline Barbell Bench Press')`, true);
-check("...but a one-off is not a core lift", `exTier('Dumbbell Lunge')==='goto'`, false);
-// v3.3.198 dropped the tier gate: the rail is sets-ordered, so the most-used
-// lift leads and the one-off simply ranks last — not excluded, just honest
-check("...so the Legs card opens on the most-used lift, not the recent one-off",
-      `(rz.grp='Legs',rz.ex=null,render(),document.querySelector('.rzcard .rzlifts .chip.on')).firstChild.textContent`, "Squat");
+// ---- structural retirement and ordering ---------------------------------
+check("Growth Audit is immediately before Session Build",`(function(){
+  const hs=[...document.querySelectorAll('#view h2')].map(h=>h.childNodes[0].textContent.trim());
+  return hs.indexOf('Session build')===hs.indexOf('Growth audit')+1;})()`,true);
+check("Rep-zone functions and constants are deleted",
+  `${!(/\brepZone(?:Data|Sets|ScatterSvg)?\s*\(|REPZONE_MAX_|REPZONE_LABELS/.test(statsSrc))}`,"true");
+check("Growth Audit has no hidden universal set target",
+  `${!(/(?:target|ideal)\s*(?:sets?|volume)/i.test(statsSrc.slice(statsSrc.indexOf('v3.3.209 — Growth Audit'),statsSrc.indexOf('v3.3.192 — intent gaps'))))}`,"true");
 
-// ---- v3.3.186 default rules, in order:
-// (1) trained today → TODAY's part's core lift wins over everything
-run(`(function(){
-  DB.days[todayISO]={w:[{part:'Legs',ex:'Squat',w:100,reps:[5,5,5]}],upd:1};
-  SEED=deriveAll(); rz.grp=null; rz.ex=null; render();})()`);   /* fresh open */
-check("trained today → the dropdown opens on today's group", `rz.grp`, "Legs");
-check("...and that section opens on the part's core lift",
-      `(rz.grp='Legs',rz.ex=null,render(),document.querySelector('.rzcard .rzlifts .chip.on')).firstChild.textContent`, "Squat");
-// v3.3.196: sections speak in VISIBLE GROUPS — Biceps+Triceps fold to Arms
-check("a Biceps lift lands in an 'Arms' section, not 'Biceps'",
-      `(function(){
-        const D=n=>{const d=new Date();d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA');};
-        /* uncontended dates: whole-day writes here previously clobbered the
-           Chest Fly fixture and quietly demoted it out of go-to tier */
-        for(const n of [12,15,18]) DB.days[D(n)]={w:[
-          {part:'Biceps',ex:'Barbell Curl',w:30,reps:[10],at:60+n},
-          {part:'Triceps',ex:'Rope Pushdown',w:20,reps:[12],at:70+n}],upd:1};
-        SEED=deriveAll(); rz.grp=null; rz.ex=null; render();
-        const opts=[...document.querySelector('#rzGrp').options].map(o=>o.value);
-        return opts.includes('Arms') && !opts.includes('Biceps') && !opts.includes('Triceps');})()`, true);
-check("...and both arm lifts share that one section's rail",
-      `[...(rz.grp='Arms',rz.ex=null,render(),document.querySelectorAll('.rzcard .rzlifts .chip'))].map(c=>c.firstChild.textContent).sort().join('|')`, "Barbell Curl|Rope Pushdown");
-check("Sixpack reads as Core",
-      `(function(){
-        const D=n=>{const d=new Date();d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA');};
-        for(const n of [13,16,19]) DB.days[D(n)]={w:[{part:'Sixpack',ex:'Cable Crunch',w:30,reps:[15],at:80+n}],upd:1};
-        SEED=deriveAll(); rz.grp=null; rz.ex=null; render();
-        const opts=[...document.querySelector('#rzGrp').options].map(o=>o.value);
-        return opts.includes('Core') && !opts.includes('Sixpack');})()`, true);
-// (2) nothing today → the part the app says to train NEXT (trainingPlan's
-// own pick — the same authority as Today's Train-next card)
-run(`(function(){
-  delete DB.days[todayISO]; SEED=deriveAll(); rz.grp=null; rz.ex=null; render();
-  window._pick=trainingPlan().pick;
-})()`);
-check("nothing today → it opens on the app's next pick (when that group has history)",
-      `(function(){const g=PART_VISIBLE[window._pick]||window._pick;
-        const opts=[...document.querySelector('#rzGrp').options].map(o=>o.value);
-        return !window._pick || !opts.includes(g) || rz.grp===g;})()`, true);
-check("...and every trained group is offered in the dropdown",
-      `document.querySelectorAll('#rzGrp option').length >= 2`, true);
-
-// ---- chip interaction. v3.3.196: only three sections render by default, so
-// expand first — this block needs Legs AND Chest on screen at once.
-run(`render();`);
-// v3.3.198: the rail is every exercise WITH SETS, ordered most→least
-check("the rail is ordered by sets logged, most first",
-      `(function(){const names=[...(rz.grp='Legs',rz.ex=null,render(),document.querySelectorAll('.rzcard .rzlifts .chip'))]
-          .map(c=>c.firstChild.textContent);
-        return names[0]==='Squat' && names.includes('Dumbbell Lunge')
-            && names.indexOf('Squat')<names.indexOf('Dumbbell Lunge');})()`, true);
-check("an exercise with no sets logged never appears",
-      `(function(){
-        const D=n=>{const d=new Date();d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA');};
-        DB.days[D(1)]={w:[{part:'Legs',ex:'Leg Extension',w:40,reps:[],at:99}],upd:1};
-        SEED=deriveAll(); rz.grp='Legs'; rz.ex=null; render();
-        return [...document.querySelectorAll('.rzcard .rzlifts .chip')]
-          .every(c=>c.firstChild.textContent!=='Leg Extension');})()`, true);
-/* chips carry the canonical ID in data-rzx; find them by their visible name */
-check("tapping a lift chip selects it",
-      `(function(){rz.grp='Chest'; rz.ex=null; render();
-        [...document.querySelectorAll('.rzcard .rzlifts .chip')]
-          .find(c=>c.firstChild.textContent==='Chest Fly').click();
-        return canonName(rz.ex);})()`, "Chest Fly");
-check("...and switching the dropdown re-picks that group's top lift",
-      `(function(){rz.grp='Legs'; rz.ex=null; render(); return rz.ex;})()`, "Squat");
-
-// ---- v3.3.186: the axes say what they are
-check("x axis is labelled", 
-      `${CH}.querySelector('.rzscat .rzxlab') && ${CH}.querySelector('.rzscat .rzxlab').textContent`, "reps per set");
-check("y axis is labelled with the unit",
-      `${CH}.querySelector('.rzscat .rzylab') && ${CH}.querySelector('.rzscat .rzylab').textContent`, "weight (kg)");
-
-// ---- v3.3.190: a chip tap must NOT re-render the page. Selecting a lift
-// used to call render(), which reset scroll to the top of Stats — the
-// reader lost their place every time they asked a question.
-check("tapping a lift swaps only that card's body, leaving the DOM around it",
-      `(function(){
-        rz.grp='Chest'; rz.ex=null; render();
-        const view=document.querySelector('#view');
-        const card=document.querySelector('.rzcard');
-        const stamp=Symbol('kept'); view[stamp]=1; card[stamp]=1;   /* identity witnesses */
-        const railBefore=card.querySelector('.rzlifts');
-        const bodyBefore=card.querySelector('.rzbody').innerHTML;
-        [...card.querySelectorAll('.rzlifts .chip')].find(c=>c.firstChild.textContent==='Chest Fly').click();
-        const card2=document.querySelector('.rzcard');
-        return view[stamp]===1                       /* #view was not rebuilt */
-            && card2===card && card2[stamp]===1      /* the card node survived */
-            && card2.querySelector('.rzlifts')===railBefore   /* the rail, too */
-            && card2.querySelector('.rzbody').innerHTML!==bodyBefore;})()`, true);
-check("...and the chart actually changed to the new lift",
-      `document.querySelector('.rzcard .rzlifts .chip.on').firstChild.textContent`, "Chest Fly");
-check("...and the dropdown still names the shown group",
-      `document.querySelector('#rzGrp').value`, "Chest");
-
-// ---- Stats never writes: rendering the card must not touch the record
-run(`window._before=JSON.stringify(DB.days);`);
-run(`rz.grp='Chest'; rz.ex='Incline Barbell Bench Press'; render();`);
-check("rendering rep zones writes nothing", `JSON.stringify(DB.days)===window._before`, true);
-
-// ---- v3.3.199: the rail states the number it is sorted by, and the order
-// matches it exactly — the ordering is now checkable, not just claimed.
-run(`(function(){
-  const D=n=>{const d=new Date();d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA');};
-  DB.days={}; DB.settings.canon={};
-  /* Chest: 3 lifts, deliberately most-sets LAST in log order */
-  DB.days[D(2)]={w:[{part:'Chest',ex:'Dip',w:0,reps:[10],at:1}],upd:1};
-  DB.days[D(4)]={w:[{part:'Chest',ex:'Chest Fly',w:40,reps:[10,10,10],at:2}],upd:1};
-  for(const n of [6,8,10]) DB.days[D(n)]={w:[
-    {part:'Chest',ex:'Incline Barbell Bench Press',w:60,reps:[8,8,8,8,8],at:10+n}],upd:1};
-  migrateCanon(); SEED=deriveAll(); rz.grp='Chest'; rz.ex=null; render();})()`);
-check("the chip with the most sets leads, whatever the log order",
-      `document.querySelector('.rzcard .rzlifts .chip').firstChild.textContent`, "Incline Barbell Bench Press");
-check("every chip prints the set count it is sorted by",
-      `[...document.querySelectorAll('.rzcard .rzlifts .chip')].map(c=>c.querySelector('i').textContent).join(',')`, "15,3,1");
-check("...and the printed counts are in descending order",
-      `(function(){const n=[...document.querySelectorAll('.rzcard .rzlifts .chip')]
-        .map(c=>+c.querySelector('i').textContent);
-        return n.every((v,i)=>i===0||n[i-1]>=v);})()`, true);
-check("the printed count equals the exercise's real total",
-      `(function(){const sets=rzSetsById();
-        return sets[canonId('Incline Barbell Bench Press',false)];})()`, 15);
-
-// ---- v3.3.205: axis spacing is derived from named gaps, and each dot can
-// be read without a floating tooltip.
-run(`rz.grp='Chest'; rz.ex=null; render();`);
-const SC = `document.querySelector('.rzcard .rzscat')`;
-check("the y axis label clears the tick numbers",
-      `(function(){const svg=${SC};
-        const lab=svg.querySelector('.rzylab');
-        const tick=[...svg.querySelectorAll('text')].find(t=>/^\\d/.test(t.textContent)&&t.getAttribute('text-anchor')==='end');
-        return +tick.getAttribute('x') - +lab.getAttribute('x') >= 20;})()`, true);
-check("the x axis label sits close under its tick numbers",
-      `(function(){const svg=${SC};
-        const lab=svg.querySelector('.rzxlab');
-        const tick=[...svg.querySelectorAll('text')].find(t=>t.getAttribute('text-anchor')==='middle'&&/^\\d+$/.test(t.textContent));
-        const gap=+lab.getAttribute('y') - +tick.getAttribute('y');
-        return gap>0 && gap<=16;})()`, true);
-// v3.3.206: dots are bigger and still count-encoded; selection is a halo;
-// the plot snaps to the nearest dot from anywhere and scrubs under a drag.
-check("no dot is smaller than the touch floor",
-      `Math.min(...[...${SC}.querySelectorAll('.rzdot')].map(d=>+d.getAttribute('r'))) >= DOT_MIN`, true);
-check("...and the floor is bigger than it used to be",
-      `DOT_MIN > 3.2`, true);
-check("...and repeats are still visibly heavier (count still encoded)",
-      `(function(){const ds=[...${SC}.querySelectorAll('.rzdot')];
-        const one=ds.find(d=>d.dataset.n==='1'), many=ds.reduce((a,d)=>+d.dataset.n>(a?+a.dataset.n:0)?d:a,null);
-        return !one||!many||+many.dataset.n===1 || +many.getAttribute('r') > +one.getAttribute('r');})()`, true);
-check("the per-dot tap target is gone — snapping replaced it",
-      `${SC}.querySelectorAll('.rzhit').length`, 0);
-check("every dot carries the date it was last done",
-      `[...${SC}.querySelectorAll('.rzdot')].every(d=>/^\\d{4}-\\d{2}-\\d{2}$/.test(d.dataset.last))`, true);
-check("a halo exists and starts hidden",
-      `${SC}.querySelector('.rzhalo').getAttribute('opacity')`, 0);
-check("the plot is on the tab-swipe blocklist",
-      `${/closest\('\.rzscat'\)/.test(fs.readFileSync(path.join(dir,"js/util.js"),"utf8"))}`, "true");
-
-// --- snapping: a press far from every dot still reads the nearest one
-run(`(function(){
-  const svg=${SC};
-  const d=[...svg.querySelectorAll('.rzdot')][0];
-  const box=svg.getBoundingClientRect();
-  /* jsdom reports a zero-size box, so drive rzPick's inputs directly and
-     assert the CHOICE, which is the logic under test */
-  window._near=rzPick(svg, box.left, box.top);
-  window._isDot=!!window._near && window._near.classList.contains('rzdot');})()`);
-check("a press anywhere in the plot resolves to some dot", `window._isDot`, true);
-check("...specifically the nearest one by screen distance",
-      `(function(){const svg=${SC};
-        const box=svg.getBoundingClientRect();
-        const vb=svg.getAttribute('viewBox').split(/\\s+/).map(Number);
-        const sx=(box.width||1)/vb[2], sy=(box.height||1)/vb[3];
-        const dist=d=>((box.left+ +d.getAttribute('cx')*sx)-box.left)**2
-                     +((box.top + +d.getAttribute('cy')*sy)-box.top)**2;
-        const all=[...svg.querySelectorAll('.rzdot')];
-        const min=Math.min(...all.map(dist));
-        return Math.abs(dist(window._near)-min)<1e-6;})()`, true);
-
-// --- selecting: halo moves onto the dot, caption reads weight x reps x date
-run(`rzSelect(${SC}, window._near);`);
-check("selecting shows the halo", `${SC}.querySelector('.rzhalo').getAttribute('opacity')`, 1);
-check("...centred on the chosen dot",
-      `(function(){const h=${SC}.querySelector('.rzhalo');
-        return h.getAttribute('cx')===window._near.getAttribute('cx')
-            && h.getAttribute('cy')===window._near.getAttribute('cy');})()`, true);
-check("...and larger than it, so the selection is unmistakable",
-      `+${SC}.querySelector('.rzhalo').getAttribute('r') > +window._near.getAttribute('r')`, true);
-check("the caption reads weight, reps and the date",
-      `/\\d+kg \u00d7 \\d+ reps.*[A-Z][a-z]{2} \\d+/.test(
-        document.querySelector('.rzcard [data-rzcap]').textContent)`, true);
-check("...and the date is that dot's own last-done day",
-      `document.querySelector('.rzcard [data-rzcap]').textContent
-        .indexOf(rzWhen(window._near.dataset.last)) > -1`, true);
-check("a repeated set says how many", 
-      `(function(){const d=[...${SC}.querySelectorAll('.rzdot')].find(x=>+x.dataset.n>1);
-        if(!d) return true; rzSelect(${SC},d);
-        return document.querySelector('.rzcard [data-rzcap]').textContent.indexOf(d.dataset.n+' sets')>-1;})()`, true);
-
-// --- the reading STAYS after release, and clears on request
-run(`rzSelect(${SC}, window._near);`);
-check("the reading survives releasing the finger",
-      `${SC}.querySelector('.rzhalo').getAttribute('opacity')`, 1);
-run(`rzClear(${SC});`);
-check("clearing hides the halo and empties the caption",
-      `${SC}.querySelector('.rzhalo').getAttribute('opacity')==='0'
-       && document.querySelector('.rzcard [data-rzcap]').textContent.trim()===''`, true);
-
-// ---- v3.3.207: the two bugs that made this work on a mouse and fail on a
-// phone. Both are asserted through REAL dispatched events — the earlier
-// tests called rzSelect() directly, which is exactly why they missed a
-// double-fired handler.
-check("the plot has a transparent backdrop, so a gap between dots is still a target",
-      `(function(){const r=${SC}.querySelector('.rzpad');
-        return !!r && r.getAttribute('fill')==='transparent'
-            && +r.getAttribute('width')>0 && +r.getAttribute('height')>0;})()`, true);
-check("touch listeners are NOT bound alongside pointer ones",
-      `${/addEventListener\('touch/.test(fs.readFileSync(path.join(dir,"js/stats.js"),"utf8"))}`, "false");
-
-// a single tap must SELECT, not select-then-toggle-off
-run(`(function(){
-  rzClear(${SC});
-  const svg=${SC}, d=svg.querySelector('.rzdot');
-  const ev=n=>{const e=new window.Event(n,{bubbles:true});
-    e.clientX=0; e.clientY=0; e.isPrimary=true; e.pointerId=1; return e;};
-  svg.dispatchEvent(ev('pointerdown'));
-  svg.dispatchEvent(ev('pointerup'));
-  window._afterTap=svg.querySelector('.rzhalo').getAttribute('opacity');})()`);
-check("one pointerdown selects and STAYS selected", `window._afterTap`, 1);
-check("...with a caption to match",
-      `document.querySelector('.rzcard [data-rzcap]').textContent.trim().length>0`, true);
-// pressing the selected dot again is the ONLY thing that clears it
-run(`(function(){
-  const svg=${SC};
-  const on=svg.querySelector('.rzdot.on');
-  const box=svg.getBoundingClientRect();
-  const ev=new window.Event('pointerdown',{bubbles:true});
-  ev.clientX=box.left+ +on.getAttribute('cx'); ev.clientY=box.top+ +on.getAttribute('cy');
-  ev.isPrimary=true; ev.pointerId=2;
-  svg.dispatchEvent(ev);
-  window._afterSecond=svg.querySelector('.rzhalo').getAttribute('opacity');})()`);
-check("pressing the selected dot again clears it", `window._afterSecond`, 0);
-
-// --- the year appears only when it is not this year
-check("this year's date omits the year", `/\\d{4}/.test(rzWhen(todayISO))`, false);
-check("an older date includes it", `/2019/.test(rzWhen('2019-08-07'))`, true);
-
-process.exit(fail ? 1 : 0);
-})();
+process.exit(fail?1:0);

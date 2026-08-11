@@ -1,5 +1,26 @@
 # ShowUp — changelog
 
+## v3.3.209 (2026-08-12) — Growth Audit learns before it judges
+
+**Rep Zones is gone.** Its scatterplot described weight and repetitions but
+could not answer the question it implied: whether a set contributed to muscle
+growth. In particular, the old 6–12 “growth” and 13+ “endurance” labels turned
+rep count into a biological verdict the record cannot support.
+
+**Growth Audit uses only observable comparisons.** Coverage is the last seven
+days against the person's own four preceding seven-day blocks. Exercise
+progress is compared only inside the same canonical exercise: a new set must
+match or exceed an earlier set on both load and reps and improve at least one.
+Four recent exposures without a comparable best says **Review**, never
+“wasted.” No effort estimate, RIR question, universal set target, or mixed-lift
+tonnage enters the result.
+
+**Cold start is a real state.** The first two strength workouts say **Building
+baseline** and show only what was logged. Three recent sessions establish an
+exercise baseline; old history outside six weeks cannot manufacture current
+confidence. The card then speaks in five restrained states: New, Learning,
+Baseline ready, Progressing, and Review.
+
 ## v3.3.208 (2026-08-11) — Session Build
 
 **Part Mix is now Session Build: one visible block per completed strength

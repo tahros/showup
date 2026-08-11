@@ -1196,12 +1196,8 @@
   :root[data-skin="minimal"] .rzsel{background:var(--ground);border-color:transparent}
   /* v3.3.194 muscle coverage — dots are the last 7 days, oldest left.
      Trained = accent, untrained = a quiet track. No red anywhere. */
-  /* v3.3.197: base h2 already carries margin:30px 0 10px, so v3.3.196's
-     26px OVERRODE it downward — the heading got 4px tighter, the opposite
-     of the ask. A rule that competes with a base margin must be read
-     against it, not written blind. 52px reads as a real section break
-     between the KPI row and the first Rep-zone card. */
-  .rzh{margin-top:52px}
+  /* v3.3.209: Growth Audit is the first decision surface after the hero. */
+  .gah{margin-top:52px}
   .mcrow{display:grid;grid-template-columns:78px 1fr auto;gap:10px;align-items:center;
     padding:10px 0;cursor:pointer}
   .mcrow+.mcrow,.mcinner+.mcrow{border-top:1px solid var(--line)}
@@ -1224,39 +1220,33 @@
   .igwhen b{color:var(--muted);font-size:13px;font-weight:600}
   .igx{background:none;border:0;color:var(--faint);font-size:16px;line-height:1;
     padding:0 2px;cursor:pointer;align-self:center}
-  /* v3.3.205: the dot readout. One line, fixed slot, reserved height so the
-     card never reflows when it fills. */
-  /* v3.3.206: the plot owns the gesture — no page scroll, no tab swipe, no
-     text selection while a finger is reading it. */
-  .rzscat{touch-action:none;-webkit-user-select:none;user-select:none;cursor:crosshair}
-  .rzhalo{transition:opacity .08s linear}
-  .rzpad{cursor:crosshair}
-  .rzcap{font-family:var(--mono);font-size:11px;color:var(--muted);
-    min-height:16px;margin-top:2px;text-align:center}
-  .rzcap b{color:var(--chalk);font-size:13px;font-weight:600;
-    font-variant-numeric:tabular-nums}
-  .rzdot.on{opacity:1}
-  .rzlifts{display:flex;gap:6px;overflow-x:auto;overflow-y:hidden;
-    margin:12px -14px 14px;padding:0 14px 2px;scrollbar-width:none;
-    -webkit-overflow-scrolling:touch}
-  .rzlifts::-webkit-scrollbar{display:none}
-  /* v3.3.189: the rail's chips are a picker, not primary actions — smaller
-     type, tighter box than a standard chip. */
-  .rzlifts .chip{font-size:11px;padding:6px 11px;border-radius:999px;
-    flex:0 0 auto;white-space:nowrap;display:inline-flex;align-items:baseline;gap:6px}
-  /* v3.3.199: the set count the rail is sorted by, stated on the chip */
-  .rzlifts .chip i{font-style:normal;font-size:10px;opacity:.62;font-variant-numeric:tabular-nums}
-  .rzrows{display:flex;flex-direction:column;gap:10px}
-  .rzrow{display:grid;grid-template-columns:74px 1fr auto;gap:10px;align-items:center}
-  .rzlab{font-family:var(--mono);font-size:12px;color:var(--muted)}
-  .rzlab i{display:block;font-style:normal;font-size:9px;letter-spacing:var(--track-label);
+  /* v3.3.209 Growth Audit — one selected group, four compact receipts at
+     most, and one plain-language conclusion. No graph and no warning red. */
+  .gasel{width:100%;font-family:var(--mono);font-size:13px;color:var(--chalk);
+    background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px 10px}
+  :root[data-skin="minimal"] .gasel{background:var(--ground);border-color:transparent}
+  .gabase{display:grid;gap:2px;
+    margin:14px 0 4px;padding:10px 0;border-bottom:1px solid var(--line)}
+  .gabase b{font-family:var(--mono);font-size:12px;color:var(--chalk);font-weight:600}
+  .gabase span{font-family:var(--mono);font-size:11px;color:var(--muted)}
+  .gabase small{font-family:var(--mono);font-size:10px;color:var(--faint)}
+  .gahead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:12px 0 8px}
+  .gahead>span{min-width:0}.gahead b{display:block;font-size:18px;color:var(--chalk)}
+  .gahead small{display:block;margin-top:3px;font-family:var(--mono);font-size:10px;color:var(--faint)}
+  .gastate,.gabadge{font-style:normal;font-family:var(--mono);font-size:9px;font-weight:700;
+    letter-spacing:var(--track-label);text-transform:uppercase;white-space:nowrap;
+    color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:5px 7px}
+  .gastate.progressing,.gabadge.progressing{color:var(--accent-ink);border-color:var(--accent-soft)}
+  .gastate.building,.gastate.learning,.gabadge.learning,.gabadge.new{color:var(--muted)}
+  .garows{display:flex;flex-direction:column}
+  .garow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 0}
+  .garow+.garow{border-top:1px solid var(--line)}
+  .garow b{display:block;font-size:13px;color:var(--chalk);font-weight:600}
+  .garow small{display:block;margin-top:3px;font-family:var(--mono);font-size:10px;color:var(--faint)}
+  .ganext{display:grid;gap:3px;margin-top:8px;padding-top:12px;border-top:1px solid var(--line)}
+  .ganext b{font-family:var(--mono);font-size:10px;letter-spacing:var(--track-label);
     text-transform:uppercase;color:var(--faint)}
-  .rzbar{height:10px;border-radius:5px;background:color-mix(in srgb,var(--accent) 12%,var(--surface))}
-  .rzbar i{display:block;height:100%;border-radius:5px;background:var(--accent);min-width:0}
-  .rzn{font-family:var(--mono);font-size:12px;color:var(--faint);white-space:nowrap}
-  .rzn b{color:var(--chalk);font-size:14px;font-weight:600}
-  .rznote{margin-top:10px}
-  .rzscat{margin-top:14px;display:block}
+  .ganext span{font-size:13px;color:var(--muted);line-height:1.45}
 
   /* ================= v3.3.168 — MINIMAL, the default skin =================
      A theme LAYER, orthogonal to light/dark: <html data-skin="minimal|classic">
