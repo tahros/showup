@@ -458,6 +458,12 @@ if 'data-values=' not in _stats or "mode==='race'" not in _app:
 if "raceCard.classList.add('scrubbing')" not in _app or "raceCard.classList.remove('scrubbing')" not in _app:
     fail.append("consistency: scrub state must hide endpoints while held and restore them on release (v3.3.214)")
 
+# -- v3.3.215: Current rhythm and History are two views of one calendar.
+if not _re.search(r'\.crblank,\.crday\{aspect-ratio:1\.45/1', css):
+    fail.append("current rhythm: day cells must keep History's 1.45:1 proportion (v3.3.215)")
+if not _re.search(r'\.crweekdays,\.crgrid\{[^}]*gap:4px', css):
+    fail.append("current rhythm: calendar spacing must keep History's 4px gap (v3.3.215)")
+
 # -- shell size
 n = len(idx.encode())
 if n >= 8192: fail.append(f"index.html shell is {n} bytes (limit 8192)")

@@ -3,6 +3,7 @@ const { JSDOM } = require("jsdom");
 const fs = require("fs"), path = require("path"), vm = require("vm");
 const dir = process.argv[2] || ".";
 const html = fs.readFileSync(path.join(dir,"index.html"),"utf8");
+const css = fs.readFileSync(path.join(dir,"css/app.css"),"utf8");
 const order = [...html.matchAll(/src="(js\/[^?"]+)\?v=/g)].map(m=>m[1]);
 const dom = new JSDOM(html.replace(/<script[^>]*src=[^>]*><\/script>/g,""),{
   url:"https://tahros.github.io/showup/",runScripts:"outside-only",pretendToBeVisual:true});
@@ -48,6 +49,10 @@ ok("Consistency reports the exact gap", race.gap===1 && race.has, JSON.stringify
 
 run(`view='stats'; render();`);
 ok("Current rhythm renders today as completed", run(`document.querySelector('.crtoday').classList.contains('crdone')`));
+ok("Current rhythm uses History's landscape cell proportion",
+  /\.crblank,\.crday\{aspect-ratio:1\.45\/1/.test(css) && /\.cal \.cd\{[^}]*aspect-ratio:1\.45\/1/.test(css.replace(/\n/g,"")));
+ok("Current rhythm uses History's four-pixel calendar spacing",
+  /\.crweekdays,\.crgrid\{[^}]*gap:4px/.test(css.replace(/\n/g,"")) && /\.cal\{[^}]*gap:4px/.test(css.replace(/\n/g,"")));
 ok("Consistency renders two scoreboard totals", run(`document.querySelectorAll('.conscore>span b').length===2`));
 ok("Monthly pace renders 12 bars", run(`document.querySelectorAll('.mpacecard rect.gbar').length===12`));
 ok("retired time sections do not render", run(`![...document.querySelectorAll('#view h2')].some(h=>/^(Days by month|Last 6 months|Weekdays)$/.test(h.firstChild.textContent.trim()))`));

@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v3.3.215 (2026-08-12) — One calendar proportion
+
+**Current Rhythm now follows History's calendar geometry.** Its day cells use
+the same 1.45:1 landscape proportion, four-pixel spacing, label scale and card
+padding, removing the oversized square grid while preserving the streak-first
+header and day states.
+
 ## v3.3.214 (2026-08-12) — Scrub your race
 
 **Consistency is readable at every date again.** Press or drag across the
