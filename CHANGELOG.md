@@ -1,5 +1,11 @@
 # ShowUp — changelog
 
+## v3.3.216 (2026-08-12) — One section gap
+
+**Growth Audit now follows the normal Stats section rhythm.** Its special
+52-pixel top margin is gone, so the space after Current Rhythm matches the
+space after Growth Audit and the surrounding card-to-heading transitions.
+
 ## v3.3.215 (2026-08-12) — One calendar proportion
 
 **Current Rhythm now follows History's calendar geometry.** Its day cells use

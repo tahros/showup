@@ -53,6 +53,8 @@ ok("Current rhythm uses History's landscape cell proportion",
   /\.crblank,\.crday\{aspect-ratio:1\.45\/1/.test(css) && /\.cal \.cd\{[^}]*aspect-ratio:1\.45\/1/.test(css.replace(/\n/g,"")));
 ok("Current rhythm uses History's four-pixel calendar spacing",
   /\.crweekdays,\.crgrid\{[^}]*gap:4px/.test(css.replace(/\n/g,"")) && /\.cal\{[^}]*gap:4px/.test(css.replace(/\n/g,"")));
+ok("Growth Audit uses the same base section gap as Session Build",
+  !/class="gah"/.test(fs.readFileSync(path.join(dir,"js/stats.js"),"utf8")) && !/\.gah[\s,{:+>.\[]/.test(css));
 ok("Consistency renders two scoreboard totals", run(`document.querySelectorAll('.conscore>span b').length===2`));
 ok("Monthly pace renders 12 bars", run(`document.querySelectorAll('.mpacecard rect.gbar').length===12`));
 ok("retired time sections do not render", run(`![...document.querySelectorAll('#view h2')].some(h=>/^(Days by month|Last 6 months|Weekdays)$/.test(h.firstChild.textContent.trim()))`));

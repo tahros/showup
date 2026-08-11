@@ -367,7 +367,7 @@ if "data-igback" in _settings or "Hidden from \\u201cStated, not trained\\u201d"
 #    nothing and the gate had nothing to say. These are the classes those two
 #    features depend on; a missing one now fails the build.
 _need_css = ["gasel", "gahead", "gastate", "garows", "garow",
-             "gabadge", "ga-empty", "ga-flat", "ga-up", "gah",
+             "gabadge", "ga-empty", "ga-flat", "ga-up",
              "mcrow", "mcdots", "mcinner"]
 for _cls in _need_css:
     # v3.3.205: a compound selector (.rzdot.on{) is still a rule for .rzdot,
@@ -410,17 +410,11 @@ for _bad in (r"(?<![.a-z])target", "ideal", "behind", "warning", "should", "--li
     if _re.search(_bad, _mccopy.lower()):
         fail.append(f"muscle coverage: out-of-register copy or colour ({_bad!r}) (v3.3.194)")
 
-# -- Section spacing (v3.3.209): .gah exists to ADD air above Growth Audit
-#    headings. It competes with the base h2 margin, so a value at or below
-#    that base silently tightens the layout instead of loosening it — which
-#    is exactly how v3.3.196 shipped a 4px REDUCTION as a padding fix.
-_h2m = _re.search(r"\bh2\{[^}]*margin:\s*(\d+)px", css)
-_gah = _re.search(r"\.gah\{[^}]*margin-top:\s*(\d+)px", css)
-if not _h2m or not _gah:
-    fail.append("section spacing: h2 base margin or .gah margin-top missing (v3.3.209)")
-elif int(_gah.group(1)) <= int(_h2m.group(1)):
-    fail.append(f"section spacing: .gah margin-top {_gah.group(1)}px is not greater than the "
-                f"h2 base {_h2m.group(1)}px — it tightens instead of adding air (v3.3.209)")
+# -- v3.3.216: Growth Audit follows the same card-to-heading gap as every
+#    neighbouring Stats section. A dedicated heading class or margin override
+#    would silently recreate the oversized gap removed in this release.
+if 'class="gah"' in _stats or _re.search(r"\.gah[\s,{:+>.\[]", css):
+    fail.append("section spacing: Growth Audit must use the base h2 gap (v3.3.216)")
 
 # -- Handler presence (v3.3.209): a perfect-looking body-part selector with no
 #    listener is still broken. Keep the emitted control and delegated hook paired.

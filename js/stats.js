@@ -396,7 +396,7 @@ function growthAuditSection(){
   if(!ga.grp||!groups[ga.grp]) ga.grp=data.order[0];
   const g=groups[ga.grp],recent=g.ex.filter(e=>e.ago<GA_HISTORY_DAYS);
   const shown=(recent.length?recent:g.ex).slice(0,4);
-  return `<h2 class="gah">Growth audit${hActs('ga',"Dot: no completed sets in 7 days · line: trained, no confirmed gain · trend: comparable best moved.",'About Growth audit')}</h2>
+  return `<h2>Growth audit${hActs('ga',"Dot: no completed sets in 7 days · line: trained, no confirmed gain · trend: comparable best moved.",'About Growth audit')}</h2>
     <div class="card gacard" data-gacard="${ga.grp}">
       <select id="gaGrp" class="gasel" aria-label="Body part">${data.order.map(v=>
         `<option value="${v}" ${v===ga.grp?'selected':''}>${v}</option>`).join('')}</select>

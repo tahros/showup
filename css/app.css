@@ -1240,8 +1240,9 @@
   :root[data-skin="minimal"] .rzsel{background:var(--ground);border-color:transparent}
   /* v3.3.194 muscle coverage — dots are the last 7 days, oldest left.
      Trained = accent, untrained = a quiet track. No red anywhere. */
-  /* v3.3.209: Growth Audit is the first decision surface after the hero. */
-  .gah{margin-top:52px}
+  /* v3.3.216: Growth Audit uses the base h2 spacing. Its old 52px exception
+     made the gap above it visibly larger than every other card-to-section
+     transition on Stats. */
   .mcrow{display:grid;grid-template-columns:78px 1fr auto;gap:10px;align-items:center;
     padding:10px 0;cursor:pointer}
   .mcrow+.mcrow,.mcinner+.mcrow{border-top:1px solid var(--line)}
