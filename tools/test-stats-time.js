@@ -1,4 +1,4 @@
-// v3.3.213: Current rhythm, same-date Consistency, and fair Monthly pace.
+// v3.3.214: Current rhythm, scrubbable same-date Consistency, and fair Monthly pace.
 const { JSDOM } = require("jsdom");
 const fs = require("fs"), path = require("path"), vm = require("vm");
 const dir = process.argv[2] || ".";
@@ -13,6 +13,7 @@ w.navigator.vibrate=()=>{}; w.scrollTo=()=>{};
 w.HTMLCanvasElement.prototype.getContext=function(){return new Proxy({measureText:()=>({width:10})},{get:(o,k)=>k in o?o[k]:()=>({}),set:()=>true});};
 w.HTMLCanvasElement.prototype.toDataURL=()=>"data:image/png;base64,";
 w.Element.prototype.setPointerCapture=function(){};
+w.PointerEvent=class extends w.MouseEvent{constructor(type,o={}){super(type,o);Object.defineProperty(this,'pointerId',{value:o.pointerId||1});}};
 for(const s of order) vm.runInContext(fs.readFileSync(path.join(dir,s),"utf8"),ctx,{filename:s});
 w.document.dispatchEvent(new w.Event("DOMContentLoaded",{bubbles:true}));
 const run=c=>vm.runInContext(c,ctx);
@@ -50,6 +51,23 @@ ok("Current rhythm renders today as completed", run(`document.querySelector('.cr
 ok("Consistency renders two scoreboard totals", run(`document.querySelectorAll('.conscore>span b').length===2`));
 ok("Monthly pace renders 12 bars", run(`document.querySelectorAll('.mpacecard rect.gbar').length===12`));
 ok("retired time sections do not render", run(`![...document.querySelectorAll('#view h2')].some(h=>/^(Days by month|Last 6 months|Weekdays)$/.test(h.firstChild.textContent.trim()))`));
+
+// v3.3.214: the new scoreboard is the scrub readout. It changes to the
+// exact selected day while held, then returns to today's totals on release.
+const score=()=>run(`[...document.querySelectorAll('[data-con-count]')].map(b=>b.textContent).join('|')`);
+const score0=score(),date0=run(`document.querySelector('[data-con-date]').textContent`);
+run(`(function(){const b=document.querySelector('.conrace [data-zoom]');
+  b.getBoundingClientRect=()=>({left:0,top:0,width:340,height:215,right:340,bottom:215});
+  b.dispatchEvent(new PointerEvent('pointerdown',{pointerId:1,clientX:38,clientY:100,bubbles:true}));})()`);
+ok("Consistency reveals a guide and two dots while scrubbing",
+  run(`document.querySelector('.conrace .scrubg').style.display!== 'none'`) &&
+  run(`document.querySelectorAll('.conrace .scrubg circle').length===2`));
+ok("Consistency scoreboard changes at the selected date",score()!==score0,score0+" → "+score());
+ok("Consistency date follows the selected day",run(`document.querySelector('[data-con-date]').textContent`)!==date0,
+  run(`document.querySelector('[data-con-date]').textContent`));
+run(`(function(){const b=document.querySelector('.conrace [data-zoom]');
+  b.dispatchEvent(new PointerEvent('pointerup',{pointerId:1,clientX:38,clientY:100,bubbles:true}));})()`);
+ok("releasing Consistency restores today's scoreboard",score()===score0 && run(`document.querySelector('[data-con-date]').textContent`)===date0);
 
 console.log(fail?"\n"+fail+" FAILED":"\nALL PASS");
 process.exit(fail?1:0);

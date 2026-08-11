@@ -449,6 +449,15 @@ if "id:'wd'" in _report or "id:'heat'" in _report:
 if "label:'Monthly pace'" not in _report or "monthlyPaceData(12)" not in _report:
     fail.append("report card: Monthly pace must share the same fair cutoff data as Stats (v3.3.213)")
 
+# -- v3.3.214: the year race keeps the old chart's press-and-drag reading.
+_app = (d/"js/app.js").read_text()
+if _stats.count('data-scrub="race"') != 1 or _stats.count('data-con-count=') != 2:
+    fail.append("consistency: race chart must expose one scrub surface and two scoreboard values (v3.3.214)")
+if 'data-values=' not in _stats or "mode==='race'" not in _app:
+    fail.append("consistency: exact daily counts are not wired to the shared scrubber (v3.3.214)")
+if "raceCard.classList.add('scrubbing')" not in _app or "raceCard.classList.remove('scrubbing')" not in _app:
+    fail.append("consistency: scrub state must hide endpoints while held and restore them on release (v3.3.214)")
+
 # -- shell size
 n = len(idx.encode())
 if n >= 8192: fail.append(f"index.html shell is {n} bytes (limit 8192)")

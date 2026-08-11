@@ -505,23 +505,24 @@ function consistencyRaceSection(){
   const cy=+cp[cp.length-1].split(',')[1],py=+pp[pp.length-1].split(',')[1];
   const cLabel=Math.max(12,cy-7),pLabel=Math.min(177,py+12);
   const gapCopy=gap>0?`+${gap} day${gap===1?'':'s'}<small>ahead</small>`:gap<0?`${Math.abs(gap)} day${gap===-1?'':'s'}<small>behind</small>`:`Even<small>same date</small>`;
-  return `<h2>Consistency${hActs('yoy2','Cumulative workout days through the same calendar date in both years. The filled field is the gap.','About Consistency')}</h2>
-    <div class="card conrace">
-      <div class="conkick">YOU VS YOU · ${race.label.toUpperCase()}</div>
-      <div class="conscore"><span><small>${previous.year} you</small><b>${previous.total}</b><small>days</small></span>
-        <strong class="congap ${gap>=0?'up':''}">${gapCopy}</strong>
-        <span><small>${current.year} you</small><b>${current.total}</b><small>days</small></span></div>
-      <svg viewBox="0 0 340 215" role="img" aria-label="${current.year}: ${current.total} workout days. ${previous.year}: ${previous.total} workout days through ${race.label}.">
+  return `<h2>Consistency${hActs('yoy2','Cumulative workout days through the same calendar date in both years. Drag the chart to compare any earlier date.','About Consistency')}</h2>
+    <div class="card conrace" data-current-year="${current.year}" data-previous-year="${previous.year}">
+      <div class="conkick" data-con-date>YOU VS YOU · ${race.label.toUpperCase()}</div>
+      <div class="conscore"><span><small>${previous.year} you</small><b data-con-count="${previous.year}">${previous.total}</b><small>days</small></span>
+        <strong class="congap ${gap>=0?'up':''}" data-con-gap>${gapCopy}</strong>
+        <span><small>${current.year} you</small><b data-con-count="${current.year}">${current.total}</b><small>days</small></span></div>
+      <div class="zoom conzoom" data-zoom><svg viewBox="0 0 340 215" role="img" aria-label="${current.year}: ${current.total} workout days. ${previous.year}: ${previous.total} workout days through ${race.label}."
+        data-scrub="race" data-sx0="${x0}" data-sxw="${xw}" data-sy0="${y0}" data-syh="${yh}" data-smax="${max}" data-scrub-year="${current.year}">
         ${grid}<polygon points="${area}" fill="var(--accent-soft)" opacity=".72"></polygon>
-        <polyline points="${pp.join(' ')}" fill="none" stroke="var(--faint)" stroke-width="1.5" stroke-linejoin="round"></polyline>
-        <polyline points="${cp.join(' ')}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"></polyline>
-        <circle cx="${x0+xw}" cy="${py}" r="3" fill="var(--surface)" stroke="var(--faint)" stroke-width="1.5"></circle>
-        <circle class="beacon" cx="${x0+xw}" cy="${cy}" r="3.2" fill="var(--accent)"></circle>
-        <text x="${x0+xw-5}" y="${cLabel}" text-anchor="end" font-family="var(--mono)" font-size="7" font-weight="700" fill="var(--accent)">${current.year} · ${current.total}</text>
-        <text x="${x0+xw-5}" y="${pLabel}" text-anchor="end" font-family="var(--mono)" font-size="7" fill="var(--muted)">${previous.year} · ${previous.total}</text>
+        <polyline data-yr="${previous.year}" data-values="${previous.curve.join(',')}" points="${pp.join(' ')}" fill="none" stroke="var(--faint)" stroke-width="1.5" stroke-linejoin="round"></polyline>
+        <polyline data-yr="${current.year}" data-values="${current.curve.join(',')}" points="${cp.join(' ')}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"></polyline>
+        <circle class="conend" cx="${x0+xw}" cy="${py}" r="3" fill="var(--surface)" stroke="var(--faint)" stroke-width="1.5"></circle>
+        <circle class="beacon conend" cx="${x0+xw}" cy="${cy}" r="3.2" fill="var(--accent)"></circle>
+        <text class="conend" x="${x0+xw-5}" y="${cLabel}" text-anchor="end" font-family="var(--mono)" font-size="7" font-weight="700" fill="var(--accent)">${current.year} · ${current.total}</text>
+        <text class="conend" x="${x0+xw-5}" y="${pLabel}" text-anchor="end" font-family="var(--mono)" font-size="7" fill="var(--muted)">${previous.year} · ${previous.total}</text>
         ${months.join('')}
         <text x="9" y="107" text-anchor="middle" transform="rotate(-90 9 107)" font-family="var(--mono)" font-size="7" fill="var(--muted)">DAYS SHOWN UP</text>
-      </svg>
+      </svg></div>
     </div>`;
 }
 function monthlyPaceSection(){

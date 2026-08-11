@@ -257,7 +257,10 @@
     color:var(--record);font-family:var(--mono);font-size:11px;line-height:1.1;text-align:center}
   .congap small{display:block;margin-top:3px;color:inherit;font-size:8px;letter-spacing:.08em;text-transform:uppercase}
   .congap.up{border-color:color-mix(in srgb,var(--accent) 65%,var(--line));color:var(--accent-ink);background:color-mix(in srgb,var(--accent) 9%,transparent)}
-  .conrace svg{display:block;width:100%;height:auto;margin-top:10px}
+  .conrace .conzoom{margin-top:10px}
+  .conrace svg{display:block;width:100%;height:auto;margin-top:0}
+  .conrace .conend{transition:opacity .1s ease}
+  .conrace.scrubbing .conend{opacity:0}
   .mpacecard{padding:14px 14px 12px}
   .mpacecard svg{display:block;width:100%;height:auto}
   /* v3.3.111: .driftrow/.dr-* and .rephead removed with their sections.

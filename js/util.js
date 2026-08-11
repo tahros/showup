@@ -818,21 +818,27 @@ function monthlyPaceData(n=12){
 }
 function consistencyRaceData(){
   const dates=workoutDates(),year=+todayISO.slice(0,4),month=+todayISO.slice(5,7)-1,day=+todayISO.slice(8);
+  /* v3.3.214: both curves share one calendar-day timeline. Besides making
+     the race an honest same-date comparison, this gives the scrubber one
+     exact index for both years (including when only one year is a leap
+     year). A missing Feb 29 carries Feb 28 forward; it is never counted
+     twice. */
+  const timeline=[],stop=new Date(year,month,day),cursor=new Date(year,0,1);
+  while(cursor<=stop){ timeline.push([cursor.getMonth(),cursor.getDate()]); cursor.setDate(cursor.getDate()+1); }
   const make=y=>{
-    const start=new Date(y,0,1),last=new Date(y,month+1,0).getDate();
-    const end=new Date(y,month,Math.min(day,last)),curve=[];
-    let total=0,d=new Date(start);
-    while(d<=end){
-      const iso=d.toLocaleDateString('en-CA');
-      if(dates.has(iso)) total++;
-      curve.push(total); d.setDate(d.getDate()+1);
+    const curve=[]; let total=0,lastISO='';
+    for(const [m,d] of timeline){
+      const last=new Date(y,m+1,0).getDate();
+      const iso=new Date(y,m,Math.min(d,last)).toLocaleDateString('en-CA');
+      if(iso!==lastISO&&dates.has(iso)) total++;
+      curve.push(total); lastISO=iso;
     }
     return {year:String(y),curve,total};
   };
   const current=make(year),previous=make(year-1);
   const hasPrevious=[...dates].some(iso=>iso.startsWith(previous.year+'-'));
   const label=new Date(year,month,day).toLocaleDateString('en-US',{month:'short',day:'numeric'});
-  return {current,previous,hasPrevious,label,gap:current.total-previous.total};
+  return {current,previous,hasPrevious,label,gap:current.total-previous.total,days:timeline.length};
 }
 function wd2(iso){ return new Date(iso+'T00:00').toLocaleDateString('en-US',{weekday:'short'}); }
 function daysBetween(a,b){return Math.round((new Date(b+'T00:00')-new Date(a+'T00:00'))/864e5);}

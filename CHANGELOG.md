@@ -1,5 +1,16 @@
 # ShowUp — changelog
 
+## v3.3.214 (2026-08-12) — Scrub your race
+
+**Consistency is readable at every date again.** Press or drag across the
+year-over-year graph to move an exact-day guide. The date, both large workout-
+day totals, and the ahead/behind gap update together; releasing returns the
+card to today's comparison.
+
+**The comparison stays calendar-honest.** Both years now share one aligned
+calendar-day timeline, including leap-year edges, so the scrubber never shows
+a fractional workout day or compares two different dates.
+
 ## v3.3.213 (2026-08-12) — Time that helps
 
 **Current rhythm makes today visible.** The active streak is now the dominant

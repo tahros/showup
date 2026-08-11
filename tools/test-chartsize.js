@@ -21,6 +21,7 @@ w.navigator.vibrate = () => {}; w.scrollTo = () => {};
 w.performance = w.performance || { now: () => Date.now() };
 w.HTMLCanvasElement.prototype.getContext = function(){ return new Proxy({ measureText: () => ({ width: 10 }) },
   { get: (o,k) => k in o ? o[k] : () => ({}), set: () => true }); };
+w.HTMLCanvasElement.prototype.toDataURL = () => "data:image/png;base64,";
 w.Element.prototype.setPointerCapture = function(){};
 w.Element.prototype.releasePointerCapture = function(){};
 
@@ -76,9 +77,9 @@ ok("the hint precedes its chart in the DOM", run(`(function(){
     return hs.every(h=>{ const z=h.parentElement.querySelector('.zoom');
       return z && (h.compareDocumentPosition(z) & Node.DOCUMENT_POSITION_FOLLOWING); });
   })()`));
-ok("the hint is reachable from the box the way app.js looks for it", run(`(function(){
-    const z=document.querySelector('.zoom[data-zoom]');
-    return !!(z.parentElement && z.parentElement.querySelector('.zoomhint'));
+ok("the race uses its visible date header instead of adding another hint", run(`(function(){
+    const z=document.querySelector('.conrace .zoom[data-zoom]');
+    return !!z && !z.parentElement.querySelector('.zoomhint') && !!z.parentElement.querySelector('[data-con-date]');
   })()`));
 ok("the hint is no longer absolutely positioned over the plot",
    !/\.zoomhint\{[^}]*position:absolute/.test(run(`document.querySelector('style')?document.querySelector('style').textContent:''`) ||
@@ -114,7 +115,9 @@ ok("nothing is drawn below the bottom of any stats plot", run(`(function(){
    numbers while scrubbing — no crash, just lies. */
 ok("scrub anchors track the new baselines", run(`(function(){
     return [...document.querySelectorAll('[data-scrub]')].every(s=>
-      s.getAttribute('data-sy0')==='190' && s.getAttribute('data-syh')==='170');
+      s.getAttribute('data-scrub')==='race'
+        ? s.getAttribute('data-sy0')==='182' && s.getAttribute('data-syh')==='150'
+        : s.getAttribute('data-sy0')==='190' && s.getAttribute('data-syh')==='170');
   })()`), run(`[...document.querySelectorAll('[data-scrub]')].map(s=>s.getAttribute('data-sy0')+'/'+s.getAttribute('data-syh')).join(' ')`));
 
 // the distance chart comes in via runStatsHTML(), appended by renderStats

@@ -527,9 +527,10 @@ function bindScrub(box, svg, getVb){
   if(!svg.hasAttribute('data-scrub')) return null;
   const A=n=>+svg.getAttribute(n);
   const sx0=A('data-sx0'), sxw=A('data-sxw'), sy0=A('data-sy0'), syh=A('data-syh'), smax=A('data-smax');
-  const pct=svg.getAttribute('data-scrub')==='pct';
+  const mode=svg.getAttribute('data-scrub'),pct=mode==='pct',race=mode==='race';
   const lines=[...svg.querySelectorAll('polyline[data-yr]')].map(pl=>({
     yr:pl.getAttribute('data-yr'), color:pl.getAttribute('stroke'),
+    values:(pl.getAttribute('data-values')||'').split(',').filter(v=>v!=='').map(Number),
     pts:(pl.getAttribute('points')||'').trim().split(/\s+/).filter(Boolean)
         .map(p=>p.split(',').map(Number)).filter(p=>p.length===2&&!isNaN(p[0]))
   })).filter(L=>L.pts.length>1);
@@ -558,6 +559,16 @@ function bindScrub(box, svg, getVb){
   if(legend) legend.querySelectorAll('[data-yr]').forEach(s=>{
     const b=s.querySelector('b'); if(b) val0.set(s.getAttribute('data-yr'), b.textContent);
   });
+  /* v3.3.214: the redesigned Consistency card has no legend; its scoreboard
+     is the readout. Preserve it exactly so release behaves like the old
+     scrubber: explore while the finger is down, return to today on lift. */
+  const raceCard=race?box.closest('.conrace'):null;
+  const raceDate=raceCard?raceCard.querySelector('[data-con-date]'):null;
+  const raceGap=raceCard?raceCard.querySelector('[data-con-gap]'):null;
+  const race0=raceCard?{
+    date:raceDate?raceDate.textContent:'',gap:raceGap?raceGap.innerHTML:'',gapClass:raceGap?raceGap.className:'',
+    values:new Map([...raceCard.querySelectorAll('[data-con-count]')].map(b=>[b.getAttribute('data-con-count'),b.textContent]))
+  }:null;
 
   const yAt=(pts,x)=>{
     if(x<pts[0][0]-0.01||x>pts[pts.length-1][0]+0.01) return null;   // year hasn't reached this day
@@ -572,10 +583,17 @@ function bindScrub(box, svg, getVb){
   const show=clientX=>{
     const r=box.getBoundingClientRect(), vb=getVb();
     const ux=vb[0]+((clientX-r.left)/r.width)*vb[2];
-    const x=Math.max(sx0,Math.min(sx0+sxw,ux));
+    let x=Math.max(sx0,Math.min(sx0+sxw,ux)),dayIndex=null;
+    if(race){
+      const n=Math.max(2,...lines.map(L=>L.values.length||L.pts.length));
+      dayIndex=Math.max(0,Math.min(n-1,Math.round((x-sx0)/sxw*(n-1))));
+      x=sx0+dayIndex/Math.max(1,n-1)*sxw;       // an exact day, never a fractional count
+    }
     vline.setAttribute('x1',x.toFixed(1)); vline.setAttribute('x2',x.toFixed(1));
+    const raceValues=new Map();
     lines.forEach((L,i)=>{
-      const y=yAt(L.pts,x);
+      const exact=race&&L.values.length ? L.values[Math.min(dayIndex,L.values.length-1)] : null;
+      const y=exact==null?yAt(L.pts,x):sy0-exact/smax*syh;
       if(y==null){ dots[i].style.display='none'; }
       else { dots[i].style.display=''; dots[i].setAttribute('cx',x.toFixed(1)); dots[i].setAttribute('cy',y.toFixed(1)); }
       if(legend){
@@ -583,7 +601,24 @@ function bindScrub(box, svg, getVb){
         if(b) b.textContent = y==null ? '\u2013'
           : (pct ? Math.round(smax*(sy0-y)/syh*100)+'%' : String(Math.round(smax*(sy0-y)/syh)));
       }
+      if(raceCard&&y!=null){
+        const value=exact==null?Math.round(smax*(sy0-y)/syh):exact;
+        raceValues.set(L.yr,value);
+        const b=raceCard.querySelector(`[data-con-count="${L.yr}"]`); if(b) b.textContent=String(value);
+      }
     });
+    if(raceCard&&dayIndex!=null){
+      const current=raceCard.getAttribute('data-current-year'),previous=raceCard.getAttribute('data-previous-year');
+      const gap=(raceValues.get(current)||0)-(raceValues.get(previous)||0);
+      const d=new Date(+(svg.getAttribute('data-scrub-year')||current),0,dayIndex+1);
+      if(raceDate) raceDate.textContent='YOU VS YOU · '+d.toLocaleDateString('en-US',{month:'short',day:'numeric'}).toUpperCase();
+      if(raceGap){
+        raceGap.classList.toggle('up',gap>=0);
+        raceGap.innerHTML=gap>0?`+${gap} day${gap===1?'':'s'}<small>ahead</small>`
+          :gap<0?`${Math.abs(gap)} day${gap===-1?'':'s'}<small>behind</small>`:`Even<small>same date</small>`;
+      }
+      raceCard.classList.add('scrubbing');
+    }
     if(hint){
       const doyN=Math.max(1,Math.min(366,Math.round((x-sx0)/sxw*366)));
       hint.textContent=new Date(2025,0,Math.min(365,doyN))
@@ -597,6 +632,12 @@ function bindScrub(box, svg, getVb){
     if(legend) val0.forEach((t,yr)=>{
       const b=legend.querySelector(`[data-yr="${yr}"] b`); if(b) b.textContent=t;
     });
+    if(raceCard&&race0){
+      raceCard.classList.remove('scrubbing');
+      if(raceDate) raceDate.textContent=race0.date;
+      if(raceGap){raceGap.innerHTML=race0.gap;raceGap.className=race0.gapClass;}
+      race0.values.forEach((t,yr)=>{const b=raceCard.querySelector(`[data-con-count="${yr}"]`);if(b)b.textContent=t;});
+    }
   };
   return {show,hide};
 }
