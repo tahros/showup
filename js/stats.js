@@ -376,7 +376,20 @@ function repZoneScatterSvg(ex){
      rather than inside its top edge, and the x-axis sits well below the
      lowest dot — the maker circled dots touching both frames. TOPPAD is
      the label strip; BOTPAD is axis air. */
-  const W=340,H=232,TOPPAD=30,BOTPAD=30,X0=34,XW=W-X0-8,Y0=H-16-BOTPAD,YH=Y0-TOPPAD;
+  /* v3.3.205: axis geometry as NAMED GAPS rather than tuned literals, so the
+     two spacings the maker asked about are each one number.
+       AXIS_LAB_X  air between the rotated "weight (kg)" and the tick numbers
+       TICK_GAP_X  air between a y tick number and the plot's left edge
+       TICK_GAP_Y  air between the axis line and the x tick numbers
+       XLAB_GAP    air between the x tick numbers and "reps per set"
+     H is DERIVED from the last of them — previously H was fixed and the
+     label was placed from the bottom, so the two moved independently and
+     the gap drifted. */
+  const W=340,TOPPAD=30,BOTPAD=30;
+  const AXIS_LAB_X=9,TICK_GAP_X=8,TICK_GAP_Y=12,XLAB_GAP=13;
+  const X0=52,XW=W-X0-8;                 // was 34: the y label had no room
+  const Y0=TOPPAD+140,YH=Y0-TOPPAD;
+  const H=Y0+TICK_GAP_Y+XLAB_GAP+6;
   const reps=Math.max(REPZONE_MAX_GROWTH+3,...dots.map(d=>d.rep));
   const ws=dots.map(d=>d.w);
   let wLo=Math.min(...ws),wHi=Math.max(...ws);
@@ -406,24 +419,32 @@ function repZoneScatterSvg(ex){
   for(const wv of [Math.min(...ws),(wLo+wHi)/2,Math.max(...ws)]){
     const yy=y(wv);
     h2+=`<line x1="${X0}" y1="${yy.toFixed(1)}" x2="${X0+XW}" y2="${yy.toFixed(1)}" stroke="var(--line)" stroke-width="0.5" stroke-dasharray="2 4"></line>
-        <text x="${X0-4}" y="${(yy+2.5).toFixed(1)}" text-anchor="end" font-family="var(--mono)" font-size="7" fill="var(--muted)">${wDisp(wv)}</text>`;
+        <text x="${X0-TICK_GAP_X}" y="${(yy+2.5).toFixed(1)}" text-anchor="end" font-family="var(--mono)" font-size="7" fill="var(--muted)">${wDisp(wv)}</text>`;
   }
   // x ticks every 5 reps
   for(let rv=5;rv<=reps;rv+=5)
-    h2+=`<text x="${x(rv).toFixed(1)}" y="${Y0+12}" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="var(--muted)">${rv}</text>`;
+    h2+=`<text x="${x(rv).toFixed(1)}" y="${Y0+TICK_GAP_Y}" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="var(--muted)">${rv}</text>`;
   h2+=`<line x1="${X0}" y1="${Y0}" x2="${X0+XW}" y2="${Y0}" stroke="var(--line)" stroke-width="0.8"></line>`;
   /* v3.3.186: the axes say what they are (maker's ask) */
-  h2+=`<text x="${(X0+XW/2).toFixed(1)}" y="${H-6}" text-anchor="middle" font-family="var(--mono)" font-size="7.5" fill="var(--muted)" class="rzxlab">reps per set</text>`;
-  h2+=`<text x="8" y="${(Y0-YH/2).toFixed(1)}" text-anchor="middle" font-family="var(--mono)" font-size="7.5" fill="var(--muted)" class="rzylab" transform="rotate(-90 8 ${(Y0-YH/2).toFixed(1)})">weight (${U()})</text>`;
+  h2+=`<text x="${(X0+XW/2).toFixed(1)}" y="${Y0+TICK_GAP_Y+XLAB_GAP}" text-anchor="middle" font-family="var(--mono)" font-size="7.5" fill="var(--muted)" class="rzxlab">reps per set</text>`;
+  h2+=`<text x="${AXIS_LAB_X}" y="${(Y0-YH/2).toFixed(1)}" text-anchor="middle" font-family="var(--mono)" font-size="7.5" fill="var(--muted)" class="rzylab" transform="rotate(-90 ${AXIS_LAB_X} ${(Y0-YH/2).toFixed(1)})">weight (${U()})</text>`;
   // dots: newest solid, oldest faint; count sizes
   for(const d of dots.sort((a,b)=>b.age-a.age)){
     const op=used>1?(0.35+0.65*(1-d.age/(used-1))):1;
     const r=(3.2+1.6*Math.sqrt(d.n-1)).toFixed(1);
-    h2+=`<circle cx="${x(d.rep).toFixed(1)}" cy="${y(d.w).toFixed(1)}" r="${r}"
+    /* v3.3.205: each dot is tappable. The hit target is a transparent circle
+       at a thumb-sized radius behind the visible one — a 3px dot is not a
+       tap target, and growing the dot to be tappable would lie about count. */
+    h2+=`<circle class="rzhit" cx="${x(d.rep).toFixed(1)}" cy="${y(d.w).toFixed(1)}" r="${Math.max(+r,11)}"
+          fill="transparent" data-rzdot="${d.w}|${d.rep}|${d.n}"></circle>
+        <circle class="rzdot" cx="${x(d.rep).toFixed(1)}" cy="${y(d.w).toFixed(1)}" r="${r}"
           fill="var(--accent)" opacity="${op.toFixed(2)}"
           data-w="${d.w}" data-rep="${d.rep}" data-n="${d.n}" data-age="${d.age}"></circle>`;
   }
-  h2+=`</svg>`;
+  /* the readout lives in ONE fixed place under the chart instead of floating
+     beside the dot: no positioning maths, nothing to clip at the card edge,
+     and the chart never reflows when it fills. */
+  h2+=`</svg><div class="rzcap" data-rzcap>&nbsp;</div>`;
   return h2;
 }
 /* v3.3.198 — ONE Rep-zone section. The per-part sections, the three-part
@@ -488,6 +509,21 @@ function repZoneSections(){
    the dropdown handler so the two are found and moved together. Swaps the
    card body in place: no render(), no scroll jump. */
 document.addEventListener('click',e=>{
+  const hit=e.target.closest&&e.target.closest('[data-rzdot]');
+  if(hit){
+    const svg=hit.closest('svg'), cap=svg&&svg.parentNode.querySelector('[data-rzcap]');
+    const was=hit.classList.contains('sel');
+    svg.querySelectorAll('.rzhit.sel').forEach(c=>c.classList.remove('sel'));
+    svg.querySelectorAll('.rzdot.on').forEach(c=>c.classList.remove('on'));
+    if(!was){
+      hit.classList.add('sel');
+      if(hit.nextElementSibling) hit.nextElementSibling.classList.add('on');
+      const [w2,rep,n]=hit.dataset.rzdot.split('|');
+      if(cap) cap.innerHTML=`<b>${wDisp(+w2)}</b>${U()} \u00d7 <b>${rep}</b> reps`
+        +(+n>1?` \u00b7 ${n} sets`:'');
+    }else if(cap) cap.innerHTML='&nbsp;';
+    return;
+  }
   const xc=e.target.closest&&e.target.closest('[data-rzx]');
   if(!xc) return;
   rz.ex=xc.dataset.rzx;

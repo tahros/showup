@@ -327,5 +327,45 @@ check("the printed count equals the exercise's real total",
       `(function(){const sets=rzSetsById();
         return sets[canonId('Incline Barbell Bench Press',false)];})()`, 15);
 
+// ---- v3.3.205: axis spacing is derived from named gaps, and each dot can
+// be read without a floating tooltip.
+run(`rz.grp='Chest'; rz.ex=null; render();`);
+const SC = `document.querySelector('.rzcard .rzscat')`;
+check("the y axis label clears the tick numbers",
+      `(function(){const svg=${SC};
+        const lab=svg.querySelector('.rzylab');
+        const tick=[...svg.querySelectorAll('text')].find(t=>/^\\d/.test(t.textContent)&&t.getAttribute('text-anchor')==='end');
+        return +tick.getAttribute('x') - +lab.getAttribute('x') >= 20;})()`, true);
+check("the x axis label sits close under its tick numbers",
+      `(function(){const svg=${SC};
+        const lab=svg.querySelector('.rzxlab');
+        const tick=[...svg.querySelectorAll('text')].find(t=>t.getAttribute('text-anchor')==='middle'&&/^\\d+$/.test(t.textContent));
+        const gap=+lab.getAttribute('y') - +tick.getAttribute('y');
+        return gap>0 && gap<=16;})()`, true);
+check("every dot has a thumb-sized hit target behind it",
+      `(function(){const svg=${SC};
+        const hits=[...svg.querySelectorAll('.rzhit')], dots=[...svg.querySelectorAll('.rzdot')];
+        return hits.length===dots.length && hits.every(h=>+h.getAttribute('r')>=11);})()`, true);
+check("...without inflating the visible dot",
+      `(function(){const svg=${SC};
+        return [...svg.querySelectorAll('.rzdot')].every(d=>+d.getAttribute('r')<11);})()`, true);
+check("the caption starts empty but holds its height",
+      `document.querySelector('.rzcard [data-rzcap]').textContent.trim()`, "");
+run(`document.querySelector('.rzcard .rzhit')
+      .dispatchEvent(new window.MouseEvent('click',{bubbles:true}));`);
+check("tapping a dot reads out its weight and reps",
+      `/\\d+kg \u00d7 \\d+ reps/.test(document.querySelector('.rzcard [data-rzcap]').textContent)`, true);
+check("...and marks the dot",
+      `!!document.querySelector('.rzcard .rzdot.on')`, true);
+check("...matching that dot's own data",
+      `(function(){const d=document.querySelector('.rzcard .rzdot.on');
+        const cap=document.querySelector('.rzcard [data-rzcap]').textContent;
+        return cap.indexOf(d.dataset.rep+' reps')>-1;})()`, true);
+run(`document.querySelector('.rzcard .rzhit')
+      .dispatchEvent(new window.MouseEvent('click',{bubbles:true}));`);
+check("tapping the same dot again clears the readout",
+      `document.querySelector('.rzcard [data-rzcap]').textContent.trim()===''
+       && !document.querySelector('.rzcard .rzdot.on')`, true);
+
 process.exit(fail ? 1 : 0);
 })();

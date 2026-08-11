@@ -1219,6 +1219,14 @@
   .igwhen b{color:var(--muted);font-size:13px;font-weight:600}
   .igx{background:none;border:0;color:var(--faint);font-size:16px;line-height:1;
     padding:0 2px;cursor:pointer;align-self:center}
+  /* v3.3.205: the dot readout. One line, fixed slot, reserved height so the
+     card never reflows when it fills. */
+  .rzcap{font-family:var(--mono);font-size:11px;color:var(--muted);
+    min-height:16px;margin-top:2px;text-align:center}
+  .rzcap b{color:var(--chalk);font-size:13px;font-weight:600;
+    font-variant-numeric:tabular-nums}
+  .rzhit{cursor:pointer}
+  .rzdot.on{stroke:var(--chalk);stroke-width:1.5;opacity:1}
   .rzlifts{display:flex;gap:6px;overflow-x:auto;overflow-y:hidden;
     margin:12px -14px 14px;padding:0 14px 2px;scrollbar-width:none;
     -webkit-overflow-scrolling:touch}
