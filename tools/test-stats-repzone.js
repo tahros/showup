@@ -144,10 +144,10 @@ check("every dot clears the plot top and bottom by its own radius",
         return [...svg.querySelectorAll('.rzdot')].every(c=>{
           const cy=+c.getAttribute('cy'), r=+c.getAttribute('r');
           return cy-r > top && cy+r < top+h;});})()`, true);
-// v3.3.185: Rep zones sits right after the ShowUp hero, before Part mix
-check("Rep zones renders before Part mix",
+// v3.3.208: Rep zones sits right after the ShowUp hero, before Session Build
+check("Rep zones renders before Session Build",
       `(function(){const t=document.querySelector('#view').innerHTML;
-        return t.indexOf('Rep zones') < t.indexOf('Part mix') && t.indexOf('Rep zones')>-1;})()`, true);
+        return t.indexOf('Rep zones') < t.indexOf('Session build') && t.indexOf('Rep zones')>-1;})()`, true);
 check("the part that matters today leads the sections",
       `[...document.querySelectorAll('#view h2')].filter(h=>/^Rep zones/.test(h.textContent)).length >= 1`, true);
 

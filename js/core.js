@@ -1,7 +1,7 @@
 /* ShowUp â€” core.js
    Extracted verbatim from index.html (v3.2.5 refactor). Classic script:
    shares one global scope with its siblings, loaded in order by index.html. */
-const APP_VERSION = 'v3.3.207';
+const APP_VERSION = 'v3.3.208';
 const SEED0 = {catalog:{"Chest":["Incline Smith Machine Bench Press","Flat Smith Machine Bench Press","Incline Dumbbell Bench Press","Chest Press","Chest Fly","Cable Fly Up","Cable Fly Down","Chest Squeeze","Dip","Barbell Bench Press","Incline Barbell Bench Press","Decline Barbell Bench Press","Dumbbell Bench Press","Decline Dumbbell Bench Press","Machine Chest Press","Cable Crossover","Incline Cable Fly","Low Cable Fly","Dumbbell Pullover","Landmine Press","Svend Press","Push Up","Weighted Push Up"],"Back":["Pull Up","Lat Pulldown","Bent-Over Row","Deadlift","Chin Up","Weighted Pull Up","Seated Cable Row","Single-Arm Dumbbell Row","T-Bar Row","Pendlay Row","Barbell Shrug","Rack Pull","Straight-Arm Pulldown","Close-Grip Lat Pulldown","Inverted Row","Chest-Supported Row","Machine Row"],"Shoulder":["Dumbbell Shoulder Press","Lateral Raise","Dumbbell Front Raise","Dumbbell Combination","Dumbbell Bent Over Side Raise","Rear Deltoids","Overhead Barbell Press","Arnold Press","Machine Shoulder Press","Cable Lateral Raise","Face Pull","Upright Row","Reverse Pec Deck","Landmine Lateral Raise","Cable Rear Delt Fly"],"Legs":["Squat","Dumbbell Lunge","Front Squat","Hack Squat","Leg Press","Romanian Deadlift","Bulgarian Split Squat","Walking Lunge","Leg Extension","Lying Leg Curl","Seated Leg Curl","Hip Thrust","Goblet Squat","Standing Calf Raise","Seated Calf Raise","Step Up"],"Biceps":["Barbell Curl","Dumbbell Curl","Hammer Curl","EZ Bar Curl","Preacher Curl","Cable Curl","Incline Dumbbell Curl","Concentration Curl","Spider Curl","Reverse Curl","Cable Hammer Curl"],"Triceps":["Overhead Triceps Extension","Close Grip Bench Press","Triceps Pushdown","Rope Pushdown","Skull Crusher","Bench Dip","Dumbbell Kickback","Overhead Cable Extension","Diamond Push Up"],"Sixpack":["Hanging Leg Raise","Leg Raise","Plank","Cable Crunch","Russian Twist","Ab Wheel Rollout","Bicycle Crunch","Sit Up","Decline Sit Up","Mountain Climber","Side Plank"],"Run":["Run"]},ex2part:{"Incline Smith Machine Bench Press":"Chest","Flat Smith Machine Bench Press":"Chest","Incline Dumbbell Bench Press":"Chest","Chest Press":"Chest","Chest Fly":"Chest","Cable Fly Up":"Chest","Cable Fly Down":"Chest","Chest Squeeze":"Chest","Dip":"Chest","Barbell Bench Press":"Chest","Incline Barbell Bench Press":"Chest","Decline Barbell Bench Press":"Chest","Dumbbell Bench Press":"Chest","Decline Dumbbell Bench Press":"Chest","Machine Chest Press":"Chest","Cable Crossover":"Chest","Incline Cable Fly":"Chest","Low Cable Fly":"Chest","Dumbbell Pullover":"Chest","Landmine Press":"Chest","Svend Press":"Chest","Push Up":"Chest","Weighted Push Up":"Chest","Pull Up":"Back","Lat Pulldown":"Back","Bent-Over Row":"Back","Deadlift":"Back","Chin Up":"Back","Weighted Pull Up":"Back","Seated Cable Row":"Back","Single-Arm Dumbbell Row":"Back","T-Bar Row":"Back","Pendlay Row":"Back","Barbell Shrug":"Back","Rack Pull":"Back","Straight-Arm Pulldown":"Back","Close-Grip Lat Pulldown":"Back","Inverted Row":"Back","Chest-Supported Row":"Back","Machine Row":"Back","Dumbbell Shoulder Press":"Shoulder","Lateral Raise":"Shoulder","Dumbbell Front Raise":"Shoulder","Dumbbell Combination":"Shoulder","Dumbbell Bent Over Side Raise":"Shoulder","Rear Deltoids":"Shoulder","Overhead Barbell Press":"Shoulder","Arnold Press":"Shoulder","Machine Shoulder Press":"Shoulder","Cable Lateral Raise":"Shoulder","Face Pull":"Shoulder","Upright Row":"Shoulder","Reverse Pec Deck":"Shoulder","Landmine Lateral Raise":"Shoulder","Cable Rear Delt Fly":"Shoulder","Squat":"Legs","Dumbbell Lunge":"Legs","Front Squat":"Legs","Hack Squat":"Legs","Leg Press":"Legs","Romanian Deadlift":"Legs","Bulgarian Split Squat":"Legs","Walking Lunge":"Legs","Leg Extension":"Legs","Lying Leg Curl":"Legs","Seated Leg Curl":"Legs","Hip Thrust":"Legs","Goblet Squat":"Legs","Standing Calf Raise":"Legs","Seated Calf Raise":"Legs","Step Up":"Legs","Barbell Curl":"Biceps","Dumbbell Curl":"Biceps","Hammer Curl":"Biceps","EZ Bar Curl":"Biceps","Preacher Curl":"Biceps","Cable Curl":"Biceps","Incline Dumbbell Curl":"Biceps","Concentration Curl":"Biceps","Spider Curl":"Biceps","Reverse Curl":"Biceps","Cable Hammer Curl":"Biceps","Overhead Triceps Extension":"Triceps","Close Grip Bench Press":"Triceps","Triceps Pushdown":"Triceps","Rope Pushdown":"Triceps","Skull Crusher":"Triceps","Bench Dip":"Triceps","Dumbbell Kickback":"Triceps","Overhead Cable Extension":"Triceps","Diamond Push Up":"Triceps","Hanging Leg Raise":"Sixpack","Leg Raise":"Sixpack","Plank":"Sixpack","Cable Crunch":"Sixpack","Russian Twist":"Sixpack","Ab Wheel Rollout":"Sixpack","Bicycle Crunch":"Sixpack","Sit Up":"Sixpack","Decline Sit Up":"Sixpack","Mountain Climber":"Sixpack","Side Plank":"Sixpack","Run":"Run"},equip:{"Incline Smith Machine Bench Press":"smith","Flat Smith Machine Bench Press":"smith","Incline Dumbbell Bench Press":"dumbbell","Chest Press":"machine","Chest Fly":"machine","Cable Fly Up":"cable","Cable Fly Down":"cable","Chest Squeeze":"body","Dip":"body","Barbell Bench Press":"barbell","Incline Barbell Bench Press":"barbell","Decline Barbell Bench Press":"barbell","Dumbbell Bench Press":"dumbbell","Decline Dumbbell Bench Press":"dumbbell","Machine Chest Press":"machine","Cable Crossover":"cable","Incline Cable Fly":"cable","Low Cable Fly":"cable","Dumbbell Pullover":"dumbbell","Landmine Press":"barbell","Svend Press":"dumbbell","Push Up":"body","Weighted Push Up":"body","Pull Up":"body","Lat Pulldown":"cable","Bent-Over Row":"barbell","Deadlift":"barbell","Chin Up":"body","Weighted Pull Up":"body","Seated Cable Row":"cable","Single-Arm Dumbbell Row":"dumbbell","T-Bar Row":"barbell","Pendlay Row":"barbell","Barbell Shrug":"barbell","Rack Pull":"barbell","Straight-Arm Pulldown":"cable","Close-Grip Lat Pulldown":"cable","Inverted Row":"body","Chest-Supported Row":"cable","Machine Row":"cable","Dumbbell Shoulder Press":"dumbbell","Lateral Raise":"dumbbell","Dumbbell Front Raise":"dumbbell","Dumbbell Combination":"dumbbell","Dumbbell Bent Over Side Raise":"dumbbell","Rear Deltoids":"machine","Overhead Barbell Press":"barbell","Arnold Press":"dumbbell","Machine Shoulder Press":"machine","Cable Lateral Raise":"cable","Face Pull":"cable","Upright Row":"barbell","Reverse Pec Deck":"machine","Landmine Lateral Raise":"cable","Cable Rear Delt Fly":"cable","Squat":"barbell","Dumbbell Lunge":"dumbbell","Front Squat":"barbell","Hack Squat":"machine","Leg Press":"machine","Romanian Deadlift":"barbell","Bulgarian Split Squat":"dumbbell","Walking Lunge":"dumbbell","Leg Extension":"machine","Lying Leg Curl":"machine","Seated Leg Curl":"machine","Hip Thrust":"barbell","Goblet Squat":"barbell","Standing Calf Raise":"machine","Seated Calf Raise":"machine","Step Up":"dumbbell","Barbell Curl":"barbell","Dumbbell Curl":"dumbbell","Hammer Curl":"dumbbell","EZ Bar Curl":"barbell","Preacher Curl":"barbell","Cable Curl":"cable","Incline Dumbbell Curl":"dumbbell","Concentration Curl":"dumbbell","Spider Curl":"dumbbell","Reverse Curl":"barbell","Cable Hammer Curl":"cable","Overhead Triceps Extension":"machine","Close Grip Bench Press":"barbell","Triceps Pushdown":"cable","Rope Pushdown":"cable","Skull Crusher":"barbell","Bench Dip":"body","Dumbbell Kickback":"dumbbell","Overhead Cable Extension":"cable","Diamond Push Up":"body","Hanging Leg Raise":"body","Leg Raise":"body","Plank":"body","Cable Crunch":"cable","Russian Twist":"body","Ab Wheel Rollout":"body","Bicycle Crunch":"body","Sit Up":"body","Decline Sit Up":"body","Mountain Climber":"body","Side Plank":"body","Run":"run"},sessions:{},dates:[],monthly:{},pr:{},hist:{},last:{},lastSess:{},repFreq:{},exFreq:{},exLast:{},partCount:{},partLast:{},partDays:{},totals:{sessions:0,first:null,last:'0000-00-00',km:0,vol:0}};
 /* v3.2.1: the 918-day seed literal is GONE (~75% of this file). History lives
    in doc.days (Supabase + localStorage). Full seed preserved forever in git
@@ -140,431 +140,4 @@ async function freshToken(){
       method:'POST',headers:{apikey:cloudCfg().anon,'Content-Type':'application/json'},
       body:JSON.stringify({refresh_token:session.refresh_token})});
     if(!r.ok){await saveSession(null);syncState('signedout');
-      toast('Cloud sign-in expired â€” open âš™ to sign in again');return null;}
-    const j=await r.json();
-    await saveSession({access_token:j.access_token,refresh_token:j.refresh_token,
-      expires_at:Date.now()+j.expires_in*1000,user:session.user});
-    return j.access_token;
-  }catch(e){return null;}
-}
-async function cloudTest(){
-  const {url,anon}=cloudCfg();
-  if(!url||!anon) return toast('URL and key are both needed');
-  try{
-    const r=await fetch(url+'/auth/v1/settings',{headers:{apikey:anon}});
-    if(r.status===401||r.status===403) return toast('Key rejected â€” check the anon public key');
-    if(!r.ok) return toast('Reached '+url+' but got '+r.status);
-    const j=await r.json();
-    const google=j?.external?.google;
-    toast(google ? 'Connected âœ“ Google sign-in is on' : 'Connected âœ“ but Google provider is OFF in Supabase');
-  }catch(e){ toast('Cannot reach '+url+' â€” check the URL'); }
-}
-function signInGoogle(){
-  if(DB.settings.demo){ DB.days={}; delete DB.settings.demo; save(); }   // real life starts clean
-  if(!cloudReady()) return toast('Set the Supabase URL & key in Settings first');
-  const {url,anon}=cloudCfg();
-  const back=location.origin+location.pathname;
-  // a full-page redirect can't carry headers, so the apikey must go in the query string
-  const q=new URLSearchParams({provider:'google', redirect_to:back, apikey:anon});
-  location.href=`${url}/auth/v1/authorize?${q}`;
-}
-async function signOut(){
-  /* v3.1.1: logout = this device forgets you. Data is synced BEFORE the wipe
-     so nothing is lost; if sync can't be confirmed, we ask before discarding.
-     Signing back in restores everything from the cloud. */
-  if(hasAnyDays()&&!DB.settings.demo){
-    const ok=await cloudPushNow();
-    if(!ok && !confirm('Could not confirm a cloud sync. Sign out anyway and discard the local copy? (Anything already synced is safe.)')) return;
-  }
-  await saveSession(null);
-  try{
-    localStorage.removeItem(KEY);
-    localStorage.removeItem(SKEY);
-    Object.keys(localStorage).filter(k=>k.startsWith('showup:bak')).forEach(k=>localStorage.removeItem(k));
-    sessionStorage.clear();
-  }catch(e){}
-  try{ location.reload(); }catch(e){}
-}
-
-/* one row per user: the whole app state as a document */
-/* Postgres jsonb re-sorts object keys, so a set that leaves as {part,ex,w,â€¦}
-   returns as {at,ex,part,â€¦}. Any identity check must therefore be key-order
-   insensitive â€” this signature is, and it's the only set identity we use. */
-/* v3.3.191: the dedupe signature is the LOGGED set â€” weight, reps, time,
-   stamp. Derived fields must never enter it: `cid` (canonical id) is
-   assigned by migration, so a migrated device and one still on the old
-   build would otherwise see identical sets as different rows and keep both.
-   Anything computed ABOUT a set belongs outside its identity. */
-const SIG_SKIP=new Set(['cid']);
-const sig=s=>JSON.stringify(Object.keys(s).filter(k=>!SIG_SKIP.has(k)).sort()
-  .reduce((o,k)=>(o[k]=s[k],o),{}));
-
-/* Repair: collapse EXACT duplicate sets within a day â€” but only ones carrying an
-   `at` timestamp. Two real sets can't share the same millisecond, so an identical
-   sig incl. `at` is provably a merge artifact (the jsonb bug), never real training.
-   Pre-timestamp sets are left alone: identical old sets may be legitimate repeats. */
-/* Deterministic stamp for pre-v2.19 days: lastAt if known, else noon of that day.
-   Both devices compute the same value for the same day, so stamped-vs-unstamped
-   asymmetries (the "laptop stays red" bug) cannot occur: equal stamps fall into
-   the flag-merging union; a real edit stamps Date.now() and wins outright. */
-function legacyStamp(d,v){ return v.lastAt || (Date.parse(d+'T12:00:00')||1); }
-function stampLegacyDays(){
-  for(const [d,v] of Object.entries(DB.days))
-    if(v.w&&v.w.length&&!v.upd) v.upd=legacyStamp(d,v);
-}
-function repairDupes(){
-  let removed=0;
-  for(const day of Object.values(DB.days)){
-    if(!day.w||day.w.length<2) continue;
-    const seen=new Set(), keep=[];
-    for(const s of day.w){
-      if(s.at!=null){
-        const k=sig(s);
-        if(seen.has(k)){removed++;continue;}
-        seen.add(k);
-      }
-      keep.push(s);
-    }
-    if(keep.length!==day.w.length) day.w=keep;
-  }
-  return removed;
-}
-
-/* Push REPLACES the whole cloud document, so it is only ever safe after this
-   device has merged the cloud into itself. pulledOK gates every push; a fresh
-   install (or any device that hasn't pulled yet this boot) physically cannot
-   overwrite the cloud with an empty or partial copy. This is the bug that ate
-   data on reinstall (v2.09 and earlier). */
-let SYNC='';
-function syncState(s){
-  if(s===SYNC) return; SYNC=s;
-  const g=document.getElementById('gearBtn'); if(!g) return;
-  g.classList.toggle('warn', s==='signedout'||s==='error');
-  g.title = s==='signedout' ? 'Not syncing â€” sign in again'
-          : s==='error'     ? 'Cloud sync failing â€” data is safe on this device'
-          : 'Settings, account & sync';
-}
-let pulledOK=false, lastPullAt=0;
-async function cloudPull(){
-  const tok=await freshToken(); if(!tok) return;
-  try{
-    const r=await fetch(cloudCfg().url+'/rest/v1/app_state?select=doc,updated_at',{
-      headers:{apikey:cloudCfg().anon,Authorization:'Bearer '+tok}});
-    if(!r.ok) return toast('Cloud pull failed ('+r.status+')');
-    const rows=await r.json();
-    if(!rows.length){ pulledOK=true; cloudPush(); maybeOnboard(); return; }   // cloud confirmed empty: safe to seed
-    const remote=rows[0].doc||{};
-    let merged=0;
-    for(const [d,rv] of Object.entries(remote.days||{})){
-      const lv=DB.days[d];
-      if(rv.w&&rv.w.length&&!rv.upd) rv.upd=legacyStamp(d,rv);
-      if(!lv){DB.days[d]=rv;merged++;continue;}
-      const lu=lv.upd||0, ru=rv.upd||0;
-      if(ru>lu){ DB.days[d]=rv; merged++; continue; }   // remote day is newer: take it whole
-      if(lu>ru) continue;                                // local day is newer: keep it whole
-      // both unstamped (pre-v2.19 legacy): key-order-safe union of sets â€”
-      // AND of the completion state, which the old union silently dropped
-      // (that's how a workout completed on the phone stayed "live" on the laptop).
-      const seen=new Set(lv.w.map(sig));
-      for(const s of rv.w||[]) if(!seen.has(sig(s))){lv.w.push(s);seen.add(sig(s));merged++;}
-      if(rv.doneEx)   lv.doneEx  =[...new Set([...(lv.doneEx||[]),  ...rv.doneEx])];
-      if(rv.donePart) lv.donePart=[...new Set([...(lv.donePart||[]),...rv.donePart])];
-      if(rv.doneAll)  lv.doneAll = true;      // completed anywhere = completed everywhere
-      if(rv.lastAt)   lv.lastAt  = Math.max(lv.lastAt||0, rv.lastAt);
-      if(rv.sugX)     lv.sugX    = Object.assign({}, rv.sugX, lv.sugX||{});
-      if(rv.bw&&!lv.bw) lv.bw = rv.bw;   // v3.3.66: a weigh-in is day data too
-      if(rv.rest&&!lv.rest) lv.rest = rv.rest;   // v3.3.79: so is a declared rest day
-    }
-    adoptRemoteSettings(remote);
-    DB.settings.lastCloud=Date.now();
-    lastPullAt=Date.now();
-    SEED=deriveAll(); _fireDist=null;
-    const fixed=repairDupes();
-    if(fixed) merged=Math.max(0,merged-fixed);
-    _avgVol=null;
-    pulledOK=true;                                        // local is now a superset of the cloud
-    maybeOnboard();
-    save(); render();
-    if(merged) toast('Cloud: merged '+merged+' item(s)');
-  }catch(e){}
-}
-/* ---- history archive (v2.13, stage 1 of moving data out of index.html) ----
-   The full imported history (918 days back to 2021-12-13) converted to the
-   app's day format and carried in every cloud push under doc.archive. The app
-   still RENDERS from the embedded seed for now; this puts the raw data where
-   it belongs â€” your Supabase row â€” and is the substrate v3.0 will switch to. */
-let _archive=null;
-function buildArchive(){
-  if(_archive) return _archive;
-  const days={};
-  let rows=0, km=0;
-  for(const [d,list] of Object.entries(SEED0.sessions)){
-    days[d]={w:list.map(r=>{
-      const s={part:r[0],ex:r[1],w:r[2],reps:r[3]||[]};
-      if(r[4]!=null) s.mins=r[4];
-      if(r[5]!=null) s.secs=r[5];
-      if(r[1]==='Run') km+=r[2];
-      rows++; return s;
-    })};
-  }
-  _archive={v:1, from:SEED0.totals.first, to:SEED0.totals.last,
-            daysN:Object.keys(days).length, rows, km:Math.round(km*10)/10, days};
-  return _archive;
-}
-let cloudTimer=null;
-async function cloudPushNow(keepalive){
-  if(DB.settings.demo) return false;               // demo data never leaves the device
-  const tok=await freshToken(); if(!tok){ syncState('signedout'); return false; }
-  if(!pulledOK) return false;   // a device that hasn't restored yet never overwrites the cloud
-  try{
-    const doc={days:DB.days, settings:DB.settings, settingsAt:DB.settingsAt||0, suggest:DB.suggest};
-    // ||0, never Date.now(): a device that doesn't know when its settings
-    // changed must never claim they changed just now.
-    const r=await fetch(cloudCfg().url+'/rest/v1/app_state',{
-      method:'POST',
-      keepalive:!!keepalive,     // lets the request finish even as iOS backgrounds the app
-      headers:{apikey:cloudCfg().anon,Authorization:'Bearer '+tok,'Content-Type':'application/json',
-               Prefer:'resolution=merge-duplicates'},
-      body:JSON.stringify({user_id:session.user.id, doc, updated_at:new Date().toISOString()})});
-    if(r.ok){ DB.settings.lastCloud=Date.now(); syncState('ok'); return true; }
-    syncState('error'); return false;
-  }catch(e){ syncState('error'); return false; }
-}
-function cloudPush(){
-  clearTimeout(cloudTimer);
-  cloudTimer=setTimeout(cloudPushNow, 1200);
-}
-
-/* ---------- storage adapter: claude.ai artifact storage -> localStorage (browser / iOS build) ---------- */
-const store = {
-  async get(k){
-    try{ if(typeof window!=='undefined' && window.storage){ const r=await window.storage.get(k); return r?r.value:null; } }catch(e){}
-    try{ return localStorage.getItem(k); }catch(e){ return null; }
-  },
-  async set(k,v){
-    try{ if(typeof window!=='undefined' && window.storage){ await window.storage.set(k,v); return true; } }catch(e){}
-    try{ localStorage.setItem(k,v); return true; }catch(e){ return false; }
-  }
-};
-async function load(){
-  const raw = await store.get(KEY);
-  if(raw){ try{ const d=JSON.parse(raw); DB={...DB,...d, settings:{...DB.settings,...(d.settings||{}), gh:{...DB.settings.gh,...((d.settings||{}).gh||{})}}}; }catch(e){} }
-  if(!DB.days) DB.days={};
-  migrateExNames();           // v3.3.167: before anything derives or renders
-  migrateCanon();             // v3.3.191: ids assigned before anything groups
-  _setSig=settingsSig();      // baseline: loading is not an edit
-  applyTheme();
-}
-/* v3.3.167: five catalog names moved to their globally standard forms, and
-   "Row" MERGED into the pre-existing "Seated Cable Row". 900+ days of
-   history are keyed by these strings, so the rename is a load-time
-   migration, not a find-and-replace: idempotent (a migrated DB passes
-   through untouched), collision-safe (merging keeps the target's settings
-   value when both exist), and it bumps upd on changed days so the migrated
-   names WIN the cloud merge instead of being resurrected by a stale device.
-   The map stays forever: any old-named day arriving from a backup or an
-   un-updated device gets rewritten on its next load. */
-/* v3.3.167: exercises with two legitimate homes. The catalog default is the
-   convention; the user's own training structure may disagree (Deadlift on
-   leg day is exactly as correct as Deadlift on back day). The override is
-   per-user, confirmed, and FORWARD-ONLY: logged rows keep the part they
-   were trained under â€” the record is a record of sessions. */
-const DUAL={'Deadlift':['Back','Legs'],'Rack Pull':['Back','Legs'],
-  'Romanian Deadlift':['Legs','Back'],'Dip':['Chest','Triceps'],
-  'Bench Dip':['Triceps','Chest'],'Close Grip Bench Press':['Triceps','Chest'],
-  'Barbell Shrug':['Back','Shoulder'],'Dumbbell Pullover':['Chest','Back'],
-  'Chin Up':['Back','Biceps']};
-const partOv=()=>DB.settings.partOv||(DB.settings.partOv={});
-const homePartOf=ex=>partOv()[ex]||customs()[ex]?.part||SEED0.ex2part[ex];
-const EX_RENAME={'Pectoral Fly':'Chest Fly','Lat Pull Down':'Lat Pulldown',
-  'Close-Grip Lat Pull Down':'Close-Grip Lat Pulldown',
-  'Dumbbell Press':'Dumbbell Shoulder Press','Dumbbell Side Raise':'Lateral Raise',
-  'Row':'Seated Cable Row'};
-function migrateExNames(){
-  let n=0;
-  for(const d of Object.values(DB.days)){
-    let hit=false;
-    for(const s of (d.w||[])) if(EX_RENAME[s.ex]){ s.ex=EX_RENAME[s.ex]; hit=true; n++; }
-    if(d.doneEx) d.doneEx=d.doneEx.map(e=>EX_RENAME[e]||e);
-    if(d.sugX) for(const k of Object.keys(d.sugX)) if(EX_RENAME[k]){
-      d.sugX[EX_RENAME[k]]=d.sugX[EX_RENAME[k]]||d.sugX[k]; delete d.sugX[k]; hit=true; }
-    if(hit) d.upd=Date.now();   // migrated names must outrank stale remotes
-  }
-  for(const bag of [DB.settings.exW,DB.settings.tierOv]){
-    if(!bag) continue;
-    for(const k of Object.keys(bag)) if(EX_RENAME[k]){
-      if(!(EX_RENAME[k] in bag)) bag[EX_RENAME[k]]=bag[k];   // target wins a collision
-      delete bag[k];
-    }
-  }
-  if(n) save();
-  return n;
-}
-/* ============ v3.3.191 â€” canonical exercise identity ============
-   Free-text names are what the person types and edits; a canonical ID is
-   what the app counts by. Without this, renaming an exercise splits its
-   history into two series (the latent Rep Zones bug), and any later
-   muscle-group metadata would be keyed on a string that can change.
-
-   Shape: DB.settings.canon = { <id>: {name:'Chest Fly', al:['Pectoral Fly']} }
-   - ids are slugs, minted once, never renamed, never reused
-   - `name` is the display name and may change freely
-   - `al` holds prior/alternate strings that resolve to this id
-   - each set row gains `cid`; `s.ex` KEEPS the string as logged, so the
-     mapping is always re-derivable from the source (non-destructive by
-     construction â€” no parallel `raw` field needed, and see SIG_SKIP)
-
-   Resolution is EXACT ONLY: identity, case-fold, whitespace-collapse. No
-   fuzzy matching â€” "Chest Fly", "Cable Fly Up" and "Chest Squeeze" are three
-   movements, and a similarity score would merge them behind the user's back.
-   Anything unresolved mints its own entry. Merging is a user act, never the
-   app's. */
-const canon=()=>DB.settings.canon||(DB.settings.canon={});
-const canonKey=str=>String(str||'').trim().replace(/\s+/g,' ').toLowerCase();
-function canonSlug(str){
-  const base=canonKey(str).replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'')||'ex';
-  const c=canon();
-  if(!(base in c)) return base;
-  let n=2; while((base+'-'+n) in c) n++;      // never reuse, never rename
-  return base+'-'+n;
-}
-/* resolve a logged string to an id; mint one if it is genuinely new */
-function canonId(str,mint){
-  const k=canonKey(str), c=canon();
-  for(const [id,e] of Object.entries(c)){
-    if(canonKey(e.name)===k) return id;
-    if((e.al||[]).some(a=>canonKey(a)===k)) return id;
-  }
-  if(mint===false) return null;
-  const id=canonSlug(str);
-  c[id]={name:String(str).trim(),al:[]};
-  return id;
-}
-const canonName=id=>(canon()[id]||{}).name||id;
-/* idempotent, non-destructive. Returns a report: every distinct source
-   string and the id it resolved to. */
-function migrateCanon(){
-  const report={},before=JSON.stringify(canon());
-  let stamped=0;
-  for(const d of Object.values(DB.days)){
-    for(const s of (d.w||[])){
-      if(!s.ex) continue;
-      const id=canonId(s.ex,true);
-      report[s.ex]=id;
-      if(s.cid!==id){ s.cid=id; stamped++; }   // s.ex untouched: the source survives
-    }
-  }
-  if(stamped||before!==JSON.stringify(canon())) save();
-  return {report,stamped,ids:Object.keys(canon()).length};
-}
-/* user-initiated merge: every set of `fromId` moves to `toId`, and the
-   losing display name becomes an alias so re-logging the old string lands
-   on the target. Name-keyed user state travels with it â€” part overrides,
-   tier pins, working weights, per-day seals â€” or the merge would silently
-   drop them. */
-function canonMerge(fromId,toId){
-  const c=canon(); if(!c[fromId]||!c[toId]||fromId===toId) return 0;
-  const fromName=c[fromId].name, toName=c[toId].name;
-  let moved=0;
-  for(const d of Object.values(DB.days)){
-    let hit=false;
-    for(const s of (d.w||[])) if(s.cid===fromId||s.ex===fromName){
-      s.cid=toId; s.ex=toName; hit=true;
-      moved+=(s.reps||[]).length||1;   // SETS, the unit the confirm promises
-    }
-    if(d.doneEx) d.doneEx=d.doneEx.map(e=>e===fromName?toName:e);
-    if(d.sugX&&(fromName in d.sugX)){
-      d.sugX[toName]=d.sugX[toName]||d.sugX[fromName]; delete d.sugX[fromName]; hit=true;
-    }
-    if(hit) d.upd=Date.now();
-  }
-  for(const bag of [DB.settings.exW,DB.settings.tierOv,DB.settings.partOv]){
-    if(!bag||!(fromName in bag)) continue;
-    if(!(toName in bag)) bag[toName]=bag[fromName];      // target wins a collision
-    delete bag[fromName];
-  }
-  c[toId].al=[...new Set([...(c[toId].al||[]),...(c[fromId].al||[]),fromName])];
-  delete c[fromId];
-  DB.settingsAt=Date.now();
-  save();
-  return moved;
-}
-
-/* v3.3.44 â€” why settings vanished at random.
-   settingsAt is the only thing standing between a settings change and a pull
-   that silently reverts it. Two defects made it fail:
-   1. cloudPush stamped `DB.settingsAt||Date.now()`. A context that had never
-      recorded WHEN its settings changed forged a brand-new timestamp at push
-      time, so its STALE settings outranked every other device's real ones.
-   2. Of 25 sites that mutate DB.settings, only 12 called save(true). The rest
-      left settingsAt stale, so the change lost the next pull.
-   bodyKg was simply the first casualty anyone could see: barKg and smithKg
-   fall back to ??20, so a wiped settings object still shows "20 / 20" and
-   looks healthy. bodyKg has no default, so it alone renders as "â€”".
-   The stamp is now automatic â€” no call site can forget it again. */
-const VOLATILE_SETTINGS=new Set(['lastCloud','lastSync']);   // change every sync; not real edits
-function settingsSig(){
-  const s={};
-  for(const k of Object.keys(DB.settings||{}).sort())
-    if(!VOLATILE_SETTINGS.has(k)) s[k]=DB.settings[k];
-  return JSON.stringify(s);
-}
-let _setSig=null;
-/* Adopting the cloud's settings is not a local edit â€” record the signature so
-   the save() that follows doesn't re-stamp them as ours. */
-function adoptRemoteSettings(remote){
-  if(!(remote&&remote.settings)) return false;
-  if((remote.settingsAt||0)<=(DB.settingsAt||0)) return false;
-  DB.settings={...DB.settings,...remote.settings};
-  DB.settingsAt=remote.settingsAt;
-  _setSig=settingsSig();
-  applyTheme();
-  return true;
-}
-let saveTimer=null, saveDirty=false;
-function save(markSettings){
-  /* v3.3.79: training always wins. A declared rest day and a logged set
-     contradict, and the barbell outranks the button â€” so the flag is cleared
-     HERE, at the one gate every mutation passes through, not at the six
-     set-push call sites (the v3.3.45 settings lesson: structural fix, never
-     a call-site audit). A weigh-in save leaves it alone: you can weigh
-     yourself on a rest day. */
-  const _t=DB.days&&DB.days[todayISO];
-  if(_t&&_t.rest&&(_t.w||[]).length){ delete _t.rest; _t.upd=Date.now(); }
-  const sig=settingsSig();
-  if(markSettings || (_setSig!==null && sig!==_setSig)) DB.settingsAt=Date.now();
-  _setSig=sig;
-  saveDirty=true;
-  clearTimeout(saveTimer);
-  saveTimer=setTimeout(async()=>{
-    saveDirty=false;
-    const ok = await store.set(KEY, JSON.stringify(DB));
-    if(!ok){ saveDirty=true; toast('Not saved â€” storage unavailable'); }
-  },350);
-  if(session) cloudPush();
-}
-/* iOS kills a home-screen app the instant it's swiped away â€” a debounced save
-   still in its 350ms window would be lost (this is why the theme "reset").
-   localStorage.setItem is synchronous, so it completes even during pagehide. */
-/* The 1,500 km moment. Crossing any 100-unit boundary is a real event, so mark it
-   once â€” not a banner that nags forever. */
-function checkMilestone(){
-  const days=runDays(); if(!days.length) return;
-  const total=toD(days.reduce((a,r)=>a+r.km,0));
-  const hit=Math.floor(total/100)*100;
-  if(!hit) return;
-  const seen=DB.settings.kmMilestone||0;
-  if(seen===0){ DB.settings.kmMilestone=hit; save(true); return; }   // first run: just record
-  if(hit>seen){
-    DB.settings.kmMilestone=hit;
-    DB.settings.kmMilestoneAt=todayISO;
-    save(true);
-    setTimeout(()=>msMoment(hit),650);
-  }
-}
-/* ================== v3.0: single source of truth ==================
-   All stats derive at boot from raw days. This builder reproduced every
-   embedded seed map BYTE-EXACTLY in the offline harness (2026-07-17) across
-   918 days / 7,845 rows. Windows anchor at TODAY at runtime; totals.last lands
-   on the last day BEFORE today, so every `d > SEED.totals.last` live-today
-   code path works unchanged. */
+      toast('Cloud si×Þy¶‰žËkºwµç@€€€€¥˜¡±ÔùÉÔ¤½¹Ñ¥¹Õ”ì€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€¼¼±½…°‘…ä¥Ì¹•Ý•Èè­••À¥ÐÝ¡½±”(€€€€€€¼¼‰½Ñ Õ¹ÍÑ…µÁ•€¡ÁÉ”µØÈ¸Ää±•…ä¤è­•äµ½É‘•ÈµÍ…™”Õ¹¥½¸½˜Í•ÑÌƒŠP(€€€€€€¼¼9½˜Ñ¡”½µÁ±•Ñ¥½¸ÍÑ…Ñ”°Ý¡¥ Ñ¡”½±Õ¹¥½¸Í¥±•¹Ñ±ä‘É½ÁÁ•(€€€€€€¼¼€¡Ñ¡…ÐÌ¡½Ü„Ý½É­½ÕÐ½µÁ±•Ñ•½¸Ñ¡”Á¡½¹”ÍÑ…å•€‰±¥Ù”ˆ½¸Ñ¡”±…ÁÑ½À¤¸(€€€€€½¹ÍÐÍ••¸õ¹•ÜM•Ð¡±Ø¹Ü¹µ…À¡Í¥œ¤¤ì(€€€€€™½È¡½¹ÍÐÌ½˜ÉØ¹Ýññmt¤¥˜ …Í••¸¹¡…Ì¡Í¥œ¡Ì¤¤¥í±Ø¹Ü¹ÁÕÍ ¡Ì¤íÍ••¸¹…‘¡Í¥œ¡Ì¤¤íµ•É•¬¬íô(€€€€€¥˜¡ÉØ¹‘½¹•à¤€€±Ø¹‘½¹•à€€õl¸¸¹¹•ÜM•Ð¡l¸¸¸¡±Ø¹‘½¹•áññmt¤°€€¸¸¹ÉØ¹‘½¹•át¥tì(€€€€€¥˜¡ÉØ¹‘½¹•A…ÉÐ¤±Ø¹‘½¹•A…ÉÐõl¸¸¹¹•ÜM•Ð¡l¸¸¸¡±Ø¹‘½¹•A…ÉÑññmt¤°¸¸¹ÉØ¹‘½¹•A…ÉÑt¥tì(€€€€€¥˜¡ÉØ¹‘½¹•±°¤€±Ø¹‘½¹•±°€ôÑÉÕ”ì€€€€€€¼¼½µÁ±•Ñ•…¹åÝ¡•É”€ô½µÁ±•Ñ••Ù•ÉåÝ¡•É”(€€€€€¥˜¡ÉØ¹±…ÍÑÐ¤€€±Ø¹±…ÍÑÐ€€ô5…Ñ ¹µ…à¡±Ø¹±…ÍÑÑñðÀ°ÉØ¹±…ÍÑÐ¤ì(€€€€€¥˜¡ÉØ¹ÍÕ`¤€€€€±Ø¹ÍÕ`€€€€ô=‰©•Ð¹…ÍÍ¥¸¡íô°ÉØ¹ÍÕ`°±Ø¹ÍÕaññíô¤ì(€€€€€¥˜¡ÉØ¹‰Ü˜˜…±Ø¹‰Ü¤±Ø¹‰Ü€ôÉØ¹‰Üì€€€¼¼ØÌ¸Ì¸ØØè„Ý•¥ µ¥¸¥Ì‘…ä‘…Ñ„Ñ½¼(€€€€€¥˜¡ÉØ¹É•ÍÐ˜˜…±Ø¹É•ÍÐ¤±Ø¹É•ÍÐ€ôÉØ¹É•ÍÐì€€€¼¼ØÌ¸Ì¸ÜäèÍ¼¥Ì„‘•±…É•É•ÍÐ‘…ä(€€€ô(€€€…‘½ÁÑI•µ½Ñ•M•ÑÑ¥¹Ì¡É•µ½Ñ”¤ì(€€€¹Í•ÑÑ¥¹Ì¹±…ÍÑ±½Õõ…Ñ”¹¹½Ü ¤ì(€€€±…ÍÑAÕ±±Ðõ…Ñ”¹¹½Ü ¤ì(€€€Mõ‘•É¥Ù•±° ¤ì}™¥É•¥ÍÐõ¹Õ±°ì(€€€½¹ÍÐ™¥á•õÉ•Á…¥ÉÕÁ•Ì ¤ì(€€€¥˜¡™¥á•¤µ•É•õ5…Ñ ¹µ…à À±µ•É•µ™¥á•¤ì(€€€}…ÙY½°õ¹Õ±°ì(€€€ÁÕ±±•‘=,õÑÉÕ”ì€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€¼¼±½…°¥Ì¹½Ü„ÍÕÁ•ÉÍ•Ð½˜Ñ¡”±½Õ(€€€µ…å‰•=¹‰½…É ¤ì(€€€Í…Ù” ¤ìÉ•¹‘•È ¤ì(€€€¥˜¡µ•É•¤Ñ½…ÍÐ ±½Õèµ•É•€œ­µ•É•¬œ¥Ñ•´¡Ì¤œ¤ì(€õ…Ñ ¡”¥íô)ô(¼¨€´´´´¡¥ÍÑ½Éä…É¡¥Ù”€¡ØÈ¸ÄÌ°ÍÑ…”€Ä½˜µ½Ù¥¹œ‘…Ñ„½ÕÐ½˜¥¹‘•à¹¡Ñµ°¤€´´´´(€€Q¡”™Õ±°¥µÁ½ÉÑ•¡¥ÍÑ½Éä€ äÄà‘…åÌ‰…¬Ñ¼€ÈÀÈÄ´ÄÈ´ÄÌ¤½¹Ù•ÉÑ•Ñ¼Ñ¡”(€€…ÁÀÌ‘…ä™½Éµ…Ð…¹…ÉÉ¥•¥¸•Ù•Éä±½ÕÁÕÍ Õ¹‘•È‘½Œ¹…É¡¥Ù”¸Q¡”…ÁÀ(€€ÍÑ¥±°I9IL™É½´Ñ¡”•µ‰•‘‘•Í••™½È¹½ÜìÑ¡¥ÌÁÕÑÌÑ¡”É…Ü‘…Ñ„Ý¡•É”(€€¥Ð‰•±½¹ÌƒŠPå½ÕÈMÕÁ…‰…Í”É½ÜƒŠP…¹¥ÌÑ¡”ÍÕ‰ÍÑÉ…Ñ”ØÌ¸ÀÝ¥±°ÍÝ¥Ñ Ñ¼¸€¨¼)±•Ð}…É¡¥Ù”õ¹Õ±°ì)™Õ¹Ñ¥½¸‰Õ¥±‘É¡¥Ù” ¥ì(€¥˜¡}…É¡¥Ù”¤É•ÑÕÉ¸}…É¡¥Ù”ì(€½¹ÍÐ‘…åÌõíôì(€±•ÐÉ½ÝÌôÀ°­´ôÀì(€™½È¡½¹ÍÐm±±¥ÍÑt½˜=‰©•Ð¹•¹ÑÉ¥•Ì¡MÀ¹Í•ÍÍ¥½¹Ì¤¥ì(€€€‘…åÍm‘tõíÜé±¥ÍÐ¹µ…À¡Èôùì(€€€€€½¹ÍÐÌõíÁ…ÉÐéÉlÁt±•àéÉlÅt±ÜéÉlÉt±É•ÁÌéÉlÍuññmuôì(€€€€€¥˜¡ÉlÑt„õ¹Õ±°¤Ì¹µ¥¹ÌõÉlÑtì(€€€€€¥˜¡ÉlÕt„õ¹Õ±°¤Ì¹Í•ÌõÉlÕtì(€€€€€¥˜¡ÉlÅtôôôIÕ¸œ¤­´¬õÉlÉtì(€€€€€É½ÝÌ¬¬ìÉ•ÑÕÉ¸Ìì(€€€ô¥ôì(€ô(€}…É¡¥Ù”õíØèÄ°™É½´éMÀ¹Ñ½Ñ…±Ì¹™¥ÉÍÐ°Ñ¼éMÀ¹Ñ½Ñ…±Ì¹±…ÍÐ°(€€€€€€€€€€€‘…åÍ8é=‰©•Ð¹­•åÌ¡‘…åÌ¤¹±•¹Ñ °É½ÝÌ°­´é5…Ñ ¹É½Õ¹¡­´¨ÄÀ¤¼ÄÀ°‘…åÍôì(€É•ÑÕÉ¸}…É¡¥Ù”ì)ô)±•Ð±½Õ‘Q¥µ•Èõ¹Õ±°ì)…Íå¹Œ™Õ¹Ñ¥½¸±½Õ‘AÕÍ¡9½Ü¡­••Á…±¥Ù”¥ì(€¥˜¡¹Í•ÑÑ¥¹Ì¹‘•µ¼¤É•ÑÕÉ¸™…±Í”ì€€€€€€€€€€€€€€€¼¼‘•µ¼‘…Ñ„¹•Ù•È±•…Ù•ÌÑ¡”‘•Ù¥”(€½¹ÍÐÑ½¬õ…Ý…¥Ð™É•Í¡Q½­•¸ ¤ì¥˜ …Ñ½¬¥ìÍå¹MÑ…Ñ” Í¥¹•‘½ÕÐœ¤ìÉ•ÑÕÉ¸™…±Í”ìô(€¥˜ …ÁÕ±±•‘=,¤É•ÑÕÉ¸™…±Í”ì€€€¼¼„‘•Ù¥”Ñ¡…Ð¡…Í¸ÐÉ•ÍÑ½É•å•Ð¹•Ù•È½Ù•ÉÝÉ¥Ñ•ÌÑ¡”±½Õ(€ÑÉåì(€€€½¹ÍÐ‘½Œõí‘…åÌé¹‘…åÌ°Í•ÑÑ¥¹Ìé¹Í•ÑÑ¥¹Ì°Í•ÑÑ¥¹ÍÐé¹Í•ÑÑ¥¹ÍÑñðÀ°ÍÕ•ÍÐé¹ÍÕ•ÍÑôì(€€€€¼¼ñðÀ°¹•Ù•È…Ñ”¹¹½Ü ¤è„‘•Ù¥”Ñ¡…Ð‘½•Í¸Ð­¹½ÜÝ¡•¸¥ÑÌÍ•ÑÑ¥¹Ì(€€€€¼¼¡…¹•µÕÍÐ¹•Ù•È±…¥´Ñ¡•ä¡…¹•©ÕÍÐ¹½Ü¸(€€€½¹ÍÐÈõ…Ý…¥Ð™•Ñ ¡±½Õ‘™œ ¤¹ÕÉ°¬œ½É•ÍÐ½ØÄ½…ÁÁ}ÍÑ…Ñ”œ±ì(€€€€€µ•Ñ¡½èA=MPœ°(€€€€€­••Á…±¥Ù”è„…­••Á…±¥Ù”°€€€€€¼¼±•ÑÌÑ¡”É•ÅÕ•ÍÐ™¥¹¥Í •Ù•¸…Ì¥=L‰…­É½Õ¹‘ÌÑ¡”…ÁÀ(€€€€€¡•…‘•ÉÌéí…Á¥­•äé±½Õ‘™œ ¤¹…¹½¸±ÕÑ¡½É¥é…Ñ¥½¸è	•…É•È€œ­Ñ½¬°½¹Ñ•¹ÐµQåÁ”œè…ÁÁ±¥…Ñ¥½¸½©Í½¸œ°(€€€€€€€€€€€€€€AÉ•™•ÈèÉ•Í½±ÕÑ¥½¸õµ•É”µ‘ÕÁ±¥…Ñ•Ìô°(€€€€€‰½‘äé)M=8¹ÍÑÉ¥¹¥™ä¡íÕÍ•É}¥éÍ•ÍÍ¥½¸¹ÕÍ•È¹¥°‘½Œ°ÕÁ‘…Ñ•‘}…Ðé¹•Ü…Ñ” ¤¹Ñ½%M=MÑÉ¥¹œ ¥ô¥ô¤ì(€€€¥˜¡È¹½¬¥ì¹Í•ÑÑ¥¹Ì¹±…ÍÑ±½Õõ…Ñ”¹¹½Ü ¤ìÍå¹MÑ…Ñ” ½¬œ¤ìÉ•ÑÕÉ¸ÑÉÕ”ìô(€€€Íå¹MÑ…Ñ” •ÉÉ½Èœ¤ìÉ•ÑÕÉ¸™…±Í”ì(€õ…Ñ ¡”¥ìÍå¹MÑ…Ñ” •ÉÉ½Èœ¤ìÉ•ÑÕÉ¸™…±Í”ìô)ô)™Õ¹Ñ¥½¸±½Õ‘AÕÍ  ¥ì(€±•…ÉQ¥µ•½ÕÐ¡±½Õ‘Q¥µ•È¤ì(€±½Õ‘Q¥µ•ÈõÍ•ÑQ¥µ•½ÕÐ¡±½Õ‘AÕÍ¡9½Ü°€ÄÈÀÀ¤ì)ô((¼¨€´´´´´´´´´´ÍÑ½É…”…‘…ÁÑ•Èè±…Õ‘”¹…¤…ÉÑ¥™…ÐÍÑ½É…”€´ø±½…±MÑ½É…”€¡‰É½ÝÍ•È€¼¥=L‰Õ¥±¤€´´´´´´´´´´€¨¼)½¹ÍÐÍÑ½É”€ôì(€…Íå¹Œ•Ð¡¬¥ì(€€€ÑÉåì¥˜¡ÑåÁ•½˜Ý¥¹‘½Ü„ôôÕ¹‘•™¥¹•œ€˜˜Ý¥¹‘½Ü¹ÍÑ½É…”¥ì½¹ÍÐÈõ…Ý…¥ÐÝ¥¹‘½Ü¹ÍÑ½É…”¹•Ð¡¬¤ìÉ•ÑÕÉ¸ÈýÈ¹Ù…±Õ”é¹Õ±°ìôõ…Ñ ¡”¥íô(€€€ÑÉåìÉ•ÑÕÉ¸±½…±MÑ½É…”¹•Ñ%Ñ•´¡¬¤ìõ…Ñ ¡”¥ìÉ•ÑÕÉ¸¹Õ±°ìô(€ô°(€…Íå¹ŒÍ•Ð¡¬±Ø¥ì(€€€ÑÉåì¥˜¡ÑåÁ•½˜Ý¥¹‘½Ü„ôôÕ¹‘•™¥¹•œ€˜˜Ý¥¹‘½Ü¹ÍÑ½É…”¥ì…Ý…¥ÐÝ¥¹‘½Ü¹ÍÑ½É…”¹Í•Ð¡¬±Ø¤ìÉ•ÑÕÉ¸ÑÉÕ”ìôõ…Ñ ¡”¥íô(€€€ÑÉåì±½…±MÑ½É…”¹Í•Ñ%Ñ•´¡¬±Ø¤ìÉ•ÑÕÉ¸ÑÉÕ”ìõ…Ñ ¡”¥ìÉ•ÑÕÉ¸™…±Í”ìô(€ô)ôì)…Íå¹Œ™Õ¹Ñ¥½¸±½… ¥ì(€½¹ÍÐÉ…Ü€ô…Ý…¥ÐÍÑ½É”¹•Ð¡-d¤ì(€¥˜¡É…Ü¥ìÑÉåì½¹ÍÐõ)M=8¹Á…ÉÍ”¡É…Ü¤ìõì¸¸¹°¸¸¹°Í•ÑÑ¥¹Ìéì¸¸¹¹Í•ÑÑ¥¹Ì°¸¸¸¡¹Í•ÑÑ¥¹Íññíô¤° éì¸¸¹¹Í•ÑÑ¥¹Ì¹ °¸¸¸ ¡¹Í•ÑÑ¥¹Íññíô¤¹¡ññíô¥õõôìõ…Ñ ¡”¥íôô(€¥˜ …¹‘…åÌ¤¹‘…åÌõíôì(€µ¥É…Ñ•á9…µ•Ì ¤ì€€€€€€€€€€€¼¼ØÌ¸Ì¸ÄØÜè‰•™½É”…¹åÑ¡¥¹œ‘•É¥Ù•Ì½ÈÉ•¹‘•ÉÌ(€µ¥É…Ñ•…¹½¸ ¤ì€€€€€€€€€€€€€¼¼ØÌ¸Ì¸ÄäÄè¥‘Ì…ÍÍ¥¹•‰•™½É”…¹åÑ¡¥¹œÉ½ÕÁÌ(€}Í•ÑM¥œõÍ•ÑÑ¥¹ÍM¥œ ¤ì€€€€€€¼¼‰…Í•±¥¹”è±½…‘¥¹œ¥Ì¹½Ð…¸•‘¥Ð(€…ÁÁ±åQ¡•µ” ¤ì)ô(¼¨ØÌ¸Ì¸ÄØÜè™¥Ù”…Ñ…±½œ¹…µ•Ìµ½Ù•Ñ¼Ñ¡•¥È±½‰…±±äÍÑ…¹‘…É™½ÉµÌ°…¹(€€€‰I½Üˆ5I¥¹Ñ¼Ñ¡”ÁÉ”µ•á¥ÍÑ¥¹œ€‰M•…Ñ•…‰±”I½Üˆ¸€äÀÀ¬‘…åÌ½˜(€€¡¥ÍÑ½Éä…É”­•å•‰äÑ¡•Í”ÍÑÉ¥¹Ì°Í¼Ñ¡”É•¹…µ”¥Ì„±½…µÑ¥µ”(€€µ¥É…Ñ¥½¸°¹½Ð„™¥¹µ…¹µÉ•Á±…”è¥‘•µÁ½Ñ•¹Ð€¡„µ¥É…Ñ•Á…ÍÍ•Ì(€€Ñ¡É½Õ Õ¹Ñ½Õ¡•¤°½±±¥Í¥½¸µÍ…™”€¡µ•É¥¹œ­••ÁÌÑ¡”Ñ…É•ÐÌÍ•ÑÑ¥¹Ì(€€Ù…±Õ”Ý¡•¸‰½Ñ •á¥ÍÐ¤°…¹¥Ð‰ÕµÁÌÕÁ½¸¡…¹•‘…åÌÍ¼Ñ¡”µ¥É…Ñ•(€€¹…µ•Ì]%8Ñ¡”±½Õµ•É”¥¹ÍÑ•…½˜‰•¥¹œÉ•ÍÕÉÉ•Ñ•‰ä„ÍÑ…±”‘•Ù¥”¸(€€Q¡”µ…ÀÍÑ…åÌ™½É•Ù•Èè…¹ä½±µ¹…µ•‘…ä…ÉÉ¥Ù¥¹œ™É½´„‰…­ÕÀ½È…¸(€€Õ¸µÕÁ‘…Ñ•‘•Ù¥”•ÑÌÉ•ÝÉ¥ÑÑ•¸½¸¥ÑÌ¹•áÐ±½…¸€¨¼(¼¨ØÌ¸Ì¸ÄØÜè•á•É¥Í•ÌÝ¥Ñ ÑÝ¼±•¥Ñ¥µ…Ñ”¡½µ•Ì¸Q¡”…Ñ…±½œ‘•™…Õ±Ð¥ÌÑ¡”(€€½¹Ù•¹Ñ¥½¸ìÑ¡”ÕÍ•ÈÌ½Ý¸ÑÉ…¥¹¥¹œÍÑÉÕÑÕÉ”µ…ä‘¥Í…É•”€¡•…‘±¥™Ð½¸(€€±•œ‘…ä¥Ì•á…Ñ±ä…Ì½ÉÉ•Ð…Ì•…‘±¥™Ð½¸‰…¬‘…ä¤¸Q¡”½Ù•ÉÉ¥‘”¥Ì(€€Á•ÈµÕÍ•È°½¹™¥Éµ•°…¹=I]Iµ=91dè±½•É½ÝÌ­••ÀÑ¡”Á…ÉÐÑ¡•ä(€€Ý•É”ÑÉ…¥¹•Õ¹‘•ÈƒŠPÑ¡”É•½É¥Ì„É•½É½˜Í•ÍÍ¥½¹Ì¸€¨¼)½¹ÍÐU0õì•…‘±¥™Ðœél	…¬œ°1•Ìt°I…¬AÕ±°œél	…¬œ°1•Ìt°(€€I½µ…¹¥…¸•…‘±¥™Ðœél1•Ìœ°	…¬t°¥Àœél¡•ÍÐœ°QÉ¥•ÁÌt°(€€	•¹ ¥ÀœélQÉ¥•ÁÌœ°¡•ÍÐt°±½Í”É¥À	•¹ AÉ•ÍÌœélQÉ¥•ÁÌœ°¡•ÍÐt°(€€	…É‰•±°M¡ÉÕœœél	…¬œ°M¡½Õ±‘•Èt°Õµ‰‰•±°AÕ±±½Ù•Èœél¡•ÍÐœ°	…¬t°(€€¡¥¸UÀœél	…¬œ°	¥•ÁÌuôì)½¹ÍÐÁ…ÉÑ=Øô ¤ôù¹Í•ÑÑ¥¹Ì¹Á…ÉÑ=Ùñð¡¹Í•ÑÑ¥¹Ì¹Á…ÉÑ=Øõíô¤ì)½¹ÍÐ¡½µ•A…ÉÑ=˜õ•àôùÁ…ÉÑ=Ø ¥m•áuññÕÍÑ½µÌ ¥m•átü¹Á…ÉÑññMÀ¹•àÉÁ…ÉÑm•átì)½¹ÍÐa}I95õìA•Ñ½É…°±äœè¡•ÍÐ±äœ°1…ÐAÕ±°½Ý¸œè1…ÐAÕ±±‘½Ý¸œ°(€€±½Í”µÉ¥À1…ÐAÕ±°½Ý¸œè±½Í”µÉ¥À1…ÐAÕ±±‘½Ý¸œ°(€€Õµ‰‰•±°AÉ•ÍÌœèÕµ‰‰•±°M¡½Õ±‘•ÈAÉ•ÍÌœ°Õµ‰‰•±°M¥‘”I…¥Í”œè1…Ñ•É…°I…¥Í”œ°(€€I½ÜœèM•…Ñ•…‰±”I½Üôì)™Õ¹Ñ¥½¸µ¥É…Ñ•á9…µ•Ì ¥ì(€±•Ð¸ôÀì(€™½È¡½¹ÍÐ½˜=‰©•Ð¹Ù…±Õ•Ì¡¹‘…åÌ¤¥ì(€€€±•Ð¡¥Ðõ™…±Í”ì(€€€™½È¡½¹ÍÐÌ½˜€¡¹Ýññmt¤¤¥˜¡a}I95mÌ¹•át¥ìÌ¹•àõa}I95mÌ¹•átì¡¥ÐõÑÉÕ”ì¸¬¬ìô(€€€¥˜¡¹‘½¹•à¤¹‘½¹•àõ¹‘½¹•à¹µ…À¡”ôùa}I95m•uññ”¤ì(€€€¥˜¡¹ÍÕ`¤™½È¡½¹ÍÐ¬½˜=‰©•Ð¹­•åÌ¡¹ÍÕ`¤¤¥˜¡a}I95m­t¥ì(€€€€€¹ÍÕama}I95m­utõ¹ÍÕama}I95m­uuññ¹ÍÕam­tì‘•±•Ñ”¹ÍÕam­tì¡¥ÐõÑÉÕ”ìô(€€€¥˜¡¡¥Ð¤¹ÕÁõ…Ñ”¹¹½Ü ¤ì€€€¼¼µ¥É…Ñ•¹…µ•ÌµÕÍÐ½ÕÑÉ…¹¬ÍÑ…±”É•µ½Ñ•Ì(€ô(€™½È¡½¹ÍÐ‰…œ½˜m¹Í•ÑÑ¥¹Ì¹•á\±¹Í•ÑÑ¥¹Ì¹Ñ¥•É=Ùt¥ì(€€€¥˜ …‰…œ¤½¹Ñ¥¹Õ”ì(€€€™½È¡½¹ÍÐ¬½˜=‰©•Ð¹­•åÌ¡‰…œ¤¤¥˜¡a}I95m­t¥ì(€€€€€¥˜ „¡a}I95m­t¥¸‰…œ¤¤‰…ma}I95m­utõ‰…m­tì€€€¼¼Ñ…É•ÐÝ¥¹Ì„½±±¥Í¥½¸(€€€€€‘•±•Ñ”‰…m­tì(€€€ô(€ô(€¥˜¡¸¤Í…Ù” ¤ì(€É•ÑÕÉ¸¸ì)ô(¼¨€ôôôôôôôôôôôôØÌ¸Ì¸ÄäÄƒŠP…¹½¹¥…°•á•É¥Í”¥‘•¹Ñ¥Ñä€ôôôôôôôôôôôô(€€É•”µÑ•áÐ¹…µ•Ì…É”Ý¡…ÐÑ¡”Á•ÉÍ½¸ÑåÁ•Ì…¹•‘¥ÑÌì„…¹½¹¥…°%¥Ì(€€Ý¡…ÐÑ¡”…ÁÀ½Õ¹ÑÌ‰ä¸]¥Ñ¡½ÕÐÑ¡¥Ì°É•¹…µ¥¹œ…¸•á•É¥Í”ÍÁ±¥ÑÌ¥ÑÌ(€€¡¥ÍÑ½Éä¥¹Ñ¼ÑÝ¼Í•É¥•Ì€¡Ñ¡”±…Ñ•¹ÐI•Ài½¹•Ì‰Õœ¤°…¹…¹ä±…Ñ•È(€€µÕÍ±”µÉ½ÕÀµ•Ñ…‘…Ñ„Ý½Õ±‰”­•å•½¸„ÍÑÉ¥¹œÑ¡…Ð…¸¡…¹”¸((€€M¡…Á”è¹Í•ÑÑ¥¹Ì¹…¹½¸€ôì€ñ¥øèí¹…µ”è¡•ÍÐ±äœ°…°élA•Ñ½É…°±äuôô(€€€´¥‘Ì…É”Í±ÕÌ°µ¥¹Ñ•½¹”°¹•Ù•ÈÉ•¹…µ•°¹•Ù•ÈÉ•ÕÍ•(€€€´¹…µ•€¥ÌÑ¡”‘¥ÍÁ±…ä¹…µ”…¹µ…ä¡…¹”™É••±ä(€€€´…±€¡½±‘ÌÁÉ¥½È½…±Ñ•É¹…Ñ”ÍÑÉ¥¹ÌÑ¡…ÐÉ•Í½±Ù”Ñ¼Ñ¡¥Ì¥(€€€´•… Í•ÐÉ½Ü…¥¹Ì¥‘€ìÌ¹•á€-ALÑ¡”ÍÑÉ¥¹œ…Ì±½•°Í¼Ñ¡”(€€€€µ…ÁÁ¥¹œ¥Ì…±Ý…åÌÉ”µ‘•É¥Ù…‰±”™É½´Ñ¡”Í½ÕÉ”€¡¹½¸µ‘•ÍÑÉÕÑ¥Ù”‰ä(€€€€½¹ÍÑÉÕÑ¥½¸ƒŠP¹¼Á…É…±±•°É…Ý€™¥•±¹••‘•°…¹Í•”M%}M-%@¤((€€I•Í½±ÕÑ¥½¸¥ÌaP=91dè¥‘•¹Ñ¥Ñä°…Í”µ™½±°Ý¡¥Ñ•ÍÁ…”µ½±±…ÁÍ”¸9¼(€€™Õééäµ…Ñ¡¥¹œƒŠP€‰¡•ÍÐ±äˆ°€‰…‰±”±äUÀˆ…¹€‰¡•ÍÐMÅÕ••é”ˆ…É”Ñ¡É•”(€€µ½Ù•µ•¹ÑÌ°…¹„Í¥µ¥±…É¥ÑäÍ½É”Ý½Õ±µ•É”Ñ¡•´‰•¡¥¹Ñ¡”ÕÍ•ÈÌ‰…¬¸(€€¹åÑ¡¥¹œÕ¹É•Í½±Ù•µ¥¹ÑÌ¥ÑÌ½Ý¸•¹ÑÉä¸5•É¥¹œ¥Ì„ÕÍ•È…Ð°¹•Ù•ÈÑ¡”(€€…ÁÀÌ¸€¨¼)½¹ÍÐ…¹½¸ô ¤ôù¹Í•ÑÑ¥¹Ì¹…¹½¹ñð¡¹Í•ÑÑ¥¹Ì¹…¹½¸õíô¤ì)½¹ÍÐ…¹½¹-•äõÍÑÈôùMÑÉ¥¹œ¡ÍÑÉñðœœ¤¹ÑÉ¥´ ¤¹É•Á±…” ½qÌ¬½œ°œ€œ¤¹Ñ½1½Ý•É…Í” ¤ì)™Õ¹Ñ¥½¸…¹½¹M±Õœ¡ÍÑÈ¥ì(€½¹ÍÐ‰…Í”õ…¹½¹-•ä¡ÍÑÈ¤¹É•Á±…” ½my„µèÀ´åt¬½œ°œ´œ¤¹É•Á±…” ½x´­ð´¬½œ°œœ¥ñð•àœì(€½¹ÍÐŒõ…¹½¸ ¤ì(€¥˜ „¡‰…Í”¥¸Œ¤¤É•ÑÕÉ¸‰…Í”ì(€±•Ð¸ôÈìÝ¡¥±” ¡‰…Í”¬œ´œ­¸¤¥¸Œ¤¸¬¬ì€€€€€€¼¼¹•Ù•ÈÉ•ÕÍ”°¹•Ù•ÈÉ•¹…µ”(€É•ÑÕÉ¸‰…Í”¬œ´œ­¸ì)ô(¼¨É•Í½±Ù”„±½•ÍÑÉ¥¹œÑ¼…¸¥ìµ¥¹Ð½¹”¥˜¥Ð¥Ì•¹Õ¥¹•±ä¹•Ü€¨¼)™Õ¹Ñ¥½¸…¹½¹%¡ÍÑÈ±µ¥¹Ð¥ì(€½¹ÍÐ¬õ…¹½¹-•ä¡ÍÑÈ¤°Œõ…¹½¸ ¤ì(€™½È¡½¹ÍÐm¥±•t½˜=‰©•Ð¹•¹ÑÉ¥•Ì¡Œ¤¥ì(€€€¥˜¡…¹½¹-•ä¡”¹¹…µ”¤ôôõ¬¤É•ÑÕÉ¸¥ì(€€€¥˜ ¡”¹…±ññmt¤¹Í½µ”¡„ôù…¹½¹-•ä¡„¤ôôõ¬¤¤É•ÑÕÉ¸¥ì(€ô(€¥˜¡µ¥¹Ðôôõ™…±Í”¤É•ÑÕÉ¸¹Õ±°ì(€½¹ÍÐ¥õ…¹½¹M±Õœ¡ÍÑÈ¤ì(€m¥‘tõí¹…µ”éMÑÉ¥¹œ¡ÍÑÈ¤¹ÑÉ¥´ ¤±…°émuôì(€É•ÑÕÉ¸¥ì)ô)½¹ÍÐ…¹½¹9…µ”õ¥ôø¡…¹½¸ ¥m¥‘uññíô¤¹¹…µ•ññ¥ì(¼¨¥‘•µÁ½Ñ•¹Ð°¹½¸µ‘•ÍÑÉÕÑ¥Ù”¸I•ÑÕÉ¹Ì„É•Á½ÉÐè•Ù•Éä‘¥ÍÑ¥¹ÐÍ½ÕÉ”(€€ÍÑÉ¥¹œ…¹Ñ¡”¥¥ÐÉ•Í½±Ù•Ñ¼¸€¨¼)™Õ¹Ñ¥½¸µ¥É…Ñ•…¹½¸ ¥ì(€½¹ÍÐÉ•Á½ÉÐõíô±‰•™½É”õ)M=8¹ÍÑÉ¥¹¥™ä¡…¹½¸ ¤¤ì(€±•ÐÍÑ…µÁ•ôÀì(€™½È¡½¹ÍÐ½˜=‰©•Ð¹Ù…±Õ•Ì¡¹‘…åÌ¤¥ì(€€€™½È¡½¹ÍÐÌ½˜€¡¹Ýññmt¤¥ì(€€€€€¥˜ …Ì¹•à¤½¹Ñ¥¹Õ”ì(€€€€€½¹ÍÐ¥õ…¹½¹%¡Ì¹•à±ÑÉÕ”¤ì(€€€€€É•Á½ÉÑmÌ¹•átõ¥ì(€€€€€¥˜¡Ì¹¥„ôõ¥¥ìÌ¹¥õ¥ìÍÑ…µÁ•¬¬ìô€€€¼¼Ì¹•àÕ¹Ñ½Õ¡•èÑ¡”Í½ÕÉ”ÍÕÉÙ¥Ù•Ì(€€€ô(€ô(€¥˜¡ÍÑ…µÁ•‘ññ‰•™½É”„ôõ)M=8¹ÍÑÉ¥¹¥™ä¡…¹½¸ ¤¤¤Í…Ù” ¤ì(€É•ÑÕÉ¸íÉ•Á½ÉÐ±ÍÑ…µÁ•±¥‘Ìé=‰©•Ð¹­•åÌ¡…¹½¸ ¤¤¹±•¹Ñ¡ôì)ô(¼¨ÕÍ•Èµ¥¹¥Ñ¥…Ñ•µ•É”è•Ù•ÉäÍ•Ð½˜™É½µ%‘€µ½Ù•ÌÑ¼Ñ½%‘€°…¹Ñ¡”(€€±½Í¥¹œ‘¥ÍÁ±…ä¹…µ”‰•½µ•Ì…¸…±¥…ÌÍ¼É”µ±½¥¹œÑ¡”½±ÍÑÉ¥¹œ±…¹‘Ì(€€½¸Ñ¡”Ñ…É•Ð¸9…µ”µ­•å•ÕÍ•ÈÍÑ…Ñ”ÑÉ…Ù•±ÌÝ¥Ñ ¥ÐƒŠPÁ…ÉÐ½Ù•ÉÉ¥‘•Ì°(€€Ñ¥•ÈÁ¥¹Ì°Ý½É­¥¹œÝ•¥¡ÑÌ°Á•Èµ‘…äÍ•…±ÌƒŠP½ÈÑ¡”µ•É”Ý½Õ±Í¥±•¹Ñ±ä(€€‘É½ÀÑ¡•´¸€¨¼)™Õ¹Ñ¥½¸…¹½¹5•É”¡™É½µ%±Ñ½%¥ì(€½¹ÍÐŒõ…¹½¸ ¤ì¥˜ …m™É½µ%‘uñð…mÑ½%‘uññ™É½µ%ôôõÑ½%¤É•ÑÕÉ¸€Àì(€½¹ÍÐ™É½µ9…µ”õm™É½µ%‘t¹¹…µ”°Ñ½9…µ”õmÑ½%‘t¹¹…µ”ì(€±•Ðµ½Ù•ôÀì(€™½È¡½¹ÍÐ½˜=‰©•Ð¹Ù…±Õ•Ì¡¹‘…åÌ¤¥ì(€€€±•Ð¡¥Ðõ™…±Í”ì(€€€™½È¡½¹ÍÐÌ½˜€¡¹Ýññmt¤¤¥˜¡Ì¹¥ôôõ™É½µ%‘ññÌ¹•àôôõ™É½µ9…µ”¥ì(€€€€€Ì¹¥õÑ½%ìÌ¹•àõÑ½9…µ”ì¡¥ÐõÑÉÕ”ì(€€€€€µ½Ù•¬ô¡Ì¹É•ÁÍññmt¤¹±•¹Ñ¡ñðÄì€€€¼¼MQL°Ñ¡”Õ¹¥ÐÑ¡”½¹™¥É´ÁÉ½µ¥Í•Ì(€€€ô(€€€¥˜¡¹‘½¹•à¤¹‘½¹•àõ¹‘½¹•à¹µ…À¡”ôù”ôôõ™É½µ9…µ”ýÑ½9…µ”é”¤ì(€€€¥˜¡¹ÍÕ`˜˜¡™É½µ9…µ”¥¸¹ÍÕ`¤¥ì(€€€€€¹ÍÕamÑ½9…µ•tõ¹ÍÕamÑ½9…µ•uññ¹ÍÕam™É½µ9…µ•tì‘•±•Ñ”¹ÍÕam™É½µ9…µ•tì¡¥ÐõÑÉÕ”ì(€€€ô(€€€¥˜¡¡¥Ð¤¹ÕÁõ…Ñ”¹¹½Ü ¤ì(€ô(€™½È¡½¹ÍÐ‰…œ½˜m¹Í•ÑÑ¥¹Ì¹•á\±¹Í•ÑÑ¥¹Ì¹Ñ¥•É=Ø±¹Í•ÑÑ¥¹Ì¹Á…ÉÑ=Ùt¥ì(€€€¥˜ …‰…ñð„¡™É½µ9…µ”¥¸‰…œ¤¤½¹Ñ¥¹Õ”ì(€€€¥˜ „¡Ñ½9…µ”¥¸‰…œ¤¤‰…mÑ½9…µ•tõ‰…m™É½µ9…µ•tì€€€€€€¼¼Ñ…É•ÐÝ¥¹Ì„½±±¥Í¥½¸(€€€‘•±•Ñ”‰…m™É½µ9…µ•tì(€ô(€mÑ½%‘t¹…°õl¸¸¹¹•ÜM•Ð¡l¸¸¸¡mÑ½%‘t¹…±ññmt¤°¸¸¸¡m™É½µ%‘t¹…±ññmt¤±™É½µ9…µ•t¥tì(€‘•±•Ñ”m™É½µ%‘tì(€¹Í•ÑÑ¥¹ÍÐõ…Ñ”¹¹½Ü ¤ì(€Í…Ù” ¤ì(€É•ÑÕÉ¸µ½Ù•ì)ô((¼¨ØÌ¸Ì¸ÐÐƒŠPÝ¡äÍ•ÑÑ¥¹ÌÙ…¹¥Í¡•…ÐÉ…¹‘½´¸(€€Í•ÑÑ¥¹ÍÐ¥ÌÑ¡”½¹±äÑ¡¥¹œÍÑ…¹‘¥¹œ‰•ÑÝ••¸„Í•ÑÑ¥¹Ì¡…¹”…¹„ÁÕ±°(€€Ñ¡…ÐÍ¥±•¹Ñ±äÉ•Ù•ÉÑÌ¥Ð¸QÝ¼‘•™•ÑÌµ…‘”¥Ð™…¥°è(€€€Ä¸±½Õ‘AÕÍ ÍÑ…µÁ•¹Í•ÑÑ¥¹ÍÑññ…Ñ”¹¹½Ü ¥€¸½¹Ñ•áÐÑ¡…Ð¡…¹•Ù•È(€€€€€É•½É‘•]!8¥ÑÌÍ•ÑÑ¥¹Ì¡…¹•™½É•„‰É…¹µ¹•ÜÑ¥µ•ÍÑ…µÀ…ÐÁÕÍ (€€€€€Ñ¥µ”°Í¼¥ÑÌMQ1Í•ÑÑ¥¹Ì½ÕÑÉ…¹­••Ù•Éä½Ñ¡•È‘•Ù¥”ÌÉ•…°½¹•Ì¸(€€€È¸=˜€ÈÔÍ¥Ñ•ÌÑ¡…ÐµÕÑ…Ñ”¹Í•ÑÑ¥¹Ì°½¹±ä€ÄÈ…±±•Í…Ù”¡ÑÉÕ”¤¸Q¡”É•ÍÐ(€€€€€±•™ÐÍ•ÑÑ¥¹ÍÐÍÑ…±”°Í¼Ñ¡”¡…¹”±½ÍÐÑ¡”¹•áÐÁÕ±°¸(€€‰½‘å-œÝ…ÌÍ¥µÁ±äÑ¡”™¥ÉÍÐ…ÍÕ…±Ñä…¹å½¹”½Õ±Í•”è‰…É-œ…¹Íµ¥Ñ¡-œ(€€™…±°‰…¬Ñ¼€üüÈÀ°Í¼„Ý¥Á•Í•ÑÑ¥¹Ì½‰©•ÐÍÑ¥±°Í¡½ÝÌ€ˆÈÀ€¼€ÈÀˆ…¹(€€±½½­Ì¡•…±Ñ¡ä¸‰½‘å-œ¡…Ì¹¼‘•™…Õ±Ð°Í¼¥Ð…±½¹”É•¹‘•ÉÌ…Ì€‹ŠPˆ¸(€€Q¡”ÍÑ…µÀ¥Ì¹½Ü…ÕÑ½µ…Ñ¥ŒƒŠP¹¼…±°Í¥Ñ”…¸™½É•Ð¥Ð……¥¸¸€¨¼)½¹ÍÐY=1Q%1}MQQ%9Lõ¹•ÜM•Ð¡l±…ÍÑ±½Õœ°±…ÍÑMå¹Œt¤ì€€€¼¼¡…¹”•Ù•ÉäÍå¹Œì¹½ÐÉ•…°•‘¥ÑÌ)™Õ¹Ñ¥½¸Í•ÑÑ¥¹ÍM¥œ ¥ì(€½¹ÍÐÌõíôì(€™½È¡½¹ÍÐ¬½˜=‰©•Ð¹­•åÌ¡¹Í•ÑÑ¥¹Íññíô¤¹Í½ÉÐ ¤¤(€€€¥˜ …Y=1Q%1}MQQ%9L¹¡…Ì¡¬¤¤Ím­tõ¹Í•ÑÑ¥¹Ím­tì(€É•ÑÕÉ¸)M=8¹ÍÑÉ¥¹¥™ä¡Ì¤ì)ô)±•Ð}Í•ÑM¥œõ¹Õ±°ì(¼¨‘½ÁÑ¥¹œÑ¡”±½ÕÌÍ•ÑÑ¥¹Ì¥Ì¹½Ð„±½…°•‘¥ÐƒŠPÉ•½ÉÑ¡”Í¥¹…ÑÕÉ”Í¼(€€Ñ¡”Í…Ù” ¤Ñ¡…Ð™½±±½ÝÌ‘½•Í¸ÐÉ”µÍÑ…µÀÑ¡•´…Ì½ÕÉÌ¸€¨¼)™Õ¹Ñ¥½¸…‘½ÁÑI•µ½Ñ•M•ÑÑ¥¹Ì¡É•µ½Ñ”¥ì(€¥˜ „¡É•µ½Ñ”˜™É•µ½Ñ”¹Í•ÑÑ¥¹Ì¤¤É•ÑÕÉ¸™…±Í”ì(€¥˜ ¡É•µ½Ñ”¹Í•ÑÑ¥¹ÍÑñðÀ¤ðô¡¹Í•ÑÑ¥¹ÍÑñðÀ¤¤É•ÑÕÉ¸™…±Í”ì(€¹Í•ÑÑ¥¹Ìõì¸¸¹¹Í•ÑÑ¥¹Ì°¸¸¹É•µ½Ñ”¹Í•ÑÑ¥¹Íôì(€¹Í•ÑÑ¥¹ÍÐõÉ•µ½Ñ”¹Í•ÑÑ¥¹ÍÐì(€}Í•ÑM¥œõÍ•ÑÑ¥¹ÍM¥œ ¤ì(€…ÁÁ±åQ¡•µ” ¤ì(€É•ÑÕÉ¸ÑÉÕ”ì)ô)±•ÐÍ…Ù•Q¥µ•Èõ¹Õ±°°Í…Ù•¥ÉÑäõ™…±Í”ì)™Õ¹Ñ¥½¸Í…Ù”¡µ…É­M•ÑÑ¥¹Ì¥ì(€€¼¨ØÌ¸Ì¸ÜäèÑÉ…¥¹¥¹œ…±Ý…åÌÝ¥¹Ì¸‘•±…É•É•ÍÐ‘…ä…¹„±½•Í•Ð(€€€€½¹ÑÉ…‘¥Ð°…¹Ñ¡”‰…É‰•±°½ÕÑÉ…¹­ÌÑ¡”‰ÕÑÑ½¸ƒŠPÍ¼Ñ¡”™±…œ¥Ì±•…É•(€€€€!I°…ÐÑ¡”½¹”…Ñ”•Ù•ÉäµÕÑ…Ñ¥½¸Á…ÍÍ•ÌÑ¡É½Õ °¹½Ð…ÐÑ¡”Í¥à(€€€€Í•ÐµÁÕÍ …±°Í¥Ñ•Ì€¡Ñ¡”ØÌ¸Ì¸ÐÔÍ•ÑÑ¥¹Ì±•ÍÍ½¸èÍÑÉÕÑÕÉ…°™¥à°¹•Ù•È(€€€€„…±°µÍ¥Ñ”…Õ‘¥Ð¤¸Ý•¥ µ¥¸Í…Ù”±•…Ù•Ì¥Ð…±½¹”èå½Ô…¸Ý•¥ (€€€€å½ÕÉÍ•±˜½¸„É•ÍÐ‘…ä¸€¨¼(€½¹ÍÐ}Ðõ¹‘…åÌ˜™¹‘…åÍmÑ½‘…å%M=tì(€¥˜¡}Ð˜™}Ð¹É•ÍÐ˜˜¡}Ð¹Ýññmt¤¹±•¹Ñ ¥ì‘•±•Ñ”}Ð¹É•ÍÐì}Ð¹ÕÁõ…Ñ”¹¹½Ü ¤ìô(€½¹ÍÐÍ¥œõÍ•ÑÑ¥¹ÍM¥œ ¤ì(€¥˜¡µ…É­M•ÑÑ¥¹Ìñð€¡}Í•ÑM¥œ„ôõ¹Õ±°€˜˜Í¥œ„ôõ}Í•ÑM¥œ¤¤¹Í•ÑÑ¥¹ÍÐõ…Ñ”¹¹½Ü ¤ì(€}Í•ÑM¥œõÍ¥œì(€Í…Ù•¥ÉÑäõÑÉÕ”ì(€±•…ÉQ¥µ•½ÕÐ¡Í…Ù•Q¥µ•È¤ì(€Í…Ù•Q¥µ•ÈõÍ•ÑQ¥µ•½ÕÐ¡…Íå¹Œ ¤ôùì(€€€Í…Ù•¥ÉÑäõ™…±Í”ì(€€€½¹ÍÐ½¬€ô…Ý…¥ÐÍÑ½É”¹Í•Ð¡-d°)M=8¹ÍÑÉ¥¹¥™ä¡¤¤ì(€€€¥˜ …½¬¥ìÍ…Ù•¥ÉÑäõÑÉÕ”ìÑ½…ÍÐ 9½ÐÍ…Ù•ƒŠPÍÑ½É…”Õ¹…Ù…¥±…‰±”œ¤ìô(€ô°ÌÔÀ¤ì(€¥˜¡Í•ÍÍ¥½¸¤±½Õ‘AÕÍ  ¤ì)ô(¼¨¥=L­¥±±Ì„¡½µ”µÍÉ••¸…ÁÀÑ¡”¥¹ÍÑ…¹Ð¥ÐÌÍÝ¥Á•…Ý…äƒŠP„‘•‰½Õ¹•Í…Ù”(€€ÍÑ¥±°¥¸¥ÑÌ€ÌÔÁµÌÝ¥¹‘½ÜÝ½Õ±‰”±½ÍÐ€¡Ñ¡¥Ì¥ÌÝ¡äÑ¡”Ñ¡•µ”€‰É•Í•Ðˆ¤¸(€€±½…±MÑ½É…”¹Í•Ñ%Ñ•´¥ÌÍå¹¡É½¹½ÕÌ°Í¼¥Ð½µÁ±•Ñ•Ì•Ù•¸‘ÕÉ¥¹œÁ…•¡¥‘”¸€¨¼(¼¨Q¡”€Ä°ÔÀÀ­´µ½µ•¹Ð¸É½ÍÍ¥¹œ…¹ä€ÄÀÀµÕ¹¥Ð‰½Õ¹‘…Éä¥Ì„É•…°•Ù•¹Ð°Í¼µ…É¬¥Ð(€€½¹”ƒŠP¹½Ð„‰…¹¹•ÈÑ¡…Ð¹…Ì™½É•Ù•È¸€¨¼)™Õ¹Ñ¥½¸¡•­5¥±•ÍÑ½¹” ¥ì(€½¹ÍÐ‘…åÌõÉÕ¹…åÌ ¤ì¥˜ …‘…åÌ¹±•¹Ñ ¤É•ÑÕÉ¸ì(€½¹ÍÐÑ½Ñ…°õÑ½¡‘…åÌ¹É•‘Õ” ¡„±È¤ôù„­È¹­´°À¤¤ì(€½¹ÍÐ¡¥Ðõ5…Ñ ¹™±½½È¡Ñ½Ñ…°¼ÄÀÀ¤¨ÄÀÀì(€¥˜ …¡¥Ð¤É•ÑÕÉ¸ì(€½¹ÍÐÍ••¸õ¹Í•ÑÑ¥¹Ì¹­µ5¥±•ÍÑ½¹•ñðÀì(€¥˜¡Í••¸ôôôÀ¥ì¹Í•ÑÑ¥¹Ì¹­µ5¥±•ÍÑ½¹”õ¡¥ÐìÍ…Ù”¡ÑÉÕ”¤ìÉ•ÑÕÉ¸ìô€€€¼¼™¥ÉÍÐÉÕ¸è©ÕÍÐÉ•½É(€¥˜¡¡¥ÐùÍ••¸¥ì(€€€¹Í•ÑÑ¥¹Ì¹­µ5¥±•ÍÑ½¹”õ¡¥Ðì(€€€¹Í•ÑÑ¥¹Ì¹­µ5¥±•ÍÑ½¹•ÐõÑ½‘…å%M<ì(€€€Í…Ù”¡ÑÉÕ”¤ì(€€€Í•ÑQ¥µ•½ÕÐ  ¤ôùµÍ5½µ•¹Ð¡¡¥Ð¤°ØÔÀ¤ì(€ô)ô(¼¨€ôôôôôôôôôôôôôôôôôôØÌ¸ÀèÍ¥¹±”Í½ÕÉ”½˜ÑÉÕÑ €ôôôôôôôôôôôôôôôôôô(€€±°ÍÑ…ÑÌ‘•É¥Ù”…Ð‰½½Ð™É½´É…Ü‘…åÌ¸Q¡¥Ì‰Õ¥±‘•ÈÉ•ÁÉ½‘Õ••Ù•Éä(€€•µ‰•‘‘•Í••µ…À	eQµaQ1d¥¸Ñ¡”½™™±¥¹”¡…É¹•ÍÌ€ ÈÀÈØ´ÀÜ´ÄÜ¤…É½ÍÌ(€€€äÄà‘…åÌ€¼€Ü°àÐÔÉ½ÝÌ¸]¥¹‘½ÝÌ…¹¡½È…ÐQ=d…ÐÉÕ¹Ñ¥µ”ìÑ½Ñ…±Ì¹±…ÍÐ±…¹‘Ì(€€½¸Ñ¡”±…ÍÐ‘…ä	=IÑ½‘…ä°Í¼•Ù•Éä€øM¹Ñ½Ñ…±Ì¹±…ÍÑ€±¥Ù”µÑ½‘…ä(€€½‘”Á…Ñ Ý½É­ÌÕ¹¡…¹•¸€¨¼(
