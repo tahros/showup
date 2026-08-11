@@ -139,7 +139,9 @@ check("every dot clears the plot top and bottom by its own radius",
         const svg=${CH}.querySelector('.rzscat');
         const band=svg.querySelector('rect');
         const top=+band.getAttribute('y'), h=+band.getAttribute('height');
-        return [...svg.querySelectorAll('circle')].every(c=>{
+        /* .rzdot only: the halo is a parked circle at 0,0 until something is
+           selected, and it is not data */
+        return [...svg.querySelectorAll('.rzdot')].every(c=>{
           const cy=+c.getAttribute('cy'), r=+c.getAttribute('r');
           return cy-r > top && cy+r < top+h;});})()`, true);
 // v3.3.185: Rep zones sits right after the ShowUp hero, before Part mix
@@ -342,30 +344,78 @@ check("the x axis label sits close under its tick numbers",
         const tick=[...svg.querySelectorAll('text')].find(t=>t.getAttribute('text-anchor')==='middle'&&/^\\d+$/.test(t.textContent));
         const gap=+lab.getAttribute('y') - +tick.getAttribute('y');
         return gap>0 && gap<=16;})()`, true);
-check("every dot has a thumb-sized hit target behind it",
+// v3.3.206: dots are bigger and still count-encoded; selection is a halo;
+// the plot snaps to the nearest dot from anywhere and scrubs under a drag.
+check("no dot is smaller than the touch floor",
+      `Math.min(...[...${SC}.querySelectorAll('.rzdot')].map(d=>+d.getAttribute('r'))) >= DOT_MIN`, true);
+check("...and the floor is bigger than it used to be",
+      `DOT_MIN > 3.2`, true);
+check("...and repeats are still visibly heavier (count still encoded)",
+      `(function(){const ds=[...${SC}.querySelectorAll('.rzdot')];
+        const one=ds.find(d=>d.dataset.n==='1'), many=ds.reduce((a,d)=>+d.dataset.n>(a?+a.dataset.n:0)?d:a,null);
+        return !one||!many||+many.dataset.n===1 || +many.getAttribute('r') > +one.getAttribute('r');})()`, true);
+check("the per-dot tap target is gone — snapping replaced it",
+      `${SC}.querySelectorAll('.rzhit').length`, 0);
+check("every dot carries the date it was last done",
+      `[...${SC}.querySelectorAll('.rzdot')].every(d=>/^\\d{4}-\\d{2}-\\d{2}$/.test(d.dataset.last))`, true);
+check("a halo exists and starts hidden",
+      `${SC}.querySelector('.rzhalo').getAttribute('opacity')`, 0);
+check("the plot is on the tab-swipe blocklist",
+      `${/closest\('\.rzscat'\)/.test(fs.readFileSync(path.join(dir,"js/util.js"),"utf8"))}`, "true");
+
+// --- snapping: a press far from every dot still reads the nearest one
+run(`(function(){
+  const svg=${SC};
+  const d=[...svg.querySelectorAll('.rzdot')][0];
+  const box=svg.getBoundingClientRect();
+  /* jsdom reports a zero-size box, so drive rzPick's inputs directly and
+     assert the CHOICE, which is the logic under test */
+  window._near=rzPick(svg, box.left, box.top);
+  window._isDot=!!window._near && window._near.classList.contains('rzdot');})()`);
+check("a press anywhere in the plot resolves to some dot", `window._isDot`, true);
+check("...specifically the nearest one by screen distance",
       `(function(){const svg=${SC};
-        const hits=[...svg.querySelectorAll('.rzhit')], dots=[...svg.querySelectorAll('.rzdot')];
-        return hits.length===dots.length && hits.every(h=>+h.getAttribute('r')>=11);})()`, true);
-check("...without inflating the visible dot",
-      `(function(){const svg=${SC};
-        return [...svg.querySelectorAll('.rzdot')].every(d=>+d.getAttribute('r')<11);})()`, true);
-check("the caption starts empty but holds its height",
-      `document.querySelector('.rzcard [data-rzcap]').textContent.trim()`, "");
-run(`document.querySelector('.rzcard .rzhit')
-      .dispatchEvent(new window.MouseEvent('click',{bubbles:true}));`);
-check("tapping a dot reads out its weight and reps",
-      `/\\d+kg \u00d7 \\d+ reps/.test(document.querySelector('.rzcard [data-rzcap]').textContent)`, true);
-check("...and marks the dot",
-      `!!document.querySelector('.rzcard .rzdot.on')`, true);
-check("...matching that dot's own data",
-      `(function(){const d=document.querySelector('.rzcard .rzdot.on');
-        const cap=document.querySelector('.rzcard [data-rzcap]').textContent;
-        return cap.indexOf(d.dataset.rep+' reps')>-1;})()`, true);
-run(`document.querySelector('.rzcard .rzhit')
-      .dispatchEvent(new window.MouseEvent('click',{bubbles:true}));`);
-check("tapping the same dot again clears the readout",
-      `document.querySelector('.rzcard [data-rzcap]').textContent.trim()===''
-       && !document.querySelector('.rzcard .rzdot.on')`, true);
+        const box=svg.getBoundingClientRect();
+        const vb=svg.getAttribute('viewBox').split(/\\s+/).map(Number);
+        const sx=(box.width||1)/vb[2], sy=(box.height||1)/vb[3];
+        const dist=d=>((box.left+ +d.getAttribute('cx')*sx)-box.left)**2
+                     +((box.top + +d.getAttribute('cy')*sy)-box.top)**2;
+        const all=[...svg.querySelectorAll('.rzdot')];
+        const min=Math.min(...all.map(dist));
+        return Math.abs(dist(window._near)-min)<1e-6;})()`, true);
+
+// --- selecting: halo moves onto the dot, caption reads weight x reps x date
+run(`rzSelect(${SC}, window._near);`);
+check("selecting shows the halo", `${SC}.querySelector('.rzhalo').getAttribute('opacity')`, 1);
+check("...centred on the chosen dot",
+      `(function(){const h=${SC}.querySelector('.rzhalo');
+        return h.getAttribute('cx')===window._near.getAttribute('cx')
+            && h.getAttribute('cy')===window._near.getAttribute('cy');})()`, true);
+check("...and larger than it, so the selection is unmistakable",
+      `+${SC}.querySelector('.rzhalo').getAttribute('r') > +window._near.getAttribute('r')`, true);
+check("the caption reads weight, reps and the date",
+      `/\\d+kg \u00d7 \\d+ reps.*[A-Z][a-z]{2} \\d+/.test(
+        document.querySelector('.rzcard [data-rzcap]').textContent)`, true);
+check("...and the date is that dot's own last-done day",
+      `document.querySelector('.rzcard [data-rzcap]').textContent
+        .indexOf(rzWhen(window._near.dataset.last)) > -1`, true);
+check("a repeated set says how many", 
+      `(function(){const d=[...${SC}.querySelectorAll('.rzdot')].find(x=>+x.dataset.n>1);
+        if(!d) return true; rzSelect(${SC},d);
+        return document.querySelector('.rzcard [data-rzcap]').textContent.indexOf(d.dataset.n+' sets')>-1;})()`, true);
+
+// --- the reading STAYS after release, and clears on request
+run(`rzSelect(${SC}, window._near);`);
+check("the reading survives releasing the finger",
+      `${SC}.querySelector('.rzhalo').getAttribute('opacity')`, 1);
+run(`rzClear(${SC});`);
+check("clearing hides the halo and empties the caption",
+      `${SC}.querySelector('.rzhalo').getAttribute('opacity')==='0'
+       && document.querySelector('.rzcard [data-rzcap]').textContent.trim()===''`, true);
+
+// --- the year appears only when it is not this year
+check("this year's date omits the year", `/\\d{4}/.test(rzWhen(todayISO))`, false);
+check("an older date includes it", `/2019/.test(rzWhen('2019-08-07'))`, true);
 
 process.exit(fail ? 1 : 0);
 })();

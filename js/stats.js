@@ -307,6 +307,10 @@ function repZone(reps){
    "only N sessions logged" note still tells the truth when the record is
    shorter than it. */
 const REPZONE_WINDOW=10;
+/* v3.3.206: dot radius = DOT_MIN + DOT_GROW*sqrt(count-1). The floor makes a
+   single-set dot a real touch target; the growth keeps repeats heavier, so
+   size still encodes count rather than every dot going uniform. */
+const DOT_MIN=5.5,DOT_GROW=2.2;
 /* v3.3.188: Rep zones breaks out per body part — one section each, so the
    part chips are gone and selection is per-part (a lift chosen for Back
    stays chosen when you scroll past Chest). */
@@ -357,13 +361,18 @@ function repZoneSets(ex,N){
     .filter(([,rows])=>rows.some(r=>rowCid(r)===ex&&(r[3]||[]).length))
     .sort((a,b)=>a[0]<b[0]?1:-1).slice(0,N);
   const dots={};
-  sess.forEach(([,rows],age)=>{
+  sess.forEach(([iso,rows],age)=>{
     for(const r of rows){
       if(rowCid(r)!==ex) continue;
       for(const rep of (r[3]||[])){
         const k=r[2]+'@'+rep;
-        if(!dots[k]) dots[k]={w:r[2],rep,n:0,age};
+        /* v3.3.206: `last` is the most recent session this exact weight x rep
+           appeared in. Sessions arrive newest-first, so the first one to
+           create the dot is already the latest — but take the max anyway
+           rather than depending on the sort order staying that way. */
+        if(!dots[k]) dots[k]={w:r[2],rep,n:0,age,last:iso};
         dots[k].n++; dots[k].age=Math.min(dots[k].age,age);
+        if(iso>dots[k].last) dots[k].last=iso;
       }
     }
   });
@@ -388,7 +397,7 @@ function repZoneScatterSvg(ex){
   const W=340,TOPPAD=30,BOTPAD=30;
   const AXIS_LAB_X=9,TICK_GAP_X=8,TICK_GAP_Y=12,XLAB_GAP=13;
   const X0=52,XW=W-X0-8;                 // was 34: the y label had no room
-  const Y0=TOPPAD+140,YH=Y0-TOPPAD;
+  const Y0=TOPPAD+164,YH=Y0-TOPPAD;
   const H=Y0+TICK_GAP_Y+XLAB_GAP+6;
   const reps=Math.max(REPZONE_MAX_GROWTH+3,...dots.map(d=>d.rep));
   const ws=dots.map(d=>d.w);
@@ -398,7 +407,7 @@ function repZoneScatterSvg(ex){
      edge. The old 12% was computed before radius existed; the biggest dot
      is ~8px, so the pad must cover it in DATA units as well as clear the
      band labels up top. */
-  const span=wHi-wLo, maxR=3.2+1.6*Math.sqrt(Math.max(...dots.map(d=>d.n))-1);
+  const span=wHi-wLo, maxR=DOT_MIN+DOT_GROW*Math.sqrt(Math.max(...dots.map(d=>d.n))-1);
   const pad=Math.max(span*0.18,span*(maxR+6)/Math.max(1,YH));
   wLo-=pad; wHi+=pad;
   const x=rep=>X0+(rep/(reps+1))*XW;
@@ -431,19 +440,31 @@ function repZoneScatterSvg(ex){
   // dots: newest solid, oldest faint; count sizes
   for(const d of dots.sort((a,b)=>b.age-a.age)){
     const op=used>1?(0.35+0.65*(1-d.age/(used-1))):1;
-    const r=(3.2+1.6*Math.sqrt(d.n-1)).toFixed(1);
+    /* v3.3.206: radius from the named DOT_MIN/DOT_GROW constants — the floor
+       makes a single-set dot a real target, the growth keeps repeats heavier.
+       Count is still the encoding; the dots got bigger, not uniform. */
+    const r=(DOT_MIN+DOT_GROW*Math.sqrt(d.n-1)).toFixed(1);
     /* v3.3.205: each dot is tappable. The hit target is a transparent circle
        at a thumb-sized radius behind the visible one — a 3px dot is not a
        tap target, and growing the dot to be tappable would lie about count. */
-    h2+=`<circle class="rzhit" cx="${x(d.rep).toFixed(1)}" cy="${y(d.w).toFixed(1)}" r="${Math.max(+r,11)}"
-          fill="transparent" data-rzdot="${d.w}|${d.rep}|${d.n}"></circle>
-        <circle class="rzdot" cx="${x(d.rep).toFixed(1)}" cy="${y(d.w).toFixed(1)}" r="${r}"
+    /* the tap target is gone: with snapping, the nearest dot wins from
+       anywhere in the plot, so a per-dot hit circle is dead weight. The dot
+       carries its own geometry for the distance sort instead. */
+    h2+=`<circle class="rzdot" cx="${x(d.rep).toFixed(1)}" cy="${y(d.w).toFixed(1)}" r="${r}"
           fill="var(--accent)" opacity="${op.toFixed(2)}"
-          data-w="${d.w}" data-rep="${d.rep}" data-n="${d.n}" data-age="${d.age}"></circle>`;
+          data-w="${d.w}" data-rep="${d.rep}" data-n="${d.n}" data-age="${d.age}"
+          data-last="${d.last}"></circle>`;
   }
   /* the readout lives in ONE fixed place under the chart instead of floating
      beside the dot: no positioning maths, nothing to clip at the card edge,
      and the chart never reflows when it fills. */
+  /* v3.3.206: the selection is a HALO ring, not a stroke on the dot — at
+     these radii a stroke reads as "slightly darker", which is exactly the
+     "which one is selected?" problem. A detached ring outside the dot is
+     unmistakable, and being one element it can move with the scrub without
+     touching every circle. */
+  h2+=`<circle class="rzhalo" r="0" cx="0" cy="0" fill="none"
+        stroke="var(--chalk)" stroke-width="1.6" opacity="0" pointer-events="none"></circle>`;
   h2+=`</svg><div class="rzcap" data-rzcap>&nbsp;</div>`;
   return h2;
 }
@@ -508,22 +529,100 @@ function repZoneSections(){
    surrounding section builder (v3.3.188, and again here) — it lives next to
    the dropdown handler so the two are found and moved together. Swaps the
    card body in place: no render(), no scroll jump. */
-document.addEventListener('click',e=>{
-  const hit=e.target.closest&&e.target.closest('[data-rzdot]');
-  if(hit){
-    const svg=hit.closest('svg'), cap=svg&&svg.parentNode.querySelector('[data-rzcap]');
-    const was=hit.classList.contains('sel');
-    svg.querySelectorAll('.rzhit.sel').forEach(c=>c.classList.remove('sel'));
-    svg.querySelectorAll('.rzdot.on').forEach(c=>c.classList.remove('on'));
-    if(!was){
-      hit.classList.add('sel');
-      if(hit.nextElementSibling) hit.nextElementSibling.classList.add('on');
-      const [w2,rep,n]=hit.dataset.rzdot.split('|');
-      if(cap) cap.innerHTML=`<b>${wDisp(+w2)}</b>${U()} \u00d7 <b>${rep}</b> reps`
-        +(+n>1?` \u00b7 ${n} sets`:'');
-    }else if(cap) cap.innerHTML='&nbsp;';
-    return;
+/* v3.3.206 — reading the scatter by touch.
+   Precision was the problem: a dot is a few pixels and a fingertip is not.
+   So the plot snaps to the NEAREST dot from anywhere inside it, measured in
+   SCREEN pixels rather than data units — visual proximity is what a finger
+   means, and measuring in data units would make the tall weight axis punish
+   vertical misses more than horizontal ones.
+
+   Snapping is unlimited by design (maker's call): a distance cap would blank
+   the readout mid-drag in empty corners, which reads as broken. The cost is
+   that a far-away dot can be selected, which is why the selection is a halo
+   you cannot miss.
+
+   Gesture grammar follows bindScrub (v3.3.108): the surface is on the
+   tab-swipe blocklist and touch-action:none, so a horizontal drag cannot
+   change tabs and a vertical one cannot scroll the page. The reading STAYS
+   after release. */
+function rzPick(svg,clientX,clientY){
+  const dots=[...svg.querySelectorAll('.rzdot')];
+  if(!dots.length) return null;
+  const box=svg.getBoundingClientRect();
+  const vb=(svg.getAttribute('viewBox')||'0 0 1 1').split(/\s+/).map(Number);
+  const sx=box.width/(vb[2]||1), sy=box.height/(vb[3]||1);
+  let best=null,bd=Infinity;
+  for(const d of dots){
+    const px=box.left+(+d.getAttribute('cx'))*sx;
+    const py=box.top +(+d.getAttribute('cy'))*sy;
+    const dist=(px-clientX)**2+(py-clientY)**2;
+    if(dist<bd){ bd=dist; best=d; }
   }
+  return best;
+}
+function rzSelect(svg,dot){
+  if(!svg||!dot) return;
+  const halo=svg.querySelector('.rzhalo');
+  if(halo){
+    halo.setAttribute('cx',dot.getAttribute('cx'));
+    halo.setAttribute('cy',dot.getAttribute('cy'));
+    halo.setAttribute('r',String((+dot.getAttribute('r'))+5));
+    halo.setAttribute('opacity','1');
+  }
+  svg.querySelectorAll('.rzdot.on').forEach(c=>c.classList.remove('on'));
+  dot.classList.add('on');
+  const cap=svg.parentNode&&svg.parentNode.querySelector('[data-rzcap]');
+  if(!cap) return;
+  const n=+dot.dataset.n;
+  cap.innerHTML=`<b>${wDisp(+dot.dataset.w)}</b>${U()} \u00d7 <b>${dot.dataset.rep}</b> reps`
+    +(n>1?` \u00b7 ${n} sets`:'')
+    +` \u00b7 ${rzWhen(dot.dataset.last)}`;
+}
+function rzClear(svg){
+  if(!svg) return;
+  const halo=svg.querySelector('.rzhalo');
+  if(halo) halo.setAttribute('opacity','0');
+  svg.querySelectorAll('.rzdot.on').forEach(c=>c.classList.remove('on'));
+  const cap=svg.parentNode&&svg.parentNode.querySelector('[data-rzcap]');
+  if(cap) cap.innerHTML='&nbsp;';
+}
+/* "Aug 7", with the year only when it is not this one */
+function rzWhen(iso){
+  if(!iso) return '';
+  const d=new Date(iso+'T00:00');
+  const opts={month:'short',day:'numeric'};
+  if(iso.slice(0,4)!==todayISO.slice(0,4)) opts.year='numeric';
+  return d.toLocaleDateString('en-US',opts);
+}
+/* one pointer binding for the plot: press, drag, release */
+function bindRzScrub(svg){
+  if(!svg||svg._rzBound) return; svg._rzBound=1;
+  let down=false;
+  const at=e=>{
+    const t=e.touches&&e.touches[0];
+    return rzPick(svg,t?t.clientX:e.clientX,t?t.clientY:e.clientY);
+  };
+  const start=e=>{
+    if(e.touches&&e.touches.length>1) return;
+    down=true;
+    const d=at(e);
+    /* pressing the already-selected dot toggles the reading off */
+    if(d&&d.classList.contains('on')&&(e.type==='pointerdown'||e.type==='touchstart')){
+      rzClear(svg); down=false; return;
+    }
+    rzSelect(svg,d);
+  };
+  const move=e=>{ if(!down) return; e.preventDefault(); rzSelect(svg,at(e)); };
+  const end=()=>{ down=false; };                 // the reading stays
+  svg.addEventListener('pointerdown',start);
+  svg.addEventListener('pointermove',move);
+  svg.addEventListener('pointerup',end);
+  svg.addEventListener('pointercancel',end);
+  svg.addEventListener('touchstart',start,{passive:true});
+  svg.addEventListener('touchmove',move,{passive:false});
+  svg.addEventListener('touchend',end);
+}
+document.addEventListener('click',e=>{
   const xc=e.target.closest&&e.target.closest('[data-rzx]');
   if(!xc) return;
   rz.ex=xc.dataset.rzx;
@@ -531,17 +630,26 @@ document.addEventListener('click',e=>{
   if(!body){ render(); return; }
   card.querySelectorAll('.rzlifts .chip').forEach(c=>c.classList.toggle('on',c.dataset.rzx===rz.ex));
   body.innerHTML=rzBody(rz.ex);
+  rzBindAll();
 });
 document.addEventListener('change',e=>{
   if(!e.target||e.target.id!=='rzGrp') return;
   rz.grp=e.target.value; rz.ex=null;              // the new part picks its own top lift
   const card=document.querySelector('.rzcard');
   if(card) card.outerHTML=repZoneSections().split('</h2>')[1]; else render();
+  rzBindAll();
 });
 /* v3.3.190: the bars + chart of ONE lift, on their own — so a chip tap can
    swap this alone instead of re-rendering Stats. A full render() reset the
    scroll to the top of the tab, which made picking a lift feel like
    leaving the page you were reading. */
+/* v3.3.206: bind after every path that puts a scatter in the DOM — full
+   render, lift-chip swap, and dropdown swap. The binding is idempotent
+   (svg._rzBound), so calling it more than once is free; missing one of the
+   three would ship a chart that silently ignores touch. */
+function rzBindAll(){
+  document.querySelectorAll('.rzcard .rzscat').forEach(bindRzScrub);
+}
 function rzBody(ex){
   const {counts}=repZoneData(ex,REPZONE_WINDOW);
   const max=Math.max(...counts,1);
@@ -983,6 +1091,7 @@ function renderStats(){
       <button class="btn ghost" id="settingsBtn">⚙︎ Settings, account &amp; sync</button>
       <div class="note" style="text-align:center">${session?`Signed in as ${session.user.email||'—'}`:'Not signed in — data is on this device only'} · ${APP_VERSION}</div>`;
   $('#view').innerHTML=h;
+  rzBindAll();
   /* v3.3.42: the 6-month heatmap runs oldest → newest, so its default
      scroll position showed January and hid today. Park it at the right
      edge — the current week is the whole point of the strip. scrollLeft on
