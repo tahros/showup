@@ -1,4 +1,4 @@
-// test-stats-repzone.js DIR — v3.3.210 visual, recent-first Growth Audit.
+// test-stats-repzone.js DIR — v3.3.211 three-signal Growth Audit.
 // The filename stays so the all-suite runner keeps the historical gate.
 const { JSDOM } = require("jsdom");
 const fs = require("fs"), path = require("path"), vm = require("vm");
@@ -25,6 +25,7 @@ const check=(name,expr,want)=>{
   console.log(ok?"PASS":"FAIL",name,"→",got); if(!ok) fail++;
 };
 const statsSrc=fs.readFileSync(path.join(dir,"js/stats.js"),"utf8");
+const cssSrc=fs.readFileSync(path.join(dir,"css/app.css"),"utf8");
 
 run(`window._D=n=>{const d=new Date(todayISO+'T00:00');d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA')};
 window._mk=(n,rows)=>DB.days[_D(n)]={w:rows,upd:1};
@@ -36,10 +37,9 @@ run(`_reset();_mk(1,[{part:'Chest',ex:'Chest Press',w:40,reps:[8,8],at:1}]);_fin
 check("Growth Audit replaces the Rep-zone heading",
   `[...document.querySelectorAll('#view h2')].some(h=>h.textContent.startsWith('Growth audit'))`,true);
 check("the retired heading is absent",`!/Rep zones/i.test(document.querySelector('#view').textContent)`,true);
-check("a first workout stays in Building baseline",`document.querySelector('.gastate').getAttribute('aria-label')`,"Building baseline");
-check("the cold-start state is a quiet symbol",`document.querySelector('.gastate').textContent.trim()`,"…");
-check("cold start makes no visible Progressing or Review judgment",
-  `!/Progressing|Review/.test(document.querySelector('.gacard').textContent)`,true);
+check("a first workout is active but not confirmed upward",`document.querySelector('.gastate').getAttribute('aria-label')`,"Flat");
+check("the status contains no font glyph",`document.querySelector('.gastate').textContent.trim()`,"");
+check("the cold-start icon uses the flat image class",`document.querySelector('.gastate').classList.contains('ga-flat')`,true);
 
 run(`_reset();_mk(3,[{part:'Chest',ex:'Chest Press',w:40,reps:[8],at:1}]);
   _mk(1,[{part:'Chest',ex:'Chest Press',w:40,reps:[8],at:2}]);_finish();ga.grp='Chest';render();`);
@@ -53,9 +53,9 @@ run(`_reset();
   _mk(1,[{part:'Chest',ex:'Chest Press',w:40,reps:[10],at:3}]);
   _finish();ga.grp='Chest';render();`);
 check("more reps at the same weight is Progressing",`gaExerciseState(gaExerciseSessions()['chest-press']).label`,"Progressing");
-check("the reason is printed, not hidden in a score",`document.querySelector('.garow small').textContent`,"+1 rep at 40 kg");
-check("Progressing is shown as one icon",`document.querySelector('.gabadge').textContent.trim()`,"↗");
-check("the icon keeps an accessible label",`document.querySelector('.gabadge').getAttribute('aria-label')`,"Progressing");
+check("the exercise subtitle is completely removed",`!document.querySelector('.garow small')`,true);
+check("Going Up is an image-backed class",`document.querySelector('.gabadge').classList.contains('ga-up')`,true);
+check("the icon keeps an accessible label",`document.querySelector('.gabadge').getAttribute('aria-label')`,"Going up");
 
 run(`_reset();
   _mk(5,[{part:'Chest',ex:'Chest Press',w:40,reps:[8],at:1}]);
@@ -68,8 +68,8 @@ check("more weight at the same reps is also comparable progress",`gaExerciseStat
 run(`_reset();for(const n of [7,5,3,1])_mk(n,[{part:'Back',ex:'Seated Cable Row',w:50,reps:[10],at:n}]);
   _finish();ga.grp='Back';render();`);
 check("four unchanged sessions earn Review",`gaExerciseState(gaExerciseSessions()['seated-cable-row']).label`,"Review");
-check("the card states the evidence",`/4 sessions without a new comparable best/.test(document.querySelector('.garow').textContent)`,true);
-check("Review never becomes a claim that work was wasted",`!/waste/i.test(document.querySelector('.gacard').textContent)`,true);
+check("Review collapses to the one visible Flat state",`document.querySelector('.gabadge').getAttribute('aria-label')`,"Flat");
+check("no review explanation survives below the exercise",`document.querySelector('.garow').textContent.trim()`,"Seated Cable Row");
 
 // ---- coverage is personal and rolling, not a universal target -----------
 run(`_reset();
@@ -77,9 +77,9 @@ run(`_reset();
   _mk(8,[{part:'Shoulder',ex:'Lateral Raise',w:10,reps:[12,12,12,12,12,12,12,12],at:2}]);
   _mk(1,[{part:'Shoulder',ex:'Lateral Raise',w:10,reps:[12,12],at:3}]);
   _finish();ga.grp='Shoulders';render();`);
-check("a sparse current week remains a personal-pattern fact",`document.querySelector('.gastate').getAttribute('aria-label')`,"Below your pattern");
-check("below-pattern is shown as one icon",`document.querySelector('.gastate').textContent.trim()`,"↓");
-check("the recent-pattern prose block is gone",`!document.querySelector('.gabase')&&!/four earlier 7-day blocks/i.test(document.querySelector('.gacard').textContent)`,true);
+check("active without confirmed progress is Flat",`document.querySelector('.gastate').getAttribute('aria-label')`,"Flat");
+check("there is no fourth below-pattern state",`!document.querySelector('.ga-below')`,true);
+check("the recent-pattern prose block stays gone",`!document.querySelector('.gabase')&&!/pattern|four earlier 7-day blocks/i.test(document.querySelector('.gacard').textContent)`,true);
 
 // ---- no recent work is a fact, not a prescription -----------------------
 run(`_reset();
@@ -87,8 +87,9 @@ run(`_reset();
   _mk(8,[{part:'Back',ex:'Lat Pulldown',w:45,reps:[10,10],at:2}]);
   _mk(1,[{part:'Chest',ex:'Chest Press',w:40,reps:[10],at:3}]);
   _finish();ga.grp='Back';render();`);
-check("a mature record can say No recent work accessibly",`document.querySelector('.gastate').getAttribute('aria-label')`,"No recent work");
-check("it reports when the exercise was last trained",`/last trained 8 days ago/i.test(document.querySelector('.garow small').textContent)`,true);
+check("no current work is Empty",`document.querySelector('.gastate').getAttribute('aria-label')`,"Empty");
+check("Empty uses the quiet dot class",`document.querySelector('.gastate').classList.contains('ga-empty')`,true);
+check("no recency subtitle remains",`!document.querySelector('.garow small')`,true);
 
 // ---- a long archive does not overrule a changed current baseline --------
 run(`_reset();
@@ -115,8 +116,9 @@ check("the card shows at most four exercise receipts",`document.querySelectorAll
 check("there is no scatterplot, axis, zone bar, or exercise chip rail",
   `!document.querySelector('.rzscat,.rzbar,.rzlifts,.gahead svg')`,true);
 check("the UI never asks for RIR or reps left",`!/RIR|reps? (?:left|remaining)|clean reps/i.test(document.querySelector('.gacard').textContent)`,true);
-check("status readouts are symbols, not text pills",`[...document.querySelectorAll('.gastate,.gabadge')].every(i=>
-  ['…','○','↓','↻','↗','+','✓'].includes(i.textContent.trim())&&!!i.getAttribute('aria-label'))`,true);
+check("status readouts are images, not text symbols",`[...document.querySelectorAll('.gastate,.gabadge')].every(i=>
+  !i.textContent.trim()&&['Empty','Flat','Going up'].includes(i.getAttribute('aria-label')))`,true);
+check("exercise rows contain names only",`document.querySelectorAll('.garow small').length`,0);
 check("What the record says is removed",`!document.querySelector('.ganext')&&!/What the record says/i.test(document.querySelector('.gacard').textContent)`,true);
 
 run(`_reset();
@@ -136,7 +138,19 @@ check("Growth Audit is immediately before Session Build",`(function(){
   return hs.indexOf('Session build')===hs.indexOf('Growth audit')+1;})()`,true);
 check("Rep-zone functions and constants are deleted",
   `${!(/\brepZone(?:Data|Sets|ScatterSvg)?\s*\(|REPZONE_MAX_|REPZONE_LABELS/.test(statsSrc))}`,"true");
+check("there are exactly three public status labels",
+  `${/const GA_SIGNAL_LABELS=\{empty:'Empty',flat:'Flat',up:'Going up'\}/.test(statsSrc)}`,"true");
+check("the UI uses two Noun Project assets plus a CSS dot, not a glyph map",
+  `${!statsSrc.includes('GA_ICONS')&&['status-flat.png','status-up.png'].every(x=>cssSrc.includes(x))&&
+    !cssSrc.includes('status-empty.png')&&/\.ga-empty\{[^}]*radial-gradient/.test(cssSrc)}`,"true");
+check("only the Flat and Going Up status assets exist",
+  `${['status-flat.png','status-up.png'].every(x=>fs.existsSync(path.join(dir,'assets',x)))&&
+    !fs.existsSync(path.join(dir,'assets','status-empty.png'))}`,"true");
+check("the status hierarchy is gray dot, foreground line and ShowUp blue trend",
+  `${/\.ga-empty\{[^}]*faint/.test(cssSrc)&&/\.ga-flat\{[^}]*chalk/.test(cssSrc)&&
+    /\.ga-up\{[^}]*accent-ink/.test(cssSrc)&&/--ga-size:11px 11px/.test(cssSrc)&&
+    /--ga-size:30px 30px/.test(cssSrc)}`,"true");
 check("Growth Audit has no hidden universal set target",
-  `${!(/(?:target|ideal)\s*(?:sets?|volume)/i.test(statsSrc.slice(statsSrc.indexOf('v3.3.210 — Growth Audit'),statsSrc.indexOf('v3.3.192 — intent gaps'))))}`,"true");
+  `${!(/(?:target|ideal)\s*(?:sets?|volume)/i.test(statsSrc.slice(statsSrc.indexOf('v3.3.211 — Growth Audit'),statsSrc.indexOf('v3.3.192 — intent gaps'))))}`,"true");
 
 process.exit(fail?1:0);

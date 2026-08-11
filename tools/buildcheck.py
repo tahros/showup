@@ -309,7 +309,7 @@ if not _re.search(r"\.day summary>span:first-child\{[^}]*min-width:0", css):
 #    site, the retired Rep-zone claim is gone, and comparison remains strictly
 #    exercise-local. These are product truth guards, not formatting checks.
 _stats = (d/"js/stats.js").read_text()
-for _cn in ("GA_RECENT_DAYS", "GA_BASELINE_BLOCKS", "GA_HISTORY_DAYS",
+for _cn in ("GA_RECENT_DAYS", "GA_HISTORY_DAYS",
             "GA_LEARN_SESSIONS", "GA_REVIEW_EXPOSURES"):
     _defs = _re.findall(r"const\s+" + _cn + r"\s*=", _stats)
     if len(_defs) != 1:
@@ -322,6 +322,20 @@ if "Rep zones" in _stats_code or _re.search(r"\brepZone(?:Data|Sets|ScatterSvg)?
     fail.append("growth audit: retired Rep-zone UI or bucketing logic survives (v3.3.209)")
 if "function gaExerciseState" not in _stats or "gaDominates" not in _stats:
     fail.append("growth audit: exercise-local comparable-best logic is missing (v3.3.209)")
+if not _re.search(r"const GA_SIGNAL_LABELS=\{empty:'Empty',flat:'Flat',up:'Going up'\}", _stats):
+    fail.append("growth audit: public model must contain exactly Empty, Flat and Going up (v3.3.211)")
+_gareceipt = _stats[_stats.find("shown.map"):_stats.find("</div>`).join", _stats.find("shown.map"))]
+if "GA_ICONS" in _stats or "<small>" in _gareceipt:
+    fail.append("growth audit: text glyph map or exercise subtitle returned (v3.3.211)")
+for _asset in ("status-flat.png", "status-up.png"):
+    if not (d/"assets"/_asset).exists():
+        fail.append(f"growth audit: Noun Project asset missing: assets/{_asset} (v3.3.211)")
+    if _asset not in css or f"./assets/{_asset}" not in sw:
+        fail.append(f"growth audit: assets/{_asset} is not wired through CSS and service worker (v3.3.211)")
+if (d/"assets"/"status-empty.png").exists() or "status-empty.png" in css or "./assets/status-empty.png" in sw:
+    fail.append("growth audit: Empty must remain a native CSS dot, not an image asset (v3.3.211)")
+if not _re.search(r"\.ga-empty\{[^}]*radial-gradient", css):
+    fail.append("growth audit: Empty CSS dot is missing (v3.3.211)")
 
 # -- Intent gaps (v3.3.192): one threshold, one definition site. A second
 #    literal 21 in the query, the copy, or a later view is exactly how the
@@ -351,7 +365,7 @@ for _bad in ("falling behind", "you should", "keep it up", "well done", "--live"
 #    nothing and the gate had nothing to say. These are the classes those two
 #    features depend on; a missing one now fails the build.
 _need_css = ["gasel", "gahead", "gastate", "garows", "garow",
-             "gabadge", "gah", "igrows", "igrow", "igname",
+             "gabadge", "ga-empty", "ga-flat", "ga-up", "gah", "igrows", "igrow", "igname",
              "igwhen", "igx", "mcrow", "mcdots", "mcinner"]
 for _cls in _need_css:
     # v3.3.205: a compound selector (.rzdot.on{) is still a rule for .rzdot,

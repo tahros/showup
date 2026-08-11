@@ -1,5 +1,22 @@
 # ShowUp — changelog
 
+## v3.3.211 (2026-08-12) — Three signals, no subtitles
+
+**Growth Audit now has exactly three visible outcomes.** Empty means no
+completed set in the last seven days, Flat means the exercise was trained but
+has no confirmed comparable improvement yet, and Going Up means its
+exercise-local comparable best moved. Empty is a quiet gray dot, Flat is a
+small foreground line, and Going Up uses a ShowUp-blue trend arrow.
+
+**Status glyphs are replaced by deliberate visual marks.** Empty is a native
+CSS dot. Flat uses “Minus” by ARIPATUT DASUKI and Going Up uses “Trend” by
+Travis Avery from Noun Project, with creator attribution in the information
+control and asset manifest. The image-backed marks render as colourable masks.
+
+**Exercise subtitles are gone.** Each receipt now contains only the exercise
+name and its visual status. The comparable-best calculation stays intact
+underneath the reduced interface.
+
 ## v3.3.210 (2026-08-12) — Growth Audit, reduced to the signal
 
 **Six visible body groups.** Chest, Back, Shoulders, Arms, Legs, and Core are

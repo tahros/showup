@@ -17,7 +17,7 @@
          hue to clear 4.5 on both. */
     --ground:#070A0E; --surface:#151B25; --surface2:#232733; --line:#364354;
     --accent:#4C6BE3; --accent-soft:#3A4A8C; --accent-dim:#95A4E8;
-    --record:#E36758;                       /* the only non-blue: personal records */
+    --record:#E36758;                       /* personal records */
     --rest:#3E5C46;                         /* v3.3.81: declared rest — green's ONE meaning (wash/frame grade) */
     --rest-ink:#8DB596;                     /* v3.3.92: rest as TEXT — same hue, text-grade. A wash colour
                                                cannot also be an ink: 1.69:1 on its own wash proved it */
@@ -1220,22 +1220,24 @@
   .igwhen b{color:var(--muted);font-size:13px;font-weight:600}
   .igx{background:none;border:0;color:var(--faint);font-size:16px;line-height:1;
     padding:0 2px;cursor:pointer;align-self:center}
-  /* v3.3.210 Growth Audit — six recent-first groups, four compact receipts
-     at most, and icon states. No graph, prose blocks, pills or warning red. */
+  /* v3.3.211 Growth Audit — three visual signals only. Empty is a native
+     CSS dot; Flat and Going Up use optically sized Noun Project masks. */
   .gasel{width:100%;font-family:var(--mono);font-size:13px;color:var(--chalk);
     background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px 10px}
   :root[data-skin="minimal"] .gasel{background:var(--ground);border-color:transparent}
   .gahead{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0 8px}
   .gahead small{font-family:var(--mono);font-size:10px;color:var(--faint)}
-  .gastate,.gabadge{font-style:normal;font-family:var(--mono);font-size:18px;font-weight:700;
-    line-height:1;min-width:20px;text-align:center;color:var(--muted)}
-  .gastate.progressing,.gabadge.progressing{color:var(--accent-ink)}
-  .gastate.building,.gastate.learning,.gabadge.learning,.gabadge.new{color:var(--muted)}
+  .gastate,.gabadge{display:block;width:22px;height:22px;flex:0 0 22px;background:currentColor;
+    -webkit-mask:var(--ga-icon) center/var(--ga-size,contain) no-repeat;
+    mask:var(--ga-icon) center/var(--ga-size,contain) no-repeat}
+  .ga-empty{color:var(--faint);opacity:.55;background:
+    radial-gradient(circle at center,currentColor 0 2px,transparent 2.25px);-webkit-mask:none;mask:none}
+  .ga-flat{--ga-icon:url('../assets/status-flat.png');--ga-size:11px 11px;color:var(--chalk)}
+  .ga-up{--ga-icon:url('../assets/status-up.png');--ga-size:30px 30px;color:var(--accent-ink)}
   .garows{display:flex;flex-direction:column}
   .garow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 0}
   .garow+.garow{border-top:1px solid var(--line)}
   .garow b{display:block;font-size:13px;color:var(--chalk);font-weight:600}
-  .garow small{display:block;margin-top:3px;font-family:var(--mono);font-size:10px;color:var(--faint)}
 
   /* ================= v3.3.168 — MINIMAL, the default skin =================
      A theme LAYER, orthogonal to light/dark: <html data-skin="minimal|classic">

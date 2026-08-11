@@ -282,28 +282,23 @@ function bwCard(){
    in one declared order at the bottom. Reordering Stats used to mean moving
    long blocks of markup around; now it means editing one line. The order
    below is the maker's, from the v3.3.111 review. */
-/* ================= v3.3.210 — Growth Audit (Stats only) ================
+/* ================= v3.3.211 — Growth Audit (Stats only) ================
    Rep Zones described where repetitions landed, then labelled 6–12 as
    "growth" and 13+ as "endurance". That was too much information and too
    much certainty: rep count alone cannot tell whether a set caused growth.
 
-   Growth Audit uses only observable facts. Coverage is the last 7 days
-   against the person's four preceding 7-day blocks. Exercise progress is
-   compared only within the SAME canonical exercise: a new set must match or
-   exceed an earlier set on both load and reps, and improve at least one.
-   Four recent exposures without such a comparable best earns REVIEW — never
-   "wasted". With fewer than three workouts, the whole card stays in BUILDING
-   BASELINE and makes no progress judgment. */
+   Growth Audit uses only observable facts. The visible model has three states:
+   EMPTY means no set in the last seven days; GOING UP means a comparable best
+   moved inside the same canonical exercise; everything active without that
+   confirmed move is FLAT. The richer confidence states stay internal. */
 const GA_RECENT_DAYS=7;
-const GA_BASELINE_BLOCKS=4;
 const GA_HISTORY_DAYS=42;
 const GA_LEARN_SESSIONS=3;
 const GA_REVIEW_EXPOSURES=4;
 const ga={grp:null};
-const GA_ICONS={building:'…',none:'○',below:'↓',review:'↻',progressing:'↗',
-  learning:'…',new:'+',ready:'✓',inactive:'○'};
-const gaIcon=(state,cls)=>`<i class="${cls} ${state.key}" role="img"
-  aria-label="${state.label}" title="${state.label}">${GA_ICONS[state.key]||'—'}</i>`;
+const GA_SIGNAL_LABELS={empty:'Empty',flat:'Flat',up:'Going up'};
+const gaIcon=(key,cls)=>`<i class="${cls} ga-${key}" role="img"
+  aria-label="${GA_SIGNAL_LABELS[key]}" title="${GA_SIGNAL_LABELS[key]}"></i>`;
 /* canonical identity survives display-name edits and merges */
 const rowCid=r=>r[6]||canonId(r[1],false)||r[1];
 function gaAllSessions(){
@@ -373,57 +368,42 @@ function gaExerciseState(ex){
   return {key:'ready',label:'Baseline ready',detail:`${n} recent sessions compared`,n};
 }
 function growthAuditData(){
-  const exMap=gaExerciseSessions(),strengthDays=new Set();
-  const groups=Object.fromEntries(VISIBLE_GROUPS.map(g=>[g,{name:g,blocks:[0,0,0,0,0],days:new Set(),ex:[]}]))
+  const exMap=gaExerciseSessions();
+  const groups=Object.fromEntries(VISIBLE_GROUPS.map(g=>[g,{name:g,sets:0,days:new Set(),ex:[]}]))
   for(const [iso,rows] of gaAllSessions()){
-    let has=false;
     for(const r of rows){
       if(r[1]==='Run'||!(r[3]||[]).length) continue;
-      has=true; const g=groups[gaGroupForRow(r)],ago=daysAgo(iso);
-      if(g&&ago>=0&&ago<GA_RECENT_DAYS*(GA_BASELINE_BLOCKS+1)){
-        const b=Math.floor(ago/GA_RECENT_DAYS); g.blocks[b]+=r[3].length;
-        if(b===0) g.days.add(iso);
-      }
+      const g=groups[gaGroupForRow(r)],ago=daysAgo(iso);
+      if(g&&ago>=0&&ago<GA_RECENT_DAYS){g.sets+=r[3].length;g.days.add(iso);}
     }
-    if(has) strengthDays.add(iso);
   }
   for(const ex of Object.values(exMap)){
     const g=groups[ex.group]; if(!g) continue;
     const st=gaExerciseState(ex),last=ex.sessions.at(-1).d;
     g.ex.push({...ex,state:st,last,ago:daysAgo(last)});
   }
-  const mature=strengthDays.size>=GA_LEARN_SESSIONS;
   for(const g of Object.values(groups)){
     g.ex.sort((a,b)=>a.ago-b.ago||a.name.localeCompare(b.name));
     g.ago=g.ex.length?Math.min(...g.ex.map(e=>e.ago)):Infinity;
-    const previous=g.blocks.slice(1),active=previous.filter(n=>n>0).length;
-    g.baseline=active>=2?previous.reduce((a,b)=>a+b,0)/GA_BASELINE_BLOCKS:null;
-    const current=g.blocks[0],activeEx=g.ex.filter(e=>e.ago<GA_HISTORY_DAYS);
-    if(!mature) g.state={key:'building',label:'Building baseline'};
-    else if(current===0) g.state={key:'none',label:'No recent work'};
-    else if(g.baseline!==null&&current<g.baseline*.65) g.state={key:'below',label:'Below your pattern'};
-    else if(activeEx.some(e=>e.state.key==='review')) g.state={key:'review',label:'Review'};
-    else if(activeEx.some(e=>e.state.key==='progressing')) g.state={key:'progressing',label:'Progressing'};
-    else if(activeEx.some(e=>e.state.key==='learning'||e.state.key==='new')) g.state={key:'learning',label:'Learning'};
-    else g.state={key:'ready',label:'Baseline ready'};
+    const activeEx=g.ex.filter(e=>e.ago<GA_RECENT_DAYS);
+    g.signal=!g.sets?'empty':activeEx.some(e=>e.state.key==='progressing')?'up':'flat';
   }
   const order=VISIBLE_GROUPS.slice().sort((a,b)=>groups[a].ago-groups[b].ago||a.localeCompare(b));
-  return {groups,strengthDays:strengthDays.size,mature,order};
+  return {groups,order};
 }
 function growthAuditSection(){
   const data=growthAuditData(),groups=data.groups;
   if(!ga.grp||!groups[ga.grp]) ga.grp=data.order[0];
   const g=groups[ga.grp],recent=g.ex.filter(e=>e.ago<GA_HISTORY_DAYS);
   const shown=(recent.length?recent:g.ex).slice(0,4);
-  return `<h2 class="gah">Growth audit${hActs('ga','↗ comparable best · ↻ review · … learning · ↓ below your pattern · ○ no recent work · + new · ✓ ready','About Growth audit')}</h2>
+  return `<h2 class="gah">Growth audit${hActs('ga',"Dot: empty · line: flat · blue trend: going up. <a href='https://thenounproject.com/icon/minus-8363736/' target='_blank' rel='noopener'>Minus</a> by ARIPATUT DASUKI and <a href='https://thenounproject.com/icon/trend-2344331/' target='_blank' rel='noopener'>Trend</a> by Travis Avery, Noun Project.",'About Growth audit')}</h2>
     <div class="card gacard" data-gacard="${ga.grp}">
       <select id="gaGrp" class="gasel" aria-label="Body part">${data.order.map(v=>
         `<option value="${v}" ${v===ga.grp?'selected':''}>${v}</option>`).join('')}</select>
-      <div class="gahead"><small>${g.blocks[0]} completed set${g.blocks[0]===1?'':'s'} · ${g.days.size} day${g.days.size===1?'':'s'}</small>
-        ${gaIcon(g.state,'gastate')}</div>
+      <div class="gahead"><small>${g.sets} completed set${g.sets===1?'':'s'} · ${g.days.size} day${g.days.size===1?'':'s'}</small>
+        ${gaIcon(g.signal,'gastate')}</div>
       <div class="garows">${shown.length?shown.map(e=>`<div class="garow">
-        <span><b>${e.name}</b><small>${g.blocks[0]?e.state.detail:`Last trained ${e.ago} day${e.ago===1?'':'s'} ago`}</small></span>
-        ${gaIcon(e.state,'gabadge')}</div>`).join(''):
+        <b>${e.name}</b>${gaIcon(e.ago>=GA_RECENT_DAYS?'empty':e.state.key==='progressing'?'up':'flat','gabadge')}</div>`).join(''):
         `<div class="note">No completed sets recorded for this group.</div>`}</div>
     </div>`;
 }
