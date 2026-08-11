@@ -244,4 +244,424 @@ ok("...and no drag-readout function survives",
 run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
   const mk=(off,w)=>{const d=new Date(t); d.setDate(d.getDate()-off);
     DB.days[d.toLocaleDateString('en-CA')]={w,upd:1};};
-  mk(1,[{part:'Legs',ex:'Squat',w:100,reps:[10ßn5¶‰ËkºwµçL¡Á…Ñ ¹©½¥¸¡‘¥È°€‰Ñ½½±Ì½‰Õ¥±‘¡•¬¹Áäˆ¤°€‰ÕÑ˜àˆ¤¤¤ì((¼¼Ñ…ÀµÑ¼µ¥Í½±…Ñ”èÑ¡”…¹Íİ•ÈÑ¼€‰İ¡¥ ½±½ÕÈ¥Ìİ¡¥ Á…ÉĞˆ)ÉÕ¸¡Ù¥•ÜôÍÑ…ÑÌœìÉ•¹‘•È ¤ìA5%a}=ULõ¹Õ±°ìÁµ¥áÁÁ±å½ÕÌ ¤í€¤ì)½¬ ‰¹½Ñ¡¥¹œ¥Ì‘¥µµ•‰•™½É”å½ÔÑ…Àˆ°(€€ÉÕ¸¡l¸¸¹‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½É±° œÁµ¥á]É…ÀÉ•Ñm‘…Ñ„µÁÑtœ¥t¹•Ù•Éä¡Èôø…È¹ÍÑå±”¹½Á…¥Ñä¥€¤¤ì)ÉÕ¸¡Áµ¥áM•Ñ½ÕÌ 	…¬œ¤í€¤ì)½¬ ‰Ñ…ÁÁ¥¹œ„Á…ÉĞ‘¥µÌ•Ù•Éä½Ñ¡•ÈÁ…ÉĞˆ°(€€ÉÕ¸¡l¸¸¹‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½É±° œÁµ¥á]É…ÀÉ•Ñm‘…Ñ„µÁÑtœ¥t(€€€€€€€€¹•Ù•Éä¡ÈôùÈ¹‘…Ñ…Í•Ğ¹ÁĞôôô	…¬œ€ü€…È¹ÍÑå±”¹½Á…¥Ñä€èÈ¹ÍÑå±”¹½Á…¥ÑäôôôœÀ¸ÄÈœ¥€¤¤ì)½¬ ˆ¸¸¹…¹µ…É­ÌÑ¡”±••¹Í¼Ñ¡”Á…¥É¥¹œ¥ÌÕ¹…µ‰¥Õ½ÕÌˆ°(€€ÉÕ¸¡‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½È œ¹Áµ¥á±m‘…Ñ„µÁĞô‰	…¬‰tœ¤¹±…ÍÍ1¥ÍĞ¹½¹Ñ…¥¹Ì ½¸œ¥€¤€˜˜(€€ÉÕ¸¡‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½È œ¹Áµ¥á±m‘…Ñ„µÁĞô‰¡•ÍĞ‰tœ¤¹±…ÍÍ1¥ÍĞ¹½¹Ñ…¥¹Ì ½™˜œ¥€¤¤ì)ÉÕ¸¡Áµ¥áM•Ñ½ÕÌ 	…¬œ¤í€¤ì)½¬ ‰Ñ…ÁÁ¥¹œÑ¡”Í…µ”Á…ÉĞ……¥¸±•…ÉÌÑ¡”™½ÕÌˆ°(€€ÉÕ¸¡A5%a}=UM€¤€ôôô¹Õ±°€˜˜(€€ÉÕ¸¡l¸¸¹‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½É±° œÁµ¥á]É…ÀÉ•Ñm‘…Ñ„µÁÑtœ¥t¹•Ù•Éä¡Èôø…È¹ÍÑå±”¹½Á…¥Ñä¥€¤¤ì((¼¼™½ÕÌµÕÍĞÍÕÉÙ¥Ù”„‰…­İ…É‘Ì±½…°İ¡¥ É•Á±…•Ì•Ù•ÉäÉ•Ğ)ÉÕ¸¡Áµ¥áM•Ñ½ÕÌ 1•Ìœ¤í€¤ì)ÉÕ¸¡€¡™Õ¹Ñ¥½¸ ¥í½¹ÍĞˆõ‘½Õµ•¹Ğ¹•Ñ±•µ•¹Ñ	å% Áµ¥á]É…Àœ¤ìˆ¹ÍÉ½±±1•™ĞôÀì(€ˆ¹‘¥ÍÁ…Ñ¡Ù•¹Ğ¡¹•ÜÙ•¹Ğ ÍÉ½±°œ¤¤íô¤ ¥€¤ì)½¬ ‰™½ÕÌÍÕÉÙ¥Ù•Ì±½…‘¥¹œ½±‘•Èİ••­Ì€¡Ñ¡”¹•ÜÉ•ÑÌ•Ğ¥ĞÑ½¼¤ˆ°(€€ÉÕ¸¡A5%a}=UM€¤€ôôô€‰1•Ìˆ€˜˜(€€ÉÕ¸¡l¸¸¹‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½É±° œÁµ¥á]É…ÀÉ•Ñm‘…Ñ„µÁÑtœ¥t(€€€€€€€€¹™¥±Ñ•È¡ÈôùÈ¹‘…Ñ…Í•Ğ¹ÁĞ„ôô1•Ìœ¤¹•Ù•Éä¡ÈôùÈ¹ÍÑå±”¹½Á…¥ÑäôôôœÀ¸ÄÈœ¥€¤¤ì)ÉÕ¸¡Áµ¥áM•Ñ½ÕÌ 1•Ìœ¤í€¤ì((¼¼€´´´´ØÌ¸Ì¸ÄÈÌèÑ¡”É•…‘½ÕĞ¹¼±½¹•ÈÍ…åÌÑ¡”Ñ½Ñ…°Ñİ¥”€´´´´´´´´´´´´´´´(¼¼=¸„½¹”µÁ…ÉĞ‘…äÑ¡”Á…ÉĞÑ½Ñ…°%LÑ¡”‘…äÑ½Ñ…°ìÁÉ¥¹Ñ¥¹œ‰½Ñ É•……Ì(¼¼€‰1•Ì€Ù¬€Ù¬­œˆ¸)ÉÕ¸¡€¡™Õ¹Ñ¥½¸ ¥í¹‘…åÌõíôì½¹ÍĞĞõ¹•Ü…Ñ”¡Ñ½‘…å%M<¬PÀÀèÀÀœ¤ì(€½¹ÍĞõ¹•Ü…Ñ”¡Ğ¤ì¹Í•Ñ…Ñ”¡¹•Ñ…Ñ” ¤´Ä¤ì(€¹‘…åÍm¹Ñ½1½…±•…Ñ•MÑÉ¥¹œ •¸µœ¥tõíÜémíÁ…ÉĞè1•Ìœ±•àèMÅÕ…Ğœ±ÜèÄÀÀ±É•ÁÌélÄÁt±…ĞèÅõt±ÕÁèÅôì(€½¹ÍĞ”õ¹•Ü…Ñ”¡Ğ¤ì”¹Í•Ñ…Ñ”¡”¹•Ñ…Ñ” ¤´È¤ì(€¹‘…åÍm”¹Ñ½1½…±•…Ñ•MÑÉ¥¹œ •¸µœ¥tõíÜémíÁ…ÉĞè1•Ìœ±•àèMÅÕ…Ğœ±ÜèÄÀÀ±É•ÁÌélÄÁt±…ĞèÅô°(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€íÁ…ÉĞè	…¬œ±•àèI½Üœ±ÜèÔÀ±É•ÁÌélÄÁt±…ĞèÅõt±ÕÁèÅôì(€Mõ‘•É¥Ù•±° ¤ìÙ¥•ÜôÍÑ…ÑÌœìÉ•¹‘•È ¤íô¤ ¥€¤ì(¼¨ØÌ¸Ì¸ÄÈÔèÑ¡”Á•Èµ‘…äÉ•…‘½ÕĞ¥Ì½¹”İ¥Ñ Ñ¡”ÍÉÕ‰‰•È°Í¼Ñ¡”€ˆÙ¬€Ù¬­œˆ(€€‘ÕÁ±¥…Ñ¥½¸¥Ğ™¥á•…¸¹¼±½¹•È½ÕÈqÔÈÀÄĞÑ¡•É”¥Ì¹½Ñ¡¥¹œÑ¡…ĞÁÉ¥¹ÑÌ„(€€Á…ÉĞÑ½Ñ…°…¹„‘…äÑ½Ñ…°Í¥‘”‰äÍ¥‘”¸Q¡”ÍÕµµ…Éä±¥¹”‰•±½ÜÑ¡”¡…ÉĞ(€€¥ÌÑ¡”ÍÕÉÙ¥Ù¥¹œ™¥ÕÉ”°…¹¥Ğ¥Ì…ÍÍ•ÉÑ•Í•Á…É…Ñ•±ä¸€¨¼)½¬ ‰¹¼Á•Èµ‘…äÉ•…‘½ÕĞÍÕÉÙ¥Ù•ÌÑ¼‘ÕÁ±¥…Ñ”„Ñ½Ñ…°ˆ°(€€€„½Áµ¥áI•…‘½ÕĞ¼¹Ñ•ÍĞ¡™Ì¹É•…‘¥±•Må¹Œ¡Á…Ñ ¹©½¥¸¡‘¥È°€‰©Ì½ÍÑ…ÑÌ¹©Ìˆ¤°€‰ÕÑ˜àˆ¤¤¤ì((¼¼€´´´´Ñ…ÁÁ¥¹œ„‰…È¥ÌÑ…ÁÁ¥¹œ¥ÑÌ±••¹€´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´)ÉÕ¸¡Ù¥•ÜôÍÑ…ÑÌœìÉ•¹‘•È ¤ìA5%a}=ULõ¹Õ±°ìÁµ¥áÁÁ±å½ÕÌ ¤í€¤ì)ÉÕ¸¡€¡™Õ¹Ñ¥½¸ ¥í½¹ÍĞˆõ‘½Õµ•¹Ğ¹•Ñ±•µ•¹Ñ	å% Áµ¥á]É…Àœ¤ì(€ˆ¹•Ñ	½Õ¹‘¥¹±¥•¹ÑI•Ğô ¤ôø¡í±•™ĞèÀ±Ñ½ÀèÀ±İ¥‘Ñ èÌĞÀ±¡•¥¡ĞèÈÌÈ±É¥¡ĞèÌĞÀ±‰½ÑÑ½´èÈÌÉô¤ì(€ˆ¹ÍÉ½±±1•™ĞôÀì(€½¹ÍĞÍ•œõˆ¹ÅÕ•ÉåM•±•Ñ½È É•Ñm‘…Ñ„µÁĞô‰	…¬‰tœ¤ì(€Í•œ¹‘¥ÍÁ…Ñ¡Ù•¹Ğ¡¹•ÜA½¥¹Ñ•ÉÙ•¹Ğ Á½¥¹Ñ•É‘½İ¸œ±íÁ½¥¹Ñ•É%èÄ±±¥•¹Ñ`èÈÀ±±¥•¹ÑdèØÀ±‰Õ‰‰±•ÌéÑÉÕ•ô¤¤ì(€ˆ¹‘¥ÍÁ…Ñ¡Ù•¹Ğ¡¹•ÜA½¥¹Ñ•ÉÙ•¹Ğ Á½¥¹Ñ•ÉÕÀœ±íÁ½¥¹Ñ•É%èÄ±±¥•¹Ñ`èÈÀ±±¥•¹ÑdèØÀ±‰Õ‰‰±•ÌéÑÉÕ•ô¤¤íô¤ ¥€¤ì)½¬ ‰Ñ…ÁÁ¥¹œ„Í•µ•¹Ğ¥Í½±…Ñ•ÌÑ¡…ĞÁ…ÉĞ°•á…Ñ±ä±¥­”¥ÑÌ±••¹¡¥Àˆ°(€€ÉÕ¸¡A5%a}=UM€¤€ôôô€‰	…¬ˆ°ÉÕ¸¡A5%a}=UM€¤¤ì)½¬ ˆ¸¸¹…¹Ñ¡”±••¹Í¡½İÌ¥ĞÍ•±•Ñ•ˆ°(€€ÉÕ¸¡‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½È œ¹Áµ¥á±m‘…Ñ„µÁĞô‰	…¬‰tœ¤¹±…ÍÍ1¥ÍĞ¹½¹Ñ…¥¹Ì ½¸œ¥€¤¤ì(¼¼„IµÕÍĞÍÉÕˆ°¹½ĞÍ•±•Ğ)ÉÕ¸¡Áµ¥áM•Ñ½ÕÌ 	…¬œ¤í€¤ì€€€¼¼±•…È)ÉÕ¸¡€¡™Õ¹Ñ¥½¸ ¥í½¹ÍĞˆõ‘½Õµ•¹Ğ¹•Ñ±•µ•¹Ñ	å% Áµ¥á]É…Àœ¤ì(€½¹ÍĞÍ•œõˆ¹ÅÕ•ÉåM•±•Ñ½È É•Ñm‘…Ñ„µÁĞô‰	…¬‰tœ¤ì(€Í•œ¹‘¥ÍÁ…Ñ¡Ù•¹Ğ¡¹•ÜA½¥¹Ñ•ÉÙ•¹Ğ Á½¥¹Ñ•É‘½İ¸œ±íÁ½¥¹Ñ•É%èÈ±±¥•¹Ñ`èÈÀ±±¥•¹ÑdèØÀ±‰Õ‰‰±•ÌéÑÉÕ•ô¤¤ì(€ˆ¹‘¥ÍÁ…Ñ¡Ù•¹Ğ¡¹•ÜA½¥¹Ñ•ÉÙ•¹Ğ Á½¥¹Ñ•Éµ½Ù”œ±íÁ½¥¹Ñ•É%èÈ±±¥•¹Ñ`èÄÈÀ±±¥•¹ÑdèØÀ±‰Õ‰‰±•ÌéÑÉÕ•ô¤¤ì(€ˆ¹‘¥ÍÁ…Ñ¡Ù•¹Ğ¡¹•ÜA½¥¹Ñ•ÉÙ•¹Ğ Á½¥¹Ñ•ÉÕÀœ±íÁ½¥¹Ñ•É%èÈ±±¥•¹Ñ`èÄÈÀ±±¥•¹ÑdèØÀ±‰Õ‰‰±•ÌéÑÉÕ•ô¤¤íô¤ ¥€¤ì)½¬ ‰‘É…¥¹œ…É½ÍÌÑ¡”¡…ÉĞÍÉÕ‰Ìİ¥Ñ¡½ÕĞÍ•±•Ñ¥¹œ…¹åÑ¡¥¹œˆ°(€€ÉÕ¸¡A5%a}=UM€¤€ôôô¹Õ±°°MÑÉ¥¹œ¡ÉÕ¸¡A5%a}=UM€¤¤¤ì((¼¼€´´´´Ñ¡”ÍÕµµ…Éä±¥¹”€´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´)½¹ÍĞÍÕ´€ô€ ¤€ôøÉÕ¸¡‘½Õµ•¹Ğ¹•Ñ±•µ•¹Ñ	å% Áµ¥áMÕ´œ¤¹Ñ•áÑ½¹Ñ•¹Ğ¹É•Á±…” ½qqÌ¬½œ°œ€œ¤¹ÑÉ¥´ ¥€¤ì)½¬ ‰„ÍÕµµ…ÉäÍ¥ÑÌ‰•±½ÜÑ¡”¡…ÉĞˆ°ÉÕ¸¡€„…‘½Õµ•¹Ğ¹•Ñ±•µ•¹Ñ	å% Áµ¥áMÕ´œ¥€¤¤ì)½¬ ˆ¸¸¹ÍÁ•…­¥¹œ…‰½ÕĞ…±°ÍÑÉ•¹Ñ İ½É¬İ¡•¸¹½Ñ¡¥¹œ¥ÌÍ•±•Ñ•ˆ°€½±°ÍÑÉ•¹Ñ ¼¹Ñ•ÍĞ¡ÍÕ´ ¤¤°ÍÕ´ ¤¤ì)ÉÕ¸¡Áµ¥áM•Ñ½ÕÌ 1•Ìœ¤í€¤ì)½¬ ˆ¸¸¹…¹…‰½ÕĞÑ¡”Í•±•Ñ•Á…ÉĞİ¡•¸½¹”¥Ìˆ°€½1•Ì¼¹Ñ•ÍĞ¡ÍÕ´ ¤¤€˜˜€„½±°ÍÑÉ•¹Ñ ¼¹Ñ•ÍĞ¡ÍÕ´ ¤¤°ÍÕ´ ¤¤ì)½¬ ˆ¸¸¹É•Á½ÉÑ¥¹œ½µÁ±•Ñ•Í•ÑÌ°„Í•ÍÍ¥½¸½Õ¹Ğ…¹…¸…Ù•É…”ˆ°(€€€½q¼¹Ñ•ÍĞ¡ÍÕ´ ¤¤€˜˜€½½µÁ±•Ñ•Í•Ğ¼¹Ñ•ÍĞ¡ÍÕ´ ¤¤€˜˜€½Í•ÍÍ¥½¸¼¹Ñ•ÍĞ¡ÍÕ´ ¤¤€˜˜€½…Ùœ¼¹Ñ•ÍĞ¡ÍÕ´ ¤¤°ÍÕ´ ¤¤ì)½¬ ˆ¸¸¹İ¥Ñ¡½ÕĞÑÕÉ¹¥¹œÍ•Ğ½Õ¹Ğ¥¹Ñ¼„Á•É™½Éµ…¹”ÑÉ•¹ˆ°(€€€„¼•ñÙÌ•…É±¥•Éñq‰ÕÁq‰ñq‰‘½İ¹qˆ½¤¹Ñ•ÍĞ¡ÍÕ´ ¤¤°ÍÕ´ ¤¤ì)ÉÕ¸¡Áµ¥áM•Ñ½ÕÌ 1•Ìœ¤í€¤ì((¼¼€´´´´Ñ¡”ÍÑ¥­äå•…È€´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´)½¬ ‰„å•…È±…‰•°Í¥ÑÌ½ÕÑÍ¥‘”Ñ¡”Á±½Ğˆ°ÉÕ¸¡€„…‘½Õµ•¹Ğ¹•Ñ±•µ•¹Ñ	å% Áµ¥áeÈœ¥€¤¤ì)½¬ ˆ¸¸¹…¹¹…µ•ÌÑ¡”å•…È…ĞÑ¡”ÕÉÉ•¹ĞÍÉ½±°Á½Í¥Ñ¥½¸ˆ°(€€€½yq‘ìÑô¼¹Ñ•ÍĞ¡ÉÕ¸¡‘½Õµ•¹Ğ¹•Ñ±•µ•¹Ñ	å% Áµ¥áeÈœ¤¹Ñ•áÑ½¹Ñ•¹Ñ€¤¤°(€€ÉÕ¸¡‘½Õµ•¹Ğ¹•Ñ±•µ•¹Ñ	å% Áµ¥áeÈœ¤¹Ñ•áÑ½¹Ñ•¹Ñ€¤¤ì(¼¼ÍÉ½±±¥¹œÑ¼„½±Õµ¸¥¸„‘¥™™•É•¹Ğå•…ÈµÕÍĞÍİ…À¥Ğ)ÉÕ¸¡€¡™Õ¹Ñ¥½¸ ¥í¹‘…åÌõíôì½¹ÍĞµ¬ô¡¥Í¼±À¤ôù¹‘…åÍm¥Í½tõíÜémíÁ…ÉĞéÀ±•àè`œ±ÜèĞÀ±É•ÁÌélÄÁt±…ĞèÅõt±ÕÁèÅôì(€™½È¡±•Ğ¤ôÄí¤ğôĞÀí¤¬¬¥í½¹ÍĞõ¹•Ü…Ñ” œÈÀÈÔ´ÀØ´ÀÅPÀÀèÀÀœ¤ì¹Í•Ñ…Ñ”¡¹•Ñ…Ñ” ¤­¤¤ì(€€€µ¬¡¹Ñ½1½…±•…Ñ•MÑÉ¥¹œ •¸µœ¤°¡•ÍĞœ¤íô(€™½È¡±•Ğ¤ôÄí¤ğôĞÀí¤¬¬¥í½¹ÍĞõ¹•Ü…Ñ” œÈÀÈØ´ÀØ´ÀÅPÀÀèÀÀœ¤ì¹Í•Ñ…Ñ”¡¹•Ñ…Ñ” ¤­¤¤ì(€€€µ¬¡¹Ñ½1½…±•…Ñ•MÑÉ¥¹œ •¸µœ¤°	…¬œ¤íô(€Mõ‘•É¥Ù•±° ¤ìÙ¥•ÜôÍÑ…ÑÌœìÉ•¹‘•È ¤ì(€½¹ÍĞˆõ‘½Õµ•¹Ğ¹•Ñ±•µ•¹Ñ	å% Áµ¥á]É…Àœ¤ì(€ˆ¹•Ñ	½Õ¹‘¥¹±¥•¹ÑI•Ğô ¤ôø¡í±•™ĞèÀ±Ñ½ÀèÀ±İ¥‘Ñ èÌĞÀ±¡•¥¡ĞèÈÌÈ±É¥¡ĞèÌĞÀ±‰½ÑÑ½´èÈÌÉô¤ì(€ˆ¹ÍÉ½±±1•™ĞôÀìˆ¹‘¥ÍÁ…Ñ¡Ù•¹Ğ¡¹•ÜÙ•¹Ğ ÍÉ½±°œ¤¤íô¤ ¥€¤ì)½¹ÍĞå…É±ä€ôÉÕ¸¡‘½Õµ•¹Ğ¹•Ñ±•µ•¹Ñ	å% Áµ¥áeÈœ¤¹Ñ•áÑ½¹Ñ•¹Ñ€¤ì)ÉÕ¸¡€¡™Õ¹Ñ¥½¸ ¥í½¹ÍĞˆõ‘½Õµ•¹Ğ¹•Ñ±•µ•¹Ñ	å% Áµ¥á]É…Àœ¤ì(€ˆ¹ÍÉ½±±1•™ĞôØÀ©A5%a}=1\ìˆ¹‘¥ÍÁ…Ñ¡Ù•¹Ğ¡¹•ÜÙ•¹Ğ ÍÉ½±°œ¤¤íô¤ ¥€¤ì)½¹ÍĞå1…Ñ”€ôÉÕ¸¡‘½Õµ•¹Ğ¹•Ñ±•µ•¹Ñ	å% Áµ¥áeÈœ¤¹Ñ•áÑ½¹Ñ•¹Ñ€¤ì)½¬ ‰Ñ¡”å•…ÈÍİ…ÁÌ…Ìå½ÔÍÉ½±°…É½ÍÌ„å•…È‰½Õ¹‘…Éäˆ°(€€å…É±ä€ôôô€ˆÈÀÈÔˆ€˜˜å1…Ñ”€ôôô€ˆÈÀÈØˆ°å…É±ä€¬€ˆqÔÈÄäÈ€ˆ€¬å1…Ñ”¤ì((¼¨€´´´´ØÌ¸Ì¸ÈÀàè½¹”½µÁ…É…‰±”Õ¹¥Ğ€´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´(€€5¥á•µ•ÅÕ¥Áµ•¹ĞÑ½¹¹…”¥Ì¥¹Ñ•É¹…±±ä½µÁÕÑ…‰±”‰ÕĞ¹½Ğ„µ•…¹¥¹™Õ°(€€É½ÍÌµÍ•ÍÍ¥½¸½µÁ…É¥Í½¸¸M•ÍÍ¥½¸	Õ¥±Ñ¡•É•™½É”½Õ¹ÑÌ½µÁ±•Ñ•Í•ÑÌè(€€½¹”É•ÁÌµ…ÉÉ…ä•±•µ•¹Ğ¥Ì½¹”‰±½¬°É•…É‘±•ÍÌ½˜İ•¥¡Ğ½È•ÅÕ¥Áµ•¹Ğ¸(€€½±‘•Í¡••Ğµ•É„É½İÌ…¹ÕÉÉ•¹Ğ½¹”µÉ½ÜµÁ•ÈµÍ•ĞÍÑ½É…”µÕÍĞ…É•”¸€¨¼)ÉÕ¸¡€¡™Õ¹Ñ¥½¸ ¥í¹‘…åÌõíôì(€½¹ÍĞĞõ¹•Ü…Ñ”¡Ñ½‘…å%M<¬PÀÀèÀÀœ¤ì(€½¹ÍĞµ¬ô¡½™˜±Ü¤ôùí½¹ÍĞõ¹•Ü…Ñ”¡Ğ¤ì¹Í•Ñ…Ñ”¡¹•Ñ…Ñ” ¤µ½™˜¤ì(€€€¹‘…åÍm¹Ñ½1½…±•…Ñ•MÑÉ¥¹œ •¸µœ¥tõíÜ±ÕÁèÅôíôì(€€¼¼„Í¡••Ğµ•É„‘…äÍÑ½É•™½±‘•èÑ¡É•”•á•É¥Í•Ì°™½ÕÈÍ•ÑÌ…Á¥•”(€µ¬ Ì±míÁ…ÉĞè	…¬œ±•àèAÕ±°UÀœ±ÜèÜÀ±É•ÁÌélÄÈ°ÄÀ°ÄÀ°át±…ĞèÅô°(€€€€€€€íÁ…ÉĞè	…¬œ±•àè	•¹Ğµ=Ù•ÈI½Üœ±ÜèØÄ¸È±É•ÁÌélÈÀ°ÈÀ°ÄÔ°ÈÁt±…ĞèÅô°(€€€€€€€íÁ…ÉĞè	…¬œ±•àè1…ĞAÕ±°½İ¸œ±ÜèĞÔ±É•ÁÌélÄÀ°ÄÀ°ÄÀ°ÄÁt±…ĞèÅõt¤ì(€€¼¼…¹„‘…äÍÑ½É•Õ¹™½±‘•°½¹”•¹ÑÉäÁ•ÈÍ•Ğ(€µ¬ Ô±míÁ…ÉĞè¡•ÍĞœ±•àèAÉ•ÍÌœ±ÜèĞÀ±É•ÁÌélÄÁt±…ĞèÅô°(€€€€€€€íÁ…ÉĞè¡•ÍĞœ±•àèAÉ•ÍÌœ±ÜèĞÀ±É•ÁÌélÄÁt±…ĞèÅô°(€€€€€€€íÁ…ÉĞè1•Ìœ±•àèMÅÕ…Ğœ±ÜèàÀ±É•ÁÌélát±…ĞèÅõt¤ì(€µ¬ Ü±míÁ…ÉĞè	…¬œ±•àèI½Üœ±ÜèÌÀ±É•ÁÌélÄÀ°ÄÔ°ÄÀ°ÄÕt±…ĞèÅô°(€€€€€€€íÁ…ÉĞèIÕ¸œ±•àèIÕ¸œ±ÜèÔ±É•ÁÌémt±µ¥¹ÌèÌÀ±Í•ÌèÀ±…ĞèÅõt¤ì(€Mõ‘•É¥Ù•±° ¤ìÙ¥•ÜôÍÑ…ÑÌœìÉ•¹‘•È ¤íô¤ ¥€¤ì()½¹ÍĞµ¥Í´€ôÉÕ¸¡)M=8¹ÍÑÉ¥¹¥™ä ¡™Õ¹Ñ¥½¸ ¥ì(€½¹ÍĞ‰…õmtì(€™½È¡½¹ÍĞÈ½˜Á…ÉÑ5¥à äää¤¥ì(€€€½¹ÍĞÜô¡¹‘…åÍmÈ¹‘uññíô¤¹İñğ¡M¹Í•ÍÍ¥½¹ÍmÈ¹‘uññmt¤ì(€€€½¹ÍĞÑÉÕÑ õÜ¹™¥±Ñ•È¡ÌôùÌ¹Á…ÉĞ„ôôIÕ¸œ˜™Ì¹•à„ôôIÕ¸œ¤(€€€€€€¹É•‘Õ” ¡„±Ì¤ôù„¬ ¡Ì¹É•ÁÍññmt¤¹±•¹Ñ ¤°À¤ì(€€€¥˜¡ÑÉÕÑ „ôõÈ¹Ñ½Ñ…°¤‰…¹ÁÕÍ ¡íéÈ¹±¡…ÉĞéÈ¹Ñ½Ñ…°±Í•ÑÌéÑÉÕÑ¡ô¤ì(€ô(€É•ÑÕÉ¸‰…íô¤ ¤¥€¤ì)½¬ ‰Á…ÉÑ5¥à…É••Ìİ¥Ñ ½µÁ±•Ñ•µÍ•ĞÑÉÕÑ ½¸•Ù•Éä‘…äˆ°(€€)M=8¹Á…ÉÍ”¡µ¥Í´¤¹±•¹Ñ €ôôô€À°µ¥Í´¤ì()½¬ ‰Ñ¡”™½±‘•Ñ¡É•”µ•á•É¥Í”‘…äÉ•…‘Ì…ÌÑİ•±Ù”½µÁ±•Ñ•Í•ÑÌˆ°(€€ÉÕ¸¡€¡™Õ¹Ñ¥½¸ ¥í½¹ÍĞĞõ¹•Ü…Ñ”¡Ñ½‘…å%M<¬PÀÀèÀÀœ¤ì½¹ÍĞõ¹•Ü…Ñ”¡Ğ¤ì¹Í•Ñ…Ñ”¡¹•Ñ…Ñ” ¤´Ì¤ì(€€€€½¹ÍĞ¥Í¼õ¹Ñ½1½…±•…Ñ•MÑÉ¥¹œ •¸µœ¤ì(€€€€É•ÑÕÉ¸€¡Á…ÉÑ5¥à äää¤¹™¥¹¡ÈôùÈ¹ôôõ¥Í¼¥ññíô¤¹Ñ½Ñ…°íô¤ ¥€¤€ôôô€ÄÈ¤ì((¼¼™½±‘•…¹Õ¹™½±‘•ÍÑ½É…”µÕÍĞ¥Ù”Ñ¡”Í…µ”…¹Íİ•È™½ÈÑ¡”Í…µ”İ½É¬)½¬ ‰„™½±‘••¹ÑÉä…¹™½ÕÈÍ•Á…É…Ñ”Í•ÑÌÑ½Ñ…°Ñ¡”Í…µ”ˆ°(€€ÉÕ¸¡€¡™Õ¹Ñ¥½¸ ¥ì(€€€€½¹ÍĞ™½±‘•õmíÁ…ÉĞè	…¬œ±•àèI½Üœ±ÜèÌÀ±É•ÁÌélÄÀ°ÄÔ°ÄÀ°ÄÕt±…ĞèÅõtì(€€€€½¹ÍĞÍÁ±¥ĞõlÄÀ°ÄÔ°ÄÀ°ÄÕt¹µ…À¡Èôø¡íÁ…ÉĞè	…¬œ±•àèI½Üœ±ÜèÌÀ±É•ÁÌémÉt±…ĞèÅô¤¤ì(€€€€½¹ÍĞÍ•ÑÌõ„ôù„¹É•‘Õ” ¡Ì±à¤ôùÌ¬¡à¹É•ÁÍññmt¤¹±•¹Ñ °À¤ì(€€€€É•ÑÕÉ¸Í•ÑÌ¡™½±‘•¤ôôõÍ•ÑÌ¡ÍÁ±¥Ğ¤€˜˜Í•ÑÌ¡™½±‘•¤ôôôĞíô¤ ¥€¤¤ì((¼¼Á…ÉÑ5¥àµÕÍĞ¹•Ù•È‘É¥™Ğ‰…¬Ñ¼µ¥á•µ•ÅÕ¥Áµ•¹ĞÑ½¹¹…”)½¹ÍĞÕÑ¥±MÉŒÄÈĞ€ô™Ì¹É•…‘¥±•Må¹Œ¡Á…Ñ ¹©½¥¸¡‘¥È°€‰©Ì½ÕÑ¥°¹©Ìˆ¤°€‰ÕÑ˜àˆ¤ì(¼¼Í±¥”Ñ¼Ñ¡”9aP™Õ¹Ñ¥½¸‘•±…É…Ñ¥½¸qÔÈÀÄĞ„‰É…”µµ…Ñ¡¥¹œÉ••àÑÉ¥ÁÌ½¸(¼¼Ñ¡”¹•ÍÑ•™½Èµ±½½ÁÌ¥¹Í¥‘”Á…ÉÑ5¥à)½¹ÍĞÁµMÑ…ÉĞ€ôÕÑ¥±MÉŒÄÈĞ¹¥¹‘•á=˜ ‰™Õ¹Ñ¥½¸Á…ÉÑ5¥à¡‘…åÌ¥ìˆ¤ì)½¹ÍĞÁµ	½‘ä€ôÕÑ¥±MÉŒÄÈĞ¹Í±¥”¡ÁµMÑ…ÉĞ°ÕÑ¥±MÉŒÄÈĞ¹¥¹‘•á=˜ ‰q¹™Õ¹Ñ¥½¸€ˆ°ÁµMÑ…ÉĞ€¬€ÄÀ¤¤ì(¼¨ÍÑÉ¥À½µµ•¹ÑÌ‰•™½É”É•ÁÁ¥¹œÑ¡”‰½‘äqÔÈÀÄĞÑ¡”™¥àÌ½İ¸½µµ•¹Ğ•áÁ±…¥¹Ì(€€İ¡…ĞÉ•ÁÍlÁu€ÕÍ•Ñ¼‘¼°…¹…¸Õ¸µÍÑÉ¥ÁÁ•É•À™±…ÌÑ¡”•áÁ±…¹…Ñ¥½¸(€€…Ì¥˜¥Ğİ•É”Ñ¡”‰Õœ¸á…Ñ±äÑ¡”ØÌ¸Ì¸ÄÀØ™…¥±ÕÉ”°¥¸„¹•ÜÁ±…”¸€¨¼)½¹ÍĞÁµ½‘”€ôÁµ	½‘ä¹É•Á±…” ½p½p©mqÍqMt¨ıp©p¼½œ°€ˆˆ¤¹É•Á±…” ¼¡yñmxét¥p½p½myq¹t¨½œ°€ˆÄˆ¤ì)½¬ ‰Á…ÉÑ5¥à½Õ¹ÑÌÉ•ÁÌµ…ÉÉ…ä•¹ÑÉ¥•Ì…¹¹•Ù•È½µÁÕÑ•ÌÑ½¹¹…”ˆ°(€€€½p¡Íp¹É•ÁÍqñqñqmqup¥p¹±•¹Ñ ¼¹Ñ•ÍĞ¡Áµ½‘”¤€˜˜(€€€„½Ù½±=™p¡Íp¥ñÍp¹İqÌ©p¨¼¹Ñ•ÍĞ¡Áµ½‘”¤°(€€€½Ù½±=™p¡Íp¤¼¹Ñ•ÍĞ¡Áµ½‘”¤€ü€‰ÍÑ¥±°…±±ÌÙ½±=˜ˆ€è€‰Í•Ğ½Õ¹Ğ½¹±äˆ¤ì((¼¼€´´´´ØÌ¸Ì¸ÄÈØèİ¡…Ğ…¸•µÁÑäµÍÁ…”Ñ…Àµ•…¹Ì‘•Á•¹‘Ì½¸Ñ¡”ÍÑ…Ñ”€´´´´´´´´)ÉÕ¸¡€¡™Õ¹Ñ¥½¸ ¥í¹‘…åÌõíôì½¹ÍĞĞõ¹•Ü…Ñ”¡Ñ½‘…å%M<¬PÀÀèÀÀœ¤ì(€½¹ÍĞµ¬ô¡½™˜±Á…ÉÑÌ¤ôùí½¹ÍĞõ¹•Ü…Ñ”¡Ğ¤ì¹Í•Ñ…Ñ”¡¹•Ñ…Ñ” ¤µ½™˜¤ì(€€€¹‘…åÍm¹Ñ½1½…±•…Ñ•MÑÉ¥¹œ •¸µœ¥tõì(€€€€€ÜéÁ…ÉÑÌ¹µ…À¡Àôø¡íÁ…ÉĞéÀ±•àè`œ±ÜèĞÀ±É•ÁÌélÄÁt±…ĞèÅô¤¤±ÕÁèÅôíôì(€µ¬ Ä±l1•Ìt¤ìµ¬ È±l¡•ÍĞt¤ìµ¬ Ì±l	…¬t¤ì(€™½È¡±•Ğ¤ôĞí¤ğÄĞí¤¬¬¤µ¬¡¤±l¡•ÍĞt¤ì(€Mõ‘•É¥Ù•±° ¤ìÙ¥•ÜôÍÑ…ÑÌœìÉ•¹‘•È ¤ì(€½¹ÍĞˆõ‘½Õµ•¹Ğ¹•Ñ±•µ•¹Ñ	å% Áµ¥á]É…Àœ¤ì(€ˆ¹•Ñ	½Õ¹‘¥¹±¥•¹ÑI•Ğô ¤ôø¡í±•™ĞèÀ±Ñ½ÀèÀ±İ¥‘Ñ èÌĞÀ±¡•¥¡ĞèÄàØ±É¥¡ĞèÌĞÀ±‰½ÑÑ½´èÄàÙô¤ì(€ˆ¹ÍÉ½±±1•™ĞôÀìA5%a}=ULõ¹Õ±°ìÁµ¥áÁÁ±å½ÕÌ ¤íô¤ ¥€¤ì()½¹ÍĞ8€ôÉÕ¸¡Á…ÉÑ5¥à äää¤¹±•¹Ñ¡€¤ì)½¹ÍĞÑ…ÁµÁÑä€ô€¡½°¤€ôøÉÕ¸¡€¡™Õ¹Ñ¥½¸ ¥í½¹ÍĞˆõ‘½Õµ•¹Ğ¹•Ñ±•µ•¹Ñ	å% Áµ¥á]É…Àœ¤ì(€½¹ÍĞàôà¬‘í½±ô©A5%a}=1\¬Ìì(€½¹ÍĞ‰œõˆ¹ÅÕ•ÉåM•±•Ñ½È É•Ñm‘…Ñ„µ½°ôˆ‘í½±ô‰tœ¤ì(€‰œ¹‘¥ÍÁ…Ñ¡Ù•¹Ğ¡¹•ÜA½¥¹Ñ•ÉÙ•¹Ğ Á½¥¹Ñ•É‘½İ¸œ±íÁ½¥¹Ñ•É%èä±±¥•¹Ñ`éà±±¥•¹ÑdèÄÈ±‰Õ‰‰±•ÌéÑÉÕ•ô¤¤ì(€ˆ¹‘¥ÍÁ…Ñ¡Ù•¹Ğ¡¹•ÜA½¥¹Ñ•ÉÙ•¹Ğ Á½¥¹Ñ•ÉÕÀœ±íÁ½¥¹Ñ•É%èä±±¥•¹Ñ`éà±±¥•¹ÑdèÄÈ±‰Õ‰‰±•ÌéÑÉÕ•ô¤¤íô¤ ¥€¤ì((¼¼¹½Ñ¡¥¹œ™½±±½İ•å•Ğè•µÁÑäÍÁ…”ÍÑ¥±°Á¥­Ì„Í¥¹±”µÁ…ÉĞ½±Õµ¸)Ñ…ÁµÁÑä¡8€´€Ä¤ì)½¬ ‰İ¥Ñ ¹½Ñ¡¥¹œ™½±±½İ•°•µÁÑäÍÁ…”ÍÑ¥±°Í•±•ÑÌÑ¡…Ğ½±Õµ¸ÌÁ…ÉĞˆ°(€€ÉÕ¸¡A5%a}=UM€¤€ôôô€‰1•Ìˆ°MÑÉ¥¹œ¡ÉÕ¸¡A5%a}=UM€¤¤¤ì((¼¼¹½Ü™½±±½İ¥¹œ1•Ìè•µÁÑäÍÁ…”½Ù•È„%I9P½±Õµ¸µÕÍĞI1M°(¼¼¹½ĞÍ¥±•¹Ñ±äÍİ¥Ñ Ñ¼İ¡…Ñ•Ù•È¥ÌÕ¹‘•ÈÑ¡”™¥¹•È)Ñ…ÁµÁÑä¡8€´€Ì¤ì)½¬ ‰İ¡¥±”™½±±½İ¥¹œ½¹”°•µÁÑäÍÁ…”½Ù•È…¹½Ñ¡•È½±Õµ¸É•±•…Í•Ì¥¹ÍÑ•…½˜Íİ¥Ñ¡¥¹œˆ°(€€ÉÕ¸¡A5%a}=UM€¤€ôôô¹Õ±°°MÑÉ¥¹œ¡ÉÕ¸¡A5%a}=UM€¤¤¤ì((¼¼‰ÕĞ±…¹‘¥¹œ½¸…¸…ÑÕ…°Í•µ•¹ĞÍÑ¥±°Íİ¥Ñ¡•Ì)ÉÕ¸¡Áµ¥áM•Ñ½ÕÌ ¡•ÍĞœ¤í€¤ì)ÉÕ¸¡€¡™Õ¹Ñ¥½¸ ¥í½¹ÍĞˆõ‘½Õµ•¹Ğ¹•Ñ±•µ•¹Ñ	å% Áµ¥á]É…Àœ¤ì(€½¹ÍĞÍ•œõˆ¹ÅÕ•ÉåM•±•Ñ½È É•Ñm‘…Ñ„µÁĞô‰	…¬‰tœ¤ì(€Í•œ¹‘¥ÍÁ…Ñ¡Ù•¹Ğ¡¹•ÜA½¥¹Ñ•ÉÙ•¹Ğ Á½¥¹Ñ•É‘½İ¸œ±íÁ½¥¹Ñ•É%èÄÀ±±¥•¹Ñ`èÌÀ±±¥•¹ÑdèÄÀÀ±‰Õ‰‰±•ÌéÑÉÕ•ô¤¤ì(€ˆ¹‘¥ÍÁ…Ñ¡Ù•¹Ğ¡¹•ÜA½¥¹Ñ•ÉÙ•¹Ğ Á½¥¹Ñ•ÉÕÀœ±íÁ½¥¹Ñ•É%èÄÀ±±¥•¹Ñ`èÌÀ±±¥•¹ÑdèÄÀÀ±‰Õ‰‰±•ÌéÑÉÕ•ô¤¤íô¤ ¥€¤ì)½¬ ˆ¸¸¹İ¡¥±”±…¹‘¥¹œ½¸„É•…°Í•µ•¹ĞÍİ¥Ñ¡•ÌÑ¼¥Ğˆ°(€€ÉÕ¸¡A5%a}=UM€¤€ôôô€‰	…¬ˆ°MÑÉ¥¹œ¡ÉÕ¸¡A5%a}=UM€¤¤¤ì)ÉÕ¸¡Áµ¥áM•Ñ½ÕÌ 	…¬œ¤í€¤ì((¼¼€´´´´Ñ¡”¹•İ•ÍĞ½±Õµ¸¥Ìµ…É­•€´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´)½¬ ‰•á…Ñ±ä½¹”½±Õµ¸¥Ìµ…É­•±…Ñ•ÍĞˆ°(€€ÉÕ¸¡‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½É±° œÁµ¥á]É…À€¹Áµ¥á½°¹±…Ñ•ÍĞœ¤¹±•¹Ñ¡€¤€ôôô€Ä¤ì)½¬ ˆ¸¸¹…¹¥Ğ¥ÌÑ¡”±…ÍĞ½¹”ˆ°(€€ÉÕ¸¡€­‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½È œÁµ¥á]É…À€¹Áµ¥á½°¹±…Ñ•ÍĞœ¤¹‘…Ñ…Í•Ğ¹½±€¤€ôôô8€´€Ä°(€€ÉÕ¸¡‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½È œÁµ¥á]É…À€¹Áµ¥á½°¹±…Ñ•ÍĞœ¤¹‘…Ñ…Í•Ğ¹½±€¤€¬€ˆ½˜€ˆ€¬€¡8´Ä¤¤ì)½¹ÍĞÍÌÄÈØ€ô™Ì¹É•…‘¥±•Må¹Œ¡Á…Ñ ¹©½¥¸¡‘¥È°€‰ÍÌ½…ÁÀ¹ÍÌˆ¤°€‰ÕÑ˜àˆ¤¹É•Á±…” ½q¸½œ°€ˆˆ¤ì)½¬ ˆ¸¸¹¥ĞÁÕ±Í•Ìˆ°(€€€½p¹Áµ¥á½±p¹±…Ñ•ÍÑqímyõt©…¹¥µ…Ñ¥½¸éÁµ¥á±…Ñ•ÍĞ¼¹Ñ•ÍĞ¡ÍÌÄÈØ¤¤ì)½¬ ˆ¸¸¹…¹¡½±‘ÌÍÑ¥±°Õ¹‘•ÈÉ•‘Õ•µ½Ñ¥½¸ˆ°(€€€½ÁÉ•™•ÉÌµÉ•‘Õ•µµ½Ñ¥½¸éÉ•‘Õ•p¥qímyõt©p¹Áµ¥á½±p¹±…Ñ•ÍĞ üè±p¹Áµ¥áÍ•p¹±…Ñ•ÍĞ¤ıqí…¹¥µ…Ñ¥½¸é¹½¹”¼¹Ñ•ÍĞ¡ÍÌÄÈØ¤¤ì(¼¨Ñ¡”ÁÕ±Í”µÕÍĞÍ¥Ğ½¸Ñ¡”=1U58°¹•Ù•ÈÑ¡”‰…ÉÌè„ML…¹¥µ…Ñ¥½¸‰•…ÑÌ(€€¥¹±¥¹”ÍÑå±”°Í¼…¹¥µ…Ñ¥¹œÑ¡”‰…ÉÌİ½Õ±½Ù•ÉÉ¥‘”Ñ¡”½Á…¥ÑäÑ¡…Ğ(€€™½ÕÌµ‘¥µµ¥¹œÍ•ÑÌ…¹Ñ¡”Ñİ¼İ½Õ±™¥¡Ğ¸€¨¼)½¬ ‰Ñ¡”ÁÕ±Í”¹•Ù•ÈÑ½Õ¡•ÌÑ¡”‰…ÉÌÑ¡•µÍ•±Ù•Ìˆ°(€€€„½É•Ñqm‘…Ñ„µÁÑqumyít©qímyõt©…¹¥µ…Ñ¥½¸éÁµ¥á±…Ñ•ÍĞ¼¹Ñ•ÍĞ¡ÍÌÄÈØ¤¤ì((¼¼€´´´´ØÌ¸Ì¸ÈÀàè•Ù•ÉäÙ¥Í¥‰±”Õ¹¥Ğ¥Ì½¹”½µÁ±•Ñ•Í•Ğ€´´´´´´´´´´´´´´´´´´)½¬ ‰Ñ¡”¡…ÉĞ‘•™¥¹•Ì½¹”É•ÕÍ…‰±”Í•Ğµ‰±½¬Á…ÑÑ•É¸ˆ°(€€ÉÕ¸¡€„…‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½È œÁµ¥á]É…ÀÁ…ÑÑ•É¸Áµ¥á	É¥¬œ¥€¤€ôôôÑÉÕ”¤ì)½¬ ‰•Ù•ÉäÍÑ…­•‘…äÉ••¥Ù•Ì„Í•Ğµ‰±½¬½Ù•É±…äˆ°(€€ÉÕ¸¡‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½É±° œÁµ¥á]É…ÀÉ•Ñm‘…Ñ„µ‰É¥­Ítœ¤¹±•¹Ñ¡€¤€ôôô(€€ÉÕ¸¡Á…ÉÑ5¥à äää¤¹™¥±Ñ•È¡ÈôùÈ¹Ñ½Ñ…°øÀ¤¹±•¹Ñ¡€¤¤ì)½¬ ‰Ñ¡”½Ù•É±…äÉ•½É‘ÌÑ¡”‘…äÌ•á…Ğ½µÁ±•Ñ•µÍ•Ğ½Õ¹Ğˆ°(€€ÉÕ¸¡€­‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½È œÁµ¥á]É…ÀÉ•Ñm‘…Ñ„µ‰É¥­Ít¹±…Ñ•ÍĞœ¤¹‘…Ñ…Í•Ğ¹‰É¥­Í€¤€ôôô(€€ÉÕ¸¡Á…ÉÑ5¥à äää¤¹…Ğ ´Ä¤¹Ñ½Ñ…±€¤¤ì)½¬ ‰Ñ¡”±…Ñ•ÍĞÍ•µ•¹ÑÌÉ¥Í”İ¡•¸Ñ¡”¡…ÉĞÉ”µÉ•¹‘•ÉÌˆ°(€€€½p¹Áµ¥áÍ•p¹±…Ñ•ÍÑqímyõt©…¹¥µ…Ñ¥½¸éÁµ¥áÉ¥Í”¼¹Ñ•ÍĞ¡ÍÌÄÈØ¤¤ì)½¬ ˆ¸¸¹…¹Ñ¡”É¥Í”…±Í¼ÍÑ½ÁÌÕ¹‘•ÈÉ•‘Õ•µ½Ñ¥½¸ˆ°(€€€½ÁÉ•™•ÉÌµÉ•‘Õ•µµ½Ñ¥½¸éÉ•‘Õ•p¥qímyõt©p¹Áµ¥á½±p¹±…Ñ•ÍĞ±p¹Áµ¥áÍ•p¹±…Ñ•ÍÑqí…¹¥µ…Ñ¥½¸é¹½¹”¼¹Ñ•ÍĞ¡ÍÌÄÈØ¤¤ì()ÉÕ¸¡€¡™Õ¹Ñ¥½¸ ¥í¹‘…åÌõíôì(€¹‘…åÍmÑ½‘…å%M=tõíÜémíÁ…ÉĞè¡•ÍĞœ±•àèAÉ•ÍÌœ±ÜèĞÀ±É•ÁÌélÄÁt±…Ğé…Ñ”¹¹½Ü ¥õt±ÕÁé…Ñ”¹¹½Ü ¥ôì(€Mõ‘•É¥Ù•±° ¤ìÙ¥•ÜôÍÑ…ÑÌœìÉ•¹‘•È ¤íô¤ ¥€¤ì)½¬ ‰…¸…Ñ¥Ù”Ñ½‘…äÌ¹•İ•ÍĞ½±Õµ¸ÕÍ•ÌÑ¡”±¥Ù”ÍÑ…Ñ”ˆ°(€€ÉÕ¸¡‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½È œÁµ¥á]É…À€¹Áµ¥á½°¹±…Ñ•ÍĞœ¤¹±…ÍÍ1¥ÍĞ¹½¹Ñ…¥¹Ì ±¥Ù”œ¥€¤€ôôôÑÉÕ”€˜˜(€€€½p¹Áµ¥á½±p¹±…Ñ•ÍÑp¹±¥Ù•qí™¥±°éÙ…Ép ´µ±¥Ù•p¤¼¹Ñ•ÍĞ¡ÍÌÄÈØ¤¤ì((¼¼€´´´´ÍÁ…¥¹œ€´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´)½¬ ‰Ñ¡”±••¹…¹Ñ¡”¡¥¹Ğ¡…Ù”É½½´‰•™½É”Ñ¡”¡…ÉĞˆ°(€€€½p¹Áµ¥á±‘qímyõt©µ…É¥¸èÀ€À€ÄÑÁà¼¹Ñ•ÍĞ¡ÍÌÄÈØ¤€˜˜(€€€½p¹Áµ¥áÉ•…‘qímyõt©µ…É¥¸èÀ€À€ÄÑÁà¼¹Ñ•ÍĞ¡ÍÌÄÈØ¤¤ì)½¬ ‰Ñ¡”±•™ĞÕÑÑ•È¥Ì¹…ÉÉ½İ•Èˆ°ÉÕ¸¡A5%a}a]€¤€ôôô€ÈÔ°€‰…á¥Ìİ¥‘Ñ €ˆ€¬ÉÕ¸¡A5%a}a]€¤¤ì((¼¼€´´´´ØÌ¸Ì¸ÈÀàèÍ•Ğµ½Õ¹ĞÑ¥­Ì…É”İ¡½±”¹Õµ‰•ÉÌ€´´´´´´´´´´´´´´´´´´´´´´´´)½¬ ‰…á¥ÌÑ¥­ÌÍÁ•…¬¥¸İ¡½±”½µÁ±•Ñ•Í•ÑÌˆ°(€€ÉÕ¸¡Áµ¥áQ¥¬ ÄÈ¸Ğ¥€¤€ôôô€ˆÄÈˆ€˜˜ÉÕ¸¡Áµ¥áQ¥¬ ÄÔ¸Ø¥€¤€ôôô€ˆÄØˆ°(€€mÉÕ¸¡Áµ¥áQ¥¬ ÄÈ¸Ğ¥€¤°ÉÕ¸¡Áµ¥áQ¥¬ ÄÔ¸Ø¥€¥t¹©½¥¸ ˆ€ˆ¤¤ì)½¬ ˆ¸¸¹Ñ¡É½Õ Ñ¡”…ÁÀÌ½İ¸™½Éµ…ÑÑ•Èˆ°(€€€½½¹ÍĞÁµ¥áQ¥¬õØôù™µÑp¡5…Ñ¡p¹É½Õ¹‘p¡Ùp¥p¤¼¹Ñ•ÍĞ¡™Ì¹É•…‘¥±•Må¹Œ¡Á…Ñ ¹©½¥¸¡‘¥È°€‰©Ì½ÍÑ…ÑÌ¹©Ìˆ¤°€‰ÕÑ˜àˆ¤¤¤ì()ÁÉ½•ÍÌ¹•á¥Ğ¡™…¥°€ü€Ä€è€À¤ì
+  mk(1,[{part:'Legs',ex:'Squat',w:100,reps:[10,10],at:1}]);              // single part
+  mk(2,[{part:'Back',ex:'Row',w:50,reps:[10],at:1},
+        {part:'Chest',ex:'Press',w:40,reps:[10],at:1}]);                 // ambiguous stack
+  for(let i=3;i<12;i++) mk(i,[{part:'Legs',ex:'Squat',w:80,reps:[8],at:1}]);
+  SEED=deriveAll(); view='stats'; render();
+  const b=document.getElementById('pmixWrap');
+  b.getBoundingClientRect=()=>({left:0,top:0,width:340,height:186,right:340,bottom:186});
+  b.scrollLeft=0;})()`);
+
+// tap the EMPTY area above a single-part column: still selects that part
+const lastCol = run(`partMix(999).length-1`);
+run(`(function(){const b=document.getElementById('pmixWrap');
+  const x=8+${lastCol}*PMIX_COLW+3;
+  const bg=b.querySelector('rect[data-col="${lastCol}"]');
+  bg.dispatchEvent(new PointerEvent('pointerdown',{pointerId:1,clientX:x,clientY:12,bubbles:true}));
+  b.dispatchEvent(new PointerEvent('pointerup',{pointerId:1,clientX:x,clientY:12,bubbles:true}));})()`);
+ok("tapping anywhere in a single-part column follows that part",
+   run(`PMIX_FOCUS`) === "Legs", String(run(`PMIX_FOCUS`)));
+ok("...and the hint now names what is being followed",
+   /Showing/.test(hint()) && /Legs/.test(hint()), hint());
+run(`pmixSetFocus('Legs');`);
+
+// a drag must scroll, never select
+run(`(function(){const b=document.getElementById('pmixWrap');
+  const bg=b.querySelector('rect[data-col="${lastCol}"]');
+  bg.dispatchEvent(new PointerEvent('pointerdown',{pointerId:2,clientX:40,clientY:12,bubbles:true}));
+  b.dispatchEvent(new PointerEvent('pointermove',{pointerId:2,clientX:140,clientY:12,bubbles:true}));
+  b.dispatchEvent(new PointerEvent('pointerup',{pointerId:2,clientX:140,clientY:12,bubbles:true}));})()`);
+ok("dragging scrolls without selecting", run(`PMIX_FOCUS`) === null, String(run(`PMIX_FOCUS`)));
+
+// geometry
+ok("v3.3.127: bars are 25% wider than v3.3.125's 10 units",
+   run(`PMIX_COLW`) === 15 &&
+   /bw=PMIX_COLW-2\.5/.test(fs.readFileSync(path.join(dir, "js/stats.js"), "utf8")),
+   "colw " + run(`PMIX_COLW`) + ", bar " + (run(`PMIX_COLW`) - 2.5));
+ok("...and the gap stays hairline",
+   run(`PMIX_COLW`) - (run(`PMIX_COLW`) - 2.5) === 2.5);
+ok("the box no longer carries dead space under the labels",
+   run(`PMIX_H`) === 186, "height " + run(`PMIX_H`));
+
+/* restore a fixture that spans months and parts \u2014 the tap tests above
+   deliberately seed 11 consecutive days, which crosses no month boundary,
+   and the assertions further down still expect month rules to exist. */
+run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
+  const P=['Chest','Back','Shoulder','Legs','Biceps','Triceps','Sixpack'];
+  for(let i=1;i<=200;i++){
+    const d=new Date(t); d.setDate(d.getDate()-i);
+    if(i%7===0) continue;
+    const w=[]; const p=P[i%P.length];
+    for(let k=0;k<3+(i%4);k++) w.push({part:p,ex:'X',w:40,reps:[10],at:1});
+    if(i%3===0) w.push({part:'Run',ex:'Run',w:5,reps:[],mins:28,secs:0,at:1});
+    DB.days[d.toLocaleDateString('en-CA')]={w,upd:1};
+  }
+  SEED=deriveAll(); view='stats'; render();})()`);
+
+// ---- the year has to be findable ----------------------------------------
+ok("the chart marks years, not just months",
+   run(`document.querySelectorAll('#pmixWrap [data-yrmark]').length`) >= 1,
+   run(`[...document.querySelectorAll('#pmixWrap [data-yrmark]')].map(t=>t.textContent).join(',')`));
+ok("...including at the very first column, so the left edge is never mute",
+   run(`!!document.querySelector('#pmixWrap [data-yrmark]')`));
+
+// ---- isolating a part now labels it --------------------------------------
+/* seed its own data: this assertion used to inherit whatever fixture ran
+   last, and a fixture without Chest made it fail for a reason that had
+   nothing to do with labelling. */
+run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
+  for(let i=1;i<=20;i++){const d=new Date(t); d.setDate(d.getDate()-i);
+    DB.days[d.toLocaleDateString('en-CA')]={w:[
+      {part:'Chest',ex:'Press',w:40,reps:[10],at:1},
+      {part:'Back',ex:'Row',w:50,reps:[10],at:1}],upd:1};}
+  SEED=deriveAll(); view='stats'; render(); PMIX_FOCUS=null; pmixApplyFocus();})()`);
+run(`pmixSetFocus('Chest');`);
+ok("isolating a part writes its values above the bars",
+   run(`document.querySelectorAll('#pmixWrap [data-lbl="Chest"]').length`) > 0,
+   run(`document.querySelectorAll('#pmixWrap [data-lbl="Chest"]').length`) + " labels");
+ok("...and only for that part",
+   run(`[...document.querySelectorAll('#pmixWrap [data-lbl]')].every(t=>t.dataset.lbl==='Chest')`));
+run(`pmixSetFocus('Chest');`);
+ok("clearing the focus removes the labels",
+   run(`document.querySelectorAll('#pmixWrap [data-lbl]').length`) === 0);
+
+// ---- legend alignment ----------------------------------------------------
+ok("the legend is centred",
+   /\.pmixlgd\{[^}]*justify-content:center/.test(
+     fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\n/g, "")));
+
+// ---- it owns its horizontal gesture --------------------------------------
+ok("the chart is in the tab-swipe blocklist (it scrolls sideways)",
+   /closest\('\.pmixwrap'\)/.test(fs.readFileSync(path.join(dir, "js/util.js"), "utf8")));
+
+// ---- v3.3.120: the chart's furniture -------------------------------------
+run(`view='stats'; render();`);
+
+// a y-axis that does not scroll away
+ok("a fixed y-axis sits beside the scroller",
+   run(`!!document.querySelector('.pmixbox > .pmixaxis')`) &&
+   run(`!!document.querySelector('.pmixbox > .pmixwrap')`));
+const axisTicks = run(`[...document.querySelectorAll('.pmixaxis text')].map(t=>t.textContent)`);
+ok("...labelled at five levels", axisTicks.length === 5, axisTicks.join(","));
+ok("...starting at zero and rising", axisTicks[0] === "0" && axisTicks[4] !== "0");
+
+// guides that line up with those labels
+ok("the plot draws a guide for every axis tick",
+   run(`[...document.querySelectorAll('#pmixWrap svg > line')]
+        .filter(l=>l.getAttribute('y1')===l.getAttribute('y2')).length`) === 5);
+
+// axis and plot must share one scale or the labels lie
+ok("axis and plot compute their maximum from ONE function",
+   /function pmixMax/.test(fs.readFileSync(path.join(dir, "js/stats.js"), "utf8")) &&
+   (fs.readFileSync(path.join(dir, "js/stats.js"), "utf8").match(/pmixMax\(/g) || []).length >= 3);
+
+// month rules \u2014 seeds its own span, since a fixture of consecutive days
+// crosses no boundary and would fail this for the wrong reason
+run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
+  for(let i=1;i<=120;i++){const d=new Date(t); d.setDate(d.getDate()-i);
+    DB.days[d.toLocaleDateString('en-CA')]={w:[{part:'Chest',ex:'Press',w:40,reps:[10],at:1}],upd:1};}
+  SEED=deriveAll(); view='stats'; render();})()`);
+const vlines = run(`[...document.querySelectorAll('#pmixWrap svg line')]
+  .filter(l=>l.getAttribute('x1')===l.getAttribute('x2')).length`);
+ok("a soft vertical rule marks each month change", vlines >= 1, vlines + " rules");
+ok("...and it is soft, not a hard line",
+   run(`[...document.querySelectorAll('#pmixWrap svg line')]
+        .filter(l=>l.getAttribute('x1')===l.getAttribute('x2'))
+        .every(l=>+l.getAttribute('opacity')<1)`));
+
+// the way back
+ok("a jump-to-latest button exists", run(`!!document.getElementById('pmixNow')`));
+ok("...hidden until you have actually scrolled away",
+   run(`!document.getElementById('pmixNow').classList.contains('on')`));
+run(`(function(){const b=document.getElementById('pmixWrap');
+  Object.defineProperty(b,'clientWidth',{get(){return 300;},configurable:true});
+  Object.defineProperty(b,'scrollWidth',{get(){return 2000;},configurable:true});
+  b.scrollLeft=0; b.dispatchEvent(new Event('scroll'));})()`);
+ok("...appears once you are far from today",
+   run(`document.getElementById('pmixNow').classList.contains('on')`));
+run(`document.getElementById('pmixNow').click();`);
+ok("...and tapping it returns to the right edge",
+   run(`document.getElementById('pmixWrap').scrollLeft`) === 2000);
+
+// motion
+const css120 = fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\n/g, "");
+ok("the scroller animates smoothly", /\.pmixwrap\{[^}]*scroll-behavior:smooth/.test(css120));
+ok("...the button fades rather than pops", /\.pmixnow\{[^}]*transition:opacity/.test(css120));
+ok("...and reduced motion turns both off",
+   /prefers-reduced-motion:reduce\)\{[^}]*\.pmixwrap\{scroll-behavior:auto\}[^}]*\.pmixnow\{transition:none\}/.test(css120));
+/* v3.3.122: back-loading is gone, but the same hazard moved \u2014 isolating a
+   part re-renders the plot, and a smooth wrapper would glide the view
+   during the swap. The suppression now lives in pmixSetFocus(). */
+ok("re-rendering for focus suppresses smooth scrolling and restores position",
+   /scrollBehavior='auto'/.test(fs.readFileSync(path.join(dir, "js/stats.js"), "utf8")) &&
+   /wrap\.scrollLeft=keep/.test(fs.readFileSync(path.join(dir, "js/stats.js"), "utf8")));
+
+// ---- v3.3.121: legible in light mode, and matchable ----------------------
+// The light ramp was 600-900 (near-black) because a 3:1 fill floor on a
+// near-white ground FORCES darkness. Floor is 2.0 for stacked fills now.
+const lightGround = groundOf(lightBlk);
+const lightRatios = lParts.map(p => {
+  const a = lumOf(p), b = lumOf(lightGround);
+  return (Math.max(a,b)+0.05)/(Math.min(a,b)+0.05);
+});
+ok("every light fill clears the 2.0 floor", Math.min(...lightRatios) >= 2.0,
+   "range " + Math.min(...lightRatios).toFixed(2) + "-" + Math.max(...lightRatios).toFixed(2));
+ok("...and the ramp is no longer near-black (its lightest is well off the floor)",
+   Math.min(...lightRatios) < 3.0,
+   "lightest " + Math.min(...lightRatios).toFixed(2) + ":1");
+ok("buildcheck enforces the same 2.0 floor it was relaxed to",
+   /_r < 2\.0/.test(fs.readFileSync(path.join(dir, "tools/buildcheck.py"), "utf8")));
+
+// tap-to-isolate: the answer to "which colour is which part"
+run(`view='stats'; render(); PMIX_FOCUS=null; pmixApplyFocus();`);
+ok("nothing is dimmed before you tap",
+   run(`[...document.querySelectorAll('#pmixWrap rect[data-pt]')].every(r=>!r.style.opacity)`));
+run(`pmixSetFocus('Back');`);
+ok("tapping a part dims every other part",
+   run(`[...document.querySelectorAll('#pmixWrap rect[data-pt]')]
+        .every(r=>r.dataset.pt==='Back' ? !r.style.opacity : r.style.opacity==='0.12')`));
+ok("...and marks the legend so the pairing is unambiguous",
+   run(`document.querySelector('.pmixlgd [data-pt="Back"]').classList.contains('on')`) &&
+   run(`document.querySelector('.pmixlgd [data-pt="Chest"]').classList.contains('off')`));
+run(`pmixSetFocus('Back');`);
+ok("tapping the same part again clears the focus",
+   run(`PMIX_FOCUS`) === null &&
+   run(`[...document.querySelectorAll('#pmixWrap rect[data-pt]')].every(r=>!r.style.opacity)`));
+
+// focus must survive a backwards load, which replaces every rect
+run(`pmixSetFocus('Legs');`);
+run(`(function(){const b=document.getElementById('pmixWrap'); b.scrollLeft=0;
+  b.dispatchEvent(new Event('scroll'));})()`);
+ok("focus survives loading older weeks (the new rects get it too)",
+   run(`PMIX_FOCUS`) === "Legs" &&
+   run(`[...document.querySelectorAll('#pmixWrap rect[data-pt]')]
+        .filter(r=>r.dataset.pt!=='Legs').every(r=>r.style.opacity==='0.12')`));
+run(`pmixSetFocus('Legs');`);
+
+// ---- v3.3.123: the readout no longer says the total twice ---------------
+// On a one-part day the part total IS the day total; printing both read as
+// "Legs 6k 6k kg".
+run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
+  const d=new Date(t); d.setDate(d.getDate()-1);
+  DB.days[d.toLocaleDateString('en-CA')]={w:[{part:'Legs',ex:'Squat',w:100,reps:[10],at:1}],upd:1};
+  const e=new Date(t); e.setDate(e.getDate()-2);
+  DB.days[e.toLocaleDateString('en-CA')]={w:[{part:'Legs',ex:'Squat',w:100,reps:[10],at:1},
+                                             {part:'Back',ex:'Row',w:50,reps:[10],at:1}],upd:1};
+  SEED=deriveAll(); view='stats'; render();})()`);
+/* v3.3.125: the per-day readout is gone with the scrubber, so the "6k 6k kg"
+   duplication it fixed can no longer occur \u2014 there is nothing that prints a
+   part total and a day total side by side. The summary line below the chart
+   is the surviving figure, and it is asserted separately. */
+ok("no per-day readout survives to duplicate a total",
+   !/pmixReadout/.test(fs.readFileSync(path.join(dir, "js/stats.js"), "utf8")));
+
+// ---- tapping a bar is tapping its legend --------------------------------
+run(`view='stats'; render(); PMIX_FOCUS=null; pmixApplyFocus();`);
+run(`(function(){const b=document.getElementById('pmixWrap');
+  b.getBoundingClientRect=()=>({left:0,top:0,width:340,height:232,right:340,bottom:232});
+  b.scrollLeft=0;
+  const seg=b.querySelector('rect[data-pt="Back"]');
+  seg.dispatchEvent(new PointerEvent('pointerdown',{pointerId:1,clientX:20,clientY:60,bubbles:true}));
+  b.dispatchEvent(new PointerEvent('pointerup',{pointerId:1,clientX:20,clientY:60,bubbles:true}));})()`);
+ok("tapping a segment isolates that part, exactly like its legend chip",
+   run(`PMIX_FOCUS`) === "Back", run(`PMIX_FOCUS`));
+ok("...and the legend shows it selected",
+   run(`document.querySelector('.pmixlgd [data-pt="Back"]').classList.contains('on')`));
+// a DRAG must scrub, not select
+run(`pmixSetFocus('Back');`);   // clear
+run(`(function(){const b=document.getElementById('pmixWrap');
+  const seg=b.querySelector('rect[data-pt="Back"]');
+  seg.dispatchEvent(new PointerEvent('pointerdown',{pointerId:2,clientX:20,clientY:60,bubbles:true}));
+  b.dispatchEvent(new PointerEvent('pointermove',{pointerId:2,clientX:120,clientY:60,bubbles:true}));
+  b.dispatchEvent(new PointerEvent('pointerup',{pointerId:2,clientX:120,clientY:60,bubbles:true}));})()`);
+ok("dragging across the chart scrubs without selecting anything",
+   run(`PMIX_FOCUS`) === null, String(run(`PMIX_FOCUS`)));
+
+// ---- the summary line ----------------------------------------------------
+const sum = () => run(`document.getElementById('pmixSum').textContent.replace(/\\s+/g,' ').trim()`);
+ok("a summary sits below the chart", run(`!!document.getElementById('pmixSum')`));
+ok("...speaking about all strength work when nothing is selected", /All strength/.test(sum()), sum());
+run(`pmixSetFocus('Legs');`);
+ok("...and about the selected part when one is", /Legs/.test(sum()) && !/All strength/.test(sum()), sum());
+ok("...reporting completed sets, a session count and an average",
+   /\d/.test(sum()) && /completed set/.test(sum()) && /session/.test(sum()) && /avg/.test(sum()), sum());
+ok("...without turning set count into a performance trend",
+   !/%|vs earlier|\bup\b|\bdown\b/i.test(sum()), sum());
+run(`pmixSetFocus('Legs');`);
+
+// ---- the sticky year -----------------------------------------------------
+ok("a year label sits outside the plot", run(`!!document.getElementById('pmixYr')`));
+ok("...and names the year at the current scroll position",
+   /^\d{4}$/.test(run(`document.getElementById('pmixYr').textContent`)),
+   run(`document.getElementById('pmixYr').textContent`));
+// scrolling to a column in a different year must swap it
+run(`(function(){DB.days={}; const mk=(iso,p)=>DB.days[iso]={w:[{part:p,ex:'X',w:40,reps:[10],at:1}],upd:1};
+  for(let i=1;i<=40;i++){const d=new Date('2025-06-01T00:00'); d.setDate(d.getDate()+i);
+    mk(d.toLocaleDateString('en-CA'),'Chest');}
+  for(let i=1;i<=40;i++){const d=new Date('2026-06-01T00:00'); d.setDate(d.getDate()+i);
+    mk(d.toLocaleDateString('en-CA'),'Back');}
+  SEED=deriveAll(); view='stats'; render();
+  const b=document.getElementById('pmixWrap');
+  b.getBoundingClientRect=()=>({left:0,top:0,width:340,height:232,right:340,bottom:232});
+  b.scrollLeft=0; b.dispatchEvent(new Event('scroll'));})()`);
+const yEarly = run(`document.getElementById('pmixYr').textContent`);
+run(`(function(){const b=document.getElementById('pmixWrap');
+  b.scrollLeft=60*PMIX_COLW; b.dispatchEvent(new Event('scroll'));})()`);
+const yLate = run(`document.getElementById('pmixYr').textContent`);
+ok("the year swaps as you scroll across a year boundary",
+   yEarly === "2025" && yLate === "2026", yEarly + " \u2192 " + yLate);
+
+/* ---- v3.3.208: one comparable unit ---------------------------------------
+   Mixed-equipment tonnage is internally computable but not a meaningful
+   cross-session comparison. Session Build therefore counts completed sets:
+   one reps-array element is one block, regardless of weight or equipment.
+   Folded sheet-era rows and current one-row-per-set storage must agree. */
+run(`(function(){DB.days={};
+  const t=new Date(todayISO+'T00:00');
+  const mk=(off,w)=>{const d=new Date(t); d.setDate(d.getDate()-off);
+    DB.days[d.toLocaleDateString('en-CA')]={w,upd:1};};
+  // a sheet-era day stored folded: three exercises, four sets apiece
+  mk(3,[{part:'Back',ex:'Pull Up',w:70,reps:[12,10,10,8],at:1},
+        {part:'Back',ex:'Bent-Over Row',w:61.2,reps:[20,20,15,20],at:1},
+        {part:'Back',ex:'Lat Pull Down',w:45,reps:[10,10,10,10],at:1}]);
+  // and a day stored unfolded, one entry per set
+  mk(5,[{part:'Chest',ex:'Press',w:40,reps:[10],at:1},
+        {part:'Chest',ex:'Press',w:40,reps:[10],at:1},
+        {part:'Legs',ex:'Squat',w:80,reps:[8],at:1}]);
+  mk(7,[{part:'Back',ex:'Row',w:30,reps:[10,15,10,15],at:1},
+        {part:'Run',ex:'Run',w:5,reps:[],mins:30,secs:0,at:1}]);
+  SEED=deriveAll(); view='stats'; render();})()`);
+
+const mism = run(`JSON.stringify((function(){
+  const bad=[];
+  for(const r of partMix(999)){
+    const w=(DB.days[r.d]||{}).w||(SEED.sessions[r.d]||[]);
+    const truth=w.filter(s=>s.part!=='Run'&&s.ex!=='Run')
+      .reduce((a,s)=>a+((s.reps||[]).length),0);
+    if(truth!==r.total) bad.push({d:r.d,chart:r.total,sets:truth});
+  }
+  return bad;})())`);
+ok("partMix agrees with completed-set truth on every day",
+   JSON.parse(mism).length === 0, mism);
+
+ok("the folded three-exercise day reads as twelve completed sets",
+   run(`(function(){const t=new Date(todayISO+'T00:00'); const d=new Date(t); d.setDate(d.getDate()-3);
+     const iso=d.toLocaleDateString('en-CA');
+     return (partMix(999).find(r=>r.d===iso)||{}).total;})()`) === 12);
+
+// folded and unfolded storage must give the same answer for the same work
+ok("a folded entry and four separate sets total the same",
+   run(`(function(){
+     const folded=[{part:'Back',ex:'Row',w:30,reps:[10,15,10,15],at:1}];
+     const split=[10,15,10,15].map(r=>({part:'Back',ex:'Row',w:30,reps:[r],at:1}));
+     const sets=a=>a.reduce((s,x)=>s+(x.reps||[]).length,0);
+     return sets(folded)===sets(split) && sets(folded)===4;})()`));
+
+// partMix must never drift back to mixed-equipment tonnage
+const utilSrc124 = fs.readFileSync(path.join(dir, "js/util.js"), "utf8");
+// slice to the NEXT function declaration \u2014 a brace-matching regex trips on
+// the nested for-loops inside partMix
+const pmStart = utilSrc124.indexOf("function partMix(days){");
+const pmBody = utilSrc124.slice(pmStart, utilSrc124.indexOf("\nfunction ", pmStart + 10));
+/* strip comments before grepping the body \u2014 the fix's own comment explains
+   what `reps[0]` used to do, and an un-stripped grep flags the explanation
+   as if it were the bug. Exactly the v3.3.106 failure, in a new place. */
+const pmCode = pmBody.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/[^\n]*/g, "$1");
+ok("partMix counts reps-array entries and never computes tonnage",
+   /\(s\.reps\|\|\[\]\)\.length/.test(pmCode) &&
+   !/volOf\(s\)|s\.w\s*\*/.test(pmCode),
+   /volOf\(s\)/.test(pmCode) ? "still calls volOf" : "set count only");
+
+// ---- v3.3.126: what an empty-space tap means depends on the state --------
+run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
+  const mk=(off,parts)=>{const d=new Date(t); d.setDate(d.getDate()-off);
+    DB.days[d.toLocaleDateString('en-CA')]={
+      w:parts.map(p=>({part:p,ex:'X',w:40,reps:[10],at:1})),upd:1};};
+  mk(1,['Legs']); mk(2,['Chest']); mk(3,['Back']);
+  for(let i=4;i<14;i++) mk(i,['Chest']);
+  SEED=deriveAll(); view='stats'; render();
+  const b=document.getElementById('pmixWrap');
+  b.getBoundingClientRect=()=>({left:0,top:0,width:340,height:186,right:340,bottom:186});
+  b.scrollLeft=0; PMIX_FOCUS=null; pmixApplyFocus();})()`);
+
+const N = run(`partMix(999).length`);
+const tapEmpty = (col) => run(`(function(){const b=document.getElementById('pmixWrap');
+  const x=8+${col}*PMIX_COLW+3;
+  const bg=b.querySelector('rect[data-col="${col}"]');
+  bg.dispatchEvent(new PointerEvent('pointerdown',{pointerId:9,clientX:x,clientY:12,bubbles:true}));
+  b.dispatchEvent(new PointerEvent('pointerup',{pointerId:9,clientX:x,clientY:12,bubbles:true}));})()`);
+
+// nothing followed yet: empty space still picks a single-part column
+tapEmpty(N - 1);
+ok("with nothing followed, empty space still selects that column's part",
+   run(`PMIX_FOCUS`) === "Legs", String(run(`PMIX_FOCUS`)));
+
+// now following Legs: empty space over a DIFFERENT column must RELEASE,
+// not silently switch to whatever is under the finger
+tapEmpty(N - 3);
+ok("while following one, empty space over another column releases instead of switching",
+   run(`PMIX_FOCUS`) === null, String(run(`PMIX_FOCUS`)));
+
+// but landing on an actual segment still switches
+run(`pmixSetFocus('Chest');`);
+run(`(function(){const b=document.getElementById('pmixWrap');
+  const seg=b.querySelector('rect[data-pt="Back"]');
+  seg.dispatchEvent(new PointerEvent('pointerdown',{pointerId:10,clientX:30,clientY:100,bubbles:true}));
+  b.dispatchEvent(new PointerEvent('pointerup',{pointerId:10,clientX:30,clientY:100,bubbles:true}));})()`);
+ok("...while landing on a real segment switches to it",
+   run(`PMIX_FOCUS`) === "Back", String(run(`PMIX_FOCUS`)));
+run(`pmixSetFocus('Back');`);
+
+// ---- the newest column is marked ----------------------------------------
+ok("exactly one column is marked latest",
+   run(`document.querySelectorAll('#pmixWrap .pmixcol.latest').length`) === 1);
+ok("...and it is the last one",
+   run(`+document.querySelector('#pmixWrap .pmixcol.latest').dataset.col`) === N - 1,
+   run(`document.querySelector('#pmixWrap .pmixcol.latest').dataset.col`) + " of " + (N-1));
+const css126 = fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\n/g, "");
+ok("...it pulses",
+   /\.pmixcol\.latest\{[^}]*animation:pmixlatest/.test(css126));
+ok("...and holds still under reduced motion",
+   /prefers-reduced-motion:reduce\)\{[^}]*\.pmixcol\.latest(?:,\.pmixseg\.latest)?\{animation:none/.test(css126));
+/* the pulse must sit on the COLUMN, never the bars: a CSS animation beats
+   inline style, so animating the bars would override the opacity that
+   focus-dimming sets and the two would fight. */
+ok("the pulse never touches the bars themselves",
+   !/rect\[data-pt\][^{]*\{[^}]*animation:pmixlatest/.test(css126));
+
+// ---- v3.3.208: every visible unit is one completed set ------------------
+ok("the chart defines one reusable set-block pattern",
+   run(`!!document.querySelector('#pmixWrap pattern#pmixBrick')`) === true);
+ok("every stacked day receives a set-block overlay",
+   run(`document.querySelectorAll('#pmixWrap rect[data-bricks]').length`) ===
+   run(`partMix(999).filter(r=>r.total>0).length`));
+ok("the overlay records the day's exact completed-set count",
+   run(`+document.querySelector('#pmixWrap rect[data-bricks].latest').dataset.bricks`) ===
+   run(`partMix(999).at(-1).total`));
+ok("the latest segments rise when the chart re-renders",
+   /\.pmixseg\.latest\{[^}]*animation:pmixrise/.test(css126));
+ok("...and the rise also stops under reduced motion",
+   /prefers-reduced-motion:reduce\)\{[^}]*\.pmixcol\.latest,\.pmixseg\.latest\{animation:none/.test(css126));
+
+run(`(function(){DB.days={};
+  DB.days[todayISO]={w:[{part:'Chest',ex:'Press',w:40,reps:[10],at:Date.now()}],upd:Date.now()};
+  SEED=deriveAll(); view='stats'; render();})()`);
+ok("an active today's newest column uses the live state",
+   run(`document.querySelector('#pmixWrap .pmixcol.latest').classList.contains('live')`) === true &&
+   /\.pmixcol\.latest\.live\{fill:var\(--live\)/.test(css126));
+
+// ---- spacing -------------------------------------------------------------
+ok("the legend and the hint have room before the chart",
+   /\.pmixlgd\{[^}]*margin:0 0 14px/.test(css126) &&
+   /\.pmixread\{[^}]*margin:0 0 14px/.test(css126));
+ok("the left gutter is narrower", run(`PMIX_AXW`) === 25, "axis width " + run(`PMIX_AXW`));
+
+// ---- v3.3.208: set-count ticks are whole numbers ------------------------
+ok("axis ticks speak in whole completed sets",
+   run(`pmixTick(12.4)`) === "12" && run(`pmixTick(15.6)`) === "16",
+   [run(`pmixTick(12.4)`), run(`pmixTick(15.6)`)].join(" "));
+ok("...through the app's own formatter",
+   /const pmixTick=v=>fmt\(Math\.round\(v\)\)/.test(fs.readFileSync(path.join(dir, "js/stats.js"), "utf8")));
+
+process.exit(fail ? 1 : 0);

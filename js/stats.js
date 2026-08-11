@@ -275,4 +275,874 @@ function bwCard(){
     }
     body=head+chart;
   }
-  return `<h2 id="secWeight">Weight${hActs('bw',"Flat stretches are day×]¸âÚ$z{-®éÜj×¶CÆVæC¶B³Ó"—°¢6öç7BƒÓ#²†Bó3cb’£3"Â—“Ó“Ö7W'fU¶EÒ£s°¢G2³ÖG·‚çFôf—†VBƒ—ÒÂG·—’çFôf—†VBƒ—Ò°¢Ğ¢6öç7B7W#×“ÓÓ×F†—5–V#°¢‚³ÖÇöÇ–Æ–æRFF×—#Ò"G·—Ò"ö–çG3Ò"G·G7Ò"f–ÆÃÒ&æöæR"7G&ö¶SÒ"Gµ”T%ô4ôÄõ%5·•×ÇÂwf"‚ÒÖ×WFVB’wÒ ¢7G&ö¶R×v–GFƒÒ"G¶7W#ó"ã#£ãÒ"÷6—G“Ò"G¶7W#ó¢ãwÒ"7G&ö¶RÖÆ–æV¦ö–ãÒ'&÷VæB#ãÂ÷öÇ–Æ–æSæ°¢6öç7BÇƒÓ#²‚†VæBÓ’ó3cb’£3"ÂÇ“#Ó“Ö7W'fU¶VæBÓÒ£s°¢VæDÆ&VÇ2çW6‚‡·’ÆÇ‚ÆÇ“¦Ç“"Æ7W"Ç7C¤ÖF‚ç&÷VæB†7W'fU¶VæBÓÒ£—Ò“°¢–b†7W"’‚³ÖÆ6—&6ÆR6Æ73Ò&&V6öâ"7ƒÒ"G¶Ç‡Ò"7“Ò"G¶Ç“'Ò"#Ò#2ã""f–ÆÃÒ'f"‚ÒÖ66VçB’#ãÂö6—&6ÆSæ°¢Ğ¢VæDÆ&VÇ2ç6÷'B‚†Æ"“ÓææÇ’Ö"æÇ’“°¢f÷"†ÆWB“Ó¶“ÆVæDÆ&VÇ2æÆVæwFƒ¶’²²¢–b†VæDÆ&VÇ5¶•ÒæÇ’ÖVæDÆ&VÇ5¶’ÓÒæÇ“Ã‚’VæDÆ&VÇ5¶•ÒæÇ“ÖVæDÆ&VÇ5¶’ÓÒæÇ’³ƒ°¢f÷"†6öç7BÂöbVæDÆ&VÇ2¢‚³ÖÇFW‡BFF×—#Ò"G´Âç—Ò"ƒÒ"G´ÖF‚æÖ–â„ÂæÇ‚³BÃ3"’çFôf—†VBƒ—Ò"“Ò"G²„ÂæÇ’³"ãR’çFôf—†VBƒ—Ò"föçBÖfÖ–Ç“Ò'f"‚ÒÖÖöæò’"föçB×6—¦SÒ#r ¢f–ÆÃÒ"Gµ”T%ô4ôÄõ%5´Âç•×ÇÂwf"‚ÒÖ×WFVB’wÒ"föçB×vV–v‡CÒ"G´Âæ7W#ós£CÒ#âG´Âç7GÒSÂ÷FW‡Cæ°¢‚³ÖÂ÷7fsãÂöF—cãÂöF—cæ²òòc2ã2ã#¢6†&RÖ÷fVBFòF†R†VFW  ¢òò†VFÖ¢#bvVV·2ÂvVV¶F’&–ÂöâF†RÆVgBÂÖöçF‡27&÷72F†RF÷ ¢6öç7BFWF–ÃÖÆÄF—2‚“°¢7WB‚v6öç2r“°¢‚³ÖÆƒ#äÆ7BbÖöçF‡2G¶„7G2‚v†VBrÂtöæR6öÇVÖâW"vVV²âf–ÆÆVB7V&W2&RG&–æVBF—2ârÂt&÷WBF†RbÖÖöçF‚†VFÖr—ÓÂöƒ#ãÆF—b6Æ73Ò&6&B#ãÆF—b6Æ73Ò&†VGw&#à¢ÆF—b6Æ73Ò'vG&–Â#âGµ²u2rÂtÒrÂuBrÂurrÂuBrÂtbrÂu2uÒæÖ†CÓæÇ7ãâG¶GÓÂ÷7ãæ’æ¦ö–â‚rr—ÓÂöF—cà¢ÆF—b6Æ73Ò&†VF6öÇ2#ãÆF—b6Æ73Ò&†VG67&öÆÂ#æ°¢6öç7B7F'C#ÖæWrFFR‡FöF”•4ò²uC£r“°¢7F'C"ç6WDFFR‡7F'C"ævWDFFR‚’×7F'C"ævWDF’‚’Ó#R£r“°¢ÆWB×&÷sÒrrÂw&–CÒrrÂÆ7DÓÒÓ°¢f÷"†ÆWBsÓ·sÃ#c·r²²—°¢6öç7Bf—'7CÖæWrFFR‡7F'C"“²f—'7Bç6WDFFR‡7F'C"ævWDFFR‚’·r£r“°¢6öç7BÓÖf—'7BævWDÖöçF‚‚“°¢×&÷r³ÖÇ7â6Æ73Ò&ÖÆ"#âG¶ÒÓÖÆ7DÓöf—'7BçFôÆö6ÆTFFU7G&–ær‚vVâÕU2rÇ¶ÖöçFƒ¢w6†÷'BwÒ“¢rwÓÂ÷7ãæ°¢Æ7DÓÖÓ°¢w&–B³ÖÆF—b6Æ73Ò'v²#æ°¢f÷"†ÆWBFCÓ¶FCÃs¶FB²²—°¢6öç7B3ÖæWrFFR‡7F'C"“²2ç6WDFFR‡7F'C"ævWDFFR‚’·r£r¶FB“°¢6öç7B—6óÖ2çFôÆö6ÆTFFU7G&–ær‚vVâÔ4r“°¢6öç7BgWGW&SÖ—6óçFöF”•4ó°¢w&–B³ÖÆ’FFÖÃÒ"G¶FFW2æ†2†—6ò“ó#£Ò"6Æ73Ò"G¶—6óÓÓ×FöF”•4óòwFöF’s¢rwÒG¶gWGW&SòvgWBs¢rwÒ"F—FÆSÒ"G¶—6÷Ò#ãÂö“æ°¢Ğ¢w&–B³ÖÂöF—cæ°¢Ğ¢‚³ÖÆF—b6Æ73Ò&×&÷r#âG¶×&÷wÓÂöF—cãÆF—b6Æ73Ò&†VB#âG¶w&–GÓÂöF—cãÂöF—cæ°¢‚³ÖÂöF—cãÂöF—cãÂöF—cæ° ¢òòF—2W"ÖöçF‚&'0¢6öç7B×3Ôö&¦V7BæVçG&–W2†ÖöçF„6÷VçG2’ç6÷'B‚’ç6Æ–6R‚Ó"“°¢6öç7BF”ödÖöçFƒÒ·FöF”•4òç6Æ–6Rƒ‚“°¢6öç7BF—4–äÖöçFƒÖæWrFFR‚·F†—5–V"Â¶ÖöçF„¶W’ç6Æ–6RƒR’Ã’ævWDFFR‚“°¢6öç7BG&–æVEF†—3ÖÖöçF„6÷VçG5¶ÖöçF„¶W•×ÇÃ°¢7WB‚vÆ7Cbr“°¢‚³ÖÆƒ#äF—2'’ÖöçF‚G¶„7G2‚vF&ÒrÂuF†RF6†VBÆ–æRÖ&·2#F—2ârÂt&÷WBF†RÖöçF†Ç’6†'Br—ÓÂöƒ#ãÆF—b6Æ73Ò&6&B#à¢ÆF—b6Æ73Ò'¦ööÖ†–çB#ç–æ6‚Fò¦ööÓÂöF—cà¢ÆF—b6Æ73Ò'¦ööÒ"FF×¦ööÓà¢Ç7frf–Wt&÷ƒÒ#33S"7G–ÆSÒ'v–GFƒ£S¶†V–v‡C¦WFò#à¢ÆÆ–æRƒÒ#‚"“Ò"G³#bÓ#ó3£'Ò"ƒ#Ò#3b"“#Ò"G³#bÓ#ó3£'Ò"7G&ö¶SÒ'f"‚ÒÖÆ–æR’"7G&ö¶R×v–GFƒÒ#ãb"7G&ö¶RÖF6†'&“Ò#"2#ãÂöÆ–æSà¢ÇFW‡BƒÒ#3’"“Ò"G³#‚Ó#ó3£'Ò"föçBÖfÖ–Ç“Ò'f"‚ÒÖÖöæò’"föçB×6—¦SÒ#r"f–ÆÃÒ'f"‚ÒÖ×WFVB’#ã#Â÷FW‡Cæ°¢×2æf÷$V6‚‚…¶ÒÆåÒÆ’“Óç°¢6öç7B7W#ÖÓÓÓÖÖöçF„¶W“°¢6öç7B&ƒÔÖF‚æÖ‚ƒ"Æâó3£"’ÂƒÓ‚¶’£#RãS²òòc2ã2ã#“¢7âƒÓâ"Â&6VÆ–æR“BÓâ#`¢–b†7W"—²òòF6†VB÷WFÆ–æRÒF—2VÆ6VBÂ6ò6†÷'B&"—6âwBÖ—7&V@¢6öç7BvƒÖF”ödÖöçF‚ó3£#°¢‚³ÖÇ&V7BƒÒ"G·‡Ò"“Ò"G³#bÖv‡Ò"v–GFƒÒ#r"†V–v‡CÒ"G¶v‡Ò"'ƒÒ#2"f–ÆÃÒ&æöæR ¢7G&ö¶SÒ'f"‚ÒÖ66VçB’"7G&ö¶R×v–GFƒÒ#ã‚"7G&ö¶RÖF6†'&“Ò#""#ãÂ÷&V7Cæ°¢Ğ¢‚³ÖÇ&V7B6Æ73Ò&v&""ƒÒ"G·‡Ò"“Ò"G³#bÖ&‡Ò"v–GFƒÒ#r"†V–v‡CÒ"G¶&‡Ò"'ƒÒ#2"f–ÆÃÒ'f"‚ÒÖ66VçB’"÷6—G“Ò"G¶7W#ó¢ãSWÒ#ãÂ÷&V7Cæ°¢–b†7W"—°¢òòG&–æVB6÷VçB6—G2”å4”DRF†Rf–ÆÃ²F†RçVÖ&W"&÷fRF†RF6†W2—2F—2VÆ6V@¢6öç7BvƒÖF”ödÖöçF‚ó3£#°¢‚³ÖÇFW‡BƒÒ"G·‚³‚ãWÒ"“Ò"G³#bÖv‚Ó7Ò"FW‡BÖæ6†÷#Ò&Ö–FFÆR"föçBÖfÖ–Ç“Ò'f"‚ÒÖÖöæò’"föçB×6—¦SÒ#r"f–ÆÃÒ'f"‚ÒÖ×WFVB’#âG¶F”ödÖöçF‡ÓÂ÷FW‡Cà¢ÇFW‡BƒÒ"G·‚³‚ãWÒ"“Ò"G´ÖF‚æÖ–âƒ#2Ã#bÖ&‚³’—Ò"FW‡BÖæ6†÷#Ò&Ö–FFÆR"föçBÖfÖ–Ç“Ò'f"‚ÒÖÖöæò’"föçB×6—¦SÒ#r"föçB×vV–v‡CÒ#s"f–ÆÃÒ"6ffb#âG¶çÓÂ÷FW‡Cæ°¢ÖVÇ6W°¢‚³ÖÇFW‡BƒÒ"G·‚³‚ãWÒ"“Ò"G³#bÖ&‚Ó7Ò"FW‡BÖæ6†÷#Ò&Ö–FFÆR"föçBÖfÖ–Ç“Ò'f"‚ÒÖÖöæò’"föçB×6—¦SÒ#r"f–ÆÃÒ'f"‚ÒÖ×WFVB’#âG¶çÓÂ÷FW‡Cæ°¢Ğ¢‚³ÖÇFW‡BƒÒ"G·‚³‚ãWÒ"“Ò#3’"FW‡BÖæ6†÷#Ò&Ö–FFÆR"föçBÖfÖ–Ç“Ò'f"‚ÒÖÖöæò’"föçB×6—¦SÒ#r"f–ÆÃÒ"G¶7W#òwf"‚ÒÖ66VçB’s¢wf"‚ÒÖ×WFVB’wÒ#âG¶Òç6Æ–6RƒR—ÓÂ÷FW‡Cæ°¢Ò“°¢‚³ÖÂ÷7fsãÂöF—cà¢ÆF—b6Æ73Ò'F÷B#ãÇ7ããÆ#âG·G&–æVEF†—7ÓÂö#âG&–æVB+rG¶F”ödÖöçF‚×G&–æVEF†—7Ò&W7FVCÂ÷7ããÇ7ãâG¶F”ödÖöçF‡ÒF—2–çFòG¶ÖöçF„¶W’ç6Æ–6RƒR—ÓÂ÷7ããÂöF—cãÂöF—cæ° ¢òòÖöçF†Ç’¶Ò(	BF†R'VâF"÷vç2F†R6†'G2æ÷s²F†—2Ö7F–ÆÂfVVG2F†P¢òò6ö×÷6—F–öâ÷fW&Æ’gW'F†W"F÷vâà¢6öç7B¶Ô'“×·Ó°¢f÷"†6öç7B¶ÒÇeÒöbö&¦V7BæVçG&–W2…4TTBæÖöçF†Ç’’’¶Ô'•¶ÕÓ×bæ¶×ÇÃ°¢f÷"†6öç7B¶BÇeÒöbö&¦V7BæVçG&–W2„D"æF—2’—°¢–b†CÃÕ4TTBçF÷FÇ2æÆ7B’6öçF–çVS°¢f÷"†6öç7B2öbbçr’–b‡2æWƒÓÓÒu'Vâr’¶Ô'•¶Bç6Æ–6RƒÃr•ÓÒ†¶Ô'•¶Bç6Æ–6RƒÃr•×ÇÃ’·2çs°¢Ğ ¢òòv†–6‚vVV¶F—2–÷R6†÷rW(	BÆ7B3cRF—2Âöââ'6öÇWFR(	3R66ÆP¢6öç7B÷vC×vDF—7B‚“²òòc2ã2ãC¢öæR6÷W&6RÂ7fr²6&@¢6öç7BvE7CÕ÷vBç7C°¢6öç7BvD&W7CÔÖF‚æÖ‚‚ââçvE7B“°¢ò¢c2ã2ãCc¢F†R66VçBÖ&·2DôD’w2vVV¶F’(	BF†R&÷r–÷Rw&R7FæF–ær–â(	@¢æ÷BF†R7FF—7F–6ÆÇ’7G&öævW7BöæRâF†R7G&öævW7B7F–ÆÂvWG2V–W@¢6&WB&÷fR—G2&"6òF†RGFW&â7F—2f—6–&ÆRv—F†÷WB6ö×WF–ærv—F€¢FöF’f÷"F†RöæRÆ÷VB6öÆ÷W"â…F–W3¢f—'7BÖF6‚v–ç2F†R6&WC²FöF¢Çv—2v–ç2F†R66VçBWfVâ–bFöF’—2Ç6òF†R7G&öævW7Bâ’¢ğ¢6öç7BvEFöF“ÖæWrFFR‡FöF”•4ò²uC£r’ævWDF’‚“°¢6öç7B&W7D“×vE7Bæ–æFW„öb‡vD&W7B“°¢7WB‚vF&Òr“°¢‚³ÖÆƒ#åvVV¶F—2G¶„7G2‚wvBrÂuÇS#V#"Ö&·2–÷W"7G&öævW7BvVV¶F’â&ÇVR—2FöF’ârÂt&÷WBF†RvVV¶F’6†'Br—ÓÂöƒ#ãÆF—b6Æ73Ò&6&B#à¢Ç7frf–Wt&÷ƒÒ#33S"7G–ÆSÒ'v–GFƒ£S¶†V–v‡C¦WFò#æ²òòc2ã2ã#“¢(i#S‡c2ã2ã2†B7WBC(i#ƒ²BF†B†V–v‡BF†R6&WBæBF†RRÆ&VÂ†Bæ÷v†W&RFòvò¢f÷"†6öç7Bröb³Ã#RÃSÃsRÃÒ—°¢6öç7B“Ó#bÖró£3²òòc2ã2ã#“¢&6VÆ–æR“N(i##bÂ7âƒ(i#0¢‚³ÖÆÆ–æRƒÒ##B"“Ò"G·—Ò"ƒ#Ò#3b"“#Ò"G·—Ò"7G&ö¶SÒ'f"‚ÒÖÆ–æR’"7G&ö¶R×v–GFƒÒ#ãb"G¶sòw7G&ö¶RÖF6†'&“Ò#"2"s¢rwÓãÂöÆ–æSà¢ÇFW‡BƒÒ##"“Ò"G·’³7Ò"FW‡BÖæ6†÷#Ò&VæB"föçBÖfÖ–Ç“Ò'f"‚ÒÖÖöæò’"föçB×6—¦SÒ#r"f–ÆÃÒ'f"‚ÒÖ×WFVB’#âG¶wÓÂ÷FW‡Cæ°¢Ğ¢²u2rÂtÒrÂuBrÂurrÂuBrÂtbrÂu2uÒæf÷$V6‚‚†Æ"Æ’“Óç°¢6öç7B×vE7E¶•ÒÂFöF“Ö“ÓÓ×vEFöF’Â&W7CÖ“ÓÓÖ&W7D“°¢6öç7B&ƒÔÖF‚æÖ‚ƒ"Ç£2’ÂƒÓ3"¶’£C°¢‚³ÖÇ&V7B6Æ73Ò&v&"vBÖ6öÂ"ƒÒ"G·‡Ò"“Ò"G³#bÖ&‡Ò"v–GFƒÒ##b"†V–v‡CÒ"G¶&‡Ò"'ƒÒ#B ¢f–ÆÃÒ"G·FöF“òwf"‚ÒÖ66VçB’s¢wf"‚ÒÖ66VçBÖF–Ò’wÒ"÷6—G“Ò"G·FöF“ó¢ãgÒ#ãÂ÷&V7Cæ°¢ò¢c2ã2ã#“¢öæR7F6²ÂÇv—2F†R6ÖR÷&FW"(	B&"ÂF†VâRB&÷fR—BÀ¢F†VâF†R6&WB&÷fRF†BâF†RöÆB6öFR'&æ6†VBF†RR÷6—F–öâöà¢FöF’ö&W7BæBWBF†R6&WBBf—†VB‚&÷fRF†R&"Â6òF’F†@¢v2$õD‚FöF’æB7G&öævW7B…GVRÂ–âF†Rf–VÆB&W÷'B’G&WrF†VÒ@¢Væ—G2'BÂöâF÷öbV6‚÷F†W"â÷6—F–öâæòÆöævW"FWVæG2öà¢v†–6‚fÆw2&R6WBÂ6òæò6öÖ&–æF–öâ6â6öÆÆ–FRâ¢ğ¢6öç7B7E“Ó#bÖ&‚ÓC°¢‚³ÖÇFW‡BƒÒ"G·‚³7Ò"“Ò"G·7E—Ò"FW‡BÖæ6†÷#Ò&Ö–FFÆR"föçBÖfÖ–Ç“Ò'f"‚ÒÖÖöæò’"föçB×6—¦SÒ#‚"f–ÆÃÒ"G·FöF“òwf"‚ÒÖ66VçB’s¢wf"‚ÒÖ×WFVB’wÒ"föçB×vV–v‡CÒ"G·FöF“ós£CÒ#âG´ÖF‚ç&÷VæB‡£—ÒSÂ÷FW‡Cæ°¢–b†&W7B’‚³ÖÇFW‡BƒÒ"G·‚³7Ò"“Ò"G·7E’ÓÒ"FW‡BÖæ6†÷#Ò&Ö–FFÆR"föçBÖfÖ–Ç“Ò'f"‚ÒÖÖöæò’"föçB×6—¦SÒ#’"f–ÆÃÒ'f"‚ÒÖ×WFVB’#î)k#Â÷FW‡Cæ°¢‚³ÖÇFW‡BƒÒ"G·‚³7Ò"“Ò#C"FW‡BÖæ6†÷#Ò&Ö–FFÆR"föçBÖfÖ–Ç“Ò'f"‚ÒÖÖöæò’"föçB×6—¦SÒ#’"f–ÆÃÒ"G·FöF“òwf"‚ÒÖ6†Æ²’s¢wf"‚ÒÖ×WFVB’wÒ"föçB×vV–v‡CÒ"G·FöF“ós£CÒ#âG¶Æ'ÓÂ÷FW‡Cæ°¢Ò“°¢‚³ÖÂ÷7fsãÆF—b6Æ73Ò&æ÷FR#âRöbV6‚vVV¶F’G&–æVBÂÆ7B3cRF—2+r)k"–÷W"7G&öævW7CÂöF—cãÂöF—cæ° ¢òòÖöçF‚Ö'’ÖÖöçF‚6ö×÷6—F–öâ(	BF†R6†VWBw2%v†–6‚'BÒ’Ö—76–ær÷WCò"6†'@¢ò¢c2ãã3¢F†R7F6¶VBÖÖöçF‡26†'BæBF†R&F"&RvöæR…7Væv¦VRw0¢fW&F–7C¢öæRæVVFVB67&öÆÆ–ærÂF†R÷F†W"&ö×FVBæ÷F†–ær’â&WÆ6VB'¢Gvò67&öÆÂÖg&VRf–Ww2F†BV6‚ç7vW"ôäRVW7F–öââ¢ğ ¢ò¢ÒÒÒ$†fR’¶WB6†÷v–ærWò"(	BWfW'’ÖöçF‚WfW"ÂöæR67&VVâÒÒÒ¢ğ¢6öç7BövCÖw&–DFF‚“°¢6öç7BÔF—3ÕövBæÔF—2Âw“ÕövBç“Âw“ÕövBç“ÂtÖƒÕövBæÖ‚ÂÓÕövBæÓÂÔæ÷sÕövBæÔæ÷s°¢7WB‚wvBr“°¢‚³ÖÆƒ"–CÒ'6V5'G2#äWfW'’ÖöçF‚G¶„7G2‚vÖw&–BrÂtF&¶W"ÖVç2Ö÷&RF—2âFÖöçF‚Fò÷Vâ—BârÂt&÷WBF†RÖöçF‚w&–Br—ÓÂöƒ#ãÆF—b6Æ73Ò&6&B#à¢ÆF—b6Æ73Ò&Öw&–B#ãÇ7ããÂ÷7ãâG²t¤dÔÔ¤¤4ôäBrç7Æ—B‚rr’æÖ†3ÓæÇ7â6Æ73Ò&ÖrÖ‚#âG¶7ÓÂ÷7ãæ’æ¦ö–â‚rr—Ö°¢f÷"†ÆWB“Öw“·“ÃÖw“·’²²—°¢‚³ÖÇ7â6Æ73Ò&Ör×’Ööæò#ârGµ7G&–ær‡’’ç6Æ–6Rƒ"—ÓÂ÷7ãæ°¢f÷"†ÆWBÓÓ¶ÓÃÓ#¶Ò²²—°¢6öç7B³ÖG·—ÒÒGµ7G&–ær†Ò’çE7F'Bƒ"Âsr—Ö°¢6öç7BãÖÔF—5¶µ×ÇÃ°¢6öç7B÷WCÖ³ÆÓÇÆ³æÔæ÷s°¢6öç7BÔÖF‚ç&÷VæB†ÖtÇ††âÆtÖ‚Æ³ÓÓÖÔæ÷r’£“°¢‚³ÖÇ7â6Æ73Ò&ÖrÖ2ÖöæòG¶³ÓÓÖÔæ÷sòv7W"s¢rwÒ"G¶÷WCòrs¦FFÖÖ³Ò"G¶·Ò&Ò7G–ÆSÒ"G¶ãö&6¶w&÷VæC¦6öÆ÷"ÖÖ—‚†–â7&v"Âf"‚ÒÖ66VçB’G¶ÒRÂG&ç7&VçB–¢rwÒ#âG¶÷WCòrs¢†çÇÂ|+rr—ÓÂ÷7ãæ°¢Ğ¢Ğ¢‚³ÖÂöF—cãÆF—b–CÒ&ÖW‡#ãÂöF—cà¢ÂöF—cæ²òòc2ã2ã#¢6†&RÖ÷fVBFòF†R†VFW  ¢7WB‚vVÒr“°¢ò¢c2ã2ã¢$Æ7B3F—2Âg2–÷W"W7VÂ"&VÖ÷fVBöâF†RÖ¶W"w26ÆÂ(	Bæğ¢fÇVRf÷VæB–â—Bâ—G2VçF—&RÆ7C3öG&–gB6ö×WFF–öâvVçBv—F‚—C°¢æ÷F†–ærVÇ6R&VBF†÷6Râ¢ğ¢‚³Ö't6&B‚“²òòc2ã2ãc“¢–÷RÂ&Vf÷&RF†R'BÖ'’×'BG&–g@¢‚³ÖÖôvöÄ6&D…DÔÂ‚“²òòc2ã2ãc#¢F†RvöÂ6—G2VæFW"vV–v‡BÂ&÷fR%Tà¢7WB‚wwBr“° ¢ò¢c2ã2ã3¢%&W÷'B6&B"$UEU$å2Â'WBæ÷B2F†Rc2ã2ã6V7F–öâF†@¢v2&VÖ÷fVBâF†BöæRv2ÖöçF‚×7FWW"v—F‚—G2÷vâ6†&R6&BâF†—0¢öæR—2F†Rw26–ævÆR6†&R7W&f6S¢&÷FFRFòF†R6&B–÷RvçBÂF†Và¢6VæB—BâWfW'’W"×6V7F–öâ6†&R'WGFöâ—2vöæR–âff÷W"öb—Bâ¢ğ¢‚³ÖÆƒ"–CÒ'6V5&W÷'B#å&W÷'B6&BG¶„7G2‚w&WrÂu7v—RFò6&BÂF†Vâ6†&R—B2â–ÖvRârÂt&÷WBF†R&W÷'B6&Br—ÓÂöƒ#à¢ÆF—b6Æ73Ò&6&B&W6&B"–CÒ'&W6&B#à¢ÆF—b6Æ73Ò'&Wæb#à¢Æ'WGFöâ6Æ73Ò'&W""–CÒ'&W&Wb"&–ÖÆ&VÃÒ%&Wf–÷W26&B#î(“Âö'WGFöãà¢ÆF—b6Æ73Ò'&WGFÂ"–CÒ'&WGFÂ#âfæ'7³ÂöF—cà¢Æ'WGFöâ6Æ73Ò'&W""–CÒ'&WæW‡B"&–ÖÆ&VÃÒ$æW‡B6&B#î(£Âö'WGFöãà¢ÂöF—cà¢ÆF—b6Æ73Ò'&WF‡VÖ'w&#ãÆ–Ör–CÒ'&WF‡VÖ""ÇCÒ""6Æ73Ò'&WF‡VÖ"#ãÂöF—cà¢ÆF—b6Æ73Ò&æ÷FR&WF÷G2"–CÒ'&WF÷G2#ãÂöF—cà¢Æ'WGFöâ6Æ73Ò&'Fâ"–CÒ'&W6†&R#å6†&R2–ÖvSÂö'WGFöãà¢Æ'WGFöâ6Æ73Ò&'Fâv†÷7B"–CÒ'&WÆÂ"7G–ÆSÒ&Ö&v–ã£‡‚#å6fRÆÂG·6†&T6&G2‚’æÆVæwF‡ÓÂö'WGFöãà¢ÂöF—cæ°¢7WB‚w&Wr“°¢òò6V7F–öç2VÖ—B–âöæRFV6Æ&VB÷&FW"‡c2ã2ã¢‚Òõ2æ·—2²õ2ç'¢²õ2çÖ—‚²õ2æÖ2²õ2æ–r²õ2æ6öç2²õ2æVÒ²õ2æF&Ò²õ2æÆ7Cb²õ2çvB²õ2çwC° ¢òòF†Rv†öÆR'Vâ7F÷'’Æ—fW2†W&Ræ÷r‡v2—G2÷vâF"–âc"ãB(	B&WfW'FVB¢‚³×'Vå7FG4…DÔÂ‚“° ¢òò&V6÷&G2(	B¶WBÂ'WBFVÖ÷FVB&VÆ÷rF†RF—27F÷'¢‚³ÖÆƒ"–CÒ'6V5&V6÷&G2#å&V6÷&G3Âöƒ#æ°¢f÷"†6öç7B'Böbö&¦V7Bæ¶W—2…4TTBæ6FÆör’—°¢–b‡'CÓÓÒu'Vâr’6öçF–çVS°¢6öç7B&÷w3Ö6Df÷"‡'B’æÖ†SÓå¶RÇ$f÷"†R’ÆW…F–W"†R•Ò’æf–ÇFW"‚…²ÇÒ“Óçæ×sã’ç6÷'B‚†Æ"“Óæ%³Òæ×rÖ³Òæ×r“°¢–b‚&÷w2æÆVæwF‚’6öçF–çVS°¢6öç7B6÷&S×&÷w2æf–ÇFW"‡#Óç%³%ÓÓÓÒvv÷Fòr’Â÷F†W#×&÷w2æf–ÇFW"‡#Óç%³%ÒÓÒvv÷Fòr“°¢‚³ÖÆƒ"6Æ73Ò'V–WB"7G–ÆSÒ&Ö&v–â×F÷£g‚#âG·'GÓÂöƒ#æ°¢–b†6÷&RæÆVæwF‚—°¢‚³ÖÇF&ÆR6Æ73Ò'&V2Ö6÷&R#ãÇG#ãÇFƒä6÷&RW†W&6—6W3Â÷FƒãÇF‚7G–ÆSÒ'FW‡BÖÆ–vã§&–v‡B#åF÷‚GµR‚—Ò“Â÷FƒãÂ÷G#æ°¢6÷&Ræf÷$V6‚‚…¶RÇÒ“Óç¶‚³ÖÇG#ãÇFCãÆ#âG¶WÓÂö#ãÂ÷FCãÇFB6Æ73Ò&â#ãÆ#âG·tF—7‡æ×r—ÓÂö#â9rG·æ×w'Ğ¢Æ'WGFöâ6Æ73Ò'FÖ÷fR"FF×F–W"ÖWƒÒ"G¶WÒ"FF×F–W"×FóÒ&÷F†W""F—FÆSÒ$Ö÷fRFò÷F†W"#î(i3Âö'WGFöããÂ÷FCãÂ÷G#æ·Ò“°¢‚³ÖÂ÷F&ÆSæ°¢Ğ¢–b†÷F†W"æÆVæwF‚—°¢‚³ÖÇF&ÆR6Æ73Ò'&V2Ö÷F†W"#ãÇG#ãÇFƒä÷F†W#Â÷FƒãÇFƒãÂ÷FƒãÂ÷G#æ°¢÷F†W"æf÷$V6‚‚…¶RÇÒ“Óç¶‚³ÖÇG#ãÇFCâG¶WÓÂ÷FCãÇFB6Æ73Ò&â#âG·tF—7‡æ×r—Ò9rG·æ×w'Ğ¢Æ'WGFöâ6Æ73Ò'FÖ÷fR"FF×F–W"ÖWƒÒ"G¶WÒ"FF×F–W"×FóÒ&6÷&R"F—FÆSÒ$Ö÷fRFò6÷&R#î(iÂö'WGFöããÂ÷FCãÂ÷G#æ·Ò“°¢‚³ÖÂ÷F&ÆSæ°¢Ğ¢Ğ ¢‚³Õõ2ç&W²òòc2ã2ã3¢F†RW†—B(	B–÷R†fR6VVâF†RçVÖ&W'2Â†W&R—2F†R&V6V—@ ¢‚³ÖÆƒ#å6WGF–æw3Âöƒ#à¢Æ'WGFöâ6Æ73Ò&'Fâv†÷7B"–CÒ'6WGF–æw4'Fâ#î)©ûˆâ6WGF–æw2Â66÷VçBf×²7–æ3Âö'WGFöãà¢ÆF—b6Æ73Ò&æ÷FR"7G–ÆSÒ'FW‡BÖÆ–vã¦6VçFW"#âG·6W76–öãö6–væVB–â2G·6W76–öâçW6W"æVÖ–ÇÇÂ~(	BwÖ¢tæ÷B6–væVB–â(	BFF—2öâF†—2FWf–6RöæÇ’wÒ+rG´õdU%4”ôçÓÂöF—cæ°¢B‚r7f–Wrr’æ–ææW$…DÔÃÖƒ°¢'¤&–æDÆÂ‚“°¢ò¢c2ã2ãC#¢F†RbÖÖöçF‚†VFÖ'Vç2öÆFW7B(i"æWvW7BÂ6ò—G2FVfVÇ@¢67&öÆÂ÷6—F–öâ6†÷vVB¦çV'’æB†–BFöF’â&²—BBF†R&–v‡@¢VFvR(	BF†R7W'&VçBvVV²—2F†Rv†öÆRö–çBöbF†R7G&—â67&öÆÄÆVgBöà¢F†R67&öÆÆW"—G6VÆbÂæWfW"67&öÆÄ–çFõf–WrÂv†–6‚v÷VÆBG&rF†RvRâ¢ğ¢ò¢c2ã2ã“¢æÆVvVæCG&÷VBg&öÒF†—2Æ—7B(	B—Bw&2æ÷r–ç7FVBö`¢67&öÆÆ–ærÂ6òF†W&R—2æò&–v‡BVFvRFò&²BâF†—2&¶–ærv2F†P¢v÷&¶&÷VæBf÷"F†R67&öÆÆW"†–F–ærF†R7W'&VçB–V"Âv†–6‚—2W†7FÇ¢F†R'Vr—Bf–ÆVBFò&WfVçBâ¢ğ¢Fö7VÖVçBçVW'•6VÆV7F÷$ÆÂ‚ræ†VF6öÇ2Âæ†VBr’æf÷$V6‚†VÃÓç°¢–b†VÂç67&öÆÅv–GFƒæVÂæ6Æ–VçEv–GF‚’VÂç67&öÆÄÆVgCÖVÂç67&öÆÅv–GFƒ°¢Ò“°¢–b‡G—Vöb–çE&W6&CÓÓÒvgVæ7F–öâr’–çE&W6&B‚“²òòc2ã2ã3¢f–ÆÂF†R&W÷'B6&B&Wf–Wp§Ğ  ¢ò¢ÒÒÒÒÒÒÒÒÒÒC3¢Fw&–BÖöçF‚Â—B÷Vç2–âÆ6RÒÒÒÒÒÒÒÒÒÒ¢ğ¦ÆWBöÖW‡³ÖçVÆÃ°¦Fö7VÖVçBæFDWfVçDÆ—7FVæW"‚v6Æ–6²rÆSÓç°¢6öç7B3ÖRçF&vWBæ6Æ÷6W7B‚ræÖrÖ5¶FFÖÖµÒr“²–b‚2’&WGW&ã°¢6öç7B&÷ƒÖFö7VÖVçBævWDVÆVÖVçD'”–B‚vÖW‡r“²–b‚&÷‚’&WGW&ã°¢6öç7B³Ö2æFF6WBæÖ³°¢–b…öÖW‡³ÓÓÖ²—²öÖW‡³ÖçVÆÃ²&÷‚æ–ææW$…DÔÃÒrs²&WGW&ã²Ğ¢öÖW‡³Ö³°¢6öç7B&6SÖæWrFFR‡FöF”•4ò²uC£r“²&6Rç6WDFFRƒ“°¢6öç7BFwCÖæWrFFR†²²rÓC£r“°¢6öç7BöfcÒ†&6RævWDgVÆÅ–V"‚’×FwBævWDgVÆÅ–V"‚’’£"²†&6RævWDÖöçF‚‚’×FwBævWDÖöçF‚‚’“°¢6öç7B&C×&WFF†öfb“²òòc2ã2ã¢F†RöæÇ’&VÖ–æ–ær6ÆÆW ¢&÷‚æ–ææW$…DÔÃÖÆF—b6Æ73Ò&ÖW‡–â#à¢ÆF—b6Æ73Ò'&WÆ–æRÖöæò#âG·&BæÆ&VÇÒ(	BG·&BæäGÒF’G·&BæäCÓÓÓòrs¢w2wÒ+rG¶f×B„ÖF‚ç&÷VæB‡&BçföÂ’—Ò¶r+rG·&Bæ¶ÒçFôf—†VBƒ—ÒG´ER‚—ÒG·&Bæ×ƒãö+r&W7B7G&V²G·&Bæ×‡ÖF¢rwÓÂöF—cà¢ÆF—b6Æ73Ò&ÖW‡F÷G2#âG·&BæF—2æÖ†CÓæÆ’6Æ73Ò"G¶BægWCòvbs¢†BçG#òwBs¢rr—Ò"F—FÆSÒ"G¶BæGÒ#ãÂö“æ’æ¦ö–â‚rr—ÓÂöF—cà¢ÂöF—cæ°§Ò“°  ¢ò¢ÒÒÒÒÒÒÒÒÒÒc2ã2ã3¢F–V"–âç’–õ’ÆVvVæB(	B—6öÆFR—G2Æ–æRÒÒÒÒÒÒÒÒÒÒ¢ğ¦Fö7VÖVçBæFDWfVçDÆ—7FVæW"‚v6Æ–6²rÆSÓç°¢6öç7B–#ÖRçF&vWBæ6Æ÷6W7B‚ræÆVvVæC¶FF×—%Òr“²–b‚–"’&WGW&ã°¢6öç7B6&C×–"æ6Æ÷6W7B‚ræ6&Br“²–b‚6&B’&WGW&ã°¢6öç7B—#×–"æFF6WBç—#°¢6öç7BÖ&·3Ö6&BçVW'•6VÆV7F÷$ÆÂ‚w7fr¶FF×—%ÒÂæÆVvVæC¶FF×—%Òr“°¢–b†6&BæFF6WBç—6VÃÓÓ×—"—°¢FVÆWFR6&BæFF6WBç—6VÃ°¢Ö&·2æf÷$V6‚†ÓÓæÒæ6Æ74Æ—7Bç&VÖ÷fR‚w6VÅ’r’“°¢ÖVÇ6W°¢6&BæFF6WBç—6VÃ×—#°¢Ö&·2æf÷$V6‚†ÓÓæÒæ6Æ74Æ—7BçFövvÆR‚w6VÅ’rÆÒæFF6WBç—#ÓÓ×—"’“°¢Ğ§Ò“° 
+  return `<h2 id="secWeight">Weight${hActs('bw',"Flat stretches are days you didn't weigh in.",'About the weight chart')}</h2><div class="card">${body}</div>`;
+
+}
+/* v3.3.111: sections are cut into a buffer as they're built, then emitted
+   in one declared order at the bottom. Reordering Stats used to mean moving
+   long blocks of markup around; now it means editing one line. The order
+   below is the maker's, from the v3.3.111 review. */
+/* ================= v3.3.181 â€” Rep zones (Stats only) =================
+   Question-addressed: "where do my working sets land?" Born from a real
+   blind spot â€” 12 incline press sets on one day, all under 5 or over 14
+   reps, zero in 6â€“12, and no surface said so. This card is that mirror.
+   Register: counts of SETS (tonnage stays demoted), blunt empty buckets
+   (an empty 6â€“12 renders "0 sets" plainly â€” no warning color; red means
+   live and this is not live), read-only (Stats never writes).
+   Boundaries are named constants with ONE definition site â€” "pairs of
+   numbers that should be one constant" is a recorded anti-pattern here,
+   and buildcheck holds the door. */
+const REPZONE_MAX_STRENGTH=5;      // 1..5 reps  â†’ strength
+const REPZONE_MAX_GROWTH=12;       // 6..12 reps â†’ growth; 13+ â†’ endurance
+const REPZONE_LABELS=[
+  ['<'+(REPZONE_MAX_STRENGTH+1),'strength'],
+  [(REPZONE_MAX_STRENGTH+1)+'\u2013'+REPZONE_MAX_GROWTH,'growth'],
+  [(REPZONE_MAX_GROWTH+1)+'+','endurance']];
+function repZone(reps){
+  return reps<=REPZONE_MAX_STRENGTH?0:reps<=REPZONE_MAX_GROWTH?1:2;
+}
+/* v3.3.185: the window selector is gone (maker's call â€” one more control
+   than the question needs). The window is a CONSTANT, not state; the
+   "only N sessions logged" note still tells the truth when the record is
+   shorter than it. */
+const REPZONE_WINDOW=10;
+/* v3.3.206: dot radius = DOT_MIN + DOT_GROW*sqrt(count-1). The floor makes a
+   single-set dot a real touch target; the growth keeps repeats heavier, so
+   size still encodes count rather than every dot going uniform. */
+const DOT_MIN=5.5,DOT_GROW=2.2;
+/* v3.3.188: Rep zones breaks out per body part â€” one section each, so the
+   part chips are gone and selection is per-part (a lift chosen for Back
+   stays chosen when you scroll past Chest). */
+const rz={grp:null,ex:null};
+/* every date's rows, today included â€” the same merge the day receipt uses,
+   so the mirror reads the canonical record, not a reconstruction */
+function rzAllSessions(){
+  const out=SEED.dates.map(d=>[d,SEED.sessions[d]]);
+  const t=((DB.days[todayISO]||{}).w||[]).map(s2=>[s2.part,s2.ex,s2.w,s2.reps||[],s2.mins,s2.secs,s2.cid]);
+  if(t.length) out.push([todayISO,t]);
+  return out;
+}
+/* v3.3.191: Rep Zones counts by CANONICAL ID, not by the logged string.
+   Renaming an exercise used to split its history into two series â€” the
+   series you were reading would simply lose everything logged under the
+   old name. Ids are resolved from the row's cid when migration has stamped
+   it, else derived from the string (no minting: a read-only view must
+   never write to the record). Display is always the display name. */
+const rowCid=r=>r[6]||canonId(r[1],false)||r[1];
+function rzExercises(){
+  const seen={};
+  for(const [,rows] of rzAllSessions())
+    for(const r of rows) if(r[1]!=='Run'&&(r[3]||[]).length) seen[rowCid(r)]=1;
+  return Object.keys(seen);
+}
+function repZoneData(ex,N){
+  /* "last N sessions OF THAT EXERCISE": days it was actually trained,
+     newest first â€” not last N calendar days */
+  const sess=rzAllSessions()
+    .filter(([,rows])=>rows.some(r=>rowCid(r)===ex&&(r[3]||[]).length))
+    .sort((a,b)=>a[0]<b[0]?1:-1).slice(0,N);
+  const counts=[0,0,0];
+  for(const [,rows] of sess) for(const r of rows){
+    if(rowCid(r)!==ex) continue;
+    for(const rep of (r[3]||[])) counts[repZone(rep)]++;   // reps:[] (runs/cardio) adds nothing
+  }
+  const ds=sess.map(x=>x[0]).sort();
+  return {counts,used:sess.length,first:ds[0],last:ds[ds.length-1]};
+}
+/* v3.3.183: the scatter's dots â€” every set of the window as (weight, reps),
+   AGGREGATED by exact position: count sizes the dot (two identical sets are
+   one bigger dot, never a jittered fake position), and age drives opacity
+   (0 = the newest session; older sessions fade). Recency IS the trend here:
+   weightÃ—reps has no time axis, so a fitted line would be a fiction â€” the
+   cloud's solid edge moving is the honest version. */
+function repZoneSets(ex,N){
+  const sess=rzAllSessions()
+    .filter(([,rows])=>rows.some(r=>rowCid(r)===ex&&(r[3]||[]).length))
+    .sort((a,b)=>a[0]<b[0]?1:-1).slice(0,N);
+  const dots={};
+  sess.forEach(([iso,rows],age)=>{
+    for(const r of rows){
+      if(rowCid(r)!==ex) continue;
+      for(const rep of (r[3]||[])){
+        const k=r[2]+'@'+rep;
+        /* v3.3.206: `last` is the most recent session this exact weight x rep
+           appeared in. Sessions arrive newest-first, so the first one to
+           create the dot is already the latest â€” but take the max anyway
+           rather than depending on the sort order staying that way. */
+        if(!dots[k]) dots[k]={w:r[2],rep,n:0,age,last:iso};
+        dots[k].n++; dots[k].age=Math.min(dots[k].age,age);
+        if(iso>dots[k].last) dots[k].last=iso;
+      }
+    }
+  });
+  return {dots:Object.values(dots),used:sess.length};
+}
+function repZoneScatterSvg(ex){
+  const {dots,used}=repZoneSets(ex,REPZONE_WINDOW);
+  if(!dots.length) return '';
+  /* v3.3.196: the plot's own inset. Band labels now sit ABOVE the plot
+     rather than inside its top edge, and the x-axis sits well below the
+     lowest dot â€” the maker circled dots touching both frames. TOPPAD is
+     the label strip; BOTPAD is axis air. */
+  /* v3.3.205: axis geometry as NAMED GAPS rather than tuned literals, so the
+     two spacings the maker asked about are each one number.
+       AXIS_LAB_X  air between the rotated "weight (kg)" and the tick numbers
+       TICK_GAP_X  air between a y tick number and the plot's left edge
+       TICK_GAP_Y  air between the axis line and the x tick numbers
+       XLAB_GAP    air between the x tick numbers and "reps per set"
+     H is DERIVED from the last of them â€” previously H was fixed and the
+     label was placed from the bottom, so the two moved independently and
+     the gap drifted. */
+  const W=340,TOPPAD=30,BOTPAD=30;
+  const AXIS_LAB_X=9,TICK_GAP_X=8,TICK_GAP_Y=12,XLAB_GAP=13;
+  const X0=52,XW=W-X0-8;                 // was 34: the y label had no room
+  const Y0=TOPPAD+164,YH=Y0-TOPPAD;
+  const H=Y0+TICK_GAP_Y+XLAB_GAP+6;
+  const reps=Math.max(REPZONE_MAX_GROWTH+3,...dots.map(d=>d.rep));
+  const ws=dots.map(d=>d.w);
+  let wLo=Math.min(...ws),wHi=Math.max(...ws);
+  if(wLo===wHi){wLo-=5;wHi+=5;}
+  /* v3.3.189: pad the weight axis so the largest dot never kisses the plot
+     edge. The old 12% was computed before radius existed; the biggest dot
+     is ~8px, so the pad must cover it in DATA units as well as clear the
+     band labels up top. */
+  const span=wHi-wLo, maxR=DOT_MIN+DOT_GROW*Math.sqrt(Math.max(...dots.map(d=>d.n))-1);
+  const pad=Math.max(span*0.18,span*(maxR+6)/Math.max(1,YH));
+  wLo-=pad; wHi+=pad;
+  const x=rep=>X0+(rep/(reps+1))*XW;
+  const y=w2=>Y0-((w2-wLo)/(wHi-wLo))*YH;
+  /* zone bands from the SAME constants as the buckets â€” one definition site.
+     Boundaries sit at n+0.5 so integer reps land inside their band. */
+  const b1=x(REPZONE_MAX_STRENGTH+0.5), b2=x(REPZONE_MAX_GROWTH+0.5);
+  let h2=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto" class="rzscat" aria-label="Weight by reps per set">`;
+  /* v3.3.207: a transparent backdrop over the whole plot. Without it an <svg>
+     only receives pointer events where something is actually drawn, so a
+     finger landing between dots produced NO event and the nearest-dot
+     snapping never ran â€” the exact failure the snapping exists to prevent. */
+  h2+=`<rect class="rzpad" x="${X0}" y="${(Y0-YH).toFixed(1)}" width="${XW}" height="${YH}"
+        fill="transparent"></rect>`;
+  h2+=`<rect x="${b1.toFixed(1)}" y="${(Y0-YH).toFixed(1)}" width="${(b2-b1).toFixed(1)}" height="${YH}"
+        fill="var(--accent)" opacity="0.07"></rect>`;
+  for(const bx of [b1,b2])
+    h2+=`<line x1="${bx.toFixed(1)}" y1="${Y0-YH}" x2="${bx.toFixed(1)}" y2="${Y0}" stroke="var(--line)" stroke-width="0.8" stroke-dasharray="3 3"></line>`;
+  REPZONE_LABELS.forEach(([range],i)=>{
+    const cx=[(X0+b1)/2,(b1+b2)/2,(b2+X0+XW)/2][i];
+    h2+=`<text x="${cx.toFixed(1)}" y="${(Y0-YH-9).toFixed(1)}" text-anchor="middle" font-family="var(--mono)" font-size="7.5" fill="var(--faint)">${range}</text>`;
+  });
+  // y ticks: lo / mid / hi weight
+  for(const wv of [Math.min(...ws),(wLo+wHi)/2,Math.max(...ws)]){
+    const yy=y(wv);
+    h2+=`<line x1="${X0}" y1="${yy.toFixed(1)}" x2="${X0+XW}" y2="${yy.toFixed(1)}" stroke="var(--line)" stroke-width="0.5" stroke-dasharray="2 4"></line>
+        <text x="${X0-TICK_GAP_X}" y="${(yy+2.5).toFixed(1)}" text-anchor="end" font-family="var(--mono)" font-size="7" fill="var(--muted)">${wDisp(wv)}</text>`;
+  }
+  // x ticks every 5 reps
+  for(let rv=5;rv<=reps;rv+=5)
+    h2+=`<text x="${x(rv).toFixed(1)}" y="${Y0+TICK_GAP_Y}" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="var(--muted)">${rv}</text>`;
+  h2+=`<line x1="${X0}" y1="${Y0}" x2="${X0+XW}" y2="${Y0}" stroke="var(--line)" stroke-width="0.8"></line>`;
+  /* v3.3.186: the axes say what they are (maker's ask) */
+  h2+=`<text x="${(X0+XW/2).toFixed(1)}" y="${Y0+TICK_GAP_Y+XLAB_GAP}" text-anchor="middle" font-family="var(--mono)" font-size="7.5" fill="var(--muted)" class="rzxlab">reps per set</text>`;
+  h2+=`<text x="${AXIS_LAB_X}" y="${(Y0-YH/2).toFixed(1)}" text-anchor="middle" font-family="var(--mono)" font-size="7.5" fill="var(--muted)" class="rzylab" transform="rotate(-90 ${AXIS_LAB_X} ${(Y0-YH/2).toFixed(1)})">weight (${U()})</text>`;
+  // dots: newest solid, oldest faint; count sizes
+  for(const d of dots.sort((a,b)=>b.age-a.age)){
+    const op=used>1?(0.35+0.65*(1-d.age/(used-1))):1;
+    /* v3.3.206: radius from the named DOT_MIN/DOT_GROW constants â€” the floor
+       makes a single-set dot a real target, the growth keeps repeats heavier.
+       Count is still the encoding; the dots got bigger, not uniform. */
+    const r=(DOT_MIN+DOT_GROW*Math.sqrt(d.n-1)).toFixed(1);
+    /* v3.3.205: each dot is tappable. The hit target is a transparent circle
+       at a thumb-sized radius behind the visible one â€” a 3px dot is not a
+       tap target, and growing the dot to be tappable would lie about count. */
+    /* the tap target is gone: with snapping, the nearest dot wins from
+       anywhere in the plot, so a per-dot hit circle is dead weight. The dot
+       carries its own geometry for the distance sort instead. */
+    h2+=`<circle class="rzdot" cx="${x(d.rep).toFixed(1)}" cy="${y(d.w).toFixed(1)}" r="${r}"
+          fill="var(--accent)" opacity="${op.toFixed(2)}"
+          data-w="${d.w}" data-rep="${d.rep}" data-n="${d.n}" data-age="${d.age}"
+          data-last="${d.last}"></circle>`;
+  }
+  /* the readout lives in ONE fixed place under the chart instead of floating
+     beside the dot: no positioning maths, nothing to clip at the card edge,
+     and the chart never reflows when it fills. */
+  /* v3.3.206: the selection is a HALO ring, not a stroke on the dot â€” at
+     these radii a stroke reads as "slightly darker", which is exactly the
+     "which one is selected?" problem. A detached ring outside the dot is
+     unmistakable, and being one element it can move with the scrub without
+     touching every circle. */
+  h2+=`<circle class="rzhalo" r="0" cx="0" cy="0" fill="none"
+        stroke="var(--chalk)" stroke-width="1.6" opacity="0" pointer-events="none"></circle>`;
+  h2+=`</svg><div class="rzcap" data-rzcap>&nbsp;</div>`;
+  return h2;
+}
+/* v3.3.198 â€” ONE Rep-zone section. The per-part sections, the three-part
+   default and the expander are all gone (maker's call, one release later):
+   a body-part DROPDOWN plus a single card says the same thing with one
+   control and no scroll. The exercise rail is ordered by SETS LOGGED,
+   most to least â€” the part's centre of gravity by the plainest possible
+   measure â€” and an exercise with no sets never appears, because a rep-zone
+   chart of nothing is not a finding. Parts are visible groups (v3.3.194),
+   so Biceps+Triceps read as Arms and Sixpack as Core. */
+function rzSetsById(){
+  const sets={};
+  for(const [,rows] of rzAllSessions())
+    for(const r of rows){
+      if(r[1]==='Run'||!(r[3]||[]).length) continue;
+      const id=rowCid(r); sets[id]=(sets[id]||0)+r[3].length;
+    }
+  return sets;
+}
+function repZoneSections(){
+  const exs=rzExercises();                       // already sets-only
+  if(!exs.length) return `<h2 class="rzh">Rep zones${hActs('rz','Sets per rep range, last '+REPZONE_WINDOW+' sessions. Bigger dot = a repeated set; newer sessions solid. Runs excluded.','About rep zones')}</h2>
+    <div class="card rzcard"><div class="note">No weighted sets yet. The zones will be here when the sets are.</div></div>`;
+  const sets=rzSetsById();
+  const byPart={};
+  for(const e of exs){
+    const g2=PART_VISIBLE[homePartOf(canonName(e))]||homePartOf(canonName(e))||'Other';
+    (byPart[g2]=byPart[g2]||[]).push(e);
+  }
+  const order=[...VISIBLE_GROUPS.filter(pt=>byPart[pt]),
+               ...Object.keys(byPart).filter(pt=>!VISIBLE_GROUPS.includes(pt))];
+  /* opens on the group that matters today: trained today, else the plan's
+     next pick â€” the same authority as Today's Train-next card */
+  if(!rz.grp||!byPart[rz.grp]){
+    const plan=trainingPlan();
+    const todayG=[...new Set(((DB.days[todayISO]||{}).w||[])
+      .filter(s2=>s2.ex!=='Run'&&(s2.reps||[]).length)
+      .map(s2=>PART_VISIBLE[s2.part]||s2.part))].find(g2=>byPart[g2]);
+    const pickG=PART_VISIBLE[plan.pick]||plan.pick;
+    rz.grp=todayG||(byPart[pickG]?pickG:order[0]);
+  }
+  /* v3.3.199: ordered by TOTAL SETS LOGGED, most first â€” and the number is
+     printed on the chip. The maker read the rail as mis-sorted; with the
+     count invisible there was no way to tell a sorting bug from a surprising
+     history. Now the order is checkable at a glance, and the chip and the
+     comparator read the same value. */
+  const shown=byPart[rz.grp].slice().sort((a,b)=>(sets[b]||0)-(sets[a]||0)
+    ||canonName(a).localeCompare(canonName(b)));
+  if(!rz.ex||!shown.includes(rz.ex)) rz.ex=shown[0];
+  return `<h2 class="rzh">Rep zones${hActs('rz','Sets per rep range, last '+REPZONE_WINDOW+' sessions. Bigger dot = a repeated set; newer sessions solid. Runs excluded.','About rep zones')}</h2>
+    <div class="card rzcard" data-rzcard="${rz.grp}">
+      <select id="rzGrp" class="rzsel" aria-label="Body part">${order.map(g2=>
+        `<option value="${g2}" ${g2===rz.grp?'selected':''}>${g2}</option>`).join('')}</select>
+      <div class="rzlifts">${shown.map(e=>
+        `<button class="chip ${e===rz.ex?'on':''}" data-rzx="${e}" data-rzpart="${rz.grp}"
+          >${canonName(e)}<i>${sets[e]||0}</i></button>`).join('')}</div>
+      <div class="rzbody">${rzBody(rz.ex)}</div>
+    </div>`;
+}
+/* v3.3.198: the lift-chip handler. Deleted TWICE now by rewrites of the
+   surrounding section builder (v3.3.188, and again here) â€” it lives next to
+   the dropdown handler so the two are found and moved together. Swaps the
+   card body in place: no render(), no scroll jump. */
+/* v3.3.206 â€” reading the scatter by touch.
+   Precision was the problem: a dot is a few pixels and a fingertip is not.
+   So the plot snaps to the NEAREST dot from anywhere inside it, measured in
+   SCREEN pixels rather than data units â€” visual proximity is what a finger
+   means, and measuring in data units would make the tall weight axis punish
+   vertical misses more than horizontal ones.
+
+   Snapping is unlimited by design (maker's call): a distance cap would blank
+   the readout mid-drag in empty corners, which reads as broken. The cost is
+   that a far-away dot can be selected, which is why the selection is a halo
+   you cannot miss.
+
+   Gesture grammar follows bindScrub (v3.3.108): the surface is on the
+   tab-swipe blocklist and touch-action:none, so a horizontal drag cannot
+   change tabs and a vertical one cannot scroll the page. The reading STAYS
+   after release. */
+function rzPick(svg,clientX,clientY){
+  const dots=[...svg.querySelectorAll('.rzdot')];
+  if(!dots.length) return null;
+  const box=svg.getBoundingClientRect();
+  const vb=(svg.getAttribute('viewBox')||'0 0 1 1').split(/\s+/).map(Number);
+  const sx=box.width/(vb[2]||1), sy=box.height/(vb[3]||1);
+  let best=null,bd=Infinity;
+  for(const d of dots){
+    const px=box.left+(+d.getAttribute('cx'))*sx;
+    const py=box.top +(+d.getAttribute('cy'))*sy;
+    const dist=(px-clientX)**2+(py-clientY)**2;
+    if(dist<bd){ bd=dist; best=d; }
+  }
+  return best;
+}
+function rzSelect(svg,dot){
+  if(!svg||!dot) return;
+  const halo=svg.querySelector('.rzhalo');
+  if(halo){
+    halo.setAttribute('cx',dot.getAttribute('cx'));
+    halo.setAttribute('cy',dot.getAttribute('cy'));
+    halo.setAttribute('r',String((+dot.getAttribute('r'))+5));
+    halo.setAttribute('opacity','1');
+  }
+  svg.querySelectorAll('.rzdot.on').forEach(c=>c.classList.remove('on'));
+  dot.classList.add('on');
+  const cap=svg.parentNode&&svg.parentNode.querySelector('[data-rzcap]');
+  if(!cap) return;
+  const n=+dot.dataset.n;
+  cap.innerHTML=`<b>${wDisp(+dot.dataset.w)}</b>${U()} \u00d7 <b>${dot.dataset.rep}</b> reps`
+    +(n>1?` \u00b7 ${n} sets`:'')
+    +` \u00b7 ${rzWhen(dot.dataset.last)}`;
+}
+function rzClear(svg){
+  if(!svg) return;
+  const halo=svg.querySelector('.rzhalo');
+  if(halo) halo.setAttribute('opacity','0');
+  svg.querySelectorAll('.rzdot.on').forEach(c=>c.classList.remove('on'));
+  const cap=svg.parentNode&&svg.parentNode.querySelector('[data-rzcap]');
+  if(cap) cap.innerHTML='&nbsp;';
+}
+/* "Aug 7", with the year only when it is not this one */
+function rzWhen(iso){
+  if(!iso) return '';
+  const d=new Date(iso+'T00:00');
+  const opts={month:'short',day:'numeric'};
+  if(iso.slice(0,4)!==todayISO.slice(0,4)) opts.year='numeric';
+  return d.toLocaleDateString('en-US',opts);
+}
+/* one pointer binding for the plot: press, drag, release */
+function bindRzScrub(svg){
+  if(!svg||svg._rzBound) return; svg._rzBound=1;
+  let down=false;
+  const at=e=>rzPick(svg,e.clientX,e.clientY);
+  const start=e=>{
+    if(e.isPrimary===false) return;              // second finger of a pinch
+    down=true;
+    if(svg.setPointerCapture&&e.pointerId!=null){ try{svg.setPointerCapture(e.pointerId);}catch(_){} }
+    const d=at(e);
+    /* pressing the already-selected dot toggles the reading off */
+    if(d&&d.classList.contains('on')){
+      rzClear(svg); down=false; return;
+    }
+    rzSelect(svg,d);
+  };
+  const move=e=>{ if(!down) return; e.preventDefault(); rzSelect(svg,at(e)); };
+  const end=()=>{ down=false; };                 // the reading stays
+  /* v3.3.207: POINTER EVENTS ONLY. Binding touch* alongside them meant a
+     phone fired both for a single tap, so start() ran twice â€” the first run
+     selected the dot, the second saw it already selected and toggled it off.
+     Net effect on a phone: nothing ever appeared selected, while a mouse
+     (which fires only pointerdown) worked perfectly. touch-action:none on
+     .rzscat is what stops the page scrolling, so no touch listener is
+     needed for that either. */
+  svg.addEventListener('pointerdown',start);
+  svg.addEventListener('pointermove',move);
+  svg.addEventListener('pointerup',end);
+  svg.addEventListener('pointercancel',end);
+}
+document.addEventListener('click',e=>{
+  const xc=e.target.closest&&e.target.closest('[data-rzx]');
+  if(!xc) return;
+  rz.ex=xc.dataset.rzx;
+  const card=xc.closest('.rzcard'), body=card&&card.querySelector('.rzbody');
+  if(!body){ render(); return; }
+  card.querySelectorAll('.rzlifts .chip').forEach(c=>c.classList.toggle('on',c.dataset.rzx===rz.ex));
+  body.innerHTML=rzBody(rz.ex);
+  rzBindAll();
+});
+document.addEventListener('change',e=>{
+  if(!e.target||e.target.id!=='rzGrp') return;
+  rz.grp=e.target.value; rz.ex=null;              // the new part picks its own top lift
+  const card=document.querySelector('.rzcard');
+  if(card) card.outerHTML=repZoneSections().split('</h2>')[1]; else render();
+  rzBindAll();
+});
+/* v3.3.190: the bars + chart of ONE lift, on their own â€” so a chip tap can
+   swap this alone instead of re-rendering Stats. A full render() reset the
+   scroll to the top of the tab, which made picking a lift feel like
+   leaving the page you were reading. */
+/* v3.3.206: bind after every path that puts a scatter in the DOM â€” full
+   render, lift-chip swap, and dropdown swap. The binding is idempotent
+   (svg._rzBound), so calling it more than once is free; missing one of the
+   three would ship a chart that silently ignores touch. */
+function rzBindAll(){
+  document.querySelectorAll('.rzcard .rzscat').forEach(bindRzScrub);
+}
+function rzBody(ex){
+  const {counts}=repZoneData(ex,REPZONE_WINDOW);
+  const max=Math.max(...counts,1);
+  let out=`<div class="rzrows">`;
+  REPZONE_LABELS.forEach(([range,name],i)=>{
+    out+=`<div class="rzrow">
+      <span class="rzlab">${range}<i>${name}</i></span>
+      <span class="rzbar"><i style="width:${counts[i]?Math.round(counts[i]/max*100):0}%"></i></span>
+      <span class="rzn"><b>${counts[i]}</b> set${counts[i]===1?'':'s'}</span>
+    </div>`;
+  });
+  return out+`</div>`+repZoneScatterSvg(ex);
+}
+/* ============ v3.3.192 â€” intent gaps ============
+   Question-addressed: "what did I mean to train, and haven't?" The ledger
+   already answers it â€” exercises carrying a weight and zero sets are stated
+   intentions that never became training, and they sit there for weeks. This
+   surfaces them. No taxonomy, no recommender, no prescriptions; it proposes
+   nothing the person hasn't already written down themselves.
+
+   Register: statement of fact. No scolding, no encouragement, no score, no
+   percentage of compliance, no streak language. Red is reserved for live.
+   An empty list is a good outcome stated in one plain line, not congratulated.
+
+   Keyed by CANONICAL ID (Phase 1), so a renamed exercise cannot appear as a
+   stale ghost beside its own active self. */
+const INTENT_GAP_DAYS=21;
+const retired=()=>DB.settings.retired||(DB.settings.retired={});
+function intentGaps(){
+  const lastReal={},seen={};
+  const scan=(iso,rows)=>{
+    for(const r of rows){
+      if(r[1]==='Run') continue;
+      const id=rowCid(r); if(!id) continue;
+      seen[id]=r[1];                                   // display via canonName, this is a fallback
+      if((r[3]||[]).length) lastReal[id]=lastReal[id]&&lastReal[id]>iso?lastReal[id]:iso;
+    }
+  };
+  for(const [iso,rows] of Object.entries(SEED.sessions)) scan(iso,rows);
+  scan(todayISO,((DB.days[todayISO]||{}).w||[])
+    .map(s2=>[s2.part,s2.ex,s2.w,s2.reps||[],s2.mins,s2.secs,s2.cid]));
+  const out=[];
+  for(const id of Object.keys(seen)){
+    if(retired()[id]) continue;
+    const last=lastReal[id];
+    const days=last?daysAgo(last):null;               // null = never a completed set
+    if(days!==null&&days<=INTENT_GAP_DAYS) continue;
+    out.push({id,name:canonName(id)||seen[id],days});
+  }
+  /* never-logged first (the strongest signal), then longest-idle */
+  return out.sort((a,b)=>(a.days===null?-1:0)-(b.days===null?-1:0)||(b.days||0)-(a.days||0));
+}
+function intentGapCard(){
+  const gaps=intentGaps();
+  if(!gaps.length) return `<div class="note">Nothing stated and untrained.</div>`;
+  return `<div class="igrows">${gaps.map(g=>`<div class="igrow">
+    <span class="igname">${g.name}</span>
+    <span class="igwhen">${g.days===null?'never logged with reps':`<b>${g.days}</b> days`}</span>
+    <button class="igx" data-igretire="${g.id}" aria-label="Stop showing ${g.name}">\u00d7</button>
+  </div>`).join('')}</div>`;
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest&&e.target.closest('[data-igretire]');
+  if(!b) return;
+  retired()[b.dataset.igretire]=1;                    // preference, never the ledger
+  DB.settingsAt=Date.now(); save(true); render();
+});
+/* ============ v3.3.194 â€” muscle coverage (7 days) ============
+   Register: statement of trained days. No targets, no ideal frequency, no
+   warnings â€” an untrained group is a light dot row and "0 days", in the
+   same voice as a full one. Tap a group to open its internal receipt
+   in place (no render(): the v3.3.190 lesson â€” a reader mid-scroll stays
+   where they are). */
+let _mcOpen=null;
+function muscleCard(){
+  const {days,groups}=muscleCoverage();
+  return VISIBLE_GROUPS.map(v=>{
+    const gg=groups[v];
+    const open=_mcOpen===v;
+    let inner='';
+    if(open){
+      const rows=Object.entries(gg.mus).sort((a,b)=>b[1].days.size-a[1].days.size);
+      inner=`<div class="mcinner">${rows.length?rows.map(([m,st])=>
+        `<div class="mcirow"><span class="mciname">${m}</span>
+          <span class="mciwhen"><b>${st.days.size}</b> day${st.days.size===1?'':'s'} \u00b7 ${st.sets} set${st.sets===1?'':'s'}</span></div>`).join('')
+        :`<div class="note">No sets in the last 7 days.</div>`}</div>`;
+    }
+    return `<div class="mcrow ${open?'open':''}" data-mcg="${v}">
+      <span class="mcname">${v}</span>
+      <span class="mcdots">${gg.dots.map(on=>`<i class="${on?'on':''}"></i>`).join('')}</span>
+      <span class="mcn"><b>${gg.days.size}</b> day${gg.days.size===1?'':'s'} \u00b7 ${gg.sets} set${gg.sets===1?'':'s'}</span>
+    </div>${inner}`;
+  }).join('');
+}
+document.addEventListener('click',e=>{
+  const r=e.target.closest&&e.target.closest('[data-mcg]');
+  if(!r) return;
+  _mcOpen=_mcOpen===r.dataset.mcg?null:r.dataset.mcg;
+  const card=document.querySelector('.mccard');
+  if(card) card.innerHTML=muscleCard(); else render();
+});
+function renderStats(){
+  const _S={}; const cut=k=>{ _S[k]=h; h=''; };
+  if(SEED.totals.sessions===0 && !hasAnyDays()){ $('#view').innerHTML=emptyHero('stats'); return; }
+  const dates=workoutDates();
+  const curves=yearCurves();
+  const monthKey=todayISO.slice(0,7);
+
+  // monthly workout-day counts (seed monthly + user days)
+  const mdays={};
+  for(const [m,v] of Object.entries(SEED.monthly)) mdays[m]=new Set();
+  for(const d of dates){const m=d.slice(0,7);(mdays[m]=mdays[m]||new Set()).add(d);}
+  const monthCounts=Object.fromEntries(Object.entries(mdays).map(([m,s])=>[m,s.size||((SEED.monthly[m]||{}).days||0)]));
+  // seed monthly.days already correct pre-app; the dates set covers everything, so:
+  for(const [m,v] of Object.entries(SEED.monthly)) monthCounts[m]=Math.max(monthCounts[m]||0,v.days);
+
+  const thisYearDays=[...dates].filter(d=>d.startsWith(thisYear)).length;
+  const trainedToday=dates.has(todayISO);
+  const elapsed=elapsedDays();                                  // v3.3.95: one definition, shared with the chart
+  const consNow=thisYearDays/elapsed;
+  const lastYear=String(+thisYear-1);
+  const lyCurve=curves[lastYear];
+  const lyAtSamePoint=lyCurve?lyCurve.curve[Math.min(elapsed,lyCurve.end)-1]:null;
+  const diff=lyAtSamePoint!=null?Math.round((consNow-lyAtSamePoint)*100):null;
+
+  let h=`<h2 id="secDays">Show up â€” that's the whole game</h2>
+    <div class="kpis">
+      ${(()=>{
+        /* v3.3.99: the game itself, finally under its own heading. Total days
+           is THE number â€” the greeting says it, Settings says it, and the
+           section titled "that's the whole game" somehow didn't. First card,
+           flagship type via :first-child, and the section's ONE accent: the
+           percentages are derived from this number and read chalk. Caption is
+           the lifetime pace â€” receipts at life scale, the truest denominator
+           the app has. */
+        const total=msLiveTotal(), first=SEED.totals.first;
+        let cap='';
+        if(first){
+          const span=Math.max(1,daysBetween(first,todayISO)+1-((((DB.days[todayISO]||{}).w)||[]).length?0:1));
+          const since=new Date(first+'T00:00').toLocaleDateString('en-US',{month:'short',year:'numeric'});
+          cap=`<div class="d">${Math.round(total/span*100)}% of all days since ${since}</div>`;
+        }
+        /* v3.3.100: the hero takes the whole row â€” number left, words right,
+           so hierarchy comes from WIDTH and the row stays short. */
+        return `<div class="kpi hero accent"><div class="v">${fmt(total)}</div>
+          <span><div class="l">days of showing up</div>${cap}</span></div>`;
+      })()}
+      <div class="kpi"><div class="v">${Math.round(consNow*100)}%</div><div class="l">of ${thisYear}</div>
+        ${diff!=null?`<div class="d ${diff>=0?'delta up':'delta down'}">${diff>=0?'+':''}${diff} vs ${lastYear}</div>`:''}</div>
+      ${(()=>{
+        const dNow=+todayISO.slice(8);
+        const cur=(monthCounts[monthKey]||0)/dNow;
+        const pv=new Date(+thisYear,+monthKey.slice(5)-1,0);            // last day of prev month
+        const pKey=pv.toLocaleDateString('en-CA').slice(0,7);
+        const pN=Math.min(dNow,pv.getDate());
+        let pDays=0;
+        for(let d2=1;d2<=pN;d2++) if(dates.has(`${pKey}-${String(d2).padStart(2,'0')}`)) pDays++;
+        const diff=Math.round((cur-pDays/pN)*100);
+        const pName=pv.toLocaleDateString('en-US',{month:'short'});
+        return `<div class="kpi"><div class="v">${Math.round(cur*100)}%</div>
+          <div class="l">of ${new Date(+thisYear,+monthKey.slice(5)-1,1).toLocaleDateString('en-US',{month:'short'})}</div>
+          <div class="d mono" style="color:${diff>=0?'var(--accent)':'var(--record)'}">${diff>=0?'+':''}${diff} vs ${pName}</div></div>`;
+      })()}
+      <div class="kpi"><div class="v">${currentStreak()}</div><div class="l">streak Â· best ${longestStreak()}</div></div>
+    </div>`;
+
+  // consistency chart â€” the Dashboard bottom graph
+  cut('kpis');
+  /* v3.3.208: Session Build keeps the honest part mix and the live-growing
+     skyline, but every unit is now one completed set â€” never mixed tonnage. */
+  h+=`<h2>Session build${hActs('pmix',"One block per completed strength set, stacked by body part. Runs stay separate.",'About Session build')}</h2>
+      <div class="card">
+        <div class="pmixlgd">${Object.keys(SEED.catalog).filter(p=>p!=='Run').map(p=>
+          `<span data-pt="${p}"><i style="background:${PART_COLORS[p]||'var(--muted)'}"></i>${p}</span>`).join('')}</div>
+        <div class="pmixread" id="pmixRead">One block = one completed set Â· tap to follow a body part</div>
+        <div class="pmixbox">
+          <span class="pmixyr" id="pmixYr"></span>
+          ${pmixAxisSvg(partMix(PMIX_DAYS))}
+          <div class="pmixwrap" id="pmixWrap">${partMixSvg(PMIX_DAYS)}</div>
+          <button class="pmixnow" id="pmixNow" aria-label="Back to latest">â†’</button>
+        </div>
+        <div class="pmixsum" id="pmixSum"></div>
+      </div>`;
+  cut('pmix');
+  h+=`<h2>Muscle coverage \u00b7 7 days${hActs('mc','Days each group trained in the last 7, by each set\u2019s primary muscle. Tap a group for detail. Runs excluded.','About muscle coverage')}</h2>
+      <div class="card mccard">${muscleCard()}</div>`;
+  cut('mc');
+  h+=`<h2>Stated, not trained${hActs('ig','Exercises in your log with no completed set in the last '+INTENT_GAP_DAYS+' days, or none ever. Tap \u00d7 to stop showing one.','About stated, not trained')}</h2>
+      <div class="card igcard">${intentGapCard()}</div>`;
+  cut('ig');
+  h+=repZoneSections();
+  cut('rz');
+  h+=`<h2>Consistency${hActs('yoy','Percent of days trained, per year. The bold line is this year.','About the consistency chart')}</h2><div class="card">
+      `;
+  /* v3.3.109: the legend moves ABOVE the chart. While scrubbing it IS the
+     readout, and below the chart it sat under the hand doing the scrubbing.
+     It also has to be built before the chart is emitted, so `years` is
+     resolved up here now. */
+  const years=Object.keys(curves).filter(y=>y>='2022').sort();
+  h+=`<div class="legend1">`;
+  for(const y of years){
+    const c=curves[y], cur=y===thisYear;
+    h+=`<span class="${cur?'cur':''}" data-yr="${y}" role="button"><i style="background:${YEAR_COLORS[y]}"></i>${y}<b>${Math.round(c.curve[c.end-1]*100)}%</b></span>`;
+  }
+  h+=`</div>
+      <div class="zoomhint">pinch / scroll to zoom Â· double-tap to reset</div>
+      <div class="zoom" data-zoom>
+      <svg viewBox="0 0 340 220" style="width:100%;height:auto"
+        data-scrub="pct" data-sx0="20" data-sxw="302" data-sy0="190" data-syh="170" data-smax="1">`;
+  /* v3.3.129: 170 -> 220 tall. baseline 140 -> 190, span 120 -> 170. The
+     data-sy0/data-syh anchors MUST track the geometry or the legend reports
+     the wrong % while scrubbing â€” the readout is derived from them. */
+  // y grid + labels
+  for(const g of [0,0.25,0.5,0.75,1]){
+    const y=190-g*170;
+    h+=`<line x1="20" y1="${y}" x2="322" y2="${y}" stroke="var(--line)" stroke-width="0.6" ${g?'stroke-dasharray="2 3"':''}></line>
+        <text x="16" y="${y+3}" text-anchor="end" font-family="var(--mono)" font-size="7" fill="var(--muted)">${g*100}%</text>`;
+  }
+  // x months
+  ['J','F','M','A','M','J','J','A','S','O','N','D'].forEach((m,i)=>{
+    const x=20+((i*30.4+15)/366)*302;
+    h+=`<line x1="${x}" y1="190" x2="${x}" y2="193" stroke="var(--line)" stroke-width="0.6"></line>
+        <text x="${x}" y="202" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="var(--muted)">${m}</text>`;
+  });
+  /* v3.3.129: end-of-line % tags used to be emitted inline, so four years
+     finishing within a few points of each other stacked into an unreadable
+     smear (60/57 in the field report). Collect them, nudge apart, THEN
+     emit â€” the same pass the distance chart has used since v3.3.89. */
+  const endLabels=[];
+  for(const y of years){
+    const {curve,end}=curves[y];
+    let pts='';
+    for(let d=0;d<end;d+=2){
+      const x=20+(d/366)*302, yy=190-curve[d]*170;
+      pts+=`${x.toFixed(1)},${yy.toFixed(1)} `;
+    }
+    const cur=y===thisYear;
+    h+=`<polyline data-yr="${y}" points="${pts}" fill="none" stroke="${YEAR_COLORS[y]||'var(--muted)'}"
+         stroke-width="${cur?2.2:1.1}" opacity="${cur?1:.7}" stroke-linejoin="round"></polyline>`;
+    const lx=20+((end-1)/366)*302, ly2=190-curve[end-1]*170;
+    endLabels.push({y,lx,ly:ly2,cur,pct:Math.round(curve[end-1]*100)});
+    if(cur) h+=`<circle class="beacon" cx="${lx}" cy="${ly2}" r="3.2" fill="var(--accent)"></circle>`;
+  }
+  endLabels.sort((a,b)=>a.ly-b.ly);
+  for(let i=1;i<endLabels.length;i++)
+    if(endLabels[i].ly-endLabels[i-1].ly<8) endLabels[i].ly=endLabels[i-1].ly+8;
+  for(const L of endLabels)
+    h+=`<text data-yr="${L.y}" x="${Math.min(L.lx+4,312).toFixed(1)}" y="${(L.ly+2.5).toFixed(1)}" font-family="var(--mono)" font-size="7"
+          fill="${YEAR_COLORS[L.y]||'var(--muted)'}" font-weight="${L.cur?700:400}">${L.pct}%</text>`;
+  h+=`</svg></div></div>`;   // v3.3.112: share moved to the header
+
+  // heatmap: 26 weeks, weekday rail on the left, months across the top
+  const detail=allDays();
+  cut('cons');
+  h+=`<h2>Last 6 months${hActs('heat','One column per week. Filled squares are trained days.','About the 6-month heatmap')}</h2><div class="card"><div class="heatwrap">
+        <div class="wdrail">${['S','M','T','W','T','F','S'].map(d=>`<span>${d}</span>`).join('')}</div>
+        <div class="heatcols"><div class="heatscroll">`;
+  const start2=new Date(todayISO+'T00:00');
+  start2.setDate(start2.getDate()-start2.getDay()-25*7);
+  let mrow='', grid='', lastM=-1;
+  for(let w=0;w<26;w++){
+    const first=new Date(start2); first.setDate(start2.getDate()+w*7);
+    const m=first.getMonth();
+    mrow+=`<span class="mlab">${m!==lastM?first.toLocaleDateString('en-US',{month:'short'}):''}</span>`;
+    lastM=m;
+    grid+=`<div class="wk">`;
+    for(let dd=0;dd<7;dd++){
+      const c=new Date(start2); c.setDate(start2.getDate()+w*7+dd);
+      const iso=c.toLocaleDateString('en-CA');
+      const future=iso>todayISO;
+      grid+=`<i data-l="${dates.has(iso)?2:0}" class="${iso===todayISO?'today':''} ${future?'fut':''}" title="${iso}"></i>`;
+    }
+    grid+=`</div>`;
+  }
+  h+=`<div class="mrow">${mrow}</div><div class="heat">${grid}</div></div>`;
+  h+=`</div></div></div>`;
+
+  // days per month bars
+  const ms=Object.entries(monthCounts).sort().slice(-12);
+  const dayOfMonth=+todayISO.slice(8);
+  const daysInMonth=new Date(+thisYear,+monthKey.slice(5),0).getDate();
+  const trainedThis=monthCounts[monthKey]||0;
+  cut('last6');
+  h+=`<h2>Days by month${hActs('dbm','The dashed line marks 20 days.','About the monthly chart')}</h2><div class="card">
+      <div class="zoomhint">pinch to zoom</div>
+      <div class="zoom" data-zoom>
+      <svg viewBox="0 0 330 150" style="width:100%;height:auto">
+      <line x1="8" y1="${126-20/31*112}" x2="316" y2="${126-20/31*112}" stroke="var(--line)" stroke-width="0.6" stroke-dasharray="2 3"></line>
+      <text x="319" y="${128-20/31*112}" font-family="var(--mono)" font-size="7" fill="var(--muted)">20</text>`;
+  ms.forEach(([m,n],i)=>{
+    const cur=m===monthKey;
+    const bh=Math.max(2,n/31*112), x=8+i*25.5;   // v3.3.129: span 80 -> 112, baseline 94 -> 126
+    if(cur){                                  // dashed outline = days elapsed, so a short bar isn't misread
+      const gh=dayOfMonth/31*112;
+      h+=`<rect x="${x}" y="${126-gh}" width="17" height="${gh}" rx="3" fill="none"
+            stroke="var(--accent)" stroke-width="0.8" stroke-dasharray="2 2"></rect>`;
+    }
+    h+=`<rect class="gbar" x="${x}" y="${126-bh}" width="17" height="${bh}" rx="3" fill="var(--accent)" opacity="${cur?1:.55}"></rect>`;
+    if(cur){
+      // trained count sits INSIDE the fill; the number above the dashes is days elapsed
+      const gh=dayOfMonth/31*112;
+      h+=`<text x="${x+8.5}" y="${126-gh-3}" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="var(--muted)">${dayOfMonth}</text>
+          <text x="${x+8.5}" y="${Math.min(123,126-bh+9)}" text-anchor="middle" font-family="var(--mono)" font-size="7" font-weight="700" fill="#fff">${n}</text>`;
+    }else{
+      h+=`<text x="${x+8.5}" y="${126-bh-3}" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="var(--muted)">${n}</text>`;
+    }
+    h+=`<text x="${x+8.5}" y="139" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="${cur?'var(--accent)':'var(--muted)'}">${m.slice(5)}</text>`;
+  });
+  h+=`</svg></div>
+      <div class="tot"><span><b>${trainedThis}</b> trained Â· ${dayOfMonth-trainedThis} rested</span><span>${dayOfMonth} days into ${monthKey.slice(5)}</span></div></div>`;
+
+  // monthly km â€” the Run tab owns the charts now; this map still feeds the
+  // composition overlay further down.
+  const kmBy={};
+  for(const [m,v] of Object.entries(SEED.monthly)) kmBy[m]=v.km||0;
+  for(const [d,v] of Object.entries(DB.days)){
+    if(d<=SEED.totals.last) continue;
+    for(const s of v.w) if(s.ex==='Run') kmBy[d.slice(0,7)]=(kmBy[d.slice(0,7)]||0)+s.w;
+  }
+
+  // which weekdays you show up â€” last 365 days, on an absolute 0â€“100% scale
+  const _wd=wdDist();                       // v3.3.114: one source, svg + card
+  const wdPct=_wd.pct;
+  const wdBest=Math.max(...wdPct);
+  /* v3.3.46: the accent marks TODAY's weekday â€” the row you're standing in â€”
+     not the statistically strongest one. The strongest still gets a quiet
+     caret above its bar so the pattern stays visible without competing with
+     today for the one loud colour. (Ties: first match wins the caret; today
+     always wins the accent even if today is also the strongest.) */
+  const wdToday=new Date(todayISO+'T00:00').getDay();
+  const bestI=wdPct.indexOf(wdBest);
+  cut('dbm');
+  h+=`<h2>Weekdays${hActs('wd','\u25b2 marks your strongest weekday. Blue is today.','About the weekday chart')}</h2><div class="card">
+      <svg viewBox="0 0 330 150" style="width:100%;height:auto">`;   // v3.3.129: 118â†’150 (v3.3.113 had cut 140â†’118; at that height the caret and the % label had nowhere to go)
+  for(const g of [0,25,50,75,100]){
+    const y=126-g/100*113;    // v3.3.129: baseline 94â†’126, span 81â†’113
+    h+=`<line x1="24" y1="${y}" x2="316" y2="${y}" stroke="var(--line)" stroke-width="0.6" ${g?'stroke-dasharray="2 3"':''}></line>
+        <text x="21" y="${y+3}" text-anchor="end" font-family="var(--mono)" font-size="7" fill="var(--muted)">${g}</text>`;
+  }
+  ['S','M','T','W','T','F','S'].forEach((lab,i)=>{
+    const p=wdPct[i], today=i===wdToday, best=i===bestI;
+    const bh=Math.max(2,p*113), x=32+i*41;
+    h+=`<rect class="gbar wd-col" x="${x}" y="${126-bh}" width="26" height="${bh}" rx="4"
+          fill="${today?'var(--accent)':'var(--accent-dim)'}" opacity="${today?1:.6}"></rect>`;
+    /* v3.3.129: one stack, always the same order â€” bar, then % 4 above it,
+       then the caret 11 above that. The old code branched the % position on
+       today/best and put the caret at a fixed 8 above the bar, so a day that
+       was BOTH today and strongest (Tue, in the field report) drew them 4
+       units apart, on top of each other. Position no longer depends on
+       which flags are set, so no combination can collide. */
+    const pctY=126-bh-4;
+    h+=`<text x="${x+13}" y="${pctY}" text-anchor="middle" font-family="var(--mono)" font-size="8" fill="${today?'var(--accent)':'var(--muted)'}" font-weight="${today?700:400}">${Math.round(p*100)}%</text>`;
+    if(best) h+=`<text x="${x+13}" y="${pctY-11}" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="var(--muted)">â–²</text>`;
+    h+=`<text x="${x+13}" y="141" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="${today?'var(--chalk)':'var(--muted)'}" font-weight="${today?700:400}">${lab}</text>`;
+  });
+  h+=`</svg><div class="note">% of each weekday trained, last 365 days Â· â–² your strongest</div></div>`;
+
+  // month-by-month composition â€” the sheet's "Which part am I missing out?" chart
+  /* v3.1.13: the stacked-months chart and the radar are gone (Sungjee's
+     verdict: one needed scrolling, the other prompted nothing). Replaced by
+     two scroll-free views that each answer ONE question. */
+
+  /* --- "Have I kept showing up?" â€” every month ever, one screen --- */
+  const _gd=gridData();
+  const mDays=_gd.mDays, gy0=_gd.y0, gy1=_gd.y1, gMax=_gd.max, m0=_gd.m0, mNow=_gd.mNow;
+  cut('wd');
+  h+=`<h2 id="secParts">Every month${hActs('mgrid','Darker means more days. Tap a month to open it.','About the month grid')}</h2><div class="card">
+      <div class="mgrid"><span></span>${'JFMAMJJASOND'.split('').map(c=>`<span class="mg-h">${c}</span>`).join('')}`;
+  for(let y=gy0;y<=gy1;y++){
+    h+=`<span class="mg-y mono">'${String(y).slice(2)}</span>`;
+    for(let m=1;m<=12;m++){
+      const k=`${y}-${String(m).padStart(2,'0')}`;
+      const n=mDays[k]||0;
+      const out=k<m0||k>mNow;
+      const a=Math.round(mgAlpha(n,gMax,k===mNow)*100);
+      h+=`<span class="mg-c mono ${k===mNow?'cur':''}" ${out?'':`data-mk="${k}"`} style="${n?`background:color-mix(in srgb, var(--accent) ${a}%, transparent)`:''}">${out?'':(n||'Â·')}</span>`;
+    }
+  }
+  h+=`</div><div id="mexp"></div>
+      </div>`;   // v3.3.112: share moved to the header
+
+  cut('em');
+  /* v3.3.111: "Last 30 days, vs your usual" removed on the maker's call â€” no
+     value found in it. Its entire last30/drift computation went with it;
+     nothing else read those. */
+  h+=bwCard();                       // v3.3.69: you, before the part-by-part drift
+  h+=moGoalCardHTML();               // v3.3.162: the goal sits under Weight, above RUN
+  cut('wt');
+
+  /* v3.3.130: "Report card" RETURNS, but not as the v3.3.111 section that
+     was removed. That one was a month-stepper with its own share card. This
+     one is the app's single share surface: rotate to the card you want, then
+     send it. Every per-section share button is gone in favour of it. */
+  h+=`<h2 id="secReport">Report card${hActs('rep','Swipe to a card, then share it as an image.','About the report card')}</h2>
+      <div class="card repcard" id="repCard">
+        <div class="repnav">
+          <button class="repar" id="repPrev" aria-label="Previous card">â€¹</button>
+          <div class="repttl" id="repTtl">&nbsp;</div>
+          <button class="repar" id="repNext" aria-label="Next card">â€º</button>
+        </div>
+        <div class="repthumbwrap"><img id="repThumb" alt="" class="repthumb"></div>
+        <div class="note repdots" id="repDots"></div>
+        <button class="btn" id="repShare">Share as image</button>
+        <button class="btn ghost" id="repAll" style="margin:8px 0 0">Save all ${shareCards().length}</button>
+      </div>`;
+  cut('rep');
+  // sections emit in one declared order (v3.3.111)
+  h = _S.kpis + _S.rz + _S.pmix + _S.mc + _S.ig + _S.cons + _S.em + _S.dbm + _S.last6 + _S.wd + _S.wt;
+
+  // the whole Run story lives here now (was its own tab in v2.04 â€” reverted)
+  h+=runStatsHTML();
+
+  // records â€” kept, but demoted below the days story
+  h+=`<h2 id="secRecords">Records</h2>`;
+  for(const part of Object.keys(SEED.catalog)){
+    if(part==='Run') continue;
+    const rows=catFor(part).map(e=>[e,prFor(e),exTier(e)]).filter(([,p])=>p.mw>0).sort((a,b)=>b[1].mw-a[1].mw);
+    if(!rows.length) continue;
+    const core=rows.filter(r=>r[2]==='goto'), other=rows.filter(r=>r[2]!=='goto');
+    h+=`<h2 class="quiet" style="margin-top:16px">${part}</h2>`;
+    if(core.length){
+      h+=`<table class="rec-core"><tr><th>Core exercises</th><th style="text-align:right">Top (${U()})</th></tr>`;
+      core.forEach(([e,p])=>{h+=`<tr><td><b>${e}</b></td><td class="n"><b>${wDisp(p.mw)}</b> Ã— ${p.mwr}
+        <button class="tmove" data-tier-ex="${e}" data-tier-to="other" title="Move to Other">â†“</button></td></tr>`;});
+      h+=`</table>`;
+    }
+    if(other.length){
+      h+=`<table class="rec-other"><tr><th>Other</th><th></th></tr>`;
+      other.forEach(([e,p])=>{h+=`<tr><td>${e}</td><td class="n">${wDisp(p.mw)} Ã— ${p.mwr}
+        <button class="tmove" data-tier-ex="${e}" data-tier-to="core" title="Move to Core">â†‘</button></td></tr>`;});
+      h+=`</table>`;
+    }
+  }
+
+  h+=_S.rep;                         // v3.3.130: the exit â€” you have seen the numbers, here is the receipt
+
+  h+=`<h2>Settings</h2>
+      <button class="btn ghost" id="settingsBtn">âš™ï¸ Settings, account &amp; sync</button>
+      <div class="note" style="text-align:center">${session?`Signed in as ${session.user.email||'â€”'}`:'Not signed in â€” data is on this device only'} Â· ${APP_VERSION}</div>`;
+  $('#view').innerHTML=h;
+  rzBindAll();
+  /* v3.3.42: the 6-month heatmap runs oldest â†’ newest, so its default
+     scroll position showed January and hid today. Park it at the right
+     edge â€” the current week is the whole point of the strip. scrollLeft on
+     the scroller itself, never scrollIntoView, which would drag the page. */
+  /* v3.3.109: .legend1 dropped from this list â€” it wraps now instead of
+     scrolling, so there is no right edge to park at. This parking was the
+     workaround for the scroller hiding the current year, which is exactly
+     the bug it failed to prevent. */
+  document.querySelectorAll('.heatcols,.heat').forEach(el=>{
+    if(el.scrollWidth>el.clientWidth) el.scrollLeft=el.scrollWidth;
+  });
+  if(typeof paintRepCard==='function') paintRepCard();   // v3.3.130: fill the report card preview
+}
+
+
+/* ---------- D3: tap a grid month, it opens in place ---------- */
+let _mexpK=null;
+document.addEventListener('click',e=>{
+  const c=e.target.closest('.mg-c[data-mk]'); if(!c) return;
+  const box=document.getElementById('mexp'); if(!box) return;
+  const k=c.dataset.mk;
+  if(_mexpK===k){ _mexpK=null; box.innerHTML=''; return; }
+  _mexpK=k;
+  const base=new Date(todayISO+'T00:00'); base.setDate(1);
+  const tgt=new Date(k+'-01T00:00');
+  const off=(base.getFullYear()-tgt.getFullYear())*12+(base.getMonth()-tgt.getMonth());
+  const rd=repData(off);   // v3.3.111: the only remaining caller
+  box.innerHTML=`<div class="mexpIn">
+    <div class="repline mono">${rd.label} â€” ${rd.nD} day${rd.nD===1?'':'s'} Â· ${fmt(Math.round(rd.vol))} kg Â· ${rd.km.toFixed(1)} ${DU()}${rd.mx>1?` Â· best streak ${rd.mx}d`:''}</div>
+    <div class="mexpDots">${rd.days.map(d=>`<i class="${d.fut?'f':(d.tr?'t':'')}" title="${d.d}"></i>`).join('')}</div>
+  </div>`;
+});
+
+
+/* ---------- v3.3.13: tap a year in any YoY legend â€” isolate its line ---------- */
+document.addEventListener('click',e=>{
+  const yb=e.target.closest('.legend1 [data-yr]'); if(!yb) return;
+  const card=yb.closest('.card'); if(!card) return;
+  const yr=yb.dataset.yr;
+  const marks=card.querySelectorAll('svg [data-yr], .legend1 [data-yr]');
+  if(card.dataset.ysel===yr){
+    delete card.dataset.ysel;
+    marks.forEach(m=>m.classList.remove('selY'));
+  }else{
+    card.dataset.ysel=yr;
+    marks.forEach(m=>m.classList.toggle('selY',m.dataset.yr===yr));
+  }
+});

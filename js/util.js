@@ -281,4 +281,590 @@ function avgSessionVol(part){
   if(!_avgVol){
     _avgVol={};
     const acc={};
-    const feed=per=>{ for(const [p,v] of Object.entries(per)){ const a=acc[p]=acc[p]||{s:0,n:0}; a.ãMû¶‰Ëkºwµçx!¥ÍÑ½Éä¸¹‘…åÌ¥ÌÑ¡”Í½ÕÉ”½˜(€€¼¼ÑÉÕÑ è¥ĞIA1L¸€¡M¹Í•ÍÍ¥½¹ÌÍÑ¥±°™¥±±Ì…¹ä‘•É¥Ù•µ½¹±ä•‘”°…¹(€€¼¼Ñ½‘…ä½µ•Ì™É½´¹‘…åÌ…Ì…±İ…åÌ¸¤(€½¹ÍĞ½ÕĞõíôì(€™½È¡½¹ÍĞm±±¥ÍÑt½˜=‰©•Ğ¹•¹ÑÉ¥•Ì¡M¹Í•ÍÍ¥½¹Ì¤¤(€€€½ÕÑm‘tõ±¥ÍĞ¹µ…À ¡mÁ…ÉĞ±•à±Ü±É•ÁÌ±µ¥¹Ì±Í•Ít¤ôø¡íÁ…ÉĞ±•à±Ü±É•ÁÌ±µ¥¹Ì±Í•Íô¤¤ì(€™½È¡½¹ÍĞm±Ùt½˜=‰©•Ğ¹•¹ÑÉ¥•Ì¡¹‘…åÌ¤¤(€€€¥˜¡Ø¹Ü˜™Ø¹Ü¹±•¹Ñ ¤½ÕÑm‘tõØ¹Üì(€É•ÑÕÉ¸½ÕĞì)ô)™Õ¹Ñ¥½¸±…ÍÑ½È¡•à¥ì(€½¹ÍĞµ¥¹”õ=‰©•Ğ¹•¹ÑÉ¥•Ì¡¹‘…åÌ¤¹™¥±Ñ•È ¡m±Ùt¤ôùØ¹Ü¹Í½µ”¡ÌôùÌ¹•àôôõ•à¤¤¹Í½ÉĞ ¡„±ˆ¤ôù…lÁtñ‰lÁtüÄè´Ä¥lÁtì(€½¹ÍĞÍ••õM¹±…ÍÑm•átì(€¥˜¡µ¥¹”˜˜ …Í••‘ññµ¥¹•lÁtùÍ••¹¤¤(€€€É•ÑÕÉ¸íéµ¥¹•lÁt±Í•ÑÌéµ¥¹•lÅt¹Ü¹™¥±Ñ•È¡ÌôùÌ¹•àôôõ•à¤¹µ…À¡ÌôùmÌ¹Ü±Ì¹É•ÁÌ±Ì¹µ¥¹Ì±Ì¹Í•Ít¥ôì(€É•ÑÕÉ¸Í••‘ññ¹Õ±°ì)ô)™Õ¹Ñ¥½¸ÁÉ½È¡•à¥ì(€½¹ÍĞÀõM¹ÁÉm•átıì¸¸¹M¹ÁÉm•áuôéíµÜèÀ±µİÈèÀ±µİèœœ±‰ØèÀ±‰ÙÈèÀ±‰ÙÜèÀ±‰Ùèœôì(€™½È¡½¹ÍĞm±Ùt½˜=‰©•Ğ¹•¹ÑÉ¥•Ì¡¹‘…åÌ¤¤(€€€™½È¡½¹ÍĞÌ½˜Ø¹Ü¥ì(€€€€€¥˜¡Ì¹•à„ôõ•áñğ…Ì¹É•ÁÌ¹±•¹Ñ ¤½¹Ñ¥¹Õ”ì(€€€€€½¹ÍĞµÈõ5…Ñ ¹µ…à ¸¸¹Ì¹É•ÁÌ¤ì(€€€€€¥˜¡Ì¹ÜùÀ¹µİñğ¡Ì¹ÜôôõÀ¹µÜ˜™µÈùÀ¹µİÈ¤¥íÀ¹µÜõÌ¹ÜíÀ¹µİÈõµÈíÀ¹µİõíô(€€€€€™½È¡½¹ÍĞÈ½˜Ì¹É•ÁÌ¤€€€€€€€€€€€€€€€€€€€€€€€¼¼‰•ÍĞÍ¥¹±”Í•Ğèİ•¥¡Ğƒ\É•ÁÌ°½¹”Í•Ğ(€€€€€€€¥˜¡Ì¹Ü©ÈùÀ¹‰Ø¥íÀ¹‰ØõÌ¹Ü©ÈíÀ¹‰ÙÈõÈíÀ¹‰ÙÜõÌ¹ÜíÀ¹‰Ùõíô(€€€ô(€É•ÑÕÉ¸Àì)ô)™Õ¹Ñ¥½¸Á…ÉÑ1…ÍÑM••¸ ¥ì(€½¹ÍĞÍ••¸õì¸¸¹M¹Á…ÉÑ1…ÍÑôì(€™½È¡½¹ÍĞm±Ùt½˜=‰©•Ğ¹•¹ÑÉ¥•Ì¡¹‘…åÌ¤¤(€€€™½È¡½¹ÍĞÌ½˜Ø¹Ü¤(€€€€€¥˜¡Ì¹Á…ÉĞ˜˜ …Í••¹mÌ¹Á…ÉÑuññùÍ••¹mÌ¹Á…ÉÑt¤¤Í••¹mÌ¹Á…ÉÑtõì(€É•ÑÕÉ¸Í••¸ì)ô(¼¨‘…ä€´øM•Ğ¡Á…ÉÑÌ¤°±…ÍĞ€ÌØÕ°Í••€¬±½•€¨¼)™Õ¹Ñ¥½¸‘…åA…ÉÑÌ ¥ì(€½¹ÍĞ´õíôì(€™½È¡½¹ÍĞmÀ±±¥ÍÑt½˜=‰©•Ğ¹•¹ÑÉ¥•Ì¡M¹Á…ÉÑ…åÍññíô¤¤(€€€™½È¡½¹ÍĞ½˜±¥ÍĞ¤€¡µm‘tõµm‘uññ¹•ÜM•Ğ ¤¤¹…‘¡À¤ì(€™½È¡½¹ÍĞm±Ùt½˜=‰©•Ğ¹•¹ÑÉ¥•Ì¡¹‘…åÌ¤¤(€€€™½È¡½¹ÍĞÌ½˜Ø¹Ü¤¥˜¡Ì¹Á…ÉĞ¤€¡µm‘tõµm‘uññ¹•ÜM•Ğ ¤¤¹…‘¡Ì¹Á…ÉĞ¤ì(€É•ÑÕÉ¸´ì)ô)™Õ¹Ñ¥½¸µ•‘¥…¸¡„¥ì¥˜ …„¹±•¹Ñ ¤É•ÑÕÉ¸€Àì½¹ÍĞÌõl¸¸¹…t¹Í½ÉĞ ¡à±ä¤ôùàµä¤ì½¹ÍĞ¤õÌ¹±•¹Ñ øøÄì(€É•ÑÕÉ¸Ì¹±•¹Ñ ”È€üÍm¥t€è€¡Ím¤´Åt­Ím¥t¤¼Èìô((¼¨]¡…ĞÑ¼ÑÉ…¥¸¹•áĞ°±•…É¹•™É½´¡¥ÍÑ½Éäè(€€€´„Á…ÉĞ½Õ¹ÑÌ…Ì€‰±¥Ù”ˆ½¹±ä¥˜ÑÉ…¥¹•€øôàÑ¥µ•Ì¥¸Ñ¡”±…ÍĞå•…È(€€€´É•…‘¥¹•ÍÌ€ô‘…åÌÍ¥¹”€¼å½ÕÈ½İ¸µ•‘¥…¸…À™½ÈÑ¡…ĞÁ…ÉĞ(€€€´„Á…ÉĞå½Ô…±µ½ÍĞ…±İ…åÌÑÉ…¥¸…±½¹”¥Ì„5%8‘…äì½¹”å½Ô½¹±ä•Ù•È(€€€€Ñ…¬½¸Ñ¼…¹½Ñ¡•ÈÁ…ÉĞ€¡	¥•ÁÌ¤¥Ì…¸µ=8(€€€´IÕ¸¥Ì¥ÑÌ½İ¸Ñ¡¥¹œ€¡¹•…Èµ‘…¥±ä¤°¹•Ù•ÈÑ¡”¡•…‘±¥¹”Á¥¬€€€€€€€€€€€€¨¼)™Õ¹Ñ¥½¸ÑÉ…¥¹¥¹A±…¸ ¥ì(€½¹ÍĞ‘Àõ‘…åA…ÉÑÌ ¤ì(€½¹ÍĞ‰åA…ÉĞõíôì(€™½È¡½¹ÍĞm±Í•Ñt½˜=‰©•Ğ¹•¹ÑÉ¥•Ì¡‘À¤¤(€€€™½È¡½¹ÍĞÀ½˜Í•Ğ¤€¡‰åA…ÉÑmÁtõ‰åA…ÉÑmÁuññmt¤¹ÁÕÍ ¡¤ì((€½¹ÍĞ¥¹™¼õíôì(€™½È¡½¹ÍĞmÀ±‘…åÍt½˜=‰©•Ğ¹•¹ÑÉ¥•Ì¡‰åA…ÉĞ¤¥ì(€€€‘…åÌ¹Í½ÉĞ ¤ì(€€€½¹ÍĞ…ÁÌõmtì(€€€™½È¡±•Ğ¤ôÄí¤ñ‘…åÌ¹±•¹Ñ í¤¬¬¤…ÁÌ¹ÁÕÍ ¡‘…åÍ	•Ñİ••¸¡‘…åÍm¤´Åt±‘…åÍm¥t¤¤ì(€€€½¹ÍĞ±¥™ÑÌ€ô‘…åÌ¹™¥±Ñ•È¡ôùì(€€€€€½¹ÍĞ½Ñ¡•ÉÌõl¸¸¹‘Ám‘ut¹™¥±Ñ•È¡àôùà„ôôIÕ¸œ˜™à„ôõÀ¤ì(€€€€€É•ÑÕÉ¸½Ñ¡•ÉÌ¹±•¹Ñ ôôôÀì(€€€ô¤¹±•¹Ñ ì(€€€½¹ÍĞ±¥™Ñ…åÌ€ô‘…åÌ¹™¥±Ñ•È¡ôùÀ„ôôIÕ¸œ¤¹±•¹Ñ ñğ‘…åÌ¹±•¹Ñ ì(€€€¥¹™½mÁtõì(€€€€€‘…åÌé‘…åÌ¹±•¹Ñ °(€€€€€±…ÍĞé‘…åÍm‘…åÌ¹±•¹Ñ ´Åt°(€€€€€Í¥¹”é‘…åÍ¼¡‘…åÍm‘…åÌ¹±•¹Ñ ´Åt¤°(€€€€€…Àé5…Ñ ¹µ…à Ä±µ•‘¥…¸¡…ÁÌ¥ñğÜ¤°(€€€€€Í½±½I…Ñ”èÀôôôIÕ¸œ€ü€Ä€è±¥™ÑÌ½±¥™Ñ…åÌ°(€€€€€±¥Ù”è‘…åÌ¹±•¹Ñ øôà(€€€ôì(€ô(€½¹ÍĞµåÀõ¹Í•ÑÑ¥¹Ì¹µåA…ÉÑÌì(€½¹ÍĞ…±±½ÜõÀôø…µåÁññµåÀ¹¥¹±Õ‘•Ì¡À¥ñğ„„¡‰åA…ÉÑmÁt˜™‰åA…ÉÑmÁt¹±•¹Ñ ¤ì€€€¼¼½¹‰½…É‘¥¹œÁ¥¬ì¡¥ÍÑ½Éä…±İ…åÌİ¥¹Ì(€™½È¡½¹ÍĞÀ½˜=‰©•Ğ¹­•åÌ¡M¹…Ñ…±½œ¤¤(€€€¥˜¡…±±½Ü¡À¤˜˜…¥¹™½mÁt¤¥¹™½mÁtõí‘…åÌèÀ±±…ÍĞéM¹Á…ÉÑ1…ÍÑmÁuññ¹Õ±°±Í¥¹”éM¹Á…ÉÑ1…ÍÑmÁtı‘…åÍ¼¡M¹Á…ÉÑ1…ÍÑmÁt¤èäää±…ÀèÜ±Í½±½I…Ñ”èÀ±±¥Ù”é™…±Í•ôì((€½¹ÍĞÍ½É”õÀôù¥¹™½mÁt¹Í¥¹”½¥¹™½mÁt¹…Àì(€½¹ÍĞ±¥Ù”õ=‰©•Ğ¹­•åÌ¡¥¹™¼¤¹™¥±Ñ•È¡Àôù¥¹™½mÁt¹±¥Ù”˜™À„ôôIÕ¸œ¤ì(€½¹ÍĞµ…¥¹Ìõ±¥Ù”¹™¥±Ñ•È¡Àôù¥¹™½mÁt¹Í½±½I…Ñ”øôÀ¸Ğ¤¹Í½ÉĞ ¡„±ˆ¤ôùÍ½É”¡ˆ¤µÍ½É”¡„¤¤ì(€½¹ÍĞ…‘‘½¹Ìõ±¥Ù”¹™¥±Ñ•È¡Àôù¥¹™½mÁt¹Í½±½I…Ñ”ğÀ¸Ğ¤¹Í½ÉĞ ¡„±ˆ¤ôùÍ½É”¡ˆ¤µÍ½É”¡„¤¤ì(€½¹ÍĞ‘½Éµ…¹Ğõ=‰©•Ğ¹­•åÌ¡M¹…Ñ…±½œ¤¹™¥±Ñ•È¡ÀôùÀ„ôôIÕ¸œ˜™¥¹™½mÁt˜˜…¥¹™½mÁt¹±¥Ù”¤ì((€½¹ÍĞÁ¥¬õµ…¥¹ÍlÁuññ¹Õ±°ì(€€¼¼…¸…‘µ½¸¥Ìİ½ÉÑ ÍÕ•ÍÑ¥¹œ½¹±ä¥˜¥ĞÌ½Ù•É‘Õ”½¸¥ÑÌ½İ¸å±”(€½¹ÍĞ…‘‘½¸õ…‘‘½¹Ì¹™¥¹¡ÀôùÍ½É”¡À¤øôÄ¥ññ¹Õ±°ì(€½¹ÍĞÉÕ¸õ¥¹™½lIÕ¸uññ¹Õ±°ì(€É•ÑÕÉ¸í¥¹™¼±Í½É”±µ…¥¹Ì±…‘‘½¹Ì±‘½Éµ…¹Ğ±Á¥¬±…‘‘½¸±ÉÕ¹ôì)ô)™Õ¹Ñ¥½¸ÍÑÉ•…­É½´¡‘…Ñ•Ì°•¹‘%M<¥ì(€±•Ğ¸ôÀ°õ¹•Ü…Ñ”¡•¹‘%M<¬PÀÀèÀÀœ¤ì(€İ¡¥±”¡‘…Ñ•Ì¹¡…Ì¡¹Ñ½1½…±•…Ñ•MÑÉ¥¹œ •¸µœ¤¤¥í¸¬¬í¹Í•Ñ…Ñ”¡¹•Ñ…Ñ” ¤´Ä¤íô(€É•ÑÕÉ¸¸ì)ô)™Õ¹Ñ¥½¸ÕÉÉ•¹ÑMÑÉ•…¬ ¥ì(€½¹ÍĞ‘…Ñ•Ìõİ½É­½ÕÑ…Ñ•Ì ¤ì(€½¹ÍĞĞõÍÑÉ•…­É½´¡‘…Ñ•Ì±Ñ½‘…å%M<¤ì(€¥˜¡Ğ¤É•ÑÕÉ¸Ğì(€½¹ÍĞäõ¹•Ü…Ñ”¡Ñ½‘…å%M<¬PÀÀèÀÀœ¤íä¹Í•Ñ…Ñ”¡ä¹•Ñ…Ñ” ¤´Ä¤ì(€É•ÑÕÉ¸ÍÑÉ•…­É½´¡‘…Ñ•Ì±ä¹Ñ½1½…±•…Ñ•MÑÉ¥¹œ •¸µœ¤¤ì€€€¼¼Ñ½‘…ä©ÕÍĞ¡…Í¸Ğ¡…ÁÁ•¹•å•Ğ)ô(¼¨ØÌ¸Ì¸äÜè½µ•‰…­ÌƒŠPÑ¡”±½¹•Ù¥ÑäÑİ¥¸½˜Ñ¡”ÍÑÉ•…¬¸ÍÑÉ•…¬µ•…ÍÕÉ•Ì(€€¹•Ù•ÈÍÑ½ÁÁ¥¹œì„ÁÉ…Ñ¥”Ñ¡…Ğ±…ÍÑÌå•…ÉÌ¥Ìµ…‘”½˜IQUI9%9¸¥Ù”(€€…É••±¥¹•Ì°•… …¸…ÍÍ•ÉÑ¥½¸¥¸Ñ•ÍĞµ½µ•‰…¬¹©Ìè(€€€ Ä¤„½µ•‰…¬€ôÑÉ…¥¹¥¹œ……¥¸…™Ñ•È€Ü¬‘…åÌ…İ…äƒŠP™¥á•Ñ¡É•Í¡½±°(€€€€€€•áÁ±…¥¹…‰±”¥¸½¹”Ñ¥Àì…‘…ÁÑ¥Ù”Ñ¡É•Í¡½±‘Ìİ•É”É•©•Ñ•…Ì(€€€€€€Õ¹•áÁ±…¥¹…‰±”¥¸€ÄÈÀ¡…ÉÌ¸¹½Éµ…°€×ŠLØ‘…ä…‘•¹”å¥•±‘ÌiI<¸(€€€ È¤‘•±…É•É•ÍĞ‘…åÌ…É”¥¹Ù¥Í¥‰±”ƒŠP„ƒÂ~6¥¹Ñ•ÉÉÕÁÑ¥¹œ„…Àİ½Õ±‰”(€€€€€€½µ•‰…¬¥¹ÍÕÉ…¹”°Ñ¡”½ÉÉÕÁÑ¥½¸Ñ¡”É•ÍĞ‘½ÑÉ¥¹”™½É‰¥‘Ì¸(€€€€€€İ½É­½ÕÑ…Ñ•Ì ¤…±É•…‘ä½¹Ñ…¥¹Ì½¹±äÑÉ…¥¹•‘…åÌ°Í¼Ñ¡¥Ì¡½±‘Ì‰ä(€€€€€€½¹ÍÑÉÕÑ¥½¸ìÑ¡”Ñ•ÍĞÁÉ½Ù•Ì¥Ğ…¹åİ…ä¸(€€€ Ì¤½¹±ä1=M…ÁÌ½Õ¹ĞƒŠPÑ¡”½Á•¸…Àå½ÔÉ”¥¸¥Ì¹½Ğ„½µ•‰…¬¥¸(€€€€€€ÁÉ½É•ÍÌ°…¹É•¹‘•É¥¹œ¥Ğİ½Õ±‰”„¹Õ‘”¥¸„½ÍÑÕµ”¸(€€€ Ğ¤•Ù•ÉäÉ•ÑÕÉ¸½Õ¹ÑÌ°ÍÑ¥­ä½È¹½ĞƒŠPÉ•ÅÕ¥É¥¹œÉ•ÑÕÉ¹ÌÑ¼€‰±…ÍĞˆ(€€€€€€İ½Õ±ÑÕÉ¸„½Õ¹Ğ¥¹Ñ¼„É…‘”¸(€€€ Ô¤é•É¼É•¹‘•ÉÌ…Ì¹½Ñ¡¥¹œƒŠP¡…¹‘±•…ĞÑ¡”É•¹‘•ÈÍ¥Ñ”¸€¨¼(¼¨ØÌ¸Ì¸äàèÑ¡”µ¥±•ÍÑ½¹”±…‘‘•ÈƒŠP•±•‰É…Ñ•Q=Q1L°¹•Ù•ÈÍÑÉ•…­Ì¸Ñ½Ñ…°(€€¥Ì¥ÉÉ•Ù•ÉÍ¥‰±”°Í¼•±•‰É…Ñ¥¹œ¥ĞÑ¡É•…Ñ•¹Ì¹½Ñ¡¥¹œìÍÑÉ•…¬µ¥±•ÍÑ½¹•Ì(€€…É”İ¡•É”•¹…•µ•¹Ğ‰…¥Ğ±¥Ù•Ì€¡„•±•‰É…Ñ•Ñ¡¥¹œÑ¡…Ğ…¸‘¥”¤¸•¹Í”(€€İ¡•É”„ÁÉ…Ñ¥”¥Ì™É…¥±”°Ñ¡•¸•Ù•Éä€ÄÀÀƒŠPÉ½Õ¡±äÑİ¼„å•…È…Ğ„(€€µ½ÍĞµ‘…åÌ…‘•¹”€¡MÕ¹©•”è€ˆÔÀÀ¥ÌÑ½¼‰¥œ°µ…¸ˆ¤¸Q¡½ÕÍ…¹‘Ì…É”„(€€‰¥•ÈÑ¥•ÈèÍ…µ”É¥ÑÕ…°°Ñ…±±•ÈÙ½±Õµ”¸((€€¹Ñ¤µ‰…¥ĞÉÕ±•Ì°•… …¸…ÍÍ•ÉÑ¥½¸¥¸Ñ•ÍĞµµ¥±•ÍÑ½¹”¹©Ìè(€€ƒŠˆ¡¥ µİ…Ñ•È™±½½È…Ğ™¥ÉÍĞÉÕ¸ƒŠP¹¼É•ÑÉ½…Ñ¥Ù”™¥É•İ½É­Ì°…¹„(€€€€É•ÍÑ½É•½¥µÁ½ÉÑ•…É¡¥Ù”¥¹¥Ñ¥…±¥Í•Ì¥ÑÌ™±½½ÈÑ¼¥ÑÌ½İ¸Ñ½Ñ…°°Í¼(€€€€µ¥É…Ñ¥½¸¥Ì¡½¹½ÕÉ•°¹•Ù•È•±•‰É…Ñ•ì(€€ƒŠˆ™¥É•Ì½¹”Á•ÈÉÕ¹œ°…­¹½İ±•‘•µ•¹ĞÍå¹•¥¸Í•ÑÑ¥¹Ìì(€€ƒŠˆ¥˜Í•Ù•É…°ÉÕ¹Ì…É”É½ÍÍ•…Ğ½¹”€¡‰Õ±¬Á…ÍĞµ•‘¥ÑÌ¤°=9µ½µ•¹Ğ™½È(€€€€Ñ¡”±…É•ÍĞƒŠP„ÅÕ•Õ”½˜•±•‰É…Ñ¥½¹Ì¥Ì„Í±½Ğµ…¡¥¹”ì(€€ƒŠˆ‘¥Íµ¥ÍÍ…°¥Ì½¹”Ñ…À…¹Á•Éµ…¹•¹Ğì¥¹½É¥¹œ„•±•‰É…Ñ¥½¸½ÍÑÌ(€€€€¹½Ñ¡¥¹œƒŠPÑ¡…Ğ¥ÌÑ¡”±¥¹”‰•Ñİ••¸„¥™Ğ…¹„¡½½¬¸€¨¼)™Õ¹Ñ¥½¸µÍ1…‘‘•È¡¸¥ì(€É•ÑÕÉ¸¸øôÄÀÀÀ€ü¸”ÄÀÀôôôÀ€èlÄÀ°ÈÀ°ÌÀ°ÔÀ°ÄÀÀ°ÈÀÀ°ÌÀÀ°ÔÀÁt¹¥¹±Õ‘•Ì¡¸¤ì)ô)™Õ¹Ñ¥½¸µÍQ¥•È¡¸¥ìÉ•ÑÕÉ¸¸øôÄÀÀÀ€˜˜¸”ÄÀÀÀôôôÀ€ü€Ñ¡½ÕÍ…¹œ€è€É•Õ±…Èœìô)™Õ¹Ñ¥½¸µÍAÉ•ÙIÕ¹œ¡¸¥ì(€±•ĞÀôÀì(€™½È¡±•Ğ¬ôÄÀí¬ñ¸í¬¬¬¤¥˜¡µÍ1…‘‘•È¡¬¤¤Àõ¬ì(€É•ÑÕÉ¸Àì)ô)™Õ¹Ñ¥½¸µÍ1¥Ù•Q½Ñ…° ¥ì(€É•ÑÕÉ¸M¹Ñ½Ñ…±Ì¹Í•ÍÍ¥½¹Ì€¬€   ¡¹‘…åÍmÑ½‘…å%M=uññíô¤¹Ü¥ññmt¤¹±•¹Ñ €˜˜€…M¹Í•ÍÍ¥½¹ÍmÑ½‘…å%M=t€ü€Ä€è€À¤ì)ô)™Õ¹Ñ¥½¸µÍ±½½É%¹¥Ğ ¥ì(€¥˜¡¹Í•ÑÑ¥¹Ì¹µÍ±½½Èôõ¹Õ±°¥ì¹Í•ÑÑ¥¹Ì¹µÍ±½½ÈõµÍ1¥Ù•Q½Ñ…° ¤ìÍ…Ù”¡ÑÉÕ”¤ìô)ô)™Õ¹Ñ¥½¸µÍA•¹‘¥¹œ ¥ì(€¥˜¡¹Í•ÑÑ¥¹Ì¹µÍ±½½Èôõ¹Õ±°¤É•ÑÕÉ¸€Àì(€½¹ÍĞÑ½Ñ…°õµÍ1¥Ù•Q½Ñ…° ¤°…¬õ5…Ñ ¹µ…à¡¹Í•ÑÑ¥¹Ì¹µÍ­ñğÀ°¹Í•ÑÑ¥¹Ì¹µÍ±½½È¤ì(€±•Ğ‰•ÍĞôÀì(€™½È¡±•Ğ¬õ…¬¬Äí¬ğõÑ½Ñ…°í¬¬¬¤¥˜¡µÍ1…‘‘•È¡¬¤¤‰•ÍĞõ¬ì€€€¼¼±…É•ÍĞÉ½ÍÍ•°½¹”µ½µ•¹Ğ(€É•ÑÕÉ¸‰•ÍĞì)ô(¼¨½¹”‘Éä±¥¹”Á•È¹•¥¡‰½ÕÉ¡½½ƒŠP‘•Ñ•Éµ¥¹¥ÍÑ¥Œ°¹•Ù•ÈÉ…¹‘½´°…¹‰½±‰ä(€€ÑåÁ”¹½ĞÁÕ¹ÑÕ…Ñ¥½¸èÑ¡”…ÁÀÌÙ½¥”‘½•Ì¹½ĞÕÍ”•á±…µ…Ñ¥½¸µ…É­Ì•Ù•¸(€€…Ğ™Õ±°Ù½±Õµ”¸€¨¼)™Õ¹Ñ¥½¸µÍ1¥¹”¡¸¥ì(€¥˜¡¸øôÄÀÀÀ˜™¸”ÄÀÀÀôôôÀ¤É•ÑÕÉ¸™µĞ¡¸¤¬œ‘…åÌ¸Q¡”±½¹œ…µ”°­•ÁĞ¸œì(€¥˜¡¸øôÄÀÀÀ¤É•ÑÕÉ¸™µĞ¡¸¤¬œ‘…åÌ½˜Í¡½İ¥¹œÕÀ¸œì(€É•ÑÕÉ¸€¡ìÄÀèQ•¸‘…åÌ¸%ÑqÔÈÀÄåÌ„Ñ¡¥¹œ¹½Ü¸œ°(€€€€€€€€€€€ÈÀèQİ•¹Ñä‘…åÌ¸Q¡”¡…‰¥Ğ¥Ìİ¥¹¹¥¹œ¸œ°(€€€€€€€€€€€ÌÀèµ½¹Ñ ½˜‘…åÌ¸5½ÍĞÅÕ¥Ğ¡•É”qÔÈÀÄĞå½Ô‘¥‘¹qÔÈÀÄåĞ¸œ°(€€€€€€€€€€€ÔÀè¥™Ñä‘…åÌ¸Q¡¥Ì¥Ìİ¡¼å½Ô…É”¹½Ü¸œ°(€€€€€€€€€€€ÄÀÀè¡Õ¹‘É•‘…åÌ½˜Í¡½İ¥¹œÕÀ¸œ°(€€€€€€€€€€€ÈÀÀèQİ¼¡Õ¹‘É•¸Q¡”½Õ ±½ÍĞ¸œ°(€€€€€€€€€€€ÌÀÀèQ¡É•”¡Õ¹‘É•‘…åÌ¸EÕ¥•Ñ±äÉ•±•¹Ñ±•ÍÌ¸œ°(€€€€€€€€€€€ÔÀÀè¥Ù”¡Õ¹‘É•‘…åÌ¸!…±˜Ñ¡”µ½Õ¹Ñ…¥¸¸ô¥m¹uññ™µĞ¡¸¤¬œ‘…åÌ½˜Í¡½İ¥¹œÕÀ¸œì)ô(¼¨ØÌ¸Ì¸ÄÄĞè•… ¡…ÉĞÌ‘…Ñ„‰•½µ•Ì„™Õ¹Ñ¥½¸Í¼Ñ¡”½¸µÍÉ••¸MY…¹(€€Ñ¡”Í¡…É”…ÉÉ•…Ñ¡”M5¹Õµ‰•ÉÌ¸AÉ•Ù¥½ÕÍ±äÑ¡•Í”İ•É”½µÁÕÑ•(€€¥¹±¥¹”¥¹Í¥‘”Ñ¡”É•¹‘•È™Õ¹Ñ¥½¹Ì°İ¡¥ µ•…¹Ğ„…É½Õ±½¹±ä‰”(€€…‘‘•‰ä‘ÕÁ±¥…Ñ¥¹œÑ¡”…É¥Ñ¡µ•Ñ¥ŒƒŠPÑ¡”‘É¥™ĞÑ¡¥Ì½‘•‰…Í”­••ÁÌ(€€Á…å¥¹œ‘½İ¸€¡É•Í•…±…ä°™½±‘M•ÑÌ°É¥‘…Ñ„°•±…ÁÍ•‘…åÌ°ÉÕ¹e•…ÉÕÉÙ•Ì¤¸€¨¼(¼¨ØÌ¸Ì¸ÈÀàè=5A1QMQLÁ•ÈÁ…ÉĞÁ•ÈÑÉ…¥¹¥¹œ‘…ä°¹•İ•ÍĞ±…ÍĞ¸Q¡”½±(€€¡…ÉĞÍÕµµ•İ•¥¡Ğƒ\É•ÁÌ…É½ÍÌMµ¥Ñ µ…¡¥¹•Ì°™É•”İ•¥¡ÑÌ°‘Õµ‰‰•±±Ì°(€€‰…É‰•±±Ì…¹Í•±•Ñ½É¥Í•µ…¡¥¹•Ì¸Q¡”…É¥Ñ¡µ•Ñ¥Œİ…Ì½¹Í¥ÍÑ•¹Ğ°‰ÕĞÑ¡”(€€Ñ½Ñ…°İ…Ì¹½Ğ„½µÁ…É…‰±”Á¡åÍ¥…°ÅÕ…¹Ñ¥Ñä¸=¹”‰±½¬¹½Üµ•…¹Ì•á…Ñ±ä(€€½¹”±½•Í•Ğ°É•…É‘±•ÍÌ½˜•ÅÕ¥Áµ•¹Ğ¸IÕ¸É•µ…¥¹ÌÍ•Á…É…Ñ”è‘¥ÍÑ…¹”¥Ì(€€…±É•…‘äÑ½±¡½¹•ÍÑ±ä•±Í•İ¡•É”…¹¡…Ì¹¼µ•…¹¥¹™Õ°Í•Ğ•ÅÕ¥Ù…±•¹Ğ¸€¨¼)½¹ÍĞAIQ}=1=ILõí¡•ÍĞèÙ…È ´µÀµ¡•ÍĞ¤œ±	…¬èÙ…È ´µÀµ‰…¬¤œ±M¡½Õ±‘•ÈèÙ…È ´µÀµÍ¡½Õ±‘•È¤œ°(€1•ÌèÙ…È ´µÀµ±•Ì¤œ±	¥•ÁÌèÙ…È ´µÀµ‰¥•ÁÌ¤œ±QÉ¥•ÁÌèÙ…È ´µÀµÑÉ¥•ÁÌ¤œ°(€M¥áÁ…¬èÙ…È ´µÀµÍ¥áÁ…¬¤œ±IÕ¸èÙ…È ´µÀµÉÕ¸¤ôì)™Õ¹Ñ¥½¸Á…ÉÑ5¥à¡‘…åÌ¥ì(€½¹ÍĞ½ÕĞõmt°¥Í¼õl¸¸¹İ½É­½ÕÑ…Ñ•Ì ¥t¹Í½ÉĞ ¤ì(€½¹ÍĞÑ…­”õ¥Í¼¹Í±¥” µ5…Ñ ¹µ…à Ä±‘…åÌ¤¤ì(€™½È¡½¹ÍĞ½˜Ñ…­”¥ì(€€€½¹ÍĞÜô¡¹‘…åÍm‘uññíô¤¹İñğ¡M¹Í•ÍÍ¥½¹Ím‘uññmt¤ì(€€€½¹ÍĞ‰äõíôì(€€€™½È¡½¹ÍĞÌ½˜Ü¥ì(€€€€€½¹ÍĞÀõÌ¹Á…ÉÑñğŸŠPœì(€€€€€¥˜¡ÀôôôIÕ¸ññÌ¹•àôôôIÕ¸œ¤½¹Ñ¥¹Õ”ì(€€€€€€¼¨½±‘•¡¥ÍÑ½É¥…°É½İÌÍÑ½É”Í•Ù•É…°Í•ÑÌ¥¸½¹”É•ÁÌ…ÉÉ…äìÕÉÉ•¹Ğ(€€€€€€€€±½ÌÕÍÕ…±±äÍÑ½É”½¹”¸1•¹Ñ ¥ÌÑ¡”½¹”É•ÁÉ•Í•¹Ñ…Ñ¥½¸µ¥¹‘•Á•¹‘•¹Ğ(€€€€€€€€½Õ¹Ğ°Í¼lÄÈ°ÄÀ°ÄÀ°át…¹™½ÕÈ½¹”µÉ•Àµ…ÉÉ…äÉ½İÌ‰½Ñ …‘™½ÕÈ¸€¨¼(€€€€€½¹ÍĞÍ•ÑÌô¡Ì¹É•ÁÍññmt¤¹±•¹Ñ ì(€€€€€¥˜¡Í•ÑÌøÀ¤‰åmÁtô¡‰åmÁuñğÀ¤­Í•ÑÌì(€€€ô(€€€½ÕĞ¹ÁÕÍ ¡í°‰ä°Ñ½Ñ…°é=‰©•Ğ¹Ù…±Õ•Ì¡‰ä¤¹É•‘Õ” ¡„±ˆ¤ôù„­ˆ°À¥ô¤ì(€ô(€É•ÑÕÉ¸½ÕĞì)ô)™Õ¹Ñ¥½¸İ‘¥ÍĞ ¥ì(€½¹ÍĞ‘…Ñ•Ìõİ½É­½ÕÑ…Ñ•Ì ¤°ŒõlÀ°À°À°À°À°À°Át°ĞõlÀ°À°À°À°À°À°Átì(€™½È¡±•Ğ¤ôÀí¤ğÌØÔí¤¬¬¥ì(€€€½¹ÍĞõ¹•Ü…Ñ”¡Ñ½‘…å%M<¬PÀÀèÀÀœ¤ì¹Í•Ñ…Ñ”¡¹•Ñ…Ñ” ¤µ¤¤ì(€€€½¹ÍĞÜõ¹•Ñ…ä ¤ìÑmİt¬¬ì(€€€¥˜¡‘…Ñ•Ì¹¡…Ì¡¹Ñ½1½…±•…Ñ•MÑÉ¥¹œ •¸µœ¤¤¤mİt¬¬ì(€ô(€½¹ÍĞÁĞõŒ¹µ…À ¡¸±¤¤ôùÑm¥tı¸½Ñm¥tèÀ¤ì(€É•ÑÕÉ¸íÁĞ°‰•ÍĞéÁĞ¹¥¹‘•á=˜¡5…Ñ ¹µ…à ¸¸¹ÁĞ¤¤°Ñ½‘…äé¹•Ü…Ñ”¡Ñ½‘…å%M<¬PÀÀèÀÀœ¤¹•Ñ…ä ¥ôì)ô)™Õ¹Ñ¥½¸İ••­M•É¥•Ì ¥ì(€½¹ÍĞ‘…åÌõÉÕ¹…åÌ ¤°‰äõíôì(€™½È¡½¹ÍĞÈ½˜‘…åÌ¤‰åmİ••­=˜¡È¹¥tô¡‰åmİ••­=˜¡È¹¥uñğÀ¤­Ñ½¡È¹­´¤ì(€½¹ÍĞÑ¡¥Í]¬õİ••­=˜¡Ñ½‘…å%M<¤ì(€½¹ÍĞİ­Ìõ=‰©•Ğ¹­•åÌ¡‰ä¤¹Í½ÉĞ ¤¹Í±¥” ´ÄØ¤ì(€¥˜ …İ­Ì¹¥¹±Õ‘•Ì¡Ñ¡¥Í]¬¤¤İ­Ì¹ÁÕÍ ¡Ñ¡¥Í]¬¤ì(€½¹ÍĞ…Ùœõİ­Ì¹™¥±Ñ•È¡ÜôùÜ„ôõÑ¡¥Í]¬¤¹É•‘Õ” ¡„±Ü¤ôù„¬¡‰åmİuñğÀ¤°À¤½5…Ñ ¹µ…à Ä±İ­Ì¹±•¹Ñ ´Ä¤ì(€É•ÑÕÉ¸íİ­Ì°‰ä°…Ùœ°Ñ¡¥Í]­ôì)ô)™Õ¹Ñ¥½¸Á…•M•É¥•Ì ¥ì(€½¹ÍĞ‘…åÌõÉÕ¹…åÌ ¤°Á´õíôì(€™½È¡½¹ÍĞÈ½˜‘…åÌ¥ì¥˜¡È¹Ñ¥µ•ğôÀ¤½¹Ñ¥¹Õ”ì(€€€½¹ÍĞ¬õÈ¹¹Í±¥” À°Ü¤ì½¹ÍĞ”õÁµm­uñğ¡Áµm­tõíÍ•ŒèÀ±èÁô¤ì”¹Í•Œ¬õÈ¹Í•Œì”¹¬õÑ½¡È¹Ñ¥µ•¤ìô(€É•ÑÕÉ¸=‰©•Ğ¹•¹ÑÉ¥•Ì¡Á´¤¹Í½ÉĞ ¤¹Í±¥” ´ÄÈ¤¹µ…À ¡m¬±Ùt¤ôùm¬°Ø¹üØ¹Í•Œ½Ø¹€è€Át¤ì)ô)™Õ¹Ñ¥½¸¡•…ÑM•É¥•Ì ¥ì(€½¹ÍĞ‘…Ñ•Ìõİ½É­½ÕÑ…Ñ•Ì ¤°½ÕĞõmtì(€½¹ÍĞ•¹õ¹•Ü…Ñ”¡Ñ½‘…å%M<¬PÀÀèÀÀœ¤ì(€•¹¹Í•Ñ…Ñ”¡•¹¹•Ñ…Ñ” ¤µ•¹¹•Ñ…ä ¤¬Ø¤ì€€€€€€€€€€¼¼Ñ¡É½Õ Ñ¡”ÕÉÉ•¹Ğİ••¬ÌM…ÑÕÉ‘…ä(€™½È¡±•ĞÜôÈÔíÜøôÀíÜ´´¥ì(€€€½¹ÍĞ½°õmtì(€€€™½È¡±•ĞôÀíğÜí¬¬¥ì(€€€€€½¹ÍĞŒõ¹•Ü…Ñ”¡•¹¤ìŒ¹Í•Ñ…Ñ”¡Œ¹•Ñ…Ñ” ¤´¡Ü¨Ü¤¬¡´Ø¤¤ì(€€€€€½¹ÍĞ¥Í¼õŒ¹Ñ½1½…±•…Ñ•MÑÉ¥¹œ •¸µœ¤ì(€€€€€½°¹ÁÕÍ ¡í¥Í¼°½¸é‘…Ñ•Ì¹¡…Ì¡¥Í¼¤°™ÕĞé¥Í¼ùÑ½‘…å%M=ô¤ì(€€€ô(€€€½ÕĞ¹ÁÕÍ ¡½°¤ì(€ô(€É•ÑÕÉ¸½ÕĞì)ô)™Õ¹Ñ¥½¸½µ•‰…­Ì ¥ì(€½¹ÍĞ…ÉÈõl¸¸¹İ½É­½ÕÑ…Ñ•Ì ¥t¹Í½ÉĞ ¤ì(€±•Ğ¸ôÀ°±½¹•ÍĞôÀì(€™½È¡±•Ğ¤ôÄí¤ñ…ÉÈ¹±•¹Ñ í¤¬¬¥ì(€€€½¹ÍĞ…Àõ‘…åÍ	•Ñİ••¸¡…ÉÉm¤´Åt±…ÉÉm¥t¤´Äì€€€¼¼‘…åÌ]d‰•Ñİ••¸Ñİ¼ÑÉ…¥¹•‘…åÌ(€€€¥˜¡…ÀøôÜ¥ì¸¬¬ì¥˜¡…Àù±½¹•ÍĞ¤±½¹•ÍĞõ…Àìô(€ô(€É•ÑÕÉ¸í¸°±½¹•ÍÑôì)ô)™Õ¹Ñ¥½¸±½¹•ÍÑMÑÉ•…¬ ¥ì(€½¹ÍĞ…ÉÈõl¸¸¹İ½É­½ÕÑ…Ñ•Ì ¥t¹Í½ÉĞ ¤ì(€±•Ğ‰•ÍĞôÀ±ÉÕ¸ôÀ±ÁÉ•Øõ¹Õ±°ì(€™½È¡½¹ÍĞ½˜…ÉÈ¥ì(€€€ÉÕ¸ô¡ÁÉ•Ø˜™‘…åÍ	•Ñİ••¸¡ÁÉ•Ø±¤ôôôÄ¤ıÉÕ¸¬ÄèÄì(€€€¥˜¡ÉÕ¸ù‰•ÍĞ¥‰•ÍĞõÉÕ¸ìÁÉ•Øõì(€ô(€É•ÑÕÉ¸‰•ÍĞì)ô)™Õ¹Ñ¥½¸İÈ¡¥Í¼¥ìÉ•ÑÕÉ¸¹•Ü…Ñ”¡¥Í¼¬PÀÀèÀÀœ¤¹Ñ½1½…±•…Ñ•MÑÉ¥¹œ •¸µULœ±íİ••­‘…äèÍ¡½ÉĞô¤ìô)™Õ¹Ñ¥½¸‘…åÍ	•Ñİ••¸¡„±ˆ¥íÉ•ÑÕÉ¸5…Ñ ¹É½Õ¹ ¡¹•Ü…Ñ”¡ˆ¬PÀÀèÀÀœ¤µ¹•Ü…Ñ”¡„¬PÀÀèÀÀœ¤¤¼àØÑ”Ô¤íô((¼¨ØÌ¸Ì¸àäèÕµÕ±…Ñ¥Ù”‘¥ÍÑ…¹”‰ä‘…ä½˜å•…È°¥¸%MA1dÕ¹¥ÑÌƒŠPÑ¡”Í…µ”(€€Í¡…Á”å•…ÉÕÉÙ•Ì ¤É•ÑÕÉ¹Ì°Í¼½¹”…¹Ù…ÌÉ•¹‘•É•ÈÍ•ÉÙ•Ì‰½Ñ ¡…ÉÑÌ¸(€€M¡…É•‰äÑ¡”MY¥¸ÉÕ¹MÑ…ÑÍ!Q50 ¤…¹Ñ¡”Í¡…É”…É¸€¨¼)™Õ¹Ñ¥½¸ÉÕ¹e•…ÉÕÉÙ•Ì ¥ì(€½¹ÍĞ‘…åÌõÉÕ¹…åÌ ¤°Á•Èõíôì(€™½È¡½¹ÍĞÈ½˜‘…åÌ¥ì½¹ÍĞäõÈ¹¹Í±¥” À°Ğ¤ì€¡Á•ÉmåtõÁ•Émåuññmt¤¹ÁÕÍ ¡m‘½ä¡È¹¤±Ñ½¡È¹­´¥t¤ìô(€½¹ÍĞ½ÕĞõíôì(€™½È¡½¹ÍĞmä±±¥ÍÑt½˜=‰©•Ğ¹•¹ÑÉ¥•Ì¡Á•È¤¥ì(€€€±¥ÍĞ¹Í½ÉĞ ¡„±ˆ¤ôù…lÁtµ‰lÁt¤ì(€€€½¹ÍĞ•¹€ôäôôõÑ¡¥Íe•…È€ü‘½ä¡Ñ½‘…å%M<¤€è€  ­ä”ĞôôôÀ¤üÌØØèÌØÔ¤ì(€€€½¹ÍĞÕÉÙ”õ¹•Ü±½…ĞÌÉÉÉ…ä¡•¹¤ì±•ĞŒôÀ±¤ôÀì(€€€™½È¡±•ĞôÄíğõ•¹í¬¬¥ì(€€€€€İ¡¥±”¡¤ñ±¥ÍĞ¹±•¹Ñ ˜™±¥ÍÑm¥ulÁtğõ¥ìŒ¬õ±¥ÍÑm¥ulÅtì¤¬¬ìô(€€€€€ÕÉÙ•m´ÅtõŒì(€€€ô(€€€½ÕÑmåtõíÕÉÙ”±•¹±Ñ½Ñ…°éôì(€ô(€É•ÑÕÉ¸½ÕĞì)ô((¼¨å•…Èµ½Ù•Èµå•…ÈÕµÕ±…Ñ¥Ù”½¹Í¥ÍÑ•¹äèİ½É­½ÕĞ‘…åÌÍ¼™…È€¼‘…åÌ•±…ÁÍ•€€¡Ñ¡”…Í¡‰½…É‰½ÑÑ½´¡…ÉĞ¤€¨¼(¼¨ØÌ¸Ì¸äÔè¡½ÜµÕ ½˜Ñ¡¥Ìå•…È¡…Ì½Õ¹Ñ•Í¼™…È¸¸Õ¹İÉ¥ÑÑ•¸Ñ½‘…ä‘½•Ì(€€¹½Ğ½Õ¹Ğ……¥¹ÍĞå½ÔƒŠPå½Ô¡…Ù”¹½Ğµ¥ÍÍ•¥ĞÕ¹Ñ¥°µ¥‘¹¥¡Ğ¸Q¡…ĞÉÕ±”(€€±¥Ù•¥¸¡•…‘•È¹©Ì…¹ÍÑ…ÑÌ¹©Ì…¹å•…ÉÕÉÙ•Ì ¤¡…¹•Ù•È¡•…É½˜¥Ğ°Í¼(€€Ñ¡”-A$‘¥Ù¥‘•‰ä€ÈÀØİ¡¥±”Ñ¡”¡…ÉĞ‘¥Ù¥‘•‰ä€ÈÀÜ…¹Ñ¡”Í…µ”™…Ğ(€€É•¹‘•É•…Ì€ØÈ”…¹€ØÄ”½¸½¹”ÍÉ••¸¸9½ÜÑ¡•É”¥Ì½¹”™Õ¹Ñ¥½¸…¹Ñ¡”(€€Ñİ¼¹Õµ‰•ÉÌ…É”Ñ¡”M5…É¥Ñ¡µ•Ñ¥Œ°¹½Ğµ•É•±ä…É••¥¹œ…É¥Ñ¡µ•Ñ¥Œ¸€¨¼)™Õ¹Ñ¥½¸•±…ÁÍ•‘…åÌ ¥ì(€É•ÑÕÉ¸5…Ñ ¹µ…à Ä°‘½ä¡Ñ½‘…å%M<¤€´€  ¡¹‘…åÍmÑ½‘…å%M=uññíô¤¹İññmt¤¹±•¹Ñ €ü€À€è€Ä¤¤ì)ô)™Õ¹Ñ¥½¸å•…ÉÕÉÙ•Ì ¥ì(€½¹ÍĞ‘…Ñ•Ìõİ½É­½ÕÑ…Ñ•Ì ¤ì(€½¹ÍĞÁ•Ée•…Èõíôì(€™½È¡½¹ÍĞ¥Í¼½˜‘…Ñ•Ì¥í½¹ÍĞäõ¥Í¼¹Í±¥” À°Ğ¤ì¡Á•Ée•…ÉmåtõÁ•Ée•…Émåuññmt¤¹ÁÕÍ ¡‘½ä¡¥Í¼¤¤íô(€½¹ÍĞ½ÕĞõíôì(€™½È¡½¹ÍĞmä±±¥ÍÑt½˜=‰©•Ğ¹•¹ÑÉ¥•Ì¡Á•Ée•…È¤¥ì(€€€±¥ÍĞ¹Í½ÉĞ ¡„±ˆ¤ôù„µˆ¤ì(€€€½¹ÍĞ•¹€ôäôôõÑ¡¥Íe•…È€ü•±…ÁÍ•‘…åÌ ¤€è€  ­ä”ĞôôôÀ¤üÌØØèÌØÔ¤ì(€€€½¹ÍĞÕÉÙ”õ¹•Ü±½…ĞÌÉÉÉ…ä¡•¹¤ì±•ĞŒôÀ±¤ôÀì(€€€™½È¡±•ĞôÄíğõ•¹í¬¬¥ì(€€€€€İ¡¥±”¡¤ñ±¥ÍĞ¹±•¹Ñ ˜™±¥ÍÑm¥tğõ¥íŒ¬¬í¤¬¬íô(€€€€€ÕÉÙ•m´ÅtõŒ½ì(€€€ô(€€€½ÕÑmåtõíÕÉÙ”±‘…åÌé±¥ÍĞ¹±•¹Ñ ±•¹‘ôì(€ô(€É•ÑÕÉ¸½ÕĞì)ô((¼¨ØÌ¸Ä¸ÄÈèÑ¡”É•¡•…‘•È%LÑ¡”Í•ÍÍ¥½¸ƒŠPÑ…ÁÁ¥¹œ¥Ğ©ÕµÁÌÑ¼Ñ¡”…Ñ¥Ù”(€€•á•É¥Í”€¡Ñ¡”µ½ÍĞÉ••¹ĞÍ•ĞÑ½‘…äİ¡½Í”Á…ÉĞ¥ÌÍÑ¥±°½Á•¸¤¸Q…ÁÌ½¸(€€‰ÕÑÑ½¹Ì¥¹Í¥‘”Ñ¡”¡•…‘•È€¡‰…¬°•…È°‘•µ¼‰…È¤…É”±•™Ğ…±½¹”¸€¨¼)™Õ¹Ñ¥½¸…Ñ¥Ù•½ÕÌ ¥ì(€½¹ÍĞĞõ‘…ä¡Ñ½‘…å%M<¤ì(€¥˜ …Ğ¹Ü¹±•¹Ñ ¤É•ÑÕÉ¸¹Õ±°ì(€½¹ÍĞ½Á•¸õl¸¸¹Ğ¹İt¹Í½ÉĞ ¡„±ˆ¤ôø¡ˆ¹…ÑñğÀ¤´¡„¹…ÑñğÀ¤¤(€€€€¹™¥¹¡ÌôùÌ¹Á…ÉĞ„ôôIÕ¸œ˜™Ì¹Á…ÉĞ˜˜„¡Ğ¹‘½¹•A…ÉÑññmt¤¹¥¹±Õ‘•Ì¡Ì¹Á…ÉĞ¤¤ì(€É•ÑÕÉ¸½Á•¸ıí•àé½Á•¸¹•à±Á…ÉĞé½Á•¸¹Á…ÉÑôé¹Õ±°ì)ô)‘½Õµ•¹Ğ¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ±¥¬œ±”ôùì(€½¹ÍĞ¡õ”¹Ñ…É•Ğ¹±½Í•ÍĞ ¡•…‘•Èœ¤ì(€¥˜ …¡‘ñğ…¡¹±…ÍÍ1¥ÍĞ¹½¹Ñ…¥¹Ì ±¥Ù”œ¤¤É•ÑÕÉ¸ì(€¥˜¡”¹Ñ…É•Ğ¹±½Í•ÍĞ ‰ÕÑÑ½¸±„°‘•µ½	…È±¥¹ÁÕĞœ¤¤É•ÑÕÉ¸ì(€½¹ÍĞ˜õ…Ñ¥Ù•½ÕÌ ¤ì(€¥˜ …˜¤É•ÑÕÉ¸ì(€¥˜¡Ù¥•Üôôô±¥™Ğœ˜™±¥™Ğ¹•àôôõ˜¹•à¤É•ÑÕÉ¸ì€€€€€€¼¼…±É•…‘äÑ¡•É”(€Ù¥•Üô±¥™Ğœì±¥™Ğ¹Á…ÉĞõ˜¹Á…ÉĞì±¥™Ğ¹•àõ˜¹•àì±¥™Ğ¹½Áäõ¹Õ±°ì(€É•¹‘•È ¤ì)ô¤ì(
+    const feed=per=>{ for(const [p,v] of Object.entries(per)){ const a=acc[p]=acc[p]||{s:0,n:0}; a.s+=v; a.n++; } };
+    for(const rows of Object.values(SEED.sessions)){
+      const per={};
+      for(const r of rows){
+        const v=r[1]==='Run'? r[2] : r[2]*(r[3]||[]).reduce((a,b)=>a+b,0);
+        per[r[0]]=(per[r[0]]||0)+v;
+      }
+      feed(per);
+    }
+    for(const [d,day] of Object.entries(DB.days)){
+      if(d<=SEED.totals.last||d===todayISO) continue;
+      const per={};
+      for(const s of day.w){ const v=s.ex==='Run'?s.w:volOf(s); per[s.part]=(per[s.part]||0)+v; }
+      feed(per);
+    }
+    for(const [p,a] of Object.entries(acc)) _avgVol[p]=a.s/a.n;
+  }
+  return _avgVol[part]||0;
+}
+/* v3.3.96: three preferences â€” 'system', 'light', 'dark' â€” resolving to two
+   themes. Anything unrecognised still resolves dark, so a settings blob from
+   an older build behaves exactly as it did.
+
+   Two things must stay true and are easy to break:
+   â€¢ localStorage 'showup-theme' holds the RESOLVED theme, never 'system'.
+     index.html reads it before any script runs to paint the right background
+     on the first frame; storing 'system' there would reintroduce the flash.
+   â€¢ On 'system' the app follows the OS while OPEN. Resolving once at boot
+     would leave the app in yesterday's theme when the phone flips at sunset,
+     so a media-query listener is attached (once) and re-applies. */
+function systemTheme(){
+  try{ return matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'; }
+  catch(e){ return 'dark'; }
+}
+let _themeWatched=false;
+function applyTheme(){
+  const pref=DB.settings.theme;
+  const t = pref==='system' ? systemTheme() : (pref==='light'?'light':'dark');
+  document.documentElement.dataset.theme=t;
+  /* v3.3.168: the SKIN rides the same rail as the theme â€” one applier, one
+     pre-paint read, one storage slot each. Two values: 'minimal' (default)
+     and 'classic'. Absence and anything unrecognised resolve MINIMAL, so
+     every existing device wakes up in Minimal and Classic is the opt-out â€”
+     the same resolution shape as the theme's unrecognisedâ†’dark. Stored
+     RESOLVED for the same reason as the theme: index.html paints both
+     attributes before any script runs, and a value that needs resolving
+     would reintroduce the first-frame flash. */
+  const sk = DB.settings.skin==='classic' ? 'classic' : 'minimal';
+  document.documentElement.dataset.skin=sk;
+  try{localStorage.setItem('showup-theme',t);localStorage.setItem('showup-skin',sk);}catch(e){}
+  const m=document.querySelector('meta[name="theme-color"]');
+  if(m) m.setAttribute('content', t==='light'?'#F2F3F6':'#0C0E13');
+  if(!_themeWatched){
+    _themeWatched=true;
+    try{
+      const mq=matchMedia('(prefers-color-scheme: light)');
+      const on=()=>{ if(DB.settings.theme==='system') applyTheme(); };
+      if(mq.addEventListener) mq.addEventListener('change',on); else mq.addListener(on);
+    }catch(e){}
+  }
+}
+/* weights are always STORED in kg; the unit setting only changes what you see and type */
+const LB=2.20462, MI=0.621371;
+const isLb=()=>DB.settings.unit==='lb';       // 'lb' == imperial, 'kg' == metric
+const U=()=>isLb()?'lb':'kg';
+const DU=()=>isLb()?'mi':'km';                 // distance unit
+const toD=km=>isLb()?km*MI:km;                 // stored km -> display
+const fromD=v=>isLb()?v/MI:v;                  // display -> stored km
+const dDisp=km=>(Math.round(toD(km)*100)/100).toFixed(2);
+const toU=kg=>isLb()?kg*LB:kg;                       // kg -> display
+const toKg=v=>isLb()?v/LB:v;                         // display -> kg
+const wDisp=kg=>{const v=toU(kg);return (Math.round(v*10)/10).toString().replace(/\.0$/,'');};
+const vDisp=kg=>fmt(Math.round(toU(kg)));            // volume
+const STEP=()=>isLb()?5:2.5;
+
+/* --- bar + plate math ---------------------------------------------------
+   Weights are stored as the TOTAL on the movement (bar included), matching
+   how the sheet was kept. Bar weights are editable in Settings.          */
+const barKg=ex=>{
+  const per=(DB.settings.barByEx||{})[ex];      // per-exercise override, once you set it
+  if(per!=null) return per;
+  const e=equipOf(ex);
+  if(e==='barbell') return DB.settings.barKg ?? 20;
+  if(e==='smith')   return DB.settings.smithKg ?? 20;
+  return 0;
+};
+const usesPlates=ex=>['barbell','smith'].includes(equipOf(ex));
+const agoStr=d=>{const n=daysAgo(d);return n<=0?'today':n===1?'yesterday':`${n} days ago`;};
+
+/* ---- session flow (v2.09): a workout has a beginning and an end ----------
+   Three levels, each with open/complete state for TODAY:
+     level 0  workout   â€” open from the first set until "Complete workout"
+     level 1  body part â€” open while any of its exercises are open
+     level 2  exercise  â€” open from its first set until "Complete <exercise>"
+   Logging a new set to anything completed reopens it (and its parents). */
+/* v3.3.39: the day's completion state, recomputed from scratch after ANY
+   removal. This predicate has now been got wrong twice â€” v3.3.19 tested
+   doneEx only (runs seal at part level), and v3.3.20 fixed two of the three
+   removal paths but not data-dropex, so removing a whole exercise left the
+   header red. One function, every caller, no fourth drift. */
+function resealDay(t){
+  if(!t.w.length){ t.doneAll=false; t.doneEx=[]; t.donePart=[]; return; }
+  const live=new Set(t.w.map(s=>s.ex));
+  t.doneEx=(t.doneEx||[]).filter(x=>live.has(x));          // drop seals for exercises that are gone
+  const liveP=new Set(t.w.map(s=>s.part));
+  t.donePart=(t.donePart||[]).filter(x=>liveP.has(x));
+  t.doneAll=!t.w.some(s=>!(t.doneEx.includes(s.ex)||t.donePart.includes(s.part)));
+}
+/* v3.3.43: one formatter for "a session, grouped by weight". Lift's LAST TIME
+   card and History's session detail now render through the same two functions,
+   so the two can't drift the way the re-seal predicate did.
+   Folding is CONSECUTIVE, not global: returning to a weight later in the
+   session stays its own line, which keeps the session's narrative. */
+function foldSets(sets,ex){
+  /* v3.3.63: a LIFT with no reps carries nothing, whatever its weight. The
+     old test also demanded w<=0.01, so a legacy "12 kg, reps:[]" marker
+     survived and printed a bare weight row with no chips. Reps ARE the
+     content of a lift; only a run is described by its distance and time, so
+     Run is the sole exemption. */
+  const isRunEx = ex==='Run';
+  const folded=[];
+  for(const [w2,reps,mins,secs] of sets){
+    if(!isRunEx && (!reps||!reps.length) && mins==null) continue;   // bare marker rows carry nothing
+    const prev=folded[folded.length-1];
+    if(prev&&prev[0]===w2&&prev[2]==null&&mins==null) prev[1]=prev[1].concat(reps||[]);
+    else folded.push([w2,(reps||[]).slice(),mins,secs]);
+  }
+  return folded;
+}
+function setRows(ex,folded,tappable){
+  return folded.map(([w2,reps,mins,secs])=>{
+    const chips=(reps&&reps.length)
+      ? reps.map(r2=>`<i class="repchip">${r2}</i>`).join('')
+      : (mins!=null?`<i class="repchip">${mins}${secs?`'${String(secs).padStart(2,'0')}`:'â€²'}</i>`:'');
+    const wtxt = ex==='Run'
+      ? `${dDisp(w2)} <span class="u">${DU()}</span>`
+      : (isBody(ex)&&w2<=0.01 ? 'BW' : `${wDisp(w2)} <span class="u">${U()}</span>`);
+    return `<div class="lastrow"${tappable?` data-lw="${w2}" role="button"`:''}>`
+      +`<span class="lastw mono">${wtxt}</span><span class="lastreps">${chips}</span></div>`;
+  }).join('');
+}
+/* v3.3.65: one floating "up" control for the whole app. It appears whenever
+   you're deep enough in a view for the top to be a trek, and its LABEL always
+   names where it will actually take you â€” "top" normally, or "calendar" while
+   History has armed a jump-back after a date tap. One element, no ambiguity. */
+let _backTo=null, _topRaf=0;
+function topBtn(){
+  let b=document.getElementById('calReturn');
+  if(!b){
+    b=document.createElement('button');
+    b.id='calReturn'; b.className='calreturn'; b.hidden=true;
+    b.addEventListener('click',()=>{
+      const t=_backTo; clearBackTarget();
+      const el=t&&t.getEl&&t.getEl();
+      if(el&&el.scrollIntoView) el.scrollIntoView({block:'start',behavior:'smooth'});
+      else window.scrollTo({top:0,behavior:'smooth'});
+    });
+    document.body.appendChild(b);
+  }
+  return b;
+}
+function syncTopBtn(){
+  const b=topBtn();
+  const deep=(window.scrollY||0)>520;
+  b.hidden=!(deep||_backTo);         // an armed jump-back shows regardless of depth
+  b.textContent=_backTo?`â†‘ ${_backTo.label}`:'â†‘ top';
+}
+function setBackTarget(label,getEl){ _backTo={label,getEl}; syncTopBtn(); }
+function clearBackTarget(){ _backTo=null; syncTopBtn(); }
+addEventListener('scroll',()=>{
+  if(_topRaf) return;
+  _topRaf=requestAnimationFrame(()=>{ _topRaf=0; syncTopBtn(); });
+},{passive:true});
+function dayMeta(){const t=day(todayISO);t.doneEx=t.doneEx||[];t.donePart=t.donePart||[];t.sugX=t.sugX||{};return t;}
+const isLive =()=>{const t=day(todayISO);return t.w.length>0&&!t.doneAll;};
+/* v3.2.3: evening + unwritten today + living streak = at risk. One warm tone,
+   five words, no guilt copy, and it never calls today rest. */
+let RISK_HOUR=18;
+const streakAtRisk=()=>{
+  if(((DB.days[todayISO]||{}).w||[]).length) return false;
+  if(new Date().getHours()<RISK_HOUR) return false;
+  return currentStreak()>0;
+};
+const exOpen =ex=>{const t=dayMeta();return t.w.some(s=>s.ex===ex)&&!t.doneEx.includes(ex);};
+const partOpen=p =>{const t=dayMeta();return t.w.some(s=>s.part===p)&&!t.donePart.includes(p);};
+let lastSetAt=null;
+function reanchorRest(){
+  const t=day(todayISO); t.upd=Date.now();
+  const times=t.w.map(s=>s.at||0).filter(Boolean);
+  lastSetAt=times.length?Math.max(...times):null;
+  t.lastAt=lastSetAt;
+  tickRest();
+}
+const touchToday=()=>{ const t=day(todayISO); t.upd=Date.now(); };
+function reopen(ex,part){
+  const t=dayMeta(); t.upd=Date.now();
+  t.doneEx=t.doneEx.filter(x=>x!==ex);
+  t.donePart=t.donePart.filter(x=>x!==part);
+  t.doneAll=false;
+  lastSetAt=Date.now(); t.lastAt=lastSetAt;
+}
+const isBody=ex=>equipOf(ex)==='body';
+const snapW=kg=>{const s=STEP();const u=toU(kg);return toKg(Math.round(u/s)*s);}   // clean stepper multiples
+/* v3.3.8: ONE source of truth for what weights physically exist.
+   Returns display-unit {s: step, a: anchor}. Barbell/smith: plate pairs
+   anchored at the bar. Everything else: the plain step from zero. */
+function wLaw(ex){
+  const eq=equipOf(ex);
+  if(eq==='barbell'||eq==='smith') return {s:isLb()?10:5, a:toU(barKg(ex))};
+  return {s:STEP(), a:0};
+}
+function saveExW(ex,kg){ if(!ex) return; DB.settings.exW=DB.settings.exW||{}; DB.settings.exW[ex]=kg; }
+const wLabel=(ex,kg)=>isBody(ex)&&kg<=0.01?'BW':`${wDisp(kg)}`;   // free-weight moves read as bodyweight
+const PLATES_KG=[25,20,15,10,5,2.5,1.25];
+const PLATES_LB=[45,35,25,10,5,2.5];
+/* greedy plate breakdown for ONE side */
+function plates(perSideKg){
+  const unit=isLb()?PLATES_LB:PLATES_KG;
+  let left=isLb()?perSideKg*LB:perSideKg;
+  const out=[];
+  for(const p of unit){
+    while(left>=p-0.01){ out.push(p); left-=p; if(out.length>8) return out; }
+  }
+  return out;
+}
+/* one human-readable line: what's actually on the bar */
+function loadLine(ex,totalKg){
+  if(!usesPlates(ex)) {
+    const e=equipOf(ex);
+    if(e==='dumbbell') return `${wDisp(totalKg)} ${U()} per hand`;
+    if(e==='body')     return totalKg>0&&Math.abs(totalKg-(bwNow()||-1))<0.01 ? `your bodyweight Â· ${wDisp(totalKg)} ${U()}`
+                       : totalKg>0 ? `bodyweight + ${wDisp(totalKg)} ${U()}` : 'bodyweight â€” set yours in âš™ Settings';
+    return '';
+  }
+  const bar=barKg(ex);
+  const perSide=(totalKg-bar)/2;
+  if(perSide<=0.01) return `empty bar Â· ${wDisp(bar)} ${U()}`;
+  return `${wDisp(bar)} ${U()} bar<br>${wDisp(perSide)} ${U()} per side`;
+}
+
+/* every workout DATE ever: seed history + anything logged in the app */
+function workoutDates(){
+  const s=new Set(SEED.dates);
+  for(const [d,v] of Object.entries(DB.days)) if(v.w&&v.w.length) s.add(d);
+  return s;
+}
+/* recent sessions with full detail (seed last 120d + user) */
+function allDays(){
+  // v3.0.3: SEED.sessions is DERIVED FROM DB.days since v3.0 â€” concatenating the
+  // two rendered every historical set twice in History. DB.days is the source of
+  // truth: it REPLACES. (SEED.sessions still fills any derived-only edge, and
+  // today comes from DB.days as always.)
+  const out={};
+  for(const [d,list] of Object.entries(SEED.sessions))
+    out[d]=list.map(([part,ex,w,reps,mins,secs])=>({part,ex,w,reps,mins,secs}));
+  for(const [d,v] of Object.entries(DB.days))
+    if(v.w&&v.w.length) out[d]=v.w;
+  return out;
+}
+function lastFor(ex){
+  const mine=Object.entries(DB.days).filter(([d,v])=>v.w.some(s=>s.ex===ex)).sort((a,b)=>a[0]<b[0]?1:-1)[0];
+  const seed=SEED.last[ex];
+  if(mine&&(!seed||mine[0]>seed.d))
+    return {d:mine[0],sets:mine[1].w.filter(s=>s.ex===ex).map(s=>[s.w,s.reps,s.mins,s.secs])};
+  return seed||null;
+}
+function prFor(ex){
+  const p=SEED.pr[ex]?{...SEED.pr[ex]}:{mw:0,mwr:0,mwd:'',bv:0,bvr:0,bvw:0,bvd:''};
+  for(const [d,v] of Object.entries(DB.days))
+    for(const s of v.w){
+      if(s.ex!==ex||!s.reps.length) continue;
+      const mr=Math.max(...s.reps);
+      if(s.w>p.mw||(s.w===p.mw&&mr>p.mwr)){p.mw=s.w;p.mwr=mr;p.mwd=d;}
+      for(const r of s.reps)                       // best single set: weight Ã— reps, one set
+        if(s.w*r>p.bv){p.bv=s.w*r;p.bvr=r;p.bvw=s.w;p.bvd=d;}
+    }
+  return p;
+}
+function partLastSeen(){
+  const seen={...SEED.partLast};
+  for(const [d,v] of Object.entries(DB.days))
+    for(const s of v.w)
+      if(s.part&&(!seen[s.part]||d>seen[s.part])) seen[s.part]=d;
+  return seen;
+}
+/* day -> Set(parts), last 365d, seed + logged */
+function dayParts(){
+  const m={};
+  for(const [p,list] of Object.entries(SEED.partDays||{}))
+    for(const d of list) (m[d]=m[d]||new Set()).add(p);
+  for(const [d,v] of Object.entries(DB.days))
+    for(const s of v.w) if(s.part) (m[d]=m[d]||new Set()).add(s.part);
+  return m;
+}
+function median(a){ if(!a.length) return 0; const s=[...a].sort((x,y)=>x-y); const i=s.length>>1;
+  return s.length%2 ? s[i] : (s[i-1]+s[i])/2; }
+
+/* What to train next, learned from history:
+   - a part counts as "live" only if trained >=8 times in the last year
+   - readiness = days since / your own median gap for that part
+   - a part you almost always train alone is a MAIN day; one you only ever
+     tack on to another part (Biceps) is an ADD-ON
+   - Run is its own thing (near-daily), never the headline pick            */
+function trainingPlan(){
+  const dp=dayParts();
+  const byPart={};
+  for(const [d,set] of Object.entries(dp))
+    for(const p of set) (byPart[p]=byPart[p]||[]).push(d);
+
+  const info={};
+  for(const [p,days] of Object.entries(byPart)){
+    days.sort();
+    const gaps=[];
+    for(let i=1;i<days.length;i++) gaps.push(daysBetween(days[i-1],days[i]));
+    const lifts = days.filter(d=>{
+      const others=[...dp[d]].filter(x=>x!=='Run'&&x!==p);
+      return others.length===0;
+    }).length;
+    const liftDays = days.filter(d=>p!=='Run').length || days.length;
+    info[p]={
+      days:days.length,
+      last:days[days.length-1],
+      since:daysAgo(days[days.length-1]),
+      gap:Math.max(1,median(gaps)||7),
+      soloRate: p==='Run' ? 1 : lifts/liftDays,
+      live: days.length>=8
+    };
+  }
+  const myp=DB.settings.myParts;
+  const allow=p=>!myp||myp.includes(p)||!!(byPart[p]&&byPart[p].length);   // onboarding pick; history always wins
+  for(const p of Object.keys(SEED.catalog))
+    if(allow(p)&&!info[p]) info[p]={days:0,last:SEED.partLast[p]||null,since:SEED.partLast[p]?daysAgo(SEED.partLast[p]):999,gap:7,soloRate:0,live:false};
+
+  const score=p=>info[p].since/info[p].gap;
+  const live=Object.keys(info).filter(p=>info[p].live&&p!=='Run');
+  const mains=live.filter(p=>info[p].soloRate>=0.4).sort((a,b)=>score(b)-score(a));
+  const addons=live.filter(p=>info[p].soloRate<0.4).sort((a,b)=>score(b)-score(a));
+  const dormant=Object.keys(SEED.catalog).filter(p=>p!=='Run'&&info[p]&&!info[p].live);
+
+  const pick=mains[0]||null;
+  // an add-on is worth suggesting only if it's overdue on its own cycle
+  const addon=addons.find(p=>score(p)>=1)||null;
+  const run=info['Run']||null;
+  return {info,score,mains,addons,dormant,pick,addon,run};
+}
+function streakFrom(dates, endISO){
+  let n=0, d=new Date(endISO+'T00:00');
+  while(dates.has(d.toLocaleDateString('en-CA'))){n++;d.setDate(d.getDate()-1);}
+  return n;
+}
+function currentStreak(){
+  const dates=workoutDates();
+  const t=streakFrom(dates,todayISO);
+  if(t) return t;
+  const y=new Date(todayISO+'T00:00');y.setDate(y.getDate()-1);
+  return streakFrom(dates,y.toLocaleDateString('en-CA'));   // today just hasn't happened yet
+}
+/* v3.3.97: comebacks â€” the longevity twin of the streak. A streak measures
+   never stopping; a practice that lasts years is made of RETURNING. Five
+   agreed lines, each an assertion in test-comeback.js:
+   (1) a comeback = training again after 7+ days away â€” fixed threshold,
+       explainable in one tip; adaptive thresholds were rejected as
+       unexplainable in 120 chars. A normal 5â€“6 day cadence yields ZERO.
+   (2) declared rest days are invisible â€” a ğŸƒ interrupting a gap would be
+       comeback insurance, the corruption the rest doctrine forbids.
+       workoutDates() already contains only trained days, so this holds by
+       construction; the test proves it anyway.
+   (3) only CLOSED gaps count â€” the open gap you're in is not a comeback in
+       progress, and rendering it would be a nudge in a costume.
+   (4) every return counts, sticky or not â€” requiring returns to "last"
+       would turn a count into a grade.
+   (5) zero renders as nothing â€” handled at the render site. */
+/* v3.3.98: the milestone ladder â€” celebrated TOTALS, never streaks. A total
+   is irreversible, so celebrating it threatens nothing; streak milestones
+   are where engagement bait lives (a celebrated thing that can die). Dense
+   where a practice is fragile, then every 100 â€” roughly two a year at a
+   most-days cadence (Sungjee: "500 is too big, man"). Thousands are a
+   bigger tier: same ritual, taller volume.
+
+   Anti-bait rules, each an assertion in test-milestone.js:
+   â€¢ high-water floor at first run â€” no retroactive fireworks, and a
+     restored/imported archive initialises its floor to its own total, so
+     migration is honoured, never celebrated;
+   â€¢ fires once per rung, acknowledgement synced in settings;
+   â€¢ if several rungs are crossed at once (bulk past-edits), ONE moment for
+     the largest â€” a queue of celebrations is a slot machine;
+   â€¢ dismissal is one tap and permanent; ignoring a celebration costs
+     nothing â€” that is the line between a gift and a hook. */
+function msLadder(n){
+  return n>=1000 ? n%100===0 : [10,20,30,50,100,200,300,500].includes(n);
+}
+function msTier(n){ return n>=1000 && n%1000===0 ? 'thousand' : 'regular'; }
+function msPrevRung(n){
+  let p=0;
+  for(let k=10;k<n;k++) if(msLadder(k)) p=k;
+  return p;
+}
+function msLiveTotal(){
+  return SEED.totals.sessions + ((((DB.days[todayISO]||{}).w)||[]).length && !SEED.sessions[todayISO] ? 1 : 0);
+}
+function msFloorInit(){
+  if(DB.settings.msFloor==null){ DB.settings.msFloor=msLiveTotal(); save(true); }
+}
+function msPending(){
+  if(DB.settings.msFloor==null) return 0;
+  const total=msLiveTotal(), ack=Math.max(DB.settings.msAck||0, DB.settings.msFloor);
+  let best=0;
+  for(let k=ack+1;k<=total;k++) if(msLadder(k)) best=k;   // largest crossed, one moment
+  return best;
+}
+/* one dry line per neighbourhood â€” deterministic, never random, and bold by
+   type not punctuation: the app's voice does not use exclamation marks even
+   at full volume. */
+function msLine(n){
+  if(n>=1000&&n%1000===0) return fmt(n)+' days. The long game, kept.';
+  if(n>=1000) return fmt(n)+' days of showing up.';
+  return ({10:'Ten days. It\u2019s a thing now.',
+           20:'Twenty days. The habit is winning.',
+           30:'A month of days. Most quit here \u2014 you didn\u2019t.',
+           50:'Fifty days. This is who you are now.',
+           100:'A hundred days of showing up.',
+           200:'Two hundred. The couch lost.',
+           300:'Three hundred days. Quietly relentless.',
+           500:'Five hundred days. Half the mountain.'})[n]||fmt(n)+' days of showing up.';
+}
+/* v3.3.114: each chart's data becomes a function so the on-screen SVG and
+   the share card read the SAME numbers. Previously these were computed
+   inline inside the render functions, which meant a card could only be
+   added by duplicating the arithmetic â€” the drift this codebase keeps
+   paying down (resealDay, foldSets, gridData, elapsedDays, runYearCurves). */
+/* v3.3.208: COMPLETED SETS per part per training day, newest last. The old
+   chart summed weight Ã— reps across Smith machines, free weights, dumbbells,
+   barbells and selectorised machines. The arithmetic was consistent, but the
+   total was not a comparable physical quantity. One block now means exactly
+   one logged set, regardless of equipment. Run remains separate: distance is
+   already told honestly elsewhere and has no meaningful set equivalent. */
+const PART_COLORS={Chest:'var(--p-chest)',Back:'var(--p-back)',Shoulder:'var(--p-shoulder)',
+  Legs:'var(--p-legs)',Biceps:'var(--p-biceps)',Triceps:'var(--p-triceps)',
+  Sixpack:'var(--p-sixpack)',Run:'var(--p-run)'};
+function partMix(days){
+  const out=[], iso=[...workoutDates()].sort();
+  const take=iso.slice(-Math.max(1,days));
+  for(const d of take){
+    const w=(DB.days[d]||{}).w||(SEED.sessions[d]||[]);
+    const by={};
+    for(const s of w){
+      const p=s.part||'â€”';
+      if(p==='Run'||s.ex==='Run') continue;
+      /* Folded historical rows store several sets in one reps array; current
+         logs usually store one. Length is the one representation-independent
+         count, so [12,10,10,8] and four one-rep-array rows both add four. */
+      const sets=(s.reps||[]).length;
+      if(sets>0) by[p]=(by[p]||0)+sets;
+    }
+    out.push({d, by, total:Object.values(by).reduce((a,b)=>a+b,0)});
+  }
+  return out;
+}
+function wdDist(){
+  const dates=workoutDates(), c=[0,0,0,0,0,0,0], t=[0,0,0,0,0,0,0];
+  for(let i=0;i<365;i++){
+    const d=new Date(todayISO+'T00:00'); d.setDate(d.getDate()-i);
+    const w=d.getDay(); t[w]++;
+    if(dates.has(d.toLocaleDateString('en-CA'))) c[w]++;
+  }
+  const pct=c.map((n,i)=>t[i]?n/t[i]:0);
+  return {pct, best:pct.indexOf(Math.max(...pct)), today:new Date(todayISO+'T00:00').getDay()};
+}
+function weekSeries(){
+  const days=runDays(), by={};
+  for(const r of days) by[weekOf(r.d)]=(by[weekOf(r.d)]||0)+toD(r.km);
+  const thisWk=weekOf(todayISO);
+  const wks=Object.keys(by).sort().slice(-16);
+  if(!wks.includes(thisWk)) wks.push(thisWk);
+  const avg=wks.filter(w=>w!==thisWk).reduce((a,w)=>a+(by[w]||0),0)/Math.max(1,wks.length-1);
+  return {wks, by, avg, thisWk};
+}
+function paceSeries(){
+  const days=runDays(), pm={};
+  for(const r of days){ if(r.timed<=0) continue;
+    const k=r.d.slice(0,7); const e=pm[k]||(pm[k]={sec:0,d:0}); e.sec+=r.sec; e.d+=toD(r.timed); }
+  return Object.entries(pm).sort().slice(-12).map(([k,v])=>[k, v.d? v.sec/v.d : 0]);
+}
+function heatSeries(){
+  const dates=workoutDates(), out=[];
+  const end=new Date(todayISO+'T00:00');
+  end.setDate(end.getDate()-end.getDay()+6);          // through the current week's Saturday
+  for(let w=25;w>=0;w--){
+    const col=[];
+    for(let d=0;d<7;d++){
+      const c=new Date(end); c.setDate(c.getDate()-(w*7)+(d-6));
+      const iso=c.toLocaleDateString('en-CA');
+      col.push({iso, on:dates.has(iso), fut:iso>todayISO});
+    }
+    out.push(col);
+  }
+  return out;
+}
+function comebacks(){
+  const arr=[...workoutDates()].sort();
+  let n=0, longest=0;
+  for(let i=1;i<arr.length;i++){
+    const gap=daysBetween(arr[i-1],arr[i])-1;   // days AWAY between two trained days
+    if(gap>=7){ n++; if(gap>longest) longest=gap; }
+  }
+  return {n, longest};
+}
+function longestStreak(){
+  const arr=[...workoutDates()].sort();
+  let best=0,run=0,prev=null;
+  for(const d of arr){
+    run=(prev&&daysBetween(prev,d)===1)?run+1:1;
+    if(run>best)best=run; prev=d;
+  }
+  return best;
+}
+function wd2(iso){ return new Date(iso+'T00:00').toLocaleDateString('en-US',{weekday:'short'}); }
+function daysBetween(a,b){return Math.round((new Date(b+'T00:00')-new Date(a+'T00:00'))/864e5);}
+
+/* v3.3.89: cumulative distance by day of year, in DISPLAY units â€” the same
+   shape yearCurves() returns, so one canvas renderer serves both charts.
+   Shared by the SVG in runStatsHTML() and the share card. */
+function runYearCurves(){
+  const days=runDays(), per={};
+  for(const r of days){ const y=r.d.slice(0,4); (per[y]=per[y]||[]).push([doy(r.d),toD(r.km)]); }
+  const out={};
+  for(const [y,list] of Object.entries(per)){
+    list.sort((a,b)=>a[0]-b[0]);
+    const end = y===thisYear ? doy(todayISO) : ((+y%4===0)?366:365);
+    const curve=new Float32Array(end); let c=0,i=0;
+    for(let d=1;d<=end;d++){
+      while(i<list.length&&list[i][0]<=d){ c+=list[i][1]; i++; }
+      curve[d-1]=c;
+    }
+    out[y]={curve,end,total:c};
+  }
+  return out;
+}
+
+/* year-over-year cumulative consistency: workout days so far / days elapsed  (the Dashboard bottom chart) */
+/* v3.3.95: how much of this year has counted so far. An unwritten today does
+   not count against you â€” you have not missed it until midnight. That rule
+   lived in header.js and stats.js and yearCurves() had never heard of it, so
+   the KPI divided by 206 while the chart divided by 207 and the same fact
+   rendered as 62% and 61% on one screen. Now there is one function and the
+   two numbers are the SAME arithmetic, not merely agreeing arithmetic. */
+function elapsedDays(){
+  return Math.max(1, doy(todayISO) - (((DB.days[todayISO]||{}).w||[]).length ? 0 : 1));
+}
+function yearCurves(){
+  const dates=workoutDates();
+  const perYear={};
+  for(const iso of dates){const y=iso.slice(0,4);(perYear[y]=perYear[y]||[]).push(doy(iso));}
+  const out={};
+  for(const [y,list] of Object.entries(perYear)){
+    list.sort((a,b)=>a-b);
+    const end = y===thisYear ? elapsedDays() : ((+y%4===0)?366:365);
+    const curve=new Float32Array(end); let c=0,i=0;
+    for(let d=1;d<=end;d++){
+      while(i<list.length&&list[i]<=d){c++;i++;}
+      curve[d-1]=c/d;
+    }
+    out[y]={curve,days:list.length,end};
+  }
+  return out;
+}
+
+/* v3.1.12: the red header IS the session â€” tapping it jumps to the active
+   exercise (the most recent set today whose part is still open). Taps on
+   buttons inside the header (back, gear, demo bar) are left alone. */
+function activeFocus(){
+  const t=day(todayISO);
+  if(!t.w.length) return null;
+  const open=[...t.w].sort((a,b)=>(b.at||0)-(a.at||0))
+    .find(s=>s.part!=='Run'&&s.part&&!(t.donePart||[]).includes(s.part));
+  return open?{ex:open.ex,part:open.part}:null;
+}
+document.addEventListener('click',e=>{
+  const hd=e.target.closest('header');
+  if(!hd||!hd.classList.contains('live')) return;
+  if(e.target.closest('button,a,#demoBar,input')) return;
+  const f=activeFocus();
+  if(!f) return;
+  if(view==='lift'&&lift.ex===f.ex) return;      // already there
+  view='lift'; lift.part=f.part; lift.ex=f.ex; lift.copy=null;
+  render();
+});
