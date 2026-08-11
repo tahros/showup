@@ -282,7 +282,7 @@ function bwCard(){
    in one declared order at the bottom. Reordering Stats used to mean moving
    long blocks of markup around; now it means editing one line. The order
    below is the maker's, from the v3.3.111 review. */
-/* ================= v3.3.209 — Growth Audit (Stats only) ================
+/* ================= v3.3.210 — Growth Audit (Stats only) ================
    Rep Zones described where repetitions landed, then labelled 6–12 as
    "growth" and 13+ as "endurance". That was too much information and too
    much certainty: rep count alone cannot tell whether a set caused growth.
@@ -300,6 +300,10 @@ const GA_HISTORY_DAYS=42;
 const GA_LEARN_SESSIONS=3;
 const GA_REVIEW_EXPOSURES=4;
 const ga={grp:null};
+const GA_ICONS={building:'…',none:'○',below:'↓',review:'↻',progressing:'↗',
+  learning:'…',new:'+',ready:'✓',inactive:'○'};
+const gaIcon=(state,cls)=>`<i class="${cls} ${state.key}" role="img"
+  aria-label="${state.label}" title="${state.label}">${GA_ICONS[state.key]||'—'}</i>`;
 /* canonical identity survives display-name edits and merges */
 const rowCid=r=>r[6]||canonId(r[1],false)||r[1];
 function gaAllSessions(){
@@ -389,9 +393,9 @@ function growthAuditData(){
     g.ex.push({...ex,state:st,last,ago:daysAgo(last)});
   }
   const mature=strengthDays.size>=GA_LEARN_SESSIONS;
-  const priority={review:0,progressing:1,learning:2,new:2,ready:3,inactive:4};
   for(const g of Object.values(groups)){
-    g.ex.sort((a,b)=>(priority[a.state.key]??9)-(priority[b.state.key]??9)||a.ago-b.ago||a.name.localeCompare(b.name));
+    g.ex.sort((a,b)=>a.ago-b.ago||a.name.localeCompare(b.name));
+    g.ago=g.ex.length?Math.min(...g.ex.map(e=>e.ago)):Infinity;
     const previous=g.blocks.slice(1),active=previous.filter(n=>n>0).length;
     g.baseline=active>=2?previous.reduce((a,b)=>a+b,0)/GA_BASELINE_BLOCKS:null;
     const current=g.blocks[0],activeEx=g.ex.filter(e=>e.ago<GA_HISTORY_DAYS);
@@ -403,48 +407,24 @@ function growthAuditData(){
     else if(activeEx.some(e=>e.state.key==='learning'||e.state.key==='new')) g.state={key:'learning',label:'Learning'};
     else g.state={key:'ready',label:'Baseline ready'};
   }
-  return {groups,strengthDays:strengthDays.size,mature};
-}
-function gaAction(g,data){
-  if(!data.mature) return `Keep logging normal workouts. Growth Audit starts comparing after ${GA_LEARN_SESSIONS} workouts.`;
-  if(!g.blocks[0]) return g.ex.length
-    ?`${g.ex[0].name} was last trained ${g.ex[0].ago} day${g.ex[0].ago===1?'':'s'} ago.`
-    :'No completed sets recorded for this group.';
-  if(g.state.key==='below') return 'Your last 7 days are below your own recent pattern.';
-  const review=g.ex.find(e=>e.ago<GA_HISTORY_DAYS&&e.state.key==='review');
-  if(review) return `Review ${review.name}: ${review.state.detail.toLowerCase()}.`;
-  const moving=g.ex.find(e=>e.ago<GA_HISTORY_DAYS&&e.state.key==='progressing');
-  if(moving) return `Keep ${moving.name}: ${moving.state.detail.toLowerCase()}.`;
-  const learning=g.ex.find(e=>e.ago<GA_HISTORY_DAYS&&['new','learning'].includes(e.state.key));
-  if(learning) return `Keep logging ${learning.name}: ${learning.state.detail.toLowerCase()}.`;
-  return 'Baseline ready. No change suggested from the recorded work.';
+  const order=VISIBLE_GROUPS.slice().sort((a,b)=>groups[a].ago-groups[b].ago||a.localeCompare(b));
+  return {groups,strengthDays:strengthDays.size,mature,order};
 }
 function growthAuditSection(){
   const data=growthAuditData(),groups=data.groups;
-  if(!ga.grp||!groups[ga.grp]){
-    const today=VISIBLE_GROUPS.find(v=>groups[v].days.has(todayISO));
-    const pick=PART_VISIBLE[trainingPlan().pick]||trainingPlan().pick;
-    ga.grp=today||(groups[pick]?pick:null)||VISIBLE_GROUPS.slice().sort((a,b)=>groups[b].blocks[0]-groups[a].blocks[0])[0];
-  }
+  if(!ga.grp||!groups[ga.grp]) ga.grp=data.order[0];
   const g=groups[ga.grp],recent=g.ex.filter(e=>e.ago<GA_HISTORY_DAYS);
   const shown=(recent.length?recent:g.ex).slice(0,4);
-  const base=g.baseline===null?'':` · recent pattern ${fmt(+g.baseline.toFixed(1))}`;
-  const learning=!data.mature?`<div class="gabase"><b>Building your baseline</b>
-    <span>${Math.min(data.strengthDays,GA_LEARN_SESSIONS)} of ${GA_LEARN_SESSIONS} workouts logged</span>
-    <small>No progress or review judgment yet.</small></div>`:
-    `<div class="gabase"><b>Recent pattern</b><span>7 days compared with your four earlier 7-day blocks</span></div>`;
-  return `<h2 class="gah">Growth audit${hActs('ga','Coverage uses your recent pattern. Progress compares weight and reps within the same exercise. It never guesses effort.','About Growth audit')}</h2>
+  return `<h2 class="gah">Growth audit${hActs('ga','↗ comparable best · ↻ review · … learning · ↓ below your pattern · ○ no recent work · + new · ✓ ready','About Growth audit')}</h2>
     <div class="card gacard" data-gacard="${ga.grp}">
-      <select id="gaGrp" class="gasel" aria-label="Body part">${VISIBLE_GROUPS.map(v=>
+      <select id="gaGrp" class="gasel" aria-label="Body part">${data.order.map(v=>
         `<option value="${v}" ${v===ga.grp?'selected':''}>${v}</option>`).join('')}</select>
-      ${learning}
-      <div class="gahead"><span><b>${ga.grp}</b><small>${g.blocks[0]} completed set${g.blocks[0]===1?'':'s'} · ${g.days.size} day${g.days.size===1?'':'s'}${base}</small></span>
-        <i class="gastate ${g.state.key}">${g.state.label}</i></div>
+      <div class="gahead"><small>${g.blocks[0]} completed set${g.blocks[0]===1?'':'s'} · ${g.days.size} day${g.days.size===1?'':'s'}</small>
+        ${gaIcon(g.state,'gastate')}</div>
       <div class="garows">${shown.length?shown.map(e=>`<div class="garow">
-        <span><b>${e.name}</b><small>${e.state.detail}</small></span>
-        <i class="gabadge ${e.state.key}">${e.state.label}</i></div>`).join(''):
+        <span><b>${e.name}</b><small>${g.blocks[0]?e.state.detail:`Last trained ${e.ago} day${e.ago===1?'':'s'} ago`}</small></span>
+        ${gaIcon(e.state,'gabadge')}</div>`).join(''):
         `<div class="note">No completed sets recorded for this group.</div>`}</div>
-      <div class="ganext"><b>What the record says</b><span>${gaAction(g,data)}</span></div>
     </div>`;
 }
 document.addEventListener('change',e=>{

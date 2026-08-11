@@ -1,4 +1,4 @@
-// test-stats-repzone.js DIR — v3.3.209 Growth Audit replaces Rep Zones.
+// test-stats-repzone.js DIR — v3.3.210 visual, recent-first Growth Audit.
 // The filename stays so the all-suite runner keeps the historical gate.
 const { JSDOM } = require("jsdom");
 const fs = require("fs"), path = require("path"), vm = require("vm");
@@ -36,9 +36,9 @@ run(`_reset();_mk(1,[{part:'Chest',ex:'Chest Press',w:40,reps:[8,8],at:1}]);_fin
 check("Growth Audit replaces the Rep-zone heading",
   `[...document.querySelectorAll('#view h2')].some(h=>h.textContent.startsWith('Growth audit'))`,true);
 check("the retired heading is absent",`!/Rep zones/i.test(document.querySelector('#view').textContent)`,true);
-check("a first workout stays in Building baseline",`document.querySelector('.gastate').textContent.trim()`,"Building baseline");
-check("the cold-start receipt says one of three workouts",`/1 of 3 workouts logged/.test(document.querySelector('.gabase').textContent)`,true);
-check("cold start makes no Progressing or Review judgment",
+check("a first workout stays in Building baseline",`document.querySelector('.gastate').getAttribute('aria-label')`,"Building baseline");
+check("the cold-start state is a quiet symbol",`document.querySelector('.gastate').textContent.trim()`,"…");
+check("cold start makes no visible Progressing or Review judgment",
   `!/Progressing|Review/.test(document.querySelector('.gacard').textContent)`,true);
 
 run(`_reset();_mk(3,[{part:'Chest',ex:'Chest Press',w:40,reps:[8],at:1}]);
@@ -54,7 +54,8 @@ run(`_reset();
   _finish();ga.grp='Chest';render();`);
 check("more reps at the same weight is Progressing",`gaExerciseState(gaExerciseSessions()['chest-press']).label`,"Progressing");
 check("the reason is printed, not hidden in a score",`document.querySelector('.garow small').textContent`,"+1 rep at 40 kg");
-check("the group conclusion names what moved",`/Keep Chest Press/.test(document.querySelector('.ganext').textContent)`,true);
+check("Progressing is shown as one icon",`document.querySelector('.gabadge').textContent.trim()`,"↗");
+check("the icon keeps an accessible label",`document.querySelector('.gabadge').getAttribute('aria-label')`,"Progressing");
 
 run(`_reset();
   _mk(5,[{part:'Chest',ex:'Chest Press',w:40,reps:[8],at:1}]);
@@ -76,9 +77,9 @@ run(`_reset();
   _mk(8,[{part:'Shoulder',ex:'Lateral Raise',w:10,reps:[12,12,12,12,12,12,12,12],at:2}]);
   _mk(1,[{part:'Shoulder',ex:'Lateral Raise',w:10,reps:[12,12],at:3}]);
   _finish();ga.grp='Shoulders';render();`);
-check("a sparse current week reads Below your pattern",`document.querySelector('.gastate').textContent.trim()`,"Below your pattern");
-check("the conclusion explicitly says it is the user's own pattern",`/your own recent pattern/.test(document.querySelector('.ganext').textContent)`,true);
-check("the baseline compares four earlier rolling blocks",`/four earlier 7-day blocks/.test(document.querySelector('.gabase').textContent)`,true);
+check("a sparse current week remains a personal-pattern fact",`document.querySelector('.gastate').getAttribute('aria-label')`,"Below your pattern");
+check("below-pattern is shown as one icon",`document.querySelector('.gastate').textContent.trim()`,"↓");
+check("the recent-pattern prose block is gone",`!document.querySelector('.gabase')&&!/four earlier 7-day blocks/i.test(document.querySelector('.gacard').textContent)`,true);
 
 // ---- no recent work is a fact, not a prescription -----------------------
 run(`_reset();
@@ -86,8 +87,8 @@ run(`_reset();
   _mk(8,[{part:'Back',ex:'Lat Pulldown',w:45,reps:[10,10],at:2}]);
   _mk(1,[{part:'Chest',ex:'Chest Press',w:40,reps:[10],at:3}]);
   _finish();ga.grp='Back';render();`);
-check("a mature record can say No recent work",`document.querySelector('.gastate').textContent.trim()`,"No recent work");
-check("it reports when the exercise was last trained",`/last trained 8 days ago/i.test(document.querySelector('.ganext').textContent)`,true);
+check("a mature record can say No recent work accessibly",`document.querySelector('.gastate').getAttribute('aria-label')`,"No recent work");
+check("it reports when the exercise was last trained",`/last trained 8 days ago/i.test(document.querySelector('.garow small').textContent)`,true);
 
 // ---- a long archive does not overrule a changed current baseline --------
 run(`_reset();
@@ -105,12 +106,25 @@ run(`_reset();
   _mk(1,[{part:'Back',ex:'Lat Pulldown',w:45,reps:[10],at:2}]);
   _mk(0,[{part:'Shoulder',ex:'Lateral Raise',w:10,reps:[12],at:3}]);
   _finish();ga.grp=null;render();`);
-check("today's trained group opens by default",`ga.grp`,"Shoulders");
-check("the selector uses the seven visible groups",`document.querySelectorAll('#gaGrp option').length`,7);
+check("the most recently trained group opens by default",`ga.grp`,"Shoulders");
+check("the selector uses the six visible groups",`document.querySelectorAll('#gaGrp option').length`,6);
+check("Glutes is internal, not a top-level choice",`[...document.querySelectorAll('#gaGrp option')].some(o=>o.value==='Glutes')`,false);
+check("body parts run most-recent to least-recent",
+  `[...document.querySelectorAll('#gaGrp option')].map(o=>o.value).join('|')`,"Shoulders|Back|Chest|Arms|Core|Legs");
 check("the card shows at most four exercise receipts",`document.querySelectorAll('.gacard .garow').length<=4`,true);
 check("there is no scatterplot, axis, zone bar, or exercise chip rail",
   `!document.querySelector('.rzscat,.rzbar,.rzlifts,.gahead svg')`,true);
 check("the UI never asks for RIR or reps left",`!/RIR|reps? (?:left|remaining)|clean reps/i.test(document.querySelector('.gacard').textContent)`,true);
+check("status readouts are symbols, not text pills",`[...document.querySelectorAll('.gastate,.gabadge')].every(i=>
+  ['…','○','↓','↻','↗','+','✓'].includes(i.textContent.trim())&&!!i.getAttribute('aria-label'))`,true);
+check("What the record says is removed",`!document.querySelector('.ganext')&&!/What the record says/i.test(document.querySelector('.gacard').textContent)`,true);
+
+run(`_reset();
+  _mk(4,[{part:'Chest',ex:'Chest Press',w:40,reps:[8],at:1}]);
+  _mk(1,[{part:'Chest',ex:'Chest Fly',w:20,reps:[12],at:2}]);
+  _finish();ga.grp='Chest';render();`);
+check("exercises also run most-recent to least-recent",
+  `[...document.querySelectorAll('.garow b')].map(x=>x.textContent).join('|')`,"Chest Fly|Chest Press");
 
 run(`(function(){const s=document.querySelector('#gaGrp');s.value='Back';s.dispatchEvent(new Event('change',{bubbles:true}));})()`);
 check("changing the group replaces the card in place",`document.querySelector('.gacard').dataset.gacard`,"Back");
@@ -123,6 +137,6 @@ check("Growth Audit is immediately before Session Build",`(function(){
 check("Rep-zone functions and constants are deleted",
   `${!(/\brepZone(?:Data|Sets|ScatterSvg)?\s*\(|REPZONE_MAX_|REPZONE_LABELS/.test(statsSrc))}`,"true");
 check("Growth Audit has no hidden universal set target",
-  `${!(/(?:target|ideal)\s*(?:sets?|volume)/i.test(statsSrc.slice(statsSrc.indexOf('v3.3.209 — Growth Audit'),statsSrc.indexOf('v3.3.192 — intent gaps'))))}`,"true");
+  `${!(/(?:target|ideal)\s*(?:sets?|volume)/i.test(statsSrc.slice(statsSrc.indexOf('v3.3.210 — Growth Audit'),statsSrc.indexOf('v3.3.192 — intent gaps'))))}`,"true");
 
 process.exit(fail?1:0);

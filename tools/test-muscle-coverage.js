@@ -33,7 +33,7 @@ check("every catalog exercise maps to a primary muscle",
       `Object.keys(SEED0.ex2part).filter(e=>e!=='Run'&&!EX_MUSCLE[e]).length`, 0);
 check("every mapped muscle rolls up to a visible group",
       `[...new Set(Object.values(EX_MUSCLE))].filter(m=>!MUSCLE_VISIBLE[m]).length`, 0);
-check("seven visible groups, as specced", `VISIBLE_GROUPS.length`, 7);
+check("six visible groups, as specced", `VISIBLE_GROUPS.length`, 6);
 
 // ---- fixture: 3 days inside the window, 1 outside; Run present
 run(`(function(){
@@ -43,19 +43,18 @@ run(`(function(){
     {part:'Back',ex:'Deadlift',w:100,reps:[5,5,5],at:1},          /* primary: hamstrings → Legs */
     {part:'Back',ex:'Pull Up',w:0,reps:[8,8],at:2},               /* lats → Back */
     {part:'Run',ex:'Run',w:3.5,reps:[],mins:27,secs:0,at:3}],upd:1};
-  DB.days[D(3)]={w:[{part:'Legs',ex:'Hip Thrust',w:80,reps:[10,10],at:4}],upd:1};   /* glutes → Glutes */
+  DB.days[D(3)]={w:[{part:'Legs',ex:'Hip Thrust',w:80,reps:[10,10],at:4}],upd:1};   /* glutes → visible Legs */
   DB.days[D(5)]={w:[{part:'Chest',ex:'Barbell Bench Press',w:60,reps:[8,8,8],at:5}],upd:1};
   DB.days[D(9)]={w:[{part:'Biceps',ex:'Barbell Curl',w:30,reps:[10],at:6}],upd:1};  /* outside window */
   migrateCanon(); SEED=deriveAll(); view='stats'; render();})()`);
 
 // ---- 1. Deadlift day: primary only, exactly once
-check("Deadlift credits hamstrings → Legs, once",
-      `(function(){const c=muscleCoverage();return c.groups['Legs'].sets;})()`, 3);
-check("...and NOT its secondary glutes",
-      `(function(){const c=muscleCoverage();return c.groups['Glutes'].mus['hamstrings']===undefined
-        && !(c.groups['Glutes'].mus['glutes']&&c.groups['Glutes'].days.has&&false);})()`, true);
-check("Glutes shows only the Hip Thrust day",
-      `(function(){const c=muscleCoverage();return c.groups['Glutes'].days.size+'-'+c.groups['Glutes'].sets;})()`, "1-2");
+check("Deadlift and Hip Thrust both roll into visible Legs",
+      `(function(){const c=muscleCoverage();return c.groups['Legs'].days.size+'-'+c.groups['Legs'].sets;})()`, "2-5");
+check("Glutes remains an internal muscle with only Hip Thrust's sets",
+      `(function(){const c=muscleCoverage();return c.groups['Legs'].mus['glutes'].sets;})()`, 2);
+check("Deadlift's primary hamstrings remain separate internally",
+      `(function(){const c=muscleCoverage();return c.groups['Legs'].mus['hamstrings'].sets;})()`, 3);
 check("secondaries are recorded but never counted",
       `(function(){const c=muscleCoverage();
         const total=Object.values(c.groups).reduce((a,g)=>a+g.sets,0);
@@ -76,13 +75,13 @@ check("lats and upper-back roll up into one visible Back",
         return b.days.size===2 && !!b.mus['lats'] && !!b.mus['upper-back'];})()`, true);
 
 // ---- 3. the card: 7 dots per row, trained days on, counts days-first
-check("seven rows render, one per visible group",
-      `document.querySelectorAll('.mccard .mcrow').length`, 7);
+check("six rows render, one per visible group",
+      `document.querySelectorAll('.mccard .mcrow').length`, 6);
 check("each row carries exactly 7 dots",
       `[...document.querySelectorAll('.mccard .mcrow')].every(r=>r.querySelectorAll('.mcdots i').length===7)`, true);
-check("Legs row lights one dot (the Deadlift day)",
+check("Legs row lights two dots (Deadlift and Hip Thrust days)",
       `(function(){const r=[...document.querySelectorAll('.mcrow')].find(x=>x.querySelector('.mcname').textContent==='Legs');
-        return r.querySelectorAll('.mcdots i.on').length;})()`, 1);
+        return r.querySelectorAll('.mcdots i.on').length;})()`, 2);
 check("days come before sets in the count (days > volume)",
       `(function(){const r=[...document.querySelectorAll('.mcrow')].find(x=>x.querySelector('.mcname').textContent==='Legs');
         return /\\d+ days? \\u00b7 \\d+ sets?/.test(r.querySelector('.mcn').textContent);})()`, true);

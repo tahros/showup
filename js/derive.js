@@ -2,7 +2,7 @@
    Extracted verbatim from index.html (v3.2.5 refactor). Classic script:
    shares one global scope with its siblings, loaded in order by index.html. */
 /* ============ v3.3.194 — muscle–exercise taxonomy ============
-   Two layers (per spec). Layer 1: seven VISIBLE groups — the vocabulary the
+   Two layers (per spec). Layer 1: six VISIBLE groups — the vocabulary the
    app speaks. Layer 2: ten INTERNAL muscles — the resolution the data
    keeps. Every internal muscle rolls up to exactly one visible group.
    Primary-muscle attribution only: one completed set credits ONE muscle.
@@ -12,14 +12,14 @@
    app's real catalog rather than injected as new selectable names: entries
    like "Pull-Up or Lat Pulldown" name two DISTINCT lifts in the ledger, and
    folding them is the merge Phase 1 exists to forbid. */
-const VISIBLE_GROUPS=['Chest','Back','Shoulders','Arms','Legs','Glutes','Core'];
+const VISIBLE_GROUPS=['Chest','Back','Shoulders','Arms','Legs','Core'];
 /* v3.3.196: catalog part → visible group. One map, used by every surface
    that speaks in groups; the ledger keeps storing the underlying part. */
 const PART_VISIBLE={Chest:'Chest',Back:'Back',Shoulder:'Shoulders',Legs:'Legs',
   Biceps:'Arms',Triceps:'Arms',Sixpack:'Core',Run:'Run'};
 const MUSCLE_VISIBLE={chest:'Chest',lats:'Back','upper-back':'Back',shoulders:'Shoulders',
   biceps:'Arms',triceps:'Arms',quads:'Legs',hamstrings:'Legs',calves:'Legs',
-  glutes:'Glutes',core:'Core'};
+  glutes:'Legs',core:'Core'};
 const EX_MUSCLE={
   /* Chest — all pressing/fly patterns */
   'Incline Smith Machine Bench Press':'chest','Flat Smith Machine Bench Press':'chest',

@@ -1,5 +1,19 @@
 # ShowUp — changelog
 
+## v3.3.210 (2026-08-12) — Growth Audit, reduced to the signal
+
+**Six visible body groups.** Chest, Back, Shoulders, Arms, Legs, and Core are
+the complete top-level vocabulary. Glutes remains an internal anatomical
+classification, so Hip Thrust keeps its correct attribution, but rolls into
+Legs in the interface. Body groups and their exercise receipts are ordered by
+most recent training first.
+
+**Status pills and explanatory prose are gone.** Compact symbols carry the
+state while accessible labels preserve the meaning: ↗ comparable progress,
+↻ review, … learning, ↓ below the user's pattern, and ○ no recent work. The
+per-exercise evidence remains visible, because the symbol alone cannot explain
+why it appeared. The Recent Pattern and What the Record Says blocks are removed.
+
 ## v3.3.209 (2026-08-12) — Growth Audit learns before it judges
 
 **Rep Zones is gone.** Its scatterplot described weight and repetitions but

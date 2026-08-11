@@ -350,8 +350,8 @@ for _bad in ("falling behind", "you should", "keep it up", "well done", "--live"
 #    on a selector deleted two releases earlier, so they silently changed
 #    nothing and the gate had nothing to say. These are the classes those two
 #    features depend on; a missing one now fails the build.
-_need_css = ["gasel", "gabase", "gahead", "gastate", "garows", "garow",
-             "gabadge", "ganext", "gah", "igrows", "igrow", "igname",
+_need_css = ["gasel", "gahead", "gastate", "garows", "garow",
+             "gabadge", "gah", "igrows", "igrow", "igname",
              "igwhen", "igx", "mcrow", "mcdots", "mcinner"]
 for _cls in _need_css:
     # v3.3.205: a compound selector (.rzdot.on{) is still a rule for .rzdot,
@@ -378,6 +378,11 @@ _badm = sorted({m for m in _exm.values() if m not in _mv})
 if _badm:
     fail.append("muscle taxonomy: primary muscle(s) with no visible group: "
                 + ",".join(_badm) + " (v3.3.194)")
+_vgm = _re.search(r"const VISIBLE_GROUPS=\[([^\]]+)\]", _dv)
+_visible = _re.findall(r"'([^']+)'", _vgm.group(1)) if _vgm else []
+if _visible != ["Chest", "Back", "Shoulders", "Arms", "Legs", "Core"]:
+    fail.append("muscle taxonomy: visible groups must be Chest, Back, Shoulders, "
+                "Arms, Legs, Core — Glutes stays internal (v3.3.210)")
 _mcsec = _stats[_stats.rfind("/*",0,_stats.find("v3.3.194 — muscle coverage")):_stats.find("function renderStats")]
 _mctip = _re.search(r"hActs\('mc','([^']*)'", _stats)
 _mcsec += "\n" + (_mctip.group(1) if _mctip else "")
@@ -405,6 +410,8 @@ elif int(_gah.group(1)) <= int(_h2m.group(1)):
 #    listener is still broken. Keep the emitted control and delegated hook paired.
 if 'id="gaGrp"' in _stats and "id!=='gaGrp'" not in _stats:
     fail.append("growth audit: gaGrp is emitted but has no change handler (v3.3.209)")
+if any(_old in _stats for _old in ('class="gabase"', 'class="ganext"', 'What the record says')):
+    fail.append("growth audit: retired explanatory prose block returned (v3.3.210)")
 
 # -- shell size
 n = len(idx.encode())
