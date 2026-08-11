@@ -167,8 +167,8 @@ run(`rz.grp='Chest'; rz.ex='Incline Barbell Bench Press'; render();`);
 check("scatter renders under the bars", `!!${CH}.querySelector('.rzscat')`, true);
 check("zone band boundaries: two dashed verticals", 
       `${CH}.querySelectorAll('.rzscat line[stroke-dasharray="3 3"]').length`, 2);
-check("the growth band is a shaded rect", 
-      `${CH}.querySelectorAll('.rzscat rect').length`, 1);
+check("the growth band is a shaded rect",
+      `${CH}.querySelectorAll('.rzscat rect:not(.rzpad)').length`, 1);
 check("band labels come from REPZONE_LABELS",
       `[...${CH}.querySelectorAll('.rzscat text')].slice(0,3).map(t=>t.textContent).join('|')`, "<6|6\u201312|13+");
 // count-sizing: the nine identical 60×8 sets are one dot, data-n=9
@@ -412,6 +412,41 @@ run(`rzClear(${SC});`);
 check("clearing hides the halo and empties the caption",
       `${SC}.querySelector('.rzhalo').getAttribute('opacity')==='0'
        && document.querySelector('.rzcard [data-rzcap]').textContent.trim()===''`, true);
+
+// ---- v3.3.207: the two bugs that made this work on a mouse and fail on a
+// phone. Both are asserted through REAL dispatched events — the earlier
+// tests called rzSelect() directly, which is exactly why they missed a
+// double-fired handler.
+check("the plot has a transparent backdrop, so a gap between dots is still a target",
+      `(function(){const r=${SC}.querySelector('.rzpad');
+        return !!r && r.getAttribute('fill')==='transparent'
+            && +r.getAttribute('width')>0 && +r.getAttribute('height')>0;})()`, true);
+check("touch listeners are NOT bound alongside pointer ones",
+      `${/addEventListener\('touch/.test(fs.readFileSync(path.join(dir,"js/stats.js"),"utf8"))}`, "false");
+
+// a single tap must SELECT, not select-then-toggle-off
+run(`(function(){
+  rzClear(${SC});
+  const svg=${SC}, d=svg.querySelector('.rzdot');
+  const ev=n=>{const e=new window.Event(n,{bubbles:true});
+    e.clientX=0; e.clientY=0; e.isPrimary=true; e.pointerId=1; return e;};
+  svg.dispatchEvent(ev('pointerdown'));
+  svg.dispatchEvent(ev('pointerup'));
+  window._afterTap=svg.querySelector('.rzhalo').getAttribute('opacity');})()`);
+check("one pointerdown selects and STAYS selected", `window._afterTap`, 1);
+check("...with a caption to match",
+      `document.querySelector('.rzcard [data-rzcap]').textContent.trim().length>0`, true);
+// pressing the selected dot again is the ONLY thing that clears it
+run(`(function(){
+  const svg=${SC};
+  const on=svg.querySelector('.rzdot.on');
+  const box=svg.getBoundingClientRect();
+  const ev=new window.Event('pointerdown',{bubbles:true});
+  ev.clientX=box.left+ +on.getAttribute('cx'); ev.clientY=box.top+ +on.getAttribute('cy');
+  ev.isPrimary=true; ev.pointerId=2;
+  svg.dispatchEvent(ev);
+  window._afterSecond=svg.querySelector('.rzhalo').getAttribute('opacity');})()`);
+check("pressing the selected dot again clears it", `window._afterSecond`, 0);
 
 // --- the year appears only when it is not this year
 check("this year's date omits the year", `/\\d{4}/.test(rzWhen(todayISO))`, false);

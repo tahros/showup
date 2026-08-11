@@ -416,6 +416,12 @@ function repZoneScatterSvg(ex){
      Boundaries sit at n+0.5 so integer reps land inside their band. */
   const b1=x(REPZONE_MAX_STRENGTH+0.5), b2=x(REPZONE_MAX_GROWTH+0.5);
   let h2=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto" class="rzscat" aria-label="Weight by reps per set">`;
+  /* v3.3.207: a transparent backdrop over the whole plot. Without it an <svg>
+     only receives pointer events where something is actually drawn, so a
+     finger landing between dots produced NO event and the nearest-dot
+     snapping never ran — the exact failure the snapping exists to prevent. */
+  h2+=`<rect class="rzpad" x="${X0}" y="${(Y0-YH).toFixed(1)}" width="${XW}" height="${YH}"
+        fill="transparent"></rect>`;
   h2+=`<rect x="${b1.toFixed(1)}" y="${(Y0-YH).toFixed(1)}" width="${(b2-b1).toFixed(1)}" height="${YH}"
         fill="var(--accent)" opacity="0.07"></rect>`;
   for(const bx of [b1,b2])
@@ -598,29 +604,31 @@ function rzWhen(iso){
 function bindRzScrub(svg){
   if(!svg||svg._rzBound) return; svg._rzBound=1;
   let down=false;
-  const at=e=>{
-    const t=e.touches&&e.touches[0];
-    return rzPick(svg,t?t.clientX:e.clientX,t?t.clientY:e.clientY);
-  };
+  const at=e=>rzPick(svg,e.clientX,e.clientY);
   const start=e=>{
-    if(e.touches&&e.touches.length>1) return;
+    if(e.isPrimary===false) return;              // second finger of a pinch
     down=true;
+    if(svg.setPointerCapture&&e.pointerId!=null){ try{svg.setPointerCapture(e.pointerId);}catch(_){} }
     const d=at(e);
     /* pressing the already-selected dot toggles the reading off */
-    if(d&&d.classList.contains('on')&&(e.type==='pointerdown'||e.type==='touchstart')){
+    if(d&&d.classList.contains('on')){
       rzClear(svg); down=false; return;
     }
     rzSelect(svg,d);
   };
   const move=e=>{ if(!down) return; e.preventDefault(); rzSelect(svg,at(e)); };
   const end=()=>{ down=false; };                 // the reading stays
+  /* v3.3.207: POINTER EVENTS ONLY. Binding touch* alongside them meant a
+     phone fired both for a single tap, so start() ran twice — the first run
+     selected the dot, the second saw it already selected and toggled it off.
+     Net effect on a phone: nothing ever appeared selected, while a mouse
+     (which fires only pointerdown) worked perfectly. touch-action:none on
+     .rzscat is what stops the page scrolling, so no touch listener is
+     needed for that either. */
   svg.addEventListener('pointerdown',start);
   svg.addEventListener('pointermove',move);
   svg.addEventListener('pointerup',end);
   svg.addEventListener('pointercancel',end);
-  svg.addEventListener('touchstart',start,{passive:true});
-  svg.addEventListener('touchmove',move,{passive:false});
-  svg.addEventListener('touchend',end);
 }
 document.addEventListener('click',e=>{
   const xc=e.target.closest&&e.target.closest('[data-rzx]');

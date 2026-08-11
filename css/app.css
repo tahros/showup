@@ -1225,6 +1225,7 @@
      text selection while a finger is reading it. */
   .rzscat{touch-action:none;-webkit-user-select:none;user-select:none;cursor:crosshair}
   .rzhalo{transition:opacity .08s linear}
+  .rzpad{cursor:crosshair}
   .rzcap{font-family:var(--mono);font-size:11px;color:var(--muted);
     min-height:16px;margin-top:2px;text-align:center}
   .rzcap b{color:var(--chalk);font-size:13px;font-weight:600;
