@@ -751,7 +751,7 @@ function bindZoom(box){
 /* ---------- boot ---------- */
 const MOTION_OK=typeof matchMedia==='function' ? matchMedia('(prefers-reduced-motion:no-preference)').matches : true;
 function paint(){
-  ({today:renderToday,lift:renderLift,stats:renderStats,history:renderHistory,sync:renderSync})[view]();
+  ({today:renderToday,lift:renderLift,stats:renderStats,history:renderHistory,plan:renderPlan,sync:renderSync})[view]();
   document.querySelectorAll('[data-zoom]').forEach(bindZoom);
   bindPmix();
   if(MOTION_OK){ try{ motionPass(); }catch(_e){ /* motion is decoration — it never gets to break the app */ } }

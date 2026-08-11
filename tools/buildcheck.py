@@ -35,7 +35,10 @@ for a in assets:
     if not (d/a).exists(): fail.append(f"stamped asset missing on disk: {a}")
     if f"./{a}?v=" not in sw: fail.append(f"asset not in sw SHELL: {a}")
 shell_count = len(re.findall(r"'\./[^']+\?v=", sw))
-if shell_count != 12: fail.append(f"sw SHELL has {shell_count} stamped assets, expected 12")
+# v3.3.203: 13 with js/plan.js. This count is deliberately exact -- a new
+# script that never reaches the SHELL list works online and breaks offline,
+# which is the failure mode a PWA can least afford.
+if shell_count != 13: fail.append(f"sw SHELL has {shell_count} stamped assets, expected 13")
 
 # -- CSS vars used are defined (runtime-set vars from js/app.js are allowlisted)
 RUNTIME = {"--i", "--len", "--sat"}   # set via style.setProperty / env() default
@@ -347,7 +350,7 @@ for _bad in ("falling behind", "you should", "keep it up", "well done", "--live"
 #    nothing and the gate had nothing to say. These are the classes those two
 #    features depend on; a missing one now fails the build.
 _need_css = ["rzsel", "igrows", "igrow", "igname", "igwhen", "igx",
-             "rzlifts", "rzrow", "rzbar", "rzn", "rzscat", "rzh", "rdbox", "rdrow", "rdz", "rdl", "rdtoggle", "mcrow", "mcdots", "mcinner"]
+             "rzlifts", "rzrow", "rzbar", "rzn", "rzscat", "rzh", "plrow", "plinput", "plnums", "plnote", "plex", "plsaved", "rdbox", "rdrow", "rdz", "rdl", "rdtoggle", "mcrow", "mcdots", "mcinner"]
 for _cls in _need_css:
     if not _re.search(r"\." + _cls + r"[\s,{:+>]", css):
         fail.append(f"class .{_cls} is emitted by JS but has no CSS rule — "

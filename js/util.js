@@ -42,7 +42,7 @@
    that axis) and over any horizontally scrollable strip (suggested chips,
    heatmap) or zoomable chart, so it never steals a legitimate gesture. */
 (()=>{
-  const TABS=['today','lift','stats','history'];
+  const TABS=['today','lift','stats','history','plan'];   // v3.3.203: Plan joins the swipe order
   let sx=0, sy=0, tracking=false, decided=false, horiz=false, popMode=false;
   /* v3.3.140: modals mounted on <body>, OUTSIDE #app. This gesture listens
      globally, so a swipe inside an open overlay was tracked here in parallel
