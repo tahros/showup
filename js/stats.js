@@ -413,60 +413,6 @@ document.addEventListener('change',e=>{
   const card=document.querySelector('.gacard');
   if(card) card.outerHTML=growthAuditSection().split('</h2>')[1]; else render();
 });
-/* ============ v3.3.192 — intent gaps ============
-   Question-addressed: "what did I mean to train, and haven't?" The ledger
-   already answers it — exercises carrying a weight and zero sets are stated
-   intentions that never became training, and they sit there for weeks. This
-   surfaces them. No taxonomy, no recommender, no prescriptions; it proposes
-   nothing the person hasn't already written down themselves.
-
-   Register: statement of fact. No scolding, no encouragement, no score, no
-   percentage of compliance, no streak language. Red is reserved for live.
-   An empty list is a good outcome stated in one plain line, not congratulated.
-
-   Keyed by CANONICAL ID (Phase 1), so a renamed exercise cannot appear as a
-   stale ghost beside its own active self. */
-const INTENT_GAP_DAYS=21;
-const retired=()=>DB.settings.retired||(DB.settings.retired={});
-function intentGaps(){
-  const lastReal={},seen={};
-  const scan=(iso,rows)=>{
-    for(const r of rows){
-      if(r[1]==='Run') continue;
-      const id=rowCid(r); if(!id) continue;
-      seen[id]=r[1];                                   // display via canonName, this is a fallback
-      if((r[3]||[]).length) lastReal[id]=lastReal[id]&&lastReal[id]>iso?lastReal[id]:iso;
-    }
-  };
-  for(const [iso,rows] of Object.entries(SEED.sessions)) scan(iso,rows);
-  scan(todayISO,((DB.days[todayISO]||{}).w||[])
-    .map(s2=>[s2.part,s2.ex,s2.w,s2.reps||[],s2.mins,s2.secs,s2.cid]));
-  const out=[];
-  for(const id of Object.keys(seen)){
-    if(retired()[id]) continue;
-    const last=lastReal[id];
-    const days=last?daysAgo(last):null;               // null = never a completed set
-    if(days!==null&&days<=INTENT_GAP_DAYS) continue;
-    out.push({id,name:canonName(id)||seen[id],days});
-  }
-  /* never-logged first (the strongest signal), then longest-idle */
-  return out.sort((a,b)=>(a.days===null?-1:0)-(b.days===null?-1:0)||(b.days||0)-(a.days||0));
-}
-function intentGapCard(){
-  const gaps=intentGaps();
-  if(!gaps.length) return `<div class="note">Nothing stated and untrained.</div>`;
-  return `<div class="igrows">${gaps.map(g=>`<div class="igrow">
-    <span class="igname">${g.name}</span>
-    <span class="igwhen">${g.days===null?'never logged with reps':`<b>${g.days}</b> days`}</span>
-    <button class="igx" data-igretire="${g.id}" aria-label="Stop showing ${g.name}">\u00d7</button>
-  </div>`).join('')}</div>`;
-}
-document.addEventListener('click',e=>{
-  const b=e.target.closest&&e.target.closest('[data-igretire]');
-  if(!b) return;
-  retired()[b.dataset.igretire]=1;                    // preference, never the ledger
-  DB.settingsAt=Date.now(); save(true); render();
-});
 /* ============ v3.3.194 — muscle coverage (7 days) ============
    Register: statement of trained days. No targets, no ideal frequency, no
    warnings — an untrained group is a light dot row and "0 days", in the
@@ -501,6 +447,98 @@ document.addEventListener('click',e=>{
   const card=document.querySelector('.mccard');
   if(card) card.innerHTML=muscleCard(); else render();
 });
+function currentRhythmSection(){
+  const dates=workoutDates(),now=new Date(todayISO+'T00:00'),year=now.getFullYear(),month=now.getMonth();
+  const first=new Date(year,month,1),last=new Date(year,month+1,0).getDate();
+  const offset=(first.getDay()+6)%7,today=now.getDate(),week=Math.floor((offset+today-1)/7);
+  const streak=currentStreak(),best=longestStreak(),active=new Set();
+  const end=new Date(now);
+  if(!dates.has(todayISO)) end.setDate(end.getDate()-1);
+  for(let i=0;i<streak;i++){
+    active.add(end.toLocaleDateString('en-CA')); end.setDate(end.getDate()-1);
+  }
+  const cells=[];
+  for(let i=0;i<offset;i++) cells.push('<i class="crblank" aria-hidden="true"></i>');
+  let monthDays=0;
+  for(let day=1;day<=last;day++){
+    const d=new Date(year,month,day),iso=d.toLocaleDateString('en-CA');
+    const done=dates.has(iso),future=iso>todayISO,isToday=iso===todayISO;
+    if(done) monthDays++;
+    const cls=['crday'];
+    if(done) cls.push('crdone');
+    if(active.has(iso)) cls.push('cractive');
+    if(future) cls.push('crfuture');
+    if(isToday) cls.push('crtoday');
+    if(Math.floor((offset+day-1)/7)===week) cls.push('crweek');
+    cells.push(`<span class="${cls.join(' ')}" role="img" aria-label="${iso}${done?' · completed workout':future?' · future':' · no completed workout'}">${day}</span>`);
+  }
+  const monthName=now.toLocaleDateString('en-US',{month:'long'});
+  return `<h2>Current rhythm${hActs('rhythm','Your active streak and completed workout days in the current month. Today fills with the first completed set.','About Current rhythm')}</h2>
+    <div class="card crcard">
+      <div class="crhead"><span><small>Current streak</small><b>${streak} day${streak===1?'':'s'}</b></span>
+        <span class="crbest"><small>Best</small><b>${best}</b><small>days</small></span></div>
+      <div class="crmonth"><span>${monthName.toUpperCase()} ${year}</span><b>${monthDays} day${monthDays===1?'':'s'}</b></div>
+      <div class="crweekdays">${'MTWTFSS'.split('').map(v=>`<span>${v}</span>`).join('')}</div>
+      <div class="crgrid">${cells.join('')}</div>
+    </div>`;
+}
+function consistencyRaceSection(){
+  const race=consistencyRaceData();
+  if(!race.hasPrevious) return '';
+  const {current,previous,gap}=race,x0=34,xw=288,y0=182,yh=150;
+  const max=Math.max(10,Math.ceil(Math.max(current.total,previous.total)/10)*10);
+  const pts=curve=>curve.map((v,i)=>`${(x0+i/Math.max(1,curve.length-1)*xw).toFixed(1)},${(y0-v/max*yh).toFixed(1)}`);
+  const cp=pts(current.curve),pp=pts(previous.curve);
+  const area=cp.concat(pp.slice().reverse()).join(' ');
+  const grid=[0,.25,.5,.75,1].map(p=>{
+    const y=y0-p*yh,v=Math.round(max*p);
+    return `<line x1="${x0}" y1="${y}" x2="${x0+xw}" y2="${y}" stroke="var(--line)" stroke-width=".6" ${p?'stroke-dasharray="2 3"':''}></line>
+      <text x="${x0-5}" y="${y+3}" text-anchor="end" font-family="var(--mono)" font-size="7" fill="var(--muted)">${v}</text>`;
+  }).join('');
+  const now=new Date(todayISO+'T00:00'),mNow=now.getMonth(),start=new Date(now.getFullYear(),0,1);
+  const span=Math.max(1,daysBetween(start.toLocaleDateString('en-CA'),todayISO));
+  const months=[];
+  for(let m=0;m<=mNow;m++){
+    const d=new Date(now.getFullYear(),m,1),frac=Math.min(1,daysBetween(start.toLocaleDateString('en-CA'),d.toLocaleDateString('en-CA'))/span);
+    months.push(`<text x="${x0+frac*xw}" y="202" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="var(--muted)">${'JFMAMJJASOND'[m]}</text>`);
+  }
+  const cy=+cp[cp.length-1].split(',')[1],py=+pp[pp.length-1].split(',')[1];
+  const cLabel=Math.max(12,cy-7),pLabel=Math.min(177,py+12);
+  const gapCopy=gap>0?`+${gap} day${gap===1?'':'s'}<small>ahead</small>`:gap<0?`${Math.abs(gap)} day${gap===-1?'':'s'}<small>behind</small>`:`Even<small>same date</small>`;
+  return `<h2>Consistency${hActs('yoy2','Cumulative workout days through the same calendar date in both years. The filled field is the gap.','About Consistency')}</h2>
+    <div class="card conrace">
+      <div class="conkick">YOU VS YOU · ${race.label.toUpperCase()}</div>
+      <div class="conscore"><span><small>${previous.year} you</small><b>${previous.total}</b><small>days</small></span>
+        <strong class="congap ${gap>=0?'up':''}">${gapCopy}</strong>
+        <span><small>${current.year} you</small><b>${current.total}</b><small>days</small></span></div>
+      <svg viewBox="0 0 340 215" role="img" aria-label="${current.year}: ${current.total} workout days. ${previous.year}: ${previous.total} workout days through ${race.label}.">
+        ${grid}<polygon points="${area}" fill="var(--accent-soft)" opacity=".72"></polygon>
+        <polyline points="${pp.join(' ')}" fill="none" stroke="var(--faint)" stroke-width="1.5" stroke-linejoin="round"></polyline>
+        <polyline points="${cp.join(' ')}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"></polyline>
+        <circle cx="${x0+xw}" cy="${py}" r="3" fill="var(--surface)" stroke="var(--faint)" stroke-width="1.5"></circle>
+        <circle class="beacon" cx="${x0+xw}" cy="${cy}" r="3.2" fill="var(--accent)"></circle>
+        <text x="${x0+xw-5}" y="${cLabel}" text-anchor="end" font-family="var(--mono)" font-size="7" font-weight="700" fill="var(--accent)">${current.year} · ${current.total}</text>
+        <text x="${x0+xw-5}" y="${pLabel}" text-anchor="end" font-family="var(--mono)" font-size="7" fill="var(--muted)">${previous.year} · ${previous.total}</text>
+        ${months.join('')}
+        <text x="9" y="107" text-anchor="middle" transform="rotate(-90 9 107)" font-family="var(--mono)" font-size="7" fill="var(--muted)">DAYS SHOWN UP</text>
+      </svg>
+    </div>`;
+}
+function monthlyPaceSection(){
+  const data=monthlyPaceData(12),ms=data.months,max=Math.max(5,Math.ceil(Math.max(...ms.map(v=>v.days),1)/5)*5);
+  let bars='';
+  ms.forEach((m,i)=>{
+    const h=Math.max(2,m.days/max*105),x=8+i*25.5;
+    bars+=`<rect class="gbar" x="${x}" y="${120-h}" width="17" height="${h}" rx="3" fill="${m.current?'var(--accent)':'var(--accent-dim)'}" opacity="${m.current?1:.58}"></rect>`;
+    bars+=`<text x="${x+8.5}" y="${120-h-4}" text-anchor="middle" font-family="var(--mono)" font-size="7" font-weight="${m.current?700:400}" fill="${m.current?'var(--accent)':'var(--muted)'}">${m.days}</text>
+      <text x="${x+8.5}" y="137" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="${m.current?'var(--chalk)':'var(--muted)'}">${m.key.slice(5)}</text>`;
+  });
+  const cur=ms.at(-1),tip=`Workout days by day ${cur.cutoff} of each month, so the current partial month compares fairly.`;
+  return `<h2>Monthly pace${hActs('mpace',tip,'About Monthly pace')}</h2><div class="card mpacecard">
+    <svg viewBox="0 0 330 146" role="img" aria-label="Workout days through day ${cur.cutoff} for each of the last 12 months">
+      <line x1="8" y1="120" x2="316" y2="120" stroke="var(--line)" stroke-width=".6"></line>${bars}</svg>
+    <div class="tot"><span><b>${cur.days}</b> days this month</span><span>all bars through day ${cur.cutoff}</span></div></div>`;
+}
 function renderStats(){
   const _S={}; const cut=k=>{ _S[k]=h; h=''; };
   if(SEED.totals.sessions===0 && !hasAnyDays()){ $('#view').innerHTML=emptyHero('stats'); return; }
@@ -568,6 +606,8 @@ function renderStats(){
 
   // consistency chart — the Dashboard bottom graph
   cut('kpis');
+  h+=currentRhythmSection();
+  cut('rhythm');
   /* v3.3.208: Session Build keeps the honest part mix and the live-growing
      skyline, but every unit is now one completed set — never mixed tonnage. */
   h+=`<h2>Session build${hActs('pmix',"One block per completed strength set, stacked by body part. Runs stay separate.",'About Session build')}</h2>
@@ -587,9 +627,6 @@ function renderStats(){
   h+=`<h2>Muscle coverage \u00b7 7 days${hActs('mc','Days each group trained in the last 7, by each set\u2019s primary muscle. Tap a group for detail. Runs excluded.','About muscle coverage')}</h2>
       <div class="card mccard">${muscleCard()}</div>`;
   cut('mc');
-  h+=`<h2>Stated, not trained${hActs('ig','Exercises in your log with no completed set in the last '+INTENT_GAP_DAYS+' days, or none ever. Tap \u00d7 to stop showing one.','About stated, not trained')}</h2>
-      <div class="card igcard">${intentGapCard()}</div>`;
-  cut('ig');
   h+=growthAuditSection();
   cut('rz');
   h+=`<h2>Consistency${hActs('yoy','Percent of days trained, per year. The bold line is this year.','About the consistency chart')}</h2><div class="card">
@@ -782,6 +819,10 @@ function renderStats(){
       </div>`;   // v3.3.112: share moved to the header
 
   cut('em');
+  h+=consistencyRaceSection();
+  cut('consrace');
+  h+=monthlyPaceSection();
+  cut('mpace');
   /* v3.3.111: "Last 30 days, vs your usual" removed on the maker's call — no
      value found in it. Its entire last30/drift computation went with it;
      nothing else read those. */
@@ -807,7 +848,7 @@ function renderStats(){
       </div>`;
   cut('rep');
   // sections emit in one declared order (v3.3.111)
-  h = _S.kpis + _S.rz + _S.pmix + _S.mc + _S.ig + _S.cons + _S.em + _S.dbm + _S.last6 + _S.wd + _S.wt;
+  h = _S.kpis + _S.rhythm + _S.rz + _S.pmix + _S.mc + _S.consrace + _S.mpace + _S.em + _S.wt;
 
   // the whole Run story lives here now (was its own tab in v2.04 — reverted)
   h+=runStatsHTML();
@@ -840,17 +881,6 @@ function renderStats(){
       <button class="btn ghost" id="settingsBtn">⚙︎ Settings, account &amp; sync</button>
       <div class="note" style="text-align:center">${session?`Signed in as ${session.user.email||'—'}`:'Not signed in — data is on this device only'} · ${APP_VERSION}</div>`;
   $('#view').innerHTML=h;
-  /* v3.3.42: the 6-month heatmap runs oldest → newest, so its default
-     scroll position showed January and hid today. Park it at the right
-     edge — the current week is the whole point of the strip. scrollLeft on
-     the scroller itself, never scrollIntoView, which would drag the page. */
-  /* v3.3.109: .legend1 dropped from this list — it wraps now instead of
-     scrolling, so there is no right edge to park at. This parking was the
-     workaround for the scroller hiding the current year, which is exactly
-     the bug it failed to prevent. */
-  document.querySelectorAll('.heatcols,.heat').forEach(el=>{
-    if(el.scrollWidth>el.clientWidth) el.scrollLeft=el.scrollWidth;
-  });
   if(typeof paintRepCard==='function') paintRepCard();   // v3.3.130: fill the report card preview
 }
 

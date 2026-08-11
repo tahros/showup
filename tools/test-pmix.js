@@ -51,7 +51,7 @@ ok("Session Build follows Growth Audit", run(`(function(){
   const names=hs.map(t);
   const gaIdx=names.indexOf('Growth audit');
   const pmIdx=names.indexOf('Session build');
-  return gaIdx===1 && pmIdx===gaIdx+1;})()`) === true);
+  return gaIdx>=0 && pmIdx===gaIdx+1;})()`) === true);
 
 // ---- the data is sets, per part, per training day -------------------------
 ok("partMix() returns one row per training day, newest last",

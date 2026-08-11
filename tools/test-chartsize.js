@@ -57,9 +57,8 @@ const cards = () => run(`[...document.querySelectorAll('#view .card')].length`);
 
 // ---- 1. the plots are taller -----------------------------------------------
 const vbs = run(`[...document.querySelectorAll('#view svg')].map(s=>s.getAttribute('viewBox'))`);
-ok("the consistency plot is 220 tall", vbs.includes("0 0 340 220"), vbs.find(v=>/340/.test(v)));
-const tall = vbs.filter(v => v === "0 0 330 150").length;
-ok("days-by-month and weekdays are both 150 tall", tall >= 2, tall + " at 330x150");
+ok("the same-date consistency race has its dedicated plot", vbs.includes("0 0 340 215"), vbs.find(v=>/340/.test(v)));
+ok("Monthly pace has its compact 12-bar plot", vbs.includes("0 0 330 146"), vbs.find(v=>v==="0 0 330 146"));
 /* v3.3.129 was scoped to FOUR charts: consistency, days-by-month, weekdays,
    distance. Weight and Pace were deliberately left at 118 — they were not in
    the request, and a chart is not made better by being taller on principle.
@@ -86,55 +85,15 @@ ok("the hint is no longer absolutely positioned over the plot",
      fs.readFileSync(path.join(dir,"css/app.css"),"utf8")),
    "position:absolute gone");
 
-// ---- 3. Weekdays: caret and % can never collide ----------------------------
-/* Drive the real painter with today == strongest, which is the exact
-   combination that broke. Then measure every pair of text y values in the
-   weekday chart column by column. */
-const gap = run(`(function(){
-  const svgs=[...document.querySelectorAll('#view svg')];
-  const wd=svgs.find(s=>s.querySelector('.wd-col'));
-  if(!wd) return null;
-  const cols={};
-  for(const t of wd.querySelectorAll('text')){
-    const x=Math.round(+t.getAttribute('x'));
-    (cols[x]=cols[x]||[]).push({y:+t.getAttribute('y'), s:t.textContent});
-  }
-  let worst=Infinity, where='', bars=0;
-  for(const x in cols){
-    // a BAR column is one carrying a % readout; x=21 is the y-axis rail
-    if(!cols[x].some(o=>/%$/.test(o.s))) continue;
-    bars++;
-    const ys=cols[x].filter(o=>!/^[SMTWF]$/.test(o.s));  // ignore the day rail
-    ys.sort((a,b)=>a.y-b.y);
-    for(let i=1;i<ys.length;i++){
-      const d=ys[i].y-ys[i-1].y;
-      if(d<worst){ worst=d; where=ys[i-1].s+'/'+ys[i].s+' @x'+x; }
-    }
-  }
-  return {worst, where, cols:bars};
-})()`);
-ok("the weekday chart rendered its 7 bar columns", gap && gap.cols === 7, gap && gap.cols);
-ok("the caret and the % label never overlap", gap && gap.worst >= 10,
-   gap && ("min gap " + gap.worst + "  " + gap.where));
+// ---- 3. The new day-level view is compact and structurally clear -----------
+ok("Current rhythm has seven weekday columns", run(`document.querySelectorAll('.crweekdays span').length`) === 7);
+ok("Current rhythm contains exactly one today", run(`document.querySelectorAll('.crday.crtoday').length`) === 1);
+ok("the retired Weekdays plot is gone", run(`document.querySelectorAll('.wd-col').length`) === 0);
 
-const hasBoth = run(`(function(){
-  const wd=[...document.querySelectorAll('#view svg')].find(s=>s.querySelector('.wd-col'));
-  return !!wd.querySelector('text') && [...wd.querySelectorAll('text')].some(t=>t.textContent==='\\u25b2');
-})()`);
-ok("the strongest-day caret is still drawn at all", hasBoth);
-
-// ---- 4. Consistency: end-of-line labels are nudged apart -------------------
-const endGap = run(`(function(){
-  const svg=[...document.querySelectorAll('#view svg')].find(s=>s.getAttribute('viewBox')==='0 0 340 220');
-  if(!svg) return null;
-  const ys=[...svg.querySelectorAll('text[data-yr]')].map(t=>+t.getAttribute('y')).sort((a,b)=>a-b);
-  let worst=Infinity;
-  for(let i=1;i<ys.length;i++) worst=Math.min(worst, ys[i]-ys[i-1]);
-  return {n:ys.length, worst};
-})()`);
-ok("the consistency chart labels several years", endGap && endGap.n >= 3, endGap && endGap.n);
-ok("...and no two year labels sit on top of each other",
-   endGap && (endGap.n < 2 || endGap.worst >= 7.9), endGap && ("min gap " + endGap.worst));
+// ---- 4. Consistency: verdict plus graph ------------------------------------
+ok("Consistency leads with two exact day totals", run(`document.querySelectorAll('.conscore>span b').length`) === 2);
+ok("Consistency draws the filled difference field", run(`document.querySelectorAll('.conrace polygon').length`) === 1);
+ok("Consistency draws one line for each self", run(`document.querySelectorAll('.conrace polyline').length`) === 2);
 
 // ---- 5. nothing escapes the taller viewBox --------------------------------
 ok("nothing is drawn below the bottom of any stats plot", run(`(function(){

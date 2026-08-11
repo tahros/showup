@@ -161,10 +161,10 @@ check("tip opens, and the trigger reports expanded",
                     && b.getAttribute('aria-expanded')==='true';})()`, true);
 check("opening a second tip closes the first (single-open)",
       `(()=>{const a=document.querySelector('#secWeight .ibtn.tipi');
-             const b2=document.querySelector('.ibtn.tipi[data-tip="yoy"]');
-             if(!b2) return 'no yoy trigger';
+             const b2=document.querySelector('.ibtn.tipi[data-tip="yoy2"]');
+             if(!b2) return 'no consistency trigger';
              b2.click(); const tf=document.getElementById('tipFloat');
-             return tf.dataset.tip==='yoy' && a.getAttribute('aria-expanded')==='false'
+             return tf.dataset.tip==='yoy2' && a.getAttribute('aria-expanded')==='false'
                     && b2.getAttribute('aria-expanded')==='true';})()`, true);
 check("tapping outside closes and collapses",
       `(()=>{document.body.click(); const tf=document.getElementById('tipFloat');

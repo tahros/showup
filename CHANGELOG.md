@@ -1,5 +1,20 @@
 # ShowUp — changelog
 
+## v3.3.213 (2026-08-12) — Time that helps
+
+**Current rhythm makes today visible.** The active streak is now the dominant
+readout, backed by a compact current-month calendar that fills today with the
+first completed set and keeps the best streak in view.
+
+**Consistency is now a same-date race against yourself.** Exact workout-day
+totals for this year and last year lead the card, while a cumulative graph and
+filled gap make both the direction and size of the difference obvious.
+
+**Monthly pace compares partial months fairly.** Each of the last 12 months is
+counted only through the same day number as today. Every month remains as the
+long-range record; Days by month, Last 6 months and Weekdays are retired, along
+with their redundant share cards.
+
 ## v3.3.212 (2026-08-12) — Quieter Flat, useful help
 
 **Flat now recedes with Empty.** The minus uses the same muted gray and opacity

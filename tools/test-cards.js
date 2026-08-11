@@ -54,8 +54,9 @@ run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
 ok("no per-section share icon survives", run(`document.querySelectorAll('.shareb').length`) === 0,
    run(`document.querySelectorAll('.shareb').length`) + " left");
 const REG = JSON.parse(run(`JSON.stringify(shareCards().map(c=>c.id))`));
-for (const id of ["dbm", "heat", "wd", "pace", "week", "grid", "yoy", "dist"])
+for (const id of ["dbm", "pace", "week", "grid", "yoy", "dist"])
   ok(`${id} is registered as a shareable card`, REG.includes(id), REG.join(","));
+ok("retired Weekdays and heatmap cards are absent", !REG.includes("wd") && !REG.includes("heat"), REG.join(","));
 ok("every registered card has a label and a file name",
    run(`shareCards().every(c=>c.label&&typeof c.file==='function'&&c.file().length>0)`));
 
@@ -82,9 +83,7 @@ const paints = (id) => {
   return { shapes, texts };
 };
 for (const [maker, kicker] of [
-  ["dbm", "DAYS BY MONTH"], ["wd", "WEEKDAYS"],
-  ["week", "EVERY WEEK"], ["pace", "PACE"],
-  ["heat", "LAST 6 MONTHS"],
+  ["dbm", "MONTHLY PACE"], ["week", "EVERY WEEK"], ["pace", "PACE"],
 ]) {
   const r = paints(maker);
   ok(`the ${maker} card draws real geometry`, r.shapes >= 8, r.shapes + " shape ops");
@@ -129,11 +128,11 @@ const svgTexts = (sel) => run(`(function(){
   if(!svg) return '[]';
   return JSON.stringify([...svg.querySelectorAll('text')].map(t=>t.textContent.trim()));})()`);
 
-// --- Days by month ---------------------------------------------------------
-const dbmSvg = JSON.parse(svgTexts("Days by month"));
+// --- Monthly pace ----------------------------------------------------------
+const dbmSvg = JSON.parse(svgTexts("Monthly pace"));
 const dbmCard = paints("dbm").texts;
-ok("the Days-by-month card carries the same 20-day reference label as the chart",
-   dbmSvg.includes("20") && dbmCard.includes("20"));
+ok("the Monthly-pace card uses the same fair day cutoff as the chart",
+   dbmCard.includes("MONTHLY PACE") && dbmCard.some(t=>/^every month through day \d+$/.test(t)));
 /* cardFrame() always emits exactly five texts first \u2014 big, sub, kicker,
    footer, url \u2014 which the SVG has no equivalent of. Compare only the plot
    labels after them, or the card's own headline ("23" trained) gets counted
@@ -143,37 +142,10 @@ ok("the Days-by-month card carries the same 20-day reference label as the chart"
    sets could never match again — one of the assertions this suite crashed
    before reaching for fourteen releases. big, sub, kicker, footer. */
 const FRAME_TEXTS = 4;
-const dbmMonths = dbmSvg.filter(t => /^\d{2}$/.test(t));
-const cardMonths = dbmCard.slice(FRAME_TEXTS).filter(t => /^\d{2}$/.test(t));
-ok("...and the same month labels, in the same count",
-   dbmMonths.length > 0 && dbmMonths.join(",") === cardMonths.join(","),
-   `svg ${dbmMonths.join("")} vs card ${cardMonths.join("")}`);
-
-// --- Weekdays --------------------------------------------------------------
-const wdSvg = JSON.parse(svgTexts("Weekdays"));
-const wdCard = paints("wd").texts;
-ok("the Weekdays card draws the same 0/25/50/75/100 gridline labels",
-   ["0","25","50","75","100"].every(g => wdCard.includes(g)),
-   wdCard.filter(t => /^\d+$/.test(t)).join(","));
-const wdPctSvg = wdSvg.filter(t => /%$/.test(t)).join(",");
-const wdPctCard = wdCard.slice(FRAME_TEXTS).filter(t => /%$/.test(t)).join(",");
-ok("...and the same seven percentages as the chart",
-   wdPctSvg.length > 0 && wdPctSvg === wdPctCard,
-   `svg ${wdPctSvg} vs card ${wdPctCard}`);
-ok("...including the caret over the strongest day", wdCard.includes("\u25b2"));
-ok("...and the SMTWTFS letters", wdCard.filter(t => /^[SMTWF]$/.test(t)).length === 7,
-   wdCard.filter(t => /^[SMTWF]$/.test(t)).join(""));
-
-// --- Last 6 months ---------------------------------------------------------
-const heatCard = paints("heat");
-ok("the heat card draws 26x7 cells plus the rail",
-   heatCard.shapes >= 182, heatCard.shapes + " shape ops");
-ok("...with the weekday rail letters",
-   heatCard.texts.filter(t => /^[SMTWF]$/.test(t)).length === 7,
-   heatCard.texts.filter(t => /^[SMTWF]$/.test(t)).join(""));
-ok("...and month labels across the top",
-   heatCard.texts.some(t => /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)$/.test(t)),
-   heatCard.texts.filter(t => /^[A-Z][a-z]{2}$/.test(t)).join(","));
+const expectedMonths = JSON.parse(run(`JSON.stringify(monthlyPaceData(12).months.map(m=>m.key.slice(5)))`));
+ok("...and the same 12 month labels",
+   expectedMonths.every(m => dbmSvg.includes(m) && dbmCard.includes(m)),
+   expectedMonths.join(","));
 
 // the shared coordinate mapper is what makes fidelity structural.
 // v3.3.148: since v3.3.133 the painters go through vbMapCentered, which

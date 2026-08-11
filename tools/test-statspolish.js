@@ -51,23 +51,12 @@ run(`
 const todayDow = run(`new Date(todayISO+'T00:00').getDay()`);
 console.log("     (today's weekday index:", todayDow + ", strongest is always 3 off from it now)");
 
-// the accent bar is today's column. Bars are drawn left→right S,M,T,W,T,F,S.
-check("exactly one accent (today) bar",
-      `[...document.querySelectorAll('.wd-col')].filter(r=>r.getAttribute('fill')==='var(--accent)').length`, 1);
-check("the accent bar is at today's index",
-      `[...document.querySelectorAll('.wd-col')].findIndex(r=>r.getAttribute('fill')==='var(--accent)')`, todayDow);
-
-// the caret marks the strongest (Monday, index 1) — and NOT today
-check("exactly one caret",
-      `[...document.querySelectorAll('svg text')].filter(t=>t.textContent==='▲').length`, 1);
-check("caret is NOT over today's bar", `(()=>{
-    const carets=[...document.querySelectorAll('svg text')].filter(t=>t.textContent==='▲');
-    const cx=parseFloat(carets[0].getAttribute('x'));
-    const todayBar=[...document.querySelectorAll('.wd-col')][${todayDow}];
-    const bx=parseFloat(todayBar.getAttribute('x'))+13;
-    return Math.abs(cx-bx)>1;})()`, true);
-check("legend explains the caret",
-      `/your strongest/.test([...document.querySelectorAll('.note')].map(n=>n.textContent).join(' '))`, true);
+// v3.3.213: the weekday diagnosis was retired. Current rhythm now carries
+// the immediate, day-level motivation without asking the user to interpret a
+// behavioural distribution.
+check("the Weekdays chart is absent", `document.querySelectorAll('.wd-col').length`, 0);
+check("Current rhythm renders one current-month calendar", `document.querySelectorAll('.crcard').length`, 1);
+check("today is identified in Current rhythm", `document.querySelectorAll('.crday.crtoday').length`, 1);
 
 // FIX 3: the report overlay carries the app font (it's mounted on <body>)
 run(`repOvEl();`);   // build the overlay directly
@@ -229,8 +218,8 @@ const H = JSON.parse(heads());
 const idx = t => H.findIndex(x => x.startsWith(t));
 
 // the maker's order, top to bottom
-const WANT = ["Show up", "Consistency", "Every month", "Days by month",
-              "Last 6 months", "Weekdays", "Weight", "Run", "Distance",
+const WANT = ["Show up", "Current rhythm", "Growth audit", "Session build",
+              "Muscle coverage", "Consistency", "Monthly pace", "Every month", "Weight", "Run", "Distance",
               "Next milestone", "Pace", "Every week"];
 let lastAt = -1, orderOK = true, broke = "";
 for (const t of WANT) {
@@ -248,9 +237,12 @@ check("Report card renders", `/Report card/.test($('#view').innerHTML)`, true);
 check("...and sits after Records, as the exit",
       `$('#view').innerHTML.indexOf('secReport') > $('#view').innerHTML.indexOf('secRecords')`, true);
 check("Last 30 days vs your usual is gone", `/vs your usual/.test($('#view').innerHTML)`, false);
+check("Days by month is gone", `/Days by month/.test($('#view').innerHTML)`, false);
+check("Last 6 months is gone", `/Last 6 months/.test($('#view').innerHTML)`, false);
+check("Weekdays is gone", `/>Weekdays</.test($('#view').innerHTML)`, false);
 
 // titles follow the rule: no comma-qualifiers left in the retitled set
-const commaTitles = H.filter(t => /^(Consistency|Days by month|Weekdays|Weight|Distance|Pace)\b/.test(t) && t.includes(","));
+const commaTitles = H.filter(t => /^(Consistency|Monthly pace|Weight|Distance|Pace)\b/.test(t) && t.includes(","));
 console.log((commaTitles.length === 0 ? "PASS" : "FAIL"),
   "retitled sections carry no comma-qualifier (it belongs in the tip)", "\u2192", commaTitles.join("|") || "none");
 if (commaTitles.length) fail++;

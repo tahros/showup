@@ -37,25 +37,11 @@ run(`
   view='stats'; render();
 `);
 
-check("stats rendered the heatmap", `!!document.querySelector('.heatcols')`, true);
+check("retired heatmap is absent", `!!document.querySelector('.heatcols')`, false);
 check("render did not throw",       `!!document.querySelector('#view').innerHTML.length`, true);
-check("today's cell exists in the strip",
-      `!!document.querySelector('.heat i.today')`, true);
-check("today's cell sits in the LAST week column",
-      `(()=>{const wks=[...document.querySelectorAll('.heat .wk')];
-             return wks.indexOf(document.querySelector('.heat i.today').parentElement)===wks.length-1;})()`, true);
-
-// the arithmetic, asserted where jsdom can actually measure it
-check("scroller is driven to its right edge", `(()=>{
-    let set=null;
-    const fake={scrollWidth:900,clientWidth:300,set scrollLeft(v){set=v;},get scrollLeft(){return set;}};
-    if(fake.scrollWidth>fake.clientWidth) fake.scrollLeft=fake.scrollWidth;
-    return set>=fake.scrollWidth-fake.clientWidth;})()`, true);
-check("a non-overflowing scroller is left alone", `(()=>{
-    let touched=false;
-    const fake={scrollWidth:300,clientWidth:300,set scrollLeft(v){touched=true;}};
-    if(fake.scrollWidth>fake.clientWidth) fake.scrollLeft=fake.scrollWidth;
-    return touched;})()`, false);
+check("Current rhythm identifies today", `document.querySelectorAll('.crday.crtoday').length`, 1);
+check("Current rhythm does not need horizontal scrolling",
+      `!!document.querySelector('.crgrid') && !document.querySelector('.crgrid').classList.contains('heatcols')`, true);
 
 // History's year strip centres its selection (v3.3.39) — same family, still holding
 run(`hist={y:+thisYear,m:+todayISO.slice(5,7),part:null}; view='history'; render();`);

@@ -67,7 +67,7 @@ const textsOf = c => c.filter(r => r[0] === "fillText").map(r => String(r[1]));
 // fillText rows are [op, text, x, y]
 const textAt = c => c.filter(r => r[0] === "fillText").map(r => ({ t: String(r[1]), x: +r[2], y: +r[3] }));
 
-const IDS = ["grid", "yoy", "dbm", "wd", "heat", "week", "dist", "pace"];
+const IDS = ["grid", "yoy", "dbm", "week", "dist", "pace"];
 
 // ---- 1. no card carries the URL any more -----------------------------------
 for (const id of IDS) {
@@ -86,22 +86,9 @@ const stamp = yoy.find(r => r.t === run(`todayISO`));
 ok("...on the bottom edge", stamp && stamp.y > S * 0.9, stamp && Math.round(stamp.y));
 ok("...at the right", stamp && stamp.x > S * 0.7, stamp && Math.round(stamp.x));
 
-// ---- 3. the weekday caret no longer collides with its percentage ----------
-/* today is forced to also be the strongest, so both are drawn on one column */
-const wd = textAt(drawCard("wd"));
-const caret = wd.filter(r => r.t === "\u25b2");
-ok("the strongest-day caret is drawn", caret.length === 1, caret.length + " carets");
-if (caret.length) {
-  const cx = caret[0].x;
-  const sameCol = wd.filter(r => Math.abs(r.x - cx) < 6 && r.t !== "\u25b2" && /%$/.test(r.t));
-  ok("...and a % label shares its column (today IS the strongest)", sameCol.length === 1,
-     sameCol.map(r => r.t).join(","));
-  if (sameCol.length) {
-    const gap = Math.abs(sameCol[0].y - caret[0].y);
-    ok("...separated by a readable gap, not overlapping", gap >= 20,
-       "gap " + Math.round(gap) + "px  (" + sameCol[0].t + " vs caret)");
-  }
-}
+// ---- 3. retired cards stay retired ----------------------------------------
+ok("Weekdays and Last 6 months are absent from the registry",
+   run(`!shareCards().some(c=>c.id==='wd'||c.id==='heat')`));
 
 // ---- 4. plots are vertically centred in their band ------------------------
 /* Measure the drawn art's extent and compare the space above it to the space
@@ -117,7 +104,7 @@ const bandOf = c => {
   }
   return ys.filter(v => isFinite(v));
 };
-for (const id of ["dbm", "wd", "heat", "pace"]) {
+for (const id of ["dbm", "pace"]) {
   const c = drawCard(id);
   // art = everything between the kicker (~216) and the caption (~990)
   const ys = bandOf(c).filter(v => v > 240 && v < 940);
@@ -203,17 +190,14 @@ ok("...and the last point is excluded from the record-colour branch",
    /i===o\.hi&&i!==last/.test(src),
    "colour rule checked in source (jsdom cannot resolve CSS vars)");
 
-// ---- 7. Last 6 months title carries the denominator ----------------------
-const heatSub = run(`(function(){
-  const c=shareCards().find(c=>c.id==='heat');
-  let sub=null; const orig=drawHeat;
-  drawHeat=o=>{ sub=o.sub; return null; };
-  try{ c.draw(); } finally { drawHeat=orig; }
-  return sub;})()`);
-ok("the heat card names the window in days", /\(\d+ days\)$/.test(String(heatSub)), String(heatSub));
-ok("...and the denominator is weeks \u00d7 7",
-   String(heatSub) === run(`(function(){const n=heatSeries().length; return 'days in '+n+' weeks ('+(n*7)+' days)';})()`),
-   String(heatSub));
+// ---- 7. Monthly pace names its fair cutoff -------------------------------
+const paceFooter = run(`(function(){
+  const c=shareCards().find(c=>c.id==='dbm');
+  let footer=null; const orig=drawDbm;
+  drawDbm=o=>{ footer=o.footer; return null; };
+  try{ c.draw(); } finally { drawDbm=orig; }
+  return footer;})()`);
+ok("Monthly pace names the shared day cutoff", /^every month through day \d+$/.test(String(paceFooter)), String(paceFooter));
 
 console.log(fail ? "\n" + fail + " FAILED" : "\nALL PASS");
 process.exit(fail ? 1 : 0);

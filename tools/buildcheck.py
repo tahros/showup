@@ -354,26 +354,11 @@ if not all(_credit in _settings for _credit in (
 if not _re.search(r"ShowUp \$\{APP_VERSION\}</div>\s*<div class=\"note assetcredits\"", _settings):
     fail.append("settings: icon credits must sit beneath the app version (v3.3.212)")
 
-# -- Intent gaps (v3.3.192): one threshold, one definition site. A second
-#    literal 21 in the query, the copy, or a later view is exactly how the
-#    list and the sentence describing it drift apart.
-_defs = _re.findall(r"const\s+INTENT_GAP_DAYS\s*=", _stats)
-if len(_defs) != 1:
-    fail.append(f"intent gaps: INTENT_GAP_DAYS defined {len(_defs)} times — one definition site required (v3.3.192)")
-_ig = _re.search(r"function intentGaps\(\)\{.*?\n\}", _stats, _re.S)
-if _ig and _re.search(r"[^A-Z_](21)[^0-9]", _ig.group(0)):
-    fail.append("intent gaps: inline threshold literal in the query — use INTENT_GAP_DAYS (v3.3.192)")
-#    Register guard: this section states facts. Scolding, scoring and streak
-#    language are out of register, and red is reserved for live.
-#    Scan EMITTED COPY only — block comments explain the rule by naming the
-#    words it forbids, so scanning them would fail the clean build (it did).
-_igstart = _stats.rfind("/*", 0, _stats.find("v3.3.192 — intent gaps"))
-_igsec = _stats[_igstart:_stats.find("function renderStats")]
-_igcopy = _re.sub(r"/\*.*?\*/", "", _igsec, flags=_re.S)
-_igcopy = _re.sub(r"//[^\n]*", "", _igcopy)
-for _bad in ("falling behind", "you should", "keep it up", "well done", "--live", "streak"):
-    if _bad in _igcopy.lower():
-        fail.append(f"intent gaps: out-of-register copy or colour ({_bad!r}) (v3.3.192)")
+if any(_old in _stats for _old in ("Stated, not trained", "INTENT_GAP_DAYS",
+        "intentGaps", "intentGapCard", "data-igretire")):
+    fail.append("stats: retired Stated, not trained feature returned")
+if "data-igback" in _settings or "Hidden from \\u201cStated, not trained\\u201d" in _settings:
+    fail.append("settings: controls for retired Stated, not trained feature returned")
 
 # -- Class/CSS coupling (v3.3.193): a class emitted by JS with no rule in the
 #    sheet ships an unstyled feature. This happened twice in a row — the edits
@@ -382,8 +367,8 @@ for _bad in ("falling behind", "you should", "keep it up", "well done", "--live"
 #    nothing and the gate had nothing to say. These are the classes those two
 #    features depend on; a missing one now fails the build.
 _need_css = ["gasel", "gahead", "gastate", "garows", "garow",
-             "gabadge", "ga-empty", "ga-flat", "ga-up", "gah", "igrows", "igrow", "igname",
-             "igwhen", "igx", "mcrow", "mcdots", "mcinner"]
+             "gabadge", "ga-empty", "ga-flat", "ga-up", "gah",
+             "mcrow", "mcdots", "mcinner"]
 for _cls in _need_css:
     # v3.3.205: a compound selector (.rzdot.on{) is still a rule for .rzdot,
     # as is an attribute or descendant form. The original character set
@@ -414,7 +399,7 @@ _visible = _re.findall(r"'([^']+)'", _vgm.group(1)) if _vgm else []
 if _visible != ["Chest", "Back", "Shoulders", "Arms", "Legs", "Core"]:
     fail.append("muscle taxonomy: visible groups must be Chest, Back, Shoulders, "
                 "Arms, Legs, Core — Glutes stays internal (v3.3.210)")
-_mcsec = _stats[_stats.rfind("/*",0,_stats.find("v3.3.194 — muscle coverage")):_stats.find("function renderStats")]
+_mcsec = _stats[_stats.rfind("/*",0,_stats.find("v3.3.194 — muscle coverage")):_stats.find("function currentRhythmSection")]
 _mctip = _re.search(r"hActs\('mc','([^']*)'", _stats)
 _mcsec += "\n" + (_mctip.group(1) if _mctip else "")
 _mch2 = _re.search(r"<h2>Muscle coverage[^`]*`", _stats)
@@ -443,6 +428,26 @@ if 'id="gaGrp"' in _stats and "id!=='gaGrp'" not in _stats:
     fail.append("growth audit: gaGrp is emitted but has no change handler (v3.3.209)")
 if any(_old in _stats for _old in ('class="gabase"', 'class="ganext"', 'What the record says')):
     fail.append("growth audit: retired explanatory prose block returned (v3.3.210)")
+
+# -- v3.3.213: three useful time horizons, no redundant time sections.
+for _fn in ("currentRhythmSection", "consistencyRaceSection", "monthlyPaceSection"):
+    if _stats.count("function " + _fn) != 1:
+        fail.append(f"stats: {_fn} must have one definition (v3.3.213)")
+_order = _re.search(r"h\s*=\s*_S\.kpis[^;]+;", _stats)
+if not _order or not all(_seg in _order.group(0) for _seg in
+        ("_S.rhythm", "_S.consrace", "_S.mpace", "_S.em")):
+    fail.append("stats: Current rhythm, Consistency, Monthly pace and Every month are not in the declared order (v3.3.213)")
+if _order and _re.search(r"_S\.(?:cons|dbm|last6|wd)\b", _order.group(0)):
+    fail.append("stats: a retired time section returned to the declared order (v3.3.213)")
+_util = (d/"js/util.js").read_text()
+for _fn in ("monthlyPaceData", "consistencyRaceData"):
+    if _util.count("function " + _fn) != 1:
+        fail.append(f"util: {_fn} must have one definition (v3.3.213)")
+_report = (d/"js/report.js").read_text()
+if "id:'wd'" in _report or "id:'heat'" in _report:
+    fail.append("report card: retired Weekdays or Last 6 months card returned (v3.3.213)")
+if "label:'Monthly pace'" not in _report or "monthlyPaceData(12)" not in _report:
+    fail.append("report card: Monthly pace must share the same fair cutoff data as Stats (v3.3.213)")
 
 # -- shell size
 n = len(idx.encode())

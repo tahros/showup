@@ -98,8 +98,8 @@ check("stats renders the weight section", `/id="secWeight"/.test($('#view').inne
    when a fixture has no runs, so anchoring there returns -1 and the
    comparison silently inverts. The next check already pins the same
    boundary, so this one just states the days-story side. */
-check("...below the Weekdays chart, closing the days story",
-      `$('#view').innerHTML.indexOf('secWeight') > $('#view').innerHTML.indexOf('Weekdays')`, true);
+check("...below Every month, closing the days story",
+      `$('#view').innerHTML.indexOf('secWeight') > $('#view').innerHTML.indexOf('secParts')`, true);
 // the removed sections must be gone from every render, not merely reordered
 // v3.3.130: Report card RETURNS — as the single share surface, not the old month-stepper
 check("Report card renders again, as the share surface", `/Report card/.test($('#view').innerHTML)`, true);

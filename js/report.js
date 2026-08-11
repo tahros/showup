@@ -299,31 +299,17 @@ function makeMilestoneImage(n){ return showCard(()=>drawMilestone(n),'day-'+n); 
    nothing else; showing it is the caller's business, so the same row feeds
    both the small preview and the full-size share. */
 function shareCards(){
-  const FULL=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   const fmtP=s=>Math.floor(s/60)+"'"+String(Math.round(s%60)).padStart(2,'0')+'"';
   const L=[
     {id:'grid', label:'Every month', file:()=>`${gridData().total}-days`,
      draw:()=>drawGrid(gridData())},
     {id:'yoy', label:'Consistency', file:()=>'consistency-'+todayISO.slice(0,4),
      draw:()=>drawYoy(yearCurves())},
-    {id:'dbm', label:'Days by month', file:()=>'days-by-month', draw:()=>{
-      const gd=gridData(), mk=todayISO.slice(0,7), dom=+todayISO.slice(8);
-      return drawDbm({ms:Object.entries(gd.mDays).sort().slice(-12), monthKey:mk, dayOfMonth:dom,
-        big:String(gd.mDays[mk]||0), sub:'trained of '+dom+' days',
-        kicker:'DAYS BY MONTH', footer:'days trained each month \u00b7 dashes mark 20'});
-    }},
-    {id:'wd', label:'Weekdays', file:()=>'weekdays', draw:()=>{
-      const d=wdDist();
-      return drawWd({pct:d.pct, best:d.best, today:d.today,
-        big:FULL[d.best], sub:'is your strongest day',   // 'S' would not say which one
-        kicker:'WEEKDAYS', footer:'% of each weekday trained, last 365 days'});
-    }},
-    {id:'heat', label:'Last 6 months', file:()=>'last-6-months', draw:()=>{
-      const cols=heatSeries();
-      const span=cols.length*7;      // v3.3.133: the denominator, so 116 has something to be 116 OF
-      return drawHeat({cols, big:String(cols.reduce((a,c)=>a+c.filter(d=>d.on).length,0)),
-        sub:`days in ${cols.length} weeks (${span} days)`,
-        kicker:'LAST 6 MONTHS', footer:'one column per week'});
+    {id:'dbm', label:'Monthly pace', file:()=>'monthly-pace', draw:()=>{
+      const data=monthlyPaceData(12), cur=data.months[data.months.length-1];
+      return drawDbm({ms:data.months.map(m=>[m.key,m.days]), monthKey:cur.key, dayOfMonth:cur.cutoff,
+        big:String(cur.days), sub:'days by day '+cur.cutoff,
+        kicker:'MONTHLY PACE', footer:'every month through day '+cur.cutoff});
     }}
   ];
   /* the run cards only exist if you have run. An empty Pace card is not a

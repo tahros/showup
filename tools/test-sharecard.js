@@ -258,13 +258,13 @@ module.exports = settled.then(() => {
     // the caption moved behind the dot
     run(`view='stats'; renderStats();`);
     const yoyHtml = run(`$('#view').innerHTML`);
-    ok("the chart explains itself behind an i", /data-tip="yoy"/.test(yoyHtml));
+    ok("the chart explains itself behind an i", /data-tip="yoy2"/.test(yoyHtml));
     ok("...and the loose caption is gone",
        !/cumulative through each year/.test(yoyHtml));
     // v3.3.148: the per-section button died in v3.3.130 — the carousel is the door
     ok("...and no per-section share button returned", !/id="yoyShare"/.test(yoyHtml));
     const yoyTip = (fs.readFileSync(path.join(dir, "js/stats.js"), "utf8")
-      .match(/(?:iBtn|hActs)\('yoy',["']([^"']*)["']/) || [])[1] || "";
+      .match(/(?:iBtn|hActs)\('yoy2',["']([^"']*)["']/) || [])[1] || "";
     ok("...tip within one breath", yoyTip.length > 0 && yoyTip.length <= 120, yoyTip.length + " chars");
 
     // ---- 8b. the in-app legend behaves on a phone (v3.3.75) --------------
@@ -286,8 +286,8 @@ module.exports = settled.then(() => {
        !/closest\('\.legend1'\)/.test(utilSrc));
     ok("...and no longer needs scroll-parking to reveal the current year",
        !/\.heatcols,\.heat,\.legend1/.test(statsSrc75));
-    ok("the things that DO scroll sideways keep their parking",
-       /'\.heatcols,\.heat'/.test(statsSrc75));
+    ok("the retired heatmap no longer needs scroll parking",
+       !/'\.heatcols,\.heat'/.test(statsSrc75));
     const cssSrc = fs.readFileSync(path.join(dir, "css/app.css"), "utf8");
     ok("legend chips cannot be crushed by flex (flex:0 0 auto on the chip)",
        /\.legend1 \[data-yr\]\{[^}]*flex:0 0 auto/.test(cssSrc));

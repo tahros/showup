@@ -795,6 +795,45 @@ function longestStreak(){
   }
   return best;
 }
+/* v3.3.213: the three time horizons on Stats share honest calendar data.
+   Monthly pace compares every month through the same ordinal day; the
+   year race compares this year and last year only, both ending on today's
+   month/day. Neither projects an unfinished period. */
+function monthlyPaceData(n=12){
+  const dates=workoutDates(),dom=+todayISO.slice(8),base=new Date(todayISO+'T00:00');
+  base.setDate(1);
+  const months=[];
+  for(let off=n-1;off>=0;off--){
+    const d=new Date(base); d.setMonth(d.getMonth()-off);
+    const key=d.toLocaleDateString('en-CA').slice(0,7);
+    const last=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
+    const cutoff=Math.min(dom,last);
+    let days=0,total=0;
+    for(const iso of dates) if(iso.startsWith(key)){
+      total++; if(+iso.slice(8)<=cutoff) days++;
+    }
+    months.push({key,days,total,cutoff,current:key===todayISO.slice(0,7)});
+  }
+  return {months,day:dom};
+}
+function consistencyRaceData(){
+  const dates=workoutDates(),year=+todayISO.slice(0,4),month=+todayISO.slice(5,7)-1,day=+todayISO.slice(8);
+  const make=y=>{
+    const start=new Date(y,0,1),last=new Date(y,month+1,0).getDate();
+    const end=new Date(y,month,Math.min(day,last)),curve=[];
+    let total=0,d=new Date(start);
+    while(d<=end){
+      const iso=d.toLocaleDateString('en-CA');
+      if(dates.has(iso)) total++;
+      curve.push(total); d.setDate(d.getDate()+1);
+    }
+    return {year:String(y),curve,total};
+  };
+  const current=make(year),previous=make(year-1);
+  const hasPrevious=[...dates].some(iso=>iso.startsWith(previous.year+'-'));
+  const label=new Date(year,month,day).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  return {current,previous,hasPrevious,label,gap:current.total-previous.total};
+}
 function wd2(iso){ return new Date(iso+'T00:00').toLocaleDateString('en-US',{weekday:'short'}); }
 function daysBetween(a,b){return Math.round((new Date(b+'T00:00')-new Date(a+'T00:00'))/864e5);}
 
