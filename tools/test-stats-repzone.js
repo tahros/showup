@@ -1,4 +1,4 @@
-// test-stats-repzone.js DIR — v3.3.211 three-signal Growth Audit.
+// test-stats-repzone.js DIR — v3.3.212 three-signal Growth Audit.
 // The filename stays so the all-suite runner keeps the historical gate.
 const { JSDOM } = require("jsdom");
 const fs = require("fs"), path = require("path"), vm = require("vm");
@@ -146,10 +146,17 @@ check("the UI uses two Noun Project assets plus a CSS dot, not a glyph map",
 check("only the Flat and Going Up status assets exist",
   `${['status-flat.png','status-up.png'].every(x=>fs.existsSync(path.join(dir,'assets',x)))&&
     !fs.existsSync(path.join(dir,'assets','status-empty.png'))}`,"true");
-check("the status hierarchy is gray dot, foreground line and ShowUp blue trend",
-  `${/\.ga-empty\{[^}]*faint/.test(cssSrc)&&/\.ga-flat\{[^}]*chalk/.test(cssSrc)&&
+check("the status hierarchy is muted gray dot and line, then ShowUp blue trend",
+  `${/\.ga-empty\{[^}]*faint[^}]*opacity:\.55/.test(cssSrc)&&
+    /\.ga-flat\{[^}]*faint[^}]*opacity:\.55/.test(cssSrc)&&
     /\.ga-up\{[^}]*accent-ink/.test(cssSrc)&&/--ga-size:11px 11px/.test(cssSrc)&&
     /--ga-size:30px 30px/.test(cssSrc)}`,"true");
+check("Growth Audit help explains its signals without icon credits",
+  `${statsSrc.includes('Dot: no completed sets in 7 days')&&statsSrc.includes('line: trained, no confirmed gain')&&
+    statsSrc.includes('trend: comparable best moved')&&!statsSrc.slice(statsSrc.indexOf('function growthAuditSection'),statsSrc.indexOf('function sessionBuild')).includes('Noun Project')}`,"true");
+check("icon credits live beneath the version in Settings",
+  `${/ShowUp \$\{APP_VERSION\}<\/div>\s*<div class="note assetcredits"/.test(fs.readFileSync(path.join(dir,'js','settings.js'),'utf8'))&&
+    ['minus-8363736','trend-2344331','ARIPATUT DASUKI','Travis Avery','Noun Project'].every(x=>fs.readFileSync(path.join(dir,'js','settings.js'),'utf8').includes(x))}`,"true");
 check("Growth Audit has no hidden universal set target",
   `${!(/(?:target|ideal)\s*(?:sets?|volume)/i.test(statsSrc.slice(statsSrc.indexOf('v3.3.211 — Growth Audit'),statsSrc.indexOf('v3.3.192 — intent gaps'))))}`,"true");
 

@@ -336,6 +336,23 @@ if (d/"assets"/"status-empty.png").exists() or "status-empty.png" in css or "./a
     fail.append("growth audit: Empty must remain a native CSS dot, not an image asset (v3.3.211)")
 if not _re.search(r"\.ga-empty\{[^}]*radial-gradient", css):
     fail.append("growth audit: Empty CSS dot is missing (v3.3.211)")
+if not (_re.search(r"\.ga-empty\{[^}]*color:var\(--faint\)[^}]*opacity:\.55", css)
+        and _re.search(r"\.ga-flat\{[^}]*color:var\(--faint\)[^}]*opacity:\.55", css)):
+    fail.append("growth audit: Empty and Flat must share the same muted gray treatment (v3.3.212)")
+_gahelp = _stats[_stats.find("function growthAuditSection"):_stats.find("function sessionBuild")]
+if not all(_phrase in _gahelp for _phrase in (
+        "Dot: no completed sets in 7 days", "line: trained, no confirmed gain",
+        "trend: comparable best moved")):
+    fail.append("growth audit: information control must explain all three signals (v3.3.212)")
+if any(_credit in _gahelp for _credit in ("Noun Project", "ARIPATUT DASUKI", "Travis Avery")):
+    fail.append("growth audit: icon credits belong in Settings, not the information control (v3.3.212)")
+_settings = (d/"js/settings.js").read_text()
+if not all(_credit in _settings for _credit in (
+        "minus-8363736", "trend-2344331", "ARIPATUT DASUKI",
+        "Travis Avery", "Noun Project")):
+    fail.append("settings: Growth Audit icon credits or source links are missing (v3.3.212)")
+if not _re.search(r"ShowUp \$\{APP_VERSION\}</div>\s*<div class=\"note assetcredits\"", _settings):
+    fail.append("settings: icon credits must sit beneath the app version (v3.3.212)")
 
 # -- Intent gaps (v3.3.192): one threshold, one definition site. A second
 #    literal 21 in the query, the copy, or a later view is exactly how the

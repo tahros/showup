@@ -1,5 +1,15 @@
 # ShowUp — changelog
 
+## v3.3.212 (2026-08-12) — Quieter Flat, useful help
+
+**Flat now recedes with Empty.** The minus uses the same muted gray and opacity
+as the Empty dot, so only Going Up carries accent color.
+
+**Growth Audit help explains the signal.** The information control now defines
+the dot, line and trend states. Noun Project creator credits moved to Settings
+beneath the app version, keeping attribution available without interrupting the
+chart explanation.
+
 ## v3.3.211 (2026-08-12) — Three signals, no subtitles
 
 **Growth Audit now has exactly three visible outcomes.** Empty means no

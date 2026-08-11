@@ -1151,6 +1151,7 @@
     padding:9px 14px;border-radius:999px;opacity:0;transition:.22s;pointer-events:none;z-index:40;max-width:86%;text-align:center}
   #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
   .note{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:8px;line-height:1.6}
+  .assetcredits a{color:inherit;text-decoration:underline dotted;text-underline-offset:3px}
   /* v3.3.66 arrival greeting — quiet by design: it is a state, not a banner */
   /* v3.3.98: the milestone moment. Bold by TYPE and MOTION — the voice
      stays dry even at full volume. Thousand tier floods accent and lets the
@@ -1232,7 +1233,7 @@
     mask:var(--ga-icon) center/var(--ga-size,contain) no-repeat}
   .ga-empty{color:var(--faint);opacity:.55;background:
     radial-gradient(circle at center,currentColor 0 2px,transparent 2.25px);-webkit-mask:none;mask:none}
-  .ga-flat{--ga-icon:url('../assets/status-flat.png');--ga-size:11px 11px;color:var(--chalk)}
+  .ga-flat{--ga-icon:url('../assets/status-flat.png');--ga-size:11px 11px;color:var(--faint);opacity:.55}
   .ga-up{--ga-icon:url('../assets/status-up.png');--ga-size:30px 30px;color:var(--accent-ink)}
   .garows{display:flex;flex-direction:column}
   .garow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 0}

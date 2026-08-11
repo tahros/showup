@@ -99,7 +99,8 @@ function renderSync(){
       </div>
       <input type="file" id="impFile" accept=".json,application/json" hidden>
     </div>
-    <div class="note" style="text-align:center;margin-top:18px;opacity:.7">ShowUp ${APP_VERSION}</div>`;
+    <div class="note" style="text-align:center;margin-top:18px;opacity:.7">ShowUp ${APP_VERSION}</div>
+    <div class="note assetcredits" style="text-align:center;margin-top:6px;opacity:.7">Status icons: <a href="https://thenounproject.com/icon/minus-8363736/" target="_blank" rel="noopener">Minus</a> by ARIPATUT DASUKI · <a href="https://thenounproject.com/icon/trend-2344331/" target="_blank" rel="noopener">Trend</a> by Travis Avery · Noun Project</div>`;
 }
 
 
