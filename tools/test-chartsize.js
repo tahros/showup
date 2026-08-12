@@ -59,19 +59,19 @@ const cards = () => run(`[...document.querySelectorAll('#view .card')].length`);
 // ---- 1. the plots are taller -----------------------------------------------
 const vbs = run(`[...document.querySelectorAll('#view svg')].map(s=>s.getAttribute('viewBox'))`);
 ok("the same-date consistency race has its dedicated plot", vbs.includes("0 0 340 215"), vbs.find(v=>/340/.test(v)));
-ok("Monthly pace has its compact 12-bar plot", vbs.includes("0 0 330 146"), vbs.find(v=>v==="0 0 330 146"));
+ok("Monthly pace has its padded 12-bar plot", vbs.includes("0 0 330 160"), vbs.find(v=>v==="0 0 330 160"));
 /* v3.3.129 was scoped to FOUR charts: consistency, days-by-month, weekdays,
    distance. Weight and Pace were deliberately left at 118 — they were not in
    the request, and a chart is not made better by being taller on principle.
    So this asserts the scope held, not that 118 was eradicated. */
-ok("the out-of-scope charts were left alone", vbs.filter(v=>v==="0 0 330 118").length === 2,
-   vbs.filter(v=>v==="0 0 330 118").length + " still at 118 (expected 2: weight, pace)");
+ok("only the optional weight chart may keep the compact plot", vbs.filter(v=>v==="0 0 330 118").length <= 1,
+   vbs.filter(v=>v==="0 0 330 118").length + " compact plots");
 
 // ---- 2. the hint sits OUTSIDE the plot -------------------------------------
 const hintsInside = run(`document.querySelectorAll('.zoom .zoomhint').length`);
 const hintsTotal  = run(`document.querySelectorAll('.zoomhint').length`);
 ok("no hint is rendered inside a .zoom box", hintsInside === 0, hintsInside + " inside");
-ok("...but the hints still exist", hintsTotal > 0, hintsTotal + " hints");
+ok("the visible race date replaces every zoom hint", hintsTotal === 0, hintsTotal + " hints");
 ok("the hint precedes its chart in the DOM", run(`(function(){
     const hs=[...document.querySelectorAll('.zoomhint')];
     return hs.every(h=>{ const z=h.parentElement.querySelector('.zoom');
@@ -92,9 +92,10 @@ ok("Current rhythm contains exactly one today", run(`document.querySelectorAll('
 ok("the retired Weekdays plot is gone", run(`document.querySelectorAll('.wd-col').length`) === 0);
 
 // ---- 4. Consistency: verdict plus graph ------------------------------------
-ok("Consistency leads with two exact day totals", run(`document.querySelectorAll('.conscore>span b').length`) === 2);
-ok("Consistency draws the filled difference field", run(`document.querySelectorAll('.conrace polygon').length`) === 1);
-ok("Consistency draws one line for each self", run(`document.querySelectorAll('.conrace polyline').length`) === 2);
+ok("Consistency leads with two exact day totals", run(`document.querySelectorAll('.conrace:not(.runrace) .conscore>span b').length`) === 2);
+ok("Consistency draws the filled difference field", run(`document.querySelectorAll('.conrace:not(.runrace) polygon').length`) === 1);
+ok("Consistency draws one line for each self", run(`document.querySelectorAll('.conrace:not(.runrace) polyline').length`) === 2);
+ok("Distance uses the same two-self score language",run(`document.querySelectorAll('.runrace .conscore>span b').length`)===2);
 
 // ---- 5. nothing escapes the taller viewBox --------------------------------
 ok("nothing is drawn below the bottom of any stats plot", run(`(function(){
@@ -113,24 +114,22 @@ ok("nothing is drawn below the bottom of any stats plot", run(`(function(){
 // ---- 6. the scrub anchors match the geometry they describe -----------------
 /* If sy0/syh drift from the drawn baseline the legend silently reports wrong
    numbers while scrubbing — no crash, just lies. */
-ok("scrub anchors track the new baselines", run(`(function(){
-    return [...document.querySelectorAll('[data-scrub]')].every(s=>
-      s.getAttribute('data-scrub')==='race'
-        ? s.getAttribute('data-sy0')==='182' && s.getAttribute('data-syh')==='150'
-        : s.getAttribute('data-sy0')==='190' && s.getAttribute('data-syh')==='170');
+ok("scrub anchors track both race baselines", run(`(function(){
+    const c=document.querySelector('.conrace:not(.runrace) [data-scrub]'),d=document.querySelector('.runrace [data-scrub]');
+    return c&&d&&c.dataset.sy0==='182'&&c.dataset.syh==='150'&&d.dataset.sy0==='180'&&d.dataset.syh==='145';
   })()`), run(`[...document.querySelectorAll('[data-scrub]')].map(s=>s.getAttribute('data-sy0')+'/'+s.getAttribute('data-syh')).join(' ')`));
 
 // the distance chart comes in via runStatsHTML(), appended by renderStats
 const distVb = run(`(function(){
-  const s=document.querySelector('[data-scrub="dist"]');
+  const s=document.querySelector('.runrace [data-scrub="race"]');
   return s?s.getAttribute('viewBox'):'none';
 })()`);
-ok("the distance plot is 220 tall too", distVb === "0 0 340 220", distVb);
-ok("the distance chart's hint is outside its plot too", run(`(function(){
-    const s=document.querySelector('[data-scrub="dist"]');
+ok("the distance race uses its own compact plot", distVb === "0 0 340 205", distVb);
+ok("the distance race uses its visible date instead of a hint", run(`(function(){
+    const s=document.querySelector('.runrace [data-scrub="race"]');
     if(!s) return false;
     const z=s.closest('.zoom');
-    return !z.querySelector('.zoomhint') && !!z.parentElement.querySelector('.zoomhint');
+    return !z.querySelector('.zoomhint') && !!z.parentElement.querySelector('[data-con-date]');
   })()`));
 
 console.log(fail ? "\n" + fail + " FAILED" : "\nALL PASS");

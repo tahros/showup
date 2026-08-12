@@ -15,8 +15,15 @@ w.fetch = () => Promise.reject(new Error("offline"));
 w.matchMedia = w.matchMedia || (() => ({ matches:false, addEventListener(){}, removeEventListener(){}, addListener(){} }));
 w.navigator.vibrate = () => {}; w.scrollTo = () => {};
 w.performance = w.performance || { now: () => Date.now() };
+w.PointerEvent = w.PointerEvent || class PointerEvent extends w.MouseEvent {
+  constructor(type, init={}){
+    super(type, init);
+    Object.defineProperty(this, "pointerId", { value:init.pointerId || 0 });
+  }
+};
 w.HTMLCanvasElement.prototype.getContext = function(){ return new Proxy({ measureText: () => ({ width: 10 }) },
   { get: (o,k) => k in o ? o[k] : () => ({}), set: () => true }); };
+w.HTMLCanvasElement.prototype.toDataURL = function(){ return "data:image/png;base64,"; };
 // jsdom has no pointer capture and no layout; supply both minimally
 w.Element.prototype.setPointerCapture = function(){};
 w.Element.prototype.releasePointerCapture = function(){};
@@ -112,7 +119,8 @@ ok("both years' counts track the scrubbed day (they differ across the chart)",
    !(early === mid && mid === late), `${early} \u2192 ${mid} \u2192 ${late}`);
 ok("...and read as whole workout days, never a fraction or a percent",
    /^\d+(\|\d+)*$/.test(mid), mid);
-// the scrubbed date leads the card, and the gap is recomputed from the two counts
+
+// ---- the hint slot becomes the date ----------------------------------------
 ok("the kicker becomes the date under your finger",
    /YOU VS YOU · [A-Z]{3} \d{1,2}/.test(run(`document.querySelector('[data-con-date]').textContent`)),
    run(`document.querySelector('[data-con-date]').textContent`));
@@ -122,9 +130,6 @@ ok("...and the gap agrees with the two counts it sits between",
      const prev=+c.querySelector('[data-con-count="'+c.getAttribute('data-previous-year')+'"]').textContent;
      const t=c.querySelector('[data-con-gap]').textContent, d=cur-prev;
      return d>0 ? t.indexOf('+'+d)===0 : d<0 ? t.indexOf(String(Math.abs(d)))===0 : /Even/.test(t);})()`));
-
-// ---- the hint slot becomes the date ----------------------------------------
-
 
 // ---- release restores everything -------------------------------------------
 pu();
@@ -169,9 +174,10 @@ ok("...and scrubbing only runs on a single pointer",
 
 // ---- the distance chart gets it for free -----------------------------------
 const liftSrc = fs.readFileSync(path.join(dir, "js/lift.js"), "utf8");
-ok("the distance chart opts in too", /data-scrub=\\?"dist\\?"/.test(liftSrc));
-ok("...and its legend exposes <b> so the scrubber can swap it",
-   /data-yr="\$\{y\}"[^`]*<b>\$\{Math\.round\(yTot\[y\]\)\}<\/b>/.test(liftSrc));
+ok("the distance chart opts into the shared race scrubber too",
+   /class="card conrace runrace"/.test(liftSrc) && /data-scrub="race" data-race-unit/.test(liftSrc));
+ok("...and its scoreboard exposes both year values",
+   (liftSrc.match(/data-con-count="\$\{(?:prevYear|thisYear)\}"/g)||[]).length===2);
 // one implementation, not two
 ok("there is exactly one bindScrub", (appSrc.match(/function bindScrub/g) || []).length === 1);
 
@@ -188,8 +194,6 @@ ok("charts without data-scrub get no scrub layer",
 // Both original problems still matter: the readout must not sit under the
 // scrubbing hand, and every plotted year must be visible. The retired pct
 // chart expressed this as .legend1; the race card expresses it as .conscore.
-// (.legend1 now exists only inside the unassembled cut('cons') builder, so
-// asserting on it tested code no one can see.)
 ok("the readout precedes the chart in the DOM",
    run(`(function(){
      const card=document.querySelector('.conrace'); if(!card) return false;

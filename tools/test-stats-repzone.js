@@ -69,7 +69,7 @@ run(`_reset();for(const n of [7,5,3,1])_mk(n,[{part:'Back',ex:'Seated Cable Row'
   _finish();ga.grp='Back';render();`);
 check("four unchanged sessions earn Review",`gaExerciseState(gaExerciseSessions()['seated-cable-row']).label`,"Review");
 check("Review collapses to the one visible Flat state",`document.querySelector('.gabadge').getAttribute('aria-label')`,"Flat");
-check("no review explanation survives below the exercise",`document.querySelector('.garow').textContent.trim()`,"Seated Cable Row");
+check("the row adds only the record receipt, never review prose",`!!document.querySelector('.garow .garecord')&&!document.querySelector('.garow .note')`,true);
 
 // ---- coverage is personal and rolling, not a universal target -----------
 run(`_reset();

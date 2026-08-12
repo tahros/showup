@@ -180,7 +180,8 @@ ok("...and no per-section share icon survives anywhere",
    run(`document.querySelectorAll('.shareb').length`) + " left");
 // the paragraph under the grid moved behind the dot (DESIGN.md D1)
 const gridHtml = run(`$('#view').innerHTML`);
-ok("the grid explains itself behind an i", /data-tip="mgrid"/.test(gridHtml));
+ok("the retired Every month screen stays gone while its Report Card survives",
+   !/data-tip="mgrid"/.test(gridHtml) && run(`shareCards().some(c=>c.id==='grid')`));
 ok("...and no paragraph is left under it", !/the whole history on one screen/.test(gridHtml));
 /* v3.3.112: accept either call shape. These greps pinned iBtn('mgrid',...)
    and broke when the tip moved into hActs() \u2014 the tip text was unchanged,
@@ -338,7 +339,7 @@ module.exports = settled.then(() => {
        !/data-jump=/.test(run(`$('#view').innerHTML`)));
     ok("...while the section headings they indexed remain",
        /id="secDays"/.test(run(`$('#view').innerHTML`)) &&
-       /id="secRecords"/.test(run(`$('#view').innerHTML`)));
+       /id="secReport"/.test(run(`$('#view').innerHTML`)));
 
     // ---- 8d. v3.3.92: 2025's line moved to chart grade -------------------
     const statsSrc92 = fs.readFileSync(path.join(dir, "js/stats.js"), "utf8");

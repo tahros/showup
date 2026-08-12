@@ -98,15 +98,15 @@ check("stats renders the weight section", `/id="secWeight"/.test($('#view').inne
    when a fixture has no runs, so anchoring there returns -1 and the
    comparison silently inverts. The next check already pins the same
    boundary, so this one just states the days-story side. */
-check("...below Every month, closing the days story",
-      `$('#view').innerHTML.indexOf('secWeight') > $('#view').innerHTML.indexOf('secParts')`, true);
+check("...below Monthly pace, closing the days story",
+      `$('#view').innerHTML.indexOf('secWeight') > $('#view').innerHTML.indexOf('Monthly pace')`, true);
 // the removed sections must be gone from every render, not merely reordered
 // v3.3.130: Report card RETURNS — as the single share surface, not the old month-stepper
 check("Report card renders again, as the share surface", `/Report card/.test($('#view').innerHTML)`, true);
 check("...and it is the carousel, not the old month nav", `!!document.getElementById('repShare')`, true);
 check("Last 30 days no longer renders", `/vs your usual/.test($('#view').innerHTML)`, false);
-check("...and above the Records heading",
-      `$('#view').innerHTML.indexOf('secWeight') < $('#view').innerHTML.indexOf('<h2 id="secRecords"')`, true);
+check("...and above the Report card",
+      `$('#view').innerHTML.indexOf('secWeight') < $('#view').innerHTML.indexOf('secReport')`, true);
 check("this fixture has no drift rows at all", `/Last 30 days/.test($('#view').innerHTML)`, false);
 check("...and the weight card renders anyway (it precedes the conditional)",
       `/id="secWeight"/.test($('#view').innerHTML)`, true);

@@ -423,14 +423,14 @@ if 'id="gaGrp"' in _stats and "id!=='gaGrp'" not in _stats:
 if any(_old in _stats for _old in ('class="gabase"', 'class="ganext"', 'What the record says')):
     fail.append("growth audit: retired explanatory prose block returned (v3.3.210)")
 
-# -- v3.3.213: three useful time horizons, no redundant time sections.
+# -- v3.3.217: three useful time horizons; Every month is now redundant.
 for _fn in ("currentRhythmSection", "consistencyRaceSection", "monthlyPaceSection"):
     if _stats.count("function " + _fn) != 1:
         fail.append(f"stats: {_fn} must have one definition (v3.3.213)")
 _order = _re.search(r"h\s*=\s*_S\.kpis[^;]+;", _stats)
 if not _order or not all(_seg in _order.group(0) for _seg in
-        ("_S.rhythm", "_S.consrace", "_S.mpace", "_S.em")):
-    fail.append("stats: Current rhythm, Consistency, Monthly pace and Every month are not in the declared order (v3.3.213)")
+        ("_S.rhythm", "_S.consrace", "_S.mpace")) or "_S.em" in _order.group(0):
+    fail.append("stats: Current rhythm, Consistency and Monthly pace must render without Every month (v3.3.217)")
 if _order and _re.search(r"_S\.(?:cons|dbm|last6|wd)\b", _order.group(0)):
     fail.append("stats: a retired time section returned to the declared order (v3.3.213)")
 _util = (d/"js/util.js").read_text()
@@ -442,6 +442,10 @@ if "id:'wd'" in _report or "id:'heat'" in _report:
     fail.append("report card: retired Weekdays or Last 6 months card returned (v3.3.213)")
 if "label:'Monthly pace'" not in _report or "monthlyPaceData(12)" not in _report:
     fail.append("report card: Monthly pace must share the same fair cutoff data as Stats (v3.3.213)")
+if "h+=moGoalCardHTML()" in _stats or "h+=runStatsHTML();" in _stats:
+    fail.append("stats: retired This month card or legacy running story returned (v3.3.217)")
+if "runStatsHTML217" not in (d/"js/lift.js").read_text():
+    fail.append("stats: v3.3.217 running story is missing")
 
 # -- v3.3.214: the year race keeps the old chart's press-and-drag reading.
 _app = (d/"js/app.js").read_text()

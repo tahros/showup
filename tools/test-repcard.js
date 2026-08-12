@@ -65,7 +65,7 @@ ok("...and both rotation controls",
    run(`!!document.getElementById('repPrev') && !!document.getElementById('repNext')`));
 ok("it is the last section before Settings", run(`(function(){
      const h=$('#view').innerHTML;
-     return h.indexOf('secReport') > h.indexOf('secRecords')
+     return h.indexOf('secReport') > h.indexOf('Every week')
          && h.indexOf('secReport') < h.indexOf('Settings');})()`));
 
 // ---- 3. rotation actually changes what gets SENT ---------------------------

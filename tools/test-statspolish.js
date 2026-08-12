@@ -219,8 +219,8 @@ const idx = t => H.findIndex(x => x.startsWith(t));
 
 // the maker's order, top to bottom
 const WANT = ["Show up", "Current rhythm", "Growth audit", "Session build",
-              "Muscle coverage", "Consistency", "Monthly pace", "Every month", "Weight", "Run", "Distance",
-              "Next milestone", "Pace", "Every week"];
+              "Muscle coverage", "Consistency", "Monthly pace", "Weight", "Run", "Distance",
+              "Monthly milestone", "Pace", "Running", "Every week"];
 let lastAt = -1, orderOK = true, broke = "";
 for (const t of WANT) {
   const at = idx(t);
@@ -234,8 +234,8 @@ if (!orderOK) fail++;
 // the two removed sections are gone everywhere
 // v3.3.130: Report card is BACK — as the one share surface, last before Settings
 check("Report card renders", `/Report card/.test($('#view').innerHTML)`, true);
-check("...and sits after Records, as the exit",
-      `$('#view').innerHTML.indexOf('secReport') > $('#view').innerHTML.indexOf('secRecords')`, true);
+check("...and sits after the running story, as the exit",
+      `$('#view').innerHTML.indexOf('secReport') > $('#view').innerHTML.indexOf('Every week')`, true);
 check("Last 30 days vs your usual is gone", `/vs your usual/.test($('#view').innerHTML)`, false);
 check("Days by month is gone", `/Days by month/.test($('#view').innerHTML)`, false);
 check("Last 6 months is gone", `/Last 6 months/.test($('#view').innerHTML)`, false);
@@ -268,7 +268,7 @@ const dataHeads = hd.filter(r => !r.quiet && r.t !== "Settings");
    their tips repeated visible labels (kpis, run, nextms, and both Records).
    The invariant is no longer "every head has one" but "exactly the audited
    set has none", so a tip silently vanishing elsewhere still fails. */
-const NO_TIP = new Set(["Show up — that's the whole game","Run","Next milestone","Records"]);
+const NO_TIP = new Set(["Show up — that's the whole game","Run"]);
 const NO_TIP_PRE = ["Running \u00b7"];   // v3.3.162: month-named, tipless by audit
 const bare = dataHeads.filter(r => !r.i && !NO_TIP_PRE.some(pfx => r.t.startsWith(pfx)));
 console.log((bare.every(r => NO_TIP.has(r.t)) && dataHeads.some(r => r.i) ? "PASS" : "FAIL"),

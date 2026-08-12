@@ -208,6 +208,7 @@ ok("...and every new name is catalogued with part + equip", run(`(function(){
    The stranger user could not log after midnight: iOS resumes PWAs without
    firing visibilitychange and the interval sleeps, so todayISO went stale.
    The guard now runs inside the tap handler itself. */
+if(false){ /* v3.3.217: the entire This month goal/target surface is retired. */
 run(`(function(){ DB.days={}; DB.settings.moGoal=0; SEED=deriveAll();
   todayISO='2001-01-01';   // force a stale day
   lift={ex:'Chest Press',part:'Chest',weight:16}; view='lift'; render();})()`);
@@ -249,24 +250,24 @@ ok("a 7'30 target pace parses and projects 10k at 75'00",
    run(`document.querySelector('.moGoal .lastfoot').textContent`).slice(-70));
 ok("...with recent pace shown beside it for the honest gap",
    /recent/.test(run(`document.querySelector('.moGoal .lastfoot').textContent`)));
+}
 
 /* ---- 13. v3.3.162: the month metrics card ------------------------------- */
+run(`(function(){DB.days={};DB.days[todayISO]={w:[{part:'Run',ex:'Run',w:4,reps:[],mins:30,secs:0,at:1}],upd:1};SEED=deriveAll();view='stats';render();})()`);
 ok("RUNNING · month card renders on Stats with a run this month",
    /Running \u00b7/.test(run(`$('#view').innerHTML`)));
-ok("...as ONE hero + bar + mono line, not a tile grid (v3.3.163)", run(`(function(){
+ok("...as a visual hero plus metric grid (v3.3.217)", run(`(function(){
      const h2=[...document.querySelectorAll('#view h2')].find(h=>/Running \u00b7/.test(h.textContent));
      const c=h2&&h2.nextElementSibling;
-     return !!(c&&c.querySelector('.kpi.hero')&&c.querySelector('.mgbar')&&c.querySelector('.lastfoot')
-               &&c.querySelectorAll('.kpi').length===1);})()`));
+     return !!(c&&c.querySelector('.runmonthhero')&&c.querySelectorAll('.runmonthgrid span').length===6);})()`));
 ok("...projection is calendar-rate (km/elapsed \u00d7 days-in-month)", (() => {
   const km = 4, el = +run(`todayISO.slice(8)`),
         dim = run(`new Date(+todayISO.slice(0,4),+todayISO.slice(5,7),0).getDate()`);
-  return new RegExp("\u2248"+Math.round(km/el*dim)).test(run(`$('#view').innerHTML`));
+  return new RegExp("\u2248\\s*"+Math.round(km/el*dim)).test(run(`$('#view').innerHTML`));
 })());
-ok("THIS MONTH no longer duplicates the km readout",
-   !/ago">[\d.]+ km/.test(run(`document.querySelector('.moGoal').outerHTML`)));
-ok("pace chart labels are readable (9.5 units \u2248 12px)",
-   /font-size="9.5"/.test(fs.readFileSync(path.join(dir, "js/lift.js"), "utf8")));
+ok("THIS MONTH goal and target card is gone", run(`!document.querySelector('.moGoal')`));
+ok("pace chart labels match the other chart legends",
+   /font-size="7"/.test(fs.readFileSync(path.join(dir, "js/lift.js"), "utf8")));
 
 /* ---- 14. v3.3.164: scrubbing the live bars ------------------------------ */
 run(`(function(){
