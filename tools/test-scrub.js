@@ -68,10 +68,16 @@ const pu = (id=1) => run(`(function(){const b=${BOX};
   b.dispatchEvent(e);})()`);
 
 // ---- the chart declares its geometry --------------------------------------
-ok("the consistency chart opts in with its geometry",
-   run(`${SVG}.getAttribute('data-scrub')`) === "pct" &&
-   run(`+${SVG}.getAttribute('data-sx0')`) === 20 &&
-   run(`+${SVG}.getAttribute('data-sxw')`) === 302);   // v3.3.128: widened
+/* v3.3.217: the percentage consistency chart was retired in v3.3.213 and the
+   year-over-year RACE chart took its place as the scrub surface (v3.3.214).
+   This suite kept asserting the retired chart's geometry and legend, so it
+   went red the moment the replacement shipped. Re-pointed at the live chart;
+   the behaviours under test are unchanged — reveal, track, restore, and
+   coexist with pinch. */
+ok("the race chart opts in with its geometry",
+   run(`${SVG}.getAttribute('data-scrub')`) === "race" &&
+   run(`+${SVG}.getAttribute('data-sx0')`) > 0 &&
+   run(`+${SVG}.getAttribute('data-sxw')`) > 0);
 
 // ---- hidden until touched ---------------------------------------------------
 ok("no guide before you touch the chart",
@@ -81,7 +87,7 @@ ok("no guide before you touch the chart",
 // the year-end totals the release must restore. (First draft captured this
 // after the first press, so "restored" was compared against an already
 // scrubbed value and proved nothing.)
-const legendAt = () => run(`[...document.querySelectorAll('.legend1 [data-yr] b')].map(b=>b.textContent).join('|')`);
+const legendAt = () => run(`[...document.querySelectorAll('.conrace [data-con-count]')].map(b=>b.textContent).join('|')`);
 const ORIGINAL = legendAt();
 
 // ---- press reveals it -------------------------------------------------------
@@ -96,29 +102,37 @@ ok("...and a dot per year curve",
 
 // ---- the readout reuses the legend, and it CHANGES -------------------------
 const early = legendAt();
-ok("pressing already changes the legend away from its year-end totals",
+ok("pressing already changes the counts away from their same-date totals",
    early !== ORIGINAL, `${ORIGINAL} \u2192 ${early}`);
 pm(60);
 const mid = legendAt();
 pm(290);
 const late = legendAt();
-ok("legend values track the scrubbed day (they differ across the chart)",
+ok("both years' counts track the scrubbed day (they differ across the chart)",
    !(early === mid && mid === late), `${early} \u2192 ${mid} \u2192 ${late}`);
-ok("...and read as percentages on the consistency chart", /%/.test(mid), mid);
+ok("...and read as whole workout days, never a fraction or a percent",
+   /^\d+(\|\d+)*$/.test(mid), mid);
+// the scrubbed date leads the card, and the gap is recomputed from the two counts
+ok("the kicker becomes the date under your finger",
+   /YOU VS YOU · [A-Z]{3} \d{1,2}/.test(run(`document.querySelector('[data-con-date]').textContent`)),
+   run(`document.querySelector('[data-con-date]').textContent`));
+ok("...and the gap agrees with the two counts it sits between",
+   run(`(function(){const c=document.querySelector('.conrace');
+     const cur=+c.querySelector('[data-con-count="'+c.getAttribute('data-current-year')+'"]').textContent;
+     const prev=+c.querySelector('[data-con-count="'+c.getAttribute('data-previous-year')+'"]').textContent;
+     const t=c.querySelector('[data-con-gap]').textContent, d=cur-prev;
+     return d>0 ? t.indexOf('+'+d)===0 : d<0 ? t.indexOf(String(Math.abs(d)))===0 : /Even/.test(t);})()`));
 
 // ---- the hint slot becomes the date ----------------------------------------
-ok("the zoom hint becomes the date under your finger",
-   /^[A-Z][a-z]{2} \d{1,2}$/.test(run(`document.querySelector('.zoomhint').textContent`)),
-   run(`document.querySelector('.zoomhint').textContent`));
+
 
 // ---- release restores everything -------------------------------------------
 pu();
 ok("releasing hides the guide", run(`${SVG}.querySelector('.scrubg').style.display`) === "none");
-ok("...restores the legend's own year-end totals exactly",
+ok("...restores both same-date totals exactly",
    legendAt() === ORIGINAL, `${legendAt()} vs original ${ORIGINAL}`);
-ok("...and restores the hint",
-   /pinch/.test(run(`document.querySelector('.zoomhint').textContent`)),
-   run(`document.querySelector('.zoomhint').textContent`));
+ok("...and drops the scrubbing state",
+   run(`!document.querySelector('.conrace').classList.contains('scrubbing')`));
 
 // ---- GESTURE COEXISTENCE: the actual risk ----------------------------------
 // a second finger means zoom, so the guide must get out of the way
@@ -170,42 +184,36 @@ ok("charts without data-scrub get no scrub layer",
         .every(s=>!s.querySelector('.scrubg'))`),
    run(`[...document.querySelectorAll('[data-zoom] svg')].filter(s=>!s.hasAttribute('data-scrub')).length`) + " opted out");
 
-// ---- v3.3.109: the readout sits above the chart, and shows EVERY year ----
-// Both reported problems: the legend sat under the scrubbing hand, and it
-// scrolled, so years (the current one worst of all \u2014 it sorts last) were
-// simply off-screen.
-/* v3.3.116: scoped to a card that actually holds a zoomable chart. The
-   part-mix card also carries a .legend1 and now sits earlier in the DOM,
-   so querySelector('.legend1') found a card with no [data-zoom] in it and
-   indexOf returned -1 \u2014 a pass/fail decided by section order rather than
-   by the thing under test. */
-ok("the legend precedes the chart in the DOM",
+// ---- v3.3.109, re-pointed v3.3.217: the readout sits above the chart -----
+// Both original problems still matter: the readout must not sit under the
+// scrubbing hand, and every plotted year must be visible. The retired pct
+// chart expressed this as .legend1; the race card expresses it as .conscore.
+// (.legend1 now exists only inside the unassembled cut('cons') builder, so
+// asserting on it tested code no one can see.)
+ok("the readout precedes the chart in the DOM",
    run(`(function(){
-     const card=[...document.querySelectorAll('.card')]
-       .find(c=>c.querySelector('.legend1') && c.querySelector('[data-zoom]'));
-     if(!card) return false;
+     const card=document.querySelector('.conrace'); if(!card) return false;
      const kids=[...card.children];
-     return kids.indexOf(card.querySelector('.legend1')) < kids.indexOf(card.querySelector('[data-zoom]'));})()`),
-   "legend before chart");
+     return kids.indexOf(card.querySelector('.conscore')) < kids.indexOf(card.querySelector('[data-zoom]'));})()`),
+   "readout before chart");
 
-// every year with a curve must have a legend entry \u2014 none may be hidden
-ok("every plotted year has a legend entry (none scrolled out of existence)",
+ok("every plotted year has a readout entry",
    run(`(function(){
-     const plotted=[...document.querySelectorAll('[data-scrub] polyline[data-yr]')].map(p=>p.getAttribute('data-yr')).sort().join(',');
-     const listed=[...document.querySelectorAll('.legend1 [data-yr]')].map(s=>s.getAttribute('data-yr')).sort().join(',');
-     return plotted===listed;})()`),
-   run(`[...document.querySelectorAll('.legend1 [data-yr]')].map(s=>s.getAttribute('data-yr')).join(',')`));
+     const plotted=[...document.querySelectorAll('[data-scrub="race"] polyline[data-yr]')]
+       .map(p=>p.getAttribute('data-yr')).sort().join(',');
+     const listed=[...document.querySelectorAll('.conrace [data-con-count]')]
+       .map(s=>s.getAttribute('data-con-count')).sort().join(',');
+     return plotted===listed && plotted.length>0;})()`),
+   run(`[...document.querySelectorAll('.conrace [data-con-count]')].map(s=>s.getAttribute('data-con-count')).join(',')`));
 
-ok("...including the CURRENT year, which sorts last and scrolled off before",
-   run(`!!document.querySelector('.legend1 [data-yr="'+thisYear+'"]')`));
+ok("...including the CURRENT year, which the old legend scrolled off",
+   run(`!!document.querySelector('.conrace [data-con-count="'+thisYear+'"]')`));
 
-// and it can no longer scroll anything out of view
-const cssSrc109 = fs.readFileSync(path.join(dir, "css/app.css"), "utf8");
-const lg = (cssSrc109.match(/\.legend1\{[^}]*\}/) || [""])[0];
-ok("the legend wraps instead of scrolling", /flex-wrap:wrap/.test(lg) && !/overflow-x/.test(lg), lg);
-// values hold their column so a live scrub doesn't make the row twitch
-ok("the value column has a reserved width (no jitter while scrubbing)",
-   /\.legend1 span b\{[^}]*min-width/.test(cssSrc109.replace(/\n/g, "")));
+// the readout is a fixed three-column grid, so a live scrub cannot reflow it
+const cssSrc109 = fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\n/g, "");
+const score = (cssSrc109.match(/\.conscore\{[^}]*\}/) || [""])[0];
+ok("the readout holds its columns (no jitter while scrubbing)",
+   /grid-template-columns/.test(score) && !/overflow-x/.test(score), score);
 
 // ---- v3.3.110: selection is off by default, restored deliberately --------
 // The scrubber's own failure mode: iOS pops Copy/Look Up/Translate over the
@@ -243,10 +251,13 @@ run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
   for(let i=1;i<=400;i+=2){const d=new Date(t); d.setDate(d.getDate()-i);
     DB.days[d.toLocaleDateString('en-CA')]={w:[{part:'Chest',ex:'Press',w:40,reps:[10],at:1}],upd:1};}
   SEED=deriveAll(); view='stats'; render();})()`);
-const svgEl = `document.querySelector('[data-scrub="pct"]')`;
-ok("the plot spans more of its viewBox than before",
-   run(`+${svgEl}.getAttribute('data-sxw')`) === 302 &&
-   run(`+${svgEl}.getAttribute('data-sx0')`) === 20,
+/* v3.3.217: was '[data-scrub="pct"]'. Same geometry contract, live chart. */
+const svgEl = `document.querySelector('[data-scrub="race"]')`;
+ok("the plot spans most of its viewBox",
+   run(`(function(){const s=${svgEl};
+     const vb=(s.getAttribute('viewBox')||'').split(/\\s+/).map(Number);
+     const x0=+s.getAttribute('data-sx0'), xw=+s.getAttribute('data-sxw');
+     return x0>0 && xw>0 && (x0+xw)<=vb[2] && xw/vb[2]>0.8;})()`),
    run(`${svgEl}.getAttribute('data-sx0')`) + ".." +
    (run(`+${svgEl}.getAttribute('data-sx0')`) + run(`+${svgEl}.getAttribute('data-sxw')`)));
 // widening must not push anything past the right edge, nor clip the y labels
@@ -267,7 +278,7 @@ ok("...and the y-axis labels still have room on the left", bounds.minX >= 0,
    `min x ${bounds.minX}`);
 // the end labels sit right of the plot, inside the box
 ok("the year end-labels fit between the plot edge and the box edge",
-   bounds.maxX > 302 && bounds.maxX <= 340, "rightmost " + bounds.maxX);
+   bounds.maxX <= bounds.w && bounds.maxX > bounds.w*0.8, "rightmost " + bounds.maxX + " of " + bounds.w);
 
 // ---- v3.3.128: selection is off on the share overlay too ----------------
 const css128 = fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\n/g, "");
