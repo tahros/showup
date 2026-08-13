@@ -1451,12 +1451,11 @@
     letter-spacing:.12em;
     opacity:1;
     color:var(--muted);
-    gap:7px;
+    gap:6px;
+    padding-left:1px;
   }
   :root[data-design-preview="modern"] h2::before{
-    width:2px;
-    height:13px;
-    border-radius:2px;
+    display:none;
   }
   :root[data-design-preview="modern"] h2 .hi{color:var(--accent-ink)}
   :root[data-design-preview="modern"] :is(.card,.zone,.lastcard,.day,.kpi){
