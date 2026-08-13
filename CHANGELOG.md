@@ -1,5 +1,29 @@
 # ShowUp — changelog
 
+## v3.3.225 (2026-08-14) — Growth Audit only celebrates clear gains
+
+**Going Up now requires a directly comparable win.** More repetitions count
+only at the exact same load. More load counts only when it matches or beats
+the repetition count of the previous heaviest set. Lighter-load/higher-rep
+and heavier-load/lower-rep tradeoffs stay Flat instead of being presented as
+confirmed growth. In particular, `10kg × 12` can no longer claim to improve
+on `27.5kg × 10`.
+
+**The receipt speaks plainly.** Dates use `M/D/YY`; the expanded comparison
+reads `IMPROVED TO` and `PREVIOUS BEST`; and the row identifies its independent
+all-time load record as `HEAVIEST`.
+
+**Release bookkeeping repaired.** The two preceding Growth Audit deployments
+were merged without advancing the app version, shell asset stamps, service-
+worker cache, or changelog. v3.3.225 restores all four release artifacts so
+installed devices fetch the corrected production logic and the Settings
+footer again identifies the deployed build accurately.
+
+**The release harness is whole again.** Its declared-rest fixture now formats
+dates in the app's local calendar instead of converting Seoul midnight through
+UTC, which had shifted the intended streak backward by a day. The Growth Audit
+help copy also stays inside the established 120-character limit.
+
 ## v3.3.218 (2026-08-12) — Emergency asset integrity hotfix
 
 - Replaced the truncated production CSS and JavaScript assets with byte-for-byte verified blobs.

@@ -1,4 +1,4 @@
-# ShowUp — handoff (2026-07-24, v3.3.65)
+# ShowUp — handoff (2026-08-14, v3.3.225)
 
 Paste this into a new conversation to resume with full context.
 
@@ -16,7 +16,9 @@ Sheets training log.
 - localStorage key: `tracker-v1`
 - Fonts: IBM Plex Sans / IBM Plex Mono
 
-**Current deployed version: v3.3.65** (commit `424d5cf`; harness commit `14ebe6c`)
+**Current deployed version: v3.3.225** (Growth Audit production fix originated
+at commit `679a37f`; release metadata and cache stamps restored in the following
+release commit)
 
 ---
 
