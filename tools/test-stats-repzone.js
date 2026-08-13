@@ -152,7 +152,7 @@ check("the status hierarchy is muted gray dot and line, then ShowUp blue trend",
     /\.ga-up\{[^}]*accent-ink/.test(cssSrc)&&/--ga-size:11px 11px/.test(cssSrc)&&
     /--ga-size:30px 30px/.test(cssSrc)}`,"true");
 check("Growth Audit help explains its signals without icon credits",
-  `${statsSrc.includes('Dot: no completed sets in 7 days')&&statsSrc.includes('line: trained, no clear gain')&&
+  `${statsSrc.includes('Dot: no sets in 7 days')&&statsSrc.includes('line: no clear gain')&&
     statsSrc.includes('trend: more reps at the same weight, or more weight without fewer reps')&&!statsSrc.slice(statsSrc.indexOf('function growthAuditSection'),statsSrc.indexOf('function sessionBuild')).includes('Noun Project')}`,"true");
 check("icon credits live beneath the version in Settings",
   `${/ShowUp \$\{APP_VERSION\}<\/div>\s*<div class="note assetcredits"/.test(fs.readFileSync(path.join(dir,'js','settings.js'),'utf8'))&&

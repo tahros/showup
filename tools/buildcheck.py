@@ -354,7 +354,7 @@ if not (_re.search(r"\.ga-empty\{[^}]*color:var\(--faint\)[^}]*opacity:\.55", cs
     fail.append("growth audit: Empty and Flat must share the same muted gray treatment (v3.3.212)")
 _gahelp = _stats[_stats.find("function growthAuditSection"):_stats.find("function sessionBuild")]
 if not all(_phrase in _gahelp for _phrase in (
-        "Dot: no completed sets in 7 days", "line: trained, no clear gain",
+        "Dot: no sets in 7 days", "line: no clear gain",
         "trend: more reps at the same weight, or more weight without fewer reps")):
     fail.append("growth audit: information control must explain all three signals (v3.3.212)")
 if any(_credit in _gahelp for _credit in ("Noun Project", "ARIPATUT DASUKI", "Travis Avery")):

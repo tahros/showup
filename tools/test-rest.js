@@ -33,7 +33,7 @@ const FIX = `(function(){
   const d=new Date(todayISO+'T00:00');
   for(let i=1;i<=3;i++){
     const dd=new Date(d); dd.setDate(dd.getDate()-i);
-    DB.days[dd.toISOString().slice(0,10)]={w:[${SET}]};
+    DB.days[dd.toLocaleDateString('en-CA')]={w:[${SET}]};
   }
   SEED=deriveAll(); return currentStreak();
 })()`;
