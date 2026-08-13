@@ -293,8 +293,28 @@ function bwCard(){
    confirmed move is FLAT. The richer confidence states stay internal. */
 const GA_RECENT_DAYS=7;
 const GA_HISTORY_DAYS=42;
-const GA_LEARN_SESSIONS=3;
-const GA_REVIEW_EXPOSURES=4;
+/* v3.3.220 — ONE standard for the badge and the mark.
+   Before this a row could read "+2.5 kg" beside a flat mark, because the two
+   were computed by different machines on different clocks: the badge from a
+   weight-first record book with 42-day memory, the mark from a strict Pareto
+   walk over the last 6 sessions. Both were defensible; together on one row
+   they contradicted each other, and the maker read that (correctly) as a bug.
+   They are now the SAME object — a row is lit if and only if it carries a
+   badge, because both come from gaPR().
+
+   The rule, in gym terms: a set is a PR when nothing ever logged beats it on
+   BOTH axes — no earlier set at that weight or heavier already had that many
+   reps. So 50x10 after 45x15 is a PR (new heaviest), 75x4 after 75x2 is a PR
+   (rep record at that weight), and a 20kg x 30 deload is NOT one unless 30
+   reps at 20kg or more was genuinely never done. That per-weight comparison
+   is what stops "or more reps" becoming a light-day loophole.
+
+   Window: 28 days (maker's call, argued from cadence). At roughly weekly
+   exposure per body part that is about four sessions of a lift — the same
+   count the previous design used for "worth reviewing". Four exposures with
+   no PR and the arrow goes dark, so a stall surfaces inside a month. The
+   WHOLE ledger is searched for the record; only its DATE is windowed. */
+const GA_PR_DAYS=28;
 const ga={grp:null};
 const GA_SIGNAL_LABELS={empty:'Empty',flat:'Flat',up:'Going up'};
 const gaIcon=(key,cls)=>`<i class="${cls} ga-${key}" role="img"
@@ -332,50 +352,34 @@ function gaExerciseSessions(){
   }
   return out;
 }
-const gaDominates=(a,b)=>a.w>=b.w&&a.rep>=b.rep&&(a.w>b.w||a.rep>b.rep);
-function gaExerciseState(ex){
-  const recent=ex.sessions.filter(s=>{const a=daysAgo(s.d);return a>=0&&a<GA_HISTORY_DAYS;}).slice(-6);
-  const n=recent.length, allN=ex.sessions.length;
-  if(n===0) return {key:'inactive',label:'No recent work',detail:`Last trained ${daysAgo(ex.sessions.at(-1).d)} days ago`,n};
-  if(n<GA_LEARN_SESSIONS){
-    const fresh=allN===1&&n===1;
-    return {key:fresh?'new':'learning',label:fresh?'New':'Learning',
-      detail:fresh?'First session logged':`${n} of ${GA_LEARN_SESSIONS} recent sessions`,n};
-  }
-  let frontier=recent[0].points.slice(),lastGain=0,lastDetail='';
-  for(let i=1;i<n;i++){
-    let gain=false,detail='';
-    for(const p of recent[i].points){
-      const same=frontier.filter(q=>q.w===p.w&&q.rep<p.rep).sort((a,b)=>b.rep-a.rep)[0];
-      const heavier=frontier.filter(q=>q.rep===p.rep&&q.w<p.w).sort((a,b)=>b.w-a.w)[0];
-      if(frontier.some(q=>gaDominates(p,q))){
-        gain=true;
-        if(same) detail=`+${p.rep-same.rep} rep${p.rep-same.rep===1?'':'s'} at ${wDisp(p.w)} ${U()}`;
-        else if(heavier) detail=`Heavier at ${p.rep} reps`;
-        else detail='New comparable best';
-      }
-    }
-    const all=[...frontier,...recent[i].points];
-    frontier=all.filter((p,pi)=>!all.some((q,qi)=>qi!==pi&&gaDominates(q,p)))
-      .filter((p,pi,a)=>a.findIndex(q=>q.w===p.w&&q.rep===p.rep)===pi);
-    if(gain){lastGain=i;lastDetail=detail;}
-  }
-  const since=n-1-lastGain;
-  if(lastGain>0&&since<=1)
-    return {key:'progressing',label:'Progressing',detail:lastDetail||'Comparable best moved',n};
-  if(n>=GA_REVIEW_EXPOSURES&&since>=GA_REVIEW_EXPOSURES-1)
-    return {key:'review',label:'Review',detail:`${since+1} sessions without a new comparable best`,n};
-  return {key:'ready',label:'Baseline ready',detail:`${n} recent sessions compared`,n};
-}
-function gaRecord(ex){
-  let best=null,change=null;
+/* The record book AND the growth signal, from one walk over the ledger.
+   `best` is the headline set (heaviest, then most reps) — unchanged, it is
+   simply what the row displays. `pr` is the most recent set that beat every
+   earlier set per-weight; `live` is whether that fell inside the window.
+   Badge and mark both read `live`, so they cannot disagree. */
+function gaPR(ex){
+  let best=null, pr=null;
+  const seen=[];                    // every set logged, chronological
   for(const s of ex.sessions) for(const p of s.points){
-    if(!best||p.w>best.w||(p.w===best.w&&p.rep>best.rep)){
-      const prev=best; best={w:p.w,rep:p.rep,d:s.d};
-      if(prev) change={d:s.d,text:p.w>prev.w?`+${wDisp(p.w-prev.w)} ${U()}`:`+${p.rep-prev.rep} rep${p.rep-prev.rep===1?'':'s'}`};
+    if(!best||p.w>best.w||(p.w===best.w&&p.rep>best.rep)) best={w:p.w,rep:p.rep,d:s.d};
+    const beaten=seen.some(q=>q.w>=p.w&&q.rep>=p.rep);
+    if(seen.length&&!beaten){
+      /* Name the gain against the benchmark the rule itself uses. A set is a
+         PR because nothing at this weight-or-heavier had these reps, and
+         nothing at these reps-or-more was this heavy — so those two are the
+         only honest comparisons. Weight leads when both exist; it is the
+         headline number on the row. */
+      const sameReps=seen.filter(q=>q.rep>=p.rep).sort((a,b)=>b.w-a.w)[0];
+      const sameW=seen.filter(q=>q.w>=p.w).sort((a,b)=>b.rep-a.rep)[0];
+      pr={d:s.d,w:p.w,rep:p.rep,
+          text: sameReps ? `+${wDisp(p.w-sameReps.w)} ${U()}`
+              : sameW ? `+${p.rep-sameW.rep} rep${p.rep-sameW.rep===1?'':'s'}`
+              : 'New best'};
     }
+    seen.push({w:p.w,rep:p.rep});
   }
-  return {best,change:change&&daysAgo(change.d)<GA_HISTORY_DAYS?change:null};
+  const live=!!pr&&daysAgo(pr.d)<GA_PR_DAYS;
+  return {best,pr,live,change:live?pr:null};
 }
 function growthAuditData(){
   const exMap=gaExerciseSessions();
@@ -389,14 +393,15 @@ function growthAuditData(){
   }
   for(const ex of Object.values(exMap)){
     const g=groups[ex.group]; if(!g) continue;
-    const st=gaExerciseState(ex),last=ex.sessions.at(-1).d;
-    g.ex.push({...ex,state:st,last,ago:daysAgo(last)});
+    const last=ex.sessions.at(-1).d;
+    g.ex.push({...ex,live:gaPR(ex).live,last,ago:daysAgo(last)});
   }
   for(const g of Object.values(groups)){
     g.ex.sort((a,b)=>a.ago-b.ago||a.name.localeCompare(b.name));
     g.ago=g.ex.length?Math.min(...g.ex.map(e=>e.ago)):Infinity;
     const activeEx=g.ex.filter(e=>e.ago<GA_RECENT_DAYS);
-    g.signal=!g.sets?'empty':activeEx.some(e=>e.state.key==='progressing')?'up':'flat';
+    /* a group is going up when any lift trained recently holds a live PR */
+    g.signal=!g.sets?'empty':activeEx.some(e=>e.live)?'up':'flat';
   }
   const order=VISIBLE_GROUPS.slice().sort((a,b)=>groups[a].ago-groups[b].ago||a.localeCompare(b));
   return {groups,order};
@@ -405,7 +410,7 @@ function growthAuditSection(){
   const data=growthAuditData(),groups=data.groups;
   if(!ga.grp||!groups[ga.grp]) ga.grp=data.order[0];
   const g=groups[ga.grp],recent=g.ex.filter(e=>e.ago<GA_HISTORY_DAYS);
-  const shown=(recent.length?recent:g.ex).slice(0,4).map(e=>({...e,record:gaRecord(e)}));
+  const shown=(recent.length?recent:g.ex).slice(0,4).map(e=>({...e,record:gaPR(e)}));
   return `<h2>Growth audit${hActs('ga',"Dot: no completed sets in 7 days · line: trained, no confirmed gain · trend: comparable best moved.",'About Growth audit')}</h2>
     <div class="card gacard" data-gacard="${ga.grp}">
       <select id="gaGrp" class="gasel" aria-label="Body part">${data.order.map(v=>
@@ -414,7 +419,7 @@ function growthAuditSection(){
         ${gaIcon(g.signal,'gastate')}</div>
       <div class="garows">${shown.length?shown.map(e=>`<div class="garow">
         <b>${e.name}</b><span class="garight">${e.record.best?`<span class="garecord">${wDisp(e.record.best.w)} ${U()} × ${e.record.best.rep}</span>`:''}
-          ${e.record.change?`<span class="gadelta">${e.record.change.text}</span>`:''}${gaIcon(e.ago>=GA_RECENT_DAYS?'empty':e.state.key==='progressing'?'up':'flat','gabadge')}</span></div>`).join(''):
+          ${e.record.change?`<span class="gadelta">${e.record.change.text}</span>`:''}${gaIcon(e.ago>=GA_RECENT_DAYS?'empty':e.record.live?'up':'flat','gabadge')}</span></div>`).join(''):
         `<div class="note">No completed sets recorded for this group.</div>`}</div>
     </div>`;
 }

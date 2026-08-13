@@ -309,8 +309,7 @@ if not _re.search(r"\.day summary>span:first-child\{[^}]*min-width:0", css):
 #    site, the retired Rep-zone claim is gone, and comparison remains strictly
 #    exercise-local. These are product truth guards, not formatting checks.
 _stats = (d/"js/stats.js").read_text()
-for _cn in ("GA_RECENT_DAYS", "GA_HISTORY_DAYS",
-            "GA_LEARN_SESSIONS", "GA_REVIEW_EXPOSURES"):
+for _cn in ("GA_RECENT_DAYS", "GA_HISTORY_DAYS", "GA_PR_DAYS"):
     _defs = _re.findall(r"const\s+" + _cn + r"\s*=", _stats)
     if len(_defs) != 1:
         fail.append(f"growth audit: {_cn} defined {len(_defs)} times — one definition site required (v3.3.209)")
@@ -320,8 +319,19 @@ _stats_code = _re.sub(r"/\*.*?\*/", "", _stats, flags=_re.S)
 _stats_code = _re.sub(r"//[^\n]*", "", _stats_code)
 if "Rep zones" in _stats_code or _re.search(r"\brepZone(?:Data|Sets|ScatterSvg)?\s*\(", _stats_code):
     fail.append("growth audit: retired Rep-zone UI or bucketing logic survives (v3.3.209)")
-if "function gaExerciseState" not in _stats or "gaDominates" not in _stats:
+if "function gaPR" not in _stats:
     fail.append("growth audit: exercise-local comparable-best logic is missing (v3.3.209)")
+# v3.3.220: the badge and the mark must come from ONE computation. They shipped
+# as two machines on two clocks and contradicted each other on real rows ("+2.5
+# kg" beside a flat mark). If a row's icon is ever chosen by anything other
+# than the same record object that prints the badge, that regression is back.
+_garow = _stats[_stats.find('<div class="garow"'):]
+_garow = _garow[:_garow.find("</div>`).join")]
+if "e.record.live" not in _garow:
+    fail.append("growth audit: row icon must be driven by the same record as the badge — "
+                "badge and mark cannot use separate standards (v3.3.220)")
+if _re.search(r"state\.key|gaExerciseState|gaRecord\(", _stats):
+    fail.append("growth audit: a second growth standard survives alongside gaPR (v3.3.220)")
 if not _re.search(r"const GA_SIGNAL_LABELS=\{empty:'Empty',flat:'Flat',up:'Going up'\}", _stats):
     fail.append("growth audit: public model must contain exactly Empty, Flat and Going up (v3.3.211)")
 _gareceipt = _stats[_stats.find("shown.map"):_stats.find("</div>`).join", _stats.find("shown.map"))]

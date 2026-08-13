@@ -43,8 +43,8 @@ check("the cold-start icon uses the flat image class",`document.querySelector('.
 
 run(`_reset();_mk(3,[{part:'Chest',ex:'Chest Press',w:40,reps:[8],at:1}]);
   _mk(1,[{part:'Chest',ex:'Chest Press',w:40,reps:[8],at:2}]);_finish();ga.grp='Chest';render();`);
-check("two comparable sessions are Learning",`gaExerciseState(gaExerciseSessions()['chest-press']).label`,"Learning");
-check("...and state exactly two of three recent sessions",`gaExerciseState(gaExerciseSessions()['chest-press']).detail`,"2 of 3 recent sessions");
+check("two identical sessions hold no PR, so the row stays dark",`gaPR(gaExerciseSessions()['chest-press']).live`,false);
+check("...and carry no badge",`!gaPR(gaExerciseSessions()['chest-press']).change`,true);
 
 // ---- exercise-local observable progress ---------------------------------
 run(`_reset();
@@ -52,7 +52,7 @@ run(`_reset();
   _mk(3,[{part:'Chest',ex:'Chest Press',w:40,reps:[9],at:2}]);
   _mk(1,[{part:'Chest',ex:'Chest Press',w:40,reps:[10],at:3}]);
   _finish();ga.grp='Chest';render();`);
-check("more reps at the same weight is Progressing",`gaExerciseState(gaExerciseSessions()['chest-press']).label`,"Progressing");
+check("more reps at the same weight is a live PR",`gaPR(gaExerciseSessions()['chest-press']).live`,true);
 check("the exercise subtitle is completely removed",`!document.querySelector('.garow small')`,true);
 check("Going Up is an image-backed class",`document.querySelector('.gabadge').classList.contains('ga-up')`,true);
 check("the icon keeps an accessible label",`document.querySelector('.gabadge').getAttribute('aria-label')`,"Going up");
@@ -62,12 +62,12 @@ run(`_reset();
   _mk(3,[{part:'Chest',ex:'Chest Press',w:42,reps:[8],at:2}]);
   _mk(1,[{part:'Chest',ex:'Chest Press',w:44,reps:[8],at:3}]);
   _finish();`);
-check("more weight at the same reps is also comparable progress",`gaExerciseState(gaExerciseSessions()['chest-press']).label`,"Progressing");
+check("more weight at the same reps is also a live PR",`gaPR(gaExerciseSessions()['chest-press']).live`,true);
 
 // ---- Review requires four unchanged exposures ---------------------------
 run(`_reset();for(const n of [7,5,3,1])_mk(n,[{part:'Back',ex:'Seated Cable Row',w:50,reps:[10],at:n}]);
   _finish();ga.grp='Back';render();`);
-check("four unchanged sessions earn Review",`gaExerciseState(gaExerciseSessions()['seated-cable-row']).label`,"Review");
+check("four unchanged sessions hold no PR",`gaPR(gaExerciseSessions()['seated-cable-row']).live`,false);
 check("Review collapses to the one visible Flat state",`document.querySelector('.gabadge').getAttribute('aria-label')`,"Flat");
 check("the row adds only the record receipt, never review prose",`!!document.querySelector('.garow .garecord')&&!document.querySelector('.garow .note')`,true);
 
@@ -96,10 +96,13 @@ run(`_reset();
   for(const n of [80,70,60])_mk(n,[{part:'Legs',ex:'Squat',w:80,reps:[8],at:n}]);
   _mk(1,[{part:'Legs',ex:'Squat',w:60,reps:[10],at:1}]);
   _finish();`);
-check("old sessions outside six weeks do not manufacture current confidence",
-  `gaExerciseState(gaExerciseSessions()['squat']).label`,"Learning");
-check("the old archive still prevents the exercise being called brand-new",
-  `gaExerciseState(gaExerciseSessions()['squat']).detail`,"1 of 3 recent sessions");
+/* v3.3.220: the record is searched over the WHOLE ledger, so an old archive
+   still counts — but 60 kg x 10 after 80 kg x 8 is a genuine rep record at
+   60 kg or above, and under one standard that lights the row. */
+check("a lighter set that extends the frontier is a PR",
+  `gaPR(gaExerciseSessions()['squat']).live`,true);
+check("...and it is named against the heaviest set that already had those reps",
+  `gaPR(gaExerciseSessions()['squat']).change.text`,"+2 reps");
 
 // ---- one compact control, no information cloud --------------------------
 run(`_reset();
@@ -159,5 +162,73 @@ check("icon credits live beneath the version in Settings",
     ['minus-8363736','trend-2344331','ARIPATUT DASUKI','Travis Avery','Noun Project'].every(x=>fs.readFileSync(path.join(dir,'js','settings.js'),'utf8').includes(x))}`,"true");
 check("Growth Audit has no hidden universal set target",
   `${!(/(?:target|ideal)\s*(?:sets?|volume)/i.test(statsSrc.slice(statsSrc.indexOf('v3.3.211 — Growth Audit'),statsSrc.indexOf('v3.3.192 — intent gaps'))))}`,"true");
+
+
+// ---- v3.3.220: ONE standard. A row is lit if and only if it carries a
+// badge, and both come from gaPR(). These cases are the ones that used to
+// disagree on screen.
+const gaSeed = (js) => run(`(function(){
+  DB.days={}; DB.settings.canon={}; DB.settings.unit='kg';
+  ${js}
+  migrateCanon(); SEED=deriveAll(); view='stats'; ga.grp='Chest'; render();})()`);
+const prOf = (name) => run(`(function(){
+  const ex=Object.values(gaExerciseSessions()).find(e=>e.name==='${name}');
+  const r=gaPR(ex); return (r.live?'LIT ':'dark ')+(r.change?r.change.text:'no badge');})()`);
+
+// 1. heavier at FEWER reps — the screenshot's Chest Fly. A new heaviest set
+//    is a PR even though the old set had more reps.
+gaSeed(`for(const n of [16,12,8]) DB.days[_D(n)]={w:[{part:'Chest',ex:'Chest Fly',w:45,reps:[15,15],at:1}],upd:1};
+        DB.days[_D(3)]={w:[{part:'Chest',ex:'Chest Fly',w:50,reps:[10],at:2}],upd:1};`);
+check("heavier at fewer reps is a PR, and it is LIT", `"${prOf('Chest Fly')}"`, "LIT +5 kg");
+
+// 2. more reps at the SAME weight
+gaSeed(`for(const n of [16,12]) DB.days[_D(n)]={w:[{part:'Chest',ex:'Chest Fly',w:45,reps:[10]}],upd:1};
+        DB.days[_D(4)]={w:[{part:'Chest',ex:'Chest Fly',w:45,reps:[12]}],upd:1};`);
+check("more reps at the same weight is a PR", `"${prOf('Chest Fly')}"`, "LIT +2 reps");
+
+// 3. THE LOOPHOLE: a light deload with a huge rep count is NOT a PR, because
+//    an earlier set was both heavier and longer... and IS one when it truly
+//    beats everything at that weight or above.
+gaSeed(`for(const n of [20,16]) DB.days[_D(n)]={w:[{part:'Chest',ex:'Chest Fly',w:45,reps:[30]}],upd:1};
+        DB.days[_D(3)]={w:[{part:'Chest',ex:'Chest Fly',w:20,reps:[30]}],upd:1};`);
+check("a light deload rep-out is NOT a PR", `"${prOf('Chest Fly')}"`, "dark no badge");
+gaSeed(`for(const n of [20,16]) DB.days[_D(n)]={w:[{part:'Chest',ex:'Chest Fly',w:45,reps:[10]}],upd:1};
+        DB.days[_D(3)]={w:[{part:'Chest',ex:'Chest Fly',w:20,reps:[30]}],upd:1};`);
+check("...but a genuine rep record at that weight is", `"${prOf('Chest Fly')}"`, "LIT +20 reps");
+
+// 4. the window: a PR ages out at GA_PR_DAYS, badge and mark together
+gaSeed(`DB.days[_D(80)]={w:[{part:'Chest',ex:'Chest Fly',w:45,reps:[10]}],upd:1};
+        DB.days[_D(40)]={w:[{part:'Chest',ex:'Chest Fly',w:50,reps:[10]}],upd:1};
+        DB.days[_D(3)]={w:[{part:'Chest',ex:'Chest Fly',w:45,reps:[8]}],upd:1};`);
+check("a PR older than the window goes dark AND loses its badge", `"${prOf('Chest Fly')}"`, "dark no badge");
+check("the window is 28 days", `GA_PR_DAYS`, 28);
+check("...and the record itself still comes from the WHOLE ledger",
+      `(function(){const ex=Object.values(gaExerciseSessions()).find(e=>e.name==='Chest Fly');
+        return gaPR(ex).best.w;})()`, 50);
+
+// 5. the rendered row: badge present <=> mark lit. This is the contradiction
+//    the maker saw, asserted on the DOM rather than the model.
+gaSeed(`for(const n of [16,12]) DB.days[_D(n)]={w:[{part:'Chest',ex:'Chest Fly',w:45,reps:[10]}],upd:1};
+        DB.days[_D(2)]={w:[{part:'Chest',ex:'Chest Fly',w:50,reps:[10]}],upd:1};
+        DB.days[_D(2)].w.push({part:'Chest',ex:'Chest Press',w:40,reps:[8]});
+        for(const n of [90,86]) DB.days[_D(n)]={w:[{part:'Chest',ex:'Chest Press',w:40,reps:[10]}],upd:1};`);
+check("every badged row is lit, and every lit row is badged",
+      `[...document.querySelectorAll('.garow')].every(r=>
+        !!r.querySelector('.gadelta') === !!r.querySelector('.gabadge.ga-up'))`, true);
+check("...and the PR row is the one that is lit",
+      `(function(){const r=[...document.querySelectorAll('.garow')].find(x=>/Chest Fly/.test(x.textContent));
+        return !!r.querySelector('.gabadge.ga-up') && !!r.querySelector('.gadelta');})()`, true);
+check("a lift with no recent PR shows neither",
+      `(function(){const r=[...document.querySelectorAll('.garow')].find(x=>/Chest Press/.test(x.textContent));
+        return !r.querySelector('.gadelta') && !r.querySelector('.gabadge.ga-up');})()`, true);
+
+// 6. the group mark follows the same authority
+check("the group is 'going up' when a recent lift holds a live PR",
+      `document.querySelector('.gastate').classList.contains('ga-up')`, true);
+
+// 7. the old second standard is gone for good
+check("no second growth machine survives",
+      `${/gaExerciseState|gaDominates|state\.key/.test(statsSrc)}`, "false");
+
 
 process.exit(fail?1:0);
