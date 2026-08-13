@@ -218,4 +218,45 @@ check("the confirmation says BW for a bodyweight set, not '0kg'",
                      && !document.querySelector('.tipi[aria-expanded="true"]');})()`, true);
 }
 
+// ---- v3.3.219: EVEN weight stepping, both units --------------------------
+// The stepper moves in 2s, and a fractional value (a 23.5 kg leftover from a
+// unit conversion) snaps to the next even number in the pressed direction
+// instead of marching at x.5 forever. Driven through the REAL button.
+run(`(function(){DB.settings.unit='kg'; view='lift';
+  lift.part='Shoulder'; lift.ex='Lateral Raise'; lift.weight=14; render();})()`);
+const wplus  = () => run(`document.querySelector('[data-w="1"]').click()`);
+const wminus = () => run(`document.querySelector('[data-w="-1"]').click()`);
+const wval   = () => run(`+document.getElementById('wv').value`);
+wplus();
+check("14 kg steps up to 16 — even, not 16.5", `${wval()}`, 16);
+wminus(); wminus();
+check("...and down to 12 the same way", `${wval()}`, 12);
+run(`(function(){const el=document.getElementById('wv'); el.value='23.5';
+     el.dispatchEvent(new Event('input',{bubbles:true}));})()`);
+wplus();
+check("23.5 kg (a conversion leftover) snaps UP to 24, not 26", `${wval()}`, 24);
+run(`(function(){const el=document.getElementById('wv'); el.value='23.5';
+     el.dispatchEvent(new Event('input',{bubbles:true}));})()`);
+wminus();
+check("...and DOWN to 22, not 21", `${wval()}`, 22);
+check("the browser spinner agrees with the buttons (step attr is 2)",
+      `document.getElementById('wv').getAttribute('step')`, 2);
+
+// lb mode: the same even law, in the displayed unit
+run(`(function(){DB.settings.unit='lb'; render();})()`);
+run(`(function(){const el=document.getElementById('wv'); el.value='31';
+     el.dispatchEvent(new Event('input',{bubbles:true}));})()`);
+wplus();
+check("31 lb steps to 32 — even in POUNDS too", `${wval()}`, 32);
+run(`DB.settings.unit='kg'; render();`);
+
+// barbell stays on the plate-pair law — its loadline renders the exact
+// breakdown, and even-stepping would demand 1 kg plates the model lacks
+run(`(function(){view='lift'; lift.part='Legs'; lift.ex='Squat'; lift.weight=60; render();})()`);
+wplus();
+check("a barbell still moves by a plate pair: 60 kg \u2192 65", `${wval()}`, 65);
+
+// and the inferred-weight snapper follows the same even law
+check("snapW lands inferred weights on even numbers", `${run(`wDisp(snapW(23.4))`)}`, 24);
+
 process.exit(fail ? 1 : 0);

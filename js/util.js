@@ -352,7 +352,16 @@ const toU=kg=>isLb()?kg*LB:kg;                       // kg -> display
 const toKg=v=>isLb()?v/LB:v;                         // display -> kg
 const wDisp=kg=>{const v=toU(kg);return (Math.round(v*10)/10).toString().replace(/\.0$/,'');};
 const vDisp=kg=>fmt(Math.round(toU(kg)));            // volume
-const STEP=()=>isLb()?5:2.5;
+/* v3.3.219: EVEN steps in both units (maker's call). Dumbbells and machines
+   move 2 at a time — 12, 14, 16 — and a fractional value left by a unit
+   conversion (23.5 kg from lb) snaps to the next even number in the pressed
+   direction rather than marching on at x.5 forever; the wLaw click handler's
+   floor/ceil arithmetic does that snapping already, it just needed an even
+   step to snap TO. Barbell and smith are deliberately NOT even-stepped: their
+   law is plate PAIRS on a bar (5 kg / 10 lb totals), the loadline renders
+   that exact breakdown, and a 22 kg barbell would demand 1 kg plates the
+   plate model does not carry. */
+const STEP=()=>2;
 
 /* --- bar + plate math ---------------------------------------------------
    Weights are stored as the TOTAL on the movement (bar included), matching
