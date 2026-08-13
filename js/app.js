@@ -873,6 +873,10 @@ function motionPass(){
   stampLegacyDays();
   const fixed=repairDupes();
   if(fixed){ save(); toast(`Repaired ${fixed} duplicated set${fixed>1?'s':''}`); }
+  /* v3.3.224: the bodyweight repair edits the ledger, so it says so — the
+     same courtesy repairDupes has paid since v2.19. Silence would be the
+     wrong default for a migration that changes recorded numbers. */
+  if(_bwFix&&_bwFix.sets) toast(`${_bwFix.sets} bodyweight set${_bwFix.sets>1?'s':''} restored to bodyweight`);
   checkMilestone();
   demoBarSync(); maybeOnboard();
   lastSetAt=(DB.days[todayISO]&&DB.days[todayISO].lastAt)||null;
