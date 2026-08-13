@@ -1294,10 +1294,10 @@
   .garow.open{padding-bottom:4px}
   .garcpt+.garow{border-top:1px solid var(--line)}
   .garcpt{padding:2px 0 12px}
-  .garcrow{display:grid;grid-template-columns:58px 1fr auto;gap:10px;align-items:baseline;padding:3px 0}
+  .garcrow{display:grid;grid-template-columns:100px minmax(0,1fr) auto;gap:10px;align-items:baseline;padding:4px 0}
   .garck{font-family:var(--mono);font-size:10px;color:var(--faint);
     text-transform:uppercase;letter-spacing:var(--track-label)}
-  .garcrow b{font-family:var(--mono);font-size:13px;color:var(--chalk);font-weight:600}
+  .garcrow b{font-family:var(--mono);font-size:13px;color:var(--chalk);font-weight:600;white-space:nowrap}
   .garcw{font-family:var(--mono);font-size:11px;color:var(--faint);white-space:nowrap}
   .garcnote{font-family:var(--mono);font-size:11px;color:var(--faint);
     line-height:1.5;padding-top:4px}
@@ -1309,7 +1309,10 @@
     border:1px solid var(--line);border-radius:12px;background:var(--surface2);font-size:11px}
   .pmixlgd i{width:11px;height:11px;border-radius:3px}
   .garight{display:flex;align-items:center;justify-content:flex-end;gap:7px;min-width:0}
-  .garecord{font-family:var(--mono);font-size:10px;color:var(--faint);white-space:nowrap}
+  .garecord{display:flex;flex-direction:column;align-items:flex-end;font-family:var(--mono);
+    color:var(--faint);white-space:nowrap;line-height:1.15}
+  .garecordlabel{font-size:8px;text-transform:uppercase;letter-spacing:var(--track-label)}
+  .garecord strong{font-size:10px;color:var(--faint);font-weight:500}
   .gadelta{font-family:var(--mono);font-size:9px;font-weight:700;color:var(--accent-ink);
     white-space:nowrap;padding:3px 5px;border-radius:6px;background:color-mix(in srgb,var(--accent) 10%,transparent)}
   .runscore{margin-bottom:8px}

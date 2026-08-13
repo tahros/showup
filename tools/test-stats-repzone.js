@@ -243,13 +243,13 @@ check("tapping opens a receipt in place, without rebuilding the page",
 check("...naming the exact set that earned the badge",
       `(function(){const b=[...document.querySelectorAll('.garcrow')][0];
         return b.querySelector('.garck').textContent+'|'+b.querySelector('b').textContent;})()`,
-      "PR set|50kg × 10");
+      "Improved to|50kg × 10");
 check("...and the day it was done",
-      `/[A-Z][a-z]{2} \\d{1,2}/.test(document.querySelector('.garcrow .garcw').textContent)`, true);
+      `/^\\d{1,2}\\/\\d{1,2}\\/\\d{2}$/.test(document.querySelector('.garcrow .garcw').textContent)`, true);
 check("...and the set it beat",
       `(function(){const r=[...document.querySelectorAll('.garcrow')][1];
         return r.querySelector('.garck').textContent+'|'+r.querySelector('b').textContent;})()`,
-      "Beat|45kg × 15");
+      "Previous best|45kg × 15");
 check("the receipt agrees with the badge on the row above it",
       `(function(){const row=document.querySelector('.garow.open');
         const badge=row.querySelector('.gadelta').textContent.trim();
@@ -261,18 +261,16 @@ check("tapping again closes it", `!document.querySelector('.garcpt')`, true);
 // a lift with no record at all explains itself rather than showing nothing
 gaSeed(`for(const n of [16,12,3]) DB.days[_D(n)]={w:[{part:'Chest',ex:'Chest Fly',w:45,reps:[10]}],upd:1};`);
 run(`document.querySelector('.garow[data-gaex]').click();`);
-check("a lift with no PR shows its best set instead",
-      `document.querySelector('.garcrow .garck').textContent`, "Best set");
-check("...and says plainly why there is no record",
-      `/matched or beaten by an earlier one/.test(document.querySelector('.garcnote').textContent)`, true);
+check("a lift with no PR says so plainly",
+      `document.querySelector('.garcnote').textContent`, "No improvement yet.");
 
-// an aged-out PR still names itself, and says it is old
+// an aged-out improvement stays available with the same compact date
 gaSeed(`DB.days[_D(80)]={w:[{part:'Chest',ex:'Chest Fly',w:45,reps:[10]}],upd:1};
         DB.days[_D(40)]={w:[{part:'Chest',ex:'Chest Fly',w:50,reps:[10]}],upd:1};
         DB.days[_D(3)]={w:[{part:'Chest',ex:'Chest Fly',w:45,reps:[8]}],upd:1};`);
 run(`document.querySelector('.garow[data-gaex]').click();`);
-check("an aged-out PR is still named, and dated as old",
-      `/over 28 days ago/.test(document.querySelector('.garcrow .garcw').textContent)`, true);
+check("an aged-out improvement still uses the compact date",
+      `/^\\d{1,2}\\/\\d{1,2}\\/\\d{2}$/.test(document.querySelector('.garcrow .garcw').textContent)`, true);
 check("...while the row itself stays dark and unbadged",
       `(function(){const r=document.querySelector('.garow.open');
         return !r.querySelector('.gadelta') && !r.querySelector('.gabadge.ga-up');})()`, true);
