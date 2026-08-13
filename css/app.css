@@ -1498,8 +1498,12 @@
   /* The old left status rail/check combination is the generic card pattern
      this preview is testing away. The whole row remains one clear target. */
   :root[data-design-preview="modern"] .item.todayrow,
-  :root[data-design-preview="modern"] .item.todayrow.fin{
+  :root[data-design-preview="modern"] .item.todayrow.fin,
+  :root[data-design-preview="modern"] .item.goto{
     border-left:1px solid var(--line);
+  }
+  :root[data-design-preview="modern"] .item.todayrow,
+  :root[data-design-preview="modern"] .item.todayrow.fin{
     background:var(--surface2);
   }
   :root[data-design-preview="modern"] .item.todayrow b::before,
