@@ -1,7 +1,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <script>/* pre-paint: apply the saved theme before any CSS renders */
-try{var _de=document.documentElement;_de.dataset.theme=localStorage.getItem('showup-theme')||'dark';_de.dataset.skin=localStorage.getItem('showup-skin')||'minimal';}catch(e){}</script>
+try{var _de=document.documentElement,_qp=new URLSearchParams(location.search);_de.dataset.theme=/^(light|dark)$/.test(_qp.get('theme')||'')?_qp.get('theme'):(localStorage.getItem('showup-theme')||'dark');_de.dataset.skin=localStorage.getItem('showup-skin')||'minimal';if(_qp.get('design')==='modern')_de.dataset.designPreview='modern';}catch(e){}</script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">

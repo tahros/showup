@@ -316,7 +316,13 @@ function systemTheme(){
 let _themeWatched=false;
 function applyTheme(){
   const pref=DB.settings.theme;
-  const t = pref==='system' ? systemTheme() : (pref==='light'?'light':'dark');
+  /* Design-review links may pin a theme without mutating the user's saved
+     preference. The override is URL-only and disappears with the preview. */
+  let previewTheme='';
+  try{ previewTheme=new URLSearchParams(location.search).get('theme')||''; }catch(e){}
+  const t = /^(light|dark)$/.test(previewTheme)
+    ? previewTheme
+    : (pref==='system' ? systemTheme() : (pref==='light'?'light':'dark'));
   document.documentElement.dataset.theme=t;
   /* v3.3.168: the SKIN rides the same rail as the theme — one applier, one
      pre-paint read, one storage slot each. Two values: 'minimal' (default)

@@ -1386,3 +1386,252 @@
   :root[data-skin="minimal"] .rzbar{background:color-mix(in srgb,var(--accent) 10%,var(--ground))}
   :root[data-skin="minimal"] #app{padding-bottom:110px}   /* the pill floats — content clears it */
   :root[data-skin="minimal"] #toast{bottom:118px}
+
+  /* -----------------------------------------------------------------
+     Modern Minimal preview — URL gated with ?design=modern.
+     This layer changes no app state and leaves the saved skin untouched.
+     It is intentionally a preview token pass, not a second component tree:
+     the exact same buttons, cards, charts and routes remain underneath it.
+     ----------------------------------------------------------------- */
+  :root[data-design-preview="modern"]{
+    --preview-r-sm:8px;
+    --preview-r-md:11px;
+    --preview-r-lg:14px;
+    --preview-shadow-card:0 1px 2px rgba(0,0,0,.18),0 8px 24px rgba(0,0,0,.16);
+    --preview-shadow-float:0 8px 28px rgba(0,0,0,.28);
+    --shadow:0 1px 2px rgba(0,0,0,.18);
+  }
+  :root[data-design-preview="modern"][data-theme="light"]{
+    --ground:#F5F6F8;
+    --surface:#FFFFFF;
+    --surface2:#ECEEF3;
+    --line:#E1E3E9;
+    --chalk:#17191F;
+    --muted:#535866;
+    --faint:#737987;
+    --accent:#334FD6;
+    --accent-ink:#2E48C8;
+    --accent-soft:#DCE2FF;
+    --preview-shadow-card:0 1px 2px rgba(22,26,40,.05),0 8px 24px rgba(22,26,40,.07);
+    --preview-shadow-float:0 8px 28px rgba(22,26,40,.16);
+    --shadow:0 1px 2px rgba(22,26,40,.06);
+  }
+  :root[data-design-preview="modern"] #app{
+    font-size:15px;
+    line-height:1.42;
+    padding-bottom:104px;
+  }
+  :root[data-design-preview="modern"] header{
+    padding:calc(13px + env(safe-area-inset-top,0px)) 18px 12px;
+    border-bottom-color:color-mix(in srgb,var(--line) 84%,transparent);
+  }
+  :root[data-design-preview="modern"] .h-date{
+    font-size:21px;
+    font-weight:600;
+    letter-spacing:-.035em;
+  }
+  :root[data-design-preview="modern"] .h-sub{
+    margin-top:2px;
+    font-size:10px;
+    letter-spacing:.11em;
+  }
+  :root[data-design-preview="modern"] .icobtn{
+    width:42px;
+    height:42px;
+    border-radius:var(--preview-r-md);
+    border-color:var(--line);
+    box-shadow:var(--shadow);
+  }
+  :root[data-design-preview="modern"] main{
+    padding:18px 16px calc(30px + env(safe-area-inset-bottom));
+  }
+  :root[data-design-preview="modern"] h2{
+    margin:28px 0 10px;
+    font-size:11px;
+    letter-spacing:.12em;
+    opacity:1;
+    color:var(--muted);
+    gap:6px;
+    padding-left:1px;
+  }
+  :root[data-design-preview="modern"] h2::before{
+    display:none;
+  }
+  :root[data-design-preview="modern"] h2 .hi{color:var(--accent-ink)}
+  :root[data-design-preview="modern"] :is(.card,.zone,.lastcard,.day,.kpi){
+    border:1px solid var(--line);
+    border-radius:var(--preview-r-lg);
+    box-shadow:var(--preview-shadow-card);
+  }
+  :root[data-design-preview="modern"] .card{padding:16px}
+  :root[data-design-preview="modern"] .rhythm{
+    padding:17px 16px 14px;
+  }
+  :root[data-design-preview="modern"] .rhythm .big.dayn{
+    font-family:var(--disp);
+    font-variant-numeric:tabular-nums;
+    font-size:35px;
+    font-weight:600;
+    letter-spacing:-.05em;
+  }
+  :root[data-design-preview="modern"] .rgrid .rpct{
+    font-family:var(--disp);
+    font-variant-numeric:tabular-nums;
+    font-size:24px;
+    font-weight:600;
+    letter-spacing:-.035em;
+  }
+  :root[data-design-preview="modern"] .rgrid .rcap{margin-top:5px}
+  :root[data-design-preview="modern"] .strip{gap:4px;margin-top:16px}
+  :root[data-design-preview="modern"] .strip i{
+    height:24px;
+    border:0;
+    border-radius:4px;
+  }
+  :root[data-design-preview="modern"] .strip::after{display:none}
+  :root[data-design-preview="modern"] .item{
+    min-height:50px;
+    border-radius:var(--preview-r-md);
+    box-shadow:none;
+    transition:background .12s ease,transform .12s ease,border-color .12s ease;
+  }
+  /* The old left status rail/check combination is the generic card pattern
+     this preview is testing away. The whole row remains one clear target. */
+  :root[data-design-preview="modern"] .item.todayrow,
+  :root[data-design-preview="modern"] .item.todayrow.fin,
+  :root[data-design-preview="modern"] .item.goto{
+    border-left:1px solid var(--line);
+  }
+  :root[data-design-preview="modern"] .item.goto{
+    background:color-mix(in srgb,var(--accent) 6%,var(--surface));
+    border-color:color-mix(in srgb,var(--accent) 24%,var(--line));
+  }
+  :root[data-design-preview="modern"] .item.goto .gochev{
+    width:24px;
+    height:24px;
+    right:8px;
+    display:grid;
+    place-items:center;
+    border-radius:50%;
+    background:var(--accent-soft);
+    color:var(--accent-ink);
+    font-size:14px;
+    font-weight:600;
+    opacity:1;
+  }
+  :root[data-design-preview="modern"] .item.todayrow,
+  :root[data-design-preview="modern"] .item.todayrow.fin{
+    background:var(--surface2);
+  }
+  :root[data-design-preview="modern"] .item.todayrow b::before,
+  :root[data-design-preview="modern"] .item.todayrow.fin b::before{display:none}
+  :root[data-design-preview="modern"] .item:active{
+    transform:scale(.985);
+    background:color-mix(in srgb,var(--accent) 10%,var(--surface));
+    border-color:color-mix(in srgb,var(--accent) 36%,var(--line));
+  }
+  :root[data-design-preview="modern"] .chip{
+    min-height:42px;
+    border-radius:var(--preview-r-md);
+    padding:9px 14px;
+    box-shadow:none;
+    background:var(--surface2);
+    border-color:var(--surface2);
+    transition:transform .12s ease,background .12s ease;
+  }
+  :root[data-design-preview="modern"] .chip:active{transform:scale(.97)}
+  :root[data-design-preview="modern"] .chip.on{
+    background:var(--accent);
+    border-color:var(--accent);
+  }
+  :root[data-design-preview="modern"] .partcard{
+    border-radius:var(--preview-r-md);
+    box-shadow:none;
+    transition:transform .12s ease,background .12s ease,border-color .12s ease;
+  }
+  :root[data-design-preview="modern"] .partcard:active{transform:scale(.98)}
+  :root[data-design-preview="modern"] .btn{
+    min-height:48px;
+    border-radius:var(--preview-r-md);
+    font-weight:600;
+    transition:transform .12s ease,filter .12s ease;
+  }
+  :root[data-design-preview="modern"] .btn:active{transform:scale(.985);filter:brightness(.96)}
+  :root[data-design-preview="modern"] .btn.ghost{
+    background:var(--surface2);
+    border-color:var(--surface2);
+  }
+  :root[data-design-preview="modern"] :is(.kpi,.day,.cal,.mchip,.fld,.settile,.repcard){
+    border-radius:var(--preview-r-md);
+  }
+  :root[data-design-preview="modern"] .kpi .v,
+  :root[data-design-preview="modern"] .kpis .kpi.hero .v{
+    font-family:var(--disp);
+    font-variant-numeric:tabular-nums;
+    font-weight:600;
+  }
+  :root[data-design-preview="modern"] .day{box-shadow:var(--shadow)}
+  :root[data-design-preview="modern"] nav{
+    left:12px;
+    right:12px;
+    bottom:calc(8px + env(safe-area-inset-bottom,0px));
+    max-width:496px;
+    border:1px solid color-mix(in srgb,var(--line) 85%,transparent);
+    border-radius:18px;
+    background:color-mix(in srgb,var(--surface) 90%,transparent);
+    padding:5px 4px;
+    box-shadow:var(--preview-shadow-float);
+    -webkit-backdrop-filter:blur(20px) saturate(150%);
+    backdrop-filter:blur(20px) saturate(150%);
+  }
+  :root[data-design-preview="modern"] nav button{
+    min-height:52px;
+    padding:7px 4px 8px;
+    gap:5px;
+    border-radius:13px;
+    font-size:9px;
+    letter-spacing:.1em;
+    transition:transform .12s ease,background .12s ease,color .12s ease;
+  }
+  :root[data-design-preview="modern"] nav button:active{
+    transform:scale(.94);
+    background:var(--surface2);
+  }
+  :root[data-design-preview="modern"] nav button.on{
+    background:color-mix(in srgb,var(--accent) 10%,transparent);
+  }
+  :root[data-design-preview="modern"] nav button.on::after{display:none}
+  :root[data-design-preview="modern"] nav button span{
+    display:block;
+    width:19px;
+    height:19px;
+    font-size:0;
+    line-height:1;
+    filter:none;
+    background:currentColor;
+    -webkit-mask-position:center;
+    -webkit-mask-repeat:no-repeat;
+    -webkit-mask-size:contain;
+    mask-position:center;
+    mask-repeat:no-repeat;
+    mask-size:contain;
+  }
+  :root[data-design-preview="modern"] nav button[data-v="today"] span{
+    -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='4'/%3E%3Cpath d='m8 12 2.5 2.5L16.5 8.5'/%3E%3C/svg%3E");
+    mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='4'/%3E%3Cpath d='m8 12 2.5 2.5L16.5 8.5'/%3E%3C/svg%3E");
+  }
+  :root[data-design-preview="modern"] nav button[data-v="lift"] span{
+    -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round'%3E%3Cpath d='M7 8v8M4 9.5v5M17 8v8M20 9.5v5M7 12h10'/%3E%3C/svg%3E");
+    mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round'%3E%3Cpath d='M7 8v8M4 9.5v5M17 8v8M20 9.5v5M7 12h10'/%3E%3C/svg%3E");
+  }
+  :root[data-design-preview="modern"] nav button[data-v="stats"] span{
+    -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 19V10M10 19V5M16 19v-7M22 19H2'/%3E%3C/svg%3E");
+    mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 19V10M10 19V5M16 19v-7M22 19H2'/%3E%3C/svg%3E");
+  }
+  :root[data-design-preview="modern"] nav button[data-v="history"] span{
+    -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 3h12v18H6zM9 8h6M9 12h6M9 16h4'/%3E%3C/svg%3E");
+    mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 3h12v18H6zM9 8h6M9 12h6M9 16h4'/%3E%3C/svg%3E");
+  }
+  @media (prefers-reduced-motion:reduce){
+    :root[data-design-preview="modern"] :is(.item,.chip,.partcard,.btn,nav button){transition:none}
+  }
