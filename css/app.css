@@ -1274,6 +1274,12 @@
   .garows{display:flex;flex-direction:column}
   .garow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 0}
   .garow+.garow{border-top:1px solid var(--line)}
+  /* v3.3.222: the stepper on a bodyweight lift reads "BW + [10] kg" — the
+     number is the belt, and the prefix says so in the same voice as the
+     unit that follows it. */
+  .wsel .bwtag{font-family:var(--mono);font-size:13px;color:var(--muted);
+    font-weight:600;letter-spacing:var(--track-label);align-self:center;
+    white-space:nowrap;flex:0 0 auto}
   /* v3.3.221: the PR receipt. Opens under its row, indented so it reads as
      that row's detail rather than a new row. */
   .garow{cursor:pointer}

@@ -62,7 +62,7 @@ function renderLift(){
         const isRun=ex==='Run';
         const sub=isRun
           ?list.map(s=>`${dDisp(s.w)} ${DU()} · ${s.mins||0}'${String(s.secs||0).padStart(2,'0')}"`).join('  ')
-          :list.map(s=>`${wDisp(s.w)}${U()} × ${s.reps.join(',')}`).join('   ');
+          :list.map(s=>`${wTxt(ex,s.w)} × ${s.reps.join(',')}`).join('   ');
         const v=list.reduce((a,s)=>a+volOf(s),0);
         const exDone=!exOpen(ex);
         h+=`<div class="item logrow todayrow ${exDone?'fin':''}">
@@ -193,7 +193,7 @@ function renderLift(){
     let h=`<button class="back" data-cancelcopy="1">← ${ex}</button>
            <div class="exhead">${moving?`Move today's ${sets.length} sets to…`:`Suggest these ${sets.length} sets for…`}</div>
            <div class="note" style="margin-bottom:12px">
-             ${sets.map(s=>`${wDisp(s.w)}${U()}×${s.r}`).join('  ')}<br>
+             ${sets.map(s=>`${wTxt(ex,s.w)}×${s.r}`).join('  ')}<br>
              ${moving
                ? `These are logged under ${ex} today. Picking a lift moves them there and removes them from ${ex}.`
                : `Nothing gets logged. The lift you pick will show these as its suggested session — tap or Log-all there when you actually do them.`}
@@ -327,7 +327,7 @@ function renderLift(){
        .tight trims the padding the caption used to justify. */
     h+=`<div class="zone prime tight">
         <div class="wsel"><button data-w="-1">−</button>
-        <div class="val"><input id="wv" type="number" inputmode="decimal" step="${STEP()}" value="${wDisp(lift.weight)}"><span class="unit">${U()}</span></div>
+        <div class="val">${isBody(ex)?`<span class="bwtag">BW\u2009+</span>`:''}<input id="wv" type="number" inputmode="decimal" step="${STEP()}" value="${wDisp(lift.weight)}"><span class="unit">${U()}</span></div>
         <button data-w="1">+</button></div>`;
     if(usesPlates(ex)){
       h+=`<div class="loadline" id="ll">${loadInner(ex,lift.weight)}</div>`;
@@ -416,7 +416,7 @@ function renderLift(){
         const isPR=!isRun&&s.reps.length&&s.w>=p.mw;
         h+=isRun
           ?`<div class="settile${lift.editSet===idx?' editing':''}" data-del="${idx}"><span class="w">${dDisp(s.w)}<small>${DU()}</small></span><span class="x">${s.mins||0}'${String(s.secs||0).padStart(2,'0')}"</span></div>`
-          :`<div class="settile ${isPR?'pr':''}${lift.editSet===idx?' editing':''}" data-del="${idx}"><span class="w">${wLabel(ex,s.w)}${isBody(ex)&&s.w<=0.01?'':`<small>${U()}</small>`}</span><span class="x">×</span><span class="w">${s.reps[0]}</span></div>`;
+          :`<div class="settile ${isPR?'pr':''}${lift.editSet===idx?' editing':''}" data-del="${idx}"><span class="w">${wLabel(ex,s.w)}${isBody(ex)?'':`<small>${U()}</small>`}</span><span class="x">×</span><span class="w">${s.reps[0]}</span></div>`;
       });
       h+=`</div>
         <div class="row" style="gap:8px;margin-top:10px">

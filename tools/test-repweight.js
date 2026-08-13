@@ -259,4 +259,41 @@ check("a barbell still moves by a plate pair: 60 kg \u2192 65", `${wval()}`, 65)
 // and the inferred-weight snapper follows the same even law
 check("snapW lands inferred weights on even numbers", `${run(`wDisp(snapW(23.4))`)}`, 24);
 
+
+// ---- v3.3.222: BW+n — the added-weight convention on bodyweight lifts ----
+run(`(function(){DB.settings.unit='kg'; view='lift';
+  lift.part='Back'; lift.ex='Pull Up'; lift.weight=0; render();})()`);
+check("a bodyweight lift's stepper is prefixed BW +",
+      `!!document.querySelector('.wsel .bwtag')`, true);
+check("...and a barbell lift's is not",
+      `(function(){lift.part='Legs'; lift.ex='Squat'; lift.weight=60; render();
+        return !document.querySelector('.wsel .bwtag');})()`, true);
+run(`(function(){lift.part='Back'; lift.ex='Pull Up'; lift.weight=0; render();})()`);
+check("the label authority: 0 reads BW", `wLabel('Pull Up',0)`, "BW");
+check("...10 added kilos read BW+10", `wLabel('Pull Up',10)`, "BW+10");
+check("...and text form carries the unit", `wTxt('Pull Up',10)`, "BW+10kg");
+check("...while a loaded lift is untouched", `wTxt('Squat',60)`, "60kg");
+// stepping the belt follows the same even law as everything else
+run(`(function(){const el=document.getElementById('wv'); el.value='0';
+     el.dispatchEvent(new Event('input',{bubbles:true}));})()`);
+run(`document.querySelector('[data-w="1"]').click()`);
+check("the belt steps up by 2 from BW", `+document.getElementById('wv').value`, 2);
+// a weighted pull-up PR against a bodyweight history, end to end
+run(`(function(){const D=n=>{const d=new Date(todayISO+'T00:00');d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA')};
+  DB.days={}; DB.settings.canon={};
+  for(const n of [16,12]) DB.days[D(n)]={w:[{part:'Back',ex:'Pull Up',w:0,reps:[10]}],upd:1};
+  DB.days[D(3)]={w:[{part:'Back',ex:'Pull Up',w:10,reps:[8]}],upd:1};
+  migrateCanon(); SEED=deriveAll(); view='stats'; ga.grp='Back'; ga.open=null; render();})()`);
+check("a first belt-loaded set is a PR over bodyweight history",
+      `gaPR(Object.values(gaExerciseSessions()).find(e=>e.name==='Pull Up')).live`, true);
+check("...badged as the added kilos", 
+      `gaPR(Object.values(gaExerciseSessions()).find(e=>e.name==='Pull Up')).change.text`, "+10 kg");
+check("...and the record reads BW+10 in the audit row",
+      `/BW\\+10/.test(document.querySelector('.garecord').textContent)`, true);
+run(`document.querySelector('.garow[data-gaex]').click();`);
+check("...and in the receipt, which names the BW set it beat",
+      `(function(){const rows=[...document.querySelectorAll('.garcrow')];
+        return /BW\\+10/.test(rows[0].textContent)
+          && rows[1].querySelector('b').textContent==='BW \u00d7 10';})()`, true);
+
 process.exit(fail ? 1 : 0);

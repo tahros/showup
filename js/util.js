@@ -506,7 +506,16 @@ function wLaw(ex){
   return {s:STEP(), a:0};
 }
 function saveExW(ex,kg){ if(!ex) return; DB.settings.exW=DB.settings.exW||{}; DB.settings.exW[ex]=kg; }
-const wLabel=(ex,kg)=>isBody(ex)&&kg<=0.01?'BW':`${wDisp(kg)}`;   // free-weight moves read as bodyweight
+/* v3.3.222: on a bodyweight exercise the stored weight IS the added load —
+   a `w` on a pull-up never meant anything else — so the display finally says
+   what the number means. BW at zero, BW+10 with a belt. One convention for
+   every isBody exercise (a plate on a dip belt and a plate on your back are
+   the same physics), so nothing needs a per-exercise list. Records, PRs and
+   deltas all keep working unchanged: they compare added kilos, which order
+   exactly as total kilos do. */
+const wLabel=(ex,kg)=>!isBody(ex)?`${wDisp(kg)}`:kg<=0.01?'BW':`BW+${wDisp(kg)}`;
+/* inline text form, unit included — the one way to print a set's weight */
+const wTxt=(ex,kg)=>!isBody(ex)?`${wDisp(kg)}${U()}`:kg<=0.01?'BW':`BW+${wDisp(kg)}${U()}`;
 const PLATES_KG=[25,20,15,10,5,2.5,1.25];
 const PLATES_LB=[45,35,25,10,5,2.5];
 /* greedy plate breakdown for ONE side */

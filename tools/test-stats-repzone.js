@@ -243,13 +243,13 @@ check("tapping opens a receipt in place, without rebuilding the page",
 check("...naming the exact set that earned the badge",
       `(function(){const b=[...document.querySelectorAll('.garcrow')][0];
         return b.querySelector('.garck').textContent+'|'+b.querySelector('b').textContent;})()`,
-      "PR set|50 kg × 10");
+      "PR set|50kg × 10");
 check("...and the day it was done",
       `/[A-Z][a-z]{2} \\d{1,2}/.test(document.querySelector('.garcrow .garcw').textContent)`, true);
 check("...and the set it beat",
       `(function(){const r=[...document.querySelectorAll('.garcrow')][1];
         return r.querySelector('.garck').textContent+'|'+r.querySelector('b').textContent;})()`,
-      "Beat|45 kg × 15");
+      "Beat|45kg × 15");
 check("the receipt agrees with the badge on the row above it",
       `(function(){const row=document.querySelector('.garow.open');
         const badge=row.querySelector('.gadelta').textContent.trim();

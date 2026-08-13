@@ -419,7 +419,7 @@ function growthAuditSection(){
       <div class="gahead"><small>${g.sets} completed set${g.sets===1?'':'s'} · ${g.days.size} day${g.days.size===1?'':'s'}</small>
         ${gaIcon(g.signal,'gastate')}</div>
       <div class="garows">${shown.length?shown.map(e=>`<div class="garow${ga.open===e.id?' open':''}" data-gaex="${e.id}">
-        <b>${e.name}</b><span class="garight">${e.record.best?`<span class="garecord">${wDisp(e.record.best.w)} ${U()} × ${e.record.best.rep}</span>`:''}
+        <b>${e.name}</b><span class="garight">${e.record.best?`<span class="garecord">${wTxt(e.name,e.record.best.w)} × ${e.record.best.rep}</span>`:''}
           ${e.record.change?`<span class="gadelta">${e.record.change.text}</span>`:''}${gaIcon(e.ago>=GA_RECENT_DAYS?'empty':e.record.live?'up':'flat','gabadge')}</span></div>${
         ga.open===e.id?gaReceipt(e):''}`).join(''):
         `<div class="note">No completed sets recorded for this group.</div>`}</div>
@@ -439,10 +439,10 @@ const gaDay=iso=>{
 function gaReceipt(e){
   const r=e.record, pr=r.pr;
   const rows=[];
-  if(pr) rows.push(['PR set',`${wDisp(pr.w)} ${U()} \u00d7 ${pr.rep}`,gaDay(pr.d)
+  if(pr) rows.push(['PR set',`${wTxt(e.name,pr.w)} \u00d7 ${pr.rep}`,gaDay(pr.d)
     +(r.live?'':` \u00b7 over ${GA_PR_DAYS} days ago`)]);
-  if(pr&&pr.beat) rows.push(['Beat',`${wDisp(pr.beat.w)} ${U()} \u00d7 ${pr.beat.rep}`,'']);
-  if(!pr&&r.best) rows.push(['Best set',`${wDisp(r.best.w)} ${U()} \u00d7 ${r.best.rep}`,gaDay(r.best.d)]);
+  if(pr&&pr.beat) rows.push(['Beat',`${wTxt(e.name,pr.beat.w)} \u00d7 ${pr.beat.rep}`,'']);
+  if(!pr&&r.best) rows.push(['Best set',`${wTxt(e.name,r.best.w)} \u00d7 ${r.best.rep}`,gaDay(r.best.d)]);
   if(!rows.length) return `<div class="garcpt"><div class="note">No completed sets yet.</div></div>`;
   return `<div class="garcpt">${rows.map(([k,v,w])=>
     `<div class="garcrow"><span class="garck">${k}</span><b>${v}</b><span class="garcw">${w}</span></div>`).join('')}

@@ -529,9 +529,13 @@ function drawDayCard(x,S,d){
   for(const g of groups){
     const n=g.subs.reduce((a,s2)=>a+s2.reps.length,0);
     block(g.ex,n+' set'+(n>1?'s':''),g.subs.map(s2=>cy=>{
-      x.fillStyle=V('--chalk'); x.font='700 46px '+SANS; x.fillText(wDisp(s2.w),L,cy+16);
-      const ww=x.measureText(wDisp(s2.w)).width;
-      x.fillStyle=V('--muted'); x.font='500 26px '+MONO; x.fillText(U(),L+ww+12,cy+16);
+      /* v3.3.222: the share card speaks the same BW+n convention as the app.
+         The unit whisper is skipped for bodyweight rows — "BW+10kg" carries
+         its own unit, and a bare "BW" has none. */
+      x.fillStyle=V('--chalk'); x.font='700 46px '+SANS; x.fillText(wLabel(g.ex,s2.w),L,cy+16);
+      const ww=x.measureText(wLabel(g.ex,s2.w)).width;
+      if(!isBody(g.ex)){ x.fillStyle=V('--muted'); x.font='500 26px '+MONO; x.fillText(U(),L+ww+12,cy+16); }
+      else if(s2.w>0.01){ x.fillStyle=V('--muted'); x.font='500 26px '+MONO; x.fillText(U(),L+ww+4,cy+16); }
       chips(s2.reps,cy);
     }));
   }

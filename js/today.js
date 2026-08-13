@@ -361,7 +361,7 @@ function renderToday(){
     for(const [ex,list] of Object.entries(byEx)){
       const detail = ex==='Run'
         ? list.map(s=>`${dDisp(s.w)}${DU()} · ${s.mins||0}'${String(s.secs||0).padStart(2,'0')}"`).join('  ')
-        : list.map(s=>`${wDisp(s.w)}×${s.reps[0]}`).join('  ');
+        : list.map(s=>`${wLabel(ex,s.w)}×${s.reps[0]}`).join('  ');
       const open=exOpen(ex);
       h+=`<button class="item todayrow ${open?'':'fin'}" data-ex="${ex}" data-part="${part}" style="margin-bottom:6px">
             <span><b>${ex}</b><div class="sub">${detail}</div></span>

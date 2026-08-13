@@ -385,7 +385,7 @@ document.addEventListener('click',e=>{
   if(del){
     if(lpFired){ lpFired=false; return; }
     const s=t.w[+del.dataset.del];
-    snapshot(`deleted ${wDisp(s.w)}${U()}×${s.reps[0]||''}`);
+    snapshot(`deleted ${wTxt(lift.ex,s.w)}×${s.reps[0]||''}`);
     t.w.splice(+del.dataset.del,1);
     /* v3.3.20: removing a set must also walk the day's state BACK.
        A remaining set counts as completed if its EXERCISE is done OR its
