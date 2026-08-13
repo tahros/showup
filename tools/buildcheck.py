@@ -325,7 +325,10 @@ if "function gaPR" not in _stats:
 # as two machines on two clocks and contradicted each other on real rows ("+2.5
 # kg" beside a flat mark). If a row's icon is ever chosen by anything other
 # than the same record object that prints the badge, that regression is back.
-_garow = _stats[_stats.find('<div class="garow"'):]
+# v3.3.221: anchor without the closing quote -- the row's class is now
+# dynamic (`garow${...open}`), and a find() that misses returns -1, which
+# silently slices from the END of the file and fails an otherwise fine build.
+_garow = _stats[_stats.find('<div class="garow'):]
 _garow = _garow[:_garow.find("</div>`).join")]
 if "e.record.live" not in _garow:
     fail.append("growth audit: row icon must be driven by the same record as the badge — "

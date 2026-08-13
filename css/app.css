@@ -1274,6 +1274,19 @@
   .garows{display:flex;flex-direction:column}
   .garow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 0}
   .garow+.garow{border-top:1px solid var(--line)}
+  /* v3.3.221: the PR receipt. Opens under its row, indented so it reads as
+     that row's detail rather than a new row. */
+  .garow{cursor:pointer}
+  .garow.open{padding-bottom:4px}
+  .garcpt+.garow{border-top:1px solid var(--line)}
+  .garcpt{padding:2px 0 12px}
+  .garcrow{display:grid;grid-template-columns:58px 1fr auto;gap:10px;align-items:baseline;padding:3px 0}
+  .garck{font-family:var(--mono);font-size:10px;color:var(--faint);
+    text-transform:uppercase;letter-spacing:var(--track-label)}
+  .garcrow b{font-family:var(--mono);font-size:13px;color:var(--chalk);font-weight:600}
+  .garcw{font-family:var(--mono);font-size:11px;color:var(--faint);white-space:nowrap}
+  .garcnote{font-family:var(--mono);font-size:11px;color:var(--faint);
+    line-height:1.5;padding-top:4px}
   .garow b{display:block;font-size:13px;color:var(--chalk);font-weight:600}
   /* v3.3.217: Session Build filters are thumb-sized controls; the record
      receipt and recent change sit together at the right of Growth Audit. */

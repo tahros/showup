@@ -315,7 +315,7 @@ const GA_HISTORY_DAYS=42;
    no PR and the arrow goes dark, so a stall surfaces inside a month. The
    WHOLE ledger is searched for the record; only its DATE is windowed. */
 const GA_PR_DAYS=28;
-const ga={grp:null};
+const ga={grp:null,open:null};
 const GA_SIGNAL_LABELS={empty:'Empty',flat:'Flat',up:'Going up'};
 const gaIcon=(key,cls)=>`<i class="${cls} ga-${key}" role="img"
   aria-label="${GA_SIGNAL_LABELS[key]}" title="${GA_SIGNAL_LABELS[key]}"></i>`;
@@ -372,6 +372,7 @@ function gaPR(ex){
       const sameReps=seen.filter(q=>q.rep>=p.rep).sort((a,b)=>b.w-a.w)[0];
       const sameW=seen.filter(q=>q.w>=p.w).sort((a,b)=>b.rep-a.rep)[0];
       pr={d:s.d,w:p.w,rep:p.rep,
+          beat: sameReps||sameW||null,          // the set the receipt names
           text: sameReps ? `+${wDisp(p.w-sameReps.w)} ${U()}`
               : sameW ? `+${p.rep-sameW.rep} rep${p.rep-sameW.rep===1?'':'s'}`
               : 'New best'};
@@ -417,12 +418,43 @@ function growthAuditSection(){
         `<option value="${v}" ${v===ga.grp?'selected':''}>${v}</option>`).join('')}</select>
       <div class="gahead"><small>${g.sets} completed set${g.sets===1?'':'s'} · ${g.days.size} day${g.days.size===1?'':'s'}</small>
         ${gaIcon(g.signal,'gastate')}</div>
-      <div class="garows">${shown.length?shown.map(e=>`<div class="garow">
+      <div class="garows">${shown.length?shown.map(e=>`<div class="garow${ga.open===e.id?' open':''}" data-gaex="${e.id}">
         <b>${e.name}</b><span class="garight">${e.record.best?`<span class="garecord">${wDisp(e.record.best.w)} ${U()} × ${e.record.best.rep}</span>`:''}
-          ${e.record.change?`<span class="gadelta">${e.record.change.text}</span>`:''}${gaIcon(e.ago>=GA_RECENT_DAYS?'empty':e.record.live?'up':'flat','gabadge')}</span></div>`).join(''):
+          ${e.record.change?`<span class="gadelta">${e.record.change.text}</span>`:''}${gaIcon(e.ago>=GA_RECENT_DAYS?'empty':e.record.live?'up':'flat','gabadge')}</span></div>${
+        ga.open===e.id?gaReceipt(e):''}`).join(''):
         `<div class="note">No completed sets recorded for this group.</div>`}</div>
     </div>`;
 }
+/* v3.3.221: tap a row to see WHICH logged set is the PR. The row prints the
+   all-time best and the delta; those are summaries, and the maker asked which
+   actual record earned them. This states the set, the day it was done, and
+   the set it beat — the same three facts the rule itself compares, so the
+   receipt is the rule made visible rather than a second explanation.
+   Opens in place (no render(), no scroll jump) — the v3.3.190 lesson. */
+const gaDay=iso=>{
+  const d=new Date(iso+'T00:00'), o={month:'short',day:'numeric'};
+  if(iso.slice(0,4)!==todayISO.slice(0,4)) o.year='numeric';
+  return d.toLocaleDateString('en-US',o);
+};
+function gaReceipt(e){
+  const r=e.record, pr=r.pr;
+  const rows=[];
+  if(pr) rows.push(['PR set',`${wDisp(pr.w)} ${U()} \u00d7 ${pr.rep}`,gaDay(pr.d)
+    +(r.live?'':` \u00b7 over ${GA_PR_DAYS} days ago`)]);
+  if(pr&&pr.beat) rows.push(['Beat',`${wDisp(pr.beat.w)} ${U()} \u00d7 ${pr.beat.rep}`,'']);
+  if(!pr&&r.best) rows.push(['Best set',`${wDisp(r.best.w)} ${U()} \u00d7 ${r.best.rep}`,gaDay(r.best.d)]);
+  if(!rows.length) return `<div class="garcpt"><div class="note">No completed sets yet.</div></div>`;
+  return `<div class="garcpt">${rows.map(([k,v,w])=>
+    `<div class="garcrow"><span class="garck">${k}</span><b>${v}</b><span class="garcw">${w}</span></div>`).join('')}
+    ${!pr?`<div class="garcnote">No record set yet \u2014 every set so far was matched or beaten by an earlier one.</div>`:''}</div>`;
+}
+document.addEventListener('click',e=>{
+  const row=e.target.closest&&e.target.closest('[data-gaex]');
+  if(!row) return;
+  ga.open=ga.open===row.dataset.gaex?null:row.dataset.gaex;
+  const card=document.querySelector('.gacard');
+  if(card) card.outerHTML=growthAuditSection().split('</h2>')[1]; else render();
+});
 document.addEventListener('change',e=>{
   if(!e.target||e.target.id!=='gaGrp') return;
   ga.grp=e.target.value;
