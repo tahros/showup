@@ -263,8 +263,14 @@ check("snapW lands inferred weights on even numbers", `${run(`wDisp(snapW(23.4))
 // ---- v3.3.222: BW+n — the added-weight convention on bodyweight lifts ----
 run(`(function(){DB.settings.unit='kg'; view='lift';
   lift.part='Back'; lift.ex='Pull Up'; lift.weight=0; render();})()`);
-check("a bodyweight lift's stepper is prefixed BW +",
-      `!!document.querySelector('.wsel .bwtag')`, true);
+check("a bodyweight lift's stepper is labelled in full words",
+      `document.querySelector('.wsel .bwtag').textContent`, "Bodyweight +");
+check("...as a caption above the number, not inline beside it",
+      `(function(){const v=document.querySelector('.wsel .val');
+        return v.classList.contains('bwval')
+          && v.firstElementChild.classList.contains('bwtag');})()`, true);
+check("...and it never says just BW",
+      `/^BW\\b/.test(document.querySelector('.wsel .bwtag').textContent)`, false);
 check("...and a barbell lift's is not",
       `(function(){lift.part='Legs'; lift.ex='Squat'; lift.weight=60; render();
         return !document.querySelector('.wsel .bwtag');})()`, true);

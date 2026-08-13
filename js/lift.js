@@ -327,7 +327,7 @@ function renderLift(){
        .tight trims the padding the caption used to justify. */
     h+=`<div class="zone prime tight">
         <div class="wsel"><button data-w="-1">−</button>
-        <div class="val">${isBody(ex)?`<span class="bwtag">BW\u2009+</span>`:''}<input id="wv" type="number" inputmode="decimal" step="${STEP()}" value="${wDisp(lift.weight)}"><span class="unit">${U()}</span></div>
+        <div class="val${isBody(ex)?' bwval':''}">${isBody(ex)?`<span class="bwtag">Bodyweight +</span>`:''}<input id="wv" type="number" inputmode="decimal" step="${STEP()}" value="${wDisp(lift.weight)}"><span class="unit">${U()}</span></div>
         <button data-w="1">+</button></div>`;
     if(usesPlates(ex)){
       h+=`<div class="loadline" id="ll">${loadInner(ex,lift.weight)}</div>`;

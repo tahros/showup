@@ -1277,9 +1277,17 @@
   /* v3.3.222: the stepper on a bodyweight lift reads "BW + [10] kg" — the
      number is the belt, and the prefix says so in the same voice as the
      unit that follows it. */
-  .wsel .bwtag{font-family:var(--mono);font-size:13px;color:var(--muted);
-    font-weight:600;letter-spacing:var(--track-label);align-self:center;
-    white-space:nowrap;flex:0 0 auto}
+  /* v3.3.223: spelled out, and stacked ABOVE the number rather than beside
+     it. "BW +" inline was cryptic and also fought the input for width at
+     24px mono; as a small caption line it reads plainly and costs no
+     horizontal room at all. The stepper buttons stretch to the taller row so
+     the control keeps one clean edge. */
+  .wsel .bwtag{display:block;font-family:var(--mono);font-size:10px;
+    color:var(--muted);font-weight:600;letter-spacing:var(--track-label);
+    text-transform:uppercase;white-space:nowrap;line-height:1;
+    margin:6px 0 2px}
+  .wsel .bwval input{font-size:22px}
+  .wsel button{align-self:stretch;height:auto;min-height:48px}
   /* v3.3.221: the PR receipt. Opens under its row, indented so it reads as
      that row's detail rather than a new row. */
   .garow{cursor:pointer}
