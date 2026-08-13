@@ -96,13 +96,10 @@ run(`_reset();
   for(const n of [80,70,60])_mk(n,[{part:'Legs',ex:'Squat',w:80,reps:[8],at:n}]);
   _mk(1,[{part:'Legs',ex:'Squat',w:60,reps:[10],at:1}]);
   _finish();`);
-/* v3.3.220: the record is searched over the WHOLE ledger, so an old archive
-   still counts — but 60 kg x 10 after 80 kg x 8 is a genuine rep record at
-   60 kg or above, and under one standard that lights the row. */
-check("a lighter set that extends the frontier is a PR",
-  `gaPR(gaExerciseSessions()['squat']).live`,true);
-check("...and it is named against the heaviest set that already had those reps",
-  `gaPR(gaExerciseSessions()['squat']).change.text`,"+2 reps");
+check("a lighter set with more reps remains Flat",
+  `gaPR(gaExerciseSessions()['squat']).live`,false);
+check("...and carries no progress claim",
+  `gaPR(gaExerciseSessions()['squat']).change===null`,true);
 
 // ---- one compact control, no information cloud --------------------------
 run(`_reset();
@@ -155,8 +152,8 @@ check("the status hierarchy is muted gray dot and line, then ShowUp blue trend",
     /\.ga-up\{[^}]*accent-ink/.test(cssSrc)&&/--ga-size:11px 11px/.test(cssSrc)&&
     /--ga-size:30px 30px/.test(cssSrc)}`,"true");
 check("Growth Audit help explains its signals without icon credits",
-  `${statsSrc.includes('Dot: no completed sets in 7 days')&&statsSrc.includes('line: trained, no confirmed gain')&&
-    statsSrc.includes('trend: comparable best moved')&&!statsSrc.slice(statsSrc.indexOf('function growthAuditSection'),statsSrc.indexOf('function sessionBuild')).includes('Noun Project')}`,"true");
+  `${statsSrc.includes('Dot: no completed sets in 7 days')&&statsSrc.includes('line: trained, no clear gain')&&
+    statsSrc.includes('trend: more reps at the same weight, or more weight without fewer reps')&&!statsSrc.slice(statsSrc.indexOf('function growthAuditSection'),statsSrc.indexOf('function sessionBuild')).includes('Noun Project')}`,"true");
 check("icon credits live beneath the version in Settings",
   `${/ShowUp \$\{APP_VERSION\}<\/div>\s*<div class="note assetcredits"/.test(fs.readFileSync(path.join(dir,'js','settings.js'),'utf8'))&&
     ['minus-8363736','trend-2344331','ARIPATUT DASUKI','Travis Avery','Noun Project'].every(x=>fs.readFileSync(path.join(dir,'js','settings.js'),'utf8').includes(x))}`,"true");
@@ -175,26 +172,33 @@ const prOf = (name) => run(`(function(){
   const ex=Object.values(gaExerciseSessions()).find(e=>e.name==='${name}');
   const r=gaPR(ex); return (r.live?'LIT ':'dark ')+(r.change?r.change.text:'no badge');})()`);
 
-// 1. heavier at FEWER reps — the screenshot's Chest Fly. A new heaviest set
-//    is a PR even though the old set had more reps.
+// 1. heavier at FEWER reps is a tradeoff, not an unambiguous gain.
 gaSeed(`for(const n of [16,12,8]) DB.days[_D(n)]={w:[{part:'Chest',ex:'Chest Fly',w:45,reps:[15,15],at:1}],upd:1};
         DB.days[_D(3)]={w:[{part:'Chest',ex:'Chest Fly',w:50,reps:[10],at:2}],upd:1};`);
-check("heavier at fewer reps is a PR, and it is LIT", `"${prOf('Chest Fly')}"`, "LIT +5 kg");
+check("heavier at fewer reps remains Flat", `"${prOf('Chest Fly')}"`, "dark no badge");
 
 // 2. more reps at the SAME weight
 gaSeed(`for(const n of [16,12]) DB.days[_D(n)]={w:[{part:'Chest',ex:'Chest Fly',w:45,reps:[10]}],upd:1};
         DB.days[_D(4)]={w:[{part:'Chest',ex:'Chest Fly',w:45,reps:[12]}],upd:1};`);
 check("more reps at the same weight is a PR", `"${prOf('Chest Fly')}"`, "LIT +2 reps");
 
-// 3. THE LOOPHOLE: a light deload with a huge rep count is NOT a PR, because
-//    an earlier set was both heavier and longer... and IS one when it truly
-//    beats everything at that weight or above.
+// 3. THE LOOPHOLE: a lighter load never becomes progress merely by adding
+//    reps. It only counts after a prior set exists at that exact load.
 gaSeed(`for(const n of [20,16]) DB.days[_D(n)]={w:[{part:'Chest',ex:'Chest Fly',w:45,reps:[30]}],upd:1};
         DB.days[_D(3)]={w:[{part:'Chest',ex:'Chest Fly',w:20,reps:[30]}],upd:1};`);
 check("a light deload rep-out is NOT a PR", `"${prOf('Chest Fly')}"`, "dark no badge");
 gaSeed(`for(const n of [20,16]) DB.days[_D(n)]={w:[{part:'Chest',ex:'Chest Fly',w:45,reps:[10]}],upd:1};
         DB.days[_D(3)]={w:[{part:'Chest',ex:'Chest Fly',w:20,reps:[30]}],upd:1};`);
-check("...but a genuine rep record at that weight is", `"${prOf('Chest Fly')}"`, "LIT +20 reps");
+check("a new lighter load is still not comparable", `"${prOf('Chest Fly')}"`, "dark no badge");
+gaSeed(`DB.days[_D(20)]={w:[{part:'Chest',ex:'Chest Fly',w:20,reps:[10]}],upd:1};
+        DB.days[_D(16)]={w:[{part:'Chest',ex:'Chest Fly',w:45,reps:[10]}],upd:1};
+        DB.days[_D(3)]={w:[{part:'Chest',ex:'Chest Fly',w:20,reps:[30]}],upd:1};`);
+check("more reps at the exact lighter load is comparable", `"${prOf('Chest Fly')}"`, "LIT +20 reps");
+
+// The maker's screenshot: 10x12 must never claim to improve on 27.5x10.
+gaSeed(`DB.days[_D(20)]={w:[{part:'Shoulder',ex:'Rear Deltoids',w:27.5,reps:[10]}],upd:1};
+        DB.days[_D(3)]={w:[{part:'Shoulder',ex:'Rear Deltoids',w:10,reps:[12]}],upd:1};`);
+check("10x12 does not improve on 27.5x10", `"${prOf('Rear Deltoids')}"`, "dark no badge");
 
 // 4. the window: a PR ages out at GA_PR_DAYS, badge and mark together
 gaSeed(`DB.days[_D(80)]={w:[{part:'Chest',ex:'Chest Fly',w:45,reps:[10]}],upd:1};
@@ -233,7 +237,7 @@ check("no second growth machine survives",
 
 
 // ---- v3.3.221: tapping a row names the actual PR set --------------------
-gaSeed(`for(const n of [16,12]) DB.days[_D(n)]={w:[{part:'Chest',ex:'Chest Fly',w:45,reps:[15]}],upd:1};
+gaSeed(`for(const n of [16,12]) DB.days[_D(n)]={w:[{part:'Chest',ex:'Chest Fly',w:45,reps:[10]}],upd:1};
         DB.days[_D(3)]={w:[{part:'Chest',ex:'Chest Fly',w:50,reps:[10]}],upd:1};`);
 check("no receipt until a row is tapped", `!document.querySelector('.garcpt')`, true);
 run(`(function(){const v=document.querySelector('#view'); v._k=1;
@@ -249,7 +253,7 @@ check("...and the day it was done",
 check("...and the set it beat",
       `(function(){const r=[...document.querySelectorAll('.garcrow')][1];
         return r.querySelector('.garck').textContent+'|'+r.querySelector('b').textContent;})()`,
-      "Previous best|45kg × 15");
+      "Previous best|45kg × 10");
 check("the receipt agrees with the badge on the row above it",
       `(function(){const row=document.querySelector('.garow.open');
         const badge=row.querySelector('.gadelta').textContent.trim();

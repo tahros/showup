@@ -288,7 +288,7 @@ check("the belt steps up by 2 from BW", `+document.getElementById('wv').value`, 
 run(`(function(){const D=n=>{const d=new Date(todayISO+'T00:00');d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA')};
   DB.days={}; DB.settings.canon={};
   for(const n of [16,12]) DB.days[D(n)]={w:[{part:'Back',ex:'Pull Up',w:0,reps:[10]}],upd:1};
-  DB.days[D(3)]={w:[{part:'Back',ex:'Pull Up',w:10,reps:[8]}],upd:1};
+  DB.days[D(3)]={w:[{part:'Back',ex:'Pull Up',w:10,reps:[10]}],upd:1};
   migrateCanon(); SEED=deriveAll(); view='stats'; ga.grp='Back'; ga.open=null; render();})()`);
 check("a first belt-loaded set is a PR over bodyweight history",
       `gaPR(Object.values(gaExerciseSessions()).find(e=>e.name==='Pull Up')).live`, true);

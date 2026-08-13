@@ -302,12 +302,12 @@ const GA_HISTORY_DAYS=42;
    They are now the SAME object — a row is lit if and only if it carries a
    badge, because both come from gaPR().
 
-   The rule, in gym terms: a set is a PR when nothing ever logged beats it on
-   BOTH axes — no earlier set at that weight or heavier already had that many
-   reps. So 50x10 after 45x15 is a PR (new heaviest), 75x4 after 75x2 is a PR
-   (rep record at that weight), and a 20kg x 30 deload is NOT one unless 30
-   reps at 20kg or more was genuinely never done. That per-weight comparison
-   is what stops "or more reps" becoming a light-day loophole.
+   The rule, in gym terms: only call a change progress when the comparison is
+   unambiguous. More reps at the exact same load counts. A heavier load counts
+   only when it also matches or beats the reps on the previous heaviest set.
+   A lighter set with more reps is a tradeoff, not proof of progress, so it
+   stays Flat. This deliberately prefers missing a subtle gain over celebrating
+   a warm-up, deload or technique set as growth.
 
    Window: 28 days (maker's call, argued from cadence). At roughly weekly
    exposure per body part that is about four sessions of a lift — the same
@@ -353,30 +353,27 @@ function gaExerciseSessions(){
   return out;
 }
 /* The record book AND the growth signal, from one walk over the ledger.
-   `best` is the headline set (heaviest, then most reps) — unchanged, it is
-   simply what the row displays. `pr` is the most recent set that beat every
-   earlier set per-weight; `live` is whether that fell inside the window.
-   Badge and mark both read `live`, so they cannot disagree. */
+   `best` is the headline set (heaviest, then most reps). `pr` is the most
+   recent unambiguous gain: more reps at the same load, or more load while
+   matching/beating the previous heaviest set's reps. `live` is whether that
+   gain fell inside the window. Badge and mark both read `live`, so they cannot
+   disagree. */
 function gaPR(ex){
   let best=null, pr=null;
   const seen=[];                    // every set logged, chronological
   for(const s of ex.sessions) for(const p of s.points){
-    if(!best||p.w>best.w||(p.w===best.w&&p.rep>best.rep)) best={w:p.w,rep:p.rep,d:s.d};
-    const beaten=seen.some(q=>q.w>=p.w&&q.rep>=p.rep);
-    if(seen.length&&!beaten){
-      /* Name the gain against the benchmark the rule itself uses. A set is a
-         PR because nothing at this weight-or-heavier had these reps, and
-         nothing at these reps-or-more was this heavy — so those two are the
-         only honest comparisons. Weight leads when both exist; it is the
-         headline number on the row. */
-      const sameReps=seen.filter(q=>q.rep>=p.rep).sort((a,b)=>b.w-a.w)[0];
-      const sameW=seen.filter(q=>q.w>=p.w).sort((a,b)=>b.rep-a.rep)[0];
+    const priorBest=best;
+    const sameLoad=seen.filter(q=>q.w===p.w).sort((a,b)=>b.rep-a.rep)[0];
+    const repGain=sameLoad&&p.rep>sameLoad.rep;
+    const loadGain=priorBest&&p.w>priorBest.w&&p.rep>=priorBest.rep;
+    if(repGain||loadGain){
+      const beat=repGain?sameLoad:priorBest;
       pr={d:s.d,w:p.w,rep:p.rep,
-          beat: sameReps||sameW||null,          // the set the receipt names
-          text: sameReps ? `+${wDisp(p.w-sameReps.w)} ${U()}`
-              : sameW ? `+${p.rep-sameW.rep} rep${p.rep-sameW.rep===1?'':'s'}`
-              : 'New best'};
+          beat,
+          text: loadGain ? `+${wDisp(p.w-beat.w)} ${U()}`
+              : `+${p.rep-beat.rep} rep${p.rep-beat.rep===1?'':'s'}`};
     }
+    if(!best||p.w>best.w||(p.w===best.w&&p.rep>best.rep)) best={w:p.w,rep:p.rep,d:s.d};
     seen.push({w:p.w,rep:p.rep});
   }
   const live=!!pr&&daysAgo(pr.d)<GA_PR_DAYS;
@@ -412,7 +409,7 @@ function growthAuditSection(){
   if(!ga.grp||!groups[ga.grp]) ga.grp=data.order[0];
   const g=groups[ga.grp],recent=g.ex.filter(e=>e.ago<GA_HISTORY_DAYS);
   const shown=(recent.length?recent:g.ex).slice(0,4).map(e=>({...e,record:gaPR(e)}));
-  return `<h2>Growth audit${hActs('ga',"Dot: no completed sets in 7 days · line: trained, no confirmed gain · trend: comparable best moved.",'About Growth audit')}</h2>
+  return `<h2>Growth audit${hActs('ga',"Dot: no completed sets in 7 days · line: trained, no clear gain · trend: more reps at the same weight, or more weight without fewer reps.",'About Growth audit')}</h2>
     <div class="card gacard" data-gacard="${ga.grp}">
       <select id="gaGrp" class="gasel" aria-label="Body part">${data.order.map(v=>
         `<option value="${v}" ${v===ga.grp?'selected':''}>${v}</option>`).join('')}</select>
