@@ -148,7 +148,14 @@ function renderLift(){
             ${(mine&&!last)?`<button class="xbtn" data-delex="${ex}" aria-label="Delete ${ex}">✕</button>`:''}
           </div>`;
     };
-    const goto=list.filter(x=>x.tier==='goto').sort((a,b)=>b.freq-a.freq||(b.last||'').localeCompare(a.last||''));
+    /* v3.3.240: Go-to orders by RECENCY, frequency only breaks ties — the
+       same law Sometimes has always used, so the whole screen sorts one way.
+       Frequency's job is tier MEMBERSHIP (a one-off cannot become a go-to);
+       ranking by a 365-day count kept a habit you left weeks ago on top of
+       the staple you switched to, purely on accumulated history. The maker
+       hit exactly this: Smith incline, 49 sessions but 39 days cold, sat
+       above the barbell incline he actually runs now. */
+    const goto=list.filter(x=>x.tier==='goto').sort((a,b)=>(b.last||'').localeCompare(a.last||'')||b.freq-a.freq);
     const some=list.filter(x=>x.tier==='sometimes').sort((a,b)=>(b.last||'').localeCompare(a.last||''));
     const fresh=list.filter(x=>x.tier==='new').sort((a,b)=>a.ex.localeCompare(b.ex));
     if(goto.length){

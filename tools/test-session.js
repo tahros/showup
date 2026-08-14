@@ -324,4 +324,43 @@ ok("moving back home removes the override entirely", (() => {
 })());
 
 console.log(fail ? "\n" + fail + " FAILED" : "\nALL PASS");
+
+// ---- v3.3.240: Go-to ranks by recency; frequency is only the tiebreak ----
+// The maker's screenshot: Smith incline (49 sessions this year, 39 days cold)
+// sat above the barbell incline he switched to (6 sessions, 5 days ago),
+// because the tier sorted on a 365-day count. Membership already uses
+// frequency; ORDER now uses the same recency law as Sometimes.
+run(`(function(){
+  const D=n=>{const d=new Date(todayISO+'T00:00');d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA')};
+  DB.days={}; DB.settings.canon={}; DB.settings.tierOv={};
+  // an abandoned staple: many sessions, none recent (over the 60-day habit window)
+  for(let i=0;i<12;i++) DB.days[D(70+i*7)]={w:[{part:'Chest',ex:'Incline Smith Machine Bench Press',w:60,reps:[10]}],upd:1};
+  // the current staple: fewer sessions, all recent
+  for(const n of [26,19,12,5]) DB.days[D(n)]={w:[{part:'Chest',ex:'Incline Barbell Bench Press',w:75,reps:[8]}],upd:1};
+  // a second live habit, older than the barbell
+  for(const n of [24,10]) (DB.days[D(n)]=DB.days[D(n)]||{w:[],upd:1}).w.push({part:'Chest',ex:'Dip',w:0,reps:[10]});
+  migrateCanon(); SEED=deriveAll(); view='lift'; lift.part='Chest'; lift.ex=null; render();})()`);
+const gotoNames = () => run(`[...document.querySelectorAll('.logrow.goto')]
+  .map(r=>r.querySelector('b,strong,.exname')?.textContent||r.textContent)
+  .map(t=>t.replace(/\s+/g,' ').trim())`);
+ok("the lift trained most recently leads the Go-to tier",
+   /Incline Barbell/.test(run(`${`[...document.querySelectorAll('.logrow.goto')][0].textContent`}`)),
+   run(`[...document.querySelectorAll('.logrow.goto')][0].textContent.replace(/\\s+/g,' ').trim().slice(0,40)`));
+ok("...the other live habit follows by its own recency",
+   /Dip/.test(run(`[...document.querySelectorAll('.logrow.goto')][1]?.textContent||''`)));
+ok("...and a 12-session habit gone cold does not outrank them on history",
+   run(`(function(){const rows=[...document.querySelectorAll('.logrow.goto')];
+     const smith=rows.findIndex(r=>/Smith/.test(r.textContent));
+     return smith===-1||smith===rows.length-1;})()`));
+ok("frequency still breaks a same-day tie",
+   run(`(function(){
+     const D=n=>{const d=new Date(todayISO+'T00:00');d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA')};
+     DB.days[D(5)].w.push({part:'Chest',ex:'Dip',w:0,reps:[10]});
+     DB.days[D(3)]={w:[{part:'Chest',ex:'Incline Barbell Bench Press',w:75,reps:[8]},
+                       {part:'Chest',ex:'Dip',w:0,reps:[10]}],upd:1};
+     SEED=deriveAll(); render();
+     const rows=[...document.querySelectorAll('.logrow.goto')];
+     return rows.findIndex(r=>/Incline Barbell/.test(r.textContent))
+          < rows.findIndex(r=>/Dip/.test(r.textContent));})()`));
+
 process.exit(fail ? 1 : 0);
