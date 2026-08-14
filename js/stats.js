@@ -574,13 +574,24 @@ function consistencyRaceSection(){
   }
   const cy=+cp[cp.length-1].split(',')[1],py=+pp[pp.length-1].split(',')[1];
   const cLabel=Math.max(12,cy-7),pLabel=Math.min(177,py+12);
-  const gapCopy=gap>0?`+${gap} day${gap===1?'':'s'}<small>ahead</small>`:gap<0?`${Math.abs(gap)} day${gap===-1?'':'s'}<small>behind</small>`:`Even<small>same date</small>`;
+  /* v3.3.232: same numbers, two units. The share denominator is the days
+     ELAPSED this year — both years are measured against the same stretch of
+     calendar, which is what makes the comparison fair. */
+  const elapsed=daysElapsedThisYear(), shares=raceShares();
+  const pctOf=n=>Math.round(n/elapsed*100);
+  const showN=n=>shares?pctOf(n)+'%':n;
+  const unit=shares?'of the year':'days';
+  const gapPts=pctOf(current.total)-pctOf(previous.total);
+  const gapCopy=shares
+    ?(gapPts>0?`+${gapPts} pts<small>ahead</small>`:gapPts<0?`${Math.abs(gapPts)} pts<small>behind</small>`:`Even<small>same date</small>`)
+    :(gap>0?`+${gap} day${gap===1?'':'s'}<small>ahead</small>`:gap<0?`${Math.abs(gap)} day${gap===-1?'':'s'}<small>behind</small>`:`Even<small>same date</small>`);
   return `<h2>Consistency${hActs('yoy2','Cumulative workout days through the same calendar date in both years. Drag the chart to compare any earlier date.','About Consistency')}</h2>
     <div class="card conrace" data-current-year="${current.year}" data-previous-year="${previous.year}">
       <div class="conkick" data-con-date>YOU VS YOU · ${race.label.toUpperCase()}</div>
-      <div class="conscore"><span><small>${previous.year} you</small><b data-con-count="${previous.year}">${previous.total}</b><small>days</small></span>
+      <div class="conscore" data-raceswap role="button" tabindex="0"
+        aria-label="Show ${shares?'totals':'share of the year'} instead"><span><small>${previous.year} you</small><b data-con-count="${previous.year}">${showN(previous.total)}</b><small>${unit}</small></span>
         <strong class="congap ${gap>=0?'up':''}" data-con-gap>${gapCopy}</strong>
-        <span><small>${current.year} you</small><b data-con-count="${current.year}">${current.total}</b><small>days</small></span></div>
+        <span><small>${current.year} you</small><b data-con-count="${current.year}">${showN(current.total)}</b><small>${unit}</small></span></div>
       <div class="zoom conzoom" data-zoom><svg viewBox="0 0 340 215" role="img" aria-label="${current.year}: ${current.total} workout days. ${previous.year}: ${previous.total} workout days through ${race.label}."
         data-scrub="race" data-sx0="${x0}" data-sxw="${xw}" data-sy0="${y0}" data-syh="${yh}" data-smax="${max}" data-scrub-year="${current.year}">
         ${grid}<polygon points="${area}" fill="var(--accent-soft)" opacity=".72"></polygon>

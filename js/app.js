@@ -178,6 +178,17 @@ document.addEventListener('click',e=>{
     if(lift.ex)lift.ex=null;else lift.part=null;
     return render();
   }
+  /* v3.3.232: tapping either race scoreboard swaps totals for shares, on
+     both cards at once — one preference, so the Stats tab never shows two
+     units side by side. A full render() is right here: the gap chip, the
+     unit captions and the aria label all change together, and the cards are
+     above the fold on their own screens so there is no scroll to lose. */
+  if(e.target.closest&&e.target.closest('[data-raceswap]')){
+    DB.settings.raceShare=!DB.settings.raceShare;
+    DB.settingsAt=Date.now(); save(true);
+    render();
+    return;
+  }
   const wb=e.target.closest('[data-w]');
   if(wb){
     /* v3.3.7: plates load in PAIRS — barbell/smith move in 5 kg (10 lb)

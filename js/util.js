@@ -840,6 +840,41 @@ function monthlyPaceData(n=12){
   }
   return {months,day:dom};
 }
+/* v3.3.232 — the race cards can speak in shares as well as totals.
+   A total answers "how much"; a share answers "how far through". They are
+   different questions and the maker wanted both, so the numbers toggle on tap
+   rather than the app choosing one. The denominator differs by card because
+   the honest denominator differs:
+     Consistency — days elapsed in the year so far. 140 of 226 days is 62%,
+       the same figure the retired KPI cards used to print.
+     Distance — LAST YEAR'S FINISHED TOTAL. 476 km against a 520 km 2025 is
+       92%: "nearly a whole previous year, and it is only August." A share of
+       days elapsed would be meaningless for kilometres, and a share of the
+       current year cannot be computed without predicting the rest of it.
+   The preference is one setting, so the whole Stats tab speaks in one unit. */
+const raceShares=()=>!!DB.settings.raceShare;
+function daysElapsedThisYear(){
+  const y=+todayISO.slice(0,4);
+  return Math.max(1,daysBetween(new Date(y,0,1).toLocaleDateString('en-CA'),todayISO)+1);
+}
+/* every workout day of a finished year — the Distance denominator's sibling,
+   kept here so both cards derive their share the same way */
+function yearTotalKm(y){
+  /* ONE row set per date. A logged day appears in BOTH DB.days and (after
+     deriveAll) SEED.sessions, so summing the two sources counted every run
+     twice and halved every share. DB.days wins per date, exactly as every
+     other reader in the app resolves it. */
+  const pre=String(y);
+  const dates=new Set([...Object.keys(SEED.sessions||{}),...Object.keys(DB.days)]
+    .filter(iso=>iso.slice(0,4)===pre));
+  let km=0;
+  for(const iso of dates){
+    const rows=(DB.days[iso]||{}).w;
+    if(rows) { for(const s of rows) if(s.ex==='Run') km+=+s.w||0; }
+    else for(const r of (SEED.sessions[iso]||[])) if(r[1]==='Run') km+=+r[2]||0;
+  }
+  return km;
+}
 function consistencyRaceData(){
   const dates=workoutDates(),year=+todayISO.slice(0,4),month=+todayISO.slice(5,7)-1,day=+todayISO.slice(8);
   /* v3.3.214: both curves share one calendar-day timeline. Besides making

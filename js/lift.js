@@ -1084,13 +1084,28 @@ function runStatsHTML217(){
     const ct=cv.at(-1)||0,pt=pv.at(-1)||0,gap=ct-pt,max=Math.max(10,ct,pt),yMax=Math.ceil(max/25)*25;
     const x0=30,xw=276,y0=180,yh=145,X=i=>x0+i/Math.max(1,n-1)*xw,Y=v=>y0-v/yMax*yh;
     const cp=cv.map((v,i)=>`${X(i).toFixed(1)},${Y(v).toFixed(1)}`),pp=pv.map((v,i)=>`${X(i).toFixed(1)},${Y(v).toFixed(1)}`);
-    const area=cp.join(' ')+' '+pp.slice().reverse().join(' '),gapCopy=gap>0?`+${Math.round(gap)} ${DU()}<small>ahead</small>`:gap<0?`${Math.abs(Math.round(gap))} ${DU()}<small>behind</small>`:`Even<small>same date</small>`;
+    const area=cp.join(' ')+' '+pp.slice().reverse().join(' ');
+    /* v3.3.232: the share view measures each year against LAST YEAR'S FINISH.
+       "476 km — 92% of all 2025" says something a total cannot: how close a
+       part-year already is to a whole one. Falls back to totals when the
+       previous year has no distance to measure against, because a share of
+       zero is not a number worth printing. */
+    const shares=raceShares(), prevFull=yearTotalKm(+prevYear);
+    const canShare=shares&&prevFull>0;
+    const pctOf=v=>Math.round(v/prevFull*100);
+    const showN=v=>canShare?pctOf(v)+'%':Math.round(v);
+    const unit=canShare?`of all ${prevYear}`:DU();
+    const gapCopy=canShare
+      ?(()=>{const g=pctOf(ct)-pctOf(pt);
+        return g>0?`+${g} pts<small>ahead</small>`:g<0?`${Math.abs(g)} pts<small>behind</small>`:`Even<small>same date</small>`;})()
+      :(gap>0?`+${Math.round(gap)} ${DU()}<small>ahead</small>`:gap<0?`${Math.abs(Math.round(gap))} ${DU()}<small>behind</small>`:`Even<small>same date</small>`);
     h+=`<h2>Distance${hActs('cumkm',`Cumulative ${DU()} through the same calendar date in both years. Drag to compare earlier dates.`,'About Distance')}</h2>
       <div class="card conrace runrace" data-current-year="${thisYear}" data-previous-year="${prevYear}">
       <div class="conkick" data-con-date>YOU VS YOU · ${new Date(todayISO+'T00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}).toUpperCase()}</div>
-      <div class="conscore runscore"><span><small>${prevYear} you</small><b data-con-count="${prevYear}">${Math.round(pt)}</b><small>${DU()}</small></span>
+      <div class="conscore runscore" data-raceswap role="button" tabindex="0"
+        aria-label="Show ${canShare?'totals':'share of last year'} instead"><span><small>${prevYear} you</small><b data-con-count="${prevYear}">${showN(pt)}</b><small>${unit}</small></span>
         <strong class="congap ${gap>=0?'up':''}" data-con-gap>${gapCopy}</strong>
-        <span><small>${thisYear} you</small><b data-con-count="${thisYear}">${Math.round(ct)}</b><small>${DU()}</small></span></div>
+        <span><small>${thisYear} you</small><b data-con-count="${thisYear}">${showN(ct)}</b><small>${unit}</small></span></div>
       <div class="zoom conzoom" data-zoom><svg viewBox="0 0 340 205" role="img" data-scrub="race" data-race-unit="${DU()}"
         data-scrub-year="${thisYear}" data-sx0="${x0}" data-sxw="${xw}" data-sy0="${y0}" data-syh="${yh}" data-smax="${yMax}">`;
     for(let g=0;g<=4;g++){const v=yMax*g/4,y=Y(v);h+=`<line x1="${x0}" y1="${y}" x2="${x0+xw}" y2="${y}" stroke="var(--line)" stroke-width=".6" ${g?'stroke-dasharray="2 3"':''}></line><text x="26" y="${y+3}" text-anchor="end" font-family="var(--mono)" font-size="7" fill="var(--muted)">${Math.round(v)}</text>`;}
