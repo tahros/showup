@@ -19,7 +19,7 @@ const H=run(`[...document.querySelectorAll('#view h2')].map(h=>h.firstChild.text
 ok('Growth Audit omits the competing Heaviest summary',run(`!document.querySelector('.garecord')&&!/Heaviest/i.test(document.querySelector('.gacard').textContent)`));
 ok('Growth Audit exposes recent record movement when present',run(`!!document.querySelector('.gadelta')`));
 const css=fs.readFileSync(path.join(dir,'css/app.css'),'utf8');
-ok('Session Build chips are thumb-sized',/\.pmixlgd span\{[^}]*min-height:38px/.test(css.replace(/\n/g,'')));
+ok('Session Build legend targets stay thumb-sized without capsules',/\.pmixlgd button\{[^}]*min-height:44px[^}]*border:0[^}]*background:transparent/.test(css.replace(/\n/g,'')));
 ok('Session Build has a genuinely categorical palette',new Set([...css.matchAll(/--p-(?:chest|back|shoulder|legs|biceps|triceps|sixpack):(#\w+)/gi)].map(m=>m[1].slice(1,2))).size>3);
 ok('Consistency verdict pill is enlarged',/\.congap\{[^}]*min-width:88px[^}]*font-size:12px/.test(css.replace(/\n/g,'')));
 const mt=run(`[...document.querySelectorAll('.mpacecard svg text')].map(t=>t.textContent)`);

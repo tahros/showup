@@ -989,12 +989,12 @@
     opacity:0;pointer-events:none;transform:translateX(6px);
     transition:opacity .18s ease,transform .18s ease}
   .pmixnow.on{opacity:1;pointer-events:auto;transform:translateX(0)}
-  /* v3.3.122: centred, per the maker */
-  .pmixlgd{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 10px;margin:0 0 14px}   /* v3.3.126: 6→14 */
-  .pmixread{min-height:15px;text-align:center;font-family:var(--mono);font-size:9px;
-    color:var(--muted);margin:0 0 14px}   /* v3.3.126: 6→14 */
-  .pmixread .pmxd{color:var(--chalk);font-weight:700}
-  .pmixread .pmxt{color:var(--chalk);font-weight:700}
+  /* v3.3.228: the legend is chart furniture, not a cloud of seven buttons.
+     The controls keep 44px transparent hit areas; only the small swatch and
+     selected underline are visible. Four stable columns yield a quiet 4+3
+     rhythm without hiding any body part behind horizontal scrolling. */
+  .pmixlgd{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;
+    margin:0 0 12px;padding:0 0 12px;border-bottom:1px solid var(--line)}
   /* v3.3.123: the year rides just outside the plot, top-left, and swaps as
      you scroll past a boundary — so a deep scroll always says where it is. */
   .pmixyr{position:absolute;left:0;top:-2px;z-index:2;
@@ -1022,15 +1022,21 @@
   /* v3.3.121: tap a name to isolate it. A single-hue ramp cannot be matched
      to a legend by eye — that is the cost of the ramp, and this is the
      answer to it. */
-  .pmixlgd span{display:inline-flex;align-items:center;gap:4px;cursor:pointer;
-    font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.02em;
-    transition:opacity .15s ease,color .15s ease}
-  .pmixlgd span.on{color:var(--chalk);font-weight:700}
-  .pmixlgd span.off{opacity:.4}
+  .pmixlgd button{--pmix-part:var(--muted);position:relative;display:flex;align-items:center;justify-content:center;
+    gap:6px;min-width:0;min-height:44px;padding:0 3px;border:0;background:transparent;
+    color:var(--muted);font-family:var(--mono);font-size:10px;letter-spacing:.02em;
+    cursor:pointer;transition:opacity .15s ease,color .15s ease}
+  .pmixlgd button::after{content:'';position:absolute;left:18%;right:18%;bottom:2px;
+    height:2px;border-radius:1px;background:var(--pmix-part);transform:scaleX(0);
+    transform-origin:center;transition:transform .15s ease}
+  .pmixlgd button.on{color:var(--chalk);font-weight:700}
+  .pmixlgd button.on::after{transform:scaleX(1)}
+  .pmixlgd button.off{opacity:.4}
   #pmixWrap rect[data-pt]{transition:opacity .15s ease}
   @media (prefers-reduced-motion:reduce){
-    .pmixlgd span,#pmixWrap rect[data-pt]{transition:none}}
-  .pmixlgd i{width:8px;height:8px;border-radius:2px;flex:0 0 auto}
+    .pmixlgd button,.pmixlgd button::after,#pmixWrap rect[data-pt]{transition:none}}
+  .pmixlgd i{width:8px;height:8px;border-radius:2px;flex:0 0 8px;background:var(--pmix-part)}
+  @media(max-width:390px){.pmixlgd button{gap:5px;font-size:9px;padding:0 2px}}
   @media (prefers-reduced-motion:reduce){
     .pmixwrap{scroll-behavior:auto}
     .pmixnow{transition:none}}
@@ -1305,12 +1311,7 @@
   .garcnote{font-family:var(--mono);font-size:11px;color:var(--faint);
     line-height:1.5;padding-top:4px}
   .garow b{display:block;font-size:13px;color:var(--chalk);font-weight:600}
-  /* v3.3.217: Session Build filters are thumb-sized controls. Growth Audit's
-     recent change sits quietly beside its status mark. */
-  .pmixlgd{gap:8px}
-  .pmixlgd span{justify-content:center;gap:7px;min-height:38px;padding:8px 11px;
-    border:1px solid var(--line);border-radius:12px;background:var(--surface2);font-size:11px}
-  .pmixlgd i{width:11px;height:11px;border-radius:3px}
+  /* v3.3.217: Growth Audit's recent change sits quietly beside its status mark. */
   .garight{display:flex;align-items:center;justify-content:flex-end;gap:7px;min-width:0}
   .gadelta{font-family:var(--mono);font-size:9px;font-weight:700;color:var(--accent-ink);
     white-space:nowrap;padding:3px 5px;border-radius:6px;background:color-mix(in srgb,var(--accent) 10%,transparent)}

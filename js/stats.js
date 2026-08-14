@@ -42,16 +42,6 @@ let PMIX_FOCUS=null;
 /* v3.3.122: press a column and read that day out in full. The chart is
    discrete, so this is an index lookup rather than the interpolation the
    line charts need. */
-/* v3.3.125: the drag-scrubber is gone. Tapping is the only interaction now
-   and it does one thing — follow a body part — so this line says that, and
-   says what you are following once you have chosen. */
-function pmixHint(){
-  const el=document.getElementById('pmixRead');
-  if(!el) return;
-  el.innerHTML = PMIX_FOCUS
-    ? `Showing <b style="color:${PART_COLORS[PMIX_FOCUS]}">${PMIX_FOCUS}</b> · tap again to show all`
-    : 'One block = one completed set · tap to follow a body part';
-}
 /* v3.3.208: a receipt, not a performance verdict. Set count is comparable
    across equipment, but more sets are not automatically a better workout,
    so the old up/down trend is deliberately gone. */
@@ -73,8 +63,8 @@ function pmixApplyFocus(){
   document.querySelectorAll('.pmixlgd [data-pt]').forEach(s=>{
     s.classList.toggle('on',  PMIX_FOCUS===s.dataset.pt);
     s.classList.toggle('off', !!PMIX_FOCUS && PMIX_FOCUS!==s.dataset.pt);
+    s.setAttribute('aria-pressed',String(PMIX_FOCUS===s.dataset.pt));
   });
-  pmixHint();
   pmixSummary();
 }
 function pmixSetFocus(part){
@@ -670,11 +660,10 @@ function renderStats(){
   cut('rhythm');
   /* v3.3.208: Session Build keeps the honest part mix and the live-growing
      skyline, but every unit is now one completed set — never mixed tonnage. */
-  h+=`<h2>Session build${hActs('pmix',"One block per completed strength set, stacked by body part. Runs stay separate.",'About Session build')}</h2>
+  h+=`<h2>Session build${hActs('pmix',"One block per completed set, stacked by body part. Tap a label to follow it; tap again for all. Runs stay separate.",'About Session build')}</h2>
       <div class="card">
-        <div class="pmixlgd">${Object.keys(SEED.catalog).filter(p=>p!=='Run').map(p=>
-          `<span data-pt="${p}"><i style="background:${PART_COLORS[p]||'var(--muted)'}"></i>${p}</span>`).join('')}</div>
-        <div class="pmixread" id="pmixRead">One block = one completed set · tap to follow a body part</div>
+        <div class="pmixlgd" role="group" aria-label="Follow a body part">${Object.keys(SEED.catalog).filter(p=>p!=='Run').map(p=>
+          `<button type="button" data-pt="${p}" aria-pressed="${PMIX_FOCUS===p}" style="--pmix-part:${PART_COLORS[p]||'var(--muted)'}"><i></i><span>${p}</span></button>`).join('')}</div>
         <div class="pmixbox">
           <span class="pmixyr" id="pmixYr"></span>
           ${pmixAxisSvg(partMix(PMIX_DAYS))}
