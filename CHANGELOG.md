@@ -1,5 +1,18 @@
 # ShowUp — changelog
 
+## v3.3.229 (2026-08-14) — Follow the selected body part
+
+**The beacon now answers the active filter.** With all parts visible, Session
+Build still animates the newest strength session. After selecting a body part,
+the animation moves to that part's own most recent bar—even when a different
+body part was trained more recently. A body part with no history gets no false
+latest marker.
+
+**The legend is visually tighter without becoming harder to tap.** Both rows
+keep their transparent 44-pixel targets, while the visible swatches and labels
+move four pixels toward the middle seam. This removes eight pixels of perceived
+row distance and keeps the quiet selected underline attached to its label.
+
 ## v3.3.228 (2026-08-14) — Session Build becomes chart furniture
 
 **The capsule cloud is gone.** Session Build's seven body-part controls now

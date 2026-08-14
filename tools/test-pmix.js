@@ -319,6 +319,27 @@ ok("clearing the focus removes the labels",
 ok("the legend uses a stable four-column 4+3 grid",
    /\.pmixlgd\{[^}]*display:grid[^}]*grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/.test(
      fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\n/g, "")));
+ok("the two visible legend rows sit closer without shrinking their 44px tap areas",
+   /\.pmixlgd button\{[^}]*min-height:44px/.test(css.replace(/\n/g, "")) &&
+   /\.pmixlgd button i,\.pmixlgd button span\{transform:translateY\(4px\)\}/.test(css) &&
+   /\.pmixlgd button:nth-child\(n\+5\) i,\.pmixlgd button:nth-child\(n\+5\) span\{transform:translateY\(-4px\)\}/.test(css));
+
+// ---- latest means latest for the selected body part ---------------------
+run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
+  const mk=(off,p)=>{const d=new Date(t); d.setDate(d.getDate()-off);
+    DB.days[d.toLocaleDateString('en-CA')]={w:[{part:p,ex:'X',w:40,reps:[10],at:1}],upd:1};};
+  mk(1,'Chest'); mk(2,'Back'); mk(3,'Back'); mk(4,'Legs');
+  SEED=deriveAll(); view='stats'; PMIX_FOCUS=null; render();})()`);
+ok("without a filter the animation belongs to the chart's newest session",
+   run(`document.querySelector('#pmixWrap .pmixcol.latest').dataset.col`) ===
+   String(run(`partMix(PMIX_DAYS).length-1`)));
+run(`pmixSetFocus('Back');`);
+ok("with a filter the animation moves to that part's rightmost bar",
+   run(`(function(){const rows=partMix(PMIX_DAYS), want=rows.map((r,i)=>r.by.Back?i:-1).filter(i=>i>=0).pop();
+     const col=document.querySelector('#pmixWrap .pmixcol.latest');
+     const seg=document.querySelector('#pmixWrap .pmixseg.latest');
+     return +col.dataset.col===want && +seg.dataset.barCol===want && seg.dataset.pt==='Back';})()`) === true);
+run(`pmixSetFocus('Back');`);
 
 // ---- it owns its horizontal gesture --------------------------------------
 ok("the chart is in the tab-swipe blocklist (it scrolls sideways)",

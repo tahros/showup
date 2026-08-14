@@ -386,8 +386,16 @@ if not _re.search(r"\.pmixlgd\{[^}]*display:grid[^}]*grid-template-columns:repea
     fail.append("session build: legend must keep the approved four-column 4+3 grid (v3.3.228)")
 if not _re.search(r"\.pmixlgd button\{[^}]*min-height:44px[^}]*border:0[^}]*background:transparent", _flat_css):
     fail.append("session build: legend targets must remain transparent and thumb-sized (v3.3.228)")
-if not _re.search(r"\.pmixlgd button\.on::after\{[^}]*transform:scaleX\(1\)", _flat_css):
-    fail.append("session build: selected part needs the quiet coloured underline (v3.3.228)")
+if not _re.search(r"\.pmixlgd button\.on span::after\{[^}]*transform:scaleX\(1\)", _flat_css):
+    fail.append("session build: selected part needs the quiet coloured underline (v3.3.229)")
+if not all(_rule in _flat_css for _rule in (
+        ".pmixlgd button i,.pmixlgd button span{transform:translateY(4px)}",
+        ".pmixlgd button:nth-child(n+5) i,.pmixlgd button:nth-child(n+5) span{transform:translateY(-4px)}")):
+    fail.append("session build: visible legend rows must be tightened without shrinking tap areas (v3.3.229)")
+if not all(_logic in _stats for _logic in (
+        "let latestIndex=rows.length-1", "if(PMIX_FOCUS)",
+        "latest=i===latestIndex", "p===PMIX_FOCUS")):
+    fail.append("session build: latest animation must follow the selected body part (v3.3.229)")
 _settings = (d/"js/settings.js").read_text()
 if not all(_credit in _settings for _credit in (
         "minus-8363736", "trend-2344331", "ARIPATUT DASUKI",

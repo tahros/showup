@@ -1,4 +1,4 @@
-# ShowUp — handoff (2026-08-14, v3.3.228)
+# ShowUp — handoff (2026-08-14, v3.3.229)
 
 Paste this into a new conversation to resume with full context.
 
@@ -16,8 +16,8 @@ Sheets training log.
 - localStorage key: `tracker-v1`
 - Fonts: IBM Plex Sans / IBM Plex Mono
 
-**Current release version: v3.3.228** (Session Build uses the approved minimal
-4+3 chart legend; capsule buttons and the permanent instruction are gone)
+**Current release version: v3.3.229** (Session Build's compact 4+3 legend keeps
+44px tap targets, and its latest animation follows the selected body part)
 
 ---
 

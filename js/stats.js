@@ -108,6 +108,17 @@ function partMixSvg(days){
   const rows=partMix(days);
   PMIX_YEARS=rows.map(r=>r.d.slice(0,4));
   if(!rows.length) return '';
+  /* v3.3.229: "latest" follows the story the user selected. With no focus,
+     it is the newest strength session; with a focus, it is the newest
+     session that actually contains that body part. An absent part gets no
+     false beacon at all. */
+  let latestIndex=rows.length-1;
+  if(PMIX_FOCUS){
+    latestIndex=-1;
+    for(let i=rows.length-1;i>=0;i--) if(rows[i].by[PMIX_FOCUS]){
+      latestIndex=i; break;
+    }
+  }
   const max=pmixMax(rows);
   const W=Math.max(320,rows.length*PMIX_COLW+16);
   const bw=PMIX_COLW-2.5, unit=(PMIX_BASE-PMIX_TOP)/max;
@@ -146,7 +157,7 @@ function partMixSvg(days){
        font-weight="700" fill="var(--muted)" data-yrmark="${rows[0].d.slice(0,4)}"
        >${rows[0].d.slice(0,4)}</text>`;
   rows.forEach((r,i)=>{
-    const x=8+i*PMIX_COLW, latest=i===rows.length-1;
+    const x=8+i*PMIX_COLW, latest=i===latestIndex;
     const live=latest&&r.d===todayISO&&isLive();
     s+=`<rect class="pmixcol${latest?' latest':''}${live?' live':''}" data-col="${i}"
          x="${x-2}" y="${PMIX_TOP}" width="${PMIX_COLW}"
@@ -156,7 +167,7 @@ function partMixSvg(days){
       const n=r.by[p]; if(!n) continue;
       const hh=(n/max)*(PMIX_BASE-PMIX_TOP);
       y-=hh;
-      s+=`<rect class="pmixseg${latest?' latest':''}" x="${x}" y="${y.toFixed(1)}" width="${bw}" height="${hh.toFixed(1)}"
+      s+=`<rect class="pmixseg${latest&&(!PMIX_FOCUS||p===PMIX_FOCUS)?' latest':''}" data-bar-col="${i}" x="${x}" y="${y.toFixed(1)}" width="${bw}" height="${hh.toFixed(1)}"
            fill="${PART_COLORS[p]||'var(--muted)'}" data-pt="${p}"
            stroke="var(--ground)" stroke-width="0.5"></rect>`;
     }
