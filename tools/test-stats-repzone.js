@@ -288,8 +288,14 @@ check("tapping again closes it", `!document.querySelector('.garcpt')`, true);
 // a lift with no record at all explains itself rather than showing nothing
 gaSeed(`for(const n of [16,12,3]) DB.days[_D(n)]={w:[{part:'Chest',ex:'Chest Fly',w:45,reps:[10]}],upd:1};`);
 run(`document.querySelector('.garow[data-gaex]').click();`);
-check("a lift with no PR says so plainly",
-      `document.querySelector('.garcnote').textContent`, "No improvement yet.");
+/* v3.3.239: "No improvement yet." was true but unhelpful — it never said
+   WHAT had to be beaten. The note now names the bar and the best ever sits
+   above it. */
+check("a lift with no PR says what would beat it",
+      `/heavier load than this, or more reps at a load you have already used/
+        .test(document.querySelector('.garcnote').textContent)`, true);
+check("...above a stated best ever",
+      `document.querySelector('.garcrow .garck').textContent`, "Best ever");
 
 // an aged-out improvement stays available with the same compact date
 gaSeed(`DB.days[_D(80)]={w:[{part:'Chest',ex:'Chest Fly',w:45,reps:[10]}],upd:1};
@@ -365,5 +371,34 @@ check("an exercise with no home falls back to the muscle taxonomy",
       `gaGroupForRow(['Legs','Leg Extension',40,[10]])`, "Legs");
 check("...and Biceps still folds into Arms",
       `gaGroupForRow(['Biceps','Barbell Curl',30,[10]])`, "Arms");
+
+
+// ---- v3.3.239: the receipt names the set standing in the way ------------
+// "I just lifted 85 kg — why is this not a record?" was unanswerable from the
+// card, because the all-time best was never shown.
+gaSeed(`DB.days[_D(60)]={w:[{part:'Back',ex:'Deadlift',w:85,reps:[6]}],upd:1};
+        DB.days[_D(6)]={w:[{part:'Back',ex:'Deadlift',w:80,reps:[6,7]}],upd:1};
+        DB.days[todayISO]={w:[{part:'Back',ex:'Deadlift',w:85,reps:[6,6]}],upd:1};`);
+run(`(function(){ga.grp='Back'; render();
+  [...document.querySelectorAll('.garow[data-gaex]')].find(x=>/Deadlift/.test(x.textContent)).click();})()`);
+check("a lift with nothing beaten still names its best ever",
+      `document.querySelector('.garcrow .garck').textContent`, "Best ever");
+check("...with the set and the day it happened",
+      `document.querySelector('.garcrow b').textContent`, "85kg × 6");
+check("...and says what a record would take",
+      `/heavier load than this, or more reps at a load you have already used/
+        .test(document.querySelector('.garcnote').textContent)`, true);
+
+// when a record DID land, the best ever appears only if it differs
+gaSeed(`DB.days[_D(10)]={w:[{part:'Back',ex:'Deadlift',w:80,reps:[3]}],upd:1};
+        DB.days[_D(6)]={w:[{part:'Back',ex:'Deadlift',w:80,reps:[7]}],upd:1};
+        DB.days[todayISO]={w:[{part:'Back',ex:'Deadlift',w:85,reps:[6]}],upd:1};`);
+run(`(function(){ga.grp='Back'; render();
+  [...document.querySelectorAll('.garow[data-gaex]')].find(x=>/Deadlift/.test(x.textContent)).click();})()`);
+check("a fresh record reads Improved to, not Best ever",
+      `document.querySelector('.garcrow .garck').textContent`, "Improved to");
+check("...and does not repeat itself as the best ever",
+      `[...document.querySelectorAll('.garcrow .garck')].map(x=>x.textContent).join('|')`,
+      "Improved to|Previous best");
 
 process.exit(fail?1:0);

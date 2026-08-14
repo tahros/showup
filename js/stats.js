@@ -476,10 +476,21 @@ const gaDay=iso=>{
 function gaReceipt(e){
   const r=e.record, pr=r.pr;
   if(!r.best) return `<div class="garcpt"><div class="note">No completed sets yet.</div></div>`;
-  if(!pr) return `<div class="garcpt"><div class="garcnote">No improvement yet.</div></div>`;
+  /* v3.3.239: ALWAYS name the all-time best, and when nothing improved, say
+     what the last session had to beat. Without it the card could not answer
+     the obvious question — "I just lifted 85 kg, why is this not a record?" —
+     because the set standing in the way was never shown. The honest answer is
+     usually "you have lifted this before", and now the card says so itself. */
+  const bestRow=['Best ever',`${wTxt(e.name,r.best.w)} \u00d7 ${r.best.rep}`,gaDay(r.best.d)];
+  if(!pr) return `<div class="garcpt">
+    <div class="garcrow"><span class="garck">${bestRow[0]}</span><b>${bestRow[1]}</b><span class="garcw">${bestRow[2]}</span></div>
+    <div class="garcnote">No set has beaten it yet \u2014 a record needs a heavier load than this, or more reps at a load you have already used.</div></div>`;
   const rows=[];
   if(pr) rows.push(['Improved to',`${wTxt(e.name,pr.w)} \u00d7 ${pr.rep}`,gaDay(pr.d)]);
   if(pr&&pr.beat) rows.push(['Previous best',`${wTxt(e.name,pr.beat.w)} \u00d7 ${pr.beat.rep}`,gaDay(pr.beat.d)]);
+  /* only when the record book disagrees with the latest gain — otherwise it
+     would just repeat the line above it */
+  if(r.best.w!==pr.w||r.best.rep!==pr.rep) rows.push(bestRow);
   return `<div class="garcpt">${rows.map(([k,v,w])=>
     `<div class="garcrow"><span class="garck">${k}</span><b>${v}</b><span class="garcw">${w}</span></div>`).join('')}</div>`;
 }
