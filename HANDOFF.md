@@ -1,4 +1,4 @@
-# ShowUp — handoff (2026-08-14, v3.3.234)
+# ShowUp — handoff (2026-08-14, v3.3.235)
 
 Paste this into a new conversation to resume with full context.
 
@@ -16,8 +16,8 @@ Sheets training log.
 - localStorage key: `tracker-v1`
 - Fonts: IBM Plex Sans / IBM Plex Mono
 
-**Current release version: v3.3.234** (Pace uses clean clock ticks, neutral
-labels on every point and real dates; Every Week also uses actual dates)
+**Current release version: v3.3.235** (Pace focuses on six months, uses blue
+ordinary points, larger labels and more title-to-chart spacing)
 
 ---
 

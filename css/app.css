@@ -485,8 +485,8 @@
   h2.quiet::before{background:var(--line)}
   h2:first-child{margin-top:4px}
   h2 .hi{color:var(--accent-ink);font-weight:600}
-  /* v3.3.234: charts need a little more air than a row-list card. */
-  h2.charthead{margin-bottom:16px}
+  /* v3.3.235: chart titles stay clearly separate from the plotting area. */
+  h2.charthead{margin-bottom:24px}
   /* v3.3.54: the INFO pill returns to a small "i" dot beside its section
      title. Same affordance, a word's less shouting; the tap target keeps
      ~18px via the circle. lowercase — an "I" dot reads as a letter, not a

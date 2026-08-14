@@ -1,5 +1,15 @@
 # ShowUp — changelog
 
+## v3.3.235 (2026-08-14) — Pace focuses on the recent six months
+
+**The comparison is closer to the run you are living now.** Pace now shows the
+latest six monthly averages instead of twelve, giving each point enough room to
+be read quickly. Ordinary points use the same blue as the line; the fastest
+month remains red so the exception is immediately clear.
+
+**The numbers are easier to scan.** Pace labels are larger and heavier, while
+the chart section gains more space between its title and plotting card.
+
 ## v3.3.234 (2026-08-14) — Running charts speak in clock time and dates
 
 **Pace is readable without decoding the axis.** Its grid now lands on clean
