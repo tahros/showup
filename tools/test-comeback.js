@@ -93,9 +93,8 @@ ok("v3.3.101: comebacks no longer renders anywhere in Stats",
    !/comeback/.test(sv()), sv().includes("comeback") ? "still present" : "absent, as intended");
 ok("...even though the derivation still finds them (2, longest 13)",
    run(`JSON.stringify(comebacks())`) === '{"n":2,"longest":13}');
-ok("...and the streak KPI card has exactly two children now (value, label — no third .d)",
-   run(`document.querySelector('.kpis .kpi:last-child').children.length`) === 2,
-   run(`document.querySelector('.kpis .kpi:last-child').children.length`));
+ok("...and the unified attendance hero carries streak + best without comeback copy",
+   run(`!!document.querySelector('.crbest')&&!/comeback/.test(document.querySelector('.crcard').textContent)`));
 
 // ---- past-day edits update it (derived, not stored) ------------------------
 seed([1,9]);

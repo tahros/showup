@@ -32,16 +32,16 @@ const fresh = `DB.days={
 }; DB.settings.bodyKg=70; DB.settings.unit='kg'; delete DB.settings.bwSeeded;
    bwEdit=false; SEED=deriveAll();`;
 
-// ---- 1. the empty state asks once, quietly --------------------------------
+// ---- 1. no weight means no Stats section; first entry lives in Settings ----
 run(`${fresh} DB.settings.bodyKg=null; bwCard();`);
-check("no entries and no scalar → the Add affordance", `/id="bwEditBtn"/.test(bwCard())`, true);
-check("...and it says so plainly", `/No weight recorded yet/.test(bwCard())`, true);
+check("no entries and no scalar → no weight card", `bwCard()`, "");
+check("...and no empty-state chore", `/No weight recorded yet/.test(bwCard())`, false);
 check("...with no chart drawn", `/<svg/.test(bwCard())`, false);
 
 // ---- 2. ONE entry still draws: a flat line is the true shape of the record -
 run(`${fresh} setBw('2024-01-10', 70);`);
 check("one entry DOES draw a chart", `/<svg/.test(bwCard())`, true);
-check("...it states the value", `/70 <span/.test(bwCard())`, true);
+check("...it states the value", `bwCard().indexOf('>70</b> kg')>-1`, true);
 check("...and names it unchanged since the entry", `/unchanged since/.test(bwCard())`, true);
 const d1 = (run(`bwCard()`).match(/<path d="([^"]+)"/) || [])[1] || "";
 const ys1 = d1.split(/(?=[ML])/).map(s => parseFloat(s.replace(/^[ML]\s*/, "").split(/\s+/)[1])).filter(n => !isNaN(n));
@@ -102,11 +102,13 @@ check("...below Monthly pace, closing the days story",
       `$('#view').innerHTML.indexOf('secWeight') > $('#view').innerHTML.indexOf('Monthly pace')`, true);
 // the removed sections must be gone from every render, not merely reordered
 // v3.3.130: Report card RETURNS — as the single share surface, not the old month-stepper
-check("Report card renders again, as the share surface", `/Report card/.test($('#view').innerHTML)`, true);
-check("...and it is the carousel, not the old month nav", `!!document.getElementById('repShare')`, true);
+check("Report card is absent from Stats", `/id="secReport"/.test($('#view').innerHTML)`, false);
+run(`view='history'; render();`);
+check("...and lives collapsed in History", `!!document.getElementById('secReport')&&!document.getElementById('secReport').open`, true);
+run(`view='stats'; render();`);
 check("Last 30 days no longer renders", `/vs your usual/.test($('#view').innerHTML)`, false);
-check("...and above the Report card",
-      `$('#view').innerHTML.indexOf('secWeight') < $('#view').innerHTML.indexOf('secReport')`, true);
+check("...and remains after the retained analysis sections",
+      `$('#view').innerHTML.indexOf('secWeight') > $('#view').innerHTML.indexOf('Monthly pace')`, true);
 check("this fixture has no drift rows at all", `/Last 30 days/.test($('#view').innerHTML)`, false);
 check("...and the weight card renders anyway (it precedes the conditional)",
       `/id="secWeight"/.test($('#view').innerHTML)`, true);
@@ -204,8 +206,8 @@ console.log((oneBreath ? "PASS" : "FAIL"),
             `the tip is one sentence within the app's range \u2192 ${tipLen} chars`);
 if (!oneBreath) fail++;
 
-// the dot is offered in every state, including the empty one
+// no empty card means no empty explanatory dot
 run(`${fresh} DB.settings.bodyKg=null; DB.days={};`);
-check("the empty state still explains itself", `/data-tip="bw"/.test(bwCard())`, true);
+check("the empty state stays absent", `/data-tip="bw"/.test(bwCard())`, false);
 
 process.exit(fail ? 1 : 0);

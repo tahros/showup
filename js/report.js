@@ -969,6 +969,19 @@ function bindRepSwipe(){
   bindSwipe(document.getElementById('repCard'),step=>repRotate(step));
 }
 let _repIdx=0;
+/* v3.3.230: report cards are exports of the ledger, so they live beside the
+   ledger in History. The surface stays collapsed until somebody wants to
+   share; Stats is now analysis only. */
+function reportCardSection(){
+  const n=shareCards().length;
+  return `<h2 id="secReportHead">Monthly reports</h2><details class="card rephistory" id="secReport">
+    <summary><span>Share your progress</span><span class="mono muted">${n} card${n===1?'':'s'} <b>→</b></span></summary>
+    <div class="repcard" id="repCard">
+      <div class="repnav"><button class="repar" id="repPrev" aria-label="Previous card">‹</button><div class="repttl" id="repTtl">&nbsp;</div><button class="repar" id="repNext" aria-label="Next card">›</button></div>
+      <div class="repthumbwrap"><img id="repThumb" alt="" class="repthumb"></div><div class="note repdots" id="repDots"></div>
+      <button class="btn" id="repShare">Share as image</button><button class="btn ghost" id="repAll" style="margin:8px 0 0">Save all ${n}</button>
+    </div></details>`;
+}
 function repCardAt(){
   const L=shareCards();
   if(!L.length) return null;
@@ -1024,3 +1037,6 @@ document.addEventListener('click',e=>{
     return;
   }
 });
+document.addEventListener('toggle',e=>{
+  if(e.target&&e.target.matches&&e.target.matches('#secReport[open]')) paintRepCard();
+},true);

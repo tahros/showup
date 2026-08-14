@@ -1058,11 +1058,22 @@ function runStatsHTML217(){
   const timed=days.filter(r=>r.timed>0), avgPace=timed.length?timed.reduce((a,r)=>a+r.sec,0)/timed.reduce((a,r)=>a+toD(r.timed),0):0;
   const mo=todayISO.slice(0,7), monthName=new Date(todayISO+'T00:00').toLocaleDateString('en-US',{month:'long'});
   const monthRows=days.filter(r=>r.d.startsWith(mo)), monthKm=monthRows.reduce((a,r)=>a+toD(r.km),0);
-  let h=`<h2 id="secRun">Run</h2><div class="kpis">
-    <div class="kpi hero accent"><div class="v">${fmt(Math.round(total))}</div><span><div class="l">${DU()}, all time</div><div class="d">${days.length} runs since ${md(days[0].d)}</div></span></div>
-    <div class="kpi"><div class="v">${Math.round(ytd)}</div><div class="l">${DU()} in ${thisYear}</div></div>
-    <div class="kpi"><div class="v">${dDisp(recentAvg)}</div><div class="l">avg ${DU()} / run</div><div class="d">last 28 days</div></div>
-    <div class="kpi"><div class="v">${paceStr(avgPace)}</div><div class="l">avg pace / ${DU()}</div></div></div>`;
+  const STEP=25,next=Math.max(STEP,(Math.floor(monthKm/STEP)+1)*STEP),left=Math.max(0,next-monthKm),monthRate=monthKm/Math.max(1,+todayISO.slice(8));
+  const etaDays=monthRate?Math.ceil(left/monthRate):null;
+  const monthSec=monthRows.reduce((a,r)=>a+r.sec,0),monthTimedKm=monthRows.reduce((a,r)=>a+toD(r.timed),0);
+  const monthPace=monthTimedKm?monthSec/monthTimedKm:0,monthLongest=monthRows.length?Math.max(...monthRows.map(r=>toD(r.km))):0;
+  const dim=new Date(+mo.slice(0,4),+mo.slice(5),0).getDate(),projection=monthKm/+todayISO.slice(8)*dim;
+  const monthHrs=Math.floor(monthSec/3600),monthMins=Math.round(monthSec%3600/60);
+  /* v3.3.230: one current running card. The month, its next milestone, and
+     the useful summary metrics are one decision surface; the year race,
+     pace history, and fair weekly comparison remain below unchanged. */
+  let h=`<h2 id="secRun">Running · ${monthName}${hActs('runmonth',`This month, its projected finish, and the next ${STEP} ${DU()} milestone.`,'About Running this month')}</h2>
+    <div class="card runmonth"><div class="runmonthhero"><strong>${dDisp(monthKm)} <small>${DU()}</small></strong><span>PROJECTED<b>≈ ${Math.round(projection)} ${DU()}</b></span></div>
+      <div class="runmonthgoal"><div class="mstone"><span class="big">${left.toFixed(1)} ${DU()}</span><span class="goal">to ${next} this month</span></div>
+        <div class="mbar"><i style="width:${Math.max(2,Math.min(100,monthKm/next*100)).toFixed(1)}%"></i></div>
+        <div class="tot"><span><b>${dDisp(monthKm)} ${DU()}</b> logged</span><span>${etaDays?`about ${etaDays} day${etaDays===1?'':'s'} at this pace`:'log a run to start'}</span></div></div>
+      <div class="runmonthgrid"><span><b>${monthRows.length}</b>runs</span><span><b>${monthRows.length?dDisp(monthKm/monthRows.length):'—'} ${DU()}</b>average</span><span><b>${monthPace?paceStr(monthPace):'—'}</b>pace / ${DU()}</span><span><b>${monthRows.length?dDisp(monthLongest):'—'} ${DU()}</b>longest</span><span><b>${monthHrs}:${String(monthMins).padStart(2,'0')}</b>on feet</span><span><b>${Math.round(monthKm/next*100)}%</b>to ${next} ${DU()}</span></div>
+      <div class="runmonthfoot"><span>${Math.round(ytd)} ${DU()} in ${thisYear}</span><span>${fmt(Math.round(total))} ${DU()} · ${days.length} runs since ${md(days[0].d)}</span><span>${dDisp(recentAvg)} ${DU()} avg · 28 days</span><span>${paceStr(avgPace)} avg pace</span></div></div>`;
 
   /* Same-date distance race. The existing race scrubber now reads distance
      when data-race-unit is present, so its scoreboard moves under a thumb. */
@@ -1090,13 +1101,6 @@ function runStatsHTML217(){
       <circle class="beacon conend" cx="${X(n-1)}" cy="${Y(ct)}" r="3.2" fill="var(--accent)"></circle></svg></div></div>`;
   }
 
-  const STEP=25,next=Math.max(STEP,(Math.floor(monthKm/STEP)+1)*STEP),left=Math.max(0,next-monthKm),monthRate=monthKm/Math.max(1,+todayISO.slice(8));
-  const etaDays=monthRate?Math.ceil(left/monthRate):null;
-  h+=`<h2>Monthly milestone${hActs('runms',`The next ${STEP} ${DU()} step resets at the start of every month.`,'About Monthly milestone')}</h2><div class="card">
-    <div class="mstone"><span class="big">${left.toFixed(1)} ${DU()}</span><span class="goal">to ${next} in ${monthName}</span></div>
-    <div class="mbar"><i style="width:${Math.max(2,Math.min(100,monthKm/next*100)).toFixed(1)}%"></i></div>
-    <div class="tot"><span><b>${dDisp(monthKm)} ${DU()}</b> this month</span><span>${etaDays?`about ${etaDays} day${etaDays===1?'':'s'} at this pace`:'log a run to start'}</span></div></div>`;
-
   /* Monthly pace, with quiet labels and a real plotted coordinate system. */
   const pm={}; for(const r of days){if(r.timed<=0)continue;const k=r.d.slice(0,7),e=pm[k]||(pm[k]={sec:0,d:0});e.sec+=r.sec;e.d+=toD(r.timed);}
   const paces=Object.entries(pm).sort().slice(-12).map(([m,e])=>[m,e.sec/e.d]);
@@ -1108,14 +1112,6 @@ function runStatsHTML217(){
     paces.forEach(([m,p],i)=>{const x=x0+i*xw/Math.max(1,paces.length-1),y=Y(p),latest=i===paces.length-1,fast=p===lo&&!latest;poly+=`${x},${y} `;marks+=`<circle ${latest?'class="beacon"':''} cx="${x}" cy="${y}" r="${latest?3.2:fast?2.8:2}" fill="${fast?'var(--record)':'var(--accent)'}"></circle>${latest||fast?`<text x="${x}" y="${y-6}" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="${fast?'var(--record)':'var(--accent-ink)'}">${paceStr(p)}</text>`:''}<text x="${x}" y="120" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="var(--muted)">${'JFMAMJJASOND'[+m.slice(5)-1]}</text>`;});
     const yrs=[...new Set(paces.map(v=>v[0].slice(0,4)))];
     h+=`<h2>Pace${hActs('pace',`Average minutes per ${DU()} by month. Lower is faster; red is the fastest month.`,'About Pace')}</h2><div class="card"><svg viewBox="0 0 330 138" style="width:100%;height:auto"><text x="8" y="12" font-family="var(--mono)" font-size="7" fill="var(--faint)">${yrs.join(' / ')}</text><line x1="${x0}" y1="${y0}" x2="${x0+xw}" y2="${y0}" stroke="var(--line)" stroke-width=".8"></line>${marks}<polyline points="${poly}" fill="none" stroke="var(--accent)" stroke-width="1.3"></polyline></svg></div>`;
-  }
-
-  if(monthRows.length){
-    const sec=monthRows.reduce((a,r)=>a+r.sec,0),timedKm=monthRows.reduce((a,r)=>a+toD(r.timed),0),pace=timedKm?sec/timedKm:0;
-    const longest=Math.max(...monthRows.map(r=>toD(r.km))),dim=new Date(+mo.slice(0,4),+mo.slice(5),0).getDate(),proj=monthKm/+todayISO.slice(8)*dim;
-    const hrs=Math.floor(sec/3600),mins=Math.round(sec%3600/60);
-    h+=`<h2>Running · ${monthName}</h2><div class="card runmonth"><div class="runmonthhero"><strong>${dDisp(monthKm)} <small>${DU()}</small></strong><span>PROJECTED<b>≈ ${Math.round(proj)} ${DU()}</b></span></div>
-      <div class="runmonthgrid"><span><b>${monthRows.length}</b>runs</span><span><b>${dDisp(monthKm/monthRows.length)} ${DU()}</b>average</span><span><b>${paceStr(pace)}</b>pace / ${DU()}</span><span><b>${dDisp(longest)} ${DU()}</b>longest</span><span><b>${hrs}:${String(mins).padStart(2,'0')}</b>on feet</span><span><b>${Math.round(monthKm/next*100)}%</b>to ${next} ${DU()}</span></div></div>`;
   }
 
   /* Fair weekly pace: every bar ends on today's weekday, so an unfinished

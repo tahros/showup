@@ -1,5 +1,23 @@
 # ShowUp — changelog
 
+## v3.3.230 (2026-08-14) — Stats tells fewer, stronger stories
+
+**Attendance is one story now.** The lifetime Show Up total, lifetime rate,
+current streak, best streak, and this month's calendar share one hero card.
+The duplicate Current Rhythm section is gone without removing the calendar or
+its day-level motivation.
+
+**Running starts with the month that is happening.** Running · Month now holds
+the month's distance, projection, next monthly milestone, and useful run
+metrics in one card. Distance, Pace, and Every Week remain as their own deeper
+comparisons. Weight is hidden until a real value exists and then stays
+collapsed near the bottom.
+
+**Stats is analysis; History owns exports.** Report Card is preserved as one
+collapsed Monthly Reports surface in History. Growth Audit, Session Build,
+Muscle Coverage, Consistency, Monthly Pace, Distance, Pace, and Every Week are
+all retained. The actual/base app changed; the unused Modern preview did not.
+
 ## v3.3.229 (2026-08-14) — Follow the selected body part
 
 **The beacon now answers the active filter.** With all parts visible, Session
