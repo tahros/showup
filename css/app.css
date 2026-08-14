@@ -1020,8 +1020,20 @@
   .pmixyr{position:absolute;left:0;top:-2px;z-index:2;
     font-family:var(--mono);font-size:9px;font-weight:700;color:var(--muted);
     background:var(--surface);padding:0 4px;border-radius:3px;pointer-events:none}
-  .pmixsum{text-align:center;font-family:var(--mono);font-size:9px;
-    color:var(--muted);margin:8px 0 0;line-height:1.5}
+  /* v3.3.231: the caption reserves TWO lines whether it needs them or not.
+     Unfocused it reads "All strength · 15,708 completed sets across 938
+     sessions · 16.7 avg" and wraps; focused on a part it fits one line — so
+     tapping a legend chip resized the whole card and shoved everything below
+     it up the screen. The height is derived from the same font-size and
+     line-height the text uses, so the three can never drift apart. */
+  .pmixsum{--sum-fs:9px;--sum-lh:1.5;
+    text-align:center;font-family:var(--mono);font-size:var(--sum-fs);
+    color:var(--muted);margin:8px 0 0;line-height:var(--sum-lh);
+    min-height:calc(var(--sum-fs) * var(--sum-lh) * 2);
+    /* block, NOT flex: the focused caption contains a <b> for the part name,
+       and a flex container would make that its own item beside the rest of
+       the sentence instead of letting it flow inline. */
+    text-wrap:balance}
   .pmixsum b{color:var(--chalk)}
   .pmixsum b.up{color:var(--accent)}
   .pmixsum b.dn{color:var(--record)}

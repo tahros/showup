@@ -676,4 +676,35 @@ ok("axis ticks speak in whole completed sets",
 ok("...through the app's own formatter",
    /const pmixTick=v=>fmt\(Math\.round\(v\)\)/.test(fs.readFileSync(path.join(dir, "js/stats.js"), "utf8")));
 
+
+// ---- v3.3.231: the caption reserves its height, focused or not ----------
+// Tapping a legend chip switched the summary between two lines and one, which
+// resized the card and shoved the sections below it up the screen.
+const sumCss = (function(){
+  const css=fs.readFileSync(path.join(dir,"css/app.css"),"utf8").replace(/\r/g,"");
+  const i=css.indexOf(".pmixsum{");
+  return css.slice(i, css.indexOf("}", i)+1);
+})();
+ok("the summary reserves a minimum height", /min-height:\s*calc\(/.test(sumCss), sumCss.slice(0,40));
+ok("...derived from the same font-size and line-height it renders with",
+   /--sum-fs/.test(sumCss) && /--sum-lh/.test(sumCss)
+   && /font-size:var\(--sum-fs\)/.test(sumCss) && /line-height:var\(--sum-lh\)/.test(sumCss));
+ok("...worth two lines, so a wrap costs no extra height",
+   /calc\(var\(--sum-fs\) \* var\(--sum-lh\) \* 2\)/.test(sumCss));
+ok("...and it stays a block box, so the part name still flows inline",
+   !/display:\s*(flex|grid)/.test(sumCss), sumCss.match(/display:[^;}]*/)?.[0] || "block");
+
+// the element exists in both states and never collapses to nothing
+run(`(function(){PMIX_FOCUS=null; pmixSummary();})()`);
+const unfocused = run(`document.getElementById('pmixSum').textContent.replace(/\\s+/g,' ').trim()`);
+ok("unfocused, the caption reads for all strength work",
+   /^All strength ·/.test(unfocused), unfocused.slice(0,44));
+run(`(function(){PMIX_FOCUS='Chest'; pmixSummary();})()`);
+const focused = run(`document.getElementById('pmixSum').textContent.replace(/\\s+/g,' ').trim()`);
+ok("focused, it names the part instead", /^Chest ·/.test(focused), focused.slice(0,44));
+ok("...and the part name is emphasised inline, not as a separate block",
+   run(`document.querySelector('#pmixSum b')!==null
+        && document.querySelector('#pmixSum').firstElementChild.tagName==='B'`));
+run(`PMIX_FOCUS=null; pmixSummary();`);
+
 process.exit(fail ? 1 : 0);
