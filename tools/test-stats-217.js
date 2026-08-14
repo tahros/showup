@@ -16,7 +16,7 @@ run(`(function(){DB.days={};const now=new Date(todayISO+'T00:00'),y=now.getFullY
     if(i%3===0)(DB.days[iso]||(DB.days[iso]={w:[],upd:1})).w.push({part:'Run',ex:'Run',w:4+(i%4),reps:[],mins:32,secs:0,at:2});}
   SEED=deriveAll();view='stats';render();})()`);
 const H=run(`[...document.querySelectorAll('#view h2')].map(h=>h.firstChild.textContent.trim())`);
-ok('Growth Audit shows a load × reps record',run(`!!document.querySelector('.garecord')&&/kg × \\d+/.test(document.querySelector('.garecord').textContent)`));
+ok('Growth Audit omits the competing Heaviest summary',run(`!document.querySelector('.garecord')&&!/Heaviest/i.test(document.querySelector('.gacard').textContent)`));
 ok('Growth Audit exposes recent record movement when present',run(`!!document.querySelector('.gadelta')`));
 const css=fs.readFileSync(path.join(dir,'css/app.css'),'utf8');
 ok('Session Build chips are thumb-sized',/\.pmixlgd span\{[^}]*min-height:38px/.test(css.replace(/\n/g,'')));

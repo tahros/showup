@@ -333,6 +333,8 @@ _garow = _garow[:_garow.find("</div>`).join")]
 if "e.record.live" not in _garow:
     fail.append("growth audit: row icon must be driven by the same record as the badge — "
                 "badge and mark cannot use separate standards (v3.3.220)")
+if "Heaviest" in _garow or "garecord" in _garow:
+    fail.append("growth audit: exercise rows must not display the retired Heaviest summary (v3.3.226)")
 if _re.search(r"state\.key|gaExerciseState|gaRecord\(", _stats):
     fail.append("growth audit: a second growth standard survives alongside gaPR (v3.3.220)")
 if not _re.search(r"const GA_SIGNAL_LABELS=\{empty:'Empty',flat:'Flat',up:'Going up'\}", _stats):
@@ -353,6 +355,10 @@ if not (_re.search(r"\.ga-empty\{[^}]*color:var\(--faint\)[^}]*opacity:\.55", cs
         and _re.search(r"\.ga-flat\{[^}]*color:var\(--faint\)[^}]*opacity:\.55", css)):
     fail.append("growth audit: Empty and Flat must share the same muted gray treatment (v3.3.212)")
 _gahelp = _stats[_stats.find("function growthAuditSection"):_stats.find("function sessionBuild")]
+if "gaDay(pr.beat.d)" not in _gahelp:
+    fail.append("growth audit: Previous best must carry its own source date (v3.3.226)")
+if not _re.search(r"\.garcrow\{[^}]*grid-template-columns:100px auto minmax\(0,1fr\)", css):
+    fail.append("growth audit: receipt dates must stay beside values, not at the far edge (v3.3.226)")
 if not all(_phrase in _gahelp for _phrase in (
         "Dot: no sets in 7 days", "line: no clear gain",
         "trend: more reps at the same weight, or more weight without fewer reps")):

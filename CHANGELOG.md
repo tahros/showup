@@ -1,5 +1,17 @@
 # ShowUp — changelog
 
+## v3.3.226 (2026-08-14) — Growth Audit keeps each comparison together
+
+**The receipt now reads left to right.** Each short date sits directly beside
+the load × reps it describes instead of being pushed to the far edge of the
+card. `PREVIOUS BEST` now carries its own source date as well as the improved
+set, so both sides of the comparison are independently verifiable.
+
+**Heaviest is gone from exercise rows.** The all-time load summary competed
+with the more useful change badge and status signal without explaining the
+next action. Collapsed rows now keep only the exercise name, recent change,
+and three-state mark; tapping a progressing row reveals the dated evidence.
+
 ## v3.3.225 (2026-08-14) — Growth Audit only celebrates clear gains
 
 **Going Up now requires a directly comparable win.** More repetitions count

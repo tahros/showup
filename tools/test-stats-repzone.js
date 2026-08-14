@@ -69,7 +69,7 @@ run(`_reset();for(const n of [7,5,3,1])_mk(n,[{part:'Back',ex:'Seated Cable Row'
   _finish();ga.grp='Back';render();`);
 check("four unchanged sessions hold no PR",`gaPR(gaExerciseSessions()['seated-cable-row']).live`,false);
 check("Review collapses to the one visible Flat state",`document.querySelector('.gabadge').getAttribute('aria-label')`,"Flat");
-check("the row adds only the record receipt, never review prose",`!!document.querySelector('.garow .garecord')&&!document.querySelector('.garow .note')`,true);
+check("the row stays compact and never adds review prose",`!document.querySelector('.garow .garecord,.garow .note')`,true);
 
 // ---- coverage is personal and rolling, not a universal target -----------
 run(`_reset();
@@ -254,6 +254,14 @@ check("...and the set it beat",
       `(function(){const r=[...document.querySelectorAll('.garcrow')][1];
         return r.querySelector('.garck').textContent+'|'+r.querySelector('b').textContent;})()`,
       "Previous best|45kg × 10");
+check("...and the previous best has its own date",
+      `(function(){const rs=[...document.querySelectorAll('.garcrow')];
+        const ex=Object.values(gaExerciseSessions()).find(e=>e.name==='Chest Fly');
+        return rs[1].querySelector('.garcw').textContent===gaDay(gaPR(ex).pr.beat.d);})()`, true);
+check("dates stay beside their performances instead of at the card edge",
+      `getComputedStyle(document.querySelector('.garcrow')).gridTemplateColumns.split(' ')[1]!== '1fr'`, true);
+check("the unhelpful Heaviest summary is absent from every exercise row",
+      `![...document.querySelectorAll('.garow')].some(r=>/Heaviest/i.test(r.textContent))`, true);
 check("the receipt agrees with the badge on the row above it",
       `(function(){const row=document.querySelector('.garow.open');
         const badge=row.querySelector('.gadelta').textContent.trim();
