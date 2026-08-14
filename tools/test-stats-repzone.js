@@ -338,4 +338,32 @@ check("and a heavier set later in the SAME workout is not progress",
         migrateCanon(); SEED=deriveAll();
         return gaPR(Object.values(gaExerciseSessions()).find(e=>e.name==='Squat')).live;})()`, false);
 
+
+// ---- v3.3.238: a lift's group follows its own home ----------------------
+// Deadlift is DUAL (Back/Legs). Train said "Counts as BACK" while the audit
+// re-derived Legs from the muscle taxonomy, so the app disagreed with itself
+// and with an explicit user choice.
+gaSeed(`DB.days[_D(6)]={w:[{part:'Back',ex:'Deadlift',w:80,reps:[7]},
+                          {part:'Back',ex:'Bent-Over Row',w:65,reps:[10]}],upd:1};
+        DB.days[todayISO]={w:[{part:'Back',ex:'Deadlift',w:85,reps:[6]}],upd:1};`);
+check("a Back-homed Deadlift is audited under Back",
+      `Object.values(gaExerciseSessions()).find(e=>e.name==='Deadlift').group`, "Back");
+check("...and appears in exactly ONE group, never counted twice",
+      `Object.values(gaExerciseSessions()).filter(e=>e.name==='Deadlift').length`, 1);
+check("...so the group's set count stays honest",
+      `(function(){const g=growthAuditData().groups;
+        const back=g['Back'].sets, legs=g['Legs']?g['Legs'].sets:0;
+        return back===3 && legs===0;})()`, true);
+check("the Train tab and the audit now name the same home",
+      `PART_VISIBLE[homePartOf('Deadlift')]===
+       Object.values(gaExerciseSessions()).find(e=>e.name==='Deadlift').group`, true);
+run(`(function(){DB.settings.partOv['Deadlift']='Legs'; SEED=deriveAll();})()`);
+check("'move to Legs' moves the audit row with it",
+      `Object.values(gaExerciseSessions()).find(e=>e.name==='Deadlift').group`, "Legs");
+run(`(function(){delete DB.settings.partOv['Deadlift']; SEED=deriveAll();})()`);
+check("an exercise with no home falls back to the muscle taxonomy",
+      `gaGroupForRow(['Legs','Leg Extension',40,[10]])`, "Legs");
+check("...and Biceps still folds into Arms",
+      `gaGroupForRow(['Biceps','Barbell Curl',30,[10]])`, "Arms");
+
 process.exit(fail?1:0);

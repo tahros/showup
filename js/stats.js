@@ -333,9 +333,21 @@ function gaAllSessions(){
   if(t.length) out.push([todayISO,t]);
   return out;
 }
+/* v3.3.238: the exercise's OWN home decides its group, not the muscle
+   taxonomy. Deadlift is a DUAL lift — the Train tab says "Counts as BACK"
+   and offers "move to Legs" — so the maker has already answered this
+   question, and the audit re-deriving Legs from EX_MUSCLE overrode an
+   explicit choice. Train, History and the audit now agree, and tapping
+   "move to Legs" moves the audit row with it.
+   Not duplicated into both groups: the card counts "N completed sets · N
+   days" per group, and a lift counted twice would overstate both — the
+   same false precision the taxonomy spec rules out by crediting one
+   primary muscle only.
+   The taxonomy remains the fallback, and still owns Muscle coverage, where
+   internal muscles are the point. */
 function gaGroupForRow(r){
-  const m=exMuscle(r[1],r[0]);
-  return MUSCLE_VISIBLE[m]||PART_VISIBLE[r[0]]||r[0];
+  const home=homePartOf(r[1])||r[0];
+  return PART_VISIBLE[home]||MUSCLE_VISIBLE[exMuscle(r[1],r[0])]||home;
 }
 /* One entry per canonical exercise, with one session per actual training day.
    Folded sheet rows and one-row-per-set app data become the same point list. */
