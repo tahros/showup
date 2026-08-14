@@ -18,6 +18,10 @@ w.HTMLCanvasElement.prototype.getContext = function(){ return new Proxy({measure
   {get:(o,k)=>k in o?o[k]:()=>({})}); };
 w.Element.prototype.setPointerCapture = function(){};
 w.Element.prototype.releasePointerCapture = function(){};
+// jsdom has no PointerEvent; MouseEvent carries the fields the race scrubber reads.
+if (!w.PointerEvent) w.PointerEvent = class extends w.MouseEvent {
+  constructor(t, o = {}) { super(t, o); this.pointerId = o.pointerId || 1; this.pointerType = o.pointerType || "touch"; }
+};
 for (const s of order) vm.runInContext(fs.readFileSync(path.join(dir, s), "utf8"), ctx, { filename: s });
 w.document.dispatchEvent(new w.Event("DOMContentLoaded", { bubbles: true }));
 const run = c => vm.runInContext(c, ctx);
