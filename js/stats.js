@@ -370,16 +370,27 @@ function gaPR(ex){
     /* Freeze the comparison baseline for the whole training day. A later set
        in one workout may be better than an earlier set, but that is not
        progress over time. Only prior DAYS can supply the set being beaten. */
-    const priorBest=best;
     let dayPr=null;
+    const priorBest=best;
     for(const p of s.points){
+      /* v3.3.237 — ONE condition changed from v3.3.227, and only one.
+         Two things the maker has said had to be reconciled:
+           (a) a heavier set is a record — a first-ever 85 kg x 6 must count
+               even though an older 80 kg x 7 ran longer;
+           (b) 10 kg x 12 must NEVER claim to improve on 27.5 kg x 10 —
+               dropping the load and adding reps is a different intensity,
+               not progress.
+         Codex's rule satisfied (b) but broke (a), because a load gain also
+         had to match the previous best's REP count. Dropping that single
+         clause satisfies both: going heavier than anything ever lifted is a
+         record on its own, while a rep gain still requires the SAME load, so
+         a lighter set can never borrow credit from a heavier one. */
       const sameLoad=seen.filter(q=>q.w===p.w).sort((a,b)=>b.rep-a.rep)[0];
       const repGain=sameLoad&&p.rep>sameLoad.rep;
-      const loadGain=priorBest&&p.w>priorBest.w&&p.rep>=priorBest.rep;
+      const loadGain=priorBest&&p.w>priorBest.w;
       if(repGain||loadGain){
-        const beat=repGain?sameLoad:priorBest;
-        const candidate={d:s.d,w:p.w,rep:p.rep,
-          beat,
+        const beat=loadGain?priorBest:sameLoad;
+        const candidate={d:s.d,w:p.w,rep:p.rep,beat,
           text: loadGain ? `+${wDisp(p.w-beat.w)} ${U()}`
               : `+${p.rep-beat.rep} rep${p.rep-beat.rep===1?'':'s'}`};
         /* A day's receipt names its strongest qualifying set, independent of

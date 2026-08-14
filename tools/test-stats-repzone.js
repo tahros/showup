@@ -172,10 +172,12 @@ const prOf = (name) => run(`(function(){
   const ex=Object.values(gaExerciseSessions()).find(e=>e.name==='${name}');
   const r=gaPR(ex); return (r.live?'LIT ':'dark ')+(r.change?r.change.text:'no badge');})()`);
 
-// 1. heavier at FEWER reps is a tradeoff, not an unambiguous gain.
+// 1. heavier at fewer reps IS a record — a first-ever 50 kg is new ground
+//     even though an older 45 kg set ran longer. This is the case that sent
+//     the maker looking for a missing 85 kg deadlift in v3.3.237.
 gaSeed(`for(const n of [16,12,8]) DB.days[_D(n)]={w:[{part:'Chest',ex:'Chest Fly',w:45,reps:[15,15],at:1}],upd:1};
         DB.days[_D(3)]={w:[{part:'Chest',ex:'Chest Fly',w:50,reps:[10],at:2}],upd:1};`);
-check("heavier at fewer reps remains Flat", `"${prOf('Chest Fly')}"`, "dark no badge");
+check("heavier at fewer reps is a PR", `"${prOf('Chest Fly')}"`, "LIT +5 kg");
 
 // 2. more reps at the SAME weight
 gaSeed(`for(const n of [16,12]) DB.days[_D(n)]={w:[{part:'Chest',ex:'Chest Fly',w:45,reps:[10]}],upd:1};
@@ -299,5 +301,41 @@ check("an aged-out improvement still uses the compact date",
 check("...while the row itself stays dark and unbadged",
       `(function(){const r=document.querySelector('.garow.open');
         return !r.querySelector('.gadelta') && !r.querySelector('.gabadge.ga-up');})()`, true);
+
+
+// ---- v3.3.237: the maker's 85 kg deadlift ------------------------------
+// A first-ever 85 kg went unbadged because the previous best (80 kg x 7) ran
+// longer, and the rule demanded a heavier set ALSO match that rep count.
+// Going heavier than anything ever lifted is a record on its own.
+gaSeed(`DB.days[_D(10)]={w:[{part:'Back',ex:'Deadlift',w:80,reps:[3,3]}],upd:1};
+        DB.days[_D(6)]={w:[{part:'Back',ex:'Deadlift',w:80,reps:[7]}],upd:1};
+        DB.days[todayISO]={w:[{part:'Back',ex:'Deadlift',w:60,reps:[5]},
+                              {part:'Back',ex:'Deadlift',w:85,reps:[6]}],upd:1};`);
+check("a new heaviest set is a PR even at fewer reps than the old best",
+      `"${prOf('Deadlift')}"`, "LIT +5 kg");
+check("...naming the set it beat",
+      `(function(){const r=gaPR(Object.values(gaExerciseSessions()).find(e=>e.name==='Deadlift'));
+        return r.pr.w+'x'+r.pr.rep+' beat '+r.pr.beat.w+'x'+r.pr.beat.rep;})()`,
+      "85x6 beat 80x7");
+check("...logged TODAY, so a session in progress counts",
+      `(function(){const r=gaPR(Object.values(gaExerciseSessions()).find(e=>e.name==='Deadlift'));
+        return r.pr.d===todayISO;})()`, true);
+// and the two rules that must survive the loosening
+check("a lighter load with more reps still claims nothing",
+      `(function(){
+        const D=n=>{const d=new Date(todayISO+'T00:00');d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA')};
+        DB.days={}; DB.settings.canon={};
+        DB.days[D(20)]={w:[{part:'Shoulder',ex:'Rear Deltoids',w:27.5,reps:[10]}],upd:1};
+        DB.days[D(3)]={w:[{part:'Shoulder',ex:'Rear Deltoids',w:10,reps:[12]}],upd:1};
+        migrateCanon(); SEED=deriveAll();
+        return gaPR(Object.values(gaExerciseSessions()).find(e=>e.name==='Rear Deltoids')).live;})()`, false);
+check("and a heavier set later in the SAME workout is not progress",
+      `(function(){
+        const D=n=>{const d=new Date(todayISO+'T00:00');d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA')};
+        DB.days={}; DB.settings.canon={};
+        DB.days[D(10)]={w:[{part:'Legs',ex:'Squat',w:100,reps:[5]}],upd:1};
+        DB.days[D(3)]={w:[{part:'Legs',ex:'Squat',w:60,reps:[5]},{part:'Legs',ex:'Squat',w:90,reps:[5]}],upd:1};
+        migrateCanon(); SEED=deriveAll();
+        return gaPR(Object.values(gaExerciseSessions()).find(e=>e.name==='Squat')).live;})()`, false);
 
 process.exit(fail?1:0);
