@@ -337,6 +337,11 @@ if "Heaviest" in _garow or "garecord" in _garow:
     fail.append("growth audit: exercise rows must not display the retired Heaviest summary (v3.3.226)")
 if _re.search(r"state\.key|gaExerciseState|gaRecord\(", _stats):
     fail.append("growth audit: a second growth standard survives alongside gaPR (v3.3.220)")
+_gapr = _stats[_stats.find("function gaPR"): _stats.find("function growthAuditData")]
+_day_boundary = _gapr.find("Only after every set has been judged")
+if (_day_boundary < 0 or _gapr.find("seen.push") < _day_boundary
+        or "sets from completed earlier days only" not in _gapr):
+    fail.append("growth audit: sets from one workout must not become baselines until the next day (v3.3.227)")
 if not _re.search(r"const GA_SIGNAL_LABELS=\{empty:'Empty',flat:'Flat',up:'Going up'\}", _stats):
     fail.append("growth audit: public model must contain exactly Empty, Flat and Going up (v3.3.211)")
 _gareceipt = _stats[_stats.find("shown.map"):_stats.find("</div>`).join", _stats.find("shown.map"))]
@@ -361,7 +366,7 @@ if not _re.search(r"\.garcrow\{[^}]*grid-template-columns:100px auto minmax\(0,1
     fail.append("growth audit: receipt dates must stay beside values, not at the far edge (v3.3.226)")
 if not all(_phrase in _gahelp for _phrase in (
         "Dot: no sets in 7 days", "line: no clear gain",
-        "trend: more reps at the same weight, or more weight without fewer reps")):
+        "trend: a later day beat an earlier day at comparable load and reps")):
     fail.append("growth audit: information control must explain all three signals (v3.3.212)")
 if any(_credit in _gahelp for _credit in ("Noun Project", "ARIPATUT DASUKI", "Travis Avery")):
     fail.append("growth audit: icon credits belong in Settings, not the information control (v3.3.212)")

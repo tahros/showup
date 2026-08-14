@@ -1,4 +1,4 @@
-# ShowUp — handoff (2026-08-14, v3.3.226)
+# ShowUp — handoff (2026-08-14, v3.3.227)
 
 Paste this into a new conversation to resume with full context.
 
@@ -16,8 +16,8 @@ Sheets training log.
 - localStorage key: `tracker-v1`
 - Fonts: IBM Plex Sans / IBM Plex Mono
 
-**Current release version: v3.3.226** (Growth Audit receipts keep both dated
-comparison sets together; the redundant Heaviest summary is removed)
+**Current release version: v3.3.227** (Growth Audit compares performances
+across training days only; sets within one workout never compete)
 
 ---
 

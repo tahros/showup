@@ -1,5 +1,18 @@
 # ShowUp — changelog
 
+## v3.3.227 (2026-08-14) — Growth means progress across days
+
+**Sets from one workout no longer compete with each other.** Growth Audit now
+freezes an exercise's history at the start of each training day, judges every
+set against completed earlier days, and only then adds the current day to the
+comparison history. A same-day sequence such as `80kg × 6` followed by
+`80kg × 7` stays Flat instead of manufacturing a `+1 rep` improvement.
+
+**The receipt must cross a day boundary.** If an earlier day recorded
+`80kg × 5`, a later day reaching `80kg × 7` correctly reports `+2 reps`
+and dates both sides. The Growth Audit explainer now states this across-days
+rule directly.
+
 ## v3.3.226 (2026-08-14) — Growth Audit keeps each comparison together
 
 **The receipt now reads left to right.** Each short date sits directly beside
