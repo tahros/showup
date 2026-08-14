@@ -294,8 +294,8 @@ check("a first belt-loaded set is a PR over bodyweight history",
       `gaPR(Object.values(gaExerciseSessions()).find(e=>e.name==='Pull Up')).live`, true);
 check("...badged as the added kilos", 
       `gaPR(Object.values(gaExerciseSessions()).find(e=>e.name==='Pull Up')).change.text`, "+10 kg");
-check("...and the record reads BW+10 in the audit row",
-      `/BW\\+10/.test(document.querySelector('.garecord').textContent)`, true);
+check("...and the compact audit row omits the competing load record",
+      `!document.querySelector('.garecord')`, true);
 run(`document.querySelector('.garow[data-gaex]').click();`);
 check("...and in the receipt, which names the BW set it beat",
       `(function(){const rows=[...document.querySelectorAll('.garcrow')];

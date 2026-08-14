@@ -374,7 +374,9 @@ function gaPR(ex){
               : `+${p.rep-beat.rep} rep${p.rep-beat.rep===1?'':'s'}`};
     }
     if(!best||p.w>best.w||(p.w===best.w&&p.rep>best.rep)) best={w:p.w,rep:p.rep,d:s.d};
-    seen.push({w:p.w,rep:p.rep});
+    /* Keep the day with every comparison point. The receipt must date both
+       sides of the claim, not only the new set. */
+    seen.push({w:p.w,rep:p.rep,d:s.d});
   }
   const live=!!pr&&daysAgo(pr.d)<GA_PR_DAYS;
   return {best,pr,live,change:live?pr:null};
@@ -416,8 +418,7 @@ function growthAuditSection(){
       <div class="gahead"><small>${g.sets} completed set${g.sets===1?'':'s'} · ${g.days.size} day${g.days.size===1?'':'s'}</small>
         ${gaIcon(g.signal,'gastate')}</div>
       <div class="garows">${shown.length?shown.map(e=>`<div class="garow${ga.open===e.id?' open':''}" data-gaex="${e.id}">
-        <b>${e.name}</b><span class="garight">${e.record.best?`<span class="garecord"><span class="garecordlabel">Heaviest</span><strong>${wTxt(e.name,e.record.best.w)} × ${e.record.best.rep}</strong></span>`:''}
-          ${e.record.change?`<span class="gadelta">${e.record.change.text}</span>`:''}${gaIcon(e.ago>=GA_RECENT_DAYS?'empty':e.record.live?'up':'flat','gabadge')}</span></div>${
+        <b>${e.name}</b><span class="garight">${e.record.change?`<span class="gadelta">${e.record.change.text}</span>`:''}${gaIcon(e.ago>=GA_RECENT_DAYS?'empty':e.record.live?'up':'flat','gabadge')}</span></div>${
         ga.open===e.id?gaReceipt(e):''}`).join(''):
         `<div class="note">No completed sets recorded for this group.</div>`}</div>
     </div>`;
@@ -438,7 +439,7 @@ function gaReceipt(e){
   if(!pr) return `<div class="garcpt"><div class="garcnote">No improvement yet.</div></div>`;
   const rows=[];
   if(pr) rows.push(['Improved to',`${wTxt(e.name,pr.w)} \u00d7 ${pr.rep}`,gaDay(pr.d)]);
-  if(pr&&pr.beat) rows.push(['Previous best',`${wTxt(e.name,pr.beat.w)} \u00d7 ${pr.beat.rep}`,'']);
+  if(pr&&pr.beat) rows.push(['Previous best',`${wTxt(e.name,pr.beat.w)} \u00d7 ${pr.beat.rep}`,gaDay(pr.beat.d)]);
   return `<div class="garcpt">${rows.map(([k,v,w])=>
     `<div class="garcrow"><span class="garck">${k}</span><b>${v}</b><span class="garcw">${w}</span></div>`).join('')}</div>`;
 }
