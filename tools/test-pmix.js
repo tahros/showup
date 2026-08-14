@@ -222,9 +222,10 @@ ok("...and it still opens parked at today",
    part. Tapping anywhere in a single-part column works \u2014 you never have to
    hit a thin bar exactly \u2014 while an ambiguous stack still needs its
    segment. A drag scrolls and must never select. */
-const hint = () => run(`document.getElementById('pmixRead').textContent.replace(/\\s+/g,' ').trim()`);
-ok("the line explains the unit and what tapping does",
-   /One block = one completed set/.test(hint()) && /tap to follow/.test(hint()), hint());
+ok("the instruction moved into the info control instead of sitting above the chart",
+   !run(`document.getElementById('pmixRead')`) &&
+   !/function pmixHint/.test(statsSrc) &&
+   /One block per completed set, stacked by body part\. Tap a label to follow it; tap again for all\./.test(statsSrc));
 ok("...and no drag-readout function survives",
    !/pmixReadout/.test(fs.readFileSync(path.join(dir, "js/stats.js"), "utf8")) &&
    !/pmixReadout/.test(fs.readFileSync(path.join(dir, "js/app.js"), "utf8")));
@@ -250,8 +251,8 @@ run(`(function(){const b=document.getElementById('pmixWrap');
   b.dispatchEvent(new PointerEvent('pointerup',{pointerId:1,clientX:x,clientY:12,bubbles:true}));})()`);
 ok("tapping anywhere in a single-part column follows that part",
    run(`PMIX_FOCUS`) === "Legs", String(run(`PMIX_FOCUS`)));
-ok("...and the hint now names what is being followed",
-   /Showing/.test(hint()) && /Legs/.test(hint()), hint());
+ok("...and the quiet legend marks what is being followed",
+   run(`document.querySelector('.pmixlgd [data-pt="Legs"]').getAttribute('aria-pressed')`) === 'true');
 run(`pmixSetFocus('Legs');`);
 
 // a drag must scroll, never select
@@ -315,8 +316,8 @@ ok("clearing the focus removes the labels",
    run(`document.querySelectorAll('#pmixWrap [data-lbl]').length`) === 0);
 
 // ---- legend alignment ----------------------------------------------------
-ok("the legend is centred",
-   /\.pmixlgd\{[^}]*justify-content:center/.test(
+ok("the legend uses a stable four-column 4+3 grid",
+   /\.pmixlgd\{[^}]*display:grid[^}]*grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/.test(
      fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\n/g, "")));
 
 // ---- it owns its horizontal gesture --------------------------------------
@@ -411,7 +412,9 @@ ok("tapping a part dims every other part",
         .every(r=>r.dataset.pt==='Back' ? !r.style.opacity : r.style.opacity==='0.12')`));
 ok("...and marks the legend so the pairing is unambiguous",
    run(`document.querySelector('.pmixlgd [data-pt="Back"]').classList.contains('on')`) &&
-   run(`document.querySelector('.pmixlgd [data-pt="Chest"]').classList.contains('off')`));
+   run(`document.querySelector('.pmixlgd [data-pt="Chest"]').classList.contains('off')`) &&
+   run(`document.querySelector('.pmixlgd [data-pt="Back"]').getAttribute('aria-pressed')`) === 'true' &&
+   run(`document.querySelector('.pmixlgd [data-pt="Chest"]').getAttribute('aria-pressed')`) === 'false');
 run(`pmixSetFocus('Back');`);
 ok("tapping the same part again clears the focus",
    run(`PMIX_FOCUS`) === null &&
@@ -640,9 +643,9 @@ ok("an active today's newest column uses the live state",
    /\.pmixcol\.latest\.live\{fill:var\(--live\)/.test(css126));
 
 // ---- spacing -------------------------------------------------------------
-ok("the legend and the hint have room before the chart",
-   /\.pmixlgd\{[^}]*margin:0 0 14px/.test(css126) &&
-   /\.pmixread\{[^}]*margin:0 0 14px/.test(css126));
+ok("the minimal legend separates itself from the chart without a pill tray",
+   /\.pmixlgd\{[^}]*margin:0 0 12px[^}]*padding:0 0 12px[^}]*border-bottom:1px solid var\(--line\)/.test(css126) &&
+   !/\.pmixread\{/.test(css126));
 ok("the left gutter is narrower", run(`PMIX_AXW`) === 25, "axis width " + run(`PMIX_AXW`));
 
 // ---- v3.3.208: set-count ticks are whole numbers ------------------------

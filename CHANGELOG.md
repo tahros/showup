@@ -1,5 +1,19 @@
 # ShowUp — changelog
 
+## v3.3.228 (2026-08-14) — Session Build becomes chart furniture
+
+**The capsule cloud is gone.** Session Build's seven body-part controls now
+read as a compact 4+3 chart legend: plain labels, small categorical swatches,
+and transparent 44-pixel tap areas instead of filled gray pills. The card keeps
+one quiet divider between the legend and graph.
+
+**Selection uses less ink.** Following a body part adds a thin underline in
+that part's own color while muting the other labels and chart segments. Tapping
+the selected label again restores all parts. The permanent instruction beneath
+the legend is removed; the same guidance now lives in the section's `i`
+explainer. The accepted prototype was implemented in the actual/base app only;
+the retired Modern preview layer is unchanged.
+
 ## v3.3.227 (2026-08-14) — Growth means progress across days
 
 **Sets from one workout no longer compete with each other.** Growth Audit now

@@ -370,6 +370,24 @@ if not all(_phrase in _gahelp for _phrase in (
     fail.append("growth audit: information control must explain all three signals (v3.3.212)")
 if any(_credit in _gahelp for _credit in ("Noun Project", "ARIPATUT DASUKI", "Travis Avery")):
     fail.append("growth audit: icon credits belong in Settings, not the information control (v3.3.212)")
+
+# -- Session Build (v3.3.228): the approved minimal legend keeps real,
+#    thumb-sized controls but removes the filled capsule cloud and the
+#    permanently visible instruction line. The info control owns that copy.
+if any(_retired in _stats for _retired in ('function pmixHint', 'id="pmixRead"', 'class="pmixread"')):
+    fail.append("session build: retired always-visible instruction returned (v3.3.228)")
+if not all(_contract in _stats for _contract in (
+        'class="pmixlgd" role="group" aria-label="Follow a body part"',
+        '<button type="button" data-pt=', 'aria-pressed=',
+        'Tap a label to follow it; tap again for all.')):
+    fail.append("session build: minimal legend semantics or info copy are incomplete (v3.3.228)")
+_flat_css = css.replace("\n", "")
+if not _re.search(r"\.pmixlgd\{[^}]*display:grid[^}]*grid-template-columns:repeat\(4,minmax\(0,1fr\)\)", _flat_css):
+    fail.append("session build: legend must keep the approved four-column 4+3 grid (v3.3.228)")
+if not _re.search(r"\.pmixlgd button\{[^}]*min-height:44px[^}]*border:0[^}]*background:transparent", _flat_css):
+    fail.append("session build: legend targets must remain transparent and thumb-sized (v3.3.228)")
+if not _re.search(r"\.pmixlgd button\.on::after\{[^}]*transform:scaleX\(1\)", _flat_css):
+    fail.append("session build: selected part needs the quiet coloured underline (v3.3.228)")
 _settings = (d/"js/settings.js").read_text()
 if not all(_credit in _settings for _credit in (
         "minus-8363736", "trend-2344331", "ARIPATUT DASUKI",
