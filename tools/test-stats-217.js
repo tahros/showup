@@ -34,6 +34,12 @@ ok('Distance scrubber declares distance units',run(`document.querySelector('.run
 ok('The milestone is folded into Running month',!H.includes('Monthly milestone')&&run(`!!document.querySelector('.runmonthgoal .mbar')`));
 const pace=run(`(function(){const h=[...document.querySelectorAll('h2')].find(x=>x.firstChild.textContent.trim()==='Pace');return h&&h.nextElementSibling.querySelectorAll('line').length;})()`);
 ok('Pace has axis and grid lines',pace>=4,pace+' lines');
+const paceMeta=JSON.parse(run(`JSON.stringify((function(){const h=[...document.querySelectorAll('h2')].find(x=>x.firstChild.textContent.trim()==='Pace'),svg=h.nextElementSibling.querySelector('svg');return {values:[...svg.querySelectorAll('.paceval')].map(t=>({text:t.textContent,fill:t.getAttribute('fill')})),dates:[...svg.querySelectorAll('text')].map(t=>t.textContent).filter(t=>/^\\d{1,2}\\/\\d{1,2}$/.test(t)),ticks:[...svg.querySelectorAll('text[x="29"]')].map(t=>t.textContent),head:h.classList.contains('charthead'),card:h.nextElementSibling.classList.contains('pacecard')};})())`));
+ok('Every pace point has a neutral data label',paceMeta.values.length===paceMeta.dates.length&&paceMeta.values.length>=10&&paceMeta.values.every(v=>v.fill==='var(--muted)'),paceMeta.values.length+' labels');
+ok('Pace uses actual dates instead of month letters',paceMeta.dates.length===paceMeta.values.length,paceMeta.dates.join(' '));
+ok('Pace ticks land on 15-second increments',paceMeta.ticks.every(t=>{const a=t.split(':');return (+a[0]*60 + +a[1])%15===0;}),paceMeta.ticks.join(' '));
+ok('Chart headings carry the extra spacing hook',paceMeta.head&&paceMeta.card);
 ok('Running month uses six visual metrics',run(`document.querySelectorAll('.runmonthgrid span').length`)===6);
 ok('Every week compares twelve partial weeks',run(`(function(){const h=[...document.querySelectorAll('h2')].find(x=>x.firstChild.textContent.trim()==='Every week');return h.nextElementSibling.querySelectorAll('rect.gbar').length;})()` )===12);
+ok('Every week labels all twelve bars with actual dates',run(`(function(){const h=[...document.querySelectorAll('h2')].find(x=>x.firstChild.textContent.trim()==='Every week'),t=[...h.nextElementSibling.querySelectorAll('svg text')].map(x=>x.textContent);return t.filter(x=>/^\\d{1,2}\\/\\d{1,2}$/.test(x)).length===12&&!t.some(x=>/^[JFMASOND]$/.test(x));})()`));
 console.log(fail?'\n'+fail+' FAILED':'\nALL PASS');process.exit(fail?1:0);

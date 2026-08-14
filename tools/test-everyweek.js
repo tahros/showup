@@ -110,10 +110,11 @@ ok("the footer names this week", /this week/.test(footer), footer.slice(0,60));
 ok("...and the 16-week average", /16-week avg/.test(footer));
 }
 
-const letters=T.filter(t=>/^[JFMASOND]$/.test(t));
+const dates217=T.filter(t=>/^\d{1,2}\/\d{1,2}$/.test(t));
 const bars217=run(`(function(){const h=[...document.querySelectorAll('#view h2')].find(x=>x.textContent.indexOf('Every week')===0);return h.nextElementSibling.querySelectorAll('rect.gbar').length;})()`);
 const footer217=run(`(function(){const h=[...document.querySelectorAll('#view h2')].find(x=>x.textContent.indexOf('Every week')===0);return h.nextElementSibling.querySelector('.tot').textContent;})()`);
-ok("week bars use the same compact month-letter language as Monthly pace",letters.length===12,letters.join(" "));
+ok("every weekly bar is anchored to an actual date",dates217.length===12,dates217.join(" "));
+ok("month-only letters are gone from the weekly axis",!T.some(t=>/^[JFMASOND]$/.test(t)));
 ok("exactly twelve comparable weeks render",bars217===12,bars217+" bars");
 ok("Every week states the shared weekday cutoff",/all bars through/.test(footer217),footer217.slice(0,70));
 ok("all twelve bars carry their fair-cutoff values",T.filter(t=>/^\d+$/.test(t)).length===12);

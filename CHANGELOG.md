@@ -1,5 +1,18 @@
 # ShowUp — changelog
 
+## v3.3.234 (2026-08-14) — Running charts speak in clock time and dates
+
+**Pace is readable without decoding the axis.** Its grid now lands on clean
+15- or 30-second clock increments, every point carries a pace label, and all
+labels use the same neutral ink. Color is reserved for the current and fastest
+point marks, so emphasis no longer changes the meaning of the text.
+
+**The x-axes name real days.** Pace labels each monthly average by its closing
+date, while Every Week labels every bar by the week's actual start date instead
+of a repeated month initial. Both chart headings gain a little more breathing
+room above their cards. This release includes a jsdom PointerEvent shim for
+Claude's v3.3.233 race regression test; production gesture behavior is unchanged.
+
 ## v3.3.230 (2026-08-14) — Stats tells fewer, stronger stories
 
 **Attendance is one story now.** The lifetime Show Up total, lifetime rate,
