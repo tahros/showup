@@ -16,6 +16,8 @@ w.matchMedia = w.matchMedia || (() => ({ matches:false, addEventListener(){}, re
 w.navigator.vibrate = () => {}; w.scrollTo = () => {};
 w.HTMLCanvasElement.prototype.getContext = function(){ return new Proxy({measureText:()=>({width:10})},
   {get:(o,k)=>k in o?o[k]:()=>({})}); };
+w.Element.prototype.setPointerCapture = function(){};
+w.Element.prototype.releasePointerCapture = function(){};
 for (const s of order) vm.runInContext(fs.readFileSync(path.join(dir, s), "utf8"), ctx, { filename: s });
 w.document.dispatchEvent(new w.Event("DOMContentLoaded", { bubbles: true }));
 const run = c => vm.runInContext(c, ctx);
@@ -101,6 +103,69 @@ run(`(function(){
 check("with no distance last year, the km card stays in km rather than dividing by zero",
       `(function(){const c=[...document.querySelectorAll('.conrace')].find(x=>x.classList.contains('runrace'));
         return !c || /km/.test(c.querySelector('.conscore').textContent);})()`, true);
+
+
+// ---- v3.3.233: the toggle must not move the page --------------------------
+// A full render() rebuilt #view and sent the reader to the top of Stats on
+// every tap. These assertions are about identity and scroll, not markup.
+run(`(function(){
+  const y=+todayISO.slice(0,4);
+  DB.days={}; DB.settings.canon={}; DB.settings.raceShare=false;
+  for(let i=1;i<=60;i++){const iso=new Date(y,0,i*3).toLocaleDateString('en-CA');
+    if(iso<=todayISO) DB.days[iso]={w:[{part:'Run',ex:'Run',w:5,reps:[],mins:30}],upd:1};}
+  for(let i=1;i<=45;i++){const iso=new Date(y-1,0,i*4).toLocaleDateString('en-CA');
+    DB.days[iso]={w:[{part:'Run',ex:'Run',w:9,reps:[],mins:50}],upd:1};}
+  migrateCanon(); SEED=deriveAll(); view='stats'; render();
+  const v=document.querySelector('#view'); v._witness=1;
+  window._card0=document.querySelector('.conrace');
+  window._card0._witness=1;})()`);
+run(`document.querySelector('[data-raceswap]').click()`);
+check("#view survives the tap — the tab is not rebuilt",
+      `document.querySelector('#view')._witness`, 1);
+check("...and so does the card itself, so its scroll position is intact",
+      `document.querySelector('.conrace')._witness===1
+       && document.querySelector('.conrace')===window._card0`, true);
+check("...while the numbers really did change unit",
+      `/%/.test(document.querySelector('.conrace [data-con-count]').textContent)`, true);
+check("the chart is untouched — no reflow, no redraw",
+      `document.querySelector('.conrace polyline')!==null`, true);
+
+// tapping repeatedly must stay stable, not drift or accumulate
+const before = run(`document.querySelector('.conrace .conscore').textContent.replace(/\\s+/g,' ').trim()`);
+run(`for(let i=0;i<6;i++) document.querySelector('[data-raceswap]').click();`);
+check("six taps land back where they started", `DB.settings.raceShare`, true);
+check("...with identical text, no drift",
+      `"${before}"===document.querySelector('.conrace .conscore').textContent.replace(/\\s+/g,' ').trim()`, true);
+check("...and still the same DOM node throughout",
+      `document.querySelector('.conrace')._witness`, 1);
+
+// ---- the scrubber speaks whichever unit is showing -----------------------
+check("with shares on, a scrubbed readout is a percentage too",
+      `(function(){
+        const box=document.querySelector('.conrace [data-zoom]'); if(!box) return true;
+        box.getBoundingClientRect=()=>({left:0,top:0,width:340,height:215,right:340,bottom:215});
+
+        const ev=new window.PointerEvent('pointerdown',{pointerId:9,clientX:200,clientY:80,bubbles:true});
+        box.dispatchEvent(ev);
+        const txt=document.querySelector('.conrace [data-con-count]').textContent;
+        box.dispatchEvent(new window.PointerEvent('pointerup',{pointerId:9,bubbles:true}));
+        return /%/.test(txt);})()`, true);
+check("...and the gap with it",
+      `(function(){
+        const box=document.querySelector('.conrace [data-zoom]'); if(!box) return true;
+        box.dispatchEvent(new window.PointerEvent('pointerdown',{pointerId:10,clientX:150,clientY:80,bubbles:true}));
+        const t=document.querySelector('.conrace [data-con-gap]').textContent;
+        box.dispatchEvent(new window.PointerEvent('pointerup',{pointerId:10,bubbles:true}));
+        return /pts|Even/.test(t);})()`, true);
+run(`DB.settings.raceShare=false; raceApplyAll();`);
+check("back in totals, a scrubbed readout counts days again",
+      `(function(){
+        const box=document.querySelector('.conrace [data-zoom]'); if(!box) return true;
+        box.dispatchEvent(new window.PointerEvent('pointerdown',{pointerId:11,clientX:200,clientY:80,bubbles:true}));
+        const t=document.querySelector('.conrace [data-con-count]').textContent;
+        box.dispatchEvent(new window.PointerEvent('pointerup',{pointerId:11,bubbles:true}));
+        return !/%/.test(t);})()`, true);
+
 
 process.exit(fail ? 1 : 0);
 })();

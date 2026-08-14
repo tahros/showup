@@ -186,7 +186,11 @@ document.addEventListener('click',e=>{
   if(e.target.closest&&e.target.closest('[data-raceswap]')){
     DB.settings.raceShare=!DB.settings.raceShare;
     DB.settingsAt=Date.now(); save(true);
-    render();
+    /* v3.3.233: rewrite ONLY the two scoreboards. render() rebuilt the whole
+       tab and sent the page back to the top — on a card that lives halfway
+       down Stats, that threw the reader out of their place on every tap. The
+       cards carry their own raw numbers, so nothing has to be re-derived. */
+    raceApplyAll();
     return;
   }
   const wb=e.target.closest('[data-w]');
@@ -615,7 +619,7 @@ function bindScrub(box, svg, getVb){
       if(raceCard&&y!=null){
         const value=exact==null?Math.round(smax*(sy0-y)/syh):exact;
         raceValues.set(L.yr,value);
-        const b=raceCard.querySelector(`[data-con-count="${L.yr}"]`); if(b) b.textContent=String(Math.round(value));
+        const b=raceCard.querySelector(`[data-con-count="${L.yr}"]`); if(b) b.textContent=raceNum(raceCard,value);
       }
     });
     if(raceCard&&dayIndex!=null){
@@ -624,10 +628,10 @@ function bindScrub(box, svg, getVb){
       const d=new Date(+(svg.getAttribute('data-scrub-year')||current),0,dayIndex+1);
       if(raceDate) raceDate.textContent='YOU VS YOU · '+d.toLocaleDateString('en-US',{month:'short',day:'numeric'}).toUpperCase();
       if(raceGap){
+        /* v3.3.233: one formatter with the toggle, so a drag cannot silently
+           switch the card back to raw counts while shares are showing. */
         raceGap.classList.toggle('up',gap>=0);
-        const n=raceUnit?Math.round(gap):gap,unit=raceUnit?` ${raceUnit}`:` day${gap===1?'':'s'}`;
-        raceGap.innerHTML=gap>0?`+${n}${unit}<small>ahead</small>`
-          :gap<0?`${Math.abs(n)}${raceUnit?unit:` day${gap===-1?'':'s'}`}<small>behind</small>`:`Even<small>same date</small>`;
+        raceGap.innerHTML=raceGapHTML(raceCard,raceValues.get(current)||0,raceValues.get(previous)||0);
       }
       raceCard.classList.add('scrubbing');
     }

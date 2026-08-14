@@ -586,12 +586,14 @@ function consistencyRaceSection(){
     ?(gapPts>0?`+${gapPts} pts<small>ahead</small>`:gapPts<0?`${Math.abs(gapPts)} pts<small>behind</small>`:`Even<small>same date</small>`)
     :(gap>0?`+${gap} day${gap===1?'':'s'}<small>ahead</small>`:gap<0?`${Math.abs(gap)} day${gap===-1?'':'s'}<small>behind</small>`:`Even<small>same date</small>`);
   return `<h2>Consistency${hActs('yoy2','Cumulative workout days through the same calendar date in both years. Drag the chart to compare any earlier date.','About Consistency')}</h2>
-    <div class="card conrace" data-current-year="${current.year}" data-previous-year="${previous.year}">
+    <div class="card conrace" data-current-year="${current.year}" data-previous-year="${previous.year}"
+      data-cur="${current.total}" data-prev="${previous.total}" data-denom="${elapsed}"
+      data-unit-total="days" data-unit-share="of the year" data-gap-unit="days">
       <div class="conkick" data-con-date>YOU VS YOU · ${race.label.toUpperCase()}</div>
       <div class="conscore" data-raceswap role="button" tabindex="0"
-        aria-label="Show ${shares?'totals':'share of the year'} instead"><span><small>${previous.year} you</small><b data-con-count="${previous.year}">${showN(previous.total)}</b><small>${unit}</small></span>
+        aria-label="Show ${shares?'totals':'share of the year'} instead"><span><small>${previous.year} you</small><b data-con-count="${previous.year}">${showN(previous.total)}</b><small data-con-unit>${unit}</small></span>
         <strong class="congap ${gap>=0?'up':''}" data-con-gap>${gapCopy}</strong>
-        <span><small>${current.year} you</small><b data-con-count="${current.year}">${showN(current.total)}</b><small>${unit}</small></span></div>
+        <span><small>${current.year} you</small><b data-con-count="${current.year}">${showN(current.total)}</b><small data-con-unit>${unit}</small></span></div>
       <div class="zoom conzoom" data-zoom><svg viewBox="0 0 340 215" role="img" aria-label="${current.year}: ${current.total} workout days. ${previous.year}: ${previous.total} workout days through ${race.label}."
         data-scrub="race" data-sx0="${x0}" data-sxw="${xw}" data-sy0="${y0}" data-syh="${yh}" data-smax="${max}" data-scrub-year="${current.year}">
         ${grid}<polygon points="${area}" fill="var(--accent-soft)" opacity=".72"></polygon>

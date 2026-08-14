@@ -1100,12 +1100,14 @@ function runStatsHTML217(){
         return g>0?`+${g} pts<small>ahead</small>`:g<0?`${Math.abs(g)} pts<small>behind</small>`:`Even<small>same date</small>`;})()
       :(gap>0?`+${Math.round(gap)} ${DU()}<small>ahead</small>`:gap<0?`${Math.abs(Math.round(gap))} ${DU()}<small>behind</small>`:`Even<small>same date</small>`);
     h+=`<h2>Distance${hActs('cumkm',`Cumulative ${DU()} through the same calendar date in both years. Drag to compare earlier dates.`,'About Distance')}</h2>
-      <div class="card conrace runrace" data-current-year="${thisYear}" data-previous-year="${prevYear}">
+      <div class="card conrace runrace" data-current-year="${thisYear}" data-previous-year="${prevYear}"
+      data-cur="${ct}" data-prev="${pt}" data-denom="${prevFull}"
+      data-unit-total="${DU()}" data-unit-share="of all ${prevYear}" data-gap-unit="${DU()}">
       <div class="conkick" data-con-date>YOU VS YOU · ${new Date(todayISO+'T00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}).toUpperCase()}</div>
       <div class="conscore runscore" data-raceswap role="button" tabindex="0"
-        aria-label="Show ${canShare?'totals':'share of last year'} instead"><span><small>${prevYear} you</small><b data-con-count="${prevYear}">${showN(pt)}</b><small>${unit}</small></span>
+        aria-label="Show ${canShare?'totals':'share of last year'} instead"><span><small>${prevYear} you</small><b data-con-count="${prevYear}">${showN(pt)}</b><small data-con-unit>${unit}</small></span>
         <strong class="congap ${gap>=0?'up':''}" data-con-gap>${gapCopy}</strong>
-        <span><small>${thisYear} you</small><b data-con-count="${thisYear}">${showN(ct)}</b><small>${unit}</small></span></div>
+        <span><small>${thisYear} you</small><b data-con-count="${thisYear}">${showN(ct)}</b><small data-con-unit>${unit}</small></span></div>
       <div class="zoom conzoom" data-zoom><svg viewBox="0 0 340 205" role="img" data-scrub="race" data-race-unit="${DU()}"
         data-scrub-year="${thisYear}" data-sx0="${x0}" data-sxw="${xw}" data-sy0="${y0}" data-syh="${yh}" data-smax="${yMax}">`;
     for(let g=0;g<=4;g++){const v=yMax*g/4,y=Y(v);h+=`<line x1="${x0}" y1="${y}" x2="${x0+xw}" y2="${y}" stroke="var(--line)" stroke-width=".6" ${g?'stroke-dasharray="2 3"':''}></line><text x="26" y="${y+3}" text-anchor="end" font-family="var(--mono)" font-size="7" fill="var(--muted)">${Math.round(v)}</text>`;}

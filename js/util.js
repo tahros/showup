@@ -853,6 +853,47 @@ function monthlyPaceData(n=12){
        current year cannot be computed without predicting the rest of it.
    The preference is one setting, so the whole Stats tab speaks in one unit. */
 const raceShares=()=>!!DB.settings.raceShare;
+/* v3.3.233: ONE formatter for the race scoreboard, used by the unit toggle
+   AND by the scrubber. Both write the same <b> nodes, so if they disagreed
+   the numbers would silently change unit mid-drag. Everything it needs is
+   parked on the card as data attributes at build time — raw totals and the
+   denominator — which is also what lets the toggle rewrite the scoreboard in
+   place instead of re-rendering the tab and throwing away the scroll. */
+const raceCanShare=card=>raceShares()&&+card.dataset.denom>0;
+const raceNum=(card,v)=>raceCanShare(card)
+  ? Math.round(v/+card.dataset.denom*100)+'%'
+  : String(Math.round(v));
+function raceGapHTML(card,curV,prevV){
+  if(raceCanShare(card)){
+    const den=+card.dataset.denom;
+    const g=Math.round(curV/den*100)-Math.round(prevV/den*100);
+    return g>0?`+${g} pts<small>ahead</small>`
+         :g<0?`${Math.abs(g)} pts<small>behind</small>`
+             :`Even<small>same date</small>`;
+  }
+  const g=curV-prevV, u=card.dataset.gapUnit||'days';
+  const n=Math.round(Math.abs(g));
+  const unit=u==='days'?` day${n===1?'':'s'}`:` ${u}`;
+  return g>0?`+${n}${unit}<small>ahead</small>`
+       :g<0?`${n}${unit}<small>behind</small>`
+           :`Even<small>same date</small>`;
+}
+/* rewrite one card's scoreboard from its own stored numbers */
+function raceApplyUnit(card){
+  const cur=+card.dataset.cur||0, prev=+card.dataset.prev||0;
+  const share=raceCanShare(card);
+  const cy=card.dataset.currentYear, py=card.dataset.previousYear;
+  const set=(yr,v)=>{const b=card.querySelector(`[data-con-count="${yr}"]`); if(b) b.textContent=raceNum(card,v);};
+  set(cy,cur); set(py,prev);
+  card.querySelectorAll('[data-con-unit]').forEach(u=>{
+    u.textContent=share?card.dataset.unitShare:card.dataset.unitTotal;
+  });
+  const gap=card.querySelector('[data-con-gap]');
+  if(gap){ gap.innerHTML=raceGapHTML(card,cur,prev); gap.classList.toggle('up',cur-prev>=0); }
+  const sw=card.querySelector('[data-raceswap]');
+  if(sw) sw.setAttribute('aria-label',`Show ${share?'totals':'share'} instead`);
+}
+function raceApplyAll(){ document.querySelectorAll('.conrace').forEach(raceApplyUnit); }
 function daysElapsedThisYear(){
   const y=+todayISO.slice(0,4);
   return Math.max(1,daysBetween(new Date(y,0,1).toLocaleDateString('en-CA'),todayISO)+1);
