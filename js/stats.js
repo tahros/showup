@@ -360,23 +360,35 @@ function gaExerciseSessions(){
    disagree. */
 function gaPR(ex){
   let best=null, pr=null;
-  const seen=[];                    // every set logged, chronological
-  for(const s of ex.sessions) for(const p of s.points){
+  const seen=[];                    // sets from completed earlier days only
+  for(const s of ex.sessions){
+    /* Freeze the comparison baseline for the whole training day. A later set
+       in one workout may be better than an earlier set, but that is not
+       progress over time. Only prior DAYS can supply the set being beaten. */
     const priorBest=best;
-    const sameLoad=seen.filter(q=>q.w===p.w).sort((a,b)=>b.rep-a.rep)[0];
-    const repGain=sameLoad&&p.rep>sameLoad.rep;
-    const loadGain=priorBest&&p.w>priorBest.w&&p.rep>=priorBest.rep;
-    if(repGain||loadGain){
-      const beat=repGain?sameLoad:priorBest;
-      pr={d:s.d,w:p.w,rep:p.rep,
+    let dayPr=null;
+    for(const p of s.points){
+      const sameLoad=seen.filter(q=>q.w===p.w).sort((a,b)=>b.rep-a.rep)[0];
+      const repGain=sameLoad&&p.rep>sameLoad.rep;
+      const loadGain=priorBest&&p.w>priorBest.w&&p.rep>=priorBest.rep;
+      if(repGain||loadGain){
+        const beat=repGain?sameLoad:priorBest;
+        const candidate={d:s.d,w:p.w,rep:p.rep,
           beat,
           text: loadGain ? `+${wDisp(p.w-beat.w)} ${U()}`
               : `+${p.rep-beat.rep} rep${p.rep-beat.rep===1?'':'s'}`};
+        /* A day's receipt names its strongest qualifying set, independent of
+           logging order: heaviest first, then most reps at that load. */
+        if(!dayPr||candidate.w>dayPr.w||
+            (candidate.w===dayPr.w&&candidate.rep>dayPr.rep)) dayPr=candidate;
+      }
     }
-    if(!best||p.w>best.w||(p.w===best.w&&p.rep>best.rep)) best={w:p.w,rep:p.rep,d:s.d};
-    /* Keep the day with every comparison point. The receipt must date both
-       sides of the claim, not only the new set. */
-    seen.push({w:p.w,rep:p.rep,d:s.d});
+    if(dayPr) pr=dayPr;
+    /* Only after every set has been judged do today's sets become history. */
+    for(const p of s.points){
+      if(!best||p.w>best.w||(p.w===best.w&&p.rep>best.rep)) best={w:p.w,rep:p.rep,d:s.d};
+      seen.push({w:p.w,rep:p.rep,d:s.d});
+    }
   }
   const live=!!pr&&daysAgo(pr.d)<GA_PR_DAYS;
   return {best,pr,live,change:live?pr:null};
@@ -411,7 +423,7 @@ function growthAuditSection(){
   if(!ga.grp||!groups[ga.grp]) ga.grp=data.order[0];
   const g=groups[ga.grp],recent=g.ex.filter(e=>e.ago<GA_HISTORY_DAYS);
   const shown=(recent.length?recent:g.ex).slice(0,4).map(e=>({...e,record:gaPR(e)}));
-  return `<h2>Growth audit${hActs('ga',"Dot: no sets in 7 days · line: no clear gain · trend: more reps at the same weight, or more weight without fewer reps.",'About Growth audit')}</h2>
+  return `<h2>Growth audit${hActs('ga',"Dot: no sets in 7 days · line: no clear gain · trend: a later day beat an earlier day at comparable load and reps.",'About Growth audit')}</h2>
     <div class="card gacard" data-gacard="${ga.grp}">
       <select id="gaGrp" class="gasel" aria-label="Body part">${data.order.map(v=>
         `<option value="${v}" ${v===ga.grp?'selected':''}>${v}</option>`).join('')}</select>

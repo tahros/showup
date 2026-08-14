@@ -153,7 +153,7 @@ check("the status hierarchy is muted gray dot and line, then ShowUp blue trend",
     /--ga-size:30px 30px/.test(cssSrc)}`,"true");
 check("Growth Audit help explains its signals without icon credits",
   `${statsSrc.includes('Dot: no sets in 7 days')&&statsSrc.includes('line: no clear gain')&&
-    statsSrc.includes('trend: more reps at the same weight, or more weight without fewer reps')&&!statsSrc.slice(statsSrc.indexOf('function growthAuditSection'),statsSrc.indexOf('function sessionBuild')).includes('Noun Project')}`,"true");
+    statsSrc.includes('trend: a later day beat an earlier day at comparable load and reps')&&!statsSrc.slice(statsSrc.indexOf('function growthAuditSection'),statsSrc.indexOf('function sessionBuild')).includes('Noun Project')}`,"true");
 check("icon credits live beneath the version in Settings",
   `${/ShowUp \$\{APP_VERSION\}<\/div>\s*<div class="note assetcredits"/.test(fs.readFileSync(path.join(dir,'js','settings.js'),'utf8'))&&
     ['minus-8363736','trend-2344331','ARIPATUT DASUKI','Travis Avery','Noun Project'].every(x=>fs.readFileSync(path.join(dir,'js','settings.js'),'utf8').includes(x))}`,"true");
@@ -199,6 +199,19 @@ check("more reps at the exact lighter load is comparable", `"${prOf('Chest Fly')
 gaSeed(`DB.days[_D(20)]={w:[{part:'Shoulder',ex:'Rear Deltoids',w:27.5,reps:[10]}],upd:1};
         DB.days[_D(3)]={w:[{part:'Shoulder',ex:'Rear Deltoids',w:10,reps:[12]}],upd:1};`);
 check("10x12 does not improve on 27.5x10", `"${prOf('Rear Deltoids')}"`, "dark no badge");
+
+// v3.3.227: sets within one workout are peers, never historical baselines.
+// The maker's screenshot showed 80x7 "improving" on 80x6 from the same day.
+gaSeed(`DB.days[_D(6)]={w:[{part:'Legs',ex:'Deadlift',w:80,reps:[6,7]}],upd:1};`);
+check("80x7 does not improve on 80x6 from the same day",
+      `"${prOf('Deadlift')}"`, "dark no badge");
+gaSeed(`DB.days[_D(20)]={w:[{part:'Legs',ex:'Deadlift',w:80,reps:[5]}],upd:1};
+        DB.days[_D(6)]={w:[{part:'Legs',ex:'Deadlift',w:80,reps:[7,6]}],upd:1};`);
+check("a later day can improve beyond its earlier-day baseline",
+      `"${prOf('Deadlift')}"`, "LIT +2 reps");
+check("the comparison receipt crosses two different dates",
+      `(function(){const ex=Object.values(gaExerciseSessions()).find(e=>e.name==='Deadlift');
+        const p=gaPR(ex).pr;return p.d!==p.beat.d;})()`, true);
 
 // 4. the window: a PR ages out at GA_PR_DAYS, badge and mark together
 gaSeed(`DB.days[_D(80)]={w:[{part:'Chest',ex:'Chest Fly',w:45,reps:[10]}],upd:1};
