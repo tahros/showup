@@ -899,6 +899,8 @@ function renderStats(){
       <button class="btn ghost" id="settingsBtn">⚙︎ Settings, account &amp; sync</button>
       <div class="note" style="text-align:center">${session?`Signed in as ${session.user.email||'—'}`:'Not signed in — data is on this device only'} · ${APP_VERSION}</div>`;
   $('#view').innerHTML=h;
+  bindPaceAll();   // v3.3.236: the pace chart reads by touch
+
 }
 
 

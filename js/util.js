@@ -60,6 +60,7 @@
                    t.closest('#repCard')||    // v3.3.139: the card carousel owns its own left/right
                    t.closest('.lbwrap')||     // v3.3.164: scrubbing the live bars is not a tab swipe
                    t.closest(MODALS)||        // v3.3.140: and nothing under a modal moves
+                   t.closest('.pacescrub')||  // v3.3.236: dragging pace reads it, never changes tab
                    t.closest('.compscroll');   // sideways-scrolling chart owns its axis
   addEventListener('touchstart',e=>{
     if(e.touches.length!==1||view==='sync') return;
@@ -852,6 +853,66 @@ function monthlyPaceData(n=12){
        days elapsed would be meaningless for kilometres, and a share of the
        current year cannot be computed without predicting the rest of it.
    The preference is one setting, so the whole Stats tab speaks in one unit. */
+/* v3.3.236 — reading the Pace chart by touch.
+   Nine monthly points print only two values (fastest, current); the rest are
+   read by dragging. Nearest point by SCREEN x — pace is a one-per-month
+   series, so horizontal distance is the whole question and vertical distance
+   would only add noise. Same gesture grammar as the other charts: the surface
+   is on the tab-swipe blocklist and touch-action:none, and the reading STAYS
+   after release so a finger is not covering what it found. */
+function paceNear(svg,clientX){
+  const pts=[...svg.querySelectorAll('.pacepoint')];
+  if(!pts.length) return null;
+  const box=svg.getBoundingClientRect();
+  const vb=(svg.getAttribute('viewBox')||'0 0 1 1').split(/\s+/).map(Number);
+  const sx=box.width/(vb[2]||1);
+  let best=null,bd=Infinity;
+  for(const p of pts){
+    const px=box.left+(+p.getAttribute('cx'))*sx, d=Math.abs(px-clientX);
+    if(d<bd){bd=d;best=p;}
+  }
+  return best;
+}
+function paceShow(svg,pt){
+  if(!svg||!pt) return;
+  const halo=svg.querySelector('.pacehalo'), v=svg.querySelector('.pacevline');
+  const cx=pt.getAttribute('cx'), cy=pt.getAttribute('cy');
+  if(halo){ halo.setAttribute('cx',cx); halo.setAttribute('cy',cy); halo.setAttribute('opacity','1'); }
+  if(v){ v.setAttribute('x1',cx); v.setAttribute('x2',cx); v.setAttribute('opacity','.9'); }
+  const cap=svg.parentNode&&svg.parentNode.querySelector('[data-pacecap]');
+  if(!cap) return;
+  const m=pt.dataset.pm, sec=+pt.dataset.pp;
+  const d=new Date(+m.slice(0,4),+m.slice(5,7)-1,1);
+  cap.innerHTML=`${d.toLocaleDateString('en-US',{month:'short',year:'numeric'})} \u00b7 <b>${paceStr(sec)}</b> / ${DU()}`;
+}
+function paceClear(svg){
+  if(!svg) return;
+  const halo=svg.querySelector('.pacehalo'), v=svg.querySelector('.pacevline');
+  if(halo) halo.setAttribute('opacity','0');
+  if(v) v.setAttribute('opacity','0');
+  const cap=svg.parentNode&&svg.parentNode.querySelector('[data-pacecap]');
+  if(cap) cap.innerHTML='&nbsp;';
+}
+function bindPaceScrub(svg){
+  if(!svg||svg._paceBound) return; svg._paceBound=1;
+  let down=false;
+  const at=e=>paceNear(svg,e.clientX);
+  svg.addEventListener('pointerdown',e=>{
+    if(e.isPrimary===false) return;
+    down=true;
+    if(svg.setPointerCapture&&e.pointerId!=null){ try{svg.setPointerCapture(e.pointerId);}catch(_){} }
+    const p=at(e);
+    if(p&&svg.querySelector('.pacehalo')&&svg.querySelector('.pacehalo').getAttribute('opacity')==='1'
+       &&svg.querySelector('.pacehalo').getAttribute('cx')===p.getAttribute('cx')){
+      paceClear(svg); down=false; return;      // press the shown point to dismiss
+    }
+    paceShow(svg,p);
+  });
+  svg.addEventListener('pointermove',e=>{ if(!down) return; e.preventDefault(); paceShow(svg,at(e)); });
+  svg.addEventListener('pointerup',()=>{ down=false; });
+  svg.addEventListener('pointercancel',()=>{ down=false; });
+}
+function bindPaceAll(){ document.querySelectorAll('.pacescrub').forEach(bindPaceScrub); }
 const raceShares=()=>!!DB.settings.raceShare;
 /* v3.3.233: ONE formatter for the race scoreboard, used by the unit toggle
    AND by the scrubber. Both write the same <b> nodes, so if they disagreed

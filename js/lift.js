@@ -788,6 +788,9 @@ function runDays(){
     .sort((a,b)=>a[0].localeCompare(b[0]))
     .map(([d,e])=>({d,km:e.km,sec:e.sec,timed:e.timed}));
 }
+/* v3.3.236: nine months of pace, hoisted to module scope with the other
+   tuning constants so it has one definition site and the suite can read it. */
+const PACE_MONTHS=9;
 const paceStr=s=>s>0?`${Math.floor(s/60)}'${String(Math.round(s%60)).padStart(2,'0')}"`:'—';
 const paceOf=r=>r.timed>0?r.sec/toD(r.timed):0;      // seconds per displayed unit
 function runStreak(days){
@@ -1111,7 +1114,10 @@ function runStatsHTML217(){
       <div class="zoom conzoom" data-zoom><svg viewBox="0 0 340 205" role="img" data-scrub="race" data-race-unit="${DU()}"
         data-scrub-year="${thisYear}" data-sx0="${x0}" data-sxw="${xw}" data-sy0="${y0}" data-syh="${yh}" data-smax="${yMax}">`;
     for(let g=0;g<=4;g++){const v=yMax*g/4,y=Y(v);h+=`<line x1="${x0}" y1="${y}" x2="${x0+xw}" y2="${y}" stroke="var(--line)" stroke-width=".6" ${g?'stroke-dasharray="2 3"':''}></line><text x="26" y="${y+3}" text-anchor="end" font-family="var(--mono)" font-size="7" fill="var(--muted)">${Math.round(v)}</text>`;}
-    for(let m=0;m<=+todayISO.slice(5)-1;m++){const di=Math.min(n-1,doy(`${thisYear}-${String(m+1).padStart(2,'0')}-15`)-1);h+=`<text x="${X(di)}" y="195" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="var(--muted)">${'JFMAMJJASOND'[m]}</text>`;}
+    /* v3.3.236: slice(5) yields "08-14", and +"08-14" is NaN — so `m<=NaN`
+       was false on the first test and the month row never drew a single
+       letter. slice(5,7) is the month alone. */
+    for(let m=0;m<=+todayISO.slice(5,7)-1;m++){const di=Math.min(n-1,doy(`${thisYear}-${String(m+1).padStart(2,'0')}-15`)-1);h+=`<text x="${X(di)}" y="195" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="var(--muted)">${'JFMAMJJASOND'[m]}</text>`;}
     h+=`<polygon points="${area}" fill="var(--accent-soft)" opacity=".65"></polygon>
       <polyline data-yr="${prevYear}" data-values="${pv.join(',')}" points="${pp.join(' ')}" fill="none" stroke="var(--faint)" stroke-width="1.5"></polyline>
       <polyline data-yr="${thisYear}" data-values="${cv.join(',')}" points="${cp.join(' ')}" fill="none" stroke="var(--accent)" stroke-width="2.5"></polyline>
@@ -1122,7 +1128,12 @@ function runStatsHTML217(){
      runner can predict (15 or 30 seconds), every point names its value, and
      colour belongs to the MARKS rather than changing the label ink. */
   const pm={}; for(const r of days){if(r.timed<=0)continue;const k=r.d.slice(0,7),e=pm[k]||(pm[k]={sec:0,d:0});e.sec+=r.sec;e.d+=toD(r.timed);}
-  const paces=Object.entries(pm).sort().slice(-6).map(([m,e])=>[m,e.sec/e.d]);
+  /* v3.3.236: nine months, not six (maker's call) — a longer read on a
+     number that moves slowly. At nine points the per-month value labels
+     collide, so only the FASTEST and CURRENT months print their pace; every
+     other month is read by dragging across the chart, which is what makes
+     the scrub worth having rather than decorative. */
+  const paces=Object.entries(pm).sort().slice(-PACE_MONTHS).map(([m,e])=>[m,e.sec/e.d]);
   if(paces.length){
     const lo=Math.min(...paces.map(v=>v[1])),hi=Math.max(...paces.map(v=>v[1])),span=Math.max(hi-lo,15),tick=span<=45?15:30;
     const base=Math.floor((lo-tick*.6)/tick)*tick,top=Math.max(base+tick*2,Math.ceil((hi+tick*.6)/tick)*tick);
@@ -1131,9 +1142,12 @@ function runStatsHTML217(){
     const dateLab=m=>{const last=m===mo?+todayISO.slice(8):new Date(+m.slice(0,4),+m.slice(5),0).getDate();return `${+m.slice(5)}/${last}`;};
     let marks='',poly='';
     for(let p=base;p<=top+.1;p+=tick){const y=Y(p);marks+=`<line x1="${x0}" y1="${y}" x2="${x0+xw}" y2="${y}" stroke="var(--line)" stroke-width=".6" stroke-dasharray="2 3"></line><text x="29" y="${y+2.5}" text-anchor="end" font-family="var(--mono)" font-size="6.5" fill="var(--muted)">${fmtAxis(p)}</text>`;}
-    paces.forEach(([m,p],i)=>{const x=x0+i*xw/Math.max(1,paces.length-1),y=Y(p),latest=i===paces.length-1,fast=Math.abs(p-lo)<.001,labelY=y<42?y+13:y-8,labelX=i===0?x+5:i===paces.length-1?x-5:x,labelAnchor=i===0?'start':i===paces.length-1?'end':'middle';poly+=`${x},${y} `;marks+=`${latest?`<circle class="beacon" cx="${x}" cy="${y}" r="4.8" fill="var(--accent-soft)" opacity=".8"></circle>`:''}<circle class="pacepoint${fast?' fastest':''}${latest?' latest':''}" cx="${x}" cy="${y}" r="${fast?3.2:latest?2.8:2.4}" fill="${fast?'var(--record)':'var(--accent)'}"></circle><text class="paceval" x="${labelX}" y="${labelY}" text-anchor="${labelAnchor}" font-family="var(--mono)" font-size="8" font-weight="600" fill="var(--muted)">${paceStr(p)}</text><text x="${x}" y="123" text-anchor="middle" font-family="var(--mono)" font-size="6.5" fill="var(--muted)">${dateLab(m)}</text>`;});
+    paces.forEach(([m,p],i)=>{const x=x0+i*xw/Math.max(1,paces.length-1),y=Y(p),latest=i===paces.length-1,fast=Math.abs(p-lo)<.001,labelY=y<42?y+13:y-8,labelX=i===0?x+5:i===paces.length-1?x-5:x,labelAnchor=i===0?'start':i===paces.length-1?'end':'middle';poly+=`${x},${y} `;marks+=`${latest?`<circle class="beacon" cx="${x}" cy="${y}" r="4.8" fill="var(--accent-soft)" opacity=".8"></circle>`:''}<circle class="pacepoint${fast?' fastest':''}${latest?' latest':''}" cx="${x}" cy="${y}" r="${fast?3.2:latest?2.8:2.4}" fill="${fast?'var(--record)':'var(--accent)'}" data-pm="${m}" data-pp="${Math.round(p)}"></circle>${(fast||latest)?`<text class="paceval" x="${labelX}" y="${labelY}" text-anchor="${labelAnchor}" font-family="var(--mono)" font-size="8" font-weight="600" fill="${fast?'var(--record)':'var(--muted)'}">${paceStr(p)}</text>`:''}<text x="${x}" y="123" text-anchor="middle" font-family="var(--mono)" font-size="6.5" fill="var(--muted)">${dateLab(m)}</text>`;});
     const yrs=[...new Set(paces.map(v=>v[0].slice(0,4)))];
-    h+=`<h2 class="charthead">Pace${hActs('pace',`Average minutes per ${DU()} by month. Lower is faster; coloured points mark the fastest and current months.`,'About Pace')}</h2><div class="card pacecard"><svg viewBox="0 0 330 142" style="width:100%;height:auto"><text x="8" y="13" font-family="var(--mono)" font-size="7" fill="var(--faint)">${yrs.join(' / ')}</text><line x1="${x0}" y1="${y0}" x2="${x0+xw}" y2="${y0}" stroke="var(--line)" stroke-width=".8"></line><polyline points="${poly}" fill="none" stroke="var(--accent)" stroke-width="1.3"></polyline>${marks}</svg></div>`;
+    h+=`<h2 class="charthead">Pace${hActs('pace',`Average minutes per ${DU()} by month. Lower is faster; coloured points mark the fastest and current months.`,'About Pace')}</h2><div class="card pacecard"><svg class="pacescrub" viewBox="0 0 330 142" style="width:100%;height:auto"><text x="8" y="13" font-family="var(--mono)" font-size="7" fill="var(--faint)">${yrs.join(' / ')}</text><line x1="${x0}" y1="${y0}" x2="${x0+xw}" y2="${y0}" stroke="var(--line)" stroke-width=".8"></line><polyline points="${poly}" fill="none" stroke="var(--accent)" stroke-width="1.3"></polyline>${marks}<line class="pacevline" x1="0" y1="26" x2="0" y2="${y0}" stroke="var(--line)" stroke-width="1" opacity="0"></line>
+      <circle class="pacehalo" r="6" cx="0" cy="0" fill="none" stroke="var(--chalk)" stroke-width="1.4" opacity="0" pointer-events="none"></circle>
+      <rect class="pacepad" x="${x0}" y="26" width="${xw}" height="${y0-26}" fill="transparent"></rect></svg>
+      <div class="pacecap" data-pacecap>&nbsp;</div></div>`;
   }
 
   /* Fair weekly pace: every bar ends on today's weekday, so an unfinished
@@ -1142,9 +1156,12 @@ function runStatsHTML217(){
   for(let i=11;i>=0;i--){const d=new Date(curStart);d.setDate(d.getDate()-i*7);starts.push(d.toLocaleDateString('en-CA'));}
   const vals=starts.map(s=>days.reduce((sum,r)=>{const dd=daysBetween(s,r.d);return sum+(dd>=0&&dd<=cutoff?toD(r.km):0);},0)),max=Math.max(1,...vals);
   const shortMD=s=>{const d=new Date(s+'T00:00');return `${d.getMonth()+1}/${d.getDate()}`;};
-  let bars=''; vals.forEach((v,i)=>{const x=9+i*25.5,bh=Math.max(2,v/max*84),cur=i===vals.length-1;bars+=`<rect class="gbar" x="${x}" y="${104-bh}" width="17" height="${bh}" rx="3" fill="${cur?'var(--accent)':'var(--accent-dim)'}" opacity="${cur?1:.58}"></rect><text x="${x+8.5}" y="${104-bh-4}" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="var(--muted)" font-weight="${cur?'700':'500'}">${Math.round(v)}</text><text x="${x+8.5}" y="118" text-anchor="middle" font-family="var(--mono)" font-size="6" fill="var(--muted)">${shortMD(starts[i])}</text>`;});
+  /* v3.3.236: the baseline drops 104 -> 114 (viewBox 126 -> 136) so the
+     tallest bar's value label clears the card's year caption instead of
+     sitting 5px under it. Bar heights are unchanged; only the plot moved. */
+  let bars=''; vals.forEach((v,i)=>{const x=9+i*25.5,bh=Math.max(2,v/max*84),cur=i===vals.length-1;bars+=`<rect class="gbar" x="${x}" y="${114-bh}" width="17" height="${bh}" rx="3" fill="${cur?'var(--accent)':'var(--accent-dim)'}" opacity="${cur?1:.58}"></rect><text x="${x+8.5}" y="${114-bh-4}" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="var(--muted)" font-weight="${cur?'700':'500'}">${Math.round(v)}</text><text x="${x+8.5}" y="128" text-anchor="middle" font-family="var(--mono)" font-size="6" fill="var(--muted)">${shortMD(starts[i])}</text>`;});
   const dayName=new Date(todayISO+'T00:00').toLocaleDateString('en-US',{weekday:'long'});
-  h+=`<h2 class="charthead">Every week${hActs('eweek',`Each week is compared through ${dayName}, so the current week is not penalized for days that have not happened.`,'About Every week')}</h2><div class="card weekcard"><svg viewBox="0 0 330 126" style="width:100%;height:auto"><text x="9" y="11" font-family="var(--mono)" font-size="7" fill="var(--faint)">${thisYear} · THROUGH ${dayName.toUpperCase()}</text><line x1="9" y1="104" x2="313" y2="104" stroke="var(--line)" stroke-width=".6"></line>${bars}</svg><div class="tot"><span><b>${vals.at(-1).toFixed(1)} ${DU()}</b> this week</span><span>all bars through ${dayName.slice(0,3)}</span></div></div>`;
+  h+=`<h2 class="charthead">Every week${hActs('eweek',`Each week is compared through ${dayName}, so the current week is not penalized for days that have not happened.`,'About Every week')}</h2><div class="card weekcard"><svg viewBox="0 0 330 136" style="width:100%;height:auto"><text x="9" y="11" font-family="var(--mono)" font-size="7" fill="var(--faint)">${thisYear} · THROUGH ${dayName.toUpperCase()}</text><line x1="9" y1="114" x2="313" y2="114" stroke="var(--line)" stroke-width=".6"></line>${bars}</svg><div class="tot"><span><b>${vals.at(-1).toFixed(1)} ${DU()}</b> this week</span><span>all bars through ${dayName.slice(0,3)}</span></div></div>`;
   return h;
 }
 

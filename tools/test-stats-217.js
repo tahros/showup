@@ -35,10 +35,21 @@ ok('The milestone is folded into Running month',!H.includes('Monthly milestone')
 const pace=run(`(function(){const h=[...document.querySelectorAll('h2')].find(x=>x.firstChild.textContent.trim()==='Pace');return h&&h.nextElementSibling.querySelectorAll('line').length;})()`);
 ok('Pace has axis and grid lines',pace>=4,pace+' lines');
 const paceMeta=JSON.parse(run(`JSON.stringify((function(){const h=[...document.querySelectorAll('h2')].find(x=>x.firstChild.textContent.trim()==='Pace'),svg=h.nextElementSibling.querySelector('svg');return {values:[...svg.querySelectorAll('.paceval')].map(t=>({text:t.textContent,fill:t.getAttribute('fill'),size:t.getAttribute('font-size')})),points:[...svg.querySelectorAll('.pacepoint')].map(p=>({fill:p.getAttribute('fill'),fast:p.classList.contains('fastest')})),dates:[...svg.querySelectorAll('text')].map(t=>t.textContent).filter(t=>/^\\d{1,2}\\/\\d{1,2}$/.test(t)),ticks:[...svg.querySelectorAll('text[x="29"]')].map(t=>t.textContent),head:h.classList.contains('charthead'),card:h.nextElementSibling.classList.contains('pacecard')};})())`));
-ok('Pace shows exactly the latest six monthly points',paceMeta.values.length===6&&paceMeta.dates.length===6&&paceMeta.points.length===6,paceMeta.values.length+' points');
-ok('Every pace point has a larger neutral data label',paceMeta.values.every(v=>v.fill==='var(--muted)'&&+v.size>=8));
+/* v3.3.236: nine months, and only the notable ones print a value inline —
+   at nine points the labels collided, so the rest are read by dragging.
+   Every month still gets a POINT and a DATE; only the value text is
+   selective. */
+ok('Pace shows the latest nine monthly points',
+   paceMeta.dates.length===9&&paceMeta.points.length===9,
+   paceMeta.points.length+' points, '+paceMeta.dates.length+' dates');
+ok('...with values printed only on the notable months',
+   paceMeta.values.length>0&&paceMeta.values.length<paceMeta.points.length,
+   paceMeta.values.length+' labels');
+ok('Printed pace labels stay large, in muted ink or the record colour',
+   paceMeta.values.every(v=>(v.fill==='var(--muted)'||v.fill==='var(--record)')&&+v.size>=8));
 ok('Ordinary Pace points are blue and only the fastest is red',paceMeta.points.every(p=>p.fill===(p.fast?'var(--record)':'var(--accent)')));
-ok('Pace uses actual dates instead of month letters',paceMeta.dates.length===paceMeta.values.length,paceMeta.dates.join(' '));
+ok('Pace uses actual dates instead of month letters',
+   paceMeta.dates.length===paceMeta.points.length,paceMeta.dates.join(' '));
 ok('Pace ticks land on 15-second increments',paceMeta.ticks.every(t=>{const a=t.split(':');return (+a[0]*60 + +a[1])%15===0;}),paceMeta.ticks.join(' '));
 ok('Chart headings carry the extra spacing hook',paceMeta.head&&paceMeta.card);
 ok('Running month uses six visual metrics',run(`document.querySelectorAll('.runmonthgrid span').length`)===6);
