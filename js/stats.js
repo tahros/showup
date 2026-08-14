@@ -210,6 +210,10 @@ function gridData(){
 }
 function bwCard(){
   const ds=bwDays(), cur=bwNow();
+  /* v3.3.230: weight is optional context, not an empty chore. Settings
+     remains the place to record a first value; Stats appears only after the
+     user has something real to review. */
+  if(!ds.length&&!bwEdit) return '';
   let body;
 
   if(bwEdit){
@@ -222,17 +226,13 @@ function bwCard(){
       </div>
       <div class="note">Recorded against today. Enter it only when it has changed — silence means unchanged.</div>`;
   }else if(!ds.length){
-    body=`<div class="row spread">
-        <span class="mono muted" style="font-size:12px">No weight recorded yet.</span>
-        <button class="chip" id="bwEditBtn">Add</button></div>`;
+    body='';
   }else{
     const first=ds[0], last=ds[ds.length-1];
     const since=daysAgo(last);
-    const head=`<div class="row spread" style="align-items:flex-end">
-        <div><div class="bwnow">${wDisp(cur)} <span style="font-size:13px;font-weight:500">${U()}</span></div>
-          <div class="bwsub">${ds.length>1
+      const head=`<div class="bwtools"><span class="bwsub">${ds.length>1
             ? `last change ${pretty(last)} · ${since===0?'today':since+'d ago'}`
-            : `unchanged since ${pretty(first)}`}</div></div>
+            : `unchanged since ${pretty(first)}`}</span>
         <button class="chip" id="bwEditBtn">Update</button></div>`;
 
     let chart='';
@@ -276,7 +276,11 @@ function bwCard(){
     }
     body=head+chart;
   }
-  return `<h2 id="secWeight">Weight${hActs('bw',"Flat stretches are days you didn't weigh in.",'About the weight chart')}</h2><div class="card">${body}</div>`;
+  const summary=ds.length
+    ? `<span>Weight</span><span><b>${wDisp(cur)}</b> ${U()}<i>${md(ds.at(-1))}</i></span>`
+    : `<span>Weight</span><span>Add</span>`;
+  return `<h2 id="secWeight">Weight${hActs('bw',"Flat stretches are days you didn't weigh in.",'About the weight chart')}</h2>
+    <details class="card bwcollapse" ${bwEdit?'open':''}><summary>${summary}</summary><div class="bwbody">${body}</div></details>`;
 
 }
 /* v3.3.111: sections are cut into a buffer as they're built, then emitted
@@ -529,10 +533,20 @@ function currentRhythmSection(){
     cells.push(`<span class="${cls.join(' ')}" role="img" aria-label="${iso}${done?' · completed workout':future?' · future':' · no completed workout'}">${day}</span>`);
   }
   const monthName=now.toLocaleDateString('en-US',{month:'long'});
-  return `<h2>Current rhythm${hActs('rhythm','Your active streak and completed workout days in the current month. Today fills with the first completed set.','About Current rhythm')}</h2>
+  const total=msLiveTotal(),firstDay=SEED.totals.first;
+  let lifetime='';
+  if(firstDay){
+    const span=Math.max(1,daysBetween(firstDay,todayISO)+1-((((DB.days[todayISO]||{}).w)||[]).length?0:1));
+    const since=new Date(firstDay+'T00:00').toLocaleDateString('en-US',{month:'short',year:'numeric'});
+    lifetime=`<small>${Math.round(total/span*100)}% since ${since}</small>`;
+  }
+  /* v3.3.230: one attendance story. The lifetime total is the promise;
+     streak and the month calendar are its current receipt. Keeping them in
+     separate sections repeated the same August and streak facts twice. */
+  return `<h2 id="secDays">Show up — that's the whole game${hActs('rhythm','Your lifetime attendance, active streak, and completed workout days this month. Today fills with the first completed set.','About Show up')}</h2>
     <div class="card crcard">
-      <div class="crhead"><span><small>Current streak</small><b>${streak} day${streak===1?'':'s'}</b></span>
-        <span class="crbest"><small>Best</small><b>${best}</b><small>days</small></span></div>
+      <div class="crherohead"><span class="crtotal"><b>${fmt(total)}</b><span><small>Days in</small>${lifetime}</span></span>
+        <span class="crbest"><small>Streak</small><b>${streak} day${streak===1?'':'s'}</b><small>Best ${best}</small></span></div>
       <div class="crmonth"><span>${monthName.toUpperCase()} ${year}</span><b>${monthDays} day${monthDays===1?'':'s'}</b></div>
       <div class="crweekdays">${'MTWTFSS'.split('').map(v=>`<span>${v}</span>`).join('')}</div>
       <div class="crgrid">${cells.join('')}</div>
@@ -615,60 +629,9 @@ function renderStats(){
   // seed monthly.days already correct pre-app; the dates set covers everything, so:
   for(const [m,v] of Object.entries(SEED.monthly)) monthCounts[m]=Math.max(monthCounts[m]||0,v.days);
 
-  const thisYearDays=[...dates].filter(d=>d.startsWith(thisYear)).length;
-  const trainedToday=dates.has(todayISO);
-  const elapsed=elapsedDays();                                  // v3.3.95: one definition, shared with the chart
-  const consNow=thisYearDays/elapsed;
-  const lastYear=String(+thisYear-1);
-  const lyCurve=curves[lastYear];
-  const lyAtSamePoint=lyCurve?lyCurve.curve[Math.min(elapsed,lyCurve.end)-1]:null;
-  const diff=lyAtSamePoint!=null?Math.round((consNow-lyAtSamePoint)*100):null;
-
-  let h=`<h2 id="secDays">Show up — that's the whole game</h2>
-    <div class="kpis">
-      ${(()=>{
-        /* v3.3.99: the game itself, finally under its own heading. Total days
-           is THE number — the greeting says it, Settings says it, and the
-           section titled "that's the whole game" somehow didn't. First card,
-           flagship type via :first-child, and the section's ONE accent: the
-           percentages are derived from this number and read chalk. Caption is
-           the lifetime pace — receipts at life scale, the truest denominator
-           the app has. */
-        const total=msLiveTotal(), first=SEED.totals.first;
-        let cap='';
-        if(first){
-          const span=Math.max(1,daysBetween(first,todayISO)+1-((((DB.days[todayISO]||{}).w)||[]).length?0:1));
-          const since=new Date(first+'T00:00').toLocaleDateString('en-US',{month:'short',year:'numeric'});
-          cap=`<div class="d">${Math.round(total/span*100)}% of all days since ${since}</div>`;
-        }
-        /* v3.3.100: the hero takes the whole row — number left, words right,
-           so hierarchy comes from WIDTH and the row stays short. */
-        return `<div class="kpi hero accent"><div class="v">${fmt(total)}</div>
-          <span><div class="l">days of showing up</div>${cap}</span></div>`;
-      })()}
-      <div class="kpi"><div class="v">${Math.round(consNow*100)}%</div><div class="l">of ${thisYear}</div>
-        ${diff!=null?`<div class="d ${diff>=0?'delta up':'delta down'}">${diff>=0?'+':''}${diff} vs ${lastYear}</div>`:''}</div>
-      ${(()=>{
-        const dNow=+todayISO.slice(8);
-        const cur=(monthCounts[monthKey]||0)/dNow;
-        const pv=new Date(+thisYear,+monthKey.slice(5)-1,0);            // last day of prev month
-        const pKey=pv.toLocaleDateString('en-CA').slice(0,7);
-        const pN=Math.min(dNow,pv.getDate());
-        let pDays=0;
-        for(let d2=1;d2<=pN;d2++) if(dates.has(`${pKey}-${String(d2).padStart(2,'0')}`)) pDays++;
-        const diff=Math.round((cur-pDays/pN)*100);
-        const pName=pv.toLocaleDateString('en-US',{month:'short'});
-        return `<div class="kpi"><div class="v">${Math.round(cur*100)}%</div>
-          <div class="l">of ${new Date(+thisYear,+monthKey.slice(5)-1,1).toLocaleDateString('en-US',{month:'short'})}</div>
-          <div class="d mono" style="color:${diff>=0?'var(--accent)':'var(--record)'}">${diff>=0?'+':''}${diff} vs ${pName}</div></div>`;
-      })()}
-      <div class="kpi"><div class="v">${currentStreak()}</div><div class="l">streak · best ${longestStreak()}</div></div>
-    </div>`;
-
-  // consistency chart — the Dashboard bottom graph
+  // v3.3.230: lifetime total + current rhythm are one attendance hero.
+  let h=currentRhythmSection();
   cut('kpis');
-  h+=currentRhythmSection();
-  cut('rhythm');
   /* v3.3.208: Session Build keeps the honest part mix and the live-growing
      skyline, but every unit is now one completed set — never mixed tonnage. */
   h+=`<h2>Session build${hActs('pmix',"One block per completed set, stacked by body part. Tap a label to follow it; tap again for all. Runs stay separate.",'About Session build')}</h2>
@@ -886,31 +849,16 @@ function renderStats(){
   /* v3.3.111: "Last 30 days, vs your usual" removed on the maker's call — no
      value found in it. Its entire last30/drift computation went with it;
      nothing else read those. */
-  h+=bwCard();                       // v3.3.69: you, before the part-by-part drift
+  h+=bwCard();                       // v3.3.230: conditional, emitted near the bottom
   cut('wt');
-
-  /* v3.3.130: "Report card" RETURNS, but not as the v3.3.111 section that
-     was removed. That one was a month-stepper with its own share card. This
-     one is the app's single share surface: rotate to the card you want, then
-     send it. Every per-section share button is gone in favour of it. */
-  h+=`<h2 id="secReport">Report card${hActs('rep','Swipe to a card, then share it as an image.','About the report card')}</h2>
-      <div class="card repcard" id="repCard">
-        <div class="repnav">
-          <button class="repar" id="repPrev" aria-label="Previous card">‹</button>
-          <div class="repttl" id="repTtl">&nbsp;</div>
-          <button class="repar" id="repNext" aria-label="Next card">›</button>
-        </div>
-        <div class="repthumbwrap"><img id="repThumb" alt="" class="repthumb"></div>
-        <div class="note repdots" id="repDots"></div>
-        <button class="btn" id="repShare">Share as image</button>
-        <button class="btn ghost" id="repAll" style="margin:8px 0 0">Save all ${shareCards().length}</button>
-      </div>`;
-  cut('rep');
   // sections emit in one declared order (v3.3.111)
-  h = _S.kpis + _S.rhythm + _S.rz + _S.pmix + _S.mc + _S.consrace + _S.mpace + _S.wt;
+  h = _S.kpis + _S.rz + _S.pmix + _S.mc + _S.consrace + _S.mpace;
 
   // the whole Run story lives here now (was its own tab in v2.04 — reverted)
   h+=runStatsHTML217();
+
+  // Weight is personal context, not a prerequisite; no entry means no section.
+  h+=_S.wt;
 
   // records — kept, but demoted below the days story
   if(false) h+=`<h2 id="secRecords">Records</h2>`;
@@ -934,13 +882,10 @@ function renderStats(){
     }
   }
 
-  h+=_S.rep;                         // v3.3.130: the exit — you have seen the numbers, here is the receipt
-
   h+=`<h2>Settings</h2>
       <button class="btn ghost" id="settingsBtn">⚙︎ Settings, account &amp; sync</button>
       <div class="note" style="text-align:center">${session?`Signed in as ${session.user.email||'—'}`:'Not signed in — data is on this device only'} · ${APP_VERSION}</div>`;
   $('#view').innerHTML=h;
-  if(typeof paintRepCard==='function') paintRepCard();   // v3.3.130: fill the report card preview
 }
 
 

@@ -174,7 +174,7 @@ run(`view='stats'; renderStats();`);
 /* v3.3.130: the seven per-section buttons collapsed into one carousel. The
    path under test is the same — control → overlay → file — but there is now
    exactly one entry point to it. */
-ok("stats offers exactly one share control", /id="repShare"/.test(run(`$('#view').innerHTML`)));
+ok("Stats offers no share control", !/id="repShare"/.test(run(`$('#view').innerHTML`)));
 ok("...and no per-section share icon survives anywhere",
    run(`document.querySelectorAll('.shareb').length`) === 0,
    run(`document.querySelectorAll('.shareb').length`) + " left");
@@ -196,7 +196,8 @@ ok("...within the app's one-breath range", mgTip.length > 0 && mgTip.length <= 1
    This click was a null deref that crashed the suite silently for fourteen
    releases; everything below here never ran. Rotate to the grid card and go
    through the real button. */
-run(`_repIdx=shareCards().findIndex(c=>c.id==='grid');
+run(`view='history'; render(); document.getElementById('secReport').open=true; paintRepCard();
+     _repIdx=shareCards().findIndex(c=>c.id==='grid');
      document.getElementById('repShare').click();`);
 // showCard awaits document.fonts.ready; drain the microtask queue
 run(`Promise.resolve()`);
@@ -337,9 +338,11 @@ module.exports = settled.then(() => {
        !/id="runShare"/.test(run(`$('#view').innerHTML`)));
     ok("the jump chips are gone from Stats (v3.3.89)",
        !/data-jump=/.test(run(`$('#view').innerHTML`)));
-    ok("...while the section headings they indexed remain",
+    ok("...while the attendance heading remains and Report moves to History",
        /id="secDays"/.test(run(`$('#view').innerHTML`)) &&
-       /id="secReport"/.test(run(`$('#view').innerHTML`)));
+       !/id="secReport"/.test(run(`$('#view').innerHTML`)));
+    run(`view='history'; render();`);
+    ok("History owns the one report surface", /id="secReport"/.test(run(`$('#view').innerHTML`)));
 
     // ---- 8d. v3.3.92: 2025's line moved to chart grade -------------------
     const statsSrc92 = fs.readFileSync(path.join(dir, "js/stats.js"), "utf8");

@@ -134,50 +134,39 @@ const openCoded = [headSrc95, statsSrc95, utilSrc95]
 console.log((openCoded === 0 ? "PASS" : "FAIL"),
   "no file open-codes the elapsed rule any more \u2192", openCoded);
 if (openCoded !== 0) fail++;
-console.log((/elapsedDays\(\)/.test(headSrc95) && /elapsedDays\(\)/.test(statsSrc95) ? "PASS" : "FAIL"),
-  "header.js and stats.js both call it");
-if (!(/elapsedDays\(\)/.test(headSrc95) && /elapsedDays\(\)/.test(statsSrc95))) fail++;
+console.log((/elapsedDays\(\)/.test(headSrc95) ? "PASS" : "FAIL"),
+  "the header reads the shared elapsed-day rule");
+if (!/elapsedDays\(\)/.test(headSrc95)) fail++;
 
 // ---- v3.3.99: the game itself leads the KPIs -------------------------------
 run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
   for(let i=1;i<=40;i++){const d=new Date(t); d.setDate(d.getDate()-i);
     DB.days[d.toLocaleDateString('en-CA')]={w:[{part:'Chest',ex:'Chest Press',w:40,reps:[10]}],upd:1};}
   SEED=deriveAll(); view='stats'; render();})()`);
-check("the Days card is the FIRST kpi",
-      `/days of showing up/.test(document.querySelector('.kpis .kpi:first-child').innerHTML)`, true);
-check("...showing the live total", `document.querySelector('.kpis .kpi:first-child .v').textContent`, "40");
-check("...with the lifetime-pace caption",
-      `/% of all days since/.test(document.querySelector('.kpis .kpi:first-child').innerHTML)`, true);
-check("...and the section's ONE accent lives there",
-      `document.querySelectorAll('.kpis .kpi.accent').length===1 && document.querySelector('.kpis .kpi.accent')===document.querySelector('.kpis .kpi:first-child')`, true);
+check("the unified attendance hero leads Stats", `!!document.querySelector('#secDays + .crcard')`, true);
+check("...showing the live total", `document.querySelector('.crtotal>b').textContent`, "40");
+check("...with the lifetime-pace caption", `/% since/.test(document.querySelector('.crtotal').textContent)`, true);
+check("...and streak plus best in the same card", `!!document.querySelector('.crbest')`, true);
 // logging today moves the number — the card is live, like the grid total
 check("logging today increments it to 41",
       `(function(){day(todayISO).w.push({part:'Back',ex:'Row',w:40,reps:[10],at:Date.now()});
         SEED=deriveAll(); render();
-        const v=document.querySelector('.kpis .kpi:first-child .v').textContent;
+        const v=document.querySelector('.crtotal>b').textContent;
         day(todayISO).w.pop(); SEED=deriveAll(); return v;})()`, "41");
 // and it agrees with the month grid's total — one live-total rule everywhere
 check("kpi total and grid total are the same arithmetic",
       `(function(){render(); // the previous check left the DOM one derive behind
-        return document.querySelector('.kpis .kpi:first-child .v').textContent===String(gridData().total);})()`, true);
+        return document.querySelector('.crtotal>b').textContent===String(gridData().total);})()`, true);
 
 // ---- v3.3.100: hero row + one 3-up row --------------------------------------
 run(`view='stats'; render();`);
-check("the Days card is the hero, spanning its own row",
-      `document.querySelector('.kpis .kpi:first-child').classList.contains('hero')`, true);
+check("the attendance hero has exactly one current-month calendar",
+      `document.querySelectorAll('.crcard .crgrid').length`, 1);
 const cssSrc100 = fs.readFileSync(path.join(dir, "css/app.css"), "utf8");
-console.log((/\.kpi\.hero\{grid-column:1\/-1/.test(cssSrc100) ? "PASS" : "FAIL"),
-  "hero spans the full grid width");
-if (!/\.kpi\.hero\{grid-column:1\/-1/.test(cssSrc100)) fail++;
-console.log((/\.kpis\{display:grid;grid-template-columns:repeat\(3,1fr\)/.test(cssSrc100) ? "PASS" : "FAIL"),
-  "the row beneath is 3-up");
-if (!/\.kpis\{display:grid;grid-template-columns:repeat\(3,1fr\)/.test(cssSrc100)) fail++;
-check("four cards total: hero + three",
-      `document.querySelectorAll('.kpis .kpi').length`, 4);
-check("...and the three compact cards never say 'trained' \u2014 the heading says the game",
-      `[...document.querySelectorAll('.kpis .kpi:not(.hero) .l')].some(l=>/trained/.test(l.textContent))`, false);
-check("the streak card sits last",
-      `/streak/.test(document.querySelector('.kpis .kpi:last-child .l').textContent)`, true);
+console.log((/\.crherohead\{display:flex;align-items:flex-end;justify-content:space-between/.test(cssSrc100) ? "PASS" : "FAIL"),
+  "lifetime and streak share one clear hero row");
+if (!/\.crherohead\{display:flex;align-items:flex-end;justify-content:space-between/.test(cssSrc100)) fail++;
+check("the duplicate Current rhythm heading is gone", `![...document.querySelectorAll('h2')].some(h=>h.firstChild.textContent.trim()==='Current rhythm')`, true);
 
 /* v3.3.101, an honest limit: the dead space the maker circled came from
    TEXT WRAPPING (the streak label + comeback line wrapping to 4 visual
@@ -195,9 +184,9 @@ check("the streak card sits last",
 // equal to the number's ascent overshoot \u2014 the dead space the maker
 // circled at the top of the hero card.
 const cssSrc101 = fs.readFileSync(path.join(dir, "css/app.css"), "utf8");
-console.log((/\.kpi\.hero\{grid-column:1\/-1;display:flex;align-items:center/.test(cssSrc101) ? "PASS" : "FAIL"),
-  "the hero row centres its number against its label block");
-if (!/\.kpi\.hero\{grid-column:1\/-1;display:flex;align-items:center/.test(cssSrc101)) fail++;
+console.log((/\.crtotal>b\{font-size:40px/.test(cssSrc101) ? "PASS" : "FAIL"),
+  "the lifetime total remains the dominant number");
+if (!/\.crtotal>b\{font-size:40px/.test(cssSrc101)) fail++;
 
 // ---- v3.3.111: the section order is declared, not incidental ------------
 run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
@@ -205,7 +194,7 @@ run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
     const iso=d.toLocaleDateString('en-CA');
     DB.days[iso]={w:[{part:'Chest',ex:'Chest Press',w:40,reps:[10],at:1}],upd:1};
     if(i%3===0) DB.days[iso].w.push({part:'Run',ex:'Run',w:5,reps:[],mins:30,secs:0,at:1});}
-  DB.settings.bw=[{d:todayISO,w:70}];
+  setBw(todayISO,70);
   SEED=deriveAll(); view='stats'; render();})()`);
 
 /* Strip the (i) tip's text, which is appended inside the same <h2>. Splitting
@@ -218,9 +207,8 @@ const H = JSON.parse(heads());
 const idx = t => H.findIndex(x => x.startsWith(t));
 
 // the maker's order, top to bottom
-const WANT = ["Show up", "Current rhythm", "Growth audit", "Session build",
-              "Muscle coverage", "Consistency", "Monthly pace", "Weight", "Run", "Distance",
-              "Monthly milestone", "Pace", "Running", "Every week"];
+const WANT = ["Show up", "Growth audit", "Session build", "Muscle coverage", "Consistency",
+              "Monthly pace", "Running", "Distance", "Pace", "Every week", "Weight"];
 let lastAt = -1, orderOK = true, broke = "";
 for (const t of WANT) {
   const at = idx(t);
@@ -233,9 +221,8 @@ if (!orderOK) fail++;
 
 // the two removed sections are gone everywhere
 // v3.3.130: Report card is BACK — as the one share surface, last before Settings
-check("Report card renders", `/Report card/.test($('#view').innerHTML)`, true);
-check("...and sits after the running story, as the exit",
-      `$('#view').innerHTML.indexOf('secReport') > $('#view').innerHTML.indexOf('Every week')`, true);
+check("Report card leaves Stats", `/id="secReport"/.test($('#view').innerHTML)`, false);
+check("Monthly milestone has no standalone heading", `![...document.querySelectorAll('h2')].some(h=>h.firstChild.textContent.trim()==='Monthly milestone')`, true);
 check("Last 30 days vs your usual is gone", `/vs your usual/.test($('#view').innerHTML)`, false);
 check("Days by month is gone", `/Days by month/.test($('#view').innerHTML)`, false);
 check("Last 6 months is gone", `/Last 6 months/.test($('#view').innerHTML)`, false);
@@ -294,14 +281,15 @@ if (withDl !== "") fail++;
 /* v3.3.130: "Share as image" comes back \u2014 but exactly once, in the report
    card. The original assertion guarded against it being duplicated across
    every card body, and that is still the thing worth guarding. */
-check("'Share as image' appears exactly once in the whole tab",
-      `($('#view').innerHTML.match(/Share as image/g)||[]).length`, 1);
+check("'Share as image' does not compete with analysis in Stats",
+      `($('#view').innerHTML.match(/Share as image/g)||[]).length`, 0);
 
 /* v3.3.130: the risk moved. It used to be "did the ids survive the move" \u2014
    now it is "does the one button reach a renderer, and does rotating change
    WHICH card it reaches". A share button that always sends card 1 would look
    perfectly fine on screen. */
-run(`__origShow = showCard; globalThis.__sent=[];
+run(`view='history'; render(); document.getElementById('secReport').open=true; paintRepCard();
+     __origShow = showCard; globalThis.__sent=[];
      showCard = (fn,label) => { globalThis.__sent.push(label); return null; };`);
 run(`_repIdx=0; document.querySelector('#repShare').click();
      document.querySelector('#repNext').click();

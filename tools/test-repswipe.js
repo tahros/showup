@@ -50,7 +50,7 @@ run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
     DB.days[iso]={w:[{part:'Chest',ex:'Chest Press',w:40,reps:[10],at:1},
                      {part:'Run',ex:'Run',w:4,reps:[],mins:26,secs:0,at:2}],upd:1};
   }
-  SEED=deriveAll(); view='stats'; render();})()`);
+  SEED=deriveAll(); view='history'; render(); document.getElementById('secReport').open=true; paintRepCard();})()`);
 
 // drag helper: down at (x0,y0), up at (x0+dx, y0+dy)
 const drag = (sel, dx, dy) => run(`(function(){
@@ -124,14 +124,14 @@ const touchSwipe = sel => run(`(function(){
   el.dispatchEvent(mk('touchend',120));
   return view;})()`);
 
-run(`view='stats'; render(); _repIdx=0;`);
+run(`view='history'; render(); document.getElementById('secReport').open=true; paintRepCard(); _repIdx=0;`);
 run(`document.getElementById('repShare').click();`);
 const viewAfterOv = touchSwipe("#repImg");
 ok("a touch-swipe on the share image does NOT change tab",
-   viewAfterOv === "stats", "view = " + viewAfterOv);
+   viewAfterOv === "history", "view = " + viewAfterOv);
 const viewAfterBackdrop = touchSwipe("#repOv");
 ok("...nor does one on the overlay backdrop",
-   viewAfterBackdrop === "stats", "view = " + viewAfterBackdrop);
+   viewAfterBackdrop === "history", "view = " + viewAfterBackdrop);
 run(`document.getElementById('repOv').style.display='none';`);
 
 ok("every full-screen modal is inert to the tab-swipe", (() => {
@@ -159,8 +159,8 @@ setTimeout(() => {
      label0 + " \u2192 " + label1);
   ok("...and the label matches the index now shown",
      label1 === run(`shareCards()[_repIdx].file()`), String(label1));
-  ok("...and the carousel underneath followed", title() === run(`shareCards()[_repIdx].label`),
-     title());
+  ok("...and the carousel underneath followed", run(`_repIdx`) === 1,
+     "idx " + run(`_repIdx`));
 
   // ---- 8. the milestone overlay must NOT swipe -------------------------
   run(`_repFromCarousel=false; _repIdx=0;`);

@@ -211,7 +211,7 @@ check("the confirmation says BW for a bodyweight set, not '0kg'",
   check("...but stepping the weight still rebuilds them", `${stepped!==before}`, true);
   check("tiles read as reps: \u00d7 before every number",
         `document.querySelectorAll('.repgrid button .rx').length===document.querySelectorAll('.repgrid [data-rep]').length`, true);
-  run(`view='stats'; render(); document.querySelector('#secWeight .ibtn.tipi').click();`);
+  run(`setBw(todayISO,70); view='stats'; render(); document.querySelector('#secWeight .ibtn.tipi').click();`);
   check("scrolling closes an open tip",
         `(()=>{document.dispatchEvent(new Event('scroll'));
               return document.getElementById('tipFloat').hidden===true

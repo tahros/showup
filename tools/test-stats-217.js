@@ -31,7 +31,7 @@ ok('Records is removed',!H.includes('Records'));
 ok('Run no longer reports a run streak',!/day run streak/.test(run(`document.querySelector('#view').textContent`)));
 ok('Distance is a two-self same-date race',run(`document.querySelectorAll('.runrace [data-con-count]').length`)===2);
 ok('Distance scrubber declares distance units',run(`document.querySelector('.runrace [data-race-unit]').getAttribute('data-race-unit')`)==='km');
-ok('The milestone resets monthly',H.includes('Monthly milestone'));
+ok('The milestone is folded into Running month',!H.includes('Monthly milestone')&&run(`!!document.querySelector('.runmonthgoal .mbar')`));
 const pace=run(`(function(){const h=[...document.querySelectorAll('h2')].find(x=>x.firstChild.textContent.trim()==='Pace');return h&&h.nextElementSibling.querySelectorAll('line').length;})()`);
 ok('Pace has axis and grid lines',pace>=4,pace+' lines');
 ok('Running month uses six visual metrics',run(`document.querySelectorAll('.runmonthgrid span').length`)===6);

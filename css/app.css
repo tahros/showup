@@ -223,15 +223,15 @@
   .mg-y{font-size:10px;color:var(--muted)}
   .mg-c{height:24px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--chalk)}
   .mg-c.cur{outline:1.5px dashed var(--accent);outline-offset:-1.5px;color:var(--muted)}
-  /* Current rhythm: the streak is the answer; the calendar is its receipt. */
+  /* v3.3.230: attendance is one story — lifetime promise, current receipt. */
   .crcard{padding:14px}
-  .crhead{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:18px}
-  .crhead>span:first-child{display:flex;flex-direction:column;gap:3px}
-  .crhead small,.crmonth{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.04em}
-  .crhead>span:first-child b{font-size:30px;line-height:1;color:var(--chalk);letter-spacing:var(--track-num)}
-  .crbest{display:grid;grid-template-columns:auto auto;align-items:baseline;column-gap:4px;text-align:right}
-  .crbest small:first-child{grid-column:1/-1}
-  .crbest b{font-family:var(--mono);font-size:18px;color:var(--chalk)}
+  .crherohead{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:16px}
+  .crherohead small,.crmonth{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.04em}
+  .crtotal{display:flex;align-items:flex-end;gap:10px;min-width:0}
+  .crtotal>b{font-size:40px;line-height:.86;color:var(--accent-ink);letter-spacing:var(--track-num)}
+  .crtotal>span{display:flex;flex-direction:column;gap:3px;padding-bottom:1px}
+  .crbest{display:flex;flex-direction:column;align-items:flex-end;gap:2px;text-align:right}
+  .crbest b{font-family:var(--mono);font-size:16px;line-height:1;color:var(--chalk)}
   .crmonth{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding-top:13px;margin-bottom:9px}
   .crmonth b{font-size:10px;color:var(--chalk)}
   /* v3.3.215: one calendar proportion across Stats and History. History's
@@ -248,6 +248,18 @@
   .crday.cractive{background:var(--accent);color:#fff}
   .crday.crtoday{outline:1.5px solid var(--accent-ink);outline-offset:-1.5px}
   .crday.crfuture{opacity:.32}
+  /* Weight stays available without claiming a full dashboard section until
+     opened. A first value is still recorded in Settings. */
+  .bwcollapse{padding:0;overflow:hidden}
+  .bwcollapse>summary{list-style:none;display:flex;justify-content:space-between;align-items:center;
+    min-height:58px;padding:0 14px;cursor:pointer;color:var(--chalk)}
+  .bwcollapse>summary::-webkit-details-marker{display:none}
+  .bwcollapse>summary>span:last-child{font-family:var(--mono);font-size:12px;color:var(--muted)}
+  .bwcollapse>summary b{font-size:18px;color:var(--chalk)}
+  .bwcollapse>summary i{font-style:normal;font-size:9px;margin-left:7px;color:var(--faint)}
+  .bwcollapse[open]>summary{border-bottom:1px solid var(--line)}
+  .bwbody{padding:14px}
+  .bwtools{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px}
   /* Same-date year race: the numbers carry the verdict; the filled field
      makes the size and direction of the gap impossible to miss. */
   .conrace{padding:16px 14px 10px}
@@ -509,6 +521,14 @@
   .repdots{margin:0 0 10px;font-family:var(--mono)}
   .repcard .btn{margin:0}
   .repcard .btn:disabled{opacity:.6}
+  .rephistory{padding:0;overflow:hidden}
+  .rephistory>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;
+    min-height:62px;padding:0 16px;cursor:pointer;font-weight:600;color:var(--chalk)}
+  .rephistory>summary::-webkit-details-marker{display:none}
+  .rephistory>summary .muted{font-size:10px;font-weight:500}
+  .rephistory>summary b{color:var(--accent-ink);font-size:14px;margin-left:4px}
+  .rephistory[open]>summary{border-bottom:1px solid var(--line)}
+  .rephistory .repcard{padding:16px}
   /* v3.3.152: explanatory text in the BODY face, not the mono display face —
      the rulebook's readability rules (15px, 1.45 line height, sentence case)
      apply to prose, and these bubbles are the app's only prose. Mono stays
@@ -1331,6 +1351,12 @@
   .runmonthgrid span{min-width:0;padding:10px 8px;border-radius:10px;background:var(--surface2);text-align:center;
     font-family:var(--mono);font-size:9px;color:var(--muted)}
   .runmonthgrid b{display:block;margin-bottom:3px;font-size:13px;color:var(--chalk);white-space:nowrap}
+  .runmonthgoal{padding:14px 0;border-bottom:1px solid var(--line)}
+  .runmonthgoal .mstone{margin-bottom:7px}
+  .runmonthgoal .big{font-size:19px}
+  .runmonthgoal .tot{margin-top:7px}
+  .runmonthfoot{display:grid;grid-template-columns:repeat(2,1fr);gap:5px 12px;margin-top:12px;padding-top:11px;border-top:1px solid var(--line)}
+  .runmonthfoot span{font-family:var(--mono);font-size:9px;color:var(--muted);line-height:1.4}
   @media(max-width:390px){.garight{gap:5px}.gadelta{display:none}.runmonthgrid{grid-template-columns:repeat(2,1fr)}}
 
   /* ================= v3.3.168 — MINIMAL, the default skin =================

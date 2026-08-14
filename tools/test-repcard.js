@@ -57,16 +57,15 @@ ok("hActs no longer accepts a share id",
 ok("the download icon asset was deleted with its last caller",
    !/DL_ICON/.test(fs.readFileSync(path.join(dir, "js/header.js"), "utf8")));
 
-// ---- 2. the new surface exists, once ---------------------------------------
+// ---- 2. the one surface moved from analysis to the ledger -----------------
+ok("the report card is absent from Stats", run(`!document.getElementById('repCard')`));
+run(`view='history'; render();`);
 ok("the report card renders", run(`!!document.getElementById('repCard')`));
 ok("...with exactly one share button",
    run(`document.querySelectorAll('#repShare').length`) === 1);
 ok("...and both rotation controls",
    run(`!!document.getElementById('repPrev') && !!document.getElementById('repNext')`));
-ok("it is the last section before Settings", run(`(function(){
-     const h=$('#view').innerHTML;
-     return h.indexOf('secReport') > h.indexOf('Every week')
-         && h.indexOf('secReport') < h.indexOf('Settings');})()`));
+ok("it is collapsed by default in History", run(`!document.getElementById('secReport').open`));
 
 // ---- 3. rotation actually changes what gets SENT ---------------------------
 /* The failure this catches: a carousel whose title rotates while the share
@@ -134,6 +133,7 @@ const liftOnly = JSON.parse(run(`JSON.stringify(shareCards().map(c=>c.id))`));
 ok("a lifter who never runs is offered no Pace card", !liftOnly.includes("pace"), liftOnly.join(","));
 ok("...no Distance card either", !liftOnly.includes("dist"));
 ok("...but still gets the days cards", liftOnly.includes("grid") && liftOnly.includes("yoy"));
+run(`view='history'; render();`);
 ok("the carousel still renders for them", run(`!!document.getElementById('repShare')`));
 
 /* and the index cannot point past the end after the list shrinks — the

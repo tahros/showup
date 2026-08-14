@@ -399,6 +399,7 @@ function renderHistory(){
     h+=`<div class="note" style="margin-top:12px">${P?`No ${P} logged this month.`:'No training logged this month.'}</div>`;
   }
   if(hist.edit&&!DB.days[hist.edit]){ hist.edit=null; hist.editSet=null; }   // v3.3.61: the day may have been emptied
+  if(typeof reportCardSection==='function') h+=reportCardSection();
   killCalReturn();                  // v3.3.59: a re-render invalidates the return ticket
   $('#view').innerHTML=h;
   /* v3.3.39: centre the selected year in its strip. scrollLeft rather than

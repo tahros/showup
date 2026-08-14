@@ -148,7 +148,7 @@ run(`view='lift'; lift={part:'Shoulder',ex:'Dumbbell Press',weight:16}; render()
    toggling, single-open, and specific labels. */
 check("the session card carries NO i dot any more",
       `!document.querySelector('#view .lastcard.sess .ibtn.tipi')`, true);
-run(`view='stats'; render();`);
+run(`setBw(todayISO,70); view='stats'; render();`);
 check("a retained tip trigger renders (Stats · Weight)",
       `!!document.querySelector('#secWeight .ibtn.tipi')`, true);
 check("its aria label is specific, not 'Info'",
