@@ -289,4 +289,25 @@ ok("...and re-measured when the bar changes shape",
 ok("...called from renderHeader, so every state change updates it",
    /syncHeaderHeight\(\)/.test(fs.readFileSync(path.join(dir, "js/header.js"), "utf8")));
 
+
+// ---- v3.3.247: clearance for the iOS standalone edge fade ----------------
+// Measured on device: a standalone web app's top ~100pt is faded by iOS; the
+// same page in Safari is flat from the first pixel. The fade cannot be
+// disabled, so the header's content starts below it — but only where the
+// problem actually exists.
+const utilSrc247 = fs.readFileSync(path.join(dir, "js/util.js"), "utf8");
+ok("the guard requires standalone AND a non-zero safe-area inset",
+   /display-mode: standalone/.test(utilSrc247) && /--sat/.test(utilSrc247)
+   && /sat>0/.test(utilSrc247));
+ok("...so Safari, desktop and a re-installed icon are left alone",
+   /standalone&&sat>0\) de\.dataset\.edgefade='1'; else delete/.test(utilSrc247.replace(/\s+/g," ").replace(/ ;/g,";")) 
+   || /else delete de\.dataset\.edgefade/.test(utilSrc247));
+ok("the clearance is real — past the measured 99pt fade",
+   /:root\[data-edgefade="1"\] header\{padding-top:calc\(env\(safe-area-inset-top,0px\) \+ 44px\)\}/
+     .test(cssSrc.replace(/\r/g,"")));
+ok("...and --sat is exposed for JS to read the inset",
+   /--sat:env\(safe-area-inset-top/.test(cssSrc.replace(/\r/g,"")));
+ok("the status-bar style no longer puts content under the status bar",
+   /content="default"/.test(fs.readFileSync(path.join(dir,"index.html"),"utf8")));
+
 process.exit(fail ? 1 : 0);

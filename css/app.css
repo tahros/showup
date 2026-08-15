@@ -488,6 +488,18 @@
      tinting samples background-color and backdrop-filter on FIXED elements
      only — absolute children are skipped — so the bar keeps its look while
      Safari finds nothing at the viewport edge to composite a blur over. */
+  /* v3.3.247: iOS 26 composites a progressive fade over roughly the top 100pt
+     of a STANDALONE web app — measured on device, the header washed from
+     rgb(226,232,230) at the very top to its true rgb(203,217,207) only at
+     99pt. The same page in Safari is flat from the first pixel, so this is
+     the home-screen app treatment and nothing in the page causes it.
+     No CSS removes it. What CSS can do is keep the READING out of it: when
+     the app is standalone AND the page still sits under the status bar, the
+     header's top padding grows so the date and the buttons begin below the
+     faded strip. The flag is set in JS only when both are true, so a
+     re-installed icon (which picks up the default status-bar style and
+     reports a zero inset) drops back to the normal compact header. */
+  :root[data-edgefade="1"] header{padding-top:calc(env(safe-area-inset-top,0px) + 44px)}
   .hglass{position:absolute;inset:0;z-index:0;background:var(--ground);
     border-bottom:1px solid var(--line);pointer-events:none}
   header>.brandrow,header>.hbtns{position:relative;z-index:1}

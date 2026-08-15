@@ -919,6 +919,25 @@ function bindPaceAll(){ document.querySelectorAll('.pacescrub').forEach(bindPace
    the safe-area inset varies by device, exercise mode enlarges the title, and
    a long name wraps nothing but still changes nothing. Kept in sync by a
    ResizeObserver so a state change cannot leave a gap or a covered first row. */
+/* v3.3.247: iOS 26 fades the top ~100pt of a standalone web app's content.
+   Safari does not — verified by screenshotting the same page both ways. The
+   fade cannot be turned off, so the header grows enough padding to start its
+   content below it, but ONLY where the problem exists:
+     - standalone (Safari is unaffected, and desktop has no status bar), and
+     - the page still sits under the status bar (a non-zero safe-area inset).
+   The second condition matters: v3.3.246 set the status-bar style to default,
+   which insets the web view instead — but iOS captures that meta when the
+   icon is ADDED to the home screen, so an already-installed app keeps the old
+   behaviour until it is re-added. This guard covers that installed app today,
+   and switches itself off the moment the inset reports zero. */
+function edgeFadeGuard(){
+  const de=document.documentElement;
+  const standalone=(matchMedia&&matchMedia('(display-mode: standalone)').matches)
+    || navigator.standalone===true;
+  const sat=parseFloat(getComputedStyle(de).getPropertyValue('--sat'))||0;
+  if(standalone&&sat>0) de.dataset.edgefade='1'; else delete de.dataset.edgefade;
+}
+addEventListener('orientationchange',()=>setTimeout(edgeFadeGuard,120));
 function syncHeaderHeight(){
   const h=document.querySelector('header');
   if(!h) return;
