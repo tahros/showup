@@ -137,10 +137,17 @@
      glyphs measure a clean 83 with no falloff. Fixed elements attach to the
      viewport, outside the faded scroll content. #app compensates with
      padding-top exactly as it already does with padding-bottom for nav. */
+  /* v3.3.245: the fixed bar itself is TRANSPARENT and paints nothing.
+     Safari 26 (Liquid Glass) scans fixed/sticky elements near the viewport
+     edges and reads background-color and backdrop-filter OFF THAT ELEMENT to
+     tint the status bar — then composites its own progressive blur over the
+     top of the page. That blur is what has been washing out the date and the
+     settings button. Safari explicitly does NOT sample position:absolute
+     children, so every visual property moves to .hglass below and the bar
+     itself declares nothing for Safari to find. */
   header{
     position:fixed;top:0;left:0;right:0;max-width:520px;margin:0 auto;
-    z-index:20;background:var(--ground);
-    border-bottom:1px solid var(--line);
+    z-index:20;background:transparent;
     padding:calc(14px + env(safe-area-inset-top,0px)) 18px 12px;
     display:flex;flex-wrap:nowrap;align-items:center;justify-content:space-between;gap:10px;
     /* v3.3.55: NEVER wrap. A long exercise title used to push the timer and
@@ -148,12 +155,12 @@
        row, always. */
     transition:background .35s,border-color .35s;
   }
-  header.live{background:var(--live);border-color:var(--live);
+  header.live .hglass{background:var(--live);border-color:var(--live);
     box-shadow:0 6px 24px -6px color-mix(in srgb,var(--live) 45%,transparent)}
   /* v3.3.81: the mirror state. LIVE burns at 92% solid; declared rest is a
      28% wash of the one green in the palette — the day feels different, the
      data stays uncoloured. */
-  header.resting{background:color-mix(in srgb,var(--rest) 52%,var(--ground));
+  header.resting .hglass{background:color-mix(in srgb,var(--rest) 52%,var(--ground));
     border-color:color-mix(in srgb,var(--rest) 70%,var(--line));
     animation:restbreathe 7s ease-in-out infinite}
   /* v3.3.82: the wash breathes — a resting breath, ~7s, dimming to 19% and
@@ -477,6 +484,13 @@
   .btn.ghost.done{background:none;border:1px solid var(--accent);color:var(--accent-ink);
     font-size:15px;font-weight:600}
   .btn.done:active{filter:brightness(.9)}
+  /* v3.3.245: the header's paint, on an absolute child. Safari 26's status-bar
+     tinting samples background-color and backdrop-filter on FIXED elements
+     only — absolute children are skipped — so the bar keeps its look while
+     Safari finds nothing at the viewport edge to composite a blur over. */
+  .hglass{position:absolute;inset:0;z-index:0;background:var(--ground);
+    border-bottom:1px solid var(--line);pointer-events:none}
+  header>.brandrow,header>.hbtns{position:relative;z-index:1}
   .brandrow{display:flex;align-items:center;gap:11px;min-width:0;flex:1 1 auto;overflow:hidden}
   header.live .h-date{color:#fff}
   header.live .h-sub{color:rgba(255,255,255,.92)}
@@ -618,7 +632,7 @@
   .item.todayrow.fin b::before{content:'✓ ';color:var(--muted);font-size:11px;animation:none}
   @media (prefers-reduced-motion:reduce){
     .item.todayrow b::before{animation:none}
-    header.resting{animation:none}}   /* v3.3.82: after the @supports branch, so none wins */
+    header.resting .hglass{animation:none}}   /* v3.3.82: after the @supports branch, so none wins */
   .item b{font-weight:500}
   .readyrow{display:flex;align-items:center;gap:10px;width:100%;background:none;border:0;
     color:var(--chalk);font:inherit;text-align:left;cursor:pointer;padding:9px 4px;

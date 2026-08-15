@@ -158,7 +158,7 @@ ok("the chip wears the rest INK (text grade), not the wash",
 ok("--rest-ink is defined in both themes", (cssSrc.match(/--rest-ink:#/g) || []).length === 2);
 
 // ---- v3.3.90: louder wash, and an honest boundary on what turns green -----
-const washPct = (cssSrc.match(/header\.resting\{background:color-mix\(in srgb,var\(--rest\) (\d+)%/) || [])[1];
+const washPct = (cssSrc.match(/header\.resting \.hglass\{background:color-mix\(in srgb,var\(--rest\) (\d+)%/) || [])[1];
 ok("the wash is loud enough to register (\u226540%)", +washPct >= 40, washPct + "%");
 const kfPcts = [...cssSrc.matchAll(/@keyframes restbreathe\{[^}]*?(\d+)%,var\(--ground\)\)\}\s*50%\{background:color-mix\(in srgb,var\(--rest\) (\d+)%/g)];
 const breatheRule = (cssSrc.match(/@keyframes restbreathe\{[\s\S]*?\}\}/) || [""])[0];
@@ -167,9 +167,9 @@ ok("...and still breathes below its peak", nums.length === 2 && nums[1] < nums[0
 /* LIVE must remain the louder of the two states — rest may whisper, live
    never. v3.3.242: live is now FULLY solid (the header carries no glass at
    all), so it is louder by construction; the check reads the solid form. */
-const liveSolid = /header\.live\{background:var\(--live\)/.test(cssSrc);
+const liveSolid = /header\.live \.hglass\{background:var\(--live\)/.test(cssSrc);
 const livePct = liveSolid ? 100
-  : +((cssSrc.match(/header\.live\{background:color-mix\(in srgb,var\(--live\) (\d+)%/) || [])[1]);
+  : +((cssSrc.match(/header\.live \.hglass\{background:color-mix\(in srgb,var\(--live\) (\d+)%/) || [])[1]);
 ok("LIVE stays louder than REST", livePct > +washPct, `live ${livePct}% vs rest ${washPct}%`);
 
 // the boundary: today-numbers go green, PAST TRAINED DAYS DO NOT
@@ -203,8 +203,13 @@ ok("--rest is defined in both themes", (cssSrc.match(/--rest:#/g) || []).length 
 const inkUses = [...cssSrc.matchAll(/^[^\n{]*\{[^}]*var\(--rest-ink\)[^}]*\}/gm)].map(m => m[0].split("{")[0].trim());
 ok("--rest-ink appears ONLY in rest rules too",
    inkUses.length > 0 && inkUses.every(sel => /rest/i.test(sel)), inkUses.join(" | "));
-ok("header.resting exists and washes with --rest",
-   /header\.resting\{[^}]*var\(--rest\)/.test(cssSrc));
+/* v3.3.245: the wash lives on the absolute .hglass child now — the fixed
+   header itself must declare no background at all, or Safari 26 tints and
+   blurs the status bar from it. */
+ok("the resting wash is painted on the glass child",
+   /header\.resting \.hglass\{[^}]*var\(--rest\)/.test(cssSrc));
+ok("...and the fixed header itself paints nothing",
+   /\n  header\{[^}]*background:transparent/.test(cssSrc.replace(/\r/g,"")));
 // keyframe stops (0%,100%,50%) inside restbreathe* blocks ARE rest rules;
 // strip those blocks first, then demand every remaining user of --rest be
 // rest-named. A keyframes block nests one level: outer{ stops{...} }.
@@ -216,7 +221,7 @@ ok("...and --rest appears ONLY in rest rules (one meaning, nowhere else)",
    restUses.length > 0 && restUses.every(sel => /rest/i.test(sel)), restUses.join(" | "));
 
 // ---- v3.3.82: the wash breathes, slowly, and can be stilled ---------------
-const breathe = (cssSrc.match(/header\.resting\{[^}]*animation:restbreathe ([\d.]+)s[^}]*\}/) || []);
+const breathe = (cssSrc.match(/header\.resting \.hglass\{[^}]*animation:restbreathe ([\d.]+)s[^}]*\}/) || []);
 ok("the resting header breathes", breathe.length > 0);
 ok("...at a resting pace \u2014 at least 4x slower than the 1.6s live pulse",
    breathe[1] && parseFloat(breathe[1]) >= 6.4, breathe[1] + "s");
@@ -230,7 +235,7 @@ ok("...never animating transform or opacity of content \u2014 background only",
    kfBlocks.length === 1 && kfBlocks.every(b => !/transform|opacity/.test(b)));
 // the reduced-motion kill must come AFTER the @supports frost branch, or the
 // frost animation re-wins the cascade \u2014 assert document order, not presence
-const killAt = cssSrc.indexOf("header.resting{animation:none}");
+const killAt = cssSrc.indexOf("header.resting .hglass{animation:none}");
 const restAt = cssSrc.lastIndexOf("animation:restbreathe ");
 ok("...and the reduced-motion kill exists", killAt > -1);
 ok("...placed after every rule that starts the breath, so animation:none wins",

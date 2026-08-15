@@ -337,14 +337,30 @@ for _m in _re.finditer(r"background:color-mix\(in srgb,[^;}]*?(\d+)%,transparent
 # strip behind the status bar washes out — the seam lands exactly on
 # env(safe-area-inset-top). Nav is fine: it sits at the bottom edge with a
 # full backdrop beneath it.
-if _re.search(r"\bheader\b[^{]*\{[^}]*backdrop-filter", _css_frost):
-    fail.append("header must not use backdrop-filter: a blur at the top of the "
-                "viewport has nothing above to sample and washes out the "
-                "status-bar strip (v3.3.242)")
-for _m in _re.finditer(r"\n\s*header(?:\.\w+)?\{([^}]*)\}", css):
-    if _re.search(r"background:[^;}]*,\s*transparent\)", _m.group(1)):
-        fail.append("header background must be opaque — a translucent header "
-                    "shows scrolled content through the status-bar strip (v3.3.242)")
+# v3.3.245: Safari 26 tints and blurs the status bar from background-color /
+# backdrop-filter declared ON a fixed element near the viewport edge, and
+# skips position:absolute children. So the fixed header must declare NEITHER,
+# and all of its paint lives on .hglass.
+for _m in _re.finditer(r"\n\s*header(?:\.[\w-]+)*\{([^}]*)\}", css):
+    _body = _m.group(1)
+    if _re.search(r"backdrop-filter", _body):
+        fail.append("the fixed header must not declare backdrop-filter — Safari 26 "
+                    "samples it and composites a blur over the status bar (v3.3.245)")
+    _bg = _re.search(r"background(?:-color)?:\s*([^;}]+)", _body)
+    if _bg and _bg.group(1).strip() not in ("transparent", "none"):
+        fail.append(f"the fixed header must not paint a background ({_bg.group(1).strip()[:40]}) — "
+                    "move it to the absolute .hglass child (v3.3.245)")
+# match the STANDALONE .hglass rule, not `header.live .hglass`
+_hg = _re.search(r"(?:^|\})\s*\.hglass\{([^}]*)\}", css.replace("\r",""), _re.M)
+if not _hg or "position:absolute" not in _hg.group(1):
+    fail.append(".hglass must exist and be position:absolute — Safari 26 skips "
+                "absolute children when tinting, which is the whole point (v3.3.245)")
+if 'class="hglass"' not in (d/"index.html").read_text():
+    fail.append("the header is missing its .hglass paint layer (v3.3.245)")
+# the article's other requirement: an explicit root colour for Safari to fall back to
+if not _re.search(r"html,\s*body\{[^}]*background:", css):
+    fail.append("html/body must declare an explicit background — Safari 26 falls "
+                "back to white when the root is transparent (v3.3.245)")
 # v3.3.244: the shell must actually register its service worker. Without a
 # register() call the worker on a device is whatever a past version installed,
 # and shipped fixes arrive a launch late (or never).
