@@ -364,5 +364,18 @@ if('serviceWorker' in navigator){
     if(reloadedForUpdate) return; reloadedForUpdate=true;
     stashWhere(); flushSave(); location.reload();   // the new version is live — restart into it once
   });
+  /* v3.3.244: REGISTER, and check for a new worker on every launch. The app
+     shipped without a register() call at all — the worker running on a device
+     was whatever some past version installed, and the only thing that ever
+     refreshed it was pull-to-refresh. Everyone else ran a release behind:
+     stale-while-revalidate serves the cached shell first and only then fetches
+     the new one, so a fix landed on screen one launch after it shipped. With
+     an explicit update() at boot, skipWaiting and the reload above, a deploy
+     goes live on the next launch instead. */
+  addEventListener('load',()=>{
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg=>{ reg.update().catch(()=>{}); })
+      .catch(()=>{});
+  });
 }
 addEventListener('pagehide', flushSave);

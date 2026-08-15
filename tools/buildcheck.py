@@ -345,6 +345,15 @@ for _m in _re.finditer(r"\n\s*header(?:\.\w+)?\{([^}]*)\}", css):
     if _re.search(r"background:[^;}]*,\s*transparent\)", _m.group(1)):
         fail.append("header background must be opaque — a translucent header "
                     "shows scrolled content through the status-bar strip (v3.3.242)")
+# v3.3.244: the shell must actually register its service worker. Without a
+# register() call the worker on a device is whatever a past version installed,
+# and shipped fixes arrive a launch late (or never).
+_derive = (d/"js/derive.js").read_text()
+if "serviceWorker.register(" not in _derive:
+    fail.append("no serviceWorker.register() call — deployed updates cannot reach "
+                "an installed app reliably (v3.3.244)")
+if "reg.update()" not in _derive and ".update()" not in _derive:
+    fail.append("service worker is registered but never asked to update (v3.3.244)")
 if "function gaPR" not in _stats:
     fail.append("growth audit: exercise-local comparable-best logic is missing (v3.3.209)")
 # v3.3.220: the badge and the mark must come from ONE computation. They shipped
