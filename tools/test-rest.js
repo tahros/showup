@@ -164,9 +164,13 @@ const kfPcts = [...cssSrc.matchAll(/@keyframes restbreathe\{[^}]*?(\d+)%,var\(--
 const breatheRule = (cssSrc.match(/@keyframes restbreathe\{[\s\S]*?\}\}/) || [""])[0];
 const nums = [...breatheRule.matchAll(/var\(--rest\) (\d+)%/g)].map(m => +m[1]);
 ok("...and still breathes below its peak", nums.length === 2 && nums[1] < nums[0], nums.join("\u2192"));
-// LIVE must remain the louder of the two states \u2014 rest may whisper, live never
-const livePct = (cssSrc.match(/header\.live\{background:color-mix\(in srgb,var\(--live\) (\d+)%/) || [])[1];
-ok("LIVE stays louder than REST", +livePct > +washPct, `live ${livePct}% vs rest ${washPct}%`);
+/* LIVE must remain the louder of the two states — rest may whisper, live
+   never. v3.3.242: live is now FULLY solid (the header carries no glass at
+   all), so it is louder by construction; the check reads the solid form. */
+const liveSolid = /header\.live\{background:var\(--live\)/.test(cssSrc);
+const livePct = liveSolid ? 100
+  : +((cssSrc.match(/header\.live\{background:color-mix\(in srgb,var\(--live\) (\d+)%/) || [])[1]);
+ok("LIVE stays louder than REST", livePct > +washPct, `live ${livePct}% vs rest ${washPct}%`);
 
 // the boundary: today-numbers go green, PAST TRAINED DAYS DO NOT
 const restCard = cssSrc.match(/\.rhythm\.resting[^{]*\{[^}]*\}/g) || [];
@@ -183,10 +187,11 @@ ok("...today's pending strip cell still marks the declared rest",
 ok("...but filled strip cells (.on = a day TRAINED) are never repainted",
    !restCard.some(r => /\.strip i\.on/.test(r.split("{")[0])),
    restCard.map(r => r.split("{")[0].trim()).join(" | "));
-// the breath must stay a breath: same slow tempo, wider swing
-const frostRule = (cssSrc.match(/@keyframes restbreathe-frost\{[\s\S]*?\}\}/) || [""])[0];
+/* the breath must stay a breath: same slow tempo, readable swing. v3.3.242:
+   there is one branch now, so the solid keyframes carry this requirement. */
+const frostRule = (cssSrc.match(/@keyframes restbreathe\{[\s\S]*?\}\}/) || [""])[0];
 const fN = [...frostRule.matchAll(/var\(--rest\) (\d+)%/g)].map(m => +m[1]);
-ok("the frosted branch breathes with a readable amplitude (\u226520 points)",
+ok("the breath keeps a readable amplitude (\u226520 points)",
    fN.length === 2 && (fN[0] - fN[1]) >= 20, fN.join("\u2192"));
 ok("...and the solid branch too",
    nums.length === 2 && (nums[0] - nums[1]) >= 20, nums.join("\u2192"));
@@ -215,17 +220,32 @@ const breathe = (cssSrc.match(/header\.resting\{[^}]*animation:restbreathe ([\d.
 ok("the resting header breathes", breathe.length > 0);
 ok("...at a resting pace \u2014 at least 4x slower than the 1.6s live pulse",
    breathe[1] && parseFloat(breathe[1]) >= 6.4, breathe[1] + "s");
-ok("...in both keyframe branches (solid and frosted)",
-   /@keyframes restbreathe\{/.test(cssSrc) && /@keyframes restbreathe-frost\{/.test(cssSrc));
+/* v3.3.242: ONE branch now. The header stopped being frosted glass — a
+   backdrop blur at the top of the viewport has nothing above it to sample
+   and washed out the status-bar strip — so restbreathe-frost is gone with
+   it and the solid keyframes are the only ones left. */
+ok("...in its one keyframe branch", /@keyframes restbreathe\{/.test(cssSrc));
+ok("...with no frosted twin left behind", !/@keyframes restbreathe-frost\{/.test(cssSrc));
 ok("...never animating transform or opacity of content \u2014 background only",
-   kfBlocks.length === 2 && kfBlocks.every(b => !/transform|opacity/.test(b)));
+   kfBlocks.length === 1 && kfBlocks.every(b => !/transform|opacity/.test(b)));
 // the reduced-motion kill must come AFTER the @supports frost branch, or the
 // frost animation re-wins the cascade \u2014 assert document order, not presence
 const killAt = cssSrc.indexOf("header.resting{animation:none}");
-const frostAt = cssSrc.indexOf("restbreathe-frost 7s");
+const restAt = cssSrc.lastIndexOf("animation:restbreathe ");
 ok("...and the reduced-motion kill exists", killAt > -1);
-ok("...placed after the frost branch so animation:none actually wins",
-   killAt > frostAt && frostAt > -1, `frost@${frostAt} kill@${killAt}`);
+ok("...placed after every rule that starts the breath, so animation:none wins",
+   killAt > restAt && restAt > -1, `breath@${restAt} kill@${killAt}`);
+
+// ---- v3.3.242: the header carries no glass ------------------------------
+ok("the header never uses a backdrop filter",
+   !/(^|\})\s*header[^{}]*\{[^}]*backdrop-filter/.test(cssSrc.replace(/\r/g,"")),
+   "header must stay opaque at the viewport's top edge");
+ok("...and every header state is opaque",
+   [...cssSrc.replace(/\r/g,"").matchAll(/\n\s*header(?:\.\w+)?\{([^}]*)\}/g)]
+     .every(m => !/background:[^;}]*,\s*transparent\)/.test(m[1])));
+ok("...while nav keeps its frost, where a backdrop exists to blur",
+   /nav\{background:color-mix[^}]*transparent\)[^}]*\}/.test(cssSrc.replace(/\r/g,"").replace(/\n\s*/g," "))
+   || /backdrop-filter/.test(cssSrc));
 /* SCOPE, revised in v3.3.90. v3.3.81 asserted the hero card took NO rest
    colour at all, on "facts don't take moods". v3.3.90 narrows rather than
    abandons that: the card's BACKGROUND is still never tinted — no mood is

@@ -147,23 +147,18 @@
      solid fallback above stays readable everywhere else. Colors are mixed from
      the theme vars, so any future ground change carries through for free.
      header.live keeps 92% solid red — live must never whisper. */
+  /* v3.3.242: the HEADER is opaque. It was frosted glass since v3.3.21, and
+     the effect never worked at the top of the viewport: a backdrop blur has
+     no pixels ABOVE the first row to sample, so iOS clamps at the edge and
+     the strip behind the status bar washes out. The seam landed exactly on
+     env(safe-area-inset-top) — which reads as "the top of the header is
+     blurred and everything shifted up". v3.3.241 fixed the resting colour
+     but the artifact is the glass itself, not the mix, so the glass goes.
+     The solid backgrounds above were always the fallback and are now the
+     only path: same colours, same breathing rest wash, no bleed-through.
+     NAV keeps its frost — it sits at the BOTTOM edge with content scrolling
+     beneath it, where a backdrop blur has a full backdrop to sample. */
   @supports ((-webkit-backdrop-filter:blur(1px)) or (backdrop-filter:blur(1px))){
-    header{background:color-mix(in srgb,var(--ground) 70%,transparent);
-      -webkit-backdrop-filter:blur(16px) saturate(160%);
-      backdrop-filter:blur(16px) saturate(160%)}
-    header.live{background:color-mix(in srgb,var(--live) 92%,transparent)}
-    /* v3.3.241: the resting frost mixed the green with TRANSPARENT — 48% of
-       the header was simply open window, no ground in the mix at all, so a
-       scrolled page showed through at half strength and blurred into a smudge
-       across the day title. Every other frost keeps most of its body (ground
-       70%, live 92%). Rest now builds its colour the same way the solid
-       fallback does — green washed INTO the ground — and only then lets 12%
-       of light through for the frosted feel. The breath still moves the wash
-       between 52% and 28% green; the glass itself no longer thins. */
-    header.resting{background:color-mix(in srgb,color-mix(in srgb,var(--rest) 52%,var(--ground)) 88%,transparent);
-      animation:restbreathe-frost 7s ease-in-out infinite}
-    @keyframes restbreathe-frost{0%,100%{background:color-mix(in srgb,color-mix(in srgb,var(--rest) 52%,var(--ground)) 88%,transparent)}
-      50%{background:color-mix(in srgb,color-mix(in srgb,var(--rest) 28%,var(--ground)) 88%,transparent)}}
     nav{background:color-mix(in srgb,var(--surface) 70%,transparent);
       -webkit-backdrop-filter:blur(16px) saturate(160%);
       backdrop-filter:blur(16px) saturate(160%)}

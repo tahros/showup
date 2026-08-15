@@ -327,12 +327,24 @@ _css_frost = css[css.find("@supports ((-webkit-backdrop-filter"):]
 _css_frost = _css_frost[:_css_frost.find(".h-sub")]
 # The rule is a BODY FLOOR, not a construction style: whatever is mixed
 # with transparent must keep at least 70% of itself, matching the weakest
-# deliberate frost (ground 70). Live at 92% passes; the old resting frost
-# at 52% is exactly what this catches.
+# deliberate frost. This still guards NAV.
 for _m in _re.finditer(r"background:color-mix\(in srgb,[^;}]*?(\d+)%,transparent\)", _css_frost):
     if int(_m.group(1)) < 70:
         fail.append(f"frosted chrome: a frost keeps only {_m.group(1)}% of its body — "
-                    "below the 70% floor, a scrolled page bleeds through the header (v3.3.241)")
+                    "below the 70% floor, a scrolled page bleeds through (v3.3.241)")
+# v3.3.242: and the HEADER is never frosted at all. A backdrop blur cannot
+# sample pixels above the first row of the viewport, so iOS clamps and the
+# strip behind the status bar washes out — the seam lands exactly on
+# env(safe-area-inset-top). Nav is fine: it sits at the bottom edge with a
+# full backdrop beneath it.
+if _re.search(r"\bheader\b[^{]*\{[^}]*backdrop-filter", _css_frost):
+    fail.append("header must not use backdrop-filter: a blur at the top of the "
+                "viewport has nothing above to sample and washes out the "
+                "status-bar strip (v3.3.242)")
+for _m in _re.finditer(r"\n\s*header(?:\.\w+)?\{([^}]*)\}", css):
+    if _re.search(r"background:[^;}]*,\s*transparent\)", _m.group(1)):
+        fail.append("header background must be opaque — a translucent header "
+                    "shows scrolled content through the status-bar strip (v3.3.242)")
 if "function gaPR" not in _stats:
     fail.append("growth audit: exercise-local comparable-best logic is missing (v3.3.209)")
 # v3.3.220: the badge and the mark must come from ONE computation. They shipped
