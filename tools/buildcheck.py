@@ -319,6 +319,20 @@ _stats_code = _re.sub(r"/\*.*?\*/", "", _stats, flags=_re.S)
 _stats_code = _re.sub(r"//[^\n]*", "", _stats_code)
 if "Rep zones" in _stats_code or _re.search(r"\brepZone(?:Data|Sets|ScatterSvg)?\s*\(", _stats_code):
     fail.append("growth audit: retired Rep-zone UI or bucketing logic survives (v3.3.209)")
+# v3.3.241: no frosted chrome may mix a state colour straight into
+# transparent — that leaves the header without a body, and a scrolled page
+# bleeds through it (the resting-day smudge). A frost must carry the ground:
+# mix the state into the ground FIRST, then let a little light through.
+_css_frost = css[css.find("@supports ((-webkit-backdrop-filter"):]
+_css_frost = _css_frost[:_css_frost.find(".h-sub")]
+# The rule is a BODY FLOOR, not a construction style: whatever is mixed
+# with transparent must keep at least 70% of itself, matching the weakest
+# deliberate frost (ground 70). Live at 92% passes; the old resting frost
+# at 52% is exactly what this catches.
+for _m in _re.finditer(r"background:color-mix\(in srgb,[^;}]*?(\d+)%,transparent\)", _css_frost):
+    if int(_m.group(1)) < 70:
+        fail.append(f"frosted chrome: a frost keeps only {_m.group(1)}% of its body — "
+                    "below the 70% floor, a scrolled page bleeds through the header (v3.3.241)")
 if "function gaPR" not in _stats:
     fail.append("growth audit: exercise-local comparable-best logic is missing (v3.3.209)")
 # v3.3.220: the badge and the mark must come from ONE computation. They shipped
