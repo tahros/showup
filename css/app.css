@@ -56,6 +56,10 @@
     --accent-ink:#8BA5FF;
     --track-num:-.02em; --track-label:.08em; --track-wide:.16em;
     --disp:'IBM Plex Sans',system-ui,sans-serif;
+    /* v3.3.243: reserved height for the fixed header. Defined here so the
+       first paint is right before JS measures; syncHeaderHeight() then
+       overwrites it on documentElement with the real px. */
+    --hdr-h:calc(67px + env(safe-area-inset-top,0px));
     --body:'IBM Plex Sans',system-ui,sans-serif;
     --mono:'IBM Plex Mono',ui-monospace,monospace;
   }
@@ -118,10 +122,24 @@
     max-width:520px;margin:0 auto;min-height:100vh;
     background:var(--ground);color:var(--chalk);
     font-family:var(--body);font-size:15px;line-height:1.45;
-    padding-bottom:78px;position:relative;overflow-x:clip;  /* clip ≠ scroll container: sticky header survives */
+    /* the fixed header no longer occupies flow space; reserve it. The default
+       covers the first paint before JS measures the real height. */
+    padding-top:var(--hdr-h);
+    padding-bottom:78px;position:relative;overflow-x:clip;
   }
+  /* v3.3.243: FIXED, not sticky. iOS fades the top edge of scrolling content
+     under the status bar, and a sticky header rides inside that scroller — so
+     the top ~100pt of the bar washed toward the page ground. It showed as a
+     pale band on the coloured rest header and, on every other day, as the
+     date text rendering soft: measured, the glyph TOPS came back at 192 grey
+     while their BOTTOMS were 27. The proof it is the scroller and not our
+     paint: nav has always been position:fixed at the opposite edge, and its
+     glyphs measure a clean 83 with no falloff. Fixed elements attach to the
+     viewport, outside the faded scroll content. #app compensates with
+     padding-top exactly as it already does with padding-bottom for nav. */
   header{
-    position:sticky;top:0;z-index:20;background:var(--ground);
+    position:fixed;top:0;left:0;right:0;max-width:520px;margin:0 auto;
+    z-index:20;background:var(--ground);
     border-bottom:1px solid var(--line);
     padding:calc(14px + env(safe-area-inset-top,0px)) 18px 12px;
     display:flex;flex-wrap:nowrap;align-items:center;justify-content:space-between;gap:10px;

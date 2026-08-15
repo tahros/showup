@@ -913,6 +913,27 @@ function bindPaceScrub(svg){
   svg.addEventListener('pointercancel',()=>{ down=false; });
 }
 function bindPaceAll(){ document.querySelectorAll('.pacescrub').forEach(bindPaceScrub); }
+/* v3.3.243: the header is position:fixed (it must be — see css/app.css), so
+   it no longer occupies flow space and #app reserves its height through
+   --hdr-h. Measured rather than hard-coded, because the bar grows and shrinks:
+   the safe-area inset varies by device, exercise mode enlarges the title, and
+   a long name wraps nothing but still changes nothing. Kept in sync by a
+   ResizeObserver so a state change cannot leave a gap or a covered first row. */
+function syncHeaderHeight(){
+  const h=document.querySelector('header');
+  if(!h) return;
+  const px=Math.round(h.getBoundingClientRect().height);
+  if(px>0) document.documentElement.style.setProperty('--hdr-h',px+'px');
+}
+let _hdrRO=null;
+function watchHeaderHeight(){
+  const h=document.querySelector('header');
+  if(!h||_hdrRO||typeof ResizeObserver==='undefined') return;
+  _hdrRO=new ResizeObserver(()=>syncHeaderHeight());
+  _hdrRO.observe(h);
+}
+addEventListener('resize',()=>syncHeaderHeight());
+addEventListener('orientationchange',()=>setTimeout(syncHeaderHeight,120));
 const raceShares=()=>!!DB.settings.raceShare;
 /* v3.3.233: ONE formatter for the race scoreboard, used by the unit toggle
    AND by the scrubber. Both write the same <b> nodes, so if they disagreed

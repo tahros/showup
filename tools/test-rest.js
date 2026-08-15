@@ -262,4 +262,26 @@ ok("...and no OTHER card in the view picks up a rest class",
       [...el.classList].some(c=>/^rest/i.test(c)) && !el.classList.contains('rhythm'))`));
 run(`delete DB.days[todayISO].rest;`);
 
+
+// ---- v3.3.243: the header must sit OUTSIDE the scrolling content ---------
+// iOS fades the top edge of scrolling content under the status bar. A sticky
+// header rides inside that scroller and washes out — measured on a real
+// screenshot, the date glyphs' TOPS came back at 192 grey against 27 at their
+// bottoms, while the fixed nav at the opposite edge measured a clean 83.
+const hdrRule = (cssSrc.replace(/\r/g,"").match(/\n  header\{([^}]*)\}/) || ["",""])[1];
+ok("the header is fixed, not sticky", /position:fixed/.test(hdrRule) && !/position:sticky/.test(hdrRule), hdrRule.slice(0,60));
+ok("...pinned to the top edge and centred like nav",
+   /top:0/.test(hdrRule) && /max-width:520px/.test(hdrRule) && /margin:0 auto/.test(hdrRule));
+ok("...and #app reserves its height, as it already does for nav",
+   /padding-top:var\(--hdr-h\)/.test(cssSrc.replace(/\r/g,"")));
+ok("...with a first-paint default before JS measures",
+   /--hdr-h:calc\([^)]*env\(safe-area-inset-top/.test(cssSrc.replace(/\r/g,"")));
+const utilSrc = fs.readFileSync(path.join(dir, "js/util.js"), "utf8");
+ok("...kept exact by measurement, not a hard-coded number",
+   /function syncHeaderHeight/.test(utilSrc) && /getBoundingClientRect/.test(utilSrc));
+ok("...and re-measured when the bar changes shape",
+   /ResizeObserver/.test(utilSrc) && /watchHeaderHeight/.test(utilSrc));
+ok("...called from renderHeader, so every state change updates it",
+   /syncHeaderHeight\(\)/.test(fs.readFileSync(path.join(dir, "js/header.js"), "utf8")));
+
 process.exit(fail ? 1 : 0);

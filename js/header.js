@@ -50,6 +50,9 @@ function renderHeader(){
     $('#hStreak').classList.remove('restchip');
     $('#hStreak').classList.toggle('atrisk', streakAtRisk());
   }
+  /* v3.3.243: the bar is fixed, so its height is reserved by #app — keep
+     the reservation exact after every state change. */
+  syncHeaderHeight(); watchHeaderHeight();
 }
 
 /* How the year is actually going: rest days, the current gap, and last year at
