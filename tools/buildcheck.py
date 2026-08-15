@@ -355,6 +355,14 @@ _hg = _re.search(r"(?:^|\})\s*\.hglass\{([^}]*)\}", css.replace("\r",""), _re.M)
 if not _hg or "position:absolute" not in _hg.group(1):
     fail.append(".hglass must exist and be position:absolute — Safari 26 skips "
                 "absolute children when tinting, which is the whole point (v3.3.245)")
+# v3.3.246: content must NOT sit behind the status bar. iOS 26 composites a
+# progressive blur over anything in that strip, and no CSS defeats it — the
+# only remedy is to let the system inset the web view below it.
+_html = (d/"index.html").read_text()
+_sbs = _re.search(r'<meta\s+name="apple-mobile-web-app-status-bar-style"\s+content="([^"]+)"', _html)
+if _sbs and _sbs.group(1) == "black-translucent":
+    fail.append("apple-mobile-web-app-status-bar-style must not be black-translucent — "
+                "it puts the header under the status bar, where iOS 26 blurs it (v3.3.246)")
 if 'class="hglass"' not in (d/"index.html").read_text():
     fail.append("the header is missing its .hglass paint layer (v3.3.245)")
 # the article's other requirement: an explicit root colour for Safari to fall back to
