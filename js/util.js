@@ -643,11 +643,30 @@ function trainingPlan(){
   const addons=live.filter(p=>info[p].soloRate<0.4).sort((a,b)=>score(b)-score(a));
   const dormant=Object.keys(SEED.catalog).filter(p=>p!=='Run'&&info[p]&&!info[p].live);
 
-  const pick=mains[0]||null;
+  /* v3.3.248 — COLD START. `live` needs eight logged days of a part before
+     the app will speak about it, which is the right bar for a CADENCE claim
+     ("usually every 6d") and the wrong bar for recommending anything at all.
+     Below it, mains was empty, pick was null, and Today simply showed no
+     suggestion — so a user six sessions in, the exact moment "what do I train
+     today?" matters most, got nothing. Invisible to anyone with history:
+     every part passed the bar years ago.
+     The fallback ranks the non-live parts by the SAME since/gap score that is
+     already computed for them. A part never trained carries since=999, so it
+     sorts first, which is also the honest answer for a new lifter: train the
+     thing you have not touched. Onboarding's myParts still bounds the set,
+     and Run is never a lifting pick. */
+  const catOrder=Object.keys(SEED.catalog);
+  const coldMains=Object.keys(info)
+    .filter(p=>p!=='Run'&&!info[p].live&&allow(p))
+    /* never-trained parts all score 999/7 and would otherwise tie on object
+       key order; catalog order is the same order the Train tab lists them in,
+       so the two screens agree on what comes first. */
+    .sort((a,b)=>score(b)-score(a)||catOrder.indexOf(a)-catOrder.indexOf(b));
+  const pick=mains[0]||coldMains[0]||null;
   // an add-on is worth suggesting only if it's overdue on its own cycle
   const addon=addons.find(p=>score(p)>=1)||null;
   const run=info['Run']||null;
-  return {info,score,mains,addons,dormant,pick,addon,run};
+  return {info,score,mains,addons,dormant,coldMains,pick,addon,run};
 }
 function streakFrom(dates, endISO){
   let n=0, d=new Date(endISO+'T00:00');

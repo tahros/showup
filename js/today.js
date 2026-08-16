@@ -314,10 +314,17 @@ function renderToday(){
     if(P.pick){
       const i0=P.info[P.pick];
       const over=Math.round((i0.since/i0.gap-1)*100);
+      /* v3.3.248: only a lift with enough history may claim a cadence. A cold
+         start says what it actually knows — never trained, or the days since —
+         and never invents "usually every 7d" or an overdue percentage from a
+         default. Same register: state the record, claim nothing beyond it. */
+      const sub = i0.live
+        ? `${i0.since}d since · usually every ${Math.round(i0.gap)}d${over>0?` · <span style="color:var(--accent)">${over}% overdue</span>`:''}`
+        : (i0.days===0 ? `not trained yet` : `${i0.since}d since · ${i0.days} day${i0.days===1?'':'s'} logged`);
       h+=`<div class="card"><div class="row spread">
             <div><div style="font-family:var(--disp);font-weight:700;font-size:20px">${P.pick}</div>
             <div class="mono muted" style="font-size:12px;margin-top:2px">
-              ${i0.since}d since · usually every ${Math.round(i0.gap)}d${over>0?` · <span style="color:var(--accent)">${over}% overdue</span>`:''}</div></div>
+              ${sub}</div></div>
             <button class="chip on" data-go="${P.pick}">Start →</button>
           </div></div>`;
       if(P.addon){
@@ -332,7 +339,10 @@ function renderToday(){
             <span class="mono muted" style="font-size:12px">Run · ${P.run.since}d since (you run most days)</span>
             <button class="chip" data-go="Run">Go</button></div>`;
     }
-    const rest=P.mains.slice(1);
+    /* v3.3.248: the door counts everything below the pick, cold parts
+       included — before, a new user had no mains, so the way through to the
+       rest of the body was missing entirely. */
+    const rest=(P.mains.length?P.mains:P.coldMains).slice(1);
     if(rest.length){
       /* v3.3.86: the Readiness board is gone from Today — the Lift tab's
          part list IS that board, and Today keeps a door instead of a copy.
