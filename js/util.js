@@ -607,6 +607,33 @@ function median(a){ if(!a.length) return 0; const s=[...a].sort((x,y)=>x-y); con
    - a part you almost always train alone is a MAIN day; one you only ever
      tack on to another part (Biceps) is an ADD-ON
    - Run is its own thing (near-daily), never the headline pick            */
+/* v3.3.249 — the onboarding answer becomes editable.
+   "What do you train?" was asked once, at minute zero, stored in
+   settings.myParts, and never asked again — the onboarding card even promised
+   "it's all in Settings anyway", which was not true. Worse, the choice was
+   self-sealing: a part with no tile cannot be trained, so it can never earn
+   the history that would bring its tile back. A beginner who said "no arms"
+   in week one had no door to arms in month two.
+   The set is derived here so Settings, Train and Today read one authority.
+   An absent myParts means "everything" — the state every pre-onboarding
+   ledger is already in, and the state trainingPlan()'s allow() has always
+   assumed. */
+const myPartsSet=()=>{
+  const m=DB.settings.myParts;
+  const all=Object.keys(SEED.catalog).filter(p=>p!=='Run');
+  return new Set(Array.isArray(m)&&m.length?m.filter(p=>p!=='Run'):all);
+};
+/* Toggling never deletes a set. A part switched off is hidden from the part
+   list; its days stay in the ledger and reappear intact when switched on. At
+   least one part must remain, the same floor onboarding enforces. */
+function toggleMyPart(p){
+  const set=myPartsSet();
+  if(set.has(p)){ if(set.size<=1) return false; set.delete(p); }
+  else set.add(p);
+  DB.settings.myParts=[...set];
+  DB.settingsAt=Date.now(); save(true);
+  return true;
+}
 function trainingPlan(){
   const dp=dayParts();
   const byPart={};
@@ -632,10 +659,23 @@ function trainingPlan(){
       live: days.length>=8
     };
   }
-  const myp=DB.settings.myParts;
-  const allow=p=>!myp||myp.includes(p)||!!(byPart[p]&&byPart[p].length);   // onboarding pick; history always wins
+  /* v3.3.249: one authority for the rotation — myPartsSet() — so Settings,
+     Train and Today cannot disagree. History still wins: a part you trained
+     before switching it off keeps its entry, which is what makes the switch
+     non-destructive. */
+  const myp=myPartsSet();
+  const allow=p=>p==='Run'||myp.has(p);
   for(const p of Object.keys(SEED.catalog))
     if(allow(p)&&!info[p]) info[p]={days:0,last:SEED.partLast[p]||null,since:SEED.partLast[p]?daysAgo(SEED.partLast[p]):999,gap:7,soloRate:0,live:false};
+
+  /* v3.3.249: a part switched OFF leaves the rotation even if it has history —
+     that is the whole point of the switch, and the ledger is untouched (Stats
+     and History still show every set). Two exceptions keep it from ever
+     trapping anyone: Run is never hidden, and a part trained TODAY stays
+     visible so a switch flipped mid-session cannot strand an open set. */
+  const todayParts=new Set(((DB.days[todayISO]||{}).w||[]).map(s=>s.part));
+  for(const p of Object.keys(info))
+    if(p!=='Run'&&!myp.has(p)&&!todayParts.has(p)) delete info[p];
 
   const score=p=>info[p].since/info[p].gap;
   const live=Object.keys(info).filter(p=>info[p].live&&p!=='Run');

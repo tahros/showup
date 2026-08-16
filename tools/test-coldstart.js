@@ -94,5 +94,54 @@ check("the cadence bar is still eight logged days",
       `(function(){const P=trainingPlan();
         return Object.keys(P.info).every(p=>P.info[p].live===(P.info[p].days>=8));})()`, true);
 
+
+// ---- v3.3.249: the onboarding answer is editable ------------------------
+// "What do you train?" was asked once and never again — and the choice was
+// self-sealing: a part with no tile cannot be trained, so it could never earn
+// the history that would bring its tile back.
+seed(`DB.settings.myParts=['Chest','Back','Shoulder','Legs'];
+      for(const n of [8,6,5]) DB.days[D(n)]={w:[{part:'Run',ex:'Run',w:4,reps:[],mins:26}],upd:1};
+      DB.days[D(5)].w.push({part:'Chest',ex:'Chest Press',w:40,reps:[10]});`);
+check("a part left out at onboarding is not in the rotation",
+      `!!trainingPlan().info['Biceps']`, false);
+check("...and Settings offers it as a switch",
+      `(function(){view='settings'; renderSync();
+        return !!document.querySelector('[data-myp="Biceps"]');})()`, true);
+check("...shown as off", `document.querySelector('[data-myp="Biceps"]').className.indexOf('sel')`, -1);
+check("switching it on puts it back in the rotation",
+      `(function(){toggleMyPart('Biceps'); SEED=deriveAll();
+        return !!trainingPlan().info['Biceps'];})()`, true);
+check("...and it can now be recommended, which was impossible before",
+      `(function(){const P=trainingPlan();
+        return P.coldMains.indexOf('Biceps')>-1;})()`, true);
+
+// switching a TRAINED part off hides it without touching a single set
+check("switching a trained part off removes it from the rotation",
+      `(function(){toggleMyPart('Chest'); SEED=deriveAll();
+        return !!trainingPlan().info['Chest'];})()`, false);
+check("...while every logged set survives",
+      `Object.values(DB.days).flatMap(d=>d.w||[]).filter(s=>s.part==='Chest').length`, 1);
+check("...and switching it back on restores the history intact",
+      `(function(){toggleMyPart('Chest'); SEED=deriveAll();
+        return (trainingPlan().info['Chest']||{}).days;})()`, 1);
+
+// the two exceptions that stop the switch trapping anyone
+check("Run is never hidden by the rotation",
+      `(function(){DB.settings.myParts=['Legs']; SEED=deriveAll();
+        return !!trainingPlan().info['Run'];})()`, true);
+check("a part trained TODAY stays visible even when switched off",
+      `(function(){DB.days[todayISO]={w:[{part:'Back',ex:'Bent-Over Row',w:50,reps:[8]}],upd:1};
+        DB.settings.myParts=['Legs']; SEED=deriveAll();
+        return !!trainingPlan().info['Back'];})()`, true);
+check("the last part cannot be switched off",
+      `(function(){DB.days={}; DB.settings.myParts=['Legs']; SEED=deriveAll();
+        return toggleMyPart('Legs');})()`, false);
+
+// an older ledger with no onboarding answer keeps everything
+check("no stored answer means every part is in the rotation",
+      `(function(){delete DB.settings.myParts; SEED=deriveAll();
+        const all=Object.keys(SEED.catalog).filter(p=>p!=='Run');
+        return all.every(p=>myPartsSet().has(p));})()`, true);
+
 process.exit(fail ? 1 : 0);
 })();

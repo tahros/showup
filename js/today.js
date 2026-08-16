@@ -94,7 +94,7 @@ function onbRender(){
   }else if(onbStep===2){
     b=`<div class="onbcard">
       <h3>What do you train?</h3>
-      <p class="onbnote">Tap to toggle. Everything stays available — this just shapes your suggestions.</p>
+      <p class="onbnote">Tap to toggle. Everything stays available — this just shapes your suggestions, and you can change it any time in Settings.</p>
       <div class="onbchips">${Object.keys(SEED0.catalog).map(p=>
         `<button class="onbchip ${onbSel.has(p)?'sel':''}" data-onbp="${p}">${p}</button>`).join('')}</div>
       <button class="onbbtn pri" data-onbact="toStep3">Continue</button>

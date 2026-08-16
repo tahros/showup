@@ -467,6 +467,14 @@ document.addEventListener('click',e=>{
     DB.settings.smithKg=toKg(+($('#smithW').value||0));
     save(true);return toast('Bar weights saved');
   }
+  /* v3.3.249: edit the onboarding answer. renderSync() so the chips, the
+     hidden-parts line, Train's tile grid and Today's suggestion all move
+     together — they read one set. */
+  if(e.target.closest('[data-myp]')){
+    const p=e.target.closest('[data-myp]').dataset.myp;
+    if(!toggleMyPart(p)) return toast('Keep at least one body part');
+    return renderSync();
+  }
   if(e.target.closest('[data-sex]')){
     const v=e.target.closest('[data-sex]').dataset.sex;
     DB.settings.sex = DB.settings.sex===v ? null : v;

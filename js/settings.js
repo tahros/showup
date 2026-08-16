@@ -65,6 +65,20 @@ function renderSync(){
       <div class="note">Enter a weight only when it <b>changes</b> — silence means unchanged, and the app reads back the weight in force on any given day.</div>
       <button class="btn" id="youSave" style="margin-top:10px">Save</button>
     </div>
+    <h2>What you train</h2>
+    <div class="card">
+      <div class="note" style="margin-bottom:10px">Shapes which parts appear in Train and which get
+        suggested on Today. <b>Nothing is deleted</b> — a part you switch off keeps every set you
+        ever logged, and switching it back on brings the history with it.</div>
+      <div class="onbchips" id="myPartsChips">${Object.keys(SEED.catalog).filter(p=>p!=='Run').map(p=>{
+        const on=myPartsSet().has(p), n=(trainingPlan().info[p]||{}).days||0;
+        return `<button class="onbchip ${on?'sel':''}" data-myp="${p}">${p}${
+          n?`<small> · ${n}d</small>`:''}</button>`;}).join('')}</div>
+      <div class="note" id="myPartsNote" style="margin-top:10px">${
+        (()=>{const off=Object.keys(SEED.catalog).filter(p=>p!=='Run'&&!myPartsSet().has(p));
+          return off.length? `Hidden from Train: <b>${off.join(', ')}</b>.`
+                           : 'Every part is in your rotation.';})()}</div>
+    </div>
     <h2>Bars</h2>
     <div class="card">
       <div class="row" style="gap:8px">
