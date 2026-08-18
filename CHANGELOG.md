@@ -1,5 +1,21 @@
 # ShowUp — changelog
 
+## v3.3.252 (2026-08-18) — Growth Audit explains the rule it actually uses
+
+**The help text was describing a rule the app stopped using in v3.3.219.** Tap
+the `i` beside Growth Audit and it said a record needed a later day to beat an
+earlier one "at comparable load and reps". The code has not required that since
+v3.3.237: going heavier than anything you have ever lifted is a record on its
+own, whatever the rep count. Anyone who lifted a first-ever 85 kg for a triple,
+saw it light up, and then read the tip was told two different things.
+
+The tip now names both routes to a record, in the same words the receipt
+already used: **a later day went heavier than ever before, or did more reps at
+a load you had already used.**
+
+No behaviour changed — the rule itself is untouched, and every case it decides
+it decided the same way yesterday. Only the description was wrong.
+
 ## v3.3.251 (2026-08-18) — Machines say which kind of machine they are
 
 **One bucket became two.** "Machine" covered both a pin-selected stack and a

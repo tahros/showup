@@ -308,11 +308,20 @@ const GA_HISTORY_DAYS=42;
    badge, because both come from gaPR().
 
    The rule, in gym terms: only call a change progress when the comparison is
-   unambiguous. More reps at the exact same load counts. A heavier load counts
-   only when it also matches or beats the reps on the previous heaviest set.
-   A lighter set with more reps is a tradeoff, not proof of progress, so it
-   stays Flat. This deliberately prefers missing a subtle gain over celebrating
-   a warm-up, deload or technique set as growth.
+   unambiguous — exactly one variable moved. Two moves qualify, and no others:
+   more reps at the EXACT same load, or a load heavier than anything ever
+   lifted. A lighter set with more reps is a tradeoff, not proof of progress,
+   so it stays Flat. This deliberately prefers missing a subtle gain over
+   celebrating a warm-up, deload or technique set as growth.
+
+   v3.3.252: this paragraph used to carry a third condition, requiring a load
+   gain to ALSO hold the rep count of the previous heaviest set. v3.3.237
+   deleted that condition from the code twelve lines below and left it standing
+   here, so the file has documented a rule it does not implement ever since —
+   and the Growth Audit tip, the only version of the rule a user ever reads,
+   repeated the same error. The code was right: a first-ever 85 kg is new
+   ground whatever the reps, and test-stats-repzone pins that case by name.
+   Comment and tip corrected to match the code; both are now asserted.
 
    Window: 28 days (maker's call, argued from cadence). At roughly weekly
    exposure per body part that is about four sessions of a lift — the same
@@ -451,7 +460,7 @@ function growthAuditSection(){
   if(!ga.grp||!groups[ga.grp]) ga.grp=data.order[0];
   const g=groups[ga.grp],recent=g.ex.filter(e=>e.ago<GA_HISTORY_DAYS);
   const shown=(recent.length?recent:g.ex).slice(0,4).map(e=>({...e,record:gaPR(e)}));
-  return `<h2>Growth audit${hActs('ga',"Dot: no sets in 7 days · line: no clear gain · trend: a later day beat an earlier day at comparable load and reps.",'About Growth audit')}</h2>
+  return `<h2>Growth audit${hActs('ga',"Dot: no sets in 7 days · line: no clear gain · trend: a later day went heavier than ever before, or did more reps at a load you had already used.",'About Growth audit')}</h2>
     <div class="card gacard" data-gacard="${ga.grp}">
       <select id="gaGrp" class="gasel" aria-label="Body part">${data.order.map(v=>
         `<option value="${v}" ${v===ga.grp?'selected':''}>${v}</option>`).join('')}</select>

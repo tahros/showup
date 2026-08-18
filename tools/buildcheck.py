@@ -425,8 +425,16 @@ if not _re.search(r"\.garcrow\{[^}]*grid-template-columns:100px auto minmax\(0,1
     fail.append("growth audit: receipt dates must stay beside values, not at the far edge (v3.3.226)")
 if not all(_phrase in _gahelp for _phrase in (
         "Dot: no sets in 7 days", "line: no clear gain",
-        "trend: a later day beat an earlier day at comparable load and reps")):
+        "trend: a later day went heavier than ever before, "
+        "or did more reps at a load you had already used")):
     fail.append("growth audit: information control must explain all three signals (v3.3.212)")
+# v3.3.252: the trend phrasing above is NOT decoration. It is the only place a
+# user is told what earns a record, and it said "comparable load and reps"
+# while the code had accepted a heavier load at any rep count since v3.3.237.
+# Guard the retired clause by name so it cannot return through any of its four
+# homes (this file, the section comment, the tip, the test).
+if "matches or beats the reps on the previous heaviest set" in _stats:
+    fail.append("growth audit: the rep clause deleted in v3.3.237 has returned to js/stats.js")
 if any(_credit in _gahelp for _credit in ("Noun Project", "ARIPATUT DASUKI", "Travis Avery")):
     fail.append("growth audit: icon credits belong in Settings, not the information control (v3.3.212)")
 

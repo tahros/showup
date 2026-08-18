@@ -153,7 +153,26 @@ check("the status hierarchy is muted gray dot and line, then ShowUp blue trend",
     /--ga-size:30px 30px/.test(cssSrc)}`,"true");
 check("Growth Audit help explains its signals without icon credits",
   `${statsSrc.includes('Dot: no sets in 7 days')&&statsSrc.includes('line: no clear gain')&&
-    statsSrc.includes('trend: a later day beat an earlier day at comparable load and reps')&&!statsSrc.slice(statsSrc.indexOf('function growthAuditSection'),statsSrc.indexOf('function sessionBuild')).includes('Noun Project')}`,"true");
+    statsSrc.includes('trend: a later day went heavier than ever before, or did more reps at a load you had already used')&&!statsSrc.slice(statsSrc.indexOf('function growthAuditSection'),statsSrc.indexOf('function sessionBuild')).includes('Noun Project')}`,"true");
+/* v3.3.252: the tip is the ONLY statement of this rule a user ever reads, so
+   it is asserted against the rule's actual behaviour rather than against a
+   remembered string. It named "comparable load and reps" while the code had
+   accepted a heavier load at ANY rep count since v3.3.237 — the same stale
+   clause that survived in the section comment. Both are now pinned to the
+   two routes the code really has, so neither can drift alone again. */
+const gaTip = statsSrc.slice(statsSrc.indexOf("hActs('ga',"),
+                            statsSrc.indexOf("'About Growth audit'"));
+check("...and the tip names BOTH routes to a record, matching the code",
+  `${/heavier than ever/.test(gaTip) &&
+     /more reps at a load you had already used/.test(gaTip) &&
+     !/comparable load and reps/.test(gaTip)}`, "true");
+const gaRule = statsSrc.slice(statsSrc.indexOf('The rule, in gym terms'),
+                             statsSrc.indexOf('const GA_PR_DAYS'));
+check("...and the section comment states those same two routes and no third",
+  `${/more reps at the EXACT same load/.test(gaRule) &&
+     /heavier than anything ever\s+lifted/.test(gaRule) &&
+     !/matches or beats the reps on the previous heaviest set/.test(gaRule)}`, "true");
+
 check("icon credits live beneath the version in Settings",
   `${/ShowUp \$\{APP_VERSION\}<\/div>\s*<div class="note assetcredits"/.test(fs.readFileSync(path.join(dir,'js','settings.js'),'utf8'))&&
     ['minus-8363736','trend-2344331','ARIPATUT DASUKI','Travis Avery','Noun Project'].every(x=>fs.readFileSync(path.join(dir,'js','settings.js'),'utf8').includes(x))}`,"true");
