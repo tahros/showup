@@ -253,7 +253,7 @@ const catFor=part=>[
   ...Object.entries(DB.settings.partOv||{}).filter(([ex,p])=>p===part&&SEED0.ex2part[ex]!==part).map(([ex])=>ex)];
 const equipOf=ex=>customs()[ex]?.equip || SEED.equip[ex] || 'machine';
 const EQUIP_LABEL={barbell:'Barbell (bar + plates)',smith:'Smith machine',dumbbell:'Dumbbell (per hand)',
-  cable:'Cable',machine:'Machine',body:'Bodyweight'};
+  cable:'Cable',machine:'Machine (stack)',plate:'Machine (plate-loaded)',body:'Bodyweight'};
 
 /* ---------- helpers ---------- */
 const $=s=>document.querySelector(s);
@@ -505,26 +505,36 @@ const snapW=(kg,ex)=>{
   const u=toU(kg);
   return toKg(Math.max(a, a+Math.round((u-a)/s)*s));
 };
-/* v3.3.8: ONE source of truth for what weights physically exist.
-   Returns display-unit {s: step, a: anchor}. Barbell/smith: plate pairs
-   anchored at the bar. Everything else: the plain step from zero. */
-/* v3.3.250: a CABLE is a selectorised STACK. Its plates are whole — 5 kg
-   (10 lb) faces — and there is no 14 on the pin to select, so the even step
-   was asking for a weight the machine cannot make. Same shape of law as the
-   barbell (physical increments, not arithmetic ones), different reason:
-   plate PAIRS there, stack FACES here. Anchored at zero, not at a bar.
-   Deliberately cable only. `machine` is a mixed bucket — Leg Press and Hack
-   Squat are plate-loaded, Leg Extension is a stack — so it keeps the plain
-   step until each machine can say which it is. */
+/* v3.3.8 / v3.3.251: ONE source of truth for what weights physically exist.
+   Returns display-unit {s: step, a: anchor}. `machine` has now been split, so
+   every class states its own physics:
+
+     barbell / smith   plate PAIRS on a bar — 5 kg (10 lb) totals, anchored at
+                       the bar, because you cannot load one side only.
+     cable             stack FACES — the pin selects whole plates, 5 kg
+                       (10 lb). There is no 14 on the stack.
+     machine           a selectorised stack, the same faces as a cable.
+     plate             a plate-loaded sled (Leg Press, Hack Squat): pegs on
+                       both sides, so plates go on in pairs, 5 kg (10 lb) at a
+                       time. Anchored at zero — the sled's own weight is
+                       unknown, and the load line says so rather than guessing.
+     dumbbell / body   the plain even step: bells rack in 2s, and belt plates
+                       are the only free choice left in the room.
+
+   Cable, machine and plate land on the same 5 for three different physical
+   reasons. They stay separate anyway — the reasons diverge (a sled can be
+   given a weight; a stack cannot), and a law that happens to agree today is
+   not the same as one rule. */
 function wLaw(ex){
   const eq=equipOf(ex);
-  if(eq==='barbell'||eq==='smith') return {s:isLb()?10:5, a:toU(barKg(ex))};
-  if(eq==='cable')                 return {s:isLb()?10:5, a:0};
+  if(eq==='barbell'||eq==='smith')               return {s:isLb()?10:5, a:toU(barKg(ex))};
+  if(eq==='cable'||eq==='machine'||eq==='plate') return {s:isLb()?10:5, a:0};
   return {s:STEP(), a:0};
 }
 /* the step for ONE exercise, in display units. Every stepper, every number
-   input and the inferred-weight snapper read the law through here, so the
-   buttons and the browser's own spinner can never disagree. */
+   input, the inferred-weight snapper and Today's next-weight suggestion read
+   the law through here, so no two of them can disagree about what is
+   loadable. */
 const wStep=ex=>wLaw(ex).s;
 function saveExW(ex,kg){ if(!ex) return; DB.settings.exW=DB.settings.exW||{}; DB.settings.exW[ex]=kg; }
 /* v3.3.222: on a bodyweight exercise the stored weight IS the added load —
@@ -554,6 +564,11 @@ function loadLine(ex,totalKg){
   if(!usesPlates(ex)) {
     const e=equipOf(ex);
     if(e==='dumbbell') return `${wDisp(totalKg)} ${U()} per hand`;
+    /* v3.3.251: a plate-loaded sled carries its own weight and never tells
+       you what it is. The number logged is the plates, so the line says the
+       plates — and says which it is, rather than implying a total. */
+    if(e==='plate')    return totalKg>0.01 ? `${wDisp(totalKg/2)} ${U()} per side · plates only`
+                                           : 'plates only — the sled is not counted';
     if(e==='body')     return totalKg>0&&Math.abs(totalKg-(bwNow()||-1))<0.01 ? `your bodyweight · ${wDisp(totalKg)} ${U()}`
                        : totalKg>0 ? `bodyweight + ${wDisp(totalKg)} ${U()}` : 'bodyweight — set yours in ⚙ Settings';
     return '';

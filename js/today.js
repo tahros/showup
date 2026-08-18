@@ -516,20 +516,25 @@ function overloadNudge(ex){
   // every candidate — history included — snaps to buildable, integer loads.
   // kg: barbell/smith = bar + 5 kg total steps; dumbbells = whole-kg bells;
   // stacks = 5s. lb: 10 lb barbell steps; 5 lb bells/stacks. Must beat the top.
-  const eq=equipOf(ex);
+  /* v3.3.251: everything that is not a bar snaps through wLaw — the same
+     authority the +/- buttons obey. These two had drifted: this snapper has
+     always put stacks on 5s ("stacks = 5s", below the line above) while the
+     stepper moved them by 2, so Today could name 45 kg on a Chest Press and
+     the stepper could not land there — 44 went to 46. A suggestion you
+     cannot reach is worse than none.
+     The bar keeps its own lb branch on purpose: a 20 kg bar is 44.1 lb, so
+     the honest law would print decimals, and suggestions are IRON. */
+  const eq=equipOf(ex), bb=(eq==='barbell'||eq==='smith');
+  const {s:lawS,a:lawA}=wLaw(ex);
   const snapSug=v=>{
-    if(isLb()){
-      const lb=toU(v), g=(eq==='barbell'||eq==='smith')?10:5;
-      return toKg(Math.round(lb/g)*g);
-    }
-    if(eq==='barbell'||eq==='smith'){
+    if(bb){
+      if(isLb()) return toKg(Math.round(toU(v)/10)*10);
       const bar=barKg(ex);
       return bar+Math.round((v-bar)/5)*5;
     }
-    if(eq==='dumbbell') return Math.round(v);
-    return Math.round(v/5)*5;
+    return toKg(Math.max(lawA, lawA+Math.round((toU(v)-lawA)/lawS)*lawS));
   };
-  const step=isLb()?toKg((eq==='barbell'||eq==='smith')?10:5):(eq==='dumbbell'?1:5);
+  const step=bb?(isLb()?toKg(10):5):toKg(lawS);
   let next=snapSug(used.length?used[0]:top+step);
   while(next<=top+0.01) next+=step;
   return {mode:'w', n, top, next};

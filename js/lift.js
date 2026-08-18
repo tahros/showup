@@ -178,7 +178,7 @@ function renderLift(){
             <label class="mono muted" style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:6px">Equipment</label>
             <div class="chips">${Object.entries(EQUIP_LABEL).map(([k,v])=>
               `<button class="chip ${(lift.newEquip||'barbell')===k?'on':''}" data-newequip="${k}">${v}</button>`).join('')}</div>
-            <div class="note">Barbell and Smith get the bar + per-side plate math. Dumbbell shows "per hand". Bodyweight logs added weight only.</div>
+            <div class="note">Barbell and Smith get the bar + per-side plate math. Machine (stack) and Cable move a whole plate face at a time; Machine (plate-loaded) shows the plates per side and never counts the sled. Dumbbell shows "per hand". Bodyweight logs added weight only.</div>
             <div class="row" style="gap:8px;margin-top:10px">
               <button class="btn" id="saveEx" style="margin:0">Add to ${lift.part}</button>
               <button class="btn ghost" id="cancelEx" style="margin:0;flex:0 0 96px">Cancel</button>

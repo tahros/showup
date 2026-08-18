@@ -1,5 +1,29 @@
 # ShowUp — changelog
 
+## v3.3.251 (2026-08-18) — Machines say which kind of machine they are
+
+**One bucket became two.** "Machine" covered both a pin-selected stack and a
+plate-loaded sled, which are different pieces of iron with different rules.
+They are now separate: **Machine (stack)** moves a whole plate face at a time,
+5 kg or 10 lb, like a cable. **Machine (plate-loaded)** — Leg Press and Hack
+Squat — takes plates on pegs at both ends, so it moves in pairs, also 5 kg or
+10 lb. Both classes are offered when you add your own exercise.
+
+**A sled states its plates and nothing more.** A plate-loaded machine now
+reads `50 kg per side · plates only`. The sled's own weight is not knowable
+from the outside, so the app does not fold an invented number into your total
+— it names what it is showing you.
+
+**Today can no longer suggest a weight the stepper cannot reach.** The
+next-weight suggestion has always put machines on 5s while the +/- buttons
+moved them by 2, so Today could name 45 kg on a Chest Press and no amount of
+pressing + would land there. Both now read the same law. Where they disagreed,
+the buttons were right and the suggestion moved.
+
+Everything already logged stays exactly as trained. Leg Extension, the leg
+curls, the presses and the pec decks remain stacks; if a machine in your gym
+is the other kind, that is a one-word correction rather than a new rule.
+
 ## v3.3.250 (2026-08-17) — Cables move in whole plates
 
 **A cable is a stack, and a stack has no 14 on it.** Cable exercises now step

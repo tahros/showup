@@ -291,16 +291,72 @@ check("34 lb steps to 40 — a whole face in POUNDS too", `${wval()}`, 40);
 check("...and the spinner says 10", `document.getElementById('wv').getAttribute('step')`, 10);
 run(`DB.settings.unit='kg'; render();`);
 
-// SCOPE: cable only. `machine` is a mixed bucket — Leg Press is plate-loaded,
-// Leg Extension is a stack — so it keeps the even step until each can say which.
+// v3.3.251 RESTATES the v3.3.250 scope note: `machine` was a mixed bucket and
+// is now split, so it no longer keeps the even step — it IS a stack.
 run(`(function(){view='lift'; lift.part='Chest'; lift.ex='Chest Press';
-  lift.weight=14; lift._tiles=null; render();})()`);
-check("a machine is untouched: 14 kg still steps to 16", `(function(){
+  lift.weight=15; lift._tiles=null; render();})()`);
+check("a stack machine steps a whole face: 15 kg to 20", `(function(){
   document.querySelector('[data-w="1"]').click();
-  return +document.getElementById('wv').value;})()`, 16);
+  return +document.getElementById('wv').value;})()`, 20);
 // and a barbell's inferred weight now lands on a total the bar can BUILD
 check("snapW puts an inferred barbell weight on a buildable total",
       `${run(`wDisp(snapW(72.5,'Squat'))`)}`, 75);
+
+// ---- v3.3.251: `machine` splits into stack-fed and plate-loaded ----------
+check("Leg Press is plate-loaded", `equipOf('Leg Press')`, "plate");
+check("Hack Squat is plate-loaded", `equipOf('Hack Squat')`, "plate");
+check("Leg Extension stayed a stack", `equipOf('Leg Extension')`, "machine");
+check("...and an unknown exercise still falls back to a stack",
+      `equipOf('No Such Exercise At All')`, "machine");
+// both classes step 5 — for two different physical reasons, so both are asserted
+run(`(function(){view='lift'; lift.part='Legs'; lift.ex='Leg Press';
+  lift.weight=100; lift._tiles=null; render();})()`);
+check("a plate-loaded sled steps a pair: 100 kg to 105", `(function(){
+  document.querySelector('[data-w="1"]').click();
+  return +document.getElementById('wv').value;})()`, 105);
+// the load line states the plates and refuses to imply a total
+check("the sled's load line names the per-side plates",
+      `loadLine('Leg Press',100)`, "50 kg per side \u00b7 plates only");
+check("...and at zero it says which number it is showing",
+      `loadLine('Leg Press',0)`, "plates only \u2014 the sled is not counted");
+check("...while a stack machine still shows no load line", `loadLine('Chest Press',60)`, "");
+check("the plate class is offerable when you add your own exercise",
+      `EQUIP_LABEL.plate`, "Machine (plate-loaded)");
+
+// dumbbells and belts are the only classes left on the plain even step
+check("a dumbbell still steps 2", `wStep('Lateral Raise')`, 2);
+check("a belt still steps 2", `wStep('Pull Up')`, 2);
+
+// ---- v3.3.251: every suggested weight is one the stepper can LAND on -----
+// The drift this closes: overloadNudge has always snapped stacks to 5s while the
+// stepper moved them by 2, so Today could name a weight +/- could not reach.
+run(`(function(){DB.settings.unit='kg'; DB.days={}; DB.settings.nudgeX={};
+  const D=n=>{const d=new Date(todayISO+'T00:00');d.setDate(d.getDate()-n);
+    return d.toLocaleDateString('en-CA')};
+  for(const n of [21,14,7]) DB.days[D(n)]={w:[
+    {part:'Chest',ex:'Chest Press',w:42,reps:[10,10]},
+    {part:'Legs', ex:'Leg Press', w:102,reps:[10,10]},
+    {part:'Shoulder',ex:'Lateral Raise',w:9,reps:[10,10]}],upd:1,doneEx:[],donePart:[],doneAll:true};
+  SEED=deriveAll();})()`);
+/* these assert a value already computed in the VM, not an expression to run */
+const checkVal = (name, got, want) => {
+  const ok = String(got) === String(want);
+  console.log((ok?"PASS":"FAIL"), name, "\u2192", got);
+  if (!ok) fail++;
+};
+const reachable = ex => run(`(function(){
+  const s=overloadNudge('${ex}'); if(!s||s.mode!=='w') return 'no suggestion';
+  const {s:st,a}=wLaw('${ex}');
+  const k=(toU(s.next)-a)/st;
+  return Math.abs(k-Math.round(k))<1e-9 ? 'reachable' : 'UNREACHABLE '+toU(s.next);})()`);
+checkVal("a stack machine's suggestion sits on a face the stepper can hit",
+         reachable('Chest Press'), "reachable");
+checkVal("a sled's suggestion sits on a loadable pair", reachable('Leg Press'), "reachable");
+checkVal("a dumbbell's suggestion sits on a bell the stepper can hit",
+         reachable('Lateral Raise'), "reachable");
+check("...and the suggestion is still iron, never a decimal", `(function(){
+  const s=overloadNudge('Chest Press'); return Number.isInteger(+wDisp(s.next));})()`, true);
+run(`DB.days={}; SEED=deriveAll();`);
 
 
 // ---- v3.3.222: BW+n — the added-weight convention on bodyweight lifts ----
