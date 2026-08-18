@@ -1,5 +1,17 @@
 # ShowUp — changelog
 
+## v3.3.254 (2026-08-18) — Stats reordered by how soon the answer matters
+
+The tab now reads as a funnel of questions, most immediate first. **Show up**
+stays on top — the metric is days. **Muscle coverage** moves up beside it:
+what this week is missing is next session's plan, the most actionable card in
+the tab. **Growth audit** follows — is showing up working — then **Session
+build** explains what those sessions were made of. **Monthly pace** moves
+above the year story: whether this month is on pace is a question you can
+still act on; how 2026 compares to 2023 is one you can only admire.
+
+Nothing was added or removed — the same sections, ordered by immediacy.
+
 ## v3.3.253 (2026-08-18) — Records have a horizon; celebration lasts a week
 
 **A record now compares you to the last six months of you.** The set a new
