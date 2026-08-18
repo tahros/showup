@@ -497,15 +497,35 @@ function reopen(ex,part){
   lastSetAt=Date.now(); t.lastAt=lastSetAt;
 }
 const isBody=ex=>equipOf(ex)==='body';
-const snapW=kg=>{const s=STEP();const u=toU(kg);return toKg(Math.round(u/s)*s);}   // clean stepper multiples
+/* v3.3.250: snap to the LAW, not to a global constant. Given an exercise it
+   lands on a weight that exercise can actually make — a stack face on a
+   cable, a buildable total on a bar. Without one it is the old plain step. */
+const snapW=(kg,ex)=>{
+  const {s,a}=ex?wLaw(ex):{s:STEP(),a:0};
+  const u=toU(kg);
+  return toKg(Math.max(a, a+Math.round((u-a)/s)*s));
+};
 /* v3.3.8: ONE source of truth for what weights physically exist.
    Returns display-unit {s: step, a: anchor}. Barbell/smith: plate pairs
    anchored at the bar. Everything else: the plain step from zero. */
+/* v3.3.250: a CABLE is a selectorised STACK. Its plates are whole — 5 kg
+   (10 lb) faces — and there is no 14 on the pin to select, so the even step
+   was asking for a weight the machine cannot make. Same shape of law as the
+   barbell (physical increments, not arithmetic ones), different reason:
+   plate PAIRS there, stack FACES here. Anchored at zero, not at a bar.
+   Deliberately cable only. `machine` is a mixed bucket — Leg Press and Hack
+   Squat are plate-loaded, Leg Extension is a stack — so it keeps the plain
+   step until each machine can say which it is. */
 function wLaw(ex){
   const eq=equipOf(ex);
   if(eq==='barbell'||eq==='smith') return {s:isLb()?10:5, a:toU(barKg(ex))};
+  if(eq==='cable')                 return {s:isLb()?10:5, a:0};
   return {s:STEP(), a:0};
 }
+/* the step for ONE exercise, in display units. Every stepper, every number
+   input and the inferred-weight snapper read the law through here, so the
+   buttons and the browser's own spinner can never disagree. */
+const wStep=ex=>wLaw(ex).s;
 function saveExW(ex,kg){ if(!ex) return; DB.settings.exW=DB.settings.exW||{}; DB.settings.exW[ex]=kg; }
 /* v3.3.222: on a bodyweight exercise the stored weight IS the added load —
    a `w` on a pull-up never meant anything else — so the display finally says

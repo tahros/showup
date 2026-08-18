@@ -259,6 +259,49 @@ check("a barbell still moves by a plate pair: 60 kg \u2192 65", `${wval()}`, 65)
 // and the inferred-weight snapper follows the same even law
 check("snapW lands inferred weights on even numbers", `${run(`wDisp(snapW(23.4))`)}`, 24);
 
+// ---- v3.3.250: a CABLE is a stack, and stacks move in whole plates -------
+// 5 kg / 10 lb faces. There is no 14 on the pin, so the even step was
+// offering a weight the machine cannot make. Driven through the REAL buttons.
+run(`(function(){DB.settings.unit='kg'; view='lift';
+  lift.part='Chest'; lift.ex='Cable Fly Up'; lift.weight=15; lift._tiles=null; render();})()`);
+check("the exercise under test really is a cable", `equipOf('Cable Fly Up')`, "cable");
+wplus();
+check("15 kg steps up a whole plate to 20, not 17", `${wval()}`, 20);
+wminus(); wminus();
+check("...and down to 10 the same way", `${wval()}`, 10);
+run(`(function(){const el=document.getElementById('wv'); el.value='13';
+     el.dispatchEvent(new Event('input',{bubbles:true}));})()`);
+wplus();
+check("an off-stack 13 snaps UP to the next face, 15", `${wval()}`, 15);
+run(`(function(){const el=document.getElementById('wv'); el.value='13';
+     el.dispatchEvent(new Event('input',{bubbles:true}));})()`);
+wminus();
+check("...and DOWN to 10, never to 11", `${wval()}`, 10);
+check("the browser spinner agrees with the buttons (step attr is 5)",
+      `document.getElementById('wv').getAttribute('step')`, 5);
+check("snapW puts an inferred cable weight on a stack face",
+      `${run(`wDisp(snapW(13,'Cable Fly Up'))`)}`, 15);
+
+// lb mode: whole faces in pounds
+run(`(function(){DB.settings.unit='lb'; lift._tiles=null; render();})()`);
+run(`(function(){const el=document.getElementById('wv'); el.value='34';
+     el.dispatchEvent(new Event('input',{bubbles:true}));})()`);
+wplus();
+check("34 lb steps to 40 — a whole face in POUNDS too", `${wval()}`, 40);
+check("...and the spinner says 10", `document.getElementById('wv').getAttribute('step')`, 10);
+run(`DB.settings.unit='kg'; render();`);
+
+// SCOPE: cable only. `machine` is a mixed bucket — Leg Press is plate-loaded,
+// Leg Extension is a stack — so it keeps the even step until each can say which.
+run(`(function(){view='lift'; lift.part='Chest'; lift.ex='Chest Press';
+  lift.weight=14; lift._tiles=null; render();})()`);
+check("a machine is untouched: 14 kg still steps to 16", `(function(){
+  document.querySelector('[data-w="1"]').click();
+  return +document.getElementById('wv').value;})()`, 16);
+// and a barbell's inferred weight now lands on a total the bar can BUILD
+check("snapW puts an inferred barbell weight on a buildable total",
+      `${run(`wDisp(snapW(72.5,'Squat'))`)}`, 75);
+
 
 // ---- v3.3.222: BW+n — the added-weight convention on bodyweight lifts ----
 run(`(function(){DB.settings.unit='kg'; view='lift';

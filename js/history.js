@@ -29,7 +29,7 @@ function hsetEditor(d){
       <div class="mono muted" style="font-size:11px;margin-bottom:8px">${es.wi==null?'ADD':'EDIT'} — ${es.ex}</div>
       <div class="row" style="gap:8px">
         <div class="fld"><label>${isRun?'Distance '+DU():'Weight '+U()}</label>
-          <input id="hsW" type="number" inputmode="decimal" step="${isRun?'0.01':STEP()}" value="${wv}"></div>
+          <input id="hsW" type="number" inputmode="decimal" step="${isRun?'0.01':wStep(es.ex)}" value="${wv}"></div>
         ${isRun
           ?`<div class="fld"><label>Min</label><input id="hsM" type="number" inputmode="numeric" value="${s?(s.mins||0):0}"></div>
             <div class="fld"><label>Sec</label><input id="hsS" type="number" inputmode="numeric" value="${s?(s.secs||0):0}"></div>`

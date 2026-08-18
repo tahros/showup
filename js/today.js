@@ -452,7 +452,7 @@ function progChart(ex){
   const body=isBody(ex)&&pts.every(p=>p.w<=0.01);
   const vals=pts.map(p=>body?p.r:p.w);
   const lo=Math.min(...vals), hi=Math.max(...vals);
-  const span=Math.max(hi-lo, body?2:toKg(STEP()*2));
+  const span=Math.max(hi-lo, body?2:toKg(wStep(ex)*2));   // v3.3.250: two steps of THIS lift's law
   const top=hi+span*0.18, base=Math.max(0,lo-span*0.18);
   const X=i=>16+i*(298/Math.max(1,pts.length-1));
   const Y=v=>104-(v-base)/(top-base)*84;

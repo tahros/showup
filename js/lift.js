@@ -274,7 +274,7 @@ function renderLift(){
     else if(isBody(ex)) lift.weight=bwNow()||0;              // v3.3.67: what you weigh NOW, per the series
     else{
       const top=ls&&ls.sets.length?Math.max(...ls.sets.map(s=>s.w)):null;
-      lift.weight=top!=null?snapW(top):toKg(isLb()?45:20);   // inferred weights snap to clean steps
+      lift.weight=top!=null?snapW(top,ex):toKg(isLb()?45:20);   // inferred weights snap to weights THIS lift can make
     }
   }
   /* v3.3.141: the Suggested zone is GONE. It sat directly above "Logged
@@ -334,7 +334,7 @@ function renderLift(){
        .tight trims the padding the caption used to justify. */
     h+=`<div class="zone prime tight">
         <div class="wsel"><button data-w="-1">−</button>
-        <div class="val${isBody(ex)?' bwval':''}">${isBody(ex)?`<span class="bwtag">Bodyweight +</span>`:''}<input id="wv" type="number" inputmode="decimal" step="${STEP()}" value="${wDisp(lift.weight)}"><span class="unit">${U()}</span></div>
+        <div class="val${isBody(ex)?' bwval':''}">${isBody(ex)?`<span class="bwtag">Bodyweight +</span>`:''}<input id="wv" type="number" inputmode="decimal" step="${wStep(ex)}" value="${wDisp(lift.weight)}"><span class="unit">${U()}</span></div>
         <button data-w="1">+</button></div>`;
     if(usesPlates(ex)){
       h+=`<div class="loadline" id="ll">${loadInner(ex,lift.weight)}</div>`;
@@ -448,7 +448,7 @@ function renderLift(){
           :`<div class="card editcard" style="margin-top:10px">
               <div class="mono muted" style="font-size:11px;margin-bottom:8px">EDIT SET</div>
               <div class="row" style="gap:8px">
-                <div class="fld"><label>Weight ${U()}</label><input id="edW" type="number" inputmode="decimal" step="${STEP()}" value="${wDisp(es.w)}"></div>
+                <div class="fld"><label>Weight ${U()}</label><input id="edW" type="number" inputmode="decimal" step="${wStep(ex)}" value="${wDisp(es.w)}"></div>
                 <div class="fld"><label>Reps</label><input id="edR" type="text" inputmode="numeric" value="${es.reps.join(',')}"></div>
               </div>
               <div class="row" style="gap:8px;margin-top:10px">

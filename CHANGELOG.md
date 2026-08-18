@@ -1,5 +1,21 @@
 # ShowUp — changelog
 
+## v3.3.250 (2026-08-17) — Cables move in whole plates
+
+**A cable is a stack, and a stack has no 14 on it.** Cable exercises now step
+by 5 kg (10 lb) — one whole plate face — instead of by 2. The even step was
+offering weights the machine cannot select. A weight sitting off the stack
+snaps to the next real face in the direction you press: 13 goes up to 15 and
+down to 10, never to 11.
+
+This is the same shape of law the barbell already follows — physical
+increments, not arithmetic ones — for a different physical reason: plate
+pairs on a bar there, stack faces here. Machines are deliberately left alone;
+that bucket mixes plate-loaded Leg Press with stack-fed Leg Extension, and
+until each can say which it is, the plain step is the honest answer.
+
+Nothing in the ledger changes. Weights already logged stay exactly as trained.
+
 ## v3.3.235 (2026-08-14) — Pace focuses on the recent six months
 
 **The comparison is closer to the run you are living now.** Pace now shows the
