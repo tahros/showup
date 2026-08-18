@@ -1,5 +1,32 @@
 # ShowUp — changelog
 
+## v3.3.253 (2026-08-18) — Records have a horizon; celebration lasts a week
+
+**A record now compares you to the last six months of you.** The set a new
+record must beat is the heaviest of the last 180 days, not the heaviest ever.
+A lift from years ago was done by a different body — bodyweight moves,
+technique changes, straps come and go — and strength coaching treats a max as
+stale within months. Six months is roughly two retest cycles: long enough that
+a short break cannot mint cheap re-records, short enough that the bar you must
+clear is one the current you actually set.
+
+**Nothing is forgotten.** The all-time set is still found across the whole
+ledger and named in the receipt on its own **All-time** row. It carries
+history; it no longer carries authority. The bar to beat sits above it as
+**Recent best**. The window rolls with the day being judged, so old
+improvements keep the meaning they had on their day. And a comeback after six
+months away is a baseline, not a record — the receipt says so instead of
+celebrating rust.
+
+**"Going up" now means improved this week.** The celebration window drops from
+28 days to 7 — the same seven days the card's set counts and Empty dots
+already describe. A badge that outlives your next exposure to the lift is
+celebrating history.
+
+**A PR lights the audit the moment it happens.** Mid-exercise, nothing
+completed, day still open — the row lights anyway. This already worked;
+it is now pinned by a test so no future change can quietly take it away.
+
 ## v3.3.252 (2026-08-18) — Growth Audit explains the rule it actually uses
 
 **The help text was describing a rule the app stopped using in v3.3.219.** Tap

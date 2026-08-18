@@ -12,7 +12,7 @@ w.document.dispatchEvent(new w.Event('DOMContentLoaded',{bubbles:true}));const r
 let fail=0;const ok=(n,c,x='')=>{console.log(c?'PASS':'FAIL',n,x?'→ '+x:'');if(!c)fail++;};
 run(`(function(){DB.days={};const now=new Date(todayISO+'T00:00'),y=now.getFullYear();
   for(let i=0;i<430;i++){const d=new Date(now);d.setDate(d.getDate()-i);const iso=d.toLocaleDateString('en-CA');
-    if(i%2===0)DB.days[iso]={w:[{part:'Back',ex:'Pull Up',w:60+(i<30?10:0),reps:[8+(i<10?2:0)],at:1}],upd:1};
+    if(i%2===0)DB.days[iso]={w:[{part:'Back',ex:'Pull Up',w:60+(i<30?10:0),reps:[8+(i<7?2:0)],at:1}],upd:1};   // v3.3.253: first boosted day lands 6d ago — inside the 7-day celebration window
     if(i%3===0)(DB.days[iso]||(DB.days[iso]={w:[],upd:1})).w.push({part:'Run',ex:'Run',w:4+(i%4),reps:[],mins:32,secs:0,at:2});}
   SEED=deriveAll();view='stats';render();})()`);
 const H=run(`[...document.querySelectorAll('#view h2')].map(h=>h.firstChild.textContent.trim())`);

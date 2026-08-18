@@ -153,7 +153,7 @@ check("the status hierarchy is muted gray dot and line, then ShowUp blue trend",
     /--ga-size:30px 30px/.test(cssSrc)}`,"true");
 check("Growth Audit help explains its signals without icon credits",
   `${statsSrc.includes('Dot: no sets in 7 days')&&statsSrc.includes('line: no clear gain')&&
-    statsSrc.includes('trend: a later day went heavier than ever before, or did more reps at a load you had already used')&&!statsSrc.slice(statsSrc.indexOf('function growthAuditSection'),statsSrc.indexOf('function sessionBuild')).includes('Noun Project')}`,"true");
+    statsSrc.includes('trend: a later day went heavier than anything in the last six months, or did more reps at a load used in them')&&!statsSrc.slice(statsSrc.indexOf('function growthAuditSection'),statsSrc.indexOf('function sessionBuild')).includes('Noun Project')}`,"true");
 /* v3.3.252: the tip is the ONLY statement of this rule a user ever reads, so
    it is asserted against the rule's actual behaviour rather than against a
    remembered string. It named "comparable load and reps" while the code had
@@ -163,14 +163,14 @@ check("Growth Audit help explains its signals without icon credits",
 const gaTip = statsSrc.slice(statsSrc.indexOf("hActs('ga',"),
                             statsSrc.indexOf("'About Growth audit'"));
 check("...and the tip names BOTH routes to a record, matching the code",
-  `${/heavier than ever/.test(gaTip) &&
-     /more reps at a load you had already used/.test(gaTip) &&
+  `${/heavier than anything in the last six months/.test(gaTip) &&
+     /more reps at a load used in them/.test(gaTip) &&
      !/comparable load and reps/.test(gaTip)}`, "true");
 const gaRule = statsSrc.slice(statsSrc.indexOf('The rule, in gym terms'),
                              statsSrc.indexOf('const GA_PR_DAYS'));
 check("...and the section comment states those same two routes and no third",
   `${/more reps at the EXACT same load/.test(gaRule) &&
-     /heavier than anything ever\s+lifted/.test(gaRule) &&
+     /heavier than anything in the\s+record window/.test(gaRule) &&
      !/matches or beats the reps on the previous heaviest set/.test(gaRule)}`, "true");
 
 check("icon credits live beneath the version in Settings",
@@ -239,10 +239,72 @@ gaSeed(`DB.days[_D(80)]={w:[{part:'Chest',ex:'Chest Fly',w:45,reps:[10]}],upd:1}
         DB.days[_D(40)]={w:[{part:'Chest',ex:'Chest Fly',w:50,reps:[10]}],upd:1};
         DB.days[_D(3)]={w:[{part:'Chest',ex:'Chest Fly',w:45,reps:[8]}],upd:1};`);
 check("a PR older than the window goes dark AND loses its badge", `"${prOf('Chest Fly')}"`, "dark no badge");
-check("the window is 28 days", `GA_PR_DAYS`, 28);
-check("...and the record itself still comes from the WHOLE ledger",
+check("the celebration window is 7 days (v3.3.253, was 28)", `GA_PR_DAYS`, 7);
+check("...and the record window is 180 days", `GA_RECORD_DAYS`, 180);
+check("...and the recent record comes from the whole 180-day window",
       `(function(){const ex=Object.values(gaExerciseSessions()).find(e=>e.name==='Chest Fly');
         return gaPR(ex).best.w;})()`, 50);
+check("...while the all-time set is carried separately",
+      `(function(){const ex=Object.values(gaExerciseSessions()).find(e=>e.name==='Chest Fly');
+        return gaPR(ex).all.w;})()`, 50);
+
+// ---- v3.3.253: the RECORD has a horizon --------------------------------
+// An all-time giant older than GA_RECORD_DAYS no longer gates progress: the
+// maker's body, technique and grip have changed since, so the bar to clear is
+// what the CURRENT athlete has done. The old set stays named in the receipt.
+gaSeed(`DB.days[_D(300)]={w:[{part:'Chest',ex:'Chest Fly',w:120,reps:[3]}],upd:1};
+        DB.days[_D(60)]={w:[{part:'Chest',ex:'Chest Fly',w:80,reps:[8]}],upd:1};
+        DB.days[_D(3)]={w:[{part:'Chest',ex:'Chest Fly',w:85,reps:[5]}],upd:1};`);
+check("a giant from 300 days ago no longer gates: 85 beats the 80 of the window",
+      `"${prOf('Chest Fly')}"`, "LIT +5 kg");
+check("...the all-time 120 is still found", `(function(){
+  const ex=Object.values(gaExerciseSessions()).find(e=>e.name==='Chest Fly');
+  return gaPR(ex).all.w;})()`, 120);
+run(`(function(){const ex=Object.values(gaExerciseSessions()).find(e=>e.name==='Chest Fly');
+  ga.open=ex.id; render();})()`);
+check("...and the receipt names it on its own All-time row", `(function(){
+  const rows=[...document.querySelectorAll('.garcrow')];
+  const at=rows.find(r=>r.querySelector('.garck').textContent==='All-time');
+  return at?at.querySelector('b').textContent:'(missing)';})()`, "120kg \u00d7 3");
+run(`ga.open=null;`);
+
+// the window ROLLS with the day being judged: a gain from January was judged
+// by January's standard, and remains that day's receipt even though its
+// baseline has since left today's window
+gaSeed(`DB.days[_D(230)]={w:[{part:'Chest',ex:'Chest Fly',w:80,reps:[8]}],upd:1};
+        DB.days[_D(200)]={w:[{part:'Chest',ex:'Chest Fly',w:90,reps:[8]}],upd:1};`);
+check("an old gain was judged by the standard of ITS day", `(function(){
+  const ex=Object.values(gaExerciseSessions()).find(e=>e.name==='Chest Fly');
+  const p=gaPR(ex); return p.pr?p.pr.text:'no pr';})()`, "+10 kg");
+check("...but nothing stands in today's window", `(function(){
+  const ex=Object.values(gaExerciseSessions()).find(e=>e.name==='Chest Fly');
+  return gaPR(ex).best===null;})()`, true);
+
+// a comeback after seven months away is a BASELINE, not a record — there is
+// nothing recent to beat, and the receipt says so instead of celebrating
+gaSeed(`DB.days[_D(250)]={w:[{part:'Chest',ex:'Chest Fly',w:100,reps:[5]}],upd:1};
+        DB.days[_D(2)]={w:[{part:'Chest',ex:'Chest Fly',w:60,reps:[10]}],upd:1};`);
+check("the first session back after 250 days is not a record",
+      `"${prOf('Chest Fly')}"`, "dark no badge");
+run(`(function(){const ex=Object.values(gaExerciseSessions()).find(e=>e.name==='Chest Fly');
+  ga.open=ex.id; render();})()`);
+check("...and its receipt shows Recent best AND All-time as separate truths", `(function(){
+  const ks=[...document.querySelectorAll('.garcrow .garck')].map(x=>x.textContent);
+  return ks.join('|');})()`, "Recent best|All-time");
+run(`ga.open=null;`);
+
+// ---- v3.3.253: an IN-PROGRESS PR lights the audit ----------------------
+// The maker asked for this as a feature; it was already true — nothing in the
+// audit reads doneEx — but only by accident of nobody filtering. Pinned so a
+// future "completed sets only" refactor cannot silently take it away.
+gaSeed(`DB.days[_D(7)]={w:[{part:'Chest',ex:'Chest Fly',w:80,reps:[8]}],upd:1,doneEx:['Chest Fly'],donePart:['Chest'],doneAll:true};
+        DB.days[_D(0)]={w:[{part:'Chest',ex:'Chest Fly',w:85,reps:[5]}],upd:1,doneEx:[],donePart:[],doneAll:false};`);
+check("a PR mid-exercise lights the row BEFORE anything is completed",
+      `"${prOf('Chest Fly')}"`, "LIT +5 kg");
+check("...on the rendered row, not just the model", `(function(){
+  const row=[...document.querySelectorAll('.garow')].find(r=>r.querySelector('b').textContent==='Chest Fly');
+  return row.querySelector('.gadelta').textContent+' / '+row.querySelector('.gabadge').getAttribute('aria-label');})()`,
+      "+5 kg / Going up");
 
 // 5. the rendered row: badge present <=> mark lit. This is the contradiction
 //    the maker saw, asserted on the DOM rather than the model.
@@ -308,13 +370,14 @@ check("tapping again closes it", `!document.querySelector('.garcpt')`, true);
 gaSeed(`for(const n of [16,12,3]) DB.days[_D(n)]={w:[{part:'Chest',ex:'Chest Fly',w:45,reps:[10]}],upd:1};`);
 run(`document.querySelector('.garow[data-gaex]').click();`);
 /* v3.3.239: "No improvement yet." was true but unhelpful — it never said
-   WHAT had to be beaten. The note now names the bar and the best ever sits
-   above it. */
+   WHAT had to be beaten. v3.3.253 RESTATES: the bar is now the RECENT best
+   (all sets here are inside the window, so no separate All-time row), and
+   the note names the six-month pool a record draws from. */
 check("a lift with no PR says what would beat it",
-      `/heavier load than this, or more reps at a load you have already used/
+      `/heavier load than it, or more reps at a load used in the last six months/
         .test(document.querySelector('.garcnote').textContent)`, true);
-check("...above a stated best ever",
-      `document.querySelector('.garcrow .garck').textContent`, "Best ever");
+check("...above the stated recent best",
+      `document.querySelector('.garcrow .garck').textContent`, "Recent best");
 
 // an aged-out improvement stays available with the same compact date
 gaSeed(`DB.days[_D(80)]={w:[{part:'Chest',ex:'Chest Fly',w:45,reps:[10]}],upd:1};
@@ -400,12 +463,12 @@ gaSeed(`DB.days[_D(60)]={w:[{part:'Back',ex:'Deadlift',w:85,reps:[6]}],upd:1};
         DB.days[todayISO]={w:[{part:'Back',ex:'Deadlift',w:85,reps:[6,6]}],upd:1};`);
 run(`(function(){ga.grp='Back'; render();
   [...document.querySelectorAll('.garow[data-gaex]')].find(x=>/Deadlift/.test(x.textContent)).click();})()`);
-check("a lift with nothing beaten still names its best ever",
-      `document.querySelector('.garcrow .garck').textContent`, "Best ever");
+check("a lift with nothing beaten still names its recent best",
+      `document.querySelector('.garcrow .garck').textContent`, "Recent best");
 check("...with the set and the day it happened",
       `document.querySelector('.garcrow b').textContent`, "85kg × 6");
 check("...and says what a record would take",
-      `/heavier load than this, or more reps at a load you have already used/
+      `/heavier load than it, or more reps at a load used in the last six months/
         .test(document.querySelector('.garcnote').textContent)`, true);
 
 // when a record DID land, the best ever appears only if it differs

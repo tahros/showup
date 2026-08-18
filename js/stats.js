@@ -309,10 +309,10 @@ const GA_HISTORY_DAYS=42;
 
    The rule, in gym terms: only call a change progress when the comparison is
    unambiguous — exactly one variable moved. Two moves qualify, and no others:
-   more reps at the EXACT same load, or a load heavier than anything ever
-   lifted. A lighter set with more reps is a tradeoff, not proof of progress,
-   so it stays Flat. This deliberately prefers missing a subtle gain over
-   celebrating a warm-up, deload or technique set as growth.
+   more reps at the EXACT same load, or a load heavier than anything in the
+   record window (GA_RECORD_DAYS). A lighter set with more reps is a tradeoff,
+   not proof of progress, so it stays Flat. This deliberately prefers missing
+   a subtle gain over celebrating a warm-up, deload or technique set as growth.
 
    v3.3.252: this paragraph used to carry a third condition, requiring a load
    gain to ALSO hold the rep count of the previous heaviest set. v3.3.237
@@ -323,12 +323,29 @@ const GA_HISTORY_DAYS=42;
    ground whatever the reps, and test-stats-repzone pins that case by name.
    Comment and tip corrected to match the code; both are now asserted.
 
-   Window: 28 days (maker's call, argued from cadence). At roughly weekly
-   exposure per body part that is about four sessions of a lift — the same
-   count the previous design used for "worth reviewing". Four exposures with
-   no PR and the arrow goes dark, so a stall surfaces inside a month. The
-   WHOLE ledger is searched for the record; only its DATE is windowed. */
-const GA_PR_DAYS=28;
+   Celebration window: 7 days since v3.3.253 (was 28) — "Going up" means
+   improved this week, the same seven days the card's set counts and Empty
+   dots already describe. The record window is separate: see GA_RECORD_DAYS
+   below. The whole ledger is still WALKED — the all-time set is found and
+   named in the receipt — but only the last GA_RECORD_DAYS can supply the
+   set a new record must beat. */
+const GA_PR_DAYS=7;
+/* v3.3.253 — the RECORD itself now has a horizon (maker's call, 2026-08-18).
+   A lift from years ago was done by a different body: bodyweight moves,
+   technique changes, straps come and go. Strength coaching treats a max as
+   stale within months — e1RMs are retested every 6-12 weeks and experienced
+   lifters test 2-4 times a year — so a set older than six months is not the
+   same athlete's number and should not gate today's progress. 180 days is
+   roughly two retest cycles: long enough that a two-week break cannot mint
+   cheap re-records, short enough that the bar you must clear is one the
+   current you actually set. The ALL-TIME set is still found and still named
+   in the receipt — History is the ledger and nothing is forgotten — it just
+   no longer stands in the way.
+   GA_PR_DAYS drops 28 -> 7 in the same release: "Going up" now means
+   improved THIS WEEK, the same seven days every other number on the card
+   already describes. At the app's roughly weekly cadence per lift, a badge
+   that outlives the next exposure is celebrating history. */
+const GA_RECORD_DAYS=180;
 const ga={grp:null,open:null};
 const GA_SIGNAL_LABELS={empty:'Empty',flat:'Flat',up:'Going up'};
 const gaIcon=(key,cls)=>`<i class="${cls} ga-${key}" role="img"
@@ -385,14 +402,21 @@ function gaExerciseSessions(){
    gain fell inside the window. Badge and mark both read `live`, so they cannot
    disagree. */
 function gaPR(ex){
-  let best=null, pr=null;
-  const seen=[];                    // sets from completed earlier days only
+  let all=null, pr=null;
+  const seen=[];                    // sets from earlier days only
+  const T=iso=>new Date(iso+'T00:00').getTime();
   for(const s of ex.sessions){
     /* Freeze the comparison baseline for the whole training day. A later set
        in one workout may be better than an earlier set, but that is not
-       progress over time. Only prior DAYS can supply the set being beaten. */
+       progress over time. Only prior DAYS can supply the set being beaten —
+       and, since v3.3.253, only prior days within GA_RECORD_DAYS of the day
+       being judged. The window ROLLS with each day, so an old day's PR is
+       judged by the standard that held on that day, not by today's. */
+    const cut=T(s.d)-GA_RECORD_DAYS*864e5;
+    const win=seen.filter(q=>q.t>cut);
+    let priorBest=null;
+    for(const q of win) if(!priorBest||q.w>priorBest.w||(q.w===priorBest.w&&q.rep>priorBest.rep)) priorBest=q;
     let dayPr=null;
-    const priorBest=best;
     for(const p of s.points){
       /* v3.3.237 — ONE condition changed from v3.3.227, and only one.
          Two things the maker has said had to be reconciled:
@@ -406,7 +430,7 @@ function gaPR(ex){
          clause satisfies both: going heavier than anything ever lifted is a
          record on its own, while a rep gain still requires the SAME load, so
          a lighter set can never borrow credit from a heavier one. */
-      const sameLoad=seen.filter(q=>q.w===p.w).sort((a,b)=>b.rep-a.rep)[0];
+      const sameLoad=win.filter(q=>q.w===p.w).sort((a,b)=>b.rep-a.rep)[0];
       const repGain=sameLoad&&p.rep>sameLoad.rep;
       const loadGain=priorBest&&p.w>priorBest.w;
       if(repGain||loadGain){
@@ -423,12 +447,18 @@ function gaPR(ex){
     if(dayPr) pr=dayPr;
     /* Only after every set has been judged do today's sets become history. */
     for(const p of s.points){
-      if(!best||p.w>best.w||(p.w===best.w&&p.rep>best.rep)) best={w:p.w,rep:p.rep,d:s.d};
-      seen.push({w:p.w,rep:p.rep,d:s.d});
+      if(!all||p.w>all.w||(p.w===all.w&&p.rep>all.rep)) all={w:p.w,rep:p.rep,d:s.d};
+      seen.push({w:p.w,rep:p.rep,d:s.d,t:T(s.d)});
     }
   }
+  /* two record rows: `best` is the RECENT record — the heaviest inside the
+     window ending today, the set a new record must actually clear. `all` is
+     the all-time set, kept for the receipt because the ledger forgets
+     nothing, carrying no authority over what counts as progress. */
+  let best=null;
+  for(const q of seen) if(daysAgo(q.d)<GA_RECORD_DAYS&&(!best||q.w>best.w||(q.w===best.w&&q.rep>best.rep))) best={w:q.w,rep:q.rep,d:q.d};
   const live=!!pr&&daysAgo(pr.d)<GA_PR_DAYS;
-  return {best,pr,live,change:live?pr:null};
+  return {best,all,pr,live,change:live?pr:null};
 }
 function growthAuditData(){
   const exMap=gaExerciseSessions();
@@ -460,7 +490,7 @@ function growthAuditSection(){
   if(!ga.grp||!groups[ga.grp]) ga.grp=data.order[0];
   const g=groups[ga.grp],recent=g.ex.filter(e=>e.ago<GA_HISTORY_DAYS);
   const shown=(recent.length?recent:g.ex).slice(0,4).map(e=>({...e,record:gaPR(e)}));
-  return `<h2>Growth audit${hActs('ga',"Dot: no sets in 7 days · line: no clear gain · trend: a later day went heavier than ever before, or did more reps at a load you had already used.",'About Growth audit')}</h2>
+  return `<h2>Growth audit${hActs('ga',"Dot: no sets in 7 days · line: no clear gain · trend: a later day went heavier than anything in the last six months, or did more reps at a load used in them.",'About Growth audit')}</h2>
     <div class="card gacard" data-gacard="${ga.grp}">
       <select id="gaGrp" class="gasel" aria-label="Body part">${data.order.map(v=>
         `<option value="${v}" ${v===ga.grp?'selected':''}>${v}</option>`).join('')}</select>
@@ -484,24 +514,29 @@ const gaDay=iso=>{
 };
 function gaReceipt(e){
   const r=e.record, pr=r.pr;
-  if(!r.best) return `<div class="garcpt"><div class="note">No completed sets yet.</div></div>`;
-  /* v3.3.239: ALWAYS name the all-time best, and when nothing improved, say
-     what the last session had to beat. Without it the card could not answer
-     the obvious question — "I just lifted 85 kg, why is this not a record?" —
-     because the set standing in the way was never shown. The honest answer is
-     usually "you have lifted this before", and now the card says so itself. */
-  const bestRow=['Best ever',`${wTxt(e.name,r.best.w)} \u00d7 ${r.best.rep}`,gaDay(r.best.d)];
-  if(!pr) return `<div class="garcpt">
-    <div class="garcrow"><span class="garck">${bestRow[0]}</span><b>${bestRow[1]}</b><span class="garcw">${bestRow[2]}</span></div>
-    <div class="garcnote">No set has beaten it yet \u2014 a record needs a heavier load than this, or more reps at a load you have already used.</div></div>`;
-  const rows=[];
-  if(pr) rows.push(['Improved to',`${wTxt(e.name,pr.w)} \u00d7 ${pr.rep}`,gaDay(pr.d)]);
-  if(pr&&pr.beat) rows.push(['Previous best',`${wTxt(e.name,pr.beat.w)} \u00d7 ${pr.beat.rep}`,gaDay(pr.beat.d)]);
-  /* only when the record book disagrees with the latest gain — otherwise it
-     would just repeat the line above it */
-  if(r.best.w!==pr.w||r.best.rep!==pr.rep) rows.push(bestRow);
-  return `<div class="garcpt">${rows.map(([k,v,w])=>
-    `<div class="garcrow"><span class="garck">${k}</span><b>${v}</b><span class="garcw">${w}</span></div>`).join('')}</div>`;
+  if(!r.all) return `<div class="garcpt"><div class="note">No completed sets yet.</div></div>`;
+  /* v3.3.239: ALWAYS name the record standing in the way, and when nothing
+     improved, say what the last session had to beat. v3.3.253: that record is
+     now the RECENT best — the heaviest set of the last six months, the one a
+     new record must actually clear. The all-time set keeps its own row when
+     it differs: the ledger forgets nothing, it just stopped being the bar. */
+  const row=([k,v,w])=>`<div class="garcrow"><span class="garck">${k}</span><b>${v}</b><span class="garcw">${w}</span></div>`;
+  const mk=(k,p)=>[k,`${wTxt(e.name,p.w)} \u00d7 ${p.rep}`,gaDay(p.d)];
+  const same=(a,b)=>a&&b&&a.w===b.w&&a.rep===b.rep&&a.d===b.d;
+  const allRow=(r.all&&!same(r.all,r.best))?mk('All-time',r.all):null;
+  if(!pr){
+    if(!r.best) return `<div class="garcpt">${row(mk('All-time',r.all))}
+      <div class="garcnote">Nothing in the last six months \u2014 the first sessions back rebuild the baseline, and records resume once there is recent work to beat.</div></div>`;
+    return `<div class="garcpt">${row(mk('Recent best',r.best))}${allRow?row(allRow):''}
+      <div class="garcnote">No set has beaten the recent best \u2014 a record needs a heavier load than it, or more reps at a load used in the last six months.</div></div>`;
+  }
+  const rows=[mk('Improved to',pr)];
+  if(pr.beat) rows.push(mk('Previous best',pr.beat));
+  /* only when a record row disagrees with the lines above it — otherwise it
+     would just repeat them */
+  if(r.best&&!same(r.best,pr)&&!same(r.best,pr.beat)) rows.push(mk('Recent best',r.best));
+  if(r.all&&!same(r.all,pr)&&!same(r.all,pr.beat)&&!same(r.all,r.best)) rows.push(mk('All-time',r.all));
+  return `<div class="garcpt">${rows.map(row).join('')}</div>`;
 }
 document.addEventListener('click',e=>{
   const row=e.target.closest&&e.target.closest('[data-gaex]');

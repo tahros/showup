@@ -398,8 +398,12 @@ if _re.search(r"state\.key|gaExerciseState|gaRecord\(", _stats):
     fail.append("growth audit: a second growth standard survives alongside gaPR (v3.3.220)")
 _gapr = _stats[_stats.find("function gaPR"): _stats.find("function growthAuditData")]
 _day_boundary = _gapr.find("Only after every set has been judged")
+# v3.3.253 restates the comment phrase: completion was never part of the rule
+# (an in-progress PR lights the audit, pinned in test-stats-repzone), so the
+# words "completed" left the comment. The structural check is unchanged:
+# seen.push must sit after the day boundary.
 if (_day_boundary < 0 or _gapr.find("seen.push") < _day_boundary
-        or "sets from completed earlier days only" not in _gapr):
+        or "sets from earlier days only" not in _gapr):
     fail.append("growth audit: sets from one workout must not become baselines until the next day (v3.3.227)")
 if not _re.search(r"const GA_SIGNAL_LABELS=\{empty:'Empty',flat:'Flat',up:'Going up'\}", _stats):
     fail.append("growth audit: public model must contain exactly Empty, Flat and Going up (v3.3.211)")
@@ -419,14 +423,19 @@ if not (_re.search(r"\.ga-empty\{[^}]*color:var\(--faint\)[^}]*opacity:\.55", cs
         and _re.search(r"\.ga-flat\{[^}]*color:var\(--faint\)[^}]*opacity:\.55", css)):
     fail.append("growth audit: Empty and Flat must share the same muted gray treatment (v3.3.212)")
 _gahelp = _stats[_stats.find("function growthAuditSection"):_stats.find("function sessionBuild")]
-if "gaDay(pr.beat.d)" not in _gahelp:
+# v3.3.253: every receipt row is built by ONE formatter, mk(), which always
+# carries gaDay(p.d) — the v3.3.226 property (Previous best has its own source
+# date) now holds by construction. Guard the construction: the row for
+# pr.beat must go through mk, and mk must print the date.
+if ("mk('Previous best',pr.beat)" not in _gahelp
+        or not _re.search(r"const mk=\(k,p\)=>\[k,[^\]]*gaDay\(p\.d\)\]", _gahelp)):
     fail.append("growth audit: Previous best must carry its own source date (v3.3.226)")
 if not _re.search(r"\.garcrow\{[^}]*grid-template-columns:100px auto minmax\(0,1fr\)", css):
     fail.append("growth audit: receipt dates must stay beside values, not at the far edge (v3.3.226)")
 if not all(_phrase in _gahelp for _phrase in (
         "Dot: no sets in 7 days", "line: no clear gain",
-        "trend: a later day went heavier than ever before, "
-        "or did more reps at a load you had already used")):
+        "trend: a later day went heavier than anything in the last six months, "
+        "or did more reps at a load used in them")):
     fail.append("growth audit: information control must explain all three signals (v3.3.212)")
 # v3.3.252: the trend phrasing above is NOT decoration. It is the only place a
 # user is told what earns a record, and it said "comparable load and reps"
