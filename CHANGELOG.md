@@ -1,5 +1,20 @@
 # ShowUp — changelog
 
+## v3.3.259 (2026-08-19) — Session build counts the whole day
+
+Every column in Session build now shows the total sets you trained that day,
+across all body parts — the same number the header reads. A day of Back,
+Biceps and Triceps says 27, not 17.
+
+The number used to be the count for whichever part you had selected in the
+legend, which meant it understated any day with more than one body part in
+it, and no column showed a number at all until you picked a part. A day's
+size is a fact about the day, not about the part you happen to be looking at,
+so it no longer waits for a selection.
+
+Selecting a part still isolates it: its colour stays, the rest fade, and the
+summary line beneath follows your selection as before.
+
 ## v3.3.258 (2026-08-19) — History drops the body-part summary card
 
 Selecting a body part in History no longer shows a summary card above the

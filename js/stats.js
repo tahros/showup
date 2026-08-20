@@ -69,7 +69,9 @@ function pmixApplyFocus(){
 }
 function pmixSetFocus(part){
   PMIX_FOCUS = (PMIX_FOCUS===part) ? null : part;
-  /* labels only exist for the focused part, so this re-renders — scroll is
+  /* v3.3.259: labels no longer depend on focus (they are day totals), but
+     the "latest" beacon still does — with a focus it marks the newest
+     session containing that part — so this still re-renders. Scroll is
      saved and restored by hand, and smooth scrolling is suppressed across
      the swap so it does not glide. */
   const wrap=document.getElementById('pmixWrap');
@@ -179,12 +181,20 @@ function partMixSvg(days){
            x="${x}" y="${(PMIX_BASE-bh).toFixed(1)}" width="${bw}" height="${bh.toFixed(1)}"
            fill="url(#pmixBrick)" pointer-events="none"></rect>`;
     }
-    // while a part is isolated, that part's own set count is written above it
-    if(PMIX_FOCUS && r.by[PMIX_FOCUS]){
-      const v=r.by[PMIX_FOCUS], top=PMIX_BASE-(v/max)*(PMIX_BASE-PMIX_TOP);
+    /* v3.3.259: every column names the DAY'S TOTAL — all body parts trained
+       that day, the same number the header reads. It used to name only the
+       focused part's count, which meant a day of Back + Biceps + Triceps
+       said "17" while the day was 27, and said nothing at all until you
+       picked a part. A day's size is a fact about the day, not about the
+       part you happen to have selected, so it no longer depends on focus.
+       Only ONE number fits above a 12.5px bar, and the total is the one
+       asked for; a focused part's own share stays legible as the height of
+       its highlighted segment and in the summary line beneath. */
+    if(r.total){
+      const top=PMIX_BASE-(r.total/max)*(PMIX_BASE-PMIX_TOP);
       s+=`<text x="${x+bw/2}" y="${(top-3).toFixed(1)}" text-anchor="middle"
            font-family="var(--mono)" font-size="6.5" fill="var(--chalk)"
-           data-lbl="${PMIX_FOCUS}">${pmixTick(v)}</text>`;
+           data-lbl="total" data-lbltot="${r.total}">${pmixTick(r.total)}</text>`;
     }
     // every column names its day, rotated — as the spreadsheet does
     const lab=(+r.d.slice(5,7))+'/'+(+r.d.slice(8,10));

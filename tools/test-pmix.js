@@ -307,15 +307,28 @@ run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
       {part:'Chest',ex:'Press',w:40,reps:[10],at:1},
       {part:'Back',ex:'Row',w:50,reps:[10],at:1}],upd:1};}
   SEED=deriveAll(); view='stats'; render(); PMIX_FOCUS=null; pmixApplyFocus();})()`);
+/* v3.3.259 RESTATES this whole block. The label used to be the focused
+   part's count, which meant a multi-part day understated itself (Back+
+   Biceps+Triceps read "17" on a 27-set day) and no column said anything
+   until a part was picked. It is now the DAY TOTAL, on every column,
+   independent of focus. The fixture logs 1 Chest set + 1 Back set a day,
+   so a correct total reads 2 and the old per-part label would have read 1 —
+   the assertion discriminates rather than merely agreeing. */
+ok("every column names the day's total, with no part focused",
+   run(`document.querySelectorAll('#pmixWrap [data-lbl="total"]').length`) === 20,
+   run(`document.querySelectorAll('#pmixWrap [data-lbl="total"]').length`) + " labels");
+ok("...and the number is ALL parts that day, not one of them",
+   run(`[...document.querySelectorAll('#pmixWrap [data-lbl="total"]')].every(t=>t.textContent==='2')`));
 run(`pmixSetFocus('Chest');`);
-ok("isolating a part writes its values above the bars",
-   run(`document.querySelectorAll('#pmixWrap [data-lbl="Chest"]').length`) > 0,
-   run(`document.querySelectorAll('#pmixWrap [data-lbl="Chest"]').length`) + " labels");
-ok("...and only for that part",
-   run(`[...document.querySelectorAll('#pmixWrap [data-lbl]')].every(t=>t.dataset.lbl==='Chest')`));
+ok("focusing a part leaves the totals standing",
+   run(`document.querySelectorAll('#pmixWrap [data-lbl="total"]').length`) === 20);
+ok("...still reading the whole day, not the focused part",
+   run(`[...document.querySelectorAll('#pmixWrap [data-lbl="total"]')].every(t=>t.textContent==='2')`));
+ok("...and no per-part label is written any more",
+   run(`[...document.querySelectorAll('#pmixWrap [data-lbl]')].every(t=>t.dataset.lbl==='total')`));
 run(`pmixSetFocus('Chest');`);
-ok("clearing the focus removes the labels",
-   run(`document.querySelectorAll('#pmixWrap [data-lbl]').length`) === 0);
+ok("clearing the focus changes nothing about the totals",
+   run(`document.querySelectorAll('#pmixWrap [data-lbl="total"]').length`) === 20);
 
 // ---- legend alignment ----------------------------------------------------
 ok("the legend uses a stable four-column 4+3 grid",
