@@ -1,5 +1,18 @@
 # ShowUp — changelog
 
+## v3.3.261 (2026-08-20) — The totals row whispers with age
+
+The totals row over Session build now fades with distance from today: the
+newest fortnight speaks at full voice, older days decay to a quiet floor and
+never below it. The fade follows recency, not the screen — scrolling into the
+archive never fades the numbers you scrolled there to read; they simply stop
+shouting from across the room. Today stays bold.
+
+Selecting a body part steps the whole row back to a whisper so the part's own
+counts own the stage, with today's total keeping half a voice as the day's
+headline — anchored to the newest day even when the part you selected wasn't
+trained today.
+
 ## v3.3.260 (2026-08-19) — Session build: a totals row, and part counts on focus
 
 Both numbers now have a home, and neither crowds the chart.

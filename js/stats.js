@@ -192,9 +192,24 @@ function partMixSvg(days){
        header row itself (segTop < 16), where the two would collide and the
        total is already directly above. */
     if(r.total){
+      /* v3.3.261: the row whispers with age. Full voice for the newest
+         fortnight, then a linear fade to a floor it never drops below —
+         tied to RECENCY, not to the viewport, so scrolling into the archive
+         never fades the very numbers you scrolled there to read. Under
+         focus the whole row steps back so the selected part's own numbers
+         own the stage; the latest total keeps half a voice as the day's
+         headline. */
+      /* the totals row is about DAYS, so its emphasis anchors to the newest
+         DAY — not to `latest`, which deliberately follows the focused part
+         (v3.3.229) and would put the headline on the part's last appearance
+         rather than on today. */
+      const newest=i===rows.length-1;
+      const away=rows.length-1-i;
+      const op=PMIX_FOCUS ? (newest?0.55:0.28)
+                          : (newest?1:Math.max(0.35, 0.92-away*0.033));
       s+=`<text x="${x+bw/2}" y="6.5" text-anchor="middle"
-           font-family="var(--mono)" font-size="6.5"
-           ${latest?'font-weight="700" fill="var(--chalk)"':'fill="var(--muted)"'}
+           font-family="var(--mono)" font-size="6.5" opacity="${op.toFixed(2)}"
+           ${newest?'font-weight="700" fill="var(--chalk)"':'fill="var(--muted)"'}
            data-lbl="total" data-lbltot="${r.total}">${pmixTick(r.total)}</text>`;
     }
     if(PMIX_FOCUS && r.by[PMIX_FOCUS]){

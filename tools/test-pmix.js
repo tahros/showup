@@ -337,7 +337,45 @@ ok("...while the totals row stands, still reading the whole day",
 run(`pmixSetFocus('Chest');`);
 ok("clearing the focus removes the part labels and keeps the totals",
    run(`document.querySelectorAll('#pmixWrap [data-lbl="Chest"]').length`) === 0 &&
-   run(`document.querySelectorAll('#pmixWrap [data-lbl="total"]').length`) === 20);
+   run(`document.querySelectorAll('#pmixWrap [data-lbl="total"]').length`) === 20);
+// ---- v3.3.261: the totals row whispers with age ---------------------------
+// Fade is tied to RECENCY, not the viewport, so scrolling to the archive
+// never fades what you scrolled there to read. Newest at full voice, linear
+// decay, hard floor. Under focus the whole row steps back for the part.
+ok("the newest total speaks at full voice",
+   run(`[...document.querySelectorAll('#pmixWrap [data-lbl="total"]')].pop().getAttribute('opacity')`) === "1.00");
+ok("...and the fade never gets louder as days age",
+   run(`(function(){const ops=[...document.querySelectorAll('#pmixWrap [data-lbl="total"]')]
+     .map(t=>+t.getAttribute('opacity'));
+     return ops.every((v,i)=>i===0||ops[i-1]<=v+1e-9);})()`));
+ok("...with the oldest resting on the 0.35 floor, still readable",
+   run(`+[...document.querySelectorAll('#pmixWrap [data-lbl="total"]')][0].getAttribute('opacity')`) === 0.35);
+run(`pmixSetFocus('Chest');`);
+ok("focusing a part steps the archive totals back to a whisper",
+   run(`[...document.querySelectorAll('#pmixWrap [data-lbl="total"]')].slice(0,-1)
+     .every(t=>t.getAttribute('opacity')==='0.28')`));
+ok("...keeps half a voice on the day's headline",
+   run(`[...document.querySelectorAll('#pmixWrap [data-lbl="total"]')].pop().getAttribute('opacity')`) === "0.55");
+ok("...and gives the part's own numbers the full one",
+   run(`[...document.querySelectorAll('#pmixWrap [data-lbl="Chest"]')]
+     .every(t=>!t.hasAttribute('opacity'))`));
+run(`pmixSetFocus('Chest');`);
+/* the headline must sit on the newest DAY even when the focused part's last
+   appearance was earlier — `latest` follows the part (v3.3.229) and once put
+   the half-voice on the wrong column. Fixture: Back's newest session is a
+   day before the newest day, so the two anchors genuinely differ. */
+run(`(function(){const t=new Date(todayISO+'T00:00');
+  DB.days[todayISO]={w:[{part:'Chest',ex:'Press',w:40,reps:[10],at:1}],upd:1};
+  SEED=deriveAll(); PMIX_FOCUS=null; render(); pmixSetFocus('Back');})()`);
+ok("under focus, the half-voice sits on the newest DAY, not the part's last day",
+   run(`(function(){const ts=[...document.querySelectorAll('#pmixWrap [data-lbl="total"]')];
+     return ts.pop().getAttribute('opacity')==='0.55'
+         && ts.every(t=>t.getAttribute('opacity')==='0.28');})()`));
+ok("...and the bold weight sits there too",
+   run(`(function(){const ts=[...document.querySelectorAll('#pmixWrap [data-lbl="total"]')];
+     return ts.filter(t=>t.getAttribute('font-weight')==='700').length===1
+         && ts[ts.length-1].getAttribute('font-weight')==='700';})()`));
+run(`PMIX_FOCUS=null; delete DB.days[todayISO]; SEED=deriveAll(); render();`);
 
 // ---- legend alignment ----------------------------------------------------
 ok("the legend uses a stable four-column 4+3 grid",
