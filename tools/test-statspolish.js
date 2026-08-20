@@ -206,10 +206,10 @@ const heads = () => run(`JSON.stringify([...document.querySelectorAll('#view h2'
 const H = JSON.parse(heads());
 const idx = t => H.findIndex(x => x.startsWith(t));
 
-// the maker's order, top to bottom (v3.3.254: reordered by immediacy —
-// coverage is next session's plan and moves above the audit; pace is a
-// mid-horizon question and moves above the year story)
-const WANT = ["Show up", "Muscle coverage", "Growth audit", "Session build",
+// the maker's order, top to bottom (v3.3.257: Session build leads — the
+// page opens on what you just did — then coverage, verdict, and the
+// attendance hero, then pace and the year story)
+const WANT = ["Session build", "Muscle coverage", "Growth audit", "Show up",
               "Monthly pace", "Consistency", "Running", "Distance", "Pace", "Every week", "Weight"];
 let lastAt = -1, orderOK = true, broke = "";
 for (const t of WANT) {

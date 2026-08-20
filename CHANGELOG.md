@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v3.3.257 (2026-08-19) — Stats opens on the session you just built
+
+Maker's order. **Session build** now leads the tab — the page opens on what
+you did — followed by **Muscle coverage**, **Growth audit**, and the
+**Show up** attendance hero, with **Monthly pace**, **Consistency**, the run
+story and **Weight** unchanged below. Same sections, nothing added or
+removed.
+
 ## v3.3.256 (2026-08-19) — Every rack declares itself, in both unit systems
 
 **Dumbbells in pounds now step 5 lb.** A lb rack runs 35, 40, 45 — the 2-step

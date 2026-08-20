@@ -553,7 +553,10 @@ if any(_old in _stats for _old in ('class="gabase"', 'class="ganext"', 'What the
 for _fn in ("currentRhythmSection", "consistencyRaceSection", "monthlyPaceSection"):
     if _stats.count("function " + _fn) != 1:
         fail.append(f"stats: {_fn} must have one definition (v3.3.213)")
-_order = _re.search(r"h\s*=\s*_S\.kpis[^;]+;", _stats)
+# v3.3.257: the declared order now leads with Session build (maker's order);
+# the guard anchors on the assignment shape, not on which section leads, and
+# still requires the three attendance sections present and no retired ones.
+_order = _re.search(r"h\s*=\s*_S\.\w+[^;]+;", _stats)
 if not _order or not all(_seg in _order.group(0) for _seg in
         ("_S.kpis", "_S.consrace", "_S.mpace")) or any(_seg in _order.group(0) for _seg in ("_S.rhythm", "_S.em")):
     fail.append("stats: unified attendance, Consistency and Monthly pace must render without duplicate time sections (v3.3.230)")

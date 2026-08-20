@@ -43,15 +43,17 @@ run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
   SEED=deriveAll(); view='stats'; render();})()`);
 
 // ---- position ------------------------------------------------------------
-/* v3.3.209: Growth Audit replaces Rep Zones at the top of Stats. Session
-   Build follows it immediately. */
-ok("Session Build follows Growth Audit", run(`(function(){
+/* v3.3.209 pinned Session Build directly after Growth Audit. v3.3.257
+   RESTATES to the maker's order: Session Build now LEADS the tab — the page
+   opens on what you just did — with Growth Audit below it. The pinned
+   property is leadership plus relative order, not adjacency. */
+ok("Session Build leads the Stats tab, Growth Audit below it", run(`(function(){
   const hs=[...document.querySelectorAll('#view h2')];
   const t=h=>(h.childNodes[0]&&h.childNodes[0].nodeType===3?h.childNodes[0].textContent:h.textContent).trim();
   const names=hs.map(t);
   const gaIdx=names.indexOf('Growth audit');
   const pmIdx=names.indexOf('Session build');
-  return gaIdx>=0 && pmIdx===gaIdx+1;})()`) === true);
+  return pmIdx===0 && gaIdx>pmIdx;})()`) === true);
 
 // ---- the data is sets, per part, per training day -------------------------
 ok("partMix() returns one row per training day, newest last",

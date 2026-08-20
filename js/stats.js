@@ -942,12 +942,11 @@ function renderStats(){
      nothing else read those. */
   h+=bwCard();                       // v3.3.230: conditional, emitted near the bottom
   cut('wt');
-  // sections emit in one declared order (v3.3.111). v3.3.254 reorders it by
-  // descending immediacy of the question each section answers: show up first
-  // (the metric is days), then what THIS WEEK is missing (coverage — next
-  // session's plan), then whether it is working (audit), then what sessions
-  // were made of (build), then this month's pace, then the year story.
-  h = _S.kpis + _S.mc + _S.rz + _S.pmix + _S.mpace + _S.consrace;
+  // sections emit in one declared order (v3.3.111). v3.3.257, maker's order:
+  // the session just built leads (the page opens on what you did), then this
+  // week's coverage, then the audit's verdict, then the attendance hero, then
+  // pace and the year story.
+  h = _S.pmix + _S.mc + _S.rz + _S.kpis + _S.mpace + _S.consrace;
 
   // the whole Run story lives here now (was its own tab in v2.04 — reverted)
   h+=runStatsHTML217();

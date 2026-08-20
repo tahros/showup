@@ -133,9 +133,11 @@ check("changing the group replaces the card in place",`document.querySelector('.
 check("...without losing the selected value",`document.querySelector('#gaGrp').value`,"Back");
 
 // ---- structural retirement and ordering ---------------------------------
-check("Growth Audit is immediately before Session Build",`(function(){
+/* v3.3.257 RESTATES the v3.3.209 adjacency: Session build now leads the
+   tab (maker's order) with coverage between it and the audit. */
+check("Session build leads; Growth Audit sits below it",`(function(){
   const hs=[...document.querySelectorAll('#view h2')].map(h=>h.childNodes[0].textContent.trim());
-  return hs.indexOf('Session build')===hs.indexOf('Growth audit')+1;})()`,true);
+  return hs.indexOf('Session build')===0 && hs.indexOf('Growth audit')>0;})()`,true);
 check("Rep-zone functions and constants are deleted",
   `${!(/\brepZone(?:Data|Sets|ScatterSvg)?\s*\(|REPZONE_MAX_|REPZONE_LABELS/.test(statsSrc))}`,"true");
 check("there are exactly three public status labels",
