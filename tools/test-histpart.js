@@ -66,8 +66,13 @@ console.log("     (unfiltered calendar days:", allDays + ")");
 
 // --- select Shoulder
 run(`hist.part='Shoulder'; renderHistory();`);
-check("digest appears",          `!!document.querySelector('.pdigest')`, true);
-check("digest names the part",   `document.querySelector('.pdigest b').textContent`, "Shoulder");
+/* v3.3.258 RESTATES "digest appears": History is the ledger, date-addressed.
+   The digest answered questions — a cadence, a volume verdict, an all-time
+   tonnage — which is Stats' job, so it left this tab. The chips stay, and
+   everything they filter below is asserted exactly as before. The digest's
+   own rendering is now pinned on the Today live hero, where it still lives
+   (see "the digest component still renders" at the end of this file). */
+check("no digest even when filtered", `!!document.querySelector('.pdigest')`, false);
 check("calendar narrows to the part",
       `document.querySelectorAll('.cal .cd.on').length < ${allDays}`, true);
 check("calendar days all contain Shoulder",
@@ -75,32 +80,23 @@ check("calendar days all contain Shoulder",
          const l=allDays()[c.dataset.hd]||[]; return l.some(s=>s.part==='Shoulder'); })`, true);
 check("session rows only show Shoulder sets",
       `[...document.querySelectorAll('details.day .body div b')].every(b=>b.textContent==='Dumbbell Press')`, true);
-check("digest charts something", `!!document.querySelector('.pdigest svg rect')`, true);
-check("growth computed, in plain words",
-      `/vs your previous 5 sessions/.test(document.querySelector('.pdigest').textContent)`, true);
-check("PR list gone (v3.3.41)",  `document.querySelectorAll('.pdigest .prrow').length`, 0);
-/* v3.3.155: the growth label now legitimately says "5 sessions"; the
-   v3.3.41 check was about a "12 sessions" COUNT stat. Exclude the label. */
-check("session count gone (v3.3.41)",
-      `/\\d+ sessions/.test(document.querySelector('.pdigest').textContent.replace(/previous 5 sessions/,''))`, false);
-check("chart caption states sets",
-      `/\\d+ sets/.test(document.querySelector('.pdigest svg text').textContent)`, true);
-check("all-time line states sets",
-      `/[\\d,]+ sets all time/.test(document.querySelector('.pdigest').textContent)`, true);
+/* v3.3.258: the chart, growth wording, caption and all-time line were
+   asserted here against the History digest. They are properties of the
+   COMPONENT, not of this tab, so they moved intact to the live-hero block
+   at the end of this file rather than being deleted with the call site. */
 check("years hold one line",
       `document.querySelector('.ychips').classList.contains('ychips')`, true);
 check("part row is the dense variant",
       `!!document.querySelector('.pchips')`, true);
 
-// --- Run is a distance part: no PR rows, km units
+// --- Run is a distance part: its rows and calendar still filter
 run(`hist.part='Run'; renderHistory();`);
-check("Run digest still charts",   `!!document.querySelector('.pdigest svg rect')`, true);
-check("Run states distance, not sets",
-      `/km all time/.test(document.querySelector('.pdigest').textContent)`, true);
+check("Run filter still narrows the calendar",
+      `document.querySelectorAll('.cal .cd.on').length <= ${allDays}`, true);
 
 // --- clearing restores the unfiltered view
 run(`hist.part=null; renderHistory();`);
-check("cleared → digest gone",   `!!document.querySelector('.pdigest')`, false);
+check("cleared → still no digest anywhere", `!!document.querySelector('.pdigest')`, false);
 check("cleared → calendar restored", `document.querySelectorAll('.cal .cd.on').length`, allDays);
 
 // --- a part with no days in the shown month must not claim the month is empty
@@ -108,20 +104,39 @@ run(`hist.part='Chest'; renderHistory();`);
 check("empty filter names the part",
       `/No Chest logged this month/.test(document.querySelector('#view').textContent)`, true);
 
-// ---- v3.3.102: the digest chart is shorter, on request ---------------------
-// height ~15% down (92→78 viewBox units), same proportions preserved so
-// the bars still read the same shape, just on a shorter canvas.
+// ---- the digest COMPONENT, pinned where it still lives ---------------------
+// v3.3.258: the digest left History (ledger vs analysis) but remains the
+// Today tab's live hero. Every property that used to be asserted against the
+// History card is asserted here instead — chart, caption, growth wording,
+// all-time line, and the v3.3.102 geometry — so removing a call site cost
+// this suite no coverage. The fixture logs TODAY, which is what makes a
+// session live.
 run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
-  for(let i=0;i<20;i++){const d=new Date(t); d.setDate(d.getDate()-i*3);
+  for(let i=1;i<=20;i++){const d=new Date(t); d.setDate(d.getDate()-i*3);
     DB.days[d.toLocaleDateString('en-CA')]={w:[{part:'Shoulder',ex:'Dumbbell Press',w:20,reps:[10]}],upd:1};}
-  SEED=deriveAll(); hist.part='Shoulder'; view='history'; render();})()`);
-const svgH = run(`(document.querySelector('.pdigest svg').getAttribute('viewBox')||'').split(' ')[3]`);
+  const tm=dayMeta(); tm.w.push({part:'Shoulder',ex:'Dumbbell Press',w:20,reps:[10]});
+  lastSetAt=Date.now(); SEED=deriveAll(); view='today'; render();})()`);
+check("the digest component still renders, as Today's live hero",
+      `!!document.querySelector('#view .pdigest')`, true);
+check("...naming the live part", `document.querySelector('#view .pdigest b').textContent`, "Shoulder");
+check("...charting something", `!!document.querySelector('#view .pdigest svg rect')`, true);
+check("...stating growth in plain words",
+      `/vs your previous 5 sessions/.test(document.querySelector('#view .pdigest').textContent)`, true);
+check("...with no PR list (v3.3.41)",
+      `document.querySelectorAll('#view .pdigest .prrow').length`, 0);
+check("...and no session COUNT stat (v3.3.41)",
+      `/\\d+ sessions/.test(document.querySelector('#view .pdigest').textContent.replace(/previous 5 sessions/,''))`, false);
+check("...caption states sets",
+      `/\\d+ sets/.test(document.querySelector('#view .pdigest svg text').textContent)`, true);
+check("...all-time line states sets",
+      `/[\\d,]+ sets all time/.test(document.querySelector('#view .pdigest').textContent)`, true);
+const svgH = run(`(document.querySelector('#view .pdigest svg').getAttribute('viewBox')||'').split(' ')[3]`);
 check("the digest chart viewBox is shorter than before (was 92)", `${svgH}<92 && ${svgH}>0`, true);
 check("...specifically 78, the ~15% target", svgH, "78");
 // the bars must still reach proportionally as far up the shorter canvas —
 // the shrink should not also silently flatten the chart
 const bh = run(`(function(){
-  const rs=[...document.querySelectorAll('.pdigest svg rect')];
+  const rs=[...document.querySelectorAll('#view .pdigest svg rect')];
   const hs=rs.map(r=>+r.getAttribute('height'));
   return Math.max(...hs);})()`);
 check("the tallest bar still reaches close to its old proportional height (~48, was 58)",
@@ -131,6 +146,12 @@ check("the tallest bar still reaches close to its old proportional height (~48, 
 const histSrc = fs.readFileSync(path.join(dir, "js/history.js"), "utf8");
 check("no stray reference to the old H=92 / base=72 / *58 constants remains",
       `${!/H=92|base=72|\*58\)/.test(histSrc)}`, "true");
+
+/* the live-hero fixture above left the app on Today; the blocks below assert
+   History, so put it back on screen before they run (v3.3.258). */
+run(`(function(){hist.part=null; view='history'; render();})()`);
+check("History is back on screen for the blocks below",
+      `document.querySelectorAll('.day').length > 0`, true);
 
 // ---- v3.3.180: the session head's structure, asserted where jsdom can
 // actually see it. Layout itself is CSS (buildcheck guards that), but the

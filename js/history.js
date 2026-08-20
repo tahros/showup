@@ -249,7 +249,15 @@ function renderHistory(){
     h+=`<button class="chip ${pt===P?'on':''}" data-histp="${pt}">${pt}<span class="n">${fmt(n)}d</span></button>`;
   });
   h+=`</div>`;
-  if(P) h+=partDigest(P,partSessions(P,detail));
+  /* v3.3.258: the part digest is gone from History. History is the LEDGER —
+     date-addressed, a record of what happened. The digest was analysis:
+     a cadence ("every ~7d"), a volume verdict ("up 9% vs your previous 5
+     sessions"), an all-time tonnage. Two of those are the things this app
+     deliberately refuses to lead with, and all three answer a question
+     rather than a date, which is Stats' job. The chips stay — they filter
+     the calendar and the sessions below, which IS date-addressed work.
+     partDigest itself lives on as the Today tab's live hero, where a
+     mid-session read of the part you are training is exactly the point. */
 
   // month calendar
   const key=`${hist.y}-${String(hist.m).padStart(2,'0')}`;

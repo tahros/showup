@@ -1,5 +1,18 @@
 # ShowUp — changelog
 
+## v3.3.258 (2026-08-19) — History drops the body-part summary card
+
+Selecting a body part in History no longer shows a summary card above the
+calendar. That card answered questions — a training cadence, a volume verdict
+against your previous five sessions, an all-time tonnage — and History is the
+ledger: it answers dates. Questions belong in Stats.
+
+The chips stay exactly as they were. They still filter the calendar and the
+sessions below, which is date-addressed work.
+
+The same card remains the Today tab's hero while a session is live, where a
+read on the part you are training mid-set is the point.
+
 ## v3.3.257 (2026-08-19) — Stats opens on the session you just built
 
 Maker's order. **Session build** now leads the tab — the page opens on what
