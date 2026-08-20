@@ -368,7 +368,11 @@ const vDisp=kg=>fmt(Math.round(toU(kg)));            // volume
    law is plate PAIRS on a bar (5 kg / 10 lb totals), the loadline renders
    that exact breakdown, and a 22 kg barbell would demand 1 kg plates the
    plate model does not carry. */
-const STEP=()=>2;
+/* v3.3.256: the global unit-free step constant is gone (buildcheck bans it
+   by name). It was a bare number in a domain where every number is a
+   physical fact of ONE unit system — it caused the lb dumbbell bug (bells
+   rack in 5 lb, not 2) the same way unit-free thinking caused the dead lb
+   minus button. All steps now live in W_TABLE below. */
 
 /* --- bar + plate math ---------------------------------------------------
    Weights are stored as the TOTAL on the movement (bar included), matching
@@ -497,40 +501,57 @@ function reopen(ex,part){
   lastSetAt=Date.now(); t.lastAt=lastSetAt;
 }
 const isBody=ex=>equipOf(ex)==='body';
-/* v3.3.250: snap to the LAW, not to a global constant. Given an exercise it
-   lands on a weight that exercise can actually make — a stack face on a
-   cable, a buildable total on a bar. Without one it is the old plain step. */
+/* v3.3.256: THE WEIGHT TABLE — every equipment class states its physics in
+   BOTH unit systems, because increments are facts about iron in a room, and
+   the rooms differ by unit culture. A kg rack runs 8, 10, 12; a lb rack runs
+   35, 40, 45. Neither number converts into the other — 2 kg is 4.4 lb, a
+   bell no lb gym stocks — so every cell below is declared, never derived.
+
+   One row per class, one reason per row:
+     barbell/smith  plate PAIRS on a bar. 2.5 kg / 5 lb per side -> 5 kg or
+                    10 lb totals, ANCHORED AT THE BAR (bar:1): you cannot
+                    load one side only, and 0 does not exist on a barbell.
+     cable          stack FACES. The pin selects whole plates: 5 kg / 10 lb.
+     machine        a selectorised stack, same faces as a cable.
+     plate          a plate-loaded sled: pegs both ends, plates go on in
+                    pairs — 5 kg / 10 lb — anchored at zero because the
+                    sled's own weight is unknown and uncounted.
+     dumbbell       RACK SPACING. kg racks step 2; lb racks step 5 (2.5 lb
+                    in-between bells exist in some light ranges — a typed
+                    value is always accepted; the stepper walks the rack).
+     body           belt plates. 2 kg / 5 lb per added plate.
+
+   Cable, machine and plate share numbers for three different physical
+   reasons and stay separate rows anyway: a law that happens to agree today
+   is not the same as one rule.
+
+   THE GUARANTEE: every consumer — both steppers, both number inputs, the
+   inferred-weight snapper, Today's suggestions — reads this table through
+   wLaw/wStep/snapW, and buildcheck fails if any class in EQUIP_LABEL lacks
+   a row here. Adding an equipment class without declaring its physics is a
+   build error, not a latent bug. */
+const W_TABLE={
+  barbell:  {kg:{s:5,  bar:1}, lb:{s:10, bar:1}},
+  smith:    {kg:{s:5,  bar:1}, lb:{s:10, bar:1}},
+  cable:    {kg:{s:5},         lb:{s:10}},
+  machine:  {kg:{s:5},         lb:{s:10}},
+  plate:    {kg:{s:5},         lb:{s:10}},
+  dumbbell: {kg:{s:2},         lb:{s:5}},
+  body:     {kg:{s:2},         lb:{s:5}},
+};
+function wLaw(ex){
+  const row=W_TABLE[equipOf(ex)]||W_TABLE.machine;   // unknown classes read as a stack, the safest guess
+  const c=isLb()?row.lb:row.kg;
+  return {s:c.s, a:c.bar?toU(barKg(ex)):0};
+}
+/* snap to the LAW (v3.3.250). Given an exercise it lands on a weight that
+   exercise can actually make — a rack bell, a stack face, a buildable bar
+   total. Without one it uses the stack row, matching wLaw's fallback. */
 const snapW=(kg,ex)=>{
-  const {s,a}=ex?wLaw(ex):{s:STEP(),a:0};
+  const {s,a}=ex?wLaw(ex):{s:(isLb()?W_TABLE.machine.lb:W_TABLE.machine.kg).s,a:0};
   const u=toU(kg);
   return toKg(Math.max(a, a+Math.round((u-a)/s)*s));
 };
-/* v3.3.8 / v3.3.251: ONE source of truth for what weights physically exist.
-   Returns display-unit {s: step, a: anchor}. `machine` has now been split, so
-   every class states its own physics:
-
-     barbell / smith   plate PAIRS on a bar — 5 kg (10 lb) totals, anchored at
-                       the bar, because you cannot load one side only.
-     cable             stack FACES — the pin selects whole plates, 5 kg
-                       (10 lb). There is no 14 on the stack.
-     machine           a selectorised stack, the same faces as a cable.
-     plate             a plate-loaded sled (Leg Press, Hack Squat): pegs on
-                       both sides, so plates go on in pairs, 5 kg (10 lb) at a
-                       time. Anchored at zero — the sled's own weight is
-                       unknown, and the load line says so rather than guessing.
-     dumbbell / body   the plain even step: bells rack in 2s, and belt plates
-                       are the only free choice left in the room.
-
-   Cable, machine and plate land on the same 5 for three different physical
-   reasons. They stay separate anyway — the reasons diverge (a sled can be
-   given a weight; a stack cannot), and a law that happens to agree today is
-   not the same as one rule. */
-function wLaw(ex){
-  const eq=equipOf(ex);
-  if(eq==='barbell'||eq==='smith')               return {s:isLb()?10:5, a:toU(barKg(ex))};
-  if(eq==='cable'||eq==='machine'||eq==='plate') return {s:isLb()?10:5, a:0};
-  return {s:STEP(), a:0};
-}
 /* the step for ONE exercise, in display units. Every stepper, every number
    input, the inferred-weight snapper and Today's next-weight suggestion read
    the law through here, so no two of them can disagree about what is

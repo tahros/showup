@@ -560,6 +560,25 @@ if not _order or not all(_seg in _order.group(0) for _seg in
 if _order and _re.search(r"_S\.(?:cons|dbm|last6|wd)\b", _order.group(0)):
     fail.append("stats: a retired time section returned to the declared order (v3.3.213)")
 _util = (d/"js/util.js").read_text()
+# -- v3.3.256: the weight table must cover every equipment class in both
+# units. Increments are per-unit physical facts (lb dumbbells rack in 5s,
+# kg in 2s); a class without a declared row would silently inherit the
+# stack fallback, which is exactly the class of bug this table exists to
+# end. Adding an equipment class without declaring its physics fails here.
+_lbl = _re.search(r"const EQUIP_LABEL=\{(.*?)\};", _util, _re.S)
+_tbl = _re.search(r"const W_TABLE=\{(.*?)\n\};", _util, _re.S)
+if not _lbl or not _tbl:
+    fail.append("weights: EQUIP_LABEL or W_TABLE missing from js/util.js (v3.3.256)")
+else:
+    _classes = set(_re.findall(r"(\w+)\s*:\s*'", _lbl.group(1)))
+    _rows = dict(_re.findall(r"(\w+)\s*:\s*(\{[^\n]*\})", _tbl.group(1)))
+    for _c in sorted(_classes):
+        if _c not in _rows:
+            fail.append(f"weights: equipment class '{_c}' has no W_TABLE row (v3.3.256)")
+        elif not ("kg:" in _rows[_c] and "lb:" in _rows[_c]):
+            fail.append(f"weights: W_TABLE.{_c} must declare BOTH kg and lb cells (v3.3.256)")
+if "const STEP=" in _util or "STEP()" in _util:
+    fail.append("weights: the unit-free STEP constant returned (retired v3.3.256)")
 for _fn in ("monthlyPaceData", "consistencyRaceData"):
     if _util.count("function " + _fn) != 1:
         fail.append(f"util: {_fn} must have one definition (v3.3.213)")

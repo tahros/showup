@@ -242,12 +242,19 @@ check("...and DOWN to 22, not 21", `${wval()}`, 22);
 check("the browser spinner agrees with the buttons (step attr is 2)",
       `document.getElementById('wv').getAttribute('step')`, 2);
 
-// lb mode: the same even law, in the displayed unit
+// lb mode: v3.3.256 RESTATES the v3.3.219 "even in both units" law — that
+// was a kg fact leaking across the unit boundary. lb racks run in FIVES
+// (35, 40, 45...); 2 kg is 4.4 lb, a bell no lb gym stocks. Each unit
+// system declares its own rack in W_TABLE.
 run(`(function(){DB.settings.unit='lb'; render();})()`);
 run(`(function(){const el=document.getElementById('wv'); el.value='31';
      el.dispatchEvent(new Event('input',{bubbles:true}));})()`);
 wplus();
-check("31 lb steps to 32 — even in POUNDS too", `${wval()}`, 32);
+check("31 lb steps to 35 — lb racks run in fives", `${wval()}`, 35);
+wplus();
+check("...then walks the rack: 35 to 40", `${wval()}`, 40);
+check("...and the spinner agrees (step attr is 5)",
+      `document.getElementById('wv').getAttribute('step')`, 5);
 run(`DB.settings.unit='kg'; render();`);
 
 // barbell stays on the plate-pair law — its loadline renders the exact
@@ -256,8 +263,49 @@ run(`(function(){view='lift'; lift.part='Legs'; lift.ex='Squat'; lift.weight=60;
 wplus();
 check("a barbell still moves by a plate pair: 60 kg \u2192 65", `${wval()}`, 65);
 
-// and the inferred-weight snapper follows the same even law
-check("snapW lands inferred weights on even numbers", `${run(`wDisp(snapW(23.4))`)}`, 24);
+// the inferred-weight snapper without an exercise reads the stack row —
+// the same fallback wLaw uses for an unknown class (v3.3.256; was a bare 2)
+check("bare snapW falls back to the stack row", `${run(`wDisp(snapW(23.4))`)}`, 25);
+
+// ---- v3.3.256: THE WHOLE TABLE, pinned cell by cell ----------------------
+// One assertion per equipment class per unit system. If a future change
+// moves any cell, this names exactly which room and which rack it broke.
+{
+  const CELLS=[  // [class, exemplar, kg step, lb step]
+    ['barbell', 'Squat',          5, 10],
+    ['smith',   'Incline Smith Machine Bench Press', 5, 10],
+    ['cable',   'Cable Fly Up',   5, 10],
+    ['machine', 'Chest Press',    5, 10],
+    ['plate',   'Leg Press',      5, 10],
+    ['dumbbell','Lateral Raise',  2,  5],
+    ['body',    'Pull Up',        2,  5],
+  ];
+  for(const [cls,ex,kgS,lbS] of CELLS){
+    const has=run(`equipOf(${JSON.stringify(ex)})`)===cls;
+    if(!has){ console.log("FAIL table exemplar", ex, "is not", cls); fail++; continue; }
+    run(`DB.settings.unit='kg';`);
+    check(`W_TABLE ${cls}.kg steps ${kgS} (${ex})`, `wStep(${JSON.stringify(ex)})`, kgS);
+    run(`DB.settings.unit='lb';`);
+    check(`W_TABLE ${cls}.lb steps ${lbS}`, `wStep(${JSON.stringify(ex)})`, lbS);
+  }
+  run(`DB.settings.unit='kg'; render();`);
+  // an unknown class reads as a stack in both units — the declared fallback
+  check("an undeclared class falls back to the stack row (kg)", `(function(){
+    DB.settings.custom={'Mystery Pull':{part:'Back',equip:'contraption'}};
+    const v=wStep('Mystery Pull'); delete DB.settings.custom['Mystery Pull']; return v;})()`, 5);
+}
+
+// the maker's exact report: lb dumbbells walk the rack through real clicks
+run(`(function(){DB.settings.unit='lb'; view='lift'; lift.part='Back';
+  lift.ex='Lateral Raise'; lift.part='Shoulder'; lift.weight=toKg(55); lift._tiles=null; render();})()`);
+run(`(function(){const el=document.getElementById('wv'); el.value='55';
+     el.dispatchEvent(new Event('input',{bubbles:true}));})()`);
+wplus();
+check("a 55 lb bell steps to the 60 on the rack, not to 57", `${wval()}`, 60);
+wminus(); wminus();
+check("...and back down the rack to 50", `${wval()}`, 50);
+run(`DB.settings.unit='kg'; render();`);
+check("kg dumbbells are untouched: still 2 (8, 10, 12 racks)", `wStep('Lateral Raise')`, 2);
 
 // ---- v3.3.250: a CABLE is a stack, and stacks move in whole plates -------
 // 5 kg / 10 lb faces. There is no 14 on the pin, so the even step was

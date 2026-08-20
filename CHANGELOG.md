@@ -1,5 +1,25 @@
 # ShowUp — changelog
 
+## v3.3.256 (2026-08-19) — Every rack declares itself, in both unit systems
+
+**Dumbbells in pounds now step 5 lb.** A lb rack runs 35, 40, 45 — the 2-step
+was a kilogram fact (kg racks run 8, 10, 12) leaking across the unit
+boundary. 2 kg is 4.4 lb, a bell no lb gym stocks. Kilogram mode is
+untouched. Bodyweight belt plates follow the same split: 2 kg or 5 lb.
+
+**Underneath, increments are now a declared table, not scattered numbers.**
+Every equipment class states its step in BOTH unit systems, each with its
+physical reason — plate pairs on a bar, stack faces on a pin, rack spacing on
+a shelf. Every stepper, number input, inferred weight and Today suggestion
+reads that one table, and the build now fails if any equipment class is ever
+added without declaring its physics in both units. This is the third bug of
+the same species (even cable steps, the dead lb minus, and now this); the
+table is built so there cannot be a fourth.
+
+In-between bells exist — some light lb ranges carry 2.5s — and a typed
+weight is always accepted exactly as typed. The stepper walks the standard
+rack.
+
 ## v3.3.255 (2026-08-19) — The − button works on barbells in pounds
 
 **In lb mode, the − button on a barbell did nothing.** The weight box shows
