@@ -1,5 +1,18 @@
 # ShowUp — changelog
 
+## v3.3.255 (2026-08-19) — The − button works on barbells in pounds
+
+**In lb mode, the − button on a barbell did nothing.** The weight box shows
+values rounded to 0.1 lb, but the plate grid is anchored at the exact bar —
+20 kg is 44.0925 lb — so every displayed value sat a hair's width above its
+own grid point, and stepping down landed right back where it started, moving
+0.0075 lb per press. Stepping up escaped the trap, which is why + worked.
+
+Now any value within half a display unit of a loadable total counts as that
+total and steps a whole step. Genuinely off-grid values still snap to the
+next loadable total in the pressed direction, exactly as before. Kilogram
+mode was never affected.
+
 ## v3.3.254 (2026-08-18) — Stats reordered by how soon the answer matters
 
 The tab now reads as a funnel of questions, most immediate first. **Show up**

@@ -291,6 +291,32 @@ check("34 lb steps to 40 — a whole face in POUNDS too", `${wval()}`, 40);
 check("...and the spinner says 10", `document.getElementById('wv').getAttribute('step')`, 10);
 run(`DB.settings.unit='kg'; render();`);
 
+// ---- v3.3.255: the dead − button on lb barbells --------------------------
+// The box shows values rounded to 0.1 lb, but the grid is anchored at the
+// EXACT bar (20 kg = 44.0925 lb), so every displayed value sat ~0.0075 above
+// its own grid point and ceil-minus landed back on it. Reproduced through the
+// real input + real clicks, in the maker's exact configuration.
+run(`(function(){DB.settings.unit='lb'; view='lift'; lift.part='Legs';
+  lift.ex='Deadlift'; lift.weight=toKg(214.1); lift._tiles=null; render();})()`);
+run(`(function(){const el=document.getElementById('wv'); el.value='214.1';
+     el.dispatchEvent(new Event('input',{bubbles:true}));})()`);
+wminus();
+check("− from a displayed 214.1 lb moves a WHOLE step to 204.1", `${wval()}`, 204.1);
+wminus();
+check("...and keeps stepping: 204.1 to 194.1", `${wval()}`, 194.1);
+wplus();
+check("+ still steps one face back up to 204.1", `${wval()}`, 204.1);
+// genuinely off-grid values still snap directionally to the next face
+run(`(function(){const el=document.getElementById('wv'); el.value='213';
+     el.dispatchEvent(new Event('input',{bubbles:true}));})()`);
+wminus();
+check("a typed off-grid 213 still snaps DOWN to the 204.1 face", `${wval()}`, 204.1);
+run(`(function(){const el=document.getElementById('wv'); el.value='213';
+     el.dispatchEvent(new Event('input',{bubbles:true}));})()`);
+wplus();
+check("...and UP to 214.1", `${wval()}`, 214.1);
+run(`DB.settings.unit='kg'; render();`);
+
 // v3.3.251 RESTATES the v3.3.250 scope note: `machine` was a mixed bucket and
 // is now split, so it no longer keeps the even step — it IS a stack.
 run(`(function(){view='lift'; lift.part='Chest'; lift.ex='Chest Press';

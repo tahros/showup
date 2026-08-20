@@ -203,7 +203,19 @@ document.addEventListener('click',e=>{
     const {s,a:anchor}=wLaw(lift.ex);
     const cur=(+($('#wv').value||0));
     const k=(cur-anchor)/s;
-    const shown=Math.max(anchor,anchor+(dir>0?Math.floor(k+1e-9)+1:Math.ceil(k-1e-9)-1)*s);
+    /* v3.3.255: the box holds the DISPLAY value, rounded to 0.1 — but the
+       anchor is the exact bar conversion (20 kg = 44.0925 lb). In lb mode
+       every barbell value therefore reads ~0.0075 above its own grid point,
+       and ceil-minus landed straight back on it: a dead − button that moved
+       0.0075 lb per press. The 1e-9 epsilon guarded float noise; the real
+       error is display rounding, four orders of magnitude larger. So: any
+       value within half a display unit (0.05) of a face IS that face and
+       steps a whole step; only genuinely off-grid values snap directionally
+       to the next face (72.5 + -> 75, - -> 70; typed 213 - -> 204.1). */
+    const kR=Math.round(k);
+    const on=Math.abs(cur-(anchor+kR*s))<0.051;
+    const k2=on?kR+dir:(dir>0?Math.floor(k)+1:Math.ceil(k)-1);
+    const shown=Math.max(anchor,anchor+k2*s);
     lift.weight=toKg(shown);
     saveExW(lift.ex,lift.weight);save(true);
     const wvEl=$('#wv');
