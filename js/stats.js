@@ -181,20 +181,27 @@ function partMixSvg(days){
            x="${x}" y="${(PMIX_BASE-bh).toFixed(1)}" width="${bw}" height="${bh.toFixed(1)}"
            fill="url(#pmixBrick)" pointer-events="none"></rect>`;
     }
-    /* v3.3.259: every column names the DAY'S TOTAL — all body parts trained
-       that day, the same number the header reads. It used to name only the
-       focused part's count, which meant a day of Back + Biceps + Triceps
-       said "17" while the day was 27, and said nothing at all until you
-       picked a part. A day's size is a fact about the day, not about the
-       part you happen to have selected, so it no longer depends on focus.
-       Only ONE number fits above a 12.5px bar, and the total is the one
-       asked for; a focused part's own share stays legible as the height of
-       its highlighted segment and in the summary line beneath. */
+    /* v3.3.260: BOTH numbers, each in its own register.
+       The day TOTALS live in a fixed header row across the very top — one
+       aligned line, the way the spreadsheet this app grew from ran a totals
+       row — not perched on the bars, where 19 numbers at 19 heights read as
+       noise (the v3.3.259 lesson). Today's total is bold; the archive is
+       quiet. The FOCUSED part's own count returns to its segment top the
+       moment a part is selected, because selecting it is what makes that
+       number the story. It is skipped only when its segment crests into the
+       header row itself (segTop < 16), where the two would collide and the
+       total is already directly above. */
     if(r.total){
-      const top=PMIX_BASE-(r.total/max)*(PMIX_BASE-PMIX_TOP);
-      s+=`<text x="${x+bw/2}" y="${(top-3).toFixed(1)}" text-anchor="middle"
-           font-family="var(--mono)" font-size="6.5" fill="var(--chalk)"
+      s+=`<text x="${x+bw/2}" y="6.5" text-anchor="middle"
+           font-family="var(--mono)" font-size="6.5"
+           ${latest?'font-weight="700" fill="var(--chalk)"':'fill="var(--muted)"'}
            data-lbl="total" data-lbltot="${r.total}">${pmixTick(r.total)}</text>`;
+    }
+    if(PMIX_FOCUS && r.by[PMIX_FOCUS]){
+      const v=r.by[PMIX_FOCUS], top=PMIX_BASE-(v/max)*(PMIX_BASE-PMIX_TOP);
+      if(top>=16) s+=`<text x="${x+bw/2}" y="${(top-3).toFixed(1)}" text-anchor="middle"
+           font-family="var(--mono)" font-size="6.5" fill="var(--chalk)"
+           data-lbl="${PMIX_FOCUS}">${pmixTick(v)}</text>`;
     }
     // every column names its day, rotated — as the spreadsheet does
     const lab=(+r.d.slice(5,7))+'/'+(+r.d.slice(8,10));

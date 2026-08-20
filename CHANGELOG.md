@@ -1,5 +1,20 @@
 # ShowUp — changelog
 
+## v3.3.260 (2026-08-19) — Session build: a totals row, and part counts on focus
+
+Both numbers now have a home, and neither crowds the chart.
+
+**Day totals moved into a fixed header row** across the top of the plot — one
+aligned line, the way a spreadsheet runs its totals — instead of sitting on
+top of each bar at nineteen different heights, which is what made yesterday's
+version read as clutter. Today's total is bold; the archive stays quiet.
+
+**Selecting a body part brings back that part's own count**, written above its
+segment in each column, while the totals row stands. Unfocused, you read the
+days; focused, you read the part against the days. The number only steps
+aside in the rare case its segment reaches into the header row itself, where
+the total is already directly above it.
+
 ## v3.3.259 (2026-08-19) — Session build counts the whole day
 
 Every column in Session build now shows the total sets you trained that day,
