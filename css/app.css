@@ -552,6 +552,10 @@
   .ibtn:active{background:var(--line)}
   @media (prefers-reduced-motion:reduce){.ibtn{transition:none}}
   h2 .hacts{margin-left:1px}
+  /* v3.3.266: Copy month + Copy year are one action family. Keep the
+     title-to-group breathing room, but use the hacts gap inside the pair. */
+  h2 .copyacts{margin-left:10px;gap:6px}
+  h2 .copyacts>.dayedit{margin-left:0}
   /* ---- v3.3.130: report card — the app's one share surface ---- */
   /* v3.3.139: the arrows leave the title row and flank the preview at its
      midline, which is where the thumb already is when swiping. The card

@@ -163,10 +163,14 @@ run(`(function(){
   /* seed into whichever month the fixture left History showing, so the day
      is actually on screen rather than one month out of view */
   const iso=[...document.querySelectorAll('.day')][0].dataset.d; window._headISO=iso;
+  const otherM=+iso.slice(5,7)===1?2:+iso.slice(5,7)-1;
+  window._yearOtherISO=iso.slice(0,4)+'-'+String(otherM).padStart(2,'0')+'-01';
   DB.days[iso]={w:[
     {part:'Run',ex:'Run',w:3.48,reps:[],mins:27,secs:17},
     {part:'Back',ex:'Deadlift',w:80,reps:[2,3,3,2]},
     {part:'Biceps',ex:'EZ Bar Curl',w:20,reps:[10,10,10,10]}],upd:1};
+  DB.days[window._yearOtherISO]={w:[
+    {part:'Legs',ex:'Squat',w:60,reps:[8,8,8]}],upd:1};
   SEED=deriveAll(); hist.part=null; view='history'; render();})()`);
 const HEAD = `document.querySelector('.day[data-d="'+window._headISO+'"]>summary')`;
 check("the three-part day renders a session head", `!!${HEAD}`, true);
@@ -202,17 +206,40 @@ check("only the viewed month: no other month's dates leak in",
 check("the part filter does NOT filter the export",
       `(function(){hist.part='Back'; const t=monthText(); hist.part=null;
         return t.includes('EZ Bar Curl');})()`, true);
-// the copier: stub the clipboard, click the button, demand both effects
+// ---- v3.3.266: Copy year is the complete selected year, using the same
+// document grammar and filter-independent promise as Copy month.
+run(`window._yt=yearText();`);
+check("year text opens with the selected year",
+      `window._yt.startsWith('ShowUp \u2014 '+hist.y+'\\n')`, true);
+check("year text includes sessions from another month",
+      `window._yt.includes('Squat: 60kg\u00d78/8/8 (3 sets)')`, true);
+check("year text includes the viewed month's sessions too",
+      `window._yt.includes('Deadlift: 80kg\u00d72/3/3/2 (4 sets)')`, true);
+check("year text remains chronological",
+      `(window._yearOtherISO<window._headISO)===(window._yt.indexOf('Squat:')<window._yt.indexOf('Deadlift:'))`, true);
+check("the part filter does NOT filter the year export",
+      `(function(){hist.part='Back'; const t=yearText(); hist.part=null;
+        return t.includes('Squat:')&&t.includes('EZ Bar Curl');})()`, true);
+// the copiers: stub the clipboard, click each button, demand payload + notice
 run(`window._clip=null;
   Object.defineProperty(navigator,'clipboard',{value:{writeText:t=>{window._clip=t;return Promise.resolve();}},configurable:true});
   render();`);
 check("the Copy month button renders in History",
       `!!document.querySelector('[data-mcopy]')`, true);
+check("the Copy year button renders beside Copy month",
+      `(function(){const m=document.querySelector('[data-mcopy]'),y=document.querySelector('[data-ycopy]');
+        return !!y&&m.parentElement===y.parentElement&&m.nextElementSibling===y;})()`, true);
 run(`window._mtAtClick=monthText(); document.querySelector('[data-mcopy]').click();`);
 setTimeout(() => {
   check("clicking it puts the month text on the clipboard",
         `window._clip===window._mtAtClick && window._clip.length>0`, true);
   check("...and shows the notice", `document.querySelector('#toast').textContent`, "Month copied as text");
   check("...toast is visibly on", `document.querySelector('#toast').classList.contains('on')`, true);
-  process.exit(fail ? 1 : 0);
+  run(`window._ytAtClick=yearText(); document.querySelector('[data-ycopy]').click();`);
+  setTimeout(() => {
+    check("clicking Copy year puts the year text on the clipboard",
+          `window._clip===window._ytAtClick && window._clip.length>window._mtAtClick.length`, true);
+    check("...and shows the year notice", `document.querySelector('#toast').textContent`, "Year copied as text");
+    process.exit(fail ? 1 : 0);
+  }, 40);
 }, 40);

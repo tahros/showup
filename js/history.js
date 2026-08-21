@@ -65,23 +65,26 @@ function partDayMap(detail){
   }
   return m;
 }
-/* v3.3.182: the viewed month as plain text, for pasting into an LLM or a
-   note. The WHOLE month, part filter deliberately ignored — the use case is
+/* v3.3.266: a viewed month or year as plain text, for pasting into an LLM or
+   a note. The WHOLE period, part filter deliberately ignored — the use case is
    handing over the complete ledger, and a silently filtered export would be
    a lie of omission. Chronological (a document, not a feed), grouped like
    the receipt: one line per exercise, weight sub-runs in logged order.
    Read-only: built from the same canonical merge every other reader uses. */
-function monthText(){
-  const key=`${hist.y}-${String(hist.m).padStart(2,'0')}`;
-  const dim=new Date(hist.y,hist.m,0).getDate();
+function periodText(y,m){
+  const months=m?[m]:Array.from({length:12},(_,i)=>i+1);
   const days=[];
-  for(let dd=1;dd<=dim;dd++){
-    const iso=`${key}-${String(dd).padStart(2,'0')}`;
-    const rows=(iso===todayISO?((DB.days[iso]||{}).w||[]).map(s2=>[s2.part,s2.ex,s2.w,s2.reps||[],s2.mins,s2.secs])
-                              :(SEED.sessions[iso]||[]));
-    if(rows.length) days.push([iso,rows]);
+  for(const mm of months){
+    const key=`${y}-${String(mm).padStart(2,'0')}`;
+    const dim=new Date(y,mm,0).getDate();
+    for(let dd=1;dd<=dim;dd++){
+      const iso=`${key}-${String(dd).padStart(2,'0')}`;
+      const rows=(iso===todayISO?((DB.days[iso]||{}).w||[]).map(s2=>[s2.part,s2.ex,s2.w,s2.reps||[],s2.mins,s2.secs])
+                                :(SEED.sessions[iso]||[]));
+      if(rows.length) days.push([iso,rows]);
+    }
   }
-  const mName=new Date(hist.y,hist.m-1,1).toLocaleDateString('en-US',{month:'long',year:'numeric'});
+  const periodName=m?new Date(y,m-1,1).toLocaleDateString('en-US',{month:'long',year:'numeric'}):String(y);
   let mv=0,mkm=0,msets=0;
   const lines=[];
   for(const [iso,rows] of days){
@@ -112,23 +115,26 @@ function monthText(){
     }
     lines.push('');
   }
-  const head=`ShowUp \u2014 ${mName}${firstName()?` (${firstName()})`:''}\n`
+  const head=`ShowUp \u2014 ${periodName}${firstName()?` (${firstName()})`:''}\n`
     +`${days.length} day${days.length===1?'':'s'} trained \u00b7 ${fmt(msets)} sets`
     +`${mv?` \u00b7 ${fmt(Math.round(toU(mv)))} ${U()}`:''}${mkm?` \u00b7 ${dDisp(mkm)} ${DU()}`:''}\n`;
   return head+'\n'+lines.join('\n').trimEnd()+'\n';
 }
-async function copyMonth(){
-  const t=monthText();
+function monthText(){ return periodText(hist.y,hist.m); }
+function yearText(){ return periodText(hist.y); }
+async function copyPeriod(t,label){
   /* the notice is part of the feature: the person must KNOW it copied */
-  try{ await navigator.clipboard.writeText(t); toast('Month copied as text'); }
+  try{ await navigator.clipboard.writeText(t); toast(label+' copied as text'); }
   catch(e){
     try{
       const ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta);
       ta.select(); document.execCommand('copy'); ta.remove();
-      toast('Month copied as text');
+      toast(label+' copied as text');
     }catch(e2){ toast('Copy failed'); }
   }
 }
+function copyMonth(){ return copyPeriod(monthText(),'Month'); }
+function copyYear(){ return copyPeriod(yearText(),'Year'); }
 function partSessions(part,detail){
   const out=[];
   for(const [d,list] of Object.entries(detail)){
@@ -323,8 +329,9 @@ function renderHistory(){
   // day cards for that month, where detail exists
   const monthDays=Object.keys(detail).filter(d=>d.startsWith(key)&&(!P||dates.has(d))).sort().reverse();
   if(monthDays.length){
-    h+=`<h2 class="quiet">Sessions<span class="hacts"><button class="dayedit" data-mcopy
-        aria-label="Copy this month's sessions as text">Copy month</button></span></h2>`;
+    h+=`<h2 class="quiet">Sessions<span class="hacts copyacts"><button class="dayedit" data-mcopy
+        aria-label="Copy this month's sessions as text">Copy month</button><button class="dayedit" data-ycopy
+        aria-label="Copy this year's sessions as text">Copy year</button></span></h2>`;
     monthDays.forEach(d=>{
       const list=P?detail[d].filter(s=>s.part===P):detail[d];
       if(!list.length) return;
@@ -454,6 +461,7 @@ document.addEventListener('click',e=>{
     return render();
   }
   if(e.target.closest('[data-mcopy]')){ copyMonth(); return; }
+  if(e.target.closest('[data-ycopy]')){ copyYear(); return; }
   const sh=e.target.closest('[data-dshare]');
   if(sh){ const d=sh.dataset.dshare;
     showCard(()=>{                 // showCard wants a canvas MAKER, not a painter

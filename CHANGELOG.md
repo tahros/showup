@@ -1,5 +1,16 @@
 # ShowUp — changelog
 
+## v3.3.266 (2026-08-21) — Copy the selected year from History
+
+The Sessions heading now pairs `COPY MONTH` with `COPY YEAR`. The new action
+copies every session in the selected year as one chronological plain-text
+ledger, using the same readable exercise grouping, unit preference, and clear
+clipboard confirmation as the existing month action.
+
+Like `COPY MONTH`, the year copy deliberately ignores the body-part filter so
+the exported record is complete rather than silently partial. The two actions
+share the same compact visual treatment and sit together beside `SESSIONS`.
+
 ## v3.3.265 (2026-08-21) — Pace labels every point without a red exception
 
 Every monthly Pace point now prints its pace directly above the dot, centered
