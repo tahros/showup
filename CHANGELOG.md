@@ -1,5 +1,15 @@
 # ShowUp — changelog
 
+## v3.3.262 (2026-08-20) — Cables in pounds step 5
+
+Cable exercises in lb mode now step 5 lb, not 10. Pound cable stacks come
+faced in both 5s and 10s, and a 5-lb step lands on every face of either kind
+— two presses per plate on a 10 stack, one per plate on a 5 — while the old
+10-lb step could not select half the faces of a 5-lb stack.
+
+Stack machines stay at 10 lb: their plates run 10s and 15s, where a 5 would
+miss as often as it hits. Kilogram mode is untouched everywhere.
+
 ## v3.3.261 (2026-08-20) — The totals row whispers with age
 
 The totals row over Session build now fades with distance from today: the

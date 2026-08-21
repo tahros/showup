@@ -511,7 +511,13 @@ const isBody=ex=>equipOf(ex)==='body';
      barbell/smith  plate PAIRS on a bar. 2.5 kg / 5 lb per side -> 5 kg or
                     10 lb totals, ANCHORED AT THE BAR (bar:1): you cannot
                     load one side only, and 0 does not exist on a barbell.
-     cable          stack FACES. The pin selects whole plates: 5 kg / 10 lb.
+     cable          stack FACES. 5 kg — and 5 lb, not 10 (v3.3.262): lb
+                    cable stacks come faced in 5s AND 10s, and 5 lands on
+                    every face of both, while 10 skipped half the faces of
+                    a 5-stack. The finer step can never name a weight that
+                    does not exist on either. Selectorised MACHINES stay at
+                    10 lb below — their stacks run 10s and 15s, where 5
+                    would miss as often as it hits.
      machine        a selectorised stack, same faces as a cable.
      plate          a plate-loaded sled: pegs both ends, plates go on in
                     pairs — 5 kg / 10 lb — anchored at zero because the
@@ -533,7 +539,7 @@ const isBody=ex=>equipOf(ex)==='body';
 const W_TABLE={
   barbell:  {kg:{s:5,  bar:1}, lb:{s:10, bar:1}},
   smith:    {kg:{s:5,  bar:1}, lb:{s:10, bar:1}},
-  cable:    {kg:{s:5},         lb:{s:10}},
+  cable:    {kg:{s:5},         lb:{s:5}},
   machine:  {kg:{s:5},         lb:{s:10}},
   plate:    {kg:{s:5},         lb:{s:10}},
   dumbbell: {kg:{s:2},         lb:{s:5}},

@@ -274,7 +274,7 @@ check("bare snapW falls back to the stack row", `${run(`wDisp(snapW(23.4))`)}`, 
   const CELLS=[  // [class, exemplar, kg step, lb step]
     ['barbell', 'Squat',          5, 10],
     ['smith',   'Incline Smith Machine Bench Press', 5, 10],
-    ['cable',   'Cable Fly Up',   5, 10],
+    ['cable',   'Cable Fly Up',   5,  5],   // v3.3.262: lb stacks face in 5s and 10s; 5 lands on every face of both
     ['machine', 'Chest Press',    5, 10],
     ['plate',   'Leg Press',      5, 10],
     ['dumbbell','Lateral Raise',  2,  5],
@@ -335,8 +335,12 @@ run(`(function(){DB.settings.unit='lb'; lift._tiles=null; render();})()`);
 run(`(function(){const el=document.getElementById('wv'); el.value='34';
      el.dispatchEvent(new Event('input',{bubbles:true}));})()`);
 wplus();
-check("34 lb steps to 40 — a whole face in POUNDS too", `${wval()}`, 40);
-check("...and the spinner says 10", `document.getElementById('wv').getAttribute('step')`, 10);
+/* v3.3.262 RESTATES: lb cables step 5, not 10 — the maker's stack is faced
+   in 5s and a 10-step could not select half of it. 34 snaps up to 35. */
+check("34 lb steps to 35 — the next face on a 5-lb stack", `${wval()}`, 35);
+wplus();
+check("...then 40 — which is also a face on a 10-lb stack", `${wval()}`, 40);
+check("...and the spinner says 5", `document.getElementById('wv').getAttribute('step')`, 5);
 run(`DB.settings.unit='kg'; render();`);
 
 // ---- v3.3.255: the dead − button on lb barbells --------------------------
