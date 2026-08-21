@@ -974,9 +974,9 @@ function monthlyPaceData(n=12){
        days elapsed would be meaningless for kilometres, and a share of the
        current year cannot be computed without predicting the rest of it.
    The preference is one setting, so the whole Stats tab speaks in one unit. */
-/* v3.3.236 — reading the Pace chart by touch.
-   Nine monthly points print only two values (fastest, current); the rest are
-   read by dragging. Nearest point by SCREEN x — pace is a one-per-month
+/* v3.3.265 — reading the Pace chart by touch.
+   All nine monthly points print their values directly; dragging adds the full
+   month and year and rings the exact point. Nearest point by SCREEN x — pace is a one-per-month
    series, so horizontal distance is the whole question and vertical distance
    would only add noise. Same gesture grammar as the other charts: the surface
    is on the tab-swipe blocklist and touch-action:none, and the reading STAYS

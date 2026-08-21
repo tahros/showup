@@ -1,5 +1,5 @@
-// test-runcharts.js DIR — v3.3.236 Distance month axis, a nine-month Pace
-// chart you can drag, and headroom in Every week.
+// test-runcharts.js DIR — Distance month axis, a nine-month Pace chart with
+// direct labels and touch reading, and headroom in Every week.
 const { JSDOM } = require("jsdom");
 const fs = require("fs"), path = require("path"), vm = require("vm");
 const dir = process.argv[2] || ".";
@@ -56,15 +56,23 @@ check("...with every label inside the viewBox",
         const vb=svg.getAttribute('viewBox').split(/\\s+/).map(Number);
         return [...svg.querySelectorAll('text')].every(t=>+t.getAttribute('y')<=vb[3]);})()`, true);
 
-// ---- 2. Pace: nine months, two printed values, the rest by drag
+// ---- 2. Pace: nine months, every value above its point, mono-tone marks
 check("pace shows nine months, not six",
       `document.querySelectorAll('.pacepoint').length`, 9);
 check("...more months than the chart used to hold", `PACE_MONTHS > 6`, true);
-check("only the notable months print a value inline",
-      `document.querySelectorAll('.paceval').length < document.querySelectorAll('.pacepoint').length`, true);
-check("...and those are the fastest and the current one",
-      `[...document.querySelectorAll('.pacepoint')].some(p=>p.classList.contains('fastest'))
-       && [...document.querySelectorAll('.pacepoint')].some(p=>p.classList.contains('latest'))`, true);
+check("every point prints a value inline",
+      `document.querySelectorAll('.paceval').length === document.querySelectorAll('.pacepoint').length`, true);
+check("every value sits centered directly above its own point",
+      `(function(){const ps=[...document.querySelectorAll('.pacepoint')],vs=[...document.querySelectorAll('.paceval')];
+        return ps.every((p,i)=>+vs[i].getAttribute('x')===+p.getAttribute('cx')
+          && +vs[i].getAttribute('y')<+p.getAttribute('cy')
+          && vs[i].getAttribute('text-anchor')==='middle');})()`, true);
+check("all pace points use one blue mark colour, with no red exception",
+      `[...document.querySelectorAll('.pacepoint')].every(p=>p.getAttribute('fill')==='var(--accent)')
+       && ![...document.querySelectorAll('.pacepoint')].some(p=>p.classList.contains('fastest'))`, true);
+check("the month row uses the same J F M A initials as the other charts",
+      `(function(){const ps=[...document.querySelectorAll('.pacepoint')],ms=[...document.querySelectorAll('.pacemonth')];
+        return ms.length===ps.length && ms.every((t,i)=>t.textContent==='JFMAMJJASOND'[+ps[i].dataset.pm.slice(5)-1]);})()`, true);
 check("every point carries its month and pace for the readout",
       `[...document.querySelectorAll('.pacepoint')].every(p=>/^\\d{4}-\\d{2}$/.test(p.dataset.pm) && +p.dataset.pp>0)`, true);
 
