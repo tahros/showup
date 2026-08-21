@@ -1135,23 +1135,21 @@ function runStatsHTML217(){
      runner can predict (15 or 30 seconds), every point names its value, and
      colour belongs to the MARKS rather than changing the label ink. */
   const pm={}; for(const r of days){if(r.timed<=0)continue;const k=r.d.slice(0,7),e=pm[k]||(pm[k]={sec:0,d:0});e.sec+=r.sec;e.d+=toD(r.timed);}
-  /* v3.3.236: nine months, not six (maker's call) — a longer read on a
-     number that moves slowly. At nine points the per-month value labels
-     collide, so only the FASTEST and CURRENT months print their pace; every
-     other month is read by dragging across the chart, which is what makes
-     the scrub worth having rather than decorative. */
+  /* v3.3.265: nine months, with one centered value directly above every
+     point. The 34.75-unit point spacing clears a six-character pace label at
+     this type size. Scrubbing remains for the full month/year identity. */
   const paces=Object.entries(pm).sort().slice(-PACE_MONTHS).map(([m,e])=>[m,e.sec/e.d]);
   if(paces.length){
     const lo=Math.min(...paces.map(v=>v[1])),hi=Math.max(...paces.map(v=>v[1])),span=Math.max(hi-lo,15),tick=span<=45?15:30;
     const base=Math.floor((lo-tick*.6)/tick)*tick,top=Math.max(base+tick*2,Math.ceil((hi+tick*.6)/tick)*tick);
     const x0=34,xw=278,y0=108,yh=72,Y=p=>30+(top-p)/(top-base)*yh;
     const fmtAxis=s=>`${Math.floor(s/60)}:${String(Math.round(s%60)).padStart(2,'0')}`;
-    const dateLab=m=>{const last=m===mo?+todayISO.slice(8):new Date(+m.slice(0,4),+m.slice(5),0).getDate();return `${+m.slice(5)}/${last}`;};
+    const monthLab=m=>'JFMAMJJASOND'[+m.slice(5)-1];
     let marks='',poly='';
     for(let p=base;p<=top+.1;p+=tick){const y=Y(p);marks+=`<line x1="${x0}" y1="${y}" x2="${x0+xw}" y2="${y}" stroke="var(--line)" stroke-width=".6" stroke-dasharray="2 3"></line><text x="29" y="${y+2.5}" text-anchor="end" font-family="var(--mono)" font-size="6.5" fill="var(--muted)">${fmtAxis(p)}</text>`;}
-    paces.forEach(([m,p],i)=>{const x=x0+i*xw/Math.max(1,paces.length-1),y=Y(p),latest=i===paces.length-1,fast=Math.abs(p-lo)<.001,labelY=y<42?y+13:y-8,labelX=i===0?x+5:i===paces.length-1?x-5:x,labelAnchor=i===0?'start':i===paces.length-1?'end':'middle';poly+=`${x},${y} `;marks+=`${latest?`<circle class="beacon" cx="${x}" cy="${y}" r="4.8" fill="var(--accent-soft)" opacity=".8"></circle>`:''}<circle class="pacepoint${fast?' fastest':''}${latest?' latest':''}" cx="${x}" cy="${y}" r="${fast?3.2:latest?2.8:2.4}" fill="${fast?'var(--record)':'var(--accent)'}" data-pm="${m}" data-pp="${Math.round(p)}"></circle>${(fast||latest)?`<text class="paceval" x="${labelX}" y="${labelY}" text-anchor="${labelAnchor}" font-family="var(--mono)" font-size="8" font-weight="600" fill="${fast?'var(--record)':'var(--muted)'}">${paceStr(p)}</text>`:''}<text x="${x}" y="123" text-anchor="middle" font-family="var(--mono)" font-size="6.5" fill="var(--muted)">${dateLab(m)}</text>`;});
+    paces.forEach(([m,p],i)=>{const x=x0+i*xw/Math.max(1,paces.length-1),y=Y(p),latest=i===paces.length-1;poly+=`${x},${y} `;marks+=`${latest?`<circle class="beacon" cx="${x}" cy="${y}" r="4.8" fill="var(--accent-soft)" opacity=".8"></circle>`:''}<circle class="pacepoint${latest?' latest':''}" cx="${x}" cy="${y}" r="${latest?2.8:2.4}" fill="var(--accent)" data-pm="${m}" data-pp="${Math.round(p)}"></circle><text class="paceval" x="${x}" y="${y-7}" text-anchor="middle" font-family="var(--mono)" font-size="8" font-weight="600" fill="var(--muted)">${paceStr(p)}</text><text class="pacemonth" x="${x}" y="123" text-anchor="middle" font-family="var(--mono)" font-size="6.5" fill="var(--muted)">${monthLab(m)}</text>`;});
     const yrs=[...new Set(paces.map(v=>v[0].slice(0,4)))];
-    h+=`<h2 class="charthead">Pace${hActs('pace',`Average minutes per ${DU()} by month. Lower is faster; coloured points mark the fastest and current months.`,'About Pace')}</h2><div class="card pacecard"><svg class="pacescrub" viewBox="0 0 330 142" style="width:100%;height:auto"><text x="8" y="13" font-family="var(--mono)" font-size="7" fill="var(--faint)">${yrs.join(' / ')}</text><line x1="${x0}" y1="${y0}" x2="${x0+xw}" y2="${y0}" stroke="var(--line)" stroke-width=".8"></line><polyline points="${poly}" fill="none" stroke="var(--accent)" stroke-width="1.3"></polyline>${marks}<line class="pacevline" x1="0" y1="26" x2="0" y2="${y0}" stroke="var(--line)" stroke-width="1" opacity="0"></line>
+    h+=`<h2 class="charthead">Pace${hActs('pace',`Average minutes per ${DU()} by month. Lower is faster. Tap or drag to read the full month and year.`,'About Pace')}</h2><div class="card pacecard"><svg class="pacescrub" viewBox="0 0 330 142" style="width:100%;height:auto"><text x="8" y="13" font-family="var(--mono)" font-size="7" fill="var(--faint)">${yrs.join(' / ')}</text><line x1="${x0}" y1="${y0}" x2="${x0+xw}" y2="${y0}" stroke="var(--line)" stroke-width=".8"></line><polyline points="${poly}" fill="none" stroke="var(--accent)" stroke-width="1.3"></polyline>${marks}<line class="pacevline" x1="0" y1="26" x2="0" y2="${y0}" stroke="var(--line)" stroke-width="1" opacity="0"></line>
       <circle class="pacehalo" r="6" cx="0" cy="0" fill="none" stroke="var(--chalk)" stroke-width="1.4" opacity="0" pointer-events="none"></circle>
       <rect class="pacepad" x="${x0}" y="26" width="${xw}" height="${y0-26}" fill="transparent"></rect></svg>
       <div class="pacecap" data-pacecap>&nbsp;</div></div>`;

@@ -1,5 +1,18 @@
 # ShowUp — changelog
 
+## v3.3.265 (2026-08-21) — Pace labels every point without a red exception
+
+Every monthly Pace point now prints its pace directly above the dot, centered
+on the same x-coordinate. The first and last labels no longer lean inward, and
+the chart no longer makes users infer seven values from the line or scrub just
+to see a number.
+
+The fastest month is no longer a red exception. Every point and the connecting
+line use the same accent blue; the current month may keep its soft blue halo,
+but no performance verdict changes hue. The x-axis now uses the same single
+month initials—`J F M A …`—as ShowUp's other monthly charts instead of
+month-end dates. Scrubbing remains available for the full month and year.
+
 ## v3.3.264 (2026-08-21) — Session Build speaks in Google Sheets colours
 
 Session Build now uses the categorical palette from the maker's original
