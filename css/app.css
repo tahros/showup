@@ -21,23 +21,14 @@
     --rest:#3E5C46;                         /* v3.3.81: declared rest — green's ONE meaning (wash/frame grade) */
     --rest-ink:#8DB596;                     /* v3.3.92: rest as TEXT — same hue, text-grade. A wash colour
                                                cannot also be an ink: 1.69:1 on its own wash proved it */
-    /* v3.3.116: PART_COLORS — the SECOND validated exception to
-       no-categorical-palettes, granted for the part-mix chart where eight
-       series must be told apart at a glance and a lightness ramp cannot do
-       it. Deliberately dodges --live red and --rest green: those hues each
-       mean exactly one thing in this app and a body part is not it, which
-       is why Back is not red and Legs are not green as they are in the
-       maker's spreadsheet. Data hues only; licenses nothing else. */
-    /* v3.3.120: back to one hue — the maker asked for shades of blue, which
-       returns this chart to the app's original no-categorical rule. Sourced
-       from Tailwind 3.4.19 across sky/blue/indigo/cyan so the ramp has some
-       hue drift to help it separate, since pure lightness alone cannot
-       carry eight steps: on a dark ground, eight levels each clearing 3:1
-       and separating from each other do not FIT in the available luminance
-       range. A hairline separator between stacked segments carries the
-       boundary instead, which is why the mutual floor can sit at 1.12. */
-    --p-chest:#60A5FA; --p-back:#A78BFA; --p-shoulder:#38BDF8; --p-legs:#FACC15;
-    --p-biceps:#F472B6; --p-triceps:#2DD4BF; --p-sixpack:#818CF8; --p-run:#0E7490;
+    /* v3.3.264: Session Build returns to the maker's Google Sheets chart
+       language. The palette is categorical on purpose: Shoulder blue, Back
+       red, Legs green, Chest yellow, Biceps orange, with teal and purple
+       extending the same family for Triceps and Sixpack. These variables
+       are data fills reached only through PART_COLORS in Session Build; red
+       and green keep their LIVE / rest meanings everywhere else. */
+    --p-chest:#FABB05; --p-back:#EA4335; --p-shoulder:#4285F4; --p-legs:#34A853;
+    --p-biceps:#FF6D01; --p-triceps:#46BDC6; --p-sixpack:#A142F4; --p-run:#78909C;
     --chart-soft:#616EA3;                   /* v3.3.92: 2025's year line — accent-soft was 2.10:1 as a stroke */
     --live:#C93A2B;                         /* the header while your heart is pumping */
     /* v3.3.201: text ramp lifted per the Dark Mode V3 handoff. The failure
@@ -74,14 +65,13 @@
     --record:#B83528;
     --rest:#79A884;                         /* declared rest, light theme (wash/frame grade) */
     --rest-ink:#3B5742;                     /* rest as text, light */
-    /* v3.3.121: lifted out of the 600–900 range, which read as near-black.
-       The darkness was caused by my own 3:1 fill floor: on a near-white
-       ground, 3:1 MEANS dark. That floor is right for a lone graphic, but
-       these are stacked segments — each one's neighbours are other segments,
-       separated by a stroke, inside an axis and guides. The floor is 2.0 for
-       fills now (see buildcheck) and this ramp spans 2.29–6.82. */
-    --p-chest:#2563EB; --p-back:#7C3AED; --p-shoulder:#0284C7; --p-legs:#A16207;
-    --p-biceps:#BE185D; --p-triceps:#0F766E; --p-sixpack:#4F46E5; --p-run:#075985;
+    /* The Sheets values remain intact in light mode except Chest: Google's
+       #FABB05 yellow is only 1.55:1 on ShowUp's near-white ground, so it is
+       deepened along the same hue to #E0A000 (2.06:1). The colour still
+       reads as the same yellow while every stacked fill clears the 2:1
+       chart floor enforced by buildcheck. */
+    --p-chest:#E0A000; --p-back:#EA4335; --p-shoulder:#4285F4; --p-legs:#34A853;
+    --p-biceps:#FF6D01; --p-triceps:#46BDC6; --p-sixpack:#A142F4; --p-run:#78909C;
     --chart-soft:#7F859F;                   /* 2025's line, light — C3CCF5 was 1.58:1 on white */
     --live:#BE3324;
     /* v3.3.92: muted 4.10:1 on surface2 and faint 2.62:1 on white failed AA;

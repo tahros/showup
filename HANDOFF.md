@@ -1,4 +1,4 @@
-# ShowUp — handoff (2026-08-21, v3.3.263)
+# ShowUp — handoff (2026-08-21, v3.3.264)
 
 Paste this into a new conversation to resume with full context.
 
@@ -16,8 +16,8 @@ Sheets training log.
 - localStorage key: `tracker-v1`
 - Fonts: IBM Plex Sans / IBM Plex Mono
 
-**Current release version: v3.3.263** (Session Build focus labels now follow
-their selected segment; missing release history and workflow notes repaired)
+**Current release version: v3.3.264** (Session Build uses the maker's Google
+Sheets categorical palette, scoped to that chart in both themes)
 
 ---
 
@@ -154,8 +154,8 @@ release. `tools/test-pmix.js` owns Session Build behavior and SVG geometry.
   stepping were repaired.
 - **Stats/History:** Session Build now leads Stats, Muscle Coverage and Growth
   Audit follow, and the History body-part digest was removed. Session Build
-  labels day totals in a fixed row and selected-part counts above their own
-  stacked segments—the last geometry bug is fixed in v3.3.263.
+  labels day totals in a fixed row, selected-part counts above their own
+  stacked segments, and uses the original Google Sheets colour identities.
 
 ## Earlier work (v3.3.36 → v3.3.65)
 
