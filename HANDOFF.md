@@ -1,4 +1,4 @@
-# ShowUp — handoff (2026-08-21, v3.3.265)
+# ShowUp — handoff (2026-08-21, v3.3.266)
 
 Paste this into a new conversation to resume with full context.
 
@@ -16,8 +16,8 @@ Sheets training log.
 - localStorage key: `tracker-v1`
 - Fonts: IBM Plex Sans / IBM Plex Mono
 
-**Current release version: v3.3.265** (Pace labels every monthly point,
-uses mono-tone blue marks, and shares the `J F M A …` month axis)
+**Current release version: v3.3.266** (History pairs `COPY MONTH` with a
+complete, chronological `COPY YEAR` plain-text ledger)
 
 ---
 
