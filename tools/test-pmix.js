@@ -305,20 +305,21 @@ run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
   for(let i=1;i<=20;i++){const d=new Date(t); d.setDate(d.getDate()-i);
     DB.days[d.toLocaleDateString('en-CA')]={w:[
       {part:'Chest',ex:'Press',w:40,reps:[10],at:1},
-      {part:'Back',ex:'Row',w:50,reps:[10],at:1}],upd:1};}
+      {part:'Back',ex:'Row',w:50,reps:[10],at:1},
+      {part:'Legs',ex:'Squat',w:80,reps:[8,8,8],at:1}],upd:1};}
   SEED=deriveAll(); view='stats'; render(); PMIX_FOCUS=null; pmixApplyFocus();})()`);
 /* v3.3.259 put the day total on every bar top; v3.3.260 RESTATES after the
    maker called 19 numbers at 19 heights cluttered. The totals now sit in a
    FIXED HEADER ROW (every label at y=6.5 — the alignment IS the fix), the
    latest bold and the archive muted, and the focused part's count returns
    to its segment top while the totals row stands. The fixture logs 1 Chest
-   + 1 Back per day, so totals read 2 and Chest's focus label reads 1 —
+   + 1 Back + 3 Legs per day, so totals read 5 and Chest's focus label reads 1 —
    both assertions discriminate the two numbers from each other. */
 ok("every column carries the day's total, with no part focused",
    run(`document.querySelectorAll('#pmixWrap [data-lbl="total"]').length`) === 20,
    run(`document.querySelectorAll('#pmixWrap [data-lbl="total"]').length`) + " labels");
 ok("...reading ALL parts that day, not one of them",
-   run(`[...document.querySelectorAll('#pmixWrap [data-lbl="total"]')].every(t=>t.textContent==='2')`));
+   run(`[...document.querySelectorAll('#pmixWrap [data-lbl="total"]')].every(t=>t.textContent==='5')`));
 ok("...in one aligned header row, not perched on the bars",
    run(`[...document.querySelectorAll('#pmixWrap [data-lbl="total"]')].every(t=>t.getAttribute('y')==='6.5')`));
 ok("...with only the latest total bold",
@@ -331,8 +332,21 @@ ok("focusing a part writes its own count back above its segments",
    run(`document.querySelectorAll('#pmixWrap [data-lbl="Chest"]').length`) + " labels");
 ok("...reading the PART's share, distinct from the total",
    run(`[...document.querySelectorAll('#pmixWrap [data-lbl="Chest"]')].every(t=>t.textContent==='1')`));
+/* v3.3.263: Chest is the first segment in catalog order, so the old
+   baseline-only formula happened to put its labels in the right place. Back
+   exposes the bug: its label must sit above Back's actual stacked segment,
+   not at the Chest/Back boundary. Pin the SVG geometry, not just the value. */
+run(`pmixSetFocus('Chest'); pmixSetFocus('Back');`);
+ok("a non-first part label follows its actual stacked segment",
+   run(`(function(){const seg=document.querySelector('#pmixWrap .pmixseg[data-pt="Back"]');
+     const lbl=document.querySelector('#pmixWrap [data-lbl="Back"]');
+     return +lbl.getAttribute('y')===+(+seg.getAttribute('y')-3).toFixed(1);})()`) === true,
+   run(`(function(){const seg=document.querySelector('#pmixWrap .pmixseg[data-pt="Back"]');
+     const lbl=document.querySelector('#pmixWrap [data-lbl="Back"]');
+     return 'segment '+seg.getAttribute('y')+', label '+lbl.getAttribute('y');})()`));
+run(`pmixSetFocus('Back'); pmixSetFocus('Chest');`);
 ok("...while the totals row stands, still reading the whole day",
-   run(`[...document.querySelectorAll('#pmixWrap [data-lbl="total"]')].every(t=>t.textContent==='2')`) &&
+   run(`[...document.querySelectorAll('#pmixWrap [data-lbl="total"]')].every(t=>t.textContent==='5')`) &&
    run(`document.querySelectorAll('#pmixWrap [data-lbl="total"]').length`) === 20);
 run(`pmixSetFocus('Chest');`);
 ok("clearing the focus removes the part labels and keeps the totals",

@@ -1,5 +1,19 @@
 # ShowUp — changelog
 
+## v3.3.263 (2026-08-21) — Focus labels follow their own stack segment
+
+Selecting a body part in Session Build now places each count above that body
+part's actual segment in the stacked bar. The earlier formula measured only
+the selected count upward from the chart baseline, so it was accidentally
+correct for Chest—the first stack segment—but misplaced Back, Shoulders, Legs,
+and every segment above it on mixed-part days.
+
+A regression test now selects Back in a Chest + Back + Legs day and verifies
+the label's SVG position against Back's own segment. The release record is
+also repaired: the missing v3.3.236–v3.3.249 entries are restored below and
+the handoff now describes the current branch/PR release workflow and complete
+test suite.
+
 ## v3.3.262 (2026-08-20) — Cables in pounds step 5
 
 Cable exercises in lb mode now step 5 lb, not 10. Pound cable stacks come
@@ -201,6 +215,88 @@ that bucket mixes plate-loaded Leg Press with stack-fed Leg Extension, and
 until each can say which it is, the plain step is the honest answer.
 
 Nothing in the ledger changes. Weights already logged stay exactly as trained.
+
+## v3.3.249 (2026-08-17) — What you train is editable
+
+Settings now lets a user change the body parts they train after onboarding.
+The control never deletes logged work, never hides Run or a part trained today,
+and always keeps at least one body part enabled.
+
+## v3.3.248 (2026-08-16) — Cold-start recommendations start immediately
+
+Today now recommends a body part before a new user has eight logged days. The
+fallback ranks untrained parts without pretending a cadence is established;
+the eight-day threshold remains only for claims about an actual pattern.
+
+## v3.3.247 (2026-08-15) — Clearance for the iOS standalone edge fade
+
+Standalone iOS installs receive measured top clearance where the operating
+system fades the upper edge. Safari and desktop retain the compact header.
+
+## v3.3.246 (2026-08-15) — Keep the app below the iOS status bar
+
+The PWA stopped using `black-translucent`, which had extended the page beneath
+iOS's status-bar blur. The default status-bar mode lets the system inset the
+web view instead of compositing over ShowUp's header.
+
+## v3.3.245 (2026-08-15) — Header paint isolated from Safari Liquid Glass
+
+The fixed header itself is transparent and carries no backdrop filter; its
+paint lives in an absolute `.hglass` child. Build guards pin that structure so
+Safari does not reinterpret the viewport-edge header as system glass.
+
+## v3.3.244 (2026-08-15) — Service-worker updates happen at launch
+
+The app now explicitly registers its service worker and asks it to update on
+every launch. This closes the stale-shell gap that previously made a shipped
+fix appear one launch late.
+
+## v3.3.243 (2026-08-15) — Header fixed outside the scroller
+
+The top header changed from sticky to fixed so iOS cannot fade its glyphs as
+part of scrolling content. `#app` reserves the measured header height, kept in
+sync by `ResizeObserver`.
+
+## v3.3.242 (2026-08-15) — Header becomes opaque
+
+The resting header no longer uses backdrop blur. At the viewport's first row
+iOS had no backdrop to sample, producing a washed seam behind the status bar;
+an opaque surface removes that undefined edge case.
+
+## v3.3.241 (2026-08-15) — Resting header keeps its body
+
+The rest-state wash now mixes over the app ground instead of transparent,
+preventing scrolled content from bleeding through. Buildcheck enforces a
+minimum body level for frosted chrome.
+
+## v3.3.240 (2026-08-15) — Go-to exercises rank by recency
+
+Go-to now sorts by most recent use, with frequency only breaking ties—the same
+ordering law already used by Sometimes. Membership still requires a genuine
+habit, but an old high-frequency lift no longer outranks its replacement.
+
+## v3.3.239 (2026-08-14) — Growth Audit names the set to beat
+
+The expanded Growth Audit receipt always shows the all-time best and, when no
+improvement occurred, states the set that currently blocks a new record.
+
+## v3.3.238 (2026-08-14) — Growth Audit respects an exercise's chosen home
+
+An exercise is audited under the body part the user assigned in Train, rather
+than a fixed taxonomy. Moving Deadlift from Back to Legs moves its audit row
+without duplicating its sets or days.
+
+## v3.3.237 (2026-08-14) — A new heavier load is a record
+
+Growth Audit now recognizes a first-ever heavier load regardless of whether it
+matches the previous best's reps. Rep-only gains still require the same load,
+so a lighter set cannot borrow credit from a heavier one.
+
+## v3.3.236 (2026-08-14) — Running chart corrections
+
+Distance month labels render again after fixing a date-parsing failure. Pace
+shows nine months, supports touch scrubbing, and labels only the fastest and
+current months; Every Week gains enough headroom for its tallest value.
 
 ## v3.3.235 (2026-08-14) — Pace focuses on the recent six months
 

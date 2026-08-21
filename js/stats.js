@@ -164,11 +164,12 @@ function partMixSvg(days){
     s+=`<rect class="pmixcol${latest?' latest':''}${live?' live':''}" data-col="${i}"
          x="${x-2}" y="${PMIX_TOP}" width="${PMIX_COLW}"
          height="${PMIX_BASE-PMIX_TOP}"></rect>`;
-    let y=PMIX_BASE;
+    let y=PMIX_BASE, focusTop=null;
     for(const p of Object.keys(SEED.catalog)){
       const n=r.by[p]; if(!n) continue;
       const hh=(n/max)*(PMIX_BASE-PMIX_TOP);
       y-=hh;
+      if(p===PMIX_FOCUS) focusTop=y;
       s+=`<rect class="pmixseg${latest&&(!PMIX_FOCUS||p===PMIX_FOCUS)?' latest':''}" data-bar-col="${i}" x="${x}" y="${y.toFixed(1)}" width="${bw}" height="${hh.toFixed(1)}"
            fill="${PART_COLORS[p]||'var(--muted)'}" data-pt="${p}"
            stroke="var(--ground)" stroke-width="0.5"></rect>`;
@@ -212,9 +213,9 @@ function partMixSvg(days){
            ${newest?'font-weight="700" fill="var(--chalk)"':'fill="var(--muted)"'}
            data-lbl="total" data-lbltot="${r.total}">${pmixTick(r.total)}</text>`;
     }
-    if(PMIX_FOCUS && r.by[PMIX_FOCUS]){
-      const v=r.by[PMIX_FOCUS], top=PMIX_BASE-(v/max)*(PMIX_BASE-PMIX_TOP);
-      if(top>=16) s+=`<text x="${x+bw/2}" y="${(top-3).toFixed(1)}" text-anchor="middle"
+    if(PMIX_FOCUS && r.by[PMIX_FOCUS] && focusTop!==null){
+      const v=r.by[PMIX_FOCUS];
+      if(focusTop>=16) s+=`<text x="${x+bw/2}" y="${(focusTop-3).toFixed(1)}" text-anchor="middle"
            font-family="var(--mono)" font-size="6.5" fill="var(--chalk)"
            data-lbl="${PMIX_FOCUS}">${pmixTick(v)}</text>`;
     }
