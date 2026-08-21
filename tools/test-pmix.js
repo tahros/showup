@@ -104,9 +104,18 @@ ok("dark-theme part fills are all lighter than the dark ground",
 ok("light-theme part fills are all darker than the light ground",
    lParts.length === 8 && lParts.every(p => lumOf(p) < lumOf(groundOf(lightBlk))),
    lParts.length + " colours");
-// and they are genuinely different values, not one theme pasted into both
-ok("the two themes use different steps, not the same hex",
-   dParts.every((p,i) => p.toLowerCase() !== lParts[i].toLowerCase()));
+const partMap = blk => Object.fromEntries(
+  [...blk.matchAll(/--p-([a-z]+):\s*(#[0-9A-Fa-f]{6})/g)]
+    .map(m => [m[1],m[2].toUpperCase()]));
+const darkParts=partMap(darkBlk), lightParts=partMap(lightBlk);
+ok("v3.3.264: dark Session Build follows the Google Sheets colour identities",
+   JSON.stringify(darkParts)===JSON.stringify({
+     chest:'#FABB05',back:'#EA4335',shoulder:'#4285F4',legs:'#34A853',
+     biceps:'#FF6D01',triceps:'#46BDC6',sixpack:'#A142F4',run:'#78909C'}),
+   JSON.stringify(darkParts));
+ok("...and light keeps them, deepening only the low-contrast yellow",
+   JSON.stringify(lightParts)===JSON.stringify({...darkParts,chest:'#E0A000'}),
+   JSON.stringify(lightParts));
 
 /* v3.3.120 rewrites the v3.3.119 rule. That version assumed a CATEGORICAL
    palette, where two fills sharing a hue meant a collision. The palette is
@@ -138,7 +147,7 @@ for (const [label, set] of [["dark", dParts], ["light", lParts]])
   ok(`all ${label} part colours are distinct`,new Set(set.map(x=>x.toLowerCase())).size===set.length,set.join(' '));
 // the separator is what lets the ramp work at all
 const statsSrc120 = fs.readFileSync(path.join(dir, "js/stats.js"), "utf8");
-ok("stacked segments are separated by a hairline, so touching blues still read",
+ok("stacked segments are separated by a hairline, so touching colours still read",
    /stroke="var\(--ground\)" stroke-width="0\.5"/.test(statsSrc120));
 // v3.3.217: the filters return to categorical colour so they can be found
 // under a thumb without decoding seven nearly adjacent blues.
@@ -148,13 +157,12 @@ ok("the palette spans several hue families, not only blue",
    hues.map(Math.round).sort((a,b)=>a-b).join(","));
 const live = (css.match(/--live:(#[0-9A-Fa-f]{6})/g) || []).map(s => s.split(":")[1].toUpperCase());
 const rest = (css.match(/--rest:(#[0-9A-Fa-f]{6})/g) || []).map(s => s.split(":")[1].toUpperCase());
-ok("no part colour reuses the LIVE red or the REST green",
+ok("the categorical red and green do not reuse the semantic state tokens",
    !partVars.some(p => live.includes(p) || rest.includes(p)),
    "live " + live.join("/") + " rest " + rest.join("/"));
-/* Hue distance is the honest measure here. A first draft used raw channel
-   dominance and flagged amber (36\u00b0) and pink (331\u00b0) as "red", which they
-   plainly are not \u2014 the LIVE red sits at 5\u00b0. What matters is angular
-   separation from the two hues that carry state meaning. */
+/* Identify colours near the semantic LIVE/rest hues. In v3.3.264 proximity
+   is deliberate for Back, Legs and Biceps, but the exact state tokens remain
+   separate and the category palette stays scoped to Session Build. */
 const hueOf = hx => {
   const r = parseInt(hx.slice(1,3),16)/255, g = parseInt(hx.slice(3,5),16)/255, b = parseInt(hx.slice(5,7),16)/255;
   const mx = Math.max(r,g,b), mn = Math.min(r,g,b), d = mx-mn;
@@ -163,12 +171,7 @@ const hueOf = hx => {
   h *= 60; return h < 0 ? h+360 : h;
 };
 const apart = (a,b) => { const d = Math.abs(a-b)%360; return Math.min(d, 360-d); };
-/* Saturation matters as much as hue. The LIVE red is a saturated brick
-   (~0.65); Run's brown sits at the same end of the wheel but at ~0.31, and
-   a muted brown cannot be mistaken for a state colour. So a part colour
-   passes if it is either far in hue OR too desaturated to read as state.
-   A hue-only draft failed the browns, which was the test being blunt
-   rather than the palette being wrong. */
+/* Saturation prevents a muted neighbour from being counted as state-like. */
 const satOf = hx => {
   const r = parseInt(hx.slice(1,3),16)/255, g = parseInt(hx.slice(3,5),16)/255, b = parseInt(hx.slice(5,7),16)/255;
   const mx = Math.max(r,g,b), mn = Math.min(r,g,b), d = mx-mn, l = (mx+mn)/2;
@@ -177,22 +180,21 @@ const satOf = hx => {
 const stateHues = [...live, ...rest].map(hueOf);
 const tooClose = partVars.filter(p =>
   stateHues.some(s => apart(hueOf(p), s) < 25) && satOf(p) > 0.45);
-ok("...and no part colour can read as a state colour (hue OR saturation apart)",
-   tooClose.length === 0,
+ok("the three state-adjacent hues are deliberate Google category identities",
+   tooClose.length===6 && new Set(tooClose).size===3 &&
+   ['#EA4335','#34A853','#FF6D01'].every(p=>tooClose.includes(p)),
    tooClose.length ? tooClose.map(p => `${p}@${Math.round(hueOf(p))}\u00b0 sat${satOf(p).toFixed(2)}`).join(",")
                    : "state sat " + satOf(live[0]).toFixed(2) + " vs nearest part " +
                      satOf(partVars.slice().sort((a,b)=>
                        Math.min(...stateHues.map(s=>apart(hueOf(a),s))) -
                        Math.min(...stateHues.map(s=>apart(hueOf(b),s))))[0]).toFixed(2));
 
-/* The stronger guard: PART_COLORS may only ever be a chart fill. --live and
-   --rest never are, so even a near hue cannot be confused \u2014 provided the
-   part vars stay scoped. Same shape as the v3.3.81 rule that every
-   var(--rest) rule is rest-named. */
+/* The decisive guard: the Google colours are licensed only as Session Build
+   data fills. They never become hand-written app-wide CSS fills. */
 const statsSrc = fs.readFileSync(path.join(dir, "js/stats.js"), "utf8");
 const utilSrc = fs.readFileSync(path.join(dir, "js/util.js"), "utf8");
 const partVarUses = [...(statsSrc + utilSrc + css).matchAll(/var\(--p-[a-z]+\)/g)].length;
-ok("part colours appear only via PART_COLORS, never hand-written into a rule",
+ok("part colours stay scoped through Session Build's PART_COLORS map",
    !/[^-]--p-[a-z]+\s*:/.test(statsSrc) && !/var\(--p-[a-z]+\)/.test(css),
    partVarUses + " uses, all through the map");
 ok("PART_COLORS covers every catalog part",

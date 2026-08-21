@@ -1,5 +1,19 @@
 # ShowUp — changelog
 
+## v3.3.264 (2026-08-21) — Session Build speaks in Google Sheets colours
+
+Session Build now uses the categorical palette from the maker's original
+Google Sheets chart: Chest yellow, Back red, Shoulder blue, Legs green,
+Biceps orange, Triceps teal, and Sixpack purple. Each body part can be found
+at a glance without decoding a ramp of related blues.
+
+The palette is scoped to Session Build data fills; the app's semantic LIVE red
+and rest green remain unchanged everywhere else. Dark mode keeps the bright
+Sheets values. Light mode keeps the same identities but deepens Chest's yellow
+from `#FABB05` to `#E0A000`, the smallest adjustment that clears ShowUp's 2:1
+chart-visibility floor on its near-white ground. Tests pin both mappings, their
+contrast, and their scope.
+
 ## v3.3.263 (2026-08-21) — Focus labels follow their own stack segment
 
 Selecting a body part in Session Build now places each count above that body
