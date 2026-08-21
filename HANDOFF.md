@@ -1,4 +1,4 @@
-# ShowUp — handoff (2026-08-14, v3.3.235)
+# ShowUp — handoff (2026-08-21, v3.3.263)
 
 Paste this into a new conversation to resume with full context.
 
@@ -16,8 +16,8 @@ Sheets training log.
 - localStorage key: `tracker-v1`
 - Fonts: IBM Plex Sans / IBM Plex Mono
 
-**Current release version: v3.3.235** (Pace focuses on six months, uses blue
-ordinary points, larger labels and more title-to-chart spacing)
+**Current release version: v3.3.263** (Session Build focus labels now follow
+their selected segment; missing release history and workflow notes repaired)
 
 ---
 
@@ -57,47 +57,42 @@ over-engineering is actively resisted.
 
 ---
 
-## Verification harness — NOW COMMITTED at `tools/`
+## Verification harness — committed at `tools/`
 
-It lived only in the sandbox and was destroyed by container resets twice. It is
-now in the repo. **Restore it in a fresh sandbox:**
+The repository currently has **48 Node behavioral suites plus buildcheck**.
+Tests require `jsdom`; install it in an external dependency directory or expose
+an existing installation through `NODE_PATH` rather than adding generated
+dependency files to this repository.
 
-```bash
-mkdir -p /home/claude/work/refactor && cd /home/claude/work/refactor
-# clone/pull repo into stage65/ (or next stage number)
-cp stage65/tools/* .
-npm install jsdom
-python3 buildcheck.py stage65 && node smoke.js stage65
-for t in todayhero settings sessfmt histpart reseal scrollpos exitpair \
-         continue statspolish repweight enter addsub calreturn pastedit; do
-  node test-$t.js stage65 >/dev/null 2>&1 && echo "$t OK" || echo "$t FAIL"
-done
+```powershell
+python tools/buildcheck.py .
+$env:NODE_PATH = '<external-node_modules>'
+Get-ChildItem tools/test-*.js | ForEach-Object {
+  node $_.FullName .
+  if ($LASTEXITCODE) { exit $LASTEXITCODE }
+}
 ```
 
-**PAT** at `/home/claude/.ghtok` (mode 600). Was expected to expire ~2026-07-23
-but still returned HTTP 200 on 2026-07-24. **Verify it early; renewal is
-user-supplied.** It lacks `pages` scope, so Pages builds are commit-triggered only.
-
-### The 14 behavioural suites
-`todayhero` · `settings` · `sessfmt` · `histpart` · `reseal` · `scrollpos` ·
-`exitpair` · `continue` · `statspolish` · `repweight` · `enter` · `addsub` ·
-`calreturn` · `pastedit`
+Run the targeted suite first while iterating, then run all 49 checks before a
+release. `tools/test-pmix.js` owns Session Build behavior and SVG geometry.
 
 ---
 
 ## Release ritual (every version, no exceptions)
 
-1. `cp -r stageN stageN+1` (check it didn't nest!)
-2. Make the change with **assertion-guarded** Python patch scripts (`assert
-   c.count(old)==1` before every replace)
-3. Bump `APP_VERSION` in `js/core.js`; `?v=` on every asset in `index.html`;
-   `sw.js` CACHE + 12 SHELL stamps
-4. `node --check` every touched JS file
-5. `python3 buildcheck.py stageN+1`
-6. Targeted new test + **full 14-suite regression**
-7. CHANGELOG.md entry with date and reasoning
-8. `python3 deploy.py stageN+1 "msg" <files>`
-9. Poll Pages build until `built`, then `cmp` deployed bytes against the stage
+1. Fetch `origin`, confirm a clean tree, and branch from current `main`.
+2. Make the smallest reviewable patch; do not overwrite unrelated work.
+3. Bump `APP_VERSION` in `js/core.js`; every `?v=` asset in `index.html`; and
+   the `sw.js` cache plus shell stamps.
+4. Run `node --check` on every touched JavaScript file.
+5. Run `python tools/buildcheck.py .`.
+6. Run the targeted regression, then **all 48 Node suites**.
+7. Add a dated CHANGELOG entry and update this handoff when the current state,
+   workflow, or durable design logic changed.
+8. Commit only the intended files, push the feature branch, open a PR, and
+   merge it into `main`—no direct feature commits to `main`.
+9. Confirm GitHub Pages built the merged commit and the live Settings footer
+   reports the new version.
 
 ---
 
@@ -142,11 +137,31 @@ user-supplied.** It lacks `pages` scope, so Pages builds are commit-triggered on
 
 ---
 
-## Recent work (v3.3.36 → v3.3.65)
+## Recent work (v3.3.236 → v3.3.263)
 
-**History rebuilt:** shorter calendar, body-part axis with filter chips + digest
-(cadence / growth / sets), dense selectors, sessions open by default in the
-LAST TIME grouped format, calendar-tap jump with sticky-header clearance.
+- **Running:** Pace intentionally shows nine months and is touch-scrubbable;
+  Distance labels were repaired and Every Week gained chart headroom.
+- **Growth Audit:** records have a rolling 180-day authority window while
+  all-time remains visible; improvements compare across days, not within one
+  day; chosen exercise homes control grouping; in-progress records are shown.
+- **New-user guidance:** Today recommends before eight logged days, and the
+  onboarding answer to "What you train" is editable without deleting history.
+- **iOS/PWA:** the top header and status-bar treatment were rebuilt around iOS
+  standalone behavior, and the service worker now registers and checks for an
+  update at launch.
+- **Equipment:** increments now come from one kg/lb equipment table; stack and
+  plate-loaded machines are distinct; pound-barbell minus and cable-pound
+  stepping were repaired.
+- **Stats/History:** Session Build now leads Stats, Muscle Coverage and Growth
+  Audit follow, and the History body-part digest was removed. Session Build
+  labels day totals in a fixed row and selected-part counts above their own
+  stacked segments—the last geometry bug is fixed in v3.3.263.
+
+## Earlier work (v3.3.36 → v3.3.65)
+
+**History rebuilt:** shorter calendar, body-part filter chips, dense selectors,
+sessions open by default in the LAST TIME grouped format, and calendar-tap jump
+with header clearance. (The experimental digest was later removed in v3.3.258.)
 
 **Past-day editing (v3.3.61–63):** explicit per-day edit mode; edit / delete /
 add sets; addressed by entry-index + rep-index so legacy multi-rep rows are
@@ -189,7 +204,8 @@ animate in on part change and carry a `→` affordance; app-wide "↑ top" butto
   Backup ↓ first (926 days of data).
 - ROADMAP waves: v3.4 custom exercises → v4.0 Routine Engine → v5.0 Import
   wizard → v6.0 premium.
-- Phase 0 blocker: the build contains personal seed data tied to my account.
+- Personal seed data was removed from the build in v3.2.1; history now lives in
+  Supabase/local storage.
 - Milestone moment has never fired for real (~16 km from 2,400 lifetime km).
 - 2026 km goal number still mine to re-pick.
 
