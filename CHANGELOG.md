@@ -1,5 +1,23 @@
 # ShowUp — changelog
 
+## v3.3.270 (2026-08-22) — One motion voice
+
+Everything that arrives now arrives the same way: a single settle curve that
+starts fast and lands long, so cards, tab changes, meters and chart bars
+settle into place instead of snapping. Three speeds — instant feedback for
+presses, a short beat for state changes, an unhurried arrival for reveals —
+replace ten scattered curves and a dozen scattered durations. Tab switches
+drift in from slightly further and take slightly longer, on purpose.
+
+Three motions keep their own physics, deliberately: the press-in spring under
+your finger, the save-celebration spring, and the pull-to-refresh band-back.
+Reaction stays instant everywhere; only arrival became composed.
+
+The voice is enforced, not aspirational: the build now fails, naming the
+curve, if any future change introduces an easing that is not the shared one
+or an allowlisted spring. Reduced-motion settings are respected exactly as
+before.
+
 ## v3.3.269 (2026-08-22) — Body part chips say how long it has been
 
 A body part you trained two days ago no longer reads `dormant`. Each chip now

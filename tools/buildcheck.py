@@ -563,6 +563,27 @@ if not _order or not all(_seg in _order.group(0) for _seg in
 if _order and _re.search(r"_S\.(?:cons|dbm|last6|wd)\b", _order.group(0)):
     fail.append("stats: a retired time section returned to the declared order (v3.3.213)")
 _util = (d/"js/util.js").read_text()
+# -- v3.3.270: THE MOTION VOICE. One settle curve, three speeds, and three
+# allowlisted physics (press spring, save spring, iOS band-back). Any other
+# cubic-bezier literal in css/app.css is an ad-hoc curve and fails by name,
+# which is what keeps "one voice" true after this release.
+_css_motion = (d/"css/app.css").read_text()
+for _tok in ("--settle:", "--dur-quick:", "--dur-move:", "--dur-arrive:"):
+    if _tok not in _css_motion:
+        fail.append(f"motion: token {_tok} missing from css/app.css (v3.3.270)")
+_MOTION_ALLOW = {"cubic-bezier(.22,1,.36,1)",   # the settle voice itself
+                 "cubic-bezier(.2,.9,.3,1.4)",  # tap press spring
+                 "cubic-bezier(.3,1.4,.4,1)",   # save celebration spring
+                 "cubic-bezier(.16,1.06,.3,1)"} # band-back overshoot, like iOS
+for _cb in set(_re.findall(r"cubic-bezier\([^)]*\)", _css_motion)):
+    if _cb not in _MOTION_ALLOW:
+        fail.append(f"motion: ad-hoc curve {_cb} — speak with var(--settle) or allowlist it (v3.3.270)")
+for _site in ("animation:vtin var(--dur-arrive) var(--settle)",
+              "animation:cardin var(--dur-arrive) var(--settle)",
+              "animation:msin var(--dur-arrive) var(--settle)"):
+    if _site.replace("animation:vtin ","animation:vtin ") not in _css_motion and _site not in _css_motion:
+        fail.append(f"motion: arrival site lost the voice: {_site} (v3.3.270)")
+
 # -- v3.3.256: the weight table must cover every equipment class in both
 # units. Increments are per-unit physical facts (lb dumbbells rack in 5s,
 # kg in 2s); a class without a declared row would silently inherit the

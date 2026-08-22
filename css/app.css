@@ -1,4 +1,16 @@
 :root{--sat:env(safe-area-inset-top,0px);
+    /* v3.3.270 — THE MOTION VOICE. One settle curve, three speeds, spoken
+       everywhere something arrives or changes state. The curve starts fast
+       and lands long — things settle like architecture, they do not snap.
+       --dur-quick  feedback: presses, toggles. Reaction stays instant.
+       --dur-move   state changes: fades, small slides, chart emphasis.
+       --dur-arrive arrivals: cards, views, meters. Composed, unhurried.
+       Three curves keep their own physics by design and are allowlisted in
+       buildcheck: the save spring, the weight-wheel spring, and the iOS
+       band-back overshoot. Everything else speaks with one voice; a new
+       ad-hoc cubic-bezier anywhere in this file fails the build. */
+    --settle:cubic-bezier(.22,1,.36,1);
+    --dur-quick:.16s; --dur-move:.26s; --dur-arrive:.42s;
     color-scheme:dark;
     /* v3.3.202 (Dark Mode V3, step 2): surfaces and the two fills that carry
        white or coloured text.
@@ -143,7 +155,7 @@
     /* v3.3.55: NEVER wrap. A long exercise title used to push the timer and
        gear onto a second row. The title truncates instead — the bar is one
        row, always. */
-    transition:background .35s,border-color .35s;
+    transition:background .35s var(--settle),border-color .35s var(--settle);
   }
   header.live .hglass{background:var(--live);border-color:var(--live);
     box-shadow:0 6px 24px -6px color-mix(in srgb,var(--live) 45%,transparent)}
@@ -338,7 +350,7 @@
 
   #msOv{position:fixed;inset:0;z-index:95;display:none;align-items:center;justify-content:center;
     background:var(--ground);cursor:pointer}
-  .msIn{text-align:center;animation:msin .38s cubic-bezier(.2,.8,.3,1)}
+  .msIn{text-align:center;animation:msin var(--dur-arrive) var(--settle)}
   @keyframes msin{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
   @media (prefers-reduced-motion:reduce){.msIn{animation:none}.item.logrow.enter{animation:none}}
   .msNum{font-size:76px;font-weight:700;letter-spacing:var(--track-num);color:var(--chalk);line-height:1}
@@ -402,7 +414,7 @@
   .delta.linkdate{color:var(--accent-ink)} .delta.linkdate.down{color:var(--record)}
   .legend1 [data-yr]{cursor:pointer;border-radius:8px;padding:2px 5px;flex:0 0 auto}
   .legend1 [data-yr].selY{background:var(--surface2);outline:1px solid var(--line)}
-  .card[data-ysel] svg [data-yr]{opacity:.14;transition:opacity .18s}
+  .card[data-ysel] svg [data-yr]{opacity:.14;transition:opacity var(--dur-move) var(--settle)}
   .card[data-ysel] svg [data-yr].selY{opacity:1;stroke-width:2.6}
   .card[data-ysel] svg text[data-yr].selY{opacity:1}
   .cd[data-hd]{cursor:pointer}
@@ -430,7 +442,7 @@
   .notecard{background:var(--surface2);border:1px dashed var(--line);box-shadow:none}
   .notecard .smeter{background:var(--surface)}
   .smeter{height:9px;border-radius:5px;background:var(--surface2);overflow:hidden;position:relative}
-  .smeter i{display:block;height:100%;border-radius:5px;background:var(--accent);opacity:.75;transition:width .5s cubic-bezier(.2,.8,.25,1)}
+  .smeter i{display:block;height:100%;border-radius:5px;background:var(--accent);opacity:.75;transition:width .5s var(--settle)}
   .smeter i.over{opacity:1;box-shadow:0 0 8px color-mix(in srgb,var(--accent) 60%,transparent)}
   /* v3.3.34: the part meter is a live bar — red while the session is in
      motion, accent once it's sealed. Same rule as the header and the fire
@@ -548,7 +560,7 @@
     font-family:var(--mono);font-size:10px;font-weight:600;cursor:pointer;
     text-transform:lowercase;width:22px;height:22px;line-height:20px;padding:0;
     text-align:center;vertical-align:middle;display:inline-block;
-    transition:background .12s ease}
+    transition:background var(--dur-quick) var(--settle)}
   .ibtn:active{background:var(--line)}
   @media (prefers-reduced-motion:reduce){.ibtn{transition:none}}
   h2 .hacts{margin-left:1px}
@@ -622,7 +634,7 @@
   .spread{justify-content:space-between}
   .muted{color:var(--muted)} .mono{font-family:var(--mono)}
   .meter{height:6px;border-radius:3px;background:var(--surface2);overflow:hidden;margin-top:12px}
-  .meter i{display:block;height:100%;background:var(--accent);transition:width .3s}
+  .meter i{display:block;height:100%;background:var(--accent);transition:width var(--dur-arrive) var(--settle)}
   /* chips */
   .chips{display:flex;flex-wrap:wrap;gap:8px}
   .chip{font:inherit;font-size:14px;background:var(--surface);color:var(--chalk);
@@ -653,7 +665,7 @@
   .readyrow:last-of-type{border-bottom:0}
   .readyrow .rname{flex:0 0 88px;font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .readyrow .rbar{flex:1;height:8px;border-radius:4px;background:var(--surface2);overflow:hidden}
-  .readyrow .rbar i{display:block;height:100%;border-radius:4px;background:var(--faint);transition:width .4s}
+  .readyrow .rbar i{display:block;height:100%;border-radius:4px;background:var(--faint);transition:width var(--dur-arrive) var(--settle)}
   .readyrow .rbar i.due{background:var(--accent)}
   .readyrow .rmeta{flex:none;font-family:var(--mono);font-size:11px;color:var(--chalk)}
   .readyrow .rmeta em{font-style:normal;color:var(--muted)}
@@ -703,7 +715,7 @@
      same invitation in the same accent, sized for a glance not a shout. */
   .gochev{position:absolute;right:12px;top:50%;transform:translateY(-50%);
     color:var(--accent);font-size:17px;line-height:1;opacity:.75;
-    transition:transform .18s ease,opacity .18s ease}
+    transition:transform var(--dur-move) var(--settle),opacity var(--dur-move) var(--settle)}
   .logrow.goto .logmain{position:relative;padding-right:34px}
   .logrow.goto .logmain:active .gochev{transform:translateY(-50%) translateX(3px);opacity:1}
   .logmain{flex:1;min-width:0;background:none;border:0;color:var(--chalk);font:inherit;text-align:left;cursor:pointer;padding:0}
@@ -868,7 +880,7 @@
     font-family:var(--mono);font-size:12px;letter-spacing:var(--track-label);
     background:var(--accent);color:#fff;border:0;border-radius:999px;
     padding:9px 15px;box-shadow:0 4px 14px rgba(0,0,0,.22);cursor:pointer;
-    animation:cardin .2s ease backwards}
+    animation:cardin var(--dur-move) var(--settle) backwards}
   .calreturn[hidden]{display:none}
   .strip{display:flex;gap:3px;margin-top:14px;position:relative}
   /* ---- sheen system (v3.3.27): accent surfaces of meaningful size.
@@ -971,11 +983,11 @@
     /* 5b. below-fold blocks float up as they scroll into view */
     #view .float-pre{opacity:0;transform:translateY(16px);animation:none!important}
     #view .float-in{opacity:1;transform:none;
-      transition:opacity .5s cubic-bezier(.2,.8,.25,1),transform .5s cubic-bezier(.2,.8,.25,1)}
+      transition:opacity .5s var(--settle),transform .5s var(--settle)}
 
     /* 5. cards + headers rise in with a stagger (JS sets --i per element) */
     #view>.card,#view>h2,#view>.kpis,#view>table{
-      animation:rise .34s cubic-bezier(.2,.8,.25,1) both;
+      animation:rise var(--dur-arrive) var(--settle) both;
       animation-delay:calc(var(--i,0)*40ms)}
 
     /* 3. the set you just logged springs in; a PR gets one red pulse */
@@ -985,9 +997,9 @@
 
     /* 6. charts draw themselves — lines sweep, bars grow from the baseline */
     svg polyline.draw{stroke-dasharray:var(--len);stroke-dashoffset:var(--len);
-      animation:sweep .8s cubic-bezier(.3,.7,.3,1) forwards;animation-delay:calc(var(--i,0)*60ms + .15s)}
+      animation:sweep .8s var(--settle) forwards;animation-delay:calc(var(--i,0)*60ms + .15s)}
     svg rect.gbar{transform-box:fill-box;transform-origin:center bottom;
-      animation:grow .45s cubic-bezier(.2,.8,.25,1) both;animation-delay:calc(var(--i,0)*22ms)}
+      animation:grow .45s var(--settle) both;animation-delay:calc(var(--i,0)*22ms)}
     .beacon{animation:beacon 1.8s ease-in-out infinite}
   }
   @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
@@ -998,7 +1010,7 @@
   /* v3.3.57: exercise cards ARRIVE when a part is chosen — a 7px rise with a
      40ms stagger, once. fill-mode:backwards, never both: a finished card must
      leave no transform and no stacking context (the v3.3.16 lesson). */
-  .item.logrow.enter{animation:cardin .34s cubic-bezier(.2,.9,.25,1) backwards;
+  .item.logrow.enter{animation:cardin var(--dur-arrive) var(--settle) backwards;
     animation-delay:calc(var(--i,0)*45ms)}
   /* v3.3.64: 7px was invisible on a single-card list. A 14px rise with a
      slight scale reads as arrival without becoming a bounce. */
@@ -1006,10 +1018,10 @@
   @keyframes grow{from{transform:scaleY(.02)}to{transform:none}}
 
   /* 1. tab switching — View Transitions API (iOS 18+); a quiet 3px drift + fade */
-  ::view-transition-old(root){animation:vtout .16s ease both}
-  ::view-transition-new(root){animation:vtin .2s ease both}
+  ::view-transition-old(root){animation:vtout var(--dur-quick) var(--settle) both}
+  ::view-transition-new(root){animation:vtin var(--dur-arrive) var(--settle) both}
   @keyframes vtout{to{opacity:0}}
-  @keyframes vtin{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+  @keyframes vtin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
   @media (prefers-reduced-motion:reduce){
     ::view-transition-old(root),::view-transition-new(root){animation:none}}
 
@@ -1021,7 +1033,7 @@
   body.banding{transition:none}
   body.bandback{transition:transform .42s cubic-bezier(.16,1.06,.3,1)}  /* overshoot, like iOS */
   body.pulling{transition:none}
-  body.settling{transition:transform .28s cubic-bezier(.2,.8,.25,1)}
+  body.settling{transition:transform .28s var(--settle)}
   #swipehint{position:fixed;top:50%;z-index:55;pointer-events:none;
     transform:translateY(-50%);opacity:0;transition:opacity .12s}
   #swipehint.on{opacity:1}
@@ -1034,7 +1046,7 @@
     box-shadow:0 3px 12px rgba(0,0,0,.28);
     display:flex;align-items:center;justify-content:center;
     transform:translateY(calc(-58px - env(safe-area-inset-top,0px)));pointer-events:none}
-  #ptr svg{width:16px;height:16px;stroke:var(--muted);transition:transform .18s,stroke .18s}
+  #ptr svg{width:16px;height:16px;stroke:var(--muted);transition:transform var(--dur-quick) var(--settle),stroke var(--dur-quick) var(--settle)}
   #ptr.arm svg{transform:rotate(180deg);stroke:var(--accent)}
   #ptr.spin svg{animation:ptrspin .7s linear infinite;stroke:var(--accent)}
   @keyframes ptrspin{to{transform:rotate(360deg)}}
@@ -1071,7 +1083,7 @@
     background:var(--accent);color:#fff;font-family:var(--mono);font-size:14px;
     line-height:30px;text-align:center;padding:0;box-shadow:var(--shadow);
     opacity:0;pointer-events:none;transform:translateX(6px);
-    transition:opacity .18s ease,transform .18s ease}
+    transition:opacity var(--dur-move) var(--settle),transform var(--dur-move) var(--settle)}
   .pmixnow.on{opacity:1;pointer-events:auto;transform:translateX(0)}
   /* v3.3.228: the legend is chart furniture, not a cloud of seven buttons.
      The controls keep 44px transparent hit areas; only the small swatch and
@@ -1110,7 +1122,7 @@
   .pmixcol.latest.live{fill:var(--live)}
   .pmixbricks{shape-rendering:crispEdges}
   .pmixseg.latest{transform-box:fill-box;transform-origin:center bottom;
-    animation:pmixrise .38s cubic-bezier(.2,.8,.25,1) both}
+    animation:pmixrise var(--dur-arrive) var(--settle) both}
   @keyframes pmixlatest{0%,100%{opacity:.13}50%{opacity:.04}}
   @keyframes pmixrise{from{transform:scaleY(0)}to{transform:scaleY(1)}}
   @media (prefers-reduced-motion:reduce){
@@ -1121,7 +1133,7 @@
   .pmixlgd button{--pmix-part:var(--muted);position:relative;display:flex;align-items:center;justify-content:center;
     gap:6px;min-width:0;min-height:44px;padding:0 3px;border:0;background:transparent;
     color:var(--muted);font-family:var(--mono);font-size:10px;letter-spacing:.02em;
-    cursor:pointer;transition:opacity .15s ease,color .15s ease}
+    cursor:pointer;transition:opacity var(--dur-quick) var(--settle),color var(--dur-quick) var(--settle)}
   /* v3.3.229: keep two honest 44px tap rows, but pull their visible contents
      toward the shared seam. The labels read as one compact legend without
      overlapping or shrinking the hit areas. */
@@ -1130,11 +1142,11 @@
   .pmixlgd button span{position:relative}
   .pmixlgd button span::after{content:'';position:absolute;left:0;right:0;bottom:-5px;
     height:2px;border-radius:1px;background:var(--pmix-part);transform:scaleX(0);
-    transform-origin:center;transition:transform .15s ease}
+    transform-origin:center;transition:transform var(--dur-quick) var(--settle)}
   .pmixlgd button.on{color:var(--chalk);font-weight:700}
   .pmixlgd button.on span::after{transform:scaleX(1)}
   .pmixlgd button.off{opacity:.4}
-  #pmixWrap rect[data-pt]{transition:opacity .15s ease}
+  #pmixWrap rect[data-pt]{transition:opacity var(--dur-quick) var(--settle)}
   @media (prefers-reduced-motion:reduce){
     .pmixlgd button,.pmixlgd button span::after,#pmixWrap rect[data-pt]{transition:none}}
   .pmixlgd i{width:8px;height:8px;border-radius:2px;flex:0 0 8px;background:var(--pmix-part)}
@@ -1299,7 +1311,7 @@
   }
   #toast{position:fixed;bottom:86px;left:50%;transform:translateX(-50%) translateY(20px);
     background:var(--chalk);color:var(--ground);font-family:var(--mono);font-size:12px;
-    padding:9px 14px;border-radius:999px;opacity:0;transition:.22s;pointer-events:none;z-index:40;max-width:86%;text-align:center}
+    padding:9px 14px;border-radius:999px;opacity:0;transition:var(--dur-move) var(--settle);pointer-events:none;z-index:40;max-width:86%;text-align:center}
   #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
   .note{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:8px;line-height:1.6}
   .assetcredits a{color:inherit;text-decoration:underline dotted;text-underline-offset:3px}
