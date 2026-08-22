@@ -124,7 +124,15 @@ function renderLift(){
     if(lift.part!=='Run'){
       const lp=lastPartSession(lift.part);
       if(lp){
-        h+=`<div class="lastcard partlast"><div class="lasthead"><span>LAST TIME · ${lift.part.toUpperCase()}</span><button class="ago linkdate" data-histd="${lp.d}">${wd2(lp.d)} · ${agoStr(lp.d)}</button></div>
+        /* v3.3.273: the SCOPE PILL. The maker could not tell that the sections
+           below the part grid belong to the selected chip — the dependency was
+           real but invisible. The pill is the selected chip restated in
+           miniature (same white-on-accent, same word), leading every scoped
+           surface, so the eye threads chip -> last time -> go-to without a
+           single new colour or shape entering the vocabulary. Heading order
+           unifies part-first at the same stroke ("LAST TIME · BACK" and
+           "BACK · GO-TO" disagreed about which comes first). */
+        h+=`<div class="lastcard partlast"><div class="lasthead"><span><b class="scopepill">${lift.part}</b> last time</span><button class="ago linkdate" data-histd="${lp.d}">${wd2(lp.d)} · ${agoStr(lp.d)}</button></div>
           <div class="inlinehelp">Tap an exercise to use its previous weight. A checkmark means you completed it today.</div>`;
         for(const g of lp.groups){
           const doneNow=t.w.some(x=>x.ex===g.ex&&(x.reps||[]).length);
@@ -173,7 +181,7 @@ function renderLift(){
     const some=list.filter(x=>x.tier==='sometimes').sort((a,b)=>(b.last||'').localeCompare(a.last||''));
     const fresh=list.filter(x=>x.tier==='new').sort((a,b)=>a.ex.localeCompare(b.ex));
     if(goto.length){
-      h+=`<h2>${lift.part} · go-to</h2>`;
+      h+=`<h2><b class="scopepill">${lift.part}</b> go-to</h2>`;
       goto.forEach(x=>h+=row(x,true));
     }
     if(some.length){

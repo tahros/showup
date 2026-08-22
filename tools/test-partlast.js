@@ -61,8 +61,14 @@ const rowExs = () => JSON.parse(run(
 
 // ---- 1. the card exists, dated, in the right place -----------------------
 ok("the LAST TIME · CHEST card renders", !!card());
-ok("...named for the part",
-   /LAST TIME · CHEST/.test(run(`document.querySelector('.partlast .lasthead').textContent`)));
+/* v3.3.273 RESTATES: the part now leads the heading as a scope pill — the
+   selected chip restated in miniature — so the section visibly belongs to
+   the selection. Text reads "CHEST last time" with CHEST inside .scopepill,
+   uppercased by CSS, so textContent carries the raw name. */
+ok("...named for the part, as the scope pill leading the heading",
+   (function(){const pill=run(`(document.querySelector('.partlast .lasthead .scopepill')||{}).textContent||''`);
+     const head=run(`document.querySelector('.partlast .lasthead span').textContent`);
+     return pill==='Chest' && /^Chest\s*last time/.test(head);})());
 ok("...dated with the history link", run(`!!document.querySelector('.partlast .linkdate')`));
 /* v3.3.152 disclosure audit: the (i) became the rulebook's inline line, and
    the ✓ names its meaning in accessibility metadata instead of standing

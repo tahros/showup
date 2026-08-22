@@ -1,5 +1,16 @@
 # ShowUp — changelog
 
+## v3.3.273 (2026-08-22) — The selected part signs its sections
+
+On the Train tab, the sections below the body-part grid always belonged to
+the selected part — but nothing showed it. "Last time" and "Go-to" now open
+with the selected part restated as a small solid-blue pill, the same white-
+on-blue as the selected card above, so the eye can follow the thread: tap
+Back, and everything below wears Back's name in Back's colour.
+
+The two headings also now agree on word order — the part leads both, where
+before one read "LAST TIME · BACK" and the other "BACK · GO-TO".
+
 ## v3.3.272 (2026-08-22) — The thousand-day poster
 
 Day 1,000 gets its own share image. The monument is the streak itself: a wall
