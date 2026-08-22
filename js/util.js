@@ -696,6 +696,13 @@ function toggleMyPart(p){
   DB.settingsAt=Date.now(); save(true);
   return true;
 }
+/* v3.3.269: how long away makes a body part look cold on a chip. Three weeks
+   — three missed exposures at this app's roughly weekly cadence per part, and
+   long enough that a normal holiday or a tweaked shoulder does not grey out a
+   part you still train. It governs APPEARANCE only: the planner's own `live`
+   flag (days>=8) still decides what the app is willing to claim about a
+   part's rhythm, which is a different question and deliberately unchanged. */
+const PART_COLD_DAYS=21;
 function trainingPlan(){
   const dp=dayParts();
   const byPart={};

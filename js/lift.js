@@ -32,16 +32,30 @@ function renderLift(){
     [...order,...dormant].forEach(p=>{
       const i0=P.info[p]||{since:999};
       const virgin=SEED.totals.sessions===0&&!hasAnyDays();   // day zero: no verdicts yet
-      const dead=!virgin&&dormant.includes(p);
+      /* v3.3.269: a chip says how long it has been, because that is what the
+         ledger knows. It used to read `dormant` for any part in P.dormant —
+         but that list is !live, and live is days>=8: a DATA-SUFFICIENCY test
+         ("do I know this part's rhythm well enough to name a cadence"), never
+         a recency test. So a part trained two days ago but only three times
+         read "dormant" while a part last touched forty days ago read "40d
+         ago". The labels were inverted against the words. The planner keeps
+         that flag — it is the right bar for a cadence claim and for ranking
+         suggestions — and the chip now speaks from the dates instead. */
+      const never=!i0.last;
+      /* Run is never cold and never grey — it rides along with every session
+         rather than waiting its turn in the rotation, which is why the
+         planner excludes it from `dormant` too. */
+      const dead=!virgin&&p!=='Run'&&(never||i0.since>=PART_COLD_DAYS);
       const sel=p===lift.part;
       const hasToday=(day(todayISO).w||[]).some(s=>s.part===p);
       const open=hasToday&&partOpen(p);                    // being worked RIGHT NOW
       const finished=hasToday&&!open;                      // trained today, completed
       const sub = open ? '🔥 today'
                 : finished ? '✅ today'
-                : dead ? 'dormant'
-                : p==='Run' ? 'each time'
                 : virgin ? 'new'
+                : p==='Run' ? 'each time'
+                : never ? 'never trained'
+                : i0.since===1 ? 'yesterday'
                 : `${i0.since}d ago`;
       const cls = [dead?'dead':'', p==='Run'&&!hasToday?'run':'',
                    (p===P.pick&&!hasToday&&!isLive())?'hot':'',   // no suggestions mid-workout

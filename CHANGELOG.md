@@ -1,5 +1,24 @@
 # ShowUp — changelog
 
+## v3.3.269 (2026-08-22) — Body part chips say how long it has been
+
+A body part you trained two days ago no longer reads `dormant`. Each chip now
+states the record: `yesterday`, `2d ago`, `40d ago`, or `never trained`.
+
+The old label was wired to the wrong question. `dormant` meant the app did not
+yet have eight logged days of that part — enough history to claim a rhythm —
+which has nothing to do with when you last trained it. So a part trained on
+Thursday could read `dormant` while a part untouched for six weeks read
+`40d ago`: the two labels were inverted against their own words.
+
+A chip now dims when a part is genuinely cold — never trained, or nothing
+logged in three weeks. Run keeps its own grammar and never dims, because it
+rides along with every session rather than waiting its turn.
+
+The planner is unchanged. It still needs eight days before claiming a cadence,
+which is the right bar for that claim; it simply no longer lends that word to
+a chip that means something else.
+
 ## v3.3.268 (2026-08-22) — The newest Pace month is written in blue
 
 The most recent month's pace now reads in accent blue and bold; every earlier

@@ -143,5 +143,50 @@ check("no stored answer means every part is in the rotation",
         const all=Object.keys(SEED.catalog).filter(p=>p!=='Run');
         return all.every(p=>myPartsSet().has(p));})()`, true);
 
+// ---- v3.3.269: a chip says how long it has been -------------------------
+// `dormant` used to mean !live, and live is days>=8 — a data-sufficiency
+// test, not a recency one. So a part trained 2 days ago on only 3 days read
+// "dormant" while a part last touched 40 days ago read "40d ago". The two
+// labels were inverted against their own words. The fixture below makes both
+// halves of that inversion true at once, so the assertions discriminate.
+run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
+  const D=n=>{const d=new Date(t);d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA')};
+  for(let i=0;i<12;i++) DB.days[D(40+i*3)]={w:[{part:'Chest',ex:'Chest Press',w:40,reps:[10],at:1}],upd:1};
+  for(const n of [2,9,16]) DB.days[D(n)]={w:[{part:'Triceps',ex:'Overhead Triceps Extension',w:40,reps:[10],at:1}],upd:1};
+  DB.days[D(1)]={w:[{part:'Shoulder',ex:'Lateral Raise',w:10,reps:[10],at:1}],upd:1};
+  DB.days[D(20)]={w:[{part:'Legs',ex:'Squat',w:60,reps:[10],at:1}],upd:1};
+  DB.days[D(21)]={w:[{part:'Biceps',ex:'Dumbbell Curl',w:10,reps:[10],at:1}],upd:1};
+  DB.settings.myParts=['Chest','Triceps','Shoulder','Back','Legs','Biceps'];
+  SEED=deriveAll(); view='lift'; lift.ex=null; lift.part=null; render();})()`);
+const chip=p=>`(function(){const b=[...document.querySelectorAll('.partcard')]
+  .find(x=>x.querySelector('b').textContent==='${p}');
+  return b ? b.querySelector('.ps').textContent : '(absent)';})()`;
+const grey=p=>`(function(){const b=[...document.querySelectorAll('.partcard')]
+  .find(x=>x.querySelector('b').textContent==='${p}');
+  return b ? b.classList.contains('dead') : '(absent)';})()`;
+
+check("a part trained 2 days ago says so, however few times it was trained",
+      chip('Triceps'), "2d ago");
+check("...and is NOT greyed out", grey('Triceps'), false);
+check("the planner still knows it cannot claim a cadence for it",
+      `trainingPlan().info.Triceps.live`, false);
+check("a part last trained 40 days ago says THAT, however well known it is",
+      chip('Chest'), "40d ago");
+check("...and IS greyed out", grey('Chest'), true);
+check("the planner still trusts its cadence", `trainingPlan().info.Chest.live`, true);
+check("yesterday reads as a word, not 1d ago", chip('Shoulder'), "yesterday");
+check("a part never trained says so", chip('Back'), "never trained");
+check("...and is greyed out", grey('Back'), true);
+// the threshold is a declared constant, and the boundary is exact
+check("the cold threshold is three weeks", `PART_COLD_DAYS`, 21);
+check("20 days is still warm", grey('Legs'), false);
+check("21 days is cold", grey('Biceps'), true);
+// Run rides along with every session: never cold, never in the rotation
+check("Run keeps its own grammar", chip('Run'), "each time");
+check("...and never greys out", grey('Run'), false);
+// the word the maker objected to is gone from the chips entirely
+check("no chip says dormant any more",
+      `[...document.querySelectorAll('.partcard .ps')].some(x=>/dormant/i.test(x.textContent))`, false);
+
 process.exit(fail ? 1 : 0);
 })();

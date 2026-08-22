@@ -667,7 +667,8 @@
   .partcard .ps{font-family:var(--mono);font-size:10px;color:var(--muted);white-space:nowrap}
   /* ---- part-tile state table (the rules, in order of application) ----
      not selected : white (recent) · white+thin red border+🔥 (active)
-                  · white dimmed + ✅ (completed) · gray dimmed (dormant)
+                  · white dimmed + ✅ (completed) · gray dimmed (cold: never
+                  trained, or nothing logged in PART_COLD_DAYS — v3.3.269)
      selected     : RED fill (active) · BLUE fill (everything else)
      suggested    : dashed accent border on idle tiles, never in red mode  */
   .partcard.hot{border:1.5px dashed var(--accent)}
