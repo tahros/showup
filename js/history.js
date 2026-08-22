@@ -231,7 +231,11 @@ function renderHistory(){
 
   const firstYear=SEED.totals.first?+SEED.totals.first.slice(0,4):+thisYear;
   const years=[]; for(let y=firstYear; y<=+thisYear; y++) years.push(y);
-  let h=`<div class="chips ychips">`;
+  /* v3.3.267: sharing is an action, not the final chapter of the ledger.
+     Keep its collapsed launcher at the top, before History's date controls,
+     and let reportCardSection own the expanded carousel in the same place. */
+  let h=typeof reportCardSection==='function'?reportCardSection():'';
+  h+=`<div class="chips ychips">`;
   years.forEach(y=>{
     const n=[...dates].filter(d=>+d.slice(0,4)===y).length;
     h+=`<button class="chip ${y===hist.y?'on':''}" data-histy="${y}">${y}<span class="n">${n}d</span></button>`;
@@ -414,7 +418,6 @@ function renderHistory(){
     h+=`<div class="note" style="margin-top:12px">${P?`No ${P} logged this month.`:'No training logged this month.'}</div>`;
   }
   if(hist.edit&&!DB.days[hist.edit]){ hist.edit=null; hist.editSet=null; }   // v3.3.61: the day may have been emptied
-  if(typeof reportCardSection==='function') h+=reportCardSection();
   killCalReturn();                  // v3.3.59: a re-render invalidates the return ticket
   $('#view').innerHTML=h;
   /* v3.3.39: centre the selected year in its strip. scrollLeft rather than

@@ -969,12 +969,12 @@ function bindRepSwipe(){
   bindSwipe(document.getElementById('repCard'),step=>repRotate(step));
 }
 let _repIdx=0;
-/* v3.3.230: report cards are exports of the ledger, so they live beside the
-   ledger in History. The surface stays collapsed until somebody wants to
-   share; Stats is now analysis only. */
+/* v3.3.267: report cards are exports of the ledger, so they live at the top
+   of History as a compact action. The surface stays collapsed until somebody
+   wants to share; Stats remains analysis only. */
 function reportCardSection(){
   const n=shareCards().length;
-  return `<h2 id="secReportHead">Monthly reports</h2><details class="card rephistory" id="secReport">
+  return `<details class="card rephistory repquick" id="secReport">
     <summary><span>Share your progress</span><span class="mono muted">${n} card${n===1?'':'s'} <b>→</b></span></summary>
     <div class="repcard" id="repCard">
       <div class="repnav"><button class="repar" id="repPrev" aria-label="Previous card">‹</button><div class="repttl" id="repTtl">&nbsp;</div><button class="repar" id="repNext" aria-label="Next card">›</button></div>
