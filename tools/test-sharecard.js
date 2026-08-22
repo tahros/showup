@@ -68,8 +68,11 @@ check("...knows the busiest month", `gridData().max`, 3);
 check("...and the total matches the derived sessions",
       `gridData().total === SEED.totals.sessions`, true);
 const statsSrc = fs.readFileSync(path.join(dir, "js/stats.js"), "utf8");
-ok("the HTML grid reads gridData() too (arithmetic not duplicated)",
-   /const _gd=gridData\(\)/.test(statsSrc));
+/* v3.3.271 RESTATES: the on-screen Every-month grid was DELETED with the
+   other retired sections, so gridData()'s consumers are the card and Today's
+   rhythm strip — no HTML grid remains to duplicate the arithmetic. */
+ok("no HTML grid remains in Stats to duplicate the card's arithmetic",
+   !/const _gd=gridData\(\)/.test(statsSrc));
 
 // ---- 2. the card is square ------------------------------------------------
 calls = [];
@@ -156,9 +159,12 @@ const fullAlpha = run(`(function(){ const g=gridData();
   return +mgAlpha(g.mDays[g.mNow]||0, g.max, false).toFixed(3); })()`);
 ok("...not the full one a finished month would get",
    lastTint < Number(fullAlpha), `${lastTint} < ${fullAlpha}`);
-ok("the grid and the card share one alpha rule (not two)",
+/* v3.3.271 RESTATES: with the screen grid deleted, mgAlpha() has exactly
+   one drawing consumer — the card. The rule itself stays defined once in
+   stats.js, and the card must keep reading it rather than growing its own. */
+ok("the card reads the one alpha rule, and no second renderer exists",
    /mgAlpha\(n,gd\.max,k===gd\.mNow\)/.test(fs.readFileSync(path.join(dir,"js/report.js"),"utf8")) &&
-   /mgAlpha\(n,gMax,k===mNow\)/.test(statsSrc));
+   /function mgAlpha\(/.test(statsSrc) && !/mgAlpha\(n,gMax,k===mNow\)/.test(statsSrc));
 
 // ---- 6. this month is dashed, and the dash is put back ------------------
 const dashes = calls.filter(c => c[0] === "setLineDash");
@@ -188,10 +194,11 @@ ok("...and no paragraph is left under it", !/the whole history on one screen/.te
    only its caller. Matching both keeps the assertion about the TIP rather
    than about which helper happens to wrap it. */
 /* v3.3.152: quote-agnostic — the audit rewrote tips with single quotes */
-const mgTip = (fs.readFileSync(path.join(dir, "js/stats.js"), "utf8")
-  .match(/(?:iBtn|hActs)\('mgrid',["']([^"']*)["']/) || [])[1] || "";
-ok("...within the app's one-breath range", mgTip.length > 0 && mgTip.length <= 120,
-   mgTip.length + " chars");
+/* v3.3.271 RESTATES: the mgrid tip left with its section. A tip for a
+   section that does not exist would be the stale-documentation species all
+   over again, so its absence is the assertion now. */
+ok("...and the retired section's tip left with it",
+   !/(?:iBtn|hActs)\('mgrid'/.test(fs.readFileSync(path.join(dir, "js/stats.js"), "utf8")));
 /* v3.3.148: #gridShare died in v3.3.130 — the carousel is the one door now.
    This click was a null deref that crashed the suite silently for fourteen
    releases; everything below here never ran. Rotate to the grid card and go

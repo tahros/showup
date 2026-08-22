@@ -776,196 +776,13 @@ function renderStats(){
   cut('mc');
   h+=growthAuditSection();
   cut('rz');
-  h+=`<h2>Consistency${hActs('yoy','Percent of days trained, per year. The bold line is this year.','About the consistency chart')}</h2><div class="card">
-      `;
-  /* v3.3.109: the legend moves ABOVE the chart. While scrubbing it IS the
-     readout, and below the chart it sat under the hand doing the scrubbing.
-     It also has to be built before the chart is emitted, so `years` is
-     resolved up here now. */
-  const years=Object.keys(curves).filter(y=>y>='2022').sort();
-  h+=`<div class="legend1">`;
-  for(const y of years){
-    const c=curves[y], cur=y===thisYear;
-    h+=`<span class="${cur?'cur':''}" data-yr="${y}" role="button"><i style="background:${YEAR_COLORS[y]}"></i>${y}<b>${Math.round(c.curve[c.end-1]*100)}%</b></span>`;
-  }
-  h+=`</div>
-      <div class="zoomhint">pinch / scroll to zoom · double-tap to reset</div>
-      <div class="zoom" data-zoom>
-      <svg viewBox="0 0 340 220" style="width:100%;height:auto"
-        data-scrub="pct" data-sx0="20" data-sxw="302" data-sy0="190" data-syh="170" data-smax="1">`;
-  /* v3.3.129: 170 -> 220 tall. baseline 140 -> 190, span 120 -> 170. The
-     data-sy0/data-syh anchors MUST track the geometry or the legend reports
-     the wrong % while scrubbing — the readout is derived from them. */
-  // y grid + labels
-  for(const g of [0,0.25,0.5,0.75,1]){
-    const y=190-g*170;
-    h+=`<line x1="20" y1="${y}" x2="322" y2="${y}" stroke="var(--line)" stroke-width="0.6" ${g?'stroke-dasharray="2 3"':''}></line>
-        <text x="16" y="${y+3}" text-anchor="end" font-family="var(--mono)" font-size="7" fill="var(--muted)">${g*100}%</text>`;
-  }
-  // x months
-  ['J','F','M','A','M','J','J','A','S','O','N','D'].forEach((m,i)=>{
-    const x=20+((i*30.4+15)/366)*302;
-    h+=`<line x1="${x}" y1="190" x2="${x}" y2="193" stroke="var(--line)" stroke-width="0.6"></line>
-        <text x="${x}" y="202" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="var(--muted)">${m}</text>`;
-  });
-  /* v3.3.129: end-of-line % tags used to be emitted inline, so four years
-     finishing within a few points of each other stacked into an unreadable
-     smear (60/57 in the field report). Collect them, nudge apart, THEN
-     emit — the same pass the distance chart has used since v3.3.89. */
-  const endLabels=[];
-  for(const y of years){
-    const {curve,end}=curves[y];
-    let pts='';
-    for(let d=0;d<end;d+=2){
-      const x=20+(d/366)*302, yy=190-curve[d]*170;
-      pts+=`${x.toFixed(1)},${yy.toFixed(1)} `;
-    }
-    const cur=y===thisYear;
-    h+=`<polyline data-yr="${y}" points="${pts}" fill="none" stroke="${YEAR_COLORS[y]||'var(--muted)'}"
-         stroke-width="${cur?2.2:1.1}" opacity="${cur?1:.7}" stroke-linejoin="round"></polyline>`;
-    const lx=20+((end-1)/366)*302, ly2=190-curve[end-1]*170;
-    endLabels.push({y,lx,ly:ly2,cur,pct:Math.round(curve[end-1]*100)});
-    if(cur) h+=`<circle class="beacon" cx="${lx}" cy="${ly2}" r="3.2" fill="var(--accent)"></circle>`;
-  }
-  endLabels.sort((a,b)=>a.ly-b.ly);
-  for(let i=1;i<endLabels.length;i++)
-    if(endLabels[i].ly-endLabels[i-1].ly<8) endLabels[i].ly=endLabels[i-1].ly+8;
-  for(const L of endLabels)
-    h+=`<text data-yr="${L.y}" x="${Math.min(L.lx+4,312).toFixed(1)}" y="${(L.ly+2.5).toFixed(1)}" font-family="var(--mono)" font-size="7"
-          fill="${YEAR_COLORS[L.y]||'var(--muted)'}" font-weight="${L.cur?700:400}">${L.pct}%</text>`;
-  h+=`</svg></div></div>`;   // v3.3.112: share moved to the header
-
-  // heatmap: 26 weeks, weekday rail on the left, months across the top
-  const detail=allDays();
-  cut('cons');
-  h+=`<h2>Last 6 months${hActs('heat','One column per week. Filled squares are trained days.','About the 6-month heatmap')}</h2><div class="card"><div class="heatwrap">
-        <div class="wdrail">${['S','M','T','W','T','F','S'].map(d=>`<span>${d}</span>`).join('')}</div>
-        <div class="heatcols"><div class="heatscroll">`;
-  const start2=new Date(todayISO+'T00:00');
-  start2.setDate(start2.getDate()-start2.getDay()-25*7);
-  let mrow='', grid='', lastM=-1;
-  for(let w=0;w<26;w++){
-    const first=new Date(start2); first.setDate(start2.getDate()+w*7);
-    const m=first.getMonth();
-    mrow+=`<span class="mlab">${m!==lastM?first.toLocaleDateString('en-US',{month:'short'}):''}</span>`;
-    lastM=m;
-    grid+=`<div class="wk">`;
-    for(let dd=0;dd<7;dd++){
-      const c=new Date(start2); c.setDate(start2.getDate()+w*7+dd);
-      const iso=c.toLocaleDateString('en-CA');
-      const future=iso>todayISO;
-      grid+=`<i data-l="${dates.has(iso)?2:0}" class="${iso===todayISO?'today':''} ${future?'fut':''}" title="${iso}"></i>`;
-    }
-    grid+=`</div>`;
-  }
-  h+=`<div class="mrow">${mrow}</div><div class="heat">${grid}</div></div>`;
-  h+=`</div></div></div>`;
-
-  // days per month bars
-  const ms=Object.entries(monthCounts).sort().slice(-12);
-  const dayOfMonth=+todayISO.slice(8);
-  const daysInMonth=new Date(+thisYear,+monthKey.slice(5),0).getDate();
-  const trainedThis=monthCounts[monthKey]||0;
-  cut('last6');
-  h+=`<h2>Days by month${hActs('dbm','The dashed line marks 20 days.','About the monthly chart')}</h2><div class="card">
-      <div class="zoomhint">pinch to zoom</div>
-      <div class="zoom" data-zoom>
-      <svg viewBox="0 0 330 150" style="width:100%;height:auto">
-      <line x1="8" y1="${126-20/31*112}" x2="316" y2="${126-20/31*112}" stroke="var(--line)" stroke-width="0.6" stroke-dasharray="2 3"></line>
-      <text x="319" y="${128-20/31*112}" font-family="var(--mono)" font-size="7" fill="var(--muted)">20</text>`;
-  ms.forEach(([m,n],i)=>{
-    const cur=m===monthKey;
-    const bh=Math.max(2,n/31*112), x=8+i*25.5;   // v3.3.129: span 80 -> 112, baseline 94 -> 126
-    if(cur){                                  // dashed outline = days elapsed, so a short bar isn't misread
-      const gh=dayOfMonth/31*112;
-      h+=`<rect x="${x}" y="${126-gh}" width="17" height="${gh}" rx="3" fill="none"
-            stroke="var(--accent)" stroke-width="0.8" stroke-dasharray="2 2"></rect>`;
-    }
-    h+=`<rect class="gbar" x="${x}" y="${126-bh}" width="17" height="${bh}" rx="3" fill="var(--accent)" opacity="${cur?1:.55}"></rect>`;
-    if(cur){
-      // trained count sits INSIDE the fill; the number above the dashes is days elapsed
-      const gh=dayOfMonth/31*112;
-      h+=`<text x="${x+8.5}" y="${126-gh-3}" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="var(--muted)">${dayOfMonth}</text>
-          <text x="${x+8.5}" y="${Math.min(123,126-bh+9)}" text-anchor="middle" font-family="var(--mono)" font-size="7" font-weight="700" fill="#fff">${n}</text>`;
-    }else{
-      h+=`<text x="${x+8.5}" y="${126-bh-3}" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="var(--muted)">${n}</text>`;
-    }
-    h+=`<text x="${x+8.5}" y="139" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="${cur?'var(--accent)':'var(--muted)'}">${m.slice(5)}</text>`;
-  });
-  h+=`</svg></div>
-      <div class="tot"><span><b>${trainedThis}</b> trained · ${dayOfMonth-trainedThis} rested</span><span>${dayOfMonth} days into ${monthKey.slice(5)}</span></div></div>`;
-
-  // monthly km — the Run tab owns the charts now; this map still feeds the
-  // composition overlay further down.
-  const kmBy={};
-  for(const [m,v] of Object.entries(SEED.monthly)) kmBy[m]=v.km||0;
-  for(const [d,v] of Object.entries(DB.days)){
-    if(d<=SEED.totals.last) continue;
-    for(const s of v.w) if(s.ex==='Run') kmBy[d.slice(0,7)]=(kmBy[d.slice(0,7)]||0)+s.w;
-  }
-
-  // which weekdays you show up — last 365 days, on an absolute 0–100% scale
-  const _wd=wdDist();                       // v3.3.114: one source, svg + card
-  const wdPct=_wd.pct;
-  const wdBest=Math.max(...wdPct);
-  /* v3.3.46: the accent marks TODAY's weekday — the row you're standing in —
-     not the statistically strongest one. The strongest still gets a quiet
-     caret above its bar so the pattern stays visible without competing with
-     today for the one loud colour. (Ties: first match wins the caret; today
-     always wins the accent even if today is also the strongest.) */
-  const wdToday=new Date(todayISO+'T00:00').getDay();
-  const bestI=wdPct.indexOf(wdBest);
-  cut('dbm');
-  h+=`<h2>Weekdays${hActs('wd','\u25b2 marks your strongest weekday. Blue is today.','About the weekday chart')}</h2><div class="card">
-      <svg viewBox="0 0 330 150" style="width:100%;height:auto">`;   // v3.3.129: 118→150 (v3.3.113 had cut 140→118; at that height the caret and the % label had nowhere to go)
-  for(const g of [0,25,50,75,100]){
-    const y=126-g/100*113;    // v3.3.129: baseline 94→126, span 81→113
-    h+=`<line x1="24" y1="${y}" x2="316" y2="${y}" stroke="var(--line)" stroke-width="0.6" ${g?'stroke-dasharray="2 3"':''}></line>
-        <text x="21" y="${y+3}" text-anchor="end" font-family="var(--mono)" font-size="7" fill="var(--muted)">${g}</text>`;
-  }
-  ['S','M','T','W','T','F','S'].forEach((lab,i)=>{
-    const p=wdPct[i], today=i===wdToday, best=i===bestI;
-    const bh=Math.max(2,p*113), x=32+i*41;
-    h+=`<rect class="gbar wd-col" x="${x}" y="${126-bh}" width="26" height="${bh}" rx="4"
-          fill="${today?'var(--accent)':'var(--accent-dim)'}" opacity="${today?1:.6}"></rect>`;
-    /* v3.3.129: one stack, always the same order — bar, then % 4 above it,
-       then the caret 11 above that. The old code branched the % position on
-       today/best and put the caret at a fixed 8 above the bar, so a day that
-       was BOTH today and strongest (Tue, in the field report) drew them 4
-       units apart, on top of each other. Position no longer depends on
-       which flags are set, so no combination can collide. */
-    const pctY=126-bh-4;
-    h+=`<text x="${x+13}" y="${pctY}" text-anchor="middle" font-family="var(--mono)" font-size="8" fill="${today?'var(--accent)':'var(--muted)'}" font-weight="${today?700:400}">${Math.round(p*100)}%</text>`;
-    if(best) h+=`<text x="${x+13}" y="${pctY-11}" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="var(--muted)">▲</text>`;
-    h+=`<text x="${x+13}" y="141" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="${today?'var(--chalk)':'var(--muted)'}" font-weight="${today?700:400}">${lab}</text>`;
-  });
-  h+=`</svg><div class="note">% of each weekday trained, last 365 days · ▲ your strongest</div></div>`;
-
-  // month-by-month composition — the sheet's "Which part am I missing out?" chart
-  /* v3.1.13: the stacked-months chart and the radar are gone (Sungjee's
-     verdict: one needed scrolling, the other prompted nothing). Replaced by
-     two scroll-free views that each answer ONE question. */
-
-  /* --- "Have I kept showing up?" — every month ever, one screen --- */
-  const _gd=gridData();
-  const mDays=_gd.mDays, gy0=_gd.y0, gy1=_gd.y1, gMax=_gd.max, m0=_gd.m0, mNow=_gd.mNow;
-  cut('wd');
-  h+=`<h2 id="secParts">Every month${hActs('mgrid','Darker means more days. Tap a month to open it.','About the month grid')}</h2><div class="card">
-      <div class="mgrid"><span></span>${'JFMAMJJASOND'.split('').map(c=>`<span class="mg-h">${c}</span>`).join('')}`;
-  for(let y=gy0;y<=gy1;y++){
-    h+=`<span class="mg-y mono">'${String(y).slice(2)}</span>`;
-    for(let m=1;m<=12;m++){
-      const k=`${y}-${String(m).padStart(2,'0')}`;
-      const n=mDays[k]||0;
-      const out=k<m0||k>mNow;
-      const a=Math.round(mgAlpha(n,gMax,k===mNow)*100);
-      h+=`<span class="mg-c mono ${k===mNow?'cur':''}" ${out?'':`data-mk="${k}"`} style="${n?`background:color-mix(in srgb, var(--accent) ${a}%, transparent)`:''}">${out?'':(n||'·')}</span>`;
-    }
-  }
-  h+=`</div><div id="mexp"></div>
-      </div>`;   // v3.3.112: share moved to the header
-
-  cut('em');
+  /* v3.3.271: five retired time sections DELETED — Consistency curves,
+     Last 6 months, Days by month, Weekdays, Every month. Retired from the
+     assembly in v3.3.213/230, their builders kept running every render
+     (~11.8k chars built and thrown away) and their continued presence here
+     misled a reader into describing them as live (v3.3.254's deploy note
+     carries that confession). buildcheck still fails if any of them returns
+     to the declared order; git remembers the code. */
   h+=consistencyRaceSection();
   cut('consrace');
   h+=monthlyPaceSection();
@@ -988,27 +805,9 @@ function renderStats(){
   h+=_S.wt;
 
   // records — kept, but demoted below the days story
-  if(false) h+=`<h2 id="secRecords">Records</h2>`;
-  if(false) for(const part of Object.keys(SEED.catalog)){
-    if(part==='Run') continue;
-    const rows=catFor(part).map(e=>[e,prFor(e),exTier(e)]).filter(([,p])=>p.mw>0).sort((a,b)=>b[1].mw-a[1].mw);
-    if(!rows.length) continue;
-    const core=rows.filter(r=>r[2]==='goto'), other=rows.filter(r=>r[2]!=='goto');
-    h+=`<h2 class="quiet" style="margin-top:16px">${part}</h2>`;
-    if(core.length){
-      h+=`<table class="rec-core"><tr><th>Core exercises</th><th style="text-align:right">Top (${U()})</th></tr>`;
-      core.forEach(([e,p])=>{h+=`<tr><td><b>${e}</b></td><td class="n"><b>${wDisp(p.mw)}</b> × ${p.mwr}
-        <button class="tmove" data-tier-ex="${e}" data-tier-to="other" title="Move to Other">↓</button></td></tr>`;});
-      h+=`</table>`;
-    }
-    if(other.length){
-      h+=`<table class="rec-other"><tr><th>Other</th><th></th></tr>`;
-      other.forEach(([e,p])=>{h+=`<tr><td>${e}</td><td class="n">${wDisp(p.mw)} × ${p.mwr}
-        <button class="tmove" data-tier-ex="${e}" data-tier-to="core" title="Move to Core">↑</button></td></tr>`;});
-      h+=`</table>`;
-    }
-  }
-
+  /* v3.3.271: the if(false) Records tables DELETED — switched off long ago,
+     never re-enabled. prFor() stays alive in the Train tab's go-to rows and
+     the progression chart. */
   h+=`<h2>Settings</h2>
       <button class="btn ghost" id="settingsBtn">⚙︎ Settings, account &amp; sync</button>
       <div class="note" style="text-align:center">${session?`Signed in as ${session.user.email||'—'}`:'Not signed in — data is on this device only'} · ${APP_VERSION}</div>`;

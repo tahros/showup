@@ -61,9 +61,13 @@ ok("every registered card has a label and a file name",
    run(`shareCards().every(c=>c.label&&typeof c.file==='function'&&c.file().length>0)`));
 
 // ---- the data functions agree with what the screen shows -------------------
-ok("wdDist() is the single source the weekday chart also reads",
+/* v3.3.271 RESTATES: the on-screen Weekdays section was DELETED (retired
+   from the assembly since v3.3.213, builder deleted now), so the property
+   "screen and card share one source" became "the card is the ONLY consumer".
+   wdDist() itself stays the card's source and stays correct. */
+ok("wdDist() still feeds the weekday card, and the screen section is gone",
    run(`JSON.stringify(wdDist().pct.length)`) === "7" &&
-   /wdDist\(\)/.test(fs.readFileSync(path.join(dir, "js/stats.js"), "utf8")));
+   !/wdDist\(\)/.test(fs.readFileSync(path.join(dir, "js/stats.js"), "utf8")));
 ok("weekSeries() returns weeks with an average",
    run(`(function(){const s=weekSeries(); return s.wks.length>0 && isFinite(s.avg);})()`));
 ok("paceSeries() returns [month, secPerUnit] pairs",

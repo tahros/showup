@@ -1,5 +1,20 @@
 # ShowUp — changelog
 
+## v3.3.271 (2026-08-22) — Subtraction
+
+Twenty-nine kilobytes of dead code deleted. The five retired Stats sections —
+Consistency curves, Last 6 months, Days by month, Weekdays, Every month —
+were removed from the screen a long time ago but their builders kept running
+on every render, building output nothing displayed. They are gone, along with
+the long-disabled Records tables and an uncalled function still carrying the
+old Pace chart and a tip describing a red mark the app no longer has.
+
+Nothing visible changes. The Every-month and weekday share cards keep
+working — they were always drawn separately and remain the one place those
+views live on. Stats renders measurably less work per visit. Git remembers
+everything deleted, and the build still refuses to let any retired section
+return.
+
 ## v3.3.270 (2026-08-22) — One motion voice
 
 Everything that arrives now arrives the same way: a single settle curve that
