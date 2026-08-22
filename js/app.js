@@ -139,6 +139,8 @@ document.addEventListener('click',e=>{
     document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b===nav));
     return render();
   }
+  const pf=e.target.closest('[data-plfold]');
+  if(pf){ DB.settings.plFold=!DB.settings.plFold; DB.settingsAt=Date.now(); save(true); return render(); }
   const ld=e.target.closest('.linkdate[data-histd]');
   if(ld){
     const iso=ld.dataset.histd;

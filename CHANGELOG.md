@@ -1,5 +1,15 @@
 # ShowUp — changelog
 
+## v3.3.274 (2026-08-22) — Last time folds away
+
+The Last time card on the Train tab can now be folded. A small chevron sits
+beside the date; one tap collapses the card to its single head line — the
+part pill, the date link, the chevron — and one tap brings it back. Folded,
+it is a one-line fact, not a hole where a card used to be.
+
+The choice sticks. Fold it once and it stays folded across sessions until
+you open it again; a preference is not a per-render whim.
+
 ## v3.3.273 (2026-08-22) — The selected part signs its sections
 
 On the Train tab, the sections below the body-part grid always belonged to

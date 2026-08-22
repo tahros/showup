@@ -134,4 +134,36 @@ run(`(function(){ SEED=deriveAll(); lift={ex:null,part:'Run',weight:0}; view='li
 ok("the Run part never shows one", !card());
 
 console.log(fail ? "\n" + fail + " FAILED" : "\nALL PASS");
+// ---- v3.3.274: the card folds, and the choice persists --------------------
+// Driven through the REAL button (lesson 4), asserted on effects: rows gone,
+// head standing, date link alive, chevron state honest, and the preference
+// surviving a full re-render because it lives in settings.
+/* later sections leave the ledger in an unknown shape — reseed a known one
+   so the card definitely renders before the fold is exercised */
+run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
+  const d=new Date(t); d.setDate(d.getDate()-2);
+  DB.days[d.toLocaleDateString('en-CA')]={w:[{part:'Chest',ex:'Dip',w:0,reps:[10,8]}],upd:1};
+  SEED=deriveAll(); view='lift'; lift.ex=null; lift.part='Chest';
+  DB.settings.plFold=false; render();})()`);
+ok("the fold button renders, open by default",
+   run(`(function(){const b=document.querySelector('.plfold');
+     return !!b && b.getAttribute('aria-expanded')==='true' && b.textContent==='\u25be';})()`));
+run(`document.querySelector('.plfold').click()`);
+ok("one tap folds the card to its head row",
+   run(`document.querySelectorAll('.partlast .plrow').length`) === 0 &&
+   run(`!!document.querySelector('.partlast .lasthead .scopepill')`) &&
+   run(`!!document.querySelector('.partlast .linkdate')`));
+ok("...the help line folds away with the rows",
+   run(`!document.querySelector('.partlast .inlinehelp')`));
+ok("...and the chevron says so", run(`(function(){const b=document.querySelector('.plfold');
+     return b.getAttribute('aria-expanded')==='false' && b.textContent==='\u25b8';})()`));
+ok("the preference is a setting, not a render whim",
+   run(`DB.settings.plFold===true`));
+run(`render()`);
+ok("...so it survives a full re-render", run(`document.querySelectorAll('.partlast .plrow').length`) === 0);
+run(`document.querySelector('.plfold').click()`);
+ok("one tap opens it back up, rows restored",
+   run(`document.querySelectorAll('.partlast .plrow').length`) > 0 &&
+   run(`DB.settings.plFold===false`));
+
 process.exit(fail ? 1 : 0);

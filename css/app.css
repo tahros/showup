@@ -395,6 +395,12 @@
   /* ---- v3.3.151: LAST TIME at the part level — the session's shape ---- */
   .partlast{margin-top:14px}
   .partlast>.lasthead{margin-bottom:10px}
+  /* v3.3.274: fold affordance — the date link and the chevron share the
+     head's right edge; folded, the head is the whole card. */
+  .lastacts{display:inline-flex;align-items:baseline;gap:10px}
+  .plfold{background:none;border:0;color:var(--muted);font-size:13px;
+    line-height:1;padding:2px 4px;cursor:pointer;font-family:var(--mono)}
+  .partlast.plfolded>.lasthead{margin-bottom:0}
   .plrow{padding:8px 10px;margin:0 -10px;border-radius:10px;cursor:pointer}
   .plrow .lasthead{margin-bottom:2px}
   .plrow:active{background:var(--surface2)}

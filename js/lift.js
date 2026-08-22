@@ -132,14 +132,23 @@ function renderLift(){
            single new colour or shape entering the vocabulary. Heading order
            unifies part-first at the same stroke ("LAST TIME · BACK" and
            "BACK · GO-TO" disagreed about which comes first). */
-        h+=`<div class="lastcard partlast"><div class="lasthead"><span><b class="scopepill">${lift.part}</b> last time</span><button class="ago linkdate" data-histd="${lp.d}">${wd2(lp.d)} · ${agoStr(lp.d)}</button></div>
-          <div class="inlinehelp">Tap an exercise to use its previous weight. A checkmark means you completed it today.</div>`;
-        for(const g of lp.groups){
-          const doneNow=t.w.some(x=>x.ex===g.ex&&(x.reps||[]).length);
-          const n=g.sets.reduce((a,st)=>a+((st[1]||[]).length||0),0);
-          h+=`<div class="exgrp plrow${doneNow?' pldone':''}" data-ex="${g.ex}" role="button" tabindex="0">
-                <div class="lasthead"><span>${doneNow?'<span aria-label="completed today">✓</span> ':''}${g.ex}</span><span class="ago">${n} set${n>1?'s':''}</span></div>
-                ${setRows(g.ex,foldSets(g.sets,g.ex),false)}</div>`;
+        /* v3.3.274: the card folds. Some days the playbook is wanted; some
+           days it is scroll between you and the exercise list. The head row
+           stays either way — the pill, the date link, and a disclosure
+           chevron — so a folded card is a one-line fact, not a hole. The
+           choice persists in settings until changed; a preference is not a
+           per-render whim. */
+        const plFolded=!!DB.settings.plFold;
+        h+=`<div class="lastcard partlast${plFolded?' plfolded':''}"><div class="lasthead"><span><b class="scopepill">${lift.part}</b> last time</span><span class="lastacts"><button class="ago linkdate" data-histd="${lp.d}">${wd2(lp.d)} · ${agoStr(lp.d)}</button><button class="plfold" data-plfold aria-expanded="${!plFolded}" aria-label="${plFolded?'Show':'Hide'} last time">${plFolded?'▸':'▾'}</button></span></div>`;
+        if(!plFolded){
+          h+=`<div class="inlinehelp">Tap an exercise to use its previous weight. A checkmark means you completed it today.</div>`;
+          for(const g of lp.groups){
+            const doneNow=t.w.some(x=>x.ex===g.ex&&(x.reps||[]).length);
+            const n=g.sets.reduce((a,st)=>a+((st[1]||[]).length||0),0);
+            h+=`<div class="exgrp plrow${doneNow?' pldone':''}" data-ex="${g.ex}" role="button" tabindex="0">
+                  <div class="lasthead"><span>${doneNow?'<span aria-label="completed today">✓</span> ':''}${g.ex}</span><span class="ago">${n} set${n>1?'s':''}</span></div>
+                  ${setRows(g.ex,foldSets(g.sets,g.ex),false)}</div>`;
+          }
         }
         h+=`</div>`;
       }
