@@ -1,5 +1,22 @@
 # ShowUp — changelog
 
+## v3.3.272 (2026-08-22) — The thousand-day poster
+
+Day 1,000 gets its own share image. The monument is the streak itself: a wall
+of exactly one thousand cells, fifty across and twenty down, one cell for
+each of the last thousand days — the app's icon atom at architectural scale.
+Days trained fill solid in the accent; a missed day inside the span stays a
+quiet gap, because the wall is a record, not a rendering. Above it, the
+numeral, and the span written as dates. Beneath it, five words: one cell ·
+one day.
+
+One palette — the app's own ground, accent and chalk. The wordmark whispers
+at the top under a small loaded bar. Every other milestone keeps the card it
+already had; this composition belongs to the thousands.
+
+It fires exactly as milestones already fire, and shares from the same
+overlay.
+
 ## v3.3.271 (2026-08-22) — Subtraction
 
 Twenty-nine kilobytes of dead code deleted. The five retired Stats sections —

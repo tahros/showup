@@ -259,7 +259,65 @@ function repOvEl(){
    the draw — canvas never inherits CSS faces (v3.3.13). */
 /* v3.3.98: milestone card — the day count huge over a faded all-time month
    grid. Receipts as celebration; same 1080 family as the others. */
+/* v3.3.272 — THE THOUSAND-DAY POSTER. The monument is the streak itself:
+   a 50 x 20 wall of exactly one thousand cells, one cell per day, oldest at
+   the top-left, ending on the milestone day. The app's icon atom — one cell
+   equals one day — at architectural scale. One palette (ground, accent,
+   chalk), one subject, and the composition breathes: wordmark whispered at
+   the top, the numeral in accent, the span in dates, the wall, and five
+   words of caption. Days trained fill solid; a missed day inside the span
+   stays a gap, because the wall is a record, not a rendering. */
+function drawThousandPoster(n){
+  const S=1080, cv=document.createElement('canvas'); cv.width=S; cv.height=S;
+  const x=cv.getContext('2d'); if(!x) return null;
+  const V=nm=>getComputedStyle(document.documentElement).getPropertyValue(nm).trim()||'#888';
+  const SANS='"IBM Plex Sans",system-ui,sans-serif', MONO='"IBM Plex Mono",ui-monospace,monospace';
+  x.fillStyle=V('--ground'); x.fillRect(0,0,S,S);
+
+  // the last n calendar days, ending today — trained or not, each is a cell
+  const trained=new Set(SEED.dates); if(((DB.days[todayISO]||{}).w||[]).length) trained.add(todayISO);
+  const days=[]; const t0=new Date(todayISO+'T00:00');
+  for(let i=n-1;i>=0;i--){ const d=new Date(t0); d.setDate(d.getDate()-i);
+    days.push(d.toLocaleDateString('en-CA')); }
+  const first=days[0];
+
+  // wordmark, whispered: a tiny loaded bar over SHOW/UP
+  x.textAlign='center';
+  x.strokeStyle=V('--muted'); x.fillStyle=V('--muted'); x.globalAlpha=0.7;
+  x.lineWidth=3; x.beginPath(); x.moveTo(S/2-34,84); x.lineTo(S/2+34,84); x.stroke();
+  for(const dx of [-26,-19,19,26]) x.fillRect(S/2+dx-2.5,74,5,20);
+  x.font='600 26px '+MONO; x.fillText('SHOW/UP', S/2, 130);
+  x.globalAlpha=1;
+
+  // the numeral, in the accent — the one loud thing on the poster
+  x.fillStyle=V('--accent'); x.font='700 264px '+SANS;
+  x.fillText(fmt(n), S/2, 428);
+  x.fillStyle=V('--muted'); x.font='600 40px '+MONO;
+  x.fillText('DAYS', S/2, 486);
+
+  // the span, stated as dates
+  x.fillStyle=V('--chalk'); x.font='500 32px '+MONO;
+  x.fillText(first.replace(/-/g,'.')+' \u2014 '+todayISO.replace(/-/g,'.'), S/2, 548);
+
+  // the wall: 50 columns x (n/50) rows, one cell per day
+  const cols=50, rows=Math.ceil(n/cols), cell=16, gap=4;
+  const gw=cols*(cell+gap)-gap, gh=rows*(cell+gap)-gap;
+  const gx=(S-gw)/2, gy=612;
+  days.forEach((iso,i)=>{
+    const r=Math.floor(i/cols), c=i%cols;
+    if(trained.has(iso)){ x.globalAlpha=1; x.fillStyle=V('--accent'); }
+    else { x.globalAlpha=0.08; x.fillStyle=V('--chalk'); }
+    x.fillRect(gx+c*(cell+gap), gy+r*(cell+gap), cell, cell);
+  });
+  x.globalAlpha=1;
+
+  // five words of caption — the atom, stated
+  x.fillStyle=V('--muted'); x.font='500 26px '+MONO;
+  x.fillText('one cell \u00b7 one day', S/2, gy+gh+52);
+  return cv;
+}
 function drawMilestone(n){
+  if(msTier(n)==='thousand') return drawThousandPoster(n);   // v3.3.272
   const S=1080, cv=document.createElement('canvas'); cv.width=S; cv.height=S;
   const x=cv.getContext('2d');
   // per-drawer helpers, matching the file's idiom (V is function-local in

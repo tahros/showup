@@ -359,6 +359,59 @@ module.exports = settled.then(() => {
     ok("...and --chart-soft is defined in both themes",
        (fs.readFileSync(path.join(dir, "css/app.css"), "utf8").match(/--chart-soft:#/g) || []).length === 2);
 
+    // ---- 10. v3.3.272: the thousand-day poster ---------------------------
+    // The monument is the streak: a 50x20 wall of EXACTLY one thousand
+    // 16px cells, one per calendar day ending today, gaps left honest. The
+    // fixture misses three days deep in the span, so the trained/gap split
+    // discriminates: 997 accent cells, 3 whispered ones.
+    run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
+      for(let i=0;i<1000;i++){ if([412,413,700].includes(i)) continue;
+        const d=new Date(t); d.setDate(d.getDate()-i);
+        DB.days[d.toLocaleDateString('en-CA')]={w:[{part:'Chest',ex:'Chest Press',w:40,reps:[10],at:1}],upd:1};}
+      SEED=deriveAll();})()`);
+    /* the drawers resolve var(--x) through getComputedStyle, which jsdom
+       cannot cascade from stylesheets — pin the dark palette inline, exactly
+       as a browser would resolve it, so fills are classifiable and pixels
+       are the real colours. */
+    run(`(function(){const st=document.documentElement.style;
+      st.setProperty('--ground','#070A0E'); st.setProperty('--accent','#4C6BE3');
+      st.setProperty('--chalk','#FAFBFD'); st.setProperty('--muted','#BEC7D5');})()`);
+    run(`(function(){
+      window.__rec=[];
+      const orig=HTMLCanvasElement.prototype.getContext;
+      HTMLCanvasElement.prototype.getContext=function(...a){
+        const c=orig.apply(this,a);
+        if(c&&!c.__wrapped){ c.__wrapped=true;
+          const fr=c.fillRect.bind(c), ft=c.fillText.bind(c);
+          c.fillRect=(...r)=>{__rec.push(['rect',r[2],r[3],String(c.fillStyle)]);return fr(...r);};
+          c.fillText=(...r)=>{__rec.push(['text',String(r[0])]);return ft(...r);};}
+        return c;};
+      window.__poster=drawMilestone(1000);
+      HTMLCanvasElement.prototype.getContext=orig;})()`);
+    const cells = run(`__rec.filter(r=>r[0]==='rect'&&r[1]===16&&r[2]===16).length`);
+    ok("the wall holds exactly one thousand cells", cells === 1000, cells+" cells");
+    ok("...997 in the accent, 3 honest gaps in chalk whisper",
+       run(`__rec.filter(r=>r[0]==='rect'&&r[1]===16&&r[2]===16&&r[3]==='#4C6BE3').length`) === 997 &&
+       run(`__rec.filter(r=>r[0]==='rect'&&r[1]===16&&r[2]===16&&r[3]==='#FAFBFD').length`) === 3);
+    /* pixel-level effects (numeral colour, ground, the gap whisper) live in
+       tools/test-poster.js on a REAL canvas — this suite's recording proxy
+       has no getImageData, so asserting pixels here would assert nothing. */
+    ok("the poster says its five words and its name",
+       run(`JSON.stringify(__rec.filter(r=>r[0]==='text').map(r=>r[1]))`).includes('SHOW/UP') &&
+       run(`__rec.some(r=>r[0]==='text'&&r[1]==='one cell \u00b7 one day')`) &&
+       run(`__rec.some(r=>r[0]==='text'&&r[1]==='1,000')`));
+    ok("...and states the span as dates",
+       run(`__rec.some(r=>r[0]==='text'&&/^\\d{4}\\.\\d{2}\\.\\d{2} \\u2014 \\d{4}\\.\\d{2}\\.\\d{2}$/.test(r[1]))`));
+
+    // regular milestones keep the card they had
+    run(`__rec=[]; (function(){const orig=HTMLCanvasElement.prototype.getContext;
+      HTMLCanvasElement.prototype.getContext=function(...a){const c=orig.apply(this,a);
+        if(c&&!c.__w2){c.__w2=true;const ft=c.fillText.bind(c);
+          c.fillText=(...r)=>{__rec.push(String(r[0]));return ft(...r);};}return c;};
+      drawMilestone(900); HTMLCanvasElement.prototype.getContext=orig;})()`);
+    ok("day 900 still gets the original milestone card", run(`__rec.includes('DAY')`) &&
+       !run(`__rec.includes('one cell \u00b7 one day')`));
+
     // ---- 9. the v3.3.58 lesson, enforced at the source -------------------
     const repSrc = fs.readFileSync(path.join(dir, "js/report.js"), "utf8");
     ok("report.js router no longer uses e.target.id===", !/e\.target\.id===/.test(repSrc));
