@@ -61,6 +61,12 @@ ok("the download icon asset was deleted with its last caller",
 ok("the report card is absent from Stats", run(`!document.getElementById('repCard')`));
 run(`view='history'; render();`);
 ok("the report card renders", run(`!!document.getElementById('repCard')`));
+ok("the compact share launcher is the first History control",
+   run(`document.getElementById('secReport').nextElementSibling.classList.contains('ychips')`));
+ok("the old Monthly reports heading is gone",
+   run(`!document.getElementById('secReportHead')`));
+ok("the History share surface carries the compact layout hook",
+   run(`document.getElementById('secReport').classList.contains('repquick')`));
 ok("...with exactly one share button",
    run(`document.querySelectorAll('#repShare').length`) === 1);
 ok("...and both rotation controls",
@@ -146,6 +152,14 @@ run(`_repIdx=0;`);
 
 // ---- 7. the (i) got quieter but not smaller to the thumb -------------------
 const css = fs.readFileSync(path.join(dir, "css/app.css"), "utf8");
+const repshell = (css.match(/#view>\.card\.rephistory\{[^}]*\}/) || [""])[0];
+ok("the compact shell defeats shared and skin-specific card padding",
+   /padding:0/.test(repshell), repshell);
+const repquick = (css.match(/\.repquick>summary\{[^}]*\}/) || [""])[0];
+ok("the top share launcher is materially shorter than the old 62px card",
+   /min-height:42px/.test(repquick), repquick);
+ok("...and uses compact title type",
+   /font-size:12px/.test(repquick), repquick);
 const ibtn = (css.match(/\.ibtn\{[^}]*\}/) || [""])[0];
 ok("the i is no longer a filled disc", !/background:var\(--chalk\)/.test(ibtn), ibtn.slice(0, 60));
 ok("...it uses the muted colour", /color:var\(--muted\)/.test(ibtn));

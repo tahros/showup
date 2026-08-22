@@ -1,5 +1,16 @@
 # ShowUp — changelog
 
+## v3.3.267 (2026-08-22) — Share starts History without taking it over
+
+`Share your progress` now appears at the top of History, immediately before
+the year and month controls. Its collapsed launcher is only 42px tall, uses a
+quiet secondary surface, and no longer needs a separate `MONTHLY REPORTS`
+heading or a large card at the bottom of the ledger.
+
+Opening the compact row still reveals the complete report-card carousel with
+the same rotation, image sharing, and save-all behavior. This is a relocation
+and hierarchy improvement, not a reduction in sharing functionality.
+
 ## v3.3.266 (2026-08-21) — Copy the selected year from History
 
 The Sessions heading now pairs `COPY MONTH` with `COPY YEAR`. The new action

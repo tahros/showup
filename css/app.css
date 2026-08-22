@@ -577,7 +577,7 @@
   .repdots{margin:0 0 10px;font-family:var(--mono)}
   .repcard .btn{margin:0}
   .repcard .btn:disabled{opacity:.6}
-  .rephistory{padding:0;overflow:hidden}
+  #view>.card.rephistory{padding:0;overflow:hidden}
   .rephistory>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;
     min-height:62px;padding:0 16px;cursor:pointer;font-weight:600;color:var(--chalk)}
   .rephistory>summary::-webkit-details-marker{display:none}
@@ -585,6 +585,13 @@
   .rephistory>summary b{color:var(--accent-ink);font-size:14px;margin-left:4px}
   .rephistory[open]>summary{border-bottom:1px solid var(--line)}
   .rephistory .repcard{padding:16px}
+  /* v3.3.267: History opens with one small share action instead of ending
+     with a second section heading and a 62px card. It grows only when opened. */
+  .repquick{margin:0 0 14px;border-radius:12px;background:var(--surface2);box-shadow:none}
+  .repquick>summary{min-height:42px;padding:0 12px;font-size:12px}
+  .repquick>summary .muted{font-size:9px}
+  .repquick>summary b{font-size:12px;margin-left:3px}
+  .repquick[open]{background:var(--surface)}
   /* v3.3.152: explanatory text in the BODY face, not the mono display face —
      the rulebook's readability rules (15px, 1.45 line height, sentence case)
      apply to prose, and these bubbles are the app's only prose. Mono stays
