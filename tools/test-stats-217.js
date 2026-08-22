@@ -43,8 +43,21 @@ ok('Pace shows the latest nine monthly points',
 ok('...with a value printed above every point',
    paceMeta.values.length===paceMeta.points.length,
    paceMeta.values.length+' labels');
-ok('Printed pace labels stay large and use one neutral ink',
-   paceMeta.values.every(v=>v.fill==='var(--muted)'&&+v.size>=8));
+/* v3.3.265 required ONE neutral ink for every label, to kill the red
+   "fastest month" exception. v3.3.268 RESTATES rather than relaxes: the
+   archive keeps that single neutral ink, and exactly one label — the newest
+   month — is accent blue. Recency is a calendar fact, not a verdict, so no
+   performance claim changes hue and no second neutral appears. */
+ok('Printed pace labels stay large, with one neutral ink for the archive',
+   paceMeta.values.slice(0,-1).every(v=>v.fill==='var(--muted)'&&+v.size>=8));
+ok('...and exactly one label, the newest month, is accent blue',
+   paceMeta.values.filter(v=>v.fill==='var(--accent)').length===1
+   && paceMeta.values[paceMeta.values.length-1].fill==='var(--accent)');
+ok('...no label is coloured by being fastest',
+   (function(){const fast=Math.min(...paceMeta.values.map(v=>{const a=v.text.replace(/"/g,'').split("'");return +a[0]*60 + +a[1];}));
+     return paceMeta.values.every((v,i)=>{const a=v.text.replace(/"/g,'').split("'");
+       const sec=+a[0]*60 + +a[1];
+       return sec!==fast || i===paceMeta.values.length-1 || v.fill==='var(--muted)';});})());
 ok('Every Pace point uses the same blue',paceMeta.points.every(p=>p.fill==='var(--accent)'));
 const paceMonths=run(`[...document.querySelectorAll('.pacemonth')].map(t=>t.textContent).join('')`);
 ok('Pace uses month initials instead of dates',

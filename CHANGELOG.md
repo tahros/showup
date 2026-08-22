@@ -1,5 +1,16 @@
 # ShowUp — changelog
 
+## v3.3.268 (2026-08-22) — The newest Pace month is written in blue
+
+The most recent month's pace now reads in accent blue and bold; every earlier
+month keeps the one neutral ink. The eye finds where the line ends without
+counting across from the right edge.
+
+This is not the red "fastest month" mark v3.3.265 removed. That coloured a
+verdict — a claim about which month was best. This colours recency, a fact
+about the calendar, and it speaks the same grammar as the Session build
+totals row: newest at full voice, the archive quiet.
+
 ## v3.3.267 (2026-08-22) — Share starts History without taking it over
 
 `Share your progress` now appears at the top of History, immediately before
