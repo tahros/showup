@@ -907,20 +907,33 @@ function msLine(n){
 const PART_COLORS={Chest:'var(--p-chest)',Back:'var(--p-back)',Shoulder:'var(--p-shoulder)',
   Legs:'var(--p-legs)',Biceps:'var(--p-biceps)',Triceps:'var(--p-triceps)',
   Sixpack:'var(--p-sixpack)',Run:'var(--p-run)'};
-function partMix(days){
+function partMix(days, mode){
+  /* v3.3.277: a second READING of the same days — mode 'weight' stacks
+     weight x reps per part, in the display unit. The v3.3.208 decision
+     stands: mixed tonnage "was not a comparable physical quantity", so one-
+     block-one-set remains the chart's default identity; weight is an opt-in
+     view behind the toggle, never the headline. Both modes come from this
+     one builder so the days, the parts and the colours can never diverge.
+     Bodyweight rows contribute added-weight only (w x reps), the same
+     arithmetic every other volume figure in the app uses. Rows can be plain
+     objects (DB.days) or seed arrays [part,ex,w,reps]; read both shapes. */
   const out=[], iso=[...workoutDates()].sort();
   const take=iso.slice(-Math.max(1,days));
+  const kg=mode==='weight';
   for(const d of take){
     const w=(DB.days[d]||{}).w||(SEED.sessions[d]||[]);
     const by={};
     for(const s of w){
-      const p=s.part||'—';
-      if(p==='Run'||s.ex==='Run') continue;
+      const row=Array.isArray(s)?{part:s[0],ex:s[1],w:s[2],reps:s[3]}:s;
+      const p=row.part||'—';
+      if(p==='Run'||row.ex==='Run') continue;
       /* Folded historical rows store several sets in one reps array; current
          logs usually store one. Length is the one representation-independent
          count, so [12,10,10,8] and four one-rep-array rows both add four. */
-      const sets=(s.reps||[]).length;
-      if(sets>0) by[p]=(by[p]||0)+sets;
+      const reps=row.reps||[];
+      const v=kg ? toU((row.w||0)*reps.reduce((a,b)=>a+b,0))
+                 : reps.length;
+      if(v>0) by[p]=(by[p]||0)+v;
     }
     out.push({d, by, total:Object.values(by).reduce((a,b)=>a+b,0)});
   }

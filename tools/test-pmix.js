@@ -351,6 +351,47 @@ ok("...while the totals row stands, still reading the whole day",
    run(`[...document.querySelectorAll('#pmixWrap [data-lbl="total"]')].every(t=>t.textContent==='5')`) &&
    run(`document.querySelectorAll('#pmixWrap [data-lbl="total"]').length`) === 20);
 run(`pmixSetFocus('Chest');`);
+// ---- v3.3.277: the sets ⇄ weight toggle -----------------------------------
+// Same section, same chart, two readings. Driven through the REAL button.
+// The fixture (1 Chest set + 1 Back set per day at w=40x10 reps) makes the
+// readings unmistakable: totals read 2 as sets, 800 as weight — and the
+// segment colours must be byte-identical across modes, which is the "look
+// and feel exactly match" the maker asked for, held as an assertion.
+ok("the toggle renders, sets active by default",
+   run(`(function(){const b=document.querySelector('[data-pmixmode]');
+     if(!b) return 'no button';
+     const [a,c]=b.querySelectorAll('span');
+     return a.classList.contains('on') && !c.classList.contains('on') && a.textContent==='sets';})()`) === true);
+const fillsBefore = run(`JSON.stringify([...document.querySelectorAll('#pmixWrap rect[data-pt]')].slice(0,6).map(r=>r.getAttribute('fill')))`);
+const setLabels = run(`JSON.stringify([...document.querySelectorAll('#pmixWrap [data-lbl="total"]')].map(t=>t.textContent))`);
+ok("...and bricks overlay the stacks in sets mode",
+   run(`document.querySelectorAll('#pmixWrap [data-bricks]').length`) > 0);
+run(`document.querySelector('[data-pmixmode]').click()`);
+ok("one tap reads the same days as weight — the builder's own number, not the set count",
+   run(`(function(){const want=pmixFmtV(partMix(99999,'weight').pop().total);
+     const ts=[...document.querySelectorAll('#pmixWrap [data-lbl="total"]')];
+     return ts.length>0 && ts.every(t=>t.textContent===want) && want!==${setLabels}[0];})()`) === true,
+   run(`[...document.querySelectorAll('#pmixWrap [data-lbl="total"]')].pop().textContent`) + " per day");
+ok("...bricks stand down — a block means a set, and these are not sets",
+   run(`document.querySelectorAll('#pmixWrap [data-bricks]').length`) === 0);
+ok("...the colours are byte-identical to sets mode",
+   run(`JSON.stringify([...document.querySelectorAll('#pmixWrap rect[data-pt]')].slice(0,6).map(r=>r.getAttribute('fill')))`) === fillsBefore);
+ok("...the summary says lifted, in the display unit",
+   run(`/kg lifted|lb lifted/.test(document.getElementById('pmixSum').textContent)`));
+ok("...and the switch shows weight active",
+   run(`(function(){const [a,c]=document.querySelector('[data-pmixmode]').querySelectorAll('span');
+     return !a.classList.contains('on') && c.classList.contains('on');})()`));
+run(`pmixSetFocus('Chest');`);
+ok("focus still isolates in weight mode, labels in weight",
+   run(`(function(){const want=pmixFmtV(partMix(99999,'weight').pop().by['Chest']);
+     const ls=[...document.querySelectorAll('#pmixWrap [data-lbl="Chest"]')];
+     return ls.length>0 && ls.every(t=>t.textContent===want);})()`) === true);
+run(`pmixSetFocus('Chest');`);
+run(`document.querySelector('[data-pmixmode]').click()`);
+ok("one tap back restores the exact set labels and the bricks",
+   run(`JSON.stringify([...document.querySelectorAll('#pmixWrap [data-lbl="total"]')].map(t=>t.textContent))`) === setLabels &&
+   run(`document.querySelectorAll('#pmixWrap [data-bricks]').length`) > 0);
+
 ok("clearing the focus removes the part labels and keeps the totals",
    run(`document.querySelectorAll('#pmixWrap [data-lbl="Chest"]').length`) === 0 &&
    run(`document.querySelectorAll('#pmixWrap [data-lbl="total"]').length`) === 20);
@@ -658,10 +699,23 @@ const pmBody = utilSrc124.slice(pmStart, utilSrc124.indexOf("\nfunction ", pmSta
    what `reps[0]` used to do, and an un-stripped grep flags the explanation
    as if it were the bug. Exactly the v3.3.106 failure, in a new place. */
 const pmCode = pmBody.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/[^\n]*/g, "$1");
-ok("partMix counts reps-array entries and never computes tonnage",
-   /\(s\.reps\|\|\[\]\)\.length/.test(pmCode) &&
-   !/volOf\(s\)|s\.w\s*\*/.test(pmCode),
-   /volOf\(s\)/.test(pmCode) ? "still calls volOf" : "set count only");
+/* v3.3.277 RESTATES the v3.3.208 pin. Tonnage returned — but as an OPT-IN
+   second reading behind an explicit mode argument, never the default. The
+   208 decision ("mixed tonnage is not a comparable physical quantity")
+   survives as: a plain partMix(days) call MUST mean set counts. Asserted
+   behaviourally on a fixture where the two readings cannot be confused —
+   one set of 100 x 10 reads 1 as sets and 1000-scale as weight. */
+ok("the default reading is still one block, one set",
+   run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
+     const d=new Date(t); d.setDate(d.getDate()-1);
+     DB.days[d.toLocaleDateString('en-CA')]={w:[{part:'Chest',ex:'Chest Press',w:100,reps:[10]}],upd:1};
+     SEED=deriveAll();
+     const def=partMix(5), sets=partMix(5,'sets');
+     return def[def.length-1].total===1 && sets[sets.length-1].total===1;})()`) === true);
+ok("...and the weight reading is an explicit ask, w x reps in display units",
+   run(`(function(){const wm=partMix(5,'weight');
+     const v=wm[wm.length-1].total;
+     return Math.abs(v - toU(1000)) < 0.5;})()`) === true);
 
 // ---- v3.3.126: what an empty-space tap means depends on the state --------
 run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');

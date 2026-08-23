@@ -1103,6 +1103,14 @@
      The controls keep 44px transparent hit areas; only the small swatch and
      selected underline are visible. Four stable columns yield a quiet 4+3
      rhythm without hiding any body part behind horizontal scrolling. */
+  /* v3.3.277: the sets/weight switch — quiet, mono, right-aligned; the
+     active reading in chalk, the other a tap away in muted. */
+  .pmixhead{display:flex;justify-content:flex-end;margin-bottom:2px}
+  .pmixmode{background:none;border:0;padding:2px 4px;cursor:pointer;
+    font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--faint)}
+  .pmixmode span{color:var(--faint)}
+  .pmixmode span.on{color:var(--chalk);font-weight:700}
+  .pmixmode span+span::before{content:'/';color:var(--faint);font-weight:400;padding:0 4px}
   .pmixlgd{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;
     margin:0 0 12px;padding:0 0 12px;border-bottom:1px solid var(--line)}
   /* v3.3.123: the year rides just outside the plot, top-left, and swaps as

@@ -1,5 +1,21 @@
 # ShowUp — changelog
 
+## v3.3.277 (2026-08-23) — Session build learns a second reading: total weight
+
+A small sets/weight switch now sits above the Session build legend. Tap it
+and the same chart — same days, same stacking, same colours — reads as total
+weight lifted per body part per day, in your display unit, with the axis and
+the totals row in compact thousands and the summary line stating kilograms
+(or pounds) lifted. Tap again for set counts.
+
+Set counts remain the default and the chart's identity — one block, one set,
+with the brick texture that belongs to that meaning; the bricks stand down in
+the weight reading because a block there is not a set. Following a body part
+works identically in both readings.
+
+Both readings come from one builder, so the days, parts and colours can never
+drift apart.
+
 ## v3.3.276 (2026-08-23) — One claim on the card; the real playbook on Train
 
 **The Train next card makes one claim.** It says when your last real session

@@ -256,6 +256,7 @@ document.addEventListener('click',e=>{
     saveExW(lift.ex,w);
     lift.justSaved=true;save();renderHeader();setToast(lift.ex,w,r);return renderLift();
   }
+  if(e.target.closest&&e.target.closest('[data-pmixmode]')){ pmixSetMode(); return; }
   const _pl=e.target.closest('.pmixlgd [data-pt]');
   if(_pl){ pmixSetFocus(_pl.dataset.pt); return; }   // v3.3.121
   if(e.target.closest('#dualMove')){

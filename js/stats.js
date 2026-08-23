@@ -39,6 +39,12 @@ let PMIX_DAYS=99999;
    the rendered rects rather than re-rendering, so the scroll position — and
    any weeks loaded backwards — survive the tap. */
 let PMIX_FOCUS=null;
+let PMIX_MODE='sets';   // v3.3.277: 'sets' (default identity) | 'weight' (opt-in reading)
+/* weight totals must fit a 12.5px bar: compact thousands, one decimal under
+   10k, none above — "5.5k", "12k" — and plain numbers below 1000. */
+const pmixFmtV=v=>PMIX_MODE==='weight'
+  ? (v>=9950 ? Math.round(v/1000)+'k' : v>=1000 ? (v/1000).toFixed(1)+'k' : fmt(Math.round(v)))
+  : fmt(Math.round(v));
 /* v3.3.122: press a column and read that day out in full. The chart is
    discrete, so this is an index lookup rather than the interpolation the
    line charts need. */
@@ -47,11 +53,15 @@ let PMIX_FOCUS=null;
    so the old up/down trend is deliberately gone. */
 function pmixSummary(){
   const el=document.getElementById('pmixSum'); if(!el) return;
-  const rows=partMix(PMIX_DAYS), P=PMIX_FOCUS;
+  const rows=partMix(PMIX_DAYS,PMIX_MODE), P=PMIX_FOCUS;
   const vals=rows.map(r=>P?(r.by[P]||0):r.total).filter(v=>v>0);
   if(!vals.length){ el.textContent=''; return; }
   const sum=vals.reduce((a,b)=>a+b,0), avg=sum/vals.length;
-  el.innerHTML=`${P?`<b style="color:${PART_COLORS[P]}">${P}</b>`:'All strength'}
+  el.innerHTML=PMIX_MODE==='weight'
+    ? `${P?`<b style="color:${PART_COLORS[P]}">${P}</b>`:'All strength'}
+    · ${fmt(Math.round(sum))} ${isLb()?'lb':'kg'} lifted across ${vals.length} session${vals.length===1?'':'s'}
+    · ${fmt(Math.round(avg))} avg`
+    : `${P?`<b style="color:${PART_COLORS[P]}">${P}</b>`:'All strength'}
     · ${fmt(sum)} completed set${sum===1?'':'s'} across ${vals.length} session${vals.length===1?'':'s'}
     · ${fmt(+avg.toFixed(1))} avg`;
 }
@@ -66,6 +76,28 @@ function pmixApplyFocus(){
     s.setAttribute('aria-pressed',String(PMIX_FOCUS===s.dataset.pt));
   });
   pmixSummary();
+}
+/* v3.3.277: swap the reading, keep the place. Same scroll-preserving
+   re-render as pmixSetFocus; the axis re-renders too because the scale
+   changes with the data. */
+function pmixSetMode(){
+  PMIX_MODE = PMIX_MODE==='sets' ? 'weight' : 'sets';
+  const wrap=document.getElementById('pmixWrap');
+  if(wrap){
+    const keep=wrap.scrollLeft, sb=wrap.style.scrollBehavior;
+    wrap.style.scrollBehavior='auto';
+    wrap.innerHTML=partMixSvg(PMIX_DAYS);
+    const ax=wrap.parentElement.querySelector('.pmixaxis');
+    if(ax) ax.outerHTML=pmixAxisSvg(partMix(PMIX_DAYS,PMIX_MODE));
+    wrap.scrollLeft=keep; wrap.style.scrollBehavior=sb;
+  }
+  const btn=document.querySelector('[data-pmixmode]');
+  if(btn){
+    btn.setAttribute('aria-label',`Show ${PMIX_MODE==='sets'?'total weight':'set counts'} instead`);
+    const [a,c]=btn.querySelectorAll('span');
+    if(a&&c){ a.classList.toggle('on',PMIX_MODE==='sets'); c.classList.toggle('on',PMIX_MODE==='weight'); }
+  }
+  pmixApplyFocus();
 }
 function pmixSetFocus(part){
   PMIX_FOCUS = (PMIX_FOCUS===part) ? null : part;
@@ -101,13 +133,13 @@ function pmixAxisSvg(rows){
   for(let i=0;i<=4;i++){
     const y=PMIX_BASE-(i/4)*(PMIX_BASE-PMIX_TOP);
     s+=`<text x="${PMIX_AXW-4}" y="${(y+2.5).toFixed(1)}" text-anchor="end"
-         font-family="var(--mono)" font-size="7" fill="var(--muted)">${pmixTick(max*i/4)}</text>`;
+         font-family="var(--mono)" font-size="7" fill="var(--muted)">${pmixFmtV(max*i/4)}</text>`;
   }
   return s+`</svg>`;
 }
 let PMIX_YEARS=[];      // v3.3.123: column index -> year, for the sticky label
 function partMixSvg(days){
-  const rows=partMix(days);
+  const rows=partMix(days,PMIX_MODE);
   PMIX_YEARS=rows.map(r=>r.d.slice(0,4));
   if(!rows.length) return '';
   /* v3.3.229: "latest" follows the story the user selected. With no focus,
@@ -176,7 +208,7 @@ function partMixSvg(days){
     }
     /* One patterned overlay cuts the coloured stack into equal set-sized
        blocks without adding thousands of SVG nodes across the archive. */
-    if(r.total){
+    if(r.total&&PMIX_MODE==='sets'){
       const bh=(r.total/max)*(PMIX_BASE-PMIX_TOP);
       s+=`<rect class="pmixbricks${latest?' latest':''}" data-bricks="${r.total}"
            x="${x}" y="${(PMIX_BASE-bh).toFixed(1)}" width="${bw}" height="${bh.toFixed(1)}"
@@ -209,15 +241,15 @@ function partMixSvg(days){
       const op=PMIX_FOCUS ? (newest?0.55:0.28)
                           : (newest?1:Math.max(0.35, 0.92-away*0.033));
       s+=`<text x="${x+bw/2}" y="6.5" text-anchor="middle"
-           font-family="var(--mono)" font-size="6.5" opacity="${op.toFixed(2)}"
+           font-family="var(--mono)" font-size="${PMIX_MODE==='weight'?6:6.5}" opacity="${op.toFixed(2)}"
            ${newest?'font-weight="700" fill="var(--chalk)"':'fill="var(--muted)"'}
-           data-lbl="total" data-lbltot="${r.total}">${pmixTick(r.total)}</text>`;
+           data-lbl="total" data-lbltot="${r.total}">${pmixFmtV(r.total)}</text>`;
     }
     if(PMIX_FOCUS && r.by[PMIX_FOCUS] && focusTop!==null){
       const v=r.by[PMIX_FOCUS];
       if(focusTop>=16) s+=`<text x="${x+bw/2}" y="${(focusTop-3).toFixed(1)}" text-anchor="middle"
            font-family="var(--mono)" font-size="6.5" fill="var(--chalk)"
-           data-lbl="${PMIX_FOCUS}">${pmixTick(v)}</text>`;
+           data-lbl="${PMIX_FOCUS}">${pmixFmtV(v)}</text>`;
     }
     // every column names its day, rotated — as the spreadsheet does
     const lab=(+r.d.slice(5,7))+'/'+(+r.d.slice(8,10));
@@ -758,8 +790,10 @@ function renderStats(){
   cut('kpis');
   /* v3.3.208: Session Build keeps the honest part mix and the live-growing
      skyline, but every unit is now one completed set — never mixed tonnage. */
-  h+=`<h2>Session build${hActs('pmix',"One block per completed set, stacked by body part. Tap a label to follow it; tap again for all. Runs stay separate.",'About Session build')}</h2>
+  h+=`<h2>Session build${hActs('pmix',"One block per completed set, stacked by body part. Tap a label to follow it; tap again for all. The sets/weight switch reads the same days as total weight lifted. Runs stay separate.",'About Session build')}</h2>
       <div class="card">
+        <div class="pmixhead"><button type="button" class="pmixmode" data-pmixmode
+          aria-label="Show ${PMIX_MODE==='sets'?'total weight':'set counts'} instead"><span class="${PMIX_MODE==='sets'?'on':''}">sets</span><span class="${PMIX_MODE==='weight'?'on':''}">${isLb()?'lb':'kg'}</span></button></div>
         <div class="pmixlgd" role="group" aria-label="Follow a body part">${Object.keys(SEED.catalog).filter(p=>p!=='Run').map(p=>
           `<button type="button" data-pt="${p}" aria-pressed="${PMIX_FOCUS===p}" style="--pmix-part:${PART_COLORS[p]||'var(--muted)'}"><i></i><span>${p}</span></button>`).join('')}</div>
         <div class="pmixbox">
