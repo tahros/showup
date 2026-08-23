@@ -84,10 +84,14 @@ seed(`for(let i=1;i<=12;i++){
         DB.days[D(i*3+1)]={w:[{part:'Back',ex:'Bent-Over Row',w:60,reps:[8]}],upd:1}; }`);
 check("with real history the pick still comes from mains",
       `(function(){const P=trainingPlan(); return P.mains.length>0 && P.pick===P.mains[0];})()`, true);
-check("...and the cadence claim returns", `/usually every \\d+d/.test(${card})`, true);
-check("...including the overdue reading when it is earned",
-      `(function(){const P=trainingPlan(); const s=P.score(P.pick);
-        return s>=1 ? /overdue/.test(${card}) : !/overdue/.test(${card});})()`, true);
+/* v3.3.276 RESTATES both: the card now makes ONE claim (the last real
+   session) — the two-clause line squeezed the Start button into a wrap.
+   Cadence and overdue left the card; the pins now hold their absence, and
+   that the one claim is a days-since statement. */
+check("...and the card makes exactly one claim, sitting alone before Start",
+      `/(full session \\d+d ago|\\d+d since) Start/.test(${card})`, true);
+check("...with no cadence or overdue clause on it",
+      `!/usually every|overdue/.test(${card})`, true);
 
 // a part with 8+ days is 'live'; the bar itself is unchanged
 check("the cadence bar is still eight logged days",
@@ -227,7 +231,7 @@ check("a full-session part's two clocks agree (Back unbitten)",
 check("the Train-next card names the full session when the clocks differ",
       `(function(){view='today'; render();
         const el=[...document.querySelectorAll('.card .mono.muted')].map(x=>x.textContent).join(' ');
-        return /full session 4d ago/.test(el) && /usually every 6d/.test(el);})()`, true);
+        return /full session 4d ago/.test(el) && !/usually every|overdue/.test(el);})()`, true);
 
 process.exit(fail ? 1 : 0);
 })();

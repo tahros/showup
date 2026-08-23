@@ -602,23 +602,33 @@ function moGoalCardHTML(){
   return h;
 }
 function lastPartSession(part){
-  const mine=Object.entries(DB.days)
-    .filter(([d,v])=>d<todayISO && (v.w||[]).some(x=>x.part===part&&(x.reps||[]).length))
-    .sort((a,b)=>b[0].localeCompare(a[0]))[0];
-  const seedD=Object.keys(SEED.sessions)
-    .filter(d=>d<todayISO && SEED.sessions[d].some(r=>r[0]===part&&r[1]!=='Run'))
-    .sort().pop();
+  /* v3.3.276: "last time" means the last FULL SESSION of the part, judged by
+     the same session-vs-cameo authority the planner uses (partDoseOn /
+     fullDoseFloor). The maker hit the gap: after v3.3.275 taught the planner
+     to skip cameos, this card still showed one — three Lateral Raise sets
+     from a Chest day presented as "the Shoulder playbook". A cameo is not a
+     playbook. If a part has no full session on record, its most recent day
+     still shows, whatever its size — the card degrades to the ledger, never
+     to nothing. */
+  const dayset=new Set();
+  for(const [d,v] of Object.entries(DB.days))
+    if(d<todayISO && (v.w||[]).some(x=>x.part===part&&(x.reps||[]).length)) dayset.add(d);
+  for(const d of Object.keys(SEED.sessions))
+    if(d<todayISO && SEED.sessions[d].some(r=>r[0]===part&&r[1]!=='Run')) dayset.add(d);
+  const days=[...dayset].sort();
+  if(!days.length) return null;
+  const floor=fullDoseFloor(part,days);
+  const full=days.filter(x=>partDoseOn(x,part)>=floor);
+  const d=(full.length?full:days)[ (full.length?full:days).length-1 ];
   const groups=[], byEx={};
   const add=(ex,set)=>{ let g=byEx[ex]; if(!g){ g={ex,sets:[]}; byEx[ex]=g; groups.push(g); } g.sets.push(set); };
-  let d=null;
-  if(mine&&(!seedD||mine[0]>seedD)){
-    d=mine[0];
-    for(const x of mine[1].w) if(x.part===part&&(x.reps||[]).length) add(x.ex,[x.w,x.reps,x.mins,x.secs]);
-  }else if(seedD){
-    d=seedD;
-    for(const r of SEED.sessions[seedD]) if(r[0]===part&&r[1]!=='Run') add(r[1],[r[2],r[3],r[4],r[5]]);
+  const dv=DB.days[d];
+  if(dv&&(dv.w||[]).some(x=>x.part===part&&(x.reps||[]).length)){
+    for(const x of dv.w) if(x.part===part&&(x.reps||[]).length) add(x.ex,[x.w,x.reps,x.mins,x.secs]);
+  }else if(SEED.sessions[d]){
+    for(const r of SEED.sessions[d]) if(r[0]===part&&r[1]!=='Run') add(r[1],[r[2],r[3],r[4],r[5]]);
   }
-  return d&&groups.length?{d,groups}:null;
+  return groups.length?{d,groups}:null;
 }
 function lastSession(ex){
   const mine=Object.entries(DB.days)

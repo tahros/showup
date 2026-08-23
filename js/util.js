@@ -702,6 +702,19 @@ function toggleMyPart(p){
    part you still train. It governs APPEARANCE only: the planner's own `live`
    flag (days>=8) still decides what the app is willing to claim about a
    part's rhythm, which is a different question and deliberately unchanged. */
+/* v3.3.276: ONE authority for session-vs-cameo, shared by the planner and
+   the Train tab's Last time card so they can never disagree about what a
+   part's "last session" was. The rule is v3.3.275's: a day is a full session
+   of a part when its sets reach half the part's median daily dose, floor 2. */
+function partDoseOn(d,p){
+  const rows = SEED.sessions[d] || ((DB.days[d]||{}).w||[]).map(x=>[x.part,x.ex,x.w,x.reps||[]]);
+  let n=0; for(const r of rows) if(r[0]===p&&r[1]!=='Run') n+=(r[3]||[]).length;
+  return n;
+}
+function fullDoseFloor(p,days){
+  const doses=days.map(d=>partDoseOn(d,p)).filter(x=>x>0);
+  return Math.max(2,(median(doses)||0)*0.5);
+}
 const PART_COLD_DAYS=21;
 function trainingPlan(){
   const dp=dayParts();
@@ -723,19 +736,13 @@ function trainingPlan(){
      (since/last stay ledger truth); only sinceF/gapF — what the rotation
      scores by — learn the difference. A part with no full days on record
      keeps its old clock rather than vanishing. */
-  const doseOf=(d,p)=>{
-    const rows = SEED.sessions[d] || ((DB.days[d]||{}).w||[]).map(x=>[x.part,x.ex,x.w,x.reps||[]]);
-    let n=0; for(const r of rows) if(r[0]===p&&r[1]!=='Run') n+=(r[3]||[]).length;
-    return n;
-  };
   const info={};
   for(const [p,days] of Object.entries(byPart)){
     days.sort();
     const gaps=[];
     for(let i=1;i<days.length;i++) gaps.push(daysBetween(days[i-1],days[i]));
-    const doses=days.map(d=>doseOf(d,p));
-    const md=median(doses.filter(x=>x>0))||0;
-    const doseFloor=Math.max(2, md*0.5);
+    const doses=days.map(d=>partDoseOn(d,p));
+    const doseFloor=fullDoseFloor(p,days);
     const fdaysRaw=days.filter((d,i)=>doses[i]>=doseFloor);
     const fdays=(p!=='Run'&&fdaysRaw.length)?fdaysRaw:days;
     const fgaps=[];

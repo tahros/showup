@@ -166,4 +166,42 @@ ok("one tap opens it back up, rows restored",
    run(`document.querySelectorAll('.partlast .plrow').length`) > 0 &&
    run(`DB.settings.plFold===false`));
 
+// ---- v3.3.276: "last time" means the last FULL session --------------------
+// The maker's exact report: Shoulder's most recent touch was a 3-set cameo
+// on a Chest day, and the card presented it as the Shoulder playbook. The
+// card now reads through the same session-vs-cameo authority the planner
+// uses. Full Shoulder day 4d ago (3 exercises), cameo 2d ago (1 exercise) —
+// the fixture makes the two days distinguishable by content and by date.
+run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
+  const D=n=>{const d=new Date(t);d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA')};
+  /* full days at the maker's real dose (~14 sets) so half-median (7) sits
+     clearly above a 3-set cameo — a 6-set "full" day would put the floor at
+     3 and let the cameo qualify, which is the rule working, not failing */
+  const FULL=[{part:'Shoulder',ex:'Dumbbell Shoulder Press',w:24,reps:[6,6,6,6,5]},
+    {part:'Shoulder',ex:'Lateral Raise',w:14,reps:[12,12,12,10]},
+    {part:'Shoulder',ex:'Reverse Pec Deck',w:30,reps:[12,12,12,12,10]}];
+  for(const n of [16,10,4]) DB.days[D(n)]={w:JSON.parse(JSON.stringify(FULL)),upd:1};
+  DB.days[D(2)]={w:[{part:'Chest',ex:'Chest Press',w:60,reps:[10,10,10]},
+    {part:'Shoulder',ex:'Lateral Raise',w:14,reps:[12,12,10]}],upd:1};
+  SEED=deriveAll(); view='lift'; lift.ex=null; lift.part='Shoulder';
+  DB.settings.plFold=false; render();})()`);
+const D4=run(`(function(){const d=new Date(todayISO+'T00:00');d.setDate(d.getDate()-4);
+  return d.toLocaleDateString('en-CA');})()`);
+ok("the card shows the last FULL session, not the fresher cameo",
+   run(`document.querySelector('.partlast .linkdate').dataset.histd`) === D4,
+   run(`document.querySelector('.partlast .linkdate').dataset.histd`) + " (cameo was 2d ago)");
+ok("...with the full session's exercises, all three",
+   run(`document.querySelectorAll('.partlast .plrow').length`) === 3);
+ok("the planner and the card agree on what the last session was",
+   run(`(function(){const lp=lastPartSession('Shoulder');
+     return daysAgo(lp.d)===trainingPlan().info.Shoulder.sinceF;})()`));
+// a part whose entire record is small days still shows its latest — the card
+// degrades to the ledger, never to nothing
+run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
+  const D=n=>{const d=new Date(t);d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA')};
+  for(const n of [9,5,2]) DB.days[D(n)]={w:[{part:'Sixpack',ex:'Crunch',w:0,reps:[15,15,15]}],upd:1};
+  SEED=deriveAll(); view='lift'; lift.ex=null; lift.part='Sixpack'; render();})()`);
+ok("a small-dose part still shows its most recent day",
+   run(`(function(){const lp=lastPartSession('Sixpack'); return lp?daysAgo(lp.d):null;})()`) === 2);
+
 process.exit(fail ? 1 : 0);

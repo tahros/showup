@@ -1,5 +1,21 @@
 # ShowUp — changelog
 
+## v3.3.276 (2026-08-23) — One claim on the card; the real playbook on Train
+
+**The Train next card makes one claim.** It says when your last real session
+was — "full session 4d ago" — and nothing else. The cadence and overdue
+clauses that shared the line squeezed the Start button into a two-line wrap;
+they still drive the pick, they just no longer crowd the card. Buttons and
+chips can no longer wrap anywhere in the app.
+
+**"Last time" on the Train tab now shows your last full session.** Selecting
+a part whose most recent touch was a small cameo — three lateral raises on a
+chest day — used to present that cameo as the part's playbook. The card now
+reads through the same session-vs-cameo rule the planner uses, so the two can
+never disagree about what your last session was. A part whose days are all
+small still shows its most recent day: the card degrades to the ledger, never
+to nothing.
+
 ## v3.3.275 (2026-08-23) — The planner tells a session from a cameo
 
 Training a few sets of a body part alongside another part's day no longer

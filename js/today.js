@@ -313,16 +313,13 @@ function renderToday(){
     h+=`<h2>Train next</h2>`;
     if(P.pick){
       const i0=P.info[P.pick];
-      const over=Math.round((i0.sinceF/i0.gapF-1)*100);
-      /* v3.3.248: only a lift with enough history may claim a cadence. A cold
-         start says what it actually knows — never trained, or the days since —
-         and never invents "usually every 7d" or an overdue percentage from a
-         default. Same register: state the record, claim nothing beyond it. */
-      /* v3.3.275: the card speaks in full sessions. When a cameo touched the
-         part more recently than its last real session, say so — "full
-         session 4d ago" — instead of a number that contradicts the chip. */
+      /* v3.3.276: the card makes ONE claim (maker's call — the two-clause
+         line squeezed the Start button into a two-line wrap). The claim is
+         the last real session, the fact the pick rests on; cadence and the
+         overdue percentage stay in the numbers behind the pick, not on the
+         card. */
       const sub = i0.live
-        ? `${i0.sinceF!==i0.since?`full session ${i0.sinceF}d ago`:`${i0.since}d since`} · usually every ${Math.round(i0.gapF)}d${over>0?` · <span style="color:var(--accent)">${over}% overdue</span>`:''}`
+        ? (i0.sinceF!==i0.since?`full session ${i0.sinceF}d ago`:`${i0.since}d since`)
         : (i0.days===0 ? `not trained yet` : `${i0.since}d since · ${i0.days} day${i0.days===1?'':'s'} logged`);
       h+=`<div class="card"><div class="row spread">
             <div><div style="font-family:var(--disp);font-weight:700;font-size:20px">${P.pick}</div>
