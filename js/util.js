@@ -709,11 +709,37 @@ function trainingPlan(){
   for(const [d,set] of Object.entries(dp))
     for(const p of set) (byPart[p]=byPart[p]||[]).push(d);
 
+  /* v3.3.275: a SESSION is not a CAMEO. The planner's clocks used day-level
+     membership with no notion of dose, so three Lateral Raise sets riding on
+     a Chest day reset Shoulder's rotation clock exactly like a 21-set
+     Shoulder session, and the cameo days compressed its median gap. The
+     maker hit it precisely: emphasising shoulders as a SECONDARY made the
+     app recommend them LESS — the harder the emphasis, the deeper the skip.
+     Rule: a day counts as a full session of a part only when its dose that
+     day reaches half the part's own median daily sets (floor 2). Self-
+     calibrating — a 14-set-median Shoulder ignores 3-set cameos; a 3-set-
+     median Sixpack keeps every day, because small IS its full dose. The
+     LEDGER is untouched: chips, Stats and coverage still count every set
+     (since/last stay ledger truth); only sinceF/gapF — what the rotation
+     scores by — learn the difference. A part with no full days on record
+     keeps its old clock rather than vanishing. */
+  const doseOf=(d,p)=>{
+    const rows = SEED.sessions[d] || ((DB.days[d]||{}).w||[]).map(x=>[x.part,x.ex,x.w,x.reps||[]]);
+    let n=0; for(const r of rows) if(r[0]===p&&r[1]!=='Run') n+=(r[3]||[]).length;
+    return n;
+  };
   const info={};
   for(const [p,days] of Object.entries(byPart)){
     days.sort();
     const gaps=[];
     for(let i=1;i<days.length;i++) gaps.push(daysBetween(days[i-1],days[i]));
+    const doses=days.map(d=>doseOf(d,p));
+    const md=median(doses.filter(x=>x>0))||0;
+    const doseFloor=Math.max(2, md*0.5);
+    const fdaysRaw=days.filter((d,i)=>doses[i]>=doseFloor);
+    const fdays=(p!=='Run'&&fdaysRaw.length)?fdaysRaw:days;
+    const fgaps=[];
+    for(let i=1;i<fdays.length;i++) fgaps.push(daysBetween(fdays[i-1],fdays[i]));
     const lifts = days.filter(d=>{
       const others=[...dp[d]].filter(x=>x!=='Run'&&x!==p);
       return others.length===0;
@@ -724,6 +750,8 @@ function trainingPlan(){
       last:days[days.length-1],
       since:daysAgo(days[days.length-1]),
       gap:Math.max(1,median(gaps)||7),
+      sinceF:daysAgo(fdays[fdays.length-1]),
+      gapF:Math.max(1,median(fgaps)||7),
       soloRate: p==='Run' ? 1 : lifts/liftDays,
       live: days.length>=8
     };
@@ -735,7 +763,8 @@ function trainingPlan(){
   const myp=myPartsSet();
   const allow=p=>p==='Run'||myp.has(p);
   for(const p of Object.keys(SEED.catalog))
-    if(allow(p)&&!info[p]) info[p]={days:0,last:SEED.partLast[p]||null,since:SEED.partLast[p]?daysAgo(SEED.partLast[p]):999,gap:7,soloRate:0,live:false};
+    if(allow(p)&&!info[p]){const s0=SEED.partLast[p]?daysAgo(SEED.partLast[p]):999;
+      info[p]={days:0,last:SEED.partLast[p]||null,since:s0,gap:7,sinceF:s0,gapF:7,soloRate:0,live:false};}
 
   /* v3.3.249: a part switched OFF leaves the rotation even if it has history —
      that is the whole point of the switch, and the ledger is untouched (Stats
@@ -746,7 +775,7 @@ function trainingPlan(){
   for(const p of Object.keys(info))
     if(p!=='Run'&&!myp.has(p)&&!todayParts.has(p)) delete info[p];
 
-  const score=p=>info[p].since/info[p].gap;
+  const score=p=>info[p].sinceF/info[p].gapF;   // full sessions drive the rotation
   const live=Object.keys(info).filter(p=>info[p].live&&p!=='Run');
   const mains=live.filter(p=>info[p].soloRate>=0.4).sort((a,b)=>score(b)-score(a));
   const addons=live.filter(p=>info[p].soloRate<0.4).sort((a,b)=>score(b)-score(a));

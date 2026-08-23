@@ -188,5 +188,46 @@ check("...and never greys out", grey('Run'), false);
 check("no chip says dormant any more",
       `[...document.querySelectorAll('.partcard .ps')].some(x=>/dormant/i.test(x.textContent))`, false);
 
+// ---- v3.3.275: a session is not a cameo -----------------------------------
+// The maker's August, transcribed (parts + set counts): Shoulder full days
+// every ~6d PLUS 3-set cameos on Chest days. Day-membership clocks read the
+// cameos as sessions — since reset to the cameo, median gap compressed — so
+// emphasising shoulders as a secondary made the app skip them. One extra
+// cameo on the final day makes the old and new planners disagree on the
+// PICK itself, so this fixture discriminates end to end.
+run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
+  const M=[[20,[['Shoulder',21]]],[19,[['Back',16],['Biceps',7]]],[18,[['Chest',18]]],
+    [17,[['Legs',4]]],[16,[['Shoulder',18]]],[15,[['Back',17]]],[13,[['Chest',16]]],
+    [12,[['Legs',11]]],[10,[['Shoulder',14]]],[9,[['Back',17]]],
+    [6,[['Chest',14],['Shoulder',3]]],[5,[['Legs',11]]],[4,[['Shoulder',14]]],
+    [3,[['Back',17],['Biceps',5],['Triceps',5]]],
+    [2,[['Chest',17],['Shoulder',3],['Sixpack',3]]],
+    [1,[['Legs',11],['Sixpack',4],['Shoulder',3]]]];
+  for(let cyc=0;cyc<3;cyc++) for(const [ago,parts] of M){
+    const d=new Date(t); d.setDate(d.getDate()-(ago+cyc*21));
+    DB.days[d.toLocaleDateString('en-CA')]={w:parts.map(([p,n])=>({part:p,ex:p+' Movement',w:20,reps:Array(n).fill(10),at:1})),upd:1};}
+  DB.settings.myParts=['Back','Shoulder','Chest','Legs','Biceps','Triceps','Sixpack'];
+  DB.settings.custom={'Shoulder Movement':{part:'Shoulder',equip:'dumbbell'},'Back Movement':{part:'Back',equip:'barbell'},
+    'Chest Movement':{part:'Chest',equip:'barbell'},'Legs Movement':{part:'Legs',equip:'barbell'},
+    'Biceps Movement':{part:'Biceps',equip:'dumbbell'},'Triceps Movement':{part:'Triceps',equip:'cable'},
+    'Sixpack Movement':{part:'Sixpack',equip:'body'}};
+  SEED=deriveAll();})()`);
+check("the pick is the emphasised part, cameos notwithstanding",
+      `trainingPlan().pick`, "Shoulder");
+check("the ledger clock still says the cameo happened (chips stay honest)",
+      `trainingPlan().info.Shoulder.since`, 1);
+check("...while the rotation clock reads the last FULL session",
+      `trainingPlan().info.Shoulder.sinceF`, 4);
+check("...and the cadence is the full-session cadence, not the cameo-compressed one",
+      `Math.round(trainingPlan().info.Shoulder.gapF)`, 6);
+check("a part whose normal dose is small keeps every day (Sixpack unbitten)",
+      `(function(){const i=trainingPlan().info.Sixpack; return i.sinceF===i.since;})()`, true);
+check("a full-session part's two clocks agree (Back unbitten)",
+      `(function(){const i=trainingPlan().info.Back; return i.sinceF===i.since && i.gapF===i.gap;})()`, true);
+check("the Train-next card names the full session when the clocks differ",
+      `(function(){view='today'; render();
+        const el=[...document.querySelectorAll('.card .mono.muted')].map(x=>x.textContent).join(' ');
+        return /full session 4d ago/.test(el) && /usually every 6d/.test(el);})()`, true);
+
 process.exit(fail ? 1 : 0);
 })();

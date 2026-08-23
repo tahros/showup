@@ -1,5 +1,23 @@
 # ShowUp — changelog
 
+## v3.3.275 (2026-08-23) — The planner tells a session from a cameo
+
+Training a few sets of a body part alongside another part's day no longer
+convinces the planner you just trained it. A day now counts as a full session
+of a part only when its sets reach half that part's own usual daily dose —
+so three lateral-raise sets riding on a chest day stop resetting Shoulder's
+rotation clock and stop compressing its cadence. The rule calibrates to each
+part: a group whose normal day IS three sets keeps every day.
+
+This fixes a quiet inversion: adding a part as a regular secondary — the
+thing you do to emphasise it — made the app recommend it less, because every
+cameo looked like a fresh session. Now the rotation reads only real sessions,
+and the Train next card says so plainly when the two differ: "full session
+4d ago · usually every 6d".
+
+Nothing else changes meaning. The chips, Stats, coverage and the ledger
+still count every set of every day, exactly as logged.
+
 ## v3.3.274 (2026-08-22) — Last time folds away
 
 The Last time card on the Train tab can now be folded. A small chevron sits
