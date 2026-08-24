@@ -1,5 +1,15 @@
 # ShowUp — changelog
 
+## v3.3.288 (2026-08-24) — Scrubbing reps no longer throws you out of the lift
+
+Dragging the rep ruler sideways was also being read as a page swipe — which
+inside an exercise means "go back", so scrubbing your reps mid-set kicked you
+out to the body-part list. The ruler now owns its own horizontal axis, like
+every other sideways-scrolling surface in the app.
+
+A swipe anywhere else on the exercise page still goes back, exactly as
+before.
+
 ## v3.3.287 (2026-08-24) — The rep ruler shows its numbers
 
 Fixes the rep ruler rendering as an empty grey strip. The centre band was

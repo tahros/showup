@@ -61,7 +61,13 @@
                    t.closest('.lbwrap')||     // v3.3.164: scrubbing the live bars is not a tab swipe
                    t.closest(MODALS)||        // v3.3.140: and nothing under a modal moves
                    t.closest('.pacescrub')||  // v3.3.236: dragging pace reads it, never changes tab
-                   t.closest('.compscroll');   // sideways-scrolling chart owns its axis
+                   t.closest('.compscroll')||  // sideways-scrolling chart owns its axis
+                   t.closest('.repwrap');      /* v3.3.288: the rep ruler scrubs
+                     sideways. Inside an exercise a horizontal swipe means BACK
+                     (popMode), so without this every scrub of the reps threw
+                     you out of the lift — the harshest possible version of the
+                     bug, mid-set. Every sideways-scrolling surface in the app
+                     belongs on this list; the ruler was simply the newest. */
   addEventListener('touchstart',e=>{
     if(e.touches.length!==1||view==='sync') return;
     if(blocked(e.target)) return;

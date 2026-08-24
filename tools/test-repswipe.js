@@ -143,7 +143,44 @@ ok("...and to pull-to-refresh", (() => {
   return (u.match(/#repOv/g) || []).length >= 2;
 })());
 
+/* ---- 6b. v3.3.288: the REP RULER owns its own horizontal axis ------------
+   The ruler scrubs sideways, and inside an exercise a horizontal swipe means
+   BACK (popMode) — so before this, scrubbing the reps threw you out of the
+   lift mid-set. Asserted the v3.3.140 way: fire real touch events and check
+   the app did not move, not that a selector appears in the source. */
+/* keep the suite's 400-day ledger — section 7 needs it for the report card.
+   Only the VIEW changes here. */
+run(`(function(){DB.settings.unit='lb';
+  view='lift'; lift={part:'Shoulder',ex:'Dumbbell Shoulder Press',weight:toKg(55)};
+  render();})()`);
+ok("the ruler is on screen to swipe", run(`!!document.querySelector('.repwrap .rr')`));
+const exBefore = run(`lift.ex`);
+const viewAfterRuler = touchSwipe(".repwrap .rr");
+ok("a touch-swipe on the ruler does NOT change tab",
+   viewAfterRuler === "lift", "view = " + viewAfterRuler);
+ok("...and does NOT pop you out of the exercise",
+   run(`lift.ex`) === exBefore, "lift.ex = " + run(`lift.ex`));
+const viewAfterBand = touchSwipe(".repwrap");
+ok("...nor does one starting on the ruler's own band",
+   viewAfterBand === "lift" && run(`lift.ex`) === exBefore);
+/* the surrounding card must still swipe back — the block is the ruler only,
+   not the whole exercise page */
+const viewAfterCard = run(`(function(){
+  const el=document.querySelector('.zone')||document.getElementById('view');
+  const mk=(t,x)=>{ const ev=new Event(t,{bubbles:true,cancelable:true});
+    ev.touches=t==='touchend'?[]:[{clientX:x,clientY:300}];
+    ev.changedTouches=[{clientX:x,clientY:300}]; return ev; };
+  el.dispatchEvent(mk('touchstart',300));
+  el.dispatchEvent(mk('touchmove',120));
+  el.dispatchEvent(mk('touchend',120));
+  return lift.ex;})()`);
+ok("...while a swipe elsewhere on the page still pops back",
+   viewAfterCard === null, "lift.ex = " + String(viewAfterCard));
+
 // ---- 7. overlay swipe, and the card it would SHARE ----------------------
+/* the ruler block above left the app inside the Train tab; put History's
+   report card back on screen before section 7 (v3.3.288). */
+run(`view='history'; render(); document.getElementById('secReport').open=true; paintRepCard();`);
 run(`_repIdx=0; document.getElementById('repShare').click();`);
 const label0 = run(`_repCv&&_repCv.label`);
 ok("opening the overlay records the card on screen", !!label0, String(label0));
