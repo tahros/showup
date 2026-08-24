@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v3.3.292 (2026-08-24) — Plan exercise names line up
+
+The exercise names in today's plan now all start at the same left edge. They
+had been floating in the space between the tick and the numbers, so a short
+name like "Lateral Raise" sat further right than a long one and the column
+read as ragged.
+
 ## v3.3.291 (2026-08-24) — You can feel the ruler, and it only moves sideways
 
 **Real haptics on iPhone.** Each notch you cross now taps back. Safari has

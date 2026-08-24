@@ -125,6 +125,21 @@ ok("accepting writes a plan for TODAY",
 ok("...weights are stored in kg like every other weight",
    run(`(function(){const i=planFor('Dumbbell Shoulder Press');
      return Math.abs(toU(i.lines[1].w)-55)<0.01 && Math.abs(toU(i.lines[0].w)-35)<0.01;})()`) === true);
+/* v3.3.292: the names share one left edge. jsdom cannot compute layout, so
+   what is asserted is the rule that produces it — the name takes the free
+   space and the numbers are pushed right — rather than measured pixels. */
+ok("the name column takes the free space, so every row starts at the same x",
+   (function(){const css=fs.readFileSync(path.join(dir,"css/app.css"),"utf8").replace(/\r?\n\s*/g,"");
+     return /\.planrow \.pn\{[^}]*flex:1/.test(css) && /\.planrow \.pn\{[^}]*text-align:left/.test(css);})());
+ok("...the numbers are pushed right rather than space-between deciding",
+   (function(){const css=fs.readFileSync(path.join(dir,"css/app.css"),"utf8").replace(/\r?\n\s*/g,"");
+     return /\.planrow \.pl\{[^}]*margin-left:auto/.test(css)
+         && !/\.planrow\{[^}]*justify-content:space-between/.test(css);})());
+ok("...and every row carries the same three parts in the same order",
+   run(`[...document.querySelectorAll('.planrow')].every(r=>{
+     const k=[...r.children].map(c=>c.className);
+     return k[0]==='pk' && k[1]==='pn' && k[2]==='pl';})`));
+
 ok("...and the card shows a row per weight, not just the top one",
    run(`(function(){const r=[...document.querySelectorAll('.planrow')]
      .find(x=>/Dumbbell Shoulder Press/.test(x.textContent));

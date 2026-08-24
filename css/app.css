@@ -1178,12 +1178,19 @@
   .plancard{padding:6px 0}
   /* v3.3.281: the plan is reference material you glance at between sets, not
      a headline — it reads one step down from the ledger's own type. */
-  .planrow{display:flex;width:100%;justify-content:space-between;align-items:baseline;
+  /* v3.3.292: names start at a common left edge. space-between with THREE
+     children parked the tick left and the numbers right and left the name
+     floating in whatever space remained — so every exercise began at a
+     different x and the column read as ragged. The name now takes the free
+     space (flex:1) and the numbers are pushed right by margin-left:auto, so
+     the left edge is fixed by the tick column and nothing else. */
+  .planrow{display:flex;width:100%;justify-content:flex-start;align-items:baseline;
     gap:10px;background:none;border:0;border-bottom:1px solid var(--line);
     padding:7px 14px;cursor:pointer;text-align:left;color:var(--chalk);font:inherit}
   .planrow:last-of-type{border-bottom:0}
-  .planrow .pn{font-size:12.5px;line-height:1.35}
-  .planrow .pl{display:flex;flex-direction:column;align-items:flex-end;gap:1px}
+  .planrow .pn{flex:1;min-width:0;text-align:left;font-size:12.5px;line-height:1.35}
+  .planrow .pl{flex:0 0 auto;margin-left:auto;display:flex;flex-direction:column;
+    align-items:flex-end;gap:1px}
   .planrow .pv{font-size:10.5px;color:var(--muted);white-space:nowrap;line-height:1.4}
   /* a row whose exercise is in today's ledger. The tick is a fact FROM the
      record, not a score against the plan: it says "this is logged", never
