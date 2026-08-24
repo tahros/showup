@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v3.3.282 (2026-08-24) — Edit and Clear move to the corner
+
+The plan's Edit and Clear controls now sit at the right edge of the "today
+plan" heading, as small quiet labels, instead of a full-width pair of buttons
+under the last exercise — where they read like one more row of the session.
+The card is now nothing but the session you pasted.
+
+The (i) stays beside the title, where it has been since v3.3.115.
+
 ## v3.3.281 (2026-08-24) — The plan ticks what you've logged, and takes less room
 
 Log an exercise and its row in today's plan gets a tick, with the row easing

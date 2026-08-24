@@ -146,6 +146,32 @@ ok("...so the exercise page says the chips came from the plan",
    run(`/plan/i.test([...document.querySelectorAll('.zone.mini .lasthead span')][0].textContent)`));
 ok("...and the chips carry the plan's numbers",
    run(`/35/.test(document.querySelector('.lastsets').textContent)`));
+// ---- v3.3.282: management actions ride the heading's right edge ----------
+// Edit and Clear left the card body — a full-width pair under the last
+// exercise read as another row of the session. The (i) did NOT move: its
+// place beside the title is v3.3.115's deliberate call.
+// the block above navigated into an exercise page; come back to the tab
+// where the plan card lives before asserting anything about it
+run(`(function(){view='lift'; lift.ex=null; lift.plan=null; render();})()`);
+ok("Edit and Clear live in the heading, not the card body",
+   run(`document.querySelectorAll('h2 .planedge .pedge').length`) === 2 &&
+   run(`!document.querySelector('.plancard .planacts')`));
+ok("...in the corner, after the tip, which keeps its place by the title",
+   run(`(function(){const k=[...document.querySelector('h2').children].map(c=>c.className.split(' ')[0]);
+     return k.indexOf('hacts')>=0 && k.indexOf('planedge')===k.length-1
+       && k.indexOf('hacts')<k.indexOf('planedge');})()`) === true);
+ok("...and Clear still clears from there",
+   (function(){
+     run(`document.querySelector('.planedge [data-planclear]').click()`);
+     return run(`!planNow()`) && run(`!!document.querySelector('[data-planpaste]')`);
+   })());
+// put a plan back for the blocks below
+run(`(function(){document.querySelector('[data-planpaste]').click();
+  document.getElementById('planText').value=${JSON.stringify(PASTE)};
+  document.querySelector('[data-planread]').click();
+  [...document.querySelectorAll('[data-planpick]')].find(x=>x.dataset.planex2==='Rear Deltoids').click();
+  document.querySelector('[data-planaccept]').click();})()`);
+
 // ---- v3.3.281: the tick is a fact from the ledger ------------------------
 // Logging an exercise ticks its plan row. The direction matters: the row
 // reads the RECORD and reports it. Nothing aggregates those ticks.

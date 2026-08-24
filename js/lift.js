@@ -37,7 +37,12 @@ function renderLift(){
     if(lift.plan==='paste'||lift.plan==='preview'){ $('#view').innerHTML=planScreenHTML(); return; }
     const _pl=planNow();
     if(_pl){
-      h+=`<h2><b class="scopepill">today</b> plan${hActs('plan',"Paste a session and the app reads what it can. It fills weights and reps for today only, is never written to your record, and clears at midnight. Nothing is counted against it.",'About today\u2019s plan')}</h2>
+      /* v3.3.282: Edit and Clear move to the heading's right edge. They are
+         management actions, not part of the plan, and a full-width pair under
+         the last exercise read as another row of the session. The (i) stays
+         beside the title — that placement is v3.3.115's deliberate call and
+         is not what the maker asked to move. */
+      h+=`<h2><b class="scopepill">today</b> plan${hActs('plan',"Paste a session and the app reads what it can. It fills weights and reps for today only, is never written to your record, and clears at midnight. Nothing is counted against it.",'About today\u2019s plan')}<span class="planedge"><button class="pedge" data-planedit>Edit</button><button class="pedge" data-planclear>Clear</button></span></h2>
         <div class="card plancard">
           ${(_pl.items||[]).map(i=>`<button class="planrow${planLoggedToday(i.ex)?' pdone':''}" data-planex="${i.ex}">
               <span class="pk">${planLoggedToday(i.ex)?'\u2713':''}</span>
@@ -45,10 +50,6 @@ function renderLift(){
               <span class="pl">${i.lines.map(l=>`<span class="pv mono">${l.bw||l.w<=0?'BW':wDisp(l.w)+' '+U()} \u00d7 ${l.reps.join(' ')}</span>`).join('')}</span>
             </button>`).join('')}
           ${_pl.note?`<div class="plannote mono">${hesc(_pl.note)}</div>`:''}
-          <div class="planacts">
-            <button class="btn ghost" data-planedit>Edit</button>
-            <button class="btn ghost" data-planclear>Clear</button>
-          </div>
         </div>`;
     }else{
       h+=`<button class="btn ghost planpaste" data-planpaste>Paste today\u2019s plan</button>`;
