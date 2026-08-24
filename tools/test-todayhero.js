@@ -50,19 +50,26 @@ run(`
   lastSetAt=Date.now();
   view='today'; render();
 `);
-// v3.3.40: the hero is the PART digest, not the exercise chart — the
-// exercise chart already lives at the bottom of the exercise view.
-check("live → hero is the part digest", `!!document.querySelector('#view .pdigest')`, true);
-check("live → Rhythm stands down",     `!!document.querySelector('#view .rhythm')`, false);
-check("hero names the live part",
-      `[...document.querySelectorAll('#view h2')].some(x=>/Shoulder . live/i.test(x.textContent))`, true);
-check("newest bar is red while live",
-      `document.querySelector('#view .pdigest rect.lbNow').getAttribute('fill')`, "var(--live)");
+/* v3.3.40 made the hero the PART digest while a session was live. v3.3.285
+   RESTATES the whole block: the digest is gone from the app entirely, and
+   Today leads with Rhythm in BOTH states — one hero, not two. The digest's
+   last act was a mid-session verdict ("volume down 70% vs your previous 5
+   sessions", in red, computed from a half-logged session), which is the one
+   claim this app declines to make. The assertions now hold that absence,
+   and that the surviving hero is stable across the live/idle boundary. */
+check("live → Rhythm still leads, one hero in both states",
+      `!!document.querySelector('#view .rhythm')`, true);
+check("...and no part digest exists anywhere",
+      `!!document.querySelector('#view .pdigest')`, false);
+check("...no mid-session verdict is rendered",
+      `/volume (up|down) \\d+%/i.test(document.getElementById('view').textContent)`, false);
+check("...and the live part is still named where the work is listed",
+      `/Shoulder/i.test(document.getElementById('view').textContent)`, true);
 
-// --- a run logged after the lift must not hijack the hero
+// --- a run logged after the lift must not change the hero either
 run(`dayMeta().w.push({part:'Run',ex:'Run',w:3.47,mins:27,secs:16}); render();`);
-check("Run doesn't steal the hero",
-      `[...document.querySelectorAll('#view h2')].some(x=>/Shoulder . live/i.test(x.textContent))`, true);
+check("a run does not disturb the hero",
+      `!!document.querySelector('#view .rhythm') && !document.querySelector('#view .pdigest')`, true);
 
 // --- sealing the exercise hands the hero back to Daily Fire
 run(`dayMeta().doneEx.push('Dumbbell Press'); render();`);

@@ -104,51 +104,15 @@ run(`hist.part='Chest'; renderHistory();`);
 check("empty filter names the part",
       `/No Chest logged this month/.test(document.querySelector('#view').textContent)`, true);
 
-// ---- the digest COMPONENT, pinned where it still lives ---------------------
-// v3.3.258: the digest left History (ledger vs analysis) but remains the
-// Today tab's live hero. Every property that used to be asserted against the
-// History card is asserted here instead — chart, caption, growth wording,
-// all-time line, and the v3.3.102 geometry — so removing a call site cost
-// this suite no coverage. The fixture logs TODAY, which is what makes a
-// session live.
-run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
-  for(let i=1;i<=20;i++){const d=new Date(t); d.setDate(d.getDate()-i*3);
-    DB.days[d.toLocaleDateString('en-CA')]={w:[{part:'Shoulder',ex:'Dumbbell Press',w:20,reps:[10]}],upd:1};}
-  const tm=dayMeta(); tm.w.push({part:'Shoulder',ex:'Dumbbell Press',w:20,reps:[10]});
-  lastSetAt=Date.now(); SEED=deriveAll(); view='today'; render();})()`);
-check("the digest component still renders, as Today's live hero",
-      `!!document.querySelector('#view .pdigest')`, true);
-check("...naming the live part", `document.querySelector('#view .pdigest b').textContent`, "Shoulder");
-check("...charting something", `!!document.querySelector('#view .pdigest svg rect')`, true);
-check("...stating growth in plain words",
-      `/vs your previous 5 sessions/.test(document.querySelector('#view .pdigest').textContent)`, true);
-check("...with no PR list (v3.3.41)",
-      `document.querySelectorAll('#view .pdigest .prrow').length`, 0);
-check("...and no session COUNT stat (v3.3.41)",
-      `/\\d+ sessions/.test(document.querySelector('#view .pdigest').textContent.replace(/previous 5 sessions/,''))`, false);
-check("...caption states sets",
-      `/\\d+ sets/.test(document.querySelector('#view .pdigest svg text').textContent)`, true);
-check("...all-time line states sets",
-      `/[\\d,]+ sets all time/.test(document.querySelector('#view .pdigest').textContent)`, true);
-const svgH = run(`(document.querySelector('#view .pdigest svg').getAttribute('viewBox')||'').split(' ')[3]`);
-check("the digest chart viewBox is shorter than before (was 92)", `${svgH}<92 && ${svgH}>0`, true);
-check("...specifically 78, the ~15% target", svgH, "78");
-// the bars must still reach proportionally as far up the shorter canvas —
-// the shrink should not also silently flatten the chart
-const bh = run(`(function(){
-  const rs=[...document.querySelectorAll('#view .pdigest svg rect')];
-  const hs=rs.map(r=>+r.getAttribute('height'));
-  return Math.max(...hs);})()`);
-check("the tallest bar still reaches close to its old proportional height (~48, was 58)",
-      `${bh}>=44 && ${bh}<=52`, true);
-// and the card must still render cleanly — no leftover references to the
-// old constants anywhere nearby
-const histSrc = fs.readFileSync(path.join(dir, "js/history.js"), "utf8");
-check("no stray reference to the old H=92 / base=72 / *58 constants remains",
-      `${!/H=92|base=72|\*58\)/.test(histSrc)}`, "true");
-
-/* the live-hero fixture above left the app on Today; the blocks below assert
-   History, so put it back on screen before they run (v3.3.258). */
+/* v3.3.285: this block asserted the digest COMPONENT — chart, caption, growth
+   wording, all-time line, the v3.3.102 geometry — after v3.3.258 moved it here
+   from the History card so that removing a call site cost no coverage. The
+   component itself is now DELETED (its last host, Today's live hero, was
+   removed), so the coverage goes with it deliberately rather than being
+   silently left green against nothing. What survives below is History's own
+   behaviour, which never depended on the digest. */
+/* the blocks below assert History; put it on screen explicitly rather than
+   inheriting whatever the previous block left (v3.3.258). */
 run(`(function(){hist.part=null; view='history'; render();})()`);
 check("History is back on screen for the blocks below",
       `document.querySelectorAll('.day').length > 0`, true);

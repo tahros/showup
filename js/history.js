@@ -149,67 +149,13 @@ function partSessions(part,detail){
   }
   return out.sort((a,b)=>a.d<b.d?-1:1);
 }
-function partDigest(part,sess,opts){
-  opts=opts||{};
-  if(!sess.length) return '';
-  const isRun=part==='Run';
-  const val=s=>isRun?s.km:s.vol;
-  const disp=v=>isRun?dDisp(v)+' '+DU():vDisp(v)+' '+U();
-  const yrN=sess.filter(s=>s.d.slice(0,4)===String(thisYear)).length;
-  const cutD=new Date(todayISO+'T00:00'); cutD.setDate(cutD.getDate()-365);
-  const cut=cutD.toLocaleDateString('en-CA');
-  const recent=sess.filter(s=>s.d>cut).map(s=>s.d);
-  const gaps=[]; for(let i=1;i<recent.length;i++) gaps.push(daysBetween(recent[i-1],recent[i]));
-  const cadence=gaps.length?Math.round(median(gaps)):null;
-  const since=daysBetween(sess[sess.length-1].d,todayISO);
-
-  /* growth = mean of the last 5 sessions vs the 5 before them. Five is enough
-     to survive one light day and short enough to still mean "lately". */
-  const vals=sess.map(val).filter(v=>v>0);
-  let growth=null;
-  if(vals.length>=10){
-    const a=vals.slice(-5), b=vals.slice(-10,-5);
-    const ma=a.reduce((x,y)=>x+y,0)/5, mb=b.reduce((x,y)=>x+y,0)/5;
-    if(mb>0) growth=Math.round((ma/mb-1)*100);
-  }
-  const shown=sess.slice(-14), n=shown.length;
-  const mx=Math.max(...shown.map(val),1);
-  const W=330,H=78,base=61;   // v3.3.102: ~15% shorter, same proportions
-  const gap=Math.min(26,(W-20)/Math.max(n,1)), bw=Math.max(5,Math.min(18,gap-4));
-  let ch=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto">`;
-  shown.forEach((s,i)=>{
-    const bh=Math.max(2,(val(s)/mx)*49), x=10+i*gap;
-    const newest=i===n-1;
-    const fill=newest?(opts.live&&s.d===todayISO?'var(--live)':'var(--accent)'):'var(--line)';
-    ch+=`<rect class="${newest&&opts.live?'lbNow':''}" x="${x.toFixed(1)}" y="${(base-bh).toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="2" fill="${fill}"></rect>`;
-  });
-  const setsShown=shown.reduce((a,s)=>a+s.sets,0);
-  const cap=isRun
-    ? `last ${n} run${n>1?'s':''} · longest ${disp(mx)}`
-    : `last ${n} · biggest ${disp(mx)} · ${fmt(setsShown)} sets`;
-  ch+=`<text x="10" y="${H-4}" font-family="var(--mono)" font-size="7.5" fill="var(--muted)">${cap}</text></svg>`;
-
-  const allTime=isRun
-    ? `${dDisp(sess.reduce((a,s)=>a+s.km,0))} ${DU()} all time`
-    : `${fmt(sess.reduce((a,s)=>a+s.sets,0))} sets all time`;
-  /* v3.3.155: "+13% vs the 5 before" read as a riddle to the first outside
-     user. Plain words: what moved, and against what. growth===null (fewer
-     than 10 sessions) already renders nothing — a new user never sees a
-     percentage with no baseline behind it. */
-  const gTxt=growth===null?'':`<span class="mono ${growth>=0?'up':'down'}">volume ${growth>=0?'up':'down'} ${Math.abs(growth)}% vs your previous 5 sessions</span>`;
-  return `${opts.head?`<h2>${opts.head}</h2>`:''}<div class="card pdigest">
-      <div class="row spread" style="margin-bottom:6px">
-        <b style="font-family:var(--disp)">${part}</b>
-        <span class="mono muted" style="font-size:12px"><b style="color:var(--accent)">${yrN}</b> days in ${thisYear}</span>
-      </div>
-      <div class="tot" style="margin-bottom:8px">
-        <span>${cadence?`every ~${cadence}d`:'not enough history yet'}</span>
-        <span>${since===0?'trained today':`${since}d since`}</span>
-      </div>
-      ${ch}
-      <div class="tot" style="margin-top:2px"><span>${gTxt}</span><span>${allTime}</span></div>
-    </div>`;
-}
+/* v3.3.285: partDigest() DELETED. It left History in v3.3.258 (ledger vs
+   analysis) and survived as Today's live hero; with that hero gone it had no
+   callers at all. Its final job was a mid-session verdict — "volume down 70%
+   vs your previous 5 sessions", in red, computed while the session was still
+   half-logged — which is the one thing this app does not do. partSessions()
+   stays: it answers "which sessions included this part", which is a question,
+   not a judgement. Git remembers the code. */
 function renderHistory(){
   if(SEED.totals.sessions===0 && !hasAnyDays()){ $('#view').innerHTML=emptyHero('history'); return; }
   const detail=allDays();
@@ -266,8 +212,8 @@ function renderHistory(){
      deliberately refuses to lead with, and all three answer a question
      rather than a date, which is Stats' job. The chips stay — they filter
      the calendar and the sessions below, which IS date-addressed work.
-     partDigest itself lives on as the Today tab's live hero, where a
-     mid-session read of the part you are training is exactly the point. */
+     partDigest itself was deleted in v3.3.285, once the Today hero that had
+     kept it alive was removed too. */
 
   // month calendar
   const key=`${hist.y}-${String(hist.m).padStart(2,'0')}`;

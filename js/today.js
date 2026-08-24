@@ -45,17 +45,15 @@ function livePartNow(){
    same chart twice taught nothing new. Part level answers a question that
    screen can't: how does today's whole Shoulder session compare to the last
    fourteen. Today's bar is red while the session is live. */
-/* v3.3.45: Daily Fire is gone and Rhythm takes the top slot. The pre-gym
-   branch already opened with Rhythm, so Today now leads with the same card
-   in both states. A live session still leads with the part digest — that's
-   the one thing more urgent than rhythm while you're mid-set. */
+/* v3.3.45: Daily Fire is gone and Rhythm takes the top slot.
+   v3.3.285: the live part digest is gone too, so Today leads with Rhythm in
+   BOTH states — one hero, not two. The digest was the last place in the app
+   that delivered a mid-session verdict: "volume down 70% vs your previous 5
+   sessions", in red, while you are still lifting. Nothing else here grades a
+   session in progress, and a warm-up set legitimately reads as 70% down. The
+   number was accurate and useless, which is exactly the kind of claim this
+   app declines to make. */
 function todayHeroHTML(){
-  const part=livePartNow();
-  if(part){
-    const detail=allDays();
-    const sess=partSessions(part,detail);
-    if(sess.length) return partDigest(part,sess,{head:`${part} · live`,live:true});
-  }
   return `<h2 class="quiet">Rhythm</h2>`+rhythmCard();
 }
 /* ============ v3.1 Clean Slate: onboarding · demo · honest empty states ============ */
@@ -355,7 +353,11 @@ function renderToday(){
 
   // ---- mid-session: what am I doing right now
   h+=todayHeroHTML();
-  h+=`<h2>Training today${doneLift.length?` · <b class="hi">${doneLift.join(' · ')}</b>`:''}</h2>`;
+  /* v3.3.285: the parts trained today move off the heading onto their own
+     quiet line. Inline, four parts wrapped into the title and collided with
+     it; the heading is a label and should stay one short thing. */
+  h+=`<h2>Training today</h2>`;
+  if(doneLift.length) h+=`<div class="todaypartsline mono">${doneLift.join(' · ')}</div>`;
   const byPart={};
   t.w.forEach(s=>{(byPart[s.part]=byPart[s.part]||[]).push(s);});
   for(const [part,sets] of Object.entries(byPart)){

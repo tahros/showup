@@ -1,5 +1,20 @@
 # ShowUp — changelog
 
+## v3.3.285 (2026-08-24) — Today leads with Rhythm, always
+
+The body-part card that appeared at the top of Today mid-session is gone.
+Today now opens with Rhythm whether or not a session is live — one hero, not
+two.
+
+That card was the last place in the app that graded a workout while it was
+still happening: "volume down 70% vs your previous 5 sessions", in red, after
+a warm-up set. The number was accurate and useless, and nothing else here
+passes judgement on a session in progress.
+
+The parts you've trained today also move off the "Training today" heading
+onto their own line beneath it, where four of them no longer collide with the
+title.
+
 ## v3.3.284 (2026-08-24) — You can tell the app what the equipment actually is
 
 Under the weight stepper on any exercise, a line now says how the weight
