@@ -764,6 +764,15 @@
     padding:8px 12px;min-height:44px;min-width:64px;cursor:pointer;text-align:center}
   .ll-bar b{color:var(--chalk);font-size:12px}
   .ll-bar.save{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+  /* v3.3.283: while the bar weight is being edited the load line is a small
+     form — question, answer, choices — so it drops the single-row flex. */
+  .loadline.editing{display:block;padding:10px 12px 12px}
+  .loadline.editing .ll-q{display:block;font-size:10px;color:var(--muted);
+    letter-spacing:var(--track-label);margin-bottom:6px;line-height:1.4}
+  .loadline.editing .barinput{margin-bottom:8px}
+  .loadline.editing .ll-choices{display:grid;grid-template-columns:1fr 1fr auto;gap:8px}
+  .loadline.editing .ll-bar{min-width:0;width:100%;white-space:nowrap;
+    padding:9px 10px;min-height:40px}
   .barinput{width:100%;background:var(--surface);border:1px solid var(--accent);border-radius:10px;
     color:var(--chalk);font-family:var(--mono);font-weight:700;font-size:18px;padding:9px 11px}
   .barinput:focus{outline:none}

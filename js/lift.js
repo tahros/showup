@@ -394,7 +394,7 @@ function renderLift(){
         <div class="val${isBody(ex)?' bwval':''}">${isBody(ex)?`<span class="bwtag">Bodyweight +</span>`:''}<input id="wv" type="number" inputmode="decimal" step="${wStep(ex)}" value="${wDisp(lift.weight)}"><span class="unit">${U()}</span></div>
         <button data-w="1">+</button></div>`;
     if(usesPlates(ex)){
-      h+=`<div class="loadline" id="ll">${loadInner(ex,lift.weight)}</div>`;
+      h+=`<div class="loadline${lift.editBar?' editing':''}" id="ll">${loadInner(ex,lift.weight)}</div>`;
     }else if(loadLine(ex,lift.weight)){
       h+=`<div class="loadline" id="ll"><span class="ll-text">${loadLine(ex,lift.weight)}</span></div>`;
     }
@@ -875,13 +875,20 @@ function refreshReps(){
 /* load line inner: fixed-width bar picture so the text never shifts */
 function loadInner(ex,kg){
   if(lift.editBar){
-    return `<span class="ll-text" style="flex:1">
-              <label class="mono" style="font-size:10px;color:var(--muted);display:block;margin-bottom:4px">Bar weight for ${ex} (${U()})</label>
-              <input id="barIn" type="number" inputmode="decimal" step="0.5" value="${wDisp(barKg(ex))}" class="barinput">
-            </span>
-            <button class="ll-bar save" data-savebar="${ex}">This lift</button>
-            <button class="ll-bar save" data-savebarall="${ex}">All ${equipOf(ex)==='smith'?'Smith':'barbell'}</button>
-            <button class="ll-bar" data-cancelbar="1">Cancel</button>`;
+    /* v3.3.283: the edit state is a FORM, not a load line. It used to reuse
+       the one-row flex built for viz + text + one small button, so four
+       children fought over the width: the label collapsed to a ~50px column
+       and wrapped "Bar weight for EZ Bar Curl (lb)" down six lines while
+       three 64px buttons crowded the rest. Now it stacks — question, answer,
+       then the three choices on their own row — and .loadline.editing drops
+       the row layout that caused it. */
+    return `<label class="ll-q mono" for="barIn">Bar weight for ${ex} (${U()})</label>
+            <input id="barIn" type="number" inputmode="decimal" step="0.5" value="${wDisp(barKg(ex))}" class="barinput">
+            <div class="ll-choices">
+              <button class="ll-bar save" data-savebar="${ex}">This lift</button>
+              <button class="ll-bar save" data-savebarall="${ex}">All ${equipOf(ex)==='smith'?'Smith':'barbell'}</button>
+              <button class="ll-bar" data-cancelbar="1">Cancel</button>
+            </div>`;
   }
   return `<span class="ll-viz">${barViz(ex,kg)}</span><span class="ll-text">${loadLine(ex,kg)}</span>
           <button class="ll-bar" data-editbar="${ex}">bar<br><b>${wDisp(barKg(ex))}${U()}</b> ✎</button>`;

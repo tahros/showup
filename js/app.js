@@ -574,6 +574,11 @@ function refreshLoad(){
   const ll=$('#ll');
   if(ll&&lift.ex){
     const kg=toKg(+($('#wv').value||0));
+    /* v3.3.283: the container's layout depends on the state its contents are
+       in, so the modifier must be re-applied here too — refreshing on a
+       weight tap while editing would otherwise put the form back into the
+       one-row flex it just escaped. */
+    ll.classList.toggle('editing', !!lift.editBar);
     ll.innerHTML = usesPlates(lift.ex)
       ? loadInner(lift.ex,kg)
       : `<span class="ll-text">${loadLine(lift.ex,kg)}</span>`;

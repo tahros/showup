@@ -479,4 +479,39 @@ check("...and in the receipt, which names the BW set it beat",
         return /BW\\+10/.test(rows[0].textContent)
           && rows[1].querySelector('b').textContent==='BW \u00d7 10';})()`, true);
 
+// ---- v3.3.283: editing the bar weight is a FORM, not a load line ---------
+// Four children in the one-row flex built for three meant the label
+// collapsed to a narrow column and wrapped down six lines. The edit state
+// now stacks, and the container carries a modifier that must survive an
+// in-place refresh — refreshLoad() runs on every weight tap.
+run(`(function(){DB.days={}; DB.settings.unit='lb'; SEED=deriveAll();
+  view='lift'; lift.part='Biceps'; lift.ex='EZ Bar Curl';
+  lift.weight=toKg(40); lift.editBar=false; render();})()`);
+check("the resting load line keeps its three-part row",
+      `(function(){const c=[...document.getElementById('ll').children].map(x=>x.className.split(' ')[0]);
+        return c.join(',')==='ll-viz,ll-text,ll-bar'
+          && !document.getElementById('ll').classList.contains('editing');})()`, true);
+run(`document.querySelector('[data-editbar]').click()`);
+check("editing stacks question, answer, choices",
+      `(function(){const c=[...document.getElementById('ll').children].map(x=>x.className.split(' ')[0]);
+        return c.join(',')==='ll-q,barinput,ll-choices';})()`, true);
+check("...the container says it is a form",
+      `document.getElementById('ll').classList.contains('editing')`, true);
+check("...the label owns a full row of its own, not a squeezed column",
+      `(function(){const l=document.querySelector('.ll-q');
+        return l.tagName==='LABEL' && l.parentElement.id==='ll'
+          && l.getAttribute('for')==='barIn';})()`, true);
+check("...and all three choices sit in one group",
+      `[...document.querySelectorAll('.ll-choices .ll-bar')].length`, 3);
+/* the trap: refreshLoad() rewrites #ll on every weight tap and would drop
+   the modifier, snapping the form back into the row it just left */
+run(`(function(){const wv=document.getElementById('wv'); if(wv){wv.value='45'; refreshLoad();}})()`);
+check("a weight tap while editing does not collapse the form",
+      `(function(){return document.getElementById('ll').classList.contains('editing')
+        && !!document.querySelector('.ll-choices') && !!document.querySelector('.ll-q');})()`, true);
+run(`document.querySelector('[data-cancelbar]').click()`);
+check("cancelling returns the resting row",
+      `(function(){const ll=document.getElementById('ll');
+        return !ll.classList.contains('editing') && !!ll.querySelector('.ll-viz');})()`, true);
+
 process.exit(fail ? 1 : 0);

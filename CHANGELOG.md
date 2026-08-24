@@ -1,5 +1,16 @@
 # ShowUp — changelog
 
+## v3.3.283 (2026-08-24) — Setting a bar weight looks like a question again
+
+Tapping the bar weight on a barbell lift now opens a small, readable form:
+the question on its own line, the number below it, and the three choices —
+This lift, All barbell, Cancel — side by side underneath.
+
+It had been squeezing all four of those into the single row built for the
+resting load line, so the label collapsed into a narrow column and wrapped
+"Bar weight for EZ Bar Curl (lb)" down six lines while the buttons fought
+over what was left.
+
 ## v3.3.282 (2026-08-24) — Edit and Clear move to the corner
 
 The plan's Edit and Clear controls now sit at the right edge of the "today
