@@ -637,16 +637,14 @@ document.addEventListener('touchstart',repTickInit,{passive:true});
    Now: scroll events are coalesced into one rAF; crossing a notch only swaps
    a class and fires the tick; the button label is rebuilt 110ms after the
    scrolling settles. */
-let _rrLast=null, _rrRaf=0, _rrSettle=0;
+let _rrLast=null, _rrRaf=0;
 function _rrOnScroll(el){
   const v=Math.max(1,Math.round(el.scrollLeft/REP_W)+1);
   if(v!==_rrLast){
     _rrLast=v; lift.rep=v;
     repTick();
-    repRulerBand(v);          // class swap only — no innerHTML, no maths
+    repRulerBand(v);          // v3.3.290: class swap + one text node, nothing else
   }
-  clearTimeout(_rrSettle);
-  _rrSettle=setTimeout(()=>{ updAddPreview(); },110);
 }
 document.addEventListener('scroll',e=>{
   const el=e.target;

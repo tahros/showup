@@ -1,5 +1,17 @@
 # ShowUp — changelog
 
+## v3.3.290 (2026-08-24) — The Add set button says one thing
+
+The volume preview under Add set — "→ 3,812 lb ▲31" — is gone. The button now
+reads only what it will do: "Add set · 27 reps".
+
+It was the last expensive thing in the rep slide. Every settle rebuilt the
+button and re-ranked your whole volume history to compute that number, and
+with it removed the label is a single piece of text that updates as you
+scrub, with nothing deferred.
+
+It was also the one place the app commented on a set you hadn't done yet.
+
 ## v3.3.289 (2026-08-24) — The rep ruler glides, and reaches its own end
 
 Three fixes to the ruler, two of which were the same bug.

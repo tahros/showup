@@ -963,6 +963,10 @@ function repRulerBand(v){
   if(prev){ if(+prev.dataset.rep===v) return; prev.classList.remove('on'); }
   const b=el.querySelector(`.rr[data-rep="${v}"]`);
   if(b) b.classList.add('on');
+  /* v3.3.290: with the volume preview gone the label is one text node, so it
+     rides along here instead of waiting for the scroll to settle. */
+  const btn=document.getElementById('addrep');
+  if(btn) btn.textContent=`Add set \u00b7 ${v} reps`;
 }
 function repRulerMark(){
   repRulerBand(repRulerValue());
@@ -1186,27 +1190,19 @@ function runStatsHTML217(){
 }
 
 
-/* ---------- D2: live consequence on the Add set button ---------- */
+/* ---------- the Add set label ----------
+   v3.3.290: the volume preview is GONE. It cost a full innerHTML rebuild
+   plus a percentile rank over the whole volume distribution, and the ruler
+   asked for that on every settle — the last heavy thing in the slide. It
+   was also the app's only running commentary on a set you had not done
+   yet. What remains is a label that names what the button will do, set as
+   a single text node so it is cheap enough to run per notch. */
 function updAddPreview(){
-  /* v3.3.286: the RULER is the rep source now, not a text field. The button
-     owns ONE label — the reps it will log plus the volume consequence — so
-     nothing else writes to it and the two can never disagree. */
   const btn=document.getElementById('addrep');
   if(!btn) return;
   const r=repRulerValue();
-  if(!(r>0)||!lift.weight){ btn.textContent=r>0?`Add set \u00b7 ${r} reps`:'Add set'; return; }
-  const t=day(todayISO);
-  let cur=0; for(const s of t.w) if(s.ex!=='Run') cur+=s.w*(s.reps||[]).reduce((a,b)=>a+b,0);
-  const nv=cur+lift.weight*r;
-  const dist=fireDist('vol');
-  let gain=0;
-  if(dist.length>=30){
-    const rank=x=>{let lo=0,hi=dist.length;while(lo<hi){const m=(lo+hi)>>1;if(dist[m]<=x)lo=m+1;else hi=m;}return lo;};
-    gain=rank(nv)-rank(cur);
-  }
-  btn.innerHTML=`Add set \u00b7 ${r} reps<span class="addsub">\u2192 <b>${fmt(Math.round(nv))}</b> ${U()}${gain>0?` \u25b2${gain}`:''}</span>`;
+  btn.textContent = r>0 ? `Add set \u00b7 ${r} reps` : 'Add set';
 }
-/* the #rc field is gone; the ruler drives the preview through repRulerMark */
 
 
 /* D2: the day's volume COUNTS UP to its new total after a save */

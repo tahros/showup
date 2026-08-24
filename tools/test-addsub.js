@@ -1,6 +1,12 @@
 // test-addsub.js DIR — v3.3.58: the Add set button's preview children must
-// not eat the tap. When updAddPreview injects "→ 11,325 kg ▲4", a tap lands
-// on the inner <span>/<b>; the router must still log the set.
+// not eat the tap. When updAddPreview injected "→ 11,325 kg ▲4", a tap landed
+// on the inner <span>/<b> and the router had to log anyway.
+//
+// v3.3.290 RESTATES the suite. The volume preview is deleted, so the bug is
+// now impossible BY CONSTRUCTION rather than handled — which is a stronger
+// guarantee and worth pinning as such: the button must hold no child elements
+// at all, so no tap can ever land on something that is not the button. The
+// original property (a tap logs the set) is asserted unchanged.
 const { JSDOM } = require("jsdom");
 const fs = require("fs"), path = require("path"), vm = require("vm");
 const dir = process.argv[2] || "stage58";
@@ -42,27 +48,24 @@ run(`
    nodes must still log, because a thumb hits the letters, not the button —
    so only how the reps get set changes. */
 run(`repRulerTo(12,false);`);
-check("preview letters rendered inside the button",
-      `!!document.querySelector('#addrep .addsub')`, true);
+check("the button holds no children for a tap to miss",
+      `document.getElementById('addrep').children.length`, 0);
+check("...and says only what it will do",
+      `document.getElementById('addrep').textContent.trim()`, "Add set \u00b7 12 reps");
+check("...with no volume commentary anywhere on it",
+      `/\u25b2|lb|kg/.test(document.getElementById('addrep').textContent)`, false);
 
 const before = run(`day(todayISO).w.filter(s=>s.ex==='Barbell Curl').length`);
-
-// the failing tap: click the INNER preview span, not the button itself
-run(`document.querySelector('#addrep .addsub b').click();`);
-check("tap on the preview's <b> logs the set",
+run(`document.getElementById('addrep').click();`);
+check("a tap logs the set the label named",
       `day(todayISO).w.filter(s=>s.ex==='Barbell Curl').length`, before+1);
+check("...at the reps it showed",
+      `JSON.stringify(day(todayISO).w.filter(s=>s.ex==='Barbell Curl').pop().reps)`, "[12]");
 
-// and again on the span (the button re-rendered; re-type the reps)
-run(`repRulerTo(10,false);`);
-check("second preview shows on the fresh render",
-      `!!document.querySelector('#addrep .addsub')`, true);
-run(`document.querySelector('#addrep .addsub').click();`);
-check("tap on the preview <span> logs too",
-      `day(todayISO).w.filter(s=>s.ex==='Barbell Curl').length`, before+2);
-
-// the plain button (no preview) still works
-run(`repRulerTo(8,false); document.getElementById('addrep').click();`);
-check("plain button tap still logs",
-      `day(todayISO).w.filter(s=>s.ex==='Barbell Curl').length`, before+3);
+/* NOT asserted: a tap "on the text inside the button". A browser reports the
+   ELEMENT as the target for a text node, so the only way to write that test
+   is to fabricate an event no browser emits — which proves nothing. With
+   children.length===0 there is nothing inside the button to hit; that is the
+   real guarantee, and it is asserted above. */
 
 process.exit(fail ? 1 : 0);

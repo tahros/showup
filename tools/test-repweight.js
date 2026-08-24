@@ -195,15 +195,19 @@ check("the confirmation says BW for a bodyweight set, not '0kg'",
   check("the Add set button has a pinned height", `${/height:\d+px/.test(btnRule)}`, true);
   check("...and centres its content instead of growing around it",
         `${/flex-direction:column/.test(btnRule) && /justify-content:center/.test(btnRule)}`, true);
-  const subRule = (css148.match(/#addrep \.addsub\{[^}]*\}/) || [""])[0];
-  check("...and the preview line adds no margin of its own", `${!/margin-top/.test(subRule)}`, true);
-  /* v3.3.286: reps come from the ruler, so the preview is driven by moving
-     the ruler rather than typing into a field that no longer exists. */
+  /* v3.3.290: the preview line is gone, so its no-margin rule went with it.
+     The pinned box survives and now defends a smaller thing — the label
+     changing width from "8 reps" to "12 reps" must not move the button. */
+  check("...and no preview rule survives to describe a deleted line",
+        `${!/#addrep \.addsub/.test(css148)}`, true);
+  /* v3.3.290 RESTATES: the volume preview is gone — it was the last heavy
+     thing in the slide, and the only place the app commented on a set you had
+     not done yet. The button now says only what it will do. */
   run(`lift.weight=16; repRulerTo(12,false);`);
-  check("moving the ruler writes the volume preview",
-        `/addsub/.test((document.getElementById('addrep')||{innerHTML:''}).innerHTML)`, true);
-  check("...and the label names the reps it will log",
-        `/Add set . 12 reps/.test((document.getElementById('addrep')||{textContent:''}).textContent)`, true);
+  check("the button names the reps it will log",
+        `/^Add set . 12 reps$/.test((document.getElementById('addrep')||{textContent:''}).textContent.trim())`, true);
+  check("...and carries no volume preview at all",
+        `/addsub|\u25b2/.test((document.getElementById('addrep')||{innerHTML:''}).innerHTML)`, false);
   /* with no weight yet the button cannot promise a volume — it falls back to
      naming the reps alone rather than a stale number */
   run(`lift.weight=0; updAddPreview();`);
@@ -641,15 +645,19 @@ check("...one lead, one tail, wrapping the notches",
       `(function(){const k=[...document.querySelector('.rrtrack').children];
         return k[0].classList.contains('rrpad') && k[k.length-1].classList.contains('rrpad');})()`, true);
 /* the per-notch path must stay cheap: it moves a class and nothing else */
-check("crossing a notch only moves the band class",
+/* v3.3.290: with the preview gone the label is a single text node, so it
+   updates ON the cheap path rather than waiting for the scroll to settle.
+   What must stay true is that crossing a notch does no STRUCTURAL work —
+   no element is created or destroyed, only a class and a string move. */
+check("crossing a notch moves the band and the label",
       `(function(){repRulerTo(12,false);
-        const before=document.getElementById('addrep').innerHTML;
+        const kids=document.getElementById('addrep').children.length;
         repRulerBand(13);
         return document.querySelector('.rr.on').dataset.rep==='13'
-          && document.getElementById('addrep').innerHTML===before;})()`, true);
-check("...and the label catches up when it settles",
-      `(function(){lift.rep=13; updAddPreview();
-        return /Add set . 13 reps/.test(document.getElementById('addrep').textContent);})()`, true);
+          && /Add set . 13 reps/.test(document.getElementById('addrep').textContent)
+          && document.getElementById('addrep').children.length===kids;})()`, true);
+check("...and builds no child elements while doing it",
+      `document.getElementById('addrep').children.length`, 0);
 
 check("a rep nudge moves the ruler rather than a dead field",
       `(function(){const b=document.createElement('button');

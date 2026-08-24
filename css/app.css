@@ -344,16 +344,12 @@
   .onbges b{font-weight:600}
   .onbges .muted{display:block;font-size:12px}
   .onbnote{font-size:12px;color:var(--muted);margin-top:9px;line-height:1.5}
-  /* v3.3.148: the live preview must not RESIZE the button. .addsub is a
-     second line, so the button grew when you typed and the reps input
-     (stretching to the flex row) grew with it — the whole control jumped
-     under your thumb mid-entry. The button is a constant 51px box now
-     (its one-line height) and centres whatever it holds; the two-line
-     state compresses into the same box instead of enlarging it. */
+  /* v3.3.148 pinned the button's height so the two-line volume preview could
+     not resize it under your thumb. v3.3.290 DELETED that preview, and the
+     pinned box stays: a fixed 51px means the button cannot change size when
+     the reps count goes from one digit to two either. */
   #addrep{height:51px;padding:0 15px;display:flex;flex-direction:column;
     align-items:center;justify-content:center;line-height:1.25}
-  #addrep .addsub{display:block;font-family:var(--mono);font-size:10px;font-weight:500;opacity:.85;line-height:1.15}
-  #addrep .addsub b{color:#fff}
 
   #msOv{position:fixed;inset:0;z-index:95;display:none;align-items:center;justify-content:center;
     background:var(--ground);cursor:pointer}
