@@ -1,5 +1,20 @@
 # ShowUp — changelog
 
+## v3.3.280 (2026-08-24) — A pasted plan keeps every set you wrote
+
+Warm-up sets are no longer dropped. If an exercise in your paste has two
+weight lines — a warm-up and a working weight — the plan now shows both, in
+the order you wrote them, and the Suggested chips offer both. A paste headed
+"6 sets" produces a plan of six sets.
+
+The first version kept only the last weight line, on the theory that the
+working set was the plan. That was wrong twice over: the warm-up is part of
+the session, and the preview had already told you the line was read before
+it quietly disappeared. Discarding something the app understood is worse
+than failing to understand it.
+
+A plan saved by the previous version still opens correctly after this update.
+
 ## v3.3.279 (2026-08-24) — Plan buttons keep their shape
 
 The buttons under a pasted plan are the same size as each other again. They

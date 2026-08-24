@@ -54,10 +54,18 @@ run(`(function(){DB.days={}; DB.settings.unit='lb'; const t=new Date(todayISO+'T
 
 // ---- 1. the parser reads what it can, and only what it can ----------------
 run(`window.__rows=parsePlan(${JSON.stringify(PASTE)});`);
-ok("the WORKING set wins over the warm-up above it",
+/* v3.3.280 RESTATES: the first version kept only the last weight line, so a
+   paste headed "6 sets" produced a plan of 4 and the two warm-up sets were
+   read and then discarded. Silently dropping input the parser UNDERSTOOD is
+   worse than failing to parse it. Every line is kept, in written order. */
+ok("every weight line is kept, warm-up first",
    run(`(function(){const r=__rows.find(x=>x.ex==='Dumbbell Shoulder Press');
-     const l=r.lines[r.lines.length-1];
-     return r.lines.length===2 && l.w===55 && l.reps.join()==='8,8,8,8';})()`) === true);
+     return r.lines.length===2 && r.lines[0].w===35 && r.lines[0].reps.join()==='10,8'
+       && r.lines[1].w===55 && r.lines[1].reps.join()==='8,8,8,8';})()`) === true);
+ok("...and the plan's set count matches what the paste claimed (6 sets)",
+   run(`(function(){const {items}=planItemsFrom(__rows);
+     const i=items.find(x=>x.ex==='Dumbbell Shoulder Press');
+     return planSets(i).length===6;})()`) === true);
 ok("a coach note after an arrow is not read as data",
    run(`(function(){const r=__rows.find(x=>x.ex==='Dumbbell Shoulder Press');
      return r.lines.every(l=>l.reps.every(n=>n>0&&n<100));})()`) === true);
@@ -116,7 +124,11 @@ ok("accepting writes a plan for TODAY",
    run(`(planNow()||{items:[]}).items.length`) + " items");
 ok("...weights are stored in kg like every other weight",
    run(`(function(){const i=planFor('Dumbbell Shoulder Press');
-     return Math.abs(toU(i.w)-55)<0.01;})()`) === true);
+     return Math.abs(toU(i.lines[1].w)-55)<0.01 && Math.abs(toU(i.lines[0].w)-35)<0.01;})()`) === true);
+ok("...and the card shows a row per weight, not just the top one",
+   run(`(function(){const r=[...document.querySelectorAll('.planrow')]
+     .find(x=>/Dumbbell Shoulder Press/.test(x.textContent));
+     return r ? r.querySelectorAll('.pv').length===2 : false;})()`) === true);
 ok("...and the unreadable lines are kept verbatim",
    run(`/Plank/.test(planNow().note)`));
 
@@ -127,6 +139,8 @@ ok("...and the day is still untrained as far as the record is concerned",
    run(`SEED.dates.includes(todayISO)`) === false);
 ok("PROMISE 2 — the plan feeds the SUGGESTED rail, naming its origin",
    run(`(sugOv()['Lateral Raise']||{}).from`) === "plan");
+ok("...with every set from every weight line, warm-ups included",
+   run(`(sugOv()['Dumbbell Shoulder Press']||{sets:[]}).sets.length`) === 6);
 run(`(function(){lift.ex='Lateral Raise'; lift.part='Shoulder'; lift.weight=0; render();})()`);
 ok("...so the exercise page says the chips came from the plan",
    run(`/plan/i.test([...document.querySelectorAll('.zone.mini .lasthead span')][0].textContent)`));
@@ -140,8 +154,16 @@ run(`(function(){DB.plan.d='2020-01-01'; view='lift'; lift.ex=null; lift.plan=nu
 ok("a plan from another day is not today's plan", run(`!planNow()`));
 ok("...and the tab offers to take a new one",
    run(`!!document.querySelector('[data-planpaste]')`));
+/* a plan written by v3.3.278/279 (one weight per item, no `lines`) is still
+   in storage after an upgrade — it must render, not crash */
 run(`(function(){DB.plan={d:todayISO,items:[{ex:'Squat',w:60,reps:[5,5]}],note:''};
-  sugOv()['Squat']={sets:[{w:60,r:5}],d:todayISO,from:'plan'};
+  view='lift'; lift.ex=null; lift.plan=null; render();})()`);
+ok("a plan saved by the previous build still renders after upgrade",
+   run(`document.querySelectorAll('.planrow').length`) === 1 &&
+   run(`/Squat/.test(document.querySelector('.planrow').textContent)`));
+ok("...its single weight is read as one line",
+   run(`planNow().items[0].lines.length`) === 1);
+run(`(function(){sugOv()['Squat']={sets:[{w:60,r:5}],d:todayISO,from:'plan'};
   view='lift'; lift.ex=null; render(); planClear();})()`);
 ok("clearing a plan also withdraws the suggestions it planted",
    run(`!planNow() && !sugOv()['Squat']`));

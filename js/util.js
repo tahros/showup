@@ -732,7 +732,22 @@ function fullDoseFloor(p,days){
    The parser is deliberately timid: it proposes, shows its reading, and waits.
    Every line it could not resolve survives as text rather than being dropped,
    because a silently swallowed line is worse than an unparsed one. */
-const planNow=()=>{ const p=DB.plan; return (p&&p.d===todayISO&&(p.items||[]).length||p&&p.d===todayISO&&p.note)?p:null; };
+/* v3.3.280: read-boundary normalisation. v3.3.278/279 stored one weight per
+   item as {w,reps}; this build stores every line as {lines:[{w,bw,reps}]}. A
+   plan saved this morning on the old build is still in storage this
+   afternoon, so upgrade must not crash the Train tab — one shape is repaired
+   on read rather than migrated in place. */
+function planItemShape(i){
+  if(i&&!i.lines) return {ex:i.ex, lines:[{w:i.w||0, bw:!(i.w>0), reps:i.reps||[]}]};
+  return i;
+}
+const planNow=()=>{
+  const p=DB.plan;
+  if(!p||p.d!==todayISO) return null;
+  const items=(p.items||[]).map(planItemShape);
+  if(!items.length&&!p.note) return null;
+  return {...p, items};
+};
 const planFor=ex=>{ const p=planNow(); return p?(p.items||[]).find(i=>i.ex===ex)||null:null; };
 function planSave(items,note,raw){
   DB.plan={d:todayISO, items:items||[], note:note||'', raw:raw||''};
@@ -743,8 +758,9 @@ function planSave(items,note,raw){
      what lets the panel name its origin instead of pretending it is your
      history. */
   for(const i of (items||[])){
-    if(!i.reps.length) continue;
-    sugOv()[i.ex]={sets:i.reps.map(r=>({w:i.w, r})), d:todayISO, from:'plan'};
+    const sets=planSets(i);
+    if(!sets.length) continue;
+    sugOv()[i.ex]={sets, d:todayISO, from:'plan'};
   }
   DB.planAt=Date.now(); save(true);
 }
@@ -822,16 +838,29 @@ function parsePlan(text){
 /* the accepted shape: one item per resolved exercise, weights stored in KG
    like every other weight in the app, unresolved text preserved verbatim */
 function planItemsFrom(rows){
+  /* v3.3.280: EVERY weight line is kept. The first version took only the last
+     line — "the working set, not the warm-up" — which meant a paste saying
+     "6 sets" produced a plan showing 4, and the two warm-up sets the user
+     typed were read and then thrown away. Silently discarding input the
+     parser understood is worse than failing to parse it: the preview says
+     it read the line, and then it is gone. A plan holds the session as
+     written; warm-ups are part of the session. */
   const items=[], notes=[];
   for(const r of rows){
     if(r.kind==='ex'&&r.ex){
-      const l=r.lines[r.lines.length-1];        // the working set, not the warm-up
-      const w=l.bw?0:(l.unit==='kg'?l.w:l.unit==='lb'?l.w/LB:toKg(l.w));
-      items.push({ex:r.ex, w, reps:l.reps.slice(0,12)});
+      const lines=r.lines.map(l=>({
+        w: l.bw?0:(l.unit==='kg'?l.w:l.unit==='lb'?l.w/LB:toKg(l.w)),
+        bw: !!l.bw,
+        reps: l.reps.slice(0,12)
+      })).filter(l=>l.reps.length);
+      if(lines.length) items.push({ex:r.ex, lines});
     }else notes.push(r.raw);
   }
   return {items, note:notes.join('\n')};
 }
+/* one flat list of {w,r} across an item's weight lines — the shape the
+   Suggested chips consume, in the order they were written */
+const planSets=i=>(i.lines||[]).flatMap(l=>l.reps.map(r=>({w:l.w, r})));
 const PART_COLD_DAYS=21;
 function trainingPlan(){
   const dp=dayParts();
