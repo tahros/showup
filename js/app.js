@@ -611,9 +611,41 @@ function repTickInit(){
   try{ const C=window.AudioContext||window.webkitAudioContext; if(C) _tickCtx=new C(); }catch(_e){}
   if(_tickCtx&&_tickCtx.state==='suspended') _tickCtx.resume().catch(()=>{});
 }
+/* v3.3.291: REAL haptics on iPhone, via the one door iOS leaves open.
+   Safari has never implemented navigator.vibrate, so every previous attempt
+   here was a no-op on the maker's own phone. But since iOS 17.4 the native
+   <input type="checkbox" switch> control plays a Taptic tap when it toggles,
+   and toggling it from script counts. So: a hidden switch, clicked once per
+   notch, is a genuine haptic — not a sound standing in for one.
+   Feature-detected on the property, not the browser, so it costs nothing
+   where it does not exist. */
+let _hapEl=null, _hapAt=0;
+const HAP_SWITCH = (()=>{ try{ return 'switch' in HTMLInputElement.prototype; }catch(_e){ return false; } })();
+function repHapticEl(){
+  if(_hapEl||!HAP_SWITCH) return _hapEl;
+  try{
+    const l=document.createElement('label');
+    l.className='haptswitch'; l.setAttribute('aria-hidden','true');
+    const i=document.createElement('input');
+    i.type='checkbox'; i.setAttribute('switch',''); i.tabIndex=-1;
+    l.appendChild(i); document.body.appendChild(l); _hapEl=i;
+  }catch(_e){}
+  return _hapEl;
+}
 function repTick(){
   if(!_tickOn) return;
-  try{ navigator.vibrate&&navigator.vibrate(8); }catch(_e){}
+  /* a flick can cross notches faster than a taptic engine can answer;
+     without this the queue backs up and the feel smears */
+  const now=Date.now();
+  if(now-_hapAt < 28) return;
+  _hapAt=now;
+  let felt=false;
+  try{ if(navigator.vibrate){ navigator.vibrate(8); felt=true; } }catch(_e){}   // Android
+  if(!felt){
+    const el=repHapticEl();                                                     // iOS 17.4+
+    if(el){ try{ el.click(); felt=true; }catch(_e){} }
+  }
+  if(felt) return;            // a real tap beats a sound standing in for one
   if(!_tickCtx||_tickCtx.state!=='running') return;
   try{
     const t=_tickCtx.currentTime, o=_tickCtx.createOscillator(), g=_tickCtx.createGain();

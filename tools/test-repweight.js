@@ -659,6 +659,22 @@ check("crossing a notch moves the band and the label",
 check("...and builds no child elements while doing it",
       `document.getElementById('addrep').children.length`, 0);
 
+/* v3.3.291: the ruler owns its axis, and the tick is a real haptic where one
+   is available. Both are properties of the shipped code, not of jsdom, so
+   what is asserted is the declaration and the branching — the FEEL can only
+   be judged on a phone. */
+/* the CSS axis lock and the feature-detect are DECLARATIONS, so they live in
+   buildcheck with the other structural ruler guards. What is behavioural —
+   and therefore asserted here — is what the tick actually does. */
+check("a tick creates at most one hidden switch and reuses it",
+      `(function(){_hapAt=0; repTick(); _hapAt=0; repTick();
+        return document.querySelectorAll('.haptswitch').length<=1;})()`, true);
+check("...and a burst inside the throttle window is dropped",
+      `(function(){const before=Date.now(); _hapAt=before;
+        let n=0; const i=document.querySelector('.haptswitch input');
+        if(i) i.addEventListener('click',()=>n++);
+        repTick(); repTick(); repTick(); return n;})()`, 0);
+
 check("a rep nudge moves the ruler rather than a dead field",
       `(function(){const b=document.createElement('button');
         b.id='nudgeGo'; b.dataset.nr='15'; document.getElementById('view').appendChild(b);

@@ -855,7 +855,12 @@
      arrests a flick at the next notch instead of letting it glide. And no
      scroll-behavior:smooth here: it is for programmatic scrolls, which now
      pass their own behaviour, and leaving it on filters finger scrolling. */
+  /* v3.3.291: touch-action:pan-x LOCKS THE AXIS. A drag that starts on the
+     ruler may only move it sideways — the page cannot scroll under it, even
+     if the finger wanders off the horizontal. The cost is deliberate: you
+     can no longer scroll the page by starting your drag on these 74px. */
   .repruler{position:relative;z-index:1;height:74px;background:none;
+    touch-action:pan-x;
     overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;
     -webkit-overflow-scrolling:touch;
     scrollbar-width:none;-ms-overflow-style:none;overscroll-behavior-x:contain}
@@ -864,6 +869,9 @@
   /* v3.3.289: real spacers, because WebKit drops a flex scroller's trailing
      PADDING from the scrollable area and the last notch could never centre. */
   .rrpad{flex:0 0 calc(50% - 22px);height:1px}
+  /* the hidden iOS haptic switch: present, togglable, never seen */
+  .haptswitch{position:absolute;width:1px;height:1px;opacity:0;
+    pointer-events:none;left:-9999px;top:0;overflow:hidden}
   .repruler .rr{flex:0 0 44px;height:74px;scroll-snap-align:center;position:relative;
     background:none;border:0;padding:0;cursor:pointer;color:var(--faint);
     font-family:var(--mono);font-size:13px;font-weight:500;

@@ -1,5 +1,19 @@
 # ShowUp — changelog
 
+## v3.3.291 (2026-08-24) — You can feel the ruler, and it only moves sideways
+
+**Real haptics on iPhone.** Each notch you cross now taps back. Safari has
+never let a web app vibrate, so this uses the one door iOS leaves open: a
+hidden native switch control, which plays a Taptic tap whenever it toggles.
+Android keeps its own vibration; anything with neither falls back to the
+click you had before. Rapid flicks are throttled so the taps stay crisp
+instead of smearing.
+
+**The page can't move while you scrub.** A drag that starts on the ruler is
+now locked to the horizontal — wander off the line and the ruler still moves
+sideways, the screen stays put. The trade is deliberate: you can no longer
+scroll the page by starting your drag on the ruler itself.
+
 ## v3.3.290 (2026-08-24) — The Add set button says one thing
 
 The volume preview under Add set — "→ 3,812 lb ▲31" — is gone. The button now

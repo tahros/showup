@@ -603,6 +603,18 @@ if len(_re.findall(r'class="rrpad"', _lift_rr)) != 2:
     fail.append("ruler: the track needs exactly TWO spacers, lead and tail — one strands the far end (v3.3.289)")
 if "padding:0 calc(50%" in _rr_block.replace(" ", " "):
     fail.append("ruler: .rrtrack is using padding for centring again — WebKit drops the trailing side (v3.3.289)")
+# v3.3.291: the ruler owns its axis. Without touch-action:pan-x a drag that
+# starts on the ruler and wanders off the horizontal scrolls the PAGE, which
+# is what the maker felt. jsdom cannot compute this, so the declaration is
+# what gets guarded.
+if not _re.search(r"\.repruler\{[^}]*touch-action:pan-x", _rr_block.replace("\n", "").replace("\r", "")):
+    fail.append("ruler: .repruler lost touch-action:pan-x — a drag on it can scroll the page again (v3.3.291)")
+# and the iOS haptic must be feature-detected, never browser-sniffed
+_app_hap = (d/"js/app.js").read_text()
+if "'switch' in HTMLInputElement.prototype" not in _app_hap:
+    fail.append("haptics: the iOS switch tap must be feature-detected on the property (v3.3.291)")
+if _re.search(r"(iPhone|iPad|navigator\.userAgent)[^\n]*hapt", _app_hap, _re.I):
+    fail.append("haptics: browser-sniffing for the haptic path — detect the feature (v3.3.291)")
 
 # -- v3.3.278: A PLAN IS NOT A CONTRACT. Three properties, enforced, because
 # every one of them is a thing a future release could quietly break:
