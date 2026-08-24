@@ -39,7 +39,8 @@ function renderLift(){
     if(_pl){
       h+=`<h2><b class="scopepill">today</b> plan${hActs('plan',"Paste a session and the app reads what it can. It fills weights and reps for today only, is never written to your record, and clears at midnight. Nothing is counted against it.",'About today\u2019s plan')}</h2>
         <div class="card plancard">
-          ${(_pl.items||[]).map(i=>`<button class="planrow" data-planex="${i.ex}">
+          ${(_pl.items||[]).map(i=>`<button class="planrow${planLoggedToday(i.ex)?' pdone':''}" data-planex="${i.ex}">
+              <span class="pk">${planLoggedToday(i.ex)?'\u2713':''}</span>
               <span class="pn">${i.ex}</span>
               <span class="pl">${i.lines.map(l=>`<span class="pv mono">${l.bw||l.w<=0?'BW':wDisp(l.w)+' '+U()} \u00d7 ${l.reps.join(' ')}</span>`).join('')}</span>
             </button>`).join('')}

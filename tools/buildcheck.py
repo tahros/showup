@@ -585,6 +585,13 @@ else:
 # adherence number necessarily contains the words it bans (the v3.3.106
 # lesson, in a new place). camelCase defeats \b, so match per line, not by word.
 _ADHERE = _re.compile(r"adheren|completed|completion|remaining|missed", _re.I)
+# v3.3.281 draws the line precisely, because a per-row tick is NOT a score
+# and this build adds one. Reading the ledger and reporting "this exercise is
+# logged" is a fact about the record. AGGREGATING those facts into a count,
+# fraction or percentage of the plan is the failure state. So: planLoggedToday
+# may be called, but never counted.
+_AGG = _re.compile(r"planLoggedToday[^\n]*(\.filter|\.reduce|\.length|\bcount\b)"
+                   r"|(\.filter|\.reduce)[^\n]*planLoggedToday")
 for _f in ("js/util.js", "js/lift.js", "js/today.js", "js/app.js"):
     _src = (d/_f).read_text()
     _code = _re.sub(r"/\*[\s\S]*?\*/", "", _src)
@@ -593,6 +600,9 @@ for _f in ("js/util.js", "js/lift.js", "js/today.js", "js/app.js"):
         if "plan" in _ln.lower() and _ADHERE.search(_ln):
             fail.append(f"plan: {_f} scores against the plan ({_ln.strip()[:52]!r}) — no failure state (v3.3.278)")
             break
+    _agg = _AGG.search(_code)
+    if _agg:
+        fail.append(f"plan: {_f} counts ticked plan rows ({_agg.group(0)[:44]!r}) — a tick is a fact, a tally is a verdict (v3.3.281)")
 
 # -- v3.3.270: THE MOTION VOICE. One settle curve, three speeds, and three
 # allowlisted physics (press spring, save spring, iOS band-back). Any other

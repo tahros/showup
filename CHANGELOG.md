@@ -1,5 +1,17 @@
 # ShowUp — changelog
 
+## v3.3.281 (2026-08-24) — The plan ticks what you've logged, and takes less room
+
+Log an exercise and its row in today's plan gets a tick, with the row easing
+back to a quieter grey. The tick comes from your record — it says "this is
+logged", the same way the Last time card marks what you did today. It is not
+a score: there is still no count, no fraction and no percentage of the plan
+anywhere, and the build now fails if a future change tries to tally the ticks.
+
+The plan card is also smaller throughout — one step down in type, tighter
+rows — so it reads as the reference material it is rather than competing with
+the ledger above it.
+
 ## v3.3.280 (2026-08-24) — A pasted plan keeps every set you wrote
 
 Warm-up sets are no longer dropped. If an exercise in your paste has two

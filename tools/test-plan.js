@@ -146,6 +146,28 @@ ok("...so the exercise page says the chips came from the plan",
    run(`/plan/i.test([...document.querySelectorAll('.zone.mini .lasthead span')][0].textContent)`));
 ok("...and the chips carry the plan's numbers",
    run(`/35/.test(document.querySelector('.lastsets').textContent)`));
+// ---- v3.3.281: the tick is a fact from the ledger ------------------------
+// Logging an exercise ticks its plan row. The direction matters: the row
+// reads the RECORD and reports it. Nothing aggregates those ticks.
+run(`(function(){view='lift'; lift.ex=null; lift.plan=null; render();})()`);
+ok("before logging, no plan row is ticked",
+   run(`document.querySelectorAll('.planrow.pdone').length`) === 0);
+run(`(function(){const t=day(todayISO);
+  t.w.push({part:'Shoulder',ex:'Dumbbell Shoulder Press',w:toKg(55),reps:[8],at:Date.now()});
+  t.upd=Date.now(); SEED=deriveAll(); view='lift'; lift.ex=null; render();})()`);
+ok("logging an exercise ticks exactly its own plan row",
+   run(`document.querySelectorAll('.planrow.pdone').length`) === 1 &&
+   run(`/Dumbbell Shoulder Press/.test(document.querySelector('.planrow.pdone').textContent)`));
+ok("...and the tick is drawn, not merely a class",
+   run(`document.querySelector('.planrow.pdone .pk').textContent.trim()`) === "\u2713");
+ok("...while every other row stays untouched",
+   run(`[...document.querySelectorAll('.planrow:not(.pdone) .pk')].every(k=>!k.textContent.trim())`));
+ok("...and the tick reads the LEDGER, not the plan",
+   run(`planLoggedToday('Dumbbell Shoulder Press') && !planLoggedToday('Lateral Raise')`));
+ok("...with still no tally of ticked rows on screen",
+   run(`!/\\d+\\s*(of|\\/)\\s*\\d+|\\d+%/.test(document.querySelector('.plancard').textContent)`),
+   JSON.stringify(run(`document.querySelector('.plancard').textContent.replace(/\\s+/g,' ').slice(0,70)`)));
+
 ok("PROMISE 3 — no count of what is done or left, anywhere on screen",
    run(`!/adheren|remaining|\\d+\\s*(of|\\/)\\s*\\d+\\s*(done|complete)/i.test(document.getElementById('view').textContent)`));
 

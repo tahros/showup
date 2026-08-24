@@ -1110,15 +1110,24 @@
   /* v3.3.278: today's plan — a note you brought, styled as quietly as one. */
   .planpaste{width:100%;margin-bottom:14px;font-size:13px}
   .plancard{padding:6px 0}
+  /* v3.3.281: the plan is reference material you glance at between sets, not
+     a headline — it reads one step down from the ledger's own type. */
   .planrow{display:flex;width:100%;justify-content:space-between;align-items:baseline;
     gap:10px;background:none;border:0;border-bottom:1px solid var(--line);
-    padding:11px 14px;cursor:pointer;text-align:left;color:var(--chalk);font:inherit}
+    padding:7px 14px;cursor:pointer;text-align:left;color:var(--chalk);font:inherit}
   .planrow:last-of-type{border-bottom:0}
-  .planrow .pn{font-size:14px}
-  .planrow .pl{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
-  .planrow .pv{font-size:12px;color:var(--muted);white-space:nowrap}
-  .plannote{white-space:pre-wrap;font-size:11px;color:var(--faint);
-    padding:10px 14px;border-top:1px solid var(--line);line-height:1.6}
+  .planrow .pn{font-size:12.5px;line-height:1.35}
+  .planrow .pl{display:flex;flex-direction:column;align-items:flex-end;gap:1px}
+  .planrow .pv{font-size:10.5px;color:var(--muted);white-space:nowrap;line-height:1.4}
+  /* a row whose exercise is in today's ledger. The tick is a fact FROM the
+     record, not a score against the plan: it says "this is logged", never
+     "you are N% through". Same grammar as the Last time card's checkmark. */
+  .planrow .pk{width:12px;flex:none;color:var(--accent);font-size:11px;
+    font-family:var(--mono);line-height:1.4}
+  .planrow.pdone .pn{color:var(--muted)}
+  .planrow.pdone .pv{color:var(--faint)}
+  .plannote{white-space:pre-wrap;font-size:10px;color:var(--faint);
+    padding:8px 14px;border-top:1px solid var(--line);line-height:1.5}
   /* v3.3.279: plan actions sit on the app's own button grammar — full-width
      rows, uniform height. flex:1 made three unequal labels share the width,
      so the longest wrapped to three lines and the row read as three

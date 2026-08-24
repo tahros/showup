@@ -860,6 +860,13 @@ function planItemsFrom(rows){
 }
 /* one flat list of {w,r} across an item's weight lines — the shape the
    Suggested chips consume, in the order they were written */
+/* v3.3.281: does TODAY'S LEDGER contain this exercise? The plan row shows a
+   tick when it does. Note the direction of the question — it reads the
+   record and reports a fact, it does not measure the record against the
+   plan. There is deliberately no count, no fraction and no percentage built
+   on top of this: one row, one fact, exactly like the Last time card's tick. */
+const planLoggedToday=ex=>((DB.days[todayISO]||{}).w||[])
+  .some(x=>x.ex===ex&&(x.reps||[]).length);
 const planSets=i=>(i.lines||[]).flatMap(l=>l.reps.map(r=>({w:l.w, r})));
 const PART_COLD_DAYS=21;
 function trainingPlan(){
