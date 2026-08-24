@@ -1,5 +1,19 @@
 # ShowUp — changelog
 
+## v3.3.284 (2026-08-24) — You can tell the app what the equipment actually is
+
+Under the weight stepper on any exercise, a line now says how the weight
+steps and why: "steps 10 lb · Machine (stack)". Tap it and pick the
+equipment you actually use, and the stepping follows — a dumbbell overhead
+triceps extension steps 5 lb, not 10.
+
+The change applies to that one exercise, sticks, and survives a rename.
+Choosing the app's own answer again simply removes the override. Everything
+already logged stays exactly as trained.
+
+This is the general fix behind four separate reports in a week. A shipped
+catalog can guess what hardware a movement uses; it cannot know your gym.
+
 ## v3.3.283 (2026-08-24) — Setting a bar weight looks like a question again
 
 Tapping the bar weight on a barbell lift now opens a small, readable form:

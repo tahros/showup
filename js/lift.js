@@ -398,6 +398,21 @@ function renderLift(){
     }else if(loadLine(ex,lift.weight)){
       h+=`<div class="loadline" id="ll"><span class="ll-text">${loadLine(ex,lift.weight)}</span></div>`;
     }
+    /* v3.3.284: the step is a consequence of the equipment, so the equipment
+       is what you change. Stating both — "steps 5 lb · Dumbbell" — means the
+       line explains the stepper you are looking at rather than making you
+       infer the connection. Same chip vocabulary as Add-your-own. */
+    if(!isBody(ex)&&!lift.editBar){
+      if(lift.editEquip===ex){
+        h+=`<div class="eqedit"><label class="mono eq-q">Equipment for ${ex}</label>
+          <div class="chips">${Object.entries(EQUIP_LABEL).map(([k,v])=>
+            `<button class="chip ${equipOf(ex)===k?'on':''}" data-seteq="${k}" data-seteqex="${ex}">${v}</button>`).join('')}</div>
+          <div class="note">This changes how the weight steps for this exercise only. Everything already logged stays exactly as trained.</div>
+          <button class="btn ghost" data-eqcancel="1" style="margin-top:10px">Done</button></div>`;
+      }else{
+        h+=`<button class="eqline mono" data-editequip="${ex}">steps ${fmt(wStep(ex))} ${U()} · ${EQUIP_LABEL[equipOf(ex)]} <span class="eqpen">\u270e</span></button>`;
+      }
+    }
     // rep buttons drawn from what you actually do for THIS exercise
     // v3.3.56: tiles follow the weight · v3.3.141: and carry the suggestion dot
     h+=`<div class="repgrid">${repTilesHTML(ex,lift.weight)}</div>

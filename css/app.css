@@ -766,6 +766,15 @@
   .ll-bar.save{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
   /* v3.3.283: while the bar weight is being edited the load line is a small
      form — question, answer, choices — so it drops the single-row flex. */
+  /* v3.3.284: the equipment line sits under the stepper it explains. */
+  .eqline{display:block;width:100%;text-align:left;background:none;border:0;
+    padding:0 2px 10px;margin-top:-4px;cursor:pointer;
+    font-family:var(--mono);font-size:10.5px;color:var(--faint);letter-spacing:.03em}
+  .eqline .eqpen{color:var(--muted);margin-left:2px}
+  .eqedit{background:var(--surface2);border-radius:10px;padding:12px;margin-bottom:10px}
+  .eqedit .eq-q{display:block;font-size:10px;color:var(--muted);
+    letter-spacing:var(--track-label);text-transform:uppercase;margin-bottom:8px}
+  .eqedit .chips{gap:6px}
   .loadline.editing{display:block;padding:10px 12px 12px}
   .loadline.editing .ll-q{display:block;font-size:10px;color:var(--muted);
     letter-spacing:var(--track-label);margin-bottom:6px;line-height:1.4}

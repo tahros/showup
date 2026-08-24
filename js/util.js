@@ -251,7 +251,15 @@ const catFor=part=>[
   ...SEED.catalog[part].filter(ex=>!(DB.settings.partOv&&DB.settings.partOv[ex]&&DB.settings.partOv[ex]!==part)),
   ...Object.entries(customs()).filter(([,c])=>c.part===part).map(([n])=>n),
   ...Object.entries(DB.settings.partOv||{}).filter(([ex,p])=>p===part&&SEED0.ex2part[ex]!==part).map(([ex])=>ex)];
-const equipOf=ex=>customs()[ex]?.equip || SEED.equip[ex] || 'machine';
+/* v3.3.284: your gym outranks the catalog. Four equipment reports in a week
+   (dumbbell lb, cable lb, calf raises, this) all had the same shape: a
+   built-in exercise whose real-world hardware differs from the shipped
+   guess, and each needed a release to fix. equipOv is the same mechanism
+   partOv already provides for body part — a per-exercise override stored in
+   settings, checked ahead of the catalog. The W_TABLE still owns the LAW
+   (what each class steps); this only decides which class an exercise is. */
+const equipOv=()=>DB.settings.equipOv||(DB.settings.equipOv={});
+const equipOf=ex=>equipOv()[ex] || customs()[ex]?.equip || SEED.equip[ex] || 'machine';
 const EQUIP_LABEL={barbell:'Barbell (bar + plates)',smith:'Smith machine',dumbbell:'Dumbbell (per hand)',
   cable:'Cable',machine:'Machine (stack)',plate:'Machine (plate-loaded)',body:'Bodyweight'};
 

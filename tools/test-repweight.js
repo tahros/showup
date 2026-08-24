@@ -514,4 +514,49 @@ check("cancelling returns the resting row",
       `(function(){const ll=document.getElementById('ll');
         return !ll.classList.contains('editing') && !!ll.querySelector('.ll-viz');})()`, true);
 
+// ---- v3.3.284: your gym outranks the catalog -----------------------------
+// A per-exercise equipment override, checked ahead of SEED.equip. The
+// W_TABLE still owns the LAW; this only decides which class an exercise is.
+// Driven through the real chips, asserted on the stepper that results.
+run(`(function(){DB.days={}; DB.settings.unit='lb'; DB.settings.equipOv=null;
+  SEED=deriveAll(); view='lift'; lift.part='Triceps';
+  lift.ex='Overhead Triceps Extension'; lift.weight=toKg(40);
+  lift.editEquip=null; lift.editBar=false; render();})()`);
+check("the catalog's answer is what you get by default",
+      `equipOf('Overhead Triceps Extension')`, "machine");
+check("...and the line states the step AND the equipment behind it",
+      `/steps 10 lb . Machine \\(stack\\)/.test(document.querySelector('.eqline').textContent)`, true);
+run(`document.querySelector('[data-editequip]').click()`);
+check("the picker offers every class, with the current one marked",
+      `(function(){const on=document.querySelectorAll('[data-seteq].on');
+        return document.querySelectorAll('[data-seteq]').length===7
+          && on.length===1 && on[0].dataset.seteq==='machine';})()`, true);
+run(`[...document.querySelectorAll('[data-seteq]')].find(b=>b.dataset.seteq==='dumbbell').click()`);
+check("choosing dumbbell changes the class", `equipOf('Overhead Triceps Extension')`, "dumbbell");
+check("...and the STEP follows, because W_TABLE still owns the law",
+      `wStep('Overhead Triceps Extension')`, 5);
+check("...the spinner attribute agrees", `document.getElementById('wv').getAttribute('step')`, 5);
+/* the trap: snapW is (kg, ex). Called (ex, kg) it returns NaN, and the next
+   + tap computed from NaN — 40 became 5. Assert the weight SURVIVES. */
+check("the weight you were on survives the change", `+document.getElementById('wv').value`, 40);
+run(`document.querySelector('[data-w="1"]').click()`);
+check("...and one tap up is now 5, not 10", `+document.getElementById('wv').value`, 45);
+run(`document.querySelector('[data-w="-1"]').click(); document.querySelector('[data-w="-1"]').click();`);
+check("...and down the same", `+document.getElementById('wv').value`, 35);
+check("the override is stored, not just in view state",
+      `DB.settings.equipOv['Overhead Triceps Extension']`, "dumbbell");
+run(`(function(){document.querySelector('[data-editequip]').click();
+  [...document.querySelectorAll('[data-seteq]')].find(b=>b.dataset.seteq==='machine').click();})()`);
+check("choosing the catalog's own answer again removes the override",
+      `!('Overhead Triceps Extension' in (DB.settings.equipOv||{}))`, true);
+check("...and the step returns with it", `wStep('Overhead Triceps Extension')`, 10);
+/* a rename must CARRY the override rather than orphan it — asserted by
+   actually running the merge, not by grepping the source for the bag name */
+check("a rename carries the override to the new name",
+      `(function(){
+        DB.settings.equipOv={'Old Tricep Move':'dumbbell'};
+        canonMerge(canonId('Old Tricep Move',true), canonId('Overhead Triceps Extension',true));
+        return DB.settings.equipOv['Overhead Triceps Extension']==='dumbbell'
+          && !('Old Tricep Move' in DB.settings.equipOv);})()`, true);
+
 process.exit(fail ? 1 : 0);

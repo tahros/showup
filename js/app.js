@@ -298,6 +298,22 @@ document.addEventListener('click',e=>{
     lift.part=homePartOf(ex)||lift.part; lift.ex=ex; lift.weight=0;
     return render();
   }
+  /* v3.3.284: per-exercise equipment override */
+  const _ee=e.target.closest&&e.target.closest('[data-editequip]');
+  if(_ee){ lift.editEquip=_ee.dataset.editequip; return renderLift(); }
+  if(e.target.closest&&e.target.closest('[data-eqcancel]')){ lift.editEquip=null; return renderLift(); }
+  const _se=e.target.closest&&e.target.closest('[data-seteq]');
+  if(_se){
+    const ex2=_se.dataset.seteqex, to=_se.dataset.seteq;
+    equipOv()[ex2]=to;
+    /* back to the catalog's own answer? then there is nothing to override */
+    if((customs()[ex2]?.equip||SEED.equip[ex2]||'machine')===to) delete DB.settings.equipOv[ex2];
+    DB.settingsAt=Date.now(); save(true);
+    lift.editEquip=null;
+    lift.weight=snapW(lift.weight,ex2);   // (kg, ex) — the old weight may be off the new grid
+    toast(`${ex2} steps ${fmt(wStep(ex2))} ${U()} now`);
+    return renderLift();
+  }
   if(e.target.closest&&e.target.closest('[data-pmixmode]')){ pmixSetMode(); return; }
   const _pl=e.target.closest('.pmixlgd [data-pt]');
   if(_pl){ pmixSetFocus(_pl.dataset.pt); return; }   // v3.3.121
