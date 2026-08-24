@@ -883,11 +883,18 @@ function sugReps(ex,kg){
    thumb landing mid-scroll cannot write a set you did not do. */
 const REP_W=44;                       // one notch, px — index math depends on it
 function repRulerRange(ex){
-  let hi=12;
+  /* v3.3.289: reach well past anything you have ever done. The old ceiling
+     was max(30, best+5) capped at 60, which for a lift whose best is 10 gave
+     exactly 30 — and 30 was also the number that could not be reached. The
+     floor is now 60 and the ceiling grows with the record, so the end of the
+     ruler is somewhere you would have to deliberately go looking for. Not
+     literally infinite: a fixed list keeps the notch index arithmetic exact,
+     and 99 reps of anything is past the point where this app is the problem. */
+  let hi=0;
   for(const [,v] of Object.entries(DB.days))
     for(const st of v.w) if(st.ex===ex) for(const r of (st.reps||[])) if(r>hi) hi=r;
   for(const r of (SEED.repFreq[ex]||[])) if(r>hi) hi=r;
-  return Math.min(60, Math.max(30, hi+5));
+  return Math.min(99, Math.max(60, hi+20));
 }
 function repRulerHTML(ex,kg){
   const hi=repRulerRange(ex);
@@ -912,10 +919,16 @@ function repRulerHTML(ex,kg){
      it pushed the flex track out of view entirely, so the ruler rendered as
      an empty grey strip. A wrapper with an absolutely positioned band is the
      ordinary way to do this and cannot displace anything. */
+  /* v3.3.289: the lead/tail room is SPACER ELEMENTS, not padding. WebKit
+     drops a flex scroll container's trailing padding from the scrollable
+     overflow area, so the last notch could never reach the centre band —
+     scrolling right stopped with 30 pinned at the screen edge, which is both
+     the "looks broken" report and the reason 30 was unselectable. Spacers are
+     real content and always scroll. */
   return `<div class="repwrap">
             <div class="rrband" aria-hidden="true"></div>
             <div class="repruler" id="repRuler" role="group" aria-label="Reps">
-              <div class="rrtrack">${s}</div>
+              <div class="rrtrack"><i class="rrpad" aria-hidden="true"></i>${s}<i class="rrpad" aria-hidden="true"></i></div>
             </div>
           </div>`;
 }
@@ -923,10 +936,11 @@ function repRulerHTML(ex,kg){
 function repRulerTo(r,smooth){
   lift.rep=r;
   const el=document.getElementById('repRuler'); if(!el) return;
-  const sb=el.style.scrollBehavior;
-  if(!smooth) el.style.scrollBehavior='auto';
-  el.scrollLeft=(r-1)*REP_W;
-  if(!smooth) el.style.scrollBehavior=sb;
+  /* v3.3.289: the CSS no longer declares scroll-behavior (it was filtering
+     finger scrolling), so a programmatic move asks for its own animation. */
+  const left=(r-1)*REP_W;
+  if(el.scrollTo) el.scrollTo({left, behavior: smooth?'smooth':'auto'});
+  else el.scrollLeft=left;
   repRulerMark();
 }
 /* The selected rep lives in STATE, not in a scroll offset. Scrolling and
@@ -940,12 +954,18 @@ function repRulerValue(){
   const el=document.getElementById('repRuler');
   return el ? Math.max(1, Math.round(el.scrollLeft/REP_W)+1) : null;
 }
-function repRulerMark(){
+/* v3.3.289: split in two. repRulerBand() is the per-notch work and does
+   nothing but move one class — it must stay cheap enough to run inside a
+   scroll. repRulerMark() adds the button label and is for settled states. */
+function repRulerBand(v){
   const el=document.getElementById('repRuler'); if(!el) return;
-  const v=repRulerValue();
-  el.querySelectorAll('.rr.on').forEach(b=>b.classList.remove('on'));
+  const prev=el.querySelector('.rr.on');
+  if(prev){ if(+prev.dataset.rep===v) return; prev.classList.remove('on'); }
   const b=el.querySelector(`.rr[data-rep="${v}"]`);
   if(b) b.classList.add('on');
+}
+function repRulerMark(){
+  repRulerBand(repRulerValue());
   updAddPreview();   // the button label is derived, never separately written
 }
 function repTilesHTML(ex,kg){

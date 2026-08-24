@@ -591,9 +591,18 @@ _rr_block = _css_rr[_css_rr.find(".repwrap{"): _css_rr.find(".repgrid{")]
 for _bad in ("float:", "position:sticky"):
     if _bad in _rr_block:
         fail.append(f"ruler: {_bad} in the ruler's CSS — it displaced the track once already (v3.3.287)")
-if "padding:0 calc(50% - 22px)" not in _rr_block.replace(" ", "").replace("padding:0calc", "padding:0 calc"):
-    if not _re.search(r"\.rrtrack\{[^}]*padding:0 calc\(50% ?- ?22px\)", _rr_block):
-        fail.append("ruler: .rrtrack lost its centring padding — the first and last notch cannot reach the band (v3.3.287)")
+# v3.3.289 RESTATES this guard. It pinned the centring PADDING — which turned
+# out to be the bug: WebKit drops a flex scroller's trailing padding from the
+# scrollable overflow area, so the last notch could never reach the band. The
+# room is now two real spacer elements, and the property to defend is that
+# BOTH ends have one. A single spacer would centre the first notch and strand
+# the last, which is exactly the state the maker photographed.
+if not _re.search(r"\.rrpad\{[^}]*flex:0 0 calc\(50% ?- ?22px\)", _rr_block):
+    fail.append("ruler: .rrpad lost its half-width — the ends cannot reach the centre band (v3.3.289)")
+if len(_re.findall(r'class="rrpad"', _lift_rr)) != 2:
+    fail.append("ruler: the track needs exactly TWO spacers, lead and tail — one strands the far end (v3.3.289)")
+if "padding:0 calc(50%" in _rr_block.replace(" ", " "):
+    fail.append("ruler: .rrtrack is using padding for centring again — WebKit drops the trailing side (v3.3.289)")
 
 # -- v3.3.278: A PLAN IS NOT A CONTRACT. Three properties, enforced, because
 # every one of them is a thing a future release could quietly break:

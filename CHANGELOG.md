@@ -1,5 +1,25 @@
 # ShowUp — changelog
 
+## v3.3.289 (2026-08-24) — The rep ruler glides, and reaches its own end
+
+Three fixes to the ruler, two of which were the same bug.
+
+**It stopped short at the right.** The room that lets a number reach the
+centre band was built from padding, and Safari doesn't count a scrolling
+row's trailing padding as somewhere you can scroll to — so the last number
+parked at the screen edge and couldn't be selected. That room is now real
+spacers at both ends, so either end reaches the middle.
+
+**It ran out of numbers.** The ruler stopped at 30 for most lifts. It now
+runs to at least 60, and further if you've ever done more — well past
+anything you'd reach by accident.
+
+**It didn't glide.** Every notch you crossed was rebuilding the Add-set
+button and re-ranking your whole volume history, mid-flick. Now crossing a
+notch moves one highlight and nothing else; the button catches up a moment
+after you stop. Snapping also eased off, so a flick carries instead of being
+caught by the next notch.
+
 ## v3.3.288 (2026-08-24) — Scrubbing reps no longer throws you out of the lift
 
 Dragging the rep ruler sideways was also being read as a page swipe — which

@@ -855,13 +855,19 @@
   .rrband{position:absolute;left:50%;top:6px;transform:translateX(-50%);
     width:52px;height:62px;border-radius:10px;background:var(--surface);
     border:1px solid var(--line);pointer-events:none;z-index:0}
+  /* v3.3.289: snap PROXIMITY, not mandatory — mandatory fights momentum and
+     arrests a flick at the next notch instead of letting it glide. And no
+     scroll-behavior:smooth here: it is for programmatic scrolls, which now
+     pass their own behaviour, and leaving it on filters finger scrolling. */
   .repruler{position:relative;z-index:1;height:74px;background:none;
-    overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;
-    scroll-behavior:smooth;-webkit-overflow-scrolling:touch;
+    overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;
+    -webkit-overflow-scrolling:touch;
     scrollbar-width:none;-ms-overflow-style:none;overscroll-behavior-x:contain}
   .repruler::-webkit-scrollbar{display:none}
-  .rrtrack{display:flex;flex-wrap:nowrap;align-items:center;height:74px;
-    padding:0 calc(50% - 22px)}
+  .rrtrack{display:flex;flex-wrap:nowrap;align-items:center;height:74px}
+  /* v3.3.289: real spacers, because WebKit drops a flex scroller's trailing
+     PADDING from the scrollable area and the last notch could never centre. */
+  .rrpad{flex:0 0 calc(50% - 22px);height:1px}
   .repruler .rr{flex:0 0 44px;height:74px;scroll-snap-align:center;position:relative;
     background:none;border:0;padding:0;cursor:pointer;color:var(--faint);
     font-family:var(--mono);font-size:13px;font-weight:500;

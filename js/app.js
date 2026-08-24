@@ -626,13 +626,33 @@ function repTick(){
 }
 document.addEventListener('pointerdown',repTickInit,{passive:true});
 document.addEventListener('touchstart',repTickInit,{passive:true});
-/* one tick per notch crossed, driven by the scroll itself */
-let _rrLast=null;
+/* v3.3.289: the scroll handler does the CHEAP thing per notch and the
+   expensive thing once you stop.
+
+   The first version called repRulerMark() on every scroll event, and that
+   rewrote the Add-set button's innerHTML and ran a percentile ranking over
+   the whole volume distribution — per notch, during a flick. Forty notches a
+   second of layout thrash is what "not smooth enough" felt like.
+
+   Now: scroll events are coalesced into one rAF; crossing a notch only swaps
+   a class and fires the tick; the button label is rebuilt 110ms after the
+   scrolling settles. */
+let _rrLast=null, _rrRaf=0, _rrSettle=0;
+function _rrOnScroll(el){
+  const v=Math.max(1,Math.round(el.scrollLeft/REP_W)+1);
+  if(v!==_rrLast){
+    _rrLast=v; lift.rep=v;
+    repTick();
+    repRulerBand(v);          // class swap only — no innerHTML, no maths
+  }
+  clearTimeout(_rrSettle);
+  _rrSettle=setTimeout(()=>{ updAddPreview(); },110);
+}
 document.addEventListener('scroll',e=>{
   const el=e.target;
   if(!el||!el.classList||!el.classList.contains('repruler')) return;
-  const v=Math.max(1,Math.round(el.scrollLeft/REP_W)+1);
-  if(v!==_rrLast){ _rrLast=v; lift.rep=v; repTick(); repRulerMark(); }
+  if(_rrRaf) return;
+  _rrRaf=requestAnimationFrame(()=>{ _rrRaf=0; _rrOnScroll(el); });
 },{capture:true,passive:true});
 
 document.addEventListener('input',e=>{

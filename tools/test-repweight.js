@@ -624,6 +624,33 @@ check("the selection survives a full re-render",
       `(function(){renderLift(); return repRulerValue();})()`, 12);
 // the nudge used to type into the removed field; it must drive the ruler
 run(`(function(){lift.rep=8; renderLift();})()`);
+/* v3.3.289: the far end must be reachable, and the range must clear anything
+   you have ever done. Both were the same bug — the ruler stopped with the
+   last notch pinned at the screen edge because WebKit drops a flex
+   scroller's trailing padding, so the highest number was also unselectable. */
+check("the ruler runs well past your best rep", `repRulerRange('Dumbbell Shoulder Press') >= 60`, true);
+check("...and the last notch is that number",
+      `+[...document.querySelectorAll('.repruler .rr')].pop().dataset.rep`,
+      run(`repRulerRange('Dumbbell Shoulder Press')`));
+check("...which is selectable, not stranded at the edge",
+      `(function(){const hi=repRulerRange(lift.ex); repRulerTo(hi,false); return repRulerValue();})()`,
+      run(`repRulerRange('Dumbbell Shoulder Press')`));
+check("both ends carry a spacer so either can reach the centre",
+      `document.querySelectorAll('.rrtrack > .rrpad').length`, 2);
+check("...one lead, one tail, wrapping the notches",
+      `(function(){const k=[...document.querySelector('.rrtrack').children];
+        return k[0].classList.contains('rrpad') && k[k.length-1].classList.contains('rrpad');})()`, true);
+/* the per-notch path must stay cheap: it moves a class and nothing else */
+check("crossing a notch only moves the band class",
+      `(function(){repRulerTo(12,false);
+        const before=document.getElementById('addrep').innerHTML;
+        repRulerBand(13);
+        return document.querySelector('.rr.on').dataset.rep==='13'
+          && document.getElementById('addrep').innerHTML===before;})()`, true);
+check("...and the label catches up when it settles",
+      `(function(){lift.rep=13; updAddPreview();
+        return /Add set . 13 reps/.test(document.getElementById('addrep').textContent);})()`, true);
+
 check("a rep nudge moves the ruler rather than a dead field",
       `(function(){const b=document.createElement('button');
         b.id='nudgeGo'; b.dataset.nr='15'; document.getElementById('view').appendChild(b);
