@@ -563,6 +563,38 @@ if not _order or not all(_seg in _order.group(0) for _seg in
 if _order and _re.search(r"_S\.(?:cons|dbm|last6|wd)\b", _order.group(0)):
     fail.append("stats: a retired time section returned to the declared order (v3.3.213)")
 _util = (d/"js/util.js").read_text()
+# -- v3.3.287: THE REP RULER'S LAYOUT CANNOT BE TESTED BY THE SUITES.
+# jsdom has no layout engine, so 51 green suites shipped a ruler that rendered
+# as an empty grey strip: the centre band was a float+position:sticky child of
+# the scroll container, and it displaced the flex track out of view. The
+# behaviour was perfect and invisible. What IS checkable is the structure that
+# made it possible, so these are the guards:
+#   1. the band must be a sibling of the scroller, never a child of it;
+#   2. neither band nor track may use float or position:sticky;
+#   3. the track must carry the lead/tail padding that lets the first and last
+#      notch reach the centre — without it the ends are unselectable.
+_lift_rr = (d/"js/lift.js").read_text()
+_m = _re.search(r'<div class="repwrap">([\s\S]{0,400}?)</div>\s*`', _lift_rr)
+if not _m:
+    fail.append("ruler: .repwrap not found in js/lift.js (v3.3.287)")
+else:
+    _blk = _m.group(1)
+    _ib, _is = _blk.find('class="rrband"'), _blk.find('id="repRuler"')
+    if _ib < 0:
+        fail.append("ruler: the centre band is missing from .repwrap (v3.3.287)")
+    elif _is < 0:
+        fail.append("ruler: the scroller is missing from .repwrap (v3.3.287)")
+    elif _ib > _is:
+        fail.append("ruler: the band must precede the scroller, not sit inside it — the v3.3.287 blank-ruler bug")
+_css_rr = (d/"css/app.css").read_text()
+_rr_block = _css_rr[_css_rr.find(".repwrap{"): _css_rr.find(".repgrid{")]
+for _bad in ("float:", "position:sticky"):
+    if _bad in _rr_block:
+        fail.append(f"ruler: {_bad} in the ruler's CSS — it displaced the track once already (v3.3.287)")
+if "padding:0 calc(50% - 22px)" not in _rr_block.replace(" ", "").replace("padding:0calc", "padding:0 calc"):
+    if not _re.search(r"\.rrtrack\{[^}]*padding:0 calc\(50% ?- ?22px\)", _rr_block):
+        fail.append("ruler: .rrtrack lost its centring padding — the first and last notch cannot reach the band (v3.3.287)")
+
 # -- v3.3.278: A PLAN IS NOT A CONTRACT. Three properties, enforced, because
 # every one of them is a thing a future release could quietly break:
 #   1. the record never learns about plans — derive.js, report.js and stats.js

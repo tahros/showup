@@ -848,29 +848,30 @@
   .wsel .unit{font-size:12px;color:var(--muted)}
   /* v3.3.286: THE REP RULER — one continuous scrubber where the tile row was.
      44px notches, centre-snapped; the numbers you actually do stand proud.
-     The centre band is the only chrome, and it says "scrub me". */
-  .repruler{position:relative;height:74px;background:var(--surface2);border-radius:12px;
+     v3.3.287: the band is a sibling ABOVE the scroller (position:absolute in
+     .repwrap), never a child of it — the float+sticky version collapsed the
+     track. The scroller itself is transparent so the band shows through. */
+  .repwrap{position:relative;background:var(--surface2);border-radius:12px;height:74px}
+  .rrband{position:absolute;left:50%;top:6px;transform:translateX(-50%);
+    width:52px;height:62px;border-radius:10px;background:var(--surface);
+    border:1px solid var(--line);pointer-events:none;z-index:0}
+  .repruler{position:relative;z-index:1;height:74px;background:none;
     overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;
     scroll-behavior:smooth;-webkit-overflow-scrolling:touch;
     scrollbar-width:none;-ms-overflow-style:none;overscroll-behavior-x:contain}
   .repruler::-webkit-scrollbar{display:none}
-  .repruler .rrband{position:sticky;left:calc(50% - 26px);top:0;float:left;
-    width:52px;height:74px;background:var(--surface);border-radius:10px;
-    border:1px solid var(--line);z-index:0;pointer-events:none}
-  .repruler .rrtrack{display:flex;align-items:center;height:74px;position:relative;z-index:1;
-    padding:0 calc(50% - 22px);width:max-content}
-  .repruler .rr{flex:0 0 44px;height:74px;scroll-snap-align:center;
-    background:none;border:0;cursor:pointer;color:var(--faint);
+  .rrtrack{display:flex;flex-wrap:nowrap;align-items:center;height:74px;
+    padding:0 calc(50% - 22px)}
+  .repruler .rr{flex:0 0 44px;height:74px;scroll-snap-align:center;position:relative;
+    background:none;border:0;padding:0;cursor:pointer;color:var(--faint);
     font-family:var(--mono);font-size:13px;font-weight:500;
     transition:color var(--dur-quick) var(--settle),font-size var(--dur-quick) var(--settle)}
   .repruler .rr.maj{color:var(--chalk);font-size:17px}          /* reps you actually do */
   .repruler .rr.on{color:var(--chalk);font-size:26px;font-weight:700}
-  .repruler .rr.sug{position:relative}
-  .repruler .rr.sug::after{content:'';position:absolute;left:50%;bottom:14px;
-    transform:translateX(-50%);width:18px;height:3px;border-radius:2px;background:var(--accent)}
-  .repruler .rr.maj:not(.sug)::after{content:'';position:absolute;left:50%;bottom:15px;
+  .repruler .rr.maj::after{content:'';position:absolute;left:50%;bottom:13px;
     transform:translateX(-50%);width:14px;height:2px;border-radius:1px;background:var(--line)}
-  .repruler .rr.maj{position:relative}
+  .repruler .rr.sug::after{content:'';position:absolute;left:50%;bottom:12px;
+    transform:translateX(-50%);width:18px;height:3px;border-radius:2px;background:var(--accent)}
   .repgrid{display:grid;grid-template-columns:repeat(8,1fr);gap:5px}   /* v3.3.51: one row of 8 */
   /* v3.3.154: the × is quiet — the number stays the target, the × is the label */
   .repgrid button .rx{color:var(--faint);font-size:11px;margin-right:1px}

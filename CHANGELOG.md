@@ -1,5 +1,16 @@
 # ShowUp — changelog
 
+## v3.3.287 (2026-08-24) — The rep ruler shows its numbers
+
+Fixes the rep ruler rendering as an empty grey strip. The centre band was
+built as a floating, sticky element inside the scrolling row — two layout
+modes that don't work together — and it pushed every number out of view. The
+band now sits over the row rather than inside it, which is the ordinary way
+to do this and can't displace anything.
+
+The ruler's behaviour was never broken, only invisible: it was reading the
+right reps and logging the right sets the whole time.
+
 ## v3.3.286 (2026-08-24) — The rep ruler
 
 The row of rep tiles and the reps field are now one thing: a ruler you scrub

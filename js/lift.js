@@ -907,9 +907,16 @@ function repRulerHTML(ex,kg){
     s+=`<button class="rr${cls?' '+cls:''}" data-rep="${r}" data-repi="${r-1}"
          aria-label="${r} reps">${r}</button>`;
   }
-  return `<div class="repruler" id="repRuler" role="group" aria-label="Reps">
+  /* v3.3.287: the centre band sits OVER the scroller, not inside it. Inside,
+     it was a float+sticky hybrid — two layout modes that do not compose — and
+     it pushed the flex track out of view entirely, so the ruler rendered as
+     an empty grey strip. A wrapper with an absolutely positioned band is the
+     ordinary way to do this and cannot displace anything. */
+  return `<div class="repwrap">
             <div class="rrband" aria-hidden="true"></div>
-            <div class="rrtrack">${s}</div>
+            <div class="repruler" id="repRuler" role="group" aria-label="Reps">
+              <div class="rrtrack">${s}</div>
+            </div>
           </div>`;
 }
 /* centre the ruler on a value without animating (used on first paint) */
