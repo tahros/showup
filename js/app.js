@@ -35,8 +35,10 @@ document.addEventListener('click',e=>{
   const ng=e.target.closest('#nudgeGo');
   if(ng&&lift.ex){
     if(ng.dataset.nr){
-      const rc=$('#rc');
-      if(rc){ rc.value=ng.dataset.nr; rc.focus(); }
+      /* v3.3.286: the nudge used to type into the #rc field. That field is
+         gone, so it moves the RULER instead — the target rep slides under
+         the centre band, ready to log. */
+      repRulerTo(+ng.dataset.nr,true); repTick();
       toast(`Target: ${ng.dataset.nr} reps — go get it`);
       return;
     }
@@ -225,6 +227,15 @@ document.addEventListener('click',e=>{
     wvEl.classList.remove('wflash'); void wvEl.offsetWidth; wvEl.classList.add('wflash');
     refreshLoad();return;
   }
+  /* v3.3.286: on the ruler, a tap on the CENTRED notch logs; a tap on any
+     other notch centres it. A thumb landing mid-scroll can never write a set
+     you did not do, and the arrival state is already the suggestion, so the
+     common case is still one tap. */
+  const rr=e.target.closest('.repruler .rr');
+  if(rr){
+    const want=+rr.dataset.rep;
+    if(want!==repRulerValue()){ repRulerTo(want,true); repTick(); return; }
+  }
   const rb=e.target.closest('[data-rep]');
   if(rb){
     lift.weight=toKg(+($('#wv').value||0));
@@ -235,7 +246,7 @@ document.addEventListener('click',e=>{
     lift.justSaved=true;save();renderHeader();setToast(lift.ex,lift.weight,+rb.dataset.rep);return renderLift();
   }
   if(e.target.closest('#addrep')){
-    const r=Math.round(+($('#rc').value||0));
+    const r=repRulerValue();   // v3.3.286: the ruler is the field now
     if(!r||r<1) return toast('Enter a rep count');
     lift.weight=toKg(+($('#wv').value||0));
     saveExW(lift.ex,lift.weight);
@@ -583,6 +594,47 @@ function barViz(ex,totalKg){
 }
 /* v3.1.10: typing a weight updates the plate diagram INSTANTLY — the +/− and
    chip paths already called refreshLoad(); the manual-entry path never did. */
+/* ---- v3.3.286: the notch tick -------------------------------------------
+   Two channels, because neither covers every phone:
+     · navigator.vibrate — real haptics, but Android/Chrome only. iOS Safari
+       has never implemented it, and a PWA on iOS gets nothing, so on the
+       maker's own phone this line is a no-op. Said plainly rather than
+       shipped as a promise.
+     · a 9ms square blip through WebAudio — this DOES work on iOS, and is
+       what actually carries the feedback there. Quiet (gain .035), far below
+       whatever music is playing, and only ever fired by a finger.
+   The AudioContext is created lazily inside a real gesture, because iOS
+   refuses to start one otherwise, and is reused after that. */
+let _tickCtx=null, _tickOn=true;
+function repTickInit(){
+  if(_tickCtx) return;
+  try{ const C=window.AudioContext||window.webkitAudioContext; if(C) _tickCtx=new C(); }catch(_e){}
+  if(_tickCtx&&_tickCtx.state==='suspended') _tickCtx.resume().catch(()=>{});
+}
+function repTick(){
+  if(!_tickOn) return;
+  try{ navigator.vibrate&&navigator.vibrate(8); }catch(_e){}
+  if(!_tickCtx||_tickCtx.state!=='running') return;
+  try{
+    const t=_tickCtx.currentTime, o=_tickCtx.createOscillator(), g=_tickCtx.createGain();
+    o.type='square'; o.frequency.setValueAtTime(2100,t);
+    g.gain.setValueAtTime(0.035,t);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+0.009);
+    o.connect(g); g.connect(_tickCtx.destination);
+    o.start(t); o.stop(t+0.012);
+  }catch(_e){}
+}
+document.addEventListener('pointerdown',repTickInit,{passive:true});
+document.addEventListener('touchstart',repTickInit,{passive:true});
+/* one tick per notch crossed, driven by the scroll itself */
+let _rrLast=null;
+document.addEventListener('scroll',e=>{
+  const el=e.target;
+  if(!el||!el.classList||!el.classList.contains('repruler')) return;
+  const v=Math.max(1,Math.round(el.scrollLeft/REP_W)+1);
+  if(v!==_rrLast){ _rrLast=v; lift.rep=v; repTick(); repRulerMark(); }
+},{capture:true,passive:true});
+
 document.addEventListener('input',e=>{
   if(e.target&&e.target.id==='wv') refreshLoad();
 });

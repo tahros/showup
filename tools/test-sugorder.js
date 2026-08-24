@@ -51,10 +51,16 @@ run(`(function(){
   lift={ex:${JSON.stringify(EX)},part:'Chest',weight:75};
   view='lift'; render();})()`);
 
+/* v3.3.286: the tile row became the rep ruler. The two properties this suite
+   defends are unchanged — the suggestion mark tracks last session's reps at
+   the CURRENT weight, and it moves when the weight moves — so the selectors
+   move to the ruler's notches. `tiles()` is now the emphasised notches: the
+   same list repChoices() always produced, just rendered as weight along a
+   number line instead of eight buttons. */
 const dotted = () => JSON.parse(run(
-  `JSON.stringify([...document.querySelectorAll('.repgrid button.sug')].map(b=>+b.dataset.rep))`));
+  `JSON.stringify([...document.querySelectorAll('.repruler .rr.sug')].map(b=>+b.dataset.rep))`));
 const tiles = () => JSON.parse(run(
-  `JSON.stringify([...document.querySelectorAll('.repgrid button')].map(b=>+b.dataset.rep))`));
+  `JSON.stringify([...document.querySelectorAll('.repruler .rr.maj')].map(b=>+b.dataset.rep))`));
 const setWv = v => run(`(function(){const el=document.getElementById('wv'); el.value=${v};
   el.dispatchEvent(new Event('input',{bubbles:true}));})()`);
 
@@ -113,12 +119,14 @@ ok("...after today's rows, not before", run(`(function(){
 // ---- 3. the dot marks last session's reps at the current weight ---------
 setWv(50);
 const at50 = dotted();
-ok("the tiles render", tiles().length > 0, tiles().join(","));
+ok("the ruler marks your usual reps", tiles().length > 0, tiles().join(","));
+ok("...and every rep in between is still reachable",
+   run(`document.querySelectorAll('.repruler .rr').length`) >= 30);
 ok("at 50, last session's reps at 50 are dotted", at50.length > 0, at50.join(",") || "none");
 ok("...and every dotted rep was actually done at 50 last session",
    at50.every(r => run(`suggestedFor(${JSON.stringify(EX)}).sets.some(s=>Math.abs(s.w-50)<0.05&&s.r===${'' + r})`)),
    at50.join(","));
-ok("...and every such rep that has a tile is dotted", (() => {
+ok("...and every such rep that is emphasised is marked", (() => {
   const want = JSON.parse(run(`JSON.stringify([...new Set(
     suggestedFor(${JSON.stringify(EX)}).sets.filter(s=>Math.abs(s.w-50)<0.05).map(s=>s.r))])`));
   const shown = tiles();

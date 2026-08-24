@@ -1,5 +1,21 @@
 # ShowUp — changelog
 
+## v3.3.286 (2026-08-24) — The rep ruler
+
+The row of rep tiles and the reps field are now one thing: a ruler you scrub
+with your thumb. Every rep count is reachable, and the ones you actually do
+for that lift stand proud with a tick beneath them, so the ranking the tiles
+carried survives as weight along a number line.
+
+The fast path is intact. The ruler opens on the suggested rep, and a tap on
+the centred number logs it — one tap, same as a tile. A tap on any other
+number slides it to the centre instead of logging, so a thumb landing
+mid-scroll can never write a set you didn't do. Add set logs the same value.
+
+Each notch clicks as it passes. On Android that's a real haptic tap; on
+iPhone it's a short tick through the speaker, because iOS has never let a web
+app vibrate.
+
 ## v3.3.285 (2026-08-24) — Today leads with Rhythm, always
 
 The body-part card that appeared at the top of Today mid-session is gone.

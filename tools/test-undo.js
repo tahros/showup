@@ -83,8 +83,8 @@ run(`snapshot('removed 3 ${EX} sets'); day(todayISO).w=[]; SEED=deriveAll(); ren
 ok("a stale snapshot exists after the removal", undoDepth() === 1);
 run(`lift={ex:'Lateral Raise',part:'Shoulder',weight:10}; renderLift();
      document.getElementById('wv').value='10';
-     const tile=document.querySelector('.repgrid button');
-     if(tile) tile.click();`);
+     const notch=document.querySelector('.repruler .rr.on');
+     if(notch) notch.click();`);
 const afterLog = setsToday();
 ok("new work was logged on top", afterLog >= 1, afterLog + " sets");
 ok("...and the stale snapshot was discarded", undoDepth() === 0, String(undoDepth()));
@@ -128,7 +128,10 @@ ok("...and once restored (stack empty) the button is gone", !undoShown());
 fresh();
 run(`snapshot('deleted a set'); day(todayISO).w.pop(); SEED=deriveAll(); renderLift();`);
 ok("visible right after a removal", undoShown());
-run(`document.querySelector('.repgrid button').click();`);
+/* v3.3.286: logging is now a tap on the CENTRED notch of the rep ruler —
+   a tap on any other notch only moves the ruler, so the test must aim at
+   the one that actually writes a set. */
+run(`document.querySelector('.repruler .rr.on').click();`);
 ok("logging a set makes it vanish", !undoShown());
 ok("...and the tip no longer claims Undo lives behind EDIT",
    !/Undo lives there/.test(fs.readFileSync(path.join(dir, "js/lift.js"), "utf8")));

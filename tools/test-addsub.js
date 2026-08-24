@@ -37,12 +37,11 @@ run(`
    view='lift'; lift={part:'Biceps',ex:'Barbell Curl',weight:20}; render();}
 `);
 
-// type reps → the preview letters appear inside the button
-run(`
-  {const rc=document.getElementById('rc');
-   rc.value='12';
-   rc.dispatchEvent(new Event('input',{bubbles:true}));}
-`);
+/* v3.3.286: reps come from the ruler now, not a text field. The property
+   this suite defends is untouched — a tap landing on the preview's INNER
+   nodes must still log, because a thumb hits the letters, not the button —
+   so only how the reps get set changes. */
+run(`repRulerTo(12,false);`);
 check("preview letters rendered inside the button",
       `!!document.querySelector('#addrep .addsub')`, true);
 
@@ -54,10 +53,7 @@ check("tap on the preview's <b> logs the set",
       `day(todayISO).w.filter(s=>s.ex==='Barbell Curl').length`, before+1);
 
 // and again on the span (the button re-rendered; re-type the reps)
-run(`
-  {const rc=document.getElementById('rc');
-   if(rc){ rc.value='10'; rc.dispatchEvent(new Event('input',{bubbles:true})); }}
-`);
+run(`repRulerTo(10,false);`);
 check("second preview shows on the fresh render",
       `!!document.querySelector('#addrep .addsub')`, true);
 run(`document.querySelector('#addrep .addsub').click();`);
@@ -65,11 +61,7 @@ check("tap on the preview <span> logs too",
       `day(todayISO).w.filter(s=>s.ex==='Barbell Curl').length`, before+2);
 
 // the plain button (no preview) still works
-run(`
-  {const rc=document.getElementById('rc');
-   if(rc){ rc.value='8'; }
-   document.getElementById('addrep').click();}
-`);
+run(`repRulerTo(8,false); document.getElementById('addrep').click();`);
 check("plain button tap still logs",
       `day(todayISO).w.filter(s=>s.ex==='Barbell Curl').length`, before+3);
 

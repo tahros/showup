@@ -415,11 +415,10 @@ function renderLift(){
     }
     // rep buttons drawn from what you actually do for THIS exercise
     // v3.3.56: tiles follow the weight · v3.3.141: and carry the suggestion dot
-    h+=`<div class="repgrid">${repTilesHTML(ex,lift.weight)}</div>
-        <div class="repcustom">
-          <input id="rc" type="number" inputmode="numeric" placeholder="reps">
-          <button class="btn" id="addrep" style="margin:0;flex:0 0 142px">Add set</button>
-        </div></div>`;
+    /* v3.3.286: the tile row and the reps field become ONE ruler. */
+    h+=repRulerHTML(ex,lift.weight)+`
+        <button class="btn" id="addrep" style="margin:10px 0 0">Add set</button>
+        </div>`;
     /* v3.3.144: the Suggested strip, back — compact form only. One tap logs
        the complete w×r pair, which is the thing the dot could not do. */
     {
@@ -592,6 +591,14 @@ function renderLift(){
   if(!isRun) h+=(isLive()&&todaySets.length?liveBars(ex,todaySets):progChart(ex));
   if(exOpen(ex)) h+=`<button class="btn done" id="doneExBtn">✓ Complete ${ex}</button>`;
   $('#view').innerHTML=h;
+  /* v3.3.286: the ruler is positioned AFTER the markup lands, and opens on
+     the suggested rep so the common case stays one tap. lift.rep survives a
+     re-render, so a logged set does not throw you back to the start. */
+  if(lift.ex&&document.getElementById('repRuler')){
+    const sg=[...sugReps(lift.ex,lift.weight)];
+    const want=lift.rep|| (sg.length?Math.max(...sg):(repChoices(lift.ex,lift.weight)[0]||8));
+    repRulerTo(want,false);
+  }
   bindLbScrub();   // v3.3.164: idempotent, every render of the live chart
   if(lift._animSave){ lift._animSave=false; volCountUp(); lbGrow(); }
 }
@@ -864,6 +871,76 @@ function sugReps(ex,kg){
   for(const s of ls.sets) if(Math.abs(s.w-kg)<0.05) out.add(s.r);
   return out;
 }
+/* ============ v3.3.286: THE REP RULER ====================================
+   The tile row becomes one continuous scrubber. Every rep count is reachable,
+   and the ones you actually do for this lift sit proud — larger, with a tick
+   under them — so the frequency ranking the tiles encoded survives as
+   typographic weight along a continuum instead of a fixed list of eight.
+
+   The fast path is kept deliberately: the ruler ARRIVES centred on the
+   suggested rep, and a tap on the centred number logs it. One tap, same as
+   before. A tap on any other number centres it rather than logging, so a
+   thumb landing mid-scroll cannot write a set you did not do. */
+const REP_W=44;                       // one notch, px — index math depends on it
+function repRulerRange(ex){
+  let hi=12;
+  for(const [,v] of Object.entries(DB.days))
+    for(const st of v.w) if(st.ex===ex) for(const r of (st.reps||[])) if(r>hi) hi=r;
+  for(const r of (SEED.repFreq[ex]||[])) if(r>hi) hi=r;
+  return Math.min(60, Math.max(30, hi+5));
+}
+function repRulerHTML(ex,kg){
+  const hi=repRulerRange(ex);
+  /* v3.3.286: the emphasis is CACHED per (exercise, weight), exactly as the
+     tile list was from v3.3.154. Re-deriving it on every build meant logging
+     a set could re-rank your usual reps and move the bold numbers under your
+     thumb mid-session — the stranger-user bug, reintroduced by the rewrite
+     and caught by the test that was written for it. Only leaving the
+     exercise or changing the weight may rebuild this. */
+  if(!lift._tiles||lift._tiles.ex!==ex||Math.abs(lift._tiles.kg-kg)>=0.05)
+    lift._tiles={ex,kg,list:repChoices(ex,kg)};
+  const usual=new Set(lift._tiles.list);
+  const sug=sugReps(ex,kg);
+  let s='';
+  for(let r=1;r<=hi;r++){
+    const cls=[usual.has(r)?'maj':'', sug.has(r)?'sug':''].filter(Boolean).join(' ');
+    s+=`<button class="rr${cls?' '+cls:''}" data-rep="${r}" data-repi="${r-1}"
+         aria-label="${r} reps">${r}</button>`;
+  }
+  return `<div class="repruler" id="repRuler" role="group" aria-label="Reps">
+            <div class="rrband" aria-hidden="true"></div>
+            <div class="rrtrack">${s}</div>
+          </div>`;
+}
+/* centre the ruler on a value without animating (used on first paint) */
+function repRulerTo(r,smooth){
+  lift.rep=r;
+  const el=document.getElementById('repRuler'); if(!el) return;
+  const sb=el.style.scrollBehavior;
+  if(!smooth) el.style.scrollBehavior='auto';
+  el.scrollLeft=(r-1)*REP_W;
+  if(!smooth) el.style.scrollBehavior=sb;
+  repRulerMark();
+}
+/* The selected rep lives in STATE, not in a scroll offset. Scrolling and
+   tapping both write it; everything else reads it. Deriving it from
+   scrollLeft on demand looked simpler and was worse in two ways: a rebuild
+   or a re-render could silently reset the answer to 1, and a headless test
+   can never move a real scroll position, so the whole path would have been
+   unassertable. */
+function repRulerValue(){
+  if(lift.rep>0) return lift.rep;
+  const el=document.getElementById('repRuler');
+  return el ? Math.max(1, Math.round(el.scrollLeft/REP_W)+1) : null;
+}
+function repRulerMark(){
+  const el=document.getElementById('repRuler'); if(!el) return;
+  const v=repRulerValue();
+  el.querySelectorAll('.rr.on').forEach(b=>b.classList.remove('on'));
+  const b=el.querySelector(`.rr[data-rep="${v}"]`);
+  if(b) b.classList.add('on');
+  updAddPreview();   // the button label is derived, never separately written
+}
 function repTilesHTML(ex,kg){
   /* v3.3.154: STABLE for the visit. The first stranger user tapped the same
      rep tile three sets running and on the third the row had reordered under
@@ -883,9 +960,18 @@ function repTilesHTML(ex,kg){
   ).join('');
 }
 function refreshReps(){
-  const g=document.querySelector('.repgrid'); if(!g||!lift.ex) return;
+  /* v3.3.286: emphasis follows the weight (v3.3.56), but the notch you are
+     parked on must not move under your thumb — rebuild in place, restore the
+     scroll exactly. */
+  const el=document.getElementById('repRuler'); if(!el||!lift.ex) return;
+  const keep=el.scrollLeft;
   const kg=toKg(+(document.getElementById('wv')?.value||0));
-  g.innerHTML=repTilesHTML(lift.ex,kg);
+  const tmp=document.createElement('div');
+  tmp.innerHTML=repRulerHTML(lift.ex,kg);
+  el.querySelector('.rrtrack').innerHTML=tmp.querySelector('.rrtrack').innerHTML;
+  const sb=el.style.scrollBehavior; el.style.scrollBehavior='auto';
+  el.scrollLeft=keep; el.style.scrollBehavior=sb;
+  repRulerMark();
 }
 /* load line inner: fixed-width bar picture so the text never shifts */
 function loadInner(ex,kg){
@@ -1075,10 +1161,13 @@ function runStatsHTML217(){
 
 /* ---------- D2: live consequence on the Add set button ---------- */
 function updAddPreview(){
-  const rc=document.getElementById('rc'), btn=document.getElementById('addrep');
-  if(!rc||!btn) return;
-  const r=parseInt(rc.value,10);
-  if(!(r>0)||!lift.weight){ btn.textContent='Add set'; return; }
+  /* v3.3.286: the RULER is the rep source now, not a text field. The button
+     owns ONE label — the reps it will log plus the volume consequence — so
+     nothing else writes to it and the two can never disagree. */
+  const btn=document.getElementById('addrep');
+  if(!btn) return;
+  const r=repRulerValue();
+  if(!(r>0)||!lift.weight){ btn.textContent=r>0?`Add set \u00b7 ${r} reps`:'Add set'; return; }
   const t=day(todayISO);
   let cur=0; for(const s of t.w) if(s.ex!=='Run') cur+=s.w*(s.reps||[]).reduce((a,b)=>a+b,0);
   const nv=cur+lift.weight*r;
@@ -1088,9 +1177,9 @@ function updAddPreview(){
     const rank=x=>{let lo=0,hi=dist.length;while(lo<hi){const m=(lo+hi)>>1;if(dist[m]<=x)lo=m+1;else hi=m;}return lo;};
     gain=rank(nv)-rank(cur);
   }
-  btn.innerHTML=`Add set<span class="addsub">→ <b>${fmt(Math.round(nv))}</b> ${U()}${gain>0?` ▲${gain}`:''}</span>`;
+  btn.innerHTML=`Add set \u00b7 ${r} reps<span class="addsub">\u2192 <b>${fmt(Math.round(nv))}</b> ${U()}${gain>0?` \u25b2${gain}`:''}</span>`;
 }
-document.addEventListener('input',e=>{ if(e.target&&e.target.id==='rc') updAddPreview(); });
+/* the #rc field is gone; the ruler drives the preview through repRulerMark */
 
 
 /* D2: the day's volume COUNTS UP to its new total after a save */

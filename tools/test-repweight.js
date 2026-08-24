@@ -68,16 +68,26 @@ run(`
   lift={part:'Chest',ex:'Incline Barbell Bench Press',weight:50};
   view='lift'; render();
 `);
-const before = run(`[...document.querySelectorAll('.repgrid [data-rep]')].map(b=>b.textContent).join(',')`);
+/* v3.3.286 RESTATES: the tile row became a ruler. The property being
+   defended is unchanged — the rep EMPHASIS follows the weight (v3.3.56) —
+   so it is now read off which notches are marked, not which tiles exist. */
+const before = run(`[...document.querySelectorAll('.repruler .rr.maj')].map(b=>b.dataset.rep).join(',')`);
 run(`
   const wv=document.getElementById('wv');
   wv.value='75';
   wv.dispatchEvent(new Event('input',{bubbles:true}));
 `);
-const after = run(`[...document.querySelectorAll('.repgrid [data-rep]')].map(b=>b.textContent).join(',')`);
-console.log("     grid @50:", before, "\n     grid @75:", after);
-check("grid re-tiles on manual weight input", `${JSON.stringify(before)!==JSON.stringify(after)}`, true);
-check("re-tiled grid still has 8 buttons", `document.querySelectorAll('.repgrid [data-rep]').length`, 8);
+const after = run(`[...document.querySelectorAll('.repruler .rr.maj')].map(b=>b.dataset.rep).join(',')`);
+console.log("     emphasis @50:", before, "\n     emphasis @75:", after);
+check("the ruler re-marks on manual weight input", `${JSON.stringify(before)!==JSON.stringify(after)}`, true);
+check("...and every rep is still reachable, not just the marked ones",
+      `document.querySelectorAll('.repruler .rr').length >= 30`, true);
+/* the notch you are parked on must not move under your thumb when the
+   emphasis is rebuilt — the v3.3.154 no-moving-targets law, kept */
+check("...and the notch you were on survives the rebuild",
+      `(function(){repRulerTo(9,false); const wv=document.getElementById('wv');
+        wv.value='80'; wv.dispatchEvent(new Event('input',{bubbles:true}));
+        return repRulerValue();})()`, 9);
 
 // ---- v3.3.103: the dismiss badge sits flush at the corner, never negative -
 // buildcheck's own v3.3.49 guard forbids a negative offset here (#app's
@@ -187,30 +197,49 @@ check("the confirmation says BW for a bodyweight set, not '0kg'",
         `${/flex-direction:column/.test(btnRule) && /justify-content:center/.test(btnRule)}`, true);
   const subRule = (css148.match(/#addrep \.addsub\{[^}]*\}/) || [""])[0];
   check("...and the preview line adds no margin of its own", `${!/margin-top/.test(subRule)}`, true);
-  run(`lift.weight=16; document.getElementById('rc')?(document.getElementById('rc').value='12'):0; updAddPreview();`);
-  check("typing reps still writes the preview",
+  /* v3.3.286: reps come from the ruler, so the preview is driven by moving
+     the ruler rather than typing into a field that no longer exists. */
+  run(`lift.weight=16; repRulerTo(12,false);`);
+  check("moving the ruler writes the volume preview",
         `/addsub/.test((document.getElementById('addrep')||{innerHTML:''}).innerHTML)`, true);
-  run(`document.getElementById('rc')?(document.getElementById('rc').value=''):0; updAddPreview();`);
-  check("clearing reps restores the plain label",
-        `(document.getElementById('addrep')||{textContent:''}).textContent`, "Add set");
+  check("...and the label names the reps it will log",
+        `/Add set . 12 reps/.test((document.getElementById('addrep')||{textContent:''}).textContent)`, true);
+  /* with no weight yet the button cannot promise a volume — it falls back to
+     naming the reps alone rather than a stale number */
+  run(`lift.weight=0; updAddPreview();`);
+  check("with no weight, the label drops the volume and keeps the reps",
+        `(document.getElementById('addrep')||{textContent:''}).textContent`, "Add set \u00b7 12 reps");
+  /* the "no reps at all" branch is deliberately NOT asserted: the ruler
+     always holds a value, so that state is unreachable in the app. A test
+     for a state the product cannot enter proves nothing. */
 }
 
 /* ---- v3.3.154: the stranger-user fixes -------------------------------- */
 {
   run(`(function(){DB.days={}; SEED=deriveAll();
     lift={ex:'Chest Press',part:'Chest',weight:16}; view='lift'; render();})()`);
-  const before = run(`JSON.stringify([...document.querySelectorAll('.repgrid [data-rep]')].map(b=>b.dataset.rep))`);
-  run(`document.querySelector('.repgrid [data-rep]').click();
-       document.querySelector('.repgrid [data-rep]').click();
-       document.querySelector('.repgrid [data-rep]').click();`);
-  const after = run(`JSON.stringify([...document.querySelectorAll('.repgrid [data-rep]')].map(b=>b.dataset.rep))`);
-  check("logging three sets does not move the rep tiles", `${before===after}`, true);
+  /* v3.3.286 RESTATES the v3.3.154 stranger-user law for the ruler. The law
+     is "no moving targets under thumbs": logging must not rearrange the
+     choices, while stepping the weight still may. On the ruler the notches
+     are a fixed number line that CANNOT reorder — so the law now bites on
+     the two things that could still move: the emphasis, and the notch you
+     are parked on. */
+  const before = run(`JSON.stringify([...document.querySelectorAll('.repruler .rr.maj')].map(b=>b.dataset.rep))`);
+  run(`repRulerTo(10,false);
+       document.querySelector('.repruler .rr.on').click();
+       document.querySelector('.repruler .rr.on').click();
+       document.querySelector('.repruler .rr.on').click();`);
+  const after = run(`JSON.stringify([...document.querySelectorAll('.repruler .rr.maj')].map(b=>b.dataset.rep))`);
+  check("logging three sets does not move the emphasis", `${before===after}`, true);
+  check("...and leaves you parked on the same notch", `repRulerValue()`, 10);
+  check("...having actually logged them", `day(todayISO).w.filter(s=>s.ex==='Chest Press').length`, 3);
   run(`(function(){const el=document.getElementById('wv'); el.value=String(+el.value+10);
        el.dispatchEvent(new Event('input',{bubbles:true}));})()`);
-  const stepped = run(`JSON.stringify([...document.querySelectorAll('.repgrid [data-rep]')].map(b=>b.dataset.rep))`);
-  check("...but stepping the weight still rebuilds them", `${stepped!==before}`, true);
-  check("tiles read as reps: \u00d7 before every number",
-        `document.querySelectorAll('.repgrid button .rx').length===document.querySelectorAll('.repgrid [data-rep]').length`, true);
+  const stepped = run(`JSON.stringify([...document.querySelectorAll('.repruler .rr.maj')].map(b=>b.dataset.rep))`);
+  check("...but stepping the weight still re-marks them", `${stepped!==before}`, true);
+  check("the number line itself never reorders",
+        `(function(){const r=[...document.querySelectorAll('.repruler .rr')].map(b=>+b.dataset.rep);
+          return r.every((v,i)=>i===0||v===r[i-1]+1) && r[0]===1;})()`, true);
   run(`setBw(todayISO,70); view='stats'; render(); document.querySelector('#secWeight .ibtn.tipi').click();`);
   check("scrolling closes an open tip",
         `(()=>{document.dispatchEvent(new Event('scroll'));
@@ -558,5 +587,46 @@ check("a rename carries the override to the new name",
         canonMerge(canonId('Old Tricep Move',true), canonId('Overhead Triceps Extension',true));
         return DB.settings.equipOv['Overhead Triceps Extension']==='dumbbell'
           && !('Old Tricep Move' in DB.settings.equipOv);})()`, true);
+
+// ---- v3.3.286: the rep ruler ---------------------------------------------
+// One continuous scrubber where the tile row was. Two laws it must keep:
+// the fast path (arrive on the suggestion, one tap logs it) and no writing
+// a set the thumb did not mean (a tap off-centre only moves the ruler).
+run(`(function(){DB.days={}; DB.settings.unit='lb'; const t0=new Date(todayISO+'T00:00');
+  const D=n=>{const d=new Date(t0);d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA')};
+  for(let i=1;i<=12;i++) DB.days[D(i*3)]={w:[{part:'Shoulder',ex:'Dumbbell Shoulder Press',
+    w:toKg(55),reps:[8,8,8]}],upd:1};
+  SEED=deriveAll(); view='lift'; lift={part:'Shoulder',ex:'Dumbbell Shoulder Press',weight:toKg(55)};
+  render();})()`);
+check("the ruler opens centred on the suggested rep", `repRulerValue()`, 8);
+check("...and that notch is the one marked", `document.querySelector('.repruler .rr.on').dataset.rep`, "8");
+check("...with the suggestion tick on it", `!!document.querySelector('.repruler .rr[data-rep="8"].sug')`, true);
+check("...and the button names what it will log",
+      `/Add set . 8 reps/.test(document.getElementById('addrep').textContent)`, true);
+// a tap off the centre band moves the ruler and writes NOTHING
+const n0 = run(`day(todayISO).w.length`);
+run(`document.querySelector('.repruler .rr[data-rep="12"]').click()`);
+check("a tap off-centre logs nothing", `day(todayISO).w.length`, n0);
+check("...it centres that notch instead", `repRulerValue()`, 12);
+check("...and the button follows it",
+      `/Add set . 12 reps/.test(document.getElementById('addrep').textContent)`, true);
+// a tap ON the centred notch is the fast path: one tap, one set
+run(`document.querySelector('.repruler .rr.on').click()`);
+check("a tap on the centred notch logs it", `day(todayISO).w.length`, n0+1);
+check("...with the reps it showed", `JSON.stringify(day(todayISO).w[day(todayISO).w.length-1].reps)`, "[12]");
+check("...and the ruler stays where you left it", `repRulerValue()`, 12);
+// Add set is the same value by another route
+run(`document.getElementById('addrep').click()`);
+check("Add set logs the centred value too",
+      `JSON.stringify(day(todayISO).w[day(todayISO).w.length-1].reps)`, "[12]");
+// the selection lives in STATE, not in a scroll offset that a rebuild resets
+check("the selection survives a full re-render",
+      `(function(){renderLift(); return repRulerValue();})()`, 12);
+// the nudge used to type into the removed field; it must drive the ruler
+run(`(function(){lift.rep=8; renderLift();})()`);
+check("a rep nudge moves the ruler rather than a dead field",
+      `(function(){const b=document.createElement('button');
+        b.id='nudgeGo'; b.dataset.nr='15'; document.getElementById('view').appendChild(b);
+        b.click(); return repRulerValue();})()`, 15);
 
 process.exit(fail ? 1 : 0);

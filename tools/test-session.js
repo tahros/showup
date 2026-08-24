@@ -116,8 +116,10 @@ ok("...between the log zone and the session card", run(`(function(){
 
 // ---- 6. the log zone lost its caption, not its controls -------------------
 ok("the 'Log a set' caption is gone", !/Log a set/.test(run(`$('#view').innerHTML`)));
-ok("...but the stepper, tiles and Add survive", run(`!!document.getElementById('wv')
-   && document.querySelectorAll('.repgrid button').length>0
+/* v3.3.286: the tile row became the rep ruler — the controls that must
+   survive are the same three, one of them renamed. */
+ok("...but the stepper, the rep ruler and Add survive", run(`!!document.getElementById('wv')
+   && document.querySelectorAll('.repruler .rr').length>0
    && !!document.getElementById('addrep')`));
 
 // ---- 7. empty states stay honest ------------------------------------------
@@ -212,11 +214,11 @@ if(false){ /* v3.3.217: the entire This month goal/target surface is retired. */
 run(`(function(){ DB.days={}; DB.settings.moGoal=0; SEED=deriveAll();
   todayISO='2001-01-01';   // force a stale day
   lift={ex:'Chest Press',part:'Chest',weight:16}; view='lift'; render();})()`);
-run(`document.querySelector('.repgrid [data-rep]').click();`);
+run(`document.querySelector('.repruler .rr.on').click();`);   /* v3.3.286: the centred notch is what logs */
 ok("a tap on a stale day rolls the date instead of logging into the past",
    run(`todayISO`) !== "2001-01-01" && run(`!((DB.days['2001-01-01']||{}).w||[]).length`),
    run(`todayISO`));
-run(`document.querySelector('.repgrid [data-rep]').click();`);
+run(`document.querySelector('.repruler .rr.on').click();`);   /* v3.3.286: the centred notch is what logs */
 ok("...and the NEXT tap logs into the real today",
    run(`(day(todayISO).w||[]).length`) >= 1);
 
@@ -313,7 +315,7 @@ run(`window.confirm=()=>true; document.getElementById('dualMove').click();`);
 ok("confirming moves the listing: under Legs, gone from Back",
    run(`catFor('Legs').includes('Deadlift') && !catFor('Back').includes('Deadlift')`));
 ok("...and the view followed to Legs", run(`lift.part`) === "Legs");
-run(`document.querySelector('.repgrid [data-rep]').click();`);
+run(`document.querySelector('.repruler .rr.on').click();`);   /* v3.3.286: the centred notch is what logs */
 ok("forward logging stores the NEW part",
    run(`[...day(todayISO).w].pop().part`) === "Legs");
 ok("...while history stays exactly as trained",
