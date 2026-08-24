@@ -93,6 +93,23 @@ run(`(function(){[...document.querySelectorAll('[data-planpick]')]
   .find(x=>x.dataset.planex2==='Rear Deltoids').click();})()`);
 ok("choosing a candidate resolves that row",
    run(`document.querySelectorAll('.planpv.ask').length`) === 0);
+// ---- v3.3.279: action rows are uniform ------------------------------------
+// jsdom cannot cascade :root stylesheets, so computed width/white-space here
+// would assert nothing (the recurring "effects not artifacts" trap has a
+// twin: don't assert CSS jsdom can't resolve). What IS checkable is the
+// structure the CSS acts on — the app's .btn grammar plus an explicit
+// .wide span — so that is what is pinned, alongside label length, which is
+// the thing that actually wrapped.
+ok("the primary action spans the row; the secondaries share one",
+   run(`(function(){const b=[...document.querySelectorAll('.planacts .btn')];
+     return b.length===3 && b[0].classList.contains('wide')
+       && !b[1].classList.contains('wide') && !b[2].classList.contains('wide');})()`) === true);
+ok("...and no action label is long enough to wrap a half-width cell",
+   run(`[...document.querySelectorAll('.planacts .btn')].every(b=>b.textContent.trim().length<=16)`),
+   run(`JSON.stringify([...document.querySelectorAll('.planacts .btn')].map(b=>b.textContent.trim().length))`));
+ok("every plan button uses the app's own .btn grammar, not a bespoke one",
+   run(`[...document.querySelectorAll('.planacts button')].every(b=>b.classList.contains('btn'))`));
+
 run(`document.querySelector('[data-planaccept]').click()`);
 ok("accepting writes a plan for TODAY",
    run(`(function(){const p=planNow(); return !!p && p.d===todayISO && p.items.length===4;})()`) === true,

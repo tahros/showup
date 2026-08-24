@@ -867,7 +867,9 @@
   .fld input:focus{outline:none}
   .fld.text input{font-size:14px;font-weight:500;font-family:var(--body)}
   .btn{width:100%;padding:15px;border-radius:12px;border:0;background:var(--accent);color:#fff;
-    font:inherit;font-weight:600;font-size:15px;cursor:pointer;margin-top:4px}
+    font:inherit;font-weight:600;font-size:15px;cursor:pointer;margin-top:4px;
+    white-space:nowrap}   /* v3.3.279: a button label never wraps, so a button
+                             never changes height because of its own text */
   .btn.ghost{font-size:14px;background:none;border:1px solid var(--line);color:var(--muted);font-weight:500}
   /* stats */
   .rhythm .big{font-family:var(--mono);font-size:38px;font-weight:700;line-height:1;letter-spacing:var(--track-num)}
@@ -1116,8 +1118,14 @@
   .planrow .pv{font-size:12px;color:var(--muted);white-space:nowrap}
   .plannote{white-space:pre-wrap;font-size:11px;color:var(--faint);
     padding:10px 14px;border-top:1px solid var(--line);line-height:1.6}
-  .planacts{display:flex;gap:8px;padding:10px 14px 4px}
-  .planacts .btn{flex:1}
+  /* v3.3.279: plan actions sit on the app's own button grammar — full-width
+     rows, uniform height. flex:1 made three unequal labels share the width,
+     so the longest wrapped to three lines and the row read as three
+     different-sized buttons. A grid gives identical cells instead; the
+     primary spans the row above its two secondaries. */
+  .planacts{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px 14px 4px}
+  .planacts .btn{width:100%;margin-top:0}
+  .planacts .wide{grid-column:1/-1}
   .planta{width:100%;box-sizing:border-box;font-family:var(--mono);font-size:12px;
     line-height:1.7;background:var(--surface2);color:var(--chalk);
     border:1px solid var(--line);border-radius:10px;padding:12px;resize:vertical}

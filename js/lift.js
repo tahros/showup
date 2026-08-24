@@ -640,8 +640,8 @@ function planScreenHTML(){
       <div class="card">
         <textarea id="planText" class="planta" rows="12" placeholder="Paste a session — from a coach, a forum, anywhere.">${hesc(cur)}</textarea>
         <div class="planacts">
-          <button class="btn" data-planread>Read it</button>
-          <button class="btn ghost" data-planback>Cancel</button>
+          <button class="btn wide" data-planread>Read it</button>
+          <button class="btn ghost wide" data-planback>Cancel</button>
         </div>
       </div>`;
   }
@@ -669,7 +669,7 @@ function planScreenHTML(){
     }
   });
   h+=`<div class="planacts">
-      <button class="btn" data-planaccept>Use as today\u2019s plan</button>
+      <button class="btn wide" data-planaccept>Use today\u2019s plan</button>
       <button class="btn ghost" data-planedit>Edit</button>
       <button class="btn ghost" data-planback>Cancel</button>
     </div></div>`;

@@ -1,5 +1,17 @@
 # ShowUp — changelog
 
+## v3.3.279 (2026-08-24) — Plan buttons keep their shape
+
+The buttons under a pasted plan are the same size as each other again. They
+had been sharing the row's width equally, so the longest label wrapped onto
+three lines while the short ones stayed one — three buttons of three
+different heights. The primary action now spans its own full-width row above
+two equal secondaries, which is the button grammar the rest of the app
+already uses, and "Use as today's plan" is simply "Use today's plan".
+
+No button label anywhere in the app can wrap now, so no button can change
+height because of its own text.
+
 ## v3.3.278 (2026-08-23) — Paste today's plan
 
 Bring a session from anywhere — a coach, a forum, an AI conversation — and
