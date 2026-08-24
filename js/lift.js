@@ -28,7 +28,31 @@ function renderLift(){
     }
     if(!lift.part||!SEED.catalog[lift.part]) lift.part=P.pick||order[0];
 
-    let h=`<h2>Body part</h2><div class="partgrid">`;
+    /* v3.3.278: today's plan, if there is one, leads the tab — it is the
+       thing you came to read. It is a NOTE: no completion state, no count of
+       what is left, nothing that could be failed. Just what you brought. */
+    let h='';
+    /* renderLift COMMITS its own html rather than returning it — an early
+       `return planScreenHTML()` silently rendered nothing. Write and stop. */
+    if(lift.plan==='paste'||lift.plan==='preview'){ $('#view').innerHTML=planScreenHTML(); return; }
+    const _pl=planNow();
+    if(_pl){
+      h+=`<h2><b class="scopepill">today</b> plan${hActs('plan',"Paste a session and the app reads what it can. It fills weights and reps for today only, is never written to your record, and clears at midnight. Nothing is counted against it.",'About today\u2019s plan')}</h2>
+        <div class="card plancard">
+          ${(_pl.items||[]).map(i=>`<button class="planrow" data-planex="${i.ex}">
+              <span class="pn">${i.ex}</span>
+              <span class="pv mono">${i.w>0?wDisp(i.w)+' '+U():'BW'}${i.reps.length?' \u00d7 '+i.reps.join(' '):''}</span>
+            </button>`).join('')}
+          ${_pl.note?`<div class="plannote mono">${hesc(_pl.note)}</div>`:''}
+          <div class="planacts">
+            <button class="btn ghost" data-planedit>Edit</button>
+            <button class="btn ghost" data-planclear>Clear</button>
+          </div>
+        </div>`;
+    }else{
+      h+=`<button class="btn ghost planpaste" data-planpaste>Paste today\u2019s plan</button>`;
+    }
+    h+=`<h2>Body part</h2><div class="partgrid">`;
     [...order,...dormant].forEach(p=>{
       const i0=P.info[p]||{since:999};
       const virgin=SEED.totals.sessions===0&&!hasAnyDays();   // day zero: no verdicts yet
@@ -396,7 +420,10 @@ function renderLift(){
            tuned to look similar. It rendered 12px chalk in the display face
            against their 11px muted, and the mismatch read as a mistake
            because it was one. Caps are literal in lasthead labels. */
-        h+=`<div class="zone mini"><div class="lasthead"><span>SUGGESTED ${iBtn('sug','Tap a set to log it again.','About suggested sets')}</span></div>
+        /* v3.3.278: name the origin. Chips built from today's pasted plan say so,
+           because "suggested" from your own history and "suggested" from a plan
+           you brought are different claims and the user must be able to tell. */
+        h+=`<div class="zone mini"><div class="lasthead"><span>${((sugOv()[ex]||{}).from==='plan')?'<b class="scopepill">plan</b> today':'SUGGESTED'} ${iBtn('sug',((sugOv()[ex]||{}).from==='plan')?'From the plan you pasted today. Tap a set to log it.':'Tap a set to log it again.','About suggested sets')}</span></div>
            <div class="lastsets">${sugChipsHTML(ex,chips)}</div></div>`;
     }
   }
@@ -599,6 +626,53 @@ function moGoalCardHTML(){
             <button class="btn" id="moGoalSet" style="margin:0;flex:0 0 72px;align-self:flex-end">Set</button></div>`;
       }
       h+=`<div class="lastfoot mono">${wk} run${wk===1?'':'s'} in the last 7 days${TP?` · 10${DU()} ≈ ${fmtP(TP*10)} at target ${fmtP(TP)} (recent ${med?fmtP(med):'—'})`:(tenK?` · 10${DU()} ≈ ${fmtP(tenK)} at your recent pace`:'')}</div></div>`;
+  return h;
+}
+/* v3.3.278: paste, then READ BACK before anything is accepted. The preview
+   is the whole safety argument — a parser that resolves silently is worse
+   than no parser, because you find out mid-set. Ambiguous names offer their
+   candidates; unreadable lines are kept verbatim as a note rather than
+   dropped. */
+function planScreenHTML(){
+  if(lift.plan==='paste'){
+    const cur=(planNow()||{}).raw||lift.planText||'';
+    return `<h2>Paste today\u2019s plan</h2>
+      <div class="card">
+        <textarea id="planText" class="planta" rows="12" placeholder="Paste a session — from a coach, a forum, anywhere.">${hesc(cur)}</textarea>
+        <div class="planacts">
+          <button class="btn" data-planread>Read it</button>
+          <button class="btn ghost" data-planback>Cancel</button>
+        </div>
+      </div>`;
+  }
+  const rows=lift.planRows||[];
+  const ok=rows.filter(r=>r.kind==='ex'&&r.ex).length;
+  const tot=rows.filter(r=>r.kind==='ex').length;
+  let h=`<h2>Read from your paste</h2><div class="card">
+    <div class="lasthead"><span>WHAT THE APP READ</span><span class="ago">${ok} of ${tot}</span></div>`;
+  rows.forEach((r,i)=>{
+    if(r.kind==='ex'&&r.ex){
+      const l=r.lines[r.lines.length-1];
+      h+=`<div class="planpv ok"><span class="pi">\u2713</span>
+        <span class="pb"><b>${hesc(r.ex)}</b>
+          <i class="mono">${l.bw?'BW':l.w+(l.unit||'')} \u00d7 ${l.reps.join(', ')}</i></span>
+        <button class="lsx" data-plandrop="${i}" aria-label="Skip ${hesc(r.ex)}">\u2715</button></div>`;
+    }else if(r.kind==='ex'){
+      h+=`<div class="planpv ask"><span class="pi">?</span>
+        <span class="pb"><b>${hesc(r.name)}</b>
+          <i class="mono">${r.cands.length?'did you mean\u2026':'not in your exercises \u2014 kept as a note'}</i></span>
+        <span class="pc">${r.cands.map(c=>`<button class="btn ghost tiny" data-planpick="${i}" data-planex2="${hesc(c)}">${hesc(c)}</button>`).join('')}</span></div>`;
+    }else{
+      h+=`<div class="planpv note"><span class="pi">\u00b7</span>
+        <span class="pb"><i class="mono">${hesc(r.raw.trim())}</i>
+          <i class="mono dim">kept as a note</i></span></div>`;
+    }
+  });
+  h+=`<div class="planacts">
+      <button class="btn" data-planaccept>Use as today\u2019s plan</button>
+      <button class="btn ghost" data-planedit>Edit</button>
+      <button class="btn ghost" data-planback>Cancel</button>
+    </div></div>`;
   return h;
 }
 function lastPartSession(part){

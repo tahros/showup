@@ -563,6 +563,37 @@ if not _order or not all(_seg in _order.group(0) for _seg in
 if _order and _re.search(r"_S\.(?:cons|dbm|last6|wd)\b", _order.group(0)):
     fail.append("stats: a retired time section returned to the declared order (v3.3.213)")
 _util = (d/"js/util.js").read_text()
+# -- v3.3.278: A PLAN IS NOT A CONTRACT. Three properties, enforced, because
+# every one of them is a thing a future release could quietly break:
+#   1. the record never learns about plans — derive.js, report.js and stats.js
+#      must not read DB.plan, so nothing can be scored against it;
+#   2. planSave never writes to DB.days — a plan cannot log itself;
+#   3. no adherence vocabulary anywhere — the moment "completed/remaining/
+#      adherence/of N done" appears next to a plan, ShowUp has a failure state.
+for _f in ("js/derive.js", "js/report.js", "js/stats.js"):
+    if "DB.plan" in (d/_f).read_text():
+        fail.append(f"plan: {_f} reads DB.plan — the record must not know about plans (v3.3.278)")
+_util_plan = (d/"js/util.js").read_text()
+_ps = _util_plan.find("function planSave(")
+if _ps < 0:
+    fail.append("plan: planSave() missing from js/util.js (v3.3.278)")
+else:
+    _psb = _util_plan[_ps:_util_plan.find("\nfunction ", _ps + 10)]
+    if "DB.days" in _psb:
+        fail.append("plan: planSave() touches DB.days — a plan must never log itself (v3.3.278)")
+# comments must be stripped first: the prose explaining WHY there is no
+# adherence number necessarily contains the words it bans (the v3.3.106
+# lesson, in a new place). camelCase defeats \b, so match per line, not by word.
+_ADHERE = _re.compile(r"adheren|completed|completion|remaining|missed", _re.I)
+for _f in ("js/util.js", "js/lift.js", "js/today.js", "js/app.js"):
+    _src = (d/_f).read_text()
+    _code = _re.sub(r"/\*[\s\S]*?\*/", "", _src)
+    _code = _re.sub(r"(^|[^:])//[^\n]*", r"\1", _code)
+    for _ln in _code.split("\n"):
+        if "plan" in _ln.lower() and _ADHERE.search(_ln):
+            fail.append(f"plan: {_f} scores against the plan ({_ln.strip()[:52]!r}) — no failure state (v3.3.278)")
+            break
+
 # -- v3.3.270: THE MOTION VOICE. One settle curve, three speeds, and three
 # allowlisted physics (press spring, save spring, iOS band-back). Any other
 # cubic-bezier literal in css/app.css is an ad-hoc curve and fails by name,

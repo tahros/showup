@@ -715,6 +715,123 @@ function fullDoseFloor(p,days){
   const doses=days.map(d=>partDoseOn(d,p)).filter(x=>x>0);
   return Math.max(2,(median(doses)||0)*0.5);
 }
+/* ============ v3.3.278: TODAY'S PLAN — a note, never a contract ============
+   You paste a session (from a coach, a forum, an AI conversation) and the app
+   reads what it can. Three commitments make this safe to add to a ledger app:
+
+   1. A plan is TODAY-ONLY. It is stamped with a date and ignored the moment
+      that date is not today, so it can never become a backlog or a debt.
+   2. A plan is NEVER written to the record. It feeds the same rails your
+      history already feeds — a prefilled weight, a suggested rep count — and
+      the ledger still only ever says what you actually did.
+   3. Nothing is ever counted AGAINST it. There is deliberately no adherence
+      number, no "3 of 7 done", no completion state anywhere in this file or
+      its consumers. The moment a plan can be failed, ShowUp has a failure
+      state, and this app does not have one.
+
+   The parser is deliberately timid: it proposes, shows its reading, and waits.
+   Every line it could not resolve survives as text rather than being dropped,
+   because a silently swallowed line is worse than an unparsed one. */
+const planNow=()=>{ const p=DB.plan; return (p&&p.d===todayISO&&(p.items||[]).length||p&&p.d===todayISO&&p.note)?p:null; };
+const planFor=ex=>{ const p=planNow(); return p?(p.items||[]).find(i=>i.ex===ex)||null:null; };
+function planSave(items,note,raw){
+  DB.plan={d:todayISO, items:items||[], note:note||'', raw:raw||''};
+  /* feed the rail that already exists. sugOv() is "use THESE sets for this
+     exercise, today" — same today-only life as a plan, already wired to the
+     Suggested chips, already tappable to log. A plan does not need a second
+     mechanism; it needs to be a second SOURCE for this one. `from:'plan'` is
+     what lets the panel name its origin instead of pretending it is your
+     history. */
+  for(const i of (items||[])){
+    if(!i.reps.length) continue;
+    sugOv()[i.ex]={sets:i.reps.map(r=>({w:i.w, r})), d:todayISO, from:'plan'};
+  }
+  DB.planAt=Date.now(); save(true);
+}
+function planClear(){
+  for(const [ex,o] of Object.entries(sugOv())) if(o&&o.from==='plan') delete sugOv()[ex];
+  DB.plan=null; DB.planAt=Date.now(); save(true);
+}
+
+/* name matching: normalise hard (case, punctuation, plurals) then score by
+   token overlap. An exact normalised hit is a match; anything else is only
+   ever a CANDIDATE the user confirms. */
+const planNorm=t=>String(t).toLowerCase().replace(/[^a-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim();
+const planToks=t=>planNorm(t).split(' ').filter(Boolean).map(w=>w.replace(/s$/,''));
+function planCandidates(name){
+  const all=[...new Set([...Object.values(SEED.catalog).flat(), ...Object.keys(customs())])];
+  const n=planNorm(name);
+  const exact=all.find(e=>planNorm(e)===n);
+  if(exact) return {match:exact, cands:[]};
+  const q=planToks(name);
+  if(!q.length) return {match:null, cands:[]};
+  const scored=all.map(e=>{
+    const c=planToks(e);
+    let hit=0;
+    for(const t of q) if(c.some(x=>x===t||x.startsWith(t)||t.startsWith(x))) hit++;
+    return {e, score: hit/Math.max(q.length,c.length)};
+  }).filter(x=>x.score>=0.5).sort((a,b)=>b.score-a.score);
+  return {match:null, cands:scored.slice(0,3).map(x=>x.e)};
+}
+
+/* one line of sets: "55 lb  8 8 8 8", "35lb x 12", "BW 10 8 8", "60 kg 5x5" */
+const PLAN_SET=/^\s*(bw|bodyweight|[\d.]+)\s*(lb|lbs|kg|kgs)?\s*[x×·,:]?\s*([\d\s,x×·]*\d)?\s*$/i;
+function planReadSets(line){
+  const m=String(line).match(PLAN_SET); if(!m) return null;
+  const bw=/^(bw|bodyweight)$/i.test(m[1]);
+  const w=bw?0:parseFloat(m[1]);
+  if(!bw&&!(w>=0)) return null;
+  const unit=(m[2]||'').toLowerCase().replace(/s$/,'');
+  let reps=[];
+  if(m[3]){
+    const parts=m[3].split(/[\s,]+/).filter(Boolean);
+    /* "5x5" means five sets of five, not one set of 5 then 5 */
+    if(parts.length===1&&/[x×·]/.test(parts[0])){
+      const [a,b]=parts[0].split(/[x×·]/).map(Number);
+      if(a>0&&b>0&&a<=20) reps=Array(a).fill(b);
+    }else reps=parts.map(x=>+String(x).replace(/[x×·]/g,'')).filter(n=>n>0&&n<1000);
+  }
+  if(!bw&&!reps.length&&!unit) return null;      // a bare number is not a set line
+  return {w, unit, reps, bw};
+}
+/* strip a trailing "6 sets" and any "← coach note" tail from a heading */
+const planHeadClean=t=>String(t).split(/[←<]-?|\/\/|\s{3,}#/)[0]
+  .replace(/\b\d+\s*sets?\b/ig,'').replace(/[·|—–-]\s*$/,'').trim();
+
+function parsePlan(text){
+  const rows=[];
+  let cur=null;
+  for(const raw of String(text||'').split(/\r?\n/)){
+    const line=raw.replace(/\t/g,' ').trimEnd();
+    if(!line.trim()){ cur=null; continue; }
+    const body=line.split(/←|<-/)[0].trim();
+    const sets=planReadSets(body);
+    if(sets&&cur){ cur.lines.push({...sets, raw:line}); continue; }
+    if(sets&&!cur) { rows.push({kind:'note', raw:line}); continue; }
+    const name=planHeadClean(body);
+    if(!name||!/[a-z]/i.test(name)){ rows.push({kind:'note', raw:line}); continue; }
+    const {match,cands}=planCandidates(name);
+    cur={kind:'ex', raw:line, name, ex:match, cands, lines:[]};
+    rows.push(cur);
+  }
+  /* an exercise heading that never got a set line is a note, not a plan item —
+     "Plank / 60 sec each" has nothing this app can prefill */
+  for(const r of rows) if(r.kind==='ex'&&!r.lines.length) r.kind='exnote';
+  return rows;
+}
+/* the accepted shape: one item per resolved exercise, weights stored in KG
+   like every other weight in the app, unresolved text preserved verbatim */
+function planItemsFrom(rows){
+  const items=[], notes=[];
+  for(const r of rows){
+    if(r.kind==='ex'&&r.ex){
+      const l=r.lines[r.lines.length-1];        // the working set, not the warm-up
+      const w=l.bw?0:(l.unit==='kg'?l.w:l.unit==='lb'?l.w/LB:toKg(l.w));
+      items.push({ex:r.ex, w, reps:l.reps.slice(0,12)});
+    }else notes.push(r.raw);
+  }
+  return {items, note:notes.join('\n')};
+}
 const PART_COLD_DAYS=21;
 function trainingPlan(){
   const dp=dayParts();

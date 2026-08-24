@@ -256,6 +256,48 @@ document.addEventListener('click',e=>{
     saveExW(lift.ex,w);
     lift.justSaved=true;save();renderHeader();setToast(lift.ex,w,r);return renderLift();
   }
+  /* ---- v3.3.278: today's plan. Every step is explicit; nothing auto-applies. */
+  if(e.target.closest&&e.target.closest('[data-planpaste],[data-planedit]')){
+    lift.plan='paste'; return render();
+  }
+  if(e.target.closest&&e.target.closest('[data-planback]')){
+    lift.plan=null; lift.planRows=null; return render();
+  }
+  if(e.target.closest&&e.target.closest('[data-planread]')){
+    const ta=document.getElementById('planText');
+    const txt=ta?ta.value:'';
+    if(!txt.trim()){ toast('Paste a session first'); return; }
+    lift.planText=txt; lift.planRows=parsePlan(txt); lift.plan='preview'; return render();
+  }
+  const _pdrop=e.target.closest&&e.target.closest('[data-plandrop]');
+  if(_pdrop){
+    const r=(lift.planRows||[])[+_pdrop.dataset.plandrop];
+    if(r){ r.kind='note'; r.raw=r.raw; }
+    return render();
+  }
+  const _ppick=e.target.closest&&e.target.closest('[data-planpick]');
+  if(_ppick){
+    const r=(lift.planRows||[])[+_ppick.dataset.planpick];
+    if(r){ r.ex=_ppick.dataset.planex2; r.cands=[]; }
+    return render();
+  }
+  if(e.target.closest&&e.target.closest('[data-planaccept]')){
+    const {items,note}=planItemsFrom(lift.planRows||[]);
+    if(!items.length&&!note.trim()){ toast('Nothing to keep'); return; }
+    planSave(items,note,lift.planText||'');
+    lift.plan=null; lift.planRows=null;
+    toast(items.length?`Plan set — ${items.length} exercise${items.length>1?'s':''}`:'Kept as a note');
+    return render();
+  }
+  if(e.target.closest&&e.target.closest('[data-planclear]')){
+    planClear(); toast('Plan cleared'); return render();
+  }
+  const _prow=e.target.closest&&e.target.closest('[data-planex]');
+  if(_prow){
+    const ex=_prow.dataset.planex;
+    lift.part=homePartOf(ex)||lift.part; lift.ex=ex; lift.weight=0;
+    return render();
+  }
   if(e.target.closest&&e.target.closest('[data-pmixmode]')){ pmixSetMode(); return; }
   const _pl=e.target.closest('.pmixlgd [data-pt]');
   if(_pl){ pmixSetFocus(_pl.dataset.pt); return; }   // v3.3.121

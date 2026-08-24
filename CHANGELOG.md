@@ -1,5 +1,24 @@
 # ShowUp — changelog
 
+## v3.3.278 (2026-08-23) — Paste today's plan
+
+Bring a session from anywhere — a coach, a forum, an AI conversation — and
+paste it into the Train tab. The app reads what it can and shows you its
+reading before anything is accepted: matched exercises with their working
+sets, names it isn't sure about offered as a choice rather than guessed, and
+every line it couldn't read kept verbatim as a note instead of dropped.
+
+Accept it and the plan leads the Train tab. Tap an exercise and its Suggested
+chips are the plan's sets, labelled as coming from the plan rather than from
+your history, tappable to log exactly as always.
+
+Three things a plan will never do. It is not written to your record — the
+ledger still only ever says what you actually did. It is not carried forward
+— a plan belongs to one day and is gone the next. And nothing is ever counted
+against it: no adherence, no "3 of 7 done", no completion state anywhere. The
+plan is a note you brought, not a contract you signed. The build now fails if
+a future change breaks any of the three.
+
 ## v3.3.277 (2026-08-23) — Session build learns a second reading: total weight
 
 A small sets/weight switch now sits above the Session build legend. Tap it
