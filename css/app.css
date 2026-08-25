@@ -82,7 +82,18 @@
        unguarded gap as dark's, found by the same new check. Deepened along
        its hue to 4.88. Surfaces are unchanged: light already separates by
        1.20 and darkening --surface2 further would push --faint under. */
-    --ground:#F2F3F6; --surface:#FFFFFF; --surface2:#E8EAF0; --line:#D6D9E2;
+    /* v3.3.301: the light theme joins the charcoal — one neutral grey story
+       in both modes. It was blue (--muted 20 points bluer than red, --line
+       12), which is what read as "off" beside a now-neutral dark theme.
+       Neutralised the same luminance-preserving way, then ONE deliberate
+       change beyond hue: the elevation ladder is inverted to match dark.
+       Dark lifts a card ABOVE the page; light was sinking it BELOW (surface2
+       #E8EAF0 darker than ground #F2F3F6), which is why the rows read as
+       flat grey slabs. Now the page is the darkest thing (#EFEFEF), cards
+       are white, and surface2 sits between — so it lifts off the page AND
+       recedes inside a card, which is what an elevation step has to do.
+       Measured: every ink pair clears AA (tightest faint-on-ground 4.70). */
+    --ground:#EFEFEF; --surface:#FFFFFF; --surface2:#F7F7F7; --line:#DDDDDD;
     --accent:#2F4BD8; --accent-soft:#C3CCF5; --accent-dim:#8892C4;
     --record:#B83528;
     --rest:#79A884;                         /* declared rest, light theme (wash/frame grade) */
@@ -92,8 +103,12 @@
        deepened along the same hue to #E0A000 (2.06:1). The colour still
        reads as the same yellow while every stacked fill clears the 2:1
        chart floor enforced by buildcheck. */
-    --p-chest:#E0A000; --p-back:#EA4335; --p-shoulder:#4285F4; --p-legs:#34A853;
-    --p-biceps:#FF6D01; --p-triceps:#46BDC6; --p-sixpack:#A142F4; --p-run:#78909C;
+    /* v3.3.301: the light page went lighter (#F2F3F6 -> #EFEFEF), so the two
+       palest part colours fell under the v3.3.121 2.0:1 floor against it —
+       chest to 1.99, triceps to 1.95. Both stepped down the smallest amount
+       that clears it, hue held. The guard found these; I did not. */
+    --p-chest:#D89A00; --p-back:#EA4335; --p-shoulder:#4285F4; --p-legs:#34A853;
+    --p-biceps:#FF6D01; --p-triceps:#42B7C0; --p-sixpack:#A142F4; --p-run:#78909C;
     --chart-soft:#7F859F;                   /* 2025's line, light — C3CCF5 was 1.58:1 on white */
     --live:#BE3324;
     /* v3.3.92: muted 4.10:1 on surface2 and faint 2.62:1 on white failed AA;
@@ -104,7 +119,7 @@
        --muted moved with it: at the old value the two levels collapsed to a
        1.25x step and the hierarchy stopped reading. Now 1.71x, matching
        dark's ladder. */
-    --chalk:#191B21; --muted:#4C5260; --faint:#646A77; --shadow:0 1px 3px rgba(20,25,40,.07);
+    --chalk:#1B1B1B; --muted:#525252; --faint:#6A6A6A; --shadow:0 1px 3px rgba(0,0,0,.06);
     --accent-ink:#2A44C8;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}

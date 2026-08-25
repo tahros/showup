@@ -113,9 +113,36 @@ ok("v3.3.264: dark Session Build follows the Google Sheets colour identities",
      chest:'#FABB05',back:'#EA4335',shoulder:'#4285F4',legs:'#34A853',
      biceps:'#FF6D01',triceps:'#46BDC6',sixpack:'#A142F4',run:'#78909C'}),
    JSON.stringify(darkParts));
-ok("...and light keeps them, deepening only the low-contrast yellow",
-   JSON.stringify(lightParts)===JSON.stringify({...darkParts,chest:'#E0A000'}),
-   JSON.stringify(lightParts));
+/* v3.3.301 RESTATES this to the RULE it was always expressing, rather than
+   to one hard-coded exception. Light may deviate from the shared identities
+   ONLY where a colour would otherwise fail the v3.3.121 2.0:1 floor against
+   the light page — and when the page changed (#F2F3F6 -> #EFEFEF) a second
+   colour, triceps, joined chest in needing it. Pinning the literals meant
+   the suite failed for a correct change; pinning the rule means it fails
+   only for a wrong one. */
+{
+  const LIGHT_GROUND = (lightBlk.match(/--ground:\s*(#[0-9A-Fa-f]{6})/)||[])[1];
+  const srgb = c => (c/=255, c<=0.03928 ? c/12.92 : ((c+0.055)/1.055)**2.4);
+  const lum = h => { const [r,g,b]=[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
+    return .2126*srgb(r)+.7152*srgb(g)+.0722*srgb(b); };
+  const ratio = (a,b) => { const [x,y]=[lum(a),lum(b)].sort((p,q)=>q-p); return (x+.05)/(y+.05); };
+  const deviating = Object.keys(darkParts).filter(k => lightParts[k]!==darkParts[k]);
+  ok("light keeps the shared identities except where contrast forbids it",
+     deviating.every(k => ratio(darkParts[k], LIGHT_GROUND) < 2.0),
+     deviating.length ? deviating.map(k=>`${k} ${darkParts[k]}@${ratio(darkParts[k],LIGHT_GROUND).toFixed(2)}`).join(", ")
+                      : "none deviate");
+  ok("...and every light part colour clears the 2.0 floor it was deepened for",
+     Object.keys(lightParts).every(k => ratio(lightParts[k], LIGHT_GROUND) >= 2.0),
+     Object.entries(lightParts).map(([k,v])=>`${k} ${ratio(v,LIGHT_GROUND).toFixed(2)}`).join(" "));
+  ok("...and a deepened colour keeps its hue rather than becoming a new one",
+     deviating.every(k => {
+       const h = x => { const [r,g,b]=[1,3,5].map(i=>parseInt(x.slice(i,i+2),16));
+         const mx=Math.max(r,g,b), mn=Math.min(r,g,b); if(mx===mn) return 0;
+         const d=mx-mn; let hh = mx===r ? ((g-b)/d+(g<b?6:0)) : mx===g ? ((b-r)/d+2) : ((r-g)/d+4);
+         return hh*60; };
+       return Math.abs(h(lightParts[k]) - h(darkParts[k])) < 12;
+     }), deviating.join(", ") || "none");
+}
 
 /* v3.3.120 rewrites the v3.3.119 rule. That version assumed a CATEGORICAL
    palette, where two fills sharing a hue meant a collision. The palette is

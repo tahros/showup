@@ -1,5 +1,17 @@
 # ShowUp — changelog
 
+## v3.3.301 (2026-08-24) — Light mode joins the charcoal
+
+The light theme's greys were blue; they're neutral now, so both themes tell
+the same story about what grey is.
+
+One thing beyond colour changed. Cards were sinking *below* the page in light
+mode while they lift *above* it in dark — which is why the rows read as flat
+grey slabs. The page is now the darkest surface, cards are white, and the
+in-between grey sits between them. Every reading stayed above its contrast
+floor, and the two palest body-part colours were deepened a step so they
+still register against the lighter page.
+
 ## v3.3.300 (2026-08-24) — Exercise names are back
 
 Fixes the exercise name being cut to a single letter in the Train tab's
