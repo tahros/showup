@@ -108,15 +108,18 @@ const partMap = blk => Object.fromEntries(
   [...blk.matchAll(/--p-([a-z]+):\s*(#[0-9A-Fa-f]{6})/g)]
     .map(m => [m[1],m[2].toUpperCase()]));
 const darkParts=partMap(darkBlk), lightParts=partMap(lightBlk);
-/* v3.3.325 RESTATES the roster, not the rule: Biceps moves orange -> magenta.
-   The property this pin defends is that the fills are GOOGLE CATEGORICAL
-   IDENTITIES rather than hand-mixed colours -- magenta is one, so the chart
-   language is unchanged and only the assignment moved. Why it moved is the
-   separation guard at the bottom of this block. */
+/* v3.3.325 moved Biceps to magenta and defended it as "still a Google
+   identity". The maker rejected magenta on sight, which settles two things:
+   readability outranks palette provenance, and (v3.3.317's own lesson) a
+   guard defending my argument against the maker's judgment moves with the
+   decision. v3.3.326: Biceps is bronze #605024 -- NOT a Google colour,
+   deliberately, because the Google set had no readable slot left. The pin
+   keeps its real job: the roster cannot drift silently. Six Google
+   identities plus one recorded departure. */
 ok("v3.3.264: dark Session Build follows the Google Sheets colour identities",
    JSON.stringify(darkParts)===JSON.stringify({
      chest:'#FABB05',back:'#EA4335',shoulder:'#4285F4',legs:'#34A853',
-     biceps:'#E52592',triceps:'#46BDC6',sixpack:'#A142F4',run:'#78909C'}),
+     biceps:'#605024',triceps:'#46BDC6',sixpack:'#A142F4',run:'#78909C'}),
    JSON.stringify(darkParts));
 /* v3.3.301 RESTATES this to the RULE it was always expressing, rather than
    to one hard-coded exception. Light may deviate from the shared identities
@@ -228,39 +231,66 @@ ok("the state-adjacent hues are deliberate Google category identities",
                        Math.min(...stateHues.map(s=>apart(hueOf(a),s))) -
                        Math.min(...stateHues.map(s=>apart(hueOf(b),s))))[0]).toFixed(2));
 
-/* v3.3.325: the guard the maker's report earned. The palette is CATEGORICAL,
-   so hue is the whole signal -- and two categories 21 degrees apart are one
-   colour to a thumb, especially stacked in the same bar with a 0.5px hairline
-   between them. Back and Biceps is a session he trains, so that pair sat
-   inside a single bar. Run is excluded: it left the stack in v3.3.117 and
-   never shares a bar with anything.
-   The floor is 30 degrees. The palette's tightest surviving pair is
-   Shoulder/Triceps at 33, which also carries a 1.59x luminance step; the
-   pairs this rule was written against were Chest/Biceps at 19 and Back/Biceps
-   at 21, the latter at only 1.09x luminance. Asserted per theme, because
-   light deviates where contrast forces it and a deepened colour could drift
-   into a neighbour. */
+/* v3.3.326 REPLACES v3.3.325's hue guard, which was the wrong metric in both
+   directions: it PASSED magenta at 39 degrees from Back -- which the maker
+   could not read -- and it would FAIL bronze at 4 degrees from Chest's hue,
+   which reads perfectly, because a 2.8x luminance step carries the shared
+   hue. Hue angle is not what eyes measure. This guard is CIEDE2000 in Lab,
+   calibrated against the pairs the maker's own screenshots graded:
+     FAILED  orange/red 16.8, chest/orange (light) ~18, magenta/purple 21.4
+     READS   purple/blue 25.0, teal/blue 29.9, yellow/red 41.9
+   Floor 24: below the tightest pair the chart lives with, above every pair
+   the maker rejected. Known softness: magenta/red scored 26.3 and still
+   failed -- a same-chroma pair inside the red-purple arc -- so a future
+   colour landing near the floor needs EYES on a rendered stack, not just
+   this number. Running per THEME is not pedantry: light deepens Chest to
+   an amber (#D89A00) that sat 19.9 from the first bronze candidate, a
+   collision invisible in the dark roster. #605024 clears 36 in both
+   rosters. Run stays excluded: it left the stack in v3.3.117. */
 {
   const STACKED = ["chest","back","shoulder","legs","biceps","triceps","sixpack"];
-  const hueDeg = hx => {
-    const [r,g,b] = [1,3,5].map(i => parseInt(hx.slice(i,i+2),16)/255);
-    const mx = Math.max(r,g,b), mn = Math.min(r,g,b), d = mx-mn;
-    if (!d) return 0;
-    let h = mx===r ? ((g-b)/d)%6 : mx===g ? (b-r)/d+2 : (r-g)/d+4;
-    h *= 60; return h < 0 ? h+360 : h;
+  const toLab = hx => {
+    let [r,g,b] = [1,3,5].map(i => parseInt(hx.slice(i,i+2),16)/255)
+      .map(v => v > 0.04045 ? Math.pow((v+0.055)/1.055, 2.4) : v/12.92);
+    const X=(r*0.4124+g*0.3576+b*0.1805)/0.95047, Y=r*0.2126+g*0.7152+b*0.0722,
+          Z=(r*0.0193+g*0.1192+b*0.9505)/1.08883;
+    const f = t => t > 0.008856 ? Math.cbrt(t) : (7.787*t + 16/116);
+    return [116*f(Y)-16, 500*(f(X)-f(Y)), 200*(f(Y)-f(Z))];
   };
-  const apartDeg = (a,b) => { const d = Math.abs(a-b)%360; return Math.min(d, 360-d); };
+  const de2000 = (p1, p2) => {
+    const [L1,a1,b1]=toLab(p1), [L2,a2,b2]=toLab(p2);
+    const C1=Math.hypot(a1,b1), C2=Math.hypot(a2,b2), Cb=(C1+C2)/2;
+    const G=0.5*(1-Math.sqrt(Math.pow(Cb,7)/(Math.pow(Cb,7)+Math.pow(25,7))));
+    const a1p=a1*(1+G), a2p=a2*(1+G);
+    const C1p=Math.hypot(a1p,b1), C2p=Math.hypot(a2p,b2);
+    const hOf=(a,b)=>{ let x=Math.atan2(b,a)*180/Math.PI; return x<0?x+360:x; };
+    const h1=hOf(a1p,b1), h2=hOf(a2p,b2);
+    const dL=L2-L1, dC=C2p-C1p;
+    let dh=h2-h1; if(Math.abs(dh)>180) dh-=Math.sign(dh)*360;
+    const dH=2*Math.sqrt(C1p*C2p)*Math.sin(dh*Math.PI/360);
+    const Lb=(L1+L2)/2, Cbp=(C1p+C2p)/2;
+    let hb=(h1+h2)/2; if(Math.abs(h1-h2)>180) hb += (h1+h2<360?180:-180);
+    const T=1-0.17*Math.cos((hb-30)*Math.PI/180)+0.24*Math.cos(2*hb*Math.PI/180)
+             +0.32*Math.cos((3*hb+6)*Math.PI/180)-0.20*Math.cos((4*hb-63)*Math.PI/180);
+    const dth=30*Math.exp(-Math.pow((hb-275)/25,2));
+    const RC=2*Math.sqrt(Math.pow(Cbp,7)/(Math.pow(Cbp,7)+Math.pow(25,7)));
+    const SL=1+0.015*Math.pow(Lb-50,2)/Math.sqrt(20+Math.pow(Lb-50,2)),
+          SC=1+0.045*Cbp, SH=1+0.015*Cbp*T;
+    const RT=-Math.sin(2*dth*Math.PI/180)*RC;
+    return Math.sqrt(Math.pow(dL/SL,2)+Math.pow(dC/SC,2)+Math.pow(dH/SH,2)
+                     +RT*(dC/SC)*(dH/SH));
+  };
   for (const [label, map] of [["dark", darkParts], ["light", lightParts]]) {
     const tight = [];
     for (let i = 0; i < STACKED.length; i++)
       for (let j = i+1; j < STACKED.length; j++) {
         const a = map[STACKED[i]], b = map[STACKED[j]];
         if (!a || !b) continue;
-        const g = apartDeg(hueDeg(a), hueDeg(b));
-        if (g < 30) tight.push(`${STACKED[i]}/${STACKED[j]} ${Math.round(g)}\u00b0`);
+        const d = de2000(a, b);
+        if (d < 24) tight.push(`${STACKED[i]}/${STACKED[j]} \u0394E ${d.toFixed(1)}`);
       }
-    ok(`no two ${label} stacked fills share a hue neighbourhood`,
-       tight.length === 0, tight.join(", ") || "closest pair clears 30\u00b0");
+    ok(`no two ${label} stacked fills sit within a rejected pair's distance`,
+       tight.length === 0, tight.join(", ") || "every pair clears \u0394E 24");
   }
 }
 

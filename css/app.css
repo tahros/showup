@@ -49,17 +49,26 @@
        family for Triceps and Sixpack. These variables are data fills reached
        only through PART_COLORS in Session Build; red and green keep their
        LIVE / rest meanings everywhere else.
-       v3.3.325: Biceps leaves orange for magenta. Orange sat 21 degrees from
-       Back's red and 19 from Chest's yellow -- the two tightest pairs in the
-       palette, and the only ones under 30 -- so a warm bar was three
-       categories wearing one hue family. Back-and-Biceps is a session the
-       maker trains, which put the collision inside a single stacked bar with
-       nothing but a hairline between the two segments. Magenta is the one
-       hue hole the palette had left: 39 degrees off Back, 54 off Sixpack's
-       purple, 79 off Chest. Still a Google categorical identity, so the
-       chart language is unchanged -- one colour moved within it. */
+       v3.3.325 moved Biceps orange -> magenta by hue arithmetic (21 degrees
+       from Back's red); the maker rejected it on sight -- HARDER to read,
+       blending into Sixpack's purple and Back's red both. Hue angle was the
+       wrong instrument twice: red, magenta and purple are one perceptual
+       family whatever the degrees say.
+       v3.3.326: Biceps is BRONZE, one value in both themes. Measured in
+       CIEDE2000 -- calibrated against the pairs the maker's own screenshots
+       graded (orange/red 17 and magenta/purple 21 failed; purple/blue 25 and
+       teal/blue 30 read fine) -- every bright hue slot is taken and darkness
+       is the palette's one free axis. A first bronze (#8C6D1F) was scored
+       only against the DARK identities and the new guard caught it at 19.9
+       from light's deepened amber Chest #D89A00 -- the deviations are part
+       of the palette too. #605024 sits 36+ from every fill in BOTH rosters
+       (nearest: light Chest 36.0, Back 36.3), and its shared hue with Chest
+       is carried by a 6x luminance step where the orange/red failure had
+       1.09x. Verified by EYE on rendered stacks of the exact bars that
+       failed, both themes, before shipping. The one deliberate departure
+       from the Google set, which had no readable slot left. */
     --p-chest:#FABB05; --p-back:#EA4335; --p-shoulder:#4285F4; --p-legs:#34A853;
-    --p-biceps:#E52592; --p-triceps:#46BDC6; --p-sixpack:#A142F4; --p-run:#78909C;
+    --p-biceps:#605024; --p-triceps:#46BDC6; --p-sixpack:#A142F4; --p-run:#78909C;
     --chart-soft:#616EA3;                   /* v3.3.92: 2025's year line — accent-soft was 2.10:1 as a stroke */
     --live:#C93A2B;                         /* the header while your heart is pumping */
     /* v3.3.201: text ramp lifted per the Dark Mode V3 handoff. The failure
@@ -127,7 +136,7 @@
        chest to 1.99, triceps to 1.95. Both stepped down the smallest amount
        that clears it, hue held. The guard found these; I did not. */
     --p-chest:#D89A00; --p-back:#EA4335; --p-shoulder:#4285F4; --p-legs:#34A853;
-    --p-biceps:#E52592; --p-triceps:#42B7C0; --p-sixpack:#A142F4; --p-run:#78909C;
+    --p-biceps:#605024; --p-triceps:#42B7C0; --p-sixpack:#A142F4; --p-run:#78909C;
     --chart-soft:#7F859F;                   /* 2025's line, light — C3CCF5 was 1.58:1 on white */
     --live:#BE3324;
     /* v3.3.92: muted 4.10:1 on surface2 and faint 2.62:1 on white failed AA;

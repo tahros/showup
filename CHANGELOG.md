@@ -1,5 +1,15 @@
 # ShowUp — changelog
 
+## v3.3.326 (2026-08-25) — Biceps is bronze
+
+**Magenta was worse, and it's gone.** It sat in the same red-to-purple
+family as Back and Sixpack, so the exact bars it was meant to fix blurred
+differently instead. Every bright colour slot in the chart is genuinely
+taken — so Biceps goes dark instead: a deep bronze, further from every
+other colour on the chart than any bright pick could be, in both themes.
+This one was checked by eye on renderings of the exact bars that failed
+before it shipped.
+
 ## v3.3.325 (2026-08-25) — Biceps gets its own colour
 
 **Biceps moves from orange to magenta.** Orange sat between Back's red and
