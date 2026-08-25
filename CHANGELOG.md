@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v3.3.304 (2026-08-24) — Exercise rows are white like everything else
+
+The exercise rows were sitting on a slightly grey fill while every card
+around them was white, so they read as a different kind of surface. They're
+white now, and pressing one moves it a shade toward the page instead of away
+from it.
+
 ## v3.3.303 (2026-08-24) — Weights stop breaking onto two lines
 
 Fixes "88.2 lb" splitting across two lines on go-to rows. The weight column

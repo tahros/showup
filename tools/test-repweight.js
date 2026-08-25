@@ -695,6 +695,25 @@ check("the unit is a separate word, not glued to the digits",
 check("...and the per-side line reads the same way",
       `(function(){const e=document.querySelector('.pr-side');
         return e ? /^[\\d.,]+ (lb|kg) \\/ side$/.test(e.textContent.trim()) : 'no side';})()`, true);
+/* v3.3.304: rows use the same white every other card uses, and the press
+   goes to --surface2. That token is one step toward the page in light and
+   one step away from it in dark, so the SAME declaration darkens on light
+   and lightens on dark — which is the correct press direction in each. */
+{
+  const css304 = fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\r?\n\s*/g, "");
+  check("go-to rows sit on the card surface, not the recessed one",
+        `${/\.item\.goto\{[^}]*background:var\(--surface\)/.test(css304)
+           && !/\.item\.goto\{[^}]*background:var\(--surface2\)/.test(css304)}`, "true");
+  check("...and so do the ranked rows",
+        `${/\.item\.logrow:not\(\.goto\):not\(\.todayrow\)\{[^}]*background:var\(--surface\)/.test(css304)}`, "true");
+  check("...and Today's session rows, live and finished alike",
+        `${/\.item\.todayrow\{[^}]*background:var\(--surface\)/.test(css304)
+           && /\.item\.todayrow\.fin\{[^}]*background:var\(--surface\)/.test(css304)}`, "true");
+  check("the press moves to a DIFFERENT surface than the resting one",
+        `${/\.item\.logrow:active\{[^}]*background:var\(--surface2\)/.test(css304)
+           && /\.item\.todayrow:active\{[^}]*background:var\(--surface2\)/.test(css304)}`, "true");
+}
+
 /* v3.3.303: a weight is ONE token. The cell was pinned to 58px and a 14px
    go-to weight with the new unit space needs 58.8px, so "88.2 lb" broke onto
    two lines — while rows with a longer "/ side" line escaped, because that
