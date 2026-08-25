@@ -1370,6 +1370,15 @@
   .planrow .px{text-align:center;color:var(--faint);font-size:10.5px;line-height:1.4}
   .planrow .pr{text-align:left;color:var(--muted);font-size:10.5px;
     white-space:nowrap;line-height:1.4}
+  /* v3.3.320: in LIGHT the reps drop one tier. Measured, light already
+     separates further than dark on paper — chalk to muted is 25.1 in
+     perceptual L* against dark's 18.7 — but dark greys compress against a
+     white page, so the same arithmetic gap reads as one weight of ink. The
+     reps take --faint (L* gap 35.1, still 5.41:1 on white, well clear of
+     AA), and the × steps back from them so the tier order survives. No new
+     colour: both are tokens this palette already owns. */
+  :root[data-theme="light"] .planrow .pr{color:var(--faint)}
+  :root[data-theme="light"] .planrow .px{color:color-mix(in srgb,var(--faint) 55%,var(--surface))}
   /* a row whose exercise is in today's ledger. The tick is a fact FROM the
      record, not a score against the plan: it says "this is logged", never
      "you are N% through". Same grammar as the Last time card's checkmark. */

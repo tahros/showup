@@ -222,6 +222,23 @@ ok("...in weight / × / reps order every time",
 ok("...and the × is decorative, never read aloud twice",
    run(`[...document.querySelectorAll('.planrow .px')].every(x=>x.getAttribute('aria-hidden')==='true')`));
 /* the ink tiers are what make the weight findable mid-set: chalk, faint, muted */
+/* v3.3.320: in LIGHT the reps drop one tier. Measured, light already
+   separates further than dark on paper — chalk to muted is 25.1 in
+   perceptual L* against dark's 18.7 — but dark greys compress against a
+   white page, so the arithmetic gap read as one weight of ink. Pinned as the
+   RULE, not as a hex, so repainting either theme cannot quietly flatten it. */
+{
+  const cssT = fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\r?\n\s*/g, "");
+  ok("light gives the reps their own, lighter tier",
+     /:root\[data-theme="light"\] \.planrow \.pr\{color:var\(--faint\)\}/.test(cssT));
+  ok("...and the \u00d7 still steps back from them",
+     /:root\[data-theme="light"\] \.planrow \.px\{color:color-mix/.test(cssT));
+  ok("...built from tokens, not a colour invented for this row",
+     !/:root\[data-theme="light"\] \.planrow \.p[rx]\{color:#[0-9A-Fa-f]{6}/.test(cssT));
+  ok("the weight keeps full ink in both themes",
+     /\.planrow \.pw\{[^}]*color:var\(--chalk\)/.test(cssT)
+       && !/:root\[data-theme="light"\] \.planrow \.pw\{/.test(cssT));
+}
 ok("the three ink tiers are the app's own, not new colours",
    (function(){const css=fs.readFileSync(path.join(dir,"css/app.css"),"utf8").replace(/\r?\n\s*/g,"");
      return /\.planrow \.pw\{[^}]*color:var\(--chalk\)/.test(css)

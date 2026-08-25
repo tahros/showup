@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v3.3.320 (2026-08-25) — Plan reps read as reps in light mode
+
+In light mode the rep counts in today's plan sat at the same weight as the
+number beside them, so "200 lb × 5 5 5 5" read as one run of ink. They're a
+shade lighter now, the way they already were at night, and the × steps back
+further still.
+
+Dark mode is unchanged.
+
 ## v3.3.319 (2026-08-25) — Today opens with today's plan
 
 The Today tab now leads with your plan for the day, both before you start and
