@@ -753,6 +753,23 @@ function fullDoseFloor(p,days){
    plan saved this morning on the old build is still in storage this
    afternoon, so upgrade must not crash the Train tab — one shape is repaired
    on read rather than migrated in place. */
+/* v3.3.321: a note line shaped "label   <gap>   value" is laid out as two
+   columns instead of relying on the spaces it arrived with. The text is NOT
+   changed — every character survives — only where the run of spaces puts the
+   value. A paste is aligned to the width of whatever it was written in; a
+   phone card is narrower, so preserved spacing lands wherever it lands.
+   Honouring the INTENT of that gap (a value belonging at the right edge) is
+   truer to the line than honouring the literal space count. A line without
+   such a gap is untouched, pre-wrap and all. */
+const NOTE_COLS=/^(\S.*?)[ \t]{2,}(\S.*)$/;
+function planNoteHTML(note){
+  const rows=String(note).split('\n').map(ln=>{
+    const m=ln.match(NOTE_COLS);
+    return m ? `<div class="pnrow"><span>${hesc(m[1])}</span><span class="pnval">${hesc(m[2])}</span></div>`
+             : `<div class="pnline">${hesc(ln)}</div>`;
+  }).join('');
+  return `<div class="plannote mono">${rows}</div>`;
+}
 function planItemShape(i){
   if(i&&!i.lines) return {ex:i.ex, lines:[{w:i.w||0, bw:!(i.w>0), reps:i.reps||[]}]};
   return i;

@@ -1393,7 +1393,13 @@
   .planrow.pdone .pn{color:var(--muted)}
   .planrow.pdone .pw{color:var(--muted)}
   .planrow.pdone .pr,.planrow.pdone .px{color:var(--faint)}
-  .plannote{white-space:pre-wrap;font-size:10px;color:var(--faint);
+    /* v3.3.321: a "label <gap> value" note line becomes two columns so the
+     value sits at the card's right edge, with the rest of the note still
+     verbatim. */
+  .pnrow{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+  .pnrow .pnval{flex:0 0 auto;text-align:right;white-space:nowrap}
+  .pnline{white-space:pre-wrap}
+.plannote{white-space:pre-wrap;font-size:10px;color:var(--faint);
     /* v3.3.313: same left edge as the rows, or the card has two margins */
     padding:8px 10px;border-top:1px solid var(--line);line-height:1.5}
   /* v3.3.279: plan actions sit on the app's own button grammar — full-width

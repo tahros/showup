@@ -1,5 +1,18 @@
 # ShowUp — changelog
 
+## v3.3.321 (2026-08-25) — Tapping a plan row opens the exercise again
+
+**Tapping an exercise in today's plan takes you to it.** It stopped working
+when the plan moved to the Today tab — the tap set the exercise but stayed on
+the tab you were already on, and Today doesn't show one. It goes to Train
+now, with the right body part.
+
+**A "Total ... 19 sets" line in your note lines up.** Lines with a label on
+the left and a value after a gap now sit in two columns, so the value lands
+at the card's right edge instead of wherever the spaces from your paste
+happened to fall. Every character is still there, and any line without such a
+gap is left exactly as you wrote it.
+
 ## v3.3.320 (2026-08-25) — Plan reps read as reps in light mode
 
 In light mode the rep counts in today's plan sat at the same weight as the

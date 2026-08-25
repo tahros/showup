@@ -443,4 +443,42 @@ ok("folding changed nothing about the plan or the ledger",
 }
 
 
+/* Placed LAST, like the v3.3.319 block below it: this seeds its own plan and
+   leaves the app on Train, which is exactly what broke its neighbours when it
+   sat mid-file. */
+/* v3.3.321: a note line shaped "label <gap> value" lays out as two columns
+   so the value sits at the card's right edge. The TEXT is untouched — every
+   character survives — only the run of spaces stops deciding where the value
+   lands. A paste is aligned to the width it was written in; a phone card is
+   narrower, so preserved spacing lands arbitrarily. Lines with no such gap
+   are still verbatim, which the assertion below continues to hold. */
+{
+  run(`(function(){planSave([{ex:'Deadlift',lines:[{w:toKg(205),bw:false,reps:[5]}]}],
+    'Total                     19 sets\\nkeep the bar close',''); 
+    view='today'; lift.ex=null; lift.plan=null; render();})()`);
+  ok("a label/value note line becomes two columns",
+     run(`(function(){const r=document.querySelector('.plannote .pnrow');
+       return !!r && r.children.length===2 && r.children[1].classList.contains('pnval');})()`));
+  ok("...with the value at the right edge, not wherever the spaces fell",
+     run(`(function(){const css=1; const r=document.querySelector('.plannote .pnrow');
+       return r.children[0].textContent==='Total' && r.children[1].textContent==='19 sets';})()`));
+  ok("...and no character of the line is lost",
+     run(`(function(){const r=document.querySelector('.plannote .pnrow');
+       return [...r.children].map(c=>c.textContent).join(' ')==='Total 19 sets';})()`));
+  ok("a line with no such gap stays verbatim",
+     run(`(function(){const l=document.querySelector('.plannote .pnline');
+       return !!l && l.textContent==='keep the bar close';})()`));
+}
+/* the row must still OPEN the exercise — it moved tabs in v3.3.319 and the
+   handler was re-rendering whatever tab you were on, which had been Train by
+   accident and became Today */
+run(`(function(){view='today'; lift.ex=null; lift.plan=null; render();})()`);
+run(`document.querySelector('[data-planex]').click()`);
+ok("tapping a plan row opens that exercise on the Train tab",
+   run(`view`) === "lift" && run(`lift.ex`) === "Deadlift" && run(`!!document.getElementById('addrep')`));
+ok("...and brings its body part with it",
+   run(`lift.part`) === "Back");
+run(`(function(){view='today'; lift.ex=null; render();})()`);
+
+
 process.exit(fail ? 1 : 0);

@@ -315,6 +315,12 @@ document.addEventListener('click',e=>{
   if(_prow){
     const ex=_prow.dataset.planex;
     lift.part=homePartOf(ex)||lift.part; lift.ex=ex; lift.weight=0;
+    /* v3.3.321: go to the TRAIN tab. This set the exercise and re-rendered
+       whatever tab you were on — which was Train, back when the plan lived
+       there, so it worked by accident. The plan moved to Today in v3.3.319
+       and the tap started re-rendering Today with an exercise selected that
+       Today does not show. A row that names an exercise should open it. */
+    view='lift';
     return render();
   }
   /* v3.3.284: per-exercise equipment override */
