@@ -143,7 +143,29 @@ ok("...and every row carries the same three parts in the same order",
 ok("...and the card shows a row per weight, not just the top one",
    run(`(function(){const r=[...document.querySelectorAll('.planrow')]
      .find(x=>/Dumbbell Shoulder Press/.test(x.textContent));
-     return r ? r.querySelectorAll('.pv').length===2 : false;})()`) === true);
+     return r ? r.querySelectorAll('.pw').length===2 : false;})()`) === true);
+/* v3.3.295: each weight line is THREE cells — weight, ×, reps — so the ×
+   forms a real column instead of living inside a string. That is what lets
+   the weights right-align to each other within a row and between rows. */
+ok("...each weight line is three aligned cells, not one string",
+   run(`[...document.querySelectorAll('.planrow')].every(r=>
+     r.querySelectorAll('.pl > span').length === r.querySelectorAll('.pw').length*3)`));
+ok("...in weight / × / reps order every time",
+   run(`[...document.querySelectorAll('.planrow')].every(r=>{
+     const c=[...r.querySelectorAll('.pl > span')].map(x=>x.className.split(' ')[0]);
+     for(let i=0;i<c.length;i+=3) if(c[i]!=='pv'||c[i+1]!=='px'||c[i+2]!=='pr') return false;
+     return c.length>0;})`));
+ok("...and the × is decorative, never read aloud twice",
+   run(`[...document.querySelectorAll('.planrow .px')].every(x=>x.getAttribute('aria-hidden')==='true')`));
+/* the ink tiers are what make the weight findable mid-set: chalk, faint, muted */
+ok("the three ink tiers are the app's own, not new colours",
+   (function(){const css=fs.readFileSync(path.join(dir,"css/app.css"),"utf8").replace(/\r?\n\s*/g,"");
+     return /\.planrow \.pw\{[^}]*color:var\(--chalk\)/.test(css)
+         && /\.planrow \.px\{[^}]*color:var\(--faint\)/.test(css)
+         && /\.planrow \.pr\{[^}]*color:var\(--muted\)/.test(css);})());
+ok("...and the name centres against the stack rather than pinning to line one",
+   (function(){const css=fs.readFileSync(path.join(dir,"css/app.css"),"utf8").replace(/\r?\n\s*/g,"");
+     return /\.planrow\{[^}]*align-items:center/.test(css);})());
 ok("...and the unreadable lines are kept verbatim",
    run(`/Plank/.test(planNow().note)`));
 

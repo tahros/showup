@@ -1,5 +1,18 @@
 # ShowUp — changelog
 
+## v3.3.295 (2026-08-24) — The plan reads as a table
+
+Weights in today's plan now line up. The × sits in its own column, so weights
+right-align to each other — within an exercise and down the whole card — and
+the reps all start at the same place.
+
+The weight is the brightest thing on the line, the × recedes to a separator,
+and the reps sit a shade back. Mid-set, your eye lands on the number you
+actually need.
+
+An exercise with two weights no longer pins its name to the first line with
+empty space beneath it; the name centres against the pair.
+
 ## v3.3.294 (2026-08-24) — Today's plan folds away
 
 A chevron in the plan's heading now collapses the whole card. Folded, the

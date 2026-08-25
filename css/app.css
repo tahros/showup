@@ -1200,21 +1200,33 @@
      different x and the column read as ragged. The name now takes the free
      space (flex:1) and the numbers are pushed right by margin-left:auto, so
      the left edge is fixed by the tick column and nothing else. */
-  .planrow{display:flex;width:100%;justify-content:flex-start;align-items:baseline;
+  .planrow{display:flex;width:100%;justify-content:flex-start;align-items:center;
     gap:10px;background:none;border:0;border-bottom:1px solid var(--line);
     padding:7px 14px;cursor:pointer;text-align:left;color:var(--chalk);font:inherit}
   .planrow:last-of-type{border-bottom:0}
   .planrow .pn{flex:1;min-width:0;text-align:left;font-size:12.5px;line-height:1.35}
-  .planrow .pl{flex:0 0 auto;margin-left:auto;display:flex;flex-direction:column;
-    align-items:flex-end;gap:1px}
-  .planrow .pv{font-size:10.5px;color:var(--muted);white-space:nowrap;line-height:1.4}
+  /* v3.3.295: the weights are a THREE-COLUMN grid, so the \u00d7 lands in the
+     same place on every line and the weights right-align to each other —
+     within a row and between rows. Ink follows the app's own three tiers,
+     which is what makes the number findable mid-set: the weight in --chalk,
+     the \u00d7 in --faint so it recedes to a separator, the reps in --muted.
+     .planrow centres its name against the stack instead of pinning it to the
+     first line, which is what left dead space under a two-weight name. */
+  .planrow .pl{flex:0 0 auto;margin-left:auto;display:grid;
+    grid-template-columns:auto 11px auto;column-gap:4px;row-gap:2px;align-items:baseline}
+  .planrow .pv{font-size:10.5px;white-space:nowrap;line-height:1.4}
+  .planrow .pw{text-align:right;color:var(--chalk);font-weight:500}
+  .planrow .px{text-align:center;color:var(--faint);font-size:10.5px;line-height:1.4}
+  .planrow .pr{text-align:left;color:var(--muted);font-size:10.5px;
+    white-space:nowrap;line-height:1.4}
   /* a row whose exercise is in today's ledger. The tick is a fact FROM the
      record, not a score against the plan: it says "this is logged", never
      "you are N% through". Same grammar as the Last time card's checkmark. */
   .planrow .pk{width:12px;flex:none;color:var(--accent);font-size:11px;
     font-family:var(--mono);line-height:1.4}
   .planrow.pdone .pn{color:var(--muted)}
-  .planrow.pdone .pv{color:var(--faint)}
+  .planrow.pdone .pw{color:var(--muted)}
+  .planrow.pdone .pr,.planrow.pdone .px{color:var(--faint)}
   .plannote{white-space:pre-wrap;font-size:10px;color:var(--faint);
     padding:8px 14px;border-top:1px solid var(--line);line-height:1.5}
   /* v3.3.279: plan actions sit on the app's own button grammar — full-width
