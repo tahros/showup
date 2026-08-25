@@ -130,7 +130,7 @@ function renderLift(){
               <button class="logmain" data-ex="${ex}" data-part="${lift.part}">
                 <b>${ex}</b><div class="sub">${sub}</div>
               </button>
-              <span class="mono muted" style="font-size:12px">${v?vDisp(v)+' '+U():''}</span>
+              <span class="tvol mono">${v?vDisp(v)+' '+U():''}</span>
               <button class="xbtn" data-dropex="${ex}" aria-label="Remove ${ex} from today">✕</button>
             </div>`;
       }

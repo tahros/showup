@@ -1,5 +1,17 @@
 # ShowUp — changelog
 
+## v3.3.300 (2026-08-24) — Exercise names are back
+
+Fixes the exercise name being cut to a single letter in the Train tab's
+"today" list — "EZ Bar Curl" showing as "E…".
+
+The new slim row from the last two releases was written for the go-to list,
+where a row shows a name and a weight side by side. Train's session rows
+share a class with it, so they were pulled into that shape too, and the name
+had to fight the whole set list for one line. A session row stacks the name
+over its sets again, and the day's volume for that lift now sits in its own
+right-hand column.
+
 ## v3.3.299 (2026-08-24) — Today's rows match the new list
 
 The exercise rows under Training today are now the same slim rows the go-to

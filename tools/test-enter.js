@@ -90,6 +90,27 @@ check("no floating chevron survives on any row",
       `!!document.querySelector('#view .gochev')`, false);
 check("every go-to row is a real button you can press",
       `[...document.querySelectorAll('#view .logrow')].every(r=>!!r.querySelector('button.logmain[data-ex]'))`, true);
+/* v3.3.300: Train's own "· today" rows ALSO carry .logrow, so v3.3.298's
+   ranked-row rule reached them and forced name + set detail onto one flex
+   line — the exercise name ellipsised down to "E…". A ranked row puts name
+   and weight side by side; a session row stacks the name over its sets.
+   Both shapes are asserted here so neither can eat the other again. */
+run(`(function(){DB.days={}; DB.settings.unit='lb'; const td=dayMeta();
+  for(let i=0;i<3;i++) td.w.push({part:'Biceps',ex:'EZ Bar Curl',w:toKg(40),reps:[10],at:1});
+  SEED=deriveAll(); view='lift'; lift.ex=null; lift.part='Biceps'; render();})()`);
+check("a session row keeps its whole exercise name",
+      `document.querySelector('.item.todayrow b').textContent`, "EZ Bar Curl");
+check("...with the sets on their own line beneath it",
+      `(function(){const r=document.querySelector('.item.todayrow');
+        return !!r.querySelector('.sub') && /40lb/.test(r.querySelector('.sub').textContent);})()`, true);
+check("...and the day's volume in a column of its own",
+      `!!document.querySelector('.item.todayrow .tvol')`, true);
+{
+  const css300 = fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\r?\n\s*/g, "");
+  check("the ranked-row rule cannot reach a session row",
+        `${/\.item\.logrow:not\(\.goto\):not\(\.todayrow\) \.logmain\{[^}]*display:flex/.test(css300)
+           && !/\.item\.logrow:not\(\.goto\) \.logmain\{/.test(css300)}`, "true");
+}
 {
   const css298 = fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\r?\n\s*/g, "");
   check("...and the row carries its own edge, so it reads as one",

@@ -686,6 +686,12 @@
   /* the sets count is a column, so it lines up down the card */
   .item.todayrow .tsets{flex:0 0 52px;text-align:right;font-family:var(--mono);
     font-size:11px;color:var(--muted)}
+  /* v3.3.300: Train's session rows show the day's volume for that lift —
+     a right-aligned column so the numbers stack down the card, and the name
+     keeps the whole line above its sets. */
+  .item.todayrow .logmain{flex:1;min-width:0}
+  .item.todayrow .logmain b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .item.todayrow .tvol{flex:0 0 74px;text-align:right;font-size:11.5px;color:var(--muted)}
   .item.todayrow:active{background:var(--surface);transform:scale(.995);
     transition:transform var(--dur-quick) var(--settle),background var(--dur-quick) var(--settle)}
   @media (prefers-reduced-motion:reduce){
@@ -779,17 +785,23 @@
   .item.goto b{font-size:16px;font-weight:500}
   .item.goto .sub{font-size:10px;color:var(--accent-dim);margin-top:3px}
   /* the ranked rows below the lead: name, age, weight — three columns that
-     line up down the whole list */
-  .item.logrow:not(.goto){padding:10px 14px;gap:10px;align-items:center;
+     line up down the whole list.
+     v3.3.300: :not(.todayrow) is load-bearing. Train's own "· today" rows
+     also carry .logrow, so this rule reached them too and forced their name
+     and their set detail onto ONE flex line — the name ellipsised down to
+     "E…". A ranked row shows name + weight side by side; a session row
+     stacks name over its sets. Different shapes, and the selector has to
+     say which it means. */
+  .item.logrow:not(.goto):not(.todayrow){padding:10px 14px;gap:10px;align-items:center;
     background:var(--surface2);border:0.5px solid var(--line);border-radius:10px;
     margin-bottom:6px;box-shadow:none}
-  .item.logrow:not(.goto) b{font-size:13.5px;font-weight:500}
-  .item.logrow:not(.goto) .sub{font-size:10px;color:var(--faint);margin-top:0}
-  .item.logrow:not(.goto) .logmain{display:flex;align-items:baseline;gap:10px}
-  .item.logrow:not(.goto) .logmain b{flex:1;min-width:0;overflow:hidden;
+  .item.logrow:not(.goto):not(.todayrow) b{font-size:13.5px;font-weight:500}
+  .item.logrow:not(.goto):not(.todayrow) .sub{font-size:10px;color:var(--faint);margin-top:0}
+  .item.logrow:not(.goto):not(.todayrow) .logmain{display:flex;align-items:baseline;gap:10px}
+  .item.logrow:not(.goto):not(.todayrow) .logmain b{flex:1;min-width:0;overflow:hidden;
     text-overflow:ellipsis;white-space:nowrap}
   .item.logrow .pr-cell{flex:0 0 58px;text-align:right}
-  .item.logrow:not(.goto) .pr-top{font-size:12.5px;font-weight:500}
+  .item.logrow:not(.goto):not(.todayrow) .pr-top{font-size:12.5px;font-weight:500}
   /* press: the row settles under the thumb — the affordance the flat list
      was missing, bought with an edge and a press rather than a slab */
   .item.logrow:active{background:var(--surface);transform:scale(.995);
