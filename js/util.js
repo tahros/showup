@@ -808,8 +808,16 @@ function planCandidates(name){
 
 /* one line of sets: "55 lb  8 8 8 8", "35lb x 12", "BW 10 8 8", "60 kg 5x5" */
 const PLAN_SET=/^\s*(bw|bodyweight|[\d.]+)\s*(lb|lbs|kg|kgs)?\s*[x×·,:]?\s*([\d\s,x×·]*\d)?\s*$/i;
+/* v3.3.311: a trailing per-limb qualifier is prose, not data. "45 lb 10 10
+   10 per arm" failed the whole line, and the damage compounded: with no set
+   line the exercise heading above it became a note, and the orphaned set
+   line — having letters in it — was then read as a heading of its own and
+   became a SECOND note. One unrecognised phrase turned one exercise into two
+   pieces of text. Stripping it loses nothing: for a dumbbell this app
+   already states weight per hand, so "per arm" is restating the convention. */
+const PLAN_SIDE=/\s*(?:\/\s*)?(?:per|each|ea\.?|e\/)\s*(?:arm|side|leg|hand|limb)?s?\.?\s*$/i;
 function planReadSets(line){
-  const m=String(line).match(PLAN_SET); if(!m) return null;
+  const m=String(line).replace(PLAN_SIDE,'').match(PLAN_SET); if(!m) return null;
   const bw=/^(bw|bodyweight)$/i.test(m[1]);
   const w=bw?0:parseFloat(m[1]);
   if(!bw&&!(w>=0)) return null;

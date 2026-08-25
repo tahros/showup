@@ -1,5 +1,17 @@
 # ShowUp — changelog
 
+## v3.3.311 (2026-08-25) — "per arm" no longer breaks a paste
+
+A set line ending in "per arm", "each side", "per leg" and similar is now
+read normally. It used to fail entirely, and the damage spread: with no sets
+to attach, the exercise above it turned into a note, and the abandoned set
+line became a second note. One phrase turned one exercise into two pieces of
+text.
+
+Nothing is lost by ignoring it — for a dumbbell the app already states the
+weight per hand, so "per arm" was restating the convention. Lines with no
+weight at all, like "60 sec each", still stay as notes.
+
 ## v3.3.310 (2026-08-25) — Squares stay in their squares
 
 Fixes days bleeding into a solid block in the attendance map. Joining a run

@@ -84,6 +84,29 @@ ok("'5x5' means five sets of five",
      return r[0].lines[0].reps.join()==='5,5,5,5,5';})()`) === true);
 ok("a bare number is not a set line",
    run(`planReadSets('  42  ')`) === null);
+/* v3.3.311: a trailing per-limb qualifier is prose. "45 lb 10 10 10 per arm"
+   failed the whole line, and the damage COMPOUNDED — with no set line the
+   heading above became a note, and the orphaned set line was then read as a
+   heading of its own and became a second note. One phrase turned one
+   exercise into two pieces of text. */
+ok("a per-limb qualifier does not defeat a set line",
+   run(`(function(){const forms=['45 lb 10 10 10 per arm','45 lb 10 10 10 each side',
+     '45 lb 10 10 10 / per leg','45 lb 10 10 10 ea. hand','45 lb 10 10 10 each'];
+     return forms.every(f=>{const r=planReadSets(f);
+       return r && r.w===45 && r.reps.join()==='10,10,10';});})()`) === true);
+ok("...and it survives on a bodyweight line too",
+   run(`(function(){const r=planReadSets('BW 12, 10, 8 each arm');
+     return r && r.bw===true && r.reps.join()==='12,10,8';})()`) === true);
+/* the looser rule must not swallow a real exercise NAME or a timed hold:
+   "Plank" / "60 sec each" has no weight to read and must stay a note */
+ok("...without turning names or timed holds into sets",
+   run(`['Plank','60 sec each','Leg Press','Single-Arm Dumbbell Row 3 sets']
+     .every(l=>planReadSets(l)===null)`));
+ok("...so the exercise stays ONE exercise, not two notes",
+   run(`(function(){const rows=parsePlan('Single-Arm Dumbbell Row  3 sets\\n  45 lb  10 10 10 per arm  \\u2190 easy');
+     const ex=rows.filter(r=>r.kind==='ex');
+     return rows.length===1 && ex.length===1 && ex[0].ex==='Single-Arm Dumbbell Row'
+       && ex[0].lines.length===1;})()`) === true);
 
 // ---- 2. the flow, through the real buttons --------------------------------
 run(`document.querySelector('[data-planpaste]').click()`);
