@@ -1,5 +1,15 @@
 # ShowUp — changelog
 
+## v3.3.316 (2026-08-25) — The log card goes live with the header
+
+While a set is open, the card you log from now carries a red edge and a small
+"live" mark, matching the red header above it. The screen reads as one thing
+mid-session instead of a red header sitting over a blue card.
+
+The Add set button stays blue. Red in ShowUp means one thing — something is
+happening right now — and the button is the one place that has to keep saying
+"press this".
+
 ## v3.3.315 (2026-08-25) — Runs are measured in miles, not pounds
 
 Fixes the Run card showing a weight. Runs are stored in the same field lifts

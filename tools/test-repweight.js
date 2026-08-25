@@ -745,6 +745,33 @@ check("...and the per-side line reads the same way",
            && /\.item\.todayrow:active\{[^}]*background:var\(--surface2\)/.test(css304)}`, "true");
 }
 
+/* v3.3.316: while a set is open the log CARD carries the live state — red
+   edge plus a "live" mark, matching the header — and the Add-set button
+   stays accent. Red in this app means one thing: something is happening now.
+   Putting it on the primary action would make it mean two, and a large red
+   slab reads as destructive beside Clear and Delete. Both halves are pinned,
+   because either alone permits the design being argued against. */
+run(`(function(){DB.days={}; DB.settings.unit='lb'; SEED=deriveAll();
+  view='lift'; lift={part:'Back',ex:'Deadlift',weight:toKg(205)}; render();})()`);
+check("with nothing logged, the card is not live", `!!document.querySelector('.zone.prime.liveZone')`, false);
+run(`(function(){day(todayISO).w.push({part:'Back',ex:'Deadlift',w:toKg(205),reps:[6],at:Date.now()});
+  SEED=deriveAll(); render();})()`);
+check("a set open turns the card live", `!!document.querySelector('.zone.prime.liveZone')`, true);
+check("...and marks it in words", `(document.querySelector('.livetag')||{textContent:''}).textContent`, "\u25cf live");
+check("...while the Add-set button is untouched",
+      `document.getElementById('addrep').className`, "btn");
+run(`(function(){day(todayISO).doneAll=true; SEED=deriveAll(); render();})()`);
+check("closing the session clears it", `!!document.querySelector('.zone.prime.liveZone')`, false);
+{
+  const cssL = fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\r?\n\s*/g, "");
+  check("the live edge is the header's own red",
+        `${/\.zone\.prime\.liveZone\{[^}]*border-color:var\(--live\)/.test(cssL)}`, "true");
+  check("...and no rule paints the primary action red",
+        `${!/#addrep[^{]*\{[^}]*var\(--live\)/.test(cssL)}`, "true");
+  check("...with the pulse gated on reduced-motion",
+        `${/prefers-reduced-motion:no-preference\)\{\.zone\.prime\.liveZone \.livetag\{animation:pulse/.test(cssL)}`, "true");
+}
+
 /* v3.3.315: Run stores DISTANCE in the field lifts use for weight, so the
    go-to row was passing kilometres through the weight formatter and printing
    "4.3 lb" for a 1.95 km run. It now reads as a distance, in the same unit

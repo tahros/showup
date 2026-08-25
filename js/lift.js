@@ -410,7 +410,14 @@ function renderLift(){
        Add button do not need naming, and the zone border already groups
        them (the v3.3.130 argument, applied to a header instead of an icon).
        .tight trims the padding the caption used to justify. */
-    h+=`<div class="zone prime tight">
+    /* v3.3.316: while a set is open, the CARD carries the live state — a red
+       edge and a small "live" mark, matching the header. The button stays
+       blue. Red in this app means one thing, "something is happening right
+       now"; spending it on the primary action would make it mean two, and a
+       large red slab reads as destructive next to Clear and Delete. The
+       state belongs to the frame, the accent belongs to the action. */
+    h+=`<div class="zone prime tight${isLive()?' liveZone':''}">
+        ${isLive()?'<span class="livetag" aria-hidden="true">\u25cf live</span>':''}
         <div class="wsel"><button data-w="-1">−</button>
         <div class="val${isBody(ex)?' bwval':''}">${isBody(ex)?`<span class="bwtag">Bodyweight +</span>`:''}<input id="wv" type="number" inputmode="decimal" step="${wStep(ex)}" value="${wDisp(lift.weight)}"><span class="unit">${U()}</span></div>
         <button data-w="1">+</button></div>`;

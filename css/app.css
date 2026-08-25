@@ -923,6 +923,19 @@
   .zone{background:var(--surface);border:1px solid var(--line);border-radius:14px;
     padding:13px 14px;margin-top:14px;box-shadow:var(--shadow)}
   .zone.prime{border-color:var(--accent-soft)}
+  /* v3.3.316: the log card wears the live state, not the button. Same red as
+     the header, so the screen reads as one thing while a set is open; the
+     Add-set button stays accent, because red here means "happening", never
+     "press me". The dot breathes on the app's own settle timing and stops
+     entirely under reduced-motion — a pulsing primary action would have been
+     the loudest thing on the screen mid-set. */
+  .zone.prime.liveZone{position:relative;border-color:var(--live);border-width:1.5px}
+  .livetag{position:absolute;top:9px;right:12px;font-family:var(--mono);font-size:10px;
+    letter-spacing:.04em;color:var(--live);pointer-events:none}
+  .livetag::first-letter{font-size:8px}
+  @media (prefers-reduced-motion:no-preference){
+    .zone.prime.liveZone .livetag{animation:pulse 1.6s ease-in-out infinite}
+  }
   /* v3.3.32: logged = done = quiet, now at container level too. The block
      recedes to the page ground and drops its lift shadow — a well cut into
      the page rather than a card sitting on it. Set tiles keep --surface2, so
