@@ -1,5 +1,16 @@
 # ShowUp — changelog
 
+## v3.3.297 (2026-08-24) — The plan section looks the same empty or full
+
+With no plan for today, the Train tab no longer shows a large "Paste today's
+plan" button. It shows the same heading a real plan gets — the pill, the
+name, and one quiet Paste where the fold and Edit and Clear will sit once
+there's something to control.
+
+The button was taller than the section it introduced, and it made the page
+change shape depending on whether you'd pasted anything. Now the section is
+one line either way.
+
 ## v3.3.296 (2026-08-24) — Body parts fit in two rows
 
 The body-part grid is four across, so eight parts take two rows instead of

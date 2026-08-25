@@ -193,6 +193,25 @@ run(`(function(){view='lift'; lift.ex=null; lift.plan=null; render();})()`);
 /* v3.3.294: the group gained a fold chevron, so it holds three controls —
    the property being defended is that they live in the HEADING, not that
    there are exactly two of them. */
+/* v3.3.297: the empty state is the SAME heading as the filled one, with
+   PASTE where the controls will be. A 51px full-width slab made the section
+   change shape depending on whether a plan existed, so the page jumped and
+   an empty section shouted louder than a full one. */
+run(`(function(){const keep=DB.plan; DB.plan=null; view='lift'; lift.ex=null; lift.plan=null; render();
+  window.__emptyH=[...document.querySelectorAll('#view h2')][0].outerHTML;
+  window.__slab=!!document.querySelector('.planpaste');
+  DB.plan=keep; render();})()`);
+ok("with no plan, the section is a heading — not a full-width slab",
+   run(`__slab`) === false && run(`/scopepill/.test(__emptyH) && /data-planpaste/.test(__emptyH)`));
+ok("...offering Paste exactly where the real controls sit",
+   run(`/planedge/.test(__emptyH)`));
+ok("...and naming the section without claiming it holds anything",
+   run(`/scopepill off/.test(__emptyH)`));
+ok("both states are one heading line, so the page cannot jump",
+   run(`(function(){const filled=[...document.querySelectorAll('#view h2')][0];
+     return filled.querySelector('.scopepill') && filled.querySelector('.planedge')
+       && /scopepill/.test(__emptyH) && /planedge/.test(__emptyH);})()`));
+
 ok("the plan's controls live in the heading, not the card body",
    run(`document.querySelectorAll('h2 .planedge .pedge').length`) === 3 &&
    run(`!document.querySelector('.plancard .planacts')`));

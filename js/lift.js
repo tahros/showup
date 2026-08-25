@@ -61,7 +61,13 @@ function renderLift(){
         </div>`;
       }
     }else{
-      h+=`<button class="btn ghost planpaste" data-planpaste>Paste today\u2019s plan</button>`;
+      /* v3.3.297: the empty state is the SAME heading as the filled one, with
+         PASTE where the fold and Edit and Clear sit. A 51px full-width slab
+         made the section change shape depending on whether a plan existed —
+         the page jumped, and an empty section was louder than a full one.
+         One line either way, and the offer sits exactly where the controls
+         for a real plan will appear. */
+      h+=`<h2 class="quiet"><b class="scopepill off">today</b> plan${hActs('plan',"Paste a session and the app reads what it can. It fills weights and reps for today only, is never written to your record, and clears at midnight. Nothing is counted against it.",'About today\u2019s plan')}<span class="planedge"><button class="pedge" data-planpaste>Paste</button></span></h2>`;
     }
     h+=`<h2>Body part</h2><div class="partgrid">`;
     [...order,...dormant].forEach(p=>{

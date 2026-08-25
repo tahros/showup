@@ -1191,7 +1191,10 @@
   /* v3.3.277: the sets/weight switch — quiet, mono, right-aligned; the
      active reading in chalk, the other a tap away in muted. */
   /* v3.3.278: today's plan — a note you brought, styled as quietly as one. */
-  .planpaste{width:100%;margin-bottom:14px;font-size:13px}
+  /* v3.3.297: with no plan yet the pill is an outline, not a fill — the
+     section is named without claiming there is something in it. */
+  .scopepill.off{background:none;color:var(--faint);
+    box-shadow:inset 0 0 0 1px var(--line)}
   /* v3.3.282: the plan's management actions ride the heading's right edge —
      margin-left:auto, so they find the corner however long the title runs.
      Quiet mono text, not buttons: they manage the card, they are not part of
