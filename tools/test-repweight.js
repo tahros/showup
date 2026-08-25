@@ -753,10 +753,15 @@ check("...and the per-side line reads the same way",
         `${lv >= 1.5}`, "true");
   check("...and not markedly weaker than the dark one",
         `${lv >= dv * 0.85}`, "true");
+  /* v3.3.323 RESTATES: the property is that EVERY pill family draws its
+     own edge -- v3.3.322 renamed the token that carries it (--edge, sized
+     for surface-on-surface at ~2.5:1) and moved the width to 1px, so the
+     assertion follows the token. The live row keeps --live: a red edge is
+     a state, not a hairline. */
   check("every pill family declares a hairline",
         `${["\\.item\\.goto\\{", "\\.item\\.logrow:not\\(\\.goto\\):not\\(\\.todayrow\\)\\{", "\\.item\\.todayrow\\{"]
             .every(sel => { const m = cssL.replace(/\r?\n\s*/g,"").match(new RegExp(sel + "[^}]*")); 
-                            return m && /border:0\.5px solid var\(--(line|live)\)/.test(m[0]); })}`, "true");
+                            return m && /border:1px solid var\(--(edge|live)\)/.test(m[0]); })}`, "true");
 }
 
 /* v3.3.304: rows use the same white every other card uses, and the press
@@ -858,6 +863,32 @@ check("a lift still reads as a weight",
         `${!/\.pr-top\{[^}]*font-weight:[56]00/.test(css302)}`, "true");
   check("...still mono, so the digits align down the column",
         `${/\.pr-cell\{[^}]*font-family:var\(--mono\)/.test(css302)}`, "true");
+}
+
+/* v3.3.323: the bug this release fixes, pinned so it cannot come back. The
+   base .item rule was upgraded to --edge, but .item.goto and the ranked
+   .item.logrow each re-declare the whole `border` shorthand -- so they
+   silently shadowed the new token and kept the divider colour. A pill may
+   declare its edge with --edge or --live. Never --line: --line divides
+   things that already differ, and a pill on a card of the same colour has
+   nothing else separating it. */
+{
+  const cssE = fs.readFileSync(path.join(dir, "css/app.css"), "utf8")
+    .split("[data-design-preview")[0]
+    .replace(/\/\*[\s\S]*?\*\//g, "")      // comments carry the token's NAME; strip them first
+    .replace(/\r?\n\s*/g, "");
+  const rules = [...cssE.matchAll(/([^{}]+)\{([^{}]*)\}/g)];
+  const offenders = rules
+    .filter(([, sel, body]) => /(^|[\s,>])\.item\b/.test(sel.trim())
+                            && /border(-color)?:[^;}]*var\(--line\)/.test(body))
+    .map(r => r[1].trim());
+  /* checkVal, not check: check() EVALS its expression, and a selector like
+     `.item.logrow:not(.goto)` interpolated into it is a SyntaxError, so the
+     suite crashed instead of failing when the guard actually caught something
+     -- the guard's own report was the thing that could not survive being
+     right. Values compare without eval. */
+  checkVal("no pill family shadows the pill edge with the divider token",
+           offenders.length === 0 ? true : offenders.join(" | "), "true");
 }
 
 process.exit(fail ? 1 : 0);

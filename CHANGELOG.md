@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v3.3.323 (2026-08-25) — The stronger pill edge reaches every pill
+
+**Two of the three row styles never got the new outline.** v3.3.322 gave
+pills a stronger border, but go-to rows and ranked rows each set their own
+border from top to bottom — so they quietly overrode it and kept the old,
+fainter line. They carry the new one now. Anything that looks like a row
+inside a card draws the same edge.
+
 ## v3.3.322 (2026-08-25) — Pills have edges, and the day sits tighter
 
 **The outline on a pill is visible now.** Rows inside a card are the same

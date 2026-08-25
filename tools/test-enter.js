@@ -113,8 +113,16 @@ check("...and the day's volume in a column of its own",
 }
 {
   const css298 = fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\r?\n\s*/g, "");
+  /* v3.3.323 RESTATES v3.3.298: the property is that a go-to row draws
+     its OWN uniform edge, so it reads as one object on a card of the same
+     colour. v3.3.322 made --edge the token for exactly that job (~2.5:1
+     against the card, where --line manages 1.7) and moved the width to
+     1px in the same release -- but .item.goto re-declares the whole
+     `border` shorthand, so it shadowed the new token and kept --line.
+     Asserting the token that carries the property, not the number that
+     used to fill it. */
   check("...and the row carries its own edge, so it reads as one",
-        `${/\.item\.goto\{[^}]*border:0\.5px solid var\(--line\)/.test(css298)}`, "true");
+        `${/\.item\.goto\{[^}]*border:1px solid var\(--edge\)/.test(css298)}`, "true");
   check("...with a press state that settles under the thumb",
         `${/\.item\.logrow:active\{[^}]*transform:scale/.test(css298)}`, "true");
   /* v3.3.305 RESTATES: this asserted the presence of `border-left:0`, but
@@ -128,7 +136,7 @@ check("...and the day's volume in a column of its own",
   {
     const live = (css298.split('[data-design-preview')[0].match(/\.item\.goto\{[^}]*/) || [""])[0];
     check("...and no accent rail down one side of every row",
-          `${/border:0\.5px solid var\(--line\)/.test(live) && !/border-left:\s*[1-9]/.test(live)}`, "true");
+          `${/border:1px solid var\(--edge\)/.test(live) && !/border-left:\s*[1-9]/.test(live)}`, "true");
   }
 }
 

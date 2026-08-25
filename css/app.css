@@ -841,7 +841,7 @@
      surface from the cards above them. The press now goes the other way:
      resting white, pressing down to --surface2. */
   .item.goto{padding:11px 14px;
-    background:var(--surface);border:1px solid var(--line);border-radius:10px;
+    background:var(--surface);border:1px solid var(--edge);border-radius:10px;
     align-items:center;gap:10px;margin-bottom:6px;box-shadow:none}
   .item.goto b{font-size:16px;font-weight:500}
   .item.goto .sub{font-size:10px;color:var(--accent-dim);margin-top:3px}
@@ -854,7 +854,7 @@
      stacks name over its sets. Different shapes, and the selector has to
      say which it means. */
   .item.logrow:not(.goto):not(.todayrow){padding:10px 14px;gap:10px;align-items:center;
-    background:var(--surface);border:1px solid var(--line);border-radius:10px;
+    background:var(--surface);border:1px solid var(--edge);border-radius:10px;
     margin-bottom:6px;box-shadow:none}
   .item.logrow:not(.goto):not(.todayrow) b{font-size:13.5px;font-weight:500}
   .item.logrow:not(.goto):not(.todayrow) .sub{font-size:10px;color:var(--faint);margin-top:0}
