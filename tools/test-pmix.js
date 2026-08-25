@@ -112,14 +112,14 @@ const darkParts=partMap(darkBlk), lightParts=partMap(lightBlk);
    identity". The maker rejected magenta on sight, which settles two things:
    readability outranks palette provenance, and (v3.3.317's own lesson) a
    guard defending my argument against the maker's judgment moves with the
-   decision. v3.3.326: Biceps is bronze #605024 -- NOT a Google colour,
+   decision. v3.3.327: Biceps is pine #00584A -- NOT a Google colour,
    deliberately, because the Google set had no readable slot left. The pin
    keeps its real job: the roster cannot drift silently. Six Google
    identities plus one recorded departure. */
 ok("v3.3.264: dark Session Build follows the Google Sheets colour identities",
    JSON.stringify(darkParts)===JSON.stringify({
      chest:'#FABB05',back:'#EA4335',shoulder:'#4285F4',legs:'#34A853',
-     biceps:'#605024',triceps:'#46BDC6',sixpack:'#A142F4',run:'#78909C'}),
+     biceps:'#00584A',triceps:'#46BDC6',sixpack:'#A142F4',run:'#78909C'}),
    JSON.stringify(darkParts));
 /* v3.3.301 RESTATES this to the RULE it was always expressing, rather than
    to one hard-coded exception. Light may deviate from the shared identities
@@ -291,6 +291,36 @@ ok("the state-adjacent hues are deliberate Google category identities",
       }
     ok(`no two ${label} stacked fills sit within a rejected pair's distance`,
        tight.length === 0, tight.join(", ") || "every pair clears \u0394E 24");
+  }
+}
+
+/* v3.3.327: legibility is NECESSARY BUT NOT SUFFICIENT. v3.3.326 searched
+   for maximum separation and found it in dark khaki #605024, which cleared
+   every distance test and which the maker called a turd -- correctly. The
+   search optimised the only thing it was told to. A fill is looked at every
+   day; it has to be a colour, not a compromise. Pinned as chroma, because
+   that is the measurable half of the complaint: mud is what happens when a
+   dark colour has no chroma left. Floor 24 -- pine, the least chromatic fill
+   in the palette, sits at 27; the khaki it replaced sat at 28 but inside the
+   olive band where warm hues read as dirt, so chroma alone would not have
+   caught it. This guard cannot judge beauty and does not pretend to: it
+   catches the greyed-out end of the mistake, and the rest is the maker's
+   eye. */
+{
+  const STACKED7 = ["chest","back","shoulder","legs","biceps","triceps","sixpack"];
+  const chromaOf = hx => {
+    let [r,g,b] = [1,3,5].map(i => parseInt(hx.slice(i,i+2),16)/255)
+      .map(v => v > 0.04045 ? Math.pow((v+0.055)/1.055, 2.4) : v/12.92);
+    const X=(r*0.4124+g*0.3576+b*0.1805)/0.95047, Y=r*0.2126+g*0.7152+b*0.0722,
+          Z=(r*0.0193+g*0.1192+b*0.9505)/1.08883;
+    const f = t => t > 0.008856 ? Math.cbrt(t) : (7.787*t + 16/116);
+    return Math.hypot(500*(f(X)-f(Y)), 200*(f(Y)-f(Z)));
+  };
+  for (const [label, map] of [["dark", darkParts], ["light", lightParts]]) {
+    const grey = STACKED7.filter(k => map[k] && chromaOf(map[k]) < 24)
+      .map(k => `${k} C${chromaOf(map[k]).toFixed(0)}`);
+    ok(`every ${label} stacked fill is a colour, not a mud`,
+       grey.length === 0, grey.join(", ") || "least chromatic clears C24");
   }
 }
 

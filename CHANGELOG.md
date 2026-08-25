@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v3.3.327 (2026-08-25) — Biceps is pine
+
+**The bronze was legible and ugly.** It came from a search told to maximise
+separation and nothing else, which is how you end up at dark khaki. Biceps
+is now a deep pine green — chosen the same way, but from colours that are
+actually colours rather than the whole muddy end of the range. It reads
+further from every other colour on the chart than the chart's own closest
+existing pair, in both themes.
+
 ## v3.3.326 (2026-08-25) — Biceps is bronze
 
 **Magenta was worse, and it's gone.** It sat in the same red-to-purple

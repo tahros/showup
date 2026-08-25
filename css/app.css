@@ -54,21 +54,26 @@
        blending into Sixpack's purple and Back's red both. Hue angle was the
        wrong instrument twice: red, magenta and purple are one perceptual
        family whatever the degrees say.
-       v3.3.326: Biceps is BRONZE, one value in both themes. Measured in
-       CIEDE2000 -- calibrated against the pairs the maker's own screenshots
-       graded (orange/red 17 and magenta/purple 21 failed; purple/blue 25 and
-       teal/blue 30 read fine) -- every bright hue slot is taken and darkness
-       is the palette's one free axis. A first bronze (#8C6D1F) was scored
-       only against the DARK identities and the new guard caught it at 19.9
-       from light's deepened amber Chest #D89A00 -- the deviations are part
-       of the palette too. #605024 sits 36+ from every fill in BOTH rosters
-       (nearest: light Chest 36.0, Back 36.3), and its shared hue with Chest
-       is carried by a 6x luminance step where the orange/red failure had
-       1.09x. Verified by EYE on rendered stacks of the exact bars that
-       failed, both themes, before shipping. The one deliberate departure
-       from the Google set, which had no readable slot left. */
+       v3.3.326 established the method: CIEDE2000, calibrated against the
+       pairs the maker's own screenshots graded (orange/red 17 and
+       magenta/purple 21 failed; purple/blue 25 and teal/blue 30 read fine).
+       Every bright hue slot is taken, so darkness is the palette's one free
+       axis -- and maximising separation inside that finding landed on
+       #605024, a dark khaki the maker called a turd. He is right: the search
+       optimised the only thing it was told to, and legibility is necessary
+       but not sufficient for a colour someone looks at every day.
+       v3.3.327: Biceps is PINE #00584A. Same metric, different objective --
+       the most separated colour among those that are actually CHROMATIC
+       (Lab chroma >= 28, excluding the olive/khaki hue band 50-110 where
+       dark warm colours go muddy). Pine clears 32.1 from every fill in both
+       rosters, nearest Legs, second-nearest 37.3 -- more margin than the
+       palette's own tightest existing pair (purple/blue at 25.0). Contrast
+       2.35:1 dark and 7.32:1 light. Verified by eye on rendered stacks of
+       every adjacency that has failed, both themes, before shipping. The one
+       deliberate departure from the Google set, which had no readable slot
+       left. */
     --p-chest:#FABB05; --p-back:#EA4335; --p-shoulder:#4285F4; --p-legs:#34A853;
-    --p-biceps:#605024; --p-triceps:#46BDC6; --p-sixpack:#A142F4; --p-run:#78909C;
+    --p-biceps:#00584A; --p-triceps:#46BDC6; --p-sixpack:#A142F4; --p-run:#78909C;
     --chart-soft:#616EA3;                   /* v3.3.92: 2025's year line — accent-soft was 2.10:1 as a stroke */
     --live:#C93A2B;                         /* the header while your heart is pumping */
     /* v3.3.201: text ramp lifted per the Dark Mode V3 handoff. The failure
@@ -136,7 +141,7 @@
        chest to 1.99, triceps to 1.95. Both stepped down the smallest amount
        that clears it, hue held. The guard found these; I did not. */
     --p-chest:#D89A00; --p-back:#EA4335; --p-shoulder:#4285F4; --p-legs:#34A853;
-    --p-biceps:#605024; --p-triceps:#42B7C0; --p-sixpack:#A142F4; --p-run:#78909C;
+    --p-biceps:#00584A; --p-triceps:#42B7C0; --p-sixpack:#A142F4; --p-run:#78909C;
     --chart-soft:#7F859F;                   /* 2025's line, light — C3CCF5 was 1.58:1 on white */
     --live:#BE3324;
     /* v3.3.92: muted 4.10:1 on surface2 and faint 2.62:1 on white failed AA;
