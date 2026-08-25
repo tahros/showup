@@ -375,9 +375,12 @@ function renderToday(){
         ? list.map(s=>`${dDisp(s.w)}${DU()} · ${s.mins||0}'${String(s.secs||0).padStart(2,'0')}"`).join('  ')
         : list.map(s=>`${wLabel(ex,s.w)}×${s.reps[0]}`).join('  ');
       const open=exOpen(ex);
-      h+=`<button class="item todayrow ${open?'':'fin'}" data-ex="${ex}" data-part="${part}" style="margin-bottom:6px">
-            <span><b>${ex}</b><div class="sub">${detail}</div></span>
-            <span class="mono muted" style="font-size:11px">${list.length} set${list.length>1?'s':''} →</span>
+      /* v3.3.299: no trailing arrow — the row is the button, and the arrow
+         was the middle-child-of-space-between problem in a third place. The
+         sets count moves into a fixed column so it lines up down the card. */
+      h+=`<button class="item todayrow ${open?'':'fin'}" data-ex="${ex}" data-part="${part}">
+            <span style="flex:1;min-width:0"><b>${ex}</b><div class="sub">${detail}</div></span>
+            <span class="tsets">${list.length} set${list.length>1?'s':''}</span>
           </button>`;
     }
     if(partOpen(part)) h+=`<button class="chip on ${isLive()?'livego':''}" data-go="${part}" style="margin-top:2px">Continue ${part} →</button>`;

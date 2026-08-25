@@ -669,12 +669,25 @@
     background:var(--surface);border:1px solid var(--line);border-radius:12px;
     padding:13px 14px;margin-bottom:8px;color:var(--chalk);font:inherit;text-align:left;cursor:pointer;box-shadow:var(--shadow)}
   .item .sub{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:2px}
-  /* live = red (matches the header); completed = gray ✅ — tiles and rows agree */
-  .item.todayrow{border-left:3px solid var(--live);background:color-mix(in srgb,var(--live) 7%,var(--surface))}
-  .item.todayrow.fin{border-left-color:var(--muted);background:var(--surface)}
+  /* v3.3.299: Today's session rows adopt B1 — the same slim raised row the
+     go-to list took in v3.3.298, at the same metrics. What does NOT come
+     across is the flattening: on the go-to list all five rails were the same
+     accent and signalled nothing, but here the rail is the live/finished
+     distinction, which is real. So the edge KEEPS its meaning — it just
+     becomes the row's own 0.5px border instead of a 3px slab on one side. */
+  .item.todayrow{padding:10px 14px;border-radius:10px;margin-bottom:6px;gap:10px;
+    background:var(--surface2);border:0.5px solid var(--live);box-shadow:none}
+  .item.todayrow b{font-size:13.5px}
+  .item.todayrow .sub{font-size:10px;color:var(--faint);margin-top:2px}
+  .item.todayrow.fin{border-color:var(--line);background:var(--surface2)}
   .item.todayrow b::before{content:'● ';color:var(--live);font-size:9px;vertical-align:1px;
     animation:pulse 1.6s ease-in-out infinite;display:inline-block}
   .item.todayrow.fin b::before{content:'✓ ';color:var(--muted);font-size:11px;animation:none}
+  /* the sets count is a column, so it lines up down the card */
+  .item.todayrow .tsets{flex:0 0 52px;text-align:right;font-family:var(--mono);
+    font-size:11px;color:var(--muted)}
+  .item.todayrow:active{background:var(--surface);transform:scale(.995);
+    transition:transform var(--dur-quick) var(--settle),background var(--dur-quick) var(--settle)}
   @media (prefers-reduced-motion:reduce){
     .item.todayrow b::before{animation:none}
     header.resting .hglass{animation:none}}   /* v3.3.82: after the @supports branch, so none wins */

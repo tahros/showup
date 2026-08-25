@@ -333,4 +333,36 @@ run(`(function(){day(todayISO).w=[]; delete day(todayISO).doneAll; SEED=deriveAl
 check("an untrained day still leads with the streak, not the day count",
       `!!document.querySelector('.rhythm .big.dayn')`, false);
 
+// ---- v3.3.299: Today's session rows adopt B1 ----------------------------
+// Same slim raised row the go-to list took in v3.3.298. What did NOT come
+// across is the flattening: on the go-to list every rail was the same accent
+// and meant nothing, but here the edge IS the live/finished distinction, so
+// it survives — as the row's own border rather than a slab on one side.
+run(`(function(){DB.days={}; DB.settings.unit='lb'; const td=dayMeta();
+  td.w.push({part:'Run',ex:'Run',w:3.76,mins:27,secs:0,at:1});
+  for(let i=0;i<6;i++) td.w.push({part:'Shoulder',ex:'Dumbbell Shoulder Press',w:toKg(55),reps:[8],at:1});
+  for(let i=0;i<4;i++) td.w.push({part:'Shoulder',ex:'Lateral Raise',w:toKg(35),reps:[12],at:1});
+  td.donePart=['Run']; td.doneEx=['Run'];
+  lastSetAt=Date.now(); SEED=deriveAll(); view='today'; render();})()`);
+check("every session row is a real button",
+      `[...document.querySelectorAll('.item.todayrow')].every(r=>r.tagName==='BUTTON'&&r.dataset.ex)`, true);
+check("...with no trailing arrow anywhere",
+      `/\\u2192/.test([...document.querySelectorAll('.item.todayrow')].map(r=>r.textContent).join(''))`, false);
+check("...and the sets count in a column of its own",
+      `[...document.querySelectorAll('.item.todayrow')].every(r=>!!r.querySelector('.tsets'))`, true);
+/* the live/finished edge is meaning, not decoration — it must survive B1 */
+check("a finished row and a live row are still distinguishable",
+      `(function(){const r=[...document.querySelectorAll('.item.todayrow')];
+        return r.some(x=>x.classList.contains('fin')) && r.some(x=>!x.classList.contains('fin'));})()`, true);
+{
+  const css299 = fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\r?\n\s*/g, "");
+  check("the row carries B1's own edge, not a 3px rail",
+        `${/\.item\.todayrow\{[^}]*border:0\.5px solid var\(--live\)/.test(css299)
+           && !/\.item\.todayrow\{[^}]*border-left:3px/.test(css299)}`, "true");
+  check("...a finished row swaps that edge to the quiet line",
+        `${/\.item\.todayrow\.fin\{[^}]*border-color:var\(--line\)/.test(css299)}`, "true");
+  check("...and it settles under the thumb like the go-to rows",
+        `${/\.item\.todayrow:active\{[^}]*transform:scale/.test(css299)}`, "true");
+}
+
 process.exit(fail ? 1 : 0);

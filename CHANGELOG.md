@@ -1,5 +1,16 @@
 # ShowUp — changelog
 
+## v3.3.299 (2026-08-24) — Today's rows match the new list
+
+The exercise rows under Training today are now the same slim rows the go-to
+list got: their own edge, aligned columns, and a press that settles under
+your thumb. The trailing arrow is gone — the row is the button — and the
+sets count sits in a column so it lines up down the card.
+
+The red edge on a live exercise stays. On the go-to list every card wore the
+same rail and it meant nothing; here the edge is the difference between what
+you're doing and what you've finished, which is worth keeping.
+
 ## v3.3.298 (2026-08-24) — Charcoal, and a go-to list you can press
 
 **Dark mode is charcoal now.** The dark theme had a blue cast in every
