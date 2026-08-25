@@ -1,5 +1,21 @@
 # ShowUp — changelog
 
+## v3.3.308 (2026-08-25) — Weeks look like weeks
+
+Two fixes to the new attendance map.
+
+**Days a week apart no longer look joined.** The grid used the same gap
+between columns as between rows — but two squares side by side are a week
+apart, while two stacked are consecutive days. A row of Mondays read as one
+continuous run, sitting directly under the words "streak 1". Weeks are now
+spaced further apart than the days inside them, so the only thing that can
+look like a run is a run.
+
+**The month labels stopped overlapping.** December and January were printing
+on top of each other. A label now appears only where a month actually starts,
+and only if there's room for it — and a half-week of the month before the map
+begins no longer claims the space that January needs.
+
 ## v3.3.307 (2026-08-25) — Show up becomes a streak map
 
 The month calendar in Show up is now a heatmap of the last eight months —

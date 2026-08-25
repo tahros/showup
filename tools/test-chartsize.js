@@ -94,6 +94,29 @@ ok("the attendance grid keeps seven weekday rows",
    /\.heatgrid\{[^}]*grid-template-rows:repeat\(7,1fr\)/.test(
      fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\r?\n\s*/g, "")));
 ok("...and contains exactly one today", run(`document.querySelectorAll('.heatgrid .tod').length`) === 1);
+/* v3.3.308: two reported bugs, both about things LOOKING joined that are not.
+   (1) Month labels collided — DEC at column 0 and JAN at column 1 printed on
+   top of each other, because the rule fired on the first column AND on any
+   Monday in a month's first week. (2) The grid used one gap for both axes,
+   so two cells side by side — a WEEK apart — sat as close as two stacked
+   consecutive days, and a row of Mondays read as a continuous run directly
+   under the words "streak 1". */
+{
+  const cols = run(`[...document.querySelectorAll('.heatticks span')].map(s=>+s.style.getPropertyValue('--c'))`);
+  const labels = run(`[...document.querySelectorAll('.heatticks span')].map(s=>s.textContent)`);
+  let closest = 99;
+  for (let i = 1; i < cols.length; i++) closest = Math.min(closest, cols[i] - cols[i-1]);
+  ok("month labels never sit on top of each other", cols.length < 2 || closest >= 4,
+     "closest " + closest + " columns");
+  ok("...and no month is printed twice", new Set(labels).size === labels.length, labels.join(" "));
+  const cssG = fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\r?\n\s*/g, "");
+  const colGap = +(cssG.match(/\.heatgrid\{[^}]*column-gap:(\d+)px/) || [0,0])[1];
+  const rowGap = +(cssG.match(/\.heatgrid\{[^}]*row-gap:(\d+)px/) || [0,0])[1];
+  ok("weeks are pushed further apart than the days within them",
+     colGap > rowGap && rowGap > 0, `column ${colGap}px vs row ${rowGap}px`);
+  ok("...so only a real run can look like one",
+     !/\.heatgrid\{[^}]*gap:\d+px/.test(cssG.replace(/column-gap|row-gap/g, "x")));
+}
 ok("...with every day of the window present, none blank",
    run(`document.querySelectorAll('.heatgrid .hc').length`) === 35*7,
    run(`document.querySelectorAll('.heatgrid .hc').length`) + " cells");

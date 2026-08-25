@@ -674,11 +674,26 @@ function currentRhythmSection(){
     days.push(iso(d));
   }
   const on=x=>dates.has(x);
-  /* month ticks: the column where each month first appears */
-  const ticks=[];
+  /* Month ticks. v3.3.308: a label is emitted only where the month actually
+     CHANGES, and only if there is room for it. The old rule fired on column 0
+     AND on any column whose Monday fell in the first week — so a window
+     starting on Dec 29 printed DEC at column 0 and JAN at column 1, one
+     column apart, and the two labels sat on top of each other. A 3-letter
+     label needs roughly three columns of width, so a tick is skipped unless
+     it clears the previous one by that much. */
+  const TICK_GAP=4;
+  /* seed lastM with column 0's month so the PARTIAL first month never claims
+     a label: it would sit one column from the real month start and, being
+     first, would win — which is how DEC crowded out JAN. Month starts are
+     the useful marks; a half-week of December is not. */
+  const ticks=[]; let lastM=new Date(days[0]+'T00:00').getMonth(), lastC=-99;
   for(let c=0;c<HEAT_WEEKS;c++){
-    const d=new Date(days[c*7]+'T00:00');
-    if(c===0||d.getDate()<=7) ticks.push({c,label:d.toLocaleDateString('en-US',{month:'short'}).toUpperCase()});
+    const d=new Date(days[c*7]+'T00:00'), m=d.getMonth();
+    if(m===lastM){ continue; }
+    lastM=m;
+    if(c-lastC < TICK_GAP) continue;          // no room — let the next month speak
+    lastC=c;
+    ticks.push({c,label:d.toLocaleDateString('en-US',{month:'short'}).toUpperCase()});
   }
   const cells=days.map((x,k)=>{
     const future=x>todayISO, isToday=x===todayISO, done=on(x);
