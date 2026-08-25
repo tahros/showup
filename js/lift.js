@@ -24,11 +24,24 @@ function planSectionHTML(){
         const _pf=!!DB.settings.planFold;
         h+=`<h2><b class="scopepill">today</b> plan${hActs('plan',"Paste a session and the app reads what it can. It fills weights and reps for today only, is never written to your record, and clears at midnight. Nothing is counted against it.",'About today\u2019s plan')}<span class="planedge"><button class="pedge pfold" data-planfold aria-expanded="${!_pf}" aria-label="${_pf?'Show':'Hide'} today\u2019s plan">${_pf?'\u25b8':'\u25be'}</button><button class="pedge" data-planedit>Edit</button><button class="pedge" data-planclear>Clear</button></span></h2>`;
         if(!_pf){
-          h+=`<div class="card plancard">
+          /* v3.3.324: the \u00d7 sits on ONE vertical line down the whole card.
+             v3.3.295 gave each row a three-column grid, which aligned the \u00d7
+             within a row but NOT between rows -- a grid sizes its own columns,
+             and five rows are five grids, so five different x. The card measures
+             the longest weight and the longest rep string ONCE and hands both
+             down as character widths, so every row lays out on identical
+             columns: weights right-align into the column left of the \u00d7,
+             reps left-align out of the column right of it, and the \u00d7 lands
+             in the same place on every line of every row. `ch` is exact here
+             because .pl is mono -- every glyph one advance wide. */
+          const _wtx=l=>(l.bw||l.w<=0)?'BW':wDisp(l.w)+' '+U();
+          const _rtx=l=>l.reps.join(' ');
+          const _ln=(_pl.items||[]).reduce((a,i)=>a.concat(i.lines||[]),[]);
+          const _cw=(f,min)=>Math.max(min,..._ln.map(l=>f(l).length));
+          h+=`<div class="card plancard" style="--planw:${_cw(_wtx,2)}ch;--planr:${_cw(_rtx,1)}ch">
             ${(_pl.items||[]).map(i=>`<button class="planrow${planLoggedToday(i.ex)?' pdone':''}" data-planex="${i.ex}">
-                <span class="pn">${i.ex}</span>
-                <span class="pl">${i.lines.map(l=>`<span class="pv pw mono">${l.bw||l.w<=0?'BW':wDisp(l.w)+' '+U()}</span><span class="px mono" aria-hidden="true">\u00d7</span><span class="pr mono">${l.reps.join(' ')}</span>`).join('')}</span>
-                <span class="pk">${planLoggedToday(i.ex)?'\u2713':''}</span>
+                <span class="pn">${i.ex}<i class="pk">${planLoggedToday(i.ex)?'\u2713':''}</i></span>
+                <span class="pl">${i.lines.map(l=>`<span class="pv pw mono">${_wtx(l)}</span><span class="px mono" aria-hidden="true">\u00d7</span><span class="pr mono">${_rtx(l)}</span>`).join('')}</span>
               </button>`).join('')}
             ${_pl.note?planNoteHTML(_pl.note):''}
           </div>`;

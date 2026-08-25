@@ -1365,18 +1365,30 @@
      numbers land 4 + 9 + 5 = 18px in against the name's 10. */
   .planrow{display:flex;width:100%;justify-content:flex-start;align-items:center;
     gap:10px;background:none;border:0;border-bottom:1px solid var(--line);
-    padding:7px 4px 7px 10px;cursor:pointer;text-align:left;color:var(--chalk);font:inherit}
+    padding:7px 10px;cursor:pointer;text-align:left;color:var(--chalk);font:inherit}
   .planrow:last-of-type{border-bottom:0}
   .planrow .pn{flex:1;min-width:0;text-align:left;font-size:12.5px;line-height:1.35}
   /* v3.3.295: the weights are a THREE-COLUMN grid, so the \u00d7 lands in the
-     same place on every line and the weights right-align to each other —
-     within a row and between rows. Ink follows the app's own three tiers,
+     same place on every line and the weights right-align to each other.
+     (It claimed "within a row and between rows"; only the first was ever
+     true, and v3.3.324 below is what makes the second one so.)
+     Ink follows the app's own three tiers,
      which is what makes the number findable mid-set: the weight in --chalk,
      the \u00d7 in --faint so it recedes to a separator, the reps in --muted.
      .planrow centres its name against the stack instead of pinning it to the
      first line, which is what left dead space under a two-weight name. */
+  /* v3.3.324: the columns are sized by the CARD, not by the row -- --planw
+     and --planr come from js/lift.js, measured once across every line in the
+     plan. Row-local `auto` columns were what let the \00d7 wander: each row
+     sized to its own longest weight, so five rows put the \00d7 at five
+     different x. With both outer columns fixed, every row's number block is
+     the same width, margin-left:auto lands them all on the same right edge,
+     and the \00d7 column falls on one line down the card. mono + the same
+     font-size as .pv is what makes `ch` exact rather than approximate. */
   .planrow .pl{flex:0 0 auto;margin-left:auto;display:grid;
-    grid-template-columns:auto 11px auto;column-gap:4px;row-gap:2px;align-items:baseline}
+    font-family:var(--mono);font-size:10.5px;
+    grid-template-columns:var(--planw,auto) 11px var(--planr,auto);
+    column-gap:4px;row-gap:2px;align-items:baseline}
   .planrow .pv{font-size:10.5px;white-space:nowrap;line-height:1.4}
   .planrow .pw{text-align:right;color:var(--chalk);font-weight:500}
   .planrow .px{text-align:center;color:var(--faint);font-size:10.5px;line-height:1.4}
@@ -1400,8 +1412,17 @@
      paying rent for a mark most rows do not carry. At the end it still holds
      a fixed column, so ticked and unticked rows keep their numbers aligned,
      but nothing is pushed off the left edge. */
-  .planrow .pk{width:9px;flex:none;text-align:right;color:var(--accent);
-    font-size:11px;font-family:var(--mono);line-height:1.4;margin-left:5px}
+  /* v3.3.324: the tick reads as part of the exercise -- "Deadlift \2713" --
+     rather than as a column at the far edge. v3.3.312 moved it from the head
+     of the row to the tail for a real reason (leading it indented every name,
+     ticked or not), but at the tail it reserved a column on the RIGHT instead,
+     and that column plus the row's padding is what held the numbers 34px off
+     the card edge. Beside the name it reserves nothing: an empty tick is an
+     empty inline box, and the numbers now run to the same 10px the name
+     starts from. Alignment between rows no longer depends on it -- the number
+     block is fixed-width in its own right (--planw/--planr). */
+  .planrow .pk{color:var(--accent);font-size:11px;font-family:var(--mono);
+    font-style:normal;margin-left:5px}
   .planrow.pdone .pn{color:var(--muted)}
   .planrow.pdone .pw{color:var(--muted)}
   .planrow.pdone .pr,.planrow.pdone .px{color:var(--faint)}

@@ -165,20 +165,34 @@ ok("...the numbers are pushed right rather than space-between deciding",
          && !/\.planrow\{[^}]*justify-content:space-between/.test(css);})());
 /* v3.3.312: the tick moved from the head of the row to its tail. Leading it
    reserved a column on EVERY row, so every name began indented whether or
-   not there was a tick to show. The property — three parts, same order on
-   every row — is unchanged; the order itself is not. */
-ok("...and every row carries the same three parts in the same order",
+   not there was a tick to show.
+   v3.3.324 RESTATES: the tail cost the mirror image of that -- a reserved
+   column on the RIGHT, which together with the row padding held the numbers
+   34px off the card edge. The tick now sits inside the name, "Deadlift ✓",
+   where it reserves nothing at either end. The property being defended has
+   never been "three parts": it is that every row lays out the SAME WAY, and
+   that the tick cannot indent a row that does not carry one. Both are
+   asserted below, against two parts instead of three. */
+ok("...and every row carries the same parts in the same order",
    run(`[...document.querySelectorAll('.planrow')].every(r=>{
      const k=[...r.children].map(c=>c.className);
-     return k[0]==='pn' && k[1]==='pl' && k[2]==='pk';})`));
+     return k.length===2 && k[0]==='pn' && k[1]==='pl';})`));
 ok("...with the name flush to the card edge, nothing before it",
    run(`[...document.querySelectorAll('.planrow')].every(r=>
      r.firstElementChild.classList.contains('pn'))`));
+ok("...and the tick reads as part of the exercise, not as a column",
+   run(`[...document.querySelectorAll('.planrow')].every(r=>{
+     const k=r.querySelector('.pk');
+     return !!k && k.parentElement===r.querySelector('.pn')
+         && k===r.querySelector('.pn').lastElementChild;})`));
 /* v3.3.313: the card has ONE left edge. .plancard carries no horizontal
    padding, so the row's own padding is the entire indent — and the note
    underneath must use the same number or the card reads as two margins.
-   On the right the padding stacked with the tick column (14+12+8=34px),
-   which is what stranded the numbers. */
+   v3.3.324 RESTATES the right-hand half: it used to check that padding +
+   tick column + gap stayed within twice the left indent, a budget that only
+   existed because the tick held a column. With the tick gone from the row's
+   tail there is nothing between the numbers and the card edge, so the
+   property is simply that the row's two indents MATCH. */
 {
   const cssP = fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\r?\n\s*/g, "");
   const grab = (sel, prop) => {
@@ -192,17 +206,51 @@ ok("...with the name flush to the card edge, nothing before it",
      left(rowPad) === left(notePad), `row ${rowPad} vs note ${notePad}`);
   const px = v => parseInt(v, 10);
   const rightPad = px(rowPad.split(/\s+/)[1]);
-  const tick = px(grab("\\.planrow \\.pk", "width"));
-  const gap = px(grab("\\.planrow \\.pk", "margin-left"));
-  ok("the right stack stays close to the left indent",
-     rightPad + tick + gap <= px(left(rowPad)) * 2,
-     `left ${px(left(rowPad))}px vs right ${rightPad + tick + gap}px`);
-  ok("...and the tick still holds a column, so ticked rows do not shift",
-     tick > 0 && /flex:none/.test((cssP.match(/\.planrow \.pk\{[^}]*/) || [""])[0]));
+  ok("the numbers end at the same indent the name starts from",
+     rightPad === px(left(rowPad)), `left ${px(left(rowPad))}px vs right ${rightPad}px`);
+  ok("...and the tick no longer reserves a column at either end",
+     !/\.planrow \.pk\{[^}]*(width|flex):/.test(cssP));
 }
-ok("...and the tick last, so it cannot indent an unticked row",
-   run(`[...document.querySelectorAll('.planrow')].every(r=>
-     r.lastElementChild.classList.contains('pk'))`));
+/* v3.3.324: the × sits on ONE vertical line down the WHOLE card, not just
+   within a row. v3.3.295 built each row as its own three-column grid and its
+   comment claimed the weights aligned "within a row and between rows" — but
+   a grid sizes its own columns, so five rows were five grids and the × took
+   five different x. The card measures the longest weight and the longest rep
+   string ONCE, across every line in the plan, and publishes both as `ch`
+   widths that every row's grid reads. jsdom has no layout, so what is
+   asserted is the arithmetic that produces the alignment plus the rules that
+   consume it — never a measured pixel. */
+{
+  const cssX = fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\r?\n\s*/g, "");
+  const card = () => run(`(function(){const c=document.querySelector('.plancard');
+    return c ? c.getAttribute('style')||'' : '';})()`);
+  const widest = f => run(`(function(){const p=planNow(); if(!p) return 0;
+    const L=(p.items||[]).reduce((a,i)=>a.concat(i.lines||[]),[]);
+    return Math.max(0,...L.map(l=>(${f}).length));})()`);
+  const declared = k => { const m = card().match(new RegExp("--" + k + ":(\\d+)ch")); return m ? +m[1] : null; };
+
+  ok("the card publishes one weight column and one rep column",
+     declared("planw") !== null && declared("planr") !== null, card());
+  ok("...the weight column is as wide as the plan's longest weight",
+     declared("planw") === widest("(l.bw||l.w<=0)?'BW':wDisp(l.w)+' '+U()"),
+     `declared ${declared("planw")} vs longest ${widest("(l.bw||l.w<=0)?'BW':wDisp(l.w)+' '+U()")}`);
+  ok("...and the rep column as wide as its longest rep line",
+     declared("planr") === widest("l.reps.join(' ')"),
+     `declared ${declared("planr")} vs longest ${widest("l.reps.join(' ')")}`);
+  ok("...so the × column is fixed by the CARD, not by each row",
+     /\.planrow \.pl\{[^}]*grid-template-columns:var\(--planw[^;}]*var\(--planr/.test(cssX)
+       && !/\.planrow \.pl\{[^}]*grid-template-columns:auto 11px auto/.test(cssX));
+  ok("...measured in a mono column, or `ch` would not be a character",
+     /\.planrow \.pl\{[^}]*font-family:var\(--mono\)/.test(cssX));
+  /* the two halves the maker asked for by name: weights right-aligned into
+     the column LEFT of the ×, reps left-aligned out of the one RIGHT of it. */
+  ok("...weights right-align against the × from the left",
+     /\.planrow \.pw\{[^}]*text-align:right/.test(cssX));
+  ok("...and reps left-align away from it to the right",
+     /\.planrow \.pr\{[^}]*text-align:left/.test(cssX));
+  /* the ticked-vs-unticked half of this needs a row that is actually ticked,
+     so it is asserted below, where the ledger has one. */
+}
 
 ok("...and the card shows a row per weight, not just the top one",
    run(`(function(){const r=[...document.querySelectorAll('.planrow')]
@@ -363,6 +411,22 @@ ok("...and the tick is drawn, not merely a class",
    run(`document.querySelector('.planrow.pdone .pk').textContent.trim()`) === "\u2713");
 ok("...while every other row stays untouched",
    run(`[...document.querySelectorAll('.planrow:not(.pdone) .pk')].every(k=>!k.textContent.trim())`));
+/* v3.3.324: a tick cannot move the numbers. It sits inside the name now, and
+   the number block's width is the card's two published columns plus the fixed
+   11px between them — so the × line is identical on a ticked row and a bare
+   one. Asserted as the arithmetic, since jsdom has no layout: the card's
+   declared columns do not change when a row gains its tick. */
+{
+  const withTick = run(`(function(){const c=document.querySelector('.plancard');
+    return c ? c.getAttribute('style')||'' : '';})()`);
+  ok("...and a ticked row holds the same × line as a bare one",
+     /--planw:\d+ch;--planr:\d+ch/.test(withTick)
+       && run(`[...document.querySelectorAll('.planrow')].some(r=>r.classList.contains('pdone'))
+             && [...document.querySelectorAll('.planrow')].some(r=>!r.classList.contains('pdone'))
+             && [...document.querySelectorAll('.planrow')].every(r=>
+                  r.children.length===2 && r.children[1].className==='pl')`),
+     withTick);
+}
 ok("...and the tick reads the LEDGER, not the plan",
    run(`planLoggedToday('Dumbbell Shoulder Press') && !planLoggedToday('Lateral Raise')`));
 ok("...with still no tally of ticked rows on screen",

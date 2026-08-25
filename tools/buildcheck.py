@@ -38,7 +38,9 @@ shell_count = len(re.findall(r"'\./[^']+\?v=", sw))
 if shell_count != 12: fail.append(f"sw SHELL has {shell_count} stamped assets, expected 12")
 
 # -- CSS vars used are defined (runtime-set vars from js/app.js are allowlisted)
-RUNTIME = {"--i", "--len", "--sat"}   # set via style.setProperty / env() default
+# v3.3.324: --planw/--planr are measured in js/lift.js and written onto the
+# plan card's inline style, so the plan's rows all lay out on the SAME columns.
+RUNTIME = {"--i", "--len", "--sat", "--planw", "--planr"}   # set via style.setProperty / inline style / env() default
 used = set(re.findall(r"var\((--[A-Za-z0-9-]+)", css))
 defined = set(re.findall(r"(--[A-Za-z0-9-]+)\s*:", css))
 undef = used - defined - RUNTIME

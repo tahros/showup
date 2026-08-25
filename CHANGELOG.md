@@ -1,5 +1,20 @@
 # ShowUp — changelog
 
+## v3.3.324 (2026-08-25) — One × line down today's plan
+
+**The × lines up down the whole card now.** Every row used to size its own
+columns, so the multiplication signs sat at slightly different places on
+every line. The card measures the longest weight and the longest rep line
+once and gives every row the same columns: weights right-aligned into the
+space before the ×, reps left-aligned after it, one vertical line down the
+plan.
+
+**The numbers run to the card's edge.** They were held a third of an inch
+short of it by a column reserved for the tick.
+
+**The tick sits with the exercise.** "Deadlift ✓", rather than a mark
+stranded at the far right of the row.
+
 ## v3.3.323 (2026-08-25) — The stronger pill edge reaches every pill
 
 **Two of the three row styles never got the new outline.** v3.3.322 gave
