@@ -1241,10 +1241,12 @@
   /* Top overscroll belongs to pull-to-refresh; the bottom keeps its spring.
      'contain' stops the scroll chaining to the page behind without killing bounce. */
   html{overscroll-behavior-y:contain}
-  body.banding{transition:none}
-  body.bandback{transition:transform .42s cubic-bezier(.16,1.06,.3,1)}  /* overshoot, like iOS */
-  body.pulling{transition:none}
-  body.settling{transition:transform .28s var(--settle)}
+  /* v3.3.309: the transition follows the transform onto #view. Left on body
+     it would animate nothing, since body no longer moves. */
+  body.banding #view{transition:none}
+  body.bandback #view{transition:transform .42s cubic-bezier(.16,1.06,.3,1)}  /* overshoot, like iOS */
+  body.pulling #view{transition:none}
+  body.settling #view{transition:transform .28s var(--settle)}
   #swipehint{position:fixed;top:50%;z-index:55;pointer-events:none;
     transform:translateY(-50%);opacity:0;transition:opacity .12s}
   #swipehint.on{opacity:1}

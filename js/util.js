@@ -20,7 +20,7 @@
       active=true; band=Math.min(80,(-dy)/2.6);
       document.body.classList.add('banding');
       document.body.classList.remove('bandback');
-      document.body.style.transform=`translateY(${(-band).toFixed(1)}px)`;
+      pageShift(`translateY(${(-band).toFixed(1)}px)`);
     }else if(active){
       release();
     }
@@ -30,7 +30,7 @@
     active=false; band=0;
     document.body.classList.remove('banding');
     document.body.classList.add('bandback');
-    document.body.style.transform='';
+    pageShift('');
     setTimeout(()=>document.body.classList.remove('bandback'),450);
   };
   ['touchend','touchcancel'].forEach(ev=>addEventListener(ev,()=>{release();y0=null;},{passive:true}));
@@ -165,7 +165,7 @@
     // the page itself follows the finger — that's the feedback a tiny arrow can't give
     document.body.classList.add('pulling');
     document.body.classList.remove('settling');
-    document.body.style.transform=`translateY(${Math.min(dist,110).toFixed(1)}px)`;
+    pageShift(`translateY(${Math.min(dist,110).toFixed(1)}px)`);
   },{passive:false});
   const settle=()=>{
     el.style.transition='transform .25s cubic-bezier(.2,.8,.25,1)';
@@ -173,7 +173,7 @@
     el.classList.remove('arm');
     document.body.classList.remove('pulling');
     document.body.classList.add('settling');
-    document.body.style.transform='';
+    pageShift('');
     setTimeout(()=>document.body.classList.remove('settling'),300);
   };
   addEventListener('touchend',async()=>{
@@ -186,7 +186,7 @@
     el.style.transition='transform .2s'; el.style.transform='translateY(0px)';
     document.body.classList.remove('pulling');
     document.body.classList.add('settling');
-    document.body.style.transform='translateY(52px)';   // hold, briefly, while it works
+    pageShift('translateY(52px)');   // hold, briefly, while it works
     try{ stashWhere(); flushSave(); }catch(e){}
     try{ if(session) await cloudPushNow(); }catch(e){}    // phone → cloud, synchronously
     try{ const reg=await navigator.serviceWorker.getRegistration(); if(reg) await reg.update(); }catch(e){}
@@ -884,6 +884,14 @@ function planItemsFrom(rows){
 const planLoggedToday=ex=>((DB.days[todayISO]||{}).w||[])
   .some(x=>x.ex===ex&&(x.reps||[]).length);
 const planSets=i=>(i.lines||[]).flatMap(l=>l.reps.map(r=>({w:l.w, r})));
+/* v3.3.309: rubber-band and pull-to-refresh move the SCROLLING VIEW, never
+   <body>. A transformed element becomes the containing block for its
+   fixed-position descendants — so while body carried a translate, the nav
+   stopped being pinned to the viewport and rode the page down (the maker's
+   "menu bar follows the content"). #view is a sibling of nav, header and
+   toast, so shifting it gives the identical gesture and leaves every fixed
+   thing fixed. */
+function pageShift(v){ const m=document.getElementById('view'); if(m) m.style.transform=v; }
 const PART_COLD_DAYS=21;
 function trainingPlan(){
   const dp=dayParts();

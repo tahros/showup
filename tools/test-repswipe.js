@@ -177,6 +177,44 @@ const viewAfterCard = run(`(function(){
 ok("...while a swipe elsewhere on the page still pops back",
    viewAfterCard === null, "lift.ex = " + String(viewAfterCard));
 
+/* ---- 6c. v3.3.309: the nav stays pinned during a page gesture -----------
+   A transformed element becomes the containing block for its fixed-position
+   descendants. While the rubber band and pull-to-refresh translated <body>,
+   the nav — position:fixed — stopped resolving against the viewport and rode
+   the page down. Nothing covered this, so the whole class was unguarded.
+   Both gestures now move #view, which is a SIBLING of nav. */
+run(`(function(){view='today'; render();})()`);
+ok("body carries no transform at rest",
+   run(`!document.body.style.transform`));
+/* drag up at the bottom — the rubber band */
+run(`(function(){
+  const mk=(t,y)=>{ const ev=new Event(t,{bubbles:true,cancelable:true});
+    ev.touches=t==='touchend'?[]:[{clientX:100,clientY:y}];
+    ev.changedTouches=[{clientX:100,clientY:y}]; return ev; };
+  window.dispatchEvent(mk('touchstart',600));
+  window.dispatchEvent(mk('touchmove',420));
+})()`);
+ok("...and still none mid rubber-band — only the view moves",
+   run(`!document.body.style.transform`),
+   "body=" + JSON.stringify(run(`document.body.style.transform`)));
+ok("...so the nav is never inside a transformed ancestor",
+   run(`(function(){let el=document.getElementById('nav').parentElement;
+     while(el){ if(el.style && el.style.transform) return false; el=el.parentElement; }
+     return true;})()`));
+run(`(function(){const ev=new Event('touchend',{bubbles:true,cancelable:true});
+  ev.touches=[]; ev.changedTouches=[{clientX:100,clientY:420}];
+  window.dispatchEvent(ev);})()`);
+ok("...and the view is released afterwards",
+   run(`!document.getElementById('view').style.transform`));
+{
+  const cssN = fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\r?\n\s*/g, "");
+  ok("the gesture transitions target the element that actually moves",
+     /body\.bandback #view\{[^}]*transition:transform/.test(cssN)
+       && /body\.settling #view\{[^}]*transition:transform/.test(cssN));
+  ok("...and nav is still fixed, so nothing else can pin it",
+     /(^|\})nav\{[^}]*position:fixed/.test(cssN));
+}
+
 // ---- 7. overlay swipe, and the card it would SHARE ----------------------
 /* the ruler block above left the app inside the Train tab; put History's
    report card back on screen before section 7 (v3.3.288). */

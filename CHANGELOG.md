@@ -1,5 +1,16 @@
 # ShowUp — changelog
 
+## v3.3.309 (2026-08-25) — The tab bar stays put
+
+Fixes the tab bar sliding up into the middle of the page. When you pulled
+down to refresh, or pushed past the bottom of a list, the app moved the whole
+page — and anything pinned to the screen, the tab bar included, quietly
+stopped being pinned and travelled with it.
+
+The gestures now move only the scrolling content. The tab bar, the header and
+the toast stay exactly where they are, and both gestures feel the same as
+before.
+
 ## v3.3.308 (2026-08-25) — Weeks look like weeks
 
 Two fixes to the new attendance map.
