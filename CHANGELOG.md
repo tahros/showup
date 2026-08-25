@@ -1,5 +1,15 @@
 # ShowUp — changelog
 
+## v3.3.313 (2026-08-25) — The plan card gets its margins right
+
+Names sit closer to the card's edge, and the numbers no longer look stranded
+short of the other side. Moving the tick to the end of the row left its width
+stacked on top of the row's own right padding, so the right margin was more
+than three times the left.
+
+The note under a plan now lines up with the rows above it, too — it had kept
+the old measurement and was quietly starting further in.
+
 ## v3.3.312 (2026-08-25) — Plan names start where the card starts
 
 Exercise names in today's plan are no longer indented. The tick that marks an

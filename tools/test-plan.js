@@ -169,6 +169,32 @@ ok("...and every row carries the same three parts in the same order",
 ok("...with the name flush to the card edge, nothing before it",
    run(`[...document.querySelectorAll('.planrow')].every(r=>
      r.firstElementChild.classList.contains('pn'))`));
+/* v3.3.313: the card has ONE left edge. .plancard carries no horizontal
+   padding, so the row's own padding is the entire indent — and the note
+   underneath must use the same number or the card reads as two margins.
+   On the right the padding stacked with the tick column (14+12+8=34px),
+   which is what stranded the numbers. */
+{
+  const cssP = fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\r?\n\s*/g, "");
+  const grab = (sel, prop) => {
+    const m = cssP.match(new RegExp(sel + "\\{[^}]*" + prop + ":([^;}]+)"));
+    return m ? m[1].trim() : null;
+  };
+  const rowPad = grab("\\.planrow", "padding");
+  const notePad = grab("\\.plannote", "padding");
+  const left = p => { const v = p.split(/\s+/); return v.length === 4 ? v[3] : v[1]; };
+  ok("the note shares the rows' left edge",
+     left(rowPad) === left(notePad), `row ${rowPad} vs note ${notePad}`);
+  const px = v => parseInt(v, 10);
+  const rightPad = px(rowPad.split(/\s+/)[1]);
+  const tick = px(grab("\\.planrow \\.pk", "width"));
+  const gap = px(grab("\\.planrow \\.pk", "margin-left"));
+  ok("the right stack stays close to the left indent",
+     rightPad + tick + gap <= px(left(rowPad)) * 2,
+     `left ${px(left(rowPad))}px vs right ${rightPad + tick + gap}px`);
+  ok("...and the tick still holds a column, so ticked rows do not shift",
+     tick > 0 && /flex:none/.test((cssP.match(/\.planrow \.pk\{[^}]*/) || [""])[0]));
+}
 ok("...and the tick last, so it cannot indent an unticked row",
    run(`[...document.querySelectorAll('.planrow')].every(r=>
      r.lastElementChild.classList.contains('pk'))`));
