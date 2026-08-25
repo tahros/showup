@@ -1,5 +1,16 @@
 # ShowUp — changelog
 
+## v3.3.322 (2026-08-25) — Pills have edges, and the day sits tighter
+
+**The outline on a pill is visible now.** Rows inside a card are the same
+white as the card, so their border was the only thing separating them — and
+it was drawn in the colour meant for dividing things that already look
+different. Pills get their own, stronger line.
+
+**Slightly less air.** Section headings, card padding and the gaps between
+rows each came down a little, so a training day fits more of itself on
+screen without anything feeling crowded.
+
 ## v3.3.321 (2026-08-25) — Tapping a plan row opens the exercise again
 
 **Tapping an exercise in today's plan takes you to it.** It stopped working

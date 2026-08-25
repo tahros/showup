@@ -325,11 +325,35 @@ check("a finished row and a live row are still distinguishable",
         return r.some(x=>x.classList.contains('fin')) && r.some(x=>!x.classList.contains('fin'));})()`, true);
 {
   const css299 = fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\r?\n\s*/g, "");
+/* v3.3.322: the rows carry a FULL-weight edge, matching .card and the base
+   .item. Since v3.3.304 put them on the same white as their container, the
+   border is the only thing separating a row from the card behind it — at
+   0.5px it was doing all that work at half weight. Pinned as a floor, not a
+   number, so the hairline cannot creep back. */
+{
+  const cssW = fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\r?\n\s*/g, "");
+  const w = sel => {
+    const m = cssW.match(new RegExp(sel + "\\{[^}]*border:([\\d.]+)px"));
+    return m ? +m[1] : null;
+  };
+  check("a session row's edge is not a hairline",
+        `${w("\\.item\\.todayrow") >= 1}`, "true");
+  check("...and neither is a go-to row's",
+        `${w("\\.item\\.goto") >= 1}`, "true");
+  check("...they match the card they sit inside",
+        `${w("\\.item\\.todayrow") === w("\\.card") && w("\\.item\\.goto") === w("\\.card")}`, "true");
+}
   check("the row carries B1's own edge, not a 3px rail",
-        `${/\.item\.todayrow\{[^}]*border:0\.5px solid var\(--live\)/.test(css299)
+        `${/\.item\.todayrow\{[^}]*border:[\d.]+px solid var\(--live\)/.test(css299)
            && !/\.item\.todayrow\{[^}]*border-left:3px/.test(css299)}`, "true");
-  check("...a finished row swaps that edge to the quiet line",
-        `${/\.item\.todayrow\.fin\{[^}]*border-color:var\(--line\)/.test(css299)}`, "true");
+  /* v3.3.322: the quiet line became --edge. These rows are white inside a
+     white card, so the border is the ONLY thing separating them and --line's
+     1.7:1 could not do that job. The property is unchanged — a finished row
+     wears a different edge from a live one — so it is asserted as that
+     difference rather than as a token name. */
+  check("...a finished row swaps that edge to the quiet one",
+        `${/\.item\.todayrow\.fin\{[^}]*border-color:var\(--edge\)/.test(css299)
+           && /\.item\.todayrow\{[^}]*border:1px solid var\(--live\)/.test(css299)}`, "true");
   check("...and it settles under the thumb like the go-to rows",
         `${/\.item\.todayrow:active\{[^}]*transform:scale/.test(css299)}`, "true");
 }

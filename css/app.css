@@ -62,6 +62,12 @@
        just the one the handoff tabulated. Worst-ground: chalk 14.39,
        muted 8.74, faint 4.97. */
     --chalk:#FBFBFB; --muted:#C6C6C6; --faint:#959595; --shadow:none;
+    /* v3.3.322: --edge is the line a PILL wears. --line is a divider between
+       things that already differ; a row nested in a card is the same colour
+       as the card, so the border is the only thing separating them and 1.7:1
+       is not enough to do that job. ~2.5:1 in both themes: visible as an
+       edge, still quiet enough not to become a grid. */
+    --edge:#6B6B6B;
     /* v3.3.201: accent as INK, split from accent as FILL — the handoff's one
        genuinely new idea. One blue cannot do both jobs: a fill needs to be
        dark enough for white text, an ink light enough to read on a dark
@@ -124,6 +130,7 @@
        1.25x step and the hierarchy stopped reading. Now 1.71x, matching
        dark's ladder. */
     --chalk:#1B1B1B; --muted:#525252; --faint:#6A6A6A; --shadow:0 1px 3px rgba(0,0,0,.06);
+    --edge:#A3A3A3;                       /* v3.3.322, see the dark theme */
     --accent-ink:#2A44C8;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -594,7 +601,7 @@
   html{touch-action:manipulation}   /* no double-tap zoom mid-set; pan/pinch unaffected */
   main{padding:18px 18px calc(28px + env(safe-area-inset-bottom))}
   h2{font-family:var(--disp);font-size:10px;letter-spacing:var(--track-wide);text-transform:uppercase;opacity:.75;
-     color:var(--chalk);font-weight:600;margin:30px 0 10px;
+     color:var(--chalk);font-weight:600;margin:24px 0 9px;
      display:flex;align-items:center;gap:8px}
   h2::before{content:'';width:3px;height:12px;border-radius:2px;background:var(--accent);flex:0 0 auto}
   /* v3.3.112: actions sit at the far right of every header, so the eye finds
@@ -691,7 +698,7 @@
      for keyboard/AT navigation, so touch behaviour is untouched. */
   button:focus-visible,[role="button"]:focus-visible,input:focus-visible,
   select:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-  .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:var(--shadow)}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;box-shadow:var(--shadow)}
   .row{display:flex;align-items:center;gap:10px}
   .spread{justify-content:space-between}
   .muted{color:var(--muted)} .mono{font-family:var(--mono)}
@@ -709,7 +716,7 @@
   .chip.due .n{color:var(--accent);opacity:.75}
   /* list items */
   .item{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;
-    background:var(--surface);border:1px solid var(--line);border-radius:12px;
+    background:var(--surface);border:1px solid var(--edge);border-radius:12px;
     padding:13px 14px;margin-bottom:8px;color:var(--chalk);font:inherit;text-align:left;cursor:pointer;box-shadow:var(--shadow)}
   .item .sub{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:2px}
   /* v3.3.299: Today's session rows adopt B1 — the same slim raised row the
@@ -718,11 +725,16 @@
      accent and signalled nothing, but here the rail is the live/finished
      distinction, which is real. So the edge KEEPS its meaning — it just
      becomes the row's own 0.5px border instead of a 3px slab on one side. */
-  .item.todayrow{padding:10px 14px;border-radius:10px;margin-bottom:6px;gap:10px;
-    background:var(--surface);border:0.5px solid var(--live);box-shadow:none}
+  /* v3.3.322: 1px, not 0.5px. The base .item and .card both use 1px; these
+     rows overrode it down to a hairline, and since v3.3.304 put them on the
+     SAME white as the card behind them, that hairline was the only thing
+     separating a row from its container. It was doing all the work at half
+     the weight. Padding and gap step down one to match. */
+  .item.todayrow{padding:9px 14px;border-radius:10px;margin-bottom:4px;gap:10px;
+    background:var(--surface);border:1px solid var(--live);box-shadow:none}
   .item.todayrow b{font-size:13.5px}
   .item.todayrow .sub{font-size:10px;color:var(--faint);margin-top:2px}
-  .item.todayrow.fin{border-color:var(--line);background:var(--surface)}
+  .item.todayrow.fin{border-color:var(--edge);background:var(--surface)}
   .item.todayrow b::before{content:'● ';color:var(--live);font-size:9px;vertical-align:1px;
     animation:pulse 1.6s ease-in-out infinite;display:inline-block}
   .item.todayrow.fin b::before{content:'✓ ';color:var(--muted);font-size:11px;animation:none}
@@ -828,8 +840,8 @@
      the recessed fill only made these rows read as a different KIND of
      surface from the cards above them. The press now goes the other way:
      resting white, pressing down to --surface2. */
-  .item.goto{padding:12px 14px;
-    background:var(--surface);border:0.5px solid var(--line);border-radius:10px;
+  .item.goto{padding:11px 14px;
+    background:var(--surface);border:1px solid var(--line);border-radius:10px;
     align-items:center;gap:10px;margin-bottom:6px;box-shadow:none}
   .item.goto b{font-size:16px;font-weight:500}
   .item.goto .sub{font-size:10px;color:var(--accent-dim);margin-top:3px}
@@ -842,7 +854,7 @@
      stacks name over its sets. Different shapes, and the selector has to
      say which it means. */
   .item.logrow:not(.goto):not(.todayrow){padding:10px 14px;gap:10px;align-items:center;
-    background:var(--surface);border:0.5px solid var(--line);border-radius:10px;
+    background:var(--surface);border:1px solid var(--line);border-radius:10px;
     margin-bottom:6px;box-shadow:none}
   .item.logrow:not(.goto):not(.todayrow) b{font-size:13.5px;font-weight:500}
   .item.logrow:not(.goto):not(.todayrow) .sub{font-size:10px;color:var(--faint);margin-top:0}

@@ -222,6 +222,34 @@ ok("...in weight / × / reps order every time",
 ok("...and the × is decorative, never read aloud twice",
    run(`[...document.querySelectorAll('.planrow .px')].every(x=>x.getAttribute('aria-hidden')==='true')`));
 /* the ink tiers are what make the weight findable mid-set: chalk, faint, muted */
+/* v3.3.322: a pill's border is --edge, not --line. --line divides things
+   that already differ; a row nested in a card is the SAME colour as the card,
+   so its border is the only separation and 1.7:1 could not carry it. ~2.5:1
+   in both themes, pinned as the RELATIONSHIP so a repaint cannot flatten it
+   back to a divider. */
+{
+  const cssE = fs.readFileSync(path.join(dir, "css/app.css"), "utf8");
+  const grabE = (block, tok) => {
+    const i = cssE.indexOf(block); if (i < 0) return null;
+    const m = cssE.slice(i, i + 9000).match(new RegExp("--" + tok + ":\\s*(#[0-9A-Fa-f]{6})"));
+    return m ? m[1] : null;
+  };
+  const srgbE = c => (c/=255, c<=0.03928 ? c/12.92 : ((c+0.055)/1.055)**2.4);
+  const lumE = h => { const p=[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
+    return .2126*srgbE(p[0])+.7152*srgbE(p[1])+.0722*srgbE(p[2]); };
+  const ratioE = (a,b) => { const v=[lumE(a),lumE(b)].sort((p,q)=>q-p); return (v[0]+.05)/(v[1]+.05); };
+  [["dark", ":root{"], ["light", '[data-theme="light"]']].forEach(function(p){
+    const edge=grabE(p[1],"edge"), line=grabE(p[1],"line"), surface=grabE(p[1],"surface");
+    ok(p[0]+": a pill's edge is stronger than a divider",
+       !!edge && ratioE(edge,surface) > ratioE(line,surface),
+       edge+" "+(edge?ratioE(edge,surface).toFixed(2):"-")+" vs line "+(line?ratioE(line,surface).toFixed(2):"-"));
+    ok(p[0]+": ...and reads as an edge, not a suggestion",
+       !!edge && ratioE(edge,surface) >= 2.0);
+  });
+  ok("pills use --edge, dividers keep --line",
+     /\.item\{[^}]*border:1px solid var\(--edge\)/.test(cssE.replace(/\r?\n\s*/g,"")));
+}
+
 /* v3.3.320: in LIGHT the reps drop one tier. Measured, light already
    separates further than dark on paper — chalk to muted is 25.1 in
    perceptual L* against dark's 18.7 — but dark greys compress against a
