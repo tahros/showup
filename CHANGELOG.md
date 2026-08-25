@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v3.3.315 (2026-08-25) — Runs are measured in miles, not pounds
+
+Fixes the Run card showing a weight. Runs are stored in the same field lifts
+use for weight, so the go-to list was running your distance through the
+weight formatter and printing "4.3 lb". It now reads as a distance, in the
+same unit the rest of the app uses for running.
+
 ## v3.3.314 (2026-08-25) — Every day is its own square
 
 The attendance map no longer joins consecutive days into a stroke. Each day

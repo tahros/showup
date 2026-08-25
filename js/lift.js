@@ -220,7 +220,7 @@ function renderLift(){
               <b>${ex}</b><div class="sub">${meta}${mine?` · yours · ${eq.toLowerCase()}`:''}</div>
             </button>
             <span class="pr-cell">
-              <span class="pr-top">${p.mw?wDisp(p.mw)+' '+U():''}</span>
+              <span class="pr-top">${p.mw?(ex==='Run'?dDisp(p.mw)+' '+DU():wDisp(p.mw)+' '+U()):''}</span>
               ${side?`<span class="pr-side">${side}</span>`:''}
             </span>
             ${(mine&&!last)?`<button class="xbtn" data-delex="${ex}" aria-label="Delete ${ex}">✕</button>`:''}

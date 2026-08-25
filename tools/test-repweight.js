@@ -745,6 +745,33 @@ check("...and the per-side line reads the same way",
            && /\.item\.todayrow:active\{[^}]*background:var\(--surface2\)/.test(css304)}`, "true");
 }
 
+/* v3.3.315: Run stores DISTANCE in the field lifts use for weight, so the
+   go-to row was passing kilometres through the weight formatter and printing
+   "4.3 lb" for a 1.95 km run. It now reads as a distance, in the same unit
+   and to the same precision the header uses for the very same run. */
+run(`(function(){DB.days={}; DB.settings.unit='lb'; const t=new Date(todayISO+'T00:00');
+  for(let i=1;i<=40;i++){ const d=new Date(t); d.setDate(d.getDate()-i);
+    DB.days[d.toLocaleDateString('en-CA')]={w:[
+      {part:'Run',ex:'Run',w:3.76,reps:[],mins:27,secs:0,at:1},
+      {part:'Back',ex:'Bent-Over Row',w:toKg(165),reps:[10],at:2}],upd:1};}
+  SEED=deriveAll(); SEED.pr['Run']={mw:3.76,mwr:0,mwd:todayISO,bv:0,bvr:0,bvw:0,bvd:''};
+  view='lift'; lift.ex=null; lift.part='Run'; render();})()`);
+const _runCell = () => run(`(function(){const r=[...document.querySelectorAll('.item.logrow')]
+  .find(x=>x.querySelector('b').textContent.indexOf('Run')===0);
+  return r?r.querySelector('.pr-top').textContent:'(none)';})()`);
+check("Run reads as a distance, never as a weight", `${!/\b(lb|kg)\b/.test(_runCell())}`, "true");
+check("...in the app's distance unit", `${/^[\d.]+ (mi|km)$/.test(_runCell())}`, "true");
+check("...and agrees with the header for the same run",
+      `${_runCell() === run(`dDisp(3.76)+' '+DU()`)}`, "true");
+run(`(function(){DB.settings.unit='kg'; lift.part='Run'; render();})()`);
+check("...in metric too", `${_runCell() === '3.76 km'}`, "true");
+/* a lift must not be caught by the same branch */
+run(`(function(){DB.settings.unit='lb'; lift.part='Back'; render();})()`);
+check("a lift still reads as a weight",
+      `${/^[\d.,]+ lb$/.test(run(`(function(){const r=[...document.querySelectorAll('.item.logrow')]
+        .find(x=>x.querySelector('b').textContent.indexOf('Bent-Over Row')===0);
+        return r?r.querySelector('.pr-top').textContent:'';})()`))}`, "true");
+
 /* v3.3.303: a weight is ONE token. The cell was pinned to 58px and a 14px
    go-to weight with the new unit space needs 58.8px, so "88.2 lb" broke onto
    two lines — while rows with a longer "/ side" line escaped, because that
