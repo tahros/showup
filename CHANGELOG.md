@@ -1,5 +1,15 @@
 # ShowUp — changelog
 
+## v3.3.302 (2026-08-24) — Weights read instead of shouting
+
+The weight on a go-to row is no longer bold, sits a shade larger, and has a
+space before its unit — "165.3 lb" rather than "165.3lb". The per-side line
+matches.
+
+It was set heavy enough to compete with the exercise name for the row, and
+with the unit pressed against the digits the whole thing read as one long
+token instead of a number and a unit.
+
 ## v3.3.301 (2026-08-24) — Light mode joins the charcoal
 
 The light theme's greys were blue; they're neutral now, so both themes tell

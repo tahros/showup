@@ -211,7 +211,8 @@ function renderLift(){
       const p=prFor(ex);
       const when=last?(daysAgo(last)===0?'✓ done today':daysAgo(last)+'d ago'):'never logged';
       const meta=big?`${when} · ${freq}× this year`:when;
-      const side=(p.mw&&usesPlates(ex))?`${wDisp((p.mw-barKg(ex))/2)}${U()} / side`:'';
+      /* v3.3.302: a space before the unit — "165.3 lb", not "165.3lb" */
+      const side=(p.mw&&usesPlates(ex))?`${wDisp((p.mw-barKg(ex))/2)} ${U()} / side`:'';
       const mine=!!customs()[ex];
       const eq=EQUIP_LABEL[equipOf(ex)]||'';
       return `<div class="item logrow ${big?'goto':''}${_enter?' enter':''}" style="--i:${Math.min(_ei++,10)};${big?'':'padding:10px 10px 10px 14px'}">
@@ -219,7 +220,7 @@ function renderLift(){
               <b>${ex}</b><div class="sub">${meta}${mine?` · yours · ${eq.toLowerCase()}`:''}</div>
             </button>
             <span class="pr-cell">
-              <span class="pr-top">${p.mw?wDisp(p.mw)+U():''}</span>
+              <span class="pr-top">${p.mw?wDisp(p.mw)+' '+U():''}</span>
               ${side?`<span class="pr-side">${side}</span>`:''}
             </span>
             ${(mine&&!last)?`<button class="xbtn" data-delex="${ex}" aria-label="Delete ${ex}">✕</button>`:''}

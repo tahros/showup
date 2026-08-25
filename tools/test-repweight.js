@@ -680,4 +680,29 @@ check("a rep nudge moves the ruler rather than a dead field",
         b.id='nudgeGo'; b.dataset.nr='15'; document.getElementById('view').appendChild(b);
         b.click(); return repRulerValue();})()`, 15);
 
+// ---- v3.3.302: the weight reads, it does not shout ----------------------
+// The number was 600-weight at 12px with the unit jammed against the digits
+// ("165.3lb"), so it competed with the exercise name for the row. Now
+// regular weight, a shade larger, and a space before the unit.
+run(`(function(){DB.days={}; DB.settings.unit='lb'; const t=new Date(todayISO+'T00:00');
+  const D=n=>{const d=new Date(t);d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA')};
+  for(const n of [4,11,18]) DB.days[D(n)]={w:[
+    {part:'Back',ex:'Bent-Over Row',w:toKg(165),reps:[10],at:1}],upd:1};
+  SEED=deriveAll(); view='lift'; lift.ex=null; lift.part='Back'; render();})()`);
+check("the unit is a separate word, not glued to the digits",
+      `(function(){const e=[...document.querySelectorAll('.pr-top')].find(x=>x.textContent.trim());
+        return /^[\\d.,]+ (lb|kg)$/.test(e.textContent.trim());})()`, true);
+check("...and the per-side line reads the same way",
+      `(function(){const e=document.querySelector('.pr-side');
+        return e ? /^[\\d.,]+ (lb|kg) \\/ side$/.test(e.textContent.trim()) : 'no side';})()`, true);
+{
+  const css302 = fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\r?\n\s*/g, "");
+  check("the weight is set at regular, not bold",
+        `${/\.pr-top\{[^}]*font-weight:400/.test(css302) && !/\.pr-top\{[^}]*font-weight:600/.test(css302)}`, "true");
+  check("...and no row variant puts the bold back",
+        `${!/\.pr-top\{[^}]*font-weight:[56]00/.test(css302)}`, "true");
+  check("...still mono, so the digits align down the column",
+        `${/\.pr-cell\{[^}]*font-family:var\(--mono\)/.test(css302)}`, "true");
+}
+
 process.exit(fail ? 1 : 0);

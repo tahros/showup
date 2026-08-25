@@ -816,12 +816,12 @@
   .item.logrow:not(.goto):not(.todayrow) .logmain b{flex:1;min-width:0;overflow:hidden;
     text-overflow:ellipsis;white-space:nowrap}
   .item.logrow .pr-cell{flex:0 0 58px;text-align:right}
-  .item.logrow:not(.goto):not(.todayrow) .pr-top{font-size:12.5px;font-weight:500}
+  .item.logrow:not(.goto):not(.todayrow) .pr-top{font-size:12.5px;font-weight:400}
   /* press: the row settles under the thumb — the affordance the flat list
      was missing, bought with an edge and a press rather than a slab */
   .item.logrow:active{background:var(--surface);transform:scale(.995);
     transition:transform var(--dur-quick) var(--settle),background var(--dur-quick) var(--settle)}
-  .item.goto .pr-top{font-size:14px}
+  .item.goto .pr-top{font-size:14px;font-weight:400}
   h2.quiet{color:var(--muted);font-weight:500;margin-top:24px}
   /* v3.3.105: h2.quiet and h2:first-child are an exact specificity tie
      (element+class vs element+pseudo-class), so whichever rule is written
@@ -833,8 +833,14 @@
      rule got written last. */
   h2.quiet:first-child{margin-top:4px}
   .pr-cell{display:flex;flex-direction:column;align-items:flex-end;flex:0 0 auto;font-family:var(--mono)}
-  .pr-top{color:var(--chalk);font-size:12px;font-weight:600}
-  .pr-side{color:var(--muted);font-size:10px;margin-top:2px;white-space:nowrap}
+  /* v3.3.302: the weight reads, it does not shout. It was 600 — bold enough
+     that the number fought the exercise name for the row — at 12px with the
+     unit jammed against the digits ("165.3lb"). The maker asked for the
+     mockup's setting: regular weight, a shade larger, and a space before the
+     unit so the eye parses "165.3" and "lb" as two things. Mono already, so
+     the digits still align down the column. */
+  .pr-top{color:var(--chalk);font-size:12.5px;font-weight:400;letter-spacing:.01em}
+  .pr-side{color:var(--muted);font-size:9.5px;font-weight:400;margin-top:2px;white-space:nowrap}
   .loadline{font-family:var(--mono);font-size:12px;color:var(--muted);
     background:var(--surface2);border-radius:10px;padding:7px 10px;margin-top:-4px;margin-bottom:10px;
     display:flex;align-items:center;gap:10px}
