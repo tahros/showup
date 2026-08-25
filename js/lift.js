@@ -42,8 +42,16 @@ function renderLift(){
          the last exercise read as another row of the session. The (i) stays
          beside the title — that placement is v3.3.115's deliberate call and
          is not what the maker asked to move. */
-      h+=`<h2><b class="scopepill">today</b> plan${hActs('plan',"Paste a session and the app reads what it can. It fills weights and reps for today only, is never written to your record, and clears at midnight. Nothing is counted against it.",'About today\u2019s plan')}<span class="planedge"><button class="pedge" data-planedit>Edit</button><button class="pedge" data-planclear>Clear</button></span></h2>
-        <div class="card plancard">
+      /* v3.3.294: the whole plan folds, like the Last-time card (v3.3.274).
+         Some days you want the playbook on screen; some days it is scroll
+         between you and the body-part grid. Folded, the heading IS the
+         one-line fact — pill, name, actions — so nothing is left hanging.
+         The chevron leads the action group so the destructive Clear stays
+         at the far edge, away from the control you tap most. */
+      const _pf=!!DB.settings.planFold;
+      h+=`<h2><b class="scopepill">today</b> plan${hActs('plan',"Paste a session and the app reads what it can. It fills weights and reps for today only, is never written to your record, and clears at midnight. Nothing is counted against it.",'About today\u2019s plan')}<span class="planedge"><button class="pedge pfold" data-planfold aria-expanded="${!_pf}" aria-label="${_pf?'Show':'Hide'} today\u2019s plan">${_pf?'\u25b8':'\u25be'}</button><button class="pedge" data-planedit>Edit</button><button class="pedge" data-planclear>Clear</button></span></h2>`;
+      if(!_pf){
+        h+=`<div class="card plancard">
           ${(_pl.items||[]).map(i=>`<button class="planrow${planLoggedToday(i.ex)?' pdone':''}" data-planex="${i.ex}">
               <span class="pk">${planLoggedToday(i.ex)?'\u2713':''}</span>
               <span class="pn">${i.ex}</span>
@@ -51,6 +59,7 @@ function renderLift(){
             </button>`).join('')}
           ${_pl.note?`<div class="plannote mono">${hesc(_pl.note)}</div>`:''}
         </div>`;
+      }
     }else{
       h+=`<button class="btn ghost planpaste" data-planpaste>Paste today\u2019s plan</button>`;
     }

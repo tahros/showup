@@ -168,9 +168,15 @@ ok("...and the chips carry the plan's numbers",
 // the block above navigated into an exercise page; come back to the tab
 // where the plan card lives before asserting anything about it
 run(`(function(){view='lift'; lift.ex=null; lift.plan=null; render();})()`);
-ok("Edit and Clear live in the heading, not the card body",
-   run(`document.querySelectorAll('h2 .planedge .pedge').length`) === 2 &&
+/* v3.3.294: the group gained a fold chevron, so it holds three controls —
+   the property being defended is that they live in the HEADING, not that
+   there are exactly two of them. */
+ok("the plan's controls live in the heading, not the card body",
+   run(`document.querySelectorAll('h2 .planedge .pedge').length`) === 3 &&
    run(`!document.querySelector('.plancard .planacts')`));
+ok("...with the fold leading and the destructive Clear at the far edge",
+   run(`(function(){const b=[...document.querySelectorAll('h2 .planedge .pedge')];
+     return b[0].hasAttribute('data-planfold') && b[b.length-1].hasAttribute('data-planclear');})()`));
 ok("...in the corner, after the tip, which keeps its place by the title",
    run(`(function(){const k=[...document.querySelector('h2').children].map(c=>c.className.split(' ')[0]);
      return k.indexOf('hacts')>=0 && k.indexOf('planedge')===k.length-1
@@ -230,5 +236,40 @@ run(`(function(){sugOv()['Squat']={sets:[{w:60,r:5}],d:todayISO,from:'plan'};
   view='lift'; lift.ex=null; render(); planClear();})()`);
 ok("clearing a plan also withdraws the suggestions it planted",
    run(`!planNow() && !sugOv()['Squat']`));
+
+// ---- v3.3.294: the whole plan folds -------------------------------------
+// Same shape as the Last-time fold: driven through the real chevron, the
+// heading survives as the one-line fact, and the choice is a SETTING so it
+// outlives a re-render.
+/* the block above CLEARS the plan, so there is nothing to fold — give this
+   one its own plan rather than inheriting whatever the last block left. */
+run(`(function(){planSave([{ex:'Dumbbell Shoulder Press',lines:[{w:toKg(55),bw:false,reps:[8,8]}]},
+                           {ex:'Lateral Raise',lines:[{w:toKg(35),bw:false,reps:[12,12]}]}],'','');
+  DB.settings.planFold=false; view='lift'; lift.ex=null; lift.plan=null; render();})()`);
+ok("open by default, chevron says so",
+   run(`(function(){const b=document.querySelector('[data-planfold]');
+     return !!b && b.getAttribute('aria-expanded')==='true' && b.textContent==='\u25be';})()`));
+const rowsOpen = run(`document.querySelectorAll('.planrow').length`);
+ok("...with the plan's rows on screen", rowsOpen > 0, rowsOpen + " rows");
+run(`document.querySelector('[data-planfold]').click()`);
+ok("one tap folds the card away entirely",
+   run(`document.querySelectorAll('.planrow').length`) === 0 &&
+   run(`!document.querySelector('.plancard')`));
+ok("...but the heading stays as the one-line fact",
+   run(`!!document.querySelector('h2 .scopepill')`) &&
+   run(`document.querySelectorAll('h2 .planedge .pedge').length`) === 3);
+ok("...and the chevron flips", run(`(function(){const b=document.querySelector('[data-planfold]');
+     return b.getAttribute('aria-expanded')==='false' && b.textContent==='\u25b8';})()`));
+ok("the choice is a setting, not a render whim", run(`DB.settings.planFold===true`));
+run(`render()`);
+ok("...so it survives a full re-render", run(`!document.querySelector('.plancard')`));
+run(`document.querySelector('[data-planfold]').click()`);
+ok("one tap brings the whole plan back",
+   run(`document.querySelectorAll('.planrow').length`) === rowsOpen &&
+   run(`DB.settings.planFold===false`));
+/* folding must not touch the plan itself — it is a view preference */
+ok("folding changed nothing about the plan or the ledger",
+   run(`!!planNow() && planNow().items.length>0`) &&
+   run(`JSON.stringify((DB.days[todayISO]||{w:[]}).w.filter(s=>s.ex==='Squat'))`) === "[]");
 
 process.exit(fail ? 1 : 0);

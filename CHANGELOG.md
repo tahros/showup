@@ -1,5 +1,15 @@
 # ShowUp — changelog
 
+## v3.3.294 (2026-08-24) — Today's plan folds away
+
+A chevron in the plan's heading now collapses the whole card. Folded, the
+heading stays — the pill, the name, and the controls — so the plan is one
+line instead of a screenful, and the body-part grid comes straight up under
+it.
+
+The choice sticks across sessions until you open it again, and folding
+changes nothing about the plan itself.
+
 ## v3.3.293 (2026-08-24) — The rep ruler fades at its edges
 
 Numbers now fade out toward both ends of the ruler, darkest at the centre —

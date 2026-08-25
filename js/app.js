@@ -300,6 +300,10 @@ document.addEventListener('click',e=>{
     toast(items.length?`Plan set — ${items.length} exercise${items.length>1?'s':''}`:'Kept as a note');
     return render();
   }
+  if(e.target.closest&&e.target.closest('[data-planfold]')){
+    DB.settings.planFold=!DB.settings.planFold; DB.settingsAt=Date.now(); save(true);
+    return renderLift();
+  }
   if(e.target.closest&&e.target.closest('[data-planclear]')){
     planClear(); toast('Plan cleared'); return render();
   }

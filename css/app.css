@@ -1189,6 +1189,8 @@
     font-family:var(--mono);font-size:11px;font-weight:500;
     letter-spacing:var(--track-label);color:var(--muted);text-transform:uppercase}
   .pedge:last-child{color:var(--faint)}
+  /* the fold chevron leads the group and is a glyph, not a word */
+  .pedge.pfold{font-size:13px;color:var(--muted);text-transform:none;padding:2px 2px}
   .plancard{padding:6px 0}
   /* v3.3.281: the plan is reference material you glance at between sets, not
      a headline — it reads one step down from the ledger's own type. */
