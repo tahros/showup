@@ -302,7 +302,11 @@ document.addEventListener('click',e=>{
   }
   if(e.target.closest&&e.target.closest('[data-planfold]')){
     DB.settings.planFold=!DB.settings.planFold; DB.settingsAt=Date.now(); save(true);
-    return renderLift();
+    /* v3.3.319: render(), not renderLift(). The plan moved to Today, and a
+       handler that re-renders a specific TAB rather than the current one
+       wipes the section it was invoked from. Every other plan action already
+       used render(); this one was the outlier. */
+    return render();
   }
   if(e.target.closest&&e.target.closest('[data-planclear]')){
     planClear(); toast('Plan cleared'); return render();

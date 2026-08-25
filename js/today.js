@@ -54,7 +54,10 @@ function livePartNow(){
    number was accurate and useless, which is exactly the kind of claim this
    app declines to make. */
 function todayHeroHTML(){
-  return `<h2 class="quiet">Rhythm</h2>`+rhythmCard();
+  /* v3.3.319: today's PLAN leads this tab, not Rhythm. Rhythm restated the
+     streak and the day count that the header already carries and that Stats
+     tells properly; the plan is the one thing you open Today to read. */
+  return planSectionHTML();
 }
 /* ============ v3.1 Clean Slate: onboarding · demo · honest empty states ============ */
 function hasAnyDays(){ return Object.values(DB.days).some(v=>v.w&&v.w.length); }
@@ -260,6 +263,11 @@ function dayCountUp(){
   _dayUpPlayed=true; countUpEl(el,900);
 }
 function renderToday(){
+  /* v3.3.319: the paste/preview screen is a full-tab takeover that renderLift
+     has owned since v3.3.278. Now that Paste lives on Today, this tab has to
+     open it too — otherwise the button the maker taps does nothing. Same
+     shape as renderLift's: commit and stop. */
+  if(lift.plan==='paste'||lift.plan==='preview'){ $('#view').innerHTML=planScreenHTML(); return; }
   if(SEED.totals.sessions===0 && !((DB.days[todayISO]||{}).w||[]).length){
     $('#view').innerHTML=emptyHero('today'); return; }
   const P=trainingPlan();
@@ -300,7 +308,11 @@ function renderToday(){
   if(!logged){
     // ---- before the gym: what should I train
     h+=helloCard();
-    h+=rhythmCard();
+    /* v3.3.319: before the gym, the plan is what you came to read — the same
+       section the mid-session branch leads with, so Today shows one thing in
+       both states. Rhythm left with it; it restated the streak and the day
+       count that the header already carries and that Stats tells properly. */
+    h+=planSectionHTML();
     /* v3.3.79: annotation, never homework. The button sits here; it never
        prompts, never nags, and an undeclared rest day is not a lesser rest
        day. Tap again to undo — every state walks out. Gone the moment a

@@ -127,7 +127,16 @@ check("greeting LEAVES once a set is logged",
 run(`${fresh} DB.settings.name=null; delete DB.days[todayISO]; renderToday();`);
 check("nameless greeting still renders (strangers get one too)",
       `/class="hello"/.test($('#view').innerHTML)`, true);
-check("...and carries no stray comma", `/, \./.test($('#view').innerHTML)`, false);
+/* v3.3.319: this regex was BROKEN, and had been since it was written. Inside
+   a template literal `\.` collapses to `.` before the vm ever sees it, so the
+   sandbox received /, ./ — comma, space, ANY character. It passed only
+   because Today's markup happened to contain no commas at all; the moment
+   the plan's tip text arrived ("for today only, is never written...") it
+   fired on prose. The v3.3.68 lesson, in a second place.
+   Scoped to the greeting too: a stray comma in the HELLO is what this ever
+   cared about, not commas anywhere on the tab. */
+check("...and carries no stray comma",
+      `/,\\s*\\./.test(document.querySelector('.hello').innerHTML)`, false);
 
 // ---- 11b. the clock, in five dry words (v3.3.76) --------------------------
 check("4am is Early, not Morning", `helloPart(4)`, "Early");

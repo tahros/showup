@@ -58,7 +58,7 @@ run(`
    claim this app declines to make. The assertions now hold that absence,
    and that the surviving hero is stable across the live/idle boundary. */
 check("live → Rhythm still leads, one hero in both states",
-      `!!document.querySelector('#view .rhythm')`, true);
+      `!!document.querySelector('#view .planedge')`, true);
 check("...and no part digest exists anywhere",
       `!!document.querySelector('#view .pdigest')`, false);
 check("...no mid-session verdict is rendered",
@@ -69,17 +69,17 @@ check("...and the live part is still named where the work is listed",
 // --- a run logged after the lift must not change the hero either
 run(`dayMeta().w.push({part:'Run',ex:'Run',w:3.47,mins:27,secs:16}); render();`);
 check("a run does not disturb the hero",
-      `!!document.querySelector('#view .rhythm') && !document.querySelector('#view .pdigest')`, true);
+      `!!document.querySelector('#view .planedge') && !document.querySelector('#view .pdigest')`, true);
 
 // --- sealing the exercise hands the hero back to Daily Fire
 run(`dayMeta().doneEx.push('Dumbbell Press'); render();`);
-check("sealed ex → Rhythm leads",       `!!document.querySelector('#view .rhythm')`, true);
+check("sealed ex → Rhythm leads",       `!!document.querySelector('#view .planedge')`, true);
 check("sealed ex → no part digest",     `!!document.querySelector('#view .pdigest')`, false);
 
 // --- day sealed: isLive() is "today has sets and the day isn't done" —
 // NOT the rest timer. Sealing the day is the only real not-live state.
 run(`dayMeta().doneEx.length=0; dayMeta().doneAll=true; render();`);
-check("day sealed → Rhythm leads", `!!document.querySelector('#view .rhythm')`, true);
+check("day sealed → Rhythm leads", `!!document.querySelector('#view .planedge')`, true);
 check("day sealed → no part digest", `!!document.querySelector('#view .pdigest')`, false);
 
 // --- part meter: red only while live
@@ -98,10 +98,13 @@ check("day sealed → meter still shown (accent)",
 // v3.3.45: Rhythm is the top card, and appears exactly once.
 // NB: the meter checks above leave us on the Lift tab — come back to Today.
 run(`view='today'; dayMeta().doneAll=true; render();`);
-check("Rhythm appears exactly once", `document.querySelectorAll('#view .rhythm').length`, 1);
+/* v3.3.319: Rhythm left Today for today's plan; with no other host,
+   rhythmCard() was deleted with it — the v3.3.285 call, made again. */
+check("the plan is the only hero, and appears once",
+      `document.querySelectorAll('#view .planedge').length`, 1);
 check("Daily Fire is gone",          `!!document.querySelector('#view .firecard')`, false);
-check("Rhythm is the FIRST card",
-      `document.querySelector('#view h2').textContent.trim().toLowerCase()`, "rhythm");
+check("...and it is the FIRST thing on the tab",
+      `document.querySelector('#view h2').textContent.trim().toLowerCase().indexOf('today plan')`, 0);
 // Lineage of this block: v3.3.52 tried a chart in Rhythm; v3.3.53 reverted
 // to the vs-bars (form question: chart vs bars). v3.3.83 removes the block
 // from Today entirely (presence question) on the app's FIRST outside
@@ -120,24 +123,16 @@ check("...the rest-days caption is gone (the strip already shows it)",
 // v3.3.84: the anchor gained its "of" back — assert the phrase, and the
 // two-column symmetry: numbers on the top line, captions beneath, and the
 // strip dating itself on the right only.
-check("...and the % anchor reads 'of <year>'",
-      `!!(document.querySelector('#view .rhythm')&&document.querySelector('#view .rhythm').innerHTML.includes('of '+todayISO.slice(0,4)))`, true);
+/* RETIRED v3.3.319 — examined rhythmCard()'s internals; card deleted */
 check("...the strip keeps only its right-hand date",
       `/3 weeks ago/.test($('#view').innerHTML)`, false);
 // indexOf, not a regex — the v3.3.68 lesson: \/ collapses inside a template
 // literal before the vm ever sees it.
-check("......while 'today' stays", `(function(){const m=document.querySelector('#view .rhythm');
-      return !!m&&m.innerHTML.indexOf('today</div>')>-1;})()`, true);
+/* RETIRED v3.3.319 — examined rhythmCard()'s internals; card deleted */
 // the symmetry needs the STREAK variant — the fixture above has trained
 // today, whose lead is a bare "Trained today". Flip to untrained, assert,
 // restore.
-check("...and the streak caption sits UNDER the number, not beside it",
-      `(function(){const kept=DB.days[todayISO]; delete DB.days[todayISO];
-        SEED=deriveAll(); render();
-        const m=document.querySelector('#view .rhythm .big');
-        const ok=!!(m&&m.nextElementSibling&&m.nextElementSibling.tagName==='DIV');
-        DB.days[todayISO]=kept; SEED=deriveAll(); render();
-        return ok;})()`, true);
+/* RETIRED v3.3.319 — examined rhythmCard()'s internals; card deleted */
 check("...while the naked long label is gone",
       `/of \\d{4} trained/.test($('#view').innerHTML)`, false);
 check("no chart inside Rhythm",
@@ -223,13 +218,8 @@ run(`view='today'; render();`);
 
 // ---- v3.3.86: the two invisible lines ------------------------------------
 // numbers on one baseline, captions on one row: only a grid guarantees it.
-check("the rhythm head is a 2x2 grid",
-      `!!document.querySelector('#view .rhythm .rgrid')`, true);
-check("...number, number, caption, caption \u2014 in that order",
-      `(function(){const g=document.querySelector('#view .rhythm .rgrid');
-        if(!g) return 'nogrid';
-        const k=[...g.children].map(el=>el.classList.contains('rcap')?'cap':'num');
-        return k.join(',');})()`, "num,num,cap,cap");
+/* RETIRED v3.3.319 — examined rhythmCard()'s internals; card deleted */
+/* RETIRED v3.3.319 — examined rhythmCard()'s internals; card deleted */
 const cssSrc86 = fs.readFileSync(path.join(dir, "css/app.css"), "utf8");
 const gridRule = (cssSrc86.match(/\.rgrid\{[^}]*\}/) || [""])[0];
 console.log((/align-items:baseline/.test(gridRule) ? "PASS" : "FAIL"),
@@ -267,8 +257,9 @@ run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
   lift.part=null; lift.ex=null;
   SEED=deriveAll(); DB.settings.msFloor=msLiveTotal(); DB.settings.msAck=msLiveTotal();
   view='today'; render();})()`);
-check("with no live session, the Rhythm heading is #view's first child",
-      `document.querySelector('#view').firstElementChild.textContent`, "Rhythm");
+check("with no live session, the plan heading is #view's first child",
+      `document.querySelector('#view').firstElementChild.tagName
+        +':'+document.querySelector('#view').firstElementChild.textContent.slice(0,10)`, "H2:today plan");
 check("...and it carries the quiet class this fix targets",
       `document.querySelector('#view').firstElementChild.classList.contains('quiet')`, true);
 
@@ -283,35 +274,12 @@ run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
   SEED=deriveAll(); DB.settings.msFloor=msLiveTotal(); DB.settings.msAck=msLiveTotal();
   view='today'; render();})()`);
 
-check("the trained card leads with the live day total, not a label",
-      `document.querySelector('.rhythm .big.dayn').textContent`, "41");
-check("...the old 'Trained today' label is gone",
-      `document.querySelector('#view').innerHTML.includes('Trained today')`, false);
-check("...and its caption is no longer empty",
-      `document.querySelector('.rhythm .rcap').textContent.trim().length > 0`, true);
-check("...the caption names what the number counts",
-      `document.querySelector('.rhythm .rcap').textContent.includes('days in')`, true);
-// the number the count-up will animate FROM is yesterday's total, not zero
-check("the day figure carries a one-step count-up range",
-      `(function(){const e=document.querySelector('.rhythm .big.dayn');
-        return (+e.dataset.to - +e.dataset.from)===1;})()`, true);
-// v3.3.107: pin the HIERARCHY, not a magic number \u2014 the day figure must
-// outrank the secondary percentage and stay under the 38px .big used by the
-// gap variant, which owns the card alone when it appears.
-const cssSrc107 = fs.readFileSync(path.join(dir, "css/app.css"), "utf8");
-const px = (sel) => {
-  const m = cssSrc107.match(new RegExp(sel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\{[^}]*font-size:(\\d+)px"));
-  return m ? +m[1] : null;
-};
-const dayPx = px(".rhythm .big.dayn"), bigPx = px(".rhythm .big"), pctPx = px(".rgrid .rpct");
-console.log((dayPx > pctPx && dayPx < bigPx ? "PASS" : "FAIL"),
-  "the day figure outranks the percentage and sits under the full-card .big",
-  `\u2192 ${pctPx} < ${dayPx} < ${bigPx}`);
-if (!(dayPx > pctPx && dayPx < bigPx)) fail++;
-
-// the year % survives as the secondary stat \u2014 this replaced the LABEL, not it
-check("the year percentage is still there as the secondary figure",
-      `/of \\d{4}/.test(document.querySelector('.rhythm').textContent)`, true);
+/* RETIRED v3.3.319 — this whole block examined rhythmCard()'s TYPOGRAPHY:
+   the live day total, its caption, its count-up range, and the size
+   hierarchy between the day figure, the percentage and the full-card .big.
+   Today took the plan instead and the card was deleted (v3.3.285's call,
+   made again), so there is nothing left for these to measure. The
+   thousands-countdown checks that followed are unrelated and stay. */
 
 // the sanctioned countdown appears only inside 75 days of a thousand
 check("no thousands countdown when far from one", `msNearThousand(400)`, "null");
@@ -330,8 +298,9 @@ if (!/function helloSub[\s\S]{0,200}msNearThousand/.test(todaySrc106)) fail++;
 
 // the NOT-trained states are untouched by all of this
 run(`(function(){day(todayISO).w=[]; delete day(todayISO).doneAll; SEED=deriveAll(); render();})()`);
-check("an untrained day still leads with the streak, not the day count",
-      `!!document.querySelector('.rhythm .big.dayn')`, false);
+/* RETIRED v3.3.319 — the untrained state's leading figure was the rhythm
+   card's; the card is gone. Today's untrained state is asserted by the
+   plan-heading checks earlier in this file. */
 
 // ---- v3.3.299: Today's session rows adopt B1 ----------------------------
 // Same slim raised row the go-to list took in v3.3.298. What did NOT come

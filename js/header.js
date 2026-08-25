@@ -83,48 +83,11 @@ function rhythm(){
   const rest21=strip.filter(s=>!s.on&&!s.today).length;
   return {pct,lyPct,ly,trainedYTD,restYTD,elapsed,gap,strip,rest21,trainedToday};
 }
-function rhythmCard(){
-  const r=rhythm(), ly=r.ly;
-  const pctN=Math.round(r.pct*100), lyN=r.lyPct!=null?Math.round(r.lyPct*100):null;
-  const delta=lyN!=null?pctN-lyN:null;
-  /* v3.3.106: "Trained today" was a LABEL, and one the strip's own `today`
-     cell already carries — so the trained state said nothing new and left
-     its caption slot literally empty. Worse, helloCard() (the only place
-     Today shows the day count) renders solely in the !logged branch, so
-     the act of training REMOVED the north-star number from the screen.
-     Now the trained state leads with the figure that moved because you
-     showed up, and the empty caption carries the sanctioned countdown. */
-  const _total=msLiveTotal();
-  const _near=msNearThousand(_total);
-  const leadNum = r.trainedToday
-      ? `<b class="big dayn" data-from="${Math.max(0,_total-1)}" data-to="${_total}">${fmt(_total)}</b>`
-    : r.gap===0 ? `<b class="big ok">${currentStreak()}d</b>` : `<b class="big">${r.gap}</b>`;
-  const leadCap = r.trainedToday
-      ? `<div class="rcap">days in${_near?` · <b class="nearms">${_near.left} to ${fmt(_near.next)}</b>`:''}</div>`
-    : r.gap===0
-      ? `<div class="rcap">streak · ${streakAtRisk()?'<b class="atriskTxt">ends at midnight</b>':'today unwritten'}</div>`
-      : `<div class="rcap">rest day${r.gap>1?'s':''} in a row · today unwritten</div>`;
-  const _rest=!!(DB.days[todayISO]&&DB.days[todayISO].rest&&!((DB.days[todayISO].w)||[]).length);
-  let h=`<div class="card rhythm${_rest?' resting':''}">
-    <div class="rgrid">
-      ${leadNum}
-      <div class="rpct">${pctN}%</div>
-      ${leadCap}
-      <div class="rcap r">of ${thisYear}</div>
-    </div>
-    <div class="strip">`;
-  r.strip.forEach(s=>{
-    h+=`<i class="${s.on?'on':''} ${s.today?(s.on?'now':(streakAtRisk()?'now pend atrisk':'now pend')):''}" title="${s.iso}"></i>`;
-  });
-  h+=`</div>
-    <div class="mono muted" style="font-size:10px;text-align:right;margin-top:4px">today</div>`;
-  /* v3.3.83: the year-vs-year block moved OUT of Today — it was the Stats
-     Report Card duplicated above the fold, and the first outside feedback
-     called the result complicated. rhythm() still computes lyPct/delta for
-     Stats; Today just stopped repeating it. */
-  h+=`</div>`;
-  return h;
-}
+/* v3.3.319: rhythmCard() deleted (-2.2KB). Today was its only host and
+   the maker replaced it with today's plan; a builder with no caller is
+   dead weight that still has to be read. Same call as v3.3.285, which
+   deleted partDigest() when its last host went. The Stats tab's Show up
+   section is a different function and is untouched. */
 
 /* D1 (DESIGN.md): explanations live behind a dot, where the sentence used
    to be. Tap ⓘ → the old note expands in place; tap again → gone. */

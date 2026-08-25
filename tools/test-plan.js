@@ -8,8 +8,13 @@ const dir = process.argv[2] || ".";
 
 const html = fs.readFileSync(path.join(dir, "index.html"), "utf8");
 const order = [...html.matchAll(/src="(js\/[^?"]+)\?v=/g)].map(m => m[1]);
+/* v3.3.319: pretendToBeVisual, because this suite now renders the TODAY tab
+   (the plan moved there) and Today's count-up calls requestAnimationFrame,
+   which jsdom does not provide otherwise. Same limitation recorded in
+   v3.3.285. */
 const dom = new JSDOM(html.replace(/<script[^>]*src=[^>]*><\/script>/g, ""), {
-  url: "https://tahros.github.io/showup/", runScripts: "outside-only" });
+  url: "https://tahros.github.io/showup/", runScripts: "outside-only",
+  pretendToBeVisual: true });
 const w = dom.window, ctx = dom.getInternalVMContext();
 w.fetch = () => Promise.reject(new Error("offline"));
 w.matchMedia = w.matchMedia || (() => ({ matches:false, addEventListener(){}, removeEventListener(){} }));
@@ -50,7 +55,7 @@ run(`(function(){DB.days={}; DB.settings.unit='lb'; const t=new Date(todayISO+'T
   const D=n=>{const d=new Date(t);d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA')};
   for(const n of [10,4]) DB.days[D(n)]={w:[{part:'Shoulder',ex:'Lateral Raise',w:13,reps:[12,12,10]}],upd:1};
   SEED=deriveAll(); DB.plan=null; DB.suggest=null;
-  view='lift'; lift.ex=null; lift.part='Shoulder'; lift.plan=null; render();})()`);
+  view='today'; lift.ex=null; lift.part='Shoulder'; lift.plan=null; render();})()`);
 
 // ---- 1. the parser reads what it can, and only what it can ----------------
 run(`window.__rows=parsePlan(${JSON.stringify(PASTE)});`);
@@ -237,7 +242,11 @@ ok("PROMISE 2 — the plan feeds the SUGGESTED rail, naming its origin",
    run(`(sugOv()['Lateral Raise']||{}).from`) === "plan");
 ok("...with every set from every weight line, warm-ups included",
    run(`(sugOv()['Dumbbell Shoulder Press']||{sets:[]}).sets.length`) === 6);
-run(`(function(){lift.ex='Lateral Raise'; lift.part='Shoulder'; lift.weight=0; render();})()`);
+/* v3.3.319: this block opens an EXERCISE page, which lives on Train — it
+   used to inherit view='lift' from the plan-card renders above, and those
+   moved to Today with the plan. Set the tab explicitly rather than rely on
+   what the previous block happened to leave behind. */
+run(`(function(){view='lift'; lift.ex='Lateral Raise'; lift.part='Shoulder'; lift.weight=0; render();})()`);
 ok("...so the exercise page says the chips came from the plan",
    run(`/plan/i.test([...document.querySelectorAll('.zone.mini .lasthead span')][0].textContent)`));
 ok("...and the chips carry the plan's numbers",
@@ -248,7 +257,7 @@ ok("...and the chips carry the plan's numbers",
 // place beside the title is v3.3.115's deliberate call.
 // the block above navigated into an exercise page; come back to the tab
 // where the plan card lives before asserting anything about it
-run(`(function(){view='lift'; lift.ex=null; lift.plan=null; render();})()`);
+run(`(function(){view='today'; lift.ex=null; lift.plan=null; render();})()`);
 /* v3.3.294: the group gained a fold chevron, so it holds three controls —
    the property being defended is that they live in the HEADING, not that
    there are exactly two of them. */
@@ -256,7 +265,7 @@ run(`(function(){view='lift'; lift.ex=null; lift.plan=null; render();})()`);
    PASTE where the controls will be. A 51px full-width slab made the section
    change shape depending on whether a plan existed, so the page jumped and
    an empty section shouted louder than a full one. */
-run(`(function(){const keep=DB.plan; DB.plan=null; view='lift'; lift.ex=null; lift.plan=null; render();
+run(`(function(){const keep=DB.plan; DB.plan=null; view='today'; lift.ex=null; lift.plan=null; render();
   window.__emptyH=[...document.querySelectorAll('#view h2')][0].outerHTML;
   window.__slab=!!document.querySelector('.planpaste');
   DB.plan=keep; render();})()`);
@@ -296,12 +305,12 @@ run(`(function(){document.querySelector('[data-planpaste]').click();
 // ---- v3.3.281: the tick is a fact from the ledger ------------------------
 // Logging an exercise ticks its plan row. The direction matters: the row
 // reads the RECORD and reports it. Nothing aggregates those ticks.
-run(`(function(){view='lift'; lift.ex=null; lift.plan=null; render();})()`);
+run(`(function(){view='today'; lift.ex=null; lift.plan=null; render();})()`);
 ok("before logging, no plan row is ticked",
    run(`document.querySelectorAll('.planrow.pdone').length`) === 0);
 run(`(function(){const t=day(todayISO);
   t.w.push({part:'Shoulder',ex:'Dumbbell Shoulder Press',w:toKg(55),reps:[8],at:Date.now()});
-  t.upd=Date.now(); SEED=deriveAll(); view='lift'; lift.ex=null; render();})()`);
+  t.upd=Date.now(); SEED=deriveAll(); view='today'; lift.ex=null; render();})()`);
 ok("logging an exercise ticks exactly its own plan row",
    run(`document.querySelectorAll('.planrow.pdone').length`) === 1 &&
    run(`/Dumbbell Shoulder Press/.test(document.querySelector('.planrow.pdone').textContent)`));
@@ -319,21 +328,21 @@ ok("PROMISE 3 — no count of what is done or left, anywhere on screen",
    run(`!/adheren|remaining|\\d+\\s*(of|\\/)\\s*\\d+\\s*(done|complete)/i.test(document.getElementById('view').textContent)`));
 
 // ---- 4. it evaporates ------------------------------------------------------
-run(`(function(){DB.plan.d='2020-01-01'; view='lift'; lift.ex=null; lift.plan=null; render();})()`);
+run(`(function(){DB.plan.d='2020-01-01'; view='today'; lift.ex=null; lift.plan=null; render();})()`);
 ok("a plan from another day is not today's plan", run(`!planNow()`));
 ok("...and the tab offers to take a new one",
    run(`!!document.querySelector('[data-planpaste]')`));
 /* a plan written by v3.3.278/279 (one weight per item, no `lines`) is still
    in storage after an upgrade — it must render, not crash */
 run(`(function(){DB.plan={d:todayISO,items:[{ex:'Squat',w:60,reps:[5,5]}],note:''};
-  view='lift'; lift.ex=null; lift.plan=null; render();})()`);
+  view='today'; lift.ex=null; lift.plan=null; render();})()`);
 ok("a plan saved by the previous build still renders after upgrade",
    run(`document.querySelectorAll('.planrow').length`) === 1 &&
    run(`/Squat/.test(document.querySelector('.planrow').textContent)`));
 ok("...its single weight is read as one line",
    run(`planNow().items[0].lines.length`) === 1);
 run(`(function(){sugOv()['Squat']={sets:[{w:60,r:5}],d:todayISO,from:'plan'};
-  view='lift'; lift.ex=null; render(); planClear();})()`);
+  view='today'; lift.ex=null; render(); planClear();})()`);
 ok("clearing a plan also withdraws the suggestions it planted",
    run(`!planNow() && !sugOv()['Squat']`));
 
@@ -345,7 +354,7 @@ ok("clearing a plan also withdraws the suggestions it planted",
    one its own plan rather than inheriting whatever the last block left. */
 run(`(function(){planSave([{ex:'Dumbbell Shoulder Press',lines:[{w:toKg(55),bw:false,reps:[8,8]}]},
                            {ex:'Lateral Raise',lines:[{w:toKg(35),bw:false,reps:[12,12]}]}],'','');
-  DB.settings.planFold=false; view='lift'; lift.ex=null; lift.plan=null; render();})()`);
+  DB.settings.planFold=false; view='today'; lift.ex=null; lift.plan=null; render();})()`);
 ok("open by default, chevron says so",
    run(`(function(){const b=document.querySelector('[data-planfold]');
      return !!b && b.getAttribute('aria-expanded')==='true' && b.textContent==='\u25be';})()`));
@@ -371,5 +380,50 @@ ok("one tap brings the whole plan back",
 ok("folding changed nothing about the plan or the ledger",
    run(`!!planNow() && planNow().items.length>0`) &&
    run(`JSON.stringify((DB.days[todayISO]||{w:[]}).w.filter(s=>s.ex==='Squat'))`) === "[]");
+
+/* Placed LAST on purpose. This block seeds its own plan and leaves the app on
+   the Today tab; run mid-file it disturbed the fixtures the blocks after it
+   depended on — three of them failed for reasons unrelated to what they test.
+   Set your stage, and put it where it cannot become someone else's. */
+/* v3.3.319: today's plan lives on the TODAY tab now, not Train. One copy,
+   not two — a second would be free to drift, and this app has retired
+   duplicate sections twice on that reasoning (v3.3.230, v3.3.307). Three
+   things the move had to carry with it, each a real bug if missed: the
+   paste screen (renderToday must open it, or the Paste button does nothing),
+   the fold handler (it called renderLift and would re-render the wrong tab,
+   wiping the section it was invoked from), and the section itself, which is
+   now built once by planSectionHTML(). */
+{
+  const seed = logged => run(`(function(){DB.days={}; DB.settings.unit='lb';
+    DB.settings.planFold=false; const t=new Date(todayISO+'T00:00');
+    for(let i=1;i<=40;i++){const d=new Date(t);d.setDate(d.getDate()-i);
+      DB.days[d.toLocaleDateString('en-CA')]={w:[{part:'Back',ex:'Deadlift',w:60,reps:[5]}],upd:1};}
+    ${logged?"day(todayISO).w.push({part:'Back',ex:'Deadlift',w:60,reps:[5],at:Date.now()});":""}
+    SEED=deriveAll();
+    planSave([{ex:'Deadlift',lines:[{w:toKg(205),bw:false,reps:[5,5,5]}]}],'','');
+    view='today'; lift.ex=null; lift.plan=null; render();})()`);
+  seed(false);
+  ok("before the gym, Today leads with the plan",
+     run(`!!document.querySelector('#view .planedge') && document.querySelectorAll('.planrow').length>0`));
+  ok("...and Rhythm is gone from the tab", run(`!document.querySelector('#view .rhythm')`));
+  seed(true);
+  ok("mid-session, Today still leads with the plan — one hero in both states",
+     run(`!!document.querySelector('#view .planedge') && document.querySelectorAll('.planrow').length>0`));
+  run(`document.querySelector('[data-planfold]').click()`);
+  ok("folding from Today keeps you on Today", run(`view`) === "today");
+  ok("...and leaves the heading standing",
+     run(`document.querySelectorAll('.planrow').length`) === 0 &&
+     run(`!!document.querySelector('#view .planedge')`));
+  run(`document.querySelector('[data-planfold]').click()`);
+  ok("...and unfolds again in place", run(`document.querySelectorAll('.planrow').length`) > 0);
+  ok("the Train tab carries no second copy",
+     run(`(function(){view='lift'; lift.ex=null; lift.part='Back'; lift.plan=null; render();
+       return !document.querySelector('.plancard') && !document.querySelector('.planedge');})()`));
+  ok("Today can open the paste screen itself",
+     run(`(function(){view='today'; lift.plan='paste'; render();
+       return !!document.getElementById('planText');})()`));
+  run(`(function(){lift.plan=null; view='today'; render();})()`);
+}
+
 
 process.exit(fail ? 1 : 0);

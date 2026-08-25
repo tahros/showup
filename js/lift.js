@@ -2,6 +2,49 @@
    Extracted verbatim from index.html (v3.2.5 refactor). Classic script:
    shares one global scope with its siblings, loaded in order by index.html. */
 let _lastLiftPart='\u0000';   // v3.3.64: sentinel — first render always counts as a change
+/* v3.3.319: today's plan is built ONCE, here, and rendered by whichever tab
+   is showing it. It lived inline in renderLift; the maker moved it to the
+   Today tab, and a second copy would have been two plans free to drift.
+   Pure function: returns markup, touches nothing. */
+function planSectionHTML(){
+  let h='';
+      const _pl=planNow();
+      if(_pl){
+        /* v3.3.282: Edit and Clear move to the heading's right edge. They are
+           management actions, not part of the plan, and a full-width pair under
+           the last exercise read as another row of the session. The (i) stays
+           beside the title — that placement is v3.3.115's deliberate call and
+           is not what the maker asked to move. */
+        /* v3.3.294: the whole plan folds, like the Last-time card (v3.3.274).
+           Some days you want the playbook on screen; some days it is scroll
+           between you and the body-part grid. Folded, the heading IS the
+           one-line fact — pill, name, actions — so nothing is left hanging.
+           The chevron leads the action group so the destructive Clear stays
+           at the far edge, away from the control you tap most. */
+        const _pf=!!DB.settings.planFold;
+        h+=`<h2><b class="scopepill">today</b> plan${hActs('plan',"Paste a session and the app reads what it can. It fills weights and reps for today only, is never written to your record, and clears at midnight. Nothing is counted against it.",'About today\u2019s plan')}<span class="planedge"><button class="pedge pfold" data-planfold aria-expanded="${!_pf}" aria-label="${_pf?'Show':'Hide'} today\u2019s plan">${_pf?'\u25b8':'\u25be'}</button><button class="pedge" data-planedit>Edit</button><button class="pedge" data-planclear>Clear</button></span></h2>`;
+        if(!_pf){
+          h+=`<div class="card plancard">
+            ${(_pl.items||[]).map(i=>`<button class="planrow${planLoggedToday(i.ex)?' pdone':''}" data-planex="${i.ex}">
+                <span class="pn">${i.ex}</span>
+                <span class="pl">${i.lines.map(l=>`<span class="pv pw mono">${l.bw||l.w<=0?'BW':wDisp(l.w)+' '+U()}</span><span class="px mono" aria-hidden="true">\u00d7</span><span class="pr mono">${l.reps.join(' ')}</span>`).join('')}</span>
+                <span class="pk">${planLoggedToday(i.ex)?'\u2713':''}</span>
+              </button>`).join('')}
+            ${_pl.note?`<div class="plannote mono">${hesc(_pl.note)}</div>`:''}
+          </div>`;
+        }
+      }else{
+        /* v3.3.297: the empty state is the SAME heading as the filled one, with
+           PASTE where the fold and Edit and Clear sit. A 51px full-width slab
+           made the section change shape depending on whether a plan existed —
+           the page jumped, and an empty section was louder than a full one.
+           One line either way, and the offer sits exactly where the controls
+           for a real plan will appear. */
+        h+=`<h2 class="quiet"><b class="scopepill off">today</b> plan${hActs('plan',"Paste a session and the app reads what it can. It fills weights and reps for today only, is never written to your record, and clears at midnight. Nothing is counted against it.",'About today\u2019s plan')}<span class="planedge"><button class="pedge" data-planpaste>Paste</button></span></h2>`;
+      }
+  return h;
+}
+
 function renderLift(){
   /* v3.3.64: the entrance fires when the LIST YOU'RE LOOKING AT CHANGES —
      not only on a part tap. Opening the app in the morning restores the part
@@ -35,40 +78,11 @@ function renderLift(){
     /* renderLift COMMITS its own html rather than returning it — an early
        `return planScreenHTML()` silently rendered nothing. Write and stop. */
     if(lift.plan==='paste'||lift.plan==='preview'){ $('#view').innerHTML=planScreenHTML(); return; }
-    const _pl=planNow();
-    if(_pl){
-      /* v3.3.282: Edit and Clear move to the heading's right edge. They are
-         management actions, not part of the plan, and a full-width pair under
-         the last exercise read as another row of the session. The (i) stays
-         beside the title — that placement is v3.3.115's deliberate call and
-         is not what the maker asked to move. */
-      /* v3.3.294: the whole plan folds, like the Last-time card (v3.3.274).
-         Some days you want the playbook on screen; some days it is scroll
-         between you and the body-part grid. Folded, the heading IS the
-         one-line fact — pill, name, actions — so nothing is left hanging.
-         The chevron leads the action group so the destructive Clear stays
-         at the far edge, away from the control you tap most. */
-      const _pf=!!DB.settings.planFold;
-      h+=`<h2><b class="scopepill">today</b> plan${hActs('plan',"Paste a session and the app reads what it can. It fills weights and reps for today only, is never written to your record, and clears at midnight. Nothing is counted against it.",'About today\u2019s plan')}<span class="planedge"><button class="pedge pfold" data-planfold aria-expanded="${!_pf}" aria-label="${_pf?'Show':'Hide'} today\u2019s plan">${_pf?'\u25b8':'\u25be'}</button><button class="pedge" data-planedit>Edit</button><button class="pedge" data-planclear>Clear</button></span></h2>`;
-      if(!_pf){
-        h+=`<div class="card plancard">
-          ${(_pl.items||[]).map(i=>`<button class="planrow${planLoggedToday(i.ex)?' pdone':''}" data-planex="${i.ex}">
-              <span class="pn">${i.ex}</span>
-              <span class="pl">${i.lines.map(l=>`<span class="pv pw mono">${l.bw||l.w<=0?'BW':wDisp(l.w)+' '+U()}</span><span class="px mono" aria-hidden="true">\u00d7</span><span class="pr mono">${l.reps.join(' ')}</span>`).join('')}</span>
-              <span class="pk">${planLoggedToday(i.ex)?'\u2713':''}</span>
-            </button>`).join('')}
-          ${_pl.note?`<div class="plannote mono">${hesc(_pl.note)}</div>`:''}
-        </div>`;
-      }
-    }else{
-      /* v3.3.297: the empty state is the SAME heading as the filled one, with
-         PASTE where the fold and Edit and Clear sit. A 51px full-width slab
-         made the section change shape depending on whether a plan existed —
-         the page jumped, and an empty section was louder than a full one.
-         One line either way, and the offer sits exactly where the controls
-         for a real plan will appear. */
-      h+=`<h2 class="quiet"><b class="scopepill off">today</b> plan${hActs('plan',"Paste a session and the app reads what it can. It fills weights and reps for today only, is never written to your record, and clears at midnight. Nothing is counted against it.",'About today\u2019s plan')}<span class="planedge"><button class="pedge" data-planpaste>Paste</button></span></h2>`;
-    }
+    /* v3.3.319: the plan moved to the Today tab, where "today's plan" plainly
+       belongs — Today is the day, Train is where you pick and log. Kept in ONE
+       place rather than both: a second copy would be two plans free to drift,
+       and this app has retired duplicate sections twice before on exactly that
+       reasoning (v3.3.230, v3.3.307). */
     h+=`<h2>Body part</h2><div class="partgrid">`;
     [...order,...dormant].forEach(p=>{
       const i0=P.info[p]||{since:999};

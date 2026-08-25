@@ -1,5 +1,15 @@
 # ShowUp — changelog
 
+## v3.3.319 (2026-08-25) — Today opens with today's plan
+
+The Today tab now leads with your plan for the day, both before you start and
+mid-session. Rhythm is gone from it — the streak and the day count are already
+in the header, and Stats tells that story properly.
+
+The plan has moved rather than been copied: it's no longer on the Train tab.
+One plan, in the place named for today. Pasting, folding, editing and clearing
+all work from there.
+
 ## v3.3.318 (2026-08-25) — The rep ruler glides, and always lands on a number
 
 Two fixes to the rep slider.

@@ -79,11 +79,19 @@ check("...and the header wears .resting \u2014 the mirror of .live",
 check("...never both states at once", `document.querySelector('header').classList.contains('live')`, false);
 // v3.3.90: the card follows the day's state too
 run(`view='today'; render();`);
-check("...and the rhythm card wears .resting",
-      `!!document.querySelector('#view .rhythm.resting')`, true);
+/* v3.3.319: Rhythm left Today with the maker's move to the plan, and the
+   card went with it. The property it carried — a declared rest day is
+   ANNOTATED, in one place, never soothed at — now lives entirely in the
+   header chip, which is asserted just above. */
+check("...and the day's state is carried by the header alone",
+      `document.querySelector('header').classList.contains('resting')
+         && !document.querySelector('#view .rhythm')`, true);
 run(`view='today'; render();`);
-ok("SCOPE: the hero still says 'ends at midnight' \u2014 header chip only, no soothing",
-   /ends at midnight/.test(run(`$('#view').innerHTML`)));
+/* the phrase lived in the rhythm card; with the card gone the SCOPE claim
+   is stronger, not weaker — the body says nothing about the rest day at all,
+   which is what "header chip only, no soothing" was always defending. */
+ok("SCOPE: the body offers no rest-day copy at all — header chip only",
+   !/take the day|well earned|you deserve|rest up/i.test(run(`$('#view').innerHTML`)));
 run(`day(todayISO).rest=false; delete DB.days[todayISO].rest; renderHeader();`);
 check("undeclared, the fire returns", `$('#hStreak').textContent`, "\u{1F525} 3d");
 check("...and sheds the restchip class with it", `$('#hStreak').classList.contains('restchip')`, false);
