@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v3.3.293 (2026-08-24) — The rep ruler fades at its edges
+
+Numbers now fade out toward both ends of the ruler, darkest at the centre —
+the depth a physical dial has, where the far numbers curve away from you.
+
+The fade is painted in the strip around the ruler rather than applied to the
+scrolling numbers themselves, so it costs the scroll nothing. Nothing about
+how the ruler moves changed.
+
 ## v3.3.292 (2026-08-24) — Plan exercise names line up
 
 The exercise names in today's plan now all start at the same left edge. They

@@ -848,6 +848,20 @@
      .repwrap), never a child of it — the float+sticky version collapsed the
      track. The scroller itself is transparent so the band shows through. */
   .repwrap{position:relative;background:var(--surface2);border-radius:12px;height:74px}
+  /* v3.3.293: the numbers fade toward the edges — the depth cue a physical
+     dial has, where the far numbers curve away from you.
+     Deliberately NOT a mask on .repruler and NOT per-notch opacity in JS.
+     A mask on a scrolling element has a long history of killing momentum in
+     WebKit, and per-notch opacity would put work straight back into the
+     scroll path two releases were spent emptying. This is two static
+     overlays painted in the wrapper's own background colour: the scroller
+     never knows they exist. */
+  .repwrap::before,.repwrap::after{content:'';position:absolute;top:0;bottom:0;
+    width:30%;z-index:2;pointer-events:none}
+  .repwrap::before{left:0;border-radius:12px 0 0 12px;
+    background:linear-gradient(90deg,var(--surface2) 0%,var(--surface2) 12%,transparent 100%)}
+  .repwrap::after{right:0;border-radius:0 12px 12px 0;
+    background:linear-gradient(270deg,var(--surface2) 0%,var(--surface2) 12%,transparent 100%)}
   .rrband{position:absolute;left:50%;top:6px;transform:translateX(-50%);
     width:52px;height:62px;border-radius:10px;background:var(--surface);
     border:1px solid var(--line);pointer-events:none;z-index:0}

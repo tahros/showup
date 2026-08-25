@@ -609,6 +609,19 @@ if "padding:0 calc(50%" in _rr_block.replace(" ", " "):
 # what gets guarded.
 if not _re.search(r"\.repruler\{[^}]*touch-action:pan-x", _rr_block.replace("\n", "").replace("\r", "")):
     fail.append("ruler: .repruler lost touch-action:pan-x — a drag on it can scroll the page again (v3.3.291)")
+# v3.3.293: the edge fade must stay OFF the scroller. A mask on a scrolling
+# element has a long WebKit history of killing momentum, and per-notch opacity
+# in JS would refill the scroll path v3.3.289/290 emptied. Two static overlays
+# in the wrapper, and nothing else.
+_rr_flat = _rr_block.replace("\n", "").replace("\r", "")
+if _re.search(r"\.repruler\{[^}]*mask-image", _rr_flat):
+    fail.append("ruler: a mask on .repruler risks killing momentum — fade in .repwrap instead (v3.3.293)")
+# match each SIDE's own rule, not the shared declaration block: a combined
+# ".repwrap::before,.repwrap::after{...}" selector satisfies a naive search
+# for either name even after one side's positioning rule is deleted.
+if not (_re.search(r"\.repwrap::before\{[^}]*left:0", _rr_flat)
+        and _re.search(r"\.repwrap::after\{[^}]*right:0", _rr_flat)):
+    fail.append("ruler: the edge fade needs BOTH sides positioned — one side would fade alone (v3.3.293)")
 # and the iOS haptic must be feature-detected, never browser-sniffed
 _app_hap = (d/"js/app.js").read_text()
 if "'switch' in HTMLInputElement.prototype" not in _app_hap:
