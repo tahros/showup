@@ -92,8 +92,12 @@
        flat grey slabs. Now the page is the darkest thing (#EFEFEF), cards
        are white, and surface2 sits between — so it lifts off the page AND
        recedes inside a card, which is what an elevation step has to do.
-       Measured: every ink pair clears AA (tightest faint-on-ground 4.70). */
-    --ground:#EFEFEF; --surface:#FFFFFF; --surface2:#F7F7F7; --line:#DDDDDD;
+       Measured: every ink pair clears AA (tightest faint-on-ground 4.70).
+       v3.3.305: --line lifted #DDDDDD -> #C9C9C9. The dark hairline reads at
+       1.71:1 against its own card and the light one only managed 1.36, so
+       the rows looked like pills in dark and like nothing in light. 1.66 now
+       — level with dark, and with the iOS system separator at 1.71. */
+    --ground:#EFEFEF; --surface:#FFFFFF; --surface2:#F7F7F7; --line:#C9C9C9;
     --accent:#2F4BD8; --accent-soft:#C3CCF5; --accent-dim:#8892C4;
     --record:#B83528;
     --rest:#79A884;                         /* declared rest, light theme (wash/frame grade) */
@@ -800,7 +804,7 @@
      the recessed fill only made these rows read as a different KIND of
      surface from the cards above them. The press now goes the other way:
      resting white, pressing down to --surface2. */
-  .item.goto{padding:12px 14px;border-left:0;
+  .item.goto{padding:12px 14px;
     background:var(--surface);border:0.5px solid var(--line);border-radius:10px;
     align-items:center;gap:10px;margin-bottom:6px;box-shadow:none}
   .item.goto b{font-size:16px;font-weight:500}

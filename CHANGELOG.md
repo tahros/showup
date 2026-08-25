@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v3.3.305 (2026-08-24) — Hairlines you can see in light mode
+
+The outline around cards and rows was too faint in light mode — half as
+visible as the same line in dark, which is why the rows read as pills at
+night and as nothing by day. It now reads at the same strength in both, and
+at about the strength iOS uses for its own separators.
+
 ## v3.3.304 (2026-08-24) — Exercise rows are white like everything else
 
 The exercise rows were sitting on a slightly grey fill while every card

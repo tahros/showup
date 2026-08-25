@@ -695,6 +695,37 @@ check("the unit is a separate word, not glued to the digits",
 check("...and the per-side line reads the same way",
       `(function(){const e=document.querySelector('.pr-side');
         return e ? /^[\\d.,]+ (lb|kg) \\/ side$/.test(e.textContent.trim()) : 'no side';})()`, true);
+/* v3.3.305: the hairline must read as well in light as it does in dark.
+   Light was #DDDDDD (1.36:1 on its own card) against dark's #424242 (1.71),
+   so the same rows looked like pills at night and like nothing by day. The
+   pin is the PARITY, not either literal: whatever the two themes use, the
+   light hairline may not be far weaker than the dark one. */
+{
+  const cssL = fs.readFileSync(path.join(dir, "css/app.css"), "utf8");
+  /* the theme blocks open with long comments, so the window has to reach past
+     them — 1600 chars stopped short of --line and returned null */
+  const grab = (block, tok) => {
+    const i = cssL.indexOf(block); if (i < 0) return null;
+    const m = cssL.slice(i, i + 9000).match(new RegExp("--" + tok + ":\\s*(#[0-9A-Fa-f]{6})"));
+    return m ? m[1] : null;
+  };
+  const srgb = c => (c/=255, c<=0.03928 ? c/12.92 : ((c+0.055)/1.055)**2.4);
+  const lum = h => { const [r,g,b]=[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
+    return .2126*srgb(r)+.7152*srgb(g)+.0722*srgb(b); };
+  const ratio = (a,b) => { const [x,y]=[lum(a),lum(b)].sort((p,q)=>q-p); return (x+.05)/(y+.05); };
+  const L = { line: grab('[data-theme="light"]','line'), surface: grab('[data-theme="light"]','surface') };
+  const D = { line: grab(':root{','line'), surface: grab(':root{','surface') };
+  const lv = ratio(L.line, L.surface), dv = ratio(D.line, D.surface);
+  check("the light hairline is visible on its own card",
+        `${lv >= 1.5}`, "true");
+  check("...and not markedly weaker than the dark one",
+        `${lv >= dv * 0.85}`, "true");
+  check("every pill family declares a hairline",
+        `${["\\.item\\.goto\\{", "\\.item\\.logrow:not\\(\\.goto\\):not\\(\\.todayrow\\)\\{", "\\.item\\.todayrow\\{"]
+            .every(sel => { const m = cssL.replace(/\r?\n\s*/g,"").match(new RegExp(sel + "[^}]*")); 
+                            return m && /border:0\.5px solid var\(--(line|live)\)/.test(m[0]); })}`, "true");
+}
+
 /* v3.3.304: rows use the same white every other card uses, and the press
    goes to --surface2. That token is one step toward the page in light and
    one step away from it in dark, so the SAME declaration darkens on light

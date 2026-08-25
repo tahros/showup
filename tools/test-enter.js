@@ -117,8 +117,19 @@ check("...and the day's volume in a column of its own",
         `${/\.item\.goto\{[^}]*border:0\.5px solid var\(--line\)/.test(css298)}`, "true");
   check("...with a press state that settles under the thumb",
         `${/\.item\.logrow:active\{[^}]*transform:scale/.test(css298)}`, "true");
-  check("...and no accent rail on every single one of them",
-        `${/\.item\.goto\{[^}]*border-left:0/.test(css298)}`, "true");
+  /* v3.3.305 RESTATES: this asserted the presence of `border-left:0`, but
+     that declaration was dead — the `border:0.5px solid var(--line)` two
+     lines below it already reset all four sides — and removing it broke a
+     test of a property that had not changed. The property is that the row
+     carries ONE uniform hairline, not a heavy accent rail down one side. */
+  /* scope to the LIVE rule: `.item.goto{` also appears inside the
+     data-design-preview experiment, which declares border-left:1px, and an
+     unanchored search happily matched that instead. */
+  {
+    const live = (css298.split('[data-design-preview')[0].match(/\.item\.goto\{[^}]*/) || [""])[0];
+    check("...and no accent rail down one side of every row",
+          `${/border:0\.5px solid var\(--line\)/.test(live) && !/border-left:\s*[1-9]/.test(live)}`, "true");
+  }
 }
 
 process.exit(fail ? 1 : 0);
