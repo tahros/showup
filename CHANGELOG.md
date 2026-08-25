@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v3.3.317 (2026-08-25) — Add set goes red while you're training
+
+The Add set button turns red and pulses once a session is live, matching the
+header. It's the same red treatment the Continue button already used, so
+there's one live look in the app rather than two.
+
+Reverts yesterday's version, which put the red edge on the card instead and
+left the button blue.
+
 ## v3.3.316 (2026-08-25) — The log card goes live with the header
 
 While a set is open, the card you log from now carries a red edge and a small

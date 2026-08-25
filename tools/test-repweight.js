@@ -745,31 +745,34 @@ check("...and the per-side line reads the same way",
            && /\.item\.todayrow:active\{[^}]*background:var\(--surface2\)/.test(css304)}`, "true");
 }
 
-/* v3.3.316: while a set is open the log CARD carries the live state — red
-   edge plus a "live" mark, matching the header — and the Add-set button
-   stays accent. Red in this app means one thing: something is happening now.
-   Putting it on the primary action would make it mean two, and a large red
-   slab reads as destructive beside Clear and Delete. Both halves are pinned,
-   because either alone permits the design being argued against. */
+/* v3.3.317 REVERSES v3.3.316. That release put the live state on the log
+   card and pinned, deliberately, that the Add-set button must NEVER be red —
+   my argument, not the maker's. He used it and rejected it, so the guard
+   reverses with the decision: a guard defending an argument the product has
+   settled is worse than no guard.
+   The button now carries .livego, the same red-plus-pulse the Continue
+   button has used since v3.2 — one live treatment in the app, not two. */
 run(`(function(){DB.days={}; DB.settings.unit='lb'; SEED=deriveAll();
   view='lift'; lift={part:'Back',ex:'Deadlift',weight:toKg(205)}; render();})()`);
-check("with nothing logged, the card is not live", `!!document.querySelector('.zone.prime.liveZone')`, false);
+check("before a session starts, Add set is the ordinary accent button",
+      `document.getElementById('addrep').className`, "btn");
 run(`(function(){day(todayISO).w.push({part:'Back',ex:'Deadlift',w:toKg(205),reps:[6],at:Date.now()});
   SEED=deriveAll(); render();})()`);
-check("a set open turns the card live", `!!document.querySelector('.zone.prime.liveZone')`, true);
-check("...and marks it in words", `(document.querySelector('.livetag')||{textContent:''}).textContent`, "\u25cf live");
-check("...while the Add-set button is untouched",
-      `document.getElementById('addrep').className`, "btn");
+check("a set open turns Add set live",
+      `document.getElementById('addrep').classList.contains('livego')`, true);
+check("...and the log card is NOT separately reddened — one signal, not two",
+      `!!document.querySelector('.zone.prime.liveZone')||!!document.querySelector('.livetag')`, false);
 run(`(function(){day(todayISO).doneAll=true; SEED=deriveAll(); render();})()`);
-check("closing the session clears it", `!!document.querySelector('.zone.prime.liveZone')`, false);
+check("closing the session returns it to accent",
+      `document.getElementById('addrep').className`, "btn");
 {
   const cssL = fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\r?\n\s*/g, "");
-  check("the live edge is the header's own red",
-        `${/\.zone\.prime\.liveZone\{[^}]*border-color:var\(--live\)/.test(cssL)}`, "true");
-  check("...and no rule paints the primary action red",
-        `${!/#addrep[^{]*\{[^}]*var\(--live\)/.test(cssL)}`, "true");
-  check("...with the pulse gated on reduced-motion",
-        `${/prefers-reduced-motion:no-preference\)\{\.zone\.prime\.liveZone \.livetag\{animation:pulse/.test(cssL)}`, "true");
+  check("live reuses the app's existing red treatment, not a second one",
+        `${/\.chip\.on\.livego,\.btn\.livego\{[^}]*background:var\(--live\)/.test(cssL)}`, "true");
+  check("...and it pulses",
+        `${/\.chip\.on\.livego,\.btn\.livego\{[^}]*animation:livepulse/.test(cssL)}`, "true");
+  check("...but stops entirely under reduced-motion",
+        `${/prefers-reduced-motion:reduce\)\{\.chip\.on\.livego,\.btn\.livego\{animation:none\}/.test(cssL)}`, "true");
 }
 
 /* v3.3.315: Run stores DISTANCE in the field lifts use for weight, so the

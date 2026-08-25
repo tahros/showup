@@ -410,14 +410,7 @@ function renderLift(){
        Add button do not need naming, and the zone border already groups
        them (the v3.3.130 argument, applied to a header instead of an icon).
        .tight trims the padding the caption used to justify. */
-    /* v3.3.316: while a set is open, the CARD carries the live state — a red
-       edge and a small "live" mark, matching the header. The button stays
-       blue. Red in this app means one thing, "something is happening right
-       now"; spending it on the primary action would make it mean two, and a
-       large red slab reads as destructive next to Clear and Delete. The
-       state belongs to the frame, the accent belongs to the action. */
-    h+=`<div class="zone prime tight${isLive()?' liveZone':''}">
-        ${isLive()?'<span class="livetag" aria-hidden="true">\u25cf live</span>':''}
+    h+=`<div class="zone prime tight">
         <div class="wsel"><button data-w="-1">−</button>
         <div class="val${isBody(ex)?' bwval':''}">${isBody(ex)?`<span class="bwtag">Bodyweight +</span>`:''}<input id="wv" type="number" inputmode="decimal" step="${wStep(ex)}" value="${wDisp(lift.weight)}"><span class="unit">${U()}</span></div>
         <button data-w="1">+</button></div>`;
@@ -445,7 +438,7 @@ function renderLift(){
     // v3.3.56: tiles follow the weight · v3.3.141: and carry the suggestion dot
     /* v3.3.286: the tile row and the reps field become ONE ruler. */
     h+=repRulerHTML(ex,lift.weight)+`
-        <button class="btn" id="addrep" style="margin:10px 0 0">Add set</button>
+        <button class="btn${isLive()?' livego':''}" id="addrep" style="margin:10px 0 0">Add set</button>
         </div>`;
     /* v3.3.144: the Suggested strip, back — compact form only. One tap logs
        the complete w×r pair, which is the thing the dot could not do. */
