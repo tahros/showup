@@ -56,7 +56,7 @@ console.log("     (today's weekday index:", todayDow + ", strongest is always 3 
 // behavioural distribution.
 check("the Weekdays chart is absent", `document.querySelectorAll('.wd-col').length`, 0);
 check("Current rhythm renders one current-month calendar", `document.querySelectorAll('.crcard').length`, 1);
-check("today is identified in Current rhythm", `document.querySelectorAll('.crday.crtoday').length`, 1);
+check("today is identified in the attendance heatmap", `document.querySelectorAll('.heatgrid .tod').length`, 1);
 
 // FIX 3: the report overlay carries the app font (it's mounted on <body>)
 run(`repOvEl();`);   // build the overlay directly
@@ -145,8 +145,13 @@ run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
   SEED=deriveAll(); view='stats'; render();})()`);
 check("the unified attendance hero leads Stats", `!!document.querySelector('#secDays + .crcard')`, true);
 check("...showing the live total", `document.querySelector('.crtotal>b').textContent`, "40");
-check("...with the lifetime-pace caption", `/% since/.test(document.querySelector('.crtotal').textContent)`, true);
-check("...and streak plus best in the same card", `!!document.querySelector('.crbest')`, true);
+/* v3.3.307: the lifetime pace moved to its own line under the number
+   (.crsince) and streak+best to one line beside it (.crstreak). Same two
+   facts, asserted where they now live. */
+check("...with the lifetime-pace caption", `/% of every day since/.test(document.querySelector('.crsince').textContent)`, true);
+check("...and streak plus best in the same card",
+      `(function(){const s=document.querySelector('.crstreak');
+        return !!s && /streak/.test(s.textContent) && /best/.test(s.textContent);})()`, true);
 // logging today moves the number — the card is live, like the grid total
 check("logging today increments it to 41",
       `(function(){day(todayISO).w.push({part:'Back',ex:'Row',w:40,reps:[10],at:Date.now()});
@@ -160,12 +165,19 @@ check("kpi total and grid total are the same arithmetic",
 
 // ---- v3.3.100: hero row + one 3-up row --------------------------------------
 run(`view='stats'; render();`);
-check("the attendance hero has exactly one current-month calendar",
-      `document.querySelectorAll('.crcard .crgrid').length`, 1);
+check("the attendance hero has exactly one grid, not two",
+      `document.querySelectorAll('.crcard .heatgrid').length`, 1);
 const cssSrc100 = fs.readFileSync(path.join(dir, "css/app.css"), "utf8");
-console.log((/\.crherohead\{display:flex;align-items:flex-end;justify-content:space-between/.test(cssSrc100) ? "PASS" : "FAIL"),
-  "lifetime and streak share one clear hero row");
-if (!/\.crherohead\{display:flex;align-items:flex-end;justify-content:space-between/.test(cssSrc100)) fail++;
+/* v3.3.307: .crherohead became .crhead when the card became a heatmap — the
+   property is unchanged, the two facts still share one row with the streak
+   pushed to the far edge. */
+{
+  const flat100 = cssSrc100.replace(/\r?\n\s*/g, "");
+  const one = /\.crhead\{[^}]*display:flex/.test(flat100)
+           && /\.crhead\{[^}]*justify-content:space-between/.test(flat100);
+  console.log((one ? "PASS" : "FAIL"), "lifetime and streak share one clear hero row");
+  if (!one) fail++;
+}
 check("the duplicate Current rhythm heading is gone", `![...document.querySelectorAll('h2')].some(h=>h.firstChild.textContent.trim()==='Current rhythm')`, true);
 
 /* v3.3.101, an honest limit: the dead space the maker circled came from
@@ -184,9 +196,19 @@ check("the duplicate Current rhythm heading is gone", `![...document.querySelect
 // equal to the number's ascent overshoot \u2014 the dead space the maker
 // circled at the top of the hero card.
 const cssSrc101 = fs.readFileSync(path.join(dir, "css/app.css"), "utf8");
-console.log((/\.crtotal>b\{font-size:40px/.test(cssSrc101) ? "PASS" : "FAIL"),
-  "the lifetime total remains the dominant number");
-if (!/\.crtotal>b\{font-size:40px/.test(cssSrc101)) fail++;
+/* v3.3.307: the numeral came down 40 -> 30px when the calendar left and the
+   heatmap took the space. It is still by far the largest thing in the card,
+   which is the property — asserted as a RATIO against the next largest text
+   rather than as a literal that any retune would break. */
+{
+  const flat101 = cssSrc101.replace(/\r?\n\s*/g, "");
+  const hero = +(flat101.match(/\.crtotal>b\{[^}]*font-size:(\d+)px/) || [0,0])[1];
+  const next = +(flat101.match(/\.crstreak\{[^}]*font-size:([\d.]+)px/) || [0,0])[1];
+  const dominant = hero >= 26 && next > 0 && hero >= next * 2;
+  console.log((dominant ? "PASS" : "FAIL"),
+    `the lifetime total remains the dominant number (${hero}px vs ${next}px)`);
+  if (!dominant) fail++;
+}
 
 // ---- v3.3.111: the section order is declared, not incidental ------------
 run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');

@@ -87,8 +87,16 @@ ok("the hint is no longer absolutely positioned over the plot",
    "position:absolute gone");
 
 // ---- 3. The new day-level view is compact and structurally clear -----------
-ok("Current rhythm has seven weekday columns", run(`document.querySelectorAll('.crweekdays span').length`) === 7);
-ok("Current rhythm contains exactly one today", run(`document.querySelectorAll('.crday.crtoday').length`) === 1);
+/* v3.3.307 RESTATES: weekdays are now ROWS of a year heatmap rather than a
+   labelled header over a month. Seven of them either way, and exactly one
+   today either way. */
+ok("the attendance grid keeps seven weekday rows",
+   /\.heatgrid\{[^}]*grid-template-rows:repeat\(7,1fr\)/.test(
+     fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\r?\n\s*/g, "")));
+ok("...and contains exactly one today", run(`document.querySelectorAll('.heatgrid .tod').length`) === 1);
+ok("...with every day of the window present, none blank",
+   run(`document.querySelectorAll('.heatgrid .hc').length`) === 35*7,
+   run(`document.querySelectorAll('.heatgrid .hc').length`) + " cells");
 ok("the retired Weekdays plot is gone", run(`document.querySelectorAll('.wd-col').length`) === 0);
 
 // ---- 4. Consistency: verdict plus graph ------------------------------------

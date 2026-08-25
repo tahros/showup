@@ -289,31 +289,40 @@
   .mg-y{font-size:10px;color:var(--muted)}
   .mg-c{height:24px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--chalk)}
   .mg-c.cur{outline:1.5px dashed var(--accent);outline-offset:-1.5px;color:var(--muted)}
-  /* v3.3.230: attendance is one story — lifetime promise, current receipt. */
+  /* v3.3.230: attendance is one story — lifetime promise, current receipt.
+     v3.3.307: the receipt is a YEAR HEATMAP whose runs join up, not a month
+     calendar. Weeks are columns and weekdays are rows, so consecutive days
+     run down a column — and a trained day that touches another drops the
+     radius on that side and overlaps a hair, so a streak paints as ONE
+     unbroken stroke instead of a stack of squares. */
   .crcard{padding:14px}
-  .crherohead{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:16px}
-  .crherohead small,.crmonth{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.04em}
-  .crtotal{display:flex;align-items:flex-end;gap:10px;min-width:0}
-  .crtotal>b{font-size:40px;line-height:.86;color:var(--accent-ink);letter-spacing:var(--track-num)}
-  .crtotal>span{display:flex;flex-direction:column;gap:3px;padding-bottom:1px}
-  .crbest{display:flex;flex-direction:column;align-items:flex-end;gap:2px;text-align:right}
-  .crbest b{font-family:var(--mono);font-size:16px;line-height:1;color:var(--chalk)}
-  .crmonth{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding-top:13px;margin-bottom:9px}
-  .crmonth b{font-size:10px;color:var(--chalk)}
-  /* v3.3.215: one calendar proportion across Stats and History. History's
-     1.45:1 landscape cells already proved that a month stays legible without
-     consuming half the screen; Current rhythm now uses that exact geometry. */
-  .crweekdays,.crgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
-  .crweekdays{margin-bottom:4px}
-  .crweekdays span{text-align:center;font-family:var(--mono);font-size:9px;color:var(--faint);padding:2px 0}
-  .crblank,.crday{aspect-ratio:1.45/1;min-width:0}
-  .crday{display:flex;align-items:center;justify-content:center;border-radius:8px;background:transparent;
-    color:var(--muted);font-family:var(--mono);font-size:11px;font-style:normal}
-  .crday.crweek:not(.crdone){background:color-mix(in srgb,var(--surface2) 72%,transparent)}
-  .crday.crdone{background:var(--accent-soft);color:var(--chalk);font-weight:700}
-  .crday.cractive{background:var(--accent);color:#fff}
-  .crday.crtoday{outline:1.5px solid var(--accent-ink);outline-offset:-1.5px}
-  .crday.crfuture{opacity:.32}
+  .crhead{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+  .crtotal{display:flex;align-items:baseline;gap:8px;min-width:0}
+  .crtotal>b{font-size:30px;line-height:1;color:var(--accent-ink);letter-spacing:var(--track-num);font-weight:500}
+  .crtotal>small,.crstreak,.crsince{font-family:var(--mono);letter-spacing:.02em}
+  .crtotal>small{font-size:11px;color:var(--faint)}
+  .crstreak{font-size:11px;color:var(--muted);white-space:nowrap}
+  .crsince{font-size:10.5px;color:var(--faint);margin-top:3px}
+  .heatwrap{margin-top:16px;overflow-x:auto;overflow-y:hidden;
+    -webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;
+    overscroll-behavior-x:contain}
+  .heatwrap::-webkit-scrollbar{display:none}
+  /* --hw and --c are written inline by the builder; declared here so they are
+     defined even if a render is interrupted, and so the cssvar guard can see
+     them (it reads CSS, not JS) */
+  .heatgrid{--hw:35;display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,1fr);
+    grid-template-columns:repeat(var(--hw),minmax(7px,1fr));gap:2px;min-width:100%}
+  .heatgrid .hc{display:block;width:100%;aspect-ratio:1;border-radius:2.5px;
+    background:var(--surface2);font-style:normal}
+  .heatgrid .hc.on{background:var(--accent)}
+  /* a run joins: square off the touching edge and close the 2px gap */
+  .heatgrid .hc.ju{border-top-left-radius:0;border-top-right-radius:0;margin-top:-2px}
+  .heatgrid .hc.jd{border-bottom-left-radius:0;border-bottom-right-radius:0;margin-bottom:-2px}
+  .heatgrid .hc.fut{background:none;box-shadow:inset 0 0 0 1px var(--line);opacity:.5}
+  .heatgrid .hc.tod{box-shadow:inset 0 0 0 1.5px var(--accent-ink)}
+  .heatticks{--hw:35;display:grid;grid-auto-flow:column;grid-template-columns:repeat(var(--hw),minmax(7px,1fr));
+    margin-top:7px;font-family:var(--mono);font-size:9px;color:var(--faint)}
+  .heatticks span{--c:0;grid-column:calc(var(--c) + 1);white-space:nowrap}
   /* Weight stays available without claiming a full dashboard section until
      opened. A first value is still recorded in Settings. */
   .bwcollapse{padding:0;overflow:hidden}

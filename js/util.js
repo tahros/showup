@@ -54,6 +54,7 @@
   const MODALS='#repOv,#onb,#msOv,#portraitveil';
   const blocked=t=>t.closest('[data-zoom]')||t.closest('.zone.mini .lastsets')||
                    t.closest('.heat')||t.closest('.heatcols')||   // the rail scrolls too
+                   t.closest('.heatwrap')||   /* v3.3.307: the year heatmap scrolls sideways */
                    t.closest('input')||t.closest('.settile')||
                    t.closest('.ychips')||      // v3.3.39: History's year strip scrolls sideways
                    t.closest('.pmixwrap')||   // v3.3.116: part mix scrolls sideways

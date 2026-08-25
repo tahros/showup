@@ -750,11 +750,19 @@ if 'data-values=' not in _stats or "mode==='race'" not in _app:
 if "raceCard.classList.add('scrubbing')" not in _app or "raceCard.classList.remove('scrubbing')" not in _app:
     fail.append("consistency: scrub state must hide endpoints while held and restore them on release (v3.3.214)")
 
-# -- v3.3.215: Current rhythm and History are two views of one calendar.
-if not _re.search(r'\.crblank,\.crday\{aspect-ratio:1\.45/1', css):
-    fail.append("current rhythm: day cells must keep History's 1.45:1 proportion (v3.3.215)")
-if not _re.search(r'\.crweekdays,\.crgrid\{[^}]*gap:4px', css):
-    fail.append("current rhythm: calendar spacing must keep History's 4px gap (v3.3.215)")
+# -- v3.3.215 made Current rhythm and History two views of ONE calendar, and
+# pinned this card to History's 1.45:1 cells and 4px gap. v3.3.307 ends that
+# relationship deliberately: History keeps the month calendar, and this card
+# became a year heatmap, because carrying a second, worse copy of History's
+# grid was most of what made it look broken. The guards now defend the
+# heatmap's own geometry — square cells, and a run that visibly JOINS.
+if not _re.search(r"\.heatgrid \.hc\{[^}]*aspect-ratio:1", css.replace("\n", "")):
+    fail.append("show up: heatmap cells must stay square (v3.3.307)")
+if not (_re.search(r"\.heatgrid \.hc\.ju\{[^}]*border-top-left-radius:0", css.replace("\n", ""))
+        and _re.search(r"\.heatgrid \.hc\.jd\{[^}]*border-bottom-left-radius:0", css.replace("\n", ""))):
+    fail.append("show up: consecutive days must JOIN into one stroke — that is the whole idea (v3.3.307)")
+if "closest('.heatwrap')" not in (d/"js/util.js").read_text():
+    fail.append("show up: the heatmap scrolls sideways and must be in the tab-swipe blocklist (v3.3.307)")
 
 # -- shell size
 n = len(idx.encode())

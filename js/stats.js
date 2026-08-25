@@ -650,49 +650,66 @@ document.addEventListener('click',e=>{
   const card=document.querySelector('.mccard');
   if(card) card.innerHTML=muscleCard(); else render();
 });
+/* v3.3.307: the month calendar becomes a YEAR HEATMAP whose runs join up.
+   The grid was 42 cells for 31 days — blanks before the 1st, greyed future
+   days after today, twelve dead cells out of forty-two, which is most of why
+   it read as broken. And History already draws a real month calendar, so
+   this card was carrying a worse second copy.
+   Weeks are columns, weekdays are rows, so consecutive days run DOWN a
+   column: a streak is a vertical stroke. Adjacent trained days drop the
+   radius between them and overlap by a hair, so a run renders as ONE bar
+   rather than a column of squares — which is the property this section is
+   named for. A rest day genuinely breaks the stroke. */
+const HEAT_WEEKS=35;                       // ~8 months, the width a phone can hold
 function currentRhythmSection(){
-  const dates=workoutDates(),now=new Date(todayISO+'T00:00'),year=now.getFullYear(),month=now.getMonth();
-  const first=new Date(year,month,1),last=new Date(year,month+1,0).getDate();
-  const offset=(first.getDay()+6)%7,today=now.getDate(),week=Math.floor((offset+today-1)/7);
-  const streak=currentStreak(),best=longestStreak(),active=new Set();
-  const end=new Date(now);
-  if(!dates.has(todayISO)) end.setDate(end.getDate()-1);
-  for(let i=0;i<streak;i++){
-    active.add(end.toLocaleDateString('en-CA')); end.setDate(end.getDate()-1);
+  const dates=workoutDates(),now=new Date(todayISO+'T00:00');
+  const streak=currentStreak(),best=longestStreak();
+  /* end the grid on today's column, start on a Monday HEAT_WEEKS back */
+  const end=new Date(now); end.setDate(end.getDate()+(7-((now.getDay()+6)%7)-1));
+  const start=new Date(end); start.setDate(start.getDate()-(HEAT_WEEKS*7-1));
+  const iso=d=>d.toLocaleDateString('en-CA');
+  const days=[];
+  for(let k=0;k<HEAT_WEEKS*7;k++){
+    const d=new Date(start); d.setDate(d.getDate()+k);
+    days.push(iso(d));
   }
-  const cells=[];
-  for(let i=0;i<offset;i++) cells.push('<i class="crblank" aria-hidden="true"></i>');
-  let monthDays=0;
-  for(let day=1;day<=last;day++){
-    const d=new Date(year,month,day),iso=d.toLocaleDateString('en-CA');
-    const done=dates.has(iso),future=iso>todayISO,isToday=iso===todayISO;
-    if(done) monthDays++;
-    const cls=['crday'];
-    if(done) cls.push('crdone');
-    if(active.has(iso)) cls.push('cractive');
-    if(future) cls.push('crfuture');
-    if(isToday) cls.push('crtoday');
-    if(Math.floor((offset+day-1)/7)===week) cls.push('crweek');
-    cells.push(`<span class="${cls.join(' ')}" role="img" aria-label="${iso}${done?' · completed workout':future?' · future':' · no completed workout'}">${day}</span>`);
+  const on=x=>dates.has(x);
+  /* month ticks: the column where each month first appears */
+  const ticks=[];
+  for(let c=0;c<HEAT_WEEKS;c++){
+    const d=new Date(days[c*7]+'T00:00');
+    if(c===0||d.getDate()<=7) ticks.push({c,label:d.toLocaleDateString('en-US',{month:'short'}).toUpperCase()});
   }
-  const monthName=now.toLocaleDateString('en-US',{month:'long'});
+  const cells=days.map((x,k)=>{
+    const future=x>todayISO, isToday=x===todayISO, done=on(x);
+    /* a run is vertical: the neighbours that matter are k-1 and k+1 WITHIN
+       the same column (same week), which is exactly k%7 */
+    const up   = done && k%7!==0 && on(days[k-1]);
+    const down = done && k%7!==6 && k+1<days.length && on(days[k+1]);
+    const cls=['hc'];
+    if(done) cls.push('on');
+    if(future) cls.push('fut');
+    if(isToday) cls.push('tod');
+    if(up) cls.push('ju');
+    if(down) cls.push('jd');
+    return `<i class="${cls.join(' ')}" role="img" aria-label="${x}${done?' \u00b7 trained':future?' \u00b7 future':' \u00b7 rest'}"></i>`;
+  }).join('');
   const total=msLiveTotal(),firstDay=SEED.totals.first;
   let lifetime='';
   if(firstDay){
     const span=Math.max(1,daysBetween(firstDay,todayISO)+1-((((DB.days[todayISO]||{}).w)||[]).length?0:1));
     const since=new Date(firstDay+'T00:00').toLocaleDateString('en-US',{month:'short',year:'numeric'});
-    lifetime=`<small>${Math.round(total/span*100)}% since ${since}</small>`;
+    lifetime=`${Math.round(total/span*100)}% of every day since ${since}`;
   }
-  /* v3.3.230: one attendance story. The lifetime total is the promise;
-     streak and the month calendar are its current receipt. Keeping them in
-     separate sections repeated the same August and streak facts twice. */
-  return `<h2 id="secDays">Show up — that's the whole game${hActs('rhythm','Your lifetime attendance, active streak, and completed workout days this month. Today fills with the first completed set.','About Show up')}</h2>
+  return `<h2 id="secDays">Show up — that's the whole game${hActs('rhythm','Every day of the last eight months, one square each. Days you trained back to back join into a single stroke, so a streak reads as one unbroken run.','About Show up')}</h2>
     <div class="card crcard">
-      <div class="crherohead"><span class="crtotal"><b>${fmt(total)}</b><span><small>Days in</small>${lifetime}</span></span>
-        <span class="crbest"><small>Streak</small><b>${streak} day${streak===1?'':'s'}</b><small>Best ${best}</small></span></div>
-      <div class="crmonth"><span>${monthName.toUpperCase()} ${year}</span><b>${monthDays} day${monthDays===1?'':'s'}</b></div>
-      <div class="crweekdays">${'MTWTFSS'.split('').map(v=>`<span>${v}</span>`).join('')}</div>
-      <div class="crgrid">${cells.join('')}</div>
+      <div class="crhead">
+        <span class="crtotal"><b>${fmt(total)}</b><small>days in</small></span>
+        <span class="crstreak">streak ${streak} \u00b7 best ${best}</span>
+      </div>
+      ${lifetime?`<div class="crsince">${lifetime}</div>`:''}
+      <div class="heatwrap"><div class="heatgrid" style="--hw:${HEAT_WEEKS}">${cells}</div></div>
+      <div class="heatticks">${ticks.map(t=>`<span style="--c:${t.c}">${t.label}</span>`).join('')}</div>
     </div>`;
 }
 function consistencyRaceSection(){

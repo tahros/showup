@@ -39,9 +39,21 @@ run(`
 
 check("retired heatmap is absent", `!!document.querySelector('.heatcols')`, false);
 check("render did not throw",       `!!document.querySelector('#view').innerHTML.length`, true);
-check("Current rhythm identifies today", `document.querySelectorAll('.crday.crtoday').length`, 1);
-check("Current rhythm does not need horizontal scrolling",
-      `!!document.querySelector('.crgrid') && !document.querySelector('.crgrid').classList.contains('heatcols')`, true);
+/* v3.3.307 RESTATES: the month calendar became a year heatmap (weeks as
+   columns, weekdays as rows). The properties are unchanged — today must be
+   findable, and the grid must FIT rather than force a sideways drag — so
+   they are asserted on the heatmap's own structure. */
+check("the attendance grid identifies today", `document.querySelectorAll('.heatgrid .tod').length`, 1);
+check("...and fits its card rather than forcing a sideways drag",
+      `+document.querySelector('.heatgrid').style.getPropertyValue('--hw')`, 35);
+{
+  /* fitting is a CSS property jsdom cannot compute, so assert the mechanism:
+     columns flex down to a 7px floor and the grid is told to fill its box —
+     together that means it only scrolls on a phone narrower than ~315px. */
+  const cssH = fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\r?\n\s*/g, "");
+  check("...because its columns flex down instead of overflowing",
+        `${/\.heatgrid\{[^}]*minmax\(7px,1fr\)/.test(cssH) && /\.heatgrid\{[^}]*min-width:100%/.test(cssH)}`, "true");
+}
 
 // History's year strip centres its selection (v3.3.39) — same family, still holding
 run(`hist={y:+thisYear,m:+todayISO.slice(5,7),part:null}; view='history'; render();`);

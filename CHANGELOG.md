@@ -1,5 +1,21 @@
 # ShowUp — changelog
 
+## v3.3.307 (2026-08-25) — Show up becomes a streak map
+
+The month calendar in Show up is now a heatmap of the last eight months —
+one small square per day, weeks running down in columns.
+
+Days you trained back to back join into a single unbroken stroke, so a run
+reads as its length rather than as a row of separate squares, and a rest day
+genuinely breaks it. Your weeks show up as five-day strokes with Sunday
+clear.
+
+The old grid spent twelve of its forty-two cells on blanks before the 1st and
+greyed-out days after today, and History already draws a real month calendar
+— this card was carrying a second, worse copy. Above the map, the lifetime
+number and its pace sit on the left, streak and best on one quiet line to the
+right.
+
 ## v3.3.306 (2026-08-24) — The chart legend becomes one line
 
 The colour key above Session build is now a single row: a thin colour bar

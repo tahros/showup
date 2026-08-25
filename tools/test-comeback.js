@@ -93,8 +93,13 @@ ok("v3.3.101: comebacks no longer renders anywhere in Stats",
    !/comeback/.test(sv()), sv().includes("comeback") ? "still present" : "absent, as intended");
 ok("...even though the derivation still finds them (2, longest 13)",
    run(`JSON.stringify(comebacks())`) === '{"n":2,"longest":13}');
+/* v3.3.307: streak and best moved into one quiet line (.crstreak) when the
+   card became a year heatmap — same two facts, one element instead of a
+   stacked cluster, still no comeback copy. */
 ok("...and the unified attendance hero carries streak + best without comeback copy",
-   run(`!!document.querySelector('.crbest')&&!/comeback/.test(document.querySelector('.crcard').textContent)`));
+   run(`(function(){const s=document.querySelector('.crstreak');
+     return !!s && /streak/.test(s.textContent) && /best/.test(s.textContent)
+       && !/comeback/.test(document.querySelector('.crcard').textContent);})()`));
 
 // ---- past-day edits update it (derived, not stored) ------------------------
 seed([1,9]);

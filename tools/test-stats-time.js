@@ -48,11 +48,23 @@ ok("Consistency compares exact workout-day totals", race.cur===2 && race.prev===
 ok("Consistency reports the exact gap", race.gap===1 && race.has, JSON.stringify(race));
 
 run(`view='stats'; render();`);
-ok("Current rhythm renders today as completed", run(`document.querySelector('.crtoday').classList.contains('crdone')`));
-ok("Current rhythm uses History's landscape cell proportion",
-  /\.crblank,\.crday\{aspect-ratio:1\.45\/1/.test(css) && /\.cal \.cd\{[^}]*aspect-ratio:1\.45\/1/.test(css.replace(/\n/g,"")));
-ok("Current rhythm uses History's four-pixel calendar spacing",
-  /\.crweekdays,\.crgrid\{[^}]*gap:4px/.test(css.replace(/\n/g,"")) && /\.cal\{[^}]*gap:4px/.test(css.replace(/\n/g,"")));
+/* v3.3.307: today is a heatmap cell now — .tod for the ring, .on for
+   trained. Same claim: log a set and today fills. */
+ok("the attendance heatmap renders today as trained",
+   run(`(function(){const t=document.querySelector('.heatgrid .tod');
+     return !!t && t.classList.contains('on');})()`));
+/* v3.3.215 tied this card to History's calendar geometry, on the principle
+   that they were two views of ONE calendar. v3.3.307 ENDS that relationship
+   deliberately: History keeps the month, this card became a year heatmap,
+   because a second worse copy of History's grid was most of why it looked
+   broken. So the shared-geometry half is retired and History's own geometry
+   — which never changed and still governs its calendar — is asserted alone. */
+ok("History keeps its landscape cell proportion",
+  /\.cal \.cd\{[^}]*aspect-ratio:1\.45\/1/.test(css.replace(/\n/g,"")));
+ok("...and its four-pixel calendar spacing",
+  /\.cal\{[^}]*gap:4px/.test(css.replace(/\n/g,"")));
+ok("the attendance card no longer carries a second copy of that calendar",
+  !/\.crgrid\b/.test(css) && run(`!document.querySelector('.crgrid')`));
 ok("Growth Audit uses the same base section gap as Session Build",
   !/class="gah"/.test(fs.readFileSync(path.join(dir,"js/stats.js"),"utf8")) && !/\.gah[\s,{:+>.\[]/.test(css));
 ok("Consistency renders two scoreboard totals", run(`document.querySelectorAll('.conscore>span b').length===2`));
