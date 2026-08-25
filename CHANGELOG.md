@@ -1,5 +1,15 @@
 # ShowUp — changelog
 
+## v3.3.303 (2026-08-24) — Weights stop breaking onto two lines
+
+Fixes "88.2 lb" splitting across two lines on go-to rows. The weight column
+was a fixed width that the space added yesterday pushed it past, and only
+rows without a "/ side" line were narrow enough to break — which is why some
+wrapped and some didn't.
+
+The column now sizes to what it holds, and a weight can't split, whatever the
+number turns out to be.
+
 ## v3.3.302 (2026-08-24) — Weights read instead of shouting
 
 The weight on a go-to row is no longer bold, sits a shade larger, and has a

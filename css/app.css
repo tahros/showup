@@ -815,7 +815,14 @@
   .item.logrow:not(.goto):not(.todayrow) .logmain{display:flex;align-items:baseline;gap:10px}
   .item.logrow:not(.goto):not(.todayrow) .logmain b{flex:1;min-width:0;overflow:hidden;
     text-overflow:ellipsis;white-space:nowrap}
-  .item.logrow .pr-cell{flex:0 0 58px;text-align:right}
+  /* v3.3.303: the weight cell sizes to its CONTENT, floored at 62px. It was
+     pinned to 58px, and once v3.3.302 put a space before the unit a 14px
+     go-to weight needed 58.8px — so "88.2 lb" broke across two lines. Rows
+     carrying a "/ side" line escaped only because that longer line forced
+     the cell wider, which is why only some of them wrapped. Right-aligned,
+     so the right edges still line up however wide each cell ends up. */
+  .item.logrow .pr-cell{flex:0 0 auto;min-width:62px;text-align:right}
+  .pr-top,.pr-side{white-space:nowrap}   /* a weight is one token, never two lines */
   .item.logrow:not(.goto):not(.todayrow) .pr-top{font-size:12.5px;font-weight:400}
   /* press: the row settles under the thumb — the affordance the flat list
      was missing, bought with an edge and a press rather than a slab */

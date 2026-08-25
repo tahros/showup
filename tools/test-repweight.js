@@ -695,6 +695,21 @@ check("the unit is a separate word, not glued to the digits",
 check("...and the per-side line reads the same way",
       `(function(){const e=document.querySelector('.pr-side');
         return e ? /^[\\d.,]+ (lb|kg) \\/ side$/.test(e.textContent.trim()) : 'no side';})()`, true);
+/* v3.3.303: a weight is ONE token. The cell was pinned to 58px and a 14px
+   go-to weight with the new unit space needs 58.8px, so "88.2 lb" broke onto
+   two lines — while rows with a longer "/ side" line escaped, because that
+   line forced the cell wider. Both halves are pinned: the cell may not be a
+   fixed width, and neither line may wrap. */
+{
+  const css303 = fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\r?\n\s*/g, "");
+  check("neither weight line may wrap",
+        `${/\.pr-top,\.pr-side\{[^}]*white-space:nowrap/.test(css303)}`, "true");
+  check("...and the cell sizes to its content rather than a fixed width",
+        `${/\.item\.logrow \.pr-cell\{[^}]*flex:0 0 auto/.test(css303)
+           && !/\.item\.logrow \.pr-cell\{[^}]*flex:0 0 \d+px/.test(css303)}`, "true");
+  check("...with a floor so short weights still hold the column",
+        `${/\.item\.logrow \.pr-cell\{[^}]*min-width:\d+px/.test(css303)}`, "true");
+}
 {
   const css302 = fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\r?\n\s*/g, "");
   check("the weight is set at regular, not bold",
