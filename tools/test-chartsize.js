@@ -111,7 +111,35 @@ ok("...and contains exactly one today", run(`document.querySelectorAll('.heatgri
   ok("...and no month is printed twice", new Set(labels).size === labels.length, labels.join(" "));
   const cssG = fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\r?\n\s*/g, "");
   const colGap = +(cssG.match(/\.heatgrid\{[^}]*column-gap:(\d+)px/) || [0,0])[1];
-  const rowGap = +(cssG.match(/\.heatgrid\{[^}]*row-gap:(\d+)px/) || [0,0])[1];
+  /* v3.3.310: the day gap moved off the row track into each cell's padding
+     (1px top + 1px bottom = 2px between two separate days), so the track is
+     legitimately 0 now. Measure the gap that is actually PAINTED. */
+  const rowGap = 2 * +(cssG.match(/\.heatgrid \.hc\{[^}]*padding:(\d+)px 0/) || [0,0])[1];
+/* v3.3.310: the join must not MOVE anything. Negative margins closed the
+   row-gap, but rows are repeat(7,1fr) on a grid with no explicit height —
+   1fr resolved from the items, the tracks shrank by the margin, and cells
+   went on painting at their aspect-ratio height, overflowing ~4px each and
+   bleeding into their neighbours until a run read as one solid block. The
+   gap is now PAINTED: row-gap 0, 1px of transparent padding per cell,
+   background clipped to the content box, and a joined edge drops its
+   padding. */
+{
+  const cssJ = fs.readFileSync(path.join(dir, "css/app.css"), "utf8");
+  const heat = cssJ.slice(cssJ.indexOf(".heatgrid{"), cssJ.indexOf(".heatticks{")).replace(/\r?\n\s*/g, "");
+  ok("no cell is pulled out of its track", !/margin-(top|bottom):\s*-/.test(heat));
+  ok("...the day gap is painted, not pulled",
+     /\.heatgrid \.hc\{[^}]*padding:1px 0/.test(heat)
+       && /\.heatgrid \.hc\{[^}]*background-clip:content-box/.test(heat));
+  ok("...and a joined edge closes it by dropping that padding",
+     /\.heatgrid \.hc\.ju\{[^}]*padding-top:0/.test(heat)
+       && /\.heatgrid \.hc\.jd\{[^}]*padding-bottom:0/.test(heat));
+  ok("...so the row track itself needs no gap", /row-gap:0/.test(heat));
+}
+/* the streak line must name its unit — days is the only thing this app
+   counts, and it is the whole point of the section */
+ok("the streak line says what it is counting",
+   /streak \d+ days?/.test(run(`document.querySelector('.crstreak').textContent`)),
+   run(`document.querySelector('.crstreak').textContent`));
   ok("weeks are pushed further apart than the days within them",
      colGap > rowGap && rowGap > 0, `column ${colGap}px vs row ${rowGap}px`);
   ok("...so only a real run can look like one",

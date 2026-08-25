@@ -1,5 +1,20 @@
 # ShowUp — changelog
 
+## v3.3.310 (2026-08-25) — Squares stay in their squares
+
+Fixes days bleeding into a solid block in the attendance map. Joining a run
+was done by pulling cells toward each other — but the rows size themselves
+from their contents, so pulling made the rows shorter while the squares kept
+their size, and each one spilled a few pixels onto its neighbours. Down a
+long run that adds up until nothing has edges.
+
+The gap between days is now painted inside each square rather than pulled out
+of the grid, so a joined pair still meets exactly and nothing ever leaves its
+place.
+
+The streak line also says what it counts again — "streak 1 day · best 10"
+rather than "streak 1 · best 10".
+
 ## v3.3.309 (2026-08-25) — The tab bar stays put
 
 Fixes the tab bar sliding up into the middle of the page. When you pulled

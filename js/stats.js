@@ -720,7 +720,7 @@ function currentRhythmSection(){
     <div class="card crcard">
       <div class="crhead">
         <span class="crtotal"><b>${fmt(total)}</b><small>days in</small></span>
-        <span class="crstreak">streak ${streak} \u00b7 best ${best}</span>
+        <span class="crstreak">streak ${streak} day${streak===1?'':'s'} \u00b7 best ${best}</span>
       </div>
       ${lifetime?`<div class="crsince">${lifetime}</div>`:''}
       <div class="heatwrap"><div class="heatgrid" style="--hw:${HEAT_WEEKS}">${cells}</div></div>
