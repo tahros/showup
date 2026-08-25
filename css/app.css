@@ -1362,8 +1362,14 @@
   /* a row whose exercise is in today's ledger. The tick is a fact FROM the
      record, not a score against the plan: it says "this is logged", never
      "you are N% through". Same grammar as the Last time card's checkmark. */
-  .planrow .pk{width:12px;flex:none;color:var(--accent);font-size:11px;
-    font-family:var(--mono);line-height:1.4}
+  /* v3.3.312: the tick sits at the END of the row, not the start. Leading it
+     reserved a 12px column on every row, so every exercise name began indented
+     from the card's edge whether or not it had a tick to show — an indent
+     paying rent for a mark most rows do not carry. At the end it still holds
+     a fixed column, so ticked and unticked rows keep their numbers aligned,
+     but nothing is pushed off the left edge. */
+  .planrow .pk{width:12px;flex:none;text-align:right;color:var(--accent);
+    font-size:11px;font-family:var(--mono);line-height:1.4;margin-left:8px}
   .planrow.pdone .pn{color:var(--muted)}
   .planrow.pdone .pw{color:var(--muted)}
   .planrow.pdone .pr,.planrow.pdone .px{color:var(--faint)}

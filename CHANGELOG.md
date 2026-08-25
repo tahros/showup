@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v3.3.312 (2026-08-25) — Plan names start where the card starts
+
+Exercise names in today's plan are no longer indented. The tick that marks an
+exercise you've already logged was sitting at the head of every row, holding
+a column open whether or not there was a tick to put in it — so every name
+began pushed in from the card's edge.
+
+The tick now sits at the end of the row instead, past the weights.
+
 ## v3.3.311 (2026-08-25) — "per arm" no longer breaks a paste
 
 A set line ending in "per arm", "each side", "per leg" and similar is now

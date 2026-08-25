@@ -158,10 +158,20 @@ ok("...the numbers are pushed right rather than space-between deciding",
    (function(){const css=fs.readFileSync(path.join(dir,"css/app.css"),"utf8").replace(/\r?\n\s*/g,"");
      return /\.planrow \.pl\{[^}]*margin-left:auto/.test(css)
          && !/\.planrow\{[^}]*justify-content:space-between/.test(css);})());
+/* v3.3.312: the tick moved from the head of the row to its tail. Leading it
+   reserved a column on EVERY row, so every name began indented whether or
+   not there was a tick to show. The property — three parts, same order on
+   every row — is unchanged; the order itself is not. */
 ok("...and every row carries the same three parts in the same order",
    run(`[...document.querySelectorAll('.planrow')].every(r=>{
      const k=[...r.children].map(c=>c.className);
-     return k[0]==='pk' && k[1]==='pn' && k[2]==='pl';})`));
+     return k[0]==='pn' && k[1]==='pl' && k[2]==='pk';})`));
+ok("...with the name flush to the card edge, nothing before it",
+   run(`[...document.querySelectorAll('.planrow')].every(r=>
+     r.firstElementChild.classList.contains('pn'))`));
+ok("...and the tick last, so it cannot indent an unticked row",
+   run(`[...document.querySelectorAll('.planrow')].every(r=>
+     r.lastElementChild.classList.contains('pk'))`));
 
 ok("...and the card shows a row per weight, not just the top one",
    run(`(function(){const r=[...document.querySelectorAll('.planrow')]

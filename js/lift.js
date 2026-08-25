@@ -53,9 +53,9 @@ function renderLift(){
       if(!_pf){
         h+=`<div class="card plancard">
           ${(_pl.items||[]).map(i=>`<button class="planrow${planLoggedToday(i.ex)?' pdone':''}" data-planex="${i.ex}">
-              <span class="pk">${planLoggedToday(i.ex)?'\u2713':''}</span>
               <span class="pn">${i.ex}</span>
               <span class="pl">${i.lines.map(l=>`<span class="pv pw mono">${l.bw||l.w<=0?'BW':wDisp(l.w)+' '+U()}</span><span class="px mono" aria-hidden="true">\u00d7</span><span class="pr mono">${l.reps.join(' ')}</span>`).join('')}</span>
+              <span class="pk">${planLoggedToday(i.ex)?'\u2713':''}</span>
             </button>`).join('')}
           ${_pl.note?`<div class="plannote mono">${hesc(_pl.note)}</div>`:''}
         </div>`;
