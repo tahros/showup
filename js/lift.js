@@ -217,7 +217,6 @@ function renderLift(){
       return `<div class="item logrow ${big?'goto':''}${_enter?' enter':''}" style="--i:${Math.min(_ei++,10)};${big?'':'padding:10px 10px 10px 14px'}">
             <button class="logmain" data-ex="${ex}">
               <b>${ex}</b><div class="sub">${meta}${mine?` · yours · ${eq.toLowerCase()}`:''}</div>
-              ${big?'<span class="gochev" aria-hidden="true">→</span>':''}
             </button>
             <span class="pr-cell">
               <span class="pr-top">${p.mw?wDisp(p.mw)+U():''}</span>

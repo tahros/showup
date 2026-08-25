@@ -1,5 +1,21 @@
 # ShowUp — changelog
 
+## v3.3.298 (2026-08-24) — Charcoal, and a go-to list you can press
+
+**Dark mode is charcoal now.** The dark theme had a blue cast in every
+surface and every shade of text. That tint is gone — the greys are neutral.
+Nothing got lighter or darker: each colour kept its exact brightness, so
+every contrast pairing in the app reads precisely as before.
+
+**The go-to list is slim rows.** Five tall cards, each with the same blue
+rail and an arrow floating in the middle of the row, become one lead
+exercise and a ranked list beneath it — name, days, weight, in columns that
+line up all the way down. Five exercises now fit in the space two cards used
+to take.
+
+Each row has its own edge and settles under your thumb when pressed, which
+is what says "tap me" — so the floating arrow is gone.
+
 ## v3.3.297 (2026-08-24) — The plan section looks the same empty or full
 
 With no plan for today, the Train tab no longer shows a large "Paste today's

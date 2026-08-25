@@ -27,7 +27,17 @@
        - --record sat at 3.94:1 on --surface2, unguarded because the contrast
          loop only ever checked it against --surface. Lifted along its own
          hue to clear 4.5 on both. */
-    --ground:#070A0E; --surface:#151B25; --surface2:#232733; --line:#364354;
+    /* v3.3.298: CHARCOAL. The dark theme was blue-tinted (--surface #151B25
+       is 16 points bluer than it is red); the maker asked for Claude's
+       charcoal, which is neutral. Each surface and ink was neutralised by
+       holding its RELATIVE LUMINANCE exactly and solving for the grey with
+       the same value — so every WCAG pair is arithmetically unchanged
+       (measured: max drift 0.06 across the nine ink/ground pairs) and the
+       v3.3.92 contrast guard still governs. Only the hue is gone.
+       Not copied hexes: Claude's exact stops are not readable from here, so
+       these are derived, and the derivation is the honest part. --ground
+       lands on #0A0A0A beside charcoal's own near-black anchor. */
+    --ground:#0A0A0A; --surface:#1B1B1B; --surface2:#272727; --line:#424242;
     --accent:#4C6BE3; --accent-soft:#3A4A8C; --accent-dim:#95A4E8;
     --record:#E36758;                       /* personal records */
     --rest:#3E5C46;                         /* v3.3.81: declared rest — green's ONE meaning (wash/frame grade) */
@@ -51,7 +61,7 @@
        ground each token actually sits on (surface, surface2, ground), not
        just the one the handoff tabulated. Worst-ground: chalk 14.39,
        muted 8.74, faint 4.97. */
-    --chalk:#FAFBFD; --muted:#BEC7D5; --faint:#8996A9; --shadow:none;
+    --chalk:#FBFBFB; --muted:#C6C6C6; --faint:#959595; --shadow:none;
     /* v3.3.201: accent as INK, split from accent as FILL — the handoff's one
        genuinely new idea. One blue cannot do both jobs: a fill needs to be
        dark enough for white text, an ink light enough to read on a dark
@@ -732,22 +742,45 @@
   .partcard.sel.dead{opacity:1}   /* selection is the single authority */
   .item.dim{opacity:.45}
   .item.logrow{gap:8px;padding:10px 10px 10px 14px}
-  /* v3.3.64: go-to cards had no affordance saying they were pressable —
-     Today's TRAIN NEXT has "Start →", this had only text. The chevron is the
-     same invitation in the same accent, sized for a glance not a shout. */
-  .gochev{position:absolute;right:12px;top:50%;transform:translateY(-50%);
-    color:var(--accent);font-size:17px;line-height:1;opacity:.75;
-    transition:transform var(--dur-move) var(--settle),opacity var(--dur-move) var(--settle)}
-  .logrow.goto .logmain{position:relative;padding-right:34px}
-  .logrow.goto .logmain:active .gochev{transform:translateY(-50%) translateX(3px);opacity:1}
+  /* v3.3.64 added a chevron because the flat go-to card had no affordance.
+     v3.3.298 DELETES it: it was the middle child of a space-between row, so
+     it landed in a different place on every card, and the affordance is now
+     carried by the row's own edge and press state — which is what the maker
+     chose when he picked B1 over the chevron variant. */
   .logmain{flex:1;min-width:0;background:none;border:0;color:var(--chalk);font:inherit;text-align:left;cursor:pointer;padding:0}
   .logmain b{font-weight:500}
   .xbtn{flex:0 0 40px;height:40px;border-radius:10px;border:1px solid var(--line);
     background:var(--surface2);color:var(--muted);font-size:14px;cursor:pointer}
   .xbtn:active{border-color:var(--record);color:var(--record)}
-  .item.goto{padding:18px 16px;border-left:3px solid var(--accent)}
-  .item.goto b{font-size:17px;font-weight:600}
-  .item.goto .sub{font-size:11px}
+  /* v3.3.298: the go-to list is B1 — slim raised rows, copied from the
+     mockup the maker approved, metric for metric. The old design was a
+     ~130px card per exercise with a 3px accent rail on ALL of them (five
+     identical accent marks signalling nothing) and a chevron floating in
+     the middle of a three-child space-between row — the same defect fixed
+     on the plan rows in v3.3.292. One row leads at 16px with the accent on
+     its meta line; the rest are 13.5px rows carrying age and weight in
+     aligned columns. */
+  .item.goto{padding:12px 14px;border-left:0;
+    background:var(--surface2);border:0.5px solid var(--line);border-radius:10px;
+    align-items:center;gap:10px;margin-bottom:6px;box-shadow:none}
+  .item.goto b{font-size:16px;font-weight:500}
+  .item.goto .sub{font-size:10px;color:var(--accent-dim);margin-top:3px}
+  /* the ranked rows below the lead: name, age, weight — three columns that
+     line up down the whole list */
+  .item.logrow:not(.goto){padding:10px 14px;gap:10px;align-items:center;
+    background:var(--surface2);border:0.5px solid var(--line);border-radius:10px;
+    margin-bottom:6px;box-shadow:none}
+  .item.logrow:not(.goto) b{font-size:13.5px;font-weight:500}
+  .item.logrow:not(.goto) .sub{font-size:10px;color:var(--faint);margin-top:0}
+  .item.logrow:not(.goto) .logmain{display:flex;align-items:baseline;gap:10px}
+  .item.logrow:not(.goto) .logmain b{flex:1;min-width:0;overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap}
+  .item.logrow .pr-cell{flex:0 0 58px;text-align:right}
+  .item.logrow:not(.goto) .pr-top{font-size:12.5px;font-weight:500}
+  /* press: the row settles under the thumb — the affordance the flat list
+     was missing, bought with an edge and a press rather than a slab */
+  .item.logrow:active{background:var(--surface);transform:scale(.995);
+    transition:transform var(--dur-quick) var(--settle),background var(--dur-quick) var(--settle)}
   .item.goto .pr-top{font-size:14px}
   h2.quiet{color:var(--muted);font-weight:500;margin-top:24px}
   /* v3.3.105: h2.quiet and h2:first-child are an exact specificity tie

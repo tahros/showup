@@ -78,11 +78,26 @@ run(`lift.part='Chest'; renderLift();`);
 check("changing part animates the new list",
       `document.querySelectorAll('#view .item.logrow.enter').length > 0`, true);
 
-// the go-to card now carries a press affordance
+/* v3.3.64 gave the go-to card a chevron because a flat card said nothing
+   about being pressable. v3.3.298 RESTATES that requirement rather than
+   dropping it: the affordance is now the row's own edge and press state
+   (B1), and the chevron is gone because it was the middle child of a
+   space-between row and landed somewhere different on every card. The
+   property defended is unchanged — a go-to row must LOOK pressable — so it
+   is asserted on what carries that now. */
 run(`_lastLiftPart='\u0000'; lift={part:'Back',ex:null,weight:0}; view='lift'; render();`);
-check("go-to cards carry the chevron",
-      `!!document.querySelector('#view .logrow.goto .gochev')`, true);
-check("non-goto rows do not",
-      `[...document.querySelectorAll('#view .logrow:not(.goto)')].every(r=>!r.querySelector('.gochev'))`, true);
+check("no floating chevron survives on any row",
+      `!!document.querySelector('#view .gochev')`, false);
+check("every go-to row is a real button you can press",
+      `[...document.querySelectorAll('#view .logrow')].every(r=>!!r.querySelector('button.logmain[data-ex]'))`, true);
+{
+  const css298 = fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\r?\n\s*/g, "");
+  check("...and the row carries its own edge, so it reads as one",
+        `${/\.item\.goto\{[^}]*border:0\.5px solid var\(--line\)/.test(css298)}`, "true");
+  check("...with a press state that settles under the thumb",
+        `${/\.item\.logrow:active\{[^}]*transform:scale/.test(css298)}`, "true");
+  check("...and no accent rail on every single one of them",
+        `${/\.item\.goto\{[^}]*border-left:0/.test(css298)}`, "true");
+}
 
 process.exit(fail ? 1 : 0);
