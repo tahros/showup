@@ -1,5 +1,21 @@
 # ShowUp — changelog
 
+## v3.3.296 (2026-08-24) — Body parts fit in two rows
+
+The body-part grid is four across, so eight parts take two rows instead of
+three.
+
+The room came from taking the green tick off parts you've already trained
+today. A finished part already fades back; the tick was saying the same thing
+a second time, and it was the widest thing on the card. Now the fading is the
+signal, and the card simply reads "today".
+
+Nothing shrank. Names keep their size and untrained parts keep their full
+"3d ago", because those are what the grid is actually scanned for — and with
+five parts receding, the ones you could still train stand out on their own.
+
+A live set still burns. That's a different claim from done.
+
 ## v3.3.295 (2026-08-24) — The plan reads as a table
 
 Weights in today's plan now line up. The × sits in its own column, so weights

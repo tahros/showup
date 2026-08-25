@@ -233,5 +233,50 @@ check("the Train-next card names the full session when the clocks differ",
         const el=[...document.querySelectorAll('.card .mono.muted')].map(x=>x.textContent).join(' ');
         return /full session 4d ago/.test(el) && !/usually every|overdue/.test(el);})()`, true);
 
+// ---- v3.3.296: eight parts, two rows -------------------------------------
+// Four columns instead of three. The room came from DELETING the ✅ on
+// finished cards, not from shrinking type: a finished part already recedes,
+// so the badge was saying twice what the fade said, and its emoji was the
+// widest glyph in the grid. The live 🔥 stays — an open set is the one card
+// that should interrupt you.
+run(`(function(){DB.days={}; DB.settings.unit='lb'; const t=new Date(todayISO+'T00:00');
+  const D=n=>{const d=new Date(t);d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA')};
+  DB.days[D(3)]={w:[{part:'Chest',ex:'Dip',w:toKg(25),reps:[10]}],upd:1};
+  DB.days[D(4)]={w:[{part:'Back',ex:'Pull Up',w:0,reps:[10]}],upd:1};
+  DB.days[D(2)]={w:[{part:'Legs',ex:'Squat',w:toKg(135),reps:[8]}],upd:1};
+  const td=dayMeta();
+  for(const [p,e] of [['Shoulder','Lateral Raise'],['Biceps','EZ Bar Curl'],
+                      ['Triceps','Overhead Triceps Extension'],['Sixpack','Hanging Leg Raise']])
+    td.w.push({part:p,ex:e,w:toKg(30),reps:[10],at:1});
+  td.w.push({part:'Run',ex:'Run',w:3.7,mins:27,secs:0,at:1});
+  td.donePart=['Shoulder','Biceps','Triceps','Sixpack','Run'];
+  SEED=deriveAll(); lastSetAt=0; view='lift'; lift.ex=null; lift.part='Chest'; render();})()`);
+/* the column count is CSS, which jsdom cannot resolve — asserted on the
+   declaration, like the other layout facts in this codebase */
+check("the grid is four across",
+      `${/\.partgrid\{[^}]*repeat\(4,/.test(require('fs').readFileSync(require('path').join(process.argv[2]||'.',"css/app.css"),'utf8'))}`, "true");
+check("a finished part carries no badge, only the word",
+      `(function(){const b=[...document.querySelectorAll('.partcard')]
+        .find(x=>x.querySelector('b').textContent==='Shoulder');
+        return b.querySelector('.ps').textContent.trim();})()`, "today");
+check("...and no tick survives anywhere in the grid",
+      `/\\u2705|\\u2713/.test(document.querySelector('.partgrid').textContent)`, false);
+check("...the fade is what says done",
+      `(function(){const b=[...document.querySelectorAll('.partcard')]
+        .find(x=>x.querySelector('b').textContent==='Shoulder');
+        return b.classList.contains('finP');})()`, true);
+check("an untrained part keeps its full age, not an abbreviation",
+      `(function(){const b=[...document.querySelectorAll('.partcard')]
+        .find(x=>x.querySelector('b').textContent==='Back');
+        return b.querySelector('.ps').textContent.trim();})()`, "4d ago");
+check("...and is NOT faded — it is what the grid is scanned for",
+      `(function(){const b=[...document.querySelectorAll('.partcard')]
+        .find(x=>x.querySelector('b').textContent==='Back');
+        return b.classList.contains('finP');})()`, false);
+/* the live flame is a different claim from "done" and must survive */
+run(`(function(){const td=dayMeta(); td.donePart=['Biceps','Triceps','Sixpack','Run'];
+  lastSetAt=Date.now(); SEED=deriveAll(); render();})()`);
+check("an OPEN set still burns", `/\\ud83d\\udd25/.test(document.querySelector('.partgrid').textContent)`, true);
+
 process.exit(fail ? 1 : 0);
 })();

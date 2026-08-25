@@ -85,8 +85,14 @@ function renderLift(){
       const hasToday=(day(todayISO).w||[]).some(s=>s.part===p);
       const open=hasToday&&partOpen(p);                    // being worked RIGHT NOW
       const finished=hasToday&&!open;                      // trained today, completed
+      /* v3.3.296: done is a STATE, not a badge. A finished part recedes —
+         .finP dims the whole card — so the tick was saying a second time
+         what the fading already said, and its emoji was the widest, loudest
+         glyph on the screen. Removing it is what buys the fourth column.
+         The LIVE flame stays: a set open right now is not a state you read
+         past, it is the one card that should interrupt you. */
       const sub = open ? '🔥 today'
-                : finished ? '✅ today'
+                : finished ? 'today'
                 : virgin ? 'new'
                 : p==='Run' ? 'each time'
                 : never ? 'never trained'
