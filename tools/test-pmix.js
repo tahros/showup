@@ -108,10 +108,15 @@ const partMap = blk => Object.fromEntries(
   [...blk.matchAll(/--p-([a-z]+):\s*(#[0-9A-Fa-f]{6})/g)]
     .map(m => [m[1],m[2].toUpperCase()]));
 const darkParts=partMap(darkBlk), lightParts=partMap(lightBlk);
+/* v3.3.325 RESTATES the roster, not the rule: Biceps moves orange -> magenta.
+   The property this pin defends is that the fills are GOOGLE CATEGORICAL
+   IDENTITIES rather than hand-mixed colours -- magenta is one, so the chart
+   language is unchanged and only the assignment moved. Why it moved is the
+   separation guard at the bottom of this block. */
 ok("v3.3.264: dark Session Build follows the Google Sheets colour identities",
    JSON.stringify(darkParts)===JSON.stringify({
      chest:'#FABB05',back:'#EA4335',shoulder:'#4285F4',legs:'#34A853',
-     biceps:'#FF6D01',triceps:'#46BDC6',sixpack:'#A142F4',run:'#78909C'}),
+     biceps:'#E52592',triceps:'#46BDC6',sixpack:'#A142F4',run:'#78909C'}),
    JSON.stringify(darkParts));
 /* v3.3.301 RESTATES this to the RULE it was always expressing, rather than
    to one hard-coded exception. Light may deviate from the shared identities
@@ -207,14 +212,57 @@ const satOf = hx => {
 const stateHues = [...live, ...rest].map(hueOf);
 const tooClose = partVars.filter(p =>
   stateHues.some(s => apart(hueOf(p), s) < 25) && satOf(p) > 0.45);
-ok("the three state-adjacent hues are deliberate Google category identities",
-   tooClose.length===6 && new Set(tooClose).size===3 &&
-   ['#EA4335','#34A853','#FF6D01'].every(p=>tooClose.includes(p)),
+/* v3.3.325 RESTATES: there are TWO state-adjacent identities now, not three.
+   Biceps' orange was the third, and it left the neighbourhood entirely when
+   it became magenta. The property is unchanged -- a part fill may sit near a
+   state hue only when it is a deliberate Google identity, and the exact
+   --live / --rest tokens stay separate (asserted just above) -- so the count
+   follows the palette rather than being pinned at the number it happened to
+   have. */
+ok("the state-adjacent hues are deliberate Google category identities",
+   tooClose.length===4 && new Set(tooClose).size===2 &&
+   ['#EA4335','#34A853'].every(p=>tooClose.includes(p)),
    tooClose.length ? tooClose.map(p => `${p}@${Math.round(hueOf(p))}\u00b0 sat${satOf(p).toFixed(2)}`).join(",")
                    : "state sat " + satOf(live[0]).toFixed(2) + " vs nearest part " +
                      satOf(partVars.slice().sort((a,b)=>
                        Math.min(...stateHues.map(s=>apart(hueOf(a),s))) -
                        Math.min(...stateHues.map(s=>apart(hueOf(b),s))))[0]).toFixed(2));
+
+/* v3.3.325: the guard the maker's report earned. The palette is CATEGORICAL,
+   so hue is the whole signal -- and two categories 21 degrees apart are one
+   colour to a thumb, especially stacked in the same bar with a 0.5px hairline
+   between them. Back and Biceps is a session he trains, so that pair sat
+   inside a single bar. Run is excluded: it left the stack in v3.3.117 and
+   never shares a bar with anything.
+   The floor is 30 degrees. The palette's tightest surviving pair is
+   Shoulder/Triceps at 33, which also carries a 1.59x luminance step; the
+   pairs this rule was written against were Chest/Biceps at 19 and Back/Biceps
+   at 21, the latter at only 1.09x luminance. Asserted per theme, because
+   light deviates where contrast forces it and a deepened colour could drift
+   into a neighbour. */
+{
+  const STACKED = ["chest","back","shoulder","legs","biceps","triceps","sixpack"];
+  const hueDeg = hx => {
+    const [r,g,b] = [1,3,5].map(i => parseInt(hx.slice(i,i+2),16)/255);
+    const mx = Math.max(r,g,b), mn = Math.min(r,g,b), d = mx-mn;
+    if (!d) return 0;
+    let h = mx===r ? ((g-b)/d)%6 : mx===g ? (b-r)/d+2 : (r-g)/d+4;
+    h *= 60; return h < 0 ? h+360 : h;
+  };
+  const apartDeg = (a,b) => { const d = Math.abs(a-b)%360; return Math.min(d, 360-d); };
+  for (const [label, map] of [["dark", darkParts], ["light", lightParts]]) {
+    const tight = [];
+    for (let i = 0; i < STACKED.length; i++)
+      for (let j = i+1; j < STACKED.length; j++) {
+        const a = map[STACKED[i]], b = map[STACKED[j]];
+        if (!a || !b) continue;
+        const g = apartDeg(hueDeg(a), hueDeg(b));
+        if (g < 30) tight.push(`${STACKED[i]}/${STACKED[j]} ${Math.round(g)}\u00b0`);
+      }
+    ok(`no two ${label} stacked fills share a hue neighbourhood`,
+       tight.length === 0, tight.join(", ") || "closest pair clears 30\u00b0");
+  }
+}
 
 /* The decisive guard: the Google colours are licensed only as Session Build
    data fills. They never become hand-written app-wide CSS fills. */

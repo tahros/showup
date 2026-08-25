@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v3.3.325 (2026-08-25) — Biceps gets its own colour
+
+**Biceps moves from orange to magenta.** Orange sat between Back's red and
+Chest's yellow — the two closest colours in the whole chart — so a Back and
+Biceps day stacked two near-identical warm blocks in one bar with a hairline
+between them. Magenta is the one gap the palette had left, and it is still a
+colour from the same Google set the chart has always used.
+
 ## v3.3.324 (2026-08-25) — One × line down today's plan
 
 **The × lines up down the whole card now.** Every row used to size its own
