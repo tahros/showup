@@ -458,16 +458,27 @@ if not all(_contract in _stats for _contract in (
         'Tap a label to follow it; tap again for all.')):
     fail.append("session build: minimal legend semantics or info copy are incomplete (v3.3.228)")
 _flat_css = css.replace("\n", "")
-if not _re.search(r"\.pmixlgd\{[^}]*display:grid[^}]*grid-template-columns:repeat\(4,minmax\(0,1fr\)\)", _flat_css):
-    fail.append("session build: legend must keep the approved four-column 4+3 grid (v3.3.228)")
-if not _re.search(r"\.pmixlgd button\{[^}]*min-height:44px[^}]*border:0[^}]*background:transparent", _flat_css):
+# v3.3.306 RESTATES the three v3.3.228/229 legend guards. They pinned the
+# 4+3 GRID and the underline that marked a selection inside it. The legend is
+# now one scrolling line of colour bars over names, so those literals describe
+# a layout that no longer exists — but every PROPERTY they defended still
+# holds and is guarded here: thumb-sized transparent targets, a visible
+# selected state, and (new, because the line can clip) an edge fade plus a
+# blocklist entry so a sideways drag cannot change tab.
+if not _re.search(r"\.pmixlgd\{[^}]*display:flex[^}]*overflow-x:auto", _flat_css):
+    fail.append("session build: the legend must be one scrolling line (v3.3.306)")
+if _re.search(r"\.pmixlgd\{[^}]*display:grid", _flat_css):
+    fail.append("session build: the legend grid returned — seven parts hole its second row (v3.3.306)")
+if not _re.search(r"\.pmixlgd button\{[^}]*min-height:44px", _flat_css) \
+   or not _re.search(r"\.pmixlgd button\{[^}]*background:transparent", _flat_css):
     fail.append("session build: legend targets must remain transparent and thumb-sized (v3.3.228)")
-if not _re.search(r"\.pmixlgd button\.on span::after\{[^}]*transform:scaleX\(1\)", _flat_css):
-    fail.append("session build: selected part needs the quiet coloured underline (v3.3.229)")
-if not all(_rule in _flat_css for _rule in (
-        ".pmixlgd button i,.pmixlgd button span{transform:translateY(4px)}",
-        ".pmixlgd button:nth-child(n+5) i,.pmixlgd button:nth-child(n+5) span{transform:translateY(-4px)}")):
-    fail.append("session build: visible legend rows must be tightened without shrinking tap areas (v3.3.229)")
+if not _re.search(r"\.pmixlgd button\.on\{[^}]*color:var\(--chalk\)", _flat_css) \
+   or not _re.search(r"\.pmixlgd button\.on i\{[^}]*opacity:1", _flat_css):
+    fail.append("session build: the selected part must be visibly selected (v3.3.306)")
+if not _re.search(r"\.pmixlgdwrap::after\{[^}]*linear-gradient", _flat_css):
+    fail.append("session build: a clipped legend name must fade, not cut off (v3.3.306)")
+if "closest('.pmixlgd')" not in (d/"js/util.js").read_text():
+    fail.append("session build: the legend scrolls sideways and must be in the tab-swipe blocklist (v3.3.306)")
 if not all(_logic in _stats for _logic in (
         "let latestIndex=rows.length-1", "if(PMIX_FOCUS)",
         "latest=i===latestIndex", "p===PMIX_FOCUS")):

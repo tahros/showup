@@ -1,5 +1,17 @@
 # ShowUp — changelog
 
+## v3.3.306 (2026-08-24) — The chart legend becomes one line
+
+The colour key above Session build is now a single row: a thin colour bar
+over each body part's name, echoing the stacked bars it explains. It was a
+two-row grid of chunky squares and large labels, taller than it needed to be
+and holed on the second row where the eighth part would go.
+
+Seven parts don't fit one screen width, so it scrolls sideways and its right
+edge fades — a clipped name reads as "there's more" rather than as broken.
+Dragging it moves the legend, never the tab. Tapping a part still isolates
+it in the chart; the selected one goes full ink with a brighter bar.
+
 ## v3.3.305 (2026-08-24) — Hairlines you can see in light mode
 
 The outline around cards and rows was too faint in light mode — half as

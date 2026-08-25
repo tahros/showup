@@ -1368,8 +1368,20 @@
   .pmixmode span{color:var(--faint)}
   .pmixmode span.on{color:var(--chalk);font-weight:700}
   .pmixmode span+span::before{content:'/';color:var(--faint);font-weight:400;padding:0 4px}
-  .pmixlgd{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;
-    margin:0 0 12px;padding:0 0 12px;border-bottom:1px solid var(--line)}
+  /* v3.3.306: the legend is ONE line — a colour bar over each name, echoing
+     the stacked bars it explains. It was a 4x2 grid of 11px squares and 14px
+     labels, ~110px tall, louder than the chart and holed on the second row
+     where the eighth cell would be. Seven parts do not fit 340px, so it
+     scrolls sideways, and the wrapper fades its right edge so a clipped name
+     reads as "there is more" rather than as broken. */
+  .pmixlgdwrap{position:relative;margin:0 0 12px;padding:0 0 12px;
+    border-bottom:1px solid var(--line)}
+  .pmixlgdwrap::after{content:'';position:absolute;right:0;top:0;bottom:12px;width:34px;
+    pointer-events:none;background:linear-gradient(270deg,var(--surface) 0%,var(--surface) 18%,transparent 100%)}
+  .pmixlgd{display:flex;gap:14px;overflow-x:auto;overflow-y:hidden;
+    -webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;
+    overscroll-behavior-x:contain}
+  .pmixlgd::-webkit-scrollbar{display:none}
   /* v3.3.123: the year rides just outside the plot, top-left, and swaps as
      you scroll past a boundary — so a deep scroll always says where it is. */
   .pmixyr{position:absolute;left:0;top:-2px;z-index:2;
@@ -1409,21 +1421,19 @@
   /* v3.3.121: tap a name to isolate it. A single-hue ramp cannot be matched
      to a legend by eye — that is the cost of the ramp, and this is the
      answer to it. */
-  .pmixlgd button{--pmix-part:var(--muted);position:relative;display:flex;align-items:center;justify-content:center;
-    gap:6px;min-width:0;min-height:44px;padding:0 3px;border:0;background:transparent;
-    color:var(--muted);font-family:var(--mono);font-size:10px;letter-spacing:.02em;
+  /* v3.3.229 kept two honest 44px tap ROWS; on one line the tap target is the
+     whole column instead — bar, label and the space around them. */
+  .pmixlgd button{--pmix-part:var(--muted);flex:0 0 auto;display:flex;flex-direction:column;
+    align-items:stretch;gap:5px;min-height:44px;justify-content:center;
+    padding:0;border:0;background:transparent;
+    color:var(--muted);font-family:var(--mono);font-size:10.5px;letter-spacing:.02em;
     cursor:pointer;transition:opacity var(--dur-quick) var(--settle),color var(--dur-quick) var(--settle)}
-  /* v3.3.229: keep two honest 44px tap rows, but pull their visible contents
-     toward the shared seam. The labels read as one compact legend without
-     overlapping or shrinking the hit areas. */
-  .pmixlgd button i,.pmixlgd button span{transform:translateY(4px)}
-  .pmixlgd button:nth-child(n+5) i,.pmixlgd button:nth-child(n+5) span{transform:translateY(-4px)}
-  .pmixlgd button span{position:relative}
-  .pmixlgd button span::after{content:'';position:absolute;left:0;right:0;bottom:-5px;
-    height:2px;border-radius:1px;background:var(--pmix-part);transform:scaleX(0);
-    transform-origin:center;transition:transform var(--dur-quick) var(--settle)}
+  /* the swatch IS a bar, the same shape as the segments it names */
+  .pmixlgd button i{display:block;height:3px;border-radius:2px;background:var(--pmix-part);
+    opacity:.75;transition:opacity var(--dur-quick) var(--settle),height var(--dur-quick) var(--settle)}
+  .pmixlgd button span{white-space:nowrap}
   .pmixlgd button.on{color:var(--chalk);font-weight:700}
-  .pmixlgd button.on span::after{transform:scaleX(1)}
+  .pmixlgd button.on i{opacity:1;height:4px}
   .pmixlgd button.off{opacity:.4}
   #pmixWrap rect[data-pt]{transition:opacity var(--dur-quick) var(--settle)}
   @media (prefers-reduced-motion:reduce){

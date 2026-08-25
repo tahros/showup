@@ -794,8 +794,8 @@ function renderStats(){
       <div class="card">
         <div class="pmixhead"><button type="button" class="pmixmode" data-pmixmode
           aria-label="Show ${PMIX_MODE==='sets'?'total weight':'set counts'} instead"><span class="${PMIX_MODE==='sets'?'on':''}">sets</span><span class="${PMIX_MODE==='weight'?'on':''}">${isLb()?'lb':'kg'}</span></button></div>
-        <div class="pmixlgd" role="group" aria-label="Follow a body part">${Object.keys(SEED.catalog).filter(p=>p!=='Run').map(p=>
-          `<button type="button" data-pt="${p}" aria-pressed="${PMIX_FOCUS===p}" style="--pmix-part:${PART_COLORS[p]||'var(--muted)'}"><i></i><span>${p}</span></button>`).join('')}</div>
+        <div class="pmixlgdwrap"><div class="pmixlgd" role="group" aria-label="Follow a body part">${Object.keys(SEED.catalog).filter(p=>p!=='Run').map(p=>
+          `<button type="button" data-pt="${p}" aria-pressed="${PMIX_FOCUS===p}" style="--pmix-part:${PART_COLORS[p]||'var(--muted)'}"><i></i><span>${p}</span></button>`).join('')}</div></div>
         <div class="pmixbox">
           <span class="pmixyr" id="pmixYr"></span>
           ${pmixAxisSvg(partMix(PMIX_DAYS))}

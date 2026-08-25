@@ -62,6 +62,7 @@
                    t.closest(MODALS)||        // v3.3.140: and nothing under a modal moves
                    t.closest('.pacescrub')||  // v3.3.236: dragging pace reads it, never changes tab
                    t.closest('.compscroll')||  // sideways-scrolling chart owns its axis
+                   t.closest('.pmixlgd')||    /* v3.3.306: the legend scrolls sideways now */
                    t.closest('.repwrap');      /* v3.3.288: the rep ruler scrubs
                      sideways. Inside an exercise a horizontal swipe means BACK
                      (popMode), so without this every scrub of the reps threw

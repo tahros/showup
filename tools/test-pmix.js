@@ -462,13 +462,31 @@ ok("...and the bold weight sits there too",
 run(`PMIX_FOCUS=null; delete DB.days[todayISO]; SEED=deriveAll(); render();`);
 
 // ---- legend alignment ----------------------------------------------------
-ok("the legend uses a stable four-column 4+3 grid",
-   /\.pmixlgd\{[^}]*display:grid[^}]*grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/.test(
-     fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\n/g, "")));
-ok("the two visible legend rows sit closer without shrinking their 44px tap areas",
-   /\.pmixlgd button\{[^}]*min-height:44px/.test(css.replace(/\n/g, "")) &&
-   /\.pmixlgd button i,\.pmixlgd button span\{transform:translateY\(4px\)\}/.test(css) &&
-   /\.pmixlgd button:nth-child\(n\+5\) i,\.pmixlgd button:nth-child\(n\+5\) span\{transform:translateY\(-4px\)\}/.test(css));
+/* v3.3.306 RESTATES both. The 4+3 grid is gone — seven parts on one
+   scrollable line, a colour bar over each name, echoing the stacked segments
+   the legend explains. What the old pins were really defending survives and
+   is asserted here: a 44px tap target per part, and every part present (the
+   grid's hole on row two was the thing that made 4+3 worth pinning). */
+{
+  const cssL = fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\r?\n\s*/g, "");
+  ok("the legend is one scrolling line, not a grid",
+     /\.pmixlgd\{[^}]*display:flex/.test(cssL) && /\.pmixlgd\{[^}]*overflow-x:auto/.test(cssL)
+       && !/\.pmixlgd\{[^}]*display:grid/.test(cssL));
+  ok("...each part keeps a 44px tap target",
+     /\.pmixlgd button\{[^}]*min-height:44px/.test(cssL));
+  ok("...the swatch is a BAR, the shape of the segments it names",
+     /\.pmixlgd button i\{[^}]*height:3px/.test(cssL));
+  ok("...and a clipped name fades rather than cutting off",
+     /\.pmixlgdwrap::after\{[^}]*linear-gradient/.test(cssL));
+}
+/* a sideways scroller inside a tab-swiping app must own its axis — the
+   v3.3.288 lesson, third surface */
+ok("the legend cannot swipe the tab out from under a scroll",
+   /closest\('\.pmixlgd'\)/.test(fs.readFileSync(path.join(dir, "js/util.js"), "utf8")));
+ok("every body part is present, none dropped by the new layout",
+   run(`document.querySelectorAll('.pmixlgd [data-pt]').length`) ===
+   run(`Object.keys(SEED.catalog).filter(p=>p!=='Run').length`),
+   run(`document.querySelectorAll('.pmixlgd [data-pt]').length`) + " parts");
 
 // ---- latest means latest for the selected body part ---------------------
 run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
@@ -823,8 +841,10 @@ ok("an active today's newest column uses the live state",
    /\.pmixcol\.latest\.live\{fill:var\(--live\)/.test(css126));
 
 // ---- spacing -------------------------------------------------------------
+/* v3.3.306: the separating rule moved to the wrapper, since the scroller
+   itself must not carry padding a clipped item could hide behind. */
 ok("the minimal legend separates itself from the chart without a pill tray",
-   /\.pmixlgd\{[^}]*margin:0 0 12px[^}]*padding:0 0 12px[^}]*border-bottom:1px solid var\(--line\)/.test(css126) &&
+   /\.pmixlgdwrap\{[^}]*margin:0 0 12px[^}]*padding:0 0 12px[^}]*border-bottom:1px solid var\(--line\)/.test(css126) &&
    !/\.pmixread\{/.test(css126));
 ok("the left gutter is narrower", run(`PMIX_AXW`) === 25, "axis width " + run(`PMIX_AXW`));
 
