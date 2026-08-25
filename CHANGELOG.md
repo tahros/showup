@@ -1,5 +1,19 @@
 # ShowUp — changelog
 
+## v3.3.318 (2026-08-25) — The rep ruler glides, and always lands on a number
+
+Two fixes to the rep slider.
+
+**It can't stop between numbers any more.** It had been left free to rest
+wherever it stopped, so the band could straddle two reps. A rep is a whole
+number, so it always settles on one now.
+
+**And it should feel looser.** The tap you feel at each notch is, on iPhone,
+a real control being toggled — and during a fast flick the ruler was asking
+for thirty-odd of those a second, which jams the taptic engine and drags on
+the scroll. Flick it now and it coasts; ease it and every notch taps again,
+which is when you can feel them individually anyway.
+
 ## v3.3.317 (2026-08-25) — Add set goes red while you're training
 
 The Add set button turns red and pulses once a session is live, matching the

@@ -1008,7 +1008,14 @@
      can no longer scroll the page by starting your drag on these 74px. */
   .repruler{position:relative;z-index:1;height:74px;background:none;
     touch-action:pan-x;
-    overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;
+    /* v3.3.318: MANDATORY again. v3.3.289 loosened this to proximity so a
+       flick would carry instead of being arrested at the next notch — but
+       proximity also lets the ruler come to rest BETWEEN notches, which is
+       what the maker photographed: the band straddling two numbers. A rep is
+       a whole number and the ruler must always land on one. The gliding is
+       bought back elsewhere (see repTick's velocity gate), not by giving up
+       the guarantee. */
+    overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;
     -webkit-overflow-scrolling:touch;
     scrollbar-width:none;-ms-overflow-style:none;overscroll-behavior-x:contain}
   .repruler::-webkit-scrollbar{display:none}

@@ -675,6 +675,39 @@ check("...and a burst inside the throttle window is dropped",
         if(i) i.addEventListener('click',()=>n++);
         repTick(); repTick(); repTick(); return n;})()`, 0);
 
+/* v3.3.318: two reports on the ruler — it rested BETWEEN numbers, and it
+   felt stiff. The first was proximity snapping (v3.3.289 loosened it so a
+   flick would carry); a rep is a whole number, so mandatory is restored.
+   The second is the haptic: on iOS the tap is a real DOM click on a hidden
+   switch, and a flick crossing three notches a frame asked the taptic engine
+   for thirty-odd taps a second, which jams it and drags the scroll. Above
+   ~1.6 notches per frame the tap is skipped while the band and label keep
+   tracking every notch. */
+check("the ruler always lands ON a rep, never between two",
+      `${/\.repruler\{[^}]*scroll-snap-type:x mandatory/.test(
+        fs.readFileSync(path.join(dir,"css/app.css"),"utf8").replace(/\r?\n\s*/g,""))}`, "true");
+/* count at navigator.vibrate: repTick prefers it where it exists, and this
+   harness provides it, so counting switch clicks would count zero and look
+   like a pass-by-accident in the other direction */
+check("a slow scrub taps at every notch",
+      `(function(){window.__t=0; navigator.vibrate=()=>{window.__t++; return true;};
+        _rrPrevX=null; _rrPrevT=0; _hapAt=0;
+        const el=document.getElementById('repRuler');
+        for(let i=1;i<=6;i++){ el.scrollLeft=i*REP_W; _rrOnScroll(el); _hapAt=0; }
+        return window.__t;})()`, 6);
+check("...but a fling coasts instead of grinding through them",
+      `(function(){window.__t=0; _rrPrevX=null; _rrPrevT=0; _hapAt=0;
+        const el=document.getElementById('repRuler');
+        for(let i=1;i<=6;i++){ el.scrollLeft=i*REP_W*3; _rrOnScroll(el); _hapAt=0; }
+        return window.__t<=2;})()`, true);
+check("...while the value still tracks every notch it passes",
+      `(function(){_rrPrevX=null; _rrPrevT=0;
+        const el=document.getElementById('repRuler');
+        el.scrollLeft=11*REP_W; _rrOnScroll(el); return lift.rep;})()`, 12);
+check("the notch keeps a thumb-sized target",
+      `${/\.repruler \.rr\{[^}]*flex:0 0 44px/.test(
+        fs.readFileSync(path.join(dir,"css/app.css"),"utf8").replace(/\r?\n\s*/g,""))}`, "true");
+
 check("a rep nudge moves the ruler rather than a dead field",
       `(function(){const b=document.createElement('button');
         b.id='nudgeGo'; b.dataset.nr='15'; document.getElementById('view').appendChild(b);

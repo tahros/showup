@@ -673,12 +673,32 @@ document.addEventListener('touchstart',repTickInit,{passive:true});
    Now: scroll events are coalesced into one rAF; crossing a notch only swaps
    a class and fires the tick; the button label is rebuilt 110ms after the
    scrolling settles. */
-let _rrLast=null, _rrRaf=0;
+/* v3.3.318: the tick is VELOCITY-GATED, and that is what unsticks the spin.
+   On iOS the haptic is a real DOM click on a hidden switch (v3.3.291) — the
+   only way a web app can reach the taptic engine. Firing one per notch is
+   right when you are easing to a number, but during a flick the ruler can
+   cross two or three notches per frame, and asking the taptic engine for
+   thirty-odd taps a second both jams it and drags on the scroll. That drag
+   is the "뻑뻑한" feeling: a fling that should coast is being braked by its
+   own feedback.
+   So: while the ruler is moving faster than ~1.6 notches per frame, the
+   band and the label still track every notch — those are free — but the tap
+   is skipped. Slow down and every notch taps again, which is exactly when
+   you can feel them individually anyway. */
+let _rrLast=null, _rrRaf=0, _rrPrevX=null, _rrPrevT=0;
+const RR_FLING=REP_W*1.6;         // px per frame above which taps are skipped
 function _rrOnScroll(el){
-  const v=Math.max(1,Math.round(el.scrollLeft/REP_W)+1);
+  const x=el.scrollLeft, t=Date.now();
+  /* a gap since the last frame means a NEW gesture, not a fast one — without
+     this the first frame of every flick compares against wherever the last
+     one ended and silently swallows a tap */
+  const fresh=t-_rrPrevT>120;
+  const fast=!fresh && _rrPrevX!==null && Math.abs(x-_rrPrevX)>RR_FLING;
+  _rrPrevX=x; _rrPrevT=t;
+  const v=Math.max(1,Math.round(x/REP_W)+1);
   if(v!==_rrLast){
     _rrLast=v; lift.rep=v;
-    repTick();
+    if(!fast) repTick();
     repRulerBand(v);          // v3.3.290: class swap + one text node, nothing else
   }
 }
