@@ -312,12 +312,13 @@
      them (it reads CSS, not JS) */
   .heatgrid{--hw:35;display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,1fr);
     grid-template-columns:repeat(var(--hw),minmax(7px,1fr));
-    /* v3.3.308: the gaps are NOT equal, and that is the point. Two cells side
-       by side are a WEEK apart; two stacked are consecutive days. One uniform
-       2px gap made a row of Mondays read as a continuous run, directly under
-       the words "streak 1". Weeks are pushed apart, days stay tight, so the
-       only thing that can look joined is a thing that IS joined. */
-    column-gap:4px;row-gap:0;min-width:100%}
+    /* The gaps are NOT equal: two cells side by side are a WEEK apart, two
+       stacked are consecutive days, and the layout should say so. v3.3.308
+       introduced this when a uniform 2px gap let a row of Mondays read as one
+       continuous run. v3.3.314 removed the joining entirely — every day is
+       its own square now — but the reason to separate weeks more than days
+       outlives the join, so the unequal gaps stay. */
+    column-gap:4px;row-gap:2px;min-width:100%}
   /* v3.3.310: the gap between days is PAINTED, not pulled. The join closed a
      2px row-gap with negative margins — but rows are repeat(7,1fr) on a grid
      with no explicit height, so 1fr resolves from the items: the tracks
@@ -328,13 +329,9 @@
      bottom, and the fill is clipped to the content box. Two separate days
      leave a 2px channel; a joined pair drops the padding on the touching
      side and the fills meet exactly. Nothing leaves its track. */
-  .heatgrid .hc{display:block;width:100%;aspect-ratio:1;box-sizing:border-box;
-    padding:1px 0;background-clip:content-box;border-radius:3.5px;
+  .heatgrid .hc{display:block;width:100%;aspect-ratio:1;border-radius:2.5px;
     background-color:var(--surface2);font-style:normal}
   .heatgrid .hc.on{background-color:var(--accent)}
-  /* a run joins: square off the touching edge and close the 2px gap */
-  .heatgrid .hc.ju{border-top-left-radius:0;border-top-right-radius:0;padding-top:0}
-  .heatgrid .hc.jd{border-bottom-left-radius:0;border-bottom-right-radius:0;padding-bottom:0}
   .heatgrid .hc.fut{background-color:transparent;box-shadow:inset 0 0 0 1px var(--line);opacity:.5}
   .heatgrid .hc.tod{box-shadow:inset 0 0 0 1.5px var(--accent-ink)}
   .heatticks{--hw:35;display:grid;grid-auto-flow:column;

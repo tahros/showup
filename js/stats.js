@@ -697,16 +697,16 @@ function currentRhythmSection(){
   }
   const cells=days.map((x,k)=>{
     const future=x>todayISO, isToday=x===todayISO, done=on(x);
-    /* a run is vertical: the neighbours that matter are k-1 and k+1 WITHIN
-       the same column (same week), which is exactly k%7 */
-    const up   = done && k%7!==0 && on(days[k-1]);
-    const down = done && k%7!==6 && k+1<days.length && on(days[k+1]);
+    /* v3.3.314: every day is its OWN square. v3.3.307 joined consecutive days
+       into a stroke so a run read as its length — I argued for it, the maker
+       tried both on device and chose the plain grid. Recorded as a reversal,
+       not a bug: the joined version said something a heatmap cannot, but it
+       also made a dense year read as slabs rather than as days, and the
+       streak count above already states the run in words. */
     const cls=['hc'];
     if(done) cls.push('on');
     if(future) cls.push('fut');
     if(isToday) cls.push('tod');
-    if(up) cls.push('ju');
-    if(down) cls.push('jd');
     return `<i class="${cls.join(' ')}" role="img" aria-label="${x}${done?' \u00b7 trained':future?' \u00b7 future':' \u00b7 rest'}"></i>`;
   }).join('');
   const total=msLiveTotal(),firstDay=SEED.totals.first;

@@ -111,10 +111,10 @@ ok("...and contains exactly one today", run(`document.querySelectorAll('.heatgri
   ok("...and no month is printed twice", new Set(labels).size === labels.length, labels.join(" "));
   const cssG = fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\r?\n\s*/g, "");
   const colGap = +(cssG.match(/\.heatgrid\{[^}]*column-gap:(\d+)px/) || [0,0])[1];
-  /* v3.3.310: the day gap moved off the row track into each cell's padding
-     (1px top + 1px bottom = 2px between two separate days), so the track is
-     legitimately 0 now. Measure the gap that is actually PAINTED. */
-  const rowGap = 2 * +(cssG.match(/\.heatgrid \.hc\{[^}]*padding:(\d+)px 0/) || [0,0])[1];
+  /* v3.3.314: with the join gone the gap lives back on the track, so read it
+     from there again — the property (weeks further apart than the days
+     inside them) never changed, only where the number is written. */
+  const rowGap = +(cssG.match(/\.heatgrid\{[^}]*row-gap:(\d+)px/) || [0,0])[1];
 /* v3.3.310: the join must not MOVE anything. Negative margins closed the
    row-gap, but rows are repeat(7,1fr) on a grid with no explicit height —
    1fr resolved from the items, the tracks shrank by the margin, and cells
@@ -126,14 +126,17 @@ ok("...and contains exactly one today", run(`document.querySelectorAll('.heatgri
 {
   const cssJ = fs.readFileSync(path.join(dir, "css/app.css"), "utf8");
   const heat = cssJ.slice(cssJ.indexOf(".heatgrid{"), cssJ.indexOf(".heatticks{")).replace(/\r?\n\s*/g, "");
+  /* v3.3.314 RESTATES the v3.3.310 block. Those assertions defended the
+     MECHANISM that joined consecutive days — painted padding, dropped edges,
+     a zero row track. The maker compared both on device and chose the plain
+     grid, so the join is gone and its machinery with it. What survives is the
+     lesson underneath: nothing may be pulled out of its track, because that
+     is what made cells overflow and bleed into each other. */
   ok("no cell is pulled out of its track", !/margin-(top|bottom):\s*-/.test(heat));
-  ok("...the day gap is painted, not pulled",
-     /\.heatgrid \.hc\{[^}]*padding:1px 0/.test(heat)
-       && /\.heatgrid \.hc\{[^}]*background-clip:content-box/.test(heat));
-  ok("...and a joined edge closes it by dropping that padding",
-     /\.heatgrid \.hc\.ju\{[^}]*padding-top:0/.test(heat)
-       && /\.heatgrid \.hc\.jd\{[^}]*padding-bottom:0/.test(heat));
-  ok("...so the row track itself needs no gap", /row-gap:0/.test(heat));
+  ok("...every day is its own square, none joined to another",
+     !/\.hc\.ju/.test(heat) && !/\.hc\.jd/.test(heat));
+  ok("...and the grid keeps the gap on the track, where it cannot displace anything",
+     /row-gap:2px/.test(heat) && !/\.heatgrid \.hc\{[^}]*padding/.test(heat));
 }
 /* the streak line must name its unit — days is the only thing this app
    counts, and it is the whole point of the section */

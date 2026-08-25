@@ -1,5 +1,15 @@
 # ShowUp — changelog
 
+## v3.3.314 (2026-08-25) — Every day is its own square
+
+The attendance map no longer joins consecutive days into a stroke. Each day
+is a separate square again, the way a heatmap normally reads.
+
+The joined version showed a run as one unbroken bar, which said something a
+plain grid can't — but across a dense year it turned days into slabs, and the
+streak line above already states the run in words. Weeks still sit slightly
+further apart than the days within them, so a column still reads as a week.
+
 ## v3.3.313 (2026-08-25) — The plan card gets its margins right
 
 Names sit closer to the card's edge, and the numbers no longer look stranded

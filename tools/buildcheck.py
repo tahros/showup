@@ -758,9 +758,19 @@ if "raceCard.classList.add('scrubbing')" not in _app or "raceCard.classList.remo
 # heatmap's own geometry — square cells, and a run that visibly JOINS.
 if not _re.search(r"\.heatgrid \.hc\{[^}]*aspect-ratio:1", css.replace("\n", "")):
     fail.append("show up: heatmap cells must stay square (v3.3.307)")
-if not (_re.search(r"\.heatgrid \.hc\.ju\{[^}]*border-top-left-radius:0", css.replace("\n", ""))
-        and _re.search(r"\.heatgrid \.hc\.jd\{[^}]*border-bottom-left-radius:0", css.replace("\n", ""))):
-    fail.append("show up: consecutive days must JOIN into one stroke — that is the whole idea (v3.3.307)")
+# v3.3.307 required consecutive days to JOIN into a stroke — "that is the
+# whole idea". v3.3.314 reverses it after side-by-side use: every day is its
+# own square. The guard reverses with it, because a stale guard enforcing a
+# retired idea is worse than no guard. What must hold now is that no cell is
+# displaced to fake adjacency — the v3.3.310 bug, where negative margins
+# shrank the row tracks and cells bled into their neighbours.
+_heat_flat = css.replace("\n", "")
+if _re.search(r"\.heatgrid \.hc[^{]*\{[^}]*margin-(top|bottom):\s*-", _heat_flat):
+    fail.append("show up: a heatmap cell may not be pulled out of its track (v3.3.314)")
+if _re.search(r"\.heatgrid \.hc\.j[ud]\{", _heat_flat):
+    fail.append("show up: the joined-stroke variant was retired — every day is its own square (v3.3.314)")
+if not _re.search(r"\.heatgrid\{[^}]*row-gap:\d+px", _heat_flat):
+    fail.append("show up: the day gap belongs on the grid track (v3.3.314)")
 if "closest('.heatwrap')" not in (d/"js/util.js").read_text():
     fail.append("show up: the heatmap scrolls sideways and must be in the tab-swipe blocklist (v3.3.307)")
 
