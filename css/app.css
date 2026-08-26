@@ -1949,6 +1949,50 @@
   :root[data-skin="minimal"] nav button{color:var(--pill-ink);padding:13px 4px 15px}
   :root[data-skin="minimal"] nav button.on{color:var(--pill-accent)}
   :root[data-skin="minimal"] nav button.on::after{background:var(--pill-accent);bottom:7px}
+  /* v3.3.331: the TRAIN TAB joins the skin. Everything above was written
+     against the Bench Press mockup, which was a Today composition -- cards,
+     zones, fields, the nav pill. The two surfaces that FILL the Train tab,
+     .partcard (the body-part grid) and the .item.logrow list beneath it,
+     were never in the skin's list, so switching skins changed the nav pill
+     and almost nothing else on the screen.
+     SCOPE, deliberately narrow. .item.todayrow is NOT here. It carries
+     border:1px solid var(--live) -- it IS the live row, red-means-live, and
+     a blanket border-color:transparent across .item would have erased that
+     law. Its .fin sibling is likewise left alone: those rows sit INSIDE a
+     card in the same colour as the card, so v3.3.322's edge is the only
+     thing separating them from it. A list of cards and a list inside a card
+     are different grammars; only the first is being restyled.
+     SPECIFICITY, the v3.3.323 lesson repeated: .item.goto and the ranked
+     .item.logrow each re-declare the whole `border` shorthand, so they are
+     named explicitly rather than swept up by .item -- and every state the
+     base sheet paints as a BORDER (hot, run, liveP, sel) is re-asserted
+     below, or it dies under this layer. That is the price of the skin. */
+  :root[data-skin="minimal"] :is(.partcard,.item.goto,.item.logrow:not(.goto):not(.todayrow)){
+    border-color:transparent;box-shadow:var(--shadow)}
+  :root[data-skin="minimal"] .partcard{border-radius:16px;padding:11px 12px;gap:2px}
+  :root[data-skin="minimal"] .item.goto{border-radius:16px;padding:15px 16px;margin-bottom:8px}
+  :root[data-skin="minimal"] .item.logrow:not(.goto):not(.todayrow){
+    border-radius:16px;padding:13px 16px;margin-bottom:7px}
+  /* --- states re-asserted: each of these is a BORDER in the base sheet -- */
+  :root[data-skin="minimal"] .partcard.hot{border-color:var(--accent)}
+  :root[data-skin="minimal"] .partcard.run{border-color:var(--accent-dim)}
+  :root[data-skin="minimal"] .partcard.liveP{border-color:var(--live)}
+  :root[data-skin="minimal"] .partcard.sel{background:var(--accent);border-color:var(--accent)}
+  :root[data-skin="minimal"] .partcard.sel.liveP{background:var(--live);border-color:var(--live)}
+  /* found by the coverage guard, not by looking: the gear sits on EVERY
+     screen, and onboarding is the first surface a new user ever sees. Both
+     re-assert their painted states (header.live inverts the gear; .pri and
+     .ghost are the onboarding button's own). */
+  :root[data-skin="minimal"] :is(.icobtn,.onbbtn){
+    border-color:transparent;box-shadow:var(--shadow)}
+  :root[data-skin="minimal"] .icobtn{border-radius:15px}
+  :root[data-skin="minimal"] header.live .icobtn{
+    background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.3);box-shadow:none}
+  :root[data-skin="minimal"] .onbbtn{border-radius:14px}
+  :root[data-skin="minimal"] .onbbtn.pri{background:var(--accent);border-color:var(--accent)}
+  :root[data-skin="minimal"] .onbbtn.ghost{background:transparent;box-shadow:none}
+  /* the pull-to-refresh dot, also found by the guard rather than by eye */
+  :root[data-skin="minimal"] #ptr{border-color:transparent;box-shadow:var(--shadow)}
   :root[data-skin="minimal"] .rzbar{background:color-mix(in srgb,var(--accent) 10%,var(--ground))}
   :root[data-skin="minimal"] #app{padding-bottom:110px}   /* the pill floats — content clears it */
   :root[data-skin="minimal"] #toast{bottom:118px}

@@ -1,5 +1,17 @@
 # ShowUp — changelog
 
+## v3.3.331 (2026-08-25) — Minimal actually looks minimal
+
+**The Train tab never got the skin.** Minimal restyled cards, zones and the
+nav pill — all written for a Today-tab mockup — while the screen you spend
+the most time in is built from the body-part grid and the exercise rows,
+neither of which the skin had ever heard of. Switching skins changed the nav
+bar and almost nothing else. Both now float: no borders, deeper shadow,
+rounder corners, roomier rows. The settings gear, the onboarding buttons and
+the pull-to-refresh dot came along too.
+
+The live row is deliberately untouched — its red edge is a law, not a style.
+
 ## v3.3.330 (2026-08-25) — v3.3.329, actually shipped
 
 **Last release only half landed.** One file never made it into the push —
