@@ -38,6 +38,10 @@
        these are derived, and the derivation is the honest part. --ground
        lands on #0A0A0A beside charcoal's own near-black anchor. */
     --ground:#0A0A0A; --surface:#1B1B1B; --surface2:#272727; --line:#424242;
+    --whisper:#2A2A2A; /* v3.3.328: below --line in the ink ladder — a divider
+       between rows that already read as one card, ~1.2:1 against the surface.
+       --edge separates a pill FROM a card, --line divides regions, --whisper
+       only keeps neighbours from touching. */
     --accent:#4C6BE3; --accent-soft:#3A4A8C; --accent-dim:#95A4E8;
     --record:#E36758;                       /* personal records */
     --rest:#3E5C46;                         /* v3.3.81: declared rest — green's ONE meaning (wash/frame grade) */
@@ -127,6 +131,7 @@
        the rows looked like pills in dark and like nothing in light. 1.66 now
        — level with dark, and with the iOS system separator at 1.71. */
     --ground:#EFEFEF; --surface:#FFFFFF; --surface2:#F7F7F7; --line:#C9C9C9;
+    --whisper:#E7E7E7;
     --accent:#2F4BD8; --accent-soft:#C3CCF5; --accent-dim:#8892C4;
     --record:#B83528;
     --rest:#79A884;                         /* declared rest, light theme (wash/frame grade) */
@@ -1386,10 +1391,18 @@
      8 = 34px — which is what made the numbers look stranded. The row's right
      padding drops to 4 so the tick's own column supplies the margin, and the
      numbers land 4 + 9 + 5 = 18px in against the name's 10. */
+  /* v3.3.328 (maker's pick, option C of four rendered): the divider drops
+     below --line into --whisper and INSETS to the text edge — it starts and
+     stops at the same 10px the names and numbers live on, so the line
+     belongs to the content, not the card frame. Full-bleed at --line was
+     table chrome: it sliced the card into cells. A border-bottom cannot
+     inset (it spans the padding box), hence the pseudo-element. */
   .planrow{display:flex;width:100%;justify-content:flex-start;align-items:center;
-    gap:10px;background:none;border:0;border-bottom:1px solid var(--line);
+    gap:10px;background:none;border:0;position:relative;
     padding:7px 10px;cursor:pointer;text-align:left;color:var(--chalk);font:inherit}
-  .planrow:last-of-type{border-bottom:0}
+  .planrow::after{content:"";position:absolute;left:10px;right:10px;bottom:0;
+    height:1px;background:var(--whisper)}
+  .planrow:last-of-type::after{display:none}
   .planrow .pn{flex:1;min-width:0;text-align:left;font-size:12.5px;line-height:1.35}
   /* v3.3.295: the weights are a THREE-COLUMN grid, so the \u00d7 lands in the
      same place on every line and the weights right-align to each other.
@@ -1457,7 +1470,9 @@
   .pnline{white-space:pre-wrap}
 .plannote{white-space:pre-wrap;font-size:10px;color:var(--faint);
     /* v3.3.313: same left edge as the rows, or the card has two margins */
-    padding:8px 10px;border-top:1px solid var(--line);line-height:1.5}
+    padding:8px 10px;position:relative;line-height:1.5}
+  .plannote::before{content:"";position:absolute;left:10px;right:10px;top:0;
+    height:1px;background:var(--whisper)} /* v3.3.328: same inset whisper */
   /* v3.3.279: plan actions sit on the app's own button grammar — full-width
      rows, uniform height. flex:1 made three unequal labels share the width,
      so the longest wrapped to three lines and the row read as three
@@ -1870,13 +1885,13 @@
      .seg .sel …) — each one the base sheet styles is re-asserted here.
      That list is the price of the layer; pay it in full or a state dies. */
   :root[data-skin="minimal"]{
-    --line:#242938;
+    --line:#242938; --whisper:#1F2330;
     --shadow:0 1px 2px rgba(0,0,0,.28),0 10px 30px rgba(0,0,0,.32);
     --pill:#1C202A; --pill-ink:#A7ADBB; --pill-accent:#9DB0FF;
     --pill-shadow:0 10px 30px rgba(0,0,0,.30);
   }
   :root[data-skin="minimal"][data-theme="light"]{
-    --line:#E9EAEF;
+    --line:#E9EAEF; --whisper:#F1F2F6;
     --shadow:0 1px 2px rgba(22,26,40,.05),0 10px 30px rgba(22,26,40,.09);
     /* v3.3.169: the pill FOLLOWS the theme. v3.3.168 promoted the mockup's
        dark pill to a both-themes invariant; the mockup was a light

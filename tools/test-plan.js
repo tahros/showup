@@ -208,6 +208,23 @@ ok("...and the tick reads as part of the exercise, not as a column",
   const rightPad = px(rowPad.split(/\s+/)[1]);
   ok("the numbers end at the same indent the name starts from",
      rightPad === px(left(rowPad)), `left ${px(left(rowPad))}px vs right ${rightPad}px`);
+  /* v3.3.328 (maker's pick, option C of four rendered): the divider is a
+     WHISPER, inset to the text edge. Three properties, each load-bearing:
+     the tone sits below --line in the ink ladder (full-bleed --line was
+     table chrome); the line starts and stops at the row's own 10px indent,
+     which border-bottom cannot do, hence the pseudo-element; and the last
+     row draws none, so the card does not end on a rule. The Total note's
+     topline follows identically. */
+  ok("the divider is a whisper, not a line",
+     /\.planrow::after\{[^}]*background:var\(--whisper\)/.test(cssP)
+       && !/\.planrow\{[^}]*border-bottom/.test(cssP));
+  ok("...inset to the very indent the text lives on",
+     new RegExp("\\.planrow::after\\{[^}]*left:" + left(rowPad) + "[^}]*right:" + left(rowPad)).test(cssP));
+  ok("...and the last row lets the card end quietly",
+     /\.planrow:last-of-type::after\{display:none\}/.test(cssP));
+  ok("...with the note's topline on the same whisper",
+     /\.plannote::before\{[^}]*left:10px[^}]*background:var\(--whisper\)/.test(cssP)
+       && !/\.plannote\{[^}]*border-top/.test(cssP));
   ok("...and the tick no longer reserves a column at either end",
      !/\.planrow \.pk\{[^}]*(width|flex):/.test(cssP));
 }

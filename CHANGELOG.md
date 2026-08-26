@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v3.3.328 (2026-08-25) — The plan's dividers become whispers
+
+**The lines between plan rows step back.** They were drawn edge to edge in
+the same ink that divides whole regions of the app, which cut the card into
+table cells. They now run only between the text edges, in a tone one step
+quieter — enough to keep neighbours apart, not enough to be furniture. The
+line above the total follows, and the last row ends the card without one.
+
 ## v3.3.327 (2026-08-25) — Biceps is pine
 
 **The bronze was legible and ugly.** It came from a search told to maximise

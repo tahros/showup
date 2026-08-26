@@ -259,7 +259,11 @@ _sk_l = _blk(css, ':root[data-skin="minimal"][data-theme="light"]')
 if not _sk_d or not _sk_l:
     fail.append("minimal skin: token blocks missing (dark AND light are required) (v3.3.168)")
 else:
-    _allow = {"line", "shadow", "pill", "pill-ink", "pill-accent", "pill-shadow"}
+    # v3.3.328: --whisper joins the allowlist beside --line. Same category:
+    # a divider tone is chrome (it separates, it never carries meaning), and
+    # the skin tints its dividers to its own surface family. The ink tokens
+    # this rule protects (chalk/faint/muted/accent/live) stay forbidden.
+    _allow = {"line", "whisper", "shadow", "pill", "pill-ink", "pill-accent", "pill-shadow"}
     for _bn, _bc in (("dark", _sk_d), ("light", _sk_l)):
         _bad = [t for t in _re.findall(r"--([a-z][a-z-]*):", _bc) if t not in _allow]
         if _bad:
