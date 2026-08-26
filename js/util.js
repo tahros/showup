@@ -122,7 +122,7 @@
     if(i<0) return;
     const j=(i+(dx<0?1:-1)+TABS.length)%TABS.length;       // wraps: History ⇄ Today
     view=TABS[j];
-    if(view==='lift') lift=(isLive()&&liftWhere)?{...liftWhere,weight:0}:{part:null,ex:null,weight:0};   // v3.3.344
+    if(view==='lift'){const b=liftBack(); lift=b?{part:b.part,ex:b.ex,weight:0}:{part:null,ex:null,weight:0};}   // v3.3.347
     if(session) cloudPush();
     document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
     render();
@@ -557,6 +557,11 @@ addEventListener('scroll',()=>{
 },{passive:true});
 function dayMeta(){const t=day(todayISO);t.doneEx=t.doneEx||[];t.donePart=t.donePart||[];t.sugX=t.sugX||{};return t;}
 const isLive =()=>{const t=day(todayISO);return t.w.length>0&&!t.doneAll;};
+/* v3.3.347: the Train screen worth returning to, or null. One predicate, so
+   the nav tab, the swipe and Today's live card cannot drift apart on when a
+   memory counts -- a rule that holds on two paths out of three is worse than
+   no rule. */
+const liftBack =()=>(liftWhere&&liftWhere.d===todayISO)?liftWhere:null;
 /* v3.2.3: evening + unwritten today + living streak = at risk. One warm tone,
    five words, no guilt copy, and it never calls today rest. */
 let RISK_HOUR=18;

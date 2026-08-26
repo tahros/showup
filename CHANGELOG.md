@@ -1,5 +1,15 @@
 # ShowUp — changelog
 
+## v3.3.347 (2026-08-26) — Train always remembers where you were
+
+**Leave the tab and come back to the same screen — workout or not.** Last
+release only remembered mid-session, so once your day was done, stepping to
+Today and back threw away your place and dropped you on a part list. It
+doesn't any more: an exercise stays that exercise, a list stays that list.
+
+A fresh launch still opens the tab clean, and a position from another day is
+ignored. Memory means where you were just now.
+
 ## v3.3.346 (2026-08-26) — Plank reads
 
 **`Plank / 60 sec × 2` is a plan item now**, not a note. It reads as

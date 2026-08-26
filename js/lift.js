@@ -65,7 +65,7 @@ function planSectionHTML(){
 
 function renderLift(){
   /* recorded on the way THROUGH, so it is always the screen actually shown */
-  if(isLive()) liftWhere={part:lift.part, ex:lift.ex};
+  liftWhere={part:lift.part, ex:lift.ex, d:todayISO};   // v3.3.347: always
   /* v3.3.64: the entrance fires when the LIST YOU'RE LOOKING AT CHANGES —
      not only on a part tap. Opening the app in the morning restores the part
      from saved state with no tap at all, which is exactly the moment the

@@ -265,13 +265,61 @@ if (!blocked) fail++;
   checkVal("arriving cold still lands on the set you were mid-way through",
            where(), "ex:Cable Fly Up");
 
-  /* and a finished session must not resurrect yesterday's position */
+  /* v3.3.347 REVERSES this, on the maker's instruction and his own use.
+     v3.3.344 remembered only while a session was LIVE, reasoning that
+     otherwise arriving at Train means STARTING something. His day was
+     already complete, he was standing in Dumbbell Lunge deciding a weight,
+     stepped to Today for a second, and came back to a part list -- and not
+     even the part he had been in. "Where you actually were beats where you
+     probably are" was v3.3.344's own sentence, applied to half the cases.
+     A session's liveness is not the question; whether you were there is.
+     What replaces the live gate is a DAY STAMP, which is the real staleness
+     boundary: memory is held in RAM so a cold launch starts fresh, and the
+     stamp covers the one case RAM does not -- an app left open across
+     midnight, where yesterday's position would survive into a day it has
+     nothing to do with. */
+  /* the memory is EARNED by rendering, not planted by the test. Planting it
+     tests only the restore half -- and a probe reverting the RECORDER to
+     live-only passed clean, because nothing here made the app record
+     anything. The maker's whole sequence runs below instead. */
+  run(`(function(){DB.days={}; DB.days[todayISO]={w:[
+      {part:'Chest',ex:'Cable Fly Up',w:6.8,reps:[10],at:1}],upd:1,doneAll:1};
+    SEED=deriveAll(); liftWhere=null;
+    view='lift'; lift={part:'Legs',ex:'Dumbbell Lunge',weight:0}; render();})()`);
+  checkVal("...on a day that is finished, not live", run(`isLive()`), false);
+  tapNav('today');
+  tapNav('lift');
+  checkVal("a finished day still returns you to the screen you left",
+           where(), "ex:Dumbbell Lunge");
+
+  /* and backing out to the list updates the memory, so the list is what
+     comes back -- the recorder follows the screen, not the intent */
+  run(`(function(){DB.days={}; DB.days[todayISO]={w:[
+      {part:'Chest',ex:'Cable Fly Up',w:6.8,reps:[10],at:1}],upd:1,doneAll:1};
+    SEED=deriveAll(); liftWhere=null;
+    view='lift'; lift={part:'Legs',ex:'Dumbbell Lunge',weight:0}; render();
+    lift.ex=null; render();})()`);
+  tapNav('today'); tapNav('lift');
+  checkVal("...and backing out to the list makes the LIST what returns",
+           where(), "list:Legs");
+
   run(`(function(){DB.days={}; DB.days[todayISO]={w:[],upd:1}; SEED=deriveAll();
-    liftWhere={part:'Chest',ex:'Cable Fly Up'}; view='today';
+    liftWhere={part:'Legs',ex:'Dumbbell Lunge',d:'2020-01-01'}; view='today';
     lift={part:null,ex:null,weight:0}; render();})()`);
   tapNav('lift');
-  checkVal("with no session live, the tab opens fresh and ignores the memory",
+  checkVal("...but a position from another day is not memory, it is staleness",
            where().indexOf('ex:') === 0 ? 'stale exercise' : 'fresh', "fresh");
+
+  run(`(function(){DB.days={}; DB.days[todayISO]={w:[],upd:1}; SEED=deriveAll();
+    liftWhere=null; view='today'; lift={part:null,ex:null,weight:0}; render();})()`);
+  tapNav('lift');
+  checkVal("...and a cold launch opens the tab fresh",
+           where().indexOf('ex:') === 0 ? 'stale exercise' : 'fresh', "fresh");
+
+  /* all three entries read ONE predicate, so they cannot drift apart on when
+     a memory counts -- the v3.3.344 lesson, kept */
+  checkVal("nav, swipe and the live card share one rule",
+           run(`typeof liftBack`), "function");
 }
 
 process.exit(fail ? 1 : 0);

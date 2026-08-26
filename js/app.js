@@ -137,8 +137,8 @@ document.addEventListener('click',e=>{
   if(nav){
     if(session) cloudPush();
     view=nav.dataset.v;
-    /* v3.3.344: mid-session the tab remembers; otherwise it starts clean */
-    if(view==='lift')lift=(isLive()&&liftWhere)?{...liftWhere,weight:0}:{part:null,ex:null,weight:0};
+    /* v3.3.347: the tab remembers, live or not */
+    if(view==='lift'){const b=liftBack(); lift=b?{part:b.part,ex:b.ex,weight:0}:{part:null,ex:null,weight:0};}
     document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b===nav));
     return render();
   }
@@ -165,8 +165,9 @@ document.addEventListener('click',e=>{
        exercise you logged -- is a guess for someone arriving cold, and it was
        overriding a fact: the maker steps to Today to read the plan and taps
        back, and got dropped into an exercise instead of the list he left. */
-    const goEx=(liftWhere&&liftWhere.part===goP&&isLive())
-      ? liftWhere.ex
+    const _b=liftBack();
+    const goEx=(_b&&_b.part===goP)
+      ? _b.ex
       : (goP!=='Run'&&partOpen(goP))
         ? (([...day(todayISO).w].reverse().find(s=>s.part===goP&&s.ex)||{}).ex||null)
         : null;
