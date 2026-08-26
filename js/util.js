@@ -915,6 +915,28 @@ function planReadInline(body){
   }
   return {name, lines};
 }
+/* v3.3.340: a HOLD is recognised, and kept with the exercise it belongs to.
+   "Plank / 60 sec x 2" is not something this app can prefill -- a set is a
+   weight and a count of reps, and every set total in the app gates on
+   reps.length, so a duration-only set would be invisible to "19 sets", to
+   Stats and to coverage. That is a MODEL question, not a parser one, and it
+   is not answered here.
+   What IS fixed is the compounding. Written on two lines, the duration line
+   failed to parse, so it was read as a HEADING of its own -- and the exercise
+   above it, now with no set line, became a second note. One unreadable phrase
+   turned one exercise into two pieces of text, which is precisely the damage
+   v3.3.311 documented for "per arm". Recognising the shape lets it stay
+   attached: one note, reading "Plank - 60 sec x 2", instead of two fragments.
+   Deliberately NOT a plan item. The app can hold it verbatim and hand it back
+   without pretending it understood it. */
+const PLAN_TIME=/^\s*(?:(\d+)\s*[x×]\s*)?(\d+(?:\.\d+)?)\s*(s|sec|secs|second|seconds|m|min|mins|minute|minutes)\b\s*(?:[x×]\s*(\d+))?\s*$/i;
+function planReadTime(line){
+  const m=String(line).replace(PLAN_SIDE,'').match(PLAN_TIME); if(!m) return null;
+  const n=parseFloat(m[2]); if(!(n>0)) return null;
+  const sets=+(m[1]||m[4]||1);
+  if(!(sets>0&&sets<=50)) return null;
+  return {secs: Math.round(/^m/i.test(m[3])?n*60:n), sets};
+}
 /* strip a trailing "6 sets" and any "← coach note" tail from a heading */
 const planHeadClean=t=>String(t).split(/[←<]-?|\/\/|\s{3,}#/)[0]
   .replace(/\b\d+\s*sets?\b/ig,'').replace(/[·|—–-]\s*$/,'').trim();
@@ -932,6 +954,12 @@ function parsePlan(text){
     /* v3.3.339: a whole exercise on one line. cur stays open afterwards, so a
        paste that puts the first set inline and the rest beneath still gathers
        them all into the one exercise. */
+    /* a hold clings to the exercise above it rather than becoming a heading.
+       Only while that exercise has no weight lines yet: if it has real sets,
+       the duration is something else and stays a note of its own. */
+    if(cur && !cur.lines.length && planReadTime(body)){
+      (cur.times=cur.times||[]).push(body.trim()); continue;
+    }
     const inline=planReadInline(body);
     if(inline){
       const hit=planCandidates(inline.name);
@@ -946,8 +974,20 @@ function parsePlan(text){
   }
   /* an exercise heading that never got a set line is a note, not a plan item —
      "Plank / 60 sec each" has nothing this app can prefill */
-  for(const r of rows) if(r.kind==='ex'&&!r.lines.length) r.kind='exnote';
-  return rows;
+  const out=[];
+  for(const r of rows){
+    if(r.kind==='ex'&&!r.lines.length){
+      r.kind='exnote';
+      if(r.times&&r.times.length) r.raw=`${r.raw} \u2014 ${r.times.join(' \u00b7 ')}`;
+      out.push(r);
+    }else{
+      out.push(r);
+      /* it turned out to have real sets after all, so the hold is something
+         else — hand it back untouched rather than swallowing it */
+      if(r.kind==='ex'&&r.times) for(const t of r.times) out.push({kind:'note', raw:t});
+    }
+  }
+  return out;
 }
 /* the accepted shape: one item per resolved exercise, weights stored in KG
    like every other weight in the app, unresolved text preserved verbatim */

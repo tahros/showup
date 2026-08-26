@@ -1,5 +1,15 @@
 # ShowUp — changelog
 
+## v3.3.340 (2026-08-26) — A timed hold stays with its exercise
+
+**"Plank" and "60 sec × 2" were becoming two separate notes.** The duration
+line couldn't be read, so it was treated as an exercise name of its own,
+which left Plank above it with nothing — one unreadable phrase turning one
+exercise into two fragments. It reads as one note now: `Plank — 60 sec × 2`.
+
+It's still a note, not a plan item. The app can't prefill a hold yet, and it
+would rather hand your text back untouched than pretend it understood it.
+
 ## v3.3.339 (2026-08-26) — Paste reads a whole exercise on one line
 
 **`Incline BB 95×10 · 115×8 · 145 × 12 12 12 12 · 165×5` now reads.** The

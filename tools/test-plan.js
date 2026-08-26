@@ -650,4 +650,42 @@ run(`(function(){view='today'; lift.ex=null; render();})()`);
 }
 
 
+/* v3.3.340: a HOLD stays attached to its exercise.
+   "Plank / 60 sec x 2" is not something this app can prefill -- a set is a
+   weight and a count of reps, and every set total gates on reps.length, so a
+   duration-only set would be invisible to "19 sets", to Stats and to
+   coverage. That is a MODEL question and it is deliberately not answered
+   here. What is fixed is the COMPOUNDING: written on two lines, the duration
+   failed to parse, was read as a heading of its own, and left the exercise
+   above it with no set line -- so one unreadable phrase became two notes.
+   The same damage v3.3.311 documented for "per arm". */
+{
+  const rows = t => run(`parsePlan(${JSON.stringify(t)}).map(r=>({k:r.kind,raw:r.raw,n:(r.lines||[]).length}))`);
+
+  const p1 = rows("Plank\n60 sec x 2");
+  ok("a hold and its exercise stay one note, not two fragments",
+     p1.length === 1 && p1[0].k === 'exnote', JSON.stringify(p1));
+  ok("...with the duration handed back verbatim",
+     p1[0] && /Plank/.test(p1[0].raw) && /60 sec x 2/.test(p1[0].raw), JSON.stringify(p1[0]));
+  for (const [label, text] of [["minutes", "Plank\n2 min"], ["short unit", "Plank\n60s x 2"],
+                               ["sets first", "Plank\n2 x 60 sec"], ["bare", "Side Plank\n45 sec"]])
+    ok(`...${label} too`, rows(text).length === 1, JSON.stringify(rows(text)));
+
+  /* it is NOT promoted to a plan item: the app holds the text, it does not
+     pretend to have understood it */
+  ok("...and never becomes something the plan can prefill",
+     run(`planItemsFrom(parsePlan("Plank\\n60 sec x 2")).items.length`) === 0);
+  ok("...while the text survives into the note",
+     /60 sec/.test(run(`planItemsFrom(parsePlan("Plank\\n60 sec x 2")).note`)));
+
+  /* a duration under an exercise that DOES have sets is something else --
+     rest, a finisher, prose -- and is handed back untouched rather than
+     swallowed into a row it does not belong to */
+  const p2 = rows("Cable Fly Up\n35 lb x 12\n60 sec x 2");
+  ok("...but a hold under a real set stays its own note",
+     p2.length === 2 && p2[0].k === 'ex' && p2[0].n === 1 && p2[1].k === 'exnote',
+     JSON.stringify(p2));
+}
+
+
 process.exit(fail ? 1 : 0);
