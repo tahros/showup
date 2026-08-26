@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v3.3.344 (2026-08-26) — Train remembers where you were
+
+**Step over to Today mid-workout and come back to the screen you left.** It
+used to drop you into whichever exercise you'd logged last, so checking the
+plan cost you your place. Now the part list stays the part list, and an
+exercise stays that exercise.
+
+Only during a live session. Starting a workout still opens the tab fresh.
+
 ## v3.3.343 (2026-08-26) — Holds are logged in seconds
 
 **A bodyweight exercise can count seconds instead of reps.** Tap `sec` on

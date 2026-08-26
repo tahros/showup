@@ -224,4 +224,54 @@ const blocked = ["'.heat'", "'.heatcols'", "'.ychips'"].every(s => src.includes(
 console.log((blocked?"PASS":"FAIL"), "swipe excludes every sideways scroller →", blocked);
 if (!blocked) fail++;
 
+/* v3.3.344: the Train tab REMEMBERS, while a session is live.
+   The maker steps to Today mid-workout to read the plan, taps back, and was
+   dropped into an exercise instead of the part list he left. Cause: the live
+   card on Today carries [data-go], and for an OPEN part that handler drilled
+   straight to the last exercise you logged. That rule is a good guess for
+   someone arriving cold -- and it was overriding a fact, which is the whole
+   error. Where you actually were beats where you probably are.
+   Scoped to a live session on purpose: outside one, arriving at Train is
+   STARTING something, and the tab's fresh entry state is right. */
+{
+  const liveDay = `DB.days[todayISO]={w:[
+    {part:'Chest',ex:'Incline Barbell Bench Press',w:43,reps:[10],at:1},
+    {part:'Chest',ex:'Cable Fly Up',w:6.8,reps:[10],at:2}],upd:1};`;
+  const where = () => run(`lift.ex ? 'ex:'+lift.ex : 'list:'+lift.part`);
+  const tapNav = v => run(`document.querySelector('nav button[data-v="${v}"]')
+    .dispatchEvent(new window.Event('click',{bubbles:true}))`);
+  const tapGo = () => run(`(function(){const g=document.querySelector('[data-go]');
+    return g ? (g.dispatchEvent(new window.Event('click',{bubbles:true})),true) : false;})()`);
+  const start = (js) => run(`(function(){DB.days={}; ${liveDay} SEED=deriveAll();
+    liftWhere=null; ${js} render();})()`);
+
+  start(`view='lift'; lift={part:'Chest',ex:null,weight:0};`);
+  tapNav('today'); tapNav('lift');
+  checkVal("the part list you left is the part list you return to", where(), "list:Chest");
+
+  start(`view='lift'; lift={part:'Chest',ex:null,weight:0};`);
+  tapNav('today'); tapGo();
+  checkVal("...including via the live card on Today", where(), "list:Chest");
+
+  /* the memory is not a cage: leave from inside an exercise and you return
+     to it, which is the same rule and not a special case */
+  start(`view='lift'; lift={part:'Chest',ex:'Cable Fly Up',weight:0};`);
+  tapNav('today'); tapNav('lift');
+  checkVal("...and an exercise you left is the exercise you return to", where(), "ex:Cable Fly Up");
+
+  /* someone arriving COLD has no memory to honour, so the old guess stands */
+  start(`view='today'; lift={part:null,ex:null,weight:0};`);
+  tapGo();
+  checkVal("arriving cold still lands on the set you were mid-way through",
+           where(), "ex:Cable Fly Up");
+
+  /* and a finished session must not resurrect yesterday's position */
+  run(`(function(){DB.days={}; DB.days[todayISO]={w:[],upd:1}; SEED=deriveAll();
+    liftWhere={part:'Chest',ex:'Cable Fly Up'}; view='today';
+    lift={part:null,ex:null,weight:0}; render();})()`);
+  tapNav('lift');
+  checkVal("with no session live, the tab opens fresh and ignores the memory",
+           where().indexOf('ex:') === 0 ? 'stale exercise' : 'fresh', "fresh");
+}
+
 process.exit(fail ? 1 : 0);

@@ -137,7 +137,8 @@ document.addEventListener('click',e=>{
   if(nav){
     if(session) cloudPush();
     view=nav.dataset.v;
-    if(view==='lift')lift={part:null,ex:null,weight:0};
+    /* v3.3.344: mid-session the tab remembers; otherwise it starts clean */
+    if(view==='lift')lift=(isLive()&&liftWhere)?{...liftWhere,weight:0}:{part:null,ex:null,weight:0};
     document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b===nav));
     return render();
   }
@@ -159,9 +160,16 @@ document.addEventListener('click',e=>{
     // Start / add-on / Run keep landing on the part: nothing logged yet, or the
     // Run view owns itself. Fresh lift object, so no stale editor state rides in.
     const goP=go.dataset.go;
-    const goEx=(goP!=='Run'&&partOpen(goP))
-      ? (([...day(todayISO).w].reverse().find(s=>s.part===goP&&s.ex)||{}).ex||null)
-      : null;
+    /* v3.3.344: if you have BEEN on Train for this part during this session,
+       go back to the screen you left. The rule below it -- land on the last
+       exercise you logged -- is a guess for someone arriving cold, and it was
+       overriding a fact: the maker steps to Today to read the plan and taps
+       back, and got dropped into an exercise instead of the list he left. */
+    const goEx=(liftWhere&&liftWhere.part===goP&&isLive())
+      ? liftWhere.ex
+      : (goP!=='Run'&&partOpen(goP))
+        ? (([...day(todayISO).w].reverse().find(s=>s.part===goP&&s.ex)||{}).ex||null)
+        : null;
     view='lift';lift={part:goP,ex:goEx,weight:0};
     document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v==='lift'));
     return render();

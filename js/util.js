@@ -122,7 +122,7 @@
     if(i<0) return;
     const j=(i+(dx<0?1:-1)+TABS.length)%TABS.length;       // wraps: History ⇄ Today
     view=TABS[j];
-    if(view==='lift') lift={part:null,ex:null,weight:0};
+    if(view==='lift') lift=(isLive()&&liftWhere)?{...liftWhere,weight:0}:{part:null,ex:null,weight:0};   // v3.3.344
     if(session) cloudPush();
     document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
     render();
