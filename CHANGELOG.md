@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v3.3.337 (2026-08-26) — Every month, one letter
+
+**J F M A M J J A S O N D.** The month row was thinned to quarters because
+three-letter labels every four columns read as a fence — but the fence was
+the width of each mark, not how many there were. At one letter a month it
+becomes a ruler: every month still marked, read as a rhythm rather than a
+list. The year above tells you where the sequence starts.
+
 ## v3.3.336 (2026-08-26) — Two year labels stop printing on top of each other
 
 **A ledger that opens in December put two years three columns apart.** 2021

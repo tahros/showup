@@ -117,11 +117,41 @@ check("...and the year that keeps the label is the FULL one, not the stub",
         return first.firstChild.textContent.trim()===y
             && +first.firstChild.textContent.trim() > +SEED.totals.first.slice(0,4);})()`, true);
 
-/* quarters, not months: the year row answers "roughly when", so this row only
-   has to answer "roughly where in the year". ~57 labels read as a fence. */
-check("...with the month row thinned to quarters",
-      `(function(){return [...document.querySelectorAll('.heatticks span')]
-        .every(sp=>['JAN','APR','JUL','OCT'].includes(sp.textContent.trim()));})()`, true);
+/* v3.3.337 RESTATES v3.3.335. The property being defended was never "four
+   labels" -- it was that the month row reads as orientation rather than as a
+   fence. v3.3.335 got there by dropping labels; the maker got there by
+   dropping WIDTH, one letter per month, which keeps every month marked and
+   turns the row into a ruler. Both satisfy the property; his costs nothing.
+   What is asserted now: every month present, and every label one character. */
+/* EVERY month, counted -- not just "the labels present are single letters".
+   My first version of this checked only the shape of each label, so reverting
+   to quarters passed it clean: four single letters are still single letters.
+   The count is the property; the shape is a detail of it. */
+check("...with every month marked, one letter each",
+      `(function(){const sp=[...document.querySelectorAll('.heatticks span')];
+        if(!sp.every(s=>/^[JFMASOND]$/.test(s.textContent.trim()))) return 'not single letters';
+        const cells=[...document.querySelectorAll('.heatgrid .hc')];
+        const hw=+document.querySelector('.heatgrid').style.getPropertyValue('--hw');
+        const seen=new Set();
+        for(let c=0;c<hw;c++) seen.add(cells[c*7].getAttribute('aria-label').slice(0,7));
+        /* every month a column starts in, less the partial first one that
+           v3.3.308 deliberately suppresses */
+        return sp.length===seen.size-1 || sp.length===seen.size;})()`, true);
+check("...following the calendar's own sequence",
+      `(function(){const L='JFMAMJJASOND';
+        const cells=[...document.querySelectorAll('.heatgrid .hc')];
+        return [...document.querySelectorAll('.heatticks span')].every(sp=>{
+          const c=+sp.style.getPropertyValue('--c');
+          const mo=+cells[c*7].getAttribute('aria-label').slice(5,7);
+          return L[mo-1]===sp.textContent.trim();});})()`, true);
+/* v3.3.336 is why this is measured instead of argued in a comment: the
+   shortest month is 28 days = exactly 4 columns, and a 10px mono character is
+   6px against a 15px column pitch. If a future change ever widens the label
+   or narrows the cell, this fails rather than smearing on the maker's phone. */
+check("...with clearance no month can close",
+      `(function(){const cs=[...document.querySelectorAll('.heatticks span')]
+         .map(s=>+s.style.getPropertyValue('--c')).sort((a,b)=>a-b);
+        return cs.every((c,i)=>i===0 || c-cs[i-1] >= 4);})()`, true);
 /* the rail is STATIC -- outside the scroller, so it holds while the columns
    slide past. Four marks on even rows; S is Sunday by position, not letter. */
 check("the weekday rail stands outside the scroller",

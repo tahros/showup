@@ -114,7 +114,21 @@ ok("...and contains exactly one today", run(`document.querySelectorAll('.heatgri
   for (let i = 1; i < cols.length; i++) closest = Math.min(closest, cols[i] - cols[i-1]);
   ok("month labels never sit on top of each other", cols.length < 2 || closest >= 4,
      "closest " + closest + " columns");
-  ok("...and no month is printed twice", new Set(labels).size === labels.length, labels.join(" "));
+  /* v3.3.337 RESTATES v3.3.308. That release fixed DEC and JAN colliding one
+     column apart, and pinned it as "no month is printed twice" -- true of a
+     35-week window, where a repeated label could only mean the same month
+     labelled twice. The grid now spans five years and each label is one
+     letter, so J appears every January, June and July BY DESIGN: the row is a
+     ruler, not a list. The real property is unchanged and is the line above --
+     labels never collide. What replaces the duplicate check: no month may be
+     labelled twice IN THE SAME YEAR, which is the bug v3.3.308 actually
+     caught, expressed so it survives a multi-year grid. */
+  {
+    const cells = run(`[...document.querySelectorAll('.heatgrid .hc')].map(e=>e.getAttribute('aria-label').slice(0,7))`);
+    const stamped = cols.map(c => cells[c*7]);            // YYYY-MM per label
+    ok("...and no month is labelled twice within a year",
+       new Set(stamped).size === stamped.length, stamped.join(" "));
+  }
   const cssG = fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\r?\n\s*/g, "");
   const colGap = +(cssG.match(/\.heatgrid\{[^}]*column-gap:(\d+)px/) || [0,0])[1];
   /* v3.3.314: with the join gone the gap lives back on the track, so read it

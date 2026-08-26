@@ -698,22 +698,29 @@ function currentRhythmSection(){
      column apart, and the two labels sat on top of each other. A 3-letter
      label needs roughly three columns of width, so a tick is skipped unless
      it clears the previous one by that much. */
-  /* v3.3.335: QUARTERS, not months. v3.3.308's TICK_GAP existed to stop two
-     labels colliding in a 35-week window; across a five-year ledger the rule
-     stopped firing and every one of ~57 months got a label, which read as a
-     picket fence. The year row above (v3.3.334) already answers "roughly
-     when", so the month row only has to answer "roughly where in the year" —
-     four marks do that with a quarter of the ink. The crowding rule goes with
-     the problem it solved: quarters are ~13 columns apart and cannot collide.
-     lastM is still seeded from column 0 so a PARTIAL first quarter never
-     claims a label one column from the real one. */
+  /* v3.3.337: EVERY month, ONE letter. J F M A M J J A S O N D.
+     v3.3.335 thinned to quarters because ~57 three-letter labels read as a
+     picket fence -- but the fence was the WIDTH of each mark, not how many
+     there were. At one character a month the row stops being a list of
+     labels and becomes a ruler: evenly spaced ticks you read as a rhythm,
+     with every month still marked. Individually the letters are ambiguous
+     (three Js, two Ms, two As) and that is fine -- nobody reads one in
+     isolation, they read the sequence, and the year row above fixes where
+     the sequence starts.
+     TICK_GAP is not restored, and this time that is checked rather than
+     asserted: the shortest month is 28 days, which is exactly 4 columns, and
+     a 10px mono character is 6px against a 15px column pitch. Four columns of
+     clearance for six pixels of ink. The guard in test-scrollpos measures it
+     rather than trusting this paragraph -- v3.3.336 is what that habit cost.
+     lastM is still seeded from column 0 so a PARTIAL first month never claims
+     a label one column from the real one (v3.3.308's fix, still load-bearing:
+     it is the same partial-first-unit trap the year row fell into). */
   const ticks=[]; let lastM=new Date(days[0]+'T00:00').getMonth();
   for(let c=0;c<HEAT_WEEKS;c++){
     const d=new Date(days[c*7]+'T00:00'), m=d.getMonth();
     if(m===lastM) continue;
     lastM=m;
-    if(m%3) continue;                          // Jan, Apr, Jul, Oct only
-    ticks.push({c,label:d.toLocaleDateString('en-US',{month:'short'}).toUpperCase()});
+    ticks.push({c,label:d.toLocaleDateString('en-US',{month:'short'}).charAt(0).toUpperCase()});
   }
   /* v3.3.334: YEARS, in their own row above the grid and inside the same
      scroller, so the label travels with the columns it names. A label lands
