@@ -407,6 +407,36 @@ check("...every label landing inside the grid it labels",
       `(function(){const hw=+document.querySelector('.heatgrid').style.getPropertyValue('--hw');
         return [...document.querySelectorAll('.heatticks span')]
           .every(s=>{const c=+s.style.getPropertyValue('--c'); return c>=0 && c<hw;});})()`, true);
+/* v3.3.333: the sheen belongs to the WINDOW, not to what slides past it.
+   It was .heatwrap::after -- absolutely positioned INSIDE the scroll
+   container, so its containing block was the scrollable overflow area rather
+   than the visible box: as wide as all 35 weeks, and travelling with the
+   grid, so scrolling left carried the highlight away with the squares and it
+   died halfway across. The property is that the element carrying the sheen
+   is NOT the element that scrolls. */
+check("the sheen sits on a frame that does not scroll",
+      `(function(){const f=document.querySelector('.heatframe'),w=document.querySelector('.heatwrap');
+        return !!f && !!w && f.contains(w) && f!==w;})()`, true);
+check("...and the scroller itself carries no sheen",
+      `${(function(){const c=fs.readFileSync(path.join(dir,"css/app.css"),"utf8")
+           .replace(/\/\*[\s\S]*?\*\//g,"").replace(/\r?\n\s*/g,"");
+         return !/\.heatwrap::after\{/.test(c) && /\.heatframe::after\{/.test(c);})()}`, "true");
+check("...with the frame positioned, or inset:0 would escape it",
+      `${/\.heatframe\{[^}]*position:relative/.test(
+         fs.readFileSync(path.join(dir,"css/app.css"),"utf8").replace(/\r?\n\s*/g,""))}`, "true");
+/* v3.3.333: the calendar opens on today. Eight months wide, opening at
+   scrollLeft 0 put the maker eight months in the past every time. jsdom
+   reports 0 for scrollWidth/clientWidth, so the LAYOUT cannot be tested
+   here -- what is pinned is that the binding exists, runs on paint, and is
+   guarded so a re-render cannot yank a scroll the user set by hand. */
+check("the calendar binds a starting position", `typeof bindHeat`, "function");
+check("...wired into paint, beside the other scrollers",
+      `/bindHeat\(\)/.test(String(paint))`, true);
+check("...and will not re-yank a scroll the user has moved",
+      `(function(){const el=document.querySelector('.heatwrap');
+        if(!el) return 'no heatwrap'; el.dataset.bound='1'; el.scrollLeft=0;
+        bindHeat(); return el.scrollLeft===0;})()`, true);
+
 /* the dead structure the old rules described, gone rather than left to rot */
 /* comments FIRST: the v3.3.332 note in the sheet quotes the exact rule it
    describes as deleted, and an uncommented grep matches the prose. Same trap

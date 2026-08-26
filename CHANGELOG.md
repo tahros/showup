@@ -1,5 +1,17 @@
 # ShowUp — changelog
 
+## v3.3.333 (2026-08-25) — The attendance calendar opens on today
+
+**It opens on this month now.** Eight months of squares never fit a phone,
+and it opened at the far left — January — so the days you just logged were
+always a drag away. It starts at today's edge. Scroll it wherever you like;
+a re-render won't drag it back.
+
+**The shine sweeps the window, not the squares.** It was attached to the
+scrolling strip itself, so it was as wide as all eight months and slid away
+with the calendar, petering out halfway. It sits on the frame now and passes
+across whatever happens to be in view.
+
 ## v3.3.332 (2026-08-25) — The month labels line up with the calendar
 
 **AUG was dangling off the corner.** The month row and the grid of squares

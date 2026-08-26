@@ -884,6 +884,21 @@ function bindScrub(box, svg, getVb){
    older weeks when you reach the left. Scroll position is restored by the
    exact width added, so the view does not jump under the finger — the
    whole point of loading backwards. */
+/* v3.3.333: the attendance calendar opens on TODAY. The grid is 35 weeks
+   wide and a phone holds maybe twenty, so it always overflowed -- and it
+   opened at scrollLeft 0, which is eight months ago. The focused date is
+   today; the streak, the "days in" count and the month you are actually
+   training all live at the right edge, and the maker had to drag the thing
+   every time to see the days he had just logged.
+   Same shape as bindPmix below: a dataset flag so a re-render during a
+   session does not yank a scroll the user has set by hand. Guarded on
+   scrollWidth because a narrow enough window may not overflow at all. */
+function bindHeat(){
+  const box=document.querySelector('.heatwrap');
+  if(!box||box.dataset.bound) return;
+  box.dataset.bound='1';
+  if(box.scrollWidth>box.clientWidth) box.scrollLeft=box.scrollWidth;   // today, not eight months ago
+}
 function bindPmix(){
   const box=document.getElementById('pmixWrap');
   if(!box||box.dataset.bound) return;
@@ -1033,6 +1048,7 @@ function paint(){
   ({today:renderToday,lift:renderLift,stats:renderStats,history:renderHistory,sync:renderSync})[view]();
   document.querySelectorAll('[data-zoom]').forEach(bindZoom);
   bindPmix();
+  bindHeat();
   if(MOTION_OK){ try{ motionPass(); }catch(_e){ /* motion is decoration — it never gets to break the app */ } }
   window.scrollTo(0,0);
 }

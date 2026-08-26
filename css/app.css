@@ -338,7 +338,16 @@
   .crtotal>small{font-size:11px;color:var(--faint)}
   .crstreak{font-size:11px;color:var(--muted);white-space:nowrap}
   .crsince{font-size:10.5px;color:var(--faint);margin-top:3px}
-  .heatwrap{margin-top:16px;overflow-x:auto;overflow-y:hidden;
+  /* v3.3.333: the sheen belongs to the WINDOW, not to what slides past it.
+     It was .heatwrap::after -- absolutely positioned inside the scroll
+     container, so its containing block was the scrollable overflow area, not
+     the visible box. The highlight was therefore as wide as all 35 weeks and
+     it TRAVELLED with the grid: scroll left and the band slides away with the
+     squares and dies halfway across, which is exactly what the maker saw.
+     .heatframe does not scroll, so inset:0 means the visible box and the
+     sheen sweeps across the window while the calendar moves underneath. */
+  .heatframe{position:relative;margin-top:16px}
+  .heatwrap{overflow-x:auto;overflow-y:hidden;
     -webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;
     overscroll-behavior-x:contain}
   .heatwrap::-webkit-scrollbar{display:none}
@@ -1168,7 +1177,7 @@
   .partcard.sel:not(.liveP),.cal{position:relative}
   .strip::after,.chip.on:not(.livego)::after,.btn:not(.ghost):not(.livego)::after,
   .nudge .nudgego::after,.ll-bar.save::after,.onbbtn.pri::after,
-  .vs .vsrow:first-child .bar i::after,.heatwrap::after,.mchip.on::after,
+  .vs .vsrow:first-child .bar i::after,.heatframe::after,.mchip.on::after,
   .partcard.sel:not(.liveP)::after,.cal::after{
     content:'';position:absolute;inset:0;pointer-events:none;border-radius:inherit;
     background:linear-gradient(105deg,transparent 44%,rgba(255,255,255,.35) 50%,transparent 56%);
@@ -1183,7 +1192,7 @@
   .cal::after{mix-blend-mode:overlay;border-radius:0;animation-duration:4.4s;animation-delay:.2s;
     background:linear-gradient(105deg,transparent 44%,rgba(255,255,255,.5) 50%,transparent 56%);
     background-size:300% 100%}
-  .heatwrap::after{mix-blend-mode:overlay;border-radius:0;animation-duration:4.6s;animation-delay:.3s;
+  .heatframe::after{mix-blend-mode:overlay;border-radius:0;animation-duration:4.6s;animation-delay:.3s;
     background:linear-gradient(105deg,transparent 44%,rgba(255,255,255,.5) 50%,transparent 56%);
     background-size:300% 100%}
   .vs .vsrow:first-child .bar i::after{animation-duration:5s;animation-delay:.8s}
@@ -1191,7 +1200,7 @@
   @media (prefers-reduced-motion:reduce){
     .strip::after,.chip.on:not(.livego)::after,.btn:not(.ghost):not(.livego)::after,
     .nudge .nudgego::after,.ll-bar.save::after,.onbbtn.pri::after,
-    .vs .vsrow:first-child .bar i::after,.heatwrap::after,.mchip.on::after,
+    .vs .vsrow:first-child .bar i::after,.heatframe::after,.mchip.on::after,
     .partcard.sel:not(.liveP)::after,.cal::after{animation:none;background:none}}
   .strip i{flex:1;height:22px;border-radius:3px;background:var(--surface2);border:1px solid var(--line)}
   .strip i.on{background:var(--accent);border-color:var(--accent)}

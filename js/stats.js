@@ -734,10 +734,10 @@ function currentRhythmSection(){
            "month row + grid scroll together" -- the fix was written and never
            wired up. One box now sizes both, so a label cannot be anywhere but
            over its own column, at any width, scrolled or not. -->
-      <div class="heatwrap"><div class="heatscroll">
+      <div class="heatframe"><div class="heatwrap"><div class="heatscroll">
         <div class="heatgrid" style="--hw:${HEAT_WEEKS}">${cells}</div>
         <div class="heatticks" style="--hw:${HEAT_WEEKS}">${ticks.map(t=>`<span style="--c:${t.c}">${t.label}</span>`).join('')}</div>
-      </div></div>
+      </div></div></div>
     </div>`;
 }
 function consistencyRaceSection(){
