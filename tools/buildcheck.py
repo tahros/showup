@@ -784,32 +784,44 @@ if "closest('.heatwrap')" not in (d/"js/util.js").read_text():
 n = len(idx.encode())
 if n >= 8192: fail.append(f"index.html shell is {n} bytes (limit 8192)")
 
-# -- v3.3.342: the version may appear ONLY at a stamp.
-# Every bumper this repo has had did a blunt old->new replace across these
-# three files, which contain prose as well as stamps -- so every comment that
-# named a version marched forward one release at a time, silently. Two were
-# found: js/core.js's equipOv note (true home v3.3.284, read v3.3.341 -- 57
-# releases adrift) and index.html's black-translucent note (true home
-# v3.3.246, read v3.3.341 -- 95). A comment citing the wrong release is worse
-# than no comment: it sends the next reader to a changelog entry about
-# something else, and the commentary explaining WHY is most of this
-# codebase's value.
-# tools/bump.py now rewrites three shapes and nothing else. This is the check
-# that keeps it honest: strip the legitimate stamps, and the current version
-# must not survive anywhere in what is left. A comment in one of these three
-# files may cite any release EXCEPT the one being shipped -- which is the
-# precise constraint that makes a blunt replace impossible to reintroduce.
-_STAMP = [re.compile(r"\?v=\d+\.\d+\.\d+"),
-          re.compile(r"showup-v\d+\.\d+\.\d+"),
-          re.compile(r"const APP_VERSION\s*=\s*'v\d+\.\d+\.\d+'")]
-for _rel in ["index.html", "sw.js", "js/core.js"]:
-    _t = (d / _rel).read_text(encoding="utf-8")
-    for _rx in _STAMP: _t = _rx.sub("", _t)
-    if appv in _t:
-        _ln = next((i + 1 for i, L in enumerate(_t.splitlines()) if appv in L), "?")
-        fail.append(f"{_rel}: v{appv} appears outside a version stamp (line ~{_ln}) — "
-                    f"prose must not cite the release being shipped, or the next "
-                    f"bump will rewrite it (v3.3.342)")
+# -- v3.3.345: the bumper is tested, not the prose.
+# v3.3.342 fixed a real bug -- a blunt old->new replace across index.html,
+# sw.js and js/core.js had been rewriting version numbers inside comments for
+# 95 releases -- and then guarded it by BANNING the version from prose in
+# those three files. That was over-strict, and it bit within two releases: a
+# perfectly ordinary "v3.3.344: ..." comment on a new declaration in core.js
+# failed the build. The convention in this codebase is that a comment cites
+# the release that made the decision; a guard that forbids it in three files
+# is a guard fighting the thing it protects.
+# tools/bump.py is now precise, so such a comment is SAFE. What needs proving
+# is not the prose but the TOOL. So: run the real bumper over a fixture that
+# contains both a stamp and a comment citing the version, and require it to
+# move the one and leave the other. An effect test of the thing that broke,
+# rather than a rule about what may be written near it.
+import subprocess as _sp, tempfile as _tf, shutil as _sh, os as _os, io as _io
+_fix = _tf.mkdtemp()
+try:
+    _os.makedirs(_os.path.join(_fix, "js"), exist_ok=True)
+    _prose = "/* v9.9.9: a note that must survive the bump */"
+    _files = {"index.html": f'<script src="./js/core.js?v=9.9.9"></script>\n<!-- v9.9.9: prose -->\n',
+              "sw.js": "const CACHE = 'showup-v9.9.9';\n// v9.9.9: prose\n",
+              "js/core.js": "const APP_VERSION = 'v9.9.9';\n" + _prose + "\n"}
+    for _r, _t in _files.items():
+        _io.open(_os.path.join(_fix, _r), "w", encoding="utf-8", newline='').write(_t)
+    _sp.run([sys.executable, str(d / "tools" / "bump.py"), _fix, "9.9.9", "9.9.10"],
+            check=True, capture_output=True)
+    _after = {_r: _io.open(_os.path.join(_fix, _r), encoding="utf-8", newline='').read()
+              for _r in _files}
+    if "?v=9.9.10" not in _after["index.html"]: fail.append("bump.py: did not move the ?v= stamp")
+    if "showup-v9.9.10" not in _after["sw.js"]: fail.append("bump.py: did not move the sw cache name")
+    if "'v9.9.10'" not in _after["js/core.js"]: fail.append("bump.py: did not move APP_VERSION")
+    if _prose not in _after["js/core.js"]:
+        fail.append("bump.py REWROTE A COMMENT — the v3.3.342 bug is back "
+                    f"({_after['js/core.js'].strip().splitlines()[-1][:60]})")
+    if "v9.9.9: prose" not in _after["index.html"] or "v9.9.9: prose" not in _after["sw.js"]:
+        fail.append("bump.py rewrote prose in index.html or sw.js — the v3.3.342 bug is back")
+finally:
+    _sh.rmtree(_fix, ignore_errors=True)
 
 if fail:
     print("BUILDCHECK FAIL"); [print(" -", f) for f in fail]; sys.exit(1)

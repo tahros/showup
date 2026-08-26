@@ -1,5 +1,17 @@
 # ShowUp — changelog
 
+## v3.3.345 (2026-08-26) — The build checks the tool, not the prose
+
+**Last release's guard was too strict and blocked an ordinary comment.** The
+fix for the version-rewriting bug had banned version numbers from prose in
+three files — but the bumper is precise now, so such comments are safe, and
+the ban was fighting the codebase's own convention. The build now runs the
+real bumper over a fixture and checks that it moves stamps and leaves
+comments alone.
+
+*(v3.3.344 — Train remembering where you were — shipped without release
+notes attached; they're in this commit.)*
+
 ## v3.3.344 (2026-08-26) — Train remembers where you were
 
 **Step over to Today mid-workout and come back to the screen you left.** It
