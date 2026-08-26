@@ -896,7 +896,15 @@
      the cell wider, which is why only some of them wrapped. Right-aligned,
      so the right edges still line up however wide each cell ends up. */
   .item.logrow .pr-cell{flex:0 0 auto;min-width:62px;text-align:right}
-  .pr-top,.pr-side{white-space:nowrap}   /* a weight is one token, never two lines */
+  .pr-top{white-space:nowrap}   /* a weight is one token, never two lines */
+  /* v3.3.329: an exercise you have never loaded shows a RULE, not a blank.
+     The column reads top to bottom; a hole in it looks like a render that
+     failed, where a short line says "nothing here yet" in the same breath as
+     the numbers around it. Sized to about two digits so it sits in the
+     column rather than beside it, and drawn in --line: quieter than any
+     number, louder than the whisper between rows. */
+  .pr-nil{display:inline-block;width:18px;height:1.5px;border-radius:1px;
+    background:var(--line);vertical-align:middle}
   .item.logrow:not(.goto):not(.todayrow) .pr-top{font-size:12.5px;font-weight:400}
   /* press: the row settles under the thumb — the affordance the flat list
      was missing, bought with an edge and a press rather than a slab */
@@ -921,7 +929,6 @@
      unit so the eye parses "165.3" and "lb" as two things. Mono already, so
      the digits still align down the column. */
   .pr-top{color:var(--chalk);font-size:12.5px;font-weight:400;letter-spacing:.01em}
-  .pr-side{color:var(--muted);font-size:9.5px;font-weight:400;margin-top:2px;white-space:nowrap}
   .loadline{font-family:var(--mono);font-size:12px;color:var(--muted);
     background:var(--surface2);border-radius:10px;padding:7px 10px;margin-top:-4px;margin-bottom:10px;
     display:flex;align-items:center;gap:10px}

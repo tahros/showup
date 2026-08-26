@@ -169,13 +169,24 @@ const grey=p=>`(function(){const b=[...document.querySelectorAll('.partcard')]
   .find(x=>x.querySelector('b').textContent==='${p}');
   return b ? b.classList.contains('dead') : '(absent)';})()`;
 
+/* v3.3.329 RESTATES the SPELLING, not the rule. These three assertions
+   defend that a chip states its ACTUAL age rather than a mood word
+   ("dormant") or an abbreviation -- that property is untouched. What moved
+   is the grammar: agoLabel (util.js) now spaces the number from its unit
+   ("2 d ago", the same parse v3.3.302 gave "165.3 lb") and coarsens the unit
+   past 30 days, because "1464d ago" is a number you have to divide before it
+   means anything. Chips and the exercise rows below them share the one
+   formatter, so the same sentence cannot be spelled two ways on one screen.
+   Note 40 days now reads "1 mo ago" -- still the true age, said in the unit
+   that suits the size of the gap, and still greyed by PART_COLD_DAYS below,
+   which is a separate law and unchanged. */
 check("a part trained 2 days ago says so, however few times it was trained",
-      chip('Triceps'), "2d ago");
+      chip('Triceps'), "2 d ago");
 check("...and is NOT greyed out", grey('Triceps'), false);
 check("the planner still knows it cannot claim a cadence for it",
       `trainingPlan().info.Triceps.live`, false);
 check("a part last trained 40 days ago says THAT, however well known it is",
-      chip('Chest'), "40d ago");
+      chip('Chest'), "1 mo ago");
 check("...and IS greyed out", grey('Chest'), true);
 check("the planner still trusts its cadence", `trainingPlan().info.Chest.live`, true);
 check("yesterday reads as a word, not 1d ago", chip('Shoulder'), "yesterday");
@@ -268,7 +279,7 @@ check("...the fade is what says done",
 check("an untrained part keeps its full age, not an abbreviation",
       `(function(){const b=[...document.querySelectorAll('.partcard')]
         .find(x=>x.querySelector('b').textContent==='Back');
-        return b.querySelector('.ps').textContent.trim();})()`, "4d ago");
+        return b.querySelector('.ps').textContent.trim();})()`, "4 d ago");
 check("...and is NOT faded — it is what the grid is scanned for",
       `(function(){const b=[...document.querySelectorAll('.partcard')]
         .find(x=>x.querySelector('b').textContent==='Back');

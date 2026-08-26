@@ -1,5 +1,22 @@
 # ShowUp — changelog
 
+## v3.3.329 (2026-08-25) — How long it has been, said plainly
+
+**Ages coarsen as they grow.** Under a month reads in days, under a year in
+months, beyond that in years — "1708d ago" was a number you had to divide
+before it meant anything. The number and its unit are separate words now,
+"20 d ago", the same way weights read "165.3 lb". Body-part chips and the
+exercise rows below them share one formatter, so the same sentence isn't
+spelled two ways on one screen.
+
+**The per-side line is gone from exercise lists.** It restated the same
+weight in a second arithmetic, on some rows and not others. The plate math
+is untouched where it matters — the bar picture in the log zone still shows
+the loadout per side.
+
+**An exercise you've never loaded shows a short rule** instead of an empty
+space, so the weight column reads as a column.
+
 ## v3.3.328 (2026-08-25) — The plan's dividers become whispers
 
 **The lines between plan rows step back.** They were drawn edge to edge in

@@ -725,9 +725,47 @@ run(`(function(){DB.days={}; DB.settings.unit='lb'; const t=new Date(todayISO+'T
 check("the unit is a separate word, not glued to the digits",
       `(function(){const e=[...document.querySelectorAll('.pr-top')].find(x=>x.textContent.trim());
         return /^[\\d.,]+ (lb|kg)$/.test(e.textContent.trim());})()`, true);
-check("...and the per-side line reads the same way",
-      `(function(){const e=document.querySelector('.pr-side');
-        return e ? /^[\\d.,]+ (lb|kg) \\/ side$/.test(e.textContent.trim()) : 'no side';})()`, true);
+/* v3.3.329 REPLACES this: the per-side line is gone from the list rows. It
+   restated the same weight in a second arithmetic on a row that already
+   carries the total, and only on plate exercises -- so a column meant to be
+   scanned grew a second line under some rows and not others. The plate math
+   is NOT gone: barviz still shows the loadout per side down in the log zone,
+   where you are actually loading a bar. Asserted as an absence, so the line
+   cannot drift back into the list without this failing. */
+check("...and the row carries ONE weight, not the same weight twice",
+      `document.querySelectorAll('.pr-side').length`, 0);
+check("...with the per-side math still alive where a bar is loaded",
+      `(function(){const v=barViz('Bent-Over Row', toKg(165));
+        return /barviz/.test(v) && /class="pl"/.test(v);})()`, true);
+
+/* v3.3.329: a never-loaded exercise shows a RULE, not a hole. The weight
+   column reads top to bottom; a blank cell in it looks like a render that
+   failed, where a short line says "nothing yet" in the same breath as the
+   numbers around it. Both halves pinned: the mark is THERE when there is no
+   weight, and ABSENT when there is -- a rule that showed up beside a real
+   number would be worse than the blank it replaced. */
+run(`(function(){DB.days={}; DB.settings.unit='lb'; const t=new Date(todayISO+'T00:00');
+  const D=n=>{const d=new Date(t);d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA')};
+  DB.days[D(4)]={w:[{part:'Back',ex:'Bent-Over Row',w:toKg(165),reps:[10],at:1}],upd:1};
+  DB.days[D(9)]={w:[{part:'Back',ex:'Pull Up',w:0,reps:[10],at:1}],upd:1};
+  SEED=deriveAll(); view='lift'; lift.ex=null; lift.part='Back'; render();})()`);
+const nilRow = ex => `(function(){const b=[...document.querySelectorAll('.item.logrow')]
+  .find(x=>x.querySelector('b') && x.querySelector('b').textContent==='${ex}');
+  return b ? !!b.querySelector('.pr-nil') : '(absent)';})()`;
+check("an exercise with no weight logged shows a rule, not a blank",
+      nilRow('Pull Up'), true);
+check("...and an exercise that has a weight shows no rule",
+      nilRow('Bent-Over Row'), false);
+/* v3.3.329: the age grammar itself, at every boundary. Floor, never round --
+   a label may understate a gap but must never overstate it, the same law
+   daysAgo follows. */
+[[0,'today'],[1,'yesterday'],[2,'2 d ago'],[29,'29 d ago'],[30,'1 mo ago'],
+ [49,'1 mo ago'],[364,'12 mo ago'],[365,'1 y ago'],[1464,'4 y ago']]
+  .forEach(([n,want]) => checkVal(`${n} days reads "${want}"`, run(`agoLabel(${n})`), want));
+
+check("...drawn quieter than any number in the column",
+      `${/\.pr-nil\{[^}]*background:var\(--line\)/.test(
+         fs.readFileSync(path.join(dir,"css/app.css"),"utf8").replace(/\r?\n\s*/g,""))}`, "true");
 /* v3.3.305: the hairline must read as well in light as it does in dark.
    Light was #DDDDDD (1.36:1 on its own card) against dark's #424242 (1.71),
    so the same rows looked like pills at night and like nothing by day. The
@@ -847,8 +885,9 @@ check("a lift still reads as a weight",
    fixed width, and neither line may wrap. */
 {
   const css303 = fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\r?\n\s*/g, "");
-  check("neither weight line may wrap",
-        `${/\.pr-top,\.pr-side\{[^}]*white-space:nowrap/.test(css303)}`, "true");
+  /* v3.3.329: one line now, so the pin is on the one that remains. */
+  check("the weight line may not wrap",
+        `${/\.pr-top\{[^}]*white-space:nowrap/.test(css303)}`, "true");
   check("...and the cell sizes to its content rather than a fixed width",
         `${/\.item\.logrow \.pr-cell\{[^}]*flex:0 0 auto/.test(css303)
            && !/\.item\.logrow \.pr-cell\{[^}]*flex:0 0 \d+px/.test(css303)}`, "true");

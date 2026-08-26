@@ -403,6 +403,26 @@ const barKg=ex=>{
 };
 const usesPlates=ex=>['barbell','smith'].includes(equipOf(ex));
 const agoStr=d=>{const n=daysAgo(d);return n<=0?'today':n===1?'yesterday':`${n} days ago`;};
+/* v3.3.329: how long since, in ONE grammar. Days stop being useful somewhere
+   around a month -- "1464d ago" is a number you have to divide before it
+   means anything -- so the unit coarsens as the gap grows: days under 30,
+   months under a year, years beyond. Floor, never round: the label may
+   understate the gap but must never overstate it, which is the same law
+   daysAgo already follows.
+   The space is the app's unit-faint grammar, the one v3.3.302 put into
+   "165.3 lb": the eye parses "20" and "d" as a number and its unit. Without
+   it "20d" reads as a single token and the digits stop aligning down a
+   column of mono.
+   ONE function because the Train tab shows both spellings at once -- the
+   body-part chips above and the exercise rows below. Two formatters meant
+   "4d ago" on a chip and "4 d ago" on the row six pixels beneath it. */
+function agoLabel(n){
+  if(n<=0)   return 'today';
+  if(n===1)  return 'yesterday';
+  if(n<30)   return `${n} d ago`;
+  if(n<365)  return `${Math.floor(n/30)} mo ago`;
+  return `${Math.floor(n/365)} y ago`;
+}
 
 /* ---- session flow (v2.09): a workout has a beginning and an end ----------
    Three levels, each with open/complete state for TODAY:
