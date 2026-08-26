@@ -90,8 +90,14 @@ ok("the hint is no longer absolutely positioned over the plot",
 /* v3.3.307 RESTATES: weekdays are now ROWS of a year heatmap rather than a
    labelled header over a month. Seven of them either way, and exactly one
    today either way. */
+/* v3.3.335 RESTATES the UNIT, not the count. Seven rows is the property and
+   it is untouched; 1fr is not. A 1fr row takes its height from the cells,
+   which take theirs from the column width via aspect-ratio -- so on a screen
+   wide enough to stretch the columns, the rows grew too, and a STATIC weekday
+   rail beside the grid cannot stretch with them. Rows are now the same
+   --hcell token the columns and the rail read, so the three cannot drift. */
 ok("the attendance grid keeps seven weekday rows",
-   /\.heatgrid\{[^}]*grid-template-rows:repeat\(7,1fr\)/.test(
+   /\.heatgrid\{[^}]*grid-template-rows:repeat\(7,var\(--hcell\)\)/.test(
      fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\r?\n\s*/g, "")));
 ok("...and contains exactly one today", run(`document.querySelectorAll('.heatgrid .tod').length`) === 1);
 /* v3.3.308: two reported bugs, both about things LOOKING joined that are not.

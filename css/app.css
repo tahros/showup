@@ -346,21 +346,35 @@
      squares and dies halfway across, which is exactly what the maker saw.
      .heatframe does not scroll, so inset:0 means the visible box and the
      sheen sweeps across the window while the calendar moves underneath. */
-  .heatframe{position:relative;margin-top:16px}
-  .heatwrap{overflow-x:auto;overflow-y:hidden;
+  /* v3.3.335: the frame is a flex row -- static rail, then the scroller.
+     --hcell is ONE number for the cell, read by the grid, the two label rows
+     AND the rail; the rail can only stay aligned with the grid if both are
+     sized from the same token rather than from the same literal typed four
+     times. --heatyear-h is the year row's exact height, which the rail pads
+     by so its M lands on the Monday row rather than on the year label.
+     The tracks are FIXED at --hcell rather than minmax(--hcell,1fr): a
+     stretching column makes a taller cell (aspect-ratio:1) and the rail,
+     which cannot stretch with it, would desync. Squares stay square. */
+  .heatframe{--hcell:11px; --heatyear-h:20px;
+    position:relative;margin-top:16px;display:flex;gap:6px;align-items:flex-start}
+  .wdrail{flex:0 0 auto;display:grid;grid-template-rows:repeat(7,var(--hcell));row-gap:2px;
+    padding-top:var(--heatyear-h);font-family:var(--mono);font-size:9px;
+    color:var(--faint);text-align:right}
+  .wdrail span{line-height:var(--hcell);height:var(--hcell)}
+  .heatwrap{flex:1;min-width:0;overflow-x:auto;overflow-y:hidden;
     -webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;
     overscroll-behavior-x:contain}
   .heatwrap::-webkit-scrollbar{display:none}
   /* --hw and --c are written inline by the builder; declared here so they are
      defined even if a render is interrupted, and so the cssvar guard can see
      them (it reads CSS, not JS) */
-  .heatgrid{--hw:35;display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,1fr);
+  .heatgrid{--hw:35;display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,var(--hcell));
     /* v3.3.334: 7px was sized for a 35-week window that had to fit a phone
        without scrolling. The grid spans the whole ledger now and has scrolled
        sideways since v3.3.307, so the cell is sized to be SEEN rather than to
        fit: 11px reads as a square you can aim a thumb at, and seven of them
        make a column tall enough that a week has shape. */
-    grid-template-columns:repeat(var(--hw),minmax(11px,1fr));
+    grid-template-columns:repeat(var(--hw),var(--hcell));
     /* The gaps are NOT equal: two cells side by side are a WEEK apart, two
        stacked are consecutive days, and the layout should say so. v3.3.308
        introduced this when a uniform 2px gap let a row of Mondays read as one
@@ -384,7 +398,7 @@
   .heatgrid .hc.fut{background-color:transparent;box-shadow:inset 0 0 0 1px var(--line);opacity:.5}
   .heatgrid .hc.tod{box-shadow:inset 0 0 0 1.5px var(--accent-ink)}
   .heatticks{--hw:35;display:grid;grid-auto-flow:column;
-    grid-template-columns:repeat(var(--hw),minmax(11px,1fr));column-gap:4px;
+    grid-template-columns:repeat(var(--hw),var(--hcell));column-gap:4px;
     margin-top:7px;font-family:var(--mono);font-size:10px;color:var(--faint)}
   .heatticks span{--c:0;grid-column:calc(var(--c) + 1);white-space:nowrap}
   /* v3.3.334: the YEAR row. Same template as the grid and inside the same
@@ -392,10 +406,14 @@
      them -- the month row already proved that geometry in v3.3.332. Louder
      than the months because it is the coarser mark: chalk, not faint. */
   .heatyears{--hw:35;display:grid;grid-auto-flow:column;
-    grid-template-columns:repeat(var(--hw),minmax(11px,1fr));column-gap:4px;
+    grid-template-columns:repeat(var(--hw),var(--hcell));column-gap:4px;
     margin-bottom:6px;font-family:var(--mono);font-size:11px;font-weight:600;
-    color:var(--chalk);min-width:100%}
+    line-height:14px;color:var(--chalk);min-width:100%}   /* 14 + 6 = --heatyear-h */
   .heatyears span{--c:0;grid-column:calc(var(--c) + 1);white-space:nowrap}
+  /* the count is the app's unit-faint grammar: the year is the value, the
+     days are its unit, and the pair is the only place you can compare one
+     year against another at a glance */
+  .heatyears small{font-weight:400;color:var(--faint);margin-left:6px}
   /* Weight stays available without claiming a full dashboard section until
      opened. A first value is still recorded in Settings. */
   .bwcollapse{padding:0;overflow:hidden}

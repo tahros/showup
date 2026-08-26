@@ -1,5 +1,18 @@
 # ShowUp — changelog
 
+## v3.3.335 (2026-08-25) — The calendar says which day is which
+
+**M W F S down the left.** A static rail beside the squares, holding still
+while the years scroll past it. Four marks on alternating rows — the S at the
+bottom is Sunday, by where it sits. If you rest Sundays, that stripe now
+reads as a rest day instead of missing data.
+
+**Months thin to quarters.** JAN, APR, JUL, OCT. With the year above, fifty-
+seven month labels were a picket fence.
+
+**Each year says how many days you showed up.** `2026 · 218 days`, so you can
+scroll back and compare one year against another without doing arithmetic.
+
 ## v3.3.334 (2026-08-25) — The whole ledger, in squares
 
 **The calendar goes back to your first day.** It showed eight months, which

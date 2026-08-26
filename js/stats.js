@@ -698,18 +698,21 @@ function currentRhythmSection(){
      column apart, and the two labels sat on top of each other. A 3-letter
      label needs roughly three columns of width, so a tick is skipped unless
      it clears the previous one by that much. */
-  const TICK_GAP=4;
-  /* seed lastM with column 0's month so the PARTIAL first month never claims
-     a label: it would sit one column from the real month start and, being
-     first, would win — which is how DEC crowded out JAN. Month starts are
-     the useful marks; a half-week of December is not. */
-  const ticks=[]; let lastM=new Date(days[0]+'T00:00').getMonth(), lastC=-99;
+  /* v3.3.335: QUARTERS, not months. v3.3.308's TICK_GAP existed to stop two
+     labels colliding in a 35-week window; across a five-year ledger the rule
+     stopped firing and every one of ~57 months got a label, which read as a
+     picket fence. The year row above (v3.3.334) already answers "roughly
+     when", so the month row only has to answer "roughly where in the year" —
+     four marks do that with a quarter of the ink. The crowding rule goes with
+     the problem it solved: quarters are ~13 columns apart and cannot collide.
+     lastM is still seeded from column 0 so a PARTIAL first quarter never
+     claims a label one column from the real one. */
+  const ticks=[]; let lastM=new Date(days[0]+'T00:00').getMonth();
   for(let c=0;c<HEAT_WEEKS;c++){
     const d=new Date(days[c*7]+'T00:00'), m=d.getMonth();
-    if(m===lastM){ continue; }
+    if(m===lastM) continue;
     lastM=m;
-    if(c-lastC < TICK_GAP) continue;          // no room — let the next month speak
-    lastC=c;
+    if(m%3) continue;                          // Jan, Apr, Jul, Oct only
     ticks.push({c,label:d.toLocaleDateString('en-US',{month:'short'}).toUpperCase()});
   }
   /* v3.3.334: YEARS, in their own row above the grid and inside the same
@@ -718,12 +721,20 @@ function currentRhythmSection(){
      to guess -- and after that a label lands wherever January begins. Unlike
      the month ticks there is no crowding rule to apply: two years cannot be
      closer than 52 columns. */
+  /* v3.3.335: the year carries its own DAY COUNT. The row cost a line and
+     said only what a calendar says; with the count it becomes the one place
+     you can scroll back and compare years at a glance — and it is a count of
+     DAYS, the app's own unit, not a volume. Counted from the whole ledger
+     rather than from the visible columns, so a year that starts mid-grid
+     still reports its true total. */
+  const perYear={};
+  for(const d of dates){ const y=d.slice(0,4); perYear[y]=(perYear[y]||0)+1; }
   const years=[]; let lastY=null;
   for(let c=0;c<HEAT_WEEKS;c++){
     const y=new Date(days[c*7]+'T00:00').getFullYear();
     if(y===lastY) continue;
     lastY=y;
-    years.push({c, label:String(y)});
+    years.push({c, label:String(y), n:perYear[String(y)]||0});
   }
   const cells=days.map((x,k)=>{
     const future=x>todayISO, isToday=x===todayISO, done=on(x);
@@ -764,11 +775,21 @@ function currentRhythmSection(){
            "month row + grid scroll together" -- the fix was written and never
            wired up. One box now sizes both, so a label cannot be anywhere but
            over its own column, at any width, scrolled or not. -->
-      <div class="heatframe"><div class="heatwrap"><div class="heatscroll">
-        <div class="heatyears" style="--hw:${HEAT_WEEKS}">${years.map(y=>`<span style="--c:${y.c}">${y.label}</span>`).join('')}</div>
+      <!-- v3.3.335: the weekday rail is STATIC, a sibling of the scroller, so
+           it holds while five years of columns slide past it. M W F S: four
+           marks on the even rows, counted by twos, so the S at the bottom is
+           unambiguously Sunday by position rather than by letter. It is the
+           row that explains the shape of the week — a Mon-to-Sat trainer's
+           Sunday stripe reads as a rest day rather than as missing data.
+           aria-hidden: the cells already name their own dates, and a screen
+           reader does not need seven more letters to get through. -->
+      <div class="heatframe">
+        <div class="wdrail" aria-hidden="true">${['M','','W','','F','','S'].map(d=>`<span>${d}</span>`).join('')}</div>
+        <div class="heatwrap"><div class="heatscroll">
+        <div class="heatyears" style="--hw:${HEAT_WEEKS}">${years.map(y=>`<span style="--c:${y.c}">${y.label}<small>${y.n} days</small></span>`).join('')}</div>
         <div class="heatgrid" style="--hw:${HEAT_WEEKS}">${cells}</div>
         <div class="heatticks" style="--hw:${HEAT_WEEKS}">${ticks.map(t=>`<span style="--c:${t.c}">${t.label}</span>`).join('')}</div>
-      </div></div></div>
+      </div></div></div></div>
     </div>`;
 }
 function consistencyRaceSection(){

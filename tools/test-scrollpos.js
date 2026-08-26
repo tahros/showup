@@ -80,15 +80,46 @@ check("...with a year label over the column each year begins in",
         return ys.every(sp=>{const c=+sp.style.getPropertyValue('--c');
           if(c<0||c>=hw) return false;
           const d=cells[c*7].getAttribute('aria-label').split(' ')[0];
-          return d.slice(0,4)===sp.textContent.trim();});})()`, true);
+          return d.slice(0,4)===sp.firstChild.textContent.trim();});})()`, true);
+/* v3.3.335: the year states how many DAYS of it you showed up for -- the
+   app's own unit, counted from the whole ledger rather than from the visible
+   columns, so a year that starts mid-grid still reports its true total. */
+check("...and each year states its own day count",
+      `(function(){const ys=[...document.querySelectorAll('.heatyears span')];
+        return ys.every(sp=>{const y=sp.firstChild.textContent.trim();
+          const shown=+(sp.querySelector('small').textContent.match(/\\d+/)||[])[0];
+          const real=[...workoutDates()].filter(d=>d.slice(0,4)===y).length;
+          return shown===real;});})()`, true);
+/* quarters, not months: the year row answers "roughly when", so this row only
+   has to answer "roughly where in the year". ~57 labels read as a fence. */
+check("...with the month row thinned to quarters",
+      `(function(){return [...document.querySelectorAll('.heatticks span')]
+        .every(sp=>['JAN','APR','JUL','OCT'].includes(sp.textContent.trim()));})()`, true);
+/* the rail is STATIC -- outside the scroller, so it holds while the columns
+   slide past. Four marks on even rows; S is Sunday by position, not letter. */
+check("the weekday rail stands outside the scroller",
+      `(function(){const r=document.querySelector('.wdrail');
+        return !!r && !r.closest('.heatwrap') && !!r.closest('.heatframe');})()`, true);
+check("...labelling M W F S down the seven rows",
+      `(function(){const sp=[...document.querySelectorAll('.wdrail span')];
+        return sp.length===7 && sp.map(s=>s.textContent).join('|')==='M||W||F||S';})()`, true);
 {
   const cssH = fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\r?\n\s*/g, "");
   /* the floor is now a CELL SIZE, not a fitting trick: columns hold 11px and
      the grid overflows its scroller on purpose. min-width:100% stays, so a
      ledger shorter than the viewport still fills the card instead of
      huddling at the left. */
+  /* v3.3.335 RESTATES v3.3.334's own wording. "Sized to be seen" survives;
+     the minmax does not. A stretching column makes a taller cell, and the
+     static rail added this release cannot stretch with it -- so the track is
+     FIXED at --hcell, one token the grid, both label rows and the rail all
+     read. The pin is that they read the SAME token, because a literal typed
+     in four places is a desync waiting to happen. */
   check("...with columns sized to be seen rather than to fit",
-        `${/\.heatgrid\{[^}]*minmax\(11px,1fr\)/.test(cssH) && /\.heatgrid\{[^}]*min-width:100%/.test(cssH)}`, "true");
+        `${/\.heatgrid\{[^}]*grid-template-columns:repeat\(var\(--hw\),var\(--hcell\)\)/.test(cssH)}`, "true");
+  check("...from the one token the rail is sized from too",
+        `${["\\.heatgrid\\{", "\\.heatyears\\{", "\\.heatticks\\{", "\\.wdrail\\{"]
+            .every(sel => new RegExp(sel + "[^}]*var\\(--hcell\\)").test(cssH))}`, "true");
 }
 
 // History's year strip centres its selection (v3.3.39) — same family, still holding
