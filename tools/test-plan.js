@@ -590,4 +590,64 @@ ok("...and brings its body part with it",
 run(`(function(){view='today'; lift.ex=null; render();})()`);
 
 
+/* v3.3.339: ONE LINE, NAME AND SETS. The parser assumed a heading with its
+   sets indented beneath. The maker writes his sessions the way a notebook
+   does -- everything for an exercise on one line -- and every line became a
+   note: it starts with letters so it is not a set line, and as a heading the
+   name is the whole string, numbers and all, matching nothing.
+   The pins below are in two halves, and the SECOND half is the important
+   one. Reading a new shape is easy; the risk is reading shapes that are not
+   sets and mangling pastes that work today. */
+{
+  const rows = t => run(`parsePlan(${JSON.stringify(t)}).map(r=>
+    r.kind==='ex' ? {k:'ex',name:r.name,ex:r.ex,n:r.lines.length,
+                     reps:r.lines.map(l=>l.reps.join('/')).join(' ')}
+                  : {k:r.kind,raw:r.raw})`);
+
+  /* --- half one: the maker's own notebook line ------------------------- */
+  const r1 = rows("Cable Fly Up 35 x 12 10 10");
+  ok("a whole exercise on one line is read, not kept as a note",
+     r1.length === 1 && r1[0].k === 'ex' && r1[0].ex === 'Cable Fly Up',
+     JSON.stringify(r1));
+  ok("...with its sets", r1[0] && r1[0].reps === '12/10/10', JSON.stringify(r1[0]));
+
+  const r2 = rows("Incline BB 95\u00d710 \u00b7 115\u00d78 \u00b7 145 \u00d7 12 12 12 12 \u00b7 165\u00d75");
+  ok("...and every group after a middot is its own weight line",
+     r2.length === 1 && r2[0].n === 4 && r2[0].reps === '10 8 12/12/12/12 5',
+     JSON.stringify(r2));
+  /* gym shorthand raises a name to a CANDIDATE and never past it: planNorm is
+     untouched, so an abbreviation cannot become an exact match and resolve
+     itself. "Incline BB" is a guess about which incline press was meant, and
+     a guess belongs in front of the user. */
+  ok("...with shorthand offered as a question, never answered silently",
+     r2[0] && r2[0].ex === null, JSON.stringify(r2[0] && r2[0].ex));
+  ok("...but offered", run(`parsePlan("Incline BB 95x10").filter(r=>r.kind==='ex')[0].cands`)
+       .includes('Incline Barbell Bench Press'));
+
+  /* --- half two: everything that must NOT change ----------------------- */
+  const keep = [
+    ["the classic heading-then-sets paste", "Barbell Bench Press\n135 lb x 5\n185 lb x 5 5 5",
+     r => r.length === 1 && r[0].k === 'ex' && r[0].n === 2],
+    ["a heading carrying a set count", "Barbell Bench Press 3 sets\n135 lb x 5",
+     r => r.length === 1 && r[0].k === 'ex' && r[0].name === 'Barbell Bench Press'],
+    ["a line with no multiplication sign", "Deadlift 135 5 5 5",
+     r => r.length === 1 && r[0].k === 'exnote'],
+    ["a date heading", "8/26 Chest day", r => r.length === 1 && r[0].k === 'exnote'],
+    ["prose", "Plank / 60 sec each", r => r.length === 1 && r[0].k === 'exnote'],
+    /* ALL OR NOTHING. A half-read line would put some of a session in the plan
+       and silently drop the rest -- the failure v3.3.280 already called worse
+       than not parsing at all. */
+    ["a line where one group is prose", "Cable Fly Up 35 x 12 \u00b7 to failure",
+     r => r.length === 1 && r[0].k === 'exnote'],
+  ];
+  for (const [label, text, want] of keep)
+    ok(`...and ${label} reads exactly as before`, want(rows(text)), JSON.stringify(rows(text)));
+
+  /* an inline first set does not close the exercise: the rest still gathers */
+  const r3 = rows("Cable Fly Up 35 x 12\n40 x 10\n45 x 8");
+  ok("...while sets beneath an inline line still join it",
+     r3.length === 1 && r3[0].n === 3, JSON.stringify(r3));
+}
+
+
 process.exit(fail ? 1 : 0);

@@ -1,5 +1,19 @@
 # ShowUp — changelog
 
+## v3.3.339 (2026-08-26) — Paste reads a whole exercise on one line
+
+**`Incline BB 95×10 · 115×8 · 145 × 12 12 12 12 · 165×5` now reads.** The
+parser expected an exercise name on one line with its sets beneath; written
+the way a notebook does it, everything on one line, the whole thing was kept
+as a note. Each group after a middot becomes its own weight line.
+
+**Gym shorthand gets recognised — as a question.** BB, DB, RDL, OHP and a few
+others raise a name far enough to be offered as "did you mean…". They can
+never resolve themselves, because which incline press you meant is a guess,
+and a guess belongs in front of you.
+
+Every paste shape that worked before reads exactly the same.
+
 ## v3.3.338 (2026-08-26) — Months are named again
 
 **JAN FEB MAR, every month.** A month owns about 65px of the row and "JAN"

@@ -826,7 +826,18 @@ function planClear(){
    token overlap. An exact normalised hit is a match; anything else is only
    ever a CANDIDATE the user confirms. */
 const planNorm=t=>String(t).toLowerCase().replace(/[^a-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim();
-const planToks=t=>planNorm(t).split(' ').filter(Boolean).map(w=>w.replace(/s$/,''));
+/* v3.3.339: gym shorthand, expanded for SCORING ONLY. planNorm is untouched,
+   so an abbreviation can never become an exact match and auto-resolve — it
+   can only raise a name far enough to appear as a "did you mean…" the user
+   confirms. That asymmetry is the whole safety argument: "Incline BB" is a
+   guess about which of several incline presses was meant, and a guess belongs
+   in front of the user, not in the ledger. */
+const PLAN_ABBR={bb:'barbell', db:'dumbbell', kb:'kettlebell', sm:'smith machine',
+  ohp:'overhead press', rdl:'romanian deadlift', sldl:'stiff leg deadlift',
+  bor:'bent over row', bp:'bench press', pu:'pull up', ez:'ez bar'};
+const planToks=t=>planNorm(t).split(' ').filter(Boolean)
+  .flatMap(w=>(PLAN_ABBR[w]||w).split(' '))
+  .map(w=>w.replace(/s$/,''));
 function planCandidates(name){
   const all=[...new Set([...Object.values(SEED.catalog).flat(), ...Object.keys(customs())])];
   const n=planNorm(name);
@@ -871,6 +882,39 @@ function planReadSets(line){
   if(!bw&&!reps.length&&!unit) return null;      // a bare number is not a set line
   return {w, unit, reps, bw};
 }
+/* v3.3.339: ONE LINE, NAME AND SETS. The parser assumed a heading with its
+   sets indented beneath — the shape the app's own paste help describes. The
+   maker writes his sessions the way a notebook does, everything for an
+   exercise on one line:
+       Incline BB 95x10 · 115x8 · 145 x 12 12 12 12 · 165x5
+   Every one of those became a note: the line starts with letters so it is
+   not a set line, and as a heading the name is the whole string, numbers and
+   all, which matches nothing.
+   The split REQUIRES an explicit x or ×. That is the conservative choice and
+   it matters: "Bench Press 3 sets" and "Squat 5" must keep falling through
+   to the heading path they use today, and a multiplication sign is the one
+   unambiguous signal that what follows is data rather than prose. Groups are
+   separated by · or ; only — never by comma, because a comma already
+   separates reps inside a group.
+   ALL OR NOTHING: if any group fails to parse, the whole line falls back to
+   being a heading exactly as before. A half-read line would put some of a
+   session in the plan and silently drop the rest, which is the failure mode
+   v3.3.280 already called worse than not parsing at all. */
+const PLAN_INLINE=/^\s*(.*?[a-z].*?)\s+((?:bw|bodyweight|[\d.]+)\s*(?:lb|lbs|kg|kgs)?\s*[x×]\s*[\d\s,]*\d.*)$/i;
+function planReadInline(body){
+  const m=String(body).match(PLAN_INLINE); if(!m) return null;
+  const name=planHeadClean(m[1]);
+  if(!name||!/[a-z]/i.test(name)) return null;
+  const groups=m[2].split(/[·•;]/).map(g=>g.trim()).filter(Boolean);
+  if(!groups.length) return null;
+  const lines=[];
+  for(const g of groups){
+    const set=planReadSets(g);
+    if(!set||!set.reps.length) return null;    // one bad group, no inline read
+    lines.push({...set, raw:g});
+  }
+  return {name, lines};
+}
 /* strip a trailing "6 sets" and any "← coach note" tail from a heading */
 const planHeadClean=t=>String(t).split(/[←<]-?|\/\/|\s{3,}#/)[0]
   .replace(/\b\d+\s*sets?\b/ig,'').replace(/[·|—–-]\s*$/,'').trim();
@@ -885,6 +929,15 @@ function parsePlan(text){
     const sets=planReadSets(body);
     if(sets&&cur){ cur.lines.push({...sets, raw:line}); continue; }
     if(sets&&!cur) { rows.push({kind:'note', raw:line}); continue; }
+    /* v3.3.339: a whole exercise on one line. cur stays open afterwards, so a
+       paste that puts the first set inline and the rest beneath still gathers
+       them all into the one exercise. */
+    const inline=planReadInline(body);
+    if(inline){
+      const hit=planCandidates(inline.name);
+      cur={kind:'ex', raw:line, name:inline.name, ex:hit.match, cands:hit.cands, lines:inline.lines};
+      rows.push(cur); continue;
+    }
     const name=planHeadClean(body);
     if(!name||!/[a-z]/i.test(name)){ rows.push({kind:'note', raw:line}); continue; }
     const {match,cands}=planCandidates(name);
