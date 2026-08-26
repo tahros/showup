@@ -1,5 +1,20 @@
 # ShowUp — changelog
 
+## v3.3.334 (2026-08-25) — The whole ledger, in squares
+
+**The calendar goes back to your first day.** It showed eight months, which
+was an odd thing for a section called "show up — that's the whole game" to
+sit above a lifetime day count and say. Every day you have ever logged is in
+there now; scroll left through the years.
+
+**Years ride above the squares.** A year label sits over the columns it
+covers and travels with them as you scroll, so you always know where you
+are. Months keep their row underneath.
+
+**The squares are bigger.** They were sized to squeeze eight months onto a
+phone without scrolling — a constraint that stopped applying the day the
+grid learned to scroll.
+
 ## v3.3.333 (2026-08-25) — The attendance calendar opens on today
 
 **It opens on this month now.** Eight months of squares never fit a phone,

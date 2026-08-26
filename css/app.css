@@ -355,7 +355,12 @@
      defined even if a render is interrupted, and so the cssvar guard can see
      them (it reads CSS, not JS) */
   .heatgrid{--hw:35;display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,1fr);
-    grid-template-columns:repeat(var(--hw),minmax(7px,1fr));
+    /* v3.3.334: 7px was sized for a 35-week window that had to fit a phone
+       without scrolling. The grid spans the whole ledger now and has scrolled
+       sideways since v3.3.307, so the cell is sized to be SEEN rather than to
+       fit: 11px reads as a square you can aim a thumb at, and seven of them
+       make a column tall enough that a week has shape. */
+    grid-template-columns:repeat(var(--hw),minmax(11px,1fr));
     /* The gaps are NOT equal: two cells side by side are a WEEK apart, two
        stacked are consecutive days, and the layout should say so. v3.3.308
        introduced this when a uniform 2px gap let a row of Mondays read as one
@@ -379,9 +384,18 @@
   .heatgrid .hc.fut{background-color:transparent;box-shadow:inset 0 0 0 1px var(--line);opacity:.5}
   .heatgrid .hc.tod{box-shadow:inset 0 0 0 1.5px var(--accent-ink)}
   .heatticks{--hw:35;display:grid;grid-auto-flow:column;
-    grid-template-columns:repeat(var(--hw),minmax(7px,1fr));column-gap:4px;
-    margin-top:7px;font-family:var(--mono);font-size:9px;color:var(--faint)}
+    grid-template-columns:repeat(var(--hw),minmax(11px,1fr));column-gap:4px;
+    margin-top:7px;font-family:var(--mono);font-size:10px;color:var(--faint)}
   .heatticks span{--c:0;grid-column:calc(var(--c) + 1);white-space:nowrap}
+  /* v3.3.334: the YEAR row. Same template as the grid and inside the same
+     scroller, so a year label sits over its own columns and travels with
+     them -- the month row already proved that geometry in v3.3.332. Louder
+     than the months because it is the coarser mark: chalk, not faint. */
+  .heatyears{--hw:35;display:grid;grid-auto-flow:column;
+    grid-template-columns:repeat(var(--hw),minmax(11px,1fr));column-gap:4px;
+    margin-bottom:6px;font-family:var(--mono);font-size:11px;font-weight:600;
+    color:var(--chalk);min-width:100%}
+  .heatyears span{--c:0;grid-column:calc(var(--c) + 1);white-space:nowrap}
   /* Weight stays available without claiming a full dashboard section until
      opened. A first value is still recorded in Settings. */
   .bwcollapse{padding:0;overflow:hidden}

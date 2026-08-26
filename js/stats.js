@@ -660,14 +660,31 @@ document.addEventListener('click',e=>{
    radius between them and overlap by a hair, so a run renders as ONE bar
    rather than a column of squares — which is the property this section is
    named for. A rest day genuinely breaks the stroke. */
-const HEAT_WEEKS=35;                       // ~8 months, the width a phone can hold
+/* v3.3.334: the calendar runs the WHOLE ledger, not a window onto it.
+   35 weeks was chosen as "the width a phone can hold" -- but the grid has
+   scrolled sideways since v3.3.307, so the phone was never the constraint;
+   the number was. A section titled "show up -- that's the whole game",
+   sitting above a lifetime day count, was showing eight months of it.
+   HEAT_MIN_WEEKS is a floor, not a width: a ledger three weeks old still
+   gets a grid worth looking at rather than four lonely columns. */
+const HEAT_MIN_WEEKS=35;
 function currentRhythmSection(){
   const dates=workoutDates(),now=new Date(todayISO+'T00:00');
   const streak=currentStreak(),best=longestStreak();
-  /* end the grid on today's column, start on a Monday HEAT_WEEKS back */
+  /* end the grid on today's column; start on the Monday of the ledger's
+     first week, or HEAT_MIN_WEEKS back, whichever reaches further */
   const end=new Date(now); end.setDate(end.getDate()+(7-((now.getDay()+6)%7)-1));
-  const start=new Date(end); start.setDate(start.getDate()-(HEAT_WEEKS*7-1));
   const iso=d=>d.toLocaleDateString('en-CA');
+  const floorStart=new Date(end); floorStart.setDate(floorStart.getDate()-(HEAT_MIN_WEEKS*7-1));
+  let start=floorStart;
+  if(SEED.totals.first){
+    const f=new Date(SEED.totals.first+'T00:00');
+    f.setDate(f.getDate()-((f.getDay()+6)%7));          // back to that week's Monday
+    if(f<start) start=f;
+  }
+  /* count the span in DAYS and divide -- adding weeks to a Date across a DST
+     boundary drifts by an hour and can land the grid a day out */
+  const HEAT_WEEKS=Math.max(HEAT_MIN_WEEKS, Math.ceil((daysBetween(iso(start),iso(end))+1)/7));
   const days=[];
   for(let k=0;k<HEAT_WEEKS*7;k++){
     const d=new Date(start); d.setDate(d.getDate()+k);
@@ -695,6 +712,19 @@ function currentRhythmSection(){
     lastC=c;
     ticks.push({c,label:d.toLocaleDateString('en-US',{month:'short'}).toUpperCase()});
   }
+  /* v3.3.334: YEARS, in their own row above the grid and inside the same
+     scroller, so the label travels with the columns it names. Column 0 always
+     gets one -- the ledger's own first year is the thing you are least likely
+     to guess -- and after that a label lands wherever January begins. Unlike
+     the month ticks there is no crowding rule to apply: two years cannot be
+     closer than 52 columns. */
+  const years=[]; let lastY=null;
+  for(let c=0;c<HEAT_WEEKS;c++){
+    const y=new Date(days[c*7]+'T00:00').getFullYear();
+    if(y===lastY) continue;
+    lastY=y;
+    years.push({c, label:String(y)});
+  }
   const cells=days.map((x,k)=>{
     const future=x>todayISO, isToday=x===todayISO, done=on(x);
     /* v3.3.314: every day is its OWN square. v3.3.307 joined consecutive days
@@ -716,7 +746,7 @@ function currentRhythmSection(){
     const since=new Date(firstDay+'T00:00').toLocaleDateString('en-US',{month:'short',year:'numeric'});
     lifetime=`${Math.round(total/span*100)}% of every day since ${since}`;
   }
-  return `<h2 id="secDays">Show up — that's the whole game${hActs('rhythm','Every day of the last eight months, one square each. Days you trained back to back join into a single stroke, so a streak reads as one unbroken run.','About Show up')}</h2>
+  return `<h2 id="secDays">Show up — that's the whole game${hActs('rhythm','Every day since your first, one square each. Scroll back through the years; it opens on today.','About Show up')}</h2>
     <div class="card crcard">
       <div class="crhead">
         <span class="crtotal"><b>${fmt(total)}</b><small>days in</small></span>
@@ -735,6 +765,7 @@ function currentRhythmSection(){
            wired up. One box now sizes both, so a label cannot be anywhere but
            over its own column, at any width, scrolled or not. -->
       <div class="heatframe"><div class="heatwrap"><div class="heatscroll">
+        <div class="heatyears" style="--hw:${HEAT_WEEKS}">${years.map(y=>`<span style="--c:${y.c}">${y.label}</span>`).join('')}</div>
         <div class="heatgrid" style="--hw:${HEAT_WEEKS}">${cells}</div>
         <div class="heatticks" style="--hw:${HEAT_WEEKS}">${ticks.map(t=>`<span style="--c:${t.c}">${t.label}</span>`).join('')}</div>
       </div></div></div>

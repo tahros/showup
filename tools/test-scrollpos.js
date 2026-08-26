@@ -44,15 +44,51 @@ check("render did not throw",       `!!document.querySelector('#view').innerHTML
    findable, and the grid must FIT rather than force a sideways drag — so
    they are asserted on the heatmap's own structure. */
 check("the attendance grid identifies today", `document.querySelectorAll('.heatgrid .tod').length`, 1);
-check("...and fits its card rather than forcing a sideways drag",
-      `+document.querySelector('.heatgrid').style.getPropertyValue('--hw')`, 35);
+/* v3.3.334 RESTATES v3.3.307's second property, on the maker's instruction.
+   "The grid must FIT rather than force a sideways drag" was the right call
+   for a 35-week window. He has since asked for the whole ledger -- a section
+   called "show up, that's the whole game", sitting over a lifetime day
+   count, was showing eight months of it -- and a lifetime cannot fit a
+   phone. Scrolling is now the POINT, and v3.3.333 already made it land on
+   today rather than on the far past, which is what "forcing a drag" was
+   really about. What survives unchanged is the first property: today must be
+   findable. What replaces the second is that the span follows the LEDGER,
+   with 35 weeks as a floor so a new ledger still gets a grid worth looking
+   at rather than four lonely columns. */
+check("...and spans at least the floor, however new the ledger",
+      `+document.querySelector('.heatgrid').style.getPropertyValue('--hw') >= 35`, true);
+/* the real question is not how many columns but WHERE THE GRID STARTS, so
+   ask the first cell what day it is. A fixture with a genuinely old first
+   day, because the default one is inside the floor and would never exercise
+   the branch -- an assertion that cannot fail is worse than none. */
+run(`(function(){const t=new Date(todayISO+'T00:00');
+  const D=n=>{const d=new Date(t);d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA')};
+  DB.days[D(900)]={w:[{part:'Back',ex:'Pull Up',w:0,reps:[8],at:1}],upd:1};
+  DB.days[D(3)]={w:[{part:'Back',ex:'Pull Up',w:0,reps:[8],at:1}],upd:1};
+  SEED=deriveAll(); view='stats'; render();})()`);
+check("...reaching back to the ledger's first day, not a fixed window",
+      `(function(){const first=document.querySelector('.heatgrid .hc');
+        const d=first.getAttribute('aria-label').split(' ')[0];
+        return d <= SEED.totals.first;})()`, true);
+check("...and still ending on today",
+      `document.querySelectorAll('.heatgrid .tod').length`, 1);
+check("...with a year label over the column each year begins in",
+      `(function(){const ys=[...document.querySelectorAll('.heatyears span')];
+        if(ys.length<2) return 'only '+ys.length;
+        const hw=+document.querySelector('.heatgrid').style.getPropertyValue('--hw');
+        const cells=[...document.querySelectorAll('.heatgrid .hc')];
+        return ys.every(sp=>{const c=+sp.style.getPropertyValue('--c');
+          if(c<0||c>=hw) return false;
+          const d=cells[c*7].getAttribute('aria-label').split(' ')[0];
+          return d.slice(0,4)===sp.textContent.trim();});})()`, true);
 {
-  /* fitting is a CSS property jsdom cannot compute, so assert the mechanism:
-     columns flex down to a 7px floor and the grid is told to fill its box —
-     together that means it only scrolls on a phone narrower than ~315px. */
   const cssH = fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\r?\n\s*/g, "");
-  check("...because its columns flex down instead of overflowing",
-        `${/\.heatgrid\{[^}]*minmax\(7px,1fr\)/.test(cssH) && /\.heatgrid\{[^}]*min-width:100%/.test(cssH)}`, "true");
+  /* the floor is now a CELL SIZE, not a fitting trick: columns hold 11px and
+     the grid overflows its scroller on purpose. min-width:100% stays, so a
+     ledger shorter than the viewport still fills the card instead of
+     huddling at the left. */
+  check("...with columns sized to be seen rather than to fit",
+        `${/\.heatgrid\{[^}]*minmax\(11px,1fr\)/.test(cssH) && /\.heatgrid\{[^}]*min-width:100%/.test(cssH)}`, "true");
 }
 
 // History's year strip centres its selection (v3.3.39) — same family, still holding
