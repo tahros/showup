@@ -930,4 +930,51 @@ check("a lift still reads as a weight",
            offenders.length === 0 ? true : offenders.join(" | "), "true");
 }
 
+/* v3.3.341 SLICE 1: the SET UNIT exists and renders; nothing writes it yet.
+   The formatter and the fold are pinned here so the writer that follows
+   changes one place instead of fifteen. */
+{
+  /* the number stays in `reps`, which is the whole reason this is
+     affordable: reps.length is still the set count, so the fifty places that
+     count sets cannot be broken by this. Asserted, not assumed. */
+  run(`(function(){DB.days={}; DB.settings.unit='lb';
+    DB.days[todayISO]={w:[
+      {part:'Sixpack',ex:'Plank',w:0,reps:[60,60,45],su:'s',at:1},
+      {part:'Back',ex:'Pull Up',w:0,reps:[10,8],at:2}],upd:1};
+    SEED=deriveAll();})()`);
+  check("a held set still counts as a set",
+        `(DB.days[todayISO].w[0].reps||[]).length`, 3);
+  check("...so the day's set total counts holds like any other set",
+        `DB.days[todayISO].w.reduce((a,s)=>a+(s.reps||[]).length,0)`, 5);
+
+  /* the formatter: minutes only once there are whole ones */
+  [[30,'30\u2033'],[45,'45\u2033'],[59,'59\u2033'],[60,'1\u2032'],[90,'1\u203230\u2033'],[125,'2\u203205\u2033']]
+    .forEach(([n,want]) => checkVal(`${n} seconds reads "${want}"`, run(`secLabel(${n})`), want));
+  checkVal("a rep is left alone by the same formatter", run(`setNum(10,undefined)`), "10");
+  checkVal("...and a hold is not", run(`setNum(60,'s')`), "1\u2032");
+
+  /* folding must not merge across a change of unit: 10 reps and a 10-second
+     hold at the same weight are not two of anything */
+  check("a hold and a rep set at one weight stay separate lines",
+        `foldSets([[0,[10],null,null,undefined],[0,[10],null,null,'s']],'Plank').length`, 2);
+  check("...while two holds at one weight still fold together",
+        `foldSets([[0,[60],null,null,'s'],[0,[45],null,null,'s']],'Plank')[0][1].join(',')`, "60,45");
+
+  /* and it reaches the screen */
+  run(`view='lift'; lift.ex='Plank'; lift.part='Sixpack'; render();`);
+  check("a held set renders in seconds, not as a rep count",
+        `/1\u2032/.test(document.getElementById('app').innerHTML)`, true);
+  check("...marked as a hold so it can be styled apart",
+        `document.querySelectorAll('.repchip.hold').length > 0`, true);
+}
+
+/* NOT YET, and deliberately: nothing writes su in this release. If that ever
+   stops being true without slice 3's exclusions landing, repFreq and the rep
+   ruler's ceiling will read 60 as sixty reps. This assertion is the tripwire
+   between the two slices. */
+check("no writer sets a unit yet",
+      `${!/su:\s*SET_SEC|su:\s*'s'/.test(
+         ["js/app.js","js/lift.js","js/derive.js"]
+           .map(f=>fs.readFileSync(path.join(dir,f),"utf8")).join("\n"))}`, "true");
+
 process.exit(fail ? 1 : 0);

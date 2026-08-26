@@ -154,7 +154,9 @@ function renderLift(){
         const isRun=ex==='Run';
         const sub=isRun
           ?list.map(s=>`${dDisp(s.w)} ${DU()} · ${s.mins||0}'${String(s.secs||0).padStart(2,'0')}"`).join('  ')
-          :list.map(s=>`${wTxt(ex,s.w)} × ${s.reps.join(',')}`).join('   ');
+          :list.map(s=>isHold(s.su)
+              ? `${wTxt(ex,s.w)} ${s.reps.map(r=>secLabel(r)).join(',')}`
+              : `${wTxt(ex,s.w)} × ${s.reps.join(',')}`).join('   ');
         const v=list.reduce((a,s)=>a+volOf(s),0);
         const exDone=!exOpen(ex);
         h+=`<div class="item logrow todayrow ${exDone?'fin':''}">
@@ -346,7 +348,7 @@ function renderLift(){
       .sort((a,b)=>a[0]<b[0]?1:-1)[0];
     const seed=SEED.last[ex];
     if(mine&&(!seed||mine[0]>seed.d))
-      return {d:mine[0],sets:mine[1].w.filter(s=>s.ex===ex).map(s=>[s.w,s.reps,s.mins,s.secs])};
+      return {d:mine[0],sets:mine[1].w.filter(s=>s.ex===ex).map(s=>[s.w,s.reps,s.mins,s.secs,s.su])};
     return seed||null;
   })();
   /* v3.3.144: LAST TIME is no longer its own card. It becomes the dimmed
@@ -533,7 +535,7 @@ function renderLift(){
       h+=`<div class="muted" style="font-size:13px">Nothing yet — log the first set.</div>`;
     }else if(!editing){
       /* read mode: fold today exactly the way History folds a day */
-      const folded=foldSets(todaySets.map(s=>[s.w,s.reps,s.mins,s.secs]),ex);
+      const folded=foldSets(todaySets.map(s=>[s.w,s.reps,s.mins,s.secs,s.su]),ex);
       /* the newest chip carries the save flash — the settile that used to
          host it only exists in edit mode now */
       let rows=setRows(ex,folded,false);
@@ -552,7 +554,7 @@ function renderLift(){
         const isPR=!isRun&&s.reps.length&&s.w>=p.mw;
         h+=isRun
           ?`<div class="settile${lift.editSet===idx?' editing':''}" data-del="${idx}"><span class="w">${dDisp(s.w)}<small>${DU()}</small></span><span class="x">${s.mins||0}'${String(s.secs||0).padStart(2,'0')}"</span></div>`
-          :`<div class="settile ${isPR?'pr':''}${lift.editSet===idx?' editing':''}" data-del="${idx}"><span class="w">${wLabel(ex,s.w)}${isBody(ex)?'':`<small>${U()}</small>`}</span><span class="x">×</span><span class="w">${s.reps[0]}</span></div>`;
+          :`<div class="settile ${isPR?'pr':''}${lift.editSet===idx?' editing':''}" data-del="${idx}"><span class="w">${wLabel(ex,s.w)}${isBody(ex)?'':`<small>${U()}</small>`}</span><span class="x">${isHold(s.su)?'':'\u00d7'}</span><span class="w">${setNum(s.reps[0],s.su)}</span></div>`;
       });
       h+=`</div>
         <div class="row" style="gap:8px;margin-top:10px">
@@ -776,7 +778,7 @@ function lastPartSession(part){
   const add=(ex,set)=>{ let g=byEx[ex]; if(!g){ g={ex,sets:[]}; byEx[ex]=g; groups.push(g); } g.sets.push(set); };
   const dv=DB.days[d];
   if(dv&&(dv.w||[]).some(x=>x.part===part&&(x.reps||[]).length)){
-    for(const x of dv.w) if(x.part===part&&(x.reps||[]).length) add(x.ex,[x.w,x.reps,x.mins,x.secs]);
+    for(const x of dv.w) if(x.part===part&&(x.reps||[]).length) add(x.ex,[x.w,x.reps,x.mins,x.secs,x.su]);
   }else if(SEED.sessions[d]){
     for(const r of SEED.sessions[d]) if(r[0]===part&&r[1]!=='Run') add(r[1],[r[2],r[3],r[4],r[5]]);
   }

@@ -313,6 +313,10 @@
   .lastw .u{font-size:11px;color:var(--muted);font-weight:600}
   .lastreps{display:flex;flex-wrap:wrap;gap:5px}
   .repchip{font-style:normal;font-family:var(--mono);font-size:13px;font-weight:700;padding:3px 8px;border-radius:8px;background:color-mix(in srgb,var(--accent) 13%, transparent);color:var(--accent-ink)}
+  /* v3.3.341: a held set is the same chip, wider, because its label carries a
+     unit mark and sometimes a minute. Not a different colour: a set is a set,
+     and the app has one word for that. */
+  .repchip.hold{min-width:38px;letter-spacing:-.02em}
   .lastfoot{margin-top:8px;font-size:11px;color:var(--muted)}
   .runhist .lastrow{display:grid;grid-template-columns:1fr auto auto auto;gap:12px;align-items:baseline}
   .runhist .runD{color:var(--muted);font-size:12px}

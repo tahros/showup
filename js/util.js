@@ -448,6 +448,39 @@ function resealDay(t){
    so the two can't drift the way the re-seal predicate did.
    Folding is CONSECUTIVE, not global: returning to a weight later in the
    session stays its own line, which keeps the session's narrative. */
+/* v3.3.341 SLICE 1 of the timed-set work: the UNIT EXISTS AND RENDERS.
+   Nothing writes it yet -- that is deliberate. This release adds the field,
+   the formatter and every read path, so the writer that follows changes one
+   place instead of hunting fifteen.
+
+   THE SHAPE. A set record may carry su:'s'. The number itself stays in
+   `reps`, which is the whole reason this is affordable: reps.length remains
+   the set count, so the FIFTY places that count sets -- the header's "19
+   sets", Stats, muscle coverage, the part rollups -- need no change at all
+   and cannot be broken by this. A hold is two sets the way a press is two
+   sets; the 60 seconds is the load, exactly as 145 lb is. That is
+   "days > volume" deciding the storage question, not convenience.
+   Absent su means reps, so every record ever written stays valid and there
+   is no migration.
+
+   WHAT THIS RELEASE DOES NOT DO. Nothing reads the VALUE as a rep count yet
+   -- repFreq, the rep ruler's ceiling, rep-range analysis and PR's
+   reps-at-max-weight would all read 60 as sixty reps. Those exclusions are
+   slice 3 and they are listed here so the gap is a known one rather than a
+   discovered one. Until a writer exists, no record can carry su, so the gap
+   is unreachable in practice today. */
+const SET_SEC='s';
+const isHold=su=>su===SET_SEC;
+/* 45 -> 45", 60 -> 1', 90 -> 1'30". Minutes only once there are whole ones,
+   so a plank reads in the unit it was held in. */
+function secLabel(n){
+  const v=Math.max(0,Math.round(+n||0));
+  if(v<60) return `${v}\u2033`;
+  const m=Math.floor(v/60), s=v%60;
+  return s ? `${m}\u2032${String(s).padStart(2,'0')}\u2033` : `${m}\u2032`;
+}
+/* the one place that turns a stored number into a set's label */
+const setNum=(n,su)=>isHold(su)?secLabel(n):String(n);
 function foldSets(sets,ex){
   /* v3.3.63: a LIFT with no reps carries nothing, whatever its weight. The
      old test also demanded w<=0.01, so a legacy "12 kg, reps:[]" marker
@@ -456,18 +489,21 @@ function foldSets(sets,ex){
      Run is the sole exemption. */
   const isRunEx = ex==='Run';
   const folded=[];
-  for(const [w2,reps,mins,secs] of sets){
+  for(const [w2,reps,mins,secs,su] of sets){
     if(!isRunEx && (!reps||!reps.length) && mins==null) continue;   // bare marker rows carry nothing
     const prev=folded[folded.length-1];
-    if(prev&&prev[0]===w2&&prev[2]==null&&mins==null) prev[1]=prev[1].concat(reps||[]);
-    else folded.push([w2,(reps||[]).slice(),mins,secs]);
+    /* v3.3.341: folding also requires the same UNIT. Two sets at the same
+       weight are one line only if they mean the same thing -- 10 reps and a
+       10-second hold are not two of anything. */
+    if(prev&&prev[0]===w2&&prev[2]==null&&mins==null&&prev[4]===su) prev[1]=prev[1].concat(reps||[]);
+    else folded.push([w2,(reps||[]).slice(),mins,secs,su]);
   }
   return folded;
 }
 function setRows(ex,folded,tappable){
-  return folded.map(([w2,reps,mins,secs])=>{
+  return folded.map(([w2,reps,mins,secs,su])=>{
     const chips=(reps&&reps.length)
-      ? reps.map(r2=>`<i class="repchip">${r2}</i>`).join('')
+      ? reps.map(r2=>`<i class="repchip${isHold(su)?' hold':''}">${setNum(r2,su)}</i>`).join('')
       : (mins!=null?`<i class="repchip">${mins}${secs?`'${String(secs).padStart(2,'0')}`:'′'}</i>`:'');
     const wtxt = ex==='Run'
       ? `${dDisp(w2)} <span class="u">${DU()}</span>`
@@ -665,7 +701,7 @@ function lastFor(ex){
   const mine=Object.entries(DB.days).filter(([d,v])=>v.w.some(s=>s.ex===ex)).sort((a,b)=>a[0]<b[0]?1:-1)[0];
   const seed=SEED.last[ex];
   if(mine&&(!seed||mine[0]>seed.d))
-    return {d:mine[0],sets:mine[1].w.filter(s=>s.ex===ex).map(s=>[s.w,s.reps,s.mins,s.secs])};
+    return {d:mine[0],sets:mine[1].w.filter(s=>s.ex===ex).map(s=>[s.w,s.reps,s.mins,s.secs,s.su])};
   return seed||null;
 }
 function prFor(ex){

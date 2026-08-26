@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v3.3.341 (2026-08-26) — Groundwork for timed sets
+
+**Nothing changes on screen yet.** A set can now say whether its number is
+reps or seconds, and everywhere sets are displayed knows how to read that —
+`1′`, `45″`, `1′30″`. Nothing writes it yet; the logging toggle comes next.
+
+A held set counts as a set, exactly like any other. Two sets at the same
+weight only merge into one line if they mean the same thing.
+
 ## v3.3.340 (2026-08-26) — A timed hold stays with its exercise
 
 **"Plank" and "60 sec × 2" were becoming two separate notes.** The duration
