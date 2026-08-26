@@ -24,11 +24,24 @@ function planSectionHTML(){
         const _pf=!!DB.settings.planFold;
         h+=`<h2><b class="scopepill">today</b> plan${hActs('plan',"Paste a session and the app reads what it can. It fills weights and reps for today only, is never written to your record, and clears at midnight. Nothing is counted against it.",'About today\u2019s plan')}<span class="planedge"><button class="pedge pfold" data-planfold aria-expanded="${!_pf}" aria-label="${_pf?'Show':'Hide'} today\u2019s plan">${_pf?'\u25b8':'\u25be'}</button><button class="pedge" data-planedit>Edit</button><button class="pedge" data-planclear>Clear</button></span></h2>`;
         if(!_pf){
-          h+=`<div class="card plancard">
+          /* v3.3.324: the \u00d7 sits on ONE vertical line down the whole card.
+             v3.3.295 gave each row a three-column grid, which aligned the \u00d7
+             within a row but NOT between rows -- a grid sizes its own columns,
+             and five rows are five grids, so five different x. The card measures
+             the longest weight and the longest rep string ONCE and hands both
+             down as character widths, so every row lays out on identical
+             columns: weights right-align into the column left of the \u00d7,
+             reps left-align out of the column right of it, and the \u00d7 lands
+             in the same place on every line of every row. `ch` is exact here
+             because .pl is mono -- every glyph one advance wide. */
+          const _wtx=l=>(l.bw||l.w<=0)?'BW':wDisp(l.w)+' '+U();
+          const _rtx=l=>l.reps.join(' ');
+          const _ln=(_pl.items||[]).reduce((a,i)=>a.concat(i.lines||[]),[]);
+          const _cw=(f,min)=>Math.max(min,..._ln.map(l=>f(l).length));
+          h+=`<div class="card plancard" style="--planw:${_cw(_wtx,2)}ch;--planr:${_cw(_rtx,1)}ch">
             ${(_pl.items||[]).map(i=>`<button class="planrow${planLoggedToday(i.ex)?' pdone':''}" data-planex="${i.ex}">
-                <span class="pn">${i.ex}</span>
-                <span class="pl">${i.lines.map(l=>`<span class="pv pw mono">${l.bw||l.w<=0?'BW':wDisp(l.w)+' '+U()}</span><span class="px mono" aria-hidden="true">\u00d7</span><span class="pr mono">${l.reps.join(' ')}</span>`).join('')}</span>
-                <span class="pk">${planLoggedToday(i.ex)?'\u2713':''}</span>
+                <span class="pn">${i.ex}<i class="pk">${planLoggedToday(i.ex)?'\u2713':''}</i></span>
+                <span class="pl">${i.lines.map(l=>`<span class="pv pw mono">${_wtx(l)}</span><span class="px mono" aria-hidden="true">\u00d7</span><span class="pr mono">${_rtx(l)}</span>`).join('')}</span>
               </button>`).join('')}
             ${_pl.note?planNoteHTML(_pl.note):''}
           </div>`;
@@ -116,8 +129,12 @@ function renderLift(){
                 : virgin ? 'new'
                 : p==='Run' ? 'each time'
                 : never ? 'never trained'
-                : i0.since===1 ? 'yesterday'
-                : `${i0.since}d ago`;
+                /* v3.3.329: the chips and the exercise rows below them are the
+                   same sentence, so they read from the same formatter — see
+                   agoLabel in util.js. Chips keep their own words above it
+                   (the emoji-today / new / never-trained words) because those are STATES, not
+                   elapsed time. */
+                : agoLabel(i0.since);
       const cls = [dead?'dead':'', p==='Run'&&!hasToday?'run':'',
                    (p===P.pick&&!hasToday&&!isLive())?'hot':'',   // no suggestions mid-workout
                    open?'liveP':'', finished?'finP':''].filter(Boolean).join(' ');
@@ -223,10 +240,14 @@ function renderLift(){
       .filter(x=>!openSet.has(x.ex));
     const row=({ex,last,freq},big)=>{
       const p=prFor(ex);
-      const when=last?(daysAgo(last)===0?'✓ done today':daysAgo(last)+'d ago'):'never logged';
+      const when=last?(daysAgo(last)===0?'✓ done today':agoLabel(daysAgo(last))):'never logged';
       const meta=big?`${when} · ${freq}× this year`:when;
-      /* v3.3.302: a space before the unit — "165.3 lb", not "165.3lb" */
-      const side=(p.mw&&usesPlates(ex))?`${wDisp((p.mw-barKg(ex))/2)} ${U()} / side`:'';
+      /* v3.3.329: the per-side line is GONE. It restated the same weight in a
+         second arithmetic on the row that already carries the total, and it
+         only ever appeared on plate exercises — so a scannable column of
+         weights grew a second line under some rows and not others. The plate
+         math itself is untouched: barviz still shows the loadout per side in
+         the log zone, which is where you are actually loading a bar. */
       const mine=!!customs()[ex];
       const eq=EQUIP_LABEL[equipOf(ex)]||'';
       return `<div class="item logrow ${big?'goto':''}${_enter?' enter':''}" style="--i:${Math.min(_ei++,10)};${big?'':'padding:10px 10px 10px 14px'}">
@@ -234,8 +255,7 @@ function renderLift(){
               <b>${ex}</b><div class="sub">${meta}${mine?` · yours · ${eq.toLowerCase()}`:''}</div>
             </button>
             <span class="pr-cell">
-              <span class="pr-top">${p.mw?(ex==='Run'?dDisp(p.mw)+' '+DU():wDisp(p.mw)+' '+U()):''}</span>
-              ${side?`<span class="pr-side">${side}</span>`:''}
+              <span class="pr-top">${p.mw?(ex==='Run'?dDisp(p.mw)+' '+DU():wDisp(p.mw)+' '+U()):'<i class="pr-nil" aria-label="no weight logged"></i>'}</span>
             </span>
             ${(mine&&!last)?`<button class="xbtn" data-delex="${ex}" aria-label="Delete ${ex}">✕</button>`:''}
           </div>`;

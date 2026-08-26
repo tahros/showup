@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v3.3.330 (2026-08-25) — v3.3.329, actually shipped
+
+**Last release only half landed.** One file never made it into the push —
+the one holding all three changes. So the per-side line stayed, lost the
+style that kept it small, and got bigger; ages kept counting in days. The
+file is in this time. Ages read "20 d ago", "1 mo ago", "4 y ago"; the
+per-side line is gone from the lists; a never-loaded exercise shows a short
+rule.
+
 ## v3.3.329 (2026-08-25) — How long it has been, said plainly
 
 **Ages coarsen as they grow.** Under a month reads in days, under a year in
