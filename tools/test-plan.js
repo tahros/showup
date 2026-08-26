@@ -48,7 +48,14 @@ const PASTE = [
   "  BW       10    8    8",
   "",
   "Plank                                  2 sets",
-  "  60 sec each"
+  "  60 sec each",
+  "",
+  /* v3.3.346: the fixture needs a line that genuinely cannot become a plan
+     item. Plank used to be that line -- and stopped being one the moment a
+     set could be seconds, which silently emptied the note and left the
+     "kept verbatim" assertion testing nothing. A fixture that no longer
+     contains the case is a passing test with no subject. */
+  "Foam roll                              as needed"
 ].join("\n");
 
 run(`(function(){DB.days={}; DB.settings.unit='lb'; const t=new Date(todayISO+'T00:00');
@@ -81,9 +88,21 @@ ok("a name not in the catalog is NOT guessed — it offers candidates",
    run(`(function(){const r=__rows.find(x=>x.name==='Rear Delt Fly');
      return r.ex===null && r.cands.length>0 && r.cands.includes('Rear Deltoids');})()`) === true,
    run(`JSON.stringify(__rows.find(x=>x.name==='Rear Delt Fly').cands)`));
+/* v3.3.346 RESTATES v3.3.278. The property is that a line the parser cannot
+   turn into a plan item is KEPT rather than dropped -- never that Plank in
+   particular is unreadable. Since v3.3.343 a set can BE seconds, so "Plank /
+   60 sec each" is now a real item, and the property moves to a line that
+   genuinely has nothing to prefill. Nothing is dropped either way, which is
+   the thing being defended. */
 ok("a heading with no readable sets survives as a note, not dropped",
-   run(`__rows.some(r=>r.kind==='exnote'&&/Plank/.test(r.raw))`) &&
-   run(`/Plank/.test(planItemsFrom(__rows).note)`));
+   run(`(function(){const r=parsePlan('Foam roll\\n  as needed');
+     return r.some(x=>x.kind==='exnote'&&/Foam roll/.test(x.raw))
+         && /Foam roll/.test(planItemsFrom(r).note);})()`) === true);
+ok("...and a hold IS read now, because a set can be seconds",
+   run(`(function(){const r=parsePlan('Plank\\n  60 sec x 2');
+     const ex=r.filter(x=>x.kind==='ex');
+     return ex.length===1 && ex[0].lines.length===1
+         && ex[0].lines[0].su==='s' && ex[0].lines[0].reps.join()==='60,60';})()`) === true);
 ok("'5x5' means five sets of five",
    run(`(function(){const r=parsePlan('Squat\\n  100 kg 5x5');
      return r[0].lines[0].reps.join()==='5,5,5,5,5';})()`) === true);
@@ -102,8 +121,10 @@ ok("a per-limb qualifier does not defeat a set line",
 ok("...and it survives on a bodyweight line too",
    run(`(function(){const r=planReadSets('BW 12, 10, 8 each arm');
      return r && r.bw===true && r.reps.join()==='12,10,8';})()`) === true);
-/* the looser rule must not swallow a real exercise NAME or a timed hold:
-   "Plank" / "60 sec each" has no weight to read and must stay a note */
+/* the looser rule must not swallow a real exercise NAME or a timed hold.
+   v3.3.346 note: a hold is a plan item now, but it is read by planReadTime,
+   NOT by planReadSets -- this assertion is about the weight reader and stays
+   exactly as it was. A set line and a hold line are different shapes. */
 ok("...without turning names or timed holds into sets",
    run(`['Plank','60 sec each','Leg Press','Single-Arm Dumbbell Row 3 sets']
      .every(l=>planReadSets(l)===null)`));
@@ -147,8 +168,9 @@ ok("every plan button uses the app's own .btn grammar, not a bespoke one",
    run(`[...document.querySelectorAll('.planacts button')].every(b=>b.classList.contains('btn'))`));
 
 run(`document.querySelector('[data-planaccept]').click()`);
+/* five now, not four: the fixture's Plank became an item in v3.3.346 */
 ok("accepting writes a plan for TODAY",
-   run(`(function(){const p=planNow(); return !!p && p.d===todayISO && p.items.length===4;})()`) === true,
+   run(`(function(){const p=planNow(); return !!p && p.d===todayISO && p.items.length===5;})()`) === true,
    run(`(planNow()||{items:[]}).items.length`) + " items");
 ok("...weights are stored in kg like every other weight",
    run(`(function(){const i=planFor('Dumbbell Shoulder Press');
@@ -341,7 +363,8 @@ ok("...and the name centres against the stack rather than pinning to line one",
    (function(){const css=fs.readFileSync(path.join(dir,"css/app.css"),"utf8").replace(/\r?\n\s*/g,"");
      return /\.planrow\{[^}]*align-items:center/.test(css);})());
 ok("...and the unreadable lines are kept verbatim",
-   run(`/Plank/.test(planNow().note)`));
+   run(`/Foam roll/.test(String((planNow()||{}).note||''))`) === true,
+   run(`JSON.stringify(String((planNow()||{}).note||'').slice(0,60))`));
 
 // ---- 3. the three promises ------------------------------------------------
 ok("PROMISE 1 — nothing was written to the ledger",
@@ -650,41 +673,48 @@ run(`(function(){view='today'; lift.ex=null; render();})()`);
 }
 
 
-/* v3.3.340: a HOLD stays attached to its exercise.
-   "Plank / 60 sec x 2" is not something this app can prefill -- a set is a
-   weight and a count of reps, and every set total gates on reps.length, so a
-   duration-only set would be invisible to "19 sets", to Stats and to
-   coverage. That is a MODEL question and it is deliberately not answered
-   here. What is fixed is the COMPOUNDING: written on two lines, the duration
-   failed to parse, was read as a heading of its own, and left the exercise
-   above it with no set line -- so one unreadable phrase became two notes.
-   The same damage v3.3.311 documented for "per arm". */
+/* v3.3.346 RESTATES v3.3.340. That release could only keep a hold ATTACHED
+   to its exercise -- one note reading "Plank - 60 sec x 2" instead of two
+   fragments -- because a set could not yet be seconds. v3.3.343 made it one,
+   so the hold is a plan item now. The property v3.3.340 was really defending
+   is unchanged and still asserted below: a hold is never SPLIT from the
+   exercise it belongs to, and nothing the parser reads is silently dropped. */
 {
-  const rows = t => run(`parsePlan(${JSON.stringify(t)}).map(r=>({k:r.kind,raw:r.raw,n:(r.lines||[]).length}))`);
+  const rows = t => run(`parsePlan(${JSON.stringify(t)}).map(r=>({k:r.kind,raw:r.raw,
+    n:(r.lines||[]).length, su:((r.lines||[])[0]||{}).su, reps:((r.lines||[])[0]||{}).reps}))`);
 
   const p1 = rows("Plank\n60 sec x 2");
-  ok("a hold and its exercise stay one note, not two fragments",
-     p1.length === 1 && p1[0].k === 'exnote', JSON.stringify(p1));
-  ok("...with the duration handed back verbatim",
-     p1[0] && /Plank/.test(p1[0].raw) && /60 sec x 2/.test(p1[0].raw), JSON.stringify(p1[0]));
-  for (const [label, text] of [["minutes", "Plank\n2 min"], ["short unit", "Plank\n60s x 2"],
-                               ["sets first", "Plank\n2 x 60 sec"], ["bare", "Side Plank\n45 sec"]])
-    ok(`...${label} too`, rows(text).length === 1, JSON.stringify(rows(text)));
+  ok("a hold and its exercise are ONE row, never two fragments",
+     p1.length === 1, JSON.stringify(p1));
+  ok("...and it is now a plan item, in seconds",
+     p1[0] && p1[0].k === 'ex' && p1[0].su === 's' && String(p1[0].reps) === '60,60',
+     JSON.stringify(p1[0]));
+  for (const [label, text, reps] of [["minutes", "Plank\n2 min", "120"],
+                                     ["short unit", "Plank\n60s x 2", "60,60"],
+                                     ["sets first", "Plank\n2 x 60 sec", "60,60"],
+                                     ["bare", "Side Plank\n45 sec", "45"]])
+    ok(`...${label} too`, (r => r.length === 1 && String(r[0].reps) === reps)(rows(text)),
+       JSON.stringify(rows(text)));
 
-  /* it is NOT promoted to a plan item: the app holds the text, it does not
-     pretend to have understood it */
-  ok("...and never becomes something the plan can prefill",
-     run(`planItemsFrom(parsePlan("Plank\\n60 sec x 2")).items.length`) === 0);
-  ok("...while the text survives into the note",
-     /60 sec/.test(run(`planItemsFrom(parsePlan("Plank\\n60 sec x 2")).note`)));
-
-  /* a duration under an exercise that DOES have sets is something else --
-     rest, a finisher, prose -- and is handed back untouched rather than
-     swallowed into a row it does not belong to */
-  const p2 = rows("Cable Fly Up\n35 lb x 12\n60 sec x 2");
-  ok("...but a hold under a real set stays its own note",
-     p2.length === 2 && p2[0].k === 'ex' && p2[0].n === 1 && p2[1].k === 'exnote',
+  /* ONLY where a hold is a real thing. The parser proposes; it does not
+     reinterpret what you train. */
+  const p2 = rows("Squat\n60 sec x 2");
+  ok("...but an exercise that is not held keeps its text",
+     p2.length === 1 && p2[0].k === 'exnote' && /Squat/.test(p2[0].raw) && /60 sec/.test(p2[0].raw),
      JSON.stringify(p2));
+  ok("...and nothing of it is dropped",
+     /60 sec/.test(run(`planItemsFrom(parsePlan("Squat\\n60 sec x 2")).note`)));
+
+  /* a duration under an exercise that already HAS sets is something else --
+     rest, a finisher, prose -- and stays its own note */
+  const p3 = rows("Cable Fly Up\n35 lb x 12\n60 sec x 2");
+  ok("...while a hold under a real set stays its own note",
+     p3.length === 2 && p3[0].k === 'ex' && p3[0].n === 1 && p3[1].k === 'exnote',
+     JSON.stringify(p3));
+
+  /* the chips log a complete weight x reps pair in one tap; a hold is neither */
+  ok("...and a held line offers no weight-times-reps chip",
+     run(`planSets({lines:[{w:0,su:'s',reps:[60,60]},{w:20,reps:[10]}]}).length`) === 1);
 }
 
 

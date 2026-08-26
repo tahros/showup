@@ -35,7 +35,12 @@ function planSectionHTML(){
              in the same place on every line of every row. `ch` is exact here
              because .pl is mono -- every glyph one advance wide. */
           const _wtx=l=>(l.bw||l.w<=0)?'BW':wDisp(l.w)+' '+U();
-          const _rtx=l=>l.reps.join(' ');
+          /* v3.3.346: a held line reads in seconds, and its multiplication
+             sign becomes a count of SETS -- "BW 60\u2033 \u00d7 2" says the thing,
+             where "BW \u00d7 60 60" would say sixty of something. */
+          const _rtx=l=>isHold(l.su)
+            ? `${secLabel(l.reps[0])} \u00d7 ${l.reps.length}`
+            : l.reps.join(' ');
           const _ln=(_pl.items||[]).reduce((a,i)=>a.concat(i.lines||[]),[]);
           const _cw=(f,min)=>Math.max(min,..._ln.map(l=>f(l).length));
           h+=`<div class="card plancard" style="--planw:${_cw(_wtx,2)}ch;--planr:${_cw(_rtx,1)}ch">
@@ -753,7 +758,9 @@ function planScreenHTML(){
     if(r.kind==='ex'&&r.ex){
       h+=`<div class="planpv ok"><span class="pi">\u2713</span>
         <span class="pb"><b>${hesc(r.ex)}</b>
-          ${r.lines.map(l=>`<i class="mono">${l.bw?'BW':l.w+(l.unit||'')} \u00d7 ${l.reps.join(', ')}</i>`).join('')}</span>
+          ${r.lines.map(l=>`<i class="mono">${l.bw?'BW':l.w+(l.unit||'')} ${isHold(l.su)
+              ? `${secLabel(l.reps[0])} \u00d7 ${l.reps.length}`
+              : `\u00d7 ${l.reps.join(', ')}`}</i>`).join('')}</span>
         <button class="lsx" data-plandrop="${i}" aria-label="Skip ${hesc(r.ex)}">\u2715</button></div>`;
     }else if(r.kind==='ex'){
       h+=`<div class="planpv ask"><span class="pi">?</span>

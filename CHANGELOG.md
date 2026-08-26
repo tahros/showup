@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v3.3.346 (2026-08-26) — Plank reads
+
+**`Plank / 60 sec × 2` is a plan item now**, not a note. It reads as
+`BW 1′ × 2` — a minute, twice — and it can be, because a set can be seconds
+since two releases ago.
+
+Only for exercises you can actually hold. `Squat / 60 sec × 2` is still kept
+as text: the parser proposes, it doesn't reinterpret what you train.
+
 ## v3.3.345 (2026-08-26) — The build checks the tool, not the prose
 
 **Last release's guard was too strict and blocked an ordinary comment.** The

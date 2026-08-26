@@ -1004,8 +1004,21 @@ function parsePlan(text){
     /* a hold clings to the exercise above it rather than becoming a heading.
        Only while that exercise has no weight lines yet: if it has real sets,
        the duration is something else and stays a note of its own. */
-    if(cur && !cur.lines.length && planReadTime(body)){
-      (cur.times=cur.times||[]).push(body.trim()); continue;
+    const _t=(cur && !cur.lines.length) ? planReadTime(body) : null;
+    if(_t){
+      /* v3.3.346 SLICE 4: now that a set can BE seconds (v3.3.343), a hold
+         is a plan item rather than a consolation note -- but only for an
+         exercise that may be held. "Squat 60 sec x 2" is still text: the
+         parser proposes, it does not reinterpret what you train.
+         sets x secs becomes one line of `sets` entries, each `secs` long,
+         which is the same shape a weight line has: one number per set. */
+      if(cur.ex && canHold(cur.ex)){
+        cur.lines.push({w:0, bw:true, su:SET_SEC, unit:'',
+                        reps:Array(_t.sets).fill(_t.secs), raw:body.trim()});
+      }else{
+        (cur.times=cur.times||[]).push(body.trim());
+      }
+      continue;
     }
     const inline=planReadInline(body);
     if(inline){
@@ -1052,6 +1065,7 @@ function planItemsFrom(rows){
       const lines=r.lines.map(l=>({
         w: l.bw?0:(l.unit==='kg'?l.w:l.unit==='lb'?l.w/LB:toKg(l.w)),
         bw: !!l.bw,
+        ...(isHold(l.su)?{su:SET_SEC}:{}),
         reps: l.reps.slice(0,12)
       })).filter(l=>l.reps.length);
       if(lines.length) items.push({ex:r.ex, lines});
@@ -1068,7 +1082,10 @@ function planItemsFrom(rows){
    on top of this: one row, one fact, exactly like the Last time card's tick. */
 const planLoggedToday=ex=>((DB.days[todayISO]||{}).w||[])
   .some(x=>x.ex===ex&&(x.reps||[]).length);
-const planSets=i=>(i.lines||[]).flatMap(l=>l.reps.map(r=>({w:l.w, r})));
+/* v3.3.346: holds are skipped. These chips log a complete weight x reps pair
+   in one tap, and a hold is neither -- the same reason v3.3.343 suppressed
+   the Suggested strip for a held exercise. */
+const planSets=i=>(i.lines||[]).filter(l=>!isHold(l.su)).flatMap(l=>l.reps.map(r=>({w:l.w, r})));
 /* v3.3.309: rubber-band and pull-to-refresh move the SCROLLING VIEW, never
    <body>. A transformed element becomes the containing block for its
    fixed-position descendants — so while body carried a translate, the nav
