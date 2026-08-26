@@ -784,6 +784,33 @@ if "closest('.heatwrap')" not in (d/"js/util.js").read_text():
 n = len(idx.encode())
 if n >= 8192: fail.append(f"index.html shell is {n} bytes (limit 8192)")
 
+# -- v3.3.342: the version may appear ONLY at a stamp.
+# Every bumper this repo has had did a blunt old->new replace across these
+# three files, which contain prose as well as stamps -- so every comment that
+# named a version marched forward one release at a time, silently. Two were
+# found: js/core.js's equipOv note (true home v3.3.284, read v3.3.341 -- 57
+# releases adrift) and index.html's black-translucent note (true home
+# v3.3.246, read v3.3.341 -- 95). A comment citing the wrong release is worse
+# than no comment: it sends the next reader to a changelog entry about
+# something else, and the commentary explaining WHY is most of this
+# codebase's value.
+# tools/bump.py now rewrites three shapes and nothing else. This is the check
+# that keeps it honest: strip the legitimate stamps, and the current version
+# must not survive anywhere in what is left. A comment in one of these three
+# files may cite any release EXCEPT the one being shipped -- which is the
+# precise constraint that makes a blunt replace impossible to reintroduce.
+_STAMP = [re.compile(r"\?v=\d+\.\d+\.\d+"),
+          re.compile(r"showup-v\d+\.\d+\.\d+"),
+          re.compile(r"const APP_VERSION\s*=\s*'v\d+\.\d+\.\d+'")]
+for _rel in ["index.html", "sw.js", "js/core.js"]:
+    _t = (d / _rel).read_text(encoding="utf-8")
+    for _rx in _STAMP: _t = _rx.sub("", _t)
+    if appv in _t:
+        _ln = next((i + 1 for i, L in enumerate(_t.splitlines()) if appv in L), "?")
+        fail.append(f"{_rel}: v{appv} appears outside a version stamp (line ~{_ln}) — "
+                    f"prose must not cite the release being shipped, or the next "
+                    f"bump will rewrite it (v3.3.342)")
+
 if fail:
     print("BUILDCHECK FAIL"); [print(" -", f) for f in fail]; sys.exit(1)
 print(f"BUILDCHECK PASS  v{appv}  shell={n}B  assets={len(assets)}  cssvars={len(used)} used / {len(defined)} defined")

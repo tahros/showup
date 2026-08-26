@@ -1,5 +1,16 @@
 # ShowUp — changelog
 
+## v3.3.342 (2026-08-26) — Comments stop citing the wrong release
+
+**The version bumper was rewriting prose.** It replaced the old version
+number with the new one everywhere in three files — including inside
+comments, which meant every note that mentioned a release marched forward one
+number at a time, every release, for years. Two were found and put back: one
+in `core.js` was 57 releases adrift, one in `index.html` was 95.
+
+The bumper now moves the three real stamps and nothing else, and the build
+refuses to ship if the version turns up anywhere it shouldn't.
+
 ## v3.3.341 (2026-08-26) — Groundwork for timed sets
 
 **Nothing changes on screen yet.** A set can now say whether its number is
