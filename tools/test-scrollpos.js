@@ -25,6 +25,15 @@ const check = (name, expr, want) => {
   console.log((ok?"PASS":"FAIL"), name, "→", got);
   if (!ok) fail++;
 };
+/* check() EVALS its expression, which is wrong for a value computed here in
+   Node rather than inside the app (and, as v3.3.323 found the hard way, a
+   failure report containing a CSS selector then crashes the suite instead of
+   failing it). checkVal compares without eval. */
+const checkVal = (name, got, want) => {
+  const ok = String(got) === String(want);
+  console.log((ok?"PASS":"FAIL"), name, "→", got);
+  if (!ok) fail++;
+};
 
 run(`
   const _t0=new Date(todayISO+'T00:00');
@@ -123,13 +132,18 @@ check("...and the year that keeps the label is the FULL one, not the stub",
    dropping WIDTH, one letter per month, which keeps every month marked and
    turns the row into a ruler. Both satisfy the property; his costs nothing.
    What is asserted now: every month present, and every label one character. */
-/* EVERY month, counted -- not just "the labels present are single letters".
-   My first version of this checked only the shape of each label, so reverting
-   to quarters passed it clean: four single letters are still single letters.
-   The count is the property; the shape is a detail of it. */
-check("...with every month marked, one letter each",
+/* v3.3.338 RESTATES the LABEL, not the rule. Two properties are being
+   defended and both survive every version this row has had: every month is
+   marked, and each label names the month its column actually starts. Only
+   the spelling moved -- three letters, because at 65px per month against
+   18px of ink there is nothing to save by shortening, and "JAN" names the
+   month where "J" asks the reader to count from the year.
+   The COUNT stays the load-bearing half: my v3.3.337 version checked only
+   the shape of each label, so reverting to quarters passed clean -- four
+   single letters are still single letters. Shape is a detail; count is the
+   property. */
+check("...with every month marked",
       `(function(){const sp=[...document.querySelectorAll('.heatticks span')];
-        if(!sp.every(s=>/^[JFMASOND]$/.test(s.textContent.trim()))) return 'not single letters';
         const cells=[...document.querySelectorAll('.heatgrid .hc')];
         const hw=+document.querySelector('.heatgrid').style.getPropertyValue('--hw');
         const seen=new Set();
@@ -137,21 +151,41 @@ check("...with every month marked, one letter each",
         /* every month a column starts in, less the partial first one that
            v3.3.308 deliberately suppresses */
         return sp.length===seen.size-1 || sp.length===seen.size;})()`, true);
-check("...following the calendar's own sequence",
-      `(function(){const L='JFMAMJJASOND';
+check("...each naming the month its own column starts",
+      `(function(){const L=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
         const cells=[...document.querySelectorAll('.heatgrid .hc')];
         return [...document.querySelectorAll('.heatticks span')].every(sp=>{
           const c=+sp.style.getPropertyValue('--c');
           const mo=+cells[c*7].getAttribute('aria-label').slice(5,7);
           return L[mo-1]===sp.textContent.trim();});})()`, true);
-/* v3.3.336 is why this is measured instead of argued in a comment: the
-   shortest month is 28 days = exactly 4 columns, and a 10px mono character is
-   6px against a 15px column pitch. If a future change ever widens the label
-   or narrows the cell, this fails rather than smearing on the maker's phone. */
-check("...with clearance no month can close",
-      `(function(){const cs=[...document.querySelectorAll('.heatticks span')]
-         .map(s=>+s.style.getPropertyValue('--c')).sort((a,b)=>a-b);
-        return cs.every((c,i)=>i===0 || c-cs[i-1] >= 4);})()`, true);
+/* v3.3.338: INK against SPACE, not columns against a number. The v3.3.337
+   version asserted "at least 4 columns apart", which counts the gap but is
+   blind to what fills it -- tripling the label width from J to JAN passed it
+   without comment, and that is exactly the change being made. This reads the
+   real numbers out of the stylesheet: cell + column-gap gives the pitch, the
+   tick font-size gives the character width (mono advance is 0.6em), and the
+   longest label gives the ink. Now widening the label OR shrinking the cell
+   fails here instead of smearing on the maker's phone -- which is the whole
+   lesson of v3.3.336, where I argued a collision was impossible in a comment
+   rather than measuring it. */
+{
+  const cssM = fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\r?\n\s*/g, "");
+  const num = re => { const m = cssM.match(re); return m ? parseFloat(m[1]) : null; };
+  const cellPx = num(/--hcell:\s*(\d+(?:\.\d+)?)px/);
+  const gapPx  = num(/\.heatticks\{[^}]*column-gap:(\d+(?:\.\d+)?)px/);
+  const fontPx = num(/\.heatticks\{[^}]*font-size:(\d+(?:\.\d+)?)px/);
+  const labels = run(`[...document.querySelectorAll('.heatticks span')].map(s=>s.textContent.trim())`);
+  const cols   = run(`[...document.querySelectorAll('.heatticks span')].map(s=>+s.style.getPropertyValue('--c'))`)
+                   .slice().sort((a,b)=>a-b);
+  const pitch  = cellPx + gapPx;
+  const ink    = Math.max(...labels.map(l => l.length)) * fontPx * 0.6;
+  let tightest = Infinity;
+  for (let i = 1; i < cols.length; i++) tightest = Math.min(tightest, (cols[i] - cols[i-1]) * pitch);
+  checkVal("...with more space between months than there is ink in a label",
+           cols.length < 2 || tightest > ink,
+           true);
+  console.log(`      (tightest ${Math.round(tightest)}px of space vs ${Math.round(ink)}px of ink)`);
+}
 /* the rail is STATIC -- outside the scroller, so it holds while the columns
    slide past. Four marks on even rows; S is Sunday by position, not letter. */
 check("the weekday rail stands outside the scroller",

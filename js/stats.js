@@ -698,29 +698,32 @@ function currentRhythmSection(){
      column apart, and the two labels sat on top of each other. A 3-letter
      label needs roughly three columns of width, so a tick is skipped unless
      it clears the previous one by that much. */
-  /* v3.3.337: EVERY month, ONE letter. J F M A M J J A S O N D.
-     v3.3.335 thinned to quarters because ~57 three-letter labels read as a
-     picket fence -- but the fence was the WIDTH of each mark, not how many
-     there were. At one character a month the row stops being a list of
-     labels and becomes a ruler: evenly spaced ticks you read as a rhythm,
-     with every month still marked. Individually the letters are ambiguous
-     (three Js, two Ms, two As) and that is fine -- nobody reads one in
-     isolation, they read the sequence, and the year row above fixes where
-     the sequence starts.
-     TICK_GAP is not restored, and this time that is checked rather than
-     asserted: the shortest month is 28 days, which is exactly 4 columns, and
-     a 10px mono character is 6px against a 15px column pitch. Four columns of
-     clearance for six pixels of ink. The guard in test-scrollpos measures it
-     rather than trusting this paragraph -- v3.3.336 is what that habit cost.
+  /* v3.3.338: EVERY month, THREE letters. JAN FEB MAR ...
+     The row has now been all three ways, so the record should say what
+     settled it: MEASUREMENT, once anyone bothered. A month spans ~4.35
+     columns and a column is --hcell + column-gap = 15px, so a month owns
+     ~65px; "JAN" at 10px mono is 18px. Forty-seven pixels of clear air.
+     v3.3.335 thinned to quarters and v3.3.337 shortened to one letter, both
+     to escape a "picket fence" -- which was a look remembered from the 7px
+     grid (11px pitch, 48px per month), and even there the labels never
+     actually touched. Two releases spent dodging a collision that the
+     arithmetic says does not exist. A three-letter label NAMES the month;
+     one letter asks the reader to count from the year, and J is three
+     different months.
+     TICK_GAP stays retired, and the clearance is CHECKED rather than argued:
+     the shortest month is 28 days = exactly 4 columns, 60px, against 18px of
+     ink. test-scrollpos measures it, so widening the label or narrowing the
+     cell fails there instead of on the maker's phone -- v3.3.336 is what
+     asserting an invariant instead of checking it costs.
      lastM is still seeded from column 0 so a PARTIAL first month never claims
      a label one column from the real one (v3.3.308's fix, still load-bearing:
-     it is the same partial-first-unit trap the year row fell into). */
+     the same partial-first-unit trap the year row fell into). */
   const ticks=[]; let lastM=new Date(days[0]+'T00:00').getMonth();
   for(let c=0;c<HEAT_WEEKS;c++){
     const d=new Date(days[c*7]+'T00:00'), m=d.getMonth();
     if(m===lastM) continue;
     lastM=m;
-    ticks.push({c,label:d.toLocaleDateString('en-US',{month:'short'}).charAt(0).toUpperCase()});
+    ticks.push({c,label:d.toLocaleDateString('en-US',{month:'short'}).toUpperCase()});
   }
   /* v3.3.334: YEARS, in their own row above the grid and inside the same
      scroller, so the label travels with the columns it names. A label lands

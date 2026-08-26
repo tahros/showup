@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v3.3.338 (2026-08-26) — Months are named again
+
+**JAN FEB MAR, every month.** A month owns about 65px of the row and "JAN"
+takes 18 of them, so there was never anything to save by shortening it. A
+named month tells you where you are; a single letter asks you to count from
+the year, and J is three different months.
+
 ## v3.3.337 (2026-08-26) — Every month, one letter
 
 **J F M A M J J A S O N D.** The month row was thinned to quarters because
