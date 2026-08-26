@@ -716,11 +716,22 @@ function currentRhythmSection(){
     ticks.push({c,label:d.toLocaleDateString('en-US',{month:'short'}).toUpperCase()});
   }
   /* v3.3.334: YEARS, in their own row above the grid and inside the same
-     scroller, so the label travels with the columns it names. Column 0 always
-     gets one -- the ledger's own first year is the thing you are least likely
-     to guess -- and after that a label lands wherever January begins. Unlike
-     the month ticks there is no crowding rule to apply: two years cannot be
-     closer than 52 columns. */
+     scroller, so the label travels with the columns it names. A label lands
+     wherever January begins.
+     v3.3.336: v3.3.334's comment claimed "no crowding rule to apply: two
+     years cannot be closer than 52 columns". That is false for the FIRST
+     year, which is a partial one -- a ledger opened in December puts 2021 at
+     column 0 and 2022 three columns later, and the two labels print on top of
+     each other. Exactly the collision v3.3.308 fixed for the month row; I
+     asserted the invariant instead of checking it.
+     The rule: where two labels cannot both fit, the PARTIAL one yields. A
+     stub of December is the least useful mark on the row, the year it belongs
+     to is already named in "since Dec 2021" directly above, and dropping the
+     later label would leave a whole year of columns wearing the wrong number.
+     YEAR_GAP is measured, not guessed: "2021" + gap + "365 days" is about 85px
+     of mono, and a column is --hcell + column-gap = 15px, so ~6 columns are
+     needed and 7 leaves margin. */
+  const YEAR_GAP=7;
   /* v3.3.335: the year carries its own DAY COUNT. The row cost a line and
      said only what a calendar says; with the count it becomes the one place
      you can scroll back and compare years at a glance — and it is a count of
@@ -736,6 +747,8 @@ function currentRhythmSection(){
     lastY=y;
     years.push({c, label:String(y), n:perYear[String(y)]||0});
   }
+  /* the partial first year yields to the full one it would collide with */
+  if(years.length>1 && years[1].c-years[0].c < YEAR_GAP) years.shift();
   const cells=days.map((x,k)=>{
     const future=x>todayISO, isToday=x===todayISO, done=on(x);
     /* v3.3.314: every day is its OWN square. v3.3.307 joined consecutive days

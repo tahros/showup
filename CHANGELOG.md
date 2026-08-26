@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v3.3.336 (2026-08-26) — Two year labels stop printing on top of each other
+
+**A ledger that opens in December put two years three columns apart.** 2021
+and 2022 overlapped into one unreadable smear. Where two labels can't both
+fit, the partial one now yields — the full year keeps the label, and the
+stub year is still named in the line above.
+
 ## v3.3.335 (2026-08-25) — The calendar says which day is which
 
 **M W F S down the left.** A static rail beside the squares, holding still

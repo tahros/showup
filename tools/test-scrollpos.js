@@ -90,6 +90,33 @@ check("...and each year states its own day count",
           const shown=+(sp.querySelector('small').textContent.match(/\\d+/)||[])[0];
           const real=[...workoutDates()].filter(d=>d.slice(0,4)===y).length;
           return shown===real;});})()`, true);
+/* v3.3.336: no two year labels may collide. v3.3.334's comment asserted this
+   could not happen -- "two years cannot be closer than 52 columns" -- which
+   is true of every year except the FIRST, because the first is partial. The
+   maker's ledger opens in December, so 2021 sat at column 0 and 2022 three
+   columns later and the two printed on top of each other. Asserted with a
+   fixture that OPENS IN DECEMBER, because the assertion is worthless against
+   a ledger that happens to start in spring; the general fixture above would
+   have passed this all day. */
+run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
+  const dec=new Date(t.getFullYear()-2,11,13);                     // a December start
+  const iso=d=>d.toLocaleDateString('en-CA');
+  DB.days[iso(dec)]={w:[{part:'Back',ex:'Pull Up',w:0,reps:[8],at:1}],upd:1};
+  const near=new Date(t); near.setDate(near.getDate()-3);
+  DB.days[iso(near)]={w:[{part:'Back',ex:'Pull Up',w:0,reps:[8],at:1}],upd:1};
+  SEED=deriveAll(); view='stats'; render();})()`);
+check("no two year labels sit close enough to collide",
+      `(function(){const cs=[...document.querySelectorAll('.heatyears span')]
+         .map(s=>+s.style.getPropertyValue('--c')).sort((a,b)=>a-b);
+        return cs.every((c,i)=>i===0 || c-cs[i-1] >= 7);})()`, true);
+check("...and the year that keeps the label is the FULL one, not the stub",
+      `(function(){const first=document.querySelector('.heatyears span');
+        const cells=[...document.querySelectorAll('.heatgrid .hc')];
+        const c=+first.style.getPropertyValue('--c');
+        const y=cells[c*7].getAttribute('aria-label').slice(0,4);
+        return first.firstChild.textContent.trim()===y
+            && +first.firstChild.textContent.trim() > +SEED.totals.first.slice(0,4);})()`, true);
+
 /* quarters, not months: the year row answers "roughly when", so this row only
    has to answer "roughly where in the year". ~57 labels read as a fence. */
 check("...with the month row thinned to quarters",
