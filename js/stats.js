@@ -723,8 +723,21 @@ function currentRhythmSection(){
         <span class="crstreak">streak ${streak} day${streak===1?'':'s'} \u00b7 best ${best}</span>
       </div>
       ${lifetime?`<div class="crsince">${lifetime}</div>`:''}
-      <div class="heatwrap"><div class="heatgrid" style="--hw:${HEAT_WEEKS}">${cells}</div></div>
-      <div class="heatticks">${ticks.map(t=>`<span style="--c:${t.c}">${t.label}</span>`).join('')}</div>
+      <!-- v3.3.332: the month row lives INSIDE the scroller, beside the grid.
+           It used to be a sibling of .heatwrap, so the two resolved their 35
+           columns against DIFFERENT widths: the grid carries min-width:100%
+           and overflows its scroller to whatever 35 columns actually need,
+           while the ticks were a plain card child capped at the card's width.
+           Same template, two containers, so every label drifted left of its
+           column and the last one dangled off the end entirely.
+           .heatscroll already existed in the sheet, unused, with the comment
+           "month row + grid scroll together" -- the fix was written and never
+           wired up. One box now sizes both, so a label cannot be anywhere but
+           over its own column, at any width, scrolled or not. -->
+      <div class="heatwrap"><div class="heatscroll">
+        <div class="heatgrid" style="--hw:${HEAT_WEEKS}">${cells}</div>
+        <div class="heatticks" style="--hw:${HEAT_WEEKS}">${ticks.map(t=>`<span style="--c:${t.c}">${t.label}</span>`).join('')}</div>
+      </div></div>
     </div>`;
 }
 function consistencyRaceSection(){

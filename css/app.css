@@ -1591,11 +1591,14 @@
      row twitch as 100% becomes 45% */
   .legend1 span b{font-weight:700;min-width:4ch;text-align:right;display:inline-block}
   .legend1 i{width:10px;height:3px;border-radius:2px;display:inline-block}
-  .heatwrap{display:flex;gap:6px}
-  .wdrail{display:flex;flex-direction:column;gap:3px;padding-top:14px;flex:0 0 12px}
-  .wdrail span{height:12px;font-family:var(--mono);font-size:8px;color:var(--muted);line-height:12px}
-  .heatcols{flex:1;min-width:0;overflow-x:auto}
+  /* v3.3.332: .heatwrap{display:flex} and the .wdrail/.heatcols pair are
+     GONE. They described a weekday-rail structure the builder never emitted
+     -- dead rules that quietly re-declared .heatwrap on top of the scroller
+     defined 1200 lines above. .heatscroll survives because it is now real:
+     one inline-block that both the grid and the month row size against, so
+     the two share a single column geometry. */
   .heatscroll{display:inline-block;min-width:100%}   /* month row + grid scroll together */
+  .heatscroll .heatticks{min-width:100%}
   .compscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
   .mrow{display:flex;gap:3px;height:12px;margin-bottom:2px}
   .mlab{flex:0 0 12px;font-family:var(--mono);font-size:8px;color:var(--muted);white-space:nowrap}

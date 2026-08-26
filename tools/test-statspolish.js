@@ -382,4 +382,38 @@ check("...with every plotted point inside its plot area",
         const svg=el.nextElementSibling.querySelector('svg');
         return [...svg.querySelectorAll('circle')].every(c=>{const y=+c.getAttribute('cy'); return y>=18&&y<=96;});})()`, true);
 
+/* v3.3.332: the month row and the heatmap are ONE column geometry.
+   The maker's screenshot had AUG dangling off the bottom-right corner,
+   outside the grid entirely. Cause: .heatticks was a sibling of .heatwrap,
+   so the two boxes resolved the SAME `repeat(--hw, minmax(7px,1fr))` against
+   DIFFERENT widths -- the grid carries min-width:100% and overflows its
+   scroller to whatever 35 columns need, while the ticks were capped at the
+   card's width. Identical template, two containers, so every label drifted
+   and the last fell off the end.
+   The property is containment, not styling: a label can only sit over its
+   column if one box sizes both. That is what is asserted -- jsdom has no
+   layout, so a pixel comparison here would be theatre. */
+check("the month row shares one box with the grid",
+      `(function(){const g=document.querySelector('.heatgrid'),t=document.querySelector('.heatticks');
+        return !!g && !!t && g.parentElement===t.parentElement;})()`, true);
+check("...and that box is the scroller, so they scroll together",
+      `(function(){const t=document.querySelector('.heatticks');
+        return !!t.closest('.heatscroll') && !!t.closest('.heatwrap');})()`, true);
+check("...both counting the same number of weeks",
+      `(function(){const g=document.querySelector('.heatgrid'),t=document.querySelector('.heatticks');
+        return g.style.getPropertyValue('--hw')===t.style.getPropertyValue('--hw')
+            && g.style.getPropertyValue('--hw').trim()!=='';})()`, true);
+check("...every label landing inside the grid it labels",
+      `(function(){const hw=+document.querySelector('.heatgrid').style.getPropertyValue('--hw');
+        return [...document.querySelectorAll('.heatticks span')]
+          .every(s=>{const c=+s.style.getPropertyValue('--c'); return c>=0 && c<hw;});})()`, true);
+/* the dead structure the old rules described, gone rather than left to rot */
+/* comments FIRST: the v3.3.332 note in the sheet quotes the exact rule it
+   describes as deleted, and an uncommented grep matches the prose. Same trap
+   the pill-edge guard fell into; stripping is not optional. */
+check("no rule re-declares the heat scroller as a flex rail",
+      `${!/\.heatwrap\{display:flex/.test(
+         fs.readFileSync(path.join(dir,"css/app.css"),"utf8")
+           .replace(/\/\*[\s\S]*?\*\//g,"").replace(/\r?\n\s*/g,""))}`, "true");
+
 process.exit(fail ? 1 : 0);

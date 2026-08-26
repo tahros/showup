@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v3.3.332 (2026-08-25) — The month labels line up with the calendar
+
+**AUG was dangling off the corner.** The month row and the grid of squares
+were laid out in two separate boxes of different widths, both dividing
+themselves into the same number of weeks — so every label sat slightly left
+of its column and the last one fell off the end. They share one box now, and
+scroll together, so a label can only ever sit over the days it names.
+
 ## v3.3.331 (2026-08-25) — Minimal actually looks minimal
 
 **The Train tab never got the skin.** Minimal restyled cards, zones and the
