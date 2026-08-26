@@ -110,12 +110,20 @@ function deriveAll(){
     /* v3.3.191: index 6 carries the canonical id so readers can count by
        identity instead of by the display string. Positions 0–5 are
        unchanged — every existing consumer keeps working. */
-    const rows=(DB.days[d].w||[]).map(s=>[s.part,s.ex,s.w,s.reps||[],s.mins??null,s.secs??null,s.cid]);
+    const rows=(DB.days[d].w||[]).map(s=>[s.part,s.ex,s.w,s.reps||[],s.mins??null,s.secs??null,s.cid,s.su]);
     if(rows.length) S[d]=rows;
   }
   const days=Object.keys(S).sort();
   const isRunR=r=>r[1]==='Run';
-  const volR=r=>isRunR(r)?0:r[2]*(r[3]||[]).reduce((a,b)=>a+b,0);
+  /* SLICE 3: a HOLD's number is seconds, not reps, so nothing here may
+     multiply it or rank it. isHoldR is the one predicate; every site that
+     reads a rep VALUE (rather than counting sets) consults it.
+     Volume: weight x seconds is not a number, and a weighted plank would
+     otherwise contribute w*60 to a day's tonnage. Sets still count -- that
+     is reps.length and it is untouched, which is the whole point of the
+     v3.3.341 storage choice. */
+  const isHoldR=r=>r[7]==='s';
+  const volR=r=>(isRunR(r)||isHoldR(r))?0:r[2]*(r[3]||[]).reduce((a,b)=>a+b,0);
   const D={sessions:S, dates:days, catalog:SEED0.catalog, ex2part:SEED0.ex2part, equip:SEED0.equip};
   if(!days.length){ D.totals={sessions:0,first:null,last:'0000-00-00',km:0,vol:0};
     D.monthly={};D.partCount={};D.partLast={};D.partDays={};D.exLast={};D.exFreq={};
@@ -156,6 +164,7 @@ function deriveAll(){
       if(ex!=='Run'){
         const pr=D.pr[ex]=D.pr[ex]||{mw:0,mwr:0,mwd:null,bv:0,bvr:0,bvw:0,bvd:null};
         for(const r of rows){
+          if(isHoldR(r)) continue;      // SLICE 3: 'best set' means reps at a weight
           const reps=r[3]||[];
           for(const rep of reps){
             if(r[2]>pr.mw){pr.mw=r[2];pr.mwr=rep;pr.mwd=d;}

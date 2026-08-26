@@ -481,6 +481,17 @@ function secLabel(n){
 }
 /* the one place that turns a stored number into a set's label */
 const setNum=(n,su)=>isHold(su)?secLabel(n):String(n);
+/* SLICE 2: the unit is a PER-EXERCISE property, stored beside equipOv rather
+   than on each set. A set records what it was, but the choice of unit belongs
+   to the exercise -- a plank is held, every time, and asking again per set
+   would be asking a question that has already been answered. Same shape as
+   the equipment override, so rename carries it (core.js) for free. */
+const unitOv=()=>(DB.settings.unitOv=DB.settings.unitOv||{});
+const unitOf=ex=>unitOv()[ex]===SET_SEC?SET_SEC:undefined;
+/* only bodyweight lifts may be timed. A hold under load is a real thing but
+   it is not what this control is for, and putting a rep/sec switch on Bench
+   Press would be noise on every screen that has never needed it. */
+const canHold=ex=>ex!=='Run'&&isBody(ex);
 function foldSets(sets,ex){
   /* v3.3.63: a LIFT with no reps carries nothing, whatever its weight. The
      old test also demanded w<=0.01, so a legacy "12 kg, reps:[]" marker

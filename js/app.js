@@ -247,20 +247,39 @@ document.addEventListener('click',e=>{
   }
   if(e.target.closest('#addrep')){
     const r=repRulerValue();   // v3.3.286: the ruler is the field now
-    if(!r||r<1) return toast('Enter a rep count');
+    const su=unitOf(lift.ex);
+    if(!r||r<1) return toast(isHold(su)?'Set a hold':'Enter a rep count');
     lift.weight=toKg(+($('#wv').value||0));
     saveExW(lift.ex,lift.weight);
-    t.w.push({part:lift.part,ex:lift.ex,w:lift.weight,reps:[r],at:Date.now()});
+    /* SLICE 2: su rides on the SET, not only on the exercise. Change the unit
+       later and everything already logged keeps meaning what it meant -- the
+       same promise the equipment editor makes. */
+    t.w.push({part:lift.part,ex:lift.ex,w:lift.weight,reps:[r],...(su?{su}:{}),at:Date.now()});
     undoInvalidate();   // v3.3.143
     reopen(lift.ex,lift.part);
     lift.justSaved=true;save();renderHeader();setToast(lift.ex,lift.weight,r);return renderLift();
+  }
+  const _su=e.target.closest&&e.target.closest('[data-setunit]');
+  if(_su){
+    const ex2=_su.dataset.setunitex, to=_su.dataset.setunit;
+    if(to===SET_SEC) unitOv()[ex2]=SET_SEC; else delete unitOv()[ex2];
+    DB.settingsAt=Date.now(); save(true);
+    lift._tiles=null;                 // the cached emphasis belongs to the other unit
+    lift.rep=null;
+    toast(`${ex2} counts ${to===SET_SEC?'seconds':'reps'} now`);
+    return renderLift();
   }
   const rs=e.target.closest('[data-rep-w]');
   if(rs){
     /* v3.3.144: restored with the strip (removed as an orphan in v3.3.143
        after the chips went in v3.3.141). One tap logs the complete pair. */
     const w=+rs.dataset.repW, r=+rs.dataset.repR;
-    t.w.push({part:lift.part,ex:lift.ex,w,reps:[r],at:Date.now()});
+    /* SLICE 3: the strip is suppressed for held exercises, so this should
+       never fire for one -- but a writer that can silently omit the unit is
+       exactly the drift the suppression is guarding against, so it carries
+       the unit regardless. */
+    const su2=unitOf(lift.ex);
+    t.w.push({part:lift.part,ex:lift.ex,w,reps:[r],...(su2?{su:su2}:{}),at:Date.now()});
     undoInvalidate();   // v3.3.143: new work makes an older snapshot unsafe
     reopen(lift.ex,lift.part);
     lift.weight=w;

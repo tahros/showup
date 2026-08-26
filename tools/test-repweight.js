@@ -968,13 +968,72 @@ check("a lift still reads as a weight",
         `document.querySelectorAll('.repchip.hold').length > 0`, true);
 }
 
-/* NOT YET, and deliberately: nothing writes su in this release. If that ever
-   stops being true without slice 3's exclusions landing, repFreq and the rep
-   ruler's ceiling will read 60 as sixty reps. This assertion is the tripwire
-   between the two slices. */
-check("no writer sets a unit yet",
-      `${!/su:\s*SET_SEC|su:\s*'s'/.test(
-         ["js/app.js","js/lift.js","js/derive.js"]
-           .map(f=>fs.readFileSync(path.join(dir,f),"utf8")).join("\n"))}`, "true");
+/* v3.3.343 SLICE 2+3. The v3.3.341 tripwire read "no writer sets a unit yet"
+   and it DID NOT FIRE when the writers landed -- it matched the literal
+   `su:'s'`, and the real writers spell it `...(su?{su}:{})`. An artifact
+   test: it pinned a spelling and called it a property. It is replaced here by
+   the assertions it was standing in for, which measure the exclusions
+   themselves rather than the shape of the code that needs them. */
+{
+  const seed = () => run(`(function(){DB.days={}; DB.settings.unit='lb'; DB.settings.unitOv={};
+    SEED=deriveAll();})()`);
+
+  /* --- SLICE 2: the switch writes a per-exercise preference ------------- */
+  seed();
+  run(`unitOv()['Plank']='s';`);
+  checkVal("a held exercise reports its unit", run(`unitOf('Plank')`), "s");
+  checkVal("...and an untouched one does not", run(`String(unitOf('Pull Up'))`), "undefined");
+  check("only bodyweight lifts may be timed",
+        `[canHold('Plank'), canHold('Barbell Bench Press'), canHold('Run')].join(',')`,
+        "true,false,false");
+  /* the ruler keeps its index arithmetic and gains a step: notch n is n*step */
+  check("the ruler steps in fives for a hold", `rulerStep('Plank')`, 5);
+  check("...and in ones for reps", `rulerStep('Pull Up')`, 1);
+  check("...topping out at three minutes", `rulerTop('Plank')`, 180);
+
+  /* --- SLICE 3: nothing reads a hold's number as a rep count ------------ */
+  run(`(function(){DB.days={}; DB.settings.unitOv={Plank:'s'};
+    const t=new Date(todayISO+'T00:00'), D=n=>{const d=new Date(t);d.setDate(d.getDate()-n);
+      return d.toLocaleDateString('en-CA')};
+    DB.days[D(1)]={w:[
+      /* WEIGHTED, deliberately. A first version of this fixture held at w:0,
+         where weight x seconds is zero either way -- so the volume guard
+         passed with the guard removed. A plank can carry a plate
+         (bodyweight + 25), which is exactly when w*60 would poison a day's
+         tonnage, so the fixture holds one. */
+      {part:'Sixpack',ex:'Plank',w:11.3,reps:[60,60],su:'s',at:1},
+      {part:'Back',ex:'Pull Up',w:0,reps:[10,8],at:2}],upd:1};
+    SEED=deriveAll();})()`);
+
+  /* the previous line here read `x ? true : true` -- an assertion that cannot
+     fail, which is worse than none. The volume claim is measured below. */
+  check("a hold's sets still count",
+        `Object.values(SEED.monthly).reduce((a,m)=>a+m.sets,0)`, 4);
+  check("...while the volume ignores the seconds entirely",
+        `Object.values(SEED.monthly).reduce((a,m)=>a+m.vol,0)`, 0);
+  /* the PR record is created for every non-Run exercise before its rows are
+     read, so a held exercise has a ZEROED one rather than none. That is the
+     honest shape and the property is what it contains: no weight, no reps. */
+  check("a hold never becomes a personal best",
+        `(function(){const p=SEED.pr['Plank']||{}; return [p.mw,p.mwr,p.bv].join(',');})()`, "0,0,0");
+  check("...nor a remembered rep count",
+        `String(SEED.repFreq['Plank'])`, "undefined");
+  check("...nor stretches the rep ruler of an exercise switched back",
+        `(function(){delete DB.settings.unitOv['Plank']; return rulerTop('Plank');})()`, 60);
+
+  /* the second writer must not be reachable for a hold: its chips would read
+     "BW x 60", and tapping one takes a path that would have to learn units
+     separately. Two writers for one record is how they drift apart. */
+  run(`DB.settings.unitOv={Plank:'s'}; SEED=deriveAll();
+       view='lift'; lift.ex='Plank'; lift.part='Sixpack'; render();`);
+  check("no weight-times-reps suggestion is offered for a hold",
+        `document.querySelectorAll('[data-rep-w]').length`, 0);
+  check("...and the switch is on the screen, reading seconds",
+        `(function(){const b=document.querySelector('[data-setunit="s"]');
+          return !!b && b.className.indexOf('sel')>=0;})()`, true);
+  check("...with the ruler offering seconds, not rep counts",
+        `(function(){const n=[...document.querySelectorAll('.rr')].map(b=>+b.dataset.rep);
+          return n[0]===5 && n[1]===10 && n[n.length-1]===180;})()`, true);
+}
 
 process.exit(fail ? 1 : 0);

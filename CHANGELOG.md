@@ -1,5 +1,19 @@
 # ShowUp — changelog
 
+## v3.3.343 (2026-08-26) — Holds are logged in seconds
+
+**A bodyweight exercise can count seconds instead of reps.** Tap `sec` on
+Plank and the ruler offers holds — 5 to 180, stepping in fives — and a logged
+set reads `1′` or `45″`. The switch sits in the row a weighted lift spends on
+its equipment line, so it costs no height. Set it once; it stays.
+
+**A hold is a set, like any other.** It counts toward your day, your Stats,
+your muscle coverage. What it doesn't do is pretend to be reps: it earns no
+personal best, adds no tonnage, and never teaches the rep ruler that you do
+sets of sixty.
+
+Weighted lifts are completely unchanged.
+
 ## v3.3.342 (2026-08-26) — Comments stop citing the wrong release
 
 **The version bumper was rewriting prose.** It replaced the old version

@@ -473,6 +473,18 @@ function renderLift(){
     // rep buttons drawn from what you actually do for THIS exercise
     // v3.3.56: tiles follow the weight · v3.3.141: and carry the suggestion dot
     /* v3.3.286: the tile row and the reps field become ONE ruler. */
+    /* SLICE 2: the rep/sec switch. It sits in the row a WEIGHTED lift spends
+       on its equipment line -- which is suppressed for bodyweight exercises,
+       so this costs no height a comparable lift was not already spending. One
+       tap, not a menu: the maker chose an immediate switch over an editor,
+       and it writes a per-exercise preference that then stays put. */
+    if(canHold(ex)&&!lift.editBar){
+      const held=isHold(unitOf(ex));
+      h+=`<div class="suline"><span class="seg suseg" role="group" aria-label="A set of ${ex} is">
+            <button class="${held?'':'sel'}" data-setunit="r" data-setunitex="${ex}" aria-pressed="${!held}">rep</button>
+            <button class="${held?'sel':''}" data-setunit="s" data-setunitex="${ex}" aria-pressed="${held}">sec</button>
+          </span></div>`;
+    }
     h+=repRulerHTML(ex,lift.weight)+`
         <button class="btn${isLive()?' livego':''}" id="addrep" style="margin:10px 0 0">Add set</button>
         </div>`;
@@ -481,7 +493,11 @@ function renderLift(){
     {
       const dis=new Set(dayMeta().sugX[ex]||[]);
       const lastToday=todaySets.length?todaySets[todaySets.length-1]:null;
-      const chips=sugChips(ex,ls,lastToday,dis,lift.weight);
+      /* SLICE 3: no strip for a held exercise. Its chips read "BW x 60",
+         which is not what 60 means, and tapping one takes the data-rep-w
+         path -- a second writer that would have to learn about units. Two
+         writers for one record is how they drift apart. */
+      const chips=isHold(unitOf(ex))?[]:sugChips(ex,ls,lastToday,dis,lift.weight);
       if(chips.length)
         /* v3.3.145: the head came back with the strip this time. v3.3.144
            restored the chips but not the label above them, so the strip
@@ -939,6 +955,13 @@ function sugReps(ex,kg){
    before. A tap on any other number centres it rather than logging, so a
    thumb landing mid-scroll cannot write a set you did not do. */
 const REP_W=44;                       // one notch, px — index math depends on it
+/* SLICE 2: the ruler keeps its exact index arithmetic and gains a STEP.
+   Seconds at one-per-notch would be a 59-notch drag to reach a minute, so a
+   held exercise steps in 5s and tops out at 3 minutes. Every index equation
+   below reads these two, so notch n means n*step in either unit and nothing
+   else in the scrubber had to learn about holds. */
+const rulerStep=ex=>isHold(unitOf(ex))?5:1;
+const rulerTop=ex=>isHold(unitOf(ex))?180:repRulerRange(ex);
 function repRulerRange(ex){
   /* v3.3.289: reach well past anything you have ever done. The old ceiling
      was max(30, best+5) capped at 60, which for a lift whose best is 10 gave
@@ -948,13 +971,16 @@ function repRulerRange(ex){
      literally infinite: a fixed list keeps the notch index arithmetic exact,
      and 99 reps of anything is past the point where this app is the problem. */
   let hi=0;
+  /* SLICE 3: holds are skipped. An exercise switched from sec back to rep
+     still has held sets on record, and a 60 in there would stretch the REP
+     ruler to 80 notches of nothing. */
   for(const [,v] of Object.entries(DB.days))
-    for(const st of v.w) if(st.ex===ex) for(const r of (st.reps||[])) if(r>hi) hi=r;
+    for(const st of v.w) if(st.ex===ex&&!isHold(st.su)) for(const r of (st.reps||[])) if(r>hi) hi=r;
   for(const r of (SEED.repFreq[ex]||[])) if(r>hi) hi=r;
   return Math.min(99, Math.max(60, hi+20));
 }
 function repRulerHTML(ex,kg){
-  const hi=repRulerRange(ex);
+  const step=rulerStep(ex), hi=rulerTop(ex);
   /* v3.3.286: the emphasis is CACHED per (exercise, weight), exactly as the
      tile list was from v3.3.154. Re-deriving it on every build meant logging
      a set could re-rank your usual reps and move the bold numbers under your
@@ -963,13 +989,17 @@ function repRulerHTML(ex,kg){
      exercise or changing the weight may rebuild this. */
   if(!lift._tiles||lift._tiles.ex!==ex||Math.abs(lift._tiles.kg-kg)>=0.05)
     lift._tiles={ex,kg,list:repChoices(ex,kg)};
-  const usual=new Set(lift._tiles.list);
-  const sug=sugReps(ex,kg);
+  /* a held exercise carries no emphasis: `usual` comes from repFreq, which
+     SLICE 3 keeps free of holds, so it would be empty anyway. Saying so here
+     rather than letting it happen by accident. */
+  const held=isHold(unitOf(ex));
+  const usual=held?new Set():new Set(lift._tiles.list);
+  const sug=held?new Set():sugReps(ex,kg);
   let s='';
-  for(let r=1;r<=hi;r++){
-    const cls=[usual.has(r)?'maj':'', sug.has(r)?'sug':''].filter(Boolean).join(' ');
-    s+=`<button class="rr${cls?' '+cls:''}" data-rep="${r}" data-repi="${r-1}"
-         aria-label="${r} reps">${r}</button>`;
+  for(let v=step;v<=hi;v+=step){
+    const cls=[usual.has(v)?'maj':'', sug.has(v)?'sug':''].filter(Boolean).join(' ');
+    s+=`<button class="rr${cls?' '+cls:''}" data-rep="${v}" data-repi="${v/step-1}"
+         aria-label="${held?secLabel(v)+' hold':v+' reps'}">${held?secLabel(v):v}</button>`;
   }
   /* v3.3.287: the centre band sits OVER the scroller, not inside it. Inside,
      it was a float+sticky hybrid — two layout modes that do not compose — and
@@ -995,7 +1025,7 @@ function repRulerTo(r,smooth){
   const el=document.getElementById('repRuler'); if(!el) return;
   /* v3.3.289: the CSS no longer declares scroll-behavior (it was filtering
      finger scrolling), so a programmatic move asks for its own animation. */
-  const left=(r-1)*REP_W;
+  const left=(r/rulerStep(lift.ex)-1)*REP_W;
   if(el.scrollTo) el.scrollTo({left, behavior: smooth?'smooth':'auto'});
   else el.scrollLeft=left;
   repRulerMark();
@@ -1009,7 +1039,8 @@ function repRulerTo(r,smooth){
 function repRulerValue(){
   if(lift.rep>0) return lift.rep;
   const el=document.getElementById('repRuler');
-  return el ? Math.max(1, Math.round(el.scrollLeft/REP_W)+1) : null;
+  const step=rulerStep(lift.ex);
+  return el ? Math.max(step, (Math.round(el.scrollLeft/REP_W)+1)*step) : null;
 }
 /* v3.3.289: split in two. repRulerBand() is the per-notch work and does
    nothing but move one class — it must stay cheap enough to run inside a

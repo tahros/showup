@@ -562,7 +562,9 @@ function histFor(ex){
     const sets=v.w.filter(s=>s.ex===ex);
     if(!sets.length) continue;
     const w=Math.max(...sets.map(s=>s.w));
-    const r=Math.max(0,...sets.flatMap(s=>s.reps));
+    /* SLICE 3: a hold's number is seconds; it is not a rep count and cannot
+       be the day's best one. */
+    const r=Math.max(0,...sets.filter(s=>!isHold(s.su)).flatMap(s=>s.reps));
     const i=pts.findIndex(p=>p.d===d);
     if(i>=0) pts[i]={d,w,r}; else pts.push({d,w,r});
   }
