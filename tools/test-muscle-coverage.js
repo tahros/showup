@@ -97,6 +97,29 @@ check("an untrained group states 0 days in the same voice",
 
 /* v3.3.350: the card is one MATRIX with a shared axis. Each of these is a
    thing that could not be true before, and each is why the gap closed. */
+/* v3.3.354: the separator is an ELEMENT that spans every column.
+   v3.3.352 made the row display:contents and put the rule on each CELL as a
+   border-top. Cells are centre-aligned, so each is only as tall as its own
+   content and each drew its border at its own top edge -- the line rendered
+   as offset dashes at six different heights. A border on a cell describes
+   THAT CELL; a rule across a table is a different object and has to be one.
+   NOTHING IN THIS SUITE COULD HAVE CAUGHT IT. jsdom computes no layout, so a
+   border that paints in six pieces is indistinguishable from one that paints
+   whole. It took the maker's screenshot. What CAN be asserted is the shape
+   that makes fragmenting impossible: one full-width element per boundary,
+   and no cell carrying a rule of its own. */
+check("one rule per boundary: under the header and between each pair of rows",
+      `(function(){const g=document.querySelector('.mcgrid');
+        return g.querySelectorAll('.mcline').length
+             - g.querySelectorAll('.mcrow').length;})()`, 0);
+check("...each spanning every column, so it cannot fragment",
+      `${(function(){const c=fs.readFileSync(path.join(dir,"css/app.css"),"utf8")
+          .replace(/\/\*[\s\S]*?\*\//g,"").replace(/\r?\n\s*/g,"");
+        return /\.mcline\{[^}]*grid-column:1\/-1/.test(c);})()}`, "true");
+check("...and no coverage cell draws a rule of its own",
+      `${(function(){const c=fs.readFileSync(path.join(dir,"css/app.css"),"utf8")
+          .replace(/\/\*[\s\S]*?\*\//g,"").replace(/\r?\n\s*/g,"");
+        return !/\.mc(row|head)[^{]*>\*\{[^}]*border/.test(c);})()}`, "true");
 check("seven day columns carry a weekday header",
       `document.querySelectorAll('.mchead .mcdots i').length`, 7);
 /* v3.3.352 RESTATES the MECHANISM, not the property. The header and the rows

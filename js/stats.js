@@ -653,7 +653,11 @@ function muscleCard(){
   const head=`<div class="mchead" aria-hidden="true"><span></span>
       <span class="mcdots">${WD.map(w=>`<i>${w}</i>`).join('')}</span>
       <span></span><span></span><span></span><span></span></div>`;
-  const body=VISIBLE_GROUPS.map(v=>{
+  /* v3.3.354: the separator is an ELEMENT spanning the grid, not a border on
+     each cell -- cells are centre-aligned and each drew its own top edge, so
+     the rule came out as offset dashes. One before every row but the first. */
+  const line='<i class="mcline" aria-hidden="true"></i>';
+  const body=VISIBLE_GROUPS.map((v,vi)=>{
     const gg=groups[v];
     const open=_mcOpen===v;
     let inner='';
@@ -664,7 +668,7 @@ function muscleCard(){
           <span class="mciwhen"><b>${st.days.size}</b> day${st.days.size===1?'':'s'} \u00b7 ${st.sets} set${st.sets===1?'':'s'}</span></div>`).join('')
         :`<div class="note">No sets in the last 7 days.</div>`}</div>`;
     }
-    return `<div class="mcrow ${open?'open':''}" data-mcg="${v}">
+    return `${vi?line:''}<div class="mcrow ${open?'open':''}" data-mcg="${v}">
       <span class="mcname">${v}</span>
       <span class="mcdots">${gg.dots.map(on=>`<i class="${on?'on':''}"></i>`).join('')}</span>
       <b class="mcv">${gg.days.size}</b>
@@ -673,7 +677,7 @@ function muscleCard(){
       <span class="mcs">${gg.sets} set${gg.sets===1?'':'s'}</span>
     </div>${inner}`;
   }).join('');
-  return `<div class="mcgrid">${head}${body}</div>`;
+  return `<div class="mcgrid">${head}${line}${body}</div>`;
 }
 document.addEventListener('click',e=>{
   const r=e.target.closest&&e.target.closest('[data-mcg]');

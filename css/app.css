@@ -1920,8 +1920,20 @@
     align-items:center}
   .mcrow,.mchead{display:contents;cursor:pointer}
   .mcrow>*{padding:10px 0}
-  .mchead>*{padding:0 0 6px;border-bottom:1px solid var(--line)}
-  .mcrow+.mcrow>*,.mcinner+.mcrow>*{border-top:1px solid var(--line)}
+  .mchead>*{padding:0 0 6px}
+  /* v3.3.354: THE RULE IS ITS OWN ELEMENT, spanning every column.
+     v3.3.352 made the row display:contents and moved the separator onto each
+     CELL as a border-top. With align-items:center a cell is only as tall as
+     its own content, so six cells sat at six different heights and each drew
+     its border at its own top edge: the line came out as offset dashes, not a
+     rule. A border on a cell describes THAT CELL; a rule across a table is a
+     different object and has to be one.
+     .mcline is a 1px element at grid-column:1/-1. It cannot fragment, cannot
+     drift with cell height, and does not care what the cells do next.
+     Note for future me: nothing in the suite could have caught this. jsdom
+     computes no layout, so a border that renders in six pieces is identical
+     to one that renders whole. It took the maker's screenshot. */
+  .mcline{grid-column:1/-1;height:1px;background:var(--line)}
   .mcinner{grid-column:1/-1}
   .mcname{font-family:var(--mono);font-size:13px;color:var(--chalk);
     padding-right:10px;white-space:nowrap}

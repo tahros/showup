@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v3.3.354 (2026-08-27) — The coverage lines are lines again
+
+**The row separators were rendering as broken dashes at different heights.**
+Each cell was drawing its own top border, and since cells are only as tall as
+their contents, six cells meant six offsets. Each separator is now a single
+element spanning the full width, so it can't come apart.
+
 ## v3.3.353 (2026-08-27) — The day strip closes up to its neighbours
 
 **The dead space at both ends of the day strip is gone.** The first mark now
