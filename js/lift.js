@@ -455,7 +455,7 @@ function renderLift(){
       runHist=`<div class="lastcard runhist">
         <div class="lasthead"><span>RECENT RUNS</span><span class="ago">last ${shown.length} of ${fmt(runs.length)}</span></div>
         ${rows2}
-        <div class="lastfoot mono">${dDisp(moKm)} ${DU()} this month · ${fmt(Math.round(SEED.totals.km))} ${DU()} lifetime</div>
+        <div class="lastfoot mono">${dDisp(moKm)} ${DU()} this month · ${fmt(Math.round(toD(SEED.totals.km)))} ${DU()} lifetime</div>
       </div>`;
     }
   }else{
@@ -1199,12 +1199,12 @@ function runStatsHTML217(){
      the useful summary metrics are one decision surface; the year race,
      pace history, and fair weekly comparison remain below unchanged. */
   let h=`<h2 id="secRun">Running · ${monthName}${hActs('runmonth',`This month, its projected finish, and the next ${STEP} ${DU()} milestone.`,'About Running this month')}</h2>
-    <div class="card runmonth"><div class="runmonthhero"><strong>${dDisp(monthKm)} <small>${DU()}</small></strong><span>PROJECTED<b>≈ ${Math.round(projection)} ${DU()}</b></span></div>
+    <div class="card runmonth"><div class="runmonthhero"><strong>${dNum(monthKm)} <small>${DU()}</small></strong><span>PROJECTED<b>≈ ${Math.round(projection)} ${DU()}</b></span></div>
       <div class="runmonthgoal"><div class="mstone"><span class="big">${left.toFixed(1)} ${DU()}</span><span class="goal">to ${next} this month</span></div>
         <div class="mbar"><i style="width:${Math.max(2,Math.min(100,monthKm/next*100)).toFixed(1)}%"></i></div>
-        <div class="tot"><span><b>${dDisp(monthKm)} ${DU()}</b> logged</span><span>${etaDays?`about ${etaDays} day${etaDays===1?'':'s'} at this pace`:'log a run to start'}</span></div></div>
-      <div class="runmonthgrid"><span><b>${monthRows.length}</b>runs</span><span><b>${monthRows.length?dDisp(monthKm/monthRows.length):'—'} ${DU()}</b>average</span><span><b>${monthPace?paceStr(monthPace):'—'}</b>pace / ${DU()}</span><span><b>${monthRows.length?dDisp(monthLongest):'—'} ${DU()}</b>longest</span><span><b>${monthHrs}:${String(monthMins).padStart(2,'0')}</b>on feet</span><span><b>${Math.round(monthKm/next*100)}%</b>to ${next} ${DU()}</span></div>
-      <div class="runmonthfoot"><span>${Math.round(ytd)} ${DU()} in ${thisYear}</span><span>${fmt(Math.round(total))} ${DU()} · ${days.length} runs since ${md(days[0].d)}</span><span>${dDisp(recentAvg)} ${DU()} avg · 28 days</span><span>${paceStr(avgPace)} avg pace</span></div></div>`;
+        <div class="tot"><span><b>${dNum(monthKm)} ${DU()}</b> logged</span><span>${etaDays?`about ${etaDays} day${etaDays===1?'':'s'} at this pace`:'log a run to start'}</span></div></div>
+      <div class="runmonthgrid"><span><b>${monthRows.length}</b>runs</span><span><b>${monthRows.length?dNum(monthKm/monthRows.length):'—'} ${DU()}</b>average</span><span><b>${monthPace?paceStr(monthPace):'—'}</b>pace / ${DU()}</span><span><b>${monthRows.length?dNum(monthLongest):'—'} ${DU()}</b>longest</span><span><b>${monthHrs}:${String(monthMins).padStart(2,'0')}</b>on feet</span><span><b>${Math.round(monthKm/next*100)}%</b>to ${next} ${DU()}</span></div>
+      <div class="runmonthfoot"><span>${Math.round(ytd)} ${DU()} in ${thisYear}</span><span>${fmt(Math.round(total))} ${DU()} · ${days.length} runs since ${md(days[0].d)}</span><span>${dNum(recentAvg)} ${DU()} avg · 28 days</span><span>${paceStr(avgPace)} avg pace</span></div></div>`;
 
   /* Same-date distance race. The existing race scrubber now reads distance
      when data-race-unit is present, so its scoreboard moves under a thumb. */

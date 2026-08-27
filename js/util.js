@@ -371,6 +371,15 @@ const DU=()=>isLb()?'mi':'km';                 // distance unit
 const toD=km=>isLb()?km*MI:km;                 // stored km -> display
 const fromD=v=>isLb()?v/MI:v;                  // display -> stored km
 const dDisp=km=>(Math.round(toD(km)*100)/100).toFixed(2);
+/* v3.3.355: dDisp CONVERTS. Its argument is stored km, never a display value.
+   runStatsHTML217 had already applied toD() to build its month figures and
+   then passed the results through dDisp, converting a second time -- so the
+   hero read 27.93 mi while the goal bar beneath it, computed from the same
+   variable WITHOUT the second conversion, read 90% of 50 and "5.0 mi to go".
+   One card, two answers, from one variable. dNum is the formatter for a
+   number that is already in display units, so the two cases stop sharing a
+   name. */
+const dNum=v=>(Math.round(v*100)/100).toFixed(2);
 const toU=kg=>isLb()?kg*LB:kg;                       // kg -> display
 const toKg=v=>isLb()?v/LB:v;                         // display -> kg
 const wDisp=kg=>{const v=toU(kg);return (Math.round(v*10)/10).toString().replace(/\.0$/,'');};

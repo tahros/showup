@@ -125,5 +125,70 @@ check("...and the chart still fits its viewBox",
         const vb=svg.getAttribute('viewBox').split(/\\s+/).map(Number);
         return [...svg.querySelectorAll('text')].every(t=>+t.getAttribute('y')<=vb[3]);})()`, true);
 
+/* v3.3.355: A DISTANCE IS CONVERTED EXACTLY ONCE.
+   The maker: "I don't think these numbers are accurate." He was right. The
+   month card built its figures with toD() and then printed them through
+   dDisp(), which converts AGAIN -- so a 3.766 km run showed as a 1.45 mi
+   "longest" while the header, converting once, showed the same run as 2.34.
+   The suite was green throughout: every assertion here checked a chart's
+   geometry, and none ever compared a printed distance to the distance that
+   was logged.
+   The tell was INSIDE the card. The hero read 27.93 of a 50 goal while the
+   bar beneath it -- computed from the same variable without the second
+   conversion -- read 90% and "5.0 to go". One variable, two answers. So the
+   assertions below are of two kinds: a number that must equal what was
+   logged, and numbers that must agree with each other. */
+{
+  const seed = `(function(){
+    DB.days={}; DB.settings.unit='lb';           // miles
+    const t=new Date(todayISO+'T00:00');
+    const D=n=>{const d=new Date(t);d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA')};
+    /* three runs this month: 2.34 mi today, 1.00 and 3.00 mi before it.
+       stored in KM, exactly as the Run logger writes them (fromD). */
+    DB.days[todayISO]={w:[{part:'Run',ex:'Run',w:2.34/0.621371,reps:[],mins:27,secs:0,at:1}],upd:1};
+    DB.days[D(2)]={w:[{part:'Run',ex:'Run',w:1.00/0.621371,reps:[],mins:12,secs:0,at:1}],upd:1};
+    DB.days[D(4)]={w:[{part:'Run',ex:'Run',w:3.00/0.621371,reps:[],mins:36,secs:0,at:1}],upd:1};
+    SEED=deriveAll(); view='stats'; render();})()`;
+  run(seed);
+
+  const tile = label => run(`(function(){
+    const s=[...document.querySelectorAll('.runmonthgrid span')]
+      .find(x=>x.textContent.trim().endsWith('${label}'));
+    return s?(s.querySelector('b').textContent.match(/[\\d.]+/)||[''])[0]:'no tile';})()`);
+
+  /* the longest run this month IS the longest run this month */
+  check("the longest tile equals the longest run logged", `${+tile('longest')}`, 3);
+  check("...and the average is the mean of what was logged",
+        `${+tile('average')}`, +((2.34+1+3)/3).toFixed(2));
+  check("the month hero equals the sum of the runs logged",
+        `(function(){const h=document.querySelector('.runmonthhero strong');
+          return +(h.textContent.match(/[\\d.]+/)||[0])[0];})()`, +(2.34+1+3).toFixed(2));
+
+  /* and the card must not contradict itself: the hero, the percentage and
+     the remaining distance are three views of ONE number */
+  check("...and the goal bar agrees with the hero",
+        `(function(){
+          const hero=+(document.querySelector('.runmonthhero strong').textContent.match(/[\\d.]+/)||[0])[0];
+          const pct=[...document.querySelectorAll('.runmonthgrid span')]
+            .find(x=>/to \\d+/.test(x.textContent));
+          const p=+(pct.querySelector('b').textContent.match(/\\d+/)||[0])[0];
+          const goal=+(pct.textContent.match(/to (\\d+)/)||[0,0])[1];
+          return Math.abs(hero/goal*100 - p) <= 1;})()`, true);
+  check("...and 'to go' agrees with the hero",
+        `(function(){
+          const hero=+(document.querySelector('.runmonthhero strong').textContent.match(/[\\d.]+/)||[0])[0];
+          const big=+(document.querySelector('.mstone .big').textContent.match(/[\\d.]+/)||[0])[0];
+          const goal=+(document.querySelector('.mstone .goal').textContent.match(/to (\\d+)/)||[0,0])[1];
+          return Math.abs((goal-hero) - big) <= 0.1;})()`, true);
+
+  /* the lifetime total in Train's run history wore a mi label on a km value */
+  check("the lifetime total is converted before it is labelled",
+        `(function(){DB.settings.unit='lb'; view='lift'; lift.part='Run'; lift.ex='Run'; render();
+          const f=document.querySelector('.runhist .lastfoot');
+          if(!f) return 'no foot';
+          const life=+(f.textContent.match(/([\\d,]+) mi lifetime/)||[0,0])[1].replace(/,/g,'');
+          return Math.abs(life - Math.round(toD(SEED.totals.km))) <= 1;})()`, true);
+}
+
 process.exit(fail ? 1 : 0);
 })();

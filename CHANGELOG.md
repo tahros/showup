@@ -1,5 +1,18 @@
 # ShowUp — changelog
 
+## v3.3.355 (2026-08-27) — Running distances were wrong
+
+**The month card was converting distances twice.** Every mileage on it —
+the total, the average, the longest, the 28-day average — was about 62% of
+the real figure. Your 2.34 mi run today showed as a 1.45 mi "longest".
+
+The giveaway was on the card itself: it read `27.93 mi` against a 50 goal
+while the bar beneath said 90% and `5.0 mi to go`. The bar was right.
+
+Nothing you logged was affected — the ledger was always correct, only the
+display was. Lifetime mileage in Train's run history was also showing a
+kilometre figure with a `mi` label; that's fixed too.
+
 ## v3.3.354 (2026-08-27) — The coverage lines are lines again
 
 **The row separators were rendering as broken dashes at different heights.**
