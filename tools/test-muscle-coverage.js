@@ -99,10 +99,17 @@ check("an untrained group states 0 days in the same voice",
    thing that could not be true before, and each is why the gap closed. */
 check("seven day columns carry a weekday header",
       `document.querySelectorAll('.mchead .mcdots i').length`, 7);
-check("...the header and the rows read the SAME template",
+/* v3.3.352 RESTATES the MECHANISM, not the property. The header and the rows
+   must lay out on the same columns -- that is untouched. What changed is how:
+   the card is ONE grid and both are display:contents, so their cells are grid
+   items of the card and cannot disagree about a template because there is
+   only one. Stronger than the old check, which merely required the two
+   selectors to share a declaration. */
+check("...the header and the rows are cells of ONE grid",
       `${(function(){const c=fs.readFileSync(path.join(dir,"css/app.css"),"utf8")
           .replace(/\/\*[\s\S]*?\*\//g,"").replace(/\r?\n\s*/g,"");
-        return /\.mcrow,\.mchead\{[^}]*grid-template-columns:/.test(c);})()}`, "true");
+        return /\.mcgrid\{[^}]*grid-template-columns:/.test(c)
+            && /\.mcrow,\.mchead\{[^}]*display:contents/.test(c);})()}`, "true");
 check("...the day marks are an axis of seven equal columns, not a loose strip",
       `${/\.mcdots\{[^}]*grid-template-columns:repeat\(7,1fr\)/.test(
          fs.readFileSync(path.join(dir,"css/app.css"),"utf8").replace(/\r?\n\s*/g,""))}`, "true");
@@ -111,13 +118,10 @@ check("...the day marks are an axis of seven equal columns, not a loose strip",
 check("...and the tail is four aligned cells, not one string",
       `(function(){const r=document.querySelector('.mcrow');
         return ['.mcv','.mcu','.mcsep','.mcs'].every(c=>!!r.querySelector(c));})()`, true);
-check("...sized from widths measured across every row",
-      /* \\d, not \\d — inside a template literal an unknown escape collapses to
-         the bare letter, so /--mcd:\d+ch/ was really /--mcd:d+ch/ and could
-         never match. The other assertions in this file already double them. */
-      `(function(){const g=document.querySelector('.mcgrid');
-        const st=g?g.getAttribute('style'):'';
-        return /--mcd:\\d+ch/.test(st) && /--mcu:\\d+ch/.test(st) && /--mcs:\\d+ch/.test(st);})()`, true);
+check("...and the card carries no measured widths of its own",
+      /* v3.3.352: nothing is written onto the card any more -- the grid sizes
+         its own tail. What must hold is that the card IS the grid. */
+      `!!document.querySelector('.mcgrid') && !document.querySelector('.mcgrid').getAttribute('style')`, true);
 /* v3.3.351: the tail sets as ONE PHRASE. grid `gap` applies to every column
    edge equally, so the 10px that correctly separates the day strip from the
    numbers was also landing on both sides of the separator: a dot that wants
@@ -125,12 +129,33 @@ check("...sized from widths measured across every row",
    three islands. The gap is zero and the two boundaries that earn space ask
    for it themselves. Pinned as: no uniform gap on the shared template, and a
    separator track約 one character wide. */
-check("the tail sets as one phrase, not three islands",
+/* v3.3.352 REPLACES v3.3.351's version, which asked whether the separator
+   TRACK was under 1.5ch -- a question about a number that no longer exists,
+   and one that was measuring the wrong thing anyway: ch on the row resolves
+   in the row's font, so "1.1ch" was never 1.1 mono characters. The tail
+   columns are max-content now, so each is exactly as wide as its own text and
+   the only spacing left is the padding. Assert THAT: no track may be declared
+   in ch on the card, and the separator's air is a fraction of a character. */
+check("the tail measures itself, in its own font",
       `${(function(){const c=fs.readFileSync(path.join(dir,"css/app.css"),"utf8")
           .replace(/\/\*[\s\S]*?\*\//g,"").replace(/\r?\n\s*/g,"");
-        const rule=(c.match(/\.mcrow,\.mchead\{[^}]*\}/)||[""])[0];
-        const sep=(rule.match(/([\d.]+)ch (?=var\(--mcs)/)||[])[1];
-        return /gap:0[;}]/.test(rule) && parseFloat(sep) <= 1.5;})()}`, "true");
+        const grid=(c.match(/\.mcgrid\{[^}]*\}/)||[""])[0];
+        const sep=(c.match(/\.mcsep\{[^}]*\}/)||[""])[0];
+        const air=(sep.match(/padding:0 ([\d.]+)ch/)||[])[1];
+        return /max-content/.test(grid) && !/\dch/.test(grid) && parseFloat(air) <= 0.6;})()}`, "true");
+/* and the JS stops guessing widths entirely */
+check("...with nothing measured in JS",
+      `${!/--mcd|--mcu|--mcs/.test(fs.readFileSync(path.join(dir,"js/stats.js"),"utf8"))}`, "true");
+/* v3.3.352: a day mark is SQUARE. It was width:100% with a 24px cap, so it
+   filled its column -- and two trained days in a row merged into one long bar,
+   which is the single thing this card must never do: it turns two days into
+   one. A fixed square centred in its column always leaves the gutter. */
+check("a day mark is square, not a stretched pill",
+      `${(function(){const c=fs.readFileSync(path.join(dir,"css/app.css"),"utf8")
+          .replace(/\/\*[\s\S]*?\*\//g,"").replace(/\r?\n\s*/g,"");
+        const r=(c.match(/\.mcdots i\{[^}]*\}/)||[""])[0];
+        const w=(r.match(/width:(\d+)px/)||[])[1], h=(r.match(/height:(\d+)px/)||[])[1];
+        return !!w && w===h && !/width:100%/.test(r);})()}`, "true");
 check("no red anywhere in the card",
       `document.querySelector('.mccard').innerHTML.includes('--live')`, false);
 

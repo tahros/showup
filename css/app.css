@@ -1900,30 +1900,55 @@
      read as three islands instead of one phrase. Zero gap, and the two
      boundaries that need air ask for it themselves. The tail now sets like
      type: "2 days · 31 sets", one space either side of the dot. */
-  .mcrow,.mchead{display:grid;
-    grid-template-columns:78px 1fr var(--mcd,2ch) var(--mcu,4ch) 1.1ch var(--mcs,8ch);
-    gap:0;align-items:center}
-  .mcrow{padding:10px 0;cursor:pointer}
-  .mchead{padding:0 0 6px;border-bottom:1px solid var(--line)}
-  .mcrow+.mcrow,.mcinner+.mcrow{border-top:1px solid var(--line)}
-  .mcname{font-family:var(--mono);font-size:13px;color:var(--chalk)}
+  /* v3.3.352: ONE GRID, and the tail measures ITSELF.
+     v3.3.350 sized the tail in ch on .mcrow -- and ch resolves in the font of
+     the element the track is declared on, which is the ROW, inheriting the
+     sans. The cells inside render in 11px MONO. So every track was cut for a
+     wider character than it would ever hold, and the slack came out as air
+     around the separator. v3.3.351 then tuned padding against that wrong
+     ruler, which is why the gap shrank but never closed.
+     The card is now one grid and .mcrow is display:contents, so each cell is
+     a grid item of the CARD and max-content measures it in its own font,
+     across all six rows at once. No ch arithmetic, nothing to keep in sync,
+     and the three runtime vars are gone from buildcheck's allowlist with it.
+     display:contents costs the row its own box: the separator rule and the
+     vertical padding move onto the CELLS, which is where they render
+     identically. Click delegation is untouched -- closest() walks the DOM,
+     not the layout, so [data-mcg] still finds the row. */
+  .mcgrid{display:grid;
+    grid-template-columns:max-content 1fr max-content max-content max-content max-content;
+    align-items:center}
+  .mcrow,.mchead{display:contents;cursor:pointer}
+  .mcrow>*{padding:10px 0}
+  .mchead>*{padding:0 0 6px;border-bottom:1px solid var(--line)}
+  .mcrow+.mcrow>*,.mcinner+.mcrow>*{border-top:1px solid var(--line)}
+  .mcinner{grid-column:1/-1}
+  .mcname{font-family:var(--mono);font-size:13px;color:var(--chalk);
+    padding-right:10px;white-space:nowrap}
   /* the day marks ARE the axis now: seven equal columns, one mark centred in
      each, so a column reads down the card as a single day */
   .mcdots{display:grid;grid-template-columns:repeat(7,1fr);align-items:center}
-  .mcdots i{justify-self:center;width:100%;max-width:24px;height:9px;border-radius:4.5px;
+  /* v3.3.352: the mark is a SQUARE, not a stretched pill. It used to be
+     width:100% with a 24px cap, so it filled its column -- and two trained
+     days in a row merged into one long bar, which is the one thing this card
+     must never do. A fixed square centred in its column always leaves the
+     gutter between days visible. It does not grow with the window: the marks
+     are a legend, not a measurement, so on a wide screen the columns get
+     roomier and the squares stay put. */
+  .mcdots i{justify-self:center;width:12px;height:12px;border-radius:3.5px;
     background:var(--surface2);display:block}
   .mcdots i.on{background:var(--accent)}
-  .mchead .mcdots i{background:none;height:auto;font-style:normal;text-align:center;
-    font-family:var(--mono);font-size:9px;color:var(--faint)}
+  .mchead .mcdots i{background:none;width:auto;height:auto;font-style:normal;
+    text-align:center;font-family:var(--mono);font-size:9px;color:var(--faint)}
   /* count right, unit left: the digits form one column and the words another,
      so singular and plural stop mattering */
   .mcv{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--muted);text-align:right}
   .mcu,.mcsep,.mcs{font-family:var(--mono);font-size:11px;color:var(--faint);white-space:nowrap}
-  .mcu{text-align:left;padding-left:.4ch}
-  .mcsep{text-align:center}
-  .mcs{text-align:right;padding-left:.4ch}
-  /* the only two boundaries that earn space: name to strip, strip to count */
-  .mcdots{padding:0 12px 0 10px}
+  .mcu{text-align:left;padding-left:.45ch}
+  .mcsep{text-align:center;padding:0 .35ch}
+  .mcs{text-align:right}
+  /* the one boundary that earns space: the day strip standing off the count */
+  .mcdots{padding-right:12px}
   .mcinner{padding:2px 0 10px 78px}
   .mcirow{display:flex;justify-content:space-between;padding:4px 0}
   .mciname{font-family:var(--mono);font-size:11px;color:var(--muted)}

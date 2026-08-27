@@ -641,18 +641,15 @@ function muscleCard(){
      its UNIT left-aligned, then the dot, then the sets. Splitting the count
      from its unit is what makes "1 day" and "2 days" share a column -- and it
      is the app's existing unit-faint grammar, the one behind "165.3 lb" and
-     "20 d ago". Widths are ch values measured across ALL rows and set once on
-     the card, the v3.3.324 technique: each row is still its own grid, so
-     nothing here can align by accident -- it aligns because every row reads
-     the same three numbers. */
+     "20 d ago".
+     v3.3.352: the card is ONE grid and each row is display:contents, so the
+     tail columns are max-content, measured across every row in each cell's
+     OWN font. The earlier version declared ch widths on the ROW -- where ch
+     resolves against the row's sans while the cells render in mono, cutting
+     every track for a wider character than it holds. Nothing is measured in
+     JS now; the layout measures itself. */
   const WD=days.map(d=>new Date(d+'T00:00')
     .toLocaleDateString('en-US',{weekday:'narrow'}));
-  const _n=v=>String(v).length;
-  const cw={
-    d:Math.max(1,...VISIBLE_GROUPS.map(v=>_n(groups[v].days.size))),
-    u:Math.max(...VISIBLE_GROUPS.map(v=>groups[v].days.size===1?3:4)),
-    s:Math.max(...VISIBLE_GROUPS.map(v=>_n(groups[v].sets)+5))
-  };
   const head=`<div class="mchead" aria-hidden="true"><span></span>
       <span class="mcdots">${WD.map(w=>`<i>${w}</i>`).join('')}</span>
       <span></span><span></span><span></span><span></span></div>`;
@@ -676,7 +673,7 @@ function muscleCard(){
       <span class="mcs">${gg.sets} set${gg.sets===1?'':'s'}</span>
     </div>${inner}`;
   }).join('');
-  return `<div class="mcgrid" style="--mcd:${cw.d}ch;--mcu:${cw.u}ch;--mcs:${cw.s}ch">${head}${body}</div>`;
+  return `<div class="mcgrid">${head}${body}</div>`;
 }
 document.addEventListener('click',e=>{
   const r=e.target.closest&&e.target.closest('[data-mcg]');

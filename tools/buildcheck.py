@@ -40,12 +40,12 @@ if shell_count != 12: fail.append(f"sw SHELL has {shell_count} stamped assets, e
 # -- CSS vars used are defined (runtime-set vars from js/app.js are allowlisted)
 # v3.3.324: --planw/--planr are measured in js/lift.js and written onto the
 # plan card's inline style, so the plan's rows all lay out on the SAME columns.
-# v3.3.350: --mcd/--mcu/--mcs are measured across ALL coverage rows in
-# js/stats.js and written onto the card, so the day count, its unit and the
-# set total share one column down the whole card. Same technique, same
-# reason: a per-row grid cannot align with its neighbours by itself.
-RUNTIME = {"--i", "--len", "--sat", "--planw", "--planr",
-           "--mcd", "--mcu", "--mcs"}   # set via style.setProperty / inline style / env() default
+# v3.3.352: --mcd/--mcu/--mcs are GONE. They were ch widths declared on the
+# coverage row, where ch resolves in the row's font while the cells render in
+# mono -- every track cut for a wider character than it holds. The card is one
+# grid with max-content tail columns now: the layout measures itself, and
+# there is nothing left to allowlist.
+RUNTIME = {"--i", "--len", "--sat", "--planw", "--planr"}   # set via style.setProperty / inline style / env() default
 used = set(re.findall(r"var\((--[A-Za-z0-9-]+)", css))
 defined = set(re.findall(r"(--[A-Za-z0-9-]+)\s*:", css))
 undef = used - defined - RUNTIME

@@ -1,5 +1,16 @@
 # ShowUp — changelog
 
+## v3.3.352 (2026-08-27) — Square day marks, and the numbers close up
+
+**The day marks are squares now.** They used to stretch to fill their column,
+so two trained days in a row merged into one long bar — two days looking like
+one, which is the last thing this card should do. A square always leaves the
+gap between days visible.
+
+**And the space around `·` is gone.** The columns had been sized in character
+widths measured against the wrong font, so every one was cut too wide. They
+size themselves from their own text now.
+
 ## v3.3.351 (2026-08-27) — The coverage numbers read as one phrase
 
 **The gaps around the separator are gone.** `2 days · 31 sets` was sitting in
