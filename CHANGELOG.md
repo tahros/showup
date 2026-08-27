@@ -1,5 +1,15 @@
 # ShowUp — changelog
 
+## v3.3.348 (2026-08-27) — Today's square breathes
+
+**You can find today at a glance now.** Its marker was a dark ring painted
+*inside* the square — invisible on any day you'd actually trained, and it
+shrank the one cell you were looking for. The ring sits outside the square
+instead, in the accent colour, easing slowly in and out. The square itself
+never moves or changes colour.
+
+Holds still if you've asked your phone to reduce motion.
+
 ## v3.3.347 (2026-08-26) — Train always remembers where you were
 
 **Leave the tab and come back to the same screen — workout or not.** Last

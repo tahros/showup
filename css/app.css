@@ -409,7 +409,31 @@
     background-color:var(--surface2);font-style:normal}
   .heatgrid .hc.on{background-color:var(--accent)}
   .heatgrid .hc.fut{background-color:transparent;box-shadow:inset 0 0 0 1px var(--line);opacity:.5}
-  .heatgrid .hc.tod{box-shadow:inset 0 0 0 1.5px var(--accent-ink)}
+  /* v3.3.348: TODAY BREATHES. The mark was inset 1.5px of --accent-ink --
+     a DARK ring painted INSIDE an 11px square, so on a day you trained it
+     was dark-on-dark, and it shrank the one cell you look for, making today
+     read as slightly smaller and muddier than its neighbours. It hid.
+     The ring moves OUTSIDE the square, into the 4px gutter the grid already
+     leaves between weeks, and takes --accent instead of ink. The square
+     itself never changes size or colour: nothing about the DATA moves, only
+     the light around it. Works the same whether today is filled or empty,
+     which the inset ring could not do.
+     position:relative on the cell, and the ring is a ::after rather than a
+     box-shadow, so it can sit outside without the grid reserving space for
+     it. One animation on the app's own --settle family, ~3.2s, which is slow
+     enough to read as breathing rather than blinking. */
+  .heatgrid .hc{position:relative}
+  .heatgrid .hc.tod::after{content:'';position:absolute;inset:-2px;border-radius:4.5px;
+    border:1.4px solid var(--accent);animation:todbreath 3.2s var(--settle) infinite}
+  @keyframes todbreath{
+    0%   {opacity:.85; inset:-1.5px; border-radius:4px}
+    60%  {opacity:.30; inset:-3.5px; border-radius:6px}
+    100% {opacity:.85; inset:-1.5px; border-radius:4px}
+  }
+  /* still marked when motion is unwelcome -- the halo simply holds still */
+  @media (prefers-reduced-motion:reduce){
+    .heatgrid .hc.tod::after{animation:none;opacity:.85;inset:-2px}
+  }
   .heatticks{--hw:35;display:grid;grid-auto-flow:column;
     grid-template-columns:repeat(var(--hw),var(--hcell));column-gap:4px;
     margin-top:7px;font-family:var(--mono);font-size:10px;color:var(--faint)}

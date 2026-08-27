@@ -446,4 +446,37 @@ check("no rule re-declares the heat scroller as a flex rail",
          fs.readFileSync(path.join(dir,"css/app.css"),"utf8")
            .replace(/\/\*[\s\S]*?\*\//g,"").replace(/\r?\n\s*/g,""))}`, "true");
 
+/* v3.3.348: today's cell is FOUND, and its square is left alone.
+   The old mark was inset 1.5px of --accent-ink -- a dark ring inside an 11px
+   square, dark-on-dark on any day you trained, and it shrank the one cell you
+   look for. The three properties below are what replaced it, and the middle
+   one is the point: the halo may not touch the data. */
+{
+  const cssT = fs.readFileSync(path.join(dir, "css/app.css"), "utf8")
+    .replace(/\/\*[\s\S]*?\*\//g, "").replace(/\r?\n\s*/g, "");
+  check("today is still the one cell marked",
+        `document.querySelectorAll('.heatgrid .tod').length`, 1);
+  /* the first version of this matched `inset:-` ANYWHERE in a tod::after
+     block, and the reduced-motion rule further down also carries one -- so
+     flipping the real rule to a positive inset passed clean. It named the
+     right property and checked the wrong block. This picks the rule that
+     draws the ring (the one with a border) and asks THAT one. */
+  {
+    const ring = (cssT.match(/\.heatgrid \.hc\.tod::after\{[^}]*border:[^}]*\}/) || [""])[0];
+    check("...marked OUTSIDE the square, never inset into it",
+          `${/inset:-/.test(ring) && !/\.heatgrid \.hc\.tod\{[^}]*inset 0 0 0/.test(cssT)}`, "true");
+  }
+  /* the cell must keep its full --hcell: shrinking it was half the bug, and
+     it would also desync the static weekday rail (v3.3.335) */
+  check("...leaving the cell its full size",
+        `${!/\.heatgrid \.hc\.tod\{[^}]*(width|height|padding|transform|scale)/.test(cssT)}`, "true");
+  check("...and holding still when motion is unwelcome",
+        `${/prefers-reduced-motion:reduce\)\{[^}]*\.heatgrid \.hc\.tod::after\{[^}]*animation:none/.test(cssT)}`, "true");
+  /* a ::after needs a positioned parent or inset resolves against an
+     ancestor and the ring lands somewhere else entirely -- the same trap the
+     heatmap sheen fell into in v3.3.333 */
+  check("...anchored to the cell, or the ring escapes it",
+        `${/\.heatgrid \.hc\{[^}]*position:relative/.test(cssT)}`, "true");
+}
+
 process.exit(fail ? 1 : 0);
