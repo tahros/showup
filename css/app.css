@@ -1887,15 +1887,34 @@
   /* v3.3.216: Growth Audit uses the base h2 spacing. Its old 52px exception
      made the gap above it visibly larger than every other card-to-section
      transition on Stats. */
-  .mcrow{display:grid;grid-template-columns:78px 1fr auto;gap:10px;align-items:center;
-    padding:10px 0;cursor:pointer}
+  /* v3.3.350: ONE TEMPLATE, read by the weekday header and by every row, so
+     the seven day columns and the three numeric tracks are the same columns
+     down the whole card. The tail is split -- count, unit, separator, sets --
+     because "1 day" and "2 days" can only share a column if the number and
+     its word are measured apart. The ch widths are computed across all rows
+     and set once on .mcgrid (v3.3.324's technique). */
+  .mcrow,.mchead{display:grid;
+    grid-template-columns:78px 1fr var(--mcd,2ch) var(--mcu,4ch) 1.4ch var(--mcs,8ch);
+    gap:0 10px;align-items:center}
+  .mcrow{padding:10px 0;cursor:pointer}
+  .mchead{padding:0 0 6px;border-bottom:1px solid var(--line)}
   .mcrow+.mcrow,.mcinner+.mcrow{border-top:1px solid var(--line)}
   .mcname{font-family:var(--mono);font-size:13px;color:var(--chalk)}
-  .mcdots{display:flex;gap:5px}
-  .mcdots i{width:9px;height:9px;border-radius:3px;background:var(--surface2);display:block}
+  /* the day marks ARE the axis now: seven equal columns, one mark centred in
+     each, so a column reads down the card as a single day */
+  .mcdots{display:grid;grid-template-columns:repeat(7,1fr);align-items:center}
+  .mcdots i{justify-self:center;width:100%;max-width:24px;height:9px;border-radius:4.5px;
+    background:var(--surface2);display:block}
   .mcdots i.on{background:var(--accent)}
-  .mcn{font-family:var(--mono);font-size:11px;color:var(--faint);white-space:nowrap}
-  .mcn b{color:var(--muted);font-size:13px;font-weight:600}
+  .mchead .mcdots i{background:none;height:auto;font-style:normal;text-align:center;
+    font-family:var(--mono);font-size:9px;color:var(--faint)}
+  /* count right, unit left: the digits form one column and the words another,
+     so singular and plural stop mattering */
+  .mcv{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--muted);text-align:right}
+  .mcu,.mcsep,.mcs{font-family:var(--mono);font-size:11px;color:var(--faint);white-space:nowrap}
+  .mcu{text-align:left}
+  .mcsep{text-align:center}
+  .mcs{text-align:right}
   .mcinner{padding:2px 0 10px 78px}
   .mcirow{display:flex;justify-content:space-between;padding:4px 0}
   .mciname{font-family:var(--mono);font-size:11px;color:var(--muted)}

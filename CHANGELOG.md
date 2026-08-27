@@ -1,5 +1,16 @@
 # ShowUp — changelog
 
+## v3.3.350 (2026-08-27) — Muscle coverage becomes a real week
+
+**Seven named day columns, shared by every group.** The dots used to float in
+whatever width was left over, which is why a hole opened between them and the
+numbers on a wide screen. Now they're an axis — and you can read a column:
+Monday was shoulders, arms and core.
+
+**Everything lines up.** The day count, its unit, the separator and the set
+total each get their own column, measured across all six rows. `1 day` and
+`2 days` sit on the same line as each other.
+
 ## v3.3.349 (2026-08-27) — The plan shows what you've already done
 
 **Sets you've logged recede on the plan line.** Log three of four squats at

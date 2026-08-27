@@ -625,7 +625,38 @@ document.addEventListener('change',e=>{
 let _mcOpen=null;
 function muscleCard(){
   const {days,groups}=muscleCoverage();
-  return VISIBLE_GROUPS.map(v=>{
+  /* v3.3.350: the card is a MATRIX -- muscle group by day -- and a matrix
+     needs a shared axis. Every row used to draw its own seven dots in an
+     elastic 1fr column with no header, so nothing anchored them: they were
+     seven marks floating in whatever width was left over. On a phone that
+     column is barely wider than the dots; at the app's 520px cap it is 130px
+     wider, and all of it pooled into a hole between the dots and the numbers.
+     The gap was the symptom; the missing axis was the fault.
+     Seven named day columns now span the row, the same seven for every
+     group, so the width is CONSUMED by the axis instead of pooling. It also
+     buys a reading the card could not give before: a COLUMN is legible --
+     Monday was shoulders, arms and core. And it speaks the app's own
+     vocabulary, the weekday rail v3.3.335 put on the attendance heatmap.
+     The tail is three tracks, not one string: the day COUNT right-aligned,
+     its UNIT left-aligned, then the dot, then the sets. Splitting the count
+     from its unit is what makes "1 day" and "2 days" share a column -- and it
+     is the app's existing unit-faint grammar, the one behind "165.3 lb" and
+     "20 d ago". Widths are ch values measured across ALL rows and set once on
+     the card, the v3.3.324 technique: each row is still its own grid, so
+     nothing here can align by accident -- it aligns because every row reads
+     the same three numbers. */
+  const WD=days.map(d=>new Date(d+'T00:00')
+    .toLocaleDateString('en-US',{weekday:'narrow'}));
+  const _n=v=>String(v).length;
+  const cw={
+    d:Math.max(1,...VISIBLE_GROUPS.map(v=>_n(groups[v].days.size))),
+    u:Math.max(...VISIBLE_GROUPS.map(v=>groups[v].days.size===1?3:4)),
+    s:Math.max(...VISIBLE_GROUPS.map(v=>_n(groups[v].sets)+5))
+  };
+  const head=`<div class="mchead" aria-hidden="true"><span></span>
+      <span class="mcdots">${WD.map(w=>`<i>${w}</i>`).join('')}</span>
+      <span></span><span></span><span></span><span></span></div>`;
+  const body=VISIBLE_GROUPS.map(v=>{
     const gg=groups[v];
     const open=_mcOpen===v;
     let inner='';
@@ -639,9 +670,13 @@ function muscleCard(){
     return `<div class="mcrow ${open?'open':''}" data-mcg="${v}">
       <span class="mcname">${v}</span>
       <span class="mcdots">${gg.dots.map(on=>`<i class="${on?'on':''}"></i>`).join('')}</span>
-      <span class="mcn"><b>${gg.days.size}</b> day${gg.days.size===1?'':'s'} \u00b7 ${gg.sets} set${gg.sets===1?'':'s'}</span>
+      <b class="mcv">${gg.days.size}</b>
+      <span class="mcu">day${gg.days.size===1?'':'s'}</span>
+      <span class="mcsep" aria-hidden="true">\u00b7</span>
+      <span class="mcs">${gg.sets} set${gg.sets===1?'':'s'}</span>
     </div>${inner}`;
   }).join('');
+  return `<div class="mcgrid" style="--mcd:${cw.d}ch;--mcu:${cw.u}ch;--mcs:${cw.s}ch">${head}${body}</div>`;
 }
 document.addEventListener('click',e=>{
   const r=e.target.closest&&e.target.closest('[data-mcg]');

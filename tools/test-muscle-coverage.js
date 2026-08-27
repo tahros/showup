@@ -82,12 +82,42 @@ check("each row carries exactly 7 dots",
 check("Legs row lights two dots (Deadlift and Hip Thrust days)",
       `(function(){const r=[...document.querySelectorAll('.mcrow')].find(x=>x.querySelector('.mcname').textContent==='Legs');
         return r.querySelectorAll('.mcdots i.on').length;})()`, 2);
+/* v3.3.350 RESTATES the SPELLING, not the rule. Days still come before sets
+   and an untrained group still states 0 in the same voice -- both untouched.
+   What moved is that the tail is no longer ONE span: the day count, its unit
+   and the set total are separate cells, because "1 day" and "2 days" can only
+   share a column if the number is measured apart from its word. Reading the
+   row's whole text still proves the ORDER, which is the property. */
 check("days come before sets in the count (days > volume)",
       `(function(){const r=[...document.querySelectorAll('.mcrow')].find(x=>x.querySelector('.mcname').textContent==='Legs');
-        return /\\d+ days? \\u00b7 \\d+ sets?/.test(r.querySelector('.mcn').textContent);})()`, true);
+        return /\\d+\\s*days? \\u00b7 \\d+ sets?/.test(r.textContent.replace(/\\s+/g,' '));})()`, true);
 check("an untrained group states 0 days in the same voice",
       `(function(){const r=[...document.querySelectorAll('.mcrow')].find(x=>x.querySelector('.mcname').textContent==='Arms');
-        return r.querySelector('.mcn b').textContent;})()`, 0);
+        return r.querySelector('.mcv').textContent;})()`, 0);
+
+/* v3.3.350: the card is one MATRIX with a shared axis. Each of these is a
+   thing that could not be true before, and each is why the gap closed. */
+check("seven day columns carry a weekday header",
+      `document.querySelectorAll('.mchead .mcdots i').length`, 7);
+check("...the header and the rows read the SAME template",
+      `${(function(){const c=fs.readFileSync(path.join(dir,"css/app.css"),"utf8")
+          .replace(/\/\*[\s\S]*?\*\//g,"").replace(/\r?\n\s*/g,"");
+        return /\.mcrow,\.mchead\{[^}]*grid-template-columns:/.test(c);})()}`, "true");
+check("...the day marks are an axis of seven equal columns, not a loose strip",
+      `${/\.mcdots\{[^}]*grid-template-columns:repeat\(7,1fr\)/.test(
+         fs.readFileSync(path.join(dir,"css/app.css"),"utf8").replace(/\r?\n\s*/g,""))}`, "true");
+/* the tail: count right, unit left, dot centred, sets right -- four cells on
+   four tracks, measured across ALL rows so they line up down the card */
+check("...and the tail is four aligned cells, not one string",
+      `(function(){const r=document.querySelector('.mcrow');
+        return ['.mcv','.mcu','.mcsep','.mcs'].every(c=>!!r.querySelector(c));})()`, true);
+check("...sized from widths measured across every row",
+      /* \\d, not \\d — inside a template literal an unknown escape collapses to
+         the bare letter, so /--mcd:\d+ch/ was really /--mcd:d+ch/ and could
+         never match. The other assertions in this file already double them. */
+      `(function(){const g=document.querySelector('.mcgrid');
+        const st=g?g.getAttribute('style'):'';
+        return /--mcd:\\d+ch/.test(st) && /--mcu:\\d+ch/.test(st) && /--mcs:\\d+ch/.test(st);})()`, true);
 check("no red anywhere in the card",
       `document.querySelector('.mccard').innerHTML.includes('--live')`, false);
 
