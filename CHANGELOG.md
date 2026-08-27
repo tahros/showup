@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v3.3.351 (2026-08-27) — The coverage numbers read as one phrase
+
+**The gaps around the separator are gone.** `2 days · 31 sets` was sitting in
+three pieces because the spacing that correctly separates the day strip from
+the numbers was being applied to every column edge, including both sides of a
+dot that only wanted a space. It reads as one line now.
+
 ## v3.3.350 (2026-08-27) — Muscle coverage becomes a real week
 
 **Seven named day columns, shared by every group.** The dots used to float in

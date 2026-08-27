@@ -118,6 +118,19 @@ check("...sized from widths measured across every row",
       `(function(){const g=document.querySelector('.mcgrid');
         const st=g?g.getAttribute('style'):'';
         return /--mcd:\\d+ch/.test(st) && /--mcu:\\d+ch/.test(st) && /--mcs:\\d+ch/.test(st);})()`, true);
+/* v3.3.351: the tail sets as ONE PHRASE. grid `gap` applies to every column
+   edge equally, so the 10px that correctly separates the day strip from the
+   numbers was also landing on both sides of the separator: a dot that wants
+   one space of air had twenty pixels of it, and "2 days . 31 sets" read as
+   three islands. The gap is zero and the two boundaries that earn space ask
+   for it themselves. Pinned as: no uniform gap on the shared template, and a
+   separator track約 one character wide. */
+check("the tail sets as one phrase, not three islands",
+      `${(function(){const c=fs.readFileSync(path.join(dir,"css/app.css"),"utf8")
+          .replace(/\/\*[\s\S]*?\*\//g,"").replace(/\r?\n\s*/g,"");
+        const rule=(c.match(/\.mcrow,\.mchead\{[^}]*\}/)||[""])[0];
+        const sep=(rule.match(/([\d.]+)ch (?=var\(--mcs)/)||[])[1];
+        return /gap:0[;}]/.test(rule) && parseFloat(sep) <= 1.5;})()}`, "true");
 check("no red anywhere in the card",
       `document.querySelector('.mccard').innerHTML.includes('--live')`, false);
 

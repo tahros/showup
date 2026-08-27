@@ -1893,9 +1893,16 @@
      because "1 day" and "2 days" can only share a column if the number and
      its word are measured apart. The ch widths are computed across all rows
      and set once on .mcgrid (v3.3.324's technique). */
+  /* v3.3.351: the gap is PER BOUNDARY, not uniform. grid `gap` applies to
+     every column edge equally, so the 10px that correctly separates the day
+     strip from the numbers was also landing on both sides of the separator --
+     a dot that wants one space of air got twenty pixels of it, and the tail
+     read as three islands instead of one phrase. Zero gap, and the two
+     boundaries that need air ask for it themselves. The tail now sets like
+     type: "2 days · 31 sets", one space either side of the dot. */
   .mcrow,.mchead{display:grid;
-    grid-template-columns:78px 1fr var(--mcd,2ch) var(--mcu,4ch) 1.4ch var(--mcs,8ch);
-    gap:0 10px;align-items:center}
+    grid-template-columns:78px 1fr var(--mcd,2ch) var(--mcu,4ch) 1.1ch var(--mcs,8ch);
+    gap:0;align-items:center}
   .mcrow{padding:10px 0;cursor:pointer}
   .mchead{padding:0 0 6px;border-bottom:1px solid var(--line)}
   .mcrow+.mcrow,.mcinner+.mcrow{border-top:1px solid var(--line)}
@@ -1912,9 +1919,11 @@
      so singular and plural stop mattering */
   .mcv{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--muted);text-align:right}
   .mcu,.mcsep,.mcs{font-family:var(--mono);font-size:11px;color:var(--faint);white-space:nowrap}
-  .mcu{text-align:left}
+  .mcu{text-align:left;padding-left:.4ch}
   .mcsep{text-align:center}
-  .mcs{text-align:right}
+  .mcs{text-align:right;padding-left:.4ch}
+  /* the only two boundaries that earn space: name to strip, strip to count */
+  .mcdots{padding:0 12px 0 10px}
   .mcinner{padding:2px 0 10px 78px}
   .mcirow{display:flex;justify-content:space-between;padding:4px 0}
   .mciname{font-family:var(--mono);font-size:11px;color:var(--muted)}
