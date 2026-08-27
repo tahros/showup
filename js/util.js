@@ -1091,6 +1091,27 @@ const planLoggedToday=ex=>((DB.days[todayISO]||{}).w||[])
    in one tap, and a hold is neither -- the same reason v3.3.343 suppressed
    the Suggested strip for a held exercise. */
 const planSets=i=>(i.lines||[]).filter(l=>!isHold(l.su)).flatMap(l=>l.reps.map(r=>({w:l.w, r})));
+/* v3.3.349: how many sets of THIS line are already in today's record. A fact
+   read out of the ledger, exactly like the per-row tick v3.3.281 permitted:
+   "this exercise is logged" is a fact; a fraction of the plan is a verdict.
+   The number is used ONE LINE AT A TIME to decide which numerals have been
+   spent, and is never summed across a plan, shown as a total, or compared to
+   anything. Nothing is ever written back -- the plan reads the record and the
+   record does not know the plan exists (buildcheck enforces both).
+   Matched on weight, within a tolerance smaller than the smallest plate the
+   app knows about, because the ledger stores kg and a plan may have arrived
+   in lb. A held line matches held sets and a weighted line matches weighted
+   ones, so 60 seconds never cancels a set of 8. */
+function planSpent(ex,l){
+  let n=0;
+  for(const s of ((DB.days[todayISO]||{}).w||[])){
+    if(s.ex!==ex||!(s.reps||[]).length) continue;
+    if(isHold(s.su)!==isHold(l.su)) continue;
+    if(!isHold(l.su)&&Math.abs((s.w||0)-(l.w||0))>0.06) continue;
+    n+=s.reps.length;
+  }
+  return n;
+}
 /* v3.3.309: rubber-band and pull-to-refresh move the SCROLLING VIEW, never
    <body>. A transformed element becomes the containing block for its
    fixed-position descendants — so while body carried a translate, the nav

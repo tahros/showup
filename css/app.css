@@ -1523,6 +1523,20 @@
      AA), and the × steps back from them so the tier order survives. No new
      colour: both are tokens this palette already owns. */
   :root[data-theme="light"] .planrow .pr{color:var(--faint)}
+  /* v3.3.349: a numeral already in today's record RECEDES. Not struck
+     through -- a strike means cancelled or wrong nearly everywhere else, and
+     neither is true of a set you just did. Not chipped either: four filled
+     chips a line turns a quiet plan into a scoreboard, which is the thing
+     this card is built not to be. Dimming is the app's existing word for
+     SPENT, the same word .fut speaks in the heatmap.
+     No new colour: the rep tier blended toward the card it sits on, the same
+     technique the .px override two lines up already uses. And nothing marks
+     the numerals still to come -- they simply stay lit. An untouched line
+     looks exactly as it did before this release, which is the point: a plan
+     you have not started is not a plan you are behind on. */
+  .planrow .rp{display:inline}
+  .planrow .rp.rspent{color:color-mix(in srgb,var(--muted) 38%,var(--surface))}
+  :root[data-theme="light"] .planrow .rp.rspent{color:color-mix(in srgb,var(--faint) 42%,var(--surface))}
   :root[data-theme="light"] .planrow .px{color:color-mix(in srgb,var(--faint) 55%,var(--surface))}
   /* a row whose exercise is in today's ledger. The tick is a fact FROM the
      record, not a score against the plan: it says "this is logged", never

@@ -1,5 +1,17 @@
 # ShowUp — changelog
 
+## v3.3.349 (2026-08-27) — The plan shows what you've already done
+
+**Sets you've logged recede on the plan line.** Log three of four squats at
+195 and the first three numerals fade; the one left stays lit. Weight is
+matched, so a set at 135 doesn't spend a line at 195, and a hold never
+cancels a set of reps.
+
+A line you haven't started looks exactly as it did before. Nothing is marked
+as behind, and nothing anywhere counts how much of the plan is left — a plan
+you can fail is a plan that can make you feel bad about training, and this
+app doesn't have one.
+
 ## v3.3.348 (2026-08-27) — Today's square breathes
 
 **You can find today at a glance now.** Its marker was a dark ring painted

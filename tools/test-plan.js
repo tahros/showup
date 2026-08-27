@@ -718,4 +718,65 @@ run(`(function(){view='today'; lift.ex=null; render();})()`);
 }
 
 
+/* v3.3.349: a set already in the record RECEDES on the plan line.
+   Permitted, and the boundary is not mine to draw -- v3.3.281 drew it in
+   buildcheck: "a per-row tick is NOT a score. Reading the ledger and
+   reporting 'this exercise is logged' is a fact about the record.
+   AGGREGATING those facts into a count, fraction or percentage of the plan
+   is the failure state." planSpent is that fact, per line, never summed.
+   The last two assertions are the ones that matter. A line you have not
+   started must look exactly as it did before this release, and the card must
+   never say how much of the plan is left. */
+{
+  const seed = (sets) => run(`(function(){DB.days={}; DB.settings.unit='lb';
+    DB.days[todayISO]={w:${sets},upd:1};
+    DB.plan={d:todayISO, items:[
+      {ex:'Squat', lines:[{w:${'toKg(195)'}, bw:false, reps:[8,8,8,8]}]},
+      {ex:'Romanian Deadlift', lines:[{w:${'toKg(155)'}, bw:false, reps:[10,10,10]}]}],
+      note:''};
+    DB.planAt=Date.now(); SEED=deriveAll(); view='today'; render();})()`);
+
+  const marks = ex => run(`(function(){
+    const rows=[...document.querySelectorAll('.planrow')];
+    const r=rows.find(b=>/${ex}/.test(b.querySelector('.pn').textContent));
+    if(!r) return 'no row';
+    return [...r.querySelectorAll('.pr .rp')]
+      .map(i=>i.className.indexOf('rspent')>=0?'.':i.textContent.trim()).join(' ');})()`);
+
+  /* three of the four squats logged at that weight */
+  seed(`[{part:'Legs',ex:'Squat',w:toKg(195),reps:[8,8,8],at:1}]`);
+  ok("a set already in the record recedes, left to right",
+           marks('Squat') === ". . . 8", marks('Squat'));
+  ok("...and a line you have not started is untouched",
+           marks('Romanian Deadlift') === "10 10 10", marks('Romanian Deadlift'));
+
+  /* a different weight is a different line: 8 reps at 135 cannot spend a 195 */
+  seed(`[{part:'Legs',ex:'Squat',w:toKg(135),reps:[8,8,8],at:1}]`);
+  ok("...weight is matched, so another weight spends nothing",
+           marks('Squat') === "8 8 8 8", marks('Squat'));
+
+  /* a hold is not a rep: 60 seconds must not cancel a set of 8 */
+  seed(`[{part:'Legs',ex:'Squat',w:toKg(195),reps:[60,60],su:'s',at:1}]`);
+  ok("...and a hold never spends a weighted set",
+           marks('Squat') === "8 8 8 8", marks('Squat'));
+
+  /* more logged than planned: the line runs out, it does not go negative or
+     wrap, and nothing anywhere says "over" */
+  seed(`[{part:'Legs',ex:'Squat',w:toKg(195),reps:[8,8,8,8,8,8],at:1}]`);
+  ok("...doing more than planned simply spends the line",
+           marks('Squat') === ". . . .", marks('Squat'));
+
+  /* THE LINE THE BUILD DEFENDS. No count, fraction or percentage of a plan
+     may appear -- buildcheck scans the source for the vocabulary, this scans
+     the rendered card for the shape. */
+  seed(`[{part:'Legs',ex:'Squat',w:toKg(195),reps:[8,8,8],at:1}]`);
+  ok("the card never says how much of the plan is left",
+     !/\b\d+\s*(of|\/)\s*\d+\b/.test(run(`document.querySelector('.plancard').textContent`)),
+     run(`JSON.stringify(document.querySelector('.plancard').textContent.slice(0,70))`));
+  /* and the plan still never writes to the record */
+  ok("...and reading it changed nothing in the ledger",
+     run(`(DB.days[todayISO].w||[]).length`) === 1);
+}
+
+
 process.exit(fail ? 1 : 0);
