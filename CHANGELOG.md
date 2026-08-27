@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v3.3.353 (2026-08-27) — The day strip closes up to its neighbours
+
+**The dead space at both ends of the day strip is gone.** The first mark now
+sits right after the name and the last one right before the count, at every
+width — the extra room goes evenly between the days instead of piling up at
+the edges. The numbers also close up a touch.
+
 ## v3.3.352 (2026-08-27) — Square day marks, and the numbers close up
 
 **The day marks are squares now.** They used to stretch to fill their column,

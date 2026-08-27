@@ -1927,7 +1927,15 @@
     padding-right:10px;white-space:nowrap}
   /* the day marks ARE the axis now: seven equal columns, one mark centred in
      each, so a column reads down the card as a single day */
-  .mcdots{display:grid;grid-template-columns:repeat(7,1fr);align-items:center}
+  /* v3.3.353: FIXED PITCH, FLUSH EDGES. v3.3.352's columns were 1fr with a
+     12px square centred in each -- so at any width beyond the phone, half a
+     column of VOID sat at each end of the strip, reading as a gap against the
+     name on one side and the count on the other. The columns are now the size
+     of the mark's cell, and space-between puts the surplus BETWEEN days --
+     first mark flush left, last mark flush right, gaps even, at every width.
+     The one deliberate gap (strip to count) is the padding below, alone. */
+  .mcdots{display:grid;grid-template-columns:repeat(7,18px);
+    justify-content:space-between;align-items:center}
   /* v3.3.352: the mark is a SQUARE, not a stretched pill. It used to be
      width:100% with a 24px cap, so it filled its column -- and two trained
      days in a row merged into one long bar, which is the one thing this card
@@ -1944,8 +1952,8 @@
      so singular and plural stop mattering */
   .mcv{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--muted);text-align:right}
   .mcu,.mcsep,.mcs{font-family:var(--mono);font-size:11px;color:var(--faint);white-space:nowrap}
-  .mcu{text-align:left;padding-left:.45ch}
-  .mcsep{text-align:center;padding:0 .35ch}
+  .mcu{text-align:left;padding-left:.55ch}
+  .mcsep{text-align:center;padding:0 .25ch}
   .mcs{text-align:right}
   /* the one boundary that earns space: the day strip standing off the count */
   .mcdots{padding-right:12px}

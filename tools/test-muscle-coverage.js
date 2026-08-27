@@ -110,9 +110,17 @@ check("...the header and the rows are cells of ONE grid",
           .replace(/\/\*[\s\S]*?\*\//g,"").replace(/\r?\n\s*/g,"");
         return /\.mcgrid\{[^}]*grid-template-columns:/.test(c)
             && /\.mcrow,\.mchead\{[^}]*display:contents/.test(c);})()}`, "true");
-check("...the day marks are an axis of seven equal columns, not a loose strip",
-      `${/\.mcdots\{[^}]*grid-template-columns:repeat\(7,1fr\)/.test(
-         fs.readFileSync(path.join(dir,"css/app.css"),"utf8").replace(/\r?\n\s*/g,""))}`, "true");
+/* v3.3.353 RESTATES: still seven equal columns -- but FIXED pitch with the
+   surplus pushed BETWEEN days, because 1fr columns with a 12px square centred
+   in each left half a column of void at both ends of the strip on anything
+   wider than a phone. space-between makes the first and last mark flush, so
+   the strip has no edge corridors at any width. */
+check("...the day marks are seven fixed cells, flush at both ends",
+      `${(function(){const c=fs.readFileSync(path.join(dir,"css/app.css"),"utf8")
+          .replace(/\/\*[\s\S]*?\*\//g,"").replace(/\r?\n\s*/g,"");
+        const r=(c.match(/\.mcdots\{[^}]*\}/)||[""])[0];
+        return /repeat\(7,\d+px\)/.test(r) && /justify-content:space-between/.test(r)
+            && !/repeat\(7,1fr\)/.test(r);})()}`, "true");
 /* the tail: count right, unit left, dot centred, sets right -- four cells on
    four tracks, measured across ALL rows so they line up down the card */
 check("...and the tail is four aligned cells, not one string",
