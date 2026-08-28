@@ -155,6 +155,23 @@ check("the day actions are icons that still have names",
         return b.length>=2
           && b.every(x=>!!x.querySelector('svg') && (x.getAttribute('aria-label')||'').length>3)
           && b.every(x=>x.textContent.trim()==='');})()`, true);
+/* v3.3.360: the icons are the maker's Noun Project files, and the DOWNLOAD
+   embeds its own credit as <text> inside the SVG, with the viewBox stretched
+   downward to fit it. Paste one in unedited and every button carries a line
+   of 1.4px type under the glyph. The credit belongs in Settings, where the
+   licence is satisfied once and legibly -- asserted there by buildcheck. Here:
+   no text may ride inside the mark, and the box must be square, because a
+   non-square box is exactly the shape that had room for the caption. */
+check("no attribution text rides inside the icons",
+      `(function(){const b=[...document.querySelectorAll('.day .dayedit.ico svg')];
+        return b.length>=2 && b.every(s=>!s.querySelector('text')
+          && !/Created by|Noun Project/i.test(s.textContent||''));})()`, true);
+check("...and each icon's box is cropped square",
+      `(function(){const b=[...document.querySelectorAll('.day .dayedit.ico svg')];
+        return b.length>=2 && b.every(s=>{
+          const v=(s.getAttribute('viewBox')||'').split(/\\s+/).map(Number);
+          return v.length===4 && Math.abs(v[2]-v[3])<0.01;});})()`, true);
+
 /* COPY MONTH / COPY YEAR share the .dayedit class and must stay words --
    there is no symbol for "copy a year" anyone would read correctly. */
 check("...while the copy buttons stay words",

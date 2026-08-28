@@ -1,5 +1,11 @@
 # ShowUp — changelog
 
+## v3.3.360 (2026-08-27) — The real icons
+
+The share and edit marks are now the actual icons, credited in Settings. The
+downloads carry their attribution baked into the artwork; that's been cropped
+out, since the credit belongs in Settings where it's legible.
+
 ## v3.3.359 (2026-08-27) — Icon credits
 
 The share and edit marks are credited to their designer in Settings, on the

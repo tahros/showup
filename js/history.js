@@ -10,21 +10,27 @@
    two words competing with the date, the parts and the totals -- the row's
    job is to say what you did, and the controls should be available without
    being read.
-   Drawn here rather than imported. The maker linked two Noun Project icons;
-   those are licensed assets carrying attribution terms, so these are the
-   standard forms of the same two symbols, drawn as inline SVG: the three-node
-   share and the pencil. Inline means they inherit currentColor, so they take
-   the pill's colour in both themes and the accent fill while editing, with no
-   asset to ship, cache or bust.
-   EDIT BECOMES A CHECK while the day is open. The word used to flip Edit ->
-   Done; a pencil that stays a pencil would lose the only cue that says how to
-   get out, and the accent fill alone is a colour, not an instruction.
-   Every button keeps an aria-label and gains a title, because an icon with no
-   name is a button nobody can identify -- by screen reader or by hover. */
-const _ico=(p)=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
-const ICO_SHARE=_ico('<circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.3 10.7l7.4-4.4M15.7 17.7l-7.4-4.4"/>');
-const ICO_EDIT=_ico('<path d="M4 20h4L19.3 8.7a2.4 2.4 0 0 0-3.4-3.4L4.6 16.6 4 20z"/><path d="M14.8 6.4l3.4 3.4"/>');
-const ICO_DONE=_ico('<path d="M5 12.8l4.2 4.2L19 7.2"/>');
+   v3.3.360: these are the maker's own choices from the Noun Project, both by
+   Timur Minvaleev, credited in Settings beneath the version -- which is the
+   free tier's condition, not a courtesy, and the same place v3.3.212 already
+   credits two Growth Audit icons. I had substituted drawings of my own on a
+   licence reading that was not mine to make; these replace them.
+   TAKEN FROM THE FILES, CROPPED. The download embeds the credit as two
+   <text> elements and stretches the viewBox downward to fit them -- so the
+   art must be lifted out of its <g> and the box cropped back to the icon's
+   own square (the box's width), or every button would carry a line of 1.4px
+   type under the glyph. The paths are byte-for-byte the originals; only the
+   frame changed.
+   fill:currentColor, so both take the pill's colour in either theme and the
+   white of the accent fill while a day is being edited.
+   THE CHECK IS STILL MINE. The label used to flip Edit -> Done, and a pencil
+   that stays a pencil loses the only cue saying how to get out; the accent
+   fill alone is a colour, not an instruction. A tick is about as generic as a
+   mark gets, but say the word and it becomes a chosen icon like the others. */
+const _ico=(box,d)=>`<svg viewBox="${box}" fill="currentColor" aria-hidden="true"><path d="${d}"/></svg>`;
+const ICO_SHARE=_ico('-1.4 -2.8 30.8 30.8','M12,10 L12,4 C12,2.8 11.4,2.6 10.6,3.4 L1.4,12.6 C0.6,13.4 0.6,14.6 1.4,15.4 L10.6,24.6 C11.4,25.4 12,25.2 12,24 L12,18 C20,18 24.2,20.4 28,26 C26.4,18 22,10 12,10 Z');
+const ICO_EDIT=_ico('-1.2 -2.4 26.4 26.4','M9.25735931,20.3994949 L9.87867966,19.7781746 L4.22182541,14.1213203 L16.9497475,1.39339828 C18.1213203,0.221825407 20.0208153,0.221825407 21.1923882,1.39339828 L22.6066017,2.80761184 C23.7781746,3.97918472 23.7781746,5.87867966 22.6066017,7.05025253 L9.25735931,20.3994949 Z M8.45752148,21.1854435 C7.91718787,21.6447027 7.22908814,21.8994949 6.51471863,21.8994949 L2.60050506,21.8994949 C2.32436269,21.8994949 2.10050506,21.6756373 2.10050506,21.3994949 L2.10050506,17.4852814 C2.10050506,16.7709119 2.35529734,16.0828121 2.81455646,15.5424785 L8.45752148,21.1854435 Z');
+const ICO_DONE=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.8l4.2 4.2L19 7.2"/></svg>`;
 
 function partForEx(ex,d){
   for(const [pt,list] of Object.entries(SEED.catalog||{})) if((list||[]).includes(ex)) return pt;
