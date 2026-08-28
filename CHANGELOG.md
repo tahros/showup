@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v3.3.366 (2026-08-28) — The tab bar follows you
+
+**Tapping a plan row on Today opens the exercise, and the bar now moves to
+Train with you.** It used to stay lit on Today while you were plainly
+somewhere else.
+
+The highlight is read from where you actually are now, rather than being set
+by hand at each place that navigates — so no route can forget it again.
+
 ## v3.3.365 (2026-08-28) — Twenty ways people write a workout
 
 **Today's plan is now tested against twenty real workout-log shapes**, drawn

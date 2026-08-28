@@ -130,7 +130,6 @@ document.addEventListener('click',e=>{
   if(e.target.closest('#settingsBtn')||e.target.closest('#gearBtn')){
     if(view==='sync'){ view=prevView||'today'; }
     else { prevView=view; view='sync'; }
-    document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
     return render();
   }
   const nav=e.target.closest('nav button');
@@ -139,7 +138,6 @@ document.addEventListener('click',e=>{
     view=nav.dataset.v;
     /* v3.3.347: the tab remembers, live or not */
     if(view==='lift'){const b=liftBack(); lift=b?{part:b.part,ex:b.ex,weight:0}:{part:null,ex:null,weight:0};}
-    document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b===nav));
     return render();
   }
   const pf=e.target.closest('[data-plfold]');
@@ -150,7 +148,6 @@ document.addEventListener('click',e=>{
     hist.y=+iso.slice(0,4); hist.m=+iso.slice(5,7);
     window._histTarget=iso;
     view='history';
-    document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v==='history'));
     return render();
   }
   const go=e.target.closest('[data-go]');
@@ -172,7 +169,6 @@ document.addEventListener('click',e=>{
         ? (([...day(todayISO).w].reverse().find(s=>s.part===goP&&s.ex)||{}).ex||null)
         : null;
     view='lift';lift={part:goP,ex:goEx,weight:0};
-    document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v==='lift'));
     return render();
   }
   const pt=e.target.closest('[data-part]:not([data-ex])');
@@ -182,12 +178,11 @@ document.addEventListener('click',e=>{
     lift.part=ex.dataset.part||lift.part; lift.ex=ex.dataset.ex;
     lift.weight=0; lift.editBar=false; lift.copy=false; lift.suggestOpen=null; lift.info=false; lift.editSet=null; lift.editToday=false;
     view='lift';                                   // <- was missing: Today stayed on Today
-    document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v==='lift'));
     return render();
   }
   if(e.target.closest('.back')){
     if(lift.copy){ lift.copy=false; return renderLift(); }
-    if(view==='sync'){view=prevView||'today';document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===view));return render();}
+    if(view==='sync'){view=prevView||'today';return render();}
     if(lift.ex)lift.ex=null;else lift.part=null;
     return render();
   }
@@ -553,7 +548,6 @@ document.addEventListener('click',e=>{
   }
   if(e.target.closest('#goLift')){
     view='lift'; lift={part:null,ex:null,weight:0};   // the tab's own entry state
-    document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v==='lift'));
     return render();
   }
   if(e.target.closest('#msDismiss')){
@@ -1081,7 +1075,22 @@ function paint(){
   window.scrollTo(0,0);
 }
 let lastView=null;
+/* v3.3.366: the nav is DERIVED from view, here, once. It used to be set by
+   hand at every navigation site -- seven of them across app.js and core.js,
+   each a copy of the same toggle -- and any path that changed `view` without
+   remembering to add an eighth left the old tab lit. That is what the maker
+   hit: tapping a plan row on Today opens the exercise, which lives in Train,
+   and the bar still said TODAY. The screen and the bar disagreed because two
+   different pieces of code owned them.
+   A tab that must be kept in sync by hand at every call site is a tab that
+   will be wrong eventually; the only question was which route found it first.
+   render() runs on every view change by definition, so putting it here makes
+   the bar a READING of the app's state rather than a second copy of it. */
+function syncNav(){
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
+}
 function render(){
+  syncNav();
   if(typeof killCalReturn==='function') killCalReturn();   // v3.3.59: the contextual target dies with any view change
   if(typeof syncTopBtn==='function') syncTopBtn();        // v3.3.65: the general up button re-evaluates for the new view
   if(view!=='history'&&typeof hist!=='undefined'){ hist.edit=null; hist.editSet=null; }   // v3.3.61: leaving History closes edit mode

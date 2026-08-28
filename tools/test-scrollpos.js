@@ -326,4 +326,48 @@ if (!noSwipe) fail++;
            run(`typeof liftBack`), "function");
 }
 
+/* v3.3.366: THE TAB BAR IS DERIVED FROM `view`, not maintained beside it.
+   The maker tapped a plan row on Today, landed on the exercise screen -- which
+   lives in Train -- and the bar still said TODAY. Cause: the 'on' class was
+   set by hand at SEVEN call sites across app.js and core.js, each a copy of
+   the same toggle, and any path that changed `view` without remembering to
+   add an eighth left the old tab lit. The plan row was that path.
+   A bar kept in sync by hand at every call site will be wrong eventually; the
+   only question was which route found it first. render() runs on every view
+   change by definition, so the toggle lives there once and the bar became a
+   READING of the state rather than a second copy of it.
+   The specific bug and the general rule are both asserted, because fixing
+   this one route would have left the other six free to rot. */
+{
+  const lit = () => run(`(function(){const b=[...document.querySelectorAll('nav button')]
+    .find(x=>x.classList.contains('on')); return b?b.dataset.v:'(none)';})()`);
+  const tapPlanRow = ex => run(`(function(){const b=document.createElement('button');
+    b.setAttribute('data-planex','${ex}');
+    document.getElementById('view').appendChild(b);
+    b.dispatchEvent(new window.Event('click',{bubbles:true}));})()`);
+
+  run(`(function(){DB.days={}; DB.settings.unit='lb'; SEED=deriveAll();
+    view='today'; render();})()`);
+  checkVal("the bar starts on Today", lit(), "today");
+  tapPlanRow('Barbell Bench Press');
+  checkVal("...and a plan row opens the exercise", run(`String(lift.ex)`), "Barbell Bench Press");
+  checkVal("...on the Train tab, with the bar following", lit(), "lift");
+
+  /* the general rule: every view the bar can show agrees with `view` after a
+     render, whatever route set it */
+  for (const v of ['today','lift','stats','history']) {
+    run(`view='${v}'; render();`);
+    checkVal(`the bar reads ${v} when view is ${v}`, lit(), v);
+  }
+  /* and it is derived ONCE -- a second hand-written toggle is the bug coming
+     back, since that is exactly how six of them accumulated */
+  /* String(array).length measures the JOINED STRING, not the count -- my first
+     version of this reported 47 for a single match. */
+  checkVal("the toggle lives in one place",
+           ((fs.readFileSync(path.join(dir,"js/app.js"),"utf8")
+             + fs.readFileSync(path.join(dir,"js/core.js"),"utf8"))
+            .match(/nav button'\)\.forEach\(b=>b\.classList\.toggle\('on'/g) || []).length,
+           1);
+}
+
 process.exit(fail ? 1 : 0);
