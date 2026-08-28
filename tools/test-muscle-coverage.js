@@ -138,6 +138,19 @@ check("...the header and the rows are cells of ONE grid",
    in each left half a column of void at both ends of the strip on anything
    wider than a phone. space-between makes the first and last mark flush, so
    the strip has no edge corridors at any width. */
+/* v3.3.362: and the week STOPS at its natural width. Fixed cells with
+   space-between divide ALL the surplus, so past the phone the seven columns
+   kept stretching and the marks drifted apart on a laptop -- the marks
+   stopped growing in v3.3.352, the columns never did. Capped and pushed
+   flush against its own numbers, so the extra room lands in the label
+   column. margin-left:auto is the half that matters: without it the cap
+   would leave the gap on the RIGHT, between the dots and the count, which is
+   the gap this card was already fixed for once. */
+check("...and the week stops at its natural width, beside its numbers",
+      `${(function(){const c=fs.readFileSync(path.join(dir,"css/app.css"),"utf8")
+          .replace(/\/\*[\s\S]*?\*\//g,"").replace(/\r?\n\s*/g,"");
+        const r=(c.match(/\.mcdots\{[^}]*\}/)||[""])[0];
+        return /max-width:\d+px/.test(r) && /margin-left:auto/.test(r);})()}`, "true");
 check("...the day marks are seven fixed cells, flush at both ends",
       `${(function(){const c=fs.readFileSync(path.join(dir,"css/app.css"),"utf8")
           .replace(/\/\*[\s\S]*?\*\//g,"").replace(/\r?\n\s*/g,"");

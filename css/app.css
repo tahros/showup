@@ -1963,8 +1963,21 @@
      of the mark's cell, and space-between puts the surplus BETWEEN days --
      first mark flush left, last mark flush right, gaps even, at every width.
      The one deliberate gap (strip to count) is the padding below, alone. */
+  /* v3.3.362: the week has a NATURAL WIDTH and stops there. v3.3.353 fixed
+     the day cells and pushed the surplus BETWEEN them, which is right up to a
+     point -- but space-between divides ALL of it, so past the phone the seven
+     columns kept stretching and the marks drifted apart on a laptop. The
+     marks stopped growing at v3.3.352; the columns never did.
+     Capped, and kept flush against its own numbers, so the extra room lands
+     in the LABEL column -- which is the ragged one in any table, and leaves
+     the strip glued to the totals it belongs to. Centring it instead would
+     split the surplus and put half of it back between the dots and the
+     numbers, which is the gap this card was already fixed for once.
+     The cap never binds on a phone: at 390 the available track is narrower
+     than this, so that layout is untouched. */
   .mcdots{display:grid;grid-template-columns:repeat(7,18px);
-    justify-content:space-between;align-items:center}
+    justify-content:space-between;align-items:center;
+    max-width:216px;margin-left:auto}
   /* v3.3.352: the mark is a SQUARE, not a stretched pill. It used to be
      width:100% with a 24px cap, so it filled its column -- and two trained
      days in a row merged into one long bar, which is the one thing this card

@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v3.3.362 (2026-08-27) — The coverage week stops spreading
+
+**On a wide screen the day columns kept stretching**, so the marks drifted
+apart. The week now has a natural width and stays beside its own numbers; any
+extra room goes to the muscle names instead. On a phone nothing changes — the
+cap never applies at that width.
+
 ## v3.3.361 (2026-08-27) — A one-line session header
 
 **The per-day total and distance are gone from each session header.** They
