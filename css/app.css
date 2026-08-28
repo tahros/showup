@@ -1973,11 +1973,19 @@
      the strip glued to the totals it belongs to. Centring it instead would
      split the surplus and put half of it back between the dots and the
      numbers, which is the gap this card was already fixed for once.
-     The cap never binds on a phone: at 390 the available track is narrower
-     than this, so that layout is untouched. */
+     v3.3.363, on the maker's call: CENTRED, not flush right, and the cap
+     widened from 216 to 240 -- about 25px between marks instead of 21.
+     Centring splits the surplus, so at 520 each side gets ~22px rather than
+     one 45px margin. That is the trade I argued against in v3.3.362 and he
+     took anyway, and looking at it he is right: a symmetric pair of small
+     margins reads as a column sitting in its track, where one large margin
+     read as a gap. The failure this card was fixed for in v3.3.351 was a gap
+     WIDER than the tail it sat beside, not any space at all.
+     The cap never binds on a phone: at 390 the available track is ~155px,
+     narrower than either cap, so that layout is untouched by both numbers. */
   .mcdots{display:grid;grid-template-columns:repeat(7,18px);
     justify-content:space-between;align-items:center;
-    max-width:216px;margin-left:auto}
+    max-width:240px;margin-inline:auto}
   /* v3.3.352: the mark is a SQUARE, not a stretched pill. It used to be
      width:100% with a 24px cap, so it filled its column -- and two trained
      days in a row merged into one long bar, which is the one thing this card

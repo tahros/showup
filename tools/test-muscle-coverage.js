@@ -142,15 +142,18 @@ check("...the header and the rows are cells of ONE grid",
    space-between divide ALL the surplus, so past the phone the seven columns
    kept stretching and the marks drifted apart on a laptop -- the marks
    stopped growing in v3.3.352, the columns never did. Capped and pushed
-   flush against its own numbers, so the extra room lands in the label
-   column. margin-left:auto is the half that matters: without it the cap
-   would leave the gap on the RIGHT, between the dots and the count, which is
-   the gap this card was already fixed for once. */
-check("...and the week stops at its natural width, beside its numbers",
+   centred in its track, so the surplus is split into two small margins
+   rather than piling into one. v3.3.363 changed the ALIGNMENT (flush right ->
+   centred) on the maker's call; what both versions defend is the same and is
+   what the check asserts: the week has a bounded width and the surplus is
+   PLACED rather than divided among seven columns. Without a cap the columns
+   stretch forever; without an auto margin the browser decides where the
+   leftover lands. */
+check("...and the week stops at its natural width, placed in its track",
       `${(function(){const c=fs.readFileSync(path.join(dir,"css/app.css"),"utf8")
           .replace(/\/\*[\s\S]*?\*\//g,"").replace(/\r?\n\s*/g,"");
         const r=(c.match(/\.mcdots\{[^}]*\}/)||[""])[0];
-        return /max-width:\d+px/.test(r) && /margin-left:auto/.test(r);})()}`, "true");
+        return /max-width:\d+px/.test(r) && /margin(-inline|-left):auto/.test(r);})()}`, "true");
 check("...the day marks are seven fixed cells, flush at both ends",
       `${(function(){const c=fs.readFileSync(path.join(dir,"css/app.css"),"utf8")
           .replace(/\/\*[\s\S]*?\*\//g,"").replace(/\r?\n\s*/g,"");

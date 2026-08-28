@@ -1,5 +1,10 @@
 # ShowUp — changelog
 
+## v3.3.363 (2026-08-27) — The coverage week sits centred
+
+The day marks are centred in their track now rather than pushed against the
+numbers, and sit a little further apart. Unchanged on a phone.
+
 ## v3.3.362 (2026-08-27) — The coverage week stops spreading
 
 **On a wide screen the day columns kept stretching**, so the marks drifted
