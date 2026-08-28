@@ -662,10 +662,23 @@ function muscleCard(){
     const open=_mcOpen===v;
     let inner='';
     if(open){
-      const rows=Object.entries(gg.mus).sort((a,b)=>b[1].days.size-a[1].days.size);
-      inner=`<div class="mcinner">${rows.length?rows.map(([m,st])=>
-        `<div class="mcirow"><span class="mciname">${m}</span>
-          <span class="mciwhen"><b>${st.days.size}</b> day${st.days.size===1?'':'s'} \u00b7 ${st.sets} set${st.sets===1?'':'s'}</span></div>`).join('')
+      /* v3.3.357: the FULL roster, trained first, then what is missing --
+         and a muscle with nothing logged says "not this week" rather than
+         "0 days \u00b7 0 sets". The fact is the same; the arithmetic is not.
+         Three zeroes stacked up read as a score, and a seven-day window is
+         not a verdict on a muscle -- it says nothing about last Tuesday.
+         Ordering is by days trained, then by the roster's own order, so an
+         untrained muscle always sinks to the bottom of its group and the
+         list does not reshuffle as the week fills in. */
+      const order=(GROUP_MUSCLES[v]||[]);
+      const rows=Object.entries(gg.mus).sort((a,b)=>
+        b[1].days.size-a[1].days.size || order.indexOf(a[0])-order.indexOf(b[0]));
+      inner=`<div class="mcinner">${rows.length?rows.map(([m,st])=>{
+        const none=!st.sets;
+        return `<div class="mcirow${none?' mcinone':''}"><span class="mciname">${MUSCLE_LABEL[m]||m}</span>
+          <span class="mciwhen">${none?'not this week'
+            :`<b>${st.days.size}</b> day${st.days.size===1?'':'s'} \u00b7 ${st.sets} set${st.sets===1?'':'s'}`}</span></div>`;
+        }).join('')
         :`<div class="note">No sets in the last 7 days.</div>`}</div>`;
     }
     return `${vi?line:''}<div class="mcrow ${open?'open':''}" data-mcg="${v}">

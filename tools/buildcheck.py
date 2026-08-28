@@ -423,7 +423,16 @@ if (_day_boundary < 0 or _gapr.find("seen.push") < _day_boundary
     fail.append("growth audit: sets from one workout must not become baselines until the next day (v3.3.227)")
 if not _re.search(r"const GA_SIGNAL_LABELS=\{empty:'Empty',flat:'Flat',up:'Going up'\}", _stats):
     fail.append("growth audit: public model must contain exactly Empty, Flat and Going up (v3.3.211)")
-_gareceipt = _stats[_stats.find("shown.map"):_stats.find("</div>`).join", _stats.find("shown.map"))]
+# v3.3.357: bound the slice to the growth-audit row itself. This used to run
+# from "shown.map" to the next "</div>`).join" ANYWHERE in the file -- which
+# happened to be inside muscleCard, thousands of lines later. Editing muscleCard
+# for the muscle roster removed that occurrence, the slice ran on to the next
+# one, and the guard failed on a <small> in the attendance hero it was never
+# meant to read. A guard whose extent depends on unrelated code reports on
+# unrelated code. It now ends at the row template's own terminator.
+_gastart = _stats.find("shown.map")
+_gaend = _stats.find("`).join('')", _gastart)
+_gareceipt = _stats[_gastart:_gaend if _gaend > _gastart else _gastart]
 if "GA_ICONS" in _stats or "<small>" in _gareceipt:
     fail.append("growth audit: text glyph map or exercise subtitle returned (v3.3.211)")
 for _asset in ("status-flat.png", "status-up.png"):

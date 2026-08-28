@@ -1,5 +1,17 @@
 # ShowUp — changelog
 
+## v3.3.357 (2026-08-27) — Coverage shows what you're missing
+
+**Tap a muscle group and you see every muscle in it, not just the ones you
+trained.** Anything you skipped says `not this week` — the same fact, without
+pretending a seven-day window is a score.
+
+**Chest and Shoulders split.** Chest into upper and mid/lower, by pressing
+angle. Shoulders into front, side and rear delts — which is where this earns
+its place, since the rear delt is what a pressing-heavy week quietly misses.
+
+Every group total is unchanged; the parts just add up to it now.
+
 ## v3.3.356 (2026-08-27) — Swiping between tabs is gone
 
 **The tab bar is now the only way to change tabs.** The swipe gesture had

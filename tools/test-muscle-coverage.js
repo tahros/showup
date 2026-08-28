@@ -195,9 +195,11 @@ check("tapping a group opens its internal receipt without a re-render",
       `(function(){const view=document.querySelector('#view'); view._k=1;
         [...document.querySelectorAll('.mcrow')].find(x=>x.querySelector('.mcname').textContent==='Back').click();
         return view._k===1 && !!document.querySelector('.mccard .mcinner');})()`, true);
+/* v3.3.357: the muscles wear LABELS now ("upper back", not "upper-back"),
+   because a key with a hyphen is a database row, not a word. Same property. */
 check("...listing internal muscles by days",
       `(function(){const t=document.querySelector('.mcinner').textContent;
-        return t.includes('lats')&&t.includes('upper-back');})()`, true);
+        return t.includes('lats')&&t.includes('upper back');})()`, true);
 run(`_mcOpen=null;`);
 
 // ---- 5. fallbacks: unknown non-Legs exercise credits its part's group;
@@ -211,8 +213,60 @@ check("an unknown Chest exercise credits Chest",
       `(function(){const c=muscleCoverage();return !!c.groups['Chest'].mus['chest'];})()`, true);
 check("an unknown Legs exercise lands visible-Legs, internal 'unassigned'",
       `(function(){const c=muscleCoverage();return !!c.groups['Legs'].mus['unassigned'];})()`, true);
+/* v3.3.357 RESTATES. This read "quads is absent", which was true only while
+   the roster was built from what you logged. Every group now carries its full
+   roster seeded at zero, so quads always EXISTS -- that is the feature. The
+   property being defended is unchanged and is about credit, not existence:
+   an unknown Legs exercise must not add a set to quads. */
 check("...and did NOT get guessed into quads",
-      `(function(){const c=muscleCoverage();return c.groups['Legs'].mus['quads']===undefined;})()`, true);
+      `(function(){const c=muscleCoverage();
+        /* null-safe on purpose: without it, removing the roster seed makes
+           this THROW instead of failing, and a crash names no property. */
+        return (c.groups['Legs'].mus['quads']||{sets:'quads missing'}).sets;})()`, 0);
+
+/* v3.3.357: THE ROSTER. A muscle you skipped is a row that says so, which is
+   the whole point -- the card could only ever show what you DID. */
+check("every group carries its whole roster, trained or not",
+      `(function(){const c=muscleCoverage();
+        return Object.keys(c.groups['Shoulders'].mus).sort().join(',');})()`,
+      "front-delts,rear-delts,side-delts");
+check("...and an untrained muscle is present, at zero",
+      `(function(){const c=muscleCoverage();const r=c.groups['Shoulders'].mus['rear-delts'];
+        return !!r && r.sets===0 && r.days.size===0;})()`, true);
+/* the roster is MUSCLE_VISIBLE read backwards, so a muscle can never be
+   listed in a group it does not roll up to */
+check("...and the roster agrees with the rollup, both ways",
+      `(function(){return Object.entries(GROUP_MUSCLES).every(([g,ms])=>
+         ms.every(m=>MUSCLE_VISIBLE[m]===g));})()`, true);
+
+/* the split itself: incline presses up into the clavicular head, flat does
+   not, and a press is not a lateral raise */
+check("an incline press credits the upper chest",
+      `EX_MUSCLE['Incline Barbell Bench Press']`, "upper-chest");
+check("...and a flat press does not",
+      `EX_MUSCLE['Barbell Bench Press']`, "chest");
+check("a lateral raise credits the side delt",
+      `EX_MUSCLE['Lateral Raise']`, "side-delts");
+check("...a press the front, and a face pull the rear",
+      `[EX_MUSCLE['Overhead Barbell Press'],EX_MUSCLE['Face Pull']].join(',')`,
+      "front-delts,rear-delts");
+
+/* THE INVARIANT. Splitting a group may not change a single group-level
+   number: the sub-muscles must still sum to the parent. */
+check("splitting a group leaves its totals untouched",
+      `(function(){const c=muscleCoverage();
+        return ['Chest','Shoulders','Legs','Back','Arms','Core'].every(g=>{
+          const gg=c.groups[g];
+          return Object.values(gg.mus).reduce((a,m)=>a+m.sets,0)===gg.sets;});})()`, true);
+
+/* and the zero state is words, not arithmetic: three "0 days . 0 sets" rows
+   stacked up read as a score, and a seven-day window is not a verdict */
+check("an untrained muscle says so in words, and counts nothing",
+      `(function(){[...document.querySelectorAll('.mcrow')]
+         .find(x=>x.querySelector('.mcname').textContent==='Shoulders').click();
+        const none=document.querySelector('.mcinner .mcirow.mcinone');
+        return !!none && /not this week/.test(none.textContent)
+            && !/\\d/.test(none.querySelector('.mciwhen').textContent);})()`, true);
 
 process.exit(fail ? 1 : 0);
 })();

@@ -17,18 +17,47 @@ const VISIBLE_GROUPS=['Chest','Back','Shoulders','Arms','Legs','Core'];
    that speaks in groups; the ledger keeps storing the underlying part. */
 const PART_VISIBLE={Chest:'Chest',Back:'Back',Shoulder:'Shoulders',Legs:'Legs',
   Biceps:'Arms',Triceps:'Arms',Sixpack:'Core',Run:'Run'};
-const MUSCLE_VISIBLE={chest:'Chest',lats:'Back','upper-back':'Back',shoulders:'Shoulders',
+/* v3.3.357: Chest and Shoulders were single muscles, so expanding either one
+   repeated its parent row and could never show a gap.
+   CHEST splits by the pec's two heads: the clavicular (upper) and the
+   sternocostal (mid/lower). Real anatomy, and pressing angle biases them --
+   incline favours the upper head, flat and decline the lower. It is a BIAS,
+   not two independent muscles: both heads work in every press, which is why
+   the labels read "upper" and "mid / lower" rather than naming two things
+   that could be trained apart. ("Inner" and "outer" chest are not anatomy and
+   do not appear here.)
+   SHOULDERS splits into the deltoid's three heads -- anterior, lateral,
+   posterior -- which genuinely can be trained apart, and which is the point:
+   the rear delt is the muscle a pressing-heavy programme misses, and it is
+   exactly what this card could not say before. */
+const MUSCLE_VISIBLE={'upper-chest':'Chest', chest:'Chest',
+  lats:'Back','upper-back':'Back',
+  'front-delts':'Shoulders','side-delts':'Shoulders','rear-delts':'Shoulders',
   biceps:'Arms',triceps:'Arms',quads:'Legs',hamstrings:'Legs',calves:'Legs',
   glutes:'Legs',core:'Core'};
+/* the label a muscle wears on screen. Only where the key is not already the
+   words a person would use; everything else prints its own key. */
+const MUSCLE_LABEL={'upper-chest':'upper chest', chest:'mid / lower chest',
+  'upper-back':'upper back', 'front-delts':'front delts',
+  'side-delts':'side delts', 'rear-delts':'rear delts'};
+/* v3.3.357: THE ROSTER. Coverage used to build this list from the sets you
+   logged, so a muscle you skipped did not exist in the data and could not be
+   drawn -- the card could only ever show what you DID. Seeded from
+   MUSCLE_VISIBLE so a group's roster is its rollup read backwards and the two
+   cannot drift; the order here is the order on screen. */
+const GROUP_MUSCLES=Object.entries(MUSCLE_VISIBLE)
+  .reduce((a,[m,v])=>((a[v]=a[v]||[]).push(m),a),{});
 const EX_MUSCLE={
   /* Chest — all pressing/fly patterns */
-  'Incline Smith Machine Bench Press':'chest','Flat Smith Machine Bench Press':'chest',
-  'Incline Dumbbell Bench Press':'chest','Chest Press':'chest','Chest Fly':'chest',
-  'Cable Fly Up':'chest','Cable Fly Down':'chest','Chest Squeeze':'chest','Dip':'chest',
-  'Barbell Bench Press':'chest','Incline Barbell Bench Press':'chest',
+  'Incline Smith Machine Bench Press':'upper-chest','Flat Smith Machine Bench Press':'chest',
+  'Incline Dumbbell Bench Press':'upper-chest','Chest Press':'chest','Chest Fly':'chest',
+  'Cable Fly Up':'upper-chest',   /* low-to-high: the clavicular head */
+  'Cable Fly Down':'chest',       /* high-to-low: the sternocostal head */
+  'Chest Squeeze':'chest','Dip':'chest',
+  'Barbell Bench Press':'chest','Incline Barbell Bench Press':'upper-chest',
   'Decline Barbell Bench Press':'chest','Dumbbell Bench Press':'chest',
   'Decline Dumbbell Bench Press':'chest','Machine Chest Press':'chest',
-  'Cable Crossover':'chest','Incline Cable Fly':'chest','Low Cable Fly':'chest',
+  'Cable Crossover':'chest','Incline Cable Fly':'upper-chest','Low Cable Fly':'upper-chest',
   'Dumbbell Pullover':'chest','Landmine Press':'chest','Svend Press':'chest',
   'Push Up':'chest','Weighted Push Up':'chest',
   /* Back — vertical pulls → lats; rows/hinges/shrugs → upper-back or as noted */
@@ -40,13 +69,15 @@ const EX_MUSCLE={
   'Barbell Shrug':'upper-back',
   'Deadlift':'hamstrings','Rack Pull':'upper-back',
   /* Shoulder */
-  'Dumbbell Shoulder Press':'shoulders','Lateral Raise':'shoulders',
-  'Dumbbell Front Raise':'shoulders','Dumbbell Combination':'shoulders',
-  'Dumbbell Bent Over Side Raise':'shoulders','Rear Deltoids':'shoulders',
-  'Overhead Barbell Press':'shoulders','Arnold Press':'shoulders',
-  'Machine Shoulder Press':'shoulders','Cable Lateral Raise':'shoulders',
-  'Face Pull':'shoulders','Upright Row':'shoulders','Reverse Pec Deck':'shoulders',
-  'Landmine Lateral Raise':'shoulders','Cable Rear Delt Fly':'shoulders',
+  /* presses drive the front head; raises to the side, the lateral; anything
+     pulling the arm BACKWARD, the rear. */
+  'Dumbbell Shoulder Press':'front-delts','Lateral Raise':'side-delts',
+  'Dumbbell Front Raise':'front-delts','Dumbbell Combination':'side-delts',
+  'Dumbbell Bent Over Side Raise':'rear-delts','Rear Deltoids':'rear-delts',
+  'Overhead Barbell Press':'front-delts','Arnold Press':'front-delts',
+  'Machine Shoulder Press':'front-delts','Cable Lateral Raise':'side-delts',
+  'Face Pull':'rear-delts','Upright Row':'side-delts','Reverse Pec Deck':'rear-delts',
+  'Landmine Lateral Raise':'side-delts','Cable Rear Delt Fly':'rear-delts',
   /* Legs — squat/lunge → quads; curls/RDL → hamstrings; thrust → glutes; calf → calves */
   'Squat':'quads','Front Squat':'quads','Hack Squat':'quads','Leg Press':'quads',
   'Goblet Squat':'quads','Leg Extension':'quads','Bulgarian Split Squat':'quads',
@@ -73,7 +104,11 @@ const EX_MUSCLE_2ND={'Deadlift':['glutes','upper-back'],'Squat':['glutes','core'
   'Barbell Bench Press':['triceps','shoulders'],'Pull Up':['biceps'],
   'Bent-Over Row':['lats','biceps'],'Overhead Barbell Press':['triceps'],
   'Bulgarian Split Squat':['glutes'],'Dumbbell Lunge':['glutes'],'Walking Lunge':['glutes']};
-const PART_FALLBACK={Chest:'chest',Back:'upper-back',Shoulder:'shoulders',
+/* v3.3.357: an unmapped Shoulder exercise lands on the front head -- the one
+   a press hits, which is what an unrecognised shoulder movement most often
+   is. It is a guess, and it is the reason a new exercise should get a real
+   EX_MUSCLE entry rather than riding the fallback. */
+const PART_FALLBACK={Chest:'chest',Back:'upper-back',Shoulder:'front-delts',
   Biceps:'biceps',Triceps:'triceps',Sixpack:'core'};   // Legs deliberately absent
 function exMuscle(ex,part){
   return EX_MUSCLE[ex]||PART_FALLBACK[part]||'unassigned';
@@ -86,7 +121,12 @@ function muscleCoverage(){
     const d=new Date(todayISO+'T00:00'); d.setDate(d.getDate()-i);
     days.push(d.toLocaleDateString('en-CA'));
   }
-  const g={}; for(const v of VISIBLE_GROUPS) g[v]={days:new Set(),sets:0,dots:days.map(()=>false),mus:{}};
+  /* v3.3.357: seeded with the FULL roster at zero, so a muscle you did not
+     train is a row that says so instead of a row that does not exist. */
+  const g={}; for(const v of VISIBLE_GROUPS){
+    g[v]={days:new Set(),sets:0,dots:days.map(()=>false),mus:{}};
+    for(const m of (GROUP_MUSCLES[v]||[])) g[v].mus[m]={days:new Set(),sets:0};
+  }
   days.forEach((iso,di)=>{
     const rows=iso===todayISO
       ?((DB.days[iso]||{}).w||[]).map(s2=>[s2.part,s2.ex,s2.w,s2.reps||[]])
@@ -97,7 +137,7 @@ function muscleCoverage(){
       const vis=MUSCLE_VISIBLE[m]||({Legs:'Legs'})[r[0]]||MUSCLE_VISIBLE[PART_FALLBACK[r[0]]]||'Core';
       const gg=g[vis]; if(!gg) continue;
       gg.days.add(iso); gg.sets+=r[3].length; gg.dots[di]=true;
-      gg.mus[m]=gg.mus[m]||{days:new Set(),sets:0};
+      gg.mus[m]=gg.mus[m]||{days:new Set(),sets:0};   // a stray key still counts
       gg.mus[m].days.add(iso); gg.mus[m].sets+=r[3].length;
     }
   });

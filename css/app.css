@@ -1973,6 +1973,12 @@
   .mcirow{display:flex;justify-content:space-between;padding:4px 0}
   .mciname{font-family:var(--mono);font-size:11px;color:var(--muted)}
   .mciwhen{font-family:var(--mono);font-size:11px;color:var(--faint)}
+  /* v3.3.357: a muscle with nothing logged this week recedes -- one tier, not
+     a colour. It is an absence, not a warning: nothing here turns amber, and
+     the app has no word for "behind". Dimming is what it already says for
+     spent (.rspent) and for days not yet arrived (.fut). */
+  .mcirow.mcinone .mciname,.mcirow.mcinone .mciwhen{
+    color:color-mix(in srgb,var(--faint) 55%,var(--surface))}
   .mciwhen b{color:var(--muted);font-weight:600}
   /* v3.3.211 Growth Audit — three visual signals only. Empty is a native
      CSS dot; Flat and Going Up use optically sized Noun Project masks. */
