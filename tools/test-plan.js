@@ -759,7 +759,10 @@ run(`(function(){view='today'; lift.ex=null; render();})()`);
 
   /* a different weight is a different line: 8 reps at 135 cannot spend a 195 */
   seed(`[{part:'Legs',ex:'Squat',w:toKg(135),reps:[8,8,8],at:1}]`);
-  ok("...weight is matched, so another weight spends nothing",
+  /* v3.3.367 RESTATES the NAME: the rule is no longer "the same weight", it
+     is "that weight or heavier". A LIGHTER set still spends nothing, which is
+     what this fixture actually shows (135 against a plan of 195). */
+  ok("...a lighter set spends nothing",
            marks('Squat') === "8 8 8 8", marks('Squat'));
 
   /* a hold is not a rep: 60 seconds must not cancel a set of 8 */
@@ -772,6 +775,37 @@ run(`(function(){view='today'; lift.ex=null; render();})()`);
   seed(`[{part:'Legs',ex:'Squat',w:toKg(195),reps:[8,8,8,8,8,8],at:1}]`);
   ok("...doing more than planned simply spends the line",
            marks('Squat') === ". . . .", marks('Squat'));
+
+  /* v3.3.367: A HEAVIER SET SATISFIES A LIGHTER PLAN -- the maker's own case.
+     Planned 30, did 35: he had plainly done the work and the card said
+     otherwise, because v3.3.349 matched on an exact weight. */
+  seed(`[{part:'Legs',ex:'Squat',w:toKg(205),reps:[8],at:1}]`);
+  ok("a heavier set spends a lighter planned set",
+     marks('Squat') === ". 8 8 8", marks('Squat'));
+
+  /* ALLOCATED, not counted per line. Under a plain >=, one set at 205 would
+     satisfy a 135 line AND a 195 line -- two dimmed sets from one set of
+     work. Each logged set is spent once, and heaviest-first means the 205
+     lands on the heavier line rather than being eaten by the lighter one. */
+  run(`(function(){DB.days={}; DB.settings.unit='lb';
+    DB.days[todayISO]={w:[{part:'Legs',ex:'Squat',w:toKg(205),reps:[8],at:1}],upd:1};
+    DB.plan={d:todayISO, items:[{ex:'Squat', lines:[
+      {w:toKg(135), bw:false, reps:[8]},
+      {w:toKg(195), bw:false, reps:[8]}]}], note:''};
+    DB.planAt=Date.now(); SEED=deriveAll(); view='today'; render();})()`);
+  ok("...and one set can only spend one planned set",
+     marks('Squat') === "8 .", marks('Squat'));
+
+  /* the maker's other case, which must NOT dim: he did the movement, but
+     lighter than planned, so the plan still stands */
+  run(`(function(){DB.days={}; DB.settings.unit='lb';
+    DB.days[todayISO]={w:[{part:'Chest',ex:'Cable Fly Up',w:toKg(20),reps:[10,10],at:1}],upd:1};
+    DB.plan={d:todayISO, items:[{ex:'Cable Fly Up', lines:[
+      {w:toKg(20), bw:false, reps:[10]},
+      {w:toKg(35), bw:false, reps:[12,10]}]}], note:''};
+    DB.planAt=Date.now(); SEED=deriveAll(); view='today'; render();})()`);
+  ok("...while sets lighter than planned leave the heavier lines standing",
+     marks('Cable Fly Up') === ". 12 10", marks('Cable Fly Up'));
 
   /* THE LINE THE BUILD DEFENDS. No count, fraction or percentage of a plan
      may appear -- buildcheck scans the source for the vocabulary, this scans

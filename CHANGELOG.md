@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v3.3.367 (2026-08-28) — A heavier set counts as done
+
+**Plan 30 lb, lift 35, and the planned set dims.** It used to need the exact
+weight, so going heavier than you'd planned looked like you hadn't done it at
+all. Going lighter still leaves the line standing, as before.
+
+Each set you log can only tick off one planned set — a single heavy set
+doesn't clear two lines at once.
+
 ## v3.3.366 (2026-08-28) — The tab bar follows you
 
 **Tapping a plan row on Today opens the exercise, and the bar now moves to

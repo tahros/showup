@@ -45,8 +45,11 @@ function planSectionHTML(){
              already in the record can recede. _rtx stays as the MEASURING
              function -- v3.3.324's shared --planr column width is computed
              from its plain text, and markup would break that arithmetic. */
-          const _rhtml=(ex,l)=>{
-            const spent=planSpent(ex,l);
+          /* v3.3.367: the spend is ALLOCATED across the whole exercise, so it
+             arrives per line rather than being recomputed here -- one set can
+             only dim one planned set, and a heavier one lands on the heaviest
+             line it covers. */
+          const _rhtml=(l,spent)=>{
             if(isHold(l.su))
               return `<i class="rp${spent>=l.reps.length?' rspent':''}">${_rtx(l)}</i>`;
             return l.reps.map((r,k)=>`<i class="rp${k<spent?' rspent':''}">${r}</i>`).join(' ');
@@ -54,10 +57,10 @@ function planSectionHTML(){
           const _ln=(_pl.items||[]).reduce((a,i)=>a.concat(i.lines||[]),[]);
           const _cw=(f,min)=>Math.max(min,..._ln.map(l=>f(l).length));
           h+=`<div class="card plancard" style="--planw:${_cw(_wtx,2)}ch;--planr:${_cw(_rtx,1)}ch">
-            ${(_pl.items||[]).map(i=>`<button class="planrow${planLoggedToday(i.ex)?' pdone':''}" data-planex="${i.ex}">
+            ${(_pl.items||[]).map(i=>{const _sp=planSpentMap(i); return `<button class="planrow${planLoggedToday(i.ex)?' pdone':''}" data-planex="${i.ex}">
                 <span class="pn">${i.ex}<i class="pk">${planLoggedToday(i.ex)?'\u2713':''}</i></span>
-                <span class="pl">${i.lines.map(l=>`<span class="pv pw mono">${_wtx(l)}</span><span class="px mono" aria-hidden="true">\u00d7</span><span class="pr mono">${_rhtml(i.ex,l)}</span>`).join('')}</span>
-              </button>`).join('')}
+                <span class="pl">${i.lines.map((l,li)=>`<span class="pv pw mono">${_wtx(l)}</span><span class="px mono" aria-hidden="true">\u00d7</span><span class="pr mono">${_rhtml(l,_sp[li])}</span>`).join('')}</span>
+              </button>`;}).join('')}
             ${_pl.note?planNoteHTML(_pl.note):''}
           </div>`;
         }

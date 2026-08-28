@@ -1183,15 +1183,42 @@ const planSets=i=>(i.lines||[]).filter(l=>!isHold(l.su)).flatMap(l=>l.reps.map(r
    app knows about, because the ledger stores kg and a plan may have arrived
    in lb. A held line matches held sets and a weighted line matches weighted
    ones, so 60 seconds never cancels a set of 8. */
-function planSpent(ex,l){
-  let n=0;
-  for(const s of ((DB.days[todayISO]||{}).w||[])){
-    if(s.ex!==ex||!(s.reps||[]).length) continue;
-    if(isHold(s.su)!==isHold(l.su)) continue;
-    if(!isHold(l.su)&&Math.abs((s.w||0)-(l.w||0))>0.06) continue;
-    n+=s.reps.length;
+/* v3.3.367: A HEAVIER SET SATISFIES A LIGHTER PLAN. v3.3.349 matched on an
+   EXACT weight, so a plan of 30 lb dimmed nothing when the maker did 35 --
+   he had plainly done the work and the card said otherwise. The rule is now
+   "at that weight OR HEAVIER", which is what he meant by planning it.
+   Reps are still ignored, deliberately. Requiring reps too would turn the
+   card into a pass/fail test of the session, which is the thing v3.3.278 and
+   v3.3.281 built guards against. Weight alone keeps it a fact: you have
+   lifted at least this, this many times.
+   ALLOCATED, NOT COUNTED PER LINE, which is why this replaces a per-line
+   function. Under a plain >=, one set at 35 would satisfy a 20 line AND a 35
+   line -- two dimmed sets from one set of work. Each logged set is spent
+   once: planned entries are taken HEAVIEST FIRST and given the lightest
+   logged set that covers them, so a 35 lands on the 35 line rather than
+   being eaten by the 20 beneath it, and the count can never exceed the work.
+   Holds and weighted sets are allocated in separate pools -- 60 seconds is
+   not "heavier than" 30 lb, and the two must never satisfy each other. */
+function planSpentMap(item){
+  const lines=item.lines||[];
+  const out=lines.map(()=>0);
+  const want=[];
+  lines.forEach((l,i)=>(l.reps||[]).forEach(()=>
+    want.push({i, hold:isHold(l.su), w:+l.w||0})));
+  const have=[];
+  for(const s of ((DB.days[todayISO]||{}).w||[]))
+    if(s.ex===item.ex) (s.reps||[]).forEach(()=>
+      have.push({hold:isHold(s.su), w:+s.w||0, used:false}));
+  for(const kind of [false,true]){
+    const need=want.filter(x=>x.hold===kind).sort((a,b)=>b.w-a.w);   // heaviest first
+    const pool=have.filter(x=>x.hold===kind).sort((a,b)=>a.w-b.w);   // lightest sufficient
+    for(const nd of need){
+      const hit=pool.find(h=>!h.used && h.w+0.06>=nd.w);
+      if(!hit) continue;
+      hit.used=true; out[nd.i]++;
+    }
   }
-  return n;
+  return out;
 }
 /* v3.3.309: rubber-band and pull-to-refresh move the SCROLLING VIEW, never
    <body>. A transformed element becomes the containing block for its
