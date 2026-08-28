@@ -1758,12 +1758,23 @@
      to flex-start so a two-line left column no longer drags the right one
      down to its centre. */
   .day summary>span:first-child{min-width:0;flex:1 1 auto}
+  /* v3.3.361: the actions never wrap. They were flex-wrap:wrap beside the
+     day's totals, so on a narrow row the second button dropped to its own
+     line -- two controls stacked in a header two lines tall. With the totals
+     gone there is room, and nowrap + flex:0 0 auto says so rather than
+     leaving it to chance at some width I did not test. */
   .day summary>span:last-child{display:flex;align-items:center;justify-content:flex-end;
-    flex:0 1 auto;flex-wrap:wrap;gap:6px 8px;text-align:right}
+    flex:0 0 auto;flex-wrap:nowrap;gap:8px;text-align:right}
   .day summary>span:last-child>.dayedit{margin-left:0}
   .day summary::-webkit-details-marker{display:none}
   .day .d{font-family:var(--mono);font-size:13px}
   .day .s{font-family:var(--mono);font-size:11px;color:var(--muted)}
+  /* v3.3.361: the parts are ONE line. "Run · Legs · Sixpack" wrapped under
+     the date and dragged the whole header taller. It ellipsises rather than
+     wraps: a session names two or three parts, and the row's job is the date
+     and what you trained, not to hold every part at any width. min-width:0 on
+     the parent is what lets a flex child shrink far enough to clip at all. */
+  .day summary .s{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .day .body{padding:0 14px 12px;font-family:var(--mono);font-size:12px;color:var(--muted)}
   .day .body b{color:var(--chalk);font-weight:500}
   /* v3.3.43: session detail reuses the LAST TIME row styles, so it must NOT

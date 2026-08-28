@@ -311,15 +311,19 @@ function renderHistory(){
     monthDays.forEach(d=>{
       const list=P?detail[d].filter(s=>s.part===P):detail[d];
       if(!list.length) return;
-      const vol=list.reduce((a,s)=>a+volOf(s),0);
-      const km=list.filter(s=>s.ex==='Run').reduce((a,s)=>a+s.w,0);
       /* v3.3.62: a part whose only entry is an empty legacy marker isn't a
          part you trained — don't name it in the summary. */
       const parts=[...new Set(list.filter(s=>s.ex==='Run'||(s.reps||[]).length)
                                   .map(s=>s.part).filter(Boolean))].join(' · ');
-      const bits=[];
-      if(vol)bits.push(vDisp(vol)+' '+U());
-      if(km)bits.push(dDisp(km)+DU());
+      /* v3.3.361: the per-session TOTALS are gone from the header. A day's
+         tonnage and distance were computed here and printed opposite the
+         date, where they were the widest thing in the row -- they pushed the
+         parts onto a second line and the two action buttons onto a third.
+         They were also the least useful numbers on the screen: the sets are
+         listed immediately below, exercise by exercise, and the month's
+         totals sit in the calendar directly above. A per-day sum in between
+         is a third answer to a question nobody asked twice.
+         The header is now the date, the parts, and the two controls. */
       /* v3.3.43: open by default, and grouped the way the LAST TIME card
          groups — weight on the left, reps as chips.
          Grouping is by exercise GLOBALLY (first-appearance order), not by
@@ -347,7 +351,7 @@ function renderHistory(){
       }
       h+=`<details class="day${editing?' editing':''}" open data-d="${d}"><summary>
           <span><span class="d">${pretty(d)}</span><div class="s">${(m=>m?`Day ${fmt(m)} · `:'')(msMarkFor(d))}${parts||'—'}</div></span>
-          <span class="s">${bits.join(' · ')}${editable?`<button class="dayedit ico" data-dshare="${d}" aria-label="Share this day as an image" title="Share">${ICO_SHARE}</button><button class="dayedit ico" data-hedit="${d}" aria-label="${editing?'Finish editing this day':'Edit this day'}" title="${editing?'Done':'Edit'}">${editing?ICO_DONE:ICO_EDIT}</button>`:''}</span></summary><div class="body">`;
+          <span class="s">${editable?`<button class="dayedit ico" data-dshare="${d}" aria-label="Share this day as an image" title="Share">${ICO_SHARE}</button><button class="dayedit ico" data-hedit="${d}" aria-label="${editing?'Finish editing this day':'Edit this day'}" title="${editing?'Done':'Edit'}">${editing?ICO_DONE:ICO_EDIT}</button>`:''}</span></summary><div class="body">`;
       byEx.forEach(g=>{
         /* v3.3.62: a set is a REP. Legacy sheet rows carry reps:[] as bare
            markers — they render nothing, so counting them as 1 printed

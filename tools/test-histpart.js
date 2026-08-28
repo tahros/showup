@@ -142,9 +142,30 @@ check("the head has exactly two columns", `${HEAD}.children.length`, 2);
 check("all three parts land in the LEFT column",
       `(function(){const l=${HEAD}.firstElementChild.textContent;
         return ['Run','Back','Biceps'].every(p=>l.includes(p));})()`, true);
-check("volume and BOTH controls share the right column",
+/* v3.3.361 RESTATES. The right column used to carry the day's volume AND the
+   two controls; the volume is gone -- it was the widest thing in the row, it
+   pushed the parts to a second line and a control to a third, and the sets it
+   summed are listed immediately below while the month's totals sit in the
+   calendar directly above. What the check was really defending is the
+   two-column head with BOTH controls together, so that is what it asserts
+   now, plus the thing that was actually wrong: no number in the header. */
+check("BOTH controls share the right column",
       `(function(){const r=${HEAD}.lastElementChild;
-        return r.querySelectorAll('.dayedit').length===2 && /kg/.test(r.textContent);})()`, true);
+        return r.querySelectorAll('.dayedit').length===2;})()`, true);
+check("...and no per-day total is printed beside them",
+      `(function(){const r=${HEAD}.lastElementChild;
+        return !/\\d/.test(r.textContent) && !/kg|lb|mi|km/.test(r.textContent);})()`, true);
+/* the two things the totals were crowding, asserted as CSS because jsdom
+   computes no layout and cannot tell a wrapped line from a single one */
+check("...the parts stay on one line",
+      `${(function(){const c=fs.readFileSync(path.join(dir,"css/app.css"),"utf8")
+          .replace(/\/\*[\s\S]*?\*\//g,"").replace(/\r?\n\s*/g,"");
+        return /\.day summary \.s\{[^}]*white-space:nowrap/.test(c);})()}`, "true");
+check("...and the controls never wrap to a second",
+      `${(function(){const c=fs.readFileSync(path.join(dir,"css/app.css"),"utf8")
+          .replace(/\/\*[\s\S]*?\*\//g,"").replace(/\r?\n\s*/g,"");
+        const r=(c.match(/\.day summary>span:last-child\{[^}]*\}/)||[""])[0];
+        return /flex-wrap:nowrap/.test(r) && !/flex-wrap:wrap/.test(r);})()}`, "true");
 
 /* v3.3.358: the two day actions are GLYPHS, not words. An icon with no
    accessible name is a button nobody can identify, so the assertion is about

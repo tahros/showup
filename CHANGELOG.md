@@ -1,5 +1,15 @@
 # ShowUp — changelog
 
+## v3.3.361 (2026-08-27) — A one-line session header
+
+**The per-day total and distance are gone from each session header.** They
+were the widest thing in the row — enough to push the body parts onto a second
+line and one of the buttons onto a third. The sets are listed right below and
+the month's totals sit in the calendar right above; a sum in between was a
+third answer to the same question.
+
+The parts now hold one line, and the two buttons sit side by side.
+
 ## v3.3.360 (2026-08-27) — The real icons
 
 The share and edit marks are now the actual icons, credited in Settings. The
