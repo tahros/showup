@@ -106,8 +106,10 @@ check("the reading survives releasing the finger",
         const up=new window.Event('pointerup',{bubbles:true}); up.pointerId=1;
         svg.dispatchEvent(up);
         return svg.querySelector('.pacehalo').getAttribute('opacity');})()`, 1);
-check("the pace chart is on the tab-swipe blocklist",
-      `${/closest\('\.pacescrub'\)/.test(fs.readFileSync(path.join(dir,"js/util.js"),"utf8"))}`, "true");
+/* v3.3.356: the tab-swipe is gone. What matters locally is that the scrubber
+   still declares the axis its own. */
+check("the pace scrubber still claims its own axis",
+      `${/touch-action:\s*none/.test(fs.readFileSync(path.join(dir,"css/app.css"),"utf8"))}`, "true");
 
 // ---- 3. Every week: the tallest bar's value clears the card caption
 check("the tallest weekly value label sits clear of the year caption",

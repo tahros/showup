@@ -36,98 +36,27 @@
   ['touchend','touchcancel'].forEach(ev=>addEventListener(ev,()=>{release();y0=null;},{passive:true}));
 })();
 
-/* ---------- swipe between tabs ----------
-   Horizontal swipe moves along the nav: Today ↔ Lift ↔ Stats ↔ History.
-   Deliberately inert inside an exercise/part drill-down (the back button owns
-   that axis) and over any horizontally scrollable strip (suggested chips,
-   heatmap) or zoomable chart, so it never steals a legitimate gesture. */
-(()=>{
-  const TABS=['today','lift','stats','history'];
-  let sx=0, sy=0, tracking=false, decided=false, horiz=false, popMode=false;
-  /* v3.3.140: modals mounted on <body>, OUTSIDE #app. This gesture listens
-     globally, so a swipe inside an open overlay was tracked here in parallel
-     with the overlay's own handler — the share image rotated AND the page
-     changed tab underneath it. Each is position:fixed;inset:0, so while one
-     is open every touch lands inside it and closest() catches the lot,
-     including drags starting on its buttons. Nothing inside a modal should
-     ever move the page beneath it. */
-  const MODALS='#repOv,#onb,#msOv,#portraitveil';
-  const blocked=t=>t.closest('[data-zoom]')||t.closest('.zone.mini .lastsets')||
-                   t.closest('.heat')||t.closest('.heatcols')||   // the rail scrolls too
-                   t.closest('.heatwrap')||   /* v3.3.307: the year heatmap scrolls sideways */
-                   t.closest('input')||t.closest('.settile')||
-                   t.closest('.ychips')||      // v3.3.39: History's year strip scrolls sideways
-                   t.closest('.pmixwrap')||   // v3.3.116: part mix scrolls sideways
-                   t.closest('#repCard')||    // v3.3.139: the card carousel owns its own left/right
-                   t.closest('.lbwrap')||     // v3.3.164: scrubbing the live bars is not a tab swipe
-                   t.closest(MODALS)||        // v3.3.140: and nothing under a modal moves
-                   t.closest('.pacescrub')||  // v3.3.236: dragging pace reads it, never changes tab
-                   t.closest('.compscroll')||  // sideways-scrolling chart owns its axis
-                   t.closest('.pmixlgd')||    /* v3.3.306: the legend scrolls sideways now */
-                   t.closest('.repwrap');      /* v3.3.288: the rep ruler scrubs
-                     sideways. Inside an exercise a horizontal swipe means BACK
-                     (popMode), so without this every scrub of the reps threw
-                     you out of the lift — the harshest possible version of the
-                     bug, mid-set. Every sideways-scrolling surface in the app
-                     belongs on this list; the ruler was simply the newest. */
-  addEventListener('touchstart',e=>{
-    if(e.touches.length!==1||view==='sync') return;
-    if(blocked(e.target)) return;
-    // v3.1.3 (Sungjee): inside a drill-down, a horizontal swipe means BACK —
-    // either direction. Tabs are one pop away; you can't tab-hop out of a lift.
-    popMode=(view==='lift'&&!!lift.ex);
-    sx=e.touches[0].clientX; sy=e.touches[0].clientY;
-    tracking=true; decided=false; horiz=false;
-  },{passive:true});
-  const hint=()=>document.getElementById('swipehint');
-  const showHint=dx=>{
-    const el=hint(); if(!el) return;
-    if(popMode){                                           // back-pop: ‹ on the left edge, both directions
-      el.className='l on';
-      el.firstElementChild.textContent='‹';
-      el.title=lift.part||'Train';
-      el.style.setProperty('--p',Math.min(1,Math.abs(dx)/90));
-      el.firstElementChild.style.opacity=(0.35+0.65*Math.min(1,Math.abs(dx)/90)).toFixed(2);
-      return;
-    }
-    const goingNext=dx<0;                                  // swipe left → next tab
-    const i=TABS.indexOf(view);
-    const j=(i+(goingNext?1:-1)+TABS.length)%TABS.length;
-    // the arrow points the way you're dragging; it lives on the edge you're heading toward
-    el.className=(goingNext?'r':'l')+' on';
-    el.firstElementChild.textContent=goingNext?'›':'‹';
-    el.title=TABS[j];
-    el.style.setProperty('--p',Math.min(1,Math.abs(dx)/90));
-    el.firstElementChild.style.opacity=(0.35+0.65*Math.min(1,Math.abs(dx)/90)).toFixed(2);
-  };
-  const hideHint=()=>{const el=hint(); if(el) el.className='';};
-  addEventListener('touchmove',e=>{
-    if(!tracking) return;
-    const dx=e.touches[0].clientX-sx, dy=e.touches[0].clientY-sy;
-    if(!decided){
-      if(Math.abs(dx)<10&&Math.abs(dy)<10) return;
-      decided=true; horiz=Math.abs(dx)>Math.abs(dy)*1.5;   // clearly sideways, not a scroll
-      if(!horiz){ tracking=false; return; }
-    }
-    if(horiz) showHint(dx);
-  },{passive:true});
-  addEventListener('touchend',e=>{
-    hideHint();
-    if(!tracking||!horiz){ tracking=false; return; }
-    tracking=false;
-    const dx=(e.changedTouches[0].clientX)-sx;
-    if(Math.abs(dx)<60) return;                            // a real swipe, not a twitch
-    if(popMode){ popMode=false; lift.ex=null; render(); return; }   // drill-down: swipe = back
-    const i=TABS.indexOf(view);
-    if(i<0) return;
-    const j=(i+(dx<0?1:-1)+TABS.length)%TABS.length;       // wraps: History ⇄ Today
-    view=TABS[j];
-    if(view==='lift'){const b=liftBack(); lift=b?{part:b.part,ex:b.ex,weight:0}:{part:null,ex:null,weight:0};}   // v3.3.347
-    if(session) cloudPush();
-    document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
-    render();
-  },{passive:true});
-})();
+/* ---------- swipe between tabs: REMOVED in v3.3.356 ----------
+   The gesture moved along the nav, and it carried FOURTEEN opt-outs -- every
+   one added after it had already broken something, stamped from v3.3.39
+   through v3.3.307: the year strip, the part mix and its legend, the card
+   carousel, the live bars, the pace scrubber, the compare chart, the heatmap
+   and its rail, modals, inputs, set tiles, zoomable charts, and the rep
+   ruler.
+   The failure mode is what condemned it. A new horizontally scrolling
+   control works perfectly until someone swipes it, and then it steals the
+   tab -- silently, and only found by feel. The rep ruler shipped in
+   v3.3.286 and did not get its opt-out until v3.3.288, so for two releases
+   scrubbing reps mid-set could throw you off the Train tab one-handed.
+   That is a permanent tax on every horizontal control this app will ever
+   add, and it bought nothing: the nav bar reaches all four destinations in
+   one tap, is always visible, and sits under the thumb. A second path to
+   the same four places is not a feature.
+   The blocklist is DELETED rather than left dormant, because a dead rule
+   gets quoted back as a live one (v3.3.252). Nothing else rode on this
+   handler; it also removes one of the three consumers of liftBack(), so the
+   tab-memory rule now has two paths to stay consistent across instead of
+   three. */
 
 /* ---------- pull to refresh ----------
    Hold the page down from the very top and let go: pending saves flush, the
@@ -1448,9 +1377,10 @@ function monthlyPaceData(n=12){
    All nine monthly points print their values directly; dragging adds the full
    month and year and rings the exact point. Nearest point by SCREEN x — pace is a one-per-month
    series, so horizontal distance is the whole question and vertical distance
-   would only add noise. Same gesture grammar as the other charts: the surface
-   is on the tab-swipe blocklist and touch-action:none, and the reading STAYS
-   after release so a finger is not covering what it found. */
+   would only add noise. Same gesture grammar as the other charts:
+   touch-action:none, and the reading STAYS after release so a finger is not
+   covering what it found. (Until v3.3.356 this surface also had to sit on the
+   tab-swipe blocklist; that gesture is gone and so is the list.) */
 function paceNear(svg,clientX){
   const pts=[...svg.querySelectorAll('.pacepoint')];
   if(!pts.length) return null;

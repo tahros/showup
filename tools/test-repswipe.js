@@ -102,10 +102,15 @@ ok("...with the card as their positioning context",
 ok("...one on each edge", /#repPrev\{left:/.test(css) && /#repNext\{right:/.test(css));
 
 // ---- 6. THE INTEGRATION FACT: the card owns its own horizontal axis -----
-/* without this the tab-swipe gesture fires too and every card swipe also
-   changes tab — the single most likely way this feature breaks */
-ok("the card is in the tab-swipe blocklist",
-   /closest\('#repCard'\)/.test(fs.readFileSync(path.join(dir, "js/util.js"), "utf8")));
+/* v3.3.356 RESTATES: this asserted the card sat on the tab-swipe blocklist,
+   because otherwise every card swipe also changed tab. The gesture is gone,
+   so the hazard is gone with it -- and it went partly BECAUSE of hazards like
+   this one: fourteen controls had to remember to opt out, and a new one broke
+   silently until someone swiped it. The card's own gesture is asserted
+   directly above and below; the global fact (no touch handler assigns `view`)
+   is buildcheck's, once, rather than restated in five suites. */
+ok("no gesture outside the card can move the app while it is swiped",
+   !/TABS=\['today'/.test(fs.readFileSync(path.join(dir, "js/util.js"), "utf8")));
 
 /* ---- 6a. v3.3.140: and the OVERLAY does too -----------------------------
    The v3.3.139 check above passed while the popup was broken, because it
@@ -138,9 +143,11 @@ ok("every full-screen modal is inert to the tab-swipe", (() => {
   const u = fs.readFileSync(path.join(dir, "js/util.js"), "utf8");
   return ["#repOv", "#onb", "#msOv"].every(id => u.includes(id));
 })());
+/* v3.3.356: ONE global gesture blocklist remains (pull-to-refresh), so the
+   overlay appears in it once, not twice. */
 ok("...and to pull-to-refresh", (() => {
   const u = fs.readFileSync(path.join(dir, "js/util.js"), "utf8");
-  return (u.match(/#repOv/g) || []).length >= 2;
+  return (u.match(/#repOv/g) || []).length >= 1;
 })());
 
 /* ---- 6b. v3.3.288: the REP RULER owns its own horizontal axis ------------
@@ -163,8 +170,12 @@ ok("...and does NOT pop you out of the exercise",
 const viewAfterBand = touchSwipe(".repwrap");
 ok("...nor does one starting on the ruler's own band",
    viewAfterBand === "lift" && run(`lift.ex`) === exBefore);
-/* the surrounding card must still swipe back — the block is the ruler only,
-   not the whole exercise page */
+/* v3.3.356 INVERTS this. It asserted that a swipe on the surrounding card
+   POPPED you out of the exercise, because the block was the ruler only. That
+   behaviour is deleted with the gesture: swiping the page no longer navigates
+   anywhere, and the back button owns that axis alone. The check is kept
+   rather than dropped, aimed the other way -- the exercise you are in is the
+   exercise you stay in, whatever your thumb does. */
 const viewAfterCard = run(`(function(){
   const el=document.querySelector('.zone')||document.getElementById('view');
   const mk=(t,x)=>{ const ev=new Event(t,{bubbles:true,cancelable:true});
@@ -174,8 +185,8 @@ const viewAfterCard = run(`(function(){
   el.dispatchEvent(mk('touchmove',120));
   el.dispatchEvent(mk('touchend',120));
   return lift.ex;})()`);
-ok("...while a swipe elsewhere on the page still pops back",
-   viewAfterCard === null, "lift.ex = " + String(viewAfterCard));
+ok("...and a swipe elsewhere on the page no longer pops back either",
+   viewAfterCard === exBefore, "lift.ex = " + String(viewAfterCard));
 
 /* ---- 6c. v3.3.309: the nav stays pinned during a page gesture -----------
    A transformed element becomes the containing block for its fixed-position

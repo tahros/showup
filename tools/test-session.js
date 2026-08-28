@@ -292,8 +292,9 @@ ok("a pointerdown on the chart writes DATE · VOLUME into the readout", run(`(fu
      return document.querySelector('.lbread').textContent;})()`).includes("400"));
 ok("...and highlights the bar under the finger",
    run(`document.querySelector('.lbbar:not(.lbNow)').getAttribute('fill')`) === "var(--accent)");
-ok("the chart is inert to the tab-swipe",
-   /closest\('\.lbwrap'\)/.test(fs.readFileSync(path.join(dir, "js/util.js"), "utf8")));
+/* v3.3.356: nothing competes for this chart's horizontal axis now. */
+ok("the chart still owns its horizontal axis",
+   /touch-action:pan-y/.test(run(`document.querySelector('.lbsvg').getAttribute('style')`)));
 ok("...and vertical page scroll stays alive (touch-action:pan-y)",
    /touch-action:pan-y/.test(run(`document.querySelector('.lbsvg').getAttribute('style')`)));
 

@@ -589,8 +589,19 @@ run(`PMIX_FOCUS=null; delete DB.days[todayISO]; SEED=deriveAll(); render();`);
 }
 /* a sideways scroller inside a tab-swiping app must own its axis — the
    v3.3.288 lesson, third surface */
-ok("the legend cannot swipe the tab out from under a scroll",
-   /closest\('\.pmixlgd'\)/.test(fs.readFileSync(path.join(dir, "js/util.js"), "utf8")));
+/* v3.3.356 RESTATES: the tab-swipe is GONE, so nothing competes for this
+   element's horizontal axis any more. The property this defended -- a
+   sideways-scrolling control owns its own gesture -- is now true by
+   construction rather than by membership of a blocklist. buildcheck holds
+   the one global guard (no touch handler may assign `view`); asserting the
+   same global fact in five suites would be five copies of one rule. What
+   stays local is that the control still scrolls sideways at all. */
+/* read from the STYLESHEET: jsdom computes no cascade, so getComputedStyle
+   returns 'visible' here no matter what the sheet says -- the same blind spot
+   that hid the broken separators in v3.3.354. */
+ok("the legend still owns its horizontal axis",
+   /\.pmixlgd\{[^}]*overflow-x:\s*auto/.test(
+     fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\r?\n\s*/g, "")));
 ok("every body part is present, none dropped by the new layout",
    run(`document.querySelectorAll('.pmixlgd [data-pt]').length`) ===
    run(`Object.keys(SEED.catalog).filter(p=>p!=='Run').length`),
@@ -614,8 +625,10 @@ ok("with a filter the animation moves to that part's rightmost bar",
 run(`pmixSetFocus('Back');`);
 
 // ---- it owns its horizontal gesture --------------------------------------
-ok("the chart is in the tab-swipe blocklist (it scrolls sideways)",
-   /closest\('\.pmixwrap'\)/.test(fs.readFileSync(path.join(dir, "js/util.js"), "utf8")));
+/* v3.3.356: the tab-swipe is gone; the chart owns its axis by construction. */
+ok("the chart still scrolls sideways",
+   /\.pmixwrap\{[^}]*overflow-x:\s*auto/.test(
+     fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\r?\n\s*/g, "")));
 
 // ---- v3.3.120: the chart's furniture -------------------------------------
 run(`view='stats'; render();`);

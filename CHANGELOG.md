@@ -1,5 +1,16 @@
 # ShowUp — changelog
 
+## v3.3.356 (2026-08-27) — Swiping between tabs is gone
+
+**The tab bar is now the only way to change tabs.** The swipe gesture had
+accumulated fourteen exceptions — the heatmap, the rep ruler, every chart
+that scrolls sideways — each added after it had already stolen a gesture from
+something. Anything new that scrolled horizontally worked until the first
+time somebody swiped it.
+
+Nothing is lost: the tab bar reaches all four screens in one tap and never
+misfires while you're scrubbing reps mid-set.
+
 ## v3.3.355 (2026-08-27) — Running distances were wrong
 
 **The month card was converting distances twice.** Every mileage on it —

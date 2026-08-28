@@ -246,9 +246,14 @@ _util = (d/"js/util.js").read_text()
 for _m in _re.finditer(r"#([A-Za-z][\w-]*)\{[^}]*position:fixed[^}]*inset:0[^}]*\}", css):
     _id = _m.group(1)
     _hits = _util.count("#" + _id)
-    if _hits < 2:
-        fail.append(f"modal #{_id} is position:fixed;inset:0 but appears in "
-                    f"{_hits} of the 2 gesture blocklists in util.js (v3.3.140)")
+    # v3.3.356: ONE blocklist now, not two. The tab swipe is gone and its list
+    # with it; pull-to-refresh is the only global gesture left that a modal
+    # must sit above. The rule v3.3.140 was defending is unchanged -- a
+    # full-screen overlay must not let a page gesture run underneath it -- so
+    # the count moves from 2 to 1 rather than the check being dropped.
+    if _hits < 1:
+        fail.append(f"modal #{_id} is position:fixed;inset:0 but is not in "
+                    f"the pull-to-refresh blocklist in util.js (v3.3.140/356)")
 
 # -- Minimal skin (v3.3.168): the DEFAULT skin is a chrome layer, not an ink
 #    layer. Three guards: (1) its token blocks may only define an allowlisted
@@ -488,8 +493,10 @@ if not _re.search(r"\.pmixlgd button\.on\{[^}]*color:var\(--chalk\)", _flat_css)
     fail.append("session build: the selected part must be visibly selected (v3.3.306)")
 if not _re.search(r"\.pmixlgdwrap::after\{[^}]*linear-gradient", _flat_css):
     fail.append("session build: a clipped legend name must fade, not cut off (v3.3.306)")
-if "closest('.pmixlgd')" not in (d/"js/util.js").read_text():
-    fail.append("session build: the legend scrolls sideways and must be in the tab-swipe blocklist (v3.3.306)")
+# v3.3.356: the legend's blocklist guard is gone with the gesture it protected.
+# A guard that outlives its feature is a rule waiting to be quoted back as
+# current (v3.3.252). The legend still scrolls sideways; nothing competes for
+# that axis any more.
 if not all(_logic in _stats for _logic in (
         "let latestIndex=rows.length-1", "if(PMIX_FOCUS)",
         "latest=i===latestIndex", "p===PMIX_FOCUS")):
@@ -782,8 +789,7 @@ if _re.search(r"\.heatgrid \.hc\.j[ud]\{", _heat_flat):
     fail.append("show up: the joined-stroke variant was retired — every day is its own square (v3.3.314)")
 if not _re.search(r"\.heatgrid\{[^}]*row-gap:\d+px", _heat_flat):
     fail.append("show up: the day gap belongs on the grid track (v3.3.314)")
-if "closest('.heatwrap')" not in (d/"js/util.js").read_text():
-    fail.append("show up: the heatmap scrolls sideways and must be in the tab-swipe blocklist (v3.3.307)")
+# v3.3.356: same -- the heatmap's blocklist guard retires with the tab swipe.
 
 # -- shell size
 n = len(idx.encode())
@@ -827,6 +833,24 @@ try:
         fail.append("bump.py rewrote prose in index.html or sw.js — the v3.3.342 bug is back")
 finally:
     _sh.rmtree(_fix, ignore_errors=True)
+
+# -- v3.3.356: no gesture may change the tab.
+# The swipe carried FOURTEEN opt-outs, each added after it had already broken
+# something (v3.3.39 through v3.3.307), and its failure mode was silent: a new
+# horizontally scrolling control worked until someone swiped it. The rep ruler
+# shipped in v3.3.286 and was unprotected until v3.3.288 -- two releases where
+# scrubbing reps mid-set could throw you off the Train tab. The nav bar reaches
+# all four destinations in one tap; a second path was never worth that tax.
+# This is the guard that keeps it gone: no touch handler may assign `view`.
+_util = (d/"js/util.js").read_text()
+if _re.search(r"touch(start|move|end)[\s\S]{0,3000}?\bview\s*=", _util):
+    fail.append("a touch gesture assigns view — the tab swipe was removed in v3.3.356")
+# the first version of this also failed on any PROSE containing "tab-swipe
+# blocklist" -- which caught the comment that records why the list was
+# deleted. A guard that forbids describing the past is worse than no guard;
+# this one looks for the mechanism instead.
+if "TABS=['today'" in _util:
+    fail.append("the tab-swipe tab list is back; it was deleted with the gesture (v3.3.356)")
 
 if fail:
     print("BUILDCHECK FAIL"); [print(" -", f) for f in fail]; sys.exit(1)

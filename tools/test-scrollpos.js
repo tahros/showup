@@ -218,11 +218,15 @@ run(`hist={y:+thisYear,m:+todayISO.slice(5,7),part:null}; view='history'; render
 check("year strip still centres the selection",
       `!!document.querySelector('.ychips .chip.on')`, true);
 
-// the swipe handler must not steal either scroller's axis
+/* v3.3.356: there is no swipe handler to steal an axis. This listed the three
+   scrollers that had to be excluded from it; the gesture is gone, and it went
+   partly because that list had grown to fourteen and every new horizontal
+   control had to remember to join it. The check now asserts the absence of
+   the thing rather than the completeness of its exceptions. */
 const src = fs.readFileSync(path.join(dir, "js/util.js"), "utf8");
-const blocked = ["'.heat'", "'.heatcols'", "'.ychips'"].every(s => src.includes(s));
-console.log((blocked?"PASS":"FAIL"), "swipe excludes every sideways scroller →", blocked);
-if (!blocked) fail++;
+const noSwipe = !/TABS=\['today'/.test(src);
+console.log((noSwipe?"PASS":"FAIL"), "no gesture competes for a sideways scroller's axis →", noSwipe);
+if (!noSwipe) fail++;
 
 /* v3.3.344: the Train tab REMEMBERS, while a session is live.
    The maker steps to Today mid-workout to read the plan, taps back, and was
