@@ -1,5 +1,15 @@
 # ShowUp — changelog
 
+## v3.3.358 (2026-08-27) — Share and Edit become icons
+
+**The two words in each session header are now glyphs** — a share mark and a
+pencil. The row's job is to tell you what you did; the controls should be
+there without being read. The pencil turns into a check while a day is open,
+so there's still a clear way out of editing.
+
+Both keep their names for screen readers, and the tap targets got slightly
+larger rather than smaller.
+
 ## v3.3.357 (2026-08-27) — Coverage shows what you're missing
 
 **Tap a muscle group and you see every muscle in it, not just the ones you

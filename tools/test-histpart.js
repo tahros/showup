@@ -145,6 +145,21 @@ check("all three parts land in the LEFT column",
 check("volume and BOTH controls share the right column",
       `(function(){const r=${HEAD}.lastElementChild;
         return r.querySelectorAll('.dayedit').length===2 && /kg/.test(r.textContent);})()`, true);
+
+/* v3.3.358: the two day actions are GLYPHS, not words. An icon with no
+   accessible name is a button nobody can identify, so the assertion is about
+   the NAME as much as the shape: two icon pills, each carrying an aria-label,
+   and no visible text left to read. */
+check("the day actions are icons that still have names",
+      `(function(){const b=[...document.querySelectorAll('.day .dayedit.ico')];
+        return b.length>=2
+          && b.every(x=>!!x.querySelector('svg') && (x.getAttribute('aria-label')||'').length>3)
+          && b.every(x=>x.textContent.trim()==='');})()`, true);
+/* COPY MONTH / COPY YEAR share the .dayedit class and must stay words --
+   there is no symbol for "copy a year" anyone would read correctly. */
+check("...while the copy buttons stay words",
+      `(function(){const c=[...document.querySelectorAll('.copyacts .dayedit')];
+        return c.length===0 || c.every(x=>x.textContent.trim().length>0);})()`, true);
 check("...so no wrap can split a control away from its day",
       `document.querySelectorAll('.day>summary [data-dshare]').length ===
        document.querySelectorAll('.day>summary>span:last-child [data-dshare]').length`, true);

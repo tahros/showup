@@ -6,6 +6,26 @@
    edit mode by its own Edit button; until then the record is inert, so a
    thumb landing mid-scroll can never rewrite three weeks ago. Every state
    walks back out: Done exits, and any re-render or tab change clears it. */
+/* v3.3.358: the day actions are GLYPHS. Two words in a session header were
+   two words competing with the date, the parts and the totals -- the row's
+   job is to say what you did, and the controls should be available without
+   being read.
+   Drawn here rather than imported. The maker linked two Noun Project icons;
+   those are licensed assets carrying attribution terms, so these are the
+   standard forms of the same two symbols, drawn as inline SVG: the three-node
+   share and the pencil. Inline means they inherit currentColor, so they take
+   the pill's colour in both themes and the accent fill while editing, with no
+   asset to ship, cache or bust.
+   EDIT BECOMES A CHECK while the day is open. The word used to flip Edit ->
+   Done; a pencil that stays a pencil would lose the only cue that says how to
+   get out, and the accent fill alone is a colour, not an instruction.
+   Every button keeps an aria-label and gains a title, because an icon with no
+   name is a button nobody can identify -- by screen reader or by hover. */
+const _ico=(p)=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+const ICO_SHARE=_ico('<circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.3 10.7l7.4-4.4M15.7 17.7l-7.4-4.4"/>');
+const ICO_EDIT=_ico('<path d="M4 20h4L19.3 8.7a2.4 2.4 0 0 0-3.4-3.4L4.6 16.6 4 20z"/><path d="M14.8 6.4l3.4 3.4"/>');
+const ICO_DONE=_ico('<path d="M5 12.8l4.2 4.2L19 7.2"/>');
+
 function partForEx(ex,d){
   for(const [pt,list] of Object.entries(SEED.catalog||{})) if((list||[]).includes(ex)) return pt;
   const w=((DB.days[d]||{}).w)||[];
@@ -321,7 +341,7 @@ function renderHistory(){
       }
       h+=`<details class="day${editing?' editing':''}" open data-d="${d}"><summary>
           <span><span class="d">${pretty(d)}</span><div class="s">${(m=>m?`Day ${fmt(m)} · `:'')(msMarkFor(d))}${parts||'—'}</div></span>
-          <span class="s">${bits.join(' · ')}${editable?`<button class="dayedit" data-dshare="${d}" aria-label="Share this day as an image">Share</button><button class="dayedit" data-hedit="${d}">${editing?'Done':'Edit'}</button>`:''}</span></summary><div class="body">`;
+          <span class="s">${bits.join(' · ')}${editable?`<button class="dayedit ico" data-dshare="${d}" aria-label="Share this day as an image" title="Share">${ICO_SHARE}</button><button class="dayedit ico" data-hedit="${d}" aria-label="${editing?'Finish editing this day':'Edit this day'}" title="${editing?'Done':'Edit'}">${editing?ICO_DONE:ICO_EDIT}</button>`:''}</span></summary><div class="body">`;
       byEx.forEach(g=>{
         /* v3.3.62: a set is a REP. Legacy sheet rows carry reps:[] as bare
            markers — they render nothing, so counting them as 1 printed
