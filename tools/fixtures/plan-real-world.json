@@ -1,0 +1,142 @@
+[
+  {
+    "id": "01-heading-and-set-lines",
+    "shape": "Exercise heading followed by individual set lines",
+    "source": "https://www.reddit.com/r/weightroom/comments/1fhvqaa",
+    "input": "Barbell Bench Press\n135 lb x 10\n145 lb x 8",
+    "expect": {"mode":"plan","exercise":"Barbell Bench Press","lines":[{"w":135,"unit":"lb","reps":[10]},{"w":145,"unit":"lb","reps":[8]}]}
+  },
+  {
+    "id": "02-numbered-sets",
+    "shape": "Explicit Set 1 / Set 2 notation",
+    "source": "https://www.reddit.com/r/beginnerfitness/comments/1uhigml/need_explanation_notating_and_tracking/",
+    "input": "Squat\nSet 1: 185 lb x 5\nSet 2: 185 lb x 5\nSet 3: 185 lb x 5",
+    "expect": {"mode":"plan","exercise":"Squat","lines":[{"w":185,"unit":"lb","reps":[5],"tag":"Set 1"},{"w":185,"unit":"lb","reps":[5],"tag":"Set 2"},{"w":185,"unit":"lb","reps":[5],"tag":"Set 3"}]}
+  },
+  {
+    "id": "03-one-weight-rep-list",
+    "shape": "One weight followed by a rep list",
+    "source": "https://www.reddit.com/r/weightroom/comments/143ynhr",
+    "input": "Seated Cable Row 140 lb x 12, 10, 8",
+    "expect": {"mode":"plan","exercise":"Seated Cable Row","lines":[{"w":140,"unit":"lb","reps":[12,10,8]}]}
+  },
+  {
+    "id": "04-multiple-loads-one-line",
+    "shape": "Several load and rep groups compressed onto one line",
+    "source": "https://www.reddit.com/r/weightroom/comments/p5wbmn",
+    "input": "Incline Dumbbell Bench Press 35 lb x 12 · 45 lb x 10 · 50 lb x 8",
+    "expect": {"mode":"plan","exercise":"Incline Dumbbell Bench Press","lines":[{"w":35,"unit":"lb","reps":[12]},{"w":45,"unit":"lb","reps":[10]},{"w":50,"unit":"lb","reps":[8]}]}
+  },
+  {
+    "id": "05-sets-reps-at-load",
+    "shape": "Sets x reps @ weight",
+    "source": "https://www.reddit.com/r/weightroom/comments/ogorea/july_9_daily_thread/",
+    "input": "Leg Press 3 x 10 @ 220 lb",
+    "expect": {"mode":"plan","exercise":"Leg Press","lines":[{"w":220,"unit":"lb","reps":[10,10,10]}]}
+  },
+  {
+    "id": "06-load-sets-reps",
+    "shape": "Weight x sets x reps",
+    "source": "https://www.reddit.com/r/weightroom/comments/1mh6kgx",
+    "input": "Deadlift 225 lb x 3 x 5",
+    "expect": {"mode":"plan","exercise":"Deadlift","lines":[{"w":225,"unit":"lb","reps":[5,5,5]}]}
+  },
+  {
+    "id": "07-rep-range",
+    "shape": "A target rep range rather than exact reps",
+    "source": "https://www.reddit.com/r/workout/comments/1vgiofp/people_who_track_their_workouts_what_are_you/",
+    "input": "Lat Pulldown 3 x 8-12 @ 100 lb",
+    "expect": {"mode":"preserve","note":"8-12"}
+  },
+  {
+    "id": "08-warmup-and-work",
+    "shape": "Warm-up and work-set labels",
+    "source": "https://www.reddit.com/r/weightroom/comments/1jg89cl/march_21_daily_thread/",
+    "input": "Overhead Barbell Press\nWarm-up: 45 lb x 10\nWork: 75 lb x 8, 8, 8",
+    "expect": {"mode":"plan","exercise":"Overhead Barbell Press","lines":[{"w":45,"unit":"lb","reps":[10],"tag":"Warm-up"},{"w":75,"unit":"lb","reps":[8,8,8],"tag":"Work"}]}
+  },
+  {
+    "id": "09-top-and-backoff",
+    "shape": "Top set followed by back-off sets",
+    "source": "https://www.reddit.com/r/liftosaur/comments/1c8j7xa/top_set_and_back_off_set_with_rpe_and_actual_sets/",
+    "input": "Barbell Bench Press\nTop set: 185 lb x 5\nBack-off: 165 lb x 8, 8",
+    "expect": {"mode":"plan","exercise":"Barbell Bench Press","lines":[{"w":185,"unit":"lb","reps":[5],"tag":"Top set"},{"w":165,"unit":"lb","reps":[8,8],"tag":"Back-off"}]}
+  },
+  {
+    "id": "10-rpe-or-rir",
+    "shape": "Load and reps with an effort target",
+    "source": "https://www.reddit.com/r/fitness30plus/comments/13ias6l/training_journals_what_do_you_all_record/",
+    "input": "Squat 225 lb x 5 @ RPE 8",
+    "expect": {"mode":"plan","exercise":"Squat","lines":[{"w":225,"unit":"lb","reps":[5],"qual":"RPE 8"}]}
+  },
+  {
+    "id": "11-amrap-plus-set",
+    "shape": "AMRAP or plus-set notation",
+    "source": "https://www.reddit.com/r/weightroom/comments/i8tvy4/august_13_daily_thread/",
+    "input": "Overhead Barbell Press 95 lb x 5+",
+    "expect": {"mode":"preserve","note":"5+"}
+  },
+  {
+    "id": "12-added-bodyweight",
+    "shape": "Bodyweight movement with added load",
+    "source": "https://www.reddit.com/r/weightroom/comments/1fhvqaa",
+    "input": "Weighted Pull Up +25 lb x 5, 5, 5",
+    "expect": {"mode":"preserve","note":"+25 lb"}
+  },
+  {
+    "id": "13-per-side",
+    "shape": "A unilateral prescription marked per arm or side",
+    "source": "https://www.reddit.com/r/weightroom/comments/143ynhr",
+    "input": "Single-Arm Dumbbell Row 45 lb x 10, 10, 10 per arm",
+    "expect": {"mode":"plan","exercise":"Single-Arm Dumbbell Row","lines":[{"w":45,"unit":"lb","reps":[10,10,10]}]}
+  },
+  {
+    "id": "14-timed-hold",
+    "shape": "Timed hold written on one line",
+    "source": "https://www.reddit.com/r/workout/comments/1vgiofp/people_who_track_their_workouts_what_are_you/",
+    "input": "Plank / 60 sec x 2",
+    "expect": {"mode":"plan","exercise":"Plank","lines":[{"w":0,"bw":true,"su":"s","reps":[60,60]}]}
+  },
+  {
+    "id": "15-tempo-or-pause",
+    "shape": "A tempo or pause modifier on an ordinary set",
+    "source": "https://virtusapp.ai/blog/how-to-read-a-workout-program/",
+    "input": "Barbell Bench Press 135 lb x 8 @ 3-1-1 tempo",
+    "expect": {"mode":"plan","exercise":"Barbell Bench Press","lines":[{"w":135,"unit":"lb","reps":[8],"qual":"3-1-1 tempo"}]}
+  },
+  {
+    "id": "16-superset",
+    "shape": "Superset grouping",
+    "source": "https://www.reddit.com/r/strongapp/comments/1ga3914/how_to_set_dropsets_and_restpause_exercise_in_the/",
+    "input": "Superset:\nDumbbell Curl 25 lb x 10\nRope Pushdown 40 lb x 12\n3 rounds",
+    "expect": {"mode":"preserve","note":"Superset"}
+  },
+  {
+    "id": "17-circuit",
+    "shape": "Circuit or giant-set block",
+    "source": "https://www.tandemcrossfit.com.au/post/crossfit-wod-formats-amrap-emom-for-time",
+    "input": "3 rounds:\nPush Up x 15\nGoblet Squat 35 lb x 12\nMountain Climber 30 sec",
+    "expect": {"mode":"preserve","note":"3 rounds"}
+  },
+  {
+    "id": "18-drop-or-rest-pause",
+    "shape": "Drop-set or rest-pause chain",
+    "source": "https://www.reddit.com/r/strongapp/comments/1ga3914/how_to_set_dropsets_and_restpause_exercise_in_the/",
+    "input": "Lateral Raise 20 lb x 12 → 15 lb x 10 → 10 lb x 10",
+    "expect": {"mode":"preserve","note":"20 lb"}
+  },
+  {
+    "id": "19-clock-structured-conditioning",
+    "shape": "EMOM / AMRAP / For Time workout",
+    "source": "https://www.tandemcrossfit.com.au/post/crossfit-wod-formats-amrap-emom-for-time",
+    "input": "EMOM 10:\nOdd: 10 Push Up\nEven: 12 Goblet Squat",
+    "expect": {"mode":"preserve","note":"EMOM 10"}
+  },
+  {
+    "id": "20-running-intervals",
+    "shape": "Running intervals with target time and recovery",
+    "source": "https://www.reddit.com/r/artc/comments/apsie1/tuesday_and_wednesday_general_question_and_answer/",
+    "input": "6 x 400m @ 1:45, 90 sec rest",
+    "expect": {"mode":"preserve","note":"400m"}
+  }
+]

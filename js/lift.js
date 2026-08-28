@@ -767,9 +767,9 @@ function planScreenHTML(){
     if(r.kind==='ex'&&r.ex){
       h+=`<div class="planpv ok"><span class="pi">\u2713</span>
         <span class="pb"><b>${hesc(r.ex)}</b>
-          ${r.lines.map(l=>`<i class="mono">${l.bw?'BW':l.w+(l.unit||'')} ${isHold(l.su)
+          ${r.lines.map(l=>`<i class="mono">${l.tag?`${hesc(l.tag)} · `:''}${l.bw?'BW':l.w+(l.unit||'')} ${isHold(l.su)
               ? `${secLabel(l.reps[0])} \u00d7 ${l.reps.length}`
-              : `\u00d7 ${l.reps.join(', ')}`}</i>`).join('')}</span>
+              : `\u00d7 ${l.reps.join(', ')}`}${l.qual?` · ${hesc(l.qual)}`:''}</i>`).join('')}</span>
         <button class="lsx" data-plandrop="${i}" aria-label="Skip ${hesc(r.ex)}">\u2715</button></div>`;
     }else if(r.kind==='ex'){
       h+=`<div class="planpv ask"><span class="pi">?</span>

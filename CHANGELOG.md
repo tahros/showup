@@ -1,5 +1,27 @@
 # ShowUp — changelog
 
+## v3.3.365 (2026-08-28) — Twenty ways people write a workout
+
+**Today's plan is now tested against twenty real workout-log shapes**, drawn
+from the way lifters and runners actually write: numbered sets, compressed
+weight lines, `3 × 10 @ 220 lb`, top and back-off sets, RPE/RIR, tempo,
+unilateral work, timed holds, supersets, circuits, drop sets and intervals.
+
+Twelve shapes can become honest, tappable plan rows today. Numbered sets and
+set-role labels are read; both common sets/reps orders are read; effort and
+tempo instructions remain visible in the read-back; and the promised
+one-line `Plank / 60 sec × 2` finally reads as `BW 1′ × 2`.
+
+The other eight shapes need a model the ledger does not have yet: rep ranges,
+AMRAP/plus sets, added bodyweight, supersets, circuits, drop/rest-pause chains,
+clock workouts and running intervals. **They stay intact as notes instead of
+being flattened into a convincing but wrong plan.** The parser still proposes,
+the preview still confirms, and only sets actually logged enter the record.
+
+The twenty examples and their sources now live in a permanent regression
+fixture, so every future parser change must either read each one completely or
+preserve it completely. Half-reading is a test failure.
+
 ## v3.3.364 (2026-08-28) — Go-to shows the weight you'll actually get
 
 **That column was your all-time heaviest, ever** — which is why Lateral Raise

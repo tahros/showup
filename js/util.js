@@ -907,6 +907,55 @@ function planReadSets(line){
   if(!bw&&!reps.length&&!unit) return null;      // a bare number is not a set line
   return {w, unit, reps, bw};
 }
+/* Real training notes often put the relationship before the load
+     3 x 10 @ 220 lb
+   or write all three numbers after the load
+     225 lb x 3 x 5
+   Both have one unambiguous reading. Keep them separate from PLAN_SET: that
+   older reader deliberately treats `5x5` as sets x reps only after a load. */
+function planReadPrescription(line){
+  const peeled=planPeelQualifier(line), s=peeled.body;
+  let m=s.match(/^\s*(\d+)\s*[x×]\s*(\d+)\s*@\s*([\d.]+)\s*(lb|lbs|kg|kgs)\s*$/i);
+  if(m){
+    const sets=+m[1], reps=+m[2], w=+m[3], unit=m[4].toLowerCase().replace(/s$/,'');
+    if(sets>0&&sets<=20&&reps>0&&reps<1000&&w>=0)
+      return {w,unit,bw:false,reps:Array(sets).fill(reps),qual:peeled.qual};
+  }
+  m=s.match(/^\s*([\d.]+)\s*(lb|lbs|kg|kgs)\s*[x×]\s*(\d+)\s*[x×]\s*(\d+)\s*$/i);
+  if(m){
+    const w=+m[1], unit=m[2].toLowerCase().replace(/s$/,''), sets=+m[3], reps=+m[4];
+    if(sets>0&&sets<=20&&reps>0&&reps<1000&&w>=0)
+      return {w,unit,bw:false,reps:Array(sets).fill(reps),qual:peeled.qual};
+  }
+  const ordinary=planReadSets(s);
+  return ordinary ? {...ordinary,qual:peeled.qual} : null;
+}
+
+/* Modifiers may be useful instructions, but they are not weights or reps.
+   Peel only familiar, explicit suffixes and carry their exact text into the
+   read-back preview. The accepted plan stays numerical and the original raw
+   paste remains stored, so no modifier is silently reinterpreted. */
+function planPeelQualifier(line){
+  let body=String(line).trim(), qual='';
+  const forms=[
+    /\s*@?\s*((?:RPE\s*\d+(?:\.\d+)?|\d+(?:\.\d+)?\s*RPE|RIR\s*\d+(?:\.\d+)?|\d+(?:\.\d+)?\s*RIR))\s*$/i,
+    /\s*@?\s*((?:\d+(?:-\d+){2,3}\s*tempo|tempo\s*\d+(?:-\d+){2,3}|paused?|\d+(?:\.\d+)?\s*(?:s|sec|seconds?)\s*pause))\s*$/i
+  ];
+  for(const rx of forms){
+    const m=body.match(rx);
+    if(m){ qual=m[1].trim(); body=body.slice(0,m.index).trim(); break; }
+  }
+  return {body,qual};
+}
+
+/* Labels describe a set's role, not its arithmetic. Strip them only for the
+   numeric read, and keep the label on the row so the preview can say exactly
+   what it recognised. */
+function planSetLabel(line){
+  const s=String(line);
+  const m=s.match(/^\s*((?:set\s*#?\d+|warm[ -]?ups?|work(?:ing)?(?:\s+sets?)?|top\s+sets?|back[ -]?offs?(?:\s+sets?)?))\s*[:.-]\s*(.+)$/i);
+  return m ? {body:m[2].trim(),tag:m[1].trim()} : {body:s.trim(),tag:''};
+}
 /* v3.3.339: ONE LINE, NAME AND SETS. The parser assumed a heading with its
    sets indented beneath — the shape the app's own paste help describes. The
    maker writes his sessions the way a notebook does, everything for an
@@ -927,16 +976,36 @@ function planReadSets(line){
    v3.3.280 already called worse than not parsing at all. */
 const PLAN_INLINE=/^\s*(.*?[a-z].*?)\s+((?:bw|bodyweight|[\d.]+)\s*(?:lb|lbs|kg|kgs)?\s*[x×]\s*[\d\s,]*\d.*)$/i;
 function planReadInline(body){
-  const m=String(body).match(PLAN_INLINE); if(!m) return null;
+  const peeled=planPeelQualifier(body), clean=peeled.body;
+  /* sets x reps @ load */
+  let m=clean.match(/^\s*(.*?[a-z].*?)\s+(\d+)\s*[x×]\s*(\d+)\s*@\s*([\d.]+)\s*(lb|lbs|kg|kgs)\s*$/i);
+  if(m){
+    const name=planHeadClean(m[1]), sets=+m[2], reps=+m[3], w=+m[4];
+    if(name&&sets>0&&sets<=20&&reps>0&&reps<1000&&w>=0)
+      return {name,lines:[{w,unit:m[5].toLowerCase().replace(/s$/,''),bw:false,
+        reps:Array(sets).fill(reps),qual:peeled.qual,raw:body}]};
+  }
+  /* load x sets x reps */
+  m=clean.match(/^\s*(.*?[a-z].*?)\s+([\d.]+)\s*(lb|lbs|kg|kgs)\s*[x×]\s*(\d+)\s*[x×]\s*(\d+)\s*$/i);
+  if(m){
+    const name=planHeadClean(m[1]), w=+m[2], sets=+m[4], reps=+m[5];
+    if(name&&sets>0&&sets<=20&&reps>0&&reps<1000&&w>=0)
+      return {name,lines:[{w,unit:m[3].toLowerCase().replace(/s$/,''),bw:false,
+        reps:Array(sets).fill(reps),qual:peeled.qual,raw:body}]};
+  }
+  m=clean.match(PLAN_INLINE); if(!m) return null;
   const name=planHeadClean(m[1]);
   if(!name||!/[a-z]/i.test(name)) return null;
   const groups=m[2].split(/[·•;]/).map(g=>g.trim()).filter(Boolean);
   if(!groups.length) return null;
   const lines=[];
-  for(const g of groups){
-    const set=planReadSets(g);
+  for(let gi=0;gi<groups.length;gi++){
+    const g=groups[gi];
+    const set=planReadPrescription(g);
     if(!set||!set.reps.length) return null;    // one bad group, no inline read
-    lines.push({...set, raw:g});
+    /* a suffix at the end of a multi-load line belongs to the last group,
+       not retroactively to every warm-up written before it */
+    lines.push({...set, qual:set.qual||(gi===groups.length-1?peeled.qual:''), raw:g});
   }
   return {name, lines};
 }
@@ -962,6 +1031,23 @@ function planReadTime(line){
   if(!(sets>0&&sets<=50)) return null;
   return {secs: Math.round(/^m/i.test(m[3])?n*60:n), sets};
 }
+/* The same hold, written notebook-style on one line. Requiring a complete
+   exercise name before the duration prevents `60 sec rest` from becoming a
+   lift. The caller still applies canHold(), so Squat is never turned into a
+   hold merely because the sentence resembles one. */
+function planReadInlineTime(line){
+  const m=String(line).match(/^\s*(.*?[a-z][a-z0-9 '\/-]*?)\s*(?:\/|:|—|-)?\s+((?:(?:\d+)\s*[x×]\s*)?\d+(?:\.\d+)?\s*(?:s|sec|secs|second|seconds|m|min|mins|minute|minutes)\b(?:\s*(?:each|[x×]\s*\d+))?)\s*$/i);
+  if(!m) return null;
+  const time=planReadTime(m[2]);
+  return time ? {name:planHeadClean(m[1]),time} : null;
+}
+
+/* These shapes need a richer model than a flat list of weight x reps. The
+   safe behaviour is explicit preservation, not a plausible-looking partial
+   plan. A later conditioning or set-technique model can promote them without
+   changing what today's parser promised. */
+const PLAN_BLOCK=/^\s*(?:super\s*set|superset|tri[- ]?set|giant\s+set|circuit|\d+\s+rounds?|e?mom|amrap|for\s+time)\b/i;
+const PLAN_COMPLEX=/(?:\b(?:drop\s*set|rest[- ]?pause|amrap)\b|[x×]\s*\d+\s*[-–]\s*\d+|\b\d+\s*\+|\+\s*\d+(?:\.\d+)?\s*(?:lb|kg)\b|(?:→|->).*(?:lb|kg)|^\s*\d+\s*[x×]\s*\d+\s*(?:m|meter|metre)s?\b)/i;
 /* strip a trailing "6 sets" and any "← coach note" tail from a heading */
 const planHeadClean=t=>String(t).split(/[←<]-?|\/\/|\s{3,}#/)[0]
   .replace(/\b\d+\s*sets?\b/ig,'').replace(/[·|—–-]\s*$/,'').trim();
@@ -969,12 +1055,20 @@ const planHeadClean=t=>String(t).split(/[←<]-?|\/\/|\s{3,}#/)[0]
 function parsePlan(text){
   const rows=[];
   let cur=null;
-  for(const raw of String(text||'').split(/\r?\n/)){
+  const source=String(text||'').split(/\r?\n/);
+  for(let at=0;at<source.length;at++){
+    const raw=source[at];
     const line=raw.replace(/\t/g,' ').trimEnd();
     if(!line.trim()){ cur=null; continue; }
     const body=line.split(/←|<-/)[0].trim();
-    const sets=planReadSets(body);
-    if(sets&&cur){ cur.lines.push({...sets, raw:line}); continue; }
+    if(PLAN_BLOCK.test(body)){
+      const block=[raw];
+      while(at+1<source.length&&source[at+1].trim()) block.push(source[++at]);
+      rows.push({kind:'note',raw:block.join('\n')}); cur=null; continue;
+    }
+    const labeled=planSetLabel(body);
+    const sets=planReadPrescription(labeled.body);
+    if(sets&&cur){ cur.lines.push({...sets,tag:labeled.tag,raw:line}); continue; }
     if(sets&&!cur) { rows.push({kind:'note', raw:line}); continue; }
     /* v3.3.339: a whole exercise on one line. cur stays open afterwards, so a
        paste that puts the first set inline and the rest beneath still gathers
@@ -997,6 +1091,20 @@ function parsePlan(text){
         (cur.times=cur.times||[]).push(body.trim());
       }
       continue;
+    }
+    const inlineTime=planReadInlineTime(body);
+    if(inlineTime){
+      const hit=planCandidates(inlineTime.name);
+      if(hit.match&&canHold(hit.match)){
+        const t=inlineTime.time;
+        cur={kind:'ex',raw:line,name:inlineTime.name,ex:hit.match,cands:[],lines:[{
+          w:0,bw:true,su:SET_SEC,unit:'',reps:Array(t.sets).fill(t.secs),raw:line}]};
+        rows.push(cur);
+      }else rows.push({kind:'note',raw:line});
+      continue;
+    }
+    if(PLAN_COMPLEX.test(body)){
+      rows.push({kind:'note',raw:line}); cur=null; continue;
     }
     const inline=planReadInline(body);
     if(inline){

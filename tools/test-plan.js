@@ -656,7 +656,6 @@ run(`(function(){view='today'; lift.ex=null; render();})()`);
     ["a line with no multiplication sign", "Deadlift 135 5 5 5",
      r => r.length === 1 && r[0].k === 'exnote'],
     ["a date heading", "8/26 Chest day", r => r.length === 1 && r[0].k === 'exnote'],
-    ["prose", "Plank / 60 sec each", r => r.length === 1 && r[0].k === 'exnote'],
     /* ALL OR NOTHING. A half-read line would put some of a session in the plan
        and silently drop the rest -- the failure v3.3.280 already called worse
        than not parsing at all. */
@@ -689,6 +688,14 @@ run(`(function(){view='today'; lift.ex=null; render();})()`);
   ok("...and it is now a plan item, in seconds",
      p1[0] && p1[0].k === 'ex' && p1[0].su === 's' && String(p1[0].reps) === '60,60',
      JSON.stringify(p1[0]));
+  const oneLine = rows("Plank / 60 sec x 2");
+  ok("...and the same hold reads when written on one line",
+     oneLine.length === 1 && oneLine[0].k === 'ex' && oneLine[0].su === 's'
+       && String(oneLine[0].reps) === '60,60', JSON.stringify(oneLine));
+  const each = rows("Plank / 60 sec each");
+  ok("...while 'each' is one explicitly timed set",
+     each.length === 1 && each[0].k === 'ex' && String(each[0].reps) === '60',
+     JSON.stringify(each));
   for (const [label, text, reps] of [["minutes", "Plank\n2 min", "120"],
                                      ["short unit", "Plank\n60s x 2", "60,60"],
                                      ["sets first", "Plank\n2 x 60 sec", "60,60"],
