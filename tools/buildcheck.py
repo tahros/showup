@@ -511,10 +511,16 @@ if not all(_logic in _stats for _logic in (
         "latest=i===latestIndex", "p===PMIX_FOCUS")):
     fail.append("session build: latest animation must follow the selected body part (v3.3.229)")
 _settings = (d/"js/settings.js").read_text()
+# v3.3.359: the day's share and edit marks join the same line. The Noun
+# Project's free tier is royalty-free ON CONDITION of credit, so this is the
+# licence being satisfied, not a courtesy -- and it belongs somewhere
+# permanent rather than in a README nobody opens. One list, not a second
+# convention beside it.
 if not all(_credit in _settings for _credit in (
         "minus-8363736", "trend-2344331", "ARIPATUT DASUKI",
-        "Travis Avery", "Noun Project")):
-    fail.append("settings: Growth Audit icon credits or source links are missing (v3.3.212)")
+        "Travis Avery", "share-2438501", "edit-1751206", "Timur Minvaleev",
+        "Noun Project")):
+    fail.append("settings: an icon credit or source link is missing (v3.3.212/359)")
 if not _re.search(r"ShowUp \$\{APP_VERSION\}</div>\s*<div class=\"note assetcredits\"", _settings):
     fail.append("settings: icon credits must sit beneath the app version (v3.3.212)")
 

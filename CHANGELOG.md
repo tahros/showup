@@ -1,5 +1,10 @@
 # ShowUp — changelog
 
+## v3.3.359 (2026-08-27) — Icon credits
+
+The share and edit marks are credited to their designer in Settings, on the
+same line as the existing status-icon credits, with links to both sources.
+
 ## v3.3.358 (2026-08-27) — Share and Edit become icons
 
 **The two words in each session header are now glyphs** — a share mark and a
