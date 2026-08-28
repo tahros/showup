@@ -32,19 +32,42 @@ window._mk=(n,rows)=>DB.days[_D(n)]={w:rows,upd:1};
 window._reset=()=>{DB.days={};DB.settings.canon={};ga.grp=null;};
 window._finish=()=>{migrateCanon();SEED=deriveAll();view='stats';render();};`);
 
-// ---- cold start: facts, never a premature verdict -----------------------
+/* ---- cold start ---------------------------------------------------------
+   v3.3.368 REVERSES v3.3.211 here, on the maker's explicit call, and it is a
+   reversal rather than a fix: "facts, never a premature verdict" chose FLAT
+   for a first workout deliberately. His argument, and it is the one the code
+   was already making elsewhere: v3.3.237 says "going heavier than anything
+   ever lifted is a record on its own", and a first session is that rule's
+   limiting case -- every set in it clears a bar that does not exist. The
+   receipt made the old answer look wrong too: a lift whose recent best IS
+   today's first set was told "no set has beaten the recent best".
+   What is NOT reversed: a debut is the only thing lighting the row. Repeating
+   the same work still earns nothing, which the second fixture below pins. */
 run(`_reset();_mk(1,[{part:'Chest',ex:'Chest Press',w:40,reps:[8,8],at:1}]);_finish();ga.grp='Chest';render();`);
 check("Growth Audit replaces the Rep-zone heading",
   `[...document.querySelectorAll('#view h2')].some(h=>h.textContent.startsWith('Growth audit'))`,true);
 check("the retired heading is absent",`!/Rep zones/i.test(document.querySelector('#view').textContent)`,true);
-check("a first workout is active but not confirmed upward",`document.querySelector('.gastate').getAttribute('aria-label')`,"Flat");
+check("a first workout reads as new ground",`document.querySelector('.gastate').getAttribute('aria-label')`,"Going up");
 check("the status contains no font glyph",`document.querySelector('.gastate').textContent.trim()`,"");
-check("the cold-start icon uses the flat image class",`document.querySelector('.gastate').classList.contains('ga-flat')`,true);
+check("the cold-start icon uses the going-up image class",`document.querySelector('.gastate').classList.contains('ga-up')`,true);
+/* v3.3.220's law: a row is lit IF AND ONLY IF it carries a badge. A debut has
+   no delta to name, so it names itself -- without this the pair would break. */
+check("...and the debut carries a badge, since a lit row must",`gaPR(gaExerciseSessions()['chest-press']).change.text`,"new");
 
 run(`_reset();_mk(3,[{part:'Chest',ex:'Chest Press',w:40,reps:[8],at:1}]);
   _mk(1,[{part:'Chest',ex:'Chest Press',w:40,reps:[8],at:2}]);_finish();ga.grp='Chest';render();`);
-check("two identical sessions hold no PR, so the row stays dark",`gaPR(gaExerciseSessions()['chest-press']).live`,false);
-check("...and carry no badge",`!gaPR(gaExerciseSessions()['chest-press']).change`,true);
+/* the debut still lights this row -- it is the same exercise's first session,
+   three days ago. What must NOT happen is the REPEAT earning anything: the
+   record's date stays on the debut, and its text stays "new". */
+check("repeating the same work adds no record of its own",`gaPR(gaExerciseSessions()['chest-press']).change.text`,"new");
+check("...and the record still belongs to the debut, not the repeat",
+  `(function(){const s=gaExerciseSessions()['chest-press'];return gaPR(s).pr.d===s.sessions[0].d;})()`,true);
+/* and a SECOND session that is genuinely better still reads as a real gain,
+   not as another debut */
+run(`_reset();_mk(3,[{part:'Chest',ex:'Chest Press',w:40,reps:[8],at:1}]);
+  _mk(1,[{part:'Chest',ex:'Chest Press',w:45,reps:[8],at:2}]);_finish();ga.grp='Chest';render();`);
+check("a later heavier session reads as a load gain, not as new",
+  `/^\\+/.test(gaPR(gaExerciseSessions()['chest-press']).change.text)`,true);
 
 // ---- exercise-local observable progress ---------------------------------
 run(`_reset();
@@ -225,7 +248,12 @@ check("10x12 does not improve on 27.5x10", `"${prOf('Rear Deltoids')}"`, "dark n
 
 // v3.3.227: sets within one workout are peers, never historical baselines.
 // The maker's screenshot showed 80x7 "improving" on 80x6 from the same day.
-gaSeed(`DB.days[_D(6)]={w:[{part:'Legs',ex:'Deadlift',w:80,reps:[6,7]}],upd:1};`);
+// v3.3.368: the fixture gains an EARLIER session. This used to be the
+// exercise's debut, and a debut now lights the row on its own -- so the
+// same-day rule this exists to test would have been masked by the new one.
+// Same property, on a day that is no longer a first.
+gaSeed(`DB.days[_D(30)]={w:[{part:'Legs',ex:'Deadlift',w:80,reps:[7]}],upd:1};
+        DB.days[_D(6)]={w:[{part:'Legs',ex:'Deadlift',w:80,reps:[6,7]}],upd:1};`);
 check("80x7 does not improve on 80x6 from the same day",
       `"${prOf('Deadlift')}"`, "dark no badge");
 gaSeed(`DB.days[_D(20)]={w:[{part:'Legs',ex:'Deadlift',w:80,reps:[5]}],upd:1};

@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v3.3.368 (2026-08-28) — A first session counts as new ground
+
+**The first time you log an exercise, Growth Audit marks it going up**, with a
+`new` badge. It used to read flat, under a note saying no set had beaten the
+recent best — about a lift whose recent best was that very first set.
+
+Repeating the same work still earns nothing, and a debut from months ago
+doesn't light anything today.
+
 ## v3.3.367 (2026-08-28) — A heavier set counts as done
 
 **Plan 30 lb, lift 35, and the planned set dims.** It used to need the exact

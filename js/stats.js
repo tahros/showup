@@ -470,7 +470,7 @@ function gaPR(ex){
   let all=null, pr=null;
   const seen=[];                    // sets from earlier days only
   const T=iso=>new Date(iso+'T00:00').getTime();
-  for(const s of ex.sessions){
+  for(const [si,s] of ex.sessions.entries()){
     /* Freeze the comparison baseline for the whole training day. A later set
        in one workout may be better than an earlier set, but that is not
        progress over time. Only prior DAYS can supply the set being beaten —
@@ -508,6 +508,25 @@ function gaPR(ex){
         if(!dayPr||candidate.w>dayPr.w||
             (candidate.w===dayPr.w&&candidate.rep>dayPr.rep)) dayPr=candidate;
       }
+    }
+    /* v3.3.368: A FIRST SESSION IS NEW GROUND. With no prior day, priorBest
+       is null, so loadGain is false and the very first time an exercise is
+       logged came out FLAT -- under a receipt reading "no set has beaten the
+       recent best", about a lift whose recent best IS that first set. It had
+       beaten nothing because there was nothing there.
+       The code already contains this argument: "going heavier than anything
+       ever lifted is a record on its own" (v3.3.237). A first session is that
+       rule's limiting case -- everything in it clears a bar that does not
+       exist. It carries a badge reading "new" rather than a delta, because
+       v3.3.220's law is that a row is lit IF AND ONLY IF it carries one, and
+       a lit row with nothing to show would break that pair.
+       Strictly the FIRST session (si===0), not merely any day whose record
+       window happens to be empty. Coming back after six months is a return,
+       not a debut, and that case already has its own receipt copy. */
+    if(!dayPr&&si===0&&s.points.length){
+      let first=null;
+      for(const p of s.points) if(!first||p.w>first.w||(p.w===first.w&&p.rep>first.rep)) first=p;
+      dayPr={d:s.d,w:first.w,rep:first.rep,beat:null,text:'new'};
     }
     if(dayPr) pr=dayPr;
     /* Only after every set has been judged do today's sets become history. */
@@ -578,7 +597,13 @@ const gaDay=iso=>{
   return `${+m}/${+d}/${y.slice(-2)}`;
 };
 function gaReceipt(e){
-  const r=e.record, pr=r.pr;
+  /* v3.3.368: the receipt reads the LIVE record, the same object the badge
+     and the mark read (v3.3.220's law), not the historical `pr`. They were
+     the same thing until a debut could set `pr` -- and a debut 250 days ago
+     is a record that exists but is long dead, so the row went dark while the
+     receipt still said "Improved to". One row, two answers, which is exactly
+     the contradiction v3.3.220 was written to end. */
+  const r=e.record, pr=r.change;
   if(!r.all) return `<div class="garcpt"><div class="note">No completed sets yet.</div></div>`;
   /* v3.3.239: ALWAYS name the record standing in the way, and when nothing
      improved, say what the last session had to beat. v3.3.253: that record is
