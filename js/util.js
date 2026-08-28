@@ -658,6 +658,41 @@ function lastFor(ex){
     return {d:mine[0],sets:mine[1].w.filter(s=>s.ex===ex).map(s=>[s.w,s.reps,s.mins,s.secs,s.su])};
   return seed||null;
 }
+/* v3.3.364: THE WEIGHT A TAP WILL GIVE YOU. The go-to rows printed prFor().mw
+   -- the heaviest that exercise has EVER been, all-time -- next to a subtitle
+   that reads "4 d ago". Two screens up, the Train tab promises "tap an
+   exercise to use its previous weight", and the logger delivers on that from
+   a different number entirely: your saved default, or last session's top set
+   snapped to the exercise's step. So the number shown and the number you got
+   were computed from unrelated things, and the shown one was usually older.
+   It also printed raw: 35.3, 60.6, 30.9 lb. Those are 16.0, 27.5 and 14.0 kg
+   -- the maker's kg-era records surfacing as ragged pounds years later. The
+   decimals were the tell, and they vanish here for free, because snapping to
+   a step is what turns a converted kilo into a weight a gym actually has.
+   Reads the SAME three sources as the prefill, in the same order, so the row
+   cannot drift from the tap: change one and this follows. The all-time best
+   is not lost -- it is on the exercise's own screen, in Records and as the
+   dashed line on Progression. */
+function nextWFor(ex){
+  if(ex==='Run') return prFor(ex).mw;
+  const saved=(DB.settings.exW||{})[ex];
+  if(saved!=null) return saved;
+  const l=lastFor(ex);
+  const top=l&&l.sets.length?Math.max(...l.sets.map(s=>Array.isArray(s)?s[0]:s.w)):0;
+  /* NOT SNAPPED, and that is the opposite of what I first wrote. snapW looked
+     like the way to kill the ragged decimals -- until it turned 135 lb into
+     134.1. The barbell law's lb anchor is 44.0924, a 20kg bar converted, so
+     the pound grid runs 44.1 / 54.1 / 64.1 and a real 135 is not on it. The
+     snap would have INTRODUCED the decimals it was meant to remove.
+     Unsnapped is also the truer answer: this number came out of the ledger,
+     so it is a weight that exists by construction -- you lifted it.
+     NO bodyweight fallback either, though the prefill has one. The prefill
+     needs something to put in the field; this column asks what is LOADED, and
+     a pull-up loads nothing. The first version returned bwNow() and printed
+     the maker's bodyweight beside Pull Up, where a rule belongs. Added weight
+     still shows, arriving through the same last-set path as everything else. */
+  return top>0?top:0;
+}
 function prFor(ex){
   const p=SEED.pr[ex]?{...SEED.pr[ex]}:{mw:0,mwr:0,mwd:'',bv:0,bvr:0,bvw:0,bvd:''};
   for(const [d,v] of Object.entries(DB.days))

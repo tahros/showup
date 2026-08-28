@@ -744,7 +744,15 @@ check("...with the per-side math still alive where a bar is loaded",
    numbers around it. Both halves pinned: the mark is THERE when there is no
    weight, and ABSENT when there is -- a rule that showed up beside a real
    number would be worse than the blank it replaced. */
-run(`(function(){DB.days={}; DB.settings.unit='lb'; const t=new Date(todayISO+'T00:00');
+/* v3.3.364: the seed now clears exW. The go-to column used to print the
+   all-time max, which ignores saved defaults; it prints the weight a TAP
+   will give you, which consults them first -- and an earlier block in this
+   file had saved 2kg against Pull Up, so "no weight logged" was no longer
+   true of this fixture and the row correctly showed 2. The property is
+   unchanged and worth keeping; the fixture had quietly stopped containing
+   the case, the same way the paste fixture did in v3.3.346. */
+run(`(function(){DB.days={}; DB.settings.unit='lb'; DB.settings.exW={};
+  const t=new Date(todayISO+'T00:00');
   const D=n=>{const d=new Date(t);d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA')};
   DB.days[D(4)]={w:[{part:'Back',ex:'Bent-Over Row',w:toKg(165),reps:[10],at:1}],upd:1};
   DB.days[D(9)]={w:[{part:'Back',ex:'Pull Up',w:0,reps:[10],at:1}],upd:1};
@@ -756,6 +764,47 @@ check("an exercise with no weight logged shows a rule, not a blank",
       nilRow('Pull Up'), true);
 check("...and an exercise that has a weight shows no rule",
       nilRow('Bent-Over Row'), false);
+
+/* v3.3.364: the go-to column shows THE WEIGHT A TAP WILL GIVE YOU, not the
+   all-time best. It printed prFor().mw next to a subtitle reading "4 d ago",
+   while the Train tab promises "tap an exercise to use its previous weight"
+   and the logger delivers that from an entirely different number. The two
+   disagreed, and the shown one was older -- the maker's kg-era records
+   surfacing as 35.3 / 60.6 / 30.9 lb, which are 16.0 / 27.5 / 14.0 kg. */
+{
+  const weightIn = ex => `(function(){const b=[...document.querySelectorAll('.item.logrow')]
+    .find(x=>x.querySelector('b') && x.querySelector('b').textContent==='${ex}');
+    return b ? b.querySelector('.pr-top').textContent.trim() : '(absent)';})()`;
+  run(`(function(){DB.days={}; DB.settings.unit='lb'; DB.settings.exW={};
+    const t=new Date(todayISO+'T00:00');
+    const D=n=>{const d=new Date(t);d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA')};
+    /* heavier LONG ago, lighter recently: the two answers differ, which is
+       the whole point -- a fixture where they agree would prove nothing */
+    DB.days[D(60)]={w:[{part:'Back',ex:'Bent-Over Row',w:toKg(185),reps:[5],at:1}],upd:1};
+    DB.days[D(3)]={w:[{part:'Back',ex:'Bent-Over Row',w:toKg(135),reps:[10,10],at:2}],upd:1};
+    SEED=deriveAll(); view='lift'; lift.ex=null; lift.part='Back'; render();})()`);
+  check("the go-to row shows the RECENT weight, not the all-time best",
+        weightIn('Bent-Over Row'), "135 lb");
+  check("...and the all-time best is still on record, untouched",
+        `Math.round(toU(prFor('Bent-Over Row').mw))`, 185);
+  /* it must read the same sources as the prefill, in the same order, or the
+     row and the tap drift apart again -- a saved default outranks history */
+  run(`DB.settings.exW={'Bent-Over Row':toKg(115)}; render();`);
+  check("...a saved default wins, exactly as it does for the tap",
+        weightIn('Bent-Over Row'), "115 lb");
+  /* and it is NOT snapped. I reached for snapW first, to kill the ragged
+     decimals -- and it turned 135 lb into 134.1, because the barbell law's lb
+     anchor is 44.0924, a 20kg bar converted, so the pound grid runs
+     44.1 / 54.1 / 64.1 and a real 135 is not on it. The snap would have
+     INTRODUCED the decimals it was meant to remove. A weight read from the
+     ledger needs no grid: you lifted it, so it exists. */
+  run(`(function(){DB.days={}; DB.settings.exW={}; const t=new Date(todayISO+'T00:00');
+    const D=n=>{const d=new Date(t);d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA')};
+    DB.days[D(2)]={w:[{part:'Back',ex:'Bent-Over Row',w:toKg(135),reps:[10],at:1}],upd:1};
+    SEED=deriveAll(); lift.part='Back'; render();})()`);
+  check("...and it is the weight in the ledger, not one bent onto a grid",
+        weightIn('Bent-Over Row'), "135 lb");
+}
 /* v3.3.329: the age grammar itself, at every boundary. Floor, never round --
    a label may understate a gap but must never overstate it, the same law
    daysAgo follows. */

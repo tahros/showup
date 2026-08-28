@@ -258,7 +258,6 @@ function renderLift(){
     const list=catFor(lift.part).map(ex=>({ex,last:exLastFor(ex),tier:exTier(ex),freq:exFreq(ex)}))
       .filter(x=>!openSet.has(x.ex));
     const row=({ex,last,freq},big)=>{
-      const p=prFor(ex);
       const when=last?(daysAgo(last)===0?'✓ done today':agoLabel(daysAgo(last))):'never logged';
       const meta=big?`${when} · ${freq}× this year`:when;
       /* v3.3.329: the per-side line is GONE. It restated the same weight in a
@@ -274,7 +273,7 @@ function renderLift(){
               <b>${ex}</b><div class="sub">${meta}${mine?` · yours · ${eq.toLowerCase()}`:''}</div>
             </button>
             <span class="pr-cell">
-              <span class="pr-top">${p.mw?(ex==='Run'?dDisp(p.mw)+' '+DU():wDisp(p.mw)+' '+U()):'<i class="pr-nil" aria-label="no weight logged"></i>'}</span>
+              <span class="pr-top">${(w=>w?(ex==='Run'?dDisp(w)+' '+DU():wDisp(w)+' '+U()):'<i class="pr-nil" aria-label="no weight logged"></i>')(nextWFor(ex))}</span>
             </span>
             ${(mine&&!last)?`<button class="xbtn" data-delex="${ex}" aria-label="Delete ${ex}">✕</button>`:''}
           </div>`;

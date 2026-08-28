@@ -1,5 +1,18 @@
 # ShowUp — changelog
 
+## v3.3.364 (2026-08-28) — Go-to shows the weight you'll actually get
+
+**That column was your all-time heaviest, ever** — which is why Lateral Raise
+read `35.3 lb` (a 16 kg dumbbell from years ago) next to "4 d ago". It now
+shows the weight tapping the row gives you: your saved default, or your last
+session's top set.
+
+The Train tab already promised "tap an exercise to use its previous weight."
+The number and the tap agree now.
+
+Your all-time best hasn't moved — it's still in Records and on the dashed line
+of each exercise's Progression chart.
+
 ## v3.3.363 (2026-08-27) — The coverage week sits centred
 
 The day marks are centred in their track now rather than pushed against the
