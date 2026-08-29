@@ -661,6 +661,16 @@
   .btn.ghost.done{background:none;border:1px solid var(--accent);color:var(--accent-ink);
     font-size:15px;font-weight:600}
   .btn.done:active{filter:brightness(.9)}
+  /* v3.3.371: THE END OF THE DAY IS ALWAYS REACHABLE. This button is the only
+     route to the day-done moment, and it lived wherever Today happened to
+     end -- past the plan, the parts and the chips, usually below the fold.
+     Sticky rather than fixed: it keeps its place in the flow, so it does not
+     cover the content above it and does not need the page to reserve room. It
+     rests just above the nav, and it is the one filled button on the screen;
+     everything else offering to continue is a chip. */
+  .btn.done.dayend{position:sticky;z-index:20;
+    bottom:calc(64px + env(safe-area-inset-bottom));
+    box-shadow:0 6px 20px color-mix(in srgb,var(--accent) 22%,transparent)}
   /* v3.3.245: the header's paint, on an absolute child. Safari 26's status-bar
      tinting samples background-color and backdrop-filter on FIXED elements
      only — absolute children are skipped — so the bar keeps its look while

@@ -406,6 +406,16 @@ function renderToday(){
           <button class="chip" data-go="Run">Go</button></div>`;
   }
 
+  /* v3.3.371: the ORDER here was already right and I said otherwise -- the
+     chips come first, the button that ends the day comes last, which is the
+     correct sequence for the last thing you do. The real fault was that the
+     one action closing the session looked like every other button and sat
+     wherever the page happened to end, often below the fold. It is the only
+     route to the day-done ceremony (v3.3.369), so a person could finish a
+     workout and never find the moment the app was built to give them.
+     It STICKS to the bottom of the screen while a session is live, and it
+     names the count -- so it states what you are about to put in the book
+     rather than asking for a decision. */
   h+=`<h2 class="quiet">Add another part</h2><div class="chips">`;
   P.mains.filter(p=>!doneLift.includes(p)).forEach(p=>{
     const i1=P.info[p];
@@ -415,9 +425,12 @@ function renderToday(){
     h+=`<button class="chip" data-go="${p}">${p}<span class="n">${P.info[p].since}d ago</span></button>`;
   });
   h+=`</div>`;
-  if(isLive()) h+=`<button class="btn done" id="doneAllBtn">✓ Complete workout</button>`;
+  /* the count is the whole argument for pressing it: it names what you are
+     about to put in the book, so the button states a fact rather than asking
+     for a decision. */
+  if(isLive()) h+=`<button class="btn done dayend" id="doneAllBtn">\u2713 Complete workout \u00b7 ${t.w.length} set${t.w.length===1?'':'s'}</button>`;
   else if(t.w.length&&t.doneAll)
-    h+=`<div class="note mono" style="text-align:center;margin:14px 0 4px">✓ Workout complete · ${t.w.length} sets — logging another set reopens it</div>`;
+    h+=`<div class="note mono" style="text-align:center;margin:14px 0 4px">\u2713 Workout complete \u00b7 ${t.w.length} sets — logging another set reopens it</div>`;
   $('#view').innerHTML=h; msCountUp(); dayCountUp();
 }
 

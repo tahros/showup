@@ -1,5 +1,18 @@
 # ShowUp — changelog
 
+## v3.3.371 (2026-08-29) — A clear way to end the day
+
+**The button that closes your workout now follows you down the page** instead
+of sitting wherever Today happens to end, and it tells you what it's about to
+record: `✓ Complete workout · 19 sets`.
+
+It's the only way to reach the day-done moment, so it shouldn't be something
+you have to go looking for.
+
+The step-level buttons stopped borrowing its word — they read `Done with
+Chest` and `Done with Lateral Raise` now, so "Complete workout" means one
+thing in one place.
+
 ## v3.3.370 (2026-08-29) — Stats says what it means
 
 Four headings renamed into plain speech:

@@ -210,7 +210,7 @@ function renderLift(){
          Complete once. */
       if(partOpen(lift.part)) h+=`<div class="btnrow">
             <button class="btn ${isLive()?'livego':''}" data-go="${lift.part}">Continue →</button>
-            <button class="btn ghost done" id="donePartBtn">✓ Complete</button></div>`;
+            <button class="btn ghost done" id="donePartBtn">✓ Done with ${lift.part}</button></div>`;
       else if(dayMeta().donePart.includes(lift.part))
         h+=`<button class="btn ghost" id="reopenPartBtn" style="margin-top:12px">${lift.part} completed ✓ — Reopen</button>`;
     }
@@ -681,7 +681,10 @@ function renderLift(){
      numbers you're about to match — while Progression is context you read
      once. The terminal action stays last. */
   if(!isRun) h+=(isLive()&&todaySets.length?liveBars(ex,todaySets):progChart(ex));
-  if(exOpen(ex)) h+=`<button class="btn done" id="doneExBtn">✓ Complete ${ex}</button>`;
+  /* v3.3.371: only ONE control in the app says "Complete workout" -- the one
+     that ends the day. These two close a step within it, and saying the same
+     word at three scopes made "done" a thing the reader had to assemble. */
+  if(exOpen(ex)) h+=`<button class="btn done" id="doneExBtn">✓ Done with ${ex}</button>`;
   $('#view').innerHTML=h;
   /* v3.3.286: the ruler is positioned AFTER the markup lands, and opens on
      the suggested rep so the common case stays one tap. lift.rep survives a

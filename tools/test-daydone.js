@@ -74,5 +74,39 @@ ok("reduced motion gets the finished frame, not nothing",
 ok("...and nothing in the ceremony loops",
    !/#dayDone[^}]*infinite/.test(css) && /@keyframes ddring/.test(css));
 
+
+/* v3.3.371: THE MOMENT NEEDS A DOOR. The ceremony added in v3.3.369 has
+   exactly one route into it -- the button that ends the day -- and that button
+   looked like every other one and sat wherever Today happened to end, usually
+   below the fold. A person could finish a workout and never find the thing the
+   app was built to give them.
+   jsdom computes no layout, so "reachable" is asserted as the CSS rule that
+   makes it so, and the rest is asserted as content. */
+run(`(function(){DB.days={}; delete DB.settings.dayDone;
+  DB.days[todayISO]={w:[{part:'Chest',ex:'Dip',w:0,reps:[10]},
+                        {part:'Chest',ex:'Dip',w:0,reps:[9]}],upd:1,doneEx:[],donePart:[]};
+  SEED=deriveAll(); view='today'; render();})()`);
+const endBtn = () => run(`(function(){const b=document.getElementById('doneAllBtn');
+  return b?b.textContent.trim():'(absent)';})()`);
+ok("a live day offers the button that ends it", endBtn()!=='(absent)', endBtn());
+ok("...naming what it is about to put in the book", /2 sets/.test(endBtn()), endBtn());
+
+const css2=fs.readFileSync(path.join(dir,"css/app.css"),"utf8").replace(/\r?\n\s*/g,"");
+ok("...and it stays reachable instead of ending up below the fold",
+   /\.btn\.done\.dayend\{[^}]*position:sticky/.test(css2));
+ok("...resting clear of the nav rather than under it",
+   /\.btn\.done\.dayend\{[^}]*bottom:calc\([^)]*safe-area-inset-bottom/.test(css2));
+
+/* one voice for the end of the day: the step-level buttons stopped borrowing
+   its word, so "Complete workout" means one thing in one place */
+const liftSrc=fs.readFileSync(path.join(dir,"js/lift.js"),"utf8");
+ok("only the day's end says \"Complete\"",
+   !/>\u2713 Complete /.test(liftSrc) && /Done with \$\{lift\.part\}/.test(liftSrc)
+   && /Done with \$\{ex\}/.test(liftSrc));
+
+/* and the door still opens the room */
+run(`document.getElementById('doneAllBtn').dispatchEvent(new window.Event('click',{bubbles:true}))`);
+ok("pressing it places the day", run(`!!document.getElementById('dayDone')`));
+
 process.exit(fail?1:0);
 })();
