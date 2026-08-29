@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v3.3.373 (2026-08-29) — Paste reads your notes
+
+**A comment after a set line no longer stops it being read.** Lines like
+`45 lb × 10 10 10 8 (up from 40)` now parse as sets — before, anything written
+after the reps made the whole line fall through to "kept as a note", so an
+annotated workout read as nothing at all.
+
+What you wrote in the brackets is kept, not thrown away.
+
 ## v3.3.372 (2026-08-29) — Day one
 
 **A new user now gets one question at a time.** What did you train, then which

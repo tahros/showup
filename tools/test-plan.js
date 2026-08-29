@@ -807,6 +807,42 @@ run(`(function(){view='today'; lift.ex=null; render();})()`);
   ok("...while sets lighter than planned leave the heavier lines standing",
      marks('Cable Fly Up') === ". 12 10", marks('Cable Fly Up'));
 
+  /* v3.3.373: A TRAILING COMMENT MUST NOT EAT THE SET. Every pattern in
+     planReadPrescription anchors with $, so any text after the reps killed
+     the match -- and the maker's own paste annotates every single line. Eight
+     exercises, eight comments, and the whole paste read as "kept as a note".
+     "25 lb x 12 10 10" parsed; the same line with a note did not. A person
+     writing down why they went up is the normal case, not an edge one. */
+  {
+    const read = l => run(`JSON.stringify(planReadPrescription(${JSON.stringify(l)}))`);
+    const bare = JSON.parse(read("45 lb \u00d7 10 10 10 8"));
+    const noted = JSON.parse(read("45 lb \u00d7 10 10 10 8        (up from 40 \u2014 you hit 15s on it)"));
+    ok("a comment after the reps does not stop the line being read",
+       !!noted && noted.w === 45 && noted.reps.join() === "10,10,10,8",
+       JSON.stringify(noted));
+    ok("...and reads exactly as the same line without it",
+       !!bare && bare.w === noted.w && bare.reps.join() === noted.reps.join());
+    ok("...with what you wrote kept, not discarded",
+       noted.qual === "up from 40 \u2014 you hit 15s on it", noted.qual);
+    const bw = JSON.parse(read("BW \u00d7 12 10 10             (target up from 10)"));
+    ok("...and a bodyweight line survives its comment too",
+       !!bw && bw.bw === true && bw.reps.join() === "12,10,10");
+
+    /* the maker's actual paste, end to end: eight exercises, each a heading
+       with an annotated set line beneath it */
+    const paste = [
+      "EZ Bar Curl", "  45 lb \u00d7 10 10 10 8        (up from 40 \u2014 you hit 15s on it)", "",
+      "Overhead Triceps Extension", "  35 lb \u00d7 12 12 10 10       (4th set added)", "",
+      "Dumbbell Curl", "  25 lb \u00d7 12 10 10          (same weight, chasing 12s)", "",
+      "Hammer Curl", "  25 lb \u00d7 12 10 10          (NEW \u2014 brachialis, adds arm width)", "",
+      "Rear Deltoids", "  25 lb \u00d7 15 15 12 12       (reps up from 12s)", "",
+      "Hanging Leg Raise", "  BW \u00d7 12 10 10             (target up from 10)"
+    ].join("\n");
+    const rows = run(`parsePlan(${JSON.stringify(paste)})`);
+    const got = rows.filter(r => r.kind === "ex").length;
+    ok("the maker's paste reads as exercises, not as notes", got === 6, got + " of 6");
+  }
+
   /* THE LINE THE BUILD DEFENDS. No count, fraction or percentage of a plan
      may appear -- buildcheck scans the source for the vocabulary, this scans
      the rendered card for the shape. */

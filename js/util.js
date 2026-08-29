@@ -949,6 +949,17 @@ function planReadPrescription(line){
    paste remains stored, so no modifier is silently reinterpreted. */
 function planPeelQualifier(line){
   let body=String(line).trim(), qual='';
+  /* v3.3.373: PEEL A TRAILING COMMENT FIRST. Every set pattern below anchors
+     with $, so any text after the reps killed the match outright -- and the
+     maker's own paste annotates every single line:
+       "45 lb x 10 10 10 8        (up from 40 - you hit 15s on it)"
+     "25 lb x 12 10 10" parsed; the same line with a note did not, so all eight
+     exercises fell through to "kept as a note" and the paste read as nothing.
+     A person writing down why they went up is the normal case, not an edge
+     one. The comment is KEPT rather than discarded -- it rides along as the
+     line's qualifier, so the preview can still show what you wrote. */
+  const par=body.match(/\s*\(([^()]*)\)\s*$/);
+  if(par){ qual=par[1].trim(); body=body.slice(0,par.index).trim(); }
   const forms=[
     /\s*@?\s*((?:RPE\s*\d+(?:\.\d+)?|\d+(?:\.\d+)?\s*RPE|RIR\s*\d+(?:\.\d+)?|\d+(?:\.\d+)?\s*RIR))\s*$/i,
     /\s*@?\s*((?:\d+(?:-\d+){2,3}\s*tempo|tempo\s*\d+(?:-\d+){2,3}|paused?|\d+(?:\.\d+)?\s*(?:s|sec|seconds?)\s*pause))\s*$/i
