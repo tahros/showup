@@ -702,6 +702,15 @@
   /* v3.3.376: the finished day, in the place the button had. Speaks the
      ceremony's language -- the filled square, the same sentence -- so the
      moment and its aftermath are one thing rather than two. */
+  /* v3.3.377: the share image wipes in from the top. The <img> already holds
+     the finished canvas -- this only uncovers it, so the reveal can never show
+     something other than what Share sends. */
+  #repImg{clip-path:inset(0 0 0 0);transition:clip-path 1.2s var(--settle)}
+  #repImg.revealing{clip-path:inset(0 0 100% 0)}
+  @media (prefers-reduced-motion:reduce){
+    #repImg{transition:none}
+    #repImg.revealing{clip-path:inset(0 0 0 0)}
+  }
   .dayclosed{display:block;width:100%;text-align:center;padding:20px 16px 16px;
     margin-bottom:18px;border:1px solid var(--line);cursor:pointer}
   .dayclosed .dcsq{display:block;width:30px;height:30px;margin:0 auto 12px;

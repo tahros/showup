@@ -1124,8 +1124,37 @@ function celebrateDayDone(nowrite, forceCount){
     `<span class="ddt">show up \u2014 that's the whole game</span>`;
   document.body.appendChild(o);
   const bye=()=>{ o.classList.add('out'); setTimeout(()=>o.remove(),320); };
-  o.addEventListener('click',bye,{once:true});
-  setTimeout(()=>{ if(o.isConnected) bye(); },2300);
+  /* v3.3.377: the ceremony hands over to THE DAY'S OWN CARD -- the same image
+     the History share button produces, revealed rather than re-drawn.
+     The square and the count keep their beat first: that is the thesis, and
+     it should not lose its moment to a summary. Then the card wipes in
+     beneath, and the overlay STOPS, because a card with actions has to wait
+     for you. That costs one tap a day, at the end of an hour in the gym.
+     WHAT YOU WATCH APPEAR IS WHAT YOU SHARE. The canvas is painted once by
+     drawDayCard and handed to the existing share overlay, which already puts
+     that same canvas in the <img> and sends that same canvas to
+     navigator.share. An animation with a rendering of its own would be the
+     shown-vs-shipped divergence this project keeps paying for.
+     NOTHING IS TRUNCATED: drawDayCard computes its height from the content
+     and grows the canvas to fit (cv.height=H), so a 22-set day is drawn
+     whole. A ceremony that celebrated a cropped record would be worse than
+     none.
+     In preview or replay (nowrite) the handover still happens -- it is the
+     same day, and looking at it again should show the same thing. */
+  const toCard=()=>{
+    o.classList.add('out');
+    setTimeout(()=>{
+      o.remove();
+      if(typeof showCard!=='function'||typeof drawDayCard!=='function') return;
+      showCard(()=>{
+        const cv=document.createElement('canvas'); cv.width=cv.height=1080;
+        const cx=cv.getContext('2d'); if(!cx) return null;
+        drawDayCard(cx,1080,todayISO); return cv;
+      },'showup-'+todayISO,false,true);
+    },320);
+  };
+  o.addEventListener('click',toCard,{once:true});
+  setTimeout(()=>{ if(o.isConnected) toCard(); },1500);
 }
 const doneToast=(m,alt)=>{
   if(m.doneAll){ celebrateDayDone(); toast(`Workout complete \u2014 ${m.w.length} sets. Cool down \ud83d\udd25`); }

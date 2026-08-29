@@ -1,5 +1,16 @@
 # ShowUp — changelog
 
+## v3.3.377 (2026-08-29) — The day, as a card you can share
+
+**Completing your workout now ends on the day's own share image.** The square
+lands, the count reads, and then the card wipes in from the top — every
+exercise, every set — with Share and Done.
+
+It's the same image History's share button makes, and the same one that gets
+sent: the animation uncovers it rather than drawing its own version.
+
+Long days aren't cropped. The card grows to fit what you did.
+
 ## v3.3.376 (2026-08-29) — A finished day looks finished
 
 **When your workout is complete, Today now shows a card** where the button

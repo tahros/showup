@@ -169,5 +169,59 @@ ok("pressing it places the day", run(`!!document.getElementById('dayDone')`));
   ok("...and a replay writes nothing", run(`DB.settings.dayDone===todayISO`));
 }
 
+/* v3.3.377: THE CEREMONY HANDS OVER TO THE DAY'S OWN CARD -- the same image
+   History's share button produces, revealed rather than re-drawn. */
+{
+  run(`(function(){DB.days={}; DB.settings.unit='lb'; delete DB.settings.dayDone;
+    const t=new Date(todayISO+'T00:00');
+    const D=n=>{const d=new Date(t);d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA')};
+    DB.days[D(1)]={w:[{part:'Legs',ex:'Squat',w:60,reps:[8]}],upd:1};
+    /* a LONG day on purpose: the maker's own 22-set shape. A ceremony that
+       celebrated a cropped record would be worse than none. */
+    const w=[];
+    [['Biceps','EZ Bar Curl',20],['Biceps','Dumbbell Curl',11],['Biceps','Hammer Curl',11],
+     ['Triceps','Triceps Pushdown',18],['Triceps','Skull Crusher',18],
+     ['Shoulder','Rear Deltoids',11],['Sixpack','Hanging Leg Raise',0],
+     ['Chest','Dip',0]].forEach(([p,e,kg],i)=>{
+       for(let k=0;k<3;k++) w.push({part:p,ex:e,w:kg,reps:[10],at:i*10+k});
+     });
+    DB.days[todayISO]={w,upd:1,doneEx:[],donePart:[]};
+    SEED=deriveAll(); view='today'; render();})()`);
+
+  /* NOTHING IS TRUNCATED -- asserted at the SOURCE, because it cannot be
+     asserted as an effect here: jsdom's canvas is a stub whose height is not
+     settable (cx.canvas.height=1500 reads back 1080), so every day would
+     measure 1080 whatever the code did. The same blind spot as layout.
+     What prevents cropping is that drawDayCard derives its height from the
+     CONTENT -- the parts, their exercises, the run -- and grows the canvas to
+     match, rather than fitting the work into a fixed square. A 22-set day is
+     drawn whole because the canvas moves, not because the rows are dropped. */
+  const rep=fs.readFileSync(path.join(dir,"js/report.js"),"utf8");
+  ok("the day card's height is computed from its content",
+     /const H=Math\.max\(640,HEAD\+[^;]*groups\.reduce/.test(rep));
+  ok("...and the canvas grows to that height rather than cropping",
+     /cv2\.height!==H\) cv2\.height=H/.test(rep));
+  ok("...with no row limit anywhere in the drawing",
+     !/rows\.slice\(0,|groups\.slice\(0,|subs\.slice\(0,/.test(rep));
+
+  /* the reveal uncovers the finished image; it does not paint its own */
+  const css3=fs.readFileSync(path.join(dir,"css/app.css"),"utf8").replace(/\r?\n\s*/g,"");
+  /* the first version matched "#repImg.revealing{clip-path:inset" -- which the
+     REDUCED-MOTION rule also satisfies, since it names the same selector to
+     switch the reveal off. The check passed with the reveal deleted. It names
+     the covered state specifically now. */
+  ok("the reveal is a clip on the image the overlay already holds",
+     /#repImg\.revealing\{clip-path:inset\(0 0 100% 0\)\}/.test(css3) && /#repImg\{clip-path:inset\(0 0 0 0\);transition:clip-path/.test(css3));
+  ok("...and reduced motion is shown the whole card, not an unrevealed one",
+     /prefers-reduced-motion:reduce\)\{#repImg\{transition:none\}#repImg\.revealing\{clip-path:inset\(0 0 0 0\)\}/.test(css3));
+
+  /* the handover itself, and that Share is fed the SAME canvas */
+  const appSrc=fs.readFileSync(path.join(dir,"js/app.js"),"utf8");
+  ok("the ceremony hands over to the day's card",
+     /showCard\(\(\)=>\{[\s\S]{0,200}drawDayCard\(cx,1080,todayISO\)/.test(appSrc));
+  ok("...and does not draw a second picture of its own",
+     (appSrc.match(/drawDayCard\(/g)||[]).length === 1);
+}
+
 process.exit(fail?1:0);
 })();

@@ -254,6 +254,8 @@ document.addEventListener('click',e=>{
   /* v3.3.376: replay the day's own ceremony, on request only. preview=true
      so it never re-stamps or writes -- the day is already stamped, and asking
      to see it again is not a second completion. */
+  /* v3.3.377: one shareable artifact, reachable two ways -- the replay runs
+     the same ceremony and lands on the same card. */
   if(e.target.closest('[data-replayday]')){ celebrateDayDone(true); return; }
   const d=e.target.closest('[data-d1]');
   if(d){

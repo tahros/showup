@@ -907,7 +907,12 @@ function drawHeat(o){
   }));
   return cv;
 }
-async function showCard(drawFn,label,fromCarousel){
+/* v3.3.377: `reveal` wipes the image in from the top instead of showing it
+   at once. It is a CSS clip on the <img> that already holds the canvas -- the
+   picture is finished before the animation starts, so the reveal cannot
+   disagree with what Share sends. Reduced motion skips straight to the whole
+   image, because an unrevealed card is not a card. */
+async function showCard(drawFn,label,fromCarousel,reveal){
   try{
     if(document.fonts&&document.fonts.ready) await document.fonts.ready;
     const cv=drawFn();
@@ -918,7 +923,10 @@ async function showCard(drawFn,label,fromCarousel){
        swipe there would teleport you from "day 900" to an unrelated chart. */
     _repFromCarousel=!!fromCarousel;
     repOvEl().style.display='flex';
-    document.getElementById('repImg').src=cv.toDataURL('image/png');
+    const _img=document.getElementById('repImg');
+    _img.classList.toggle('revealing',!!reveal);
+    _img.src=cv.toDataURL('image/png');
+    if(reveal) requestAnimationFrame(()=>requestAnimationFrame(()=>_img.classList.remove('revealing')));
     bindOvSwipe();
   }catch(e){ toast('Could not draw the image'); }
 }
