@@ -574,7 +574,12 @@ function growthAuditSection(){
   if(!ga.grp||!groups[ga.grp]) ga.grp=data.order[0];
   const g=groups[ga.grp],recent=g.ex.filter(e=>e.ago<GA_HISTORY_DAYS);
   const shown=(recent.length?recent:g.ex).slice(0,4).map(e=>({...e,record:gaPR(e)}));
-  return `<h2>Growth audit${hActs('ga',"Dot: no sets in 7 days · line: no clear gain · trend: a later day went heavier than anything in the last six months, or did more reps at a load used in them.",'About Growth audit')}</h2>
+  /* v3.3.370: "Growth audit" was named like a tax procedure. This card is the
+     front door of the thing the maker wants ShowUp to be most -- an app that
+     helps you GROW -- and it should ask the question the user arrived with
+     rather than describe the process it runs. The rule underneath is
+     unchanged; only the words a person reads. */
+  return `<h2>Are you growing?${hActs('ga',"Dot: no sets in 7 days · line: no clear gain · trend: a later day went heavier than anything in the last six months, or did more reps at a load used in them.",'About growing')}</h2>
     <div class="card gacard" data-gacard="${ga.grp}">
       <select id="gaGrp" class="gasel" aria-label="Body part">${data.order.map(v=>
         `<option value="${v}" ${v===ga.grp?'selected':''}>${v}</option>`).join('')}</select>
@@ -922,7 +927,8 @@ function consistencyRaceSection(){
   const gapCopy=shares
     ?(gapPts>0?`+${gapPts} pts<small>ahead</small>`:gapPts<0?`${Math.abs(gapPts)} pts<small>behind</small>`:`Even<small>same date</small>`)
     :(gap>0?`+${gap} day${gap===1?'':'s'}<small>ahead</small>`:gap<0?`${Math.abs(gap)} day${gap===-1?'':'s'}<small>behind</small>`:`Even<small>same date</small>`);
-  return `<h2>Consistency${hActs('yoy2','Cumulative workout days through the same calendar date in both years. Drag the chart to compare any earlier date.','About Consistency')}</h2>
+  /* v3.3.370: the card compares two years; the heading now says so. */
+  return `<h2>This year vs last${hActs('yoy2','Cumulative workout days through the same calendar date in both years. Drag the chart to compare any earlier date.','About this year vs last')}</h2>
     <div class="card conrace" data-current-year="${current.year}" data-previous-year="${previous.year}"
       data-cur="${current.total}" data-prev="${previous.total}" data-denom="${elapsed}"
       data-unit-total="days" data-unit-share="of the year" data-gap-unit="days">
@@ -984,7 +990,9 @@ function renderStats(){
   cut('kpis');
   /* v3.3.208: Session Build keeps the honest part mix and the live-growing
      skyline, but every unit is now one completed set — never mixed tonnage. */
-  h+=`<h2>Session build${hActs('pmix',"One block per completed set, stacked by body part. Tap a label to follow it; tap again for all. The sets/weight switch reads the same days as total weight lifted. Runs stay separate.",'About Session build')}</h2>
+  /* v3.3.370: "Session build" describes the chart's construction; this says
+     what it is of. */
+  h+=`<h2>What you did${hActs('pmix',"One block per completed set, stacked by body part. Tap a label to follow it; tap again for all. The sets/weight switch reads the same days as total weight lifted. Runs stay separate.",'About what you did')}</h2>
       <div class="card">
         <div class="pmixhead"><button type="button" class="pmixmode" data-pmixmode
           aria-label="Show ${PMIX_MODE==='sets'?'total weight':'set counts'} instead"><span class="${PMIX_MODE==='sets'?'on':''}">sets</span><span class="${PMIX_MODE==='weight'?'on':''}">${isLb()?'lb':'kg'}</span></button></div>
@@ -999,7 +1007,11 @@ function renderStats(){
         <div class="pmixsum" id="pmixSum"></div>
       </div>`;
   cut('pmix');
-  h+=`<h2>Muscle coverage \u00b7 7 days${hActs('mc','Days each group trained in the last 7, by each set\u2019s primary muscle. Tap a group for detail. Runs excluded.','About muscle coverage')}</h2>
+  /* v3.3.370: "Muscle coverage" is insurance language. "This week" was the
+     first proposal and is WRONG -- this is a rolling seven days ending today,
+     not a calendar week, and a name that misstates its own window is worse
+     than a clinical one. */
+  h+=`<h2>The last 7 days${hActs('mc','Days each group trained in the last 7, by each set\u2019s primary muscle. Tap a group for detail. Runs excluded.','About the last 7 days')}</h2>
       <div class="card mccard">${muscleCard()}</div>`;
   cut('mc');
   h+=growthAuditSection();

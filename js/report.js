@@ -361,7 +361,10 @@ function shareCards(){
   const L=[
     {id:'grid', label:'Every month', file:()=>`${gridData().total}-days`,
      draw:()=>drawGrid(gridData())},
-    {id:'yoy', label:'Consistency', file:()=>'consistency-'+todayISO.slice(0,4),
+    /* v3.3.370: the share picker names the card the same way the heading does.
+       The filename keeps its old stem so previously shared images and any
+       links to them are not orphaned by a wording change. */
+    {id:'yoy', label:'This year vs last', file:()=>'consistency-'+todayISO.slice(0,4),
      draw:()=>drawYoy(yearCurves())},
     {id:'dbm', label:'Monthly pace', file:()=>'monthly-pace', draw:()=>{
       const data=monthlyPaceData(12), cur=data.months[data.months.length-1];

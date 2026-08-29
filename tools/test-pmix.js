@@ -47,12 +47,13 @@ run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
    RESTATES to the maker's order: Session Build now LEADS the tab — the page
    opens on what you just did — with Growth Audit below it. The pinned
    property is leadership plus relative order, not adjacency. */
-ok("Session Build leads the Stats tab, Growth Audit below it", run(`(function(){
+/* v3.3.370: names only -- the order this pins is unchanged. */
+ok("what you did leads the Stats tab, the growth card below it", run(`(function(){
   const hs=[...document.querySelectorAll('#view h2')];
   const t=h=>(h.childNodes[0]&&h.childNodes[0].nodeType===3?h.childNodes[0].textContent:h.textContent).trim();
   const names=hs.map(t);
-  const gaIdx=names.indexOf('Growth audit');
-  const pmIdx=names.indexOf('Session build');
+  const gaIdx=names.indexOf('Are you growing?');
+  const pmIdx=names.indexOf('What you did');
   return pmIdx===0 && gaIdx>pmIdx;})()`) === true);
 
 // ---- the data is sets, per part, per training day -------------------------

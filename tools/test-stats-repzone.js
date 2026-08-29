@@ -44,8 +44,10 @@ window._finish=()=>{migrateCanon();SEED=deriveAll();view='stats';render();};`);
    What is NOT reversed: a debut is the only thing lighting the row. Repeating
    the same work still earns nothing, which the second fixture below pins. */
 run(`_reset();_mk(1,[{part:'Chest',ex:'Chest Press',w:40,reps:[8,8],at:1}]);_finish();ga.grp='Chest';render();`);
-check("Growth Audit replaces the Rep-zone heading",
-  `[...document.querySelectorAll('#view h2')].some(h=>h.textContent.startsWith('Growth audit'))`,true);
+/* v3.3.370: "Growth audit" reads as a tax procedure; it asks the user's own
+   question now. The card and its rule are unchanged. */
+check("the growth card replaces the Rep-zone heading",
+  `[...document.querySelectorAll('#view h2')].some(h=>h.textContent.startsWith('Are you growing?'))`,true);
 check("the retired heading is absent",`!/Rep zones/i.test(document.querySelector('#view').textContent)`,true);
 check("a first workout reads as new ground",`document.querySelector('.gastate').getAttribute('aria-label')`,"Going up");
 check("the status contains no font glyph",`document.querySelector('.gastate').textContent.trim()`,"");
@@ -158,9 +160,9 @@ check("...without losing the selected value",`document.querySelector('#gaGrp').v
 // ---- structural retirement and ordering ---------------------------------
 /* v3.3.257 RESTATES the v3.3.209 adjacency: Session build now leads the
    tab (maker's order) with coverage between it and the audit. */
-check("Session build leads; Growth Audit sits below it",`(function(){
+check("what you did leads; the growth card sits below it",`(function(){
   const hs=[...document.querySelectorAll('#view h2')].map(h=>h.childNodes[0].textContent.trim());
-  return hs.indexOf('Session build')===0 && hs.indexOf('Growth audit')>0;})()`,true);
+  return hs.indexOf('What you did')===0 && hs.indexOf('Are you growing?')>0;})()`,true);
 check("Rep-zone functions and constants are deleted",
   `${!(/\brepZone(?:Data|Sets|ScatterSvg)?\s*\(|REPZONE_MAX_|REPZONE_LABELS/.test(statsSrc))}`,"true");
 check("there are exactly three public status labels",

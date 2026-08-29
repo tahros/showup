@@ -1,5 +1,17 @@
 # ShowUp — changelog
 
+## v3.3.370 (2026-08-29) — Stats says what it means
+
+Four headings renamed into plain speech:
+
+- Growth audit → **Are you growing?**
+- Muscle coverage · 7 days → **The last 7 days**
+- Session build → **What you did**
+- Consistency → **This year vs last**
+
+Nothing moved and nothing changed how it works — these are the same cards,
+asking the question you actually came with.
+
 ## v3.3.369 (2026-08-29) — Finishing the day is a moment
 
 **When you close out a workout, the day gets placed.** The screen quiets,

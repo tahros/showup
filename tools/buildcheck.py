@@ -572,7 +572,9 @@ if _visible != ["Chest", "Back", "Shoulders", "Arms", "Legs", "Core"]:
 _mcsec = _stats[_stats.rfind("/*",0,_stats.find("v3.3.194 — muscle coverage")):_stats.find("function currentRhythmSection")]
 _mctip = _re.search(r"hActs\('mc','([^']*)'", _stats)
 _mcsec += "\n" + (_mctip.group(1) if _mctip else "")
-_mch2 = _re.search(r"<h2>Muscle coverage[^`]*`", _stats)
+# v3.3.370: the heading is "The last 7 days" now; the guard follows the tip's
+# own id so a future rename cannot silently drop this card out of the scan.
+_mch2 = _re.search(r"<h2>[^<`]*\$\{hActs\('mc'[^`]*`", _stats)
 _mcsec += "\n" + (_mch2.group(0) if _mch2 else "")
 _mccopy = _re.sub(r"/\*.*?\*/","",_mcsec,flags=_re.S); _mccopy=_re.sub(r"//[^\n]*","",_mccopy)
 #    'target' must not match e.target (code, not copy) — require a word edge

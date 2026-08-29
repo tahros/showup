@@ -231,8 +231,21 @@ const idx = t => H.findIndex(x => x.startsWith(t));
 // the maker's order, top to bottom (v3.3.257: Session build leads — the
 // page opens on what you just did — then coverage, verdict, and the
 // attendance hero, then pace and the year story)
-const WANT = ["Session build", "Muscle coverage", "Growth audit", "Show up",
-              "Monthly pace", "Consistency", "Running", "Distance", "Pace", "Every week", "Weight"];
+/* v3.3.370: the headings were RENAMED into the app's own voice -- clinical
+   names for the two cards that carry the muscle-building half of the product.
+   The ORDER is what this pins and the order is unchanged; only the words. */
+const WANT = ["What you did", "The last 7 days", "Are you growing?", "Show up",
+              "Monthly pace", "This year vs last", "Running", "Distance", "Pace", "Every week", "Weight"];
+/* v3.3.370: and the SHARE PICKER must call each card what the heading calls
+   it. The picker is the same card under another name otherwise, which is how
+   a rename half-lands. */
+{
+  const labels = (fs.readFileSync(path.join(dir,"js/report.js"),"utf8")
+                  .match(/label:'([^']+)'/g)||[]).join('|');
+  console.log((/This year vs last/.test(labels) && !/label:'Consistency'/.test(labels)
+    ? "PASS" : "FAIL"), "the share picker uses the heading's own words");
+  if(!/This year vs last/.test(labels)) fail++;
+}
 let lastAt = -1, orderOK = true, broke = "";
 for (const t of WANT) {
   const at = idx(t);
