@@ -1100,10 +1100,16 @@ let lastView=null;
    already computes it: derived days plus today if today has work.
    Tap anywhere to leave early; it leaves by itself in ~2.3s; with
    prefers-reduced-motion it is a still frame. */
-function celebrateDayDone(){
-  if(DB.settings.dayDone===todayISO) return;
-  DB.settings.dayDone=todayISO; save();
-  const n=SEED.totals.sessions+((((DB.days[todayISO]||{}).w)||[]).length?1:0);
+/* v3.3.372: `preview` runs the ceremony WITHOUT touching the ledger -- no
+   stamp, no save, a fixed count of 1. It exists so the maker can look at day
+   one on his own device, with 953 days behind him, without logging out or
+   risking his data. A preview that wrote anything would defeat its purpose. */
+function celebrateDayDone(preview){
+  if(!preview){
+    if(DB.settings.dayDone===todayISO) return;
+    DB.settings.dayDone=todayISO; save();
+  }
+  const n=preview?1:SEED.totals.sessions+((((DB.days[todayISO]||{}).w)||[]).length?1:0);
   const o=document.createElement('div');
   o.id='dayDone';
   o.innerHTML=`<i class="ddsq" aria-hidden="true"></i>`+

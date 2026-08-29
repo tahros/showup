@@ -302,6 +302,31 @@
   .emptyhero{text-align:center;padding:34px 20px}
   .emptyhero h3{margin:0 0 8px;font-size:20px}
   .onbctas{margin-top:18px}
+  /* ---- v3.3.372: day one ------------------------------------------------
+     One question per screen. The tiles are big because this is the only
+     screen in the app where nobody knows what to press yet. */
+  .d1card{padding:22px 18px;margin-top:10px}
+  .d1hero{text-align:center;padding:34px 18px 26px}
+  .d1sq{display:block;width:46px;height:46px;margin:0 auto 22px;border-radius:12px;
+    background:var(--surface2);border:1.5px dashed var(--line)}
+  .d1h{font-size:19px;margin:0 0 6px}
+  .d1p{margin:0 0 22px;font-size:13px}
+  .d1soon{opacity:.45;cursor:default}
+  .d1link{display:block;width:100%;margin-top:16px;background:none;border:0;
+    font-family:var(--mono);font-size:11px;color:var(--faint);cursor:pointer}
+  .d1q{font-size:16px;margin:2px 0 16px}
+  .d1back{background:none;border:0;color:var(--muted);font-size:17px;
+    padding:0 0 8px;cursor:pointer}
+  .d1grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .d1tile{padding:18px 10px;border-radius:12px;border:1px solid var(--line);
+    background:var(--surface2);color:var(--chalk);font-size:14px;cursor:pointer}
+  .d1list{display:flex;flex-direction:column;gap:8px}
+  .d1row{text-align:left;padding:14px 14px;border-radius:11px;border:1px solid var(--line);
+    background:var(--surface2);color:var(--chalk);font-size:13.5px;cursor:pointer}
+  .d1bar{display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:8px 12px;border-radius:10px;background:var(--surface2);
+    border:1px solid var(--line);font-size:11px;color:var(--muted);
+    letter-spacing:var(--track-label);text-transform:uppercase}
   /* v3.3.138: 26px -> 14px, matching .zone. Every other card stacked in the
      Lift view sits 14px below the one above it; this one sat 12px lower, so
      the gap under "Logged today" read as a section break that was never
@@ -2062,6 +2087,11 @@
   .gasel{width:100%;font-family:var(--mono);font-size:13px;color:var(--chalk);
     background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px 10px}
   :root[data-skin="minimal"] .gasel{background:var(--ground);border-color:transparent}
+  /* v3.3.372: day one's empty square follows the skin like every other
+     surface. The skin suite caught this one -- it is decorative, so it was
+     easy to forget, and a first screen that ignores the user's chosen skin is
+     the worst possible screen to get wrong. */
+  :root[data-skin="minimal"] .d1sq{background:var(--ground);border-style:solid;border-color:transparent}
   .gahead{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0 8px}
   .gahead small{font-family:var(--mono);font-size:10px;color:var(--faint)}
   .gastate,.gabadge{display:block;width:22px;height:22px;flex:0 0 22px;background:currentColor;

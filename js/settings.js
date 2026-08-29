@@ -102,6 +102,11 @@ function renderSync(){
         <button class="btn ghost" id="expCsv" style="flex:1;margin:0">CSV ↓</button>
         <button class="btn ghost" id="expSheet" style="flex:1;margin:0">Copy for Sheets</button>
       </div>
+      <!-- v3.3.372: look at day one without becoming day one. The maker has 953
+           days behind him and the only other way to see a new user's first
+           screen is to log out or clear the device. This renders the flow over
+           live data and writes NOTHING -- no sets, no settings, no stamp. -->
+      <button class="btn ghost" id="d1prev" style="margin-top:8px">Preview day one</button>
       <div class="row" style="gap:8px;margin-top:8px">
         <button class="btn ghost" id="expJson" style="flex:1;margin:0">Backup ↓</button>
         <button class="btn ghost" id="impJson" style="flex:1;margin:0">Restore…</button>
@@ -203,6 +208,7 @@ document.addEventListener('click',e=>{
      runtime silently dies (v3.3.58, real lost sets). These are the Backup/
      Restore buttons the whole import pipeline funnels through. */
   const hit=id=>!!(e.target.closest&&e.target.closest('#'+id));
+  if(hit('d1prev')){ d1.preview=true; d1.step=0; d1.part=null; view='today'; render(); return; }
   if(hit('expCsv')){ dlFile('showup-export-'+todayISO+'.csv','text/csv',tableText(',')); return; }
   if(hit('expSheet')){ copyForSheets(); return; }
   if(hit('mgGo')){

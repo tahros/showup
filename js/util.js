@@ -206,7 +206,19 @@ const $=s=>document.querySelector(s);
    the point of ACTION — a toast is visible wherever you are scrolled, which
    the Logged Today grid is not once a session runs long. One of the three
    log paths already toasted; the other two didn't, and none handled BW. */
+/* v3.3.372: THE FIRST SET EVER IS THE MOMENT. On every other day the
+   ceremony belongs to "I am finished" -- the day-end button (v3.3.369,
+   v3.3.371). On day one there is nothing to finish yet, and the first set IS
+   the achievement: it is the instant an empty grid becomes a streak of one,
+   and for a stranger arriving from a link it is the only place the product
+   explains itself without words.
+   Hooked HERE because all three set-add paths already funnel through this
+   tail -- the same one-owner rule the day-end button got, applied before the
+   drift rather than after it. celebrateDayDone() stamps the day, so
+   completing the workout later stays quiet: one ceremony per day, always. */
 function setToast(ex,w,r){
+  const first=SEED.totals.sessions===0 && ((DB.days[todayISO]||{}).w||[]).length===1;
+  if(first && typeof celebrateDayDone==='function'){ celebrateDayDone(); return; }
   toast(`${isBody(ex)&&w<=0.01?'BW':wDisp(w)+U()} × ${r} logged`);
 }
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2000);}

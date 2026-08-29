@@ -1,5 +1,20 @@
 # ShowUp — changelog
 
+## v3.3.372 (2026-08-29) — Day one
+
+**A new user now gets one question at a time.** What did you train, then which
+lift, then the real logger — instead of being dropped into the full Train tab
+with every number blank.
+
+**The first set ever places the day**, with the same square and count you'd see
+at day 953. On day one there's nothing to finish yet, so the moment belongs to
+the first set rather than to the end-of-day button.
+
+From day two the normal app returns.
+
+Settings has **Preview day one**, which shows the whole flow over your real
+data and writes nothing at all — no sets, no settings.
+
 ## v3.3.371 (2026-08-29) — A clear way to end the day
 
 **The button that closes your workout now follows you down the page** instead

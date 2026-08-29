@@ -177,6 +177,53 @@ function demoBarSync(){
   if(DB.settings.demo)
     el.innerHTML=`<span>DEMO DATA — explore freely</span><button data-onbact="democlear">Use for real</button>`;
 }
+/* ============ v3.3.372 — DAY ONE ============================================
+   What a new user met before: a card saying "Log your first set", whose button
+   dropped them into the FULL Train tab -- body-part grid, go-to lists, plan
+   section, the same dense screen a 953-day user sees with every number blank.
+   The first five minutes were the least designed part of the product.
+   Day one now asks ONE QUESTION AT A TIME: what did you train, then which
+   lift, then the real logger. Steps two and three exist ONLY on day one; from
+   day two the normal Train tab returns, because by then its numbers mean
+   something and the shortcuts would be in the way.
+   The logger itself is untouched on purpose. The first set is logged in the
+   real app, not a tutorial copy of it, so nothing has to be relearned
+   tomorrow.
+   PREVIEW: d1.preview renders the whole flow over live data and writes
+   NOTHING -- the maker can look at it on his own device without logging out.
+   Every action below checks it. */
+let d1={step:0, part:null, preview:false};
+const d1Parts=()=>Object.keys(SEED.catalog||{});
+function dayOneHTML(){
+  const esc=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+  const bar=d1.preview
+    ? `<div class="d1bar mono">Preview \u00b7 day one<button class="chip" data-d1="exit">Exit</button></div>` : '';
+  if(d1.step===1) return `${bar}<div class="card d1card">
+      <button class="d1back" data-d1="back" aria-label="Back">\u2190</button>
+      <h3 class="d1q">What did you train?</h3>
+      <div class="d1grid">${d1Parts().map(p=>
+        `<button class="d1tile" data-d1part="${esc(p)}">${esc(p)}</button>`).join('')}</div>
+    </div>`;
+  if(d1.step===2){
+    const list=(SEED.catalog[d1.part]||[]).slice(0,8);
+    return `${bar}<div class="card d1card">
+      <button class="d1back" data-d1="back" aria-label="Back">\u2190</button>
+      <h3 class="d1q">${esc(d1.part)}</h3>
+      <div class="d1list">${list.map(x=>
+        `<button class="d1row" data-d1ex="${esc(x)}">${esc(x)}</button>`).join('')}</div>
+    </div>`;
+  }
+  /* step 0 -- the square you are about to fill, stated before it is explained */
+  return `${bar}<div class="card d1card d1hero">
+      <i class="d1sq" aria-hidden="true"></i>
+      <h3 class="d1h">One set is day one.</h3>
+      <p class="muted d1p">ShowUp counts days, not perfection.</p>
+      <button class="onbbtn pri" data-d1="start">Log your first set</button>
+      <button class="onbbtn d1soon" data-d1="soon" aria-disabled="true">Bring my logs over \u00b7 soon</button>
+      ${d1.preview?`<button class="d1link" data-d1="moment">See the moment</button>`
+                  :`<button class="d1link" data-onbact="demo">Explore with sample data</button>`}
+    </div>`;
+}
 function emptyHero(which){
   const cta=`<div class="onbctas"><button class="onbbtn pri" data-onbact="golift">Log your first set</button>
     <button class="onbbtn ghost" data-onbact="demo">Explore with sample data</button></div>`;
@@ -192,6 +239,28 @@ document.addEventListener('click',e=>{
   if(chip){ const p=chip.dataset.onbp; onbSel.has(p)&&onbSel.size>1?onbSel.delete(p):onbSel.add(p); onbRender(); return; }
   const u=e.target.closest('[data-onbu]');
   if(u){ onbUnit=u.dataset.onbu; onbRender(); return; }
+  /* v3.3.372: day one's own actions. In PREVIEW none of these may write:
+     picking a lift shows the logger for real on day one, but in preview it
+     stops at the ceremony instead, because entering the logger over live data
+     is one tap away from adding a set to a 953-day ledger. */
+  const dp=e.target.closest('[data-d1part]');
+  if(dp){ d1.part=dp.dataset.d1part; d1.step=2; render(); return; }
+  const dx=e.target.closest('[data-d1ex]');
+  if(dx){
+    if(d1.preview){ celebrateDayDone(true); return; }
+    lift.part=d1.part; lift.ex=dx.dataset.d1ex; lift.weight=0;
+    view='lift'; d1.step=0; render(); return;
+  }
+  const d=e.target.closest('[data-d1]');
+  if(d){
+    const act=d.dataset.d1;
+    if(act==='start'){ d1.step=1; render(); }
+    else if(act==='back'){ d1.step=d1.step>1?d1.step-1:0; render(); }
+    else if(act==='moment'){ celebrateDayDone(true); }
+    else if(act==='exit'){ d1.preview=false; d1.step=0; d1.part=null; render(); }
+    else if(act==='soon') toast('Importing your old logs is coming');
+    return;
+  }
   const a=e.target.closest('[data-onbact]');
   if(!a) return;
   const act=a.dataset.onbact;
@@ -268,8 +337,8 @@ function renderToday(){
      open it too — otherwise the button the maker taps does nothing. Same
      shape as renderLift's: commit and stop. */
   if(lift.plan==='paste'||lift.plan==='preview'){ $('#view').innerHTML=planScreenHTML(); return; }
-  if(SEED.totals.sessions===0 && !((DB.days[todayISO]||{}).w||[]).length){
-    $('#view').innerHTML=emptyHero('today'); return; }
+  if(d1.preview || (SEED.totals.sessions===0 && !((DB.days[todayISO]||{}).w||[]).length)){
+    $('#view').innerHTML=dayOneHTML(); return; }
   const P=trainingPlan();
   const t=day(todayISO);
   const logged=t.w.length>0;
