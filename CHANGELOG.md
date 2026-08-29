@@ -1,5 +1,17 @@
 # ShowUp — changelog
 
+## v3.3.374 (2026-08-29) — Train next follows your plan
+
+**When you've saved a plan for today, Train next names the next exercise in
+it** rather than recommending a body part the plan never mentions. It advances
+as you log, and goes quiet when the plan is done.
+
+**The rest-day button is hidden while a plan exists**, since saving eight
+exercises already says today isn't a rest day. It returns the moment the plan
+is cleared.
+
+With no plan, nothing changes — the rotation recommends as before.
+
 ## v3.3.373 (2026-08-29) — Paste reads your notes
 
 **A comment after a set line no longer stops it being read.** Lines like

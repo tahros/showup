@@ -843,6 +843,73 @@ run(`(function(){view='today'; lift.ex=null; render();})()`);
     ok("the maker's paste reads as exercises, not as notes", got === 6, got + " of 6");
   }
 
+  /* v3.3.374: A PLAN FOR TODAY IS AN ANSWER, SO THE SCREEN STOPS ASKING.
+     Today was making three claims about one day at once: the plan listing
+     eight exercises, "Rest day" offered beneath them, and "Train next"
+     recommending a part the plan never mentions -- the planner answering a
+     question the maker had already answered himself.
+     The card names the first UNLOGGED item, not the first: "first" is right
+     until you finish it and wrong for the rest of the session. */
+  {
+    /* the fixture needs HISTORY: with none, Today is day one (v3.3.372) and
+       routes to the first-run flow before any of this renders. The fixture had
+       quietly stopped containing its own case the moment day one shipped. */
+    const prior = `(function(){const t=new Date(todayISO+'T00:00');
+      const D=n=>{const d=new Date(t);d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA')};
+      DB.days[D(3)]={w:[{part:'Legs',ex:'Squat',w:60,reps:[8]}],upd:1};})();`;
+    const seeD = () => run(`(function(){DB.days={}; DB.settings.unit='lb'; ${prior}
+      DB.plan={d:todayISO, items:[
+        {ex:'EZ Bar Curl', lines:[{w:toKg(45),bw:false,reps:[10,10]}]},
+        {ex:'Hammer Curl', lines:[{w:toKg(25),bw:false,reps:[12,10]}]}], note:''};
+      DB.planAt=Date.now(); SEED=deriveAll(); view='today'; render();})()`);
+    /* the plan CARD also holds [data-planex] rows, so the first version of
+       this matched that instead of the recommendation. The Train-next card
+       carries its own class. */
+    const nextCard = () => run(`(function(){const c=document.querySelector('.tnextplan');
+      return c?c.textContent.replace(/\s+/g,' ').trim():'(quiet)';})()`);
+
+    seeD();
+    ok("with a plan, Train next names the plan's first exercise",
+       /EZ Bar Curl/.test(nextCard()), nextCard());
+    ok("...described as the plan's, not as a rotation verdict",
+       /next in your plan/.test(nextCard()) && !/d ago|d since/.test(nextCard()),
+       nextCard());
+    ok("...and the rest-day button is not offered against your own plan",
+       run(`!document.getElementById('restBtn')`));
+
+    /* IT NAMES THE FIRST UNLOGGED ITEM, not the first. Tested by logging the
+       first one and re-reading the card from the same pre-session branch.
+       NOTE, found while writing this: once ANY set lands, Today leaves this
+       branch for the mid-session view and Train next is not rendered at all --
+       so on Today the advance only ever shows before the first set. What is
+       next mid-session is answered by the plan card's own tick marks, which
+       already recede as work lands (v3.3.367). The rule is still worth having:
+       reopening Today with a plan half-done must not point back at work
+       already recorded. */
+    run(`(function(){DB.days[todayISO]={w:[],upd:1};
+      DB.days[todayISO].w.push({part:'Biceps',ex:'EZ Bar Curl',w:toKg(45),reps:[10],at:1});
+      SEED=deriveAll();})()`);
+    /* asserted on the RENDERED card, not on the expression behind it. The
+       first version of this checked planNow()/find() directly -- so replacing
+       the whole rule with items[0] left it green. Artifact, not effect. */
+    run(`(function(){DB.days[todayISO]={w:[{part:'Biceps',ex:'EZ Bar Curl',w:toKg(45),reps:[10],at:1}],upd:1};
+      SEED=deriveAll(); render();})()`);
+    ok("...it skips an exercise already logged, mid-session",
+       /Hammer Curl/.test(nextCard()) && !/EZ Bar Curl/.test(nextCard()), nextCard());
+    run(`(function(){DB.days[todayISO].w.push({part:'Biceps',ex:'Hammer Curl',w:toKg(25),reps:[12],at:2});
+      SEED=deriveAll(); render();})()`);
+    ok("...and goes quiet once the plan is done",
+       nextCard()==='(quiet)', nextCard());
+
+    /* with NO plan the rotation is untouched -- this changes what happens
+       when you have answered, not what happens when you have not */
+    run(`(function(){DB.days={}; ${prior} DB.plan=null; SEED=deriveAll(); view='today'; render();})()`);
+    ok("with no plan the rotation still recommends a part",
+       run(`!!document.querySelector('[data-go]')`));
+    ok("...and the rest-day button comes back",
+       run(`!!document.getElementById('restBtn')`));
+  }
+
   /* THE LINE THE BUILD DEFENDS. No count, fraction or percentage of a plan
      may appear -- buildcheck scans the source for the vocabulary, this scans
      the rendered card for the shape. */

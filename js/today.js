@@ -386,9 +386,42 @@ function renderToday(){
        prompts, never nags, and an undeclared rest day is not a lesser rest
        day. Tap again to undo — every state walks out. Gone the moment a
        set lands (the whole !logged branch is). */
+    /* v3.3.374: a plan for today is an answer, so the screen stops asking.
+       The plan card, the rest button and the recommendation were making three
+       different claims about the same day at once: eight exercises listed,
+       "Rest day" offered beneath them, and a part the plan never mentions
+       recommended below that. Rest stays available on any day you have NOT
+       declared a plan for -- declaring one is itself a statement that today
+       is not a rest day, and the button returns the moment the plan is
+       cleared. Nothing is disabled or greyed: it is simply not asked. */
+    const _pl0=planNow();
     const _rest=!!(DB.days[todayISO]&&DB.days[todayISO].rest);
-    h+=`<button class="btn ghost restbtn ${_rest?'on':''}" id="restBtn">${
+    if(!_pl0) h+=`<button class="btn ghost restbtn ${_rest?'on':''}" id="restBtn">${
       _rest?'🍃 Resting today · tap to undo':'🍃 Rest day'}</button>`;
+    /* v3.3.374: WITH A PLAN, "Train next" IS THE PLAN. The planner answers
+       "what should I train?" from the rotation; the moment you save a plan you
+       have answered it yourself, and a card arguing with your own decision is
+       noise. It names the first item you have NOT logged, not the first item:
+       "first" is right until you finish it and wrong for the rest of the
+       session. planLoggedToday() already drives the tick marks on the plan
+       rows, so this advances with them.
+       When every item is logged the card goes quiet rather than falling back
+       to the rotation -- the honest next action then is the day-end button. */
+    const _next=_pl0?(_pl0.items||[]).find(i=>!planLoggedToday(i.ex)):null;
+    if(_pl0){
+      h+=`<h2>Train next</h2>`;
+      if(_next){
+        h+=`<div class="card tnextplan"><div class="row spread">
+              <div><div style="font-family:var(--disp);font-weight:700;font-size:20px">${_next.ex}</div>
+              <div class="mono muted" style="font-size:12px;margin-top:2px">next in your plan</div></div>
+              <button class="chip on" data-planex="${_next.ex}">Start →</button>
+            </div></div>`;
+      }else{
+        h+=`<div class="card"><div class="mono muted" style="text-align:center;padding:4px 0">
+              Every exercise in your plan is logged.</div></div>`;
+      }
+    }
+    else{
     h+=`<h2>Train next</h2>`;
     if(P.pick){
       const i0=P.info[P.pick];
@@ -413,6 +446,9 @@ function renderToday(){
               <button class="chip" data-go="${P.addon}">+</button></div>`;
       }
     }
+    }   /* end: no plan for today -- the rotation answers instead */
+    /* the run nudge and the door to other parts survive either branch: an
+       add-on is not a claim about what to train, and the door is navigation. */
     if(P.run){
       h+=`<div class="row spread card" style="margin-top:8px;padding:11px 14px">
             <span class="mono muted" style="font-size:12px">Run · ${P.run.since}d since (you run most days)</span>
@@ -434,6 +470,25 @@ function renderToday(){
 
   // ---- mid-session: what am I doing right now
   h+=todayHeroHTML();
+  /* v3.3.374: MID-SESSION IS WHEN "what's next" ACTUALLY MATTERS, and until
+     now Today answered it only BEFORE the first set -- the moment the first
+     set landed, this branch took over and Train next disappeared entirely.
+     That made "the first UNLOGGED item" indistinguishable from "the first
+     item": by the time one was logged, the card was already gone. The rule
+     was unobservable, which is another way of saying it was not a rule.
+     Here it is real. The card advances as each exercise is logged, and goes
+     quiet when the plan is done rather than sending you back to the rotation
+     -- the next action then is the day-end button. */
+  {
+    const _plm=planNow();
+    const _nx=_plm?(_plm.items||[]).find(i=>!planLoggedToday(i.ex)):null;
+    if(_nx) h+=`<h2>Train next</h2>
+      <div class="card tnextplan"><div class="row spread">
+        <div><div style="font-family:var(--disp);font-weight:700;font-size:20px">${_nx.ex}</div>
+        <div class="mono muted" style="font-size:12px;margin-top:2px">next in your plan</div></div>
+        <button class="chip on" data-planex="${_nx.ex}">Start →</button>
+      </div></div>`;
+  }
   /* v3.3.285: the parts trained today move off the heading onto their own
      quiet line. Inline, four parts wrapped into the title and collided with
      it; the heading is a label and should stay one short thing. */
