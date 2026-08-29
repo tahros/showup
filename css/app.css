@@ -693,8 +693,13 @@
      cover the content above it and does not need the page to reserve room. It
      rests just above the nav, and it is the one filled button on the screen;
      everything else offering to continue is a chip. */
-  .btn.done.dayend{position:sticky;z-index:20;
-    bottom:calc(64px + env(safe-area-inset-bottom));
+  /* v3.3.375: NOT sticky. A sticky element with a `bottom` offset is pinned
+     UPWARDS when its natural position is below the pin line, so on a short
+     page this lifted off the end of the document and painted over the part
+     chips above it -- reachable, and in the way. It sits in flow now, directly
+     under the session cards, and earns its prominence from being the only
+     filled button on the screen rather than from floating. */
+  .btn.done.dayend{margin-bottom:18px;
     box-shadow:0 6px 20px color-mix(in srgb,var(--accent) 22%,transparent)}
   /* v3.3.245: the header's paint, on an absolute child. Safari 26's status-bar
      tinting samples background-color and backdrop-filter on FIXED elements

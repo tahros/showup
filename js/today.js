@@ -540,6 +540,17 @@ function renderToday(){
      It STICKS to the bottom of the screen while a session is live, and it
      names the count -- so it states what you are about to put in the book
      rather than asking for a decision. */
+  /* v3.3.375: the button sits DIRECTLY UNDER THE WORK IT CLOSES, above the
+     offer to add more. v3.3.371 made it position:sticky so it could not fall
+     below the fold -- and sticky with a `bottom` offset pins an element
+     UPWARDS when its natural place is lower than the pin line, so on a short
+     page it lifted off the end of the document and painted straight over the
+     part chips that precede it. It was reachable and in the way.
+     In flow, immediately after the session cards, it is reachable for the
+     same reason without overlapping anything: you meet it the moment you
+     finish reading what you did, and "Add another part" reads as the
+     alternative to it rather than as something to scroll past first. */
+  if(isLive()) h+=`<button class="btn done dayend" id="doneAllBtn">\u2713 Complete workout \u00b7 ${t.w.length} set${t.w.length===1?'':'s'}</button>`;
   h+=`<h2 class="quiet">Add another part</h2><div class="chips">`;
   P.mains.filter(p=>!doneLift.includes(p)).forEach(p=>{
     const i1=P.info[p];
@@ -552,8 +563,7 @@ function renderToday(){
   /* the count is the whole argument for pressing it: it names what you are
      about to put in the book, so the button states a fact rather than asking
      for a decision. */
-  if(isLive()) h+=`<button class="btn done dayend" id="doneAllBtn">\u2713 Complete workout \u00b7 ${t.w.length} set${t.w.length===1?'':'s'}</button>`;
-  else if(t.w.length&&t.doneAll)
+  if(t.w.length&&t.doneAll&&!isLive())
     h+=`<div class="note mono" style="text-align:center;margin:14px 0 4px">\u2713 Workout complete \u00b7 ${t.w.length} sets — logging another set reopens it</div>`;
   $('#view').innerHTML=h; msCountUp(); dayCountUp();
 }

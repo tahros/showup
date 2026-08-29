@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v3.3.375 (2026-08-29) — The complete button stops covering things
+
+**It was floating over the part chips.** Making it stick to the bottom in
+v3.3.371 meant that on a short page it lifted off the end of the page and
+painted straight over "Add another part".
+
+It now sits in the page, directly under the work it closes and above the offer
+to add more — reachable without being in the way.
+
 ## v3.3.374 (2026-08-29) — Train next follows your plan
 
 **When you've saved a plan for today, Train next names the next exercise in

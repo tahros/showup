@@ -92,10 +92,22 @@ ok("a live day offers the button that ends it", endBtn()!=='(absent)', endBtn())
 ok("...naming what it is about to put in the book", /2 sets/.test(endBtn()), endBtn());
 
 const css2=fs.readFileSync(path.join(dir,"css/app.css"),"utf8").replace(/\r?\n\s*/g,"");
-ok("...and it stays reachable instead of ending up below the fold",
-   /\.btn\.done\.dayend\{[^}]*position:sticky/.test(css2));
-ok("...resting clear of the nav rather than under it",
-   /\.btn\.done\.dayend\{[^}]*bottom:calc\([^)]*safe-area-inset-bottom/.test(css2));
+/* v3.3.375 RESTATES. These pinned position:sticky, which was the MECHANISM I
+   reached for, not the property. Sticky with a `bottom` offset pins upwards
+   when the natural position is lower than the pin line, so on a short page the
+   button lifted off the end of the document and painted over the part chips
+   above it. What the check is really defending is that the end of the day is
+   not something you have to hunt for: it sits directly under the work it
+   closes, ABOVE the offer to add more, which is checkable as document order
+   and cannot be satisfied by a floating element that covers its neighbours. */
+ok("...and it sits above the offer to add another part",
+   run(`(function(){const v=document.getElementById('view');
+     const b=document.getElementById('doneAllBtn');
+     const h=[...v.querySelectorAll('h2')].find(x=>/Add another part/i.test(x.textContent));
+     if(!b||!h) return 'missing';
+     return (b.compareDocumentPosition(h) & 4) === 4;})()`) === true);
+ok("...and it does not float over its neighbours",
+   !/\.btn\.done\.dayend\{[^}]*position:(sticky|fixed)/.test(css2));
 
 /* one voice for the end of the day: the step-level buttons stopped borrowing
    its word, so "Complete workout" means one thing in one place */
