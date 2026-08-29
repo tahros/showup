@@ -1104,12 +1104,19 @@ let lastView=null;
    stamp, no save, a fixed count of 1. It exists so the maker can look at day
    one on his own device, with 953 days behind him, without logging out or
    risking his data. A preview that wrote anything would defeat its purpose. */
-function celebrateDayDone(preview){
-  if(!preview){
+/* v3.3.376: two separate things, which the first version conflated into one
+   `preview` flag. NOWRITE means the ledger is not touched -- true for day
+   one's preview and for replaying a day you already finished. FORCECOUNT is
+   only day one's preview, which must read "1" over a 953-day ledger. A replay
+   passes nowrite alone and shows the real number, because it is your real
+   day. */
+function celebrateDayDone(nowrite, forceCount){
+  if(!nowrite){
     if(DB.settings.dayDone===todayISO) return;
     DB.settings.dayDone=todayISO; save();
   }
-  const n=preview?1:SEED.totals.sessions+((((DB.days[todayISO]||{}).w)||[]).length?1:0);
+  const n=forceCount!=null?forceCount
+    :SEED.totals.sessions+((((DB.days[todayISO]||{}).w)||[]).length?1:0);
   const o=document.createElement('div');
   o.id='dayDone';
   o.innerHTML=`<i class="ddsq" aria-hidden="true"></i>`+

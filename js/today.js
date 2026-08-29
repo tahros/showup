@@ -247,16 +247,20 @@ document.addEventListener('click',e=>{
   if(dp){ d1.part=dp.dataset.d1part; d1.step=2; render(); return; }
   const dx=e.target.closest('[data-d1ex]');
   if(dx){
-    if(d1.preview){ celebrateDayDone(true); return; }
+    if(d1.preview){ celebrateDayDone(true,1); return; }
     lift.part=d1.part; lift.ex=dx.dataset.d1ex; lift.weight=0;
     view='lift'; d1.step=0; render(); return;
   }
+  /* v3.3.376: replay the day's own ceremony, on request only. preview=true
+     so it never re-stamps or writes -- the day is already stamped, and asking
+     to see it again is not a second completion. */
+  if(e.target.closest('[data-replayday]')){ celebrateDayDone(true); return; }
   const d=e.target.closest('[data-d1]');
   if(d){
     const act=d.dataset.d1;
     if(act==='start'){ d1.step=1; render(); }
     else if(act==='back'){ d1.step=d1.step>1?d1.step-1:0; render(); }
-    else if(act==='moment'){ celebrateDayDone(true); }
+    else if(act==='moment'){ celebrateDayDone(true,1); }
     else if(act==='exit'){ d1.preview=false; d1.step=0; d1.part=null; render(); }
     else if(act==='soon') toast('Importing your old logs is coming');
     return;
@@ -551,6 +555,31 @@ function renderToday(){
      finish reading what you did, and "Add another part" reads as the
      alternative to it rather than as something to scroll past first. */
   if(isLive()) h+=`<button class="btn done dayend" id="doneAllBtn">\u2713 Complete workout \u00b7 ${t.w.length} set${t.w.length===1?'':'s'}</button>`;
+  /* v3.3.376: THE FINISHED DAY IS WORTH LOOKING AT. What stood here was two
+     lines of grey mono -- "Workout complete . 23 sets - logging another set
+     reopens it" -- which is the end state of the thing this whole app is
+     about, written as a footnote about database behaviour. The day you closed
+     out had less visual weight than a part chip.
+     It is a card now, in the SAME PLACE the button was, so the page does not
+     change shape when you finish: today's square filled, the day count, and
+     the same words the ceremony uses. One voice for the moment and its
+     aftermath.
+     TAP TO SEE IT AGAIN. The once-a-day stamp exists so the ceremony does not
+     INTERRUPT you twice; a deliberate tap is not an interruption, so it
+     replays on request and never on arrival. Re-opening Today on a finished
+     day stays quiet.
+     The reopen sentence survives, small and underneath: it is a mechanic, and
+     true, but it is not the point. */
+  if(t.w.length&&t.doneAll&&!isLive()){
+    const _n=SEED.totals.sessions+(t.w.length?1:0);
+    const _st=currentStreak();
+    h+=`<button class="card dayclosed" data-replayday="1" aria-label="Today is complete. Tap to see it again.">
+          <i class="dcsq" aria-hidden="true"></i>
+          <b class="dcn">Day ${fmt(_n)} — in the book.</b>
+          <span class="dcm mono">${t.w.length} sets${_st>1?` \u00b7 ${_st}-day streak`:''}</span>
+          <span class="dcr mono">logging another set reopens it</span>
+        </button>`;
+  }
   h+=`<h2 class="quiet">Add another part</h2><div class="chips">`;
   P.mains.filter(p=>!doneLift.includes(p)).forEach(p=>{
     const i1=P.info[p];
@@ -563,8 +592,6 @@ function renderToday(){
   /* the count is the whole argument for pressing it: it names what you are
      about to put in the book, so the button states a fact rather than asking
      for a decision. */
-  if(t.w.length&&t.doneAll&&!isLive())
-    h+=`<div class="note mono" style="text-align:center;margin:14px 0 4px">\u2713 Workout complete \u00b7 ${t.w.length} sets — logging another set reopens it</div>`;
   $('#view').innerHTML=h; msCountUp(); dayCountUp();
 }
 

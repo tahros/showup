@@ -120,5 +120,54 @@ ok("only the day's end says \"Complete\"",
 run(`document.getElementById('doneAllBtn').dispatchEvent(new window.Event('click',{bubbles:true}))`);
 ok("pressing it places the day", run(`!!document.getElementById('dayDone')`));
 
+/* v3.3.376: THE FINISHED DAY. What stood here was two lines of grey mono --
+   "Workout complete . 23 sets - logging another set reopens it" -- the end
+   state of the thing this app is about, written as a footnote about database
+   behaviour. It is a card now, in the same place the button was so the page
+   does not change shape when you finish, and it replays the ceremony ON
+   REQUEST. The once-a-day stamp exists so the ceremony does not INTERRUPT
+   twice; a deliberate tap is not an interruption. */
+{
+  run(`(function(){DB.days={}; DB.settings.unit='lb'; DB.settings.dayDone=todayISO;
+    const t=new Date(todayISO+'T00:00');
+    const D=n=>{const d=new Date(t);d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA')};
+    DB.days[D(1)]={w:[{part:'Legs',ex:'Squat',w:60,reps:[8]}],upd:1};
+    DB.days[todayISO]={w:[{part:'Chest',ex:'Dip',w:0,reps:[10]},
+                          {part:'Chest',ex:'Dip',w:0,reps:[9]}],upd:1,
+                       doneEx:['Dip'],donePart:['Chest'],doneAll:true};
+    SEED=deriveAll(); view='today'; render();})()`);
+  /* \s inside a JS TEMPLATE LITERAL collapses to a bare s -- documented in
+     v3.3.350, hit again in v3.3.355, and hit a third time writing this. The
+     helper was collapsing runs of the letter "s" instead of whitespace and
+     the card read as truncated. Double the backslash. */
+  run(`(function(){const o=document.getElementById('dayDone'); if(o) o.remove();})()`);
+  const closed = () => run(`(function(){const c=document.querySelector('.dayclosed');
+    return c?c.textContent.replace(/\\s+/g,' ').trim():'(absent)';})()`);
+  ok("a finished day gets a card, not a footnote", closed()!=='(absent)', closed());
+  ok("...naming the day in the ceremony's own words",
+     /in the book/.test(closed()) && /2 sets/.test(closed()), closed());
+  ok("...with the real day number, not day one",
+     /Day 2 /.test(closed()), closed());
+  ok("...and the reopen sentence kept, but no longer the headline",
+     /reopens it/.test(closed()));
+  /* it stands where the button stood, so the page keeps its shape */
+  ok("...sitting above the offer to add another part",
+     run(`(function(){const c=document.querySelector('.dayclosed');
+       const h=[...document.querySelectorAll('#view h2')].find(x=>/Add another part/i.test(x.textContent));
+       if(!c||!h) return 'missing';
+       return (c.compareDocumentPosition(h) & 4) === 4;})()`) === true);
+
+  /* NOT on arrival: a finished day that re-runs its own ceremony every time
+     you open Today is a full-screen takeover, not a celebration */
+  ok("re-opening a finished day stays quiet", run(`!document.getElementById('dayDone')`));
+
+  /* ...but on request, and showing the real day */
+  run(`document.querySelector('.dayclosed').dispatchEvent(new window.Event('click',{bubbles:true}))`);
+  ok("tapping it plays the day again", run(`!!document.getElementById('dayDone')`));
+  ok("...reading the real day number", run(`(document.querySelector('#dayDone .ddn')||{}).textContent`)==="2",
+     run(`(document.querySelector('#dayDone .ddn')||{}).textContent`));
+  ok("...and a replay writes nothing", run(`DB.settings.dayDone===todayISO`));
+}
+
 process.exit(fail?1:0);
 })();

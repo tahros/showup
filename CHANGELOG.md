@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v3.3.376 (2026-08-29) — A finished day looks finished
+
+**When your workout is complete, Today now shows a card** where the button
+was: today's square, `Day 954 — in the book.`, your sets and streak. It used
+to be two lines of grey text at the bottom of the page.
+
+**Tap it to watch the day get placed again.** It never plays by itself when
+you come back — only when you ask.
+
 ## v3.3.375 (2026-08-29) — The complete button stops covering things
 
 **It was floating over the part chips.** Making it stick to the bottom in

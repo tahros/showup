@@ -699,6 +699,17 @@
      chips above it -- reachable, and in the way. It sits in flow now, directly
      under the session cards, and earns its prominence from being the only
      filled button on the screen rather than from floating. */
+  /* v3.3.376: the finished day, in the place the button had. Speaks the
+     ceremony's language -- the filled square, the same sentence -- so the
+     moment and its aftermath are one thing rather than two. */
+  .dayclosed{display:block;width:100%;text-align:center;padding:20px 16px 16px;
+    margin-bottom:18px;border:1px solid var(--line);cursor:pointer}
+  .dayclosed .dcsq{display:block;width:30px;height:30px;margin:0 auto 12px;
+    border-radius:9px;background:var(--accent)}
+  .dayclosed .dcn{display:block;font-family:var(--disp);font-weight:700;
+    font-size:16px;color:var(--chalk)}
+  .dayclosed .dcm{display:block;margin-top:5px;font-size:11.5px;color:var(--muted)}
+  .dayclosed .dcr{display:block;margin-top:10px;font-size:10px;color:var(--faint)}
   .btn.done.dayend{margin-bottom:18px;
     box-shadow:0 6px 20px color-mix(in srgb,var(--accent) 22%,transparent)}
   /* v3.3.245: the header's paint, on an absolute child. Safari 26's status-bar
