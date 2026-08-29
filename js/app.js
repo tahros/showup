@@ -93,8 +93,7 @@ document.addEventListener('click',e=>{
         if(p&&!m.donePart.includes(p)) m.donePart.push(p);
       m.doneAll=true;
     }
-    save();renderHeader();
-    toast(m.doneAll?`Workout complete — ${m.w.length} sets. Cool down 🔥`:`${lift.ex} complete ✓`);
+    save();renderHeader();doneToast(m,`${lift.ex} complete ✓`);
     lift.ex=null;return render();
   }
   if(e.target.closest('#reopenPartBtn')&&lift.part){
@@ -109,16 +108,14 @@ document.addEventListener('click',e=>{
     m.w.filter(s=>s.part===lift.part).forEach(s=>{ if(!m.doneEx.includes(s.ex)) m.doneEx.push(s.ex); });
     if(!m.donePart.includes(lift.part)) m.donePart.push(lift.part);
     if([...new Set(m.w.map(s=>s.part))].every(p=>m.donePart.includes(p))) m.doneAll=true;
-    save();renderHeader();
-    toast(m.doneAll?`Workout complete — ${m.w.length} sets. Cool down 🔥`:`${lift.part} complete ✓`);return render();
+    save();renderHeader();doneToast(m,`${lift.part} complete ✓`);return render();
   }
   if(e.target.closest('#doneAllBtn')){
     const m=dayMeta(); m.upd=Date.now();
     m.w.forEach(s=>{ if(!m.doneEx.includes(s.ex)) m.doneEx.push(s.ex);
                      if(!m.donePart.includes(s.part)) m.donePart.push(s.part); });
     m.doneAll=true;
-    save();renderHeader();
-    toast(`Workout complete — ${m.w.length} sets. Cool down 🔥`);
+    save();renderHeader();doneToast(m,'');
     return render();
   }
   const sx=e.target.closest('[data-sugx]');
@@ -1086,6 +1083,41 @@ let lastView=null;
    will be wrong eventually; the only question was which route found it first.
    render() runs on every view change by definition, so putting it here makes
    the bar a READING of the app's state rather than a second copy of it. */
+/* v3.3.369: THE DAY IS PLACED. Completing the workout used to get a toast --
+   the biggest moment in the app, delivered in the furniture of a sync error.
+   This is the maker's pick A: a quiet surface, today's square drawing itself
+   in, one ring (the breathing halo's gesture, spent once instead of looping),
+   and the day count landing beneath it in the hero stat's own words.
+   ONE OWNER. The four doneAll flip sites used to each build their own toast
+   line; they funnel through doneToast now, so the celebration cannot drift
+   between routes -- the nav-bar lesson of v3.3.366, applied before the bug
+   this time instead of after.
+   ONCE A DAY, EVER: a date stamp in settings, so reopening a part and
+   completing again is not a second ceremony. The stamp survives sync.
+   NO PLAN WORDS. doneAll is the maker's own declaration, not a plan score --
+   the overlay never says "plan", never counts N of M, and its number is the
+   same "days in" the attendance hero shows, computed the way report.js
+   already computes it: derived days plus today if today has work.
+   Tap anywhere to leave early; it leaves by itself in ~2.3s; with
+   prefers-reduced-motion it is a still frame. */
+function celebrateDayDone(){
+  if(DB.settings.dayDone===todayISO) return;
+  DB.settings.dayDone=todayISO; save();
+  const n=SEED.totals.sessions+((((DB.days[todayISO]||{}).w)||[]).length?1:0);
+  const o=document.createElement('div');
+  o.id='dayDone';
+  o.innerHTML=`<i class="ddsq" aria-hidden="true"></i>`+
+    `<b class="ddn">${fmt(n)}</b><span class="ddu">days in</span>`+
+    `<span class="ddt">show up \u2014 that's the whole game</span>`;
+  document.body.appendChild(o);
+  const bye=()=>{ o.classList.add('out'); setTimeout(()=>o.remove(),320); };
+  o.addEventListener('click',bye,{once:true});
+  setTimeout(()=>{ if(o.isConnected) bye(); },2300);
+}
+const doneToast=(m,alt)=>{
+  if(m.doneAll){ celebrateDayDone(); toast(`Workout complete \u2014 ${m.w.length} sets. Cool down \ud83d\udd25`); }
+  else toast(alt);
+};
 function syncNav(){
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
 }

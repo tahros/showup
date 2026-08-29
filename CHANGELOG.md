@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v3.3.369 (2026-08-29) — Finishing the day is a moment
+
+**When you close out a workout, the day gets placed.** The screen quiets,
+today's square draws itself in, and your day count lands beneath it.
+
+Once a day, about two seconds, tap to skip. It holds still if you've asked
+your phone to reduce motion.
+
 ## v3.3.368 (2026-08-28) — A first session counts as new ground
 
 **The first time you log an exercise, Growth Audit marks it going up**, with a

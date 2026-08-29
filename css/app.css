@@ -1791,6 +1791,35 @@
      .dayedit and stay words -- they are not per-row controls and there is no
      symbol for "copy a year" that anyone would read correctly. */
   .dayedit.ico{padding:5px 7px;line-height:0}
+  /* ============ v3.3.369 — the day is placed ============
+     Maker's pick A. One motion: surface in, square draws itself, one ring
+     spent, the count lands. The ring reuses the breathing halo's grammar
+     (v3.3.348) at a single beat. Everything rides --settle; nothing loops;
+     reduced-motion gets the finished frame, because a marker that vanishes
+     for that setting would celebrate nobody. Tap anywhere ends it early. */
+  #dayDone{position:fixed;inset:0;z-index:70;background:var(--surface);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    cursor:pointer;animation:ddin .18s var(--settle) both}
+  #dayDone.out{opacity:0;transition:opacity .3s var(--settle)}
+  #dayDone .ddsq{width:44px;height:44px;border-radius:12px;background:var(--accent);
+    position:relative;animation:ddsq .5s var(--settle) both .12s}
+  #dayDone .ddsq::after{content:'';position:absolute;inset:-8px;border-radius:16px;
+    border:2px solid var(--accent);opacity:0;animation:ddring .7s var(--settle) .5s}
+  #dayDone .ddn{font-family:var(--disp);font-size:42px;font-weight:700;color:var(--chalk);
+    margin-top:26px;line-height:1;animation:ddup .45s var(--settle) both .55s}
+  #dayDone .ddu{font-family:var(--mono);font-size:12px;color:var(--faint);
+    margin-top:6px;animation:ddup .45s var(--settle) both .62s}
+  #dayDone .ddt{position:absolute;bottom:34px;font-family:var(--mono);font-size:10px;
+    color:var(--faint);letter-spacing:var(--track-label);text-transform:uppercase;
+    animation:ddup .5s var(--settle) both .95s}
+  @keyframes ddin{from{opacity:0}}
+  @keyframes ddsq{from{transform:scale(.25);opacity:0}}
+  @keyframes ddring{0%{opacity:.55;inset:-6px}100%{opacity:0;inset:-22px}}
+  @keyframes ddup{from{opacity:0;transform:translateY(6px)}}
+  @media (prefers-reduced-motion:reduce){
+    #dayDone,#dayDone .ddsq,#dayDone .ddn,#dayDone .ddu,#dayDone .ddt{animation:none}
+    #dayDone .ddsq::after{animation:none;opacity:0}
+  }
   .dayedit.ico svg{display:block;width:15px;height:15px}
   .day.editing{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent-soft)}
   .day.editing .dayedit{background:var(--accent);border-color:var(--accent);color:#fff}
