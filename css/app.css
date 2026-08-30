@@ -802,8 +802,17 @@
      so 152 left ~56px of dead air after a short date like "Sat, 8/29" and the
      week looked adrift from the thing it belongs to. 132 clears the worst
      case by 12 and keeps the pair reading as one unit. */
-  .h-idcol{flex:0 0 auto;width:132px;min-width:0}
+  /* v3.3.383: the 132px cage moves OFF the wrapper and onto the DATE alone.
+     Since v3.3.382 the week is pinned by position, so the wrapper's width no
+     longer places anything -- it was only still clipping the SUBTITLE to
+     132px, which cut "NOTHING LOGGED YET" to "NOTHING LOGGED Y...". The
+     squares occupy the date's line only, so the line beneath them is free to
+     run the full header width and truncate at the edge like it always did.
+     The date keeps the cap: it shares its line with the squares and must
+     never run under them. */
+  .h-idcol{flex:1 1 auto;min-width:0}
   .h-date{font-family:var(--disp);font-weight:700;font-size:19px;letter-spacing:var(--track-num);
+    max-width:132px;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .h-sub{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:var(--track-label);text-transform:uppercase;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}

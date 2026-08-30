@@ -389,8 +389,15 @@ ok("the status-bar style no longer puts content under the status bar",
      and the check was green the whole time because it was measuring an
      element that does not decide anything.
      It measures the deciding element now: the wrapper the week sits beside. */
-  check("the column that the week sits beside has a fixed width",
-        `${/\.h-idcol\{[^}]*width:\d+px/.test(css)}`, "true");
+  /* v3.3.383 RESTATES: the wrapper's fixed width was only still doing one
+     job -- clipping the SUBTITLE to 132px, which cut "NOTHING LOGGED YET" to
+     "NOTHING LOGGED Y...". The week is pinned by position (below), so the
+     only thing that must respect the column edge is the DATE, which shares
+     its line with the squares. */
+  check("the date is capped at the column edge it shares with the squares",
+        `${/\.h-date\{[^}]*max-width:132px/.test(css)}`, "true");
+  check("...and the wrapper no longer cages the line beneath",
+        `${/\.h-idcol\{[^}]*flex:1 1 auto/.test(css) && !/\.h-idcol\{[^}]*width:\d+px/.test(css)}`, "true");
   /* v3.3.382: the week row is pinned by POSITION at the column edge, and the
      count lives inside it so "6d" hugs the last square instead of sitting
      orphaned at the far right by the gear. The maker drew the guides. */
@@ -401,7 +408,7 @@ ok("the status-bar style no longer puts content under the status bar",
           const w=document.getElementById('hWeek'), s2=document.getElementById('hStreak');
           return !!r && !!w && !!s2 && r.contains(w) && r.contains(s2)
               && !!(w.compareDocumentPosition(s2) & 4);})()`, true);
-  check("...and the subtitle inside it truncates instead of widening it",
+  check("...and the subtitle truncates only at the header's edge",
         `${/\.h-subrow \.h-sub\{[^}]*text-overflow:ellipsis/.test(css)}`, "true");
   check("...while the date still truncates too",
         `${/\.h-date\{[^}]*text-overflow:ellipsis/.test(css)}`, "true");

@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v3.3.383 (2026-08-30) — The subtitle gets its width back
+
+`NOTHING LOGGED YET` was being cut to `NOTHING LOGGED Y…` — the line under the
+date was still caged to the date's column even though the squares only share
+the date's line. It runs the full width now and truncates at the header's
+edge, like it always used to.
+
 ## v3.3.382 (2026-08-30) — The week sits where it should
 
 The seven squares are pinned to the date column's edge — placed by position,
