@@ -1,5 +1,11 @@
 # ShowUp — changelog
 
+## v3.3.382 (2026-08-30) — The week sits where it should
+
+The seven squares are pinned to the date column's edge — placed by position,
+so no combination of text lengths can push them around — and the count sits
+right after the last square instead of out by the gear.
+
 ## v3.3.381 (2026-08-29) — Tighter header column
 
 The week squares sit closer to the date — the column was wider than the widest

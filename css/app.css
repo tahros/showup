@@ -727,7 +727,13 @@
      is 120px -- so squares placed after the text would wobble all year. A
      fixed min-width on the date column pins them: they start at the same x
      every day, and the column clears the widest real date with room. */
-  .h-week{display:flex;gap:5px;align-items:center;flex:0 0 auto}
+  /* v3.3.382: pinned to the column edge by POSITION. Flex placement drifted
+     ~17px right of the maker's guide through accumulated gaps even after the
+     wrapper was fixed; left:132px is the guide, by construction. Vertically
+     it centres on the DATE's line -- the squares belong to that sentence, not
+     to the block's middle. */
+  .h-weekrow{position:absolute;left:132px;top:5px;display:flex;align-items:center;gap:8px}
+  .h-week{display:flex;gap:5px;align-items:center}
   .h-week .hwd{width:10px;height:10px;border-radius:var(--sq);
     background:var(--surface2);display:block}
   .h-week .hwd.on{background:var(--accent)}

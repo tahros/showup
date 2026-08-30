@@ -24,7 +24,7 @@ try{var _de=document.documentElement,_qp=new URLSearchParams(location.search);_d
 <meta name="theme-color" content="#F2F3F6">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/app.css?v=3.3.381">
+  <link rel="stylesheet" href="css/app.css?v=3.3.382">
 
 
 <div id="app">
@@ -36,13 +36,18 @@ try{var _de=document.documentElement,_qp=new URLSearchParams(location.search);_d
       <div class="h-date" id="hDate">—</div>
       <div class="h-subrow"><span class="resttimer" id="hTimer"></span><div class="h-sub" id="hSub">—</div></div>
       </div>
-      <!-- v3.3.379: the last seven days, at a FIXED column. It sits beside the
-           DATE because they are one sentence -- this day, in the context of the
-           days around it -- while the line beneath is about content. -->
-      <div class="h-week" id="hWeek" aria-hidden="true"></div>
+      <!-- v3.3.382: the week is PINNED at left:132px -- the column edge -- by
+           position, not by flex arithmetic. v3.3.381 still drifted ~17px right
+           of the guide through accumulated gaps; absolute placement cannot.
+           The count lives in the same row now so "6d" hugs the last square
+           instead of sitting orphaned by the gear. #hWeek keeps its own element
+           because renderHeader overwrites its innerHTML wholesale. -->
+      <div class="h-weekrow" aria-hidden="true">
+        <div class="h-week" id="hWeek"></div>
+        <span class="streak" id="hStreak"></span>
+      </div>
     </div>
     <div class="hbtns">
-      <span class="streak" id="hStreak"></span>
       <button class="icobtn" id="gearBtn" title="Settings, account &amp; sync">⚙</button>
     </div>
   </header>
@@ -64,14 +69,14 @@ try{var _de=document.documentElement,_qp=new URLSearchParams(location.search);_d
   <path d="M12 4v13M6 12l6 6 6-6"/></svg></div>
 </div>
 
-  <script src="js/core.js?v=3.3.381"></script>
-  <script src="js/derive.js?v=3.3.381"></script>
-  <script src="js/util.js?v=3.3.381"></script>
-  <script src="js/header.js?v=3.3.381"></script>
-  <script src="js/report.js?v=3.3.381"></script>
-  <script src="js/today.js?v=3.3.381"></script>
-  <script src="js/lift.js?v=3.3.381"></script>
-  <script src="js/stats.js?v=3.3.381"></script>
-  <script src="js/history.js?v=3.3.381"></script>
-  <script src="js/settings.js?v=3.3.381"></script>
-  <script src="js/app.js?v=3.3.381"></script>
+  <script src="js/core.js?v=3.3.382"></script>
+  <script src="js/derive.js?v=3.3.382"></script>
+  <script src="js/util.js?v=3.3.382"></script>
+  <script src="js/header.js?v=3.3.382"></script>
+  <script src="js/report.js?v=3.3.382"></script>
+  <script src="js/today.js?v=3.3.382"></script>
+  <script src="js/lift.js?v=3.3.382"></script>
+  <script src="js/stats.js?v=3.3.382"></script>
+  <script src="js/history.js?v=3.3.382"></script>
+  <script src="js/settings.js?v=3.3.382"></script>
+  <script src="js/app.js?v=3.3.382"></script>

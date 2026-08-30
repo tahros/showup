@@ -391,6 +391,16 @@ ok("the status-bar style no longer puts content under the status bar",
      It measures the deciding element now: the wrapper the week sits beside. */
   check("the column that the week sits beside has a fixed width",
         `${/\.h-idcol\{[^}]*width:\d+px/.test(css)}`, "true");
+  /* v3.3.382: the week row is pinned by POSITION at the column edge, and the
+     count lives inside it so "6d" hugs the last square instead of sitting
+     orphaned at the far right by the gear. The maker drew the guides. */
+  check("the week row is pinned at the column edge by position",
+        `${/\.h-weekrow\{position:absolute;left:132px/.test(css)}`, "true");
+  check("...and the count sits in that row, right after the squares",
+        `(function(){const r=document.querySelector('.h-weekrow');
+          const w=document.getElementById('hWeek'), s2=document.getElementById('hStreak');
+          return !!r && !!w && !!s2 && r.contains(w) && r.contains(s2)
+              && !!(w.compareDocumentPosition(s2) & 4);})()`, true);
   check("...and the subtitle inside it truncates instead of widening it",
         `${/\.h-subrow \.h-sub\{[^}]*text-overflow:ellipsis/.test(css)}`, "true");
   check("...while the date still truncates too",
