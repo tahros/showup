@@ -1,5 +1,16 @@
 # ShowUp — changelog
 
+## v3.3.384 (2026-08-30) — A line, a sweep, a breath
+
+- **A hairline** between the date and your week, so the two read as two fields
+  rather than text with marks after it.
+- **A light sweeps across your trained days** when the header appears — once,
+  left to right, then still.
+- **Today's ring breathes while the day is still empty**, and goes still the
+  moment you log a set.
+
+All of it stops if you've asked your phone to reduce motion.
+
 ## v3.3.383 (2026-08-30) — The subtitle gets its width back
 
 `NOTHING LOGGED YET` was being cut to `NOTHING LOGGED Y…` — the line under the

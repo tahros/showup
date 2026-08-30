@@ -733,6 +733,42 @@
      it centres on the DATE's line -- the squares belong to that sentence, not
      to the block's middle. */
   .h-weekrow{position:absolute;left:132px;top:5px;display:flex;align-items:center;gap:8px}
+  /* v3.3.384: a hairline between the date and its week. The fixed column was
+     real but invisible -- the squares read as text with marks floating after
+     it. One rule turns them into two fields. Same --line as every other
+     divider in the app; it is a separator, not a new idea. */
+  .h-weekrow::before{content:'';position:absolute;left:-13px;top:1px;bottom:1px;
+    width:1px;background:var(--line)}
+  /* v3.3.384: the sweep runs ONCE, left to right across the days you trained,
+     and stops. Not a loop: the header is on screen always, so a permanent
+     animation is motion nobody can dismiss -- and a shimmering row is the
+     web's universal LOADING skeleton, which is the opposite of what a record
+     should say. Each square is delayed by its position, so the light crosses
+     the week rather than flashing it. */
+  .h-week .hwd.on{position:relative;overflow:hidden}
+  .h-week .hwd.on::after{content:'';position:absolute;inset:0;
+    background:linear-gradient(100deg,transparent 20%,rgba(255,255,255,.75) 50%,transparent 80%);
+    transform:translateX(-120%);animation:hwsheen .5s var(--settle) 1 both}
+  .h-week .hwd:nth-child(2).on::after{animation-delay:.06s}
+  .h-week .hwd:nth-child(3).on::after{animation-delay:.12s}
+  .h-week .hwd:nth-child(4).on::after{animation-delay:.18s}
+  .h-week .hwd:nth-child(5).on::after{animation-delay:.24s}
+  .h-week .hwd:nth-child(6).on::after{animation-delay:.30s}
+  .h-week .hwd:nth-child(7).on::after{animation-delay:.36s}
+  @keyframes hwsheen{to{transform:translateX(120%)}}
+  /* v3.3.384: today breathes only while it is still EMPTY -- "this day is
+     open". The moment a set lands the square fills and the ring goes still,
+     because a finished day that keeps pulsing is decoration. Only the outline
+     COLOUR animates, so nothing reflows. */
+  .h-week .hwd.tod:not(.on){animation:hwpulse 2.4s ease-in-out infinite}
+  @keyframes hwpulse{
+    0%,100%{outline-color:var(--accent)}
+    50%{outline-color:color-mix(in srgb,var(--accent) 22%,transparent)}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .h-week .hwd.on::after{animation:none;opacity:0}
+    .h-week .hwd.tod:not(.on){animation:none}
+  }
   .h-week{display:flex;gap:5px;align-items:center}
   .h-week .hwd{width:10px;height:10px;border-radius:var(--sq);
     background:var(--surface2);display:block}

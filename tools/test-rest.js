@@ -419,6 +419,34 @@ ok("the status-bar style no longer puts content under the status bar",
      left it green on the strength of the live variant. It checks EVERY rule
      that styles today's square now: each must draw an outline, none may
      spread a box-shadow into the 5px gap. */
+  /* v3.3.384: the divider, the sweep and the pulse. jsdom runs no animation
+     and computes no layout, so these are asserted as the RULES that produce
+     them -- and the rules are where the argument lives anyway. */
+  check("a hairline separates the date from its week",
+        `${/\.h-weekrow::before\{[^}]*background:var\(--line\)/.test(css)}`, "true");
+  /* the sweep must not loop: the header is always on screen, so a permanent
+     animation is motion nobody can dismiss -- and a shimmering row reads as a
+     LOADING skeleton, which is the opposite of a record. */
+  check("the sweep runs once, not forever",
+        `${(function(){const m=css.match(/\.h-week \.hwd\.on::after\{[^}]*\}/);
+          return !!m && /animation:[^;}]*\b1\b/.test(m[0]) && !/infinite/.test(m[0]);})()}`, "true");
+  /* today breathes only while the day is still EMPTY */
+  check("today's ring breathes only while the day is unfilled",
+        `${/\.h-week \.hwd\.tod:not\(\.on\)\{animation:hwpulse[^}]*infinite\}/.test(css)}`, "true");
+  check("...and a filled day is not animated at all",
+        `${!/\.h-week \.hwd\.tod\.on\{[^}]*animation/.test(css)}`, "true");
+  /* only the outline COLOUR moves, so a breathing ring cannot reflow the row */
+  /* the first version of this line was malformed AND asserted nothing -- it
+     returned a bare true. A breathing ring must move COLOUR only; anything
+     touching width, outline-width or offset would reflow the row on every
+     cycle. */
+  check("...moving colour only, never geometry",
+        `${(function(){const m=css.match(/@keyframes hwpulse\{[^{]*\{[^}]*\}[^{]*\{[^}]*\}[^}]*\}/);
+          return !!m && /outline-color/.test(m[0])
+              && !/(outline-width|outline-offset|width|height|transform|inset)/.test(m[0]);})()}`, "true");
+  check("both stop when motion is unwelcome",
+        `${/prefers-reduced-motion:reduce\)\{[^@]*\.h-week \.hwd\.on::after\{animation:none/.test(css)}`, "true");
+
   check("today's ring is drawn outside the box, not spread into the gap",
         `${(function(){const ms=css.match(/\.h-week \.hwd\.tod\{[^}]*\}/g)||[];
           return ms.length>=2 && ms.every(r=>/outline-offset/.test(r) && !/box-shadow/.test(r));})()}`, "true");
