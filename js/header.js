@@ -55,7 +55,13 @@ function renderHeader(){
       const iso=d.toLocaleDateString('en-CA');
       html+=`<i class="hwd${trainedOn.has(iso)?' on':''}${i===0?' tod':''}"></i>`;
     }
-    _wk.innerHTML=html;
+    /* v3.3.385: WRITE ONLY WHEN THE WEEK ACTUALLY CHANGES. renderHeader runs
+       on every render, and rewriting innerHTML replaces the elements -- new
+       nodes restart their animations, so the sweep replayed on every tab
+       switch and the ring's breath jumped back to the start. Comparing first
+       means the nodes survive an unrelated render, and the sweep plays when
+       the week is genuinely different: on arrival, and when a day fills. */
+    if(_wk.innerHTML!==html) _wk.innerHTML=html;
   }
   /* v3.3.79: a DECLARED rest day shows the leaf where the fire sits — the
      header's one-emoji vocabulary, second word. Fire is the burn, leaf is

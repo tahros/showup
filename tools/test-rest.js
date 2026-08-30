@@ -422,11 +422,59 @@ ok("the status-bar style no longer puts content under the status bar",
   /* v3.3.384: the divider, the sweep and the pulse. jsdom runs no animation
      and computes no layout, so these are asserted as the RULES that produce
      them -- and the rules are where the argument lives anyway. */
-  check("a hairline separates the date from its week",
-        `${/\.h-weekrow::before\{[^}]*background:var\(--line\)/.test(css)}`, "true");
+  /* v3.3.385 RESTATES: it named --line, which was the value, not the point.
+     The point is that a divider EXISTS and is visible; --line turned out to be
+     invisible in open header space, so the value moved to --hdiv and this
+     check moved with it. */
+  check("a rule separates the date from its week",
+        `${/\.h-weekrow::before\{[^}]*background:var\(--/.test(css)}`, "true");
+  check("...thick enough to see",
+        `${(function(){const m=css.match(/\.h-weekrow::before\{[^}]*\}/);
+          return !!m && (parseFloat((m[0].match(/width:([\d.]+)px/)||[])[1]||0) >= 2);})()}`, "true");
   /* the sweep must not loop: the header is always on screen, so a permanent
      animation is motion nobody can dismiss -- and a shimmering row reads as a
      LOADING skeleton, which is the opposite of a record. */
+  /* v3.3.385: and it must not restart on every unrelated render. renderHeader
+     runs on each one; rewriting innerHTML replaces the nodes, and new nodes
+     replay their animations -- which is why the sweep fired on every tab
+     switch. The nodes must SURVIVE a render that changes nothing. */
+  {
+    run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
+      const D=n=>{const d=new Date(t);d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA')};
+      for(const n of [0,1,2]) DB.days[D(n)]={w:[{part:'Legs',ex:'Squat',w:60,reps:[8]}],upd:1};
+      SEED=deriveAll(); renderHeader();})()`);
+    run(`window.__firstSquare=document.querySelector('#hWeek .hwd')`);
+    run(`renderHeader(); renderHeader();`);
+    check("an unrelated render leaves the squares alone, so the sweep does not replay",
+          `window.__firstSquare===document.querySelector('#hWeek .hwd')`, true);
+    /* ...but a day that fills IS a change, and must redraw */
+    run(`(function(){const t=new Date(todayISO+'T00:00');
+      const D=n=>{const d=new Date(t);d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA')};
+      DB.days[D(4)]={w:[{part:'Legs',ex:'Squat',w:60,reps:[8]}],upd:1};
+      SEED=deriveAll(); renderHeader();})()`);
+    check("...while a day that fills does redraw the week",
+          `window.__firstSquare!==document.querySelector('#hWeek .hwd')
+            || document.querySelector('#hWeek').innerHTML.split('hwd').length===8`, true);
+  }
+  /* the divider has its own graded colour: --line is tuned for rules sitting
+     on a card, this one stands alone in open header space against a big bold
+     date, and at --line it was invisible */
+  check("the divider is graded for both themes",
+        `${/--hdiv:#[0-9A-Fa-f]{6}/.test(css) && (css.match(/--hdiv:/g)||[]).length>=2}`, "true");
+  check("...and is not simply --line again",
+        `${/\.h-weekrow::before\{[^}]*background:var\(--hdiv\)/.test(css)}`, "true");
+
+  /* v3.3.385: SLOW AND WIDE ENOUGH TO READ. The first pass was a thin hard
+     line crossing a 10px square in half a second -- a flicker, not a sweep,
+     and the maker said so. Nothing asserted the duration, so shortening it
+     back left the suite green. Both are pinned now. */
+  check("the sweep is slow enough to be seen",
+        `${(function(){const m=css.match(/\.h-week \.hwd\.on::after\{[^}]*\}/);
+          return !!m && parseFloat((m[0].match(/animation:hwsheen ([\d.]+)s/)||[])[1]||0) >= 0.9;})()}`, "true");
+  check("...and the light is a band, not a hairline",
+        `${(function(){const m=css.match(/\.h-week \.hwd\.on::after\{[^}]*\}/);
+          return !!m && /transparent 0%[^)]*rgba\(255,255,255,\.9[0-9]?\) 50%/.test(m[0]);})()}`, "true");
+
   check("the sweep runs once, not forever",
         `${(function(){const m=css.match(/\.h-week \.hwd\.on::after\{[^}]*\}/);
           return !!m && /animation:[^;}]*\b1\b/.test(m[0]) && !/infinite/.test(m[0]);})()}`, "true");

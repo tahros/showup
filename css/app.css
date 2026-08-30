@@ -38,6 +38,11 @@
        these are derived, and the derivation is the honest part. --ground
        lands on #0A0A0A beside charcoal's own near-black anchor. */
     --ground:#0A0A0A; --surface:#1B1B1B; --surface2:#272727; --line:#424242;
+    /* v3.3.385: the week divider gets its OWN colour. --line is tuned for
+       rules that sit on a card's surface; this one stands alone in open
+       header space against a big bold date, and at --line it was invisible.
+       Graded per theme rather than one value dimmed twice. */
+    --hdiv:#5A5A5A;
     --whisper:#2A2A2A; /* v3.3.328: below --line in the ink ladder — a divider
        between rows that already read as one card, ~1.2:1 against the surface.
        --edge separates a pill FROM a card, --line divides regions, --whisper
@@ -142,6 +147,7 @@
        the rows looked like pills in dark and like nothing in light. 1.66 now
        — level with dark, and with the iOS system separator at 1.71. */
     --ground:#EFEFEF; --surface:#FFFFFF; --surface2:#F7F7F7; --line:#C9C9C9;
+    --hdiv:#A8A8AE;   /* v3.3.385: darker than --line — it stands in open space */
     --whisper:#E7E7E7;
     --accent:#2F4BD8; --accent-soft:#C3CCF5; --accent-dim:#8892C4;
     --record:#B83528;
@@ -737,8 +743,8 @@
      real but invisible -- the squares read as text with marks floating after
      it. One rule turns them into two fields. Same --line as every other
      divider in the app; it is a separator, not a new idea. */
-  .h-weekrow::before{content:'';position:absolute;left:-13px;top:1px;bottom:1px;
-    width:1px;background:var(--line)}
+  .h-weekrow::before{content:'';position:absolute;left:-14px;top:-1px;bottom:-1px;
+    width:2px;border-radius:1px;background:var(--hdiv)}
   /* v3.3.384: the sweep runs ONCE, left to right across the days you trained,
      and stops. Not a loop: the header is on screen always, so a permanent
      animation is motion nobody can dismiss -- and a shimmering row is the
@@ -746,16 +752,21 @@
      should say. Each square is delayed by its position, so the light crosses
      the week rather than flashing it. */
   .h-week .hwd.on{position:relative;overflow:hidden}
+  /* v3.3.385: WIDER AND SLOWER. The first pass was a thin hard line at 0.5s
+     -- over a 10px square that is a flicker, not a sweep. The band is now
+     most of the square's width and the pass takes more than twice as long,
+     with a longer stagger so the light travels ACROSS the week instead of
+     hitting every square at once. */
   .h-week .hwd.on::after{content:'';position:absolute;inset:0;
-    background:linear-gradient(100deg,transparent 20%,rgba(255,255,255,.75) 50%,transparent 80%);
-    transform:translateX(-120%);animation:hwsheen .5s var(--settle) 1 both}
-  .h-week .hwd:nth-child(2).on::after{animation-delay:.06s}
-  .h-week .hwd:nth-child(3).on::after{animation-delay:.12s}
-  .h-week .hwd:nth-child(4).on::after{animation-delay:.18s}
-  .h-week .hwd:nth-child(5).on::after{animation-delay:.24s}
-  .h-week .hwd:nth-child(6).on::after{animation-delay:.30s}
-  .h-week .hwd:nth-child(7).on::after{animation-delay:.36s}
-  @keyframes hwsheen{to{transform:translateX(120%)}}
+    background:linear-gradient(100deg,transparent 0%,rgba(255,255,255,.92) 50%,transparent 100%);
+    transform:translateX(-160%);animation:hwsheen 1.15s var(--settle) 1 both}
+  .h-week .hwd:nth-child(2).on::after{animation-delay:.10s}
+  .h-week .hwd:nth-child(3).on::after{animation-delay:.20s}
+  .h-week .hwd:nth-child(4).on::after{animation-delay:.30s}
+  .h-week .hwd:nth-child(5).on::after{animation-delay:.40s}
+  .h-week .hwd:nth-child(6).on::after{animation-delay:.50s}
+  .h-week .hwd:nth-child(7).on::after{animation-delay:.60s}
+  @keyframes hwsheen{to{transform:translateX(160%)}}
   /* v3.3.384: today breathes only while it is still EMPTY -- "this day is
      open". The moment a set lands the square fills and the ring goes still,
      because a finished day that keeps pulsing is decoration. Only the outline

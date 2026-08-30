@@ -1,5 +1,15 @@
 # ShowUp — changelog
 
+## v3.3.385 (2026-08-30) — A visible line and a slower sweep
+
+- **The divider has its own colour** now, graded for light and dark, and it's
+  twice as thick. The old one borrowed a value meant for lines that sit on a
+  card, and it vanished in open space.
+- **The sweep is slower and wider** — a band crossing the week rather than a
+  flicker.
+- **It no longer replays when you switch tabs.** The squares are only redrawn
+  when the week actually changes.
+
 ## v3.3.384 (2026-08-30) — A line, a sweep, a breath
 
 - **A hairline** between the date and your week, so the two read as two fields
