@@ -792,7 +792,11 @@
      than the date. The squares were following the subtitle's length, which
      moves with the parts you trained. The exact wobble the fixed column was
      built to remove, measured against the wrong element. */
-  .h-idcol{flex:0 0 auto;width:152px;min-width:0}
+  /* v3.3.381: 132px, not 152. The widest real date is "Wed, 12/31" at 120px,
+     so 152 left ~56px of dead air after a short date like "Sat, 8/29" and the
+     week looked adrift from the thing it belongs to. 132 clears the worst
+     case by 12 and keeps the pair reading as one unit. */
+  .h-idcol{flex:0 0 auto;width:132px;min-width:0}
   .h-date{font-family:var(--disp);font-weight:700;font-size:19px;letter-spacing:var(--track-num);
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .h-sub{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:var(--track-label);text-transform:uppercase;

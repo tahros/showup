@@ -1,5 +1,10 @@
 # ShowUp — changelog
 
+## v3.3.381 (2026-08-29) — Tighter header column
+
+The week squares sit closer to the date — the column was wider than the widest
+date needs.
+
 ## v3.3.380 (2026-08-29) — Fixing yesterday's header
 
 Three faults in the week squares, all mine:
