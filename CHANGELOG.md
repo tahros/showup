@@ -1,5 +1,17 @@
 # ShowUp — changelog
 
+## v3.3.389 (2026-08-30) — One line
+
+The day header is one line now: date, your week, the count, settings.
+
+The line underneath said things the screen already says — `NOTHING LOGGED
+YET` repeats the empty breathing square beside it, and `25 SETS · BICEPS`
+repeats the Training Today card below. It still speaks where it's needed:
+inside an exercise, where `Chest · 3 sets logged` is real context.
+
+During a live session the rest timer takes the count's spot, and the fire
+emoji is retired — the header turning red already says you're training.
+
 ## v3.3.388 (2026-08-30) — One line, opposite anchors
 
 The date stays at the top left. The seven-day rhythm now sits at the top right,

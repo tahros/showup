@@ -24,7 +24,7 @@ try{var _de=document.documentElement,_qp=new URLSearchParams(location.search);_d
 <meta name="theme-color" content="#F2F3F6">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/app.css?v=3.3.388">
+  <link rel="stylesheet" href="css/app.css?v=3.3.389">
 
 
 <div id="app">
@@ -38,12 +38,17 @@ try{var _de=document.documentElement,_qp=new URLSearchParams(location.search);_d
              Normal flow keeps both stable without a divider or coordinates. -->
         <div class="h-toprow">
           <div class="h-date" id="hDate">—</div>
+          <!-- v3.3.389: the timer lives in the week row and swaps with the
+               count (#hTimer.on hides .streak) -- one slot, two tenants,
+               never both. The subtitle line below is EXERCISE MODE's alone
+               now; on the day header it is empty and takes no height. -->
           <div class="h-weekrow" aria-hidden="true">
             <div class="h-week" id="hWeek"></div>
+            <span class="resttimer" id="hTimer"></span>
             <span class="streak" id="hStreak"></span>
           </div>
         </div>
-        <div class="h-subrow"><span class="resttimer" id="hTimer"></span><div class="h-sub" id="hSub">—</div></div>
+        <div class="h-subrow"><div class="h-sub" id="hSub">—</div></div>
       </div>
     </div>
     <div class="hbtns">
@@ -68,14 +73,14 @@ try{var _de=document.documentElement,_qp=new URLSearchParams(location.search);_d
   <path d="M12 4v13M6 12l6 6 6-6"/></svg></div>
 </div>
 
-  <script src="js/core.js?v=3.3.388"></script>
-  <script src="js/derive.js?v=3.3.388"></script>
-  <script src="js/util.js?v=3.3.388"></script>
-  <script src="js/header.js?v=3.3.388"></script>
-  <script src="js/report.js?v=3.3.388"></script>
-  <script src="js/today.js?v=3.3.388"></script>
-  <script src="js/lift.js?v=3.3.388"></script>
-  <script src="js/stats.js?v=3.3.388"></script>
-  <script src="js/history.js?v=3.3.388"></script>
-  <script src="js/settings.js?v=3.3.388"></script>
-  <script src="js/app.js?v=3.3.388"></script>
+  <script src="js/core.js?v=3.3.389"></script>
+  <script src="js/derive.js?v=3.3.389"></script>
+  <script src="js/util.js?v=3.3.389"></script>
+  <script src="js/header.js?v=3.3.389"></script>
+  <script src="js/report.js?v=3.3.389"></script>
+  <script src="js/today.js?v=3.3.389"></script>
+  <script src="js/lift.js?v=3.3.389"></script>
+  <script src="js/stats.js?v=3.3.389"></script>
+  <script src="js/history.js?v=3.3.389"></script>
+  <script src="js/settings.js?v=3.3.389"></script>
+  <script src="js/app.js?v=3.3.389"></script>

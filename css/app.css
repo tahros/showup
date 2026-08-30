@@ -781,7 +781,16 @@
      333px in 298px -- the timer is a session fact, not a record fact, so it
      moves to the line with the sets and parts rather than the line with the
      date and the history. */
-  .h-subrow{display:flex;align-items:center;gap:7px;min-width:0;margin-top:2px}
+  /* v3.3.389: the subtitle line belongs to EXERCISE MODE alone. On the day
+     header it is empty, and an empty line must cost no height -- the whole
+     point of one line is one line. The timer moved up into the week row and
+     SWAPS with the count: #hTimer.on hides .streak, so the slot has two
+     tenants and never both. */
+  .h-subrow{display:flex;align-items:center;gap:7px;min-width:0}
+  .h-sub:not(:empty){margin-top:2px}
+  .h-sub:empty{display:none}
+  .h-weekrow .resttimer{font-size:12px}
+  #hTimer.on~.streak{display:none}
   .h-subrow .h-sub{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .dayclosed{display:block;width:100%;text-align:center;padding:20px 16px 16px;
     margin-bottom:18px;border:1px solid var(--line);cursor:pointer}

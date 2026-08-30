@@ -123,8 +123,12 @@ run(`day(todayISO).w.push({part:'Chest',ex:'Chest Press',w:40,reps:[10],at:Date.
 check("the first set clears the flag through save() \u2014 no call-site audit",
       `!!DB.days[todayISO].rest`, false);
 run(`renderHeader();`);
-ok("...and the header shows the fire again, not the leaf",
-   run(`$('#hStreak').textContent`).includes("\u{1F525}"));
+/* v3.3.389 RESTATES: the fire is DEAD, not misplaced. It meant "training
+   right now", and the whole header already turns the live red -- the same
+   sentence, said louder. Undeclaring rest returns the plain count. */
+ok("...and undeclaring rest returns the plain count, no fire",
+   (function(){const t=run(`$('#hStreak').textContent`);
+     return !t.includes("\u{1F525}") && /\dd$/.test(t);})());
 check("...and sheds the resting wash with it",
       `document.querySelector('header').classList.contains('resting')`, false);
 run(`view='today'; render();`);
@@ -370,11 +374,36 @@ ok("the status-bar style no longer puts content under the status bar",
   /* that fixture has sets logged today and nothing marked done, so the
      session IS live -- and the flame appearing is the feature, not a fault.
      Both halves asserted rather than one. */
-  check("...with the count still stated exactly, and the fire because it is live",
-        `$('#hStreak').textContent`, "41d \u{1F525}");
-  run(`(function(){DB.days[todayISO].doneAll=true; renderHeader();})()`);
-  check("...and the fire goes out the moment the session closes",
+  /* v3.3.389 RESTATES the pair that once asserted the fire's two states. The
+     count is now plain in BOTH: live is worn by the whole header (red), and
+     the timer takes this slot while it runs (#hTimer.on~.streak). */
+  check("...with the count stated exactly, and no fire even while live",
         `$('#hStreak').textContent`, "41d");
+  run(`(function(){DB.days[todayISO].doneAll=true; renderHeader();})()`);
+  check("...and unchanged when the session closes",
+        `$('#hStreak').textContent`, "41d");
+  /* the slot-swap: while the rest timer is showing, the count steps aside --
+     one slot, two tenants, never both */
+  const css389=fs.readFileSync(path.join(dir,"css/app.css"),"utf8").replace(/\r?\n\s*/g,"");
+  check("the timer and the count share one slot, never shown together",
+        `${/#hTimer\.on~\.streak\{display:none\}/.test(css389)}`, "true");
+  /* the day header says each thing once: its subtitle is EMPTY (the empty
+     square and the Training Today card already say both of its old states),
+     and an empty line costs no height */
+  check("the day header's subtitle is empty",
+        `document.getElementById('hSub').textContent`, "");
+  check("...and an empty subtitle takes no room",
+        `${/\.h-sub:empty\{display:none\}/.test(css389)}`, "true");
+  /* ...but EXERCISE MODE keeps the line: "Chest . 3 sets logged" under the
+     exercise name is context nothing else on that screen provides. The
+     redundancy argument was about the day header's two states, not this. */
+  run(`(function(){DB.days[todayISO]={w:[{part:'Chest',ex:'Dip',w:0,reps:[10],at:1}],upd:1};
+    SEED=deriveAll(); view='lift'; lift={part:'Chest',ex:'Dip'}; renderHeader();})()`);
+  check("exercise mode still speaks on the second line",
+        `$('#hSub').textContent`, "Chest \u00b7 1 set logged");
+  run(`(function(){view='today'; lift={}; renderHeader();})()`);
+  check("...and the line falls silent again on the day header",
+        `$('#hSub').textContent`, "");
 
   const css=fs.readFileSync(path.join(dir,"css/app.css"),"utf8").replace(/\r?\n\s*/g,"");
   /* v3.3.387: the date and week are one top-line thought; status sits below.

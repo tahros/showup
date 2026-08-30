@@ -5,7 +5,6 @@
 function renderHeader(){
   const _tf=document.getElementById('tipFloat'); if(_tf) _tf.hidden=true;
   const live=isLive();
-  const trained=(day(todayISO).w||[]).length>0;
   const hdr=document.querySelector('header');
   hdr.classList.toggle('live',live);
   const _rd=DB.days&&DB.days[todayISO];
@@ -21,17 +20,21 @@ function renderHeader(){
     return;
   }
   $('#hDate').textContent=wd(todayISO);
-  const t=day(todayISO);
-  const lifts=t.w.filter(s=>s.ex!=='Run');
-  const km=t.w.filter(s=>s.ex==='Run').reduce((a,s)=>a+s.w,0);
-  const parts=[...new Set(lifts.map(s=>s.part))];
-  const bits=[];
-  if(lifts.length)bits.push(lifts.length+' set'+(lifts.length>1?'s':'')+(parts.length?' · '+parts.join(' · '):''));
-  if(km)bits.push(dDisp(km)+DU());
+  /* the sets/parts/distance assembly that fed the old subtitle went with it
+     -- dead computation on every render is rent. */
+  /* v3.3.389: THE DAY HEADER SAYS EACH THING ONCE. Both of the subtitle's
+     states were restatements: "NOTHING LOGGED YET" repeats the empty
+     breathing square beside the date, and "25 SETS . BICEPS" repeats the
+     Training Today card directly below it. Every piece of apparatus this
+     header grew in a week -- the divider, the fixed column, the min-widths --
+     existed to keep that redundant line from colliding with the squares.
+     The line survives in EXERCISE MODE above, where "Chest . 3 sets logged"
+     is context nothing else on screen provides.
+     The donetoday check mark dies with it, deliberately: the finished day
+     already has a card on Today (v3.3.376) and a filled square right here. */
   const sub=$('#hSub');
-  sub.textContent=bits.length?bits.join(' · '):'Nothing logged yet';
-  // done today, workout closed → a plain, permanent ✓. Live → the pulsing dot instead.
-  sub.classList.toggle('donetoday', trained && !live);
+  sub.textContent='';
+  sub.classList.remove('donetoday');
   const s=currentStreak();
   /* v3.3.379: THE STREAK GETS A PICTURE -- the tail of the heatmap, in the
      same square at the same 28% ratio and the same two fills. Not a metaphor
@@ -80,7 +83,12 @@ function renderHeader(){
        while a session is open, so it means "you are training right now" --
        something the app never said with a symbol before. It sits AFTER the
        numeral so the squares never shift when it comes and goes. */
-    $('#hStreak').textContent=(s?s+'d':'')+(live&&s?' 🔥':'');
+    /* v3.3.389: the fire dies with the subtitle's line. It meant "training
+       right now" -- and the whole header already turns the live red, which
+       says the same thing louder. During a live session the rest timer takes
+       this slot (CSS slot-swap on #hTimer.on), so the count and the clock
+       never crowd one line. */
+    $('#hStreak').textContent=s?s+'d':'';
     $('#hStreak').classList.remove('restchip');
     $('#hStreak').classList.toggle('atrisk', streakAtRisk());
   }
