@@ -377,16 +377,18 @@ ok("the status-bar style no longer puts content under the status bar",
         `$('#hStreak').textContent`, "41d");
 
   const css=fs.readFileSync(path.join(dir,"css/app.css"),"utf8").replace(/\r?\n\s*/g,"");
-  /* v3.3.386: the date owns line one. Line two gives status the left edge and
-     the seven-day record the right, so variable date lengths cannot move the
-     squares and long status copy yields before the record does. */
-  check("the status and week share their own second line",
-        `(function(){const r=document.querySelector('.h-statusrow');
-          const sub=document.querySelector('.h-subrow'), week=document.querySelector('.h-weekrow');
-          return !!r && r.contains(sub) && r.contains(week)
-              && !!(sub.compareDocumentPosition(week) & 4);})()`, true);
-  check("that line pushes its two facts to opposite edges",
-        `${/\.h-statusrow\{[^}]*display:flex[^}]*justify-content:space-between[^}]*min-width:0/.test(css)}`, "true");
+  /* v3.3.387: the date and week are one top-line thought; status sits below.
+     DOM order is the contract, because the visual hierarchy depends on it. */
+  check("the date and week share the top line",
+        `(function(){const r=document.querySelector('.h-toprow');
+          const date=document.querySelector('.h-date'), week=document.querySelector('.h-weekrow');
+          return !!r && r.contains(date) && r.contains(week)
+              && !!(date.compareDocumentPosition(week) & 4);})()`, true);
+  check("the subtitle sits after that top line",
+        `(function(){const top=document.querySelector('.h-toprow'), sub=document.querySelector('.h-subrow');
+          return !!top && !!sub && !!(top.compareDocumentPosition(sub) & 4);})()`, true);
+  check("the top line keeps both facts together at the left",
+        `${/\.h-toprow\{[^}]*display:flex[^}]*align-items:center[^}]*gap:12px[^}]*min-width:0/.test(css)}`, "true");
   check("the week is stable in normal flow and cannot shrink",
         `${/\.h-weekrow\{[^}]*position:static[^}]*flex:0 0 auto/.test(css)}`, "true");
   check("the count sits in that row, right after the squares",
@@ -407,7 +409,7 @@ ok("the status-bar style no longer puts content under the status bar",
      spread a box-shadow into the 5px gap. */
   check("whitespace, not another divider, separates the hierarchy",
         `${!/\.h-weekrow::before\{/.test(css) && !/--hdiv:/.test(css)}`, "true");
-  check("the date gets the whole first line and still truncates safely",
+  check("the date can yield safely before the week at a narrow width",
         `${/\.h-date\{[^}]*max-width:100%[^}]*text-overflow:ellipsis/.test(css)}`, "true");
   check("the settings control is deliberately quieter than a normal header control",
         `${/#gearBtn\{[^}]*width:38px[^}]*height:38px[^}]*background:var\(--surface2\)[^}]*color:var\(--muted\)/.test(css)}`, "true");

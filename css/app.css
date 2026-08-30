@@ -722,12 +722,10 @@
     #repImg{transition:none}
     #repImg.revealing{clip-path:inset(0 0 0 0)}
   }
-  /* v3.3.386: TWO QUIET LINES. The date is the identity of the page and gets
-     the first line by itself. Status and recent rhythm are smaller facts on
-     the second line, aligned to opposite edges. Whitespace separates them;
-     a divider would manufacture a third object in an already small header. */
-  .h-statusrow{display:flex;align-items:center;justify-content:space-between;
-    gap:10px;min-width:0;margin-top:2px}
+  /* v3.3.387: DATE + RHYTHM, ONE TOP LINE. Normal flow keeps the week attached
+     to the date without the old fixed coordinate, while the subtitle gets a
+     clean line beneath. The gap is the separator; there is still no rule. */
+  .h-toprow{display:flex;align-items:center;gap:12px;min-width:0}
   .h-weekrow{position:static;display:flex;align-items:center;gap:7px;flex:0 0 auto}
   /* v3.3.384: the sweep runs ONCE, left to right across the days you trained,
      and stops. Not a loop: the header is on screen always, so a permanent
@@ -783,7 +781,7 @@
      333px in 298px -- the timer is a session fact, not a record fact, so it
      moves to the line with the sets and parts rather than the line with the
      date and the history. */
-  .h-subrow{display:flex;align-items:center;gap:7px;min-width:0;flex:1 1 auto}
+  .h-subrow{display:flex;align-items:center;gap:7px;min-width:0;margin-top:2px}
   .h-subrow .h-sub{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .dayclosed{display:block;width:100%;text-align:center;padding:20px 16px 16px;
     margin-bottom:18px;border:1px solid var(--line);cursor:pointer}
@@ -841,6 +839,15 @@
      surface leaves the date as the first thing the eye lands on. */
   #gearBtn{width:38px;height:38px;border-radius:12px;background:var(--surface2);
     color:var(--muted);font-size:17px}
+  /* The 320px fallback preserves all seven days and the full count. Ordinary
+     iPhones keep the 10px marks; only the genuinely narrow edge uses 8px. */
+  @media (max-width:340px){
+    .h-toprow{gap:8px}
+    .h-weekrow{gap:5px}
+    .h-week{gap:4px}
+    .h-week .hwd{width:8px;height:8px}
+    .h-week .hwd:last-child{margin-right:2px}
+  }
   /* back appears ONLY inside an exercise; header-scoped selectors out-rank
      .icobtn's display so ordering can never leak it onto other screens again */
   header .hback{display:none;font-size:20px;font-weight:600;padding-bottom:2px}

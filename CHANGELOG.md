@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v3.3.387 (2026-08-30) — The week returns to today
+
+- **The seven-day rhythm sits beside the date again,** where it reads as part
+  of today's identity instead of a separate status row.
+- **The subtitle gets the line beneath to itself.** There is still no divider,
+  and settings remains smaller and quiet.
+- **Narrow phones keep the complete week.** Below 340px only the day marks
+  tighten, so no day or streak count is lost.
+
 ## v3.3.386 (2026-08-30) — Two lines, one hierarchy
 
 - **The date owns the first line.** The weekly rhythm no longer competes with
