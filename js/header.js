@@ -33,6 +33,30 @@ function renderHeader(){
   // done today, workout closed → a plain, permanent ✓. Live → the pulsing dot instead.
   sub.classList.toggle('donetoday', trained && !live);
   const s=currentStreak();
+  /* v3.3.379: THE STREAK GETS A PICTURE -- the tail of the heatmap, in the
+     same square at the same 28% ratio and the same two fills. Not a metaphor
+     for the streak: literally the last seven days, so the header can show a
+     GAP. A display that can only show success is a trophy; a window that can
+     show a grey square is a record, and this app is a record.
+     Seven is fixed. A 41-day streak is still seven squares -- the window
+     never grows, so the header never changes shape.
+     A REST DAY IS DRAWN GREY, like every untrained day and like the heatmap
+     has drawn it for 953 days. The acknowledgement lives in the WORD, in the
+     rest ink v3.3.92 established for exactly this (rest as a text grade, not
+     a fill). Green would have been a third fill, would have had to spread to
+     the heatmap or contradict it, and would have made one fact wear two
+     colours depending on when you looked. */
+  const _wk=$('#hWeek');
+  if(_wk){
+    const trainedOn=workoutDates();
+    let html='';
+    for(let i=6;i>=0;i--){
+      const d=new Date(todayISO+'T00:00'); d.setDate(d.getDate()-i);
+      const iso=d.toLocaleDateString('en-CA');
+      html+=`<i class="hwd${trainedOn.has(iso)?' on':''}${i===0?' tod':''}"></i>`;
+    }
+    _wk.innerHTML=html;
+  }
   /* v3.3.79: a DECLARED rest day shows the leaf where the fire sits — the
      header's one-emoji vocabulary, second word. Fire is the burn, leaf is
      the regrowth. The streak MATH is untouched: the moment sets exist the
@@ -42,11 +66,15 @@ function renderHeader(){
      promise. */
   const _rt=DB.days&&DB.days[todayISO];
   if(_rt&&_rt.rest&&!(_rt.w||[]).length){
-    $('#hStreak').textContent='🍃 rest';
+    $('#hStreak').textContent='rest 🍃';
     $('#hStreak').classList.remove('atrisk');
     $('#hStreak').classList.add('restchip');
   }else{
-    $('#hStreak').textContent=s?'🔥 '+s+'d':'';
+    /* v3.3.379: the flame is LIVE MODE now, not decoration. It appears only
+       while a session is open, so it means "you are training right now" --
+       something the app never said with a symbol before. It sits AFTER the
+       numeral so the squares never shift when it comes and goes. */
+    $('#hStreak').textContent=(s?s+'d':'')+(live&&s?' 🔥':'');
     $('#hStreak').classList.remove('restchip');
     $('#hStreak').classList.toggle('atrisk', streakAtRisk());
   }

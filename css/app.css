@@ -722,6 +722,26 @@
     #repImg{transition:none}
     #repImg.revealing{clip-path:inset(0 0 0 0)}
   }
+  /* ---- v3.3.379: the week, at a fixed column -----------------------------
+     The date swings 45px across the year -- "Fri, 9/1" is 75px, "Wed, 12/31"
+     is 120px -- so squares placed after the text would wobble all year. A
+     fixed min-width on the date column pins them: they start at the same x
+     every day, and the column clears the widest real date with room. */
+  .h-week{display:flex;gap:5px;align-items:center;flex:0 0 auto}
+  .h-week .hwd{width:10px;height:10px;border-radius:var(--sq);
+    background:var(--surface2);display:block}
+  .h-week .hwd.on{background:var(--accent)}
+  .h-week .hwd.tod{box-shadow:0 0 0 2.5px var(--surface),0 0 0 4px var(--accent)}
+  header.live .h-week .hwd{background:rgba(255,255,255,.28)}
+  header.live .h-week .hwd.on{background:#fff}
+  header.live .h-week .hwd.tod{box-shadow:0 0 0 2.5px var(--accent),0 0 0 4px #fff}
+  /* the timer joins the facts it belongs with. On a 390 header the date
+     column, seven squares, the numeral, the flame AND the timer come to
+     333px in 298px -- the timer is a session fact, not a record fact, so it
+     moves to the line with the sets and parts rather than the line with the
+     date and the history. */
+  .h-subrow{display:flex;align-items:center;gap:7px;min-width:0}
+  .h-subrow .h-sub{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .dayclosed{display:block;width:100%;text-align:center;padding:20px 16px 16px;
     margin-bottom:18px;border:1px solid var(--line);cursor:pointer}
   .dayclosed .dcsq{display:block;width:30px;height:30px;margin:0 auto 12px;
@@ -759,7 +779,15 @@
   header.live .icobtn{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.3);color:#fff}
   header.live .icobtn small{color:#fff;opacity:.95}
   header.exmode .h-date{font-size:17px;line-height:1.25}
+  /* v3.3.379: min-width pins the WEEK's column. The date swings 45px across
+     the year -- "Fri, 9/1" is 75px, "Wed, 12/31" is 120px -- so squares placed
+     after the text would wobble all year. 132px clears the widest real date
+     with room, and the squares start at the same x every day.
+     The ellipsis stays and is load-bearing: min-width sets a floor, not a
+     ceiling, so a long title still truncates rather than widening the header
+     (the rule buildcheck defends since v3.3.55). */
   .h-date{font-family:var(--disp);font-weight:700;font-size:19px;letter-spacing:var(--track-num);
+    min-width:132px;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .h-sub{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:var(--track-label);text-transform:uppercase;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}

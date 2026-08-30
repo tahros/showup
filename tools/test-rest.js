@@ -66,7 +66,10 @@ check("streakAtRisk() still tells the truth underneath", `streakAtRisk()`, true)
 
 // ---- the header chip: leaf where the fire sits, chip ONLY -----------------
 run(`renderHeader();`);
-check("the chip shows the leaf", `$('#hStreak').textContent`, "\u{1F343} rest");
+/* v3.3.379: the leaf follows the word now, rather than leading it -- the
+   chip reads "rest 🍃". The squares carry the count, so the chip is a LABEL
+   rather than a count-with-an-icon, and a label puts its noun first. */
+check("the chip shows the leaf", `$('#hStreak').textContent`, "rest \u{1F343}");
 check("...and drops the at-risk pulse (the chip states a decision)",
       `$('#hStreak').classList.contains('atrisk')`, false);
 // v3.3.80: the chip's BASE rule is record-red (the fire earns it, the leaf
@@ -93,7 +96,14 @@ run(`view='today'; render();`);
 ok("SCOPE: the body offers no rest-day copy at all — header chip only",
    !/take the day|well earned|you deserve|rest up/i.test(run(`$('#view').innerHTML`)));
 run(`day(todayISO).rest=false; delete DB.days[todayISO].rest; renderHeader();`);
-check("undeclared, the fire returns", `$('#hStreak').textContent`, "\u{1F525} 3d");
+/* v3.3.379 RESTATES: the fire is LIVE MODE now, not the streak. It says "you
+   are training right now", which is something the app never said with a
+   symbol before, and it is absent when no session is open -- so an undeclared
+   rest day returns the plain numeral. The streak itself is drawn as squares
+   beside the date. */
+check("undeclared, the numeral returns", `$('#hStreak').textContent`, "3d");
+check("...and the fire stays out of it while nothing is live",
+      `/\u{1F525}/u.test($('#hStreak').textContent)`, false);
 check("...and sheds the restchip class with it", `$('#hStreak').classList.contains('restchip')`, false);
 
 // ---- 2. LINE TWO: undeclared rest is first-class --------------------------
@@ -317,5 +327,64 @@ ok("...and --sat is exposed for JS to read the inset",
    /--sat:env\(safe-area-inset-top/.test(cssSrc.replace(/\r/g,"")));
 ok("the status-bar style no longer puts content under the status bar",
    /content="default"/.test(fs.readFileSync(path.join(dir,"index.html"),"utf8")));
+
+/* v3.3.379: THE WEEK, AT A FIXED COLUMN. The streak had a number and no
+   picture; it has one now -- the tail of the heatmap, in the same square at
+   the same ratio and the same two fills. Literally the last seven days, so
+   the header can show a GAP: a display that can only show success is a
+   trophy, and this app is a record. */
+{
+  const week = () => run(`(function(){const w=document.getElementById('hWeek');
+    return w?[...w.children].map(i=>i.className).join('|'):'(absent)';})()`);
+
+  run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
+    const D=n=>{const d=new Date(t);d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA')};
+    for(const n of [0,1,2,4,5,6]) DB.days[D(n)]={w:[{part:'Legs',ex:'Squat',w:60,reps:[8]}],upd:1};
+    SEED=deriveAll(); renderHeader();})()`);
+  check("the header shows seven days", `(document.getElementById('hWeek')||{}).childElementCount`, 7);
+  /* trained 6,5,4,2,1 and 0 days ago -- the gap is 3 days ago, which is the
+     FOURTH square of seven, not the third. My first version had it in the
+     wrong slot and failed for the right reason. */
+  check("...trained days filled, the gap left grey",
+        `${week()==="hwd on|hwd on|hwd on|hwd|hwd on|hwd on|hwd on tod"}`, "true");
+  check("...and today is the last of them, ringed",
+        `${/tod$/.test(week())}`, "true");
+
+  /* a rest day is drawn like any other untrained day -- the acknowledgement
+     is the WORD, not a third fill. Green would have had to spread to the
+     heatmap or contradict it, and would have made one fact wear two colours
+     depending on when you looked. */
+  run(`(function(){DB.days[todayISO]={w:[],rest:1,upd:1}; SEED=deriveAll(); renderHeader();})()`);
+  check("a declared rest day is not a filled square",
+        `${/hwd tod$/.test(week())}`, "true");
+  check("...and no third fill exists anywhere in the week",
+        `${!/hwd rest|hwd green/.test(week())}`, "true");
+
+  /* the window never grows: a long streak is still seven squares */
+  run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
+    const D=n=>{const d=new Date(t);d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA')};
+    for(let n=0;n<41;n++) DB.days[D(n)]={w:[{part:'Legs',ex:'Squat',w:60,reps:[8]}],upd:1};
+    SEED=deriveAll(); renderHeader();})()`);
+  check("a 41-day streak is still seven squares",
+        `(document.getElementById('hWeek')||{}).childElementCount`, 7);
+  /* that fixture has sets logged today and nothing marked done, so the
+     session IS live -- and the flame appearing is the feature, not a fault.
+     Both halves asserted rather than one. */
+  check("...with the count still stated exactly, and the fire because it is live",
+        `$('#hStreak').textContent`, "41d \u{1F525}");
+  run(`(function(){DB.days[todayISO].doneAll=true; renderHeader();})()`);
+  check("...and the fire goes out the moment the session closes",
+        `$('#hStreak').textContent`, "41d");
+
+  /* the column is FIXED: the date swings 45px across the year, so the squares
+     are pinned by a min-width on the date rather than by where the text ends.
+     jsdom computes no layout, so the rule that prevents the wobble is what
+     gets asserted. */
+  const css=fs.readFileSync(path.join(dir,"css/app.css"),"utf8").replace(/\r?\n\s*/g,"");
+  check("the date holds a fixed column so the week cannot wobble",
+        `${/\.h-date\{[^}]*min-width:\d+px/.test(css)}`, "true");
+  check("...while still truncating, so a long title cannot widen the header",
+        `${/\.h-date\{[^}]*text-overflow:ellipsis/.test(css)}`, "true");
+}
 
 process.exit(fail ? 1 : 0);

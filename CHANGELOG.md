@@ -1,5 +1,19 @@
 # ShowUp — changelog
 
+## v3.3.379 (2026-08-29) — Your last seven days, in the header
+
+**The streak has a picture now** — the tail of your heatmap, beside the date:
+seven squares, filled where you trained. It's the same square as everywhere
+else, and it can show a gap, because it's showing the real days rather than
+the streak.
+
+The squares sit at a fixed column, so they don't shift as the date changes
+length through the year.
+
+**The flame now means you're training right now** — it appears only during a
+live session, after the count. A declared rest day reads `rest 🍃`, and the
+square stays grey, the way the record has always drawn it.
+
 ## v3.3.378 (2026-08-29) — One square
 
 Every day in ShowUp — a heatmap cell, a coverage mark, today in the ceremony,
