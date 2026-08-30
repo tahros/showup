@@ -1,5 +1,16 @@
 # ShowUp — changelog
 
+## v3.3.386 (2026-08-30) — Two lines, one hierarchy
+
+- **The date owns the first line.** The weekly rhythm no longer competes with
+  it or changes position with the date's width.
+- **Status and rhythm share the second line** — status on the left, seven days
+  and the streak count on the right. Whitespace replaces the divider.
+- **Settings steps back:** the control is smaller, quieter, and still in the
+  same dependable top-right position.
+- **Exercise headers stay focused.** The weekly rhythm disappears while an
+  exercise is open, leaving only the exercise and its set context.
+
 ## v3.3.385 (2026-08-30) — A visible line and a slower sweep
 
 - **The divider has its own colour** now, graded for light and dark, and it's

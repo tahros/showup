@@ -38,11 +38,6 @@
        these are derived, and the derivation is the honest part. --ground
        lands on #0A0A0A beside charcoal's own near-black anchor. */
     --ground:#0A0A0A; --surface:#1B1B1B; --surface2:#272727; --line:#424242;
-    /* v3.3.385: the week divider gets its OWN colour. --line is tuned for
-       rules that sit on a card's surface; this one stands alone in open
-       header space against a big bold date, and at --line it was invisible.
-       Graded per theme rather than one value dimmed twice. */
-    --hdiv:#5A5A5A;
     --whisper:#2A2A2A; /* v3.3.328: below --line in the ink ladder — a divider
        between rows that already read as one card, ~1.2:1 against the surface.
        --edge separates a pill FROM a card, --line divides regions, --whisper
@@ -147,7 +142,6 @@
        the rows looked like pills in dark and like nothing in light. 1.66 now
        — level with dark, and with the iOS system separator at 1.71. */
     --ground:#EFEFEF; --surface:#FFFFFF; --surface2:#F7F7F7; --line:#C9C9C9;
-    --hdiv:#A8A8AE;   /* v3.3.385: darker than --line — it stands in open space */
     --whisper:#E7E7E7;
     --accent:#2F4BD8; --accent-soft:#C3CCF5; --accent-dim:#8892C4;
     --record:#B83528;
@@ -232,10 +226,10 @@
     position:fixed;top:0;left:0;right:0;max-width:520px;margin:0 auto;
     z-index:20;background:transparent;
     padding:calc(14px + env(safe-area-inset-top,0px)) 18px 12px;
-    display:flex;flex-wrap:nowrap;align-items:center;justify-content:space-between;gap:10px;
-    /* v3.3.55: NEVER wrap. A long exercise title used to push the timer and
-       gear onto a second row. The title truncates instead — the bar is one
-       row, always. */
+    display:flex;flex-wrap:nowrap;align-items:flex-start;justify-content:space-between;gap:10px;
+    /* v3.3.55: NEVER wrap the outer columns. A long exercise title used to
+       push the timer and gear onto another row. The title truncates instead;
+       v3.3.386's two-line identity column remains one stable flex item. */
     transition:background .35s var(--settle),border-color .35s var(--settle);
   }
   header.live .hglass{background:var(--live);border-color:var(--live);
@@ -728,23 +722,13 @@
     #repImg{transition:none}
     #repImg.revealing{clip-path:inset(0 0 0 0)}
   }
-  /* ---- v3.3.379: the week, at a fixed column -----------------------------
-     The date swings 45px across the year -- "Fri, 9/1" is 75px, "Wed, 12/31"
-     is 120px -- so squares placed after the text would wobble all year. A
-     fixed min-width on the date column pins them: they start at the same x
-     every day, and the column clears the widest real date with room. */
-  /* v3.3.382: pinned to the column edge by POSITION. Flex placement drifted
-     ~17px right of the maker's guide through accumulated gaps even after the
-     wrapper was fixed; left:132px is the guide, by construction. Vertically
-     it centres on the DATE's line -- the squares belong to that sentence, not
-     to the block's middle. */
-  .h-weekrow{position:absolute;left:132px;top:5px;display:flex;align-items:center;gap:8px}
-  /* v3.3.384: a hairline between the date and its week. The fixed column was
-     real but invisible -- the squares read as text with marks floating after
-     it. One rule turns them into two fields. Same --line as every other
-     divider in the app; it is a separator, not a new idea. */
-  .h-weekrow::before{content:'';position:absolute;left:-14px;top:-1px;bottom:-1px;
-    width:2px;border-radius:1px;background:var(--hdiv)}
+  /* v3.3.386: TWO QUIET LINES. The date is the identity of the page and gets
+     the first line by itself. Status and recent rhythm are smaller facts on
+     the second line, aligned to opposite edges. Whitespace separates them;
+     a divider would manufacture a third object in an already small header. */
+  .h-statusrow{display:flex;align-items:center;justify-content:space-between;
+    gap:10px;min-width:0;margin-top:2px}
+  .h-weekrow{position:static;display:flex;align-items:center;gap:7px;flex:0 0 auto}
   /* v3.3.384: the sweep runs ONCE, left to right across the days you trained,
      and stops. Not a loop: the header is on screen always, so a permanent
      animation is motion nobody can dismiss -- and a shimmering row is the
@@ -799,7 +783,7 @@
      333px in 298px -- the timer is a session fact, not a record fact, so it
      moves to the line with the sets and parts rather than the line with the
      date and the history. */
-  .h-subrow{display:flex;align-items:center;gap:7px;min-width:0}
+  .h-subrow{display:flex;align-items:center;gap:7px;min-width:0;flex:1 1 auto}
   .h-subrow .h-sub{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .dayclosed{display:block;width:100%;text-align:center;padding:20px 16px 16px;
     margin-bottom:18px;border:1px solid var(--line);cursor:pointer}
@@ -830,36 +814,19 @@
   .hglass{position:absolute;inset:0;z-index:0;background:var(--ground);
     border-bottom:1px solid var(--line);pointer-events:none}
   header>.brandrow,header>.hbtns{position:relative;z-index:1}
-  .brandrow{display:flex;align-items:center;gap:11px;min-width:0;flex:1 1 auto;overflow:hidden}
+  .brandrow{display:flex;align-items:flex-start;gap:11px;min-width:0;flex:1 1 auto;overflow:hidden}
   header.live .h-date{color:#fff}
   header.live .h-sub{color:rgba(255,255,255,.92)}
   header.live .h-sub.donetoday::before{color:#fff}
   header.live .streak{color:#fff}
   header.live .icobtn{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.3);color:#fff}
+  header.live #gearBtn{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.24)}
   header.live .icobtn small{color:#fff;opacity:.95}
   header.exmode .h-date{font-size:17px;line-height:1.25}
-  /* v3.3.380: THE COLUMN IS PINNED ON THE WRAPPER, NOT THE DATE. v3.3.379 put
-     min-width on .h-date and it did nothing: the date and the subtitle are
-     STACKED inside one block, so that block is as wide as the WIDER of the
-     two -- and the subtitle ("25 SETS . BICEPS . TRICEPS") is always wider
-     than the date. The squares were following the subtitle's length, which
-     moves with the parts you trained. The exact wobble the fixed column was
-     built to remove, measured against the wrong element. */
-  /* v3.3.381: 132px, not 152. The widest real date is "Wed, 12/31" at 120px,
-     so 152 left ~56px of dead air after a short date like "Sat, 8/29" and the
-     week looked adrift from the thing it belongs to. 132 clears the worst
-     case by 12 and keeps the pair reading as one unit. */
-  /* v3.3.383: the 132px cage moves OFF the wrapper and onto the DATE alone.
-     Since v3.3.382 the week is pinned by position, so the wrapper's width no
-     longer places anything -- it was only still clipping the SUBTITLE to
-     132px, which cut "NOTHING LOGGED YET" to "NOTHING LOGGED Y...". The
-     squares occupy the date's line only, so the line beneath them is free to
-     run the full header width and truncate at the edge like it always did.
-     The date keeps the cap: it shares its line with the squares and must
-     never run under them. */
+  header.exmode .h-weekrow{display:none}
   .h-idcol{flex:1 1 auto;min-width:0}
   .h-date{font-family:var(--disp);font-weight:700;font-size:19px;letter-spacing:var(--track-num);
-    max-width:132px;
+    max-width:100%;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .h-sub{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:var(--track-label);text-transform:uppercase;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -870,6 +837,10 @@
     background:var(--surface);color:var(--chalk);font-size:18px;cursor:pointer;
     display:grid;place-items:center;
   }
+  /* v3.3.386: settings is available, not the subject. Its smaller, recessed
+     surface leaves the date as the first thing the eye lands on. */
+  #gearBtn{width:38px;height:38px;border-radius:12px;background:var(--surface2);
+    color:var(--muted);font-size:17px}
   /* back appears ONLY inside an exercise; header-scoped selectors out-rank
      .icobtn's display so ordering can never leak it onto other screens again */
   header .hback{display:none;font-size:20px;font-weight:600;padding-bottom:2px}

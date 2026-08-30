@@ -376,34 +376,20 @@ ok("the status-bar style no longer puts content under the status bar",
   check("...and the fire goes out the moment the session closes",
         `$('#hStreak').textContent`, "41d");
 
-  /* the column is FIXED: the date swings 45px across the year, so the squares
-     are pinned by a min-width on the date rather than by where the text ends.
-     jsdom computes no layout, so the rule that prevents the wobble is what
-     gets asserted. */
   const css=fs.readFileSync(path.join(dir,"css/app.css"),"utf8").replace(/\r?\n\s*/g,"");
-  /* v3.3.380: THIS ASSERTION SHIPPED THE BUG. It checked min-width on
-     .h-date -- the element I had reasoned about -- while the squares actually
-     follow the block that STACKS the date and the subtitle, and that block is
-     as wide as the wider of the two. The subtitle is always wider. So the
-     week followed the parts you trained, the wobble was worse than before,
-     and the check was green the whole time because it was measuring an
-     element that does not decide anything.
-     It measures the deciding element now: the wrapper the week sits beside. */
-  /* v3.3.383 RESTATES: the wrapper's fixed width was only still doing one
-     job -- clipping the SUBTITLE to 132px, which cut "NOTHING LOGGED YET" to
-     "NOTHING LOGGED Y...". The week is pinned by position (below), so the
-     only thing that must respect the column edge is the DATE, which shares
-     its line with the squares. */
-  check("the date is capped at the column edge it shares with the squares",
-        `${/\.h-date\{[^}]*max-width:132px/.test(css)}`, "true");
-  check("...and the wrapper no longer cages the line beneath",
-        `${/\.h-idcol\{[^}]*flex:1 1 auto/.test(css) && !/\.h-idcol\{[^}]*width:\d+px/.test(css)}`, "true");
-  /* v3.3.382: the week row is pinned by POSITION at the column edge, and the
-     count lives inside it so "6d" hugs the last square instead of sitting
-     orphaned at the far right by the gear. The maker drew the guides. */
-  check("the week row is pinned at the column edge by position",
-        `${/\.h-weekrow\{position:absolute;left:132px/.test(css)}`, "true");
-  check("...and the count sits in that row, right after the squares",
+  /* v3.3.386: the date owns line one. Line two gives status the left edge and
+     the seven-day record the right, so variable date lengths cannot move the
+     squares and long status copy yields before the record does. */
+  check("the status and week share their own second line",
+        `(function(){const r=document.querySelector('.h-statusrow');
+          const sub=document.querySelector('.h-subrow'), week=document.querySelector('.h-weekrow');
+          return !!r && r.contains(sub) && r.contains(week)
+              && !!(sub.compareDocumentPosition(week) & 4);})()`, true);
+  check("that line pushes its two facts to opposite edges",
+        `${/\.h-statusrow\{[^}]*display:flex[^}]*justify-content:space-between[^}]*min-width:0/.test(css)}`, "true");
+  check("the week is stable in normal flow and cannot shrink",
+        `${/\.h-weekrow\{[^}]*position:static[^}]*flex:0 0 auto/.test(css)}`, "true");
+  check("the count sits in that row, right after the squares",
         `(function(){const r=document.querySelector('.h-weekrow');
           const w=document.getElementById('hWeek'), s2=document.getElementById('hStreak');
           return !!r && !!w && !!s2 && r.contains(w) && r.contains(s2)
@@ -419,18 +405,12 @@ ok("the status-bar style no longer puts content under the status bar",
      left it green on the strength of the live variant. It checks EVERY rule
      that styles today's square now: each must draw an outline, none may
      spread a box-shadow into the 5px gap. */
-  /* v3.3.384: the divider, the sweep and the pulse. jsdom runs no animation
-     and computes no layout, so these are asserted as the RULES that produce
-     them -- and the rules are where the argument lives anyway. */
-  /* v3.3.385 RESTATES: it named --line, which was the value, not the point.
-     The point is that a divider EXISTS and is visible; --line turned out to be
-     invisible in open header space, so the value moved to --hdiv and this
-     check moved with it. */
-  check("a rule separates the date from its week",
-        `${/\.h-weekrow::before\{[^}]*background:var\(--/.test(css)}`, "true");
-  check("...thick enough to see",
-        `${(function(){const m=css.match(/\.h-weekrow::before\{[^}]*\}/);
-          return !!m && (parseFloat((m[0].match(/width:([\d.]+)px/)||[])[1]||0) >= 2);})()}`, "true");
+  check("whitespace, not another divider, separates the hierarchy",
+        `${!/\.h-weekrow::before\{/.test(css) && !/--hdiv:/.test(css)}`, "true");
+  check("the date gets the whole first line and still truncates safely",
+        `${/\.h-date\{[^}]*max-width:100%[^}]*text-overflow:ellipsis/.test(css)}`, "true");
+  check("the settings control is deliberately quieter than a normal header control",
+        `${/#gearBtn\{[^}]*width:38px[^}]*height:38px[^}]*background:var\(--surface2\)[^}]*color:var\(--muted\)/.test(css)}`, "true");
   /* the sweep must not loop: the header is always on screen, so a permanent
      animation is motion nobody can dismiss -- and a shimmering row reads as a
      LOADING skeleton, which is the opposite of a record. */
@@ -456,14 +436,6 @@ ok("the status-bar style no longer puts content under the status bar",
           `window.__firstSquare!==document.querySelector('#hWeek .hwd')
             || document.querySelector('#hWeek').innerHTML.split('hwd').length===8`, true);
   }
-  /* the divider has its own graded colour: --line is tuned for rules sitting
-     on a card, this one stands alone in open header space against a big bold
-     date, and at --line it was invisible */
-  check("the divider is graded for both themes",
-        `${/--hdiv:#[0-9A-Fa-f]{6}/.test(css) && (css.match(/--hdiv:/g)||[]).length>=2}`, "true");
-  check("...and is not simply --line again",
-        `${/\.h-weekrow::before\{[^}]*background:var\(--hdiv\)/.test(css)}`, "true");
-
   /* v3.3.385: SLOW AND WIDE ENOUGH TO READ. The first pass was a thin hard
      line crossing a 10px square in half a second -- a flicker, not a sweep,
      and the maker said so. Nothing asserted the duration, so shortening it
