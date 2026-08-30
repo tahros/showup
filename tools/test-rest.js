@@ -387,8 +387,8 @@ ok("the status-bar style no longer puts content under the status bar",
   check("the subtitle sits after that top line",
         `(function(){const top=document.querySelector('.h-toprow'), sub=document.querySelector('.h-subrow');
           return !!top && !!sub && !!(top.compareDocumentPosition(sub) & 4);})()`, true);
-  check("the top line keeps both facts together at the left",
-        `${/\.h-toprow\{[^}]*display:flex[^}]*align-items:center[^}]*gap:12px[^}]*min-width:0/.test(css)}`, "true");
+  check("the top line anchors date left and rhythm right",
+        `${/\.h-toprow\{[^}]*display:flex[^}]*align-items:center[^}]*justify-content:space-between[^}]*gap:12px[^}]*min-width:0/.test(css)}`, "true");
   check("the week is stable in normal flow and cannot shrink",
         `${/\.h-weekrow\{[^}]*position:static[^}]*flex:0 0 auto/.test(css)}`, "true");
   check("the count sits in that row, right after the squares",

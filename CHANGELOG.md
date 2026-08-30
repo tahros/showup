@@ -1,5 +1,10 @@
 # ShowUp — changelog
 
+## v3.3.388 (2026-08-30) — One line, opposite anchors
+
+The date stays at the top left. The seven-day rhythm now sits at the top right,
+immediately before settings, on that same line. The status remains alone below.
+
 ## v3.3.387 (2026-08-30) — The week returns to today
 
 - **The seven-day rhythm sits beside the date again,** where it reads as part

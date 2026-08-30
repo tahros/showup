@@ -722,10 +722,10 @@
     #repImg{transition:none}
     #repImg.revealing{clip-path:inset(0 0 0 0)}
   }
-  /* v3.3.387: DATE + RHYTHM, ONE TOP LINE. Normal flow keeps the week attached
-     to the date without the old fixed coordinate, while the subtitle gets a
-     clean line beneath. The gap is the separator; there is still no rule. */
-  .h-toprow{display:flex;align-items:center;gap:12px;min-width:0}
+  /* v3.3.388: ONE LINE, TWO ANCHORS. Date holds the left edge; rhythm holds
+     the right edge immediately before settings. The open middle is deliberate
+     balance, not a connection between the two. Subtitle stays below. */
+  .h-toprow{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0}
   .h-weekrow{position:static;display:flex;align-items:center;gap:7px;flex:0 0 auto}
   /* v3.3.384: the sweep runs ONCE, left to right across the days you trained,
      and stops. Not a loop: the header is on screen always, so a permanent
