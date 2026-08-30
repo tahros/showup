@@ -1,5 +1,15 @@
 # ShowUp — changelog
 
+## v3.3.380 (2026-08-29) — Fixing yesterday's header
+
+Three faults in the week squares, all mine:
+
+- **They still moved.** The column was pinned to the date, but the date and
+  the subtitle share a block — and the subtitle is wider, so the squares
+  followed the parts you'd trained.
+- **Today's ring overlapped the square before it**, and ran into the count.
+- **The count was red**, which reads as an alarm on a day that went perfectly.
+
 ## v3.3.379 (2026-08-29) — Your last seven days, in the header
 
 **The streak has a picture now** — the tail of your heatmap, beside the date:

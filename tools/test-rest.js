@@ -381,10 +381,35 @@ ok("the status-bar style no longer puts content under the status bar",
      jsdom computes no layout, so the rule that prevents the wobble is what
      gets asserted. */
   const css=fs.readFileSync(path.join(dir,"css/app.css"),"utf8").replace(/\r?\n\s*/g,"");
-  check("the date holds a fixed column so the week cannot wobble",
-        `${/\.h-date\{[^}]*min-width:\d+px/.test(css)}`, "true");
-  check("...while still truncating, so a long title cannot widen the header",
+  /* v3.3.380: THIS ASSERTION SHIPPED THE BUG. It checked min-width on
+     .h-date -- the element I had reasoned about -- while the squares actually
+     follow the block that STACKS the date and the subtitle, and that block is
+     as wide as the wider of the two. The subtitle is always wider. So the
+     week followed the parts you trained, the wobble was worse than before,
+     and the check was green the whole time because it was measuring an
+     element that does not decide anything.
+     It measures the deciding element now: the wrapper the week sits beside. */
+  check("the column that the week sits beside has a fixed width",
+        `${/\.h-idcol\{[^}]*width:\d+px/.test(css)}`, "true");
+  check("...and the subtitle inside it truncates instead of widening it",
+        `${/\.h-subrow \.h-sub\{[^}]*text-overflow:ellipsis/.test(css)}`, "true");
+  check("...while the date still truncates too",
         `${/\.h-date\{[^}]*text-overflow:ellipsis/.test(css)}`, "true");
+  /* the ring must not eat its neighbours: a 4px box-shadow spread on a 10px
+     square is an 18px footprint inside a 5px gap */
+  /* the first version of this matched "header.live .h-week .hwd.tod{outline:"
+     as well, because the prefix was not anchored -- so deleting the base rule
+     left it green on the strength of the live variant. It checks EVERY rule
+     that styles today's square now: each must draw an outline, none may
+     spread a box-shadow into the 5px gap. */
+  check("today's ring is drawn outside the box, not spread into the gap",
+        `${(function(){const ms=css.match(/\.h-week \.hwd\.tod\{[^}]*\}/g)||[];
+          return ms.length>=2 && ms.every(r=>/outline-offset/.test(r) && !/box-shadow/.test(r));})()}`, "true");
+  /* and the count is ink: red belongs to at-risk alone */
+  check("the streak count is ink, not the alarm colour",
+        `${/\.streak\{[^}]*color:var\(--chalk\)/.test(css)}`, "true");
+  check("...and at-risk is still the one thing that reddens it",
+        `${/#hStreak\.atrisk\{color:var\(--record\)/.test(css)}`, "true");
 }
 
 process.exit(fail ? 1 : 0);

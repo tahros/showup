@@ -731,10 +731,16 @@
   .h-week .hwd{width:10px;height:10px;border-radius:var(--sq);
     background:var(--surface2);display:block}
   .h-week .hwd.on{background:var(--accent)}
-  .h-week .hwd.tod{box-shadow:0 0 0 2.5px var(--surface),0 0 0 4px var(--accent)}
+  /* v3.3.380: the ring is an OUTLINE, not a spreading box-shadow. A 4px
+     spread on a 10px square is an 18px footprint inside a 5px gap, so the
+     ring overlapped the square before it and ran into the numeral. An
+     outline with an offset draws outside the box without occupying layout,
+     and the trailing margin buys it the room it needs. */
+  .h-week .hwd.tod{outline:1.5px solid var(--accent);outline-offset:2px}
+  .h-week .hwd:last-child{margin-right:4px}
   header.live .h-week .hwd{background:rgba(255,255,255,.28)}
   header.live .h-week .hwd.on{background:#fff}
-  header.live .h-week .hwd.tod{box-shadow:0 0 0 2.5px var(--accent),0 0 0 4px #fff}
+  header.live .h-week .hwd.tod{outline:1.5px solid #fff;outline-offset:2px}
   /* the timer joins the facts it belongs with. On a 390 header the date
      column, seven squares, the numeral, the flame AND the timer come to
      333px in 298px -- the timer is a session fact, not a record fact, so it
@@ -779,15 +785,15 @@
   header.live .icobtn{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.3);color:#fff}
   header.live .icobtn small{color:#fff;opacity:.95}
   header.exmode .h-date{font-size:17px;line-height:1.25}
-  /* v3.3.379: min-width pins the WEEK's column. The date swings 45px across
-     the year -- "Fri, 9/1" is 75px, "Wed, 12/31" is 120px -- so squares placed
-     after the text would wobble all year. 132px clears the widest real date
-     with room, and the squares start at the same x every day.
-     The ellipsis stays and is load-bearing: min-width sets a floor, not a
-     ceiling, so a long title still truncates rather than widening the header
-     (the rule buildcheck defends since v3.3.55). */
+  /* v3.3.380: THE COLUMN IS PINNED ON THE WRAPPER, NOT THE DATE. v3.3.379 put
+     min-width on .h-date and it did nothing: the date and the subtitle are
+     STACKED inside one block, so that block is as wide as the WIDER of the
+     two -- and the subtitle ("25 SETS . BICEPS . TRICEPS") is always wider
+     than the date. The squares were following the subtitle's length, which
+     moves with the parts you trained. The exact wobble the fixed column was
+     built to remove, measured against the wrong element. */
+  .h-idcol{flex:0 0 auto;width:152px;min-width:0}
   .h-date{font-family:var(--disp);font-weight:700;font-size:19px;letter-spacing:var(--track-num);
-    min-width:132px;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .h-sub{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:var(--track-label);text-transform:uppercase;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -802,7 +808,11 @@
      .icobtn's display so ordering can never leak it onto other screens again */
   header .hback{display:none;font-size:20px;font-weight:600;padding-bottom:2px}
   header.exmode .hback{display:grid}
-  .streak{font-family:var(--mono);font-size:12px;color:var(--record);font-weight:600;white-space:nowrap;margin-right:2px}
+  /* v3.3.380: the count is INK, not the record red. It has been --record
+     since the flame sat beside it, where the colour read as fire; alone, a
+     red "6d" reads as an alarm on a day that went perfectly. The at-risk rule
+     below still turns it red, and now that is the only thing that does. */
+  .streak{font-family:var(--mono);font-size:12px;color:var(--chalk);font-weight:600;white-space:nowrap;margin-right:2px}
   html{touch-action:manipulation}   /* no double-tap zoom mid-set; pan/pinch unaffected */
   main{padding:18px 18px calc(28px + env(safe-area-inset-bottom))}
   h2{font-family:var(--disp);font-size:10px;letter-spacing:var(--track-wide);text-transform:uppercase;opacity:.75;
