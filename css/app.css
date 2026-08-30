@@ -226,7 +226,13 @@
     position:fixed;top:0;left:0;right:0;max-width:520px;margin:0 auto;
     z-index:20;background:transparent;
     padding:calc(14px + env(safe-area-inset-top,0px)) 18px 12px;
-    display:flex;flex-wrap:nowrap;align-items:flex-start;justify-content:space-between;gap:10px;
+    /* v3.3.390: CENTRED, not top-hung. flex-start dates from the two-line
+       header, where the identity column was taller than the controls and had
+       to hang from the top edge so the date's line stayed level with the
+       gear. Since v3.3.389 the day header IS one line, so flex-start simply
+       pinned every element to the top and left the week and its count sitting
+       above the gear's centre. One line means one axis. */
+    display:flex;flex-wrap:nowrap;align-items:center;justify-content:space-between;gap:10px;
     /* v3.3.55: NEVER wrap the outer columns. A long exercise title used to
        push the timer and gear onto another row. The title truncates instead;
        v3.3.386's two-line identity column remains one stable flex item. */
@@ -861,6 +867,12 @@
      .icobtn's display so ordering can never leak it onto other screens again */
   header .hback{display:none;font-size:20px;font-weight:600;padding-bottom:2px}
   header.exmode .hback{display:grid}
+  /* v3.3.390: EXERCISE MODE is genuinely two lines (the name, then "Chest .
+     3 sets logged"), so there the column is taller than the controls and
+     top-hanging is right -- it keeps the exercise name level with the gear
+     rather than floating the pair down. The centred rule above is for the
+     one-line day header only. */
+  header.exmode{align-items:flex-start}
   /* v3.3.380: the count is INK, not the record red. It has been --record
      since the flame sat beside it, where the colour read as fire; alone, a
      red "6d" reads as an alarm on a day that went perfectly. The at-risk rule

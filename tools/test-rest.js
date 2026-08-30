@@ -385,6 +385,25 @@ ok("the status-bar style no longer puts content under the status bar",
   /* the slot-swap: while the rest timer is showing, the count steps aside --
      one slot, two tenants, never both */
   const css389=fs.readFileSync(path.join(dir,"css/app.css"),"utf8").replace(/\r?\n\s*/g,"");
+  /* v3.3.390: ONE LINE MEANS ONE AXIS. The header carried align-items:
+     flex-start from the two-line era, where the identity column was taller
+     than the controls and had to hang from the top so the date stayed level
+     with the gear. On a one-line header that pins everything to the top edge,
+     and the week and its count sat visibly above the gear's centre.
+     jsdom computes no layout, so the alignment is asserted as the rule -- and
+     the rule is where the mistake lived. */
+  /* comments are stripped first. The rule is preceded by the end of a CSS
+     comment rather than by a closing brace, and my first anchor assumed a
+     brace -- so it reported false against correct CSS. */
+  const bare389=css389.replace(/\/\*[\s\S]*?\*\//g,"");
+  check("the one-line header centres its elements on one axis",
+        `${/header\{position:fixed[^}]*align-items:center/.test(bare389)}`, "true");
+  check("...and no longer hangs them from the top",
+        `${!/header\{position:fixed[^}]*align-items:flex-start/.test(bare389)}`, "true");
+  /* exercise mode really is two lines, so top-hanging is correct there */
+  check("...while exercise mode, which is two lines, still hangs from the top",
+        `${/header\.exmode\{align-items:flex-start\}/.test(bare389)}`, "true");
+
   check("the timer and the count share one slot, never shown together",
         `${/#hTimer\.on~\.streak\{display:none\}/.test(css389)}`, "true");
   /* the day header says each thing once: its subtitle is EMPTY (the empty

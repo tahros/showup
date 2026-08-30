@@ -1,5 +1,11 @@
 # ShowUp — changelog
 
+## v3.3.390 (2026-08-30) — Everything on one axis
+
+The week squares and the count were sitting slightly above the gear. The
+header was still hanging its contents from the top edge — correct when it had
+two lines, wrong now that it has one.
+
 ## v3.3.389 (2026-08-30) — One line
 
 The day header is one line now: date, your week, the count, settings.
