@@ -869,6 +869,32 @@ if _re.search(r"touch(start|move|end)[\s\S]{0,3000}?\bview\s*=", _util):
 if "TABS=['today'" in _util:
     fail.append("the tab-swipe tab list is back; it was deleted with the gesture (v3.3.356)")
 
+# -- v3.3.378: THE SQUARE IS ONE SHAPE.
+# Every day in this app is drawn as the same square at the same corner ratio:
+# a heatmap cell, a coverage mark, today in the ceremony, the empty one on day
+# one, the filled one on the finished card. They had drifted to SIX different
+# ratios -- .227 .250 .261 .273 .292 .300 -- near-misses nobody can name and
+# everybody feels. A percentage rather than a pixel value keeps the 10px mark
+# and the 44px hero provably the same object at any size.
+# This guard is the part that lasts: a new day-square added next year gets it
+# right by default, or this fails.
+_SQ_SELECTORS = [".d1sq", ".heatgrid .hc", ".heat i", "#dayDone .ddsq",
+                 ".mcdots i", ".dayclosed .dcsq"]
+_css_flat_sq = _re.sub(r"/\*[\s\S]*?\*/", "", css).replace("\r", "")
+for _sel in _SQ_SELECTORS:
+    _m = _re.search(_re.escape(_sel) + r"\s*\{([^}]*)\}", _css_flat_sq)
+    if not _m:
+        fail.append(f"the square: {_sel} is gone — if a day is drawn some other way now, this guard needs to say so (v3.3.378)")
+        continue
+    _r = _re.search(r"border-radius:\s*([^;}]+)", _m.group(1))
+    if not _r:
+        continue
+    if "var(--sq)" not in _r.group(1):
+        fail.append(f"the square: {_sel} sets its own corner radius ({_r.group(1).strip()}) "
+                    f"instead of var(--sq) — six near-misses is how it drifted before (v3.3.378)")
+if not _re.search(r"--sq:\s*\d+%", css):
+    fail.append("the square: --sq must be a PERCENTAGE, so one ratio holds at every size (v3.3.378)")
+
 if fail:
     print("BUILDCHECK FAIL"); [print(" -", f) for f in fail]; sys.exit(1)
 print(f"BUILDCHECK PASS  v{appv}  shell={n}B  assets={len(assets)}  cssvars={len(used)} used / {len(defined)} defined")

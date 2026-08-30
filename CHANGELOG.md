@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v3.3.378 (2026-08-29) — One square
+
+Every day in ShowUp — a heatmap cell, a coverage mark, today in the ceremony,
+the empty one on day one — is now drawn at exactly the same corner ratio. They
+had drifted to six slightly different ones.
+
+You won't be able to point at what changed. That's the idea.
+
 ## v3.3.377 (2026-08-29) — The day, as a card you can share
 
 **Completing your workout now ends on the day's own share image.** The square

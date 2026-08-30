@@ -102,6 +102,17 @@
     --accent-ink:#8BA5FF;
     --track-num:-.02em; --track-label:.08em; --track-wide:.16em;
     --disp:'IBM Plex Sans',system-ui,sans-serif;
+    /* v3.3.378: THE SQUARE. Every day in this app is drawn as one shape at
+       one corner ratio -- a heatmap cell, a coverage mark, today in the
+       ceremony, the empty one on day one. They had drifted to six different
+       ratios (.227 .250 .261 .273 .292 .300): near-misses nobody can name and
+       everybody feels. A PERCENTAGE, not a pixel value, so the 10px mark and
+       the 44px hero are provably the same object rather than six things that
+       look similar at their own sizes.
+       The square means A DAY. Never a bullet, a button, a badge or a
+       container -- the moment it wraps something that is not a day it becomes
+       a motif and stops meaning anything. */
+    --sq:28%;
     /* v3.3.243: reserved height for the fixed header. Defined here so the
        first paint is right before JS measures; syncHeaderHeight() then
        overwrites it on documentElement with the real px. */
@@ -307,7 +318,7 @@
      screen in the app where nobody knows what to press yet. */
   .d1card{padding:22px 18px;margin-top:10px}
   .d1hero{text-align:center;padding:34px 18px 26px}
-  .d1sq{display:block;width:46px;height:46px;margin:0 auto 22px;border-radius:12px;
+  .d1sq{display:block;width:46px;height:46px;margin:0 auto 22px;border-radius:var(--sq);
     background:var(--surface2);border:1.5px dashed var(--line)}
   .d1h{font-size:19px;margin:0 0 6px}
   .d1p{margin:0 0 22px;font-size:13px}
@@ -430,7 +441,7 @@
      bottom, and the fill is clipped to the content box. Two separate days
      leave a 2px channel; a joined pair drops the padding on the touching
      side and the fills meet exactly. Nothing leaves its track. */
-  .heatgrid .hc{display:block;width:100%;aspect-ratio:1;border-radius:2.5px;
+  .heatgrid .hc{display:block;width:100%;aspect-ratio:1;border-radius:var(--sq);
     background-color:var(--surface2);font-style:normal}
   .heatgrid .hc.on{background-color:var(--accent)}
   .heatgrid .hc.fut{background-color:transparent;box-shadow:inset 0 0 0 1px var(--line);opacity:.5}
@@ -448,7 +459,7 @@
      it. One animation on the app's own --settle family, ~3.2s, which is slow
      enough to read as breathing rather than blinking. */
   .heatgrid .hc{position:relative}
-  .heatgrid .hc.tod::after{content:'';position:absolute;inset:-2px;border-radius:4.5px;
+  .heatgrid .hc.tod::after{content:'';position:absolute;inset:-2px;border-radius:var(--sq);
     border:1.4px solid var(--accent);animation:todbreath 3.2s var(--settle) infinite}
   @keyframes todbreath{
     0%   {opacity:.85; inset:-1.5px; border-radius:4px}
@@ -714,7 +725,7 @@
   .dayclosed{display:block;width:100%;text-align:center;padding:20px 16px 16px;
     margin-bottom:18px;border:1px solid var(--line);cursor:pointer}
   .dayclosed .dcsq{display:block;width:30px;height:30px;margin:0 auto 12px;
-    border-radius:9px;background:var(--accent)}
+    border-radius:var(--sq);background:var(--accent)}
   .dayclosed .dcn{display:block;font-family:var(--disp);font-weight:700;
     font-size:16px;color:var(--chalk)}
   .dayclosed .dcm{display:block;margin-top:5px;font-size:11.5px;color:var(--muted)}
@@ -1372,7 +1383,7 @@
   td.n b{color:var(--accent)}
   .heat{display:flex;gap:3px;overflow-x:auto;padding:2px 4px 4px 0}   /* v3.3.46: room for today's outline at the right edge */
   .heat .wk{display:flex;flex-direction:column;gap:3px}
-  .heat i{width:12px;height:12px;border-radius:3px;background:var(--surface2);display:block;border:1px solid var(--line)}
+  .heat i{width:12px;height:12px;border-radius:var(--sq);background:var(--surface2);display:block;border:1px solid var(--line)}
   .heat i[data-l="1"]{background:var(--accent-soft);border-color:var(--accent-soft)}
   .heat i[data-l="2"]{background:var(--accent);border-color:var(--accent)}
   .zoom{position:relative;overflow:hidden;border-radius:8px;touch-action:none;cursor:grab}
@@ -1861,9 +1872,9 @@
     display:flex;flex-direction:column;align-items:center;justify-content:center;
     cursor:pointer;animation:ddin .18s var(--settle) both}
   #dayDone.out{opacity:0;transition:opacity .3s var(--settle)}
-  #dayDone .ddsq{width:44px;height:44px;border-radius:12px;background:var(--accent);
+  #dayDone .ddsq{width:44px;height:44px;border-radius:var(--sq);background:var(--accent);
     position:relative;animation:ddsq .5s var(--settle) both .12s}
-  #dayDone .ddsq::after{content:'';position:absolute;inset:-8px;border-radius:16px;
+  #dayDone .ddsq::after{content:'';position:absolute;inset:-8px;border-radius:var(--sq);
     border:2px solid var(--accent);opacity:0;animation:ddring .7s var(--settle) .5s}
   #dayDone .ddn{font-family:var(--disp);font-size:42px;font-weight:700;color:var(--chalk);
     margin-top:26px;line-height:1;animation:ddup .45s var(--settle) both .55s}
@@ -2082,7 +2093,7 @@
      gutter between days visible. It does not grow with the window: the marks
      are a legend, not a measurement, so on a wide screen the columns get
      roomier and the squares stay put. */
-  .mcdots i{justify-self:center;width:12px;height:12px;border-radius:3.5px;
+  .mcdots i{justify-self:center;width:12px;height:12px;border-radius:var(--sq);
     background:var(--surface2);display:block}
   .mcdots i.on{background:var(--accent)}
   .mchead .mcdots i{background:none;width:auto;height:auto;font-style:normal;
