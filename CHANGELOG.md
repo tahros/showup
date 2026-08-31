@@ -1,5 +1,11 @@
 # ShowUp — changelog
 
+## v3.3.391 (2026-08-31) — The rest timer follows you into the exercise
+
+Opening an exercise mid-session was hiding the running clock. It's visible on
+every screen while a session is live now — which is where you are when it
+matters.
+
 ## v3.3.390 (2026-08-30) — Everything on one axis
 
 The week squares and the count were sitting slightly above the gear. The

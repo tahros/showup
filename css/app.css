@@ -836,7 +836,17 @@
   header.live #gearBtn{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.24)}
   header.live .icobtn small{color:#fff;opacity:.95}
   header.exmode .h-date{font-size:17px;line-height:1.25}
-  header.exmode .h-weekrow{display:none}
+  /* v3.3.391: exercise mode hides the WEEK, not the row. v3.3.389 moved the
+     rest timer into .h-weekrow to share the count's slot, and this rule --
+     written when the row held only the record -- then hid the running clock
+     the moment you opened an exercise. Mid-session that clock is the most
+     useful thing in the header, and the exercise screen is exactly where you
+     stand while it runs.
+     The squares and the count are the record and still step aside for the
+     exercise's own name and subtitle; the timer is not the record, so it
+     stays. */
+  header.exmode .h-week,header.exmode .streak{display:none}
+  header.exmode .h-weekrow{flex:0 0 auto}
   .h-idcol{flex:1 1 auto;min-width:0}
   .h-date{font-family:var(--disp);font-weight:700;font-size:19px;letter-spacing:var(--track-num);
     max-width:100%;

@@ -404,6 +404,18 @@ ok("the status-bar style no longer puts content under the status bar",
   check("...while exercise mode, which is two lines, still hangs from the top",
         `${/header\.exmode\{align-items:flex-start\}/.test(bare389)}`, "true");
 
+  /* v3.3.391: THE CLOCK SURVIVES THE EXERCISE SCREEN. v3.3.389 moved the rest
+     timer into .h-weekrow so it could share the count's slot, and exercise
+     mode already hid that whole row -- so opening an exercise hid the running
+     clock, mid-session, on the screen you actually stand on while it runs.
+     Exercise mode hides the RECORD (squares, count) and keeps the timer: the
+     timer is not the record. */
+  check("exercise mode hides the record, not the row that holds the clock",
+        `${/header\.exmode \.h-week,header\.exmode \.streak\{display:none\}/.test(css389)
+           && !/header\.exmode \.h-weekrow\{display:none\}/.test(css389)}`, "true");
+  check("...so nothing hides the timer inside an exercise",
+        `${!/header\.exmode[^{]*\.resttimer[^{]*\{[^}]*display:none/.test(css389)}`, "true");
+
   check("the timer and the count share one slot, never shown together",
         `${/#hTimer\.on~\.streak\{display:none\}/.test(css389)}`, "true");
   /* the day header says each thing once: its subtitle is EMPTY (the empty

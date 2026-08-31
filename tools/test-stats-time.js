@@ -23,6 +23,14 @@ const ok=(name,cond,extra)=>{console.log(cond?"PASS":"FAIL",name,extra===undefin
 
 // A prior month has one day before today's day-number and one after it.
 // Only the first is allowed into Monthly pace.
+//
+// v3.3.391: THIS FIXTURE STOPPED CONTAINING ITS OWN CASE ON THE 31st. The
+// "late" day is min(last day of that month, dom+3) -- so when today is the
+// 31st the cutoff is 31, no calendar day can fall after it, and the fixture
+// silently tested inclusion while claiming to test exclusion. It failed for
+// the right reason and on the right day; it just failed once a month.
+// The case is genuinely VACUOUS when dom is 31, so the test now says which
+// case it is running rather than pretending the other one exists.
 const pace=JSON.parse(run(`(function(){
   DB.days={}; const now=new Date(todayISO+'T00:00'), y=now.getFullYear(), m=now.getMonth();
   const prev=new Date(y,m-1,1), key=prev.toLocaleDateString('en-CA').slice(0,7), dom=+todayISO.slice(8);
@@ -31,9 +39,17 @@ const pace=JSON.parse(run(`(function(){
   DB.days[key+'-'+String(late).padStart(2,'0')]={w:[{part:'Chest',ex:'Chest Press',w:40,reps:[10]}],upd:1};
   DB.days[todayISO]={w:[{part:'Back',ex:'Row',w:40,reps:[10]}],upd:1};
   SEED=deriveAll(); const d=monthlyPaceData(12), row=d.months.find(x=>x.key===key);
-  return JSON.stringify({days:row.days,total:row.total,cutoff:row.cutoff,dom});
+  return JSON.stringify({days:row.days,total:row.total,cutoff:row.cutoff,dom,late});
 })()`));
-ok("Monthly pace excludes work after the shared cutoff", pace.days===1 && pace.total===2, JSON.stringify(pace));
+if(pace.late>pace.dom){
+  ok("Monthly pace excludes work after the shared cutoff",
+     pace.days===1 && pace.total===2, JSON.stringify(pace));
+}else{
+  /* no day can follow a cutoff of 31 -- assert the other half instead: with
+     nothing past the cutoff, everything in the month counts. */
+  ok("Monthly pace counts the whole month when nothing can follow the cutoff",
+     pace.days===2 && pace.total===2 && pace.dom===31, JSON.stringify(pace));
+}
 ok("Monthly pace uses today's ordinal day", pace.cutoff===pace.dom, pace.cutoff);
 
 const race=JSON.parse(run(`(function(){
