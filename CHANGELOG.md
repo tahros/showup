@@ -1,5 +1,11 @@
 # ShowUp — changelog
 
+## v3.3.392 (2026-08-31) — The rest timer stops moving
+
+It sat at a different height on the exercise screen than on Today. It's now
+beside the settings button, on the header's own centre line, so it's at the
+same place on every screen.
+
 ## v3.3.391 (2026-08-31) — The rest timer follows you into the exercise
 
 Opening an exercise mid-session was hiding the running clock. It's visible on

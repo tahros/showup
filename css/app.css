@@ -795,8 +795,11 @@
   .h-subrow{display:flex;align-items:center;gap:7px;min-width:0}
   .h-sub:not(:empty){margin-top:2px}
   .h-sub:empty{display:none}
-  .h-weekrow .resttimer{font-size:12px}
-  #hTimer.on~.streak{display:none}
+  .hbtns .resttimer{font-size:13px}
+  /* the slot-swap survives the move: the timer and the count are no longer
+     siblings, so :has() carries what "~" used to. Still one tenant at a time
+     -- date, week, count, timer and gear do not fit one line together. */
+  header:has(#hTimer.on) .streak{display:none}
   .h-subrow .h-sub{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .dayclosed{display:block;width:100%;text-align:center;padding:20px 16px 16px;
     margin-bottom:18px;border:1px solid var(--line);cursor:pointer}
@@ -854,7 +857,11 @@
   .h-sub{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:var(--track-label);text-transform:uppercase;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .brandrow>div{min-width:0}
-  .hbtns{display:flex;gap:8px;align-items:center;flex:0 0 auto}   /* v3.3.55: controls never shrink and never wrap */
+  /* v3.3.392: align-self:center so the controls hold the header's axis even
+     in exercise mode, where the header hangs its taller identity column from
+     the top. The clock lives here now, so this is what keeps its y identical
+     on every screen. */
+  .hbtns{display:flex;gap:8px;align-items:center;align-self:center;flex:0 0 auto}   /* v3.3.55: controls never shrink and never wrap */
   .icobtn{
     width:44px;height:44px;border-radius:13px;border:1px solid var(--line);
     background:var(--surface);color:var(--chalk);font-size:18px;cursor:pointer;

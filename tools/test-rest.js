@@ -416,8 +416,22 @@ ok("the status-bar style no longer puts content under the status bar",
   check("...so nothing hides the timer inside an exercise",
         `${!/header\.exmode[^{]*\.resttimer[^{]*\{[^}]*display:none/.test(css389)}`, "true");
 
+  /* v3.3.392 RESTATES: the timer moved out of the record's row and in with
+     the controls, so it and the count are no longer siblings and "~" cannot
+     express the swap. :has() carries it. The rule being defended is unchanged
+     -- one tenant at a time, because date + week + count + timer + gear do not
+     fit one line. */
   check("the timer and the count share one slot, never shown together",
-        `${/#hTimer\.on~\.streak\{display:none\}/.test(css389)}`, "true");
+        `${/header:has\(#hTimer\.on\) \.streak\{display:none\}/.test(css389)}`, "true");
+  /* AND THE CLOCK'S Y MUST NOT MOVE BETWEEN SCREENS. In the record's row it
+     rode line one of its column: centred on the one-line day header, pinned to
+     the exercise name's line on the two-line exercise header. With the
+     controls it holds the header's own axis in both. */
+  check("the clock sits with the controls, not inside the record's row",
+        `(function(){const t=document.getElementById('hTimer');
+          return !!t && !!t.closest('.hbtns') && !t.closest('.h-weekrow');})()`, true);
+  check("...and the controls hold the axis even where the header top-hangs",
+        `${/\.hbtns\{[^}]*align-self:center/.test(css389)}`, "true");
   /* the day header says each thing once: its subtitle is EMPTY (the empty
      square and the Training Today card already say both of its old states),
      and an empty line costs no height */
