@@ -51,3 +51,21 @@ commit = gh("/git/commits", "POST",
             {"message": msg, "tree": tree["sha"], "parents": [head]})
 gh("/git/refs/heads/main", "PATCH", {"sha": commit["sha"], "force": False})
 print("pushed:", commit["sha"])
+
+# v3.3.395: leave the SHA on disk for verifyship.
+#
+# The trap this closes: verifyship was routinely invoked with a FRESH read of
+# refs/heads/main, on the assumption that the ref reflects the push that just
+# happened. It does not always. In v3.3.394 that read came back with the
+# PREVIOUS commit -- the ref endpoint lagged the push by a moment -- so every
+# check ran against the old tree and all three reported "actually absent".
+#
+# That failure is dangerous because it is INDISTINGUISHABLE from a real broken
+# deploy: identical wording, every check red at once. The response to a broken
+# deploy is to start unpicking working code, so a false alarm here costs more
+# than a missing check would.
+#
+# The pushed SHA is known here exactly, with no second network read to be
+# stale. verifyship reads this file when no SHA is given.
+(stage / ".lastship").write_text(commit["sha"] + "\n")
+print("sha recorded for verifyship: .lastship")

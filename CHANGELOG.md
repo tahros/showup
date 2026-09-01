@@ -1,5 +1,11 @@
 # ShowUp — changelog
 
+## v3.3.395 (2026-09-01) — Deploy tooling
+
+Internal: the deploy step now records the commit it created, and the
+verification step reads that instead of re-checking the branch — which can lag
+a push and make a good release look broken.
+
 ## v3.3.394 (2026-09-01) — Sets with no weight
 
 `by feel × 12 12 10 10` now reads as a real line in today's plan instead of

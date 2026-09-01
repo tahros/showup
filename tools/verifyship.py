@@ -27,7 +27,27 @@ import urllib.request
 TOK = pathlib.Path("/home/claude/.ghtok").read_text().strip()
 API = "https://api.github.com/repos/tahros/showup"
 
-sha, checks = sys.argv[1], sys.argv[2:]
+# v3.3.395: the SHA may be omitted, and omitting it is now the safer call.
+#
+# Callers used to pass a fresh read of refs/heads/main. That ref can LAG the
+# push it is meant to describe: in v3.3.394 it returned the previous commit,
+# so every check ran against the old tree and all three reported "actually
+# absent" -- wording identical to a genuinely broken deploy. Chasing that
+# false alarm means unpicking code that was fine.
+#
+# deploy.py writes the commit it actually created to .lastship. Reading that
+# involves no second network call and therefore cannot be stale. A SHA given
+# on the command line still wins, for verifying some older commit on purpose.
+_args = sys.argv[1:]
+if _args and re.fullmatch(r"[0-9a-f]{7,40}", _args[0]):
+    sha, checks = _args[0], _args[1:]
+else:
+    _f = pathlib.Path(".lastship")
+    if not _f.exists():
+        sys.exit("verifyship: no SHA given and no .lastship — run deploy.py first, "
+                 "or pass the commit explicitly")
+    sha, checks = _f.read_text().strip(), _args
+    print(f"  (verifying .lastship {sha[:7]} — the commit deploy.py pushed)")
 cache, bad = {}, []
 
 for spec in checks:
