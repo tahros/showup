@@ -26,13 +26,21 @@ const check = (name, expr, want) => {
 };
 
 run(`
+  /* v3.3.393: ANCHORED ON YESTERDAY'S MONTH, not today's. This seeded the six
+     days before today and skipped any that fell outside the CURRENT month --
+     so on the 1st it seeded nothing, the calendar had no day cell, and the
+     suite did not fail politely: it CRASHED on .click() of null. Yesterday's
+     month always contains at least yesterday, so a cell always exists. */
   {const t0=new Date(todayISO+'T00:00');
+   const y1=new Date(t0); y1.setDate(y1.getDate()-1);
+   const ym=y1.toLocaleDateString('en-CA').slice(0,7);
    for(let i=1;i<=6;i++){
      const d=new Date(t0); d.setDate(d.getDate()-i);
-     if(d.toLocaleDateString('en-CA').slice(0,7)!==todayISO.slice(0,7)) continue;
-     DB.days[d.toLocaleDateString('en-CA')]={w:[{part:'Back',ex:'Pull Up',w:70,reps:[8]}],upd:1,doneEx:[],donePart:[],doneAll:true};}
+     const iso=d.toLocaleDateString('en-CA');
+     if(iso.slice(0,7)!==ym) continue;
+     DB.days[iso]={w:[{part:'Back',ex:'Pull Up',w:70,reps:[8]}],upd:1,doneEx:[],donePart:[],doneAll:true};}
    SEED=deriveAll(); _fireDist=null;
-   hist={y:+thisYear,m:+todayISO.slice(5,7),part:null};
+   hist={y:+ym.slice(0,4),m:+ym.slice(5,7),part:null};
    view='history'; render();}
 `);
 

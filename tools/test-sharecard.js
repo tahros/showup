@@ -65,8 +65,15 @@ check("gridData counts days per month", `gridData().mDays[(+todayISO.slice(0,4)-
 check("...spans first year to this year",
       `gridData().y1-gridData().y0`, 2);
 check("...knows the busiest month", `gridData().max`, 3);
-check("...and the total matches the derived sessions",
-      `gridData().total === SEED.totals.sessions`, true);
+/* v3.3.393: THE INVARIANT WAS ONLY TRUE ON DAYS THE FIXTURE MISSED TODAY.
+   deriveAll skips `d >= todayISO`, so SEED.totals.sessions deliberately never
+   counts the day in progress -- the app's own convention, the one report.js
+   spells as sessions + (today ? 1 : 0). gridData reads DB.days and DOES count
+   today. The fixture's last day is the 1st of the current month, which IS
+   today on the 1st, so the two disagreed by one and this check failed on one
+   day a month. It states the real relationship now, and holds every day. */
+check("...and the total matches the derived sessions, plus today if it has work",
+      `gridData().total === SEED.totals.sessions + ((DB.days[todayISO]&&(DB.days[todayISO].w||[]).length)?1:0)`, true);
 const statsSrc = fs.readFileSync(path.join(dir, "js/stats.js"), "utf8");
 /* v3.3.271 RESTATES: the on-screen Every-month grid was DELETED with the
    other retired sections, so gridData()'s consumers are the card and Today's

@@ -910,6 +910,43 @@ run(`(function(){view='today'; lift.ex=null; render();})()`);
        run(`!!document.getElementById('restBtn')`));
   }
 
+  /* v3.3.393: WEIGHTED BODYWEIGHT WORK. "BW +10 x 8 8 6 6" is how a belt is
+     written, and the parser allowed nothing between "bw" and the reps -- so a
+     weighted pull-up fell through to "kept as a note" and the whole line was
+     discarded. Two faults in series: the pattern rejected it, and even once
+     read, planItemsFrom hard-zeroed the weight of any bw line, which would
+     have thrown the belt away a second time. */
+  {
+    const read = (txt) => run(`(function(){DB.settings.unit='lb';
+      const {items}=planItemsFrom(parsePlan(` + JSON.stringify(txt) + `));
+      const l=items[0]&&items[0].lines[0];
+      return JSON.stringify({ex:items[0]&&items[0].ex, bw:!!(l&&l.bw),
+        lb:l?+(l.w*2.20462).toFixed(1):null, reps:l?l.reps:null,
+        label:l?wLabel(items[0].ex,l.w):null});})()`);
+
+    let r=JSON.parse(read("Pull Up\n  BW +10 x 8 8 6 6"));
+    ok("a weighted pull-up is read, not kept as a note", r.ex==='Pull Up', JSON.stringify(r));
+    ok("...as bodyweight plus the belt, in the paste's own unit",
+       r.bw===true && r.lb===10, JSON.stringify(r));
+    ok("...with its reps intact", JSON.stringify(r.reps)==='[8,8,6,6]', JSON.stringify(r.reps));
+    ok("...and shown in the app's own grammar", r.label==='BW+10', r.label);
+
+    /* bare BW is unchanged: zero added */
+    r=JSON.parse(read("Dip\n  BW x 12 10 10"));
+    ok("plain bodyweight still reads as plain bodyweight",
+       r.bw===true && r.lb===0 && r.label==='BW', JSON.stringify(r));
+
+    /* the belt may carry its own unit, and it must convert like any load */
+    r=JSON.parse(read("Pull Up\n  BW +5 kg x 5 5"));
+    ok("...and an explicit unit on the belt is honoured",
+       r.bw===true && Math.abs(r.lb-11.0)<0.2, JSON.stringify(r));
+
+    /* a loaded line is untouched by any of this */
+    r=JSON.parse(read("Deadlift\n  215 lb x 5 5 5 5"));
+    ok("loaded lines are unaffected",
+       r.bw===false && Math.abs(r.lb-215)<0.1, JSON.stringify(r));
+  }
+
   /* THE LINE THE BUILD DEFENDS. No count, fraction or percentage of a plan
      may appear -- buildcheck scans the source for the vocabulary, this scans
      the rendered card for the shape. */

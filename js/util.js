@@ -892,7 +892,15 @@ function planCandidates(name){
 }
 
 /* one line of sets: "55 lb  8 8 8 8", "35lb x 12", "BW 10 8 8", "60 kg 5x5" */
-const PLAN_SET=/^\s*(bw|bodyweight|[\d.]+)\s*(lb|lbs|kg|kgs)?\s*[x×·,:]?\s*([\d\s,x×·]*\d)?\s*$/i;
+/* v3.3.393: WEIGHTED BODYWEIGHT WORK. "BW +10 x 8 8 6 6" is how a belt is
+   written, and the old pattern allowed nothing between "bw" and the reps --
+   so a weighted pull-up fell through to "kept as a note", the whole line
+   discarded. The added load is optional and may carry its own unit; without
+   one it inherits the paste's, exactly as a plain number does. Split into two
+   patterns rather than one alternation: the BW form has a term the numeric
+   form does not, and one regex for both made the group numbering unreadable. */
+const PLAN_SET_BW=/^\s*(?:bw|bodyweight)\s*(?:\+\s*([\d.]+)\s*(lb|lbs|kg|kgs)?)?\s*[x×·,:]?\s*([\d\s,x×·]*\d)?\s*$/i;
+const PLAN_SET=/^\s*([\d.]+)\s*(lb|lbs|kg|kgs)?\s*[x×·,:]?\s*([\d\s,x×·]*\d)?\s*$/i;
 /* v3.3.311: a trailing per-limb qualifier is prose, not data. "45 lb 10 10
    10 per arm" failed the whole line, and the damage compounded: with no set
    line the exercise heading above it became a note, and the orphaned set
@@ -902,10 +910,15 @@ const PLAN_SET=/^\s*(bw|bodyweight|[\d.]+)\s*(lb|lbs|kg|kgs)?\s*[x×·,:]?\s*([\
    already states weight per hand, so "per arm" is restating the convention. */
 const PLAN_SIDE=/\s*(?:\/\s*)?(?:per|each|ea\.?|e\/)\s*(?:arm|side|leg|hand|limb)?s?\.?\s*$/i;
 function planReadSets(line){
-  const m=String(line).replace(PLAN_SIDE,'').match(PLAN_SET); if(!m) return null;
-  const bw=/^(bw|bodyweight)$/i.test(m[1]);
-  const w=bw?0:parseFloat(m[1]);
-  if(!bw&&!(w>=0)) return null;
+  const src=String(line).replace(PLAN_SIDE,'');
+  const bwm=src.match(PLAN_SET_BW);
+  const m=bwm||src.match(PLAN_SET); if(!m) return null;
+  const bw=!!bwm;
+  /* for a BW line the number is the ADDED load, which is what this app
+     stores for bodyweight exercises (wLabel: 0 reads "BW", 10 reads
+     "BW+10"). Bare "BW" is zero added, as before. */
+  const w=bw?(m[1]?parseFloat(m[1]):0):parseFloat(m[1]);
+  if(!(w>=0)) return null;
   const unit=(m[2]||'').toLowerCase().replace(/s$/,'');
   let reps=[];
   if(m[3]){
@@ -1172,7 +1185,10 @@ function planItemsFrom(rows){
   for(const r of rows){
     if(r.kind==='ex'&&r.ex){
       const lines=r.lines.map(l=>({
-        w: l.bw?0:(l.unit==='kg'?l.w:l.unit==='lb'?l.w/LB:toKg(l.w)),
+        /* v3.3.393: a BW line's weight is the ADDED load and must convert
+           like any other. Zeroing it here threw away the belt: "BW +10"
+           parsed correctly and still arrived as a plain bodyweight set. */
+        w: (l.unit==='kg'?l.w:l.unit==='lb'?l.w/LB:toKg(l.w)),
         bw: !!l.bw,
         ...(isHold(l.su)?{su:SET_SEC}:{}),
         reps: l.reps.slice(0,12)

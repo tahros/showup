@@ -1,5 +1,11 @@
 # ShowUp — changelog
 
+## v3.3.393 (2026-09-01) — Weighted pull-ups paste correctly
+
+`BW +10 × 8 8 6 6` now reads as a real set — bodyweight plus the belt, with
+its reps — instead of being kept as a note. Plain `BW` is unchanged, and the
+added load can carry its own unit (`BW +5 kg`).
+
 ## v3.3.392 (2026-08-31) — The rest timer stops moving
 
 It sat at a different height on the exercise screen than on Today. It's now

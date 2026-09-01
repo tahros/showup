@@ -146,10 +146,28 @@ check("...and the chart still fits its viewBox",
     const t=new Date(todayISO+'T00:00');
     const D=n=>{const d=new Date(t);d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA')};
     /* three runs this month: 2.34 mi today, 1.00 and 3.00 mi before it.
-       stored in KM, exactly as the Run logger writes them (fromD). */
+       stored in KM, exactly as the Run logger writes them (fromD).
+
+       v3.3.393: THE EARLIER TWO WERE PLACED BY "DAYS AGO" -- D(2) and D(4) --
+       which walk out of the CURRENT MONTH during its first days, while these
+       tiles only ever show the current month. On the 1st, 2nd, 3rd and 4th
+       the fixture seeded runs the chart could not see and then asserted their
+       values. It has been wrong four days a month since it was written.
+       Placed by day-of-month now, so they are in-month by construction. */
+    const dom=+todayISO.slice(8), MD=n=>todayISO.slice(0,8)+String(n).padStart(2,'0');
     DB.days[todayISO]={w:[{part:'Run',ex:'Run',w:2.34/0.621371,reps:[],mins:27,secs:0,at:1}],upd:1};
-    DB.days[D(2)]={w:[{part:'Run',ex:'Run',w:1.00/0.621371,reps:[],mins:12,secs:0,at:1}],upd:1};
-    DB.days[D(4)]={w:[{part:'Run',ex:'Run',w:3.00/0.621371,reps:[],mins:36,secs:0,at:1}],upd:1};
+    if(dom>=3){
+      DB.days[MD(dom-1)]={w:[{part:'Run',ex:'Run',w:1.00/0.621371,reps:[],mins:12,secs:0,at:1}],upd:1};
+      DB.days[MD(dom-2)]={w:[{part:'Run',ex:'Run',w:3.00/0.621371,reps:[],mins:36,secs:0,at:1}],upd:1};
+    }
+    /* and one run well before this month, so LIFETIME figures exist on every
+       date. Without it, a fixture seeded only with today's run leaves
+       SEED.totals.km at zero -- deriveAll skips today -- and Train's run
+       history does not render at all, which is why the lifetime check
+       reported "no foot" rather than a wrong number. Being 40 days back it
+       cannot disturb any month-scoped tile. */
+    DB.days[D(40)]={w:[{part:'Run',ex:'Run',w:5.00/0.621371,reps:[],mins:60,secs:0,at:1}],upd:1};
+    window.__runsThisMonth=dom>=3?3:1;
     SEED=deriveAll(); view='stats'; render();})()`;
   run(seed);
 
@@ -158,13 +176,18 @@ check("...and the chart still fits its viewBox",
       .find(x=>x.textContent.trim().endsWith('${label}'));
     return s?(s.querySelector('b').textContent.match(/[\\d.]+/)||[''])[0]:'no tile';})()`);
 
-  /* the longest run this month IS the longest run this month */
-  check("the longest tile equals the longest run logged", `${+tile('longest')}`, 3);
+  /* the longest run this month IS the longest run this month. Early in a
+     month there is no room for the earlier two, and the honest assertion is
+     then the single-run one -- stated, not skipped. */
+  const many = run(`window.__runsThisMonth`)===3;
+  check("the longest tile equals the longest run logged",
+        `${+tile('longest')}`, many?3:2.34);
   check("...and the average is the mean of what was logged",
-        `${+tile('average')}`, +((2.34+1+3)/3).toFixed(2));
+        `${+tile('average')}`, many?+((2.34+1+3)/3).toFixed(2):2.34);
   check("the month hero equals the sum of the runs logged",
         `(function(){const h=document.querySelector('.runmonthhero strong');
-          return +(h.textContent.match(/[\\d.]+/)||[0])[0];})()`, +(2.34+1+3).toFixed(2));
+          return +(h.textContent.match(/[\\d.]+/)||[0])[0];})()`,
+        many?+(2.34+1+3).toFixed(2):2.34);
 
   /* and the card must not contradict itself: the hero, the percentage and
      the remaining distance are three views of ONE number */
