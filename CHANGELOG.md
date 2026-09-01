@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v3.3.394 (2026-09-01) — Sets with no weight
+
+`by feel × 12 12 10 10` now reads as a real line in today's plan instead of
+becoming a note. It shows as `by feel` — not `BW`, which would claim something
+about the exercise, and not `0`, which would claim something about the weight.
+
+You still enter a real number when you log the set. The plan is a promise, not
+a record.
+
 ## v3.3.393 (2026-09-01) — Weighted pull-ups paste correctly
 
 `BW +10 × 8 8 6 6` now reads as a real set — bodyweight plus the belt, with

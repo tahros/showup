@@ -899,6 +899,18 @@ function planCandidates(name){
    one it inherits the paste's, exactly as a plain number does. Split into two
    patterns rather than one alternation: the BW form has a term the numeric
    form does not, and one regex for both made the group numbering unreadable. */
+/* v3.3.394: A SET WITH NO LOAD. "by feel x 12 12 10 10" is how the maker
+   writes a movement he does not track a number on -- machines with unmarked
+   stacks, bands, assisted work. It became a note, so the exercise vanished
+   from the plan and the reps went with it.
+   This is PLAN-ONLY and safe there for a specific reason: the plan is a
+   promise, never a record. It is never scored, never written to the ledger,
+   and cleared at midnight. A promise may say "these reps, whatever the weight
+   turns out to be"; the ledger may not, and does not have to -- you set the
+   weight when you actually log the set.
+   Deliberately narrow: only these three phrasings, and reps are REQUIRED. A
+   line of prose with no numbers must keep falling through to a note. */
+const PLAN_SET_NW=/^\s*(?:by\s*feel|no\s*weight|unweighted)\s*[x×·,:]?\s*([\d\s,x×·]*\d)\s*$/i;
 const PLAN_SET_BW=/^\s*(?:bw|bodyweight)\s*(?:\+\s*([\d.]+)\s*(lb|lbs|kg|kgs)?)?\s*[x×·,:]?\s*([\d\s,x×·]*\d)?\s*$/i;
 const PLAN_SET=/^\s*([\d.]+)\s*(lb|lbs|kg|kgs)?\s*[x×·,:]?\s*([\d\s,x×·]*\d)?\s*$/i;
 /* v3.3.311: a trailing per-limb qualifier is prose, not data. "45 lb 10 10
@@ -911,6 +923,12 @@ const PLAN_SET=/^\s*([\d.]+)\s*(lb|lbs|kg|kgs)?\s*[x×·,:]?\s*([\d\s,x×·]*\d)
 const PLAN_SIDE=/\s*(?:\/\s*)?(?:per|each|ea\.?|e\/)\s*(?:arm|side|leg|hand|limb)?s?\.?\s*$/i;
 function planReadSets(line){
   const src=String(line).replace(PLAN_SIDE,'');
+  const nwm=src.match(PLAN_SET_NW);
+  if(nwm){
+    const reps=nwm[1].split(/[\s,]+/).filter(Boolean)
+      .map(x=>+String(x).replace(/[x×·]/g,'')).filter(n=>n>0&&n<1000);
+    return reps.length?{w:0,unit:'',reps,bw:false,nw:true}:null;
+  }
   const bwm=src.match(PLAN_SET_BW);
   const m=bwm||src.match(PLAN_SET); if(!m) return null;
   const bw=!!bwm;
@@ -1190,6 +1208,7 @@ function planItemsFrom(rows){
            parsed correctly and still arrived as a plain bodyweight set. */
         w: (l.unit==='kg'?l.w:l.unit==='lb'?l.w/LB:toKg(l.w)),
         bw: !!l.bw,
+        ...(l.nw?{nw:true}:{}),          // v3.3.394: no load named, plan only
         ...(isHold(l.su)?{su:SET_SEC}:{}),
         reps: l.reps.slice(0,12)
       })).filter(l=>l.reps.length);

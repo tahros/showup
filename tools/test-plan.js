@@ -947,6 +947,39 @@ run(`(function(){view='today'; lift.ex=null; render();})()`);
        r.bw===false && Math.abs(r.lb-215)<0.1, JSON.stringify(r));
   }
 
+  /* v3.3.394: A SET WITH NO LOAD. "by feel x 12 12 10 10" is how the maker
+     writes a movement he does not track a number on. It became a note, taking
+     the exercise and its reps with it.
+     Safe because the plan is a PROMISE, never a record: never scored, never
+     written to the ledger, cleared at midnight. A promise may say "these reps,
+     whatever the weight turns out to be". The ledger still gets a real number,
+     because you set it when you log the set. */
+  {
+    const read = (txt) => run(`(function(){DB.settings.unit='lb';
+      const {items,note}=planItemsFrom(parsePlan(` + JSON.stringify(txt) + `));
+      const l=items[0]&&items[0].lines[0];
+      return JSON.stringify({ex:items[0]&&items[0].ex, nw:!!(l&&l.nw), bw:!!(l&&l.bw),
+        w:l?l.w:null, reps:l?l.reps:null, note});})()`);
+
+    let r=JSON.parse(read("Pull Up\n  by feel x 12 12 10 10"));
+    ok("a set with no load named is read, not kept as a note", r.ex==='Pull Up', JSON.stringify(r));
+    ok("...carrying its reps", JSON.stringify(r.reps)==='[12,12,10,10]', JSON.stringify(r.reps));
+    ok("...marked as having no load rather than a load of zero",
+       r.nw===true && r.bw===false && r.w===0, JSON.stringify(r));
+
+    /* NARROW ON PURPOSE: reps are required, and prose stays prose */
+    ok("bare \"by feel\" with no reps is not a set line",
+       run(`planReadSets('by feel')`)===null);
+    ok("...and prose that merely mentions feel stays a note",
+       run(`planReadSets('feels heavy today')`)===null);
+
+    /* the display must not lie in either direction: "BW" is a claim about the
+       exercise, "0" is a claim about the weight */
+    const src=fs.readFileSync(path.join(dir,"js/lift.js"),"utf8");
+    ok("a no-load line reads \"by feel\", never BW and never 0",
+       /l\.nw\?'by feel'/.test(src) && (src.match(/l\.nw\?'by feel'/g)||[]).length>=2);
+  }
+
   /* THE LINE THE BUILD DEFENDS. No count, fraction or percentage of a plan
      may appear -- buildcheck scans the source for the vocabulary, this scans
      the rendered card for the shape. */
