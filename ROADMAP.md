@@ -104,7 +104,7 @@ competition.
 ---
 
 ## Explicitly deferred / declined
-- AI-chat intake (cost + server; chip survey wins for now)
+- ~~AI-chat intake (cost + server; chip survey wins for now)~~ — reversed 2026-09-01, see the log: the session writer is not a chat, but it is a server
 - Rankings-first leaderboards (against the mission)
 - Storage-capped free tier (punishes the exact behavior we celebrate)
 
@@ -139,6 +139,26 @@ competition.
 - 2026-07-25: No blue default header. Colour is spent on events, not on brand
   — a state colour only reads as a state when the default is silence
   (Sungjee, rejecting the colour-spec proposal).
+- **2026-09-01: REVERSED — the session writer ships with a server (v3.3.400–401).**
+  Two standing lines fall together: *serverless until 10+ committed users*
+  and *AI-chat intake deferred (cost + server)*. Sungjee chose an LLM behind a
+  Supabase Edge Function over a deterministic writer and over a bring-your-own
+  key, and then widened its scope: the model decides the part, the days, the
+  loads and the gaps, with the rotation, the weekday habit, the last sessions
+  and the coverage table as inputs it weighs rather than verdicts it obeys.
+  The reversal holds *because* the app keeps the last word: twelve guardrails
+  run on the device between the answer and the read-back (catalog-only names;
+  a part change needs a stated reason; loads within 10% of the eight-week best
+  or clamped and marked ≈; never-lifted loads always ≈; one session per date;
+  only the days confirmed; at most two NEW movements; the stamp follows the
+  ledger; offline, the rotation stands; never scored, never written), and the
+  answer lands in the paste pipeline v3.3.278 built, so every commitment a plan
+  keeps is inherited. What leaves the device is stated on the screen. The
+  function stores nothing. It is still one call per tap. This is the
+  mirror-to-coach move the brief named, made on purpose.
+- 2026-09-01: The week ends on Sunday, whatever day it was written, and does
+  not roll over (Sungjee). The ledger decides what "today" means: sets in the
+  record, the writer writes tomorrow (Sungjee, agreeing the rule).
 
 
 ## Execution order — locked 2026-07-18 (post v3.1.4)

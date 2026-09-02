@@ -1,5 +1,21 @@
 # ShowUp — changelog
 
+## v3.3.401 (2026-09-02) — The writer's function, and the reversal on record
+
+`supabase/functions/write-session/index.ts` — the one server component ShowUp
+has, because a PWA cannot hold a model key. It takes the payload the app
+builds, asks the model for a session in your own paste format, and returns
+JSON the app reads as a paste. It stores nothing. It is trusted for text, not
+for truth: every claim is bounded again on the device by `writerCheck` before
+anyone sees it. Deploy with `tools/deploy_fn.sh`; the secrets are the model
+key and, for an identity-linked key, the workspace id. Until it is deployed,
+the Write button answers "Could not write (http 404)" and the rotation card
+stands — the app never depended on it.
+
+ROADMAP records the reversal: *serverless until 10+ users* and *AI intake
+deferred* fall together, on purpose, with the guardrails as the reason the
+reversal holds.
+
 ## v3.3.400 (2026-09-02) — The session writer
 
 The door: where Paste was on the plan line there is now a sparkle and the

@@ -19,12 +19,12 @@
    is refused whole; a load for a lifted exercise stays within 10% of the
    eight-week best or is clamped and marked ≈; a load for a never-lifted
    exercise is always ≈; at most two NEW movements a session; one session
-   per date; the stamp follows the ledger (v3.3.397). Offline, or eight
-   seconds without an answer, the ask screen says "needs signal" and the
+   per date; the stamp follows the ledger (v3.3.397). Offline, or twelve
+   seconds (a week: twenty-five) without an answer, the ask screen says "needs signal" and the
    rotation card stands exactly as it did. */
 
 const WRITER_PATH='/functions/v1/write-session';
-const WRITER_TIMEOUT_MS=8000;
+const WRITER_TIMEOUT_MS={day:12000, week:25000};   // measured, not guessed: a week is ~2,000 output tokens
 const WRITER_HISTORY_DAYS=56;
 const WRITER_LOAD_BAND=0.10;     // ±10% of the eight-week best working weight
 const WRITER_NEW_MAX=2;
@@ -84,6 +84,9 @@ function writerPayload(o){
   const coverage={};
   for(const h of history){ const m=exMuscle(h[2],h[1]); (coverage[h[1]]=coverage[h[1]]||{})[m]=((coverage[h[1]]||{})[m]||0)+h[4].length; }
   for(const p of Object.keys(catalog)){ coverage[p]=coverage[p]||{}; for(const ex of catalog[p]){ const m=exMuscle(ex,p); if(!(m in coverage[p])) coverage[p][m]=0; } }
+  /* the eight-week best per exercise, precomputed: the band the loads must
+     sit in is a number the writer should not have to derive from raw rows */
+  const best={}; for(const h of history) if(h[5]!=='s'&&h[3]>best[h[2]]) best[h[2]]=h[3]; for(const h of history) if(!(h[2] in best)) best[h[2]]=h[3];
   const days=o.scope==='week'?[...o.days].sort():[o.scope==='tomorrow'?tomorrowISO():from];
   return {
     v:1, unit:U(), date:days[0], scope:o.scope==='week'?'week':'day', days,
@@ -91,7 +94,7 @@ function writerPayload(o){
     focus:o.scope==='week'?(o.focus?[...o.focus]:[]):[],
     rotation:{pick:P.pick, addon:P.addon, ranking},
     objective:o.objective, note:(o.note||'').trim().slice(0,400),
-    catalog, history, coverage, new_days:WRITER_HISTORY_DAYS
+    catalog, history, best, coverage, new_days:WRITER_HISTORY_DAYS, band:WRITER_LOAD_BAND, new_max:WRITER_NEW_MAX
   };
 }
 
@@ -99,7 +102,7 @@ function writerPayload(o){
 async function writeSession(payload){
   if(typeof WRITER_STUB==='function') return WRITER_STUB(payload);        // tests
   if(typeof navigator!=='undefined'&&navigator.onLine===false) throw new Error('offline');
-  const ctl=new AbortController(); const t=setTimeout(()=>ctl.abort(),WRITER_TIMEOUT_MS);
+  const ctl=new AbortController(); const t=setTimeout(()=>ctl.abort(),WRITER_TIMEOUT_MS[payload.scope==='week'?'week':'day']);
   try{
     const tok=(typeof freshToken==='function'?await freshToken():null)||cloudCfg().anon;
     const r=await fetch(cloudCfg().url+WRITER_PATH,{method:'POST',signal:ctl.signal,
