@@ -3,7 +3,7 @@
 Rebuilt 2026-07-21 (container reset lost the original; behavior per handoff doc):
   - every ?v= stamped asset in index.html exists on disk
   - one single version everywhere: APP_VERSION, all index stamps, sw CACHE, all SHELL stamps
-  - every stamped asset appears in sw.js SHELL (12 assets)
+  - every stamped asset appears in sw.js SHELL (13 assets; writer.js joined in v3.3.400)
   - every var(--x) used in css/app.css is defined in css/app.css
   - index.html shell < 8 KB
 Exit 0 = pass. Any assertion failure prints and exits 1.
@@ -35,7 +35,7 @@ for a in assets:
     if not (d/a).exists(): fail.append(f"stamped asset missing on disk: {a}")
     if f"./{a}?v=" not in sw: fail.append(f"asset not in sw SHELL: {a}")
 shell_count = len(re.findall(r"'\./[^']+\?v=", sw))
-if shell_count != 12: fail.append(f"sw SHELL has {shell_count} stamped assets, expected 12")
+if shell_count != 13: fail.append(f"sw SHELL has {shell_count} stamped assets, expected 13")   # v3.3.400: js/writer.js joins the shell
 
 # -- CSS vars used are defined (runtime-set vars from js/app.js are allowlisted)
 # v3.3.324: --planw/--planr are measured in js/lift.js and written onto the

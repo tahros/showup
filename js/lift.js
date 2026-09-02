@@ -137,7 +137,8 @@ function planSectionHTML(){
        the page jumped, and an empty section was louder than a full one.
        One line either way, and the offer sits exactly where the controls
        for a real plan will appear. */
-    h+=`<h2 class="quiet">${planPillsHTML(null,!!_wk)} plan${_tip}<span class="planedge"><button class="pedge" data-planpaste>Paste</button></span></h2>`;
+    /* v3.3.400: the door is the writer. Paste lives inside it, one tap on. */
+    h+=`<h2 class="quiet">${planPillsHTML(null,!!_wk)} plan${_tip}<span class="planedge"><button class="pedge pwrite" data-planwrite aria-label="Write a session">${icon('sparkle',14)}Write</button></span></h2>`;
     /* v3.3.397: a plan written for tomorrow (the ledger rule) waits here
        as one line. It names the day, counts its exercises, and says when
        it opens. Tapping it does nothing today; there is nothing to do. */

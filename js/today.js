@@ -343,6 +343,7 @@ function renderToday(){
      open it too — otherwise the button the maker taps does nothing. Same
      shape as renderLift's: commit and stop. */
   if(lift.plan==='paste'||lift.plan==='preview'){ $('#view').innerHTML=planScreenHTML(); return; }
+  if(lift.plan==='write'){ $('#view').innerHTML=writerScreenHTML(); return; }   // v3.3.400: the writer's ask screen
   if(d1.preview || (SEED.totals.sessions===0 && !((DB.days[todayISO]||{}).w||[]).length)){
     $('#view').innerHTML=dayOneHTML(); return; }
   planWake();   // v3.3.397: a plan written last night for today feeds the rail now

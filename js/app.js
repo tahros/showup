@@ -291,6 +291,24 @@ document.addEventListener('click',e=>{
   if(e.target.closest&&e.target.closest('[data-planpaste],[data-planedit]')){
     lift.plan='paste'; lift.planMode='day'; return render();
   }
+  /* ---- v3.3.400: the session writer's ask screen ---- */
+  if(e.target.closest&&e.target.closest('[data-planwrite]')){
+    lift.write=null; lift.plan='write'; lift.planSource=null; lift.planReason=null; lift.planDate=null; return render();
+  }
+  if(lift.plan==='write'){
+    const o=writerState(); const ta=document.getElementById('writeNote'); if(ta) o.note=ta.value;
+    const q=sel=>e.target.closest&&e.target.closest(sel);
+    let t;
+    if((t=q('[data-writescope]'))){ o.scope=t.dataset.writescope; o.err=''; return render(); }
+    if((t=q('[data-writeday]'))){ writerDays(o); const iso=t.dataset.writeday; if(o.days.has(iso)) o.days.delete(iso); else o.days.add(iso); return render(); }
+    if((t=q('[data-writenext]'))){ o.nextWeek=t.dataset.writenext==='1'; o.days=null; return render(); }
+    if((t=q('[data-writefocus]'))){ o.focus=o.focus||new Set(); const p=t.dataset.writefocus; if(o.focus.has(p)) o.focus.delete(p); else o.focus.add(p); return render(); }
+    if((t=q('[data-writefor]'))){ o.part=t.dataset.writefor; return render(); }
+    if((t=q('[data-writeobj]'))){ o.objective=t.dataset.writeobj; DB.settings.objective=o.objective; DB.settingsAt=Date.now(); save(true); return render(); }
+    if(q('[data-writego]')){ writerGo(); return; }
+    if(q('[data-writepaste]')){ lift.plan='paste'; lift.planMode='day'; lift.planText=''; return render(); }
+    if(q('[data-writeback]')){ lift.plan=null; lift.write=null; return render(); }
+  }
   /* ---- v3.3.398: the week scope ---- */
   const _ps=e.target.closest&&e.target.closest('[data-planscope]');
   if(_ps){ lift.planScope=_ps.dataset.planscope; return render(); }
@@ -314,7 +332,7 @@ document.addEventListener('click',e=>{
     weekClear(); lift.planScope='today'; lift.weekOpen=null; toast('Week cleared'); return render();
   }
   if(e.target.closest&&e.target.closest('[data-planback]')){
-    lift.plan=null; lift.planRows=null; lift.planWeek=null; return render();
+    lift.plan=null; lift.planRows=null; lift.planWeek=null; lift.planSource=null; lift.planReason=null; lift.planDate=null; return render();
   }
   if(e.target.closest&&e.target.closest('[data-planread]')){
     const ta=document.getElementById('planText');
@@ -352,16 +370,18 @@ document.addEventListener('click',e=>{
     if(lift.planMode==='week'){
       const wk=weekFromRows(lift.planRows||[], lift.planText||'');
       if(!wk){ toast('Nothing to keep'); return; }
-      weekSave(wk); lift.plan=null; lift.planRows=null; lift.planWeek=null; lift.planMode='day';
+      weekSave(wk); lift.plan=null; lift.planRows=null; lift.planWeek=null; lift.planMode='day'; lift.planSource=null; lift.planReason=null; lift.planDate=null;
       lift.planScope='week'; lift.weekOpen=null;
       const n=Object.keys(wk.days).length; toast(`Week set \u2014 ${n} day${n===1?'':'s'}`);
       return render();
     }
     const {items,note}=planItemsFrom(lift.planRows||[]);
     if(!items.length&&!note.trim()){ toast('Nothing to keep'); return; }
-    /* v3.3.397: stamped with the day the ledger says it is for */
-    const _wd=writeDateISO();
+    /* v3.3.397: stamped with the day the ledger says it is for --
+       v3.3.400: unless the writer was asked for a named day (lift.planDate) */
+    const _wd=lift.planDate||writeDateISO();
     planSave(items,note,lift.planText||'',_wd);
+    lift.planDate=null; lift.planSource=null; lift.planReason=null;
     lift.plan=null; lift.planRows=null;
     toast(items.length?`Plan set${_wd===todayISO?'':' for '+planDayLabel(_wd)} — ${items.length} exercise${items.length>1?'s':''}`:'Kept as a note');
     return render();

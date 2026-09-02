@@ -135,7 +135,8 @@ ok("...so the exercise stays ONE exercise, not two notes",
        && ex[0].lines.length===1;})()`) === true);
 
 // ---- 2. the flow, through the real buttons --------------------------------
-run(`document.querySelector('[data-planpaste]').click()`);
+/* v3.3.400: Paste lives inside the writer's door -- two taps from Today */
+run(`document.querySelector('[data-planwrite]').click(); document.querySelector('[data-writepaste]').click();`);
 ok("paste screen opens with a textarea", run(`!!document.getElementById('planText')`));
 run(`document.getElementById('planText').value=${JSON.stringify(PASTE)};
      document.querySelector('[data-planread]').click();`);
@@ -403,7 +404,7 @@ run(`(function(){const keep=DB.plan; DB.plan=null; view='today'; lift.ex=null; l
   window.__slab=!!document.querySelector('.planpaste');
   DB.plan=keep; render();})()`);
 ok("with no plan, the section is a heading — not a full-width slab",
-   run(`__slab`) === false && run(`/scopepill/.test(__emptyH) && /data-planpaste/.test(__emptyH)`));
+   run(`__slab`) === false && run(`/scopepill/.test(__emptyH) && /data-planwrite/.test(__emptyH)`));   // v3.3.400: the door is Write
 ok("...offering Paste exactly where the real controls sit",
    run(`/planedge/.test(__emptyH)`));
 ok("...and naming the section without claiming it holds anything",
@@ -427,10 +428,10 @@ ok("...in the corner, after the tip, which keeps its place by the title",
 ok("...and Clear still clears from there",
    (function(){
      run(`document.querySelector('.planedge [data-planclear]').click()`);
-     return run(`!planNow()`) && run(`!!document.querySelector('[data-planpaste]')`);
+     return run(`!planNow()`) && run(`!!document.querySelector('[data-planwrite]')`);
    })());
 // put a plan back for the blocks below
-run(`(function(){document.querySelector('[data-planpaste]').click();
+run(`(function(){document.querySelector('[data-planwrite]').click(); document.querySelector('[data-writepaste]').click();
   document.getElementById('planText').value=${JSON.stringify(PASTE)};
   document.querySelector('[data-planread]').click();
   [...document.querySelectorAll('[data-planpick]')].find(x=>x.dataset.planex2==='Rear Deltoids').click();
@@ -483,7 +484,7 @@ ok("PROMISE 3 — no count of what is done or left, anywhere on screen",
 run(`(function(){DB.plan.d='2020-01-01'; view='today'; lift.ex=null; lift.plan=null; render();})()`);
 ok("a plan from another day is not today's plan", run(`!planNow()`));
 ok("...and the tab offers to take a new one",
-   run(`!!document.querySelector('[data-planpaste]')`));
+   run(`!!document.querySelector('[data-planwrite]')`));
 /* a plan written by v3.3.278/279 (one weight per item, no `lines`) is still
    in storage after an upgrade — it must render, not crash */
 run(`(function(){DB.plan={d:todayISO,items:[{ex:'Squat',w:60,reps:[5,5]}],note:''};

@@ -1652,6 +1652,15 @@
   .pedge:last-child{color:var(--faint)}
   /* the fold chevron leads the group and is a glyph, not a word */
   .pedge.pfold{font-size:13px;color:var(--muted);text-transform:none;padding:2px 2px}
+  /* v3.3.400: the writer's door -- the one accent glyph on the line */
+  .pedge.pwrite{display:inline-flex;align-items:center;gap:5px;color:var(--accent-ink)}
+  .pedge.pwrite .ic{display:block}
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chips .chip{margin:0}
+  .writecard .seg{display:flex}
+  .writecard .seg button{display:flex;flex-direction:column;align-items:center;line-height:1.25;padding:6px 0}
+  .writecard .seg button small{font-size:10px;letter-spacing:.04em;opacity:.75}
+  .writenext{margin-top:10px;padding:10px 12px}
   /* v3.3.398: the edge speaks in glyphs. Each is an inline SVG on
      currentColor at the edge's own ink, 17px so it survives a phone at arm's
      length (rev 3 of the spec drew them at 14 and they vanished). A pill is

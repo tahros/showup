@@ -1,5 +1,41 @@
 # ShowUp — changelog
 
+## v3.3.400 (2026-09-02) — The session writer
+
+The door: where Paste was on the plan line there is now a sparkle and the
+word *Write*. Paste lives inside it, one tap on.
+
+The ask: one screen. Today / Tomorrow / This week, each with its date — the
+ledger picks the default (sets in the record, the writer writes tomorrow;
+v3.3.397). In week mode, the days first: today through Sunday, prefilled from
+the weekdays you usually train, tap to change; the button counts what you
+picked; on a Sunday, or with fewer than two days left, *Show following days?*
+extends the picker through the next Sunday. *For* defaults to the writer's
+call with the rotation's pick shown beside it; tap a part to pin it. The
+objective — Grow, Lose weight, Strength, Keep going — is remembered. A note
+box. A privacy line that says exactly what leaves: eight weeks of your sets,
+every part, the catalog for the parts you train, the rotation's ranking, the
+coverage table, the objective, the note. Not your name, not the day count.
+
+One call per tap, to an Edge Function that holds the key. Back comes a page
+of text in your own paste format plus one optional reason line, and the app
+reads it exactly as it reads a paste: preview, confirm, `planSave`. Every
+commitment the plan already keeps is inherited.
+
+Between the answer and the read-back, `writerCheck` runs on the device: an
+exercise not in your catalog survives as a note; a part that differs from the
+rotation's without a reason is refused whole, and a part you do not train is
+refused; a load for a lifted exercise stays within 10% of your eight-week
+best or is clamped and marked ≈; a load for an exercise never lifted here is
+always ≈; two sessions for one date are refused; a day you did not pick is
+dropped; a third new movement becomes a note. Offline, or eight seconds
+without an answer, the ask screen says *Needs signal* and the rotation card
+stands. Fifty assertions in test-writer.js, the model stubbed; every guardrail
+probed by reverting it.
+
+`js/writer.js` joins the shell (13 assets). The function itself ships in the
+next release, with the serverless reversal recorded in ROADMAP.
+
 ## v3.3.399 (2026-09-02) — The read-back: a grip, NEW, ≈, and a reason
 
 Four additions to the screen that reads a paste back to you, built for the
