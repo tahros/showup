@@ -1,5 +1,27 @@
 # ShowUp — changelog
 
+## v3.3.399 (2026-09-02) — The read-back: a grip, NEW, ≈, and a reason
+
+Four additions to the screen that reads a paste back to you, built for the
+session writer and useful for any paste.
+
+A grip on every resolved row. Drag it, or hold it and press an arrow key,
+and the row moves — one order in three places: the rows, the raw text that
+Copy and Edit hand you, and the items that are saved. Notes and day headings
+keep their slots; a row dragged past a day heading lands in that day.
+
+NEW, in accent, on an exercise with no set in the last eight weeks. It is a
+fact about the record (`exIsNew`), not a claim from a paste, and it stays on
+the card until the exercise is logged once, when the tick replaces it.
+
+`≈15 lb` (or `~15 lb`) reads as a guessed load: a number for an exercise
+you have never lifted here, from a related lift. It reads as a guess on the
+preview, on the card, in the copied text and on the Suggested chip, and it
+never enters the record — you type what you lift, as always.
+
+A reason header — *Shoulder, not Back · writer's call* — above what the app
+read, shown only when a reason is given, and never on the card.
+
 ## v3.3.398 (2026-09-02) — The week: a document, not a schedule
 
 Paste a week — six blocks of the format you already write, each under a day

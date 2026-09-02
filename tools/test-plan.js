@@ -450,8 +450,10 @@ ok("logging an exercise ticks exactly its own plan row",
    run(`/Dumbbell Shoulder Press/.test(document.querySelector('.planrow.pdone').textContent)`));
 ok("...and the tick is drawn, not merely a class",
    run(`document.querySelector('.planrow.pdone .pk').textContent.trim()`) === "\u2713");
+/* v3.3.399: the .pk slot may carry NEW (a ledger fact) on an unlogged row;
+   what it must never carry is a tick */
 ok("...while every other row stays untouched",
-   run(`[...document.querySelectorAll('.planrow:not(.pdone) .pk')].every(k=>!k.textContent.trim())`));
+   run(`[...document.querySelectorAll('.planrow:not(.pdone) .pk')].every(k=>!/\u2713/.test(k.textContent))`));
 /* v3.3.324: a tick cannot move the numbers. It sits inside the name now, and
    the number block's width is the card's two published columns plus the fixed
    11px between them — so the × line is identical on a ticked row and a bare

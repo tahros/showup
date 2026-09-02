@@ -1816,6 +1816,17 @@
      width on its own line, indented to the name. jsdom has no layout: the
      rule is asserted at source in buildcheck. */
   .planpv.ask{flex-wrap:wrap}
+  /* v3.3.399: the read-back's new marks. A grip you can hold; NEW and \u2248 in
+     accent ink -- the same ink the tick uses, because they are facts about
+     the record (nothing in eight weeks; a number nobody has lifted). */
+  .pgrip{background:none;border:0;padding:4px 6px 0 0;color:var(--faint);cursor:grab;touch-action:none;flex:none;display:inline-flex}
+  .pgrip .ic{display:block}
+  .planpv.lifting{position:relative;z-index:2;background:var(--surface2);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.4),0 0 0 1px var(--line)}
+  .planpv.lifting .pgrip{color:var(--accent-ink)}
+  .ptag{font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--accent-ink);margin-left:6px;font-style:normal;font-weight:600}
+  .planpv .pb i.pest,.pest{color:var(--accent-ink)}
+  .planreason{padding:2px 0 10px;margin-bottom:8px;border-bottom:1px solid var(--whisper)}
+  .planreason .mono{font-size:12px;line-height:1.5}
   .planpv.ask .pc{flex-basis:100%;justify-content:flex-start;padding-left:24px}
   .btn.tiny{font-size:11px;padding:5px 9px;min-height:0}
   .pmixhead{display:flex;justify-content:flex-end;margin-bottom:2px}

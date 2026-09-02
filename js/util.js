@@ -617,7 +617,7 @@ const wTxt=(ex,kg)=>!isBody(ex)?`${wDisp(kg)}${U()}`:kg<=0.01?'BW':`BW+${wDisp(k
    nw -> "by feel" (no load named, v3.3.394); bw -> "BW" or "BW+10 lb" (the
    belt, v3.3.393, in wLabel's grammar with the card's unit space); else the
    load in the display unit. */
-const planWtx=l=>l.nw?'by feel':l.bw?(l.w>0.01?`BW+${wDisp(l.w)} ${U()}`:'BW'):l.w<=0?'BW':`${wDisp(l.w)} ${U()}`;
+const planWtx=l=>(l.est?'\u2248':'')+(l.nw?'by feel':l.bw?(l.w>0.01?`BW+${wDisp(l.w)} ${U()}`:'BW'):l.w<=0?'BW':`${wDisp(l.w)} ${U()}`);
 const PLATES_KG=[25,20,15,10,5,2.5,1.25];
 const PLATES_LB=[45,35,25,10,5,2.5];
 /* greedy plate breakdown for ONE side */
@@ -875,6 +875,44 @@ function icon(name,sz,rot){
   if(ICON_PATH[name]) return `<svg class="ic ic-${name}" viewBox="0 0 100 100" width="${sz}" height="${sz}"${tf} aria-hidden="true"><path d="${ICON_PATH[name]}" fill="currentColor"/></svg>`;
   return `<svg class="ic ic-${name}" viewBox="0 0 100 100" width="${sz}" height="${sz}"${tf} fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${ICON_STROKE[name]}"/></svg>`;
 }
+/* v3.3.399: NEW is a fact about the record, not a verdict from a model: an
+   exercise with no set in the last eight weeks. The writer tags what it adds;
+   this is what the tag means, and it is computed here, from the ledger. */
+const NEW_DAYS=56;
+function exIsNew(ex){ const d=SEED.exLast&&SEED.exLast[ex]; return !d || daysAgo(d)>NEW_DAYS; }
+/* the preview's rows, written back out in their current order -- the third
+   place the order lives (rows, text, items), so Copy and Edit agree with the
+   card after a drag */
+function planTextFromRows(rows){
+  const out=[];
+  for(const r of rows){
+    if(r.kind==='day'){ out.push(''); out.push(r.raw||''); out.push(''); continue; }
+    if(r.kind==='ex'||r.kind==='exnote'){ const head=(r.raw||r.name||'').trim(); out.push(head);
+      for(const l of (r.lines||[])){ const lr=(l.raw||'').trim(); if(lr&&lr!==head) out.push('  '+lr.replace(/^\s+/,'')); }   // an inline exercise already holds its set
+      out.push(''); continue; }
+    out.push((r.raw||'').trim()); out.push('');
+  }
+  return out.join('\n').replace(/\n{3,}/g,'\n\n').trim()+'\n';
+}
+/* v3.3.399: ONE ORDER, THREE PLACES. The read-back's rows can be moved -- a
+   grip per row, drag or arrow keys. Only resolved exercise rows move; notes
+   and day headings keep their slots, and a row dragged past a day heading
+   simply lands in that day. After any move the rows, the raw text and (on
+   accept) the items agree, so Copy and Edit never disagree with the card. */
+function planApplyOrder(order){
+  const rows=lift.planRows||[]; const slots=rows.map((r,i)=>r.kind==='ex'&&r.ex?i:-1).filter(i=>i>=0);
+  if(order.length!==slots.length||new Set(order).size!==slots.length||order.some(i=>!slots.includes(i))) return false;   // a permutation, or nothing
+  const moved=order.map(i=>rows[i]);
+  slots.forEach((slot,k)=>{ rows[slot]=moved[k]; });
+  lift.planRows=rows; lift.planText=planTextFromRows(rows);
+  return true;
+}
+function planMoveRow(i,dir){
+  const rows=lift.planRows||[]; const slots=rows.map((r,k)=>r.kind==='ex'&&r.ex?k:-1).filter(k=>k>=0);
+  const at=slots.indexOf(i); const to=at+dir; if(at<0||to<0||to>=slots.length) return false;
+  const order=slots.slice(); [order[at],order[to]]=[order[to],order[at]];
+  return planApplyOrder(order) ? slots[to] : false;   // the row's NEW index, for focus to follow
+}
 /* ============ v3.3.397: THE LEDGER DECIDES WHAT "TODAY" MEANS ============
    At 10 PM with Chest already in the record, "today's plan" is a plan for a
    day that is over. The clock cannot tell; the ledger can, and it already
@@ -1033,7 +1071,7 @@ function weekClear(){
 /* the maker's format, written back out -- what Copy hands you and what Edit
    opens when a plan arrived without its own text */
 function planLineText(l){
-  const w=l.nw?'by feel':l.bw?(l.w>0.01?`BW +${wDisp(l.w)}`:'BW'):`${wDisp(l.w)} ${U()}`;
+  const w=(l.est?'\u2248':'')+(l.nw?'by feel':l.bw?(l.w>0.01?`BW +${wDisp(l.w)}`:'BW'):`${wDisp(l.w)} ${U()}`);
   return isHold(l.su)?`  ${w} \u00d7 ${secLabel(l.reps[0])} \u00d7 ${l.reps.length}`:`  ${w} \u00d7 ${l.reps.join(' ')}`;
 }
 function planToText(p){
@@ -1147,7 +1185,18 @@ function planReadSets(line){
      225 lb x 3 x 5
    Both have one unambiguous reading. Keep them separate from PLAN_SET: that
    older reader deliberately treats `5x5` as sets x reps only after a load. */
+/* v3.3.399: AN ESTIMATED LOAD. "\u224815 lb \u00d7 12 12" (or "~15 lb") is a number
+   for an exercise you have never lifted here -- the session writer's guess
+   from a related lift, or your own. It reads as a guess everywhere: \u2248 on
+   the card, on the preview, in the copied text, on the Suggested chip. It is
+   never a fact about you, and it never enters the record: you type what you
+   lift, as always. The parser strips the mark and carries it as `est`. */
 function planReadPrescription(line){
+  const t=String(line); const est=/^\s*[\u2248~]\s*\d/.test(t);
+  const r=planReadPrescription0(est?t.replace(/^\s*[\u2248~]\s*/,''):line);
+  return (r&&est)?{...r,est:true}:r;
+}
+function planReadPrescription0(line){
   const peeled=planPeelQualifier(line), s=peeled.body;
   let m=s.match(/^\s*(\d+)\s*[x×]\s*(\d+)\s*@\s*([\d.]+)\s*(lb|lbs|kg|kgs)\s*$/i);
   if(m){
@@ -1400,6 +1449,7 @@ function planItemsFrom(rows){
         w: (l.unit==='kg'?l.w:l.unit==='lb'?l.w/LB:toKg(l.w)),
         bw: !!l.bw,
         ...(l.nw?{nw:true}:{}),          // v3.3.394: no load named, plan only
+        ...(l.est?{est:true}:{}),        // v3.3.399: a guessed load, marked \u2248
         ...(isHold(l.su)?{su:SET_SEC}:{}),
         reps: l.reps.slice(0,12)
       })).filter(l=>l.reps.length);
@@ -1420,7 +1470,7 @@ const planLoggedToday=ex=>((DB.days[todayISO]||{}).w||[])
 /* v3.3.346: holds are skipped. These chips log a complete weight x reps pair
    in one tap, and a hold is neither -- the same reason v3.3.343 suppressed
    the Suggested strip for a held exercise. */
-const planSets=i=>(i.lines||[]).filter(l=>!isHold(l.su)).flatMap(l=>l.reps.map(r=>({w:l.w, r})));
+const planSets=i=>(i.lines||[]).filter(l=>!isHold(l.su)).flatMap(l=>l.reps.map(r=>({w:l.w, r, ...(l.est?{est:true}:{})})));
 /* v3.3.349: how many sets of THIS line are already in today's record. A fact
    read out of the ledger, exactly like the per-row tick v3.3.281 permitted:
    "this exercise is logged" is a fact; a fraction of the plan is a verdict.

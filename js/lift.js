@@ -58,7 +58,7 @@ function planCardHTML(_pl, live){
   const _cw=(f,min)=>Math.max(min,..._ln.map(l=>f(l).length));
   return `<div class="card plancard${live?'':' dayplan'}" style="--planw:${_cw(_wtx,2)}ch;--planr:${_cw(_rtx,1)}ch">
     ${(_pl.items||[]).map(i=>{const _sp=live?planSpentMap(i):i.lines.map(()=>0); const _dn=live&&planLoggedToday(i.ex); return `<button class="planrow${_dn?' pdone':''}" data-planex="${i.ex}">
-        <span class="pn">${i.ex}<i class="pk">${_dn?'✓':''}</i></span>
+        <span class="pn">${i.ex}<i class="pk">${_dn?'\u2713':(exIsNew(i.ex)?'<span class="ptag">NEW</span>':'')}</i></span>
         <span class="pl">${i.lines.map((l,li)=>`<span class="pv pw mono">${_wtx(l)}</span><span class="px mono" aria-hidden="true">×</span><span class="pr mono">${_rhtml(l,_sp[li])}</span>`).join('')}</span>
       </button>`;}).join('')}
     ${_pl.note?planNoteHTML(_pl.note):''}
@@ -847,7 +847,12 @@ function planScreenHTML(){
   const rows=lift.planRows||[];
   const ok=rows.filter(r=>r.kind==='ex'&&r.ex).length;
   const tot=rows.filter(r=>r.kind==='ex').length;
-  let h=`<h2>Read from your paste</h2><div class="card">
+  /* v3.3.399: the one place the writer explains itself -- only when its part
+     differs from the rotation's, only here, never on the card. A paste has no
+     reason and shows no header. */
+  const _rs=lift.planReason;
+  let h=`<h2>${lift.planSource==='writer'?'Read from the writer':'Read from your paste'}</h2><div class="card">
+    ${_rs?`<div class="planreason"><div class="lasthead"><span>${hesc(_rs.head||'')}</span><span class="ago">writer\u2019s call</span></div><div class="mono muted">${hesc(_rs.text||'')}</div></div>`:''}
     <div class="lasthead"><span>WHAT THE APP READ</span><span class="ago">${ok} of ${tot}</span></div>`;
   rows.forEach((r,i)=>{
     /* v3.3.398: a day heading inside a week paste -- a divider, not an item */
@@ -857,11 +862,18 @@ function planScreenHTML(){
       return;
     }
     if(r.kind==='ex'&&r.ex){
-      h+=`<div class="planpv ok"><span class="pi">\u2713</span>
-        <span class="pb"><b>${hesc(r.ex)}</b>
-          ${r.lines.map(l=>`<i class="mono">${l.tag?`${hesc(l.tag)} · `:''}${l.nw?'by feel':l.bw?(l.w>0?`BW+${l.w}${l.unit||''}`:'BW'):l.w+(l.unit||'')} ${isHold(l.su)
+      /* v3.3.399: NEW is read from the ledger (exIsNew), not from the paste;
+         \u2248 marks a guessed load in accent, with its meaning spelled out once
+         under the line; the grip leads the \u2715 so the row can be moved. */
+      const _new=exIsNew(r.ex), _est=r.lines.some(l=>l.est);
+      h+=`<div class="planpv ok" data-planrow="${i}"><span class="pi">\u2713</span>
+        <span class="pb"><b>${hesc(r.ex)}${_new?`<i class="mono ptag">NEW</i>`:''}</b>
+          ${r.lines.map(l=>`<i class="mono">${l.tag?`${hesc(l.tag)} \u00b7 `:''}${l.est?'<span class="pest">\u2248':''}${l.nw?'by feel':l.bw?(l.w>0?`BW+${l.w}${l.unit||''}`:'BW'):l.w+(l.unit||'')}${l.est?'</span>':''} ${isHold(l.su)
               ? `${secLabel(l.reps[0])} \u00d7 ${l.reps.length}`
-              : `\u00d7 ${l.reps.join(', ')}`}${l.qual?` · ${hesc(l.qual)}`:''}</i>`).join('')}</span>
+              : `\u00d7 ${l.reps.join(', ')}`}${l.qual?` \u00b7 ${hesc(l.qual)}`:''}</i>`).join('')}${
+          _new?`<i class="mono pest">new \u00b7 nothing on record in 8 weeks</i>`:''}${
+          _est?`<i class="mono pest">\u2248 a guess, not a record \u00b7 you type what you lift</i>`:''}</span>
+        <button class="pgrip" data-plangrip="${i}" aria-label="Move ${hesc(r.ex)}">${icon('grip',16)}</button>
         <button class="lsx" data-plandrop="${i}" aria-label="Skip ${hesc(r.ex)}">\u2715</button></div>`;
     }else if(r.kind==='ex'){
       h+=`<div class="planpv ask"><span class="pi">?</span>
@@ -1011,7 +1023,7 @@ function sugChips(ex,ls,lastToday,dis,curKg){
   let pool=[];
   if(lastToday&&lastToday.reps.length)
     pool.push({w:lastToday.w,r:lastToday.reps[0],key:`now|${lastToday.w}|${lastToday.reps[0]}`,now:true});
-  (ls?ls.sets:[]).forEach((s,i)=>pool.push({w:s.w,r:s.r,key:`${s.w}|${s.r}|${i}`}));
+  (ls?ls.sets:[]).forEach((s,i)=>pool.push({w:s.w,r:s.r,key:`${s.w}|${s.r}|${i}`,...(s.est?{est:true}:{})}));   // v3.3.399: a guessed load stays marked on the chip
   const seenWR=new Set();
   pool=pool.filter(c=>{const k=`${c.w}x${c.r}`;if(seenWR.has(k))return false;seenWR.add(k);return true;});
   pool=pool.filter(c=>!dis.has(c.key));
@@ -1024,7 +1036,7 @@ function sugChips(ex,ls,lastToday,dis,curKg){
 function sugChipsHTML(ex,chips){
   return chips.map(c=>`<span class="lschip">
               <button class="lastset ${c.now?'now':''}" data-rep-w="${c.w}" data-rep-r="${c.r}">
-                <span class="ls-w">${isBody(ex)&&c.w<=0.01?'BW':`${wDisp(c.w)}<small>${U()}</small>`}</span>
+                <span class="ls-w">${c.est?'<span class="pest">\u2248</span>':''}${isBody(ex)&&c.w<=0.01?'BW':`${wDisp(c.w)}<small>${U()}</small>`}</span>
                 <span class="ls-x">×</span>
                 <span class="ls-r">${c.r}</span></button>
               <button class="lsx" data-sugx="${c.key}" aria-label="Dismiss">✕</button>

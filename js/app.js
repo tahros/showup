@@ -330,6 +330,10 @@ document.addEventListener('click',e=>{
     }
     lift.planMode='day'; lift.planRows=parsePlan(txt); lift.plan='preview'; return render();
   }
+  /* v3.3.399: the grip moves a row with the keyboard; the pointer path is
+     below, outside the click handler, because a drag is not a click */
+  const _pgk=e.target.closest&&e.target.closest('[data-plangrip]');
+  if(_pgk){ return; }
   const _pdrop=e.target.closest&&e.target.closest('[data-plandrop]');
   if(_pdrop){
     const r=(lift.planRows||[])[+_pdrop.dataset.plandrop];
@@ -1292,4 +1296,48 @@ function motionPass(){
     await captureOAuth();                       // fresh sign-in pulls (initial sync) inside
     if(session) cloudPull();                    // every device syncs on open (per-day newest-wins)
   }
+})();
+
+/* ============ v3.3.399: dragging a row of the read-back ============
+   pointerdown on a grip lifts its row; while the pointer moves, the row is
+   re-inserted before or after whichever row the pointer is over; pointerup
+   reads the DOM order back into lift.planRows (planApplyOrder) and rewrites
+   the raw text in that order. jsdom has no layout, so the suite drives
+   planMoveRow and planApplyOrder directly and the keyboard path through
+   real key events; the pointer path is exercised on a device. */
+(function(){
+  let drag=null;
+  document.addEventListener('pointerdown',e=>{
+    const g=e.target.closest&&e.target.closest('[data-plangrip]'); if(!g) return;
+    const row=g.closest('.planpv'); if(!row) return;
+    drag={row, id:e.pointerId}; row.classList.add('lifting');
+    try{ g.setPointerCapture(e.pointerId); }catch(_e){}
+    e.preventDefault();
+  });
+  document.addEventListener('pointermove',e=>{
+    if(!drag||e.pointerId!==drag.id) return;
+    const rows=[...document.querySelectorAll('.planpv')].filter(r=>r!==drag.row);
+    for(const r of rows){
+      const b=r.getBoundingClientRect(); if(e.clientY<b.top||e.clientY>b.bottom) continue;
+      const before=e.clientY<b.top+b.height/2;
+      if(before&&r.previousElementSibling!==drag.row) r.parentNode.insertBefore(drag.row,r);
+      else if(!before&&r.nextElementSibling!==drag.row) r.parentNode.insertBefore(drag.row,r.nextElementSibling);
+      break;
+    }
+  });
+  const end=e=>{
+    if(!drag||e.pointerId!==drag.id) return;
+    drag.row.classList.remove('lifting');
+    const order=[...document.querySelectorAll('.planpv[data-planrow]')].map(el=>+el.dataset.planrow);
+    drag=null; planApplyOrder(order); render();
+  };
+  document.addEventListener('pointerup',end); document.addEventListener('pointercancel',end);
+  document.addEventListener('keydown',e=>{
+    const g=e.target.closest&&e.target.closest('[data-plangrip]'); if(!g) return;
+    const dir=e.key==='ArrowUp'?-1:e.key==='ArrowDown'?1:0; if(!dir) return;
+    e.preventDefault(); const i=+g.dataset.plangrip;
+    const to=planMoveRow(i,dir); if(to===false) return;
+    render();
+    const g2=document.querySelector(`[data-plangrip="${to}"]`); if(g2) g2.focus();   // focus follows the row
+  });
 })();
