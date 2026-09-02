@@ -1020,20 +1020,29 @@ function planPending(){
   if(!items.length&&!p.note) return null;
   return {...p, items};
 }
+/* Suggested sets are a VIEW of today's plan, not separately authored state.
+   Reconcile rather than append: this matters when a newer cloud plan replaces
+   one from another device, because exercises removed there must disappear
+   here too. The comparison keeps Today renders idempotent -- no save loop. */
+function planRailRefresh(){
+  const rail=sugOv(), desired={};
+  const p=planNow();
+  if(p) for(const i of (p.items||[])){
+    const sets=planSets(i); if(sets.length) desired[i.ex]={sets,d:todayISO,from:'plan'};
+  }
+  let changed=false;
+  for(const [ex,o] of Object.entries(rail)) if(o&&o.from==='plan'){
+    if(!desired[ex]||JSON.stringify(o)!==JSON.stringify(desired[ex])){ delete rail[ex]; changed=true; }
+  }
+  for(const [ex,o] of Object.entries(desired)) if(JSON.stringify(rail[ex])!==JSON.stringify(o)){
+    rail[ex]=o; changed=true;
+  }
+  return changed;
+}
 /* the Suggested rail is fed for TODAY's plan only. A tomorrow plan feeds it
    when tomorrow comes: this is idempotent and cheap, so Today calls it on
    every render rather than trusting a midnight hook to have fired. */
-function planWake(){
-  const p=planNow(); if(!p) return false;
-  const rail=sugOv(); let fed=false;
-  for(const i of (p.items||[])){
-    const sets=planSets(i);
-    if(!sets.length||rail[i.ex]) continue;
-    rail[i.ex]={sets, d:todayISO, from:'plan'}; fed=true;
-  }
-  if(fed) save(true);
-  return fed;
-}
+function planWake(){ const fed=planRailRefresh(); if(fed) save(true); return fed; }
 function planSave(items,note,raw,d){
   d=d||todayISO;
   DB.plan={d, items:items||[], note:note||'', raw:raw||''};
@@ -1048,11 +1057,7 @@ function planSave(items,note,raw,d){
      history.
      v3.3.397: only when the plan IS today's. A plan for tomorrow must not
      put tomorrow's sets on today's chips; planWake() feeds them at 00:00. */
-  if(d===todayISO) for(const i of (items||[])){
-    const sets=planSets(i);
-    if(!sets.length) continue;
-    sugOv()[i.ex]={sets, d:todayISO, from:'plan'};
-  }
+  planRailRefresh();
   DB.planAt=Date.now(); save(true);
 }
 function planClear(){
@@ -1136,10 +1141,11 @@ function weekNow(){
 }
 function weekSave(doc){
   if(!doc) return false;
-  DB.week={from:doc.from, to:doc.to, days:doc.days, raw:doc.raw||'', at:Date.now()};
-  DB.weekAt=Date.now();
+  const at=Date.now();
+  DB.week={from:doc.from, to:doc.to, days:doc.days, raw:doc.raw||'', at};
+  DB.weekAt=at;
   /* a week that names today feeds today exactly as a paste would */
-  if(DB.plan&&DB.plan.d===todayISO) DB.plan=null;
+  if(DB.plan&&DB.plan.d===todayISO){ DB.plan=null; DB.planAt=at; }
   for(const [ex,o] of Object.entries(sugOv())) if(o&&o.from==='plan') delete sugOv()[ex];
   save(true); planWake();
   return true;

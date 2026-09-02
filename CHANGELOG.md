@@ -1,5 +1,16 @@
 # ShowUp — changelog
 
+## v3.3.418 (2026-09-02) — Your plan follows you
+
+Plans now sync through the same signed-in cloud account as the workout
+record. Write or paste a plan on the phone and it appears on the PC; edit it
+on the PC and the phone takes the newer version when it returns.
+
+Standalone day plans and written weeks each keep their own edit time. Clear
+is synced too, so another device cannot bring an old plan back. When a plan
+arrives from the cloud, today's planned sets immediately become tappable in
+Train just as they do on the device where the plan was written.
+
 ## v3.3.417 (2026-09-02) — The writer uses weights the rack can make
 
 The writer now receives the exact next loadable weight for every exercise,
