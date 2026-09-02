@@ -89,10 +89,10 @@ function planSectionHTML(){
     if(!lift.weekOpen) lift.weekOpen=new Set([isos.includes(todayISO)?todayISO:(isos.find(x=>x>todayISO)||isos[0])]);
     const allOpen=isos.every(x=>lift.weekOpen.has(x));
     h+=`<h2>${planPillsHTML('week',true)} plan<span class="planedge">${
-      _edgeBtn('data-weekall="'+(allOpen?'fold':'open')+'"', allOpen?'Fold every day':'Open every day', icon(allOpen?'collapse':'expand',17))}${
-      _edgeBtn('data-plancopy="week"','Copy the week',icon('copy',17))}${
-      _edgeBtn('data-weekedit','Edit the week',icon('edit',17))}${
-      _edgeBtn('data-weekclear','Clear the week',icon('clear',17))}</span></h2>`;
+      _edgeBtn('data-weekall="'+(allOpen?'fold':'open')+'"', allOpen?'Fold every day':'Open every day', icon(allOpen?'collapse':'expand',ICON_SZ.md))}${
+      _edgeBtn('data-plancopy="week"','Copy the week',icon('copy',ICON_SZ.md))}${
+      _edgeBtn('data-weekedit','Edit the week',icon('edit',ICON_SZ.md))}${
+      _edgeBtn('data-weekclear','Clear the week',icon('clear',ICON_SZ.md))}</span></h2>`;
     const n=isos.filter(x=>(_wk.days[x].items||[]).length).length;
     h+=`<div class="mono muted rangeline">${pretty(isos[0]).toUpperCase()} → ${pretty(isos[isos.length-1]).toUpperCase()} · ${n} SESSION${n===1?'':'S'}</div>`;
     h+=`<div class="weekstack">`;
@@ -103,7 +103,7 @@ function planSectionHTML(){
       h+=`<div class="card daycard${open?' open':''}${past?' past':''}${today?' today':''}">
         <button class="dayhead" data-weekday="${iso}" aria-expanded="${open}" aria-label="${open?'Fold':'Open'} ${pretty(iso)}">
           <span class="dn">${pretty(iso).toUpperCase()}${today?' · TODAY':''}</span>
-          <span class="dt mono">${hesc(d.title||'')}${icon('chevron',11,open?90:0)}</span>
+          <span class="dt mono">${hesc(d.title||'')}${icon('chevron',ICON_SZ.sm,open?90:0)}</span>
         </button>${open?planCardHTML({d:iso,items:(d.items||[]).map(planItemShape),note:d.note||''}, today):''}</div>`;
     }
     h+=`</div>`;
@@ -125,10 +125,10 @@ function planSectionHTML(){
        at the far edge, away from the control you tap most. */
     const _pf=!!DB.settings.planFold;
     h+=`<h2>${planPillsHTML('today',!!_wk)} plan${_tip}<span class="planedge">${
-      _edgeBtn('data-planfold aria-expanded="'+(!_pf)+'"', (_pf?'Show':'Hide')+' today’s plan', icon('chevron',12,_pf?0:90),'pfold')}${
-      _edgeBtn('data-plancopy="today"','Copy today’s plan',icon('copy',17))}${
-      _edgeBtn('data-planedit','Edit today’s plan',icon('edit',17))}${
-      _edgeBtn('data-planclear','Clear today’s plan',icon('clear',17))}</span></h2>`;
+      _edgeBtn('data-planfold aria-expanded="'+(!_pf)+'"', (_pf?'Show':'Hide')+' today’s plan', icon('chevron',ICON_SZ.sm,_pf?0:90),'pfold')}${
+      _edgeBtn('data-plancopy="today"','Copy today’s plan',icon('copy',ICON_SZ.md))}${
+      _edgeBtn('data-planedit','Edit today’s plan',icon('edit',ICON_SZ.md))}${
+      _edgeBtn('data-planclear','Clear today’s plan',icon('clear',ICON_SZ.md))}</span></h2>`;
     if(!_pf) h+=planCardHTML(_pl,true);
   }else{
     /* v3.3.297: the empty state is the SAME heading as the filled one, with
@@ -138,7 +138,7 @@ function planSectionHTML(){
        One line either way, and the offer sits exactly where the controls
        for a real plan will appear. */
     /* v3.3.400: the door is the writer. Paste lives inside it, one tap on. */
-    h+=`<h2 class="quiet">${planPillsHTML(null,!!_wk)} plan${_tip}<span class="planedge"><button class="pedge pwrite" data-planwrite aria-label="Write a session">${icon('sparkle',14)}Write</button></span></h2>`;
+    h+=`<h2 class="quiet">${planPillsHTML(null,!!_wk)} plan${_tip}<span class="planedge"><button class="pedge pwrite" data-planwrite aria-label="Write a session">${icon('sparkle',ICON_SZ.sm)}Write</button></span></h2>`;
     /* v3.3.397: a plan written for tomorrow (the ledger rule) waits here
        as one line. It names the day, counts its exercises, and says when
        it opens. Tapping it does nothing today; there is nothing to do. */
@@ -874,7 +874,7 @@ function planScreenHTML(){
               : `\u00d7 ${l.reps.join(', ')}`}${l.qual?` \u00b7 ${hesc(l.qual)}`:''}</i>`).join('')}${
           _new?`<i class="mono pest">new \u00b7 nothing on record in 8 weeks</i>`:''}${
           _est?`<i class="mono pest">\u2248 a guess, not a record \u00b7 you type what you lift</i>`:''}</span>
-        <button class="pgrip" data-plangrip="${i}" aria-label="Move ${hesc(r.ex)}">${icon('grip',16)}</button>
+        <button class="pgrip" data-plangrip="${i}" aria-label="Move ${hesc(r.ex)}">${icon('grip',ICON_SZ.md)}</button>
         <button class="lsx" data-plandrop="${i}" aria-label="Skip ${hesc(r.ex)}">\u2715</button></div>`;
     }else if(r.kind==='ex'){
       h+=`<div class="planpv ask"><span class="pi">?</span>

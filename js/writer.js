@@ -361,7 +361,7 @@ function writerWaitHTML(){
   const what=o.scope==='week'?'the week':planDayLabel(o.scope==='tomorrow'?tomorrowISO():todayISO);
   const sq=Array.from({length:56},(_,i)=>`<i class="wsq" style="--i:${i}"></i>`).join('');
   return `<div class="writing" data-what="${hesc(what)}">
-    <div class="wspark">${icon('sparkle',44)}</div>
+    <div class="wspark">${icon('sparkle',ICON_SZ.hero)}</div>
     <div class="wgrid" aria-hidden="true">${sq}</div>
     <div class="mono wline" id="writeLine">${WRITER_STAGES[0][1]}</div>
     <button class="btn ghost" data-writecancel>Cancel</button>

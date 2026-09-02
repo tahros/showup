@@ -927,6 +927,33 @@ for _who in ("Eliricon", "Barracuda", "LAFS", "maria icon", "Alvida Black"):
     if _who not in _cred:
         fail.append(f"credits: {_who} missing from the Settings asset line (v3.3.398)")
 
+# -- v3.3.411: ONE ICON SYSTEM.
+# Every icon shared one viewBox while the ink inside filled 52% to 100% of it,
+# so a toolbar asking for three icons at one size got three different sizes.
+# icon() now scales each path's measured ink to a shared live area. Two things
+# must stay true for that to keep working, and neither is obvious from a diff:
+#   1. every icon has measured ink bounds. A new path with no entry silently
+#      falls back to the full box and renders at the wrong size.
+#   2. call sites use the size tokens. A raw pixel number at a call site is
+#      exactly how the 11/12/14/16/17/44 spread happened in the first place.
+_util = (d / "js/util.js").read_text(encoding="utf-8")
+_names = set(_re.findall(r"^\s*(\w+):\s*['\"]M", _util, _re.M))
+_ink = _re.search(r"const ICON_INK=\{(.*?)\};", _util, _re.S)
+if not _ink:
+    fail.append("the icon system: ICON_INK is gone - icon() cannot size anything without it (v3.3.411)")
+else:
+    _measured = set(_re.findall(r"(\w+):\s*\[", _ink.group(1)))
+    for _n in sorted(_names - _measured):
+        fail.append(f"the icon system: '{_n}' has no measured ink in ICON_INK - "
+                    f"it will render at the wrong size against every other icon (v3.3.411)")
+for _f in ("js/lift.js", "js/writer.js", "js/today.js", "js/history.js", "js/stats.js"):
+    _p = d / _f
+    if not _p.exists():
+        continue
+    for _m in _re.finditer(r"icon\('(\w+)',\s*(\d+)", _p.read_text(encoding="utf-8")):
+        fail.append(f"the icon system: {_f} calls icon('{_m.group(1)}', {_m.group(2)}) with a raw size - "
+                    f"use ICON_SZ.sm/md/lg/hero, or the sizes drift apart again (v3.3.411)")
+
 if fail:
     print("BUILDCHECK FAIL"); [print(" -", f) for f in fail]; sys.exit(1)
 print(f"BUILDCHECK PASS  v{appv}  shell={n}B  assets={len(assets)}  cssvars={len(used)} used / {len(defined)} defined")

@@ -864,7 +864,6 @@ const planFor=ex=>{ const p=planNow(); return p?(p.items||[]).find(i=>i.ex===ex)
    All inline: a PWA on gym signal does not fetch icons. */
 const ICON_PATH={
   sparkle:"M41.4 16.2 L40.0 17.3 L37.6 24.5 L33.7 33.0 L28.7 40.5 L24.7 44.4 L19.5 48.4 L11.4 52.5 L1.1 56.2 L0.2 57.1 L0.0 58.4 L1.3 60.0 L6.8 61.7 L15.8 65.6 L21.2 68.9 L25.6 72.4 L31.9 80.1 L37.0 89.9 L40.3 99.1 L41.4 100.0 L42.5 100.0 L43.8 98.9 L47.0 89.5 L50.5 82.3 L54.9 75.9 L59.7 71.1 L63.9 68.1 L72.2 63.7 L82.9 59.7 L83.8 58.6 L83.8 57.3 L82.3 56.0 L76.1 54.0 L68.3 50.5 L62.1 46.8 L58.6 44.0 L53.8 38.7 L50.5 33.7 L47.0 26.5 L43.5 16.8 L42.7 16.2Z M78.8 0.0 L74.6 9.2 L72.4 12.3 L67.8 16.2 L58.6 20.1 L58.2 21.4 L64.3 23.9 L69.8 27.1 L74.4 32.4 L78.3 41.6 L79.4 41.8 L80.1 41.1 L82.9 33.7 L85.6 29.8 L90.8 25.4 L99.3 21.9 L100.0 20.8 L99.1 19.9 L92.1 17.3 L88.4 14.9 L85.3 11.8 L83.4 9.0 L79.9 0.4Z",
-  chevron:"M29.7 0.0 L26.7 1.5 L25.3 3.6 L25.1 6.8 L25.7 8.3 L61.8 49.9 L25.7 91.7 L25.1 93.0 L25.1 95.8 L25.9 97.5 L28.4 99.6 L31.6 100.0 L34.6 98.5 L73.2 54.3 L74.7 52.0 L74.9 48.6 L73.2 45.7 L34.8 1.7 L32.9 0.4Z",
   expand:"M41.6 56.0 L39.6 55.1 L36.9 55.8 L10.5 82.2 L10.1 59.6 L8.9 58.1 L7.6 57.4 L2.7 57.4 L0.9 58.5 L0.0 60.3 L0.0 97.0 L1.3 99.2 L2.7 99.9 L40.0 99.9 L42.1 98.5 L42.7 97.0 L42.7 93.0 L42.1 91.2 L40.3 89.8 L17.9 89.6 L44.3 63.0 L44.7 59.8Z M58.4 1.0 L57.5 2.3 L57.3 6.6 L58.2 9.1 L60.0 10.2 L81.9 10.2 L82.1 10.6 L55.9 36.8 L55.3 38.1 L55.7 41.1 L59.5 44.6 L61.7 44.9 L62.9 44.4 L89.5 17.8 L89.9 40.4 L90.8 41.7 L92.6 42.6 L97.1 42.6 L98.7 41.9 L100.0 39.7 L100.0 3.0 L99.3 1.5 L97.5 0.1 L59.7 0.1Z",
   collapse:"M3.8 57.2 L2.3 59.2 L2.1 63.1 L2.9 65.5 L4.5 66.6 L26.1 66.6 L26.3 67.0 L1.4 91.9 L0.5 93.7 L1.2 96.5 L4.9 99.8 L6.7 100.0 L8.0 99.6 L33.5 74.0 L34.0 96.1 L35.0 97.6 L36.4 98.3 L41.2 98.3 L42.2 97.8 L43.8 95.6 L43.8 59.6 L43.1 58.1 L41.2 56.8 L4.7 56.8Z M96.0 0.7 L94.4 0.0 L91.8 0.7 L66.5 26.0 L66.0 3.9 L65.2 2.6 L63.6 1.7 L58.8 1.7 L57.1 2.8 L56.2 4.6 L56.2 40.4 L57.5 42.6 L58.8 43.2 L95.3 43.2 L97.3 41.9 L97.9 40.4 L97.9 36.5 L97.1 34.5 L95.5 33.4 L73.7 33.2 L98.8 7.9 L99.5 6.6 L99.2 4.1Z",
   edit:"M94.9 4.8 L91.9 2.5 L89.4 1.2 L84.6 0.0 L80.9 0.0 L77.9 0.5 L76.3 1.1 L72.2 3.4 L7.8 67.6 L0.0 96.1 L0.0 97.5 L1.1 99.3 L2.5 100.0 L4.1 100.0 L32.4 92.2 L95.8 28.8 L98.1 25.5 L99.5 21.9 L100.0 19.1 L100.0 15.6 L98.8 10.6 L97.5 8.1Z M63.9 20.5 L79.5 36.1 L29.0 86.5 L8.0 92.2 L7.8 91.7 L13.5 71.0Z M81.2 6.4 L85.3 6.5 L88.8 8.1 L92.0 11.5 L93.1 13.6 L93.6 15.8 L93.6 18.9 L92.2 22.8 L90.8 24.8 L84.1 31.5 L68.7 16.1 L75.9 8.7 L78.2 7.3Z",
@@ -872,15 +871,52 @@ const ICON_PATH={
 };
 const ICON_STROKE={
   clear:'M30 30l40 40M70 30 30 70',
-  grip:'M22 34h56M22 50h56M22 66h56'
+  grip:'M22 34h56M22 50h56M22 66h56',
+  /* v3.3.411: the chevron was the only DIRECTIONAL glyph drawn as a filled
+     wedge, in a set whose other simple marks -- the cross and the grip -- are
+     strokes. Measured, it carried 15% ink inside the live area where copy
+     carries 33% and clear 28%: the lightest thing in every row it appeared
+     in. Drawn as two lines it inherits the system's weight BY CONSTRUCTION
+     rather than by tuning, and every future chevron is right for free. */
+  chevron:'M38 24 L64 50 L38 76'
 };
+/* v3.3.411: THE LIVE AREA. Every icon shared one viewBox, but the ink inside
+   filled anywhere from 52% (clear) to 100% (edit, copy) of it -- so a toolbar
+   asking for three icons at one size got three different sizes, and the cross
+   rendered barely half the pencil beside it.
+   Measured ink bounds, per icon. Each is scaled so its longest side meets ONE
+   live area, and a stroked icon's width is divided by its own scale so
+   normalising cannot also thicken it. Nothing is redrawn to achieve this.
+   If a path is edited, its numbers here must be re-measured -- buildcheck
+   fails if a name is missing from this table. */
+const ICON_INK={
+  sparkle:[0,0,100,100], expand:[0,0.1,100,99.9], collapse:[0.5,0,99.5,100],
+  edit:[0,0,100,100],    copy:[0,0,100,100],
+  clear:[24,24,76,76],   grip:[16,28,84,72],      chevron:[33.5,19.5,68.5,80.5]
+};
+const ICON_LIVE=0.76;      // share of the box the ink meets
+const ICON_STROKE_W=9;     // rendered stroke, in box units, for every stroked icon
+/* the sizes icons are allowed to be. A raw number at a call site is how the
+   11/12/14/16/17 spread happened; buildcheck rejects one now. */
+const ICON_SZ={ sm:15, md:18, lg:22, hero:44 };
 function icon(name,sz,rot){
-  sz=sz||14;
+  sz=sz||ICON_SZ.md;
   const tf=rot?` style="transform:rotate(${rot}deg)"`:'';
+  /* v3.3.411: scale the ink to the live area and centre it. The transform is
+     applied to a group so the path itself is untouched and can still be
+     copied out of the file and pasted anywhere. */
+  const b=ICON_INK[name]||[0,0,100,100];
+  const w=b[2]-b[0], h=b[3]-b[1];
+  const k=(100*ICON_LIVE)/Math.max(w,h);
+  const tx=50-k*(b[0]+b[2])/2, ty=50-k*(b[1]+b[3])/2;
+  const g=`transform="translate(${tx.toFixed(2)} ${ty.toFixed(2)}) scale(${k.toFixed(4)})"`;
   /* evenodd, because an outline icon is one path with holes in it: a pencil
      has a body and a copy has two open squares, and nonzero would fill them */
-  if(ICON_PATH[name]) return `<svg class="ic ic-${name}" viewBox="0 0 100 100" width="${sz}" height="${sz}"${tf} aria-hidden="true"><path d="${ICON_PATH[name]}" fill="currentColor" fill-rule="evenodd"/></svg>`;
-  return `<svg class="ic ic-${name}" viewBox="0 0 100 100" width="${sz}" height="${sz}"${tf} fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${ICON_STROKE[name]}"/></svg>`;
+  if(ICON_PATH[name]) return `<svg class="ic ic-${name}" viewBox="0 0 100 100" width="${sz}" height="${sz}"${tf} aria-hidden="true"><g ${g}><path d="${ICON_PATH[name]}" fill="currentColor" fill-rule="evenodd"/></g></svg>`;
+  /* the stroke is divided by the icon's own scale: normalising the ink must
+     not also thicken the line. Without this, clear and grip arrive fat. */
+  const sw=(ICON_STROKE_W/k).toFixed(2);
+  return `<svg class="ic ic-${name}" viewBox="0 0 100 100" width="${sz}" height="${sz}"${tf} fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g ${g}><path d="${ICON_STROKE[name]}"/></g></svg>`;
 }
 /* v3.3.399: NEW is a fact about the record, not a verdict from a model: an
    exercise with no set in the last eight weeks. The writer tags what it adds;

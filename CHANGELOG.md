@@ -1,5 +1,17 @@
 # ShowUp — changelog
 
+## v3.3.411 (2026-09-02) — One icon system
+
+Every icon shared one box, but the drawing inside filled anywhere from half of
+it to all of it — so asking for three icons at the same size gave you three
+different sizes. The ✕ was rendering at barely half the pencil beside it.
+
+All of them now meet one shared live area at one stroke weight, and the
+chevron is drawn as a stroke like the other simple marks rather than as a
+filled wedge.
+
+Nothing was redrawn.
+
 ## v3.3.410 (2026-09-02) — NEW is for an empty head
 
 The v3.3.409 probe, same ledger, is the answer you asked for: Incline
