@@ -20,12 +20,21 @@
    eight-week best by more than 10%, or is clamped and marked ≈ (lighter is
    free: a warm-up, a back-off, a deload); a load for a never-lifted
    exercise is always ≈; at most two NEW movements a session; one session
-   per date; the stamp follows the ledger (v3.3.397). Offline, or twelve
-   seconds (a week: twenty-five) without an answer, the ask screen says "needs signal" and the
+   per date; the stamp follows the ledger (v3.3.397). Offline, or thirty
+   seconds (a week: forty-five) without an answer, the ask screen says "needs signal" and the
    rotation card stands exactly as it did. */
 
 const WRITER_PATH='/functions/v1/write-session';
-const WRITER_TIMEOUT_MS={day:12000, week:25000};   // measured, not guessed: a week is ~2,000 output tokens
+/* v3.3.403: MEASURED AGAINST A COLD FUNCTION. Warm, a day comes back in
+   5.6-5.9s and a week in about nine. But this function is invoked once a day
+   by one person, so its isolate is almost always evicted -- the first call
+   after a quiet spell pays ~7s of boot on top, and the first live write after
+   a deploy timed out at 12s with a perfectly good answer on the way. The wait
+   is the cold start, not the model, and no amount of prompt work shortens it.
+   So: patience long enough for a cold start, and a message that says which
+   kind of failure this was, because "needs signal" is a lie when the signal
+   is fine and the server was merely asleep. */
+const WRITER_TIMEOUT_MS={day:30000, week:45000};
 const WRITER_HISTORY_DAYS=56;
 const WRITER_LOAD_BAND=0.10;     // the CEILING over the eight-week best; below it the writer is free (v3.3.402)
 const WRITER_NEW_MAX=2;
@@ -255,7 +264,8 @@ async function writerGo(){
   }catch(e){
     o.busy=false;
     const msg=(e&&e.refused)?`The writer’s answer was refused: ${e.refused}. Nothing was saved.`
-      :(e&&(e.name==='AbortError'||/offline|Failed to fetch|NetworkError/i.test(String(e&&e.message))))?'Needs signal. The rotation still has an answer.'
+      :(e&&e.name==='AbortError')?'That took too long. The first write in a while is the slow one — tap Write again.'
+      :(e&&/offline|Failed to fetch|NetworkError/i.test(String(e&&e.message)))?'Needs signal. The rotation still has an answer.'
       :`Could not write (${String(e&&e.message||e).slice(0,60)}).`;
     o.err=msg; render();
   }

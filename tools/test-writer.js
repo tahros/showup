@@ -138,7 +138,14 @@ await_(async()=>{
   run(`WRITER_STUB=async(p)=>{ const e=new Error('aborted'); e.name='AbortError'; throw e; };`);
   run(`(function(){lift.write=null; lift.plan='write'; render(); document.querySelector('[data-writego]').click();})()`);
   await tick(); await tick();
-  ok("...a timeout reads the same", /Needs signal/.test(run(`(document.querySelector('.writeerr')||{}).textContent||''`)));
+  /* v3.3.403: a timeout is NOT "needs signal" -- the signal is usually fine
+     and the function was merely cold. The two failures say different things. */
+  ok("...a timeout says so in its own words, and invites a retry",
+     /took too long[\s\S]*tap Write again/.test(run(`(document.querySelector('.writeerr')||{}).textContent||''`)),
+     run(`(document.querySelector('.writeerr')||{}).textContent||''`));
+  ok("...and the patience is long enough for a cold function",
+     run(`WRITER_TIMEOUT_MS.day`)>=25000 && run(`WRITER_TIMEOUT_MS.week`)>=40000,
+     run(`JSON.stringify(WRITER_TIMEOUT_MS)`));
   run(`WRITER_STUB=async(p)=>({days:[{date:p.date,part:'Shoulder',title:'Shoulder',text:"Lateral Raise\\n  by feel x 12"}]});`);
   run(`(function(){lift.write=null; lift.plan='write'; render(); document.querySelector('[data-writego]').click();})()`);
   await tick(); await tick();

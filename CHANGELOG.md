@@ -1,5 +1,21 @@
 # ShowUp — changelog
 
+## v3.3.403 (2026-09-02) — Patience for a cold function
+
+The first live write after a deploy timed out at twelve seconds with a
+perfectly good answer on the way. Measured from the phone, warm: 5.6, 5.7,
+5.9 seconds for a day. The twelve seconds were not the model — they were the
+Edge Function booting. It is invoked once a day by one person, so its isolate
+is almost always evicted and almost every write is a cold one; no prompt work
+shortens that.
+
+So the wait is thirty seconds for a day, forty-five for a week, and the two
+failures now say different things. A timeout reads *"That took too long. The
+first write in a while is the slow one — tap Write again."* — because
+*needs signal* is a lie when the signal is fine and the server was asleep.
+Offline still reads *needs signal*, and the rotation card still stands
+through both.
+
 ## v3.3.402 (2026-09-02) — The band has one side
 
 The writer went live and the first real answer paid for a symmetric guardrail.
