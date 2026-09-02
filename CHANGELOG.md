@@ -1,5 +1,35 @@
 # ShowUp — changelog
 
+## v3.3.404 (2026-09-02) — Copy and Edit get their own icons
+
+The plan line's edge — fold, copy, edit, clear — was carrying two icons drawn
+by hand as stand-ins next to four the maker chose. Even at the same stroke
+width they read as two families: the chosen ones are outline shapes with open
+interiors, the stand-ins were solid strokes.
+
+Copy is now maria icon's two squares and Edit is Alvida Black's pencil, both
+from the Noun Project, traced with their holes intact and filled evenodd so the
+interiors stay open. Only clear and grip are still drawn here, and both are
+single strokes, which is what that measure is actually for.
+
+Credits added to the Settings line, and the build now checks both names are
+there — royalty-free is not credit-free.
+
+## v3.3.404 (2026-09-02) — Copy and Edit get their own icons
+
+The plan line's edge — fold, copy, edit, clear — was carrying two icons I had
+drawn by hand as stand-ins next to four the maker chose. Even at the same
+stroke width they read as two families: the chosen ones are outline shapes with
+open interiors, mine were solid strokes.
+
+Copy is now maria icon's two squares and Edit is Alvida Black's pencil, both
+from the Noun Project, traced with their holes intact and filled evenodd so the
+interiors stay open. Only clear and grip are still drawn here, and both are
+single strokes, which is what that measure is actually for.
+
+Credits added to the Settings line, and the build now checks both names are
+there — royalty-free is not credit-free.
+
 ## v3.3.403 (2026-09-02) — Patience for a cold function
 
 The first live write after a deploy timed out at twelve seconds with a

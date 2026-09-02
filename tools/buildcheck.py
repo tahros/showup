@@ -923,7 +923,7 @@ if not _askpc or not re.search(r'flex-basis:\s*100%', _askpc.group(1)):
 # -- v3.3.398: the four Noun Project glyphs are credited, by name, on the line
 #    Settings already keeps. Royalty-free is not credit-free.
 _cred = (d/"js/settings.js").read_text()
-for _who in ("Eliricon", "Barracuda", "LAFS"):
+for _who in ("Eliricon", "Barracuda", "LAFS", "maria icon", "Alvida Black"):
     if _who not in _cred:
         fail.append(f"credits: {_who} missing from the Settings asset line (v3.3.398)")
 

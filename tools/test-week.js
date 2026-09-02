@@ -80,11 +80,22 @@ ok("...yesterday dimmed, never marked", run(`document.querySelector('.daycard.pa
    !/missed|remaining|completed|\b\d+\s*(of|\/)\s*\d+\b/i.test(run(`document.querySelector('.weekstack').textContent`)));
 ok("...the range line says where it runs", /→/.test(run(`document.querySelector('.rangeline').textContent`)) &&
    /4 SESSIONS/.test(run(`document.querySelector('.rangeline').textContent`)), run(`document.querySelector('.rangeline').textContent`));
+/* v3.3.404: copy and edit are outline icons now (maria icon / Alvida Black),
+   so the edge must be four ICON_PATH glyphs and no hand-drawn stand-in */
 ok("the edge is four glyphs: expand, copy, edit, clear",
    run(`(function(){const b=[...document.querySelectorAll('h2 .planedge .pedge')]; return b.length===4 && !!b[0].querySelector('.ic-expand')
      && !!b[1].querySelector('.ic-copy') && !!b[2].querySelector('.ic-edit') && !!b[3].querySelector('.ic-clear');})()`));
 ok("...each with a name for the screen reader, since the word is gone",
    run(`[...document.querySelectorAll('h2 .planedge .pedge')].every(b=>b.getAttribute('aria-label'))`));
+ok("...and copy and edit are filled outlines, not strokes, so the edge is one family",
+   run(`(function(){const c=document.querySelector('.ic-copy path'), e=document.querySelector('.ic-edit path');
+     return !!c && !!e && c.getAttribute('fill')==='currentColor' && e.getAttribute('fill')==='currentColor'
+       && c.getAttribute('fill-rule')==='evenodd' && e.getAttribute('fill-rule')==='evenodd'
+       && !c.parentNode.getAttribute('stroke') && !e.parentNode.getAttribute('stroke');})()`));
+ok("...their holes survive: each is one path of three subpaths",
+   run(`(function(){const n=s=>(document.querySelector(s).getAttribute('d').match(/M/g)||[]).length;
+     return n('.ic-copy path')===3 && n('.ic-edit path')===3;})()`),
+   run(`(document.querySelector('.ic-edit path').getAttribute('d').match(/M/g)||[]).length+' subpaths in edit'`));
 ok("every day heading carries the chevron, right when folded, down when open",
    run(`(function(){const f=[...document.querySelectorAll('.daycard:not(.open) .ic-chevron')], o=document.querySelector('.daycard.open .ic-chevron');
      return f.length===3 && f.every(s=>!/rotate/.test(s.getAttribute('style')||'')) && /rotate\\(90deg\\)/.test(o.getAttribute('style'));})()`));
