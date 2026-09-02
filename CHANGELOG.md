@@ -1,5 +1,24 @@
 # ShowUp — changelog
 
+## v3.3.396 (2026-09-01) — A belt survives to the screen, and candidates get their own line
+
+Two faults in today's plan, found while running a real week through the
+parser on the way to the session writer.
+
+`BW +10 × 8 8 6 6` was read by the parser (v3.3.393) and kept by
+`planItemsFrom`, and the plan card printed `BW` anyway — the belt survived two
+readers and died at the third, which had its own idea of what a bodyweight line
+was. The card, the paste preview and the column-width probe now share one
+reader, `planWtx`: `BW` at zero, `BW+10 lb` with a belt, `by feel` with no load
+named. Asserted on the rendered card; probed by reverting the reader.
+
+In the paste preview, a long unresolved name with two candidates —
+*Lat Pulldown (wide grip)* — rendered one letter per line beneath its own
+"did you mean" buttons: the name's column may shrink to nothing so a long
+name can truncate, and the buttons took the row. The candidate strip now sits
+on its own line under the name. jsdom has no layout, so the rule is asserted at
+source in buildcheck.
+
 ## v3.3.395 (2026-09-01) — Deploy tooling
 
 Internal: the deploy step now records the commit it created, and the

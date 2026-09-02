@@ -1784,6 +1784,14 @@
   .planpv .pb i{font-style:normal;font-size:11px;color:var(--muted)}
   .planpv .pb i.dim{color:var(--faint)}
   .planpv .pc{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
+  /* v3.3.396: candidates go UNDER the name, never beside it. .pb is min-width:0
+     so it could shrink to nothing while two long "did you mean" buttons took
+     the row -- "Lat Pulldown (wide grip)" rendered one letter per line under
+     its own buttons. The ask row wraps and the candidate strip takes the full
+     width on its own line, indented to the name. jsdom has no layout: the
+     rule is asserted at source in buildcheck. */
+  .planpv.ask{flex-wrap:wrap}
+  .planpv.ask .pc{flex-basis:100%;justify-content:flex-start;padding-left:24px}
   .btn.tiny{font-size:11px;padding:5px 9px;min-height:0}
   .pmixhead{display:flex;justify-content:flex-end;margin-bottom:2px}
   .pmixmode{background:none;border:0;padding:2px 4px;cursor:pointer;
@@ -1976,7 +1984,8 @@
      the record is open for writing. */
   .dayedit{margin-left:10px;font-family:var(--mono);font-size:10px;letter-spacing:var(--track-label);
     text-transform:uppercase;background:var(--surface2);border:1px solid var(--line);
-    color:var(--muted);border-radius:999px;padding:3px 9px;cursor:pointer}  /* v3.3.358: the icon variant. Same pill, sized to the glyph instead of to
+    color:var(--muted);border-radius:999px;padding:3px 9px;cursor:pointer}
+  /* v3.3.358: the icon variant. Same pill, sized to the glyph instead of to
      a word, and a touch taller so the target does not shrink with the label:
      the text form was ~20px high, this is 26. COPY MONTH / COPY YEAR share
      .dayedit and stay words -- they are not per-row controls and there is no

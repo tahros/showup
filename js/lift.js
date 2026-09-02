@@ -37,7 +37,13 @@ function planSectionHTML(){
           /* v3.3.394: a line with no load named says so in words. It must not
              read "BW", which is a claim about the exercise, nor "0", which is
              a claim about the weight. */
-          const _wtx=l=>l.nw?'by feel':(l.bw||l.w<=0)?'BW':wDisp(l.w)+' '+U();
+          /* v3.3.396: a belt is part of the line. v3.3.393 taught the parser
+             "BW +10" and planItemsFrom to keep the ten, and this row then
+             printed "BW" -- the belt survived two readers and died at the
+             third. The card now speaks wLabel's grammar: BW at zero,
+             BW+10 lb with a belt. Written as planWtx so the preview and the
+             width probe read the same function instead of copies of it. */
+          const _wtx=planWtx;
           /* v3.3.346: a held line reads in seconds, and its multiplication
              sign becomes a count of SETS -- "BW 60\u2033 \u00d7 2" says the thing,
              where "BW \u00d7 60 60" would say sixty of something. */
@@ -776,7 +782,7 @@ function planScreenHTML(){
     if(r.kind==='ex'&&r.ex){
       h+=`<div class="planpv ok"><span class="pi">\u2713</span>
         <span class="pb"><b>${hesc(r.ex)}</b>
-          ${r.lines.map(l=>`<i class="mono">${l.tag?`${hesc(l.tag)} · `:''}${l.nw?'by feel':l.bw?'BW':l.w+(l.unit||'')} ${isHold(l.su)
+          ${r.lines.map(l=>`<i class="mono">${l.tag?`${hesc(l.tag)} · `:''}${l.nw?'by feel':l.bw?(l.w>0?`BW+${l.w}${l.unit||''}`:'BW'):l.w+(l.unit||'')} ${isHold(l.su)
               ? `${secLabel(l.reps[0])} \u00d7 ${l.reps.length}`
               : `\u00d7 ${l.reps.join(', ')}`}${l.qual?` · ${hesc(l.qual)}`:''}</i>`).join('')}</span>
         <button class="lsx" data-plandrop="${i}" aria-label="Skip ${hesc(r.ex)}">\u2715</button></div>`;

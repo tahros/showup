@@ -612,6 +612,12 @@ function saveExW(ex,kg){ if(!ex) return; DB.settings.exW=DB.settings.exW||{}; DB
 const wLabel=(ex,kg)=>!isBody(ex)?`${wDisp(kg)}`:kg<=0.01?'BW':`BW+${wDisp(kg)}`;
 /* inline text form, unit included — the one way to print a set's weight */
 const wTxt=(ex,kg)=>!isBody(ex)?`${wDisp(kg)}${U()}`:kg<=0.01?'BW':`BW+${wDisp(kg)}${U()}`;
+/* v3.3.396: the plan's own weight text, one function for the card, the
+   preview and the column-width probe. Reads a plan LINE, not an exercise:
+   nw -> "by feel" (no load named, v3.3.394); bw -> "BW" or "BW+10 lb" (the
+   belt, v3.3.393, in wLabel's grammar with the card's unit space); else the
+   load in the display unit. */
+const planWtx=l=>l.nw?'by feel':l.bw?(l.w>0.01?`BW+${wDisp(l.w)} ${U()}`:'BW'):l.w<=0?'BW':`${wDisp(l.w)} ${U()}`;
 const PLATES_KG=[25,20,15,10,5,2.5,1.25];
 const PLATES_LB=[45,35,25,10,5,2.5];
 /* greedy plate breakdown for ONE side */

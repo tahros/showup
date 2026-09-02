@@ -271,8 +271,8 @@ ok("...and the tick reads as part of the exercise, not as a column",
   ok("the card publishes one weight column and one rep column",
      declared("planw") !== null && declared("planr") !== null, card());
   ok("...the weight column is as wide as the plan's longest weight",
-     declared("planw") === widest("(l.bw||l.w<=0)?'BW':wDisp(l.w)+' '+U()"),
-     `declared ${declared("planw")} vs longest ${widest("(l.bw||l.w<=0)?'BW':wDisp(l.w)+' '+U()")}`);
+     declared("planw") === widest("planWtx(l)"),
+     `declared ${declared("planw")} vs longest ${widest("planWtx(l)")}`);
   ok("...and the rep column as wide as its longest rep line",
      declared("planr") === widest("l.reps.join(' ')"),
      `declared ${declared("planr")} vs longest ${widest("l.reps.join(' ')")}`);
@@ -945,6 +945,21 @@ run(`(function(){view='today'; lift.ex=null; render();})()`);
     r=JSON.parse(read("Deadlift\n  215 lb x 5 5 5 5"));
     ok("loaded lines are unaffected",
        r.bw===false && Math.abs(r.lb-215)<0.1, JSON.stringify(r));
+
+    /* v3.3.396: the belt must SURVIVE TO THE SCREEN. The parser kept it and
+       planItemsFrom kept it, and the card printed "BW" anyway -- the third
+       reader had its own idea of a bw line. Asserted on the rendered card, in
+       the maker's unit, and on the preview, which is the same function now. */
+    run(`(function(){DB.settings.unit='lb'; const {items}=planItemsFrom(parsePlan("Pull Up\\n  BW +10 x 8 8 6 6"));
+      planSave(items,'',''); view='today'; render();})()`);
+    ok("the plan card shows the belt, not a bare BW",
+       /BW\+10 lb/.test(run(`document.querySelector('.plancard').textContent`)),
+       run(`JSON.stringify(document.querySelector('.plancard .pw').textContent)`));
+    ok("...and the preview reads the same line the same way",
+       (()=>{ run(`(function(){lift.planText="Pull Up\\n  BW +10 x 8 8 6 6"; lift.planRows=parsePlan(lift.planText); lift.plan='preview'; render();})()`);
+              const t=run(`document.querySelector('.planpv.ok').textContent`);
+              run(`(function(){lift.plan=null; lift.planRows=null; planClear(); render();})()`);
+              return /BW\+10\b/.test(t); })());
   }
 
   /* v3.3.394: A SET WITH NO LOAD. "by feel x 12 12 10 10" is how the maker
@@ -975,7 +990,9 @@ run(`(function(){view='today'; lift.ex=null; render();})()`);
 
     /* the display must not lie in either direction: "BW" is a claim about the
        exercise, "0" is a claim about the weight */
-    const src=fs.readFileSync(path.join(dir,"js/lift.js"),"utf8");
+    /* v3.3.396: the card's reader moved to util.js as planWtx (one function
+       for card, preview and width probe), so the two sites span two files */
+    const src=fs.readFileSync(path.join(dir,"js/lift.js"),"utf8")+fs.readFileSync(path.join(dir,"js/util.js"),"utf8");
     ok("a no-load line reads \"by feel\", never BW and never 0",
        /l\.nw\?'by feel'/.test(src) && (src.match(/l\.nw\?'by feel'/g)||[]).length>=2);
   }

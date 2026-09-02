@@ -895,6 +895,19 @@ for _sel in _SQ_SELECTORS:
 if not _re.search(r"--sq:\s*\d+%", css):
     fail.append("the square: --sq must be a PERCENTAGE, so one ratio holds at every size (v3.3.378)")
 
+# -- v3.3.396: a "did you mean" strip sits UNDER its name, never beside it.
+# .planpv .pb is min-width:0 (so a long name can truncate), which also lets it
+# shrink to nothing when the candidate buttons are wide -- the name then wraps
+# one letter per line beneath the buttons. jsdom has no layout; assert at the
+# source that the ask row wraps and the strip claims the full width. Anchored
+# to the exact selectors so a sibling rule cannot satisfy it.
+_ask = re.search(r'^\s*\.planpv\.ask\{([^}]*)\}', css, re.M)
+_askpc = re.search(r'^\s*\.planpv\.ask \.pc\{([^}]*)\}', css, re.M)
+if not _ask or not re.search(r'flex-wrap:\s*wrap', _ask.group(1)):
+    fail.append(".planpv.ask must flex-wrap:wrap, or a long unresolved name is crushed under its candidates (v3.3.396)")
+if not _askpc or not re.search(r'flex-basis:\s*100%', _askpc.group(1)):
+    fail.append(".planpv.ask .pc must take flex-basis:100% so candidates sit on their own line (v3.3.396)")
+
 if fail:
     print("BUILDCHECK FAIL"); [print(" -", f) for f in fail]; sys.exit(1)
 print(f"BUILDCHECK PASS  v{appv}  shell={n}B  assets={len(assets)}  cssvars={len(used)} used / {len(defined)} defined")
