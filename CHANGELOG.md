@@ -1,5 +1,52 @@
 # ShowUp — changelog
 
+## v3.3.407 (2026-09-02) — Push
+
+You compared two answers. Incline Dumbbell Bench Press: the writer wrote
+50 lb × 10 10 10 8 after a 50 lb × 10 10 9 9 session; another coach wrote
+55 lb × 8 8 7 6. Cable Fly Up: the writer wrote 15 lb after a 20 lb session;
+the other coach wrote 25 lb. You were right both times, and you asked why.
+
+Three reasons, each fixed.
+
+The writer was never shown last time. It was handed eight weeks of rows and
+an eight-week best per exercise, and left to rediscover the most recent
+session from the raw list on every call. It now receives `last` — per
+exercise, the date and every line of the most recent session as
+`[kg, [reps per set]]` — and the prompt tells it to progress from that, by
+double progression: when the last session's sets all reached the top of the
+rep range, add one step and drop the reps to the bottom of the range;
+otherwise hold the load and ask for one more rep on the set that fell short.
+Rep ranges for Grow are 6–10 on the main compound, 8–12 on secondary
+compounds, 10–15 on isolation and cable work. "Hold" and "back off" are no
+longer named as equals of "progress"; the prompt's first word on loads is
+PUSH, and holding two sessions in a row without a reason is called a mistake.
+
+The ceiling forbade the only step a light load has. The guard was ten
+percent over the best. On a 20 lb cable that is 2 lb, and the pin is 5 lb,
+so 25 lb was clamped back to 22 and marked ≈. The ceiling is now the larger
+of ten percent or one step (2.5 kg / 5 lb), so 20 may become 25, while
+215 → 315 is still clamped as before.
+
+Going backward cost nothing. A session top written under last time's is now
+guardrail 14: flagged in the read-back's notes — *Cable Fly Up: written at
+15 lb, under your last 20 lb, with no reason given* — unless the line carries
+a parenthesised reason such as (deload) or (sore shoulder), or your note to
+the writer gave one. A (warm-up) line is neither the session top nor a
+reason. Flagged, not refused: you may know why, and the row stays editable.
+
+And the notes are finally visible. The guardrails have written notes since
+v3.3.401 — a name not in the catalog, a dropped stray day, a third NEW
+movement — and the read-back never rendered them. They now sit in a block
+above the buttons, writer answers only.
+
+Tests: test-writer.js 64 → 73 (payload.last shape and step; one step over a
+light best passes; two steps still clamped; 14 flagged, cleared by a
+reason, not cleared by a warm-up note; holding with more reps is not
+backward; notes render above the buttons). Each has a probe: revert the
+ceiling, the flag, the payload field, or the warm-up refinement and its
+line goes red. The Edge Function prompt changes deploy on push.
+
 ## v3.3.406 (2026-09-02) — The wait is a receipt
 
 Tapping Write used to leave you on the ask screen with the button reading

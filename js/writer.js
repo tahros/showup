@@ -38,6 +38,13 @@ const WRITER_PATH='/functions/v1/write-session';
 const WRITER_TIMEOUT_MS={day:30000, week:45000};
 const WRITER_HISTORY_DAYS=56;
 const WRITER_LOAD_BAND=0.10;     // the CEILING over the eight-week best; below it the writer is free (v3.3.402)
+/* v3.3.407: ONE STEP IS ALWAYS ALLOWED. A percentage ceiling is right on a
+   215 lb deadlift (21 lb of headroom, two plates) and wrong on a 20 lb cable
+   fly, where 10% is 2 lb and the stack's smallest pin is 5. The band was
+   forbidding the only progression a light accessory can make, and the writer,
+   told never to leap, went 20 -> 15. The ceiling is now the larger of the
+   band and one step: 2.5 kg, which is a 5 lb pin or a 2.5 on each side. */
+const WRITER_STEP_KG=2.5;
 const WRITER_NEW_MAX=2;
 const OBJECTIVES=[['grow','Grow'],['lose','Lose weight'],['strength','Strength'],['keep','Keep going']];
 const WEEKDAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -105,6 +112,14 @@ function writerPayload(o){
   const coverage={};
   for(const h of history){ const m=exMuscle(h[2],h[1]); (coverage[h[1]]=coverage[h[1]]||{})[m]=((coverage[h[1]]||{})[m]||0)+h[4].length; }
   for(const p of Object.keys(catalog)){ coverage[p]=coverage[p]||{}; for(const ex of catalog[p]){ const m=exMuscle(ex,p); if(!(m in coverage[p])) coverage[p][m]=0; } }
+  /* v3.3.407: THE LAST SESSION, PER EXERCISE. Double progression is a rule
+     about last time -- did every working set reach the top of the range? --
+     and the writer had to rediscover last time from raw rows every call. It
+     was not doing so: it wrote 50 lb after a 50 x 10 10 9 9, and 15 lb after
+     a 20 x 10 10. The app already keeps lastSess for the Suggested rail; it
+     goes out as it is, kg and reps, one entry per exercise you have lifted. */
+  const last={};
+  for(const [ex,ls] of Object.entries(SEED.lastSess||{})) if(ex!=='Run'&&ls&&ls.rows&&ls.rows.length) last[ex]=[ls.d, ls.rows.map(r=>[+(+r[0]).toFixed(2), r[1]])];
   /* the eight-week best per exercise, precomputed: the band the loads must
      sit in is a number the writer should not have to derive from raw rows */
   const best={}; for(const h of history) if(h[5]!=='s'&&h[3]>best[h[2]]) best[h[2]]=h[3]; for(const h of history) if(!(h[2] in best)) best[h[2]]=h[3];
@@ -115,7 +130,7 @@ function writerPayload(o){
     focus:o.scope==='week'?(o.focus?[...o.focus]:[]):[],
     rotation:{pick:P.pick, addon:P.addon, ranking},
     objective:o.objective, note:(o.note||'').trim().slice(0,400),
-    catalog, heads, history, best, coverage, new_days:WRITER_HISTORY_DAYS, band:WRITER_LOAD_BAND, new_max:WRITER_NEW_MAX
+    catalog, heads, history, best, last, coverage, new_days:WRITER_HISTORY_DAYS, band:WRITER_LOAD_BAND, step_kg:WRITER_STEP_KG, new_max:WRITER_NEW_MAX
   };
 }
 
@@ -208,14 +223,32 @@ function writerCheck(resp, ctx){
            are part of the session). Only the top needs bounding, and that is
            the side the guardrail was ever really about: never ask for weight
            nobody has lifted. Under the ceiling, the writer is trusted. */
-        const hi=best*(1+WRITER_LOAD_BAND);
+        const hi=Math.max(best*(1+WRITER_LOAD_BAND), best+WRITER_STEP_KG);   // v3.3.407: one step is always allowed
         if(kg>hi){                                                                                                          // guardrail 3
           const shown=l.unit==='kg'?hi:l.unit==='lb'?hi*LB:(isLb()?hi*LB:hi);
-          notes.push(`${r.ex}: ${l.w}${l.unit||''} is over 10% above your ${wDisp(best)} ${U()} best, clamped and marked ≈`);
+          notes.push(`${r.ex}: ${l.w}${l.unit||''} is more than a step over your ${wDisp(best)} ${U()} best, clamped and marked ≈`);
           return {...l, w:+shown.toFixed(1), est:true};
         }
         return l;
       });
+      /* v3.3.407: GOING BACKWARD NEEDS A REASON. The session's top working
+         load, against last time's. Warm-ups are not working sets; a line
+         with a parenthesised note -- (deload), (back-off), (sore shoulder) --
+         has stated its reason. Anything else lighter than last time is a
+         regression the writer did not explain, and the read-back says so.
+         Flagged, not refused: the person may know why. */
+      const ls=SEED.lastSess&&SEED.lastSess[r.ex];
+      if(ls&&ls.rows&&ls.rows.length){
+        const isWarm=l=>/warm/i.test((l.qual||'')+(l.tag||''));
+        const work=(r.lines||[]).filter(l=>!l.nw&&!l.bw&&!isHold(l.su)&&l.w>0&&!isWarm(l));
+        if(work.length){
+          const kgOf=l=>l.unit==='kg'?l.w:l.unit==='lb'?l.w/LB:toKg(l.w);
+          const top=Math.max(...work.map(kgOf)), lastTop=Math.max(...ls.rows.map(x=>+x[0]||0));
+          const reasoned=(r.lines||[]).some(l=>l.qual&&!isWarm(l))||!!payload.note;   // "(warm-up)" is not a reason
+          if(lastTop>0&&top<lastTop-0.3&&!reasoned)
+            notes.push(`${r.ex}: written at ${wDisp(top)} ${U()}, under your last ${wDisp(lastTop)} ${U()}, with no reason given`);   // guardrail 14
+        }
+      }
       return r;
     });
     out.push({date:d.date, part, title:String(d.title||'').slice(0,60), rows, text:planTextFromRows(rows)});

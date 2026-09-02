@@ -1852,6 +1852,8 @@
   .ptag{font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--accent-ink);margin-left:6px;font-style:normal;font-weight:600}
   .planpv .pb i.pest,.pest{color:var(--accent-ink)}
   .planreason{padding:2px 0 10px;margin-bottom:8px;border-bottom:1px solid var(--whisper)}
+  .plannotes{padding:10px 14px 2px;border-top:1px solid var(--whisper)}
+  .plannotes .mono{font-size:11px;line-height:1.5;color:var(--faint)}
   .planreason .mono{font-size:12px;line-height:1.5}
   .planpv.ask .pc{flex-basis:100%;justify-content:flex-start;padding-left:24px}
   .btn.tiny{font-size:11px;padding:5px 9px;min-height:0}

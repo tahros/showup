@@ -887,6 +887,11 @@ function planScreenHTML(){
           <i class="mono dim">kept as a note</i></span></div>`;
     }
   });
+  /* v3.3.407: what the app changed or noticed, in one quiet line each. The
+     guardrails were writing these notes since v3.3.400 and nobody could read
+     them; a clamp showed as \u2248 with no why. */
+  const _pn=(lift.planSource==='writer'&&Array.isArray(lift.planNotes))?lift.planNotes:[];
+  if(_pn.length) h+=`<div class="plannotes">${_pn.map(n=>`<div class="mono">\u00b7 ${hesc(n)}</div>`).join('')}</div>`;
   h+=`<div class="planacts">
       <button class="btn wide" data-planaccept>${lift.planMode==='week'?'Use this week':writeDateISO()===todayISO?'Use today\u2019s plan':`Use this for ${planDayLabel(writeDateISO())}`}</button>
       <button class="btn ghost" data-planedit>Edit</button>

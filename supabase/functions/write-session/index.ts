@@ -1,4 +1,4 @@
-// write-session — ShowUp's session writer (v3.3.401; prompt revised v3.3.402, v3.3.405).
+// write-session — ShowUp's session writer (v3.3.401; prompt revised v3.3.402, v3.3.405, v3.3.407).
 // The ONLY server component ShowUp has. It exists because a PWA cannot hold a
 // model key. It does one thing: takes the payload js/writer.js builds (eight
 // weeks of sets, the catalog, the rotation's ranking, the coverage table, the
@@ -38,7 +38,10 @@ NAMES: use ONLY exercise names from the catalog in the payload, spelled exactly.
 
 THE PART: the payload's rotation.pick is what the app's own rotation would train next; rotation.ranking lists every part with days since its last full session and its usual gap. If payload.part is set, write for that part and do not argue. If payload.part is null, you decide: usually the rotation's pick, but you may choose differently for a reason you state — the objective, the note (a sore shoulder, no barbell, 45 minutes), or a part that is far past its gap. When your part differs from rotation.pick you MUST give reason: {head:"<Part>, not <rotation.pick>", text:"one or two sentences, in the second person, naming the numbers"}. Otherwise reason is null.
 
-LOADS: payload.best gives each exercise's heaviest working load in the last eight weeks, in kg. For an exercise that appears in best, no load may exceed that number by more than band (converted to the payload unit) — progress by one small step, hold, or back off; never leap. Lighter loads are free and expected: write warm-up lines under the working sets when the record shows the person warms up, and back-off or drop sets where they help. For an exercise NOT in best, mark every load ≈ or write by feel.
+LOADS: the default is to PUSH. payload.last gives, per exercise, the person's most recent session for it: the date and every line as [kg, [reps of each set]]. payload.best gives the heaviest working load in eight weeks, in kg. Write each exercise by double progression against payload.last:
+- if the last session's sets all reached the top of the rep range for the objective (or every set hit the same reps and the last set did not fall off), ADD ONE STEP and drop the reps to the bottom of the range. One step is step_kg (2.5 kg) or, in lb, the next plate or pin: 5 lb on dumbbells and machines, 5 lb on a cable stack, 5–10 lb on a barbell;
+- otherwise keep the same load and ask for one more rep on the set that fell short.
+The ceiling: no load may exceed best by more than band OR one step, whichever is larger (so 20 lb may become 25 lb even though that is more than 10%). Never write a session-top working load LOWER than the top of payload.last for that exercise unless you give the reason in a parenthesised note on that set line, e.g. "(deload)", "(sore shoulder)", "(form)". Going backward without a reason is a mistake; holding two sessions in a row without a reason is a mistake too. Warm-up lines under the working sets, marked "(warm-up)", and back-off sets are welcome and do not count as the session top. For an exercise NOT in best, mark every load ≈ or write by feel.
 
 REGIONS: payload.heads groups every catalog exercise by the muscle head it trains. These are not interchangeable. upper-chest and chest are different heads; lats and upper-back are different; front-, side- and rear-delts are three. A session has an EMPHASIS, and its first two exercises must come from that emphasis's head. Never put another head's signature movement into a day named for one: a Dip is sternal chest and has no place in an incline session, a Lateral Raise is not rear-delt work, a Lat Pulldown is not a row. Accessories later in the session may come from a neighbouring head.
 
@@ -50,7 +53,7 @@ VARIETY: payload.coverage lists, per part, the sets logged in eight weeks for ea
 
 CORE: if the record shows core riding along with other work, use the core movements the record actually uses and vary them across the week; do not repeat one movement every day when the record shows a pair.
 
-OBJECTIVE: grow = 8–12 reps, 3–4 working sets, one progression per session where a load has held for two sessions; lose = 12–15 reps, shorter sessions, supersets are fine, keep the big lifts; strength = 3–6 reps on the main lift with warm-up lines, then 6–10 on accessories; keep = repeat the last session's shape with tiny changes.
+OBJECTIVE: grow = 3–4 working sets, rep ranges 6–10 on the main compound, 8–12 on secondary compounds, 10–15 on isolation and cable work, and double progression every session: the first exercise of a session should normally carry a step up or a rep up over payload.last; lose = 12–15 reps, shorter sessions, supersets are fine, keep the big lifts and still progress them; strength = 3–6 reps on the main lift with warm-up lines, then 6–10 on accessories, a step up whenever the last session's sets were all made; keep = repeat the last session's shape, still one small progression somewhere.
 
 SIZE: 4–7 exercises for a day. Core work may ride along on most days as one or two short exercises if the record shows the person does that.
 
@@ -77,12 +80,13 @@ Deno.serve(async (req: Request) => {
   const user = `Today is ${payload.date}. Unit: ${payload.unit}. Scope: ${payload.scope}. Days to write: ${payload.days.join(", ")}.
 Part: ${payload.part || "your call"}. Objective: ${payload.objective}. Focus parts (week only): ${(payload.focus || []).join(", ") || "none"}.
 Note from the person: ${payload.note ? JSON.stringify(payload.note) : "none"}.
-band: ${payload.band}. new_max: ${payload.new_max}.
+band: ${payload.band}. step_kg: ${payload.step_kg ?? 2.5}. new_max: ${payload.new_max}.
 
 rotation: ${JSON.stringify(payload.rotation)}
 catalog: ${JSON.stringify(payload.catalog)}
 heads (which muscle head each catalog exercise trains): ${JSON.stringify(payload.heads || {})}
 best (kg): ${JSON.stringify(payload.best || {})}
+last (per exercise: [date, [[kg, [reps per set]], ...]] — the most recent session, progress from THIS): ${JSON.stringify(payload.last || {})}
 coverage (sets per muscle head, eight weeks): ${JSON.stringify(payload.coverage)}
 history (date, part, exercise, kg, reps, hold?) — eight weeks:
 ${(payload.history || []).map((h: any[]) => h.join("|")).join("\n")}`;

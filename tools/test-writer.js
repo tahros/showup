@@ -97,6 +97,37 @@ r = JSON.parse(check({days:[{date:today,part:'Back',title:'Back',text:"Deadlift\
 ok("3 · a load more than 10% above the eight-week best is clamped and marked ≈", r.ok && r.est[0].est===true && Math.abs(r.est[0].w-242.5)<1.5, JSON.stringify(r.est)+' '+JSON.stringify(r.notes));
 r = JSON.parse(check({days:[{date:today,part:'Back',title:'Back',text:"Deadlift\n  230 lb x 5"}]}));
 ok("...under the ceiling it passes untouched", r.ok && !r.est[0].est && r.est[0].w===230);
+/* v3.3.407: PUSH. The live writer wrote 50 lb after a 50 lb x 10 10 9 9 session
+   and 15 lb after a 20 lb one. Three causes, three fixes: the writer never saw
+   last time per exercise (it does now: payload.last); a 10% band forbade the
+   only step a light load has (20 lb x 10% = 2 lb, the pin is 5: one step is
+   always allowed); and going backward cost nothing (it is flagged now). */
+ok("payload.last is last time, per exercise, as [date, [[kg, [reps per set]]...]]",
+   !!pay.last && !!pay.last.Deadlift && JSON.stringify(pay.last.Deadlift[1])==='[[90,[5,5,5]]]' && /^\d{4}-\d\d-\d\d$/.test(pay.last.Deadlift[0]),
+   JSON.stringify(pay.last && pay.last.Deadlift));
+ok("...and the step is named", pay.step_kg===2.5);
+/* a light cable lift: 20 lb once, last week */
+run(`(function(){const d=new Date(todayISO+'T00:00'); d.setDate(d.getDate()-1); const iso=d.toLocaleDateString('en-CA');
+  DB.days[iso].w.push({part:'Chest',ex:'Cable Fly Up',w:20/LB,reps:[10,10],at:2}); save(true); SEED=deriveAll();})()`);
+const chestReason = {head:'Chest, not Back',text:'chest is furthest out'};
+r = JSON.parse(check({days:[{date:today,part:'Chest',title:'Chest',text:"Barbell Bench Press\n  155 lb x 8\n\nCable Fly Up\n  25 lb x 12 10 10"}],reason:chestReason}));
+ok("3b · one step over a light best passes, even past 10%: 20 lb may become 25", r.ok && r.est[1].ex==='Cable Fly Up' && !r.est[1].est && r.est[1].w===25 && !r.notes.some(n=>/Cable Fly Up/.test(n)), JSON.stringify(r.est)+' '+JSON.stringify(r.notes));
+r = JSON.parse(check({days:[{date:today,part:'Chest',title:'Chest',text:"Barbell Bench Press\n  155 lb x 8\n\nCable Fly Up\n  35 lb x 12 10 10"}],reason:chestReason}));
+ok("...two steps is still a leap: clamped, ≈, and the note says a step", r.ok && r.est[1].est===true && r.est[1].w<26 && r.notes.some(n=>/Cable Fly Up.*more than a step/.test(n)), JSON.stringify(r.est)+' '+JSON.stringify(r.notes));
+r = JSON.parse(check({days:[{date:today,part:'Chest',title:'Chest',text:"Barbell Bench Press\n  155 lb x 8\n\nCable Fly Up\n  15 lb x 10 10 10"}],reason:chestReason}));
+ok("14 · a session top under last time's, with no reason, is flagged in the notes", r.ok && r.est[1].w===15 && r.notes.some(n=>/Cable Fly Up: written at 15 lb, under your last 20 lb, with no reason given/.test(n)), JSON.stringify(r.notes));
+r = JSON.parse(check({days:[{date:today,part:'Chest',title:'Chest',text:"Barbell Bench Press\n  155 lb x 8\n\nCable Fly Up\n  15 lb x 10 10 10 (deload)"}],reason:chestReason}));
+ok("...a parenthesised reason on the line clears it", r.ok && !r.notes.some(n=>/no reason given/.test(n)), JSON.stringify(r.notes));
+r = JSON.parse(check({days:[{date:today,part:'Chest',title:'Chest',text:"Barbell Bench Press\n  95 lb x 5 (warm-up)\n  155 lb x 8\n\nCable Fly Up\n  10 lb x 12 (warm-up)\n  15 lb x 10 10 10"}],reason:chestReason}));
+ok("...a warm-up note is not a reason, and a warm-up line is not the top", r.ok && r.notes.some(n=>/Cable Fly Up: written at 15 lb.*no reason given/.test(n)) && !r.notes.some(n=>/Barbell Bench Press/.test(n)), JSON.stringify(r.notes));
+r = JSON.parse(check({days:[{date:today,part:'Chest',title:'Chest',text:"Barbell Bench Press\n  155 lb x 8\n\nCable Fly Up\n  20 lb x 12 12 11"}],reason:chestReason}));
+ok("...holding the load with more reps is not going backward", r.ok && !r.notes.some(n=>/no reason given/.test(n)), JSON.stringify(r.notes));
+/* the flagged note reaches the read-back */
+run(`(function(){const o=writerState(); const p=writerPayload(o);
+  const rr=writerCheck({days:[{date:'${today}',part:'Chest',title:'Chest',text:"Barbell Bench Press\\n  155 lb x 8\\n\\nCable Fly Up\\n  15 lb x 10 10 10"}]},{payload:Object.assign(p,{part:'Chest'})});
+  lift.planSource='writer'; lift.planNotes=rr.notes; lift.planReason=null; lift.planDate=todayISO; lift.planText=''; lift.planRows=rr.rows; lift.plan='preview'; lift.planScope='today'; render();})()`);
+ok("...and the read-back shows the writer's notes above the buttons", /under your last 20 lb/.test(run(`(document.querySelector('.plannotes')||{}).textContent||''`)) && run(`(function(){const n=document.querySelector('.plannotes'), a=document.querySelector('.planacts'); return !!n&&!!a&&(n.compareDocumentPosition(a)&Node.DOCUMENT_POSITION_FOLLOWING)>0;})()`), run(`(document.querySelector('.plannotes')||{}).textContent||''`));
+run(`(function(){const d=new Date(todayISO+'T00:00'); d.setDate(d.getDate()-1); const iso=d.toLocaleDateString('en-CA'); DB.days[iso].w=DB.days[iso].w.filter(x=>x.ex!=='Cable Fly Up'); save(true); SEED=deriveAll(); lift.plan=null; lift.planNotes=null; lift.planSource=null; lift.plan='write'; render();})()`);
 /* v3.3.402: the band has ONE side. The first live answer came back with the
    maker's own warm-up ramp under his best, and a symmetric band clamped every
    warm-up UP into a working set. Lighter is free. */
