@@ -80,6 +80,51 @@ ok("...and every catalog exercise is placed, none left out",
 ok("...and neither a name nor a day count", !JSON.stringify(pay).includes('"name"') && !('sessions' in pay) && !('totals' in pay));
 ok("...under 60 KB", JSON.stringify(pay).length<60000, JSON.stringify(pay).length+' bytes');
 
+/* v3.3.419: ONE DAY MUST SEE THE REST OF ITS WEEK. Reproduce the maker's
+   exact situation: ask on Thursday with Chest + Core saved for Friday and
+   Arms + Core saved for Saturday. These future blocks are context, not days
+   the one-day answer is allowed to replace. */
+const weekAwarePay = JSON.parse(run(`(function(){
+  const realToday=todayISO, oldWeek=DB.week, oldPlan=DB.plan, oldWrite=lift.write;
+  todayISO='2026-09-02'; lift.write=null;
+  DB.plan=null; DB.week={from:'2026-09-04',to:'2026-09-05',days:{
+    '2026-09-04':{title:'Chest B (flat) + Laterals + Core',items:[{ex:'Barbell Bench Press'},{ex:'Lateral Raise'},{ex:'Hanging Leg Raise'},{ex:'Cable Crunch'}]},
+    '2026-09-05':{title:'Arms + Rear Delts + Core',items:[{ex:'EZ Bar Curl'},{ex:'Skull Crusher'},{ex:'Rear Deltoids'},{ex:'Decline Sit Up'}]}
+  }};
+  const o=writerState(); o.scope='tomorrow'; const p=writerPayload(o);
+  DB.week=oldWeek; DB.plan=oldPlan; todayISO=realToday; lift.write=oldWrite; SEED=deriveAll();
+  return JSON.stringify(p);
+})()`));
+ok("...a one-day request carries every remaining date through Sunday",
+   weekAwarePay.scope==='day' && weekAwarePay.days.join()==='2026-09-03' &&
+   weekAwarePay.week_context[0].date==='2026-09-03' && weekAwarePay.week_context.at(-1).date==='2026-09-06',
+   JSON.stringify(weekAwarePay.week_context));
+const friContext=weekAwarePay.week_context.find(x=>x.date==='2026-09-04');
+const satContext=weekAwarePay.week_context.find(x=>x.date==='2026-09-05');
+ok("...saved Friday and Saturday plans are fixed context, with exercises and parts",
+   friContext && !friContext.requested && friContext.planned.parts.includes('Chest') && friContext.planned.parts.includes('Sixpack') &&
+   satContext && !satContext.requested && satContext.planned.parts.includes('Biceps') && satContext.planned.parts.includes('Triceps') && satContext.planned.parts.includes('Sixpack'),
+   JSON.stringify([friContext,satContext]));
+ok("...the requested Thursday is writable rather than mistaken for a fixed plan",
+   weekAwarePay.week_context[0].requested===true && weekAwarePay.week_context[0].planned===null);
+ok("...recent whole sessions preserve exercise order instead of isolated rows",
+   Array.isArray(pay.recent_sessions) && pay.recent_sessions.length>0 && pay.recent_sessions.every(s=>Array.isArray(s.exercises)) &&
+   pay.recent_sessions.some(s=>s.exercises.some(x=>x.exercise==='Deadlift')),
+   JSON.stringify(pay.recent_sessions&&pay.recent_sessions[0]));
+ok("...and a leg session keeps its exact compound-to-accessory order",
+   run(`writerRecentSessions([['2026-09-01','Legs','Squat'],['2026-09-01','Legs','Romanian Deadlift'],['2026-09-01','Legs','Dumbbell Lunge'],['2026-09-01','Legs','Standing Calf Raise'],['2026-09-01','Sixpack','Hanging Leg Raise']])[0].exercises.map(x=>x.exercise).join('|')`)
+   ==='Squat|Romanian Deadlift|Dumbbell Lunge|Standing Calf Raise|Hanging Leg Raise');
+const writerServer=fs.readFileSync(path.join(dir,'supabase','functions','write-session','index.ts'),'utf8');
+ok("...the coach is explicitly ordered week first, shape second, progression third",
+   /ORDER OF DECISIONS — WEEK, SHAPE, THEN PROGRESSION/.test(writerServer) &&
+   /1\. WEEK FIRST[\s\S]*2\. SESSION SHAPE SECOND[\s\S]*3\. PROGRESSION THIRD/.test(writerServer));
+ok("...core may run consecutively, but exact movements must rotate",
+   /core is the exception to the recovery spacing rule/i.test(writerServer) &&
+   /high frequency is not identical repetition/i.test(writerServer));
+ok("...new movements cannot displace the established session",
+   /novelty never displaces a recurring exercise/i.test(writerServer) &&
+   /it may not replace a recurring movement/i.test(writerServer));
+
 /* ---- guardrails on stubbed answers ---- */
 const check = (resp) => run(`(function(){try{ const o=writerState(); const p=writerPayload(o); const r=writerCheck(${JSON.stringify(resp)},{payload:p});
   return JSON.stringify({ok:true, ex:r.rows.filter(x=>x.kind==='ex'&&x.ex).map(x=>x.ex), notes:r.notes, reason:r.reason, est:r.rows.filter(x=>x.kind==='ex'&&x.ex).map(x=>({ex:x.ex,est:x.lines.some(l=>l.est),w:x.lines[0]&&x.lines[0].w,ws:x.lines.map(l=>l.w)}))});

@@ -83,6 +83,48 @@ function writerDays(o){
   return span;
 }
 
+/* v3.3.419: A DAY LIVES INSIDE A WEEK. A one-day Writer request used to send
+   only that date. The model could see the past but not a Chest day already
+   saved for Friday or Arms already saved for Saturday, so it composed
+   tomorrow in isolation. Summarise every remaining date through Sunday and
+   treat saved future blocks as fixed context. Requested dates are deliberately
+   not marked fixed: the Writer is being asked to replace those. */
+function writerPlanSummary(iso){
+  const own=DB.plan&&DB.plan.d===iso?DB.plan:null;
+  const block=!own&&DB.week&&DB.week.days?DB.week.days[iso]:null;
+  const p=own||block; if(!p) return null;
+  const exercises=(p.items||[]).map(i=>i&&i.ex).filter(Boolean);
+  if(!exercises.length&&!String(p.note||'').trim()) return null;
+  return {
+    title:String((block&&block.title)||p.title||'').slice(0,60),
+    exercises,
+    parts:[...new Set(exercises.map(homePartOf).filter(Boolean))]
+  };
+}
+function writerWeekContext(days){
+  const requested=new Set(days), habit=writerHabitDays();
+  return writerWeekSpan(days[0],false).map(iso=>({
+    date:iso,
+    weekday:WEEKDAYS[new Date(iso+'T00:00').getDay()],
+    requested:requested.has(iso),
+    usual:habit.has(new Date(iso+'T00:00').getDay()),
+    planned:requested.has(iso)?null:writerPlanSummary(iso)
+  }));
+}
+
+/* Whole recent days make the person's established session shapes explicit.
+   Raw history remains the source of truth for loads; this small view answers
+   a different question: what travelled together, and in what order? */
+function writerRecentSessions(history){
+  const byDay={};
+  for(const h of history){
+    const day=byDay[h[0]]||(byDay[h[0]]={date:h[0],parts:[],exercises:[]});
+    if(!day.parts.includes(h[1])) day.parts.push(h[1]);
+    if(!day.exercises.some(x=>x.exercise===h[2])) day.exercises.push({part:h[1],exercise:h[2]});
+  }
+  return Object.keys(byDay).sort().reverse().slice(0,12).map(d=>byDay[d]);
+}
+
 /* ---- what leaves the device ---- */
 function writerPayload(o){
   const from=writeDateISO();
@@ -98,7 +140,9 @@ function writerPayload(o){
     history.push([d, s.part, s.ex, +(s.w||0).toFixed(2), s.reps, s.su==='s'?'s':'']);
   }
   for(const d of Object.keys(SEED.sessions||{})) if(d>=cutISO&&!DB.days[d]) for(const r of SEED.sessions[d]){ if(r[1]==='Run'||!(r[3]||[]).length) continue; history.push([d,r[0],r[1],+(r[2]||0).toFixed(2),r[3],r[7]==='s'?'s':'']); }
-  history.sort((a,b)=>a[0]<b[0]?-1:1);
+  /* Equal-date rows keep ledger order; writerRecentSessions relies on that
+     order to distinguish the main lift from its accessories. */
+  history.sort((a,b)=>a[0]<b[0]?-1:a[0]>b[0]?1:0);
   /* v3.3.405: WHICH HEAD EACH EXERCISE TRAINS. The app has always known that
      Incline Bench is upper-chest and a Dip is sternal chest (EX_MUSCLE, since
      v3.3.357) -- but the writer was only ever handed the COUNTS per head, never
@@ -138,13 +182,16 @@ function writerPayload(o){
   for(const ex of Object.keys(best)) best[ex]=inU(best[ex]);
   for(const h of history) h[3]=inU(h[3]);
   const days=o.scope==='week'?[...o.days].sort():[o.scope==='tomorrow'?tomorrowISO():from];
+  const recent_sessions=writerRecentSessions(history);
+  const week_context=writerWeekContext(days);
   return {
     v:1, unit:U(), date:days[0], scope:o.scope==='week'?'week':'day', days,
     part:o.scope==='week'?null:(o.part==='auto'?null:o.part),
     focus:o.scope==='week'?(o.focus?[...o.focus]:[]):[],
     rotation:{pick:P.pick, addon:P.addon, ranking},
     objective:o.objective, note:(o.note||'').trim().slice(0,400),
-    catalog, heads, history, best, last, steps, next, coverage, new_days:WRITER_HISTORY_DAYS, band:WRITER_LOAD_BAND, step:U()==='lb'?5:WRITER_STEP_KG, new_max:WRITER_NEW_MAX
+    catalog, heads, history, recent_sessions, week_context, best, last, steps, next, coverage,
+    new_days:WRITER_HISTORY_DAYS, band:WRITER_LOAD_BAND, step:U()==='lb'?5:WRITER_STEP_KG, new_max:WRITER_NEW_MAX
   };
 }
 

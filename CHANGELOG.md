@@ -1,5 +1,21 @@
 # ShowUp — changelog
 
+## v3.3.419 (2026-09-02) — The writer sees the rest of the week
+
+Writing one day no longer means planning it in isolation. The Writer now sees
+every remaining date through Sunday, including plans already saved for later
+in the week. A Thursday session can therefore leave Friday's Chest work and
+Saturday's Arms work alone instead of accidentally competing with them.
+
+The Writer now makes decisions in a fixed order: shape the week, preserve the
+person's established session, then progress its weights or reps. Recent whole
+sessions are sent in their original exercise order, so a recurring Squat +
+hinge + lunge + calves + core structure wins over an arbitrary new exercise.
+
+Core may still ride along on consecutive training days. The difference is
+that the Writer now rotates the exact core movement across the week when the
+record provides alternatives, rather than repeating the same exercise daily.
+
 ## v3.3.418 (2026-09-02) — Your plan follows you
 
 Plans now sync through the same signed-in cloud account as the workout
