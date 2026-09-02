@@ -275,6 +275,29 @@ function writerCheck(resp, ctx){
             const r0=(first.reps||[])[0]||0, l0=lastRow&&(lastRow[1]||[])[0]||0;
             if(r0>0&&l0>0&&r0<l0)
               notes.push(`${r.ex}: same ${wDisp(top)} ${U()} for ${r0} reps, under your last ${l0}, with no reason given`);
+            else if(r0>0&&l0>0&&r0===l0){
+              /* v3.3.413: GUARDRAIL 16 -- STANDING STILL NEEDS A REASON TOO.
+                 The live writer, told to push, wrote Squat 200 and Romanian
+                 Deadlift 160 -- last time's loads, last time's reps, no note.
+                 Guardrail 14 catches going backward and 14b catches fewer
+                 reps, but an EXACT repeat passed through both. The prompt asks
+                 for a step or a rep; when the model does neither and says
+                 nothing, this is not flagged, it is CORRECTED: one step up on
+                 the exercise's own grid (wStep, snapW -- 5 lb on a barbell in
+                 lb, 2.5 kg in kg), applied to every working line at the top
+                 load, and named in the read-back so nothing moves in silence.
+                 A hold is still available to the writer: it has to say why,
+                 the same way a step back does. */
+              const stepU=wStep(r.ex);
+              const bumpedKg=snapW(toKg(toU(lastTop)+stepU), r.ex);
+              const inUnit=l=>l.unit==='kg'?bumpedKg:l.unit==='lb'?bumpedKg*LB:(isLb()?bumpedKg*LB:bumpedKg);
+              const shownOld=wDisp(top), shownNew=wDisp(bumpedKg);
+              r.lines=(r.lines||[]).map(l=>{
+                const isTop=!l.nw&&!l.bw&&!isHold(l.su)&&l.w>0&&!isWarm(l)&&Math.abs(kgOf(l)-top)<=0.3;
+                return isTop?{...l, w:+inUnit(l).toFixed(1)}:l;
+              });
+              notes.push(`${r.ex}: the writer repeated your last ${shownOld} ${U()} for ${r0} reps with no reason — stepped up to ${shownNew} ${U()}`);
+            }
           }
         }
       }

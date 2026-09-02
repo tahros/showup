@@ -152,13 +152,20 @@ function planSectionHTML(){
        for a real plan will appear. */
     /* v3.3.400: the door is the writer. Paste lives inside it, one tap on. */
     h+=`<h2 class="quiet">${planPillsHTML(null,!!_wk)} plan${_tip}<span class="planedge"><button class="pedge pwrite" data-planwrite aria-label="Write a session">${icon('sparkle',ICON_SZ.sm)}Write</button></span></h2>`;
-    /* v3.3.397: a plan written for tomorrow (the ledger rule) waits here
-       as one line. It names the day, counts its exercises, and says when
-       it opens. Tapping it does nothing today; there is nothing to do. */
+    /* v3.3.397 wrote a plan for tomorrow as ONE inert line: "Tapping it does
+       nothing today; there is nothing to do." v3.3.413 REVERSES that, on the
+       maker's word: it is his plan, and reading tomorrow's session tonight is
+       exactly the thing to do with it. The line is the fold; the plan opens
+       beneath it, open by default -- on a closed day tomorrow's session is
+       the most relevant thing on the page. "Opens at midnight" still means
+       what it meant: the rails do not read it until then, and nothing here
+       logs against it. Viewing is not logging. */
     const _pp=planPending();
     if(_pp){
       const _n=(_pp.items||[]).length;
-      h+=`<div class="row spread card planpending" style="padding:11px 14px"><span class="mono muted" style="font-size:12px">${planDayLabel(_pp.d)} · written, opens at midnight</span><span class="mono" style="font-size:12px;color:var(--faint)">${_n?`${_n} exercise${_n===1?'':'s'}`:'a note'}</span></div>`;
+      const _pf2=!!DB.settings.pendFold;
+      h+=`<button class="row spread card planpending" data-pendfold aria-expanded="${!_pf2}" style="padding:11px 14px;width:100%;text-align:left"><span class="mono muted" style="font-size:12px">${planDayLabel(_pp.d)} · written, opens at midnight</span><span class="mono" style="font-size:12px;color:var(--faint)">${_n?`${_n} exercise${_n===1?'':'s'}`:'a note'}${icon('chevron',ICON_SZ.sm,_pf2?0:90)}</span></button>`;
+      if(!_pf2) h+=`<div class="planahead">${planCardHTML({d:_pp.d,items:_pp.items,note:_pp.note||''},false)}</div>`;
     }
   }
   return h;

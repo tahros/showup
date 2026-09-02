@@ -133,6 +133,25 @@ ok("...holding the load with more reps is not going backward", r.ok && !r.notes.
    first working set is the other way backward. */
 r = JSON.parse(check({days:[{date:today,part:'Chest',title:'Chest',text:"Barbell Bench Press\n  155 lb x 8\n\nCable Fly Up\n  20 lb x 6 6 6"}],reason:chestReason}));
 ok("14b · the same load for fewer reps, with no reason, is flagged too", r.ok && r.notes.some(n=>/Cable Fly Up: same 20 lb for 6 reps, under your last 10, with no reason given/.test(n)), JSON.stringify(r.notes));
+/* v3.3.413: GUARDRAIL 16 -- STANDING STILL NEEDS A REASON TOO. The live
+   writer, told to push, wrote Squat 200 and RDL 160: last time's load, last
+   time's reps, no note. 14 catches backward, 14b catches fewer reps, and an
+   exact repeat walked through both. It is CORRECTED, not flagged: one step up
+   on the exercise's own grid, named in the read-back. Cable Fly Up's last was
+   20 lb x 10 10; a cable's step is 5 lb in lb. */
+r = JSON.parse(check({days:[{date:today,part:'Chest',title:'Chest',text:"Barbell Bench Press\n  155 lb x 8\n\nCable Fly Up\n  20 lb x 10 10"}],reason:chestReason}));
+ok("16 · an exact repeat of last time, with no reason, is stepped up on the grid",
+   r.ok && r.est[1].ex==='Cable Fly Up' && r.est[1].w===25, JSON.stringify(r.est[1]));
+ok("...and the read-back says so, naming both loads",
+   r.notes.some(n=>/Cable Fly Up: the writer repeated your last 20 lb for 10 reps with no reason — stepped up to 25 lb/.test(n)), JSON.stringify(r.notes));
+ok("...without marking it as a clamped guess -- it is a rule, not an estimate",
+   !r.est[1].est);
+r = JSON.parse(check({days:[{date:today,part:'Chest',title:'Chest',text:"Barbell Bench Press\n  155 lb x 8\n\nCable Fly Up\n  20 lb x 10 10 (hold — shoulder)"}],reason:chestReason}));
+ok("...a stated reason lets the writer hold the load",
+   r.ok && r.est[1].w===20 && !r.notes.some(n=>/stepped up/.test(n)), JSON.stringify(r.est[1])+' '+JSON.stringify(r.notes));
+r = JSON.parse(check({days:[{date:today,part:'Chest',title:'Chest',text:"Barbell Bench Press\n  155 lb x 8\n\nCable Fly Up\n  20 lb x 12 12"}],reason:chestReason}));
+ok("...and more reps at the same load is already a push -- left alone",
+   r.ok && r.est[1].w===20 && !r.notes.some(n=>/stepped up/.test(n)), JSON.stringify(r.est[1]));
 r = JSON.parse(check({days:[{date:today,part:'Chest',title:'Chest',text:"Barbell Bench Press\n  155 lb x 8\n\nCable Fly Up\n  20 lb x 6 6 6 (form)"}],reason:chestReason}));
 ok("...and a reason clears that too", r.ok && !r.notes.some(n=>/no reason given/.test(n)), JSON.stringify(r.notes));
 /* the flagged note reaches the read-back */

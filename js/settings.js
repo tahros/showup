@@ -83,7 +83,7 @@ function renderSync(){
     <div class="card">
       <div class="row" style="gap:8px">
         <div class="fld" style="flex:1"><label>Barbell (${U()})</label>
-          <input id="barW" type="number" inputmode="decimal" step="0.5" value="${wDisp(DB.settings.barKg??20)}"></div>
+          <input id="barW" type="number" inputmode="decimal" step="0.5" value="${wDisp(barSetting('barKg'))}"></div>
         <div class="fld" style="flex:1"><label>Smith bar (${U()})</label>
           <input id="smithW" type="number" inputmode="decimal" step="0.5" value="${wDisp(DB.settings.smithKg??20)}"></div>
       </div>

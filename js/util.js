@@ -343,12 +343,30 @@ const vDisp=kg=>fmt(Math.round(toU(kg)));            // volume
 /* --- bar + plate math ---------------------------------------------------
    Weights are stored as the TOTAL on the movement (bar included), matching
    how the sheet was kept. Bar weights are editable in Settings.          */
+/* v3.3.413: the FACTORY bar. core.js seeds every account with barKg:20 and
+   smithKg:20, so a stored 20 is not a choice, it is the constant every user
+   carries from day one -- and in lb it means 44.09, which put every barbell
+   grid point 0.91 lb off every real plate combination. In lb the factory
+   value reads as 45 (a bar you have SET yourself is any other number; the
+   settings screen writes in display units, so an lb user who typed 45 has
+   20.41 stored, not 20). In kg, 20 is simply the bar. */
+const barDefaultKg=()=>isLb()?45/LB:20;
+const barSetting=key=>{
+  const v=DB.settings[key];
+  if(v==null||(isLb()&&Math.abs(v-20)<0.01)) return barDefaultKg();
+  return v;
+};
 const barKg=ex=>{
   const per=(DB.settings.barByEx||{})[ex];      // per-exercise override, once you set it
   if(per!=null) return per;
   const e=equipOf(ex);
-  if(e==='barbell') return DB.settings.barKg ?? 20;
-  if(e==='smith')   return DB.settings.smithKg ?? 20;
+  /* v3.3.413: THE DEFAULT BAR FOLLOWS THE UNIT. It was 20 kg in both, which
+     is 44.09 lb -- so in lb every barbell grid point sat 0.91 lb off every
+     real plate combination (45+5n), and snapW turned 210 into 214.09. A gym
+     that weighs in pounds racks a 45 lb bar; one that weighs in kilos racks a
+     20 kg bar. A bar you have SET yourself still wins. */
+  if(e==='barbell') return barSetting('barKg');
+  if(e==='smith')   return barSetting('smithKg');
   return 0;
 };
 const usesPlates=ex=>['barbell','smith'].includes(equipOf(ex));
@@ -578,9 +596,15 @@ const isBody=ex=>equipOf(ex)==='body';
    wLaw/wStep/snapW, and buildcheck fails if any class in EQUIP_LABEL lacks
    a row here. Adding an equipment class without declaring its physics is a
    build error, not a latent bug. */
+/* v3.3.413: THE BARBELL STEP IN lb IS 5, NOT 10. A 5 lb step is a 2.5 on
+   each side, and the maker's own ledger is written in it: 95, 115, 155, 175,
+   200, 160. His Squat at 200 was not even ON a 10 lb grid from a 45 bar
+   (45+10n never reaches 200) -- the table disagreed with every barbell set he
+   had ever logged. The writer's push read the old step and offered 210 where
+   the next plate is 205. Smith follows: same bar, same plates. */
 const W_TABLE={
-  barbell:  {kg:{s:5,  bar:1}, lb:{s:10, bar:1}},
-  smith:    {kg:{s:5,  bar:1}, lb:{s:10, bar:1}},
+  barbell:  {kg:{s:5,  bar:1}, lb:{s:5,  bar:1}},
+  smith:    {kg:{s:5,  bar:1}, lb:{s:5,  bar:1}},
   cable:    {kg:{s:5},         lb:{s:5}},
   machine:  {kg:{s:5},         lb:{s:10}},
   plate:    {kg:{s:5},         lb:{s:10}},

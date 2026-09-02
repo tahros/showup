@@ -1,5 +1,17 @@
 # ShowUp — changelog
 
+## v3.3.413 (2026-09-02) — Tomorrow's plan opens tonight, and the bar weighs 45
+
+- **You can read tomorrow's plan today.** The "opens at midnight" line is now
+  a fold; the plan sits open beneath it.
+- **The writer can no longer hand you last time's numbers unchanged.** If it
+  repeats a load and reps with no reason, the app steps it up one notch on
+  that exercise's own grid and tells you it did.
+- **Barbells step in 5 lb, and the bar is 45 lb** when you train in pounds.
+  It had been 10 lb steps from a 44.09 lb bar — a 20 kg bar converted — which
+  put every barbell weight about a pound off the plates on the rack. Your
+  logged 200 wasn't even on the old grid.
+
 ## v3.3.412 (2026-09-02) — A closed day points forward
 
 Once you've pressed Complete, Today now knows it. The finished-day card leads

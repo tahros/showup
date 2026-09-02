@@ -805,6 +805,11 @@
      nothing is struck through or recoloured -- the check marks already say
      which lines were kept. */
   .plspent{opacity:.62}
+  /* v3.3.413: tomorrow's plan, read tonight. Same card as the week view's
+     day plans; the row above it is the fold. Quieter than today's plan
+     because it is not yet the one being trained against. */
+  .planahead{opacity:.9;margin-top:6px}
+  .planpending .ic{margin-left:8px;vertical-align:-2px;color:var(--faint)}
   .dayclosed{display:block;width:100%;text-align:center;padding:20px 16px 16px;
     margin-bottom:18px;border:1px solid var(--line);cursor:pointer}
   .dayclosed .dcsq{display:block;width:30px;height:30px;margin:0 auto 12px;

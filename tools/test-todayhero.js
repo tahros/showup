@@ -303,6 +303,31 @@ check("...and even with an unlogged plan item, nothing recommends a next exercis
       `!document.querySelector('.tnextplan')`, true);
 /* reopen the day: the header returns to managing the live promise */
 run(`(function(){day(todayISO).doneAll=false; render();})()`);
+/* v3.3.413: TOMORROW'S PLAN CAN BE READ TONIGHT. v3.3.397 rendered it as one
+   inert line -- "tapping it does nothing today" -- and the maker overruled
+   that: it is his plan. The line is now the fold, and the plan opens beneath
+   it, open by default. Reading is not logging: the rails still do not read it
+   until midnight. */
+run(`(function(){const t=new Date(todayISO+'T00:00'); t.setDate(t.getDate()+1);
+  DB.plan={d:t.toLocaleDateString('en-CA'), items:[
+    {ex:'Squat', lines:[{w:toKg(205),bw:false,reps:[5,5,5]}]},
+    {ex:'Romanian Deadlift', lines:[{w:toKg(165),bw:false,reps:[8,8]}]}], note:''};
+  DB.settings.pendFold=false; render();})()`);
+check("tomorrow's plan is shown on Today, not just counted",
+      `!!document.querySelector('.planahead .plancard') && /Squat/.test(document.querySelector('.planahead').textContent)`, true);
+check("...beneath a row that is now a fold, not an inert line",
+      `document.querySelector('[data-pendfold]').tagName==='BUTTON'`, true);
+run(`document.querySelector('[data-pendfold]').dispatchEvent(new window.Event('click',{bubbles:true}))`);
+check("...which folds it away on tap", `!document.querySelector('.planahead')`, true);
+run(`document.querySelector('[data-pendfold]').dispatchEvent(new window.Event('click',{bubbles:true}))`);
+check("...and back", `!!document.querySelector('.planahead .plancard')`, true);
+check("...while the rails still do not read it: today's plan is unaffected",
+      `planNow()===null`, true);
+/* put today's plan back for the reopen check below */
+run(`(function(){DB.plan={d:todayISO, items:[
+    {ex:'Dumbbell Press', lines:[{w:20,bw:false,reps:[15]}]},
+    {ex:'Lateral Raise',  lines:[{w:10,bw:false,reps:[12,12]}]}], note:''}; render();})()`);
+
 check("reopened, Edit and Clear return and the door withdraws",
       `!!document.querySelector('[data-planedit]') && !!document.querySelector('[data-planclear]')
         && !document.querySelector('h2 .planedge [data-planwrite]') && !document.querySelector('.plspent')`, true);

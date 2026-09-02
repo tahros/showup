@@ -390,6 +390,11 @@ document.addEventListener('click',e=>{
     toast(items.length?`Plan set${_wd===todayISO?'':' for '+planDayLabel(_wd)} — ${items.length} exercise${items.length>1?'s':''}`:'Kept as a note');
     return render();
   }
+  /* v3.3.413: tomorrow's plan folds and unfolds the same way today's does */
+  if(e.target.closest&&e.target.closest('[data-pendfold]')){
+    DB.settings.pendFold=!DB.settings.pendFold; DB.settingsAt=Date.now(); save(true);
+    render(); return;
+  }
   if(e.target.closest&&e.target.closest('[data-planfold]')){
     DB.settings.planFold=!DB.settings.planFold; DB.settingsAt=Date.now(); save(true);
     /* v3.3.319: render(), not renderLift(). The plan moved to Today, and a
@@ -650,7 +655,7 @@ document.addEventListener('click',e=>{
     return toast(kg>0?'Unchanged — nothing recorded':'No weight entered');
   }
   if(e.target.closest('#barSave')){
-    DB.settings.barKg=toKg(+($('#barW').value||0))||20;
+    DB.settings.barKg=toKg(+($('#barW').value||0))||barDefaultKg();   // v3.3.413: the factory bar follows the unit
     DB.settings.smithKg=toKg(+($('#smithW').value||0));
     save(true);return toast('Bar weights saved');
   }
