@@ -82,9 +82,19 @@ ok("...and with a reason it is kept, reason and all", r.ok && r.reason && r.reas
 r = JSON.parse(check({days:[{date:today,part:'Biceps',title:'Arms',text:"Barbell Curl\n  50 lb x 10"}],reason:{head:'x',text:'y'}}));
 ok("...a part you do not train is refused", !r.ok && /not one you train/.test(r.refused), r.refused);
 r = JSON.parse(check({days:[{date:today,part:'Back',title:'Back',text:"Deadlift\n  315 lb x 5"}]}));
-ok("3 · a load outside 10% of the eight-week best is clamped and marked ≈", r.ok && r.est[0].est===true && Math.abs(r.est[0].w-242.5)<1.5, JSON.stringify(r.est)+' '+JSON.stringify(r.notes));
+ok("3 · a load more than 10% above the eight-week best is clamped and marked ≈", r.ok && r.est[0].est===true && Math.abs(r.est[0].w-242.5)<1.5, JSON.stringify(r.est)+' '+JSON.stringify(r.notes));
 r = JSON.parse(check({days:[{date:today,part:'Back',title:'Back',text:"Deadlift\n  230 lb x 5"}]}));
-ok("...inside the band it passes untouched", r.ok && !r.est[0].est && r.est[0].w===230);
+ok("...under the ceiling it passes untouched", r.ok && !r.est[0].est && r.est[0].w===230);
+/* v3.3.402: the band has ONE side. The first live answer came back with the
+   maker's own warm-up ramp under his best, and a symmetric band clamped every
+   warm-up UP into a working set. Lighter is free. */
+r = JSON.parse(run(`(function(){try{ const o=writerState(); const p=writerPayload(o);
+  const rr=writerCheck({days:[{date:'${today}',part:'Back',title:'Back',text:"Deadlift\\n  135 lb x 5            (warm-up)\\n  185 lb x 5\\n  215 lb x 5 5 5"}]},{payload:p});
+  const l=rr.rows.find(x=>x.ex==='Deadlift').lines;
+  return JSON.stringify({ok:true, w:l.map(x=>x.w), est:l.map(x=>!!x.est), notes:rr.notes});
+  }catch(e){ return JSON.stringify({ok:false, refused:e.refused||String(e)}); }})()`));
+ok("...and a warm-up ramp under the best survives, every line, unmarked",
+   r.ok && JSON.stringify(r.w)==='[135,185,215]' && r.est.every(x=>!x) && !r.notes.length, JSON.stringify(r));
 r = JSON.parse(check({days:[{date:today,part:'Back',title:'Back',text:"Deadlift\n  215 lb x 5\n\nSeated Cable Row\n  120 lb x 10 10"}]}));
 ok("4 · a load for an exercise never lifted here is always ≈", r.ok && r.est[1].ex==='Seated Cable Row' && r.est[1].est===true && !r.est[0].est, JSON.stringify(r.est));
 r = JSON.parse(check({days:[{date:today,part:'Back',title:'Back',text:"Deadlift\n  215 lb x 5"},{date:today,part:'Back',title:'Back again',text:"Pull Up\n  BW x 8"}]}));

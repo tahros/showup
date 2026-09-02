@@ -16,8 +16,9 @@
    app does not hand over is the last word. writerCheck() runs on the device
    between the response and the read-back and bounds every claim (the twelve
    guardrails in the spec): unknown names become notes; a silent part change
-   is refused whole; a load for a lifted exercise stays within 10% of the
-   eight-week best or is clamped and marked ≈; a load for a never-lifted
+   is refused whole; a load for a lifted exercise never exceeds the
+   eight-week best by more than 10%, or is clamped and marked ≈ (lighter is
+   free: a warm-up, a back-off, a deload); a load for a never-lifted
    exercise is always ≈; at most two NEW movements a session; one session
    per date; the stamp follows the ledger (v3.3.397). Offline, or twelve
    seconds (a week: twenty-five) without an answer, the ask screen says "needs signal" and the
@@ -26,7 +27,7 @@
 const WRITER_PATH='/functions/v1/write-session';
 const WRITER_TIMEOUT_MS={day:12000, week:25000};   // measured, not guessed: a week is ~2,000 output tokens
 const WRITER_HISTORY_DAYS=56;
-const WRITER_LOAD_BAND=0.10;     // ±10% of the eight-week best working weight
+const WRITER_LOAD_BAND=0.10;     // the CEILING over the eight-week best; below it the writer is free (v3.3.402)
 const WRITER_NEW_MAX=2;
 const OBJECTIVES=[['grow','Grow'],['lose','Lose weight'],['strength','Strength'],['keep','Keep going']];
 const WEEKDAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -154,10 +155,21 @@ function writerCheck(resp, ctx){
         if(l.nw||l.bw||isHold(l.su)||!(l.w>0)) return l;
         const kg=l.unit==='kg'?l.w:l.unit==='lb'?l.w/LB:toKg(l.w);
         if(best<=0){ if(!l.est){ notes.push(`${r.ex}: never lifted here, load marked ≈`); } return {...l, est:true}; }     // guardrail 4
-        const lo=best*(1-WRITER_LOAD_BAND), hi=best*(1+WRITER_LOAD_BAND);
-        if(kg<lo||kg>hi){                                                                                                   // guardrail 3
-          const clampKg=Math.min(hi,Math.max(lo,kg)); const shown=l.unit==='kg'?clampKg:l.unit==='lb'?clampKg*LB:(isLb()?clampKg*LB:clampKg);
-          notes.push(`${r.ex}: ${l.w}${l.unit||''} is outside 10% of your ${wDisp(best)} ${U()} best, clamped and marked ≈`);
+        /* v3.3.402: THE BAND HAS ONE SIDE. It was symmetric, and the first
+           live answer paid for it: a real Chest session came back with the
+           maker's own warm-up ramp -- 95, 115, 145 under a 165 best -- and
+           every warm-up line was clamped UP to 148.8 and marked as a guess.
+           The card then showed four identical working sets where a ramp had
+           been written. A load LIGHTER than your best is never a leap: it is
+           a warm-up, a back-off, a drop set, a deload -- shapes this app
+           already keeps (v3.3.280 keeps warm-up lines precisely because they
+           are part of the session). Only the top needs bounding, and that is
+           the side the guardrail was ever really about: never ask for weight
+           nobody has lifted. Under the ceiling, the writer is trusted. */
+        const hi=best*(1+WRITER_LOAD_BAND);
+        if(kg>hi){                                                                                                          // guardrail 3
+          const shown=l.unit==='kg'?hi:l.unit==='lb'?hi*LB:(isLb()?hi*LB:hi);
+          notes.push(`${r.ex}: ${l.w}${l.unit||''} is over 10% above your ${wDisp(best)} ${U()} best, clamped and marked ≈`);
           return {...l, w:+shown.toFixed(1), est:true};
         }
         return l;

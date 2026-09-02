@@ -1,5 +1,23 @@
 # ShowUp — changelog
 
+## v3.3.402 (2026-09-02) — The band has one side
+
+The writer went live and the first real answer paid for a symmetric guardrail.
+It came back with a Chest session in the maker's own shape — 95, 115, 145 under
+a 165 lb best, the first two marked *warm-up* — and the ±10% band clamped every
+warm-up line UP to 148.8 and marked it a guess. The card showed four identical
+working sets where a ramp had been written.
+
+A load lighter than your best is never a leap. It is a warm-up, a back-off, a
+drop set, a deload — shapes this app already keeps (v3.3.280 keeps warm-up
+lines precisely because they are part of the session). Only the ceiling needed
+bounding, and that is the side the guardrail was ever really about: never ask
+for weight nobody has lifted. Under it, the writer is trusted. The prompt says
+the same thing now, and asks for warm-up lines where the record shows them.
+
+Asserted: a ramp of 135 / 185 / 215 under a 215 best survives every line,
+unmarked, with no corrections; a 315 still clamps to 236 and reads ≈.
+
 ## v3.3.401 (2026-09-02) — The writer's function, and the reversal on record
 
 `supabase/functions/write-session/index.ts` — the one server component ShowUp

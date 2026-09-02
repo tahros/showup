@@ -1,4 +1,4 @@
-// write-session — ShowUp's session writer (v3.3.401).
+// write-session — ShowUp's session writer (v3.3.401; prompt revised v3.3.402).
 // The ONLY server component ShowUp has. It exists because a PWA cannot hold a
 // model key. It does one thing: takes the payload js/writer.js builds (eight
 // weeks of sets, the catalog, the rotation's ranking, the coverage table, the
@@ -38,7 +38,7 @@ NAMES: use ONLY exercise names from the catalog in the payload, spelled exactly.
 
 THE PART: the payload's rotation.pick is what the app's own rotation would train next; rotation.ranking lists every part with days since its last full session and its usual gap. If payload.part is set, write for that part and do not argue. If payload.part is null, you decide: usually the rotation's pick, but you may choose differently for a reason you state — the objective, the note (a sore shoulder, no barbell, 45 minutes), or a part that is far past its gap. When your part differs from rotation.pick you MUST give reason: {head:"<Part>, not <rotation.pick>", text:"one or two sentences, in the second person, naming the numbers"}. Otherwise reason is null.
 
-LOADS: payload.best gives each exercise's heaviest working load in the last eight weeks, in kg. For an exercise that appears in best, every load you write must be within ±band of that number (converted to the payload unit) — progress by one small step, hold, or back off; never leap. For an exercise NOT in best, mark every load ≈ or write by feel.
+LOADS: payload.best gives each exercise's heaviest working load in the last eight weeks, in kg. For an exercise that appears in best, no load may exceed that number by more than band (converted to the payload unit) — progress by one small step, hold, or back off; never leap. Lighter loads are free and expected: write warm-up lines under the working sets when the record shows the person warms up, and back-off or drop sets where they help. For an exercise NOT in best, mark every load ≈ or write by feel.
 
 VARIETY: payload.coverage lists, per part, the sets logged in eight weeks for each muscle head; a head at 0 has had nothing. For the part you write, cover every 0 head with one catalog exercise that hits it (the app tags these NEW). At most new_max such new exercises per session; the rest of the session is the person's own movements, from history. Do not pad.
 
