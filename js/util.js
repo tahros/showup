@@ -845,15 +845,59 @@ const planNow=()=>{
   return {...p, items};
 };
 const planFor=ex=>{ const p=planNow(); return p?(p.items||[]).find(i=>i.ex===ex)||null:null; };
-function planSave(items,note,raw){
-  DB.plan={d:todayISO, items:items||[], note:note||'', raw:raw||''};
+/* ============ v3.3.397: THE LEDGER DECIDES WHAT "TODAY" MEANS ============
+   At 10 PM with Chest already in the record, "today's plan" is a plan for a
+   day that is over. The clock cannot tell; the ledger can, and it already
+   drives the greeting (v3.3.66: it leaves the moment the first set lands) and
+   the whole shape of Today (logged / not logged). One rule, no timer, no
+   "night mode":  nothing logged today -> the plan is for today; sets in the
+   record, or the day closed -> the plan is for TOMORROW.
+   A tomorrow plan is the same object with tomorrow's stamp. planNow() already
+   ignores any stamp that is not today, so it lies dormant tonight and is
+   simply there at 00:00 -- the mechanism v3.3.278 built for expiry does the
+   waking too. Nothing new is stored, and nothing is counted: a plan for a
+   day that has not come is still a note, never a debt. */
+const tomorrowISO=()=>{ const d=new Date(todayISO+'T00:00'); d.setDate(d.getDate()+1); return d.toLocaleDateString('en-CA'); };
+function writeDateISO(){
+  const logged=(((DB.days[todayISO]||{}).w)||[]).length>0;
+  const closed=DB.settings.dayDone===todayISO;
+  return (logged||closed)?tomorrowISO():todayISO;
+}
+/* a plan stamped for a day after today: shown as one quiet line, never read
+   by the rails, never scored. null unless there is one. */
+function planPending(){
+  const p=DB.plan;
+  if(!p||!(p.d>todayISO)) return null;
+  const items=(p.items||[]).map(planItemShape);
+  if(!items.length&&!p.note) return null;
+  return {...p, items};
+}
+/* the Suggested rail is fed for TODAY's plan only. A tomorrow plan feeds it
+   when tomorrow comes: this is idempotent and cheap, so Today calls it on
+   every render rather than trusting a midnight hook to have fired. */
+function planWake(){
+  const p=planNow(); if(!p) return false;
+  const rail=sugOv(); let fed=false;
+  for(const i of (p.items||[])){
+    const sets=planSets(i);
+    if(!sets.length||rail[i.ex]) continue;
+    rail[i.ex]={sets, d:todayISO, from:'plan'}; fed=true;
+  }
+  if(fed) save(true);
+  return fed;
+}
+function planSave(items,note,raw,d){
+  d=d||todayISO;
+  DB.plan={d, items:items||[], note:note||'', raw:raw||''};
   /* feed the rail that already exists. sugOv() is "use THESE sets for this
      exercise, today" — same today-only life as a plan, already wired to the
      Suggested chips, already tappable to log. A plan does not need a second
      mechanism; it needs to be a second SOURCE for this one. `from:'plan'` is
      what lets the panel name its origin instead of pretending it is your
-     history. */
-  for(const i of (items||[])){
+     history.
+     v3.3.397: only when the plan IS today's. A plan for tomorrow must not
+     put tomorrow's sets on today's chips; planWake() feeds them at 00:00. */
+  if(d===todayISO) for(const i of (items||[])){
     const sets=planSets(i);
     if(!sets.length) continue;
     sugOv()[i.ex]={sets, d:todayISO, from:'plan'};

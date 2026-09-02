@@ -81,9 +81,19 @@ function planSectionHTML(){
            One line either way, and the offer sits exactly where the controls
            for a real plan will appear. */
         h+=`<h2 class="quiet"><b class="scopepill off">today</b> plan${hActs('plan',"Paste a session and the app reads what it can. It fills weights and reps for today only, is never written to your record, and clears at midnight. Nothing is counted against it.",'About today\u2019s plan')}<span class="planedge"><button class="pedge" data-planpaste>Paste</button></span></h2>`;
+        /* v3.3.397: a plan written for tomorrow (the ledger rule) waits here
+           as one line. It names the day, counts its exercises, and says when
+           it opens. Tapping it does nothing today; there is nothing to do. */
+        const _pp=planPending();
+        if(_pp){
+          const _n=(_pp.items||[]).length;
+          h+=`<div class="row spread card planpending" style="padding:11px 14px"><span class="mono muted" style="font-size:12px">${planDayLabel(_pp.d)} \u00b7 written, opens at midnight</span><span class="mono" style="font-size:12px;color:var(--faint)">${_n?`${_n} exercise${_n===1?'':'s'}`:'a note'}</span></div>`;
+        }
       }
   return h;
 }
+/* "Sep 2" -- the day a plan is for, as the seg and the pending line say it */
+function planDayLabel(iso){ const [y,m,d]=iso.split('-').map(Number); return new Date(y,m-1,d).toLocaleDateString('en-US',{month:'short',day:'numeric'}); }
 
 function renderLift(){
   /* recorded on the way THROUGH, so it is always the screen actually shown */
@@ -764,7 +774,9 @@ function moGoalCardHTML(){
 function planScreenHTML(){
   if(lift.plan==='paste'){
     const cur=(planNow()||{}).raw||lift.planText||'';
-    return `<h2>Paste today\u2019s plan</h2>
+    /* v3.3.397: the paste names the day it is for; the ledger picks it */
+    const _wd=writeDateISO();
+    return `<h2>${_wd===todayISO?'Paste today\u2019s plan':`Paste a plan for ${planDayLabel(_wd)}`}</h2>
       <div class="card">
         <textarea id="planText" class="planta" rows="12" placeholder="Paste a session — from a coach, a forum, anywhere.">${hesc(cur)}</textarea>
         <div class="planacts">
@@ -798,7 +810,7 @@ function planScreenHTML(){
     }
   });
   h+=`<div class="planacts">
-      <button class="btn wide" data-planaccept>Use today\u2019s plan</button>
+      <button class="btn wide" data-planaccept>${writeDateISO()===todayISO?'Use today\u2019s plan':`Use this for ${planDayLabel(writeDateISO())}`}</button>
       <button class="btn ghost" data-planedit>Edit</button>
       <button class="btn ghost" data-planback>Cancel</button>
     </div></div>`;

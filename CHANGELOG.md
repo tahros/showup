@@ -1,5 +1,22 @@
 # ShowUp — changelog
 
+## v3.3.397 (2026-09-02) — The ledger decides what "today" means
+
+A plan pasted at 10 PM, after today's sets are in the record, is a plan for a
+day that is over. The clock cannot tell; the ledger can, and it already drives
+the greeting and the shape of Today. One rule: nothing logged today, the plan
+is for today; sets in the record or the day closed, the plan is for tomorrow.
+
+A tomorrow plan is the same object with tomorrow's stamp. `planNow()` already
+ignores any stamp that is not today's, so it lies dormant tonight — one quiet
+line on Today, *Sep 2 · written, opens at midnight* — and is simply there at
+00:00 through the expiry mechanism v3.3.278 built. The Suggested rail is fed
+when the day comes, not before. The paste screen and its button name the day
+they are for. Nothing new is stored and nothing is counted: a plan for a day
+that has not come is still a note, never a debt.
+
+Groundwork for the session writer, which stamps the same way.
+
 ## v3.3.396 (2026-09-01) — A belt survives to the screen, and candidates get their own line
 
 Two faults in today's plan, found while running a real week through the

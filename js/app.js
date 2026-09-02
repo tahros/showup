@@ -315,9 +315,11 @@ document.addEventListener('click',e=>{
   if(e.target.closest&&e.target.closest('[data-planaccept]')){
     const {items,note}=planItemsFrom(lift.planRows||[]);
     if(!items.length&&!note.trim()){ toast('Nothing to keep'); return; }
-    planSave(items,note,lift.planText||'');
+    /* v3.3.397: stamped with the day the ledger says it is for */
+    const _wd=writeDateISO();
+    planSave(items,note,lift.planText||'',_wd);
     lift.plan=null; lift.planRows=null;
-    toast(items.length?`Plan set — ${items.length} exercise${items.length>1?'s':''}`:'Kept as a note');
+    toast(items.length?`Plan set${_wd===todayISO?'':' for '+planDayLabel(_wd)} — ${items.length} exercise${items.length>1?'s':''}`:'Kept as a note');
     return render();
   }
   if(e.target.closest&&e.target.closest('[data-planfold]')){
