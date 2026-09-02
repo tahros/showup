@@ -82,7 +82,7 @@ ok("...under 60 KB", JSON.stringify(pay).length<60000, JSON.stringify(pay).lengt
 
 /* ---- guardrails on stubbed answers ---- */
 const check = (resp) => run(`(function(){try{ const o=writerState(); const p=writerPayload(o); const r=writerCheck(${JSON.stringify(resp)},{payload:p});
-  return JSON.stringify({ok:true, ex:r.rows.filter(x=>x.kind==='ex'&&x.ex).map(x=>x.ex), notes:r.notes, reason:r.reason, est:r.rows.filter(x=>x.kind==='ex'&&x.ex).map(x=>({ex:x.ex,est:x.lines.some(l=>l.est),w:x.lines[0]&&x.lines[0].w}))});
+  return JSON.stringify({ok:true, ex:r.rows.filter(x=>x.kind==='ex'&&x.ex).map(x=>x.ex), notes:r.notes, reason:r.reason, est:r.rows.filter(x=>x.kind==='ex'&&x.ex).map(x=>({ex:x.ex,est:x.lines.some(l=>l.est),w:x.lines[0]&&x.lines[0].w,ws:x.lines.map(l=>l.w)}))});
   }catch(e){ return JSON.stringify({ok:false, refused:e.refused||String(e)}); }})()`);
 const today = run(`todayISO`);
 let r = JSON.parse(check({days:[{date:today,part:'Back',title:'Back',text:"Deadlift\n  220 lb x 5 5 5\n\nBent-Over Row\n  175 lb x 10 10\n\nCable Pullover\n  40 lb x 12 12"}]}));
@@ -111,6 +111,10 @@ ok("...every load leaves in your unit, best and history too: 100 kg is 220.5 lb"
    pay.unit==='lb' && pay.best.Deadlift===220.5 && pay.history.some(h=>h[2]==='Deadlift'&&h[3]===220.5) && !pay.history.some(h=>h[2]==='Deadlift'&&(h[3]===100||h[3]===90)),
    JSON.stringify([pay.best.Deadlift, pay.history.find(h=>h[2]==='Deadlift')]));
 ok("...and the step is named in that unit", pay.step===5);
+ok("...and each exercise carries its own real increment", pay.steps.Squat===10 && pay.steps['Romanian Deadlift']===10 && pay.steps['Cable Fly Up']===5,
+   JSON.stringify({Squat:pay.steps.Squat,RDL:pay.steps['Romanian Deadlift'],Cable:pay.steps['Cable Fly Up']}));
+ok("...and the next loadable barbell weight is computed, not guessed", pay.next.Squat===215,
+   JSON.stringify({last:pay.last.Squat,next:pay.next.Squat}));
 ok("...in kg it is 2.5", run(`(function(){DB.settings.unit='kg'; const p=writerPayload(writerState()); DB.settings.unit='lb'; return p.step===2.5 && p.best.Deadlift===100 && p.last.Deadlift[1][0][0]===90;})()`));
 /* a light cable lift: 20 lb once, last week */
 run(`(function(){const d=new Date(todayISO+'T00:00'); d.setDate(d.getDate()-1); const iso=d.toLocaleDateString('en-CA');
@@ -197,6 +201,21 @@ ok("...but a note that NAMES the exercise is",
 r = JSON.parse(checkNoted({days:[{date:today,part:'Legs',title:'Legs',text:"Squat\n  185 lb x 8 8 8 8"}],reason:{head:'Legs',text:'legs are due'}}, "legs tomorrow"));
 ok("...and a day-note no longer excuses going backward either (14)",
    r.ok && r.notes.some(n=>/Squat: written at 185 lb, under your last 200 lb, with no reason given/.test(n)), JSON.stringify(r.notes));
+/* v3.3.417: the real failure was not an exact repeat. Last was 195 / 155;
+   the writer added its generic 5 and returned 200 / 160. Both are progress,
+   so guardrail 16 correctly ignored them, but neither is the next face on a
+   45 lb bar with 10 lb jumps. Rebuild the last session exactly as reported. */
+run(`(function(){const d=new Date(todayISO+'T00:00'); d.setDate(d.getDate()-1); const iso=d.toLocaleDateString('en-CA');
+  DB.days[iso].w=DB.days[iso].w.filter(x=>x.ex!=='Squat'&&x.ex!=='Romanian Deadlift');
+  DB.days[iso].w.push({part:'Legs',ex:'Squat',w:195/LB,reps:[8,8,8,8],at:3},{part:'Legs',ex:'Romanian Deadlift',w:155/LB,reps:[8,8,8],at:4});
+  save(true); SEED=deriveAll();})()`);
+r = JSON.parse(check({days:[{date:today,part:'Legs',title:'Legs',text:"Squat\n  135 lb x 8 (warm-up)\n  200 lb x 8 8 8 8\n\nRomanian Deadlift\n  160 lb x 8 8 8"}],reason:{head:'Legs',text:'legs are due'}}));
+ok("17 · Squat 200 after 195 is corrected to the next 10 lb barbell face, 205",
+   r.ok && r.est[0].ex==='Squat' && r.est[0].ws[1]===205, JSON.stringify(r.est[0]));
+ok("...Romanian Deadlift 160 after 155 is corrected to 165",
+   r.ok && r.est[1].ex==='Romanian Deadlift' && r.est[1].ws[0]===165, JSON.stringify(r.est[1]));
+ok("...and the read-back explains both corrections",
+   r.notes.some(n=>/Squat: 200 lb.*stepped up to 205 lb/.test(n)) && r.notes.some(n=>/Romanian Deadlift: 160 lb.*stepped up to 165 lb/.test(n)), JSON.stringify(r.notes));
 r = JSON.parse(check({days:[{date:today,part:'Chest',title:'Chest',text:"Barbell Bench Press\n  155 lb x 8\n\nCable Fly Up\n  20 lb x 6 6 6 (form)"}],reason:chestReason}));
 ok("...and a reason clears that too", r.ok && !r.notes.some(n=>/no reason given/.test(n)), JSON.stringify(r.notes));
 /* the flagged note reaches the read-back */
@@ -204,6 +223,7 @@ run(`(function(){const o=writerState(); const p=writerPayload(o);
   const rr=writerCheck({days:[{date:'${today}',part:'Chest',title:'Chest',text:"Barbell Bench Press\\n  155 lb x 8\\n\\nCable Fly Up\\n  15 lb x 10 10 10"}]},{payload:Object.assign(p,{part:'Chest'})});
   lift.planSource='writer'; lift.planNotes=rr.notes; lift.planReason=null; lift.planDate=todayISO; lift.planText=''; lift.planRows=rr.rows; lift.plan='preview'; lift.planScope='today'; render();})()`);
 ok("...and the read-back shows the writer's notes above the buttons", /under your last 20 lb/.test(run(`(document.querySelector('.plannotes')||{}).textContent||''`)) && run(`(function(){const n=document.querySelector('.plannotes'), a=document.querySelector('.planacts'); return !!n&&!!a&&(n.compareDocumentPosition(a)&Node.DOCUMENT_POSITION_FOLLOWING)>0;})()`), run(`(document.querySelector('.plannotes')||{}).textContent||''`));
+ok("...and it does not expose the internal build number", !/checked by/i.test(run(`document.getElementById('view').textContent`)) && !fs.readFileSync(path.join(dir,'js','lift.js'),'utf8').includes('planchk'));
 run(`(function(){const d=new Date(todayISO+'T00:00'); d.setDate(d.getDate()-1); const iso=d.toLocaleDateString('en-CA'); DB.days[iso].w=DB.days[iso].w.filter(x=>x.ex!=='Cable Fly Up'); save(true); SEED=deriveAll(); lift.plan=null; lift.planNotes=null; lift.planSource=null; lift.plan='write'; render();})()`);
 /* v3.3.402: the band has ONE side. The first live answer came back with the
    maker's own warm-up ramp under his best, and a symmetric band clamped every

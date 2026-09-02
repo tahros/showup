@@ -125,8 +125,13 @@ function writerPayload(o){
      converting, so history, best and last go out in the unit it writes in,
      and the step is named in that unit (5 lb or 2.5 kg). */
   const inU=v=>U()==='lb'?+((+v||0)*LB).toFixed(1):+(+v||0).toFixed(2);
-  const last={};
-  for(const [ex,ls] of Object.entries(SEED.lastSess||{})) if(ex!=='Run'&&ls&&ls.rows&&ls.rows.length) last[ex]=[ls.d, ls.rows.map(r=>[inU(r[0]), r[1]])];
+  const last={}, steps={}, next={};
+  for(const list of Object.values(catalog)) for(const ex of list) steps[ex]=wStep(ex);
+  for(const [ex,ls] of Object.entries(SEED.lastSess||{})) if(ex!=='Run'&&ls&&ls.rows&&ls.rows.length){
+    last[ex]=[ls.d, ls.rows.map(r=>[inU(r[0]), r[1]])];
+    const top=Math.max(...ls.rows.map(r=>+r[0]||0));
+    if(top>0) next[ex]=inU(nextFaceAbove(top,ex));
+  }
   /* the eight-week best per exercise, precomputed: the band the loads must
      sit in is a number the writer should not have to derive from raw rows */
   const best={}; for(const h of history) if(h[5]!=='s'&&h[3]>best[h[2]]) best[h[2]]=h[3]; for(const h of history) if(!(h[2] in best)) best[h[2]]=h[3];
@@ -139,7 +144,7 @@ function writerPayload(o){
     focus:o.scope==='week'?(o.focus?[...o.focus]:[]):[],
     rotation:{pick:P.pick, addon:P.addon, ranking},
     objective:o.objective, note:(o.note||'').trim().slice(0,400),
-    catalog, heads, history, best, last, coverage, new_days:WRITER_HISTORY_DAYS, band:WRITER_LOAD_BAND, step:U()==='lb'?5:WRITER_STEP_KG, new_max:WRITER_NEW_MAX
+    catalog, heads, history, best, last, steps, next, coverage, new_days:WRITER_HISTORY_DAYS, band:WRITER_LOAD_BAND, step:U()==='lb'?5:WRITER_STEP_KG, new_max:WRITER_NEW_MAX
   };
 }
 
@@ -275,7 +280,23 @@ function writerCheck(resp, ctx){
         const top=Math.max(...work.map(kgOf)), lastTop=Math.max(...ls.rows.map(x=>+x[0]||0));
         const noteNames=(payload.note||'').toLowerCase().includes(r.ex.toLowerCase());
         const reasoned=(r.lines||[]).some(l=>l.qual&&!isWarm(l))||noteNames;   // "(warm-up)" is not a reason
-        if(lastTop>0&&top<lastTop-0.3&&!reasoned)
+        const nextTop=lastTop>0?nextFaceAbove(lastTop,r.ex):0;
+        /* v3.3.417: A PARTIAL STEP IS NOT A STEP. The writer was still given
+           the generic 5 lb pin/dumbbell increment and returned 200 after a
+           195 Squat, and 160 after a 155 Romanian Deadlift. Those numbers are
+           above the previous load, so the repeat guard below could not see
+           them; but both sit between faces on this maker's 10 lb barbell
+           grid. A writer-created load must be loadable: move only the top
+           working line to the next face. Typed ledger weights stay untouched. */
+        if(lastTop>0&&top>lastTop+0.3&&top<nextTop-0.3){
+          const inUnit=l=>l.unit==='kg'?nextTop:l.unit==='lb'?nextTop*LB:(isLb()?nextTop*LB:nextTop);
+          const shownOld=wDisp(top), shownNew=wDisp(nextTop);
+          r.lines=(r.lines||[]).map(l=>{
+            const isTop=!l.nw&&!l.bw&&!isHold(l.su)&&l.w>0&&!isWarm(l)&&Math.abs(kgOf(l)-top)<=0.3;
+            return isTop?{...l,w:+inUnit(l).toFixed(1)}:l;
+          });
+          notes.push(`${r.ex}: ${shownOld} ${U()} falls between your last load and the next rack weight — stepped up to ${shownNew} ${U()}`);
+        }else if(lastTop>0&&top<lastTop-0.3&&!reasoned)
           notes.push(`${r.ex}: written at ${wDisp(top)} ${U()}, under your last ${wDisp(lastTop)} ${U()}, with no reason given`);   // guardrail 14
         else if(lastTop>0&&Math.abs(top-lastTop)<=0.3){
           /* v3.3.416: TOTAL REPS AT THE TOP LOAD, not the first set. 14b and 16

@@ -918,13 +918,6 @@ function planScreenHTML(){
      them; a clamp showed as \u2248 with no why. */
   const _pn=(lift.planSource==='writer'&&Array.isArray(lift.planNotes))?lift.planNotes:[];
   if(_pn.length) h+=`<div class="plannotes">${_pn.map(n=>`<div class="mono">\u00b7 ${hesc(n)}</div>`).join('')}</div>`;
-  /* v3.3.416: the writer's read-back names the build that checked it. Three
-     screenshots in a row showed the same numbers while three releases went
-     out, and nothing on screen could say whether the fix had reached the
-     device or been served stale by the service worker. Faint, mono, one
-     line -- the same fact Settings' footer carries, put where the argument
-     actually happens. */
-  if(lift.planSource==='writer') h+=`<div class="mono planchk">checked by ${APP_VERSION}</div>`;
   h+=`<div class="planacts">
       <button class="btn wide" data-planaccept>${lift.planMode==='week'?'Use this week':writeDateISO()===todayISO?'Use today\u2019s plan':`Use this for ${planDayLabel(writeDateISO())}`}</button>
       <button class="btn ghost" data-planedit>Edit</button>

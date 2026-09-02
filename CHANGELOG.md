@@ -1,5 +1,17 @@
 # ShowUp — changelog
 
+## v3.3.417 (2026-09-02) — The writer uses weights the rack can make
+
+The writer now receives the exact next loadable weight for every exercise,
+instead of one generic 5 lb hint. After a 195 lb Squat it writes 205 lb; after
+a 155 lb Romanian Deadlift it writes 165 lb.
+
+The phone checks this too. If a written plan still lands between two barbell
+weights, it moves the working sets to the next real rack weight before the
+plan is shown. Warm-ups are left alone.
+
+The internal “checked by…” build label is gone from the read-back.
+
 ## v3.3.416 (2026-09-02) — The writer explains every repeat
 
 When the writer hands back the same load as last time, the read-back now says
