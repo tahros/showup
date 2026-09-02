@@ -41,3 +41,10 @@ index.html + css/ + js/ + sw.js only.
 - Line-anchor CSS regexes (`^\s*\.foo\{`). A bare `\.foo\{` also matches
   `header.live .foo{...}` and will read the wrong rule.
 - Fixtures must not key off the wall clock; scope to `todayISO` explicitly.
+
+## Shipping
+
+How to get a release onto `main` — including what to do when the session
+cannot push at all — is in [`SHIPPING.md`](../SHIPPING.md) at the repo root.
+Read §1 first; it tells you in twenty seconds which of the three write paths
+you have.
