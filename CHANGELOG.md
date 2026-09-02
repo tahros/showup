@@ -1,5 +1,11 @@
 # ShowUp — changelog
 
+## v3.3.415 (2026-09-02) — The writer's push actually fires
+
+A note in the ask screen — any note — was quietly excusing every exercise from
+the push rule. "Legs tomorrow" is not a reason to hold your Squat at 200. Now
+a note only counts as a reason for an exercise it names.
+
 ## v3.3.414 (2026-09-02) — Barbells step in 10s again; the row says less
 
 - **Barbell steps are back to 10 lb.** The bar stays 45.

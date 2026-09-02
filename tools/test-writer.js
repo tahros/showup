@@ -164,6 +164,24 @@ ok("16b · a barbell repeat steps to the next FACE above, not last plus the step
    r.ok && r.est[0].ex==='Squat' && r.est[0].w===205, JSON.stringify(r.est[0]));
 ok("...and the read-back names 205",
    r.notes.some(n=>/Squat: the writer repeated your last 200 lb for 8 reps with no reason — stepped up to 205 lb/.test(n)), JSON.stringify(r.notes));
+/* v3.3.415: A REASON NAMES ITS EXERCISE. The maker's Squat came back at 200
+   TWICE after guardrail 16 shipped. Cause: `|| !!payload.note` -- any note
+   typed in the ask screen counted as a reason for every exercise and silenced
+   14, 14b and 16 wholesale. Nothing here had ever combined a note with a
+   repeat, so the suite was green through both releases. */
+const checkNoted = (resp, note) => run(`(function(){try{ const o=writerState(); o.note=${JSON.stringify(note)}; const p=writerPayload(o); const r=writerCheck(${JSON.stringify(resp)},{payload:p});
+  return JSON.stringify({ok:true, notes:r.notes, est:r.rows.filter(x=>x.kind==='ex'&&x.ex).map(x=>({ex:x.ex,w:x.lines[0]&&x.lines[0].w}))});
+  }catch(e){ return JSON.stringify({ok:false, refused:e.refused||String(e)}); }})()`);
+r = JSON.parse(checkNoted({days:[{date:today,part:'Legs',title:'Legs',text:"Squat\n  200 lb x 8 8 8 8"}],reason:{head:'Legs',text:'legs are due'}}, "legs tomorrow, keep it to an hour"));
+ok("16c · a note about the DAY is not a reason to hold the Squat",
+   r.ok && r.est[0].w===205 && r.notes.some(n=>/Squat.*stepped up to 205/.test(n)), JSON.stringify(r.est[0])+' '+JSON.stringify(r.notes));
+r = JSON.parse(checkNoted({days:[{date:today,part:'Legs',title:'Legs',text:"Squat\n  200 lb x 8 8 8 8"}],reason:{head:'Legs',text:'legs are due'}}, "hold the squat at 200, knee is sore"));
+ok("...but a note that NAMES the exercise is",
+   r.ok && r.est[0].w===200 && !r.notes.some(n=>/stepped up/.test(n)), JSON.stringify(r.est[0])+' '+JSON.stringify(r.notes));
+/* and the same hole applied to guardrail 14: a day-note excused going backward */
+r = JSON.parse(checkNoted({days:[{date:today,part:'Legs',title:'Legs',text:"Squat\n  185 lb x 8 8 8 8"}],reason:{head:'Legs',text:'legs are due'}}, "legs tomorrow"));
+ok("...and a day-note no longer excuses going backward either (14)",
+   r.ok && r.notes.some(n=>/Squat: written at 185 lb, under your last 200 lb, with no reason given/.test(n)), JSON.stringify(r.notes));
 r = JSON.parse(check({days:[{date:today,part:'Chest',title:'Chest',text:"Barbell Bench Press\n  155 lb x 8\n\nCable Fly Up\n  20 lb x 6 6 6 (form)"}],reason:chestReason}));
 ok("...and a reason clears that too", r.ok && !r.notes.some(n=>/no reason given/.test(n)), JSON.stringify(r.notes));
 /* the flagged note reaches the read-back */

@@ -265,7 +265,17 @@ function writerCheck(resp, ctx){
         if(work.length){
           const kgOf=l=>l.unit==='kg'?l.w:l.unit==='lb'?l.w/LB:toKg(l.w);
           const top=Math.max(...work.map(kgOf)), lastTop=Math.max(...ls.rows.map(x=>+x[0]||0));
-          const reasoned=(r.lines||[]).some(l=>l.qual&&!isWarm(l))||!!payload.note;   // "(warm-up)" is not a reason
+          /* v3.3.415: A REASON NAMES ITS EXERCISE. This read `|| !!payload.note`
+             -- so ANY note typed in the ask screen ("legs tomorrow") counted as
+             a reason for EVERY exercise in the session and silenced guardrails
+             14, 14b and 16 wholesale. That is how a Squat came back at 200
+             twice after 16 shipped: the maker had written a note, and the
+             note excused the repeat without mentioning squats. The rule that
+             guardrail 15 already uses is the right one -- the note has to name
+             the exercise -- so a note about the day is not a reason, and a
+             note that says "Squat: hold, knee" is. */
+          const noteNames=(payload.note||'').toLowerCase().includes(r.ex.toLowerCase());
+          const reasoned=(r.lines||[]).some(l=>l.qual&&!isWarm(l))||noteNames;   // "(warm-up)" is not a reason
           if(lastTop>0&&top<lastTop-0.3&&!reasoned)
             notes.push(`${r.ex}: written at ${wDisp(top)} ${U()}, under your last ${wDisp(lastTop)} ${U()}, with no reason given`);   // guardrail 14
           else if(lastTop>0&&Math.abs(top-lastTop)<=0.3&&!reasoned){
