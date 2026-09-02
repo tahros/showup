@@ -153,8 +153,16 @@ ok("...and a warm-up ramp under the best survives, every line, unmarked",
    r.ok && JSON.stringify(r.w)==='[135,185,215]' && r.est.every(x=>!x) && !r.notes.length, JSON.stringify(r));
 /* Chest: the ledger has Barbell Bench Press, so the 'chest' head has work;
    Machine Chest Press is the same head and has never been lifted. */
+/* v3.3.410: NEW is for an empty head. Three live probes in a row put a Dip in
+   an incline session whose heads were all covered; the prompt said not to,
+   twice. A new movement whose head already has work is left out -- unless
+   the note asked for it, in which case guardrail 4 marks its load ≈. */
 r = JSON.parse(check({days:[{date:today,part:'Chest',title:'Chest',text:"Barbell Bench Press\n  150 lb x 8\n\nMachine Chest Press\n  120 lb x 10 10"}],reason:{head:'Chest, not Back',text:'chest is furthest out'}}));
-ok("4 · a load for an exercise never lifted, in a head that HAS work, is ≈", r.ok && r.est[1].ex==='Machine Chest Press' && r.est[1].est===true && !r.est[0].est, JSON.stringify(r.est)+' '+JSON.stringify(r.notes));
+ok("15 · a new movement for a head that already has work is left out, and said so", r.ok && r.ex.join()==='Barbell Bench Press' && r.notes.some(n=>/Machine Chest Press: new, and chest already has work/.test(n)), JSON.stringify(r.ex)+' '+JSON.stringify(r.notes));
+run(`writerState().note='try the Machine Chest Press today'`);
+r = JSON.parse(check({days:[{date:today,part:'Chest',title:'Chest',text:"Barbell Bench Press\n  150 lb x 8\n\nMachine Chest Press\n  120 lb x 10 10"}],reason:{head:'Chest, not Back',text:'chest is furthest out'}}));
+ok("4 · asked for in the note, it stays, and a load for an exercise never lifted, in a head that HAS work, is ≈", r.ok && r.est[1] && r.est[1].ex==='Machine Chest Press' && r.est[1].est===true && !r.est[0].est, JSON.stringify(r.est)+' '+JSON.stringify(r.notes));
+run(`writerState().note=''`);
 /* v3.3.405: ≈ claims a guess FROM something. With the whole head empty there is
    nothing to guess from, and a number is invented. The live writer offered
    ≈135 lb for a Standing Calf Raise on a ledger with no calf work at all. */

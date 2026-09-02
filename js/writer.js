@@ -200,7 +200,19 @@ function writerCheck(resp, ctx){
     rows=rows.map(r=>{
       if(r.kind!=='ex') return r;
       if(!r.ex){ notes.push(`${r.name}: not in your exercises, kept as a note`); return {kind:'note', raw:r.raw}; }   // guardrail 1
-      if(exIsNew(r.ex)){ newCount++; if(newCount>WRITER_NEW_MAX){ notes.push(`${r.ex}: a third new movement, kept as a note`); return {kind:'note', raw:r.raw}; } }   // guardrail 7
+      if(exIsNew(r.ex)){
+        /* v3.3.410: NEW IS FOR AN EMPTY HEAD. A movement you have not done in
+           eight weeks earns its place one way: the muscle head it trains has
+           nothing on record (VARIETY), or you asked for it in the note. The
+           writer, told this twice in the prompt, still dropped a Dip into an
+           incline session whose heads were all covered -- three live probes
+           out of three. Words did not hold; the device does. */
+        const head=exMuscle(r.ex, part);
+        const headWork=((payload.coverage||{})[part]||{})[head]||0;
+        const asked=(payload.note||'').toLowerCase().includes(r.ex.toLowerCase());
+        if(headWork&&!asked){ notes.push(`${r.ex}: new, and ${head} already has work — left out (ask for it in the note if you want it)`); return {kind:'note', raw:r.raw}; }   // guardrail 15
+        newCount++; if(newCount>WRITER_NEW_MAX){ notes.push(`${r.ex}: a third new movement, kept as a note`); return {kind:'note', raw:r.raw}; }   // guardrail 7
+      }
       const best=writerBest(r.ex);
       r.lines=(r.lines||[]).map(l=>{
         if(l.nw||l.bw||isHold(l.su)||!(l.w>0)) return l;

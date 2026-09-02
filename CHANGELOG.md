@@ -1,5 +1,23 @@
 # ShowUp — changelog
 
+## v3.3.410 (2026-09-02) — NEW is for an empty head
+
+The v3.3.409 probe, same ledger, is the answer you asked for: Incline
+Dumbbell Bench Press 55 lb × 8 8 7 6, Incline Smith 95 × 8 8 8, Cable Fly
+Up 25 × 12 10 10, Chest Fly 105 × 10 10 10, no notes. And a Dip, again, in
+an incline session whose heads were all covered — the third live probe out
+of three, with the prompt saying not to in two places.
+
+Words did not hold, so the device does. Guardrail 15: a movement you have
+not done in eight weeks earns its place one way — the muscle head it trains
+has nothing on record, which is what NEW is for — or you asked for it in
+the note. Otherwise it is left out, and the read-back says so: *Dip: new,
+and chest already has work — left out (ask for it in the note if you want
+it)*. When the note does ask, guardrail 4 still marks its load ≈.
+
+Tests: test-writer.js 77 → 78 (left out without a note; kept and ≈ with
+one), probed.
+
 ## v3.3.409 (2026-09-02) — Loads leave in your unit
 
 The v3.3.408 probe, same ledger, came back better — Incline Smith stepped to
