@@ -891,7 +891,7 @@ if "TABS=['today'" in _util:
 # This guard is the part that lasts: a new day-square added next year gets it
 # right by default, or this fails.
 _SQ_SELECTORS = [".d1sq", ".heatgrid .hc", ".heat i", "#dayDone .ddsq",
-                 ".mcdots i", ".dayclosed .dcsq"]
+                 ".mcdots i", ".dayclosed .dcsq", ".writing .wsq"]   # v3.3.406: the writer's wait draws days too
 _css_flat_sq = _re.sub(r"/\*[\s\S]*?\*/", "", css).replace("\r", "")
 for _sel in _SQ_SELECTORS:
     _m = _re.search(_re.escape(_sel) + r"\s*\{([^}]*)\}", _css_flat_sq)

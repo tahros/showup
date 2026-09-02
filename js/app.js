@@ -295,6 +295,10 @@ document.addEventListener('click',e=>{
   if(e.target.closest&&e.target.closest('[data-planwrite]')){
     lift.write=null; lift.plan='write'; lift.planSource=null; lift.planReason=null; lift.planDate=null; return render();
   }
+  if(lift.plan==='writing'){
+    if(e.target.closest&&e.target.closest('[data-writecancel]')){ writerCancel(); return; }
+    return;   // nothing else on the waiting screen is a control
+  }
   if(lift.plan==='write'){
     const o=writerState(); const ta=document.getElementById('writeNote'); if(ta) o.note=ta.value;
     const q=sel=>e.target.closest&&e.target.closest(sel);

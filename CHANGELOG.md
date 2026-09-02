@@ -1,5 +1,24 @@
 # ShowUp — changelog
 
+## v3.3.406 (2026-09-02) — The wait is a receipt
+
+Tapping Write used to leave you on the ask screen with the button reading
+*Writing…* for anywhere from six to thirteen seconds. Now it takes the screen.
+
+What it shows is what is actually happening. The eight weeks that leave the
+device are drawn as fifty-six squares — the square that means a day, seven
+across, a row per week — lighting up one by one as they are read, under the
+writer's sparkle breathing on the app's one settle curve. Once every week is
+lit, a slow read passes over the rows. Beneath it, one line says where things
+are and changes as the wait goes on: *Reading eight weeks of sets · Weighing
+the rotation · Writing Sep 2*, and, past nine seconds, *First write in a while
+— waking the server*, because that is the true cause of a long wait and a
+spinner that says nothing for thirteen seconds is a lie of omission.
+
+Nothing red, no exclamation marks, no confetti. One button, Cancel, which
+aborts the call and returns you to the ask screen with nothing changed. With
+reduced motion on, every square is lit and nothing moves.
+
 ## v3.3.405 (2026-09-02) — The writer learns where a movement belongs
 
 The first week the writer produced put a **Dip** in an incline chest session.

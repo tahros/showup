@@ -123,7 +123,8 @@ function writerPayload(o){
 async function writeSession(payload){
   if(typeof WRITER_STUB==='function') return WRITER_STUB(payload);        // tests
   if(typeof navigator!=='undefined'&&navigator.onLine===false) throw new Error('offline');
-  const ctl=new AbortController(); const t=setTimeout(()=>ctl.abort(),WRITER_TIMEOUT_MS[payload.scope==='week'?'week':'day']);
+  const ctl=new AbortController(); lift.writeAbort=ctl;
+  const t=setTimeout(()=>ctl.abort(),WRITER_TIMEOUT_MS[payload.scope==='week'?'week':'day']);
   try{
     const tok=(typeof freshToken==='function'?await freshToken():null)||cloudCfg().anon;
     const r=await fetch(cloudCfg().url+WRITER_PATH,{method:'POST',signal:ctl.signal,
@@ -131,7 +132,13 @@ async function writeSession(payload){
       body:JSON.stringify(payload)});
     if(!r.ok) throw new Error('http '+r.status);
     return await r.json();
-  }finally{ clearTimeout(t); }
+  }finally{ clearTimeout(t); lift.writeAbort=null; }
+}
+function writerCancel(){
+  const o=writerState(); o.cancelled=true;
+  if(lift.writeAbort){ try{ lift.writeAbort.abort(); }catch(_e){} }
+  /* the stub path has no controller to abort: settle it here */
+  if(!lift.writeAbort){ writerWaitStop(); o.busy=false; lift.plan='write'; o.err=''; render(); }
 }
 
 /* ---- the guardrails, on the device, before the read-back ----
@@ -272,23 +279,66 @@ function writerScreenHTML(){
     <button class="btn ghost" data-writeback style="margin-top:8px">Cancel</button></div>`;
 }
 
+/* ============ v3.3.406: THE WAIT IS A RECEIPT ============
+   Tapping Write used to leave you on the ask screen with the button reading
+   "Writing…" for six to thirteen seconds. The maker asked for a full screen
+   that says so, with a touch of fun. The fun this app allows is its own
+   material: the square that means a day (v3.3.378, one shape, one ratio), the
+   writer's sparkle, one settle curve. So the screen is the eight weeks that
+   are leaving the device, drawn as 56 squares -- seven across, one row per
+   week -- lighting up one by one as they are "read", under the sparkle
+   breathing. One mono line beneath says what is happening, and changes as
+   the wait goes on, because a cold function takes ~13s and a spinner that
+   says nothing for 13s is a lie of omission. No confetti, no exclamation
+   marks, nothing red (red means live). Cancel at the bottom aborts the call
+   and returns you to the ask screen with nothing changed. Reduced motion:
+   every square lit, nothing moves. */
+const WRITER_STAGES=[[0,'Reading eight weeks of sets'],[2500,'Weighing the rotation'],[5000,null],[9000,'First write in a while \u2014 waking the server'],[20000,'Still writing']];
+function writerWaitHTML(){
+  const o=writerState();
+  const what=o.scope==='week'?'the week':planDayLabel(o.scope==='tomorrow'?tomorrowISO():todayISO);
+  const sq=Array.from({length:56},(_,i)=>`<i class="wsq" style="--i:${i}"></i>`).join('');
+  return `<div class="writing" data-what="${hesc(what)}">
+    <div class="wspark">${icon('sparkle',44)}</div>
+    <div class="wgrid" aria-hidden="true">${sq}</div>
+    <div class="mono wline" id="writeLine">${WRITER_STAGES[0][1]}</div>
+    <button class="btn ghost" data-writecancel>Cancel</button>
+  </div>`;
+}
+let _writeTick=null, _writeT0=0;
+function writerWaitStart(){
+  _writeT0=Date.now(); clearInterval(_writeTick);
+  _writeTick=setInterval(()=>{
+    const el=document.getElementById('writeLine'); if(!el){ clearInterval(_writeTick); return; }
+    const t=Date.now()-_writeT0; const what=(el.closest('.writing')||{}).dataset.what||'';
+    let line=WRITER_STAGES[0][1];
+    for(const [at,txt] of WRITER_STAGES) if(t>=at) line=txt===null?`Writing ${what}`:txt;
+    if(el.textContent!==line) el.textContent=line;
+  },500);
+}
+function writerWaitStop(){ clearInterval(_writeTick); _writeTick=null; }
+
 /* tap Write: build, call, check, hand to the preview */
 async function writerGo(){
   const o=writerState(); if(o.busy) return;
   const ta=document.getElementById('writeNote'); if(ta) o.note=ta.value;
   if(o.scope==='week') writerDays(o);
-  o.busy=true; o.err=''; render();
+  o.busy=true; o.err=''; o.cancelled=false; lift.plan='writing'; render(); writerWaitStart();
   const payload=writerPayload(o);
   try{
     const resp=await writeSession(payload);
+    if(o.cancelled) return;
     const chk=writerCheck(resp,{payload});
     lift.planSource='writer'; lift.planReason=chk.reason; lift.planNotes=chk.notes;
     lift.planText=chk.text; lift.planRows=chk.rows; lift.planDate=chk.date;
     if(chk.week){ lift.planMode='week'; lift.planWeek=chk.week; } else { lift.planMode='day'; lift.planWeek=null; }
-    lift.plan='preview'; o.busy=false;
+    writerWaitStop(); lift.plan='preview'; o.busy=false;
     render();
   }catch(e){
-    o.busy=false;
+    writerWaitStop(); o.busy=false;
+    /* v3.3.406: a cancel is not a failure -- back to the ask screen, quietly */
+    if(o.cancelled){ lift.plan='write'; o.err=''; return render(); }
+    lift.plan='write';
     const msg=(e&&e.refused)?`The writer’s answer was refused: ${e.refused}. Nothing was saved.`
       :(e&&e.name==='AbortError')?'That took too long. The first write in a while is the slow one — tap Write again.'
       :(e&&/offline|Failed to fetch|NetworkError/i.test(String(e&&e.message)))?'Needs signal. The rotation still has an answer.'

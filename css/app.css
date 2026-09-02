@@ -1661,6 +1661,23 @@
   .writecard .seg button{display:flex;flex-direction:column;align-items:center;line-height:1.25;padding:6px 0}
   .writecard .seg button small{font-size:10px;letter-spacing:.04em;opacity:.75}
   .writenext{margin-top:10px;padding:10px 12px}
+  /* v3.3.406: the wait is a receipt -- the eight weeks leaving the device,
+     drawn as the square that means a day, lighting up as they are read. The
+     sparkle breathes on the settle curve; nothing else moves. */
+  .writing{min-height:70vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;padding:24px 0}
+  .writing .wspark{color:var(--accent-ink);animation:wbreathe 1.6s var(--settle) infinite alternate}
+  .writing .wspark .ic{display:block}
+  .writing .wgrid{display:grid;grid-template-columns:repeat(7,16px);gap:5px}
+  .writing .wsq{display:block;width:16px;height:16px;border-radius:var(--sq);background:var(--surface2);
+    animation:wread var(--dur-arrive) var(--settle) calc(var(--i) * 55ms) both,
+              wwave 2.4s var(--settle) calc(3.4s + var(--i) * 40ms) infinite alternate}
+  .writing .wline{font-size:12px;color:var(--muted);letter-spacing:.02em;min-height:1.5em;text-align:center}
+  .writing .btn.ghost{width:auto;padding:10px 22px;margin-top:6px}
+  @keyframes wread{from{background:var(--surface2);transform:scale(.6)}to{background:var(--accent);transform:none}}
+  @keyframes wbreathe{from{transform:scale(1);opacity:.82}to{transform:scale(1.1);opacity:1}}
+  /* once every week is lit, a slow read passes over them, row by row */
+  @keyframes wwave{from{opacity:.55}to{opacity:1}}
+  @media (prefers-reduced-motion:reduce){.writing .wsq{animation:none;background:var(--accent)}.writing .wspark{animation:none}}
   /* v3.3.398: the edge speaks in glyphs. Each is an inline SVG on
      currentColor at the edge's own ink, 17px so it survives a phone at arm's
      length (rev 3 of the spec drew them at 14 and they vanished). A pill is

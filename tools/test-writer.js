@@ -131,11 +131,21 @@ r = JSON.parse(check({days:[]}));
 ok("...an empty answer is refused", !r.ok && /empty/.test(r.refused));
 
 /* ---- the whole flow through the stub: tap Write, read back, accept ---- */
-run(`WRITER_STUB=async(p)=>({days:[{date:p.date,part:'Back',title:'Back + Biceps',text:"Deadlift\\n  215 lb x 5 5 5\\n\\nBent-Over Row\\n  175 lb x 10 10 8 8\\n\\nPull Up\\n  BW +10 x 8 8"}],reason:null});`);
+run(`WRITER_STUB=async(p)=>{ await new Promise(r=>setTimeout(r,120)); return {days:[{date:p.date,part:'Back',title:'Back + Biceps',text:"Deadlift\\n  215 lb x 5 5 5\\n\\nBent-Over Row\\n  175 lb x 10 10 8 8\\n\\nPull Up\\n  BW +10 x 8 8"}],reason:null}; };`);
 run(`(function(){lift.write=null; lift.plan='write'; render(); document.querySelector('[data-writego]').click();})()`);
-ok("Write it shows the wait, on the button", /Writing/.test(run(`document.querySelector('[data-writego]').textContent`)) && run(`document.querySelector('[data-writego]').disabled`));
+/* v3.3.406: the wait is a full screen and a receipt */
+ok("Write it takes the screen over: the wait, not the ask", run(`lift.plan==='writing' && !!document.querySelector('.writing') && !document.querySelector('.writecard')`));
+ok("...eight weeks of squares, the square that means a day", run(`document.querySelectorAll('.writing .wsq').length`)===56 &&
+   run(`[...document.querySelectorAll('.writing .wsq')].every((e,i)=>e.style.getPropertyValue('--i')==String(i))`));
+ok("...the sparkle, and one line that says what is happening", run(`!!document.querySelector('.writing .ic-sparkle')`) &&
+   /Reading eight weeks/.test(run(`document.getElementById('writeLine').textContent`)));
+ok("...no exclamation mark, nothing red", !/!/.test(run(`document.querySelector('.writing').textContent`)) &&
+   !/--record|--live/.test((()=>{ const css=fs.readFileSync(path.join(dir,"css/app.css"),"utf8"); const i=css.indexOf('.writing{'); return css.slice(i, i+1400); })()));
+ok("...and a Cancel that is the only control", run(`document.querySelectorAll('.writing button').length`)===1 && run(`!!document.querySelector('[data-writecancel]')`));
+ok("the square keeps the one ratio, at source", /\.writing \.wsq\{[^}]*border-radius:var\(--sq\)/.test(fs.readFileSync(path.join(dir,"css/app.css"),"utf8")));
+ok("...and reduced motion lights every square and stills the sparkle", /prefers-reduced-motion:reduce\)\{\.writing \.wsq\{animation:none;background:var\(--accent\)\}\.writing \.wspark\{animation:none\}/.test(fs.readFileSync(path.join(dir,"css/app.css"),"utf8")));
 await_(async()=>{
-  await tick(); await tick();
+  for(let i=0;i<20&&run(`lift.plan==='writing'`);i++) await tick();
   ok("the answer lands on the read-back, read from the writer", run(`lift.plan==='preview'`) && /Read from the writer/.test(run(`document.querySelector('#view h2').textContent`)));
   ok("...with every row resolved and no reason header, since the part is the rotation's", run(`document.querySelectorAll('.planpv.ok').length`)===3 && run(`!document.querySelector('.planreason')`));
   ok("...and nothing saved yet", run(`!DB.plan`));
@@ -144,10 +154,15 @@ await_(async()=>{
   ok("...and the record is untouched", run(`(DB.days[todayISO]&&DB.days[todayISO].w||[]).length`)===0);
   ok("...and Train next walks it", /Deadlift/.test(run(`(document.querySelector('.tnextplan')||{}).textContent||''`)));
   run(`planClear()`);
+  /* cancel: back to the ask screen, quietly, nothing saved */
+  run(`(function(){lift.write=null; lift.plan='write'; render(); document.querySelector('[data-writego]').click();})()`);
+  ok("Cancel on the wait returns to the ask screen with no error", run(`(function(){document.querySelector('[data-writecancel]').click(); return lift.plan==='write' && !writerState().err && !writerState().busy;})()`));
+  for(let i=0;i<20;i++) await tick();
+  ok("...and a late answer after a cancel changes nothing", run(`lift.plan==='write' && !DB.plan`));
 
   /* 8 · the stamp follows the ledger */
   run(`(function(){day(todayISO).w.push({part:'Chest',ex:'Barbell Bench Press',w:70,reps:[8],at:1}); save(true); lift.write=null; lift.plan='write'; render(); document.querySelector('[data-writego]').click();})()`);
-  await tick(); await tick();
+  for(let i=0;i<20&&run(`lift.plan==='writing'`);i++) await tick();
   run(`document.querySelector('[data-planaccept]').click()`);
   ok("8 · with a set logged, the written plan is stamped tomorrow and lies dormant", run(`DB.plan.d===tomorrowISO() && planNow()===null && !!planPending()`) && /opens at midnight/.test(run(`document.querySelector('#view').textContent`)));
   run(`(function(){DB.days[todayISO].w=[]; planClear(); save(true);})()`);
