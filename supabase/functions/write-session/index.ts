@@ -1,4 +1,4 @@
-// write-session — ShowUp's session writer (v3.3.401; prompt revised v3.3.402).
+// write-session — ShowUp's session writer (v3.3.401; prompt revised v3.3.402, v3.3.405).
 // The ONLY server component ShowUp has. It exists because a PWA cannot hold a
 // model key. It does one thing: takes the payload js/writer.js builds (eight
 // weeks of sets, the catalog, the rotation's ranking, the coverage table, the
@@ -40,7 +40,15 @@ THE PART: the payload's rotation.pick is what the app's own rotation would train
 
 LOADS: payload.best gives each exercise's heaviest working load in the last eight weeks, in kg. For an exercise that appears in best, no load may exceed that number by more than band (converted to the payload unit) — progress by one small step, hold, or back off; never leap. Lighter loads are free and expected: write warm-up lines under the working sets when the record shows the person warms up, and back-off or drop sets where they help. For an exercise NOT in best, mark every load ≈ or write by feel.
 
-VARIETY: payload.coverage lists, per part, the sets logged in eight weeks for each muscle head; a head at 0 has had nothing. For the part you write, cover every 0 head with one catalog exercise that hits it (the app tags these NEW). At most new_max such new exercises per session; the rest of the session is the person's own movements, from history. Do not pad.
+REGIONS: payload.heads groups every catalog exercise by the muscle head it trains. These are not interchangeable. upper-chest and chest are different heads; lats and upper-back are different; front-, side- and rear-delts are three. A session has an EMPHASIS, and its first two exercises must come from that emphasis's head. Never put another head's signature movement into a day named for one: a Dip is sternal chest and has no place in an incline session, a Lateral Raise is not rear-delt work, a Lat Pulldown is not a row. Accessories later in the session may come from a neighbouring head.
+
+SHAPES: the history is a record of DAYS. Group it by date before you write anything and read how this person actually trains: which exercises appear together, in what order, how often a part comes round, and whether a part has more than one shape — an incline chest day and a flat chest day are two different sessions and each keeps its own movements. Reuse those shapes rather than inventing one. Order exercises the way the record orders them: heaviest compound first, accessories after, core last. When a part has two shapes and the week has room for both, alternate them.
+
+TITLES: name a day the way the record names it if it has a name, otherwise "<Part> + <Part>". When a part has more than one shape, put the variant in brackets so the two can be told apart: "Chest A (incline) + Core", "Chest B (flat) + Laterals + Core".
+
+VARIETY: payload.coverage lists, per part, the sets logged in eight weeks for each muscle head; a head at 0 has had nothing. For the part you write, cover every 0 head with one catalog exercise from THAT head (the app tags these NEW). At most new_max such new exercises per session; the rest of the session is the person's own movements, from history. Do not pad. A movement with no history and no comparable lift to scale from is written "by feel", never with a ≈ number — an invented figure is worse than no figure.
+
+CORE: if the record shows core riding along with other work, use the core movements the record actually uses and vary them across the week; do not repeat one movement every day when the record shows a pair.
 
 OBJECTIVE: grow = 8–12 reps, 3–4 working sets, one progression per session where a load has held for two sessions; lose = 12–15 reps, shorter sessions, supersets are fine, keep the big lifts; strength = 3–6 reps on the main lift with warm-up lines, then 6–10 on accessories; keep = repeat the last session's shape with tiny changes.
 
@@ -73,6 +81,7 @@ band: ${payload.band}. new_max: ${payload.new_max}.
 
 rotation: ${JSON.stringify(payload.rotation)}
 catalog: ${JSON.stringify(payload.catalog)}
+heads (which muscle head each catalog exercise trains): ${JSON.stringify(payload.heads || {})}
 best (kg): ${JSON.stringify(payload.best || {})}
 coverage (sets per muscle head, eight weeks): ${JSON.stringify(payload.coverage)}
 history (date, part, exercise, kg, reps, hold?) — eight weeks:

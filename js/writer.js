@@ -19,7 +19,8 @@
    is refused whole; a load for a lifted exercise never exceeds the
    eight-week best by more than 10%, or is clamped and marked ≈ (lighter is
    free: a warm-up, a back-off, a deload); a load for a never-lifted
-   exercise is always ≈; at most two NEW movements a session; one session
+   exercise is always ≈, and a load for a head with no work at all is no
+   number but "by feel"; at most two NEW movements a session; one session
    per date; the stamp follows the ledger (v3.3.397). Offline, or thirty
    seconds (a week: forty-five) without an answer, the ask screen says "needs signal" and the
    rotation card stands exactly as it did. */
@@ -91,6 +92,16 @@ function writerPayload(o){
   }
   for(const d of Object.keys(SEED.sessions||{})) if(d>=cutISO&&!DB.days[d]) for(const r of SEED.sessions[d]){ if(r[1]==='Run'||!(r[3]||[]).length) continue; history.push([d,r[0],r[1],+(r[2]||0).toFixed(2),r[3],r[7]==='s'?'s':'']); }
   history.sort((a,b)=>a[0]<b[0]?-1:1);
+  /* v3.3.405: WHICH HEAD EACH EXERCISE TRAINS. The app has always known that
+     Incline Bench is upper-chest and a Dip is sternal chest (EX_MUSCLE, since
+     v3.3.357) -- but the writer was only ever handed the COUNTS per head, never
+     the mapping, so it could not tell which movement belonged to which. It put
+     a Dip in an incline session, which is a real programming error and the
+     maker caught it on the first week. The mapping goes out now, grouped by
+     head so the shape of a part is legible at a glance. */
+  const heads={};
+  for(const [p2,list] of Object.entries(catalog))
+    for(const ex of list){ const m=exMuscle(ex,p2); ((heads[p2]=heads[p2]||{})[m]=(heads[p2][m]||[])).push(ex); }
   const coverage={};
   for(const h of history){ const m=exMuscle(h[2],h[1]); (coverage[h[1]]=coverage[h[1]]||{})[m]=((coverage[h[1]]||{})[m]||0)+h[4].length; }
   for(const p of Object.keys(catalog)){ coverage[p]=coverage[p]||{}; for(const ex of catalog[p]){ const m=exMuscle(ex,p); if(!(m in coverage[p])) coverage[p][m]=0; } }
@@ -104,7 +115,7 @@ function writerPayload(o){
     focus:o.scope==='week'?(o.focus?[...o.focus]:[]):[],
     rotation:{pick:P.pick, addon:P.addon, ranking},
     objective:o.objective, note:(o.note||'').trim().slice(0,400),
-    catalog, history, best, coverage, new_days:WRITER_HISTORY_DAYS, band:WRITER_LOAD_BAND, new_max:WRITER_NEW_MAX
+    catalog, heads, history, best, coverage, new_days:WRITER_HISTORY_DAYS, band:WRITER_LOAD_BAND, new_max:WRITER_NEW_MAX
   };
 }
 
@@ -163,7 +174,22 @@ function writerCheck(resp, ctx){
       r.lines=(r.lines||[]).map(l=>{
         if(l.nw||l.bw||isHold(l.su)||!(l.w>0)) return l;
         const kg=l.unit==='kg'?l.w:l.unit==='lb'?l.w/LB:toKg(l.w);
-        if(best<=0){ if(!l.est){ notes.push(`${r.ex}: never lifted here, load marked ≈`); } return {...l, est:true}; }     // guardrail 4
+        if(best<=0){
+          /* v3.3.405: NOTHING TO SCALE FROM MEANS NO NUMBER. ≈ says "a guess
+             from a related lift"; when the whole muscle head is empty there is
+             no related lift, and the number is invented. The writer offered
+             ≈135 lb for a Standing Calf Raise on a ledger with no calf work at
+             all -- a figure with nothing behind it, which the card would then
+             print in the maker's own units as if it meant something. The app
+             turns that into "by feel", which is the honest line and one the
+             plan format already has (v3.3.394). */
+          const head=exMuscle(r.ex, part);
+          const headWork=((payload.coverage||{})[part]||{})[head]||0;
+          if(!headWork){ notes.push(`${r.ex}: nothing on record for ${head}, so no number — by feel`);
+            const {w:_w, est:_e, ...rest}=l; return {...rest, nw:true, w:0}; }              // guardrail 13
+          if(!l.est){ notes.push(`${r.ex}: never lifted here, load marked ≈`); }
+          return {...l, est:true};                                                          // guardrail 4
+        }
         /* v3.3.402: THE BAND HAS ONE SIDE. It was symmetric, and the first
            live answer paid for it: a real Chest session came back with the
            maker's own warm-up ramp -- 95, 115, 145 under a 165 best -- and

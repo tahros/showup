@@ -1,5 +1,35 @@
 # ShowUp — changelog
 
+## v3.3.405 (2026-09-02) — The writer learns where a movement belongs
+
+The first week the writer produced put a **Dip** in an incline chest session.
+A Dip is sternal chest — lower — and belongs with a flat day, which is exactly
+where it sits in the maker's own record. The app has known this since v3.3.357:
+its muscle map already separates upper-chest from chest, lats from upper-back,
+the three delt heads from each other. The writer was never told. It received
+the *counts* per head and no way to know which exercise belonged to which, so
+it grouped by name and feel.
+
+Three changes.
+
+The map now goes out with everything else, grouped by head, so an incline press
+and a Dip are visibly different movements. A session has an emphasis, and its
+first two exercises must come from that emphasis's head.
+
+The writer is told to read the history as **days**, not as a list of sets:
+which exercises appear together, in what order, and whether a part has more
+than one shape. An incline chest day and a flat chest day are two sessions,
+each keeping its own movements, and the week alternates them. Days are titled
+the way the record titles them — *Chest A (incline) + Core* — so two shapes of
+one part can be told apart. Core follows the record's own pairs instead of
+repeating one movement every day.
+
+And a number with nothing behind it is no longer offered. `≈` claims a guess
+scaled from a related lift; when the whole muscle head is empty there is no
+related lift, and the figure is invented — the writer offered ≈135 lb for a
+Standing Calf Raise on a ledger with no calf work at all. That now reads
+**by feel**, the honest line the plan format already had.
+
 ## v3.3.404 (2026-09-02) — Copy and Edit get their own icons
 
 The plan line's edge — fold, copy, edit, clear — was carrying two icons drawn

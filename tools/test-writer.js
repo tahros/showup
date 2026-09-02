@@ -65,6 +65,18 @@ ok("...the part is null: the writer's call", pay.part===null);
 ok("...eight weeks of sets, every part, nothing older", pay.history.length>40 && pay.history.every(h=>h[0]>=run(`(function(){const d=new Date(todayISO+'T00:00'); d.setDate(d.getDate()-56); return d.toLocaleDateString('en-CA');})()`)));
 ok("...the catalog for the parts you train, nothing else", Object.keys(pay.catalog).sort().join()==='Back,Chest,Legs,Shoulder');
 ok("...a coverage table with the zero-set heads spelled out", pay.coverage.Shoulder && Object.values(pay.coverage.Shoulder).every(v=>v===0) && pay.coverage.Back && Object.values(pay.coverage.Back).some(v=>v>0));
+/* v3.3.405: the app has always known which head an exercise trains; the writer
+   was only ever handed the counts, never the mapping, and put a Dip in an
+   incline session. The mapping goes out now. */
+ok("...and which head each catalog exercise trains, grouped by head",
+   !!pay.heads && !!pay.heads.Chest && Object.keys(pay.heads.Chest).length>=2, JSON.stringify(Object.keys(pay.heads||{})));
+ok("...so an incline press and a Dip are visibly different movements",
+   pay.heads.Chest['upper-chest'].includes('Incline Barbell Bench Press') &&
+   pay.heads.Chest['chest'].includes('Dip') &&
+   !pay.heads.Chest['upper-chest'].includes('Dip'), JSON.stringify(pay.heads.Chest));
+ok("...and every catalog exercise is placed, none left out",
+   Object.entries(pay.catalog).every(([p2,list])=>{ const flat=Object.values(pay.heads[p2]||{}).flat();
+     return list.every(ex=>flat.includes(ex)); }));
 ok("...and neither a name nor a day count", !JSON.stringify(pay).includes('"name"') && !('sessions' in pay) && !('totals' in pay));
 ok("...under 60 KB", JSON.stringify(pay).length<60000, JSON.stringify(pay).length+' bytes');
 
@@ -95,8 +107,20 @@ r = JSON.parse(run(`(function(){try{ const o=writerState(); const p=writerPayloa
   }catch(e){ return JSON.stringify({ok:false, refused:e.refused||String(e)}); }})()`));
 ok("...and a warm-up ramp under the best survives, every line, unmarked",
    r.ok && JSON.stringify(r.w)==='[135,185,215]' && r.est.every(x=>!x) && !r.notes.length, JSON.stringify(r));
-r = JSON.parse(check({days:[{date:today,part:'Back',title:'Back',text:"Deadlift\n  215 lb x 5\n\nSeated Cable Row\n  120 lb x 10 10"}]}));
-ok("4 · a load for an exercise never lifted here is always ≈", r.ok && r.est[1].ex==='Seated Cable Row' && r.est[1].est===true && !r.est[0].est, JSON.stringify(r.est));
+/* Chest: the ledger has Barbell Bench Press, so the 'chest' head has work;
+   Machine Chest Press is the same head and has never been lifted. */
+r = JSON.parse(check({days:[{date:today,part:'Chest',title:'Chest',text:"Barbell Bench Press\n  150 lb x 8\n\nMachine Chest Press\n  120 lb x 10 10"}],reason:{head:'Chest, not Back',text:'chest is furthest out'}}));
+ok("4 · a load for an exercise never lifted, in a head that HAS work, is ≈", r.ok && r.est[1].ex==='Machine Chest Press' && r.est[1].est===true && !r.est[0].est, JSON.stringify(r.est)+' '+JSON.stringify(r.notes));
+/* v3.3.405: ≈ claims a guess FROM something. With the whole head empty there is
+   nothing to guess from, and a number is invented. The live writer offered
+   ≈135 lb for a Standing Calf Raise on a ledger with no calf work at all. */
+r = JSON.parse(run(`(function(){try{ const o=writerState(); const p=writerPayload(o);
+  const rr=writerCheck({days:[{date:'${today}',part:'Legs',title:'Legs',text:"Squat\\n  205 lb x 8\\n\\nStanding Calf Raise\\n  \\u2248135 lb x 12 12"}],reason:{head:'Legs, not Back',text:'legs are furthest out'}},{payload:p});
+  const cr=rr.rows.find(x=>x.ex==='Standing Calf Raise').lines[0];
+  return JSON.stringify({ok:true, nw:!!cr.nw, est:!!cr.est, w:cr.w, notes:rr.notes});
+  }catch(e){ return JSON.stringify({ok:false, refused:e.refused||String(e)}); }})()`));
+ok("13 · a head with no work at all gets no number: by feel, not ≈",
+   r.ok && r.nw===true && !r.est && r.w===0 && r.notes.some(n=>/nothing on record for calves/.test(n)), JSON.stringify(r));
 r = JSON.parse(check({days:[{date:today,part:'Back',title:'Back',text:"Deadlift\n  215 lb x 5"},{date:today,part:'Back',title:'Back again',text:"Pull Up\n  BW x 8"}]}));
 ok("5 · two sessions for one date are refused whole", !r.ok && /two sessions/.test(r.refused));
 r = JSON.parse(check({days:[{date:today,part:'Back',title:'Back',text:"Deadlift\n  215 lb x 5"},{date:run(`tomorrowISO()`),part:'Legs',title:'Legs',text:"Squat\n  205 lb x 8"}]}));
