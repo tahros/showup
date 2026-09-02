@@ -102,10 +102,16 @@ ok("...under the ceiling it passes untouched", r.ok && !r.est[0].est && r.est[0]
    last time per exercise (it does now: payload.last); a 10% band forbade the
    only step a light load has (20 lb x 10% = 2 lb, the pin is 5: one step is
    always allowed); and going backward cost nothing (it is flagged now). */
-ok("payload.last is last time, per exercise, as [date, [[kg, [reps per set]]...]]",
-   !!pay.last && !!pay.last.Deadlift && JSON.stringify(pay.last.Deadlift[1])==='[[90,[5,5,5]]]' && /^\d{4}-\d\d-\d\d$/.test(pay.last.Deadlift[0]),
+ok("payload.last is last time, per exercise, as [date, [[load, [reps per set]]...]]",
+   !!pay.last && !!pay.last.Deadlift && JSON.stringify(pay.last.Deadlift[1])==='[[198.4,[5,5,5]]]' && /^\d{4}-\d\d-\d\d$/.test(pay.last.Deadlift[0]),
    JSON.stringify(pay.last && pay.last.Deadlift));
-ok("...and the step is named", pay.step_kg===2.5);
+/* v3.3.409: the live writer, handed 22.68 kg under "Unit: lb", added its step
+   in kg and wrote "25 lb". Every load leaves in the unit the writer writes in. */
+ok("...every load leaves in your unit, best and history too: 100 kg is 220.5 lb",
+   pay.unit==='lb' && pay.best.Deadlift===220.5 && pay.history.some(h=>h[2]==='Deadlift'&&h[3]===220.5) && !pay.history.some(h=>h[2]==='Deadlift'&&(h[3]===100||h[3]===90)),
+   JSON.stringify([pay.best.Deadlift, pay.history.find(h=>h[2]==='Deadlift')]));
+ok("...and the step is named in that unit", pay.step===5);
+ok("...in kg it is 2.5", run(`(function(){DB.settings.unit='kg'; const p=writerPayload(writerState()); DB.settings.unit='lb'; return p.step===2.5 && p.best.Deadlift===100 && p.last.Deadlift[1][0][0]===90;})()`));
 /* a light cable lift: 20 lb once, last week */
 run(`(function(){const d=new Date(todayISO+'T00:00'); d.setDate(d.getDate()-1); const iso=d.toLocaleDateString('en-CA');
   DB.days[iso].w.push({part:'Chest',ex:'Cable Fly Up',w:20/LB,reps:[10,10],at:2}); save(true); SEED=deriveAll();})()`);

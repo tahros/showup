@@ -1,5 +1,25 @@
 # ShowUp — changelog
 
+## v3.3.409 (2026-09-02) — Loads leave in your unit
+
+The v3.3.408 probe, same ledger, came back better — Incline Smith stepped to
+95 lb × 8 8 8, the Dip was gone — and then wrote *Incline Dumbbell Bench
+Press 25 lb × 8 8 7 6* after a 50 lb session. Guardrail 14 caught it in the
+notes, which is what it is for, but the cause was ours. The record is kept
+in kilograms, and the payload said "Unit: lb" and handed the writer
+kilograms: 22.68. Told to add a step, it added 2.5 and wrote the sum with
+the unit it was told to write in. Every conversion we asked of the model was
+a place for that to happen.
+
+None are asked now. History, best and last leave the device already in the
+unit you lift in, rounded to a tenth of a pound, and the step is named in
+that unit — 5 lb, or 2.5 kg. The prompt says so in its first sentence on
+loads: never convert anything. Nothing on the device changes; the guardrails
+never read the payload's loads, only the record.
+
+Tests: test-writer.js 75 → 77 (best and history in lb; the step in lb; both
+in kg when the unit is kg), probed.
+
 ## v3.3.408 (2026-09-02) — Push, harder
 
 v3.3.407 went live and was probed with a ledger built to match your two

@@ -1,4 +1,4 @@
-// write-session — ShowUp's session writer (v3.3.401; prompt revised v3.3.402, v3.3.405, v3.3.407, v3.3.408).
+// write-session — ShowUp's session writer (v3.3.401; prompt revised v3.3.402, v3.3.405, v3.3.407, v3.3.408, v3.3.409).
 // The ONLY server component ShowUp has. It exists because a PWA cannot hold a
 // model key. It does one thing: takes the payload js/writer.js builds (eight
 // weeks of sets, the catalog, the rotation's ranking, the coverage table, the
@@ -38,8 +38,8 @@ NAMES: use ONLY exercise names from the catalog in the payload, spelled exactly.
 
 THE PART: the payload's rotation.pick is what the app's own rotation would train next; rotation.ranking lists every part with days since its last full session and its usual gap. If payload.part is set, write for that part and do not argue. If payload.part is null, you decide: usually the rotation's pick, but you may choose differently for a reason you state — the objective, the note (a sore shoulder, no barbell, 45 minutes), or a part that is far past its gap. When your part differs from rotation.pick you MUST give reason: {head:"<Part>, not <rotation.pick>", text:"one or two sentences, in the second person, naming the numbers"}. Otherwise reason is null.
 
-LOADS: the default is to PUSH. payload.last gives, per exercise, the person's most recent session for it: the date and every line as [kg, [reps of each set]]. payload.best gives the heaviest working load in eight weeks, in kg. The history shows how many sessions a load has been held. Decide, for every exercise, STEP or REP-UP, before you write a line:
-STEP (add one step of load, reps back to the bottom of the range) when EITHER the top set of the last session reached the top of the rep range for the objective, OR the same load has been used for two or more sessions in a row and the sets held (no set more than one rep under the first). One step is step_kg (2.5 kg) or, in lb, the next plate or pin: 5 lb on dumbbells, machines and cable stacks, 5–10 lb on a barbell.
+LOADS: the default is to PUSH. Every load in the payload — history, best, last — is ALREADY in the payload's unit; never convert anything. payload.last gives, per exercise, the person's most recent session for it: the date and every line as [load, [reps of each set]]. payload.best gives the heaviest working load in eight weeks. The history shows how many sessions a load has been held. Decide, for every exercise, STEP or REP-UP, before you write a line:
+STEP (add one step of load, reps back to the bottom of the range) when EITHER the top set of the last session reached the top of the rep range for the objective, OR the same load has been used for two or more sessions in a row and the sets held (no set more than one rep under the first). One step is payload.step (5 lb or 2.5 kg): the next dumbbell, the next pin, the next small plate a side; a barbell may take two steps.
 REP-UP (same load, one more rep on the set that fell short) only when the load is new this session or last time's sets fell apart.
 Worked examples, both correct: Incline Dumbbell Bench Press, last 50 lb × 10 10 9 9, at 50 lb for five sessions → "55 lb × 8 8 7 6". Cable Fly Up, last 20 lb × 10 10, at 20 lb for four sessions → "25 lb × 12 10 10". Incline Smith Machine Bench Press, last 90 lb × 10 10 10, held five sessions → "95 lb × 8 8 8".
 NEVER cut the reps without adding load: "50 lb × 6 6 6 6" after "50 lb × 10 10 9 9" is a regression, not a plan. NEVER write a session-top working load lower than the top of payload.last unless the reason is in a parenthesised note on that set line, e.g. "(deload)", "(sore shoulder)". Holding a load a third session in a row without a reason is a mistake. In a Grow or Strength session the first two exercises step up unless last time's sets fell apart.
@@ -82,15 +82,15 @@ Deno.serve(async (req: Request) => {
   const user = `Today is ${payload.date}. Unit: ${payload.unit}. Scope: ${payload.scope}. Days to write: ${payload.days.join(", ")}.
 Part: ${payload.part || "your call"}. Objective: ${payload.objective}. Focus parts (week only): ${(payload.focus || []).join(", ") || "none"}.
 Note from the person: ${payload.note ? JSON.stringify(payload.note) : "none"}.
-band: ${payload.band}. step_kg: ${payload.step_kg ?? 2.5}. new_max: ${payload.new_max}.
+band: ${payload.band}. step: ${payload.step ?? payload.step_kg ?? 2.5} ${payload.unit}. new_max: ${payload.new_max}.
 
 rotation: ${JSON.stringify(payload.rotation)}
 catalog: ${JSON.stringify(payload.catalog)}
 heads (which muscle head each catalog exercise trains): ${JSON.stringify(payload.heads || {})}
-best (kg): ${JSON.stringify(payload.best || {})}
-last (per exercise: [date, [[kg, [reps per set]], ...]] — the most recent session, progress from THIS): ${JSON.stringify(payload.last || {})}
+best (${payload.unit}): ${JSON.stringify(payload.best || {})}
+last (${payload.unit}; per exercise: [date, [[load, [reps per set]], ...]] — the most recent session, progress from THIS): ${JSON.stringify(payload.last || {})}
 coverage (sets per muscle head, eight weeks): ${JSON.stringify(payload.coverage)}
-history (date, part, exercise, kg, reps, hold?) — eight weeks:
+history (date, part, exercise, load in ${payload.unit}, reps, hold?) — eight weeks:
 ${(payload.history || []).map((h: any[]) => h.join("|")).join("\n")}`;
 
   const body = {

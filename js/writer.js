@@ -117,12 +117,21 @@ function writerPayload(o){
      and the writer had to rediscover last time from raw rows every call. It
      was not doing so: it wrote 50 lb after a 50 x 10 10 9 9, and 15 lb after
      a 20 x 10 10. The app already keeps lastSess for the Suggested rail; it
-     goes out as it is, kg and reps, one entry per exercise you have lifted. */
+     goes out as it is, load and reps, one entry per exercise you have lifted. */
+  /* v3.3.409: EVERY LOAD LEAVES IN YOUR UNIT. The record is kept in kg and
+     the payload said "Unit: lb" and handed over kilograms, leaving the model
+     to convert every number both ways. It slipped: told to add a step to
+     22.68 kg it wrote "25 lb". Nothing the model reads should need
+     converting, so history, best and last go out in the unit it writes in,
+     and the step is named in that unit (5 lb or 2.5 kg). */
+  const inU=v=>U()==='lb'?+((+v||0)*LB).toFixed(1):+(+v||0).toFixed(2);
   const last={};
-  for(const [ex,ls] of Object.entries(SEED.lastSess||{})) if(ex!=='Run'&&ls&&ls.rows&&ls.rows.length) last[ex]=[ls.d, ls.rows.map(r=>[+(+r[0]).toFixed(2), r[1]])];
+  for(const [ex,ls] of Object.entries(SEED.lastSess||{})) if(ex!=='Run'&&ls&&ls.rows&&ls.rows.length) last[ex]=[ls.d, ls.rows.map(r=>[inU(r[0]), r[1]])];
   /* the eight-week best per exercise, precomputed: the band the loads must
      sit in is a number the writer should not have to derive from raw rows */
   const best={}; for(const h of history) if(h[5]!=='s'&&h[3]>best[h[2]]) best[h[2]]=h[3]; for(const h of history) if(!(h[2] in best)) best[h[2]]=h[3];
+  for(const ex of Object.keys(best)) best[ex]=inU(best[ex]);
+  for(const h of history) h[3]=inU(h[3]);
   const days=o.scope==='week'?[...o.days].sort():[o.scope==='tomorrow'?tomorrowISO():from];
   return {
     v:1, unit:U(), date:days[0], scope:o.scope==='week'?'week':'day', days,
@@ -130,7 +139,7 @@ function writerPayload(o){
     focus:o.scope==='week'?(o.focus?[...o.focus]:[]):[],
     rotation:{pick:P.pick, addon:P.addon, ranking},
     objective:o.objective, note:(o.note||'').trim().slice(0,400),
-    catalog, heads, history, best, last, coverage, new_days:WRITER_HISTORY_DAYS, band:WRITER_LOAD_BAND, step_kg:WRITER_STEP_KG, new_max:WRITER_NEW_MAX
+    catalog, heads, history, best, last, coverage, new_days:WRITER_HISTORY_DAYS, band:WRITER_LOAD_BAND, step:U()==='lb'?5:WRITER_STEP_KG, new_max:WRITER_NEW_MAX
   };
 }
 
