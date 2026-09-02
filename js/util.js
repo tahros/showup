@@ -596,15 +596,15 @@ const isBody=ex=>equipOf(ex)==='body';
    wLaw/wStep/snapW, and buildcheck fails if any class in EQUIP_LABEL lacks
    a row here. Adding an equipment class without declaring its physics is a
    build error, not a latent bug. */
-/* v3.3.413: THE BARBELL STEP IN lb IS 5, NOT 10. A 5 lb step is a 2.5 on
-   each side, and the maker's own ledger is written in it: 95, 115, 155, 175,
-   200, 160. His Squat at 200 was not even ON a 10 lb grid from a 45 bar
-   (45+10n never reaches 200) -- the table disagreed with every barbell set he
-   had ever logged. The writer's push read the old step and offered 210 where
-   the next plate is 205. Smith follows: same bar, same plates. */
+/* v3.3.414: the barbell step in lb is 10 -- a 5 on each side -- REVERSING
+   v3.3.413's 5, on the maker's word. The 5 was reasoned from his ledger
+   (200, 160 are not on a 10 grid from 45); he answered that the stepper
+   should move in 10s regardless, and that a typed 200 is a typed 200. With
+   the bar at 45 the faces are 195, 205, 215 -- so 205 is loadable and 200 is
+   between faces, which is exactly what the writer's push needs to know. */
 const W_TABLE={
-  barbell:  {kg:{s:5,  bar:1}, lb:{s:5,  bar:1}},
-  smith:    {kg:{s:5,  bar:1}, lb:{s:5,  bar:1}},
+  barbell:  {kg:{s:5,  bar:1}, lb:{s:10, bar:1}},
+  smith:    {kg:{s:5,  bar:1}, lb:{s:10, bar:1}},
   cable:    {kg:{s:5},         lb:{s:5}},
   machine:  {kg:{s:5},         lb:{s:10}},
   plate:    {kg:{s:5},         lb:{s:10}},
@@ -629,6 +629,15 @@ const snapW=(kg,ex)=>{
    the law through here, so no two of them can disagree about what is
    loadable. */
 const wStep=ex=>wLaw(ex).s;
+/* v3.3.414: THE NEXT FACE ABOVE a weight, on the exercise's own grid. Not
+   "plus one step": a load that sits BETWEEN faces (200 on a 45-bar 10-grid)
+   steps to the face just above it (205), while a load already on a face
+   (205) steps a whole face (215). One rule that is right for every equipment
+   class, and the one the writer's push reads. */
+const nextFaceAbove=(kg,ex)=>{
+  const {s,a}=wLaw(ex); const u=toU(kg);
+  return toKg(a+(Math.floor((u-a)/s+1e-6)+1)*s);
+};
 function saveExW(ex,kg){ if(!ex) return; DB.settings.exW=DB.settings.exW||{}; DB.settings.exW[ex]=kg; }
 /* v3.3.222: on a bodyweight exercise the stored weight IS the added load —
    a `w` on a pull-up never meant anything else — so the display finally says

@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v3.3.414 (2026-09-02) — Barbells step in 10s again; the row says less
+
+- **Barbell steps are back to 10 lb.** The bar stays 45.
+- **The writer's push now goes to the next weight actually on the rack.** From
+  a logged 200 that's 205; from 205 it's 215.
+- **Tomorrow's plan row just says the day and the count** — the sentence about
+  midnight is gone, and the chevron sits where it should.
+
 ## v3.3.413 (2026-09-02) — Tomorrow's plan opens tonight, and the bar weighs 45
 
 - **You can read tomorrow's plan today.** The "opens at midnight" line is now

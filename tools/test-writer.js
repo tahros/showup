@@ -152,6 +152,18 @@ ok("...a stated reason lets the writer hold the load",
 r = JSON.parse(check({days:[{date:today,part:'Chest',title:'Chest',text:"Barbell Bench Press\n  155 lb x 8\n\nCable Fly Up\n  20 lb x 12 12"}],reason:chestReason}));
 ok("...and more reps at the same load is already a push -- left alone",
    r.ok && r.est[1].w===20 && !r.notes.some(n=>/stepped up/.test(n)), JSON.stringify(r.est[1]));
+/* v3.3.414: the push reads the NEXT FACE ABOVE, not last plus the stepper.
+   On a cable the two agree (20 -> 25). On a barbell in lb they do not: the
+   stepper is 10, the bar is 45, the faces are 195 / 205 / 215, and a logged
+   200 sits BETWEEN faces. Last plus the stepper says 210 -- a weight that is
+   not on the rack. The face above 200 is 205. This is the maker's own Squat. */
+run(`(function(){const d=new Date(todayISO+'T00:00'); d.setDate(d.getDate()-1); const iso=d.toLocaleDateString('en-CA');
+  DB.days[iso].w.push({part:'Legs',ex:'Squat',w:200/LB,reps:[8,8,8,8],at:3}); save(true); SEED=deriveAll();})()`);
+r = JSON.parse(check({days:[{date:today,part:'Legs',title:'Legs',text:"Squat\n  200 lb x 8 8 8 8"}],reason:{head:'Legs',text:'legs are due'}}));
+ok("16b · a barbell repeat steps to the next FACE above, not last plus the stepper",
+   r.ok && r.est[0].ex==='Squat' && r.est[0].w===205, JSON.stringify(r.est[0]));
+ok("...and the read-back names 205",
+   r.notes.some(n=>/Squat: the writer repeated your last 200 lb for 8 reps with no reason — stepped up to 205 lb/.test(n)), JSON.stringify(r.notes));
 r = JSON.parse(check({days:[{date:today,part:'Chest',title:'Chest',text:"Barbell Bench Press\n  155 lb x 8\n\nCable Fly Up\n  20 lb x 6 6 6 (form)"}],reason:chestReason}));
 ok("...and a reason clears that too", r.ok && !r.notes.some(n=>/no reason given/.test(n)), JSON.stringify(r.notes));
 /* the flagged note reaches the read-back */
@@ -235,7 +247,10 @@ await_(async()=>{
   run(`(function(){day(todayISO).w.push({part:'Chest',ex:'Barbell Bench Press',w:70,reps:[8],at:1}); save(true); lift.write=null; lift.plan='write'; render(); document.querySelector('[data-writego]').click();})()`);
   for(let i=0;i<20&&run(`lift.plan==='writing'`);i++) await tick();
   run(`document.querySelector('[data-planaccept]').click()`);
-  ok("8 · with a set logged, the written plan is stamped tomorrow and lies dormant", run(`DB.plan.d===tomorrowISO() && planNow()===null && !!planPending()`) && /opens at midnight/.test(run(`document.querySelector('#view').textContent`)));
+  /* v3.3.414: dormancy is planNow()===null with planPending() set -- the
+     caption that used to say "opens at midnight" is gone (the plan is readable
+     beneath the row now), so the check reads the state, not the sentence. */
+  ok("8 · with a set logged, the written plan is stamped tomorrow and lies dormant", run(`DB.plan.d===tomorrowISO() && planNow()===null && !!planPending()`) && run(`!!document.querySelector('.planpending')`));
   run(`(function(){DB.days[todayISO].w=[]; planClear(); save(true);})()`);
 
   /* 9 · offline: the rotation stands */

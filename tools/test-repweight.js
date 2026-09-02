@@ -305,8 +305,8 @@ check("bare snapW falls back to the stack row", `${run(`wDisp(snapW(23.4))`)}`, 
 // moves any cell, this names exactly which room and which rack it broke.
 {
   const CELLS=[  // [class, exemplar, kg step, lb step]
-    ['barbell', 'Squat',          5,  5],   // v3.3.413: a 2.5 each side. The maker's ledger is written in 5s; 200 was not on a 10 grid
-    ['smith',   'Incline Smith Machine Bench Press', 5,  5],
+    ['barbell', 'Squat',          5, 10],   // v3.3.414: back to 10 (a 5 each side) on the maker's word; 45 bar, faces 195/205/215
+    ['smith',   'Incline Smith Machine Bench Press', 5, 10],
     ['cable',   'Cable Fly Up',   5,  5],   // v3.3.262: lb stacks face in 5s and 10s; 5 lands on every face of both
     ['machine', 'Chest Press',    5, 10],
     ['plate',   'Leg Press',      5, 10],
@@ -382,12 +382,12 @@ run(`DB.settings.unit='kg'; render();`);
 // its own grid point and ceil-minus landed back on it. Reproduced through the
 // real input + real clicks, in the maker's exact configuration.
 //
-// v3.3.413 RESTATES THE NUMBERS, keeping the mechanism under test. The values
-// 214.1 / 204.1 / 194.1 WERE the bug this whole project had been carrying:
-// a 20 kg factory bar read in lb (44.09) with a 10 lb step put the barbell
-// grid 0.91 lb off every real plate combination, and no barbell set the maker
-// ever logged (95, 155, 175, 200, 160) was on it. The bar is 45 in lb, the
-// step is 5, and the same test now walks 210 -> 205 -> 200 -> 205.
+// v3.3.413 RESTATED THE NUMBERS, keeping the mechanism under test. The values
+// 214.1 / 204.1 / 194.1 WERE the bug this project had been carrying: a 20 kg
+// factory bar read in lb (44.09) put the grid 0.91 lb off every real plate
+// combination. The bar is 45 in lb. v3.3.414 returns the step to 10 on the
+// maker's word, so the faces are 195 / 205 / 215 and the same test walks
+// 210 -> 205 -> 195 -> 205.
 run(`(function(){DB.settings.unit='lb'; view='lift'; lift.part='Legs';
   lift.ex='Deadlift'; lift.weight=toKg(210); lift._tiles=null; render();})()`);
 run(`(function(){const el=document.getElementById('wv'); el.value='210';
@@ -395,7 +395,7 @@ run(`(function(){const el=document.getElementById('wv'); el.value='210';
 wminus();
 check("− from a displayed 210 lb moves a WHOLE step to 205", `${wval()}`, 205);
 wminus();
-check("...and keeps stepping: 205 to 200", `${wval()}`, 200);
+check("...and keeps stepping: 205 to 195", `${wval()}`, 195);
 wplus();
 check("+ still steps one face back up to 205", `${wval()}`, 205);
 // v3.3.413: THE FACTORY BAR FOLLOWS THE UNIT. core.js seeds every account
@@ -405,13 +405,20 @@ check("+ still steps one face back up to 205", `${wval()}`, 205);
 check("a factory-default bar reads 45 lb in lb", `(function(){DB.settings.barKg=20; return +(barKg('Squat')*LB).toFixed(1);})()`, 45);
 check("...and 20 kg in kg", `(function(){DB.settings.unit='kg'; const b=barKg('Squat'); DB.settings.unit='lb'; return b;})()`, 20);
 check("...while a bar you set yourself is kept as set", `(function(){DB.settings.barKg=toKg(35); const b=+(barKg('Squat')*LB).toFixed(1); DB.settings.barKg=20; return b;})()`, 35);
-check("so a 200 lb Squat plus one step lands on 205, not 214.09",
-      `+(snapW(toKg(toU(200/LB)+wStep('Squat')),'Squat')*LB).toFixed(2)`, 205);
+/* v3.3.414: the writer's push reads the NEXT FACE ABOVE, not last plus the
+   stepper. 200 sits between the 195 and 205 faces of a 45-bar 10-grid, so the
+   face above it is 205; from 205 the next face is 215. */
+check("so a 200 lb Squat's next face is 205, not 210 and not 214.09",
+      `+(nextFaceAbove(200/LB,'Squat')*LB).toFixed(2)`, 205);
+check("...and from 205, a whole face to 215",
+      `+(nextFaceAbove(205/LB,'Squat')*LB).toFixed(2)`, 215);
+check("...a 160 lb Romanian Deadlift's next face is 165",
+      `+(nextFaceAbove(160/LB,'Romanian Deadlift')*LB).toFixed(2)`, 165);
 // genuinely off-grid values still snap directionally to the next face
 run(`(function(){const el=document.getElementById('wv'); el.value='213';
      el.dispatchEvent(new Event('input',{bubbles:true}));})()`);
 wminus();
-check("a typed off-grid 213 still snaps DOWN to the 210 face", `${wval()}`, 210);
+check("a typed off-grid 213 still snaps DOWN to the 205 face", `${wval()}`, 205);
 run(`(function(){const el=document.getElementById('wv'); el.value='213';
      el.dispatchEvent(new Event('input',{bubbles:true}));})()`);
 wplus();

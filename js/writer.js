@@ -288,8 +288,11 @@ function writerCheck(resp, ctx){
                  load, and named in the read-back so nothing moves in silence.
                  A hold is still available to the writer: it has to say why,
                  the same way a step back does. */
-              const stepU=wStep(r.ex);
-              const bumpedKg=snapW(toKg(toU(lastTop)+stepU), r.ex);
+              /* v3.3.414: the NEXT FACE above last time, not last time plus
+                 the stepper. 200 on a 45-bar 10-grid is between faces; the
+                 face above it is 205, and that is what a plate change gets
+                 you. From 205 the next face is 215. nextFaceAbove says both. */
+              const bumpedKg=nextFaceAbove(lastTop, r.ex);
               const inUnit=l=>l.unit==='kg'?bumpedKg:l.unit==='lb'?bumpedKg*LB:(isLb()?bumpedKg*LB:bumpedKg);
               const shownOld=wDisp(top), shownNew=wDisp(bumpedKg);
               r.lines=(r.lines||[]).map(l=>{

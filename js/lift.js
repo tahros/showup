@@ -164,7 +164,13 @@ function planSectionHTML(){
     if(_pp){
       const _n=(_pp.items||[]).length;
       const _pf2=!!DB.settings.pendFold;
-      h+=`<button class="row spread card planpending" data-pendfold aria-expanded="${!_pf2}" style="padding:11px 14px;width:100%;text-align:left"><span class="mono muted" style="font-size:12px">${planDayLabel(_pp.d)} · written, opens at midnight</span><span class="mono" style="font-size:12px;color:var(--faint)">${_n?`${_n} exercise${_n===1?'':'s'}`:'a note'}${icon('chevron',ICON_SZ.sm,_pf2?0:90)}</span></button>`;
+      /* v3.3.414: the row says the DAY and the COUNT, and nothing else. "written,
+         opens at midnight" was a sentence about the mechanism, and with the
+         plan now readable beneath it the mechanism no longer needs announcing.
+         It also wrapped to two lines and pushed the chevron under the count.
+         One line, three things, no wrap: day left; count and chevron right,
+         on the same baseline. Styled in CSS, not inline, so it is one rule. */
+      h+=`<button class="card planpending" data-pendfold aria-expanded="${!_pf2}"><span class="pp-day mono">${planDayLabel(_pp.d)}</span><span class="pp-right mono">${_n?`${_n} exercise${_n===1?'':'s'}`:'a note'}${icon('chevron',ICON_SZ.sm,_pf2?0:90)}</span></button>`;
       if(!_pf2) h+=`<div class="planahead">${planCardHTML({d:_pp.d,items:_pp.items,note:_pp.note||''},false)}</div>`;
     }
   }

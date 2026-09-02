@@ -59,10 +59,26 @@ ok("...so planNow() does not see it tonight", run(`planNow()===null`));
 ok("...and planPending() does, with every exercise", run(`(planPending()||{items:[]}).items.length`)===3);
 ok("...and the Suggested rail is NOT fed tonight",
    run(`Object.values(sugOv()).filter(o=>o&&o.from==='plan').length`)===0);
+/* v3.3.414 RESTATES: the row names the DAY and the COUNT. "written, opens at
+   midnight" was a sentence about the mechanism; with the plan readable beneath
+   the row (v3.3.413) the mechanism no longer needs announcing, and the maker
+   struck it. Dormancy is asserted where it lives -- planNow() is null and the
+   rail is not fed -- not in a caption. */
 ok("Today shows the dormant line, naming the day and the count",
-   /written, opens at midnight/.test(run(`(document.querySelector('.planpending')||{}).textContent||''`)) &&
-   /3 exercises/.test(run(`document.querySelector('.planpending').textContent`)),
+   /\w{3} \d{1,2}/.test(run(`(document.querySelector('.planpending .pp-day')||{}).textContent||''`)) &&
+   /3 exercises/.test(run(`document.querySelector('.planpending').textContent`)) &&
+   !/midnight/.test(run(`document.querySelector('.planpending').textContent`)),
    run(`JSON.stringify((document.querySelector('.planpending')||{}).textContent)`));
+/* v3.3.414: ONE LINE. The row is a flex line that does not wrap -- day left,
+   count and chevron right -- because the old sentence wrapped and pushed the
+   chevron under the count. jsdom lays nothing out, so the rule is asserted. */
+{
+  const css=require("fs").readFileSync(require("path").join(dir,"css/app.css"),"utf8").replace(/\r?\n\s*/g,"");
+  ok("the pending row is one flex line that cannot wrap",
+     /\.planpending\{display:flex;[^}]*white-space:nowrap/.test(css));
+  ok("...with the count and chevron centred together on the right",
+     /\.planpending \.pp-right\{display:inline-flex;align-items:center/.test(css));
+}
 ok("...and the line never says how much of anything is done",
    !/\b\d+\s*(of|\/)\s*\d+\b/.test(run(`document.querySelector('.planpending').textContent`)));
 ok("...while Today itself is still mid-session, not planning",
