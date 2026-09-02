@@ -93,22 +93,30 @@ function writerPlanSummary(iso){
   const own=DB.plan&&DB.plan.d===iso?DB.plan:null;
   const block=!own&&DB.week&&DB.week.days?DB.week.days[iso]:null;
   const p=own||block; if(!p) return null;
-  const exercises=(p.items||[]).map(i=>i&&i.ex).filter(Boolean);
+  const items=(p.items||[]).map(planItemShape);
+  const exercises=items.map(i=>i&&i.ex).filter(Boolean);
   if(!exercises.length&&!String(p.note||'').trim()) return null;
+  const parts=[...new Set(exercises.map(homePartOf).filter(Boolean))];
+  /* Rebuild from accepted items when possible. Raw text can contain an alias
+     the parser resolved earlier; the fixed block must travel in its resolved,
+     tappable form rather than being interpreted a second time. */
+  const text=items.length?planToText({items,note:p.note||''}):String(p.raw||p.note||'').trim();
   return {
     title:String((block&&block.title)||p.title||'').slice(0,60),
-    exercises,
-    parts:[...new Set(exercises.map(homePartOf).filter(Boolean))]
+    exercises, parts,
+    part:parts.find(x=>x!=='Sixpack')||parts[0]||null,
+    text:String(text||'').slice(0,5000)
   };
 }
-function writerWeekContext(days){
-  const requested=new Set(days), habit=writerHabitDays();
-  return writerWeekSpan(days[0],false).map(iso=>({
+function writerWeekContext(selectedDays, writableDays){
+  const selected=new Set(selectedDays), writable=new Set(writableDays||selectedDays), habit=writerHabitDays();
+  return writerWeekSpan(selectedDays[0],false).map(iso=>({
     date:iso,
     weekday:WEEKDAYS[new Date(iso+'T00:00').getDay()],
-    requested:requested.has(iso),
+    selected:selected.has(iso),
+    requested:writable.has(iso),
     usual:habit.has(new Date(iso+'T00:00').getDay()),
-    planned:requested.has(iso)?null:writerPlanSummary(iso)
+    planned:writable.has(iso)?null:writerPlanSummary(iso)
   }));
 }
 
@@ -123,6 +131,16 @@ function writerRecentSessions(history){
     if(!day.exercises.some(x=>x.exercise===h[2])) day.exercises.push({part:h[1],exercise:h[2]});
   }
   return Object.keys(byDay).sort().reverse().slice(0,12).map(d=>byDay[d]);
+}
+function writerRecentWeeks(sessions){
+  const weeks={};
+  for(const s of sessions){
+    const d=new Date(s.date+'T00:00'), dow=d.getDay();
+    d.setDate(d.getDate()-((dow+6)%7));
+    const start=d.toLocaleDateString('en-CA');
+    (weeks[start]=weeks[start]||[]).push({date:s.date,weekday:WEEKDAYS[dow],parts:s.parts,exercises:s.exercises.map(x=>x.exercise)});
+  }
+  return Object.keys(weeks).sort().reverse().slice(0,6).map(week_of=>({week_of,days:weeks[week_of].sort((a,b)=>a.date<b.date?-1:1)}));
 }
 
 /* ---- what leaves the device ---- */
@@ -181,18 +199,36 @@ function writerPayload(o){
   const best={}; for(const h of history) if(h[5]!=='s'&&h[3]>best[h[2]]) best[h[2]]=h[3]; for(const h of history) if(!(h[2] in best)) best[h[2]]=h[3];
   for(const ex of Object.keys(best)) best[ex]=inU(best[ex]);
   for(const h of history) h[3]=inU(h[3]);
-  const days=o.scope==='week'?[...o.days].sort():[o.scope==='tomorrow'?tomorrowISO():from];
+  const selected_days=o.scope==='week'?[...o.days].sort():[o.scope==='tomorrow'?tomorrowISO():from];
+  /* v3.3.420: SELECTED IS NOT THE SAME AS WRITABLE. In a week request, a
+     selected date that already has an accepted plan is a fixed block. The
+     model writes only the blanks; the device merges the fixed blocks back
+     into the read-back from their accepted item shapes. */
+  const locked_days=o.scope==='week'?selected_days.map(date=>({date,...(writerPlanSummary(date)||{})})).filter(x=>x.text):[];
+  const locked=new Set(locked_days.map(x=>x.date));
+  const days=selected_days.filter(date=>!locked.has(date));
   const recent_sessions=writerRecentSessions(history);
-  const week_context=writerWeekContext(days);
+  const recent_weeks=writerRecentWeeks(recent_sessions);
+  const week_context=writerWeekContext(selected_days,days);
   return {
-    v:1, unit:U(), date:days[0], scope:o.scope==='week'?'week':'day', days,
+    v:1, unit:U(), date:selected_days[0], scope:o.scope==='week'?'week':'day', days, selected_days, locked_days,
     part:o.scope==='week'?null:(o.part==='auto'?null:o.part),
     focus:o.scope==='week'?(o.focus?[...o.focus]:[]):[],
     rotation:{pick:P.pick, addon:P.addon, ranking},
     objective:o.objective, note:(o.note||'').trim().slice(0,400),
-    catalog, heads, history, recent_sessions, week_context, best, last, steps, next, coverage,
+    catalog, heads, history, recent_sessions, recent_weeks, week_context, best, last, steps, next, coverage,
     new_days:WRITER_HISTORY_DAYS, band:WRITER_LOAD_BAND, step:U()==='lb'?5:WRITER_STEP_KG, new_max:WRITER_NEW_MAX
   };
+}
+
+/* The model never gets authorship over a fixed day. Even if it returns one,
+   discard that copy and merge the accepted local/cloud plan instead. */
+function writerResponseWithLocked(resp,payload){
+  const fixed=payload.locked_days||[]; if(payload.scope!=='week'||!fixed.length) return resp;
+  const dates=new Set(fixed.map(x=>x.date));
+  const generated=(Array.isArray(resp&&resp.days)?resp.days:[]).filter(x=>x&&!dates.has(x.date));
+  const kept=fixed.map(x=>({date:x.date,part:x.part,title:x.title||'',text:x.text,_locked:true}));
+  return {...(resp||{}),days:[...generated,...kept]};
 }
 
 /* ---- the call ---- */
@@ -242,12 +278,21 @@ function writerCheck(resp, ctx){
     if(!want.has(d.date)){ notes.push(`dropped ${d.date}: not a day you picked`); continue; }   // guardrail 6: the days you confirmed
     if(seen.has(d.date)) throw {refused:'two sessions for one date'};                           // guardrail 5
     seen.add(d.date);
+    /* Fixed week blocks were already parsed, resolved and accepted by the
+       person. They are merged for one coherent preview, not re-coached. */
+    if(d._locked){
+      const rows=parsePlan(String(d.text||''));
+      out.push({date:d.date,part:d.part||null,title:String(d.title||'').slice(0,60),rows,text:planTextFromRows(rows)});
+      continue;
+    }
     /* guardrail 2: the part is one of yours, and a change from the rotation is reasoned */
     const part=d.part||payload.part||payload.rotation.pick;
     if(part&&!myp.has(part)) throw {refused:`part ${part} is not one you train`};
     if(payload.scope==='day'&&!payload.part&&part&&part!==payload.rotation.pick&&!(resp.reason&&resp.reason.text)) throw {refused:'the part changed without a reason'};
     /* the text, read exactly as a paste */
     let rows=parsePlan(String(d.text||''));
+    const incomplete=rows.find(r=>r.kind==='exnote'&&r.ex);
+    if(incomplete) throw {refused:`${incomplete.ex||incomplete.name} has no sets, reps, or time`};
     let newCount=0;
     rows=rows.map(r=>{
       if(r.kind!=='ex') return r;
@@ -427,7 +472,7 @@ function writerScreenHTML(){
   body+=`<div class="lasthead" style="margin-top:16px"><span>OBJECTIVE</span><span class="ago mono">remembered</span></div>
     <div class="chips">${chips(OBJECTIVES,k=>o.objective===k,'data-writeobj')}</div>
     <textarea class="planta" id="writeNote" rows="2" style="margin-top:14px" placeholder="Anything else. A sore knee, 45 minutes, no barbell today.">${hesc(o.note)}</textarea>
-    <div class="mono muted" style="font-size:11px;line-height:1.5;padding:10px 2px 0">Eight weeks of your sets, every part, and this note go out to write it. Nothing comes back into your record; you read it first, like a paste.</div>`;
+    <div class="mono muted" style="font-size:11px;line-height:1.5;padding:10px 2px 0">Eight weeks of your sets, every part, saved plans in this week, and this note go out to write it. Nothing comes back into your record; you read it first, like a paste.</div>`;
   const label=o.busy?'Writing…':o.scope==='week'?`Write ${o.days?o.days.size:''} session${o.days&&o.days.size===1?'':'s'}`:`Write ${planDayLabel(o.scope==='tomorrow'?d1:todayISO)}`;
   const err=o.err?`<div class="mono writeerr" style="font-size:12px;color:var(--record);padding:10px 2px 0">${hesc(o.err)}</div>`:'';
   return `<h2>Write a session</h2><div class="card writecard">${seg}${body}${err}
@@ -482,12 +527,16 @@ async function writerGo(){
   const o=writerState(); if(o.busy) return;
   const ta=document.getElementById('writeNote'); if(ta) o.note=ta.value;
   if(o.scope==='week') writerDays(o);
-  o.busy=true; o.err=''; o.cancelled=false; lift.plan='writing'; render(); writerWaitStart();
   const payload=writerPayload(o);
+  o.busy=true; o.err=''; o.cancelled=false; lift.plan='writing'; render(); writerWaitStart();
   try{
-    const resp=await writeSession(payload);
+    /* An already-planned week needs no model call: merge and show the fixed
+       blocks immediately. This keeps "Write" harmless and reviewable. */
+    const resp=o.scope==='week'&&!payload.days.length?{days:[],reason:null}:await writeSession(payload);
     if(o.cancelled) return;
-    const chk=writerCheck(resp,{payload});
+    const merged=writerResponseWithLocked(resp,payload);
+    const checkedPayload=payload.selected_days?{...payload,days:payload.selected_days}:payload;
+    const chk=writerCheck(merged,{payload:checkedPayload});
     lift.planSource='writer'; lift.planReason=chk.reason; lift.planNotes=chk.notes;
     lift.planText=chk.text; lift.planRows=chk.rows; lift.planDate=chk.date;
     if(chk.week){ lift.planMode='week'; lift.planWeek=chk.week; } else { lift.planMode='day'; lift.planWeek=null; }

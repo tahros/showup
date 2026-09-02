@@ -88,8 +88,16 @@ const weekAwarePay = JSON.parse(run(`(function(){
   const realToday=todayISO, oldWeek=DB.week, oldPlan=DB.plan, oldWrite=lift.write;
   todayISO='2026-09-02'; lift.write=null;
   DB.plan=null; DB.week={from:'2026-09-04',to:'2026-09-05',days:{
-    '2026-09-04':{title:'Chest B (flat) + Laterals + Core',items:[{ex:'Barbell Bench Press'},{ex:'Lateral Raise'},{ex:'Hanging Leg Raise'},{ex:'Cable Crunch'}]},
-    '2026-09-05':{title:'Arms + Rear Delts + Core',items:[{ex:'EZ Bar Curl'},{ex:'Skull Crusher'},{ex:'Rear Deltoids'},{ex:'Decline Sit Up'}]}
+    '2026-09-04':{title:'Chest B (flat) + Laterals + Core',items:[
+      {ex:'Barbell Bench Press',lines:[{w:70,bw:false,reps:[8,8,6,6]}]},
+      {ex:'Lateral Raise',lines:[{w:14,bw:false,reps:[15,15,12]}]},
+      {ex:'Hanging Leg Raise',lines:[{w:0,bw:true,reps:[12,10,10]}]},
+      {ex:'Cable Crunch',lines:[{w:0,nw:true,reps:[15,12,12]}]}]},
+    '2026-09-05':{title:'Arms + Rear Delts + Core',items:[
+      {ex:'EZ Bar Curl',lines:[{w:23,bw:false,reps:[10,10,10,10]}]},
+      {ex:'Skull Crusher',lines:[{w:18,bw:false,reps:[12,10,10,10]}]},
+      {ex:'Rear Deltoids',lines:[{w:11,bw:false,reps:[15,15,12]}]},
+      {ex:'Decline Sit Up',lines:[{w:0,bw:true,reps:[12,12,10]}]}]}
   }};
   const o=writerState(); o.scope='tomorrow'; const p=writerPayload(o);
   DB.week=oldWeek; DB.plan=oldPlan; todayISO=realToday; lift.write=oldWrite; SEED=deriveAll();
@@ -114,6 +122,51 @@ ok("...recent whole sessions preserve exercise order instead of isolated rows",
 ok("...and a leg session keeps its exact compound-to-accessory order",
    run(`writerRecentSessions([['2026-09-01','Legs','Squat'],['2026-09-01','Legs','Romanian Deadlift'],['2026-09-01','Legs','Dumbbell Lunge'],['2026-09-01','Legs','Standing Calf Raise'],['2026-09-01','Sixpack','Hanging Leg Raise']])[0].exercises.map(x=>x.exercise).join('|')`)
    ==='Squat|Romanian Deadlift|Dumbbell Lunge|Standing Calf Raise|Hanging Leg Raise');
+ok("...and recent weeks expose the split in calendar order, not as a bag of parts",
+   Array.isArray(pay.recent_weeks) && pay.recent_weeks.length>0 && pay.recent_weeks.every(w=>w.days.every((d,i,a)=>!i||a[i-1].date<=d.date)));
+
+/* v3.3.420: selecting a saved day in This week no longer grants the model
+   permission to replace it. Only Thursday leaves the device as writable;
+   Friday and Saturday are merged back from their accepted plan items. */
+const lockedWeekPay=JSON.parse(run(`(function(){
+  const realToday=todayISO, oldWeek=DB.week, oldPlan=DB.plan, oldWrite=lift.write;
+  todayISO='2026-09-02'; lift.write=null; DB.plan=null;
+  DB.week=${JSON.stringify({from:'2026-09-04',to:'2026-09-05',days:{
+    '2026-09-04':{title:'Chest B (flat) + Laterals + Core',items:[
+      {ex:'Barbell Bench Press',lines:[{w:70,bw:false,reps:[8,8,6,6]}]},
+      {ex:'Dip',lines:[{w:20,bw:true,reps:[10,8,8]}]},
+      {ex:'Lateral Raise',lines:[{w:14,bw:false,reps:[15,15,12]}]},
+      {ex:'Plank',lines:[{w:0,bw:true,su:'s',reps:[60,60,60]}]}]},
+    '2026-09-05':{title:'Arms + Rear Delts + Core',items:[
+      {ex:'EZ Bar Curl',lines:[{w:23,bw:false,reps:[10,10,10,10]}]},
+      {ex:'Skull Crusher',lines:[{w:18,bw:false,reps:[12,10,10,10]}]},
+      {ex:'Dumbbell Curl',lines:[{w:14,bw:false,reps:[10,10,10]}]},
+      {ex:'Rear Deltoids',lines:[{w:11,bw:false,reps:[15,15,12]}]},
+      {ex:'Decline Sit Up',lines:[{w:0,bw:true,reps:[12,12,10]}]}]}}})};
+  const o=writerState(); o.scope='week'; o.days=new Set(['2026-09-03','2026-09-04','2026-09-05']);
+  const p=writerPayload(o);
+  DB.week=oldWeek; DB.plan=oldPlan; todayISO=realToday; lift.write=oldWrite; SEED=deriveAll();
+  return JSON.stringify(p);
+})()`));
+ok("v3.3.420 · a selected saved Friday and Saturday are locked; only blank Thursday is writable",
+   lockedWeekPay.selected_days.join()==='2026-09-03,2026-09-04,2026-09-05' &&
+   lockedWeekPay.days.join()==='2026-09-03' && lockedWeekPay.locked_days.map(x=>x.date).join()==='2026-09-04,2026-09-05',
+   JSON.stringify({write:lockedWeekPay.days,locked:lockedWeekPay.locked_days.map(x=>x.date)}));
+const keptWeek=JSON.parse(run(`(function(){
+  const p=${JSON.stringify(lockedWeekPay)};
+  const model={days:[
+    {date:'2026-09-03',part:'Legs',title:'Legs + Core',text:'Squat\\n  205 lb x 8 8 8 8\\n\\nRomanian Deadlift\\n  165 lb x 10 10 10\\n\\nDumbbell Lunge\\n  40 lb x 8 8 8\\n\\nStanding Calf Raise\\n  by feel x 15 15 15 15\\n\\nCable Crunch\\n  by feel x 15 12 12'},
+    {date:'2026-09-04',part:'Shoulder',title:'Shoulder',text:'Dumbbell Shoulder Press\\n  60 lb x 8 8 8 8'},
+    {date:'2026-09-05',part:'Chest',title:'Chest',text:'Barbell Bench Press\\n  165 lb x 6 6 6 6'}]};
+  const merged=writerResponseWithLocked(model,p);
+  const checked=writerCheck(merged,{payload:{...p,days:p.selected_days}});
+  return JSON.stringify({text:checked.text,dates:Object.keys(checked.week.days),titles:checked.rows.filter(x=>x.kind==='day').map(x=>x.title)});
+})()`));
+ok("...the model cannot swap Friday to Shoulder or Saturday to Chest",
+   keptWeek.dates.join()==='2026-09-03,2026-09-04,2026-09-05' &&
+   keptWeek.titles.join('|')==='Legs + Core|Chest B (flat) + Laterals + Core|Arms + Rear Delts + Core' &&
+   /EZ Bar Curl/.test(keptWeek.text) && /Barbell Bench Press/.test(keptWeek.text) && !/Dumbbell Shoulder Press/.test(keptWeek.text),
+   JSON.stringify(keptWeek.titles));
 const writerServer=fs.readFileSync(path.join(dir,'supabase','functions','write-session','index.ts'),'utf8');
 ok("...the coach is explicitly ordered week first, shape second, progression third",
    /ORDER OF DECISIONS — WEEK, SHAPE, THEN PROGRESSION/.test(writerServer) &&
@@ -124,6 +177,9 @@ ok("...core may run consecutively, but exact movements must rotate",
 ok("...new movements cannot displace the established session",
    /novelty never displaces a recurring exercise/i.test(writerServer) &&
    /it may not replace a recurring movement/i.test(writerServer));
+ok("...the prompt keeps weekly cadence ahead of rotation and makes calves a leg-day role",
+   /WEEKLY CADENCE:[\s\S]*Continue that cadence before consulting rotation\.ranking/.test(writerServer) &&
+   /LEG DAY CONTRACT:[\s\S]*one calf movement/.test(writerServer));
 
 /* ---- guardrails on stubbed answers ---- */
 const check = (resp) => run(`(function(){try{ const o=writerState(); const p=writerPayload(o); const r=writerCheck(${JSON.stringify(resp)},{payload:p});
@@ -132,6 +188,9 @@ const check = (resp) => run(`(function(){try{ const o=writerState(); const p=wri
 const today = run(`todayISO`);
 let r = JSON.parse(check({days:[{date:today,part:'Back',title:'Back',text:"Deadlift\n  220 lb x 5 5 5\n\nBent-Over Row\n  175 lb x 10 10\n\nCable Pullover\n  40 lb x 12 12"}]}));
 ok("1 · a name not in your catalog survives as a note, never an item", r.ok && r.ex.join()==='Deadlift,Bent-Over Row' && r.notes.some(n=>/Cable Pullover/.test(n)), JSON.stringify(r.notes));
+r = JSON.parse(check({days:[{date:today,part:'Chest',title:'Chest',text:"Barbell Bench Press\n  155 lb x 8 8\n\nCable Fly Down"}],reason:{head:'Chest, not Back',text:'chest is due'}}));
+ok("1b · a known exercise with no prescription is refused, never shown as a plausible plan",
+   !r.ok && /Cable Fly Down has no sets, reps, or time/.test(r.refused), r.refused);
 r = JSON.parse(check({days:[{date:today,part:'Shoulder',title:'Shoulder',text:"Lateral Raise\n  by feel x 12 12"}]}));
 ok("2 · a part that differs from the rotation's without a reason is refused whole", !r.ok && /without a reason/.test(r.refused), r.refused);
 r = JSON.parse(check({days:[{date:today,part:'Shoulder',title:'Shoulder',text:"Lateral Raise\n  by feel x 12 12"}],reason:{head:'Shoulder, not Back',text:'Nothing on record for shoulders in eight weeks.'}}));

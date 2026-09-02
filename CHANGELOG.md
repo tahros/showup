@@ -1,5 +1,26 @@
 # ShowUp — changelog
 
+## v3.3.420 (2026-09-02) — Complete the week; don't replace it
+
+The weekly Writer now treats a saved day as the person's decision, not as an
+empty box it may rewrite. It writes only the blank selected dates, plans them
+around the saved work, then merges every saved day back into one complete
+read-back. Even if the model tries to turn a saved Friday Chest session into
+Shoulders, the app discards that replacement.
+
+When no future days are saved, the Writer now reads recent weeks as an ordered
+split before it consults the overdue-part rotation. A recurring Arms day no
+longer disappears simply because Shoulders have been waiting longer.
+
+A full Grow leg day keeps its jobs in order: knee-dominant lift, hinge,
+unilateral movement, calves, then core. Load and rep progression still apply
+after that shape is settled, so a completed 35 lb Dumbbell Lunge may become
+40 lb without costing the session its calf work.
+
+Finally, a bare exercise heading is no longer allowed through the read-back.
+Every exercise must include usable sets, reps, or time; an incomplete line
+such as `Cable Fly Down` is refused instead of looking like a real plan.
+
 ## v3.3.419 (2026-09-02) — The writer sees the rest of the week
 
 Writing one day no longer means planning it in isolation. The Writer now sees
