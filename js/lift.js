@@ -6,90 +6,147 @@ let _lastLiftPart='\u0000';   // v3.3.64: sentinel — first render always count
    is showing it. It lived inline in renderLift; the maker moved it to the
    Today tab, and a second copy would have been two plans free to drift.
    Pure function: returns markup, touches nothing. */
+/* v3.3.398: the plan section has two SCOPES -- today, and the week -- and one
+   card renderer shared by both, so a day of the week and today's plan are the
+   same rows drawn by the same code. Scope lives in lift.planScope and is not
+   persisted: you open the app to today. The week pill exists only while a
+   week names a day that has not passed (weekNow()); when the week is over
+   the pill is gone and the section is exactly what it was in v3.3.297. */
+function planCardHTML(_pl, live){
+  /* v3.3.324: the × sits on ONE vertical line down the whole card.
+     v3.3.295 gave each row a three-column grid, which aligned the ×
+     within a row but NOT between rows -- a grid sizes its own columns,
+     and five rows are five grids, so five different x. The card measures
+     the longest weight and the longest rep string ONCE and hands both
+     down as character widths, so every row lays out on identical
+     columns: weights right-align into the column left of the ×,
+     reps left-align out of the column right of it, and the × lands
+     in the same place on every line of every row. `ch` is exact here
+     because .pl is mono -- every glyph one advance wide. */
+  /* v3.3.394: a line with no load named says so in words. It must not
+     read "BW", which is a claim about the exercise, nor "0", which is
+     a claim about the weight. */
+  /* v3.3.396: a belt is part of the line. v3.3.393 taught the parser
+     "BW +10" and planItemsFrom to keep the ten, and this row then
+     printed "BW" -- the belt survived two readers and died at the
+     third. The card now speaks wLabel's grammar: BW at zero,
+     BW+10 lb with a belt. Written as planWtx so the preview and the
+     width probe read the same function instead of copies of it. */
+  const _wtx=planWtx;
+  /* v3.3.346: a held line reads in seconds, and its multiplication
+     sign becomes a count of SETS -- "BW 60″ × 2" says the thing,
+     where "BW × 60 60" would say sixty of something. */
+  const _rtx=l=>isHold(l.su)
+    ? `${secLabel(l.reps[0])} × ${l.reps.length}`
+    : l.reps.join(' ');
+  /* v3.3.349: the numerals are rendered one at a time so the ones
+     already in the record can recede. _rtx stays as the MEASURING
+     function -- v3.3.324's shared --planr column width is computed
+     from its plain text, and markup would break that arithmetic. */
+  /* v3.3.367: the spend is ALLOCATED across the whole exercise, so it
+     arrives per line rather than being recomputed here -- one set can
+     only dim one planned set, and a heavier one lands on the heaviest
+     line it covers. */
+  /* v3.3.398: `live` is today's card. A day of the week that is not today
+     has no spend and no tick -- there is nothing in the record to read. */
+  const _rhtml=(l,spent)=>{
+    if(isHold(l.su))
+      return `<i class="rp${spent>=l.reps.length?' rspent':''}">${_rtx(l)}</i>`;
+    return l.reps.map((r,k)=>`<i class="rp${k<spent?' rspent':''}">${r}</i>`).join(' ');
+  };
+  const _ln=(_pl.items||[]).reduce((a,i)=>a.concat(i.lines||[]),[]);
+  const _cw=(f,min)=>Math.max(min,..._ln.map(l=>f(l).length));
+  return `<div class="card plancard${live?'':' dayplan'}" style="--planw:${_cw(_wtx,2)}ch;--planr:${_cw(_rtx,1)}ch">
+    ${(_pl.items||[]).map(i=>{const _sp=live?planSpentMap(i):i.lines.map(()=>0); const _dn=live&&planLoggedToday(i.ex); return `<button class="planrow${_dn?' pdone':''}" data-planex="${i.ex}">
+        <span class="pn">${i.ex}<i class="pk">${_dn?'✓':''}</i></span>
+        <span class="pl">${i.lines.map((l,li)=>`<span class="pv pw mono">${_wtx(l)}</span><span class="px mono" aria-hidden="true">×</span><span class="pr mono">${_rhtml(l,_sp[li])}</span>`).join('')}</span>
+      </button>`;}).join('')}
+    ${_pl.note?planNoteHTML(_pl.note):''}
+  </div>`;
+}
+/* the pills that lead the heading: today, and week while a week is live */
+function planPillsHTML(active, hasWeek){
+  /* active: 'today' | 'week' | null -- null is the empty state, which names
+     the section without claiming it holds anything (v3.3.297) */
+  return `<button class="scopepill${active==='today'?'':' off'}" data-planscope="today">today</button>${
+    hasWeek?`<button class="scopepill${active==='week'?'':' off'}" data-planscope="week" style="margin-left:4px">week</button>`:''}`;
+}
+/* v3.3.398: the edge speaks in glyphs. Fold leads (a chevron for a day, the
+   LAFS pair for a week), then copy, edit, clear -- clear last, at the far
+   edge, away from the control you tap most (v3.3.294). Every button carries
+   an aria-label because the word is gone from the screen. */
+const _edgeBtn=(attr,label,glyph,extra)=>`<button class="pedge pglyph${extra?' '+extra:''}" ${attr} aria-label="${label}">${glyph}</button>`;
 function planSectionHTML(){
   let h='';
-      const _pl=planNow();
-      if(_pl){
-        /* v3.3.282: Edit and Clear move to the heading's right edge. They are
-           management actions, not part of the plan, and a full-width pair under
-           the last exercise read as another row of the session. The (i) stays
-           beside the title — that placement is v3.3.115's deliberate call and
-           is not what the maker asked to move. */
-        /* v3.3.294: the whole plan folds, like the Last-time card (v3.3.274).
-           Some days you want the playbook on screen; some days it is scroll
-           between you and the body-part grid. Folded, the heading IS the
-           one-line fact — pill, name, actions — so nothing is left hanging.
-           The chevron leads the action group so the destructive Clear stays
-           at the far edge, away from the control you tap most. */
-        const _pf=!!DB.settings.planFold;
-        h+=`<h2><b class="scopepill">today</b> plan${hActs('plan',"Paste a session and the app reads what it can. It fills weights and reps for today only, is never written to your record, and clears at midnight. Nothing is counted against it.",'About today\u2019s plan')}<span class="planedge"><button class="pedge pfold" data-planfold aria-expanded="${!_pf}" aria-label="${_pf?'Show':'Hide'} today\u2019s plan">${_pf?'\u25b8':'\u25be'}</button><button class="pedge" data-planedit>Edit</button><button class="pedge" data-planclear>Clear</button></span></h2>`;
-        if(!_pf){
-          /* v3.3.324: the \u00d7 sits on ONE vertical line down the whole card.
-             v3.3.295 gave each row a three-column grid, which aligned the \u00d7
-             within a row but NOT between rows -- a grid sizes its own columns,
-             and five rows are five grids, so five different x. The card measures
-             the longest weight and the longest rep string ONCE and hands both
-             down as character widths, so every row lays out on identical
-             columns: weights right-align into the column left of the \u00d7,
-             reps left-align out of the column right of it, and the \u00d7 lands
-             in the same place on every line of every row. `ch` is exact here
-             because .pl is mono -- every glyph one advance wide. */
-          /* v3.3.394: a line with no load named says so in words. It must not
-             read "BW", which is a claim about the exercise, nor "0", which is
-             a claim about the weight. */
-          /* v3.3.396: a belt is part of the line. v3.3.393 taught the parser
-             "BW +10" and planItemsFrom to keep the ten, and this row then
-             printed "BW" -- the belt survived two readers and died at the
-             third. The card now speaks wLabel's grammar: BW at zero,
-             BW+10 lb with a belt. Written as planWtx so the preview and the
-             width probe read the same function instead of copies of it. */
-          const _wtx=planWtx;
-          /* v3.3.346: a held line reads in seconds, and its multiplication
-             sign becomes a count of SETS -- "BW 60\u2033 \u00d7 2" says the thing,
-             where "BW \u00d7 60 60" would say sixty of something. */
-          const _rtx=l=>isHold(l.su)
-            ? `${secLabel(l.reps[0])} \u00d7 ${l.reps.length}`
-            : l.reps.join(' ');
-          /* v3.3.349: the numerals are rendered one at a time so the ones
-             already in the record can recede. _rtx stays as the MEASURING
-             function -- v3.3.324's shared --planr column width is computed
-             from its plain text, and markup would break that arithmetic. */
-          /* v3.3.367: the spend is ALLOCATED across the whole exercise, so it
-             arrives per line rather than being recomputed here -- one set can
-             only dim one planned set, and a heavier one lands on the heaviest
-             line it covers. */
-          const _rhtml=(l,spent)=>{
-            if(isHold(l.su))
-              return `<i class="rp${spent>=l.reps.length?' rspent':''}">${_rtx(l)}</i>`;
-            return l.reps.map((r,k)=>`<i class="rp${k<spent?' rspent':''}">${r}</i>`).join(' ');
-          };
-          const _ln=(_pl.items||[]).reduce((a,i)=>a.concat(i.lines||[]),[]);
-          const _cw=(f,min)=>Math.max(min,..._ln.map(l=>f(l).length));
-          h+=`<div class="card plancard" style="--planw:${_cw(_wtx,2)}ch;--planr:${_cw(_rtx,1)}ch">
-            ${(_pl.items||[]).map(i=>{const _sp=planSpentMap(i); return `<button class="planrow${planLoggedToday(i.ex)?' pdone':''}" data-planex="${i.ex}">
-                <span class="pn">${i.ex}<i class="pk">${planLoggedToday(i.ex)?'\u2713':''}</i></span>
-                <span class="pl">${i.lines.map((l,li)=>`<span class="pv pw mono">${_wtx(l)}</span><span class="px mono" aria-hidden="true">\u00d7</span><span class="pr mono">${_rhtml(l,_sp[li])}</span>`).join('')}</span>
-              </button>`;}).join('')}
-            ${_pl.note?planNoteHTML(_pl.note):''}
-          </div>`;
-        }
-      }else{
-        /* v3.3.297: the empty state is the SAME heading as the filled one, with
-           PASTE where the fold and Edit and Clear sit. A 51px full-width slab
-           made the section change shape depending on whether a plan existed —
-           the page jumped, and an empty section was louder than a full one.
-           One line either way, and the offer sits exactly where the controls
-           for a real plan will appear. */
-        h+=`<h2 class="quiet"><b class="scopepill off">today</b> plan${hActs('plan',"Paste a session and the app reads what it can. It fills weights and reps for today only, is never written to your record, and clears at midnight. Nothing is counted against it.",'About today\u2019s plan')}<span class="planedge"><button class="pedge" data-planpaste>Paste</button></span></h2>`;
-        /* v3.3.397: a plan written for tomorrow (the ledger rule) waits here
-           as one line. It names the day, counts its exercises, and says when
-           it opens. Tapping it does nothing today; there is nothing to do. */
-        const _pp=planPending();
-        if(_pp){
-          const _n=(_pp.items||[]).length;
-          h+=`<div class="row spread card planpending" style="padding:11px 14px"><span class="mono muted" style="font-size:12px">${planDayLabel(_pp.d)} \u00b7 written, opens at midnight</span><span class="mono" style="font-size:12px;color:var(--faint)">${_n?`${_n} exercise${_n===1?'':'s'}`:'a note'}</span></div>`;
-        }
-      }
+  const _wk=weekNow();
+  if(!_wk&&lift.planScope==='week') lift.planScope='today';
+  const _scope=lift.planScope||'today';
+  const _tip=hActs('plan',"Paste a session and the app reads what it can. It fills weights and reps for today only, is never written to your record, and clears at midnight. Nothing is counted against it.",'About today’s plan');
+
+  if(_scope==='week'&&_wk){
+    /* ---- THE WEEK: one card per day, the ground showing between them ---- */
+    const isos=Object.keys(_wk.days).sort();
+    if(!lift.weekOpen) lift.weekOpen=new Set([isos.includes(todayISO)?todayISO:(isos.find(x=>x>todayISO)||isos[0])]);
+    const allOpen=isos.every(x=>lift.weekOpen.has(x));
+    h+=`<h2>${planPillsHTML('week',true)} plan<span class="planedge">${
+      _edgeBtn('data-weekall="'+(allOpen?'fold':'open')+'"', allOpen?'Fold every day':'Open every day', icon(allOpen?'collapse':'expand',17))}${
+      _edgeBtn('data-plancopy="week"','Copy the week',icon('copy',17))}${
+      _edgeBtn('data-weekedit','Edit the week',icon('edit',17))}${
+      _edgeBtn('data-weekclear','Clear the week',icon('clear',17))}</span></h2>`;
+    const n=isos.filter(x=>(_wk.days[x].items||[]).length).length;
+    h+=`<div class="mono muted rangeline">${pretty(isos[0]).toUpperCase()} → ${pretty(isos[isos.length-1]).toUpperCase()} · ${n} SESSION${n===1?'':'S'}</div>`;
+    h+=`<div class="weekstack">`;
+    for(const iso of isos){
+      const d=_wk.days[iso], open=lift.weekOpen.has(iso), past=iso<todayISO, today=iso===todayISO;
+      /* a past day folds to its heading and dims. No tick, no miss: it is
+         simply a day that has gone, and the ledger says what happened in it. */
+      h+=`<div class="card daycard${open?' open':''}${past?' past':''}${today?' today':''}">
+        <button class="dayhead" data-weekday="${iso}" aria-expanded="${open}" aria-label="${open?'Fold':'Open'} ${pretty(iso)}">
+          <span class="dn">${pretty(iso).toUpperCase()}${today?' · TODAY':''}</span>
+          <span class="dt mono">${hesc(d.title||'')}${icon('chevron',11,open?90:0)}</span>
+        </button>${open?planCardHTML({d:iso,items:(d.items||[]).map(planItemShape),note:d.note||''}, today):''}</div>`;
+    }
+    h+=`</div>`;
+    return h;
+  }
+
+  const _pl=planNow();
+  if(_pl){
+    /* v3.3.282: Edit and Clear move to the heading's right edge. They are
+       management actions, not part of the plan, and a full-width pair under
+       the last exercise read as another row of the session. The (i) stays
+       beside the title — that placement is v3.3.115's deliberate call and
+       is not what the maker asked to move. */
+    /* v3.3.294: the whole plan folds, like the Last-time card (v3.3.274).
+       Some days you want the playbook on screen; some days it is scroll
+       between you and the body-part grid. Folded, the heading IS the
+       one-line fact — pill, name, actions — so nothing is left hanging.
+       The chevron leads the action group so the destructive Clear stays
+       at the far edge, away from the control you tap most. */
+    const _pf=!!DB.settings.planFold;
+    h+=`<h2>${planPillsHTML('today',!!_wk)} plan${_tip}<span class="planedge">${
+      _edgeBtn('data-planfold aria-expanded="'+(!_pf)+'"', (_pf?'Show':'Hide')+' today’s plan', icon('chevron',12,_pf?0:90),'pfold')}${
+      _edgeBtn('data-plancopy="today"','Copy today’s plan',icon('copy',17))}${
+      _edgeBtn('data-planedit','Edit today’s plan',icon('edit',17))}${
+      _edgeBtn('data-planclear','Clear today’s plan',icon('clear',17))}</span></h2>`;
+    if(!_pf) h+=planCardHTML(_pl,true);
+  }else{
+    /* v3.3.297: the empty state is the SAME heading as the filled one, with
+       PASTE where the fold and Edit and Clear sit. A 51px full-width slab
+       made the section change shape depending on whether a plan existed —
+       the page jumped, and an empty section was louder than a full one.
+       One line either way, and the offer sits exactly where the controls
+       for a real plan will appear. */
+    h+=`<h2 class="quiet">${planPillsHTML(null,!!_wk)} plan${_tip}<span class="planedge"><button class="pedge" data-planpaste>Paste</button></span></h2>`;
+    /* v3.3.397: a plan written for tomorrow (the ledger rule) waits here
+       as one line. It names the day, counts its exercises, and says when
+       it opens. Tapping it does nothing today; there is nothing to do. */
+    const _pp=planPending();
+    if(_pp){
+      const _n=(_pp.items||[]).length;
+      h+=`<div class="row spread card planpending" style="padding:11px 14px"><span class="mono muted" style="font-size:12px">${planDayLabel(_pp.d)} · written, opens at midnight</span><span class="mono" style="font-size:12px;color:var(--faint)">${_n?`${_n} exercise${_n===1?'':'s'}`:'a note'}</span></div>`;
+    }
+  }
   return h;
 }
 /* "Sep 2" -- the day a plan is for, as the seg and the pending line say it */
@@ -773,10 +830,12 @@ function moGoalCardHTML(){
    dropped. */
 function planScreenHTML(){
   if(lift.plan==='paste'){
-    const cur=(planNow()||{}).raw||lift.planText||'';
+    /* v3.3.398: editing the week opens the week's text, not today's block */
+    const cur=lift.planMode==='week'?(lift.planText||''):((planNow()||{}).raw||lift.planText||'');
     /* v3.3.397: the paste names the day it is for; the ledger picks it */
     const _wd=writeDateISO();
-    return `<h2>${_wd===todayISO?'Paste today\u2019s plan':`Paste a plan for ${planDayLabel(_wd)}`}</h2>
+    const _title=lift.planMode==='week'?'Edit the week':(_wd===todayISO?'Paste today\u2019s plan':`Paste a plan for ${planDayLabel(_wd)}`);
+    return `<h2>${_title}</h2>
       <div class="card">
         <textarea id="planText" class="planta" rows="12" placeholder="Paste a session — from a coach, a forum, anywhere.">${hesc(cur)}</textarea>
         <div class="planacts">
@@ -791,6 +850,12 @@ function planScreenHTML(){
   let h=`<h2>Read from your paste</h2><div class="card">
     <div class="lasthead"><span>WHAT THE APP READ</span><span class="ago">${ok} of ${tot}</span></div>`;
   rows.forEach((r,i)=>{
+    /* v3.3.398: a day heading inside a week paste -- a divider, not an item */
+    if(r.kind==='day'){
+      h+=`<div class="planpv day"><span class="pi">\u00b7</span>
+        <span class="pb"><b>${hesc(pretty(r.iso))}</b>${r.title?`<i class="mono">${hesc(r.title)}</i>`:''}</span></div>`;
+      return;
+    }
     if(r.kind==='ex'&&r.ex){
       h+=`<div class="planpv ok"><span class="pi">\u2713</span>
         <span class="pb"><b>${hesc(r.ex)}</b>
@@ -810,7 +875,7 @@ function planScreenHTML(){
     }
   });
   h+=`<div class="planacts">
-      <button class="btn wide" data-planaccept>${writeDateISO()===todayISO?'Use today\u2019s plan':`Use this for ${planDayLabel(writeDateISO())}`}</button>
+      <button class="btn wide" data-planaccept>${lift.planMode==='week'?'Use this week':writeDateISO()===todayISO?'Use today\u2019s plan':`Use this for ${planDayLabel(writeDateISO())}`}</button>
       <button class="btn ghost" data-planedit>Edit</button>
       <button class="btn ghost" data-planback>Cancel</button>
     </div></div>`;

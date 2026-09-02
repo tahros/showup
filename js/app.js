@@ -289,16 +289,46 @@ document.addEventListener('click',e=>{
   }
   /* ---- v3.3.278: today's plan. Every step is explicit; nothing auto-applies. */
   if(e.target.closest&&e.target.closest('[data-planpaste],[data-planedit]')){
-    lift.plan='paste'; return render();
+    lift.plan='paste'; lift.planMode='day'; return render();
+  }
+  /* ---- v3.3.398: the week scope ---- */
+  const _ps=e.target.closest&&e.target.closest('[data-planscope]');
+  if(_ps){ lift.planScope=_ps.dataset.planscope; return render(); }
+  const _wd=e.target.closest&&e.target.closest('[data-weekday]');
+  if(_wd){ const iso=_wd.dataset.weekday; lift.weekOpen=lift.weekOpen||new Set();
+    if(lift.weekOpen.has(iso)) lift.weekOpen.delete(iso); else lift.weekOpen.add(iso); return render(); }
+  const _wa=e.target.closest&&e.target.closest('[data-weekall]');
+  if(_wa){ const wk=weekNow(); lift.weekOpen=new Set(_wa.dataset.weekall==='open'&&wk?Object.keys(wk.days):[]); return render(); }
+  const _pc=e.target.closest&&e.target.closest('[data-plancopy]');
+  if(_pc){
+    const txt=_pc.dataset.plancopy==='week'?weekToText(weekNow()):(function(){const p=planNow(); return p&&p.raw&&p.raw.trim()?p.raw:planToText(p);})();
+    const done=()=>toast('Copied');
+    try{ if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done,()=>toast('Could not copy')); else { lift.planText=txt; lift.plan='paste'; render(); } }
+    catch(_e){ lift.planText=txt; lift.plan='paste'; render(); }
+    return;
+  }
+  if(e.target.closest&&e.target.closest('[data-weekedit]')){
+    lift.planText=weekToText(weekNow()); lift.plan='paste'; lift.planMode='week'; return render();
+  }
+  if(e.target.closest&&e.target.closest('[data-weekclear]')){
+    weekClear(); lift.planScope='today'; lift.weekOpen=null; toast('Week cleared'); return render();
   }
   if(e.target.closest&&e.target.closest('[data-planback]')){
-    lift.plan=null; lift.planRows=null; return render();
+    lift.plan=null; lift.planRows=null; lift.planWeek=null; return render();
   }
   if(e.target.closest&&e.target.closest('[data-planread]')){
     const ta=document.getElementById('planText');
     const txt=ta?ta.value:'';
     if(!txt.trim()){ toast('Paste a session first'); return; }
-    lift.planText=txt; lift.planRows=parsePlan(txt); lift.plan='preview'; return render();
+    lift.planText=txt;
+    /* v3.3.398: a paste with day headings is a week. Read from the week
+       scope, or from any paste that names two or more days. */
+    const wk=parseWeek(txt);
+    if(lift.planMode==='week'||(wk&&Object.keys(wk.days).length>=2)){
+      if(!wk){ toast('No day headings found \u2014 e.g. "Tue, Sep 1 \u2014 Back"'); return; }
+      lift.planMode='week'; lift.planWeek=wk; lift.planRows=weekRows(wk); lift.plan='preview'; return render();
+    }
+    lift.planMode='day'; lift.planRows=parsePlan(txt); lift.plan='preview'; return render();
   }
   const _pdrop=e.target.closest&&e.target.closest('[data-plandrop]');
   if(_pdrop){
@@ -313,6 +343,16 @@ document.addEventListener('click',e=>{
     return render();
   }
   if(e.target.closest&&e.target.closest('[data-planaccept]')){
+    /* v3.3.398: a week is accepted day by day from the same rows, so a
+       dropped line or a picked candidate in the preview is honoured */
+    if(lift.planMode==='week'){
+      const wk=weekFromRows(lift.planRows||[], lift.planText||'');
+      if(!wk){ toast('Nothing to keep'); return; }
+      weekSave(wk); lift.plan=null; lift.planRows=null; lift.planWeek=null; lift.planMode='day';
+      lift.planScope='week'; lift.weekOpen=null;
+      const n=Object.keys(wk.days).length; toast(`Week set \u2014 ${n} day${n===1?'':'s'}`);
+      return render();
+    }
     const {items,note}=planItemsFrom(lift.planRows||[]);
     if(!items.length&&!note.trim()){ toast('Nothing to keep'); return; }
     /* v3.3.397: stamped with the day the ledger says it is for */

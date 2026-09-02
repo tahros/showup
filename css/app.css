@@ -1652,6 +1652,31 @@
   .pedge:last-child{color:var(--faint)}
   /* the fold chevron leads the group and is a glyph, not a word */
   .pedge.pfold{font-size:13px;color:var(--muted);text-transform:none;padding:2px 2px}
+  /* v3.3.398: the edge speaks in glyphs. Each is an inline SVG on
+     currentColor at the edge's own ink, 17px so it survives a phone at arm's
+     length (rev 3 of the spec drew them at 14 and they vanished). A pill is
+     a button now, because the week scope made it one. */
+  .pedge.pglyph{display:inline-flex;align-items:center;padding:2px 1px;color:var(--muted)}
+  .pedge.pglyph:last-child{color:var(--faint)}
+  .pedge.pglyph .ic{display:block}
+  button.scopepill{border:0;cursor:pointer;line-height:inherit}
+  .rangeline{font-size:11px;letter-spacing:.04em;padding:2px 14px 8px;color:var(--faint)}
+  /* one card per day, the ground between them: a day has edges */
+  .weekstack{display:flex;flex-direction:column;gap:8px}
+  /* :root[data-skin] rules restyle every .card at higher specificity, so the
+     day card and its body are pinned under :root too, for every skin */
+  :root .card.daycard{padding:0;overflow:hidden}
+  .daycard.past{filter:opacity(.45)}
+  /* the day's rows are the day card's body, not a card inside a card */
+  :root .daycard .card.plancard{box-shadow:none;background:none;border:0;margin:0;padding:0 0 4px;border-radius:0}
+  .dayhead{all:unset;box-sizing:border-box;display:flex;width:100%;justify-content:space-between;align-items:center;gap:12px;
+    padding:12px 14px;cursor:pointer;font-size:11px;letter-spacing:var(--track-label);font-weight:600;color:var(--muted)}
+  .daycard.open .dayhead{padding-bottom:6px}
+  .daycard.today .dayhead .dn{color:var(--chalk)}
+  .dayhead .dn{white-space:nowrap;text-transform:uppercase}
+  .dayhead .dt{display:inline-flex;align-items:center;gap:8px;letter-spacing:0;font-weight:500;text-align:right;color:var(--muted);min-width:0}
+  .dayhead .dt .ic{flex:none;color:var(--faint)}
+  .planpv.day .pb b{font-size:12px;letter-spacing:var(--track-label);text-transform:uppercase;color:var(--muted)}
   .plancard{padding:6px 0}
   /* v3.3.281: the plan is reference material you glance at between sets, not
      a headline — it reads one step down from the ledger's own type. */

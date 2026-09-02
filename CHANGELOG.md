@@ -1,5 +1,32 @@
 # ShowUp — changelog
 
+## v3.3.398 (2026-09-02) — The week: a document, not a schedule
+
+Paste a week — six blocks of the format you already write, each under a day
+heading like *Tue, Sep 1 — Back + Biceps* — and the plan section grows a
+second pill: `today | week`. The week scope is one card per day with the
+ground showing between them; today's is open, the rest fold to their
+heading, and a day that has passed dims. Nothing is ever counted against it.
+
+Today's plan *is* the week's block for today: same stamp, same rails, same
+expiry. A day pasted on its own replaces only its block. Clear on today
+clears today's block; Clear on the week clears the week. A week ends on its
+last day and does not roll over — the pill is simply gone.
+
+The edge speaks in glyphs now, on both scopes: fold (Barracuda's chevron for
+a day, LAFS's expand/collapse pair for the week), copy, edit, clear — each
+with a name for the screen reader. Copy hands back the text in your format;
+Edit opens it; Read it previews a week as days with their exercises, and Use
+this week keeps exactly what the preview shows. Four Noun Project icons,
+credited on the Settings line that already credits the others; buildcheck
+checks the names are there.
+
+The wall around the record stands around the week too: no reader of the
+ledger knows `DB.week` exists, `weekSave` cannot touch `DB.days`, and the
+adherence-vocabulary ban now covers the word "week". A new suite,
+test-week.js, runs the maker's own week through all of it, re-dated from
+today so it is green on any day of the month.
+
 ## v3.3.397 (2026-09-02) — The ledger decides what "today" means
 
 A plan pasted at 10 PM, after today's sets are in the record, is a plan for a

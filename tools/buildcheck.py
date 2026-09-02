@@ -685,6 +685,17 @@ if _re.search(r"(iPhone|iPad|navigator\.userAgent)[^\n]*hapt", _app_hap, _re.I):
 for _f in ("js/derive.js", "js/report.js", "js/stats.js"):
     if "DB.plan" in (d/_f).read_text():
         fail.append(f"plan: {_f} reads DB.plan — the record must not know about plans (v3.3.278)")
+    # v3.3.398: a week is a document of plans; the same wall stands around it
+    if "DB.week" in (d/_f).read_text():
+        fail.append(f"week: {_f} reads DB.week — the record must not know about weeks (v3.3.398)")
+_ws = _util_plan_ws = (d/"js/util.js").read_text().find("function weekSave(")
+if _ws < 0:
+    fail.append("week: weekSave() missing from js/util.js (v3.3.398)")
+else:
+    _u = (d/"js/util.js").read_text()
+    _wsb = _u[_ws:_u.find("\nfunction ", _ws + 10)]
+    if "DB.days" in _wsb:
+        fail.append("week: weekSave() touches DB.days — a week must never log itself (v3.3.398)")
 _util_plan = (d/"js/util.js").read_text()
 _ps = _util_plan.find("function planSave(")
 if _ps < 0:
@@ -709,8 +720,9 @@ for _f in ("js/util.js", "js/lift.js", "js/today.js", "js/app.js"):
     _code = _re.sub(r"/\*[\s\S]*?\*/", "", _src)
     _code = _re.sub(r"(^|[^:])//[^\n]*", r"\1", _code)
     for _ln in _code.split("\n"):
-        if "plan" in _ln.lower() and _ADHERE.search(_ln):
-            fail.append(f"plan: {_f} scores against the plan ({_ln.strip()[:52]!r}) — no failure state (v3.3.278)")
+        # v3.3.398: "week" joins "plan" -- a past day folds and dims, it is never missed
+        if ("plan" in _ln.lower() or "week" in _ln.lower()) and _ADHERE.search(_ln):
+            fail.append(f"plan: {_f} scores against the plan or the week ({_ln.strip()[:52]!r}) — no failure state (v3.3.278/398)")
             break
     _agg = _AGG.search(_code)
     if _agg:
@@ -907,6 +919,13 @@ if not _ask or not re.search(r'flex-wrap:\s*wrap', _ask.group(1)):
     fail.append(".planpv.ask must flex-wrap:wrap, or a long unresolved name is crushed under its candidates (v3.3.396)")
 if not _askpc or not re.search(r'flex-basis:\s*100%', _askpc.group(1)):
     fail.append(".planpv.ask .pc must take flex-basis:100% so candidates sit on their own line (v3.3.396)")
+
+# -- v3.3.398: the four Noun Project glyphs are credited, by name, on the line
+#    Settings already keeps. Royalty-free is not credit-free.
+_cred = (d/"js/settings.js").read_text()
+for _who in ("Eliricon", "Barracuda", "LAFS"):
+    if _who not in _cred:
+        fail.append(f"credits: {_who} missing from the Settings asset line (v3.3.398)")
 
 if fail:
     print("BUILDCHECK FAIL"); [print(" -", f) for f in fail]; sys.exit(1)

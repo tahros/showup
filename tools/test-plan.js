@@ -413,8 +413,9 @@ ok("both states are one heading line, so the page cannot jump",
      return filled.querySelector('.scopepill') && filled.querySelector('.planedge')
        && /scopepill/.test(__emptyH) && /planedge/.test(__emptyH);})()`));
 
+/* v3.3.398: FOUR controls -- fold, copy, edit, clear -- all glyphs now */
 ok("the plan's controls live in the heading, not the card body",
-   run(`document.querySelectorAll('h2 .planedge .pedge').length`) === 3 &&
+   run(`document.querySelectorAll('h2 .planedge .pedge').length`) === 4 &&
    run(`!document.querySelector('.plancard .planacts')`));
 ok("...with the fold leading and the destructive Clear at the far edge",
    run(`(function(){const b=[...document.querySelectorAll('h2 .planedge .pedge')];
@@ -504,9 +505,11 @@ ok("clearing a plan also withdraws the suggestions it planted",
 run(`(function(){planSave([{ex:'Dumbbell Shoulder Press',lines:[{w:toKg(55),bw:false,reps:[8,8]}]},
                            {ex:'Lateral Raise',lines:[{w:toKg(35),bw:false,reps:[12,12]}]}],'','');
   DB.settings.planFold=false; view='today'; lift.ex=null; lift.plan=null; render();})()`);
-ok("open by default, chevron says so",
-   run(`(function(){const b=document.querySelector('[data-planfold]');
-     return !!b && b.getAttribute('aria-expanded')==='true' && b.textContent==='\u25be';})()`));
+/* v3.3.398: the chevron is Barracuda's glyph, turned 90° when open */
+const chev=open=>run(`(function(){const b=document.querySelector('[data-planfold]'); if(!b) return false;
+     const svg=b.querySelector('svg.ic-chevron'); const rot=/rotate\\(90deg\\)/.test(svg?svg.getAttribute('style')||'':'');
+     return b.getAttribute('aria-expanded')==='${open}' && !!svg && rot===${open};})()`);
+ok("open by default, chevron says so", chev(true));
 const rowsOpen = run(`document.querySelectorAll('.planrow').length`);
 ok("...with the plan's rows on screen", rowsOpen > 0, rowsOpen + " rows");
 run(`document.querySelector('[data-planfold]').click()`);
@@ -515,9 +518,8 @@ ok("one tap folds the card away entirely",
    run(`!document.querySelector('.plancard')`));
 ok("...but the heading stays as the one-line fact",
    run(`!!document.querySelector('h2 .scopepill')`) &&
-   run(`document.querySelectorAll('h2 .planedge .pedge').length`) === 3);
-ok("...and the chevron flips", run(`(function(){const b=document.querySelector('[data-planfold]');
-     return b.getAttribute('aria-expanded')==='false' && b.textContent==='\u25b8';})()`));
+   run(`document.querySelectorAll('h2 .planedge .pedge').length`) === 4);
+ok("...and the chevron flips", chev(false));
 ok("the choice is a setting, not a render whim", run(`DB.settings.planFold===true`));
 run(`render()`);
 ok("...so it survives a full re-render", run(`!document.querySelector('.plancard')`));
