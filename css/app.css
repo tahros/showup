@@ -801,6 +801,10 @@
      -- date, week, count, timer and gear do not fit one line together. */
   header:has(#hTimer.on) .streak{display:none}
   .h-subrow .h-sub{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  /* v3.3.412: a plan on a closed day is a receipt, not a to-do. Ink recedes;
+     nothing is struck through or recoloured -- the check marks already say
+     which lines were kept. */
+  .plspent{opacity:.62}
   .dayclosed{display:block;width:100%;text-align:center;padding:20px 16px 16px;
     margin-bottom:18px;border:1px solid var(--line);cursor:pointer}
   .dayclosed .dcsq{display:block;width:30px;height:30px;margin:0 auto 12px;

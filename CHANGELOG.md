@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v3.3.412 (2026-09-02) — A closed day points forward
+
+Once you've pressed Complete, Today now knows it. The finished-day card leads
+the page, the "Train next" suggestion and "Add another part" go away, and
+your plan settles into a receipt — what was kept and what wasn't, quietly.
+
+The plan header changes with it: Edit and Clear step aside, and **Write** takes
+their place so you can plan tomorrow without leaving the screen.
+
 ## v3.3.411 (2026-09-02) — One icon system
 
 Every icon shared one box, but the drawing inside filled anywhere from half of

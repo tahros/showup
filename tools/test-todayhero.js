@@ -257,11 +257,55 @@ run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
   lift.part=null; lift.ex=null;
   SEED=deriveAll(); DB.settings.msFloor=msLiveTotal(); DB.settings.msAck=msLiveTotal();
   view='today'; render();})()`);
-check("with no live session, the plan heading is #view's first child",
-      `document.querySelector('#view').firstElementChild.tagName
-        +':'+document.querySelector('#view').firstElementChild.textContent.slice(0,10)`, "H2:today plan");
-check("...and it carries the quiet class this fix targets",
-      `document.querySelector('#view').firstElementChild.classList.contains('quiet')`, true);
+/* v3.3.412 RESTATES. This fixture is a CLOSED day -- sets logged and the
+   day-end pressed -- and on a closed day the finished card leads, not the
+   plan. The header already tells three states (empty-and-breathing, red,
+   filled-and-still); this body did not know the third, and led with a plan
+   and a recommendation while the one thing that said "closed" sat at the
+   bottom after an invitation to add more. A closed day points forward. */
+check("on a closed day, the finished card leads",
+      `document.querySelector('#view').firstElementChild.classList.contains('dayclosed')`, true);
+check("...and the plan heading follows it",
+      `document.querySelector('#view').children[1].tagName
+        +':'+document.querySelector('#view').children[1].textContent.slice(0,10)`, "H2:today plan");
+check("...with nothing recommending a next exercise",
+      `!document.querySelector('.tnextplan')`, true);
+check("...and no invitation to add another part",
+      `![...document.querySelectorAll('#view h2')].some(h=>/Add another part/i.test(h.textContent))`, true);
+check("...while the training record stays",
+      `[...document.querySelectorAll('#view h2')].some(h=>/Training today/i.test(h.textContent))`, true);
+
+/* v3.3.412: THE PLAN HEADER FOLLOWS THE LEDGER RULE. With a plan saved, the
+   header offered fold/copy/edit/clear in every state -- so once the day was
+   closed there was no way to write tomorrow, even though writeDateISO()
+   already returns tomorrow once today is in the book. On a closed day Edit
+   and Clear retire (a finished promise is not edited) and the writer's door
+   takes their place; the plan card recedes to a receipt. */
+run(`(function(){DB.plan={d:todayISO, items:[
+    {ex:'Dumbbell Press', lines:[{w:20,bw:false,reps:[15]}]},
+    {ex:'Lateral Raise',  lines:[{w:10,bw:false,reps:[12,12]}]}], note:''};
+  DB.planAt=Date.now(); render();})()`);
+check("on a closed day the plan header offers the writer's door",
+      `!!document.querySelector('h2 .planedge [data-planwrite]')`, true);
+check("...and it names tomorrow as its target",
+      `writeDateISO()>todayISO`, true);
+check("...while Edit and Clear retire",
+      `!document.querySelector('[data-planedit]') && !document.querySelector('[data-planclear]')`, true);
+check("...and fold and copy stay",
+      `!!document.querySelector('[data-planfold]') && !!document.querySelector('[data-plancopy]')`, true);
+check("...with the plan card receded to a receipt",
+      `!!document.querySelector('.plspent .plancard')`, true);
+/* the earlier "nothing recommending" check ran before any plan existed, so
+   it could not fail -- the probe that restores the recommendation stayed
+   green. Lateral Raise is planned and unlogged here; on an open day that is
+   exactly what Train next would name. */
+check("...and even with an unlogged plan item, nothing recommends a next exercise",
+      `!document.querySelector('.tnextplan')`, true);
+/* reopen the day: the header returns to managing the live promise */
+run(`(function(){day(todayISO).doneAll=false; render();})()`);
+check("reopened, Edit and Clear return and the door withdraws",
+      `!!document.querySelector('[data-planedit]') && !!document.querySelector('[data-planclear]')
+        && !document.querySelector('h2 .planedge [data-planwrite]') && !document.querySelector('.plspent')`, true);
 
 // ---- v3.3.106: the trained state leads with the number that MOVED --------
 // Fixture: past history + today logged AND sealed (doneAll), matching the

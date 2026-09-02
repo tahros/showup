@@ -478,6 +478,30 @@ function renderToday(){
   }
 
   // ---- mid-session: what am I doing right now
+  /* v3.3.412: A CLOSED DAY POINTS FORWARD. The header already knows three
+     states -- empty and breathing, red, filled and still -- but this body
+     did not: after the day-end was pressed it still led with the plan,
+     offered a recommendation, invited another part, and buried the one thing
+     that said "closed" at the very bottom. The screen's order said KEEP GOING
+     while the header said DONE.
+     Order and weight fix it, not a new element. On a closed day the finished
+     card LEADS; Train next and Add another part leave, because a closed day
+     has no next; the plan header points to tomorrow (lift.js, the ledger
+     rule); the plan card recedes to a receipt. Training Today stays: it is
+     the record. No check mark, no colour, no banner -- closed is a quiet
+     state, and its cue is that the screen stops asking things of you. */
+  const _closed=dayClosed();
+  const _closedCard=()=>{
+    const _n=SEED.totals.sessions+(t.w.length?1:0);
+    const _st=currentStreak();
+    return `<button class="card dayclosed" data-replayday="1" aria-label="Today is complete. Tap to see it again.">
+          <i class="dcsq" aria-hidden="true"></i>
+          <b class="dcn">Day ${fmt(_n)} — in the book.</b>
+          <span class="dcm mono">${t.w.length} sets${_st>1?` \u00b7 ${_st}-day streak`:''}</span>
+          <span class="dcr mono">logging another set reopens it</span>
+        </button>`;
+  };
+  if(_closed) h+=_closedCard();
   h+=todayHeroHTML();
   /* v3.3.374: MID-SESSION IS WHEN "what's next" ACTUALLY MATTERS, and until
      now Today answered it only BEFORE the first set -- the moment the first
@@ -490,7 +514,9 @@ function renderToday(){
      -- the next action then is the day-end button. */
   {
     const _plm=planNow();
-    const _nx=_plm?(_plm.items||[]).find(i=>!planLoggedToday(i.ex)):null;
+    /* v3.3.412: no recommendation on a closed day -- the question "what
+       should I train?" was answered when the day-end was pressed. */
+    const _nx=(_plm&&!_closed)?(_plm.items||[]).find(i=>!planLoggedToday(i.ex)):null;
     if(_nx) h+=`<h2>Train next</h2>
       <div class="card tnextplan"><div class="row spread">
         <div><div style="font-family:var(--disp);font-weight:700;font-size:20px">${_nx.ex}</div>
@@ -575,16 +601,11 @@ function renderToday(){
      day stays quiet.
      The reopen sentence survives, small and underneath: it is a mechanic, and
      true, but it is not the point. */
-  if(t.w.length&&t.doneAll&&!isLive()){
-    const _n=SEED.totals.sessions+(t.w.length?1:0);
-    const _st=currentStreak();
-    h+=`<button class="card dayclosed" data-replayday="1" aria-label="Today is complete. Tap to see it again.">
-          <i class="dcsq" aria-hidden="true"></i>
-          <b class="dcn">Day ${fmt(_n)} — in the book.</b>
-          <span class="dcm mono">${t.w.length} sets${_st>1?` \u00b7 ${_st}-day streak`:''}</span>
-          <span class="dcr mono">logging another set reopens it</span>
-        </button>`;
-  }
+  /* v3.3.412: the finished card moved to the TOP of a closed day (above).
+     Down here it was the last thing on the page, after an invitation to add
+     more -- the order said keep going. And a closed day offers no other
+     parts: the chips are for an open session. */
+  if(_closed){ $('#view').innerHTML=h; msCountUp(); dayCountUp(); return; }
   h+=`<h2 class="quiet">Add another part</h2><div class="chips">`;
   P.mains.filter(p=>!doneLift.includes(p)).forEach(p=>{
     const i1=P.info[p];

@@ -507,6 +507,10 @@ addEventListener('scroll',()=>{
 },{passive:true});
 function dayMeta(){const t=day(todayISO);t.doneEx=t.doneEx||[];t.donePart=t.donePart||[];t.sugX=t.sugX||{};return t;}
 const isLive =()=>{const t=day(todayISO);return t.w.length>0&&!t.doneAll;};
+/* v3.3.412: the day is CLOSED -- work logged and the day-end pressed. Named
+   once so Today's body and the plan header ask the same question; the third
+   header state (filled, still) already answers it visually. */
+const dayClosed=()=>{const t=day(todayISO);return t.w.length>0&&!!t.doneAll;};
 /* v3.3.347: the Train screen worth returning to, or null. One predicate, so
    the nav tab, the swipe and Today's live card cannot drift apart on when a
    memory counts -- a rule that holds on two paths out of three is worse than

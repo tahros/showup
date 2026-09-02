@@ -124,12 +124,25 @@ function planSectionHTML(){
        The chevron leads the action group so the destructive Clear stays
        at the far edge, away from the control you tap most. */
     const _pf=!!DB.settings.planFold;
+    /* v3.3.412: ON A CLOSED DAY THE HEADER POINTS FORWARD. Edit and Clear
+       retire -- a finished promise is not edited, and it expires at midnight
+       regardless -- and the writer's door takes their place. It writes
+       TOMORROW without being told: writeDateISO() already returns the next
+       day once today is in the book (the ledger rule, v3.3.397). The door
+       was only ever offered when no plan existed; a fifth control in this
+       group would be the crowding the header above just shed. Fold and Copy
+       stay: you may still fold the receipt or carry it forward. */
+    const _cl=dayClosed();
     h+=`<h2>${planPillsHTML('today',!!_wk)} plan${_tip}<span class="planedge">${
       _edgeBtn('data-planfold aria-expanded="'+(!_pf)+'"', (_pf?'Show':'Hide')+' today’s plan', icon('chevron',ICON_SZ.sm,_pf?0:90),'pfold')}${
       _edgeBtn('data-plancopy="today"','Copy today’s plan',icon('copy',ICON_SZ.md))}${
-      _edgeBtn('data-planedit','Edit today’s plan',icon('edit',ICON_SZ.md))}${
-      _edgeBtn('data-planclear','Clear today’s plan',icon('clear',ICON_SZ.md))}</span></h2>`;
-    if(!_pf) h+=planCardHTML(_pl,true);
+      _cl?`<button class="pedge pwrite" data-planwrite aria-label="Write tomorrow’s session">${icon('sparkle',ICON_SZ.sm)}Write</button>`
+         :_edgeBtn('data-planedit','Edit today’s plan',icon('edit',ICON_SZ.md))+
+          _edgeBtn('data-planclear','Clear today’s plan',icon('clear',ICON_SZ.md))}</span></h2>`;
+    /* the plan card recedes to a receipt once the day is closed: the
+       unchecked lines stay, honestly, in muted ink -- a record of what was
+       promised and not done, with no colour and no comment. */
+    if(!_pf) h+=_cl?`<div class="plspent">${planCardHTML(_pl,true)}</div>`:planCardHTML(_pl,true);
   }else{
     /* v3.3.297: the empty state is the SAME heading as the filled one, with
        PASTE where the fold and Edit and Clear sit. A 51px full-width slab

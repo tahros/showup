@@ -150,12 +150,15 @@ ok("pressing it places the day", run(`!!document.getElementById('dayDone')`));
      /Day 2 /.test(closed()), closed());
   ok("...and the reopen sentence kept, but no longer the headline",
      /reopens it/.test(closed()));
-  /* it stands where the button stood, so the page keeps its shape */
-  ok("...sitting above the offer to add another part",
-     run(`(function(){const c=document.querySelector('.dayclosed');
-       const h=[...document.querySelectorAll('#view h2')].find(x=>/Add another part/i.test(x.textContent));
-       if(!c||!h) return 'missing';
-       return (c.compareDocumentPosition(h) & 4) === 4;})()`) === true);
+  /* v3.3.412 RESTATES. It stood where the button stood (v3.3.376) -- but that
+     was still below the session cards, after an invitation to add more, and
+     the page's order said KEEP GOING while the header said DONE. On a closed
+     day the finished card LEADS, and there is no offer to add another part
+     at all: a closed day has no next. */
+  ok("...leading the page, as the first thing on a closed day",
+     run(`document.querySelector('#view').firstElementChild.classList.contains('dayclosed')`) === true);
+  ok("...with no offer to add another part beneath it",
+     run(`![...document.querySelectorAll('#view h2')].some(x=>/Add another part/i.test(x.textContent))`) === true);
 
   /* NOT on arrival: a finished day that re-runs its own ceremony every time
      you open Today is a full-screen takeover, not a celebration */
