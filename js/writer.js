@@ -247,6 +247,14 @@ function writerCheck(resp, ctx){
           const reasoned=(r.lines||[]).some(l=>l.qual&&!isWarm(l))||!!payload.note;   // "(warm-up)" is not a reason
           if(lastTop>0&&top<lastTop-0.3&&!reasoned)
             notes.push(`${r.ex}: written at ${wDisp(top)} ${U()}, under your last ${wDisp(lastTop)} ${U()}, with no reason given`);   // guardrail 14
+          else if(lastTop>0&&Math.abs(top-lastTop)<=0.3&&!reasoned){
+            /* v3.3.408: same load, fewer reps on the first working set is the
+               other way backward -- "50 x 6 6 6 6" after "50 x 10 10 9 9". */
+            const first=work[0], lastRow=ls.rows.find(x=>Math.abs((+x[0]||0)-lastTop)<=0.3);
+            const r0=(first.reps||[])[0]||0, l0=lastRow&&(lastRow[1]||[])[0]||0;
+            if(r0>0&&l0>0&&r0<l0)
+              notes.push(`${r.ex}: same ${wDisp(top)} ${U()} for ${r0} reps, under your last ${l0}, with no reason given`);
+          }
         }
       }
       return r;

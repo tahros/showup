@@ -1,5 +1,32 @@
 # ShowUp — changelog
 
+## v3.3.408 (2026-09-02) — Push, harder
+
+v3.3.407 went live and was probed with a ledger built to match your two
+examples: Incline Dumbbell Bench Press at 50 lb for five sessions, last
+50 × 10 10 9 9; Cable Fly Up at 20 lb for four, last 20 × 10 10. The writer
+answered 50 lb × 6 6 6 6 and 20 lb × 10 10, held every other load, and
+dropped a Dip into the incline day with no head uncovered. Told to push, it
+took the reps of a step down without the load. Two changes.
+
+The prompt now decides mechanically. For every exercise, STEP or REP-UP
+before a line is written. STEP when either the top set of the last session
+reached the top of the range, or the same load has been held two or more
+sessions with the sets holding. REP-UP only when the load is new this
+session or last time fell apart. The two examples above are in the prompt as
+worked answers — 55 lb × 8 8 7 6 and 25 lb × 12 10 10 — along with the
+sentence that cutting reps without adding load is a regression, not a plan.
+The first two exercises of a Grow or Strength session step up unless last
+time fell apart. VARIETY now says outright that a movement the record's
+shape does not contain is padding unless it covers a 0 head.
+
+Guardrail 14 grows a second half on the device: the same session-top load
+for fewer reps on the first working set, with no reason on the line and no
+note from you, is flagged in the read-back — *Cable Fly Up: same 20 lb for
+6 reps, under your last 10, with no reason given*.
+
+Tests: test-writer.js 73 → 75, probed. Function prompt deploys on push.
+
 ## v3.3.407 (2026-09-02) — Push
 
 You compared two answers. Incline Dumbbell Bench Press: the writer wrote

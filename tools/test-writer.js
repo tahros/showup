@@ -122,6 +122,13 @@ r = JSON.parse(check({days:[{date:today,part:'Chest',title:'Chest',text:"Barbell
 ok("...a warm-up note is not a reason, and a warm-up line is not the top", r.ok && r.notes.some(n=>/Cable Fly Up: written at 15 lb.*no reason given/.test(n)) && !r.notes.some(n=>/Barbell Bench Press/.test(n)), JSON.stringify(r.notes));
 r = JSON.parse(check({days:[{date:today,part:'Chest',title:'Chest',text:"Barbell Bench Press\n  155 lb x 8\n\nCable Fly Up\n  20 lb x 12 12 11"}],reason:chestReason}));
 ok("...holding the load with more reps is not going backward", r.ok && !r.notes.some(n=>/no reason given/.test(n)), JSON.stringify(r.notes));
+/* v3.3.408: the live writer, told to push, wrote 50 x 6 6 6 6 after 50 x 10 10 9 9:
+   the reps of a step down with none of the load. Same load, fewer reps on the
+   first working set is the other way backward. */
+r = JSON.parse(check({days:[{date:today,part:'Chest',title:'Chest',text:"Barbell Bench Press\n  155 lb x 8\n\nCable Fly Up\n  20 lb x 6 6 6"}],reason:chestReason}));
+ok("14b · the same load for fewer reps, with no reason, is flagged too", r.ok && r.notes.some(n=>/Cable Fly Up: same 20 lb for 6 reps, under your last 10, with no reason given/.test(n)), JSON.stringify(r.notes));
+r = JSON.parse(check({days:[{date:today,part:'Chest',title:'Chest',text:"Barbell Bench Press\n  155 lb x 8\n\nCable Fly Up\n  20 lb x 6 6 6 (form)"}],reason:chestReason}));
+ok("...and a reason clears that too", r.ok && !r.notes.some(n=>/no reason given/.test(n)), JSON.stringify(r.notes));
 /* the flagged note reaches the read-back */
 run(`(function(){const o=writerState(); const p=writerPayload(o);
   const rr=writerCheck({days:[{date:'${today}',part:'Chest',title:'Chest',text:"Barbell Bench Press\\n  155 lb x 8\\n\\nCable Fly Up\\n  15 lb x 10 10 10"}]},{payload:Object.assign(p,{part:'Chest'})});
