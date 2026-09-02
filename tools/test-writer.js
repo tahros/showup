@@ -132,7 +132,8 @@ ok("...holding the load with more reps is not going backward", r.ok && !r.notes.
    the reps of a step down with none of the load. Same load, fewer reps on the
    first working set is the other way backward. */
 r = JSON.parse(check({days:[{date:today,part:'Chest',title:'Chest',text:"Barbell Bench Press\n  155 lb x 8\n\nCable Fly Up\n  20 lb x 6 6 6"}],reason:chestReason}));
-ok("14b · the same load for fewer reps, with no reason, is flagged too", r.ok && r.notes.some(n=>/Cable Fly Up: same 20 lb for 6 reps, under your last 10, with no reason given/.test(n)), JSON.stringify(r.notes));
+/* v3.3.416: 14b compares TOTAL reps at the top load, not the first set. 6 6 6 is 18 against last time's 20. */
+ok("14b · the same load for fewer reps, with no reason, is flagged too", r.ok && r.notes.some(n=>/Cable Fly Up: same 20 lb for 18 total reps, under your last 20, with no reason given/.test(n)), JSON.stringify(r.notes));
 /* v3.3.413: GUARDRAIL 16 -- STANDING STILL NEEDS A REASON TOO. The live
    writer, told to push, wrote Squat 200 and RDL 160: last time's load, last
    time's reps, no note. 14 catches backward, 14b catches fewer reps, and an
@@ -143,7 +144,7 @@ r = JSON.parse(check({days:[{date:today,part:'Chest',title:'Chest',text:"Barbell
 ok("16 · an exact repeat of last time, with no reason, is stepped up on the grid",
    r.ok && r.est[1].ex==='Cable Fly Up' && r.est[1].w===25, JSON.stringify(r.est[1]));
 ok("...and the read-back says so, naming both loads",
-   r.notes.some(n=>/Cable Fly Up: the writer repeated your last 20 lb for 10 reps with no reason — stepped up to 25 lb/.test(n)), JSON.stringify(r.notes));
+   r.notes.some(n=>/Cable Fly Up: the writer repeated your last 20 lb for 20 reps with no reason — stepped up to 25 lb/.test(n)), JSON.stringify(r.notes));
 ok("...without marking it as a clamped guess -- it is a rule, not an estimate",
    !r.est[1].est);
 r = JSON.parse(check({days:[{date:today,part:'Chest',title:'Chest',text:"Barbell Bench Press\n  155 lb x 8\n\nCable Fly Up\n  20 lb x 10 10 (hold — shoulder)"}],reason:chestReason}));
@@ -163,7 +164,21 @@ r = JSON.parse(check({days:[{date:today,part:'Legs',title:'Legs',text:"Squat\n  
 ok("16b · a barbell repeat steps to the next FACE above, not last plus the stepper",
    r.ok && r.est[0].ex==='Squat' && r.est[0].w===205, JSON.stringify(r.est[0]));
 ok("...and the read-back names 205",
-   r.notes.some(n=>/Squat: the writer repeated your last 200 lb for 8 reps with no reason — stepped up to 205 lb/.test(n)), JSON.stringify(r.notes));
+   r.notes.some(n=>/Squat: the writer repeated your last 200 lb for 32 reps with no reason — stepped up to 205 lb/.test(n)), JSON.stringify(r.notes));
+/* v3.3.416: A REPEAT IS NEVER SILENT. Three screenshots of 200 and nothing on
+   screen said which branch had taken it. Every matched load now gets one line. */
+r = JSON.parse(check({days:[{date:today,part:'Legs',title:'Legs',text:"Squat\n  200 lb x 8 8 8 8 8"}],reason:{head:'Legs',text:'legs are due'}}));
+ok("16d · more total reps at the same load is a push, and the read-back says so",
+   r.ok && r.est[0].w===200 && r.notes.some(n=>/Squat: held at 200 lb, reps up 32 → 40 — a push/.test(n)), JSON.stringify(r.notes));
+/* first-set coincidence must not excuse a lost set: 8 8 8 (24) after 8 8 8 8 (32) */
+r = JSON.parse(check({days:[{date:today,part:'Legs',title:'Legs',text:"Squat\n  200 lb x 8 8 8"}],reason:{head:'Legs',text:'legs are due'}}));
+ok("...and a lost set with the same first set is flagged, not bumped",
+   r.ok && r.est[0].w===200 && r.notes.some(n=>/Squat: same 200 lb for 24 total reps, under your last 32/.test(n)), JSON.stringify(r.notes));
+/* a stated reason is named as the reason for the hold */
+r = JSON.parse(check({days:[{date:today,part:'Legs',title:'Legs',text:"Squat\n  200 lb x 8 8 8 8 (knee)"}],reason:{head:'Legs',text:'legs are due'}}));
+ok("...and a held load with a reason says 'reason given'",
+   r.ok && r.est[0].w===200 && r.notes.some(n=>/Squat: held at 200 lb — reason given/.test(n)), JSON.stringify(r.notes));
+
 /* v3.3.415: A REASON NAMES ITS EXERCISE. The maker's Squat came back at 200
    TWICE after guardrail 16 shipped. Cause: `|| !!payload.note` -- any note
    typed in the ask screen counted as a reason for every exercise and silenced

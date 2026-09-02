@@ -259,58 +259,51 @@ function writerCheck(resp, ctx){
          regression the writer did not explain, and the read-back says so.
          Flagged, not refused: the person may know why. */
       const ls=SEED.lastSess&&SEED.lastSess[r.ex];
-      if(ls&&ls.rows&&ls.rows.length){
-        const isWarm=l=>/warm/i.test((l.qual||'')+(l.tag||''));
-        const work=(r.lines||[]).filter(l=>!l.nw&&!l.bw&&!isHold(l.su)&&l.w>0&&!isWarm(l));
-        if(work.length){
-          const kgOf=l=>l.unit==='kg'?l.w:l.unit==='lb'?l.w/LB:toKg(l.w);
-          const top=Math.max(...work.map(kgOf)), lastTop=Math.max(...ls.rows.map(x=>+x[0]||0));
-          /* v3.3.415: A REASON NAMES ITS EXERCISE. This read `|| !!payload.note`
-             -- so ANY note typed in the ask screen ("legs tomorrow") counted as
-             a reason for EVERY exercise in the session and silenced guardrails
-             14, 14b and 16 wholesale. That is how a Squat came back at 200
-             twice after 16 shipped: the maker had written a note, and the
-             note excused the repeat without mentioning squats. The rule that
-             guardrail 15 already uses is the right one -- the note has to name
-             the exercise -- so a note about the day is not a reason, and a
-             note that says "Squat: hold, knee" is. */
-          const noteNames=(payload.note||'').toLowerCase().includes(r.ex.toLowerCase());
-          const reasoned=(r.lines||[]).some(l=>l.qual&&!isWarm(l))||noteNames;   // "(warm-up)" is not a reason
-          if(lastTop>0&&top<lastTop-0.3&&!reasoned)
-            notes.push(`${r.ex}: written at ${wDisp(top)} ${U()}, under your last ${wDisp(lastTop)} ${U()}, with no reason given`);   // guardrail 14
-          else if(lastTop>0&&Math.abs(top-lastTop)<=0.3&&!reasoned){
-            /* v3.3.408: same load, fewer reps on the first working set is the
-               other way backward -- "50 x 6 6 6 6" after "50 x 10 10 9 9". */
-            const first=work[0], lastRow=ls.rows.find(x=>Math.abs((+x[0]||0)-lastTop)<=0.3);
-            const r0=(first.reps||[])[0]||0, l0=lastRow&&(lastRow[1]||[])[0]||0;
-            if(r0>0&&l0>0&&r0<l0)
-              notes.push(`${r.ex}: same ${wDisp(top)} ${U()} for ${r0} reps, under your last ${l0}, with no reason given`);
-            else if(r0>0&&l0>0&&r0===l0){
-              /* v3.3.413: GUARDRAIL 16 -- STANDING STILL NEEDS A REASON TOO.
-                 The live writer, told to push, wrote Squat 200 and Romanian
-                 Deadlift 160 -- last time's loads, last time's reps, no note.
-                 Guardrail 14 catches going backward and 14b catches fewer
-                 reps, but an EXACT repeat passed through both. The prompt asks
-                 for a step or a rep; when the model does neither and says
-                 nothing, this is not flagged, it is CORRECTED: one step up on
-                 the exercise's own grid (wStep, snapW -- 5 lb on a barbell in
-                 lb, 2.5 kg in kg), applied to every working line at the top
-                 load, and named in the read-back so nothing moves in silence.
-                 A hold is still available to the writer: it has to say why,
-                 the same way a step back does. */
-              /* v3.3.414: the NEXT FACE above last time, not last time plus
-                 the stepper. 200 on a 45-bar 10-grid is between faces; the
-                 face above it is 205, and that is what a plate change gets
-                 you. From 205 the next face is 215. nextFaceAbove says both. */
-              const bumpedKg=nextFaceAbove(lastTop, r.ex);
-              const inUnit=l=>l.unit==='kg'?bumpedKg:l.unit==='lb'?bumpedKg*LB:(isLb()?bumpedKg*LB:bumpedKg);
-              const shownOld=wDisp(top), shownNew=wDisp(bumpedKg);
-              r.lines=(r.lines||[]).map(l=>{
-                const isTop=!l.nw&&!l.bw&&!isHold(l.su)&&l.w>0&&!isWarm(l)&&Math.abs(kgOf(l)-top)<=0.3;
-                return isTop?{...l, w:+inUnit(l).toFixed(1)}:l;
-              });
-              notes.push(`${r.ex}: the writer repeated your last ${shownOld} ${U()} for ${r0} reps with no reason — stepped up to ${shownNew} ${U()}`);
-            }
+      /* v3.3.416: THE READ-BACK SAYS WHAT IT DECIDED ON A REPEAT, AND WHY.
+         The maker's Squat came back at 200 three times running, and nothing
+         on his screen said which branch of this block had taken it -- so each
+         time I guessed at a cause and fixed something adjacent. Now every
+         exercise whose load matches last time's gets exactly one line in the
+         notes: stepped up, held for a stated reason, held because reps rose,
+         or held because reps rose. (An exercise never lifted here already says
+         so through guardrail 3's note.) A repeat is never silent again, and the
+         next screenshot is a diagnosis rather than a report. */
+      const isWarm=l=>/warm/i.test((l.qual||'')+(l.tag||''));
+      const work=(r.lines||[]).filter(l=>!l.nw&&!l.bw&&!isHold(l.su)&&l.w>0&&!isWarm(l));
+      if(ls&&ls.rows&&ls.rows.length&&work.length){
+        const kgOf=l=>l.unit==='kg'?l.w:l.unit==='lb'?l.w/LB:toKg(l.w);
+        const top=Math.max(...work.map(kgOf)), lastTop=Math.max(...ls.rows.map(x=>+x[0]||0));
+        const noteNames=(payload.note||'').toLowerCase().includes(r.ex.toLowerCase());
+        const reasoned=(r.lines||[]).some(l=>l.qual&&!isWarm(l))||noteNames;   // "(warm-up)" is not a reason
+        if(lastTop>0&&top<lastTop-0.3&&!reasoned)
+          notes.push(`${r.ex}: written at ${wDisp(top)} ${U()}, under your last ${wDisp(lastTop)} ${U()}, with no reason given`);   // guardrail 14
+        else if(lastTop>0&&Math.abs(top-lastTop)<=0.3){
+          /* v3.3.416: TOTAL REPS AT THE TOP LOAD, not the first set. 14b and 16
+             compared first sets, so "200 x 8 8 8 8" after "200 x 6 8 8 8" read
+             as a rep-up (8 > 6) and held -- while "200 x 8 8 8 8" after "200 x
+             8 8 8 8 8" read as equal first sets and bumped a session that had
+             actually lost a set. The whole set at the top load is the work. */
+        const sum=a=>a.reduce((x,y)=>x+y,0);
+        const repsNow=sum(work.filter(l=>Math.abs(kgOf(l)-top)<=0.3).flatMap(l=>l.reps||[]));
+        const repsLast=sum(ls.rows.filter(x=>Math.abs((+x[0]||0)-lastTop)<=0.3).flatMap(x=>x[1]||[]));
+          if(reasoned){
+            notes.push(`${r.ex}: held at ${wDisp(top)} ${U()} — reason given`);
+          }else if(repsNow>repsLast){
+            notes.push(`${r.ex}: held at ${wDisp(top)} ${U()}, reps up ${repsLast} → ${repsNow} — a push`);
+          }else if(repsNow<repsLast){
+            notes.push(`${r.ex}: same ${wDisp(top)} ${U()} for ${repsNow} total reps, under your last ${repsLast}, with no reason given`);   // guardrail 14b
+          }else{
+            /* GUARDRAIL 16 (v3.3.413): standing still needs a reason too. An
+               exact repeat is CORRECTED, not flagged -- the next face above on
+               the exercise's own grid (v3.3.414), named here. */
+            const bumpedKg=nextFaceAbove(lastTop, r.ex);
+            const inUnit=l=>l.unit==='kg'?bumpedKg:l.unit==='lb'?bumpedKg*LB:(isLb()?bumpedKg*LB:bumpedKg);
+            const shownOld=wDisp(top), shownNew=wDisp(bumpedKg);
+            r.lines=(r.lines||[]).map(l=>{
+              const isTop=!l.nw&&!l.bw&&!isHold(l.su)&&l.w>0&&!isWarm(l)&&Math.abs(kgOf(l)-top)<=0.3;
+              return isTop?{...l, w:+inUnit(l).toFixed(1)}:l;
+            });
+            notes.push(`${r.ex}: the writer repeated your last ${shownOld} ${U()} for ${repsNow} reps with no reason — stepped up to ${shownNew} ${U()}`);
           }
         }
       }

@@ -1,5 +1,15 @@
 # ShowUp — changelog
 
+## v3.3.416 (2026-09-02) — The writer explains every repeat
+
+When the writer hands back the same load as last time, the read-back now says
+what happened to it and why: stepped up, held for a stated reason, or held
+because you're doing more reps. It compares the whole set at that load, not
+just the first one.
+
+The read-back also names the build that checked it, so a screenshot can tell
+us which rules were running.
+
 ## v3.3.415 (2026-09-02) — The writer's push actually fires
 
 A note in the ask screen — any note — was quietly excusing every exercise from

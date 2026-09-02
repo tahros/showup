@@ -809,6 +809,7 @@
      day plans; the row above it is the fold. Quieter than today's plan
      because it is not yet the one being trained against. */
   .planahead{opacity:.9;margin-top:6px}
+  .planchk{font-size:10px;color:var(--faint);text-align:right;margin:6px 4px 0}
   /* v3.3.414: one line, no wrap. Day left, count and chevron right, all on
      the row's centre line. The chevron is a flex item beside the count, not
      an inline glyph hanging off its baseline. */
