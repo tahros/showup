@@ -2099,11 +2099,24 @@
      because the number escalates itself.
      The mark is clipped INSIDE the square while it emerges, so it reads as
      coming out of the square rather than being laid over it. */
-  #dayDone.century .ddsq{overflow:visible}
-  #dayDone.century .ddmk{position:absolute;left:50%;top:50%;width:44px;height:44px;
-    margin:-22px 0 0 -22px;display:grid;place-items:center;color:#fff;
+  /* v3.3.425: a stage the size of the square, holding both. The mark is a
+     SIBLING of the square so the square's fade cannot drag it grey. */
+  #dayDone .ddstage{position:relative;display:block;width:44px;height:44px}
+  #dayDone .ddstage .ddsq{position:absolute;inset:0}
+  #dayDone.century .ddmk{position:absolute;left:0;top:0;width:44px;height:44px;
+    display:grid;place-items:center;color:#fff;
     clip-path:inset(0 0 0 0);animation:ddrise 1.15s var(--settle) .55s both}
-  #dayDone.century .ddmk .ic{width:34px;height:34px;display:block}
+  #dayDone.century .ddmk .ic{width:34px;height:34px;display:block;
+    /* v3.3.425: the mark casts a shadow onto the square as it lifts -- the
+       one place this app is allowed depth, because the whole beat IS the
+       chevron coming out of the square. It grows with the rise and settles;
+       nothing else in the app carries a shadow. */
+    filter:drop-shadow(0 0 0 rgba(0,0,0,0));animation:ddlift 1.15s var(--settle) .55s both}
+  @keyframes ddlift{
+    0%   {filter:drop-shadow(0 0 0 rgba(0,0,0,0))}
+    45%  {filter:drop-shadow(0 2px 3px rgba(0,0,0,.34))}
+    100% {filter:drop-shadow(0 10px 14px rgba(0,0,0,.42))}
+  }
   @keyframes ddrise{
     0%   {clip-path:inset(0 0 100% 0); transform:translateY(6px)}
     45%  {clip-path:inset(0 0 0 0);    transform:translateY(0)}
@@ -2114,8 +2127,8 @@
   @keyframes ddhand{ 0%,45%{opacity:1;transform:scale(1)} 100%{opacity:.5;transform:scale(.86) translateY(8px)} }
   #dayDone.century .ddn{animation-delay:1.5s}
   @media (prefers-reduced-motion:reduce){
-    /* no rise, no recede: the mark is simply there, which is the fact */
-    #dayDone.century .ddmk,#dayDone.century .ddsq{animation:none}
+    /* no rise, no recede, no lift: the mark is simply there, which is the fact */
+    #dayDone.century .ddmk,#dayDone.century .ddsq,#dayDone.century .ddmk .ic{animation:none}
     #dayDone.century .ddmk{transform:translateY(-26px)}
   }
   #dayDone .ddsq{width:44px;height:44px;border-radius:var(--sq);background:var(--accent);

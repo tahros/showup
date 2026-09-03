@@ -1,5 +1,10 @@
 # ShowUp — changelog
 
+## v3.3.425 (2026-09-02) — The mark stays white
+
+On the century beat the chevron was fading grey along with the square behind
+it. It stays white now, and casts a shadow onto the square as it lifts.
+
 ## v3.3.424 (2026-09-02) — Every hundred days
 
 On your 100th day, and every hundredth after it, the square opens and the mark

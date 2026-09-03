@@ -266,8 +266,17 @@ ok("pressing it places the day", run(`!!document.getElementById('dayDone')`));
   run(`celebrateDayDone(true,1000,1000)`);
   ok("the century overlay carries the century class",
      run(`!!document.querySelector('#dayDone.century')`));
-  ok("...and the brand mark inside the square",
-     run(`!!document.querySelector('#dayDone.century .ddsq .ddmk .ic-brandmark')`));
+  /* v3.3.425 RESTATES. The mark WAS inside the square, and that was the bug:
+     .ddsq fades and shrinks as it hands over, opacity on a parent applies to
+     its children, and the white mark rendered grey. It is a SIBLING on a
+     shared stage now -- so the check is that they share the stage and that the
+     mark is NOT a descendant of the fading square. */
+  ok("...and the brand mark on the stage, beside the square rather than inside it",
+     run(`!!document.querySelector('#dayDone.century .ddstage > .ddmk .ic-brandmark')`) &&
+     run(`!document.querySelector('#dayDone .ddsq .ddmk')`));
+  ok("...both on one stage, so the mark keeps its own opacity",
+     run(`(function(){const st=document.querySelector('.ddstage');
+       return !!st && !!st.querySelector(':scope > .ddsq') && !!st.querySelector(':scope > .ddmk');})()`));
   ok("...reading the milestone number",
      run(`(document.querySelector('#dayDone .ddn')||{}).textContent`)==="1,000");
   run(`(function(){const o=document.getElementById('dayDone'); if(o) o.remove();})()`);
@@ -304,8 +313,20 @@ ok("pressing it places the day", run(`!!document.getElementById('dayDone')`));
      have. What it defends: the mark starts fully clipped INSIDE the square. */
   ok("the mark rises out of the square, clipped by it",
      /@keyframes ddrise\{\s*0%\s*\{clip-path:inset\(0 0 100% 0\)/.test(css));
-  ok("...and reduced motion is simply shown the mark",
-     /prefers-reduced-motion:reduce\)\{[^@]*#dayDone\.century \.ddmk,#dayDone\.century \.ddsq\{animation:none\}/.test(css));
+  ok("...and reduced motion is simply shown the mark, lift included",
+     /prefers-reduced-motion:reduce\)\{[^@]*#dayDone\.century \.ddmk,#dayDone\.century \.ddsq,#dayDone\.century \.ddmk \.ic\{animation:none\}/.test(css));
+  /* v3.3.425: the mark casts a shadow onto the square as it lifts -- the one
+     place this app carries depth, because the whole beat IS the chevron coming
+     out of the square. It must GROW with the rise, not sit static. */
+  /* the keyframes alone prove nothing -- they survive with nothing using them,
+     and a probe that removed the animation left this green. The rule is that
+     the MARK RUNS ddlift. */
+  ok("the mark lifts off the square with a growing shadow",
+     /#dayDone\.century \.ddmk \.ic\{[^}]*animation:ddlift/.test(css) &&
+     /@keyframes ddlift\{\s*0%\s*\{filter:drop-shadow\(0 0 0/.test(css) &&
+     /100%\s*\{filter:drop-shadow\(0 10px 14px/.test(css));
+  ok("...and nothing else in the app carries one",
+     (css.match(/drop-shadow\(/g)||[]).length <= 4, String((css.match(/drop-shadow\(/g)||[]).length));
 }
 
 process.exit(fail?1:0);

@@ -1215,7 +1215,14 @@ function celebrateDayDone(nowrite, forceCount, forceMile){
   const o=document.createElement('div');
   o.id='dayDone';
   if(mile) o.classList.add('century');
-  o.innerHTML=`<i class="ddsq" aria-hidden="true">${mile?`<span class="ddmk" aria-hidden="true">${icon('brandmark',44)}</span>`:''}</i>`+
+  /* v3.3.425: THE MARK IS A SIBLING OF THE SQUARE, NOT ITS CHILD. It was
+     inside .ddsq, and .ddsq fades and shrinks as it hands over -- opacity on a
+     parent applies to its children, so the white mark faded with it and
+     rendered grey on the maker's screen. A stage holds both, each animating
+     on its own: the square can recede while the mark stays pure white. */
+  o.innerHTML=(mile
+    ? `<span class="ddstage"><i class="ddsq" aria-hidden="true"></i><span class="ddmk" aria-hidden="true">${icon('brandmark',44)}</span></span>`
+    : `<i class="ddsq" aria-hidden="true"></i>`)+
     `<b class="ddn">${fmt(mile||n)}</b><span class="ddu">days in</span>`+
     `<span class="ddt">${mile?'one hundred at a time':`show up \u2014 that's the whole game`}</span>`;
   document.body.appendChild(o);
