@@ -341,7 +341,7 @@ function renderLift(){
            choice persists in settings until changed; a preference is not a
            per-render whim. */
         const plFolded=!!DB.settings.plFold;
-        h+=`<div class="lastcard partlast${plFolded?' plfolded':''}"><div class="lasthead"><span><b class="scopepill">${lift.part}</b> last time</span><span class="lastacts"><button class="ago linkdate" data-histd="${lp.d}">${wd2(lp.d)} · ${agoStr(lp.d)}</button><button class="plfold" data-plfold aria-expanded="${!plFolded}" aria-label="${plFolded?'Show':'Hide'} last time">${plFolded?'▸':'▾'}</button></span></div>`;
+        h+=`<div class="lastcard partlast${plFolded?' plfolded':''}"><div class="lasthead"><span><b class="scopepill">${lift.part}</b> last time</span><span class="lastacts"><button class="ago linkdate" data-histd="${lp.d}">${wd2(lp.d)} · ${agoStr(lp.d)}</button><button class="plfold" data-plfold aria-expanded="${!plFolded}" aria-label="${plFolded?'Show':'Hide'} last time">${icon('chevron',ICON_SZ.sm,plFolded?0:90)}</button></span></div>`;
         if(!plFolded){
           h+=`<div class="inlinehelp">Tap an exercise to use its previous weight. A checkmark means you completed it today.</div>`;
           for(const g of lp.groups){

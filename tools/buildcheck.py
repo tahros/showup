@@ -986,6 +986,25 @@ if 'href="favicon-32.png"' not in idx:
 if "./favicon-32.png" not in sw:
     fail.append("the icon: sw.js does not cache favicon-32.png, so it will not work offline (v3.3.423)")
 
+# -- v3.3.430: ONE FOLD CONTROL.
+# A fold was drawn two ways: the plan used the icon system's chevron, rotated;
+# the last-time card used the text glyphs U+25B8 / U+25BE, swapped for one
+# another. Same job, two shapes, two weights, and one of them cannot inherit
+# the live-area or stroke rules the icon system enforces. A text triangle is
+# also a FONT's idea of an arrow, which changes with the font.
+# The chevron is the app's own; typing one is how the drift starts.
+_TRI = "\u25b8\u25be\u25b6\u25bc\u25c2\u25b4"
+for _f in ("js/lift.js", "js/today.js", "js/stats.js", "js/history.js",
+           "js/settings.js", "js/writer.js", "js/app.js"):
+    _p = d / _f
+    if not _p.exists():
+        continue
+    for _t in _TRI:
+        if _t in _p.read_text(encoding="utf-8"):
+            fail.append(f"one fold control: {_f} draws a triangle glyph (U+{ord(_t):04X}) - "
+                        f"use icon('chevron', ICON_SZ.sm, open?90:0), which carries the "
+                        f"system's shape and weight (v3.3.430)")
+
 if fail:
     print("BUILDCHECK FAIL"); [print(" -", f) for f in fail]; sys.exit(1)
 print(f"BUILDCHECK PASS  v{appv}  shell={n}B  assets={len(assets)}  cssvars={len(used)} used / {len(defined)} defined")

@@ -145,9 +145,14 @@ run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
   DB.days[d.toLocaleDateString('en-CA')]={w:[{part:'Chest',ex:'Dip',w:0,reps:[10,8]}],upd:1};
   SEED=deriveAll(); view='lift'; lift.ex=null; lift.part='Chest';
   DB.settings.plFold=false; render();})()`);
+/* v3.3.430 RESTATES. These pinned two TEXT GLYPHS -- U+25BE open, U+25B8
+   closed -- swapped for one another. The plan's fold two inches away used the
+   icon system's chevron, rotated. Two controls doing one job, drawn two ways,
+   and the maker circled both and asked which was right. It is the icon: one
+   shape, one weight, rotation rather than substitution. */
 ok("the fold button renders, open by default",
    run(`(function(){const b=document.querySelector('.plfold');
-     return !!b && b.getAttribute('aria-expanded')==='true' && b.textContent==='\u25be';})()`));
+     return !!b && b.getAttribute('aria-expanded')==='true' && !!b.querySelector('.ic-chevron');})()`));
 run(`document.querySelector('.plfold').click()`);
 ok("one tap folds the card to its head row",
    run(`document.querySelectorAll('.partlast .plrow').length`) === 0 &&
@@ -155,8 +160,19 @@ ok("one tap folds the card to its head row",
    run(`!!document.querySelector('.partlast .linkdate')`));
 ok("...the help line folds away with the rows",
    run(`!document.querySelector('.partlast .inlinehelp')`));
-ok("...and the chevron says so", run(`(function(){const b=document.querySelector('.plfold');
-     return b.getAttribute('aria-expanded')==='false' && b.textContent==='\u25b8';})()`));
+ok("...and the chevron says so, by ROTATION -- the same glyph, turned",
+   run(`(function(){const b=document.querySelector('.plfold');
+     const ic=b.querySelector('.ic-chevron');
+     return b.getAttribute('aria-expanded')==='false' && !!ic
+       && !/rotate\(90deg\)/.test(ic.getAttribute('style')||'');})()`));
+/* the point of the change: this fold and the plan's are the SAME control */
+ok("...and it is the same control the plan's fold uses",
+   run(`(function(){
+     const a=document.querySelector('.plfold .ic-chevron');
+     return !!a && a.tagName.toLowerCase()==='svg' && a.getAttribute('viewBox')==='0 0 100 100';})()`));
+ok("...with no text glyph left anywhere in it",
+   run(`(function(){const b=document.querySelector('.plfold');
+     return !/[\u25b8\u25be\u25b6\u25bc]/.test(b.textContent||'');})()`));
 ok("the preference is a setting, not a render whim",
    run(`DB.settings.plFold===true`));
 run(`render()`);

@@ -1,5 +1,11 @@
 # ShowUp — changelog
 
+## v3.3.430 (2026-09-03) — One fold control
+
+The "last time" card's fold arrow was a text triangle; the plan's was the
+app's own chevron. They're the same control now — one shape, one weight,
+turning rather than swapping.
+
 ## v3.3.429 (2026-09-02) — Landscape timer, balanced
 
 The exercise name leads now — bigger and bolder — and the clock steps back a

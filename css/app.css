@@ -602,8 +602,14 @@
   /* v3.3.274: fold affordance — the date link and the chevron share the
      head's right edge; folded, the head is the whole card. */
   .lastacts{display:inline-flex;align-items:baseline;gap:10px}
-  .plfold{background:none;border:0;color:var(--muted);font-size:13px;
-    line-height:1;padding:2px 4px;cursor:pointer;font-family:var(--mono)}
+  /* v3.3.430: ONE FOLD CONTROL. This was a pair of text glyphs -- U+25B8 and
+     U+25BE -- swapped for each other: a different shape from the plan's fold,
+     a different weight, and rotating by SUBSTITUTION rather than rotation.
+     Two controls doing one job, drawn two ways. It is the icon system's
+     chevron now, rotated, exactly as the plan's fold does it. */
+  .plfold{background:none;border:0;color:var(--faint);
+    line-height:0;padding:2px 4px;cursor:pointer;display:inline-flex;align-items:center}
+  .plfold .ic{transition:transform .18s var(--settle)}
   .partlast.plfolded>.lasthead{margin-bottom:0}
   .plrow{padding:8px 10px;margin:0 -10px;border-radius:10px;cursor:pointer}
   .plrow .lasthead{margin-bottom:2px}
