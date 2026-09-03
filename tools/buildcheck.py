@@ -1005,6 +1005,33 @@ for _f in ("js/lift.js", "js/today.js", "js/stats.js", "js/history.js",
                         f"use icon('chevron', ICON_SZ.sm, open?90:0), which carries the "
                         f"system's shape and weight (v3.3.430)")
 
+# -- v3.3.433: THE PROMPT IS A TEMPLATE LITERAL.
+# v3.3.432 added prompt text containing ten backticks -- used as code quotes
+# around payload keys -- into a backtick-delimited literal. That closes the
+# string. The app deployed fine; the Edge Function's workflow failed, so the
+# new laws were live in the client and absent from the model's instructions.
+# Exactly the failure this release exists to prevent, one layer down: a rule
+# the model was never told. Checked here because the JS suites do not compile
+# Deno sources.
+_fn = d / "supabase/functions/write-session/index.ts"
+if _fn.exists():
+    _src = _fn.read_text(encoding="utf-8")
+    import re as _re
+    _ticks = [m.start() for m in _re.finditer(r"(?<!\\)`", _src)]
+    if len(_ticks) % 2:
+        fail.append("the writer prompt: unpaired backtick in write-session/index.ts - "
+                    "a backtick inside the prompt closes the template literal (v3.3.433)")
+    if "const SYSTEM" in _src:
+        _i = _src.index("const SYSTEM")
+        try:
+            _o = _src.index("`", _i); _c = _src.index("`", _o + 1)
+            for _law in ("THE SKELETON IS THE CALENDAR", "SESSION LENGTH IS NOT YOURS"):
+                if _law in _src and _law not in _src[_o:_c]:
+                    fail.append(f"the writer prompt: '{_law[:28]}...' sits OUTSIDE the SYSTEM "
+                                f"literal - the model never receives it (v3.3.433)")
+        except ValueError:
+            fail.append("the writer prompt: SYSTEM literal is not delimited (v3.3.433)")
+
 if fail:
     print("BUILDCHECK FAIL"); [print(" -", f) for f in fail]; sys.exit(1)
 print(f"BUILDCHECK PASS  v{appv}  shell={n}B  assets={len(assets)}  cssvars={len(used)} used / {len(defined)} defined")

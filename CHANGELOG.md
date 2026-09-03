@@ -1,5 +1,11 @@
 # ShowUp — changelog
 
+## v3.3.433 (2026-09-03) — The new rules reach the writer
+
+v3.3.432's rules were live in the app but never reached the model: the prompt
+text contained backticks, which closed the string it lives in, and the server
+deploy failed. Fixed, with a build check so it can't happen again.
+
 ## v3.3.432 (2026-09-03) — The app owns the calendar
 
 The writer put Squat the morning after a heavy deadlift day, and wrote three
