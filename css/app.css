@@ -869,6 +869,10 @@
      day plans; the row above it is the fold. Quieter than today's plan
      because it is not yet the one being trained against. */
   .planahead{opacity:.9;margin-top:6px}
+  /* v3.3.432: the app's voice is labelled, so a verified note cannot be
+     mistaken for the writer's opinion */
+  .plannotes .pnhead{font-size:9.5px;letter-spacing:var(--track-label);text-transform:uppercase;
+    color:var(--faint);margin-bottom:4px}
   /* v3.3.421: Clear lives behind the Edit door now, in the record red --
      destructive, and already past the point where you decided to change the
      plan. It was the far-edge glyph you never wanted to hit by accident. */

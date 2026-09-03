@@ -537,6 +537,23 @@ run(`document.querySelector('[data-planfold]').click()`);
 ok("one tap folds the card away entirely",
    run(`document.querySelectorAll('.planrow').length`) === 0 &&
    run(`!document.querySelector('.plancard')`));
+/* v3.3.432: TWO VOICES, NEVER BLENDED. The writer's story read with exactly
+   the authority of a verified correction. The notes are the app's -- each
+   checked against the ledger -- and they say so; the reason above stays the
+   writer's call. */
+/* the first cut of this had an escape hatch -- it passed when the fixture
+   rendered no notes at all, so deleting the label left it green. Bound to the
+   renderer: wherever .plannotes is built, the label is built with it. */
+ok("the app's notes are labelled as checked against the record",
+   (function(){
+     const src=require("fs").readFileSync(require("path").join(dir,"js/lift.js"),"utf8");
+     const i=src.indexOf('class="plannotes"');
+     return i>0 && /pnhead[^`]*checked against your record/.test(src.slice(i,i+220));
+   })());
+ok("...and the writer's reason keeps its own separate voice",
+   run(`(function(){const r=document.querySelector('.planreason .ago');
+     return !r || /writer/i.test(r.textContent);})()`));
+
 ok("...but the heading stays as the one-line fact",
    run(`!!document.querySelector('h2 .scopepill')`) &&
    run(`document.querySelectorAll('h2 .planedge .pedge').length`) === 3);   // v3.3.421: copy, edit, Write

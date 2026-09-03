@@ -1,5 +1,22 @@
 # ShowUp — changelog
 
+## v3.3.432 (2026-09-03) — The app owns the calendar
+
+The writer put Squat the morning after a heavy deadlift day, and wrote three
+exercises for it. Two new rules stop both:
+
+- **No major part twice inside two days.** Computed from your record and your
+  saved plans. Core still rides along. A note naming the part overrides it.
+- **No session shorter than your own shortest.** Counted from your finished
+  sessions, core excluded.
+
+Which part trains which day is now the app's decision, not the writer's — it
+gets a skeleton of what's resting and what's due. If a day breaks a rule, the
+writer is asked to rewrite that day once, with the fault named.
+
+The read-back now separates what the app checked against your record from what
+the writer decided.
+
 ## v3.3.431 (2026-09-03) — The day ends when you say it ends
 
 Marking an exercise or a part done no longer finishes your whole day. Only

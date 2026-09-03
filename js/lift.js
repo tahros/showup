@@ -920,7 +920,13 @@ function planScreenHTML(){
      guardrails were writing these notes since v3.3.400 and nobody could read
      them; a clamp showed as \u2248 with no why. */
   const _pn=(lift.planSource==='writer'&&Array.isArray(lift.planNotes))?lift.planNotes:[];
-  if(_pn.length) h+=`<div class="plannotes">${_pn.map(n=>`<div class="mono">\u00b7 ${hesc(n)}</div>`).join('')}</div>`;
+  /* v3.3.432: TWO VOICES, NEVER BLENDED. The writer's "Friday completes your
+     leg day contract" read with exactly the authority of the app's "repeated
+     your last 50 lb -- stepped up to 55", and the maker had no way to tell
+     which had been verified. These notes are the APP's: every one was checked
+     against the ledger. The reason above is the WRITER's judgement. Labelled
+     now, same list, two voices (doctrine P7). */
+  if(_pn.length) h+=`<div class="plannotes"><div class="pnhead mono">checked against your record</div>${_pn.map(n=>`<div class="mono">\u00b7 ${hesc(n)}</div>`).join('')}</div>`;
   h+=`<div class="planacts">
       <button class="btn wide" data-planaccept>${lift.planMode==='week'?'Use this week':writeDateISO()===todayISO?'Use today\u2019s plan':`Use this for ${planDayLabel(writeDateISO())}`}</button>
       <button class="btn ghost" data-planedit>Edit</button>

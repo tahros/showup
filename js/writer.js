@@ -136,6 +136,70 @@ function writerRecentSessions(history){
   }
   return Object.keys(byDay).sort().reverse().slice(0,12).map(d=>byDay[d]);
 }
+/* ---- v3.3.432: THE TWO FACTS THAT HAD NO ENFORCER -----------------------
+   The prompt has said "no major part on consecutive days" since the writer
+   shipped, twice, and nothing ever checked. The model put Squat on the Friday
+   after a Thursday of Deadlift 205x8888 and RDL 165x8/6/6, then justified it:
+   "Friday completes your leg day contract." A sentence that cites no fact.
+   Guardrails 14/14b/16 held all week because they have code behind them.
+   Recovery and session size had only prose, so they broke.
+   A RULE WITH NO ENFORCER IS A WISH. These two become laws. */
+
+/* WHICH MAJOR PARTS ARE OFF LIMITS ON A GIVEN DATE, and why. Looks BACKWARD
+   at the ledger and FORWARD at saved plans -- a rule that looks one way gets
+   broken by the other. The maker chose TWO days: his own record has never
+   trained a major part inside 48 h (Legs Aug 22 and 27, Aug 27 and Sep 3).
+   Core is exempt; it rides along, as the prompt has always said. */
+const WRITER_RECOVERY_DAYS=2;
+const WRITER_CORE_PARTS=['Sixpack','Run'];
+function writerPartsResting(date, sessions, weekCtx){
+  const out={};
+  const D=iso=>new Date(iso+'T00:00');
+  const gap=(a,b)=>Math.round((D(a)-D(b))/86400000);
+  const near=[];
+  for(const s of sessions||[]) near.push({date:s.date, parts:s.parts||[]});
+  for(const w of weekCtx||[]) if(w.planned&&w.parts) near.push({date:w.date, parts:w.parts});
+  for(const n of near){
+    if(n.date===date) continue;
+    const g=Math.abs(gap(date,n.date));
+    if(g<WRITER_RECOVERY_DAYS)
+      for(const p of n.parts){
+        if(WRITER_CORE_PARTS.includes(p)) continue;
+        if(!out[p]) out[p]={part:p, on:n.date, days_apart:g};
+      }
+  }
+  return Object.values(out);
+}
+
+/* THE PERSON'S OWN SESSION RANGE. The writer wrote three exercises for a
+   Friday; the maker's last thirteen sessions run 4-7, median 5. The app knew
+   his shape exactly and never told the writer the NUMBER -- the prompt said
+   "preserve the established session composition" and handed over raw history
+   to infer it from. It guessed low. His MINIMUM is the floor, on his call:
+   it is the honest reading of the record rather than a figure derived from it.
+   Core-only and Run-only days are excluded from the count: they are not
+   sessions whose shape anyone is trying to preserve. */
+function writerSessionShape(sessions){
+  /* TODAY IS NOT A SESSION SHAPE. It is in progress: the maker may be three
+     exercises in with three to go, and counting it drags his floor down to
+     whatever he happens to have logged when he taps Write. Only finished days
+     describe how long his sessions are. */
+  const counts=(sessions||[]).filter(s=>s.date!==todayISO).map(s=>{
+    const major=(s.exercises||[]).filter(x=>!WRITER_CORE_PARTS.includes(x.part));
+    return major.length;
+  }).filter(n=>n>0);
+  /* three finished sessions is enough to know a floor; fewer is a guess, and
+     a guessed floor would refuse days for no reason. No shape means rule 2
+     simply does not apply -- a new user is never told his session is short. */
+  if(counts.length<3) return null;
+  const sorted=[...counts].sort((a,b)=>a-b);
+  return {
+    min: sorted[0],
+    max: sorted[sorted.length-1],
+    median: sorted[Math.floor(sorted.length/2)],
+    from_sessions: counts.length
+  };
+}
 function writerRecentWeeks(sessions){
   const weeks={};
   for(const s of sessions){
@@ -217,7 +281,28 @@ function writerPayload(o){
   const recent_sessions=writerRecentSessions(history);
   const recent_weeks=writerRecentWeeks(recent_sessions);
   const week_context=writerWeekContext(selected_days,days);
+  /* v3.3.432: THE APP OWNS THE CALENDAR (the maker's call). Which part trains
+     on which day is a scheduling problem the app already solves for Train
+     Next, with rules he trusts -- and it is a FACT problem: it needs the
+     ledger and the saved plans, not taste. The model's value is filling a day
+     well, not choosing it. So a SKELETON goes out: for each writable date, the
+     parts that are resting and may not be used, and the parts that are due in
+     ranking order. The model may still propose a different part, but only with
+     a reason that names a payload fact -- narrative alone no longer carries a
+     day (see the doctrine, principle 3). */
+  const shape=writerSessionShape(recent_sessions);
+  const skeleton=days.map(date=>{
+    const resting=writerPartsResting(date, recent_sessions, week_context);
+    const off=new Set(resting.map(r=>r.part));
+    return {
+      date,
+      weekday:WEEKDAYS[new Date(date+'T00:00').getDay()],
+      resting,                                     // may NOT be trained: rule 1
+      due:ranking.filter(r=>!off.has(r.part)).slice(0,4).map(r=>r.part)
+    };
+  });
   return {
+    skeleton, shape, recovery_days:WRITER_RECOVERY_DAYS,
     v:1, unit:U(), date:selected_days[0], scope:o.scope==='week'?'week':'day', days, selected_days, locked_days,
     part:o.scope==='week'?null:(o.part==='auto'?null:o.part),
     focus:o.scope==='week'?(o.focus?[...o.focus]:[]):[],
@@ -439,11 +524,51 @@ function writerCheck(resp, ctx){
       }
       return r;
     });
-    out.push({date:d.date, part, title:String(d.title||'').slice(0,60), rows, text:planTextFromRows(rows)});
+    /* ---- v3.3.432: THE TWO NEW LAWS, checked on the finished day ---------
+       Both are FACTS the app can compute, so the app decides -- the model is
+       never the last word on a date or a count. Neither is corrected in place:
+       a wrong load has one arithmetic answer, a wrong DAY does not, so these
+       mark the day for repair and the model rewrites it once (doctrine P4). */
+    const dayParts=[...new Set(rows.filter(r=>r.kind==='ex'&&r.ex).map(r=>homePartOf(r.ex)).filter(Boolean))];
+    const dayMajor=dayParts.filter(x=>!WRITER_CORE_PARTS.includes(x));
+    const sk=(payload.skeleton||[]).find(x=>x.date===d.date);
+    const violations=[];
+
+    /* RULE 1 -- NO MAJOR PART INSIDE THE RECOVERY WINDOW. The Friday case:
+       Legs on the morning after Deadlift 205x8888 and RDL 165x8/6/6. Two days
+       on the maker's call -- his ledger has never repeated a major part inside
+       48 h. Core exempt. A reason NAMING the part is still allowed to override:
+       he may want it, and the app does not overrule a stated want. */
+    for(const r of (sk&&sk.resting)||[]){
+      if(!dayMajor.includes(r.part)) continue;
+      const named=(payload.note||'').toLowerCase().includes(r.part.toLowerCase());
+      if(named) continue;
+      violations.push(`${r.part} was trained ${r.on} — ${WRITER_RECOVERY_DAYS} days' rest, and no reason names it`);
+    }
+
+    /* RULE 2 -- THE SESSION IS AT LEAST AS LONG AS YOUR SHORTEST. The writer
+       wrote THREE exercises for a Friday; the maker's last thirteen sessions
+       run 4-7. The floor is his MINIMUM, on his call: the honest reading of
+       the record rather than a figure derived from it. Core does not count
+       toward the floor -- it rides along and cannot fill a day. */
+    const majorCount=rows.filter(r=>r.kind==='ex'&&r.ex&&!WRITER_CORE_PARTS.includes(homePartOf(r.ex))).length;
+    if(payload.shape&&majorCount>0&&majorCount<payload.shape.min)
+      violations.push(`${majorCount} exercise${majorCount===1?'':'s'}, and your shortest session is ${payload.shape.min}`);
+
+    out.push({date:d.date, part, title:String(d.title||'').slice(0,60), rows, text:planTextFromRows(rows), violations});
   }
   if(!out.length) throw {refused:'no day matched the days you picked'};
+  /* v3.3.432: the violations travel out with the result so writerGo can ask
+     for ONE repair. They are also named in the read-back if the repair fails,
+     so a day is never quietly wrong. */
+  const violations=out.filter(x=>(x.violations||[]).length)
+                      .map(x=>({date:x.date, why:x.violations}));
+  /* v3.3.432: and they are named in the read-back, in the APP's voice --
+     these are facts, not the writer's opinion (doctrine P7). */
+  for(const v of violations)
+    notes.push(`${planDayLabel(v.date)}: ${v.why.join('; ')}`);
   const reason=(resp.reason&&resp.reason.text)?{head:String(resp.reason.head||'').slice(0,60), text:String(resp.reason.text).slice(0,300)}:null;
-  if(payload.scope==='day') return {rows:out[0].rows, text:out[0].text, date:out[0].date, part:out[0].part, reason, notes, week:null};
+  if(payload.scope==='day') return {rows:out[0].rows, text:out[0].text, date:out[0].date, part:out[0].part, reason, notes, violations, week:null};
   /* a week: the rows the preview shows, and the document it will save */
   const rows=[]; const wdays={};
   for(const d of out.sort((a,b)=>a.date<b.date?-1:1)){
@@ -451,7 +576,7 @@ function writerCheck(resp, ctx){
     for(const r of d.rows) rows.push(r);
     wdays[d.date]={title:d.title, items:[], note:'', raw:d.text};
   }
-  return {rows, week:{from:out[0].date, to:out[out.length-1].date, days:wdays, raw:rows.length?planTextFromRows(rows):''}, reason, notes, date:out[0].date, part:null, text:planTextFromRows(rows)};
+  return {rows, week:{from:out[0].date, to:out[out.length-1].date, days:wdays, raw:rows.length?planTextFromRows(rows):''}, reason, notes, violations, date:out[0].date, part:null, text:planTextFromRows(rows)};
 }
 
 /* ---- the ask screen ---- */
@@ -558,7 +683,35 @@ async function writerGo(){
     if(o.cancelled) return;
     const merged=writerResponseWithLocked(resp,payload);
     const checkedPayload=payload.selected_days?{...payload,days:payload.selected_days}:payload;
-    const chk=writerCheck(merged,{payload:checkedPayload});
+    let chk=writerCheck(merged,{payload:checkedPayload});
+    /* v3.3.432: ONE REPAIR, NOT A NEGOTIATION. A wrong load has one arithmetic
+       answer and is corrected in place. A wrong DAY -- the wrong part, or too
+       few exercises -- does not: the app has no taste for choosing exercises,
+       and inventing them here would be the app doing the model's job badly.
+       So the violation is named back to the same writer and it rewrites those
+       days only, once. If the repair still violates, the read-back says so and
+       the day stands as written rather than being silently dropped -- the
+       person decides, with the fault in front of him. */
+    if((chk.violations||[]).length && !o.cancelled){
+      const bad=new Set(chk.violations.map(v=>v.date));
+      const fixNote=[
+        (payload.note||'').trim(),
+        'REWRITE ONLY THESE DAYS, leaving every other day exactly as written:',
+        ...chk.violations.map(v=>`${v.date}: ${v.why.join('; ')}.`),
+        'Respect payload.skeleton: never use a part listed as resting, and give each day at least payload.shape.min exercises outside core.'
+      ].filter(Boolean).join('\n');
+      const p2={...payload, note:fixNote.slice(0,900), days:payload.days.filter(d=>bad.has(d))};
+      try{
+        const r2=await writeSession(p2);
+        if(!o.cancelled&&r2&&(r2.days||[]).length){
+          const kept=(merged.days||[]).filter(d=>!bad.has(d.date));
+          const fixed=(r2.days||[]).filter(d=>bad.has(d.date));
+          const chk2=writerCheck({...merged, days:[...kept,...fixed]},{payload:checkedPayload});
+          /* the repair is taken only if it is actually better */
+          if((chk2.violations||[]).length < chk.violations.length) chk=chk2;
+        }
+      }catch(e){ /* a failed repair leaves the first answer, faults named */ }
+    }
     lift.planSource='writer'; lift.planReason=chk.reason; lift.planNotes=chk.notes;
     lift.planText=chk.text; lift.planRows=chk.rows; lift.planDate=chk.date;
     if(chk.week){ lift.planMode='week'; lift.planWeek=chk.week; } else { lift.planMode='day'; lift.planWeek=null; }

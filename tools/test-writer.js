@@ -508,6 +508,110 @@ await_(async()=>{
     }
   }
 
+  /* ---- v3.3.432: THE WRITER DOCTRINE, phase 1 -------------------------
+     The Friday plan: Squat the morning after Deadlift 205x8888 and RDL
+     165x8/6/6, and three exercises in a day whose owner never trains fewer
+     than four. The prompt had forbidden the first, twice, since the writer
+     shipped -- and nothing checked. A RULE WITH NO ENFORCER IS A WISH.
+     Both are facts the app can compute, so the app decides. */
+  {
+    const t=run(`todayISO`);
+    const iso=(k)=>run(`(function(){const d=new Date(todayISO+'T00:00'); d.setDate(d.getDate()+${'' }`+k+`); return d.toLocaleDateString('en-CA');})()`);
+    /* his real record: 4-7 major exercises a session, legs TODAY */
+    run(`(function(){DB.days={}; DB.settings.unit='lb';
+      const T=new Date(todayISO+'T00:00');
+      const D=k=>{const d=new Date(T);d.setDate(d.getDate()-k);return d.toLocaleDateString('en-CA')};
+      DB.days[D(0)]={w:[{part:'Legs',ex:'Romanian Deadlift',w:75,reps:[8,6,6],at:1},
+                        {part:'Legs',ex:'Dumbbell Lunge',w:18,reps:[10,10,10],at:2},
+                        {part:'Back',ex:'Deadlift',w:93,reps:[8,8,8,8],at:3},
+                        {part:'Sixpack',ex:'Hanging Leg Raise',w:0,reps:[8,8,8],at:4}],upd:1};
+      DB.days[D(2)]={w:[{part:'Chest',ex:'Incline Barbell Bench Press',w:70,reps:[10,10]},
+                        {part:'Chest',ex:'Incline Dumbbell Bench Press',w:25,reps:[8,8]},
+                        {part:'Chest',ex:'Cable Fly Up',w:11,reps:[10]},
+                        {part:'Shoulder',ex:'Lateral Raise',w:18,reps:[12,10]}],upd:1};
+      DB.days[D(5)]={w:[{part:'Biceps',ex:'EZ Bar Curl',w:18,reps:[15,15]},
+                        {part:'Biceps',ex:'Dumbbell Curl',w:11,reps:[12]},
+                        {part:'Triceps',ex:'Skull Crusher',w:18,reps:[16,15]},
+                        {part:'Triceps',ex:'Triceps Pushdown',w:18,reps:[10,10]},
+                        {part:'Shoulder',ex:'Rear Deltoids',w:11,reps:[12,12]}],upd:1};
+      DB.days[D(7)]={w:[{part:'Legs',ex:'Squat',w:88,reps:[8,8,8,8]},
+                        {part:'Legs',ex:'Romanian Deadlift',w:70,reps:[10,10]},
+                        {part:'Legs',ex:'Dumbbell Lunge',w:16,reps:[8,8]},
+                        {part:'Sixpack',ex:'Hanging Leg Raise',w:0,reps:[6,6]}],upd:1};
+      SEED=deriveAll();})()`);
+
+    const P=()=>run(`(function(){const o=writerState(); o.scope='week';
+      const T=new Date(todayISO+'T00:00');
+      const nx=k=>{const d=new Date(T);d.setDate(d.getDate()+k);return d.toLocaleDateString('en-CA')};
+      o.days=new Set([nx(1),nx(2)]); return JSON.stringify(writerPayload(o));})()`);
+    const pay=JSON.parse(P());
+
+    /* THE APP OWNS THE CALENDAR: a skeleton goes out, per day */
+    ok("the payload carries a skeleton, one entry per writable day",
+       Array.isArray(pay.skeleton) && pay.skeleton.length===2, JSON.stringify((pay.skeleton||[]).map(s=>s.date)));
+    ok("...marking the parts trained today as RESTING tomorrow",
+       (pay.skeleton[0].resting||[]).map(r=>r.part).sort().join()==='Back,Legs',
+       JSON.stringify(pay.skeleton[0].resting));
+    ok("...and free again the day after (two days, his call)",
+       (pay.skeleton[1].resting||[]).length===0, JSON.stringify(pay.skeleton[1].resting));
+    ok("...with core never resting -- it rides along",
+       !(pay.skeleton[0].resting||[]).some(r=>r.part==='Sixpack'));
+    ok("...and due parts offered in the app's own rotation order",
+       Array.isArray(pay.skeleton[0].due) && pay.skeleton[0].due.length>0 &&
+       !pay.skeleton[0].due.includes('Legs'), JSON.stringify(pay.skeleton[0].due));
+    ok("the recovery window is two days", pay.recovery_days===2);
+
+    /* HIS OWN MINIMUM IS THE FLOOR */
+    /* His floor is THREE, not four, and the difference is instructive: his leg
+       days are Squat + RDL + Lunge with Hanging Leg Raise riding along, so
+       counting core would have inflated the floor to 4 and made a legitimate
+       leg day illegal. Core rides along and cannot fill a day. */
+    ok("the payload carries his session shape, counted from his record",
+       !!pay.shape && pay.shape.min===3, JSON.stringify(pay.shape));
+    ok("...counting only exercises outside core, so a 3-lift leg day stays legal",
+       pay.shape.min===3 && pay.shape.max>=5, JSON.stringify(pay.shape));
+    /* today is in progress and is not a shape */
+    ok("...and today is excluded: an unfinished session is not a session length",
+       pay.shape.from_sessions===3, JSON.stringify(pay.shape));
+
+    /* RULE 1 fires on the exact plan the writer produced */
+    const chk=(text,note)=>run(`(function(){try{
+      const o=writerState(); o.scope='week'; o.note=${'' }`+JSON.stringify(note||'')+`;
+      const T=new Date(todayISO+'T00:00');
+      const nx=k=>{const d=new Date(T);d.setDate(d.getDate()+k);return d.toLocaleDateString('en-CA')};
+      o.days=new Set([nx(1),nx(2)]);
+      const p=writerPayload(o);
+      const r=writerCheck({days:[{date:nx(1),part:'Legs',title:'Legs',text:`+"`"+`${'' }`+JSON.stringify(text)+`.slice(1,-1)}`+"`"+`},
+                                 {date:nx(2),part:'Chest',title:'Chest',text:'Barbell Bench Press\\n  155 lb x 8 8\\n\\nDip\\n  BW x 10 8\\n\\nCable Fly Up\\n  25 lb x 12 12\\n\\nLateral Raise\\n  30 lb x 15 12'}],
+                           reason:{head:'Legs on Friday',text:'Friday completes your leg day contract.'}},{payload:p});
+      return JSON.stringify({ok:true, violations:r.violations||[], notes:r.notes||[]});
+    }catch(e){ return JSON.stringify({ok:false, refused:e.refused||String(e)}); }})()`);
+
+    let r=JSON.parse(chk("Squat\n  135 lb x 8\n  205 lb x 8 8 8 8\n\nStanding Calf Raise\n  by feel x 12 12 12\n\nHanging Leg Raise\n  BW x 12 10 10"));
+    ok("RULE 1 · Legs the day after Legs is a violation, not a plan",
+       r.ok && r.violations.some(v=>v.why.some(w=>/Legs was trained .* 2 days' rest/.test(w))),
+       JSON.stringify(r.violations));
+    ok("RULE 2 · and a day below his own floor is another violation",
+       r.ok && r.violations.some(v=>v.why.some(w=>/2 exercises, and your shortest session is 3/.test(w))),
+       JSON.stringify(r.violations));
+    ok("...both named in the read-back, in the app's voice",
+       r.notes.some(n=>/2 days' rest/.test(n)), JSON.stringify(r.notes));
+
+    /* the narrative reason does NOT excuse the part -- it names no fact */
+    ok("...and the writer's story does not excuse it",
+       r.violations.length>0);
+
+    /* a note that NAMES the part does: the app never overrules a stated want */
+    r=JSON.parse(chk("Squat\n  135 lb x 8\n  205 lb x 8 8 8 8\n\nStanding Calf Raise\n  by feel x 12 12 12\n\nHanging Leg Raise\n  BW x 12 10 10", "legs again tomorrow, I want squat"));
+    ok("...but a note naming Legs is allowed to override the rest",
+       r.ok && !r.violations.some(v=>v.why.some(w=>/Legs was trained/.test(w))), JSON.stringify(r.violations));
+
+    /* a clean day violates nothing */
+    r=JSON.parse(chk("Barbell Bench Press\n  155 lb x 8 8 6\n\nDip\n  BW x 10 8 8\n\nCable Fly Up\n  25 lb x 12 12 10\n\nLateral Raise\n  30 lb x 15 15 12\n\nHanging Leg Raise\n  BW x 12 10 10"));
+    ok("a rested part at full length passes clean",
+       r.ok && r.violations.length===0, JSON.stringify(r.violations));
+  }
+
   process.exit(fail ? 1 : 0);
 });
 function await_(f){ f().catch(e=>{ console.log("CRASH", e && e.stack || e); process.exit(1); }); }
