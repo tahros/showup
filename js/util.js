@@ -1013,6 +1013,10 @@ function writeDateISO(){
 }
 /* a plan stamped for a day after today: shown as one quiet line, never read
    by the rails, never scored. null unless there is one. */
+/* v3.3.421: the plan the DAY SCOPE SHOWS -- today's while today is open,
+   tomorrow's once today is in the book. Copy, edit and the pill's label all
+   read this so they agree about which day they mean. */
+const planShown=()=>planNow()||planPending();
 function planPending(){
   const p=DB.plan;
   if(!p||!(p.d>todayISO)) return null;

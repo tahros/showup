@@ -293,7 +293,18 @@ document.addEventListener('click',e=>{
   }
   /* ---- v3.3.400: the session writer's ask screen ---- */
   if(e.target.closest&&e.target.closest('[data-planwrite]')){
-    lift.write=null; lift.plan='write'; lift.planSource=null; lift.planReason=null; lift.planDate=null; return render();
+    /* v3.3.421: THE DOOR YOU CAME THROUGH SAYS WHAT YOU MEANT. Write from the
+       week's header rewrites the week you are looking at: scope week, every
+       day of the saved week selected, and rewrite set so the payload carries
+       no locked days. Write from a day starts fresh, and widening to the week
+       inside the ask screen keeps Codex's v3.3.420 behaviour -- fill only the
+       empty days. Same writer, two doors, no toggle. */
+    const _pw=e.target.closest('[data-planwrite]');
+    if(_pw.dataset.planwrite==='week'&&weekNow()){
+      const o=writerState(); o.scope='week'; o.rewrite=true;
+      o.days=new Set(Object.keys(weekNow().days).filter(d=>d>=todayISO)); lift.write=o;
+    }else lift.write=null;
+    lift.plan='write'; lift.planSource=null; lift.planReason=null; lift.planDate=null; return render();
   }
   if(lift.plan==='writing'){
     if(e.target.closest&&e.target.closest('[data-writecancel]')){ writerCancel(); return; }
@@ -323,7 +334,9 @@ document.addEventListener('click',e=>{
   if(_wa){ const wk=weekNow(); lift.weekOpen=new Set(_wa.dataset.weekall==='open'&&wk?Object.keys(wk.days):[]); return render(); }
   const _pc=e.target.closest&&e.target.closest('[data-plancopy]');
   if(_pc){
-    const txt=_pc.dataset.plancopy==='week'?weekToText(weekNow()):(function(){const p=planNow(); return p&&p.raw&&p.raw.trim()?p.raw:planToText(p);})();
+    /* v3.3.421: the day copy reads the plan the day scope SHOWS -- tomorrow's
+       once today is closed. planNow() is null then and copied nothing. */
+    const txt=_pc.dataset.plancopy==='week'?weekToText(weekNow()):(function(){const p=planShown(); return p&&p.raw&&p.raw.trim()?p.raw:planToText(p);})();
     const done=()=>toast('Copied');
     try{ if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done,()=>toast('Could not copy')); else { lift.planText=txt; lift.plan='paste'; render(); } }
     catch(_e){ lift.planText=txt; lift.plan='paste'; render(); }
@@ -333,7 +346,7 @@ document.addEventListener('click',e=>{
     lift.planText=weekToText(weekNow()); lift.plan='paste'; lift.planMode='week'; return render();
   }
   if(e.target.closest&&e.target.closest('[data-weekclear]')){
-    weekClear(); lift.planScope='today'; lift.weekOpen=null; toast('Week cleared'); return render();
+    weekClear(); lift.plan=null; lift.planText=''; lift.planScope='today'; lift.weekOpen=null; toast('Week cleared'); return render();
   }
   if(e.target.closest&&e.target.closest('[data-planback]')){
     lift.plan=null; lift.planRows=null; lift.planWeek=null; lift.planSource=null; lift.planReason=null; lift.planDate=null; return render();
@@ -390,11 +403,6 @@ document.addEventListener('click',e=>{
     toast(items.length?`Plan set${_wd===todayISO?'':' for '+planDayLabel(_wd)} — ${items.length} exercise${items.length>1?'s':''}`:'Kept as a note');
     return render();
   }
-  /* v3.3.413: tomorrow's plan folds and unfolds the same way today's does */
-  if(e.target.closest&&e.target.closest('[data-pendfold]')){
-    DB.settings.pendFold=!DB.settings.pendFold; DB.settingsAt=Date.now(); save(true);
-    render(); return;
-  }
   if(e.target.closest&&e.target.closest('[data-planfold]')){
     DB.settings.planFold=!DB.settings.planFold; DB.settingsAt=Date.now(); save(true);
     /* v3.3.319: render(), not renderLift(). The plan moved to Today, and a
@@ -404,7 +412,9 @@ document.addEventListener('click',e=>{
     return render();
   }
   if(e.target.closest&&e.target.closest('[data-planclear]')){
-    planClear(); toast('Plan cleared'); return render();
+    /* v3.3.421: Clear lives inside the editor now; clearing also closes it --
+       there is nothing left to edit. */
+    planClear(); lift.plan=null; lift.planText=''; toast('Plan cleared'); return render();
   }
   const _prow=e.target.closest&&e.target.closest('[data-planex]');
   if(_prow){

@@ -463,6 +463,25 @@ await_(async()=>{
   ok("12 · writer.js never touches the record", !/DB\.days\s*\[[^\]]*\]\s*=|\.w\.push|DB\.days\[[^\]]+\]\.w\s*=/.test(wsrc));
   ok("...and never counts a plan", !/planLoggedToday|adheren|completed|remaining|missed/i.test(wsrc));
 
+  /* v3.3.421: THE PHONE WAITS LONGER THAN THE FUNCTION. The Edge Function
+     aborted the model at a flat 20 s; a week since v3.3.419 is every session
+     written in full and takes 25-40 s, so every week write came back 504 while
+     the model was still writing. The function's abort now scales with scope
+     (25 s / 60 s) and the client waits longer in both, so the function -- not
+     the phone -- always decides it has waited long enough. */
+  {
+    const fn=fs.readFileSync(path.join(dir,"supabase/functions/write-session/index.ts"),"utf8");
+    const m=fn.match(/abortMs = payload\.scope === "week" \? (\d+)_?(\d*) : (\d+)_?(\d*)/);
+    ok("the function's abort scales with scope", !!m);
+    if(m){
+      const week=+(m[1]+m[2]), day=+(m[3]+m[4]);
+      ok("...a week gets at least a minute", week>=60000, String(week));
+      ok("...and the client outlasts the function in both scopes",
+         run(`WRITER_TIMEOUT_MS.week`)>week && run(`WRITER_TIMEOUT_MS.day`)>day,
+         JSON.stringify(run(`WRITER_TIMEOUT_MS`)));
+    }
+  }
+
   process.exit(fail ? 1 : 0);
 });
 function await_(f){ f().catch(e=>{ console.log("CRASH", e && e.stack || e); process.exit(1); }); }

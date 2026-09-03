@@ -103,8 +103,13 @@ run(`view='today'; dayMeta().doneAll=true; render();`);
 check("the plan is the only hero, and appears once",
       `document.querySelectorAll('#view .planedge').length`, 1);
 check("Daily Fire is gone",          `!!document.querySelector('#view .firecard')`, false);
-check("...and it is the FIRST thing on the tab",
-      `document.querySelector('#view h2').textContent.trim().toLowerCase().indexOf('today plan')`, 0);
+/* v3.3.421: the day pill NAMES the day the scope shows or writes. With sets
+   logged and no plan, the ledger rule points the writer at tomorrow, so the
+   pill says tomorrow -- and that IS the first thing on the tab. */
+check("...and it is the FIRST thing on the tab, naming the day it writes",
+      `(function(){const h=document.querySelector('#view h2').textContent.trim().toLowerCase();
+        const want=(writeDateISO()===todayISO?'today':planDayLabel(writeDateISO()).toLowerCase())+' plan';
+        return h.indexOf(want);})()`, 0);
 // Lineage of this block: v3.3.52 tried a chart in Rhythm; v3.3.53 reverted
 // to the vs-bars (form question: chart vs bars). v3.3.83 removes the block
 // from Today entirely (presence question) on the app's FIRST outside
@@ -266,8 +271,9 @@ run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
 check("on a closed day, the finished card leads",
       `document.querySelector('#view').firstElementChild.classList.contains('dayclosed')`, true);
 check("...and the plan heading follows it",
-      `document.querySelector('#view').children[1].tagName
-        +':'+document.querySelector('#view').children[1].textContent.slice(0,10)`, "H2:today plan");
+      `(function(){const c=document.querySelector('#view').children[1];
+        const want=(writeDateISO()===todayISO?'today':planDayLabel(writeDateISO()).toLowerCase())+' plan';
+        return c.tagName+':'+(c.textContent.trim().toLowerCase().startsWith(want)?'ok':c.textContent.slice(0,14));})()`, "H2:ok");
 check("...with nothing recommending a next exercise",
       `!document.querySelector('.tnextplan')`, true);
 check("...and no invitation to add another part",
@@ -289,8 +295,12 @@ check("on a closed day the plan header offers the writer's door",
       `!!document.querySelector('h2 .planedge [data-planwrite]')`, true);
 check("...and it names tomorrow as its target",
       `writeDateISO()>todayISO`, true);
-check("...while Edit and Clear retire",
-      `!document.querySelector('[data-planedit]') && !document.querySelector('[data-planclear]')`, true);
+/* v3.3.421 REVERSES v3.3.412's "Edit and Clear retire on a closed day". One
+   header grammar in every state beat a special case: Edit stays (the maker
+   wanted to edit a finished day's plan and tomorrow's alike), Write stays,
+   and Clear moves behind Edit everywhere rather than retiring here alone. */
+check("...while the edge reads copy, edit, Write -- and Clear is not on it",
+      `!!document.querySelector('[data-planedit]') && !document.querySelector('h2 .planedge [data-planclear]')`, true);
 check("...and fold and copy stay",
       `!!document.querySelector('[data-planfold]') && !!document.querySelector('[data-plancopy]')`, true);
 check("...with the plan card receded to a receipt",
@@ -315,11 +325,13 @@ run(`(function(){const t=new Date(todayISO+'T00:00'); t.setDate(t.getDate()+1);
   DB.settings.pendFold=false; render();})()`);
 check("tomorrow's plan is shown on Today, not just counted",
       `!!document.querySelector('.planahead .plancard') && /Squat/.test(document.querySelector('.planahead').textContent)`, true);
+/* v3.3.421: tomorrow's row IS the day fold row (planfoldrow.planpending) --
+   one control, one class, the same as today's plan uses */
 check("...beneath a row that is now a fold, not an inert line",
-      `document.querySelector('[data-pendfold]').tagName==='BUTTON'`, true);
-run(`document.querySelector('[data-pendfold]').dispatchEvent(new window.Event('click',{bubbles:true}))`);
+      `document.querySelector('.planpending[data-planfold]').tagName==='BUTTON'`, true);
+run(`document.querySelector('.planpending[data-planfold]').dispatchEvent(new window.Event('click',{bubbles:true}))`);
 check("...which folds it away on tap", `!document.querySelector('.planahead')`, true);
-run(`document.querySelector('[data-pendfold]').dispatchEvent(new window.Event('click',{bubbles:true}))`);
+run(`document.querySelector('.planpending[data-planfold]').dispatchEvent(new window.Event('click',{bubbles:true}))`);
 check("...and back", `!!document.querySelector('.planahead .plancard')`, true);
 check("...while the rails still do not read it: today's plan is unaffected",
       `planNow()===null`, true);
@@ -328,9 +340,12 @@ run(`(function(){DB.plan={d:todayISO, items:[
     {ex:'Dumbbell Press', lines:[{w:20,bw:false,reps:[15]}]},
     {ex:'Lateral Raise',  lines:[{w:10,bw:false,reps:[12,12]}]}], note:''}; render();})()`);
 
-check("reopened, Edit and Clear return and the door withdraws",
-      `!!document.querySelector('[data-planedit]') && !!document.querySelector('[data-planclear]')
-        && !document.querySelector('h2 .planedge [data-planwrite]') && !document.querySelector('.plspent')`, true);
+/* v3.3.421: the grammar does not change when the day reopens -- copy, edit,
+   Write in both states. What changes is the RECORD: the receipt lifts and the
+   card is live again. */
+check("reopened, the edge is unchanged and the receipt lifts",
+      `!!document.querySelector('[data-planedit]') && !!document.querySelector('h2 .planedge [data-planwrite]')
+        && !document.querySelector('.plspent') && !!document.querySelector('.plancard')`, true);
 
 // ---- v3.3.106: the trained state leads with the number that MOVED --------
 // Fixture: past history + today logged AND sealed (doneAll), matching the

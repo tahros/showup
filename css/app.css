@@ -809,14 +809,18 @@
      day plans; the row above it is the fold. Quieter than today's plan
      because it is not yet the one being trained against. */
   .planahead{opacity:.9;margin-top:6px}
+  /* v3.3.421: Clear lives behind the Edit door now, in the record red --
+     destructive, and already past the point where you decided to change the
+     plan. It was the far-edge glyph you never wanted to hit by accident. */
+  .btn.ghost.danger{color:var(--record);border-color:color-mix(in srgb,var(--record) 45%,transparent)}
   /* v3.3.414: one line, no wrap. Day left, count and chevron right, all on
      the row's centre line. The chevron is a flex item beside the count, not
      an inline glyph hanging off its baseline. */
-  .planpending{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  .planfoldrow{display:flex;align-items:center;justify-content:space-between;gap:12px;
     width:100%;padding:11px 14px;text-align:left;white-space:nowrap;font-size:12px}
-  .planpending .pp-day{color:var(--muted)}
-  .planpending .pp-right{display:inline-flex;align-items:center;gap:8px;color:var(--faint)}
-  .planpending .ic{color:var(--faint);flex:0 0 auto}
+  .planfoldrow .pp-day{color:var(--muted)}
+  .planfoldrow .pp-right{display:inline-flex;align-items:center;gap:8px;color:var(--faint)}
+  .planfoldrow .ic{color:var(--faint);flex:0 0 auto}
   .dayclosed{display:block;width:100%;text-align:center;padding:20px 16px 16px;
     margin-bottom:18px;border:1px solid var(--line);cursor:pointer}
   .dayclosed .dcsq{display:block;width:30px;height:30px;margin:0 auto 12px;

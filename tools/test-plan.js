@@ -407,27 +407,45 @@ ok("with no plan, the section is a heading — not a full-width slab",
    run(`__slab`) === false && run(`/scopepill/.test(__emptyH) && /data-planwrite/.test(__emptyH)`));   // v3.3.400: the door is Write
 ok("...offering Paste exactly where the real controls sit",
    run(`/planedge/.test(__emptyH)`));
-ok("...and naming the section without claiming it holds anything",
-   run(`/scopepill off/.test(__emptyH)`));
+/* v3.3.421 RESTATES v3.3.297. The empty state used to dim the pill so the
+   section would not "claim to hold anything". But the pill is a SCOPE, not a
+   claim about contents: you are in the day scope whether or not it holds a
+   plan, and a dimmed pill read as "not selected" -- the maker could not tell
+   which mode he was in. Filled now, in every state. */
+ok("...and the scope pill is filled even when the scope is empty",
+   run(`!/scopepill off/.test(__emptyH)`));
 ok("both states are one heading line, so the page cannot jump",
    run(`(function(){const filled=[...document.querySelectorAll('#view h2')][0];
      return filled.querySelector('.scopepill') && filled.querySelector('.planedge')
        && /scopepill/.test(__emptyH) && /planedge/.test(__emptyH);})()`));
 
 /* v3.3.398: FOUR controls -- fold, copy, edit, clear -- all glyphs now */
+/* v3.3.421: THREE glyphs, not four -- copy, edit, Write. Clear moved behind
+   the Edit door; the fold moved onto the row that folds. */
 ok("the plan's controls live in the heading, not the card body",
-   run(`document.querySelectorAll('h2 .planedge .pedge').length`) === 4 &&
+   run(`document.querySelectorAll('h2 .planedge .pedge').length`) === 3 &&
    run(`!document.querySelector('.plancard .planacts')`));
-ok("...with the fold leading and the destructive Clear at the far edge",
+ok("...copy first, Write last, and no Clear on the edge at all",
    run(`(function(){const b=[...document.querySelectorAll('h2 .planedge .pedge')];
-     return b[0].hasAttribute('data-planfold') && b[b.length-1].hasAttribute('data-planclear');})()`));
+     return b[0].hasAttribute('data-plancopy') && b[1].hasAttribute('data-planedit')
+       && b[b.length-1].hasAttribute('data-planwrite') && !document.querySelector('h2 .planedge [data-planclear]');})()`));
+ok("...the fold lives on the row that folds",
+   run(`!!document.querySelector('.planfoldrow[data-planfold]') && !document.querySelector('h2 .planedge [data-planfold]')`));
+/* Clear is behind the Edit door -- destructive, and past the point where you
+   decided to change the plan */
+run(`document.querySelector('[data-planedit]').dispatchEvent(new window.Event('click',{bubbles:true}))`);
+ok("...and Clear waits behind the Edit door, in the record red",
+   run(`!!document.querySelector('.planacts .btn.danger[data-planclear]')`));
+run(`document.querySelector('[data-planback]').dispatchEvent(new window.Event('click',{bubbles:true}))`);
 ok("...in the corner, after the tip, which keeps its place by the title",
    run(`(function(){const k=[...document.querySelector('h2').children].map(c=>c.className.split(' ')[0]);
      return k.indexOf('hacts')>=0 && k.indexOf('planedge')===k.length-1
        && k.indexOf('hacts')<k.indexOf('planedge');})()`) === true);
 ok("...and Clear still clears from there",
    (function(){
-     run(`document.querySelector('.planedge [data-planclear]').click()`);
+     /* v3.3.421: Clear is behind the Edit door */
+     run(`document.querySelector('[data-planedit]').click()`);
+     run(`document.querySelector('.planacts [data-planclear]').click()`);
      return run(`!planNow()`) && run(`!!document.querySelector('[data-planwrite]')`);
    })());
 // put a plan back for the blocks below
@@ -521,7 +539,7 @@ ok("one tap folds the card away entirely",
    run(`!document.querySelector('.plancard')`));
 ok("...but the heading stays as the one-line fact",
    run(`!!document.querySelector('h2 .scopepill')`) &&
-   run(`document.querySelectorAll('h2 .planedge .pedge').length`) === 4);
+   run(`document.querySelectorAll('h2 .planedge .pedge').length`) === 3);   // v3.3.421: copy, edit, Write
 ok("...and the chevron flips", chev(false));
 ok("the choice is a setting, not a render whim", run(`DB.settings.planFold===true`));
 run(`render()`);

@@ -35,7 +35,11 @@ const WRITER_PATH='/functions/v1/write-session';
    So: patience long enough for a cold start, and a message that says which
    kind of failure this was, because "needs signal" is a lie when the signal
    is fine and the server was merely asleep. */
-const WRITER_TIMEOUT_MS={day:30000, week:45000};
+/* v3.3.421: the phone waits LONGER than the function (25 s / 60 s), so the
+   function is always the one to give up first and its 504 is the one error
+   the person sees -- never a client abort racing a server that was about to
+   answer. */
+const WRITER_TIMEOUT_MS={day:30000, week:75000};
 const WRITER_HISTORY_DAYS=56;
 const WRITER_LOAD_BAND=0.10;     // the CEILING over the eight-week best; below it the writer is free (v3.3.402)
 /* v3.3.407: ONE STEP IS ALWAYS ALLOWED. A percentage ceiling is right on a
@@ -204,7 +208,10 @@ function writerPayload(o){
      selected date that already has an accepted plan is a fixed block. The
      model writes only the blanks; the device merges the fixed blocks back
      into the read-back from their accepted item shapes. */
-  const locked_days=o.scope==='week'?selected_days.map(date=>({date,...(writerPlanSummary(date)||{})})).filter(x=>x.text):[];
+  /* v3.3.421: a REWRITE carries no locked days -- the week's header door means
+     "write this week again", and the saved sessions are what is being replaced.
+     Through the day door, v3.3.420 holds: saved days stay locked. */
+  const locked_days=(o.scope==='week'&&!o.rewrite)?selected_days.map(date=>({date,...(writerPlanSummary(date)||{})})).filter(x=>x.text):[];
   const locked=new Set(locked_days.map(x=>x.date));
   const days=selected_days.filter(date=>!locked.has(date));
   const recent_sessions=writerRecentSessions(history);
@@ -473,7 +480,12 @@ function writerScreenHTML(){
     <div class="chips">${chips(OBJECTIVES,k=>o.objective===k,'data-writeobj')}</div>
     <textarea class="planta" id="writeNote" rows="2" style="margin-top:14px" placeholder="Anything else. A sore knee, 45 minutes, no barbell today.">${hesc(o.note)}</textarea>
     <div class="mono muted" style="font-size:11px;line-height:1.5;padding:10px 2px 0">Eight weeks of your sets, every part, saved plans in this week, and this note go out to write it. Nothing comes back into your record; you read it first, like a paste.</div>`;
-  const label=o.busy?'Writing…':o.scope==='week'?`Write ${o.days?o.days.size:''} session${o.days&&o.days.size===1?'':'s'}`:`Write ${planDayLabel(o.scope==='tomorrow'?d1:todayISO)}`;
+  /* v3.3.421: a rewrite says what it replaces, once, plainly. */
+  if(o.scope==='week'&&o.rewrite&&o.days&&o.days.size){
+    const ds=[...o.days].sort();
+    body+=`<div class="mono" style="font-size:11px;line-height:1.5;padding:6px 2px 0;color:var(--record)">Replaces the saved week \u2014 ${planDayLabel(ds[0])} \u2192 ${planDayLabel(ds[ds.length-1])}.</div>`;
+  }
+  const label=o.busy?'Writing…':o.scope==='week'?`${o.rewrite?'Rewrite':'Write'} ${o.days?o.days.size:''} session${o.days&&o.days.size===1?'':'s'}`:`Write ${planDayLabel(o.scope==='tomorrow'?d1:todayISO)}`;
   const err=o.err?`<div class="mono writeerr" style="font-size:12px;color:var(--record);padding:10px 2px 0">${hesc(o.err)}</div>`:'';
   return `<h2>Write a session</h2><div class="card writecard">${seg}${body}${err}
     <div class="planacts" style="padding-left:0;padding-right:0">

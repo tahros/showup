@@ -82,9 +82,13 @@ ok("...the range line says where it runs", /→/.test(run(`document.querySelecto
    /4 SESSIONS/.test(run(`document.querySelector('.rangeline').textContent`)), run(`document.querySelector('.rangeline').textContent`));
 /* v3.3.404: copy and edit are outline icons now (maria icon / Alvida Black),
    so the edge must be four ICON_PATH glyphs and no hand-drawn stand-in */
-ok("the edge is four glyphs: expand, copy, edit, clear",
-   run(`(function(){const b=[...document.querySelectorAll('h2 .planedge .pedge')]; return b.length===4 && !!b[0].querySelector('.ic-expand')
-     && !!b[1].querySelector('.ic-copy') && !!b[2].querySelector('.ic-edit') && !!b[3].querySelector('.ic-clear');})()`));
+/* v3.3.421 RESTATES: the week's edge is the SAME three as the day's -- copy,
+   edit, Write. Expand-all left (every day row has its own chevron); Clear
+   moved behind Edit; Write arrived, and from this door it REWRITES the week. */
+ok("the edge is three glyphs: copy, edit, Write -- the same as the day's",
+   run(`(function(){const b=[...document.querySelectorAll('h2 .planedge .pedge')]; return b.length===3
+     && !!b[0].querySelector('.ic-copy') && !!b[1].querySelector('.ic-edit') && b[2].hasAttribute('data-planwrite')
+     && b[2].getAttribute('data-planwrite')==='week';})()`));
 ok("...each with a name for the screen reader, since the word is gone",
    run(`[...document.querySelectorAll('h2 .planedge .pedge')].every(b=>b.getAttribute('aria-label'))`));
 ok("...and copy and edit are filled outlines, not strokes, so the edge is one family",
@@ -99,11 +103,17 @@ ok("...their holes survive: each is one path of three subpaths",
 ok("every day heading carries the chevron, right when folded, down when open",
    run(`(function(){const f=[...document.querySelectorAll('.daycard:not(.open) .ic-chevron')], o=document.querySelector('.daycard.open .ic-chevron');
      return f.length===3 && f.every(s=>!/rotate/.test(s.getAttribute('style')||'')) && /rotate\\(90deg\\)/.test(o.getAttribute('style'));})()`));
-run(`document.querySelector('[data-weekall="open"]').click()`);
-ok("expand all opens every day", run(`document.querySelectorAll('.daycard.open').length`)===4);
-ok("...and the edge now offers collapse", run(`!!document.querySelector('[data-weekall="fold"] .ic-collapse')`));
-run(`document.querySelector('[data-weekall="fold"]').click()`);
-ok("fold all closes every day", run(`document.querySelectorAll('.daycard.open').length`)===0);
+/* v3.3.421 RESTATES: expand-all and fold-all left the header -- every day row
+   carries its own chevron, and a header glyph that opened all four at once
+   was a fifth control for a thing the rows already did. Opening each day by
+   its own heading is the behaviour that remains. */
+/* one click per render: each toggle re-renders, so the buttons must be found
+   again each time rather than held from one query */
+run(`(function(){let g; while((g=document.querySelector('.daycard:not(.open) [data-weekday]'))) g.click();})()`);
+ok("every day opens by its own heading", run(`document.querySelectorAll('.daycard.open').length`)===4);
+ok("...and there is no expand-all on the edge", run(`!document.querySelector('[data-weekall]')`));
+run(`(function(){let g; while((g=document.querySelector('.daycard.open [data-weekday]'))) g.click();})()`);
+ok("...and every day folds by its own heading", run(`document.querySelectorAll('.daycard.open').length`)===0);
 run(`document.querySelector('.daycard.past [data-weekday]').click()`);
 ok("a day heading opens that day alone", run(`document.querySelectorAll('.daycard.open').length`)===1 && run(`document.querySelector('.daycard.open').classList.contains('past')`));
 ok("a day that is not today has no ticks and no spend", run(`document.querySelectorAll('.daycard.open .pdone, .daycard.open .rspent').length`)===0);
@@ -120,7 +130,9 @@ run(`planSave([{ex:'Chin Up',lines:[{w:0,bw:true,reps:[8,8]}]}],'','', todayISO)
 ok("a plan pasted for today wins over the week's block", run(`(function(){const p=planNow(); return p.items.length===1&&p.items[0].ex==='Chin Up'&&!p.fromWeek;})()`));
 ok("...and the week's block for today now says the same", run(`DB.week.days[todayISO].items[0].ex`)==='Chin Up');
 ok("...while the other days are untouched", run(`DB.week.days[${JSON.stringify(iso(1))}].items.length`)===2);
-run(`document.querySelector('[data-planclear]').click()`);
+/* v3.3.421: Clear is behind the Edit door */
+run(`document.querySelector('[data-planedit]').click()`);
+run(`document.querySelector('.planacts [data-planclear]').click()`);
 ok("Clear on today clears today's block too, so the card cannot come straight back", run(`planNow()===null`) && run(`!DB.week.days[todayISO]`));
 ok("...but the week survives with its other days", run(`!!weekNow() && Object.keys(DB.week.days).length`)===3);
 
@@ -151,7 +163,43 @@ run(`document.querySelector('[data-planaccept]').click()`);
 ok("...and Use this week keeps what the preview shows, minus the dropped line",
    run(`(function(){const w=weekNow(); return Object.keys(w.days).length===4 && Object.values(w.days).reduce((a,d)=>a+d.items.length,0)===11;})()`));
 ok("...landing on the week scope", run(`lift.planScope`)==='week' && run(`document.querySelectorAll('.daycard').length`)===4);
-run(`document.querySelector('[data-weekclear]').click()`);
+/* v3.3.421: the week's Clear is behind its Edit door too */
+run(`document.querySelector('[data-weekedit]').click()`);
+run(`document.querySelector('.planacts [data-weekclear]').click()`);
 ok("Clear the week clears it whole and returns to today", run(`DB.week===null`) && run(`lift.planScope`)==='today');
+
+/* v3.3.421: WRITE FROM THE WEEK REWRITES THE WEEK. Codex's v3.3.420 made a
+   week write COMPLETE the week -- fill only the empty days, keep the saved
+   ones locked. The maker asked for an override. Both survive without a
+   toggle: the door you came through says which you meant. From the week's
+   header, scope is week, every saved day is selected, rewrite is set and the
+   payload carries no locked days. From a day, widening to the week inside
+   the ask screen keeps the locks. */
+{
+  /* the preceding block cleared the week; seed the same fixture again */
+  run(`weekSave(parseWeek(${JSON.stringify(WEEK)})); lift.planScope='week'; lift.plan=null; lift.write=null; lift.weekOpen=null; render();`);
+  if(run(`!!weekNow()`)){
+    const door = run(`(function(){const b=document.querySelector('h2 .planedge [data-planwrite]'); return b?b.getAttribute('data-planwrite'):null;})()`);
+    ok("the week's Write door is marked as the week's", door==='week');
+    run(`document.querySelector('h2 .planedge [data-planwrite]').click()`);
+    ok("...and opens the ask screen in week scope with rewrite set",
+       run(`lift.plan==='write' && writerState().scope==='week' && writerState().rewrite===true`));
+    ok("...with every remaining saved day selected",
+       run(`(function(){const o=writerState(); const want=Object.keys(weekNow().days).filter(d=>d>=todayISO); return want.length>0 && want.every(d=>o.days.has(d));})()`));
+    ok("...the button says Rewrite", run(`/^Rewrite \\d+ session/.test(document.querySelector('[data-writego]').textContent.trim())`));
+    ok("...the screen says what it replaces", run(`/Replaces the saved week/.test(document.getElementById('view').textContent)`));
+    ok("...and the payload carries no locked days",
+       run(`writerPayload(writerState()).locked_days.length===0`));
+    /* the other door keeps Codex's behaviour */
+    run(`(function(){lift.plan=null; lift.write=null; lift.planScope='today'; render();})()`);
+    run(`document.querySelector('h2 .planedge [data-planwrite]').click()`);
+    run(`(function(){const o=writerState(); o.scope='week'; writerDays(o);})()`);
+    ok("from a day, widening to the week keeps the saved days locked (v3.3.420)",
+       run(`(function(){const o=writerState(); return !o.rewrite && writerPayload(o).locked_days.length>0;})()`));
+    run(`(function(){lift.plan=null; lift.write=null; render();})()`);
+  } else {
+    ok("(week door) the fixture has a week to test against", false, "weekNow() is null here");
+  }
+}
 
 process.exit(fail ? 1 : 0);

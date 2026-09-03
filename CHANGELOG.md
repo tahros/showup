@@ -1,5 +1,18 @@
 # ShowUp — changelog
 
+## v3.3.421 (2026-09-02) — One plan header, and the week writes again
+
+**The plan header is the same in every state:** the scope pill on the left
+names the day it shows (`today`, or `Sep 3` once today is done), and the right
+edge is always copy · edit · **Write**. Clear moved inside Edit. The fold
+chevron moved onto the row that folds.
+
+**Write from the week rewrites the week.** Write from a day and widen to the
+week inside the ask screen, and it fills only the empty days, as before.
+
+**Writing a week works again.** It had been timing out on the server at 20
+seconds; a full week takes longer than that to write.
+
 ## v3.3.420 (2026-09-02) — Complete the week; don't replace it
 
 The weekly Writer now treats a saved day as the person's decision, not as an

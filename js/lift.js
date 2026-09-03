@@ -65,12 +65,29 @@ function planCardHTML(_pl, live){
   </div>`;
 }
 /* the pills that lead the heading: today, and week while a week is live */
-function planPillsHTML(active, hasWeek){
-  /* active: 'today' | 'week' | null -- null is the empty state, which names
-     the section without claiming it holds anything (v3.3.297) */
-  return `<button class="scopepill${active==='today'?'':' off'}" data-planscope="today">today</button>${
+function planPillsHTML(active, hasWeek, dayLabel){
+  /* v3.3.421: THE DAY PILL NAMES THE DAY IT SHOWS. On a closed day the day
+     scope holds tomorrow's plan, and a pill reading "today" over a card that
+     says Sep 3 was the maker's first complaint: he could not tell which mode
+     he was in. It reads the day now -- "today" while today is open, "Sep 3"
+     once today is in the book -- and the active pill is ALWAYS filled.
+     v3.3.297 dimmed both pills in the empty state so the section would not
+     claim to hold anything; that state no longer exists as an unfilled pill,
+     because you are always IN a scope even when the scope is empty. */
+  const dl=(dayLabel||'today').toLowerCase();
+  return `<button class="scopepill${active==='week'?' off':''}" data-planscope="today">${hesc(dl)}</button>${
     hasWeek?`<button class="scopepill${active==='week'?'':' off'}" data-planscope="week" style="margin-left:4px">week</button>`:''}`;
 }
+/* v3.3.421: ONE RIGHT EDGE, EVERY STATE -- copy, edit, Write. The header had
+   grown five different right edges (expand/copy/edit/clear on the week,
+   fold/copy/edit/clear on an open day, fold/copy/Write on a closed one, Write
+   alone when empty or pending) and the maker asked, in three separate
+   sentences, for the same three things to be available everywhere. Clear
+   moves behind the Edit door, where destructive belongs; the fold chevron
+   moves onto the row that folds. Three glyphs. Never four. */
+const _planEdge=(copyAttr,editAttr,writeAttr)=>`<span class="planedge">${
+  copyAttr?_edgeBtn(copyAttr,'Copy',icon('copy',ICON_SZ.md)):''}${
+  editAttr?_edgeBtn(editAttr,'Edit',icon('edit',ICON_SZ.md)):''}<button class="pedge pwrite" ${writeAttr} aria-label="Write a session">${icon('sparkle',ICON_SZ.sm)}Write</button></span>`;
 /* v3.3.398: the edge speaks in glyphs. Fold leads (a chevron for a day, the
    LAFS pair for a week), then copy, edit, clear -- clear last, at the far
    edge, away from the control you tap most (v3.3.294). Every button carries
@@ -87,12 +104,13 @@ function planSectionHTML(){
     /* ---- THE WEEK: one card per day, the ground showing between them ---- */
     const isos=Object.keys(_wk.days).sort();
     if(!lift.weekOpen) lift.weekOpen=new Set([isos.includes(todayISO)?todayISO:(isos.find(x=>x>todayISO)||isos[0])]);
-    const allOpen=isos.every(x=>lift.weekOpen.has(x));
-    h+=`<h2>${planPillsHTML('week',true)} plan<span class="planedge">${
-      _edgeBtn('data-weekall="'+(allOpen?'fold':'open')+'"', allOpen?'Fold every day':'Open every day', icon(allOpen?'collapse':'expand',ICON_SZ.md))}${
-      _edgeBtn('data-plancopy="week"','Copy the week',icon('copy',ICON_SZ.md))}${
-      _edgeBtn('data-weekedit','Edit the week',icon('edit',ICON_SZ.md))}${
-      _edgeBtn('data-weekclear','Clear the week',icon('clear',ICON_SZ.md))}</span></h2>`;
+    /* v3.3.421: Write here REWRITES the week you are looking at (data-planwrite=
+       "week"). Codex's v3.3.420 -- fill only the empty days -- remains the
+       behaviour when you come in through a DAY and widen to the week inside the
+       ask screen. The door you came through says which you meant; no toggle. */
+    const _ps0=planShown();
+    h+=`<h2>${planPillsHTML('week',true,_ps0?planDayLabel(_ps0.d):null)} plan${
+      _planEdge('data-plancopy="week"','data-weekedit','data-planwrite="week"')}</h2>`;
     const n=isos.filter(x=>(_wk.days[x].items||[]).length).length;
     h+=`<div class="mono muted rangeline">${pretty(isos[0]).toUpperCase()} → ${pretty(isos[isos.length-1]).toUpperCase()} · ${n} SESSION${n===1?'':'S'}</div>`;
     h+=`<div class="weekstack">`;
@@ -110,69 +128,38 @@ function planSectionHTML(){
     return h;
   }
 
-  const _pl=planNow();
-  if(_pl){
-    /* v3.3.282: Edit and Clear move to the heading's right edge. They are
-       management actions, not part of the plan, and a full-width pair under
-       the last exercise read as another row of the session. The (i) stays
-       beside the title — that placement is v3.3.115's deliberate call and
-       is not what the maker asked to move. */
-    /* v3.3.294: the whole plan folds, like the Last-time card (v3.3.274).
-       Some days you want the playbook on screen; some days it is scroll
-       between you and the body-part grid. Folded, the heading IS the
-       one-line fact — pill, name, actions — so nothing is left hanging.
-       The chevron leads the action group so the destructive Clear stays
-       at the far edge, away from the control you tap most. */
+  /* v3.3.421: ONE DAY BRANCH. The day scope shows planShown() -- today's plan
+     while today is open, tomorrow's once today is in the book -- and treats
+     both the same way: the pill names the day, the edge is copy/edit/Write,
+     a fold row names the day and counts its exercises, the card sits beneath.
+     What differs is only the RECORD: today's card is live and can be logged
+     against; a finished today's plan recedes to a receipt; tomorrow's is read,
+     never logged (the ledger rule, v3.3.397). */
+  const _ps=planShown();
+  if(_ps){
+    const _isToday=_ps.d===todayISO;
+    const _cl=_isToday&&dayClosed();
     const _pf=!!DB.settings.planFold;
-    /* v3.3.412: ON A CLOSED DAY THE HEADER POINTS FORWARD. Edit and Clear
-       retire -- a finished promise is not edited, and it expires at midnight
-       regardless -- and the writer's door takes their place. It writes
-       TOMORROW without being told: writeDateISO() already returns the next
-       day once today is in the book (the ledger rule, v3.3.397). The door
-       was only ever offered when no plan existed; a fifth control in this
-       group would be the crowding the header above just shed. Fold and Copy
-       stay: you may still fold the receipt or carry it forward. */
-    const _cl=dayClosed();
-    h+=`<h2>${planPillsHTML('today',!!_wk)} plan${_tip}<span class="planedge">${
-      _edgeBtn('data-planfold aria-expanded="'+(!_pf)+'"', (_pf?'Show':'Hide')+' today’s plan', icon('chevron',ICON_SZ.sm,_pf?0:90),'pfold')}${
-      _edgeBtn('data-plancopy="today"','Copy today’s plan',icon('copy',ICON_SZ.md))}${
-      _cl?`<button class="pedge pwrite" data-planwrite aria-label="Write tomorrow’s session">${icon('sparkle',ICON_SZ.sm)}Write</button>`
-         :_edgeBtn('data-planedit','Edit today’s plan',icon('edit',ICON_SZ.md))+
-          _edgeBtn('data-planclear','Clear today’s plan',icon('clear',ICON_SZ.md))}</span></h2>`;
-    /* the plan card recedes to a receipt once the day is closed: the
-       unchecked lines stay, honestly, in muted ink -- a record of what was
-       promised and not done, with no colour and no comment. */
-    if(!_pf) h+=_cl?`<div class="plspent">${planCardHTML(_pl,true)}</div>`:planCardHTML(_pl,true);
-  }else{
-    /* v3.3.297: the empty state is the SAME heading as the filled one, with
-       PASTE where the fold and Edit and Clear sit. A 51px full-width slab
-       made the section change shape depending on whether a plan existed —
-       the page jumped, and an empty section was louder than a full one.
-       One line either way, and the offer sits exactly where the controls
-       for a real plan will appear. */
-    /* v3.3.400: the door is the writer. Paste lives inside it, one tap on. */
-    h+=`<h2 class="quiet">${planPillsHTML(null,!!_wk)} plan${_tip}<span class="planedge"><button class="pedge pwrite" data-planwrite aria-label="Write a session">${icon('sparkle',ICON_SZ.sm)}Write</button></span></h2>`;
-    /* v3.3.397 wrote a plan for tomorrow as ONE inert line: "Tapping it does
-       nothing today; there is nothing to do." v3.3.413 REVERSES that, on the
-       maker's word: it is his plan, and reading tomorrow's session tonight is
-       exactly the thing to do with it. The line is the fold; the plan opens
-       beneath it, open by default -- on a closed day tomorrow's session is
-       the most relevant thing on the page. "Opens at midnight" still means
-       what it meant: the rails do not read it until then, and nothing here
-       logs against it. Viewing is not logging. */
-    const _pp=planPending();
-    if(_pp){
-      const _n=(_pp.items||[]).length;
-      const _pf2=!!DB.settings.pendFold;
-      /* v3.3.414: the row says the DAY and the COUNT, and nothing else. "written,
-         opens at midnight" was a sentence about the mechanism, and with the
-         plan now readable beneath it the mechanism no longer needs announcing.
-         It also wrapped to two lines and pushed the chevron under the count.
-         One line, three things, no wrap: day left; count and chevron right,
-         on the same baseline. Styled in CSS, not inline, so it is one rule. */
-      h+=`<button class="card planpending" data-pendfold aria-expanded="${!_pf2}"><span class="pp-day mono">${planDayLabel(_pp.d)}</span><span class="pp-right mono">${_n?`${_n} exercise${_n===1?'':'s'}`:'a note'}${icon('chevron',ICON_SZ.sm,_pf2?0:90)}</span></button>`;
-      if(!_pf2) h+=`<div class="planahead">${planCardHTML({d:_pp.d,items:_pp.items,note:_pp.note||''},false)}</div>`;
+    const _n=(_ps.items||[]).length;
+    const _dl=_isToday?'today':planDayLabel(_ps.d);
+    h+=`<h2>${planPillsHTML('today',!!_wk,_dl)} plan${_tip}${
+      _planEdge('data-plancopy="day"','data-planedit','data-planwrite')}</h2>`;
+    /* the fold row: the same row tomorrow's plan has had since v3.3.413, now
+       for today's too. The chevron lives on the thing that folds.
+       It counts EXERCISES, never how many are done: buildcheck stopped a
+       "4 done" here, and it was right -- a tick on a row is a fact, a tally
+       across rows is a verdict on the plan, and the plan is never scored
+       (v3.3.281). The ticks on the card beneath already say which. */
+    h+=`<button class="card planfoldrow${_isToday?'':' planpending'}" data-planfold aria-expanded="${!_pf}"><span class="pp-day mono">${_isToday?'Today':planDayLabel(_ps.d)}</span><span class="pp-right mono">${_n?`${_n} exercise${_n===1?'':'s'}`:'a note'}${icon('chevron',ICON_SZ.sm,_pf?0:90)}</span></button>`;
+    if(!_pf){
+      const card=planCardHTML({d:_ps.d,items:_ps.items,note:_ps.note||''},_isToday);
+      h+=_cl?`<div class="plspent">${card}</div>`:_isToday?card:`<div class="planahead">${card}</div>`;
     }
+  }else{
+    /* nothing planned for the day the scope shows: the pill still names the
+       scope (filled -- you are in it), and the one action is to write. */
+    h+=`<h2 class="quiet">${planPillsHTML('today',!!_wk,writeDateISO()===todayISO?'today':planDayLabel(writeDateISO()))} plan${_tip}${
+      _planEdge(null,null,'data-planwrite')}</h2>`;
   }
   return h;
 }
@@ -858,7 +845,10 @@ function moGoalCardHTML(){
 function planScreenHTML(){
   if(lift.plan==='paste'){
     /* v3.3.398: editing the week opens the week's text, not today's block */
-    const cur=lift.planMode==='week'?(lift.planText||''):((planNow()||{}).raw||lift.planText||'');
+    /* v3.3.421: the day editor edits the plan the day scope SHOWS -- tomorrow's
+       once today is closed -- not planNow(), which is null then and opened an
+       empty box over a plan that was plainly on screen. */
+    const cur=lift.planMode==='week'?(lift.planText||''):(((planShown()||{}).raw)||planToText(planShown())||lift.planText||'');
     /* v3.3.397: the paste names the day it is for; the ledger picks it */
     const _wd=writeDateISO();
     const _title=lift.planMode==='week'?'Edit the week':(_wd===todayISO?'Paste today\u2019s plan':`Paste a plan for ${planDayLabel(_wd)}`);
@@ -868,6 +858,7 @@ function planScreenHTML(){
         <div class="planacts">
           <button class="btn wide" data-planread>Read it</button>
           <button class="btn ghost wide" data-planback>Cancel</button>
+          ${(lift.planMode==='week'?weekNow():planShown())?`<button class="btn ghost wide danger" ${lift.planMode==='week'?'data-weekclear':'data-planclear'}>Clear</button>`:''}
         </div>
       </div>`;
   }

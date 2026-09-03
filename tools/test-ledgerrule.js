@@ -75,9 +75,9 @@ ok("Today shows the dormant line, naming the day and the count",
 {
   const css=require("fs").readFileSync(require("path").join(dir,"css/app.css"),"utf8").replace(/\r?\n\s*/g,"");
   ok("the pending row is one flex line that cannot wrap",
-     /\.planpending\{display:flex;[^}]*white-space:nowrap/.test(css));
+     /\.planfoldrow\{display:flex;[^}]*white-space:nowrap/.test(css));
   ok("...with the count and chevron centred together on the right",
-     /\.planpending \.pp-right\{display:inline-flex;align-items:center/.test(css));
+     /\.planfoldrow \.pp-right\{display:inline-flex;align-items:center/.test(css));
 }
 ok("...and the line never says how much of anything is done",
    !/\b\d+\s*(of|\/)\s*\d+\b/.test(run(`document.querySelector('.planpending').textContent`)));

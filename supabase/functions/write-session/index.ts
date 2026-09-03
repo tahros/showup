@@ -116,7 +116,15 @@ ${(payload.history || []).map((h: any[]) => h.join("|")).join("\n")}`;
     system: SYSTEM,
     messages: [{ role: "user", content: user }],
   };
-  const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 20_000);
+  // v3.3.421: THE ABORT SCALES WITH THE SCOPE. This was a flat 20 s. A day is
+  // one session (~600 tokens) and fits. A week, since v3.3.419, is every
+  // session written in full -- 2,500 tokens at the model's output speed is
+  // 25-40 s -- so the function aborted every week write and returned 504
+  // "model unreachable" while the model was in fact still writing. The client
+  // waits longer than this in both scopes (30 s / 75 s), so the function, not
+  // the phone, is always the one that decides it has waited long enough.
+  const abortMs = payload.scope === "week" ? 60_000 : 25_000;
+  const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), abortMs);
   let text = "";
   try {
     const r = await fetch("https://api.anthropic.com/v1/messages", {
