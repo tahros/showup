@@ -226,5 +226,87 @@ ok("pressing it places the day", run(`!!document.getElementById('dayDone')`));
      (appSrc.match(/drawDayCard\(/g)||[]).length === 1);
 }
 
+/* v3.3.424: THE CENTURY. Every hundredth day the square opens and the mark
+   rises out of it -- the app's two symbols becoming one. Chosen over
+   1,000-only because the ceremony law is frequency: ~4 a year earns the
+   biggest thing the app does, and a century is 3.65 a year. 1,000-only also
+   meant a stranger installing at launch met their first milestone in 2029. */
+{
+  const seed = (n) => run(`(function(){DB.days={}; delete DB.settings.century; delete DB.settings.dayDone;
+    const t=new Date(todayISO+'T00:00');
+    const D=k=>{const d=new Date(t);d.setDate(d.getDate()-k);return d.toLocaleDateString('en-CA')};
+    for(let k=1;k<=` + n + `;k++) DB.days[D(k)]={w:[{part:'Legs',ex:'Squat',w:60,reps:[8]}],upd:1};
+    DB.days[todayISO]={w:[{part:'Legs',ex:'Squat',w:60,reps:[8]}],upd:1};
+    SEED=deriveAll(); return dayCount();})()`);
+
+  ok("day 100 is a century", seed(99)===100 && run(`centuryDue()`)===100, String(seed(99)));
+  ok("...and day 99 is not", (seed(98),run(`centuryDue()`))===0);
+  ok("...nor day 101", (seed(100),run(`centuryDue()`))===0);
+  ok("day 1,000 is a century, and gets no more than day 100 does",
+     (seed(999),run(`centuryDue()`))===1000);
+
+  /* THE GUARD THAT MATTERS: import lands three years at once, and retro-logging
+     repairs a streak. Neither may replay a ceremony. The stamp names WHICH
+     century was celebrated, so a recompute cannot fire it again. */
+  seed(99);
+  run(`(function(){DB.settings.century=100;})()`);
+  ok("a celebrated century never fires again, however often the ledger recomputes",
+     run(`(function(){SEED=deriveAll(); return centuryDue();})()`)===0);
+  ok("...but the NEXT century still will",
+     (seed(199),run(`centuryDue()`))===200);
+
+  /* it is the DAY COUNT, never the streak: a streak breaks, and a milestone
+     that can be lost is not a milestone */
+  ok("the count is days in the book, not the streak",
+     run(`(function(){const src=String(centuryDue); return !/streak/i.test(src);})()`));
+
+  /* the beat itself */
+  seed(99);
+  run(`(function(){const o=document.getElementById('dayDone'); if(o) o.remove();})()`);
+  run(`celebrateDayDone(true,1000,1000)`);
+  ok("the century overlay carries the century class",
+     run(`!!document.querySelector('#dayDone.century')`));
+  ok("...and the brand mark inside the square",
+     run(`!!document.querySelector('#dayDone.century .ddsq .ddmk .ic-brandmark')`));
+  ok("...reading the milestone number",
+     run(`(document.querySelector('#dayDone .ddn')||{}).textContent`)==="1,000");
+  run(`(function(){const o=document.getElementById('dayDone'); if(o) o.remove();})()`);
+  /* an ordinary day is untouched: no class, no mark */
+  run(`celebrateDayDone(true,957,0)`);
+  ok("an ordinary day gets no century beat",
+     !run(`!!document.querySelector('#dayDone.century')`) && !run(`!!document.querySelector('.ddmk')`));
+  run(`(function(){const o=document.getElementById('dayDone'); if(o) o.remove();})()`);
+
+  /* the preview writes NOTHING -- the real century must still fire later */
+  seed(99);
+  const before = run(`JSON.stringify({c:DB.settings.century||null,d:DB.settings.dayDone||null})`);
+  run(`celebrateDayDone(true,100,100)`);
+  ok("the preview writes no stamp, so the real century still arrives",
+     run(`JSON.stringify({c:DB.settings.century||null,d:DB.settings.dayDone||null})`)===before &&
+     run(`centuryDue()`)===100, before);
+  run(`(function(){const o=document.getElementById('dayDone'); if(o) o.remove();})()`);
+
+  /* NO ESCALATION: 1,000 and 100 render the same markup */
+  const shape = (n) => { run(`(function(){const o=document.getElementById('dayDone'); if(o) o.remove();})()`);
+    run(`celebrateDayDone(true,` + n + `,` + n + `)`);
+    /* compare the RENDERED SHAPE with every number blanked -- if 1,000 got
+       one extra flourish over 100, this differs. className is included via
+       the same node so a "century+extra" class would also show. */
+    return run(`document.getElementById('dayDone').className`)+'|'+
+           run(`document.getElementById('dayDone').innerHTML`).replace(/\d[\d,]*/g,'N'); };
+  ok("day 1,000 is given exactly what day 100 is given", shape(100)===shape(1000));
+  run(`(function(){const o=document.getElementById('dayDone'); if(o) o.remove();})()`);
+
+  /* the mark is BRAND: a fill, never rotated, never a control */
+  const css=fs.readFileSync(path.join(dir,"css/app.css"),"utf8").replace(/\r?\n\s*/g,"");
+  /* the flatten collapses newline+indent but leaves inner runs of spaces, so
+     the check tolerates them rather than demanding a shape the file need not
+     have. What it defends: the mark starts fully clipped INSIDE the square. */
+  ok("the mark rises out of the square, clipped by it",
+     /@keyframes ddrise\{\s*0%\s*\{clip-path:inset\(0 0 100% 0\)/.test(css));
+  ok("...and reduced motion is simply shown the mark",
+     /prefers-reduced-motion:reduce\)\{[^@]*#dayDone\.century \.ddmk,#dayDone\.century \.ddsq\{animation:none\}/.test(css));
+}
+
 process.exit(fail?1:0);
 })();

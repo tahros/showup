@@ -2091,6 +2091,33 @@
     display:flex;flex-direction:column;align-items:center;justify-content:center;
     cursor:pointer;animation:ddin .18s var(--settle) both}
   #dayDone.out{opacity:0;transition:opacity .3s var(--settle)}
+  /* ---- v3.3.424: THE CENTURY BEAT --------------------------------------
+     Every hundredth day the square OPENS and the mark rises out of it. Two
+     symbols becoming one: the square is what you did, the chevron is where it
+     goes. It is the same ceremony with one beat inserted -- no confetti, no
+     sound, and NO ESCALATION: day 1,000 gets exactly what day 100 gets,
+     because the number escalates itself.
+     The mark is clipped INSIDE the square while it emerges, so it reads as
+     coming out of the square rather than being laid over it. */
+  #dayDone.century .ddsq{overflow:visible}
+  #dayDone.century .ddmk{position:absolute;left:50%;top:50%;width:44px;height:44px;
+    margin:-22px 0 0 -22px;display:grid;place-items:center;color:#fff;
+    clip-path:inset(0 0 0 0);animation:ddrise 1.15s var(--settle) .55s both}
+  #dayDone.century .ddmk .ic{width:34px;height:34px;display:block}
+  @keyframes ddrise{
+    0%   {clip-path:inset(0 0 100% 0); transform:translateY(6px)}
+    45%  {clip-path:inset(0 0 0 0);    transform:translateY(0)}
+    100% {clip-path:inset(0 0 0 0);    transform:translateY(-26px)}
+  }
+  /* the square recedes as the mark clears it -- it has handed over */
+  #dayDone.century .ddsq{animation:ddhand 1.15s var(--settle) .55s both}
+  @keyframes ddhand{ 0%,45%{opacity:1;transform:scale(1)} 100%{opacity:.5;transform:scale(.86) translateY(8px)} }
+  #dayDone.century .ddn{animation-delay:1.5s}
+  @media (prefers-reduced-motion:reduce){
+    /* no rise, no recede: the mark is simply there, which is the fact */
+    #dayDone.century .ddmk,#dayDone.century .ddsq{animation:none}
+    #dayDone.century .ddmk{transform:translateY(-26px)}
+  }
   #dayDone .ddsq{width:44px;height:44px;border-radius:var(--sq);background:var(--accent);
     position:relative;animation:ddsq .5s var(--settle) both .12s}
   #dayDone .ddsq::after{content:'';position:absolute;inset:-8px;border-radius:var(--sq);

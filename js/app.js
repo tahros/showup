@@ -1195,18 +1195,29 @@ let lastView=null;
    only day one's preview, which must read "1" over a 953-day ledger. A replay
    passes nowrite alone and shows the real number, because it is your real
    day. */
-function celebrateDayDone(nowrite, forceCount){
+function celebrateDayDone(nowrite, forceCount, forceMile){
   if(!nowrite){
     if(DB.settings.dayDone===todayISO) return;
     DB.settings.dayDone=todayISO; save();
   }
   const n=forceCount!=null?forceCount
     :SEED.totals.sessions+((((DB.days[todayISO]||{}).w)||[]).length?1:0);
+  /* v3.3.424: THE CENTURY BEAT. Every hundredth day the square OPENS and the
+     mark rises out of it -- the app's two symbols becoming one. The square is
+     what you did; the chevron is where it goes.
+     It is the SAME ceremony, one beat longer. No confetti, no sound, no
+     escalation: day 1,000 gets exactly what day 100 gets, because the number
+     escalates itself and an app that shouts louder at 1,000 has told you the
+     centuries were a warm-up.
+     `mile` may be forced for the preview; otherwise the day itself decides. */
+  const mile = forceMile!=null ? forceMile : (nowrite?0:centuryDue());
+  if(mile&&!nowrite){ DB.settings.century=mile; save(); }
   const o=document.createElement('div');
   o.id='dayDone';
-  o.innerHTML=`<i class="ddsq" aria-hidden="true"></i>`+
-    `<b class="ddn">${fmt(n)}</b><span class="ddu">days in</span>`+
-    `<span class="ddt">show up \u2014 that's the whole game</span>`;
+  if(mile) o.classList.add('century');
+  o.innerHTML=`<i class="ddsq" aria-hidden="true">${mile?`<span class="ddmk" aria-hidden="true">${icon('brandmark',44)}</span>`:''}</i>`+
+    `<b class="ddn">${fmt(mile||n)}</b><span class="ddu">days in</span>`+
+    `<span class="ddt">${mile?'one hundred at a time':`show up \u2014 that's the whole game`}</span>`;
   document.body.appendChild(o);
   const bye=()=>{ o.classList.add('out'); setTimeout(()=>o.remove(),320); };
   /* v3.3.377: the ceremony hands over to THE DAY'S OWN CARD -- the same image
@@ -1239,7 +1250,9 @@ function celebrateDayDone(nowrite, forceCount){
     },320);
   };
   o.addEventListener('click',toCard,{once:true});
-  setTimeout(()=>{ if(o.isConnected) toCard(); },1500);
+  /* a century rests longer before handing over: the extra beat takes 1.2s of
+     the 1.5s an ordinary day gets, and the number deserves to be read. */
+  setTimeout(()=>{ if(o.isConnected) toCard(); },mile?3600:1500);
 }
 const doneToast=(m,alt)=>{
   if(m.doneAll){ celebrateDayDone(); toast(`Workout complete \u2014 ${m.w.length} sets. Cool down \ud83d\udd25`); }

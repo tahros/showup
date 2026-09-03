@@ -107,6 +107,12 @@ function renderSync(){
            screen is to log out or clear the device. This renders the flow over
            live data and writes NOTHING -- no sets, no settings, no stamp. -->
       <button class="btn ghost" id="d1prev" style="margin-top:8px">Preview day one</button>
+      <!-- v3.3.424: and the century, for the same reason -- the next one is
+           dozens of days away and it cannot be judged from a description.
+           It writes NOTHING: no stamp, no settings, no set. It shows the
+           NEXT century you will actually reach, so what you are looking at is
+           your own number, not a sample. -->
+      <button class="btn ghost" id="milePrev" style="margin-top:8px">Preview the ${fmt(Math.ceil((dayCount()+1)/100)*100)} day</button>
       <div class="row" style="gap:8px;margin-top:8px">
         <button class="btn ghost" id="expJson" style="flex:1;margin:0">Backup ↓</button>
         <button class="btn ghost" id="impJson" style="flex:1;margin:0">Restore…</button>
@@ -209,6 +215,9 @@ document.addEventListener('click',e=>{
      Restore buttons the whole import pipeline funnels through. */
   const hit=id=>!!(e.target.closest&&e.target.closest('#'+id));
   if(hit('d1prev')){ d1.preview=true; d1.step=0; d1.part=null; view='today'; render(); return; }
+  /* v3.3.424: nowrite=true, so no stamp is written and the real century still
+     fires when it arrives. forceMile carries the number so the beat plays. */
+  if(hit('milePrev')){ const c=Math.ceil((dayCount()+1)/100)*100; celebrateDayDone(true,c,c); return; }
   if(hit('expCsv')){ dlFile('showup-export-'+todayISO+'.csv','text/csv',tableText(',')); return; }
   if(hit('expSheet')){ copyForSheets(); return; }
   if(hit('mgGo')){

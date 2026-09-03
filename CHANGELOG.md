@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v3.3.424 (2026-09-02) — Every hundred days
+
+On your 100th day, and every hundredth after it, the square opens and the mark
+rises out of it. Same ceremony as any other day, one beat longer. Day 1,000
+gets exactly what day 100 gets — the number speaks for itself.
+
+**Settings → Preview the 1,000 day** shows you the next one you'll reach,
+without writing anything.
+
 ## v3.3.423 (2026-09-02) — The new mark
 
 New app icon and favicon, drawn from the brand artwork: the chevron in white
