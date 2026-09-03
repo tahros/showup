@@ -382,9 +382,62 @@ function tickRest(){
   el.classList.toggle('done',show&&!isLive());
   if(!show){ el.textContent=''; return; }
   const s=Math.max(0,Math.floor((Date.now()-lastSetAt)/1000));
-  el.textContent=`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+  el.textContent='';
+  /* v3.3.426: THE LANDSCAPE CONTEXT. Turned sideways during a live session the
+     timer becomes the screen, and two more facts earn their place at that
+     size: what you just lifted, and how the session is going. They are
+     appended as SIBLING NODES of the clock. My first cut claimed textContent
+     would still read as the clock alone; it does not -- textContent
+     concatenates descendants, and the suite caught the timer reporting
+     "1:30PULL UP BW+70kg...". The clock therefore keeps its own node, and
+     .rt-time is what every reader asks for.
+     Hidden in portrait; nothing about the header changes. */
+  const t=day(todayISO), w=t.w||[];
+  const last=w[w.length-1];
+  let ctx='', sub='';
+  if(last){
+    const lw = last.ex==='Run' ? `${dDisp(last.w)}${DU()}`
+             : isHold(last.su) ? `${(last.reps||[])[0]||0}\u2033`
+             : `${wTxt(last.ex,last.w)} \u00d7 ${(last.reps||[])[0]||0}`;
+    ctx = `${last.ex.toUpperCase()}  ${lw}`;
+    const mins=Math.round((Date.now()-Math.min(...w.map(z=>z.at||Date.now())))/60000);
+    sub = `${w.length} set${w.length===1?'':'s'}${mins>0?`  \u00b7  ${mins} min in`:''}`;
+  }
+  const mk=(cls,txt)=>{ const n=document.createElement('span'); n.className=cls; n.textContent=txt; return n; };
+  el.appendChild(mk('rt-ctx',ctx));
+  el.appendChild(mk('rt-time',`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`));
+  el.appendChild(mk('rt-sub',sub));
 }
 setInterval(tickRest,1000);
+/* v3.3.426: KEEP THE SCREEN AWAKE WHILE THE BIG CLOCK IS SHOWING. Without
+   this the display dims about thirty seconds into a ninety-second rest and the
+   landscape timer is decoration. Held only while all three are true -- live,
+   landscape, and the timer actually running -- and released the moment any of
+   them stops, so nothing keeps a phone awake in a pocket.
+   Wake Lock is unsupported on some browsers and rejects when the page is
+   hidden; both are non-events here, so failures are swallowed rather than
+   surfaced. The feature degrades to what it was: a screen that sleeps. */
+let _wake=null, _wakeWant=false;
+async function syncWakeLock(){
+  const want = _wakeWant && !document.hidden;
+  try{
+    if(want && !_wake && navigator.wakeLock){
+      _wake = await navigator.wakeLock.request('screen');
+      _wake.addEventListener('release', ()=>{ _wake=null; });
+    }else if(!want && _wake){ const w=_wake; _wake=null; await w.release(); }
+  }catch(e){ _wake=null; }
+}
+function tickWake(){
+  const el=document.getElementById('hTimer');
+  const landscape = window.matchMedia && window.matchMedia('(orientation:landscape)').matches;
+  const want = !!(el && el.classList.contains('on') && isLive() && landscape);
+  if(want!==_wakeWant){ _wakeWant=want; syncWakeLock(); }
+}
+setInterval(tickWake,1000);
+if(typeof window!=='undefined'){
+  window.addEventListener('orientationchange',tickWake);
+  document.addEventListener('visibilitychange',()=>{ syncWakeLock(); });
+}
 /* hold a set tile ~0.5s to edit it; a plain tap still deletes.
    Scroll movement cancels the hold, and the click that follows a fired
    long-press is swallowed so it can't delete the set being edited. */

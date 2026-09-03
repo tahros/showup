@@ -26,5 +26,5 @@
       "purpose": "maskable"
     }
   ],
-  "orientation": "portrait"
+  "orientation": "any"
 }

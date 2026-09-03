@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v3.3.426 (2026-09-02) — Turn the phone sideways mid-session
+
+During a live session, rotating to landscape gives you the rest clock across
+the whole screen — with what you just lifted above it and how the session is
+going below. The dot beats once a second so you can see it's running from
+across the room, and the screen stays awake while it's showing.
+
+Rotate back, or finish the workout, and everything returns to normal.
+
 ## v3.3.425 (2026-09-02) — The mark stays white
 
 On the century beat the chevron was fading grey along with the square behind
