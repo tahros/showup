@@ -669,19 +669,26 @@
     /* v3.3.427: the timer is MOVED to <body> while live and landscape (see
        derive.js), so it is styled where it lands -- not inside the header,
        whose z-index:20 stacking context trapped it. */
+    /* v3.3.429: THE TYPE REBALANCED. The clock was 22vw and shouted over
+       everything; the exercise -- the thing you actually want to read at a
+       glance -- was a caption. The clock steps back to 15vw and to a lighter
+       weight, the exercise comes up to a size and weight that carry, and the
+       gaps are proportional to the elements they separate rather than a flat
+       10px between three things of wildly different size. */
     html.bigtimer body > #hTimer.on{
       position:fixed;inset:0;z-index:1000;margin:0;   /* above the portrait veil (999) */
       background:var(--live);color:#fff;   /* the header's own live red, not a new one */
-      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
-      font-family:var(--mono);font-size:clamp(64px,22vw,190px);font-weight:700;
-      letter-spacing:-.02em;line-height:1;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;
+      font-family:var(--mono);font-size:clamp(52px,15vw,132px);font-weight:500;
+      letter-spacing:-.01em;line-height:1;
       padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
     }
     /* the dot that already means LIVE, at the scale of everything else. It
        has pulsed in the header since the timer existed; nothing new is
        invented, it is simply large enough to see from the floor. */
+    /* the dot sits between the name and the clock, spaced to both */
     html.bigtimer body > #hTimer.on::before{
-      font-size:.13em;margin:0 0 .04em;vertical-align:0;
+      font-size:.10em;margin:0 0 .12em;vertical-align:0;order:-1;
       animation:rtbeat 1s ease-in-out infinite;
     }
     @keyframes rtbeat{
@@ -689,10 +696,12 @@
       50%    {opacity:1;  transform:scale(1.14)}
     }
     html.bigtimer body > #hTimer.on .rt-ctx,html.bigtimer body > #hTimer.on .rt-sub{
-      display:block;font-size:.085em;font-weight:600;letter-spacing:var(--track-label);
-      text-align:center;line-height:1.3}
-    html.bigtimer body > #hTimer.on .rt-ctx{order:-1;opacity:.78}
-    html.bigtimer body > #hTimer.on .rt-sub{opacity:.6}
+      display:block;text-align:center;line-height:1.25;letter-spacing:var(--track-label)}
+    /* the exercise leads: it is what you read from the floor between sets */
+    html.bigtimer body > #hTimer.on .rt-ctx{order:-1;opacity:.95;
+      font-size:.22em;font-weight:700;margin-bottom:.10em}
+    html.bigtimer body > #hTimer.on .rt-sub{opacity:.55;
+      font-size:.13em;font-weight:500;margin-top:.14em}
     html.bigtimer body > #hTimer.on .rt-time{display:block;line-height:1}
   }
   @media (orientation:landscape) and (prefers-reduced-motion:reduce){

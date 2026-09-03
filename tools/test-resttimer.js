@@ -140,6 +140,58 @@ console.log(fail ? "\n" + fail + " FAILED" : "\nALL PASS");
        return veil>0 && timer>veil;
      })());
 
+  /* v3.3.429: THE TYPE IS PROPORTIONAL. The clock was 22vw and shouted over
+     everything while the exercise -- the thing you read from the floor -- was
+     a caption. Ratios, not absolute sizes, so they hold at every viewport:
+     the name is a fifth of the clock and BOLDER, the clock is lighter than
+     the name, and every gap is set in em so it scales with the type. */
+  const rel=(re)=>{const m=css.match(re); return m?parseFloat(m[1]):-1;};
+  ok("the exercise name leads: a fifth of the clock, and bolder",
+     (function(){
+       const nameEm=rel(/#hTimer\.on \.rt-ctx\{[^}]*font-size:([\d.]+)em/);
+       const nameW =rel(/#hTimer\.on \.rt-ctx\{[^}]*font-weight:(\d+)/);
+       const clockW=rel(/html\.bigtimer body > #hTimer\.on\{[^}]*font-weight:(\d+)/);
+       return nameEm>=.18 && nameW>clockW;
+     })());
+  ok("...the clock steps back from 22vw",
+     (function(){const m=css.match(/html\.bigtimer body > #hTimer\.on\{[^}]*font-size:clamp\([^,]+,\s*([\d.]+)vw/);
+       return !!m && parseFloat(m[1])<=16;})());
+  ok("...and the spacing is set in em, so it scales with the type",
+     /#hTimer\.on \.rt-ctx\{[^}]*margin-bottom:[\d.]+em/.test(css) &&
+     /#hTimer\.on \.rt-sub\{[^}]*margin-top:[\d.]+em/.test(css) &&
+     /#hTimer\.on::before\{[^}]*margin:0 0 [\d.]+em/.test(css));
+
+  /* "986 min in" -- sixteen hours. Not every set carries an `at`, and
+     `z.at||Date.now()` fed Math.min a mix of stamps and NOW. */
+  /* the maker's own case: a set carrying at:0, which is what an import or an
+     old edit leaves behind. `z.at||Date.now()` skipped the zero and looked
+     healthy; Math.min over a RAW zero gives 1970 and prints "986 min in".
+     The fixture uses at:0 so the broken version cannot pass. */
+  run(`(function(){const t=Date.now();
+    DB.days[todayISO]={w:[{part:'Legs',ex:'Squat',w:60,reps:[8],at:0},
+                          {part:'Legs',ex:'Squat',w:60,reps:[8],at:t-40*60000},
+                          {part:'Legs',ex:'Squat',w:60,reps:[8],at:t-30000}],upd:1};
+    SEED=deriveAll(); lastSetAt=t-30000; tickRest();})()`);
+  const subTxt = () => run(`(document.querySelector('#hTimer .rt-sub')||{}).textContent`);
+  ok("a short session reads in minutes", /\b4[01] min in\b/.test(subTxt()), subTxt());
+  /* "986 min in" was TRUE -- the maker trains after midnight and again in the
+     evening, so the first set really was 16 hours back. The fault was the
+     unit: past two hours, minutes stop describing a session and start
+     describing the clock. */
+  run(`(function(){const t=Date.now();
+    DB.days[todayISO]={w:[{part:'Legs',ex:'Squat',w:60,reps:[8],at:t-986*60000},
+                          {part:'Legs',ex:'Squat',w:60,reps:[8],at:t-30000}],upd:1};
+    SEED=deriveAll(); lastSetAt=t-30000; tickRest();})()`);
+  ok("...and a long one reads in hours, not 986 minutes",
+     /\b16h in\b/.test(subTxt()) && !/min in/.test(subTxt()), subTxt());
+  ok("...with a zero timestamp ignored rather than treated as 1970",
+     run(`(function(){const t=Date.now();
+       DB.days[todayISO]={w:[{part:'Legs',ex:'Squat',w:60,reps:[8],at:0},
+                             {part:'Legs',ex:'Squat',w:60,reps:[8],at:t-45*60000},
+                             {part:'Legs',ex:'Squat',w:60,reps:[8],at:t-30000}],upd:1};
+       SEED=deriveAll(); lastSetAt=t-30000; tickRest();
+       return (document.querySelector('#hTimer .rt-sub')||{}).textContent;})()`).includes('45 min in'));
+
   ok("...in the header's own live red, not a new colour",
      /html\.bigtimer body > #hTimer\.on\{[^}]*background:var\(--live\)/.test(css));
   ok("...and shown in landscape",

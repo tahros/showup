@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v3.3.429 (2026-09-02) — Landscape timer, balanced
+
+The exercise name leads now — bigger and bolder — and the clock steps back a
+little so the two read as one thing rather than competing. Spacing scales with
+the type.
+
+Long sessions read in hours instead of `986 min in`.
+
 ## v3.3.428 (2026-09-02) — The rest clock replaces "Portrait only"
 
 Turning sideways mid-session showed the "Portrait only" screen instead of the

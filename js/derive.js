@@ -400,8 +400,18 @@ function tickRest(){
              : isHold(last.su) ? `${(last.reps||[])[0]||0}\u2033`
              : `${wTxt(last.ex,last.w)} \u00d7 ${(last.reps||[])[0]||0}`;
     ctx = `${last.ex.toUpperCase()}  ${lw}`;
-    const mins=Math.round((Date.now()-Math.min(...w.map(z=>z.at||Date.now())))/60000);
-    sub = `${w.length} set${w.length===1?'':'s'}${mins>0?`  \u00b7  ${mins} min in`:''}`;
+    /* v3.3.429: "986 min in". My first reading was a stale timestamp; the
+       probe would not go red, and it was right not to -- 986 minutes is 16.4
+       hours, and the maker trains after midnight and again in the evening, so
+       the span was TRUE. The fault is the unit: past a couple of hours,
+       minutes-since-the-first-set stops describing a session and starts
+       describing the clock. Hours past 120 minutes, and nothing over a day.
+       The filter on `at` stays regardless -- a set from an import or an edit
+       carries no stamp, and Math.min must not see a zero. */
+    const stamps=w.map(z=>+z.at).filter(t=>t>0);
+    const mins=stamps.length?Math.min(1440,Math.round((Date.now()-Math.min(...stamps))/60000)):0;
+    const span = mins<=0 ? '' : mins<120 ? `${mins} min in` : `${Math.round(mins/60)}h in`;
+    sub = `${w.length} set${w.length===1?'':'s'}${span?`  \u00b7  ${span}`:''}`;
   }
   const mk=(cls,txt)=>{ const n=document.createElement('span'); n.className=cls; n.textContent=txt; return n; };
   el.appendChild(mk('rt-ctx',ctx));
