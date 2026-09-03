@@ -118,10 +118,22 @@ function planSectionHTML(){
       const d=_wk.days[iso], open=lift.weekOpen.has(iso), past=iso<todayISO, today=iso===todayISO;
       /* a past day folds to its heading and dims. No tick, no miss: it is
          simply a day that has gone, and the ledger says what happened in it. */
+      /* v3.3.422: THE DAY'S LABEL IS ITS PARTS, one line, in the app's own
+         grammar. The writer's free title ("Chest B (flat) + Shoulder +
+         Sixpack") wrapped to two right-aligned lines on one day and was blank
+         on the next -- inconsistent, and the tallest thing on the card. The
+         parts are DERIVED from the exercises, so every day says the same kind
+         of thing in the catalog's order, never blank, joined by the middle dot
+         the rest of the app uses. It truncates rather than wraps: the card
+         opens to say the rest. */
+      const _parts=(()=>{const seen=new Set(); const order=Object.keys(SEED0.catalog);
+        for(const it of (d.items||[])){ const pt=homePartOf(it.ex); if(pt) seen.add(pt); }
+        return order.filter(p=>seen.has(p)).concat([...seen].filter(p=>!order.includes(p)));})();
+      const _label=_parts.length?_parts.join(' \u00b7 '):(d.title||'').replace(/\s*\+\s*/g,' \u00b7 ');
       h+=`<div class="card daycard${open?' open':''}${past?' past':''}${today?' today':''}">
         <button class="dayhead" data-weekday="${iso}" aria-expanded="${open}" aria-label="${open?'Fold':'Open'} ${pretty(iso)}">
           <span class="dn">${pretty(iso).toUpperCase()}${today?' · TODAY':''}</span>
-          <span class="dt mono">${hesc(d.title||'')}${icon('chevron',ICON_SZ.sm,open?90:0)}</span>
+          <span class="dt mono"><span class="dtl">${hesc(_label)}</span>${icon('chevron',ICON_SZ.sm,open?90:0)}</span>
         </button>${open?planCardHTML({d:iso,items:(d.items||[]).map(planItemShape),note:d.note||''}, today):''}</div>`;
     }
     h+=`</div>`;

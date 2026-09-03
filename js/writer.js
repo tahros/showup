@@ -298,8 +298,18 @@ function writerCheck(resp, ctx){
     if(payload.scope==='day'&&!payload.part&&part&&part!==payload.rotation.pick&&!(resp.reason&&resp.reason.text)) throw {refused:'the part changed without a reason'};
     /* the text, read exactly as a paste */
     let rows=parsePlan(String(d.text||''));
-    const incomplete=rows.find(r=>r.kind==='exnote'&&r.ex);
-    if(incomplete) throw {refused:`${incomplete.ex||incomplete.name} has no sets, reps, or time`};
+    /* v3.3.422: ONE UNREADABLE EXERCISE IS A NOTE, NOT A REFUSAL. This threw
+       away a three-session week because one plank's line did not parse. The
+       guardrail's purpose -- the writer may not hand back names without
+       prescriptions -- is kept where it bites: a day with NOTHING readable is
+       still refused. A day with one unreadable line keeps the line as a note
+       (exnote already does exactly that), and the read-back says so, naming
+       the exercise, so the person sees what was dropped and can add it by
+       hand. Proportion: the fault is one line; the cost is one line. */
+    const readable=rows.filter(r=>r.kind==='ex'&&r.ex);
+    const unread=rows.filter(r=>r.kind==='exnote'&&r.ex);
+    if(!readable.length&&unread.length) throw {refused:`${unread[0].ex||unread[0].name} has no sets, reps, or time, and nothing else in ${d.date} could be read`};
+    for(const u of unread) notes.push(`${u.ex}: its line could not be read — kept as a note`);
     let newCount=0;
     rows=rows.map(r=>{
       if(r.kind!=='ex') return r;

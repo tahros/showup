@@ -202,4 +202,22 @@ ok("Clear the week clears it whole and returns to today", run(`DB.week===null`) 
   }
 }
 
+/* v3.3.422: THE DAY'S LABEL IS ITS PARTS. The writer's free title wrapped to
+   two right-aligned lines on one day and was blank on the next. Derived from
+   the exercises, every day says the same kind of thing, never blank, one
+   line, middle dots. */
+{
+  run(`weekSave(parseWeek(${JSON.stringify(WEEK)})); lift.planScope='week'; lift.plan=null; lift.weekOpen=null; render();`);
+  const labels = run(`JSON.stringify([...document.querySelectorAll('.dayhead .dtl')].map(e=>e.textContent))`);
+  ok("every day head carries a label", JSON.parse(labels).every(t=>t.trim().length>0), labels);
+  ok("...derived from the day's parts, joined by the middle dot",
+     JSON.parse(labels).every(t=>/^[A-Z][a-z]+( · [A-Z][a-z]+)*$/.test(t)), labels);
+  ok("...never a plus sign", !/\+/.test(labels));
+  const css=require("fs").readFileSync(require("path").join(dir,"css/app.css"),"utf8").replace(/\r?\n\s*/g,"");
+  ok("...and it truncates rather than wrapping",
+     /\.dayhead \.dt \.dtl\{white-space:nowrap;overflow:hidden;text-overflow:ellipsis/.test(css));
+  ok("the head is tighter than it was",
+     /\.dayhead\{[^}]*padding:9px 14px/.test(css) && /\.daycard\.open \.dayhead\{padding-bottom:2px\}/.test(css));
+}
+
 process.exit(fail ? 1 : 0);

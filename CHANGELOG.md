@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v3.3.422 (2026-09-02) — Planks parse; week cards tighten
+
+- **A plank no longer sinks a whole week.** The writer was told to write holds
+  as `BW × 60 sec × 3`, and the app couldn't read that exact line — so any
+  session with a plank was refused entirely. It reads now, and one unreadable
+  exercise is kept as a note rather than throwing everything away.
+- **Week day cards are tighter**, and each day's label is its parts —
+  `Legs · Sixpack` — on one line, the same on every day.
+
 ## v3.3.421 (2026-09-02) — One plan header, and the week writes again
 
 **The plan header is the same in every state:** the scope pill on the left

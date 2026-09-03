@@ -1407,7 +1407,14 @@ function planReadInline(body){
    attached: one note, reading "Plank - 60 sec x 2", instead of two fragments.
    Deliberately NOT a plan item. The app can hold it verbatim and hand it back
    without pretending it understood it. */
-const PLAN_TIME=/^\s*(?:(\d+)\s*[x×]\s*)?(\d+(?:\.\d+)?)\s*(s|sec|secs|second|seconds|m|min|mins|minute|minutes)\b\s*(?:[x×]\s*(\d+))?\s*$/i;
+/* v3.3.422: A HOLD MAY BE WRITTEN "BW x 60 sec x 3". That is the exact example
+   the writer's prompt gives the model for a timed hold -- and this pattern
+   never accepted a leading BW, so every plank the writer ever wrote parsed as
+   an exercise with no sets and refused its whole session. The function said
+   one grammar, the client read another, and nothing tested the two against
+   each other. The optional lead-in also takes a belt ("BW +10 x 45 sec x 2"),
+   which the caller keeps as added load through canHold(). */
+const PLAN_TIME=/^\s*(?:(?:bw|bodyweight)\s*(?:\+\s*[\d.]+\s*(?:lb|lbs|kg|kgs)?)?\s*[x×·,:]?\s*)?(?:(\d+)\s*[x×]\s*)?(\d+(?:\.\d+)?)\s*(s|sec|secs|second|seconds|m|min|mins|minute|minutes)\b\s*(?:[x×]\s*(\d+))?\s*$/i;
 function planReadTime(line){
   const m=String(line).replace(PLAN_SIDE,'').match(PLAN_TIME); if(!m) return null;
   const n=parseFloat(m[2]); if(!(n>0)) return null;

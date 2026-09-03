@@ -189,8 +189,34 @@ const today = run(`todayISO`);
 let r = JSON.parse(check({days:[{date:today,part:'Back',title:'Back',text:"Deadlift\n  220 lb x 5 5 5\n\nBent-Over Row\n  175 lb x 10 10\n\nCable Pullover\n  40 lb x 12 12"}]}));
 ok("1 · a name not in your catalog survives as a note, never an item", r.ok && r.ex.join()==='Deadlift,Bent-Over Row' && r.notes.some(n=>/Cable Pullover/.test(n)), JSON.stringify(r.notes));
 r = JSON.parse(check({days:[{date:today,part:'Chest',title:'Chest',text:"Barbell Bench Press\n  155 lb x 8 8\n\nCable Fly Down"}],reason:{head:'Chest, not Back',text:'chest is due'}}));
-ok("1b · a known exercise with no prescription is refused, never shown as a plausible plan",
-   !r.ok && /Cable Fly Down has no sets, reps, or time/.test(r.refused), r.refused);
+/* v3.3.422 RESTATES 1b. It refused the WHOLE answer over one exercise -- a
+   three-session week thrown away for one plank. The guardrail's purpose (the
+   writer may not hand back names without prescriptions) is kept where it
+   bites: a day with NOTHING readable is refused. One unreadable line among
+   readable ones is kept as a note and named in the read-back. Proportion. */
+ok("1b · a known exercise with no prescription is kept as a note and named, not shown as a plausible plan",
+   r.ok && r.ex.join()==='Barbell Bench Press' && r.notes.some(n=>/Cable Fly Down: its line could not be read — kept as a note/.test(n)), JSON.stringify(r.notes)+' '+r.refused);
+r = JSON.parse(check({days:[{date:today,part:'Chest',title:'Chest',text:"Cable Fly Down\n\nBarbell Bench Press"}],reason:{head:'Chest, not Back',text:'chest is due'}}));
+ok("1c · a day with NOTHING readable is still refused",
+   !r.ok && /has no sets, reps, or time, and nothing else/.test(r.refused), r.refused);
+/* v3.3.422: THE PROMPT AND THE PARSER AGREE ON A HOLD. The prompt's own
+   example for a timed hold is "BW x 60 sec x 3"; PLAN_TIME never accepted the
+   leading BW, so every plank the writer wrote became an exercise with no sets
+   and refused its session. This is the contract test that was missing: the
+   literal example the function gives the model must parse on the client. */
+{
+  const fn=fs.readFileSync(path.join(dir,"supabase/functions/write-session/index.ts"),"utf8");
+  const ex=(fn.match(/a timed hold is "([^"]+)"/)||[])[1];
+  ok("the prompt names a hold format", !!ex, ex);
+  if(ex){
+    const got=run(`(function(){const r=parsePlan("Plank\\n  "+${JSON.stringify(ex)}); const e=r.find(x=>x.ex==='Plank'); return e?e.kind+':'+(e.lines&&e.lines[0]?e.lines[0].su+':'+e.lines[0].reps.join(','):''):'none';})()`);
+    ok("...and the parser reads that exact format as a hold", /^ex:s:60,60,60$/.test(got), got);
+  }
+  /* the fixture's ledger has Chest; a plank riding along on a chest day is
+     exactly how the week writer places core (v3.3.420) */
+  r = JSON.parse(check({days:[{date:today,part:'Chest',title:'Chest',text:"Barbell Bench Press\n  155 lb x 8 8\n\nPlank\n  BW x 60 sec x 3"}],reason:{head:'Chest',text:'chest is due'}}));
+  ok("...so a week with a plank is no longer refused", r.ok && r.ex.includes('Plank'), r.refused||JSON.stringify(r.ex));
+}
 r = JSON.parse(check({days:[{date:today,part:'Shoulder',title:'Shoulder',text:"Lateral Raise\n  by feel x 12 12"}]}));
 ok("2 · a part that differs from the rotation's without a reason is refused whole", !r.ok && /without a reason/.test(r.refused), r.refused);
 r = JSON.parse(check({days:[{date:today,part:'Shoulder',title:'Shoulder',text:"Lateral Raise\n  by feel x 12 12"}],reason:{head:'Shoulder, not Back',text:'Nothing on record for shoulders in eight weeks.'}}));
