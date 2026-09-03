@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v3.3.428 (2026-09-02) — The rest clock replaces "Portrait only"
+
+Turning sideways mid-session showed the "Portrait only" screen instead of the
+big timer — it was sitting on top of it. During a live session, that screen
+now steps aside and the clock takes its place. Every other screen still asks
+you to rotate back.
+
 ## v3.3.427 (2026-09-02) — The landscape timer actually appears
 
 It was styled to fill the screen but was still sitting inside the header,

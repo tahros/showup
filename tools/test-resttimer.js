@@ -126,6 +126,20 @@ console.log(fail ? "\n" + fail + " FAILED" : "\nALL PASS");
   ok("the big clock is styled where it lands: at body level, not in the header",
      /html\.bigtimer body > #hTimer\.on\{[^}]*position:fixed;inset:0/.test(css) &&
      !/header\.live #hTimer\.on\{[^}]*position:fixed/.test(css));
+  /* v3.3.428: THE VEIL WAS THE WHOLE PROBLEM. #portraitveil covers landscape
+     at z-index 999 -- correct for every other screen, since none are designed
+     sideways -- and it simply sat on top of the timer. Two facts, and the
+     second is a NUMBER so it cannot be argued with. */
+  ok("the portrait veil stands down for a live session",
+     /html\.bigtimer #portraitveil\{display:none\}/.test(css));
+  ok("...and the timer outranks it even if it did not",
+     (function(){
+       const z=(re)=>{const m=css.match(re); return m?+m[1]:-1;};
+       const veil=z(/#portraitveil\{[^}]*z-index:(\d+)/);
+       const timer=z(/html\.bigtimer body > #hTimer\.on\{[^}]*z-index:(\d+)/);
+       return veil>0 && timer>veil;
+     })());
+
   ok("...in the header's own live red, not a new colour",
      /html\.bigtimer body > #hTimer\.on\{[^}]*background:var\(--live\)/.test(css));
   ok("...and shown in landscape",

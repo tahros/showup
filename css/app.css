@@ -670,7 +670,7 @@
        derive.js), so it is styled where it lands -- not inside the header,
        whose z-index:20 stacking context trapped it. */
     html.bigtimer body > #hTimer.on{
-      position:fixed;inset:0;z-index:200;margin:0;
+      position:fixed;inset:0;z-index:1000;margin:0;   /* above the portrait veil (999) */
       background:var(--live);color:#fff;   /* the header's own live red, not a new one */
       display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
       font-family:var(--mono);font-size:clamp(64px,22vw,190px);font-weight:700;
@@ -2247,9 +2247,15 @@
   .linky{background:none;border:0;padding:0;color:var(--accent);font:inherit;
     text-decoration:underline;cursor:pointer}
   #portraitveil{display:none}
+  /* v3.3.428: THE VEIL STANDS DOWN FOR A LIVE SESSION. This is why the
+     landscape timer never appeared: the veil sits at z-index 999 and covered
+     it. The veil is right for every other screen -- none of them are designed
+     sideways -- but during a live rest the sideways view IS the design, so the
+     one exception is written here, where the rule that hid it lives. */
   @media (orientation:landscape) and (pointer:coarse) and (max-height:500px){
     #portraitveil{position:fixed;inset:0;z-index:999;background:var(--ground);
       display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+    html.bigtimer #portraitveil{display:none}
     .pv-mark{font-size:34px;color:var(--accent)}
     .pv-text{font-family:var(--disp);font-weight:600;font-size:18px;color:var(--chalk)}
     .pv-sub{font-family:var(--mono);font-size:12px;color:var(--muted)}
