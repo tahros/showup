@@ -1,27 +1,28 @@
-const CACHE = 'showup-v3.3.422';
+const CACHE = 'showup-v3.3.423';
 const SHELL = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './css/app.css?v=3.3.422',
-  './js/core.js?v=3.3.422',
-  './js/derive.js?v=3.3.422',
-  './js/util.js?v=3.3.422',
-  './js/header.js?v=3.3.422',
-  './js/report.js?v=3.3.422',
-  './js/today.js?v=3.3.422',
-  './js/lift.js?v=3.3.422',
-  './js/writer.js?v=3.3.422',
-  './js/stats.js?v=3.3.422',
-  './js/history.js?v=3.3.422',
-  './js/settings.js?v=3.3.422',
-  './js/app.js?v=3.3.422',
+  './css/app.css?v=3.3.423',
+  './js/core.js?v=3.3.423',
+  './js/derive.js?v=3.3.423',
+  './js/util.js?v=3.3.423',
+  './js/header.js?v=3.3.423',
+  './js/report.js?v=3.3.423',
+  './js/today.js?v=3.3.423',
+  './js/lift.js?v=3.3.423',
+  './js/writer.js?v=3.3.423',
+  './js/stats.js?v=3.3.423',
+  './js/history.js?v=3.3.423',
+  './js/settings.js?v=3.3.423',
+  './js/app.js?v=3.3.423',
   './assets/status-flat.png',
   './assets/status-up.png',
   './icon-192.png',
   './icon-512.png',
   './icon-maskable-512.png',
-  './apple-touch-icon.png'
+  './apple-touch-icon.png',
+  './favicon-32.png'
 ];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)));

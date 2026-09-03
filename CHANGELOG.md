@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v3.3.423 (2026-09-02) — The new mark
+
+New app icon and favicon, drawn from the brand artwork: the chevron in white
+on ink. Your share cards pick it up too.
+
+You may need to remove and re-add the app to your home screen to see the new
+icon — iOS caches the old one.
+
 ## v3.3.422 (2026-09-02) — Planks parse; week cards tighten
 
 - **A plank no longer sinks a whole week.** The writer was told to write holds

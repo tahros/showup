@@ -954,6 +954,38 @@ for _f in ("js/lift.js", "js/writer.js", "js/today.js", "js/history.js", "js/sta
         fail.append(f"the icon system: {_f} calls icon('{_m.group(1)}', {_m.group(2)}) with a raw size - "
                     f"use ICON_SZ.sm/md/lg/hero, or the sizes drift apart again (v3.3.411)")
 
+# -- v3.3.423: THE APP ICON IS THE MARK.
+# The brand mark is a single evenodd path: a rounded tile with the chevron
+# KNOCKED OUT. That is right for a logo on a page and wrong for an app icon --
+# iOS composites alpha onto black, so a black mark shipped as-is becomes a
+# black tile with a black chevron. The shipped icons are therefore the mark on
+# a plate: ink field, white chevron, full bleed (every OS applies its own
+# corner mask, and a mark keeping its own corners inside that mask shows white
+# slivers). The favicon is the exception -- browsers do not mask, so it keeps
+# the mark's own corners on white.
+# Checked here because a PNG cannot be diffed in the JS suites, and because
+# this is exactly the kind of asset that gets regenerated wrongly later.
+_ICONS = {"icon-192.png": 192, "icon-512.png": 512,
+          "icon-maskable-512.png": 512, "apple-touch-icon.png": 180}
+def _png_size(p):
+    b = p.read_bytes()
+    if b[:8] != b"\x89PNG\r\n\x1a\n": return None
+    return int.from_bytes(b[16:20], "big"), int.from_bytes(b[20:24], "big")
+for _n, _sz in _ICONS.items():
+    _p = d / _n
+    if not _p.exists():
+        fail.append(f"the icon: {_n} is missing (v3.3.423)")
+        continue
+    _wh = _png_size(_p)
+    if _wh != (_sz, _sz):
+        fail.append(f"the icon: {_n} is {_wh}, expected {_sz}x{_sz} (v3.3.423)")
+if not (d / "favicon-32.png").exists():
+    fail.append("the icon: favicon-32.png is missing — the browser tab falls back to a 192px app icon (v3.3.423)")
+if 'href="favicon-32.png"' not in idx:
+    fail.append("the icon: index.html does not point rel=icon at favicon-32.png (v3.3.423)")
+if "./favicon-32.png" not in sw:
+    fail.append("the icon: sw.js does not cache favicon-32.png, so it will not work offline (v3.3.423)")
+
 if fail:
     print("BUILDCHECK FAIL"); [print(" -", f) for f in fail]; sys.exit(1)
 print(f"BUILDCHECK PASS  v{appv}  shell={n}B  assets={len(assets)}  cssvars={len(used)} used / {len(defined)} defined")
