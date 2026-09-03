@@ -409,7 +409,11 @@ function resealDay(t){
   t.doneEx=(t.doneEx||[]).filter(x=>live.has(x));          // drop seals for exercises that are gone
   const liveP=new Set(t.w.map(s=>s.part));
   t.donePart=(t.donePart||[]).filter(x=>liveP.has(x));
-  t.doneAll=!t.w.some(s=>!(t.doneEx.includes(s.ex)||t.donePart.includes(s.part)));
+  /* v3.3.431: reseal CLEARS, it never closes. It used to recompute doneAll
+     from the seals, so deleting a set could put the day in the book with
+     nobody pressing anything -- a third silent door to a state that should
+     have exactly one. Closing is the Complete button's job; this function's
+     job is to drop seals for work that no longer exists. */
 }
 /* v3.3.43: one formatter for "a session, grouped by weight". Lift's LAST TIME
    card and History's session detail now render through the same two functions,

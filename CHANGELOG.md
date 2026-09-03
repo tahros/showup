@@ -1,5 +1,17 @@
 # ShowUp — changelog
 
+## v3.3.431 (2026-09-03) — The day ends when you say it ends
+
+Marking an exercise or a part done no longer finishes your whole day. Only
+**Complete workout** does — so the button stays on screen until you press it,
+and the finished card appears only after.
+
+That's also why the day-count screen sometimes never appeared: the day had
+already been closed by something you didn't press, and the celebration was
+spent before you looked.
+
+`1 sets` reads `1 set`.
+
 ## v3.3.430 (2026-09-03) — One fold control
 
 The "last time" card's fold arrow was a text triangle; the plan's was the

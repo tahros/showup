@@ -45,8 +45,14 @@ run(`${reset}
 {  DB.days[todayISO].w=dayMeta().w.filter(s=>s.ex!=='Pull Up');
   resealDay(dayMeta());}
 `);
-check("dropex → day seals",            `dayMeta().doneAll`, true);
-check("dropex → header stops being live", `isLive()`, false);
+/* v3.3.431 RESTATES. reseal used to recompute doneAll from the seals, so
+   REMOVING an exercise could put the day in the book with nobody pressing
+   anything -- one of three silent doors to a state that should have exactly
+   one. reseal now CLEARS seals for work that no longer exists and never
+   closes; the day ends when the Complete button says so. What the removal
+   must still do -- drop the dead seal, keep the live one -- is unchanged. */
+check("dropex → the day does NOT seal itself", `dayMeta().doneAll`, false);
+check("dropex → and stays live until Complete is pressed", `isLive()`, true);
 check("dropex → run still sealed by part", `dayMeta().donePart.includes('Run')`, true);
 
 // --- a run sealed at part level must never be treated as unfinished
@@ -54,7 +60,10 @@ run(`${reset}
 {  DB.days[todayISO].w=dayMeta().w.filter(s=>s.part!=='Back');
   resealDay(dayMeta());}
 `);
-check("part-level seal counts as done", `dayMeta().doneAll`, true);
+/* the seal is what this case is about, and it survives: a run sealed at part
+   level is still sealed. It just does not close the day by itself. */
+check("part-level seal survives the removal", `dayMeta().donePart.includes('Run')`, true);
+check("...but does not close the day", `dayMeta().doneAll`, false);
 
 // --- removing everything resets, not seals
 run(`${reset}

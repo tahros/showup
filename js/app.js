@@ -81,18 +81,15 @@ document.addEventListener('click',e=>{
     // Cascade only when this part has ONE exercise today (the "Complete Run" flow).
     // Multi-exercise parts stay open — and undimmed — until the explicit Complete <part>.
     const exsInPart=new Set(m.w.filter(s=>s.part===lift.part).map(s=>s.ex));
-    if(exsInPart.size===1){
-      if(!m.donePart.includes(lift.part)) m.donePart.push(lift.part);
-      if(!m.w.some(s=>!m.doneEx.includes(s.ex))) m.doneAll=true;
-    }
-    /* v3.1.15: multi-exercise parts stay open for MORE exercises — but when
-       the ✕ just closed the LAST open exercise of the whole day, there is
-       nothing left to stay open FOR. Close everything; red ends now. */
-    if(!m.doneAll && !m.w.some(s=>!m.doneEx.includes(s.ex))){
-      for(const p of new Set(m.w.map(s=>s.part)))
-        if(p&&!m.donePart.includes(p)) m.donePart.push(p);
-      m.doneAll=true;
-    }
+    if(exsInPart.size===1&&!m.donePart.includes(lift.part)) m.donePart.push(lift.part);
+    /* v3.3.431: ONLY THE COMPLETE BUTTON ENDS THE DAY. v3.1.15 closed the whole
+       workout when a tick sealed the last open exercise -- so logging a single
+       Run and marking it done put the day in the book, showed the finished
+       card, and hid the button the maker had never pressed. It also fired the
+       ceremony from a path he did not initiate, which is why he reported never
+       seeing it: it had already been spent by the time he looked.
+       Finishing an exercise now means exactly that. The day ends when you say
+       it ends. */
     save();renderHeader();doneToast(m,`${lift.ex} complete ✓`);
     lift.ex=null;return render();
   }
@@ -107,7 +104,7 @@ document.addEventListener('click',e=>{
     const m=dayMeta(); m.upd=Date.now();
     m.w.filter(s=>s.part===lift.part).forEach(s=>{ if(!m.doneEx.includes(s.ex)) m.doneEx.push(s.ex); });
     if(!m.donePart.includes(lift.part)) m.donePart.push(lift.part);
-    if([...new Set(m.w.map(s=>s.part))].every(p=>m.donePart.includes(p))) m.doneAll=true;
+    /* v3.3.431: sealing the last part does not end the day either -- same rule */
     save();renderHeader();doneToast(m,`${lift.part} complete ✓`);return render();
   }
   if(e.target.closest('#doneAllBtn')){
@@ -1262,7 +1259,7 @@ function celebrateDayDone(nowrite, forceCount, forceMile){
   setTimeout(()=>{ if(o.isConnected) toCard(); },mile?3600:1500);
 }
 const doneToast=(m,alt)=>{
-  if(m.doneAll){ celebrateDayDone(); toast(`Workout complete \u2014 ${m.w.length} sets. Cool down \ud83d\udd25`); }
+  if(m.doneAll){ celebrateDayDone(); toast(`Workout complete \u2014 ${m.w.length} set${m.w.length===1?'':'s'}. Cool down \ud83d\udd25`); }
   else toast(alt);
 };
 function syncNav(){

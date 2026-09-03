@@ -497,7 +497,7 @@ function renderToday(){
     return `<button class="card dayclosed" data-replayday="1" aria-label="Today is complete. Tap to see it again.">
           <i class="dcsq" aria-hidden="true"></i>
           <b class="dcn">Day ${fmt(_n)} — in the book.</b>
-          <span class="dcm mono">${t.w.length} sets${_st>1?` \u00b7 ${_st}-day streak`:''}</span>
+          <span class="dcm mono">${t.w.length} set${t.w.length===1?'':'s'}${_st>1?` \u00b7 ${_st}-day streak`:''}</span>
           <span class="dcr mono">logging another set reopens it</span>
         </button>`;
   };

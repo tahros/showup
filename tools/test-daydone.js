@@ -329,5 +329,67 @@ ok("pressing it places the day", run(`!!document.getElementById('dayDone')`));
      (css.match(/drop-shadow\(/g)||[]).length <= 4, String((css.match(/drop-shadow\(/g)||[]).length));
 }
 
+/* v3.3.431: ONE DOOR TO A CLOSED DAY. The maker logged a single Run, marked
+   the exercise done, and the app put the day in the book -- finished card
+   shown, Complete button hidden, and the ceremony spent from a path he never
+   initiated, which is why he reported never seeing it. Three routes could
+   close a day; there is one now. */
+{
+  const seed = () => run(`(function(){DB.days={}; delete DB.settings.dayDone;
+    const t=new Date(todayISO+'T00:00');
+    const D=k=>{const d=new Date(t);d.setDate(d.getDate()-k);return d.toLocaleDateString('en-CA')};
+    DB.days[D(1)]={w:[{part:'Legs',ex:'Squat',w:60,reps:[8]}],upd:1};
+    DB.days[todayISO]={w:[{part:'Run',ex:'Run',w:4,reps:[],mins:27,secs:0,at:Date.now()-60000}],
+                       upd:1,doneEx:[],donePart:[],doneAll:false};
+    SEED=deriveAll(); view='today'; render();})()`);
+
+  seed();
+  ok("one logged set opens the day", run(`isLive()`)===true);
+  ok("...and offers the button that ends it",
+     run(`!!document.getElementById('doneAllBtn')`));
+  ok("...with no finished card until it is pressed",
+     run(`!document.querySelector('.dayclosed')`));
+
+  /* sealing the only exercise is NOT closing the day */
+  run(`(function(){const m=dayMeta(); m.doneEx=['Run']; m.donePart=['Run']; resealDay(m); SEED=deriveAll(); render();})()`);
+  ok("sealing the only exercise does not close the day",
+     run(`dayMeta().doneAll`)===false && run(`isLive()`)===true, JSON.stringify(run(`dayMeta().doneAll`)));
+  ok("...the button is still there",
+     run(`!!document.getElementById('doneAllBtn')`));
+  ok("...and the ceremony has not been spent",
+     run(`DB.settings.dayDone!==todayISO`));
+
+  /* pressing it is what closes the day -- and that is when the ceremony fires */
+  run(`document.getElementById('doneAllBtn').dispatchEvent(new window.Event('click',{bubbles:true}))`);
+  ok("pressing Complete closes the day", run(`dayMeta().doneAll`)===true);
+  ok("...fires the ceremony", run(`!!document.getElementById('dayDone')`));
+  ok("...and stamps it once", run(`DB.settings.dayDone===todayISO`));
+  run(`(function(){const o=document.getElementById('dayDone'); if(o) o.remove(); render();})()`);
+  ok("...now the finished card is shown instead of the button",
+     run(`!!document.querySelector('.dayclosed') && !document.getElementById('doneAllBtn')`));
+  /* THE TWO HANDLERS THAT USED TO CLOSE THE DAY. The checks above drive
+     resealDay directly and so never touch them -- probes that restored either
+     line stayed green, which is the hollow-assertion failure this project has
+     named before. Asserted at source: neither handler may set doneAll. The
+     only assignment to doneAll:true in a handler belongs to #doneAllBtn. */
+  {
+    const src=fs.readFileSync(path.join(dir,"js/app.js"),"utf8");
+    const block=(id)=>{ const i=src.indexOf(id); const j=src.indexOf("return render();", i);
+      return i<0?'':src.slice(i,j); };
+    ok("finishing an exercise does not close the day",
+       !/doneAll\s*=\s*true/.test(block("#reopenPartBtn")===''?'':src.slice(src.indexOf("const exsInPart="), src.indexOf("#reopenPartBtn"))));
+    ok("finishing a part does not close the day",
+       !/doneAll\s*=\s*true/.test(block("#donePartBtn")));
+    ok("...and #doneAllBtn is the one place that does",
+       /doneAll\s*=\s*true/.test(block("#doneAllBtn")) &&
+       (src.match(/m\.doneAll\s*=\s*true/g)||[]).length===1);
+  }
+
+  ok("...reading one set in the singular",
+     /\b1 set\b/.test(run(`document.querySelector('.dayclosed').textContent`)) &&
+     !/1 sets/.test(run(`document.querySelector('.dayclosed').textContent`)),
+     run(`document.querySelector('.dayclosed .dcm').textContent`));
+}
+
 process.exit(fail?1:0);
 })();

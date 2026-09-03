@@ -48,8 +48,12 @@ check("sealed → row gone",       `!!document.querySelector('.btnrow')`, false)
 check("sealed → reopen offered", `!!document.getElementById('reopenPartBtn')`, true);
 
 // not-live but still open: Continue must drop the red
+/* v3.3.431: sealing a part no longer closes the day, so this fixture says
+   plainly which state it wants rather than relying on a side effect that has
+   been removed. doneAll is set by the Complete button and cleared by logging
+   or reopening -- one door, and the test uses it. */
 run(`
-  dayMeta().donePart.length=0; lastSetAt=0; render();
+  dayMeta().donePart.length=0; dayMeta().doneAll=true; lastSetAt=0; render();
 `);
 check("not live → Continue not red",
       `document.querySelector('.btnrow .btn[data-go]').classList.contains('livego')`, false);
