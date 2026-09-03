@@ -278,7 +278,7 @@ document.addEventListener('click',e=>{
   else if(act==='finish') onbFinish(false);
   else if(act==='demo') demoLoad();
   else if(act==='democlear') demoClear();
-  else if(act==='golift'){ view='lift'; render(); }
+  else if(act==='golift'){ lift.ret='today'; view='lift'; render(); }   // v3.3.434: back to Today
 });
 /* v3.3.66 — the greeting is a STATE, not decoration. It belongs to "hasn't
    trained yet today" and it leaves the moment the first set lands, like every

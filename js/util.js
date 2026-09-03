@@ -2229,6 +2229,6 @@ document.addEventListener('click',e=>{
   const f=activeFocus();
   if(!f) return;
   if(view==='lift'&&lift.ex===f.ex) return;      // already there
-  view='lift'; lift.part=f.part; lift.ex=f.ex; lift.copy=null;
+  view='lift'; lift.part=f.part; lift.ex=f.ex; lift.copy=null; lift.ret=lift.ret||'today';   // v3.3.434
   render();
 });

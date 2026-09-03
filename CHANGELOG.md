@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v3.3.434 (2026-09-03) — Back goes back
+
+Tapping an exercise in Today's plan and then pressing back dropped you on the
+Train tab's list instead of the plan you came from. The arrow now returns to
+the screen that opened the exercise, wherever that was. Inside Train it still
+steps back through exercise and part as before.
+
 ## v3.3.433 (2026-09-03) — The new rules reach the writer
 
 v3.3.432's rules were live in the app but never reached the model: the prompt

@@ -442,4 +442,56 @@ check("a finished row and a live row are still distinguishable",
         `${/\.item\.todayrow:active\{[^}]*transform:scale/.test(css299)}`, "true");
 }
 
+/* ---- v3.3.434: BACK GOES BACK -----------------------------------------
+   The arrow unwound the TRAIN hierarchy wherever you had come from: tapping
+   an exercise in Today's plan opened it, and back dropped you on Train's part
+   list -- a screen the maker had never been on. One arrow, one job: return to
+   the screen that opened this one. */
+{
+  const seed = () => run(`(function(){DB.days={}; DB.plan={d:todayISO, items:[
+      {ex:'Barbell Bench Press', lines:[{w:70,bw:false,reps:[8,8]}]},
+      {ex:'Dip', lines:[{w:0,bw:true,reps:[10,8]}]}], note:''};
+    DB.settings.planFold=false;
+    DB.days[todayISO]={w:[{part:'Legs',ex:'Squat',w:60,reps:[8],at:Date.now()}],upd:1};
+    SEED=deriveAll(); view='today'; lift={part:null,ex:null,weight:0,ret:null}; render();})()`);
+  const tap = (sel) => run(`(function(){const el=document.querySelector(`+"`"+`${sel}`+"`"+`);
+    if(!el) return 'MISSING'; el.dispatchEvent(new window.Event('click',{bubbles:true})); return 'ok';})()`);
+
+  seed();
+  tap('[data-planex]');
+  check("a plan row on Today opens the exercise", `view+'/'+(lift.ex||'-')`, "lift/Barbell Bench Press");
+  check("...and remembers it came from Today", `lift.ret`, "today");
+  tap('.back');
+  check("...so back returns to TODAY, not Train's part list", `view+'/'+(lift.ex||'-')`, "today/-");
+
+  /* the return is consumed once: inside Train, back unwinds as it always has */
+  run(`(function(){view='lift'; lift.part='Chest'; lift.ex='Dip'; lift.ret=null; render();})()`);
+  tap('.back');
+  check("inside Train, back still unwinds to the exercise list", `view+'/'+(lift.ex||'-')`, "lift/-");
+  /* the second back drops the PART. liftBack() then restores the day's live
+     part on the next render, which is v3.3.347 working as designed -- so the
+     check is that the part was cleared, not that nothing came back. */
+  check("...and again clears the part", `(function(){const before=lift.part;
+    document.querySelector('.back').dispatchEvent(new window.Event('click',{bubbles:true}));
+    return before!==null && view==='lift';})()`, true);
+
+  /* taking the Train tab deliberately is a fresh start, never a return */
+  seed();
+  tap('[data-planex]');
+  tap('nav button[data-v="lift"]');
+  check("a tab tap clears the pending return", `!lift.ret`, true);
+  tap('.back');
+  check("...so back stays inside Train", `view`, "lift");
+
+  /* and leaving for ANOTHER tab clears it too -- a return that outlived its
+     journey would send a later back somewhere the person had not been. The
+     first probe of this passed hollow: tapping the Train tab is handled by a
+     different branch, so it never exercised this one. */
+  seed();
+  tap('[data-planex]');
+  check("the return is set before leaving", `lift.ret`, "today");
+  tap('nav button[data-v="stats"]');
+  check("...and a jump to another tab clears it", `!lift.ret`, true);
+}
+
 process.exit(fail ? 1 : 0);

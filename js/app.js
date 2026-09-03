@@ -131,7 +131,12 @@ document.addEventListener('click',e=>{
     if(session) cloudPush();
     view=nav.dataset.v;
     /* v3.3.347: the tab remembers, live or not */
-    if(view==='lift'){const b=liftBack(); lift=b?{part:b.part,ex:b.ex,weight:0}:{part:null,ex:null,weight:0};}
+    /* v3.3.434: a tab tap is a fresh start, never a return. Taking the Train
+       tab deliberately clears any pending return, so back on that screen
+       unwinds Train as it always has -- the arrow only leaves the tab when you
+       actually arrived from somewhere else. */
+    if(view==='lift'){const b=liftBack(); lift=b?{part:b.part,ex:b.ex,weight:0,ret:null}:{part:null,ex:null,weight:0,ret:null};}
+    else if(lift) lift.ret=null;
     return render();
   }
   const pf=e.target.closest('[data-plfold]');
@@ -162,7 +167,10 @@ document.addEventListener('click',e=>{
       : (goP!=='Run'&&partOpen(goP))
         ? (([...day(todayISO).w].reverse().find(s=>s.part===goP&&s.ex)||{}).ex||null)
         : null;
-    view='lift';lift={part:goP,ex:goEx,weight:0};
+    /* v3.3.434: Train Next's Start replaces lift wholesale, so the return has
+       to be carried across the assignment rather than set before it. */
+    const _ret=view==='lift'?null:view;
+    view='lift';lift={part:goP,ex:goEx,weight:0,ret:_ret};
     return render();
   }
   const pt=e.target.closest('[data-part]:not([data-ex])');
@@ -170,6 +178,7 @@ document.addEventListener('click',e=>{
   const ex=e.target.closest('[data-ex]');
   if(ex){
     lift.part=ex.dataset.part||lift.part; lift.ex=ex.dataset.ex;
+    lift.ret=view==='lift'?null:view;               // v3.3.434: only a jump from elsewhere returns
     lift.weight=0; lift.editBar=false; lift.copy=false; lift.suggestOpen=null; lift.info=false; lift.editSet=null; lift.editToday=false;
     view='lift';                                   // <- was missing: Today stayed on Today
     return render();
@@ -177,6 +186,14 @@ document.addEventListener('click',e=>{
   if(e.target.closest('.back')){
     if(lift.copy){ lift.copy=false; return renderLift(); }
     if(view==='sync'){view=prevView||'today';return render();}
+    /* v3.3.434: BACK GOES BACK. The arrow unwound the TRAIN hierarchy -- ex,
+       then part, then the tab -- wherever you had come from. Tapping an
+       exercise in Today's plan opens it (v3.3.321) and then back dropped you
+       on Train's part list, a screen you had never seen. It is one arrow with
+       one job: return to the screen that opened this one.
+       lift.ret is set by every jump that arrives from OUTSIDE Train, and is
+       consumed here, once -- so a second back still unwinds Train normally. */
+    if(lift.ex&&lift.ret){ const r=lift.ret; lift.ret=null; lift.ex=null; view=r; return render(); }
     if(lift.ex)lift.ex=null;else lift.part=null;
     return render();
   }
@@ -417,6 +434,7 @@ document.addEventListener('click',e=>{
   if(_prow){
     const ex=_prow.dataset.planex;
     lift.part=homePartOf(ex)||lift.part; lift.ex=ex; lift.weight=0;
+    lift.ret=view;                                 // v3.3.434: back returns to the plan
     /* v3.3.321: go to the TRAIN tab. This set the exercise and re-rendered
        whatever tab you were on — which was Train, back when the plan lived
        there, so it worked by accident. The plan moved to Today in v3.3.319
@@ -626,7 +644,7 @@ document.addEventListener('click',e=>{
     return renderSync();
   }
   if(e.target.closest('#goLift')){
-    view='lift'; lift={part:null,ex:null,weight:0};   // the tab's own entry state
+    view='lift'; lift={part:null,ex:null,weight:0,ret:null};   // the tab's own entry state; no return to inherit
     return render();
   }
   if(e.target.closest('#msDismiss')){
