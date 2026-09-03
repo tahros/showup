@@ -427,10 +427,40 @@ async function syncWakeLock(){
     }else if(!want && _wake){ const w=_wake; _wake=null; await w.release(); }
   }catch(e){ _wake=null; }
 }
+/* v3.3.427: THE TIMER MOVES, IT IS NOT COPIED. v3.3.426 styled it full-screen
+   where it stands -- inside <header>, which has z-index:20 and therefore its
+   own stacking context. A child of that context can never paint above anything
+   outside it whatever z-index it is given, so the "full screen" clock stayed
+   trapped in the header's own box. It also depended on a media query alone,
+   with no way to see from JS whether it had applied.
+   The element is now MOVED to <body> while live and landscape, and moved back
+   when either stops. One element, one clock, no duplicate to drift -- and at
+   body level there is no ancestor to contain it. <html> carries .bigtimer so
+   the state is inspectable and CSS does not have to infer it. */
+let _bigHome=null;
+function tickBig(){
+  const el=document.getElementById('hTimer'); if(!el) return;
+  const landscape = !!(window.matchMedia && window.matchMedia('(orientation:landscape)').matches);
+  const want = landscape && isLive() && el.classList.contains('on');
+  const isOut = el.parentElement===document.body;
+  if(want && !isOut){
+    _bigHome = el.parentElement;
+    document.body.appendChild(el);
+    document.documentElement.classList.add('bigtimer');
+  }else if(!want && isOut){
+    (_bigHome||document.querySelector('.hbtns')||document.body).appendChild(el);
+    document.documentElement.classList.remove('bigtimer');
+  }
+}
+setInterval(tickBig,400);
+if(typeof window!=='undefined'){
+  window.addEventListener('orientationchange',tickBig);
+  window.addEventListener('resize',tickBig);
+}
 function tickWake(){
   const el=document.getElementById('hTimer');
   const landscape = window.matchMedia && window.matchMedia('(orientation:landscape)').matches;
-  const want = !!(el && el.classList.contains('on') && isLive() && landscape);
+  const want = !!(el && el.classList.contains('on') && isLive() && landscape);   // same three as tickBig
   if(want!==_wakeWant){ _wakeWant=want; syncWakeLock(); }
 }
 setInterval(tickWake,1000);

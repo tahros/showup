@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v3.3.427 (2026-09-02) — The landscape timer actually appears
+
+It was styled to fill the screen but was still sitting inside the header,
+which meant it could never cover anything. It now moves out to the top level
+while you're mid-session and sideways, and moves back when you rotate or
+finish.
+
 ## v3.3.426 (2026-09-02) — Turn the phone sideways mid-session
 
 During a live session, rotating to landscape gives you the rest clock across

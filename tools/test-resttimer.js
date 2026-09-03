@@ -117,32 +117,38 @@ console.log(fail ? "\n" + fail + " FAILED" : "\nALL PASS");
 {
   const css=fs.readFileSync(path.join(dir,"css/app.css"),"utf8").replace(/\r?\n\s*/g,"");
 
-  ok("the big clock is the header's own timer, not a second one",
-     /@media \(orientation:landscape\)\{[\s\S]*?header\.live #hTimer\.on\{[^}]*position:fixed;inset:0/.test(css));
-  /* the first version of this was a self-defeating regex that replaced the
-     text with itself. The rule it defends: EVERY landscape rule that makes the
-     timer full-screen must be gated on header.live -- an ungated one would
-     take over the screen on a rest day. */
-  ok("...and it only appears while the session is LIVE",
-     (css.match(/#hTimer\.on\{[^}]*position:fixed/g)||[]).length ===
-     (css.match(/header\.live #hTimer\.on\{[^}]*position:fixed/g)||[]).length);
+  /* v3.3.427 RESTATES. v3.3.426 styled the timer full-screen WHERE IT STOOD --
+     inside <header>, which has z-index:20 and so its own stacking context. A
+     child of that context cannot paint above anything outside it whatever
+     z-index it is given, so the clock stayed trapped in the header's box and
+     the feature did not work on the device. The element is MOVED to <body>
+     now, and these check the move rather than the styling. */
+  ok("the big clock is styled where it lands: at body level, not in the header",
+     /html\.bigtimer body > #hTimer\.on\{[^}]*position:fixed;inset:0/.test(css) &&
+     !/header\.live #hTimer\.on\{[^}]*position:fixed/.test(css));
   ok("...in the header's own live red, not a new colour",
-     /header\.live #hTimer\.on\{[^}]*background:var\(--live\)/.test(css));
-
-  /* the context earns its place at that size, and costs nothing in portrait */
-  ok("the context is hidden in portrait",
-     /\.resttimer \.rt-ctx,\.resttimer \.rt-sub\{display:none\}/.test(css));
+     /html\.bigtimer body > #hTimer\.on\{[^}]*background:var\(--live\)/.test(css));
   ok("...and shown in landscape",
-     /header\.live #hTimer\.on \.rt-ctx,header\.live #hTimer\.on \.rt-sub\{[^}]*display:block/.test(css));
+     /html\.bigtimer body > #hTimer\.on \.rt-ctx[^{]*\{[^}]*display:block/.test(css));
 
-  /* THE PULSE IS THE ONE THE TIMER ALREADY HAD. The dot has meant "this is
-     running" since the timer existed; landscape makes it big enough to read
-     from the floor rather than inventing a second pulsing thing. */
-  ok("the pulse is the timer's own dot, enlarged",
-     /header\.live #hTimer\.on::before\{[^}]*animation:rtbeat/.test(css) &&
-     /\.resttimer::before\{[^}]*animation:pulse/.test(css));
-  ok("...and it stops for reduced motion",
-     /orientation:landscape\) and \(prefers-reduced-motion:reduce\)\{header\.live #hTimer\.on::before\{animation:none/.test(css));
+  /* THE BEHAVIOUR, not the stylesheet. This is the test that was missing: the
+     previous release asserted CSS that was correct and never fired. */
+  const bigNow = () => run(`(function(){const el=document.getElementById('hTimer');
+    return (el&&el.parentElement===document.body)+'|'+document.documentElement.classList.contains('bigtimer');})()`);
+  run(`(function(){DB.days[todayISO]={w:[{part:'Back',ex:'Pull Up',w:0,reps:[8],at:Date.now()-30000}],upd:1};
+    SEED=deriveAll(); lastSetAt=Date.now()-30000; tickRest();
+    window.matchMedia=()=>({matches:true});   // landscape
+    tickBig();})()`);
+  ok("live + landscape moves the clock to body and marks the document",
+     bigNow()==="true|true", bigNow());
+  run(`(function(){window.matchMedia=()=>({matches:false}); tickBig();})()`);
+  ok("...portrait puts it back in the header",
+     bigNow()==="false|false", bigNow());
+  run(`(function(){window.matchMedia=()=>({matches:true});
+    day(todayISO).doneAll=true; SEED=deriveAll(); tickBig();})()`);
+  ok("...and a finished workout keeps it there, however the phone is held",
+     bigNow()==="false|false", bigNow());
+  run(`(function(){day(todayISO).doneAll=false; SEED=deriveAll(); window.matchMedia=()=>({matches:false}); tickBig();})()`);
 
   /* the clock keeps its own node: textContent concatenates descendants, and
      without this the timer read "1:30PULL UP BW+70kg..." */
