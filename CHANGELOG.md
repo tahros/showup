@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v3.3.438 (2026-09-04) — Handoff corrected
+
+Docs only, no behaviour change. `docs/HANDOFF.md` had day 1,000 at October 5;
+it is October 15, counting 42 days from day 958 on September 4. Also records
+the `payload.best` bug, the rest-day work of v3.3.435–437, and why "rest with
+a run logged" is not a state the app can hold.
+
 ## v3.3.437 (2026-09-04) — The day exhales
 
 Declaring rest now changes the whole screen instead of one button.

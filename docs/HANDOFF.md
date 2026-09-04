@@ -16,22 +16,34 @@ git log --oneline -15                          # what shipped, and what Codex di
 bash tools/runsuite.sh . && python3 tools/buildcheck.py .   # both must be green before touching anything
 ```
 
-The PAT lives at `/home/claude/.ghtok` (mode 600). **Rotation has been pending
-for many sessions** — flag it again.
+The PAT lives at `/home/claude/.ghtok` (mode 600). **Rotation is now URGENT,
+not just pending:** on 2026-09-04 the token was pasted into a chat window to
+start a session, so it exists in a transcript. It still works and it is still
+the deploy path — revoking mid-session strands a release — but it should be
+rotated at the end of any session that uses it.
+
+Writes to GitHub DO work from a container session with network access. Probe
+it cheaply before trusting it (`POST /git/blobs` with junk content creates a
+dangling blob and changes nothing); an earlier session lost hours to a proxy
+that refused writes, and built a whole device-bundle workaround that is not
+needed here.
 
 ## 1. What this is
 
 A minimalist fitness PWA at `tahros.github.io/showup`, repo `tahros/showup`,
 branch `main`, deployed by GitHub Pages. Vanilla JS, no framework, Supabase
-backend, IBM Plex. Its maker has trained and logged **958 consecutive days**
-and daily-drives it.
+backend, IBM Plex. Its maker had trained and logged **958 consecutive days**
+as of 2026-09-04, and daily-drives it.
 
 The product philosophy is **days > volume**. The app is a blunt, honest mirror
 of consistency, not a coach that flatters. Design lineage: Monument Valley —
 one subject per frame, calm over complexity, nothing that shouts.
 
-**Show HN launch is targeted at day 1,000 — around 2026-10-05.** The launch
-essay is not drafted.
+**Show HN launch is targeted at day 1,000 = 2026-10-15.** Day 958 was
+2026-09-04, so 1,000 is 42 days later. An earlier revision of this file said
+"around 2026-10-05"; that was wrong and `docs/ai-today/status.md` had it right.
+Recompute from the ledger rather than trusting either. The launch essay is not
+drafted.
 
 ## 2. Working agreement (standing)
 
@@ -123,6 +135,36 @@ brand icon and favicon, the century ceremony with a preview in Settings, the
 landscape rest timer, one-door day closing, one fold control, the **writer
 doctrine** (phase 1), and back-goes-back.
 
+**v3.3.435–437 (2026-09-04), after the above:**
+
+- **`payload.best` was the OLDEST load, not the best** — a real bug live since
+  v3.3.401. `best[]` starts empty and `x > undefined` is false, so the max loop
+  assigned nothing and the fallback filled each exercise with its first row in
+  the window. The writer's whole load ceiling sat under the real top on any
+  lift that had progressed. The client clamp uses `writerBest()` and only
+  clamps DOWN, so nothing caught it. **Check the writer's loads feel right now
+  — this may have been suppressing pushes for 34 releases.**
+- The test that hid it was green six days in seven: its fixture's oldest
+  Deadlift row was a 100 kg day *unless the 56th day back fell on a Sunday*.
+  Pattern 4 exactly. It is date-stable now.
+- **Rest is offered alongside a plan again** (v3.3.436), reversing v3.3.374.
+  Its premise — "writing a plan means you decided not to rest" — died when the
+  writer began writing days ahead and the rail began waking last night's plan.
+- **The day exhales** (v3.3.437). Declaring rest folds the plan to `kept`,
+  greens today's header square, stands the whole Train-next rail down in
+  favour of one `Tomorrow · <part>` line with an optional carry, shortens the
+  greeting to `Rest.`, and removes the leaf everywhere.
+- **Green is a LIVE grade, the mirror of red.** v3.3.379 had refused green as
+  a third *record* fill that would have to spread to the heatmap. That still
+  holds for the record; green marks only today, only while the flag is up, and
+  is gone at midnight. No past square is ever green.
+- **A run still clears a declared rest day, and should.** `workoutDates()`
+  counts any day with sets as trained with no exercise filter, so a run-only
+  day already fills the square and counts the streak. "Rest + run" is not a
+  state the app can hold without changing what a trained day is. Proposed,
+  examined, withdrawn — do not re-propose without deciding the streak question
+  first.
+
 **`docs/WRITER-DOCTRINE.md` is the important one.** It is the first-principles
 account of how the app's memory and the model's judgement divide: facts to the
 app, judgement to the model, every rule with a named enforcer. Phase 1 shipped;
@@ -134,7 +176,7 @@ phase 3 (reasons as structured, verifiable data) has not.
   the copy under the number (`one hundred at a time`) is a placeholder awaiting
   his eye, and so is the mark's colour (accent blue vs the ink tile as drawn).
 - **Launch essay** — not started. Hard-ish date: early October.
-- **PAT rotation** — flagged for many sessions. Still pending.
+- **PAT rotation** — now urgent; the token is in a chat transcript.
 - **Import** — the next major feature. Open question he has not answered:
   arbitrary CSV with column mapping, or target his own Google Sheets shape
   first. `tools/import*.py` and `convert_*.py` exist.
