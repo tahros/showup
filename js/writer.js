@@ -264,7 +264,16 @@ function writerPayload(o){
   }
   /* the eight-week best per exercise, precomputed: the band the loads must
      sit in is a number the writer should not have to derive from raw rows */
-  const best={}; for(const h of history) if(h[5]!=='s'&&h[3]>best[h[2]]) best[h[2]]=h[3]; for(const h of history) if(!(h[2] in best)) best[h[2]]=h[3];
+  /* v3.3.435: since v3.3.401 this read `h[3]>best[h[2]]` with best[] empty,
+     and `90 > undefined` is false -- so the max loop assigned NOTHING and the
+     fallback below filled every exercise with its OLDEST row in the window.
+     The model was told "best" and handed the lowest recent load on any lift
+     that progresses; its ceiling (best + band, or one step) sat under the
+     person's real top. The client clamp uses writerBest() and only clamps
+     DOWN, so nothing caught it. test-writer.js was green six days in seven:
+     its fixture's oldest Deadlift row happened to be a 100 kg day unless the
+     56th day back was a Sunday. Seed on first sight, then take the max. */
+  const best={}; for(const h of history) if(h[5]!=='s'&&(!(h[2] in best)||h[3]>best[h[2]])) best[h[2]]=h[3]; for(const h of history) if(!(h[2] in best)) best[h[2]]=h[3];
   for(const ex of Object.keys(best)) best[ex]=inU(best[ex]);
   for(const h of history) h[3]=inU(h[3]);
   const selected_days=o.scope==='week'?[...o.days].sort():[o.scope==='tomorrow'?tomorrowISO():from];

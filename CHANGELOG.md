@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v3.3.435 (2026-09-04) — The writer's best was the oldest
+
+Since v3.3.401 the "eight-week best" sent to the writer was not the best: a
+comparison against an empty table never assigned, and the fallback filled each
+exercise with its oldest load in the window. On any lift that had progressed,
+the writer's ceiling sat under your real top. The client-side clamp only
+clamps down, so nothing caught it. Fixed; and the test that hid it for 34
+releases — green unless the 56th day back was a Sunday — is date-stable now.
+
 ## v3.3.434 (2026-09-03) — Back goes back
 
 Tapping an exercise in Today's plan and then pressing back dropped you on the

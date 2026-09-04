@@ -246,6 +246,20 @@ ok("...and each exercise carries its own real increment", pay.steps.Squat===10 &
 ok("...and the next loadable barbell weight is computed, not guessed", pay.next.Squat===215,
    JSON.stringify({last:pay.last.Squat,next:pay.next.Squat}));
 ok("...in kg it is 2.5", run(`(function(){DB.settings.unit='kg'; const p=writerPayload(writerState()); DB.settings.unit='lb'; return p.step===2.5 && p.best.Deadlift===100 && p.last.Deadlift[1][0][0]===90;})()`));
+/* v3.3.435: BEST IS THE MAX, NOT THE OLDEST ROW. The two assertions above
+   were green six days in seven: the fixture's oldest Deadlift row is a 100 kg
+   day unless the 56th day back falls on a Sunday, and the bug (`x > undefined`
+   is false, so the fallback filled best with the first row) returned exactly
+   the oldest row. Green on Thursday and red on Friday is a calendar, not a
+   gate. This ledger is built so the oldest row is the LIGHTEST on every date:
+   the bug fails it every day, the fix passes it every day. */
+ok("...and best is the heaviest load in the window, not the oldest (date-stable)",
+   run(`(function(){const keep=DB.days; const d=n=>{const t=new Date(todayISO+'T00:00'); t.setDate(t.getDate()-n); return t.toLocaleDateString('en-CA');};
+     DB.days={}; DB.days[d(40)]={w:[{part:'Back',ex:'Deadlift',w:80,reps:[5],at:1}],upd:1};
+     DB.days[d(20)]={w:[{part:'Back',ex:'Deadlift',w:120,reps:[5],at:1}],upd:1};
+     DB.days[d(5)]={w:[{part:'Back',ex:'Deadlift',w:100,reps:[5],at:1}],upd:1};
+     SEED=deriveAll(); DB.settings.unit='kg'; const p=writerPayload(writerState());
+     DB.settings.unit='lb'; DB.days=keep; SEED=deriveAll(); return p.best.Deadlift===120;})()`));
 /* a light cable lift: 20 lb once, last week */
 run(`(function(){const d=new Date(todayISO+'T00:00'); d.setDate(d.getDate()-1); const iso=d.toLocaleDateString('en-CA');
   DB.days[iso].w.push({part:'Chest',ex:'Cable Fly Up',w:20/LB,reps:[10,10],at:2}); save(true); SEED=deriveAll();})()`);
