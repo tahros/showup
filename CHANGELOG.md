@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v3.3.436 (2026-09-04) — The morning keeps its vote
+
+The rest-day button is offered even when a plan is written for today. Since
+v3.3.374 a plan hid it, on the argument that writing a plan meant you had
+decided not to rest. Plans are forecasts now — the writer writes days ahead
+and last night's plan wakes on the rail — so the decision belongs to the
+morning. Declaring rest changes nothing else: the plan stays, Train next stays,
+and a set logged anyway still wins.
+
 ## v3.3.435 (2026-09-04) — The writer's best was the oldest
 
 Since v3.3.401 the "eight-week best" sent to the writer was not the best: a

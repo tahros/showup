@@ -914,8 +914,27 @@ run(`(function(){view='today'; lift.ex=null; render();})()`);
     ok("...described as the plan's, not as a rotation verdict",
        /next in your plan/.test(nextCard()) && !/d ago|d since/.test(nextCard()),
        nextCard());
-    ok("...and the rest-day button is not offered against your own plan",
-       run(`!document.getElementById('restBtn')`));
+    /* v3.3.436 RESTATES the v3.3.374 line that read "the rest-day button is
+       not offered against your own plan". A plan is a forecast now (the writer
+       writes days ahead; the rail wakes last night's plan), so the morning
+       keeps its vote: the button is offered WITH a plan too. Asserted on the
+       rendered screen, and then on the effect of tapping it -- the plan must
+       survive and Train next must not move, or "rest" has become a plan
+       editor by the back door. */
+    ok("...and the rest-day button IS offered alongside your own plan",
+       run(`!!document.getElementById('restBtn')`));
+    run(`document.getElementById('restBtn').click();`);
+    ok("...tapping it declares rest on today",
+       run(`!!(DB.days[todayISO]&&DB.days[todayISO].rest)`));
+    ok("...and leaves the plan itself untouched (rest is annotation, not an edit)",
+       run(`!!(DB.plan&&DB.plan.d===todayISO&&DB.plan.items.length===2&&DB.plan.items[0].ex==='EZ Bar Curl')`));
+    ok("...and Train next still names the plan's first exercise (training always wins)",
+       /EZ Bar Curl/.test(nextCard()), nextCard());
+    ok("...while the button reads as the undo",
+       /Resting today/.test(run(`document.getElementById('restBtn').textContent`)));
+    run(`document.getElementById('restBtn').click();`);
+    ok("...and a second tap walks out, plan still standing",
+       run(`!(DB.days[todayISO]&&DB.days[todayISO].rest) && DB.plan.items.length===2`));
 
     /* IT NAMES THE FIRST UNLOGGED ITEM, not the first. Tested by logging the
        first one and re-reading the card from the same pre-session branch.

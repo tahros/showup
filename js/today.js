@@ -395,17 +395,22 @@ function renderToday(){
        prompts, never nags, and an undeclared rest day is not a lesser rest
        day. Tap again to undo — every state walks out. Gone the moment a
        set lands (the whole !logged branch is). */
-    /* v3.3.374: a plan for today is an answer, so the screen stops asking.
-       The plan card, the rest button and the recommendation were making three
-       different claims about the same day at once: eight exercises listed,
-       "Rest day" offered beneath them, and a part the plan never mentions
-       recommended below that. Rest stays available on any day you have NOT
-       declared a plan for -- declaring one is itself a statement that today
-       is not a rest day, and the button returns the moment the plan is
-       cleared. Nothing is disabled or greyed: it is simply not asked. */
+    /* v3.3.374 hid this button whenever a plan existed for today, on the
+       argument that declaring a plan is itself a statement that today is not
+       a rest day. v3.3.436 RESTATES: that premise died when plans stopped
+       being a morning decision. The writer (v3.3.400) writes days ahead and
+       the rail (v3.3.397) wakes a plan written last night; a plan is now a
+       forecast, and the morning keeps its vote. On 2026-09-04 the maker had
+       six exercises written for the day and no way to say "not today" --
+       the one screen that could record the decision refused to ask. Pattern
+       3 from the handoff: a dead constraint outliving its premise.
+       The button keeps one home, plan or no plan: beneath the plan section,
+       above Train next. It stays annotation, never homework (v3.3.79): the
+       plan is untouched, Train next still names the plan's first exercise,
+       and training always wins if a set lands anyway. */
     const _pl0=planNow();
     const _rest=!!(DB.days[todayISO]&&DB.days[todayISO].rest);
-    if(!_pl0) h+=`<button class="btn ghost restbtn ${_rest?'on':''}" id="restBtn">${
+    h+=`<button class="btn ghost restbtn ${_rest?'on':''}" id="restBtn">${
       _rest?'🍃 Resting today · tap to undo':'🍃 Rest day'}</button>`;
     /* v3.3.374: WITH A PLAN, "Train next" IS THE PLAN. The planner answers
        "what should I train?" from the rotation; the moment you save a plan you
