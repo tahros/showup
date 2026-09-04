@@ -928,8 +928,17 @@ run(`(function(){view='today'; lift.ex=null; render();})()`);
        run(`!!(DB.days[todayISO]&&DB.days[todayISO].rest)`));
     ok("...and leaves the plan itself untouched (rest is annotation, not an edit)",
        run(`!!(DB.plan&&DB.plan.d===todayISO&&DB.plan.items.length===2&&DB.plan.items[0].ex==='EZ Bar Curl')`));
-    ok("...and Train next still names the plan's first exercise (training always wins)",
-       /EZ Bar Curl/.test(nextCard()), nextCard());
+    /* v3.3.437 RESTATES this. v3.3.436 asserted Train next SURVIVES a rest
+       declaration, to prove rest was not editing the plan. The plan-survives
+       claim is unchanged and still checked above; what has reversed is the
+       rail, deliberately: a Start button under a declared rest day is the
+       screen not listening. Train next now stands down and one forward line
+       takes its place. The two facts are now split so neither can hide the
+       other. */
+    ok("...Train next stands down while resting",
+       nextCard()==='(quiet)' && !/Train next/.test(run(`$('#view').innerHTML`)), nextCard());
+    ok("...and one line about tomorrow takes its place",
+       /Tomorrow \u00b7/.test(run(`$('#view').innerHTML`)));
     ok("...while the button reads as the undo",
        /Resting today/.test(run(`document.getElementById('restBtn').textContent`)));
     run(`document.getElementById('restBtn').click();`);

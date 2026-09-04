@@ -1,5 +1,27 @@
 # ShowUp — changelog
 
+## v3.3.437 (2026-09-04) — The day exhales
+
+Declaring rest now changes the whole screen instead of one button.
+
+- Today's square in the header turns green — the same green the header wash is
+  mixed from. It is a live grade, like red: it lands on the tap and is gone at
+  midnight, when the day joins the record like any other rested day. No past
+  square ever turns green and the heatmap is untouched.
+- The plan folds to its header and the row reads `kept`. Nothing is deleted,
+  the chevron still opens it, and your own fold setting is left alone.
+- Train next stands down — no Start, no run nudge, no other-parts door. One
+  line takes their place: which part is next tomorrow, and an offer to carry
+  today's plan forward if tomorrow is empty. Carrying moves the plan rather
+  than copying it, so it can never wake twice.
+- The greeting shortens to `Rest.` The day count stays, since a rest day is
+  still a day you kept the record; the countdown to 1,000 goes.
+- The leaf is gone from the button, the chip and History. The square and the
+  wash already say it.
+
+A set logged anyway still takes all of it down, and the Train tab keeps the
+plan open — that is the screen you read to change your mind.
+
 ## v3.3.436 (2026-09-04) — The morning keeps its vote
 
 The rest-day button is offered even when a plan is written for today. Since

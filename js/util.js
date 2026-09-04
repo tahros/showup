@@ -895,6 +895,16 @@ function planItemShape(i){
   if(i&&!i.lines) return {ex:i.ex, lines:[{w:i.w||0, bw:!(i.w>0), reps:i.reps||[]}]};
   return i;
 }
+/* v3.3.437: ONE PREDICATE FOR "RESTING NOW". The header, the greeting, the
+   plan fold and Today's rail all key off this; four copies of
+   `d.rest && !d.w.length` would drift the first time one of them was edited.
+   The `!w.length` half is not belt-and-braces: save() clears the flag when a
+   set lands (core.js, "training always wins"), but a render can run between
+   the push and the save, and a green square over a logged set is a lie. */
+function restingToday(){
+  const t=DB.days&&DB.days[todayISO];
+  return !!(t&&t.rest&&!((t.w||[]).length));
+}
 const planNow=()=>{
   let p=DB.plan;
   /* v3.3.398: no plan of its own today -> the week's block for today, if a

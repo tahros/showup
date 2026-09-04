@@ -664,6 +664,19 @@ document.addEventListener('click',e=>{
     t.upd=Date.now();
     save(true); render(); return;
   }
+  if(e.target.closest&&e.target.closest('[data-carrytmw]')){
+    /* v3.3.437: CARRY MOVES, it does not copy. Two identical plans stamped
+       for two days would both wake, and the one you did not train would sit
+       in the ledger's forward view as a debt. The guard that offered this
+       button already proved DB.plan is today's own and tomorrow is empty;
+       re-check here rather than trust the markup, because a stale screen can
+       outlive its facts. */
+    if(!(DB.plan&&DB.plan.d===todayISO&&(DB.plan.items||[]).length)) return;
+    const tmw=tomorrowISO();
+    if((DB.week&&DB.week.days&&DB.week.days[tmw])||(DB.plan.d===tmw)) return;
+    DB.plan={...DB.plan, d:tmw}; DB.planAt=Date.now();
+    save(true); toast('Carried to tomorrow'); render(); return;
+  }
   if(e.target.closest('#bwEditBtn')){ bwEdit=true; renderStats();
     setTimeout(()=>{const i=$('#bwIn'); if(i){i.focus();i.select();}},0); return; }
   if(e.target.closest('#bwCancel')){ bwEdit=false; renderStats(); return; }

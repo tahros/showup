@@ -308,6 +308,14 @@ function helloSub(d){
 }
 function helloCard(){
   const n=firstName();
+  /* v3.3.437: RESTING SHORTENS THE LINE. "Morning" is a time of day and
+     "42 to 1,000" is a thing to chase; neither is what today is. The day
+     COUNT stays, because a rest day is still a day you kept the record — it
+     is the countdown that goes, since you are not closing on anything today.
+     The name goes with it: "Rest, Sungjee." reads as an instruction. */
+  if(restingToday())
+    return `<div class="hello resting"><span class="hi">Rest.</span><span class="hisub">${
+      fmt(SEED.totals.sessions)} days in.</span></div>`;
   const part=helloPart(new Date().getHours());
   const sub=helloSub(SEED.totals.sessions);
   return `<div class="hello"><span class="hi">${part}${n?', '+n:''}.</span>${
@@ -411,7 +419,7 @@ function renderToday(){
     const _pl0=planNow();
     const _rest=!!(DB.days[todayISO]&&DB.days[todayISO].rest);
     h+=`<button class="btn ghost restbtn ${_rest?'on':''}" id="restBtn">${
-      _rest?'🍃 Resting today · tap to undo':'🍃 Rest day'}</button>`;
+      _rest?'Resting today · tap to undo':'Rest day'}</button>`;
     /* v3.3.374: WITH A PLAN, "Train next" IS THE PLAN. The planner answers
        "what should I train?" from the rotation; the moment you save a plan you
        have answered it yourself, and a card arguing with your own decision is
@@ -422,6 +430,39 @@ function renderToday(){
        When every item is logged the card goes quiet rather than falling back
        to the rotation -- the honest next action then is the day-end button. */
     const _next=_pl0?(_pl0.items||[]).find(i=>!planLoggedToday(i.ex)):null;
+    /* v3.3.437: RESTING ANSWERS "WHAT SHOULD I TRAIN?" WITH NOTHING, so the
+       rail stops asking. Train next, the run nudge and the door to other
+       parts are all one question in three voices -- a Start button under a
+       declared rest day is the screen not listening.
+       What replaces them is a FACT, not a prompt: which part is next, from
+       the same rotation the app already trusts (or from tomorrow's saved plan
+       if one exists -- the plan outranks the guess). No button on it. The
+       Train tab is still one tap away in the nav; this line is not the only
+       door, it is just not a door. */
+    if(restingToday()){
+      const _tm=tomorrowISO();
+      const _wkT=DB.week&&DB.week.days&&DB.week.days[_tm];
+      const _pnT=(DB.plan&&DB.plan.d===_tm)?DB.plan:null;
+      const _srcT=_pnT||_wkT;
+      let _label='';
+      if(_srcT){
+        const seen=new Set(), order=Object.keys(SEED0.catalog);
+        for(const it of (_srcT.items||[])){ const pt=homePartOf(it.ex); if(pt) seen.add(pt); }
+        _label=order.filter(p=>seen.has(p)).concat([...seen].filter(p=>!order.includes(p))).join(' \u00b7 ');
+      }
+      if(!_label) _label=P.pick||'';
+      /* the carry is offered only when there is something to carry and
+         nowhere it would land on: a plan of TODAY'S OWN (never the week's --
+         moving one day out of a week would leave a hole in it) and no plan
+         already stamped for tomorrow. */
+      const _carry=!!(DB.plan&&DB.plan.d===todayISO&&(DB.plan.items||[]).length&&!_srcT);
+      if(_label||_carry){
+        h+=`<div class="row spread card tmwnext" style="margin-top:14px;padding:11px 14px">
+              <span class="mono" style="font-size:12px">${_label?`Tomorrow \u00b7 ${hesc(_label)}`:'Tomorrow'}</span>${
+              _carry?`<button class="chip" data-carrytmw>carry today's plan →</button>`:''}</div>`;
+      }
+      $('#view').innerHTML=h; msCountUp(); dayCountUp(); return;
+    }
     if(_pl0){
       h+=`<h2>Train next</h2>`;
       if(_next){

@@ -151,7 +151,18 @@ function planSectionHTML(){
   if(_ps){
     const _isToday=_ps.d===todayISO;
     const _cl=_isToday&&dayClosed();
-    const _pf=!!DB.settings.planFold;
+    /* v3.3.437: RESTING FOLDS TODAY'S PLAN, and the row says `kept`. Six
+       exercises listed under a declaration that you are not training them is
+       the screen arguing with you — the same fault v3.3.374 fixed from the
+       other side. Folded, not cleared: the plan survives, the chevron still
+       opens it, and the word says which.
+       It reads DB.settings.planFold but never WRITES it, so your own fold
+       preference is exactly where you left it when the rest flag comes down.
+       Today only: on the Train tab the plan is the thing you are reading to
+       decide, and folding it there would hide the case for changing your
+       mind. */
+    const _rf=_isToday&&view==='today'&&restingToday();
+    const _pf=!!DB.settings.planFold||_rf;
     const _n=(_ps.items||[]).length;
     const _dl=_isToday?'today':planDayLabel(_ps.d);
     h+=`<h2>${planPillsHTML('today',!!_wk,_dl)} plan${_tip}${
@@ -162,7 +173,7 @@ function planSectionHTML(){
        "4 done" here, and it was right -- a tick on a row is a fact, a tally
        across rows is a verdict on the plan, and the plan is never scored
        (v3.3.281). The ticks on the card beneath already say which. */
-    h+=`<button class="card planfoldrow${_isToday?'':' planpending'}" data-planfold aria-expanded="${!_pf}"><span class="pp-day mono">${_isToday?'Today':planDayLabel(_ps.d)}</span><span class="pp-right mono">${_n?`${_n} exercise${_n===1?'':'s'}`:'a note'}${icon('chevron',ICON_SZ.sm,_pf?0:90)}</span></button>`;
+    h+=`<button class="card planfoldrow${_isToday?'':' planpending'}${_rf?' plankept':''}" data-planfold aria-expanded="${!_pf}"><span class="pp-day mono">${_isToday?'Today':planDayLabel(_ps.d)}</span><span class="pp-right mono">${_n?`${_n} exercise${_n===1?'':'s'}`:'a note'}${_rf?' \u00b7 kept':''}${icon('chevron',ICON_SZ.sm,_pf?0:90)}</span></button>`;
     if(!_pf){
       const card=planCardHTML({d:_ps.d,items:_ps.items,note:_ps.note||''},_isToday);
       h+=_cl?`<div class="plspent">${card}</div>`:_isToday?card:`<div class="planahead">${card}</div>`;

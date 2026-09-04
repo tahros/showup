@@ -43,20 +43,27 @@ function renderHeader(){
      show a grey square is a record, and this app is a record.
      Seven is fixed. A 41-day streak is still seven squares -- the window
      never grows, so the header never changes shape.
-     A REST DAY IS DRAWN GREY, like every untrained day and like the heatmap
-     has drawn it for 953 days. The acknowledgement lives in the WORD, in the
-     rest ink v3.3.92 established for exactly this (rest as a text grade, not
-     a fill). Green would have been a third fill, would have had to spread to
-     the heatmap or contradict it, and would have made one fact wear two
-     colours depending on when you looked. */
+     A REST DAY IS DRAWN GREY in the record, like every untrained day and like
+     the heatmap has drawn it for 953 days. v3.3.379 refused green because it
+     would have been a third RECORD fill: it would have had to spread to the
+     heatmap or contradict it, and one fact would wear two colours depending
+     on when you looked.
+     v3.3.437 RESTATES that, and the premise is genuinely different. Green is
+     now a LIVE grade, not a record grade — the mirror of red, which has meant
+     "training right now" and nothing else since v3.3.379. It marks only
+     TODAY, only while the flag is up, and it is gone at midnight; the day
+     then joins the record grey like every rested day before it. The heatmap
+     is untouched, Stats is untouched, and no past square ever turns green.
+     The word keeps its own job in the rest ink (v3.3.92). */
   const _wk=$('#hWeek');
   if(_wk){
     const trainedOn=workoutDates();
+    const _rst=restingToday();
     let html='';
     for(let i=6;i>=0;i--){
       const d=new Date(todayISO+'T00:00'); d.setDate(d.getDate()-i);
       const iso=d.toLocaleDateString('en-CA');
-      html+=`<i class="hwd${trainedOn.has(iso)?' on':''}${i===0?' tod':''}"></i>`;
+      html+=`<i class="hwd${trainedOn.has(iso)?' on':''}${i===0?' tod':''}${i===0&&_rst?' resting':''}"></i>`;
     }
     /* v3.3.385: WRITE ONLY WHEN THE WEEK ACTUALLY CHANGES. renderHeader runs
        on every render, and rewriting innerHTML replaces the elements -- new
@@ -73,9 +80,12 @@ function renderHeader(){
      on a genuinely restful day. The hero card below keeps its unchanged
      'ends at midnight' honesty — the chip states the decision, not a
      promise. */
-  const _rt=DB.days&&DB.days[todayISO];
-  if(_rt&&_rt.rest&&!(_rt.w||[]).length){
-    $('#hStreak').textContent='rest 🍃';
+  if(restingToday()){
+    /* v3.3.437: the leaf is gone. The square beside this chip is green and
+       the whole header is washed in the same --rest; a glyph on top of two
+       surfaces already saying it was the third telling of one fact. The word
+       alone, in the rest ink, is the chip's whole job. */
+    $('#hStreak').textContent='rest';
     $('#hStreak').classList.remove('atrisk');
     $('#hStreak').classList.add('restchip');
   }else{

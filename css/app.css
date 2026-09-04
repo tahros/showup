@@ -820,6 +820,11 @@
      because a finished day that keeps pulsing is decoration. Only the outline
      COLOUR animates, so nothing reflows. */
   .h-week .hwd.tod:not(.on){animation:hwpulse 2.4s ease-in-out infinite}
+  /* v3.3.437: the breath means "this day is still open". Declaring rest
+     answers it, so the square goes still and green in the same beat. Without
+     this the pulse fights the fill for the outline colour and the square
+     flickers between green and blue forever. */
+  .h-week .hwd.tod.resting{animation:none}
   @keyframes hwpulse{
     0%,100%{outline-color:var(--accent)}
     50%{outline-color:color-mix(in srgb,var(--accent) 22%,transparent)}
@@ -838,6 +843,14 @@
      outline with an offset draws outside the box without occupying layout,
      and the trailing margin buys it the room it needs. */
   .h-week .hwd.tod{outline:1.5px solid var(--accent);outline-offset:2px}
+  /* v3.3.437: RESTING NOW. The fill and the outline are the same --rest the
+     header wash is mixed from, so the square and the header state one thing
+     in one colour. It is a LIVE grade, exactly as red is: it lands on tap and
+     is gone at midnight, when the day joins the record as a plain rested day.
+     Nothing in the heatmap or in Stats gains a third fill. */
+  .h-week .hwd.tod.resting{background:var(--rest);outline-color:var(--rest);
+    transition:background .4s ease,outline-color .4s ease}
+  header.resting .h-week .hwd.tod.resting{background:var(--rest-ink);outline-color:var(--rest-ink)}
   .h-week .hwd:last-child{margin-right:4px}
   header.live .h-week .hwd{background:rgba(255,255,255,.28)}
   header.live .h-week .hwd.on{background:#fff}

@@ -43,7 +43,9 @@ run(FIX);
 run(`view='today'; render();`);
 ok("the button is offered when nothing is logged",
    /id="restBtn"/.test(run(`$('#view').innerHTML`)));
-ok("...reading '\u{1F343} Rest day', unlit", /\u{1F343} Rest day/u.test(run(`$('#view').innerHTML`)));
+/* v3.3.437: the button lost its leaf too -- one word, one state. */
+ok("...reading 'Rest day', unlit and leafless",
+   />Rest day</.test(run(`$('#view').innerHTML`)) && !/\u{1F343}/u.test(run(`$('#view').innerHTML`)));
 run(`$('#view').querySelector('#restBtn').click();`);
 check("tap declares: the flag lands on today", `!!DB.days[todayISO].rest`, true);
 check("...with a fresh stamp for LWW", `DB.days[todayISO].upd>0`, true);
@@ -69,7 +71,13 @@ run(`renderHeader();`);
 /* v3.3.379: the leaf follows the word now, rather than leading it -- the
    chip reads "rest 🍃". The squares carry the count, so the chip is a LABEL
    rather than a count-with-an-icon, and a label puts its noun first. */
-check("the chip shows the leaf", `$('#hStreak').textContent`, "rest \u{1F343}");
+/* v3.3.437 RESTATES: the leaf is gone from the chip, the button and History.
+   Today's square beside this chip is green now and the whole header is washed
+   in the same --rest -- a glyph on top of two surfaces already saying it was
+   the third telling of one fact. Pinned exactly, so no leaf creeps back. */
+check("the chip is the word alone, no leaf", `$('#hStreak').textContent`, "rest");
+check("...and no leaf survives anywhere in the header",
+      `!/\u{1F343}/u.test(document.querySelector('header').innerHTML)`, "true");
 check("...and drops the at-risk pulse (the chip states a decision)",
       `$('#hStreak').classList.contains('atrisk')`, false);
 // v3.3.80: the chip's BASE rule is record-red (the fire earns it, the leaf
@@ -359,10 +367,17 @@ ok("the status-bar style no longer puts content under the status bar",
      heatmap or contradict it, and would have made one fact wear two colours
      depending on when you looked. */
   run(`(function(){DB.days[todayISO]={w:[],rest:1,upd:1}; SEED=deriveAll(); renderHeader();})()`);
-  check("a declared rest day is not a filled square",
-        `${/hwd tod$/.test(week())}`, "true");
-  check("...and no third fill exists anywhere in the week",
-        `${!/hwd rest|hwd green/.test(week())}`, "true");
+  /* v3.3.437 RESTATES this pair. They read "a rest day is not green; green
+     would have to spread to the heatmap". Green is a LIVE grade now, not a
+     record grade -- the mirror of red. So the rule splits: today MAY be green
+     while the flag is up, the square is still never FILLED (.on is the record
+     fill and rest earns no session), and no PAST square is ever green. */
+  check("a declared rest day is still not a FILLED square",
+        `${!/\bon\b/.test(week().split("|").pop())}`, "true");
+  check("...but today wears the live rest grade",
+        `${/hwd tod resting/.test(week())}`, "true");
+  check("...and no PAST square is ever green",
+        `${(week().match(/hwd[^"]*/g)||[]).slice(0,-1).every(c=>!/resting/.test(c))}`, "true");
 
   /* the window never grows: a long streak is still seven squares */
   run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
@@ -551,6 +566,96 @@ ok("the status-bar style no longer puts content under the status bar",
         `${/\.streak\{[^}]*color:var\(--chalk\)/.test(css)}`, "true");
   check("...and at-risk is still the one thing that reddens it",
         `${/#hStreak\.atrisk\{color:var\(--record\)/.test(css)}`, "true");
+}
+
+/* ================= v3.3.437: THE DAY EXHALES =================
+   Declaring rest changes four things at once, and each is asserted on the
+   EFFECT rather than on the branch that produces it: the rendered square's
+   class, the rendered greeting's text, the rendered fold row, and the
+   ABSENCE of the whole Train-next rail. The plan itself must survive all of
+   it -- rest is annotation, never an edit (the v3.3.79 line, still). */
+{
+  const D=n=>run(`(function(){const t=new Date(todayISO+'T00:00');t.setDate(t.getDate()-${n});return t.toLocaleDateString('en-CA')})()`);
+  const seed=()=>run(`(function(){
+    DB.days={}; DB.week=null; delete DB.settings.planFold; delete DB.settings.dayDone;
+    DB.settings.unit='lb'; DB.settings.name='Sungjee'; DB.settings.onboarded=true;
+    DB.days['${D(2)}']={w:[{part:'Legs',ex:'Squat',w:90,reps:[8],at:1}],upd:1};
+    DB.days['${D(1)}']={w:[{part:'Back',ex:'Deadlift',w:95,reps:[5],at:1}],upd:1};
+    DB.plan={d:todayISO, items:[
+      {ex:'Barbell Bench Press', lines:[{w:toKg(155),bw:false,reps:[8,8,6,6]}]},
+      {ex:'Dip', lines:[{w:toKg(45),bw:true,reps:[10,8,8]}]}], note:'', raw:''};
+    DB.planAt=Date.now(); SEED=deriveAll(); view='today'; lift.plan=null; render();})()`);
+  const V=()=>run(`$('#view').innerHTML`);
+  const tap=()=>run(`document.getElementById('restBtn').click();`);
+
+  seed();
+  ok("before rest: the rail asks what to train", /Train next/.test(V()));
+  ok("...today's square is the open ring, not green",
+     run(`(function(){const s=document.querySelectorAll('#hWeek .hwd'); const t=s[s.length-1];
+       return t.classList.contains('tod')&&!t.classList.contains('resting');})()`));
+
+  tap();
+  // 1. the square
+  ok("resting: today's square wears .rst, and only today's",
+     run(`(function(){const s=[...document.querySelectorAll('#hWeek .hwd')];
+       return s[s.length-1].classList.contains('resting') && s.slice(0,-1).every(x=>!x.classList.contains('resting'));})()`));
+  // 2. the greeting
+  ok("...the greeting shortens to 'Rest.'", /Rest\./.test(V()) && !/Morning|Afternoon|Evening/.test(V()));
+  ok("...keeping the day count, dropping the countdown",
+     /days in\./.test(V()) && !/to 1,000|to 1000/.test(V()));
+  // 3. the fold
+  /* asserted on the row's TEXT, not on innerHTML: the first version matched
+     /kept/ against the markup, and the .plankept CLASS satisfied it -- so
+     deleting the visible word left the check green. A hollow assertion,
+     found by probing. */
+  ok("...the plan folds and the row says 'kept'",
+     run(`(function(){const r=document.querySelector('.planfoldrow');
+       return r?r.textContent:'(absent)';})()`).includes('kept'));
+  ok("...the exercises are hidden, not deleted",
+     !/Barbell Bench Press/.test(V()) && run(`DB.plan.items.length===2`));
+  ok("...and the saved fold preference is NOT written",
+     run(`DB.settings.planFold===undefined`));
+  // 4. the rail
+  ok("...Train next is gone entirely", !/Train next/.test(V()));
+  ok("...with no Start, no run nudge and no other-parts door",
+     !/data-planex|data-go=|goLift/.test(V()));
+  ok("...replaced by tomorrow, stated as a fact with no button on it",
+     /Tomorrow \u00b7/.test(V()));
+
+  // the carry: offered, and it MOVES rather than copies
+  ok("...and today's plan can be carried to tomorrow", /data-carrytmw/.test(V()));
+  run(`document.querySelector('[data-carrytmw]').click();`);
+  ok("carry moves the plan: tomorrow has it",
+     run(`DB.plan.d===tomorrowISO() && DB.plan.items.length===2`));
+  ok("...and today does not (a copy would wake twice)", run(`!planNow()`));
+  ok("...so the carry is no longer offered", !/data-carrytmw/.test(V()));
+
+  // undo walks every one of them out
+  seed(); tap(); tap();
+  ok("undo: the square drops .rst",
+     run(`(function(){const s=[...document.querySelectorAll('#hWeek .hwd')];
+       return !s[s.length-1].classList.contains('resting');})()`));
+  ok("...the greeting comes back", !/Rest\./.test(V()));
+  ok("...the plan unfolds", /Barbell Bench Press/.test(V()));
+  ok("...and Train next returns", /Train next/.test(V()));
+
+  /* TRAINING ALWAYS WINS, tested through the render rather than the flag:
+     a logged set clears rest in save(), so the screen must be fully back. */
+  seed(); tap();
+  run(`(function(){DB.days[todayISO].w.push({part:'Chest',ex:'Barbell Bench Press',w:toKg(155),reps:[8],at:1});
+    save(true); SEED=deriveAll(); render();})()`);
+  ok("a set logged anyway takes the whole rest state down",
+     run(`!restingToday()`) &&
+     run(`(function(){const s=[...document.querySelectorAll('#hWeek .hwd')];
+       return !s[s.length-1].classList.contains('resting');})()`));
+
+  /* the fold is TODAY'S SCREEN only: the Train tab still shows the plan
+     open, because that is the screen you read to change your mind. */
+  seed(); tap();
+  run(`view='lift'; lift.part=null; lift.ex=null; render();`);
+  ok("the Train tab keeps the plan open while resting",
+     /Barbell Bench Press/.test(run(`$('#view').innerHTML`)));
+  run(`view='today'; render();`);
 }
 
 process.exit(fail ? 1 : 0);
