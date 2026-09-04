@@ -1,5 +1,26 @@
 # ShowUp — changelog
 
+## v3.3.439 (2026-09-04) — Why your name and sex vanished
+
+Root cause, named: settings were one document under one clock. Whichever
+device touched *any* setting most recently owned *every* setting. Folding a
+plan is a setting. So a second device that folded a plan pushed its whole
+settings blob with a fresh stamp — and if that blob carried a stale
+`name: null, sex: null` (the YOU form writes null for an empty field; the sex
+toggle writes null on a second tap), the phone adopted the nulls along with the
+fold. Nothing was deleted on purpose; a fact nobody touched lost to a fact
+somebody did. v3.3.44 fixed the same structure's earlier casualty, bodyweight,
+by making the clock honest. It left the blob.
+
+Fixed the way days already work: **every setting has its own clock.** Saving
+stamps only the keys that changed; a pull compares key by key; a key another
+device never edited cannot travel over one you did. A clearing you make on
+purpose still travels — it carries its own fresh stamp. Two rules keep the
+upgrade safe while devices are on mixed versions: an unstamped key inherits its
+blob's stamp, and an inherited null never erases a present value.
+
+You will need to re-enter your name and sex once. After that they stay.
+
 ## v3.3.438 (2026-09-04) — Handoff corrected
 
 Docs only, no behaviour change. `docs/HANDOFF.md` had day 1,000 at October 5;

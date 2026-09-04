@@ -1,7 +1,7 @@
 /* ShowUp — core.js
    Extracted verbatim from index.html (v3.2.5 refactor). Classic script:
    shares one global scope with its siblings, loaded in order by index.html. */
-const APP_VERSION = 'v3.3.438';
+const APP_VERSION = 'v3.3.439';
 const SEED0 = {catalog:{"Chest":["Incline Smith Machine Bench Press","Flat Smith Machine Bench Press","Incline Dumbbell Bench Press","Chest Press","Chest Fly","Cable Fly Up","Cable Fly Down","Chest Squeeze","Dip","Barbell Bench Press","Incline Barbell Bench Press","Decline Barbell Bench Press","Dumbbell Bench Press","Decline Dumbbell Bench Press","Machine Chest Press","Cable Crossover","Incline Cable Fly","Low Cable Fly","Dumbbell Pullover","Landmine Press","Svend Press","Push Up","Weighted Push Up"],"Back":["Pull Up","Lat Pulldown","Bent-Over Row","Deadlift","Chin Up","Weighted Pull Up","Seated Cable Row","Single-Arm Dumbbell Row","T-Bar Row","Pendlay Row","Barbell Shrug","Rack Pull","Straight-Arm Pulldown","Close-Grip Lat Pulldown","Inverted Row","Chest-Supported Row","Machine Row"],"Shoulder":["Dumbbell Shoulder Press","Lateral Raise","Dumbbell Front Raise","Dumbbell Combination","Dumbbell Bent Over Side Raise","Rear Deltoids","Overhead Barbell Press","Arnold Press","Machine Shoulder Press","Cable Lateral Raise","Face Pull","Upright Row","Reverse Pec Deck","Landmine Lateral Raise","Cable Rear Delt Fly"],"Legs":["Squat","Dumbbell Lunge","Front Squat","Hack Squat","Leg Press","Romanian Deadlift","Bulgarian Split Squat","Walking Lunge","Leg Extension","Lying Leg Curl","Seated Leg Curl","Hip Thrust","Goblet Squat","Standing Calf Raise","Seated Calf Raise","Step Up"],"Biceps":["Barbell Curl","Dumbbell Curl","Hammer Curl","EZ Bar Curl","Preacher Curl","Cable Curl","Incline Dumbbell Curl","Concentration Curl","Spider Curl","Reverse Curl","Cable Hammer Curl"],"Triceps":["Overhead Triceps Extension","Close Grip Bench Press","Triceps Pushdown","Rope Pushdown","Skull Crusher","Bench Dip","Dumbbell Kickback","Overhead Cable Extension","Diamond Push Up"],"Sixpack":["Hanging Leg Raise","Leg Raise","Plank","Cable Crunch","Russian Twist","Ab Wheel Rollout","Bicycle Crunch","Sit Up","Decline Sit Up","Mountain Climber","Side Plank"],"Run":["Run"]},ex2part:{"Incline Smith Machine Bench Press":"Chest","Flat Smith Machine Bench Press":"Chest","Incline Dumbbell Bench Press":"Chest","Chest Press":"Chest","Chest Fly":"Chest","Cable Fly Up":"Chest","Cable Fly Down":"Chest","Chest Squeeze":"Chest","Dip":"Chest","Barbell Bench Press":"Chest","Incline Barbell Bench Press":"Chest","Decline Barbell Bench Press":"Chest","Dumbbell Bench Press":"Chest","Decline Dumbbell Bench Press":"Chest","Machine Chest Press":"Chest","Cable Crossover":"Chest","Incline Cable Fly":"Chest","Low Cable Fly":"Chest","Dumbbell Pullover":"Chest","Landmine Press":"Chest","Svend Press":"Chest","Push Up":"Chest","Weighted Push Up":"Chest","Pull Up":"Back","Lat Pulldown":"Back","Bent-Over Row":"Back","Deadlift":"Back","Chin Up":"Back","Weighted Pull Up":"Back","Seated Cable Row":"Back","Single-Arm Dumbbell Row":"Back","T-Bar Row":"Back","Pendlay Row":"Back","Barbell Shrug":"Back","Rack Pull":"Back","Straight-Arm Pulldown":"Back","Close-Grip Lat Pulldown":"Back","Inverted Row":"Back","Chest-Supported Row":"Back","Machine Row":"Back","Dumbbell Shoulder Press":"Shoulder","Lateral Raise":"Shoulder","Dumbbell Front Raise":"Shoulder","Dumbbell Combination":"Shoulder","Dumbbell Bent Over Side Raise":"Shoulder","Rear Deltoids":"Shoulder","Overhead Barbell Press":"Shoulder","Arnold Press":"Shoulder","Machine Shoulder Press":"Shoulder","Cable Lateral Raise":"Shoulder","Face Pull":"Shoulder","Upright Row":"Shoulder","Reverse Pec Deck":"Shoulder","Landmine Lateral Raise":"Shoulder","Cable Rear Delt Fly":"Shoulder","Squat":"Legs","Dumbbell Lunge":"Legs","Front Squat":"Legs","Hack Squat":"Legs","Leg Press":"Legs","Romanian Deadlift":"Legs","Bulgarian Split Squat":"Legs","Walking Lunge":"Legs","Leg Extension":"Legs","Lying Leg Curl":"Legs","Seated Leg Curl":"Legs","Hip Thrust":"Legs","Goblet Squat":"Legs","Standing Calf Raise":"Legs","Seated Calf Raise":"Legs","Step Up":"Legs","Barbell Curl":"Biceps","Dumbbell Curl":"Biceps","Hammer Curl":"Biceps","EZ Bar Curl":"Biceps","Preacher Curl":"Biceps","Cable Curl":"Biceps","Incline Dumbbell Curl":"Biceps","Concentration Curl":"Biceps","Spider Curl":"Biceps","Reverse Curl":"Biceps","Cable Hammer Curl":"Biceps","Overhead Triceps Extension":"Triceps","Close Grip Bench Press":"Triceps","Triceps Pushdown":"Triceps","Rope Pushdown":"Triceps","Skull Crusher":"Triceps","Bench Dip":"Triceps","Dumbbell Kickback":"Triceps","Overhead Cable Extension":"Triceps","Diamond Push Up":"Triceps","Hanging Leg Raise":"Sixpack","Leg Raise":"Sixpack","Plank":"Sixpack","Cable Crunch":"Sixpack","Russian Twist":"Sixpack","Ab Wheel Rollout":"Sixpack","Bicycle Crunch":"Sixpack","Sit Up":"Sixpack","Decline Sit Up":"Sixpack","Mountain Climber":"Sixpack","Side Plank":"Sixpack","Run":"Run"},equip:{"Incline Smith Machine Bench Press":"smith","Flat Smith Machine Bench Press":"smith","Incline Dumbbell Bench Press":"dumbbell","Chest Press":"machine","Chest Fly":"machine","Cable Fly Up":"cable","Cable Fly Down":"cable","Chest Squeeze":"body","Dip":"body","Barbell Bench Press":"barbell","Incline Barbell Bench Press":"barbell","Decline Barbell Bench Press":"barbell","Dumbbell Bench Press":"dumbbell","Decline Dumbbell Bench Press":"dumbbell","Machine Chest Press":"machine","Cable Crossover":"cable","Incline Cable Fly":"cable","Low Cable Fly":"cable","Dumbbell Pullover":"dumbbell","Landmine Press":"barbell","Svend Press":"dumbbell","Push Up":"body","Weighted Push Up":"body","Pull Up":"body","Lat Pulldown":"cable","Bent-Over Row":"barbell","Deadlift":"barbell","Chin Up":"body","Weighted Pull Up":"body","Seated Cable Row":"cable","Single-Arm Dumbbell Row":"dumbbell","T-Bar Row":"barbell","Pendlay Row":"barbell","Barbell Shrug":"barbell","Rack Pull":"barbell","Straight-Arm Pulldown":"cable","Close-Grip Lat Pulldown":"cable","Inverted Row":"body","Chest-Supported Row":"cable","Machine Row":"cable","Dumbbell Shoulder Press":"dumbbell","Lateral Raise":"dumbbell","Dumbbell Front Raise":"dumbbell","Dumbbell Combination":"dumbbell","Dumbbell Bent Over Side Raise":"dumbbell","Rear Deltoids":"machine","Overhead Barbell Press":"barbell","Arnold Press":"dumbbell","Machine Shoulder Press":"machine","Cable Lateral Raise":"cable","Face Pull":"cable","Upright Row":"barbell","Reverse Pec Deck":"machine","Landmine Lateral Raise":"cable","Cable Rear Delt Fly":"cable","Squat":"barbell","Dumbbell Lunge":"dumbbell","Front Squat":"barbell","Hack Squat":"plate","Leg Press":"plate","Romanian Deadlift":"barbell","Bulgarian Split Squat":"dumbbell","Walking Lunge":"dumbbell","Leg Extension":"machine","Lying Leg Curl":"machine","Seated Leg Curl":"machine","Hip Thrust":"barbell","Goblet Squat":"barbell","Standing Calf Raise":"machine","Seated Calf Raise":"machine","Step Up":"dumbbell","Barbell Curl":"barbell","Dumbbell Curl":"dumbbell","Hammer Curl":"dumbbell","EZ Bar Curl":"barbell","Preacher Curl":"barbell","Cable Curl":"cable","Incline Dumbbell Curl":"dumbbell","Concentration Curl":"dumbbell","Spider Curl":"dumbbell","Reverse Curl":"barbell","Cable Hammer Curl":"cable","Overhead Triceps Extension":"machine","Close Grip Bench Press":"barbell","Triceps Pushdown":"cable","Rope Pushdown":"cable","Skull Crusher":"barbell","Bench Dip":"body","Dumbbell Kickback":"dumbbell","Overhead Cable Extension":"cable","Diamond Push Up":"body","Hanging Leg Raise":"body","Leg Raise":"body","Plank":"body","Cable Crunch":"cable","Russian Twist":"body","Ab Wheel Rollout":"body","Bicycle Crunch":"body","Sit Up":"body","Decline Sit Up":"body","Mountain Climber":"body","Side Plank":"body","Run":"run"},sessions:{},dates:[],monthly:{},pr:{},hist:{},last:{},lastSess:{},repFreq:{},exFreq:{},exLast:{},partCount:{},partLast:{},partDays:{},totals:{sessions:0,first:null,last:'0000-00-00',km:0,vol:0}};
 /* v3.2.1: the 918-day seed literal is GONE (~75% of this file). History lives
    in doc.days (Supabase + localStorage). Full seed preserved forever in git
@@ -336,6 +336,7 @@ async function cloudPushNow(keepalive){
   if(!pulledOK) return false;   // a device that hasn't restored yet never overwrites the cloud
   try{
     const doc={days:DB.days, settings:DB.settings, settingsAt:DB.settingsAt||0,
+      settingsAtK:DB.settingsAtK||{},         // v3.3.439: the per-key clock travels with the blob
       suggest:DB.suggest,
       plan:DB.plan||null, planAt:DB.planAt||0,
       week:DB.week||null, weekAt:DB.weekAt||0};
@@ -374,7 +375,7 @@ async function load(){
   migrateExNames();           // v3.3.167: before anything derives or renders
   migrateCanon();             // v3.3.191: ids assigned before anything groups
   _bwFix=migrateBodyweight(); // v3.3.224: bodyweight logs predating the BW+n convention
-  _setSig=settingsSig();      // baseline: loading is not an edit
+  settingsBaseline();          // baseline: loading is not an edit (v3.3.439: per key)
   applyTheme();
 }
 /* v3.3.167: five catalog names moved to their globally standard forms, and
@@ -572,17 +573,68 @@ function settingsSig(){
     if(!VOLATILE_SETTINGS.has(k)) s[k]=DB.settings[k];
   return JSON.stringify(s);
 }
-let _setSig=null;
+let _setSig=null, _setSnap=null;
+/* v3.3.439: per-key snapshot of the last-saved settings, so save() can tell
+   WHICH keys changed rather than just THAT something did. Also the one place
+   that stamps existing keys on first run after the upgrade: every present
+   value gets the blob's stamp as its own; nulls stay unstamped so the legacy
+   rule in adoptRemoteSettings keeps treating them as absence. */
+function settingsSnap(){
+  const s={};
+  for(const k of Object.keys(DB.settings||{}).sort())
+    if(!VOLATILE_SETTINGS.has(k)) s[k]=JSON.stringify(DB.settings[k]);
+  return s;
+}
+function settingsBaseline(){
+  _setSig=settingsSig(); _setSnap=settingsSnap();
+  const K=DB.settingsAtK||(DB.settingsAtK={}), at=+DB.settingsAt||0;
+  for(const k of Object.keys(_setSnap)) if(!K[k]&&DB.settings[k]!=null) K[k]=at;
+}
 /* Adopting the cloud's settings is not a local edit — record the signature so
    the save() that follows doesn't re-stamp them as ours. */
+/* v3.3.439 -- why the NAME and SEX vanished at random.
+   v3.3.44 made the settings clock honest. It left the settings DOCUMENT as one
+   blob under that one clock, so the rule was still: whichever device touched
+   ANY setting most recently owns EVERY setting. planFold is a setting. So a
+   second device that folded a plan pushed its whole blob with a fresh stamp,
+   and if that blob carried a stale `name:null, sex:null` -- the YOU form
+   writes null for an empty field, the sex toggle writes null on a second tap
+   -- the phone adopted the nulls along with the fold. A fact nobody touched
+   lost to a fact somebody did. bodyKg was v3.3.44's visible casualty for the
+   same structural reason; name and sex were this one's.
+
+   The fix is the days model, applied to settings: EACH KEY HAS ITS OWN
+   CLOCK (DB.settingsAtK). save() stamps only the keys whose value changed.
+   A pull compares key by key; a key the other device never edited cannot
+   travel over one this device did. DB.settingsAt survives as the blob's
+   high-water mark for devices still on the old shape.
+
+   Two legacy rules make the upgrade safe while devices are mixed:
+   - a key with no stamp of its own inherits its blob's stamp (old shape);
+   - an INHERITED null never erases a present value. Only a null that was
+     written by a save() -- and so carries a real per-key stamp -- is a
+     deletion. Nulls from the old world are absence, not intent. */
 function adoptRemoteSettings(remote){
   if(!(remote&&remote.settings)) return false;
-  if((remote.settingsAt||0)<=(DB.settingsAt||0)) return false;
-  DB.settings={...DB.settings,...remote.settings};
-  DB.settingsAt=remote.settingsAt;
-  _setSig=settingsSig();
-  applyTheme();
-  return true;
+  const rAt=+remote.settingsAt||0, lAt=+DB.settingsAt||0;
+  const rK=remote.settingsAtK||null;
+  const lK=DB.settingsAtK||(DB.settingsAtK={});
+  let took=false;
+  for(const k of Object.keys(remote.settings)){
+    if(VOLATILE_SETTINGS.has(k)) continue;
+    const rv=remote.settings[k];
+    const stamped=!!(rK&&rK[k]);
+    const rs=stamped?+rK[k]:rAt;
+    const ls=lK[k]||lAt;
+    if(rs<=ls) continue;                                   // ours is as new or newer
+    const have=DB.settings[k]!=null;
+    if(rv==null&&have&&!stamped) continue;                 // legacy null: absence, not a deletion
+    if(JSON.stringify(rv)!==JSON.stringify(DB.settings[k])){ DB.settings[k]=rv; took=true; }
+    lK[k]=rs;
+  }
+  if(rAt>lAt) DB.settingsAt=rAt;
+  if(took){ settingsBaseline(); applyTheme(); }
+  return took;
 }
 /* v3.3.418: PLANS TRAVEL WITH THE PERSON. Workout days already merge one
    date at a time and settings already have their own clock. A plan and a
@@ -617,7 +669,18 @@ function save(markSettings){
   const _t=DB.days&&DB.days[todayISO];
   if(_t&&_t.rest&&(_t.w||[]).length){ delete _t.rest; _t.upd=Date.now(); }
   const sig=settingsSig();
-  if(markSettings || (_setSig!==null && sig!==_setSig)) DB.settingsAt=Date.now();
+  const now=Date.now();
+  if(markSettings || (_setSig!==null && sig!==_setSig)) DB.settingsAt=now;
+  /* v3.3.439: stamp the KEYS that moved, not the blob. A key that goes to
+     null or disappears is stamped too -- that is a real deletion, and it
+     must travel. Keys that did not move keep their stamps, which is the
+     whole point: folding a plan can no longer carry a name across. */
+  if(_setSnap!==null){
+    const snap=settingsSnap(), K=DB.settingsAtK||(DB.settingsAtK={});
+    for(const k of new Set([...Object.keys(snap),...Object.keys(_setSnap)]))
+      if(snap[k]!==_setSnap[k]) K[k]=now;
+    _setSnap=snap;
+  }
   _setSig=sig;
   saveDirty=true;
   clearTimeout(saveTimer);

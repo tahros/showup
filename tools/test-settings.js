@@ -102,4 +102,46 @@ check("...and the one non-obvious rule survives",
 check("no Supabase host anywhere in the rendered app",
       `$('#view').innerHTML.indexOf('supabase')>-1`, false);
 
+/* ================= v3.3.439: THE NAME AND SEX THAT VANISHED =================
+   The v3.3.44 fix above made the settings CLOCK honest. It left the settings
+   DOCUMENT as one blob under that one clock, so the rule was still: whichever
+   device touched ANY setting most recently owns EVERY setting. A second device
+   that folded a plan -- planFold is a setting -- pushed its whole blob, and if
+   that blob carried a stale `name:null, sex:null` (the YOU form writes null
+   for an empty field; the sex toggle writes null on a second tap), the phone
+   adopted the nulls along with the fold. Nothing was "deleted"; a fact nobody
+   touched lost to a fact somebody did.
+
+   Reproduced here as it happened: the phone has a name and a sex; the other
+   device's blob is newer by one unrelated key. */
+run(`DB.settings.name='Sungjee'; DB.settings.sex='m'; DB.settings.planFold=false;
+     DB.settingsAt=5000; DB.settingsAtK=null; _setSig=settingsSig(); if(typeof settingsBaseline==='function') settingsBaseline();`);
+run(`adoptRemoteSettings({settings:{name:null, sex:null, planFold:true, unit:'lb'}, settingsAt:6000});`);
+check("another device folding a plan does not erase the name",  `DB.settings.name`, "Sungjee");
+check("...nor the sex",                                          `DB.settings.sex`,  "m");
+check("...while the fold it actually changed IS adopted",        `DB.settings.planFold`, true);
+check("...and so is a key we never had",                         `DB.settings.unit`, "lb");
+
+/* A DELIBERATE clearing must still travel. Clearing the name on the other
+   device is an edit with its own fresh stamp; that beats our older name. */
+run(`DB.settings.name='Sungjee'; DB.settingsAtK={name:5000}; DB.settingsAt=5000; settingsBaseline();`);
+run(`adoptRemoteSettings({settings:{name:null}, settingsAt:7000, settingsAtK:{name:7000}});`);
+check("a clearing stamped on its own key does travel", `DB.settings.name`, null);
+
+/* ...but an OLDER stamped clearing loses to a newer local name. */
+run(`DB.settings.name='Sungjee'; DB.settingsAtK={name:8000}; DB.settingsAt=8000; settingsBaseline();`);
+run(`adoptRemoteSettings({settings:{name:null}, settingsAt:7500, settingsAtK:{name:7000}});`);
+check("an older clearing does not beat a newer name", `DB.settings.name`, "Sungjee");
+
+/* The clock is per key now: editing one setting stamps THAT key, not all. */
+run(`DB.settings.name='Sungjee'; DB.settings.sex='m'; DB.settings.planFold=false; DB.settingsAt=1000; DB.settingsAtK={name:1000,sex:1000,planFold:1000}; settingsBaseline();
+     DB.settings.planFold=true; save();`);
+check("editing planFold stamps planFold", `(DB.settingsAtK.planFold||0)>1000`, true);
+check("...and leaves name's stamp where it was", `DB.settingsAtK.name`, 1000);
+check("...and sex's",                             `DB.settingsAtK.sex`,  1000);
+
+/* And the push carries the per-key clock, or none of this reaches the cloud. */
+const pushSrc = fs.readFileSync(path.join(dir, "js/core.js"), "utf8");
+check("the pushed doc carries settingsAtK", `${/settingsAtK:\s*DB\.settingsAtK/.test(pushSrc)}`, "true");
+
 process.exit(fail ? 1 : 0);

@@ -123,6 +123,11 @@ up — it is why a cold session can move fast.
    three real bugs while the maker's screen never changed. Ask what the screen
    actually shows; grep for its words.
 8. **Deploys that half-land.** Pages and the function are separate workflows.
+9. **One clock for many facts.** Settings were one blob under one timestamp,
+   so any device changing any setting overwrote every setting everywhere;
+   name and sex vanished whenever another device folded a plan. Bodyweight
+   had gone the same way in v3.3.44. Fixed in v3.3.439 with per-key clocks.
+   If two facts can be edited independently, they need independent clocks.
 
 ## 6. Where the app is now
 

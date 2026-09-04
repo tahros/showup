@@ -350,7 +350,7 @@ function dailyBackup(){
   try{
     const k='showup:bak:'+todayISO;
     if(localStorage.getItem(k)) return;
-    localStorage.setItem(k, JSON.stringify({days:DB.days,settings:DB.settings,settingsAt:DB.settingsAt}));
+    localStorage.setItem(k, JSON.stringify({days:DB.days,settings:DB.settings,settingsAt:DB.settingsAt,settingsAtK:DB.settingsAtK||{}}));
     Object.keys(localStorage).filter(x=>x.startsWith('showup:bak:')).sort().slice(0,-5)
       .forEach(x=>localStorage.removeItem(x));            // keep the last 5 days
   }catch(e){}
