@@ -50,14 +50,18 @@ const WRITER_LOAD_BAND=0.10;     // the CEILING over the eight-week best; below 
    band and one step: 2.5 kg, which is a 5 lb pin or a 2.5 on each side. */
 const WRITER_STEP_KG=2.5;
 const WRITER_NEW_MAX=2;
-const OBJECTIVES=[['grow','Grow'],['lose','Lose weight'],['strength','Strength'],['keep','Keep going']];
+/* v3.3.444: "Keep going" is gone from the row. It was the objective of having
+   no objective, and the maker never chose it; a stored 'keep' from before
+   this release reads as Grow, the default, so no one lands with nothing lit. */
+const OBJECTIVES=[['grow','Grow'],['lose','Lose weight'],['strength','Strength']];
 const WEEKDAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
 /* ---- state: lift.write ---- */
 function writerState(){
   if(lift.write) return lift.write;
   const d0=writeDateISO();
-  const o={scope:d0===todayISO?'today':'tomorrow', part:'auto', objective:DB.settings.objective||'grow', note:'', days:null, nextWeek:false, busy:false, err:''};
+  const _obj=DB.settings.objective; // v3.3.444: 'keep' no longer has a chip -- see OBJECTIVES
+  const o={scope:d0===todayISO?'today':'tomorrow', part:'auto', objective:(_obj&&_obj!=='keep')?_obj:'grow', note:'', days:null, nextWeek:false, busy:false, err:''};
   lift.write=o; return o;
 }
 /* the days a week can hold: from its first day through Sunday (and, if
@@ -615,15 +619,23 @@ function writerScreenHTML(){
     const d=o.scope==='tomorrow'?d1:todayISO;
     if(o.scope==='today'&&d0!==todayISO) body+=`<div class="mono muted" style="font-size:11px;line-height:1.5;padding:8px 2px 0">Today is in the record already; the ledger would write ${planDayLabel(d1)}. Your call.</div>`;
     if(o.scope==='tomorrow'&&d0===todayISO) body+=`<div class="mono muted" style="font-size:11px;line-height:1.5;padding:8px 2px 0">Nothing logged today yet. This writes ${planDayLabel(d1)} and opens it at midnight.</div>`;
-    body+=`<div class="lasthead" style="margin-top:16px"><span>FOR</span><span class="ago mono">${P.pick?`rotation says ${P.pick}`:'no rotation yet'}</span></div>
+    /* v3.3.444: the hint beside FOR no longer names the rotation's pick. The
+       maker's copy, verbatim: it says what the row is for rather than what
+       the app would have chosen -- the writer's call already carries that. */
+    body+=`<div class="lasthead" style="margin-top:16px"><span>FOR</span></div>
+      <div class="mono muted" style="font-size:11px;line-height:1.5;padding:0 2px 8px">pick body parts that you want to specifically focus on</div>
       <div class="chips">${chips(parts,k=>o.part===k,'data-writefor')}</div>`;
     const thin=o.part!=='auto'&&((P.info[o.part]||{}).days||0)<4;
     if(thin) body+=`<div class="mono muted" style="font-size:11px;line-height:1.5;padding:10px 2px 0">${(P.info[o.part]||{}).days||0} ${o.part} day${((P.info[o.part]||{}).days||0)===1?'':'s'} on record. Loads will read <b style="color:var(--chalk)">by feel</b> or ≈ until there is more to read — the writer never states a weight you have not lifted.</div>`;
   }
-  body+=`<div class="lasthead" style="margin-top:16px"><span>OBJECTIVE</span><span class="ago mono">remembered</span></div>
+  /* v3.3.444: "remembered" and the privacy paragraph are gone at the maker's
+     word. The objective still IS remembered (data-writeobj writes
+     DB.settings.objective, asserted in test-writer) -- the label was
+     narrating a mechanism. The privacy line moves to the (i) tip, where
+     explanations live; the ask screen asks. */
+  body+=`<div class="lasthead" style="margin-top:16px"><span>OBJECTIVE</span></div>
     <div class="chips">${chips(OBJECTIVES,k=>o.objective===k,'data-writeobj')}</div>
-    <textarea class="planta" id="writeNote" rows="2" style="margin-top:14px" placeholder="Anything else. A sore knee, 45 minutes, no barbell today.">${hesc(o.note)}</textarea>
-    <div class="mono muted" style="font-size:11px;line-height:1.5;padding:10px 2px 0">Eight weeks of your sets, every part, saved plans in this week, and this note go out to write it. Nothing comes back into your record; you read it first, like a paste.</div>`;
+    <textarea class="planta" id="writeNote" rows="2" style="margin-top:14px" autocorrect="off" autocapitalize="sentences" placeholder="Anything else. A sore knee, 45 minutes, no barbell today.">${hesc(o.note)}</textarea>`;
   /* v3.3.421: a rewrite says what it replaces, once, plainly. */
   if(o.scope==='week'&&o.rewrite&&o.days&&o.days.size){
     const ds=[...o.days].sort();
@@ -632,11 +644,11 @@ function writerScreenHTML(){
   const label=o.busy?'Writing…':o.scope==='week'?`${o.rewrite?'Rewrite':'Write'} ${o.days?o.days.size:''} session${o.days&&o.days.size===1?'':'s'}`:`Write ${planDayLabel(o.scope==='tomorrow'?d1:todayISO)}`;
   const err=o.err?`<div class="mono writeerr" style="font-size:12px;color:var(--record);padding:10px 2px 0">${hesc(o.err)}</div>`:'';
   return `<h2>Write a session</h2><div class="card writecard">${seg}${body}${err}
-    <div class="planacts" style="padding-left:0;padding-right:0">
-      <button class="btn wide" data-writego ${o.busy||(o.scope==='week'&&!(o.days&&o.days.size))?'disabled':''} style="margin:0">${label}</button>
-      <button class="btn ghost wide" data-writepaste style="margin:0">Paste one instead</button>
-    </div>
-    <button class="btn ghost" data-writeback style="margin-top:8px">Cancel</button></div>`;
+    <div class="planacts row" style="padding-left:0;padding-right:0">
+      <button class="btn" data-writego ${o.busy||(o.scope==='week'&&!(o.days&&o.days.size))?'disabled':''} style="margin:0">${label}</button>
+      <button class="btn ghost" data-writepaste style="margin:0">Paste</button>
+      <button class="btn ghost" data-writeback style="margin:0">Cancel</button>
+    </div></div>`;
 }
 
 /* ============ v3.3.406: THE WAIT IS A RECEIPT ============

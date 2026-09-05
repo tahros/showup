@@ -43,12 +43,26 @@ run(`document.querySelector('[data-planwrite]').click()`);
 ok("tapping it opens the ask screen", run(`lift.plan==='write' && !!document.querySelector('.writecard')`));
 ok("...three scopes: today, tomorrow, this week", run(`document.querySelectorAll('[data-writescope]').length`)===3);
 ok("...with nothing logged, the ledger picks today", run(`writerState().scope==='today'`) && run(`document.querySelector('[data-writescope="today"]').classList.contains('sel')`));
-ok("...For defaults to the writer's call and names the rotation's pick beside it",
-   run(`writerState().part==='auto'`) && /rotation says/.test(run(`document.querySelector('.writecard').textContent`)));
-ok("...the objective defaults to Grow and is remembered when tapped",
-   run(`writerState().objective==='grow'`) && (run(`document.querySelector('[data-writeobj="strength"]').click(); DB.settings.objective`)==='strength'));
-ok("...the privacy line says what leaves", /Eight weeks of your sets, every part/.test(run(`document.querySelector('.writecard').textContent`)));
-ok("Paste one instead is the old door, one tap on", run(`(function(){document.querySelector('[data-writepaste]').click(); return lift.plan==='paste';})()`));
+/* v3.3.444 RESTATES: the hint beside FOR no longer names the rotation's pick;
+   it says what the row is for, in the maker's words. Still defaults to the
+   writer's call. */
+ok("...For defaults to the writer's call and its hint says what the row is for",
+   run(`writerState().part==='auto'`) && /pick body parts that you want to specifically focus on/.test(run(`document.querySelector('.writecard').textContent`))
+   && !/rotation says/.test(run(`document.querySelector('.writecard').textContent`)));
+ok("...the objective defaults to Grow and is remembered when tapped (without saying so)",
+   run(`writerState().objective==='grow'`) && (run(`document.querySelector('[data-writeobj="strength"]').click(); DB.settings.objective`)==='strength')
+   && !/remembered/.test(run(`document.querySelector('.writecard').textContent`)));
+/* v3.3.444 RESTATES: the privacy paragraph is off the ask screen at the
+   maker's word; "Keep going" is off the objective row; the three actions
+   share ONE row with Write leading, and the paste door is one word. */
+ok("...the privacy paragraph is gone from the ask screen", !/Eight weeks of your sets/.test(run(`document.querySelector('.writecard').textContent`)));
+ok("...and so is Keep going", run(`document.querySelectorAll('[data-writeobj]').length`)===3 && !run(`!!document.querySelector('[data-writeobj="keep"]')`));
+ok("...a stored 'keep' objective reads as Grow, so a chip is always lit",
+   run(`(function(){const k=DB.settings.objective; DB.settings.objective='keep'; lift.write=null; const o=writerState(); DB.settings.objective=k; lift.write=null; return o.objective;})()`)==='grow');
+ok("...Write, Paste and Cancel are one row, Write leading",
+   run(`(function(){const a=document.querySelector('.writecard .planacts.row'); if(!a) return false; const b=[...a.querySelectorAll('.btn')];
+     return b.length===3 && b[0].hasAttribute('data-writego') && b[1].hasAttribute('data-writepaste') && b[2].hasAttribute('data-writeback') && b.every(x=>!x.classList.contains('wide'));})()`)===true);
+ok("Paste is the old door, one tap on", run(`(function(){document.querySelector('[data-writepaste]').click(); return lift.plan==='paste';})()`));
 run(`(function(){lift.plan=null; render(); document.querySelector('[data-planwrite]').click();})()`);
 ok("Cancel returns to Today with nothing changed", run(`(function(){document.querySelector('[data-writeback]').click(); return lift.plan===null && !DB.plan;})()`));
 

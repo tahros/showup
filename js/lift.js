@@ -98,7 +98,9 @@ function planSectionHTML(){
   const _wk=weekNow();
   if(!_wk&&lift.planScope==='week') lift.planScope='today';
   const _scope=lift.planScope||'today';
-  const _tip=hActs('plan',"Paste a session and the app reads what it can. It fills weights and reps for today only, is never written to your record, and clears at midnight. Nothing is counted against it.",'About today’s plan');
+  /* v3.3.444: the writer's privacy sentence lives here now, not on the ask
+     screen -- the (i) is where the app explains itself. */
+  const _tip=hActs('plan',"Paste a session and the app reads what it can, or ask the writer for one. Either way it fills weights and reps for the day only, is never written to your record, and clears at midnight. When the writer writes, eight weeks of your sets, your saved plans and your note go out to write it; nothing comes back into your record until you read it.",'About today’s plan');
 
   if(_scope==='week'&&_wk){
     /* ---- THE WEEK: one card per day, the ground showing between them ---- */

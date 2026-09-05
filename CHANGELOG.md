@@ -1,5 +1,20 @@
 # ShowUp — changelog
 
+## v3.3.444 (2026-09-04) — The ask screen asks
+
+Copy and layout on the writer's ask screen, at the maker's word.
+
+- FOR's hint no longer names the rotation's pick. It reads: *pick body parts
+  that you want to specifically focus on.*
+- "remembered" is gone from OBJECTIVE. The objective still is remembered; the
+  label was narrating the mechanism.
+- "Keep going" is gone from the objective row. A stored `keep` reads as Grow,
+  so a chip is always lit.
+- The privacy paragraph is off the ask screen and lives in the (i) tip beside
+  PLAN, where the app explains itself.
+- Write, Paste and Cancel are one row, Write leading at twice the width.
+  "Paste one instead" is one word now, so three fit.
+
 ## v3.3.443 (2026-09-04) — The paste box is for pasting
 
 Three things made the paste screen hard to use on a phone, and one screenshot
