@@ -1665,8 +1665,22 @@
   ::view-transition-new(root){animation:vtin var(--dur-arrive) var(--settle) both}
   @keyframes vtout{to{opacity:0}}
   @keyframes vtin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  /* v3.3.442: THE CHROME DOES NOT RIDE THE ROOT. Without a name of their own,
+     the header and the tab bar are pixels of `root`, so every tab switch
+     dropped them 6px and dipped them through transparency with the view --
+     the maker saw the header flicker on every tab. Naming them makes each its
+     own transition group with the UA default: old fades out, new fades in,
+     blended plus-lighter, so IDENTICAL pixels are invisible and only real
+     change (the wash arriving on rest, the nav's active mark moving) shows.
+     The view keeps its drift; the chrome stays where chrome belongs. */
+  header{view-transition-name:showup-header}
+  nav{view-transition-name:showup-nav}
+  ::view-transition-old(showup-header),::view-transition-new(showup-header),
+  ::view-transition-old(showup-nav),::view-transition-new(showup-nav){animation-duration:var(--dur-quick)}
   @media (prefers-reduced-motion:reduce){
-    ::view-transition-old(root),::view-transition-new(root){animation:none}}
+    ::view-transition-old(root),::view-transition-new(root),
+    ::view-transition-old(showup-header),::view-transition-new(showup-header),
+    ::view-transition-old(showup-nav),::view-transition-new(showup-nav){animation:none}}
 
 
   /* ---------- pull to refresh (v2.07.2) ---------- */

@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v3.3.442 (2026-09-04) — The header holds still
+
+The header and the tab bar flickered on every tab switch. The switch
+cross-fades the *root*, and the root's arrival drifts down 6px from
+transparent — and the chrome was part of the root. Header and nav now have
+their own transition groups with the browser's default cross-fade, which
+blends identical pixels invisibly. So on a tab switch the chrome does not move;
+on a rest tap the wash still arrives; only real change shows.
+
 ## v3.3.441 (2026-09-04) — Leaf, not sage
 
 The rest green is a real green now. Sage `#79A884` read as grey once the

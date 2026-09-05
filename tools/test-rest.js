@@ -695,4 +695,21 @@ ok("the status-bar style no longer puts content under the status bar",
   run(`delete document.startViewTransition;`);
 }
 
+/* ================= v3.3.442: THE CHROME DOES NOT RIDE THE ROOT =================
+   jsdom draws no transitions, so the reachable fact is the CSS: the header and
+   the nav must each carry a view-transition-name (which removes them from the
+   root group), and the root's drift/fade keyframes must not be applied to
+   those names. Restating nothing: the root rules are unchanged. */
+{
+  const cssNow=fs.readFileSync(path.join(dir,"css/app.css"),"utf8");
+  ok("the header has its own transition group", /header\{view-transition-name:showup-header\}/.test(cssNow));
+  ok("...and so does the tab bar",                /nav\{view-transition-name:showup-nav\}/.test(cssNow));
+  ok("...neither is given the root's drift or fade",
+     !/view-transition-(old|new)\((showup-header|showup-nav)\)[^{]*\{[^}]*\bvt(in|out)\b/.test(cssNow));
+  ok("...while the root keeps its own drift",
+     /::view-transition-new\(root\)\{animation:vtin/.test(cssNow));
+  ok("...and reduced motion stills the chrome too",
+     /prefers-reduced-motion:reduce\)\{[\s\S]*?showup-header[\s\S]*?showup-nav[\s\S]*?\{animation:none\}/.test(cssNow));
+}
+
 process.exit(fail ? 1 : 0);
