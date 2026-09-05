@@ -475,11 +475,18 @@ document.addEventListener('click',e=>{
   }
   if(e.target.closest&&e.target.closest('[data-planfold]')){
     DB.settings.planFold=!DB.settings.planFold; DB.settingsAt=Date.now(); save(true);
-    /* v3.3.319: render(), not renderLift(). The plan moved to Today, and a
-       handler that re-renders a specific TAB rather than the current one
-       wipes the section it was invoked from. Every other plan action already
-       used render(); this one was the outlier. */
-    return render();
+    /* v3.3.319 made this render() rather than renderLift(). v3.3.452 makes it
+       NEITHER: a full repaint of the view was the flicker the maker saw, and
+       it replaced the very element that was meant to be moving. The body is
+       always in the DOM now (lift.js, .planfold); the fold is a class and the
+       transition is CSS. Toggle the class, turn the chevron, tell the button
+       its state -- the next real render draws the same state from the
+       setting, so nothing can drift. */
+    const shut=!!DB.settings.planFold;
+    document.querySelectorAll('[data-planfoldbody]').forEach(el=>el.classList.toggle('shut',shut));
+    document.querySelectorAll('.pfchev').forEach(el=>el.classList.toggle('open',!shut));
+    document.querySelectorAll('[data-planfold]').forEach(el=>el.setAttribute('aria-expanded',String(!shut)));
+    return;
   }
   if(e.target.closest&&e.target.closest('[data-planclear]')){
     /* v3.3.421: Clear lives inside the editor now; clearing also closes it --

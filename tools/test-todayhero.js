@@ -330,9 +330,11 @@ check("tomorrow's plan is shown on Today, not just counted",
 check("...beneath a row that is now a fold, not an inert line",
       `document.querySelector('.planpending[data-planfold]').tagName==='BUTTON'`, true);
 run(`document.querySelector('.planpending[data-planfold]').dispatchEvent(new window.Event('click',{bubbles:true}))`);
-check("...which folds it away on tap", `!document.querySelector('.planahead')`, true);
+/* v3.3.452 RESTATES: the fold is shut in place, not removed -- the body stays
+   so the height can animate. */
+check("...which shuts the fold on tap (body kept for the motion)", `document.querySelector('[data-planfoldbody]').classList.contains('shut')`, true);
 run(`document.querySelector('.planpending[data-planfold]').dispatchEvent(new window.Event('click',{bubbles:true}))`);
-check("...and back", `!!document.querySelector('.planahead .plancard')`, true);
+check("...and back", `!document.querySelector('[data-planfoldbody]').classList.contains('shut') && !!document.querySelector('.planahead .plancard')`, true);
 check("...while the rails still do not read it: today's plan is unaffected",
       `planNow()===null`, true);
 /* put today's plan back for the reopen check below */

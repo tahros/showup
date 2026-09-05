@@ -1,5 +1,15 @@
 # ShowUp — changelog
 
+## v3.3.452 (2026-09-05) — The fold is a motion, not a re-render
+
+Tapping the chevron repainted the whole Today view to draw the plan with or
+without its body — that was the flicker, and it also destroyed the very
+element that should have been moving, so there was no motion to see. The body
+is always in the DOM now; the fold is a class, and the browser animates the
+grid row from its full height to zero (and back) with the chevron turning on
+the same curve. The tap toggles the class and touches nothing else. The
+setting still persists, and a full render draws the same state from it.
+
 ## v3.3.451 (2026-09-05) — The box scrolls with the page, not against it
 
 Scrolling inside the paste box was a fight, and the box was not the one

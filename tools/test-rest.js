@@ -613,14 +613,17 @@ ok("the status-bar style no longer puts content under the status bar",
   ok("...the plan folds and the row says 'kept'",
      run(`(function(){const r=document.querySelector('.planfoldrow');
        return r?r.textContent:'(absent)';})()`).includes('kept'));
-  ok("...the exercises are hidden, not deleted",
-     !/Barbell Bench Press/.test(V()) && run(`DB.plan.items.length===2`));
+  /* v3.3.452 RESTATES: hidden means the fold is SHUT, not that the rows left
+     the DOM -- they stay so the fold can animate. */
+  ok("...the exercises are hidden (fold shut), not deleted",
+     run(`document.querySelector('[data-planfoldbody]').classList.contains('shut') && DB.plan.items.length===2`));
   ok("...and the saved fold preference is NOT written",
      run(`DB.settings.planFold===undefined`));
   // 4. the rail
   ok("...Train next is gone entirely", !/Train next/.test(V()));
   ok("...with no Start, no run nudge and no other-parts door",
-     !/data-planex|data-go=|goLift/.test(V()));
+     run(`(function(){const v=document.getElementById('view').cloneNode(true); v.querySelectorAll('[data-planfoldbody]').forEach(f=>f.remove());
+       return !v.querySelector('[data-planex],[data-go]') && !/goLift/.test(v.innerHTML);})()`));
   ok("...replaced by tomorrow, stated as a fact with no button on it",
      /Tomorrow \u00b7/.test(V()));
 

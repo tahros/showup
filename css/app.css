@@ -901,6 +901,21 @@
   .planfoldrow .pp-day{color:var(--muted)}
   .planfoldrow .pp-right{display:inline-flex;align-items:center;gap:8px;color:var(--faint)}
   .planfoldrow .ic{color:var(--faint);flex:0 0 auto}
+  /* v3.3.452: the fold. grid-template-rows 1fr -> 0fr animates to the
+     content's own height with no measured number anywhere; the inner div
+     needs min-height:0 and overflow:hidden or the row refuses to shrink
+     below its content. Opacity leaves a little ahead of the height so the
+     rows dim as they close rather than being guillotined. */
+  .planfold{display:grid;grid-template-rows:1fr;
+    transition:grid-template-rows var(--dur-arrive) var(--settle)}
+  .planfold.shut{grid-template-rows:0fr}
+  .planfold-in{min-height:0;overflow:hidden;
+    transition:opacity .28s ease}
+  .planfold.shut .planfold-in{opacity:0}
+  .pfchev{display:inline-flex;transition:transform var(--dur-arrive) var(--settle)}
+  .pfchev.open{transform:rotate(90deg)}
+  @media (prefers-reduced-motion:reduce){
+    .planfold,.planfold-in,.pfchev{transition:none}}
   .dayclosed{display:block;width:100%;text-align:center;padding:20px 16px 16px;
     margin-bottom:18px;border:1px solid var(--line);cursor:pointer}
   .dayclosed .dcsq{display:block;width:30px;height:30px;margin:0 auto 12px;

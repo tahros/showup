@@ -175,10 +175,18 @@ function planSectionHTML(){
        "4 done" here, and it was right -- a tick on a row is a fact, a tally
        across rows is a verdict on the plan, and the plan is never scored
        (v3.3.281). The ticks on the card beneath already say which. */
-    h+=`<button class="card planfoldrow${_isToday?'':' planpending'}${_rf?' plankept':''}" data-planfold aria-expanded="${!_pf}"><span class="pp-day mono">${_isToday?'Today':planDayLabel(_ps.d)}</span><span class="pp-right mono">${_n?`${_n} exercise${_n===1?'':'s'}`:'a note'}${_rf?' \u00b7 kept':''}${icon('chevron',ICON_SZ.sm,_pf?0:90)}</span></button>`;
-    if(!_pf){
+    /* v3.3.452: THE FOLD IS A MOTION, NOT A RE-RENDER. The body is always in
+       the DOM, inside .planfold, and the fold is a class: 1fr open, 0fr shut,
+       which the browser animates to the content's own height. The chevron
+       turns on a span of its own so the icon's ink is untouched. The tap
+       handler toggles the class and never calls render() -- a full repaint
+       was the flicker, and it also threw away the motion by replacing the
+       element mid-transition. */
+    h+=`<button class="card planfoldrow${_isToday?'':' planpending'}${_rf?' plankept':''}" data-planfold aria-expanded="${!_pf}"><span class="pp-day mono">${_isToday?'Today':planDayLabel(_ps.d)}</span><span class="pp-right mono">${_n?`${_n} exercise${_n===1?'':'s'}`:'a note'}${_rf?' \u00b7 kept':''}<span class="pfchev${_pf?'':' open'}">${icon('chevron',ICON_SZ.sm)}</span></span></button>`;
+    {
       const card=planCardHTML({d:_ps.d,items:_ps.items,note:_ps.note||''},_isToday);
-      h+=_cl?`<div class="plspent">${card}</div>`:_isToday?card:`<div class="planahead">${card}</div>`;
+      const inner=_cl?`<div class="plspent">${card}</div>`:_isToday?card:`<div class="planahead">${card}</div>`;
+      h+=`<div class="planfold${_pf?' shut':''}" data-planfoldbody><div class="planfold-in">${inner}</div></div>`;
     }
   }else{
     /* nothing planned for the day the scope shows: the pill still names the

@@ -539,17 +539,27 @@ ok("clearing a plan also withdraws the suggestions it planted",
 run(`(function(){planSave([{ex:'Dumbbell Shoulder Press',lines:[{w:toKg(55),bw:false,reps:[8,8]}]},
                            {ex:'Lateral Raise',lines:[{w:toKg(35),bw:false,reps:[12,12]}]}],'','');
   DB.settings.planFold=false; view='today'; lift.ex=null; lift.plan=null; render();})()`);
-/* v3.3.398: the chevron is Barracuda's glyph, turned 90° when open */
+/* v3.3.398: the chevron is Barracuda's glyph, turned 90° when open.
+   v3.3.452 RESTATES: the turn is a class on a span (.pfchev.open) so it can
+   TRANSITION; the icon's own style is untouched. */
 const chev=open=>run(`(function(){const b=document.querySelector('[data-planfold]'); if(!b) return false;
-     const svg=b.querySelector('svg.ic-chevron'); const rot=/rotate\\(90deg\\)/.test(svg?svg.getAttribute('style')||'':'');
-     return b.getAttribute('aria-expanded')==='${open}' && !!svg && rot===${open};})()`);
+     const sp=b.querySelector('.pfchev'); const svg=sp&&sp.querySelector('svg.ic-chevron');
+     return b.getAttribute('aria-expanded')==='${open}' && !!svg && sp.classList.contains('open')===${open};})()`);
 ok("open by default, chevron says so", chev(true));
 const rowsOpen = run(`document.querySelectorAll('.planrow').length`);
 ok("...with the plan's rows on screen", rowsOpen > 0, rowsOpen + " rows");
+ok("...in a fold that is open", run(`(function(){const f=document.querySelector('[data-planfoldbody]'); return !!f && !f.classList.contains('shut');})()`));
+run(`globalThis.__fold0=document.querySelector('[data-planfoldbody]');`);
 run(`document.querySelector('[data-planfold]').click()`);
-ok("one tap folds the card away entirely",
-   run(`document.querySelectorAll('.planrow').length`) === 0 &&
-   run(`!document.querySelector('.plancard')`));
+/* v3.3.452 RESTATES "folds the card away entirely". The card is SHUT, not
+   gone: the rows stay in the DOM inside .planfold.shut so the browser can
+   animate the height to zero. And the tap must not re-render -- a repaint
+   was the flicker -- so the fold element is the SAME node afterwards. */
+ok("one tap shuts the fold in place, rows still in the DOM",
+   run(`document.querySelector('[data-planfoldbody]').classList.contains('shut')`) &&
+   run(`document.querySelectorAll('.planrow').length`) === rowsOpen);
+ok("...without re-rendering the view (same fold element, same rows)",
+   run(`__fold0===document.querySelector('[data-planfoldbody]')`));
 /* v3.3.432: TWO VOICES, NEVER BLENDED. The writer's story read with exactly
    the authority of a verified correction. The notes are the app's -- each
    checked against the ledger -- and they say so; the reason above stays the
@@ -573,11 +583,23 @@ ok("...but the heading stays as the one-line fact",
 ok("...and the chevron flips", chev(false));
 ok("the choice is a setting, not a render whim", run(`DB.settings.planFold===true`));
 run(`render()`);
-ok("...so it survives a full re-render", run(`!document.querySelector('.plancard')`));
+ok("...so it survives a full re-render (drawn shut from the setting)",
+   run(`document.querySelector('[data-planfoldbody]').classList.contains('shut')`));
 run(`document.querySelector('[data-planfold]').click()`);
-ok("one tap brings the whole plan back",
+ok("one tap opens the fold again",
+   run(`!document.querySelector('[data-planfoldbody]').classList.contains('shut')`) &&
    run(`document.querySelectorAll('.planrow').length`) === rowsOpen &&
-   run(`DB.settings.planFold===false`));
+   run(`DB.settings.planFold===false`) && chev(true));
+/* the motion is CSS, asserted as the CSS facts that make it a motion */
+{
+  const cssF=fs.readFileSync(path.join(dir,"css/app.css"),"utf8");
+  ok("the fold animates grid rows 1fr -> 0fr, and the chevron turns on a transition",
+     /\.planfold\{[^}]*grid-template-rows:1fr;[^}]*transition:grid-template-rows/.test(cssF) &&
+     /\.planfold\.shut\{grid-template-rows:0fr\}/.test(cssF) &&
+     /\.pfchev\{[^}]*transition:transform/.test(cssF));
+  ok("...and the inner can actually shrink (min-height 0, overflow hidden)",
+     /\.planfold-in\{min-height:0;overflow:hidden/.test(cssF));
+}
 /* folding must not touch the plan itself — it is a view preference */
 ok("folding changed nothing about the plan or the ledger",
    run(`!!planNow() && planNow().items.length>0`) &&
@@ -613,8 +635,8 @@ ok("folding changed nothing about the plan or the ledger",
      run(`!!document.querySelector('#view .planedge') && document.querySelectorAll('.planrow').length>0`));
   run(`document.querySelector('[data-planfold]').click()`);
   ok("folding from Today keeps you on Today", run(`view`) === "today");
-  ok("...and leaves the heading standing",
-     run(`document.querySelectorAll('.planrow').length`) === 0 &&
+  ok("...and leaves the heading standing (fold shut, rows kept for the motion)",   // v3.3.452
+     run(`document.querySelector('[data-planfoldbody]').classList.contains('shut')`) &&
      run(`!!document.querySelector('#view .planedge')`));
   run(`document.querySelector('[data-planfold]').click()`);
   ok("...and unfolds again in place", run(`document.querySelectorAll('.planrow').length`) > 0);
