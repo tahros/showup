@@ -158,12 +158,15 @@ ok("choosing a candidate resolves that row",
 // structure the CSS acts on — the app's .btn grammar plus an explicit
 // .wide span — so that is what is pinned, alongside label length, which is
 // the thing that actually wrapped.
-ok("the primary action spans the row; the secondaries share one",
-   run(`(function(){const b=[...document.querySelectorAll('.planacts .btn')];
-     return b.length===3 && b[0].classList.contains('wide')
-       && !b[1].classList.contains('wide') && !b[2].classList.contains('wide');})()`) === true);
-ok("...and no action label is long enough to wrap a half-width cell",
-   run(`[...document.querySelectorAll('.planacts .btn')].every(b=>b.textContent.trim().length<=16)`),
+/* v3.3.447 RESTATES: the preview has two actions now -- Use and Cancel --
+   in ONE row, Use leading. Edit was removed because Cancel returns to the
+   box with the draft intact, which is what Edit did. The v3.3.279 concern
+   (labels wrapping a half-width cell) is still asserted below. */
+ok("the preview's actions are one row: Use leading, then Cancel, and nothing else",
+   run(`(function(){const a=document.querySelector('.planacts.row'); if(!a) return false; const b=[...a.querySelectorAll('.btn')];
+     return b.length===2 && b[0].hasAttribute('data-planaccept') && b[1].hasAttribute('data-planback') && b.every(x=>!x.classList.contains('wide'));})()`) === true);
+ok("...and no action label is long enough to wrap its cell (Use gets two thirds)",
+   run(`[...document.querySelectorAll('.planacts .btn')].every(b=>b.textContent.trim().length<=22)`),
    run(`JSON.stringify([...document.querySelectorAll('.planacts .btn')].map(b=>b.textContent.trim().length))`));
 ok("every plan button uses the app's own .btn grammar, not a bespoke one",
    run(`[...document.querySelectorAll('.planacts button')].every(b=>b.classList.contains('btn'))`));
@@ -1078,6 +1081,33 @@ run(`(function(){view='today'; lift.ex=null; render();})()`);
 }
 
 
+
+/* ================= v3.3.447: CANCEL UNDOES ONE STEP =================
+   The maker's report: paste, Read it, review, Cancel -- and the box held the
+   OLD plan. Asserted end to end on the real screens, inside the deferred
+   block so boot's first render has landed. */
+async function v447(){
+  run(`(function(){ lift.plan=null; lift.planDirty=false; DB.week=null;
+    const {items}=planItemsFrom(parsePlan("Squat\\n  195 lb x 8 8 8 8"));
+    planSave(items,'',"Squat\\n  195 lb x 8 8 8 8",todayISO); SEED=deriveAll(); view='today'; render(); })()`);
+  run(`document.querySelector('[data-planedit]').click();`);
+  const box=()=>run(`(document.getElementById('planText')||{}).value`);
+  ok("(fixture) the box opens on the saved plan", /Squat/.test(box()));
+  run(`(function(){const ta=document.getElementById('planText'); ta.value='Dip\\n  +45 lb x 10 8 8'; ta.dispatchEvent(new Event('input',{bubbles:true}));})()`);
+  run(`document.querySelector('[data-planread]').click();`);
+  ok("Read it opens the preview on the pasted text", run(`lift.plan==='preview'`) && /Dip/.test(run(`$('#view').innerHTML`)));
+  ok("...whose only actions are Use and Cancel", run(`!document.querySelector('.writecard') && !!document.querySelector('[data-planaccept]') && !!document.querySelector('[data-planback]') && !document.querySelector('[data-planedit]')`));
+  run(`document.querySelector('[data-planback]').click();`);
+  ok("Cancel on the preview returns to the box", run(`lift.plan==='paste'`));
+  ok("...with the PASTED text still in it, not the saved plan", /Dip/.test(box()) && !/Squat/.test(box()), JSON.stringify(box()));
+  run(`document.querySelector('[data-planback]').click();`);
+  ok("Cancel on the box closes the editor", run(`lift.plan===null`));
+  run(`document.querySelector('[data-planedit]').click();`);
+  ok("...and a fresh open reads the saved plan again", /Squat/.test(box()) && !/Dip/.test(box()), JSON.stringify(box()));
+  ok("...and the saved plan was never touched by any of it", run(`DB.plan.items.length===1 && DB.plan.items[0].ex==='Squat'`));
+  run(`lift.plan=null; lift.planDirty=false; render();`);
+}
+
 /* ================= v3.3.445: THE BOX SHOWS THE PLAN YOU HAVE =================
    Reproduces the maker's screen. A three-exercise text is read; on the
    preview one row is dropped; the plan is saved with two items and the
@@ -1185,5 +1215,6 @@ setTimeout(async()=>{
   ok("Paste replaces the box with the clipboard", v==='CLIPBOARD TEXT', JSON.stringify(v));
   run(`lift.plan=null; render();`);
   await v445();
+  await v447();
   process.exit(fail ? 1 : 0);
 },60);

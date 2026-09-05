@@ -303,7 +303,13 @@ document.addEventListener('click',e=>{
   }
   /* ---- v3.3.278: today's plan. Every step is explicit; nothing auto-applies. */
   if(e.target.closest&&e.target.closest('[data-planpaste],[data-planedit]')){
-    lift.plan='paste'; lift.planMode='day'; lift.planDirty=false; return render();   // v3.3.445: a fresh open reads the saved plan
+    /* v3.3.445: a fresh open from Today reads the saved plan.
+       v3.3.447: an open from the PREVIEW is not fresh -- it is the same draft,
+       one step back. The maker pasted, read, changed his mind, and found the
+       box holding the old plan: the draft the preview was built from had been
+       dropped on the way back. From the preview the draft is kept. */
+    const fromPreview=lift.plan==='preview';
+    lift.plan='paste'; if(!fromPreview){ lift.planMode='day'; lift.planDirty=false; } return render();
   }
   /* ---- v3.3.400: the session writer's ask screen ---- */
   if(e.target.closest&&e.target.closest('[data-planwrite]')){
@@ -382,13 +388,19 @@ document.addEventListener('click',e=>{
     return;
   }
   if(e.target.closest&&e.target.closest('[data-planback]')){
+    /* v3.3.447: CANCEL UNDOES ONE STEP. On the preview it returns to the box
+       with the draft intact -- "not this reading" is not "not this text". On
+       the box it closes the editor and lets the draft go; opening again reads
+       the saved plan (v3.3.445). Two cancels to leave from the preview, each
+       undoing exactly what the last step did. */
+    if(lift.plan==='preview'){ lift.plan='paste'; lift.planRows=null; lift.planWeek=null; lift.planSource=null; lift.planReason=null; return render(); }
     lift.plan=null; lift.planRows=null; lift.planWeek=null; lift.planSource=null; lift.planReason=null; lift.planDate=null; return render();
   }
   if(e.target.closest&&e.target.closest('[data-planread]')){
     const ta=document.getElementById('planText');
     const txt=ta?ta.value:'';
     if(!txt.trim()){ toast('Paste a session first'); return; }
-    lift.planText=txt;
+    lift.planText=txt;   // the draft is already dirty: every way text gets into the box fires input (v3.3.445)
     /* v3.3.398: a paste with day headings is a week. Read from the week
        scope, or from any paste that names two or more days. */
     const wk=parseWeek(txt);

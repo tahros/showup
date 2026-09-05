@@ -960,9 +960,10 @@ function planScreenHTML(){
      against the ledger. The reason above is the WRITER's judgement. Labelled
      now, same list, two voices (doctrine P7). */
   if(_pn.length) h+=`<div class="plannotes"><div class="pnhead mono">checked against your record</div>${_pn.map(n=>`<div class="mono">\u00b7 ${hesc(n)}</div>`).join('')}</div>`;
-  h+=`<div class="planacts">
-      <button class="btn wide" data-planaccept>${lift.planMode==='week'?'Use this week':writeDateISO()===todayISO?'Use today\u2019s plan':`Use this for ${planDayLabel(writeDateISO())}`}</button>
-      <button class="btn ghost" data-planedit>Edit</button>
+  /* v3.3.447: the preview had Edit AND Cancel, and once Cancel returns to the
+     box with the draft intact they land on the same screen. One door. */
+  h+=`<div class="planacts row">
+      <button class="btn" data-planaccept>${lift.planMode==='week'?'Use this week':writeDateISO()===todayISO?'Use today\u2019s plan':`Use this for ${planDayLabel(writeDateISO())}`}</button>
       <button class="btn ghost" data-planback>Cancel</button>
     </div></div>`;
   return h;

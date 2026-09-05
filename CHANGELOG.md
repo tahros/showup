@@ -1,5 +1,17 @@
 # ShowUp — changelog
 
+## v3.3.447 (2026-09-04) — Cancel undoes one step
+
+Paste, Read it, review, Cancel — and the box held the old plan. Cancel on the
+preview now returns to the box with the pasted text intact: "not this reading"
+is not "not this text". Cancel on the box closes the editor and lets the draft
+go, so a fresh open reads the saved plan. Two cancels to leave from the
+preview, each undoing exactly what the last step did.
+
+The preview's Edit button is gone — once Cancel returns to the box with the
+draft, Edit and Cancel landed on the same screen. Use and Cancel sit in one
+row, Use leading.
+
 ## v3.3.446 (2026-09-04) — A leading plus is added bodyweight
 
 `+10 lb × 12 10 10` under Decline Sit Up was refused: it is not a weight line
