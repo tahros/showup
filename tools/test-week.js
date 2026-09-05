@@ -161,8 +161,15 @@ run(`document.querySelector('[data-planread]').click()`);
 ok("Read it previews the week as days with their exercises",
    run(`document.querySelectorAll('.planpv.day').length`)===4 && run(`document.querySelectorAll('.planpv.ok').length`)===12);
 run(`document.querySelector('[data-plandrop]').click()`);
+/* v3.3.453: the week keeps its own noun -- a week is plans, plural -- while
+   the day preview says the plain "Use the plan". Asserted HERE, where the
+   week preview is actually mounted; placed earlier it read the day screen's
+   button and passed for the wrong reason. */
+ok("the week preview's primary is 'Use the week'",
+   run(`lift.planMode==='week' && document.querySelector('[data-planaccept]').textContent.trim()`)==='Use the week',
+   run(`document.querySelector('[data-planaccept]').textContent.trim()`));
 run(`document.querySelector('[data-planaccept]').click()`);
-ok("...and Use this week keeps what the preview shows, minus the dropped line",
+ok("...and Use the week keeps what the preview shows, minus the dropped line",
    run(`(function(){const w=weekNow(); return Object.keys(w.days).length===4 && Object.values(w.days).reduce((a,d)=>a+d.items.length,0)===11;})()`));
 ok("...landing on the week scope", run(`lift.planScope`)==='week' && run(`document.querySelectorAll('.daycard').length`)===4);
 /* v3.3.421: the week's Clear is behind its Edit door too */

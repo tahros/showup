@@ -168,6 +168,17 @@ ok("the preview's actions are one row: Use leading, then Cancel, and nothing els
 ok("...and no action label is long enough to wrap its cell (Use gets two thirds)",
    run(`[...document.querySelectorAll('.planacts .btn')].every(b=>b.textContent.trim().length<=22)`),
    run(`JSON.stringify([...document.querySelectorAll('.planacts .btn')].map(b=>b.textContent.trim().length))`));
+/* v3.3.453: THE PRIMARY NAMES NO DAY. "Use today's plan" described which plan
+   rather than where it lands, so it lied whenever the plan was for another
+   day -- and the day is already on the heading and in the rows above. Pinned
+   as an exact string AND as the absence of any date, so a future edit cannot
+   reintroduce one without turning this red. */
+ok("the preview's primary is the plain, day-independent 'Use the plan'",
+   run(`document.querySelector('[data-planaccept]').textContent.trim()`)==='Use the plan',
+   run(`document.querySelector('[data-planaccept]').textContent.trim()`));
+ok("...and names no day, in any form",
+   !/today|tomorrow|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|mon|tue|wed|thu|fri|sat|sun|\d/i
+     .test(run(`document.querySelector('[data-planaccept]').textContent`)));
 ok("every plan button uses the app's own .btn grammar, not a bespoke one",
    run(`[...document.querySelectorAll('.planacts button')].every(b=>b.classList.contains('btn'))`));
 

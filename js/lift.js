@@ -979,9 +979,15 @@ function planScreenHTML(){
      now, same list, two voices (doctrine P7). */
   if(_pn.length) h+=`<div class="plannotes"><div class="pnhead mono">checked against your record</div>${_pn.map(n=>`<div class="mono">\u00b7 ${hesc(n)}</div>`).join('')}</div>`;
   /* v3.3.447: the preview had Edit AND Cancel, and once Cancel returns to the
-     box with the draft intact they land on the same screen. One door. */
+     box with the draft intact they land on the same screen. One door.
+     v3.3.453: the primary is "Use the plan" -- day-independent. It read "Use
+     today's plan", which described WHICH plan rather than where it lands, and
+     so quietly lied whenever the plan was for tomorrow or a day further out.
+     The label makes no claim about WHEN because the screen already does: the
+     heading names the day and the rows are on screen. Three grammars became
+     one. The week keeps its own noun -- a week is plans, plural. */
   h+=`<div class="planacts row">
-      <button class="btn" data-planaccept>${lift.planMode==='week'?'Use this week':writeDateISO()===todayISO?'Use today\u2019s plan':`Use this for ${planDayLabel(writeDateISO())}`}</button>
+      <button class="btn" data-planaccept>${lift.planMode==='week'?'Use the week':'Use the plan'}</button>
       <button class="btn ghost" data-planback>Cancel</button>
     </div></div>`;
   return h;

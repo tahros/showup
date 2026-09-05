@@ -444,7 +444,7 @@ await_(async()=>{
   ok("...with every row resolved and no reason header, since the part is the rotation's", run(`document.querySelectorAll('.planpv.ok').length`)===3 && run(`!document.querySelector('.planreason')`));
   ok("...and nothing saved yet", run(`!DB.plan`));
   run(`document.querySelector('[data-planaccept]').click()`);
-  ok("Use today's plan saves it for today, through planSave", run(`!!planNow() && planNow().items.length===3 && DB.plan.d===todayISO`));
+  ok("Use the plan saves it for today, through planSave", run(`!!planNow() && planNow().items.length===3 && DB.plan.d===todayISO`));
   ok("...and the record is untouched", run(`(DB.days[todayISO]&&DB.days[todayISO].w||[]).length`)===0);
   ok("...and Train next walks it", /Deadlift/.test(run(`(document.querySelector('.tnextplan')||{}).textContent||''`)));
   run(`planClear()`);
@@ -499,7 +499,7 @@ await_(async()=>{
   await tick(); await tick();
   ok("...the read-back shows exactly those days, the stray one dropped", run(`document.querySelectorAll('.planpv.day').length`)===picked && run(`lift.planNotes.some(n=>/2099/.test(n))`));
   run(`document.querySelector('[data-planaccept]').click()`);
-  ok("...Use this week saves the week on the week scope", run(`!!weekNow() && Object.keys(weekNow().days).length===${picked} && lift.planScope==='week'`));
+  ok("...Use the week saves the week on the week scope", run(`!!weekNow() && Object.keys(weekNow().days).length===${picked} && lift.planScope==='week'`));
   ok("...and today's plan is its first day", picked===0 || run(`(function(){const p=planNow(); const d=weekNow().days[todayISO]; return d?(!!p&&p.fromWeek):true;})()`));
   run(`weekClear()`);
 

@@ -1,5 +1,15 @@
 # ShowUp — changelog
 
+## v3.3.453 (2026-09-05) — Use the plan
+
+The preview's primary read *Use today's plan*, which named which plan rather
+than where it lands — so it was wrong whenever the plan was for tomorrow or a
+day further out. It is **Use the plan** now, on every day. The label makes no
+claim about when because the screen already does: the heading names the day and
+the rows are right there. Three grammars (`Use today's plan`, `Use this for Sep
+6`, `Use this week`) become one. A week is plans, plural, so the week preview
+says **Use the week**.
+
 ## v3.3.452 (2026-09-05) — The fold is a motion, not a re-render
 
 Tapping the chevron repainted the whole Today view to draw the plan with or
