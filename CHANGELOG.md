@@ -1,5 +1,18 @@
 # ShowUp — changelog
 
+## v3.3.448 (2026-09-05) — The pencil opens the plan, not the text
+
+Today already shows the exercises the app has read. Tapping the pencil put you
+back in a text box to change one of them — re-doing the app's work. The pencil
+now opens WHAT THE APP READ, built from the plan you have, headed *Edit today's
+plan* (or the day it is for): drop a row, move a row, use it. The writer's
+reasons survive onto their rows when they are still true. The text box is one
+Cancel further in, for the cases where a load or a rep count has to change; so
+is Clear.
+
+An edit writes back to the day it opened, whatever the ledger says by the time
+you tap Use.
+
 ## v3.3.447 (2026-09-04) — Cancel undoes one step
 
 Paste, Read it, review, Cancel — and the box held the old plan. Cancel on the

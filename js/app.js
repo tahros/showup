@@ -302,14 +302,29 @@ document.addEventListener('click',e=>{
     lift.justSaved=true;save();renderHeader();setToast(lift.ex,w,r);return renderLift();
   }
   /* ---- v3.3.278: today's plan. Every step is explicit; nothing auto-applies. */
-  if(e.target.closest&&e.target.closest('[data-planpaste],[data-planedit]')){
-    /* v3.3.445: a fresh open from Today reads the saved plan.
-       v3.3.447: an open from the PREVIEW is not fresh -- it is the same draft,
-       one step back. The maker pasted, read, changed his mind, and found the
-       box holding the old plan: the draft the preview was built from had been
-       dropped on the way back. From the preview the draft is kept. */
-    const fromPreview=lift.plan==='preview';
-    lift.plan='paste'; if(!fromPreview){ lift.planMode='day'; lift.planDirty=false; } return render();
+  if(e.target.closest&&e.target.closest('[data-planpaste]')){
+    /* v3.3.445: a fresh open reads the saved plan (there is none: this is the
+       empty state's door). */
+    lift.plan='paste'; lift.planMode='day'; lift.planDirty=false; return render();
+  }
+  if(e.target.closest&&e.target.closest('[data-planedit]')){
+    /* v3.3.448: THE PENCIL OPENS THE PLAN, NOT THE TEXT. Today already shows
+       six exercises the app has read; putting the maker back in a text box to
+       change one of them was asking him to re-do the app's work. Edit now opens
+       the preview -- WHAT THE APP READ -- built from the plan he has, where a
+       row can be dropped or moved and the result used. The text is one Cancel
+       away (v3.3.447: Cancel on the preview returns to the box with this same
+       draft), for the cases where a load or a rep count has to change.
+       The rows come from parsing planText(p) -- the raw while it still agrees
+       with the items, else text regenerated from them (v3.3.445) -- so the
+       writer's reasons survive into the preview when they are still true. */
+    const p=planShown();
+    if(!p){ lift.plan='paste'; lift.planMode='day'; lift.planDirty=false; return render(); }
+    const txt=planText(p);
+    lift.planText=txt; lift.planDirty=true; lift.planMode='day';
+    lift.planRows=parsePlan(txt); lift.planWeek=null; lift.planSource='saved'; lift.planReason=null;
+    lift.planDate=p.d||writeDateISO();   // the edit writes back to the day it opened, whatever the ledger says by then
+    lift.plan='preview'; return render();
   }
   /* ---- v3.3.400: the session writer's ask screen ---- */
   if(e.target.closest&&e.target.closest('[data-planwrite]')){

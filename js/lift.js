@@ -914,7 +914,8 @@ function planScreenHTML(){
      differs from the rotation's, only here, never on the card. A paste has no
      reason and shows no header. */
   const _rs=lift.planReason;
-  let h=`<h2>${lift.planSource==='writer'?'Read from the writer':'Read from your paste'}</h2><div class="card">
+  /* v3.3.448: a third source -- the plan you already have, opened by the pencil */
+  let h=`<h2>${lift.planSource==='writer'?'Read from the writer':lift.planSource==='saved'?`Edit ${(lift.planDate||writeDateISO())===todayISO?'today\u2019s':planDayLabel(lift.planDate||writeDateISO())+'\u2019s'} plan`:'Read from your paste'}</h2><div class="card">
     ${_rs?`<div class="planreason"><div class="lasthead"><span>${hesc(_rs.head||'')}</span><span class="ago">writer\u2019s call</span></div><div class="mono muted">${hesc(_rs.text||'')}</div></div>`:''}
     <div class="lasthead"><span>WHAT THE APP READ</span><span class="ago">${ok} of ${tot}</span></div>`;
   rows.forEach((r,i)=>{

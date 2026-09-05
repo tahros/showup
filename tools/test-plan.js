@@ -435,10 +435,16 @@ ok("...copy first, Write last, and no Clear on the edge at all",
 ok("...the fold lives on the row that folds",
    run(`!!document.querySelector('.planfoldrow[data-planfold]') && !document.querySelector('h2 .planedge [data-planfold]')`));
 /* Clear is behind the Edit door -- destructive, and past the point where you
-   decided to change the plan */
+   decided to change the plan.
+   v3.3.448 RESTATES: the pencil opens the PREVIEW now, which has no Clear;
+   Clear lives on the text box one Cancel further in. Two doors for the
+   destructive action, the same two the maker walks to change the text. */
 run(`document.querySelector('[data-planedit]').dispatchEvent(new window.Event('click',{bubbles:true}))`);
-ok("...and Clear waits behind the Edit door, in the record red",
-   run(`!!document.querySelector('.planacts .btn.danger[data-planclear]')`));
+ok("...the pencil's first screen (the preview) offers no Clear",
+   run(`lift.plan==='preview' && !document.querySelector('[data-planclear]')`));
+run(`document.querySelector('[data-planback]').dispatchEvent(new window.Event('click',{bubbles:true}))`);
+ok("...and Clear waits one Cancel further in, on the box, in the record red",
+   run(`lift.plan==='paste' && !!document.querySelector('.planacts .btn.danger[data-planclear]')`));
 run(`document.querySelector('[data-planback]').dispatchEvent(new window.Event('click',{bubbles:true}))`);
 ok("...in the corner, after the tip, which keeps its place by the title",
    run(`(function(){const k=[...document.querySelector('h2').children].map(c=>c.className.split(' ')[0]);
@@ -446,8 +452,10 @@ ok("...in the corner, after the tip, which keeps its place by the title",
        && k.indexOf('hacts')<k.indexOf('planedge');})()`) === true);
 ok("...and Clear still clears from there",
    (function(){
-     /* v3.3.421: Clear is behind the Edit door */
+     /* v3.3.421: Clear is behind the Edit door; v3.3.448: two doors --
+        pencil (preview), Cancel (box), Clear */
      run(`document.querySelector('[data-planedit]').click()`);
+     run(`document.querySelector('[data-planback]').click()`);
      run(`document.querySelector('.planacts [data-planclear]').click()`);
      return run(`!planNow()`) && run(`!!document.querySelector('[data-planwrite]')`);
    })());
@@ -1082,6 +1090,36 @@ run(`(function(){view='today'; lift.ex=null; render();})()`);
 
 
 
+
+/* ================= v3.3.448: THE PENCIL OPENS THE PLAN, NOT THE TEXT =================
+   The maker's screen: six exercises on Today, pencil tapped. He must land on
+   WHAT THE APP READ with all six, each usable, the heading naming the day --
+   not in a text box. Dropping a row there and using it must save five. */
+async function v448(){
+  const RAW='Squat\n  135 lb x 8\n  195 lb x 8 8 8 8 (match Aug 27)\n\nBarbell Bench Press\n  155 lb x 8 8 6 6\n\nDip\n  BW+45 lb x 10 8 8\n\nCable Fly Up\n  30 lb x 12 10 10\n\nHanging Leg Raise\n  BW x 12 10 10\n\nDecline Sit Up\n  +10 lb x 12 10 10\n';
+  run(`(function(){ lift.plan=null; lift.planDirty=false; DB.week=null;
+    const {items}=planItemsFrom(parsePlan(${JSON.stringify(RAW)}));
+    planSave(items,'',${JSON.stringify(RAW)},todayISO); SEED=deriveAll(); view='today'; render(); })()`);
+  ok("(fixture) six exercises saved", run(`DB.plan.items.length===6`));
+  run(`document.querySelector('[data-planedit]').click();`);
+  const V=()=>run(`$('#view').innerHTML`);
+  ok("the pencil opens the preview, not the box",
+     run(`lift.plan==='preview' && !document.getElementById('planText')`));
+  ok("...headed as an edit of today's plan", /Edit today/.test(V()));
+  ok("...with all six read and usable", run(`document.querySelectorAll('.planpv.ok').length`)===6 && /6 of 6/.test(V()));
+  ok("...and the writer's reason still on its row", /match Aug 27/.test(V()));
+  // drop one and use it: the saved plan follows
+  run(`(function(){const rows=[...document.querySelectorAll('[data-plandrop]')]; rows[rows.length-1].click();})()`);
+  ok("dropping a row on the preview marks it a note", run(`document.querySelectorAll('.planpv.ok').length`)===5);
+  run(`document.querySelector('[data-planaccept]').click();`);
+  ok("Use saves five, and the plan on Today is five", run(`lift.plan===null && DB.plan.items.length===5`));
+  ok("...the dropped exercise is the one that went", run(`!DB.plan.items.some(i=>i.ex==='Decline Sit Up')`));
+  // and the pencil again reads the five -- planText() agrees raw and items no longer match, so it regenerates
+  run(`document.querySelector('[data-planedit]').click();`);
+  ok("the pencil now shows five, not the raw's six", run(`document.querySelectorAll('.planpv.ok').length`)===5);
+  run(`lift.plan=null; lift.planDirty=false; render();`);
+}
+
 /* ================= v3.3.447: CANCEL UNDOES ONE STEP =================
    The maker's report: paste, Read it, review, Cancel -- and the box held the
    OLD plan. Asserted end to end on the real screens, inside the deferred
@@ -1090,9 +1128,10 @@ async function v447(){
   run(`(function(){ lift.plan=null; lift.planDirty=false; DB.week=null;
     const {items}=planItemsFrom(parsePlan("Squat\\n  195 lb x 8 8 8 8"));
     planSave(items,'',"Squat\\n  195 lb x 8 8 8 8",todayISO); SEED=deriveAll(); view='today'; render(); })()`);
-  run(`document.querySelector('[data-planedit]').click();`);
   const box=()=>run(`(document.getElementById('planText')||{}).value`);
-  ok("(fixture) the box opens on the saved plan", /Squat/.test(box()));
+  /* v3.3.448: pencil -> preview -> Cancel -> box. The box is two taps in now. */
+  run(`document.querySelector('[data-planedit]').click(); document.querySelector('[data-planback]').click();`);
+  ok("(fixture) pencil then Cancel lands on the box holding the saved plan", run(`lift.plan==='paste'`) && /Squat/.test(box()));
   run(`(function(){const ta=document.getElementById('planText'); ta.value='Dip\\n  +45 lb x 10 8 8'; ta.dispatchEvent(new Event('input',{bubbles:true}));})()`);
   run(`document.querySelector('[data-planread]').click();`);
   ok("Read it opens the preview on the pasted text", run(`lift.plan==='preview'`) && /Dip/.test(run(`$('#view').innerHTML`)));
@@ -1103,7 +1142,8 @@ async function v447(){
   run(`document.querySelector('[data-planback]').click();`);
   ok("Cancel on the box closes the editor", run(`lift.plan===null`));
   run(`document.querySelector('[data-planedit]').click();`);
-  ok("...and a fresh open reads the saved plan again", /Squat/.test(box()) && !/Dip/.test(box()), JSON.stringify(box()));
+  ok("...and the pencil reads the saved plan again (preview shows Squat, not the Dip draft)",
+     run(`lift.plan==='preview'`) && /Squat/.test(run(`$('#view').innerHTML`)) && !/Dip/.test(run(`$('#view').innerHTML`)));
   ok("...and the saved plan was never touched by any of it", run(`DB.plan.items.length===1 && DB.plan.items[0].ex==='Squat'`));
   run(`lift.plan=null; lift.planDirty=false; render();`);
 }
@@ -1153,8 +1193,15 @@ async function v445(){
   run(`document.querySelector('[data-planback]').click();`);
   ok("Cancel closes the editor", run(`lift.plan===null`));
   ok("...and Today shows the pencil", run(`!!document.querySelector('[data-planedit]')`));
+  /* v3.3.448 RESTATES: the pencil opens the PREVIEW of the saved plan, and its
+     Cancel steps back to the box holding the saved plan's text -- never the
+     abandoned draft. */
   run(`document.querySelector('[data-planedit]').click();`);
-  ok("Cancel then Edit opens on the saved plan again, not the abandoned draft",
+  ok("the pencil opens the preview of the plan you have (two rows, not three)",
+     run(`lift.plan==='preview' && lift.planSource==='saved' && document.querySelectorAll('.planpv.ok').length===2`)
+       && /Squat/.test(run(`$('#view').innerHTML`)) && !/Deadlift|Dip/.test(run(`$('#view').innerHTML`)));
+  run(`document.querySelector('[data-planback]').click();`);
+  ok("...and one Cancel back is the box with the saved plan's text, not the abandoned draft",
      run(`lift.plan==='paste'`) && /Squat/.test(box()) && !/Deadlift/.test(box()), JSON.stringify(box()).slice(0,50));
   run(`lift.plan=null; lift.planDirty=false; render();`);
 }
@@ -1216,5 +1263,6 @@ setTimeout(async()=>{
   run(`lift.plan=null; render();`);
   await v445();
   await v447();
+  await v448();
   process.exit(fail ? 1 : 0);
 },60);
