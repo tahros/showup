@@ -44,8 +44,11 @@
        only keeps neighbours from touching. */
     --accent:#4C6BE3; --accent-soft:#3A4A8C; --accent-dim:#95A4E8;
     --record:#E36758;                       /* personal records */
-    --rest:#3E5C46;                         /* v3.3.81: declared rest — green's ONE meaning (wash/frame grade) */
-    --rest-ink:#8DB596;                     /* v3.3.92: rest as TEXT — same hue, text-grade. A wash colour
+    --rest:#2E7D32;                         /* v3.3.81: declared rest — green's ONE meaning (wash/frame grade).
+                                               v3.3.441: sage #3E5C46 → leaf. The maker's verdict on the sage,
+                                               once the square wore it too: "too grayish". Same hue in both
+                                               themes now, so the state is one colour whatever the ground. */
+    --rest-ink:#A5D6A7;                     /* v3.3.92: rest as TEXT — same hue, text-grade. A wash colour
                                                cannot also be an ink: 1.69:1 on its own wash proved it */
     /* v3.3.264: Session Build returns to the maker's Google Sheets chart
        language. The palette is categorical on purpose: Shoulder blue, Back
@@ -145,8 +148,8 @@
     --whisper:#E7E7E7;
     --accent:#2F4BD8; --accent-soft:#C3CCF5; --accent-dim:#8892C4;
     --record:#B83528;
-    --rest:#79A884;                         /* declared rest, light theme (wash/frame grade) */
-    --rest-ink:#3B5742;                     /* rest as text, light */
+    --rest:#66BB6A;                         /* declared rest, light theme (wash/frame grade). v3.3.441: leaf, was sage #79A884 */
+    --rest-ink:#1B5E20;                     /* rest as text, light. v3.3.441: was #3B5742; #2E7D32 (B's ink as mocked) was 3.09:1 on the wash, so one step darker */
     /* The Sheets values remain intact in light mode except Chest: Google's
        #FABB05 yellow is only 1.55:1 on ShowUp's near-white ground, so it is
        deepened along the same hue to #E0A000 (2.06:1). The colour still

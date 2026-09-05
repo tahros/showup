@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v3.3.441 (2026-09-04) — Leaf, not sage
+
+The rest green is a real green now. Sage `#79A884` read as grey once the
+header square wore it too. Light theme: wash `#66BB6A`, ink `#1B5E20` (one step
+darker than the mock's `#2E7D32`, which was 3.09:1 on its own wash — the
+contrast gate is arithmetic). Dark theme: wash `#2E7D32`, ink `#A5D6A7`. Same
+hue in both themes, so the state is one colour whatever the ground. The mix,
+the breath and every rule that reads `--rest` are unchanged.
+
 ## v3.3.440 (2026-09-04) — The exhale does not blink
 
 Tapping Rest, or undoing it, cut hard from one screen to the next: render()
