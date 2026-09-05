@@ -640,6 +640,52 @@ await_(async()=>{
        r.ok && r.violations.length===0, JSON.stringify(r.violations));
   }
 
+  /* ================= v3.3.455: THE SCOPE TABS DO NOT REPAINT =================
+     The maker: tapping Today / Tomorrow / This week flickers. The cause was
+     render(), which rewrites all of #view. jsdom draws nothing, so the
+     reachable fact is IDENTITY: after a scope tap the card must be the SAME
+     node, and the note node with it. Correctness is asserted alongside, or
+     "did not repaint" would be satisfied by doing nothing at all. */
+  {
+    /* the maker's own screen: nothing logged today, so the ledger writes
+       today and the seg opens on Today. Earlier blocks in this file log sets,
+       which would default the scope to tomorrow and hide the hint below. */
+    run(`(function(){ DB.days[todayISO]={w:[],upd:Date.now()}; SEED=deriveAll();
+      lift.plan='write'; lift.write=null; view='today'; render(); })()`);
+    const idOf=sel=>run(`(function(){ globalThis.__ids=globalThis.__ids||new WeakMap(); globalThis.__n=globalThis.__n||0;
+      const el=document.querySelector(${JSON.stringify(sel)}); if(!el) return '(none)';
+      if(!__ids.has(el)) __ids.set(el,'n'+(++__n)); return __ids.get(el);})()`);
+    const card=()=>idOf('#view .writecard'), note=()=>idOf('#writeNote');
+    const c0=card(), n0=note();
+    ok("(fixture) the ask screen is up on the today scope",
+       run(`writerState().scope`)==='today' && c0!=='(none)', c0);
+    run(`document.querySelector('[data-writescope="tomorrow"]').click();`);
+    ok("tapping Tomorrow does NOT rebuild the card", card()===c0, card()+" vs "+c0);
+    ok("...nor the note the person may be typing in", note()===n0, note()+" vs "+n0);
+    ok("...while the scope really did change", run(`writerState().scope`)==='tomorrow');
+    ok("...the seg says so", run(`document.querySelector('[data-writescope="tomorrow"]').classList.contains('sel')
+       && !document.querySelector('[data-writescope="today"]').classList.contains('sel')`));
+    ok("...the tomorrow hint appeared", /opens it at midnight/.test(run(`document.querySelector('.writecard').textContent`)));
+    ok("...and the primary names the new day",
+       run(`document.querySelector('[data-writego]').textContent.trim()`)===('Write '+run(`planDayLabel(tomorrowISO())`)),
+       run(`document.querySelector('[data-writego]').textContent.trim()`));
+    run(`document.querySelector('[data-writescope="week"]').click();`);
+    ok("the week scope changes the STRUCTURE without rebuilding the card", card()===c0, card()+" vs "+c0);
+    ok("...bringing in the day picker and FOCUS", run(`document.querySelectorAll('[data-writeday]').length`)>0
+       && /FOCUS/.test(run(`document.querySelector('.writecard').textContent`)));
+    ok("...and taking FOR away", !run(`!!document.querySelector('[data-writefor]')`));
+    run(`document.querySelector('[data-writescope="today"]').click();`);
+    ok("...back to today restores FOR, still the same card",
+       card()===c0 && run(`!!document.querySelector('[data-writefor]')`) && run(`writerState().scope`)==='today');
+    run(`document.querySelector('[data-writefor="auto"]').click();`);
+    ok("a part chip does not repaint either", card()===c0 && note()===n0);
+    run(`(function(){const t=document.getElementById('writeNote'); t.value='sore knee'; writerState().note='sore knee';})()`);
+    run(`document.querySelector('[data-writeobj="strength"]').click();`);
+    ok("an objective tap keeps the typed note", run(`document.getElementById('writeNote').value`)==='sore knee',
+       run(`document.getElementById('writeNote').value`));
+    run(`lift.plan=null; lift.write=null; render();`);
+  }
+
   process.exit(fail ? 1 : 0);
 });
 function await_(f){ f().catch(e=>{ console.log("CRASH", e && e.stack || e); process.exit(1); }); }

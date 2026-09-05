@@ -593,6 +593,48 @@ function writerCheck(resp, ctx){
 }
 
 /* ---- the ask screen ---- */
+/* v3.3.455: THE ASK SCREEN UPDATES IN PLACE. Every control on this screen --
+   the scope seg, the part chips, the objective, the day picker -- called
+   render(), which rewrites the whole of #view. Tapping Today/Tomorrow/This
+   week therefore destroyed and rebuilt every chip, the textarea and the
+   buttons: that repaint is the flicker. Same root cause as the fold in
+   v3.3.452, and the same shape of fix.
+   Here the structure genuinely differs between scopes (the week has a day
+   picker and a FOCUS row the day scopes do not), so a class toggle is not
+   enough. Instead the card is rebuilt OFF-SCREEN and patched into the live
+   one child by child: only the children whose HTML actually changed are
+   replaced. The seg swaps its .sel, the hint line appears, the primary's
+   label changes -- everything else, including the note the person is
+   typing, is left exactly where it is. Falls back to a full render() if the
+   card is not on screen, so no caller can be surprised. */
+function writerPaint(){
+  const card=document.querySelector('#view .writecard');
+  if(!card) return render();
+  const ta0=document.getElementById('writeNote');
+  const hadFocus=document.activeElement===ta0;
+  const s0=ta0?ta0.selectionStart:0, e0=ta0?ta0.selectionEnd:0, top0=ta0?ta0.scrollTop:0;
+  const tmp=document.createElement('div'); tmp.innerHTML=writerScreenHTML();
+  const next=tmp.querySelector('.writecard'); if(!next) return render();
+  /* Move the LIVE textarea into the new tree before diffing. Index-matching
+     alone cannot protect it: switching to the week scope inserts a day picker
+     and a FOCUS row above it, so every child below shifts by two and would be
+     replaced -- taking the note's caret, scroll and value with it. Moving the
+     node makes it survive any structural change; its typed value never
+     appears in outerHTML, so it must be carried, not re-rendered. */
+  const liveTa=card.querySelector('#writeNote'), newTa=next.querySelector('#writeNote');
+  if(liveTa&&newTa) newTa.replaceWith(liveTa);
+  const a=[...card.children], b=[...next.children];
+  for(let i=0;i<Math.max(a.length,b.length);i++){
+    if(!b[i]){ a[i].remove(); continue; }
+    if(!a[i]){ card.appendChild(b[i]); continue; }
+    if(a[i]===b[i]) continue;                       // the carried textarea
+    if(a[i].outerHTML!==b[i].outerHTML) a[i].replaceWith(b[i]);
+  }
+  if(hadFocus){
+    const ta=document.getElementById('writeNote');
+    if(ta){ ta.focus(); try{ ta.setSelectionRange(s0,e0); }catch(_e){} ta.scrollTop=top0; }
+  }
+}
 function writerScreenHTML(){
   const o=writerState();
   const d0=writeDateISO(), d1=tomorrowISO();

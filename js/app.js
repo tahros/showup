@@ -354,12 +354,16 @@ document.addEventListener('click',e=>{
     const o=writerState(); const ta=document.getElementById('writeNote'); if(ta) o.note=ta.value;
     const q=sel=>e.target.closest&&e.target.closest(sel);
     let t;
-    if((t=q('[data-writescope]'))){ o.scope=t.dataset.writescope; o.err=''; return render(); }
-    if((t=q('[data-writeday]'))){ writerDays(o); const iso=t.dataset.writeday; if(o.days.has(iso)) o.days.delete(iso); else o.days.add(iso); return render(); }
-    if((t=q('[data-writenext]'))){ o.nextWeek=t.dataset.writenext==='1'; o.days=null; return render(); }
-    if((t=q('[data-writefocus]'))){ o.focus=o.focus||new Set(); const p=t.dataset.writefocus; if(o.focus.has(p)) o.focus.delete(p); else o.focus.add(p); return render(); }
-    if((t=q('[data-writefor]'))){ o.part=t.dataset.writefor; return render(); }
-    if((t=q('[data-writeobj]'))){ o.objective=t.dataset.writeobj; DB.settings.objective=o.objective; DB.settingsAt=Date.now(); save(true); return render(); }
+    /* v3.3.455: these change the ask screen's own state, not which screen you
+       are on, so they PATCH the card rather than repainting the view --
+       render() here was the flicker. writerPaint falls back to render() if
+       the card is somehow not on screen. */
+    if((t=q('[data-writescope]'))){ o.scope=t.dataset.writescope; o.err=''; return writerPaint(); }
+    if((t=q('[data-writeday]'))){ writerDays(o); const iso=t.dataset.writeday; if(o.days.has(iso)) o.days.delete(iso); else o.days.add(iso); return writerPaint(); }
+    if((t=q('[data-writenext]'))){ o.nextWeek=t.dataset.writenext==='1'; o.days=null; return writerPaint(); }
+    if((t=q('[data-writefocus]'))){ o.focus=o.focus||new Set(); const p=t.dataset.writefocus; if(o.focus.has(p)) o.focus.delete(p); else o.focus.add(p); return writerPaint(); }
+    if((t=q('[data-writefor]'))){ o.part=t.dataset.writefor; return writerPaint(); }
+    if((t=q('[data-writeobj]'))){ o.objective=t.dataset.writeobj; DB.settings.objective=o.objective; DB.settingsAt=Date.now(); save(true); return writerPaint(); }
     if(q('[data-writego]')){ writerGo(); return; }
     if(q('[data-writepaste]')){ planGo('paste'); lift.planMode='day'; lift.planText=''; lift.planDirty=false; return render(); }
     if(q('[data-writeback]')){ planBack(); lift.write=null; return render(); }

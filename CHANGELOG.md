@@ -1,5 +1,19 @@
 # ShowUp — changelog
 
+## v3.3.455 (2026-09-05) — The scope tabs do not repaint
+
+Tapping Today / Tomorrow / This week rewrote the whole view, so every chip,
+the note and the buttons were destroyed and rebuilt — that repaint was the
+flicker. Same cause as the plan fold in v3.3.452.
+
+The ask screen updates in place now: the card is rebuilt off-screen and
+patched into the live one child by child, so only what actually changed is
+replaced. The scope seg swaps its highlight, the hint line appears, the
+primary's label follows the day — and the note you are typing keeps its text,
+its caret and its scroll, even switching to the week scope, which inserts a
+day picker above it. Every control on the screen works this way now, not just
+the tabs.
+
 ## v3.3.454 (2026-09-05) — Use for today
 
 The preview's primary names the destination now: **Use for today**, **Use for
