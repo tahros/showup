@@ -873,7 +873,12 @@ function planScreenHTML(){
     /* v3.3.421: the day editor edits the plan the day scope SHOWS -- tomorrow's
        once today is closed -- not planNow(), which is null then and opened an
        empty box over a plan that was plainly on screen. */
-    const cur=lift.planMode==='week'?(lift.planText||''):(((planShown()||{}).raw)||planToText(planShown())||lift.planText||'');
+    /* v3.3.445: two sources, one rule. If the box has been touched this
+       session (typed, pasted, or opened with text), the box wins -- a render
+       mid-edit (a cloud pull, the minute tick, a toast) used to rebuild it
+       from the saved plan and throw the edit away. Otherwise it opens on the
+       text of the plan you HAVE, via planText(), not the raw you read it from. */
+    const cur=lift.planMode==='week'?(lift.planText||''):(lift.planDirty?(lift.planText||''):(planText(planShown())||lift.planText||''));
     /* v3.3.397: the paste names the day it is for; the ledger picks it */
     const _wd=writeDateISO();
     const _title=lift.planMode==='week'?'Edit the week':(_wd===todayISO?'Paste today\u2019s plan':`Paste a plan for ${planDayLabel(_wd)}`);

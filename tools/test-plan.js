@@ -1078,6 +1078,56 @@ run(`(function(){view='today'; lift.ex=null; render();})()`);
 }
 
 
+/* ================= v3.3.445: THE BOX SHOWS THE PLAN YOU HAVE =================
+   Reproduces the maker's screen. A three-exercise text is read; on the
+   preview one row is dropped; the plan is saved with two items and the
+   ORIGINAL raw. Opening the editor must show two exercises, not three, and
+   the copy button must copy two. Then: a render mid-edit must not throw the
+   edit away. Runs inside the deferred block below so boot's async first
+   render has already landed. */
+async function v445(){
+  const RAW='Squat\n  195 lb x 8 8 8 8\n\nBarbell Bench Press\n  155 lb x 8 8 6 6\n\nDip\n  BW+45 lb x 10 8 8\n';
+  run(`(function(){ lift.plan=null; lift.planDirty=false; DB.week=null;
+    /* the preview's own path: parse, DROP the Dip row (data-plandrop turns it
+       into a note), then planItemsFrom -- the same converter the Use button
+       calls, so units and lines are the app's, not the fixture's */
+    const rows=parsePlan(${JSON.stringify(RAW)});
+    for(const r of rows) if(r.kind==='ex'&&r.ex==='Dip') r.kind='note';
+    const {items}=planItemsFrom(rows);
+    planSave(items,'',${JSON.stringify(RAW)},todayISO); SEED=deriveAll(); view='today'; render(); })()`);
+  ok("(fixture) the saved plan has two items but a three-exercise raw",
+     run(`DB.plan.items.length===2 && /Dip/.test(DB.plan.raw)`));
+  ok("planText() regenerates from the items when raw disagrees with them",
+     run(`(function(){const t=planText(DB.plan); return /Squat/.test(t)&&/Bench/.test(t)&&!/Dip/.test(t);})()`)===true);
+  ok("...and keeps the raw verbatim when it still reads to the same list",
+     run(`(function(){const p={items:planItemsFrom(parsePlan(${JSON.stringify(RAW)})).items, raw:${JSON.stringify(RAW)}}; return planText(p)===p.raw;})()`)===true);
+  run(`lift.plan='paste'; lift.planMode='day'; lift.planDirty=false; render();`);
+  const box=()=>run(`document.getElementById('planText').value`);
+  ok("the editor opens on the plan you HAVE -- the dropped row is not there",
+     /Squat/.test(box()) && !/Dip/.test(box()), JSON.stringify(box()).slice(0,80));
+  // the copy button copies the same two
+  run(`globalThis.__copied=null; navigator.clipboard={writeText:t=>{__copied=t;return Promise.resolve();},readText:()=>Promise.resolve('')};
+       lift.plan=null; render(); document.querySelector('[data-plancopy]').click();`);
+  await new Promise(r=>setTimeout(r,10));
+  ok("Copy copies the plan you have, not the raw it came from",
+     run(`__copied!==null && /Squat/.test(__copied) && !/Dip/.test(__copied)`)===true, JSON.stringify(run(`__copied`)).slice(0,80));
+  // a render mid-edit keeps the edit
+  run(`lift.plan='paste'; lift.planMode='day'; lift.planDirty=false; render();`);
+  run(`(function(){const ta=document.getElementById('planText'); ta.value='Deadlift\\n  225 lb x 5'; ta.dispatchEvent(new Event('input',{bubbles:true}));})()`);
+  run(`render();`);   // a cloud pull, the minute tick, a toast -- anything
+  ok("typing then a re-render keeps what was typed, not the saved plan",
+     /Deadlift/.test(box()) && !/Squat/.test(box()), JSON.stringify(box()).slice(0,60));
+  // a fresh open after Cancel reads the saved plan again
+  /* no escape hatch: the pencil must exist on Today and must reopen the
+     editor. The first version passed when it did not, which probing found. */
+  run(`document.querySelector('[data-planback]').click();`);
+  ok("Cancel closes the editor", run(`lift.plan===null`));
+  ok("...and Today shows the pencil", run(`!!document.querySelector('[data-planedit]')`));
+  run(`document.querySelector('[data-planedit]').click();`);
+  ok("Cancel then Edit opens on the saved plan again, not the abandoned draft",
+     run(`lift.plan==='paste'`) && /Squat/.test(box()) && !/Deadlift/.test(box()), JSON.stringify(box()).slice(0,50));
+  run(`lift.plan=null; lift.planDirty=false; render();`);
+}
 /* ================= v3.3.443: THE PASTE BOX IS USABLE ON A PHONE =================
    Asserted on the rendered paste screen. jsdom cannot resolve the cascade, so
    the reachable facts are the structure the CSS acts on and the attributes
@@ -1115,5 +1165,6 @@ setTimeout(async()=>{
   const v=run(`document.getElementById('planText').value`);
   ok("Paste replaces the box with the clipboard", v==='CLIPBOARD TEXT', JSON.stringify(v));
   run(`lift.plan=null; render();`);
+  await v445();
   process.exit(fail ? 1 : 0);
 },60);

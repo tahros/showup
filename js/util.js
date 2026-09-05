@@ -1090,6 +1090,26 @@ function planRailRefresh(){
    when tomorrow comes: this is idempotent and cheap, so Today calls it on
    every render rather than trusting a midnight hook to have fired. */
 function planWake(){ const fed=planRailRefresh(); if(fed) save(true); return fed; }
+/* v3.3.445: THE TEXT OF THE PLAN YOU HAVE. A saved plan carries two things:
+   its ITEMS (what you accepted on the preview) and its RAW (the text those
+   were read from). The preview lets you drop rows and re-pick names, and the
+   raw is saved unchanged -- so raw can describe exercises you removed. Both
+   the editor's prefill and the copy button read raw first, and the maker
+   opened the editor to find a plan he had not kept: "it pasted wrong info".
+   Raw is kept ONLY while it still reads to the same exercises in the same
+   order; the moment items and raw disagree, the items are the truth and the
+   text is regenerated from them. Formatting from the source survives edits
+   that did not change the list; it does not survive a dropped row. */
+function planText(p){
+  if(!p) return '';
+  const raw=(p.raw||'').trim();
+  if(raw&&typeof parsePlan==='function'){
+    const fromRaw=parsePlan(raw).filter(r=>r.kind==='ex'&&r.ex).map(r=>r.ex);
+    const have=(p.items||[]).map(i=>i.ex);
+    if(fromRaw.length===have.length&&fromRaw.every((x,i)=>x===have[i])) return p.raw;
+  }
+  return planToText(p);
+}
 function planSave(items,note,raw,d){
   d=d||todayISO;
   DB.plan={d, items:items||[], note:note||'', raw:raw||''};

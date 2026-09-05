@@ -1,5 +1,23 @@
 # ShowUp — changelog
 
+## v3.3.445 (2026-09-04) — The box shows the plan you have
+
+Paste "pasted wrong info": the editor had opened on a plan the maker had not
+kept. Two causes, both fixed.
+
+A saved plan carries its items (what you accepted on the preview) and its raw
+(the text they were read from). The preview lets you drop rows and re-pick
+names, but the raw was saved unchanged — so the editor's prefill and the Copy
+button, which both read raw first, could show exercises you had removed. Both
+now read the plan you *have*: the raw is kept only while it still reads to the
+same exercises in the same order; otherwise the text is regenerated from the
+items.
+
+And the box is safe to type in: every keystroke and every Paste is mirrored
+into the draft, so a render mid-edit — a cloud pull, the minute tick, a toast —
+rebuilds the box with what you typed instead of the saved plan. Cancel and
+re-open still read the saved plan fresh.
+
 ## v3.3.444 (2026-09-04) — The ask screen asks
 
 Copy and layout on the writer's ask screen, at the maker's word.

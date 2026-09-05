@@ -303,7 +303,7 @@ document.addEventListener('click',e=>{
   }
   /* ---- v3.3.278: today's plan. Every step is explicit; nothing auto-applies. */
   if(e.target.closest&&e.target.closest('[data-planpaste],[data-planedit]')){
-    lift.plan='paste'; lift.planMode='day'; return render();
+    lift.plan='paste'; lift.planMode='day'; lift.planDirty=false; return render();   // v3.3.445: a fresh open reads the saved plan
   }
   /* ---- v3.3.400: the session writer's ask screen ---- */
   if(e.target.closest&&e.target.closest('[data-planwrite]')){
@@ -335,7 +335,7 @@ document.addEventListener('click',e=>{
     if((t=q('[data-writefor]'))){ o.part=t.dataset.writefor; return render(); }
     if((t=q('[data-writeobj]'))){ o.objective=t.dataset.writeobj; DB.settings.objective=o.objective; DB.settingsAt=Date.now(); save(true); return render(); }
     if(q('[data-writego]')){ writerGo(); return; }
-    if(q('[data-writepaste]')){ lift.plan='paste'; lift.planMode='day'; lift.planText=''; return render(); }
+    if(q('[data-writepaste]')){ lift.plan='paste'; lift.planMode='day'; lift.planText=''; lift.planDirty=false; return render(); }
     if(q('[data-writeback]')){ lift.plan=null; lift.write=null; return render(); }
   }
   /* ---- v3.3.398: the week scope ---- */
@@ -350,10 +350,10 @@ document.addEventListener('click',e=>{
   if(_pc){
     /* v3.3.421: the day copy reads the plan the day scope SHOWS -- tomorrow's
        once today is closed. planNow() is null then and copied nothing. */
-    const txt=_pc.dataset.plancopy==='week'?weekToText(weekNow()):(function(){const p=planShown(); return p&&p.raw&&p.raw.trim()?p.raw:planToText(p);})();
+    const txt=_pc.dataset.plancopy==='week'?weekToText(weekNow()):planText(planShown());   // v3.3.445: the plan you have, not the raw it came from
     const done=()=>toast('Copied');
-    try{ if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done,()=>toast('Could not copy')); else { lift.planText=txt; lift.plan='paste'; render(); } }
-    catch(_e){ lift.planText=txt; lift.plan='paste'; render(); }
+    try{ if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done,()=>toast('Could not copy')); else { lift.planText=txt; lift.planDirty=true; lift.plan='paste'; render(); } }
+    catch(_e){ lift.planText=txt; lift.planDirty=true; lift.plan='paste'; render(); }
     return;
   }
   if(e.target.closest&&e.target.closest('[data-weekedit]')){
@@ -376,7 +376,7 @@ document.addEventListener('click',e=>{
       navigator.clipboard.readText().then(t=>{
         if(!t){ toast('Clipboard is empty'); return; }
         /* replace a selection, else the whole box: a paste is a plan, not an append */
-        ta.value=t; ta.setSelectionRange(t.length,t.length); lift.planText=t;
+        ta.value=t; ta.setSelectionRange(t.length,t.length); lift.planText=t; lift.planDirty=true;
       },()=>toast('Hold the box and tap Paste'));
     } else toast('Hold the box and tap Paste');
     return;
@@ -872,6 +872,10 @@ document.addEventListener('scroll',e=>{
 
 document.addEventListener('input',e=>{
   if(e.target&&e.target.id==='wv') refreshLoad();
+  /* v3.3.445: the paste box mirrors every keystroke into lift.planText and
+     marks the session dirty, so a render between keystrokes rebuilds the
+     box with what you typed, not with the saved plan. */
+  if(e.target&&e.target.id==='planText'){ lift.planText=e.target.value; lift.planDirty=true; }
 });
 function refreshLoad(){
   const ll=$('#ll');
