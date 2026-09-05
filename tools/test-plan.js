@@ -1128,6 +1128,25 @@ async function v445(){
      run(`lift.plan==='paste'`) && /Squat/.test(box()) && !/Deadlift/.test(box()), JSON.stringify(box()).slice(0,50));
   run(`lift.plan=null; lift.planDirty=false; render();`);
 }
+
+/* ================= v3.3.446: A LEADING PLUS IS ADDED BODYWEIGHT =================
+   The maker's paste, verbatim. "+10 lb x 12 10 10 (add the plate)" under
+   Decline Sit Up must read as ONE exercise with BW+10 lb, not two notes. */
+{
+  const t1=run(`JSON.stringify(parsePlan("Decline Sit Up\\n  +10 lb \\u00d7 12 10 10 (add the plate)").map(r=>({k:r.kind,ex:r.ex,L:(r.lines||[]).map(l=>({bw:l.bw,w:l.w,u:l.unit,reps:l.reps}))})))`);
+  const r1=JSON.parse(t1);
+  ok("'+10 lb x 12 10 10' under a heading reads as BW+10 lb, one exercise, no notes",
+     r1.length===1 && r1[0].k==='ex' && r1[0].ex==='Decline Sit Up' && r1[0].L.length===1
+       && r1[0].L[0].bw===true && r1[0].L[0].w===10 && r1[0].L[0].u==='lb' && JSON.stringify(r1[0].L[0].reps)==='[12,10,10]', t1);
+  const t2=run(`JSON.stringify(parsePlan("Dip\\n  +45 x 10 8 8").map(r=>({k:r.kind,ex:r.ex,L:(r.lines||[]).map(l=>({bw:l.bw,w:l.w,reps:l.reps}))})))`);
+  const r2=JSON.parse(t2);
+  ok("'+45 x 10 8 8' with no unit reads the same way", r2.length===1 && r2[0].L[0].bw===true && r2[0].L[0].w===45 && JSON.stringify(r2[0].L[0].reps)==='[10,8,8]', t2);
+  const t3=run(`JSON.stringify(parsePlan("Bench\\n  135 lb +10 lb x 5").map(r=>r.kind))`);
+  ok("...while a MID-line plus is still the complex shape it was (a note)", /note/.test(t3), t3);
+  const t4=run(`JSON.stringify(parsePlan("Dip\\n  BW +45 lb x 10").map(r=>(r.lines||[]).map(l=>[l.bw,l.w])))`);
+  ok("...and the spelled-out BW form is unchanged", t4==='[[[true,45]]]', t4);
+}
+
 /* ================= v3.3.443: THE PASTE BOX IS USABLE ON A PHONE =================
    Asserted on the rendered paste screen. jsdom cannot resolve the cascade, so
    the reachable facts are the structure the CSS acts on and the attributes

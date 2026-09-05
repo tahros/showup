@@ -1304,7 +1304,16 @@ const PLAN_SET=/^\s*([\d.]+)\s*(lb|lbs|kg|kgs)?\s*[x×·,:]?\s*([\d\s,x×·]*\d)
    already states weight per hand, so "per arm" is restating the convention. */
 const PLAN_SIDE=/\s*(?:\/\s*)?(?:per|each|ea\.?|e\/)\s*(?:arm|side|leg|hand|limb)?s?\.?\s*$/i;
 function planReadSets(line){
-  const src=String(line).replace(PLAN_SIDE,'');
+  /* v3.3.446: A LEADING PLUS IS ADDED BODYWEIGHT. "+10 lb x 12 10 10" under
+     Decline Sit Up fell through every reader: not a weight line (it starts
+     with +), not a BW line (no "bw" word), and then PLAN_COMPLEX's mid-line
+     "+N lb" alternative -- meant for "135 +10 lb" progressions -- caught it
+     and made it a note, which orphaned the heading above it into a second
+     note. One exercise became two pieces of text, the v3.3.311 failure
+     again. At the START of a set line there is only one thing "+10" can
+     mean: ten added to the body. Rewrite it as the BW form and let the BW
+     reader do what it already does. Mid-line pluses are untouched. */
+  const src=String(line).replace(PLAN_SIDE,'').replace(/^\s*\+\s*(?=[\d.])/,'BW +');
   const nwm=src.match(PLAN_SET_NW);
   if(nwm){
     const reps=nwm[1].split(/[\s,]+/).filter(Boolean)

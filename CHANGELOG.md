@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v3.3.446 (2026-09-04) — A leading plus is added bodyweight
+
+`+10 lb × 12 10 10` under Decline Sit Up was refused: it is not a weight line
+(it starts with +), not a bodyweight line (no "BW"), and the mid-line "+N lb"
+guard meant for "135 +10 lb" progressions caught it and made it a note — which
+orphaned the heading above it into a second note. At the start of a set line a
+plus can only mean added to the body, so it now reads as BW+10 lb. `+45 x 10 8
+8` reads the same way; spelled-out `BW +45` and mid-line pluses are unchanged.
+
 ## v3.3.445 (2026-09-04) — The box shows the plan you have
 
 Paste "pasted wrong info": the editor had opened on a plan the maker had not
