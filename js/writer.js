@@ -355,7 +355,7 @@ function writerCancel(){
   const o=writerState(); o.cancelled=true;
   if(lift.writeAbort){ try{ lift.writeAbort.abort(); }catch(_e){} }
   /* the stub path has no controller to abort: settle it here */
-  if(!lift.writeAbort){ writerWaitStop(); o.busy=false; lift.plan='write'; o.err=''; render(); }
+  if(!lift.writeAbort){ writerWaitStop(); o.busy=false; planBack(); o.err=''; render(); }
 }
 
 /* ---- the guardrails, on the device, before the read-back ----
@@ -696,7 +696,7 @@ async function writerGo(){
   const ta=document.getElementById('writeNote'); if(ta) o.note=ta.value;
   if(o.scope==='week') writerDays(o);
   const payload=writerPayload(o);
-  o.busy=true; o.err=''; o.cancelled=false; lift.plan='writing'; render(); writerWaitStart();
+  o.busy=true; o.err=''; o.cancelled=false; planGo('writing'); render(); writerWaitStart();
   try{
     /* An already-planned week needs no model call: merge and show the fixed
        blocks immediately. This keeps "Write" harmless and reviewable. */
@@ -736,13 +736,13 @@ async function writerGo(){
     lift.planSource='writer'; lift.planReason=chk.reason; lift.planNotes=chk.notes;
     lift.planText=chk.text; lift.planRows=chk.rows; lift.planDate=chk.date;
     if(chk.week){ lift.planMode='week'; lift.planWeek=chk.week; } else { lift.planMode='day'; lift.planWeek=null; }
-    writerWaitStop(); lift.plan='preview'; o.busy=false;
+    writerWaitStop(); planGo('preview'); o.busy=false;
     render();
   }catch(e){
     writerWaitStop(); o.busy=false;
     /* v3.3.406: a cancel is not a failure -- back to the ask screen, quietly */
-    if(o.cancelled){ lift.plan='write'; o.err=''; return render(); }
-    lift.plan='write';
+    if(o.cancelled){ planBack(); o.err=''; return render(); }
+    planBack();
     const msg=(e&&e.refused)?`The writer’s answer was refused: ${e.refused}. Nothing was saved.`
       :(e&&e.name==='AbortError')?'That took too long. The first write in a while is the slow one — tap Write again.'
       :(e&&/offline|Failed to fetch|NetworkError/i.test(String(e&&e.message)))?'Needs signal. The rotation still has an answer.'

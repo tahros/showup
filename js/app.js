@@ -305,7 +305,12 @@ document.addEventListener('click',e=>{
   if(e.target.closest&&e.target.closest('[data-planpaste]')){
     /* v3.3.445: a fresh open reads the saved plan (there is none: this is the
        empty state's door). */
-    lift.plan='paste'; lift.planMode='day'; lift.planDirty=false; return render();
+    planGo('paste'); lift.planMode='day'; lift.planDirty=false; return render();
+  }
+  /* v3.3.450: the one door from the pencil's preview to the text. It pushes
+     the preview on the stack, so Cancel on the box returns to the preview. */
+  if(e.target.closest&&e.target.closest('[data-plantext]')){
+    planGo('paste'); lift.planMode='day'; return render();   // the draft is already the plan's text (v3.3.448)
   }
   if(e.target.closest&&e.target.closest('[data-planedit]')){
     /* v3.3.448: THE PENCIL OPENS THE PLAN, NOT THE TEXT. Today already shows
@@ -319,12 +324,12 @@ document.addEventListener('click',e=>{
        with the items, else text regenerated from them (v3.3.445) -- so the
        writer's reasons survive into the preview when they are still true. */
     const p=planShown();
-    if(!p){ lift.plan='paste'; lift.planMode='day'; lift.planDirty=false; return render(); }
+    if(!p){ planGo('paste'); lift.planMode='day'; lift.planDirty=false; return render(); }
     const txt=planText(p);
     lift.planText=txt; lift.planDirty=true; lift.planMode='day';
     lift.planRows=parsePlan(txt); lift.planWeek=null; lift.planSource='saved'; lift.planReason=null;
     lift.planDate=p.d||writeDateISO();   // the edit writes back to the day it opened, whatever the ledger says by then
-    lift.plan='preview'; return render();
+    planGo('preview'); return render();
   }
   /* ---- v3.3.400: the session writer's ask screen ---- */
   if(e.target.closest&&e.target.closest('[data-planwrite]')){
@@ -339,7 +344,7 @@ document.addEventListener('click',e=>{
       const o=writerState(); o.scope='week'; o.rewrite=true;
       o.days=new Set(Object.keys(weekNow().days).filter(d=>d>=todayISO)); lift.write=o;
     }else lift.write=null;
-    lift.plan='write'; lift.planSource=null; lift.planReason=null; lift.planDate=null; return render();
+    planGo('write'); lift.planSource=null; lift.planReason=null; lift.planDate=null; return render();
   }
   if(lift.plan==='writing'){
     if(e.target.closest&&e.target.closest('[data-writecancel]')){ writerCancel(); return; }
@@ -356,8 +361,8 @@ document.addEventListener('click',e=>{
     if((t=q('[data-writefor]'))){ o.part=t.dataset.writefor; return render(); }
     if((t=q('[data-writeobj]'))){ o.objective=t.dataset.writeobj; DB.settings.objective=o.objective; DB.settingsAt=Date.now(); save(true); return render(); }
     if(q('[data-writego]')){ writerGo(); return; }
-    if(q('[data-writepaste]')){ lift.plan='paste'; lift.planMode='day'; lift.planText=''; lift.planDirty=false; return render(); }
-    if(q('[data-writeback]')){ lift.plan=null; lift.write=null; return render(); }
+    if(q('[data-writepaste]')){ planGo('paste'); lift.planMode='day'; lift.planText=''; lift.planDirty=false; return render(); }
+    if(q('[data-writeback]')){ planBack(); lift.write=null; return render(); }
   }
   /* ---- v3.3.398: the week scope ---- */
   const _ps=e.target.closest&&e.target.closest('[data-planscope]');
@@ -373,15 +378,15 @@ document.addEventListener('click',e=>{
        once today is closed. planNow() is null then and copied nothing. */
     const txt=_pc.dataset.plancopy==='week'?weekToText(weekNow()):planText(planShown());   // v3.3.445: the plan you have, not the raw it came from
     const done=()=>toast('Copied');
-    try{ if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done,()=>toast('Could not copy')); else { lift.planText=txt; lift.planDirty=true; lift.plan='paste'; render(); } }
-    catch(_e){ lift.planText=txt; lift.planDirty=true; lift.plan='paste'; render(); }
+    try{ if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done,()=>toast('Could not copy')); else { lift.planText=txt; lift.planDirty=true; planGo('paste'); render(); } }
+    catch(_e){ lift.planText=txt; lift.planDirty=true; planGo('paste'); render(); }
     return;
   }
   if(e.target.closest&&e.target.closest('[data-weekedit]')){
-    lift.planText=weekToText(weekNow()); lift.plan='paste'; lift.planMode='week'; return render();
+    lift.planText=weekToText(weekNow()); planGo('paste'); lift.planMode='week'; return render();
   }
   if(e.target.closest&&e.target.closest('[data-weekclear]')){
-    weekClear(); lift.plan=null; lift.planText=''; lift.planScope='today'; lift.weekOpen=null; toast('Week cleared'); return render();
+    weekClear(); planDone(); lift.planText=''; lift.planScope='today'; lift.weekOpen=null; toast('Week cleared'); return render();
   }
   /* v3.3.443: the tool row over the paste box. Paste reads the clipboard in
      one tap where the browser allows it (iOS asks once, per site); where it
@@ -408,8 +413,13 @@ document.addEventListener('click',e=>{
        the box it closes the editor and lets the draft go; opening again reads
        the saved plan (v3.3.445). Two cancels to leave from the preview, each
        undoing exactly what the last step did. */
-    if(lift.plan==='preview'){ lift.plan='paste'; lift.planRows=null; lift.planWeek=null; lift.planSource=null; lift.planReason=null; return render(); }
-    lift.plan=null; lift.planRows=null; lift.planWeek=null; lift.planSource=null; lift.planReason=null; lift.planDate=null; return render();
+    /* v3.3.450: Cancel goes to the screen that opened this one -- the stack
+       decides, not the button. From the preview that is Today (pencil), the
+       box (Read it) or the ask screen (writer). */
+    const _leaving=lift.plan;
+    planBack();
+    if(_leaving==='preview'&&lift.plan!=null){ lift.planRows=null; lift.planWeek=null; lift.planSource=null; lift.planReason=null; }
+    return render();
   }
   if(e.target.closest&&e.target.closest('[data-planread]')){
     const ta=document.getElementById('planText');
@@ -421,9 +431,9 @@ document.addEventListener('click',e=>{
     const wk=parseWeek(txt);
     if(lift.planMode==='week'||(wk&&Object.keys(wk.days).length>=2)){
       if(!wk){ toast('No day headings found \u2014 e.g. "Tue, Sep 1 \u2014 Back"'); return; }
-      lift.planMode='week'; lift.planWeek=wk; lift.planRows=weekRows(wk); lift.plan='preview'; return render();
+      lift.planMode='week'; lift.planWeek=wk; lift.planRows=weekRows(wk); planGo('preview'); return render();
     }
-    lift.planMode='day'; lift.planRows=parsePlan(txt); lift.plan='preview'; return render();
+    lift.planMode='day'; lift.planRows=parsePlan(txt); planGo('preview'); return render();
   }
   /* v3.3.399: the grip moves a row with the keyboard; the pointer path is
      below, outside the click handler, because a drag is not a click */
@@ -447,7 +457,7 @@ document.addEventListener('click',e=>{
     if(lift.planMode==='week'){
       const wk=weekFromRows(lift.planRows||[], lift.planText||'');
       if(!wk){ toast('Nothing to keep'); return; }
-      weekSave(wk); lift.plan=null; lift.planRows=null; lift.planWeek=null; lift.planMode='day'; lift.planSource=null; lift.planReason=null; lift.planDate=null;
+      weekSave(wk); planDone(); lift.planMode='day';
       lift.planScope='week'; lift.weekOpen=null;
       const n=Object.keys(wk.days).length; toast(`Week set \u2014 ${n} day${n===1?'':'s'}`);
       return render();
@@ -459,7 +469,7 @@ document.addEventListener('click',e=>{
     const _wd=lift.planDate||writeDateISO();
     planSave(items,note,lift.planText||'',_wd);
     lift.planDate=null; lift.planSource=null; lift.planReason=null;
-    lift.plan=null; lift.planRows=null;
+    planDone();
     toast(items.length?`Plan set${_wd===todayISO?'':' for '+planDayLabel(_wd)} — ${items.length} exercise${items.length>1?'s':''}`:'Kept as a note');
     return render();
   }
@@ -474,7 +484,7 @@ document.addEventListener('click',e=>{
   if(e.target.closest&&e.target.closest('[data-planclear]')){
     /* v3.3.421: Clear lives inside the editor now; clearing also closes it --
        there is nothing left to edit. */
-    planClear(); lift.plan=null; lift.planText=''; toast('Plan cleared'); return render();
+    planClear(); planDone(); lift.planText=''; toast('Plan cleared'); return render();
   }
   const _prow=e.target.closest&&e.target.closest('[data-planex]');
   if(_prow){

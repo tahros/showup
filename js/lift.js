@@ -917,7 +917,8 @@ function planScreenHTML(){
   /* v3.3.448: a third source -- the plan you already have, opened by the pencil */
   let h=`<h2>${lift.planSource==='writer'?'Read from the writer':lift.planSource==='saved'?`Edit ${(lift.planDate||writeDateISO())===todayISO?'today\u2019s':planDayLabel(lift.planDate||writeDateISO())+'\u2019s'} plan`:'Read from your paste'}</h2><div class="card">
     ${_rs?`<div class="planreason"><div class="lasthead"><span>${hesc(_rs.head||'')}</span><span class="ago">writer\u2019s call</span></div><div class="mono muted">${hesc(_rs.text||'')}</div></div>`:''}
-    <div class="lasthead"><span>WHAT THE APP READ</span><span class="ago">${ok} of ${tot}</span></div>`;
+    <div class="lasthead"><span>WHAT THE APP READ</span><span class="ago">${ok} of ${tot}${
+      lift.planSource==='saved'?` \u00b7 <button class="pedge" data-plantext style="text-transform:none;letter-spacing:0">edit as text</button>`:''}</span></div>`;
   rows.forEach((r,i)=>{
     /* v3.3.398: a day heading inside a week paste -- a divider, not an item */
     if(r.kind==='day'){

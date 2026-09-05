@@ -133,7 +133,7 @@ ok("...while the other days are untouched", run(`DB.week.days[${JSON.stringify(i
 /* v3.3.421: Clear is behind the Edit door; v3.3.448: two doors -- the pencil
    opens the preview, Cancel steps back to the box, Clear is there */
 run(`document.querySelector('[data-planedit]').click()`);
-run(`document.querySelector('[data-planback]').click()`);
+run(`document.querySelector('[data-plantext]').click()`);   // v3.3.450: the text is behind its own door
 run(`document.querySelector('.planacts [data-planclear]').click()`);
 ok("Clear on today clears today's block too, so the card cannot come straight back", run(`planNow()===null`) && run(`!DB.week.days[todayISO]`));
 ok("...but the week survives with its other days", run(`!!weekNow() && Object.keys(DB.week.days).length`)===3);

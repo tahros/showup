@@ -901,6 +901,32 @@ function planItemShape(i){
    The `!w.length` half is not belt-and-braces: save() clears the flag when a
    set lands (core.js, "training always wins"), but a render can run between
    the push and the save, and a green square over a logged set is a lie. */
+/* v3.3.450: THE PLAN FLOW REMEMBERS ITS PATH. Cancel used to have a fixed
+   destination -- close (v3.3.421), then "back to the box" (v3.3.447) -- and
+   each was right for one path and wrong for the other. The pencil opens the
+   preview from Today; Read it opens the preview from the box; the writer opens
+   it from the ask screen. Cancel on the same preview must return to three
+   different places. So the flow keeps a stack, like a browser: planGo(next)
+   pushes the screen you are leaving, planBack() pops it. The stack lives in
+   lift and dies with the flow (planDone), so it can never leak a stale return
+   address into the next open. */
+function planGo(next){
+  if(lift.plan==null||lift.plan===next){ if(lift.plan==null) lift.planBack=[]; }
+  else (lift.planBack=lift.planBack||[]).push(lift.plan);
+  lift.plan=next;
+}
+function planBack(){
+  const st=lift.planBack||[];
+  /* 'writing' is a wait screen, never a destination: skip it */
+  let prev=st.pop(); while(prev==='writing'&&st.length) prev=st.pop();
+  lift.plan=(prev==null||prev==='writing')?null:prev;
+  if(lift.plan==null) planDone();
+  return lift.plan;
+}
+function planDone(){
+  lift.plan=null; lift.planBack=[]; lift.planRows=null; lift.planWeek=null;
+  lift.planSource=null; lift.planReason=null; lift.planDate=null;
+}
 function restingToday(){
   const t=DB.days&&DB.days[todayISO];
   return !!(t&&t.rest&&!((t.w||[]).length));

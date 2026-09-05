@@ -1,5 +1,17 @@
 # ShowUp — changelog
 
+## v3.3.450 (2026-09-05) — Cancel goes back, not somewhere
+
+The plan flow keeps a back stack, like a browser. Cancel returns to whichever
+screen opened the one you are on: pencil → preview → Cancel is Today; box →
+Read it → preview → Cancel is the box, text intact; WRITE → Paste → Cancel is
+the ask screen. Use, Clear and closing the flow empty the stack, so a stale
+return address can never send Cancel somewhere you have not been.
+
+The pencil's preview gains one quiet door — *edit as text* beside the count —
+for the cases where a number has to change. It stacks the preview beneath the
+box, so Cancel from there walks back the way you came.
+
 ## v3.3.449 (2026-09-05) — Gate repaired
 
 v3.3.448 shipped with one suite red: `test-week.js` still walked the old

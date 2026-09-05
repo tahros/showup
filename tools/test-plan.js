@@ -442,9 +442,11 @@ ok("...the fold lives on the row that folds",
 run(`document.querySelector('[data-planedit]').dispatchEvent(new window.Event('click',{bubbles:true}))`);
 ok("...the pencil's first screen (the preview) offers no Clear",
    run(`lift.plan==='preview' && !document.querySelector('[data-planclear]')`));
-run(`document.querySelector('[data-planback]').dispatchEvent(new window.Event('click',{bubbles:true}))`);
-ok("...and Clear waits one Cancel further in, on the box, in the record red",
+/* v3.3.450: the text is behind "edit as text", not behind Cancel */
+run(`document.querySelector('[data-plantext]').dispatchEvent(new window.Event('click',{bubbles:true}))`);
+ok("...and Clear waits behind 'edit as text', on the box, in the record red",
    run(`lift.plan==='paste' && !!document.querySelector('.planacts .btn.danger[data-planclear]')`));
+run(`document.querySelector('[data-planback]').dispatchEvent(new window.Event('click',{bubbles:true}))`);
 run(`document.querySelector('[data-planback]').dispatchEvent(new window.Event('click',{bubbles:true}))`);
 ok("...in the corner, after the tip, which keeps its place by the title",
    run(`(function(){const k=[...document.querySelector('h2').children].map(c=>c.className.split(' ')[0]);
@@ -455,7 +457,7 @@ ok("...and Clear still clears from there",
      /* v3.3.421: Clear is behind the Edit door; v3.3.448: two doors --
         pencil (preview), Cancel (box), Clear */
      run(`document.querySelector('[data-planedit]').click()`);
-     run(`document.querySelector('[data-planback]').click()`);
+     run(`document.querySelector('[data-plantext]').click()`);
      run(`document.querySelector('.planacts [data-planclear]').click()`);
      return run(`!planNow()`) && run(`!!document.querySelector('[data-planwrite]')`);
    })());
@@ -1091,6 +1093,52 @@ run(`(function(){view='today'; lift.ex=null; render();})()`);
 
 
 
+
+/* ================= v3.3.450: THE PLAN FLOW REMEMBERS ITS PATH =================
+   Three ways into the same preview; Cancel must return to each origin. And
+   the stack must die with the flow: an old return address surviving into
+   the next open would send Cancel somewhere the person never was. */
+async function v450(){
+  const RAW='Squat\n  195 lb x 8 8 8 8\n';
+  run(`(function(){ lift.plan=null; lift.planBack=[]; lift.planDirty=false; DB.week=null;
+    const {items}=planItemsFrom(parsePlan(${JSON.stringify(RAW)})); planSave(items,'',${JSON.stringify(RAW)},todayISO);
+    SEED=deriveAll(); view='today'; render(); })()`);
+  // path 1: Today -> pencil -> preview -> Cancel -> Today
+  run(`document.querySelector('[data-planedit]').click();`);
+  ok("path 1: pencil opens the preview with Today beneath it", run(`lift.plan==='preview' && JSON.stringify(lift.planBack)==='[]'`), run(`JSON.stringify(lift.planBack)`));
+  run(`document.querySelector('[data-planback]').click();`);
+  ok("...Cancel returns to Today", run(`lift.plan===null`));
+  // path 2: Today -> pencil -> preview -> edit as text -> box -> Read it -> preview -> Cancel -> box -> Cancel -> preview -> Cancel -> Today
+  run(`document.querySelector('[data-planedit]').click(); document.querySelector('[data-plantext]').click();`);
+  ok("path 2: edit-as-text stacks the preview under the box", run(`lift.plan==='paste' && JSON.stringify(lift.planBack)==='["preview"]'`), run(`JSON.stringify(lift.planBack)`));
+  run(`(function(){const ta=document.getElementById('planText'); ta.value='Dip\\n  +45 lb x 10'; ta.dispatchEvent(new Event('input',{bubbles:true}));})()`);
+  run(`document.querySelector('[data-planread]').click();`);
+  ok("...Read it stacks the box under the new preview", run(`lift.plan==='preview' && JSON.stringify(lift.planBack)==='["preview","paste"]'`), run(`JSON.stringify(lift.planBack)`));
+  run(`document.querySelector('[data-planback]').click();`);
+  ok("...Cancel: back to the box, text intact", run(`lift.plan==='paste'`) && /Dip/.test(run(`document.getElementById('planText').value`)));
+  run(`document.querySelector('[data-planback]').click();`);
+  ok("...Cancel: back to the preview", run(`lift.plan==='preview'`));
+  run(`document.querySelector('[data-planback]').click();`);
+  ok("...Cancel: back to Today, stack empty", run(`lift.plan===null && (lift.planBack||[]).length===0`));
+  // path 3: Today -> WRITE -> ask screen -> Paste -> box -> Cancel -> ask screen -> Cancel -> Today
+  run(`document.querySelector('[data-planwrite]').click();`);
+  ok("path 3: the ask screen opens with Today beneath it", run(`lift.plan==='write' && JSON.stringify(lift.planBack)==='[]'`));
+  run(`document.querySelector('[data-writepaste]').click();`);
+  ok("...Paste from the ask screen stacks it under the box", run(`lift.plan==='paste' && JSON.stringify(lift.planBack)==='["write"]'`), run(`JSON.stringify(lift.planBack)`));
+  run(`document.querySelector('[data-planback]').click();`);
+  ok("...Cancel returns to the ask screen, not to Today", run(`lift.plan==='write'`));
+  run(`document.querySelector('[data-writeback]').click();`);
+  ok("...and Cancel there returns to Today", run(`lift.plan===null`));
+  // the stack dies with the flow
+  run(`document.querySelector('[data-planedit]').click(); document.querySelector('[data-plantext]').click(); document.querySelector('[data-planread]').click();`);
+  ok("(fixture) deep in the flow with a two-deep stack", run(`lift.plan==='preview' && lift.planBack.length===2`));
+  run(`document.querySelector('[data-planaccept]').click();`);
+  ok("Use closes the flow AND empties the stack", run(`lift.plan===null && lift.planBack.length===0`));
+  run(`document.querySelector('[data-planedit]').click(); document.querySelector('[data-planback]').click();`);
+  ok("...so the next pencil's Cancel goes to Today, not to a stale box", run(`lift.plan===null`));
+  run(`lift.plan=null; lift.planBack=[]; lift.planDirty=false; render();`);
+}
+
 /* ================= v3.3.448: THE PENCIL OPENS THE PLAN, NOT THE TEXT =================
    The maker's screen: six exercises on Today, pencil tapped. He must land on
    WHAT THE APP READ with all six, each usable, the heading naming the day --
@@ -1130,8 +1178,8 @@ async function v447(){
     planSave(items,'',"Squat\\n  195 lb x 8 8 8 8",todayISO); SEED=deriveAll(); view='today'; render(); })()`);
   const box=()=>run(`(document.getElementById('planText')||{}).value`);
   /* v3.3.448: pencil -> preview -> Cancel -> box. The box is two taps in now. */
-  run(`document.querySelector('[data-planedit]').click(); document.querySelector('[data-planback]').click();`);
-  ok("(fixture) pencil then Cancel lands on the box holding the saved plan", run(`lift.plan==='paste'`) && /Squat/.test(box()));
+  run(`document.querySelector('[data-planedit]').click(); document.querySelector('[data-plantext]').click();`);
+  ok("(fixture) pencil then 'edit as text' lands on the box holding the saved plan", run(`lift.plan==='paste'`) && /Squat/.test(box()));
   run(`(function(){const ta=document.getElementById('planText'); ta.value='Dip\\n  +45 lb x 10 8 8'; ta.dispatchEvent(new Event('input',{bubbles:true}));})()`);
   run(`document.querySelector('[data-planread]').click();`);
   ok("Read it opens the preview on the pasted text", run(`lift.plan==='preview'`) && /Dip/.test(run(`$('#view').innerHTML`)));
@@ -1139,8 +1187,12 @@ async function v447(){
   run(`document.querySelector('[data-planback]').click();`);
   ok("Cancel on the preview returns to the box", run(`lift.plan==='paste'`));
   ok("...with the PASTED text still in it, not the saved plan", /Dip/.test(box()) && !/Squat/.test(box()), JSON.stringify(box()));
+  /* v3.3.450: this box was opened from the pencil's preview via 'edit as
+     text', so Cancel walks back: box -> preview -> Today. */
   run(`document.querySelector('[data-planback]').click();`);
-  ok("Cancel on the box closes the editor", run(`lift.plan===null`));
+  ok("Cancel on the box returns to the preview that opened it", run(`lift.plan==='preview'`));
+  run(`document.querySelector('[data-planback]').click();`);
+  ok("...and Cancel there returns to Today", run(`lift.plan===null`));
   run(`document.querySelector('[data-planedit]').click();`);
   ok("...and the pencil reads the saved plan again (preview shows Squat, not the Dip draft)",
      run(`lift.plan==='preview'`) && /Squat/.test(run(`$('#view').innerHTML`)) && !/Dip/.test(run(`$('#view').innerHTML`)));
@@ -1200,9 +1252,15 @@ async function v445(){
   ok("the pencil opens the preview of the plan you have (two rows, not three)",
      run(`lift.plan==='preview' && lift.planSource==='saved' && document.querySelectorAll('.planpv.ok').length===2`)
        && /Squat/.test(run(`$('#view').innerHTML`)) && !/Deadlift|Dip/.test(run(`$('#view').innerHTML`)));
-  run(`document.querySelector('[data-planback]').click();`);
-  ok("...and one Cancel back is the box with the saved plan's text, not the abandoned draft",
+  /* v3.3.450: Cancel returns to where the preview was opened from -- Today.
+     The box is behind "edit as text". */
+  run(`document.querySelector('[data-plantext]').click();`);
+  ok("...'edit as text' is the box with the saved plan's text, not the abandoned draft",
      run(`lift.plan==='paste'`) && /Squat/.test(box()) && !/Deadlift/.test(box()), JSON.stringify(box()).slice(0,50));
+  run(`document.querySelector('[data-planback]').click();`);
+  ok("...Cancel from that box returns to the preview it came from", run(`lift.plan==='preview'`));
+  run(`document.querySelector('[data-planback]').click();`);
+  ok("...and Cancel from the preview returns to Today, where the pencil was", run(`lift.plan===null`));
   run(`lift.plan=null; lift.planDirty=false; render();`);
 }
 
@@ -1264,5 +1322,6 @@ setTimeout(async()=>{
   await v445();
   await v447();
   await v448();
+  await v450();
   process.exit(fail ? 1 : 0);
 },60);
