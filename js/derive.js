@@ -393,7 +393,19 @@ function tickRest(){
      .rt-time is what every reader asks for.
      Hidden in portrait; nothing about the header changes. */
   const t=day(todayISO), w=t.w||[];
-  const last=w[w.length-1];
+  /* v3.3.456: THE LINE NAMES ONLY AN EXERCISE STILL OPEN. The context line
+     reads the last set logged, which stays true after ✓ Complete -- so the
+     maker finished Dips and the screen went on saying DIP BW+45lb in the
+     largest type the app owns. That reads as a prompt to do another set of
+     something he had just closed out. v3.3.149 deliberately keeps the CLOCK
+     running past Complete ("time since my last set" is useful whatever is
+     marked done) and that stands; what does not survive Complete is the
+     NAME. So the line is dropped when its exercise is in doneEx, and the
+     clock and the session line -- both still true -- carry the screen. A
+     later set on another exercise brings the line straight back. */
+  const doneEx=t.doneEx||[];
+  const last0=w[w.length-1];
+  const last=(last0&&doneEx.includes(last0.ex))?null:last0;
   let ctx='', sub='';
   if(last){
     const lw = last.ex==='Run' ? `${dDisp(last.w)}${DU()}`
@@ -409,6 +421,14 @@ function tickRest(){
        The filter on `at` stays regardless -- a set from an import or an edit
        carries no stamp, and Math.min must not see a zero. */
     const stamps=w.map(z=>+z.at).filter(t=>t>0);
+    const mins=stamps.length?Math.min(1440,Math.round((Date.now()-Math.min(...stamps))/60000)):0;
+    const span = mins<=0 ? '' : mins<120 ? `${mins} min in` : `${Math.round(mins/60)}h in`;
+    sub = `${w.length} set${w.length===1?'':'s'}${span?`  \u00b7  ${span}`:''}`;
+  }else if(w.length){
+    /* the session line is about the DAY, not the last exercise, so it stays
+       when the name goes -- otherwise closing an exercise would empty the
+       whole screen but the clock. */
+    const stamps=w.map(z=>+z.at).filter(x=>x>0);
     const mins=stamps.length?Math.min(1440,Math.round((Date.now()-Math.min(...stamps))/60000)):0;
     const span = mins<=0 ? '' : mins<120 ? `${mins} min in` : `${Math.round(mins/60)}h in`;
     sub = `${w.length} set${w.length===1?'':'s'}${span?`  \u00b7  ${span}`:''}`;

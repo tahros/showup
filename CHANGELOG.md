@@ -1,5 +1,18 @@
 # ShowUp — changelog
 
+## v3.3.456 (2026-09-05) — The name goes when the exercise is closed
+
+Finish Dips and the landscape timer went on saying DIP BW+45lb in the largest
+type the app owns — which reads as a prompt to do another set of the thing you
+just closed out. The line named the last set logged, and that stays true after
+✓ Complete.
+
+The name now goes when its exercise is complete. The clock keeps running —
+v3.3.149 decided that deliberately, and "time since my last set" is useful
+whatever is marked done — and the session line stays too, because it describes
+the day rather than the lift. Log a set on something still open and the name
+comes straight back.
+
 ## v3.3.455 (2026-09-05) — The scope tabs do not repaint
 
 Tapping Today / Tomorrow / This week rewrote the whole view, so every chip,

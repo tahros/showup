@@ -239,4 +239,41 @@ console.log(fail ? "\n" + fail + " FAILED" : "\nALL PASS");
      /visibilitychange/.test(drv) && /!document\.hidden/.test(drv));
 }
 
+/* ================= v3.3.456: THE NAME GOES WHEN THE EXERCISE IS CLOSED =========
+   The maker finished Dips and the landscape timer went on saying DIP BW+45lb
+   in the largest type the app owns -- reading as a prompt to do another set of
+   the thing he had just closed out. v3.3.149's rule that the CLOCK survives
+   Complete stands and is re-asserted here; only the NAME goes. */
+{
+  const ctxTxt=()=>run(`(document.querySelector('#hTimer .rt-ctx')||{}).textContent`);
+  const subTxt2=()=>run(`(document.querySelector('#hTimer .rt-sub')||{}).textContent`);
+  const timeTxt=()=>run(`(document.querySelector('#hTimer .rt-time')||{}).textContent`);
+  const seed=(done)=>run(`(function(){const t=Date.now();
+    DB.days[todayISO]={w:[{part:'Chest',ex:'Barbell Bench Press',w:toKg(155),reps:[8],at:t-20*60000},
+                          {part:'Chest',ex:'Dip',w:toKg(45),bw:true,reps:[6],at:t-30000}],
+                       doneEx:${JSON.stringify(done)}, upd:1};
+    SEED=deriveAll(); lastSetAt=t-30000; tickRest();})()`);
+  seed([]);
+  ok("mid-exercise the timer names what you just lifted", /DIP/.test(ctxTxt()), ctxTxt());
+  ok("...with the clock and the session line beside it",
+     /^\d+:\d\d$/.test(timeTxt()) && /2 sets/.test(subTxt2()), timeTxt()+" | "+subTxt2());
+  seed(['Dip']);
+  ok("completing Dip takes its NAME off the screen", !/DIP/.test(ctxTxt()), ctxTxt());
+  /* v3.3.149 stands: the clock is time-since-last-set, whatever is marked done */
+  ok("...but the clock keeps running (v3.3.149)", /^\d+:\d\d$/.test(timeTxt()), timeTxt());
+  ok("...and the session line stays, because it describes the DAY not the lift",
+     /2 sets/.test(subTxt2()) && /min in/.test(subTxt2()), subTxt2());
+  ok("...and the timer is still on screen at all", run(`document.getElementById('hTimer').classList.contains('on')`));
+  /* a later set on something still open brings the name straight back */
+  run(`(function(){const t=Date.now();
+    DB.days[todayISO].w.push({part:'Chest',ex:'Cable Fly Up',w:toKg(30),reps:[12],at:t-5000});
+    SEED=deriveAll(); lastSetAt=t-5000; tickRest();})()`);
+  ok("a set on an open exercise brings the name back", /CABLE FLY UP/.test(ctxTxt()), ctxTxt());
+  /* completing the LAST open thing still leaves a readable screen */
+  run(`(function(){DB.days[todayISO].doneEx=['Dip','Cable Fly Up']; SEED=deriveAll(); tickRest();})()`);
+  ok("...and closing that one too leaves the clock and the day, not a blank",
+     !/CABLE/.test(ctxTxt()) && /^\d+:\d\d$/.test(timeTxt()) && /3 sets/.test(subTxt2()),
+     ctxTxt()+" | "+timeTxt()+" | "+subTxt2());
+}
+
 process.exit(fail ? 1 : 0);
