@@ -1,5 +1,15 @@
 # ShowUp — changelog
 
+## v3.3.440 (2026-09-04) — The exhale does not blink
+
+Tapping Rest, or undoing it, cut hard from one screen to the next: render()
+cross-fades tab switches but paints in-view changes directly so a logged set
+never flashes — and the rest toggle is an in-view change that rewrites the
+header, the greeting, the plan card and the rail all at once. That direct
+paint read as a blink. The toggle now asks for the same cross-fade a tab switch
+gets, and the header rides inside it, so the wash, the square and the view
+arrive as one motion. Every other in-view render is unchanged.
+
 ## v3.3.439 (2026-09-04) — Why your name and sex vanished
 
 Root cause, named: settings were one document under one clock. Whichever

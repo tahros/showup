@@ -662,7 +662,7 @@ document.addEventListener('click',e=>{
     const t=day(todayISO);
     if(t.rest) delete t.rest; else t.rest=true;   // toggle; no confirm, no prompt
     t.upd=Date.now();
-    save(true); render(); return;
+    save(true); render({soft:true}); return;   // v3.3.440: the exhale cross-fades instead of cutting
   }
   if(e.target.closest&&e.target.closest('[data-carrytmw]')){
     /* v3.3.437: CARRY MOVES, it does not copy. Two identical plans stamped
@@ -1296,17 +1296,25 @@ const doneToast=(m,alt)=>{
 function syncNav(){
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
 }
-function render(){
+function render(opts){
   syncNav();
   if(typeof killCalReturn==='function') killCalReturn();   // v3.3.59: the contextual target dies with any view change
   if(typeof syncTopBtn==='function') syncTopBtn();        // v3.3.65: the general up button re-evaluates for the new view
   if(view!=='history'&&typeof hist!=='undefined'){ hist.edit=null; hist.editSet=null; }   // v3.3.61: leaving History closes edit mode
-  renderHeader();
-  // tab switches cross-fade via the View Transitions API; in-view re-renders
-  // (logging a set, toggling a setting) must NOT flash, so they paint directly
-  if(MOTION_OK && document.startViewTransition && lastView!==null && lastView!==view){
-    lastView=view; document.startViewTransition(paint);
-  } else { lastView=view; paint(); }
+  /* tab switches cross-fade via the View Transitions API; in-view re-renders
+     (logging a set, toggling a setting) must NOT flash, so they paint directly.
+     v3.3.440: EXCEPT when the caller says the whole screen is changing state.
+     Declaring rest rewrites the header, the greeting, the plan card and the
+     rail at once; painting that directly is a hard cut the eye reads as a
+     blink -- the old screen vanishes for a frame and a different one lands.
+     `render({soft:true})` asks for the same cross-fade a tab switch gets, and
+     brings the header INTO the transition so the wash, the square and the
+     view arrive as one motion rather than header-then-body. */
+  const soft=!!(opts&&opts.soft);
+  const both=()=>{ renderHeader(); paint(); };
+  if(MOTION_OK && document.startViewTransition && ((lastView!==null && lastView!==view) || soft)){
+    lastView=view; document.startViewTransition(both);
+  } else { lastView=view; both(); }
 }
 let floatIO=null;
 function motionPass(){

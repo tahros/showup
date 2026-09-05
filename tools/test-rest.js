@@ -12,7 +12,9 @@ const dom = new JSDOM(html.replace(/<script[^>]*src=[^>]*><\/script>/g, ""), {
   url: "https://tahros.github.io/showup/", runScripts: "outside-only", pretendToBeVisual: true });
 const w = dom.window, ctx = dom.getInternalVMContext();
 w.fetch = () => Promise.reject(new Error("offline"));
-w.matchMedia = w.matchMedia || (() => ({ matches:false, addEventListener(){}, removeEventListener(){} }));
+/* v3.3.440: report NO reduced-motion preference, so MOTION_OK is true and the
+   cross-fade path is reachable. Every other query still reports false. */
+w.matchMedia = w.matchMedia || (q => ({ matches:/no-preference/.test(q), addEventListener(){}, removeEventListener(){} }));
 w.navigator.vibrate = () => {}; w.scrollTo = () => {};
 w.HTMLCanvasElement.prototype.getContext = function(){ return new Proxy({}, { get: () => () => ({}) }); };
 for (const s of order) vm.runInContext(fs.readFileSync(path.join(dir, s), "utf8"), ctx, { filename: s });
@@ -656,6 +658,41 @@ ok("the status-bar style no longer puts content under the status bar",
   ok("the Train tab keeps the plan open while resting",
      /Barbell Bench Press/.test(run(`$('#view').innerHTML`)));
   run(`view='today'; render();`);
+}
+
+/* ================= v3.3.440: THE EXHALE DOES NOT BLINK =================
+   render() paints in-view changes directly (a logged set must not flash) and
+   cross-fades only tab switches. The rest toggle is an in-view change that
+   rewrites the whole screen, so the direct paint read as a blink. The
+   handler now asks for the cross-fade. jsdom draws nothing, so the nearest
+   reachable fact is the API boundary: startViewTransition must be CALLED
+   for the rest tap, with the header inside the callback, and must NOT be
+   called for an ordinary in-view render. The harness's matchMedia stub
+   reports no reduced-motion preference so MOTION_OK is true here. */
+{
+  run(`(function(){
+    DB.days={}; DB.plan=null; DB.week=null; DB.settings.onboarded=true; view='today'; lift.plan=null;
+    const y=new Date(todayISO+'T00:00'); y.setDate(y.getDate()-1);
+    DB.days[y.toLocaleDateString('en-CA')]={w:[{part:'Legs',ex:'Squat',w:90,reps:[8],at:1}],upd:1};   // a record, so Today is not day one
+    SEED=deriveAll(); render();
+    globalThis.__vt=[]; document.startViewTransition=function(cb){ globalThis.__vt.push('call'); cb(); };
+  })()`);
+  ok("(harness) MOTION_OK is true, so the cross-fade path is reachable", run(`MOTION_OK`)===true);
+  run(`render();`);
+  ok("an ordinary in-view render does not cross-fade", run(`__vt.length`)===0, run(`__vt.length`));
+  run(`document.getElementById('restBtn').click();`);
+  ok("tapping rest DOES cross-fade instead of cutting", run(`__vt.length`)===1, run(`__vt.length`));
+  ok("...and the screen is in the rest state after it", /Rest\./.test(run(`$('#view').innerHTML`)));
+  run(`document.getElementById('restBtn').click();`);
+  ok("...undo cross-fades too", run(`__vt.length`)===2, run(`__vt.length`));
+  ok("...and the greeting is back", !/Rest\./.test(run(`$('#view').innerHTML`)));
+  // the header must ride inside the transition, not before it
+  run(`globalThis.__seq=[]; const _rh=renderHeader; renderHeader=function(){ __seq.push('header'); return _rh.apply(this,arguments); };
+       document.startViewTransition=function(cb){ __seq.push('vt-start'); cb(); __seq.push('vt-end'); };
+       document.getElementById('restBtn').click(); renderHeader=_rh;`);
+  ok("the header renders INSIDE the cross-fade, so wash and view arrive together",
+     run(`JSON.stringify(__seq)`)==='["vt-start","header","vt-end"]', run(`JSON.stringify(__seq)`));
+  run(`delete document.startViewTransition;`);
 }
 
 process.exit(fail ? 1 : 0);
