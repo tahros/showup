@@ -362,6 +362,25 @@ document.addEventListener('click',e=>{
   if(e.target.closest&&e.target.closest('[data-weekclear]')){
     weekClear(); lift.plan=null; lift.planText=''; lift.planScope='today'; lift.weekOpen=null; toast('Week cleared'); return render();
   }
+  /* v3.3.443: the tool row over the paste box. Paste reads the clipboard in
+     one tap where the browser allows it (iOS asks once, per site); where it
+     does not, the box is focused so the system Paste is one hold away, and
+     the toast says so instead of failing silently. Select all readies a
+     replace: the next paste or keystroke takes the whole text. */
+  const _ptool=e.target.closest&&e.target.closest('[data-plantool]');
+  if(_ptool){
+    const ta=document.getElementById('planText'); if(!ta) return;
+    if(_ptool.dataset.plantool==='selectall'){ ta.focus(); ta.select(); return; }
+    ta.focus();
+    if(navigator.clipboard&&navigator.clipboard.readText){
+      navigator.clipboard.readText().then(t=>{
+        if(!t){ toast('Clipboard is empty'); return; }
+        /* replace a selection, else the whole box: a paste is a plan, not an append */
+        ta.value=t; ta.setSelectionRange(t.length,t.length); lift.planText=t;
+      },()=>toast('Hold the box and tap Paste'));
+    } else toast('Hold the box and tap Paste');
+    return;
+  }
   if(e.target.closest&&e.target.closest('[data-planback]')){
     lift.plan=null; lift.planRows=null; lift.planWeek=null; lift.planSource=null; lift.planReason=null; lift.planDate=null; return render();
   }

@@ -1078,4 +1078,42 @@ run(`(function(){view='today'; lift.ex=null; render();})()`);
 }
 
 
-process.exit(fail ? 1 : 0);
+/* ================= v3.3.443: THE PASTE BOX IS USABLE ON A PHONE =================
+   Asserted on the rendered paste screen. jsdom cannot resolve the cascade, so
+   the reachable facts are the structure the CSS acts on and the attributes
+   iOS acts on: a 16px floor is a CSS fact checked by regex; autocapitalize
+   is a DOM attribute the parser depends on (the screenshot's "Bw+10").
+   Deferred one tick: boot does `await loadSession(); render();`, and that
+   first render lands AFTER the synchronous assertions above -- a box built
+   here synchronously would be rebuilt under the async paste check. */
+setTimeout(async()=>{
+  run(`lift.plan='paste'; lift.planMode='day'; lift.planText=''; render();`);
+  ok("the paste screen has a tool row above the box with Paste and Select all",
+     run(`(function(){const t=document.querySelector('.plantools'); if(!t) return false;
+       const ta=document.getElementById('planText');
+       return !!t.querySelector('[data-plantool="paste"]') && !!t.querySelector('[data-plantool="selectall"]')
+         && !!(t.compareDocumentPosition(ta)&Node.DOCUMENT_POSITION_FOLLOWING);})()`)===true);
+  ok("the box refuses iOS autocorrect and autocapitalize (BW must stay BW)",
+     run(`(function(){const ta=document.getElementById('planText');
+       return ta.getAttribute('autocapitalize')==='off'&&ta.getAttribute('autocorrect')==='off'&&ta.getAttribute('spellcheck')==='false';})()`)===true);
+  ok("the paste actions are ONE row, Read it first",
+     run(`(function(){const a=document.querySelector('.planacts.row'); if(!a) return false;
+       const b=[...a.querySelectorAll('.btn')]; return b.length>=2 && /Read it/.test(b[0].textContent) && b.every(x=>!x.classList.contains('wide'));})()`)===true);
+  const cssP=fs.readFileSync(path.join(dir,"css/app.css"),"utf8");
+  const taPx=+((cssP.match(/\.planta\{[^}]*font-size:(\d+)px/)||[])[1]||0);
+  ok("the box is at least 16px, the floor under which iOS zooms the page on focus", taPx>=16, taPx+"px");
+  ok("...and the preview screen keeps its full-span primary (v3.3.279 stands)",
+     /\.planacts \.wide\{grid-column:1\/-1\}/.test(cssP));
+  // Select all selects; Paste reads the clipboard and REPLACES
+  run(`document.getElementById('planText').value='old text';`);
+  run(`document.querySelector('[data-plantool="selectall"]').click();`);
+  ok("Select all selects the whole box",
+     run(`(function(){const ta=document.getElementById('planText'); return ta.selectionStart===0&&ta.selectionEnd===ta.value.length;})()`)===true);
+  run(`navigator.clipboard={readText:()=>Promise.resolve('CLIPBOARD TEXT')};`);
+  run(`document.querySelector('[data-plantool="paste"]').click();`);
+  await new Promise(r=>setTimeout(r,20));
+  const v=run(`document.getElementById('planText').value`);
+  ok("Paste replaces the box with the clipboard", v==='CLIPBOARD TEXT', JSON.stringify(v));
+  run(`lift.plan=null; render();`);
+  process.exit(fail ? 1 : 0);
+},60);

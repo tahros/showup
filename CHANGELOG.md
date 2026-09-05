@@ -1,5 +1,24 @@
 # ShowUp — changelog
 
+## v3.3.443 (2026-09-04) — The paste box is for pasting
+
+Three things made the paste screen hard to use on a phone, and one screenshot
+showed all three.
+
+- The box was 12px, and iOS zooms the whole page into any field under 16px the
+  moment you focus it. It is 16px now.
+- iOS autocapitalize rewrote `BW+10` to `Bw+10` — an edit to your own text
+  before the parser ever saw it. Autocorrect, autocapitalize and spellcheck are
+  off on the box.
+- The three actions were stacked full-width and the eye had to travel the whole
+  card to find Read it. They are one row now, Read it leading at twice the
+  width, Cancel and Clear beside it.
+
+And the box has a tool row over it: **Paste** reads the clipboard in one tap
+(where the browser allows it; otherwise the box is focused and the toast says to
+hold and tap Paste), and **Select all** readies a replace. The preview screen's
+full-span primary is unchanged.
+
 ## v3.3.442 (2026-09-04) — The header holds still
 
 The header and the tab bar flickered on every tab switch. The switch

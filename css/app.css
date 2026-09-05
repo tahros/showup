@@ -1942,8 +1942,19 @@
   .planacts{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px 14px 4px}
   .planacts .btn{width:100%;margin-top:0}
   .planacts .wide{grid-column:1/-1}
-  .planta{width:100%;box-sizing:border-box;font-family:var(--mono);font-size:12px;
-    line-height:1.7;background:var(--surface2);color:var(--chalk);
+  /* v3.3.443: the PASTE screen's actions are one row, Read it leading at
+     twice the width; nothing stacks and nothing fills the card. The preview
+     keeps the grid above: its primary label ("Use this for Sat 9/5") is too
+     long to share a row and earned its full span in v3.3.279. */
+  .planacts.row{display:flex}
+  .planacts.row .btn{flex:1 1 0;min-width:0;width:auto;padding-left:8px;padding-right:8px}
+  .planacts.row .btn:first-child{flex:2 1 0}
+  /* the tool row sits flush over the box, quiet, right where the thumb is */
+  .plantools{display:flex;gap:8px;padding:0 14px 8px}
+  .plantools .chip{font-size:13px;padding:6px 12px}
+  /* 16px is the floor under which iOS zooms the page into a focused field */
+  .planta{width:100%;box-sizing:border-box;font-family:var(--mono);font-size:16px;
+    line-height:1.6;background:var(--surface2);color:var(--chalk);
     border:1px solid var(--line);border-radius:10px;padding:12px;resize:vertical}
   .planpv{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;
     border-bottom:1px solid var(--line)}

@@ -875,13 +875,28 @@ function planScreenHTML(){
     /* v3.3.397: the paste names the day it is for; the ledger picks it */
     const _wd=writeDateISO();
     const _title=lift.planMode==='week'?'Edit the week':(_wd===todayISO?'Paste today\u2019s plan':`Paste a plan for ${planDayLabel(_wd)}`);
+    /* v3.3.443: THE BOX IS FOR PASTING, SO IT HAS A PASTE BUTTON. Three
+       things made this screen hard to use on the phone, and the screenshot
+       showed all three: (1) the textarea was 12px, and iOS zooms the page
+       into any field under 16px on focus; (2) iOS autocapitalize rewrote
+       "BW+10" to "Bw+10" -- a parser-hostile edit of the maker's own text;
+       (3) the three actions were stacked full-width, so the eye had to travel
+       the whole card to find Read it. Now: a small tool row above the box
+       (Paste reads the clipboard in one tap; Select all readies a replace),
+       a 16px mono box with autocorrect and autocapitalize off, and one row of
+       actions with Read it leading. Clear stays last and quiet; it is the
+       destructive one. */
     return `<h2>${_title}</h2>
       <div class="card">
-        <textarea id="planText" class="planta" rows="12" placeholder="Paste a session — from a coach, a forum, anywhere.">${hesc(cur)}</textarea>
-        <div class="planacts">
-          <button class="btn wide" data-planread>Read it</button>
-          <button class="btn ghost wide" data-planback>Cancel</button>
-          ${(lift.planMode==='week'?weekNow():planShown())?`<button class="btn ghost wide danger" ${lift.planMode==='week'?'data-weekclear':'data-planclear'}>Clear</button>`:''}
+        <div class="plantools">
+          <button class="chip" data-plantool="paste">Paste</button>
+          <button class="chip" data-plantool="selectall">Select all</button>
+        </div>
+        <textarea id="planText" class="planta" rows="10" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Paste a session — from a coach, a forum, anywhere.">${hesc(cur)}</textarea>
+        <div class="planacts row">
+          <button class="btn" data-planread>Read it</button>
+          <button class="btn ghost" data-planback>Cancel</button>
+          ${(lift.planMode==='week'?weekNow():planShown())?`<button class="btn ghost danger" ${lift.planMode==='week'?'data-weekclear':'data-planclear'}>Clear</button>`:''}
         </div>
       </div>`;
   }
