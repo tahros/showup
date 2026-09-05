@@ -168,17 +168,29 @@ ok("the preview's actions are one row: Use leading, then Cancel, and nothing els
 ok("...and no action label is long enough to wrap its cell (Use gets two thirds)",
    run(`[...document.querySelectorAll('.planacts .btn')].every(b=>b.textContent.trim().length<=22)`),
    run(`JSON.stringify([...document.querySelectorAll('.planacts .btn')].map(b=>b.textContent.trim().length))`));
-/* v3.3.453: THE PRIMARY NAMES NO DAY. "Use today's plan" described which plan
-   rather than where it lands, so it lied whenever the plan was for another
-   day -- and the day is already on the heading and in the rows above. Pinned
-   as an exact string AND as the absence of any date, so a future edit cannot
-   reintroduce one without turning this red. */
-ok("the preview's primary is the plain, day-independent 'Use the plan'",
-   run(`document.querySelector('[data-planaccept]').textContent.trim()`)==='Use the plan',
+/* v3.3.453 pinned "Use the plan", naming no day. v3.3.454 RESTATES: the day
+   is back as the DESTINATION -- "Use for today" / "Use for Sep 6" -- which is
+   what the button actually decides, so it cannot go stale the way the old
+   possessive "Use today's plan" did. Both forms asserted, and the date is
+   pinned to planDayLabel so a second date grammar cannot creep onto the
+   screen beside the heading's. */
+ok("the preview's primary names the DESTINATION: on today's plan, 'Use for today'",
+   run(`document.querySelector('[data-planaccept]').textContent.trim()`)==='Use for today',
    run(`document.querySelector('[data-planaccept]').textContent.trim()`));
-ok("...and names no day, in any form",
-   !/today|tomorrow|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|mon|tue|wed|thu|fri|sat|sun|\d/i
-     .test(run(`document.querySelector('[data-planaccept]').textContent`)));
+ok("...it is never the old possessive",
+   !/'s plan|\u2019s plan/.test(run(`document.querySelector('[data-planaccept]').textContent`)));
+{
+  /* a plan for another day: the label follows it, in the app's own day format */
+  const other=run(`(function(){const t=new Date(todayISO+'T00:00'); t.setDate(t.getDate()+1); return t.toLocaleDateString('en-CA');})()`);
+  run(`(function(){const keep=lift.planDate; lift.planDate=${JSON.stringify(other)}; globalThis.__lab=document.querySelector('[data-planaccept]')?null:null;
+    lift.planDate=${JSON.stringify(other)}; render(); })()`);
+  ok("...and on a plan for another day it names that day, as planDayLabel spells it",
+     run(`document.querySelector('[data-planaccept]').textContent.trim()`)===('Use for '+run(`planDayLabel(${JSON.stringify(other)})`)),
+     run(`document.querySelector('[data-planaccept]').textContent.trim()`));
+  ok("...which is the same spelling the screen uses elsewhere, not a second one",
+     !/\d\/\d/.test(run(`document.querySelector('[data-planaccept]').textContent`)));
+  run(`lift.planDate=null; render();`);
+}
 ok("every plan button uses the app's own .btn grammar, not a bespoke one",
    run(`[...document.querySelectorAll('.planacts button')].every(b=>b.classList.contains('btn'))`));
 

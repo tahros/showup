@@ -1,5 +1,17 @@
 # ShowUp — changelog
 
+## v3.3.454 (2026-09-05) — Use for today
+
+The preview's primary names the destination now: **Use for today**, **Use for
+Sep 6**, **Use for this week**. The preposition is what makes it honest — "for
+X" is where the plan lands, which is the only thing the button decides, so it
+cannot go stale the way the possessive *Use today's plan* did. One grammar
+across all three, where there used to be three.
+
+The date is spelled the way the rest of the screen spells it (`Sep 6`), and an
+edit opened by the pencil names the day it opened, not whatever the ledger has
+rolled on to.
+
 ## v3.3.453 (2026-09-05) — Use the plan
 
 The preview's primary read *Use today's plan*, which named which plan rather

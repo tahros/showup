@@ -165,11 +165,11 @@ run(`document.querySelector('[data-plandrop]').click()`);
    the day preview says the plain "Use the plan". Asserted HERE, where the
    week preview is actually mounted; placed earlier it read the day screen's
    button and passed for the wrong reason. */
-ok("the week preview's primary is 'Use the week'",
-   run(`lift.planMode==='week' && document.querySelector('[data-planaccept]').textContent.trim()`)==='Use the week',
+ok("the week preview's primary is 'Use for this week'",   // v3.3.454: same 'for X' grammar
+   run(`lift.planMode==='week' && document.querySelector('[data-planaccept]').textContent.trim()`)==='Use for this week',
    run(`document.querySelector('[data-planaccept]').textContent.trim()`));
 run(`document.querySelector('[data-planaccept]').click()`);
-ok("...and Use the week keeps what the preview shows, minus the dropped line",
+ok("...and Use for this week keeps what the preview shows, minus the dropped line",
    run(`(function(){const w=weekNow(); return Object.keys(w.days).length===4 && Object.values(w.days).reduce((a,d)=>a+d.items.length,0)===11;})()`));
 ok("...landing on the week scope", run(`lift.planScope`)==='week' && run(`document.querySelectorAll('.daycard').length`)===4);
 /* v3.3.421: the week's Clear is behind its Edit door too */

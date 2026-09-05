@@ -980,14 +980,21 @@ function planScreenHTML(){
   if(_pn.length) h+=`<div class="plannotes"><div class="pnhead mono">checked against your record</div>${_pn.map(n=>`<div class="mono">\u00b7 ${hesc(n)}</div>`).join('')}</div>`;
   /* v3.3.447: the preview had Edit AND Cancel, and once Cancel returns to the
      box with the draft intact they land on the same screen. One door.
-     v3.3.453: the primary is "Use the plan" -- day-independent. It read "Use
-     today's plan", which described WHICH plan rather than where it lands, and
-     so quietly lied whenever the plan was for tomorrow or a day further out.
-     The label makes no claim about WHEN because the screen already does: the
-     heading names the day and the rows are on screen. Three grammars became
-     one. The week keeps its own noun -- a week is plans, plural. */
+     v3.3.453 made the primary "Use the plan" -- day-independent, because
+     "Use today's plan" described WHICH plan rather than where it lands and so
+     lied whenever the plan was for another day.
+     v3.3.454 puts the day back, but as the DESTINATION rather than a
+     possessive: "Use for today" / "Use for Sep 6" / "Use for this week". The
+     preposition is what fixes it -- "for X" names where the plan lands, which
+     is the only thing this button decides, so it can never be wrong. One
+     grammar across all three, where there used to be three.
+     The date comes from planDayLabel, the app's own plan-day format -- the
+     same "Sep 6" the fold row and the heading above say. A weekday-and-slash
+     form here would be a second grammar for one day on one screen.
+     lift.planDate first: an edit opened by the pencil writes back to the day
+     it opened (v3.3.448), which is not always writeDateISO() by then. */
   h+=`<div class="planacts row">
-      <button class="btn" data-planaccept>${lift.planMode==='week'?'Use the week':'Use the plan'}</button>
+      <button class="btn" data-planaccept>${lift.planMode==='week'?'Use for this week':(lift.planDate||writeDateISO())===todayISO?'Use for today':`Use for ${planDayLabel(lift.planDate||writeDateISO())}`}</button>
       <button class="btn ghost" data-planback>Cancel</button>
     </div></div>`;
   return h;
