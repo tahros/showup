@@ -1953,9 +1953,15 @@
   .plantools{display:flex;gap:8px;padding:0 14px 8px}
   .plantools .chip{font-size:13px;padding:6px 12px}
   /* 16px is the floor under which iOS zooms the page into a focused field */
+  /* v3.3.451: the box GROWS with its text and never scrolls inside itself.
+     A nested scroll region on a phone is two gestures competing for one
+     thumb; the page already scrolls well, so the box becomes as tall as the
+     plan and the page does the moving. min-height keeps an empty box
+     inviting; overflow hidden + resize none so nothing else fights it. */
   .planta{width:100%;box-sizing:border-box;font-family:var(--mono);font-size:16px;
     line-height:1.6;background:var(--surface2);color:var(--chalk);
-    border:1px solid var(--line);border-radius:10px;padding:12px;resize:vertical}
+    border:1px solid var(--line);border-radius:10px;padding:12px;resize:none;
+    overflow:hidden;min-height:11em}
   .planpv{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;
     border-bottom:1px solid var(--line)}
   .planpv:last-of-type{border-bottom:0}

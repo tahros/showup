@@ -1094,6 +1094,28 @@ run(`(function(){view='today'; lift.ex=null; render();})()`);
 
 
 
+
+/* ================= v3.3.451: THE BOX SCROLLS WITH THE PAGE, NOT AGAINST IT =================
+   Two facts, each the nearest reachable one. (1) Pull-to-refresh must decline
+   a touch that starts inside a text field: jsdom cannot deliver a real touch
+   sequence, so the guard is asserted in the source of the touchstart
+   handler, anchored to the handler that calls preventDefault. (2) The box
+   never scrolls inside itself: overflow hidden in CSS, and the grow hook
+   fires on input (asserted by the style it writes). */
+{
+  const u=fs.readFileSync(path.join(dir,"js/util.js"),"utf8");
+  const ptr=u.slice(u.indexOf("pull to refresh"), u.indexOf("const settle=()=>"));
+  ok("pull-to-refresh declines a touch that starts in a textarea or input",
+     /touchstart[\s\S]*?closest\('textarea,input/.test(ptr) && /touchmove[\s\S]*?e\.preventDefault\(\)/.test(ptr));
+  const cssB=fs.readFileSync(path.join(dir,"css/app.css"),"utf8");
+  ok("the paste box has no inner scroll region", /\.planta\{[^}]*overflow:hidden/.test(cssB) && /\.planta\{[^}]*resize:none/.test(cssB));
+  run(`lift.plan='paste'; lift.planMode='day'; lift.planDirty=false; render();`);
+  run(`(function(){const ta=document.getElementById('planText'); Object.defineProperty(ta,'scrollHeight',{value:333,configurable:true}); ta.value='x'; ta.dispatchEvent(new Event('input',{bubbles:true}));})()`);
+  ok("...and on input the box takes the height of its text",
+     run(`document.getElementById('planText').style.height`)==='333px', run(`document.getElementById('planText').style.height`));
+  run(`lift.plan=null; lift.planBack=[]; render();`);
+}
+
 /* ================= v3.3.450: THE PLAN FLOW REMEMBERS ITS PATH =================
    Three ways into the same preview; Cancel must return to each origin. And
    the stack must die with the flow: an old return address surviving into

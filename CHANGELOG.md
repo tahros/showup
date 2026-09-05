@@ -1,5 +1,17 @@
 # ShowUp — changelog
 
+## v3.3.451 (2026-09-05) — The box scrolls with the page, not against it
+
+Scrolling inside the paste box was a fight, and the box was not the one
+fighting. Pull-to-refresh arms whenever the page is at the top — which the
+paste screen always is — and on the first few pixels of a downward drag it
+takes over the gesture and drags the page. Every attempt to scroll the text
+was a tug-of-war with the refresh. A drag that starts in a text field now
+belongs to the field.
+
+And the box no longer scrolls inside itself at all: it grows to the height of
+its text, so the page does the moving — one gesture, one thumb.
+
 ## v3.3.450 (2026-09-05) — Cancel goes back, not somewhere
 
 The plan flow keeps a back stack, like a browser. Cancel returns to whichever

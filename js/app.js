@@ -402,7 +402,7 @@ document.addEventListener('click',e=>{
       navigator.clipboard.readText().then(t=>{
         if(!t){ toast('Clipboard is empty'); return; }
         /* replace a selection, else the whole box: a paste is a plan, not an append */
-        ta.value=t; ta.setSelectionRange(t.length,t.length); lift.planText=t; lift.planDirty=true;
+        ta.value=t; ta.setSelectionRange(t.length,t.length); lift.planText=t; lift.planDirty=true; planBoxGrow();
       },()=>toast('Hold the box and tap Paste'));
     } else toast('Hold the box and tap Paste');
     return;
@@ -912,7 +912,7 @@ document.addEventListener('input',e=>{
   /* v3.3.445: the paste box mirrors every keystroke into lift.planText and
      marks the session dirty, so a render between keystrokes rebuilds the
      box with what you typed, not with the saved plan. */
-  if(e.target&&e.target.id==='planText'){ lift.planText=e.target.value; lift.planDirty=true; }
+  if(e.target&&e.target.id==='planText'){ lift.planText=e.target.value; lift.planDirty=true; planBoxGrow(); }
 });
 function refreshLoad(){
   const ll=$('#ll');

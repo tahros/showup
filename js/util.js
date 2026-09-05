@@ -80,6 +80,12 @@
     // v3.3.140: same hole as the tab-swipe had — dragging DOWN on an open
     // overlay would pull-to-refresh the page behind it
     if(e.target.closest('[data-zoom]')||e.target.closest('#repOv,#onb,#msOv,#portraitveil,#dayDone')){y0=null;return;}
+    /* v3.3.451: a drag that starts inside a text field belongs to the field.
+       The paste screen sits at scrollY 0, so every downward drag inside its
+       box armed the refresh, preventDefault()ed the move and dragged the
+       page instead of the text -- "incredibly hard to scroll". Same for any
+       element that scrolls on its own. */
+    if(e.target.closest('textarea,input,[contenteditable],.scrolls')){y0=null;return;}
     y0=e.touches[0].clientY; pulling=false; dist=0;
   },{passive:true});
   addEventListener('touchmove',e=>{

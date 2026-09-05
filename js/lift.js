@@ -225,7 +225,7 @@ function renderLift(){
     let h='';
     /* renderLift COMMITS its own html rather than returning it — an early
        `return planScreenHTML()` silently rendered nothing. Write and stop. */
-    if(lift.plan==='paste'||lift.plan==='preview'){ $('#view').innerHTML=planScreenHTML(); return; }
+    if(lift.plan==='paste'||lift.plan==='preview'){ $('#view').innerHTML=planScreenHTML(); if(lift.plan==='paste') requestAnimationFrame(planBoxGrow); return; }
     /* v3.3.319: the plan moved to the Today tab, where "today's plan" plainly
        belongs — Today is the day, Train is where you pick and log. Kept in ONE
        place rather than both: a second copy would be two plans free to drift,
@@ -867,6 +867,14 @@ function moGoalCardHTML(){
    than no parser, because you find out mid-set. Ambiguous names offer their
    candidates; unreadable lines are kept verbatim as a note rather than
    dropped. */
+/* v3.3.451: size the paste box to its text. Called after the screen mounts
+   and on every input; height:auto first so it can also SHRINK when lines are
+   deleted (scrollHeight never reports smaller than the current height). */
+function planBoxGrow(){
+  const ta=document.getElementById('planText'); if(!ta) return;
+  ta.style.height='auto';
+  const h=ta.scrollHeight; if(h>0) ta.style.height=h+'px';
+}
 function planScreenHTML(){
   if(lift.plan==='paste'){
     /* v3.3.398: editing the week opens the week's text, not today's block */
