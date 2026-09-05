@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v3.3.449 (2026-09-05) — Gate repaired
+
+v3.3.448 shipped with one suite red: `test-week.js` still walked the old
+one-door path to Clear (pencil, Clear) and the pencil now opens the preview. No
+behaviour change in the app. The test walks the two doors. Recorded here
+because the protocol says both gates green before any release, and 448 was
+pushed by a command chain that printed the red and carried on.
+
 ## v3.3.448 (2026-09-05) — The pencil opens the plan, not the text
 
 Today already shows the exercises the app has read. Tapping the pencil put you

@@ -130,8 +130,10 @@ run(`planSave([{ex:'Chin Up',lines:[{w:0,bw:true,reps:[8,8]}]}],'','', todayISO)
 ok("a plan pasted for today wins over the week's block", run(`(function(){const p=planNow(); return p.items.length===1&&p.items[0].ex==='Chin Up'&&!p.fromWeek;})()`));
 ok("...and the week's block for today now says the same", run(`DB.week.days[todayISO].items[0].ex`)==='Chin Up');
 ok("...while the other days are untouched", run(`DB.week.days[${JSON.stringify(iso(1))}].items.length`)===2);
-/* v3.3.421: Clear is behind the Edit door */
+/* v3.3.421: Clear is behind the Edit door; v3.3.448: two doors -- the pencil
+   opens the preview, Cancel steps back to the box, Clear is there */
 run(`document.querySelector('[data-planedit]').click()`);
+run(`document.querySelector('[data-planback]').click()`);
 run(`document.querySelector('.planacts [data-planclear]').click()`);
 ok("Clear on today clears today's block too, so the card cannot come straight back", run(`planNow()===null`) && run(`!DB.week.days[todayISO]`));
 ok("...but the week survives with its other days", run(`!!weekNow() && Object.keys(DB.week.days).length`)===3);
