@@ -1,5 +1,18 @@
 # ShowUp — changelog
 
+## v3.3.473 (2026-09-06) — Daily runs
+
+A new Stats card, directly after *Running · month*: the last 28 days, one bar
+per run, today rightmost at full ink and labelled, Mondays dated, each bar
+carrying its distance. Beneath: the window's total and the average per run day.
+Nothing here is a target.
+
+The card has its own **mi / km** switch at the top right, in the same pill as
+*sets / lb*. It is remembered as a setting (so it syncs) and is independent of
+the weight unit — a person can lift in lb and think in km. With no choice made
+it follows the app unit. Tapping it patches the card in place; nothing else on
+Stats repaints.
+
 ## v3.3.472 (2026-09-06) — An x to clear the plan
 
 When Today has a plan, an × sits on its edge — after Edit, before Write — and

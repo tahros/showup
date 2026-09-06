@@ -535,6 +535,16 @@ document.addEventListener('click',e=>{
     return renderLift();
   }
   if(e.target.closest&&e.target.closest('[data-pmixmode]')){ pmixSetMode(); return; }
+  /* v3.3.473: the daily-runs card's own unit. A setting, so it persists and
+     syncs (per-key clock); independent of the weight unit. Patches the card
+     in place rather than repainting Stats -- a repaint was the flicker. */
+  if(e.target.closest&&e.target.closest('[data-rununit]')){
+    DB.settings.runUnit=runUnit()==='mi'?'km':'mi'; save(true);
+    const cur=document.querySelector('.dailyruns'); const h2=cur&&cur.previousElementSibling;
+    if(cur&&h2&&h2.tagName==='H2'){ const tmp=document.createElement('div'); tmp.innerHTML=dailyRunsSection(); const nh=tmp.querySelector('h2'); const nc=tmp.querySelector('.dailyruns'); if(nc){ cur.replaceWith(nc); } if(nh) h2.replaceWith(nh); }
+    else render();
+    return;
+  }
   const _pl=e.target.closest('.pmixlgd [data-pt]');
   if(_pl){ pmixSetFocus(_pl.dataset.pt); return; }   // v3.3.121
   if(e.target.closest('#dualMove')){

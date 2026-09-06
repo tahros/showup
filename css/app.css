@@ -549,6 +549,7 @@
   .conrace .conend{transition:opacity .1s ease}
   .conrace.scrubbing .conend{opacity:0}
   .mpacecard{padding:14px 14px 12px}
+  .dailyruns .pmixhead{display:flex;justify-content:flex-end;margin:-4px 0 4px}   /* v3.3.473: the mi/km switch, top right like sets/lb */
   .mpacecard svg{display:block;width:100%;height:auto}
   /* v3.3.111: .driftrow/.dr-* and .rephead removed with their sections.
      .repline below SURVIVES — the month grid's expand still renders it. */

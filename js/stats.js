@@ -988,6 +988,40 @@ function monthlyPaceSection(){
       <line x1="8" y1="126" x2="316" y2="126" stroke="var(--line)" stroke-width=".6"></line>${bars}</svg>
     <div class="tot"><span><b>${cur.days}</b> days this month</span><span>all bars through day ${cur.cutoff}</span></div></div>`;
 }
+/* v3.3.473: DAILY RUNS. The last 28 days, one bar per day, in the unit the
+   card's own toggle chooses (mi/km) -- a view preference stored as a setting
+   so it survives, separate from the app's weight unit, because a person can
+   lift in lb and think in km. Bars reuse Monthly pace's grammar: same SVG
+   frame, same faint baseline, the accent for a run, nothing for a day without
+   one. Today is rightmost and labelled. Below: the window's total and the
+   average per run day, in the same unit. Nothing here is a target. */
+function runUnit(){ const u=DB.settings.runUnit; return (u==='mi'||u==='km')?u:DU(); }
+function dailyRunsSection(){
+  const days=runDays(); if(!days.length) return '';
+  const u=runUnit(), conv=km=>u==='mi'?km*MI:km;
+  const byD={}; for(const r of days) byD[r.d]=r;
+  const N=28, W=330, H=160, L=8, R=316, base=126, top=18;
+  const seq=[]; for(let i=N-1;i>=0;i--){ const t=new Date(todayISO+'T00:00'); t.setDate(t.getDate()-i); const iso=t.toLocaleDateString('en-CA'); seq.push({iso, km:(byD[iso]||{}).km||0}); }
+  const max=Math.max(0.1,...seq.map(x=>conv(x.km)));
+  const step=(R-L)/N, bw=Math.max(4,step-3);
+  const bars=seq.map((x,i)=>{
+    const v=conv(x.km); const hgt=v>0?Math.max(2,(v/max)*(base-top)):0; const cx=L+i*step+step/2;
+    const d=new Date(x.iso+'T00:00'); const dow=d.getDay(); const isTod=x.iso===todayISO;
+    const lab=(i===N-1||dow===1)?`<text x="${cx}" y="${base+12}" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="${isTod?'var(--chalk)':'var(--faint)'}"${isTod?' font-weight="700"':''}>${isTod?'today':(d.getMonth()+1)+'/'+d.getDate()}</text>`:'';
+    const val=v>0?`<text x="${cx}" y="${base-hgt-3}" text-anchor="middle" font-family="var(--mono)" font-size="6.5" fill="var(--muted)">${v>=10?Math.round(v):v.toFixed(1)}</text>`:'';
+    return `${v>0?`<rect x="${cx-bw/2}" y="${base-hgt}" width="${bw}" height="${hgt}" rx="1.5" fill="var(--accent)"${isTod?'':' opacity=".55"'}></rect>`:''}${val}${lab}`;
+  }).join('');
+  const ran=seq.filter(x=>x.km>0); const tot=ran.reduce((a,x)=>a+conv(x.km),0);
+  const avg=ran.length?tot/ran.length:0;
+  const f=v=>(Math.round(v*100)/100).toFixed(2);
+  return `<h2>Daily runs${hActs('dailyruns','The last 28 days, one bar per run. The mi/km switch is this card\u2019s own and remembers itself; it does not change the weight unit.','About Daily runs')}</h2>
+    <div class="card mpacecard dailyruns">
+      <div class="pmixhead"><button type="button" class="pmixmode" data-rununit aria-label="Show ${u==='mi'?'kilometres':'miles'} instead"><span class="${u==='mi'?'on':''}">mi</span><span class="${u==='km'?'on':''}">km</span></button></div>
+      <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Run distance per day over the last 28 days, in ${u}">
+        <text x="8" y="12" font-family="var(--mono)" font-size="7" fill="var(--faint)">${u.toUpperCase()} / DAY</text>
+        <line x1="${L}" y1="${base}" x2="${R}" y2="${base}" stroke="var(--line)" stroke-width=".6"></line>${bars}</svg>
+      <div class="tot"><span><b>${f(tot)}</b> ${u} in 28 days</span><span>${ran.length} run${ran.length===1?'':'s'} \u00b7 ${f(avg)} ${u} each</span></div></div>`;
+}
 function renderStats(){
   const _S={}; const cut=k=>{ _S[k]=h; h=''; };
   if(SEED.totals.sessions===0 && !hasAnyDays()){ $('#view').innerHTML=emptyHero('stats'); return; }
@@ -1057,7 +1091,11 @@ function renderStats(){
   h = _S.pmix + _S.mc + _S.rz + _S.kpis + _S.mpace + _S.consrace;
 
   // the whole Run story lives here now (was its own tab in v2.04 — reverted)
-  h+=runStatsHTML217();
+  /* v3.3.473: Daily runs sits directly after the Running month card, before
+     Distance/Pace/Every week. runStatsHTML217 returns all four run sections
+     as one string, so the daily card is spliced in ahead of its second h2. */
+  { const rs=runStatsHTML217(); const j=rs.indexOf('<h2',rs.indexOf('<h2')+1);
+    h+= j>0 ? rs.slice(0,j)+dailyRunsSection()+rs.slice(j) : rs+dailyRunsSection(); }
 
   // Weight is personal context, not a prerequisite; no entry means no section.
   h+=_S.wt;

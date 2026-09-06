@@ -67,4 +67,27 @@ ok('Chart headings carry the extra spacing hook',paceMeta.head&&paceMeta.card);
 ok('Running month uses six visual metrics',run(`document.querySelectorAll('.runmonthgrid span').length`)===6);
 ok('Every week compares twelve partial weeks',run(`(function(){const h=[...document.querySelectorAll('h2')].find(x=>x.firstChild.textContent.trim()==='Every week');return h.nextElementSibling.querySelectorAll('rect.gbar').length;})()` )===12);
 ok('Every week labels all twelve bars with actual dates',run(`(function(){const h=[...document.querySelectorAll('h2')].find(x=>x.firstChild.textContent.trim()==='Every week'),t=[...h.nextElementSibling.querySelectorAll('svg text')].map(x=>x.textContent);return t.filter(x=>/^\\d{1,2}\\/\\d{1,2}$/.test(x)).length===12&&!t.some(x=>/^[JFMASOND]$/.test(x));})()`));
+
+/* ================= v3.3.473: DAILY RUNS =================
+   The fixture logs a run every third day back from today (i%3===0), km 4..7.
+   Over the last 28 days that is days 0,3,...,27 -> 10 runs. The card must sit
+   right after Running · month, draw one bar per run, sum in the chosen unit,
+   and flip units in place -- the same card node, not a repaint. */
+run(`DB.settings.unit='kg'; delete DB.settings.runUnit; view='stats'; render();`);
+ok('Daily runs follows the Running month card', run(`(function(){const hs=[...document.querySelectorAll('h2')].map(h=>h.firstChild.textContent.trim()); const i=hs.findIndex(t=>/^Running/.test(t)); return i>=0 && hs[i+1]==='Daily runs';})()`));
+ok('...ten bars for ten run days in the window', run(`document.querySelectorAll('.dailyruns svg rect').length`)===10, run(`document.querySelectorAll('.dailyruns svg rect').length`));
+ok('...today is labelled and drawn at full ink; other days are lighter', run(`(function(){const t=[...document.querySelectorAll('.dailyruns svg text')].map(x=>x.textContent); const rects=[...document.querySelectorAll('.dailyruns svg rect')]; return t.includes('today') && rects.filter(r=>!r.getAttribute('opacity')).length===1 && rects.filter(r=>r.getAttribute('opacity')==='.55').length===9;})()`));
+const kmTot=run(`(function(){let s=0; for(let i=0;i<28;i++){ if(i%3===0) s+=4+(i%4); } return s;})()`);
+ok('...the total is the fixture sum in km when the app is metric and nothing is chosen', run(`document.querySelector('.dailyruns .tot b').textContent`)===(Math.round(kmTot*100)/100).toFixed(2) && /km in 28 days/.test(run(`document.querySelector('.dailyruns .tot').textContent`)), run(`document.querySelector('.dailyruns .tot').textContent`));
+ok('...and the switch shows km lit', run(`document.querySelector('.dailyruns [data-rununit] span.on').textContent`)==='km');
+run(`globalThis.__card=document.querySelector('.dailyruns'); globalThis.__first=document.querySelector('#view h2');`);
+run(`document.querySelector('.dailyruns [data-rununit]').click();`);
+ok('tapping the switch flips to miles and remembers it as a setting', run(`DB.settings.runUnit`)==='mi' && run(`document.querySelector('.dailyruns [data-rununit] span.on').textContent`)==='mi');
+ok('...the total converts', Math.abs(parseFloat(run(`document.querySelector('.dailyruns .tot b').textContent`))-kmTot*0.621371)<0.02 && /mi in 28 days/.test(run(`document.querySelector('.dailyruns .tot').textContent`)), run(`document.querySelector('.dailyruns .tot b').textContent`));
+ok('...the card was patched in place: the first h2 is the SAME node (no repaint), the card node is new', run(`__first===document.querySelector('#view h2') && __card!==document.querySelector('.dailyruns')`));
+ok('...and the weight unit is untouched by the run switch', run(`DB.settings.unit`)==='kg');
+run(`document.querySelector('.dailyruns [data-rununit]').click();`);
+ok('a second tap goes back to km', run(`DB.settings.runUnit==='km' && document.querySelector('.dailyruns [data-rununit] span.on').textContent==='km'`));
+run(`delete DB.settings.runUnit; DB.settings.unit='lb'; render();`);
+ok('with no choice made, the card follows the app unit (lb -> mi)', run(`document.querySelector('.dailyruns [data-rununit] span.on').textContent`)==='mi');
 console.log(fail?'\n'+fail+' FAILED':'\nALL PASS');process.exit(fail?1:0);
