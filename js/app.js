@@ -489,9 +489,21 @@ document.addEventListener('click',e=>{
     return;
   }
   if(e.target.closest&&e.target.closest('[data-planclear]')){
-    /* v3.3.421: Clear lives inside the editor now; clearing also closes it --
-       there is nothing left to edit. */
-    planClear(); planDone(); lift.planText=''; toast('Plan cleared'); return render();
+    /* v3.3.421: Clear lives inside the editor; clearing also closes it --
+       there is nothing left to edit.
+       v3.3.472: the edge x clears from Today in one tap, so it holds the plan
+       for one undo. The held plan is the whole saved object plus the week's
+       block for today if that is what it was, so undo puts back exactly what
+       was there. */
+    const fromEdge=!!e.target.closest('[data-planclear="edge"]');
+    if(fromEdge){ const p=planNow(); lift.planUndo=p?{plan:DB.plan?JSON.parse(JSON.stringify(DB.plan)):null, weekDay:(DB.week&&DB.week.days&&DB.week.days[todayISO])?JSON.parse(JSON.stringify(DB.week.days[todayISO])):null}:null; }
+    planClear(); planDone(); lift.planText='';
+    if(fromEdge&&lift.planUndo) toastUndo('Plan cleared', ()=>{ const u=lift.planUndo; lift.planUndo=null; if(!u) return;
+      if(u.plan){ DB.plan=u.plan; DB.planAt=Date.now(); }
+      if(u.weekDay){ DB.week=DB.week||{days:{}}; DB.week.days=DB.week.days||{}; DB.week.days[todayISO]=u.weekDay; }
+      save(true); toast('Plan restored'); render(); });
+    else toast('Plan cleared');
+    return render();
   }
   const _prow=e.target.closest&&e.target.closest('[data-planex]');
   if(_prow){

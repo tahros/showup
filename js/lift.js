@@ -85,9 +85,19 @@ function planPillsHTML(active, hasWeek, dayLabel){
    sentences, for the same three things to be available everywhere. Clear
    moves behind the Edit door, where destructive belongs; the fold chevron
    moves onto the row that folds. Three glyphs. Never four. */
-const _planEdge=(copyAttr,editAttr,writeAttr)=>`<span class="planedge">${
+/* v3.3.472: CLEAR IS ON THE EDGE AGAIN, as an x after Edit. v3.3.421 put it
+   behind the Edit door -- destructive, so two taps away. The maker asked for
+   it back on the row: a plan on Today is often the writer's or yesterday's,
+   and "not this" should be one tap, like Rest is one tap. Two things keep it
+   from being a fat-finger trap: it clears with an UNDO in the toast (the
+   plan is held for the toast's life and restored on tap), and it sits last
+   on the row, at the far edge from the control you tap most (v3.3.294 --
+   the same reason Clear was last in the editor). No confirm dialog: the app
+   does not do those (rest, close, tick -- none ask). */
+const _planEdge=(copyAttr,editAttr,writeAttr,clearAttr)=>`<span class="planedge">${
   copyAttr?_edgeBtn(copyAttr,'Copy',icon('copy',ICON_SZ.md)):''}${
-  editAttr?_edgeBtn(editAttr,'Edit',icon('edit',ICON_SZ.md)):''}<button class="pedge pwrite" ${writeAttr} aria-label="Write a session">${icon('sparkle',ICON_SZ.sm)}Write</button></span>`;
+  editAttr?_edgeBtn(editAttr,'Edit',icon('edit',ICON_SZ.md)):''}${
+  clearAttr?_edgeBtn(clearAttr,'Clear the plan',icon('clear',ICON_SZ.md),'pclear'):''}<button class="pedge pwrite" ${writeAttr} aria-label="Write a session">${icon('sparkle',ICON_SZ.sm)}Write</button></span>`;
 /* v3.3.398: the edge speaks in glyphs. Fold leads (a chevron for a day, the
    LAFS pair for a week), then copy, edit, clear -- clear last, at the far
    edge, away from the control you tap most (v3.3.294). Every button carries
@@ -168,7 +178,7 @@ function planSectionHTML(){
     const _n=(_ps.items||[]).length;
     const _dl=_isToday?'today':planDayLabel(_ps.d);
     h+=`<h2>${planPillsHTML('today',!!_wk,_dl)} plan${_tip}${
-      _planEdge('data-plancopy="day"','data-planedit','data-planwrite')}</h2>`;
+      _planEdge('data-plancopy="day"','data-planedit','data-planwrite','data-planclear="edge"')}</h2>`;
     /* the fold row: the same row tomorrow's plan has had since v3.3.413, now
        for today's too. The chevron lives on the thing that folds.
        It counts EXERCISES, never how many are done: buildcheck stopped a

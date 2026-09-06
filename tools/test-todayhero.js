@@ -299,8 +299,9 @@ check("...and it names tomorrow as its target",
    header grammar in every state beat a special case: Edit stays (the maker
    wanted to edit a finished day's plan and tomorrow's alike), Write stays,
    and Clear moves behind Edit everywhere rather than retiring here alone. */
-check("...while the edge reads copy, edit, Write -- and Clear is not on it",
-      `!!document.querySelector('[data-planedit]') && !document.querySelector('h2 .planedge [data-planclear]')`, true);
+/* v3.3.472 RESTATES: Clear is on the edge again, as an x with an undo */
+check("...while the edge reads copy, edit, clear, Write",
+      `!!document.querySelector('[data-planedit]') && !!document.querySelector('h2 .planedge [data-planclear="edge"]')`, true);
 check("...and fold and copy stay",
       `!!document.querySelector('[data-planfold]') && !!document.querySelector('[data-plancopy]')`, true);
 check("...with the plan card receded to a receipt",

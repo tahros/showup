@@ -448,13 +448,16 @@ ok("both states are one heading line, so the page cannot jump",
 /* v3.3.398: FOUR controls -- fold, copy, edit, clear -- all glyphs now */
 /* v3.3.421: THREE glyphs, not four -- copy, edit, Write. Clear moved behind
    the Edit door; the fold moved onto the row that folds. */
+/* v3.3.472 RESTATES: Clear is back on the edge as an x, at the maker's word
+   -- after Edit, before Write, and it carries an undo so one tap is safe. */
 ok("the plan's controls live in the heading, not the card body",
-   run(`document.querySelectorAll('h2 .planedge .pedge').length`) === 3 &&
+   run(`document.querySelectorAll('h2 .planedge .pedge').length`) === 4 &&
    run(`!document.querySelector('.plancard .planacts')`));
-ok("...copy first, Write last, and no Clear on the edge at all",
+ok("...copy, edit, clear, Write -- in that order, clear as the x on the edge",
    run(`(function(){const b=[...document.querySelectorAll('h2 .planedge .pedge')];
      return b[0].hasAttribute('data-plancopy') && b[1].hasAttribute('data-planedit')
-       && b[b.length-1].hasAttribute('data-planwrite') && !document.querySelector('h2 .planedge [data-planclear]');})()`));
+       && b[2].getAttribute('data-planclear')==='edge' && b[2].classList.contains('pclear')
+       && b[b.length-1].hasAttribute('data-planwrite');})()`));
 ok("...the fold lives on the row that folds",
    run(`!!document.querySelector('.planfoldrow[data-planfold]') && !document.querySelector('h2 .planedge [data-planfold]')`));
 /* Clear is behind the Edit door -- destructive, and past the point where you
@@ -602,7 +605,7 @@ ok("...and the writer's reason keeps its own separate voice",
 
 ok("...but the heading stays as the one-line fact",
    run(`!!document.querySelector('h2 .scopepill')`) &&
-   run(`document.querySelectorAll('h2 .planedge .pedge').length`) === 3);   // v3.3.421: copy, edit, Write
+   run(`document.querySelectorAll('h2 .planedge .pedge').length`) === 4);   // v3.3.472: copy, edit, clear, Write
 ok("...and the chevron flips", chev(false));
 ok("the choice is a setting, not a render whim", run(`DB.settings.planFold===true`));
 run(`render()`);
@@ -1140,6 +1143,38 @@ run(`(function(){view='today'; lift.ex=null; render();})()`);
 
 
 
+
+/* ================= v3.3.472: THE X CLEARS, THE TOAST UNDOES =================
+   One tap on the edge x clears today's plan; the toast that follows is an
+   undo for four seconds and puts back exactly what was cleared -- a saved day
+   plan, or the week's block for today if that is what the plan was. After the
+   toast fades, nothing can bring it back. */
+async function v472(){
+  const RAW='Squat\n  195 lb x 8 8 8 8\n\nDip\n  BW+45 lb x 10 8 8\n';
+  run(`(function(){ lift.plan=null; lift.planBack=[]; lift.planDirty=false; lift.planUndo=null; DB.week=null;
+    const {items}=planItemsFrom(parsePlan(${JSON.stringify(RAW)})); planSave(items,'',${JSON.stringify(RAW)},todayISO);
+    SEED=deriveAll(); view='today'; render(); })()`);
+  ok("(fixture) a two-item plan for today, and the x on its edge", run(`!!planNow() && planNow().items.length===2 && !!document.querySelector('h2 .planedge [data-planclear="edge"]')`));
+  run(`document.querySelector('h2 .planedge [data-planclear="edge"]').click();`);
+  ok("one tap clears the plan", run(`!planNow() && !DB.plan`));
+  ok("...the toast offers undo and is a control", run(`(function(){const t=document.getElementById('toast'); return t.classList.contains('on') && t.classList.contains('undo') && /Plan cleared \u00b7 undo/.test(t.textContent) && typeof t.onclick==='function';})()`));
+  run(`document.getElementById('toast').click();`);
+  ok("tapping the toast restores the plan exactly", run(`!!planNow() && planNow().items.length===2 && planNow().items[0].ex==='Squat' && planNow().raw===${JSON.stringify(RAW)}`));
+  ok("...and the undo is spent (no second tap can double-restore)", run(`document.getElementById('toast').onclick===null && lift.planUndo===null`));
+  // a week's block for today: undo restores it into the week, not as a day plan
+  run(`(function(){ DB.plan=null; DB.week={days:{}}; const {items}=planItemsFrom(parsePlan("Barbell Bench Press\\n  155 lb x 8")); DB.week.days[todayISO]={items,note:''}; DB.weekAt=Date.now(); SEED=deriveAll(); render(); })()`);
+  ok("(fixture) today's plan is the week's block", run(`!!planNow() && !DB.plan && !!(DB.week&&DB.week.days&&DB.week.days[todayISO])`));
+  run(`document.querySelector('h2 .planedge [data-planclear="edge"]').click();`);
+  ok("clearing a week-sourced plan clears today's block", run(`!planNow() && !(DB.week&&DB.week.days&&DB.week.days[todayISO])`));
+  run(`document.getElementById('toast').click();`);
+  ok("...and undo puts it back into the WEEK, not as a stray day plan", run(`!!planNow() && !DB.plan && !!(DB.week.days[todayISO]) && planNow().items[0].ex==='Barbell Bench Press'`),
+     run(`JSON.stringify({plan:!!DB.plan, wk:!!(DB.week&&DB.week.days&&DB.week.days[todayISO]), ex:planNow()&&planNow().items[0].ex})`));
+  // after the toast fades, no path back
+  run(`document.querySelector('h2 .planedge [data-planclear="edge"]').click(); (function(){const t=document.getElementById('toast'); clearTimeout(t._tm); t._fade();})();`);
+  ok("once the toast has gone, a tap on it does nothing", run(`(function(){document.getElementById('toast').click(); return !planNow();})()`));
+  run(`DB.week=null; DB.plan=null; lift.planUndo=null; render();`);
+}
+
 /* ================= v3.3.451: THE BOX SCROLLS WITH THE PAGE, NOT AGAINST IT =================
    Two facts, each the nearest reachable one. (1) Pull-to-refresh must decline
    a touch that starts inside a text field: jsdom cannot deliver a real touch
@@ -1390,5 +1425,6 @@ setTimeout(async()=>{
   await v447();
   await v448();
   await v450();
+  await v472();
   process.exit(fail ? 1 : 0);
 },60);

@@ -1,5 +1,17 @@
 # ShowUp — changelog
 
+## v3.3.472 (2026-09-06) — An x to clear the plan
+
+When Today has a plan, an × sits on its edge — after Edit, before Write — and
+clears it in one tap. v3.3.421 had put Clear behind the Edit door because it is
+destructive; the maker asked for it back on the row, since a plan on Today is
+often the writer's or yesterday's and "not this" should be one tap, like Rest.
+Two things keep it from being a fat-finger trap: the toast that follows is an
+**undo** for four seconds — the whole toast is the button, and it restores
+exactly what was cleared, into the week if that is where it came from — and the
+× sits at the far edge from the control you tap most. No confirm dialog; the
+app does not do those.
+
 ## v3.3.471 (2026-09-06) — The ring is green too
 
 On the rest card, today's breathing ring is the rest ink — the same darker

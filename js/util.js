@@ -227,7 +227,19 @@ function setToast(ex,w,r){
   if(first && typeof celebrateDayDone==='function'){ celebrateDayDone(); return; }
   toast(`${isBody(ex)&&w<=0.01?'BW':wDisp(w)+U()} × ${r} logged`);
 }
-function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2000);}
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.remove('undo');t.onclick=null;t.classList.add('on');clearTimeout(t._tm);t._tm=setTimeout(()=>t.classList.remove('on'),2000);}
+/* v3.3.472: a toast that carries ONE undo. The whole toast is the button --
+   a phone thumb should not have to find a word inside a strip -- and it stays
+   twice as long as a plain toast, because it is asking for a decision rather
+   than reporting one. A second tap after it fades does nothing; the undo
+   closure is the only path back and it is dropped with the toast. */
+function toastUndo(m,fn){const t=$('#toast');t.textContent=m+' \u00b7 undo';t.classList.add('on','undo');clearTimeout(t._tm);
+  t.onclick=()=>{ t.onclick=null; t.classList.remove('on','undo'); fn(); };
+  /* the fade is a named function the timer calls, so a test can run the real
+     one rather than imitate it (the imitation passed with the onclick reset
+     removed -- a hollow probe) */
+  t._fade=()=>{ t.classList.remove('on','undo'); t.onclick=null; };
+  t._tm=setTimeout(t._fade,4000);}
 function fmt(n){return n.toLocaleString('en-US');}
 function pretty(d){const [y,m,dd]=d.split('-').map(Number);return new Date(y,m-1,dd).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});}
 function md(d){const [y,m,dd]=d.split('-').map(Number);return `${m}/${dd}/${y}`;}            // 4/26/2024
