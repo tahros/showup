@@ -1,5 +1,21 @@
 # ShowUp — changelog
 
+## v3.3.469 (2026-09-06) — The other half, on Today
+
+Train, Stats and History are themselves again on a rest day: the recovery
+view (467), the rhythm-of-rest lead and the rest lineage (468) were tried on
+the device and reverted at the maker's word. The bar's green ring stays, and
+the writer still opens on Tomorrow on a rest day.
+
+In their place, one thing: while resting, Today carries the attendance card
+inverted — *Rest — that's the other half*. It is drawn by the same function as
+*Show up — that's the whole game*, with the same markup, grid, rail, ticks and
+typography; the only differences are which days light and in what colour. The
+days you did not train are the rest green; the number is days rested; the run
+line is the current run of rest days and the longest; the share is rest days
+over every day since your first, counting today's declared rest. Days before
+the ledger began stay unlit in both cards.
+
 ## v3.3.468 (2026-09-06) — Rest across Stats, History and the bar
 
 The rest of the set. On a rest day:

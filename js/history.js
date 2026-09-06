@@ -182,24 +182,9 @@ function partSessions(part,detail){
    half-logged — which is the one thing this app does not do. partSessions()
    stays: it answers "which sessions included this part", which is a question,
    not a judgement. Git remembers the code. */
-function restLineageSection(){
-  const R=restStats(); if(!R) return '';
-  const m=todayISO.slice(0,7);
-  const rows=R.restDays.filter(d=>d.startsWith(m)&&d>=R.first).reverse().map(d=>{
-    const after=(R.afterOf[d]||[]); const run=R.runBefore[d]||0;
-    const tail=after.length?`after ${hesc(after.join(' + '))}${run?` \u00b7 ${run} day${run===1?'':'s'} on`:''}`:(run?`${run} day${run===1?'':'s'} on`:'\u2014');
-    return `<div class="row spread" style="padding:7px 0;border-bottom:0.5px solid var(--line)"><span>${wd(d)}${d===todayISO?' <span class="mono muted">today</span>':''}</span><span class="mono muted">${tail}</span></div>`; }).join('');
-  if(!rows) return '';
-  const mon=new Date(todayISO+'T00:00').toLocaleDateString('en-US',{month:'long'});
-  return `<h2>Rest days \u00b7 ${mon}</h2><div class="card restlineage" style="padding:6px 14px">${rows}</div>`;
-}
 function renderHistory(){
   if(SEED.totals.sessions===0 && !hasAnyDays()){ $('#view').innerHTML=emptyHero('history'); return; }
   const detail=allDays();
-  /* v3.3.468: on a rest day, History leads with this month's rest days and
-     what each one followed -- rest as punctuation in the sentence of your
-     training. The record, not a verdict. */
-  const _restLead=restingToday()?restLineageSection():'';
   const pMap=partDayMap(detail);
   const P=hist.part||null;
   // every date surface below answers to the part filter, or to nothing
@@ -221,7 +206,7 @@ function renderHistory(){
   /* v3.3.267: sharing is an action, not the final chapter of the ledger.
      Keep its collapsed launcher at the top, before History's date controls,
      and let reportCardSection own the expanded carousel in the same place. */
-  let h=_restLead+(typeof reportCardSection==='function'?reportCardSection():'');   // v3.3.468: the rest lineage leads on a rest day
+  let h=typeof reportCardSection==='function'?reportCardSection():'';
   h+=`<div class="chips ychips">`;
   years.forEach(y=>{
     const n=[...dates].filter(d=>+d.slice(0,4)===y).length;

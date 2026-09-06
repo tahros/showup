@@ -990,16 +990,10 @@ function planDone(){
   lift.plan=null; lift.planBack=[]; lift.planRows=null; lift.planWeek=null;
   lift.planSource=null; lift.planReason=null; lift.planDate=null;
 }
-/* v3.3.467: THE RECORD, TALKING ABOUT YOUR REST. On a rest day the Train tab
-   opens with one fact about your rest, computed from the ledger. Not a quote:
-   every other line in this app is a fact in the app's own flat voice, and a
-   borrowed voice would be the one thing on screen that is not yours. A rest
-   day is a calendar day between your first day and today with no set logged
-   (declared or not -- the record does not distinguish, and neither do these).
-   Each fact is a plain sentence; restFact() rotates through them by the count
-   of rest days, so consecutive rest days read different lines and the same
-   ledger always yields the same line for the same day (testable). Every
-   number here is asserted against a fixture where the answer is known. */
+/* v3.3.467 computed the ledger's rest facts here for a Train-tab view that
+   was reverted in v3.3.469; the statistics stay because Today's inverse
+   attendance card (v3.3.469) reads them. A rest day is a calendar day between
+   your first day and today with no set logged, declared or not. */
 function restStats(){
   const trained=workoutDates();
   const all=[...trained].sort();
@@ -1028,21 +1022,10 @@ function restStats(){
           afterTotal:Object.values(after).reduce((a,b)=>a+b,0),
           longest, longestEnd, avgGap, lastRest, todayIsRest:!trained.has(todayISO), first};
 }
-function restFacts(){
-  const R=restStats(); if(!R) return [];
-  const DOW=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  const ord=n=>{const s=['th','st','nd','rd'],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0]);};
-  const f=[];
-  const nth=R.todayIsRest?R.rests:R.rests+1;
-  f.push(`Your ${ord(nth)} rest in ${fmt(R.daysIn)} days.`);
-  if(R.lastRest){ const lastDow=DOW[new Date(R.lastRest+'T00:00').getDay()];
-    f.push(`The last one was ${lastDow}${R.dow[R.topDow]>R.rests/3?`; most of them are ${DOW[R.topDow]}s`:''}.`); }
-  if(R.afterTop&&R.afterTotal>=5) f.push(`Rest follows ${R.afterTop[0]} more than anything else \u2014 ${R.afterTop[1]} of ${R.afterTotal}.`);
-  if(R.longest>=5) f.push(`Your longest run without a rest: ${R.longest} days${R.longestEnd?`, ending ${planDayLabel(R.longestEnd)}`:''}.`);
-  if(R.avgGap>=1.5) f.push(`You rest about every ${Math.round(R.avgGap*10)/10} days.`);
-  return f;
-}
-function restFact(){ const f=restFacts(); if(!f.length) return ''; const R=restStats(); return f[(R?R.rests:0)%f.length]; }
+/* v3.3.469: the rest analogues of currentStreak/longestStreak: consecutive
+   rest days ending today (0 if today is trained), and the longest such run. */
+function restRunNow(R){ let n=0; const set=new Set(R.restDays); for(let d=new Date(todayISO+'T00:00');;d.setDate(d.getDate()-1)){ const iso=d.toLocaleDateString('en-CA'); if(iso<R.first||!set.has(iso)) break; n++; } return n; }
+function restRunBest(R){ let best=0,run=0,prev=null; for(const r of R.restDays){ run=(prev&&daysBetween(prev,r)===1)?run+1:1; if(run>best) best=run; prev=r; } return best; }
 function restingToday(){
   const t=DB.days&&DB.days[todayISO];
   return !!(t&&t.rest&&!((t.w||[]).length));

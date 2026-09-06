@@ -199,21 +199,6 @@ function planSectionHTML(){
 /* "Sep 2" -- the day a plan is for, as the seg and the pending line say it */
 function planDayLabel(iso){ const [y,m,d]=iso.split('-').map(Number); return new Date(y,m-1,d).toLocaleDateString('en-US',{month:'short',day:'numeric'}); }
 
-function restTrainHTML(P){
-  const fact=restFact();
-  /* every part you have ever trained, most recently rested first -- this is
-     a recovery view, not the rotation's pick list */
-  const parts=Object.keys(P.info).filter(p=>p!=='Run'&&P.info[p].since<999).sort((a,b)=>P.info[a].since-P.info[b].since);
-  const rows=parts.map(p=>{ const d=P.info[p].since; const w=Math.min(100,Math.round((Math.min(d,7)/7)*100));
-    return `<div class="row spread" style="padding:7px 0;border-bottom:0.5px solid var(--line)"><span>${p}</span>
-      <span class="mono muted" style="flex:0 0 64px;text-align:right">${d>=999?'\u2014':d===0?'today':d===1?'1 day':d+' days'}</span>
-      <span class="restbar" style="flex:1;margin-left:12px;height:6px;border-radius:3px;background:var(--whisper);position:relative;overflow:hidden"><i style="position:absolute;left:0;top:0;bottom:0;width:${w}%;background:var(--muted);border-radius:3px"></i></span></div>`; }).join('');
-  return `<div class="hello resting" style="padding:14px 4px 4px"><span class="hi" style="font-size:19px;line-height:1.45">${hesc(fact)}</span></div>
-    <h2 style="margin-top:14px">Recovery</h2>
-    <div class="card restrecovery" style="padding:6px 14px">${rows}</div>
-    ${P.pick?`<div class="card row spread" style="margin-top:14px;padding:11px 14px"><span class="mono" style="font-size:12px">Tomorrow \u00b7 ${hesc(P.pick)}</span><span class="mono muted" style="font-size:11px">from the rotation</span></div>`:''}
-    <button class="btn ghost" id="restOverride" style="margin-top:14px">Train anyway</button>`;
-}
 function renderLift(){
   /* recorded on the way THROUGH, so it is always the screen actually shown */
   liftWhere={part:lift.part, ex:lift.ex, d:todayISO};   // v3.3.347: always
@@ -249,13 +234,8 @@ function renderLift(){
     /* renderLift COMMITS its own html rather than returning it — an early
        `return planScreenHTML()` silently rendered nothing. Write and stop. */
     if(lift.plan==='paste'||lift.plan==='preview'){ $('#view').innerHTML=planScreenHTML(); if(lift.plan==='paste') requestAnimationFrame(planBoxGrow); return; }
-    /* v3.3.467: ON A REST DAY, TRAIN REPORTS INSTEAD OF ASKING. No Start
-       buttons, no pick: one fact about your rest from the ledger, each part's
-       recovery age from the rotation's own numbers, and the line for
-       tomorrow. "Train anyway" opens the ordinary tab for the session -- a
-       set logged there clears rest (training always wins), so the door is
-       just a door, not an override of the record. */
-    if(restingToday()&&!lift.restOverride){ $('#view').innerHTML=restTrainHTML(P); return; }
+    /* v3.3.469: the v3.3.467 rest view on Train was tried on the device and
+       reverted at the maker's word -- Train is Train on a rest day too. */
     /* v3.3.319: the plan moved to the Today tab, where "today's plan" plainly
        belongs — Today is the day, Train is where you pick and log. Kept in ONE
        place rather than both: a second copy would be two plans free to drift,

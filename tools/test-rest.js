@@ -294,9 +294,13 @@ ok("the rhythm card's background is still never tinted (facts take no mood)",
    !(cssSrc.match(/\.rhythm\.resting[^{]*\{[^}]*\}/g) || [])
      .some(r => /background/.test(r)),
    (cssSrc.match(/\.rhythm\.resting[^{]*\{[^}]*\}/g) || []).join(" | "));
-ok("...and no OTHER card in the view picks up a rest class",
+/* v3.3.469 RESTATES: one more card may wear a rest class -- .crcard.resting,
+   the inverse attendance card, whose whole subject is rest. It is the one
+   place green enters a grid of days, by design; every other card still takes
+   no mood. */
+ok("...and no OTHER card in the view picks up a rest class (the inverse attendance card excepted, by design)",
    !run(`!![...$('#view').querySelectorAll('.card')].find(el=>
-      [...el.classList].some(c=>/^rest/i.test(c)) && !el.classList.contains('rhythm'))`));
+      [...el.classList].some(c=>/^rest/i.test(c)) && !el.classList.contains('rhythm') && !el.classList.contains('crcard'))`));
 run(`delete DB.days[todayISO].rest;`);
 
 
@@ -658,14 +662,10 @@ ok("the status-bar style no longer puts content under the status bar",
      open, because that is the screen you read to change your mind. */
   seed(); tap();
   run(`view='lift'; lift.part=null; lift.ex=null; render();`);
-  /* v3.3.467 RESTATES: on a rest day Train shows the RECOVERY view first;
-     the ordinary tab -- plan open and all -- is one tap behind "Train anyway". */
-  ok("the Train tab opens on the recovery view while resting, not the plan",
-     run(`!!document.getElementById('restOverride') && !!document.querySelector('.restrecovery')`) && !/Barbell Bench Press/.test(run(`$('#view').innerHTML`)));
-  run(`document.getElementById('restOverride').click();`);
-  ok("...and 'Train anyway' shows the ordinary tab with the plan open",
+  /* v3.3.469 RESTORES the v3.3.437 rule: Train is Train on a rest day. The
+     v3.3.467 recovery view was tried on the device and reverted. */
+  ok("the Train tab keeps the plan open while resting",
      /Barbell Bench Press/.test(run(`$('#view').innerHTML`)) && run(`!document.getElementById('restOverride')`));
-  run(`lift.restOverride=false;`);
   run(`view='today'; render();`);
 }
 
@@ -882,100 +882,44 @@ ok("the status-bar style no longer puts content under the status bar",
   run(`clearTimeout(_navIdle); Object.defineProperty(window,'scrollY',{value:0,configurable:true}); _navY=0; _navOff=0; document.getElementById('nav').style.transform='';`);
 }
 
-/* ================= v3.3.467: THE RECORD, TALKING ABOUT YOUR REST =================
-   A ledger built so every number is known: first day D-27, trained daily
-   except D-24, D-17, D-10, D-3 (all the same weekday) and today; the day
-   before every rest was Legs. Facts asserted as exact sentences. */
+
+/* ================= v3.3.469: THE OTHER HALF ON TODAY =================
+   The attendance card, inverted, on Today while resting: same builder, same
+   markup, rest days lit green. Train, Stats and History are themselves again
+   (467/468 reverted); the nav ring stays. Known ledger: first day D-27, rests
+   D-24, D-17, D-10, D-3 and today. */
 {
   run(`(function(){
     const D=n=>{const t=new Date(todayISO+'T00:00'); t.setDate(t.getDate()-n); return t.toLocaleDateString('en-CA');};
-    DB.days={}; DB.plan=null; DB.week=null;
-    const rests=new Set([24,17,10,3]);
-    for(let n=27;n>=1;n--){ if(rests.has(n)) continue;
-      const legs=rests.has(n-1)||n===1;   // the day before a rest (and yesterday) is Legs
-      DB.days[D(n)]={w:[legs?{part:'Legs',ex:'Squat',w:90,reps:[5],at:1}:{part:'Chest',ex:'Dip',w:40,bw:true,reps:[8],at:1}],upd:1}; }
-    DB.days[todayISO]={w:[],rest:1,upd:1}; SEED=deriveAll(); })()`);
-  const R=JSON.parse(run(`JSON.stringify((function(){const r=restStats(); delete r.restDays; return r;})())`));
-  ok("28 days in, 23 trained, 5 rests counting today", R.daysIn===28 && R.trained===23 && R.rests===5 && R.todayIsRest===true, JSON.stringify([R.daysIn,R.trained,R.rests]));
-  ok("the longest run without a rest is 6, ending D-18", R.longest===6 && R.longestEnd===run(`(function(){const t=new Date(todayISO+'T00:00'); t.setDate(t.getDate()-18); return t.toLocaleDateString('en-CA');})()`), R.longest+" "+R.longestEnd);
-  ok("rest follows Legs 5 of 5", R.afterTop && R.afterTop[0]==='Legs' && R.afterTop[1]===5 && R.afterTotal===5, JSON.stringify(R.afterTop));
-  ok("the average gap between rests is 6 (7,7,7,3)", R.avgGap===6, R.avgGap);
-  ok("four of the five rests share a weekday, and that weekday is the mode", R.dow[R.topDow]===4);
-  const facts=JSON.parse(run(`JSON.stringify(restFacts())`));
-  const DOW=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  const lastDow=DOW[new Date(run(`(function(){const t=new Date(todayISO+'T00:00'); t.setDate(t.getDate()-3); return t.toLocaleDateString('en-CA');})()`)+'T00:00').getDay()];
-  ok("fact 1 counts the rest", facts[0]==='Your 5th rest in 28 days.', facts[0]);
-  ok("fact 2 names the last one and the habit", facts[1]===`The last one was ${lastDow}; most of them are ${lastDow}s.`, facts[1]);
-  ok("fact 3 names what rest follows", facts[2]==='Rest follows Legs more than anything else \u2014 5 of 5.', facts[2]);
-  ok("fact 4 names the longest run", /^Your longest run without a rest: 6 days, ending /.test(facts[3]), facts[3]);
-  ok("fact 5 names the rhythm", facts[4]==='You rest about every 6 days.', facts[4]);
-  ok("the rotation is by rest count: five facts, five rests -> the first", run(`restFact()`)===facts[0], run(`restFact()`));
-  /* and it MOVES: one more rest day (D-2 unlogged) makes six rests over five
-     facts, so the second fact is the one that shows -- probing the rotation
-     rather than trusting that 5 mod 5 happened to land on the first */
-  run(`(function(){const t=new Date(todayISO+'T00:00'); t.setDate(t.getDate()-2); delete DB.days[t.toLocaleDateString('en-CA')]; SEED=deriveAll();})()`);
-  const f6=JSON.parse(run(`JSON.stringify(restFacts())`)); const r6=run(`restStats().rests`);
-  ok("(fixture) six rests now", r6===6);
-  ok("...and the shown fact is the one at index 6 mod count, not the first", run(`restFact()`)===f6[6%f6.length] && f6[6%f6.length]!==f6[0], run(`restFact()`));
-  run(`(function(){const t=new Date(todayISO+'T00:00'); t.setDate(t.getDate()-2); DB.days[t.toLocaleDateString('en-CA')]={w:[{part:'Chest',ex:'Dip',w:40,bw:true,reps:[8],at:1}],upd:1}; SEED=deriveAll();})()`);
-  /* the Train tab in rest mode is built from these */
-  run(`view='lift'; lift.part=null; lift.ex=null; lift.restOverride=false; render();`);
-  const V=run(`$('#view').innerHTML`);
-  ok("Train opens on the fact", V.includes('Your 5th rest in 28 days.'));
-  ok("...with a recovery row per part and no Start button", /Recovery/.test(V) && run(`document.querySelectorAll('.restrecovery .row').length`)>=2 && !/data-go=|Start/.test(V));
-  ok("...Legs trained yesterday reads '1 day'", /Legs<\/span>\s*<span[^>]*>1 day</.test(V));
-  ok("...and a line for tomorrow from the rotation", /Tomorrow \u00b7/.test(V));
-  /* the writer opens on tomorrow when today is a rest day */
-  run(`lift.write=null; lift.plan='write'; render();`);
-  ok("the writer defaults to Tomorrow on a rest day", run(`writerState().scope`)==='tomorrow');
-  run(`lift.plan=null; lift.write=null; delete DB.days[todayISO].rest; lift.restOverride=false; view='today'; render();`);
-}
-
-/* ================= v3.3.468: REST ACROSS STATS, HISTORY AND THE NAV =================
-   Same known ledger as 467: first day D-27; rests D-24, D-17, D-10, D-3 and
-   today; Legs the day before each. Stats leads with the rhythm grid, one green
-   cell per rest day this year; History leads with this month's rest days and
-   what each followed; the nav's Today square is a green ring. None of it is
-   shown when not resting. */
-{
-  const seed=()=>run(`(function(){
-    const D=n=>{const t=new Date(todayISO+'T00:00'); t.setDate(t.getDate()-n); return t.toLocaleDateString('en-CA');};
     DB.days={}; DB.plan=null; DB.week=null; const rests=new Set([24,17,10,3]);
-    for(let n=27;n>=1;n--){ if(rests.has(n)) continue; const legs=rests.has(n-1)||n===1;
-      DB.days[D(n)]={w:[legs?{part:'Legs',ex:'Squat',w:90,reps:[5],at:1}:{part:'Chest',ex:'Dip',w:40,bw:true,reps:[8],at:1}],upd:1}; }
-    DB.days[todayISO]={w:[],rest:1,upd:1}; SEED=deriveAll(); lift.restOverride=false; })()`);
-  seed();
-  // Stats
+    for(let n=27;n>=1;n--){ if(rests.has(n)) continue;
+      DB.days[D(n)]={w:[{part:'Chest',ex:'Dip',w:40,bw:true,reps:[8],at:1}],upd:1}; }
+    DB.days[todayISO]={w:[],rest:1,upd:1}; SEED=deriveAll(); view='today'; render(); })()`);
+  const T=run(`$('#view').innerHTML`);
+  ok("Today carries the inverse attendance card while resting", run(`!!document.querySelector('#view .crcard.resting')`) && /Rest — that/.test(T));
+  ok("...it is the SAME markup as the original: crhead, crtotal, crstreak, heatframe, wdrail, heatyears, heatgrid, heatticks",
+     run(`(function(){const c=document.querySelector('.crcard.resting'); return ['.crhead','.crtotal','.crstreak','.heatframe','.wdrail','.heatyears','.heatgrid','.heatticks'].every(q=>!!c.querySelector(q));})()`));
+  ok("...the number is days rested: 5", run(`document.querySelector('.crcard.resting .crtotal b').textContent`)==='5' && /days rested/.test(T));
+  ok("...the run line is the rest analogue: resting 1 day · longest 1", run(`document.querySelector('.crcard.resting .crstreak').textContent`)==='resting 1 day \u00b7 longest 1', run(`document.querySelector('.crcard.resting .crstreak').textContent`));
+  const lit=run(`document.querySelectorAll('.crcard.resting .heatgrid .hc.on').length`);
+  ok("...exactly the five rest days are lit, and nothing before the ledger began", lit===5, lit);
+  ok("...today is lit and ringed (it is a rest day)", run(`!!document.querySelector('.crcard.resting .hc.on.tod')`));
+  ok("...lit cells say 'rested', unlit say 'trained'", run(`document.querySelector('.crcard.resting .hc.on').getAttribute('aria-label')`).endsWith('rested') &&
+     run(`[...document.querySelectorAll('.crcard.resting .hc')].find(c=>!c.classList.contains('on')&&!c.classList.contains('fut')).getAttribute('aria-label')`).endsWith('trained'));
+  ok("...and the share counts today's rest: 5 of 28 days -> 18%", /18% of every day since/.test(T), (T.match(/\d+% of every day since/)||[])[0]);
+  const cssR=fs.readFileSync(path.join(dir,"css/app.css"),"utf8");
+  ok("...lit cells are the rest green, in the same cell rule as the original", /\.crcard\.resting \.heatgrid \.hc\.on\{background-color:var\(--rest\)\}/.test(cssR));
+  // the surfaces reverted
   run(`view='stats'; render();`);
-  const S=run(`$('#view').innerHTML`);
-  ok("Stats leads with the rhythm of rest on a rest day", /Rhythm of rest/.test(S) && S.indexOf('Rhythm of rest')<S.indexOf('days in'));
-  const greens=run(`document.querySelectorAll('.restgrid i.r').length`);
-  const restsThisYear=run(`restStats().restDays.filter(d=>d.slice(0,4)===todayISO.slice(0,4)&&d>=restStats().first).length`);
-  ok("...one green cell per rest day this year, no more", greens===restsThisYear && greens>=1, greens+" vs "+restsThisYear);
-  /* pads = the weekday offset before Jan 1 + every day before the ledger's
-     first day. Pinned to the number, not to "some pads exist": the offset
-     alone makes pads, so a looser check passed with the guard removed. */
-  const expPad=run(`(function(){const y=todayISO.slice(0,4); const j=new Date(y+'-01-01T00:00'); const f=new Date(restStats().first+'T00:00');
-    return j.getDay()+Math.max(0,Math.round((f-j)/864e5));})()`);
-  ok("...days before the ledger began are blank, not plain -- exactly the offset plus the pre-ledger days",
-     run(`document.querySelectorAll('.restgrid i.pad').length`)===expPad, run(`document.querySelectorAll('.restgrid i.pad').length`)+" vs "+expPad);
-  ok("...today's cell is ringed", run(`!!document.querySelector('.restgrid i.r.tod')`));
-  ok("...and 'what you rest after' names Legs, 5 of 5", /What you rest after/.test(S) && /Legs<\/span><span class="mono muted">5 of 5</.test(S));
-  ok("...the day heatmap itself gains no green (the v3.3.379 rule stands)", !/heat[^>]*\bgreen\b|hmcell[^>]*rest/.test(S));
-  // History
+  ok("Stats is itself again: the original card, no rest lead", run(`!!document.querySelector('#view .crcard:not(.inverse)') && !document.querySelector('#view .crcard.resting')`) && !/Rhythm of rest/.test(run(`$('#view').innerHTML`)));
   run(`view='history'; hist.part=null; render();`);
-  const H=run(`$('#view').innerHTML`);
-  ok("History leads with this month's rest days", /Rest days \u00b7/.test(H) && run(`!!document.querySelector('.restlineage')`));
-  ok("...today's row says what it followed and how long the run was", /today<\/span><\/span><span class="mono muted">after Legs \u00b7 2 days on</.test(H), (H.match(/after Legs[^<]*/)||[])[0]);
-  // nav
-  ok("the nav's Today square is a green ring while resting", run(`document.getElementById('nav').classList.contains('resting')`));
-  // not resting: none of it
-  run(`delete DB.days[todayISO].rest; SEED=deriveAll(); view='stats'; render();`);
-  ok("not resting: Stats has no rhythm of rest", !/Rhythm of rest/.test(run(`$('#view').innerHTML`)));
-  run(`view='history'; render();`);
-  ok("...History has no rest lineage", !run(`!!document.querySelector('.restlineage')`));
-  ok("...and the nav ring is gone", !run(`document.getElementById('nav').classList.contains('resting')`));
-  run(`view='today'; render();`);
+  ok("History is itself again", !run(`!!document.querySelector('.restlineage')`) && !/Rest days \u00b7/.test(run(`$('#view').innerHTML`)));
+  run(`view='lift'; lift.part=null; lift.ex=null; render();`);
+  ok("Train is itself again", !run(`!!document.getElementById('restOverride')`) && !run(`!!document.querySelector('.restrecovery')`));
+  ok("the nav ring stays", run(`document.getElementById('nav').classList.contains('resting')`));
+  // not resting: Today has no inverse card
+  run(`delete DB.days[todayISO].rest; SEED=deriveAll(); view='today'; render();`);
+  ok("not resting: Today has no inverse card", !run(`!!document.querySelector('#view .crcard.resting')`));
 }
 
 process.exit(fail ? 1 : 0);

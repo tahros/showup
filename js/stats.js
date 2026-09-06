@@ -747,9 +747,18 @@ document.addEventListener('click',e=>{
    HEAT_MIN_WEEKS is a floor, not a width: a ledger three weeks old still
    gets a grid worth looking at rather than four lonely columns. */
 const HEAT_MIN_WEEKS=35;
-function currentRhythmSection(){
+/* v3.3.469: ONE BUILDER, TWO CARDS. `inverse` draws the same section with
+   every mark reversed: the squares that were blue for a trained day are the
+   rest green for a day you did not train, the count is days rested, the
+   streak is the current run of rest days, and the share is the complement.
+   Same markup, same classes, same grid, same scroller -- the ONLY difference
+   is which days light and in what colour, so the two cards cannot drift in
+   typography or dimension. Days before the ledger's first day are not "rest";
+   they are before, and stay unlit in both cards. */
+function currentRhythmSection(inverse){
   const dates=workoutDates(),now=new Date(todayISO+'T00:00');
-  const streak=currentStreak(),best=longestStreak();
+  const R=inverse?restStats():null;
+  const streak=inverse?(R?restRunNow(R):0):currentStreak(),best=inverse?(R?restRunBest(R):0):longestStreak();
   /* end the grid on today's column; start on the Monday of the ledger's
      first week, or HEAT_MIN_WEEKS back, whichever reaches further */
   const end=new Date(now); end.setDate(end.getDate()+(7-((now.getDay()+6)%7)-1));
@@ -769,7 +778,7 @@ function currentRhythmSection(){
     const d=new Date(start); d.setDate(d.getDate()+k);
     days.push(iso(d));
   }
-  const on=x=>dates.has(x);
+  const on=inverse?(x=>x>=(SEED.totals.first||'9999')&&x<=todayISO&&!dates.has(x)):(x=>dates.has(x));
   /* Month ticks. v3.3.308: a label is emitted only where the month actually
      CHANGES, and only if there is room for it. The old rule fired on column 0
      AND on any column whose Monday fell in the first week — so a window
@@ -850,20 +859,29 @@ function currentRhythmSection(){
     if(done) cls.push('on');
     if(future) cls.push('fut');
     if(isToday) cls.push('tod');
-    return `<i class="${cls.join(' ')}" role="img" aria-label="${x}${done?' \u00b7 trained':future?' \u00b7 future':' \u00b7 rest'}"></i>`;
+    return `<i class="${cls.join(' ')}" role="img" aria-label="${x}${done?(inverse?' \u00b7 rested':' \u00b7 trained'):future?' \u00b7 future':(inverse?' \u00b7 trained':' \u00b7 rest')}"></i>`;
   }).join('');
-  const total=msLiveTotal(),firstDay=SEED.totals.first;
+  const liveTotal=msLiveTotal(),firstDay=SEED.totals.first;
+  const total=inverse?(R?R.rests:0):liveTotal;
   let lifetime='';
   if(firstDay){
     const span=Math.max(1,daysBetween(firstDay,todayISO)+1-((((DB.days[todayISO]||{}).w)||[]).length?0:1));
     const since=new Date(firstDay+'T00:00').toLocaleDateString('en-US',{month:'short',year:'numeric'});
-    lifetime=`${Math.round(total/span*100)}% of every day since ${since}`;
+    /* the attendance card leaves an EMPTY today out of its denominator (the
+       day is not over); the rest card counts a declared rest today as a
+       rest, so its share is rests over every day including today. The two
+       need not sum to 100 on a rest morning, and that is honest. */
+    const pct=inverse?Math.round((R?R.rests/R.daysIn:0)*100):Math.round(liveTotal/span*100);
+    lifetime=`${pct}% of every day since ${since}`;
   }
-  return `<h2 id="secDays">Show up — that's the whole game${hActs('rhythm','Every day since your first, one square each. Scroll back through the years; it opens on today.','About Show up')}</h2>
-    <div class="card crcard">
+  const head=inverse
+    ?`<h2 id="secRest">Rest — that's the other half${hActs('restrhythm','Every day since your first, one square each; the days you did not train are green. It opens on today.','About Rest')}</h2>`
+    :`<h2 id="secDays">Show up — that's the whole game${hActs('rhythm','Every day since your first, one square each. Scroll back through the years; it opens on today.','About Show up')}</h2>`;
+  return `${head}
+    <div class="card crcard${inverse?' resting':''}">
       <div class="crhead">
-        <span class="crtotal"><b>${fmt(total)}</b><small>days in</small></span>
-        <span class="crstreak">streak ${streak} day${streak===1?'':'s'} \u00b7 best ${best}</span>
+        <span class="crtotal"><b>${fmt(total)}</b><small>${inverse?'days rested':'days in'}</small></span>
+        <span class="crstreak">${inverse?'resting':'streak'} ${streak} day${streak===1?'':'s'} \u00b7 ${inverse?'longest':'best'} ${best}</span>
       </div>
       ${lifetime?`<div class="crsince">${lifetime}</div>`:''}
       <!-- v3.3.332: the month row lives INSIDE the scroller, beside the grid.
@@ -970,36 +988,6 @@ function monthlyPaceSection(){
       <line x1="8" y1="126" x2="316" y2="126" stroke="var(--line)" stroke-width=".6"></line>${bars}</svg>
     <div class="tot"><span><b>${cur.days}</b> days this month</span><span>all bars through day ${cur.cutoff}</span></div></div>`;
 }
-/* v3.3.468: RHYTHM OF REST. Shown only on a rest day, at the top of Stats.
-   The year as weeks, every day a cell, rest days in the rest green. This is
-   the one surface where green is the SUBJECT rather than a state -- a
-   separate frame from the day heatmap, whose two fills are untouched (the
-   v3.3.379 rule stands there: green never enters the record's own view). It
-   appears only when it is true of today, which is when the question "how do
-   I rest?" is being asked. Beneath: the numbers, and what rest follows. */
-function restRhythmSection(){
-  const R=restStats(); if(!R) return '';
-  const y=todayISO.slice(0,4); const start=`${y}-01-01`;
-  const rest=new Set(R.restDays);
-  const d0=new Date(start+'T00:00'); const pad=d0.getDay();   // grid is weeks x weekdays, Sunday on top
-  let cells=''; for(let i=0;i<pad;i++) cells+='<i class="pad"></i>';
-  let n=0, restY=0;
-  for(let d=new Date(d0); ; d.setDate(d.getDate()+1)){
-    const iso=d.toLocaleDateString('en-CA'); if(iso>todayISO) break;
-    const before=iso<R.first;          // before the ledger began: blank, not "rest"
-    const r=!before&&rest.has(iso); if(r) restY++; n++;
-    cells+=`<i class="${before?'pad':r?'r':''}${iso===todayISO?' tod':''}"></i>`;
-  }
-  const gap=R.avgGap?`every ${Math.round(R.avgGap*10)/10} days on average`:'';
-  const afterRows=Object.entries(R.after).sort((a,b)=>b[1]-a[1]).slice(0,5)
-    .map(([p,c])=>`<div class="row spread" style="padding:6px 0;border-bottom:0.5px solid var(--line)"><span>${hesc(p)}</span><span class="mono muted">${c===R.afterTotal?`${c} of ${R.afterTotal}`:c}</span></div>`).join('');
-  return `<h2>Rhythm of rest \u00b7 ${y}</h2>
-    <div class="card restrhythm" style="padding:12px 14px">
-      <div class="restgrid" aria-label="rest days this year">${cells}</div>
-      <div class="mono muted" style="font-size:11px;margin-top:8px">${restY} rest day${restY===1?'':'s'} this year${gap?` \u00b7 ${gap}`:''}${R.longest?` \u00b7 longest stretch without one: ${R.longest}`:''}</div>
-    </div>
-    ${afterRows?`<h2>What you rest after</h2><div class="card" style="padding:6px 14px">${afterRows}</div>`:''}`;
-}
 function renderStats(){
   const _S={}; const cut=k=>{ _S[k]=h; h=''; };
   if(SEED.totals.sessions===0 && !hasAnyDays()){ $('#view').innerHTML=emptyHero('stats'); return; }
@@ -1016,8 +1004,7 @@ function renderStats(){
   for(const [m,v] of Object.entries(SEED.monthly)) monthCounts[m]=Math.max(monthCounts[m]||0,v.days);
 
   // v3.3.230: lifetime total + current rhythm are one attendance hero.
-  let h=restingToday()?restRhythmSection():'';   // v3.3.468: on a rest day, the rhythm of rest leads
-  h+=currentRhythmSection();
+  let h=currentRhythmSection();   // v3.3.469: the v3.3.468 rest lead was reverted at the maker's word
   cut('kpis');
   /* v3.3.208: Session Build keeps the honest part mix and the live-growing
      skyline, but every unit is now one completed set — never mixed tonnage. */

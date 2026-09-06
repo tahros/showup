@@ -453,6 +453,11 @@
   .heatgrid .hc{display:block;width:100%;aspect-ratio:1;border-radius:var(--sq);
     background-color:var(--surface2);font-style:normal}
   .heatgrid .hc.on{background-color:var(--accent)}
+  /* v3.3.469: the inverse card lights rest days in the rest green; the number
+     wears it too. Everything else -- size, radius, gap, rail, ticks -- is the
+     same rule set, because it is the same markup. */
+  .crcard.resting .heatgrid .hc.on{background-color:var(--rest)}
+  .crcard.resting .crtotal b{color:var(--rest-ink)}
   .heatgrid .hc.fut{background-color:transparent;box-shadow:inset 0 0 0 1px var(--line);opacity:.5}
   /* v3.3.348: TODAY BREATHES. The mark was inset 1.5px of --accent-ink --
      a DARK ring painted INSIDE an 11px square, so on a day you trained it
@@ -2325,12 +2330,7 @@
      one state from top to bottom. Live grade, like the header's square: gone
      at midnight. */
   nav.resting button[data-v="today"] .ng svg .sq{stroke:var(--rest);fill:none}
-  /* the rhythm-of-rest grid: weeks across, weekdays down, Sunday on top */
-  .restgrid{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,1fr);gap:2px;width:100%}
-  .restgrid i{display:block;aspect-ratio:1;border-radius:2px;background:var(--whisper)}
-  .restgrid i.pad{background:transparent}
-  .restgrid i.r{background:var(--rest)}
-  .restgrid i.tod{outline:1.5px solid var(--rest);outline-offset:1px}
+
   nav button .ng svg .frame{fill:none;stroke:currentColor;stroke-width:2.4}
   /* v3.3.459: HIDE ON SCROLL. The bar slides off the bottom after ~28px of
      downward travel and returns on ~10px upward; at the top of the page it is

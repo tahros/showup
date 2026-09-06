@@ -461,6 +461,12 @@ function renderToday(){
               <span class="mono" style="font-size:12px">${_label?`Tomorrow \u00b7 ${hesc(_label)}`:'Tomorrow'}</span>${
               _carry?`<button class="chip" data-carrytmw>carry today's plan →</button>`:''}</div>`;
       }
+      /* v3.3.469: THE OTHER HALF. On a rest day Today carries the attendance
+         card inverted -- the same section Stats shows, drawn by the same
+         function, with the days you did NOT train lit in the rest green. The
+         one place green enters a grid of days, and it is the day's own frame,
+         shown only while the frame is true. */
+      h+=currentRhythmSection(true);
       $('#view').innerHTML=h; msCountUp(); dayCountUp(); return;
     }
     if(_pl0){

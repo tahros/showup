@@ -75,7 +75,6 @@ document.addEventListener('click',e=>{
     lift.editSet=null;return renderLift();
   }
   if(e.target.closest('#editCancel')){ lift.editSet=null; return renderLift(); }
-  if(e.target.closest('#restOverride')){ lift.restOverride=true; return render(); }   // v3.3.467: the rest view steps aside for this session
   if(e.target.closest('#doneExBtn')&&lift.ex){
     const m=dayMeta(); m.upd=Date.now();
     if(!m.doneEx.includes(lift.ex)) m.doneEx.push(lift.ex);
@@ -725,7 +724,6 @@ document.addEventListener('click',e=>{
     if(checkDate()) return;   // v3.3.158: same guard, second entry point
     const t=day(todayISO);
     if(t.rest) delete t.rest; else t.rest=true;   // toggle; no confirm, no prompt
-    lift.restOverride=false;                       // v3.3.467: a fresh declaration brings the rest view back
     t.upd=Date.now();
     save(true); render({soft:true}); return;   // v3.3.440: the exhale cross-fades instead of cutting
   }
