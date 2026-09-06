@@ -1,5 +1,18 @@
 # ShowUp — changelog
 
+## v3.3.460 (2026-09-06) — The bar slides, and the glass is clearer
+
+459 faded the bar's opacity in .16s while its transform took .26s, so it was
+gone before it had moved — it read as vanishing. There is no fade now: the bar
+leaves by moving, on the settle curve at the app's arrival duration, far enough
+to clear the screen; it returns the same way.
+
+The glass is 72% tint, down from 88%. The pill's own inks moved to keep the
+contrast gate — muted a step darker in light and lighter in dark, the active
+accent a step deeper — so every label still clears 4.5:1 even with an accent
+button scrolled directly beneath the bar, and sits above 6:1 on ordinary
+content. The test recomputes those figures from the CSS.
+
 ## v3.3.459 (2026-09-06) — Threads' weight, and the bar hides on scroll
 
 The tab bar borrows Threads' proportions: 24px glyphs drawn to fill their box,

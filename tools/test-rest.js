@@ -733,8 +733,8 @@ ok("the status-bar style no longer puts content under the status bar",
   const cssN=fs.readFileSync(path.join(dir,"css/app.css"),"utf8");
   ok("the glyphs take the button's ink", /nav button \.ng svg\{[^}]*fill:currentColor/.test(cssN));
   ok("the emoji grayscale filter is gone with the emoji", !/nav button span\{[^}]*grayscale/.test(cssN));
-  ok("the minimal pill is glass: a blur behind a tinted pill",
-     /:root\[data-skin="minimal"\] nav\{\s*background:color-mix\(in srgb,var\(--pill\) 88%,transparent\);[^}]*backdrop-filter:blur/.test(cssN));
+  ok("the minimal pill is glass: a blur behind a 72% tint",
+     /:root\[data-skin="minimal"\] nav\{\s*background:color-mix\(in srgb,var\(--pill\) 72%,transparent\);[^}]*backdrop-filter:blur/.test(cssN));
   /* the contrast claim, recomputed here so the number cannot drift from the comment */
   {
     const hx=c=>[1,3,5].map(i=>parseInt(c.slice(i,i+2),16));
@@ -742,9 +742,18 @@ ok("the status-bar style no longer puts content under the status bar",
     const cr=(a,b)=>{const la=lum(a),lb=lum(b); return (Math.max(la,lb)+.05)/(Math.min(la,lb)+.05);};
     const mix=(a,b,p)=>'#'+[0,1,2].map(i=>Math.round(hx(a)[i]*p+hx(b)[i]*(1-p)).toString(16).padStart(2,'0')).join('');
     /* anchored to the shadow on the NEXT line: a lazy [\s\S]*? spanned from the dark block's --pill to the light block's shadow and reported dark numbers as light */
-    const pillL=(cssN.match(/--pill:(#[0-9A-Fa-f]{6}); --pill-ink:(#[0-9A-Fa-f]{6}); --pill-accent:(#[0-9A-Fa-f]{6});\s*--pill-shadow:0 4px/)||[]);
-    const pillD=(cssN.match(/--pill:(#[0-9A-Fa-f]{6}); --pill-ink:(#[0-9A-Fa-f]{6}); --pill-accent:(#[0-9A-Fa-f]{6});\s*--pill-shadow:0 10px/)||[]);
-    const worstL=mix(pillL[1],pillL[3],.88), worstD=mix(pillD[1],pillD[3],.88);
+    const pillL=(cssN.match(/--pill:(#[0-9A-Fa-f]{6}); --pill-ink:(#[0-9A-Fa-f]{6}); --pill-accent:(#[0-9A-Fa-f]{6});(?:\s*\/\*[^*]*\*\/)?\s*--pill-shadow:0 4px/)||[]);
+    const pillD=(cssN.match(/--pill:(#[0-9A-Fa-f]{6}); --pill-ink:(#[0-9A-Fa-f]{6}); --pill-accent:(#[0-9A-Fa-f]{6});(?:\s*\/\*[^*]*\*\/)?\s*--pill-shadow:0 10px/)||[]);
+    /* the worst backdrop is the THEME's accent -- a Start button scrolled
+       under the bar -- not the pill's label accent (v3.3.460 caught that) */
+    const accL=(cssN.match(/--accent:(#[0-9A-Fa-f]{6}); --accent-soft:#C3CCF5/)||[])[1];
+    const accD=(cssN.match(/--accent:(#[0-9A-Fa-f]{6}); --accent-soft:#3A4A8C/)||[])[1];
+    ok("(harness) the theme accents were found", !!accL && !!accD && accL!==accD, accL+" / "+accD);
+    const worstL=mix(pillL[1],accL,.72), worstD=mix(pillD[1],accD,.72);
+    /* the ACTIVE label sits on its capsule (12% ink over the glass); asserted too */
+    const capL=mix(pillL[2],worstL,.12), capD=mix(pillD[2],worstD,.12);
+    ok("light: the active accent clears 4.5:1 on its capsule with an accent button beneath", cr(pillL[3],capL)>=4.5, cr(pillL[3],capL).toFixed(2));
+    ok("dark: the same for the active accent", cr(pillD[3],capD)>=4.5, cr(pillD[3],capD).toFixed(2));
     ok("(harness) the two theme blocks were told apart", pillL[1]!==pillD[1] && pillL[1]==="#FFFFFF", pillL[1]+" / "+pillD[1]);
     ok("light: muted ink clears 4.5:1 on the glass with an accent button beneath", cr(pillL[2],worstL)>=4.5, cr(pillL[2],worstL).toFixed(2));
     ok("dark: the same", cr(pillD[2],worstD)>=4.5, cr(pillD[2],worstD).toFixed(2));
@@ -763,8 +772,13 @@ ok("the status-bar style no longer puts content under the status bar",
   ok("the active tab is a capsule, and the underline is gone from the base sheet",
      /nav button\.on\{[^}]*background:color-mix/.test(cssN) && !/\n\s*nav button\.on::after\{content/.test(cssN)
      && !/:root\[data-skin="minimal"\] nav button\.on::after\{background/.test(cssN));
-  ok("hidden is a transform on the settle curve, not display:none",
-     /nav\.hid\{transform:translateY\(120%\)[^}]*pointer-events:none\}/.test(cssN) && /nav\{transition:transform var\(--dur-move\) var\(--settle\)/.test(cssN));
+  /* v3.3.460 RESTATES: it SLIDES. No opacity anywhere in the hide -- a fade
+     that finishes before the move reads as vanishing. --dur-arrive, so the
+     travel is seen; far enough to clear the inset. */
+  ok("hidden is a transform on the settle curve, not display:none, and NOT a fade",
+     /nav\.hid\{transform:translateY\(calc\(100% \+ 60px\)\)[^}]*pointer-events:none\}/.test(cssN)
+     && /nav\{transition:transform var\(--dur-arrive\) var\(--settle\)\}/.test(cssN)
+     && !/nav\.hid\{[^}]*opacity/.test(cssN) && !/nav\{transition:[^}]*opacity/.test(cssN));
   const setY=y=>run(`Object.defineProperty(window,'scrollY',{value:${y},configurable:true}); navOnScroll(); document.getElementById('nav').classList.contains('hid')`);
   run(`_navY=0; _navAcc=0; document.getElementById('nav').classList.remove('hid');`);
   ok("at the top the bar shows", setY(0)===false);
