@@ -2742,7 +2742,7 @@
   @supports ((-webkit-backdrop-filter:blur(1px)) or (backdrop-filter:blur(1px))){
     :root[data-skin="minimal"] nav{background:transparent;isolation:isolate;box-shadow:none}
     :root[data-skin="minimal"] nav::before{content:'';position:absolute;inset:0;border-radius:inherit;z-index:0;
-      background:linear-gradient(180deg,color-mix(in srgb,var(--pill) 62%,transparent),color-mix(in srgb,var(--pill) 30%,transparent));
+      background:linear-gradient(180deg,color-mix(in srgb,var(--pill) 82%,transparent),color-mix(in srgb,var(--pill) 58%,transparent));   /* v3.3.464: 62->30 was too clear on the phone; the lighting still carries the glass */
       -webkit-backdrop-filter:blur(9px) saturate(190%) brightness(1.06);
       backdrop-filter:blur(9px) saturate(190%) brightness(1.06);
       box-shadow:var(--pill-shadow)}

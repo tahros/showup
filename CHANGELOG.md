@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v3.3.464 (2026-09-06) — Less glass
+
+The tab bar's tint rises to 82% at the top falling to 58% at the bottom (was
+62 → 30): too clear on the phone. The lighting from 463 — rim, pooled light,
+inner shadow, bead — is unchanged and still carries the glass. Every glyph now
+sits well above its gate (muted 4.77 / 6.06, active 4.69 / 4.81, worst case).
+
 ## v3.3.463 (2026-09-06) — Liquid glass, as far as the web can follow it
 
 Over the app's own white cards a blur has nothing to blur, so the frosted bar

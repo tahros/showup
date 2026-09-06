@@ -742,9 +742,9 @@ ok("the status-bar style no longer puts content under the status bar",
      blur is light (9px) with high saturation, and ALL lighting lives in
      --pill-shadow: a specular rim, a rim hairline, light from above, shadow
      inside the bottom, then the drop -- in both themes. */
-  ok("the minimal pill is liquid glass: a 62->30% fall-off tint, a 9px blur, on nav::before, the pill itself transparent",
+  ok("the minimal pill is liquid glass: an 82->58% fall-off tint, a 9px blur, on nav::before, the pill itself transparent",
      /:root\[data-skin="minimal"\] nav\{background:transparent;isolation:isolate;box-shadow:none\}/.test(cssN) &&
-     /:root\[data-skin="minimal"\] nav::before\{[^}]*background:linear-gradient\(180deg,color-mix\(in srgb,var\(--pill\) 62%,transparent\),color-mix\(in srgb,var\(--pill\) 30%,transparent\)\);[^}]*backdrop-filter:blur\(9px\) saturate\(190%\)/.test(cssN) &&
+     /:root\[data-skin="minimal"\] nav::before\{[^}]*background:linear-gradient\(180deg,color-mix\(in srgb,var\(--pill\) 82%,transparent\),color-mix\(in srgb,var\(--pill\) 58%,transparent\)\);[^}]*backdrop-filter:blur\(9px\) saturate\(190%\)/.test(cssN) &&
      /nav::before\{[^}]*box-shadow:var\(--pill-shadow\)/.test(cssN) &&
      /:root\[data-skin="minimal"\] nav button\{z-index:1\}/.test(cssN));
   ok("...the lighting is in the pill token, in both themes: specular rim, hairline, pooled light, inner bottom shadow, drop",
@@ -781,9 +781,9 @@ ok("the status-bar style no longer puts content under the status bar",
     const inkD=pillD[3];
     ok("(harness) both pills and both accents were found", pillL[1]==="#FFFFFF" && pillD[1]==="#1C202A" && !!accL && !!accD, [pillL[1],pillD[1],accL,accD].join(" "));
     ok("(harness) the pill trio is intact (buildcheck v3.3.168 guards it)", !!pillL[3] && !!pillD[3]);
-    /* v3.3.463: the tint falls from 62% at the top to 30% at the bottom; the
-       glyphs sit at the centre, ~46%. Worst-case backdrop as before. */
-    const worstL=mix(pillL[1],accL,.46), worstD=mix(pillD[1],accD,.46);
+    /* v3.3.464: the tint falls from 82% at the top to 58% at the bottom; the
+       glyphs sit at the centre, ~70%. Worst-case backdrop as before. */
+    const worstL=mix(pillL[1],accL,.70), worstD=mix(pillD[1],accD,.70);
     const capL=mix(pillL[3],mix(pillL[1],worstL,.60),.12), capD=mix(inkD,mix(pillD[1],worstD,.60),.12);
     /* v3.3.462 RESTATES 4.5 -> 3: with no text in the bar every glyph is a
        graphic, and 3:1 is the gate for graphics. Held even in the worst case. */
