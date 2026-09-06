@@ -1,5 +1,24 @@
 # ShowUp — changelog
 
+## v3.3.468 (2026-09-06) — Rest across Stats, History and the bar
+
+The rest of the set. On a rest day:
+
+- **Stats** leads with *Rhythm of rest*: the year as weeks, every day a cell,
+  your rest days in the rest green. This is the one surface where green is the
+  subject rather than a state — a separate frame from the day heatmap, whose two
+  fills are untouched. Beneath it the numbers (rest days this year, the average
+  rhythm, the longest stretch without one) and *What you rest after*: which part
+  most often precedes a rest.
+- **History** leads with this month's rest days and what each one followed —
+  *after Legs · 6 days on*. Rest as punctuation in the sentence of your
+  training. The record, not a verdict.
+- **The bar's Today square** is a hollow ring in the rest green while resting,
+  the same green the header wears, so the app agrees on one state top to bottom.
+
+Nothing is shown when you are not resting, and undo takes all of it down.
+Every number is asserted against a ledger where the answer is known.
+
 ## v3.3.467 (2026-09-06) — On a rest day, Train reports instead of asking
 
 Declare rest and the Train tab changes what it is for. It opens on one fact

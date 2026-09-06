@@ -970,6 +970,36 @@ function monthlyPaceSection(){
       <line x1="8" y1="126" x2="316" y2="126" stroke="var(--line)" stroke-width=".6"></line>${bars}</svg>
     <div class="tot"><span><b>${cur.days}</b> days this month</span><span>all bars through day ${cur.cutoff}</span></div></div>`;
 }
+/* v3.3.468: RHYTHM OF REST. Shown only on a rest day, at the top of Stats.
+   The year as weeks, every day a cell, rest days in the rest green. This is
+   the one surface where green is the SUBJECT rather than a state -- a
+   separate frame from the day heatmap, whose two fills are untouched (the
+   v3.3.379 rule stands there: green never enters the record's own view). It
+   appears only when it is true of today, which is when the question "how do
+   I rest?" is being asked. Beneath: the numbers, and what rest follows. */
+function restRhythmSection(){
+  const R=restStats(); if(!R) return '';
+  const y=todayISO.slice(0,4); const start=`${y}-01-01`;
+  const rest=new Set(R.restDays);
+  const d0=new Date(start+'T00:00'); const pad=d0.getDay();   // grid is weeks x weekdays, Sunday on top
+  let cells=''; for(let i=0;i<pad;i++) cells+='<i class="pad"></i>';
+  let n=0, restY=0;
+  for(let d=new Date(d0); ; d.setDate(d.getDate()+1)){
+    const iso=d.toLocaleDateString('en-CA'); if(iso>todayISO) break;
+    const before=iso<R.first;          // before the ledger began: blank, not "rest"
+    const r=!before&&rest.has(iso); if(r) restY++; n++;
+    cells+=`<i class="${before?'pad':r?'r':''}${iso===todayISO?' tod':''}"></i>`;
+  }
+  const gap=R.avgGap?`every ${Math.round(R.avgGap*10)/10} days on average`:'';
+  const afterRows=Object.entries(R.after).sort((a,b)=>b[1]-a[1]).slice(0,5)
+    .map(([p,c])=>`<div class="row spread" style="padding:6px 0;border-bottom:0.5px solid var(--line)"><span>${hesc(p)}</span><span class="mono muted">${c===R.afterTotal?`${c} of ${R.afterTotal}`:c}</span></div>`).join('');
+  return `<h2>Rhythm of rest \u00b7 ${y}</h2>
+    <div class="card restrhythm" style="padding:12px 14px">
+      <div class="restgrid" aria-label="rest days this year">${cells}</div>
+      <div class="mono muted" style="font-size:11px;margin-top:8px">${restY} rest day${restY===1?'':'s'} this year${gap?` \u00b7 ${gap}`:''}${R.longest?` \u00b7 longest stretch without one: ${R.longest}`:''}</div>
+    </div>
+    ${afterRows?`<h2>What you rest after</h2><div class="card" style="padding:6px 14px">${afterRows}</div>`:''}`;
+}
 function renderStats(){
   const _S={}; const cut=k=>{ _S[k]=h; h=''; };
   if(SEED.totals.sessions===0 && !hasAnyDays()){ $('#view').innerHTML=emptyHero('stats'); return; }
@@ -986,7 +1016,8 @@ function renderStats(){
   for(const [m,v] of Object.entries(SEED.monthly)) monthCounts[m]=Math.max(monthCounts[m]||0,v.days);
 
   // v3.3.230: lifetime total + current rhythm are one attendance hero.
-  let h=currentRhythmSection();
+  let h=restingToday()?restRhythmSection():'';   // v3.3.468: on a rest day, the rhythm of rest leads
+  h+=currentRhythmSection();
   cut('kpis');
   /* v3.3.208: Session Build keeps the honest part mix and the live-growing
      skyline, but every unit is now one completed set — never mixed tonnage. */

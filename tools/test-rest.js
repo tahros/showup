@@ -931,4 +931,51 @@ ok("the status-bar style no longer puts content under the status bar",
   run(`lift.plan=null; lift.write=null; delete DB.days[todayISO].rest; lift.restOverride=false; view='today'; render();`);
 }
 
+/* ================= v3.3.468: REST ACROSS STATS, HISTORY AND THE NAV =================
+   Same known ledger as 467: first day D-27; rests D-24, D-17, D-10, D-3 and
+   today; Legs the day before each. Stats leads with the rhythm grid, one green
+   cell per rest day this year; History leads with this month's rest days and
+   what each followed; the nav's Today square is a green ring. None of it is
+   shown when not resting. */
+{
+  const seed=()=>run(`(function(){
+    const D=n=>{const t=new Date(todayISO+'T00:00'); t.setDate(t.getDate()-n); return t.toLocaleDateString('en-CA');};
+    DB.days={}; DB.plan=null; DB.week=null; const rests=new Set([24,17,10,3]);
+    for(let n=27;n>=1;n--){ if(rests.has(n)) continue; const legs=rests.has(n-1)||n===1;
+      DB.days[D(n)]={w:[legs?{part:'Legs',ex:'Squat',w:90,reps:[5],at:1}:{part:'Chest',ex:'Dip',w:40,bw:true,reps:[8],at:1}],upd:1}; }
+    DB.days[todayISO]={w:[],rest:1,upd:1}; SEED=deriveAll(); lift.restOverride=false; })()`);
+  seed();
+  // Stats
+  run(`view='stats'; render();`);
+  const S=run(`$('#view').innerHTML`);
+  ok("Stats leads with the rhythm of rest on a rest day", /Rhythm of rest/.test(S) && S.indexOf('Rhythm of rest')<S.indexOf('days in'));
+  const greens=run(`document.querySelectorAll('.restgrid i.r').length`);
+  const restsThisYear=run(`restStats().restDays.filter(d=>d.slice(0,4)===todayISO.slice(0,4)&&d>=restStats().first).length`);
+  ok("...one green cell per rest day this year, no more", greens===restsThisYear && greens>=1, greens+" vs "+restsThisYear);
+  /* pads = the weekday offset before Jan 1 + every day before the ledger's
+     first day. Pinned to the number, not to "some pads exist": the offset
+     alone makes pads, so a looser check passed with the guard removed. */
+  const expPad=run(`(function(){const y=todayISO.slice(0,4); const j=new Date(y+'-01-01T00:00'); const f=new Date(restStats().first+'T00:00');
+    return j.getDay()+Math.max(0,Math.round((f-j)/864e5));})()`);
+  ok("...days before the ledger began are blank, not plain -- exactly the offset plus the pre-ledger days",
+     run(`document.querySelectorAll('.restgrid i.pad').length`)===expPad, run(`document.querySelectorAll('.restgrid i.pad').length`)+" vs "+expPad);
+  ok("...today's cell is ringed", run(`!!document.querySelector('.restgrid i.r.tod')`));
+  ok("...and 'what you rest after' names Legs, 5 of 5", /What you rest after/.test(S) && /Legs<\/span><span class="mono muted">5 of 5</.test(S));
+  ok("...the day heatmap itself gains no green (the v3.3.379 rule stands)", !/heat[^>]*\bgreen\b|hmcell[^>]*rest/.test(S));
+  // History
+  run(`view='history'; hist.part=null; render();`);
+  const H=run(`$('#view').innerHTML`);
+  ok("History leads with this month's rest days", /Rest days \u00b7/.test(H) && run(`!!document.querySelector('.restlineage')`));
+  ok("...today's row says what it followed and how long the run was", /today<\/span><\/span><span class="mono muted">after Legs \u00b7 2 days on</.test(H), (H.match(/after Legs[^<]*/)||[])[0]);
+  // nav
+  ok("the nav's Today square is a green ring while resting", run(`document.getElementById('nav').classList.contains('resting')`));
+  // not resting: none of it
+  run(`delete DB.days[todayISO].rest; SEED=deriveAll(); view='stats'; render();`);
+  ok("not resting: Stats has no rhythm of rest", !/Rhythm of rest/.test(run(`$('#view').innerHTML`)));
+  run(`view='history'; render();`);
+  ok("...History has no rest lineage", !run(`!!document.querySelector('.restlineage')`));
+  ok("...and the nav ring is gone", !run(`document.getElementById('nav').classList.contains('resting')`));
+  run(`view='today'; render();`);
+}
+
 process.exit(fail ? 1 : 0);

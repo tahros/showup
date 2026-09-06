@@ -2320,6 +2320,17 @@
   nav button.on{color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent)}
   nav button .ng svg .sq{fill:none;stroke:currentColor;stroke-width:2.6}
   nav.dayclosed button .ng svg .sq{fill:currentColor;stroke:none}
+  /* v3.3.468: while resting, Today's square is a hollow RING in the rest
+     green -- the same green the header wears -- so the whole app agrees on
+     one state from top to bottom. Live grade, like the header's square: gone
+     at midnight. */
+  nav.resting button[data-v="today"] .ng svg .sq{stroke:var(--rest);fill:none}
+  /* the rhythm-of-rest grid: weeks across, weekdays down, Sunday on top */
+  .restgrid{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,1fr);gap:2px;width:100%}
+  .restgrid i{display:block;aspect-ratio:1;border-radius:2px;background:var(--whisper)}
+  .restgrid i.pad{background:transparent}
+  .restgrid i.r{background:var(--rest)}
+  .restgrid i.tod{outline:1.5px solid var(--rest);outline-offset:1px}
   nav button .ng svg .frame{fill:none;stroke:currentColor;stroke-width:2.4}
   /* v3.3.459: HIDE ON SCROLL. The bar slides off the bottom after ~28px of
      downward travel and returns on ~10px upward; at the top of the page it is

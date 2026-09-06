@@ -1368,7 +1368,8 @@ function syncNav(){
      open, filled once closed (doneAll). Every render passes through here, and
      every doneAll flip renders, so the square cannot lag the ledger. */
   const nav=document.getElementById('nav');
-  if(nav) nav.classList.toggle('dayclosed', !!(DB.days&&DB.days[todayISO]&&DB.days[todayISO].doneAll));
+  if(nav){ nav.classList.toggle('dayclosed', !!(DB.days&&DB.days[todayISO]&&DB.days[todayISO].doneAll));
+    nav.classList.toggle('resting', restingToday()); }   // v3.3.468: Today's square is a green ring while resting
 }
 function render(opts){
   syncNav();
