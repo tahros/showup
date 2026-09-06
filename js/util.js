@@ -533,21 +533,34 @@ addEventListener('scroll',()=>{
   if(_topRaf) return;
   _topRaf=requestAnimationFrame(()=>{ _topRaf=0; syncTopBtn(); navOnScroll(); });
 },{passive:true});
-/* v3.3.459: THE BAR HIDES ON SCROLL, LIKE THREADS. Accumulate travel in one
-   direction; ~28px down hides, ~10px up shows, and the top of the page always
-   shows. The asymmetry is what keeps it from twitching: a scroll has to mean
-   it to hide the bar, and barely has to hint to bring it back. A direction
-   change resets the count so a long scroll down does not need a long scroll
-   up. Overlays (a set being logged, the rest timer) are not scrolls and never
-   touch it. */
-let _navY=0,_navAcc=0;
+/* v3.3.459 hid the bar on a threshold; v3.3.462 makes it FOLLOW THE FINGER.
+   The offset tracks the scroll delta pixel for pixel, clamped between 0 and
+   the bar's height plus its inset, and is written inline with transitions off
+   (nav.scrub) -- so a slow scroll moves the bar slowly and a reversal brings
+   it straight back. When the scroll has been quiet for ~140ms, navSettle
+   turns transitions on and eases the bar to the nearer end at --dur-slow. At
+   the top of the page it is always fully shown. .hid is only pointer-events
+   now; the position is the transform. */
+let _navY=0,_navOff=0,_navIdle=0;
+function navH(){ const nav=document.getElementById('nav'); return ((nav&&nav.offsetHeight)||64)+60; }
+function navPlace(nav,off){
+  nav.style.transform=`translateY(${off}px) translateZ(0)`;
+  nav.classList.toggle('hid',off>=navH());
+}
 function navOnScroll(){
   const nav=document.getElementById('nav'); if(!nav) return;
   const y=window.scrollY||0, dy=y-_navY; _navY=y;
-  if(y<8){ nav.classList.remove('hid'); _navAcc=0; return; }
-  _navAcc=((dy>0)===(_navAcc>0))?_navAcc+dy:dy;
-  if(_navAcc>28) nav.classList.add('hid');
-  else if(_navAcc<-10) nav.classList.remove('hid');
+  const H=navH();
+  _navOff = y<8 ? 0 : Math.max(0,Math.min(H,_navOff+dy));
+  nav.classList.add('scrub'); navPlace(nav,_navOff);
+  clearTimeout(_navIdle); _navIdle=setTimeout(navSettle,140);
+}
+function navSettle(){
+  const nav=document.getElementById('nav'); if(!nav) return;
+  const H=navH();
+  nav.classList.remove('scrub');
+  _navOff = (_navY<8||_navOff<=H/2) ? 0 : H;
+  navPlace(nav,_navOff);
 }
 function dayMeta(){const t=day(todayISO);t.doneEx=t.doneEx||[];t.donePart=t.donePart||[];t.sugX=t.sugX||{};return t;}
 const isLive =()=>{const t=day(todayISO);return t.w.length>0&&!t.doneAll;};

@@ -1,5 +1,24 @@
 # ShowUp — changelog
 
+## v3.3.462 (2026-09-06) — The bar follows the finger, and the glass shows
+
+Three things on the tab bar.
+
+The glass was there but invisible. The bar carries a compositing hint for iOS
+scroll anchoring (v3.3.179), and WebKit is unreliable about sampling a
+backdrop through an element that is also its own promoted layer — the blur
+silently did nothing. The tint and the blur now live on a pseudo-element with
+no transform of its own, which gives WebKit a plain surface to sample behind.
+The tint is 55%, down from 72%; with no text in the bar the gate is the 3:1
+graphics one, and the active capsule stands on a 60% pill base so blue-on-blue
+still clears it. Figures recomputed in the test.
+
+The bar follows the finger. Its offset tracks the scroll pixel for pixel,
+transitions off while you scroll — so a slow scroll moves it slowly, and a
+reversal brings it straight back. When the scroll goes quiet it eases to the
+nearer end at a slower pace than before (.6s). Taps are only disabled once it
+is fully off-screen.
+
 ## v3.3.461 (2026-09-06) — Icons only, and the square waits for the close
 
 The tab bar drops its words. Four glyphs at 28px, bolder, each button named by

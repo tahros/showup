@@ -10,7 +10,7 @@
        band-back overshoot. Everything else speaks with one voice; a new
        ad-hoc cubic-bezier anywhere in this file fails the build. */
     --settle:cubic-bezier(.22,1,.36,1);
-    --dur-quick:.16s; --dur-move:.26s; --dur-arrive:.42s;
+    --dur-quick:.16s; --dur-move:.26s; --dur-arrive:.42s; --dur-slow:.6s;   /* v3.3.462: the nav's settle after a scrub */
     color-scheme:dark;
     /* v3.3.202 (Dark Mode V3, step 2): surfaces and the two fills that carry
        white or coloured text.
@@ -2329,8 +2329,15 @@
      .26s, so the bar was gone before it had moved -- it read as vanishing.
      Opacity is out entirely: the bar leaves by moving, at --dur-arrive, and
      goes far enough (its own height plus the inset) to clear the screen. */
-  nav{transition:transform var(--dur-arrive) var(--settle)}
-  nav.hid{transform:translateY(calc(100% + 60px)) translateZ(0);pointer-events:none}
+  /* v3.3.462: THE BAR FOLLOWS THE FINGER. The offset is set inline by
+     navOnScroll, pixel for pixel with the scroll (transitions OFF while
+     scrubbing, .scrub), so a slow scroll moves the bar slowly. When the scroll
+     goes quiet, navSettle turns transitions back on and eases the bar to
+     whichever end is nearer, at --dur-slow. .hid only kills taps now; the
+     position lives in the inline transform. */
+  nav{transition:transform var(--dur-slow) var(--settle)}
+  nav.scrub{transition:none}
+  nav.hid{pointer-events:none}
   @media (prefers-reduced-motion:reduce){ nav{transition:none} }
   /* v3.3.179: bottom-anchored fixed chrome gets its own compositing layer.
      Reported against Minimal — the nav pill and the "↑ top" button both hung
@@ -2696,18 +2703,32 @@
      content. test-rest recomputes these from the file. The v3.3.179 compositing
      layer (translateZ) stays and is what lets iOS carry a blurred fixed
      element with the viewport instead of lagging it. */
+  /* v3.3.462: THE GLASS LIVES ON A PSEUDO-ELEMENT. The maker could not see
+     the frost. nav carries translateZ(0) + will-change:transform (v3.3.179,
+     for iOS scroll anchoring), and WebKit is unreliable about sampling a
+     backdrop for an element that is also its own promoted layer -- the blur
+     silently does nothing. Moving the tint and the filter to nav::before,
+     which has no transform of its own, gives WebKit a plain element to
+     sample behind. The pill itself goes transparent inside @supports so the
+     pseudo-element's tint is the only surface. Tint 55% ("more transparent"):
+     labels are gone, so the gate is the 3:1 graphics one, and the active
+     capsule gets a 60% pill base so blue-on-blue still clears (test-rest). */
   @supports ((-webkit-backdrop-filter:blur(1px)) or (backdrop-filter:blur(1px))){
-    :root[data-skin="minimal"] nav{
-      background:color-mix(in srgb,var(--pill) 72%,transparent);
-      -webkit-backdrop-filter:blur(18px) saturate(160%);
-      backdrop-filter:blur(18px) saturate(160%)}
+    :root[data-skin="minimal"] nav{background:transparent;isolation:isolate}
+    :root[data-skin="minimal"] nav::before{content:'';position:absolute;inset:0;border-radius:inherit;z-index:0;
+      background:color-mix(in srgb,var(--pill) 55%,transparent);
+      -webkit-backdrop-filter:blur(20px) saturate(170%);
+      backdrop-filter:blur(20px) saturate(170%);
+      box-shadow:inset 0 0.5px 0 color-mix(in srgb,var(--pill) 70%,transparent)}
+    :root[data-skin="minimal"] nav button{z-index:1}
   }
   :root[data-skin="minimal"] nav button{color:var(--pill-ink);padding:10px 4px}
   /* v3.3.461: --pill-accent IS the app accent now (light) and the app's
      accent-as-ink (dark); the deeper v3.3.460 value protected labels that
      no longer exist. It stays a token because the skin's pill trio is guarded
      by buildcheck (v3.3.168) and the skin block is chrome-only. */
-  :root[data-skin="minimal"] nav button.on{color:var(--pill-accent);background:color-mix(in srgb,var(--pill-accent) 12%,transparent)}
+  /* v3.3.462: the capsule stands on a 60% pill base under its 12% accent, so the active blue glyph clears 3:1 even over a blue button (4.30 light, 4.50 dark) */
+  :root[data-skin="minimal"] nav button.on{color:var(--pill-accent);background:color-mix(in srgb,var(--pill) 60%,var(--pill-accent) 12%)}
   /* v3.3.331: the TRAIN TAB joins the skin. Everything above was written
      against the Bench Press mockup, which was a Today composition -- cards,
      zones, fields, the nav pill. The two surfaces that FILL the Train tab,

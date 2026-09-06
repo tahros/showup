@@ -735,8 +735,15 @@ ok("the status-bar style no longer puts content under the status bar",
   const cssN=fs.readFileSync(path.join(dir,"css/app.css"),"utf8");
   ok("the glyphs take the button's ink", /nav button \.ng svg\{[^}]*fill:currentColor/.test(cssN));
   ok("the emoji grayscale filter is gone with the emoji", !/nav button span\{[^}]*grayscale/.test(cssN));
-  ok("the minimal pill is glass: a blur behind a 72% tint",
-     /:root\[data-skin="minimal"\] nav\{\s*background:color-mix\(in srgb,var\(--pill\) 72%,transparent\);[^}]*backdrop-filter:blur/.test(cssN));
+  /* v3.3.462 RESTATES: the glass moved to nav::before (WebKit will not
+     sample a backdrop for an element that is also its own promoted layer),
+     at 55%. The pill itself is transparent inside @supports. */
+  ok("the minimal pill is glass on a pseudo-element: 55% tint + blur on nav::before, the pill itself transparent",
+     /:root\[data-skin="minimal"\] nav\{background:transparent;isolation:isolate\}/.test(cssN) &&
+     /:root\[data-skin="minimal"\] nav::before\{[^}]*background:color-mix\(in srgb,var\(--pill\) 55%,transparent\);[^}]*backdrop-filter:blur/.test(cssN) &&
+     /:root\[data-skin="minimal"\] nav button\{z-index:1\}/.test(cssN));
+  ok("...and the pseudo-element carries no transform of its own (the reason it works)",
+     !/nav::before\{[^}]*transform/.test(cssN));
   /* the contrast claim, recomputed here so the number cannot drift from the comment */
   {
     const hx=c=>[1,3,5].map(i=>parseInt(c.slice(i,i+2),16));
@@ -761,10 +768,13 @@ ok("the status-bar style no longer puts content under the status bar",
     const inkD=pillD[3];
     ok("(harness) both pills and both accents were found", pillL[1]==="#FFFFFF" && pillD[1]==="#1C202A" && !!accL && !!accD, [pillL[1],pillD[1],accL,accD].join(" "));
     ok("(harness) the pill trio is intact (buildcheck v3.3.168 guards it)", !!pillL[3] && !!pillD[3]);
-    const worstL=mix(pillL[1],accL,.72), worstD=mix(pillD[1],accD,.72);
-    const capL=mix(pillL[3],worstL,.12), capD=mix(inkD,worstD,.12);
-    ok("light: the muted glyph clears 4.5:1 on the glass with an accent button beneath", cr(pillL[2],worstL)>=4.5, cr(pillL[2],worstL).toFixed(2));
-    ok("dark: the same", cr(pillD[2],worstD)>=4.5, cr(pillD[2],worstD).toFixed(2));
+    /* v3.3.462: 55% glass; the capsule is a 60% pill base under 12% accent */
+    const worstL=mix(pillL[1],accL,.55), worstD=mix(pillD[1],accD,.55);
+    const capL=mix(pillL[3],mix(pillL[1],worstL,.60),.12), capD=mix(inkD,mix(pillD[1],worstD,.60),.12);
+    /* v3.3.462 RESTATES 4.5 -> 3: with no text in the bar every glyph is a
+       graphic, and 3:1 is the gate for graphics. Held even in the worst case. */
+    ok("light: the muted glyph clears 3:1 (graphic) on the glass with an accent button beneath", cr(pillL[2],worstL)>=3, cr(pillL[2],worstL).toFixed(2));
+    ok("dark: the same", cr(pillD[2],worstD)>=3, cr(pillD[2],worstD).toFixed(2));
     ok("light: the active accent glyph clears 3:1 (graphic) on its capsule over that backdrop", cr(pillL[3],capL)>=3, cr(pillL[3],capL).toFixed(2));
     ok("dark: the same, with --accent-dim as the ink", !!inkD && cr(inkD,capD)>=3, inkD+" "+(inkD?cr(inkD,capD).toFixed(2):''));
   }
@@ -782,7 +792,7 @@ ok("the status-bar style no longer puts content under the status bar",
   ok("glyphs are 28px", /nav button \.ng svg\{[^}]*width:28px;height:28px/.test(cssN));
   ok("the active tab is the app's accent on an accent capsule, in both the base sheet and the pill",
      /nav button\.on\{color:var\(--accent\);background:color-mix\(in srgb,var\(--accent\) 12%/.test(cssN) &&
-     /:root\[data-skin="minimal"\] nav button\.on\{color:var\(--pill-accent\);background:color-mix\(in srgb,var\(--pill-accent\) 12%/.test(cssN));
+     /:root\[data-skin="minimal"\] nav button\.on\{color:var\(--pill-accent\);background:color-mix\(in srgb,var\(--pill\) 60%,var\(--pill-accent\) 12%\)/.test(cssN));
   /* Today's square: hollow while the day is open, filled when closed */
   run(`DB.days[todayISO]={w:[{part:'Chest',ex:'Dip',w:toKg(45),bw:true,reps:[8],at:1}],doneEx:[],donePart:[],upd:1}; SEED=deriveAll(); view='today'; render();`);
   ok("Today's square is hollow while the day is open (a set logged, not closed)",
@@ -802,30 +812,38 @@ ok("the status-bar style no longer puts content under the status bar",
   /* v3.3.460 RESTATES: it SLIDES. No opacity anywhere in the hide -- a fade
      that finishes before the move reads as vanishing. --dur-arrive, so the
      travel is seen; far enough to clear the inset. */
-  ok("hidden is a transform on the settle curve, not display:none, and NOT a fade",
-     /nav\.hid\{transform:translateY\(calc\(100% \+ 60px\)\)[^}]*pointer-events:none\}/.test(cssN)
-     && /nav\{transition:transform var\(--dur-arrive\) var\(--settle\)\}/.test(cssN)
-     && !/nav\.hid\{[^}]*opacity/.test(cssN) && !/nav\{transition:[^}]*opacity/.test(cssN));
-  const setY=y=>run(`Object.defineProperty(window,'scrollY',{value:${y},configurable:true}); navOnScroll(); document.getElementById('nav').classList.contains('hid')`);
-  run(`_navY=0; _navAcc=0; document.getElementById('nav').classList.remove('hid');`);
-  ok("at the top the bar shows", setY(0)===false);
-  ok("a short scroll down (20px) does not hide it", setY(20)===false);
-  ok("...crossing ~28px of downward travel does", setY(40)===true);
-  ok("...and it stays hidden while you keep going", setY(200)===true);
-  ok("a 6px nudge up is not enough to bring it back", setY(194)===true);
-  ok("...12px up is", setY(182)===false);
-  ok("...and a direction change resets the count: 20 more down keeps it shown, 30 hides again",
-     setY(202)===false && setY(232)===true);
-  /* the top guard, isolated: hidden at y=15 with a big downward count, then
-     an 8px move to y=7 -- not enough upward travel to show it by the rule
-     above, so ONLY the top guard can bring it back */
-  run(`_navY=15; _navAcc=60; document.getElementById('nav').classList.add('hid');`);
-  ok("returning to the top shows it even when the upward travel is too small to", setY(7)===false);
-  /* and the listener is actually wired: the scroll handler must name navOnScroll */
-  const u2=fs.readFileSync(path.join(dir,"js/util.js"),"utf8");
-  ok("the window scroll listener drives navOnScroll",
-     /addEventListener\('scroll',[\s\S]{0,200}?requestAnimationFrame\(\(\)=>\{[^}]*navOnScroll\(\)/.test(u2));
-  run(`Object.defineProperty(window,'scrollY',{value:0,configurable:true}); _navY=0; _navAcc=0;`);
+  /* v3.3.462 RESTATES: the position is an inline transform driven by the
+     scroll; .hid is only pointer-events. Transitions are OFF while scrubbing
+     and slow (--dur-slow) for the settle. Still no fade anywhere. */
+  ok("the bar's rest transition is slow, on the settle curve, transform only, no fade",
+     /nav\{transition:transform var\(--dur-slow\) var\(--settle\)\}/.test(cssN) && /nav\.scrub\{transition:none\}/.test(cssN)
+     && /nav\.hid\{pointer-events:none\}/.test(cssN) && !/nav\.hid\{[^}]*opacity/.test(cssN) && /--dur-slow:\.6s/.test(cssN));
+  /* v3.3.462: THE BAR FOLLOWS THE FINGER. Offset = accumulated scroll delta,
+     clamped to [0, H]; written inline pixel for pixel with transitions off;
+     settled to the nearer end when the scroll goes quiet. jsdom has no
+     offsetHeight, so H is the fallback 64+60=124. */
+  const off=()=>+(run(`document.getElementById('nav').style.transform`).match(/translateY\((-?[\d.]+)px\)/)||[])[1];
+  const setY=y=>{ run(`Object.defineProperty(window,'scrollY',{value:${y},configurable:true}); navOnScroll();`); return off(); };
+  run(`_navY=0; _navOff=0; clearTimeout(_navIdle); const nv=document.getElementById('nav'); nv.classList.remove('hid','scrub'); nv.style.transform='';`);
+  ok("(harness) H is 124 here", run(`navH()`)===124, run(`navH()`));
+  ok("at the top the bar sits at 0", setY(0)===0);
+  ok("10px down moves it 10px -- the bar follows the finger", setY(10)===10);
+  ok("...and another 25 moves it 25 more, while scrubbing (transitions off)", setY(35)===35 && run(`document.getElementById('nav').classList.contains('scrub')`));
+  ok("...it is still tappable mid-travel", !run(`document.getElementById('nav').classList.contains('hid')`));
+  ok("a slow 3px nudge up brings it 3px back", setY(32)===32);
+  ok("a long scroll down clamps at H, and only then kills taps", setY(400)===124 && run(`document.getElementById('nav').classList.contains('hid')`));
+  ok("...and 40px up from there starts it back at H-40", setY(360)===84 && !run(`document.getElementById('nav').classList.contains('hid')`));
+  /* the settle, called directly (the idle timer is what calls it on a device) */
+  run(`navSettle();`);
+  ok("quiet at 84 of 124 settles to hidden (past half), transitions back on",
+     off()===124 && !run(`document.getElementById('nav').classList.contains('scrub')`) && run(`document.getElementById('nav').classList.contains('hid')`));
+  setY(290); run(`navSettle();`);
+  ok("quiet at 54 of 124 settles to shown (under half)", off()===0 && !run(`document.getElementById('nav').classList.contains('hid')`));
+  setY(340); setY(5);
+  ok("returning to the top is always fully shown, whatever the offset was", off()===0);
+  run(`_navY=6; _navOff=100; navSettle();`);
+  ok("...and a settle at the top also lands shown", off()===0);
+  run(`clearTimeout(_navIdle); Object.defineProperty(window,'scrollY',{value:0,configurable:true}); _navY=0; _navOff=0; document.getElementById('nav').style.transform='';`);
 }
 
 process.exit(fail ? 1 : 0);
