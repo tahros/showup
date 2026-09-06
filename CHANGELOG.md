@@ -1,5 +1,10 @@
 # ShowUp — changelog
 
+## v3.3.466 (2026-09-06) — A step less glass
+
+Tint 88% at the top falling to 66% at the bottom (was 82 → 58). Lighting,
+blur, geometry and motion unchanged.
+
 ## v3.3.465 (2026-09-06) — The glass samples the page
 
 The bar's blur has never rendered on the phone, through four releases of tuning

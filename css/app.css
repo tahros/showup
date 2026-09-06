@@ -2758,7 +2758,7 @@
        z-index:1 without isolating anything. */
     :root[data-skin="minimal"] nav{background:transparent;box-shadow:none}
     :root[data-skin="minimal"] nav::before{content:'';position:absolute;inset:0;border-radius:inherit;z-index:0;
-      background:linear-gradient(180deg,color-mix(in srgb,var(--pill) 82%,transparent),color-mix(in srgb,var(--pill) 58%,transparent));   /* v3.3.464: 62->30 was too clear on the phone; the lighting still carries the glass */
+      background:linear-gradient(180deg,color-mix(in srgb,var(--pill) 88%,transparent),color-mix(in srgb,var(--pill) 66%,transparent));   /* v3.3.466: one step heavier than 464 (82->58), now that the blur actually renders */
       -webkit-backdrop-filter:blur(9px) saturate(190%) brightness(1.06);
       backdrop-filter:blur(9px) saturate(190%) brightness(1.06);
       box-shadow:var(--pill-shadow)}
