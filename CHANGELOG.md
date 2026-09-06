@@ -1,5 +1,24 @@
 # ShowUp — changelog
 
+## v3.3.463 (2026-09-06) — Liquid glass, as far as the web can follow it
+
+Over the app's own white cards a blur has nothing to blur, so the frosted bar
+never read as glass. What reads as glass over plain content is the lighting,
+and the bar has it now: a specular rim along the top, a hairline of light
+around the whole edge, light pooling in from above, a soft shadow inside the
+bottom edge, then the drop. The tint falls off from top to bottom like a thick
+pane lit from above; the blur is lighter (9px) and the saturation higher so
+what passes beneath comes through richer. The active tab is a glass bead on the
+glass. Every lighting term is white or black — the bar carries no colour of its
+own — and lives in the pill's shadow token, so each theme sets its own.
+
+Safari cannot refract, so the real thing's lensing is not available to a web
+page; this is the material without its bending.
+
+The bar is a little narrower (24px in from each edge) and the tabs a little
+closer. Contrast recomputed at the bar's mid-tint: every glyph still clears the
+graphics gate with an accent button scrolled beneath.
+
 ## v3.3.462 (2026-09-06) — The bar follows the finger, and the glass shows
 
 Three things on the tab bar.

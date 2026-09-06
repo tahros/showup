@@ -738,10 +738,22 @@ ok("the status-bar style no longer puts content under the status bar",
   /* v3.3.462 RESTATES: the glass moved to nav::before (WebKit will not
      sample a backdrop for an element that is also its own promoted layer),
      at 55%. The pill itself is transparent inside @supports. */
-  ok("the minimal pill is glass on a pseudo-element: 55% tint + blur on nav::before, the pill itself transparent",
-     /:root\[data-skin="minimal"\] nav\{background:transparent;isolation:isolate\}/.test(cssN) &&
-     /:root\[data-skin="minimal"\] nav::before\{[^}]*background:color-mix\(in srgb,var\(--pill\) 55%,transparent\);[^}]*backdrop-filter:blur/.test(cssN) &&
+  /* v3.3.463 RESTATES: liquid glass. The tint is a fall-off (62% -> 30%), the
+     blur is light (9px) with high saturation, and ALL lighting lives in
+     --pill-shadow: a specular rim, a rim hairline, light from above, shadow
+     inside the bottom, then the drop -- in both themes. */
+  ok("the minimal pill is liquid glass: a 62->30% fall-off tint, a 9px blur, on nav::before, the pill itself transparent",
+     /:root\[data-skin="minimal"\] nav\{background:transparent;isolation:isolate;box-shadow:none\}/.test(cssN) &&
+     /:root\[data-skin="minimal"\] nav::before\{[^}]*background:linear-gradient\(180deg,color-mix\(in srgb,var\(--pill\) 62%,transparent\),color-mix\(in srgb,var\(--pill\) 30%,transparent\)\);[^}]*backdrop-filter:blur\(9px\) saturate\(190%\)/.test(cssN) &&
+     /nav::before\{[^}]*box-shadow:var\(--pill-shadow\)/.test(cssN) &&
      /:root\[data-skin="minimal"\] nav button\{z-index:1\}/.test(cssN));
+  ok("...the lighting is in the pill token, in both themes: specular rim, hairline, pooled light, inner bottom shadow, drop",
+     (cssN.match(/--pill-shadow:inset 0 1px 0 rgba\(255,255,255,[.\d]+\),inset 0 0 0 0\.5px rgba\(255,255,255,[.\d]+\),\s*inset 0 14px 20px -12px rgba\(255,255,255,[.\d]+\),inset 0 -10px 18px -12px rgba\(0,0,0,[.\d]+\),\s*0 1\dpx 3\dpx/g)||[]).length===2);
+  ok("...no colour in the light: every lighting term is white or black", !/--pill-shadow:[^;]*rgba\((?!255,255,255|0,0,0|22,26,40)/.test(cssN));
+  ok("...and the active tab is a glass bead: its own top highlight and a whisper of drop",
+     /nav button\.on\{box-shadow:inset 0 1px 0 color-mix\(in srgb,#fff 70%,var\(--pill\)\),0 1px 3px/.test(cssN));
+  ok("the bar is narrower and its tabs closer (24px in, 2px between)",
+     /:root\[data-skin="minimal"\] nav\{\s*left:24px;right:24px;/.test(cssN) && /:root\[data-skin="minimal"\] nav button\{margin:5px 2px\}/.test(cssN));
   ok("...and the pseudo-element carries no transform of its own (the reason it works)",
      !/nav::before\{[^}]*transform/.test(cssN));
   /* the contrast claim, recomputed here so the number cannot drift from the comment */
@@ -757,8 +769,9 @@ ok("the status-bar style no longer puts content under the status bar",
        scrolled under the 72% glass; the active glyph sits on its 12% accent
        capsule. Muted glyphs are held to 4.5:1 still -- they are the resting
        state and can afford it. */
-    const pillL=(cssN.match(/--pill:(#[0-9A-Fa-f]{6}); --pill-ink:(#[0-9A-Fa-f]{6});[\s\S]{0,120}?--pill-accent:(#[0-9A-Fa-f]{6});[\s\S]{0,400}?--pill-shadow:0 4px/)||[]);
-    const pillD=(cssN.match(/--pill:(#[0-9A-Fa-f]{6}); --pill-ink:(#[0-9A-Fa-f]{6});[\s\S]{0,120}?--pill-accent:(#[0-9A-Fa-f]{6});[\s\S]{0,400}?--pill-shadow:0 10px/)||[]);
+    /* v3.3.463: the shadow tokens carry the lighting now; the theme is told by the drop colour (22,26,40 light, 0,0,0 dark) */
+    const pillL=(cssN.match(/--pill:(#[0-9A-Fa-f]{6}); --pill-ink:(#[0-9A-Fa-f]{6});[\s\S]{0,160}?--pill-accent:(#[0-9A-Fa-f]{6});[\s\S]{0,700}?--pill-shadow:inset[^;]*rgba\(22,26,40/)||[]);
+    const pillD=(cssN.match(/--pill:(#[0-9A-Fa-f]{6}); --pill-ink:(#[0-9A-Fa-f]{6});[\s\S]{0,160}?--pill-accent:(#[0-9A-Fa-f]{6});[\s\S]{0,700}?--pill-shadow:inset[^;]*rgba\(0,0,0,\.42\)/)||[]);
     const accL=(cssN.match(/--accent:(#[0-9A-Fa-f]{6}); --accent-soft:#C3CCF5/)||[])[1];
     const accD=(cssN.match(/--accent:(#[0-9A-Fa-f]{6}); --accent-soft:#3A4A8C/)||[])[1];
     /* the pill's active ink must BE the app's blue: the accent in light, the accent-as-ink in dark */
@@ -768,8 +781,9 @@ ok("the status-bar style no longer puts content under the status bar",
     const inkD=pillD[3];
     ok("(harness) both pills and both accents were found", pillL[1]==="#FFFFFF" && pillD[1]==="#1C202A" && !!accL && !!accD, [pillL[1],pillD[1],accL,accD].join(" "));
     ok("(harness) the pill trio is intact (buildcheck v3.3.168 guards it)", !!pillL[3] && !!pillD[3]);
-    /* v3.3.462: 55% glass; the capsule is a 60% pill base under 12% accent */
-    const worstL=mix(pillL[1],accL,.55), worstD=mix(pillD[1],accD,.55);
+    /* v3.3.463: the tint falls from 62% at the top to 30% at the bottom; the
+       glyphs sit at the centre, ~46%. Worst-case backdrop as before. */
+    const worstL=mix(pillL[1],accL,.46), worstD=mix(pillD[1],accD,.46);
     const capL=mix(pillL[3],mix(pillL[1],worstL,.60),.12), capD=mix(inkD,mix(pillD[1],worstD,.60),.12);
     /* v3.3.462 RESTATES 4.5 -> 3: with no text in the bar every glyph is a
        graphic, and 3:1 is the gate for graphics. Held even in the worst case. */

@@ -2640,7 +2640,12 @@
     --pill-accent:#95A4E8;   /* v3.3.461: = --accent-dim, the app's accent as INK on dark. Raw --accent
                                 (#4C6BE3) is 3.3:1 on ordinary dark content and 2.3:1 over an accent
                                 button scrolled under the glass; this is 5.9 / 4.0 (test-rest recomputes) */
-    --pill-shadow:0 10px 30px rgba(0,0,0,.30);
+    /* v3.3.463: the glass lighting, dark. White light on dark glass, quieter:
+       specular rim on top, a rim hairline all round, light pooling in from
+       above, shadow pooling inside the bottom, then the drop. */
+    --pill-shadow:inset 0 1px 0 rgba(255,255,255,.28),inset 0 0 0 0.5px rgba(255,255,255,.14),
+      inset 0 14px 20px -12px rgba(255,255,255,.14),inset 0 -10px 18px -12px rgba(0,0,0,.45),
+      0 12px 32px rgba(0,0,0,.42),0 1px 2px rgba(0,0,0,.30);
   }
   :root[data-skin="minimal"][data-theme="light"]{
     --line:#E9EAEF; --whisper:#F1F2F6;
@@ -2651,7 +2656,12 @@
        light mode read as chrome from another app. White pill, theme inks. */
     --pill:#FFFFFF; --pill-ink:#4E5262;   /* v3.3.460: a step darker for the 72% glass */
     --pill-accent:#2F4BD8;   /* v3.3.461: = --accent, the app's blue, as asked; 3.7:1 as a graphic worst-case */
-    --pill-shadow:0 4px 14px rgba(22,26,40,.10),0 12px 34px rgba(22,26,40,.16);
+    /* v3.3.463: the glass lighting, light. Specular rim on top, a hairline of
+       light all round, light pooling in from above, a soft shadow pooling
+       inside the bottom edge, then a soft drop and a contact shadow. */
+    --pill-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 0 0 0.5px rgba(255,255,255,.75),
+      inset 0 14px 20px -12px rgba(255,255,255,.55),inset 0 -10px 18px -12px rgba(0,0,0,.10),
+      0 10px 30px rgba(22,26,40,.16),0 1px 2px rgba(22,26,40,.08);
   }
   /* floating cards: the border's job moves to the shadow */
   :root[data-skin="minimal"] :is(.card,.zone,.lastcard,.day,.kpi){
@@ -2687,11 +2697,16 @@
      dark, white pill on light; v3.3.169). Ink is its own token pair,
      guarded at 4.5 like every other ink. Wins over the @supports frosted
      nav on specificity, not order. */
+  /* v3.3.463: a little narrower (24px in from each edge, was 14) and the
+     tabs a little closer (2px side margin, was 4) -- the maker's ask. The
+     bar's own box-shadow moves to the glass layer below so the lighting and
+     the surface are one object. */
   :root[data-skin="minimal"] nav{
-    left:14px;right:14px;bottom:calc(10px + env(safe-area-inset-bottom,0px));
-    max-width:492px;border-top:0;border-radius:26px;background:var(--pill);
-    padding-bottom:0;box-shadow:var(--pill-shadow);
+    left:24px;right:24px;bottom:calc(10px + env(safe-area-inset-bottom,0px));
+    max-width:472px;border-top:0;border-radius:26px;background:var(--pill);
+    padding:0 8px;box-shadow:var(--pill-shadow);
     -webkit-backdrop-filter:none;backdrop-filter:none}
+  :root[data-skin="minimal"] nav button{margin:5px 2px}
   /* v3.3.458: THE PILL IS GLASS. The pill was opaque; content now passes
      beneath it through a blur, which reads as depth without adding a shadow
      -- the Monument Valley way to say "this floats". v3.3.460: the tint is
@@ -2713,14 +2728,28 @@
      pseudo-element's tint is the only surface. Tint 55% ("more transparent"):
      labels are gone, so the gate is the 3:1 graphics one, and the active
      capsule gets a 60% pill base so blue-on-blue still clears (test-rest). */
+  /* v3.3.463: LIQUID GLASS, as far as the web can follow it. Over the app's
+     own white cards a blur has nothing to blur, so what reads as glass is the
+     LIGHTING: a specular rim along the top, light pooling in from above, a
+     soft shadow inside the bottom edge, a hairline of light around the whole
+     rim, and a clearer, lighter blur (9px, was 20) with more saturation so
+     what does pass beneath comes through richer. The tint is a fall-off, more
+     at the top than the bottom, like a thick pane lit from above. Every
+     lighting term lives in --pill-shadow so the two themes can set their own
+     (white light reads on dark glass too, quieter). Safari cannot refract --
+     the lensing of the real thing is not available to a web page -- so this
+     is the material without its bending. No colour anywhere in the light. */
   @supports ((-webkit-backdrop-filter:blur(1px)) or (backdrop-filter:blur(1px))){
-    :root[data-skin="minimal"] nav{background:transparent;isolation:isolate}
+    :root[data-skin="minimal"] nav{background:transparent;isolation:isolate;box-shadow:none}
     :root[data-skin="minimal"] nav::before{content:'';position:absolute;inset:0;border-radius:inherit;z-index:0;
-      background:color-mix(in srgb,var(--pill) 55%,transparent);
-      -webkit-backdrop-filter:blur(20px) saturate(170%);
-      backdrop-filter:blur(20px) saturate(170%);
-      box-shadow:inset 0 0.5px 0 color-mix(in srgb,var(--pill) 70%,transparent)}
+      background:linear-gradient(180deg,color-mix(in srgb,var(--pill) 62%,transparent),color-mix(in srgb,var(--pill) 30%,transparent));
+      -webkit-backdrop-filter:blur(9px) saturate(190%) brightness(1.06);
+      backdrop-filter:blur(9px) saturate(190%) brightness(1.06);
+      box-shadow:var(--pill-shadow)}
     :root[data-skin="minimal"] nav button{z-index:1}
+    /* the active tab is a glass bead on the glass: its own top highlight and
+       a whisper of drop, so it sits ON the surface rather than in it */
+    :root[data-skin="minimal"] nav button.on{box-shadow:inset 0 1px 0 color-mix(in srgb,#fff 70%,var(--pill)),0 1px 3px color-mix(in srgb,#000 10%,transparent)}
   }
   :root[data-skin="minimal"] nav button{color:var(--pill-ink);padding:10px 4px}
   /* v3.3.461: --pill-accent IS the app accent now (light) and the app's
