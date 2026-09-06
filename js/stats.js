@@ -996,31 +996,84 @@ function monthlyPaceSection(){
    one. Today is rightmost and labelled. Below: the window's total and the
    average per run day, in the same unit. Nothing here is a target. */
 function runUnit(){ const u=DB.settings.runUnit; return (u==='mi'||u==='km')?u:DU(); }
+/* v3.3.474: DAILY RUNS, ALL OF IT. v3.3.473 showed a fixed 28-day window; the
+   card now draws every day from the first run to today in a horizontal
+   scroller, opened on today, exactly as What you did does. Borrowed wholesale
+   from partMixSvg so the two read as one family: same column width, same
+   dashed guides at every axis tick, a soft labelled rule at each month and a
+   firmer one at each year, and the left edge always names its year.
+   What is NOT borrowed: the y-axis. What you did counts sets, which are
+   whole numbers; runs are distances, so the axis picks a round step (1, 2,
+   2.5, 5, 10...) and labels it in the chosen unit -- an axis with no numbers
+   on it is a shape, not a measure.
+   The footer resets on the 1st: it reads the CURRENT MONTH to date, because
+   a running total that never resets is a number you stop looking at. */
+const DRUN_COLW=15, DRUN_H=196, DRUN_TOP=8, DRUN_BASE=150;
+function drunAxis(max){
+  /* a round step with 3-5 gridlines: the axis says 0, 2, 4, 6, not 0, 1.7, 3.4 */
+  const steps=[0.5,1,2,2.5,5,10,20,25,50];
+  for(const st of steps){ const n=Math.ceil(max/st); if(n>=3&&n<=5) return {step:st,n}; }
+  const st=steps[steps.length-1]; return {step:st,n:Math.max(1,Math.ceil(max/st))};
+}
+function dailyRunsSvg(rows,u){
+  const W=Math.max(320,8+rows.length*DRUN_COLW+8);
+  const max=Math.max(0.1,...rows.map(r=>r.v));
+  const ax=drunAxis(max), top=ax.step*ax.n, unit=(DRUN_BASE-DRUN_TOP)/top;
+  let s=`<svg viewBox="0 0 ${W} ${DRUN_H}" width="${W}" height="${DRUN_H}" style="height:${DRUN_H}px" data-drun role="img" aria-label="Run distance per day since your first run, in ${u}">`;
+  for(let i=0;i<=ax.n;i++){
+    const y=DRUN_BASE-i*ax.step*unit;
+    s+=`<line x1="4" y1="${y.toFixed(1)}" x2="${W-4}" y2="${y.toFixed(1)}" stroke="var(--line)" stroke-width="0.6"${i?' stroke-dasharray="2 3"':''}></line>`;
+  }
+  let prevM=null, prevY=null;
+  rows.forEach((r,i)=>{
+    const m=r.d.slice(0,7), yy=r.d.slice(0,4), x=8+i*DRUN_COLW-2;
+    if(prevY!==null && yy!==prevY){
+      s+=`<line x1="${x}" y1="${DRUN_TOP}" x2="${x}" y2="${DRUN_BASE+4}" stroke="var(--muted)" stroke-width="1.4" opacity="0.85"></line>
+          <text x="${x+3}" y="${DRUN_TOP+7}" font-family="var(--mono)" font-size="8" font-weight="700" fill="var(--muted)" data-yrmark="${yy}">${yy}</text>`;
+    }else if(prevM!==null && m!==prevM){
+      s+=`<line x1="${x}" y1="${DRUN_TOP}" x2="${x}" y2="${DRUN_BASE+4}" stroke="var(--line)" stroke-width="0.8" opacity="0.55"></line>
+          <text x="${x+3}" y="${DRUN_TOP+7}" font-family="var(--mono)" font-size="7" fill="var(--faint)">${new Date(r.d+'T00:00').toLocaleDateString('en-US',{month:'short'})}</text>`;
+    }
+    prevM=m; prevY=yy;
+  });
+  s+=`<text x="10" y="${DRUN_TOP+7}" font-family="var(--mono)" font-size="8" font-weight="700" fill="var(--muted)" data-yrmark="${rows[0].d.slice(0,4)}">${rows[0].d.slice(0,4)}</text>`;
+  const bw=DRUN_COLW-2.5;
+  rows.forEach((r,i)=>{
+    const x=8+i*DRUN_COLW, isTod=r.d===todayISO;
+    if(r.v>0){ const hgt=Math.max(2,r.v*unit);
+      s+=`<rect class="drbar" x="${x}" y="${(DRUN_BASE-hgt).toFixed(1)}" width="${bw}" height="${hgt.toFixed(1)}" rx="1.5" fill="var(--accent)"${isTod?'':' opacity=".55"'}></rect>`; }
+    if(isTod||r.d.slice(8)==='01'){
+      s+=`<text x="${x+bw/2}" y="${DRUN_BASE+13}" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="${isTod?'var(--chalk)':'var(--faint)'}"${isTod?' font-weight="700"':''}>${isTod?'today':(+r.d.slice(5,7))+'/'+(+r.d.slice(8,10))}</text>`;
+    }
+  });
+  return s+'</svg>';
+}
 function dailyRunsSection(){
   const days=runDays(); if(!days.length) return '';
   const u=runUnit(), conv=km=>u==='mi'?km*MI:km;
   const byD={}; for(const r of days) byD[r.d]=r;
-  const N=28, W=330, H=160, L=8, R=316, base=126, top=18;
-  const seq=[]; for(let i=N-1;i>=0;i--){ const t=new Date(todayISO+'T00:00'); t.setDate(t.getDate()-i); const iso=t.toLocaleDateString('en-CA'); seq.push({iso, km:(byD[iso]||{}).km||0}); }
-  const max=Math.max(0.1,...seq.map(x=>conv(x.km)));
-  const step=(R-L)/N, bw=Math.max(4,step-3);
-  const bars=seq.map((x,i)=>{
-    const v=conv(x.km); const hgt=v>0?Math.max(2,(v/max)*(base-top)):0; const cx=L+i*step+step/2;
-    const d=new Date(x.iso+'T00:00'); const dow=d.getDay(); const isTod=x.iso===todayISO;
-    const lab=(i===N-1||dow===1)?`<text x="${cx}" y="${base+12}" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="${isTod?'var(--chalk)':'var(--faint)'}"${isTod?' font-weight="700"':''}>${isTod?'today':(d.getMonth()+1)+'/'+d.getDate()}</text>`:'';
-    const val=v>0?`<text x="${cx}" y="${base-hgt-3}" text-anchor="middle" font-family="var(--mono)" font-size="6.5" fill="var(--muted)">${v>=10?Math.round(v):v.toFixed(1)}</text>`:'';
-    return `${v>0?`<rect x="${cx-bw/2}" y="${base-hgt}" width="${bw}" height="${hgt}" rx="1.5" fill="var(--accent)"${isTod?'':' opacity=".55"'}></rect>`:''}${val}${lab}`;
-  }).join('');
-  const ran=seq.filter(x=>x.km>0); const tot=ran.reduce((a,x)=>a+conv(x.km),0);
-  const avg=ran.length?tot/ran.length:0;
+  const first=days.map(r=>r.d).sort()[0];
+  const rows=[]; for(let d=new Date(first+'T00:00'); ; d.setDate(d.getDate()+1)){
+    const iso=d.toLocaleDateString('en-CA'); if(iso>todayISO) break;
+    rows.push({d:iso, v:conv((byD[iso]||{}).km||0)});
+  }
+  const ax=drunAxis(Math.max(0.1,...rows.map(r=>r.v)));
+  const labs=[]; for(let i=ax.n;i>=0;i--){ const v=i*ax.step; labs.push(`<span>${v%1?v.toFixed(1):v}</span>`); }
+  /* the footer is THIS MONTH to date: it resets on the 1st, so the number
+     answers "how am I doing now" rather than accumulating forever. */
+  const mo=todayISO.slice(0,7);
+  const mrows=rows.filter(r=>r.d.startsWith(mo)), ran=mrows.filter(r=>r.v>0);
+  const tot=ran.reduce((a,r)=>a+r.v,0), avg=ran.length?tot/ran.length:0;
+  const monthName=new Date(todayISO+'T00:00').toLocaleDateString('en-US',{month:'long'});
   const f=v=>(Math.round(v*100)/100).toFixed(2);
-  return `<h2>Daily runs${hActs('dailyruns','The last 28 days, one bar per run. The mi/km switch is this card\u2019s own and remembers itself; it does not change the weight unit.','About Daily runs')}</h2>
-    <div class="card mpacecard dailyruns">
-      <div class="pmixhead"><button type="button" class="pmixmode" data-rununit aria-label="Show ${u==='mi'?'kilometres':'miles'} instead"><span class="${u==='mi'?'on':''}">mi</span><span class="${u==='km'?'on':''}">km</span></button></div>
-      <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Run distance per day over the last 28 days, in ${u}">
-        <text x="8" y="12" font-family="var(--mono)" font-size="7" fill="var(--faint)">${u.toUpperCase()} / DAY</text>
-        <line x1="${L}" y1="${base}" x2="${R}" y2="${base}" stroke="var(--line)" stroke-width=".6"></line>${bars}</svg>
-      <div class="tot"><span><b>${f(tot)}</b> ${u} in 28 days</span><span>${ran.length} run${ran.length===1?'':'s'} \u00b7 ${f(avg)} ${u} each</span></div></div>`;
+  return `<h2>Daily runs${hActs('dailyruns','Every day since your first run, one bar each; scroll back through the years, it opens on today. The mi/km switch is this card\u2019s own and remembers itself \u2014 it does not change the weight unit. The line beneath counts this month only, from the 1st.','About Daily runs')}</h2>
+    <div class="card drcard">
+      <div class="pmixhead"><span class="drunit mono">${u}/day</span><button type="button" class="pmixmode" data-rununit aria-label="Show ${u==='mi'?'kilometres':'miles'} instead"><span class="${u==='mi'?'on':''}">mi</span><span class="${u==='km'?'on':''}">km</span></button></div>
+      <div class="drrow">
+        <div class="draxis" aria-hidden="true">${labs.join('')}</div>
+        <div class="pmixwrap drwrap" id="drWrap">${dailyRunsSvg(rows,u)}</div>
+      </div>
+      <div class="tot"><span><b>${f(tot)}</b> ${u} in ${monthName}</span><span>${ran.length} run${ran.length===1?'':'s'}${ran.length?` \u00b7 ${f(avg)} ${u} each`:''}</span></div></div>`;
 }
 function renderStats(){
   const _S={}; const cut=k=>{ _S[k]=h; h=''; };

@@ -1,5 +1,20 @@
 # ShowUp — changelog
 
+## v3.3.474 (2026-09-06) — Daily runs, all of it
+
+The card draws every day from your first run to today, in a horizontal
+scroller that opens on today — the same scroller *What you did* uses, and the
+same grammar beside it: a soft labelled rule at each month, a firmer marked one
+at each year, and the left edge always naming its year.
+
+It has a real y-axis now: a round step (1, 2, 2.5, 5…) chosen so the chart
+carries three to five gridlines, labelled in the unit the card's own switch
+chooses. An axis with no numbers on it is a shape, not a measure.
+
+The line beneath resets on the 1st. It reads the current month to date —
+*11.00 km in September · 2 runs · 5.50 km each* — because a total that never
+resets is a number you stop reading.
+
 ## v3.3.473 (2026-09-06) — Daily runs
 
 A new Stats card, directly after *Running · month*: the last 28 days, one bar

@@ -540,8 +540,8 @@ document.addEventListener('click',e=>{
      in place rather than repainting Stats -- a repaint was the flicker. */
   if(e.target.closest&&e.target.closest('[data-rununit]')){
     DB.settings.runUnit=runUnit()==='mi'?'km':'mi'; save(true);
-    const cur=document.querySelector('.dailyruns'); const h2=cur&&cur.previousElementSibling;
-    if(cur&&h2&&h2.tagName==='H2'){ const tmp=document.createElement('div'); tmp.innerHTML=dailyRunsSection(); const nh=tmp.querySelector('h2'); const nc=tmp.querySelector('.dailyruns'); if(nc){ cur.replaceWith(nc); } if(nh) h2.replaceWith(nh); }
+    const cur=document.querySelector('.drcard'); const h2=cur&&cur.previousElementSibling;
+    if(cur&&h2&&h2.tagName==='H2'){ const tmp=document.createElement('div'); tmp.innerHTML=dailyRunsSection(); const nh=tmp.querySelector('h2'); const nc=tmp.querySelector('.drcard'); if(nc){ const sc=cur.querySelector('.drwrap'); const keep=sc?sc.scrollLeft:null; cur.replaceWith(nc); const ns=nc.querySelector('.drwrap'); if(ns) ns.scrollLeft = keep==null?ns.scrollWidth:keep; } if(nh) h2.replaceWith(nh); }
     else render();
     return;
   }
@@ -1114,6 +1114,12 @@ function bindScrub(box, svg, getVb){
    Same shape as bindPmix below: a dataset flag so a re-render during a
    session does not yank a scroll the user has set by hand. Guarded on
    scrollWidth because a narrow enough window may not overflow at all. */
+/* v3.3.474: the daily-runs scroller opens on today, like the heatmap and the
+   part-mix strip. Called from paint(), so every render re-anchors it. */
+function bindDrun(){
+  const box=document.getElementById('drWrap'); if(!box) return;
+  if(box.scrollWidth>box.clientWidth) box.scrollLeft=box.scrollWidth;
+}
 function bindHeat(){
   const box=document.querySelector('.heatwrap');
   if(!box||box.dataset.bound) return;
@@ -1270,6 +1276,7 @@ function paint(){
   document.querySelectorAll('[data-zoom]').forEach(bindZoom);
   bindPmix();
   bindHeat();
+  bindDrun();
   if(MOTION_OK){ try{ motionPass(); }catch(_e){ /* motion is decoration — it never gets to break the app */ } }
   window.scrollTo(0,0);
 }

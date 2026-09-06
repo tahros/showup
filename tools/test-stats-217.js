@@ -68,26 +68,69 @@ ok('Running month uses six visual metrics',run(`document.querySelectorAll('.runm
 ok('Every week compares twelve partial weeks',run(`(function(){const h=[...document.querySelectorAll('h2')].find(x=>x.firstChild.textContent.trim()==='Every week');return h.nextElementSibling.querySelectorAll('rect.gbar').length;})()` )===12);
 ok('Every week labels all twelve bars with actual dates',run(`(function(){const h=[...document.querySelectorAll('h2')].find(x=>x.firstChild.textContent.trim()==='Every week'),t=[...h.nextElementSibling.querySelectorAll('svg text')].map(x=>x.textContent);return t.filter(x=>/^\\d{1,2}\\/\\d{1,2}$/.test(x)).length===12&&!t.some(x=>/^[JFMASOND]$/.test(x));})()`));
 
-/* ================= v3.3.473: DAILY RUNS =================
-   The fixture logs a run every third day back from today (i%3===0), km 4..7.
-   Over the last 28 days that is days 0,3,...,27 -> 10 runs. The card must sit
-   right after Running · month, draw one bar per run, sum in the chosen unit,
-   and flip units in place -- the same card node, not a repaint. */
+/* ================= v3.3.473/474: DAILY RUNS =================
+   The fixture logs a run every third day back from today (i%3===0), km 4..7,
+   over 120 days. v3.3.474 draws EVERY day from the first run to today in a
+   scroller with a real y-axis, month and year rules, and a footer that counts
+   the current month only. */
 run(`DB.settings.unit='kg'; delete DB.settings.runUnit; view='stats'; render();`);
 ok('Daily runs follows the Running month card', run(`(function(){const hs=[...document.querySelectorAll('h2')].map(h=>h.firstChild.textContent.trim()); const i=hs.findIndex(t=>/^Running/.test(t)); return i>=0 && hs[i+1]==='Daily runs';})()`));
-ok('...ten bars for ten run days in the window', run(`document.querySelectorAll('.dailyruns svg rect').length`)===10, run(`document.querySelectorAll('.dailyruns svg rect').length`));
-ok('...today is labelled and drawn at full ink; other days are lighter', run(`(function(){const t=[...document.querySelectorAll('.dailyruns svg text')].map(x=>x.textContent); const rects=[...document.querySelectorAll('.dailyruns svg rect')]; return t.includes('today') && rects.filter(r=>!r.getAttribute('opacity')).length===1 && rects.filter(r=>r.getAttribute('opacity')==='.55').length===9;})()`));
-const kmTot=run(`(function(){let s=0; for(let i=0;i<28;i++){ if(i%3===0) s+=4+(i%4); } return s;})()`);
-ok('...the total is the fixture sum in km when the app is metric and nothing is chosen', run(`document.querySelector('.dailyruns .tot b').textContent`)===(Math.round(kmTot*100)/100).toFixed(2) && /km in 28 days/.test(run(`document.querySelector('.dailyruns .tot').textContent`)), run(`document.querySelector('.dailyruns .tot').textContent`));
-ok('...and the switch shows km lit', run(`document.querySelector('.dailyruns [data-rununit] span.on').textContent`)==='km');
-run(`globalThis.__card=document.querySelector('.dailyruns'); globalThis.__first=document.querySelector('#view h2');`);
-run(`document.querySelector('.dailyruns [data-rununit]').click();`);
-ok('tapping the switch flips to miles and remembers it as a setting', run(`DB.settings.runUnit`)==='mi' && run(`document.querySelector('.dailyruns [data-rununit] span.on').textContent`)==='mi');
-ok('...the total converts', Math.abs(parseFloat(run(`document.querySelector('.dailyruns .tot b').textContent`))-kmTot*0.621371)<0.02 && /mi in 28 days/.test(run(`document.querySelector('.dailyruns .tot').textContent`)), run(`document.querySelector('.dailyruns .tot b').textContent`));
-ok('...the card was patched in place: the first h2 is the SAME node (no repaint), the card node is new', run(`__first===document.querySelector('#view h2') && __card!==document.querySelector('.dailyruns')`));
+{
+  const first=run(`(function(){const d=runDays().map(r=>r.d).sort(); return d[0];})()`);
+  const span=run(`daysAgo(${JSON.stringify(first)})`)+1;
+  const runsAll=run(`runDays().length`);
+  ok('...it spans every day from the first run to today, not a fixed window',
+     run(`document.querySelectorAll('.drcard svg rect.drbar').length`)===runsAll &&
+     run(`(function(){const t=[...document.querySelectorAll('.drcard svg text')].map(x=>x.textContent); return t.includes('today');})()`),
+     run(`document.querySelectorAll('.drcard svg rect.drbar').length`)+' bars / '+runsAll+' runs over '+span+' days');
+  ok('...and the svg is wider than its box, so it scrolls',
+     run(`(function(){const w=+document.querySelector('.drcard svg').getAttribute('width'); return w>320;})()`),
+     run(`document.querySelector('.drcard svg').getAttribute('width')`));
+}
+ok('...it has a y-axis with round labelled steps, ascending, top down', run(`(function(){const v=[...document.querySelectorAll('.draxis span')].map(x=>parseFloat(x.textContent));
+  if(v.length<4||v[v.length-1]!==0) return false; const st=v[0]/(v.length-1);
+  return v.every((n,i)=>Math.abs(n-(v.length-1-i)*st)<1e-9) && [0.5,1,2,2.5,5,10,20,25,50].includes(st);})()`), run(`JSON.stringify([...document.querySelectorAll('.draxis span')].map(x=>x.textContent))`));
+ok('...the tallest bar reaches but does not exceed the axis top', run(`(function(){const top=parseFloat(document.querySelector('.draxis span').textContent);
+  const bars=[...document.querySelectorAll('.drcard svg rect.drbar')]; const hs=bars.map(b=>+b.getAttribute('height'));
+  const full=150-8; return Math.max(...hs)<=full+0.6 && Math.max(...hs)>=full*0.5 && top>0;})()`));
+/* both rules asserted by COUNT, not by "at least one label exists" -- year
+   marks alone satisfied a looser check and it passed with month rules off.
+   Over a span of N days there is one month label per month boundary that is
+   not also a year boundary, and one year mark per year boundary plus the
+   left edge. */
+ok('...a labelled rule at every month boundary, and a firmer marked one at every year', run(`(function(){
+  const rows=[]; const first=runDays().map(r=>r.d).sort()[0];
+  for(let d=new Date(first+'T00:00');;d.setDate(d.getDate()+1)){ const iso=d.toLocaleDateString('en-CA'); if(iso>todayISO) break; rows.push(iso); }
+  let mb=0, yb=0; for(let i=1;i<rows.length;i++){ const a=rows[i-1], b=rows[i];
+    if(a.slice(0,4)!==b.slice(0,4)) yb++; else if(a.slice(0,7)!==b.slice(0,7)) mb++; }
+  const t=[...document.querySelectorAll('.drcard svg text')].map(x=>x.textContent);
+  const months=t.filter(x=>/^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)$/.test(x)).length;
+  const years=document.querySelectorAll('.drcard svg [data-yrmark]').length;
+  return months===mb && years===yb+1;})()`), run(`JSON.stringify([...document.querySelectorAll('.drcard svg text')].map(x=>x.textContent).slice(0,8))`));
+{
+  /* the footer counts THIS MONTH only, and resets on the 1st */
+  const mo=run(`todayISO.slice(0,7)`);
+  const kmMonth=run(`(function(){let s=0,n=0; for(let i=0;i<200;i++){ const t=new Date(todayISO+'T00:00'); t.setDate(t.getDate()-i); const iso=t.toLocaleDateString('en-CA'); if(!iso.startsWith(${JSON.stringify(mo)})) continue; if(i%3===0){ s+=4+(i%4); n++; } } return s+'|'+n;})()`);
+  const [sum,n]=kmMonth.split('|');
+  ok('...the footer is this month to date, not the whole window',
+     run(`document.querySelector('.drcard .tot b').textContent`)===(Math.round(+sum*100)/100).toFixed(2) &&
+     run(`document.querySelector('.drcard .tot').textContent`).includes(n+' run'),
+     run(`document.querySelector('.drcard .tot').textContent`));
+  ok('...and it names the month, so the reset is legible', new RegExp(run(`new Date(todayISO+'T00:00').toLocaleDateString('en-US',{month:'long'})`)).test(run(`document.querySelector('.drcard .tot').textContent`)));
+}
+ok('...and the switch shows km lit', run(`document.querySelector('.drcard [data-rununit] span.on').textContent`)==='km');
+run(`globalThis.__first=document.querySelector('#view h2'); globalThis.__card=document.querySelector('.drcard');`);
+run(`document.querySelector('.drcard [data-rununit]').click();`);
+ok('tapping the switch flips to miles and remembers it as a setting', run(`DB.settings.runUnit`)==='mi' && run(`document.querySelector('.drcard [data-rununit] span.on').textContent`)==='mi');
+ok('...every bar and the axis convert together', run(`(function(){const t=parseFloat(document.querySelector('.draxis span').textContent); return t>0 && /mi in /.test(document.querySelector('.drcard .tot').textContent);})()`), run(`document.querySelector('.drcard .tot').textContent`));
+ok('...the card was patched in place: the first h2 is the SAME node, the card node is new', run(`__first===document.querySelector('#view h2') && __card!==document.querySelector('.drcard')`));
 ok('...and the weight unit is untouched by the run switch', run(`DB.settings.unit`)==='kg');
-run(`document.querySelector('.dailyruns [data-rununit]').click();`);
-ok('a second tap goes back to km', run(`DB.settings.runUnit==='km' && document.querySelector('.dailyruns [data-rununit] span.on').textContent==='km'`));
+run(`document.querySelector('.drcard [data-rununit]').click();`);
+ok('a second tap goes back to km', run(`DB.settings.runUnit==='km' && document.querySelector('.drcard [data-rununit] span.on').textContent==='km'`));
 run(`delete DB.settings.runUnit; DB.settings.unit='lb'; render();`);
-ok('with no choice made, the card follows the app unit (lb -> mi)', run(`document.querySelector('.dailyruns [data-rununit] span.on').textContent`)==='mi');
+ok('with no choice made, the card follows the app unit (lb -> mi)', run(`document.querySelector('.drcard [data-rununit] span.on').textContent`)==='mi');
+{
+  const a=fs.readFileSync(path.join(dir,'js/app.js'),'utf8');
+  ok('the scroller opens on today, like the heatmap', /function bindDrun\(\)[\s\S]{0,200}?scrollLeft=box\.scrollWidth/.test(a) && /bindHeat\(\);\s*\n\s*bindDrun\(\);/.test(a));
+}
 console.log(fail?'\n'+fail+' FAILED':'\nALL PASS');process.exit(fail?1:0);

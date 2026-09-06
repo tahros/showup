@@ -549,7 +549,18 @@
   .conrace .conend{transition:opacity .1s ease}
   .conrace.scrubbing .conend{opacity:0}
   .mpacecard{padding:14px 14px 12px}
-  .dailyruns .pmixhead{display:flex;justify-content:flex-end;margin:-4px 0 4px}   /* v3.3.473: the mi/km switch, top right like sets/lb */
+  /* v3.3.473/474: the daily-runs card. Head carries the unit caption on the
+     left and the mi/km switch on the right; the chart is an axis column beside
+     the same scroller What you did uses, so the labels stay put while the bars
+     move under them. */
+  .drcard{padding:14px 14px 12px}
+  .drcard .pmixhead{display:flex;justify-content:space-between;align-items:center;margin:-4px 0 4px}
+  .drcard .drunit{font-size:11px;letter-spacing:.04em;color:var(--faint);text-transform:uppercase}
+  .drrow{display:flex;align-items:stretch;gap:6px}
+  .draxis{display:flex;flex-direction:column;justify-content:space-between;flex:0 0 auto;
+    padding:8px 0 46px;font-family:var(--mono);font-size:8px;color:var(--faint);text-align:right;min-width:16px}
+  .drwrap{min-width:0}
+  .drwrap > svg{display:block}
   .mpacecard svg{display:block;width:100%;height:auto}
   /* v3.3.111: .driftrow/.dr-* and .rephead removed with their sections.
      .repline below SURVIVES — the month grid's expand still renders it. */
