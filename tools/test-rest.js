@@ -896,6 +896,8 @@ ok("the status-bar style no longer puts content under the status bar",
   const lit=run(`document.querySelectorAll('.crcard.resting .heatgrid .hc.on').length`);
   ok("...exactly the five rest days are lit, and nothing before the ledger began", lit===5, lit);
   ok("...today is lit and ringed (it is a rest day)", run(`!!document.querySelector('.crcard.resting .hc.on.tod')`));
+  ok("...and the ring breathes in the rest ink, not the accent (v3.3.471)",
+     /\.crcard\.resting \.heatgrid \.hc\.tod::after\{border-color:var\(--rest-ink\)\}/.test(fs.readFileSync(path.join(dir,"css/app.css"),"utf8")));
   ok("...lit cells say 'rested', unlit say 'trained'", run(`document.querySelector('.crcard.resting .hc.on').getAttribute('aria-label')`).endsWith('rested') &&
      run(`[...document.querySelectorAll('.crcard.resting .hc')].find(c=>!c.classList.contains('on')&&!c.classList.contains('fut')).getAttribute('aria-label')`).endsWith('trained'));
   ok("...and the share counts today's rest: 5 of 28 days -> 18%, in the shorter wording", /18% of days since/.test(T) && !/of every day/.test(T), (T.match(/\d+% of days since/)||[])[0]);

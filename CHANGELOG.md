@@ -1,5 +1,10 @@
 # ShowUp — changelog
 
+## v3.3.471 (2026-09-06) — The ring is green too
+
+On the rest card, today's breathing ring is the rest ink — the same darker
+green the header's and the bar's rings wear — instead of the accent.
+
 ## v3.3.470 (2026-09-06) — The bar stays; selection is ink
 
 The tab bar no longer hides on scroll (459–462, reverted after living with it).
