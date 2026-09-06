@@ -872,7 +872,7 @@ function currentRhythmSection(inverse){
        rest, so its share is rests over every day including today. The two
        need not sum to 100 on a rest morning, and that is honest. */
     const pct=inverse?Math.round((R?R.rests/R.daysIn:0)*100):Math.round(liveTotal/span*100);
-    lifetime=`${pct}% of every day since ${since}`;
+    lifetime=`${pct}% of days since ${since}`;   // v3.3.470: "of every day" -> "of days", both cards
   }
   const head=inverse
     ?`<h2 id="secRest">Rest — that's the other half${hActs('restrhythm','Every day since your first, one square each; the days you did not train are green. It opens on today.','About Rest')}</h2>`
@@ -881,7 +881,7 @@ function currentRhythmSection(inverse){
     <div class="card crcard${inverse?' resting':''}">
       <div class="crhead">
         <span class="crtotal"><b>${fmt(total)}</b><small>${inverse?'days rested':'days in'}</small></span>
-        <span class="crstreak">${inverse?'resting':'streak'} ${streak} day${streak===1?'':'s'} \u00b7 ${inverse?'longest':'best'} ${best}</span>
+        <span class="crstreak">${inverse?`<span>resting ${streak} day${streak===1?'':'s'}</span><span>longest ${best}</span>`:`streak ${streak} day${streak===1?'':'s'} \u00b7 best ${best}`}</span>
       </div>
       ${lifetime?`<div class="crsince">${lifetime}</div>`:''}
       <!-- v3.3.332: the month row lives INSIDE the scroller, beside the grid.

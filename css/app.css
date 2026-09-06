@@ -455,9 +455,12 @@
   .heatgrid .hc.on{background-color:var(--accent)}
   /* v3.3.469: the inverse card lights rest days in the rest green; the number
      wears it too. Everything else -- size, radius, gap, rail, ticks -- is the
-     same rule set, because it is the same markup. */
+     same rule set, because it is the same markup.
+     v3.3.470: its run line is two lines (resting N / longest M) -- the rest
+     wording runs longer than "streak" and crowded the number. */
   .crcard.resting .heatgrid .hc.on{background-color:var(--rest)}
   .crcard.resting .crtotal b{color:var(--rest-ink)}
+  .crcard.resting .crstreak{display:flex;flex-direction:column;align-items:flex-end;line-height:1.35}
   .heatgrid .hc.fut{background-color:transparent;box-shadow:inset 0 0 0 1px var(--line);opacity:.5}
   /* v3.3.348: TODAY BREATHES. The mark was inset 1.5px of --accent-ink --
      a DARK ring painted INSIDE an 11px square, so on a day you trained it
@@ -2322,14 +2325,15 @@
   nav button .ng{display:block;width:28px;height:28px;line-height:0}
   nav button .ng svg{width:28px;height:28px;display:block;fill:currentColor}
   nav button{position:relative;border-radius:24px;margin:5px 4px;padding:10px 4px;gap:0;font-size:0}
-  nav button.on{color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent)}
+  /* v3.3.470: THE SELECTED TAB IS INK ON GREY. Black glyph, grey capsule --
+     selection is a neutral fact. Colour is reserved for the DAY'S STATE on the
+     Today square alone: blue fill once the day is closed, green ring while
+     resting (rest-ink, the darker green the header's ring wears), whether or
+     not Today is the selected tab. */
+  nav button.on{color:var(--chalk);background:color-mix(in srgb,var(--muted) 16%,transparent)}
   nav button .ng svg .sq{fill:none;stroke:currentColor;stroke-width:2.6}
-  nav.dayclosed button .ng svg .sq{fill:currentColor;stroke:none}
-  /* v3.3.468: while resting, Today's square is a hollow RING in the rest
-     green -- the same green the header wears -- so the whole app agrees on
-     one state from top to bottom. Live grade, like the header's square: gone
-     at midnight. */
-  nav.resting button[data-v="today"] .ng svg .sq{stroke:var(--rest);fill:none}
+  nav.dayclosed button[data-v="today"] .ng svg .sq{fill:var(--accent);stroke:none}
+  nav.resting button[data-v="today"] .ng svg .sq{stroke:var(--rest-ink);fill:none}
 
   nav button .ng svg .frame{fill:none;stroke:currentColor;stroke-width:2.4}
   /* v3.3.459: HIDE ON SCROLL. The bar slides off the bottom after ~28px of
@@ -2340,15 +2344,8 @@
      .26s, so the bar was gone before it had moved -- it read as vanishing.
      Opacity is out entirely: the bar leaves by moving, at --dur-arrive, and
      goes far enough (its own height plus the inset) to clear the screen. */
-  /* v3.3.462: THE BAR FOLLOWS THE FINGER. The offset is set inline by
-     navOnScroll, pixel for pixel with the scroll (transitions OFF while
-     scrubbing, .scrub), so a slow scroll moves the bar slowly. When the scroll
-     goes quiet, navSettle turns transitions back on and eases the bar to
-     whichever end is nearer, at --dur-slow. .hid only kills taps now; the
-     position lives in the inline transform. */
-  nav{transition:transform var(--dur-slow) var(--settle)}
-  nav.scrub{transition:none}
-  nav.hid{pointer-events:none}
+  /* v3.3.470: the bar STAYS. The hide-on-scroll of 459-462 is gone at the
+     maker's word; no transition, no scrub, no hidden state. */
   @media (prefers-reduced-motion:reduce){ nav{transition:none} }
   /* v3.3.179: bottom-anchored fixed chrome gets its own compositing layer.
      Reported against Minimal — the nav pill and the "↑ top" button both hung
@@ -2784,7 +2781,9 @@
      no longer exist. It stays a token because the skin's pill trio is guarded
      by buildcheck (v3.3.168) and the skin block is chrome-only. */
   /* v3.3.462: the capsule stands on a 60% pill base under its 12% accent, so the active blue glyph clears 3:1 even over a blue button (4.30 light, 4.50 dark) */
-  :root[data-skin="minimal"] nav button.on{color:var(--pill-accent);background:color-mix(in srgb,var(--pill) 60%,var(--pill-accent) 12%)}
+  :root[data-skin="minimal"] nav button.on{color:var(--chalk);background:color-mix(in srgb,var(--pill) 60%,var(--pill-ink) 16%)}   /* v3.3.470: ink on grey */
+  /* v3.3.470: on the pill the closed-day fill is --pill-accent: the accent in light, the accent-as-ink in dark, where the raw accent is 2.3:1 on the grey capsule over a blue button */
+  :root[data-skin="minimal"] nav.dayclosed button[data-v="today"] .ng svg .sq{fill:var(--pill-accent)}
   /* v3.3.331: the TRAIN TAB joins the skin. Everything above was written
      against the Bench Press mockup, which was a Today composition -- cards,
      zones, fields, the nav pill. The two surfaces that FILL the Train tab,

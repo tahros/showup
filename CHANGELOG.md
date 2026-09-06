@@ -1,5 +1,21 @@
 # ShowUp — changelog
 
+## v3.3.470 (2026-09-06) — The bar stays; selection is ink
+
+The tab bar no longer hides on scroll (459–462, reverted after living with it).
+It stays.
+
+Selection is ink on grey: a black glyph on a grey capsule — a neutral fact.
+Colour on the bar now belongs to the Today square's state alone, selected or
+not: an accent fill once the day is closed, a ring in the darker rest green
+(the header's) while resting. On the pill the closed-day fill is the accent in
+light and the accent-as-ink in dark, where the raw accent falls under 3:1.
+
+On the inverse attendance card: the run line is two lines (*resting 1 day* /
+*longest 35*), and the share reads *45% of days since Dec 2021* — "of every
+day" was the long way to say it. The same shorter wording applies to the
+original card, since one function draws both.
+
 ## v3.3.469 (2026-09-06) — The other half, on Today
 
 Train, Stats and History are themselves again on a rest day: the recovery

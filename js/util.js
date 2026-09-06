@@ -531,37 +531,11 @@ function setBackTarget(label,getEl){ _backTo={label,getEl}; syncTopBtn(); }
 function clearBackTarget(){ _backTo=null; syncTopBtn(); }
 addEventListener('scroll',()=>{
   if(_topRaf) return;
-  _topRaf=requestAnimationFrame(()=>{ _topRaf=0; syncTopBtn(); navOnScroll(); });
+  _topRaf=requestAnimationFrame(()=>{ _topRaf=0; syncTopBtn(); });   // v3.3.470: the bar no longer hides on scroll
 },{passive:true});
-/* v3.3.459 hid the bar on a threshold; v3.3.462 makes it FOLLOW THE FINGER.
-   The offset tracks the scroll delta pixel for pixel, clamped between 0 and
-   the bar's height plus its inset, and is written inline with transitions off
-   (nav.scrub) -- so a slow scroll moves the bar slowly and a reversal brings
-   it straight back. When the scroll has been quiet for ~140ms, navSettle
-   turns transitions on and eases the bar to the nearer end at --dur-slow. At
-   the top of the page it is always fully shown. .hid is only pointer-events
-   now; the position is the transform. */
-let _navY=0,_navOff=0,_navIdle=0;
-function navH(){ const nav=document.getElementById('nav'); return ((nav&&nav.offsetHeight)||64)+60; }
-function navPlace(nav,off){
-  nav.style.transform=`translateY(${off}px) translateZ(0)`;   // keeps the v3.3.179 layer promotion while scrubbing
-  nav.classList.toggle('hid',off>=navH());
-}
-function navOnScroll(){
-  const nav=document.getElementById('nav'); if(!nav) return;
-  const y=window.scrollY||0, dy=y-_navY; _navY=y;
-  const H=navH();
-  _navOff = y<8 ? 0 : Math.max(0,Math.min(H,_navOff+dy));
-  nav.classList.add('scrub'); navPlace(nav,_navOff);
-  clearTimeout(_navIdle); _navIdle=setTimeout(navSettle,140);
-}
-function navSettle(){
-  const nav=document.getElementById('nav'); if(!nav) return;
-  const H=navH();
-  nav.classList.remove('scrub');
-  _navOff = (_navY<8||_navOff<=H/2) ? 0 : H;
-  navPlace(nav,_navOff);
-}
+/* v3.3.459-462 hid the tab bar on scroll (threshold, then follow-the-finger).
+   v3.3.470 removes it at the maker's word: the bar stays. Recorded as a
+   reversal after living with it on the device, not as a bug. */
 function dayMeta(){const t=day(todayISO);t.doneEx=t.doneEx||[];t.donePart=t.donePart||[];t.sugX=t.sugX||{};return t;}
 const isLive =()=>{const t=day(todayISO);return t.w.length>0&&!t.doneAll;};
 /* v3.3.412: the day is CLOSED -- work logged and the day-end pressed. Named

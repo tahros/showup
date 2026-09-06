@@ -148,7 +148,8 @@ check("...showing the live total", `document.querySelector('.crtotal>b').textCon
 /* v3.3.307: the lifetime pace moved to its own line under the number
    (.crsince) and streak+best to one line beside it (.crstreak). Same two
    facts, asserted where they now live. */
-check("...with the lifetime-pace caption", `/% of every day since/.test(document.querySelector('.crsince').textContent)`, true);
+/* v3.3.470 RESTATES the wording: "% of days since", not "of every day" */
+check("...with the lifetime-pace caption", `/% of days since/.test(document.querySelector('.crsince').textContent)`, true);
 check("...and streak plus best in the same card",
       `(function(){const s=document.querySelector('.crstreak');
         return !!s && /streak/.test(s.textContent) && /best/.test(s.textContent);})()`, true);

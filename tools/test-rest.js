@@ -806,13 +806,16 @@ ok("the status-bar style no longer puts content under the status bar",
     /* v3.3.466: the tint falls from 88% at the top to 66% at the bottom; the
        glyphs sit at the centre, ~77%. Worst-case backdrop as before. */
     const worstL=mix(pillL[1],accL,.77), worstD=mix(pillD[1],accD,.77);
-    const capL=mix(pillL[3],mix(pillL[1],worstL,.60),.12), capD=mix(inkD,mix(pillD[1],worstD,.60),.12);
+    /* v3.3.470: the capsule is grey (60% pill + 16% ink); the coloured glyph on it is Today's closed-day accent fill */
+    const capL=mix(pillL[2],mix(pillL[1],worstL,.60),.16), capD=mix(pillD[2],mix(pillD[1],worstD,.60),.16);
     /* v3.3.462 RESTATES 4.5 -> 3: with no text in the bar every glyph is a
        graphic, and 3:1 is the gate for graphics. Held even in the worst case. */
     ok("light: the muted glyph clears 3:1 (graphic) on the glass with an accent button beneath", cr(pillL[2],worstL)>=3, cr(pillL[2],worstL).toFixed(2));
     ok("dark: the same", cr(pillD[2],worstD)>=3, cr(pillD[2],worstD).toFixed(2));
-    ok("light: the active accent glyph clears 3:1 (graphic) on its capsule over that backdrop", cr(pillL[3],capL)>=3, cr(pillL[3],capL).toFixed(2));
-    ok("dark: the same, with --accent-dim as the ink", !!inkD && cr(inkD,capD)>=3, inkD+" "+(inkD?cr(inkD,capD).toFixed(2):''));
+    /* on the pill the closed-day fill is --pill-accent (accent in light, accent-as-ink in dark) */
+    ok("(harness) the pill's closed-day fill is --pill-accent", /:root\[data-skin="minimal"\] nav\.dayclosed button\[data-v="today"\] \.ng svg \.sq\{fill:var\(--pill-accent\)\}/.test(cssN));
+    ok("light: Today's closed-day fill clears 3:1 on the grey capsule over that backdrop", cr(pillL[3],capL)>=3, cr(pillL[3],capL).toFixed(2));
+    ok("dark: the same", cr(pillD[3],capD)>=3, cr(pillD[3],capD).toFixed(2));
   }
 }
 
@@ -826,9 +829,16 @@ ok("the status-bar style no longer puts content under the status bar",
   /* v3.3.461 RESTATES: labels are gone, so their weight is moot; glyphs grew
      to 28px to carry the bar alone. */
   ok("glyphs are 28px", /nav button \.ng svg\{[^}]*width:28px;height:28px/.test(cssN));
-  ok("the active tab is the app's accent on an accent capsule, in both the base sheet and the pill",
-     /nav button\.on\{color:var\(--accent\);background:color-mix\(in srgb,var\(--accent\) 12%/.test(cssN) &&
-     /:root\[data-skin="minimal"\] nav button\.on\{color:var\(--pill-accent\);background:color-mix\(in srgb,var\(--pill\) 60%,var\(--pill-accent\) 12%\)/.test(cssN));
+  /* v3.3.470 RESTATES: selection is INK ON GREY, a neutral fact; colour on
+     the bar belongs to the Today square's state alone -- accent fill when the
+     day is closed, rest-ink ring while resting, selected or not. */
+  ok("the selected tab is ink on a grey capsule, in both the base sheet and the pill",
+     /nav button\.on\{color:var\(--chalk\);background:color-mix\(in srgb,var\(--muted\) 16%/.test(cssN) &&
+     /:root\[data-skin="minimal"\] nav button\.on\{color:var\(--chalk\);background:color-mix\(in srgb,var\(--pill\) 60%,var\(--pill-ink\) 16%\)/.test(cssN));
+  ok("...the closed day fills Today's square in the accent, regardless of selection",
+     /nav\.dayclosed button\[data-v="today"\] \.ng svg \.sq\{fill:var\(--accent\);stroke:none\}/.test(cssN));
+  ok("...and the rest ring is the darker rest-ink, like the header's",
+     /nav\.resting button\[data-v="today"\] \.ng svg \.sq\{stroke:var\(--rest-ink\);fill:none\}/.test(cssN));
   /* Today's square: hollow while the day is open, filled when closed */
   run(`DB.days[todayISO]={w:[{part:'Chest',ex:'Dip',w:toKg(45),bw:true,reps:[8],at:1}],doneEx:[],donePart:[],upd:1}; SEED=deriveAll(); view='today'; render();`);
   ok("Today's square is hollow while the day is open (a set logged, not closed)",
@@ -836,7 +846,7 @@ ok("the status-bar style no longer puts content under the status bar",
      /nav button \.ng svg \.sq\{fill:none;stroke:currentColor/.test(cssN) && run(`!!document.querySelector('#nav [data-v="today"] rect.sq')`));
   run(`dayMeta().doneAll=true; render();`);
   ok("...and fills when the day is closed", run(`document.getElementById('nav').classList.contains('dayclosed')`) &&
-     /nav\.dayclosed button \.ng svg \.sq\{fill:currentColor/.test(cssN));
+     /nav\.dayclosed button\[data-v="today"\] \.ng svg \.sq\{fill:var\(--accent\)/.test(cssN));
   run(`dayMeta().doneAll=false; render();`);
   ok("...and empties again if the day is reopened", run(`!document.getElementById('nav').classList.contains('dayclosed')`));
   ok("History is a calendar: a stroked frame with a header bar, two pins and days",
@@ -851,35 +861,14 @@ ok("the status-bar style no longer puts content under the status bar",
   /* v3.3.462 RESTATES: the position is an inline transform driven by the
      scroll; .hid is only pointer-events. Transitions are OFF while scrubbing
      and slow (--dur-slow) for the settle. Still no fade anywhere. */
-  ok("the bar's rest transition is slow, on the settle curve, transform only, no fade",
-     /nav\{transition:transform var\(--dur-slow\) var\(--settle\)\}/.test(cssN) && /nav\.scrub\{transition:none\}/.test(cssN)
-     && /nav\.hid\{pointer-events:none\}/.test(cssN) && !/nav\.hid\{[^}]*opacity/.test(cssN) && /--dur-slow:\.6s/.test(cssN));
-  /* v3.3.462: THE BAR FOLLOWS THE FINGER. Offset = accumulated scroll delta,
-     clamped to [0, H]; written inline pixel for pixel with transitions off;
-     settled to the nearer end when the scroll goes quiet. jsdom has no
-     offsetHeight, so H is the fallback 64+60=124. */
-  const off=()=>+(run(`document.getElementById('nav').style.transform`).match(/translateY\((-?[\d.]+)px\)/)||[])[1];
-  const setY=y=>{ run(`Object.defineProperty(window,'scrollY',{value:${y},configurable:true}); navOnScroll();`); return off(); };
-  run(`_navY=0; _navOff=0; clearTimeout(_navIdle); const nv=document.getElementById('nav'); nv.classList.remove('hid','scrub'); nv.style.transform='';`);
-  ok("(harness) H is 124 here", run(`navH()`)===124, run(`navH()`));
-  ok("at the top the bar sits at 0", setY(0)===0);
-  ok("10px down moves it 10px -- the bar follows the finger", setY(10)===10);
-  ok("...and another 25 moves it 25 more, while scrubbing (transitions off)", setY(35)===35 && run(`document.getElementById('nav').classList.contains('scrub')`));
-  ok("...it is still tappable mid-travel", !run(`document.getElementById('nav').classList.contains('hid')`));
-  ok("a slow 3px nudge up brings it 3px back", setY(32)===32);
-  ok("a long scroll down clamps at H, and only then kills taps", setY(400)===124 && run(`document.getElementById('nav').classList.contains('hid')`));
-  ok("...and 40px up from there starts it back at H-40", setY(360)===84 && !run(`document.getElementById('nav').classList.contains('hid')`));
-  /* the settle, called directly (the idle timer is what calls it on a device) */
-  run(`navSettle();`);
-  ok("quiet at 84 of 124 settles to hidden (past half), transitions back on",
-     off()===124 && !run(`document.getElementById('nav').classList.contains('scrub')`) && run(`document.getElementById('nav').classList.contains('hid')`));
-  setY(290); run(`navSettle();`);
-  ok("quiet at 54 of 124 settles to shown (under half)", off()===0 && !run(`document.getElementById('nav').classList.contains('hid')`));
-  setY(340); setY(5);
-  ok("returning to the top is always fully shown, whatever the offset was", off()===0);
-  run(`_navY=6; _navOff=100; navSettle();`);
-  ok("...and a settle at the top also lands shown", off()===0);
-  run(`clearTimeout(_navIdle); Object.defineProperty(window,'scrollY',{value:0,configurable:true}); _navY=0; _navOff=0; document.getElementById('nav').style.transform='';`);
+  /* v3.3.470 RESTATES the whole 459-462 motion block: the bar STAYS. No
+     transition of its own, no scroll hook, no hidden or scrub state. */
+  ok("the bar has no transition of its own now (it stays)", !/\n\s*nav\{transition:transform/.test(cssN) && !/nav\.hid\{|nav\.scrub\{/.test(cssN));
+  {
+    const u4=fs.readFileSync(path.join(dir,"js/util.js"),"utf8");
+    ok("...no navOnScroll, navSettle or navPlace remain, and the scroll listener does not touch the nav",
+       !/function navOnScroll|function navSettle|function navPlace/.test(u4) && !/requestAnimationFrame\(\(\)=>\{[^}]*nav\b/.test(u4));
+  }
 }
 
 
@@ -900,13 +889,16 @@ ok("the status-bar style no longer puts content under the status bar",
   ok("...it is the SAME markup as the original: crhead, crtotal, crstreak, heatframe, wdrail, heatyears, heatgrid, heatticks",
      run(`(function(){const c=document.querySelector('.crcard.resting'); return ['.crhead','.crtotal','.crstreak','.heatframe','.wdrail','.heatyears','.heatgrid','.heatticks'].every(q=>!!c.querySelector(q));})()`));
   ok("...the number is days rested: 5", run(`document.querySelector('.crcard.resting .crtotal b').textContent`)==='5' && /days rested/.test(T));
-  ok("...the run line is the rest analogue: resting 1 day · longest 1", run(`document.querySelector('.crcard.resting .crstreak').textContent`)==='resting 1 day \u00b7 longest 1', run(`document.querySelector('.crcard.resting .crstreak').textContent`));
+  ok("...the run line is the rest analogue in TWO lines: resting 1 day / longest 1",
+     run(`[...document.querySelectorAll('.crcard.resting .crstreak > span')].map(x=>x.textContent).join('|')`)==='resting 1 day|longest 1'
+     && /\.crcard\.resting \.crstreak\{display:flex;flex-direction:column/.test(fs.readFileSync(path.join(dir,"css/app.css"),"utf8")),
+     run(`document.querySelector('.crcard.resting .crstreak').textContent`));
   const lit=run(`document.querySelectorAll('.crcard.resting .heatgrid .hc.on').length`);
   ok("...exactly the five rest days are lit, and nothing before the ledger began", lit===5, lit);
   ok("...today is lit and ringed (it is a rest day)", run(`!!document.querySelector('.crcard.resting .hc.on.tod')`));
   ok("...lit cells say 'rested', unlit say 'trained'", run(`document.querySelector('.crcard.resting .hc.on').getAttribute('aria-label')`).endsWith('rested') &&
      run(`[...document.querySelectorAll('.crcard.resting .hc')].find(c=>!c.classList.contains('on')&&!c.classList.contains('fut')).getAttribute('aria-label')`).endsWith('trained'));
-  ok("...and the share counts today's rest: 5 of 28 days -> 18%", /18% of every day since/.test(T), (T.match(/\d+% of every day since/)||[])[0]);
+  ok("...and the share counts today's rest: 5 of 28 days -> 18%, in the shorter wording", /18% of days since/.test(T) && !/of every day/.test(T), (T.match(/\d+% of days since/)||[])[0]);
   const cssR=fs.readFileSync(path.join(dir,"css/app.css"),"utf8");
   ok("...lit cells are the rest green, in the same cell rule as the original", /\.crcard\.resting \.heatgrid \.hc\.on\{background-color:var\(--rest\)\}/.test(cssR));
   // the surfaces reverted
