@@ -1,5 +1,23 @@
 # ShowUp — changelog
 
+## v3.3.461 (2026-09-06) — Icons only, and the square waits for the close
+
+The tab bar drops its words. Four glyphs at 28px, bolder, each button named by
+aria-label so it is still announced. The active tab is the app's accent — the
+same blue as everywhere else — on a capsule of that blue, one colour family.
+In dark theme the ink is the app's accent-as-ink (`--accent-dim`'s value),
+because the raw accent sat at 3.3:1 on dark glass; every glyph now clears its
+gate with an accent button scrolled beneath the bar, and the test recomputes
+the figures from the CSS.
+
+Today's square is hollow while the day is open and fills when the day is
+closed. The header's square is the record and fills at the first set; this one
+is the day's state and waits for your word. History is a calendar built from
+squares: a frame, a header bar, two pins, days.
+
+`--pill-accent` now carries the accent itself (light) and the accent-as-ink
+(dark); its deeper v3.3.460 value protected labels that no longer exist.
+
 ## v3.3.460 (2026-09-06) — The bar slides, and the glass is clearer
 
 459 faded the bar's opacity in .16s while its transform took .26s, so it was

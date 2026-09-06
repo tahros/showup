@@ -726,10 +726,12 @@ ok("the status-bar style no longer puts content under the status bar",
   ok("four tabs, four glyphs, each an SVG of rects in currentColor",
      run(`(function(){const bs=[...document.querySelectorAll('#nav button')]; return bs.length===4 && bs.every(b=>{const s=b.querySelector('.ng svg'); return !!s && s.querySelectorAll('rect').length>0 && !s.querySelector('[fill]:not([fill="currentColor"])');});})()`));
   ok("...Today is the single square: one rect", run(`document.querySelector('#nav [data-v="today"] svg rect').parentNode.querySelectorAll('rect').length`)===1);
-  ok("...History is the heatmap: nine", run(`document.querySelectorAll('#nav [data-v="history"] svg rect').length`)===9);
-  ok("...the glyph span is decorative, the word carries the meaning",
+  ok("...History has nine rects (v3.3.461: a calendar now, asserted in detail below)", run(`document.querySelectorAll('#nav [data-v="history"] svg rect').length`)===9);
+  /* v3.3.461 RESTATES: no words in the bar. The glyph is decorative and the
+     NAME moved to aria-label, so each tab is still announced. */
+  ok("...the glyph span is decorative and the name is on the button as aria-label",
      run(`[...document.querySelectorAll('#nav .ng')].every(s=>s.getAttribute('aria-hidden')==='true')`) &&
-     run(`[...document.querySelectorAll('#nav button')].every(b=>/Today|Train|Stats|History/.test(b.textContent))`));
+     run(`[...document.querySelectorAll('#nav button')].every(b=>/^(Today|Train|Stats|History)$/.test(b.getAttribute('aria-label')||'') && b.textContent.trim()==='')`));
   const cssN=fs.readFileSync(path.join(dir,"css/app.css"),"utf8");
   ok("the glyphs take the button's ink", /nav button \.ng svg\{[^}]*fill:currentColor/.test(cssN));
   ok("the emoji grayscale filter is gone with the emoji", !/nav button span\{[^}]*grayscale/.test(cssN));
@@ -742,21 +744,29 @@ ok("the status-bar style no longer puts content under the status bar",
     const cr=(a,b)=>{const la=lum(a),lb=lum(b); return (Math.max(la,lb)+.05)/(Math.min(la,lb)+.05);};
     const mix=(a,b,p)=>'#'+[0,1,2].map(i=>Math.round(hx(a)[i]*p+hx(b)[i]*(1-p)).toString(16).padStart(2,'0')).join('');
     /* anchored to the shadow on the NEXT line: a lazy [\s\S]*? spanned from the dark block's --pill to the light block's shadow and reported dark numbers as light */
-    const pillL=(cssN.match(/--pill:(#[0-9A-Fa-f]{6}); --pill-ink:(#[0-9A-Fa-f]{6}); --pill-accent:(#[0-9A-Fa-f]{6});(?:\s*\/\*[^*]*\*\/)?\s*--pill-shadow:0 4px/)||[]);
-    const pillD=(cssN.match(/--pill:(#[0-9A-Fa-f]{6}); --pill-ink:(#[0-9A-Fa-f]{6}); --pill-accent:(#[0-9A-Fa-f]{6});(?:\s*\/\*[^*]*\*\/)?\s*--pill-shadow:0 10px/)||[]);
-    /* the worst backdrop is the THEME's accent -- a Start button scrolled
-       under the bar -- not the pill's label accent (v3.3.460 caught that) */
+    /* v3.3.461: the bar has no text, so the gate is the GRAPHICS one (3:1),
+       and the active colour is the app's --accent, not a pill-only token
+       (--pill-accent is retired). Worst backdrop: the theme's accent button
+       scrolled under the 72% glass; the active glyph sits on its 12% accent
+       capsule. Muted glyphs are held to 4.5:1 still -- they are the resting
+       state and can afford it. */
+    const pillL=(cssN.match(/--pill:(#[0-9A-Fa-f]{6}); --pill-ink:(#[0-9A-Fa-f]{6});[\s\S]{0,120}?--pill-accent:(#[0-9A-Fa-f]{6});[\s\S]{0,400}?--pill-shadow:0 4px/)||[]);
+    const pillD=(cssN.match(/--pill:(#[0-9A-Fa-f]{6}); --pill-ink:(#[0-9A-Fa-f]{6});[\s\S]{0,120}?--pill-accent:(#[0-9A-Fa-f]{6});[\s\S]{0,400}?--pill-shadow:0 10px/)||[]);
     const accL=(cssN.match(/--accent:(#[0-9A-Fa-f]{6}); --accent-soft:#C3CCF5/)||[])[1];
     const accD=(cssN.match(/--accent:(#[0-9A-Fa-f]{6}); --accent-soft:#3A4A8C/)||[])[1];
-    ok("(harness) the theme accents were found", !!accL && !!accD && accL!==accD, accL+" / "+accD);
+    /* the pill's active ink must BE the app's blue: the accent in light, the accent-as-ink in dark */
+    const dimD=(cssN.match(/--accent:#4C6BE3; --accent-soft:#3A4A8C; --accent-dim:(#[0-9A-Fa-f]{6})/)||[])[1];
+    ok("light: --pill-accent is the app accent itself", pillL[3]===accL, pillL[3]+" vs "+accL);
+    ok("dark: --pill-accent is the app's accent-dim", pillD[3]===dimD, pillD[3]+" vs "+dimD);
+    const inkD=pillD[3];
+    ok("(harness) both pills and both accents were found", pillL[1]==="#FFFFFF" && pillD[1]==="#1C202A" && !!accL && !!accD, [pillL[1],pillD[1],accL,accD].join(" "));
+    ok("(harness) the pill trio is intact (buildcheck v3.3.168 guards it)", !!pillL[3] && !!pillD[3]);
     const worstL=mix(pillL[1],accL,.72), worstD=mix(pillD[1],accD,.72);
-    /* the ACTIVE label sits on its capsule (12% ink over the glass); asserted too */
-    const capL=mix(pillL[2],worstL,.12), capD=mix(pillD[2],worstD,.12);
-    ok("light: the active accent clears 4.5:1 on its capsule with an accent button beneath", cr(pillL[3],capL)>=4.5, cr(pillL[3],capL).toFixed(2));
-    ok("dark: the same for the active accent", cr(pillD[3],capD)>=4.5, cr(pillD[3],capD).toFixed(2));
-    ok("(harness) the two theme blocks were told apart", pillL[1]!==pillD[1] && pillL[1]==="#FFFFFF", pillL[1]+" / "+pillD[1]);
-    ok("light: muted ink clears 4.5:1 on the glass with an accent button beneath", cr(pillL[2],worstL)>=4.5, cr(pillL[2],worstL).toFixed(2));
+    const capL=mix(pillL[3],worstL,.12), capD=mix(inkD,worstD,.12);
+    ok("light: the muted glyph clears 4.5:1 on the glass with an accent button beneath", cr(pillL[2],worstL)>=4.5, cr(pillL[2],worstL).toFixed(2));
     ok("dark: the same", cr(pillD[2],worstD)>=4.5, cr(pillD[2],worstD).toFixed(2));
+    ok("light: the active accent glyph clears 3:1 (graphic) on its capsule over that backdrop", cr(pillL[3],capL)>=3, cr(pillL[3],capL).toFixed(2));
+    ok("dark: the same, with --accent-dim as the ink", !!inkD && cr(inkD,capD)>=3, inkD+" "+(inkD?cr(inkD,capD).toFixed(2):''));
   }
 }
 
@@ -767,8 +777,25 @@ ok("the status-bar style no longer puts content under the status bar",
    hand, since jsdom has no viewport to scroll. */
 {
   const cssN=fs.readFileSync(path.join(dir,"css/app.css"),"utf8");
-  ok("nav labels are heavy (600)", /nav button\{[^}]*font-weight:600/.test(cssN));
-  ok("glyphs are 24px", /nav button \.ng svg\{[^}]*width:24px;height:24px/.test(cssN));
+  /* v3.3.461 RESTATES: labels are gone, so their weight is moot; glyphs grew
+     to 28px to carry the bar alone. */
+  ok("glyphs are 28px", /nav button \.ng svg\{[^}]*width:28px;height:28px/.test(cssN));
+  ok("the active tab is the app's accent on an accent capsule, in both the base sheet and the pill",
+     /nav button\.on\{color:var\(--accent\);background:color-mix\(in srgb,var\(--accent\) 12%/.test(cssN) &&
+     /:root\[data-skin="minimal"\] nav button\.on\{color:var\(--pill-accent\);background:color-mix\(in srgb,var\(--pill-accent\) 12%/.test(cssN));
+  /* Today's square: hollow while the day is open, filled when closed */
+  run(`DB.days[todayISO]={w:[{part:'Chest',ex:'Dip',w:toKg(45),bw:true,reps:[8],at:1}],doneEx:[],donePart:[],upd:1}; SEED=deriveAll(); view='today'; render();`);
+  ok("Today's square is hollow while the day is open (a set logged, not closed)",
+     run(`!document.getElementById('nav').classList.contains('dayclosed')`) &&
+     /nav button \.ng svg \.sq\{fill:none;stroke:currentColor/.test(cssN) && run(`!!document.querySelector('#nav [data-v="today"] rect.sq')`));
+  run(`dayMeta().doneAll=true; render();`);
+  ok("...and fills when the day is closed", run(`document.getElementById('nav').classList.contains('dayclosed')`) &&
+     /nav\.dayclosed button \.ng svg \.sq\{fill:currentColor/.test(cssN));
+  run(`dayMeta().doneAll=false; render();`);
+  ok("...and empties again if the day is reopened", run(`!document.getElementById('nav').classList.contains('dayclosed')`));
+  ok("History is a calendar: a stroked frame with a header bar, two pins and days",
+     run(`(function(){const s=document.querySelector('#nav [data-v="history"] svg'); return !!s.querySelector('rect.frame') && s.querySelectorAll('rect').length===9;})()`) &&
+     /nav button \.ng svg \.frame\{fill:none;stroke:currentColor/.test(cssN));
   ok("the active tab is a capsule, and the underline is gone from the base sheet",
      /nav button\.on\{[^}]*background:color-mix/.test(cssN) && !/\n\s*nav button\.on::after\{content/.test(cssN)
      && !/:root\[data-skin="minimal"\] nav button\.on::after\{background/.test(cssN));

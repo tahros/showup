@@ -1362,6 +1362,11 @@ const doneToast=(m,alt)=>{
 };
 function syncNav(){
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
+  /* v3.3.461: Today's square in the bar shows the day's STATE -- hollow while
+     open, filled once closed (doneAll). Every render passes through here, and
+     every doneAll flip renders, so the square cannot lag the ledger. */
+  const nav=document.getElementById('nav');
+  if(nav) nav.classList.toggle('dayclosed', !!(DB.days&&DB.days[todayISO]&&DB.days[todayISO].doneAll));
 }
 function render(opts){
   syncNav();

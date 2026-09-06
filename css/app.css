@@ -2308,10 +2308,19 @@
      state is a soft capsule behind the tab rather than the underline -- a
      SURFACE rather than a mark, which is the app's own grammar. One cue now,
      where 458 had two. */
-  nav button .ng{display:block;width:24px;height:24px;line-height:0}
-  nav button .ng svg{width:24px;height:24px;display:block;fill:currentColor}
-  nav button{position:relative;font-weight:600;border-radius:22px;margin:6px 4px}
-  nav button.on{color:var(--accent);background:color-mix(in srgb,var(--chalk) 7%,transparent)}
+  /* v3.3.461: ICONS ONLY, 28px, and the active tab in the APP'S accent on a
+     capsule of the same blue -- one colour family, no grey. Without labels the
+     4.5:1 text gate no longer applies to the bar; a 28px solid glyph is a
+     graphic (3:1), which the accent clears over anything the page can scroll
+     beneath it. Today's square is hollow until nav.dayclosed; History's frame
+     is a stroke, its bar and days are fills. */
+  nav button .ng{display:block;width:28px;height:28px;line-height:0}
+  nav button .ng svg{width:28px;height:28px;display:block;fill:currentColor}
+  nav button{position:relative;border-radius:24px;margin:5px 4px;padding:10px 4px;gap:0;font-size:0}
+  nav button.on{color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent)}
+  nav button .ng svg .sq{fill:none;stroke:currentColor;stroke-width:2.6}
+  nav.dayclosed button .ng svg .sq{fill:currentColor;stroke:none}
+  nav button .ng svg .frame{fill:none;stroke:currentColor;stroke-width:2.4}
   /* v3.3.459: HIDE ON SCROLL. The bar slides off the bottom after ~28px of
      downward travel and returns on ~10px upward; at the top of the page it is
      always shown. Transform only, on the settle curve; the compositing layer
@@ -2620,7 +2629,10 @@
   :root[data-skin="minimal"]{
     --line:#242938; --whisper:#1F2330;
     --shadow:0 1px 2px rgba(0,0,0,.28),0 10px 30px rgba(0,0,0,.32);
-    --pill:#1C202A; --pill-ink:#B6BCCA; --pill-accent:#C0CEFF;   /* v3.3.460: a step lighter each, for the 72% glass */
+    --pill:#1C202A; --pill-ink:#B6BCCA;   /* v3.3.460: a step lighter for the 72% glass */
+    --pill-accent:#95A4E8;   /* v3.3.461: = --accent-dim, the app's accent as INK on dark. Raw --accent
+                                (#4C6BE3) is 3.3:1 on ordinary dark content and 2.3:1 over an accent
+                                button scrolled under the glass; this is 5.9 / 4.0 (test-rest recomputes) */
     --pill-shadow:0 10px 30px rgba(0,0,0,.30);
   }
   :root[data-skin="minimal"][data-theme="light"]{
@@ -2630,7 +2642,8 @@
        dark pill to a both-themes invariant; the mockup was a light
        composition and its pill belongs to that composition — a dark slab in
        light mode read as chrome from another app. White pill, theme inks. */
-    --pill:#FFFFFF; --pill-ink:#4E5262; --pill-accent:#1F36B0;   /* v3.3.460: a step darker each, for the 72% glass */
+    --pill:#FFFFFF; --pill-ink:#4E5262;   /* v3.3.460: a step darker for the 72% glass */
+    --pill-accent:#2F4BD8;   /* v3.3.461: = --accent, the app's blue, as asked; 3.7:1 as a graphic worst-case */
     --pill-shadow:0 4px 14px rgba(22,26,40,.10),0 12px 34px rgba(22,26,40,.16);
   }
   /* floating cards: the border's job moves to the shadow */
@@ -2689,8 +2702,12 @@
       -webkit-backdrop-filter:blur(18px) saturate(160%);
       backdrop-filter:blur(18px) saturate(160%)}
   }
-  :root[data-skin="minimal"] nav button{color:var(--pill-ink);padding:9px 4px 9px}
-  :root[data-skin="minimal"] nav button.on{color:var(--pill-accent);background:color-mix(in srgb,var(--pill-ink) 12%,transparent)}
+  :root[data-skin="minimal"] nav button{color:var(--pill-ink);padding:10px 4px}
+  /* v3.3.461: --pill-accent IS the app accent now (light) and the app's
+     accent-as-ink (dark); the deeper v3.3.460 value protected labels that
+     no longer exist. It stays a token because the skin's pill trio is guarded
+     by buildcheck (v3.3.168) and the skin block is chrome-only. */
+  :root[data-skin="minimal"] nav button.on{color:var(--pill-accent);background:color-mix(in srgb,var(--pill-accent) 12%,transparent)}
   /* v3.3.331: the TRAIN TAB joins the skin. Everything above was written
      against the Bench Press mockup, which was a Today composition -- cards,
      zones, fields, the nav pill. The two surfaces that FILL the Train tab,
