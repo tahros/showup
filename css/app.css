@@ -2303,12 +2303,22 @@
      grayscale filter is gone with the emoji. Ink follows the button: muted at
      rest, accent when on. The underline stays: colour alone should not carry
      the active state, and two cues at two weights read as one. */
-  nav button .ng{display:block;width:20px;height:20px;line-height:0}
-  nav button .ng svg{width:20px;height:20px;display:block;fill:currentColor}
-  nav button{position:relative}
-  nav button.on{color:var(--accent)}
-  nav button.on::after{content:'';position:absolute;left:50%;transform:translateX(-50%);
-    bottom:5px;width:24px;height:3px;border-radius:2px;background:var(--accent)}
+  /* v3.3.459: THREADS' WEIGHT, OUR GLYPHS. 24px glyphs, labels at 600 so
+     they read from arm's length (the maker: "HEAVY or BOLD"), and the active
+     state is a soft capsule behind the tab rather than the underline -- a
+     SURFACE rather than a mark, which is the app's own grammar. One cue now,
+     where 458 had two. */
+  nav button .ng{display:block;width:24px;height:24px;line-height:0}
+  nav button .ng svg{width:24px;height:24px;display:block;fill:currentColor}
+  nav button{position:relative;font-weight:600;border-radius:22px;margin:6px 4px}
+  nav button.on{color:var(--accent);background:color-mix(in srgb,var(--chalk) 7%,transparent)}
+  /* v3.3.459: HIDE ON SCROLL. The bar slides off the bottom after ~28px of
+     downward travel and returns on ~10px upward; at the top of the page it is
+     always shown. Transform only, on the settle curve; the compositing layer
+     from v3.3.179 is what makes iOS carry it smoothly. */
+  nav{transition:transform var(--dur-move) var(--settle),opacity var(--dur-quick) ease}
+  nav.hid{transform:translateY(120%) translateZ(0);opacity:0;pointer-events:none}
+  @media (prefers-reduced-motion:reduce){ nav{transition:none} }
   /* v3.3.179: bottom-anchored fixed chrome gets its own compositing layer.
      Reported against Minimal — the nav pill and the "↑ top" button both hung
      mid-screen during a scroll — but the bug is in the BASE and Classic has
@@ -2674,9 +2684,8 @@
       -webkit-backdrop-filter:blur(18px) saturate(160%);
       backdrop-filter:blur(18px) saturate(160%)}
   }
-  :root[data-skin="minimal"] nav button{color:var(--pill-ink);padding:13px 4px 15px}
-  :root[data-skin="minimal"] nav button.on{color:var(--pill-accent)}
-  :root[data-skin="minimal"] nav button.on::after{background:var(--pill-accent);bottom:7px}
+  :root[data-skin="minimal"] nav button{color:var(--pill-ink);padding:9px 4px 9px}
+  :root[data-skin="minimal"] nav button.on{color:var(--pill-accent);background:color-mix(in srgb,var(--pill-ink) 12%,transparent)}
   /* v3.3.331: the TRAIN TAB joins the skin. Everything above was written
      against the Bench Press mockup, which was a Today composition -- cards,
      zones, fields, the nav pill. The two surfaces that FILL the Train tab,

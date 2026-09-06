@@ -1,5 +1,18 @@
 # ShowUp — changelog
 
+## v3.3.459 (2026-09-06) — Threads' weight, and the bar hides on scroll
+
+The tab bar borrows Threads' proportions: 24px glyphs drawn to fill their box,
+labels at 600 so they read from arm's length, and the active tab marked by a
+soft capsule behind it rather than an underline — a surface, not a mark, which
+is the app's own grammar. One cue now, where 458 had two.
+
+And the bar gets out of the way. Scroll down about 28px and it slides off the
+bottom; nudge up 10px and it comes back; at the top of the page it is always
+there. The asymmetry keeps it from twitching: a scroll has to mean it to hide
+the bar and barely has to hint to bring it back. Transform only, on the settle
+curve.
+
 ## v3.3.458 (2026-09-06) — The nav speaks the app's own language
 
 Four emoji were the only full-colour objects on a two-ink screen, drawn by the

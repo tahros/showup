@@ -751,4 +751,40 @@ ok("the status-bar style no longer puts content under the status bar",
   }
 }
 
+/* ================= v3.3.459: THREADS' WEIGHT, AND THE BAR HIDES ON SCROLL =========
+   Labels at 600; glyphs at 24; the active state a capsule, not an underline;
+   and the bar slides off after ~28px down, back on ~10px up, always shown at
+   the top. Scroll travel is driven through navOnScroll with scrollY set by
+   hand, since jsdom has no viewport to scroll. */
+{
+  const cssN=fs.readFileSync(path.join(dir,"css/app.css"),"utf8");
+  ok("nav labels are heavy (600)", /nav button\{[^}]*font-weight:600/.test(cssN));
+  ok("glyphs are 24px", /nav button \.ng svg\{[^}]*width:24px;height:24px/.test(cssN));
+  ok("the active tab is a capsule, and the underline is gone from the base sheet",
+     /nav button\.on\{[^}]*background:color-mix/.test(cssN) && !/\n\s*nav button\.on::after\{content/.test(cssN)
+     && !/:root\[data-skin="minimal"\] nav button\.on::after\{background/.test(cssN));
+  ok("hidden is a transform on the settle curve, not display:none",
+     /nav\.hid\{transform:translateY\(120%\)[^}]*pointer-events:none\}/.test(cssN) && /nav\{transition:transform var\(--dur-move\) var\(--settle\)/.test(cssN));
+  const setY=y=>run(`Object.defineProperty(window,'scrollY',{value:${y},configurable:true}); navOnScroll(); document.getElementById('nav').classList.contains('hid')`);
+  run(`_navY=0; _navAcc=0; document.getElementById('nav').classList.remove('hid');`);
+  ok("at the top the bar shows", setY(0)===false);
+  ok("a short scroll down (20px) does not hide it", setY(20)===false);
+  ok("...crossing ~28px of downward travel does", setY(40)===true);
+  ok("...and it stays hidden while you keep going", setY(200)===true);
+  ok("a 6px nudge up is not enough to bring it back", setY(194)===true);
+  ok("...12px up is", setY(182)===false);
+  ok("...and a direction change resets the count: 20 more down keeps it shown, 30 hides again",
+     setY(202)===false && setY(232)===true);
+  /* the top guard, isolated: hidden at y=15 with a big downward count, then
+     an 8px move to y=7 -- not enough upward travel to show it by the rule
+     above, so ONLY the top guard can bring it back */
+  run(`_navY=15; _navAcc=60; document.getElementById('nav').classList.add('hid');`);
+  ok("returning to the top shows it even when the upward travel is too small to", setY(7)===false);
+  /* and the listener is actually wired: the scroll handler must name navOnScroll */
+  const u2=fs.readFileSync(path.join(dir,"js/util.js"),"utf8");
+  ok("the window scroll listener drives navOnScroll",
+     /addEventListener\('scroll',[\s\S]{0,200}?requestAnimationFrame\(\(\)=>\{[^}]*navOnScroll\(\)/.test(u2));
+  run(`Object.defineProperty(window,'scrollY',{value:0,configurable:true}); _navY=0; _navAcc=0;`);
+}
+
 process.exit(fail ? 1 : 0);
