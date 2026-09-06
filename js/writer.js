@@ -61,7 +61,10 @@ function writerState(){
   if(lift.write) return lift.write;
   const d0=writeDateISO();
   const _obj=DB.settings.objective; // v3.3.444: 'keep' no longer has a chip -- see OBJECTIVES
-  const o={scope:d0===todayISO?'today':'tomorrow', part:'auto', objective:(_obj&&_obj!=='keep')?_obj:'grow', note:'', days:null, nextWeek:false, busy:false, err:''};
+  /* v3.3.467: on a declared rest day the writer opens on TOMORROW -- today
+     has been answered, and a plan for it would be a plan for a day you have
+     said you are not training. */
+  const o={scope:(d0===todayISO&&!restingToday())?'today':'tomorrow', part:'auto', objective:(_obj&&_obj!=='keep')?_obj:'grow', note:'', days:null, nextWeek:false, busy:false, err:''};
   lift.write=o; return o;
 }
 /* the days a week can hold: from its first day through Sunday (and, if

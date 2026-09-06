@@ -1,5 +1,23 @@
 # ShowUp — changelog
 
+## v3.3.467 (2026-09-06) — On a rest day, Train reports instead of asking
+
+Declare rest and the Train tab changes what it is for. It opens on one fact
+about your rest, computed from the ledger and said in the app's own voice —
+*Your 149th rest in 958 days.* / *The last one was Sunday; most of them are.* /
+*Rest follows Legs more than anything else — 31 of 61.* / *Your longest run
+without a rest: 19 days, ending Mar 14.* / *You rest about every 5.4 days.* —
+rotating by the count of your rest days, so consecutive rest days read
+different lines. Not a quote: every sentence is yours and every number is
+asserted against a ledger where the answer is known.
+
+Below it, Recovery: every part you have trained, most recently rested first,
+with its days since and a quiet bar to seven. Then one line for tomorrow from
+the rotation. No Start button anywhere. *Train anyway* opens the ordinary tab
+for the session; a set logged there clears rest, as it always has.
+
+The writer opens on Tomorrow on a rest day — today has been answered.
+
 ## v3.3.466 (2026-09-06) — A step less glass
 
 Tint 88% at the top falling to 66% at the bottom (was 82 → 58). Lighting,
