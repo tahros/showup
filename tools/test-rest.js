@@ -743,7 +743,7 @@ ok("the status-bar style no longer puts content under the status bar",
      --pill-shadow: a specular rim, a rim hairline, light from above, shadow
      inside the bottom, then the drop -- in both themes. */
   ok("the minimal pill is liquid glass: an 82->58% fall-off tint, a 9px blur, on nav::before, the pill itself transparent",
-     /:root\[data-skin="minimal"\] nav\{background:transparent;isolation:isolate;box-shadow:none\}/.test(cssN) &&
+     /:root\[data-skin="minimal"\] nav\{background:transparent;box-shadow:none\}/.test(cssN) &&
      /:root\[data-skin="minimal"\] nav::before\{[^}]*background:linear-gradient\(180deg,color-mix\(in srgb,var\(--pill\) 82%,transparent\),color-mix\(in srgb,var\(--pill\) 58%,transparent\)\);[^}]*backdrop-filter:blur\(9px\) saturate\(190%\)/.test(cssN) &&
      /nav::before\{[^}]*box-shadow:var\(--pill-shadow\)/.test(cssN) &&
      /:root\[data-skin="minimal"\] nav button\{z-index:1\}/.test(cssN));
@@ -756,6 +756,22 @@ ok("the status-bar style no longer puts content under the status bar",
      /:root\[data-skin="minimal"\] nav\{\s*left:24px;right:24px;/.test(cssN) && /:root\[data-skin="minimal"\] nav button\{margin:5px 2px\}/.test(cssN));
   ok("...and the pseudo-element carries no transform of its own (the reason it works)",
      !/nav::before\{[^}]*transform/.test(cssN));
+  /* v3.3.465: NOTHING ON THE NAV MAY MAKE IT A BACKDROP ROOT, or its glass
+     samples only itself. isolation:isolate, opacity, filter, mix-blend-mode
+     and a 3D transform all do; will-change:transform alone does not. Asserted
+     on every nav rule in the sheet and on the inline transform the scrub
+     writes. */
+  {
+    const bare=cssN.replace(/\/\*[\s\S]*?\*\//g,'');   // comments mention nav constantly; rules are what matter
+    const navRules=[...bare.matchAll(/([^{}]+)\{([^}]*)\}/g)]
+      .filter(m=>m[1].split(',').some(sel=>/(^|\s)nav\s*$/.test(sel.trim())||/^nav$/.test(sel.trim())));
+    /* translateZ(0) is deliberately NOT in this list: the v3.3.179 iOS
+       anchoring fix requires it and buildcheck guards it. The certain
+       backdrop-root makers are the ones asserted absent. */
+    const roots=navRules.filter(m=>/isolation:isolate|preserve-3d|opacity:|mix-blend-mode|(^|;)\s*filter:/.test(m[2]));
+    ok("no nav rule makes the nav a backdrop root (isolation, opacity, filter, blend, preserve-3d)", roots.length===0, roots.map(m=>m[1].trim()+'{'+m[2].trim().slice(0,60)+'}').join(' | '));
+    ok("...while the v3.3.179 compositing rule stands", /nav,\.calreturn\{transform:translateZ\(0\)/.test(cssN));
+  }
   /* the contrast claim, recomputed here so the number cannot drift from the comment */
   {
     const hx=c=>[1,3,5].map(i=>parseInt(c.slice(i,i+2),16));

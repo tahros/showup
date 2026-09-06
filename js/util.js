@@ -544,7 +544,7 @@ addEventListener('scroll',()=>{
 let _navY=0,_navOff=0,_navIdle=0;
 function navH(){ const nav=document.getElementById('nav'); return ((nav&&nav.offsetHeight)||64)+60; }
 function navPlace(nav,off){
-  nav.style.transform=`translateY(${off}px) translateZ(0)`;
+  nav.style.transform=`translateY(${off}px) translateZ(0)`;   // keeps the v3.3.179 layer promotion while scrubbing
   nav.classList.toggle('hid',off>=navH());
 }
 function navOnScroll(){

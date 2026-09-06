@@ -1,5 +1,21 @@
 # ShowUp — changelog
 
+## v3.3.465 (2026-09-06) — The glass samples the page
+
+The bar's blur has never rendered on the phone, through four releases of tuning
+its tint — the maker's screenshot showed text reading straight through it. The
+cause: `isolation:isolate`, added in 462 to layer the glass under the buttons,
+makes the nav a *backdrop root*, so a backdrop filter on its pseudo-element
+samples only the nav's own contents — which are transparent. It is gone; the
+fixed-with-z-index nav is already a stacking context, so the glass still sits
+under the buttons. A test now scans every nav rule for anything that would make
+it a backdrop root.
+
+The v3.3.179 compositing hint (`translateZ(0)`) stays: buildcheck guards it
+because without it iOS hangs the pill mid-scroll. If the device still does not
+blur, that hint is the next suspect and the fix is a restructure, not a quiet
+deletion of an iOS bug fix.
+
 ## v3.3.464 (2026-09-06) — Less glass
 
 The tab bar's tint rises to 82% at the top falling to 58% at the bottom (was

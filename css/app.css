@@ -2350,6 +2350,13 @@
      repainting them after the fact. Fixes Classic as well as Minimal. */
   nav,.calreturn{transform:translateZ(0);-webkit-transform:translateZ(0);
     will-change:transform;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+  /* v3.3.465 considered dropping translateZ(0) from the nav as a second
+     backdrop-root suspect, and did not: buildcheck guards this rule because
+     without it iOS hangs the pill mid-scroll (v3.3.179, reported by the
+     maker). isolation:isolate was the CERTAIN culprit and is gone. If the
+     glass still fails to sample on the device, this is the next suspect, and
+     the fix is a restructure -- fixed+promoted wrapper outside, glass inside
+     -- not a quiet deletion of an iOS bug fix. */
   .recdate{display:block;font-size:9px;color:var(--muted);font-weight:400;margin-top:1px}
   .mstone{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px}
   .mstone .big{font-family:var(--mono);font-size:24px;color:var(--chalk);font-weight:600}
@@ -2740,7 +2747,16 @@
      the lensing of the real thing is not available to a web page -- so this
      is the material without its bending. No colour anywhere in the light. */
   @supports ((-webkit-backdrop-filter:blur(1px)) or (backdrop-filter:blur(1px))){
-    :root[data-skin="minimal"] nav{background:transparent;isolation:isolate;box-shadow:none}
+    /* v3.3.465: NO isolation:isolate HERE. v3.3.462 added it to keep the
+       glass layer under the buttons -- and it is exactly what kept the glass
+       dead: isolation:isolate makes an element a BACKDROP ROOT, so a
+       backdrop-filter on its ::before samples only the nav's own contents
+       (transparent) instead of the page behind it. The maker's screenshot
+       showed "Legs · 3 days" reading straight through the bar: no blur at
+       all. The nav is position:fixed with a z-index, which is already a
+       stacking context, so ::before at z-index:0 sits under the buttons at
+       z-index:1 without isolating anything. */
+    :root[data-skin="minimal"] nav{background:transparent;box-shadow:none}
     :root[data-skin="minimal"] nav::before{content:'';position:absolute;inset:0;border-radius:inherit;z-index:0;
       background:linear-gradient(180deg,color-mix(in srgb,var(--pill) 82%,transparent),color-mix(in srgb,var(--pill) 58%,transparent));   /* v3.3.464: 62->30 was too clear on the phone; the lighting still carries the glass */
       -webkit-backdrop-filter:blur(9px) saturate(190%) brightness(1.06);
