@@ -715,4 +715,40 @@ ok("the status-bar style no longer puts content under the status bar",
      /prefers-reduced-motion:reduce\)\{[\s\S]*?showup-header[\s\S]*?showup-nav[\s\S]*?\{animation:none\}/.test(cssNow));
 }
 
+/* ================= v3.3.458: THE NAV SPEAKS THE APP'S OWN LANGUAGE =================
+   Four emoji were the only full-colour objects on a two-ink screen. Now: four
+   SVG glyphs built from the square, in currentColor, one per tab; the pill is
+   glass at a tint that keeps the inks above 4.5:1 with an accent button
+   scrolled beneath. Asserted on the markup and the CSS facts. */
+{
+  const navHtml=run(`document.getElementById('nav').innerHTML`);
+  ok("no emoji left in the nav", !/[\u{1F300}-\u{1FAFF}\u2705\u2714\u{1F4AA}\u{1F4C8}\u{1F4DC}]/u.test(navHtml), navHtml.slice(0,80));
+  ok("four tabs, four glyphs, each an SVG of rects in currentColor",
+     run(`(function(){const bs=[...document.querySelectorAll('#nav button')]; return bs.length===4 && bs.every(b=>{const s=b.querySelector('.ng svg'); return !!s && s.querySelectorAll('rect').length>0 && !s.querySelector('[fill]:not([fill="currentColor"])');});})()`));
+  ok("...Today is the single square: one rect", run(`document.querySelector('#nav [data-v="today"] svg rect').parentNode.querySelectorAll('rect').length`)===1);
+  ok("...History is the heatmap: nine", run(`document.querySelectorAll('#nav [data-v="history"] svg rect').length`)===9);
+  ok("...the glyph span is decorative, the word carries the meaning",
+     run(`[...document.querySelectorAll('#nav .ng')].every(s=>s.getAttribute('aria-hidden')==='true')`) &&
+     run(`[...document.querySelectorAll('#nav button')].every(b=>/Today|Train|Stats|History/.test(b.textContent))`));
+  const cssN=fs.readFileSync(path.join(dir,"css/app.css"),"utf8");
+  ok("the glyphs take the button's ink", /nav button \.ng svg\{[^}]*fill:currentColor/.test(cssN));
+  ok("the emoji grayscale filter is gone with the emoji", !/nav button span\{[^}]*grayscale/.test(cssN));
+  ok("the minimal pill is glass: a blur behind a tinted pill",
+     /:root\[data-skin="minimal"\] nav\{\s*background:color-mix\(in srgb,var\(--pill\) 88%,transparent\);[^}]*backdrop-filter:blur/.test(cssN));
+  /* the contrast claim, recomputed here so the number cannot drift from the comment */
+  {
+    const hx=c=>[1,3,5].map(i=>parseInt(c.slice(i,i+2),16));
+    const lum=c=>{const f=v=>v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4); const [r,g,b]=hx(c).map(x=>x/255); return 0.2126*f(r)+0.7152*f(g)+0.0722*f(b);};
+    const cr=(a,b)=>{const la=lum(a),lb=lum(b); return (Math.max(la,lb)+.05)/(Math.min(la,lb)+.05);};
+    const mix=(a,b,p)=>'#'+[0,1,2].map(i=>Math.round(hx(a)[i]*p+hx(b)[i]*(1-p)).toString(16).padStart(2,'0')).join('');
+    /* anchored to the shadow on the NEXT line: a lazy [\s\S]*? spanned from the dark block's --pill to the light block's shadow and reported dark numbers as light */
+    const pillL=(cssN.match(/--pill:(#[0-9A-Fa-f]{6}); --pill-ink:(#[0-9A-Fa-f]{6}); --pill-accent:(#[0-9A-Fa-f]{6});\s*--pill-shadow:0 4px/)||[]);
+    const pillD=(cssN.match(/--pill:(#[0-9A-Fa-f]{6}); --pill-ink:(#[0-9A-Fa-f]{6}); --pill-accent:(#[0-9A-Fa-f]{6});\s*--pill-shadow:0 10px/)||[]);
+    const worstL=mix(pillL[1],pillL[3],.88), worstD=mix(pillD[1],pillD[3],.88);
+    ok("(harness) the two theme blocks were told apart", pillL[1]!==pillD[1] && pillL[1]==="#FFFFFF", pillL[1]+" / "+pillD[1]);
+    ok("light: muted ink clears 4.5:1 on the glass with an accent button beneath", cr(pillL[2],worstL)>=4.5, cr(pillL[2],worstL).toFixed(2));
+    ok("dark: the same", cr(pillD[2],worstD)>=4.5, cr(pillD[2],worstD).toFixed(2));
+  }
+}
+
 process.exit(fail ? 1 : 0);

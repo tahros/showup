@@ -2299,12 +2299,16 @@
   nav button{background:none;border:0;color:var(--muted);font:inherit;font-size:10px;
     font-family:var(--mono);letter-spacing:var(--track-label);text-transform:uppercase;
     padding:11px 4px 13px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px}
-  nav button span{font-size:17px;line-height:1;filter:grayscale(1) opacity(.55)}
+  /* v3.3.458: the glyphs are SVG in currentColor (index.html), so the emoji
+     grayscale filter is gone with the emoji. Ink follows the button: muted at
+     rest, accent when on. The underline stays: colour alone should not carry
+     the active state, and two cues at two weights read as one. */
+  nav button .ng{display:block;width:20px;height:20px;line-height:0}
+  nav button .ng svg{width:20px;height:20px;display:block;fill:currentColor}
   nav button{position:relative}
   nav button.on{color:var(--accent)}
   nav button.on::after{content:'';position:absolute;left:50%;transform:translateX(-50%);
     bottom:5px;width:24px;height:3px;border-radius:2px;background:var(--accent)}
-  nav button.on span{filter:none}
   /* v3.3.179: bottom-anchored fixed chrome gets its own compositing layer.
      Reported against Minimal — the nav pill and the "↑ top" button both hung
      mid-screen during a scroll — but the bug is in the BASE and Classic has
@@ -2654,6 +2658,22 @@
     max-width:492px;border-top:0;border-radius:26px;background:var(--pill);
     padding-bottom:0;box-shadow:var(--pill-shadow);
     -webkit-backdrop-filter:none;backdrop-filter:none}
+  /* v3.3.458: THE PILL IS GLASS. The pill was opaque; content now passes
+     beneath it through a blur, which reads as depth without adding a shadow
+     -- the Monument Valley way to say "this floats". The tint is 88% of the
+     pill colour: the WORST backdrop is a full accent button scrolled under
+     the bar, and at 78% the muted ink fell to 3.97:1 against it. 88% clears
+     4.5:1 in both themes with that button beneath (4.68 light, 5.74 dark);
+     ordinary content beneath sits above 5:1. Still visibly glass -- the blur
+     does most of the work, the tint only guards the ink. The v3.3.179 compositing
+     layer (translateZ) stays and is what lets iOS carry a blurred fixed
+     element with the viewport instead of lagging it. */
+  @supports ((-webkit-backdrop-filter:blur(1px)) or (backdrop-filter:blur(1px))){
+    :root[data-skin="minimal"] nav{
+      background:color-mix(in srgb,var(--pill) 88%,transparent);
+      -webkit-backdrop-filter:blur(18px) saturate(160%);
+      backdrop-filter:blur(18px) saturate(160%)}
+  }
   :root[data-skin="minimal"] nav button{color:var(--pill-ink);padding:13px 4px 15px}
   :root[data-skin="minimal"] nav button.on{color:var(--pill-accent)}
   :root[data-skin="minimal"] nav button.on::after{background:var(--pill-accent);bottom:7px}

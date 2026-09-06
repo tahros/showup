@@ -1,5 +1,20 @@
 # ShowUp — changelog
 
+## v3.3.458 (2026-09-06) — The nav speaks the app's own language
+
+Four emoji were the only full-colour objects on a two-ink screen, drawn by the
+OS in the OS's colours, differently on every phone. The tab bar's glyphs are
+now built from the square that already means "a day": Today is one square,
+Train is a plate, Stats is squares rising, History is the heatmap. They take the
+bar's ink and its accent. The words stay; the brand mark stays where it was —
+nowhere here.
+
+The pill is glass: content passes beneath it through a blur, which reads as
+depth without a heavier shadow. The tint is set where the muted label still
+clears 4.5:1 with an accent button scrolled directly under it — 4.68 in light,
+5.74 in dark — and the test recomputes those numbers from the CSS so they cannot
+drift from the claim.
+
 ## v3.3.457 (2026-09-05) — The day closes from where you train
 
 The only button that ended the day lived on Today, and the maker trains from
