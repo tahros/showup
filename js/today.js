@@ -631,7 +631,7 @@ function renderToday(){
      same reason without overlapping anything: you meet it the moment you
      finish reading what you did, and "Add another part" reads as the
      alternative to it rather than as something to scroll past first. */
-  if(isLive()) h+=`<button class="btn done dayend" id="doneAllBtn">\u2713 Complete workout \u00b7 ${t.w.length} set${t.w.length===1?'':'s'}</button>`;
+  h+=dayCloseHTML();   // v3.3.457: the same close Train has, from one helper
   /* v3.3.376: THE FINISHED DAY IS WORTH LOOKING AT. What stood here was two
      lines of grey mono -- "Workout complete . 23 sets - logging another set
      reopens it" -- which is the end state of the thing this whole app is

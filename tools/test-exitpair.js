@@ -32,20 +32,23 @@ const check = (name, expr, want) => {
 };
 
 check("exit row renders",       `!!document.querySelector('.btnrow')`, true);
-check("two buttons in the row", `document.querySelectorAll('.btnrow .btn').length`, 2);
+/* v3.3.457 RESTATES: the row holds Continue alone. "Done with <part>" is
+   gone -- with a plan, the exercise and the day are the two units that mean
+   something, and the part sat between them doing neither job. The day's close
+   now renders further down the same screen. */
+check("Continue stands alone in the row", `document.querySelectorAll('.btnrow .btn').length`, 1);
 check("Continue carries data-go",
       `document.querySelector('.btnrow .btn[data-go]').dataset.go`, "Shoulder");
 check("Continue is red while live",
       `document.querySelector('.btnrow .btn[data-go]').classList.contains('livego')`, true);
-check("Complete keeps its handler id",
-      `!!document.querySelector('.btnrow #donePartBtn')`, true);
-check("Complete is sheen-exempt (.ghost)",
-      `document.querySelector('.btnrow #donePartBtn').classList.contains('ghost')`, true);
+check("no part-level Complete anywhere", `!!document.getElementById('donePartBtn')`, false);
+check("...but the day's close is on this screen, quiet while the plan is not done",
+      `(function(){const b=document.getElementById('doneAllBtn'); return !!b && b.classList.contains('ghost');})()`, true);
 
-// seal the part: the pair must collapse back to the single Reopen control
-run(`document.getElementById('donePartBtn').click();`);
-check("sealed → row gone",       `!!document.querySelector('.btnrow')`, false);
-check("sealed → reopen offered", `!!document.getElementById('reopenPartBtn')`, true);
+// a part sealed by an earlier build still offers Reopen
+run(`dayMeta().donePart.push('Shoulder'); render();`);
+check("sealed (legacy) → row gone",       `!!document.querySelector('.btnrow')`, false);
+check("sealed (legacy) → reopen offered", `!!document.getElementById('reopenPartBtn')`, true);
 
 // not-live but still open: Continue must drop the red
 /* v3.3.431: sealing a part no longer closes the day, so this fixture says
@@ -57,7 +60,7 @@ run(`
 `);
 check("not live → Continue not red",
       `document.querySelector('.btnrow .btn[data-go]').classList.contains('livego')`, false);
-check("not live → row still offers both",
-      `document.querySelectorAll('.btnrow .btn').length`, 2);
+check("not live → row still offers Continue (v3.3.457: alone)",
+      `document.querySelectorAll('.btnrow .btn').length`, 1);
 
 process.exit(fail ? 1 : 0);

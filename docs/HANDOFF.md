@@ -203,3 +203,9 @@ phase 3 (reasons as structured, verifiable data) has not.
 - No countdown timer, no prescriptions, no scores.
 - Polygon streaks: declined, with reasoning recorded.
 - He rejects shrug-type exercises and overhead triceps extensions.
+- **Two units of "done": the exercise and the day.** The part-level
+  "Done with <part>" was removed in v3.3.457 at his word. The day counts at
+  the first set (the record); the ceremony plays at the close (his
+  declaration). The close renders wherever he is -- Train and Today, one
+  helper, `dayCloseHTML()` -- quiet until the plan is complete, prominent
+  once it is, and never automatic.

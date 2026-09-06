@@ -331,9 +331,13 @@ function renderLift(){
          router, so it lands on the exercise you're mid-way through (v3.3.31);
          Complete seals. Continue leads — you tap it many times a session and
          Complete once. */
+      /* v3.3.457: "Done with <part>" is gone, at the maker's word. With a
+         plan, the two units that mean something are the EXERCISE (ticked on
+         its own screen) and the DAY (closed below); the part sat between
+         them doing neither job. Continue stays; a part sealed by an earlier
+         build can still be reopened. */
       if(partOpen(lift.part)) h+=`<div class="btnrow">
-            <button class="btn ${isLive()?'livego':''}" data-go="${lift.part}">Continue →</button>
-            <button class="btn ghost done" id="donePartBtn">✓ Done with ${lift.part}</button></div>`;
+            <button class="btn ${isLive()?'livego':''}" data-go="${lift.part}">Continue →</button></div>`;
       else if(dayMeta().donePart.includes(lift.part))
         h+=`<button class="btn ghost" id="reopenPartBtn" style="margin-top:12px">${lift.part} completed ✓ — Reopen</button>`;
     }
@@ -443,6 +447,7 @@ function renderLift(){
     }else{
       h+=`<button class="btn ghost" id="addEx" style="margin-top:14px">+ Add your own exercise</button>`;
     }
+    h+=dayCloseHTML();   // v3.3.457: the day closes from where you train
     $('#view').innerHTML=h; return;
   }
 

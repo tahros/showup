@@ -112,8 +112,11 @@ ok("...and it does not float over its neighbours",
 /* one voice for the end of the day: the step-level buttons stopped borrowing
    its word, so "Complete workout" means one thing in one place */
 const liftSrc=fs.readFileSync(path.join(dir,"js/lift.js"),"utf8");
-ok("only the day's end says \"Complete\"",
-   !/>\u2713 Complete /.test(liftSrc) && /Done with \$\{lift\.part\}/.test(liftSrc)
+/* v3.3.457 RESTATES: the part-level "Done with <part>" is gone at the
+   maker's word -- exercise and day are the two units that mean something.
+   Only the exercise tick remains, and the day's end keeps its own words. */
+ok("only the day's end says \"Complete\"; the exercise tick is the one step-level button left",
+   !/>\u2713 Complete /.test(liftSrc) && !/Done with \$\{lift\.part\}/.test(liftSrc)
    && /Done with \$\{ex\}/.test(liftSrc));
 
 /* and the door still opens the room */
@@ -378,8 +381,8 @@ ok("pressing it places the day", run(`!!document.getElementById('dayDone')`));
       return i<0?'':src.slice(i,j); };
     ok("finishing an exercise does not close the day",
        !/doneAll\s*=\s*true/.test(block("#reopenPartBtn")===''?'':src.slice(src.indexOf("const exsInPart="), src.indexOf("#reopenPartBtn"))));
-    ok("finishing a part does not close the day",
-       !/doneAll\s*=\s*true/.test(block("#donePartBtn")));
+    ok("there is no part-level close at all (v3.3.457)",
+       !/closest\('#donePartBtn'\)/.test(src) && !/doneAll\s*=\s*true/.test(block("#donePartBtn")));
     ok("...and #doneAllBtn is the one place that does",
        /doneAll\s*=\s*true/.test(block("#doneAllBtn")) &&
        (src.match(/m\.doneAll\s*=\s*true/g)||[]).length===1);
@@ -389,6 +392,52 @@ ok("pressing it places the day", run(`!!document.getElementById('dayDone')`));
      /\b1 set\b/.test(run(`document.querySelector('.dayclosed').textContent`)) &&
      !/1 sets/.test(run(`document.querySelector('.dayclosed').textContent`)),
      run(`document.querySelector('.dayclosed .dcm').textContent`));
+}
+
+/* ================= v3.3.457: THE DAY CLOSES FROM WHERE YOU TRAIN =================
+   The maker trains on Train and never visited Today mid-session, where the
+   only close lived. Three things asserted on the real screens: the close is on
+   Train; it is quiet until the plan is complete and prominent once it is; and
+   nothing closes by itself -- the tick that completes the plan still leaves
+   doneAll false until the person taps. */
+{
+  const seedPlan=()=>run(`(function(){
+    DB.days[todayISO]={w:[],doneEx:[],donePart:[],upd:Date.now()};
+    const {items}=planItemsFrom(parsePlan("Squat\\n  195 lb x 8\\n\\nDip\\n  BW+45 lb x 10"));
+    planSave(items,'',"Squat\\n  195 lb x 8\\n\\nDip\\n  BW+45 lb x 10",todayISO);
+    DB.settings.dayDone=null; SEED=deriveAll(); view='lift'; lift.part='Legs'; lift.ex=null; render(); })()`);
+  seedPlan();
+  ok("before any set there is no close: the day is not live", !run(`!!document.getElementById('doneAllBtn')`));
+  // log a squat set on Train
+  run(`(function(){const m=dayMeta(); m.w.push({part:'Legs',ex:'Squat',w:toKg(195),reps:[8],at:Date.now()}); lastSetAt=Date.now(); save(); SEED=deriveAll(); render();})()`);
+  ok("one set in, Train shows the close, QUIET (a ghost door)",
+     run(`(function(){const b=document.getElementById('doneAllBtn'); return !!b && b.classList.contains('ghost') && !document.querySelector('.dayclose.card');})()`));
+  ok("...and no part-level Complete", !run(`!!document.getElementById('donePartBtn')`));
+  ok("...the plan is not complete: Dip has no set", !run(`planComplete()`));
+  // tick Squat from its screen
+  run(`lift.ex='Squat'; render(); document.getElementById('doneExBtn').click();`);
+  ok("ticking Squat does not close the day (v3.3.431 stands)", run(`!dayMeta().doneAll`) && run(`lift.ex===null`));
+  ok("...and the close is still the quiet door", run(`(function(){const b=document.getElementById('doneAllBtn'); return !!b && b.classList.contains('ghost');})()`));
+  // dip: set, then tick -> plan complete -> the offer
+  run(`(function(){const m=dayMeta(); m.w.push({part:'Chest',ex:'Dip',w:toKg(45),bw:true,reps:[10],at:Date.now()}); save(); SEED=deriveAll(); lift.part='Chest'; lift.ex='Dip'; render();})()`);
+  run(`globalThis.__toast=''; const _t=toast; toast=function(m){__toast=m; return _t.apply(this,arguments);}; document.getElementById('doneExBtn').click(); toast=_t;`);
+  ok("ticking the last planned exercise says so", /that\u2019s the plan|that's the plan/.test(run(`__toast`)), run(`__toast`));
+  ok("...the plan is complete", run(`planComplete()`));
+  ok("...but the day is NOT closed by it -- the app offers, never performs", run(`!dayMeta().doneAll`) && !run(`!!document.getElementById('dayDone')`));
+  ok("...and the close is now PROMINENT: a card that says so, with the close as its action",
+     run(`(function(){const c=document.querySelector('.dayclose.card'); return !!c && /the plan/.test(c.textContent) && !!c.querySelector('#doneAllBtn');})()`));
+  ok("...on Train, where the person is", run(`view==='lift'`));
+  // the tap closes it, from Train
+  run(`document.getElementById('doneAllBtn').click();`);
+  ok("one tap on Train closes the day", run(`dayMeta().doneAll===true`));
+  ok("...and the ceremony plays from here", run(`!!document.getElementById('dayDone')`));
+  // Today uses the same helper: same button, same states
+  run(`document.getElementById('dayDone')?.remove(); dayMeta().doneAll=false; DB.settings.dayDone=null; view='today'; render();`);
+  ok("Today shows the same prominent close for a complete plan",
+     run(`(function(){const c=document.querySelector('#view .dayclose.card'); return !!c && !!c.querySelector('#doneAllBtn');})()`));
+  run(`dayMeta().doneEx=['Squat']; render();`);
+  ok("...and the same quiet door when it is not", run(`(function(){const b=document.querySelector('#view #doneAllBtn'); return !!b && b.classList.contains('ghost');})()`));
+  run(`DB.settings.dayDone=null; lift.part=null; lift.ex=null; view='today'; render();`);
 }
 
 process.exit(fail?1:0);

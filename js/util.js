@@ -570,6 +570,34 @@ const streakAtRisk=()=>{
   return currentStreak()>0;
 };
 const exOpen =ex=>{const t=dayMeta();return t.w.some(s=>s.ex===ex)&&!t.doneEx.includes(ex);};
+/* v3.3.457: THE PLAN IS DONE when every item has a set logged today and every
+   item has been ticked. Both halves matter: sets alone would call a plan
+   finished while you were still in the middle of its last exercise; ticks
+   alone could be pressed on things you never lifted. A fact the app can
+   compute, so the app decides it -- and offers, never performs, the close. */
+function planComplete(){
+  const p=planNow(); if(!p||!(p.items||[]).length) return false;
+  const t=dayMeta();
+  return p.items.every(i=>t.w.some(s=>s.ex===i.ex)&&t.doneEx.includes(i.ex));
+}
+/* v3.3.457: ONE CLOSE, WHEREVER YOU ARE. The day used to close from Today
+   only ("Complete workout"), while the maker trains from Train and does not
+   visit Today mid-session -- so he pressed the Complete he could reach, the
+   header stayed red, and it read as the app not listening. The same button
+   now renders on Train too, through this one helper, in two weights:
+   PROMINENT when the plan is complete (a card that says so, with the close as
+   its action) and QUIET otherwise (a ghost door). Never automatic: closing is
+   a declaration, like rest. #doneAllBtn stays the one id that sets doneAll. */
+function dayCloseHTML(){
+  if(!isLive()) return '';
+  const n=dayMeta().w.length, sets=`${n} set${n===1?'':'s'}`;
+  /* stacked, not a row: .btn is width:100% by design (v3.3.68), so the
+     sentence sits above the button rather than beside it */
+  if(planComplete()) return `<div class="card dayclose" style="margin-top:14px;padding:12px 14px">
+      <div class="mono" style="font-size:12px;color:var(--chalk)">That\u2019s the plan.</div>
+      <button class="btn done" id="doneAllBtn" style="margin-top:10px">Close the day \u2192</button></div>`;
+  return `<button class="btn ghost dayclose" id="doneAllBtn" style="margin-top:14px">Close the day \u00b7 ${sets}</button>`;
+}
 const partOpen=p =>{const t=dayMeta();return t.w.some(s=>s.part===p)&&!t.donePart.includes(p);};
 let lastSetAt=null;
 function reanchorRest(){

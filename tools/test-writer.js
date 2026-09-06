@@ -490,9 +490,16 @@ await_(async()=>{
   /* 10 · a week through the stub, on the days picked */
   run(`WRITER_STUB=async(p)=>({days:p.days.map((d,i)=>({date:d,part:['Back','Chest','Legs'][i%3],title:['Back','Chest','Legs'][i%3],text:['Deadlift\\n  215 lb x 5','Barbell Bench Press\\n  150 lb x 8','Squat\\n  205 lb x 8'][i%3]})).concat([{date:'2099-01-01',part:'Back',title:'x',text:'Deadlift\\n  215 lb x 5'}])});`);
   run(`(function(){lift.write=null; lift.plan='write'; render(); document.querySelector('[data-writescope="week"]').click();})()`);
+  /* v3.3.457: DATE-STABLE. This was green six days in seven and red on a
+     Sunday, when the span is Sunday alone and writerDays deliberately falls
+     back to picking it (otherwise Write would be disabled with nothing to
+     write). Pattern 4. The rule is stated in full now: habit days are picked
+     from the span; if that leaves nothing, the first day of the span is. */
   ok("10 · the week scope shows the days through Sunday, prefilled from your habit", run(`document.querySelectorAll('[data-writeday]').length`)>=1 &&
      run(`(function(){const span=writerDays(writerState()); return new Date(span[span.length-1]+'T00:00').getDay()===0;})()`) &&
-     run(`[...writerState().days].every(iso=>new Date(iso+'T00:00').getDay()!==0)`));
+     run(`(function(){const o=writerState(); const span=writerDays(o); const weekdays=span.filter(iso=>new Date(iso+'T00:00').getDay()!==0);
+        return weekdays.length ? [...o.days].every(iso=>new Date(iso+'T00:00').getDay()!==0)
+                               : (o.days.size===1 && o.days.has(span[0]));})()`));
   const picked = run(`writerState().days.size`);
   ok("...the button counts them", new RegExp(`Write ${picked} session`).test(run(`document.querySelector('[data-writego]').textContent`)), run(`document.querySelector('[data-writego]').textContent`));
   run(`document.querySelector('[data-writego]').click()`);

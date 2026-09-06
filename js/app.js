@@ -90,7 +90,9 @@ document.addEventListener('click',e=>{
        seeing it: it had already been spent by the time he looked.
        Finishing an exercise now means exactly that. The day ends when you say
        it ends. */
-    save();renderHeader();doneToast(m,`${lift.ex} complete ✓`);
+    /* v3.3.457: when this tick completes the plan, the toast says so; the
+       close itself is the card that renders beneath (dayCloseHTML). */
+    save();renderHeader();doneToast(m,planComplete()?`${lift.ex} complete \u2014 that\u2019s the plan.`:`${lift.ex} complete ✓`);
     lift.ex=null;return render();
   }
   if(e.target.closest('#reopenPartBtn')&&lift.part){
@@ -100,13 +102,7 @@ document.addEventListener('click',e=>{
     save();renderHeader();toast(`${lift.part} reopened — back at it`);
     return render();
   }
-  if(e.target.closest('#donePartBtn')&&lift.part){
-    const m=dayMeta(); m.upd=Date.now();
-    m.w.filter(s=>s.part===lift.part).forEach(s=>{ if(!m.doneEx.includes(s.ex)) m.doneEx.push(s.ex); });
-    if(!m.donePart.includes(lift.part)) m.donePart.push(lift.part);
-    /* v3.3.431: sealing the last part does not end the day either -- same rule */
-    save();renderHeader();doneToast(m,`${lift.part} complete ✓`);return render();
-  }
+  /* v3.3.457: the part-level Complete handler is gone with its button (lift.js). */
   if(e.target.closest('#doneAllBtn')){
     const m=dayMeta(); m.upd=Date.now();
     m.w.forEach(s=>{ if(!m.doneEx.includes(s.ex)) m.doneEx.push(s.ex);

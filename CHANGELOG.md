@@ -1,5 +1,21 @@
 # ShowUp — changelog
 
+## v3.3.457 (2026-09-05) — The day closes from where you train
+
+The only button that ended the day lived on Today, and the maker trains from
+Train — so he pressed the Complete he could reach, the header stayed red, and it
+read as the app not listening. The close now renders on Train too, from one
+helper, in two weights: a quiet door while the plan is open, and a card that
+says *That's the plan* with the close as its action once every planned exercise
+has a set and a tick. Ticking the last one says so in the toast. Nothing
+closes by itself — closing is a declaration, like rest — and the record still
+counts the day at the first set, as it always has.
+
+*Done with <part>* is gone, at the maker's word. With a plan, the exercise and
+the day are the two units that mean something; the part sat between them doing
+neither job. Continue stays; a part sealed by an earlier build can still be
+reopened.
+
 ## v3.3.456 (2026-09-05) — The name goes when the exercise is closed
 
 Finish Dips and the landscape timer went on saying DIP BW+45lb in the largest
