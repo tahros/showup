@@ -1119,6 +1119,21 @@ function bindScrub(box, svg, getVb){
 function bindDrun(){
   const box=document.getElementById('drWrap'); if(!box) return;
   if(box.scrollWidth>box.clientWidth) box.scrollLeft=box.scrollWidth;
+  /* v3.3.475: the axis year follows the LEFT EDGE of the scroller. The year
+     lives outside the chart so it holds still, which means something has to
+     keep it true as the days move -- the year marks inside carry their year
+     in data-yrmark, so the last one scrolled past is the answer. */
+  const yr=document.querySelector('.draxis [data-dryr]'); if(!yr) return;
+  const svg=box.querySelector('svg'); const marks=[...box.querySelectorAll('[data-yrmark]')];
+  const sync=()=>{ const w=+svg.getAttribute('width')||box.scrollWidth;
+    const px=box.scrollLeft*(w/box.scrollWidth);
+    /* seeded with the ledger's FIRST year, not the first year MARK: a mark
+       names the day a year turns, so before the first one the correct answer
+       is the year the record started in. */
+    let y=yr.getAttribute('data-dryr0')||yr.textContent;
+    for(const m of marks){ if(+m.getAttribute('x')<=px+2) y=m.getAttribute('data-yrmark'); else break; }
+    if(yr.textContent!==y) yr.textContent=y; };
+  box.addEventListener('scroll',sync,{passive:true}); sync();
 }
 function bindHeat(){
   const box=document.querySelector('.heatwrap');

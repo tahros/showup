@@ -557,8 +557,11 @@
   .drcard .pmixhead{display:flex;justify-content:space-between;align-items:center;margin:-4px 0 4px}
   .drcard .drunit{font-size:11px;letter-spacing:.04em;color:var(--faint);text-transform:uppercase}
   .drrow{display:flex;align-items:stretch;gap:6px}
-  .draxis{display:flex;flex-direction:column;justify-content:space-between;flex:0 0 auto;
-    padding:8px 0 46px;font-family:var(--mono);font-size:8px;color:var(--faint);text-align:right;min-width:16px}
+  /* v3.3.475: the axis column holds the year as well as the numbers, so the
+     year stays put while the days scroll. Top padding clears the totals row. */
+  .draxis{position:relative;display:flex;flex-direction:column;justify-content:space-between;flex:0 0 auto;
+    padding:14px 0 46px;font-family:var(--mono);font-size:8px;color:var(--faint);text-align:right;min-width:26px}
+  .draxis .dryr{position:absolute;left:0;top:2px;font-size:8px;font-weight:700;color:var(--muted);text-align:left}
   .drwrap{min-width:0}
   .drwrap > svg{display:block}
   .mpacecard svg{display:block;width:100%;height:auto}

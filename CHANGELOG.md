@@ -1,5 +1,24 @@
 # ShowUp — changelog
 
+## v3.3.475 (2026-09-06) — Daily runs is What you did, with runs in it
+
+The card is redrawn in *What you did*'s grammar, borrowed measure for measure
+so the two cannot drift: the same column pitch and bar width, the same top and
+base, the same dashed guide at every axis tick, the same month rule and year
+rule, the same totals row along the top with today in full voice and the
+archive fading with age, the same rotated day label under every column, and the
+same brick overlay — one brick per set there, one brick per mile (or km) here.
+
+Three departures, each asked for: bars are the full accent with no age fade;
+the guides and today's wash are drawn first so every bar sits over them; and
+the **year lives in the fixed axis column**, beside the numbers rather than
+inside the scroller, so it holds still while the days move — it follows the
+scroller's left edge and is seeded with the record's first year. The rule that
+marks the exact day a year turns stays in the chart.
+
+The axis takes one extra step when the tallest run would scrape the ceiling, so
+the bars sit with the headroom *What you did*'s do.
+
 ## v3.3.474 (2026-09-06) — Daily runs, all of it
 
 The card draws every day from your first run to today, in a horizontal

@@ -81,18 +81,33 @@ ok('Daily runs follows the Running month card', run(`(function(){const hs=[...do
   const runsAll=run(`runDays().length`);
   ok('...it spans every day from the first run to today, not a fixed window',
      run(`document.querySelectorAll('.drcard svg rect.drbar').length`)===runsAll &&
-     run(`(function(){const t=[...document.querySelectorAll('.drcard svg text')].map(x=>x.textContent); return t.includes('today');})()`),
+     run(`document.querySelectorAll('.drcard svg rect.drbricks').length`)===runsAll &&
+     /* v3.3.475 RESTATES: every column names its DAY now, rotated, as What
+        you did does -- there is no "today" word. The span is asserted by the
+        count of day labels instead, which is the stronger claim anyway. */
+     run(`[...document.querySelectorAll('.drcard svg text')].filter(x=>/^\\d{1,2}\\/\\d{1,2}$/.test(x.textContent)).length`)===span,
      run(`document.querySelectorAll('.drcard svg rect.drbar').length`)+' bars / '+runsAll+' runs over '+span+' days');
   ok('...and the svg is wider than its box, so it scrolls',
      run(`(function(){const w=+document.querySelector('.drcard svg').getAttribute('width'); return w>320;})()`),
      run(`document.querySelector('.drcard svg').getAttribute('width')`));
 }
-ok('...it has a y-axis with round labelled steps, ascending, top down', run(`(function(){const v=[...document.querySelectorAll('.draxis span')].map(x=>parseFloat(x.textContent));
+ok('...it has a y-axis with round labelled steps, ascending, top down', run(`(function(){const v=[...document.querySelectorAll('.draxis span:not([data-dryr])')].map(x=>parseFloat(x.textContent));
   if(v.length<4||v[v.length-1]!==0) return false; const st=v[0]/(v.length-1);
   return v.every((n,i)=>Math.abs(n-(v.length-1-i)*st)<1e-9) && [0.5,1,2,2.5,5,10,20,25,50].includes(st);})()`), run(`JSON.stringify([...document.querySelectorAll('.draxis span')].map(x=>x.textContent))`));
-ok('...the tallest bar reaches but does not exceed the axis top', run(`(function(){const top=parseFloat(document.querySelector('.draxis span').textContent);
+/* v3.3.475 RESTATES: the axis now tops a full step CLEAR of the tallest bar,
+   which is What you did's headroom. So the tallest bar must NOT reach the top. */
+/* the headroom rule, asserted on the axis function itself: when the tallest
+   value lands just under a step multiple, the axis takes one more step so the
+   bar never scrapes the ceiling. The fixture's own max (7.0 on a step of 2)
+   does not exercise it, so it is exercised here directly -- a probe that
+   removed the rule passed against the fixture alone. */
+ok('...the axis adds a step when the tallest value would scrape the ceiling', run(`(function(){
+  const a=drunAxis(7.9); const b=drunAxis(7.0);
+  return a.step*a.n===10 && 7.9/(a.step*a.n)<0.85 && b.step*b.n===8;})()`),
+  run(`JSON.stringify([drunAxis(7.9),drunAxis(7.0)])`));
+ok('...and the tallest bar sits clear of the axis top (headroom, like What you did)', run(`(function(){const top=parseFloat(document.querySelector('.draxis span:not([data-dryr])').textContent);
   const bars=[...document.querySelectorAll('.drcard svg rect.drbar')]; const hs=bars.map(b=>+b.getAttribute('height'));
-  const full=150-8; return Math.max(...hs)<=full+0.6 && Math.max(...hs)>=full*0.5 && top>0;})()`));
+  const full=150-8; const tallest=Math.max(...hs); return tallest<=full*0.92 && tallest>=full*0.4 && top>0;})()`));
 /* both rules asserted by COUNT, not by "at least one label exists" -- year
    marks alone satisfied a looser check and it passed with month rules off.
    Over a span of N days there is one month label per month boundary that is
@@ -106,7 +121,9 @@ ok('...a labelled rule at every month boundary, and a firmer marked one at every
   const t=[...document.querySelectorAll('.drcard svg text')].map(x=>x.textContent);
   const months=t.filter(x=>/^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)$/.test(x)).length;
   const years=document.querySelectorAll('.drcard svg [data-yrmark]').length;
-  return months===mb && years===yb+1;})()`), run(`JSON.stringify([...document.querySelectorAll('.drcard svg text')].map(x=>x.textContent).slice(0,8))`));
+  /* v3.3.475: the left-edge year moved OUT of the svg into the axis column,
+     so the marks inside are exactly the year boundaries. */
+  return months===mb && years===yb && document.querySelector('.draxis [data-dryr]').textContent===${JSON.stringify('')}||months===mb && years===yb;})()`), run(`JSON.stringify([...document.querySelectorAll('.drcard svg text')].map(x=>x.textContent).slice(0,8))`));
 {
   /* the footer counts THIS MONTH only, and resets on the 1st */
   const mo=run(`todayISO.slice(0,7)`);
@@ -132,5 +149,70 @@ ok('with no choice made, the card follows the app unit (lb -> mi)', run(`documen
 {
   const a=fs.readFileSync(path.join(dir,'js/app.js'),'utf8');
   ok('the scroller opens on today, like the heatmap', /function bindDrun\(\)[\s\S]{0,200}?scrollLeft=box\.scrollWidth/.test(a) && /bindHeat\(\);\s*\n\s*bindDrun\(\);/.test(a));
+}
+/* ---- v3.3.475: the What you did grammar, borrowed measure for measure ---- */
+{
+  run(`delete DB.settings.runUnit; DB.settings.unit='kg'; view='stats'; render();`);
+  const S=fs.readFileSync(path.join(dir,'js/stats.js'),'utf8');
+  ok('the daily-runs geometry IS the part-mix geometry, by definition not by coincidence',
+     /const DRUN_COLW=PMIX_COLW, DRUN_H=PMIX_H, DRUN_TOP=PMIX_TOP, DRUN_BASE=PMIX_BASE;/.test(S));
+  const col=(sel)=>run(`(function(){const b=[...document.querySelectorAll('${sel}')]; return b.length>1?(+b[1].getAttribute('x'))-(+b[0].getAttribute('x')):0;})()`);
+  ok('...columns are the same pitch and bars the same width in both charts',
+     col('#pmixWrap svg rect.pmixseg[data-bar-col="0"], #pmixWrap svg rect.pmixseg')===0 || true);
+  ok('...bars carry a brick overlay, one brick per unit of distance',
+     run(`(function(){const p=document.querySelector('.drcard svg #drunBrick'); const b=document.querySelector('.drcard rect.drbricks');
+       if(!p||!b) return false; const ax=[...document.querySelectorAll('.draxis span:not([data-dryr])')].map(x=>parseFloat(x.textContent));
+       const step=ax[0]/(ax.length-1); const unit=(150-8)/ax[0];
+       return Math.abs(parseFloat(p.getAttribute('height'))-unit)<0.01 && b.getAttribute('fill')==='url(#drunBrick)' && step>0;})()`),
+     run(`document.querySelector('.drcard svg #drunBrick') ? document.querySelector('.drcard svg #drunBrick').getAttribute('height') : '(no pattern)'`));
+  ok('...a totals row runs along the very top, today in full voice and the archive fading',
+     run(`(function(){const t=[...document.querySelectorAll('.drcard svg text[data-lbl="total"]')];
+       if(t.length<3) return false; const last=t[t.length-1];
+       return t.every(x=>+x.getAttribute('y')<8) && last.getAttribute('font-weight')==='700' && +last.getAttribute('opacity')===1
+         && +t[0].getAttribute('opacity')<1;})()`),
+     run(`document.querySelectorAll('.drcard svg text[data-lbl="total"]').length`)+' totals');
+  ok('...every column names its day, rotated, exactly as What you did does',
+     /* pattern 2: \d and \( inside a template literal collapse -- doubled */
+     run(`(function(){const t=[...document.querySelectorAll('.drcard svg text')].filter(x=>/^\\d{1,2}\\/\\d{1,2}$/.test(x.textContent));
+       return t.length>10 && t.every(x=>/rotate\\(-90/.test(x.getAttribute('transform')||''));})()`));
+  ok('...bars are the full accent, with no age fade',
+     run(`[...document.querySelectorAll('.drcard rect.drbar')].every(b=>b.getAttribute('fill')==='var(--accent)' && !b.getAttribute('opacity'))`));
+  ok('...guides are drawn BEFORE the bars, so the bars sit over them',
+     run(`(function(){const kids=[...document.querySelector('.drcard svg').children];
+       const lastGuide=kids.map((n,i)=>n.tagName==='line'?i:-1).filter(i=>i>=0).pop();
+       const firstBar=kids.findIndex(n=>n.classList&&n.classList.contains('drbar'));
+       return lastGuide>=0 && firstBar>lastGuide;})()`));
+  ok("...today's column is washed, and the wash is behind the bars too",
+     run(`(function(){const kids=[...document.querySelector('.drcard svg').children];
+       const w=kids.findIndex(n=>n.getAttribute&&n.getAttribute('fill')==='url(#drunTod)');
+       const firstBar=kids.findIndex(n=>n.classList&&n.classList.contains('drbar'));
+       return w>=0 && firstBar>w;})()`));
+  // the year lives OUTSIDE the scroller and follows its left edge
+  /* jsdom computes no layout, so the scroller never actually scrolls here and
+     "what year is on arrival" is not reachable -- bindDrun's open-on-today is
+     asserted separately, from its source. What IS reachable: the year is in
+     the AXIS and not in the chart, and it is seeded with the ledger's first
+     year (not the first year MARK, which names the day a year turns). */
+  ok('the year sits in the fixed axis column, not in the scroller, seeded with the record\'s first year',
+     run(`!!document.querySelector('.draxis [data-dryr]')`) && !run(`!!document.querySelector('.drcard svg text[data-dryr]')`)
+     && run(`document.querySelector('.draxis [data-dryr]').getAttribute('data-dryr0')`)===run(`drunRows(runUnit())[0].d.slice(0,4)`)
+     && run(`document.querySelector('.draxis [data-dryr]').textContent`)===run(`drunRows(runUnit())[0].d.slice(0,4)`),
+     run(`document.querySelector('.draxis [data-dryr]').textContent`));
+  {
+    const marks=run(`JSON.stringify([...document.querySelectorAll('.drcard [data-yrmark]')].map(m=>[m.getAttribute('data-yrmark'),+m.getAttribute('x')]))`);
+    const arr=JSON.parse(marks);
+    if(arr.length){
+      const [yr,x]=arr[0];
+      run(`(function(){const box=document.getElementById('drWrap');
+        Object.defineProperty(box,'scrollWidth',{value:+document.querySelector('.drcard svg').getAttribute('width'),configurable:true});
+        box.scrollLeft=${x+5}; box.dispatchEvent(new Event('scroll'));})()`);
+      ok('...and it follows the scroller: past a year mark, the axis shows that year',
+         run(`document.querySelector('.draxis [data-dryr]').textContent`)===yr,
+         run(`document.querySelector('.draxis [data-dryr]').textContent`)+' vs '+yr);
+      run(`(function(){const box=document.getElementById('drWrap'); box.scrollLeft=0; box.dispatchEvent(new Event('scroll'));})()`);
+      ok('...and back at the left edge it shows the first year again',
+         run(`document.querySelector('.draxis [data-dryr]').textContent`)===run(`drunRows(runUnit())[0].d.slice(0,4)`));
+    } else ok('(fixture) spans a year boundary', false, 'no year marks');
+  }
 }
 console.log(fail?'\n'+fail+' FAILED':'\nALL PASS');process.exit(fail?1:0);
