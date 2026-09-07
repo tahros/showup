@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v3.3.483 (2026-09-07) — Today's main blue
+
+On a Dark tab bar, the completed TODAY icon now uses the app's main blue
+when TODAY is selected, instead of the pale blue variant. The colour follows
+the app's accent token. Unselected icons, Light bars, open-day outlines and
+rest indicators are unchanged. The v3.3.482 layout recovery is untouched.
+
+Workout completion behaviour is unchanged in this release.
+
 ## v3.3.482 (2026-09-07) — Repair the bar that is actually on screen
 
 The phone screenshot confirmed v3.3.481 was installed and the bar still

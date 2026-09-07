@@ -1,0 +1,37 @@
+<!doctype html>
+<html data-skin="minimal" data-theme="light" data-bar="dark">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Today blue — isolated visual test</title>
+<link rel="stylesheet" href="../css/app.css?v=nav-blue-test">
+<style>main{padding:24px;font:16px system-ui}label{display:block;margin:16px 0}select{width:auto;padding:8px}output{display:block;margin:16px 0}
+/* Isolate colour with the recovered row geometry; app runtime is not loaded. */
+nav{display:flex!important;flex-flow:row nowrap!important;align-items:stretch!important}
+nav button{flex:1 1 0!important;min-width:0!important}
+</style>
+<main><h2>Today blue</h2><p>Real app CSS and navigation markup. No app scripts or workout data.</p>
+<label>App theme <select id="theme"><option>light</option><option>dark</option></select></label>
+<label>Bar <select id="bar"><option>dark</option><option>light</option></select></label>
+<label>Day <select id="day"><option value="dayclosed">completed</option><option value="">open</option><option value="resting">resting</option></select></label>
+<output id="result">Loading navigation…</output></main>
+<script>
+(async()=>{
+  const html=await (await fetch('../index.html')).text();
+  const source=new DOMParser().parseFromString(html,'text/html');
+  const nav=document.importNode(source.querySelector('#nav'),true);
+  document.body.appendChild(nav);
+  function measure(){
+    const sq=nav.querySelector('.sq'),r=nav.getBoundingClientRect();
+    document.querySelector('#result').textContent='Today fill: '+getComputedStyle(sq).fill+'; bar height: '+r.height.toFixed(1)+'px';
+  }
+  function update(){
+    document.documentElement.dataset.theme=document.querySelector('#theme').value;
+    document.documentElement.dataset.bar=document.querySelector('#bar').value;
+    nav.className=document.querySelector('#day').value;measure();
+  }
+  document.querySelectorAll('select').forEach(s=>s.onchange=update);
+  nav.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    nav.querySelectorAll('button').forEach(t=>t.classList.toggle('on',t===b));measure();
+  });
+  update();
+})();
+</script></html>

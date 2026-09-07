@@ -2840,6 +2840,9 @@
   :root[data-skin="minimal"] nav button.on{color:var(--pill-chalk);background:color-mix(in srgb,var(--pill) 60%,var(--pill-ink) 16%)}   /* v3.3.470: ink on grey; v3.3.478: the BAR's ink */
   /* v3.3.470: on the pill the closed-day fill is --pill-accent: the accent in light, the accent-as-ink in dark, where the raw accent is 2.3:1 on the grey capsule over a blue button */
   :root[data-skin="minimal"] nav.dayclosed button[data-v="today"] .ng svg .sq{fill:var(--pill-accent)}
+  /* v3.3.483: selected Today on a dark bar uses the main blue, not its pale ink variant.
+     Keep unselected, open-day and rest states unchanged. */
+  :root[data-skin="minimal"][data-bar="dark"] nav.dayclosed button[data-v="today"].on .ng svg .sq{fill:var(--accent)}
   /* v3.3.331: the TRAIN TAB joins the skin. Everything above was written
      against the Bench Press mockup, which was a Today composition -- cards,
      zones, fields, the nav pill. The two surfaces that FILL the Train tab,
