@@ -2,7 +2,7 @@
 <html data-skin="minimal" data-theme="light" data-bar="dark">
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Today blue — isolated visual test</title>
-<link rel="stylesheet" href="../css/app.css?v=nav-blue-test">
+<link rel="stylesheet" href="../css/app.css?v=nav-white-edge-test">
 <style>main{padding:24px;font:16px system-ui}label{display:block;margin:16px 0}select{width:auto;padding:8px}output{display:block;margin:16px 0}
 /* Isolate colour with the recovered row geometry; app runtime is not loaded. */
 nav{display:flex!important;flex-flow:row nowrap!important;align-items:stretch!important}
@@ -21,7 +21,8 @@ nav button{flex:1 1 0!important;min-width:0!important}
   document.body.appendChild(nav);
   function measure(){
     const sq=nav.querySelector('.sq'),r=nav.getBoundingClientRect();
-    document.querySelector('#result').textContent='Today fill: '+getComputedStyle(sq).fill+'; bar height: '+r.height.toFixed(1)+'px';
+    const s=getComputedStyle(sq);
+    document.querySelector('#result').textContent='Today fill: '+s.fill+'; edge: '+s.stroke+' / '+s.strokeWidth+'; bar height: '+r.height.toFixed(1)+'px';
   }
   function update(){
     document.documentElement.dataset.theme=document.querySelector('#theme').value;

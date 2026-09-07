@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v3.3.484 (2026-09-07) — White centre, blue edge
+
+Selected completed TODAY on a Dark tab bar now has a white fill and a thin
+outline in the original pale blue (#95A4E8). This replaces v483's main-blue
+fill. It applies in both app themes when the bar itself is Dark. Light bars,
+unselected tabs, open-day outlines, rest indicators and layout recovery stay
+unchanged. Workout-completion ideas remain a separate prototype, not shipped.
+
 ## v3.3.483 (2026-09-07) — Today's main blue
 
 On a Dark tab bar, the completed TODAY icon now uses the app's main blue
