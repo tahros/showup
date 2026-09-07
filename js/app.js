@@ -1419,6 +1419,7 @@ const doneToast=(m,alt)=>{
   else toast(alt);
 };
 function syncNav(){
+  scheduleNavLayoutCheck();
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
   /* v3.3.461: Today's square in the bar shows the day's STATE -- hollow while
      open, filled once closed (doneAll). Every render passes through here, and

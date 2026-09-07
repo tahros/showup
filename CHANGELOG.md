@@ -1,5 +1,20 @@
 # ShowUp — changelog
 
+## v3.3.482 (2026-09-07) — Repair the bar that is actually on screen
+
+The phone screenshot confirmed v3.3.481 was installed and the bar still
+stacked vertically. The previous CSS-only repair was insufficient.
+
+The app now checks the rendered bar after a screen change, resize, return
+to the app and settled scroll. If its four buttons stack, its panel grows
+too tall, or it extends past the screen, the app restores the fixed horizontal
+row directly on those same elements. A healthy bar is left alone. Colours,
+glass, icon states, workout records and plans are unchanged.
+
+This is a conditional recovery, not a claim that the underlying iPhone
+rendering cause has been identified. Regression tests deliberately break
+the layout and verify recovery; the affected phone remains the final check.
+
 ## v3.3.481 (2026-09-07) — Four tabs, one row
 
 The tab bar could appear as a tall panel with its four icons stacked down

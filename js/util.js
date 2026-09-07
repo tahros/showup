@@ -577,8 +577,61 @@ function navReanchor(){
   _reanchorT=setTimeout(()=>{
     const nav=document.getElementById('nav'); if(!nav) return;
     nav.classList.add('reanchor'); void nav.offsetHeight; nav.classList.remove('reanchor');
+    repairNavLayout();
   },120);
 }
+/* v3.3.482: 481 is visible on the affected phone, but its tabs still stack.
+   The CSS-only flex change did not establish the cause. Check USED geometry,
+   not a browser name: leave healthy navigation alone; repair only a broken
+   row. Inline layout declarations outrank a conflicting author stylesheet.
+   Appearance, icons, event handlers and the ledger are never replaced. */
+function repairNavLayout(){
+  const nav=document.getElementById('nav'); if(!nav) return false;
+  const buttons=[...nav.children].filter(b=>b.matches('button[data-v]'));
+  if(buttons.length!==4) return false;
+  const rect=nav.getBoundingClientRect(), boxes=buttons.map(b=>b.getBoundingClientRect());
+  if(!rect.width||!rect.height||boxes.some(b=>!b.width||!b.height)) return false;
+  const style=getComputedStyle(nav), vw=document.documentElement.clientWidth||innerWidth;
+  const bad=style.position!=='fixed'||style.display!=='flex'||style.flexDirection!=='row'
+    ||boxes.some(b=>Math.abs(b.top-boxes[0].top)>2)
+    ||rect.left< -1||rect.right>vw+1||rect.height>100;
+  if(!bad&&!nav.dataset.layoutRecovered) return false;
+  // Layout-only, transient evidence for debugging; no account/workout data.
+  if(bad&&!nav.dataset.layoutRecovered){
+    nav.dataset.layoutFailure=JSON.stringify({display:style.display,direction:style.flexDirection,
+      position:style.position,width:Math.round(rect.width),height:Math.round(rect.height),
+      viewport:vw,tops:boxes.map(b=>Math.round(b.top))});
+  }
+  const minimal=document.documentElement.dataset.skin==='minimal';
+  const put=(el,values)=>Object.entries(values).forEach(([k,v])=>{
+    if(el.style.getPropertyValue(k)!==v||el.style.getPropertyPriority(k)!=='important')
+      el.style.setProperty(k,v,'important');
+  });
+  put(nav,{'position':'fixed','display':'flex','flex-direction':'row','flex-wrap':'nowrap',
+    'align-items':'stretch','justify-content':'flex-start','gap':'0px',
+    'box-sizing':'border-box','top':'auto','left':'0px','right':'0px',
+    'bottom':minimal?'calc(10px + env(safe-area-inset-bottom, 0px))':'0px',
+    'width':Math.max(0,Math.min(vw-(minimal?48:0),minimal?472:520))+'px',
+    'max-width':'100%','min-width':'0px','margin':'0px auto',
+    'height':minimal?'58px':'calc(58px + env(safe-area-inset-bottom, 0px))',
+    'min-height':'0px','max-height':'none','padding-top':'0px',
+    'padding-bottom':minimal?'0px':'env(safe-area-inset-bottom, 0px)'});
+  buttons.forEach(b=>put(b,{'flex':'1 1 0px','min-width':'0px','max-width':'none',
+    'width':'0px','height':'48px','min-height':'0px','box-sizing':'border-box',
+    'display':'flex','align-items':'center','justify-content':'center',
+    'margin':minimal?'5px 2px':'5px 4px','padding':'10px 4px'}));
+  nav.dataset.layoutRecovered='1';
+  return true;
+}
+let _navCheckFrame=0;
+function scheduleNavLayoutCheck(){
+  if(_navCheckFrame) return;
+  _navCheckFrame=requestAnimationFrame(()=>{_navCheckFrame=0;repairNavLayout();});
+}
+addEventListener('resize',scheduleNavLayoutCheck,{passive:true});
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible') scheduleNavLayoutCheck();
+});
 function dayMeta(){const t=day(todayISO);t.doneEx=t.doneEx||[];t.donePart=t.donePart||[];t.sugX=t.sugX||{};return t;}
 const isLive =()=>{const t=day(todayISO);return t.w.length>0&&!t.doneAll;};
 /* v3.3.412: the day is CLOSED -- work logged and the day-end pressed. Named
