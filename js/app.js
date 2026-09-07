@@ -1130,14 +1130,22 @@ function bindScrub(box, svg, getVb){
    scrollWidth because a narrow enough window may not overflow at all. */
 /* v3.3.474: the daily-runs scroller opens on today, like the heatmap and the
    part-mix strip. Called from paint(), so every render re-anchors it. */
-/* v3.3.481: THE SCRUB. Touch the chart and drag: the run nearest the finger
-   lights, the others fade, and a readout above shows its date and value. The
-   nearest run is found by x alone -- a chart is a ruler of columns, and the
-   finger picks a column -- so scrubbing feels like sliding along the line
-   rather than aiming at dots. Lifting the finger keeps the last pick until the
-   next touch; tapping the same point again clears it. Wheel and mouse do the
-   same on a desktop. All state lives in classes and one readout node, so a
-   re-render clears it and nothing can leak. */
+/* v3.3.486: THE SCRUB, SECOND CUT. Two problems with the first: it fought the
+   scroll (a chart that scrolls sideways and scrubs sideways cannot do both on
+   the same gesture), and its readout was a bubble that hid behind the finger.
+   The fix for the first is the one every stock and health app uses -- A DRAG
+   SCROLLS, A HOLD SCRUBS. Touch and move at once and the chart scrolls, as it
+   always has. Touch and hold for ~250ms without moving and the chart arms: the
+   nearest run pops, a guide drops through its column, and from then on the
+   finger drives the pick while the scroll stays put (the touchmove listener is
+   non-passive so it can preventDefault only while armed). Lift and it
+   releases, keeping the pick; tap the same run again to clear.
+   The fix for the second is This year vs last's: the numbers go IN THE HEAD.
+   The caption gives way to the run's date, its distance and its pace together
+   -- both facts, whatever the chart is drawing -- so the finger never covers
+   what it is reading. Mouse: press and drag scrubs at once; there is no scroll
+   to protect. */
+const DRUN_HOLD_MS=250, DRUN_SLOP=8;
 function drunScrubAt(box,clientX){
   const svg=box.querySelector('svg'); if(!svg) return null;
   const dots=[...svg.querySelectorAll('circle.drdot')]; if(!dots.length) return null;
@@ -1147,33 +1155,56 @@ function drunScrubAt(box,clientX){
   return best;
 }
 function drunScrubShow(box,dot){
-  const out=box.querySelector('.drscrub'); const svg=box.querySelector('svg');
+  const svg=box.querySelector('svg'); const card=box.closest('.drcard');
+  const head=card&&card.querySelector('[data-drread]'); const cap=card&&card.querySelector('[data-drcap]');
   svg.querySelectorAll('circle.drdot.pick').forEach(c=>c.classList.remove('pick'));
-  if(!dot){ box.classList.remove('scrubbing'); if(out){ out.hidden=true; out.textContent=''; } return; }
+  const g=svg.querySelector('.drguide'); if(g) g.remove();
+  if(!dot){ box.classList.remove('scrubbing'); if(head){ head.hidden=true; head.textContent=''; } if(cap) cap.hidden=false; return; }
   box.classList.add('scrubbing'); dot.classList.add('pick');
-  const d=dot.getAttribute('data-d'); const day=new Date(d+'T00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
-  const unit=box.getAttribute('data-drun-unit')||''; const mode=box.getAttribute('data-drun-mode')||'dist';
-  out.textContent=`${day} \u00b7 ${dot.getAttribute('data-v')}${mode==='pace'?' /'+unit:' '+unit}`;
-  out.hidden=false;
-  /* keep the readout inside the visible box, over the picked column */
-  const rect=svg.getBoundingClientRect(); const scale=(rect.width||1)/(+svg.getAttribute('width')||rect.width);
-  const px=(+dot.getAttribute('cx'))*scale - box.scrollLeft;
-  out.style.left=Math.max(4,Math.min(box.clientWidth-out.offsetWidth-4,px-out.offsetWidth/2))+'px';
+  /* the guide: a hairline through the picked column, base to top, like This year vs last's cursor */
+  const NS='http://www.w3.org/2000/svg'; const line=document.createElementNS(NS,'line');
+  line.setAttribute('class','drguide'); line.setAttribute('x1',dot.getAttribute('cx')); line.setAttribute('x2',dot.getAttribute('cx'));
+  line.setAttribute('y1',String(PMIX_TOP)); line.setAttribute('y2',String(PMIX_BASE));
+  line.setAttribute('stroke','var(--chalk)'); line.setAttribute('stroke-width','0.7'); line.setAttribute('opacity','.45');
+  svg.insertBefore(line, dot);
+  /* the head: date, distance AND pace -- both facts, whatever the line draws */
+  const d=dot.getAttribute('data-d');
+  const day=new Date(d+'T00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+  const r=runDays().find(x=>x.d===d); const u=DU();
+  const dist=r?`${(Math.round(toD(r.km)*100)/100).toFixed(2)} ${u}`:'';
+  const pace=(r&&r.timed>0&&r.sec>0)?`${paceStr(r.sec/toD(r.timed))} /${u}`:'';
+  if(head){ head.innerHTML=`<b>${day}</b>${dist?` \u00b7 ${dist}`:''}${pace?` \u00b7 ${pace}`:''}`; head.hidden=false; }
+  if(cap) cap.hidden=true;
+}
+function bindDrunScrub(box){
+  if(box._scrub) return; box._scrub=true;
+  let armed=false, down=false, hold=0, sx=0, sy=0, holdLive=false;   // holdLive: the touch has not moved past the slop
+  const at=e=>{ const t=e.touches?e.touches[0]:e; return t?{x:t.clientX,y:t.clientY}:null; };
+  const arm=x=>{ armed=true; box.classList.add('armed'); drunScrubShow(box,drunScrubAt(box,x)); };
+  /* the hold is a named function the timer calls, so a test can run the real
+     one instead of sleeping through it */
+  box._drunArm=()=>{ if(down&&!armed&&holdLive) arm(sx); };
+  const disarm=()=>{ armed=false; down=false; holdLive=false; clearTimeout(hold); box.classList.remove('armed'); };
+  /* touch: a hold arms; movement before the hold is a scroll and cancels it */
+  box.addEventListener('touchstart',e=>{ const p=at(e); if(!p) return; down=true; holdLive=true; sx=p.x; sy=p.y; clearTimeout(hold);
+    const dot=drunScrubAt(box,p.x);
+    if(dot&&dot.classList.contains('pick')){ drunScrubShow(box,null); down=false; return; }   // tap the pick again: clear
+    hold=setTimeout(box._drunArm,DRUN_HOLD_MS); },{passive:true});
+  box.addEventListener('touchmove',e=>{ const p=at(e); if(!p||!down) return;
+    if(armed){ e.preventDefault(); drunScrubShow(box,drunScrubAt(box,p.x)); return; }
+    if(Math.abs(p.x-sx)>DRUN_SLOP||Math.abs(p.y-sy)>DRUN_SLOP){ holdLive=false; clearTimeout(hold); }   // it is a scroll: the hold dies
+  },{passive:false});
+  box.addEventListener('touchend',disarm); box.addEventListener('touchcancel',disarm);
+  /* mouse: no scroll to protect, so press-and-drag scrubs at once */
+  box.addEventListener('mousedown',e=>{ down=true; const dot=drunScrubAt(box,e.clientX);
+    if(dot&&dot.classList.contains('pick')){ drunScrubShow(box,null); down=false; return; } arm(e.clientX); });
+  box.addEventListener('mousemove',e=>{ if(down&&armed) drunScrubShow(box,drunScrubAt(box,e.clientX)); });
+  box.addEventListener('mouseup',disarm); box.addEventListener('mouseleave',disarm);
 }
 function bindDrun(){
   const box=document.getElementById('drWrap'); if(!box) return;
   if(box.scrollWidth>box.clientWidth) box.scrollLeft=box.scrollWidth;
-  if(!box._scrub){
-    box._scrub=true;
-    let down=false;
-    const at=e=>{ const t=e.touches?e.touches[0]:e; return t?t.clientX:null; };
-    const start=e=>{ down=true; const x=at(e); if(x==null) return; const dot=drunScrubAt(box,x);
-      if(dot&&dot.classList.contains('pick')){ drunScrubShow(box,null); down=false; return; } drunScrubShow(box,dot); };
-    const move=e=>{ if(!down) return; const x=at(e); if(x==null) return; drunScrubShow(box,drunScrubAt(box,x)); };
-    const end=()=>{ down=false; };
-    box.addEventListener('touchstart',start,{passive:true}); box.addEventListener('touchmove',move,{passive:true}); box.addEventListener('touchend',end);
-    box.addEventListener('mousedown',start); box.addEventListener('mousemove',move); box.addEventListener('mouseup',end); box.addEventListener('mouseleave',end);
-  }
+  bindDrunScrub(box);   // v3.3.486: hold to scrub, drag to scroll
   /* v3.3.475: the axis year follows the LEFT EDGE of the scroller. The year
      lives outside the chart so it holds still, which means something has to
      keep it true as the days move -- the year marks inside carry their year

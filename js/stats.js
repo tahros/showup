@@ -1145,12 +1145,13 @@ function dailyRunsSection(){
   return `<h2>Daily runs${hActs('dailyruns','One point per run, oldest first \u2014 days you did not run are left out, so the line is unbroken. Tap the caption to switch mi/km, and dist/pace to switch what the line measures. Pace floats around your own range: lower is faster. The line beneath counts this month only, from the 1st.','About Daily runs')}</h2>
     <div class="card drcard">
       <div class="pmixhead">
-        <span class="drunit mono">${u}${mode==='pace'?' / min':' / run'}</span>
+        <span class="drunit mono" data-drcap>${u}${mode==='pace'?' / min':' / run'}</span>
+        <span class="drread mono" data-drread hidden></span>
         <button type="button" class="pmixmode" data-drunmode aria-label="Show ${mode==='dist'?'pace':'distance'} instead"><span class="${mode==='dist'?'on':''}">dist</span><span class="${mode==='pace'?'on':''}">pace</span></button>
       </div>
       <div class="drrow">
         <div class="draxis"><span class="dryr" data-dryr data-dryr0="${rows[0].d.slice(0,4)}">${rows[0].d.slice(0,4)}</span>${labs.join('')}</div>
-        <div class="pmixwrap drwrap" id="drWrap" data-drun-mode="${mode}" data-drun-unit="${u}">${dailyRunsSvg(rows,u,mode,ax)}<div class="drscrub" aria-live="polite" hidden></div></div>
+        <div class="pmixwrap drwrap" id="drWrap" data-drun-mode="${mode}" data-drun-unit="${u}">${dailyRunsSvg(rows,u,mode,ax)}</div>
       </div>
       <div class="tot">${foot}</div></div>`;
 }

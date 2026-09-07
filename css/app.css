@@ -565,9 +565,12 @@
   .drwrap.scrubbing .drline,.drwrap.scrubbing .drfill{opacity:.55}
   .drwrap .drdot.pick{r:4.2;fill:var(--accent)}
   .drwrap .drdot.out{opacity:.7}
-  .drscrub{position:absolute;top:2px;padding:4px 8px;border-radius:8px;background:var(--chalk);color:var(--ground);
-    font-family:var(--mono);font-size:11px;white-space:nowrap;pointer-events:none;box-shadow:var(--shadow)}
-  .drscrub[hidden]{display:none}
+  /* v3.3.486: the readout moved into the HEAD (This year vs last's way); the
+     bubble is gone. .armed marks the hold that turned a touch into a scrub. */
+  .drcard .drread{font-size:11px;letter-spacing:.02em;color:var(--muted);font-family:var(--mono);flex:1;padding:0 8px;text-align:left}
+  .drcard .drread b{color:var(--chalk);font-weight:600}
+  .drcard .drread[hidden],.drcard .drunit[hidden]{display:none}
+  .drwrap.armed{cursor:col-resize}
   .drcard .drdot.newest{filter:none}
   .draxis span{white-space:nowrap}
   .drrow{display:flex;align-items:stretch;gap:6px}

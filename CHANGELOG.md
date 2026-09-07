@@ -1,5 +1,20 @@
 # ShowUp — changelog
 
+## v3.3.486 (2026-09-07) — A drag scrolls, a hold scrubs
+
+The first scrub fought the scroll: a chart that scrolls sideways and scrubs
+sideways cannot do both on one gesture. The answer is the one every stock and
+health app uses. Touch and move at once and the chart scrolls, as it always
+has. Touch and hold for a quarter second without moving and the chart arms:
+the nearest run pops, a hairline guide drops through its column, and from then
+on the finger drives the pick while the scroll stays put. Lift and it releases,
+keeping the pick; tap the picked run again to clear. Mouse: press and drag
+scrubs at once — there is no scroll to protect.
+
+The readout moved from a bubble under the finger into the card's head, the way
+*This year vs last* does it: the run's date, its distance and its pace,
+together, whatever the line is drawing.
+
 ## v3.3.485 (2026-09-07) — Daily runs: the app's unit, a readable pace axis, and a scrub
 
 Three faults on one card, plus a correction. This release was first pushed as

@@ -178,26 +178,46 @@ ok('...and the footer is the month average and the best', run(`/per km in /.test
   run(`(function(){const r=DB.days[__slowDay].w.find(s=>s.ex==='Run'); r.mins=32; r.secs=0; SEED=deriveAll(); render();})()`);
   ok('...with the outlier gone, no dot is clipped', !run(`!!document.querySelector('.drcard circle.drdot.out')`));
 }
-/* ---- v3.3.481: the scrub ---- */
+/* ---- v3.3.486: the scrub -- a drag scrolls, a hold scrubs; stats in the head ---- */
 {
   run(`(function(){const box=document.getElementById('drWrap'); const svg=box.querySelector('svg');
-    /* jsdom has no layout: give the svg a 1:1 box so clientX maps to svg x */
     svg.getBoundingClientRect=()=>({left:0,top:0,width:+svg.getAttribute('width'),height:186,right:+svg.getAttribute('width'),bottom:186});
     Object.defineProperty(box,'clientWidth',{value:320,configurable:true}); })()`);
-  const dots=run(`document.querySelectorAll('.drcard circle.drdot').length`);
-  const cx3=run(`+document.querySelectorAll('.drcard circle.drdot')[3].getAttribute('cx')`);
+  const cxOf=i=>run(`+document.querySelectorAll('.drcard circle.drdot')[${i}].getAttribute('cx')`);
+  const touch=(type,x,y)=>run(`(function(){const box=document.getElementById('drWrap'); const e=new Event('${type}',{bubbles:true,cancelable:true}); e.touches=[{clientX:${x},clientY:${y}}]; box.dispatchEvent(e); return e.defaultPrevented;})()`);
+  const picked=()=>run(`(function(){const p=document.querySelector('.drcard circle.drdot.pick'); return p?p.getAttribute('data-i'):null;})()`);
+  const armed=()=>run(`document.getElementById('drWrap').classList.contains('armed')`);
+  const cx3=cxOf(3), cx7=cxOf(7);
+  /* A DRAG: touch, move 20px before the hold -> a scroll. Nothing picked, the move not prevented, and the hold that then fires does nothing. */
+  touch('touchstart',cx3,100); const prevented1=touch('touchmove',cx3+20,100);
+  run(`document.getElementById('drWrap')._drunArm();`);
+  ok('touch-and-move at once is a SCROLL: nothing picked, the move not prevented, a late hold is ignored', picked()===null && !armed() && prevented1===false, JSON.stringify({picked:picked(),armed:armed(),prevented1, hasArm:run(`typeof document.getElementById('drWrap')._drunArm`)}));
+  touch('touchend',0,0);
+  /* A HOLD: touch, no movement, the hold fires -> armed, the nearest run picked, a guide dropped, the head shows the stats */
+  touch('touchstart',cx3,100); run(`document.getElementById('drWrap')._drunArm();`);
+  ok('touch-and-hold ARMS the scrub and picks the nearest run', armed() && picked()==='3', picked());
+  ok('...a guide drops through the picked column, base to top', run(`(function(){const g=document.querySelector('.drcard .drguide'); const p=document.querySelector('.drcard circle.drdot.pick'); return !!g && g.getAttribute('x1')===p.getAttribute('cx') && +g.getAttribute('y1')===8 && +g.getAttribute('y2')===150;})()`));
+  ok("...and the HEAD shows the run's date, distance and pace together; the caption steps aside",
+     run(`(function(){const h=document.querySelector('.drcard [data-drread]'); const c=document.querySelector('.drcard [data-drcap]'); return !h.hidden && c.hidden && /\\w{3}, \\w{3} \\d+/.test(h.textContent) && /\\d+\\.\\d\\d km/.test(h.textContent) && /\\d+'\\d\\d" \\/km/.test(h.textContent);})()`),
+     run(`document.querySelector('.drcard [data-drread]').textContent`));
+  /* armed: movement now scrubs and IS prevented (the scroll stays put) */
+  const prevented2=touch('touchmove',cx7-1,100);
+  ok('while armed, movement slides the pick and the move is PREVENTED so the chart does not scroll', picked()==='7' && prevented2===true);
+  touch('touchend',0,0);
+  ok('lifting releases the arm but keeps the pick', !armed() && picked()==='7');
+  /* tap the pick again: clear */
+  touch('touchstart',cx7-1,100);
+  ok('...and tapping the picked run again clears it: no pick, no guide, caption back', picked()===null && !run(`!!document.querySelector('.drcard .drguide')`) && !run(`document.querySelector('.drcard [data-drcap]').hidden`) && run(`document.querySelector('.drcard [data-drread]').hidden`));
+  touch('touchend',0,0);
+  /* mouse: no scroll to protect, press-and-drag scrubs at once */
   run(`document.getElementById('drWrap').dispatchEvent(new MouseEvent('mousedown',{clientX:${cx3}+2,bubbles:true}));`);
-  ok('pressing on the chart picks the nearest run', run(`(function(){const p=document.querySelector('.drcard circle.drdot.pick'); return !!p && p.getAttribute('data-i')==='3';})()`), run(`(document.querySelector('.drcard circle.drdot.pick')||{getAttribute:()=>'(none)'}).getAttribute('data-i')`));
-  ok('...the others fade and the readout shows its date and value', run(`document.getElementById('drWrap').classList.contains('scrubbing')`) &&
-     run(`(function(){const o=document.querySelector('.drscrub'); const p=document.querySelector('.drcard circle.drdot.pick'); return !o.hidden && o.textContent.includes(p.getAttribute('data-v')) && /\\w{3}, \\w{3} \\d+/.test(o.textContent);})()`), run(`document.querySelector('.drscrub').textContent`));
-  const cx7=run(`+document.querySelectorAll('.drcard circle.drdot')[7].getAttribute('cx')`);
+  ok('a mouse press scrubs at once (no scroll to protect)', picked()==='3' && armed());
   run(`document.getElementById('drWrap').dispatchEvent(new MouseEvent('mousemove',{clientX:${cx7}-1,bubbles:true}));`);
-  ok('dragging slides the pick along the line', run(`document.querySelector('.drcard circle.drdot.pick').getAttribute('data-i')`)==='7');
+  ok('...and a drag slides the pick', picked()==='7');
   run(`document.getElementById('drWrap').dispatchEvent(new MouseEvent('mouseup',{bubbles:true}));`);
-  ok('lifting keeps the last pick', run(`document.querySelector('.drcard circle.drdot.pick').getAttribute('data-i')`)==='7');
-  run(`document.getElementById('drWrap').dispatchEvent(new MouseEvent('mousedown',{clientX:${cx7}-1,bubbles:true}));`);
-  ok('...and tapping the same point again clears it', !run(`!!document.querySelector('.drcard circle.drdot.pick')`) && run(`document.querySelector('.drscrub').hidden`) && !run(`document.getElementById('drWrap').classList.contains('scrubbing')`));
-  ok('(harness) the chart has more than eight runs to scrub across', dots>8);
+  ok('...release keeps the pick', !armed() && picked()==='7');
+  ok('the old bubble is gone', !run(`!!document.querySelector('.drscrub')`));
+  run(`document.getElementById('drWrap').dispatchEvent(new MouseEvent('mousedown',{clientX:${cx7}-1,bubbles:true})); document.getElementById('drWrap').dispatchEvent(new MouseEvent('mouseup',{bubbles:true}));`);
 }
 run(`document.querySelector('.drcard [data-drunmode]').click();`);
 ok('back to dist restores the fill and every label', run(`drunMode()`)==='dist' && run(`!!document.querySelector('.drcard polygon.drfill')`) && run(`document.querySelectorAll('.drcard text[data-lbl="total"]').length`)===run(`document.querySelectorAll('.drcard circle.drdot').length`));
