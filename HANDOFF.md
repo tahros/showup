@@ -1,5 +1,13 @@
 # ShowUp — handoff (2026-08-22, v3.3.267)
 
+## Completion correction — v3.3.490 (2026-09-07)
+
+`#doneAllBtn` passes an explicit-intent flag through `doneToast()` to
+`celebrateDayDone()`. A same-day stamp must block automatic repetition only;
+it must never make that visible button a no-op. The summary count is 84px
+(76px at four digits), has no decorative trail, and the completed card says
+only `Day N` at 22px. The date/status/reopen note and share path stay intact.
+
 ## Completion update — v3.3.489 (2026-09-07)
 
 Today uses the approved completion prototype. `dayCloseHTML()` gives Today a

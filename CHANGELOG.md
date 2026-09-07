@@ -1,5 +1,20 @@
 # ShowUp — changelog
 
+## v3.3.490 (2026-09-07) — The completion button always answers
+
+An earlier completion stamp could make **Complete today’s workout** close the
+day without showing the animation or summary. The stamp still prevents an
+automatic interruption twice in one day, but an explicit press now always
+opens the completion moment—even after another set reopened a finished day.
+
+The completion count is reduced from 108px to 84px (76px for four digits), and
+the decorative row of streak squares is removed. The completed Today card is
+quieter too: its title is 22px and reads simply **Day N**, without **In the
+book.** The date, **Workout complete**, and reopening note remain.
+
+Regression coverage reproduces the reported stamped-day path and proves that
+the explicit button opens while an unsolicited repeat remains blocked.
+
 ## v3.3.489 (2026-09-07) — Today's finish, given its moment
 
 Applies the approved completion prototype to the actual Today screen. A main

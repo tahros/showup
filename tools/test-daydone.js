@@ -60,10 +60,14 @@ run(`document.querySelector('[data-dd="done"]').click()`);
 await sleep(400);
 ok("a tap dismisses it", run(`!document.getElementById('dayDone')`));
 
-/* reopening and completing again is not a second ceremony */
+/* The saved stamp blocks automatic repetition, but an explicit button press
+   must always answer with the moment the button promises. */
 run(`(function(){const m=DB.days[todayISO]; m.doneAll=false; m.donePart=[];})()`);
 tapDoneAll();
-ok("completing twice in a day celebrates once", run(`!document.getElementById('dayDone')`));
+ok("an explicit re-completion shows the moment again", run(`!!document.getElementById('dayDone')`));
+run(`document.querySelector('[data-dd="done"]').click()`);
+run(`celebrateDayDone()`);
+ok("the once-a-day stamp still blocks an automatic repeat", run(`!document.getElementById('dayDone')`));
 
 /* the contract with the stylesheet, where jsdom cannot look: it must hold
    still when motion is unwelcome, and its ring must be a single spent beat,
@@ -148,9 +152,9 @@ ok("pressing it places the day", run(`!!document.getElementById('dayDone')`));
     return c?c.textContent.replace(/\\s+/g,' ').trim():'(absent)';})()`);
   ok("a finished day gets a card, not a footnote", closed()!=='(absent)', closed());
   ok("...naming the day in the ceremony's own words",
-     /In the book/.test(closed()) && /Workout complete/.test(closed()), closed());
+     /^Day 2\b/.test(closed()) && /Workout complete/.test(closed()) && !/In the book/.test(closed()), closed());
   ok("...with the real day number, not day one",
-     /Day 2\./.test(closed()), closed());
+     /Day 2\b/.test(closed()), closed());
   ok("...and the reopen sentence kept, but no longer the headline",
      /Another set reopens today/.test(closed()));
   /* v3.3.412 RESTATES. It stood where the button stood (v3.3.376) -- but that

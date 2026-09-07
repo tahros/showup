@@ -547,7 +547,7 @@ function renderToday(){
     const _n=SEED.totals.sessions+(t.w.length?1:0);
     return `<button class="card dayclosed" data-replayday="1" aria-label="Today is complete. Tap to see it again.">
           <i class="dcsq" aria-hidden="true"></i>
-          <b class="dcn">Day ${fmt(_n)}. In the book.</b>
+          <b class="dcn">Day ${fmt(_n)}</b>
           <span class="dcm mono">${pretty(todayISO)} · Workout complete</span>
           <span class="dcr mono">Another set reopens today.</span>
         </button>`;

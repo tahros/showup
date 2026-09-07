@@ -1,5 +1,10 @@
 # v3.3.489 — Approved Today completion
 
+> v3.3.490 correction: an explicit completion press now bypasses an existing
+> same-day ceremony stamp. The automatic once-a-day guard remains. The count
+> is smaller, the decorative trail is removed, and the completed card title
+> is a smaller `Day N` without `In the book.`
+
 Source: approved `showup-completion.html` prototype. Applied to the actual app,
 not the Modern design preview. Real workout data replaces prototype constants.
 
