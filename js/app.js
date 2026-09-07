@@ -552,10 +552,22 @@ document.addEventListener('click',e=>{
      place through the same path. */
   if(e.target.closest&&e.target.closest('[data-drunmode]')){
     /* v3.3.481: only the mode switches here now; the unit is the app's */
+    if(drunMode()==='dist'&&!drunRows(runUnit(),'pace').length){ toast('No timed runs to show pace yet'); return; }
     DB.settings.runMode=drunMode()==='dist'?'pace':'dist';
     save(true);
     const cur=document.querySelector('.drcard'); const h2=cur&&cur.previousElementSibling;
-    if(cur&&h2&&h2.tagName==='H2'){ const tmp=document.createElement('div'); tmp.innerHTML=dailyRunsSection(); const nh=tmp.querySelector('h2'); const nc=tmp.querySelector('.drcard'); if(nc){ const sc=cur.querySelector('.drwrap'); const keep=sc?sc.scrollLeft:null; cur.replaceWith(nc); const ns=nc.querySelector('.drwrap'); if(ns) ns.scrollLeft = keep==null?ns.scrollWidth:keep; } if(nh) h2.replaceWith(nh); }
+    if(cur&&h2&&h2.tagName==='H2'){
+      const tmp=document.createElement('div'); tmp.innerHTML=dailyRunsSection();
+      const nh=tmp.querySelector('h2'),nc=tmp.querySelector('.drcard');
+      if(nc){
+        const sc=cur.querySelector('.drwrap'),keep=sc?sc.scrollLeft:null;
+        cur.replaceWith(nc);
+        const ns=nc.querySelector('.drwrap');
+        if(ns) ns.scrollLeft=keep==null?ns.scrollWidth:keep;
+        bindDrun(false); // v3.3.488: replacement nodes need listeners, without jumping to the newest run.
+      }
+      if(nh) h2.replaceWith(nh);
+    }
     else render();
     return;
   }
@@ -1169,13 +1181,13 @@ function drunScrubShow(box,dot){
   svg.insertBefore(line, dot);
   /* the head: date, distance AND pace -- both facts, whatever the line draws */
   const d=dot.getAttribute('data-d');
-  const day=new Date(d+'T00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+  const day=new Date(d+'T00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
   /* v3.3.487: through runUnit(), the card's one source for its unit, so the
      readout can never drift from the axis and the footer beside it. */
   const r=runDays().find(x=>x.d===d); const u=runUnit();
   const dist=r?`${(Math.round(toD(r.km)*100)/100).toFixed(2)} ${u}`:'';
   const pace=(r&&r.timed>0&&r.sec>0)?`${paceStr(r.sec/toD(r.timed))} /${u}`:'';
-  if(head){ head.innerHTML=`<b>${day}</b>${dist?` \u00b7 ${dist}`:''}${pace?` \u00b7 ${pace}`:''}`; head.hidden=false; }
+  if(head){ head.innerHTML=`<b>${day}</b>${dist?` \u00b7 ${dist}`:''} \u00b7 ${pace||'pace not recorded'}`; head.hidden=false; }
   if(cap) cap.hidden=true;
 }
 function bindDrunScrub(box){
@@ -1203,9 +1215,9 @@ function bindDrunScrub(box){
   box.addEventListener('mousemove',e=>{ if(down&&armed) drunScrubShow(box,drunScrubAt(box,e.clientX)); });
   box.addEventListener('mouseup',disarm); box.addEventListener('mouseleave',disarm);
 }
-function bindDrun(){
+function bindDrun(resetScroll=true){
   const box=document.getElementById('drWrap'); if(!box) return;
-  if(box.scrollWidth>box.clientWidth) box.scrollLeft=box.scrollWidth;
+  if(resetScroll&&box.scrollWidth>box.clientWidth) box.scrollLeft=box.scrollWidth;
   bindDrunScrub(box);   // v3.3.486: hold to scrub, drag to scroll
   /* v3.3.475: the axis year follows the LEFT EDGE of the scroller. The year
      lives outside the chart so it holds still, which means something has to

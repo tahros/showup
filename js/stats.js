@@ -1142,10 +1142,10 @@ function dailyRunsSection(){
     const tot=mrows.reduce((a,r)=>a+r.v,0), avg=mrows.length?tot/mrows.length:0;
     foot=`<span><b>${f(tot)}</b> ${u} in ${monthName}</span><span>${mrows.length} run${mrows.length===1?'':'s'}${mrows.length?` \u00b7 ${f(avg)} ${u} each`:''}</span>`;
   }
-  return `<h2>Daily runs${hActs('dailyruns','One point per run, oldest first \u2014 days you did not run are left out, so the line is unbroken. Tap the caption to switch mi/km, and dist/pace to switch what the line measures. Pace floats around your own range: lower is faster. The line beneath counts this month only, from the 1st.','About Daily runs')}</h2>
+  return `<h2>Daily runs${hActs('dailyruns','One point per run day, oldest first. Units follow Settings: kg uses km; lb uses miles. Drag to scroll; hold briefly, then drag to scrub (mouse: press and drag). The readout shows the selected date, total distance and pace over timed distance only. Switch dist/pace to change the line. Lower pace is faster; points at the rim still show their actual pace when scrubbed. The footer counts this month only.','About Daily runs')}</h2>
     <div class="card drcard">
       <div class="pmixhead">
-        <span class="drunit mono" data-drcap>${u}${mode==='pace'?' / min':' / run'}</span>
+        <span class="drunit mono" data-drcap>${mode==='pace'?'min / '+u:u+' / run'}</span>
         <span class="drread mono" data-drread hidden></span>
         <button type="button" class="pmixmode" data-drunmode aria-label="Show ${mode==='dist'?'pace':'distance'} instead"><span class="${mode==='dist'?'on':''}">dist</span><span class="${mode==='pace'?'on':''}">pace</span></button>
       </div>

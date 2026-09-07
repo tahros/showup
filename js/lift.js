@@ -1386,7 +1386,8 @@ function runDays(){
 /* v3.3.236: nine months of pace, hoisted to module scope with the other
    tuning constants so it has one definition site and the suite can read it. */
 const PACE_MONTHS=9;
-const paceStr=s=>s>0?`${Math.floor(s/60)}'${String(Math.round(s%60)).padStart(2,'0')}"`:'—';
+// Round total seconds first, so 359.8 seconds prints 6'00", never 5'60".
+const paceStr=s=>s>0?`${Math.floor(Math.round(s)/60)}'${String(Math.round(s)%60).padStart(2,'0')}"`:'—';
 const paceOf=r=>r.timed>0?r.sec/toD(r.timed):0;      // seconds per displayed unit
 function runStreak(days){
   const s=new Set(days.map(r=>r.d));

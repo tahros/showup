@@ -1,5 +1,22 @@
 # ShowUp — changelog
 
+## v3.3.488 (2026-09-07) — Keep Daily runs scrubbing after the switch
+
+Switching dist/pace replaced the chart without reconnecting its scrub and
+scroll-year handlers. The replacement now works immediately, in both km and
+miles, without jumping back to the newest run. The existing hold-to-scrub /
+drag-to-scroll interaction is unchanged.
+
+The readout includes the year for historical runs and says "pace not recorded"
+when time is missing. Distance uses the whole run day; pace uses only timed
+distance, with both converted to the app's unit. Pace rounds total seconds
+before formatting, so a minute boundary reads 6′00″, never 5′60″. The pace
+caption now says min / km (or min / mi), and help explains the real controls.
+Without any timed runs, switching to pace explains why it is unavailable.
+
+Regression tests exercise real mode-button clicks, mouse drag, touch hold,
+scaled/scrolled selection and known distances/times in both units.
+
 ## v3.3.487 (2026-09-07) — The scrub, proven in both units
 
 The scrub's readout already converted with the app; the test only ever proved

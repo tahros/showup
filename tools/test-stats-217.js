@@ -262,7 +262,7 @@ run(`DB.settings.unit='lb'; render();`);
 ok('the caption follows the app unit (lb -> mi)', run(`document.querySelector('.drcard .drunit').textContent`).startsWith('mi'), run(`document.querySelector('.drcard .drunit').textContent`));
 {
   const a=fs.readFileSync(path.join(dir,'js/app.js'),'utf8');
-  ok('the scroller opens on today, like the heatmap', /function bindDrun\(\)[\s\S]{0,200}?scrollLeft=box\.scrollWidth/.test(a) && /bindHeat\(\);\s*\n\s*bindDrun\(\);/.test(a));
+  ok('the scroller opens on today by default, like the heatmap', /function bindDrun\(resetScroll=true\)[\s\S]{0,200}?scrollLeft=box\.scrollWidth/.test(a) && /bindHeat\(\);\s*\n\s*bindDrun\(\);/.test(a));
 }
 /* ---- v3.3.475: the What you did grammar, borrowed measure for measure ---- */
 {
