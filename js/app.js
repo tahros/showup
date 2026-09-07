@@ -117,7 +117,10 @@ document.addEventListener('click',e=>{
     m.w.forEach(s=>{ if(!m.doneEx.includes(s.ex)) m.doneEx.push(s.ex);
                      if(!m.donePart.includes(s.part)) m.donePart.push(s.part); });
     m.doneAll=true;
-    save();renderHeader();doneToast(m,'');
+    /* v3.3.490: this is an explicit request for the completion moment. The
+       once-a-day stamp prevents automatic interruptions; it must not turn a
+       button the person just pressed into a no-op after reopening the day. */
+    save();renderHeader();doneToast(m,'',true);
     return render();
   }
   const sx=e.target.closest('[data-sugx]');
@@ -1436,11 +1439,11 @@ let lastView=null;
    day. */
 // v3.3.489 supersedes the timed handover described above: explicit Done/Share
 // controls keep the approved moment on screen. Existing ledger rules remain.
-function celebrateDayDone(nowrite, forceCount, forceMile){
+function celebrateDayDone(nowrite, forceCount, forceMile, forceShow){
   if(document.getElementById('dayDone')) return;
   if(!nowrite){
-    if(DB.settings.dayDone===todayISO) return;
-    DB.settings.dayDone=todayISO; save();
+    if(DB.settings.dayDone===todayISO&&!forceShow) return;
+    if(DB.settings.dayDone!==todayISO){ DB.settings.dayDone=todayISO; save(); }
   }
   const n=forceCount!=null?forceCount
     :SEED.totals.sessions+((((DB.days[todayISO]||{}).w)||[]).length?1:0);
@@ -1478,7 +1481,6 @@ function celebrateDayDone(nowrite, forceCount, forceMile){
     : `<i class="ddsq" aria-hidden="true"></i>`)+
     `<b class="ddn${count>=1000?' ddlarge':''}">${fmt(count)}</b><span class="ddu">${count===1?'day':'days'} of showing up</span>`+
     `<h2 class="ddyou" id="ddHeading">You showed up.</h2>`+
-    `<div class="ddtrail" aria-hidden="true">${'<i></i>'.repeat(Math.min(10,Math.max(1,count)))}</div>`+
     `<div class="ddsummary">${summary}</div></div>`+
     `<div class="ddactions"><button class="btn done" data-dd="done">Done</button>`+
     `<button class="ddshare" data-dd="share">Share this day</button></div></div>`;
@@ -1533,8 +1535,8 @@ function celebrateDayDone(nowrite, forceCount, forceMile){
     }
   });
 }
-const doneToast=(m,alt)=>{
-  if(m.doneAll){ celebrateDayDone(); }
+const doneToast=(m,alt,explicit)=>{
+  if(m.doneAll){ celebrateDayDone(false,null,null,!!explicit); }
   else toast(alt);
 };
 function syncNav(){

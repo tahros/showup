@@ -23,7 +23,7 @@ for(const unit of ['kg','lb']){
   assert(run(`dayMeta().doneAll`));assert.equal(run(`document.querySelector('.ddn').textContent`),'1');
   assert(run(`document.querySelector('.ddsummary').textContent`).includes(unit==='kg'?'5.00 km':'3.11 mi'));
   assert(run(`document.querySelector('.ddsummary').textContent`).includes('2 sets'));
-  assert.equal(run(`document.querySelectorAll('.ddtrail i').length`),1);
+  assert.equal(run(`document.querySelectorAll('.ddtrail').length`),0);
  });
  check('dialog focus and keyboard stay inside',()=>{
   assert.equal(run(`document.activeElement.dataset.dd`),'done');
@@ -40,7 +40,8 @@ for(const unit of ['kg','lb']){
  check('Done returns to the completed Today record, not Share',()=>{
   assert(!run(`!!document.getElementById('dayDone')`));assert.equal(run('view'),'today');
   assert(!run(`!!document.getElementById('doneAllBtn')`));assert.equal(run('shareCalls'),0);
-  assert(run(`document.querySelector('.card.dayclosed').textContent.includes('Day 1. In the book.')`));
+  assert(run(`document.querySelector('.card.dayclosed').textContent.includes('Day 1')`));
+  assert(!run(`document.querySelector('.card.dayclosed').textContent.includes('In the book')`));
   assert(run(`document.querySelector('.card.dayclosed').textContent.includes(pretty(todayISO))`));
  });
 }
@@ -57,6 +58,12 @@ run(`document.querySelector('[data-dd="done"]').dispatchEvent(new KeyboardEvent(
 check('Escape closes accessibly',()=>assert(!run(`!!document.getElementById('dayDone')`)));
 run(`reopen('Squat','Legs');render()`);
 check('another set/reopen restores the completion action',()=>assert(run(`!!document.getElementById('doneAllBtn')`)));
+click('#doneAllBtn');
+check('an explicit completion always opens the moment even after today was stamped',()=>{
+ assert(run(`!!document.getElementById('dayDone')`));
+ assert.equal(run(`DB.settings.dayDone`),run(`todayISO`));
+});
+click('[data-dd="done"]');
 const previewBefore=run('JSON.stringify(DB)');run(`celebrateDayDone(true,1000,1000)`);
 check('milestone preview fits four digits and never changes the ledger',()=>{
  assert.equal(run('JSON.stringify(DB)'),previewBefore);
@@ -65,7 +72,8 @@ check('milestone preview fits four digits and never changes the ledger',()=>{
 const css=fs.readFileSync(path.join(dir,'css/app.css'),'utf8');
 check('completed card cannot stack nav; motion and safe-area guards present',()=>{
  assert(!/^\s*\.dayclosed\s*\{/m.test(css));assert(css.includes('.card.dayclosed{'));
- assert(css.includes('#dayDone .ddtrail i:last-child{animation:none}'));
+ assert(!css.includes('#dayDone .ddtrail'));
+ assert(css.includes('#dayDone .ddn{font-family:var(--disp);font-size:84px'));
  assert(css.includes('env(safe-area-inset-bottom,0px)'));
 });
 dom.window.close();process.exit(failures?1:0);
