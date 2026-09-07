@@ -2379,15 +2379,21 @@
      go; a pill inset from the edge shows it plainly. Promoting both to
      their own layer makes iOS carry them with the viewport instead of
      repainting them after the fact. Fixes Classic as well as Minimal. */
-  nav,.calreturn{transform:translateZ(0);-webkit-transform:translateZ(0);
+  .calreturn{transform:translateZ(0);-webkit-transform:translateZ(0);
     will-change:transform;backface-visibility:hidden;-webkit-backface-visibility:hidden}
-  /* v3.3.465 considered dropping translateZ(0) from the nav as a second
-     backdrop-root suspect, and did not: buildcheck guards this rule because
-     without it iOS hangs the pill mid-scroll (v3.3.179, reported by the
-     maker). isolation:isolate was the CERTAIN culprit and is gone. If the
-     glass still fails to sample on the device, this is the next suspect, and
-     the fix is a restructure -- fixed+promoted wrapper outside, glass inside
-     -- not a quiet deletion of an iOS bug fix. */
+  /* v3.3.480: THE NAV DROPS THE 3D HINT. The 179 symptom came back on the
+     device -- pill and top button hanging mid-screen after a scroll -- with
+     the 179 fix in place. What changed is that since v3.3.465 the nav's
+     backdrop-filter actually renders, and WebKit is known to stop re-anchoring
+     a fixed element that carries BOTH an active backdrop filter and a 3D
+     transform. So the nav keeps will-change:transform (a layer of its own,
+     which is what 179 needed) and loses translateZ(0), which it no longer
+     needs for promotion and which conflicts with the glass. The top button
+     has no glass and keeps the full 179 rule. This is a hypothesis about a
+     device I cannot see; the belt is navReanchor() in util.js, which nudges
+     the compositor after every scroll settles. */
+  nav{will-change:transform;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+  nav.reanchor{transform:translateZ(0)}
   .recdate{display:block;font-size:9px;color:var(--muted);font-weight:400;margin-top:1px}
   .mstone{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px}
   .mstone .big{font-family:var(--mono);font-size:24px;color:var(--chalk);font-weight:600}

@@ -309,14 +309,20 @@ if "showup-skin" not in idx:
 #    compositing layer they visibly hang mid-screen mid-scroll. This guard
 #    keeps the hint attached to BOTH — it was found in Minimal but the base
 #    sheet owns the bug, so a skin-only fix would have left Classic broken.
-_layer = _re.search(r"nav,\.calreturn\{([^}]*)\}", css)
-if not _layer:
-    fail.append("bottom-anchored fixed chrome lost its compositing rule (v3.3.179)")
-else:
-    _body = _layer.group(1)
-    if "translateZ(0)" not in _body or "will-change" not in _body:
-        fail.append("nav/.calreturn compositing hint incomplete — "
-                    "needs translateZ(0) AND will-change or iOS hangs them mid-scroll (v3.3.179)")
+# v3.3.480: the rule split. .calreturn keeps the full 179 hint; the nav keeps
+# will-change (layer promotion) but NOT translateZ(0), which conflicted with
+# its backdrop-filter and brought the 179 symptom back. Both halves guarded,
+# plus the re-anchor nudge that is the belt for a device we cannot see.
+_cal = _re.search(r"\n\s*\.calreturn\{transform:translateZ\(0\)([^}]*)\}", css)
+if not _cal or "will-change" not in _cal.group(1):
+    fail.append(".calreturn lost its compositing hint — needs translateZ(0) AND will-change (v3.3.179)")
+_navl = _re.search(r"\n\s*nav\{will-change:transform[^}]*\}", css)
+if not _navl:
+    fail.append("nav lost its layer promotion (will-change:transform) (v3.3.179/480)")
+if _re.search(r"\n\s*nav\{[^}]*translateZ", css):
+    fail.append("nav carries translateZ(0) again — with its backdrop-filter that hangs the pill mid-scroll (v3.3.480)")
+if "function navReanchor" not in _util:
+    fail.append("navReanchor() missing — the re-anchor nudge is the belt for iOS fixed-element lag (v3.3.480)")
 if _re.search(r'data-skin="minimal"\]\s*nav\{[^}]*overflow:hidden', css):
     fail.append("minimal nav re-added overflow:hidden — extra iOS layer trigger (v3.3.179)")
 

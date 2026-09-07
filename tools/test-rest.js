@@ -776,7 +776,16 @@ ok("the status-bar style no longer puts content under the status bar",
        backdrop-root makers are the ones asserted absent. */
     const roots=navRules.filter(m=>/isolation:isolate|preserve-3d|opacity:|mix-blend-mode|(^|;)\s*filter:/.test(m[2]));
     ok("no nav rule makes the nav a backdrop root (isolation, opacity, filter, blend, preserve-3d)", roots.length===0, roots.map(m=>m[1].trim()+'{'+m[2].trim().slice(0,60)+'}').join(' | '));
-    ok("...while the v3.3.179 compositing rule stands", /nav,\.calreturn\{transform:translateZ\(0\)/.test(cssN));
+    /* v3.3.480 RESTATES: the 179 rule split. The top button keeps the full
+       hint; the nav keeps will-change only -- translateZ(0) with an active
+       backdrop-filter hung the pill mid-scroll on the device. */
+    ok("...the top button keeps the v3.3.179 compositing rule, and the nav keeps will-change without the 3D transform",
+       /\n\s*\.calreturn\{transform:translateZ\(0\)[^}]*will-change:transform/.test(cssN) &&
+       /\n\s*nav\{will-change:transform[^}]*\}/.test(cssN) && !/\n\s*nav\{[^}]*translateZ/.test(cssN));
+    ok("...and the re-anchor nudge is wired to scroll idle",
+       /function navReanchor\(\)/.test(fs.readFileSync(path.join(dir,"js/util.js"),"utf8")) &&
+       /syncTopBtn\(\); navReanchor\(\);/.test(fs.readFileSync(path.join(dir,"js/util.js"),"utf8")) &&
+       /nav\.reanchor\{transform:translateZ\(0\)\}/.test(cssN));
   }
   /* the contrast claim, recomputed here so the number cannot drift from the comment */
   {

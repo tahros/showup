@@ -559,11 +559,26 @@ function setBackTarget(label,getEl){ _backTo={label,getEl}; syncTopBtn(); }
 function clearBackTarget(){ _backTo=null; syncTopBtn(); }
 addEventListener('scroll',()=>{
   if(_topRaf) return;
-  _topRaf=requestAnimationFrame(()=>{ _topRaf=0; syncTopBtn(); });   // v3.3.470: the bar no longer hides on scroll
+  _topRaf=requestAnimationFrame(()=>{ _topRaf=0; syncTopBtn(); navReanchor(); });   // v3.3.470: the bar no longer hides; v3.3.480: it re-anchors
 },{passive:true});
 /* v3.3.459-462 hid the tab bar on scroll (threshold, then follow-the-finger).
    v3.3.470 removes it at the maker's word: the bar stays. Recorded as a
    reversal after living with it on the device, not as a bug. */
+/* v3.3.480: THE RE-ANCHOR NUDGE. iOS re-anchors position:fixed elements to
+   the visual viewport only at the end of a gesture, and with an active
+   backdrop-filter it sometimes does not at all -- the pill hangs where the
+   scroll left it. When the scroll has been quiet for ~120ms, toggle a 3D
+   transform on and off across a forced layout read; the compositor recomputes
+   the layer's position and the bar snaps home. Cheap, invisible when nothing
+   is wrong, and the only path that does not depend on WebKit behaving. */
+let _reanchorT=0;
+function navReanchor(){
+  clearTimeout(_reanchorT);
+  _reanchorT=setTimeout(()=>{
+    const nav=document.getElementById('nav'); if(!nav) return;
+    nav.classList.add('reanchor'); void nav.offsetHeight; nav.classList.remove('reanchor');
+  },120);
+}
 function dayMeta(){const t=day(todayISO);t.doneEx=t.doneEx||[];t.donePart=t.donePart||[];t.sugX=t.sugX||{};return t;}
 const isLive =()=>{const t=day(todayISO);return t.w.length>0&&!t.doneAll;};
 /* v3.3.412: the day is CLOSED -- work logged and the day-end pressed. Named

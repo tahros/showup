@@ -1,5 +1,23 @@
 # ShowUp — changelog
 
+## v3.3.480 (2026-09-07) — The pill re-anchors
+
+The v3.3.179 symptom came back: after a scroll the tab bar and the ↑ top button
+hung mid-screen. The 179 fix was in place the whole time; what changed is that
+since v3.3.465 the bar's backdrop-filter actually renders, and WebKit is known
+to stop re-anchoring a fixed element that carries both an active backdrop
+filter and a 3D transform.
+
+Two changes. The nav keeps `will-change:transform` — a layer of its own, which
+is what 179 needed — and drops `translateZ(0)`, which conflicted with the glass;
+the top button, which has no glass, keeps the full rule. And a belt: when a
+scroll has been quiet for a moment, the bar is nudged across a forced layout so
+the compositor recomputes its position and it snaps home. Invisible when
+nothing is wrong, and the only path that does not depend on WebKit behaving.
+
+The cause is a hypothesis about a device I cannot see; the nudge is what holds
+if the hypothesis is wrong.
+
 ## v3.3.479 (2026-09-07) — The usual before the new
 
 The writer answered Monday's Shoulder day with four shoulder lifts and a new
