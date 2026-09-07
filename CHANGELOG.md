@@ -1,5 +1,17 @@
 # ShowUp — changelog
 
+## v3.3.478 (2026-09-07) — The selected glyph takes the bar's ink
+
+On a dark bar in a light app the selected tab went black. v3.3.470 painted it
+`--chalk`, which is the *theme's* strong ink — correct while the bar matched
+the theme, wrong the moment the bar could wear its own appearance (v3.3.477).
+
+The bar has its own strong ink now, `--pill-chalk`: white on the dark bar,
+near-black on the light one, declared beside the pill's surface and its other
+inks in the same `[data-bar]` block. So every colour on the bar is chosen by
+the bar's appearance and none by the app's. Buildcheck holds the new token to
+the same 4.5:1 it holds the others.
+
 ## v3.3.477 (2026-09-07) — The tab bar wears its own appearance
 
 A setting for the bar alone, in Settings under Display: **Match / Light /

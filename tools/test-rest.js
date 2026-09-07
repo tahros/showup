@@ -832,9 +832,37 @@ ok("the status-bar style no longer puts content under the status bar",
   /* v3.3.470 RESTATES: selection is INK ON GREY, a neutral fact; colour on
      the bar belongs to the Today square's state alone -- accent fill when the
      day is closed, rest-ink ring while resting, selected or not. */
-  ok("the selected tab is ink on a grey capsule, in both the base sheet and the pill",
-     /nav button\.on\{color:var\(--chalk\);background:color-mix\(in srgb,var\(--muted\) 16%/.test(cssN) &&
-     /:root\[data-skin="minimal"\] nav button\.on\{color:var\(--chalk\);background:color-mix\(in srgb,var\(--pill\) 60%,var\(--pill-ink\) 16%\)/.test(cssN));
+  /* v3.3.478 RESTATES: the selected glyph takes the BAR's strong ink
+     (--pill-chalk), not the theme's --chalk. With the bar able to wear an
+     appearance the app is not wearing (v3.3.477), --chalk went black on a
+     dark bar in a light app. */
+  ok("the selected tab is the BAR's ink on a grey capsule, in both the base sheet and the pill",
+     /nav button\.on\{color:var\(--pill-chalk,var\(--chalk\)\);background:color-mix\(in srgb,var\(--muted\) 16%/.test(cssN) &&
+     /:root\[data-skin="minimal"\] nav button\.on\{color:var\(--pill-chalk\);background:color-mix\(in srgb,var\(--pill\) 60%,var\(--pill-ink\) 16%\)/.test(cssN));
+  ok("...and each appearance declares its own: white on the dark bar, near-black on the light one",
+     /\[data-bar="dark"\]\{\s*--pill-chalk:#FFFFFF;/.test(cssN) && /--pill-chalk:#111318;/.test(cssN) && !/nav button\.on\{color:var\(--chalk\)/.test(cssN));
+  {
+    /* the selected glyph on its capsule, worst case: an accent button under
+       the glass. Graphics gate, 3:1. Computed from the file, both bars.
+       The colour helpers are local: the ones above belong to another block's
+       scope and reaching into it is how a test breaks for a reason that has
+       nothing to do with what it asserts. */
+    const hx=c=>[1,3,5].map(i=>parseInt(c.slice(i,i+2),16));
+    const lum=c=>{const f=v=>v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4); const [r,g,b]=hx(c).map(x=>x/255); return 0.2126*f(r)+0.7152*f(g)+0.0722*f(b);};
+    const cr=(a,b)=>{const la=lum(a),lb=lum(b); return (Math.max(la,lb)+.05)/(Math.min(la,lb)+.05);};
+    const mix=(a,b,p)=>'#'+[0,1,2].map(i=>Math.round(hx(a)[i]*p+hx(b)[i]*(1-p)).toString(16).padStart(2,'0')).join('');
+    const accL=(cssN.match(/--accent:(#[0-9A-Fa-f]{6}); --accent-soft:#C3CCF5/)||[])[1];
+    const accD=(cssN.match(/--accent:(#[0-9A-Fa-f]{6}); --accent-soft:#3A4A8C/)||[])[1];
+    const bd=(cssN.match(/\[data-bar="dark"\]\{[\s\S]*?--pill:(#[0-9A-Fa-f]{6}); --pill-ink:(#[0-9A-Fa-f]{6})/)||[]);
+    const bl=(cssN.match(/\[data-bar="light"\]\{[\s\S]*?--pill:(#[0-9A-Fa-f]{6}); --pill-ink:(#[0-9A-Fa-f]{6})/)||[]);
+    const cd=(cssN.match(/\[data-bar="dark"\]\{\s*--pill-chalk:(#[0-9A-Fa-f]{6})/)||[])[1];
+    const cl=(cssN.match(/--pill-chalk:(#111318)/)||[])[1];
+    ok("(harness) both bars' surfaces and chalks were found", !!bd[1]&&!!bl[1]&&!!cd&&!!cl, [bd[1],cd,bl[1],cl].join(' '));
+    const capD=mix(cd,mix(bd[1],mix(bd[1],accD,.77),.60),.16);
+    const capL=mix(cl,mix(bl[1],mix(bl[1],accL,.77),.60),.16);
+    ok("the selected glyph clears 3:1 on the dark bar", cr(cd,capD)>=3, cr(cd,capD).toFixed(2));
+    ok("...and on the light bar", cr(cl,capL)>=3, cr(cl,capL).toFixed(2));
+  }
   ok("...the closed day fills Today's square in the accent, regardless of selection",
      /nav\.dayclosed button\[data-v="today"\] \.ng svg \.sq\{fill:var\(--accent\);stroke:none\}/.test(cssN));
   ok("...and the rest ring is the darker rest-ink, like the header's",

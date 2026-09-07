@@ -2353,7 +2353,7 @@
      Today square alone: blue fill once the day is closed, green ring while
      resting (rest-ink, the darker green the header's ring wears), whether or
      not Today is the selected tab. */
-  nav button.on{color:var(--chalk);background:color-mix(in srgb,var(--muted) 16%,transparent)}
+  nav button.on{color:var(--pill-chalk,var(--chalk));background:color-mix(in srgb,var(--muted) 16%,transparent)}
   nav button .ng svg .sq{fill:none;stroke:currentColor;stroke-width:2.6}
   nav.dayclosed button[data-v="today"] .ng svg .sq{fill:var(--accent);stroke:none}
   nav.resting button[data-v="today"] .ng svg .sq{stroke:var(--rest-ink);fill:none}
@@ -2696,6 +2696,7 @@
      v3.3.169's finding stands for an OPAQUE slab and is why Match is the
      default: nothing changes until it is asked to. */
   :root[data-skin="minimal"][data-bar="dark"]{
+    --pill-chalk:#FFFFFF;   /* v3.3.478: the BAR's strong ink -- see below */
     --pill:#1C202A; --pill-ink:#B6BCCA;   /* v3.3.460: a step lighter for the 72% glass */
     --pill-accent:#95A4E8;   /* v3.3.461: = --accent-dim, the app's accent as INK on dark. Raw --accent
                                 (#4C6BE3) is 3.3:1 on ordinary dark content and 2.3:1 over an accent
@@ -2708,6 +2709,14 @@
       0 12px 32px rgba(0,0,0,.42),0 1px 2px rgba(0,0,0,.30);
   }
   :root[data-skin="minimal"][data-bar="light"]{
+    /* v3.3.478: THE SELECTED GLYPH TAKES THE BAR'S INK, NOT THE THEME'S.
+       v3.3.470 painted it --chalk, which is the THEME's strong ink -- fine
+       while the bar matched the theme, and black-on-dark the moment the bar
+       could be dark in a light app (v3.3.477). --pill-chalk is the bar's own,
+       and it lives with --pill/--pill-ink/--pill-accent in the [data-bar]
+       block, so every colour on the bar is chosen by the bar's appearance and
+       none by the app's. */
+    --pill-chalk:#111318;
     --pill:#FFFFFF; --pill-ink:#4E5262;   /* v3.3.460: a step darker for the 72% glass */
     --pill-accent:#2F4BD8;   /* v3.3.461: = --accent, the app's blue, as asked; 3.7:1 as a graphic worst-case */
     /* v3.3.463: the glass lighting, light. Specular rim on top, a hairline of
@@ -2820,7 +2829,7 @@
      no longer exist. It stays a token because the skin's pill trio is guarded
      by buildcheck (v3.3.168) and the skin block is chrome-only. */
   /* v3.3.462: the capsule stands on a 60% pill base under its 12% accent, so the active blue glyph clears 3:1 even over a blue button (4.30 light, 4.50 dark) */
-  :root[data-skin="minimal"] nav button.on{color:var(--chalk);background:color-mix(in srgb,var(--pill) 60%,var(--pill-ink) 16%)}   /* v3.3.470: ink on grey */
+  :root[data-skin="minimal"] nav button.on{color:var(--pill-chalk);background:color-mix(in srgb,var(--pill) 60%,var(--pill-ink) 16%)}   /* v3.3.470: ink on grey; v3.3.478: the BAR's ink */
   /* v3.3.470: on the pill the closed-day fill is --pill-accent: the accent in light, the accent-as-ink in dark, where the raw accent is 2.3:1 on the grey capsule over a blue button */
   :root[data-skin="minimal"] nav.dayclosed button[data-v="today"] .ng svg .sq{fill:var(--pill-accent)}
   /* v3.3.331: the TRAIN TAB joins the skin. Everything above was written

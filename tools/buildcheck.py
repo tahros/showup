@@ -279,7 +279,10 @@ else:
     # a divider tone is chrome (it separates, it never carries meaning), and
     # the skin tints its dividers to its own surface family. The ink tokens
     # this rule protects (chalk/faint/muted/accent/live) stay forbidden.
-    _allow = {"line", "whisper", "shadow", "pill", "pill-ink", "pill-accent", "pill-shadow"}
+    # v3.3.478: --pill-chalk joins the family. It is the BAR's strong ink, used
+    # by the selected tab; the theme's --chalk is wrong there the moment the
+    # bar can wear an appearance the app is not wearing (v3.3.477).
+    _allow = {"line", "whisper", "shadow", "pill", "pill-ink", "pill-accent", "pill-shadow", "pill-chalk"}
     for _bn, _bc in (("dark", _sk_d), ("light", _sk_l)):
         _bad = [t for t in _re.findall(r"--([a-z][a-z-]*):", _bc) if t not in _allow]
         if _bad:
@@ -287,10 +290,11 @@ else:
                         + ",".join(_bad) + " — the skin is chrome, not ink (v3.3.168)")
     for _bn, _bc in (("bar dark", _bar_d), ("bar light", _bar_l)):
         _p, _pi, _pa = _tok(_bc, "pill"), _tok(_bc, "pill-ink"), _tok(_bc, "pill-accent")
-        if not all((_p, _pi, _pa)):
-            fail.append(f"minimal skin ({_bn}): pill token trio incomplete (v3.3.168/477)")
+        _pc = _tok(_bc, "pill-chalk")
+        if not all((_p, _pi, _pa, _pc)):
+            fail.append(f"minimal skin ({_bn}): pill token set incomplete (v3.3.168/477/478)")
         else:
-            for _fg, _what in ((_pi, "pill ink"), (_pa, "pill accent")):
+            for _fg, _what in ((_pi, "pill ink"), (_pa, "pill accent"), (_pc, "pill chalk")):
                 _r = _cr(_fg, _p)
                 if _r < 4.5:
                     fail.append(f"contrast: {_what} on pill = {_r:.2f} (< 4.5) in minimal/{_bn} (v3.3.168)")
