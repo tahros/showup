@@ -1008,56 +1008,62 @@ function runUnit(){ const u=DB.settings.runUnit; return (u==='mi'||u==='km')?u:D
    on it is a shape, not a measure.
    The footer resets on the 1st: it reads the CURRENT MONTH to date, because
    a running total that never resets is a number you stop looking at. */
-/* v3.3.475: DAILY RUNS IS WHAT YOU DID, WITH RUNS IN IT. Every measure below
-   is partMixSvg's, borrowed on purpose so the two cards cannot drift: the same
-   column width and bar width, the same top/base, the same dashed guide at every
-   axis tick, the same month rule and year rule, the same totals row along the
-   top, the same rotated day label under every column, and the same brick
-   pattern -- one brick per SET there, one brick per MILE (or km) here.
-   Three departures, each asked for: the bars are the full accent with no
-   age fade; the guides are drawn before everything so bars sit over them; and
-   the YEAR lives in the fixed axis column beside the numbers rather than
-   inside the scroller, so it holds still while the days move. The rule that
-   marks the exact day a year turns stays in the chart. */
+/* v3.3.476: DAILY RUNS IS A LINE OF RUNS. v3.3.475 drew a bar per calendar
+   day in What you did's grammar; the maker read it and it was hard to follow --
+   most columns were empty and the shape was lost. Two changes, at his word:
+   the chart is a LINE WITH DOTS, and the x-axis is RUNS, not days. Every
+   column is a run, so the line is continuous and the archive is dense.
+   What survives from What you did, on purpose, so the two still read as one
+   family: the column pitch, the top and base, the dashed guide at every axis
+   tick, the month rule and the year rule, the totals row along the top, the
+   rotated date under every column, the fixed axis column with its pinned year,
+   and the scroller that opens on today.
+   The trade this makes: with days removed, a week without a run looks like a
+   day without one. The dates under the columns still tell you, and the month
+   rules still land where the calendar turns -- but the gap is no longer a
+   shape. That was the price of legibility, and he chose it. */
 const DRUN_COLW=PMIX_COLW, DRUN_H=PMIX_H, DRUN_TOP=PMIX_TOP, DRUN_BASE=PMIX_BASE;
 function runUnit(){ const u=DB.settings.runUnit; return (u==='mi'||u==='km')?u:DU(); }
+function drunMode(){ return DB.settings.runMode==='pace'?'pace':'dist'; }
+/* distance: a round step from zero, with a step of headroom (What you did's).
+   pace: NOT from zero -- no run takes zero minutes, and an axis from 0 would
+   squash every run into the top inch. It brackets the actual range instead,
+   so a minute of difference is a visible minute. */
 function drunAxis(max){
-  /* a round step with 3-5 gridlines, and a top a full step clear of the
-     tallest bar -- What you did's headroom, arrived at by arithmetic */
   const steps=[0.5,1,2,2.5,5,10,20,25,50];
-  for(const st of steps){ const n=Math.ceil(max/st)+ (Math.ceil(max/st)*st-max < st*0.25 ? 1 : 0); if(n>=3&&n<=5) return {step:st,n}; }
-  const st=steps[steps.length-1]; return {step:st,n:Math.max(3,Math.ceil(max/st)+1)};
+  for(const st of steps){ const n=Math.ceil(max/st)+(Math.ceil(max/st)*st-max<st*0.25?1:0); if(n>=3&&n<=5) return {step:st,n,bot:0}; }
+  const st=steps[steps.length-1]; return {step:st,n:Math.max(3,Math.ceil(max/st)+1),bot:0};
 }
-function drunRows(u){
+function drunPaceAxis(lo,hi){
+  const pad=Math.max(15,(hi-lo)*0.25);          // seconds
+  let bot=Math.max(0,lo-pad), top=hi+pad;
+  const step=Math.max(15,Math.ceil((top-bot)/4/15)*15);
+  bot=Math.floor(bot/step)*step; const n=Math.max(3,Math.ceil((top-bot)/step));
+  return {step,n,bot};
+}
+function drunRows(u,mode){
   const days=runDays(); if(!days.length) return [];
   const conv=km=>u==='mi'?km*MI:km;
-  const byD={}; for(const r of days) byD[r.d]=r;
-  const first=days.map(r=>r.d).sort()[0];
-  const rows=[]; for(let d=new Date(first+'T00:00'); ; d.setDate(d.getDate()+1)){
-    const iso=d.toLocaleDateString('en-CA'); if(iso>todayISO) break;
-    rows.push({d:iso, v:conv((byD[iso]||{}).km||0)});
+  const out=[];
+  for(const r of days){
+    if(mode==='pace'){ if(!(r.timed>0&&r.sec>0)) continue; out.push({d:r.d, v:r.sec/(u==='mi'?r.timed*MI:r.timed)}); }
+    else out.push({d:r.d, v:conv(r.km)});
   }
-  return rows;
+  return out;
 }
-function dailyRunsSvg(rows,u){
+function drunFmt(v,mode){ return mode==='pace'?paceStr(v):(v>=10?String(Math.round(v)):(Math.round(v*10)/10).toFixed(1)); }
+function dailyRunsSvg(rows,u,mode,ax){
   const W=Math.max(320,rows.length*DRUN_COLW+16);
-  const ax=drunAxis(Math.max(0.1,...rows.map(r=>r.v)));
-  const top=ax.step*ax.n, unit=(DRUN_BASE-DRUN_TOP)/top, bw=DRUN_COLW-2.5;
-  /* one brick per unit of distance, exactly as pmixBrick is one per set */
-  let s=`<svg viewBox="0 0 ${W} ${DRUN_H}" width="${W}" height="${DRUN_H}" style="height:${DRUN_H}px" data-drun role="img" aria-label="Run distance per day since your first run, in ${u}">
-    <defs><pattern id="drunBrick" width="1" height="${unit.toFixed(4)}" patternUnits="userSpaceOnUse" patternTransform="translate(0 ${DRUN_BASE})">
-      <path d="M0 .4H1" stroke="var(--ground)" stroke-width=".8"></path></pattern>
-    <linearGradient id="drunTod" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="var(--accent)" stop-opacity=".12"></stop>
-      <stop offset="1" stop-color="var(--accent)" stop-opacity=".02"></stop></linearGradient></defs>`;
-  /* GUIDES FIRST: today's wash, the axis ticks, then the month and year rules.
-     Everything after this paints over them. */
-  const ti=rows.findIndex(r=>r.d===todayISO);
-  if(ti>=0) s+=`<rect x="${8+ti*DRUN_COLW-2}" y="${DRUN_TOP}" width="${DRUN_COLW}" height="${DRUN_BASE-DRUN_TOP}" fill="url(#drunTod)"></rect>`;
-  for(let i=0;i<=ax.n;i++){
-    const y=DRUN_BASE-i*ax.step*unit;
-    s+=`<line x1="4" y1="${y.toFixed(1)}" x2="${W-4}" y2="${y.toFixed(1)}" stroke="var(--line)" stroke-width="0.6"${i?' stroke-dasharray="2 3"':''}></line>`;
-  }
+  const top=ax.bot+ax.step*ax.n, span=(top-ax.bot)||1;
+  const Y=v=>DRUN_BASE-((v-ax.bot)/span)*(DRUN_BASE-DRUN_TOP);
+  const cx=i=>8+i*DRUN_COLW+(DRUN_COLW-2.5)/2;
+  let s=`<svg viewBox="0 0 ${W} ${DRUN_H}" width="${W}" height="${DRUN_H}" style="height:${DRUN_H}px" data-drun role="img" aria-label="${mode==='pace'?'Pace per '+u:'Distance in '+u} for every run, oldest first">
+    <defs><linearGradient id="drunFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="var(--accent)" stop-opacity=".16"></stop>
+      <stop offset="1" stop-color="var(--accent)" stop-opacity="0"></stop></linearGradient></defs>`;
+  /* guides first; everything after paints over them */
+  for(let i=0;i<=ax.n;i++){ const y=Y(ax.bot+i*ax.step);
+    s+=`<line x1="4" y1="${y.toFixed(1)}" x2="${W-4}" y2="${y.toFixed(1)}" stroke="var(--line)" stroke-width="0.6"${i?' stroke-dasharray="2 3"':''}></line>`; }
   let prevM=null, prevY=null;
   rows.forEach((r,i)=>{
     const m=r.d.slice(0,7), yy=r.d.slice(0,4), x=8+i*DRUN_COLW-2;
@@ -1070,44 +1076,64 @@ function dailyRunsSvg(rows,u){
     }
     prevM=m; prevY=yy;
   });
-  /* bars, totals row, day labels -- all over the guides */
+  /* the line. Distance carries a fill (miles accumulate); pace does not (a
+     pace is a level, and area under it would mean nothing). */
+  const pts=rows.map((r,i)=>`${cx(i).toFixed(1)},${Y(r.v).toFixed(1)}`).join(' ');
+  if(rows.length>1){
+    if(mode==='dist') s+=`<polygon class="drfill" points="${pts} ${cx(rows.length-1).toFixed(1)},${DRUN_BASE} ${cx(0).toFixed(1)},${DRUN_BASE}" fill="url(#drunFill)"></polygon>`;
+    s+=`<polyline class="drline" points="${pts}" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"></polyline>`;
+  }
+  /* dots, and the totals row. In DISTANCE every dot is labelled, as What you
+     did labels every day. In PACE only the newest and each new best are --
+     1,700 paces in one row is noise, and the ones that mean something are
+     "now" and "the day it got faster". */
+  let best=Infinity;
   rows.forEach((r,i)=>{
-    const x=8+i*DRUN_COLW, newest=r.d===todayISO;
-    if(r.v>0){
-      const hgt=r.v*unit;
-      s+=`<rect class="drbar" data-bar-col="${i}" x="${x}" y="${(DRUN_BASE-hgt).toFixed(1)}" width="${bw}" height="${hgt.toFixed(1)}" rx="1.5" fill="var(--accent)"></rect>
-          <rect class="drbricks" x="${x}" y="${(DRUN_BASE-hgt).toFixed(1)}" width="${bw}" height="${hgt.toFixed(1)}" fill="url(#drunBrick)" pointer-events="none"></rect>`;
-      /* the totals row, in partMix's register: one aligned line across the
-         top, today in full voice, the archive fading with age to a floor */
+    const newest=i===rows.length-1, isBest=mode==='pace'&&r.v<best;
+    if(mode==='pace'&&r.v<best) best=r.v;
+    s+=`<circle class="drdot${newest?' newest':''}" data-i="${i}" cx="${cx(i).toFixed(1)}" cy="${Y(r.v).toFixed(1)}" r="${newest?3.4:2.4}"
+         fill="${newest?'var(--accent)':'var(--ground)'}" stroke="var(--accent)" stroke-width="1.6"></circle>`;
+    if(mode==='dist'||newest||isBest){
       const away=rows.length-1-i;
       const op=newest?1:Math.max(0.35,0.92-away*0.033);
-      s+=`<text x="${x+bw/2}" y="6.5" text-anchor="middle" font-family="var(--mono)" font-size="6.5" opacity="${op.toFixed(2)}"
-           ${newest?'font-weight="700" fill="var(--chalk)"':'fill="var(--muted)"'} data-lbl="total">${r.v>=10?Math.round(r.v):(Math.round(r.v*10)/10).toFixed(1)}</text>`;
+      s+=`<text x="${cx(i).toFixed(1)}" y="6.5" text-anchor="middle" font-family="var(--mono)" font-size="6.5" opacity="${op.toFixed(2)}"
+           ${newest?'font-weight="700" fill="var(--chalk)"':'fill="var(--muted)"'} data-lbl="total">${drunFmt(r.v,mode)}</text>`;
     }
     const lab=(+r.d.slice(5,7))+'/'+(+r.d.slice(8,10));
-    s+=`<text x="${x+bw/2}" y="${DRUN_BASE+6}" transform="rotate(-90 ${x+bw/2} ${DRUN_BASE+6})" text-anchor="end" font-family="var(--mono)" font-size="7" fill="var(--muted)">${lab}</text>`;
+    s+=`<text x="${cx(i).toFixed(1)}" y="${DRUN_BASE+6}" transform="rotate(-90 ${cx(i).toFixed(1)} ${DRUN_BASE+6})" text-anchor="end" font-family="var(--mono)" font-size="7" fill="var(--muted)">${lab}</text>`;
   });
   return s+'</svg>';
 }
 function dailyRunsSection(){
-  const u=runUnit(), rows=drunRows(u); if(!rows.length) return '';
-  const ax=drunAxis(Math.max(0.1,...rows.map(r=>r.v)));
-  const labs=[]; for(let i=ax.n;i>=0;i--){ const v=i*ax.step; labs.push(`<span>${v%1?v.toFixed(1):v}</span>`); }
+  const u=runUnit(), mode=drunMode(), rows=drunRows(u,mode);
+  if(!rows.length) return '';
+  const vals=rows.map(r=>r.v);
+  const ax=mode==='pace'?drunPaceAxis(Math.min(...vals),Math.max(...vals)):drunAxis(Math.max(0.1,...vals));
+  const labs=[]; for(let i=ax.n;i>=0;i--){ const v=ax.bot+i*ax.step; labs.push(`<span>${drunFmt(v,mode)}</span>`); }
   /* the footer is THIS MONTH to date: it resets on the 1st, so the number
      answers "how am I doing now" rather than accumulating forever. */
-  const mo=todayISO.slice(0,7);
-  const ran=rows.filter(r=>r.d.startsWith(mo)&&r.v>0);
-  const tot=ran.reduce((a,r)=>a+r.v,0), avg=ran.length?tot/ran.length:0;
+  const mo=todayISO.slice(0,7), mrows=rows.filter(r=>r.d.startsWith(mo));
   const monthName=new Date(todayISO+'T00:00').toLocaleDateString('en-US',{month:'long'});
   const f=v=>(Math.round(v*100)/100).toFixed(2);
-  return `<h2>Daily runs${hActs('dailyruns','Every day since your first run, one bar each, one brick per '+u+'; scroll back through the years, it opens on today. The mi/km switch is this card\u2019s own and remembers itself \u2014 it does not change the weight unit. The line beneath counts this month only, from the 1st.','About Daily runs')}</h2>
+  let foot;
+  if(mode==='pace'){
+    const avg=mrows.length?mrows.reduce((a,r)=>a+r.v,0)/mrows.length:0;
+    foot=`<span><b>${mrows.length?paceStr(avg):'\u2014'}</b> per ${u} in ${monthName}</span><span>${mrows.length?`best ${paceStr(Math.min(...mrows.map(r=>r.v)))}`:'no timed runs yet'}</span>`;
+  }else{
+    const tot=mrows.reduce((a,r)=>a+r.v,0), avg=mrows.length?tot/mrows.length:0;
+    foot=`<span><b>${f(tot)}</b> ${u} in ${monthName}</span><span>${mrows.length} run${mrows.length===1?'':'s'}${mrows.length?` \u00b7 ${f(avg)} ${u} each`:''}</span>`;
+  }
+  return `<h2>Daily runs${hActs('dailyruns','One point per run, oldest first \u2014 days you did not run are left out, so the line is unbroken. Tap the caption to switch mi/km, and dist/pace to switch what the line measures. Pace floats around your own range: lower is faster. The line beneath counts this month only, from the 1st.','About Daily runs')}</h2>
     <div class="card drcard">
-      <div class="pmixhead"><span class="drunit mono">${u}/day</span><button type="button" class="pmixmode" data-rununit aria-label="Show ${u==='mi'?'kilometres':'miles'} instead"><span class="${u==='mi'?'on':''}">mi</span><span class="${u==='km'?'on':''}">km</span></button></div>
+      <div class="pmixhead">
+        <button type="button" class="drunit mono" data-rununit aria-label="Show ${u==='mi'?'kilometres':'miles'} instead">${u}${mode==='pace'?' / min':' / run'}</button>
+        <button type="button" class="pmixmode" data-drunmode aria-label="Show ${mode==='dist'?'pace':'distance'} instead"><span class="${mode==='dist'?'on':''}">dist</span><span class="${mode==='pace'?'on':''}">pace</span></button>
+      </div>
       <div class="drrow">
         <div class="draxis"><span class="dryr" data-dryr data-dryr0="${rows[0].d.slice(0,4)}">${rows[0].d.slice(0,4)}</span>${labs.join('')}</div>
-        <div class="pmixwrap drwrap" id="drWrap">${dailyRunsSvg(rows,u)}</div>
+        <div class="pmixwrap drwrap" id="drWrap">${dailyRunsSvg(rows,u,mode,ax)}</div>
       </div>
-      <div class="tot"><span><b>${f(tot)}</b> ${u} in ${monthName}</span><span>${ran.length} run${ran.length===1?'':'s'}${ran.length?` \u00b7 ${f(avg)} ${u} each` : ''}</span></div></div>`;
+      <div class="tot">${foot}</div></div>`;
 }
 function renderStats(){
   const _S={}; const cut=k=>{ _S[k]=h; h=''; };

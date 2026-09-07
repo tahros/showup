@@ -200,7 +200,14 @@ const check = (resp) => run(`(function(){try{ const o=writerState(); const p=wri
   return JSON.stringify({ok:true, ex:r.rows.filter(x=>x.kind==='ex'&&x.ex).map(x=>x.ex), notes:r.notes, reason:r.reason, est:r.rows.filter(x=>x.kind==='ex'&&x.ex).map(x=>({ex:x.ex,est:x.lines.some(l=>l.est),w:x.lines[0]&&x.lines[0].w,ws:x.lines.map(l=>l.w)}))});
   }catch(e){ return JSON.stringify({ok:false, refused:e.refused||String(e)}); }})()`);
 const today = run(`todayISO`);
-let r = JSON.parse(check({days:[{date:today,part:'Back',title:'Back',text:"Deadlift\n  220 lb x 5 5 5\n\nBent-Over Row\n  175 lb x 10 10\n\nCable Pullover\n  40 lb x 12 12"}]}));
+/* v3.3.476: these answers name Back. Whether Back is the part the ROTATION
+   is due for depends on the calendar, and when it is not, the writer rightly
+   refuses a part change with no reason (P3) -- so the suite was green six days
+   in seven and red on the seventh. Pattern 4. Each answer now carries the
+   reason the doctrine requires, which is also what a real answer would do,
+   and each assertion is left testing the one thing it is about. */
+const backReason={head:'Back today',text:'back is furthest out'};
+let r = JSON.parse(check({days:[{date:today,part:'Back',title:'Back',text:"Deadlift\n  220 lb x 5 5 5\n\nBent-Over Row\n  175 lb x 10 10\n\nCable Pullover\n  40 lb x 12 12"}],reason:backReason}));
 ok("1 · a name not in your catalog survives as a note, never an item", r.ok && r.ex.join()==='Deadlift,Bent-Over Row' && r.notes.some(n=>/Cable Pullover/.test(n)), JSON.stringify(r.notes));
 r = JSON.parse(check({days:[{date:today,part:'Chest',title:'Chest',text:"Barbell Bench Press\n  155 lb x 8 8\n\nCable Fly Down"}],reason:{head:'Chest, not Back',text:'chest is due'}}));
 /* v3.3.422 RESTATES 1b. It refused the WHOLE answer over one exercise -- a
@@ -237,9 +244,9 @@ r = JSON.parse(check({days:[{date:today,part:'Shoulder',title:'Shoulder',text:"L
 ok("...and with a reason it is kept, reason and all", r.ok && r.reason && r.reason.head==='Shoulder, not Back');
 r = JSON.parse(check({days:[{date:today,part:'Biceps',title:'Arms',text:"Barbell Curl\n  50 lb x 10"}],reason:{head:'x',text:'y'}}));
 ok("...a part you do not train is refused", !r.ok && /not one you train/.test(r.refused), r.refused);
-r = JSON.parse(check({days:[{date:today,part:'Back',title:'Back',text:"Deadlift\n  315 lb x 5"}]}));
+r = JSON.parse(check({days:[{date:today,part:'Back',title:'Back',text:"Deadlift\n  315 lb x 5"}],reason:backReason}));
 ok("3 · a load more than 10% above the eight-week best is clamped and marked ≈", r.ok && r.est[0].est===true && Math.abs(r.est[0].w-242.5)<1.5, JSON.stringify(r.est)+' '+JSON.stringify(r.notes));
-r = JSON.parse(check({days:[{date:today,part:'Back',title:'Back',text:"Deadlift\n  230 lb x 5"}]}));
+r = JSON.parse(check({days:[{date:today,part:'Back',title:'Back',text:"Deadlift\n  230 lb x 5"}],reason:backReason}));
 ok("...under the ceiling it passes untouched", r.ok && !r.est[0].est && r.est[0].w===230);
 /* v3.3.407: PUSH. The live writer wrote 50 lb after a 50 lb x 10 10 9 9 session
    and 15 lb after a 20 lb one. Three causes, three fixes: the writer never saw
@@ -274,9 +281,15 @@ ok("...and best is the heaviest load in the window, not the oldest (date-stable)
      DB.days[d(5)]={w:[{part:'Back',ex:'Deadlift',w:100,reps:[5],at:1}],upd:1};
      SEED=deriveAll(); DB.settings.unit='kg'; const p=writerPayload(writerState());
      DB.settings.unit='lb'; DB.days=keep; SEED=deriveAll(); return p.best.Deadlift===120;})()`));
-/* a light cable lift: 20 lb once, last week */
+/* a light cable lift: 20 lb once, last week.
+   v3.3.476: this pushed onto DB.days[yesterday].w and ASSUMED that day was in
+   the base ledger. It is on most dates and is not on others -- green six days
+   in seven, red on the seventh, which is pattern 4 exactly (found when the
+   container clock rolled past midnight UTC mid-session). The day is created
+   if it is absent, so the set lands whatever the calendar says. */
 run(`(function(){const d=new Date(todayISO+'T00:00'); d.setDate(d.getDate()-1); const iso=d.toLocaleDateString('en-CA');
-  DB.days[iso].w.push({part:'Chest',ex:'Cable Fly Up',w:20/LB,reps:[10,10],at:2}); save(true); SEED=deriveAll();})()`);
+  const day=DB.days[iso]||(DB.days[iso]={w:[],upd:Date.now()});
+  day.w.push({part:'Chest',ex:'Cable Fly Up',w:20/LB,reps:[10,10],at:2}); save(true); SEED=deriveAll();})()`);
 const chestReason = {head:'Chest, not Back',text:'chest is furthest out'};
 r = JSON.parse(check({days:[{date:today,part:'Chest',title:'Chest',text:"Barbell Bench Press\n  155 lb x 8\n\nCable Fly Up\n  25 lb x 12 10 10"}],reason:chestReason}));
 ok("3b · one step over a light best passes, even past 10%: 20 lb may become 25", r.ok && r.est[1].ex==='Cable Fly Up' && !r.est[1].est && r.est[1].w===25 && !r.notes.some(n=>/Cable Fly Up/.test(n)), JSON.stringify(r.est)+' '+JSON.stringify(r.notes));
@@ -387,7 +400,7 @@ run(`(function(){const d=new Date(todayISO+'T00:00'); d.setDate(d.getDate()-1); 
    maker's own warm-up ramp under his best, and a symmetric band clamped every
    warm-up UP into a working set. Lighter is free. */
 r = JSON.parse(run(`(function(){try{ const o=writerState(); const p=writerPayload(o);
-  const rr=writerCheck({days:[{date:'${today}',part:'Back',title:'Back',text:"Deadlift\\n  135 lb x 5            (warm-up)\\n  185 lb x 5\\n  215 lb x 5 5 5"}]},{payload:p});
+  const rr=writerCheck({days:[{date:'${today}',part:'Back',title:'Back',text:"Deadlift\\n  135 lb x 5            (warm-up)\\n  185 lb x 5\\n  215 lb x 5 5 5"}],reason:{head:'Back today',text:'back is furthest out'}},{payload:p});
   const l=rr.rows.find(x=>x.ex==='Deadlift').lines;
   return JSON.stringify({ok:true, w:l.map(x=>x.w), est:l.map(x=>!!x.est), notes:rr.notes});
   }catch(e){ return JSON.stringify({ok:false, refused:e.refused||String(e)}); }})()`));
@@ -415,16 +428,28 @@ r = JSON.parse(run(`(function(){try{ const o=writerState(); const p=writerPayloa
   }catch(e){ return JSON.stringify({ok:false, refused:e.refused||String(e)}); }})()`));
 ok("13 · a head with no work at all gets no number: by feel, not ≈",
    r.ok && r.nw===true && !r.est && r.w===0 && r.notes.some(n=>/nothing on record for calves/.test(n)), JSON.stringify(r));
-r = JSON.parse(check({days:[{date:today,part:'Back',title:'Back',text:"Deadlift\n  215 lb x 5"},{date:today,part:'Back',title:'Back again',text:"Pull Up\n  BW x 8"}]}));
+r = JSON.parse(check({days:[{date:today,part:'Back',title:'Back',text:"Deadlift\n  215 lb x 5"},{date:today,part:'Back',title:'Back again',text:"Pull Up\n  BW x 8"}],reason:backReason}));
 ok("5 · two sessions for one date are refused whole", !r.ok && /two sessions/.test(r.refused));
-r = JSON.parse(check({days:[{date:today,part:'Back',title:'Back',text:"Deadlift\n  215 lb x 5"},{date:run(`tomorrowISO()`),part:'Legs',title:'Legs',text:"Squat\n  205 lb x 8"}]}));
+r = JSON.parse(check({days:[{date:today,part:'Back',title:'Back',text:"Deadlift\n  215 lb x 5"},{date:run(`tomorrowISO()`),part:'Legs',title:'Legs',text:"Squat\n  205 lb x 8"}],reason:backReason}));
 ok("6 · a day you did not pick is dropped, and said so", r.ok && r.ex.join()==='Deadlift' && r.notes.some(n=>/not a day you picked/.test(n)));
-r = JSON.parse(check({days:[{date:today,part:'Back',title:'Back',text:"Deadlift\n  215 lb x 5\n\nSeated Cable Row\n  by feel x 10\n\nT-Bar Row\n  by feel x 10\n\nPendlay Row\n  by feel x 10"}]}));
+r = JSON.parse(check({days:[{date:today,part:'Back',title:'Back',text:"Deadlift\n  215 lb x 5\n\nSeated Cable Row\n  by feel x 10\n\nT-Bar Row\n  by feel x 10\n\nPendlay Row\n  by feel x 10"}],reason:backReason}));
 ok("7 · a third NEW movement becomes a note", r.ok && r.ex.join()==='Deadlift,Seated Cable Row,T-Bar Row' && r.notes.some(n=>/third new/.test(n)), r.ex.join());
 r = JSON.parse(check({days:[]}));
 ok("...an empty answer is refused", !r.ok && /empty/.test(r.refused));
 
-/* ---- the whole flow through the stub: tap Write, read back, accept ---- */
+/* ---- the whole flow through the stub: tap Write, read back, accept ----
+   v3.3.476: the stub answers BACK with no reason, and the assertion below is
+   that no reason header appears BECAUSE the part is the rotation's. That only
+   holds if Back really is what the rotation is due for, which depended on the
+   weekday -- so the suite passed six days in seven. Pattern 4. The ledger is
+   now arranged to make Back furthest out: every other part trained in the
+   last three days, Back left where the base fixture put it. The assertion
+   then tests the thing it names. */
+run(`(function(){const d=n=>{const t=new Date(todayISO+'T00:00'); t.setDate(t.getDate()-n); return t.toLocaleDateString('en-CA');};
+  DB.days[d(1)]={w:[{part:'Shoulder',ex:'Dumbbell Shoulder Press',w:30,reps:[8,8],at:1}],upd:1};
+  DB.days[d(2)]={w:[{part:'Chest',ex:'Barbell Bench Press',w:70,reps:[8,8],at:1}],upd:1};
+  DB.days[d(3)]={w:[{part:'Legs',ex:'Squat',w:95,reps:[8,8],at:1}],upd:1};
+  save(true); SEED=deriveAll(); lift.write=null;})()`);
 run(`WRITER_STUB=async(p)=>{ await new Promise(r=>setTimeout(r,120)); return {days:[{date:p.date,part:'Back',title:'Back + Biceps',text:"Deadlift\\n  215 lb x 5 5 5\\n\\nBent-Over Row\\n  175 lb x 10 10 8 8\\n\\nPull Up\\n  BW +10 x 8 8"}],reason:null}; };`);
 run(`(function(){lift.write=null; lift.plan='write'; render(); document.querySelector('[data-writego]').click();})()`);
 /* v3.3.406: the wait is a full screen and a receipt */

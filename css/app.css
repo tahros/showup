@@ -555,7 +555,12 @@
      move under them. */
   .drcard{padding:14px 14px 12px}
   .drcard .pmixhead{display:flex;justify-content:space-between;align-items:center;margin:-4px 0 4px}
-  .drcard .drunit{font-size:11px;letter-spacing:.04em;color:var(--faint);text-transform:uppercase}
+  /* v3.3.476: the caption is a control now (mi/km), so it takes a button's
+     reset and a pointer; it stays a caption in weight and colour. */
+  .drcard .drunit{font-size:11px;letter-spacing:.04em;color:var(--faint);text-transform:uppercase;
+    background:none;border:0;padding:0;font-family:var(--mono);cursor:pointer}
+  .drcard .drdot.newest{filter:none}
+  .draxis span{white-space:nowrap}
   .drrow{display:flex;align-items:stretch;gap:6px}
   /* v3.3.475: the axis column holds the year as well as the numbers, so the
      year stays put while the days scroll. Top padding clears the totals row. */

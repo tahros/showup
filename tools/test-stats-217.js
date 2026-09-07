@@ -76,17 +76,24 @@ ok('Every week labels all twelve bars with actual dates',run(`(function(){const 
 run(`DB.settings.unit='kg'; delete DB.settings.runUnit; view='stats'; render();`);
 ok('Daily runs follows the Running month card', run(`(function(){const hs=[...document.querySelectorAll('h2')].map(h=>h.firstChild.textContent.trim()); const i=hs.findIndex(t=>/^Running/.test(t)); return i>=0 && hs[i+1]==='Daily runs';})()`));
 {
-  const first=run(`(function(){const d=runDays().map(r=>r.d).sort(); return d[0];})()`);
-  const span=run(`daysAgo(${JSON.stringify(first)})`)+1;
+  /* v3.3.476 RESTATES the v3.3.474/475 span assertions. The x-axis is RUNS
+     now, not days: days without a run are left out so the line is unbroken.
+     The claim is one point per run, in date order, oldest first. */
   const runsAll=run(`runDays().length`);
-  ok('...it spans every day from the first run to today, not a fixed window',
-     run(`document.querySelectorAll('.drcard svg rect.drbar').length`)===runsAll &&
-     run(`document.querySelectorAll('.drcard svg rect.drbricks').length`)===runsAll &&
-     /* v3.3.475 RESTATES: every column names its DAY now, rotated, as What
-        you did does -- there is no "today" word. The span is asserted by the
-        count of day labels instead, which is the stronger claim anyway. */
-     run(`[...document.querySelectorAll('.drcard svg text')].filter(x=>/^\\d{1,2}\\/\\d{1,2}$/.test(x.textContent)).length`)===span,
-     run(`document.querySelectorAll('.drcard svg rect.drbar').length`)+' bars / '+runsAll+' runs over '+span+' days');
+  ok('...one dot per run, and one date label per run -- days without a run are left out',
+     run(`document.querySelectorAll('.drcard svg circle.drdot').length`)===runsAll &&
+     run(`[...document.querySelectorAll('.drcard svg text')].filter(x=>/^\\d{1,2}\\/\\d{1,2}$/.test(x.textContent)).length`)===runsAll,
+     run(`document.querySelectorAll('.drcard svg circle.drdot').length`)+' dots / '+runsAll+' runs');
+  ok('...they are in date order, oldest first, and only the newest is marked',
+     run(`(function(){const ds=runDays().map(r=>r.d).sort();
+       const t=[...document.querySelectorAll('.drcard svg text')].filter(x=>/^\\d{1,2}\\/\\d{1,2}$/.test(x.textContent)).map(x=>x.textContent);
+       const want=ds.map(d=>(+d.slice(5,7))+'/'+(+d.slice(8,10)));
+       const dots=[...document.querySelectorAll('.drcard circle.drdot')];
+       return JSON.stringify(t)===JSON.stringify(want) && dots.filter(c=>c.classList.contains('newest')).length===1 && dots[dots.length-1].classList.contains('newest');})()`));
+  ok('...an unbroken line joins every point, with a fill beneath it in distance mode',
+     run(`(function(){const p=document.querySelector('.drcard polyline.drline'); if(!p) return false;
+       return p.getAttribute('points').trim().split(/\\s+/).length===runDays().length && !!document.querySelector('.drcard polygon.drfill');})()`),
+     run(`(document.querySelector('.drcard polyline.drline')||{getAttribute:()=>''}).getAttribute('points').trim().split(/\\s+/).length`));
   ok('...and the svg is wider than its box, so it scrolls',
      run(`(function(){const w=+document.querySelector('.drcard svg').getAttribute('width'); return w>320;})()`),
      run(`document.querySelector('.drcard svg').getAttribute('width')`));
@@ -105,9 +112,10 @@ ok('...the axis adds a step when the tallest value would scrape the ceiling', ru
   const a=drunAxis(7.9); const b=drunAxis(7.0);
   return a.step*a.n===10 && 7.9/(a.step*a.n)<0.85 && b.step*b.n===8;})()`),
   run(`JSON.stringify([drunAxis(7.9),drunAxis(7.0)])`));
-ok('...and the tallest bar sits clear of the axis top (headroom, like What you did)', run(`(function(){const top=parseFloat(document.querySelector('.draxis span:not([data-dryr])').textContent);
-  const bars=[...document.querySelectorAll('.drcard svg rect.drbar')]; const hs=bars.map(b=>+b.getAttribute('height'));
-  const full=150-8; const tallest=Math.max(...hs); return tallest<=full*0.92 && tallest>=full*0.4 && top>0;})()`));
+/* v3.3.476 RESTATES for the line: the highest DOT sits clear of the axis top. */
+ok('...and the highest point sits clear of the axis top (headroom, like What you did)', run(`(function(){
+  const cys=[...document.querySelectorAll('.drcard circle.drdot')].map(c=>+c.getAttribute('cy'));
+  return Math.min(...cys) > 8 + (150-8)*0.06;})()`), run(`Math.min(...[...document.querySelectorAll('.drcard circle.drdot')].map(c=>+c.getAttribute('cy'))).toFixed(1)`));
 /* both rules asserted by COUNT, not by "at least one label exists" -- year
    marks alone satisfied a looser check and it passed with month rules off.
    Over a span of N days there is one month label per month boundary that is
@@ -135,17 +143,32 @@ ok('...a labelled rule at every month boundary, and a firmer marked one at every
      run(`document.querySelector('.drcard .tot').textContent`));
   ok('...and it names the month, so the reset is legible', new RegExp(run(`new Date(todayISO+'T00:00').toLocaleDateString('en-US',{month:'long'})`)).test(run(`document.querySelector('.drcard .tot').textContent`)));
 }
-ok('...and the switch shows km lit', run(`document.querySelector('.drcard [data-rununit] span.on').textContent`)==='km');
+/* v3.3.476 RESTATES the unit assertions: the unit control is the CAPTION now
+   (top left), and the pill top right switches distance/pace. */
+ok('the caption names the unit and is a control', run(`document.querySelector('.drcard [data-rununit]').textContent`).startsWith('km') && run(`document.querySelector('.drcard [data-rununit]').tagName`)==='BUTTON');
 run(`globalThis.__first=document.querySelector('#view h2'); globalThis.__card=document.querySelector('.drcard');`);
 run(`document.querySelector('.drcard [data-rununit]').click();`);
-ok('tapping the switch flips to miles and remembers it as a setting', run(`DB.settings.runUnit`)==='mi' && run(`document.querySelector('.drcard [data-rununit] span.on').textContent`)==='mi');
-ok('...every bar and the axis convert together', run(`(function(){const t=parseFloat(document.querySelector('.draxis span').textContent); return t>0 && /mi in /.test(document.querySelector('.drcard .tot').textContent);})()`), run(`document.querySelector('.drcard .tot').textContent`));
+ok('tapping the caption flips to miles and remembers it as a setting', run(`DB.settings.runUnit`)==='mi' && run(`document.querySelector('.drcard [data-rununit]').textContent`).startsWith('mi'));
+ok('...the axis and the footer convert together', run(`(function(){const t=parseFloat(document.querySelector('.draxis span:not([data-dryr])').textContent); return t>0 && /mi in /.test(document.querySelector('.drcard .tot').textContent);})()`), run(`document.querySelector('.drcard .tot').textContent`));
 ok('...the card was patched in place: the first h2 is the SAME node, the card node is new', run(`__first===document.querySelector('#view h2') && __card!==document.querySelector('.drcard')`));
-ok('...and the weight unit is untouched by the run switch', run(`DB.settings.unit`)==='kg');
+ok('...and the weight unit is untouched by the run caption', run(`DB.settings.unit`)==='kg');
 run(`document.querySelector('.drcard [data-rununit]').click();`);
-ok('a second tap goes back to km', run(`DB.settings.runUnit==='km' && document.querySelector('.drcard [data-rununit] span.on').textContent==='km'`));
+ok('a second tap goes back to km', run(`DB.settings.runUnit==='km' && document.querySelector('.drcard [data-rununit]').textContent.startsWith('km')`));
+/* ---- distance / pace ---- */
+ok('the mode pill starts on dist', run(`document.querySelector('.drcard [data-drunmode] span.on').textContent`)==='dist' && run(`drunMode()`)==='dist');
+run(`document.querySelector('.drcard [data-drunmode]').click();`);
+ok('tapping it switches to pace and remembers it', run(`DB.settings.runMode`)==='pace' && run(`document.querySelector('.drcard [data-drunmode] span.on').textContent`)==='pace');
+ok("...the axis reads as pace (m's\"), not as a distance", run(`[...document.querySelectorAll('.draxis span:not([data-dryr])')].every(x=>/^\\d+'\\d\\d"$/.test(x.textContent))`), run(`JSON.stringify([...document.querySelectorAll('.draxis span:not([data-dryr])')].map(x=>x.textContent))`));
+ok("...the axis does NOT start at zero -- it brackets the range, so a minute is visible", run(`(function(){const v=[...document.querySelectorAll('.draxis span:not([data-dryr])')].map(x=>{const m=x.textContent.match(/^(\\d+)'(\\d\\d)"$/); return +m[1]*60+ +m[2];}); return v[v.length-1]>0;})()`), run(`[...document.querySelectorAll('.draxis span:not([data-dryr])')].pop().textContent`));
+ok('...only timed runs are plotted', run(`document.querySelectorAll('.drcard circle.drdot').length`)===run(`runDays().filter(r=>r.timed>0&&r.sec>0).length`), run(`document.querySelectorAll('.drcard circle.drdot').length`)+' vs '+run(`runDays().filter(r=>r.timed>0&&r.sec>0).length`));
+ok('...pace has NO fill under the line (a pace is a level, not an accumulation)', !run(`!!document.querySelector('.drcard polygon.drfill')`) && run(`!!document.querySelector('.drcard polyline.drline')`));
+ok('...labels are only the newest and each new best, not every point', run(`(function(){const n=document.querySelectorAll('.drcard text[data-lbl="total"]').length; const dots=document.querySelectorAll('.drcard circle.drdot').length; return n>0 && n<dots;})()`), run(`document.querySelectorAll('.drcard text[data-lbl="total"]').length`)+' of '+run(`document.querySelectorAll('.drcard circle.drdot').length`));
+ok('...and the footer is the month average and the best', run(`/per km in /.test(document.querySelector('.drcard .tot').textContent) && /best \\d+'\\d\\d"/.test(document.querySelector('.drcard .tot').textContent)`), run(`document.querySelector('.drcard .tot').textContent`));
+run(`document.querySelector('.drcard [data-drunmode]').click();`);
+ok('back to dist restores the fill and every label', run(`drunMode()`)==='dist' && run(`!!document.querySelector('.drcard polygon.drfill')`) && run(`document.querySelectorAll('.drcard text[data-lbl="total"]').length`)===run(`document.querySelectorAll('.drcard circle.drdot').length`));
+
 run(`delete DB.settings.runUnit; DB.settings.unit='lb'; render();`);
-ok('with no choice made, the card follows the app unit (lb -> mi)', run(`document.querySelector('.drcard [data-rununit] span.on').textContent`)==='mi');
+ok('with no choice made, the caption follows the app unit (lb -> mi)', run(`document.querySelector('.drcard [data-rununit]').textContent`).startsWith('mi'), run(`document.querySelector('.drcard [data-rununit]').textContent`));
 {
   const a=fs.readFileSync(path.join(dir,'js/app.js'),'utf8');
   ok('the scroller opens on today, like the heatmap', /function bindDrun\(\)[\s\S]{0,200}?scrollLeft=box\.scrollWidth/.test(a) && /bindHeat\(\);\s*\n\s*bindDrun\(\);/.test(a));
@@ -159,13 +182,8 @@ ok('with no choice made, the card follows the app unit (lb -> mi)', run(`documen
   const col=(sel)=>run(`(function(){const b=[...document.querySelectorAll('${sel}')]; return b.length>1?(+b[1].getAttribute('x'))-(+b[0].getAttribute('x')):0;})()`);
   ok('...columns are the same pitch and bars the same width in both charts',
      col('#pmixWrap svg rect.pmixseg[data-bar-col="0"], #pmixWrap svg rect.pmixseg')===0 || true);
-  ok('...bars carry a brick overlay, one brick per unit of distance',
-     run(`(function(){const p=document.querySelector('.drcard svg #drunBrick'); const b=document.querySelector('.drcard rect.drbricks');
-       if(!p||!b) return false; const ax=[...document.querySelectorAll('.draxis span:not([data-dryr])')].map(x=>parseFloat(x.textContent));
-       const step=ax[0]/(ax.length-1); const unit=(150-8)/ax[0];
-       return Math.abs(parseFloat(p.getAttribute('height'))-unit)<0.01 && b.getAttribute('fill')==='url(#drunBrick)' && step>0;})()`),
-     run(`document.querySelector('.drcard svg #drunBrick') ? document.querySelector('.drcard svg #drunBrick').getAttribute('height') : '(no pattern)'`));
-  ok('...a totals row runs along the very top, today in full voice and the archive fading',
+  /* v3.3.476: the brick overlay went with the bars; a line has no bricks. */
+ok('...a totals row runs along the very top, today in full voice and the archive fading',
      run(`(function(){const t=[...document.querySelectorAll('.drcard svg text[data-lbl="total"]')];
        if(t.length<3) return false; const last=t[t.length-1];
        return t.every(x=>+x.getAttribute('y')<8) && last.getAttribute('font-weight')==='700' && +last.getAttribute('opacity')===1
@@ -175,18 +193,16 @@ ok('with no choice made, the card follows the app unit (lb -> mi)', run(`documen
      /* pattern 2: \d and \( inside a template literal collapse -- doubled */
      run(`(function(){const t=[...document.querySelectorAll('.drcard svg text')].filter(x=>/^\\d{1,2}\\/\\d{1,2}$/.test(x.textContent));
        return t.length>10 && t.every(x=>/rotate\\(-90/.test(x.getAttribute('transform')||''));})()`));
-  ok('...bars are the full accent, with no age fade',
-     run(`[...document.querySelectorAll('.drcard rect.drbar')].every(b=>b.getAttribute('fill')==='var(--accent)' && !b.getAttribute('opacity'))`));
-  ok('...guides are drawn BEFORE the bars, so the bars sit over them',
+  ok('...the line and its dots are the full accent, with no age fade',
+     run(`(function(){const p=document.querySelector('.drcard polyline.drline'); const dots=[...document.querySelectorAll('.drcard circle.drdot')];
+       return p.getAttribute('stroke')==='var(--accent)' && !p.getAttribute('opacity') && dots.every(c=>c.getAttribute('stroke')==='var(--accent)' && !c.getAttribute('opacity'));})()`));
+  ok('...guides are drawn BEFORE the line, so the line sits over them',
      run(`(function(){const kids=[...document.querySelector('.drcard svg').children];
        const lastGuide=kids.map((n,i)=>n.tagName==='line'?i:-1).filter(i=>i>=0).pop();
-       const firstBar=kids.findIndex(n=>n.classList&&n.classList.contains('drbar'));
-       return lastGuide>=0 && firstBar>lastGuide;})()`));
-  ok("...today's column is washed, and the wash is behind the bars too",
-     run(`(function(){const kids=[...document.querySelector('.drcard svg').children];
-       const w=kids.findIndex(n=>n.getAttribute&&n.getAttribute('fill')==='url(#drunTod)');
-       const firstBar=kids.findIndex(n=>n.classList&&n.classList.contains('drbar'));
-       return w>=0 && firstBar>w;})()`));
+       const firstInk=kids.findIndex(n=>n.classList&&(n.classList.contains('drline')||n.classList.contains('drfill')));
+       return lastGuide>=0 && firstInk>lastGuide;})()`));
+  /* v3.3.476: today's column wash went with the per-day columns; the newest
+     RUN is marked by its larger filled dot instead, asserted above. */
   // the year lives OUTSIDE the scroller and follows its left edge
   /* jsdom computes no layout, so the scroller never actually scrolls here and
      "what year is on arrival" is not reachable -- bindDrun's open-on-today is

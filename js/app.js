@@ -538,8 +538,13 @@ document.addEventListener('click',e=>{
   /* v3.3.473: the daily-runs card's own unit. A setting, so it persists and
      syncs (per-key clock); independent of the weight unit. Patches the card
      in place rather than repainting Stats -- a repaint was the flicker. */
-  if(e.target.closest&&e.target.closest('[data-rununit]')){
-    DB.settings.runUnit=runUnit()==='mi'?'km':'mi'; save(true);
+  /* v3.3.476: two controls, one per corner of the card head -- the caption
+     switches mi/km, the pill switches distance/pace. Both patch the card in
+     place through the same path. */
+  if(e.target.closest&&e.target.closest('[data-rununit],[data-drunmode]')){
+    if(e.target.closest('[data-drunmode]')) DB.settings.runMode=drunMode()==='dist'?'pace':'dist';
+    else DB.settings.runUnit=runUnit()==='mi'?'km':'mi';
+    save(true);
     const cur=document.querySelector('.drcard'); const h2=cur&&cur.previousElementSibling;
     if(cur&&h2&&h2.tagName==='H2'){ const tmp=document.createElement('div'); tmp.innerHTML=dailyRunsSection(); const nh=tmp.querySelector('h2'); const nc=tmp.querySelector('.drcard'); if(nc){ const sc=cur.querySelector('.drwrap'); const keep=sc?sc.scrollLeft:null; cur.replaceWith(nc); const ns=nc.querySelector('.drwrap'); if(ns) ns.scrollLeft = keep==null?ns.scrollWidth:keep; } if(nh) h2.replaceWith(nh); }
     else render();

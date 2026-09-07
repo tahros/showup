@@ -1,5 +1,25 @@
 # ShowUp — changelog
 
+## v3.3.476 (2026-09-06) — Daily runs is a line of runs
+
+The bars were hard to read — most columns were empty days and the shape was
+lost. The chart is a line with dots now, and the x-axis is **runs, not days**:
+days you did not run are left out, so the line is unbroken and the archive is
+dense. The dates under the columns still tell you where the gaps were, and the
+month and year rules still land where the calendar turns.
+
+Two controls, one per corner. The caption at the left switches **mi / km**; the
+pill at the right switches **dist / pace**. In pace the axis reads in minutes
+per mile (or km) and does not start at zero — no run takes zero minutes, and a
+zero-based axis would squash every run into the top inch — so it brackets your
+own range and a minute of difference is a visible minute. Pace draws no fill
+under the line, because a pace is a level rather than something that
+accumulates, and it labels only the newest run and each new best rather than
+every point. The footer follows the mode: distance this month, or the month's
+average pace and its best.
+
+Both choices are remembered as settings, and neither touches the weight unit.
+
 ## v3.3.475 (2026-09-06) — Daily runs is What you did, with runs in it
 
 The card is redrawn in *What you did*'s grammar, borrowed measure for measure
