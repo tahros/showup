@@ -197,7 +197,7 @@ ok("...the prompt keeps weekly cadence ahead of rotation and makes calves a leg-
 
 /* ---- guardrails on stubbed answers ---- */
 const check = (resp) => run(`(function(){try{ const o=writerState(); const p=writerPayload(o); const r=writerCheck(${JSON.stringify(resp)},{payload:p});
-  return JSON.stringify({ok:true, ex:r.rows.filter(x=>x.kind==='ex'&&x.ex).map(x=>x.ex), notes:r.notes, reason:r.reason, est:r.rows.filter(x=>x.kind==='ex'&&x.ex).map(x=>({ex:x.ex,est:x.lines.some(l=>l.est),w:x.lines[0]&&x.lines[0].w,ws:x.lines.map(l=>l.w)}))});
+  return JSON.stringify({ok:true, ex:r.rows.filter(x=>x.kind==='ex'&&x.ex).map(x=>x.ex), notes:r.notes, reason:r.reason, violations:r.violations||[], est:r.rows.filter(x=>x.kind==='ex'&&x.ex).map(x=>({ex:x.ex,est:x.lines.some(l=>l.est),w:x.lines[0]&&x.lines[0].w,ws:x.lines.map(l=>l.w)}))});
   }catch(e){ return JSON.stringify({ok:false, refused:e.refused||String(e)}); }})()`);
 const today = run(`todayISO`);
 /* v3.3.476: these answers name Back. Whether Back is the part the ROTATION
@@ -716,6 +716,76 @@ await_(async()=>{
     ok("an objective tap keeps the typed note", run(`document.getElementById('writeNote').value`)==='sore knee',
        run(`document.getElementById('writeNote').value`));
     run(`lift.plan=null; lift.write=null; render();`);
+  }
+
+  /* ================= v3.3.479: RULE 11 -- THE USUAL BEFORE THE NEW =================
+     The maker's Monday. Eight Shoulder days in the window, each carrying
+     Hanging Leg Raise and Decline Sit Up; the writer answered Shoulder with
+     four shoulder lifts and a NEW Cable Crunch, dropping both. The fact
+     (payload.usual), the rule (a violation named for one repair), and its
+     limits: omitting a usual exercise is allowed; adding a new one in a head
+     that has no usual is allowed; a note that asks for the new one overrides. */
+  {
+    run(`(function(){
+      const D=n=>{const t=new Date(todayISO+'T00:00'); t.setDate(t.getDate()-n); return t.toLocaleDateString('en-CA');};
+      DB.days={}; DB.plan=null; DB.week=null; lift.write=null;
+      for(let k=1;k<=8;k++){ DB.days[D(7*k)]={w:[
+        {part:'Shoulder',ex:'Dumbbell Shoulder Press',w:toKg(55),reps:[10,10,10,8],at:1},
+        {part:'Shoulder',ex:'Lateral Raise',w:toKg(40),reps:[10,10,10,10],at:1},
+        {part:'Shoulder',ex:'Rear Deltoids',w:toKg(30),reps:[12,12,12,12],at:1},
+        {part:'Sixpack',ex:'Hanging Leg Raise',w:0,bw:true,reps:[12,12,10],at:1},
+        {part:'Sixpack',ex:'Decline Sit Up',w:toKg(10),bw:true,reps:[12,12,10],at:1}],upd:1}; }
+      /* FOUR of the eight Shoulder days also carry a chest lift -- enough to
+         pass the half-of-days bar -- and it must still NOT become "usual for
+         Shoulder": it belongs to Chest. (One day was not enough to exercise
+         the guard; a probe that removed it passed.) */
+      for(const k of [1,2,3,4]) DB.days[D(7*k)].w.push({part:'Chest',ex:'Incline Barbell Bench Press',w:toKg(135),reps:[8,8],at:1});
+      DB.days[D(2)]={w:[{part:'Chest',ex:'Barbell Bench Press',w:toKg(155),reps:[8,8,6,6],at:1}],upd:1};
+      DB.days[D(4)]={w:[{part:'Legs',ex:'Squat',w:toKg(195),reps:[8,8,8,8],at:1}],upd:1};
+      DB.days[D(9)]={w:[{part:'Chest',ex:'Barbell Bench Press',w:toKg(155),reps:[8,8,6,6],at:1}],upd:1};
+      DB.days[D(11)]={w:[{part:'Legs',ex:'Squat',w:toKg(195),reps:[8,8,8,8],at:1}],upd:1};
+      SEED=deriveAll(); })()`);
+    const usual=JSON.parse(run(`JSON.stringify(writerPayload(writerState()).usual)`));
+    ok("payload.usual names the shoulder day's habit, core included",
+       usual.Shoulder && usual.Shoulder.map(u=>u.exercise).sort().join('|')==='Decline Sit Up|Dumbbell Shoulder Press|Hanging Leg Raise|Lateral Raise|Rear Deltoids'
+       && usual.Shoulder.every(u=>u.days===8&&u.of===8), JSON.stringify(usual.Shoulder));
+    ok("...a chest lift logged on one shoulder day is not 'usual for Shoulder'",
+       !usual.Shoulder.some(u=>u.exercise==='Incline Barbell Bench Press'));
+    /* Legs has two days in this ledger; Chest has three (the mixed day counts) */
+    ok("...and a part trained twice has no 'usual' yet (three days before anything is a habit)",
+       !usual.Legs && !!usual.Chest, JSON.stringify(Object.keys(usual)));
+    const shoulder=(text,extra)=>JSON.parse(check(Object.assign({days:[{date:today,part:'Shoulder',title:'Shoulder',text}],reason:{head:'Shoulder today',text:'shoulder is furthest out'}},extra||{})));
+    let r=shoulder("Dumbbell Shoulder Press\n  60 lb x 8 8 8 8\n\nLateral Raise\n  45 lb x 10 10 8 8\n\nDumbbell Front Raise\n  30 lb x 10 10 10 10\n\nRear Deltoids\n  30 lb x 12 12 12 12\n\nCable Crunch\n  by feel x 12 12 12");
+    ok("the maker's screen: a new Cable Crunch displacing the usual core pair is a violation, named",
+       r.ok && r.notes.filter(n=>/the usual before the new/.test(n)).length===1 && r.notes.some(n=>/Cable Crunch is new, and your Shoulder days carry Hanging Leg Raise and Decline Sit Up \(8 of 8\)/.test(n)),
+       JSON.stringify(r.notes));
+    r=shoulder("Dumbbell Shoulder Press\n  60 lb x 8 8 8 8\n\nLateral Raise\n  45 lb x 10 10 8 8\n\nRear Deltoids\n  30 lb x 12 12 12 12\n\nHanging Leg Raise\n  BW x 12 12 10\n\nDecline Sit Up\n  +10 lb x 12 12 10");
+    /* "clean" means NO violation of any kind on the day -- asserted on the
+       violations array, not on a phrase, so a differently-worded flag cannot
+       slip past (a probe that flagged plain omission passed a phrase check) */
+    const noRule=r=>r.ok && r.violations.length===0;
+    ok("...the usual pair written: clean", noRule(r), JSON.stringify(r.notes));
+    r=shoulder("Dumbbell Shoulder Press\n  60 lb x 8 8 8 8\n\nLateral Raise\n  45 lb x 10 10 8 8\n\nRear Deltoids\n  30 lb x 12 12 12 12");
+    ok("...omitting the core with nothing new in its place: allowed (a session can be short)", noRule(r), JSON.stringify(r.notes));
+    r=shoulder("Dumbbell Shoulder Press\n  60 lb x 8 8 8 8\n\nLateral Raise\n  45 lb x 10 10 8 8\n\nDumbbell Front Raise\n  30 lb x 10 10 10 10\n\nRear Deltoids\n  30 lb x 12 12 12 12\n\nHanging Leg Raise\n  BW x 12 12 10\n\nDecline Sit Up\n  +10 lb x 12 12 10");
+    ok("...a new shoulder movement ALONGSIDE the usual ones (nothing displaced): allowed", noRule(r), JSON.stringify(r.notes));
+    /* a new movement in a DIFFERENT head while the core is omitted. It has to
+       be a head with no work, or guardrail 15 removes it before rule 11 ever
+       sees it -- which is what made the first version of this case hollow. */
+    r=shoulder("Dumbbell Shoulder Press\n  60 lb x 8 8 8 8\n\nLateral Raise\n  45 lb x 10 10 8 8\n\nRear Deltoids\n  30 lb x 12 12 12 12\n\nHammer Curl\n  30 lb x 10 10 10");
+    ok("...a new BICEPS movement while the CORE is omitted: different heads, so not displacement -- allowed",
+       noRule(r) && r.ex.includes('Hammer Curl'), JSON.stringify({ex:r.ex,v:r.violations}));
+    run(`writerState().note='try cable crunch today';`);
+    r=shoulder("Dumbbell Shoulder Press\n  60 lb x 8 8 8 8\n\nLateral Raise\n  45 lb x 10 10 8 8\n\nRear Deltoids\n  30 lb x 12 12 12 12\n\nCable Crunch\n  by feel x 12 12 12");
+    ok("...but asked for by name in the note, the new one is a want, not a violation", noRule(r), JSON.stringify(r.notes));
+    run(`writerState().note='';`);
+    /* the repair brief carries the rule */
+    const W=fs.readFileSync(path.join(dir,"js/writer.js"),"utf8");
+    ok("the repair brief tells the writer to write payload.usual before any new one", /write the exercises payload\.usual lists for the day/.test(W));
+    const F=fs.readFileSync(path.join(dir,"supabase/functions/write-session/index.ts"),"utf8");
+    ok("...and the prompt names payload.usual, and no longer offers the catalog as licence to rotate core",
+       /payload\.usual makes this a fact you can check/.test(F) && /only among movements the RECORD already contains/.test(F) && !/rotate the exact movement or pattern when the catalog and record provide alternatives/.test(F));
+    run(`DB.days={}; SEED=deriveAll(); lift.write=null;`);
   }
 
   process.exit(fail ? 1 : 0);

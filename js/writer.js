@@ -134,6 +134,37 @@ function writerWeekContext(selectedDays, writableDays){
 /* Whole recent days make the person's established session shapes explicit.
    Raw history remains the source of truth for loads; this small view answers
    a different question: what travelled together, and in what order? */
+/* v3.3.479: THE USUAL. For each part, the exercises that appear on at least
+   half of that part's days in the window -- the person's habit, as a fact.
+   Core is folded into the MAJOR part it rides with: on this ledger the core
+   pair (Hanging Leg Raise, Decline Sit Up) belongs to Monday's Shoulder day,
+   and asking "what is usual on a Shoulder day" must return them. The writer
+   dropped both for a new Cable Crunch; the prompt had said "novelty never
+   displaces a recurring exercise" and nothing checked. This is the check's
+   fact; the rule and the repair are in writerCheck. */
+function writerUsual(history){
+  const byDay={};
+  for(const h of history){ const d=byDay[h[0]]||(byDay[h[0]]={parts:new Set(),ex:new Set()}); d.parts.add(h[1]); d.ex.add(h[2]); }
+  const perPart={};
+  for(const d of Object.values(byDay)){
+    const majors=[...d.parts].filter(p=>!WRITER_CORE_PARTS.includes(p));
+    for(const p of majors){
+      const e=perPart[p]||(perPart[p]={days:0,count:{}}); e.days++;
+      /* an exercise is usual FOR this part only if it belongs to this part, or
+         is core riding along. A chest lift logged on a mixed shoulder+chest
+         day is not "usual for Shoulder" -- the first cut said it was, and the
+         suite caught it. */
+      for(const x of d.ex){ const hp=homePartOf(x); if(hp===p||WRITER_CORE_PARTS.includes(hp)) e.count[x]=(e.count[x]||0)+1; }
+    }
+  }
+  const usual={};
+  for(const [p,e] of Object.entries(perPart)){
+    if(e.days<3) continue;                                   // three days before anything is a habit
+    const u=Object.entries(e.count).filter(([,c])=>c*2>=e.days&&c>=2).sort((a,b)=>b[1]-a[1]).map(([x,c])=>({exercise:x,days:c,of:e.days}));
+    if(u.length) usual[p]=u;
+  }
+  return usual;
+}
 function writerRecentSessions(history){
   const byDay={};
   for(const h of history){
@@ -295,6 +326,7 @@ function writerPayload(o){
   const locked=new Set(locked_days.map(x=>x.date));
   const days=selected_days.filter(date=>!locked.has(date));
   const recent_sessions=writerRecentSessions(history);
+  const usual=writerUsual(history);   // v3.3.479
   const recent_weeks=writerRecentWeeks(recent_sessions);
   const week_context=writerWeekContext(selected_days,days);
   /* v3.3.432: THE APP OWNS THE CALENDAR (the maker's call). Which part trains
@@ -324,7 +356,7 @@ function writerPayload(o){
     focus:o.scope==='week'?(o.focus?[...o.focus]:[]):[],
     rotation:{pick:P.pick, addon:P.addon, ranking},
     objective:o.objective, note:(o.note||'').trim().slice(0,400),
-    catalog, heads, history, recent_sessions, recent_weeks, week_context, best, last, steps, next, coverage,
+    catalog, heads, history, recent_sessions, recent_weeks, usual, week_context, best, last, steps, next, coverage,
     new_days:WRITER_HISTORY_DAYS, band:WRITER_LOAD_BAND, step:U()==='lb'?5:WRITER_STEP_KG, new_max:WRITER_NEW_MAX
   };
 }
@@ -571,6 +603,34 @@ function writerCheck(resp, ctx){
     if(payload.shape&&majorCount>0&&majorCount<payload.shape.min)
       violations.push(`${majorCount} exercise${majorCount===1?'':'s'}, and your shortest session is ${payload.shape.min}`);
 
+    /* RULE 11 -- THE USUAL BEFORE THE NEW. If the day's main part has usual
+       exercises (payload.usual) and the day OMITS one of them while ADDING a
+       movement the record has never seen in the same head, that is novelty
+       displacing habit -- the exact thing the prompt forbids and never
+       enforced. Named back to the writer for one repair, like rules 1 and 2.
+       Omitting a usual exercise on its own is allowed (a session can be
+       short); replacing it with something new is not. A note that names the
+       new exercise or the word "new" is a stated want and overrides. */
+    if(payload.usual&&dayMajor.length){
+      const dayEx=new Set(rows.filter(r=>r.kind==='ex'&&r.ex).map(r=>r.ex));
+      const known=new Set((payload.history||[]).map(h=>h[2]));
+      const noteL=(payload.note||'').toLowerCase();
+      for(const mp of dayMajor){
+        const us=(payload.usual[mp]||[]).map(u=>u.exercise);
+        if(!us.length) continue;
+        const omitted=us.filter(x=>!dayEx.has(x));
+        if(!omitted.length) continue;
+        const fresh=[...dayEx].filter(x=>!known.has(x)&&!noteL.includes(x.toLowerCase()));
+        if(!fresh.length||/\bnew\b/.test(noteL)) continue;
+        /* same head: a new core movement displacing a usual core one, or a new
+           shoulder movement displacing a usual shoulder one */
+        const clash=fresh.filter(f=>omitted.some(o=>homePartOf(o)===homePartOf(f)));
+        if(!clash.length) continue;
+        const o=omitted.filter(o=>clash.some(f=>homePartOf(f)===homePartOf(o)));
+        const u0=payload.usual[mp].find(u=>u.exercise===o[0]);
+        violations.push(`${clash.join(' and ')} ${clash.length===1?'is':'are'} new, and your ${mp} days carry ${o.join(' and ')} ${u0?`(${u0.days} of ${u0.of})`:''} — the usual before the new`);
+      }
+    }
     out.push({date:d.date, part, title:String(d.title||'').slice(0,60), rows, text:planTextFromRows(rows), violations});
   }
   if(!out.length) throw {refused:'no day matched the days you picked'};
@@ -764,7 +824,7 @@ async function writerGo(){
         (payload.note||'').trim(),
         'REWRITE ONLY THESE DAYS, leaving every other day exactly as written:',
         ...chk.violations.map(v=>`${v.date}: ${v.why.join('; ')}.`),
-        'Respect payload.skeleton: never use a part listed as resting, and give each day at least payload.shape.min exercises outside core.'
+        'Respect payload.skeleton: never use a part listed as resting, give each day at least payload.shape.min exercises outside core, and write the exercises payload.usual lists for the day\u2019s part before any new one.'   // v3.3.479: rule 11 in the repair brief
       ].filter(Boolean).join('\n');
       const p2={...payload, note:fixNote.slice(0,900), days:payload.days.filter(d=>bad.has(d))};
       try{

@@ -100,8 +100,11 @@ Each rule: what it protects, whether it is a fact or a judgement, its enforcer, 
 | 8 | **New movements: at most two, into an empty head or on request.** | fact | guardrails 7, 15 — exist | note | — |
 | 9 | **A reason cites a payload fact.** Structured: `{claim, fact}` where `fact` is a key the app can look up. Unverifiable reasons are shown as *the writer says*. | fact about the reason | new check | downgrade voice (P7) | **"completes your leg day contract"** |
 | 10 | **Order and pairing within a day.** Main lift first, accessories after, core last. | judgement | prompt + `recent_sessions` | read-back | — |
+| 11 | **The usual before the new.** `payload.usual` names, per part, the exercises on at least half of that part's days (≥3 days, core folded into the part it rides with). A day that omits a usual exercise while adding a movement the record has never seen in the same head is displacement. Omission alone is allowed; a note naming the new movement overrides. | fact | new guardrail (v3.3.479) | repair | **Monday's Cable Crunch (new) replacing Hanging Leg Raise + Decline Sit Up (8 of 8)** |
 
 Rules 3 and 6–8 already hold. **Rules 1, 2 and 9 are the gap** — and rule 3 moves from the model to the app.
+
+*Added 2026-09-07 (v3.3.479):* **rule 11**, after the Monday plan. The prompt had said "novelty never displaces a recurring exercise" since v3.3.400 and nothing checked; the writer dropped the shoulder day's core pair for a new Cable Crunch. Same shape as rules 1 and 2: the app computes the fact, names the violation, and asks once for a repair.
 
 ## 6. The repair loop
 

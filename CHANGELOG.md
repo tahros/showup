@@ -1,5 +1,24 @@
 # ShowUp — changelog
 
+## v3.3.479 (2026-09-07) — The usual before the new
+
+The writer answered Monday's Shoulder day with four shoulder lifts and a new
+Cable Crunch, dropping the core pair the ledger shows on every one of the last
+eight Shoulder days. The prompt has said "novelty never displaces a recurring
+exercise" since v3.3.400 and nothing ever checked — a rule with no enforcer is
+a wish. Rule 11 makes it a law, the way rules 1 and 2 became laws in v3.3.432.
+
+The fact: `payload.usual` names, for each part, the exercises that appear on at
+least half of that part's days (three days before anything counts as a habit),
+with core folded into the major part it rides with — so *usual for Shoulder*
+includes Hanging Leg Raise and Decline Sit Up. The rule: a day that omits a
+usual exercise while adding a movement the record has never seen, in the same
+head, is sent back once with the violation named. Omitting alone is allowed; a
+note that names the new movement is a want and overrides.
+
+The prompt's core rule no longer offers the catalog as licence to rotate in a
+core movement the person has never done, and the repair brief carries rule 11.
+
 ## v3.3.478 (2026-09-07) — The selected glyph takes the bar's ink
 
 On a dark bar in a light app the selected tab went black. v3.3.470 painted it
