@@ -1,5 +1,17 @@
 # ShowUp — changelog
 
+## v3.3.481 (2026-09-07) — Four tabs, one row
+
+The tab bar could appear as a tall panel with its four icons stacked down
+the left. Its layout now explicitly keeps the four buttons in one horizontal,
+non-wrapping row, each taking an equal share of the available width.
+
+This is a layout repair, not a redesign: the icons, glass, selected state,
+Match / Light / Dark setting, and scroll re-anchoring are unchanged. No
+workout records or plans are touched. The reported stacking was not reproduced
+in desktop Chromium; the repair removes the grid-track dependency, and the
+original iPhone still needs to confirm the device-specific symptom is gone.
+
 ## v3.3.480 (2026-09-07) — The pill re-anchors
 
 The v3.3.179 symptom came back: after a scroll the tab bar and the ↑ top button
