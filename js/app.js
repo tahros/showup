@@ -550,9 +550,9 @@ document.addEventListener('click',e=>{
   /* v3.3.476: two controls, one per corner of the card head -- the caption
      switches mi/km, the pill switches distance/pace. Both patch the card in
      place through the same path. */
-  if(e.target.closest&&e.target.closest('[data-rununit],[data-drunmode]')){
-    if(e.target.closest('[data-drunmode]')) DB.settings.runMode=drunMode()==='dist'?'pace':'dist';
-    else DB.settings.runUnit=runUnit()==='mi'?'km':'mi';
+  if(e.target.closest&&e.target.closest('[data-drunmode]')){
+    /* v3.3.481: only the mode switches here now; the unit is the app's */
+    DB.settings.runMode=drunMode()==='dist'?'pace':'dist';
     save(true);
     const cur=document.querySelector('.drcard'); const h2=cur&&cur.previousElementSibling;
     if(cur&&h2&&h2.tagName==='H2'){ const tmp=document.createElement('div'); tmp.innerHTML=dailyRunsSection(); const nh=tmp.querySelector('h2'); const nc=tmp.querySelector('.drcard'); if(nc){ const sc=cur.querySelector('.drwrap'); const keep=sc?sc.scrollLeft:null; cur.replaceWith(nc); const ns=nc.querySelector('.drwrap'); if(ns) ns.scrollLeft = keep==null?ns.scrollWidth:keep; } if(nh) h2.replaceWith(nh); }
@@ -1130,9 +1130,50 @@ function bindScrub(box, svg, getVb){
    scrollWidth because a narrow enough window may not overflow at all. */
 /* v3.3.474: the daily-runs scroller opens on today, like the heatmap and the
    part-mix strip. Called from paint(), so every render re-anchors it. */
+/* v3.3.481: THE SCRUB. Touch the chart and drag: the run nearest the finger
+   lights, the others fade, and a readout above shows its date and value. The
+   nearest run is found by x alone -- a chart is a ruler of columns, and the
+   finger picks a column -- so scrubbing feels like sliding along the line
+   rather than aiming at dots. Lifting the finger keeps the last pick until the
+   next touch; tapping the same point again clears it. Wheel and mouse do the
+   same on a desktop. All state lives in classes and one readout node, so a
+   re-render clears it and nothing can leak. */
+function drunScrubAt(box,clientX){
+  const svg=box.querySelector('svg'); if(!svg) return null;
+  const dots=[...svg.querySelectorAll('circle.drdot')]; if(!dots.length) return null;
+  const rect=svg.getBoundingClientRect(); const scale=(+svg.getAttribute('width')||rect.width)/(rect.width||1);
+  const x=(clientX-rect.left)*scale;
+  let best=null,bd=Infinity; for(const d of dots){ const dx=Math.abs(+d.getAttribute('cx')-x); if(dx<bd){ bd=dx; best=d; } }
+  return best;
+}
+function drunScrubShow(box,dot){
+  const out=box.querySelector('.drscrub'); const svg=box.querySelector('svg');
+  svg.querySelectorAll('circle.drdot.pick').forEach(c=>c.classList.remove('pick'));
+  if(!dot){ box.classList.remove('scrubbing'); if(out){ out.hidden=true; out.textContent=''; } return; }
+  box.classList.add('scrubbing'); dot.classList.add('pick');
+  const d=dot.getAttribute('data-d'); const day=new Date(d+'T00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+  const unit=box.getAttribute('data-drun-unit')||''; const mode=box.getAttribute('data-drun-mode')||'dist';
+  out.textContent=`${day} \u00b7 ${dot.getAttribute('data-v')}${mode==='pace'?' /'+unit:' '+unit}`;
+  out.hidden=false;
+  /* keep the readout inside the visible box, over the picked column */
+  const rect=svg.getBoundingClientRect(); const scale=(rect.width||1)/(+svg.getAttribute('width')||rect.width);
+  const px=(+dot.getAttribute('cx'))*scale - box.scrollLeft;
+  out.style.left=Math.max(4,Math.min(box.clientWidth-out.offsetWidth-4,px-out.offsetWidth/2))+'px';
+}
 function bindDrun(){
   const box=document.getElementById('drWrap'); if(!box) return;
   if(box.scrollWidth>box.clientWidth) box.scrollLeft=box.scrollWidth;
+  if(!box._scrub){
+    box._scrub=true;
+    let down=false;
+    const at=e=>{ const t=e.touches?e.touches[0]:e; return t?t.clientX:null; };
+    const start=e=>{ down=true; const x=at(e); if(x==null) return; const dot=drunScrubAt(box,x);
+      if(dot&&dot.classList.contains('pick')){ drunScrubShow(box,null); down=false; return; } drunScrubShow(box,dot); };
+    const move=e=>{ if(!down) return; const x=at(e); if(x==null) return; drunScrubShow(box,drunScrubAt(box,x)); };
+    const end=()=>{ down=false; };
+    box.addEventListener('touchstart',start,{passive:true}); box.addEventListener('touchmove',move,{passive:true}); box.addEventListener('touchend',end);
+    box.addEventListener('mousedown',start); box.addEventListener('mousemove',move); box.addEventListener('mouseup',end); box.addEventListener('mouseleave',end);
+  }
   /* v3.3.475: the axis year follows the LEFT EDGE of the scroller. The year
      lives outside the chart so it holds still, which means something has to
      keep it true as the days move -- the year marks inside carry their year
@@ -1419,7 +1460,6 @@ const doneToast=(m,alt)=>{
   else toast(alt);
 };
 function syncNav(){
-  scheduleNavLayoutCheck();
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
   /* v3.3.461: Today's square in the bar shows the day's STATE -- hollow while
      open, filled once closed (doneAll). Every render passes through here, and

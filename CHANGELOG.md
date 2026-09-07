@@ -1,48 +1,27 @@
 # ShowUp — changelog
 
-## v3.3.484 (2026-09-07) — White centre, blue edge
+## v3.3.481 (2026-09-07) — Daily runs: the app's unit, a readable pace axis, and a scrub
 
-Selected completed TODAY on a Dark tab bar now has a white fill and a thin
-outline in the original pale blue (#95A4E8). This replaces v483's main-blue
-fill. It applies in both app themes when the bar itself is Dark. Light bars,
-unselected tabs, open-day outlines, rest indicators and layout recovery stay
-unchanged. Workout-completion ideas remain a separate prototype, not shipped.
+Three faults on one card.
 
-## v3.3.483 (2026-09-07) — Today's main blue
+**The unit is the app's.** v3.3.473 gave the card its own mi/km switch and
+stored the choice; it persisted a `km` under a mile-based app, so the card read
+km while every other run figure on the page read mi. One unit per app: the
+caption is a label, the stored preference is ignored, and the card follows
+lb → mi, kg → km like the Running month card above it.
 
-On a Dark tab bar, the completed TODAY icon now uses the app's main blue
-when TODAY is selected, instead of the pale blue variant. The colour follows
-the app's accent token. Unselected icons, Light bars, open-day outlines and
-rest indicators are unchanged. The v3.3.482 layout recovery is untouched.
+**The pace axis calibrates to the body of the runs, not the outliers.** One
+walked run in 2021 at 41'/km stretched the axis to 41' and flattened five years
+of 6'30" runs into a line at the bottom. The range is now the 5th–95th
+percentile of the paces, padded; anything outside is drawn at the rim, hollow,
+so it is still there but does not own the axis. Steps are the ones a runner
+reads — 15", 30", 1', 2', 5' — not 10'15".
 
-Workout completion behaviour is unchanged in this release.
-
-## v3.3.482 (2026-09-07) — Repair the bar that is actually on screen
-
-The phone screenshot confirmed v3.3.481 was installed and the bar still
-stacked vertically. The previous CSS-only repair was insufficient.
-
-The app now checks the rendered bar after a screen change, resize, return
-to the app and settled scroll. If its four buttons stack, its panel grows
-too tall, or it extends past the screen, the app restores the fixed horizontal
-row directly on those same elements. A healthy bar is left alone. Colours,
-glass, icon states, workout records and plans are unchanged.
-
-This is a conditional recovery, not a claim that the underlying iPhone
-rendering cause has been identified. Regression tests deliberately break
-the layout and verify recovery; the affected phone remains the final check.
-
-## v3.3.481 (2026-09-07) — Four tabs, one row
-
-The tab bar could appear as a tall panel with its four icons stacked down
-the left. Its layout now explicitly keeps the four buttons in one horizontal,
-non-wrapping row, each taking an equal share of the available width.
-
-This is a layout repair, not a redesign: the icons, glass, selected state,
-Match / Light / Dark setting, and scroll re-anchoring are unchanged. No
-workout records or plans are touched. The reported stacking was not reproduced
-in desktop Chromium; the repair removes the grid-track dependency, and the
-original iPhone still needs to confirm the device-specific symptom is gone.
+**The scrub.** Touch the chart and drag: the run nearest the finger lights, the
+others fade, and a readout above shows its date and value. The nearest run is
+found by x alone — a chart is a ruler of columns, and the finger picks a column
+— so it feels like sliding along the line. Lifting keeps the last pick; tapping
+the same point again clears it.
 
 ## v3.3.480 (2026-09-07) — The pill re-anchors
 

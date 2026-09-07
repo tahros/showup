@@ -995,7 +995,6 @@ function monthlyPaceSection(){
    frame, same faint baseline, the accent for a run, nothing for a day without
    one. Today is rightmost and labelled. Below: the window's total and the
    average per run day, in the same unit. Nothing here is a target. */
-function runUnit(){ const u=DB.settings.runUnit; return (u==='mi'||u==='km')?u:DU(); }
 /* v3.3.474: DAILY RUNS, ALL OF IT. v3.3.473 showed a fixed 28-day window; the
    card now draws every day from the first run to today in a horizontal
    scroller, opened on today, exactly as What you did does. Borrowed wholesale
@@ -1023,7 +1022,13 @@ function runUnit(){ const u=DB.settings.runUnit; return (u==='mi'||u==='km')?u:D
    rules still land where the calendar turns -- but the gap is no longer a
    shape. That was the price of legibility, and he chose it. */
 const DRUN_COLW=PMIX_COLW, DRUN_H=PMIX_H, DRUN_TOP=PMIX_TOP, DRUN_BASE=PMIX_BASE;
-function runUnit(){ const u=DB.settings.runUnit; return (u==='mi'||u==='km')?u:DU(); }
+/* v3.3.481: THE UNIT IS THE APP'S. v3.3.473 gave the card its own mi/km
+   switch; by 476 that had become the caption, and it persisted a 'km' the
+   maker never meant to keep -- the card read km while every other run figure
+   on the page read mi. One unit per app: the caption is a label now, the
+   stored preference is ignored, and the card follows lb -> mi, kg -> km like
+   the Running month card above it. */
+function runUnit(){ return DU(); }
 function drunMode(){ return DB.settings.runMode==='pace'?'pace':'dist'; }
 /* distance: a round step from zero, with a step of headroom (What you did's).
    pace: NOT from zero -- no run takes zero minutes, and an axis from 0 would
@@ -1034,12 +1039,23 @@ function drunAxis(max){
   for(const st of steps){ const n=Math.ceil(max/st)+(Math.ceil(max/st)*st-max<st*0.25?1:0); if(n>=3&&n<=5) return {step:st,n,bot:0}; }
   const st=steps[steps.length-1]; return {step:st,n:Math.max(3,Math.ceil(max/st)+1),bot:0};
 }
-function drunPaceAxis(lo,hi){
-  const pad=Math.max(15,(hi-lo)*0.25);          // seconds
-  let bot=Math.max(0,lo-pad), top=hi+pad;
-  const step=Math.max(15,Math.ceil((top-bot)/4/15)*15);
-  bot=Math.floor(bot/step)*step; const n=Math.max(3,Math.ceil((top-bot)/step));
-  return {step,n,bot};
+/* v3.3.481: THE PACE AXIS CALIBRATES TO THE BODY OF THE RUNS, NOT THE
+   OUTLIERS. One walked run in 2021 at 41'/km stretched the axis to 41' and
+   flattened five years of 6'30" runs into a line at the bottom. The range is
+   now the 5th-95th percentile of the paces, padded; anything outside is
+   drawn at the rim, hollow, so it is still there but does not own the axis.
+   Steps are the ones a runner reads -- 15s, 30s, 1', 2', 5' -- not 10'15". */
+function drunPaceAxis(vals){
+  const v=[...vals].sort((a,b)=>a-b); if(!v.length) return {step:60,n:3,bot:0};
+  const q=p=>v[Math.min(v.length-1,Math.max(0,Math.floor(p*(v.length-1))))];
+  const lo=q(0.05), hi=q(0.95);
+  const pad=Math.max(15,(hi-lo)*0.3);
+  const rawBot=Math.max(0,lo-pad), rawTop=hi+pad;
+  const steps=[15,30,60,120,300,600];
+  let step=steps[steps.length-1];
+  for(const st of steps){ const n=Math.ceil((rawTop-Math.floor(rawBot/st)*st)/st); if(n>=3&&n<=6){ step=st; break; } }
+  const bot=Math.floor(rawBot/step)*step; const n=Math.max(3,Math.ceil((rawTop-bot)/step));
+  return {step,n,bot,clip:true};
 }
 function drunRows(u,mode){
   const days=runDays(); if(!days.length) return [];
@@ -1054,8 +1070,10 @@ function drunRows(u,mode){
 function drunFmt(v,mode){ return mode==='pace'?paceStr(v):(v>=10?String(Math.round(v)):(Math.round(v*10)/10).toFixed(1)); }
 function dailyRunsSvg(rows,u,mode,ax){
   const W=Math.max(320,rows.length*DRUN_COLW+16);
-  const top=ax.bot+ax.step*ax.n, span=(top-ax.bot)||1;
-  const Y=v=>DRUN_BASE-((v-ax.bot)/span)*(DRUN_BASE-DRUN_TOP);
+  const span=(ax.bot+ax.step*ax.n-ax.bot)||1;
+  const top=ax.bot+ax.step*ax.n;
+  const inRange=v=>v>=ax.bot&&v<=top;
+  const Y=v=>{ const c=ax.clip?Math.max(ax.bot,Math.min(top,v)):v; return DRUN_BASE-((c-ax.bot)/span)*(DRUN_BASE-DRUN_TOP); };
   const cx=i=>8+i*DRUN_COLW+(DRUN_COLW-2.5)/2;
   let s=`<svg viewBox="0 0 ${W} ${DRUN_H}" width="${W}" height="${DRUN_H}" style="height:${DRUN_H}px" data-drun role="img" aria-label="${mode==='pace'?'Pace per '+u:'Distance in '+u} for every run, oldest first">
     <defs><linearGradient id="drunFill" x1="0" y1="0" x2="0" y2="1">
@@ -1091,8 +1109,9 @@ function dailyRunsSvg(rows,u,mode,ax){
   rows.forEach((r,i)=>{
     const newest=i===rows.length-1, isBest=mode==='pace'&&r.v<best;
     if(mode==='pace'&&r.v<best) best=r.v;
-    s+=`<circle class="drdot${newest?' newest':''}" data-i="${i}" cx="${cx(i).toFixed(1)}" cy="${Y(r.v).toFixed(1)}" r="${newest?3.4:2.4}"
-         fill="${newest?'var(--accent)':'var(--ground)'}" stroke="var(--accent)" stroke-width="1.6"></circle>`;
+    const out=ax.clip&&!inRange(r.v);
+    s+=`<circle class="drdot${newest?' newest':''}${out?' out':''}" data-i="${i}" data-d="${r.d}" data-v="${drunFmt(r.v,mode)}" cx="${cx(i).toFixed(1)}" cy="${Y(r.v).toFixed(1)}" r="${newest?3.4:2.4}"
+         fill="${newest&&!out?'var(--accent)':'var(--ground)'}" stroke="var(--accent)" stroke-width="${out?1:1.6}"${out?' stroke-dasharray="1.5 1.5"':''}></circle>`;
     if(mode==='dist'||newest||isBest){
       const away=rows.length-1-i;
       const op=newest?1:Math.max(0.35,0.92-away*0.033);
@@ -1108,7 +1127,7 @@ function dailyRunsSection(){
   const u=runUnit(), mode=drunMode(), rows=drunRows(u,mode);
   if(!rows.length) return '';
   const vals=rows.map(r=>r.v);
-  const ax=mode==='pace'?drunPaceAxis(Math.min(...vals),Math.max(...vals)):drunAxis(Math.max(0.1,...vals));
+  const ax=mode==='pace'?drunPaceAxis(vals):drunAxis(Math.max(0.1,...vals));
   const labs=[]; for(let i=ax.n;i>=0;i--){ const v=ax.bot+i*ax.step; labs.push(`<span>${drunFmt(v,mode)}</span>`); }
   /* the footer is THIS MONTH to date: it resets on the 1st, so the number
      answers "how am I doing now" rather than accumulating forever. */
@@ -1126,12 +1145,12 @@ function dailyRunsSection(){
   return `<h2>Daily runs${hActs('dailyruns','One point per run, oldest first \u2014 days you did not run are left out, so the line is unbroken. Tap the caption to switch mi/km, and dist/pace to switch what the line measures. Pace floats around your own range: lower is faster. The line beneath counts this month only, from the 1st.','About Daily runs')}</h2>
     <div class="card drcard">
       <div class="pmixhead">
-        <button type="button" class="drunit mono" data-rununit aria-label="Show ${u==='mi'?'kilometres':'miles'} instead">${u}${mode==='pace'?' / min':' / run'}</button>
+        <span class="drunit mono">${u}${mode==='pace'?' / min':' / run'}</span>
         <button type="button" class="pmixmode" data-drunmode aria-label="Show ${mode==='dist'?'pace':'distance'} instead"><span class="${mode==='dist'?'on':''}">dist</span><span class="${mode==='pace'?'on':''}">pace</span></button>
       </div>
       <div class="drrow">
         <div class="draxis"><span class="dryr" data-dryr data-dryr0="${rows[0].d.slice(0,4)}">${rows[0].d.slice(0,4)}</span>${labs.join('')}</div>
-        <div class="pmixwrap drwrap" id="drWrap">${dailyRunsSvg(rows,u,mode,ax)}</div>
+        <div class="pmixwrap drwrap" id="drWrap" data-drun-mode="${mode}" data-drun-unit="${u}">${dailyRunsSvg(rows,u,mode,ax)}<div class="drscrub" aria-live="polite" hidden></div></div>
       </div>
       <div class="tot">${foot}</div></div>`;
 }

@@ -143,20 +143,19 @@ ok('...a labelled rule at every month boundary, and a firmer marked one at every
      run(`document.querySelector('.drcard .tot').textContent`));
   ok('...and it names the month, so the reset is legible', new RegExp(run(`new Date(todayISO+'T00:00').toLocaleDateString('en-US',{month:'long'})`)).test(run(`document.querySelector('.drcard .tot').textContent`)));
 }
-/* v3.3.476 RESTATES the unit assertions: the unit control is the CAPTION now
-   (top left), and the pill top right switches distance/pace. */
-ok('the caption names the unit and is a control', run(`document.querySelector('.drcard [data-rununit]').textContent`).startsWith('km') && run(`document.querySelector('.drcard [data-rununit]').tagName`)==='BUTTON');
-run(`globalThis.__first=document.querySelector('#view h2'); globalThis.__card=document.querySelector('.drcard');`);
-run(`document.querySelector('.drcard [data-rununit]').click();`);
-ok('tapping the caption flips to miles and remembers it as a setting', run(`DB.settings.runUnit`)==='mi' && run(`document.querySelector('.drcard [data-rununit]').textContent`).startsWith('mi'));
-ok('...the axis and the footer convert together', run(`(function(){const t=parseFloat(document.querySelector('.draxis span:not([data-dryr])').textContent); return t>0 && /mi in /.test(document.querySelector('.drcard .tot').textContent);})()`), run(`document.querySelector('.drcard .tot').textContent`));
-ok('...the card was patched in place: the first h2 is the SAME node, the card node is new', run(`__first===document.querySelector('#view h2') && __card!==document.querySelector('.drcard')`));
-ok('...and the weight unit is untouched by the run caption', run(`DB.settings.unit`)==='kg');
-run(`document.querySelector('.drcard [data-rununit]').click();`);
-ok('a second tap goes back to km', run(`DB.settings.runUnit==='km' && document.querySelector('.drcard [data-rununit]').textContent.startsWith('km')`));
+/* v3.3.481 RESTATES the unit assertions: there is no unit control. The card
+   follows the APP's unit (lb -> mi, kg -> km), like the Running month card
+   above it; a stored runUnit from 473-476 is ignored. The caption is a label. */
+ok('the caption names the unit and is a LABEL, not a control', run(`(function(){const c=document.querySelector('.drcard .drunit'); return c && c.tagName!=='BUTTON' && c.textContent.startsWith('km') && !document.querySelector('.drcard [data-rununit]');})()`));
+run(`DB.settings.runUnit='mi'; render();`);
+ok('a stored per-card unit is ignored: kg app, km card', run(`document.querySelector('.drcard .drunit').textContent`).startsWith('km') && /km in /.test(run(`document.querySelector('.drcard .tot').textContent`)));
+run(`delete DB.settings.runUnit; DB.settings.unit='lb'; render();`);
+ok('...and an lb app gives a mi card, axis and footer both', run(`document.querySelector('.drcard .drunit').textContent`).startsWith('mi') && /mi in /.test(run(`document.querySelector('.drcard .tot').textContent`)));
+run(`DB.settings.unit='kg'; render(); globalThis.__first=document.querySelector('#view h2'); globalThis.__card=document.querySelector('.drcard');`);
 /* ---- distance / pace ---- */
 ok('the mode pill starts on dist', run(`document.querySelector('.drcard [data-drunmode] span.on').textContent`)==='dist' && run(`drunMode()`)==='dist');
 run(`document.querySelector('.drcard [data-drunmode]').click();`);
+ok('...the card was patched in place by the mode switch: the first h2 is the SAME node, the card node is new', run(`__first===document.querySelector('#view h2') && __card!==document.querySelector('.drcard')`));
 ok('tapping it switches to pace and remembers it', run(`DB.settings.runMode`)==='pace' && run(`document.querySelector('.drcard [data-drunmode] span.on').textContent`)==='pace');
 ok("...the axis reads as pace (m's\"), not as a distance", run(`[...document.querySelectorAll('.draxis span:not([data-dryr])')].every(x=>/^\\d+'\\d\\d"$/.test(x.textContent))`), run(`JSON.stringify([...document.querySelectorAll('.draxis span:not([data-dryr])')].map(x=>x.textContent))`));
 ok("...the axis does NOT start at zero -- it brackets the range, so a minute is visible", run(`(function(){const v=[...document.querySelectorAll('.draxis span:not([data-dryr])')].map(x=>{const m=x.textContent.match(/^(\\d+)'(\\d\\d)"$/); return +m[1]*60+ +m[2];}); return v[v.length-1]>0;})()`), run(`[...document.querySelectorAll('.draxis span:not([data-dryr])')].pop().textContent`));
@@ -164,11 +163,47 @@ ok('...only timed runs are plotted', run(`document.querySelectorAll('.drcard cir
 ok('...pace has NO fill under the line (a pace is a level, not an accumulation)', !run(`!!document.querySelector('.drcard polygon.drfill')`) && run(`!!document.querySelector('.drcard polyline.drline')`));
 ok('...labels are only the newest and each new best, not every point', run(`(function(){const n=document.querySelectorAll('.drcard text[data-lbl="total"]').length; const dots=document.querySelectorAll('.drcard circle.drdot').length; return n>0 && n<dots;})()`), run(`document.querySelectorAll('.drcard text[data-lbl="total"]').length`)+' of '+run(`document.querySelectorAll('.drcard circle.drdot').length`));
 ok('...and the footer is the month average and the best', run(`/per km in /.test(document.querySelector('.drcard .tot').textContent) && /best \\d+'\\d\\d"/.test(document.querySelector('.drcard .tot').textContent)`), run(`document.querySelector('.drcard .tot').textContent`));
+/* ---- v3.3.481: the pace axis calibrates to the body of the runs ---- */
+{
+  /* plant one absurd outlier: a 41'/km walk in the oldest run. The axis must
+     NOT stretch to it; it is drawn at the rim, hollow, and the five-year
+     body of 6'-7' runs keeps the chart. */
+  run(`(function(){const ds=Object.keys(DB.days).filter(d=>(DB.days[d].w||[]).some(s=>s.ex==='Run')).sort(); const first=ds[0];
+    const r=DB.days[first].w.find(s=>s.ex==='Run'); r.mins=41*r.w; r.secs=0; globalThis.__slowDay=first; SEED=deriveAll(); render();})()`);
+  const axTop=run(`(function(){const m=document.querySelector('.draxis span:not([data-dryr])').textContent.match(/^(\\d+)'(\\d\\d)"$/); return +m[1]*60+ +m[2];})()`);
+  const body95=run(`(function(){const v=drunRows(runUnit(),'pace').map(r=>r.v).sort((a,b)=>a-b); return v[Math.floor(0.95*(v.length-1))];})()`);
+  ok('the pace axis top sits near the 95th percentile, not at the outlier', axTop<41*60*0.5 && axTop>=body95, axTop+' vs p95 '+Math.round(body95));
+  ok("...its steps are ones a runner reads (15s, 30s, 1', 2', 5', 10')", run(`(function(){const v=[...document.querySelectorAll('.draxis span:not([data-dryr])')].map(x=>{const m=x.textContent.match(/^(\\d+)'(\\d\\d)"$/); return +m[1]*60+ +m[2];}); const st=v[0]-v[1]; return [15,30,60,120,300,600].includes(st) && v.every((x,i)=>i===0||v[i-1]-x===st);})()`), run(`JSON.stringify([...document.querySelectorAll('.draxis span:not([data-dryr])')].map(x=>x.textContent))`));
+  ok('...and the outlier is still drawn, at the rim and hollow', run(`(function(){const c=document.querySelector('.drcard circle.drdot.out'); if(!c) return false; const top=8; return Math.abs(+c.getAttribute('cy')-top)<0.6 && c.getAttribute('data-d')===__slowDay;})()`), run(`(document.querySelector('.drcard circle.drdot.out')||{getAttribute:()=>'(none)'}).getAttribute('cy')`));
+  run(`(function(){const r=DB.days[__slowDay].w.find(s=>s.ex==='Run'); r.mins=32; r.secs=0; SEED=deriveAll(); render();})()`);
+  ok('...with the outlier gone, no dot is clipped', !run(`!!document.querySelector('.drcard circle.drdot.out')`));
+}
+/* ---- v3.3.481: the scrub ---- */
+{
+  run(`(function(){const box=document.getElementById('drWrap'); const svg=box.querySelector('svg');
+    /* jsdom has no layout: give the svg a 1:1 box so clientX maps to svg x */
+    svg.getBoundingClientRect=()=>({left:0,top:0,width:+svg.getAttribute('width'),height:186,right:+svg.getAttribute('width'),bottom:186});
+    Object.defineProperty(box,'clientWidth',{value:320,configurable:true}); })()`);
+  const dots=run(`document.querySelectorAll('.drcard circle.drdot').length`);
+  const cx3=run(`+document.querySelectorAll('.drcard circle.drdot')[3].getAttribute('cx')`);
+  run(`document.getElementById('drWrap').dispatchEvent(new MouseEvent('mousedown',{clientX:${cx3}+2,bubbles:true}));`);
+  ok('pressing on the chart picks the nearest run', run(`(function(){const p=document.querySelector('.drcard circle.drdot.pick'); return !!p && p.getAttribute('data-i')==='3';})()`), run(`(document.querySelector('.drcard circle.drdot.pick')||{getAttribute:()=>'(none)'}).getAttribute('data-i')`));
+  ok('...the others fade and the readout shows its date and value', run(`document.getElementById('drWrap').classList.contains('scrubbing')`) &&
+     run(`(function(){const o=document.querySelector('.drscrub'); const p=document.querySelector('.drcard circle.drdot.pick'); return !o.hidden && o.textContent.includes(p.getAttribute('data-v')) && /\\w{3}, \\w{3} \\d+/.test(o.textContent);})()`), run(`document.querySelector('.drscrub').textContent`));
+  const cx7=run(`+document.querySelectorAll('.drcard circle.drdot')[7].getAttribute('cx')`);
+  run(`document.getElementById('drWrap').dispatchEvent(new MouseEvent('mousemove',{clientX:${cx7}-1,bubbles:true}));`);
+  ok('dragging slides the pick along the line', run(`document.querySelector('.drcard circle.drdot.pick').getAttribute('data-i')`)==='7');
+  run(`document.getElementById('drWrap').dispatchEvent(new MouseEvent('mouseup',{bubbles:true}));`);
+  ok('lifting keeps the last pick', run(`document.querySelector('.drcard circle.drdot.pick').getAttribute('data-i')`)==='7');
+  run(`document.getElementById('drWrap').dispatchEvent(new MouseEvent('mousedown',{clientX:${cx7}-1,bubbles:true}));`);
+  ok('...and tapping the same point again clears it', !run(`!!document.querySelector('.drcard circle.drdot.pick')`) && run(`document.querySelector('.drscrub').hidden`) && !run(`document.getElementById('drWrap').classList.contains('scrubbing')`));
+  ok('(harness) the chart has more than eight runs to scrub across', dots>8);
+}
 run(`document.querySelector('.drcard [data-drunmode]').click();`);
 ok('back to dist restores the fill and every label', run(`drunMode()`)==='dist' && run(`!!document.querySelector('.drcard polygon.drfill')`) && run(`document.querySelectorAll('.drcard text[data-lbl="total"]').length`)===run(`document.querySelectorAll('.drcard circle.drdot').length`));
 
-run(`delete DB.settings.runUnit; DB.settings.unit='lb'; render();`);
-ok('with no choice made, the caption follows the app unit (lb -> mi)', run(`document.querySelector('.drcard [data-rununit]').textContent`).startsWith('mi'), run(`document.querySelector('.drcard [data-rununit]').textContent`));
+run(`DB.settings.unit='lb'; render();`);
+ok('the caption follows the app unit (lb -> mi)', run(`document.querySelector('.drcard .drunit').textContent`).startsWith('mi'), run(`document.querySelector('.drcard .drunit').textContent`));
 {
   const a=fs.readFileSync(path.join(dir,'js/app.js'),'utf8');
   ok('the scroller opens on today, like the heatmap', /function bindDrun\(\)[\s\S]{0,200}?scrollLeft=box\.scrollWidth/.test(a) && /bindHeat\(\);\s*\n\s*bindDrun\(\);/.test(a));
