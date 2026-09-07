@@ -1170,7 +1170,9 @@ function drunScrubShow(box,dot){
   /* the head: date, distance AND pace -- both facts, whatever the line draws */
   const d=dot.getAttribute('data-d');
   const day=new Date(d+'T00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
-  const r=runDays().find(x=>x.d===d); const u=DU();
+  /* v3.3.487: through runUnit(), the card's one source for its unit, so the
+     readout can never drift from the axis and the footer beside it. */
+  const r=runDays().find(x=>x.d===d); const u=runUnit();
   const dist=r?`${(Math.round(toD(r.km)*100)/100).toFixed(2)} ${u}`:'';
   const pace=(r&&r.timed>0&&r.sec>0)?`${paceStr(r.sec/toD(r.timed))} /${u}`:'';
   if(head){ head.innerHTML=`<b>${day}</b>${dist?` \u00b7 ${dist}`:''}${pace?` \u00b7 ${pace}`:''}`; head.hidden=false; }

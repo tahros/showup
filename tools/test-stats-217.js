@@ -197,9 +197,20 @@ ok('...and the footer is the month average and the best', run(`/per km in /.test
   touch('touchstart',cx3,100); run(`document.getElementById('drWrap')._drunArm();`);
   ok('touch-and-hold ARMS the scrub and picks the nearest run', armed() && picked()==='3', picked());
   ok('...a guide drops through the picked column, base to top', run(`(function(){const g=document.querySelector('.drcard .drguide'); const p=document.querySelector('.drcard circle.drdot.pick'); return !!g && g.getAttribute('x1')===p.getAttribute('cx') && +g.getAttribute('y1')===8 && +g.getAttribute('y2')===150;})()`));
-  ok("...and the HEAD shows the run's date, distance and pace together; the caption steps aside",
-     run(`(function(){const h=document.querySelector('.drcard [data-drread]'); const c=document.querySelector('.drcard [data-drcap]'); return !h.hidden && c.hidden && /\\w{3}, \\w{3} \\d+/.test(h.textContent) && /\\d+\\.\\d\\d km/.test(h.textContent) && /\\d+'\\d\\d" \\/km/.test(h.textContent);})()`),
-     run(`document.querySelector('.drcard [data-drread]').textContent`));
+  /* v3.3.487: asserted in BOTH units, and against the LEDGER's own numbers --
+     a hardcoded "km" passed while the app was metric and said nothing about
+     miles. The readout must convert with the app, like every other run figure. */
+  const readParts=()=>run(`(function(){const h=document.querySelector('.drcard [data-drread]');
+    const p=document.querySelector('.drcard circle.drdot.pick'); const d=p.getAttribute('data-d');
+    const r=runDays().find(x=>x.d===d);
+    return JSON.stringify({txt:h.textContent, hidden:h.hidden, capHidden:document.querySelector('.drcard [data-drcap]').hidden,
+      wantDist:(Math.round(toD(r.km)*100)/100).toFixed(2), wantPace:paceStr(r.sec/toD(r.timed)), u:DU()});})()`);
+  {
+    const P=JSON.parse(readParts());
+    ok("...and the HEAD shows the run's date, distance and pace together; the caption steps aside",
+       !P.hidden && P.capHidden && /\w{3}, \w{3} \d+/.test(P.txt) && P.txt.includes(`${P.wantDist} ${P.u}`) && P.txt.includes(`${P.wantPace} /${P.u}`), P.txt);
+    ok("...(metric app) both figures are the ledger's own, in km", P.u==='km' && P.txt.includes(' km') && !P.txt.includes(' mi'), P.txt);
+  }
   /* armed: movement now scrubs and IS prevented (the scroll stays put) */
   const prevented2=touch('touchmove',cx7-1,100);
   ok('while armed, movement slides the pick and the move is PREVENTED so the chart does not scroll', picked()==='7' && prevented2===true);
@@ -217,6 +228,31 @@ ok('...and the footer is the month average and the best', run(`/per km in /.test
   run(`document.getElementById('drWrap').dispatchEvent(new MouseEvent('mouseup',{bubbles:true}));`);
   ok('...release keeps the pick', !armed() && picked()==='7');
   ok('the old bubble is gone', !run(`!!document.querySelector('.drscrub')`));
+  /* v3.3.487: THE SAME SCRUB IN MILES. Switch the app to lb, re-render, scrub
+     again, and demand the readout carry mi and a per-mile pace -- both taken
+     from the ledger and converted, not from a remembered string. */
+  run(`DB.settings.unit='lb'; render();`);
+  run(`(function(){const box=document.getElementById('drWrap'); const svg=box.querySelector('svg');
+    svg.getBoundingClientRect=()=>({left:0,top:0,width:+svg.getAttribute('width'),height:186,right:+svg.getAttribute('width'),bottom:186});
+    Object.defineProperty(box,'clientWidth',{value:320,configurable:true}); })()`);
+  const mcx=run(`+document.querySelectorAll('.drcard circle.drdot')[5].getAttribute('cx')`);
+  run(`document.getElementById('drWrap').dispatchEvent(new MouseEvent('mousedown',{clientX:${mcx},bubbles:true}));`);
+  {
+    const P=JSON.parse(readParts());
+    ok('the scrub works in MILES too: the readout is the ledger converted, in mi',
+       P.u==='mi' && !P.hidden && P.txt.includes(`${P.wantDist} mi`) && P.txt.includes(`${P.wantPace} /mi`) && !P.txt.includes(' km'), P.txt);
+  }
+  /* and the two units must disagree by the conversion, not be the same string */
+  const miTxt=run(`document.querySelector('.drcard [data-drread]').textContent`);
+  run(`document.getElementById('drWrap').dispatchEvent(new MouseEvent('mouseup',{bubbles:true})); DB.settings.unit='kg'; render();`);
+  run(`(function(){const box=document.getElementById('drWrap'); const svg=box.querySelector('svg');
+    svg.getBoundingClientRect=()=>({left:0,top:0,width:+svg.getAttribute('width'),height:186,right:+svg.getAttribute('width'),bottom:186});
+    Object.defineProperty(box,'clientWidth',{value:320,configurable:true}); })()`);
+  const kcx=run(`+document.querySelectorAll('.drcard circle.drdot')[5].getAttribute('cx')`);
+  run(`document.getElementById('drWrap').dispatchEvent(new MouseEvent('mousedown',{clientX:${kcx},bubbles:true}));`);
+  const kmTxt=run(`document.querySelector('.drcard [data-drread]').textContent`);
+  ok('...and the same run reads differently in the two units (it converts, it does not relabel)', miTxt!==kmTxt && /mi/.test(miTxt) && /km/.test(kmTxt), miTxt+'  |  '+kmTxt);
+  run(`document.getElementById('drWrap').dispatchEvent(new MouseEvent('mouseup',{bubbles:true}));`);
   run(`document.getElementById('drWrap').dispatchEvent(new MouseEvent('mousedown',{clientX:${cx7}-1,bubbles:true})); document.getElementById('drWrap').dispatchEvent(new MouseEvent('mouseup',{bubbles:true}));`);
 }
 run(`document.querySelector('.drcard [data-drunmode]').click();`);

@@ -1,5 +1,15 @@
 # ShowUp — changelog
 
+## v3.3.487 (2026-09-07) — The scrub, proven in both units
+
+The scrub's readout already converted with the app; the test only ever proved
+it in kilometres, which proved nothing about miles. It is now asserted in both
+— against the ledger's own numbers rather than a hardcoded string, and with a
+check that the same run reads *differently* in the two units, so a readout that
+relabelled without converting would fail. The readout also takes its unit
+through `runUnit()` now, the card's one source, so it cannot drift from the
+axis and footer beside it.
+
 ## v3.3.486 (2026-09-07) — A drag scrolls, a hold scrubs
 
 The first scrub fought the scroll: a chart that scrolls sideways and scrubs
