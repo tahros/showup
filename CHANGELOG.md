@@ -1,5 +1,26 @@
 # ShowUp — changelog
 
+## v3.3.477 (2026-09-07) — The tab bar wears its own appearance
+
+A setting for the bar alone, in Settings under Display: **Match / Light /
+Dark**. Match is the default, so no device changes until it is asked to.
+
+"Match", not "System" — the theme row directly above already means the system,
+and one word must not mean two things two rows apart.
+
+v3.3.168 made the pill dark in both themes and v3.3.169 reverted it: *"a dark
+slab in light mode read as chrome from another app."* That finding stands for
+an opaque slab, and it is why Match is the default. What changed is the pill
+itself: it is glass now, so a dark pane takes colour from what passes beneath
+and reads as a surface above the page rather than a panel dropped on it. And in
+light theme a white pane floats over white cards on a near-white ground, where
+the bar has no edge of its own — which is the thing worth fixing.
+
+The pill's surface, inks and lighting key off the resolved appearance rather
+than the theme, `index.html` paints it before any CSS so a cold start cannot
+flash the other one, and buildcheck's pill-trio contrast guard follows it to
+its new home.
+
 ## v3.3.476 (2026-09-06) — Daily runs is a line of runs
 
 The bars were hard to read — most columns were empty days and the shape was

@@ -916,4 +916,50 @@ ok("the status-bar style no longer puts content under the status bar",
   ok("not resting: Today has no inverse card", !run(`!!document.querySelector('#view .crcard.resting')`));
 }
 
+/* ================= v3.3.477: THE BAR WEARS ITS OWN APPEARANCE =================
+   Dark, Light, or Match the app -- a setting for the tab bar alone. Match is
+   the default so nothing changes until it is asked to. Resolved beside the
+   theme onto data-bar, painted pre-CSS, and the pill's tokens key off it. */
+{
+  const cssB=fs.readFileSync(path.join(dir,"css/app.css"),"utf8");
+  const idx=fs.readFileSync(path.join(dir,"index.html"),"utf8");
+  ok("the pill's tokens live in data-bar blocks, not the theme blocks",
+     /:root\[data-skin="minimal"\]\[data-bar="dark"\]\{[^}]*--pill:#1C202A/.test(cssB) &&
+     /:root\[data-skin="minimal"\]\[data-bar="light"\]\{[^}]*--pill:#FFFFFF/.test(cssB) &&
+     !/\[data-theme="light"\]\{[^}]*--pill:/.test(cssB));
+  ok("...and index.html paints data-bar before any CSS, so a cold start cannot flash the other one",
+     /_de\.dataset\.bar=localStorage\.getItem\('showup-bar'\)\|\|_de\.dataset\.theme/.test(idx));
+  const bar=()=>run(`document.documentElement.dataset.bar`);
+  run(`DB.settings.theme='light'; delete DB.settings.barTheme; applyTheme();`);
+  ok("Match (the default) follows the app: light theme -> light bar", bar()==='light');
+  run(`DB.settings.theme='dark'; applyTheme();`);
+  ok("...and dark theme -> dark bar", bar()==='dark');
+  run(`DB.settings.barTheme='dark'; DB.settings.theme='light'; applyTheme();`);
+  ok("Dark holds the bar dark in a LIGHT app -- the whole point", bar()==='dark' && run(`document.documentElement.dataset.theme`)==='light');
+  run(`DB.settings.barTheme='light'; DB.settings.theme='dark'; applyTheme();`);
+  ok("...and Light holds it light in a dark app", bar()==='light' && run(`document.documentElement.dataset.theme`)==='dark');
+  ok("...the choice is stored for the pre-paint read", run(`(function(){try{return localStorage.getItem('showup-bar');}catch(e){return null;}})()`)==='light');
+  run(`DB.settings.barTheme='nonsense'; applyTheme();`);
+  ok("an unrecognised value resolves to Match, like every other setting here", bar()===run(`document.documentElement.dataset.theme`));
+  // the Settings control
+  run(`DB.settings.barTheme='dark'; DB.settings.theme='dark'; applyTheme(); view='sync'; render();`);
+  /* the control's attribute is data-barPICK: <html> carries data-bar as the
+     resolved appearance, and a shared selector made the click handler swallow
+     every tap in the app. Asserted so they cannot collide again. */
+  ok("the control and the resolved value do NOT share a selector",
+     !run(`!!document.querySelector('#view [data-bar]')`) && !!run(`document.documentElement.dataset.bar`));
+  ok("Settings offers Match / Light / Dark for the tab bar, with the choice lit",
+     /* scoped to #view: the <html> element also carries a data-bar, which is
+        the RESOLVED appearance, not a control -- an unscoped query picked it
+        up and the list came back with four entries. */
+     run(`(function(){const b=[...document.querySelectorAll('#view [data-barpick]')].map(x=>x.dataset.barpick); const on=document.querySelector('#view [data-barpick].sel');
+       return JSON.stringify(b)===JSON.stringify(['match','light','dark']) && on && on.dataset.barpick==='dark';})()`),
+     run(`JSON.stringify([...document.querySelectorAll('#view [data-barpick]')].map(x=>x.dataset.barpick))`));
+  ok("...and it says Match, not System -- the theme row above already means the system",
+     run(`document.querySelector('#view [data-barpick="match"]').textContent`)==='Match' && !run(`[...document.querySelectorAll('#view [data-barpick]')].some(x=>/System/i.test(x.textContent))`));
+  run(`document.querySelector('#view [data-barpick="light"]').click();`);
+  ok("tapping one applies and remembers it", run(`DB.settings.barTheme`)==='light' && bar()==='light');
+  run(`delete DB.settings.barTheme; DB.settings.theme='dark'; applyTheme(); view='today'; render();`);
+}
+
 process.exit(fail ? 1 : 0);

@@ -2677,6 +2677,25 @@
   :root[data-skin="minimal"]{
     --line:#242938; --whisper:#1F2330;
     --shadow:0 1px 2px rgba(0,0,0,.28),0 10px 30px rgba(0,0,0,.32);
+
+  }
+  :root[data-skin="minimal"][data-theme="light"]{
+    --line:#E9EAEF; --whisper:#F1F2F6;
+    --shadow:0 1px 2px rgba(22,26,40,.05),0 10px 30px rgba(22,26,40,.09);
+    /* v3.3.169: the pill FOLLOWS the theme. v3.3.168 promoted the mockup's
+       dark pill to a both-themes invariant; the mockup was a light
+       composition and its pill belongs to that composition — a dark slab in
+       light mode read as chrome from another app. White pill, theme inks. */
+
+  }
+  /* v3.3.477: THE PILL'S TOKENS FOLLOW data-bar, NOT data-theme. The bar may
+     be dark in a light app or light in a dark one, so its surface, inks and
+     lighting are keyed to the appearance the person chose for it. applyTheme
+     resolves data-bar (dark | light | the theme, when Match) and index.html
+     paints it before any CSS, so a cold start cannot flash the other one.
+     v3.3.169's finding stands for an OPAQUE slab and is why Match is the
+     default: nothing changes until it is asked to. */
+  :root[data-skin="minimal"][data-bar="dark"]{
     --pill:#1C202A; --pill-ink:#B6BCCA;   /* v3.3.460: a step lighter for the 72% glass */
     --pill-accent:#95A4E8;   /* v3.3.461: = --accent-dim, the app's accent as INK on dark. Raw --accent
                                 (#4C6BE3) is 3.3:1 on ordinary dark content and 2.3:1 over an accent
@@ -2688,13 +2707,7 @@
       inset 0 14px 20px -12px rgba(255,255,255,.14),inset 0 -10px 18px -12px rgba(0,0,0,.45),
       0 12px 32px rgba(0,0,0,.42),0 1px 2px rgba(0,0,0,.30);
   }
-  :root[data-skin="minimal"][data-theme="light"]{
-    --line:#E9EAEF; --whisper:#F1F2F6;
-    --shadow:0 1px 2px rgba(22,26,40,.05),0 10px 30px rgba(22,26,40,.09);
-    /* v3.3.169: the pill FOLLOWS the theme. v3.3.168 promoted the mockup's
-       dark pill to a both-themes invariant; the mockup was a light
-       composition and its pill belongs to that composition — a dark slab in
-       light mode read as chrome from another app. White pill, theme inks. */
+  :root[data-skin="minimal"][data-bar="light"]{
     --pill:#FFFFFF; --pill-ink:#4E5262;   /* v3.3.460: a step darker for the 72% glass */
     --pill-accent:#2F4BD8;   /* v3.3.461: = --accent, the app's blue, as asked; 3.7:1 as a graphic worst-case */
     /* v3.3.463: the glass lighting, light. Specular rim on top, a hairline of

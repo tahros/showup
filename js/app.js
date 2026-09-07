@@ -9,6 +9,15 @@ document.addEventListener('click',e=>{
     DB.settings.unit=isLb()?'kg':'lb';
     save(true);toast(isLb()?'Imperial — lb & miles':'Metric — kg & km');return render();
   }
+  if(e.target.closest('[data-barpick]')){
+    /* v3.3.477: the bar's appearance, stored and resolved like the theme.
+       The attribute is data-barPICK, not data-bar: <html> carries data-bar as
+       the RESOLVED appearance, so closest('[data-bar]') matched every click in
+       the app and swallowed it. The control and the resolved value must not
+       share a selector. */
+    DB.settings.barTheme=e.target.closest('[data-barpick]').dataset.barpick;
+    DB.settingsAt=Date.now(); save(true); applyTheme(); return render();
+  }
   if(e.target.closest('[data-thm]')){
     DB.settings.theme=e.target.closest('[data-thm]').dataset.thm;   // v3.3.96
     applyTheme();save(true);render();

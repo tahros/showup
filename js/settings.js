@@ -20,6 +20,15 @@ function renderSync(){
         <button data-skn="minimal" class="${DB.settings.skin!=='classic'?'sel':''}">Minimal</button>
         <button data-skn="classic" class="${DB.settings.skin==='classic'?'sel':''}">Classic</button>
       </span>
+      <!-- v3.3.477: the tab bar's own appearance. "Match" rather than
+           "System" because the row above already means the system, and one
+           word must not mean two things two rows apart. -->
+      <div class="note" style="margin-top:10px">Tab bar</div>
+      <span class="seg" style="display:flex;margin-top:4px">
+        <button data-barpick="match" class="${DB.settings.barTheme!=='dark'&&DB.settings.barTheme!=='light'?'sel':''}">Match</button>
+        <button data-barpick="light" class="${DB.settings.barTheme==='light'?'sel':''}">Light</button>
+        <button data-barpick="dark" class="${DB.settings.barTheme==='dark'?'sel':''}">Dark</button>
+      </span>
     </div>
     <h2>Account & cloud sync</h2>
     <div class="card">

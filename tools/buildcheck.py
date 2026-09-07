@@ -266,6 +266,12 @@ for _m in _re.finditer(r"#([A-Za-z][\w-]*)\{[^}]*position:fixed[^}]*inset:0[^}]*
 #    every cold start flashes Classic for one frame.
 _sk_d = _blk(css, ':root[data-skin="minimal"]')
 _sk_l = _blk(css, ':root[data-skin="minimal"][data-theme="light"]')
+# v3.3.477: the pill's tokens moved out of the THEME blocks and into
+# [data-bar] blocks, because the bar may now wear an appearance the app is
+# not wearing. The trio and its contrast are guarded in their new home; the
+# theme blocks are still checked for non-chrome tokens, unchanged.
+_bar_d = _blk(css, ':root[data-skin="minimal"][data-bar="dark"]')
+_bar_l = _blk(css, ':root[data-skin="minimal"][data-bar="light"]')
 if not _sk_d or not _sk_l:
     fail.append("minimal skin: token blocks missing (dark AND light are required) (v3.3.168)")
 else:
@@ -279,9 +285,10 @@ else:
         if _bad:
             fail.append(f"minimal skin ({_bn}) defines non-chrome tokens: "
                         + ",".join(_bad) + " — the skin is chrome, not ink (v3.3.168)")
+    for _bn, _bc in (("bar dark", _bar_d), ("bar light", _bar_l)):
         _p, _pi, _pa = _tok(_bc, "pill"), _tok(_bc, "pill-ink"), _tok(_bc, "pill-accent")
         if not all((_p, _pi, _pa)):
-            fail.append(f"minimal skin ({_bn}): pill token trio incomplete (v3.3.168)")
+            fail.append(f"minimal skin ({_bn}): pill token trio incomplete (v3.3.168/477)")
         else:
             for _fg, _what in ((_pi, "pill ink"), (_pa, "pill accent")):
                 _r = _cr(_fg, _p)

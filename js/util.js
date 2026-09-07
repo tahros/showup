@@ -310,7 +310,23 @@ function applyTheme(){
      would reintroduce the first-frame flash. */
   const sk = DB.settings.skin==='classic' ? 'classic' : 'minimal';
   document.documentElement.dataset.skin=sk;
-  try{localStorage.setItem('showup-theme',t);localStorage.setItem('showup-skin',sk);}catch(e){}
+  /* v3.3.477: THE BAR MAY WEAR ITS OWN APPEARANCE. v3.3.168 made the pill dark
+     in both themes and v3.3.169 reverted it -- "a dark slab in light mode read
+     as chrome from another app". That was an OPAQUE slab; the pill is glass
+     now, which takes colour from what passes beneath it and reads as a surface
+     above the page rather than a panel dropped on it. And the reason to want
+     it is real: in light theme a white pane floats over white cards on a
+     near-white ground, so the bar has no edge of its own and every ink is
+     working against its own surface. So the choice is the person's: dark,
+     light, or MATCH THE APP -- not "system", because the theme setting above
+     already means the system and two settings must not use one word for two
+     things. Match is the default, so no device changes until it is asked to.
+     Resolved here beside the theme, painted as an attribute, and stored for
+     the pre-paint read so a cold start cannot flash the other appearance. */
+  const bp=DB.settings.barTheme;
+  const bar = (bp==='dark'||bp==='light') ? bp : t;
+  document.documentElement.dataset.bar=bar;
+  try{localStorage.setItem('showup-theme',t);localStorage.setItem('showup-skin',sk);localStorage.setItem('showup-bar',bar);}catch(e){}
   const m=document.querySelector('meta[name="theme-color"]');
   if(m) m.setAttribute('content', t==='light'?'#F2F3F6':'#0C0E13');
   if(!_themeWatched){
