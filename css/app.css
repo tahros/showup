@@ -959,12 +959,12 @@
   .pfchev.open{transform:rotate(90deg)}
   @media (prefers-reduced-motion:reduce){
     .planfold,.planfold-in,.pfchev{transition:none}}
-  .dayclosed{display:block;width:100%;text-align:center;padding:20px 16px 16px;
+  .card.dayclosed{display:block;width:100%;text-align:center;padding:24px 16px 20px;
     margin-bottom:18px;border:1px solid var(--line);cursor:pointer}
-  .dayclosed .dcsq{display:block;width:30px;height:30px;margin:0 auto 12px;
+  .dayclosed .dcsq{display:block;width:32px;height:32px;margin:0 auto 17px;
     border-radius:var(--sq);background:var(--accent)}
-  .dayclosed .dcn{display:block;font-family:var(--disp);font-weight:700;
-    font-size:16px;color:var(--chalk)}
+  .dayclosed .dcn{display:block;font-family:var(--disp);font-weight:600;
+    font-size:28px;letter-spacing:-.8px;color:var(--chalk)}
   .dayclosed .dcm{display:block;margin-top:5px;font-size:11.5px;color:var(--muted)}
   .dayclosed .dcr{display:block;margin-top:10px;font-size:10px;color:var(--faint)}
   .btn.done.dayend{margin-bottom:18px;
@@ -2256,9 +2256,27 @@
      (v3.3.348) at a single beat. Everything rides --settle; nothing loops;
      reduced-motion gets the finished frame, because a marker that vanishes
      for that setting would celebrate nobody. Tap anywhere ends it early. */
-  #dayDone{position:fixed;inset:0;z-index:70;background:var(--surface);
-    display:flex;flex-direction:column;align-items:center;justify-content:center;
-    cursor:pointer;animation:ddin .18s var(--settle) both}
+  #dayDone{--sq:13px;position:fixed;inset:0;z-index:1001;background:var(--surface);
+    display:flex;overflow-y:auto;overscroll-behavior:contain;
+    animation:ddin .18s var(--settle) both}
+  #dayDone .ddinner{box-sizing:border-box;width:100%;max-width:446px;min-height:100%;margin:auto;
+    padding:calc(34px + env(safe-area-inset-top,0px)) 28px calc(26px + env(safe-area-inset-bottom,0px));
+    display:flex;flex-direction:column;text-align:center}
+  #dayDone .dddate{font:500 11px var(--mono);letter-spacing:1.65px;color:var(--muted);text-transform:uppercase}
+  #dayDone .ddbody{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:44px 0 38px}
+  #dayDone .ddyou{font:500 25px var(--disp);letter-spacing:-.5px;margin:25px 0 23px;
+    color:var(--chalk);text-transform:none;opacity:1}
+  #dayDone .ddyou::before{display:none}
+  #dayDone .ddtrail{display:flex;justify-content:center;gap:5px;margin:0 auto 23px}
+  #dayDone .ddtrail i{width:18px;height:18px;border-radius:5px;background:var(--accent-soft)}
+  #dayDone .ddtrail i:last-child{background:var(--accent);animation:ddsq .55s var(--settle) .3s both}
+  #dayDone .ddsummary{font:400 12px/1.8 var(--mono);color:var(--muted)}
+  #dayDone .ddactions{display:flex;flex-direction:column}
+  #dayDone .ddshare{background:none;border:0;color:var(--muted);font:400 13px var(--disp);min-height:44px;margin-top:8px;padding:10px;cursor:pointer}
+  .today-complete.btn,#dayDone .ddactions .btn{min-height:54px;padding:17px 14px;border-radius:17px;
+    font:600 15px var(--disp);background:var(--accent);color:#fff;border:0;
+    box-shadow:0 5px 16px color-mix(in srgb,var(--accent) 20%,transparent)}
+  .today-complete.btn{display:flex;align-items:center;justify-content:center;gap:10px;margin:20px 0 14px}
   #dayDone.out{opacity:0;transition:opacity .3s var(--settle)}
   /* ---- v3.3.424: THE CENTURY BEAT --------------------------------------
      Every hundredth day the square OPENS and the mark rises out of it. Two
@@ -2300,14 +2318,16 @@
     #dayDone.century .ddmk,#dayDone.century .ddsq,#dayDone.century .ddmk .ic{animation:none}
     #dayDone.century .ddmk{transform:translateY(-26px)}
   }
-  #dayDone .ddsq{width:44px;height:44px;border-radius:var(--sq);background:var(--accent);
+  #dayDone .ddsq{display:block;width:45px;height:45px;border-radius:var(--sq);background:var(--accent);
     position:relative;animation:ddsq .5s var(--settle) both .12s}
   #dayDone .ddsq::after{content:'';position:absolute;inset:-8px;border-radius:var(--sq);
     border:2px solid var(--accent);opacity:0;animation:ddring .7s var(--settle) .5s}
-  #dayDone .ddn{font-family:var(--disp);font-size:42px;font-weight:700;color:var(--chalk);
-    margin-top:26px;line-height:1;animation:ddup .45s var(--settle) both .55s}
+  #dayDone .ddn{font-family:var(--disp);font-size:108px;font-weight:600;color:var(--chalk);
+    letter-spacing:-7px;font-variant-numeric:tabular-nums;
+    margin-top:24px;line-height:1.05;animation:ddup .45s var(--settle) both .55s}
+  #dayDone .ddn.ddlarge{font-size:90px}
   #dayDone .ddu{font-family:var(--mono);font-size:12px;color:var(--faint);
-    margin-top:6px;animation:ddup .45s var(--settle) both .62s}
+    margin-top:10px;letter-spacing:3px;text-transform:uppercase;animation:ddup .45s var(--settle) both .62s}
   #dayDone .ddt{position:absolute;bottom:34px;font-family:var(--mono);font-size:10px;
     color:var(--faint);letter-spacing:var(--track-label);text-transform:uppercase;
     animation:ddup .5s var(--settle) both .95s}
@@ -2318,6 +2338,7 @@
   @media (prefers-reduced-motion:reduce){
     #dayDone,#dayDone .ddsq,#dayDone .ddn,#dayDone .ddu,#dayDone .ddt{animation:none}
     #dayDone .ddsq::after{animation:none;opacity:0}
+    #dayDone .ddtrail i:last-child{animation:none}
   }
   .dayedit.ico svg{display:block;width:15px;height:15px}
   .day.editing{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent-soft)}

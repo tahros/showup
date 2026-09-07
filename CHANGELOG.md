@@ -1,5 +1,28 @@
 # ShowUp — changelog
 
+## v3.3.489 (2026-09-07) — Today's finish, given its moment
+
+Applies the approved completion prototype to the actual Today screen. A main
+blue **Complete today’s workout** action sits directly below the workout,
+whether or not a plan is complete. It stays in normal flow, clear of the tab bar.
+
+Completion opens a full-screen moment: today's date, a blue square, the real
+cumulative day count, **DAYS OF SHOWING UP**, **You showed up.**, a short trail
+of accumulated days, and today's recorded sets/distance in the selected unit.
+It waits for **Done** or **Share this day**; no timed dismissal, automatic share
+handoff, or competing completion toast. Share uses the existing day-card image.
+The completed Today card reads **Day N. In the book.**, followed by the date
+and **Workout complete**. Another set reopens today; tapping the card replays
+the moment without changing the ledger. First-day and century accounting remain
+unchanged, including the existing century mark animation.
+
+The completed-card layout is scoped to `.card.dayclosed`, so it cannot apply
+its block layout/padding to the navigation bar's same-named state. Keyboard
+focus stays inside the dialog, Escape closes it, short screens can scroll,
+safe-area padding is respected, and reduced motion removes the new trail motion.
+Regression coverage checks real completion clicks, metric/imperial summaries,
+explicit sharing, replay, reopening, milestones and navigation selector scope.
+
 ## v3.3.488 (2026-09-07) — Keep Daily runs scrubbing after the switch
 
 Switching dist/pace replaced the chart without reconnecting its scrub and

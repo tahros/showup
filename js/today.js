@@ -545,12 +545,11 @@ function renderToday(){
   const _closed=dayClosed();
   const _closedCard=()=>{
     const _n=SEED.totals.sessions+(t.w.length?1:0);
-    const _st=currentStreak();
     return `<button class="card dayclosed" data-replayday="1" aria-label="Today is complete. Tap to see it again.">
           <i class="dcsq" aria-hidden="true"></i>
-          <b class="dcn">Day ${fmt(_n)} — in the book.</b>
-          <span class="dcm mono">${t.w.length} set${t.w.length===1?'':'s'}${_st>1?` \u00b7 ${_st}-day streak`:''}</span>
-          <span class="dcr mono">logging another set reopens it</span>
+          <b class="dcn">Day ${fmt(_n)}. In the book.</b>
+          <span class="dcm mono">${pretty(todayISO)} · Workout complete</span>
+          <span class="dcr mono">Another set reopens today.</span>
         </button>`;
   };
   if(_closed) h+=_closedCard();

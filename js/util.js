@@ -689,6 +689,7 @@ function planComplete(){
    a declaration, like rest. #doneAllBtn stays the one id that sets doneAll. */
 function dayCloseHTML(){
   if(!isLive()) return '';
+  if(view==='today') return `<button class="btn done dayclose today-complete" id="doneAllBtn">Complete today’s workout <span aria-hidden="true">→</span></button>`;
   const n=dayMeta().w.length, sets=`${n} set${n===1?'':'s'}`;
   /* stacked, not a row: .btn is width:100% by design (v3.3.68), so the
      sentence sits above the button rather than beside it */

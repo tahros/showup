@@ -49,14 +49,14 @@ ok("...whose count is the hero stat, today included",
    run(`(document.querySelector('#dayDone .ddn')||{}).textContent`)==="3",
    run(`(document.querySelector('#dayDone .ddn')||{}).textContent`));
 ok("...spoken in the hero's own words",
-   run(`/days in/.test((document.getElementById('dayDone')||{}).textContent||'')`));
+   run(`/days of showing up/.test((document.getElementById('dayDone')||{}).textContent||'')`));
 ok("...with no plan vocabulary and no score shape",
    run(`(function(){const t=(document.getElementById('dayDone')||{}).textContent||'';
      return !/plan/i.test(t) && !/\\d+\\s*(of|\\/)\\s*\\d+/.test(t);})()`));
 ok("...and the day is stamped", run(`DB.settings.dayDone===todayISO`));
 
 /* a tap ends it early */
-run(`document.getElementById('dayDone').dispatchEvent(new window.Event('click',{bubbles:true}))`);
+run(`document.querySelector('[data-dd="done"]').click()`);
 await sleep(400);
 ok("a tap dismisses it", run(`!document.getElementById('dayDone')`));
 
@@ -89,7 +89,7 @@ run(`(function(){DB.days={}; delete DB.settings.dayDone;
 const endBtn = () => run(`(function(){const b=document.getElementById('doneAllBtn');
   return b?b.textContent.trim():'(absent)';})()`);
 ok("a live day offers the button that ends it", endBtn()!=='(absent)', endBtn());
-ok("...naming what it is about to put in the book", /2 sets/.test(endBtn()), endBtn());
+ok("...plainly names the action", /Complete today’s workout/.test(endBtn()), endBtn());
 
 const css2=fs.readFileSync(path.join(dir,"css/app.css"),"utf8").replace(/\r?\n\s*/g,"");
 /* v3.3.375 RESTATES. These pinned position:sticky, which was the MECHANISM I
@@ -148,11 +148,11 @@ ok("pressing it places the day", run(`!!document.getElementById('dayDone')`));
     return c?c.textContent.replace(/\\s+/g,' ').trim():'(absent)';})()`);
   ok("a finished day gets a card, not a footnote", closed()!=='(absent)', closed());
   ok("...naming the day in the ceremony's own words",
-     /in the book/.test(closed()) && /2 sets/.test(closed()), closed());
+     /In the book/.test(closed()) && /Workout complete/.test(closed()), closed());
   ok("...with the real day number, not day one",
-     /Day 2 /.test(closed()), closed());
+     /Day 2\./.test(closed()), closed());
   ok("...and the reopen sentence kept, but no longer the headline",
-     /reopens it/.test(closed()));
+     /Another set reopens today/.test(closed()));
   /* v3.3.412 RESTATES. It stood where the button stood (v3.3.376) -- but that
      was still below the session cards, after an invitation to add more, and
      the page's order said KEEP GOING while the header said DONE. On a closed
@@ -305,7 +305,7 @@ ok("pressing it places the day", run(`!!document.getElementById('dayDone')`));
        one extra flourish over 100, this differs. className is included via
        the same node so a "century+extra" class would also show. */
     return run(`document.getElementById('dayDone').className`)+'|'+
-           run(`document.getElementById('dayDone').innerHTML`).replace(/\d[\d,]*/g,'N'); };
+           run(`document.getElementById('dayDone').innerHTML`).replace(/ ddlarge/g,'').replace(/\d[\d,]*/g,'N'); };
   ok("day 1,000 is given exactly what day 100 is given", shape(100)===shape(1000));
   run(`(function(){const o=document.getElementById('dayDone'); if(o) o.remove();})()`);
 
@@ -388,9 +388,9 @@ ok("pressing it places the day", run(`!!document.getElementById('dayDone')`));
        (src.match(/m\.doneAll\s*=\s*true/g)||[]).length===1);
   }
 
-  ok("...reading one set in the singular",
-     /\b1 set\b/.test(run(`document.querySelector('.dayclosed').textContent`)) &&
-     !/1 sets/.test(run(`document.querySelector('.dayclosed').textContent`)),
+  ok("...showing the completed date instead of a redundant set counter",
+     /Workout complete/.test(run(`document.querySelector('.dayclosed').textContent`)) &&
+     run(`document.querySelector('.dayclosed .dcm').textContent.includes(pretty(todayISO))`),
      run(`document.querySelector('.dayclosed .dcm').textContent`));
 }
 
@@ -434,9 +434,9 @@ ok("pressing it places the day", run(`!!document.getElementById('dayDone')`));
   // Today uses the same helper: same button, same states
   run(`document.getElementById('dayDone')?.remove(); dayMeta().doneAll=false; DB.settings.dayDone=null; view='today'; render();`);
   ok("Today shows the same prominent close for a complete plan",
-     run(`(function(){const c=document.querySelector('#view .dayclose.card'); return !!c && !!c.querySelector('#doneAllBtn');})()`));
+     run(`!!document.querySelector('#view #doneAllBtn.today-complete')`));
   run(`dayMeta().doneEx=['Squat']; render();`);
-  ok("...and the same quiet door when it is not", run(`(function(){const b=document.querySelector('#view #doneAllBtn'); return !!b && b.classList.contains('ghost');})()`));
+  ok("...and Today stays prominent even without a completed plan", run(`(function(){const b=document.querySelector('#view #doneAllBtn'); return !!b && b.classList.contains('today-complete') && !b.classList.contains('ghost');})()`));
   run(`DB.settings.dayDone=null; lift.part=null; lift.ex=null; view='today'; render();`);
 }
 

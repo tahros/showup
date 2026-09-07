@@ -1434,7 +1434,10 @@ let lastView=null;
    only day one's preview, which must read "1" over a 953-day ledger. A replay
    passes nowrite alone and shows the real number, because it is your real
    day. */
+// v3.3.489 supersedes the timed handover described above: explicit Done/Share
+// controls keep the approved moment on screen. Existing ledger rules remain.
 function celebrateDayDone(nowrite, forceCount, forceMile){
+  if(document.getElementById('dayDone')) return;
   if(!nowrite){
     if(DB.settings.dayDone===todayISO) return;
     DB.settings.dayDone=todayISO; save();
@@ -1459,13 +1462,38 @@ function celebrateDayDone(nowrite, forceCount, forceMile){
      parent applies to its children, so the white mark faded with it and
      rendered grey on the maker's screen. A stage holds both, each animating
      on its own: the square can recede while the mark stays pure white. */
-  o.innerHTML=(mile
+  const closed=!!(DB.days[todayISO]||{}).doneAll;
+  const rows=(DB.days[todayISO]||{}).w||[];
+  const km=rows.filter(s=>s.part==='Run').reduce((sum,s)=>sum+(Number(s.w)||0),0);
+  const count=mile||n;
+  const date=new Date(todayISO+'T00:00');
+  const dateLabel=date.toLocaleDateString('en-US',{weekday:'long'})+' · '+date.toLocaleDateString('en-US',{month:'long',day:'numeric'});
+  const summary=forceCount!=null?'':`${rows.length} set${rows.length===1?'':'s'}${km>0?` · ${dDisp(km)} ${DU()}`:''} · ${closed?'Today, complete.':'You’re here.'}`;
+  const previousFocus=document.activeElement;
+  o.setAttribute('role','dialog');
+  o.setAttribute('aria-modal','true');
+  o.setAttribute('aria-labelledby','ddHeading');
+  o.innerHTML=`<div class="ddinner"><div class="dddate">${dateLabel}</div><div class="ddbody">`+(mile
     ? `<span class="ddstage"><i class="ddsq" aria-hidden="true"></i><span class="ddmk" aria-hidden="true">${icon('brandmark',44)}</span></span>`
     : `<i class="ddsq" aria-hidden="true"></i>`)+
-    `<b class="ddn">${fmt(mile||n)}</b><span class="ddu">days in</span>`+
-    `<span class="ddt">${mile?'one hundred at a time':`show up \u2014 that's the whole game`}</span>`;
+    `<b class="ddn${count>=1000?' ddlarge':''}">${fmt(count)}</b><span class="ddu">${count===1?'day':'days'} of showing up</span>`+
+    `<h2 class="ddyou" id="ddHeading">You showed up.</h2>`+
+    `<div class="ddtrail" aria-hidden="true">${'<i></i>'.repeat(Math.min(10,Math.max(1,count)))}</div>`+
+    `<div class="ddsummary">${summary}</div></div>`+
+    `<div class="ddactions"><button class="btn done" data-dd="done">Done</button>`+
+    `<button class="ddshare" data-dd="share">Share this day</button></div></div>`;
   document.body.appendChild(o);
-  const bye=()=>{ o.classList.add('out'); setTimeout(()=>o.remove(),320); };
+  o.querySelector('[data-dd="done"]').focus({preventScroll:true});
+  let leaving=false;
+  const leave=(share=false)=>{
+    if(leaving) return;
+    leaving=true;
+    o.remove();
+    if(closed && forceCount==null){ view='today'; render(); }
+    const target=previousFocus?.isConnected?previousFocus:document.querySelector('[data-replayday],nav button.on');
+    if(target) target.focus({preventScroll:true});
+    if(share) toCard();
+  };
   /* v3.3.377: the ceremony hands over to THE DAY'S OWN CARD -- the same image
      the History share button produces, revealed rather than re-drawn.
      The square and the count keep their beat first: that is the thesis, and
@@ -1484,24 +1512,29 @@ function celebrateDayDone(nowrite, forceCount, forceMile){
      In preview or replay (nowrite) the handover still happens -- it is the
      same day, and looking at it again should show the same thing. */
   const toCard=()=>{
-    o.classList.add('out');
-    setTimeout(()=>{
-      o.remove();
       if(typeof showCard!=='function'||typeof drawDayCard!=='function') return;
       showCard(()=>{
         const cv=document.createElement('canvas'); cv.width=cv.height=1080;
         const cx=cv.getContext('2d'); if(!cx) return null;
         drawDayCard(cx,1080,todayISO); return cv;
       },'showup-'+todayISO,false,true);
-    },320);
   };
-  o.addEventListener('click',toCard,{once:true});
-  /* a century rests longer before handing over: the extra beat takes 1.2s of
-     the 1.5s an ordinary day gets, and the number deserves to be read. */
-  setTimeout(()=>{ if(o.isConnected) toCard(); },mile?3600:1500);
+  // v3.3.489: the moment waits for an explicit choice, never an automatic share.
+  o.addEventListener('click',e=>{
+    const action=e.target.closest('[data-dd]');
+    if(action) leave(action.dataset.dd==='share');
+  });
+  o.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){ e.preventDefault(); leave(); }
+    if(e.key==='Tab'){
+      const buttons=[...o.querySelectorAll('button')];
+      const at=buttons.indexOf(document.activeElement);
+      e.preventDefault(); buttons[(at+(e.shiftKey?-1:1)+buttons.length)%buttons.length].focus();
+    }
+  });
 }
 const doneToast=(m,alt)=>{
-  if(m.doneAll){ celebrateDayDone(); toast(`Workout complete \u2014 ${m.w.length} set${m.w.length===1?'':'s'}. Cool down \ud83d\udd25`); }
+  if(m.doneAll){ celebrateDayDone(); }
   else toast(alt);
 };
 function syncNav(){

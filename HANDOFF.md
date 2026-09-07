@@ -1,5 +1,15 @@
 # ShowUp — handoff (2026-08-22, v3.3.267)
 
+## Completion update — v3.3.489 (2026-09-07)
+
+Today uses the approved completion prototype. `dayCloseHTML()` gives Today a
+prominent in-flow action; Train keeps its existing plan-aware affordance.
+`celebrateDayDone()` owns the real count and date, waits for explicit Done/Share,
+and does not auto-dismiss or auto-share. Sharing still uses `drawDayCard`.
+Once-per-day, replay, first-day, and century ledger rules are preserved.
+Scope finished-card layout to `.card.dayclosed`: `nav.dayclosed` is a separate
+state and must never inherit its layout. New regression: `test-completion-489.js`.
+
 Paste this into a new conversation to resume with full context.
 
 ---
