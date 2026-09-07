@@ -2334,9 +2334,11 @@
   .day .body .lastw{min-width:64px;font-size:14px}
   .day .body .lastrow{padding:4px 0}
   nav{position:fixed;bottom:0;left:0;right:0;z-index:30;max-width:520px;margin:0 auto;
-    display:grid;grid-template-columns:repeat(4,1fr);
+    /* v3.3.481: one non-wrapping row with equal-width buttons, without
+       grid tracks on the fixed glass surface. */
+    display:flex;flex-flow:row nowrap;align-items:stretch;
     background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
-  nav button{background:none;border:0;color:var(--muted);font:inherit;font-size:10px;
+  nav button{flex:1 1 0;min-width:0;background:none;border:0;color:var(--muted);font:inherit;font-size:10px;
     font-family:var(--mono);letter-spacing:var(--track-label);text-transform:uppercase;
     padding:11px 4px 13px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px}
   /* v3.3.458: the glyphs are SVG in currentColor (index.html), so the emoji
@@ -2847,6 +2849,9 @@
   :root[data-skin="minimal"] nav button.on{color:var(--pill-chalk);background:color-mix(in srgb,var(--pill) 60%,var(--pill-ink) 16%)}   /* v3.3.470: ink on grey; v3.3.478: the BAR's ink */
   /* v3.3.470: on the pill the closed-day fill is --pill-accent: the accent in light, the accent-as-ink in dark, where the raw accent is 2.3:1 on the grey capsule over a blue button */
   :root[data-skin="minimal"] nav.dayclosed button[data-v="today"] .ng svg .sq{fill:var(--pill-accent)}
+  /* v3.3.484: selected completed Today on a dark bar is white, edged in the
+     original pale blue. Unselected, open-day and rest states stay unchanged. */
+  :root[data-skin="minimal"][data-bar="dark"] nav.dayclosed button[data-v="today"].on .ng svg .sq{fill:var(--pill-chalk);stroke:var(--pill-accent);stroke-width:2}
   /* v3.3.331: the TRAIN TAB joins the skin. Everything above was written
      against the Bench Press mockup, which was a Today composition -- cards,
      zones, fields, the nav pill. The two surfaces that FILL the Train tab,
