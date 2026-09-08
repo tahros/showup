@@ -986,8 +986,7 @@ function planScreenHTML(){
   /* v3.3.448: a third source -- the plan you already have, opened by the pencil */
   let h=`<h2>${lift.planSource==='writer'?'Read from the writer':lift.planSource==='saved'?`Edit ${(lift.planDate||writeDateISO())===todayISO?'today\u2019s':planDayLabel(lift.planDate||writeDateISO())+'\u2019s'} plan`:'Read from your paste'}</h2><div class="card">
     ${_rs?`<div class="planreason"><div class="lasthead"><span>${hesc(_rs.head||'')}</span><span class="ago">writer\u2019s call</span></div><div class="mono muted">${hesc(_rs.text||'')}</div></div>`:''}
-    <div class="lasthead"><span>WHAT THE APP READ</span><span class="ago">${ok} of ${tot}${
-      lift.planSource==='saved'?` \u00b7 <button class="pedge" data-plantext style="text-transform:none;letter-spacing:0">edit as text</button>`:''}</span></div>`;
+    <div class="lasthead"><span>WHAT THE APP READ</span><span class="ago">${ok} of ${tot}</span></div>`;
   rows.forEach((r,i)=>{
     /* v3.3.398: a day heading inside a week paste -- a divider, not an item */
     if(r.kind==='day'){
@@ -1046,9 +1045,18 @@ function planScreenHTML(){
      form here would be a second grammar for one day on one screen.
      lift.planDate first: an edit opened by the pencil writes back to the day
      it opened (v3.3.448), which is not always writeDateISO() by then. */
+  /* v3.3.494: EDIT AS TEXT MOVES TO THE DOOR. It lived in the card's head,
+     riding the "6 of 6" counter as a run-on after a middle dot -- small, mono,
+     the colour of a caption, at the far corner from anything you tap. The
+     maker circled it and drew the arrow down: he could not find it. It is a
+     DOOR, the same kind of thing as Use and Cancel, so it belongs on the row
+     where doors live. Third and last, after Cancel, because it is the least
+     used of the three and the far edge is where the app puts the thing you
+     reach for least (v3.3.294). The head goes back to being a count. */
   h+=`<div class="planacts row">
       <button class="btn" data-planaccept>${lift.planMode==='week'?'Use for this week':(lift.planDate||writeDateISO())===todayISO?'Use for today':`Use for ${planDayLabel(lift.planDate||writeDateISO())}`}</button>
-      <button class="btn ghost" data-planback>Cancel</button>
+      <button class="btn ghost" data-planback>Cancel</button>${
+      lift.planSource==='saved'?`<button class="btn ghost plantext" data-plantext>Edit as text</button>`:''}
     </div></div>`;
   return h;
 }

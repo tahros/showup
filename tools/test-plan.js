@@ -468,6 +468,22 @@ ok("...the fold lives on the row that folds",
 run(`document.querySelector('[data-planedit]').dispatchEvent(new window.Event('click',{bubbles:true}))`);
 ok("...the pencil's first screen (the preview) offers no Clear",
    run(`lift.plan==='preview' && !document.querySelector('[data-planclear]')`));
+/* ---- v3.3.494: EDIT AS TEXT IS A DOOR, SO IT SITS WHERE DOORS SIT ----
+   It rode the "6 of 6" counter in the card's head as a run-on after a middle
+   dot: small, mono, caption-coloured, at the corner furthest from anything
+   tappable. The maker circled it and drew an arrow to the bottom -- he could
+   not find it. Asserted by WHERE it is, not merely that it exists, since it
+   always existed. */
+ok("'edit as text' sits on the action row with the other doors",
+   run(`(function(){const b=document.querySelector('[data-plantext]');
+     return !!b && !!b.closest('.planacts') && b.classList.contains('btn');})()`));
+ok("...and no longer hides in the card's head",
+   run(`!document.querySelector('.lasthead [data-plantext]')`));
+ok("...and the head is a plain count again",
+   run(`(function(){const hs=[...document.querySelectorAll('.lasthead')]
+       .filter(x=>/WHAT THE APP READ/.test(x.textContent));
+     return hs.length===1 && /^\\s*\\d+ of \\d+\\s*$/.test(hs[0].querySelector('.ago').textContent);})()`),
+   run(`(document.querySelector('.lasthead .ago')||{}).textContent`));
 /* v3.3.450: the text is behind "edit as text", not behind Cancel */
 run(`document.querySelector('[data-plantext]').dispatchEvent(new window.Event('click',{bubbles:true}))`);
 ok("...and Clear waits behind 'edit as text', on the box, in the record red",

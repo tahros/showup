@@ -2026,9 +2026,15 @@
      twice the width; nothing stacks and nothing fills the card. The preview
      keeps the grid above: its primary label ("Use this for Sat 9/5") is too
      long to share a row and earned its full span in v3.3.279. */
-  .planacts.row{display:flex}
+  .planacts.row{display:flex;flex-wrap:wrap}
   .planacts.row .btn{flex:1 1 0;min-width:0;width:auto;padding-left:8px;padding-right:8px}
   .planacts.row .btn:first-child{flex:2 1 0}
+  /* v3.3.494: the third door takes a line of its own rather than squeezing
+     into the pair. Three across at this width left "Edit as text" in about
+     ninety pixels -- the label would wrap or clip, and a door you cannot read
+     is the problem this move was meant to solve. The 8px gap is the row gap
+     too, so wrapping needs no margin. */
+  .planacts.row .btn.plantext{flex:1 0 100%}
   /* the tool row sits flush over the box, quiet, right where the thumb is */
   .plantools{display:flex;gap:8px;padding:0 14px 8px}
   .plantools .chip{font-size:13px;padding:6px 12px}

@@ -1,5 +1,20 @@
 # ShowUp — changelog
 
+## v3.3.494 (2026-09-08) — Edit as text is a door, so it sits where doors sit
+
+It rode the "6 of 6" counter in the preview card's head as a run-on after a
+middle dot — small, mono, caption-coloured, in the corner furthest from
+anything you tap. It is a door, the same kind of thing as **Use** and
+**Cancel**, and it now stands with them at the foot of the card.
+
+It takes a line of its own beneath the pair rather than squeezing in as a
+third column: three across at this width left the label about ninety pixels,
+where it would wrap or clip — a door you cannot read is the problem this move
+was meant to solve. It sits last because it is the least used of the three,
+and the far edge is where this app puts the thing you reach for least.
+
+The card's head goes back to being a count.
+
 ## v3.3.493 (2026-09-08) — Today's rows load their weight too
 
 Tapping a **LAST TIME** row has put that weight into the logger since D3. The
