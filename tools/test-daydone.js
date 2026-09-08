@@ -175,6 +175,56 @@ ok("pressing it places the day", run(`!!document.getElementById('dayDone')`));
      run(`document.querySelector('.dayclosed').getAttribute('aria-label')`));
   ok("...and the rule for the line that left went with it",
      !/\.dayclosed \.dcr\{/.test(fs.readFileSync(path.join(dir,"css/app.css"),"utf8")));
+  /* ---- v3.3.501: THE COUNT SITS CENTRED, AND ONE VALUE SAYS SO ----
+     The two spaces were not equal and the margins were not why: the count is
+     TEXT and was inheriting the app's 1.45 line-height, so a ~32px line box
+     padded ~5px of leading around 22px of digits, and the date added ~2.6px
+     of its own. Measured to the ink that was ~22px above and ~12.6px below,
+     from spacing nobody wrote. Asserted as resolved geometry rather than as
+     the CSS text: whatever the rules say, the space above the count and the
+     space below it must come out as ONE number. */
+  {
+    /* the harness builds its DOM from index.html, which only LINKS the
+       stylesheet -- jsdom fetches nothing, so getComputedStyle here reads
+       browser defaults and a geometry assertion would measure nothing at all
+       and pass by vacancy. Install the real sheet for the length of this
+       block, then take it out again so nothing after it sees a different
+       cascade than it did before. */
+    run(`(function(){const s=document.createElement('style'); s.id='__csstmp';
+      s.textContent=${JSON.stringify(fs.readFileSync(path.join(dir,"css/app.css"),"utf8"))}; document.head.appendChild(s);})()`);
+    ok("(fixture) the stylesheet is actually in the document, or this proves nothing",
+       run(`getComputedStyle(document.querySelector('.dcsq')).width`)==='32px',
+       run(`getComputedStyle(document.querySelector('.dcsq')).width`));
+    const gcs = sel => run(`(function(){const c=getComputedStyle(document.querySelector(${JSON.stringify(sel)}));
+      return [c.marginTop,c.marginBottom,c.lineHeight].join(',');})()`);
+    const card = run(`(function(){const c=getComputedStyle(document.querySelector('.card.dayclosed'));
+      const g=(c.rowGap&&c.rowGap!=='normal')?c.rowGap:c.gap;   // jsdom does not expand the gap shorthand
+      return [c.display,c.flexDirection,g].join(',');})()`);
+    ok("the card stacks on one gap, not on three hand-tuned margins",
+       /^flex,column,\d/.test(card), card);
+    ok("...so no child carries a vertical margin of its own",
+       ['.dcsq','.dcn','.dcm'].every(s=>/^0px,0px/.test(gcs(s))),
+       ['.dcsq','.dcn','.dcm'].map(s=>s+'='+gcs(s)).join(' | '));
+    /* the leading is what actually made the two spaces differ, so it is the
+       thing worth pinning: a text box that hugs its own type means the gap
+       that is declared is the gap you see */
+    ok("...and both text lines hug their own type, so the declared gap is the visible one",
+       run(`getComputedStyle(document.querySelector('.dcn')).lineHeight`)==='1' &&
+       run(`getComputedStyle(document.querySelector('.dcm')).lineHeight`)==='1',
+       gcs('.dcn')+' | '+gcs('.dcm'));
+    /* the claim the maker actually made: the two spaces are identical */
+    ok("...leaving the space above the count equal to the space below it",
+       run(`(function(){const c=getComputedStyle(document.querySelector('.card.dayclosed'));
+         const g=parseFloat((c.rowGap&&c.rowGap!=='normal')?c.rowGap:c.gap);
+         const above=g+parseFloat(getComputedStyle(document.querySelector('.dcsq')).marginBottom)
+                      +parseFloat(getComputedStyle(document.querySelector('.dcn')).marginTop);
+         const below=g+parseFloat(getComputedStyle(document.querySelector('.dcn')).marginBottom)
+                      +parseFloat(getComputedStyle(document.querySelector('.dcm')).marginTop);
+         return g>0 && above===below;})()`),
+       run(`(function(){const c=getComputedStyle(document.querySelector('.card.dayclosed'));
+         return 'gap='+((c.rowGap&&c.rowGap!=='normal')?c.rowGap:c.gap);})()`));
+    run(`(function(){const s=document.getElementById('__csstmp'); if(s) s.remove();})()`);
+  }
   /* v3.3.412 RESTATES. It stood where the button stood (v3.3.376) -- but that
      was still below the session cards, after an invitation to add more, and
      the page's order said KEEP GOING while the header said DONE. On a closed

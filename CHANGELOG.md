@@ -1,5 +1,36 @@
 # ShowUp — changelog
 
+## v3.3.501 (2026-09-08) — One gap, not three margins
+
+The count now sits centred between the square and the date, with both spaces
+identical.
+
+They were not, and the margins were not why. The square carried 17px below it
+and the date 5px above it — but the count is **text**, and it was inheriting the
+app's 1.45 line-height. At 22px that is a ~32px line box around ~22px of digits,
+padding about 5px of leading on each side, and the date added ~2.6px of its own.
+Measured to the ink, that is roughly 22px above the count and 12.6px below:
+nearly double, from spacing nobody ever wrote.
+
+Hand-tuning two margins against invisible leading is how this drifts again the
+next time a font size moves. So the card is a flex column with a single gap, the
+children carry no vertical margins at all, and both text elements get
+`line-height:1` so their boxes hug their own type. The gap that is declared is
+now the gap you see, once, for both spaces. 18px keeps the card almost exactly
+the height it was.
+
+What remains is each font's own space above its caps — about 3px for the count,
+1.7px for the date. That lives inside the glyph box rather than in the layout,
+and at these sizes the difference is under two pixels.
+
+Asserted as **resolved geometry**, not as CSS text: whatever the rules say, the
+space above the count and the space below it have to come out as one number.
+That needed the stylesheet actually installed in the harness — the test DOM is
+built from `index.html`, which only *links* the sheet, and jsdom fetches
+nothing, so every one of these assertions would otherwise have read browser
+defaults and passed by vacancy. A fixture check now proves the sheet is loaded
+before any of them run.
+
 ## v3.3.500 (2026-09-08) — The finished day card says three things less
 
 The maker struck out three pieces of the closed-day card: the word **Day**, the
