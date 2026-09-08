@@ -151,12 +151,30 @@ ok("pressing it places the day", run(`!!document.getElementById('dayDone')`));
   const closed = () => run(`(function(){const c=document.querySelector('.dayclosed');
     return c?c.textContent.replace(/\\s+/g,' ').trim():'(absent)';})()`);
   ok("a finished day gets a card, not a footnote", closed()!=='(absent)', closed());
-  ok("...naming the day in the ceremony's own words",
-     /^Day 2\b/.test(closed()) && /Workout complete/.test(closed()) && !/In the book/.test(closed()), closed());
+  /* v3.3.500 RESTATES: the card is the square, the count and the date, and
+     nothing else. The maker struck out "Day", the "· Workout complete" tail
+     and the reopen sentence, and all three strikes are one edit: the card was
+     saying what the screen already says. The square has meant a day since the
+     app began, so "Day" spends a word restating the glyph above it;
+     "Workout complete" restates a card that exists only because the day is
+     complete; and the reopen line is a note about mechanism sitting under the
+     number that counts the streak. The CLAIM under test is unchanged -- the
+     card names the real day, not day one -- only its wording is. */
+  ok("...the count stands alone under the square, with no word for it",
+     /^2\b/.test(closed()) && !/\bDay\b/.test(closed()), closed());
   ok("...with the real day number, not day one",
-     /Day 2\b/.test(closed()), closed());
-  ok("...and the reopen sentence kept, but no longer the headline",
-     /Another set reopens today/.test(closed()));
+     /\b2\b/.test(closed()) && !/\b1\b/.test(closed()), closed());
+  ok("...and the two lines it used to carry are gone",
+     !/Workout complete/.test(closed()) && !/reopens today/.test(closed()) &&
+     !/In the book/.test(closed()), closed());
+  /* the state and the invitation are not lost, they move to the label -- the
+     card is a button, and a screen reader still gets both */
+  ok("...but the state and the reopen rule survive for a screen reader",
+     run(`(function(){const a=document.querySelector('.dayclosed').getAttribute('aria-label')||'';
+       return /complete/i.test(a) && /reopens/i.test(a) && /Day 2\\b/.test(a);})()`),
+     run(`document.querySelector('.dayclosed').getAttribute('aria-label')`));
+  ok("...and the rule for the line that left went with it",
+     !/\.dayclosed \.dcr\{/.test(fs.readFileSync(path.join(dir,"css/app.css"),"utf8")));
   /* v3.3.412 RESTATES. It stood where the button stood (v3.3.376) -- but that
      was still below the session cards, after an invitation to add more, and
      the page's order said KEEP GOING while the header said DONE. On a closed
@@ -392,9 +410,12 @@ ok("pressing it places the day", run(`!!document.getElementById('dayDone')`));
        (src.match(/m\.doneAll\s*=\s*true/g)||[]).length===1);
   }
 
-  ok("...showing the completed date instead of a redundant set counter",
-     /Workout complete/.test(run(`document.querySelector('.dayclosed').textContent`)) &&
-     run(`document.querySelector('.dayclosed .dcm').textContent.includes(pretty(todayISO))`),
+  /* v3.3.500 RESTATES: the date line is the date, with nothing after it. The
+     claim was always that this line carries the DATE rather than a set count;
+     the "· Workout complete" tail it used to trail was the part the maker
+     struck. */
+  ok("...showing the completed date, and only the date",
+     run(`document.querySelector('.dayclosed .dcm').textContent.trim()===pretty(todayISO)`),
      run(`document.querySelector('.dayclosed .dcm').textContent`));
 }
 

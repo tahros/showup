@@ -40,9 +40,17 @@ for(const unit of ['kg','lb']){
  check('Done returns to the completed Today record, not Share',()=>{
   assert(!run(`!!document.getElementById('dayDone')`));assert.equal(run('view'),'today');
   assert(!run(`!!document.getElementById('doneAllBtn')`));assert.equal(run('shareCalls'),0);
-  assert(run(`document.querySelector('.card.dayclosed').textContent.includes('Day 1')`));
+  // v3.3.500: the card is the square, the count and the date. The word "Day"
+  // went with the "Workout complete" tail and the reopen line -- the square
+  // above the number has meant a day since the app began. The claim here is
+  // unchanged: Done lands back on the completed record, showing the real count
+  // and the date. Bound to the count element so the wording can move again.
+  assert.equal(run(`document.querySelector('.card.dayclosed .dcn').textContent.trim()`),'1');
   assert(!run(`document.querySelector('.card.dayclosed').textContent.includes('In the book')`));
+  assert(!run(`document.querySelector('.card.dayclosed').textContent.includes('Workout complete')`));
   assert(run(`document.querySelector('.card.dayclosed').textContent.includes(pretty(todayISO))`));
+  // the state and the reopen rule are not lost, they move to the button's label
+  assert(/complete/i.test(run(`document.querySelector('.card.dayclosed').getAttribute('aria-label')`)));
  });
 }
 const before=run('JSON.stringify(DB)');click('[data-replayday]');

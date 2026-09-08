@@ -966,7 +966,8 @@
   .dayclosed .dcn{display:block;font-family:var(--disp);font-weight:600;
     font-size:22px;letter-spacing:-.45px;color:var(--chalk)}
   .dayclosed .dcm{display:block;margin-top:5px;font-size:11.5px;color:var(--muted)}
-  .dayclosed .dcr{display:block;margin-top:10px;font-size:10px;color:var(--faint)}
+  /* v3.3.500: .dcr went with the reopen sentence. The card is the square, the
+     count and the date; its bottom padding already closes it. */
   .btn.done.dayend{margin-bottom:18px;
     box-shadow:0 6px 20px color-mix(in srgb,var(--accent) 22%,transparent)}
   /* v3.3.245: the header's paint, on an absolute child. Safari 26's status-bar

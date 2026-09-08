@@ -1,5 +1,35 @@
 # ShowUp — changelog
 
+## v3.3.500 (2026-09-08) — The finished day card says three things less
+
+The maker struck out three pieces of the closed-day card: the word **Day**, the
+**· Workout complete** tail, and the line **Another set reopens today.** All
+three strikes are one edit — the card was saying what the screen already says.
+
+The square above the number has meant a day since the app began; that is the
+whole vocabulary, so "Day 961" spends a word restating the glyph it sits under.
+"Workout complete" restates a card whose only reason to exist is that the day is
+complete, and which the header already says in its third state. And the reopen
+sentence is a note about mechanism, sitting in small grey type under the number
+that counts the streak.
+
+What is left is the square, the count, and the date.
+
+Neither the state nor the reopen rule is lost. The card is a button, and its
+`aria-label` carries both — day, date, complete, and that another set reopens
+it — so nothing is taken from anyone who cannot see the card do it visually.
+`.dcr` goes with the line it styled.
+
+Four assertions in `test-daydone.js` and one in the other writer's
+`test-completion-489.js` described the old wording. All are restated rather than
+deleted: every claim under test — the real day number rather than day one, the
+date rather than a set counter, Done landing back on the completed record — is
+unchanged, and each is now bound to the count element rather than to a phrase,
+so the wording can move again without a false red.
+
+One more `\b` collapsed inside a template literal while writing these. Ninth
+time. Doubled.
+
 ## v3.3.499 (2026-09-08) — An in-place swap does not cross-fade the page
 
 The scope pills still flickered after the scroll fix and the screen-key sweep,

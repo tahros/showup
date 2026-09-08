@@ -545,11 +545,23 @@ function renderToday(){
   const _closed=dayClosed();
   const _closedCard=()=>{
     const _n=SEED.totals.sessions+(t.w.length?1:0);
-    return `<button class="card dayclosed" data-replayday="1" aria-label="Today is complete. Tap to see it again.">
+    /* v3.3.500: THREE LINES BECOME TWO WORDS. The maker struck out "Day", the
+       "· Workout complete" tail and the reopen sentence, and every strike is
+       the same edit: the card was saying things the screen already says.
+       The square above the number has meant a day since the app began -- that
+       is the whole vocabulary -- so "Day 961" spends a word restating the
+       glyph it sits under. "Workout complete" restates a card whose entire
+       reason for existing is that the day is complete, and which the header
+       already says in its third state. And "Another set reopens today" is a
+       note about database behaviour: true, but a footnote about mechanism
+       under the number that counts the streak.
+       What is left is the square, the count, and the date. The aria-label
+       still carries the state and the invitation for anyone who cannot see
+       the card do it visually. */
+    return `<button class="card dayclosed" data-replayday="1" aria-label="Day ${fmt(_n)}, ${pretty(todayISO)}. Today is complete; logging another set reopens it. Tap to see it again.">
           <i class="dcsq" aria-hidden="true"></i>
-          <b class="dcn">Day ${fmt(_n)}</b>
-          <span class="dcm mono">${pretty(todayISO)} · Workout complete</span>
-          <span class="dcr mono">Another set reopens today.</span>
+          <b class="dcn">${fmt(_n)}</b>
+          <span class="dcm mono">${pretty(todayISO)}</span>
         </button>`;
   };
   if(_closed) h+=_closedCard();
