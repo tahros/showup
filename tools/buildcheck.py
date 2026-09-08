@@ -331,6 +331,14 @@ if _re.search(r"\n\s*nav\.reanchor\{", css):
     fail.append("nav.reanchor is back — the class the removed belt toggled (v3.3.495)")
 if _re.search(r"requestAnimationFrame\(\(\)=>\{ _topRaf=0;[^}]*nav", _util):
     fail.append("the scroll handler touches the nav again — nothing may mutate the nav on scroll (v3.3.495)")
+# v3.3.497: no backdrop-filter on fixed chrome. There was exactly one in this
+# stylesheet, on the nav, and an unbounded backdrop root reaches the document --
+# enough on iOS WebKit to break fixed positioning page-wide. The maker had the
+# header, the nav and the top button all scrolling with the content. This guard
+# keeps it off until that result is read; a comment mentioning it is fine, a
+# declaration is not.
+if _re.search(r"(^|\n)\s*(-webkit-)?backdrop-filter:\s*blur", css):
+    fail.append("backdrop-filter is back — it sits on fixed chrome and is the standing suspect for fixed positioning failing page-wide on iOS (v3.3.497)")
 if _re.search(r'data-skin="minimal"\]\s*nav\{[^}]*overflow:hidden', css):
     fail.append("minimal nav re-added overflow:hidden — extra iOS layer trigger (v3.3.179)")
 

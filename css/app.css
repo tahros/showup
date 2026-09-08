@@ -269,11 +269,11 @@
      only path: same colours, same breathing rest wash, no bleed-through.
      NAV keeps its frost — it sits at the BOTTOM edge with content scrolling
      beneath it, where a backdrop blur has a full backdrop to sample. */
-  @supports ((-webkit-backdrop-filter:blur(1px)) or (backdrop-filter:blur(1px))){
-    nav{background:color-mix(in srgb,var(--surface) 70%,transparent);
-      -webkit-backdrop-filter:blur(16px) saturate(160%);
-      backdrop-filter:blur(16px) saturate(160%)}
-  }
+  /* v3.3.497: THE FROST COMES OFF THE NAV. See the note on nav::before below:
+     a backdrop-filter on the one fixed element at the bottom edge is the
+     remaining suspect for every piece of fixed chrome scrolling with the
+     page. The solid background above -- always the declared fallback -- is
+     the only path again, exactly as it already is for the header. */
   .h-sub.donetoday::before{content:'✓ ';color:var(--accent-ink);font-weight:600;
     font-size:12px;letter-spacing:0}
   .strip i.pend{background:transparent;border:1.5px dashed var(--muted);opacity:.8}
@@ -2881,11 +2881,41 @@
        all. The nav is position:fixed with a z-index, which is already a
        stacking context, so ::before at z-index:0 sits under the buttons at
        z-index:1 without isolating anything. */
+    /* v3.3.497: THE BLUR COMES OFF, AND THIS IS THE EXPERIMENT THE v3.3.480
+       NOTE ASKED FOR AND NOBODY RAN: "if the pill still hangs, the next test
+       is turning the blur off on the nav to confirm the trigger."
+       The maker's screenshots settle two things. The pill hangs on a PURE
+       SCROLL, with no render and no view transition. And it does not hang
+       alone: the "top" button and the HEADER hang with it -- in both shots
+       the header is simply absent from the top of the screen. All three are
+       position:fixed. So this is not one element mis-anchoring, it is fixed
+       positioning failing across the page, and the fix must be something
+       page-wide.
+       There is exactly one backdrop-filter in this stylesheet and it is on
+       the nav. An element with a backdrop-filter needs a BACKDROP ROOT, and
+       with nothing bounding it that root is the document -- which is enough,
+       on iOS WebKit, to change how the whole page's fixed layer is composited.
+       The timeline fits to the release: v3.3.462 added isolation:isolate,
+       which bounded the root and, as v3.3.465 discovered, made the blur do
+       nothing at all. v3.3.465 removed it so the glass would finally render.
+       The hanging is reported from there. v3.3.480 saw the same link -- it
+       says so in the note above -- and blamed translateZ. Removing translateZ
+       changed nothing. Removing the belt changed nothing. The blur itself is
+       what is left.
+       So the pill goes opaque. Without a blur behind it a 66-88% tint over
+       scrolling content is unreadable, so the tint closes up; --pill already
+       follows the theme and the v3.3.477 Match/Light/Dark setting still picks
+       the surface, which is the v3.3.169-safe way to be opaque. The lighting
+       in --pill-shadow stays: the rim, the pooled light and the inner shadow
+       are what read as glass over the app's own white cards anyway -- v3.3.463
+       said so itself. What is lost is the refraction of content passing under,
+       which Safari could not do properly in the first place.
+       If the chrome holds still after this, the blur was the cause and we can
+       argue about how to get it back. If it still hangs, the blur is
+       eliminated and the last suspect is the v3.3.179 layer promotion. */
     :root[data-skin="minimal"] nav{background:transparent;box-shadow:none}
     :root[data-skin="minimal"] nav::before{content:'';position:absolute;inset:0;border-radius:inherit;z-index:0;
-      background:linear-gradient(180deg,color-mix(in srgb,var(--pill) 88%,transparent),color-mix(in srgb,var(--pill) 66%,transparent));   /* v3.3.466: one step heavier than 464 (82->58), now that the blur actually renders */
-      -webkit-backdrop-filter:blur(9px) saturate(190%) brightness(1.06);
-      backdrop-filter:blur(9px) saturate(190%) brightness(1.06);
+      background:linear-gradient(180deg,var(--pill),color-mix(in srgb,var(--pill) 97%,transparent));
       box-shadow:var(--pill-shadow)}
     :root[data-skin="minimal"] nav button{z-index:1}
     /* the active tab is a glass bead on the glass: its own top highlight and
@@ -3143,11 +3173,9 @@
     max-width:496px;
     border:1px solid color-mix(in srgb,var(--line) 85%,transparent);
     border-radius:18px;
-    background:color-mix(in srgb,var(--surface) 90%,transparent);
+    background:var(--surface);   /* v3.3.497: no backdrop-filter on fixed chrome */
     padding:5px 4px;
     box-shadow:var(--preview-shadow-float);
-    -webkit-backdrop-filter:blur(20px) saturate(150%);
-    backdrop-filter:blur(20px) saturate(150%);
   }
   :root[data-design-preview="modern"] nav button{
     min-height:52px;

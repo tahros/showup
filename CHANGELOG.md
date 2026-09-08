@@ -1,5 +1,46 @@
 # ShowUp — changelog
 
+## v3.3.497 (2026-09-08) — The blur comes off the nav
+
+Two things in the maker's screenshots reframe this bug, and both were sitting
+there unread.
+
+It happens on a **pure scroll** — no render, no view transition. And the pill
+does not hang alone: the **"↑ top" button and the header hang with it.** In both
+shots the header is simply absent from the top of the screen. All three are
+`position:fixed`. So this was never one element mis-anchoring. It is fixed
+positioning failing across the whole page, and the cause has to be something
+page-wide.
+
+There was exactly one `backdrop-filter` in this stylesheet, and it was on the
+nav. An element with a backdrop-filter needs a **backdrop root**; with nothing
+bounding it, that root is the document — which is enough, on iOS WebKit, to
+change how the whole page composites its fixed layer.
+
+The timeline fits to the release. v3.3.462 added `isolation:isolate`, which
+bounded the root and — as v3.3.465 discovered — made the blur do nothing at all.
+v3.3.465 removed it so the glass would finally render. The hanging is reported
+from there. v3.3.480 saw the same link and wrote it down, then blamed
+`translateZ`. Removing `translateZ` changed nothing. Removing the re-anchor belt
+(v3.3.495) changed nothing. The blur itself is what was left, and turning it off
+is the test that v3.3.480's own note asked for and nobody ran.
+
+So the pill goes opaque. Without a blur behind it, a 66–88% tint over scrolling
+content is unreadable, so the tint closes up; `--pill` already follows the theme
+and the v3.3.477 Match / Light / Dark setting still picks the surface, which is
+the v3.3.169-safe way to be opaque. **The lighting stays** — the specular rim,
+the pooled light, the inner bottom shadow. Over the app's own white cards the
+lighting is what read as glass anyway; v3.3.463 said exactly that. What is lost
+is content refracting as it passes under, which Safari could not really do.
+
+Two enforcers keep it off until the result is read: a buildcheck guard and a
+restated `test-rest` assertion, both bound to the declaration rather than to the
+word, so a comment explaining it does not trip them.
+
+If the chrome holds still now, the blur was the cause and we can argue about how
+to get the glass back. If it still hangs, the blur is eliminated and the last
+suspect standing is the v3.3.179 layer promotion.
+
 ## v3.3.496 (2026-09-08) — A hidden block can no longer stay hidden
 
 The missing content has a cause, and it is not the tab bar.

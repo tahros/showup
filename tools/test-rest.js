@@ -748,9 +748,25 @@ ok("the status-bar style no longer puts content under the status bar",
      blur is light (9px) with high saturation, and ALL lighting lives in
      --pill-shadow: a specular rim, a rim hairline, light from above, shadow
      inside the bottom, then the drop -- in both themes. */
-  ok("the minimal pill is liquid glass: an 88->66% fall-off tint, a 9px blur, on nav::before, the pill itself transparent",
+  /* v3.3.497 RESTATES: NO BACKDROP-FILTER ON FIXED CHROME. The maker's
+     screenshots show the pill hanging on a PURE SCROLL -- and not alone: the
+     "top" button and the header hang with it, all three position:fixed. That
+     is fixed positioning failing page-wide, not one element mis-anchoring.
+     There was exactly one backdrop-filter in the stylesheet and it was on the
+     nav; an unbounded backdrop root reaches the document, which is enough on
+     iOS WebKit to change how the whole page composites its fixed layer. The
+     hanging is reported from v3.3.465, the release that removed the
+     isolation:isolate that had been making the blur a no-op.
+     The lighting stays -- over the app's own white cards the lighting IS what
+     read as glass (v3.3.463 said so) -- and the tint closes up, because
+     without a blur behind it a 66% pill over scrolling content is unreadable.
+     This assertion is now what keeps the blur off until the result is read. */
+  ok("no backdrop-filter anywhere: the one that existed was on the nav, which is fixed",
+     !/(^|\n)\s*(-webkit-)?backdrop-filter:\s*blur/.test(cssN),
+     (cssN.match(/(^|\n)\s*(-webkit-)?backdrop-filter:[^;}]*/g)||[]).join(" | "));
+  ok("...the minimal pill keeps its lighting and closes its tint to opaque",
      /:root\[data-skin="minimal"\] nav\{background:transparent;box-shadow:none\}/.test(cssN) &&
-     /:root\[data-skin="minimal"\] nav::before\{[^}]*background:linear-gradient\(180deg,color-mix\(in srgb,var\(--pill\) 88%,transparent\),color-mix\(in srgb,var\(--pill\) 66%,transparent\)\);[^}]*backdrop-filter:blur\(9px\) saturate\(190%\)/.test(cssN) &&
+     /:root\[data-skin="minimal"\] nav::before\{[^}]*background:linear-gradient\(180deg,var\(--pill\),color-mix\(in srgb,var\(--pill\) 97%,transparent\)\)/.test(cssN) &&
      /nav::before\{[^}]*box-shadow:var\(--pill-shadow\)/.test(cssN) &&
      /:root\[data-skin="minimal"\] nav button\{z-index:1\}/.test(cssN));
   ok("...the lighting is in the pill token, in both themes: specular rim, hairline, pooled light, inner bottom shadow, drop",
