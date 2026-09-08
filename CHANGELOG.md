@@ -1,5 +1,20 @@
 # ShowUp — changelog
 
+## v3.3.493 (2026-09-08) — Today's rows load their weight too
+
+Tapping a **LAST TIME** row has put that weight into the logger since D3. The
+identical row in **THIS SESSION** did nothing — so stepping down to last week's
+175 was one tap, and stepping back up to today's 185 was manual, mid-set.
+
+The two groups have read in one grammar since v3.3.144; now they answer the
+same tap. That release made today's rows inert in order to take away
+*deletion*, which lives behind EDIT and stays there. Loading a weight takes
+nothing away.
+
+Runs are excluded, as they already are from the LAST TIME group: a run row's
+weight field holds a distance, there is no weight input on that screen, and a
+row that shows a pointer and does nothing is a lie.
+
 ## v3.3.492 (2026-09-08) — The scope switch, the pill's edge, and the label first
 
 **The scope pills flicker too.** v3.3.491 fixed the day accordion; the pills

@@ -97,6 +97,34 @@ run(`lift={part:'Shoulder',ex:'Dumbbell Press'}; view='lift'; render();`);
 check("LAST TIME card still renders", `!!document.querySelector('.lastcard')`, true);
 check("LAST TIME rows still tappable",
       `!!document.querySelector('.lastcard .lastrow[data-lw]')`, true);
+/* ---- v3.3.493: THIS SESSION answers the same tap ----
+   Both groups read in one grammar (v3.3.144); until now only the dimmed one
+   was live, so stepping down to last week's weight was a tap and stepping
+   back to today's was manual. Asserted as an EFFECT -- the row is clicked and
+   the logger's weight is read back -- not merely that the attribute is on the
+   markup, which would pass on a row nothing listens to. */
+check("THIS SESSION rows are tappable too",
+      `!!document.querySelector('.lastcard .sess-now .lastrow[data-lw]')`, true);
+check("...and tapping one loads that weight into the logger",
+      `(function(){
+         const row=document.querySelector('.lastcard .sess-now .lastrow[data-lw]');
+         if(!row) return 'no row';
+         const want=+row.dataset.lw;
+         lift.weight=0;
+         row.click();
+         return lift.weight===want ? 'loaded' : 'weight='+lift.weight+' want='+want;})()`, "loaded");
+check("...and the dimmed row below still does the same",
+      `(function(){
+         const row=document.querySelector('.lastcard .sess-then .lastrow[data-lw]');
+         if(!row) return 'no row';
+         const want=+row.dataset.lw;
+         lift.weight=0;
+         row.click();
+         return lift.weight===want ? 'loaded' : 'weight='+lift.weight+' want='+want;})()`, "loaded");
+/* a run's rows carry a DISTANCE in data-lw and there is no #wv on that
+   screen -- a pointer over a row that cannot answer is a lie */
+check("a run's session rows stay untappable",
+      `/data-lw/.test(setRows('Run',[[3.47,[],27,16]],false))`, false);
 /* v3.3.148: .lastfoot went with the v3.3.144 merge — LAST TIME is the
    dimmed group of THIS SESSION now and the card's own .tot carries the
    numbers. This assertion crashed the suite silently from that release. */

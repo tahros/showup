@@ -738,7 +738,18 @@ function renderLift(){
       const folded=foldSets(todaySets.map(s=>[s.w,s.reps,s.mins,s.secs,s.su]),ex);
       /* the newest chip carries the save flash — the settile that used to
          host it only exists in edit mode now */
-      let rows=setRows(ex,folded,false);
+      /* v3.3.493: TODAY'S ROWS LOAD THEIR WEIGHT TOO. Tapping a LAST TIME row
+         has put that weight into the logger since D3; the identical row in
+         THIS SESSION did nothing, so the move down to last week's weight was
+         one tap and the move back to today's was manual, mid-set. The two
+         groups have read in one grammar since v3.3.144 and now they answer
+         the same tap. v3.3.144 made today's rows inert to take away DELETION
+         -- that lives behind EDIT and stays there; loading a weight takes
+         nothing away.
+         Runs are excluded, as they are from the LAST TIME group above: a run
+         row's data-lw is a distance, there is no #wv on that screen, and a
+         row that shows a pointer and does nothing is a lie. */
+      let rows=setRows(ex,folded,!isRun);
       if(lift.justSaved){
         const k=rows.lastIndexOf('<i class="repchip">');
         if(k>=0) rows=rows.slice(0,k)+'<i class="repchip fresh">'+rows.slice(k+'<i class="repchip">'.length);
