@@ -1647,8 +1647,27 @@ function render(opts){
      motion, and cross-fades the swap through the View Transitions API -- so
      the content changes where it stands instead of the page re-arriving. */
   const inplace=!!(opts&&opts.inplace);
+  /* v3.3.499: AND IT DOES NOT CROSS-FADE. v3.3.492 added the View Transition
+     to the in-place path on the reasoning that a cross-fade would soften the
+     swap. It does the opposite, and the maker can still see it after both the
+     scroll fix and the screen-key sweep landed.
+     A view transition snapshots the WHOLE PAGE, swaps the DOM, snapshots it
+     again, and animates between the two. Identical pixels blend away under
+     plus-lighter, so on a tab switch that reads as one clean motion. But the
+     day scope and the week scope are different HEIGHTS -- a single day card
+     against a stack of five -- so ::view-transition-group(root) animates the
+     root's SIZE while its old and new images cross-fade over each other. The
+     page visibly changes shape and doubles for the length of the animation.
+     That is the flicker, and it is the last thing in this path that moves the
+     whole page for a change to one section.
+     So an in-place repaint takes the direct route: same scroll, no entrance,
+     no page-level animation. The swap is a single frame. Tab switches and the
+     v3.3.440 soft render keep their cross-fade, where the page really is
+     becoming a different page and both snapshots are the same size.
+     This touches nothing outside render(): the nav and the header are not
+     read, written or measured here, and neither is anything fixed. */
   const both=()=>{ renderHeader(); paint({inplace}); };
-  if(MOTION_OK && document.startViewTransition && ((lastView!==null && lastView!==view) || soft || inplace)){
+  if(MOTION_OK && document.startViewTransition && ((lastView!==null && lastView!==view) || soft)){
     lastView=view; document.startViewTransition(both);
   } else { lastView=view; both(); }
 }

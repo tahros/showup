@@ -1,5 +1,37 @@
 # ShowUp — changelog
 
+## v3.3.499 (2026-09-08) — An in-place swap does not cross-fade the page
+
+The scope pills still flickered after the scroll fix and the screen-key sweep,
+and the last thing in that path that moves the whole page for a change to one
+section was the cross-fade I put there myself.
+
+v3.3.492 routed the in-place repaint through the View Transitions API on the
+reasoning that a cross-fade would soften the swap. It does the opposite. A view
+transition snapshots the **whole page**, swaps the DOM, snapshots it again and
+animates between the two. On a tab switch that reads as one clean motion,
+because both snapshots are the same size and identical pixels blend away under
+plus-lighter. But the day scope and the week scope are different **heights** — a
+single day card against a stack of five — so the root group animates its size
+while the old and new images cross-fade over each other. The page visibly
+changes shape and doubles for the length of the animation.
+
+An in-place repaint now takes the direct route: same scroll, no entrance, no
+page-level animation. The swap is a single frame, which is what the plan fold
+has always done and what it was praised for.
+
+Tab switches and the v3.3.440 soft render keep their cross-fade, where the page
+really is becoming a different page.
+
+This touches only the branch inside `render()`. The nav and the header are not
+read, written or measured there, and neither is anything else fixed — so it
+cannot disturb what v3.3.497 settled.
+
+jsdom has no `startViewTransition`, so the entire branch was unreachable under
+test and any assertion about it would have been green by vacancy. The week suite
+stubs it and counts: zero transitions for a scope switch, one for a tab switch,
+both probed.
+
 ## v3.3.498 (2026-09-08) — An arrival is a change of screen, not a call to render()
 
 `paint()` has scrolled to the top and replayed the entrance since the app had

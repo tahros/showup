@@ -168,7 +168,36 @@ ok("...and a plan sub-screen is an arrival, though view never moved",
 ok("screenKey names the screen, and nothing else decides",
    run(`screenKey()`) === run(`[view,lift.plan||'',lift.part||'',lift.ex||'',lift.write?'w':''].join('|')`),
    run(`screenKey()`));
-run(`(function(){lift.plan=null; lift.planScope='week'; view='today'; render();})()`);
+
+/* ---- v3.3.499: AN IN-PLACE SWAP DOES NOT CROSS-FADE THE PAGE ----
+   v3.3.492 routed the in-place path through the View Transitions API on the
+   reasoning that a cross-fade would soften the swap. It does the opposite: a
+   view transition snapshots the WHOLE page and animates between the two, and
+   the day scope and the week scope are different heights, so the root group
+   animates its size while the two images cross-fade over each other. The page
+   changes shape and doubles for the length of the animation -- which is what
+   the maker was still seeing after the scroll fix and the screen-key sweep.
+   jsdom has no startViewTransition, so without this stub the whole branch is
+   unreachable here and any assertion about it would be green by vacancy. */
+run(`(function(){ globalThis.__vt=0;
+  document.startViewTransition=cb=>{ __vt++; cb(); return {finished:Promise.resolve()}; };
+  lift.plan=null; lift.part=null; lift.ex=null; view='today'; lift.planScope='today'; render();
+  Object.defineProperty(window,'scrollY',{value:340,configurable:true});
+  __vt=0; __scrollLog.length=0;})()`);
+run(`document.querySelector('.scopepill[data-planscope="week"]').click()`);
+ok("switching scope takes no page-level animation",
+   run(`__vt===0`), run(`'transitions='+__vt`));
+ok("...and still keeps its place and skips the entrance",
+   run(`__scrollLog.length===1 && __scrollLog[0]===340
+        && document.getElementById('view').classList.contains('norise')`),
+   run(`JSON.stringify(__scrollLog)`));
+ok("...and really did switch scope", run(`lift.planScope`)==='week' && run(`!!document.querySelector('.weekstack')`));
+/* a tab switch IS the page becoming a different page, both snapshots the same
+   size -- it keeps the cross-fade */
+run(`(function(){__vt=0; view='history'; render();})()`);
+ok("a tab switch still cross-fades",
+   run(`__vt===1`), run(`'transitions='+__vt`));
+run(`(function(){delete document.startViewTransition; view='today'; lift.planScope='week'; render();})()`);
 
 /* ---- the week scope ---- */
 run(`document.querySelector('[data-planscope="week"]').click()`);
