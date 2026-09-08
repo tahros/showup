@@ -1,5 +1,41 @@
 # ShowUp — changelog
 
+## v3.3.495 (2026-09-08) — The re-anchor belt comes off, alone, as an experiment
+
+The maker reports the nav pill still hanging mid-screen, and this time with the
+one detail that settles what it is not: **it happens on a pure scroll**, with no
+tab tap, and the "↑ top" button hangs with it. No render runs on a scroll, so
+view transitions are out. And the top button has no glass and still carries the
+full v3.3.179 compositing rule — so the v3.3.480 theory, that an active
+backdrop-filter conflicting with a 3D transform is the trigger, cannot be the
+whole story.
+
+That leaves one thing that ran: **navReanchor()**. And v3.3.480 shipped a
+contradiction. It took `translateZ(0)` *off* the nav, on the finding that a 3D
+transform plus an active backdrop-filter is what stops WebKit re-anchoring a
+fixed element — and in the same release added a belt that put `translateZ(0)`
+*back* on the nav, forced a layout read, and took it off again, 120ms after
+every scroll. One hand removed the trigger; the other re-applied it on a loop.
+
+The belt is gone: the function, the `.reanchor` class, and the scroll-time call.
+Nothing mutates the nav on a scroll now — `syncTopBtn` flips one element's
+`hidden` and its label, and that is the entire scroll-time budget.
+
+`repairNavLayout()` keeps its real triggers — render, resize, resume — and loses
+only the per-scroll re-application, which re-pinned inline `!important` geometry
+on the nav and all four buttons every time a scroll settled, including a hard
+pixel width read from `clientWidth` at that instant, for the rest of the session.
+
+**This goes alone on purpose.** If the hang stops, the belt was the cause. If it
+persists, the belt is eliminated and the next suspect is the v3.3.179 layer
+promotion itself — the one thing the pill and the top button actually share.
+Changing both at once would have taught nothing.
+
+Three guards demanded the belt exist — in `buildcheck.py`, `test-rest.js` and
+`test-nav-recovery.js`. That is why it survived three releases of the bug it was
+meant to fix. All three are inverted rather than deleted: they now keep it gone
+until the experiment is read.
+
 ## v3.3.494 (2026-09-08) — Edit as text is a door, so it sits where doors sit
 
 It rode the "6 of 6" counter in the preview card's head as a run-on after a

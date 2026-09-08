@@ -321,8 +321,16 @@ if not _navl:
     fail.append("nav lost its layer promotion (will-change:transform) (v3.3.179/480)")
 if _re.search(r"\n\s*nav\{[^}]*translateZ", css):
     fail.append("nav carries translateZ(0) again — with its backdrop-filter that hangs the pill mid-scroll (v3.3.480)")
-if "function navReanchor" not in _util:
-    fail.append("navReanchor() missing — the re-anchor nudge is the belt for iOS fixed-element lag (v3.3.480)")
+# v3.3.495: the belt is gone and must STAY gone until the experiment is read.
+# navReanchor() re-applied translateZ(0) to the nav 120ms after every scroll --
+# the same trigger the rule two checks above removes. A guard that demanded its
+# presence is why it survived three releases of the bug it was meant to fix.
+if "function navReanchor" in _util:
+    fail.append("navReanchor() is back — it re-applies translateZ(0) to the nav on every scroll, which is the trigger v3.3.480 removed (v3.3.495)")
+if _re.search(r"\n\s*nav\.reanchor\{", css):
+    fail.append("nav.reanchor is back — the class the removed belt toggled (v3.3.495)")
+if _re.search(r"requestAnimationFrame\(\(\)=>\{ _topRaf=0;[^}]*nav", _util):
+    fail.append("the scroll handler touches the nav again — nothing may mutate the nav on scroll (v3.3.495)")
 if _re.search(r'data-skin="minimal"\]\s*nav\{[^}]*overflow:hidden', css):
     fail.append("minimal nav re-added overflow:hidden — extra iOS layer trigger (v3.3.179)")
 

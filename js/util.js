@@ -559,27 +559,36 @@ function setBackTarget(label,getEl){ _backTo={label,getEl}; syncTopBtn(); }
 function clearBackTarget(){ _backTo=null; syncTopBtn(); }
 addEventListener('scroll',()=>{
   if(_topRaf) return;
-  _topRaf=requestAnimationFrame(()=>{ _topRaf=0; syncTopBtn(); navReanchor(); });   // v3.3.470: the bar no longer hides; v3.3.480: it re-anchors
+  /* v3.3.495: NOTHING TOUCHES THE NAV ON SCROLL. syncTopBtn only flips one
+     element's `hidden` and its label; that is the whole scroll-time budget
+     now. See the note on the removed navReanchor below. */
+  _topRaf=requestAnimationFrame(()=>{ _topRaf=0; syncTopBtn(); });   // v3.3.470: the bar no longer hides
 },{passive:true});
 /* v3.3.459-462 hid the tab bar on scroll (threshold, then follow-the-finger).
    v3.3.470 removes it at the maker's word: the bar stays. Recorded as a
    reversal after living with it on the device, not as a bug. */
-/* v3.3.480: THE RE-ANCHOR NUDGE. iOS re-anchors position:fixed elements to
-   the visual viewport only at the end of a gesture, and with an active
-   backdrop-filter it sometimes does not at all -- the pill hangs where the
-   scroll left it. When the scroll has been quiet for ~120ms, toggle a 3D
-   transform on and off across a forced layout read; the compositor recomputes
-   the layer's position and the bar snaps home. Cheap, invisible when nothing
-   is wrong, and the only path that does not depend on WebKit behaving. */
-let _reanchorT=0;
-function navReanchor(){
-  clearTimeout(_reanchorT);
-  _reanchorT=setTimeout(()=>{
-    const nav=document.getElementById('nav'); if(!nav) return;
-    nav.classList.add('reanchor'); void nav.offsetHeight; nav.classList.remove('reanchor');
-    repairNavLayout();
-  },120);
-}
+/* v3.3.495: THE RE-ANCHOR NUDGE IS REMOVED, AND THIS IS AN EXPERIMENT.
+   v3.3.480 shipped two things in one breath that contradict each other. It
+   took translateZ(0) OFF the nav, on the finding that a 3D transform plus an
+   active backdrop-filter is what stops WebKit re-anchoring a fixed element --
+   and then it added navReanchor(), which put translateZ(0) BACK on the nav,
+   forced a layout read and took it off again, 120ms after every scroll. One
+   hand removed the trigger; the other applied it on a loop.
+   Three releases later the maker reports the pill still hanging, and the new
+   evidence is decisive about what it is not: the "\u2191 top" button hangs with
+   it, and that button has no glass and still carries the full v3.3.179 rule.
+   So the backdrop-filter conflict cannot be the whole story. What both
+   elements share is that they were deliberately promoted to their own
+   compositing layers -- and on a pure scroll, with no render running, the
+   ONLY code that touched either of them was this function.
+   So it goes, alone, so that the next report means something. If the hang
+   stops, the belt was the cause. If it persists, the belt is eliminated and
+   the remaining suspect is the v3.3.179 promotion itself, which is the next
+   thing to try. Changing both at once would have taught us nothing.
+   repairNavLayout() keeps its real triggers -- render, resize, resume -- and
+   only loses the per-scroll re-application, which re-pinned inline !important
+   geometry (including a hard pixel width read from clientWidth at that
+   instant) every time a scroll settled, for the rest of the session. */
 /* v3.3.482: 481 is visible on the affected phone, but its tabs still stack.
    The CSS-only flex change did not establish the cause. Check USED geometry,
    not a browser name: leave healthy navigation alone; repair only a broken

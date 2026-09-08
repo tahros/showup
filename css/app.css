@@ -2448,11 +2448,15 @@
      transform. So the nav keeps will-change:transform (a layer of its own,
      which is what 179 needed) and loses translateZ(0), which it no longer
      needs for promotion and which conflicts with the glass. The top button
-     has no glass and keeps the full 179 rule. This is a hypothesis about a
-     device I cannot see; the belt is navReanchor() in util.js, which nudges
-     the compositor after every scroll settles. */
+     has no glass and keeps the full 179 rule.
+     v3.3.495: the belt is GONE and the .reanchor class with it. navReanchor()
+     put translateZ(0) back on the nav 120ms after every scroll -- reapplying,
+     on a loop, the exact trigger the rule above removes. On the device the
+     pill still hung, and it hung together with the "top" button, which has no
+     glass at all. Both are elements this file deliberately promotes to their
+     own layer, and that promotion is now the remaining suspect. The belt goes
+     first and alone so the next report is readable. */
   nav{will-change:transform;backface-visibility:hidden;-webkit-backface-visibility:hidden}
-  nav.reanchor{transform:translateZ(0)}
   .recdate{display:block;font-size:9px;color:var(--muted);font-weight:400;margin-top:1px}
   .mstone{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px}
   .mstone .big{font-family:var(--mono);font-size:24px;color:var(--chalk);font-weight:600}

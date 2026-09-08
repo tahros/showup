@@ -782,10 +782,17 @@ ok("the status-bar style no longer puts content under the status bar",
     ok("...the top button keeps the v3.3.179 compositing rule, and the nav keeps will-change without the 3D transform",
        /\n\s*\.calreturn\{transform:translateZ\(0\)[^}]*will-change:transform/.test(cssN) &&
        /\n\s*nav\{will-change:transform[^}]*\}/.test(cssN) && !/\n\s*nav\{[^}]*translateZ/.test(cssN));
-    ok("...and the re-anchor nudge is wired to scroll idle",
-       /function navReanchor\(\)/.test(fs.readFileSync(path.join(dir,"js/util.js"),"utf8")) &&
-       /syncTopBtn\(\); navReanchor\(\);/.test(fs.readFileSync(path.join(dir,"js/util.js"),"utf8")) &&
-       /nav\.reanchor\{transform:translateZ\(0\)\}/.test(cssN));
+    /* v3.3.495 RESTATES: the belt is gone. navReanchor() put translateZ(0)
+       back on the nav 120ms after every scroll -- reapplying the very trigger
+       the assertion above removes. The maker reported the pill still hanging
+       on a PURE SCROLL, where no render runs and this was the only code that
+       touched the nav. It goes alone, as an experiment; this assertion is now
+       what keeps it gone until the result is read. */
+    ok("...and nothing mutates the nav on a scroll",
+       !/function navReanchor\(\)/.test(fs.readFileSync(path.join(dir,"js/util.js"),"utf8")) &&
+       !/nav\.reanchor\{/.test(cssN) &&
+       /_topRaf=requestAnimationFrame\(\(\)=>\{ _topRaf=0; syncTopBtn\(\); \}\);/
+         .test(fs.readFileSync(path.join(dir,"js/util.js"),"utf8")));
   }
   /* the contrast claim, recomputed here so the number cannot drift from the comment */
   {

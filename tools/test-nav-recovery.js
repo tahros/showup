@@ -40,6 +40,10 @@ assert.strictEqual(w.repairNavLayout(),false);
 assert(source.includes("addEventListener('resize',scheduleNavLayoutCheck"));
 assert(source.includes("if(document.visibilityState==='visible') scheduleNavLayoutCheck();"));
 assert(/function syncNav\(\)\{\s*scheduleNavLayoutCheck\(\)/.test(fs.readFileSync(path.join(dir,'js/app.js'),'utf8')));
-assert(/nav\.classList\.remove\('reanchor'\);\s*repairNavLayout\(\);/.test(source));
-console.log('PASS hidden geometry is ignored and checks are wired to render, resize, resume and scroll idle');
+// v3.3.495: the scroll-idle trigger is gone with navReanchor(). repairNavLayout
+// keeps render, resize and resume; it no longer re-pins inline !important
+// geometry every time a scroll settles.
+assert(!/function navReanchor\(\)/.test(source));
+assert(!/classList\.(add|remove)\('reanchor'\)/.test(source));
+console.log('PASS hidden geometry is ignored and checks are wired to render, resize and resume — never to scroll');
 dom.window.close();
