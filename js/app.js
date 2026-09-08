@@ -380,10 +380,31 @@ document.addEventListener('click',e=>{
   const _ps=e.target.closest&&e.target.closest('[data-planscope]');
   if(_ps){ lift.planScope=_ps.dataset.planscope; return render(); }
   const _wd=e.target.closest&&e.target.closest('[data-weekday]');
-  if(_wd){ const iso=_wd.dataset.weekday; lift.weekOpen=lift.weekOpen||new Set();
-    if(lift.weekOpen.has(iso)) lift.weekOpen.delete(iso); else lift.weekOpen.add(iso); return render(); }
-  const _wa=e.target.closest&&e.target.closest('[data-weekall]');
-  if(_wa){ const wk=weekNow(); lift.weekOpen=new Set(_wa.dataset.weekall==='open'&&wk?Object.keys(wk.days):[]); return render(); }
+  if(_wd){
+    /* v3.3.491: NOT A RE-RENDER. This called render() from v3.3.398 until
+       now, which is the flicker the maker reported: paint() replaces the
+       whole view, motionPass() re-runs the entrance on every card, and
+       scrollTo(0,0) jumps you to the top -- all to change one card's height.
+       v3.3.452 had already learned this on the day fold; the week is the same
+       control and gets the same treatment. The body is always in the DOM
+       (lift.js, .planfold), so the fold is a class and the transition is CSS.
+       lift.weekOpen stays the single source of truth: the next real render
+       draws the same state from it, so nothing can drift. */
+    const iso=_wd.dataset.weekday; lift.weekOpen=lift.weekOpen||new Set();
+    const open=!lift.weekOpen.has(iso);
+    if(open) lift.weekOpen.add(iso); else lift.weekOpen.delete(iso);
+    const card=_wd.closest('.daycard'), chev=_wd.querySelector('.pfchev');
+    const body=card&&card.querySelector('[data-weekbody]');
+    if(card) card.classList.toggle('open',open);
+    if(body){ body.classList.toggle('shut',!open); body.toggleAttribute('inert',!open); }
+    if(chev) chev.classList.toggle('open',open);
+    _wd.setAttribute('aria-expanded',String(open));
+    _wd.setAttribute('aria-label',`${open?'Fold':'Open'} ${pretty(iso)}`);
+    return;
+  }
+  /* v3.3.491: the data-weekall handler is gone. v3.3.421 took expand-all off
+     the edge and test-week has asserted the control's absence ever since; the
+     handler outlived its premise by seventy releases (failure pattern 4). */
   const _pc=e.target.closest&&e.target.closest('[data-plancopy]');
   if(_pc){
     /* v3.3.421: the day copy reads the plan the day scope SHOWS -- tomorrow's
@@ -495,7 +516,7 @@ document.addEventListener('click',e=>{
        its state -- the next real render draws the same state from the
        setting, so nothing can drift. */
     const shut=!!DB.settings.planFold;
-    document.querySelectorAll('[data-planfoldbody]').forEach(el=>el.classList.toggle('shut',shut));
+    document.querySelectorAll('[data-planfoldbody]').forEach(el=>{ el.classList.toggle('shut',shut); el.toggleAttribute('inert',shut); });
     document.querySelectorAll('.pfchev').forEach(el=>el.classList.toggle('open',!shut));
     document.querySelectorAll('[data-planfold]').forEach(el=>el.setAttribute('aria-expanded',String(!shut)));
     return;

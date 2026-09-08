@@ -1880,6 +1880,16 @@
   .dayhead .dt{display:inline-flex;align-items:center;gap:8px;letter-spacing:0;font-weight:500;color:var(--muted);min-width:0;flex:1 1 auto;justify-content:flex-end}
   .dayhead .dt .dtl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;font-size:10.5px;color:var(--faint)}
   .dayhead .dt .ic{flex:none;color:var(--faint)}
+  /* v3.3.491: the chevron sits in a .pfchev span now so the turn can be a
+     class that TRANSITIONS (shared with the day fold) instead of a rotation
+     baked into the icon's own style. It must not shrink beside the truncating
+     label, and it carries the ink the bare .ic used to be given. */
+  .dayhead .dt .pfchev{flex:none;color:var(--faint)}
+  /* the open head gives its bottom padding to the rows; a shut one keeps it.
+     v3.3.491: this used to arrive with a repaint, so it was never seen to
+     move. It changes on the same tap as the fold now, so it eases with it. */
+  .daycard .dayhead{transition:padding-bottom var(--dur-arrive) var(--settle)}
+  @media (prefers-reduced-motion:reduce){ .daycard .dayhead{transition:none} }
   .planpv.day .pb b{font-size:12px;letter-spacing:var(--track-label);text-transform:uppercase;color:var(--muted)}
   .plancard{padding:6px 0}
   /* v3.3.281: the plan is reference material you glance at between sets, not

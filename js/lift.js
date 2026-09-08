@@ -142,11 +142,20 @@ function planSectionHTML(){
         for(const it of (d.items||[])){ const pt=homePartOf(it.ex); if(pt) seen.add(pt); }
         return order.filter(p=>seen.has(p)).concat([...seen].filter(p=>!order.includes(p)));})();
       const _label=_parts.length?_parts.join(' \u00b7 '):(d.title||'').replace(/\s*\+\s*/g,' \u00b7 ');
+      /* v3.3.491: THE WEEK FOLDS THE WAY TODAY'S PLAN DOES. v3.3.452 fixed
+         this exact flicker on the day fold and the week never got the fix:
+         the body was rendered only when open, so the only way to open one was
+         render() -- a full repaint of the view, a re-run of the entrance
+         motion, and scrollTo(0,0) throwing you back to the top of the page
+         you were reading. Same cure: every day's card is always in the DOM
+         inside .planfold, the fold is a class (1fr open, 0fr shut), and the
+         chevron turns on a span of its own so the icon's ink is untouched. */
       h+=`<div class="card daycard${open?' open':''}${past?' past':''}${today?' today':''}">
         <button class="dayhead" data-weekday="${iso}" aria-expanded="${open}" aria-label="${open?'Fold':'Open'} ${pretty(iso)}">
           <span class="dn">${pretty(iso).toUpperCase()}${today?' · TODAY':''}</span>
-          <span class="dt mono"><span class="dtl">${hesc(_label)}</span>${icon('chevron',ICON_SZ.sm,open?90:0)}</span>
-        </button>${open?planCardHTML({d:iso,items:(d.items||[]).map(planItemShape),note:d.note||''}, today):''}</div>`;
+          <span class="dt mono"><span class="dtl">${hesc(_label)}</span><span class="pfchev${open?' open':''}">${icon('chevron',ICON_SZ.sm)}</span></span>
+        </button><div class="planfold${open?'':' shut'}" data-weekbody="${iso}"${open?'':' inert'}><div class="planfold-in">${
+          planCardHTML({d:iso,items:(d.items||[]).map(planItemShape),note:d.note||''}, today)}</div></div></div>`;
     }
     h+=`</div>`;
     return h;
@@ -196,7 +205,12 @@ function planSectionHTML(){
     {
       const card=planCardHTML({d:_ps.d,items:_ps.items,note:_ps.note||''},_isToday);
       const inner=_cl?`<div class="plspent">${card}</div>`:_isToday?card:`<div class="planahead">${card}</div>`;
-      h+=`<div class="planfold${_pf?' shut':''}" data-planfoldbody><div class="planfold-in">${inner}</div></div>`;
+      /* v3.3.491: a shut fold is INERT. Keeping the body in the DOM (v3.3.452)
+         is what makes the motion possible, but it also leaves ticks and steppers
+         behind a zero-height window where a tab key can still reach them. One
+         card was a small fault; the week now keeps five to seven, so it is
+         fixed at the shared mechanism rather than at one caller. */
+      h+=`<div class="planfold${_pf?' shut':''}" data-planfoldbody${_pf?' inert':''}><div class="planfold-in">${inner}</div></div>`;
     }
   }else{
     /* nothing planned for the day the scope shows: the pill still names the

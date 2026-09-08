@@ -1,5 +1,33 @@
 # ShowUp — changelog
 
+## v3.3.491 (2026-09-07) — The week folds without a flicker
+
+Opening a day in the week rebuilt the entire screen. Changing one card's height
+went through a full repaint: every card's entrance animation ran again, and the
+page scrolled back to the top, so a tap five rows down threw away where you
+were reading. That is the flicker.
+
+v3.3.452 fixed exactly this on today's plan fold and the week never got the
+fix. It now shares the mechanism. Every day's body stays in the DOM inside a
+fold whose height is a CSS class — open, shut, and the browser animates between
+them at the content's own height. The chevron turns on a span of its own, so
+the glyph's ink is untouched. The tap toggles classes and nothing else; the
+week's open days remain the single source of truth, and the next real render
+draws the same state back from them.
+
+A shut fold is now **inert**, on the week and on today's plan alike. Keeping a
+body in the DOM is what makes the motion possible, but it also leaves ticks and
+steppers behind a zero-height window where a tab key could still reach them.
+One card was a small fault; a week holds five to seven.
+
+The dead `data-weekall` handler is removed. Expand-all left the header in
+v3.3.421 and the suite has asserted its absence ever since; the handler outlived
+its premise by seventy releases.
+
+Coverage asserts the effect rather than the mechanism: a tap leaves the same
+card, the same body and the same stack in place, and each new assertion was
+probed by breaking the code it guards.
+
 ## v3.3.490 (2026-09-07) — The completion button always answers
 
 An earlier completion stamp could make **Complete today’s workout** close the

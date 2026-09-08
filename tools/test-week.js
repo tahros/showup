@@ -100,15 +100,62 @@ ok("...their holes survive: each is one path of three subpaths",
    run(`(function(){const n=s=>(document.querySelector(s).getAttribute('d').match(/M/g)||[]).length;
      return n('.ic-copy path')===3 && n('.ic-edit path')===3;})()`),
    run(`(document.querySelector('.ic-edit path').getAttribute('d').match(/M/g)||[]).length+' subpaths in edit'`));
+/* v3.3.491: the turn is a CLASS on a span (.pfchev.open), not a rotation baked
+   into the icon's style, so it can transition. Same glyph, same directions:
+   right when folded, down when open. The icon's own style stays clean. */
 ok("every day heading carries the chevron, right when folded, down when open",
-   run(`(function(){const f=[...document.querySelectorAll('.daycard:not(.open) .ic-chevron')], o=document.querySelector('.daycard.open .ic-chevron');
-     return f.length===3 && f.every(s=>!/rotate/.test(s.getAttribute('style')||'')) && /rotate\\(90deg\\)/.test(o.getAttribute('style'));})()`));
+   run(`(function(){const f=[...document.querySelectorAll('.daycard:not(.open) .dayhead .pfchev')],
+       o=document.querySelector('.daycard.open .dayhead .pfchev');
+     return f.length===3 && !!o && o.classList.contains('open')
+       && f.every(s=>!s.classList.contains('open'))
+       && [...f,o].every(s=>{const g=s.querySelector('svg.ic-chevron');
+            return !!g && !/rotate/.test(g.getAttribute('style')||'');});})()`));
+
+/* ---- v3.3.491: THE FOLD IS A MOTION, NOT A REPAINT ----
+   The maker reported the week accordion flickering. The cause was render():
+   paint() replaces the whole view, re-runs the entrance motion on every card
+   and calls scrollTo(0,0), all to change one card's height. The day fold
+   learned this in v3.3.452; the week is the same control and now shares the
+   mechanism. Asserted as an EFFECT: every day's body is in the DOM whichever
+   way the card is folded, and a tap leaves the very same nodes in place. */
+ok("a folded day keeps its body in the DOM, shut",
+   run(`(function(){const c=document.querySelector('.daycard:not(.open)'); const b=c&&c.querySelector('[data-weekbody]');
+     return !!b && b.classList.contains('shut') && !!b.querySelector('.plancard');})()`));
+ok("...and an open day's body is the same element, not shut",
+   run(`(function(){const c=document.querySelector('.daycard.open'); const b=c&&c.querySelector('[data-weekbody]');
+     return !!b && !b.classList.contains('shut') && !!b.querySelector('.plancard');})()`));
+/* a shut fold's ticks and steppers sit behind a zero-height window; without
+   this they stay tab-reachable, and the week keeps four to seven of them */
+ok("...a shut body is inert, an open one is not",
+   run(`(function(){const s=document.querySelector('.daycard:not(.open) [data-weekbody]'),
+       o=document.querySelector('.daycard.open [data-weekbody]');
+     return !!s && !!o && s.hasAttribute('inert') && !o.hasAttribute('inert');})()`));
+run(`globalThis.__wkCard=document.querySelector('.daycard:not(.open)');
+     globalThis.__wkBody=__wkCard.querySelector('[data-weekbody]');
+     globalThis.__wkHead=document.querySelector('.weekstack');
+     __wkCard.querySelector('[data-weekday]').click();`);
+ok("one tap opens it in place — same card, same body, same stack",
+   run(`__wkCard.classList.contains('open') && !__wkBody.classList.contains('shut')
+        && !__wkBody.hasAttribute('inert')
+        && __wkBody===__wkCard.querySelector('[data-weekbody]')
+        && __wkHead===document.querySelector('.weekstack')
+        && document.body.contains(__wkCard)`));
+ok("...and the chevron turned on the same span",
+   run(`__wkCard.querySelector('.dayhead .pfchev').classList.contains('open')
+        && __wkCard.querySelector('[data-weekday]').getAttribute('aria-expanded')==='true'`));
+run(`__wkCard.querySelector('[data-weekday]').click()`);
+ok("...and folding it back is the same node again, shut and inert",
+   run(`!__wkCard.classList.contains('open') && __wkBody.classList.contains('shut')
+        && __wkBody.hasAttribute('inert')
+        && __wkBody===__wkCard.querySelector('[data-weekbody]')
+        && __wkCard.querySelector('[data-weekday]').getAttribute('aria-expanded')==='false'`));
+
 /* v3.3.421 RESTATES: expand-all and fold-all left the header -- every day row
    carries its own chevron, and a header glyph that opened all four at once
    was a fifth control for a thing the rows already did. Opening each day by
    its own heading is the behaviour that remains. */
-/* one click per render: each toggle re-renders, so the buttons must be found
-   again each time rather than held from one query */
+/* v3.3.491: the toggle no longer re-renders, so the nodes survive a click --
+   but the loop still re-queries, because :not(.open) is what it is walking */
 run(`(function(){let g; while((g=document.querySelector('.daycard:not(.open) [data-weekday]'))) g.click();})()`);
 ok("every day opens by its own heading", run(`document.querySelectorAll('.daycard.open').length`)===4);
 ok("...and there is no expand-all on the edge", run(`!document.querySelector('[data-weekall]')`));
