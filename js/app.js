@@ -378,7 +378,7 @@ document.addEventListener('click',e=>{
   }
   /* ---- v3.3.398: the week scope ---- */
   const _ps=e.target.closest&&e.target.closest('[data-planscope]');
-  if(_ps){ lift.planScope=_ps.dataset.planscope; return render(); }
+  if(_ps){ lift.planScope=_ps.dataset.planscope; return render({inplace:true}); }
   const _wd=e.target.closest&&e.target.closest('[data-weekday]');
   if(_wd){
     /* v3.3.491: NOT A RE-RENDER. This called render() from v3.3.398 until
@@ -1410,14 +1410,25 @@ function bindZoom(box){
 
 /* ---------- boot ---------- */
 const MOTION_OK=typeof matchMedia==='function' ? matchMedia('(prefers-reduced-motion:no-preference)').matches : true;
-function paint(){
+function paint(opts){
+  /* v3.3.492: an in-place repaint is the SAME screen with different content.
+     Three things distinguish it from arriving somewhere: the scroll stays
+     where the reader left it; the entrance rise is suppressed at the moment
+     the nodes are created (adding .norise BEFORE the paint, never after --
+     a cancelled animation is itself a flash); and motionPass is skipped
+     entirely, so charts do not re-sweep and KPI numbers do not re-count for
+     a change that happened elsewhere on the page. */
+  const inplace=!!(opts&&opts.inplace);
+  const y=inplace?(window.scrollY||window.pageYOffset||0):0;
+  const v=document.getElementById('view');
+  if(v) v.classList.toggle('norise',inplace);
   ({today:renderToday,lift:renderLift,stats:renderStats,history:renderHistory,sync:renderSync})[view]();
   document.querySelectorAll('[data-zoom]').forEach(bindZoom);
   bindPmix();
   bindHeat();
   bindDrun();
-  if(MOTION_OK){ try{ motionPass(); }catch(_e){ /* motion is decoration — it never gets to break the app */ } }
-  window.scrollTo(0,0);
+  if(MOTION_OK && !inplace){ try{ motionPass(); }catch(_e){ /* motion is decoration — it never gets to break the app */ } }
+  window.scrollTo(0,y);
 }
 let lastView=null;
 /* v3.3.366: the nav is DERIVED from view, here, once. It used to be set by
@@ -1585,8 +1596,19 @@ function render(opts){
      brings the header INTO the transition so the wash, the square and the
      view arrive as one motion rather than header-then-body. */
   const soft=!!(opts&&opts.soft);
-  const both=()=>{ renderHeader(); paint(); };
-  if(MOTION_OK && document.startViewTransition && ((lastView!==null && lastView!==view) || soft)){
+  /* v3.3.492: IN PLACE. Switching the plan scope (today <-> week) genuinely
+     changes the content, so unlike the fold it cannot be a class toggle --
+     there is new HTML either way. What it must NOT do is behave like arriving
+     at a new screen. A plain render() re-ran the entrance rise on every card
+     and called scrollTo(0,0), so a tap on a pill halfway down the page threw
+     the screen away and rebuilt it at the top: the flicker the maker reported
+     a second time, on a second control, from the same root cause.
+     `render({inplace:true})` keeps the scroll position, skips the entrance
+     motion, and cross-fades the swap through the View Transitions API -- so
+     the content changes where it stands instead of the page re-arriving. */
+  const inplace=!!(opts&&opts.inplace);
+  const both=()=>{ renderHeader(); paint({inplace}); };
+  if(MOTION_OK && document.startViewTransition && ((lastView!==null && lastView!==view) || soft || inplace)){
     lastView=view; document.startViewTransition(both);
   } else { lastView=view; both(); }
 }

@@ -66,6 +66,17 @@ function planCardHTML(_pl, live){
 }
 /* the pills that lead the heading: today, and week while a week is live */
 function planPillsHTML(active, hasWeek, dayLabel){
+  /* v3.3.492: THE LABEL LEADS, THE PILLS FOLLOW. The heading read
+     "TODAY WEEK plan" -- the value before the thing it is a value of, which
+     is backwards, and put the section's own name at the far right where the
+     maker asked why it was hiding. It reads "PLAN today week" now, matching
+     every other h2 in the app: the accent tick, the name of the section, then
+     the controls that scope it. The sentence reading this order once served
+     ("today plan", as in today's plan) died when the second pill arrived --
+     two pills are a switch, and a switch does not read as a sentence.
+     The (i) rides after the pills in ALL THREE branches now. It used to be
+     absent from the week heading, so it blinked in and out as you toggled
+     scope and the row jumped by its width. */
   /* v3.3.421: THE DAY PILL NAMES THE DAY IT SHOWS. On a closed day the day
      scope holds tomorrow's plan, and a pill reading "today" over a card that
      says Sep 3 was the maker's first complaint: he could not tell which mode
@@ -121,7 +132,7 @@ function planSectionHTML(){
        behaviour when you come in through a DAY and widen to the week inside the
        ask screen. The door you came through says which you meant; no toggle. */
     const _ps0=planShown();
-    h+=`<h2>${planPillsHTML('week',true,_ps0?planDayLabel(_ps0.d):null)} plan${
+    h+=`<h2>plan${planPillsHTML('week',true,_ps0?planDayLabel(_ps0.d):null)}${_tip}${
       _planEdge('data-plancopy="week"','data-weekedit','data-planwrite="week"')}</h2>`;
     const n=isos.filter(x=>(_wk.days[x].items||[]).length).length;
     h+=`<div class="mono muted rangeline">${pretty(isos[0]).toUpperCase()} → ${pretty(isos[isos.length-1]).toUpperCase()} · ${n} SESSION${n===1?'':'S'}</div>`;
@@ -186,7 +197,7 @@ function planSectionHTML(){
     const _pf=!!DB.settings.planFold||_rf;
     const _n=(_ps.items||[]).length;
     const _dl=_isToday?'today':planDayLabel(_ps.d);
-    h+=`<h2>${planPillsHTML('today',!!_wk,_dl)} plan${_tip}${
+    h+=`<h2>plan${planPillsHTML('today',!!_wk,_dl)}${_tip}${
       _planEdge('data-plancopy="day"','data-planedit','data-planwrite','data-planclear="edge"')}</h2>`;
     /* the fold row: the same row tomorrow's plan has had since v3.3.413, now
        for today's too. The chevron lives on the thing that folds.
@@ -215,7 +226,7 @@ function planSectionHTML(){
   }else{
     /* nothing planned for the day the scope shows: the pill still names the
        scope (filled -- you are in it), and the one action is to write. */
-    h+=`<h2 class="quiet">${planPillsHTML('today',!!_wk,writeDateISO()===todayISO?'today':planDayLabel(writeDateISO()))} plan${_tip}${
+    h+=`<h2 class="quiet">plan${planPillsHTML('today',!!_wk,writeDateISO()===todayISO?'today':planDayLabel(writeDateISO()))}${_tip}${
       _planEdge(null,null,'data-planwrite')}</h2>`;
   }
   return h;

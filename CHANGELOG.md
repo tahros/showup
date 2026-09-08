@@ -1,5 +1,40 @@
 # ShowUp — changelog
 
+## v3.3.492 (2026-09-08) — The scope switch, the pill's edge, and the label first
+
+**The scope pills flicker too.** v3.3.491 fixed the day accordion; the pills
+above it — *sep 8* and *week* — were a second control with the same root cause,
+and the maker found it in one tap. Switching scope genuinely changes the
+content, so unlike the fold it cannot be a class toggle. What it can stop doing
+is behaving like arriving at a new screen: the repaint now keeps the scroll
+position, suppresses the entrance rise on every card, skips the stagger and
+chart passes entirely, and cross-fades the swap. The content changes where it
+stands instead of the page re-arriving at the top.
+
+**The unselected pill has an edge you can see.** Its ring was one hairline of
+`--line` — the colour this app draws *between* things, `#E9EAEF` on white. Right
+as a divider, invisible as the border of something you are meant to tap. The
+ring is mixed from `--faint` now so it tracks the theme, and the label steps up
+from `--faint` to `--muted`. It is still an outline against a fill: the selected
+pill remains the loud one.
+
+**The heading leads with its own name.** It read *TODAY WEEK plan* — the value
+ahead of the thing it is a value of, with the section's name pushed to the far
+right. It reads **PLAN** *today* *week* now, the same shape as every other
+heading in the app: the accent tick, the name, then the controls that scope it.
+The sentence this order once made ("today plan", as in today's plan) stopped
+working the day the second pill arrived; two pills are a switch, and a switch
+does not read as a sentence.
+
+The (i) is on the heading in both scopes now. It was built into the day branch
+only, so it blinked out when you tapped *week* and the whole row shifted by its
+width — motion that read as part of the flicker.
+
+A first cut of the entrance-pass assertion was hollow and passed with the code
+broken: the week harness answered `matches:false` to every media query, so
+`MOTION_OK` was false and the pass under test never ran there at all. The stub
+answers the motion query truthfully now.
+
 ## v3.3.491 (2026-09-07) — The week folds without a flicker
 
 Opening a day in the week rebuilt the entire screen. Changing one card's height

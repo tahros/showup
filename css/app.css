@@ -1690,6 +1690,11 @@
     #view>.card,#view>h2,#view>.kpis,#view>table{
       animation:rise var(--dur-arrive) var(--settle) both;
       animation-delay:calc(var(--i,0)*40ms)}
+    /* v3.3.492: except on an in-place repaint, where the screen has not been
+       arrived at -- only part of its content changed. The rise is an ENTRANCE;
+       replaying it for every card because one pill was tapped is the flicker. */
+    #view.norise>.card,#view.norise>h2,#view.norise>.kpis,#view.norise>table{
+      animation:none}
 
     /* 3. the set you just logged springs in; a PR gets one red pulse */
     .settile.saved{animation:springin .38s cubic-bezier(.3,1.4,.4,1) both}
@@ -1811,8 +1816,15 @@
   /* v3.3.278: today's plan — a note you brought, styled as quietly as one. */
   /* v3.3.297: with no plan yet the pill is an outline, not a fill — the
      section is named without claiming there is something in it. */
-  .scopepill.off{background:none;color:var(--faint);
-    box-shadow:inset 0 0 0 1px var(--line)}
+  /* v3.3.492: THE UNSELECTED PILL HAS TO BE VISIBLE TO BE A CONTROL. The
+     ring was 1px of --line, which is the hairline this app draws BETWEEN
+     things -- #E9EAEF on white. As a divider it is right; as the edge of a
+     tappable pill it vanished, and the maker could not see the scope he was
+     not in. The ring is now mixed from --faint (the ink it carries) so it
+     tracks the theme, and the label steps up from --faint to --muted. It is
+     still an outline against a fill: the selected pill is the loud one. */
+  .scopepill.off{background:none;color:var(--muted);
+    box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--faint) 55%,transparent)}
   /* v3.3.282: the plan's management actions ride the heading's right edge —
      margin-left:auto, so they find the corner however long the title runs.
      Quiet mono text, not buttons: they manage the card, they are not part of

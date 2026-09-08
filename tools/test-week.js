@@ -15,7 +15,14 @@ const dom = new JSDOM(html.replace(/<script[^>]*src=[^>]*><\/script>/g, ""), {
   pretendToBeVisual: true });
 const w = dom.window, ctx = dom.getInternalVMContext();
 w.fetch = () => Promise.reject(new Error("offline"));
-w.matchMedia = w.matchMedia || (() => ({ matches:false, addEventListener(){}, removeEventListener(){} }));
+/* v3.3.492: the stub answered `matches:false` to EVERY query, including
+   `(prefers-reduced-motion:no-preference)` -- so MOTION_OK was false and
+   motionPass never ran in this harness. A first cut of the stagger assertion
+   below passed with the code broken because of it. The stub now answers the
+   motion query truthfully, which is the only way an assertion about the
+   entrance pass can mean anything here. */
+w.matchMedia = w.matchMedia || (q => ({ matches:/no-preference/.test(String(q)),
+  media:String(q), addEventListener(){}, removeEventListener(){} }));
 w.navigator.vibrate = () => {}; w.scrollTo = () => {};
 w.HTMLCanvasElement.prototype.getContext = function(){
   return new Proxy({measureText:()=>({width:10})},{get:(o,k)=>k in o?o[k]:()=>({})}); };
@@ -71,6 +78,58 @@ ok("...fed to the Suggested rail like a paste", run(`Object.values(sugOv()).filt
 ok("...and Train next names its first exercise", /Deadlift/.test(run(`(document.querySelector('.tnextplan')||{}).textContent||''`)));
 ok("the record is untouched", run(`Object.keys(DB.days).filter(d=>(DB.days[d].w||[]).length).length`)===12 && run(`!DB.days[todayISO]||!(DB.days[todayISO].w||[]).length`));
 ok("the heading grows a week pill beside today", run(`document.querySelectorAll('h2 .scopepill[data-planscope]').length`)===2);
+
+/* ---- v3.3.492: THE HEADING READS LABEL FIRST ----
+   It read "TODAY WEEK plan" -- the value ahead of the thing it is a value of,
+   with the section's own name pushed to the far right. Now "PLAN today week",
+   the same shape as every other h2: accent tick, name, then controls. */
+ok("the plan heading leads with its own name, not its value",
+   run(`(function(){const h=document.querySelector('h2 .scopepill[data-planscope]').closest('h2');
+     return h.textContent.trim().toLowerCase().startsWith('plan');})()`),
+   run(`document.querySelector('h2 .scopepill[data-planscope]').closest('h2').textContent.trim().slice(0,24)`));
+ok("...with the pills after it, day then week",
+   run(`(function(){const h=document.querySelector('h2 .scopepill[data-planscope]').closest('h2');
+     const p=[...h.querySelectorAll('.scopepill[data-planscope]')].map(b=>b.dataset.planscope);
+     return p.join()==='today,week';})()`));
+/* the (i) used to be built into the DAY heading only, so toggling scope made
+   it blink out and the whole row shifted by its width -- motion the maker
+   would read as part of the flicker. It is in both branches now. */
+const tipIn=scope=>run(`(function(){lift.planScope='${scope}'; render();
+   const h=document.querySelector('h2 .scopepill[data-planscope]').closest('h2');
+   return !!h.querySelector('.hacts .tipi[data-tip="plan"]');})()`);
+ok("the (i) is on the heading in the day scope", tipIn('today'));
+ok("...and does not blink out in the week scope", tipIn('week'));
+
+/* ---- v3.3.492: SWITCHING SCOPE HAPPENS IN PLACE ----
+   The scope pills called a plain render(): the entrance rise replayed on every
+   card and paint() finished with scrollTo(0,0), so a tap on a pill halfway
+   down the page rebuilt the screen at the top. Unlike the fold this one cannot
+   be a class toggle -- the content genuinely differs -- so the fix is that the
+   repaint keeps its place and skips the entrance. Asserted as EFFECTS: where
+   paint() scrolls to, and whether the view is marked to suppress the rise. */
+run(`(function(){lift.planScope='today'; render();
+  globalThis.__scrollLog=[];
+  window.scrollTo=(x,y)=>{ __scrollLog.push(y); };
+  Object.defineProperty(window,'scrollY',{value:340,configurable:true});})()`);
+run(`document.querySelector('.scopepill[data-planscope="week"]').click()`);
+ok("tapping a scope pill keeps the reader's place",
+   run(`__scrollLog.length===1 && __scrollLog[0]===340`), run(`JSON.stringify(__scrollLog)`));
+ok("...and suppresses the entrance rise for that repaint",
+   run(`document.getElementById('view').classList.contains('norise')`));
+ok("...and it really did switch scope", run(`lift.planScope`)==='week' && run(`!!document.querySelector('.weekstack')`));
+/* motionPass is skipped whole, not just the rise: it stamps --i on every top
+   level block for the stagger, re-arms the float-in observers and re-sweeps
+   charts. None of that should replay because a pill was tapped. --i is the
+   readable trace of it having run. */
+ok("...and the stagger pass did not run at all",
+   run(`[...document.getElementById('view').children].every(el=>!el.style.getPropertyValue('--i'))`));
+/* a normal render is an ARRIVAL and must still behave like one */
+run(`(function(){__scrollLog.length=0; view='today'; render();})()`);
+ok("a plain render still arrives at the top, rise intact",
+   run(`__scrollLog.length===1 && __scrollLog[0]===0`) &&
+   run(`!document.getElementById('view').classList.contains('norise')`),
+   run(`JSON.stringify(__scrollLog)+' norise='+document.getElementById('view').classList.contains('norise')`));
+run(`(function(){lift.planScope='week'; render();})()`);
 
 /* ---- the week scope ---- */
 run(`document.querySelector('[data-planscope="week"]').click()`);

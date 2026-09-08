@@ -106,10 +106,21 @@ check("Daily Fire is gone",          `!!document.querySelector('#view .firecard'
 /* v3.3.421: the day pill NAMES the day the scope shows or writes. With sets
    logged and no plan, the ledger rule points the writer at tomorrow, so the
    pill says tomorrow -- and that IS the first thing on the tab. */
+/* v3.3.492 RESTATES: the heading reads "PLAN today week" -- the label leads,
+   the pills follow. The claim under test is unchanged and is two claims: the
+   plan heading is the FIRST thing on the tab, and the day pill NAMES the day
+   the writer would write. Bound to the pill itself rather than to a substring
+   of the heading, so the order of the row can move again without this going
+   quietly green on the wrong thing. */
 check("...and it is the FIRST thing on the tab, naming the day it writes",
-      `(function(){const h=document.querySelector('#view h2').textContent.trim().toLowerCase();
-        const want=(writeDateISO()===todayISO?'today':planDayLabel(writeDateISO()).toLowerCase())+' plan';
-        return h.indexOf(want);})()`, 0);
+      `(function(){const h=document.querySelector('#view h2');
+        if(!h) return 'no h2';
+        const pill=h.querySelector('.scopepill[data-planscope="today"]');
+        if(!pill) return 'no day pill';
+        const want=writeDateISO()===todayISO?'today':planDayLabel(writeDateISO()).toLowerCase();
+        return (h.textContent.trim().toLowerCase().startsWith('plan')?'plan-first':'label-not-first')
+          +':'+(pill.textContent.trim().toLowerCase()===want?'named':pill.textContent.trim());})()`,
+      "plan-first:named");
 // Lineage of this block: v3.3.52 tried a chart in Rhythm; v3.3.53 reverted
 // to the vs-bars (form question: chart vs bars). v3.3.83 removes the block
 // from Today entirely (presence question) on the app's FIRST outside
@@ -272,8 +283,11 @@ check("on a closed day, the finished card leads",
       `document.querySelector('#view').firstElementChild.classList.contains('dayclosed')`, true);
 check("...and the plan heading follows it",
       `(function(){const c=document.querySelector('#view').children[1];
-        const want=(writeDateISO()===todayISO?'today':planDayLabel(writeDateISO()).toLowerCase())+' plan';
-        return c.tagName+':'+(c.textContent.trim().toLowerCase().startsWith(want)?'ok':c.textContent.slice(0,14));})()`, "H2:ok");
+        if(c.tagName!=='H2') return c.tagName;
+        const pill=c.querySelector('.scopepill[data-planscope="today"]');
+        const want=writeDateISO()===todayISO?'today':planDayLabel(writeDateISO()).toLowerCase();
+        return 'H2:'+((c.textContent.trim().toLowerCase().startsWith('plan')
+          && pill && pill.textContent.trim().toLowerCase()===want)?'ok':c.textContent.slice(0,20));})()`, "H2:ok");
 check("...with nothing recommending a next exercise",
       `!document.querySelector('.tnextplan')`, true);
 check("...and no invitation to add another part",
