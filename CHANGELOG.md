@@ -1,5 +1,47 @@
 # ShowUp — changelog
 
+## v3.3.502 (2026-09-08) — The photo card
+
+The thing Nike Run does: a photo you just took, the day's numbers over it, the
+mark on top. It hangs off the ceremony — **Add a photo**, under Share this day —
+because that is the one moment the app already knows the day is finished and you
+are still holding the phone.
+
+**It is a second card, not a change to the first.** `drawDayCard` is a receipt:
+every exercise, every weight, every rep, on a white field. Laying that over a
+photograph would make both unreadable. The photo card carries what the ceremony
+carries — the square, the count, the unit line, one summary — which is exactly
+the set of things that survive being written on a picture. 1080×1350, the
+tallest frame every platform crops whole.
+
+**The photo never touches the record.** It is read from the file input, drawn
+once, handed to the share sheet and forgotten. No storage, no sync, no orphaned
+blobs — and the ledger stays a ledger. History is a record of training; a
+photograph is something you made *from* that record. It is also what keeps the
+whole feature client-side.
+
+The camera is a `<input type="file" capture>`, not `getUserMedia`: it opens the
+native camera, front or rear is the OS's own picker, there is no permission
+dance to manage and no standalone-PWA camera quirks. `settings.js` already uses
+that idiom for import. Tapping it does **not** dismiss the ceremony — you can
+back out of the camera and the moment is still there.
+
+Legibility was the whole job. Three layers, cheapest first: a cover crop so the
+photo is never squashed, a scrim transparent across the middle and closing at
+top and bottom where the type sits, and a soft shadow under the type for when
+the scrim lands on something already dark. Orientation is read from the file, or
+a portrait shot off an iPhone arrives sideways.
+
+Same rule as the receipt: **what you watch appear is what you share.** One
+canvas, painted once, handed to the overlay that already puts a canvas in the
+`<img>` and the same canvas into `navigator.share`.
+
+`test-photocard.js` drives a real 2D context through node-canvas rather than a
+stub, because a stub would accept any sequence of drawing calls at all. Four
+probes; the scrim assertion passed with the scrim deleted on its first cut — the
+gradient was still being built, and the opaque backing fill is also a full-frame
+`fillRect` — so it now proves the gradient was actually painted.
+
 ## v3.3.501 (2026-09-08) — One gap, not three margins
 
 The count now sits centred between the square and the date, with both spaces

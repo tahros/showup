@@ -1109,3 +1109,133 @@ document.addEventListener('click',e=>{
 document.addEventListener('toggle',e=>{
   if(e.target&&e.target.matches&&e.target.matches('#secReport[open]')) paintRepCard();
 },true);
+
+/* ================= v3.3.502: THE PHOTO CARD =====================
+   The maker asked for the thing Nike Run does: a photo you just took, with
+   the day's numbers laid over it and the mark on top. It hangs off the
+   ceremony, because that is the one moment the app already knows the day is
+   finished and you are still holding the phone.
+
+   IT IS A SECOND CARD, NOT A CHANGE TO THE FIRST. drawDayCard is a receipt:
+   every exercise, every weight, every rep, on a white field. Laying that over
+   a photograph would make both unreadable. This card carries what the
+   ceremony carries -- the square, the count, the unit line, one summary --
+   which is exactly the set of things that survive being written on a picture.
+
+   THE PHOTO IS NEVER WRITTEN TO THE RECORD. It is read from the file input,
+   drawn once, handed to the share sheet and forgotten. No storage, no sync,
+   no orphaned blobs, and the ledger stays a ledger: History is a record of
+   training, and a photograph is something you made FROM that record. This is
+   also what keeps the whole feature client-side.
+
+   LEGIBILITY IS THE WHOLE JOB. White type on an arbitrary photograph is
+   unreadable without help, and the help has to be invisible on a calm frame
+   and sufficient on a busy one. Three layers do it, cheapest first: a cover
+   crop so the photo is never squashed, a scrim that is transparent across the
+   middle and closes at top and bottom where the type sits, and a soft shadow
+   under the type itself for the case where the scrim lands on something
+   already dark. */
+function drawPhotoCard(img,count,dateLabel,summary){
+  const W=1080,H=1350;                       /* 4:5 — the tallest frame every
+                                                platform crops to fully */
+  const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
+  const x=cv.getContext('2d'); if(!x) return null;
+  const SANS='"IBM Plex Sans",system-ui,sans-serif', MONO='"IBM Plex Mono",ui-monospace,monospace';
+
+  /* 1. cover crop: fill the frame, keep the aspect, centre what spills */
+  const iw=img.naturalWidth||img.width, ih=img.naturalHeight||img.height;
+  x.fillStyle='#111'; x.fillRect(0,0,W,H);
+  if(iw&&ih){
+    const s=Math.max(W/iw,H/ih), dw=iw*s, dh=ih*s;
+    x.drawImage(img,(W-dw)/2,(H-dh)/2,dw,dh);
+  }
+
+  /* 2. the scrim. Transparent through the middle so the picture is still the
+     subject; it closes at the bottom under the numbers and, more gently, at
+     the top under the date. */
+  const g=x.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'rgba(0,0,0,.42)');
+  g.addColorStop(.20,'rgba(0,0,0,.06)');
+  g.addColorStop(.52,'rgba(0,0,0,0)');
+  g.addColorStop(.78,'rgba(0,0,0,.40)');
+  g.addColorStop(1,'rgba(0,0,0,.72)');
+  x.fillStyle=g; x.fillRect(0,0,W,H);
+
+  /* 3. type, with a shadow for the frame where the scrim is not enough */
+  const soft=()=>{ x.shadowColor='rgba(0,0,0,.55)'; x.shadowBlur=18; x.shadowOffsetY=2; };
+  const hard=()=>{ x.shadowColor='transparent'; x.shadowBlur=0; x.shadowOffsetY=0; };
+
+  const L=84, BOT=H-96;
+  x.textAlign='left'; x.textBaseline='alphabetic';
+
+  /* the mark, top left, at the size the receipt uses it */
+  const ICON=64;
+  if(typeof _dayIcon!=='undefined'&&_dayIcon&&_dayIcon.complete&&_dayIcon.naturalWidth){
+    x.save();
+    x.beginPath();
+    const r=15,x0=L,y0=84;
+    x.moveTo(x0+r,y0);x.arcTo(x0+ICON,y0,x0+ICON,y0+ICON,r);x.arcTo(x0+ICON,y0+ICON,x0,y0+ICON,r);
+    x.arcTo(x0,y0+ICON,x0,y0,r);x.arcTo(x0,y0,x0+ICON,y0,r);x.closePath();
+    x.clip(); x.drawImage(_dayIcon,L,84,ICON,ICON); x.restore();
+  }
+  /* the date rides opposite the mark, on the same line */
+  soft();
+  x.fillStyle='rgba(255,255,255,.86)';
+  x.font=`500 26px ${MONO}`;
+  x.textAlign='right';
+  x.fillText(String(dateLabel||'').toUpperCase(),W-L,84+ICON-20);
+
+  /* the block, bottom left: square, count, unit, summary */
+  x.textAlign='left';
+  let y=BOT;
+  if(summary){
+    x.fillStyle='rgba(255,255,255,.88)';
+    x.font=`400 27px ${MONO}`;
+    x.fillText(summary,L,y);
+    y-=52;
+  }
+  x.fillStyle='rgba(255,255,255,.80)';
+  x.font=`500 24px ${MONO}`;
+  const unit=`${count===1?'DAY':'DAYS'} OF SHOWING UP`;
+  x.save(); x.letterSpacing='3px'; x.fillText(unit,L,y); x.restore();
+  y-=34;
+  x.fillStyle='#fff';
+  const big=count>=1000?150:170;
+  x.font=`600 ${big}px ${SANS}`;
+  x.fillText(fmt(count),L,y);
+  y-=big+30;
+  hard();
+  /* the square is the app's one symbol and it stays solid — a shadow under it
+     would read as a second square */
+  const SQ=54;
+  x.save(); x.shadowColor='rgba(0,0,0,.45)'; x.shadowBlur=22;
+  x.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#4C6BE3';
+  const rr2=(x0,y0,w,h,r2)=>{x.beginPath();
+    x.moveTo(x0+r2,y0);x.arcTo(x0+w,y0,x0+w,y0+h,r2);x.arcTo(x0+w,y0+h,x0,y0+h,r2);
+    x.arcTo(x0,y0+h,x0,y0,r2);x.arcTo(x0,y0,x0+w,y0,r2);x.closePath();};
+  rr2(L,y-SQ,SQ,SQ,16); x.fill(); x.restore();
+  hard();
+  return cv;
+}
+
+/* Read a picked file into something drawable. createImageBitmap is asked for
+   the EXIF orientation explicitly -- without it a portrait photo off an
+   iPhone lands on its side, which is the classic way this feature ships
+   broken. Falls back to an object URL where that is unsupported, and always
+   revokes it. */
+function loadPickedImage(file){
+  return new Promise((res,rej)=>{
+    if(!file){ rej(new Error('no file')); return; }
+    if(typeof createImageBitmap==='function'){
+      createImageBitmap(file,{imageOrientation:'from-image'}).then(res).catch(()=>fallback());
+    } else fallback();
+    function fallback(){
+      try{
+        const url=URL.createObjectURL(file), im=new Image();
+        im.onload=()=>{ res(im); setTimeout(()=>URL.revokeObjectURL(url),0); };
+        im.onerror=()=>{ URL.revokeObjectURL(url); rej(new Error('decode failed')); };
+        im.src=url;
+      }catch(e){ rej(e); }
+    }
+  });
+}

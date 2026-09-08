@@ -1554,8 +1554,20 @@ function celebrateDayDone(nowrite, forceCount, forceMile, forceShow){
     `<b class="ddn${count>=1000?' ddlarge':''}">${fmt(count)}</b><span class="ddu">${count===1?'day':'days'} of showing up</span>`+
     `<h2 class="ddyou" id="ddHeading">You showed up.</h2>`+
     `<div class="ddsummary">${summary}</div></div>`+
+    /* v3.3.502: the camera hangs off the ceremony, because this is the one
+       moment the app knows the day is finished and you are still holding the
+       phone. A file input with capture= opens the native camera directly --
+       no getUserMedia, so no permission dance to manage, no standalone-PWA
+       camera quirks, and front/rear is the OS's own picker. It is also the
+       idiom settings.js already uses for import.
+       The input is a sibling of the buttons rather than wrapped in a label,
+       so the ceremony's focus handling and its Escape/Done path are unchanged.
+       Photo sits under Share, quieter than Done: the day is already saved by
+       the time you see this screen, and the picture is optional. */
     `<div class="ddactions"><button class="btn done" data-dd="done">Done</button>`+
-    `<button class="ddshare" data-dd="share">Share this day</button></div></div>`;
+    `<button class="ddshare" data-dd="share">Share this day</button>`+
+    `<button class="ddshare" data-dd="photo">Add a photo</button>`+
+    `<input type="file" accept="image/*" capture="environment" id="ddPhoto" hidden></div></div>`;
   document.body.appendChild(o);
   o.querySelector('[data-dd="done"]').focus({preventScroll:true});
   let leaving=false;
@@ -1593,10 +1605,36 @@ function celebrateDayDone(nowrite, forceCount, forceMile, forceShow){
         drawDayCard(cx,1080,todayISO); return cv;
       },'showup-'+todayISO,false,true);
   };
+  /* v3.3.502: the photo card. Same rule as the receipt above -- WHAT YOU
+     WATCH APPEAR IS WHAT YOU SHARE: one canvas, painted by drawPhotoCard,
+     handed to the same overlay that already puts a canvas in the <img> and
+     the same canvas into navigator.share. The photo itself is read, drawn and
+     dropped; nothing is written to the record. */
+  const photoCard=async(file)=>{
+    let img;
+    try{ img=await loadPickedImage(file); }
+    catch(e){ toast('Could not read that photo'); return; }
+    leave();
+    if(typeof showCard!=='function'||typeof drawPhotoCard!=='function') return;
+    showCard(()=>drawPhotoCard(img,count,dateLabel,summary),
+             'showup-'+todayISO+'-photo',false,true);
+  };
+  const picker=o.querySelector('#ddPhoto');
+  if(picker) picker.addEventListener('change',ev=>{
+    const f=ev.target.files&&ev.target.files[0];
+    /* clear the input either way: without this, picking the SAME photo twice
+       in a row fires no change event and the second tap does nothing */
+    ev.target.value='';
+    if(f) photoCard(f);      /* cancelled at the camera -> the ceremony stays */
+  });
   // v3.3.489: the moment waits for an explicit choice, never an automatic share.
   o.addEventListener('click',e=>{
     const action=e.target.closest('[data-dd]');
-    if(action) leave(action.dataset.dd==='share');
+    if(!action) return;
+    /* v3.3.502: photo does NOT leave -- the camera opens over the ceremony and
+       you may back out of it, in which case the moment must still be here */
+    if(action.dataset.dd==='photo'){ if(picker) picker.click(); return; }
+    leave(action.dataset.dd==='share');
   });
   o.addEventListener('keydown',e=>{
     if(e.key==='Escape'){ e.preventDefault(); leave(); }
