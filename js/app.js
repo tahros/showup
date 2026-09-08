@@ -1427,8 +1427,15 @@ function paint(opts){
   bindPmix();
   bindHeat();
   bindDrun();
-  if(MOTION_OK && !inplace){ try{ motionPass(); }catch(_e){ /* motion is decoration — it never gets to break the app */ } }
+  /* v3.3.496: THE SCROLL LANDS FIRST. motionPass decides which blocks start
+     hidden by measuring getBoundingClientRect().top against innerHeight -- and
+     it used to do that BEFORE this scrollTo, so every measurement was taken
+     against the viewport the reader was about to leave. On any render that ran
+     while scrolled down, the set of blocks marked hidden was computed for a
+     screen position that no longer existed a line later. Measure where the
+     reader will actually be. */
   window.scrollTo(0,y);
+  if(MOTION_OK && !inplace){ try{ motionPass(); }catch(_e){ /* motion is decoration — it never gets to break the app */ } }
 }
 let lastView=null;
 /* v3.3.366: the nav is DERIVED from view, here, once. It used to be set by
@@ -1613,11 +1620,50 @@ function render(opts){
   } else { lastView=view; both(); }
 }
 let floatIO=null;
+/* v3.3.496: THE GUARANTEE. Any block that is hidden-pending-reveal but is
+   actually within the viewport gets revealed, whatever the observer did or
+   did not do. Called after every motionPass and on every scroll tick, so a
+   block cannot stay invisible on a screen the reader is looking at. Blocks
+   genuinely below the fold keep their float, which is the whole point of the
+   effect; only stranding is removed. */
+function floatSweep(){
+  const v=document.getElementById('view'); if(!v) return;
+  v.querySelectorAll('.float-pre').forEach(el=>{
+    if(el.getBoundingClientRect().top<=innerHeight){
+      el.classList.add('float-in');
+      el.classList.remove('float-pre');
+      if(floatIO){ try{ floatIO.unobserve(el); }catch(_e){} }
+    }
+  });
+}
 function motionPass(){
   const v=document.getElementById('view');
   // 5. stagger the big blocks, capped so deep pages don't feel slow
   [...v.children].forEach((el,i)=>el.style.setProperty('--i',Math.min(i,9)));
   // 5b. anything below the fold floats up on scroll instead
+  /* v3.3.496: FLOAT-PRE IS opacity:0, SO IT MUST NEVER BE A RESTING STATE.
+     A block below the fold starts hidden and is revealed by an
+     IntersectionObserver when it scrolls in. If that reveal never arrives the
+     block is invisible FOREVER with its space still reserved -- which is
+     exactly what the maker photographed: section headings present, their
+     cards gone, the gap where the cards should be still there. h2 is not in
+     the observed selector list, which is why the headings survived and told
+     us where to look.
+     Three ways the reveal could fail to arrive, all of them live in this
+     function as it stood:
+       1. Marks were computed BEFORE paint's scrollTo (fixed above), so they
+          described a viewport the reader had already left.
+       2. Every paint disconnects floatIO and builds a new one, then observes
+          only what is below the fold NOW. Anything still carrying float-pre
+          that is no longer below the fold was neither observed nor cleared.
+          Nothing else in the app ever removes the class.
+       3. A target with no height at observe time -- inside a collapsed fold,
+          a closed <details> -- may never report isIntersecting at all.
+     Rather than pick one, the mechanism is made unable to strand anything:
+     stale marks are cleared before new ones are made, and floatSweep() below
+     reveals anything hidden that is actually on screen. The observer is now
+     an optimisation, not the only way out. */
+  v.querySelectorAll('.float-pre').forEach(el=>el.classList.remove('float-pre'));
   if('IntersectionObserver' in window){
     if(floatIO) floatIO.disconnect();
     floatIO=new IntersectionObserver(es=>{
@@ -1634,6 +1680,7 @@ function motionPass(){
         floatIO.observe(el);
       }
     });
+    floatSweep();
   }
   // 6a. every chart line sweeps in once
   v.querySelectorAll('svg polyline').forEach((pl,i)=>{

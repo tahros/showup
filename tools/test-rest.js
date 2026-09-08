@@ -791,8 +791,10 @@ ok("the status-bar style no longer puts content under the status bar",
     ok("...and nothing mutates the nav on a scroll",
        !/function navReanchor\(\)/.test(fs.readFileSync(path.join(dir,"js/util.js"),"utf8")) &&
        !/nav\.reanchor\{/.test(cssN) &&
-       /_topRaf=requestAnimationFrame\(\(\)=>\{ _topRaf=0; syncTopBtn\(\); \}\);/
-         .test(fs.readFileSync(path.join(dir,"js/util.js"),"utf8")));
+       (function(){ const u=fs.readFileSync(path.join(dir,"js/util.js"),"utf8");
+          const i=u.indexOf("_topRaf=requestAnimationFrame("), j=u.indexOf("},{passive:true});",i);
+          const body=(i<0||j<0)?"nav":u.slice(i,j);   // not found => fail, never pass by absence
+          return !/\bnav\b/i.test(body); })());
   }
   /* the contrast claim, recomputed here so the number cannot drift from the comment */
   {

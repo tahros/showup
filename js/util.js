@@ -562,7 +562,13 @@ addEventListener('scroll',()=>{
   /* v3.3.495: NOTHING TOUCHES THE NAV ON SCROLL. syncTopBtn only flips one
      element's `hidden` and its label; that is the whole scroll-time budget
      now. See the note on the removed navReanchor below. */
-  _topRaf=requestAnimationFrame(()=>{ _topRaf=0; syncTopBtn(); });   // v3.3.470: the bar no longer hides
+  _topRaf=requestAnimationFrame(()=>{ _topRaf=0; syncTopBtn();
+    /* v3.3.496: and reveal anything hidden-pending-float that is now on
+       screen. The IntersectionObserver normally does this; the sweep is what
+       makes it impossible for a block to stay at opacity:0 in front of the
+       reader if the observer missed it. Reads only .float-pre elements, of
+       which there are none once a screen has settled. */
+    if(typeof floatSweep==='function') floatSweep(); });   // v3.3.470: the bar no longer hides
 },{passive:true});
 /* v3.3.459-462 hid the tab bar on scroll (threshold, then follow-the-finger).
    v3.3.470 removes it at the maker's word: the bar stays. Recorded as a

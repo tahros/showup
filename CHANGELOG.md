@@ -1,5 +1,45 @@
 # ShowUp — changelog
 
+## v3.3.496 (2026-09-08) — A hidden block can no longer stay hidden
+
+The missing content has a cause, and it is not the tab bar.
+
+`motionPass` marks below-fold blocks `.float-pre`, which is `opacity:0` with
+the space still reserved, and an IntersectionObserver takes the class off when
+the block scrolls in. If that reveal never arrives, the block is invisible for
+good. That is exactly what the maker photographed twice: **WHAT YOU TRAIN** and
+**BARS** headings present, the cards under them gone, the gap where the cards
+should be still there. `h2` is not in the observed selector list, which is why
+the headings survived — and that is what pointed at the mechanism.
+
+Three ways the reveal could fail to arrive, all of them in that one function:
+
+1. Marks were computed **before** `paint`'s `scrollTo`, so every
+   `getBoundingClientRect().top` was measured against the viewport the reader
+   was about to leave. Any render that ran while scrolled down decided what to
+   hide for a screen position that no longer existed a line later.
+2. Every paint disconnects the observer and builds a new one, then observes
+   only what is below the fold *now*. Anything still carrying `float-pre` that
+   is no longer below the fold was neither observed nor cleared, and nothing
+   else in the app ever removes the class.
+3. A target with no height at observe time — inside a collapsed fold, a closed
+   `<details>` — may never report `isIntersecting` at all.
+
+Rather than pick one, the mechanism is made unable to strand anything. The
+scroll lands before the fold is measured. Stale marks are cleared before new
+ones are made. And `floatSweep()` reveals any hidden block that is actually
+within the viewport, running after every pass and on every scroll tick. The
+observer is now an optimisation rather than the only way out. Blocks genuinely
+below the fold still float in on scroll; only the stranding is gone.
+
+**It had never been under test.** jsdom has no `IntersectionObserver`, so
+`'IntersectionObserver' in window` was false in all sixty-five suites and the
+entire block was skipped every time. The one harness that stubs an observer
+stubs it for History's calendar-return, not this one. `tools/test-float.js`
+supplies both an observer and real geometry — jsdom returns zeros for
+`getBoundingClientRect`, which would have made "below the fold" unanswerable —
+and asserts the effect that matters: nothing on screen is ever left invisible.
+
 ## v3.3.495 (2026-09-08) — The re-anchor belt comes off, alone, as an experiment
 
 The maker reports the nav pill still hanging mid-screen, and this time with the
