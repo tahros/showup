@@ -1,5 +1,40 @@
 # ShowUp — changelog
 
+## v3.3.498 (2026-09-08) — An arrival is a change of screen, not a call to render()
+
+`paint()` has scrolled to the top and replayed the entrance since the app had
+one screen, on the premise that a render means you got somewhere new. That
+premise died a long time ago. Most of the ninety `render()` calls in this app
+are the same screen with one thing different — a set logged, a chart's units
+switched, a row opened for edit — and for those, throwing the page to the top
+and re-running every card's entrance is the flicker the maker reported twice,
+on two different controls, before either of us had a name for it.
+
+Fixing it per-caller does not scale: ninety judgements, each of which somebody
+has to make again the next time that line moves. So the judgement is made once,
+from the state that actually names a screen: the tab, the plan sub-screen
+inside it, the Train tab's part and exercise, the writer's ask. When that tuple
+changes you have **arrived** — top of the page, entrance runs. When it does not,
+you are standing still and the page behaves like it: your place is kept, and
+nothing re-enters.
+
+Deliberately not in the key: the day/week scope switch (v3.3.492 settled that),
+EDIT mode on today's sets, History's inline edit. Opening a row for edit is not
+going anywhere.
+
+This is safe to apply broadly because skipping the motion pass **fails open** in
+every one of its jobs: a chart with no draw class simply draws, a KPI with no
+count-up simply reads its number, a block with no float mark is simply visible.
+Nothing is hidden by omission — which is exactly the property v3.3.496 had to
+go and build for the float, and is worth stating here so it stays true.
+
+Eleven real handler paths were walked in a live DOM to check each lands on the
+right side of the line: three tab switches, three drill-downs and five
+same-screen re-renders. All eleven correct.
+
+To revert the whole behaviour, make `screenKey()` return a fresh value on every
+call — everything downstream is derived from it.
+
 ## v3.3.497 (2026-09-08) — The blur comes off the nav
 
 Two things in the maker's screenshots reframe this bug, and both were sitting

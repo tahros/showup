@@ -123,13 +123,52 @@ ok("...and it really did switch scope", run(`lift.planScope`)==='week' && run(`!
    readable trace of it having run. */
 ok("...and the stagger pass did not run at all",
    run(`[...document.getElementById('view').children].every(el=>!el.style.getPropertyValue('--i'))`));
-/* a normal render is an ARRIVAL and must still behave like one */
+/* ---- v3.3.498: AN ARRIVAL IS A CHANGE OF SCREEN, NOT A CALL TO render() ----
+   "A plain render()" used to be what separated arriving from standing still,
+   and that is what this assertion tested. It is no longer the distinction:
+   paint derives it from the tuple that NAMES a screen -- the tab, the plan
+   sub-screen, and the Train tab's part/exercise drill-down -- so the
+   same-screen re-render below now correctly keeps its place, and the arrival
+   under test has to be a real one. */
 run(`(function(){__scrollLog.length=0; view='today'; render();})()`);
-ok("a plain render still arrives at the top, rise intact",
+ok("...and a plain re-render of the same screen keeps its place too",
+   run(`__scrollLog.length===1 && __scrollLog[0]===340`) &&
+   run(`document.getElementById('view').classList.contains('norise')`),
+   run(`JSON.stringify(__scrollLog)+' norise='+document.getElementById('view').classList.contains('norise')`));
+run(`(function(){__scrollLog.length=0; view='history'; render();})()`);
+ok("a real arrival — a different tab — still goes to the top, rise intact",
    run(`__scrollLog.length===1 && __scrollLog[0]===0`) &&
    run(`!document.getElementById('view').classList.contains('norise')`),
    run(`JSON.stringify(__scrollLog)+' norise='+document.getElementById('view').classList.contains('norise')`));
-run(`(function(){lift.planScope='week'; render();})()`);
+/* the Train tab's drill-down is an arrival even though the tab never changes —
+   walking into a part is going somewhere, and this is why the key carries more
+   than `view` */
+run(`(function(){__scrollLog.length=0; view='lift'; render(); __scrollLog.length=0;
+  Object.defineProperty(window,'scrollY',{value:210,configurable:true});
+  lift.part='Chest'; render();})()`);
+ok("...and so is opening a part on Train, with the tab unchanged",
+   run(`__scrollLog.length===1 && __scrollLog[0]===0`) &&
+   run(`!document.getElementById('view').classList.contains('norise')`),
+   run(`JSON.stringify(__scrollLog)`));
+ok("...but re-rendering that same part stands still",
+   run(`(function(){__scrollLog.length=0; render();
+     return __scrollLog.length===1 && __scrollLog[0]===210
+       && document.getElementById('view').classList.contains('norise');})()`),
+   run(`JSON.stringify(__scrollLog)`));
+/* a sub-screen inside a tab is a destination too: walking into the plan
+   editor lands at the top, or you arrive halfway down a screen you have
+   never seen */
+run(`(function(){__scrollLog.length=0; lift.part=null; lift.ex=null; view='today'; render();
+  __scrollLog.length=0; lift.plan='paste'; render();})()`);
+ok("...and a plan sub-screen is an arrival, though view never moved",
+   run(`__scrollLog.length===1 && __scrollLog[0]===0`) &&
+   run(`!document.getElementById('view').classList.contains('norise')`),
+   run(`JSON.stringify(__scrollLog)+' key='+screenKey()`));
+/* the escape hatch named in the comment: one function drives all of it */
+ok("screenKey names the screen, and nothing else decides",
+   run(`screenKey()`) === run(`[view,lift.plan||'',lift.part||'',lift.ex||'',lift.write?'w':''].join('|')`),
+   run(`screenKey()`));
+run(`(function(){lift.plan=null; lift.planScope='week'; view='today'; render();})()`);
 
 /* ---- the week scope ---- */
 run(`document.querySelector('[data-planscope="week"]').click()`);

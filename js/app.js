@@ -1410,6 +1410,33 @@ function bindZoom(box){
 
 /* ---------- boot ---------- */
 const MOTION_OK=typeof matchMedia==='function' ? matchMedia('(prefers-reduced-motion:no-preference)').matches : true;
+/* v3.3.498: WHAT COUNTS AS ARRIVING SOMEWHERE. paint() has scrolled to the top
+   and replayed the entrance since the app had one screen, on the premise that
+   a render means you got somewhere new. That premise died a long time ago:
+   most of the ninety render() calls in this app are the same screen with one
+   thing different -- a set logged, a chart's units switched, a row opened for
+   edit -- and for those, throwing the page to the top and re-running every
+   card's entrance is the flicker the maker reported twice, on two different
+   controls, before either of us had a name for it.
+   Fixing it per-caller does not scale: ninety judgements, each of which
+   somebody has to make again the next time that line moves. So the judgement
+   is made ONCE, here, from the state that actually names a screen. `view` is
+   the tab. `lift.plan` is the sub-screen inside it -- paste, preview, ask,
+   writing -- which is why walking into the plan editor still lands at the top
+   even though the tab never changed. `lift.part` and `lift.ex` are the Train
+   tab's drill-down, the same reason. `lift.write` is the writer's ask screen.
+   When that tuple changes you have ARRIVED: top of the page, entrance runs.
+   When it does not, you are standing still and the page behaves like it.
+   Deliberately NOT in the key: lift.planScope (v3.3.492 settled that the
+   day/week switch happens in place), lift.editToday, hist.edit. Opening a row
+   for edit is not going anywhere.
+   To revert the whole behaviour, make screenKey() return a fresh value on
+   every call -- everything downstream is derived from it. */
+function screenKey(){
+  const L=(typeof lift!=='undefined'&&lift)||{};
+  return [view, L.plan||'', L.part||'', L.ex||'', L.write?'w':''].join('|');
+}
+let lastScreen=null;
 function paint(opts){
   /* v3.3.492: an in-place repaint is the SAME screen with different content.
      Three things distinguish it from arriving somewhere: the scroll stays
@@ -1417,8 +1444,14 @@ function paint(opts){
      the nodes are created (adding .norise BEFORE the paint, never after --
      a cancelled animation is itself a flash); and motionPass is skipped
      entirely, so charts do not re-sweep and KPI numbers do not re-count for
-     a change that happened elsewhere on the page. */
-  const inplace=!!(opts&&opts.inplace);
+     a change that happened elsewhere on the page.
+     Skipping motionPass fails OPEN in every one of its jobs, which is what
+     makes it safe to skip on most renders: a chart with no .draw class simply
+     draws, a KPI with no count-up simply reads its number, and a block with no
+     float mark is simply visible. Nothing is hidden by omission. */
+  const key=screenKey(), arrived=(lastScreen===null||lastScreen!==key);
+  lastScreen=key;
+  const inplace=!arrived||!!(opts&&opts.inplace);
   const y=inplace?(window.scrollY||window.pageYOffset||0):0;
   const v=document.getElementById('view');
   if(v) v.classList.toggle('norise',inplace);
