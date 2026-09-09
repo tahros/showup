@@ -212,36 +212,51 @@ ok("pressing it places the day", run(`!!document.getElementById('dayDone')`));
        square and the date must still carry nothing, and the count may carry a
        NEGATIVE bottom margin only -- a positive one would be the hand-tuning
        v3.3.501 removed. */
-    ok("...so the square and the date carry no margin of their own",
-       ['.dcsq','.dcm'].every(s=>/^0px,0px/.test(gcs(s))),
-       ['.dcsq','.dcm'].map(s=>s+'='+gcs(s)).join(' | '));
-    ok("...and the count trims the font's dead space, never adds its own",
+    /* ---- v3.3.506 RESTATES, AND REVERSES v3.3.501 ----
+       That release read the ask as "three elements, two identical spaces", and
+       evenly spaced is what it built. Evenly spaced is what the maker then
+       marked twice as too loose under the count. The card does not have three
+       peers in a row: it has the square, the number it stands over, and a date
+       that LABELS that number. A caption belongs to the thing above it, and
+       belonging is read as proximity.
+       So the claim under test changes shape. It is no longer "the two spaces
+       are equal" -- it is that the space under the count is DELIBERATELY the
+       tighter of the two, by a stated amount, with the square still carrying
+       nothing of its own. What survives from v3.3.501 is the part that
+       mattered: one declared gap governs the layout, and every departure from
+       it is a named correction rather than a number tuned by eye. */
+    ok("...the square still carries no margin of its own",
+       /^0px,0px/.test(gcs('.dcsq')), gcs('.dcsq'));
+    ok("...the count trims the font's dead space, never adds its own",
        (function(){const m=parseFloat(run(`getComputedStyle(document.querySelector('.dcn')).marginBottom`));
          return run(`getComputedStyle(document.querySelector('.dcn')).marginTop`)==='0px'
                 && m<0 && m>=-6;})(),
        gcs('.dcn'));
-    /* the leading is what actually made the two spaces differ, so it is the
-       thing worth pinning: a text box that hugs its own type means the gap
-       that is declared is the gap you see */
+    ok("...and the date pulls UP to its number, never pushes away from it",
+       (function(){const t=parseFloat(run(`getComputedStyle(document.querySelector('.dcm')).marginTop`));
+         return t<0 && t>=-8
+                && run(`getComputedStyle(document.querySelector('.dcm')).marginBottom`)==='0px';})(),
+       gcs('.dcm'));
     ok("...and both text lines hug their own type, so the declared gap is the visible one",
        run(`getComputedStyle(document.querySelector('.dcn')).lineHeight`)==='1' &&
        run(`getComputedStyle(document.querySelector('.dcm')).lineHeight`)==='1',
        gcs('.dcn')+' | '+gcs('.dcm'));
-    /* the claim the maker actually made: the two spaces LOOK identical. The
-       declared gap is shared, and the only correction is the descender trim,
-       so what is left has to come out within a pixel or so. */
-    ok("...leaving the space above the count equal to the space below it",
+    /* the shape the maker asked for: caption closer to its number than the
+       number is to the square, and by enough to see */
+    ok("...leaving the date closer to the count than the count is to the square",
        run(`(function(){const c=getComputedStyle(document.querySelector('.card.dayclosed'));
          const g=parseFloat((c.rowGap&&c.rowGap!=='normal')?c.rowGap:c.gap);
          const n=getComputedStyle(document.querySelector('.dcn'));
+         const m=getComputedStyle(document.querySelector('.dcm'));
          const above=g+parseFloat(getComputedStyle(document.querySelector('.dcsq')).marginBottom)
                       +parseFloat(n.marginTop)+1.8;                 /* air over the caps */
          const below=g+parseFloat(n.marginBottom)+4.8               /* the font's descender */
-                      +parseFloat(getComputedStyle(document.querySelector('.dcm')).marginTop)+0.9;
-         return g>0 && Math.abs(above-below)<=1.2;})()`),
+                      +parseFloat(m.marginTop)+0.9;
+         return g>0 && below<above && (above-below)>=3;})()`),
        run(`(function(){const c=getComputedStyle(document.querySelector('.card.dayclosed'));
          return 'gap='+((c.rowGap&&c.rowGap!=='normal')?c.rowGap:c.gap)
-           +' trim='+getComputedStyle(document.querySelector('.dcn')).marginBottom;})()`));
+           +' trim='+getComputedStyle(document.querySelector('.dcn')).marginBottom
+           +' caption='+getComputedStyle(document.querySelector('.dcm')).marginTop;})()`));
     /* take the sheet out again so nothing after this block sees a different
        cascade than it did before */
     run(`(function(){const s=document.getElementById('__csstmp'); if(s) s.remove();})()`);

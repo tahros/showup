@@ -1,5 +1,36 @@
 # ShowUp — changelog
 
+## v3.3.506 (2026-09-09) — The photo card comes out, and the date joins its number
+
+**The photo option is gone.** It shipped over v3.3.502–504 — a camera on the
+ceremony, then a two-zone composite with the session drawn on its own panel
+below the picture — and the maker judged it not ready. It goes whole: the
+button, the picker, the compositor, the session builder and its suite. An entry
+point nobody can reach is still bytes on every device, and it still breaks
+against every later change to the code around it.
+
+Restore point: **8bbe7b0 (v3.3.504)**, where `drawPhotoCard`, `_photoCard`,
+`loadPickedImage`, the ceremony's `photoSession`/`photoCard`/picker wiring and
+`tools/test-photocard.js` are all whole and green. Nothing guards it out — it is
+paused, not forbidden.
+
+**The date joins its number.** This reverses v3.3.501, and the reversal is the
+point. That release read the ask as "three elements, two identical spaces", and
+evenly spaced is what it built — which the maker then marked twice as too loose
+under the count.
+
+The card does not have three peers in a row. It has the square, the number it
+stands over, and a date that *labels* that number. A caption belongs to the
+thing above it, and belonging is read as proximity. So the space under the count
+closes and the space under the square does not.
+
+What survives from v3.3.501 is the part that mattered: one declared gap governs
+the layout, and every departure from it is a named correction — the descender
+trim on the count, and now the caption pulled back to its number — rather than
+three numbers tuned against each other by eye. The assertion enforces the
+direction, not just the amount: the date may pull **up** toward the count and
+never push away, and a positive margin fails.
+
 ## v3.3.505 (2026-09-09) — The descender trim
 
 The maker marked the gap under **961** as too wide. It is — and only in

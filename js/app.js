@@ -1554,20 +1554,14 @@ function celebrateDayDone(nowrite, forceCount, forceMile, forceShow){
     `<b class="ddn${count>=1000?' ddlarge':''}">${fmt(count)}</b><span class="ddu">${count===1?'day':'days'} of showing up</span>`+
     `<h2 class="ddyou" id="ddHeading">You showed up.</h2>`+
     `<div class="ddsummary">${summary}</div></div>`+
-    /* v3.3.502: the camera hangs off the ceremony, because this is the one
-       moment the app knows the day is finished and you are still holding the
-       phone. A file input with capture= opens the native camera directly --
-       no getUserMedia, so no permission dance to manage, no standalone-PWA
-       camera quirks, and front/rear is the OS's own picker. It is also the
-       idiom settings.js already uses for import.
-       The input is a sibling of the buttons rather than wrapped in a label,
-       so the ceremony's focus handling and its Escape/Done path are unchanged.
-       Photo sits under Share, quieter than Done: the day is already saved by
-       the time you see this screen, and the picture is optional. */
+    /* v3.3.506: the photo option is gone from the ceremony -- the maker judged
+       it not ready. The compositor, the picker and their suite go with it
+       rather than sitting unreachable behind no door: dead code ships to every
+       user and rots against every later change. All of it is one restore away
+       at 8bbe7b0 (v3.3.504), where drawPhotoCard, loadPickedImage,
+       photoSession and tools/test-photocard.js are whole and green. */
     `<div class="ddactions"><button class="btn done" data-dd="done">Done</button>`+
-    `<button class="ddshare" data-dd="share">Share this day</button>`+
-    `<button class="ddshare" data-dd="photo">Add a photo</button>`+
-    `<input type="file" accept="image/*" capture="environment" id="ddPhoto" hidden></div></div>`;
+    `<button class="ddshare" data-dd="share">Share this day</button></div></div>`;
   document.body.appendChild(o);
   o.querySelector('[data-dd="done"]').focus({preventScroll:true});
   let leaving=false;
@@ -1618,76 +1612,10 @@ function celebrateDayDone(nowrite, forceCount, forceMile, forceShow){
      day actually has: a lifting day has no distance, a run has no volume, and
      an empty column is worse than a missing one. Three is the maximum the
      width takes honestly. */
-  /* v3.3.504: THE SESSION, NOT A SUMMARY OF IT. Overlaying text on a photo has
-     a hard ceiling -- about one headline and three values -- which is why every
-     card of this kind looks the same. The maker's differentiator is 24 sets
-     across seven exercises, and an overlay will never carry that; every attempt
-     is a compromise where the photo and the record both lose.
-     So the record stops competing with the photo and gets its own ground: the
-     picture takes the top 65%, a real panel takes the bottom 35%, and the
-     session is drawn there in the app's own type on the app's own surface. It
-     is still a photo card. The bottom third is a receipt instead of a caption.
-     ONE LINE PER EXERCISE is the floor and the ceiling. A 1080px card lands
-     about 400px wide in a feed, so 26px type reads at ~10px on the viewer's
-     phone -- legible if you look, texture if you do not. Anything more granular
-     is decoration paid for in legibility.
-     The reps carry it, not the weights: "8 8 5 4" says you failed down, and
-     anyone who lifts reads that instantly. That shape is the thing no
-     distance-and-pace card can show. */
-  const photoSession=()=>{
-    const order=[], byEx={};
-    rows.forEach(r=>{ const k=r.ex; if(!byEx[k]){ byEx[k]={ex:k,part:r.part,g:[]}; order.push(k); } byEx[k].g.push(r); });
-    const lines=order.map(k=>{
-      const e=byEx[k];
-      if(e.part==='Run'){
-        const km=e.g.reduce((t,r)=>t+(Number(r.w)||0),0);
-        const mins=e.g.reduce((t,r)=>t+(Number(r.mins)||0),0);
-        return {name:e.ex, value:`${dDisp(km)} ${DU()}${mins?` · ${mins}'`:''}`,
-                sets:e.g.length, top:''};
-      }
-      /* every weight the exercise was worked at, in logged order. If that
-         string will not fit the panel the card falls back to sets + top
-         weight, which is a smaller truth rather than a squeezed one. */
-      const full=e.g.map(r=>`${wLabel(e.ex,Number(r.w)||0)} × ${(r.reps||[]).join(' ')}`).join('  ·  ');
-      const nsets=e.g.reduce((t,r)=>t+((r.reps||[]).length||1),0);
-      const heavy=e.g.reduce((a,r)=>(Number(r.w)||0)>(Number(a.w)||0)?r:a,e.g[0]);
-      return {name:e.ex, value:full, sets:nsets,
-              short:`${nsets} sets · ${wLabel(e.ex,Number(heavy.w)||0)} ${U()}`};
-    });
-    const lifts=rows.filter(r=>r.part!=='Run');
-    const vol=lifts.reduce((t,r)=>t+(Number(r.w)||0)*((r.reps||[]).reduce((a,b)=>a+(Number(b)||0),0)),0);
-    const sets=rows.reduce((t,r)=>t+((r.reps||[]).length||1),0);
-    const parts=[...new Set(rows.map(r=>r.part))].join(' · ');
-    const tot=[];
-    if(vol>0) tot.push(`${fmt(Math.round(toU(vol)))} ${U()}`);
-    if(km>0) tot.push(`${dDisp(km)} ${DU()}`);
-    return {lines, parts, totals:tot.join(' · '), sets};
-  };
-  const photoCard=async(file)=>{
-    let img;
-    try{ img=await loadPickedImage(file); }
-    catch(e){ toast('Could not read that photo'); return; }
-    leave();
-    if(typeof showCard!=='function'||typeof drawPhotoCard!=='function') return;
-    showCard(()=>drawPhotoCard(img,count,dateLabel,photoSession()),
-             'showup-'+todayISO+'-photo',false,true);
-  };
-  const picker=o.querySelector('#ddPhoto');
-  if(picker) picker.addEventListener('change',ev=>{
-    const f=ev.target.files&&ev.target.files[0];
-    /* clear the input either way: without this, picking the SAME photo twice
-       in a row fires no change event and the second tap does nothing */
-    ev.target.value='';
-    if(f) photoCard(f);      /* cancelled at the camera -> the ceremony stays */
-  });
   // v3.3.489: the moment waits for an explicit choice, never an automatic share.
   o.addEventListener('click',e=>{
     const action=e.target.closest('[data-dd]');
-    if(!action) return;
-    /* v3.3.502: photo does NOT leave -- the camera opens over the ceremony and
-       you may back out of it, in which case the moment must still be here */
-    if(action.dataset.dd==='photo'){ if(picker) picker.click(); return; }
-    leave(action.dataset.dd==='share');
+    if(action) leave(action.dataset.dd==='share');
   });
   o.addEventListener('keydown',e=>{
     if(e.key==='Escape'){ e.preventDefault(); leave(); }

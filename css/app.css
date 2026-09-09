@@ -997,7 +997,18 @@
      not ask for. */
   .dayclosed .dcn{display:block;margin:0 0 -4px;line-height:1;font-family:var(--disp);font-weight:600;
     font-size:22px;letter-spacing:-.45px;color:var(--chalk)}
-  .dayclosed .dcm{display:block;margin:0;line-height:1;font-size:11.5px;color:var(--muted)}
+  /* v3.3.506: THE DATE IS A CAPTION, NOT A THIRD PEER. This reverses the rule
+     from v3.3.501 on the maker's second look, and the reversal is the point:
+     that release read his ask as "three elements, two identical spaces", and
+     evenly spaced is what it built. Evenly spaced is what he then marked twice
+     as too loose under the count.
+     The card does not have three peers in a row. It has the square, the number
+     it stands over, and a date that LABELS that number. A caption belongs to
+     the thing above it, and belonging is read as proximity -- so the space
+     under the count closes and the space under the square does not. The gap
+     stays one declared value for the relationship it still governs; this pulls
+     the caption back to its number by an amount that is stated, not tuned. */
+  .dayclosed .dcm{display:block;margin:-4px 0 0;line-height:1;font-size:11.5px;color:var(--muted)}
   /* v3.3.500: .dcr went with the reopen sentence. The card is the square, the
      count and the date; its bottom padding already closes it. */
   .btn.done.dayend{margin-bottom:18px;
