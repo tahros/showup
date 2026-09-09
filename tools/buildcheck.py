@@ -45,7 +45,8 @@ if shell_count != 13: fail.append(f"sw SHELL has {shell_count} stamped assets, e
 # mono -- every track cut for a wider character than it holds. The card is one
 # grid with max-content tail columns now: the layout measures itself, and
 # there is nothing left to allowlist.
-RUNTIME = {"--i", "--len", "--sat", "--planw", "--planr"}   # set via style.setProperty / inline style / env() default
+RUNTIME = {"--i", "--len", "--sat", "--planw", "--planr", "--h"}   # set via style.setProperty / inline style / env() default
+# --h: v3.3.512, the week shape's column height, written inline per weekday
 used = set(re.findall(r"var\((--[A-Za-z0-9-]+)", css))
 defined = set(re.findall(r"(--[A-Za-z0-9-]+)\s*:", css))
 undef = used - defined - RUNTIME

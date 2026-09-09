@@ -1093,6 +1093,11 @@ function restStats(){
     else { restDays.push(iso); runBefore[iso]=run; run=0; }   // v3.3.468: how many days on preceded this rest
   }
   const dow=[0,0,0,0,0,0,0]; for(const r of restDays) dow[new Date(r+'T00:00').getDay()]++;
+  /* v3.3.512: how many of EACH weekday the record contains, so a rest count
+     can become a rate. Without it Sunday looks like it wins simply because
+     there have been more Sundays -- and on a record that starts mid-week the
+     first days are lopsided from the start. */
+  const dowTotal=[0,0,0,0,0,0,0]; for(const d of days) dowTotal[new Date(d+'T00:00').getDay()]++;
   const topDow=dow.indexOf(Math.max(...dow));
   /* what you rest AFTER: the part(s) trained the day before each rest day */
   const byDay=allDays(); const after={}; const afterOf={};
@@ -1104,7 +1109,7 @@ function restStats(){
   const gaps=[]; for(let i=1;i<restDays.length;i++) gaps.push(daysAgo(restDays[i-1])-daysAgo(restDays[i]));
   const avgGap=gaps.length?gaps.reduce((a,b)=>a+b,0)/gaps.length:0;
   const prev=restDays.filter(r=>r<todayISO); const lastRest=prev[prev.length-1]||null;
-  return {daysIn:days.length, trained:trained.size, rests:restDays.length, restDays, dow, topDow, afterTop, after, afterOf, runBefore,
+  return {daysIn:days.length, trained:trained.size, rests:restDays.length, restDays, dow, dowTotal, topDow, afterTop, after, afterOf, runBefore,
           afterTotal:Object.values(after).reduce((a,b)=>a+b,0),
           longest, longestEnd, avgGap, lastRest, todayIsRest:!trained.has(todayISO), first};
 }

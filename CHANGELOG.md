@@ -1,5 +1,38 @@
 # ShowUp — changelog
 
+## v3.3.512 (2026-09-09) — The week shape, and the tick becomes a rule
+
+**The heading.** A 3px accent pip sat before every heading, about ten times a
+screen, the same colour whatever the section was about. It separated nothing
+and said nothing — an ornament, which is what made it read as a default rather
+than a decision. A hairline running from the label to the edge does the job the
+pip was miming: it *separates*. Each heading keeps its own trailing controls,
+because the rule takes whatever space is left between them — `order`, not
+`::after` position, is what puts it in the right place.
+
+**The week shape**, added below the rest grid rather than replacing anything.
+The card counted: 771 days, 45% of days. A count is an accumulation, and
+accumulation is the logic this app rejects everywhere else — it just happens to
+be counting the inverse of the streak. A shape is not something you can run up.
+It says consistency was never training every day; it was a rhythm held for
+years. The card now reads count, then share, then five months of texture, then
+the rhythm across all of it.
+
+**Rate, not count.** Sunday would top a raw tally simply because the record
+contains more Sundays, and a ledger that starts mid-week is lopsided from its
+first row. Each column is rests-on-that-weekday over how many of that weekday
+there have been — `dowTotal` is new for exactly this.
+
+**The sentence comes from the data or it does not come at all.** A record with
+no rhythm is told it has none rather than having its tallest column crowned;
+two rest days are named as two. Nothing here is a target: no ideal ratio, no
+badge, no grade. `longest run` stays a fact in the footer.
+
+The classes are named `restweek`/`rwbar` because `test-rest` holds the rest
+greens to one meaning by reading the **selector** — a rule may use `--rest` only
+if it says rest. A card about resting that called itself `.wshape` was quietly
+opting out of that, so the name changed rather than the rule.
+
 ## v3.3.511 (2026-09-09) — The Progression chart scrubs
 
 Hold and drag across the line and it reads out the session under your thumb:

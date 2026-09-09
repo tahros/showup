@@ -909,8 +909,68 @@ function currentRhythmSection(inverse){
         <div class="heatyears" style="--hw:${HEAT_WEEKS}">${years.map(y=>`<span style="--c:${y.c}">${y.label}<small>${y.n} days</small></span>`).join('')}</div>
         <div class="heatgrid" style="--hw:${HEAT_WEEKS}">${cells}</div>
         <div class="heatticks" style="--hw:${HEAT_WEEKS}">${ticks.map(t=>`<span style="--c:${t.c}">${t.label}</span>`).join('')}</div>
-      </div></div></div></div>
+      <!-- v3.3.512: three closes here, not four -- heatscroll, heatwrap,
+           heatframe. The fourth used to close the CARD, which put anything
+           added below the grid outside it as a sibling; the card's own close
+           is the one at the end. -->
+      </div></div></div>
+      ${inverse?weekShape(R):''}
     </div>`;
+}
+
+/* ---- v3.3.512: THE WEEK SHAPE ----------------------------------------
+   The rest card counted: 771 days, 45% of days. A count is an accumulation,
+   and accumulation is the logic this app rejects everywhere else -- it just
+   happens to be counting the inverse of the streak. The SHAPE is not
+   something you can run up. It says consistency was never training every day;
+   it was a rhythm held for years, which is the thesis stated as a fact about
+   the maker rather than as a slogan.
+   It sits UNDER the grid, not instead of it: count, then share, then five
+   months of texture, then the rhythm across all of it.
+   RATE, NOT COUNT. Sunday would top a raw tally simply because the record
+   contains more Sundays, and a ledger that starts mid-week is lopsided from
+   its first row. Each column is rests-on-that-weekday over how many of that
+   weekday there have been.
+   The sentence comes from the data or it does not come at all: a flat record
+   says so, rather than crowning whichever column happens to be tallest. And
+   nothing here is a target -- no ideal ratio, no badge for a long run. */
+function weekShape(R){
+  if(!R||!R.dowTotal) return '';
+  const ORDER=[1,2,3,4,5,6,0], LET=['M','T','W','T','F','S','S'];
+  const NAME=['Mondays','Tuesdays','Wednesdays','Thursdays','Fridays','Saturdays','Sundays'];
+  const cols=ORDER.map((d,i)=>({d,let:LET[i],name:NAME[i],
+    n:R.dow[d]||0, of:R.dowTotal[d]||0,
+    rate:(R.dowTotal[d]||0)?(R.dow[d]||0)/R.dowTotal[d]:0}));
+  /* not enough of any weekday yet to say anything honest about a rhythm */
+  if(Math.min(...cols.map(c=>c.of))<4) return '';
+  const sorted=[...cols].sort((a,b)=>b.rate-a.rate);
+  const top=sorted[0], second=sorted[1];
+  const spread=top.rate-sorted[sorted.length-1].rate;
+  let line;
+  if(top.rate>=.5&&top.rate-second.rate>=.12)
+    line=`You rest on ${top.name}.`;
+  else if(spread<.15)
+    line=`You rest evenly across the week.`;
+  else if(top.rate-sorted[2].rate>=.12)
+    line=`You rest on ${top.name} and ${second.name}.`;
+  else
+    line=`You rest most on ${top.name}.`;
+  const sub=(top.rate>=.5&&top.rate-second.rate>=.12)
+    ? `${Math.round(top.rate*100)}% of them, across ${fmt(R.daysIn)} days.`
+    : `across ${fmt(R.daysIn)} days.`;
+  const bars=cols.map(c=>{
+    const pct=Math.round(c.rate*100), lead=c===top&&spread>=.15;
+    return `<span class="rwbar${lead?' lead':''}" role="img"
+      aria-label="${c.name}: rested ${c.n} of ${c.of}, ${pct}%">
+      <i style="--h:${Math.max(4,Math.round(c.rate*100))}%"></i>
+      <b>${c.let}</b><small>${pct}%</small></span>`;
+  }).join('');
+  return `<div class="restweek">
+    <p class="rwline">${line}</p>
+    <p class="rwsub mono">${sub}</p>
+    <div class="rwbars">${bars}</div>
+    <div class="rwfoot mono"><span>rest days by weekday</span><span>longest run ${fmt(R.longest||0)}</span></div>
+  </div>`;
 }
 function consistencyRaceSection(){
   const race=consistencyRaceData();
