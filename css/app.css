@@ -564,6 +564,18 @@
   .drwrap.scrubbing .drdot:not(.pick){opacity:.35}
   .drwrap.scrubbing .drline,.drwrap.scrubbing .drfill{opacity:.55}
   .drwrap .drdot.pick{r:4.2;fill:var(--accent)}
+  /* v3.3.511: the progression chart scrubs on the same gesture, so it dims and
+     picks the same way. The PR dot keeps its record colour when picked -- red
+     is the one thing on this chart that means something on its own, and a
+     scrub must not overwrite a fact. touch-action:pan-y lets the page still
+     scroll vertically through the chart while a horizontal hold arms it. */
+  .pgwrap{touch-action:pan-y}
+  .pgwrap.scrubbing .pgdot:not(.pick){opacity:.35}
+  .pgwrap.scrubbing polyline{opacity:.45}
+  .pgwrap.scrubbing text{opacity:.35}
+  .pgwrap .pgdot.pick{r:4.2}
+  .pgwrap .pgdot.pick:not([data-pr]){fill:var(--accent)}
+  .pgread{color:var(--chalk);font-size:11px}
   .drwrap .drdot.out{opacity:.7}
   /* v3.3.486: the readout moved into the HEAD (This year vs last's way); the
      bubble is gone. .armed marks the hold that turned a touch into a scrub. */

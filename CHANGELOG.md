@@ -1,5 +1,30 @@
 # ShowUp — changelog
 
+## v3.3.511 (2026-09-09) — The Progression chart scrubs
+
+Hold and drag across the line and it reads out the session under your thumb:
+the day, the load, the reps, and whether that one was a best. Tap the picked
+dot to clear it.
+
+Same gesture as the runs chart — a drag scrolls, a **hold** scrubs, 250ms to
+arm — because it is the same question asked of the same shape, and a second
+gesture for it would be a second thing to learn.
+
+**The gesture is generalised, not copied.** Everything in it was hard-won on
+the runs chart in v3.3.486: the hold timer, the slop that tells a scroll from a
+scrub, `preventDefault` only while armed, tap-the-pick-to-clear, and the arm as
+a named function so a test can run it rather than sleep through it. A second
+copy is exactly what gets one of those subtly wrong. `bindHoldScrub` now takes
+two functions from whichever chart is asking — which dot is under x, and what
+to show for it — and the runs chart is one line calling it.
+
+Each dot carries its own day, load and reps, so the readout comes from the
+**record** rather than being re-derived from where the finger landed. The
+reading replaces the footer's caption in place instead of adding a row, so
+nothing moves under your thumb mid-scrub. A PR keeps its record colour while
+picked: red is the one thing on this chart that means something on its own, and
+a scrub must not overwrite a fact.
+
 ## v3.3.510 (2026-09-09) — The rest ring follows the bar, not the page
 
 The Today square's resting ring was nearly invisible on the dark bar, and the

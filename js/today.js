@@ -744,20 +744,27 @@ function progChart(ex){
     const pr=v>=allMax&&v>runMax;                    // first time hitting the all-time top
     if(v>runMax) runMax=v;
     const last=i===pts.length-1;
-    dots+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${pr?3.4:last?3:2}" fill="${pr?'var(--record)':'var(--accent)'}" ${last&&!pr?'class="beacon"':''}></circle>`;
+    /* v3.3.511: every dot carries its own day and what was lifted, so the
+       scrub reads the RECORD rather than re-deriving it from pixel position. */
+    dots+=`<circle class="pgdot${last&&!pr?' beacon':''}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${pr?3.4:last?3:2}" fill="${pr?'var(--record)':'var(--accent)'}" data-d="${p.d}" data-v="${body?p.r:wDisp(v)}" data-r="${p.r||''}" data-pr="${pr?1:''}"></circle>`;
     if(pr||last||i===0)
       dots+=`<text x="${x.toFixed(1)}" y="${(y-7).toFixed(1)}" text-anchor="middle" font-family="var(--mono)" font-size="5.5" fill="${pr?'var(--record)':'var(--muted)'}">${body?v+'r':wDisp(v)}</text>`;
   });
   const d0=pts[0].d, d1=pts[pts.length-1].d;
-  return `<h2>Progression</h2><div class="card">
-    <svg viewBox="0 0 330 122" style="width:100%;height:auto">
+  /* v3.3.511: the chart is scrubbable -- hold to arm, drag to read, tap the
+     picked dot to clear -- on the same gesture as the runs chart (v3.3.486),
+     and the readout replaces the footer's caption in place rather than adding
+     a row, so nothing moves under your thumb while you scrub. */
+  return `<h2>Progression</h2><div class="card pgcard">
+    <div id="pgWrap" class="pgwrap"><svg viewBox="0 0 330 122" style="width:100%;height:auto">
       <polyline points="${poly.trim()}" fill="none" stroke="var(--accent)" stroke-width="1.4" stroke-linejoin="round" opacity=".8"></polyline>
       ${dots}
       <text x="16" y="118" font-family="var(--mono)" font-size="5.5" fill="var(--muted)">${md(d0)}</text>
       <text x="314" y="118" text-anchor="end" font-family="var(--mono)" font-size="5.5" fill="var(--muted)">${md(d1)}</text>
-    </svg>
-    <div class="tot"><span>Top ${body?'reps':'set'} per session · last ${pts.length}</span>
-      <span><b style="color:var(--record)">●</b> all-time best${body?'':` ${wDisp(allMax)} ${U()}`}</span></div>
+    </svg></div>
+    <div class="tot"><span data-pgcap>Top ${body?'reps':'set'} per session · last ${pts.length}</span>
+      <span data-pgcap><b style="color:var(--record)">●</b> all-time best${body?'':` ${wDisp(allMax)} ${U()}`}</span>
+      <span class="pgread mono" data-pgread hidden></span></div>
   </div>`;
 }
 /* last ~14 sessions of top-set weight, as a tiny sparkline */
