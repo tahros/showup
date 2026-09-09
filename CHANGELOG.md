@@ -1,5 +1,45 @@
 # ShowUp — changelog
 
+## v3.3.504 (2026-09-09) — Two zones: the photo, and the session
+
+Overlaying text on a photograph has a hard ceiling — about one headline and
+three values. That ceiling is why every card of this kind looks the same, and
+it is why the last two cuts kept losing. The maker's differentiator is 24 sets
+across seven exercises, and no overlay will ever carry that; every attempt is a
+compromise where the picture and the record both lose.
+
+So the record stops competing with the picture and gets its own ground. The
+photo takes the top **65%**. The bottom **35%** is a real panel — the app's own
+surface, the app's own type — carrying the session: the parts and the day's
+totals in a header, one line per exercise, and the set count closing it. It is
+still a photo card. The bottom third is a receipt instead of a caption. That is
+a shape a distance-and-pace card structurally cannot copy, because it has
+nothing to put down there.
+
+**One line per exercise is the floor and the ceiling.** A 1080px card lands
+about 400px wide in a feed, so 26px type reads at roughly 10px on the viewer's
+phone: legible if you look, texture if you do not. Anything more granular is
+decoration paid for in legibility. The line is the name left, the load-by-reps
+right — and the reps are what carry it. `8 8 5 4` says you failed down, and
+anyone who lifts reads that instantly. That shape is the thing no pace card can
+show.
+
+Where a full weight-by-weight line will not clear the exercise name, it falls
+back to sets and the top weight — a smaller truth rather than a squeezed one.
+Where a day has more exercises than the panel holds, lines are **dropped from
+the bottom with a count**, never shrunk: a card that squeezes to fit lies about
+how much you did by making it unreadable.
+
+The scrim gets lighter, since the numbers it was protecting have moved
+downstairs and more of the picture can come through.
+
+Line metrics were tuned against a real seven-exercise Tuesday rendered to PNG
+and looked at. The first arithmetic left room for six and pushed a genuine
+exercise into "+1 more" — a card that hides one of seven is worse than one that
+is four pixels tighter. The square also needed its own colour fallback: the
+card's variable reader answers `#888` for anything it cannot resolve, so the
+brand blue rendered grey wherever the sheet was absent.
+
 ## v3.3.503 (2026-09-09) — The numbers are the card
 
 The first cut of the photo card put the day's work in one small mono run-on

@@ -154,20 +154,29 @@ const settle = () => new Promise(r => setTimeout(r, 40));
 
   // ---- 4. the composite is really composited
   const drew = calls.filter(c => c.fn === "drawImage");
-  ok("the photo is drawn, and cover-cropped rather than squashed",
+  const texts = calls.filter(c => c.fn === "fillText").map(c => String(c.args[0]));
+  /* ---- v3.3.504 RESTATES: TWO ZONES ----
+     Overlaying a whole session on a photograph has a hard ceiling of about one
+     headline and three values, which is why every card of this kind looks the
+     same. So the record stops competing with the picture: the photo takes the
+     top 65% and the session gets a real panel below it, in the app's own type
+     on its own surface. The claims below are the same claims -- the photo is
+     cover-cropped, a scrim protects the type on it, and the day's work is on
+     the card -- measured against the zone each now lives in. */
+  const SPLIT = Math.round(1350 * 0.65);
+  ok("the photo is cover-cropped into its own zone, not squashed",
      (function () {
-       const d = drew.find(c => c.args.length === 5 && c.args[3] >= 1080 && c.args[4] >= 1350);
+       const d = drew.find(c => c.args.length === 5 && c.args[3] >= 1080 && c.args[4] >= SPLIT);
        if (!d) return false;
        const [, , , dw, dh] = d.args;
-       return Math.abs((dw / dh) - (1600 / 900)) < 0.01;      // aspect preserved
+       return Math.abs((dw / dh) - (1600 / 900)) < 0.01;
      })(),
      drew.map(c => c.args.slice(1).map(n => Math.round(n)).join(",")).join(" | "));
-  /* the first cut of this asserted a createLinearGradient AND a full-frame
-     fillRect, and passed with the scrim deleted -- the gradient was still
-     built, and the opaque backing fill is also a full-frame fillRect. It has
-     to prove the gradient was PAINTED: a fillStyle set to the gradient
-     object, and a frame-sized fillRect after it. */
-  ok("...under a scrim, so white type survives a bright photo",
+  ok("...and the panel is a real surface, not more scrim",
+     calls.some(c => c.fn === "fillRect" && Math.round(c.args[1]) === SPLIT &&
+                     c.args[2] === 1080 && Math.round(c.args[3]) === 1350 - SPLIT),
+     calls.filter(c => c.fn === "fillRect").map(c => c.args.map(Math.round).join(",")).join(" | "));
+  ok("...under a scrim that covers the photo zone only",
      (function () {
        const gi = calls.findIndex(c => c.fn === "createLinearGradient");
        if (gi < 0) return false;
@@ -175,43 +184,31 @@ const settle = () => new Promise(r => setTimeout(r, 40));
                                             c.args[0] && typeof c.args[0] === "object");
        if (si < 0) return false;
        return calls.some((c, i) => i > si && c.fn === "fillRect" &&
-                                   c.args[2] === 1080 && c.args[3] === 1350);
+                                   c.args[2] === 1080 && Math.round(c.args[3]) === SPLIT);
      })(),
-     calls.filter(c => /createLinearGradient|set:fillStyle|fillRect/.test(c.fn))
-          .map(c => c.fn + (c.fn === "fillRect" ? "(" + c.args.slice(2).join(",") + ")" :
-               c.fn === "set:fillStyle" ? "(" + (typeof c.args[0] === "object" ? "gradient" : c.args[0]) + ")" : ""))
-          .join(" ").slice(0, 160));
+     "split=" + SPLIT);
   ok("...with the orientation read from the file, so a portrait shot is not sideways",
      calls.some(c => c.fn === "createImageBitmap" && c.args[0] &&
                      c.args[0].imageOrientation === "from-image"));
-  const texts = calls.filter(c => c.fn === "fillText").map(c => String(c.args[0]));
-  /* v3.3.503 RESTATES: the day's work is no longer one small mono run-on
-     under the count -- it is labelled stat columns, a quiet LABEL over a loud
-     VALUE, which is the only shape that survives being written on a
-     photograph. The claim is unchanged and stronger: the count, the unit
-     line, and the day's actual numbers are all on the card. Each column is
-     checked as a PAIR, because a label with no value under it is exactly the
-     failure worth catching. */
-  ok("...and the day's numbers over it: the count and the unit line",
+  ok("...the streak on the photo, at headline size",
      texts.some(t => /^\d{1,3}(,\d{3})*$/.test(t)) &&
-     texts.some(t => /DAYS OF SHOWING UP/.test(t)),
+     texts.some(t => /DAYS OF SHOWING UP/.test(t)) &&
+     calls.filter(c => c.fn === "set:font")
+          .some(c => parseFloat((String(c.args[0]).match(/(\d+)px/) || [])[1] || 0) >= 150),
      texts.join(" | "));
-  ok("...as labelled columns, each label with a value under it",
+  /* the whole point of the release: the SETS are on the card, one line per
+     exercise, name and load-by-reps -- not a three-value summary of them */
+  ok("...and the session itself below it, one line per exercise",
      (function () {
-       const want = [["SETS", /^\d+$/], ["DISTANCE", /^[\d.]+ (mi|km)$/], ["VOLUME", /^[\d,]+ (lb|kg)$/]];
-       return want.every(([lab, re]) => {
-         const at = texts.indexOf(lab);
-         return at >= 0 && texts[at + 1] !== undefined && re.test(texts[at + 1]);
-       });
+       const names = ["Deadlift", "Run"];
+       return names.every(n => {
+         const at = texts.indexOf(n);
+         return at >= 0 && texts.some(t => t !== n && /\d/.test(t));
+       }) && texts.some(t => /×\s*\d+( \d+)+/.test(t));
      })(),
      texts.join(" | "));
-  ok("...with the big numbers set large, not caption-sized",
-     (function () {
-       const fonts = calls.filter(c => c.fn === "set:font").map(c => String(c.args[0]));
-       const px = fonts.map(f => parseFloat((f.match(/(\d+(?:\.\d+)?)px/) || [])[1] || 0));
-       return px.some(p => p >= 150) && px.filter(p => p >= 60).length >= 2;
-     })(),
-     calls.filter(c => c.fn === "set:font").map(c => (String(c.args[0]).match(/\d+px/) || [""])[0]).join(","));
+  ok("...with the totals row closing it",
+     texts.some(t => /^\d+ sets$/.test(t)), texts.join(" | "));
   ok("...and the mark rides on top",
      drew.some(c => c.args.length === 5 && c.args[3] === 64 && c.args[4] === 64) ||
      /_dayIcon/.test(fs.readFileSync(path.join(dir, "js/report.js"), "utf8")));

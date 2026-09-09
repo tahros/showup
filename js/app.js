@@ -1618,16 +1618,50 @@ function celebrateDayDone(nowrite, forceCount, forceMile, forceShow){
      day actually has: a lifting day has no distance, a run has no volume, and
      an empty column is worse than a missing one. Three is the maximum the
      width takes honestly. */
-  const photoStats=()=>{
-    const lifts=rows.filter(s2=>s2.part!=='Run');
-    const vol=lifts.reduce((t,s2)=>t+(Number(s2.w)||0)*((s2.reps||[]).reduce((a,b)=>a+(Number(b)||0),0)),0);
-    const out=[{label:'Sets',value:String(rows.length)}];
-    if(km>0) out.push({label:'Distance',value:`${dDisp(km)} ${DU()}`});
-    /* fmt + round, not wDisp: wDisp keeps a decimal, and "11375.8 lb" at 66px
-       is a worse number than "11,376 lb". History already reads
-       "79,151 lb lifted" -- the card uses the same grammar. */
-    if(vol>0) out.push({label:'Volume',value:`${fmt(Math.round(toU(vol)))} ${U()}`});
-    return out;
+  /* v3.3.504: THE SESSION, NOT A SUMMARY OF IT. Overlaying text on a photo has
+     a hard ceiling -- about one headline and three values -- which is why every
+     card of this kind looks the same. The maker's differentiator is 24 sets
+     across seven exercises, and an overlay will never carry that; every attempt
+     is a compromise where the photo and the record both lose.
+     So the record stops competing with the photo and gets its own ground: the
+     picture takes the top 65%, a real panel takes the bottom 35%, and the
+     session is drawn there in the app's own type on the app's own surface. It
+     is still a photo card. The bottom third is a receipt instead of a caption.
+     ONE LINE PER EXERCISE is the floor and the ceiling. A 1080px card lands
+     about 400px wide in a feed, so 26px type reads at ~10px on the viewer's
+     phone -- legible if you look, texture if you do not. Anything more granular
+     is decoration paid for in legibility.
+     The reps carry it, not the weights: "8 8 5 4" says you failed down, and
+     anyone who lifts reads that instantly. That shape is the thing no
+     distance-and-pace card can show. */
+  const photoSession=()=>{
+    const order=[], byEx={};
+    rows.forEach(r=>{ const k=r.ex; if(!byEx[k]){ byEx[k]={ex:k,part:r.part,g:[]}; order.push(k); } byEx[k].g.push(r); });
+    const lines=order.map(k=>{
+      const e=byEx[k];
+      if(e.part==='Run'){
+        const km=e.g.reduce((t,r)=>t+(Number(r.w)||0),0);
+        const mins=e.g.reduce((t,r)=>t+(Number(r.mins)||0),0);
+        return {name:e.ex, value:`${dDisp(km)} ${DU()}${mins?` · ${mins}'`:''}`,
+                sets:e.g.length, top:''};
+      }
+      /* every weight the exercise was worked at, in logged order. If that
+         string will not fit the panel the card falls back to sets + top
+         weight, which is a smaller truth rather than a squeezed one. */
+      const full=e.g.map(r=>`${wLabel(e.ex,Number(r.w)||0)} × ${(r.reps||[]).join(' ')}`).join('  ·  ');
+      const nsets=e.g.reduce((t,r)=>t+((r.reps||[]).length||1),0);
+      const heavy=e.g.reduce((a,r)=>(Number(r.w)||0)>(Number(a.w)||0)?r:a,e.g[0]);
+      return {name:e.ex, value:full, sets:nsets,
+              short:`${nsets} sets · ${wLabel(e.ex,Number(heavy.w)||0)} ${U()}`};
+    });
+    const lifts=rows.filter(r=>r.part!=='Run');
+    const vol=lifts.reduce((t,r)=>t+(Number(r.w)||0)*((r.reps||[]).reduce((a,b)=>a+(Number(b)||0),0)),0);
+    const sets=rows.reduce((t,r)=>t+((r.reps||[]).length||1),0);
+    const parts=[...new Set(rows.map(r=>r.part))].join(' · ');
+    const tot=[];
+    if(vol>0) tot.push(`${fmt(Math.round(toU(vol)))} ${U()}`);
+    if(km>0) tot.push(`${dDisp(km)} ${DU()}`);
+    return {lines, parts, totals:tot.join(' · '), sets};
   };
   const photoCard=async(file)=>{
     let img;
@@ -1635,7 +1669,7 @@ function celebrateDayDone(nowrite, forceCount, forceMile, forceShow){
     catch(e){ toast('Could not read that photo'); return; }
     leave();
     if(typeof showCard!=='function'||typeof drawPhotoCard!=='function') return;
-    showCard(()=>drawPhotoCard(img,count,dateLabel,photoStats()),
+    showCard(()=>drawPhotoCard(img,count,dateLabel,photoSession()),
              'showup-'+todayISO+'-photo',false,true);
   };
   const picker=o.querySelector('#ddPhoto');
