@@ -313,12 +313,20 @@ if "showup-skin" not in idx:
 # will-change (layer promotion) but NOT translateZ(0), which conflicted with
 # its backdrop-filter and brought the 179 symptom back. Both halves guarded,
 # plus the re-anchor nudge that is the belt for a device we cannot see.
-_cal = _re.search(r"\n\s*\.calreturn\{transform:translateZ\(0\)([^}]*)\}", css)
-if not _cal or "will-change" not in _cal.group(1):
-    fail.append(".calreturn lost its compositing hint — needs translateZ(0) AND will-change (v3.3.179)")
-_navl = _re.search(r"\n\s*nav\{will-change:transform[^}]*\}", css)
-if not _navl:
-    fail.append("nav lost its layer promotion (will-change:transform) (v3.3.179/480)")
+# v3.3.509 REVERSES this. Walking every ancestor of both hanging elements under
+# every body class (tools/demo-fixedchain.js) leaves the v3.3.179 promotion as
+# the one property they share and nothing else on the page has -- and a promoted
+# layer is exactly what can be composited at a stale position. The rule that
+# required it now forbids it, until the maker reads the result on the device.
+# finditer, not search: both selectors carry more than one rule in this sheet,
+# and search() stopped at the first -- which is empty, so the guard reported
+# clean while a promotion sat in a later block. Check every rule for the
+# selector, not whichever one comes first.
+for _sel in (r"\.calreturn", r"nav"):
+    _m = next((m for m in _re.finditer(r"\n\s*" + _sel + r"\{([^}]*)\}", css)
+               if _re.search(r"translateZ|will-change|backface-visibility", m.group(1))), None)
+    if _m:
+        fail.append("%s is promoted to its own compositing layer again — that is the standing suspect for the fixed chrome hanging (v3.3.509)" % _sel.replace("\\", ""))
 if _re.search(r"\n\s*nav\{[^}]*translateZ", css):
     fail.append("nav carries translateZ(0) again — with its backdrop-filter that hangs the pill mid-scroll (v3.3.480)")
 # v3.3.495: the belt is gone and must STAY gone until the experiment is read.
