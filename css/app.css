@@ -980,7 +980,22 @@
     margin-bottom:18px;border:1px solid var(--line);cursor:pointer}
   .dayclosed .dcsq{display:block;width:32px;height:32px;margin:0;
     border-radius:var(--sq);background:var(--accent)}
-  .dayclosed .dcn{display:block;margin:0;line-height:1;font-family:var(--disp);font-weight:600;
+  /* v3.3.505: THE DESCENDER TRIM. v3.3.501 made the two declared gaps one
+     number, and they still did not LOOK equal -- the maker marked the lower
+     one. The residue that release named as "under two pixels" was measured
+     wrong. With line-height:1 the count's box is exactly its font size, and
+     the baseline sits about 0.78 of the way down it: roughly 1.8px of air
+     above the cap of "961", but 4.8px of empty descender space below a string
+     of digits that has no descenders. So the space above the count reads
+     ~19.8px and the space below ~23.7px, from one 18px value.
+     A symmetric fix cannot correct an asymmetric cause -- trimming the line
+     box takes the same amount off both sides and leaves the difference
+     exactly where it was. So the dead space below the baseline is cancelled,
+     and only that: -4px, which is the descender of this font at this size,
+     not a number chosen by eye. The gap stays a single declared value; this
+     subtracts space the font added, rather than adding space the layout did
+     not ask for. */
+  .dayclosed .dcn{display:block;margin:0 0 -4px;line-height:1;font-family:var(--disp);font-weight:600;
     font-size:22px;letter-spacing:-.45px;color:var(--chalk)}
   .dayclosed .dcm{display:block;margin:0;line-height:1;font-size:11.5px;color:var(--muted)}
   /* v3.3.500: .dcr went with the reopen sentence. The card is the square, the

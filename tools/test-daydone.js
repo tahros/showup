@@ -202,9 +202,24 @@ ok("pressing it places the day", run(`!!document.getElementById('dayDone')`));
       return [c.display,c.flexDirection,g].join(',');})()`);
     ok("the card stacks on one gap, not on three hand-tuned margins",
        /^flex,column,\d/.test(card), card);
-    ok("...so no child carries a vertical margin of its own",
-       ['.dcsq','.dcn','.dcm'].every(s=>/^0px,0px/.test(gcs(s))),
-       ['.dcsq','.dcn','.dcm'].map(s=>s+'='+gcs(s)).join(' | '));
+    /* v3.3.505 RESTATES: the claim was never "no margins" for its own sake --
+       it was that ONE declared value governs the spacing, instead of three
+       numbers tuned against each other by eye. That still holds. What is added
+       is a single measured correction: the count's box carries ~4.8px of empty
+       descender space below its baseline, and "961" has no descenders, so the
+       space below it read wider than the space above from the same 18px. The
+       trim cancels the font's own dead space; it is not free spacing. So the
+       square and the date must still carry nothing, and the count may carry a
+       NEGATIVE bottom margin only -- a positive one would be the hand-tuning
+       v3.3.501 removed. */
+    ok("...so the square and the date carry no margin of their own",
+       ['.dcsq','.dcm'].every(s=>/^0px,0px/.test(gcs(s))),
+       ['.dcsq','.dcm'].map(s=>s+'='+gcs(s)).join(' | '));
+    ok("...and the count trims the font's dead space, never adds its own",
+       (function(){const m=parseFloat(run(`getComputedStyle(document.querySelector('.dcn')).marginBottom`));
+         return run(`getComputedStyle(document.querySelector('.dcn')).marginTop`)==='0px'
+                && m<0 && m>=-6;})(),
+       gcs('.dcn'));
     /* the leading is what actually made the two spaces differ, so it is the
        thing worth pinning: a text box that hugs its own type means the gap
        that is declared is the gap you see */
@@ -212,17 +227,23 @@ ok("pressing it places the day", run(`!!document.getElementById('dayDone')`));
        run(`getComputedStyle(document.querySelector('.dcn')).lineHeight`)==='1' &&
        run(`getComputedStyle(document.querySelector('.dcm')).lineHeight`)==='1',
        gcs('.dcn')+' | '+gcs('.dcm'));
-    /* the claim the maker actually made: the two spaces are identical */
+    /* the claim the maker actually made: the two spaces LOOK identical. The
+       declared gap is shared, and the only correction is the descender trim,
+       so what is left has to come out within a pixel or so. */
     ok("...leaving the space above the count equal to the space below it",
        run(`(function(){const c=getComputedStyle(document.querySelector('.card.dayclosed'));
          const g=parseFloat((c.rowGap&&c.rowGap!=='normal')?c.rowGap:c.gap);
+         const n=getComputedStyle(document.querySelector('.dcn'));
          const above=g+parseFloat(getComputedStyle(document.querySelector('.dcsq')).marginBottom)
-                      +parseFloat(getComputedStyle(document.querySelector('.dcn')).marginTop);
-         const below=g+parseFloat(getComputedStyle(document.querySelector('.dcn')).marginBottom)
-                      +parseFloat(getComputedStyle(document.querySelector('.dcm')).marginTop);
-         return g>0 && above===below;})()`),
+                      +parseFloat(n.marginTop)+1.8;                 /* air over the caps */
+         const below=g+parseFloat(n.marginBottom)+4.8               /* the font's descender */
+                      +parseFloat(getComputedStyle(document.querySelector('.dcm')).marginTop)+0.9;
+         return g>0 && Math.abs(above-below)<=1.2;})()`),
        run(`(function(){const c=getComputedStyle(document.querySelector('.card.dayclosed'));
-         return 'gap='+((c.rowGap&&c.rowGap!=='normal')?c.rowGap:c.gap);})()`));
+         return 'gap='+((c.rowGap&&c.rowGap!=='normal')?c.rowGap:c.gap)
+           +' trim='+getComputedStyle(document.querySelector('.dcn')).marginBottom;})()`));
+    /* take the sheet out again so nothing after this block sees a different
+       cascade than it did before */
     run(`(function(){const s=document.getElementById('__csstmp'); if(s) s.remove();})()`);
   }
   /* v3.3.412 RESTATES. It stood where the button stood (v3.3.376) -- but that

@@ -1,5 +1,30 @@
 # ShowUp — changelog
 
+## v3.3.505 (2026-09-09) — The descender trim
+
+The maker marked the gap under **961** as too wide. It is — and only in
+appearance, which is why v3.3.501 missed it.
+
+That release made both declared gaps one number, and called the leftover
+difference "under two pixels". It measured that wrong. With `line-height:1` the
+count's box is exactly its font size and the baseline sits about 0.78 of the way
+down it: roughly 1.8px of air above the caps of "961", but **4.8px of empty
+descender space below** a string of digits that has no descenders. From one 18px
+value, the space above reads about 19.8px and the space below about 23.7px.
+
+A symmetric fix cannot correct an asymmetric cause. Trimming the line box takes
+the same amount off both sides and leaves the difference exactly where it was.
+So only the dead space below the baseline is cancelled: −4px, which is this
+font's descender at this size, not a number picked by eye.
+
+The rule from v3.3.501 still holds. It was never "no margins" for their own
+sake — it was that one declared value governs the spacing instead of three
+numbers tuned against each other. This subtracts space the font added, rather
+than adding space the layout did not ask for, and the assertion enforces the
+distinction: the square and the date must carry nothing, and the count may carry
+a negative bottom margin only. A positive one is the hand-tuning that release
+removed, and it fails.
+
 ## v3.3.504 (2026-09-09) — Two zones: the photo, and the session
 
 Overlaying text on a photograph has a hard ceiling — about one headline and
