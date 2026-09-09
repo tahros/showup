@@ -1,5 +1,32 @@
 # ShowUp — changelog
 
+## v3.3.514 (2026-09-09) — The week grows when it is seen
+
+v3.3.513 made the columns grow and the maker still never saw it, for a reason
+the animation could not have helped: it ran at paint, and at paint this card is
+a screen and a half below the fold. It was always over before he got there.
+
+It waits to be **seen** now. An observer adds `.grown` the first time the card
+comes a third of the way into view, and the keyframe is gated on that class.
+
+**It fails open**, which is the rule v3.3.496 had to go and build for the float.
+The resting state here is the column at its *full* height and only the keyframe
+is gated — so a browser with no `IntersectionObserver`, a silent one, or a card
+that is never scrolled to costs the animation and never the data. Nothing is
+hidden by omission.
+
+It has its own observer rather than borrowing `motionPass`'s: that one owns
+opacity for whole blocks and unobserves on first intersection, and this needs a
+different threshold — a third of the card, so the columns are properly on screen
+before they move rather than starting the moment one pixel clears the fold.
+
+**And the page clears the pill by more than a hairline.** The floating bar's top
+edge sits about 96px above the viewport bottom — a 10px offset, the home
+indicator's safe area, and a 52px pill — so the old 134px… the old **110px**
+left roughly fourteen pixels of air under the last line. Fine while a screen
+ended in a chart you glance at; this one ends in a row of small type that has to
+be read. 110 → 134.
+
 ## v3.3.513 (2026-09-09) — The week grows in, and the version rides up front
 
 **The columns grow.** v3.3.512 styled them with a transition on height, which

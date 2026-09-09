@@ -91,10 +91,36 @@ ok("each column carries its place in the week, so the growth staggers",
 ok("...and grows from zero as a keyframe, not a transition that can never fire",
    (function(){const css=fs.readFileSync(path.join(dir,"css/app.css"),"utf8");
      return /@keyframes rwgrow\{from\{height:0\}to\{height:var\(--h/.test(css)
-         && /\.restweek \.rwbar i::after\{[\s\S]{0,120}?animation:rwgrow/.test(css)
+         && /\.restweek\.grown \.rwbar i::after\{[\s\S]{0,120}?animation:rwgrow/.test(css)
          && !/\.restweek \.rwbar i::after\{transition:height/.test(css);})());
+/* ---- v3.3.514: it grows when it is SEEN ----
+   The animation used to run at paint, when this card is still a screen and a
+   half below the fold, so it was always over before the maker reached it. The
+   gate is a class an observer adds on first intersection. The important half
+   is that it FAILS OPEN, the rule v3.3.496 had to build for the float: the
+   resting state is the column at FULL height and only the keyframe is gated,
+   so a silent observer costs the animation and never the data. */
+ok("the columns are fully drawn before anything animates",
+   run(`(function(){const bars=[...document.querySelectorAll('.restweek .rwbar i')];
+     return bars.length===7 && bars.every(b=>{const h=b.style.getPropertyValue('--h');
+       return h && h!=='0' && h!=='0%';});})()`),
+   run(`[...document.querySelectorAll('.restweek .rwbar i')].map(b=>b.style.getPropertyValue('--h')).join(' ')`));
+ok("...and the keyframe waits for .grown, so nothing moves off-screen",
+   /#view:not\(\.norise\) \.restweek\.grown \.rwbar i::after/.test(fs.readFileSync(path.join(dir,"css/app.css"),"utf8")));
+ok("...which an observer adds when the card comes into view",
+   /rwIO=new IntersectionObserver/.test(fs.readFileSync(path.join(dir,"js/app.js"),"utf8")) &&
+   /el.classList.add\('grown'\)/.test(fs.readFileSync(path.join(dir,"js/app.js"),"utf8")));
+ok("...and adds it outright where there is no observer to wait for",
+   /if\(!\('IntersectionObserver' in window\)\)\{ go\(\); return; \}/.test(fs.readFileSync(path.join(dir,"js/app.js"),"utf8")));
+/* the card's last row is small type that has to be read, not glanced at */
+ok("...and the page clears the floating pill by more than a hairline",
+   (function(){const m=fs.readFileSync(path.join(dir,"css/app.css"),"utf8")
+     .match(/data-skin="minimal"\] #app\{padding-bottom:(\d+)px\}/);
+     return !!m && +m[1]>=130;})(),
+   (fs.readFileSync(path.join(dir,"css/app.css"),"utf8").match(/data-skin="minimal"\] #app\{padding-bottom:(\d+)px\}/)||[])[1]);
+
 ok("...only on an arrival, never on an in-place repaint",
-   /#view:not\(\.norise\) \.restweek \.rwbar i::after/.test(fs.readFileSync(path.join(dir,"css/app.css"),"utf8")));
+   /#view:not\(\.norise\) \.restweek\.grown \.rwbar i::after/.test(fs.readFileSync(path.join(dir,"css/app.css"),"utf8")));
 run(`(function(){const s=document.getElementById('__csstmp'); if(s) s.remove();})()`);
 
 ok("the card still leads with the count and the share",

@@ -1304,6 +1304,22 @@ function bindProg(){
   const box=document.getElementById('pgWrap'); if(!box) return;
   bindHoldScrub(box, progScrubAt, progScrubShow, '_pgArm');
 }
+
+/* v3.3.514: the week shape grows when it is SEEN. Its own observer rather than
+   motionPass's floatIO: that one owns opacity for whole blocks and unobserves
+   on first intersection, and this needs a different threshold -- a third of the
+   card in view, so the columns are properly on screen before they move rather
+   than starting the moment one pixel clears the fold. */
+let rwIO=null;
+function bindWeekShape(){
+  const el=document.querySelector('.restweek'); if(!el) return;
+  if(el.classList.contains('grown')) return;
+  const go=()=>{ el.classList.add('grown'); if(rwIO) try{ rwIO.unobserve(el); }catch(_e){} };
+  if(!('IntersectionObserver' in window)){ go(); return; }
+  if(rwIO) rwIO.disconnect();
+  rwIO=new IntersectionObserver(es=>{ for(const e of es) if(e.isIntersecting) go(); },{threshold:.34});
+  rwIO.observe(el);
+}
 function bindDrun(resetScroll=true){
   const box=document.getElementById('drWrap'); if(!box) return;
   if(resetScroll&&box.scrollWidth>box.clientWidth) box.scrollLeft=box.scrollWidth;
@@ -1526,6 +1542,7 @@ function paint(opts){
   bindHeat();
   bindDrun();
   bindProg();
+  bindWeekShape();
   /* v3.3.496: THE SCROLL LANDS FIRST. motionPass decides which blocks start
      hidden by measuring getBoundingClientRect().top against innerHeight -- and
      it used to do that BEFORE this scrollTo, so every measurement was taken

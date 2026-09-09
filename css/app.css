@@ -501,7 +501,17 @@
      flicker three releases went into removing. */
   @media (prefers-reduced-motion:no-preference){
     @keyframes rwgrow{from{height:0}to{height:var(--h,4%)}}
-    #view:not(.norise) .restweek .rwbar i::after{
+    /* v3.3.514: .grown, not merely present. The animation used to run at paint,
+       which is when this card is still a screen and a half below the fold --
+       so it was always over before the maker reached it. It waits to be SEEN
+       now; an observer adds .grown the first time the card scrolls in.
+       It fails OPEN, which is the rule v3.3.496 had to go and build for the
+       float: the resting state here is the column at its FULL height, and the
+       keyframe is the only thing gated. If the observer never speaks -- no
+       IntersectionObserver, a browser that stays quiet, a card that is never
+       scrolled to -- the week is still fully drawn and simply does not
+       animate. Nothing is ever hidden by omission. */
+    #view:not(.norise) .restweek.grown .rwbar i::after{
       animation:rwgrow var(--dur-arrive) var(--settle) both;
       animation-delay:calc(var(--j,0)*45ms)}
   }
@@ -3124,7 +3134,14 @@
   /* the pull-to-refresh dot, also found by the guard rather than by eye */
   :root[data-skin="minimal"] #ptr{border-color:transparent;box-shadow:var(--shadow)}
   :root[data-skin="minimal"] .rzbar{background:color-mix(in srgb,var(--accent) 10%,var(--ground))}
-  :root[data-skin="minimal"] #app{padding-bottom:110px}   /* the pill floats — content clears it */
+  /* v3.3.514: 110 -> 134. The floating pill's top edge sits about 96px above
+     the viewport bottom (10px offset + the home indicator's safe area + a 52px
+     pill), so 110 left roughly fourteen pixels of air under the last line.
+     That was enough while the last thing on a screen was a chart you glance
+     at; the rest card now ends in a row of small type -- weekday, percentage,
+     longest run -- that has to be READ, and reading something fourteen pixels
+     off a floating bar is what the maker means by hidden behind it. */
+  :root[data-skin="minimal"] #app{padding-bottom:134px}
   :root[data-skin="minimal"] #toast{bottom:118px}
 
   /* -----------------------------------------------------------------
