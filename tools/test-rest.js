@@ -842,6 +842,40 @@ ok("the status-bar style no longer puts content under the status bar",
     const accD=(cssN.match(/--accent:(#[0-9A-Fa-f]{6}); --accent-soft:#3A4A8C/)||[])[1];
     /* the pill's active ink must BE the app's blue: the accent in light, the accent-as-ink in dark */
     const dimD=(cssN.match(/--accent:#4C6BE3; --accent-soft:#3A4A8C; --accent-dim:(#[0-9A-Fa-f]{6})/)||[])[1];
+    /* ---- v3.3.510: THE REST RING ON THE BAR ----
+       It read --rest-ink, which is defined per THEME, so a light page with a
+       dark bar resolved the dark green meant for white: 2.07:1 on #1C202A.
+       The bar's background is independent of the page theme -- the same reason
+       --pill-chalk, --pill-ink and --pill-accent all live in the [data-bar]
+       blocks -- so the ring gets its own token there too. Recomputed here, in
+       the same machinery as the rest of the pill inks, so the number in the
+       comment cannot drift from the value in the sheet. The gate is the
+       GRAPHICS one: a 40px stroked square is a graphic, not text. */
+    {
+      /* anchored on --pill-accent, the line --pill-rest follows, and on the
+         shadow's drop colour that tells the two blocks apart (v3.3.463) --
+         the same anchors the pill trio above uses, for the same reason. */
+      /* anchored the way the pill trio above is: from --pill-accent, through
+         --pill-rest, to the shadow's drop colour, which is what tells the two
+         blocks apart (v3.3.463). A lazy [\s\S]*? here would span from the dark
+         block into the light one and report dark numbers as light -- the note
+         above the trio records that exact bug. */
+      const restD=(cssN.match(/--pill-accent:#[0-9A-Fa-f]{6};[\s\S]{0,700}?--pill-rest:(#[0-9A-Fa-f]{6});[\s\S]{0,300}?--pill-shadow:inset[^;]*rgba\(0,0,0,\.42\)/)||[]);
+      const restL=(cssN.match(/--pill-accent:#[0-9A-Fa-f]{6};[\s\S]{0,700}?--pill-rest:(#[0-9A-Fa-f]{6});[\s\S]{0,300}?--pill-shadow:inset[^;]*rgba\(22,26,40/)||[]);
+      ok("the bar defines its own resting green, for each bar appearance",
+         !!restD[1] && !!restL[1], "dark="+restD[1]+" light="+restL[1]);
+      const cD=cr(restD[1]||'#000', pillD[1]||'#000'), cL=cr(restL[1]||'#000', pillL[1]||'#fff');
+      ok("...on the dark bar it clears the 3:1 graphics gate",
+         cD>=3, restD[1]+" on "+pillD[1]+" = "+cD.toFixed(2)+":1");
+      ok("...and on the light bar too",
+         cL>=3, restL[1]+" on "+pillL[1]+" = "+cL.toFixed(2)+":1");
+      /* the failure this replaces: the theme's ink on the wrong bar */
+      const inkL=(cssN.match(/--rest-ink:(#[0-9A-Fa-f]{6});[^\n]*rest as text, light/)||[]);
+      if(inkL[1]) ok("...which the theme's own rest ink could not do (that is the bug)",
+         cr(inkL[1], pillD[1]||'#000')<3, inkL[1]+" on the dark bar = "+cr(inkL[1],pillD[1]||'#000').toFixed(2)+":1");
+      ok("...and the ring reads the bar's token, falling back to the theme's",
+         /nav\.resting button\[data-v="today"\] \.ng svg \.sq\{stroke:var\(--pill-rest,var\(--rest-ink\)\)/.test(cssN));
+    }
     ok("light: --pill-accent is the app accent itself", pillL[3]===accL, pillL[3]+" vs "+accL);
     ok("dark: --pill-accent is the app's accent-dim", pillD[3]===dimD, pillD[3]+" vs "+dimD);
     const inkD=pillD[3];
@@ -909,8 +943,13 @@ ok("the status-bar style no longer puts content under the status bar",
   }
   ok("...the closed day fills Today's square in the accent, regardless of selection",
      /nav\.dayclosed button\[data-v="today"\] \.ng svg \.sq\{fill:var\(--accent\);stroke:none\}/.test(cssN));
-  ok("...and the rest ring is the darker rest-ink, like the header's",
-     /nav\.resting button\[data-v="today"\] \.ng svg \.sq\{stroke:var\(--rest-ink\);fill:none\}/.test(cssN));
+  /* v3.3.510 RESTATES: "like the header's" was the mistake. The header sits on
+     the PAGE, so the page's rest ink is right for it; the bar does not, and
+     taking the page's ink put a dark green on a dark bar at 2.07:1. The claim
+     that survives is that the ring is a STROKE and not a fill -- the colour is
+     now the bar's own, recomputed above. */
+  ok("...and the rest ring is a stroke in the bar's own green, not a fill",
+     /nav\.resting button\[data-v="today"\] \.ng svg \.sq\{stroke:var\(--pill-rest,var\(--rest-ink\)\);fill:none\}/.test(cssN));
   /* Today's square: hollow while the day is open, filled when closed */
   run(`DB.days[todayISO]={w:[{part:'Chest',ex:'Dip',w:toKg(45),bw:true,reps:[8],at:1}],doneEx:[],donePart:[],upd:1}; SEED=deriveAll(); view='today'; render();`);
   ok("Today's square is hollow while the day is open (a set logged, not closed)",

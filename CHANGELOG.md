@@ -1,5 +1,37 @@
 # ShowUp — changelog
 
+## v3.3.510 (2026-09-09) — The rest ring follows the bar, not the page
+
+The Today square's resting ring was nearly invisible on the dark bar, and the
+reason was not the green. It read `--rest-ink`, which is defined **per page
+theme** — so a light page with a dark bar resolved `#1B5E20`, the dark green
+meant for white, at **2.07:1** on `#1C202A`. Under the 3:1 a graphic needs.
+
+This is the bug v3.3.478 already fixed once, for the selected glyph. The bar's
+background is independent of the page theme, which is why `--pill-chalk`,
+`--pill-ink` and `--pill-accent` all live in the `[data-bar]` blocks. The rest
+ring never got the treatment, so it kept asking the wrong palette.
+
+It has its own token now, declared in both blocks alongside the others:
+
+- **dark bar → `#66BB6A`** — `--rest`, dark theme's wash grade, **6.89:1**
+- **light bar → `#2E7D32`** — `--rest`, light theme's wash grade, **5.13:1**
+
+Both are the **wash** grade rather than the ink grade, chosen off a rendered
+comparison. Ink grade is for type; a 40px stroked square is a graphic, and
+`--rest-ink` at 9.91:1 read washed out beside the accent blue it alternates
+with. `--rest-ink` stays as the fallback for any surface where the page theme
+really is the background.
+
+Both ratios are recomputed in `test-rest` from the stylesheet, in the same
+machinery as the other pill inks, so the numbers above cannot drift from the
+values in the sheet — and the failing case is asserted too: the theme's own
+rest ink at 2.07:1 on the dark bar, which is the bug this replaces.
+
+The assertion that said the ring should be "the darker rest-ink, like the
+header's" is restated. *Like the header's* was the mistake — the header sits on
+the page, so the page's ink is right for it; the bar does not.
+
 ## v3.3.509 (2026-09-09) — The v3.3.179 promotion comes off
 
 The pill hung again, and this time it was walked rather than reasoned about.

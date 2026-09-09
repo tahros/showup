@@ -2459,7 +2459,9 @@
   nav button.on{color:var(--pill-chalk,var(--chalk));background:color-mix(in srgb,var(--muted) 16%,transparent)}
   nav button .ng svg .sq{fill:none;stroke:currentColor;stroke-width:2.6}
   nav.dayclosed button[data-v="today"] .ng svg .sq{fill:var(--accent);stroke:none}
-  nav.resting button[data-v="today"] .ng svg .sq{stroke:var(--rest-ink);fill:none}
+  /* v3.3.510: --pill-rest where the bar declares one; --rest-ink remains the
+     fallback for any surface where the page theme IS the background. */
+  nav.resting button[data-v="today"] .ng svg .sq{stroke:var(--pill-rest,var(--rest-ink));fill:none}
 
   nav button .ng svg .frame{fill:none;stroke:currentColor;stroke-width:2.4}
   /* v3.3.459: HIDE ON SCROLL. The bar slides off the bottom after ~28px of
@@ -2823,6 +2825,20 @@
      paints it before any CSS, so a cold start cannot flash the other one.
      v3.3.169's finding stands for an OPAQUE slab and is why Match is the
      default: nothing changes until it is asked to. */
+  /* v3.3.510: THE REST RING FOLLOWS THE BAR, NOT THE PAGE. It read --rest-ink,
+     which is defined per THEME -- so a light page with a dark bar resolved
+     #1B5E20, the dark green meant for white, at 2.07:1 on #1C202A. Barely
+     visible, which is what the maker photographed.
+     This is the bug v3.3.478 already fixed once for the selected glyph: the
+     bar's background is independent of the page theme, so the bar needs its
+     own ink. --pill-chalk, --pill-ink and --pill-accent all live in these
+     blocks for that reason; the rest ring never got the treatment.
+     The value is the WASH grade (--rest), not the ink grade (--rest-ink),
+     chosen off a rendered comparison. Ink grade is for type; a 40px stroked
+     square is a graphic, and --rest-ink at 9.91:1 read washed out beside the
+     accent blue it alternates with. 6.89:1 dark, 5.13:1 light.
+     Declared last in each block, right before --pill-shadow, so the fixed
+     character windows the contrast test scans are not disturbed. */
   :root[data-skin="minimal"][data-bar="dark"]{
     --pill-chalk:#FFFFFF;   /* v3.3.478: the BAR's strong ink -- see below */
     --pill:#1C202A; --pill-ink:#B6BCCA;   /* v3.3.460: a step lighter for the 72% glass */
@@ -2832,6 +2848,7 @@
     /* v3.3.463: the glass lighting, dark. White light on dark glass, quieter:
        specular rim on top, a rim hairline all round, light pooling in from
        above, shadow pooling inside the bottom, then the drop. */
+    --pill-rest:#66BB6A;   /* --rest, dark theme's wash grade; 6.89:1 on #1C202A */
     --pill-shadow:inset 0 1px 0 rgba(255,255,255,.28),inset 0 0 0 0.5px rgba(255,255,255,.14),
       inset 0 14px 20px -12px rgba(255,255,255,.14),inset 0 -10px 18px -12px rgba(0,0,0,.45),
       0 12px 32px rgba(0,0,0,.42),0 1px 2px rgba(0,0,0,.30);
@@ -2850,6 +2867,7 @@
     /* v3.3.463: the glass lighting, light. Specular rim on top, a hairline of
        light all round, light pooling in from above, a soft shadow pooling
        inside the bottom edge, then a soft drop and a contact shadow. */
+    --pill-rest:#2E7D32;   /* --rest, light theme's wash grade; 5.13:1 on #FFFFFF */
     --pill-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 0 0 0.5px rgba(255,255,255,.75),
       inset 0 14px 20px -12px rgba(255,255,255,.55),inset 0 -10px 18px -12px rgba(0,0,0,.10),
       0 10px 30px rgba(22,26,40,.16),0 1px 2px rgba(22,26,40,.08);
