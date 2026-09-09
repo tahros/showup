@@ -1610,13 +1610,32 @@ function celebrateDayDone(nowrite, forceCount, forceMile, forceShow){
      handed to the same overlay that already puts a canvas in the <img> and
      the same canvas into navigator.share. The photo itself is read, drawn and
      dropped; nothing is written to the record. */
+  /* v3.3.503: the card's stat columns. The first cut handed the photo card the
+     same one-line summary the ceremony prints -- "24 sets · 2.54 mi · Today,
+     complete." -- which reads fine as a caption under a card you are already
+     looking at and vanishes on a photograph. These are the same facts as
+     labelled values instead, in the app's own units, and only the ones this
+     day actually has: a lifting day has no distance, a run has no volume, and
+     an empty column is worse than a missing one. Three is the maximum the
+     width takes honestly. */
+  const photoStats=()=>{
+    const lifts=rows.filter(s2=>s2.part!=='Run');
+    const vol=lifts.reduce((t,s2)=>t+(Number(s2.w)||0)*((s2.reps||[]).reduce((a,b)=>a+(Number(b)||0),0)),0);
+    const out=[{label:'Sets',value:String(rows.length)}];
+    if(km>0) out.push({label:'Distance',value:`${dDisp(km)} ${DU()}`});
+    /* fmt + round, not wDisp: wDisp keeps a decimal, and "11375.8 lb" at 66px
+       is a worse number than "11,376 lb". History already reads
+       "79,151 lb lifted" -- the card uses the same grammar. */
+    if(vol>0) out.push({label:'Volume',value:`${fmt(Math.round(toU(vol)))} ${U()}`});
+    return out;
+  };
   const photoCard=async(file)=>{
     let img;
     try{ img=await loadPickedImage(file); }
     catch(e){ toast('Could not read that photo'); return; }
     leave();
     if(typeof showCard!=='function'||typeof drawPhotoCard!=='function') return;
-    showCard(()=>drawPhotoCard(img,count,dateLabel,summary),
+    showCard(()=>drawPhotoCard(img,count,dateLabel,photoStats()),
              'showup-'+todayISO+'-photo',false,true);
   };
   const picker=o.querySelector('#ddPhoto');

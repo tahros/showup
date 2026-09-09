@@ -185,11 +185,33 @@ const settle = () => new Promise(r => setTimeout(r, 40));
      calls.some(c => c.fn === "createImageBitmap" && c.args[0] &&
                      c.args[0].imageOrientation === "from-image"));
   const texts = calls.filter(c => c.fn === "fillText").map(c => String(c.args[0]));
-  ok("...and the day's numbers over it: the count, the unit line, the summary",
+  /* v3.3.503 RESTATES: the day's work is no longer one small mono run-on
+     under the count -- it is labelled stat columns, a quiet LABEL over a loud
+     VALUE, which is the only shape that survives being written on a
+     photograph. The claim is unchanged and stronger: the count, the unit
+     line, and the day's actual numbers are all on the card. Each column is
+     checked as a PAIR, because a label with no value under it is exactly the
+     failure worth catching. */
+  ok("...and the day's numbers over it: the count and the unit line",
      texts.some(t => /^\d{1,3}(,\d{3})*$/.test(t)) &&
-     texts.some(t => /DAYS OF SHOWING UP/.test(t)) &&
-     texts.some(t => /set/.test(t)),
+     texts.some(t => /DAYS OF SHOWING UP/.test(t)),
      texts.join(" | "));
+  ok("...as labelled columns, each label with a value under it",
+     (function () {
+       const want = [["SETS", /^\d+$/], ["DISTANCE", /^[\d.]+ (mi|km)$/], ["VOLUME", /^[\d,]+ (lb|kg)$/]];
+       return want.every(([lab, re]) => {
+         const at = texts.indexOf(lab);
+         return at >= 0 && texts[at + 1] !== undefined && re.test(texts[at + 1]);
+       });
+     })(),
+     texts.join(" | "));
+  ok("...with the big numbers set large, not caption-sized",
+     (function () {
+       const fonts = calls.filter(c => c.fn === "set:font").map(c => String(c.args[0]));
+       const px = fonts.map(f => parseFloat((f.match(/(\d+(?:\.\d+)?)px/) || [])[1] || 0));
+       return px.some(p => p >= 150) && px.filter(p => p >= 60).length >= 2;
+     })(),
+     calls.filter(c => c.fn === "set:font").map(c => (String(c.args[0]).match(/\d+px/) || [""])[0]).join(","));
   ok("...and the mark rides on top",
      drew.some(c => c.args.length === 5 && c.args[3] === 64 && c.args[4] === 64) ||
      /_dayIcon/.test(fs.readFileSync(path.join(dir, "js/report.js"), "utf8")));

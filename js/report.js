@@ -1135,7 +1135,7 @@ document.addEventListener('toggle',e=>{
    middle and closes at top and bottom where the type sits, and a soft shadow
    under the type itself for the case where the scrim lands on something
    already dark. */
-function drawPhotoCard(img,count,dateLabel,summary){
+function drawPhotoCard(img,count,dateLabel,stats){
   const W=1080,H=1350;                       /* 4:5 — the tallest frame every
                                                 platform crops to fully */
   const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
@@ -1150,70 +1150,117 @@ function drawPhotoCard(img,count,dateLabel,summary){
     x.drawImage(img,(W-dw)/2,(H-dh)/2,dw,dh);
   }
 
-  /* 2. the scrim. Transparent through the middle so the picture is still the
-     subject; it closes at the bottom under the numbers and, more gently, at
-     the top under the date. */
+  /* 2. the scrim. v3.3.503: it closes harder and higher at the bottom than the
+     first cut did. The numbers are the point of the card now and they take up
+     the lower third, so the gradient has to be doing real work there --
+     transparent through the middle so the picture is still the subject, then
+     closing from just under halfway. */
   const g=x.createLinearGradient(0,0,0,H);
-  g.addColorStop(0,'rgba(0,0,0,.42)');
-  g.addColorStop(.20,'rgba(0,0,0,.06)');
-  g.addColorStop(.52,'rgba(0,0,0,0)');
-  g.addColorStop(.78,'rgba(0,0,0,.40)');
-  g.addColorStop(1,'rgba(0,0,0,.72)');
+  g.addColorStop(0,'rgba(0,0,0,.46)');
+  g.addColorStop(.18,'rgba(0,0,0,.08)');
+  g.addColorStop(.40,'rgba(0,0,0,0)');
+  g.addColorStop(.62,'rgba(0,0,0,.30)');
+  g.addColorStop(.82,'rgba(0,0,0,.62)');
+  g.addColorStop(1,'rgba(0,0,0,.82)');
   x.fillStyle=g; x.fillRect(0,0,W,H);
 
-  /* 3. type, with a shadow for the frame where the scrim is not enough */
-  const soft=()=>{ x.shadowColor='rgba(0,0,0,.55)'; x.shadowBlur=18; x.shadowOffsetY=2; };
+  const soft=()=>{ x.shadowColor='rgba(0,0,0,.5)'; x.shadowBlur=20; x.shadowOffsetY=2; };
   const hard=()=>{ x.shadowColor='transparent'; x.shadowBlur=0; x.shadowOffsetY=0; };
+  const L=80;
+  x.textBaseline='alphabetic';
 
-  const L=84, BOT=H-96;
-  x.textAlign='left'; x.textBaseline='alphabetic';
-
-  /* the mark, top left, at the size the receipt uses it */
-  const ICON=64;
+  /* the mark, top left, with the date opposite on the same line */
+  const ICON=76;
   if(typeof _dayIcon!=='undefined'&&_dayIcon&&_dayIcon.complete&&_dayIcon.naturalWidth){
     x.save();
     x.beginPath();
-    const r=15,x0=L,y0=84;
+    const r=18,x0=L,y0=76;
     x.moveTo(x0+r,y0);x.arcTo(x0+ICON,y0,x0+ICON,y0+ICON,r);x.arcTo(x0+ICON,y0+ICON,x0,y0+ICON,r);
     x.arcTo(x0,y0+ICON,x0,y0,r);x.arcTo(x0,y0,x0+ICON,y0,r);x.closePath();
-    x.clip(); x.drawImage(_dayIcon,L,84,ICON,ICON); x.restore();
+    x.clip(); x.drawImage(_dayIcon,L,76,ICON,ICON); x.restore();
   }
-  /* the date rides opposite the mark, on the same line */
   soft();
-  x.fillStyle='rgba(255,255,255,.86)';
-  x.font=`500 26px ${MONO}`;
+  x.fillStyle='rgba(255,255,255,.9)';
+  x.font=`500 28px ${MONO}`;
   x.textAlign='right';
-  x.fillText(String(dateLabel||'').toUpperCase(),W-L,84+ICON-20);
-
-  /* the block, bottom left: square, count, unit, summary */
+  x.fillText(String(dateLabel||'').toUpperCase(),W-L,76+ICON-24);
   x.textAlign='left';
+
+  /* ---- v3.3.503: THE NUMBERS ARE THE CARD ----
+     The first cut put the day's work in one small mono run-on under the count
+     -- "24 sets · 2.54 mi · Today, complete." -- which is how it reads INSIDE
+     the app, where it is a caption under a card you are already looking at. On
+     a photograph it disappeared. Every card of this kind that works does the
+     same thing instead: a small quiet LABEL over a large loud VALUE, two or
+     three of them across the bottom. The label can be small because the value
+     tells you what it is; the value has to be big because it is the reason the
+     picture is being shared at all.
+     So the block is built from the bottom up: the stat row sits on the base
+     line, the streak count stands above it at headline size, and the square
+     tops the stack. Anything that does not fit is dropped from the right, not
+     shrunk -- three columns at this width is the honest maximum. */
+  const BOT=H-104;
   let y=BOT;
-  if(summary){
-    x.fillStyle='rgba(255,255,255,.88)';
-    x.font=`400 27px ${MONO}`;
-    x.fillText(summary,L,y);
-    y-=52;
+  {
+    /* MEASURE, THEN PACK. The first cut split the width into equal columns and
+       trusted three to fit. They do not: "17,310 lb" at 66px is nearly three
+       hundred pixels and ran to the frame edge, and the labels are tracked, so
+       the real width is wider than the metrics say -- canvas letterSpacing is
+       not applied by every engine that draws this, which means measureText
+       under-reports it exactly where it matters. So each column is measured
+       at its own type, tracking is added back by hand, and columns are DROPPED
+       FROM THE RIGHT until the row fits. Shrinking to fit would quietly undo
+       the one thing this release is for. */
+    const GAP=54, VF=`600 66px ${SANS}`, LF=`500 24px ${MONO}`, TRACK=2;
+    const measure=c=>{
+      x.font=VF; const vw=x.measureText(String(c.value)).width;
+      x.font=LF; const lab=String(c.label).toUpperCase();
+      const lw=x.measureText(lab).width+TRACK*lab.length;
+      return Math.max(vw,lw);
+    };
+    let cols=(stats||[]).filter(s2=>s2&&s2.value).slice(0,3).map(c=>({...c,w:measure(c)}));
+    const fits=cs=>cs.reduce((t,c)=>t+c.w,0)+GAP*Math.max(0,cs.length-1) <= W-L*2;
+    while(cols.length>1&&!fits(cols)) cols.pop();
+    if(cols.length){
+      let cx=L;
+      cols.forEach(c=>{
+        soft();
+        x.fillStyle='rgba(255,255,255,.72)';
+        x.font=LF;
+        x.save(); x.letterSpacing=TRACK+'px';
+        x.fillText(String(c.label).toUpperCase(),cx,y-72); x.restore();
+        x.fillStyle='#fff';
+        x.font=VF;
+        x.fillText(String(c.value),cx,y);
+        cx+=c.w+GAP;
+      });
+      y-=72+64;
+    }
   }
-  x.fillStyle='rgba(255,255,255,.80)';
-  x.font=`500 24px ${MONO}`;
-  const unit=`${count===1?'DAY':'DAYS'} OF SHOWING UP`;
-  x.save(); x.letterSpacing='3px'; x.fillText(unit,L,y); x.restore();
-  y-=34;
+  /* the streak, at headline size */
+  soft();
+  x.fillStyle='rgba(255,255,255,.78)';
+  x.font=`500 25px ${MONO}`;
+  x.save(); x.letterSpacing='3px';
+  x.fillText(`${count===1?'DAY':'DAYS'} OF SHOWING UP`,L,y);
+  x.restore();
+  y-=40;
   x.fillStyle='#fff';
-  const big=count>=1000?150:170;
+  const big=count>=1000?170:190;
   x.font=`600 ${big}px ${SANS}`;
   x.fillText(fmt(count),L,y);
-  y-=big+30;
-  hard();
+  y-=big+34;
   /* the square is the app's one symbol and it stays solid — a shadow under it
-     would read as a second square */
-  const SQ=54;
-  x.save(); x.shadowColor='rgba(0,0,0,.45)'; x.shadowBlur=22;
+     would read as a second square, so it gets a glow of its own instead */
+  hard();
+  const SQ=58;
+  x.save(); x.shadowColor='rgba(0,0,0,.45)'; x.shadowBlur=24;
   x.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#4C6BE3';
-  const rr2=(x0,y0,w,h,r2)=>{x.beginPath();
-    x.moveTo(x0+r2,y0);x.arcTo(x0+w,y0,x0+w,y0+h,r2);x.arcTo(x0+w,y0+h,x0,y0+h,r2);
-    x.arcTo(x0,y0+h,x0,y0,r2);x.arcTo(x0,y0,x0+w,y0,r2);x.closePath();};
-  rr2(L,y-SQ,SQ,SQ,16); x.fill(); x.restore();
+  x.beginPath();
+  const r2=17,sx=L,sy=y-SQ;
+  x.moveTo(sx+r2,sy);x.arcTo(sx+SQ,sy,sx+SQ,sy+SQ,r2);x.arcTo(sx+SQ,sy+SQ,sx,sy+SQ,r2);
+  x.arcTo(sx,sy+SQ,sx,sy,r2);x.arcTo(sx,sy,sx+SQ,sy,r2);x.closePath();
+  x.fill(); x.restore();
   hard();
   return cv;
 }

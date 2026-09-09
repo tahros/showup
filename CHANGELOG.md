@@ -1,5 +1,38 @@
 # ShowUp — changelog
 
+## v3.3.503 (2026-09-09) — The numbers are the card
+
+The first cut of the photo card put the day's work in one small mono run-on
+under the count — *24 sets · 2.54 mi · Today, complete.* That reads fine inside
+the app, where it is a caption under a card you are already looking at. On a
+photograph it disappeared.
+
+Every card of this kind that works does the same thing instead: a small quiet
+**label** over a large loud **value**, two or three across the bottom. The label
+can be small because the value tells you what it is; the value has to be big
+because it is the reason the picture is being shared at all.
+
+So the block is built from the bottom up — the stat row on the base line, the
+streak count above it at headline size, the square topping the stack. Sets,
+Distance and Volume, in the app's own units, and only the ones the day actually
+has: a lifting day has no distance, a run has no volume, and an empty column is
+worse than a missing one. Volume takes History's grammar — `17,310 lb`, not
+`17310.4 lb`, because a decimal at 66px is a worse number.
+
+The scrim closes harder and higher to match, since the numbers now occupy the
+lower third.
+
+**Measure, then pack.** The first layout split the width into equal columns and
+trusted three to fit. They do not: `17,310 lb` at 66px is nearly three hundred
+pixels and ran to the frame edge. Each column is now measured at its own type,
+letter tracking is added back by hand — canvas `letterSpacing` is not applied by
+every engine that draws this, so `measureText` under-reports exactly where it
+matters — and columns are **dropped from the right** until the row fits.
+Shrinking to fit would quietly undo the one thing this release is for.
+
+Checked by rendering a real 1080×1350 PNG over a deliberately bright, busy
+photograph and looking at it, not by trusting the call log.
+
 ## v3.3.502 (2026-09-08) — The photo card
 
 The thing Nike Run does: a photo you just took, the day's numbers over it, the
