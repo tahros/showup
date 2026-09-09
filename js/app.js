@@ -178,7 +178,7 @@ document.addEventListener('click',e=>{
     /* v3.3.434: Train Next's Start replaces lift wholesale, so the return has
        to be carried across the assignment rather than set before it. */
     const _ret=view==='lift'?null:view;
-    view='lift';lift={part:goP,ex:goEx,weight:0,ret:_ret};
+    view='lift'; liftEnter({part:goP,ex:goEx,ret:_ret});
     return render();
   }
   const pt=e.target.closest('[data-part]:not([data-ex])');
@@ -779,7 +779,7 @@ document.addEventListener('click',e=>{
     return renderSync();
   }
   if(e.target.closest('#goLift')){
-    view='lift'; lift={part:null,ex:null,weight:0,ret:null};   // the tab's own entry state; no return to inherit
+    view='lift'; liftEnter({});   // the tab's own entry state; no return to inherit
     return render();
   }
   if(e.target.closest('#msDismiss')){
@@ -1511,6 +1511,26 @@ let lastView=null;
    day. */
 // v3.3.489 supersedes the timed handover described above: explicit Done/Share
 // controls keep the approved moment on screen. Existing ledger rules remain.
+/* v3.3.507: THE TRAIN TAB STOPS THROWING AWAY THE TODAY TAB'S VIEW.
+   `lift` is one bag holding two unrelated things: the Train tab's drill-down
+   (part, exercise, the weight in the logger) and the Today tab's plan view
+   (which scope you are reading, which days you have open, whether the fold is
+   shut). Entering Train REPLACED that object wholesale, so it cleared the
+   second along with the first -- and the maker, reading his week with
+   Wednesday open, tapped Train and came back to the day scope with the fold
+   open. Nothing was lost from the record; what was lost was where he was.
+   The Train tab may reset its OWN state and nothing else. These are the keys
+   the plan section owns, carried across every entry. `lift.plan` is
+   deliberately NOT among them: that is the paste/preview sub-screen, a place
+   you walked into rather than a way you were reading, and it is what
+   screenKey() calls an arrival. Leaving a tab abandons a screen; it should
+   not abandon a viewpoint. */
+const PLAN_VIEW_KEYS=['planScope','planFold','weekOpen'];
+const liftEnter=o=>{
+  const keep={};
+  PLAN_VIEW_KEYS.forEach(k=>{ if(k in (lift||{})) keep[k]=lift[k]; });
+  lift=Object.assign({part:null,ex:null,weight:0,ret:null},o,keep);
+};
 function celebrateDayDone(nowrite, forceCount, forceMile, forceShow){
   if(document.getElementById('dayDone')) return;
   if(!nowrite){

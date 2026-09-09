@@ -164,6 +164,49 @@ ok("...and a plan sub-screen is an arrival, though view never moved",
    run(`__scrollLog.length===1 && __scrollLog[0]===0`) &&
    run(`!document.getElementById('view').classList.contains('norise')`),
    run(`JSON.stringify(__scrollLog)+' key='+screenKey()`));
+/* ---- v3.3.507: LEAVING A TAB DOES NOT ABANDON A VIEWPOINT ----
+   `lift` is one bag holding the Train tab's drill-down AND the Today tab's
+   plan view. Entering Train replaced that object wholesale, so it cleared the
+   second with the first: the maker was reading his WEEK with Wednesday open,
+   tapped Train, came back, and found the day scope with the fold open.
+   Asserted as the round trip he actually made, not as the shape of the
+   assignment -- and including a real drill-down on the way, because resetting
+   Train's own state is the thing that must still work. */
+run(`(function(){lift.plan=null; view='today'; lift.planScope='week'; render();
+  lift.weekOpen=new Set(Object.keys((weekNow()||{days:{}}).days).slice(0,2));
+  lift.planFold=true; render();
+  globalThis.__scope=lift.planScope;
+  globalThis.__open=[...lift.weekOpen].sort().join(',');
+  globalThis.__fold=lift.planFold;})()`);
+ok("(fixture) the maker is reading the week, with days open",
+   run(`__scope==='week' && __open.length>0`), run(`__scope+' / '+__open`));
+run(`(function(){ document.getElementById('goLift').click(); })()`);
+/* renderLift picks a part for you on arrival, which is its own long-standing
+   behaviour -- what liftEnter owns is that nothing is INHERITED across the
+   entry: no exercise, no weight in the logger, no return to somewhere else */
+ok("the Train tab still enters clean, inheriting nothing",
+   run(`view==='lift' && lift.ex===null && lift.weight===0 && lift.ret===null`),
+   run(`view+' ex='+lift.ex+' w='+lift.weight+' ret='+lift.ret`));
+run(`(function(){ lift.part='Chest'; render(); lift.ex='Barbell Bench Press'; render(); })()`);
+run(`(function(){ view='today'; render(); })()`);
+ok("...and coming back to Today lands on the week you were reading",
+   run(`lift.planScope`)===run(`__scope`), run(`lift.planScope+' (was '+__scope+')'`));
+ok("...with the same days still open",
+   run(`[...(lift.weekOpen||[])].sort().join(',')`)===run(`__open`),
+   run(`[...(lift.weekOpen||[])].sort().join(',')+' (was '+__open+')'`));
+ok("...and the fold as you left it",
+   run(`!!lift.planFold`)===run(`!!__fold`), run(`String(!!lift.planFold)`));
+/* the sub-screen is NOT a viewpoint: walking into the paste editor and then
+   leaving the tab abandons that screen, which is what screenKey calls an
+   arrival */
+run(`(function(){ lift.plan='paste'; document.getElementById('goLift').click(); view='today'; render(); })()`);
+ok("...but a sub-screen you walked into is not carried back",
+   run(`!lift.plan`), run(`String(lift.plan)`));
+/* hand the file back the state it had before this block, or the assertions
+   after it inherit an open week and go red for no reason of their own */
+run(`(function(){lift.plan=null; lift.part=null; lift.ex=null; lift.planFold=false;
+  lift.weekOpen=null; view='today'; lift.planScope='week'; render();})()`);
+
 /* the escape hatch named in the comment: one function drives all of it */
 ok("screenKey names the screen, and nothing else decides",
    run(`screenKey()`) === run(`[view,lift.plan||'',lift.part||'',lift.ex||'',lift.write?'w':''].join('|')`),

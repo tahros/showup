@@ -1,5 +1,30 @@
 # ShowUp — changelog
 
+## v3.3.507 (2026-09-09) — Leaving a tab does not abandon a viewpoint
+
+The maker was reading his **week** on Today, with Wednesday open. He tapped
+**Train**, came back, and found the **day** scope with the fold open. Nothing was
+lost from the record; what was lost was where he was.
+
+`lift` is one object holding two unrelated things: the Train tab's drill-down —
+part, exercise, the weight sitting in the logger — and the Today tab's plan
+view: which scope you are reading, which days you have open, whether the fold is
+shut. Entering Train replaced that object **wholesale**, so it cleared the second
+along with the first. The comment on that line called it "the tab's own entry
+state", which was the intent; the assignment did not honour it.
+
+The Train tab may now reset its own state and nothing else. Three keys belong to
+the plan section and are carried across every entry: the scope, the open days,
+and the fold.
+
+`lift.plan` is deliberately not among them. That is the paste/preview
+sub-screen — a place you walked into rather than a way you were reading, and
+what `screenKey()` calls an arrival. Leaving a tab abandons a screen; it should
+not abandon a viewpoint.
+
+Asserted as the round trip he actually made, with a real drill-down on the way,
+because resetting Train's own state is the half that must still work.
+
 ## v3.3.506 (2026-09-09) — The photo card comes out, and the date joins its number
 
 **The photo option is gone.** It shipped over v3.3.502–504 — a camera on the
