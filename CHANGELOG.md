@@ -1,5 +1,39 @@
 # ShowUp — changelog
 
+## v3.3.509 (2026-09-09) — The v3.3.179 promotion comes off
+
+The pill hung again, and this time it was walked rather than reasoned about.
+
+`tools/demo-fixedchain.js` climbs the ancestor chain of every piece of fixed
+chrome — the nav, the "top" button, the header — under every class the app can
+put on `<body>`, and reports two things: any ancestor property that makes an
+element a containing block for fixed descendants, and any compositing promotion
+on the fixed element itself. Run against the shipped build it fails on both the
+nav and the top button, for the same reason, in every state.
+
+What it eliminates matters as much as what it finds. **No ancestor of either
+element carries a transform, filter, contain or perspective in any state.**
+`#app`'s `overflow-x:clip` is an ancestor of the nav but **not** of the top
+button, which mounts on `<body>` — so it was never the shared cause. What is
+left is one thing the two hanging elements share and nothing else on the page
+has: the **v3.3.179 compositing promotion**.
+
+179 promoted both to their own layers to fix a lag where iOS re-anchored fixed
+elements only at the end of a gesture. Everything built on that premise since
+has failed on the device — v3.3.480's translateZ theory, v3.3.495's scroll belt,
+v3.3.497's blur. A promoted layer is precisely the thing that can be composited
+at a stale position, which makes the 2019-era fix the leading candidate for the
+2026 bug.
+
+So it comes off, whole and alone. If the chrome holds, 179's premise expired
+with the iOS version that needed it. If it does not, the next candidate is
+`#app`'s `overflow-x:clip` — which explains the nav only, and would mean the top
+button is a separate fault.
+
+The scan is checked in and gated, so the next person can run it instead of
+reading five releases of hypotheses. The assertion that used to *require* the
+promotion now requires its absence.
+
 ## v3.3.508 (2026-09-09) — The tab the maker actually taps
 
 v3.3.507 claimed to fix "coming back from Train loses the week you were

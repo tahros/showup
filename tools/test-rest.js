@@ -795,9 +795,19 @@ ok("the status-bar style no longer puts content under the status bar",
     /* v3.3.480 RESTATES: the 179 rule split. The top button keeps the full
        hint; the nav keeps will-change only -- translateZ(0) with an active
        backdrop-filter hung the pill mid-scroll on the device. */
-    ok("...the top button keeps the v3.3.179 compositing rule, and the nav keeps will-change without the 3D transform",
-       /\n\s*\.calreturn\{transform:translateZ\(0\)[^}]*will-change:transform/.test(cssN) &&
-       /\n\s*nav\{will-change:transform[^}]*\}/.test(cssN) && !/\n\s*nav\{[^}]*translateZ/.test(cssN));
+    /* v3.3.509 REVERSES v3.3.179. That release promoted both the nav and the
+       top button to their own compositing layers, to fix a lag where iOS
+       re-anchored fixed elements only at the end of a gesture. Every fix built
+       on that premise since has failed on the device: 480's translateZ theory,
+       495's scroll belt, 497's blur. Walking every ancestor of both hanging
+       elements under every body class (tools/demo-fixedchain.js) leaves the
+       promotion as the one thing they share and nothing else on the page has.
+       A promoted layer is exactly what can be composited at a stale position,
+       so the fix became the leading candidate for the bug. This assertion is
+       what keeps it off until the maker reads the result. */
+    ok("...neither the nav nor the top button is promoted to its own layer",
+       !/\n\s*\.calreturn\{[^}]*(translateZ|will-change|backface-visibility)/.test(cssN) &&
+       !/\n\s*nav\{[^}]*(translateZ|will-change|backface-visibility)/.test(cssN));
     /* v3.3.495 RESTATES: the belt is gone. navReanchor() put translateZ(0)
        back on the nav 120ms after every scroll -- reapplying the very trigger
        the assertion above removes. The maker reported the pill still hanging
