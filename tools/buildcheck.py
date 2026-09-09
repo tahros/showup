@@ -325,6 +325,23 @@ if _re.search(r"\n\s*nav\{[^}]*translateZ", css):
 # navReanchor() re-applied translateZ(0) to the nav 120ms after every scroll --
 # the same trigger the rule two checks above removes. A guard that demanded its
 # presence is why it survived three releases of the bug it was meant to fix.
+# v3.3.508: `lift` holds the Train tab's drill-down AND the Today tab's plan
+# view. Any wholesale reassignment of it clears the second with the first, which
+# is how the maker kept losing the week he was reading. liftEnter() is the only
+# place allowed to write the binding; everything else assigns to its fields.
+# Written as a pattern rather than a name because v3.3.507 fixed two of the
+# three sites and missed `lift=b?{...}` -- the grep looked for `lift={`.
+_appsrc = (d/"js/app.js").read_text()
+# comments are stripped first: the note above this fix quotes `lift={...}` and
+# `lift=b?{...}` to explain what is banned, and a raw scan reads that prose as
+# the violation it is describing. Four assertions this session have failed on
+# their own explanation; bind to code, never to the word.
+_appsrc = _re.sub(r"/\*[\s\S]*?\*/", "", _appsrc)
+_appsrc = _re.sub(r"(?m)//.*$", "", _appsrc)
+_liftbad = [m for m in _re.finditer(r"(?<![.\w])lift\s*=(?!=)", _appsrc)
+            if "lift=Object.assign" not in _appsrc[m.start():m.start()+40]]
+if _liftbad:
+    fail.append("lift is reassigned outside liftEnter() (%d site(s)) — that clears the Today tab's plan view with the Train tab's state (v3.3.508)" % len(_liftbad))
 if "function navReanchor" in _util:
     fail.append("navReanchor() is back — it re-applies translateZ(0) to the nav on every scroll, which is the trigger v3.3.480 removed (v3.3.495)")
 if _re.search(r"\n\s*nav\.reanchor\{", css):

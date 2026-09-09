@@ -1,5 +1,35 @@
 # ShowUp — changelog
 
+## v3.3.508 (2026-09-09) — The tab the maker actually taps
+
+v3.3.507 claimed to fix "coming back from Train loses the week you were
+reading". It did not, and the failure was in the shape of the test, not the
+difficulty of the bug.
+
+There were **three** wholesale `lift=` assignments, not two. The fix caught the
+two that read `lift={...}`; the third reads `lift=b?{...}` and sits in the nav
+handler — which is the only way into Train on a phone, and therefore the only
+one the maker ever hits. The grep that found the others looked for `lift={`.
+
+The test agreed with the bug because it drove **state** instead of **controls**:
+it set `view='today'` and called `render()`, so it never went through the nav
+handler at all. A test that reaches around a control cannot see a bug that lives
+in one.
+
+So this release adds `tools/demo-tabtrip.js`, which walks the three taps he
+made — WEEK, Train, Today — by dispatching real clicks on real buttons, and
+prints what is **on screen** after each: which pill is selected, whether the
+week stack is rendered, which day cards are open. Run against the shipped build
+it reproduces the bug; run against this one it passes. It is a demo first and a
+gate second, and it is checked in so the next person can watch it rather than
+read about it.
+
+`buildcheck` now guards the binding itself: `liftEnter()` is the only place
+allowed to write `lift`, enforced as a pattern rather than a name, because
+naming the shape is exactly what let the third site through. Comments are
+stripped before the scan — the note explaining the ban quotes both bad forms,
+and four assertions this session have now failed on their own explanation.
+
 ## v3.3.507 (2026-09-09) — Leaving a tab does not abandon a viewpoint
 
 The maker was reading his **week** on Today, with Wednesday open. He tapped

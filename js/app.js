@@ -143,7 +143,13 @@ document.addEventListener('click',e=>{
        tab deliberately clears any pending return, so back on that screen
        unwinds Train as it always has -- the arrow only leaves the tab when you
        actually arrived from somewhere else. */
-    if(view==='lift'){const b=liftBack(); lift=b?{part:b.part,ex:b.ex,weight:0,ret:null}:{part:null,ex:null,weight:0,ret:null};}
+    /* v3.3.508: and THIS is the one the maker actually taps. v3.3.507 fixed
+       the two entries into Train that read `lift={...}` and missed this one,
+       because it reads `lift=b?{...}` -- the grep that found the others did
+       not match it, and the test drove `view='today'` directly instead of
+       clicking the tab, so it never came through here at all. The nav bar is
+       the only way into Train on a phone. */
+    if(view==='lift'){ const b=liftBack(); liftEnter(b?{part:b.part,ex:b.ex}:{}); }
     else if(lift) lift.ret=null;
     return render();
   }
