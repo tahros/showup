@@ -1,5 +1,29 @@
 # ShowUp — changelog
 
+## v3.3.513 (2026-09-09) — The week grows in, and the version rides up front
+
+**The columns grow.** v3.3.512 styled them with a transition on height, which
+animates nothing: a bar is born at its final height, and a transition needs a
+*change* to run. It has to be a keyframe, from zero. They stagger left to right
+by 45ms so the week reads as a week rather than seven things appearing at once.
+
+Gated on `#view:not(.norise)` — the app's existing signal for *this is an
+in-place repaint, not an arrival* (v3.3.492). Without it the columns would
+re-grow every time anything on Today re-rendered, which is the flicker three
+releases went into removing.
+
+**The version rides at the top of Settings.** It sat under a full screen of
+controls and a paragraph of icon credits, so answering the one question you open
+Settings to answer mid-debug — *which build is this* — meant scrolling the whole
+page. It is a fact about the app, not a footnote to the controls, so it goes
+where you land. The credits keep the foot to themselves, carried in full.
+
+Both guards that pinned the old arrangement are turned around rather than
+deleted: `buildcheck` and `test-stats-repzone` required the credits to sit
+*beneath the version*, which stopped being the claim. What they assert now is
+what actually matters — the version comes before the Display section, and the
+credits are still all there.
+
 ## v3.3.512 (2026-09-09) — The week shape, and the tick becomes a rule
 
 **The heading.** A 3px accent pip sat before every heading, about ten times a

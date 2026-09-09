@@ -45,8 +45,9 @@ if shell_count != 13: fail.append(f"sw SHELL has {shell_count} stamped assets, e
 # mono -- every track cut for a wider character than it holds. The card is one
 # grid with max-content tail columns now: the layout measures itself, and
 # there is nothing left to allowlist.
-RUNTIME = {"--i", "--len", "--sat", "--planw", "--planr", "--h"}   # set via style.setProperty / inline style / env() default
+RUNTIME = {"--i", "--len", "--sat", "--planw", "--planr", "--h", "--j"}   # set via style.setProperty / inline style / env() default
 # --h: v3.3.512, the week shape's column height, written inline per weekday
+# --j: v3.3.513, that column's place in the week, for the growth stagger
 used = set(re.findall(r"var\((--[A-Za-z0-9-]+)", css))
 defined = set(re.findall(r"(--[A-Za-z0-9-]+)\s*:", css))
 undef = used - defined - RUNTIME
@@ -580,8 +581,14 @@ if not all(_credit in _settings for _credit in (
         "Travis Avery", "share-2438501", "edit-1751206", "Timur Minvaleev",
         "Noun Project")):
     fail.append("settings: an icon credit or source link is missing (v3.3.212/359)")
-if not _re.search(r"ShowUp \$\{APP_VERSION\}</div>\s*<div class=\"note assetcredits\"", _settings):
-    fail.append("settings: icon credits must sit beneath the app version (v3.3.212)")
+# v3.3.513: the version moved to the TOP of Settings -- it sat under a screenful
+# of controls and a paragraph of credits, so answering "which build is this"
+# meant scrolling the whole page. The guard follows it: the version must come
+# BEFORE the Display section, and the credits must still be carried in full.
+_set = (d/"js/settings.js").read_text()
+_v, _c, _h = _set.find("ShowUp ${APP_VERSION}"), _set.find("assetcredits"), _set.find("<h2>Display</h2>")
+if _v < 0 or _c < 0 or _h < 0 or not (_v < _h and _v < _c):
+    fail.append("settings: the app version must be the first thing on the page, above Display and the credits (v3.3.513)")
 
 if any(_old in _stats for _old in ("Stated, not trained", "INTENT_GAP_DAYS",
         "intentGaps", "intentGapCard", "data-igretire")):

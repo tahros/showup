@@ -958,11 +958,12 @@ function weekShape(R){
   const sub=(top.rate>=.5&&top.rate-second.rate>=.12)
     ? `${Math.round(top.rate*100)}% of them, across ${fmt(R.daysIn)} days.`
     : `across ${fmt(R.daysIn)} days.`;
-  const bars=cols.map(c=>{
+  const bars=cols.map((c,i)=>{
     const pct=Math.round(c.rate*100), lead=c===top&&spread>=.15;
+    /* --j is the column's place in the week, so the growth staggers across it */
     return `<span class="rwbar${lead?' lead':''}" role="img"
       aria-label="${c.name}: rested ${c.n} of ${c.of}, ${pct}%">
-      <i style="--h:${Math.max(4,Math.round(c.rate*100))}%"></i>
+      <i style="--h:${Math.max(4,Math.round(c.rate*100))}%;--j:${i}"></i>
       <b>${c.let}</b><small>${pct}%</small></span>`;
   }).join('');
   return `<div class="restweek">

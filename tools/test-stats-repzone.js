@@ -200,9 +200,19 @@ check("...and the section comment states those same two routes and no third",
      /heavier than anything in the\s+record window/.test(gaRule) &&
      !/matches or beats the reps on the previous heaviest set/.test(gaRule)}`, "true");
 
-check("icon credits live beneath the version in Settings",
-  `${/ShowUp \$\{APP_VERSION\}<\/div>\s*<div class="note assetcredits"/.test(fs.readFileSync(path.join(dir,'js','settings.js'),'utf8'))&&
-    ['minus-8363736','trend-2344331','ARIPATUT DASUKI','Travis Avery','Noun Project'].every(x=>fs.readFileSync(path.join(dir,'js','settings.js'),'utf8').includes(x))}`,"true");
+/* v3.3.513 RESTATES: the version moved to the TOP of Settings -- it sat under
+   a full screen of controls and a paragraph of credits, which meant scrolling
+   the whole page to answer the one question you open Settings to answer
+   mid-debug. So "beneath the version" is no longer the claim. The claim that
+   matters is unchanged and now stated as two: the credits are still there in
+   full, and the version is the first thing on the page rather than the last. */
+check("the version is the first thing in Settings, not the last",
+  `${(()=>{const src=fs.readFileSync(path.join(dir,'js','settings.js'),'utf8');
+     const v=src.indexOf('ShowUp ${APP_VERSION}'), c=src.indexOf('assetcredits'), h=src.indexOf('<h2>Display</h2>');
+     return v>-1 && c>-1 && h>-1 && v<h && v<c;})()}`,"true");
+check("...and the icon credits are still carried in full",
+  `${['minus-8363736','trend-2344331','ARIPATUT DASUKI','Travis Avery','Noun Project']
+      .every(x=>fs.readFileSync(path.join(dir,'js','settings.js'),'utf8').includes(x))}`,"true");
 check("Growth Audit has no hidden universal set target",
   `${!(/(?:target|ideal)\s*(?:sets?|volume)/i.test(statsSrc.slice(statsSrc.indexOf('v3.3.211 — Growth Audit'),statsSrc.indexOf('v3.3.192 — intent gaps'))))}`,"true");
 

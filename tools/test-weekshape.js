@@ -73,6 +73,30 @@ ok("...and the long run stays a fact in the footer",
    /longest run \d+/.test(card()));
 
 // ---- the counters it sits under are untouched
+/* ---- v3.3.513: the columns grow in ----
+   The first cut styled this with a transition on height, which animates
+   nothing: the bar is born at its final height and a transition needs a
+   CHANGE. Asserted against the resolved rule, with the stylesheet actually
+   installed -- the harness only LINKS it and jsdom fetches nothing, so
+   getComputedStyle would otherwise read browser defaults and pass by vacancy. */
+run(`(function(){const s=document.createElement('style'); s.id='__csstmp';
+  s.textContent=${JSON.stringify(fs.readFileSync(path.join(dir,"css/app.css"),"utf8"))};
+  document.head.appendChild(s);})()`);
+ok("(fixture) the stylesheet is really loaded, or the next checks prove nothing",
+   run(`getComputedStyle(document.querySelector('.restweek .rwbar i')).height`)==='86px',
+   run(`getComputedStyle(document.querySelector('.restweek .rwbar i')).height`));
+ok("each column carries its place in the week, so the growth staggers",
+   run(`[...document.querySelectorAll('.restweek .rwbar i')].map(e=>e.style.getPropertyValue('--j').trim()).join(',')`)==='0,1,2,3,4,5,6',
+   run(`[...document.querySelectorAll('.restweek .rwbar i')].map(e=>e.style.getPropertyValue('--j').trim()).join(',')`));
+ok("...and grows from zero as a keyframe, not a transition that can never fire",
+   (function(){const css=fs.readFileSync(path.join(dir,"css/app.css"),"utf8");
+     return /@keyframes rwgrow\{from\{height:0\}to\{height:var\(--h/.test(css)
+         && /\.restweek \.rwbar i::after\{[\s\S]{0,120}?animation:rwgrow/.test(css)
+         && !/\.restweek \.rwbar i::after\{transition:height/.test(css);})());
+ok("...only on an arrival, never on an in-place repaint",
+   /#view:not\(\.norise\) \.restweek \.rwbar i::after/.test(fs.readFileSync(path.join(dir,"css/app.css"),"utf8")));
+run(`(function(){const s=document.getElementById('__csstmp'); if(s) s.remove();})()`);
+
 ok("the card still leads with the count and the share",
    run(`(function(){const c=document.querySelector('.crcard.resting');
      return /days rested/.test(c.textContent) && /% of days since/.test(c.textContent);})()`));

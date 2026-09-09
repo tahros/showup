@@ -5,6 +5,13 @@
 function renderSync(){
   $('#view').innerHTML=`
     <button class="back">← Back</button>
+    <!-- v3.3.513: the version rides at the TOP. It sat under a full screen of
+         settings and a paragraph of icon credits, which meant scrolling the
+         whole page to answer the one question you open Settings to answer
+         mid-debug: which build is this. It is a fact about the app, not a
+         footnote to the controls, so it goes where you land. The credits keep
+         the foot to themselves. -->
+    <div class="vertag mono" id="verTag">ShowUp ${APP_VERSION}</div>
     ${!session&&Object.keys(DB.days).some(d=>DB.days[d].w&&DB.days[d].w.length)?`
     <div class="card" style="border-color:var(--record)"><b>Not syncing.</b>
       <div class="note" style="margin-top:4px">Workouts logged on this device stay on this device until you sign in below. If the app is ever deleted or reinstalled, unsynced data is lost.</div></div>`:''}
@@ -128,7 +135,6 @@ function renderSync(){
       </div>
       <input type="file" id="impFile" accept=".json,application/json" hidden>
     </div>
-    <div class="note" style="text-align:center;margin-top:18px;opacity:.7">ShowUp ${APP_VERSION}</div>
     <div class="note assetcredits" style="text-align:center;margin-top:6px;opacity:.7">Status icons: <a href="https://thenounproject.com/icon/minus-8363736/" target="_blank" rel="noopener">Minus</a> by ARIPATUT DASUKI · <a href="https://thenounproject.com/icon/trend-2344331/" target="_blank" rel="noopener">Trend</a> by Travis Avery · <a href="https://thenounproject.com/icon/share-2438501/" target="_blank" rel="noopener">Share</a> and <a href="https://thenounproject.com/icon/edit-1751206/" target="_blank" rel="noopener">Edit</a> by Timur Minvaleev · <a href="https://thenounproject.com/icon/ai-7262146/" target="_blank" rel="noopener">Sparkle</a> by Eliricon · <a href="https://thenounproject.com/icon/arrow-1342814/" target="_blank" rel="noopener">Chevron</a> by Barracuda · <a href="https://thenounproject.com/icon/expand-7584001/" target="_blank" rel="noopener">Expand</a> and <a href="https://thenounproject.com/icon/collapse-7584005/" target="_blank" rel="noopener">Collapse</a> by LAFS · Copy by maria icon · Pencil by Alvida Black · Noun Project</div>`;
 }
 
