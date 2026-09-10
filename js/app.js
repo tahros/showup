@@ -157,9 +157,21 @@ document.addEventListener('click',e=>{
        the only way into Train on a phone. */
     if(view==='lift'){
       const b=liftBack(), part=plannedTrainPart();
-      // Resume an open logger, otherwise land on Today's planned body part.
-      // Manual part taps within Train are never overridden by a repaint.
-      liftEnter(b&&b.ex&&exOpen(b.ex)?{part:b.part,ex:b.ex}:
+      /* v3.3.527: RESUME UNLESS IT IS FINISHED, not unless it is started.
+         v3.3.518 gated the resume on exOpen(), which is true only once a set
+         has ALREADY LANDED for that exercise -- so standing on an exercise
+         with "no sets yet" and stepping to Today lost it, and Train reopened
+         at the part list. That is the exact moment the memory is worth most:
+         you walked to the rack, checked the plan, came back. Nothing had been
+         logged precisely BECAUSE you were about to log it.
+         The question is whether that screen is still worth returning to, and
+         only one thing settles it -- whether the exercise has been ticked
+         done. Not started is still where you were. Once it IS done the plan's
+         part is the better landing, which is what v3.3.518 was reaching for
+         and is kept below.
+         Manual part taps within Train are still never overridden by a repaint. */
+      const done=b&&b.ex&&(dayMeta().doneEx||[]).includes(b.ex);
+      liftEnter(b&&b.ex&&!done?{part:b.part,ex:b.ex}:
         part?{part}:b?{part:b.part,ex:b.ex}:{});
     }
     else if(lift) lift.ret=null;

@@ -1,6 +1,31 @@
 # ShowUp — changelog
 
 
+
+## v3.3.527 (2026-09-10) — Resume unless it is finished, not unless it is started
+
+Standing on an exercise, stepping to Today, coming back to Train — and landing
+on the part list instead of the exercise.
+
+v3.3.518 gated the resume on `exOpen()`, which is true only once a set has
+**already landed** for that exercise. So "no sets yet" read as nothing to return
+to. That is the exact moment the memory is worth most: you walked to the rack,
+checked the plan, came back. Nothing had been logged precisely *because* you
+were about to log it.
+
+The question is whether that screen is still worth returning to, and only one
+thing settles it — whether the exercise has been **ticked done**. Not started is
+still where you were. Once it is done, the plan's part is the better landing,
+which is what v3.3.518 was reaching for and is kept.
+
+`tools/demo-traintrip.js` drives both trips through real taps on real buttons.
+The first cut of it **passed on the broken build**, because it had no plan for
+today — and without one `plannedTrainPart()` is null, so the handler fell
+through to the branch that resumes. A reproduction that omits the condition
+reproduces nothing. With a plan in place it fails on v3.3.526 and passes here,
+and the finished-exercise trip fails if the resume is made unconditional.
+
+## v3.3.526
 ## v3.3.526 (2026-09-10) — The countdown goes
 
 *961 days in · 39 to 1,000.* The maker struck the tail, and the app had already
