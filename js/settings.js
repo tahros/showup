@@ -37,6 +37,14 @@ function renderSync(){
         <button data-barpick="dark" class="${DB.settings.barTheme==='dark'?'sel':''}">Dark</button>
       </span>
     </div>
+    <h2>TODAY & TRAIN layout</h2>
+    <div class="card">
+      <span class="seg" style="display:flex">
+        <button data-flowpick="refined" class="${refinedFlow()?'sel':''}" aria-pressed="${refinedFlow()}">Refined</button>
+        <button data-flowpick="previous" class="${refinedFlow()?'':'sel'}" aria-pressed="${!refinedFlow()}">Previous</button>
+      </span>
+      <div class="note" style="margin-top:10px">Switch back anytime. Only this device’s layout changes. Your workouts and plans stay exactly as they are.</div>
+    </div>
     <h2>Account & cloud sync</h2>
     <div class="card">
       ${session?`

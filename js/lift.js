@@ -58,7 +58,7 @@ function planCardHTML(_pl, live){
   const _cw=(f,min)=>Math.max(min,..._ln.map(l=>f(l).length));
   return `<div class="card plancard${live?'':' dayplan'}" style="--planw:${_cw(_wtx,2)}ch;--planr:${_cw(_rtx,1)}ch">
     ${(_pl.items||[]).map(i=>{const _sp=live?planSpentMap(i):i.lines.map(()=>0); const _dn=live&&planLoggedToday(i.ex); return `<button class="planrow${_dn?' pdone':''}" data-planex="${i.ex}">
-        <span class="pn">${i.ex}<i class="pk">${_dn?'\u2713':(exIsNew(i.ex)?'<span class="ptag">NEW</span>':'')}</i></span>
+        <span class="pn">${i.ex}<i class="pk">${_dn?'\u2713':(exIsNew(i.ex)?'<span class="ptag">NEW</span>':'')}${refinedFlow()&&!_dn?icon('chevron',ICON_SZ.sm):''}</i></span>
         <span class="pl">${i.lines.map((l,li)=>`<span class="pv pw mono">${_wtx(l)}</span><span class="px mono" aria-hidden="true">×</span><span class="pr mono">${_rhtml(l,_sp[li])}</span>`).join('')}</span>
       </button>`;}).join('')}
     ${_pl.note?planNoteHTML(_pl.note):''}
@@ -227,7 +227,7 @@ function planSectionHTML(){
     /* nothing planned for the day the scope shows: the pill still names the
        scope (filled -- you are in it), and the one action is to write. */
     h+=`<h2 class="quiet">plan${planPillsHTML('today',!!_wk,writeDateISO()===todayISO?'today':planDayLabel(writeDateISO()))}${_tip}${
-      _planEdge(null,null,'data-planwrite')}</h2>`;
+      _planEdge(null,null,'data-planwrite')}${refinedFlow()?`<button class="pedge flow-paste" data-planpaste>Paste</button>`:''}</h2>`;
   }
   return h;
 }
@@ -235,6 +235,7 @@ function planSectionHTML(){
 function planDayLabel(iso){ const [y,m,d]=iso.split('-').map(Number); return new Date(y,m-1,d).toLocaleDateString('en-US',{month:'short',day:'numeric'}); }
 
 function renderLift(){
+  applyFlow(); // direct logger repaints bypass render(), but share its scope
   /* recorded on the way THROUGH, so it is always the screen actually shown */
   liftWhere={part:lift.part, ex:lift.ex, d:todayISO};   // v3.3.347: always
   /* v3.3.64: the entrance fires when the LIST YOU'RE LOOKING AT CHANGES —
@@ -402,9 +403,10 @@ function renderLift(){
            chevron — so a folded card is a one-line fact, not a hole. The
            choice persists in settings until changed; a preference is not a
            per-render whim. */
-        const plFolded=!!DB.settings.plFold;
-        h+=`<div class="lastcard partlast${plFolded?' plfolded':''}"><div class="lasthead"><span><b class="scopepill">${lift.part}</b> last time</span><span class="lastacts"><button class="ago linkdate" data-histd="${lp.d}">${wd2(lp.d)} · ${agoStr(lp.d)}</button><button class="plfold" data-plfold aria-expanded="${!plFolded}" aria-label="${plFolded?'Show':'Hide'} last time">${icon('chevron',ICON_SZ.sm,plFolded?0:90)}</button></span></div>`;
-        if(!plFolded){
+        const plFolded=flowLastFolded();
+        h+=`<div class="lastcard partlast${plFolded?' plfolded':''}"><div class="lasthead"><span><b class="scopepill">${lift.part}</b> last time</span><span class="lastacts"><button class="ago linkdate" data-histd="${lp.d}">${wd2(lp.d)} · ${agoStr(lp.d)}</button><button class="plfold" data-plfold aria-expanded="${!plFolded}" aria-label="${plFolded?'Show':'Hide'} last time">${refinedFlow()?`<span class="pfchev${plFolded?'':' open'}">${icon('chevron',ICON_SZ.sm)}</span>`:icon('chevron',ICON_SZ.sm,plFolded?0:90)}</button></span></div>`;
+        if(refinedFlow()) h+=`<div class="planfold${plFolded?' shut':''}" data-flow-lastbody${plFolded?' inert':''}><div class="planfold-in">`;
+        if(!plFolded||refinedFlow()){
           h+=`<div class="inlinehelp">Tap an exercise to use its previous weight. A checkmark means you completed it today.</div>`;
           for(const g of lp.groups){
             const doneNow=t.w.some(x=>x.ex===g.ex&&(x.reps||[]).length);
@@ -414,6 +416,7 @@ function renderLift(){
                   ${setRows(g.ex,foldSets(g.sets,g.ex),false)}</div>`;
           }
         }
+        if(refinedFlow()) h+=`</div></div>`;
         h+=`</div>`;
       }
     }
@@ -435,6 +438,13 @@ function renderLift(){
          the log zone, which is where you are actually loading a bar. */
       const mine=!!customs()[ex];
       const eq=EQUIP_LABEL[equipOf(ex)]||'';
+      if(refinedFlow()) return `<div class="item logrow ${big?'goto':''}${_enter?' enter':''}" style="--i:${Math.min(_ei++,6)}">
+          <button class="logmain" data-ex="${ex}">
+            <span class="flow-exname"><b>${ex}</b><span class="sub">${meta}${mine?` · yours · ${eq.toLowerCase()}`:''}</span></span>
+            <span class="pr-cell"><span class="pr-top">${(w=>w?(ex==='Run'?dDisp(w)+' '+DU():wDisp(w)+' '+U()):'<i class="pr-nil" aria-label="no weight logged"></i>')(nextWFor(ex))}</span></span>
+            <span class="flow-exchev" aria-hidden="true">${icon('chevron',ICON_SZ.sm)}</span>
+          </button>${(mine&&!last)?`<button class="xbtn" data-delex="${ex}" aria-label="Delete ${ex}">✕</button>`:''}
+        </div>`;
       return `<div class="item logrow ${big?'goto':''}${_enter?' enter':''}" style="--i:${Math.min(_ei++,10)};${big?'':'padding:10px 10px 10px 14px'}">
             <button class="logmain" data-ex="${ex}">
               <b>${ex}</b><div class="sub">${meta}${mine?` · yours · ${eq.toLowerCase()}`:''}</div>
@@ -457,15 +467,21 @@ function renderLift(){
     const fresh=list.filter(x=>x.tier==='new').sort((a,b)=>a.ex.localeCompare(b.ex));
     if(goto.length){
       h+=`<h2><b class="scopepill">${lift.part}</b> go-to</h2>`;
+      if(refinedFlow()) h+=`<div class="flow-exgroup flow-goto">`;
       goto.forEach(x=>h+=row(x,true));
+      if(refinedFlow()) h+=`</div>`;
     }
     if(some.length){
       h+=`<h2 class="quiet">Sometimes</h2>`;
+      if(refinedFlow()) h+=`<div class="flow-exgroup">`;
       some.forEach(x=>h+=row(x,false));
+      if(refinedFlow()) h+=`</div>`;
     }
     if(fresh.length){
       h+=`<h2 class="quiet">Never tried</h2>`;
+      if(refinedFlow()) h+=`<div class="flow-exgroup">`;
       fresh.forEach(x=>h+=row(x,false));
+      if(refinedFlow()) h+=`</div>`;
     }
     if(lift.adding){
       h+=`<h2>Add an exercise to ${lift.part}</h2>

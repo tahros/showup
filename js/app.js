@@ -4,6 +4,12 @@
 /* ---------- events ---------- */
 document.addEventListener('click',e=>{
   if(checkDate()) return;   // v3.3.158: the day rolled mid-tap — re-render, next tap lands right
+  const flowPick=e.target.closest('[data-flowpick]');
+  if(flowPick){
+    flowLayout=flowPick.dataset.flowpick==='previous'?'previous':'refined';
+    try{ localStorage.setItem(FLOW_KEY,flowLayout); }catch(_e){ toast('Layout changed for this visit; device storage is unavailable'); }
+    return render({inplace:true});
+  }
   const t=day(todayISO);
   if(e.target.closest('#unitBtn')){
     DB.settings.unit=isLb()?'kg':'lb';
@@ -154,7 +160,20 @@ document.addEventListener('click',e=>{
     return render();
   }
   const pf=e.target.closest('[data-plfold]');
-  if(pf){ DB.settings.plFold=!DB.settings.plFold; DB.settingsAt=Date.now(); save(true); return render(); }
+  if(pf){
+    if(refinedFlow()){
+      const folded=pf.getAttribute('aria-expanded')==='true', card=pf.closest('.partlast');
+      try{ localStorage.setItem('showup:flow-last-fold',folded?'closed':'open'); }catch(_e){}
+      pf.setAttribute('aria-expanded',String(!folded));
+      pf.setAttribute('aria-label',(folded?'Show':'Hide')+' last time');
+      card.classList.toggle('plfolded',folded);
+      const body=card.querySelector('[data-flow-lastbody]');
+      if(body){body.classList.toggle('shut',folded);body.inert=folded;}
+      const chev=pf.querySelector('.pfchev');if(chev)chev.classList.toggle('open',!folded);
+      return;
+    }
+    DB.settings.plFold=!DB.settings.plFold; DB.settingsAt=Date.now(); save(true); return render();
+  }
   const ld=e.target.closest('.linkdate[data-histd]');
   if(ld){
     const iso=ld.dataset.histd;
@@ -1755,6 +1774,7 @@ function syncNav(){
     nav.classList.toggle('resting', restingToday()); }   // v3.3.468: Today's square is a green ring while resting
 }
 function render(opts){
+  applyFlow();
   syncNav();
   if(typeof killCalReturn==='function') killCalReturn();   // v3.3.59: the contextual target dies with any view change
   if(typeof syncTopBtn==='function') syncTopBtn();        // v3.3.65: the general up button re-evaluates for the new view

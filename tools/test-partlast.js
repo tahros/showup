@@ -28,6 +28,9 @@ w.Element.prototype.releasePointerCapture = function(){};
 for (const s of order) vm.runInContext(fs.readFileSync(path.join(dir, s), "utf8"), ctx, { filename: s });
 w.document.dispatchEvent(new w.Event("DOMContentLoaded", { bubbles: true }));
 const run = c => vm.runInContext(c, ctx);
+// Retain the prior layout's exact contract; Refined's persistent animated
+// body and independent fold preference are covered in test-flow-layout.js.
+run(`flowLayout='previous'`);
 
 let fail = 0;
 const ok = (name, cond, extra) => {

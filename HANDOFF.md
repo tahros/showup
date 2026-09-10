@@ -1,5 +1,31 @@
 # ShowUp — handoff (2026-08-22, v3.3.267)
 
+## Reversible TODAY / TRAIN refinement — v3.3.516 (2026-09-09)
+
+The approved prototype is adapted to the live renderers, not copied as a
+second app. `refinedFlow()` gates markup; `data-flow="refined"` plus the view
+scope gate the CSS. The real parser, writer, plan/week state, unit laws,
+logger, sync and completion are unchanged. New-user Today keeps the first-set
+flow but offers Paste/Write and lets an actual saved plan outlive that welcome.
+
+Settings → TODAY & TRAIN layout → Previous disables the trial immediately.
+`showup:flow-layout` and `showup:flow-last-fold` are localStorage presentation
+keys OUTSIDE `tracker-v1`. No migration, backup restore, deletion, or cloud
+settings update is needed. The previous `DB.settings.plFold` is left intact.
+The initial default is Refined; the selected layout survives reloads.
+
+Pre-change release: `efe0fd6` (v3.3.515), tagged `v3.3.515-pre-flow-refinement`.
+Release-level rollback instructions: `docs/FLOW-ROLLBACK.md`.
+Regression coverage: `tools/test-flow-layout.js` covers the new flow and
+data-preserving switch; `tools/test-partlast.js` retains the previous layout's
+exact fold contract. Do not remove the Previous option without maker approval.
+
+Validation: all 69 suites, JS syntax and buildcheck pass. Removing the refined
+mechanism makes the new regression suite fail. Isolated Chromium checks cover
+real Paste / Read / Use, logger return, retained fold DOM, reload-persistent
+rollback and light/dark TRAIN at 320, 393 and 430 CSS pixels. Rendered phone
+screens were inspected. No real cloud request or personal data was used.
+
 ## Completion correction — v3.3.490 (2026-09-07)
 
 `#doneAllBtn` passes an explicit-intent flag through `doneToast()` to
