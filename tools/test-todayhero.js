@@ -383,19 +383,28 @@ run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
    thousands-countdown checks that followed are unrelated and stay. */
 
 // the sanctioned countdown appears only inside 75 days of a thousand
-check("no thousands countdown when far from one", `msNearThousand(400)`, "null");
-check("...and one inside the window",
-      `JSON.stringify(msNearThousand(940))`, '{"next":1000,"left":60}');
-check("...exactly 75 out is still inside", `JSON.stringify(msNearThousand(925))`, '{"next":1000,"left":75}');
-check("...76 is outside", `msNearThousand(924)`, "null");
-// one definition, shared \u2014 the greeting must route through it too
-const todaySrc106 = fs.readFileSync(path.join(dir, "js/today.js"), "utf8");
-console.log(((todaySrc106.match(/\[1000,1500,2000,2500,3000,4000,5000\]/g) || []).length === 1 ? "PASS" : "FAIL"),
-  "the thousands ladder is defined exactly once");
-if ((todaySrc106.match(/\[1000,1500,2000,2500,3000,4000,5000\]/g) || []).length !== 1) fail++;
-console.log((/function helloSub[\s\S]{0,200}msNearThousand/.test(todaySrc106) ? "PASS" : "FAIL"),
-  "...and the greeting routes through it");
-if (!/function helloSub[\s\S]{0,200}msNearThousand/.test(todaySrc106)) fail++;
+/* ---- v3.3.526 REVERSES v3.3.98 AND v3.3.437 THE REST OF THE WAY ----
+   Those releases narrowed the countdown -- no small rungs, and none on a rest
+   day -- on the reasoning that anticipation-farming is the mechanism and that
+   "42 to 1,000 is a thing to chase; neither is what today is". Both arguments
+   apply to a big rung on a training day, which is the only case that was left.
+   It also ran straight into the standing rule: no escalation, no countdown
+   timers, ceremony inversely proportional to occasion. A number ticking down
+   every morning for 75 mornings is the most frequent ceremony in the app.
+   So the claim inverts: the greeting says the count, and only the count,
+   however close a thousand is. */
+check("the greeting is the day count, whatever is coming",
+      `helloSub(961)`, "961 days in.");
+check("...even one day out from a thousand", `helloSub(999)`, "999 days in.");
+check("...and on the thousandth itself", `helloSub(1000)`, "1,000 days in.");
+check("...with no countdown machinery left to drift",
+      `typeof msNearThousand`, "undefined");
+{
+  const src=fs.readFileSync(path.join(dir,"js/today.js"),"utf8");
+  const bad=/\$\{n\.left\} to \$\{fmt\(n\.next\)\}/.test(src);
+  console.log((bad?"FAIL":"PASS"), "...and the greeting builds no 'N to M' tail");
+  if (bad) fail++;
+}
 
 // the NOT-trained states are untouched by all of this
 run(`(function(){day(todayISO).w=[]; delete day(todayISO).doneAll; SEED=deriveAll(); render();})()`);

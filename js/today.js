@@ -294,18 +294,23 @@ document.addEventListener('click',e=>{
 function helloPart(hr){
   return hr<5?'Early':hr<12?'Morning':hr<18?'Afternoon':hr<22?'Evening':'Late';
 }
-/* v3.3.106: the ONE anticipation the milestone doctrine sanctions —
-   thousands only, and only inside 75 days (v3.3.98: no countdowns to small
-   rungs, because anticipation-farming is the mechanism, not the size).
-   Extracted so the greeting and the Rhythm card can't drift apart. */
-function msNearThousand(d){
-  const next=[1000,1500,2000,2500,3000,4000,5000].find(m=>m>d);
-  return next&&next-d<=75 ? {next, left:next-d} : null;
-}
+/* v3.3.526: THE COUNTDOWN GOES. "961 days in \u00b7 39 to 1,000." -- the maker
+   struck the tail, and the app had already written the argument against it
+   twice. v3.3.98: no countdowns to small rungs, "because anticipation-farming
+   is the mechanism, not the size" -- which is true of a big rung too; the size
+   was never what made it a countdown. v3.3.437 then took it off rest days
+   because "42 to 1,000 is a thing to chase; neither is what today is". Today
+   is not a thing to chase on a training day either.
+   It also sits against the standing rule directly: no escalation, no countdown
+   timers, and ceremony frequency inversely proportional to occasion frequency.
+   A number that ticks down every morning for 75 mornings is the most frequent
+   ceremony in the app.
+   msNearThousand goes with it -- helloSub was its only caller, and the comment
+   claiming the Rhythm card shared it had been stale for a while. The day-1,000
+   MOMENT is untouched; a moment on the day is not a countdown to it. */
 function helloSub(d){
   if(!d) return '';
-  const n=msNearThousand(d);
-  return n ? `${fmt(d)} days in · ${n.left} to ${fmt(n.next)}.` : `${fmt(d)} days in.`;
+  return `${fmt(d)} days in.`;
 }
 function helloCard(){
   const n=firstName();

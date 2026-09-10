@@ -147,10 +147,12 @@ check("11pm is Late, not Evening", `helloPart(23)`, "Late");
 check("the bands cover every hour", `[...Array(24).keys()].every(h=>helloPart(h))`, true);
 
 // the subline is a receipt, never a compliment
+/* v3.3.526: the countdown is gone -- see the note in test-todayhero. The count
+   is the whole line now, at every distance from a thousand. */
 check("plain day count outside a milestone window", `helloSub(700)`, "700 days in.");
-check("inside 75 of a round thousand it counts down", `helloSub(928)`, "928 days in \u00b7 72 to 1,000.");
-check("the milestone day itself rolls to the next window", `helloSub(1000)`, "1,000 days in.");
-check("...and 1500 is a milestone too", `helloSub(1460)`, "1,460 days in \u00b7 40 to 1,500.");
+check("...and inside 75 of a round thousand, still just the count", `helloSub(928)`, "928 days in.");
+check("...and on the milestone day itself", `helloSub(1000)`, "1,000 days in.");
+check("...and near any other round rung", `helloSub(1460)`, "1,460 days in.");
 check("zero days is silence, not zero", `helloSub(0)`, "");
 const todaySrc = fs.readFileSync(path.join(dir, "js/today.js"), "utf8");
 const helloRaw = (todaySrc.match(/function helloPart[\s\S]*?function renderToday/) || [""])[0];

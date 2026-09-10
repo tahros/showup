@@ -1,5 +1,33 @@
 # ShowUp — changelog
 
+
+## v3.3.526 (2026-09-10) — The countdown goes
+
+*961 days in · 39 to 1,000.* The maker struck the tail, and the app had already
+written the argument against it twice.
+
+v3.3.98 kept countdowns to thousands only, "because anticipation-farming is the
+mechanism, not the size" — which is true of a big rung as well; the size was
+never what made it a countdown. v3.3.437 then took it off rest days because "42
+to 1,000 is a thing to chase; neither is what today is". Today is not a thing to
+chase on a training day either. Both releases were arguing their way here and
+stopped one step short.
+
+It also ran straight into the standing rule: no escalation, no countdown timers,
+and ceremony frequency inversely proportional to occasion frequency. A number
+that ticks down every morning for 75 mornings is the most frequent ceremony in
+the app.
+
+`msNearThousand` goes with it — `helloSub` was its only caller, and the comment
+claiming the Rhythm card shared it had been stale for a while.
+
+**The day-1,000 moment is untouched.** A moment on the day is not a countdown to
+it, and `test-milestone` still asserts the moment itself.
+
+Four guards across three suites required the countdown, one of them pinning its
+*scope* rather than its absence. All are inverted rather than deleted.
+
+
 ## v3.3.525 (2026-09-10) — Woven, day by day
 
 An extra view in Stats, directly below What you did. Nothing is replaced.

@@ -133,9 +133,18 @@ ok("msMarkFor names the ordinal of a milestone day",
 ok("...and a non-rung day gets nothing",
    run(`(function(){ const d=[...SEED.dates].sort()[498]; return msMarkFor(d); })()`) === 0);
 
-// ---- greeting countdown unchanged: thousands only ---------------------------
-ok("the greeting still counts down to thousands only (no '3 to 10' bait)",
-   run(`helloSub(7)`) === "7 days in." && /to 1,000/.test(run(`helloSub(940)`)));
+// ---- v3.3.526: the greeting counts down to nothing ---------------------------
+/* This guarded the countdown's SCOPE -- thousands only, no "3 to 10" bait --
+   on the reasoning that anticipation-farming is the mechanism. That reasoning
+   finished the job: it is the mechanism at 1,000 as well, and a number ticking
+   down every morning for 75 mornings is the most frequent ceremony in an app
+   whose rule is that ceremony is inversely proportional to occasion.
+   The milestone MOMENT is untouched and asserted above -- a moment on the day
+   is not a countdown to it. What is gone is the tail on the greeting. */
+ok("the greeting counts down to nothing, at any distance from a rung",
+   run(`helloSub(7)`) === "7 days in." &&
+   run(`helloSub(940)`) === "940 days in." &&
+   run(`helloSub(999)`) === "999 days in.");
 
 // ---- reduced-motion kill exists for the cascade -----------------------------
 const cssSrc = fs.readFileSync(path.join(dir, "css/app.css"), "utf8");
