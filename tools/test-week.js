@@ -255,20 +255,19 @@ ok("...the range line says where it runs", /→/.test(run(`document.querySelecto
 /* v3.3.421 RESTATES: the week's edge is the SAME three as the day's -- copy,
    edit, Write. Expand-all left (every day row has its own chevron); Clear
    moved behind Edit; Write arrived, and from this door it REWRITES the week. */
-ok("the edge is three glyphs: copy, edit, Write -- the same as the day's",
-   run(`(function(){const b=[...document.querySelectorAll('h2 .planedge .pedge')]; return b.length===3
-     && !!b[0].querySelector('.ic-copy') && !!b[1].querySelector('.ic-edit') && b[2].hasAttribute('data-planwrite')
-     && b[2].getAttribute('data-planwrite')==='week';})()`));
+ok("the refined week edge is edit and Write, with no Copy",
+   run(`(function(){const b=[...document.querySelectorAll('h2 .planedge .pedge')]; return b.length===2
+     && !document.querySelector('h2 [data-plancopy]') && !!b[0].querySelector('.ic-edit')
+     && b[1].getAttribute('data-planwrite')==='week';})()`));
 ok("...each with a name for the screen reader, since the word is gone",
    run(`[...document.querySelectorAll('h2 .planedge .pedge')].every(b=>b.getAttribute('aria-label'))`));
-ok("...and copy and edit are filled outlines, not strokes, so the edge is one family",
-   run(`(function(){const c=document.querySelector('.ic-copy path'), e=document.querySelector('.ic-edit path');
-     return !!c && !!e && c.getAttribute('fill')==='currentColor' && e.getAttribute('fill')==='currentColor'
-       && c.getAttribute('fill-rule')==='evenodd' && e.getAttribute('fill-rule')==='evenodd'
-       && !c.parentNode.getAttribute('stroke') && !e.parentNode.getAttribute('stroke');})()`));
-ok("...their holes survive: each is one path of three subpaths",
+ok("...edit keeps its filled outline, not a stroke",
+   run(`(function(){const e=document.querySelector('.ic-edit path');
+     return !!e && e.getAttribute('fill')==='currentColor'
+       && e.getAttribute('fill-rule')==='evenodd' && !e.parentNode.getAttribute('stroke');})()`));
+ok("...its holes survive: one path of three subpaths",
    run(`(function(){const n=s=>(document.querySelector(s).getAttribute('d').match(/M/g)||[]).length;
-     return n('.ic-copy path')===3 && n('.ic-edit path')===3;})()`),
+     return n('.ic-edit path')===3;})()`),
    run(`(document.querySelector('.ic-edit path').getAttribute('d').match(/M/g)||[]).length+' subpaths in edit'`));
 /* v3.3.491: the turn is a CLASS on a span (.pfchev.open), not a rotation baked
    into the icon's style, so it can transition. Same glyph, same directions:

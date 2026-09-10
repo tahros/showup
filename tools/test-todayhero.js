@@ -316,8 +316,8 @@ check("...and it names tomorrow as its target",
 /* v3.3.472 RESTATES: Clear is on the edge again, as an x with an undo */
 check("...while the edge reads copy, edit, clear, Write",
       `!!document.querySelector('[data-planedit]') && !!document.querySelector('h2 .planedge [data-planclear="edge"]')`, true);
-check("...and fold and copy stay",
-      `!!document.querySelector('[data-planfold]') && !!document.querySelector('[data-plancopy]')`, true);
+check("...fold stays while refined heading omits Copy",
+      `!!document.querySelector('[data-planfold]') && !document.querySelector('[data-plancopy]')`, true);
 check("...with the plan card receded to a receipt",
       `!!document.querySelector('.plspent .plancard')`, true);
 /* the earlier "nothing recommending" check ran before any plan existed, so

@@ -358,6 +358,8 @@ const dNum=v=>(Math.round(v*100)/100).toFixed(2);
 const toU=kg=>isLb()?kg*LB:kg;                       // kg -> display
 const toKg=v=>isLb()?v/LB:v;                         // display -> kg
 const wDisp=kg=>{const v=toU(kg);return (Math.round(v*10)/10).toString().replace(/\.0$/,'');};
+// Browse labels only. Never round the stored load, logger input or kg labels.
+const trainListWeight=kg=>isLb()?String(Math.round(toU(kg))):wDisp(kg);
 const vDisp=kg=>fmt(Math.round(toU(kg)));            // volume
 /* v3.3.219: EVEN steps in both units (maker's call). Dumbbells and machines
    move 2 at a time — 12, 14, 16 — and a fractional value left by a unit
@@ -1130,6 +1132,13 @@ const planNow=()=>{
   return {...p, items};
 };
 const planFor=ex=>{ const p=planNow(); return p?(p.items||[]).find(i=>i.ex===ex)||null:null; };
+/* v3.3.518: Today and Train read the same next plan item. Today's accepted
+   plan outranks the rotation; tomorrow's plan never leaks into this choice. */
+const nextPlanItem=()=>{const p=planNow();return p?(p.items||[]).find(i=>!planLoggedToday(i.ex))||null:null;};
+const plannedTrainPart=()=>{
+  if(restingToday()||(DB.days[todayISO]||{}).doneAll)return null;
+  const next=nextPlanItem();return next?homePartOf(next.ex):null;
+};
 /* ============ v3.3.398: THE PLAN'S GLYPHS ============
    Four are the maker's picks from the Noun Project (royalty-free, credited on
    the Settings footer beside the icons the app already credits): Sparkle by

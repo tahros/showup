@@ -14,6 +14,11 @@ As of v3.3.517, Previous also disables the refined tab shimmer and restores
 the earlier tile/row treatment. The shared compact age wording and neutral
 header count are separate corrections and remain in both layouts.
 
+As of v3.3.518, Previous retains the old PLAN Copy control and GO-TO body-part
+badge and disables the new light-bar gradient. Shared plan-based TRAIN focus
+and whole-pound browse labels remain in both layouts. These never change
+stored workout weights or accepted plans.
+
 ## Whole-release rollback for the maintainer
 
 Baseline is commit `efe0fd6`, tag `v3.3.515-pre-flow-refinement`.

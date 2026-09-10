@@ -3402,9 +3402,12 @@
   :root[data-flow="refined"] #view:is([data-flow-view="today"],[data-flow-view="lift"][data-flow-screen="browse"]) h2::after{
     content:'';height:1px;min-width:12px;flex:1;background:var(--line);order:1}
   :root[data-flow="refined"] .flow-paste{order:3;min-height:44px;min-width:44px;color:var(--accent-ink)}
-  :root[data-flow="refined"] #view[data-flow-view="today"] .planedge{gap:4px}
-  :root[data-flow="refined"] #view[data-flow-view="today"] .pedge{min-height:44px;min-width:36px;display:inline-flex;align-items:center;justify-content:center}
-  :root[data-flow="refined"] #view[data-flow-view="today"] .pglyph{width:36px}
+  :root[data-flow="refined"] #view[data-flow-view="today"] h2.planhead{column-gap:4px;row-gap:2px;flex-wrap:wrap}
+  :root[data-flow="refined"] #view[data-flow-view="today"] h2.planhead::after{min-width:0}
+  :root[data-flow="refined"] #view[data-flow-view="today"] h2.planhead>.notei{flex-shrink:0}
+  :root[data-flow="refined"] #view[data-flow-view="today"] .planedge{gap:2px}
+  :root[data-flow="refined"] #view[data-flow-view="today"] .pedge{min-height:44px;min-width:30px;display:inline-flex;align-items:center;justify-content:center}
+  :root[data-flow="refined"] #view[data-flow-view="today"] .pglyph{width:30px}
   :root[data-flow="refined"] .flow-dayone-plan{display:flex;align-items:center;justify-content:center;gap:18px;margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}
   :root[data-flow="refined"] .flow-dayone-plan .planedge{display:flex;gap:12px}
   :root[data-flow="refined"] #view[data-flow-view="today"] .plancard{padding:4px 18px}
@@ -3427,8 +3430,6 @@
   :root[data-flow="refined"] #view[data-flow-view="today"] .planpv .pb i{font-size:12px;line-height:1.65}
   :root[data-flow="refined"] #view[data-flow-view="today"] .planpv :is(.lsx,.pgrip){min-width:36px;min-height:44px}
   :root[data-flow="refined"] #view[data-flow-view="lift"] .partgrid{gap:7px}
-  :root[data-flow="refined"] #view[data-flow-view="lift"] .flow-bodyhead{opacity:1}
-  :root[data-flow="refined"] #view[data-flow-view="lift"] h2.flow-bodyhead::after{background:var(--edge)}
   :root[data-flow="refined"] #view[data-flow-view="lift"] .partcard{align-items:flex-start;text-align:left;border-radius:12px;padding:10px 8px;min-height:54px;box-shadow:none}
   :root[data-flow="refined"] #view[data-flow-view="lift"] .partcard b{font-size:12px}
   :root[data-flow="refined"] #view[data-flow-view="lift"] .partcard .ps{font-size:11px}
@@ -3458,6 +3459,10 @@
     background:linear-gradient(105deg,transparent 44%,rgba(255,255,255,.22) 50%,transparent 56%);
     background-size:300% 100%;background-position:100% 0;animation:sheen 6.8s ease-in-out 1.3s infinite}
   :root[data-flow="refined"] nav button .ng{position:relative;z-index:1}
+  /* v3.3.518: a faint shaded lower edge on the LIGHT pill, not another
+     fixed overlay or backdrop blur. Dark-bar lighting stays untouched. */
+  :root[data-flow="refined"][data-skin="minimal"][data-bar="light"] nav::before{
+    background:linear-gradient(180deg,var(--pill),color-mix(in srgb,var(--pill) 94%,var(--pill-ink)))}
   @media(max-width:380px){
     :root[data-flow="refined"] #view[data-flow-view="today"] h2{flex-wrap:wrap}
     :root[data-flow="refined"] #view[data-flow-view="today"] h2 .planedge{gap:2px}
