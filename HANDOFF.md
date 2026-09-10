@@ -1,5 +1,27 @@
 # ShowUp — handoff (2026-08-22, v3.3.267)
 
+## Refinement details — v3.3.517 (2026-09-09)
+
+Maker feedback on 516: refined TRAIN tiles now left-align; `.flow-bodyhead`
+uses `--edge` rather than the much lighter Minimal `--line`. The selector
+needs `h2.flow-bodyhead` to beat the existing `:is(...) h2` rule. Last Time's
+head and child groups use center alignment, including the date and chevron.
+Refined go-to rows omit yearly frequency; recency uses `--faint`. Shared
+`agoLabel` now writes `4d ago`, `1mo ago`, `1y ago` in both layouts.
+
+`#hStreak.atrisk` keeps `--chalk`, not `--record`. Risk logic and the pending
+square remain unchanged. Refined `nav button.on::after` reuses `sheen`, on a
+6.8-second cycle, under the icon and without pointer events. Reduce Motion
+disables it. Do not add backdrop filters or transforms to the fixed nav.
+Previous disables these refined layout and shimmer rules; the neutral count
+and shared compact time grammar remain. No database or server changes.
+
+Browser checks cover 320/393/430px light and dark, exact header-element center
+alignment, the winning rule color, selected-tab-only motion, tab switching,
+Reduce Motion and Previous. Regression guards extend test-flow-layout.js;
+the intentional time-grammar and streak-color expectations are updated in
+test-coldstart.js, test-repweight.js and test-rest.js.
+
 ## Reversible TODAY / TRAIN refinement — v3.3.516 (2026-09-09)
 
 The approved prototype is adapted to the live renderers, not copied as a

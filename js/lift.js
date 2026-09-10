@@ -277,7 +277,7 @@ function renderLift(){
        place rather than both: a second copy would be two plans free to drift,
        and this app has retired duplicate sections twice before on exactly that
        reasoning (v3.3.230, v3.3.307). */
-    h+=`<h2>Body part</h2><div class="partgrid">`;
+    h+=`<h2 class="flow-bodyhead">Body part</h2><div class="partgrid">`;
     [...order,...dormant].forEach(p=>{
       const i0=P.info[p]||{since:999};
       const virgin=SEED.totals.sessions===0&&!hasAnyDays();   // day zero: no verdicts yet
@@ -429,7 +429,7 @@ function renderLift(){
       .filter(x=>!openSet.has(x.ex));
     const row=({ex,last,freq},big)=>{
       const when=last?(daysAgo(last)===0?'✓ done today':agoLabel(daysAgo(last))):'never logged';
-      const meta=big?`${when} · ${freq}× this year`:when;
+      const meta=big&&!refinedFlow()?`${when} · ${freq}× this year`:when;
       /* v3.3.329: the per-side line is GONE. It restated the same weight in a
          second arithmetic on the row that already carries the total, and it
          only ever appeared on plate exercises — so a scannable column of

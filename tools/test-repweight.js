@@ -831,8 +831,8 @@ check("...and an exercise that has a weight shows no rule",
 /* v3.3.329: the age grammar itself, at every boundary. Floor, never round --
    a label may understate a gap but must never overstate it, the same law
    daysAgo follows. */
-[[0,'today'],[1,'yesterday'],[2,'2 d ago'],[29,'29 d ago'],[30,'1 mo ago'],
- [49,'1 mo ago'],[364,'12 mo ago'],[365,'1 y ago'],[1464,'4 y ago']]
+[[0,'today'],[1,'yesterday'],[2,'2d ago'],[29,'29d ago'],[30,'1mo ago'],
+ [49,'1mo ago'],[364,'12mo ago'],[365,'1y ago'],[1464,'4y ago']]
   .forEach(([n,want]) => checkVal(`${n} days reads "${want}"`, run(`agoLabel(${n})`), want));
 
 check("...drawn quieter than any number in the column",

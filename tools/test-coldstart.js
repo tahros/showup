@@ -181,12 +181,12 @@ const grey=p=>`(function(){const b=[...document.querySelectorAll('.partcard')]
    that suits the size of the gap, and still greyed by PART_COLD_DAYS below,
    which is a separate law and unchanged. */
 check("a part trained 2 days ago says so, however few times it was trained",
-      chip('Triceps'), "2 d ago");
+      chip('Triceps'), "2d ago");
 check("...and is NOT greyed out", grey('Triceps'), false);
 check("the planner still knows it cannot claim a cadence for it",
       `trainingPlan().info.Triceps.live`, false);
 check("a part last trained 40 days ago says THAT, however well known it is",
-      chip('Chest'), "1 mo ago");
+      chip('Chest'), "1mo ago");
 check("...and IS greyed out", grey('Chest'), true);
 check("the planner still trusts its cadence", `trainingPlan().info.Chest.live`, true);
 check("yesterday reads as a word, not 1d ago", chip('Shoulder'), "yesterday");
@@ -279,7 +279,7 @@ check("...the fade is what says done",
 check("an untrained part keeps its full age, not an abbreviation",
       `(function(){const b=[...document.querySelectorAll('.partcard')]
         .find(x=>x.querySelector('b').textContent==='Back');
-        return b.querySelector('.ps').textContent.trim();})()`, "4 d ago");
+        return b.querySelector('.ps').textContent.trim();})()`, "4d ago");
 check("...and is NOT faded — it is what the grid is scanned for",
       `(function(){const b=[...document.querySelectorAll('.partcard')]
         .find(x=>x.querySelector('b').textContent==='Back');

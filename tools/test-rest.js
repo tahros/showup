@@ -567,11 +567,11 @@ ok("the status-bar style no longer puts content under the status bar",
   check("today's ring is drawn outside the box, not spread into the gap",
         `${(function(){const ms=css.match(/\.h-week \.hwd\.tod\{[^}]*\}/g)||[];
           return ms.length>=2 && ms.every(r=>/outline-offset/.test(r) && !/box-shadow/.test(r));})()}`, "true");
-  /* and the count is ink: red belongs to at-risk alone */
+  /* v3.3.517: even at risk, the count stays neutral; the ring owns risk. */
   check("the streak count is ink, not the alarm colour",
         `${/\.streak\{[^}]*color:var\(--chalk\)/.test(css)}`, "true");
-  check("...and at-risk is still the one thing that reddens it",
-        `${/#hStreak\.atrisk\{color:var\(--record\)/.test(css)}`, "true");
+  check("...and at-risk no longer reddens the count",
+        `${/#hStreak\.atrisk\{color:var\(--chalk\)/.test(css)}`, "true");
 }
 
 /* ================= v3.3.437: THE DAY EXHALES =================
