@@ -15,9 +15,42 @@ w.fetch=()=>Promise.reject(new Error("offline"));
 w.matchMedia=q=>({matches:/no-preference/.test(String(q)),media:String(q),addEventListener(){},removeEventListener(){}});
 w.navigator.vibrate=()=>{}; w.scrollTo=()=>{};
 w.HTMLCanvasElement.prototype.getContext=function(){return new Proxy({measureText:()=>({width:10})},{get:(o,k)=>k in o?o[k]:()=>({})});};
+/* ---- an IntersectionObserver that honours rootMargin ----
+   jsdom has none, so without this every assertion about WHEN the week grows
+   would be a string read off the constructor. This one implements the bit the
+   rule turns on: the root's bottom edge is inset by rootMargin, and a target
+   intersects when its box overlaps what is left. scrollTo(y) then walks the
+   card up the screen so the trigger point can be measured rather than assumed.
+*/
+const VH=800; let cardTop=VH+400;      // starts below the fold
+Object.defineProperty(w,'innerHeight',{value:VH,configurable:true});
+const ios=[];
+w.IntersectionObserver=class{
+  constructor(cb,opt){ this.cb=cb; this.opt=opt||{}; this.t=new Set(); ios.push(this); }
+  observe(el){ this.t.add(el); this.check(); }
+  unobserve(el){ this.t.delete(el); }
+  disconnect(){ this.t.clear(); }
+  check(){
+    const m=/(-?\d+)%\s*0px$/.exec(this.opt.rootMargin||'0px 0px 0px 0px');
+    const inset=m?(+m[1]/100)*VH:0;            // negative shrinks the bottom
+    const bottom=VH+inset;
+    const hits=[...this.t].filter(el=>{
+      const r=el.getBoundingClientRect();
+      return r.top < bottom && r.bottom > 0;
+    });
+    if(hits.length) this.cb(hits.map(t=>({target:t,isIntersecting:true})));
+  }
+};
+const scrollCardTo=y=>{ cardTop=y; ios.forEach(o=>o.check()); };
 for(const s of order) vm.runInContext(fs.readFileSync(path.join(dir,s),"utf8"),ctx,{filename:s});
 w.document.dispatchEvent(new w.Event("DOMContentLoaded",{bubbles:true}));
 const run=c=>vm.runInContext(c,ctx);
+/* the week card's box is ours to move; everything else keeps jsdom's zeros */
+w.Element.prototype.getBoundingClientRect=function(){
+  if(this.classList&&this.classList.contains('restweek'))
+    return {top:cardTop,bottom:cardTop+260,left:0,right:380,width:380,height:260,x:0,y:cardTop};
+  return {top:0,bottom:0,left:0,right:0,width:0,height:0,x:0,y:0};
+};
 
 /* build a ledger by a rule: trainOn(dowIndex) decides each of the last N days */
 /* the rest card is the TODAY tab's, shown only while today is a declared rest
@@ -107,9 +140,34 @@ ok("the columns are fully drawn before anything animates",
    run(`[...document.querySelectorAll('.restweek .rwbar i')].map(b=>b.style.getPropertyValue('--h')).join(' ')`));
 ok("...and the keyframe waits for .grown, so nothing moves off-screen",
    /#view:not\(\.norise\) \.restweek\.grown \.rwbar i::after/.test(fs.readFileSync(path.join(dir,"css/app.css"),"utf8")));
-ok("...which an observer adds when the card comes into view",
-   /rwIO=new IntersectionObserver/.test(fs.readFileSync(path.join(dir,"js/app.js"),"utf8")) &&
-   /el.classList.add\('grown'\)/.test(fs.readFileSync(path.join(dir,"js/app.js"),"utf8")));
+/* v3.3.515: the trigger is WHERE ON THE SCREEN, not how much of the card.
+   A threshold asks about the card's proportions -- and this card is tall, so a
+   third of it clears the fold while the whole thing is still at the bottom
+   edge. rootMargin asks about the viewport: shrink its bottom and the observer
+   speaks when the card's TOP crosses that line. Driven for real below; this
+   pins the shape of the rule, because jsdom has no IntersectionObserver and
+   the constructor options are the only thing readable from here. */
+{
+  const appSrc=fs.readFileSync(path.join(dir,"js/app.js"),"utf8");
+  ok("...which an observer adds when the card comes into view",
+     /rwIO=new IntersectionObserver/.test(appSrc) && /el.classList.add\('grown'\)/.test(appSrc));
+  const m=appSrc.match(/rwIO=new IntersectionObserver[\s\S]{0,220}?rootMargin:'0px 0px -(\d+)% 0px'/);
+  ok("...once its TOP is at least two thirds up the screen, not merely on it",
+     !!m && +m[1]>=30 && +m[1]<=40, m?`bottom inset ${m[1]}% → fires at ${100-+m[1]}% down`:"no rootMargin");
+  ok("...and not on a fraction of the card, which is a question about the card",
+     !/rwIO=new IntersectionObserver[\s\S]{0,220}?threshold:\s*0?\.[1-9]/.test(appSrc));
+}
+/* ---- and now driven, not read ---- */
+const grown=()=>run(`!!document.querySelector('.restweek.grown')`);
+scrollCardTo(VH+200);
+ok("(driven) below the fold, nothing has grown", !grown());
+scrollCardTo(VH-40);
+ok("...its top just onto the screen is still too early", !grown(),
+   `top=${VH-40} of ${VH} → ${Math.round((VH-40)/VH*100)}% down`);
+scrollCardTo(Math.round(VH*0.70));
+ok("...70% down the screen: still waiting", !grown(), "top at 70%");
+scrollCardTo(Math.round(VH*0.64));
+ok("...and it grows once its top passes about two thirds up", grown(), "top at 64%");
 ok("...and adds it outright where there is no observer to wait for",
    /if\(!\('IntersectionObserver' in window\)\)\{ go\(\); return; \}/.test(fs.readFileSync(path.join(dir,"js/app.js"),"utf8")));
 /* the card's last row is small type that has to be read, not glanced at */

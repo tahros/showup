@@ -1317,7 +1317,18 @@ function bindWeekShape(){
   const go=()=>{ el.classList.add('grown'); if(rwIO) try{ rwIO.unobserve(el); }catch(_e){} };
   if(!('IntersectionObserver' in window)){ go(); return; }
   if(rwIO) rwIO.disconnect();
-  rwIO=new IntersectionObserver(es=>{ for(const e of es) if(e.isIntersecting) go(); },{threshold:.34});
+  /* v3.3.515: WHERE ON THE SCREEN, not how much of the card. threshold:.34
+     fired once a third of the card was visible -- and this card is tall, so a
+     third of it clears the fold while the whole thing is still down at the
+     bottom edge, which is why the growth kept being over before the maker's
+     eye arrived. That is a question about the CARD's proportions; the one he
+     actually asked is about the SCREEN's.
+     rootMargin shrinks the root's bottom by 35%, so only the top 65% of the
+     viewport counts as "in view" and the observer speaks the moment the card's
+     TOP crosses that line -- two thirds of the way up, with the columns
+     settled in front of you rather than sliding in from under the bar. */
+  rwIO=new IntersectionObserver(es=>{ for(const e of es) if(e.isIntersecting) go(); },
+    {rootMargin:'0px 0px -35% 0px',threshold:0});
   rwIO.observe(el);
 }
 function bindDrun(resetScroll=true){

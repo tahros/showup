@@ -1,5 +1,26 @@
 # ShowUp — changelog
 
+## v3.3.515 (2026-09-09) — Where on the screen, not how much of the card
+
+Still early. v3.3.514 used `threshold:.34` — fire once a third of the card is
+visible — and that is a question about the **card's** proportions. This card is
+tall, so a third of it clears the fold while the whole thing is still down at
+the bottom edge, sliding out from behind the bar. The question the maker asked
+is about the **screen**: don't move until the card is properly in front of me.
+
+`rootMargin` asks that one. Shrinking the root's bottom by 35% means only the
+top 65% of the viewport counts as in view, so the observer speaks the moment
+the card's **top** crosses that line — two thirds of the way up, columns
+settled in front of you.
+
+**And it is driven now, not read.** The previous assertions checked the
+constructor's options as a string, which is how a wrong trigger passed twice.
+jsdom has no `IntersectionObserver`, so the suite supplies one that implements
+the part the rule turns on — the root's bottom edge inset by `rootMargin` — and
+then walks the card up the screen, asserting it stays still at 95% down, still
+at 70%, and grows at 64%. Removing the `rootMargin` turns three of those red,
+including the two that only a driven test could see.
+
 ## v3.3.514 (2026-09-09) — The week grows when it is seen
 
 v3.3.513 made the columns grow and the maker still never saw it, for a reason
