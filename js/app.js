@@ -155,7 +155,13 @@ document.addEventListener('click',e=>{
        not match it, and the test drove `view='today'` directly instead of
        clicking the tab, so it never came through here at all. The nav bar is
        the only way into Train on a phone. */
-    if(view==='lift'){ const b=liftBack(); liftEnter(b?{part:b.part,ex:b.ex}:{}); }
+    if(view==='lift'){
+      const b=liftBack(), part=plannedTrainPart();
+      // Resume an open logger, otherwise land on Today's planned body part.
+      // Manual part taps within Train are never overridden by a repaint.
+      liftEnter(b&&b.ex&&exOpen(b.ex)?{part:b.part,ex:b.ex}:
+        part?{part}:b?{part:b.part,ex:b.ex}:{});
+    }
     else if(lift) lift.ret=null;
     return render();
   }

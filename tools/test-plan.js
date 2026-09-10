@@ -451,12 +451,12 @@ ok("both states are one heading line, so the page cannot jump",
 /* v3.3.472 RESTATES: Clear is back on the edge as an x, at the maker's word
    -- after Edit, before Write, and it carries an undo so one tap is safe. */
 ok("the plan's controls live in the heading, not the card body",
-   run(`document.querySelectorAll('h2 .planedge .pedge').length`) === 4 &&
+   run(`document.querySelectorAll('h2 .planedge .pedge').length`) === 3 &&
    run(`!document.querySelector('.plancard .planacts')`));
-ok("...copy, edit, clear, Write -- in that order, clear as the x on the edge",
+ok("...edit, clear, Write fit the refined heading without Copy",
    run(`(function(){const b=[...document.querySelectorAll('h2 .planedge .pedge')];
-     return b[0].hasAttribute('data-plancopy') && b[1].hasAttribute('data-planedit')
-       && b[2].getAttribute('data-planclear')==='edge' && b[2].classList.contains('pclear')
+     return !document.querySelector('h2 [data-plancopy]') && b[0].hasAttribute('data-planedit')
+       && b[1].getAttribute('data-planclear')==='edge' && b[1].classList.contains('pclear')
        && b[b.length-1].hasAttribute('data-planwrite');})()`));
 ok("...the fold lives on the row that folds",
    run(`!!document.querySelector('.planfoldrow[data-planfold]') && !document.querySelector('h2 .planedge [data-planfold]')`));
@@ -621,7 +621,7 @@ ok("...and the writer's reason keeps its own separate voice",
 
 ok("...but the heading stays as the one-line fact",
    run(`!!document.querySelector('h2 .scopepill')`) &&
-   run(`document.querySelectorAll('h2 .planedge .pedge').length`) === 4);   // v3.3.472: copy, edit, clear, Write
+   run(`document.querySelectorAll('h2 .planedge .pedge').length`) === 3);   // v3.3.518: edit, clear, Write
 ok("...and the chevron flips", chev(false));
 ok("the choice is a setting, not a render whim", run(`DB.settings.planFold===true`));
 run(`render()`);
@@ -1347,11 +1347,12 @@ async function v445(){
      /Squat/.test(box()) && !/Dip/.test(box()), JSON.stringify(box()).slice(0,80));
   // the copy button copies the same two
   run(`globalThis.__copied=null; navigator.clipboard={writeText:t=>{__copied=t;return Promise.resolve();},readText:()=>Promise.resolve('')};
-       lift.plan=null; render(); document.querySelector('[data-plancopy]').click();`);
+       flowLayout='previous';lift.plan=null; render(); document.querySelector('[data-plancopy]').click();`);
   await new Promise(r=>setTimeout(r,10));
   ok("Copy copies the plan you have, not the raw it came from",
      run(`__copied!==null && /Squat/.test(__copied) && !/Dip/.test(__copied)`)===true, JSON.stringify(run(`__copied`)).slice(0,80));
   // a render mid-edit keeps the edit
+  run(`flowLayout='refined';`);
   run(`lift.plan='paste'; lift.planMode='day'; lift.planDirty=false; render();`);
   run(`(function(){const ta=document.getElementById('planText'); ta.value='Deadlift\\n  225 lb x 5'; ta.dispatchEvent(new Event('input',{bubbles:true}));})()`);
   run(`render();`);   // a cloud pull, the minute tick, a toast -- anything

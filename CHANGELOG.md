@@ -1,5 +1,22 @@
 # ShowUp — changelog
 
+## v3.3.518 (2026-09-10) — The plan leads both tabs
+
+If TODAY's next exercise is Squat, entering TRAIN now opens Legs rather than
+an unrelated rotation pick or an old browsing choice. Both tabs read the same
+next item in today's plan. An open exercise logger stays open, and you can
+still choose any body part yourself. Tomorrow's plan does not steer today.
+
+The refined layout restores the softer BODY PART divider and removes the
+repeated body-part badge before GO-TO. Last Time keeps its badge. The PLAN
+header drops Copy and tightens the remaining controls so they fit on phones;
+at the narrowest widths they wrap instead of overlapping.
+
+TRAIN's exercise-list pound labels round to whole numbers. Stored weights,
+logger inputs, kilogram precision and run distances do not change. The Light
+tab bar gains a faint shaded lower edge, without blur. Previous remains
+available in Settings; no workout or plan data is migrated.
+
 ## v3.3.517 (2026-09-09) — The small things line up
 
 The streak count no longer turns red in the evening. It stays black in light

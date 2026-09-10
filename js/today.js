@@ -431,7 +431,7 @@ function renderToday(){
        rows, so this advances with them.
        When every item is logged the card goes quiet rather than falling back
        to the rotation -- the honest next action then is the day-end button. */
-    const _next=_pl0?(_pl0.items||[]).find(i=>!planLoggedToday(i.ex)):null;
+    const _next=nextPlanItem();
     /* v3.3.437: RESTING ANSWERS "WHAT SHOULD I TRAIN?" WITH NOTHING, so the
        rail stops asking. Train next, the run nudge and the door to other
        parts are all one question in three voices -- a Start button under a

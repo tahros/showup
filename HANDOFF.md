@@ -1,5 +1,32 @@
 # ShowUp — handoff (2026-08-22, v3.3.267)
 
+## Plan / Train coherence — v3.3.518 (2026-09-10)
+
+`nextPlanItem()` is shared by TODAY's next-exercise card and TRAIN's planned
+focus. `plannedTrainPart()` resolves the catalog/custom body part, ignoring
+rest/completed days. Fresh Train nav prefers this part to an old bookmark;
+an open logger has priority. Manual part taps and rerenders preserve browsing.
+The planned part leads the grid and replaces the rotation's hot cue. Only
+today's accepted plan (including today's week block) counts, not future days.
+
+Refined drops Copy from `_planEdge`, drops the repeated GO-TO scope pill, and
+restores the generic `--line` BODY PART rule. Scoped PLAN spacing permits wrap
+and prevents the info wrapper shrinking. Light bar gets a 6% ink gradient
+inside its existing surface; no fixed overlay, blur or transform is added.
+`trainListWeight` rounds pounds only in both browse-row layouts; stored loads,
+logger input, kilograms and distances retain their existing precision.
+
+Regression cases in test-flow-layout cover real nav, manual browsing, open
+logger preservation, week/future/completed plans and unit boundaries. Plan
+and week suites expect the refined three/two controls; Previous retains Copy.
+Browser QA covers 320/375/393/430px day/week headers without overlap or page
+overflow and all four light/dark page/bar combinations. Rollback remains in
+Settings; shared plan focus and display rounding are not theme-only changes.
+
+Validation: 68 behavioral suites plus smoke, buildcheck and all JS syntax
+checks pass. Read-time mutation probes fail when plan-priority nav, Copy
+removal or whole-pound formatting is disabled; the working files stay intact.
+
 ## Refinement details — v3.3.517 (2026-09-09)
 
 Maker feedback on 516: refined TRAIN tiles now left-align; `.flow-bodyhead`

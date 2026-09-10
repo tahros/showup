@@ -106,7 +106,7 @@ function planPillsHTML(active, hasWeek, dayLabel){
    the same reason Clear was last in the editor). No confirm dialog: the app
    does not do those (rest, close, tick -- none ask). */
 const _planEdge=(copyAttr,editAttr,writeAttr,clearAttr)=>`<span class="planedge">${
-  copyAttr?_edgeBtn(copyAttr,'Copy',icon('copy',ICON_SZ.md)):''}${
+  copyAttr&&!refinedFlow()?_edgeBtn(copyAttr,'Copy',icon('copy',ICON_SZ.md)):''}${
   editAttr?_edgeBtn(editAttr,'Edit',icon('edit',ICON_SZ.md)):''}${
   clearAttr?_edgeBtn(clearAttr,'Clear the plan',icon('clear',ICON_SZ.md),'pclear'):''}<button class="pedge pwrite" ${writeAttr} aria-label="Write a session">${icon('sparkle',ICON_SZ.sm)}Write</button></span>`;
 /* v3.3.398: the edge speaks in glyphs. Fold leads (a chevron for a day, the
@@ -132,7 +132,7 @@ function planSectionHTML(){
        behaviour when you come in through a DAY and widen to the week inside the
        ask screen. The door you came through says which you meant; no toggle. */
     const _ps0=planShown();
-    h+=`<h2>plan${planPillsHTML('week',true,_ps0?planDayLabel(_ps0.d):null)}${_tip}${
+    h+=`<h2 class="planhead">plan${planPillsHTML('week',true,_ps0?planDayLabel(_ps0.d):null)}${_tip}${
       _planEdge('data-plancopy="week"','data-weekedit','data-planwrite="week"')}</h2>`;
     const n=isos.filter(x=>(_wk.days[x].items||[]).length).length;
     h+=`<div class="mono muted rangeline">${pretty(isos[0]).toUpperCase()} → ${pretty(isos[isos.length-1]).toUpperCase()} · ${n} SESSION${n===1?'':'S'}</div>`;
@@ -197,7 +197,7 @@ function planSectionHTML(){
     const _pf=!!DB.settings.planFold||_rf;
     const _n=(_ps.items||[]).length;
     const _dl=_isToday?'today':planDayLabel(_ps.d);
-    h+=`<h2>plan${planPillsHTML('today',!!_wk,_dl)}${_tip}${
+    h+=`<h2 class="planhead">plan${planPillsHTML('today',!!_wk,_dl)}${_tip}${
       _planEdge('data-plancopy="day"','data-planedit','data-planwrite','data-planclear="edge"')}</h2>`;
     /* the fold row: the same row tomorrow's plan has had since v3.3.413, now
        for today's too. The chevron lives on the thing that folds.
@@ -226,7 +226,7 @@ function planSectionHTML(){
   }else{
     /* nothing planned for the day the scope shows: the pill still names the
        scope (filled -- you are in it), and the one action is to write. */
-    h+=`<h2 class="quiet">plan${planPillsHTML('today',!!_wk,writeDateISO()===todayISO?'today':planDayLabel(writeDateISO()))}${_tip}${
+    h+=`<h2 class="quiet planhead">plan${planPillsHTML('today',!!_wk,writeDateISO()===todayISO?'today':planDayLabel(writeDateISO()))}${_tip}${
       _planEdge(null,null,'data-planwrite')}${refinedFlow()?`<button class="pedge flow-paste" data-planpaste>Paste</button>`:''}</h2>`;
   }
   return h;
@@ -251,6 +251,7 @@ function renderLift(){
   const t=day(todayISO);
 
   if(!lift.ex){
+    const focus=planNow()?plannedTrainPart():P.pick;
     // parts in the same order as Today: recommended pick, rotation by readiness, Run, add-ons, then dormant
     const order=[...P.mains];
     if(P.info['Run']) order.push('Run');
@@ -261,7 +262,9 @@ function renderLift(){
       const lastOpen=[...t.w].reverse().find(s=>partOpen(s.part));
       if(lastOpen) lift.part=lastOpen.part;
     }
-    if(!lift.part||!SEED.catalog[lift.part]) lift.part=P.pick||order[0];
+    if(!lift.part||!SEED.catalog[lift.part]) lift.part=focus||P.pick||order[0];
+    const parts=[...order,...dormant];
+    if(focus&&SEED.catalog[focus]){const at=parts.indexOf(focus);if(at>=0)parts.splice(at,1);parts.unshift(focus);}
 
     /* v3.3.278: today's plan, if there is one, leads the tab — it is the
        thing you came to read. It is a NOTE: no completion state, no count of
@@ -278,7 +281,7 @@ function renderLift(){
        and this app has retired duplicate sections twice before on exactly that
        reasoning (v3.3.230, v3.3.307). */
     h+=`<h2 class="flow-bodyhead">Body part</h2><div class="partgrid">`;
-    [...order,...dormant].forEach(p=>{
+    parts.forEach(p=>{
       const i0=P.info[p]||{since:999};
       const virgin=SEED.totals.sessions===0&&!hasAnyDays();   // day zero: no verdicts yet
       /* v3.3.269: a chip says how long it has been, because that is what the
@@ -317,7 +320,7 @@ function renderLift(){
                    elapsed time. */
                 : agoLabel(i0.since);
       const cls = [dead?'dead':'', p==='Run'&&!hasToday?'run':'',
-                   (p===P.pick&&!hasToday&&!isLive())?'hot':'',   // no suggestions mid-workout
+                   (p===focus&&!hasToday&&!isLive())?'hot':'',   // no suggestions mid-workout
                    open?'liveP':'', finished?'finP':''].filter(Boolean).join(' ');
       h+=`<button class="partcard ${sel?'sel':''} ${cls}" data-part="${p}">
             <b>${p}</b><span class="ps">${sub}</span></button>`;
@@ -441,7 +444,7 @@ function renderLift(){
       if(refinedFlow()) return `<div class="item logrow ${big?'goto':''}${_enter?' enter':''}" style="--i:${Math.min(_ei++,6)}">
           <button class="logmain" data-ex="${ex}">
             <span class="flow-exname"><b>${ex}</b><span class="sub">${meta}${mine?` · yours · ${eq.toLowerCase()}`:''}</span></span>
-            <span class="pr-cell"><span class="pr-top">${(w=>w?(ex==='Run'?dDisp(w)+' '+DU():wDisp(w)+' '+U()):'<i class="pr-nil" aria-label="no weight logged"></i>')(nextWFor(ex))}</span></span>
+            <span class="pr-cell"><span class="pr-top">${(w=>w?(ex==='Run'?dDisp(w)+' '+DU():trainListWeight(w)+' '+U()):'<i class="pr-nil" aria-label="no weight logged"></i>')(nextWFor(ex))}</span></span>
             <span class="flow-exchev" aria-hidden="true">${icon('chevron',ICON_SZ.sm)}</span>
           </button>${(mine&&!last)?`<button class="xbtn" data-delex="${ex}" aria-label="Delete ${ex}">✕</button>`:''}
         </div>`;
@@ -450,7 +453,7 @@ function renderLift(){
               <b>${ex}</b><div class="sub">${meta}${mine?` · yours · ${eq.toLowerCase()}`:''}</div>
             </button>
             <span class="pr-cell">
-              <span class="pr-top">${(w=>w?(ex==='Run'?dDisp(w)+' '+DU():wDisp(w)+' '+U()):'<i class="pr-nil" aria-label="no weight logged"></i>')(nextWFor(ex))}</span>
+              <span class="pr-top">${(w=>w?(ex==='Run'?dDisp(w)+' '+DU():trainListWeight(w)+' '+U()):'<i class="pr-nil" aria-label="no weight logged"></i>')(nextWFor(ex))}</span>
             </span>
             ${(mine&&!last)?`<button class="xbtn" data-delex="${ex}" aria-label="Delete ${ex}">✕</button>`:''}
           </div>`;
@@ -466,7 +469,7 @@ function renderLift(){
     const some=list.filter(x=>x.tier==='sometimes').sort((a,b)=>(b.last||'').localeCompare(a.last||''));
     const fresh=list.filter(x=>x.tier==='new').sort((a,b)=>a.ex.localeCompare(b.ex));
     if(goto.length){
-      h+=`<h2><b class="scopepill">${lift.part}</b> go-to</h2>`;
+      h+=`<h2 class="gotohead">${refinedFlow()?'':`<b class="scopepill">${lift.part}</b> `}go-to</h2>`;
       if(refinedFlow()) h+=`<div class="flow-exgroup flow-goto">`;
       goto.forEach(x=>h+=row(x,true));
       if(refinedFlow()) h+=`</div>`;
