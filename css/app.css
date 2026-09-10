@@ -3389,3 +3389,69 @@
   @media (prefers-reduced-motion:reduce){
     :root[data-design-preview="modern"] :is(.item,.chip,.partcard,.btn,nav button){transition:none}
   }
+
+  /* v3.3.516: approved TODAY/TRAIN refinement. One opt-out removes this
+     entire layer; the existing skins and all record/charts stay authoritative.
+     No global card, header, navigation, logger, Stats or History restyling. */
+  :root[data-flow="refined"] #view[data-flow-view="today"] h2:not(.ddyou),
+  :root[data-flow="refined"] #view[data-flow-view="lift"][data-flow-screen="browse"] h2{
+    gap:8px;letter-spacing:.13em}
+  :root[data-flow="refined"] #view:is([data-flow-view="today"],[data-flow-view="lift"][data-flow-screen="browse"]) h2::before{display:none}
+  :root[data-flow="refined"] #view:is([data-flow-view="today"],[data-flow-view="lift"][data-flow-screen="browse"]) h2::after{
+    content:'';height:1px;min-width:12px;flex:1;background:var(--line);order:1}
+  :root[data-flow="refined"] .flow-paste{order:3;min-height:44px;min-width:44px;color:var(--accent-ink)}
+  :root[data-flow="refined"] #view[data-flow-view="today"] .planedge{gap:4px}
+  :root[data-flow="refined"] #view[data-flow-view="today"] .pedge{min-height:44px;min-width:36px;display:inline-flex;align-items:center;justify-content:center}
+  :root[data-flow="refined"] #view[data-flow-view="today"] .pglyph{width:36px}
+  :root[data-flow="refined"] .flow-dayone-plan{display:flex;align-items:center;justify-content:center;gap:18px;margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}
+  :root[data-flow="refined"] .flow-dayone-plan .planedge{display:flex;gap:12px}
+  :root[data-flow="refined"] #view[data-flow-view="today"] .plancard{padding:4px 18px}
+  :root[data-flow="refined"] #view[data-flow-view="today"] .planrow{display:block;padding:16px 0;border-radius:0;min-height:72px}
+  :root[data-flow="refined"] #view[data-flow-view="today"] .planrow::after{left:0;right:0}
+  :root[data-flow="refined"] #view[data-flow-view="today"] .planrow .pn{display:flex;align-items:center;justify-content:space-between;font-size:17px;font-weight:500;gap:12px}
+  :root[data-flow="refined"] #view[data-flow-view="today"] .planrow .pk{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+  :root[data-flow="refined"] #view[data-flow-view="today"] .planrow .pl{margin:8px 0 0;grid-template-columns:minmax(72px,var(--planw)) 12px minmax(0,1fr);gap:3px 10px}
+  :root[data-flow="refined"] #view[data-flow-view="today"] .planrow :is(.pv,.px,.pr){font-size:12px;line-height:1.6}
+  :root[data-flow="refined"] #view[data-flow-view="today"] .planrow .pr{white-space:normal;overflow-wrap:anywhere}
+  :root[data-flow="refined"] #view[data-flow-view="today"] .planrow .pw{color:var(--muted)}
+  :root[data-flow="refined"] #view[data-flow-view="today"] .planfoldrow{margin-bottom:0;padding:16px 18px;min-height:54px}
+  :root[data-flow="refined"] #view[data-flow-view="today"] .planfold:not(.shut) .plancard{margin-top:8px}
+  :root[data-flow="refined"] #view[data-flow-view="today"] .daycard .plancard{margin-top:0}
+  :root[data-flow="refined"] #view[data-flow-view="today"] .planta{border-radius:12px;padding:14px}
+  :root[data-flow="refined"] #view[data-flow-view="today"] .writecard .seg button{min-height:54px}
+  :root[data-flow="refined"] #view[data-flow-view="today"] .writecard .seg button small{font-size:11px}
+  :root[data-flow="refined"] #view[data-flow-view="today"] .planpv{padding-top:17px;padding-bottom:17px}
+  :root[data-flow="refined"] #view[data-flow-view="today"] .planpv .pb b{font-size:16px}
+  :root[data-flow="refined"] #view[data-flow-view="today"] .planpv .pb i{font-size:12px;line-height:1.65}
+  :root[data-flow="refined"] #view[data-flow-view="today"] .planpv :is(.lsx,.pgrip){min-width:36px;min-height:44px}
+  :root[data-flow="refined"] #view[data-flow-view="lift"] .partgrid{gap:7px}
+  :root[data-flow="refined"] #view[data-flow-view="lift"] .partcard{align-items:center;text-align:center;border-radius:12px;padding:10px 3px;min-height:54px;box-shadow:none}
+  :root[data-flow="refined"] #view[data-flow-view="lift"] .partcard b{font-size:12px}
+  :root[data-flow="refined"] #view[data-flow-view="lift"] .partcard .ps{font-size:11px}
+  :root[data-flow="refined"] #view[data-flow-view="lift"] .partlast{margin-top:18px}
+  :root[data-flow="refined"] #view[data-flow-view="lift"] .partlast>.lasthead{margin-bottom:0;min-height:44px}
+  :root[data-flow="refined"] #view[data-flow-view="lift"] .partlast .plfold{min-width:44px;min-height:44px;justify-content:center}
+  :root[data-flow="refined"] #view[data-flow-view="lift"] .partlast .inlinehelp{padding-top:12px}
+  :root[data-flow="refined"] #view[data-flow-view="lift"] .flow-exgroup{background:var(--surface);border-radius:18px;padding:2px 17px;box-shadow:var(--shadow);margin-bottom:12px}
+  :root[data-flow="refined"] #view[data-flow-view="lift"] .flow-exgroup .item.logrow{background:none;border:0;border-bottom:1px solid var(--line);border-radius:0;padding:0;margin:0;box-shadow:none;gap:4px;animation:none}
+  :root[data-flow="refined"] #view[data-flow-view="lift"] .flow-exgroup .item.logrow:last-child{border-bottom:0}
+  :root[data-flow="refined"] #view[data-flow-view="lift"] .flow-exgroup .item.logrow.enter{animation:cardin var(--dur-move) var(--settle) backwards;animation-delay:calc(var(--i,0)*.018s)}
+  :root[data-flow="refined"] #view[data-flow-view="lift"] .flow-exgroup .logmain{display:flex;align-items:center;gap:10px;padding:18px 0;min-height:76px;width:100%}
+  :root[data-flow="refined"] #view[data-flow-view="lift"] .flow-exname{flex:1;min-width:0}
+  :root[data-flow="refined"] #view[data-flow-view="lift"] .flow-exgroup .logmain b{display:block;font-size:16px;line-height:1.35;white-space:normal;overflow:visible}
+  :root[data-flow="refined"] #view[data-flow-view="lift"] .flow-exgroup .logmain .sub{display:block;margin-top:5px;font-size:11px;line-height:1.6;color:var(--muted);white-space:normal}
+  :root[data-flow="refined"] #view[data-flow-view="lift"] .flow-goto .logmain b{font-size:17px;font-weight:600}
+  :root[data-flow="refined"] #view[data-flow-view="lift"] .flow-exgroup .pr-top{font-size:12px;color:var(--muted)}
+  :root[data-flow="refined"] #view[data-flow-view="lift"] .flow-exchev{flex:0 0 auto;color:var(--faint);transition:transform var(--dur-quick) var(--settle)}
+  :root[data-flow="refined"] #view[data-flow-view="lift"] .flow-exgroup .logmain:active .flow-exchev{transform:translateX(2px)}
+  :root[data-flow="refined"] #view[data-flow-view="lift"] .flow-exgroup .logmain:active{transform:scale(.99)}
+  @media(max-width:380px){
+    :root[data-flow="refined"] #view[data-flow-view="today"] h2{flex-wrap:wrap}
+    :root[data-flow="refined"] #view[data-flow-view="today"] h2 .planedge{gap:2px}
+    :root[data-flow="refined"] #view[data-flow-view="today"] .planpv{gap:6px}
+    :root[data-flow="refined"] #view[data-flow-view="today"] .planpv .pb b{font-size:15px}
+  }
+  @media(prefers-reduced-motion:reduce){
+    :root[data-flow="refined"] .flow-exchev{transition:none}
+    :root[data-flow="refined"] #view[data-flow-view="lift"] .flow-exgroup .item.logrow.enter{animation:none}
+  }

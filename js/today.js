@@ -219,6 +219,7 @@ function dayOneHTML(){
       <h3 class="d1h">One set is day one.</h3>
       <p class="muted d1p">ShowUp counts days, not perfection.</p>
       <button class="onbbtn pri" data-d1="start">Log your first set</button>
+      ${refinedFlow()&&!d1.preview?`<div class="flow-dayone-plan"><span class="mono muted">Have a routine?</span><span class="planedge"><button class="pedge" data-planpaste>Paste</button><button class="pedge pwrite" data-planwrite>${icon('sparkle',ICON_SZ.sm)}Write</button></span></div>`:''}
       <button class="onbbtn d1soon" data-d1="soon" aria-disabled="true">Bring my logs over \u00b7 soon</button>
       ${d1.preview?`<button class="d1link" data-d1="moment">See the moment</button>`
                   :`<button class="d1link" data-onbact="demo">Explore with sample data</button>`}
@@ -353,7 +354,8 @@ function renderToday(){
   if(lift.plan==='paste'||lift.plan==='preview'){ $('#view').innerHTML=planScreenHTML(); if(lift.plan==='paste') requestAnimationFrame(planBoxGrow); return; }
   if(lift.plan==='write'){ $('#view').innerHTML=writerScreenHTML(); return; }   // v3.3.400: the writer's ask screen
   if(lift.plan==='writing'){ $('#view').innerHTML=writerWaitHTML(); return; }   // v3.3.406: the wait, as a receipt
-  if(d1.preview || (SEED.totals.sessions===0 && !((DB.days[todayISO]||{}).w||[]).length)){
+  if(refinedFlow()) planWake();
+  if(d1.preview || (SEED.totals.sessions===0 && !((DB.days[todayISO]||{}).w||[]).length && !(refinedFlow()&&planNow()))){
     $('#view').innerHTML=dayOneHTML(); return; }
   planWake();   // v3.3.397: a plan written last night for today feeds the rail now
   const P=trainingPlan();

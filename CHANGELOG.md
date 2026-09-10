@@ -1,5 +1,23 @@
 # ShowUp — changelog
 
+## v3.3.516 (2026-09-09) — A clearer plan, a quieter exercise list
+
+The approved TODAY and TRAIN layout is now available with your real record.
+No plan yet? **Write and Paste stay visible.** A first-time user can bring a
+routine before logging a first set, and the saved plan stays on screen.
+
+Plan rows put the exercise name above its weights and reps. TRAIN keeps its
+compact body-part choices and groups exercises into readable, full-width
+tap targets. Go-to stays prominent; Sometimes and Never tried remain available.
+Last Time starts folded in this layout and opens smoothly in place, with its
+date link and previous-session details intact. Its fold choice is remembered.
+
+**Change your mind in Settings → TODAY & TRAIN layout → Previous.** Switch
+back and forth whenever you like. This preference belongs to this device;
+switching it never replaces workouts or plans and never changes cloud data.
+The existing light/dark themes, logger, Writer, parser, completion ceremony,
+Stats and History retain their behavior. This is not the Modern Theme.
+
 ## v3.3.515 (2026-09-09) — Where on the screen, not how much of the card
 
 Still early. v3.3.514 used `threshold:.34` — fire once a third of the card is
