@@ -1,5 +1,15 @@
 # ShowUp — changelog
 
+## v3.3.522 (2026-09-10) — Polished silver
+
+The Light tab bar now uses the chosen polished silver finish: a bright upper
+edge, a neutral silver gradient and a more defined selected-tab capsule.
+The soft shadow beneath it is slightly darker, helping the bar stand apart
+from the page without growing larger.
+
+The Dark tab bar is unchanged. The selected-tab shimmer and blur-free
+scrolling remain, and Previous layout is still available.
+
 ## v3.3.521 (2026-09-10) — Polished graphite
 
 The Dark tab bar adopts the chosen polished graphite finish: a brighter top
