@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v3.3.532 (2026-09-10) — A quieter weekly overview
+
+Expanded days in the Week plan take up less space: slightly smaller exercise
+names and tighter gaps, while weights and reps keep their readable size and
+aligned columns. The five-exercise example is about 15% shorter. Whole rows
+remain easy to tap and the same smooth fold stays. The focused Today plan,
+header, completion card and tab bar are unchanged.
+
 ## v3.3.531 (2026-09-10) — A little more light on the selected tab
 
 The Light tab bar's selected capsule takes the approved B finish: a luminous

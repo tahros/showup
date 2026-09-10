@@ -1,5 +1,21 @@
 # ShowUp — handoff (2026-08-22, v3.3.267)
 
+## Compact Week overview — v3.3.532 (2026-09-10)
+
+Scope: refined Today view's .weekstack only. Week names 14px versus focused
+Today 15px; numeric type remains 12px. Rows use 8px vertical padding, 56px
+minimum height, 4px set-grid top gap and 12px inner card padding. The example
+measures 438 -> 373 CSS px tall at 393px viewport (~15% shorter).
+Preserve shared load columns, fold motion/inert state and full-row logger
+entry. Focused Today, Previous layout, header, completion, tab bar and all
+plan logic are untouched; Claude's Paste/Run changes remain intact.
+Browser QA: light/dark at 320/393/430, no overflow, aligned columns, >=44px
+tap targets, fold/reopen and actual logger entry. Focused Today still 15px.
+Validation: buildcheck and syntax pass; 71/72 suites pass with the existing
+test-runclose local JSDOM width failure documented below unchanged.
+Rollback: revert these scoped CSS/test changes with a new version stamp;
+no stored data or preference changes.
+
 ## Luminous selected tab — v3.3.531 (2026-09-10)
 
 Maker chose B from selected-tab-shine preview. Refined + Minimal + light

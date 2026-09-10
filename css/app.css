@@ -3481,6 +3481,12 @@
   :root[data-flow="refined"] #view[data-flow-view="today"] .planfoldrow{margin-bottom:0;padding:16px 18px;min-height:54px}
   :root[data-flow="refined"] #view[data-flow-view="today"] .planfold:not(.shut) .plancard{margin-top:8px}
   :root[data-flow="refined"] #view[data-flow-view="today"] .daycard .plancard{margin-top:0}
+  /* v3.3.532: Week is an overview, one step quieter than the focused day.
+     Keep the same numeric type, aligned columns and fold motion. */
+  :root[data-flow="refined"] #view[data-flow-view="today"] .weekstack .daycard .plancard{padding:0 12px}
+  :root[data-flow="refined"] #view[data-flow-view="today"] .weekstack .planrow{padding:8px 0;min-height:56px}
+  :root[data-flow="refined"] #view[data-flow-view="today"] .weekstack .planrow .pn{font-size:14px}
+  :root[data-flow="refined"] #view[data-flow-view="today"] .weekstack .planrow .pl{margin-top:4px}
   :root[data-flow="refined"] #view[data-flow-view="today"] .planta{border-radius:12px;padding:14px}
   :root[data-flow="refined"] #view[data-flow-view="today"] .writecard .seg button{min-height:54px}
   :root[data-flow="refined"] #view[data-flow-view="today"] .writecard .seg button small{font-size:11px}

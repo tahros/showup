@@ -21,6 +21,10 @@ ok('Expanded plan uses compact rows but retains a generous tap target',/padding:
 ok('Plan names sit below action titles in the type hierarchy',/font-size:15px;font-weight:500/.test(planRule('\\.planrow \\.pn')));
 ok('Plan readout stays legible at the same numeric size',/font-size:12px;line-height:1.5/.test(planRule('\\.planrow :is\\(\\.pv,\\.px,\\.pr\\)')));
 ok('Shared load columns survive tighter vertical rhythm',/margin:6px 0 0/.test(planRule('\\.planrow \\.pl'))&&/grid-template-columns:minmax\(72px,var\(--planw\)\) 12px minmax\(0,1fr\);gap:2px 10px/.test(planRule('\\.planrow \\.pl')));
+ok('Week overview keeps compact comfortable rows',/padding:8px 0;min-height:56px/.test(planRule('\\.weekstack \\.planrow')));
+ok('Week names sit below focused Today in the hierarchy',/font-size:14px/.test(planRule('\\.weekstack \\.planrow \\.pn')));
+ok('Week inner card removes excess space without changing data type',/padding:0 12px/.test(planRule('\\.weekstack \\.daycard \\.plancard')));
+ok('Week set grid has a tighter top gap',/margin-top:4px/.test(planRule('\\.weekstack \\.planrow \\.pl')));
 ok('Body-part rule uses the original soft divider',!css.includes('h2.flow-bodyhead::after{background:var(--edge)}')&&/h2::after\{[^}]*background:var\(--line\)/.test(css));
 ok('Refined part tiles align to the left',/\[data-flow="refined"\][^\n]*\.partcard\{align-items:flex-start;text-align:left/.test(css));
 ok('Last Time header and both groups align centrally',/\[data-flow="refined"\][^\n]*\.partlast>\.lasthead\{[^}]*align-items:center/.test(css)&&/\.partlast>\.lasthead>span\{display:inline-flex;align-items:center/.test(css));
