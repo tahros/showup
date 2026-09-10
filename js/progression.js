@@ -167,6 +167,13 @@ function progressionReceipt(r){
   const {date,value}=progressionReadoutParts(r);
   return '<span class="pg-read-value">'+pgEscape(value)+'</span><span class="pg-read-date">'+pgEscape(date)+'</span>';
 }
+function progressionPeriod(dates){
+  if(!dates.length)return {label:'No sessions',years:''};
+  const first=dates[0],last=dates.at(-1),month=d=>new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  const label=first===last?month(first):month(first)+' – '+(first.slice(0,7)===last.slice(0,7)?+last.slice(8):month(last));
+  const years=first.slice(0,4)===last.slice(0,4)?first.slice(0,4):first.slice(0,4)+' → '+last.slice(0,4);
+  return {label,years};
+}
 function renderProgression(card){
   const role=card.closest('[data-pg-role]').dataset.pgRole,state=progressionUI[role],ex=state.ex,data=progressionData(ex),all=data.records;
   if(!['numbers','dots'].includes(state.mode))state.mode='numbers';
@@ -185,9 +192,11 @@ function renderProgression(card){
   const picker=names.length?'<select class="pg-ex" data-pg-action="exercise" aria-label="Exercise history">'+names.map(n=>'<option'+(ex===n?' selected':'')+'>'+pgEscape(n)+'</option>').join('')+'</select>':'<h3 class="pg-title">'+pgEscape(ex)+'</h3>';
   let h='<div class="pg-title-row">'+picker+'<button class="pg-share" data-pg-action="share" aria-label="Share this progression chart" title="Share"'+(!scope.length?' disabled':'')+'>'+ICO_SHARE+'</button></div><div class="pg-toolbar"><div class="pg-modes" role="group" aria-label="History range"><button data-pg-action="numbers" aria-pressed="'+(state.mode==='numbers')+'">4 Sessions</button><button data-pg-action="dots" aria-pressed="'+(state.mode==='dots')+'">12 Sessions</button></div></div>';
   if(kinds.length>1)h+='<select class="pg-kind" data-pg-action="kind" aria-label="Measurement type">'+kinds.map(k=>'<option value="'+k+'"'+(k===state.kind?' selected':'')+'>'+pgEscape(pgKinds[k])+'</option>').join('')+'</select>';
-  const dateYears=dates.length?(dates[0].slice(0,4)===dates.at(-1).slice(0,4)?dates.at(-1).slice(0,4):dates[0].slice(0,4)+' / '+dates.at(-1).slice(0,4)):'';
-  const dateLabel=dates.length?pgShortDate(dates[0])+' – '+pgShortDate(dates.at(-1))+' · '+dateYears:'';
-  h+='<div class="pg-range-head"><div class="pg-range-nav"><button data-pg-action="prev-range" aria-label="Previous '+count+' sessions"'+(!start?' disabled':'')+'>‹</button><span class="pg-period" aria-live="polite">'+dateLabel+'</span><button data-pg-action="next-range" aria-label="Next '+count+' sessions"'+(end===allDates.length?' disabled':'')+'>›</button></div><span class="pg-axis-unit">'+pgEscape(progressionAxis(state.kind))+'</span></div>';
+  const period=progressionPeriod(dates);
+  h+='<div class="pg-range-head"><div class="pg-range-nav" role="group" aria-label="Browse session ranges"><button data-pg-action="prev-range" aria-label="Previous '+count+' sessions"'+(!start?' disabled':'')+'>‹</button><span class="pg-period" aria-live="polite" aria-atomic="true"><span class="pg-period-main">'+period.label+'</span><span class="pg-period-year">'+period.years+'</span></span><button data-pg-action="next-range" aria-label="Next '+count+' sessions"'+(end===allDates.length?' disabled':'')+'>›</button></div></div>';
+  // Weight units already appear in the selected-set readout. Other measurement
+  // axes still need their meaning (e.g. assistance or seconds, not reps).
+  if(state.kind!=='load')h+='<div class="pg-axis-unit">'+pgEscape(progressionAxis(state.kind))+'</div>';
   h+='<div class="pg-available"'+(dates.length===count||!scope.length?' aria-hidden="true"':'')+'>'+dates.length+' session'+(dates.length===1?'':'s')+(allDates.length<count?' on record':' in this range')+'</div>';
   if(!scope.length)h+='<p class="pg-empty">No measured sets yet. Your completed sets will appear here.</p>';
   else{
@@ -221,7 +230,7 @@ function progressionPick(card,id){
 function progressionShare(card){
   const {state,scope,layout,count}=card._pg;if(!scope.length)return;
   const style=getComputedStyle(card),color=name=>style.getPropertyValue(name).trim();
-  const snapshot={ex:state.ex,count,layout,read:progressionReadoutParts(scope.find(r=>r.id===state.pick)||scope.at(-1)),axis:progressionAxis(state.kind),picked:state.pick,
+  const snapshot={ex:state.ex,count,layout,read:progressionReadoutParts(scope.find(r=>r.id===state.pick)||scope.at(-1)),axis:state.kind==='load'?'':progressionAxis(state.kind),picked:state.pick,
     colors:{paper:color('--surface'),ink:color('--chalk'),muted:color('--muted'),line:color('--line'),blue:color('--accent-ink'),soft:color('--surface2')},
     font:style.getPropertyValue('--body').trim()||'sans-serif',mono:style.getPropertyValue('--mono').trim()||'monospace'};
   return showCard(()=>drawProgressionCard(snapshot),'progression-'+state.ex.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/-$/,'')+'-'+count+'-sessions-'+layout.dates[0]+'-'+layout.dates.at(-1));
@@ -238,7 +247,7 @@ function drawProgressionCard(s){
   x.fillStyle=s.colors.ink;x.font='600 18px '+s.font;title.forEach((line,i)=>x.fillText(line,pad,51+i*24));
   x.fillStyle=s.colors.muted;x.font='500 11px '+s.mono;
   x.fillText(s.count+' Sessions'+(m.dates.length<s.count?' · '+m.dates.length+' in this range':''),pad,chartY-17);
-  x.textAlign='right';x.fillText(s.axis,W-pad,chartY-1);x.textAlign='left';
+  if(s.axis){x.textAlign='right';x.fillText(s.axis,W-pad,chartY-1);x.textAlign='left';}
   x.textAlign='center';x.fillStyle=s.colors.ink;x.font='500 16px '+s.font;read.forEach((line,i)=>x.fillText(line,W/2,chartY+18+i*18));
   x.fillStyle=s.colors.muted;x.font='400 11px '+s.mono;x.fillText(s.read.date,W/2,chartY+read.length*18+17);
   x.save();x.translate((W-m.width)/2,chartY+52);
@@ -309,6 +318,10 @@ function bindProgression(){
       if(action==='numbers'||action==='dots'){state.mode=action;state.page=0;state.pick=null;}
       if(action==='kind'){state.kind=el.value;state.page=0;state.pick=null;}
       renderProgression(card);
+      if(action==='prev-range'||action==='next-range'){
+        const period=card.querySelector('.pg-period');
+        if(period.animate&&!matchMedia('(prefers-reduced-motion: reduce)').matches)period.animate([{transform:'translateY(3px)',opacity:.65},{transform:'translateY(0)',opacity:1}],{duration:160,easing:'ease-out'});
+      }
       card.querySelector('[data-pg-action="'+action+'"]')?.focus({preventScroll:true});
     };
     card.addEventListener('click',act);card.addEventListener('change',act);

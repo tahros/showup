@@ -1,5 +1,17 @@
 # ShowUp — changelog
 
+## v3.3.540 (2026-09-10) — Dates that stay put
+
+Progression's date arrows are now visible circular buttons, anchored at either
+edge. Dates stay centered between them: **Jan 2 – 21**, or **Oct 25 – Jan 21**
+with **2025 → 2026** underneath. Changing dates no longer nudges the arrows.
+Unavailable directions dim; a quiet date transition respects reduced motion.
+
+The redundant **Weight · lb/kg** label is gone from the chart and shared image:
+the selected set already shows its unit. Other measurement labels, including
+assistance and time, remain clear. Chart geometry, set scrubbing, the header,
+tab bars and your stored records are unchanged.
+
 ## v3.3.539 (2026-09-10) — One place to read your set
 
 Progression now keeps the selected weight and reps above the chart, with the

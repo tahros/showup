@@ -24,6 +24,8 @@ for(const m of html.matchAll(/src="(js\/[^?"]+)\?v=/g)){
   if(m[1]==='js/progression.js'&&process.env.PG_MUTATE==='round')source=source.replace('String(Math.round(n))','String(n)');
   if(m[1]==='js/progression.js'&&process.env.PG_MUTATE==='labels')source=source.replace('showLabel:ticks.length%2===0','showLabel:true');
   if(m[1]==='js/progression.js'&&process.env.PG_MUTATE==='readout')source=source.replace("read.querySelector('.pg-read-date').textContent=parts.date","read.querySelector('.pg-read-date').textContent='stale'");
+  if(m[1]==='js/progression.js'&&process.env.PG_MUTATE==='period')source=source.replace("first.slice(0,4)+' → '+last.slice(0,4)","first.slice(0,4)");
+  if(m[1]==='js/progression.js'&&process.env.PG_MUTATE==='axis-label')source=source.replace("if(state.kind!=='load')h+=",'if(true)h+=');
   vm.runInContext(source,ctx,{filename:m[1]});
 }
 const run=c=>vm.runInContext(c,ctx);
@@ -73,11 +75,17 @@ check('best is compared at each load',`document.querySelectorAll('.pg-detail .pg
 check('no best-set connecting line',`!document.querySelector('.progression-card polyline')`);
 check('one readout above plot, value then date/set, no footer below controls',`(()=>{const c=document.querySelector('.progression-card'),r=c.querySelector('.pg-read');return c.querySelectorAll('.pg-read').length===1&&r.firstElementChild.className==='pg-read-value'&&r.lastElementChild.className==='pg-read-date'&&r.compareDocumentPosition(c.querySelector('.pg-scroll'))&Node.DOCUMENT_POSITION_FOLLOWING&&c.lastElementChild.className==='pg-pages'&&!r.querySelector('br');})()`);
 check('all gridlines retained with half as many axis labels',`(()=>{const c=document.querySelector('.progression-card');return c.querySelectorAll('.pg-grid').length===c._pg.layout.ticks.length&&c.querySelectorAll('.pg-axis').length===Math.ceil(c._pg.layout.ticks.length/2);})()`);
+check('weight label removed while readout and accessible plot retain units',`!document.querySelector('.pg-axis-unit')&&document.querySelector('.pg-read-value').textContent.includes('lb')&&document.querySelector('.pg-plot').getAttribute('aria-label').includes('Weight · lb')`);
+check('period handles same day, same month, month changes and year changes',`(()=>{const cases=[[['2026-01-02'],'Jan 2','2026'],[['2026-01-02','2026-01-21'],'Jan 2 – 21','2026'],[['2026-08-21','2026-09-10'],'Aug 21 – Sep 10','2026'],[['2025-10-25','2026-01-21'],'Oct 25 – Jan 21','2025 → 2026']];return cases.every(([ds,label,years])=>{const p=progressionPeriod(ds);return p.label===label&&p.years===years;});})()`);
+check('range shows centered date and year on separate fixed lines',`document.querySelector('.pg-period-main').textContent==='Aug 19 – 22'&&document.querySelector('.pg-period-year').textContent==='2026'`);
 check('weights round only in presentation in both units and every load kind',`(()=>{const before=JSON.stringify(DB);for(const unit of ['lb','kg']){DB.settings.unit=unit;for(const kind of ['load','added','assisted','time']){const r={d:'2026-09-10',ordinal:2,load:kind==='assisted'?-70:70,count:kind==='time'?60:8,kind};const text=progressionRead(r);if(!text.includes(Math.round(toU(70))+' '+U())||/\\d+\\.\\d+ (?:lb|kg)/.test(text)||Math.abs(r.load)!==70)return false;}}DB.settings.unit='lb';return before===JSON.stringify(DB);})()`);
 const css=fs.readFileSync(path.join(dir,'css/app.css'),'utf8');
 assert.match(css,/\.pg-set text\{font:400 11px/,'rep glyphs use regular weight');
 assert.match(css,/\.pg-set\.pg-best text\{font-weight:400/,'best stays blue, not bold');
 assert.ok(!/\.pg-read\{[^}]*border-top/.test(css),'no orphan receipt divider');
+const navCSS=process.env.PG_MUTATE==='anchors'?css.replace('grid-template-columns:44px minmax(0,1fr) 44px','grid-template-columns:auto auto auto'):css;
+assert.match(navCSS,/\.pg-range-nav\{[^}]*grid-template-columns:44px minmax\(0,1fr\) 44px/,'arrow columns fixed independently of date length');
+assert.match(navCSS,/\.pg-range-nav button\{[^}]*width:44px;height:44px[^}]*border-radius:50%[^}]*border:1px solid[^}]*background:var\(--surface2\)/,'visible circular 44px buttons');
 check('share reuses the existing icon',`(()=>{const t=document.createElement('template');t.innerHTML=ICO_SHARE;return document.querySelector('.pg-share svg').isEqualNode(t.content.firstChild);})()`);
 run(`document.querySelector('[data-pg-action="dots"]').click()`);
 check('dot mode includes the latest 12 sessions and all their sets',`document.querySelectorAll('.pg-dots .pg-set').length===60&&document.querySelector('.progression-card')._pg.dates.length===12&&document.querySelector('.progression-card')._pg.dates[0]==='2026-08-11'`);
@@ -86,7 +94,7 @@ check('latest range disables forward navigation only',`document.querySelector('[
 run(`window.pgFrame=JSON.stringify(document.querySelector('.progression-card')._pg.layout.ticks);window.pgHeight=document.querySelector('.progression-card')._pg.layout.height;document.querySelector('[data-pg-action="prev-range"]').click();`);
 check('previous range crosses year without skipping or overlapping sessions',`document.querySelector('.progression-card')._pg.dates.length===11&&document.querySelector('.progression-card')._pg.dates[0]==='2025-12-01'&&document.querySelector('.progression-card')._pg.dates.at(-1)==='2026-08-10'&&document.querySelectorAll('.pg-dots .pg-set').length===51`);
 check('oldest partial range retains the frame and reverses arrow availability',`document.querySelector('.progression-card')._pg.layout.height===pgHeight&&JSON.stringify(document.querySelector('.progression-card')._pg.layout.ticks)===pgFrame&&document.querySelector('[data-pg-action="prev-range"]').disabled&&!document.querySelector('[data-pg-action="next-range"]').disabled&&document.querySelector('.pg-available').textContent.includes('11 sessions')`);
-check('no calendar or date dropdown remains',`!document.querySelector('[data-pg-action="year-select"],[data-pg-action="date"],.pg-year')&&document.querySelector('.pg-range-head').textContent.includes('2025 / 2026')`);
+check('no calendar or date dropdown remains',`!document.querySelector('[data-pg-action="year-select"],[data-pg-action="date"],.pg-year')&&document.querySelector('.pg-period-year').textContent==='2025 → 2026'`);
 run(`(()=>{const r=document.querySelector('.pg-scrubber');r.value='0';r.dispatchEvent(new Event('input',{bubbles:true}));})()`);
 check('scrubber selects first set without moving chart extent',`document.querySelectorAll('.pg-dots .pg-set').length===51&&document.querySelector('.pg-read').textContent.includes('135 lb × 10')&&progressionUI.train.pick==='2025-12-01:1'`);
 check('dot readout date and ordinal update with exact selected set',`document.querySelector('.pg-read-date').textContent==='Mon, Dec 1 · Set 1'&&document.querySelector('.pg-read-value').textContent==='135 lb × 10'`);
@@ -107,6 +115,7 @@ check('long elapsed-time labels do not overlap within a session',`(()=>{const re
 run(`window.pgShareCalls=[];window.pgOriginalContext=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(){return new Proxy({measureText:s=>({width:String(s).length*6})},{get:(o,k)=>k in o?o[k]:(...args)=>pgShareCalls.push([k,...args])});};window.pgSavedShow=showCard;showCard=(fn,label)=>{window.pgShared={cv:fn(),label};};document.querySelector('.pg-share').click();`);
 check('share generates a real high-resolution card using selected range',`pgShared.cv.width===1080&&pgShared.cv.height>500&&pgShared.label.endsWith('4-sessions-2026-08-19-2026-08-22')&&pgShareCalls.some(c=>c[0]==='fillText'&&c[1]==='4 Sessions')`);
 check('export draws every actual rep number, no invented pair',`pgShareCalls.filter(c=>c[0]==='fillText'&&['10','9','8','5','4'].includes(c[1])).length===20`);
+check('weight label absent from exported image too',`!pgShareCalls.some(c=>c[0]==='fillText'&&c[1]==='Weight · lb')`);
 check('export has a single value/date readout above first plot gridline',`(()=>{const value=pgShareCalls.filter(c=>c[0]==='fillText'&&c[1]==='155 lb × 10'),date=pgShareCalls.filter(c=>c[0]==='fillText'&&c[1]==='Thu, Aug 20 · Set 1');return value.length===1&&date.length===1&&value[0][3]<date[0][3]&&date[0][3]<pgShareCalls.find(c=>c[0]==='translate')[2];})()`);
 run(`document.querySelector('[data-pg-action="prev-range"]').click();pgShareCalls=[];document.querySelector('.pg-share').click();`);
 check('share exports the older displayed period, never labels it Last',`pgShared.label.endsWith('4-sessions-2026-08-15-2026-08-18')&&pgShareCalls.some(c=>c[0]==='fillText'&&c[1]==='showup · 2026-08-15 — 2026-08-18')&&!pgShareCalls.some(c=>c[0]==='fillText'&&String(c[1]).startsWith('Last '))`);
