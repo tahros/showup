@@ -6,6 +6,8 @@ const dir = process.argv[2] || '.';
 let css = fs.readFileSync(path.join(dir, 'css/app.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
 if(process.env.NAV_MUTATE==='silver')css=css.replace('rgba(215,215,215,.92)','rgba(245,245,245,.95)');
 if(process.env.NAV_MUTATE==='scope')css=css.replaceAll('[data-theme="dark"][data-bar="light"] nav','[data-bar="light"] nav');
+if(process.env.NAV_MUTATE==='porcelain')css=css.replace('#F8F8F8 42%,#EDEDED 100%','#DFDFDF 42%,#B9B9B9 100%');
+if(process.env.NAV_MUTATE==='porcelain-scope')css=css.replace('[data-theme="light"][data-bar="light"] nav button.on','[data-bar="light"] nav button.on');
 const html = fs.readFileSync(path.join(dir, 'index.html'), 'utf8');
 const navRule = [...css.matchAll(/(?:^|})\s*nav\{([^}]+)}/g)].map(m => m[1]).find(r => /position:fixed/.test(r));
 const buttonRule = [...css.matchAll(/(?:^|})\s*nav button\{([^}]+)}/g)].map(m => m[1]).find(r => /flex:1 1 0/.test(r));
@@ -83,4 +85,14 @@ for(let y=0;y<=78;y++){
 assert(cr(rgb(token('light','pill-chalk')),[185,185,185])>=3,'midpoint selected ink retains contrast');
 console.log('PASS midpoint silver requires dark content AND light bar, with readable icon band');
 console.log('PASS neutral bar tokens, bounded gradients, no blur and readable dark icons over light/dark/blue content');
+const porcelainScope=':root[data-flow="refined"][data-skin="minimal"][data-theme="light"][data-bar="light"] nav button.on';
+assert.equal(css.split(porcelainScope+'{').length,2,'one exclusive light/light Porcelain rule');
+assert.equal(css.split(porcelainScope+'{')[1].split('}')[0].trim(),'background:radial-gradient(ellipse at 50% -35%,#FFFFFF 0%,#FFFFFF55 43%,transparent 72%),linear-gradient(180deg,#FFFFFF 0%,#F8F8F8 42%,#EDEDED 100%)','A changes only the selected background, with exact approved gradient');
+for(const theme of ['light','dark'])for(const bar of ['light','dark'])for(const selected of ['today','lift','stats','history']){
+ const el=dom.window.document.documentElement;el.dataset.theme=theme;el.dataset.bar=bar;
+ nav.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===selected));
+ assert.equal(dom.window.document.querySelectorAll(porcelainScope).length,theme==='light'&&bar==='light'?1:0,'Porcelain only matches the selected tab in light/light');
+}
+for(const ink of [token('light','pill-chalk'),token('light','pill-accent'),token('light','pill-rest')])assert(cr(rgb(ink),[237,237,237])>=3,'Porcelain preserves selected icon contrast');
+console.log('PASS A Porcelain exact background, light/light selection scope and icon contrast');
 dom.window.close();

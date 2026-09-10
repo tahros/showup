@@ -1,5 +1,17 @@
 # ShowUp — handoff (2026-08-22, v3.3.267)
 
+## Light/light Porcelain — v3.3.538 (2026-09-10)
+
+Rechecked main/header at v3.3.537. Adds one background-only CSS override for
+refined minimal + light content + light bar + selected button. Approved A
+stops: #FFFFFF / #F8F8F8 at 42% / #EDEDED, with the existing radial highlight.
+Rim, shimmer, icons, layout, header, data and every other theme pair unchanged.
+Scope and exact fill pinned by tests; porcelain and scope mutations killed.
+Browser render inspected; all four appearance combinations checked. Navigation
+layout/recovery/status-icon tests and buildcheck pass. Full suite: 72/73, only
+the existing test-runclose computed-width assertion fails, unchanged from 537.
+Rollback: revert this release and bump to a new version. No data migration.
+
 ## Compact progression + Silver/Porcelain — v3.3.537 (2026-09-10)
 
 Rechecked origin/main and header before editing and shipping; based on v3.3.536.
