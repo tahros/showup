@@ -55,5 +55,22 @@ for(let y=0;y<=78;y++){
 }
 assert(cr(rgb(lightInk),rgb(token('light','pill-chalk')))>=4,'selected and inactive inks remain clearly distinct');
 assert(cr(rgb(token('light','pill-chalk')),[189,189,189])>=3,'selected silver capsule retains strong icon contrast');
+// v3.3.524: both appearance attributes must be present on every new rule.
+const midScope=':root[data-flow="refined"][data-skin="minimal"][data-theme="dark"][data-bar="light"]';
+const midRule=suffix=>{const marker=midScope+' '+suffix+'{';assert.equal(css.split(marker).length,2,'exactly one narrowly scoped '+suffix);return css.split(marker)[1].split('}')[0].trim();};
+const mid=midRule('nav::before');
+assert(mid.includes('linear-gradient(180deg,rgba(245,245,245,.95) 0%,rgba(251,251,251,.90) 15%,rgba(241,241,241,.88) 48%,rgba(239,239,239,.84) 78%,rgba(234,234,234,.36) 100%)'),'exact approved midpoint gradient');
+assert(mid.includes('0 10px 30px rgba(0,0,0,.20),0 1px 2px rgba(0,0,0,.08)'),'under-bar shadow preserved');
+assert.equal(midRule('nav button'),'color:#6B6B6B','midpoint inactive ink');
+assert(midRule('nav button.on').includes('color:var(--pill-chalk);'),'selected midpoint icon stays dark');
+assert(midRule('nav button.on').includes('linear-gradient(180deg,#E0E0E0 0%,#C9C9C9 38%,#ABABAB 100%)'),'approved midpoint capsule');
+const midStops=[...mid.split(';')[0].matchAll(/rgba\((\d+),(\d+),(\d+),([.\d]+)\) (\d+)%/g)].map(m=>({rgb:m.slice(1,4).map(Number),alpha:+m[4],at:+m[5]}));
+for(let y=0;y<=78;y++){
+ const i=Math.max(1,midStops.findIndex(s=>s.at>=y)),a=midStops[i-1],b=midStops[i],t=(y-a.at)/(b.at-a.at);
+ const surface=mix(mix(b.rgb,a.rgb,t),[0,0,0],a.alpha+(b.alpha-a.alpha)*t);
+ for(const ink of ['#6B6B6B',token('light','pill-accent'),token('light','pill-rest')])assert(cr(rgb(ink),surface)>=3,'midpoint glyph band retains contrast');
+}
+assert(cr(rgb(token('light','pill-chalk')),[171,171,171])>=3,'midpoint selected ink retains contrast');
+console.log('PASS midpoint silver requires dark content AND light bar, with readable icon band');
 console.log('PASS neutral bar tokens, bounded gradients, no blur and readable dark icons over light/dark/blue content');
 dom.window.close();
