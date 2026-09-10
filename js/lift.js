@@ -707,34 +707,62 @@ function renderLift(){
     h+=repRulerHTML(ex,lift.weight)+`
         <button class="btn${isLive()?' livego':''}" id="addrep" style="margin:10px 0 0">Add set</button>
         </div>`;
-    /* v3.3.144: the Suggested strip, back — compact form only. One tap logs
-       the complete w×r pair, which is the thing the dot could not do. */
+    /* ---- v3.3.534: THE PLAN, NOT A GUESS -------------------------------
+       SUGGESTED read your history and proposed loads. The maker already
+       decided this morning what he was lifting, and had to leave the screen to
+       remember it -- so the card states the PLAN for this exercise instead,
+       and when there is no plan there is no card. Nothing invented, nothing to
+       dismiss: the chips' ✕ goes with them, because you do not dismiss your
+       own plan, you change it.
+       A row fills as you log against its weight. It fills on the WEIGHT
+       landing, never on hitting the rep target -- the log is a record of
+       training, not of compliance, and a row that stayed open because you got
+       4 where the plan said 5 would turn this into homework.
+       FULL ROWS FOLD into one line, weights kept so warm-ups can still be read
+       back. A partial row stays open: it is the one you are working. When the
+       last row fills the whole card is a caption, which is also what stops it
+       pushing THIS SESSION below the fold on a long day. */
     {
-      const dis=new Set(dayMeta().sugX[ex]||[]);
-      const lastToday=todaySets.length?todaySets[todaySets.length-1]:null;
-      /* SLICE 3: no strip for a held exercise. Its chips read "BW x 60",
-         which is not what 60 means, and tapping one takes the data-rep-w
-         path -- a second writer that would have to learn about units. Two
-         writers for one record is how they drift apart. */
-      const chips=isHold(unitOf(ex))?[]:sugChips(ex,ls,lastToday,dis,lift.weight);
-      if(chips.length)
-        /* v3.3.145: the head came back with the strip this time. v3.3.144
-           restored the chips but not the label above them, so the strip
-           rendered as an anonymous row of buttons. The (i) uses the modern
-           iBtn -> tipFloat path, not the old #infoBtn toggle that went in
-           v3.3.141. */
-        /* v3.3.147: SUGGESTED is a peer label to THIS SESSION and LAST TIME,
-           so it uses the SAME class — .lasthead — not a second header style
-           tuned to look similar. It rendered 12px chalk in the display face
-           against their 11px muted, and the mismatch read as a mistake
-           because it was one. Caps are literal in lasthead labels. */
-        /* v3.3.278: name the origin. Chips built from today's pasted plan say so,
-           because "suggested" from your own history and "suggested" from a plan
-           you brought are different claims and the user must be able to tell. */
-        h+=`<div class="zone mini"><div class="lasthead"><span>${((sugOv()[ex]||{}).from==='plan')?'<b class="scopepill">plan</b> today':'SUGGESTED'} ${iBtn('sug',((sugOv()[ex]||{}).from==='plan')?'From the plan you pasted today. Tap a set to log it.':'Tap a set to log it again.','About suggested sets')}</span></div>
-           <div class="lastsets">${sugChipsHTML(ex,chips)}</div></div>`;
+      const pl=(typeof planFor==='function')?planFor(ex):null;
+      const lines=(pl&&pl.lines||[]).filter(l=>l&&(l.reps||[]).length);
+      if(lines.length&&!isHold(unitOf(ex))){
+        /* how many sets landed at each weight today, spent down the plan in
+           order so two rows at the same load cannot both claim the same sets */
+        const pool={};
+        todaySets.forEach(t=>{ const k=Math.round((t.w||0)*100);
+          pool[k]=(pool[k]||0)+((t.reps||[]).length||0); });
+        const rows=lines.map(l=>{
+          const k=Math.round((l.w||0)*100), want=(l.reps||[]).length;
+          const got=Math.min(want,pool[k]||0); pool[k]=(pool[k]||0)-got;
+          return {l,want,got,full:got>=want};
+        });
+        const doneSets=rows.reduce((n,r)=>n+r.got,0), allSets=rows.reduce((n,r)=>n+r.want,0);
+        const folded=rows.filter(r=>r.full), live=rows.filter(r=>!r.full);
+        const open=!!dayMeta().planOpen&&dayMeta().planOpen[ex];
+        const dial=f=>`<span class="pgd" style="--f:${Math.max(0,Math.min(1,f))}"${
+          f>=1?' data-full':''} aria-hidden="true"></span>`;
+        const rowHTML=(r,next)=>`<button class="planrow2${next?' next':''}"
+            data-planload data-lw2="${r.l.w}" data-lr2="${(r.l.reps||[])[Math.min(r.got,r.want-1)]||''}">
+            ${dial(r.want?r.got/r.want:0)}
+            <span class="p2w">${planWtx(r.l)}</span><span class="p2x">×</span>
+            <span class="p2r">${(r.l.reps||[]).join(' ')}</span>
+            ${r.l.note?`<span class="p2n">· ${hesc(r.l.note)}</span>`:''}</button>`;
+        let body='';
+        if(folded.length&&!open)
+          body+=`<button class="planrow2 fold" data-planfold2="${hesc(ex)}">
+              ${dial(1)}<span class="p2done">${folded.length} done</span>
+              <span class="p2list">${folded.map(r=>`${planWtx(r.l)} × ${(r.l.reps||[])[0]}`).join('  ·  ')}</span>
+              <span class="p2show">show</span></button>`;
+        else body+=folded.map(r=>rowHTML(r,false)).join('');
+        body+=live.map((r,i)=>rowHTML(r,i===0)).join('');
+        h+=`<div class="zone mini planzone"><div class="lasthead"><span>PLAN ${
+            iBtn('plan2','Today\u2019s plan for this exercise. A row fills as you log at that weight; tap one to load it.','About the plan')
+          }</span><span class="ago">${doneSets} of ${allSets} sets</span></div>
+          <div class="planrows">${body}</div></div>`;
+      }
     }
   }
+
 
   // the nudge sits directly under the stepper it's about to change
   if(!isRun){
@@ -1217,46 +1245,19 @@ function repChoices(ex,wKg){
    reshuffle on every tap of +, turning a stable list into a moving target
    under your thumb. Exact match only — and a weight with no match at all
    leaves the order alone rather than shuffling for the sake of it. */
-/* v3.3.144: the Suggested strip RETURNS — the maker recalled it two releases
-   after cutting it: the one-tap complete w×r log turned out to be the part
-   that mattered mid-set. It comes back in the COMPACT strip form only; the
-   tall variant's "Log all N" / "Copy suggestion" buttons stay gone, and the
-   v3.3.137 weight-follow partition comes back with it. The dot stays too —
-   different surface, zero height. */
-function sugChips(ex,ls,lastToday,dis,curKg){
-  let pool=[];
-  if(lastToday&&lastToday.reps.length)
-    pool.push({w:lastToday.w,r:lastToday.reps[0],key:`now|${lastToday.w}|${lastToday.reps[0]}`,now:true});
-  (ls?ls.sets:[]).forEach((s,i)=>pool.push({w:s.w,r:s.r,key:`${s.w}|${s.r}|${i}`,...(s.est?{est:true}:{})}));   // v3.3.399: a guessed load stays marked on the chip
-  const seenWR=new Set();
-  pool=pool.filter(c=>{const k=`${c.w}x${c.r}`;if(seenWR.has(k))return false;seenWR.add(k);return true;});
-  pool=pool.filter(c=>!dis.has(c.key));
-  if(curKg!=null&&isFinite(curKg)){
-    const hit=c=>Math.abs(c.w-curKg)<0.05;   // float-safe: kg can carry lb-conversion dust
-    if(pool.some(hit)) pool=[...pool.filter(hit),...pool.filter(c=>!hit(c))];
-  }
-  return pool.slice(0,6);
-}
-function sugChipsHTML(ex,chips){
-  return chips.map(c=>`<span class="lschip">
-              <button class="lastset ${c.now?'now':''}" data-rep-w="${c.w}" data-rep-r="${c.r}">
-                <span class="ls-w">${c.est?'<span class="pest">\u2248</span>':''}${isBody(ex)&&c.w<=0.01?'BW':`${wDisp(c.w)}<small>${U()}</small>`}</span>
-                <span class="ls-x">×</span>
-                <span class="ls-r">${c.r}</span></button>
-              <button class="lsx" data-sugx="${c.key}" aria-label="Dismiss">✕</button>
-            </span>`).join('');
-}
-function refreshSug(){
-  const row=document.querySelector('.zone.mini .lastsets');
-  if(!row||!lift.ex||lift.ex==='Run') return;
-  const kg=toKg(+(document.getElementById('wv')?.value||0));
-  const ls=suggestedFor(lift.ex);
-  const t=DB.days[todayISO]||{w:[]};
-  const todaySets=(t.w||[]).filter(x=>x.ex===lift.ex&&x.reps&&x.reps.length);
-  const lastToday=todaySets.length?todaySets[todaySets.length-1]:null;
-  const dis=new Set(dayMeta().sugX[lift.ex]||[]);
-  row.innerHTML=sugChipsHTML(lift.ex,sugChips(lift.ex,ls,lastToday,dis,kg));
-}
+/* v3.3.534: THE SUGGESTED STRIP IS GONE, and its machinery with it.
+   sugChips / sugChipsHTML / refreshSug built and refreshed a row of
+   guessed w x r chips; the exercise screen states the PLAN now, or
+   nothing. Left in place they would be three functions nobody can
+   reach, rotting against every later change to the screen they drew.
+   suggestedFor() and sugOv() STAY: they still feed the rail and the
+   plan-derived overrides, and sugX stays because the sync merge and
+   the exercise-rename migration both read it off old records.
+   Restore point: a4ece2c (v3.3.533). */
+
+
+
+
 /* v3.3.141: the dot. Reps you did last session at the weight now showing —
    a footnote on the tiles, not a second list competing with them. Last
    session only: today's sets are already visible in "Logged today", and

@@ -647,7 +647,7 @@ addEventListener('resize',scheduleNavLayoutCheck,{passive:true});
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='visible') scheduleNavLayoutCheck();
 });
-function dayMeta(){const t=day(todayISO);t.doneEx=t.doneEx||[];t.donePart=t.donePart||[];t.sugX=t.sugX||{};return t;}
+function dayMeta(){const t=day(todayISO);t.doneEx=t.doneEx||[];t.donePart=t.donePart||[];t.sugX=t.sugX||{};t.planOpen=t.planOpen||{};return t;}   /* v3.3.534: planOpen — which exercises have their folded plan rows showing */
 const isLive =()=>{const t=day(todayISO);return t.w.length>0&&!t.doneAll;};
 /* v3.3.412: the day is CLOSED -- work logged and the day-end pressed. Named
    once so Today's body and the plan header ask the same question; the third

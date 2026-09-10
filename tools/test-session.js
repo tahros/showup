@@ -107,11 +107,20 @@ ok("...with the vs-last-session delta",
    run(`!!document.querySelector('.lastcard.sess .delta')`));
 
 // ---- 5. the strip is back above it ---------------------------------------
-ok("the compact Suggested strip renders", run(`!!document.querySelector('.zone.mini .lastsets')`));
-ok("...between the log zone and the session card", run(`(function(){
-     const strip=document.querySelector('.zone.mini');
+/* v3.3.534: SUGGESTED read your history and proposed loads; the maker had
+   already decided that morning and had to leave the screen to remember it.
+   The exercise screen states the PLAN for that exercise, and where there is
+   no plan -- as in this fixture -- there is no card at all. */
+ok("no SUGGESTED, invented from history", run(`!document.querySelector('.zone.mini .lastsets')`));
+ok("...and no plan card either, because this fixture has no plan", run(`(function(){
+     return !document.querySelector('.planzone'); })()`));
+/* the ORDER claim the old assertion carried still matters, so it is kept
+   and pointed at whatever occupies that slot: with a plan it is the plan
+   card, without one the session card simply follows the log zone. */
+ok("...and the session card still follows the log zone", run(`(function(){
+     const log=document.querySelector('.zone.prime')||document.querySelector('.zone');
      const card=document.querySelector('.lastcard.sess');
-     return !!(strip&&card&&(strip.compareDocumentPosition(card)&Node.DOCUMENT_POSITION_FOLLOWING));
+     return !!(log&&card&&(log.compareDocumentPosition(card)&Node.DOCUMENT_POSITION_FOLLOWING));
    })()`));
 
 // ---- 6. the log zone lost its caption, not its controls -------------------

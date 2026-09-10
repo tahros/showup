@@ -1,5 +1,42 @@
 # ShowUp — changelog
 
+
+## v3.3.534 (2026-09-10) — The plan, not a guess
+
+SUGGESTED read your history and proposed loads. You had already decided that
+morning what you were lifting, and had to leave the screen to remember it. The
+exercise screen states **today's plan for this exercise** instead — and where
+there is no plan, there is no card.
+
+The ✕ goes with the chips: you do not dismiss your own plan, you change it.
+
+**A row fills as you log at its weight**, and the dial divides by *that row's*
+own set count — a five-set row moves in fifths, a six-set row in sixths, nothing
+rounded to quarters. It fills on the weight landing, never on hitting the rep
+target: the log is a record of training, not of compliance, and a row that
+stayed open because you got 4 where the plan said 5 would turn this into
+homework.
+
+**Full rows fold** into one line with their weights kept, so warm-ups still read
+back; *show* puts them back. A partial row stays open — it is the one you are
+working. When the last row fills, the card is a caption, which is also what
+keeps it from pushing THIS SESSION below the fold on a long day.
+
+**A row loads, it does not log.** The chip it replaces logged the pair outright,
+which was right for a guess you were accepting; a plan row is a thing you are
+about to do, so the weight and reps go into the logger and the rep ruler stays
+yours to move.
+
+The strip's machinery goes with it — `sugChips`, `sugChipsHTML`, `refreshSug`
+and the dismiss handler are unreachable now. `suggestedFor` and `sugOv` stay:
+they still feed the rail, and `sugX` stays because the sync merge and the
+exercise-rename migration both read it off old records.
+
+Four suites guarded the strip. All are restated rather than deleted, including
+one whose entire Suggested block is replaced by the single claim that survives:
+the strip must not come back on its own.
+
+## v3.3.533
 ## v3.3.533 (2026-09-10) — The sets tell the story
 
 Progression now plots your actual completed sets, not a line made from each

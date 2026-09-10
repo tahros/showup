@@ -58,8 +58,11 @@ run(`document.querySelector('[data-planaccept]').click()`);
 ok("accepted, the card prints \u2248 before the load", /\u224815 lb/.test(run(`document.querySelector('.plancard').textContent`)),
    run(`JSON.stringify([...document.querySelectorAll('.plancard .pw')].map(e=>e.textContent))`));
 ok("...the Copy text carries it", /\u224815 lb/.test(run(`planToText(planNow())`)));
-ok("...the Suggested chip carries it", run(`(function(){lift.part='Shoulder'; lift.ex='Rear Deltoids'; view='lift'; render();
-   const c=[...document.querySelectorAll('.ls-w')].find(e=>/15/.test(e.textContent)); return !!c && /\\u2248/.test(c.textContent);})()`));
+/* v3.3.534 RESTATES: SUGGESTED is gone -- the exercise screen states the PLAN
+   for that exercise, or nothing. The claim is unchanged: a guessed load stays
+   marked as a guess wherever it is shown. It is shown on a plan row now. */
+ok("...the plan row on the exercise screen carries it", run(`(function(){lift.part='Shoulder'; lift.ex='Rear Deltoids'; view='lift'; render();
+   const c=[...document.querySelectorAll('.planzone .p2w')].find(e=>/15/.test(e.textContent)); return !!c && /\\u2248/.test(c.textContent);})()`));
 ok("...and the record has nothing new in it", run(`Object.keys(DB.days).filter(d=>d>=todayISO&&(DB.days[d].w||[]).length).length`)===0);
 ok("the card tags NEW until the exercise is logged", run(`(function(){view='today'; render(); return [...document.querySelectorAll('.planrow .ptag')].length;})()`)===2);
 run(`(function(){day(todayISO).w.push({part:'Shoulder',ex:'Rear Deltoids',w:7,reps:[15,15,12],at:1}); save(true); render();})()`);

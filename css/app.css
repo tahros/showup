@@ -1620,6 +1620,33 @@
     color:var(--muted);font:inherit;font-family:var(--mono);font-size:12px;cursor:pointer;margin-top:14px}
   .foldrow .hi{color:var(--accent);font-weight:700}
   .chev{background:none;border:0;color:var(--muted);font-size:12px;cursor:pointer;padding:2px 6px}
+  /* ---- v3.3.534: the plan card on the exercise screen ---- */
+  .planzone .lasthead .ago{font-size:11px;color:var(--faint)}
+  .planrows{display:flex;flex-direction:column;margin-top:2px}
+  .planrow2{display:flex;align-items:center;gap:10px;width:100%;min-height:46px;
+    background:none;border:0;padding:6px 8px;font:inherit;text-align:left;cursor:pointer;
+    border-radius:12px;color:var(--chalk)}
+  .planrow2+.planrow2{border-top:1px solid var(--whisper)}
+  .planrow2.next{background:color-mix(in srgb,var(--accent) 7%,transparent);
+    box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--accent) 45%,transparent)}
+  .planrow2:active{background:var(--whisper)}
+  /* the dial: a ring that fills clockwise by that ROW's own set count, so a
+     five-set row moves in fifths and a six-set row in sixths. conic-gradient
+     does the arithmetic; --f is the only thing JS writes. */
+  .pgd{flex:0 0 auto;width:18px;height:18px;border-radius:50%;
+    background:conic-gradient(var(--accent) calc(var(--f,0)*360deg),transparent 0);
+    box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--accent) 28%,transparent)}
+  .pgd[data-full]{box-shadow:none}
+  .p2w{font-family:var(--mono);font-weight:600;font-size:13.5px;min-width:74px}
+  .p2x{font-family:var(--mono);color:var(--muted);font-size:12.5px}
+  .p2r{font-family:var(--mono);font-weight:600;font-size:13.5px;color:var(--accent-ink)}
+  .p2n{font-family:var(--mono);font-size:11.5px;color:var(--faint)}
+  .planrow2 .p2w,.planrow2 .p2r{white-space:nowrap}
+  .planrow2.fold{color:var(--faint)}
+  .planrow2.fold .p2done{font-family:var(--mono);font-size:12.5px;flex:0 0 auto}
+  .planrow2.fold .p2list{font-family:var(--mono);font-size:12px;color:var(--faint);
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1 1 auto;min-width:0}
+  .planrow2.fold .p2show{font-family:var(--mono);font-size:11.5px;color:var(--muted);flex:0 0 auto}
   .lastsets{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
   .lastset{display:flex;align-items:baseline;gap:4px;background:var(--surface);
     border:1px solid var(--line);border-radius:9px;padding:7px 22px 7px 10px;cursor:pointer;

@@ -129,12 +129,8 @@ document.addEventListener('click',e=>{
     save();renderHeader();doneToast(m,'',true);
     return render();
   }
-  const sx=e.target.closest('[data-sugx]');
-  if(sx&&lift.ex){   // v3.3.144: back with the strip
-    const m=dayMeta();
-    m.sugX[lift.ex]=[...(m.sugX[lift.ex]||[]),sx.dataset.sugx];
-    save();return renderLift();
-  }
+  /* v3.3.534: the ✕ went with the chips -- you do not dismiss your own plan,
+     you change it. Nothing emits data-sugx now. */
   if(e.target.closest('#settingsBtn')||e.target.closest('#gearBtn')){
     if(view==='sync'){ view=prevView||'today'; }
     else { prevView=view; view='sync'; }
@@ -420,6 +416,32 @@ document.addEventListener('click',e=>{
     if(q('[data-writeback]')){ planBack(); lift.write=null; return render(); }
   }
   /* ---- v3.3.398: the week scope ---- */
+  /* v3.3.534: a plan row LOADS, it does not log. The Suggested chip it
+     replaces logged the pair outright, which was right for a guess you were
+     accepting; a plan row is a thing you are about to do, and the weight and
+     reps go into the logger so the rep ruler is still yours to move. */
+  const _pld=e.target.closest&&e.target.closest('[data-planload]');
+  if(_pld){
+    const wv=document.getElementById('wv');
+    const kg=+_pld.dataset.lw2, r=+_pld.dataset.lr2;
+    if(wv&&isFinite(kg)){
+      lift.weight=kg; saveExW(lift.ex,kg); save(true);
+      wv.value=wDisp(kg);
+      wv.classList.remove('wflash'); void wv.offsetWidth; wv.classList.add('wflash');
+      if(typeof refreshLoad==='function') refreshLoad();
+    }
+    if(isFinite(r)&&r>0&&typeof repRulerBand==='function') repRulerBand(r);
+    if(typeof updAddPreview==='function') updAddPreview();
+    return;
+  }
+  /* the folded rows open in place, for this exercise only, and stay open for
+     the day -- it lives on the day record beside sugX, the same shelf the
+     dismissed chips used */
+  const _pf2=e.target.closest&&e.target.closest('[data-planfold2]');
+  if(_pf2){
+    const t=dayMeta(); t.planOpen=t.planOpen||{};
+    t.planOpen[_pf2.dataset.planfold2]=1; save(); return render();
+  }
   const _ps=e.target.closest&&e.target.closest('[data-planscope]');
   if(_ps){ lift.planScope=_ps.dataset.planscope; return render({inplace:true}); }
   const _wd=e.target.closest&&e.target.closest('[data-weekday]');
@@ -1050,7 +1072,8 @@ function refreshLoad(){
       : `<span class="ll-text">${loadLine(lift.ex,kg)}</span>`;
   }
   refreshReps();   // v3.3.56: the rep tiles follow the weight, same funnel
-  refreshSug();    // v3.3.144: the strip follows the weight again (v3.3.137 rule)
+  /* v3.3.534: the strip it followed is gone; the plan card does not move
+     with the weight, because a plan is not a suggestion that re-sorts. */
 }
 
 /* ---------- pinch / wheel zoom for charts ---------- */

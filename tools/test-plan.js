@@ -407,10 +407,15 @@ ok("...with every set from every weight line, warm-ups included",
    moved to Today with the plan. Set the tab explicitly rather than rely on
    what the previous block happened to leave behind. */
 run(`(function(){view='lift'; lift.ex='Lateral Raise'; lift.part='Shoulder'; lift.weight=0; render();})()`);
-ok("...so the exercise page says the chips came from the plan",
-   run(`/plan/i.test([...document.querySelectorAll('.zone.mini .lasthead span')][0].textContent)`));
-ok("...and the chips carry the plan's numbers",
-   run(`/35/.test(document.querySelector('.lastsets').textContent)`));
+/* v3.3.534 RESTATES: there are no chips. SUGGESTED read your history and
+   proposed loads; the exercise screen states the PLAN for that exercise now,
+   and where there is no plan there is no card. The two claims survive intact
+   -- the exercise page names the plan as the source, and it carries the
+   plan's own numbers -- measured against the card that replaced the strip. */
+ok("...so the exercise page names the plan as the source",
+   run(`/plan/i.test([...document.querySelectorAll('.planzone .lasthead span')][0].textContent)`));
+ok("...and the rows carry the plan's numbers",
+   run(`/35/.test(document.querySelector('.planzone .planrows').textContent)`));
 // ---- v3.3.282: management actions ride the heading's right edge ----------
 // Edit and Clear left the card body — a full-width pair under the last
 // exercise read as another row of the session. The (i) did NOT move: its

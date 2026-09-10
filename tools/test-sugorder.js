@@ -67,37 +67,22 @@ const setWv = v => run(`(function(){const el=document.getElementById('wv'); el.v
 /* ---- 1. v3.3.144: the strip is BACK — compact form only ----------------
    Cut in v3.3.141, recalled two releases later: the one-tap complete w×r
    log was the part that mattered. The tall variant stays gone. */
-ok("the compact Suggested strip renders", run(`!!document.querySelector('.zone.mini .lastsets')`));
-/* v3.3.145: it renders WITH its name — v3.3.144 shipped the chips as an
-   anonymous row, and the maker's first field note was the missing label */
-ok("...labelled 'SUGGESTED'", /SUGGESTED/.test(run(`document.querySelector('.zone.mini').textContent`)));
-/* v3.3.147: and labelled in the SAME class as its peers — the header font
-   mismatch was two classes doing one job, fixed by unification, so this
-   asserts the class, not a size that could drift again */
-ok("...as a .lasthead, the same class THIS SESSION uses",
-   run(`!!document.querySelector('.zone.mini .lasthead')`)
-   && run(`!document.querySelector('.zone.mini .zonehead')`));
-ok("...with a working (i)", run(`(function(){
-     const b=document.querySelector('.zone.mini .ibtn.tipi'); if(!b) return false;
-     b.click(); const tf=document.getElementById('tipFloat');
-     const ok=!!(tf&&!tf.hidden&&tf.textContent.length>10); if(tf) tf.hidden=true; return ok;})()`));
-ok("...but the tall variant's bulk actions stay gone",
-   run(`!document.getElementById('repeatAll') && !document.getElementById('copySets')`));
-ok("a chip tap logs the complete pair", (() => {
-  const before = run(`day(todayISO).w.length`);
-  run(`document.querySelector('[data-rep-w]').click()`);
-  return run(`day(todayISO).w.length`) === before + 1;
-})());
-ok("...and clears any stale undo snapshot (the v3.3.143 rule)",
-   run(`undoStack.length`) === 0, String(run(`undoStack.length`)));
-// the v3.3.137 weight-follow property, back with the strip
-ok("chips matching the stepper weight lead", (() => {
-  run(`(function(){const el=document.getElementById('wv'); el.value='50';
-       el.dispatchEvent(new Event('input',{bubbles:true}));})()`);
-  const ws = JSON.parse(run(`JSON.stringify([...document.querySelectorAll('.zone.mini [data-rep-w]')].map(b=>+b.dataset.repW))`));
-  const hasMatch = ws.some(w => Math.abs(w - 50) < 0.05);
-  return !hasMatch || Math.abs(ws[0] - 50) < 0.05;
-})());
+/* ---- v3.3.534: THE STRIP IS RETIRED, AND SO IS THIS BLOCK ----------------
+   Everything from here to the weight-follow test asserted the Suggested strip:
+   that it rendered, carried its label, took a chip tap as a complete w x r
+   log, and re-sorted to lead with the stepper's weight. None of those claims
+   exist any more. SUGGESTED read your history and proposed loads; the exercise
+   screen states the PLAN for that exercise now, and where there is no plan
+   there is no card -- so there is nothing to render, label, tap or re-sort.
+   The block is replaced by the one claim that survives the change: the strip
+   must not come back on its own. The plan card has its own suite.
+   The REST of this file is untouched and still earns its keep -- it is mostly
+   about the rep ruler's suggestion dot (.rr.sug), which is a different
+   surface and was never part of the strip. */
+ok("the Suggested strip does not return",
+   run(`!document.querySelector('.zone.mini .lastsets') && !document.querySelector('[data-rep-w]')`));
+ok("...and nothing on the screen offers to dismiss a suggestion",
+   run(`!document.querySelector('[data-sugx]')`));
 
 // ---- 2. Last time took its place ----------------------------------------
 const viewHTML = run(`$('#view').innerHTML`);
