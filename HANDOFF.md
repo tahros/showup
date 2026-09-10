@@ -1,5 +1,17 @@
 # ShowUp — handoff (2026-08-22, v3.3.267)
 
+## Compact expanded Today plan — v3.3.528 (2026-09-10)
+
+Refined Today plan rows only: name 17 -> 15px at weight 500; vertical padding
+16 -> 12px; min-height 72 -> 64px; set-grid top margin 8 -> 6px and row gap
+3 -> 2px. Numeric type remains 12px, line-height 1.6 -> 1.5. Preserve shared
+load columns, full-row click, dimmed completed sets, footer notes, fold,
+chevrons and motion. No global typography or logger overrides. The example
+five-exercise plan measures 533 -> 457 CSS px tall at 393px viewport (~14%).
+Browser checked both themes at 320/393/430, aligned columns, no overflow,
+and tapping into the actual logger. test-flow-layout pins scoped sizes.
+Rollback is a CSS/test revert with a new release stamp; no data migration.
+
 ## Additive woven training trial — v3.3.525 (2026-09-10)
 
 Approved interactive concept is added AFTER What you did, before all the

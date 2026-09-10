@@ -3454,12 +3454,14 @@
   :root[data-flow="refined"] .flow-dayone-plan{display:flex;align-items:center;justify-content:center;gap:18px;margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}
   :root[data-flow="refined"] .flow-dayone-plan .planedge{display:flex;gap:12px}
   :root[data-flow="refined"] #view[data-flow-view="today"] .plancard{padding:4px 18px}
-  :root[data-flow="refined"] #view[data-flow-view="today"] .planrow{display:block;padding:16px 0;border-radius:0;min-height:72px}
+  /* v3.3.528: the expanded plan is a compact reference, below the action
+     hierarchy. Keep the numeric readout and whole-row tap target readable. */
+  :root[data-flow="refined"] #view[data-flow-view="today"] .planrow{display:block;padding:12px 0;border-radius:0;min-height:64px}
   :root[data-flow="refined"] #view[data-flow-view="today"] .planrow::after{left:0;right:0}
-  :root[data-flow="refined"] #view[data-flow-view="today"] .planrow .pn{display:flex;align-items:center;justify-content:space-between;font-size:17px;font-weight:500;gap:12px}
+  :root[data-flow="refined"] #view[data-flow-view="today"] .planrow .pn{display:flex;align-items:center;justify-content:space-between;font-size:15px;font-weight:500;gap:12px}
   :root[data-flow="refined"] #view[data-flow-view="today"] .planrow .pk{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
-  :root[data-flow="refined"] #view[data-flow-view="today"] .planrow .pl{margin:8px 0 0;grid-template-columns:minmax(72px,var(--planw)) 12px minmax(0,1fr);gap:3px 10px}
-  :root[data-flow="refined"] #view[data-flow-view="today"] .planrow :is(.pv,.px,.pr){font-size:12px;line-height:1.6}
+  :root[data-flow="refined"] #view[data-flow-view="today"] .planrow .pl{margin:6px 0 0;grid-template-columns:minmax(72px,var(--planw)) 12px minmax(0,1fr);gap:2px 10px}
+  :root[data-flow="refined"] #view[data-flow-view="today"] .planrow :is(.pv,.px,.pr){font-size:12px;line-height:1.5}
   :root[data-flow="refined"] #view[data-flow-view="today"] .planrow .pr{white-space:normal;overflow-wrap:anywhere}
   :root[data-flow="refined"] #view[data-flow-view="today"] .planrow .pw{color:var(--muted)}
   :root[data-flow="refined"] #view[data-flow-view="today"] .planfoldrow{margin-bottom:0;padding:16px 18px;min-height:54px}
