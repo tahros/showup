@@ -3463,11 +3463,14 @@
   /* v3.3.519: neutral surfaces, slightly deeper light shading and modest
      dark translucency. Keep the fixed nav blur/transform-free (v3.3.497). */
   :root[data-flow="refined"][data-skin="minimal"][data-bar="light"] nav::before{
-    /* v3.3.522: approved Polished Silver. Keep the preview's neutral stops,
-       with a slightly darker soft falloff beneath the bar (.16 to .20). */
-    background:linear-gradient(180deg,#FFFFFF 0%,rgba(251,251,251,.99) 15%,rgba(233,233,233,.97) 48%,rgba(192,192,192,.92) 100%);
+    /* v3.3.523: Airy Silver. Keep the clearest edge below the icons.
+       Middle alphas are .03 denser than the preview to protect gray glyphs
+       over black content, without dimming the approved lighter icon ink. */
+    background:linear-gradient(180deg,rgba(255,255,255,.97) 0%,rgba(251,251,251,.94) 15%,rgba(241,241,241,.95) 48%,rgba(230,230,230,.94) 78%,rgba(192,192,192,.48) 100%);
     box-shadow:inset 0 1px 0 #FFFFFF,inset 0 0 0 .5px rgba(255,255,255,.79),inset 0 -1px 0 rgba(0,0,0,.19),inset 0 9px 12px -10px #FFFFFF,0 10px 30px rgba(0,0,0,.20),0 1px 2px rgba(0,0,0,.08)}
+  :root[data-flow="refined"][data-skin="minimal"][data-bar="light"] nav button{color:#797979}
   :root[data-flow="refined"][data-skin="minimal"][data-bar="light"] nav button.on{
+    color:var(--pill-chalk);
     background:linear-gradient(180deg,#F7F7F7 0%,#DEDEDE 38%,#BDBDBD 100%);
     box-shadow:inset 0 1px 0 #FFFFFF,inset 0 0 0 .5px rgba(255,255,255,.55),0 2px 4px rgba(0,0,0,.15)}
   :root[data-flow="refined"][data-skin="minimal"][data-bar="dark"] nav::before{
