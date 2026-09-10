@@ -1216,6 +1216,178 @@ function dailyRunsSection(){
       </div>
       <div class="tot">${foot}</div></div>`;
 }
+/* v3.3.525: an ADDITION to Stats, not a replacement for Session Build.
+   Calendar columns are days; knots count completed sets in the recorded
+   body-part category. The connecting thread does not assign secondary
+   muscle credit. No workout inference, score, or persisted training writes.
+   Read DB first, including an explicitly emptied day, then legacy arrays.
+   allDays() cannot be used here: its fallback drops the timed-set unit. */
+let WOVEN={mode:'month',end:null,selected:null,hidden:false};
+let wovenObserver=null;
+const wovenEsc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+function wovenShift(iso,n){
+  const d=new Date(iso+'T12:00'); d.setDate(d.getDate()+n);
+  return d.toLocaleDateString('en-CA');
+}
+function wovenDay(iso){
+  const raw=Array.isArray(DB.days[iso]?.w)?DB.days[iso].w:(SEED.sessions[iso]||[]);
+  const by=Object.create(null),groups=new Map();
+  for(const s of raw){
+    const r=Array.isArray(s)?{part:s[0],ex:s[1],w:s[2],reps:s[3],su:s[7]}:s;
+    if(!r||r.part==='Run'||r.ex==='Run'||!Array.isArray(r.reps)||!r.reps.length) continue;
+    const p=r.part||'Other',name=r.ex||'Unnamed exercise',key=JSON.stringify([p,name]);
+    by[p]=(by[p]||0)+r.reps.length;
+    if(!groups.has(key)) groups.set(key,{part:p,ex:name,sets:[],count:0});
+    const g=groups.get(key); g.sets.push([r.w,r.reps,null,null,r.su]); g.count+=r.reps.length;
+  }
+  return {d:iso,by,total:Object.values(by).reduce((a,b)=>a+b,0),exercises:[...groups.values()]};
+}
+function wovenWindow(){
+  const n=WOVEN.mode==='week'?7:28;
+  const end=WOVEN.end&&WOVEN.end<todayISO?WOVEN.end:todayISO;
+  return Array.from({length:n},(_,i)=>wovenDay(wovenShift(end,i-n+1)));
+}
+function wovenFirstDay(){
+  return [...new Set([...Object.keys(DB.days),...Object.keys(SEED.sessions||{})])]
+    .filter(d=>/^\d{4}-\d{2}-\d{2}$/.test(d)&&d<=todayISO).sort().find(d=>wovenDay(d).total)||todayISO;
+}
+function wovenDate(d,long=false){
+  return new Date(d+'T12:00').toLocaleDateString('en-US',long
+    ?{weekday:'short',month:'short',day:'numeric',year:'numeric'}:{month:'short',day:'numeric'});
+}
+function wovenSection(){
+  return `<h2>Woven, day by day${hActs('woven','An experimental extra view. One column per calendar day; each colored knot counts completed strength sets in that recorded body part. Connecting lines join parts logged on the same day, not the order of exercises. Runs stay separate. Tap a thread or use the day slider to read the workout.','About woven training')}</h2>
+    <section class="card woven-card" id="wovenCard" aria-label="Woven training experiment">
+      <div class="woven-top"><span class="woven-period" id="wovenPeriod"></span><button type="button" class="woven-hide" data-woven-toggle aria-expanded="${!WOVEN.hidden}" aria-controls="wovenBody">${WOVEN.hidden?'Show':'Hide'}</button></div>
+      <div id="wovenBody"${WOVEN.hidden?' hidden':''}>
+        <div class="woven-tools"><span id="wovenCount"></span><div class="woven-mode" role="group" aria-label="Woven timeline detail"><button type="button" data-woven-mode="month" aria-pressed="${WOVEN.mode==='month'}">4 weeks</button><button type="button" data-woven-mode="week" aria-pressed="${WOVEN.mode==='week'}">1 week</button></div></div>
+        <div class="woven-chart" id="wovenChart"></div>
+        <div class="woven-key"><span>Knots = trained body parts</span><span>Numbers = sets</span></div>
+        <div class="woven-scrub"><input type="range" id="wovenScrub" min="0" max="27" value="27" aria-label="Choose a logged day"><span>Choose a day</span></div>
+        <div class="woven-pages"><button type="button" data-woven-page="-1" aria-label="Earlier period">‹</button><span id="wovenRange"></span><button type="button" data-woven-page="1" aria-label="Later period">›</button></div>
+        <div class="woven-receipt"><div class="woven-dayhead"><div aria-live="polite"><h3 id="wovenDayTitle"></h3><div id="wovenDayCount"></div></div><div class="woven-arrows"><button type="button" data-woven-daystep="-1" aria-label="Previous day">‹</button><button type="button" data-woven-daystep="1" aria-label="Next day">›</button></div></div><div id="wovenExercises"></div></div>
+      </div>
+    </section>`;
+}
+function wovenChart(rows,width){
+  const parts=[...new Set([...Object.keys(SEED.catalog||{}).filter(p=>p!=='Run'),...rows.flatMap(r=>Object.keys(r.by))])];
+  const left=72,right=width-15,step=(right-left)/rows.length,top=27,rowH=40,bottom=top+(Math.max(1,parts.length)-1)*rowH;
+  const X=i=>left+(i+.5)*step,Y=j=>top+j*rowH,sel=rows.findIndex(r=>r.d===WOVEN.selected),x=X(Math.max(0,sel));
+  let h=`<svg viewBox="0 0 ${width} ${bottom+66}" role="img" aria-label="Strength sets by calendar day and recorded body part. Select a column to read its workout." data-woven-left="${left}" data-woven-step="${step}" data-woven-width="${width}">
+    <g class="woven-band" id="wovenBand" style="transform:translateX(${x}px)"><rect x="-${Math.max(7,step*.35)}" y="7" width="${Math.max(14,step*.7)}" height="${bottom+14}" rx="7" fill="var(--surface2)"></rect></g>`;
+  parts.forEach((p,j)=>{
+    h+=`<line x1="${left-5}" y1="${Y(j)}" x2="${right}" y2="${Y(j)}" stroke="var(--line)"></line><text class="woven-label" x="0" y="${Y(j)+4}"><title>${wovenEsc(p)}</title>${wovenEsc(p.length>11?p.slice(0,10)+'…':p)}</text><circle cx="${left-10}" cy="${Y(j)}" r="2" fill="${PART_COLORS[p]||'var(--muted)'}"></circle>`;
+  });
+  rows.forEach((d,i)=>{
+    const active=parts.map((p,j)=>d.by[p]?j:-1).filter(j=>j>=0);
+    h+=`<g class="woven-day" data-woven-date="${d.d}"><title>${wovenDate(d.d,true)}: ${d.total} strength sets</title>`;
+    if(active.length){
+      let path=`M ${X(i)} ${Y(active[0])-10}`;
+      for(let j=active[0];j<=active.at(-1);j++){
+        const cy=Y(j),bend=j%2?1.8:-1.8;
+        path+=` C ${X(i)+bend} ${cy-8},${X(i)+bend} ${cy+8},${X(i)} ${cy+12}`;
+        if(j<active.at(-1)) path+=` L ${X(i)} ${cy+rowH-12}`;
+      }
+      h+=`<path class="woven-thread" d="${path}"></path>`;
+      active.forEach(j=>{ const n=d.by[parts[j]],color=PART_COLORS[parts[j]]||'var(--muted)';
+        h+=`<circle class="woven-knot" data-woven-color="${color}" data-woven-count="${n}" cx="${X(i)}" cy="${Y(j)}" r="3.3" fill="${color}"></circle><text class="woven-number" x="${X(i)}" y="${Y(j)+4}" text-anchor="middle" opacity="0">${n}</text>`;
+      });
+    }
+    h+='</g>';
+    if(WOVEN.mode==='week') h+=`<text x="${X(i)}" y="${bottom+35}" text-anchor="middle">${new Date(d.d+'T12:00').toLocaleDateString('en-US',{weekday:'narrow'})}</text><text x="${X(i)}" y="${bottom+51}" text-anchor="middle">${+d.d.slice(8)}</text>`;
+    else if(i%7===0) h+=`<text x="${X(i)}" y="${bottom+48}" text-anchor="${i===0?'start':'middle'}">${+d.d.slice(5,7)}/${+d.d.slice(8)}</text>`;
+  });
+  h+=`<g class="woven-band" id="wovenMarker" style="transform:translateX(${x}px)"><line x1="0" y1="${bottom+21}" x2="0" y2="${bottom+27}" stroke="var(--chalk)" stroke-width="2" stroke-linecap="round"></line></g></svg>`;
+  return h;
+}
+function wovenSelection(rows){
+  const chart=document.getElementById('wovenChart'),svg=chart?.querySelector('svg'); if(!svg) return;
+  const i=rows.findIndex(r=>r.d===WOVEN.selected),x=+svg.dataset.wovenLeft+(i+.5)*+svg.dataset.wovenStep;
+  chart.querySelectorAll('.woven-band').forEach(g=>g.style.transform=`translateX(${x}px)`);
+  chart.querySelectorAll('.woven-day').forEach(g=>{
+    const selected=g.dataset.wovenDate===WOVEN.selected,readable=selected||WOVEN.mode==='week';
+    g.classList.toggle('selected',selected); g.classList.toggle('week',WOVEN.mode==='week');
+    g.querySelectorAll('.woven-knot').forEach(c=>{
+      c.setAttribute('r',readable?(+c.dataset.wovenCount>=100?'14':'10.5'):'3.3');
+      c.setAttribute('fill',readable?'var(--surface)':c.dataset.wovenColor);
+      c.setAttribute('stroke',readable?c.dataset.wovenColor:'none'); c.setAttribute('stroke-width',selected?'2':'1.4');
+    });
+    g.querySelectorAll('.woven-number').forEach(t=>t.setAttribute('opacity',readable?'1':'0'));
+  });
+}
+function wovenReceipt(d,animate){
+  document.getElementById('wovenDayTitle').textContent=wovenDate(d.d,true);
+  document.getElementById('wovenDayCount').textContent=d.total?`${d.total} sets · ${d.exercises.length} exercises`:'No strength workout logged';
+  const el=document.getElementById('wovenExercises');
+  el.innerHTML=d.exercises.length?d.exercises.map(e=>{
+    const body=(DB.settings.equipOv?.[e.ex]||DB.settings.custom?.[e.ex]?.equip||SEED.equip[e.ex])==='body';
+    const lines=foldSets(e.sets,e.ex).map(([w,reps,,,su])=>{
+      const load=body?(w>0?`BW +${wDisp(w)} ${U()}`:w<0?`BW ${wDisp(w)} ${U()} assisted`:'BW'):`${wDisp(w||0)} ${U()}`;
+      return `<div>${wovenEsc(load)} × ${reps.map(n=>wovenEsc(setNum(n,su))).join(' · ')}</div>`;
+    }).join('');
+    return `<div class="woven-ex"><i style="background:${PART_COLORS[e.part]||'var(--muted)'}"></i><div><div class="woven-exname">${wovenEsc(e.ex)}</div><div class="woven-lines">${lines}</div></div><span class="woven-setcount">${e.count} set${e.count===1?'':'s'}</span></div>`;
+  }).join(''):'<p class="woven-empty">Nothing recorded for this day. Runs are shown in the running charts.</p>';
+  if(animate&&el.animate&&!matchMedia('(prefers-reduced-motion: reduce)').matches){
+    const css=getComputedStyle(document.documentElement);
+    el.animate([{transform:'translateY(7px)',opacity:.6},{transform:'translateY(0)',opacity:1}],{duration:260,easing:css.getPropertyValue('--settle').trim()||'ease-out'});
+  }
+}
+function wovenPaint(rebuild=true,animate=false){
+  const card=document.getElementById('wovenCard'); if(!card) return;
+  const rows=wovenWindow();
+  if(!WOVEN.selected) WOVEN.selected=rows.filter(r=>r.total).at(-1)?.d||rows.at(-1).d;
+  if(WOVEN.selected<rows[0].d) WOVEN.selected=rows[0].d;
+  if(WOVEN.selected>rows.at(-1).d) WOVEN.selected=rows.at(-1).d;
+  const start=rows[0].d,end=rows.at(-1).d,crossYear=start.slice(0,4)!==end.slice(0,4);
+  card.querySelector('#wovenPeriod').textContent=`${wovenDate(start)}${crossYear?', '+start.slice(0,4):''} – ${wovenDate(end)}, ${end.slice(0,4)}`;
+  if(WOVEN.hidden) return;
+  card.querySelector('#wovenCount').textContent=`${rows.filter(r=>r.total).length} workouts · ${rows.length} days`;
+  card.querySelectorAll('[data-woven-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.wovenMode===WOVEN.mode)));
+  const plot=card.querySelector('#wovenChart'),width=Math.max(230,Math.round(plot.getBoundingClientRect().width)||330);
+  if(rebuild||!plot.querySelector('svg')) plot.innerHTML=wovenChart(rows,width);
+  wovenSelection(rows); wovenReceipt(rows.find(r=>r.d===WOVEN.selected),animate);
+  const slider=card.querySelector('#wovenScrub'); slider.max=rows.length-1; slider.value=rows.findIndex(r=>r.d===WOVEN.selected); slider.setAttribute('aria-valuetext',wovenDate(WOVEN.selected,true));
+  const first=wovenFirstDay();
+  card.querySelector('[data-woven-page="-1"]').disabled=rows[0].d<=first;
+  card.querySelector('[data-woven-page="1"]').disabled=rows.at(-1).d>=todayISO;
+  card.querySelector('[data-woven-daystep="-1"]').disabled=WOVEN.selected<=first;
+  card.querySelector('[data-woven-daystep="1"]').disabled=WOVEN.selected>=todayISO;
+  card.querySelector('#wovenRange').textContent='Browse earlier training';
+}
+function wovenChoose(iso){
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(iso)||iso>todayISO) return;
+  const rows=wovenWindow(); let rebuild=false;
+  if(iso<rows[0].d){WOVEN.end=wovenShift(iso,rows.length-1);rebuild=true;}
+  if(iso>rows.at(-1).d){WOVEN.end=iso;rebuild=true;}
+  WOVEN.selected=iso; wovenPaint(rebuild,true);
+}
+function bindWoven(){
+  if(wovenObserver){wovenObserver.disconnect();wovenObserver=null;}
+  const plot=document.getElementById('wovenChart'); if(!plot) return;
+  wovenPaint();
+  if(typeof ResizeObserver!=='undefined'){
+    let width=plot.getBoundingClientRect().width;
+    wovenObserver=new ResizeObserver(()=>{if(!plot.isConnected){wovenObserver.disconnect();return;}const next=plot.getBoundingClientRect().width;if(Math.abs(next-width)>1){width=next;wovenPaint();}});
+    wovenObserver.observe(plot);
+  }
+}
+document.addEventListener('click',e=>{
+  const card=e.target.closest('#wovenCard'); if(!card) return;
+  const toggle=e.target.closest('[data-woven-toggle]');
+  if(toggle){WOVEN.hidden=!WOVEN.hidden;toggle.textContent=WOVEN.hidden?'Show':'Hide';toggle.setAttribute('aria-expanded',String(!WOVEN.hidden));card.querySelector('#wovenBody').hidden=WOVEN.hidden;if(!WOVEN.hidden)wovenPaint();return;}
+  const mode=e.target.closest('[data-woven-mode]');
+  if(mode){WOVEN.mode=mode.dataset.wovenMode==='week'?'week':'month';const rows=wovenWindow();if(WOVEN.selected<rows[0].d)WOVEN.end=wovenShift(WOVEN.selected,rows.length-1);wovenPaint();return;}
+  const page=e.target.closest('[data-woven-page]');
+  if(page&&!page.disabled){const rows=wovenWindow();WOVEN.end=wovenShift(rows.at(-1).d,Number(page.dataset.wovenPage)*rows.length);WOVEN.selected=null;wovenPaint();return;}
+  const step=e.target.closest('[data-woven-daystep]');
+  if(step&&!step.disabled){wovenChoose(wovenShift(WOVEN.selected,Number(step.dataset.wovenDaystep)));return;}
+  const plot=e.target.closest('#wovenChart');
+  if(plot){const svg=plot.querySelector('svg'),box=svg?.getBoundingClientRect();if(!box||!box.width)return;const x=(e.clientX-box.left)*Number(svg.dataset.wovenWidth)/box.width,left=+svg.dataset.wovenLeft;if(x<left-5)return;const rows=wovenWindow(),i=Math.max(0,Math.min(rows.length-1,Math.floor((x-left)/Number(svg.dataset.wovenStep))));wovenChoose(rows[i].d);}
+});
+document.addEventListener('input',e=>{
+  if(e.target.id==='wovenScrub'){const rows=wovenWindow(),r=rows[Number(e.target.value)];if(r)wovenChoose(r.d);}
+});
+
 function renderStats(){
   const _S={}; const cut=k=>{ _S[k]=h; h=''; };
   if(SEED.totals.sessions===0 && !hasAnyDays()){ $('#view').innerHTML=emptyHero('stats'); return; }
@@ -1282,7 +1454,7 @@ function renderStats(){
   // the session just built leads (the page opens on what you did), then this
   // week's coverage, then the audit's verdict, then the attendance hero, then
   // pace and the year story.
-  h = _S.pmix + _S.mc + _S.rz + _S.kpis + _S.mpace + _S.consrace;
+  h = _S.pmix + wovenSection() + _S.mc + _S.rz + _S.kpis + _S.mpace + _S.consrace;
 
   // the whole Run story lives here now (was its own tab in v2.04 — reverted)
   /* v3.3.473: Daily runs sits directly after the Running month card, before
@@ -1303,6 +1475,7 @@ function renderStats(){
       <div class="note" style="text-align:center">${session?`Signed in as ${session.user.email||'—'}`:'Not signed in — data is on this device only'} · ${APP_VERSION}</div>`;
   $('#view').innerHTML=h;
   bindPaceAll();   // v3.3.236: the pace chart reads by touch
+  bindWoven();
 
 }
 

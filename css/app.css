@@ -1,3 +1,45 @@
+/* Woven is an additive, read-only Stats experiment. All surfaces inherit the
+   actual app theme; no tab-bar, existing chart or shared-token overrides. */
+.woven-card .woven-top,.woven-card .woven-tools,.woven-card .woven-key,.woven-card .woven-pages,.woven-card .woven-dayhead{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.woven-card .woven-top{margin-bottom:14px}
+.woven-card .woven-period{font:500 12px var(--mono);color:var(--muted)}
+.woven-card button{border:0;background:transparent;color:var(--muted);font:500 12px var(--body);cursor:pointer;min-height:44px}
+.woven-card button:focus-visible,.woven-card input:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.woven-card button:disabled{opacity:.3;cursor:default}
+.woven-card .woven-hide{padding:0 8px}
+.woven-card .woven-tools{margin-bottom:24px;flex-wrap:wrap}
+.woven-card #wovenCount{font:500 12px var(--mono);color:var(--muted)}
+.woven-card .woven-mode{display:flex;background:var(--surface2);border-radius:12px;padding:3px}
+.woven-card .woven-mode button{padding:0 12px;border-radius:9px;transition:background var(--dur-move) var(--settle),color var(--dur-move) var(--settle)}
+.woven-card .woven-mode button[aria-pressed="true"]{background:var(--surface);color:var(--chalk);box-shadow:0 1px 4px #00000010}
+.woven-card .woven-chart{width:100%;min-width:0;cursor:crosshair}
+.woven-card .woven-chart svg{display:block;width:100%;height:auto;overflow:visible}
+.woven-card .woven-chart text{font:400 10px var(--mono);fill:var(--muted)}
+.woven-card .woven-label{font:500 10px var(--body);fill:var(--muted)}
+.woven-card .woven-thread{fill:none;stroke:var(--muted);stroke-width:1;opacity:.28;transition:opacity var(--dur-move) var(--settle)}
+.woven-card .woven-day.selected .woven-thread{opacity:.85;stroke-width:1.5}
+.woven-card .woven-chart .woven-number{font:600 10px var(--mono);fill:var(--chalk);pointer-events:none}
+.woven-card .woven-band{transition:transform var(--dur-move) var(--settle);pointer-events:none}
+.woven-card .woven-key{font:400 10px var(--mono);color:var(--faint);flex-wrap:wrap;gap:4px;margin:0 0 24px}
+.woven-card .woven-scrub{display:flex;flex-direction:column;gap:4px}
+.woven-card .woven-scrub input{display:block;width:100%;height:44px;margin:0;accent-color:var(--chalk);cursor:ew-resize}
+.woven-card .woven-scrub span{font:400 10px var(--mono);text-align:center;color:var(--faint)}
+.woven-card .woven-pages{margin:8px 0 16px;font:400 11px var(--mono);color:var(--muted)}
+.woven-card .woven-pages button,.woven-card .woven-arrows button{width:44px;font:400 25px var(--body);border:1px solid var(--line);border-radius:50%}
+.woven-card .woven-receipt{border-top:1px solid var(--line);padding-top:24px}
+.woven-card .woven-dayhead{align-items:flex-start;margin-bottom:20px}
+.woven-card #wovenDayTitle{font:600 17px/1.35 var(--body);margin:0 0 5px;letter-spacing:-.3px;color:var(--chalk)}
+.woven-card #wovenDayCount{font:400 11px/1.5 var(--mono);color:var(--muted)}
+.woven-card .woven-arrows{display:flex;flex-shrink:0;gap:5px}
+.woven-card .woven-ex{display:grid;grid-template-columns:5px minmax(0,1fr) auto;align-items:start;gap:12px;padding:15px 0;border-top:1px solid var(--whisper)}
+.woven-card .woven-ex:first-child{border-top:0;padding-top:0}
+.woven-card .woven-ex>i{width:5px;height:5px;border-radius:50%;margin-top:8px}
+.woven-card .woven-exname{font:600 15px/1.45 var(--body);color:var(--chalk);overflow-wrap:anywhere}
+.woven-card .woven-lines{font:400 11px/1.8 var(--mono);color:var(--muted);margin-top:5px;overflow-wrap:anywhere}
+.woven-card .woven-setcount{font:400 11px/1.8 var(--mono);color:var(--faint);white-space:nowrap}
+.woven-card .woven-empty{font:400 13px/1.7 var(--body);color:var(--muted);margin:0;padding-bottom:12px}
+@media(max-width:360px){.woven-card .woven-dayhead{flex-wrap:wrap}.woven-card .woven-key{font-size:9px}.woven-card .woven-ex{gap:8px}}
+@media(prefers-reduced-motion:reduce){.woven-card .woven-band,.woven-card .woven-thread,.woven-card .woven-mode button{transition:none}}
 :root{--sat:env(safe-area-inset-top,0px);
     /* v3.3.270 — THE MOTION VOICE. One settle curve, three speeds, spoken
        everywhere something arrives or changes state. The curve starts fast
