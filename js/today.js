@@ -731,49 +731,8 @@ function exTier(ex){
   return (ago<=60 && exFreq(ex)>=3) ? 'goto' : 'sometimes';
 }
 
-/* progression chart: seed's last 14 sessions + everything app-logged since.
-   Red dots are TRUE PRs — top set that tied or beat the all-time max at the time. */
-function progChart(ex){
-  const pts=histFor(ex);
-  if(pts.length<3) return '';
-  const body=isBody(ex)&&pts.every(p=>p.w<=0.01);
-  const vals=pts.map(p=>body?p.r:p.w);
-  const lo=Math.min(...vals), hi=Math.max(...vals);
-  const span=Math.max(hi-lo, body?2:toKg(wStep(ex)*2));   // v3.3.250: two steps of THIS lift's law
-  const top=hi+span*0.18, base=Math.max(0,lo-span*0.18);
-  const X=i=>16+i*(298/Math.max(1,pts.length-1));
-  const Y=v=>104-(v-base)/(top-base)*84;
-  let runMax=0, poly='', dots='';
-  const allMax=body?Math.max(...vals):prFor(ex).mw;
-  pts.forEach((p,i)=>{
-    const v=vals[i], x=X(i), y=Y(v);
-    poly+=`${x.toFixed(1)},${y.toFixed(1)} `;
-    const pr=v>=allMax&&v>runMax;                    // first time hitting the all-time top
-    if(v>runMax) runMax=v;
-    const last=i===pts.length-1;
-    /* v3.3.511: every dot carries its own day and what was lifted, so the
-       scrub reads the RECORD rather than re-deriving it from pixel position. */
-    dots+=`<circle class="pgdot${last&&!pr?' beacon':''}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${pr?3.4:last?3:2}" fill="${pr?'var(--record)':'var(--accent)'}" data-d="${p.d}" data-v="${body?p.r:wDisp(v)}" data-r="${p.r||''}" data-pr="${pr?1:''}"></circle>`;
-    if(pr||last||i===0)
-      dots+=`<text x="${x.toFixed(1)}" y="${(y-7).toFixed(1)}" text-anchor="middle" font-family="var(--mono)" font-size="5.5" fill="${pr?'var(--record)':'var(--muted)'}">${body?v+'r':wDisp(v)}</text>`;
-  });
-  const d0=pts[0].d, d1=pts[pts.length-1].d;
-  /* v3.3.511: the chart is scrubbable -- hold to arm, drag to read, tap the
-     picked dot to clear -- on the same gesture as the runs chart (v3.3.486),
-     and the readout replaces the footer's caption in place rather than adding
-     a row, so nothing moves under your thumb while you scrub. */
-  return `<h2>Progression</h2><div class="card pgcard">
-    <div id="pgWrap" class="pgwrap"><svg viewBox="0 0 330 122" style="width:100%;height:auto">
-      <polyline points="${poly.trim()}" fill="none" stroke="var(--accent)" stroke-width="1.4" stroke-linejoin="round" opacity=".8"></polyline>
-      ${dots}
-      <text x="16" y="118" font-family="var(--mono)" font-size="5.5" fill="var(--muted)">${md(d0)}</text>
-      <text x="314" y="118" text-anchor="end" font-family="var(--mono)" font-size="5.5" fill="var(--muted)">${md(d1)}</text>
-    </svg></div>
-    <div class="tot"><span data-pgcap>Top ${body?'reps':'set'} per session · last ${pts.length}</span>
-      <span data-pgcap><b style="color:var(--record)">●</b> all-time best${body?'':` ${wDisp(allMax)} ${U()}`}</span>
-      <span class="pgread mono" data-pgread hidden></span></div>
-  </div>`;
-}
+/* Completed-set progression lives in progression.js. histFor remains the
+   existing coaching summary; it is not a chart data source. */
 /* last ~14 sessions of top-set weight, as a tiny sparkline */
 /* Stuck at the same top weight for 3+ sessions? Say so, once, quietly.
    Bodyweight-only moves are excluded (their progression is reps, not load), and a
