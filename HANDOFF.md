@@ -1,5 +1,30 @@
 # ShowUp — handoff (2026-08-22, v3.3.267)
 
+## Session-range progression + image share — v3.3.535 (2026-09-10)
+
+Supersedes the Recent/Year UI in v3.3.533. Default Last 4 Sessions keeps every
+set numeric; Last 30 Sessions keeps every set as a dot. Session spacing is
+ordinal, with real date labels and an explicit date span. The slider selects
+sets inside that fixed extent. No calendar dropdown or invented history.
+Shared progressionLayout geometry serves SVG and the 1080px canvas export.
+Share reuses ICO_SHARE and showCard's native file-share/download flow.
+
+Scope: js/progression.js, its CSS and tests only, plus release documentation
+and stamps. Header and Claude's v3.3.534 plan rows are untouched. Existing
+extraction, measurement distinctions and active-workout visibility remain.
+Dense numeric groups wrap inside their date column; vertical space expands
+only when needed to retain every actual set without overlapping labels.
+
+QA: focused progression checks, six killed mutations, buildcheck and isolated
+Chromium at 320/393/430/800 in light/dark. Real touch hold/drag, range input,
+all measurement types, lb/kg and mi/km, completion visibility, 30-session cap,
+actual PNG creation, native share payload and download fallback verified.
+Full suite: 72/73 pass both here and untouched v3.3.534. Sole identical failure
+is test-runclose's existing jsdom computed-width assertion, not new behavior.
+
+Rollback: revert this release commit or PR merge and bump to a NEW version.
+Do not reset main or remove Claude's changes. No data migration to undo.
+
 ## Every-set progression + Year — v3.3.533 (2026-09-10)
 
 Isolated feature module js/progression.js; loaded after today.js, cached in

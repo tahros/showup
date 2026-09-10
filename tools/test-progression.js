@@ -14,6 +14,9 @@ for(const m of html.matchAll(/src="(js\/[^?"]+)\?v=/g)){
   if(m[1]==='js/progression.js'&&process.env.PG_MUTATE==='precedence')source=source.replace('Array.isArray(local[d]?.w)','false');
   if(m[1]==='js/progression.js'&&process.env.PG_MUTATE==='unit')source=source.replace("r.kind==='run'?toD(r.load)","r.kind==='run'?r.load");
   if(m[1]==='js/progression.js'&&process.env.PG_MUTATE==='count')source=source.replace('vals.forEach(raw=>','vals.slice(0,1).forEach(raw=>');
+  if(m[1]==='js/progression.js'&&process.env.PG_MUTATE==='scope')source=source.replace("?30:4","?31:4");
+  if(m[1]==='js/progression.js'&&process.env.PG_MUTATE==='scrub')source=source.replace('card._pg.scope[+e.target.value]','card._pg.scope[0]');
+  if(m[1]==='js/progression.js'&&process.env.PG_MUTATE==='share')source=source.replace('()=>drawProgressionCard(snapshot)','()=>null');
   vm.runInContext(source,ctx,{filename:m[1]});
 }
 const run=c=>vm.runInContext(c,ctx);
@@ -57,19 +60,29 @@ run(`DB.settings.unit='lb';for(let i=1;i<=22;i++){const d='2026-08-'+String(i).p
   DB.days['2025-12-01']={w:[{ex:'Incline Barbell Bench Press',part:'Chest',w:toKg(135),reps:[10]}]};
   Object.defineProperty(window,'innerWidth',{value:393,configurable:true});
   document.getElementById('view').innerHTML=progressionSection('Incline Barbell Bench Press','train');bindProgression();`);
-check('three dates fit on mobile',`document.querySelectorAll('.pg-detail .pg-date').length===3`);
-check('every set drawn, not just best sets',`document.querySelectorAll('.pg-detail .pg-set').length===15`);
-check('winning reps compared at same load; no global rep maximum',`document.querySelectorAll('.pg-detail .pg-best').length===6`);
-check('neutral numeric circles with no connecting best-set line',`document.querySelectorAll('.pg-detail .pg-set circle').length===15&&!document.querySelector('.progression-card polyline')`);
-run(`document.querySelector('[data-pg-action="year"]').click()`);
-check('annual includes all 110 sets, not last fourteen sessions',`document.querySelectorAll('.pg-year .pg-set').length===110`);
-check('annual retains full twelve-month context',`document.querySelectorAll('.pg-year .pg-axis').length>=12&&document.querySelector('.pg-year').textContent.includes('JFMAMJJASOND')`);
-check('future shaded, no fabricated points',`!!document.querySelector('.pg-future')&&[...document.querySelectorAll('.pg-year .pg-set')].every(g=>g.dataset.pgRecord.startsWith('2026-08'))`);
-run(`(()=>{const s=document.querySelector('[data-pg-action="date"]');s.value='2026-08-06';s.dispatchEvent(new Event('change',{bubbles:true}));})()`);
-check('annual date picker reveals exact session detail',`document.querySelector('.pg-detail').textContent.includes('8/6')&&progressionUI.train.focus==='2026-08-06'`);
-run(`(()=>{const s=document.querySelector('[data-pg-action="year-select"]');s.value='2025';s.dispatchEvent(new Event('change',{bubbles:true}));})()`);
-check('year selector changes data, not just a caption',`document.querySelectorAll('.pg-year .pg-set').length===1&&document.querySelector('.pg-detail').textContent.includes('12/1')`);
-run(`document.querySelector('[data-pg-action="recent"]').click()`);
+check('four sessions are the default on mobile',`document.querySelectorAll('.pg-detail .pg-date').length===4&&progressionUI.train.mode==='numbers'`);
+check('all 20 sets have numbers; none become dots',`document.querySelectorAll('.pg-detail .pg-set text').length===20&&document.querySelectorAll('.pg-detail .pg-set').length===20`);
+check('best is compared at each load',`document.querySelectorAll('.pg-detail .pg-best').length===8`);
+check('no best-set connecting line',`!document.querySelector('.progression-card polyline')`);
+check('share reuses the existing icon',`(()=>{const t=document.createElement('template');t.innerHTML=ICO_SHARE;return document.querySelector('.pg-share svg').isEqualNode(t.content.firstChild);})()`);
+run(`document.querySelector('[data-pg-action="dots"]').click()`);
+check('dot mode includes all 23 available sessions across years',`document.querySelectorAll('.pg-dots .pg-set').length===111&&document.querySelector('.pg-available').textContent.includes('23 sessions')`);
+check('dot mode is all dots, with no numeric set glyphs',`document.querySelectorAll('.pg-dots .pg-set text').length===0`);
+check('no calendar or date dropdown remains',`!document.querySelector('[data-pg-action="year-select"],[data-pg-action="date"],.pg-year')&&document.querySelector('.pg-range-head').textContent.includes('2025 / 2026')`);
+run(`(()=>{const r=document.querySelector('.pg-scrubber');r.value='0';r.dispatchEvent(new Event('input',{bubbles:true}));})()`);
+check('scrubber selects first set without moving chart extent',`document.querySelectorAll('.pg-dots .pg-set').length===111&&document.querySelector('.pg-read').textContent.includes('135 lb × 10')&&progressionUI.train.pick==='2025-12-01:1'`);
+run(`for(let i=1;i<=30;i++)DB.days['2026-06-'+String(i).padStart(2,'0')]={w:[{ex:'Incline Barbell Bench Press',part:'Chest',w:toKg(135),reps:[10,9]}]};renderProgression(document.querySelector('.progression-card'));`);
+check('dot scope truly caps at 30 sessions, retaining every set',`document.querySelector('.progression-card')._pg.dates.length===30&&document.querySelector('.progression-card')._pg.dates[0]==='2026-06-23'&&document.querySelectorAll('.pg-dots .pg-set').length===126`);
+run(`document.querySelector('[data-pg-action="numbers"]').click()`);
+check('number mode restores exactly four latest dates',`document.querySelectorAll('.pg-detail .pg-date').length===4&&document.querySelector('.progression-card')._pg.dates[0]==='2026-08-19'`);
+run(`(()=>{const r=document.querySelector('.pg-scrubber');r.value='5';r.dispatchEvent(new Event('input',{bubbles:true}));})()`);
+check('scrubber moves to the requested set and updates numeric selection',`progressionUI.train.pick==='2026-08-20:1'&&document.querySelector('.pg-scrubber').value==='5'&&document.querySelectorAll('.pg-detail .pick').length===1`);
+check('dense session wraps numbers instead of hiding sets or widening plot',`(()=>{const records=Array.from({length:13},(_,i)=>({d:'2026-09-01',id:'x'+i,load:70,count:10,kind:'load'}));const m=progressionLayout(records,'load',{dates:['2026-09-01','2026-09-02','2026-09-03','2026-09-04'],width:240});return m.width===240&&m.points.length===13&&m.points.every(p=>p.x>=m.left&&p.x<=m.width-m.right);})()`);
+check('long elapsed-time labels do not overlap within a session',`(()=>{const records=Array.from({length:4},(_,i)=>({d:'2026-09-01',id:'run'+i,load:5,count:1,seconds:1800,kind:'run'}));const m=progressionLayout(records,'run',{dates:['2026-09-01','2026-09-02','2026-09-03','2026-09-04'],width:800});return m.points.every((p,i)=>m.points.slice(i+1).every(q=>Math.abs(p.y-q.y)>=14||Math.abs(p.x-q.x)>=(p.labelWidth+q.labelWidth)/2));})()`);
+run(`window.pgShareCalls=[];window.pgOriginalContext=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(){return new Proxy({measureText:s=>({width:String(s).length*6})},{get:(o,k)=>k in o?o[k]:(...args)=>pgShareCalls.push([k,...args])});};window.pgSavedShow=showCard;showCard=(fn,label)=>{window.pgShared={cv:fn(),label};};document.querySelector('.pg-share').click();`);
+check('share generates a real high-resolution card using selected range',`pgShared.cv.width===1080&&pgShared.cv.height>500&&pgShared.label.endsWith('last-4-sessions')&&pgShareCalls.some(c=>c[0]==='fillText'&&c[1]==='Last 4 Sessions')`);
+check('export draws every actual rep number, no invented pair',`pgShareCalls.filter(c=>c[0]==='fillText'&&['10','9','8','5','4'].includes(c[1])).length===20`);
+run(`showCard=pgSavedShow;HTMLCanvasElement.prototype.getContext=pgOriginalContext;window.pgBeforeHold=progressionUI.train.pick;`);
 
 // The touch protocol is exercised, including the 2D choice between loads.
 w.SVGElement.prototype.getBoundingClientRect=function(){const v=this.getAttribute('viewBox')?.split(' ').map(Number)||[0,0,329,254];return {left:0,top:0,width:v[2],height:v[3]};};
@@ -77,7 +90,7 @@ const touch=(type,x,y)=>run(`(()=>{const e=new Event('${type}',{bubbles:true,can
 const xy=run(`(()=>{const g=document.querySelector('.pg-detail .pg-set');return [+g.dataset.x,+g.dataset.y]})()`);
 touch('touchstart',xy[0],xy[1]);touch('touchmove',xy[0],xy[1]+30);
 run(`document.querySelector('[data-pg-surface="detail"]')._pgArm()`);
-check('scroll before hold cancels scrubbing',`!document.querySelector('.pg-detail .pick')`);
+check('scroll before hold cancels scrubbing',`progressionUI.train.pick===pgBeforeHold`);
 touch('touchend',xy[0],xy[1]+30);touch('touchstart',xy[0],xy[1]);
 run(`document.querySelector('[data-pg-surface="detail"]')._pgArm()`);
 check('hold reads a real set and marks it',`document.querySelectorAll('.pg-detail .pick').length===1&&document.querySelector('.pg-read').textContent.includes('155 lb × 10')`);

@@ -1,5 +1,24 @@
 # ShowUp — changelog
 
+## v3.3.535 (2026-09-10) — Your sets, close up
+
+Progression opens with **Last 4 Sessions**: each completed set is a small
+number, grouped under its actual date. **Last 30 Sessions** keeps every set
+as a dot for a wider view. Blue marks the most reps at the same load in the
+displayed range, including ties. Neither view invents a best weight/rep pair.
+
+The chart is shorter. A slider and previous/next arrows read individual sets;
+tap or hold-drag still works. Dense sessions wrap their numbers rather than
+drop sets. Bodyweight, added load, assistance, timed holds and runs retain
+their own measurements and units.
+
+The existing **Share** icon sits beside the exercise title. It opens an image
+of the current chart, with its dates, units and selected set, ready for native
+sharing or download. Train, Stats history and the active-workout duplicate
+use the same view. The header and v3.3.534's plan rows are unchanged.
+
+No workout data, plans or stored preferences are migrated.
+
 
 ## v3.3.534 (2026-09-10) — The plan, not a guess
 
