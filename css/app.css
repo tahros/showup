@@ -67,6 +67,7 @@
 .progression-card .pg-scroll{overflow:hidden;touch-action:pan-y;user-select:none;-webkit-user-select:none}
 .progression-card .pg-plot{display:block;height:auto;width:100%;max-width:100%;overflow:visible}
 .progression-card .pg-grid{stroke:var(--line);stroke-width:.8;stroke-dasharray:2 4}
+.progression-card .pg-leader{stroke:var(--muted);stroke-width:.7;opacity:.5;fill:none;pointer-events:none}
 .progression-card .pg-axis,.progression-card .pg-date{fill:var(--muted);font:400 10px var(--mono)}
 .progression-card .pg-date{font-weight:500}
 .progression-card .pg-selection-band{fill:var(--accent);opacity:.045}
@@ -3630,17 +3631,20 @@
   :root[data-flow="refined"][data-skin="minimal"][data-bar="dark"] nav button.on{
     background:linear-gradient(180deg,#4C4C4C,#303030);
     box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 1px 3px rgba(0,0,0,.2)}
-  /* v3.3.524: approved midpoint ONLY for dark content + light bar.
-     Brighter base colors offset the extra transparency over a dark page.
+  /* v3.3.537: approved B Silver + Porcelain ONLY for dark content + light bar.
+     The brighter selected pill is distinct from the quieter neutral bar.
      Keep all other combinations on their existing Airy/Graphite rules. */
   :root[data-flow="refined"][data-skin="minimal"][data-theme="dark"][data-bar="light"] nav::before{
-    background:linear-gradient(180deg,rgba(245,245,245,.95) 0%,rgba(251,251,251,.90) 15%,rgba(241,241,241,.88) 48%,rgba(239,239,239,.84) 78%,rgba(234,234,234,.36) 100%);
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.76),inset 0 0 0 .5px rgba(255,255,255,.50),inset 0 -1px 0 rgba(0,0,0,.20),inset 0 9px 12px -10px rgba(255,255,255,.70),0 10px 30px rgba(0,0,0,.20),0 1px 2px rgba(0,0,0,.08)}
-  :root[data-flow="refined"][data-skin="minimal"][data-theme="dark"][data-bar="light"] nav button{color:#6B6B6B}
+    background:linear-gradient(180deg,rgba(215,215,215,.92) 0%,rgba(181,181,181,.85) 43%,rgba(151,151,151,.88) 100%);
+    box-shadow:inset 0 1px 1px rgba(255,255,255,.75),inset 0 0 0 .5px rgba(255,255,255,.40),inset 0 -1px 2px rgba(0,0,0,.16),0 12px 25px rgba(0,0,0,.40)}
+  :root[data-flow="refined"][data-skin="minimal"][data-theme="dark"][data-bar="light"] nav button{color:#424242}
+  /* Ink grades for the darker silver, not changes to the page's accents.
+     Selected Today still uses the original blue on its porcelain surface. */
+  :root[data-flow="refined"][data-skin="minimal"][data-theme="dark"][data-bar="light"] nav button:not(.on){--pill-accent:#2032A5;--pill-rest:#18491F}
   :root[data-flow="refined"][data-skin="minimal"][data-theme="dark"][data-bar="light"] nav button.on{
-    color:var(--pill-chalk);
-    background:radial-gradient(ellipse at 50% -35%,#FFFFFF 0%,#FFFFFF55 43%,transparent 72%),linear-gradient(180deg,#F7F7F7 0%,#DFDFDF 42%,#B9B9B9 100%);
-    box-shadow:inset 0 1.5px 0 #FFFFFF,inset 1px 0 .8px #FFFFFFF0,inset -1px 0 .8px #FFFFFFBF,inset 0 -1px 0 #FFFFFF99,0 0 0 .7px #FFFFFFC9,0 -2px 9px 1px #FFFFFFC2,0 3px 6px #00000029}
+    color:#181818;
+    background:linear-gradient(175deg,rgba(255,255,255,.99),rgba(237,237,237,.98) 55%,rgba(205,205,205,.97));
+    box-shadow:inset 0 1px 1px rgba(255,255,255,.90),inset 0 -1px 2px rgba(255,255,255,.28),0 2px 7px rgba(0,0,0,.15)}
   @media(max-width:380px){
     :root[data-flow="refined"] #view[data-flow-view="today"] h2{flex-wrap:wrap}
     :root[data-flow="refined"] #view[data-flow-view="today"] h2 .planedge{gap:2px}

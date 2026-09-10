@@ -1,5 +1,25 @@
 # ShowUp — handoff (2026-08-22, v3.3.267)
 
+## Compact progression + Silver/Porcelain — v3.3.537 (2026-09-10)
+
+Rechecked origin/main and header before editing and shipping; based on v3.3.536.
+Full-history frame still fixes the axes and height across pages/modes, but no
+longer divides needed label space by the gap between neighboring loads. Reserve
+only actual stacked label height, then pack close groups within each date and
+draw leaders to trueY in SVG and PNG. Normal plot height is 176 CSS px; genuine
+set density, not near-identical weights, can require more. Nothing is dropped.
+
+Approved preview B bar/pill gradient stops are copied exactly, scoped to refined
+minimal + dark content + light bar. Inactive ink grades are slightly deeper to
+retain 3:1 contrast; selected Today keeps its original blue. No fixed-layer blur,
+geometry, header, other appearance-combination or user-data changes.
+
+QA: 72/73 suites, sole existing test-runclose computed-width failure. Focused
+compact/collision/frame mutations killed. Chromium at 320/393/430/800, both themes,
+exact paging geometry, near-adjacent squat loads, lb/kg, touch/slider, exports and
+all four bar/content combinations passed. Actual chart and bar renders inspected.
+Rollback: revert this release and bump to a new version; no migration.
+
 ## Fixed-frame range navigation — v3.3.536 (2026-09-10)
 
 4 Sessions / 12 Sessions supersede Last 4 / Last 30. Page zero is latest;

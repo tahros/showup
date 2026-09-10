@@ -3,7 +3,9 @@
 const fs = require('fs'), path = require('path'), assert = require('assert');
 const { JSDOM } = require('jsdom');
 const dir = process.argv[2] || '.';
-const css = fs.readFileSync(path.join(dir, 'css/app.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+let css = fs.readFileSync(path.join(dir, 'css/app.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+if(process.env.NAV_MUTATE==='silver')css=css.replace('rgba(215,215,215,.92)','rgba(245,245,245,.95)');
+if(process.env.NAV_MUTATE==='scope')css=css.replaceAll('[data-theme="dark"][data-bar="light"] nav','[data-bar="light"] nav');
 const html = fs.readFileSync(path.join(dir, 'index.html'), 'utf8');
 const navRule = [...css.matchAll(/(?:^|})\s*nav\{([^}]+)}/g)].map(m => m[1]).find(r => /position:fixed/.test(r));
 const buttonRule = [...css.matchAll(/(?:^|})\s*nav button\{([^}]+)}/g)].map(m => m[1]).find(r => /flex:1 1 0/.test(r));
@@ -62,16 +64,21 @@ assert(cr(rgb(token('light','pill-chalk')),[185,185,185])>=3,'selected luminous 
 const midScope=':root[data-flow="refined"][data-skin="minimal"][data-theme="dark"][data-bar="light"]';
 const midRule=suffix=>{const marker=midScope+' '+suffix+'{';assert.equal(css.split(marker).length,2,'exactly one narrowly scoped '+suffix);return css.split(marker)[1].split('}')[0].trim();};
 const mid=midRule('nav::before');
-assert(mid.includes('linear-gradient(180deg,rgba(245,245,245,.95) 0%,rgba(251,251,251,.90) 15%,rgba(241,241,241,.88) 48%,rgba(239,239,239,.84) 78%,rgba(234,234,234,.36) 100%)'),'exact approved midpoint gradient');
-assert(mid.includes('0 10px 30px rgba(0,0,0,.20),0 1px 2px rgba(0,0,0,.08)'),'under-bar shadow preserved');
-assert.equal(midRule('nav button'),'color:#6B6B6B','midpoint inactive ink');
-assert(midRule('nav button.on').includes('color:var(--pill-chalk);'),'selected midpoint icon stays dark');
-assert(midRule('nav button.on').includes(rimFill)&&midRule('nav button.on').includes(rimShadow),'approved B selected capsule also on dark content; midpoint bar preserved');
+assert(mid.includes('linear-gradient(180deg,rgba(215,215,215,.92) 0%,rgba(181,181,181,.85) 43%,rgba(151,151,151,.88) 100%)'),'exact approved Silver gradient');
+assert(mid.includes('0 12px 25px rgba(0,0,0,.40)'),'approved Silver shadow');
+assert.equal(midRule('nav button'),'color:#424242','accessible inactive ink on darker silver');
+assert(midRule('nav button.on').includes('color:#181818;'),'selected Porcelain icon stays dark');
+assert(midRule('nav button.on').includes('linear-gradient(175deg,rgba(255,255,255,.99),rgba(237,237,237,.98) 55%,rgba(205,205,205,.97))'),'exact approved Porcelain fill');
+assert(midRule('nav button:not(.on)').includes('--pill-accent:#2032A5;--pill-rest:#18491F'),'only unselected status glyphs use darker silver ink grades');
+for(const theme of ['light','dark'])for(const bar of ['light','dark']){
+ const el=dom.window.document.documentElement;el.dataset.flow='refined';el.dataset.skin='minimal';el.dataset.theme=theme;el.dataset.bar=bar;
+ assert.equal(dom.window.document.querySelectorAll(midScope+' nav').length,theme==='dark'&&bar==='light'?1:0,'Silver + Porcelain applies exclusively to the approved combination');
+}
 const midStops=[...mid.split(';')[0].matchAll(/rgba\((\d+),(\d+),(\d+),([.\d]+)\) (\d+)%/g)].map(m=>({rgb:m.slice(1,4).map(Number),alpha:+m[4],at:+m[5]}));
 for(let y=0;y<=78;y++){
  const i=Math.max(1,midStops.findIndex(s=>s.at>=y)),a=midStops[i-1],b=midStops[i],t=(y-a.at)/(b.at-a.at);
  const surface=mix(mix(b.rgb,a.rgb,t),[0,0,0],a.alpha+(b.alpha-a.alpha)*t);
- for(const ink of ['#6B6B6B',token('light','pill-accent'),token('light','pill-rest')])assert(cr(rgb(ink),surface)>=3,'midpoint glyph band retains contrast');
+ for(const ink of ['#424242','#2032A5','#18491F'])assert(cr(rgb(ink),surface)>=3,'Silver glyph band retains contrast: '+ink+' at '+y+'% = '+cr(rgb(ink),surface));
 }
 assert(cr(rgb(token('light','pill-chalk')),[185,185,185])>=3,'midpoint selected ink retains contrast');
 console.log('PASS midpoint silver requires dark content AND light bar, with readable icon band');

@@ -1,5 +1,20 @@
 # ShowUp — changelog
 
+## v3.3.537 (2026-09-10) — Silver, and room to breathe
+
+**Silver + Porcelain** pairs a quieter silver tab bar with a brighter selected
+pill, only when light bar meets dark content. Other appearance combinations
+keep their existing colors. Unselected icons use slightly deeper inks so they
+remain readable against the silver; the selected Today blue is unchanged.
+
+**Progression is compact again.** Closely spaced weights in an old workout
+could stretch every chart into a tall empty column. They no longer do. Height
+and scale still stay steady while browsing 4- and 12-session ranges. Crowded
+numbers separate locally, with fine guides back to their exact load positions;
+every set, date, scrubber readout and shared image remains intact.
+
+The header, plans and workout data are unchanged.
+
 ## v3.3.536 (2026-09-10) — Browse without the jump
 
 Progression now offers **4 Sessions** as numbers and **12 Sessions** as dots.
