@@ -1,5 +1,20 @@
 # ShowUp — changelog
 
+## v3.3.517 (2026-09-09) — The small things line up
+
+The streak count no longer turns red in the evening. It stays black in light
+mode and light in dark mode, while rest and live-session cues keep their jobs.
+
+In the refined TRAIN layout, the BODY PART divider is easier to see, the
+compact tiles are left-aligned, and Last Time's label, date and chevron share
+one vertical center. Go-to rows drop the yearly frequency. Elapsed-time
+labels use compact wording such as **4d ago**, in a softer readable gray.
+
+The selected tab now catches a slow shimmer across its capsule. Only the
+selected tab shimmers, the icon stays crisp, and Reduce Motion turns it off.
+No blur has been added to the bottom bar. The Previous layout switch stays
+available, and no workout or plan data changes.
+
 ## v3.3.516 (2026-09-09) — A clearer plan, a quieter exercise list
 
 The approved TODAY and TRAIN layout is now available with your real record.

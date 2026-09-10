@@ -10,6 +10,10 @@ backup, and nothing is deleted. Each device keeps its own choice. Previous
 restores the pre-trial rows, plan styling and Last Time fold behavior. The
 small layout selector remains so the choice can always be reversed.
 
+As of v3.3.517, Previous also disables the refined tab shimmer and restores
+the earlier tile/row treatment. The shared compact age wording and neutral
+header count are separate corrections and remain in both layouts.
+
 ## Whole-release rollback for the maintainer
 
 Baseline is commit `efe0fd6`, tag `v3.3.515-pre-flow-refinement`.
