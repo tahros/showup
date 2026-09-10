@@ -1,5 +1,25 @@
 # ShowUp — handoff (2026-08-22, v3.3.267)
 
+## Luminous selected tab — v3.3.531 (2026-09-10)
+
+Maker chose B from selected-tab-shine preview. Refined + Minimal + light
+bar only, on either page theme: exact B radial highlight, silver stops and
+rim shadows on button.on. The two explicit selectors keep the cascade
+clear. Airy/Midpoint bar backgrounds, inactive inks, dark Graphite bar,
+icon colors, header, geometry and shimmer timing are unchanged. Preserve
+Claude's v3.3.529 Paste and v3.3.530 Run completion changes. Header.js and
+application logic were inspected and left untouched. Existing nav suite
+pins the new capsule plus the unchanged bar/contrast boundaries.
+Rollback: revert only these selected-capsule styles/tests and version the
+rollback; no stored data or preference migration.
+Validation: 71/72 suites pass. test-runclose reports width:100% in this local
+JSDOM environment on BOTH untouched v3.3.530 and this branch. Real Chromium
+shows correct side-by-side widths at 320/393/430: Add run 156/229/266px,
+close 88px, 10px gap, exactly one close control. Do not silently rewrite
+Claude's Run code or its test under this appearance task. Navigation browser
+QA covers all four theme/bar combinations, Previous, phone widths, tab
+changes, anchored scrolling and reduced motion. Buildcheck/syntax pass.
+
 ## Compact expanded Today plan — v3.3.528 (2026-09-10)
 
 Refined Today plan rows only: name 17 -> 15px at weight 500; vertical padding

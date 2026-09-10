@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v3.3.531 (2026-09-10) — A little more light on the selected tab
+
+The Light tab bar's selected capsule takes the approved B finish: a luminous
+white rim and softly lit silver surface. Its icon stays dark and readable;
+the existing shimmer keeps its timing. The rim stays visible when motion is
+reduced. Light pages keep the Airy bar and dark pages keep the Midpoint bar.
+Only the selected capsule changes. Dark bars, the header, sizes and taps
+are untouched. Built on v3.3.530, preserving the Paste glyph and Run close.
+
 
 
 ## v3.3.530 (2026-09-10) — The day closes from the run
