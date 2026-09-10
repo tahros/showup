@@ -1,5 +1,23 @@
 # ShowUp — handoff (2026-08-22, v3.3.267)
 
+## Approved polished silver — v3.3.522 (2026-09-10)
+
+Refined + Minimal + data-bar=light adopts preview B's neutral silver stops:
+white, 251/.99 at 15%, 233/.97 at 48%, 192/.92 at 100%. Selected capsule is
+opaque #F7F7F7 / #DEDEDE / #BDBDBD. Its surface rim is bright white; the
+existing external 0 10px 30px shadow deepens from .16 to .20 black without
+changing its geometry. This is the maker's requested darker falloff beneath
+the bar, not a new fixed overlay. No blur, transform or parent opacity.
+Dark polished graphite, Previous layout, page surfaces and state colors stay
+unchanged. test-nav-layout pins the light-only stops, capsule, shadow and
+icon contrast, while retaining all dark gradient/contrast assertions.
+
+Browser QA verifies winning gradients/shadow, neutral dividers and fixed
+anchoring in all four page/bar combinations; Previous excludes the finish
+and Reduce Motion disables shimmer. Read-time mutation probes independently
+remove the silver gradient, darker shadow, capsule and rim; all fail the
+targeted regression without changing working files.
+
 ## Approved polished graphite — v3.3.521 (2026-09-10)
 
 Maker chose preview B and asked for more text visibility, dark bar only.
