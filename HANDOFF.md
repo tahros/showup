@@ -1,5 +1,29 @@
 # ShowUp — handoff (2026-08-22, v3.3.267)
 
+## Consolidated progression readout — v3.3.539 (2026-09-10)
+
+Rechecked origin/main and header against v3.3.538 before editing. Approved
+preview's top-center value + date/ordinal replaces the footer in both modes.
+Fixed 52px readout slot above the unchanged SVG frame; no footer divider.
+Selection updates existing text nodes, with a 140ms value transition respecting
+reduced motion. Actual set ids and ordinal numbers remain authoritative.
+pgWeight rounds display only (all weight kinds, both units); frame and stored
+loads retain precision. Every second tick label is hidden, not its gridline.
+Rep glyphs use regular weight; best-at-load blue is unchanged. Canvas sharing
+uses the same hierarchy, sparse labels and presentation-only rounding.
+
+Scope: progression JS/CSS/tests and release docs/stamps. No header/nav/data
+changes. Regression tests cover top-only readout, exact date/set synchronization,
+unit/measurement exceptions, retained grids and canvas ordering. Round/labels/
+readout mutations killed. Rollback: revert release and bump to a NEW version;
+no migration or workout-data changes to undo.
+
+QA: 72/73 suites; sole unchanged test-runclose computed-width failure reproduced
+on untouched v3.3.535. Buildcheck passes. Isolated Chromium verified 320/393/430/
+800 light/dark, fixed paging/scrubbing geometry, touch, narrow exception readouts,
+normal/reduced motion, 4/12-session PNGs, native share payload and download.
+Rendered light/dark charts and export inspected. All bar theme pairs unchanged.
+
 ## Light/light Porcelain — v3.3.538 (2026-09-10)
 
 Rechecked main/header at v3.3.537. Adds one background-only CSS override for
