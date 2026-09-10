@@ -40,44 +40,55 @@
 .woven-card .woven-empty{font:400 13px/1.7 var(--body);color:var(--muted);margin:0;padding-bottom:12px}
 @media(max-width:360px){.woven-card .woven-dayhead{flex-wrap:wrap}.woven-card .woven-key{font-size:9px}.woven-card .woven-ex{gap:8px}}
 @media(prefers-reduced-motion:reduce){.woven-card .woven-band,.woven-card .woven-thread,.woven-card .woven-mode button{transition:none}}
-/* Set-level progression: neutral frame, blue earned numbers, no chart chrome. */
+/* v3.3.535: approved 4-number / 30-dot session views, isolated from header/nav. */
 .progression-section{min-width:0}
 .progression-card.card{padding:22px 16px 16px;overflow:hidden}
-.progression-card .pg-title{font:600 18px/1.4 var(--body);color:var(--chalk);letter-spacing:-.3px;margin:0 4px 18px;overflow-wrap:anywhere}
+.progression-card .pg-title-row{display:flex;align-items:center;gap:12px;margin:0 3px 20px}
+.progression-card .pg-title{font:600 18px/1.4 var(--body);color:var(--chalk);letter-spacing:-.3px;margin:0;overflow-wrap:anywhere;flex:1;min-width:0}
 .progression-card select{font:500 12px/1.4 var(--mono);color:var(--chalk);border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:10px;min-height:44px;max-width:100%}
-.progression-card select.pg-ex{width:100%;font:600 16px/1.4 var(--body);margin:0 0 16px}
-.progression-card .pg-toolbar{display:flex;align-items:center;gap:10px;margin:0 0 20px}
-.progression-card .pg-modes{display:flex;gap:3px;padding:3px;background:var(--surface2);border-radius:12px}
+.progression-card select.pg-ex{width:100%;min-width:0;flex:1;font:600 16px/1.4 var(--body);margin:0}
+.progression-card .pg-toolbar{margin:0 0 22px}
+.progression-card .pg-modes{display:grid;grid-template-columns:1fr 1fr;gap:3px;padding:3px;background:var(--surface2);border-radius:12px}
 .progression-card button{min-width:44px;min-height:44px;border:0;cursor:pointer;background:transparent;color:var(--muted);font:500 12px var(--mono);border-radius:9px;transition:background 180ms,color 180ms}
-.progression-card .pg-modes button{padding:0 14px}
+.progression-card .pg-modes button{padding:0 4px;white-space:nowrap}
 .progression-card .pg-modes button[aria-pressed=true]{background:var(--surface);color:var(--accent-ink);box-shadow:0 1px 4px #00000012}
+.progression-card .pg-share{flex:0 0 44px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--surface2)}
+.progression-card .pg-share svg{display:block;width:19px;height:19px}
+.progression-card .pg-share:hover{color:var(--chalk)}
 .progression-card .pg-empty{font:400 12px/1.7 var(--body);color:var(--muted);margin-bottom:18px}
-.progression-card .pg-axis-title{font:500 11px/1.5 var(--mono);color:var(--muted);margin:24px 4px 6px}
-.progression-card .pg-scroll{overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;touch-action:pan-x pan-y;user-select:none;-webkit-user-select:none}
-.progression-card .pg-plot{display:block;height:auto;max-width:none;overflow:visible;animation:pg-reveal 240ms ease-out both}
-@keyframes pg-reveal{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}
-.progression-card .pg-grid{stroke:var(--line);stroke-width:1;stroke-dasharray:2 4}
+.progression-card .pg-range-head{display:flex;justify-content:space-between;gap:10px;margin:20px 3px 6px;font:500 11px/1.5 var(--mono);color:var(--muted);flex-wrap:wrap}
+.progression-card .pg-available{font:400 11px/1.5 var(--mono);color:var(--muted);margin:0 3px 5px}
+.progression-card .pg-scroll{overflow:hidden;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.progression-card .pg-plot{display:block;height:auto;width:100%;max-width:100%;overflow:visible}
+.progression-card .pg-grid{stroke:var(--line);stroke-width:.8;stroke-dasharray:2 4}
 .progression-card .pg-axis,.progression-card .pg-date{fill:var(--muted);font:400 10px var(--mono)}
 .progression-card .pg-date{font-weight:500}
-.progression-card .pg-future{fill:var(--muted);opacity:.055}
-.progression-card .pg-focusline{stroke:var(--accent);stroke-width:1;opacity:.4}
-.progression-card .pg-set{cursor:pointer;outline:none}
+.progression-card .pg-selection-band{fill:var(--accent);opacity:.045}
+.progression-card .pg-set{cursor:pointer}
 .progression-card .pg-detail .pg-set circle,.progression-card .pg-detail .pg-set rect{fill:var(--surface2);stroke:transparent;stroke-width:1}
 .progression-card .pg-set text{font:500 11px var(--mono);fill:var(--muted);pointer-events:none}
 .progression-card .pg-set.pg-best text{font-weight:750;fill:var(--accent-ink)}
-.progression-card .pg-detail .pg-best circle{fill:var(--accent);fill-opacity:.09}
-.progression-card .pg-year .pg-set circle{fill:var(--muted);opacity:.38}
-.progression-card .pg-year .pg-best circle{fill:var(--accent);opacity:.85}
+.progression-card .pg-detail .pg-best circle,.progression-card .pg-detail .pg-best rect{fill:var(--accent);fill-opacity:.09}
+.progression-card .pg-dots .pg-set circle{fill:var(--muted);opacity:.68}
+.progression-card .pg-dots .pg-best circle{fill:var(--accent-ink);opacity:.85}
 .progression-card .pg-set.pick circle,.progression-card .pg-set:focus-visible circle,.progression-card .pg-set.pick rect,.progression-card .pg-set:focus-visible rect{stroke:var(--accent);stroke-width:1.5}
-.progression-card .pg-detail-head{display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid var(--line);padding-top:18px;margin:18px 4px 6px;font:500 11px var(--mono);color:var(--muted)}
-.progression-card .pg-pages{display:flex;align-items:center;justify-content:space-between;margin:6px 4px 0;font:400 10px var(--mono);color:var(--muted)}
+.progression-card .pg-pages{display:flex;align-items:center;justify-content:space-between;margin:-5px 4px 0;font:400 11px var(--mono);color:var(--muted)}
 .progression-card .pg-pages button{font:400 24px var(--body)}
 .progression-card button:disabled{opacity:.28;cursor:default}
-.progression-card .pg-read{border-top:1px solid var(--line);margin:8px 4px 0;padding:15px 0 0;min-height:52px;font:500 11px/1.8 var(--mono);color:var(--chalk);overflow-wrap:anywhere}
+.progression-card .pg-read{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;border-top:1px solid var(--line);margin:8px 4px 0;padding:15px 0 0;min-height:52px;overflow-wrap:anywhere}
+.progression-card .pg-read-date{font:500 11px/1.7 var(--mono);color:var(--muted)}
+.progression-card .pg-read-value{font:600 18px/1.4 var(--body);color:var(--chalk)}
 .progression-card .pg-unmeasured{font:400 11px/1.7 var(--mono);color:var(--muted);margin:12px 4px 0}
 .progression-card .pg-unmeasured summary{min-height:44px;cursor:pointer;padding:12px 0}
-.progression-card button:focus-visible,.progression-card select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-@media(prefers-reduced-motion:reduce){.progression-card button{transition:none}.progression-card .pg-plot{animation:none}}
+.progression-card button:focus-visible,.progression-card select:focus-visible,.progression-card input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.progression-card .pg-scrubber{--pg-progress:100%;appearance:none;-webkit-appearance:none;display:block;width:100%;height:44px;margin:5px 0 0;background:transparent;cursor:ew-resize;padding:0;border:0;box-shadow:none}
+.progression-card .pg-scrubber::-webkit-slider-runnable-track{height:4px;border-radius:9px;background:linear-gradient(to right,var(--chalk) 0%,var(--chalk) var(--pg-progress),var(--line) var(--pg-progress),var(--line) 100%)}
+.progression-card .pg-scrubber::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:var(--chalk);margin-top:-5.5px;box-shadow:0 0 0 3px var(--surface)}
+.progression-card .pg-scrubber::-moz-range-track{height:4px;border-radius:9px;background:var(--line)}
+.progression-card .pg-scrubber::-moz-range-progress{height:4px;background:var(--chalk)}
+.progression-card .pg-scrubber::-moz-range-thumb{width:15px;height:15px;border:0;border-radius:50%;background:var(--chalk)}
+@media(max-width:350px){.progression-card .pg-modes button{font-size:11px}}
+@media(prefers-reduced-motion:reduce){.progression-card button{transition:none}}
 :root{--sat:env(safe-area-inset-top,0px);
     /* v3.3.270 — THE MOTION VOICE. One settle curve, three speeds, spoken
        everywhere something arrives or changes state. The curve starts fast

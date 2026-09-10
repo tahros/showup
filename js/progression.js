@@ -57,9 +57,9 @@ function progressionBest(records){
   return r=>!['run','unknown'].includes(r.kind)&&r.count===best.get(r.kind+':'+(r.load===null?'?':r.load.toFixed(3)));
 }
 function progressionSection(ex,role='train',picker=false){
-  const state=progressionUI[role]||(progressionUI[role]={mode:'recent'});
+  const state=progressionUI[role]||(progressionUI[role]={mode:'numbers'});
   if(state.ex!==ex){state.ex=ex;state.focus=null;state.kind=null;state.year=null;state.pick=null;}
-  return `<section class="progression-section" data-pg-role="${role}"><h2>${role==='live'?'Training now':'Progression'}${hActs('pg-'+role,'Numbers are completed sets. Tap or hold-drag to read. Year opens the full calendar with session detail.','About exercise progression')}</h2><div class="card progression-card" data-pg-ex="${pgEscape(ex)}" data-pg-picker="${picker?'1':''}"></div></section>`;
+  return `<section class="progression-section" data-pg-role="${role}"><h2>${role==='live'?'Training now':'Progression'}${hActs('pg-'+role,'Last 4 Sessions shows every set as a number. Last 30 Sessions uses dots. Tap, hold-drag or use the slider to read a set. Share exports the current chart.','About exercise progression')}</h2><div class="card progression-card" data-pg-ex="${pgEscape(ex)}" data-pg-picker="${picker?'1':''}"></div></section>`;
 }
 function progressionStatsSection(){
   const names=[...new Set(progressionRows().flatMap(d=>d.rows.map(s=>s.ex)))].sort((a,b)=>a.localeCompare(b));
@@ -75,98 +75,146 @@ function progressionLiveSection(){
   return ex?progressionSection(ex,'live'):'';
 }
 
-/* Calendar space is reserved even when nothing was logged. Never project
-   future training or collapse a year into a last-N-session sparkline. */
-function progressionPlot(records,kind,{year=null,dates=[],width=330,best,focus,pick}={}){
-  const annual=year!==null, left=38, right=8, top=28, bottom=222, h=254;
-  let stepX=kind==='run'?42:20;
-  const labelFor=r=>kind==='run'?(r.seconds?pgDuration(r.seconds):'—'):String(r.count);
-  const minSpacing=Math.max(kind==='run'?42:16,...records.map(r=>labelFor(r).length*6.7+2));
-  let column=0;
-  if(!annual){
-    for(const d of dates){const groups=new Map(); records.filter(r=>r.d===d).forEach(r=>{const v=progressionValue(r).toFixed(5);groups.set(v,(groups.get(v)||0)+1);});column=Math.max(column,...groups.values());}
-    stepX=Math.max(minSpacing,Math.min(20,((width-left-right)/Math.max(1,dates.length)-4)/Math.max(1,column)));
-    width=Math.max(width,left+right+dates.length*Math.max(62,column*stepX+4));
+
+/* One geometry for screen AND image export. Session spacing is ordinal, not
+   elapsed time: the date labels remain the authority. No synthetic history. */
+function progressionLayout(records,kind,{dates=[],width=330,dots=false,best=()=>false,pick=null}={}){
+  const left=34,right=10,top=20,usable=width-left-right,col=usable/Math.max(1,dates.length);
+  const labelFor=r=>kind==='run'?(r.seconds?pgDuration(r.seconds):'—'):pgDecimal(r.count);
+  const groups=new Map();
+  records.forEach(r=>{const key=r.d+':'+progressionValue(r).toFixed(5);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(r);});
+  const labels=new Map(),rows=new Map();
+  for(const [key,group] of groups){
+    const cell=Math.max(14,...group.map(r=>labelFor(r).length*6.7+2));
+    const capacity=Math.max(1,Math.floor((col-4)/cell));
+    const nRows=dots?1:Math.ceil(group.length/capacity);
+    labels.set(key,{cell,capacity,nRows});rows.set(key,nRows*15);
   }
-  const values=records.map(progressionValue), low=values.length?Math.min(...values):0, high=values.length?Math.max(...values):1;
-  const minStep=kind==='run'?.25:['time'].includes(kind)?15:['body','unknown'].includes(kind)?1:isLb()?5:2.5;
-  const raw=(high-low||minStep*3)/12;
-  const step=Math.max(minStep,Math.ceil(raw/minStep)*minStep);
-  const lo=Math.max(0,Math.floor(low/step)*step-step), hi=Math.ceil(high/step)*step+step;
-  const Y=v=>kind==='assisted'?top+(v-lo)/(hi-lo)*(bottom-top):bottom-(v-lo)/(hi-lo)*(bottom-top);
-  let svg=`<svg class="pg-plot ${annual?'pg-year':'pg-detail'}" viewBox="0 0 ${width} ${h}" style="width:${width}px" role="group" aria-label="${annual?year+' annual overview':'Set history'}: ${pgEscape(progressionAxis(kind))}">`;
-  if(annual&&+year===+todayISO.slice(0,4)){
-    const end=Date.UTC(+year+1,0,1),start=Date.UTC(+year,0,1),next=Date.parse(todayISO+'T00:00:00Z')+86400000;
-    const x=left+Math.min(1,(next-start)/(end-start))*(width-left-right);
-    svg+=`<rect class="pg-future" x="${x}" y="${top}" width="${Math.max(0,width-right-x)}" height="${bottom-top}"/>`;
+  const values=records.map(progressionValue),low=values.length?Math.min(...values):0,high=values.length?Math.max(...values):1;
+  const minStep=kind==='run'?.25:kind==='time'?15:['body','unknown'].includes(kind)?1:isLb()?5:2.5;
+  const step=Math.max(minStep,Math.ceil((high-low||minStep*3)/12/minStep)*minStep);
+  const lo=Math.max(0,Math.floor(low/step)*step-step),hi=Math.ceil(high/step)*step+step;
+  let plotHeight=176;
+  // High-set-count workouts wrap numeric labels within their session column;
+  // expand vertical room as needed, never substitute dots or hide real sets.
+  if(!dots)for(const d of dates){
+    const levels=[...groups.keys()].filter(k=>k.startsWith(d+':')).map(k=>({v:+k.slice(d.length+1),h:rows.get(k)})).sort((a,b)=>a.v-b.v);
+    for(let i=1;i<levels.length;i++)plotHeight=Math.max(plotHeight,((levels[i-1].h+levels[i].h)/2+5)*(hi-lo)/(levels[i].v-levels[i-1].v));
+    for(const l of levels)plotHeight=Math.max(plotHeight,l.h*2);
   }
-  for(let v=lo;v<=hi+step*.001;v+=step){
-    const y=Y(v),label=kind==='added'&&v===0?'BW':pgDecimal(v);
-    svg+=`<line class="pg-grid" x1="${left}" x2="${width-right}" y1="${y}" y2="${y}"/><text class="pg-axis" x="${left-8}" y="${y+3}" text-anchor="end">${label}</text>`;
+  plotHeight=Math.ceil(plotHeight);
+  const bottom=top+plotHeight,height=bottom+34;
+  const Y=v=>kind==='assisted'?top+(v-lo)/(hi-lo)*plotHeight:bottom-(v-lo)/(hi-lo)*plotHeight;
+  const points=records.map(r=>{
+    const key=r.d+':'+progressionValue(r).toFixed(5),same=groups.get(key),at=same.indexOf(r),g=labels.get(key);
+    const row=Math.floor(at/g.capacity),inRow=Math.min(g.capacity,same.length-row*g.capacity),index=at%g.capacity;
+    const gap=dots?Math.min(4,(col-2)/same.length):g.cell;
+    const x=left+(dates.indexOf(r.d)+.5)*col+(dots?at-(same.length-1)/2:index-(inRow-1)/2)*gap;
+    const y=Y(progressionValue(r))+(dots?0:(row-(g.nRows-1)/2)*15);
+    return {r,x,y,winning:best(r),label:labelFor(r),radius:dots?Math.max(.5,Math.min(1.8,gap*.38)):Math.min(7,g.cell/2),labelWidth:Math.max(14,labelFor(r).length*6.7+2)};
+  });
+  const ticks=[];for(let v=lo;v<=hi+step*.001;v+=step)ticks.push({y:Y(v),label:kind==='added'&&v===0?'BW':pgDecimal(v)});
+  const indices=dots?[...new Set([0,Math.round((dates.length-1)/3),Math.round((dates.length-1)*2/3),dates.length-1])]:dates.map((d,i)=>i);
+  const dateTicks=indices.filter(i=>i>=0&&dates[i]).map(i=>({x:left+(i+.5)*col,label:pgShortDate(dates[i]),anchor:dots&&i===0?'start':dots&&i===dates.length-1?'end':'middle'}));
+  return {width,height,left,right,top,bottom,col,dates,dots,points,ticks,dateTicks,pick};
+}
+function progressionPlot(records,kind,options={}){
+  const m=progressionLayout(records,kind,options),selected=m.points.find(p=>p.r.id===options.pick);
+  let h='<svg class="pg-plot '+(m.dots?'pg-dots':'pg-detail')+'" viewBox="0 0 '+m.width+' '+m.height+'" style="width:100%" role="group" aria-label="'+pgEscape(progressionAxis(kind)+'; every logged set across '+m.dates.length+' sessions')+'">';
+  h+='<rect class="pg-selection-band" x="'+(selected?m.left+m.dates.indexOf(selected.r.d)*m.col:m.left)+'" y="'+(m.top-8)+'" width="'+m.col+'" height="'+(m.bottom-m.top+8)+'" rx="4"'+(selected?'':' visibility="hidden"')+'/>';
+  for(const t of m.ticks)h+='<line class="pg-grid" x1="'+m.left+'" x2="'+(m.width-m.right)+'" y1="'+t.y+'" y2="'+t.y+'"/><text class="pg-axis" x="'+(m.left-7)+'" y="'+(t.y+3.5)+'" text-anchor="end">'+t.label+'</text>';
+  for(const p of m.points){
+    h+='<g class="pg-set'+(p.winning?' pg-best':'')+(p.r.id===m.pick?' pick':'')+'" data-pg-record="'+p.r.id+'" data-x="'+p.x+'" data-y="'+p.y+'" tabindex="0" role="button" aria-label="'+pgEscape(progressionRead(p.r)+(p.winning?' · best at this load':''))+'" transform="translate('+p.x+' '+p.y+')"><title>'+pgEscape(progressionRead(p.r))+'</title>';
+    h+=m.dots?'<circle r="'+p.radius+'"/>':p.label.length>2?'<rect x="'+(-p.labelWidth/2)+'" y="-7" width="'+p.labelWidth+'" height="14" rx="7"/>':'<circle r="'+p.radius+'"/>';
+    if(!m.dots)h+='<text text-anchor="middle" dy="3.5">'+pgEscape(p.label)+'</text>';
+    h+='</g>';
   }
-  const byKey=new Map();records.forEach(r=>{const k=r.d+':'+progressionValue(r).toFixed(5);if(!byKey.has(k))byKey.set(k,[]);byKey.get(k).push(r);});
-  const xDate=d=>annual?left+(Date.parse(d+'T00:00:00Z')-Date.UTC(+year,0,1))/(Date.UTC(+year+1,0,1)-Date.UTC(+year,0,1))*(width-left-right):left+(dates.indexOf(d)+.5)*(width-left-right)/Math.max(1,dates.length);
-  if(focus&&annual){const x=xDate(focus);svg+=`<line class="pg-focusline" x1="${x}" x2="${x}" y1="${top}" y2="${bottom}"/>`;}
-  for(const r of records){
-    const same=byKey.get(r.d+':'+progressionValue(r).toFixed(5));
-    const offset=(same.indexOf(r)-(same.length-1)/2)*(annual?1.3:stepX);
-    const x=Math.max(left,Math.min(width-right,xDate(r.d)+offset)),y=Y(progressionValue(r));
-    const winning=best(r),text=kind==='run'?(r.seconds?pgDuration(r.seconds):'—'):kind==='time'?pgDecimal(r.count):String(r.count);
-    svg+=`<g class="pg-set${winning?' pg-best':''}${pick===r.id?' pick':''}" data-pg-record="${r.id}" data-x="${x}" data-y="${y}" ${annual?'':`tabindex="0" role="button" aria-label="${pgEscape(progressionRead(r)+(winning?' · best at this load':''))}"`} transform="translate(${x} ${y})"><title>${pgEscape(progressionRead(r))}</title>`;
-    const markWidth=Math.max(18,text.length*6.7+2);
-    svg+=annual?`<circle r="2.1"/>`:kind==='run'?`<rect x="${-(stepX-4)/2}" y="-10" width="${stepX-4}" height="20" rx="10"/><text text-anchor="middle" dy="3.5">${text}</text>`:`<circle r="${text.length>2?markWidth/2:Math.min(9,stepX*.45)}"/><text text-anchor="middle" dy="3.5">${text}</text>`;
-    svg+='</g>';
-  }
-  if(annual){
-    const months='JFMAMJJASOND';for(let m=0;m<12;m++){const d=`${year}-${String(m+1).padStart(2,'0')}-15`;svg+=`<text class="pg-axis" x="${xDate(d)}" y="246" text-anchor="middle">${months[m]}</text>`;}
-  }else dates.forEach(d=>{svg+=`<text class="pg-date" x="${xDate(d)}" y="246" text-anchor="middle">${pgShortDate(d)}</text>`;});
-  return svg+'</svg>';
+  for(const t of m.dateTicks)h+='<text class="pg-date" x="'+t.x+'" y="'+(m.height-11)+'" text-anchor="'+t.anchor+'">'+t.label+'</text>';
+  return h+'</svg>';
+}
+function progressionReceipt(r){
+  const full=progressionRead(r),separator=' · ',parts=full.split(separator);
+  return '<span class="pg-read-date">'+pgEscape(parts.slice(0,2).join(separator))+'</span><strong class="pg-read-value">'+pgEscape(parts.slice(2).join(separator))+'</strong>';
 }
 function renderProgression(card){
-  const role=card.closest('[data-pg-role]').dataset.pgRole, state=progressionUI[role], ex=state.ex;
-  const data=progressionData(ex), all=data.records;
+  const role=card.closest('[data-pg-role]').dataset.pgRole,state=progressionUI[role],ex=state.ex,data=progressionData(ex),all=data.records;
+  if(!['numbers','dots'].includes(state.mode))state.mode='numbers';
   const kinds=[...new Set(all.map(r=>r.kind))];
-  if(!kinds.includes(state.kind)) state.kind=kinds[kinds.length-1]||'load';
-  const typed=all.filter(r=>r.kind===state.kind);
-  const years=[...new Set([...typed,...data.omitted].map(r=>r.d.slice(0,4)))].sort();
-  if(!years.includes(state.year))state.year=years[years.length-1]||todayISO.slice(0,4);
-  const scope=state.mode==='year'?typed.filter(r=>r.d.startsWith(state.year)):typed;
-  const dates=[...new Set(scope.map(r=>r.d))];
-  if(!dates.includes(state.focus))state.focus=dates[dates.length-1];
-  const width=Math.max(240,Math.round(card.clientWidth?card.clientWidth-32:Math.min(window.innerWidth-64,680)));
-  const count=width>=440?4:3;
-  const end=Math.min(dates.length,Math.max(count,dates.indexOf(state.focus)+1));
-  const recent=dates.slice(Math.max(0,end-count),end), visible=scope.filter(r=>recent.includes(r.d));
-  const best=progressionBest(scope);
+  if(!kinds.includes(state.kind))state.kind=kinds.at(-1)||'load';
+  const typed=all.filter(r=>r.kind===state.kind),allDates=[...new Set(typed.map(r=>r.d))],count=state.mode==='dots'?30:4,dates=allDates.slice(-count),scope=typed.filter(r=>dates.includes(r.d));
+  if(!scope.some(r=>r.id===state.pick))state.pick=scope.at(-1)?.id||null;
+  const width=Math.max(180,Math.round(card.clientWidth?card.clientWidth-32:Math.min(window.innerWidth-64,680))),best=progressionBest(scope);
+  const options={width,dates,dots:state.mode==='dots',best,pick:state.pick};
+  card._pg={role,state,data,scope,dates,count,width,options,layout:progressionLayout(scope,state.kind,options)};
   const tip=card.closest('section').querySelector('.tipbubble');
-  if(tip)tip.textContent=state.kind==='run'?'Distance by date; numbers are elapsed times, not pace. Tap or hold-drag a set. Year opens session detail.':state.kind==='unknown'?'Load was not recorded; only reps are plotted. Tap or hold-drag a set. Year opens session detail.':`Blue: most ${state.kind==='time'?'seconds':'reps'} at the same load in this range. Tap or hold-drag a set. Year opens session detail.`;
-  const shown=state.mode==='year'?scope:visible;
-  if(!shown.some(r=>r.id===state.pick))state.pick=null;
-  card._pg={role,state,data,scope,dates,recent,visible,count,end};
-  const names=card.dataset.pgPicker?[...new Set(progressionRows().flatMap(d=>d.rows.map(s=>s.ex)))].sort((a,b)=>a.localeCompare(b)):[];
-  const options=names.map(n=>`<option${ex===n?' selected':''}>${pgEscape(n)}</option>`).join('');
-  const picker=names.length?`<select class="pg-ex" data-pg-action="exercise" aria-label="Exercise history">${options}</select>`:`<h3 class="pg-title">${pgEscape(ex)}</h3>`;
-  let h=`${picker}<div class="pg-toolbar"><div class="pg-modes" role="group" aria-label="History range"><button data-pg-action="recent" aria-pressed="${state.mode==='recent'}">Recent</button><button data-pg-action="year" aria-pressed="${state.mode==='year'}">Year</button></div>${state.mode==='year'?`<select data-pg-action="year-select" aria-label="History year">${(years.length?years:[state.year]).map(y=>`<option${state.year===y?' selected':''}>${y}</option>`).join('')}</select>`:''}</div>`;
-  if(kinds.length>1)h+=`<select class="pg-kind" data-pg-action="kind" aria-label="Measurement type">${kinds.map(k=>`<option value="${k}"${k===state.kind?' selected':''}>${pgEscape(pgKinds[k])}</option>`).join('')}</select>`;
-  h+=`<div class="pg-axis-title">${pgEscape(progressionAxis(state.kind))}</div>`;
-  if(!scope.length) h+=`<p class="pg-empty">No measured sets yet. Your completed sets will appear here.</p>`;
+  if(tip)tip.textContent=state.kind==='run'?'Distance by session; numbers are elapsed times, not pace. Last 30 Sessions uses dots. Select any set with the slider. Share exports this view.':'Blue marks the most '+(state.kind==='time'?'seconds':'reps')+' at the same load in the displayed sessions. Every number is a set; Last 30 Sessions uses dots. Tap or scrub to read. Share exports this view.';
+  const names=card.dataset.pgPicker==='1'?[...new Set(progressionRows().flatMap(d=>d.rows.map(s=>s.ex)))].sort((a,b)=>a.localeCompare(b)):[];
+  const picker=names.length?'<select class="pg-ex" data-pg-action="exercise" aria-label="Exercise history">'+names.map(n=>'<option'+(ex===n?' selected':'')+'>'+pgEscape(n)+'</option>').join('')+'</select>':'<h3 class="pg-title">'+pgEscape(ex)+'</h3>';
+  let h='<div class="pg-title-row">'+picker+'<button class="pg-share" data-pg-action="share" aria-label="Share this progression chart" title="Share"'+(!scope.length?' disabled':'')+'>'+ICO_SHARE+'</button></div><div class="pg-toolbar"><div class="pg-modes" role="group" aria-label="History range"><button data-pg-action="numbers" aria-pressed="'+(state.mode==='numbers')+'">Last 4 Sessions</button><button data-pg-action="dots" aria-pressed="'+(state.mode==='dots')+'">Last 30 Sessions</button></div></div>';
+  if(kinds.length>1)h+='<select class="pg-kind" data-pg-action="kind" aria-label="Measurement type">'+kinds.map(k=>'<option value="'+k+'"'+(k===state.kind?' selected':'')+'>'+pgEscape(pgKinds[k])+'</option>').join('')+'</select>';
+  const dateYears=dates.length?(dates[0].slice(0,4)===dates.at(-1).slice(0,4)?dates.at(-1).slice(0,4):dates[0].slice(0,4)+' / '+dates.at(-1).slice(0,4)):'';
+  const dateLabel=dates.length?pgShortDate(dates[0])+' – '+pgShortDate(dates.at(-1))+' · '+dateYears:'';
+  h+='<div class="pg-range-head"><span>'+dateLabel+'</span><span>'+pgEscape(progressionAxis(state.kind))+'</span></div>';
+  if(allDates.length<count&&scope.length)h+='<div class="pg-available">'+allDates.length+' session'+(allDates.length===1?'':'s')+' on record</div>';
+  if(!scope.length)h+='<p class="pg-empty">No measured sets yet. Your completed sets will appear here.</p>';
   else{
-    if(state.mode==='year')h+=`<div class="pg-scroll" data-pg-surface="year">${progressionPlot(scope,state.kind,{year:state.year,width,best,focus:state.focus,pick:state.pick})}</div><div class="pg-detail-head"><span>Session detail</span><select data-pg-action="date" aria-label="Session date">${dates.map(d=>`<option value="${d}"${state.focus===d?' selected':''}>${pgShortDate(d)} · ${d.slice(0,4)}</option>`).join('')}</select></div>`;
-    h+=`<div class="pg-scroll" data-pg-surface="detail">${progressionPlot(visible,state.kind,{dates:recent,width,best,pick:state.pick})}</div><div class="pg-pages"><button data-pg-action="prev" aria-label="Earlier sessions"${end<=count?' disabled':''}>‹</button><span>${recent[0]?.slice(0,4)||''}${recent.at(-1)?.slice(0,4)!==recent[0]?.slice(0,4)?' / '+recent.at(-1).slice(0,4):''}</span><button data-pg-action="next" aria-label="Later sessions"${end>=dates.length?' disabled':''}>›</button></div>`;
-    const chosen=shown.find(r=>r.id===state.pick);
-    h+=`<div class="pg-read" aria-live="polite">${chosen?pgEscape(progressionRead(chosen)):'Tap a set to read'}</div>`;
+    h+='<div class="pg-scroll" data-pg-surface="detail">'+progressionPlot(scope,state.kind,options)+'</div>';
+    const cursor=scope.findIndex(r=>r.id===state.pick);
+    h+='<input class="pg-scrubber" data-pg-action="scrub" type="range" min="0" max="'+(scope.length-1)+'" step="1" value="'+cursor+'" aria-label="Browse individual sets" aria-valuetext="'+pgEscape(progressionRead(scope[cursor]))+'" style="--pg-progress:'+(100*cursor/Math.max(1,scope.length-1))+'%"><div class="pg-pages"><button data-pg-action="prev-set" aria-label="Previous set"'+(cursor===0?' disabled':'')+'>‹</button><span>Select a set</span><button data-pg-action="next-set" aria-label="Next set"'+(cursor===scope.length-1?' disabled':'')+'>›</button></div><div class="pg-read" aria-live="polite">'+progressionReceipt(scope[cursor])+'</div>';
   }
-  const omitted=data.omitted.filter(r=>state.mode!=='year'||r.d.startsWith(state.year));
-  if(omitted.length)h+=`<details class="pg-unmeasured"><summary>Unplotted entries · ${omitted.length}</summary>${omitted.map(r=>`<div>${pgShortDate(r.d)} · Set ${r.ordinal} · ${pgEscape(r.reason)}</div>`).join('')}</details>`;
+  const omitted=data.omitted.filter(r=>!dates.length||r.d>=dates[0]&&r.d<=dates.at(-1));
+  if(omitted.length)h+='<details class="pg-unmeasured"><summary>Unplotted entries · '+omitted.length+'</summary>'+omitted.map(r=>'<div>'+pgShortDate(r.d)+' · Set '+r.ordinal+' · '+pgEscape(r.reason)+'</div>').join('')+'</details>';
   card.innerHTML=h;
   card.querySelectorAll('[data-pg-surface]').forEach(bindProgressionSurface);
 }
-function progressionPick(card,id,annual=false){
-  const {state,scope}=card._pg, r=scope.find(s=>s.id===id);if(!r)return;
-  state.pick=id;
-  if(annual){state.focus=r.d;renderProgression(card);return;}
+function progressionPick(card,id){
+  const {state,scope,layout}=card._pg,r=scope.find(s=>s.id===id);if(!r)return;
+  state.pick=id;layout.pick=id;
   card.querySelectorAll('.pg-set').forEach(g=>g.classList.toggle('pick',g.dataset.pgRecord===id));
-  const read=card.querySelector('.pg-read');if(read)read.textContent=progressionRead(r);
+  const read=card.querySelector('.pg-read');if(read)read.innerHTML=progressionReceipt(r);
+  const cursor=scope.indexOf(r),slider=card.querySelector('.pg-scrubber');
+  if(slider){slider.value=cursor;slider.setAttribute('aria-valuetext',progressionRead(r));slider.style.setProperty('--pg-progress',(100*cursor/Math.max(1,scope.length-1))+'%');}
+  card.querySelector('[data-pg-action="prev-set"]').disabled=cursor===0;
+  card.querySelector('[data-pg-action="next-set"]').disabled=cursor===scope.length-1;
+  const band=card.querySelector('.pg-selection-band');if(band){band.setAttribute('x',layout.left+layout.dates.indexOf(r.d)*layout.col);band.removeAttribute('visibility');}
+}
+/* Snapshot the selected measurement, period, and units before awaiting fonts.
+   Existing showCard owns the preview, native sharing and download fallback. */
+function progressionShare(card){
+  const {state,scope,layout,count}=card._pg;if(!scope.length)return;
+  const style=getComputedStyle(card),color=name=>style.getPropertyValue(name).trim();
+  const snapshot={ex:state.ex,count,layout,read:progressionRead(scope.find(r=>r.id===state.pick)||scope.at(-1)),axis:progressionAxis(state.kind),picked:state.pick,
+    colors:{paper:color('--surface'),ink:color('--chalk'),muted:color('--muted'),line:color('--line'),blue:color('--accent-ink'),soft:color('--surface2')},
+    font:style.getPropertyValue('--body').trim()||'sans-serif',mono:style.getPropertyValue('--mono').trim()||'monospace'};
+  return showCard(()=>drawProgressionCard(snapshot),'showup-'+state.ex.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/-$/,'')+'-last-'+count+'-sessions');
+}
+function drawProgressionCard(s){
+  const cv=document.createElement('canvas'),x=cv.getContext('2d');if(!x)return null;
+  const m=s.layout,W=Math.max(320,m.width+40),scale=1080/W,pad=20;
+  const wrap=(text,font,max)=>{x.font=font;const lines=[];let line='';for(const word of text.split(' ')){const next=line?line+' '+word:word;if(line&&x.measureText(next).width>max){lines.push(line);line=word;}else line=next;}if(line)lines.push(line);return lines;};
+  const title=wrap(s.ex,'600 18px '+s.font,W-pad*2),read=wrap(s.read,'500 11px '+s.mono,W-pad*2);
+  const chartY=62+title.length*24,H=chartY+m.height+70+read.length*18;
+  cv.width=1080;cv.height=Math.ceil(H*scale);x.scale(scale,scale);
+  x.fillStyle=s.colors.paper;x.fillRect(0,0,W,H);x.textBaseline='alphabetic';
+  x.fillStyle=s.colors.muted;x.font='500 10px '+s.mono;x.fillText('SHOWUP / PROGRESSION',pad,23);
+  x.fillStyle=s.colors.ink;x.font='600 18px '+s.font;title.forEach((line,i)=>x.fillText(line,pad,51+i*24));
+  x.fillStyle=s.colors.muted;x.font='500 11px '+s.mono;
+  x.fillText('Last '+s.count+' Sessions'+(m.dates.length<s.count?' · '+m.dates.length+' on record':''),pad,chartY-17);
+  x.textAlign='right';x.fillText(s.axis,W-pad,chartY-1);x.textAlign='left';
+  x.save();x.translate((W-m.width)/2,chartY);
+  for(const t of m.ticks){x.strokeStyle=s.colors.line;x.lineWidth=.7;x.setLineDash([2,4]);x.beginPath();x.moveTo(m.left,t.y);x.lineTo(m.width-m.right,t.y);x.stroke();x.setLineDash([]);x.fillStyle=s.colors.muted;x.textAlign='right';x.font='400 10px '+s.mono;x.fillText(t.label,m.left-7,t.y+3.5);}
+  for(const p of m.points){
+    x.fillStyle=m.dots?(p.winning?s.colors.blue:s.colors.muted):s.colors.soft;
+    x.beginPath();if(!m.dots&&p.label.length>2)x.rect(p.x-p.labelWidth/2,p.y-7,p.labelWidth,14);else x.arc(p.x,p.y,p.radius,0,Math.PI*2);x.fill();
+    if(p.r.id===s.picked){x.strokeStyle=s.colors.blue;x.lineWidth=1.2;x.stroke();}
+    if(!m.dots){x.fillStyle=p.winning?s.colors.blue:s.colors.muted;x.font=(p.winning?'700':'500')+' 11px '+s.mono;x.textAlign='center';x.fillText(p.label,p.x,p.y+3.5);}
+  }
+  x.fillStyle=s.colors.muted;x.font='500 10px '+s.mono;
+  for(const t of m.dateTicks){x.textAlign=t.anchor==='start'?'left':t.anchor==='end'?'right':'center';x.fillText(t.label,t.x,m.height-11);}
+  x.restore();x.textAlign='left';x.strokeStyle=s.colors.line;x.beginPath();x.moveTo(pad,chartY+m.height+10);x.lineTo(W-pad,chartY+m.height+10);x.stroke();
+  x.fillStyle=s.colors.ink;x.font='500 11px '+s.mono;read.forEach((line,i)=>x.fillText(line,pad,chartY+m.height+34+i*18));
+  x.fillStyle=s.colors.muted;x.font='400 10px '+s.mono;x.fillText('showup · '+m.dates[0]+' — '+m.dates.at(-1),pad,H-14);
+  return cv;
 }
 function bindProgressionSurface(surface){
   const card=surface.closest('.progression-card'),annual=surface.dataset.pgSurface==='year';
@@ -198,24 +246,33 @@ function bindProgressionSurface(surface){
   surface.addEventListener('touchcancel',stop);
   surface.addEventListener('keydown',e=>{const g=e.target.closest('.pg-set');if(g&&(e.key==='Enter'||e.key===' ')){e.preventDefault();progressionPick(card,g.dataset.pgRecord,annual);}});
 }
+
 function bindProgression(){
   document.querySelectorAll('.progression-card').forEach(card=>{
     if(card._pgBound)return;card._pgBound=true;renderProgression(card);
     const act=e=>{
       const el=e.target.closest('[data-pg-action]');if(!el)return;
       const action=el.dataset.pgAction,select=el.tagName==='SELECT';
+      if(action==='scrub')return;
       if(select!==(e.type==='change'))return;
-      const {state,dates,end,count}=card._pg;
-      if(action==='exercise'){state.ex=el.value;state.kind=null;state.year=null;state.focus=null;state.pick=null;card.dataset.pgEx=state.ex;}
-      if(action==='recent'||action==='year'){state.mode=action;state.focus=null;state.pick=null;}
-      if(action==='kind'){state.kind=el.value;state.focus=null;state.pick=null;}
-      if(action==='year-select'){state.year=el.value;state.focus=null;state.pick=null;}
-      if(action==='date'){state.focus=el.value;state.pick=null;}
-      if(action==='prev')state.focus=dates[Math.max(count-1,end-count-1)];
-      if(action==='next')state.focus=dates[Math.min(dates.length-1,end+count-1)];
+      const {state,scope}=card._pg;
+      if(action==='share'){progressionShare(card);return;}
+      if(action==='prev-set'||action==='next-set'){
+        const i=scope.findIndex(r=>r.id===state.pick)+(action==='prev-set'?-1:1);
+        if(scope[i])progressionPick(card,scope[i].id);return;
+      }
+      if(action==='exercise'){state.ex=el.value;state.kind=null;state.pick=null;card.dataset.pgEx=state.ex;}
+      if(action==='numbers'||action==='dots')state.mode=action;
+      if(action==='kind'){state.kind=el.value;state.pick=null;}
       renderProgression(card);
-      card.querySelector(`[data-pg-action="${action}"]`)?.focus({preventScroll:true});
+      card.querySelector('[data-pg-action="'+action+'"]')?.focus({preventScroll:true});
     };
     card.addEventListener('click',act);card.addEventListener('change',act);
+    card.addEventListener('input',e=>{if(e.target.matches('.pg-scrubber')){const r=card._pg.scope[+e.target.value];if(r)progressionPick(card,r.id);}});
   });
 }
+let progressionResizeTimer;
+window.addEventListener('resize',()=>{
+  clearTimeout(progressionResizeTimer);
+  progressionResizeTimer=setTimeout(()=>document.querySelectorAll('.progression-card').forEach(renderProgression),120);
+});
