@@ -1167,6 +1167,21 @@ const ICON_PATH={
   copy:"M24.1 0.8 L20.5 3.4 L19.1 5.4 L18.2 7.6 L17.8 9.8 L17.8 21.2 L9.4 21.4 L6.9 22.0 L5.0 22.9 L1.7 26.0 L0.8 27.7 L0.0 30.2 L0.0 91.4 L0.6 93.3 L1.9 95.8 L4.8 98.5 L8.6 100.0 L69.8 100.0 L71.9 99.4 L74.0 98.3 L77.1 95.0 L78.0 93.1 L78.6 90.8 L78.8 85.7 L91.4 85.7 L93.3 85.1 L95.8 83.7 L98.5 80.9 L100.0 77.1 L100.0 8.6 L99.4 6.7 L98.1 4.2 L95.2 1.5 L91.4 0.0 L26.6 0.0Z M8.4 29.1 L10.7 28.3 L67.9 28.3 L69.8 28.9 L71.1 30.2 L71.7 32.1 L71.7 89.3 L71.3 91.0 L70.0 92.5 L68.6 93.1 L9.8 93.1 L7.8 92.0 L6.9 90.2 L6.9 31.4 L7.5 30.0Z M26.2 7.6 L27.7 6.9 L90.2 6.9 L91.2 7.3 L92.7 8.8 L93.1 9.8 L93.1 75.9 L92.7 76.9 L91.2 78.4 L90.2 78.8 L78.6 78.6 L78.6 30.8 L77.8 27.9 L76.5 25.6 L73.2 22.8 L69.2 21.4 L25.0 21.4 L24.9 9.8Z"
 };
 const ICON_STROKE={
+/* v3.3.527: PASTE. The maker's own clipboard glyph read as "a document" --
+   a board with three lines on it, which is what this app already draws for a
+   list. The action had to be IN the glyph, not only in the word beside it, so
+   the board is open at the top and an arrow drops into it.
+   Drawn to the set's grammar rather than imported: a 100-unit box, stroke 9,
+   round caps and joins, same as sparkle and chevron. A traced Noun outline at
+   its native weight would have sat noticeably darker than the sparkle three
+   characters to its left.
+   ONE CONTINUOUS OUTLINE. The first cut drew the board with a gap from 36 to
+   64 and the clip from 34 to 66, so the clip's corners crossed the board's top
+   edge and rendered as a notch with the line doubled behind it. The gap and
+   the clip are the same span now, and the whole thing is a single stroke: up
+   the left of the opening, over the clip, down, and on round the board. */
+  paste:"M34 16 L34 10 A5 5 0 0 1 39 5 L61 5 A5 5 0 0 1 66 10 L66 16 L76 16 A10 10 0 0 1 86 26 L86 86 A10 10 0 0 1 76 96 L24 96 A10 10 0 0 1 14 86 L14 26 A10 10 0 0 1 24 16 Z M50 40 L50 74 M36 60 L50 74 L64 60",
+
   clear:'M30 30l40 40M70 30 30 70',
   grip:'M22 34h56M22 50h56M22 66h56',
   /* v3.3.424: THE BRAND MARK'S CHEVRON, the artwork itself -- lifted from
@@ -1194,6 +1209,7 @@ const ICON_STROKE={
 const ICON_INK={
   sparkle:[0,0,100,100], expand:[0,0.1,100,99.9], collapse:[0.5,0,99.5,100],
   edit:[0,0,100,100],    copy:[0,0,100,100],
+  paste:[14,5,86,96],
   clear:[24,24,76,76],   grip:[16,28,84,72],      chevron:[33.5,19.5,68.5,80.5],
   brandmark:[154.6,136,357.4,271.2]
 };

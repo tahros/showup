@@ -1,5 +1,33 @@
 # ShowUp — changelog
 
+
+## v3.3.529 (2026-09-10) — A glyph for Paste
+
+**WRITE PASTE** read as one string of capitals. The fix is a glyph before
+Paste — which doubles as the separator, so no second hairline is needed in a
+row that already has one.
+
+The maker's own clipboard icon read as *a document*: a board with three lines
+on it, which is what this app already draws for a list. The action had to be in
+the glyph rather than only in the word beside it, so this one is a board open at
+the top with an arrow dropping into it.
+
+Drawn to the set's grammar rather than imported — a 100-unit box, stroke 9,
+round caps and joins, normalised through `ICON_INK` like every other glyph. A
+traced outline at its native weight would have sat noticeably darker than the
+sparkle three characters to its left.
+
+**One continuous outline.** The first cut drew the board with a gap from 36 to
+64 and the clip from 34 to 66, so the clip's corners crossed the board's top
+edge and rendered as a notch with the line doubled behind it. Caught by
+rasterising what `icon()` actually emits rather than trusting the path. The gap
+and the clip are the same span now, and the whole shape is a single stroke: up
+the left of the opening, over the clip, down, and on round the board.
+
+Both places Paste is offered carry it — the plan edge and day one's *Have a
+routine?* — and the suite asserts the count matches rather than checking one.
+
+## v3.3.528
 ## v3.3.528 (2026-09-10) — A smaller plan, still easy to read
 
 The expanded plan in Refined Today is more compact. Exercise names step

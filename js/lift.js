@@ -227,7 +227,7 @@ function planSectionHTML(){
     /* nothing planned for the day the scope shows: the pill still names the
        scope (filled -- you are in it), and the one action is to write. */
     h+=`<h2 class="quiet planhead">plan${planPillsHTML('today',!!_wk,writeDateISO()===todayISO?'today':planDayLabel(writeDateISO()))}${_tip}${
-      _planEdge(null,null,'data-planwrite')}${refinedFlow()?`<button class="pedge flow-paste" data-planpaste>Paste</button>`:''}</h2>`;
+      _planEdge(null,null,'data-planwrite')}${refinedFlow()?`<button class="pedge flow-paste" data-planpaste>${icon('paste',ICON_SZ.sm)}Paste</button>`:''}</h2>`;
   }
   return h;
 }

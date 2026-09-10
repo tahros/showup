@@ -3444,6 +3444,11 @@
   :root[data-flow="refined"] #view:is([data-flow-view="today"],[data-flow-view="lift"][data-flow-screen="browse"]) h2::before{display:none}
   :root[data-flow="refined"] #view:is([data-flow-view="today"],[data-flow-view="lift"][data-flow-screen="browse"]) h2::after{
     content:'';height:1px;min-width:12px;flex:1;background:var(--line);order:1}
+  /* v3.3.527: the glyph sits with its word, on the same gap the sparkle uses
+     before WRITE -- the two controls now read as a pair rather than one run-on
+     string of capitals. */
+  .pedge[data-planpaste]{display:inline-flex;align-items:center;gap:5px}
+  .pedge[data-planpaste] .ic{flex:0 0 auto}
   :root[data-flow="refined"] .flow-paste{order:3;min-height:44px;min-width:44px;color:var(--accent-ink)}
   :root[data-flow="refined"] #view[data-flow-view="today"] h2.planhead{column-gap:4px;row-gap:2px;flex-wrap:wrap}
   :root[data-flow="refined"] #view[data-flow-view="today"] h2.planhead::after{min-width:0}
