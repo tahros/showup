@@ -1,5 +1,20 @@
 # ShowUp — changelog
 
+## v3.3.525 (2026-09-10) — Woven, day by day
+
+An extra view in Stats, directly below What you did. Nothing is replaced.
+Each column is a calendar day. Colored knots count the strength sets logged
+under each body part; a thread connects the parts trained on that day.
+Switch between four weeks and one week, tap a column or move the slider,
+then read that day's exercises, weights and reps below. Timed holds keep
+their seconds, and weights follow your kg/lb setting. Earlier training is
+available with the arrow controls.
+
+Blank days mean nothing logged, not assumed rest. Runs stay in the running
+charts, and plans are not counted as workouts. Hide folds this experimental
+section away for the current session. Existing Stats, layouts and tab-bar
+finishes are unchanged; no workout records are modified.
+
 ## v3.3.524 (2026-09-10) — Silver that fits the dark page
 
 When the page is Dark and the tab bar is Light, the bar now uses the chosen

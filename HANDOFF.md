@@ -1,5 +1,25 @@
 # ShowUp — handoff (2026-08-22, v3.3.267)
 
+## Additive woven training trial — v3.3.525 (2026-09-10)
+
+Approved interactive concept is added AFTER What you did, before all the
+remaining Stats sections. Do not replace or remove those sections. All new
+functions/DOM/CSS are woven-prefixed in stats.js and app.css. Seven / 28
+calendar days, day selection, period paging, per-exercise readout, per-session
+Hide. No storage or cloud schema changes. Local DB.days[d].w wins even when
+explicitly empty; seed fallback preserves timed unit at index 7. Count actual
+reps-array entries, never planned sets or runs. Curves connect recorded body
+parts within a day, not exercise sequence or inferred secondary muscles.
+
+Rollback: revert the woven feature commit through a PR and give the rollback
+a new version stamp. No data migration or recovery is needed. Hide is a UI
+trial control, not persistent deletion. Test-woven pins record truth, empty
+overrides, units, dates, input handling, escaping, and additive assembly.
+Validation: 70 suites exit 0; buildcheck/syntax checks pass. Count and legacy
+unit mutation probes fail as intended. Isolated browser QA passes 320/393/430
+phone widths and 1000 desktop, light/dark, chart taps, slider, seven-day
+detail, Hide/Show, timed holds and reduced motion. No real user data used.
+
 ## Dark-page / light-bar midpoint — v3.3.524 (2026-09-10)
 
 The maker approved Midpoint Silver exclusively for dark content + light bar.
