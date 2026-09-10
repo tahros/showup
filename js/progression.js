@@ -98,8 +98,10 @@ function progressionFrame(records,kind,width=330,columns=4){
       const capacity=Math.max(1,Math.floor((col-4)/cell));
       return {v,h:Math.ceil(rs.length/capacity)*15};
     }).sort((a,b)=>a.v-b.v);
-    for(let i=1;i<levels.length;i++)plotHeight=Math.max(plotHeight,((levels[i-1].h+levels[i].h)/2+5)*(hi-lo)/(levels[i].v-levels[i-1].v));
-    for(const l of levels)plotHeight=Math.max(plotHeight,l.h*2);
+    // Reserve only the space actual labels need. Dividing by the distance
+    // between nearby loads made a 1 lb difference stretch the entire history.
+    // Close groups are locally separated below, with leaders to their true Y.
+    plotHeight=Math.max(plotHeight,levels.reduce((sum,l)=>sum+l.h+5,0)+10);
   }
   return {lo,hi,step,plotHeight:Math.ceil(plotHeight)};
 }
@@ -118,13 +120,22 @@ function progressionLayout(records,kind,{dates=[],width=330,dots=false,best=()=>
   const {lo,hi,step,plotHeight}=frame||progressionFrame(records,kind,width,columns);
   const bottom=top+plotHeight,height=bottom+34;
   const Y=v=>kind==='assisted'?top+(v-lo)/(hi-lo)*plotHeight:bottom-(v-lo)/(hi-lo)*plotHeight;
+  const centers=new Map();
+  if(!dots)for(const d of dates){
+    const stack=[...groups].filter(([,rs])=>rs[0].d===d).map(([key,rs])=>({key,y:Y(progressionValue(rs[0])),h:labels.get(key).nRows*15})).sort((a,b)=>a.y-b.y);
+    let edge=top;
+    for(const g of stack){g.y=Math.max(g.y,edge+g.h/2);edge=g.y+g.h/2+5;}
+    edge=bottom;
+    for(let i=stack.length-1;i>=0;i--){const g=stack[i];g.y=Math.min(g.y,edge-g.h/2);edge=g.y-g.h/2-5;centers.set(g.key,g.y);}
+  }
   const points=records.map(r=>{
     const key=r.d+':'+progressionValue(r).toFixed(5),same=groups.get(key),at=same.indexOf(r),g=labels.get(key);
     const row=Math.floor(at/g.capacity),inRow=Math.min(g.capacity,same.length-row*g.capacity),index=at%g.capacity;
     const gap=dots?Math.min(4,(col-2)/same.length):g.cell;
     const x=left+(dates.indexOf(r.d)+.5)*col+(dots?at-(same.length-1)/2:index-(inRow-1)/2)*gap;
-    const y=Y(progressionValue(r))+(dots?0:(row-(g.nRows-1)/2)*15);
-    return {r,x,y,winning:best(r),label:labelFor(r),radius:dots?Math.max(.5,Math.min(1.8,gap*.38)):Math.min(7,g.cell/2),labelWidth:Math.max(14,labelFor(r).length*6.7+2)};
+    const trueY=Y(progressionValue(r));
+    const y=dots?trueY:centers.get(key)+(row-(g.nRows-1)/2)*15;
+    return {r,x,y,trueY,leader:!dots&&Math.abs(y-trueY)>1,winning:best(r),label:labelFor(r),radius:dots?Math.max(.5,Math.min(1.8,gap*.38)):Math.min(7,g.cell/2),labelWidth:Math.max(14,labelFor(r).length*6.7+2)};
   });
   const ticks=[];for(let v=lo;v<=hi+step*.001;v+=step)ticks.push({y:Y(v),label:kind==='added'&&v===0?'BW':pgDecimal(v)});
   const indices=dots?[...new Set([0,Math.round((dates.length-1)/3),Math.round((dates.length-1)*2/3),dates.length-1])]:dates.map((d,i)=>i);
@@ -136,6 +147,7 @@ function progressionPlot(records,kind,options={}){
   let h='<svg class="pg-plot '+(m.dots?'pg-dots':'pg-detail')+'" viewBox="0 0 '+m.width+' '+m.height+'" style="width:100%" role="group" aria-label="'+pgEscape(progressionAxis(kind)+'; every logged set across '+m.dates.length+' sessions')+'">';
   h+='<rect class="pg-selection-band" x="'+(selected?m.left+m.dates.indexOf(selected.r.d)*m.col:m.left)+'" y="'+(m.top-8)+'" width="'+m.col+'" height="'+(m.bottom-m.top+8)+'" rx="4"'+(selected?'':' visibility="hidden"')+'/>';
   for(const t of m.ticks)h+='<line class="pg-grid" x1="'+m.left+'" x2="'+(m.width-m.right)+'" y1="'+t.y+'" y2="'+t.y+'"/><text class="pg-axis" x="'+(m.left-7)+'" y="'+(t.y+3.5)+'" text-anchor="end">'+t.label+'</text>';
+  for(const p of m.points)if(p.leader)h+='<path class="pg-leader" d="M'+(p.x-2)+' '+p.trueY+'h4M'+p.x+' '+p.trueY+'V'+p.y+'"/>';
   for(const p of m.points){
     h+='<g class="pg-set'+(p.winning?' pg-best':'')+(p.r.id===m.pick?' pick':'')+'" data-pg-record="'+p.r.id+'" data-x="'+p.x+'" data-y="'+p.y+'" tabindex="0" role="button" aria-label="'+pgEscape(progressionRead(p.r)+(p.winning?' · best at this load':''))+'" transform="translate('+p.x+' '+p.y+')"><title>'+pgEscape(progressionRead(p.r))+'</title>';
     h+=m.dots?'<circle r="'+p.radius+'"/>':p.label.length>2?'<rect x="'+(-p.labelWidth/2)+'" y="-7" width="'+p.labelWidth+'" height="14" rx="7"/>':'<circle r="'+p.radius+'"/>';
@@ -218,6 +230,7 @@ function drawProgressionCard(s){
   x.textAlign='right';x.fillText(s.axis,W-pad,chartY-1);x.textAlign='left';
   x.save();x.translate((W-m.width)/2,chartY);
   for(const t of m.ticks){x.strokeStyle=s.colors.line;x.lineWidth=.7;x.setLineDash([2,4]);x.beginPath();x.moveTo(m.left,t.y);x.lineTo(m.width-m.right,t.y);x.stroke();x.setLineDash([]);x.fillStyle=s.colors.muted;x.textAlign='right';x.font='400 10px '+s.mono;x.fillText(t.label,m.left-7,t.y+3.5);}
+  for(const p of m.points)if(p.leader){x.strokeStyle=s.colors.muted;x.globalAlpha=.5;x.lineWidth=.7;x.beginPath();x.moveTo(p.x-2,p.trueY);x.lineTo(p.x+2,p.trueY);x.moveTo(p.x,p.trueY);x.lineTo(p.x,p.y);x.stroke();x.globalAlpha=1;}
   for(const p of m.points){
     x.fillStyle=m.dots?(p.winning?s.colors.blue:s.colors.muted):s.colors.soft;
     x.beginPath();if(!m.dots&&p.label.length>2)x.rect(p.x-p.labelWidth/2,p.y-7,p.labelWidth,14);else x.arc(p.x,p.y,p.radius,0,Math.PI*2);x.fill();
