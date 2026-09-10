@@ -1,5 +1,24 @@
 # ShowUp — handoff (2026-08-22, v3.3.267)
 
+## Anchored progression dates — v3.3.540 (2026-09-10)
+
+Fresh origin/main/header checked against v3.3.539. Approved circular date
+buttons use fixed 44px edge columns, with a 48px-tall center containing month/day
+and a separate year row. progressionPeriod handles a single day, one month,
+different months and cross-year ranges. Only date text animates (160ms), with
+reduced motion respected. Existing page boundaries and set scrubber unchanged.
+Suppress the redundant axis label for load charts and load PNGs only; retain
+measurement distinctions for bodyweight, time, distance and assistance, and
+keep the accessible SVG axis description. No data, header or navigation changes.
+Regression assertions and period/axis-label/anchors mutations pin these changes.
+Rollback: revert this release and bump to a NEW version; no data migration.
+
+QA: 72/73 suites (same pre-existing test-runclose computed-width failure),
+buildcheck passes. Chromium 320/393/430/800 in both themes compares exact arrow
+rectangles across same-month, cross-month, cross-year and 4/12-mode changes.
+44px targets, no clipping, stable chart geometry, readouts, touch, motion
+preferences and image/share/download checked; light/dark renders inspected.
+
 ## Consolidated progression readout — v3.3.539 (2026-09-10)
 
 Rechecked origin/main and header against v3.3.538 before editing. Approved
