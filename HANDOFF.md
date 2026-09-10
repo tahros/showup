@@ -1,5 +1,20 @@
 # ShowUp — handoff (2026-08-22, v3.3.267)
 
+## Approved polished graphite — v3.3.521 (2026-09-10)
+
+Maker chose preview B and asked for more text visibility, dark bar only.
+Refined + Minimal + data-bar=dark gets B's four neutral stops (78/46/29/21),
+at 0/15/48/100%, with alpha .98/.98/.94/.82. The lower two stops are clearer
+than B's .97/.96 preview. An opaque #4C4C4C to #303030 selected capsule keeps
+the icon separate from underlying text. Rim/shadow terms come from B; no blur,
+transform, overall opacity or geometry is added to the fixed nav. Light bar
+rules and tokens, page colors, state accents and Previous are untouched.
+
+test-nav-layout pins all four stops, dark-only capsule/rim and contrast at
+101 gradient positions over white/dark/blue backdrops, plus selected shimmer
+contrast. Browser QA verifies computed gradients, unchanged Light treatment,
+neutral row/section dividers and fixed anchoring while scrolling.
+
 ## Neutral dividers — v3.3.520 (2026-09-10)
 
 Minimal's old `--line` / `--whisper` overrides still carried blue despite
