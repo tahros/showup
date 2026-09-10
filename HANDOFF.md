@@ -1,5 +1,28 @@
 # ShowUp — handoff (2026-08-22, v3.3.267)
 
+## Collision-safe progression dates — v3.3.541 (2026-09-10)
+
+Fresh origin/main/header checked at v3.3.540. Root cause: dot mode correctly
+preserved twelve columns on partial histories, but still forced four x labels
+into the occupied columns. progressionDateTicks now tries four through two
+evenly distributed dates, estimates their anchored text bounds, and accepts a
+set only with at least 6px between labels; otherwise it shows the latest date.
+The period header remains the full-range authority. Numeric mode is unchanged.
+
+The exact five-session/12-column phone case keeps all 15 sets and its frame,
+but yields 8/11, 8/22, 9/3 with non-overlapping bounds. Two compressed dates
+fall back to the latest. Full 12-session dots retain four labels; 4-session
+numbers retain all four. SVG and shared PNG reuse the same layout. Regression
+assertions plus a killed collision mutation pin the fit rule. No CSS, storage,
+header, navigation, chart height, axes, range navigation or scrub changes.
+Rollback: revert this release and bump to a NEW version; no migration.
+
+QA: 72/73 suites (same pre-existing test-runclose computed-width failure) and
+buildcheck v3.3.541 pass. The exact 329px five-session fixture, 240/329/680px
+partial-history matrix and a killed collision mutation verify a 6px minimum
+date gap without dropping plotted sets. Live browser inspection was unavailable
+in this task; validation is deterministic layout coverage, not device capture.
+
 ## Anchored progression dates — v3.3.540 (2026-09-10)
 
 Fresh origin/main/header checked against v3.3.539. Approved circular date

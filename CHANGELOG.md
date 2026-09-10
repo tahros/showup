@@ -1,5 +1,17 @@
 # ShowUp — changelog
 
+## v3.3.541 (2026-09-10) — Dates that know when to step back
+
+A short history no longer crushes several dates into the same spot in the
+12-session chart. The chart now keeps as many useful date labels as can fit
+with a real gap between them. Five sessions, for example, read as three clean
+dates instead of four overlapping ones. If only one date fits, it shows the
+latest—the full period remains directly above the chart.
+
+Every set stays plotted. The twelve-column frame, weight scale, chart height,
+range arrows, scrubber and shared image stay unchanged. Full 12-session views
+still show four dates, and 4-session views still show all four.
+
 ## v3.3.540 (2026-09-10) — Dates that stay put
 
 Progression's date arrows are now visible circular buttons, anchored at either

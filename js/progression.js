@@ -107,6 +107,28 @@ function progressionFrame(records,kind,width=330,columns=4){
   }
   return {lo,hi,step,plotHeight:Math.ceil(plotHeight)};
 }
+/* Pick the most useful date labels that actually fit. Partial 12-session
+   ranges intentionally keep twelve data columns so paging never changes the
+   chart geometry; that can leave only a few occupied, tightly spaced columns.
+   The period header already carries the full range, so axis dates may thin,
+   but they may never collide. */
+function progressionDateTicks(dates,left,col,dots){
+  const make=indices=>indices.map(i=>{
+    const label=pgShortDate(dates[i]),x=left+(i+.5)*col;
+    const anchor=indices.length===1?'middle':i===0?'start':i===dates.length-1?'end':'middle';
+    const width=Math.max(24,label.length*6.2);
+    return {x,label,anchor,left:anchor==='start'?x:anchor==='end'?x-width:x-width/2,right:anchor==='start'?x+width:anchor==='end'?x:x+width/2};
+  });
+  if(!dates.length)return [];
+  if(!dots)return make(dates.map((d,i)=>i));
+  for(let count=Math.min(4,dates.length);count>=2;count--){
+    const indices=[...new Set(Array.from({length:count},(_,i)=>Math.round(i*(dates.length-1)/(count-1))))];
+    if(indices.length!==count)continue;
+    const ticks=make(indices);
+    if(ticks.every((t,i)=>!i||t.left-ticks[i-1].right>=6))return ticks;
+  }
+  return make([dates.length-1]);
+}
 function progressionLayout(records,kind,{dates=[],width=330,dots=false,best=()=>false,pick=null,columns=dates.length,frame=null}={}){
   const left=34,right=10,top=20,usable=width-left-right,col=usable/Math.max(1,columns);
   const labelFor=r=>kind==='run'?(r.seconds?pgDuration(r.seconds):'—'):pgDecimal(r.count);
@@ -140,8 +162,7 @@ function progressionLayout(records,kind,{dates=[],width=330,dots=false,best=()=>
     return {r,x,y,trueY,leader:!dots&&Math.abs(y-trueY)>1,winning:best(r),label:labelFor(r),radius:dots?Math.max(.5,Math.min(1.8,gap*.38)):Math.min(7,g.cell/2),labelWidth:Math.max(14,labelFor(r).length*6.7+2)};
   });
   const ticks=[];for(let v=lo;v<=hi+step*.001;v+=step)ticks.push({y:Y(v),showLabel:ticks.length%2===0,label:kind==='added'&&v===0?'BW':['load','added','assisted'].includes(kind)?pgWeight(v):pgDecimal(v)});
-  const indices=dots?[...new Set([0,Math.round((dates.length-1)/3),Math.round((dates.length-1)*2/3),dates.length-1])]:dates.map((d,i)=>i);
-  const dateTicks=indices.filter(i=>i>=0&&dates[i]).map(i=>({x:left+(i+.5)*col,label:pgShortDate(dates[i]),anchor:dots&&i===0?'start':dots&&i===dates.length-1?'end':'middle'}));
+  const dateTicks=progressionDateTicks(dates,left,col,dots);
   return {width,height,left,right,top,bottom,col,dates,dots,points,ticks,dateTicks,pick};
 }
 function progressionPlot(records,kind,options={}){
