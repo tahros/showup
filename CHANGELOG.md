@@ -1,5 +1,15 @@
 # ShowUp — changelog
 
+## v3.3.521 (2026-09-10) — Polished graphite
+
+The Dark tab bar adopts the chosen polished graphite finish: a brighter top
+edge, a deeper neutral gradient and a denser selected-tab capsule. Its lower
+half is more transparent than the preview, letting more content show through
+without washing out the icons. The Light tab bar is unchanged.
+
+The finish stays blur-free, retains the selected-tab shimmer and applies
+whether the page itself is light or dark. Previous layout remains available.
+
 ## v3.3.520 (2026-09-10) — Neutral dividers throughout
 
 Section rules, exercise separators and other shared divider lines now use

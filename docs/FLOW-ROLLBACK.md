@@ -22,6 +22,9 @@ stored workout weights or accepted plans.
 As of v3.3.519, Previous also keeps the earlier near-opaque bar gradient.
 Neutralized bar surface/ink/shadow colors are shared by both layouts.
 
+As of v3.3.521, Previous also disables the polished graphite gradient and
+opaque selected capsule. That finish is scoped to Refined's Dark bar only.
+
 ## Whole-release rollback for the maintainer
 
 Baseline is commit `efe0fd6`, tag `v3.3.515-pre-flow-refinement`.
