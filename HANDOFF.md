@@ -1,5 +1,31 @@
 # ShowUp — handoff (2026-08-22, v3.3.267)
 
+## Linked, remembered progression ranges — v3.3.542 (2026-09-10)
+
+Fresh origin/main and header checked at v3.3.541. The old state was a page
+number owned by each rendered role, and mode changes reset it to page zero.
+Progression now persists a device-local view keyed by exercise + measurement:
+mode, earliest visible session (`anchor`), partial-range span and selected set.
+Train, Stats and live cards hydrate from the same key and visible duplicates
+refresh immediately. Workout records, plans and cloud documents are untouched.
+
+Historical 4/12 mode changes preserve the early anchor in either direction.
+Explicit Latest uses a null anchor, so both modes choose their newest N sessions
+and future logs join naturally. Paging still moves through disjoint session
+ranges; the oldest partial range remains partial. A 40px metadata row reuses the
+existing availability note and holds a compact Latest action only in history,
+so its appearance does not shift the chart. Date, chart, scrub and share
+geometry remain fixed. Rollback: revert this release and bump to a NEW version;
+the standalone localStorage preference can be ignored safely.
+
+QA: focused progression suite passes; deliberate paging, linked-anchor,
+persistence and Latest mutations are killed. The 53-session fixture proves
+both directions, disjoint paging, partial-oldest behavior, screen recreation,
+Train/Stats agreement, simultaneous duplicate refresh, latest following,
+fixed chart geometry, scrub and share. Full repository: 72/73 suites, with the
+same pre-existing test-runclose computed-width assertion as the sole failure.
+Buildcheck passes at v3.3.542. No live browser surface was available this turn.
+
 ## Collision-safe progression dates — v3.3.541 (2026-09-10)
 
 Fresh origin/main/header checked at v3.3.540. Root cause: dot mode correctly
