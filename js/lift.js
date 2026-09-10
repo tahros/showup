@@ -606,7 +606,23 @@ function renderLift(){
           <div class="fld"><label>Distance ${DU()}</label><input id="rk" type="number" inputmode="decimal" step="0.01" placeholder="0.00"></div>
           <div class="fld"><label>Min</label><input id="rm" type="number" inputmode="numeric" placeholder="0"></div>
           <div class="fld"><label>Sec</label><input id="rs" type="number" inputmode="numeric" placeholder="0"></div>
-        </div><button class="btn" id="addrun">Add run</button></div>`;
+        </div>
+        <!-- v3.3.530: THE DAY CLOSES FROM WHERE THE RUN IS LOGGED. On a run
+             day the run is usually the whole day, and the close sat at the
+             foot of a screen carrying eight recent runs -- so finishing meant
+             typing three numbers, tapping Add run, and then scrolling past the
+             whole history to say you were done. It rides beside Add run now.
+             There was no close on this screen at all to move -- v3.3.457 put
+             one on the part list and on Today, and the EXERCISE screen never
+             got one, which is why finishing a run meant leaving the screen.
+             This is the only #doneAllBtn here, which matters: it is "the one
+             id that sets doneAll" (v3.3.457), and a second would be an invalid
+             document and a handler that finds whichever came first.
+             Quiet beside the loud one, and never the wider of the two: Add run
+             is what you came here to press, and closing the day is reversible
+             but not something to hit by accident reaching for it. -->
+        <div class="runacts"><button class="btn" id="addrun">Add run</button>${
+          isLive()?`<button class="btn ghost runclose" id="doneAllBtn">Done</button>`:''}</div></div>`;
     /* v3.1.9: the Run view finally shows its history — recent runs with
        date · distance · time · pace, same visual language as Last Time. */
     // v3.3.153: deferred — see the emit point after the session card

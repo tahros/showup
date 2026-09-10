@@ -1,6 +1,34 @@
 # ShowUp — changelog
 
 
+
+## v3.3.530 (2026-09-10) — The day closes from the run
+
+On a run day the run is usually the whole day, and the close was **not on this
+screen at all**. v3.3.457 put one on the part list and on Today; the exercise
+screen never got one. So finishing a run meant typing three numbers, tapping
+**Add run**, and then leaving the screen past eight recent runs to say you were
+done.
+
+It sits beside Add run now. Quiet where that one is loud, and never the wider of
+the two — Add run is what you came here to press, and closing the day is
+reversible but not something to hit by accident reaching for it. Capped at a
+third of the row so it cannot grow into the primary on a wide screen.
+
+It is the only `#doneAllBtn` on the screen, which matters: that is "the one id
+that sets doneAll" (v3.3.457), and a second would be an invalid document and a
+handler that finds whichever came first. It goes when the day is already shut,
+while Add run stays, because the log is never shut.
+
+`.btn` is `width:100%` by design (v3.3.68), so both needed releasing from it —
+asserted as resolved geometry with the stylesheet installed, not as CSS text.
+
+The first cut of this suppressed the close on the wrong screen: line 506 is the
+exercise **list**, which returns before `isRun` exists, so sixteen suites died
+in the temporal dead zone. The run logger is on the exercise screen, further
+down, and that screen had no close to suppress.
+
+## v3.3.529
 ## v3.3.529 (2026-09-10) — A glyph for Paste
 
 **WRITE PASTE** read as one string of capitals. The fix is a glyph before
