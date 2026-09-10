@@ -2921,7 +2921,7 @@
      character windows the contrast test scans are not disturbed. */
   :root[data-skin="minimal"][data-bar="dark"]{
     --pill-chalk:#FFFFFF;   /* v3.3.478: the BAR's strong ink -- see below */
-    --pill:#1C202A; --pill-ink:#B6BCCA;   /* v3.3.460: a step lighter for the 72% glass */
+    --pill:#282828; --pill-ink:#BDBDBD;   /* v3.3.519: neutral charcoal, matching the page's gray family */
     --pill-accent:#95A4E8;   /* v3.3.461: = --accent-dim, the app's accent as INK on dark. Raw --accent
                                 (#4C6BE3) is 3.3:1 on ordinary dark content and 2.3:1 over an accent
                                 button scrolled under the glass; this is 5.9 / 4.0 (test-rest recomputes) */
@@ -2930,7 +2930,7 @@
        above, shadow pooling inside the bottom, then the drop. */
     --pill-rest:#66BB6A;   /* --rest, dark theme's wash grade; 6.89:1 on #1C202A */
     --pill-shadow:inset 0 1px 0 rgba(255,255,255,.28),inset 0 0 0 0.5px rgba(255,255,255,.14),
-      inset 0 14px 20px -12px rgba(255,255,255,.14),inset 0 -10px 18px -12px rgba(0,0,0,.45),
+      inset 0 14px 20px -12px rgba(255,255,255,.04),inset 0 -10px 18px -12px rgba(0,0,0,.45),
       0 12px 32px rgba(0,0,0,.42),0 1px 2px rgba(0,0,0,.30);
   }
   :root[data-skin="minimal"][data-bar="light"]{
@@ -2941,8 +2941,8 @@
        and it lives with --pill/--pill-ink/--pill-accent in the [data-bar]
        block, so every colour on the bar is chosen by the bar's appearance and
        none by the app's. */
-    --pill-chalk:#111318;
-    --pill:#FFFFFF; --pill-ink:#4E5262;   /* v3.3.460: a step darker for the 72% glass */
+    --pill-chalk:#111111;
+    --pill:#FFFFFF; --pill-ink:#525252;   /* neutral ink also keeps the selected capsule free of blue tint */
     --pill-accent:#2F4BD8;   /* v3.3.461: = --accent, the app's blue, as asked; 3.7:1 as a graphic worst-case */
     /* v3.3.463: the glass lighting, light. Specular rim on top, a hairline of
        light all round, light pooling in from above, a soft shadow pooling
@@ -2950,7 +2950,7 @@
     --pill-rest:#2E7D32;   /* --rest, light theme's wash grade; 5.13:1 on #FFFFFF */
     --pill-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 0 0 0.5px rgba(255,255,255,.75),
       inset 0 14px 20px -12px rgba(255,255,255,.55),inset 0 -10px 18px -12px rgba(0,0,0,.10),
-      0 10px 30px rgba(22,26,40,.16),0 1px 2px rgba(22,26,40,.08);
+      0 10px 30px rgba(0,0,0,.16),0 1px 2px rgba(0,0,0,.08);
   }
   /* floating cards: the border's job moves to the shadow */
   :root[data-skin="minimal"] :is(.card,.zone,.lastcard,.day,.kpi){
@@ -3459,10 +3459,12 @@
     background:linear-gradient(105deg,transparent 44%,rgba(255,255,255,.22) 50%,transparent 56%);
     background-size:300% 100%;background-position:100% 0;animation:sheen 6.8s ease-in-out 1.3s infinite}
   :root[data-flow="refined"] nav button .ng{position:relative;z-index:1}
-  /* v3.3.518: a faint shaded lower edge on the LIGHT pill, not another
-     fixed overlay or backdrop blur. Dark-bar lighting stays untouched. */
+  /* v3.3.519: neutral surfaces, slightly deeper light shading and modest
+     dark translucency. Keep the fixed nav blur/transform-free (v3.3.497). */
   :root[data-flow="refined"][data-skin="minimal"][data-bar="light"] nav::before{
-    background:linear-gradient(180deg,var(--pill),color-mix(in srgb,var(--pill) 94%,var(--pill-ink)))}
+    background:linear-gradient(180deg,var(--pill),color-mix(in srgb,var(--pill) 90%,var(--pill-ink)))}
+  :root[data-flow="refined"][data-skin="minimal"][data-bar="dark"] nav::before{
+    background:linear-gradient(180deg,color-mix(in srgb,var(--pill) 88%,transparent),color-mix(in srgb,var(--pill) 82%,transparent))}
   @media(max-width:380px){
     :root[data-flow="refined"] #view[data-flow-view="today"] h2{flex-wrap:wrap}
     :root[data-flow="refined"] #view[data-flow-view="today"] h2 .planedge{gap:2px}
