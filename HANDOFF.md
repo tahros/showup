@@ -1,5 +1,19 @@
 # ShowUp — handoff (2026-08-22, v3.3.267)
 
+## Neutral dividers — v3.3.520 (2026-09-10)
+
+Minimal's old `--line` / `--whisper` overrides still carried blue despite
+the neutral page and bar. Replace dark #242938/#1F2330 with #292929/#232323,
+and light #E9EAEF/#F1F2F6 with #EAEAEA/#F2F2F2. The neutral grays are derived
+from each original's relative luminance, rounded to an 8-bit channel. No
+thickness, spacing, semantic accent, surface or state changes. Classic was
+already neutral; the unused Modern preview is deliberately untouched.
+
+The shared tokens cover headers, section rules, list rows and SVG/canvas
+gridlines, in both Refined and Previous layouts. test-skin guards equal RGB
+channels and luminance drift below .003 for all four overrides. Browser QA
+checks actual section and row borders against the resolved neutral token.
+
 ## Neutral tab surfaces — v3.3.519 (2026-09-10)
 
 Maker requested a deeper Light gradient, a lighter/translucent Dark bar and

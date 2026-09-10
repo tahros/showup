@@ -2885,12 +2885,13 @@
      .seg .sel …) — each one the base sheet styles is re-asserted here.
      That list is the price of the layer; pay it in full or a state dies. */
   :root[data-skin="minimal"]{
-    --line:#242938; --whisper:#1F2330;
+    /* v3.3.520: neutral grays at the old dividers' perceived brightness. */
+    --line:#292929; --whisper:#232323;
     --shadow:0 1px 2px rgba(0,0,0,.28),0 10px 30px rgba(0,0,0,.32);
 
   }
   :root[data-skin="minimal"][data-theme="light"]{
-    --line:#E9EAEF; --whisper:#F1F2F6;
+    --line:#EAEAEA; --whisper:#F2F2F2;
     --shadow:0 1px 2px rgba(22,26,40,.05),0 10px 30px rgba(22,26,40,.09);
     /* v3.3.169: the pill FOLLOWS the theme. v3.3.168 promoted the mockup's
        dark pill to a both-themes invariant; the mockup was a light

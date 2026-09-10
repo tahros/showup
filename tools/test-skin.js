@@ -161,5 +161,20 @@ check("...persisted", `localStorage.getItem('showup-skin')`, "minimal");
   if (!okc) fail++;
 }
 
+// v3.3.520: shared divider colors are neutral without becoming heavier.
+const sheet=fs.readFileSync(path.join(dir,'css/app.css'),'utf8').replace(/\/\*[\s\S]*?\*\//g,'');
+const rgb=h=>h.match(/../g).map(x=>parseInt(x,16)/255);
+const lum=h=>rgb(h).map(x=>x<=.04045?x/12.92:((x+.055)/1.055)**2.4).reduce((s,x,i)=>s+x*[.2126,.7152,.0722][i],0);
+for(const [selector,old] of [
+ [':root[data-skin="minimal"]',['242938','1F2330']],
+ [':root[data-skin="minimal"][data-theme="light"]',['E9EAEF','F1F2F6']]
+]){
+ const start=sheet.indexOf(selector+'{'),body=sheet.slice(start,sheet.indexOf('}',start));
+ for(const [i,name] of ['line','whisper'].entries()){
+  const h=(body.match(new RegExp('--'+name+':#([0-9A-Fa-f]{6})'))||[])[1];
+  const good=h&&new Set(rgb(h)).size===1&&Math.abs(lum(h)-lum(old[i]))<.003;
+  console.log(good?'PASS':'FAIL',selector,name,'neutral with near-identical brightness');if(!good)fail++;
+ }
+}
 process.exit(fail ? 1 : 0);
 })();
