@@ -1,5 +1,15 @@
 # ShowUp — changelog
 
+## v3.3.528 (2026-09-10) — A smaller plan, still easy to read
+
+The expanded plan in Refined Today is more compact. Exercise names step
+from 17px to 15px; row padding and the space above/between set lines tighten.
+Weights and reps stay at 12px, with their shared columns intact. The five-
+exercise example is about 14% shorter, while every whole row remains easy
+to tap. Colors, completed-set dimming, notes, fold header, animations and
+navigation are unchanged. Previous layout and the exercise logger keep
+their existing sizes. This is a presentation change, not a change to plans.
+
 
 
 ## v3.3.527 (2026-09-10) — Resume unless it is finished, not unless it is started
