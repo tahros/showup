@@ -1,5 +1,18 @@
 # ShowUp — changelog
 
+## v3.3.542 (2026-09-10) — History remembers where you were
+
+The 4- and 12-session charts now share one position: the earliest visible
+session. Browse in either mode, switch, and the other mode begins from that
+same date. The relationship works in both directions, while the existing
+non-overlapping ranges and partial oldest page remain intact.
+
+Each exercise and measurement remembers its mode, range and selected set when
+you leave the screen, and Train, Stats and the live-workout copy agree. This is
+device-local viewing state, not a workout-data change. A quiet **Latest ↗**
+button appears beside the range note whenever you are in history; tapping it
+returns to the newest sessions and resumes following future sessions.
+
 ## v3.3.541 (2026-09-10) — Dates that know when to step back
 
 A short history no longer crushes several dates into the same spot in the

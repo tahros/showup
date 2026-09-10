@@ -1,6 +1,12 @@
 /* Set history. A point is a stored set, never independently chosen maxima.
    UI-only state: no DB writes, plan reads, migrations, or exercise-name merges. */
 const progressionUI = Object.create(null);
+const PG_VIEW_KEY='showup:progression-views:v1';
+let progressionViews=Object.create(null);
+try{
+  const saved=JSON.parse(localStorage.getItem(PG_VIEW_KEY)||'null');
+  if(saved&&typeof saved==='object'&&!Array.isArray(saved))progressionViews=saved;
+}catch(_e){}
 const pgEscape = v => String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const pgNumber = v => (typeof v==='number'||typeof v==='string'&&v.trim()!=='' && /^[-+]?\d*\.?\d+$/.test(v)) && Number.isFinite(+v) ? +v : null;
 const pgDate = d => /^\d{4}-\d{2}-\d{2}$/.test(d) && !isNaN(Date.parse(d+'T00:00:00Z')) && new Date(d+'T00:00:00Z').toISOString().slice(0,10)===d;
@@ -9,6 +15,41 @@ const pgDuration = s => `${Math.floor(s/60)}:${String(Math.round(s%60)).padStart
 const pgDecimal = n => String(Math.round(n*100)/100);
 // Presentation only. Keep stored loads and plot positions at full precision.
 const pgWeight = n => String(Math.round(n));
+
+/* The range is a property of an exercise + measurement, not of the screen
+   that happens to render it. `anchor` is the earliest visible session. A null
+   anchor means "follow latest", so a newly logged session joins that view.
+   This is UI position only: it stays local and never mutates workout data. */
+const progressionViewId=(ex,kind)=>kind+'\n'+ex;
+function progressionHydrate(state,ex,kind){
+  const id=progressionViewId(ex,kind),saved=progressionViews[id];
+  state.ex=ex;state.kind=kind;state.viewId=id;
+  if(saved){
+    state.mode=['numbers','dots'].includes(saved.mode)?saved.mode:'numbers';
+    state.anchor=pgDate(saved.anchor)?saved.anchor:null;
+    state.span=Number.isInteger(saved.span)&&saved.span>0?saved.span:null;
+    state.pick=typeof saved.pick==='string'?saved.pick:null;
+  }else{
+    state.mode=['numbers','dots'].includes(state.mode)?state.mode:'numbers';
+    state.anchor=null;state.span=null;state.pick=null;
+  }
+}
+function progressionPersist(state){
+  if(!state.viewId)return;
+  const next={mode:state.mode,anchor:state.anchor||null,span:state.span||null,pick:state.pick||null};
+  if(JSON.stringify(progressionViews[state.viewId])===JSON.stringify(next))return;
+  progressionViews[state.viewId]=next;
+  try{localStorage.setItem(PG_VIEW_KEY,JSON.stringify(progressionViews));}catch(_e){}
+}
+function progressionWindow(allDates,count,state){
+  const total=allDates.length,latestStart=Math.max(0,total-count);
+  if(!total)return {start:0,end:0,latestStart,latest:true};
+  if(!state.anchor||total<=count)return {start:latestStart,end:total,latestStart,latest:true};
+  let start=allDates.indexOf(state.anchor);
+  if(start<0){start=allDates.findIndex(d=>d>=state.anchor);if(start<0)start=total-1;}
+  const span=Math.max(1,Math.min(state.span||count,count,total-start));
+  return {start,end:start+span,latestStart,latest:false};
+}
 
 function progressionRows(){
   const source=SEED.sessions||{}, local=DB.days||{};
@@ -60,7 +101,7 @@ function progressionBest(records){
 }
 function progressionSection(ex,role='train',picker=false){
   const state=progressionUI[role]||(progressionUI[role]={mode:'numbers'});
-  if(state.ex!==ex){state.ex=ex;state.page=0;state.kind=null;state.pick=null;}
+  if(state.ex!==ex){state.ex=ex;state.kind=null;state.anchor=null;state.span=null;state.pick=null;state.viewId=null;}
   return `<section class="progression-section" data-pg-role="${role}"><h2>${role==='live'?'Training now':'Progression'}${hActs('pg-'+role,'4 Sessions shows every set as a number. 12 Sessions uses dots. Date arrows browse ranges; the slider reads individual sets. Share exports the current chart.','About exercise progression')}</h2><div class="card progression-card" data-pg-ex="${pgEscape(ex)}" data-pg-picker="${picker?'1':''}"></div></section>`;
 }
 function progressionStatsSection(){
@@ -197,16 +238,17 @@ function progressionPeriod(dates){
 }
 function renderProgression(card){
   const role=card.closest('[data-pg-role]').dataset.pgRole,state=progressionUI[role],ex=state.ex,data=progressionData(ex),all=data.records;
-  if(!['numbers','dots'].includes(state.mode))state.mode='numbers';
   const kinds=[...new Set(all.map(r=>r.kind))];
   if(!kinds.includes(state.kind))state.kind=kinds.at(-1)||'load';
+  progressionHydrate(state,ex,state.kind);
   const typed=all.filter(r=>r.kind===state.kind),allDates=[...new Set(typed.map(r=>r.d))],count=state.mode==='dots'?12:4;
-  state.page=Math.max(0,Math.min(Math.floor(state.page)||0,Math.max(0,Math.ceil(allDates.length/count)-1)));
-  const end=allDates.length-state.page*count,start=Math.max(0,end-count),dates=allDates.slice(start,end),dateSet=new Set(dates),scope=typed.filter(r=>dateSet.has(r.d));
+  const rangeWindow=progressionWindow(allDates,count,state),{start,end,latestStart}=rangeWindow,dates=allDates.slice(start,end),dateSet=new Set(dates),scope=typed.filter(r=>dateSet.has(r.d));
+  state.anchor=rangeWindow.latest?null:allDates[start];state.span=rangeWindow.latest?null:dates.length;
   if(!scope.some(r=>r.id===state.pick))state.pick=scope.at(-1)?.id||null;
+  progressionPersist(state);
   const width=Math.max(180,Math.round(card.clientWidth?card.clientWidth-32:Math.min(window.innerWidth-64,680))),best=progressionBest(scope);
   const options={width,dates,dots:state.mode==='dots',best,pick:state.pick,columns:count,frame:progressionFrame(typed,state.kind,width,4)};
-  card._pg={role,state,data,scope,dates,count,start,end,total:allDates.length,width,options,layout:progressionLayout(scope,state.kind,options)};
+  card._pg={role,state,data,scope,dates,count,start,end,total:allDates.length,allDates,latestStart,latest:rangeWindow.latest,width,options,layout:progressionLayout(scope,state.kind,options)};
   const tip=card.closest('section').querySelector('.tipbubble');
   if(tip)tip.textContent=state.kind==='run'?'Distance by session; numbers are elapsed times, not pace. 12 Sessions uses dots. Date arrows browse ranges; the slider reads individual sets. Share exports this view.':'Blue marks the most '+(state.kind==='time'?'seconds':'reps')+' at the same load in the displayed sessions. Every number is a set; 12 Sessions uses dots. Date arrows browse ranges; the slider reads individual sets. Share exports this view.';
   const names=card.dataset.pgPicker==='1'?[...new Set(progressionRows().flatMap(d=>d.rows.map(s=>s.ex)))].sort((a,b)=>a.localeCompare(b)):[];
@@ -214,11 +256,12 @@ function renderProgression(card){
   let h='<div class="pg-title-row">'+picker+'<button class="pg-share" data-pg-action="share" aria-label="Share this progression chart" title="Share"'+(!scope.length?' disabled':'')+'>'+ICO_SHARE+'</button></div><div class="pg-toolbar"><div class="pg-modes" role="group" aria-label="History range"><button data-pg-action="numbers" aria-pressed="'+(state.mode==='numbers')+'">4 Sessions</button><button data-pg-action="dots" aria-pressed="'+(state.mode==='dots')+'">12 Sessions</button></div></div>';
   if(kinds.length>1)h+='<select class="pg-kind" data-pg-action="kind" aria-label="Measurement type">'+kinds.map(k=>'<option value="'+k+'"'+(k===state.kind?' selected':'')+'>'+pgEscape(pgKinds[k])+'</option>').join('')+'</select>';
   const period=progressionPeriod(dates);
-  h+='<div class="pg-range-head"><div class="pg-range-nav" role="group" aria-label="Browse session ranges"><button data-pg-action="prev-range" aria-label="Previous '+count+' sessions"'+(!start?' disabled':'')+'>‹</button><span class="pg-period" aria-live="polite" aria-atomic="true"><span class="pg-period-main">'+period.label+'</span><span class="pg-period-year">'+period.years+'</span></span><button data-pg-action="next-range" aria-label="Next '+count+' sessions"'+(end===allDates.length?' disabled':'')+'>›</button></div></div>';
+  h+='<div class="pg-range-head"><div class="pg-range-nav" role="group" aria-label="Browse session ranges"><button data-pg-action="prev-range" aria-label="Previous '+count+' sessions"'+(!start?' disabled':'')+'>‹</button><span class="pg-period" aria-live="polite" aria-atomic="true"><span class="pg-period-main">'+period.label+'</span><span class="pg-period-year">'+period.years+'</span></span><button data-pg-action="next-range" aria-label="Next '+count+' sessions"'+(rangeWindow.latest||end===allDates.length?' disabled':'')+'>›</button></div></div>';
   // Weight units already appear in the selected-set readout. Other measurement
   // axes still need their meaning (e.g. assistance or seconds, not reps).
   if(state.kind!=='load')h+='<div class="pg-axis-unit">'+pgEscape(progressionAxis(state.kind))+'</div>';
-  h+='<div class="pg-available"'+(dates.length===count||!scope.length?' aria-hidden="true"':'')+'>'+dates.length+' session'+(dates.length===1?'':'s')+(allDates.length<count?' on record':' in this range')+'</div>';
+  const availability=dates.length+' session'+(dates.length===1?'':'s')+(allDates.length<count?' on record':' in this range');
+  h+='<div class="pg-history-row"><div class="pg-available"'+(dates.length===count||!scope.length?' aria-hidden="true"':'')+'>'+availability+'</div><button class="pg-latest" data-pg-action="latest" aria-label="Return to the latest '+count+' sessions"'+(rangeWindow.latest?' hidden':'')+'>Latest <span aria-hidden="true">↗</span></button></div>';
   if(!scope.length)h+='<p class="pg-empty">No measured sets yet. Your completed sets will appear here.</p>';
   else{
     h+='<div class="pg-read-slot"><div class="pg-read" aria-live="polite" aria-atomic="true">'+progressionReceipt(scope.find(r=>r.id===state.pick))+'</div></div>';
@@ -233,7 +276,7 @@ function renderProgression(card){
 }
 function progressionPick(card,id){
   const {state,scope,layout}=card._pg,r=scope.find(s=>s.id===id);if(!r)return;
-  state.pick=id;layout.pick=id;
+  state.pick=id;layout.pick=id;progressionPersist(state);
   card.querySelectorAll('.pg-set').forEach(g=>g.classList.toggle('pick',g.dataset.pgRecord===id));
   const read=card.querySelector('.pg-read');if(read){
     const parts=progressionReadoutParts(r),value=read.querySelector('.pg-read-value'),changed=value.textContent!==parts.value;
@@ -245,6 +288,13 @@ function progressionPick(card,id){
   card.querySelector('[data-pg-action="prev-set"]').disabled=cursor===0;
   card.querySelector('[data-pg-action="next-set"]').disabled=cursor===scope.length-1;
   const band=card.querySelector('.pg-selection-band');if(band){band.setAttribute('x',layout.left+layout.dates.indexOf(r.d)*layout.col);band.removeAttribute('visibility');}
+  progressionRefreshPeers(card);
+}
+function progressionRefreshPeers(card){
+  const current=card._pg;if(!current)return;
+  document.querySelectorAll('.progression-card').forEach(peer=>{
+    if(peer!==card&&peer._pg?.state.ex===current.state.ex&&peer._pg.state.kind===current.state.kind)renderProgression(peer);
+  });
 }
 /* Snapshot the selected measurement, period, and units before awaiting fonts.
    Existing showCard owns the preview, native sharing and download fallback. */
@@ -325,25 +375,38 @@ function bindProgression(){
       const action=el.dataset.pgAction,select=el.tagName==='SELECT';
       if(action==='scrub')return;
       if(select!==(e.type==='change'))return;
-      const {state,scope,start,end,total}=card._pg;
+      const {state,scope,start,end,total,allDates,latestStart}=card._pg;
       if(action==='share'){progressionShare(card);return;}
       if(action==='prev-set'||action==='next-set'){
         const i=scope.findIndex(r=>r.id===state.pick)+(action==='prev-set'?-1:1);
         if(scope[i])progressionPick(card,scope[i].id);return;
       }
       if(action==='prev-range'||action==='next-range'){
-        if(action==='prev-range'?!start:end===total)return;
-        state.page+=(action==='prev-range'?1:-1);state.pick=null;
+        if(action==='prev-range'){
+          if(!start)return;
+          const nextStart=Math.max(0,start-card._pg.count);
+          state.anchor=allDates[nextStart];state.span=start-nextStart;
+        }else{
+          if(card._pg.latest||end===total)return;
+          const nextStart=end;
+          if(nextStart>=latestStart){state.anchor=null;state.span=null;}
+          else{state.anchor=allDates[nextStart];state.span=Math.min(card._pg.count,total-nextStart);}
+        }
+        state.pick=null;
       }
-      if(action==='exercise'){state.ex=el.value;state.kind=null;state.page=0;state.pick=null;card.dataset.pgEx=state.ex;}
-      if(action==='numbers'||action==='dots'){state.mode=action;state.page=0;state.pick=null;}
-      if(action==='kind'){state.kind=el.value;state.page=0;state.pick=null;}
+      if(action==='latest'){state.anchor=null;state.span=null;state.pick=null;}
+      if(action==='exercise'){state.ex=el.value;state.kind=null;state.anchor=null;state.span=null;state.pick=null;state.viewId=null;card.dataset.pgEx=state.ex;}
+      if(action==='numbers'||action==='dots'){state.mode=action;state.span=action==='dots'?12:4;state.pick=null;}
+      if(action==='kind'){state.kind=el.value;state.anchor=null;state.span=null;state.pick=null;state.viewId=null;}
+      progressionPersist(state);
       renderProgression(card);
-      if(action==='prev-range'||action==='next-range'){
+      progressionRefreshPeers(card);
+      if(action==='prev-range'||action==='next-range'||action==='latest'){
         const period=card.querySelector('.pg-period');
         if(period.animate&&!matchMedia('(prefers-reduced-motion: reduce)').matches)period.animate([{transform:'translateY(3px)',opacity:.65},{transform:'translateY(0)',opacity:1}],{duration:160,easing:'ease-out'});
       }
-      card.querySelector('[data-pg-action="'+action+'"]')?.focus({preventScroll:true});
+      const focusAction=action==='latest'?'next-range':action;
+      card.querySelector('[data-pg-action="'+focusAction+'"]')?.focus({preventScroll:true});
     };
     card.addEventListener('click',act);card.addEventListener('change',act);
     card.addEventListener('input',e=>{if(e.target.matches('.pg-scrubber')){const r=card._pg.scope[+e.target.value];if(r)progressionPick(card,r.id);}});

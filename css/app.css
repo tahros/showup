@@ -65,8 +65,13 @@
 .progression-card .pg-period-main{font:500 14px/19px var(--body);color:var(--chalk);white-space:nowrap}
 .progression-card .pg-period-year{font:400 11px/15px var(--mono);color:var(--muted);white-space:nowrap}
 .progression-card .pg-axis-unit{text-align:right;font:400 11px/16px var(--mono);color:var(--muted);margin:8px 0;white-space:nowrap}
-.progression-card .pg-available{font:400 11px/16px var(--mono);color:var(--muted);margin:0 3px 5px;height:16px}
+.progression-card .pg-history-row{height:40px;display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 3px 5px}
+.progression-card .pg-available{font:400 11px/16px var(--mono);color:var(--muted);min-width:0}
 .progression-card .pg-available[aria-hidden=true]{visibility:hidden}
+.progression-card .pg-latest{min-width:72px;min-height:36px;height:36px;padding:0 9px;display:flex;align-items:center;justify-content:center;gap:5px;border-radius:18px;background:color-mix(in srgb,var(--accent) 13%,transparent);color:var(--accent-ink);font:500 10px var(--mono);letter-spacing:.02em;white-space:nowrap}
+.progression-card .pg-latest:hover{background:color-mix(in srgb,var(--accent) 19%,transparent)}
+.progression-card .pg-latest[hidden]{visibility:hidden;pointer-events:none}
+.progression-card .pg-latest span{font:500 12px var(--body)}
 .progression-card .pg-scroll{overflow:hidden;touch-action:pan-y;user-select:none;-webkit-user-select:none}
 .progression-card .pg-plot{display:block;height:auto;width:100%;max-width:100%;overflow:visible}
 .progression-card .pg-grid{stroke:var(--line);stroke-width:.8;stroke-dasharray:2 4}
