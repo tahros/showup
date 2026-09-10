@@ -1,5 +1,29 @@
 # ShowUp — handoff (2026-08-22, v3.3.267)
 
+## Fixed-frame range navigation — v3.3.536 (2026-09-10)
+
+4 Sessions / 12 Sessions supersede Last 4 / Last 30. Page zero is latest;
+date arrows advance whole non-overlapping ranges, with a truthful partial
+oldest range. Mode/exercise/measurement changes reset to latest. UI-only page
+state; no DB changes. The set scrubber stays inside the selected range.
+
+progressionFrame takes the full typed exercise history at the current width.
+Both modes pass that same frame and explicit column count to progressionLayout.
+This fixes height, axis scale, column widths and slider position while paging,
+including dense numeric dates and partial ranges. Availability reserves its
+line even when blank. Share uses the displayed frame and dates in its filename.
+Header, Claude's plan rows and all unrelated source are unchanged from v3.3.535.
+
+QA: focused assertions and eight mutation probes, plus isolated Chromium
+320/393/430/800 light/dark. Numeric page traversal compares exact rendered plot,
+slider, controls and receipt rectangles; 12-session mode keeps the same frame.
+All dates reached without duplication, touch and slider selection, unit/type
+exceptions, older-range PNG, native share payload and download fallback checked.
+This release and untouched v3.3.535 baseline: 72/73 suites pass, with only the existing
+test-runclose jsdom computed-width assertion failure.
+
+Rollback: revert this release merge and bump to a new version. No migration.
+
 ## Session-range progression + image share — v3.3.535 (2026-09-10)
 
 Supersedes the Recent/Year UI in v3.3.533. Default Last 4 Sessions keeps every

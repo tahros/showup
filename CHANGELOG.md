@@ -1,5 +1,21 @@
 # ShowUp — changelog
 
+## v3.3.536 (2026-09-10) — Browse without the jump
+
+Progression now offers **4 Sessions** as numbers and **12 Sessions** as dots.
+The arrows beside the dates move backward or forward by a whole range. The
+slider below still reads individual sets. The earliest partial range keeps
+its real dates and set count; unavailable directions are dimmed.
+
+**The chart stays put.** Its height and weight scale are chosen from the
+exercise's history, not recalculated for each range. More sets in an older
+session no longer push the chart and slider down. The same frame carries
+across both views, while dense numeric rows keep every recorded set.
+
+Share exports the range on screen, including its dates; an older range is
+never described as "Last." The app header, plan rows, workout data and other
+Stats sections are unchanged.
+
 ## v3.3.535 (2026-09-10) — Your sets, close up
 
 Progression opens with **Last 4 Sessions**: each completed set is a small
