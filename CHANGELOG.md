@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v3.3.520 (2026-09-10) — Neutral dividers throughout
+
+Section rules, exercise separators and other shared divider lines now use
+neutral gray instead of blue-gray in both light and dark Minimal appearance.
+Their brightness, thickness and spacing stay essentially the same. Chart
+gridlines using the same colors follow along; blue selections, progress lines
+and other meaningful colors are unchanged.
+
 ## v3.3.519 (2026-09-10) — A more natural tab bar
 
 The Light bar's lower edge is shaded a little more. The Dark bar is a lighter,
