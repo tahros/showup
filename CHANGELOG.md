@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v3.3.523 (2026-09-10) — Airy silver
+
+The Light tab bar takes the chosen Airy Silver finish. Inactive icons are
+lighter gray, while the selected icon stays near-black on its silver capsule.
+More content shows through the lower edge; a slightly denser band behind the
+icons keeps them readable over dark content. The darker shadow beneath the
+bar stays, as does its selected-tab shimmer. The Dark bar is unchanged.
+
 ## v3.3.522 (2026-09-10) — Polished silver
 
 The Light tab bar now uses the chosen polished silver finish: a bright upper

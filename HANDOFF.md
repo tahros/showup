@@ -1,5 +1,16 @@
 # ShowUp — handoff (2026-08-22, v3.3.267)
 
+## Approved airy silver — v3.3.523 (2026-09-10)
+
+Refined + Minimal + Light uses C's #797979 inactive ink and .48-alpha lower
+edge. Explicit selected color preserves --pill-chalk rather than inheriting
+the new gray. Same opaque silver capsule, darker drop shadow and shimmer.
+The preview's middle alphas .92/.91 are raised to .95/.94 at 48%/78%: a tiny
+contrast correction for gray icons over black, while the clear edge stays
+exactly C's. No blur, fixed-layer, geometry, state-color, Dark or Previous
+changes. test-nav-layout samples icon/state contrast through the occupied
+0-78% band; browser QA checks real glyph bounds, computed inks and scrolling.
+
 ## Approved polished silver — v3.3.522 (2026-09-10)
 
 Refined + Minimal + data-bar=light adopts preview B's neutral silver stops:

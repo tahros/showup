@@ -24,10 +24,12 @@ const token=(mode,k)=>block(mode).match(new RegExp('--'+k+':(#[0-9A-Fa-f]{6})'))
 const rgb=hex=>[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16));
 for(const mode of ['dark','light'])for(const k of ['pill','pill-ink','pill-chalk'])assert.equal(new Set(rgb(token(mode,k))).size,1,mode+' '+k+' is neutral');
 const light=css.match(/\[data-flow="refined"\]\[data-skin="minimal"\]\[data-bar="light"\] nav::before\{([^}]+)\}/)[1];
-assert(light.includes('linear-gradient(180deg,#FFFFFF 0%,rgba(251,251,251,.99) 15%,rgba(233,233,233,.97) 48%,rgba(192,192,192,.92) 100%)'),'light bar uses approved Polished Silver stops');
+assert(light.includes('linear-gradient(180deg,rgba(255,255,255,.97) 0%,rgba(251,251,251,.94) 15%,rgba(241,241,241,.95) 48%,rgba(230,230,230,.94) 78%,rgba(192,192,192,.48) 100%)'),'Airy Silver has a clearer edge and protected icon band');
+const lightInk=css.match(/\[data-flow="refined"\]\[data-skin="minimal"\]\[data-bar="light"\] nav button\{color:(#[A-Fa-f0-9]+)\}/)[1];
+assert.equal(lightInk,'#797979','inactive gray is lighter, scoped to Refined Minimal Light');
 assert(light.includes('0 10px 30px rgba(0,0,0,.20),0 1px 2px rgba(0,0,0,.08)'),'soft shadow beneath light bar is slightly darker, without enlarging it');
 assert(light.includes('inset 0 1px 0 #FFFFFF'),'silver rim retains its bright highlight');
-assert(/\[data-flow="refined"\]\[data-skin="minimal"\]\[data-bar="light"\] nav button\.on\{\s*background:linear-gradient\(180deg,#F7F7F7 0%,#DEDEDE 38%,#BDBDBD 100%\)/.test(css),'silver selected capsule is light-bar only');
+assert(/\[data-flow="refined"\]\[data-skin="minimal"\]\[data-bar="light"\] nav button\.on\{\s*color:var\(--pill-chalk\);\s*background:linear-gradient\(180deg,#F7F7F7 0%,#DEDEDE 38%,#BDBDBD 100%\)/.test(css),'selected icon remains near-black on its opaque silver capsule');
 const dark=css.match(/\[data-flow="refined"\]\[data-skin="minimal"\]\[data-bar="dark"\] nav::before\{([^}]+)\}/)[1];
 const stops=[...dark.split(';')[0].matchAll(/rgba\((\d+),(\d+),(\d+),([.\d]+)\) (\d+)%/g)].map(m=>({rgb:m.slice(1,4).map(Number),alpha:+m[4],at:+m[5]}));
 assert.deepStrictEqual(stops,[{rgb:[78,78,78],alpha:.98,at:0},{rgb:[46,46,46],alpha:.98,at:15},{rgb:[29,29,29],alpha:.94,at:48},{rgb:[21,21,21],alpha:.82,at:100}],'approved polished highlight with a more transparent lower half');
@@ -43,8 +45,15 @@ for(const behind of [[255,255,255],[10,10,10],[47,75,216]])for(let y=0;y<=100;y+
  for(const k of ['pill-ink','pill-chalk','pill-accent','pill-rest'])assert(cr(rgb(token('dark',k)),surface)>=3,k+' retains graphic contrast through the polished gradient');
 }
 assert(cr(rgb(token('dark','pill-chalk')),mix([255,255,255],[76,76,76],.22))>=3,'selected icon stays readable during shimmer');
-// The light bar's darkest composite is its lower edge over pure black.
-for(const k of ['pill-ink','pill-chalk'])assert(cr(rgb(token('light',k)),mix([192,192,192],[0,0,0],.92))>=3,'silver '+k+' retains contrast even at its darkest edge');
+// The clear lower edge contains no glyphs. Browser QA pins every icon above
+// 78% of the bar; sample that occupied band against worst-case black content.
+const lightStops=[...light.split(';')[0].matchAll(/rgba\((\d+),(\d+),(\d+),([.\d]+)\) (\d+)%/g)].map(m=>({rgb:m.slice(1,4).map(Number),alpha:+m[4],at:+m[5]}));
+for(let y=0;y<=78;y++){
+ const i=Math.max(1,lightStops.findIndex(s=>s.at>=y)),a=lightStops[i-1],b=lightStops[i],t=(y-a.at)/(b.at-a.at);
+ const surface=mix(mix(b.rgb,a.rgb,t),[0,0,0],a.alpha+(b.alpha-a.alpha)*t);
+ for(const ink of [lightInk,token('light','pill-accent'),token('light','pill-rest')])assert(cr(rgb(ink),surface)>=3,'Airy Silver glyphs retain contrast in the occupied band');
+}
+assert(cr(rgb(lightInk),rgb(token('light','pill-chalk')))>=4,'selected and inactive inks remain clearly distinct');
 assert(cr(rgb(token('light','pill-chalk')),[189,189,189])>=3,'selected silver capsule retains strong icon contrast');
 console.log('PASS neutral bar tokens, bounded gradients, no blur and readable dark icons over light/dark/blue content');
 dom.window.close();
