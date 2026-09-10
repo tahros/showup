@@ -1,5 +1,22 @@
 # ShowUp — handoff (2026-08-22, v3.3.267)
 
+## Neutral tab surfaces — v3.3.519 (2026-09-10)
+
+Maker requested a deeper Light gradient, a lighter/translucent Dark bar and
+less page/bar hue mismatch. Page surfaces were already neutral; neutralize
+the bar tokens instead. Dark `--pill` is #282828, muted ink #BDBDBD. Light
+ink is #525252, strong ink #111111 and its shadows use neutral black.
+Blue state accents and rest green are untouched. Refined Light's lower stop
+uses 90% pill + 10% ink; Refined Dark uses 88% to 82% pill opacity. Dark pooled
+white light falls from 14% to 4% to keep all icon states above 3:1 over white,
+dark and blue backdrops. No backdrop filter, transform or fixed-layer changes.
+
+Previous keeps the earlier near-opaque gradient, but shares the corrected
+neutral bar tokens. test-rest now reads bounded data-bar blocks rather than
+identifying Light by its old blue shadow. test-nav-layout guards neutrality,
+gradient bounds and contrast. Browser checks verify winning computed gradients
+and fixed-bar anchoring through scroll in all page/bar theme combinations.
+
 ## Plan / Train coherence — v3.3.518 (2026-09-10)
 
 `nextPlanItem()` is shared by TODAY's next-exercise card and TRAIN's planned

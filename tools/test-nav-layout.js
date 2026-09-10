@@ -18,4 +18,22 @@ assert.deepStrictEqual([...nav.children].map(b => b.dataset.v), ['today', 'lift'
 assert([...nav.children].every(b => b.tagName === 'BUTTON' && b.getAttribute('aria-label') && b.querySelector('svg')));
 assert(!/grid-template-columns/.test(navRule), 'tab layout has no grid-track dependency');
 console.log('PASS all four named navigation buttons remain direct children in their original order');
+// v3.3.519: neutral chrome and bounded translucency, never fixed-layer blur.
+const block=mode=>css.match(new RegExp(':root\\[data-skin="minimal"\\]\\[data-bar="'+mode+'"\\]\\{([^}]+)'))[1];
+const token=(mode,k)=>block(mode).match(new RegExp('--'+k+':(#[0-9A-Fa-f]{6})'))[1];
+const rgb=hex=>[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16));
+for(const mode of ['dark','light'])for(const k of ['pill','pill-ink','pill-chalk'])assert.equal(new Set(rgb(token(mode,k))).size,1,mode+' '+k+' is neutral');
+assert(/\[data-flow="refined"\]\[data-skin="minimal"\]\[data-bar="light"\] nav::before\{\s*background:linear-gradient\(180deg,var\(--pill\),color-mix\(in srgb,var\(--pill\) 90%,var\(--pill-ink\)\)\)\}/.test(css),'light gradient deepens gently');
+const dark=css.match(/\[data-flow="refined"\]\[data-skin="minimal"\]\[data-bar="dark"\] nav::before\{([^}]+)\}/)[1];
+assert(block('dark').includes('inset 0 14px 20px -12px rgba(255,255,255,.04)'),'dark highlight remains at the tested four percent');
+assert(/88%,transparent\),color-mix\(in srgb,var\(--pill\) 82%,transparent\)\)\s*$/.test(dark),'dark surface transmits 12-18 percent of content');
+assert(!/backdrop-filter\s*:\s*blur\([^;{}]*[;}]/.test(css),'no backdrop blur reintroduced');
+const mix=(a,b,t)=>a.map((v,i)=>v*t+b[i]*(1-t));
+const lum=a=>a.map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;}).reduce((s,v,i)=>s+v*[.2126,.7152,.0722][i],0);
+const cr=(a,b)=>(Math.max(lum(a),lum(b))+.05)/(Math.min(lum(a),lum(b))+.05);
+for(const behind of [[255,255,255],[10,10,10],[47,75,216]]){
+ const surface=mix([255,255,255],mix(rgb(token('dark','pill')),behind,.82),.04);
+ for(const k of ['pill-ink','pill-chalk','pill-accent','pill-rest'])assert(cr(rgb(token('dark',k)),surface)>=3,k+' retains graphic contrast through the lightest dark stop and highlight');
+}
+console.log('PASS neutral bar tokens, bounded gradients, no blur and readable dark icons over light/dark/blue content');
 dom.window.close();

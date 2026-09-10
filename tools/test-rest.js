@@ -836,8 +836,10 @@ ok("the status-bar style no longer puts content under the status bar",
        capsule. Muted glyphs are held to 4.5:1 still -- they are the resting
        state and can afford it. */
     /* v3.3.463: the shadow tokens carry the lighting now; the theme is told by the drop colour (22,26,40 light, 0,0,0 dark) */
-    const pillL=(cssN.match(/--pill:(#[0-9A-Fa-f]{6}); --pill-ink:(#[0-9A-Fa-f]{6});[\s\S]{0,160}?--pill-accent:(#[0-9A-Fa-f]{6});[\s\S]{0,700}?--pill-shadow:inset[^;]*rgba\(22,26,40/)||[]);
-    const pillD=(cssN.match(/--pill:(#[0-9A-Fa-f]{6}); --pill-ink:(#[0-9A-Fa-f]{6});[\s\S]{0,160}?--pill-accent:(#[0-9A-Fa-f]{6});[\s\S]{0,700}?--pill-shadow:inset[^;]*rgba\(0,0,0,\.42\)/)||[]);
+    // Scope to the actual appearance block, not the hue of its shadow.
+    const barBlock=mode=>(cssN.match(new RegExp(':root\\[data-skin="minimal"\\]\\[data-bar="'+mode+'"\\]\\{([^}]+)'))||[])[1]||'';
+    const pillTokens=mode=>[null,...['pill','pill-ink','pill-accent'].map(k=>(barBlock(mode).match(new RegExp('--'+k+':(#[0-9A-Fa-f]{6})'))||[])[1])];
+    const pillL=pillTokens('light'),pillD=pillTokens('dark');
     const accL=(cssN.match(/--accent:(#[0-9A-Fa-f]{6}); --accent-soft:#C3CCF5/)||[])[1];
     const accD=(cssN.match(/--accent:(#[0-9A-Fa-f]{6}); --accent-soft:#3A4A8C/)||[])[1];
     /* the pill's active ink must BE the app's blue: the accent in light, the accent-as-ink in dark */
@@ -860,8 +862,8 @@ ok("the status-bar style no longer puts content under the status bar",
          blocks apart (v3.3.463). A lazy [\s\S]*? here would span from the dark
          block into the light one and report dark numbers as light -- the note
          above the trio records that exact bug. */
-      const restD=(cssN.match(/--pill-accent:#[0-9A-Fa-f]{6};[\s\S]{0,700}?--pill-rest:(#[0-9A-Fa-f]{6});[\s\S]{0,300}?--pill-shadow:inset[^;]*rgba\(0,0,0,\.42\)/)||[]);
-      const restL=(cssN.match(/--pill-accent:#[0-9A-Fa-f]{6};[\s\S]{0,700}?--pill-rest:(#[0-9A-Fa-f]{6});[\s\S]{0,300}?--pill-shadow:inset[^;]*rgba\(22,26,40/)||[]);
+      const restD=barBlock('dark').match(/--pill-rest:(#[0-9A-Fa-f]{6})/)||[];
+      const restL=barBlock('light').match(/--pill-rest:(#[0-9A-Fa-f]{6})/)||[];
       ok("the bar defines its own resting green, for each bar appearance",
          !!restD[1] && !!restL[1], "dark="+restD[1]+" light="+restL[1]);
       const cD=cr(restD[1]||'#000', pillD[1]||'#000'), cL=cr(restL[1]||'#000', pillL[1]||'#fff');
@@ -879,7 +881,7 @@ ok("the status-bar style no longer puts content under the status bar",
     ok("light: --pill-accent is the app accent itself", pillL[3]===accL, pillL[3]+" vs "+accL);
     ok("dark: --pill-accent is the app's accent-dim", pillD[3]===dimD, pillD[3]+" vs "+dimD);
     const inkD=pillD[3];
-    ok("(harness) both pills and both accents were found", pillL[1]==="#FFFFFF" && pillD[1]==="#1C202A" && !!accL && !!accD, [pillL[1],pillD[1],accL,accD].join(" "));
+    ok("(harness) both pills and both accents were found", pillL[1]==="#FFFFFF" && pillD[1]==="#282828" && !!accL && !!accD, [pillL[1],pillD[1],accL,accD].join(" "));
     ok("(harness) the pill trio is intact (buildcheck v3.3.168 guards it)", !!pillL[3] && !!pillD[3]);
     /* v3.3.466: the tint falls from 88% at the top to 66% at the bottom; the
        glyphs sit at the centre, ~77%. Worst-case backdrop as before. */
@@ -918,7 +920,7 @@ ok("the status-bar style no longer puts content under the status bar",
      /nav button\.on\{color:var\(--pill-chalk,var\(--chalk\)\);background:color-mix\(in srgb,var\(--muted\) 16%/.test(cssN) &&
      /:root\[data-skin="minimal"\] nav button\.on\{color:var\(--pill-chalk\);background:color-mix\(in srgb,var\(--pill\) 60%,var\(--pill-ink\) 16%\)/.test(cssN));
   ok("...and each appearance declares its own: white on the dark bar, near-black on the light one",
-     /\[data-bar="dark"\]\{\s*--pill-chalk:#FFFFFF;/.test(cssN) && /--pill-chalk:#111318;/.test(cssN) && !/nav button\.on\{color:var\(--chalk\)/.test(cssN));
+     /\[data-bar="dark"\]\{\s*--pill-chalk:#FFFFFF;/.test(cssN) && /--pill-chalk:#111111;/.test(cssN) && !/nav button\.on\{color:var\(--chalk\)/.test(cssN));
   {
     /* the selected glyph on its capsule, worst case: an accent button under
        the glass. Graphics gate, 3:1. Computed from the file, both bars.
@@ -934,7 +936,7 @@ ok("the status-bar style no longer puts content under the status bar",
     const bd=(cssN.match(/\[data-bar="dark"\]\{[\s\S]*?--pill:(#[0-9A-Fa-f]{6}); --pill-ink:(#[0-9A-Fa-f]{6})/)||[]);
     const bl=(cssN.match(/\[data-bar="light"\]\{[\s\S]*?--pill:(#[0-9A-Fa-f]{6}); --pill-ink:(#[0-9A-Fa-f]{6})/)||[]);
     const cd=(cssN.match(/\[data-bar="dark"\]\{\s*--pill-chalk:(#[0-9A-Fa-f]{6})/)||[])[1];
-    const cl=(cssN.match(/--pill-chalk:(#111318)/)||[])[1];
+    const cl=(cssN.match(/--pill-chalk:(#111111)/)||[])[1];
     ok("(harness) both bars' surfaces and chalks were found", !!bd[1]&&!!bl[1]&&!!cd&&!!cl, [bd[1],cd,bl[1],cl].join(' '));
     const capD=mix(cd,mix(bd[1],mix(bd[1],accD,.77),.60),.16);
     const capL=mix(cl,mix(bl[1],mix(bl[1],accL,.77),.60),.16);
@@ -1035,7 +1037,7 @@ ok("the status-bar style no longer puts content under the status bar",
   const cssB=fs.readFileSync(path.join(dir,"css/app.css"),"utf8");
   const idx=fs.readFileSync(path.join(dir,"index.html"),"utf8");
   ok("the pill's tokens live in data-bar blocks, not the theme blocks",
-     /:root\[data-skin="minimal"\]\[data-bar="dark"\]\{[^}]*--pill:#1C202A/.test(cssB) &&
+     /:root\[data-skin="minimal"\]\[data-bar="dark"\]\{[^}]*--pill:#282828/.test(cssB) &&
      /:root\[data-skin="minimal"\]\[data-bar="light"\]\{[^}]*--pill:#FFFFFF/.test(cssB) &&
      !/\[data-theme="light"\]\{[^}]*--pill:/.test(cssB));
   ok("...and index.html paints data-bar before any CSS, so a cold start cannot flash the other one",

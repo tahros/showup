@@ -1,5 +1,15 @@
 # ShowUp — changelog
 
+## v3.3.519 (2026-09-10) — A more natural tab bar
+
+The Light bar's lower edge is shaded a little more. The Dark bar is a lighter,
+neutral charcoal with modest transparency, so scrolling content can show
+through faintly. Its pooled highlight is softer to keep the icons readable.
+
+The bar's gray surfaces, icons and light-bar shadows no longer carry a blue
+tint. The page colors and blue accents are unchanged. No blur is added, and
+the bar's shape, position, controls and selected-tab shimmer stay the same.
+
 ## v3.3.518 (2026-09-10) — The plan leads both tabs
 
 If TODAY's next exercise is Squat, entering TRAIN now opens Legs rather than
