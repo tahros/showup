@@ -1,5 +1,27 @@
 # ShowUp — changelog
 
+## v3.3.533 (2026-09-10) — The sets tell the story
+
+Progression now plots your actual completed sets, not a line made from each
+day's heaviest weight. Small circled numbers show reps, with the best reps at
+the same load in blue. Dates and weight gridlines stay readable: three dates
+on a phone, four when the chart has room. Tap a set, or hold and drag, for its
+exact date, load and reps. Nothing pairs one set's weight with another's reps.
+
+Year opens the full January–December view. Every recorded set is included;
+empty months stay empty, and future days are not predictions. Choose a session
+to open the same detailed set chart. Earlier years are available in the picker.
+
+Bodyweight, added weight, assistance, timed holds and runs keep their own
+measurements. Less assistance goes upward; run labels show elapsed time and
+respect miles or kilometres. Missing load, time or reps are not invented.
+
+Stats gains a permanent exercise-history picker without replacing any existing
+section. During an open workout, a separate Training now card follows the
+current exercise; completing the day removes that duplicate. Train keeps the
+live set comparison and gains the new progression below it, including Run.
+No workout records, plans, header or tab-bar styling are changed.
+
 ## v3.3.532 (2026-09-10) — A quieter weekly overview
 
 Expanded days in the Week plan take up less space: slightly smaller exercise

@@ -1,5 +1,45 @@
 # ShowUp — handoff (2026-08-22, v3.3.267)
 
+## Every-set progression + Year — v3.3.533 (2026-09-10)
+
+Isolated feature module js/progression.js; loaded after today.js, cached in
+the SW shell. Train's old max-weight/max-rep progression is removed; histFor
+still serves existing coaching and is deliberately unchanged. Keep liveBars.
+Stats inserts permanent history after Growth Audit; Training now is separately
+prepended only while today's workout is open. Existing Stats order is intact.
+
+Read-only extraction: exact exercise names, valid dates through today, local
+DB.days[d].w authoritative even when empty, seed sessions only as fallback.
+One record per stored rep entry; holds preserve su='s', runs preserve duration,
+unknown load is not BW. No plans, synthetic best pairs, inferred body mass,
+schema changes or stored UI preferences. Measurement modes do not mix. Blue
+means max reps/duration at that exact load in the chosen range, including ties.
+Year is full calendar space; latest 3 (4 on wider card) sessions form detail.
+Dense sessions horizontally scroll rather than discard sets or shrink type.
+
+QA: actual supplied Incline export reproduced at 98 sets / 11 dates. Isolated
+Chromium checks at 320/393/430/800, light/dark, all measurement types, lb/kg and
+mi/km, yearly drill-down, live gate, Train, and real browser touch hold/drag.
+tools/test-progression.js replaces the old summary-dot scrub suite and covers
+source precedence, actual pairs, all types, units, full-year retention, date
+selection, keyboard/touch, empty/invalid entries, escaped names and no DB writes.
+Mutations of source precedence, unit conversion and set count all fail the suite.
+
+Rollback: revert this feature commit (or its PR merge), then bump to a NEW
+version with tools/bump.py and redeploy. Include index/SW removal of the new
+module and restore the shell/script-count checks. Never reset main; subsequent
+Claude changes remain theirs. There is no data migration to undo.
+
+Local baseline caveat (also verified at unmodified v3.3.532): test-beta and
+test-import require Unix python3 / /tmp, unavailable in this Windows runner;
+test-runclose has the existing jsdom computed-width failure. Keep these distinct
+from new progression tests and real rendered-browser checks.
+Final validation: 69/72 full-suite exit codes pass, with exactly those same
+three baseline failures and no new ones. Buildcheck, changed-script syntax,
+progression assertions, mutation checks and rendered-browser checks pass.
+An isolated 1,100-day history rendered the new recent card in about 15ms in
+the local jsdom measurement (not a device performance promise).
+
 ## Compact Week overview — v3.3.532 (2026-09-10)
 
 Scope: refined Today view's .weekstack only. Week names 14px versus focused

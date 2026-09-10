@@ -1290,56 +1290,9 @@ function bindHoldScrub(box, pick, show, armName){
 }
 function bindDrunScrub(box){ bindHoldScrub(box, drunScrubAt, drunScrubShow, '_drunArm'); }
 
-/* ================= v3.3.511: SCRUBBING THE PROGRESSION =================
-   Same gesture as the runs chart, same grammar: a hold arms, a drag reads,
-   tapping the picked dot clears. The readout says the day and what was lifted
-   on it -- both facts, from the dot's own data, never re-derived from where
-   the finger landed. PRs keep their record colour while picked, because the
-   red dot is the one thing on this chart that means something on its own. */
-function progScrubAt(box,clientX){
-  const svg=box.querySelector('svg'); if(!svg) return null;
-  const dots=[...svg.querySelectorAll('circle.pgdot')]; if(!dots.length) return null;
-  const rect=svg.getBoundingClientRect();
-  const vb=(svg.getAttribute('viewBox')||'0 0 330 122').split(/\s+/);
-  const scale=(+vb[2]||330)/(rect.width||1);
-  const x=(clientX-rect.left)*scale;
-  let best=null,bd=Infinity;
-  for(const d of dots){ const dx=Math.abs(+d.getAttribute('cx')-x); if(dx<bd){ bd=dx; best=d; } }
-  return best;
-}
-function progScrubShow(box,dot){
-  const svg=box.querySelector('svg'); if(!svg) return;
-  const card=box.closest('.pgcard');
-  const read=card&&card.querySelector('[data-pgread]');
-  const caps=card?[...card.querySelectorAll('[data-pgcap]')]:[];
-  svg.querySelectorAll('circle.pgdot.pick').forEach(c=>c.classList.remove('pick'));
-  const old=svg.querySelector('.pgguide'); if(old) old.remove();
-  if(!dot){
-    box.classList.remove('scrubbing');
-    if(read){ read.hidden=true; read.textContent=''; }
-    caps.forEach(c=>c.hidden=false);
-    return;
-  }
-  box.classList.add('scrubbing'); dot.classList.add('pick');
-  const NS='http://www.w3.org/2000/svg', line=document.createElementNS(NS,'line');
-  line.setAttribute('class','pgguide');
-  line.setAttribute('x1',dot.getAttribute('cx')); line.setAttribute('x2',dot.getAttribute('cx'));
-  line.setAttribute('y1','14'); line.setAttribute('y2','108');
-  line.setAttribute('stroke','var(--chalk)'); line.setAttribute('stroke-width','0.7'); line.setAttribute('opacity','.45');
-  svg.insertBefore(line,dot);
-  const d=dot.getAttribute('data-d')||'';
-  const day=d?new Date(d+'T00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}):'';
-  const v=dot.getAttribute('data-v')||'', reps=dot.getAttribute('data-r')||'';
-  const isPR=!!dot.getAttribute('data-pr');
-  if(read){
-    read.textContent=[day, v?`${v} ${U()}${reps?` \u00d7 ${reps}`:''}`:'', isPR?'best':''].filter(Boolean).join(' \u00b7 ');
-    read.hidden=false;
-  }
-  caps.forEach(c=>c.hidden=true);
-}
+/* Set charts own their two-dimensional touch/scrub interaction. */
 function bindProg(){
-  const box=document.getElementById('pgWrap'); if(!box) return;
-  bindHoldScrub(box, progScrubAt, progScrubShow, '_pgArm');
+  bindProgression();
 }
 
 /* v3.3.514: the week shape grows when it is SEEN. Its own observer rather than
