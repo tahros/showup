@@ -1,5 +1,15 @@
 # ShowUp — changelog
 
+## v3.3.538 (2026-09-10) — Porcelain in the light
+
+The selected tab now has the approved **Porcelain** background when both the
+content and tab bar are light. Its brighter white-to-soft-gray finish sits
+naturally beside the white cards, without the heavy metallic-gray base.
+
+Only that selected background changes. The bar, icons, luminous rim, shimmer
+and spacing stay the same. Dark content's Silver + Porcelain, both dark-bar
+combinations, the header and all workout features are unchanged.
+
 ## v3.3.537 (2026-09-10) — Silver, and room to breathe
 
 **Silver + Porcelain** pairs a quieter silver tab bar with a brighter selected
