@@ -1,5 +1,19 @@
 # ShowUp — handoff (2026-08-22, v3.3.267)
 
+## Dark-page / light-bar midpoint — v3.3.524 (2026-09-10)
+
+The maker approved Midpoint Silver exclusively for dark content + light bar.
+Three CSS rules require Refined + Minimal + data-theme=dark + data-bar=light.
+No shared tokens change. Use the preview stops exactly: 245/.95 at 0%,
+251/.90 at 15%, 241/.88 at 48%, 239/.84 at 78%, 234/.36 at 100%. The higher
+base RGB offsets added transparency against dark content. Inactive ink is
+#6B6B6B; selected remains --pill-chalk over #E0E0E0/#C9C9C9/#ABABAB. Softer
+rim, existing .20 under-bar shadow, unchanged geometry and shimmer. Light
+content keeps Airy, both dark bars keep Graphite, Previous stays untouched.
+Regression pins the full intersection selectors, preview stops, capsule,
+shadow and glyph-band contrast. Browser QA covers all four combinations,
+theme transitions, tab switching, phone widths, Previous and Reduce Motion.
+
 ## Approved airy silver — v3.3.523 (2026-09-10)
 
 Refined + Minimal + Light uses C's #797979 inactive ink and .48-alpha lower

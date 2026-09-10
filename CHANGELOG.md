@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v3.3.524 (2026-09-10) — Silver that fits the dark page
+
+When the page is Dark and the tab bar is Light, the bar now uses the chosen
+midpoint between Airy Silver and Soft Silver. It is less stark than white,
+brighter than the earlier Soft Silver proposal, and more transparent.
+The selected capsule stays distinct, with the darker shadow underneath.
+
+Light pages keep Airy Silver. Both Dark-bar combinations are unchanged.
+
 ## v3.3.523 (2026-09-10) — Airy silver
 
 The Light tab bar takes the chosen Airy Silver finish. Inactive icons are
