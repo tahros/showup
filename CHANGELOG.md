@@ -1,5 +1,18 @@
 # ShowUp — changelog
 
+## v3.3.539 (2026-09-10) — One place to read your set
+
+Progression now keeps the selected weight and reps above the chart, with the
+date and set number quietly underneath. Tap a set, scrub, or use the arrows:
+both lines follow your selection. The duplicate bottom summary and its divider
+are gone, in both 4- and 12-session views. Shared images use the same hierarchy.
+
+Half as many axis labels, all the same dotted gridlines. Rep numbers are lighter,
+and displayed weights are rounded to whole pounds or kilograms. Your stored
+weights and plotted positions keep their original precision; running distances
+and times keep theirs too. Chart height and scale remain steady while browsing.
+The header, tab bars, workout records and plans are unchanged.
+
 ## v3.3.538 (2026-09-10) — Porcelain in the light
 
 The selected tab now has the approved **Porcelain** background when both the

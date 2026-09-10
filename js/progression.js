@@ -7,6 +7,8 @@ const pgDate = d => /^\d{4}-\d{2}-\d{2}$/.test(d) && !isNaN(Date.parse(d+'T00:00
 const pgShortDate = d => `${+d.slice(5,7)}/${+d.slice(8,10)}`;
 const pgDuration = s => `${Math.floor(s/60)}:${String(Math.round(s%60)).padStart(2,'0')}`;
 const pgDecimal = n => String(Math.round(n*100)/100);
+// Presentation only. Keep stored loads and plot positions at full precision.
+const pgWeight = n => String(Math.round(n));
 
 function progressionRows(){
   const source=SEED.sessions||{}, local=DB.days||{};
@@ -41,8 +43,8 @@ function progressionRead(r){
   const d=new Date(r.d+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
   let value;
   if(r.kind==='run') value=`${toD(r.load).toFixed(2)} ${DU()} · ${r.seconds?pgDuration(r.seconds):'time not recorded'}`;
-  else if(r.kind==='time') value=`${r.load===0?'BW':r.load===null?'load not recorded':pgDecimal(toU(r.load))+' '+U()} · ${pgDuration(r.count)}`;
-  else value=`${r.kind==='body'?'BW':r.kind==='unknown'?'load not recorded':r.kind==='assisted'?pgDecimal(toU(-r.load))+' '+U()+' assistance':(r.kind==='added'?'BW + ':'')+pgDecimal(toU(r.load))+' '+U()} × ${r.count}`;
+  else if(r.kind==='time') value=`${r.load===0?'BW':r.load===null?'load not recorded':pgWeight(toU(r.load))+' '+U()} · ${pgDuration(r.count)}`;
+  else value=`${r.kind==='body'?'BW':r.kind==='unknown'?'load not recorded':r.kind==='assisted'?pgWeight(toU(-r.load))+' '+U()+' assistance':(r.kind==='added'?'BW + ':'')+pgWeight(toU(r.load))+' '+U()} × ${r.count}`;
   return `${d} · ${r.kind==='run'?'Run':'Set'} ${r.ordinal} · ${value}`;
 }
 const pgKinds={load:'Weight',body:'Reps',added:'Added weight',assisted:'Assistance',time:'Time',run:'Distance',unknown:'Reps · load not recorded'};
@@ -137,7 +139,7 @@ function progressionLayout(records,kind,{dates=[],width=330,dots=false,best=()=>
     const y=dots?trueY:centers.get(key)+(row-(g.nRows-1)/2)*15;
     return {r,x,y,trueY,leader:!dots&&Math.abs(y-trueY)>1,winning:best(r),label:labelFor(r),radius:dots?Math.max(.5,Math.min(1.8,gap*.38)):Math.min(7,g.cell/2),labelWidth:Math.max(14,labelFor(r).length*6.7+2)};
   });
-  const ticks=[];for(let v=lo;v<=hi+step*.001;v+=step)ticks.push({y:Y(v),label:kind==='added'&&v===0?'BW':pgDecimal(v)});
+  const ticks=[];for(let v=lo;v<=hi+step*.001;v+=step)ticks.push({y:Y(v),showLabel:ticks.length%2===0,label:kind==='added'&&v===0?'BW':['load','added','assisted'].includes(kind)?pgWeight(v):pgDecimal(v)});
   const indices=dots?[...new Set([0,Math.round((dates.length-1)/3),Math.round((dates.length-1)*2/3),dates.length-1])]:dates.map((d,i)=>i);
   const dateTicks=indices.filter(i=>i>=0&&dates[i]).map(i=>({x:left+(i+.5)*col,label:pgShortDate(dates[i]),anchor:dots&&i===0?'start':dots&&i===dates.length-1?'end':'middle'}));
   return {width,height,left,right,top,bottom,col,dates,dots,points,ticks,dateTicks,pick};
@@ -146,7 +148,7 @@ function progressionPlot(records,kind,options={}){
   const m=progressionLayout(records,kind,options),selected=m.points.find(p=>p.r.id===options.pick);
   let h='<svg class="pg-plot '+(m.dots?'pg-dots':'pg-detail')+'" viewBox="0 0 '+m.width+' '+m.height+'" style="width:100%" role="group" aria-label="'+pgEscape(progressionAxis(kind)+'; every logged set across '+m.dates.length+' sessions')+'">';
   h+='<rect class="pg-selection-band" x="'+(selected?m.left+m.dates.indexOf(selected.r.d)*m.col:m.left)+'" y="'+(m.top-8)+'" width="'+m.col+'" height="'+(m.bottom-m.top+8)+'" rx="4"'+(selected?'':' visibility="hidden"')+'/>';
-  for(const t of m.ticks)h+='<line class="pg-grid" x1="'+m.left+'" x2="'+(m.width-m.right)+'" y1="'+t.y+'" y2="'+t.y+'"/><text class="pg-axis" x="'+(m.left-7)+'" y="'+(t.y+3.5)+'" text-anchor="end">'+t.label+'</text>';
+  for(const t of m.ticks){h+='<line class="pg-grid" x1="'+m.left+'" x2="'+(m.width-m.right)+'" y1="'+t.y+'" y2="'+t.y+'"/>';if(t.showLabel)h+='<text class="pg-axis" x="'+(m.left-7)+'" y="'+(t.y+3.5)+'" text-anchor="end">'+t.label+'</text>';}
   for(const p of m.points)if(p.leader)h+='<path class="pg-leader" d="M'+(p.x-2)+' '+p.trueY+'h4M'+p.x+' '+p.trueY+'V'+p.y+'"/>';
   for(const p of m.points){
     h+='<g class="pg-set'+(p.winning?' pg-best':'')+(p.r.id===m.pick?' pick':'')+'" data-pg-record="'+p.r.id+'" data-x="'+p.x+'" data-y="'+p.y+'" tabindex="0" role="button" aria-label="'+pgEscape(progressionRead(p.r)+(p.winning?' · best at this load':''))+'" transform="translate('+p.x+' '+p.y+')"><title>'+pgEscape(progressionRead(p.r))+'</title>';
@@ -157,9 +159,13 @@ function progressionPlot(records,kind,options={}){
   for(const t of m.dateTicks)h+='<text class="pg-date" x="'+t.x+'" y="'+(m.height-11)+'" text-anchor="'+t.anchor+'">'+t.label+'</text>';
   return h+'</svg>';
 }
-function progressionReceipt(r){
+function progressionReadoutParts(r){
   const full=progressionRead(r),separator=' · ',parts=full.split(separator);
-  return '<span class="pg-read-date">'+pgEscape(parts[0].replace(/, \d{4}$/, ''))+'<br>'+pgEscape(parts[1])+'</span><strong class="pg-read-value">'+pgEscape(parts.slice(2).join(separator))+'</strong>';
+  return {date:parts[0].replace(/, \d{4}$/, '')+separator+parts[1],value:parts.slice(2).join(separator)};
+}
+function progressionReceipt(r){
+  const {date,value}=progressionReadoutParts(r);
+  return '<span class="pg-read-value">'+pgEscape(value)+'</span><span class="pg-read-date">'+pgEscape(date)+'</span>';
 }
 function renderProgression(card){
   const role=card.closest('[data-pg-role]').dataset.pgRole,state=progressionUI[role],ex=state.ex,data=progressionData(ex),all=data.records;
@@ -185,9 +191,10 @@ function renderProgression(card){
   h+='<div class="pg-available"'+(dates.length===count||!scope.length?' aria-hidden="true"':'')+'>'+dates.length+' session'+(dates.length===1?'':'s')+(allDates.length<count?' on record':' in this range')+'</div>';
   if(!scope.length)h+='<p class="pg-empty">No measured sets yet. Your completed sets will appear here.</p>';
   else{
+    h+='<div class="pg-read-slot"><div class="pg-read" aria-live="polite" aria-atomic="true">'+progressionReceipt(scope.find(r=>r.id===state.pick))+'</div></div>';
     h+='<div class="pg-scroll" data-pg-surface="detail">'+progressionPlot(scope,state.kind,options)+'</div>';
     const cursor=scope.findIndex(r=>r.id===state.pick);
-    h+='<input class="pg-scrubber" data-pg-action="scrub" type="range" min="0" max="'+(scope.length-1)+'" step="1" value="'+cursor+'" aria-label="Browse individual sets" aria-valuetext="'+pgEscape(progressionRead(scope[cursor]))+'" style="--pg-progress:'+(100*cursor/Math.max(1,scope.length-1))+'%"><div class="pg-pages"><button data-pg-action="prev-set" aria-label="Previous set"'+(cursor===0?' disabled':'')+'>‹</button><span>Select a set</span><button data-pg-action="next-set" aria-label="Next set"'+(cursor===scope.length-1?' disabled':'')+'>›</button></div><div class="pg-read" aria-live="polite">'+progressionReceipt(scope[cursor])+'</div>';
+    h+='<input class="pg-scrubber" data-pg-action="scrub" type="range" min="0" max="'+(scope.length-1)+'" step="1" value="'+cursor+'" aria-label="Browse individual sets" aria-valuetext="'+pgEscape(progressionRead(scope[cursor]))+'" style="--pg-progress:'+(100*cursor/Math.max(1,scope.length-1))+'%"><div class="pg-pages"><button data-pg-action="prev-set" aria-label="Previous set"'+(cursor===0?' disabled':'')+'>‹</button><span>Select a set</span><button data-pg-action="next-set" aria-label="Next set"'+(cursor===scope.length-1?' disabled':'')+'>›</button></div>';
   }
   const omitted=data.omitted.filter(r=>!dates.length||r.d>=dates[0]&&r.d<=dates.at(-1));
   if(omitted.length)h+='<details class="pg-unmeasured"><summary>Unplotted entries · '+omitted.length+'</summary>'+omitted.map(r=>'<div>'+pgShortDate(r.d)+' · Set '+r.ordinal+' · '+pgEscape(r.reason)+'</div>').join('')+'</details>';
@@ -198,7 +205,11 @@ function progressionPick(card,id){
   const {state,scope,layout}=card._pg,r=scope.find(s=>s.id===id);if(!r)return;
   state.pick=id;layout.pick=id;
   card.querySelectorAll('.pg-set').forEach(g=>g.classList.toggle('pick',g.dataset.pgRecord===id));
-  const read=card.querySelector('.pg-read');if(read)read.innerHTML=progressionReceipt(r);
+  const read=card.querySelector('.pg-read');if(read){
+    const parts=progressionReadoutParts(r),value=read.querySelector('.pg-read-value'),changed=value.textContent!==parts.value;
+    value.textContent=parts.value;read.querySelector('.pg-read-date').textContent=parts.date;
+    if(changed&&value.animate&&!matchMedia('(prefers-reduced-motion: reduce)').matches){value.getAnimations().forEach(a=>a.cancel());value.animate([{transform:'translateY(2px)',opacity:.6},{transform:'translateY(0)',opacity:1}],{duration:140,easing:'ease-out'});}
+  }
   const cursor=scope.indexOf(r),slider=card.querySelector('.pg-scrubber');
   if(slider){slider.value=cursor;slider.setAttribute('aria-valuetext',progressionRead(r));slider.style.setProperty('--pg-progress',(100*cursor/Math.max(1,scope.length-1))+'%');}
   card.querySelector('[data-pg-action="prev-set"]').disabled=cursor===0;
@@ -210,7 +221,7 @@ function progressionPick(card,id){
 function progressionShare(card){
   const {state,scope,layout,count}=card._pg;if(!scope.length)return;
   const style=getComputedStyle(card),color=name=>style.getPropertyValue(name).trim();
-  const snapshot={ex:state.ex,count,layout,read:progressionRead(scope.find(r=>r.id===state.pick)||scope.at(-1)),axis:progressionAxis(state.kind),picked:state.pick,
+  const snapshot={ex:state.ex,count,layout,read:progressionReadoutParts(scope.find(r=>r.id===state.pick)||scope.at(-1)),axis:progressionAxis(state.kind),picked:state.pick,
     colors:{paper:color('--surface'),ink:color('--chalk'),muted:color('--muted'),line:color('--line'),blue:color('--accent-ink'),soft:color('--surface2')},
     font:style.getPropertyValue('--body').trim()||'sans-serif',mono:style.getPropertyValue('--mono').trim()||'monospace'};
   return showCard(()=>drawProgressionCard(snapshot),'progression-'+state.ex.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/-$/,'')+'-'+count+'-sessions-'+layout.dates[0]+'-'+layout.dates.at(-1));
@@ -219,8 +230,8 @@ function drawProgressionCard(s){
   const cv=document.createElement('canvas'),x=cv.getContext('2d');if(!x)return null;
   const m=s.layout,W=Math.max(320,m.width+40),scale=1080/W,pad=20;
   const wrap=(text,font,max)=>{x.font=font;const lines=[];let line='';for(const word of text.split(' ')){const next=line?line+' '+word:word;if(line&&x.measureText(next).width>max){lines.push(line);line=word;}else line=next;}if(line)lines.push(line);return lines;};
-  const title=wrap(s.ex,'600 18px '+s.font,W-pad*2),read=wrap(s.read,'500 11px '+s.mono,W-pad*2);
-  const chartY=62+title.length*24,H=chartY+m.height+70+read.length*18;
+  const title=wrap(s.ex,'600 18px '+s.font,W-pad*2),read=wrap(s.read.value,'500 16px '+s.font,W-pad*2);
+  const chartY=62+title.length*24,H=chartY+52+m.height+32;
   cv.width=1080;cv.height=Math.ceil(H*scale);x.scale(scale,scale);
   x.fillStyle=s.colors.paper;x.fillRect(0,0,W,H);x.textBaseline='alphabetic';
   x.fillStyle=s.colors.muted;x.font='500 10px '+s.mono;x.fillText('SHOWUP / PROGRESSION',pad,23);
@@ -228,19 +239,20 @@ function drawProgressionCard(s){
   x.fillStyle=s.colors.muted;x.font='500 11px '+s.mono;
   x.fillText(s.count+' Sessions'+(m.dates.length<s.count?' · '+m.dates.length+' in this range':''),pad,chartY-17);
   x.textAlign='right';x.fillText(s.axis,W-pad,chartY-1);x.textAlign='left';
-  x.save();x.translate((W-m.width)/2,chartY);
-  for(const t of m.ticks){x.strokeStyle=s.colors.line;x.lineWidth=.7;x.setLineDash([2,4]);x.beginPath();x.moveTo(m.left,t.y);x.lineTo(m.width-m.right,t.y);x.stroke();x.setLineDash([]);x.fillStyle=s.colors.muted;x.textAlign='right';x.font='400 10px '+s.mono;x.fillText(t.label,m.left-7,t.y+3.5);}
+  x.textAlign='center';x.fillStyle=s.colors.ink;x.font='500 16px '+s.font;read.forEach((line,i)=>x.fillText(line,W/2,chartY+18+i*18));
+  x.fillStyle=s.colors.muted;x.font='400 11px '+s.mono;x.fillText(s.read.date,W/2,chartY+read.length*18+17);
+  x.save();x.translate((W-m.width)/2,chartY+52);
+  for(const t of m.ticks){x.strokeStyle=s.colors.line;x.lineWidth=.7;x.setLineDash([2,4]);x.beginPath();x.moveTo(m.left,t.y);x.lineTo(m.width-m.right,t.y);x.stroke();x.setLineDash([]);if(t.showLabel){x.fillStyle=s.colors.muted;x.textAlign='right';x.font='400 10px '+s.mono;x.fillText(t.label,m.left-7,t.y+3.5);}}
   for(const p of m.points)if(p.leader){x.strokeStyle=s.colors.muted;x.globalAlpha=.5;x.lineWidth=.7;x.beginPath();x.moveTo(p.x-2,p.trueY);x.lineTo(p.x+2,p.trueY);x.moveTo(p.x,p.trueY);x.lineTo(p.x,p.y);x.stroke();x.globalAlpha=1;}
   for(const p of m.points){
     x.fillStyle=m.dots?(p.winning?s.colors.blue:s.colors.muted):s.colors.soft;
     x.beginPath();if(!m.dots&&p.label.length>2)x.rect(p.x-p.labelWidth/2,p.y-7,p.labelWidth,14);else x.arc(p.x,p.y,p.radius,0,Math.PI*2);x.fill();
     if(p.r.id===s.picked){x.strokeStyle=s.colors.blue;x.lineWidth=1.2;x.stroke();}
-    if(!m.dots){x.fillStyle=p.winning?s.colors.blue:s.colors.muted;x.font=(p.winning?'700':'500')+' 11px '+s.mono;x.textAlign='center';x.fillText(p.label,p.x,p.y+3.5);}
+    if(!m.dots){x.fillStyle=p.winning?s.colors.blue:s.colors.muted;x.font='400 11px '+s.mono;x.textAlign='center';x.fillText(p.label,p.x,p.y+3.5);}
   }
   x.fillStyle=s.colors.muted;x.font='500 10px '+s.mono;
   for(const t of m.dateTicks){x.textAlign=t.anchor==='start'?'left':t.anchor==='end'?'right':'center';x.fillText(t.label,t.x,m.height-11);}
-  x.restore();x.textAlign='left';x.strokeStyle=s.colors.line;x.beginPath();x.moveTo(pad,chartY+m.height+10);x.lineTo(W-pad,chartY+m.height+10);x.stroke();
-  x.fillStyle=s.colors.ink;x.font='500 11px '+s.mono;read.forEach((line,i)=>x.fillText(line,pad,chartY+m.height+34+i*18));
+  x.restore();x.textAlign='left';
   x.fillStyle=s.colors.muted;x.font='400 10px '+s.mono;x.fillText('showup · '+m.dates[0]+' — '+m.dates.at(-1),pad,H-14);
   return cv;
 }

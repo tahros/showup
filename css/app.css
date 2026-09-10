@@ -73,8 +73,8 @@
 .progression-card .pg-selection-band{fill:var(--accent);opacity:.045}
 .progression-card .pg-set{cursor:pointer}
 .progression-card .pg-detail .pg-set circle,.progression-card .pg-detail .pg-set rect{fill:var(--surface2);stroke:transparent;stroke-width:1}
-.progression-card .pg-set text{font:500 11px var(--mono);fill:var(--muted);pointer-events:none}
-.progression-card .pg-set.pg-best text{font-weight:750;fill:var(--accent-ink)}
+.progression-card .pg-set text{font:400 11px var(--mono);fill:var(--muted);pointer-events:none}
+.progression-card .pg-set.pg-best text{font-weight:400;fill:var(--accent-ink)}
 .progression-card .pg-detail .pg-best circle,.progression-card .pg-detail .pg-best rect{fill:var(--accent);fill-opacity:.09}
 .progression-card .pg-dots .pg-set circle{fill:var(--muted);opacity:.68}
 .progression-card .pg-dots .pg-best circle{fill:var(--accent-ink);opacity:.85}
@@ -82,9 +82,10 @@
 .progression-card .pg-pages{display:flex;align-items:center;justify-content:space-between;margin:-5px 4px 0;font:400 11px var(--mono);color:var(--muted)}
 .progression-card .pg-pages button{font:400 24px var(--body)}
 .progression-card button:disabled{opacity:.28;cursor:default}
-.progression-card .pg-read{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:center;gap:10px;border-top:1px solid var(--line);margin:8px 4px 0;padding:15px 0 0;min-height:72px;overflow-wrap:anywhere}
-.progression-card .pg-read-date{font:500 11px/1.7 var(--mono);color:var(--muted)}
-.progression-card .pg-read-value{font:600 18px/1.4 var(--body);color:var(--chalk);text-align:right}
+.progression-card .pg-read-slot{height:52px;display:flex;justify-content:center;align-items:flex-start}
+.progression-card .pg-read{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:190px;max-width:100%;height:52px;padding:4px 12px;border-radius:12px;background:var(--surface2);text-align:center;font-variant-numeric:tabular-nums;pointer-events:none}
+.progression-card .pg-read-date{font:400 11px/14px var(--mono);color:var(--muted);white-space:nowrap}
+.progression-card .pg-read-value{font:500 16px/18px var(--body);color:var(--chalk);overflow-wrap:anywhere}
 .progression-card .pg-unmeasured{font:400 11px/1.7 var(--mono);color:var(--muted);margin:12px 4px 0}
 .progression-card .pg-unmeasured summary{min-height:44px;cursor:pointer;padding:12px 0}
 .progression-card button:focus-visible,.progression-card select:focus-visible,.progression-card input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
