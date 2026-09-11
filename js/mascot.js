@@ -66,6 +66,21 @@ for(const tone of ['white','charcoal']){
       if(!el.isConnected||!visible.has(el)||document.hidden||still()||live.size>=2)return;
       const instance=module.createMascot(el,{mode:el.dataset.mascot,theme:document.documentElement.dataset.theme,still:false});
       live.set(el,instance);el.classList.add('su-ready');
+      /* v4.1.2: TAP TO SAY HELLO. The mascot stays aria-hidden and out of the
+         tab order on purpose: it carries no information and performs no
+         action, so a focus stop and a label on every screen it appears on
+         would be furniture for a joke. Touch reaches it; nothing is lost to
+         anyone who cannot see it, because there is nothing there to lose.
+         Pointer, not click: a click on iOS waits 300ms behind the tap, and a
+         mascot that answers late reads as broken rather than shy. */
+      if(!el.dataset.tapBound){
+        el.dataset.tapBound='1';
+        el.addEventListener('pointerdown',()=>{
+          const inst=live.get(el); if(!inst) return;
+          el.classList.remove('su-poke'); void el.offsetWidth; el.classList.add('su-poke');
+          inst.replay();
+        },{passive:true});
+      }
     }catch(_){el.dataset.failed='true';el.querySelector('canvas')?.remove();}
     finally{pending.delete(el);}
   }

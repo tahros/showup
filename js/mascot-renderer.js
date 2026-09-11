@@ -127,6 +127,41 @@ export function createMascot(stage, options={}) {
         squash:1+(f.sy-1)*.6,blink:1+(f.eye-1)*.8,wink:f.wink,x:f.x*.7/46.7
       }))
     }]));
+    /* ---- v4.1.2: THE IDLE --------------------------------------------
+       Every show is a one-shot: it ends on rest and the loop stops, so the
+       mascot froze mid-shelf. An idle is a different kind of thing -- no
+       beginning, no end, and any show may interrupt it and hand back.
+       THE FAILURE MODE IS A VISIBLE CYCLE. Once you can count the loop it
+       stops reading as alive and starts reading as a GIF, which is the
+       "weird and unnatural" the maker asked to avoid. So every channel is a
+       sum of sines on periods that share no common multiple -- 5.3s against
+       2.9s, 7.1s against 3.4s -- and the whole thing never repeats inside any
+       span you would watch.
+       The yaw is the real one: this is a 3D object, so turning it turns it in
+       space, with the shadow and the far head moving correctly. +-7 degrees is
+       a glance, not a swivel.
+       The reach ramps in over 900ms after a show so the hand-back is not
+       a jolt -- shows end ON rest, and idle at t=0 is rest, so the two meet. */
+    function idlePose(t,ramp){
+      const k=Math.max(0,Math.min(1,ramp));
+      const breathe=Math.sin(t/3400)*.5+Math.sin(t/5200+2.1)*.5;
+      /* a blink on a period that itself drifts, so it never lands on a beat */
+      const every=5200+900*Math.sin(t/17000);
+      const phase=(t%every)/every, lid=phase>.965?Math.sin((phase-.965)/.035*Math.PI):0;
+      return {
+        /* three terms, not two: the first plot of this had a ten-second
+           plateau where the two slow waves cancelled, and a head that holds
+           still for ten seconds reads as frozen even while it breathes. The
+           1.55s term is small enough to be a settle rather than a fidget. */
+        yaw:rest.yaw+k*(Math.sin(t/5300)*.085+Math.sin(t/2900+1.7)*.037+Math.sin(t/1550+.4)*.013),
+        lift:k*breathe*.012,
+        roll:k*(Math.sin(t/7100+.6)*.010),
+        squash:1+k*breathe*-.008,
+        blink:1-k*lid*.92,
+        wink:1,
+        x:k*(Math.sin(t/6100+.9)*.006)
+      };
+    }
     function pose(frames,t){let i=1;while(i<frames.length-1&&t>frames[i].t)i++;const a=frames[i-1],b=frames[i],q=Math.max(0,Math.min(1,(t-a.t)/(b.t-a.t))),e=q*q*(3-2*q),p={};for(const name of Object.keys(rest))p[name]=a[name]+(b[name]-a[name])*e;return p;}
     function draw(p){
       rig.rotation.set(0,p.yaw,p.roll);rig.scale.set(1+(1-p.squash)*.35,p.squash,1);rig.position.set(p.x,p.lift+Math.abs(Math.sin(p.roll))*3.98,0);
@@ -155,7 +190,12 @@ export function createMascot(stage, options={}) {
     white.color.set(theme==='dark'?'#303030':'#ffffff');
     const motion=motions[mode==='cool'?'jump':mode];
     const end=motion?.frames.at(-1).t||0;
-    draw(!still&&motion&&(mode==='active'||t<end)?pose(motion.frames,mode==='active'?t%end:t):rest);
+    /* v4.1.2: when no show is running the mascot idles rather than freezing
+       on rest. still (reduced motion, or the setting off animated) keeps the
+       old behaviour exactly: one pose, no loop. */
+    const showing=!still&&motion&&(mode==='active'||t<end);
+    draw(showing?pose(motion.frames,mode==='active'?t%end:t)
+        :still?rest:idlePose(t,end?(t-end)/900:t/900));
   }
   function resize(){
     if(disposed||lost)return;
@@ -168,7 +208,7 @@ export function createMascot(stage, options={}) {
     if(paused||disposed)return;
     if(previous)elapsed+=Math.min(now-previous,100);previous=now;paint();
     const end=motions[mode==='cool'?'jump':mode]?.frames.at(-1).t||0;
-    if(!still&&(mode==='active'||mode==='cool'||elapsed<end))raf=requestAnimationFrame(frame);
+    if(!still)raf=requestAnimationFrame(frame);   // v4.1.2: the idle keeps the loop alive past the show
   }
   function pause(){paused=true;cancelAnimationFrame(raf);previous=0;}
   function resume(){if(disposed||lost)return;pause();paused=false;paint();if(!still)raf=requestAnimationFrame(frame);}
@@ -183,5 +223,9 @@ export function createMascot(stage, options={}) {
     renderer.dispose();renderer.forceContextLoss();renderer.domElement.remove();
   }
   resize();resume();
-  return {pause,resume,update,dispose,capture:()=>{paint(0);return renderer.domElement.toDataURL('image/png');}};
+  /* v4.1.2: a tap replays the show from the top and hands back to the idle
+     when it ends -- the same path a fresh mount takes, so there is one
+     sequence to get right rather than two. */
+  function replay(next){if(disposed||lost||still)return;if(next)mode=next;elapsed=0;previous=0;resume();}
+  return {pause,resume,update,dispose,replay,capture:()=>{paint(0);return renderer.domElement.toDataURL('image/png');}};
 }

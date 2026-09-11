@@ -1,6 +1,53 @@
 # ShowUp — changelog
 
 
+
+## v4.1.2 (2026-09-11) — The mascot breathes, and answers a tap
+
+Every show was a one-shot: it ended on rest and the loop stopped, so the
+mascot froze on its shelf between moments. It idles now.
+
+**The failure mode is a visible cycle.** Once you can count the loop it stops
+reading as alive and starts reading as a GIF — the "weird and unnatural" this
+was asked to avoid. So every channel is a sum of sines on periods sharing no
+common multiple: 5.3s against 2.9s against 1.55s for the yaw, 3.4s against
+5.2s for the breath, and a blink whose period itself drifts so it never lands
+on a beat. Two minutes of it never returns to its own opening.
+
+**The head turn is real.** This is a Three.js object, not a picture, so `yaw`
+rotates it in space — the far head and the contact shadow move correctly.
+±7.7°: a glance, not a swivel.
+
+The reach ramps in over 900ms after a show, and every show ends on rest, so the
+hand-back has nothing to jolt against.
+
+**Tapping it replays the show.** On `pointerdown`, not click, because a click
+waits 300ms behind the tap on iOS and a mascot that answers late reads as
+broken rather than shy. Only the live 3D mascot takes the tap; the poster PNG
+stays inert, so nothing answers before there is anything to answer with.
+
+It stays `aria-hidden` and out of the tab order on purpose: it carries no
+information and performs no action, so a focus stop and a label on every screen
+it appears on would be furniture for a joke.
+
+**Still and reduced motion are untouched** — no instance is created at all, one
+pose is drawn, and no loop runs.
+
+The first cut had a ten-second stretch where the two slow yaw waves cancelled
+and the head held still. A test measuring only yaw would have called that fine;
+measuring the whole pose caught it, and a third term broke it. Longest quiet
+moment is now 0.1s.
+
+`test-beta` then caught the word *amplitude* in a comment — it scans for
+analytics SDK names and that is one. The guard is right and the prose was
+wrong, so the prose changed.
+
+### One red left, not this release's
+
+`test-planner-server` has failed since v4.0.2, through two releases titled as
+green. `tools/demo-tabtrip.js` drives a scope pill v4.0 removed.
+
+
 ## v4.1.1 (2026-09-11) — Edit the day, not one row at a time
 
 The pencil on a row opened that row. Nothing opened the **day**. Paste was the
