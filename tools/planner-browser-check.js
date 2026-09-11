@@ -18,7 +18,7 @@ const routine='Squat\n  135 lb × 8 (warm-up)\n  205 lb × 8 8 8 8\n\nRomanian D
     },theme);
     async function capture(name){
       await page.evaluate(()=>window.scrollTo(0,0));
-      await page.waitForTimeout(400);
+      await page.waitForTimeout(650);
       const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1);
       assert(!overflow,`${theme} ${width} ${name} overflows`);
       if(width===393)await page.screenshot({path:path.join(out,`${theme}-${name}.png`),fullPage:true});
@@ -33,6 +33,15 @@ const routine='Squat\n  135 lb × 8 (warm-up)\n  205 lb × 8 8 8 8\n\nRomanian D
     await page.locator('[data-pw="text-select"]').click();assert(await page.locator('[data-pw-field="pasteText"]').evaluate(el=>el.selectionEnd===el.value.length&&el.selectionStart===0));
     await page.locator('[data-pw="readpaste"]').click();await capture('candidate');await page.locator('[data-pw="apply"]').click();await capture('editor');
     assert.equal(await page.locator('.pw-editor-head h1').innerText(),'Edit your plan');
+    const chevrons=await page.locator('.pw-datebar>.pw-btn>.ic:last-child,.pw-setup summary>.ic').evaluateAll(es=>es.map(e=>{const r=e.getBoundingClientRect();return {right:r.right,width:r.width,height:r.height};}));
+    assert.equal(chevrons.length,2);assert(Math.abs(chevrons[0].right-chevrons[1].right)<1&&chevrons.every(r=>r.width===16&&r.height===16),'matching aligned chevrons '+JSON.stringify(chevrons));
+    await page.emulateMedia({reducedMotion:'no-preference'});
+    const setup=page.locator('.pw-setup'),summary=setup.locator('summary');const shut=(await setup.boundingBox()).height;
+    await summary.click();await page.waitForTimeout(60);const opening=(await setup.boundingBox()).height;await page.waitForTimeout(320);const expanded=(await setup.boundingBox()).height;
+    assert(opening>shut&&opening<expanded,'setup slides open');
+    await summary.click();await page.waitForTimeout(60);const closing=(await setup.boundingBox()).height;await page.waitForTimeout(320);
+    assert(closing>shut&&closing<expanded&&Math.abs((await setup.boundingBox()).height-shut)<1,'setup slides closed');
+    await page.locator('[data-pw="clear-day"]').click();assert.equal(await page.locator('.pw-editable').count(),0);await capture('cleared');await page.locator('[data-pw="undo"]').click();
     await page.locator('[data-pw="lock"]').first().click();
     const grip=page.locator('[data-pw-grip="0"]');await grip.scrollIntoViewIfNeeded();
     const gb=await grip.boundingBox(),target=await page.locator('[data-pw-row="1"]').boundingBox();
@@ -52,7 +61,11 @@ const routine='Squat\n  135 lb × 8 (warm-up)\n  205 lb × 8 8 8 8\n\nRomanian D
       }
       await page.locator('[data-pw="undo"]').click();await cdp.detach();
     }
-    await page.locator('[data-pw="adjust"]').click();await capture('adjust');await page.locator('[data-pw="edit"]').click();await capture('ready-to-save');
+    await page.locator('[data-pw="adjust"]').click();await capture('adjust');
+    await page.locator('[data-pw="set-plus"]').click();assert.equal(await page.locator('.pw-stepper output').innerText(),'19');assert((await page.locator('#pw-live-total').innerText()).startsWith('19 sets'));
+    assert.equal(await page.locator('[data-pw="adjustgo"]').count(),0);await capture('adjust-live');
+    await page.locator('[data-pw="set-minus"]').click();assert.equal(await page.locator('.pw-stepper output').innerText(),'18');
+    await page.locator('[data-pw="adjust-keep"]').click();await capture('ready-to-save');
     const save=await page.locator('[data-pw="save"]').boundingBox(),bar=await page.locator('#nav').boundingBox();assert(save.y+save.height<bar.y,'Save clears tab bar');
     await page.locator('[data-pw="save"]').click();await capture('saved');
     const sets=await page.evaluate(()=>DB.week.days['2026-09-10'].items.reduce((n,i)=>n+i.lines.reduce((n,l)=>n+l.reps.length,0),0));assert.equal(sets,18);
