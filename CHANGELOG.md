@@ -1,6 +1,27 @@
 # ShowUp — changelog
 
 
+
+## v4.3.1 (2026-09-11) — Repair: four font entries I dropped
+
+v4.2.8 was pushed **after Codex's v4.3.0 landed and my HEAD check said MOVED**.
+The check printed the warning and the command chain deployed anyway, because
+the check exited 0 rather than failing. A warning nobody acts on is not a gate.
+
+Their code all survived — fonts, `css/plates.css`, the GIF work. What did not
+was `sw.js`: my deploy wrote my copy over theirs and took **four IBM Plex font
+entries out of the precache**, so those fonts would have been fetched from the
+network on every cold start instead of served offline. `index.html` also lost
+the v4.3.0 stamp, which is why this release jumps to 4.3.1 rather than 4.2.9.
+
+Both restored, diffed against `6d5dad5` to prove nothing else went with them.
+
+The lesson is mine and mechanical: the HEAD check must **exit non-zero and stop
+the chain**, not print a word. It is written that way here — the deploy is
+behind a real `||` guard now, and this release refused to go out until the
+check actually passed.
+
+
 ## v4.2.8 (2026-09-11) — Canonical exercise ids: the resolver
 
 "Barbell Bench Press", "Bench Press (Barbell)" and "bb bench press" are one
