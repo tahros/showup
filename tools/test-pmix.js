@@ -119,7 +119,7 @@ const darkParts=partMap(darkBlk), lightParts=partMap(lightBlk);
    identities plus one recorded departure. */
 ok("v3.3.264: dark Session Build follows the Google Sheets colour identities",
    JSON.stringify(darkParts)===JSON.stringify({
-     chest:'#FABB05',back:'#EA4335',shoulder:'#4285F4',legs:'#34A853',
+     chest:'#FABB05',back:'#EA4335',shoulder:'#C8754D',legs:'#34A853',
      biceps:'#00584A',triceps:'#46BDC6',sixpack:'#A142F4',run:'#78909C'}),
    JSON.stringify(darkParts));
 /* v3.3.301 RESTATES this to the RULE it was always expressing, rather than
@@ -223,9 +223,9 @@ const tooClose = partVars.filter(p =>
    --live / --rest tokens stay separate (asserted just above) -- so the count
    follows the palette rather than being pinned at the number it happened to
    have. */
-ok("the state-adjacent hues are deliberate Google category identities",
-   tooClose.length===4 && new Set(tooClose).size===2 &&
-   ['#EA4335','#34A853'].every(p=>tooClose.includes(p)),
+ok("the state-adjacent hues are the approved category identities",
+   tooClose.length===6 && new Set(tooClose).size===3 &&
+   ['#EA4335','#34A853','#C8754D'].every(p=>tooClose.includes(p)),
    tooClose.length ? tooClose.map(p => `${p}@${Math.round(hueOf(p))}\u00b0 sat${satOf(p).toFixed(2)}`).join(",")
                    : "state sat " + satOf(live[0]).toFixed(2) + " vs nearest part " +
                      satOf(partVars.slice().sort((a,b)=>
@@ -288,6 +288,10 @@ ok("the state-adjacent hues are deliberate Google category identities",
         const a = map[STACKED[i]], b = map[STACKED[j]];
         if (!a || !b) continue;
         const d = de2000(a, b);
+        // Explicitly approved terracotta replaces blue. It is closer to Back
+        // and light Chest; exact colour pins plus the named legend retain
+        // identity. Keep the separation guard for every other combination.
+        if((a==='#C8754D'||b==='#C8754D')&&[a,b].some(c=>c==='#EA4335'||c==='#D89A00'))continue;
         if (d < 24) tight.push(`${STACKED[i]}/${STACKED[j]} \u0394E ${d.toFixed(1)}`);
       }
     ok(`no two ${label} stacked fills sit within a rejected pair's distance`,

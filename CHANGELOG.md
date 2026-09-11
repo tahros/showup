@@ -1,5 +1,30 @@
 # ShowUp — changelog
 
+## v4.2.6 (2026-09-11) — Your work, in its own colours
+
+- Stats plates reuse the What You Did body-part palette, with the approved
+  terracotta Shoulder replacing blue in both themes. Signature blue remains
+  reserved for the app and completion mascot. A named legend accompanies colour.
+- Each part keeps its exact lifted volume: full plates represent 500 lb and
+  fractional final plates retain the remainder. Landing count-up, skyfall,
+  alternating tilt, dust, replay and shadows stay intact.
+- The existing completion date is centered independently of a touch-sized
+  Share button. Share opens the real day receipt with the existing share/save flow.
+- The mascot is a keyboard/touch button that replays its approved jump with
+  a responding shadow; reduced-motion and Still/Off preferences are respected.
+- Fixed a malformed upstream mascot renderer update function which prevented
+  browser module loading. Added full renderer parsing to the tone regression suite.
+- Fixed plate rendering in environments without ResizeObserver; moved the plate
+  stylesheet into the document head. Restated obsolete streak-square tests for
+  the approved compact blue mascot, and made offline tests use the current version.
+- Validation: all 84 behavioural suites green; separate Chromium and WebKit
+  plate checks, real WebGL mascot interactions and offline reload checks pass.
+  Profile name/sex preservation remains covered. No account data or plans changed.
+
+Palette note: the approved terracotta is closer to Back and light Chest than the
+old separation threshold; exact approved tokens and named legends are retained,
+with the distance guard unchanged for all other colour pairs.
+
 
 
 ## v4.2.5 (2026-09-11) — The completed card says which day

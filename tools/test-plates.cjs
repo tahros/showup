@@ -22,6 +22,11 @@ const partial=await page.locator('.plate-total b').innerText();assert(Number(par
 await page.waitForSelector('.plate-canvas[data-playing="false"]');assert(await page.locator('.plate-total b').innerText()==='14,335','Final partial plate lands at exact total');
 assert(await page.evaluate(()=>DB.settings.name==='Profile fixture'&&DB.settings.sex==='f'),'Name and gender preserved');
 assert(await page.evaluate(()=>Math.abs(plateSeen()-plateCurrent().kg)<.001),'Viewed state persisted');
+const centered=await page.evaluate(()=>{const a=document.querySelector('.plate-heading').getBoundingClientRect(),b=document.querySelector('.plate-date').getBoundingClientRect();return Math.abs((a.left+a.right-b.left-b.right)/2)<1;});assert(centered,'Date is centered independently of Share');
+await page.evaluate(()=>{window.jumpEvents=0;document.querySelector('.plate-card .su-mascot').addEventListener('mascotreplay',()=>window.jumpEvents++);});
+await page.locator('.plate-mascot-button').click();assert(await page.evaluate(()=>window.jumpEvents===1),'Tap replays mascot motion');
+assert(await page.evaluate(()=>Math.abs(plateSeen()-plateCurrent().kg)<.001),'Mascot tap does not replay or change ledger');
+await page.locator('.plate-share').click();await page.waitForSelector('#repOv');assert(await page.evaluate(()=>_repCv.label==='showup-'+todayISO&&document.querySelector('#repImg').src.startsWith('data:image/png')),'Real workout receipt opens');await page.locator('#repClose').click();
 await page.screenshot({path:path.join(root,'../plate-canvas-verified.png')});
 await page.locator('.plate-replay').click();await page.waitForSelector('.plate-canvas[data-playing="true"]');
 assert(await page.evaluate(()=>Number(document.querySelector('.plate-total b').textContent.replaceAll(',',''))<14335),'Replay resets counter');
@@ -33,6 +38,11 @@ await page.emulateMedia({reducedMotion:'reduce'});await page.locator('.plate-rep
 await page.evaluate(()=>{document.documentElement.dataset.theme='dark';DB.days[todayISO].doneAll=true;renderStats()});await page.waitForTimeout(100);assert(await page.locator('.plate-card [data-mascot="cool"]').count(),'Completion uses blue mascot');
 await page.setViewportSize({width:320,height:740});await page.waitForTimeout(100);assert(await page.evaluate(()=>document.documentElement.scrollWidth<=320),'320px layout fits');
 assert(await page.evaluate(()=>plateMetrics({w:[{ex:'Run',w:5,reps:[1]},{ex:'Plank',w:20,reps:[60],su:SET_SEC},{ex:'Squat',w:10,reps:[8,9]},{ex:'Pull Up',w:0,reps:[10]}]}).kg===170),'No fabricated running, hold or bodyweight volume');
+assert(await page.evaluate(()=>{const p=plateLedger({w:[{part:'Chest',ex:'Bench',w:650/LB,reps:[1]},{part:'Shoulder',ex:'Press',w:300/LB,reps:[1]}]});return p.length===3&&p[0].part==='Chest'&&p[1].part==='Chest'&&p[2].part==='Shoulder'&&Math.abs(p.at(-1).end*LB-950)<1e-6;}),'Fractional plates preserve body-part totals exactly');
+await page.evaluate(()=>{document.documentElement.dataset.theme='light';DB.days[todayISO].w=[{part:'Chest',ex:'Bench',w:800/LB,reps:[10]},{part:'Shoulder',ex:'Press',w:350/LB,reps:[10]},{part:'Triceps',ex:'Extension',w:283.5/LB,reps:[10]}];renderStats()});await page.waitForTimeout(200);
+assert(await page.locator('.plate-legend span').count()===3,'Legend names each weighted body part');
+assert(await page.evaluate(()=>getComputedStyle(document.querySelectorAll('.plate-legend i')[1]).backgroundColor==='rgb(200, 117, 77)'&&getComputedStyle(document.documentElement).getPropertyValue('--p-shoulder').trim()==='#C8754D'),'Shoulder is shared terracotta, not signature blue');
+await page.locator('.plate-card').screenshot({path:path.join(root,'../plate-colors-shipped.png')});
 await page.evaluate(()=>{view='lift';lift.ex='Barbell Bench Press';lift.part='Chest';lift.copy=false;renderLift()});assert(await page.locator('.plate-mini').count(),'Training receipt retained');await page.locator('#addrep').click();assert((await page.locator('.plate-mini').innerText()).includes('today'),'Real Add set updates receipt');
 console.log('PASS canvas plates: real Stats entry/replay, downward path, alternating tilt, count-up, mascot/shadow, lifecycle, profile, reduced motion and mobile width');
 }finally{await browser.close();server.close()}})().catch(e=>{console.error(e);server.close();process.exitCode=1});

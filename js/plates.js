@@ -11,6 +11,15 @@ function plateMetrics(record){
   return {kg,sets,exercises:exercises.size};
 }
 function plateCurrent(){return plateMetrics(DB.days?.[todayISO]);}
+// Each body part owns its volume, including its fractional last plate.
+// No rounding of the ledger and no borrowing another part's colour.
+function plateLedger(record){
+  const parts=new Map();
+  for(const s of record?.w||[]){const kg=plateMetrics({w:[s]}).kg;if(kg>0)parts.set(s.part,(parts.get(s.part)||0)+kg);}
+  const plates=[];let end=0;const unit=500/LB;
+  for(const [part,kg] of parts){let left=kg;while(left>1e-8){const amount=Math.min(unit,left);end+=amount;plates.push({part,kg:amount,end});left-=amount;}}
+  return plates;
+}
 function plateNumber(kg){return Math.round(toU(kg)).toLocaleString();}
 function plateKey(){return 'showup.plates.v2.'+(session?.user?.id||'local')+'.'+todayISO;}
 function plateSeen(){try{return Math.max(0,Number(localStorage.getItem(plateKey()))||0);}catch(e){return 0;}}

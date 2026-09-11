@@ -175,92 +175,13 @@ ok("pressing it places the day", run(`!!document.getElementById('dayDone')`));
      run(`document.querySelector('.dayclosed').getAttribute('aria-label')`));
   ok("...and the rule for the line that left went with it",
      !/\.dayclosed \.dcr\{/.test(fs.readFileSync(path.join(dir,"css/app.css"),"utf8")));
-  /* ---- v3.3.501: THE COUNT SITS CENTRED, AND ONE VALUE SAYS SO ----
-     The two spaces were not equal and the margins were not why: the count is
-     TEXT and was inheriting the app's 1.45 line-height, so a ~32px line box
-     padded ~5px of leading around 22px of digits, and the date added ~2.6px
-     of its own. Measured to the ink that was ~22px above and ~12.6px below,
-     from spacing nobody wrote. Asserted as resolved geometry rather than as
-     the CSS text: whatever the rules say, the space above the count and the
-     space below it must come out as ONE number. */
-  {
-    /* the harness builds its DOM from index.html, which only LINKS the
-       stylesheet -- jsdom fetches nothing, so getComputedStyle here reads
-       browser defaults and a geometry assertion would measure nothing at all
-       and pass by vacancy. Install the real sheet for the length of this
-       block, then take it out again so nothing after it sees a different
-       cascade than it did before. */
-    run(`(function(){const s=document.createElement('style'); s.id='__csstmp';
-      s.textContent=${JSON.stringify(fs.readFileSync(path.join(dir,"css/app.css"),"utf8"))}; document.head.appendChild(s);})()`);
-    ok("(fixture) the stylesheet is actually in the document, or this proves nothing",
-       run(`getComputedStyle(document.querySelector('.dcsq')).width`)==='32px',
-       run(`getComputedStyle(document.querySelector('.dcsq')).width`));
-    const gcs = sel => run(`(function(){const c=getComputedStyle(document.querySelector(${JSON.stringify(sel)}));
-      return [c.marginTop,c.marginBottom,c.lineHeight].join(',');})()`);
-    const card = run(`(function(){const c=getComputedStyle(document.querySelector('.card.dayclosed'));
-      const g=(c.rowGap&&c.rowGap!=='normal')?c.rowGap:c.gap;   // jsdom does not expand the gap shorthand
-      return [c.display,c.flexDirection,g].join(',');})()`);
-    ok("the card stacks on one gap, not on three hand-tuned margins",
-       /^flex,column,\d/.test(card), card);
-    /* v3.3.505 RESTATES: the claim was never "no margins" for its own sake --
-       it was that ONE declared value governs the spacing, instead of three
-       numbers tuned against each other by eye. That still holds. What is added
-       is a single measured correction: the count's box carries ~4.8px of empty
-       descender space below its baseline, and "961" has no descenders, so the
-       space below it read wider than the space above from the same 18px. The
-       trim cancels the font's own dead space; it is not free spacing. So the
-       square and the date must still carry nothing, and the count may carry a
-       NEGATIVE bottom margin only -- a positive one would be the hand-tuning
-       v3.3.501 removed. */
-    /* ---- v3.3.506 RESTATES, AND REVERSES v3.3.501 ----
-       That release read the ask as "three elements, two identical spaces", and
-       evenly spaced is what it built. Evenly spaced is what the maker then
-       marked twice as too loose under the count. The card does not have three
-       peers in a row: it has the square, the number it stands over, and a date
-       that LABELS that number. A caption belongs to the thing above it, and
-       belonging is read as proximity.
-       So the claim under test changes shape. It is no longer "the two spaces
-       are equal" -- it is that the space under the count is DELIBERATELY the
-       tighter of the two, by a stated amount, with the square still carrying
-       nothing of its own. What survives from v3.3.501 is the part that
-       mattered: one declared gap governs the layout, and every departure from
-       it is a named correction rather than a number tuned by eye. */
-    ok("...the square still carries no margin of its own",
-       /^0px,0px/.test(gcs('.dcsq')), gcs('.dcsq'));
-    ok("...the count trims the font's dead space, never adds its own",
-       (function(){const m=parseFloat(run(`getComputedStyle(document.querySelector('.dcn')).marginBottom`));
-         return run(`getComputedStyle(document.querySelector('.dcn')).marginTop`)==='0px'
-                && m<0 && m>=-6;})(),
-       gcs('.dcn'));
-    ok("...and the date pulls UP to its number, never pushes away from it",
-       (function(){const t=parseFloat(run(`getComputedStyle(document.querySelector('.dcm')).marginTop`));
-         return t<0 && t>=-8
-                && run(`getComputedStyle(document.querySelector('.dcm')).marginBottom`)==='0px';})(),
-       gcs('.dcm'));
-    ok("...and both text lines hug their own type, so the declared gap is the visible one",
-       run(`getComputedStyle(document.querySelector('.dcn')).lineHeight`)==='1' &&
-       run(`getComputedStyle(document.querySelector('.dcm')).lineHeight`)==='1',
-       gcs('.dcn')+' | '+gcs('.dcm'));
-    /* the shape the maker asked for: caption closer to its number than the
-       number is to the square, and by enough to see */
-    ok("...leaving the date closer to the count than the count is to the square",
-       run(`(function(){const c=getComputedStyle(document.querySelector('.card.dayclosed'));
-         const g=parseFloat((c.rowGap&&c.rowGap!=='normal')?c.rowGap:c.gap);
-         const n=getComputedStyle(document.querySelector('.dcn'));
-         const m=getComputedStyle(document.querySelector('.dcm'));
-         const above=g+parseFloat(getComputedStyle(document.querySelector('.dcsq')).marginBottom)
-                      +parseFloat(n.marginTop)+1.8;                 /* air over the caps */
-         const below=g+parseFloat(n.marginBottom)+4.8               /* the font's descender */
-                      +parseFloat(m.marginTop)+0.9;
-         return g>0 && below<above && (above-below)>=3;})()`),
-       run(`(function(){const c=getComputedStyle(document.querySelector('.card.dayclosed'));
-         return 'gap='+((c.rowGap&&c.rowGap!=='normal')?c.rowGap:c.gap)
-           +' trim='+getComputedStyle(document.querySelector('.dcn')).marginBottom
-           +' caption='+getComputedStyle(document.querySelector('.dcm')).marginTop;})()`));
-    /* take the sheet out again so nothing after this block sees a different
-       cascade than it did before */
-    run(`(function(){const s=document.getElementById('__csstmp'); if(s) s.remove();})()`);
-  }
+  // v4.1.10 replaced the streak square with the compact blue mascot.
+  // Keep testing that approved hierarchy, not geometry of a removed element.
+  ok('completed card has no obsolete streak square',run(`!document.querySelector('.dayclosed .dcsq')`));
+  ok('completed card has the blue mascot',run(`!!document.querySelector('.dayclosed [data-mascot="cool"]')`));
+  const mascotCSS=fs.readFileSync(path.join(dir,'css/mascot.css'),'utf8');
+  ok('completed mascot retains compact 94px desktop scale',/\.card\.dayclosed \.su-mascot\{[^}]*width:94px/.test(mascotCSS));
+  ok('completed mascot retains compact 71px phone scale',/@media\(max-width:360px\)[^}]*\.card\.dayclosed \.su-mascot\{width:71px/.test(mascotCSS));
   /* v3.3.412 RESTATES. It stood where the button stood (v3.3.376) -- but that
      was still below the session cards, after an invitation to add more, and
      the page's order said KEEP GOING while the header said DONE. On a closed

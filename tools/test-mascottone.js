@@ -44,6 +44,10 @@ ok('...and no longer leaves either to the theme',
 
 // ---- the renderer colours by tone, not by mode
 const rsrc=fs.readFileSync(path.join(dir,'js/mascot-renderer.js'),'utf8');
+// Compile the entire function body too: regex checks alone missed malformed
+// update(next={...}) syntax that stopped every dynamic import in browsers.
+let parses=true;try{new vm.Script(rsrc.replace(/^import .*;$/m,'').replace('export function','function'));}catch(e){parses=false;console.error(e.message);}
+ok('the complete renderer parses, not just its tone snippets',parses);
 ok('the 3D mascot takes its colour from the tone',
    /const isBlue=\(\)=>tone==='blue'\|\|\(!tone&&mode==='cool'\)/.test(rsrc) &&
    /const base=isBlue\(\)\?\['#2033af'/.test(rsrc));

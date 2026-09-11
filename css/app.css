@@ -187,7 +187,7 @@
        every adjacency that has failed, both themes, before shipping. The one
        deliberate departure from the Google set, which had no readable slot
        left. */
-    --p-chest:#FABB05; --p-back:#EA4335; --p-shoulder:#4285F4; --p-legs:#34A853;
+    --p-chest:#FABB05; --p-back:#EA4335; --p-shoulder:#C8754D; --p-legs:#34A853;
     --p-biceps:#00584A; --p-triceps:#46BDC6; --p-sixpack:#A142F4; --p-run:#78909C;
     --chart-soft:#616EA3;                   /* v3.3.92: 2025's year line — accent-soft was 2.10:1 as a stroke */
     --live:#C93A2B;                         /* the header while your heart is pumping */
@@ -267,7 +267,7 @@
        palest part colours fell under the v3.3.121 2.0:1 floor against it —
        chest to 1.99, triceps to 1.95. Both stepped down the smallest amount
        that clears it, hue held. The guard found these; I did not. */
-    --p-chest:#D89A00; --p-back:#EA4335; --p-shoulder:#4285F4; --p-legs:#34A853;
+    --p-chest:#D89A00; --p-back:#EA4335; --p-shoulder:#C8754D; --p-legs:#34A853;
     --p-biceps:#00584A; --p-triceps:#42B7C0; --p-sixpack:#A142F4; --p-run:#78909C;
     --chart-soft:#7F859F;                   /* 2025's line, light — C3CCF5 was 1.58:1 on white */
     --live:#BE3324;

@@ -237,7 +237,7 @@ export function createMascot(stage, options={}) {
   }
   function pause(){paused=true;cancelAnimationFrame(raf);previous=0;}
   function resume(){if(disposed||lost)return;pause();paused=false;paint();if(!still)raf=requestAnimationFrame(frame);}
-  function update(next={;if(typeof next.tone==='string')tone=next.tone;}){if(disposed||lost)return;theme=next.theme||theme;still=next.still??still;paint();resume();}
+  function update(next={}){if(disposed||lost)return;if(typeof next.tone==='string')tone=next.tone;theme=next.theme||theme;still=next.still??still;paint();resume();}
   const observer=new ResizeObserver(resize);observer.observe(stage);
   renderer.domElement.addEventListener('webglcontextlost',()=>{lost=true;pause();stage.classList.remove('su-ready');});
   function dispose(){
