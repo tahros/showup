@@ -2,6 +2,42 @@
 
 
 
+
+## v4.1.3 (2026-09-11) — A blink the way an eye blinks
+
+The v4.1.2 blink was a sine over a period that drifted on another sine. Two
+faults, and both are the same fault in different clothes.
+
+**A drifting period is still periodic** — it merely counts slowly. And **a sine
+is symmetric**, so the lid took exactly as long to open as to close. Real lids
+snap shut in about 80ms and roll back up over roughly twice that; real intervals
+are ragged rather than swept.
+
+So the gap between blinks is now a hash of the blink's own index: irregular, but
+deterministic, so the mascot is the same mascot on every render with no
+unrepeatable source of chance inside a draw call. About one gap in seven is a
+quarter of a second — the second half of a **double blink**, which is what eyes
+actually do, and which the previous comment claimed without doing.
+
+The lid is two curves: a fast fall, a slower rise. Measured across every blink
+in a minute: **51ms closed, 108ms open**, 16.4 blinks per minute, gaps from
+0.23s to 6.4s.
+
+The asymmetry assertion was hollow on its first cut — it scanned for a single
+blink and compared thresholds the lid never reaches, and it **passed with a
+symmetric sine substituted**, which is the exact thing it exists to reject. It
+now measures every trough at the half-closed crossing on each side.
+
+`test-beta` caught *Math.random* in a comment about not using `Math.random`.
+Seventh time this session a check has fired on its own explanation; the prose
+changed, not the check.
+
+### One red left, not this release's
+
+`test-planner-server` has failed since v4.0.2, through two releases titled as
+green.
+
+
 ## v4.1.2 (2026-09-11) — The mascot breathes, and answers a tap
 
 Every show was a one-shot: it ended on rest and the loop stopped, so the

@@ -49,12 +49,51 @@ ok('no repeat: the curve never returns to its own opening over two minutes',
 // ---- breathing rides on a different period than the yaw
 ok('breathing is on its own period, so the two never beat together',
    /lift:k\*breathe\*/.test(body) && /Math\.sin\(t\/3400\)/.test(body) && /Math\.sin\(t\/5300\)/.test(body));
-// ---- blinking drifts
-ok('the blink period itself drifts, so it never lands on a beat',
-   /every=5200\+900\*Math\.sin/.test(body));
-ok('...and a blink actually closes the eye',
-   (()=>{let min=1;for(let t=0;t<40000;t+=13)min=Math.min(min,idlePose(t,1).blink);return min<.2;})(),
-   (()=>{let min=1;for(let t=0;t<40000;t+=13)min=Math.min(min,idlePose(t,1).blink);return min.toFixed(2);})());
+/* ---- v4.1.3: the blink -------------------------------------------------
+   The first one was a sine over a period that drifted on another sine. A
+   drifting period is still PERIODIC -- it just counts slowly -- and a sine is
+   SYMMETRIC, so the lid took as long to open as to close. Real lids snap shut
+   and roll back up, and real intervals are ragged. */
+const blinks=(ms=300000,step=4)=>{const out=[];let last=null;
+  for(let t=0;t<ms;t+=step){if(idlePose(t,1).blink<.2){if(last===null||t-last>200){if(last!==null)out.push(t-last);last=t;}}}
+  return out;};
+const gaps=blinks();
+ok('a blink actually closes the eye',
+   (()=>{let min=1;for(let t=0;t<40000;t+=4)min=Math.min(min,idlePose(t,1).blink);return min<.2;})(),
+   (()=>{let min=1;for(let t=0;t<40000;t+=4)min=Math.min(min,idlePose(t,1).blink);return min.toFixed(2);})());
+ok('...at a human resting rate, not a nervous one',
+   (()=>{const r=(gaps.length+1)/5;return r>=10&&r<=22;})(), ((gaps.length+1)/5).toFixed(1)+'/min');
+ok('...on ragged intervals, not a swept period',
+   (()=>{const long=gaps.filter(g=>g>1000);
+     const mean=long.reduce((a,b)=>a+b,0)/long.length;
+     const sd=Math.sqrt(long.reduce((a,b)=>a+(b-mean)**2,0)/long.length);
+     return sd/mean>0.2;})(),
+   (()=>{const long=gaps.filter(g=>g>1000);const mean=long.reduce((a,b)=>a+b,0)/long.length;
+     const sd=Math.sqrt(long.reduce((a,b)=>a+(b-mean)**2,0)/long.length);return 'spread '+(sd/mean).toFixed(2);})());
+/* measured across EVERY blink in a minute, at the half-closed crossing on
+   each side of the trough. The first cut of this scanned for one blink and
+   compared thresholds it never reached -- it passed with a symmetric sine
+   substituted, which is the exact thing it exists to reject. */
+ok('...closing faster than it opens, the way a lid does',
+   (()=>{const step=1;let fall=0,rise=0,n=0;
+     for(let t=step;t<60000-step;t+=step){
+       const p=idlePose(t,1).blink, pv=idlePose(t-step,1).blink, nx=idlePose(t+step,1).blink;
+       if(p<pv&&p<=nx&&p<.3){                       // a trough
+         let u=t;while(u>0&&idlePose(u,1).blink<.5)u-=step;   // back to half-open
+         let v=t;while(v<t+2000&&idlePose(v,1).blink<.5)v+=step;
+         fall+=t-u;rise+=v-t;n++;}}
+     return n>5 && fall/n < rise/n*0.75;})(),
+   (()=>{const step=1;let fall=0,rise=0,n=0;
+     for(let t=step;t<60000-step;t+=step){
+       const p=idlePose(t,1).blink, pv=idlePose(t-step,1).blink, nx=idlePose(t+step,1).blink;
+       if(p<pv&&p<=nx&&p<.3){let u=t;while(u>0&&idlePose(u,1).blink<.5)u-=step;
+         let v=t;while(v<t+2000&&idlePose(v,1).blink<.5)v+=step;fall+=t-u;rise+=v-t;n++;}}
+     return n?`close ${(fall/n).toFixed(0)}ms vs open ${(rise/n).toFixed(0)}ms`:'no blinks found';})());
+ok('...and doubles happen, the way eyes actually do',
+   gaps.filter(g=>g<500).length>0 && gaps.filter(g=>g<500).length<gaps.length/3,
+   gaps.filter(g=>g<500).length+' of '+gaps.length);
+ok('...deterministically — the same mascot on every render, no Math.random in a draw',
+   !/Math\.random/.test(body));
 
 // ---- it hands back from a show without a jolt
 ok('the idle starts AT rest, so a show ending on rest hands over smoothly',

@@ -145,9 +145,29 @@ export function createMascot(stage, options={}) {
     function idlePose(t,ramp){
       const k=Math.max(0,Math.min(1,ramp));
       const breathe=Math.sin(t/3400)*.5+Math.sin(t/5200+2.1)*.5;
-      /* a blink on a period that itself drifts, so it never lands on a beat */
-      const every=5200+900*Math.sin(t/17000);
-      const phase=(t%every)/every, lid=phase>.965?Math.sin((phase-.965)/.035*Math.PI):0;
+      /* ---- v4.1.3: A BLINK THE WAY AN EYE BLINKS ----------------------
+         The first one was a sine over a period that drifted on another sine.
+         Two faults. A drifting period is still PERIODIC -- it merely counts
+         slowly -- and a sine is SYMMETRIC, so the lid took as long to open as
+         to close. Real lids snap shut in about 80ms and roll back up over
+         about twice that, and real intervals are ragged rather than swept.
+         So: a hash of the blink's own index gives each gap its own length
+         between 2.6s and 6.4s -- irregular, but deterministic, so the mascot
+         is the same mascot on every render, with no unrepeatable source of
+         chance inside a draw call. Roughly one gap in seven is short enough to read
+         as a double blink, which is what eyes actually do.
+         The lid itself is two different curves: a fast fall, a slower rise. */
+      const hash=i=>((Math.sin(i*12.9898)*43758.5453)%1+1)%1;
+      const gapAt=i=>{const h=hash(i);
+        /* about one gap in seven is a quarter of a second -- the second half
+           of a double blink, which is what eyes actually do and what the last
+           version claimed without doing */
+        return h<.14?230+110*(h/.14):2600+3800*((h-.14)/.86);};
+      let mark=0, index=0;
+      while(mark+gapAt(index)<=t){mark+=gapAt(index);index++;}
+      const into=t-mark, CLOSE=80, OPEN=170;
+      const lid=into<CLOSE?Math.sin(into/CLOSE*Math.PI/2)
+               :into<CLOSE+OPEN?Math.cos((into-CLOSE)/OPEN*Math.PI/2):0;
       return {
         /* three terms, not two: the first plot of this had a ten-second
            plateau where the two slow waves cancelled, and a head that holds
