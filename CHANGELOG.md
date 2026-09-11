@@ -1,6 +1,38 @@
 # ShowUp — changelog
 
 
+
+## v4.1.9 (2026-09-11) — Give the maker his shimmer back
+
+v4.1.8 broke the sheen, and the cause was a rule I had no business adding.
+
+Today **already had its ring**: an `outline` with a 2px offset, whose colour
+`hwpulse` has breathed since v3.3.384. Building the calendar week I restated
+"an open today is outlined" as a second ring — an inset shadow — and set
+`background:none` with it. So an open today went from *a filled square wearing
+a halo* to *an empty box wearing two rings*, and the sheen had nothing left to
+sweep across.
+
+The rule was already carried by the halo that was always there. It did not need
+saying again in a second property, and saying it twice is what did the damage.
+
+The rule is gone. The outline, the breath, the fill and the sheen are exactly
+what they were.
+
+`test-weekstrip` now holds the rings at **one** and the fill in place, and
+guards `hwsheen` by name with its seventh-square stagger — the shimmer is the
+maker's favourite thing in the header and nothing should be able to stop it
+quietly. Two probes: restore the double ring, and kill the sheen.
+
+The lesson for the next surface: before adding a property to say something,
+check whether the element already says it. Specificity will let you win that
+argument and still lose the design.
+
+### One red left, not this release's
+
+`test-planner-server` has failed since v4.0.2.
+
+
 ## v4.1.8 (2026-09-11) — The header strip is a calendar week
 
 It was a rolling seven days ending on today, so *"the live square is on the

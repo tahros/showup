@@ -107,6 +107,20 @@ ok('a day ahead is outlined, never filled',
    /\.h-week \.hwd\.ahead\{background:none;\s*box-shadow:inset 0 0 0 1\.2px/.test(css));
 ok('...and declares no new surface, so the skin guard stays meaningful',
    !/\.h-week \.hwd\.ahead\{[^}]*border:/.test(css));
-ok('...and an open today is outlined too, by the same rule',
-   /\.h-week \.hwd\.tod:not\(\.on\)\{background:none/.test(css));
+/* v4.1.9: today's ring was never mine to add -- it has been an `outline` with
+   a 2px offset since long before this, and hwpulse breathes its colour. v4.1.8
+   gave it a second ring and hollowed the square; the assertion now holds the
+   rings at ONE and keeps the fill, which is what went wrong. */
+ok('...today keeps its one ring, the breathing outline it always had',
+   /\.h-week \.hwd\.tod\{outline:1\.5px solid var\(--accent\)/.test(css) &&
+   !/\.h-week \.hwd\.tod:not\(\.on\)\{[^}]*box-shadow/.test(css));
+ok('...and an untrained today is not hollowed out',
+   !/\.h-week \.hwd\.tod:not\(\.on\)\{[^}]*background:none/.test(css));
+/* the sheen is the maker's favourite thing in the header; nothing may quietly
+   stop it sweeping a trained square */
+ok('the shimmer still sweeps every trained square',
+   /\.h-week \.hwd\.on::after\{[^}]*animation:hwsheen/.test(css) &&
+   /\.h-week \.hwd:nth-child\(7\)\.on::after\{animation-delay:\.60s\}/.test(css));
+ok('...and today, once trained, is a filled square that can carry it',
+   /\.h-week \.hwd\.on\{background:var\(--accent\)\}/.test(css));
 process.exit(fails?1:0);

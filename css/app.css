@@ -1064,11 +1064,13 @@
      missed fill at 10px. */
   .h-week .hwd.ahead{background:none;
     box-shadow:inset 0 0 0 1.2px color-mix(in srgb,var(--chalk) 20%,transparent)}
-  /* an open today is outlined too, by the same rule: it has not happened yet.
-     It fills the moment a set lands. */
-  .h-week .hwd.tod:not(.on){background:none;
-    box-shadow:inset 0 0 0 1.6px var(--accent)}
-  .h-week .hwd.tod.resting:not(.on){box-shadow:inset 0 0 0 1.6px var(--pill-rest,var(--rest-ink))}
+  /* v4.1.9 REMOVES what v4.1.8 added here. Today ALREADY had its ring -- an
+     `outline` with a 2px offset (below), whose colour hwpulse breathes. I gave
+     it a second one as an inset shadow and set background:none, so an open
+     today went from a filled square wearing a halo to an empty box wearing two
+     rings, and the sheen had nothing left to sweep across.
+     The rule "outlined means it has not happened" is carried by the halo that
+     was always there; it did not need restating in a second property. */
   /* v3.3.380: the ring is an OUTLINE, not a spreading box-shadow. A 4px
      spread on a 10px square is an 18px footprint inside a 5px gap, so the
      ring overlapped the square before it and ran into the numeral. An
