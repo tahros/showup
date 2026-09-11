@@ -140,7 +140,11 @@ ok('...and today, once trained, is a filled square that can carry it',
      inversion fixed when it was not */
   const lightBlock=css.slice(css.indexOf(':root[data-theme="light"]{'));
   const ground=(lightBlock.match(/--ground:(#[0-9A-Fa-f]{6})/)||[])[1];
-  const miss=pick(/:root\[data-theme="light"\] \.h-week \.hwd\{background:(#[0-9A-Fa-f]{6})\}/);
+  /* v4.1.12 added :not(.on) to this selector -- the missed fill must match
+     nothing but a missed day */
+  /* tolerant of the selector shape on purpose: the shape itself is asserted
+     below, and the fixture should not be what fails when the cascade breaks */
+  const miss=pick(/:root\[data-theme="light"\] \.h-week \.hwd(?::not\(\.on\))?\{background:(#[0-9A-Fa-f]{6})\}/);
   const ahead=pick(/:root\[data-theme="light"\] \.h-week \.hwd\.ahead\{background:none;\s*box-shadow:inset 0 0 0 1\.2px (#[0-9A-Fa-f]{6})\}/);
   ok('(fixture) the light tokens are readable from the sheet',
      !!ground && !!miss && !!ahead, `${ground} / ${miss} / ${ahead}`);
@@ -155,5 +159,34 @@ ok('...and today, once trained, is a filled square that can carry it',
      !/:root\[data-theme="dark"\] \.h-week \.hwd\{/.test(css));
   ok('...and --surface2 itself is not repainted for half the app',
      /--ground:#EFEFEF; --surface:#FFFFFF; --surface2:#F7F7F7/.test(css));
+}
+/* ---- v4.1.12: the cascade, not the hex ----------------------------------
+   v4.1.11 asserted the light-mode colours by reading them out of the
+   stylesheet, and shipped a rule that painted over EVERY TRAINED DAY. The
+   hex values were right; the cascade was not, and a text match cannot see a
+   cascade. Resolved style, with the sheet actually installed. */
+{
+  const {JSDOM}=require('jsdom');
+  const page=new JSDOM(`<!doctype html><html data-theme="light"><head><style>${css}</style></head>
+    <body><div id="app"><div class="h-week">
+      <i class="hwd on"></i><i class="hwd"></i><i class="hwd ahead"></i>
+      <i class="hwd tod"></i><i class="hwd on tod"></i></div></div></body></html>`,{pretendToBeVisual:true});
+  const bg=sel=>page.window.getComputedStyle(page.window.document.querySelector(sel)).background||
+                page.window.getComputedStyle(page.window.document.querySelector(sel)).backgroundColor;
+  const MISS='rgb(218, 218, 218)';
+  ok('(fixture) the missed square really resolves to the new grey',
+     bg('.hwd:not(.on):not(.ahead):not(.tod)').includes(MISS)||bg('.hwd:not(.on):not(.ahead):not(.tod)').includes('#DADADA'),
+     bg('.hwd:not(.on):not(.ahead):not(.tod)'));
+  ok('A TRAINED DAY IS NOT PAINTED OVER BY THE MISSED FILL',
+     !bg('.hwd.on').includes(MISS) && !bg('.hwd.on').toLowerCase().includes('#dadada'),
+     bg('.hwd.on'));
+  ok('...and today, once trained, keeps its fill too',
+     !bg('.hwd.on.tod').includes(MISS) && !bg('.hwd.on.tod').toLowerCase().includes('#dadada'),
+     bg('.hwd.on.tod'));
+  ok('...while an untrained today does take the missed grey',
+     bg('.hwd.tod:not(.on)').includes(MISS)||bg('.hwd.tod:not(.on)').toLowerCase().includes('#dadada'),
+     bg('.hwd.tod:not(.on)'));
+  ok('the light override says what it is — the MISSED fill, matching nothing else',
+     /:root\[data-theme="light"\] \.h-week \.hwd:not\(\.on\)\{background:#DADADA\}/.test(css));
 }
 process.exit(fails?1:0);

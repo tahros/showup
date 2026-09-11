@@ -1,6 +1,41 @@
 # ShowUp — changelog
 
 
+
+## v4.1.12 (2026-09-11) — Give the blues back
+
+v4.1.11 turned the whole week grey. Every trained day, painted over.
+
+`:root[data-theme="light"] .h-week .hwd` and `.h-week .hwd.on` carry the **same
+specificity**, and the new rule sat later in the file — so the missed fill won
+against the trained fill and the strip lost its blue entirely. The chip went on
+reading `3d` because the count is JavaScript and only the paint was broken,
+which made it look like a rendering glitch rather than a cascade fault.
+
+`:not(.on)` fixes it. The narrow selector is also the honest one: this is the
+**missed** fill, so it should say so and match nothing else.
+
+**Second time in three releases that specificity let me overwrite something
+already correct** — v4.1.9 was the same shape, a rule added on top of one that
+was already right. The rule for this file, now stated twice: before adding a
+declaration, read what already claims that property.
+
+### The test could not have caught it, and now can
+
+v4.1.11's assertions read hex values out of the stylesheet and computed
+contrast ratios from them. Every one of those numbers was correct. **A text
+match cannot see a cascade** — the values were right and the winner was wrong.
+
+The light-mode claims are now made against **resolved style** with the sheet
+installed in a real document: a trained square must not resolve to the missed
+grey, an untrained today must, and today-once-trained keeps its fill. Restoring
+the exact bug turns three of them red, on the claim rather than on a fixture.
+
+### Two reds, neither this release's
+
+`test-planner-server` since v4.0.2, `test-daydone` since v4.1.10.
+
+
 ## v4.1.11 (2026-09-11) — Light mode had the hierarchy inverted
 
 A missed day was `--surface2` (#F7F7F7) on a `--ground` of #EFEFEF: **1.06:1**,

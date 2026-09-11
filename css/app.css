@@ -1074,7 +1074,16 @@
      Scoped to the strip and to light: --surface2 dresses half the app, and
      dark has the opposite arithmetic already (#272727 on #0A0A0A is a clear
      step), so neither is touched. */
-  :root[data-theme="light"] .h-week .hwd{background:#DADADA}
+  /* v4.1.12: :not(.on) -- WITHOUT IT THIS PAINTED OVER EVERY TRAINED DAY.
+     `:root[data-theme="light"] .h-week .hwd` and `.h-week .hwd.on` carry the
+     same specificity, and this rule sits later in the file, so it won and the
+     whole week went grey. The count kept saying 3d because the count is JS
+     and only the paint was broken -- which is exactly why a test reading hex
+     values out of the stylesheet did not notice.
+     Second time in three releases that specificity let me overwrite something
+     that was already right. The narrow rule is the honest one: this is the
+     MISSED fill, so it should say so and match nothing else. */
+  :root[data-theme="light"] .h-week .hwd:not(.on){background:#DADADA}
   :root[data-theme="light"] .h-week .hwd.ahead{background:none;
     box-shadow:inset 0 0 0 1.2px #E2E2E2}
   /* v4.1.9 REMOVES what v4.1.8 added here. Today ALREADY had its ring -- an
