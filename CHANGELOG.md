@@ -5,6 +5,34 @@
 
 
 
+
+## v4.1.16 (2026-09-11) — A by-feel row names no load, so it cannot be matched by one
+
+Standing Calf Raise, planned `by feel × 12 12 12`. A set logged at 45 lb. The
+row stayed empty and the head read **0 of 3 sets**.
+
+v3.3.534 spent the day's sets against the plan **by weight** — correct for a row
+that names a weight, and silently impossible for `by feel`, whose key is `0`
+while the set sits under its real load. The two could never meet, however many
+sets landed.
+
+Reproduced first, by rendering the exact case rather than reading the code:
+`0 of 3 sets`, dial empty, a 45 lb × 12 on the record.
+
+Two passes now, and **the order matters**: rows that name a weight take theirs
+first, then by-feel rows take whatever is left at any load. The other way round,
+a by-feel row would eat sets belonging to the weighted rows beneath it — there
+is an assertion for exactly that, with a probe that reverses the passes and
+turns it red.
+
+One assertion of mine read the dials by position and got the order backwards: a
+full row **folds**, so its dial leads the list. Indexed by value now.
+
+### Two reds, neither this release's
+
+`test-planner-server` since v4.0.2, `test-daydone` since v4.1.10.
+
+
 ## v4.1.15 (2026-09-11) — The chart follows the set you just did
 
 The pick only moved when it fell **out** of scope. So logging a set left the

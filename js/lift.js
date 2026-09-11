@@ -732,11 +732,25 @@ function renderLift(){
         const pool={};
         todaySets.forEach(t=>{ const k=Math.round((t.w||0)*100);
           pool[k]=(pool[k]||0)+((t.reps||[]).length||0); });
-        const rows=lines.map(l=>{
-          const k=Math.round((l.w||0)*100), want=(l.reps||[]).length;
-          const got=Math.min(want,pool[k]||0); pool[k]=(pool[k]||0)-got;
-          return {l,want,got,full:got>=want};
-        });
+        /* v4.1.16: A BY-FEEL ROW NAMES NO LOAD, SO IT CANNOT BE MATCHED BY
+           ONE. v3.3.534 spent the pool by weight, which is right for a row
+           that names a weight -- and silently impossible for `by feel`, whose
+           key is 0 while the set you logged sits under its real load. The row
+           stayed empty however many sets landed.
+           Two passes, and the order matters: rows that NAME a weight take
+           theirs first, then by-feel rows take whatever is left at any load.
+           The other way round, a by-feel row would eat sets belonging to the
+           weighted rows above it. */
+        const rows=lines.map(l=>({l,want:(l.reps||[]).length,got:0}));
+        rows.forEach(r=>{ if(r.l.nw) return;
+          const k=Math.round((r.l.w||0)*100);
+          r.got=Math.min(r.want,pool[k]||0); pool[k]=(pool[k]||0)-r.got; });
+        rows.forEach(r=>{ if(!r.l.nw) return;
+          let need=r.want;
+          for(const k of Object.keys(pool)){ if(need<=0) break;
+            const take=Math.min(need,pool[k]||0); pool[k]-=take; need-=take; }
+          r.got=r.want-need; });
+        rows.forEach(r=>{ r.full=r.got>=r.want; });
         const doneSets=rows.reduce((n,r)=>n+r.got,0), allSets=rows.reduce((n,r)=>n+r.want,0);
         const folded=rows.filter(r=>r.full), live=rows.filter(r=>!r.full);
         const open=!!dayMeta().planOpen&&dayMeta().planOpen[ex];

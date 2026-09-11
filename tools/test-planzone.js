@@ -93,4 +93,47 @@ ok("...and logs nothing — a plan row is what you are about to do",
    run(`day(todayISO).w.length`)===before, String(run(`day(todayISO).w.length`)));
 ok("...and there is no ✕ to dismiss your own plan",
    run(`!document.querySelector('.planzone [data-sugx]')`));
+/* ---- v4.1.16: a by-feel row names no load ---------------------------------
+   v3.3.534 spent the pool BY WEIGHT, which is right for a row that names one
+   and silently impossible for `by feel`: its key is 0 while the set sits under
+   its real load, so the row stayed empty however many sets landed. Reproduced
+   from the maker's Standing Calf Raise. */
+const setupFeel = today => run(`(function(){DB.days={};DB.plan=null;DB.week=null;
+  DB.settings.unit='lb'; DB.settings.onboarded=true; DB.settings.myParts=['Legs'];
+  DB.days['2026-09-09']={w:[{part:'Legs',ex:'Squat',w:90,reps:[8],at:1}],upd:1};
+  DB.days[todayISO]={w:${JSON.stringify(today)}.map(s=>({part:'Legs',ex:'Standing Calf Raise',
+    w:toKg(s[0]),reps:s[1],at:1})),upd:1};
+  DB.plan={d:todayISO,note:'',items:[{ex:'Standing Calf Raise',
+    lines:[{nw:1,reps:[12,12,12],note:''}]}]};
+  SEED=deriveAll(); view='lift'; lift.part='Legs'; lift.ex='Standing Calf Raise';
+  lift.weight=0; dayMeta(); render();})()`);
+const head = () => run(`(document.querySelector('.planzone .ago')||{}).textContent||''`);
+const fills2 = () => JSON.parse(run(`JSON.stringify([...document.querySelectorAll('.planzone .pgd')].map(e=>e.style.getPropertyValue('--f')))`));
+
+setupFeel([[45,[12]]]);
+ok("a by-feel row fills from a set logged at a real load",
+   /1 of 3 sets/.test(head()), head());
+ok("...and its dial moves with it", Math.abs(+fills2()[0]-1/3)<0.01, JSON.stringify(fills2()));
+setupFeel([[45,[12]],[50,[12]],[50,[11]]]);
+ok("...counting sets at ANY load, because it named none",
+   /3 of 3 sets/.test(head()), head());
+ok("...and folds once full", run(`!!document.querySelector('.planzone .planrow2.fold')`));
+
+/* the ordering claim: a weighted row must take its own sets first, or the
+   by-feel row above it eats them */
+run(`(function(){DB.days[todayISO]={w:[
+    {part:'Legs',ex:'Standing Calf Raise',w:toKg(45),reps:[12],at:1},
+    {part:'Legs',ex:'Standing Calf Raise',w:toKg(90),reps:[8],at:2}],upd:1};
+  DB.plan={d:todayISO,note:'',items:[{ex:'Standing Calf Raise',lines:[
+    {nw:1,reps:[12,12],note:''},{w:toKg(90),reps:[8],note:''}]}]};
+  SEED=deriveAll(); dayMeta(); render();})()`);
+/* a full row FOLDS, so its dial leads the list -- index by value, not by
+   position, or this reads the fold line and calls the order wrong */
+ok("a weighted row keeps the set that matches it, even under a by-feel row",
+   fills2().some(f=>+f===1) && !!run(`document.querySelector('.planzone .planrow2.fold')`),
+   JSON.stringify(fills2()));
+ok("...and the by-feel row takes only what is left, not the weighted row's set",
+   fills2().some(f=>Math.abs(+f-0.5)<0.01), JSON.stringify(fills2()));
+ok("...so the head counts both, not one twice",
+   /2 of 3 sets/.test(head()), head());
 process.exit(fail?1:0);
