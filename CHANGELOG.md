@@ -4,6 +4,44 @@
 
 
 
+
+## v4.1.5 (2026-09-11) — A Clear that was never saved is not the record
+
+Today showed a five-exercise routine. Tapping **Edit** under it opened an empty
+day, saying *"Routine cleared. Save to apply, or Undo to restore."*
+
+Reproduced rather than reasoned about, by driving the real controls: clear a day
+in the editor, leave without saving, return to Today. The book keeps
+`{rows:[], cleared:true}` for that date, but `DB.plan` is untouched — so the
+Today card, which reads `DB.plan`, goes on showing the routine, while the
+editor, which reads the book, shows nothing.
+
+`pwDay()` seeds a day from the saved plan **only when there is no book entry at
+all**. Once an entry exists — however stale, however abandoned — the saved plan
+is never read again. Two surfaces answering the same question from two sources,
+which is the *one clock for many facts* fault under a new name.
+
+Entering the editor from a date now drops an abandoned clear and lets the day
+re-seed from what is actually saved. **Only when it is empty**: a cleared draft
+with no rows has nothing in it to lose, so this cannot discard work. A draft
+with rows is left exactly alone and is still reached by *Resume draft*, which is
+what that button is for — asserted.
+
+Deliberately not inside `pwDay()`. Re-seeding there would undo Clear while the
+maker is still reading *"Save to apply, or Undo to restore"* — also asserted,
+along with Undo itself.
+
+Four faults in the test before it was honest: a ternary binding looser than
+`===` so `${rows}===0` evaluated to `0` and read as false; a `const b` colliding
+with another in the same vm context; two rounds of backslash depth in a fixture
+string. The last was sidestepped by building the draft rows from a row the day
+already had rather than from parsed text.
+
+### One red left, not this release's
+
+`test-planner-server` has failed since v4.0.2.
+
+
 ## v4.1.4 (2026-09-11) — The greeting mascot, 15% bigger
 
 82px → **94px**. Rendered at 82, 94, 98 and 103 against the real greeting row

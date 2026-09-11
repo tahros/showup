@@ -345,7 +345,24 @@ function pwHandle(e){
        Today's "Dates >" that is Today; from the editor's datebar it is the
        editor. "Where we came from" is the rule, not a fixed destination. */
     if(a==='open'||a==='resume'){if(a==='open')pw().datesFrom='today';pwOpen(null,a==='open'?'dates':undefined);return true;}
-    if(a==='open-date'||a==='paste-open'){pwOpen(d);if(a==='paste-open'){s.pasteText='';s.editIndex=undefined;s.editAll=false;pwGo('paste');}return true;}
+    if(a==='open-date'||a==='paste-open'){
+      /* v4.1.5: A CLEAR THAT WAS NEVER SAVED IS NOT THE RECORD.
+         Reproduced: clear a day in the editor, leave without saving, and the
+         book keeps {rows:[], cleared:true} for that date. Today goes on
+         showing the routine because it reads DB.plan; the editor shows nothing
+         because pwDay() seeds from the saved plan ONLY when there is no book
+         entry at all. So tapping Edit under a visible routine opened an empty
+         day -- two surfaces answering the same question from two sources.
+         Entering the editor from a date therefore drops an abandoned clear and
+         lets the day re-seed from what is actually saved. Only when it is
+         EMPTY: a cleared draft with no rows has nothing in it to lose, so
+         this cannot discard work. A draft with rows is left alone and is still
+         reached by Resume draft, which is what that button is for.
+         Deliberately not inside pwDay(): re-seeding there would undo Clear
+         while the maker is still looking at "Save to apply, or Undo". */
+      const stale=s.book[d];
+      if(stale&&stale.cleared&&!stale.rows.length&&pwSaved(d)) delete s.book[d];
+      pwOpen(d);if(a==='paste-open'){s.pasteText='';s.editIndex=undefined;s.editAll=false;pwGo('paste');}return true;}
     if(a==='close'){pwRequest++;if(s.busy)lift.writeAbort?.abort();s.busy=false;if(s.step==='busy')s.step='edit';pwPersist();lift.plan=null;view='today';render({soft:true});return true;}
     if(a==='dates-toggle'){s.datesOpen=!s.datesOpen;if(s.datesOpen)s.datesFrom='edit';s.step='edit';}
     /* v4.0.3: Done became Cancel + Edit. "Done" read as "I have finished
