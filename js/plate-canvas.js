@@ -1,9 +1,18 @@
 /* Canvas uses card-local coordinates: no SVG/CSS transform disagreement on iOS.
    Queued plates are not drawn. Positive y always travels down from the card sky. */
+/* v4.2.5: the card says WHICH DAY, in the completion moment's own words.
+   The number, the sets and the exercises were all here; the date was not, so
+   the card read as "some day's work" on a screen you reach any time. Same
+   format and same mono caps as the ceremony -- one voice for one fact. */
+function plateDateLabel(){
+  const d=new Date(todayISO+'T00:00');
+  return d.toLocaleDateString('en-US',{weekday:'long'})+' \u00b7 '+
+         d.toLocaleDateString('en-US',{month:'long',day:'numeric'});
+}
 function plateStatsHTML(){
   const m=plateCurrent();if(!m.sets)return '';
   const done=!!DB.days?.[todayISO]?.doneAll;
-  return `<h2>${done?'Today completed':'Your work, stacking up'}</h2><div class="card plate-card"><div class="plate-scene"><canvas class="plate-canvas" role="img" aria-label="Today's lifted volume as stacked plates"></canvas>${mascotMode()==='off'?'':'<span class="plate-mascot-shadow" aria-hidden="true"></span>'+mascotHTML(done?'cool':'jump')}</div><div class="plate-total"><b>${plateNumber(m.kg)}</b> ${U()} moved</div><div class="plate-caption">${m.sets} set${m.sets===1?'':'s'} · ${m.exercises} exercise${m.exercises===1?'':'s'}</div><div class="plate-bank"></div><button type="button" class="plate-replay" aria-label="Replay today's plate stack">↻ <span>Tap to replay</span></button><span class="plate-announcement" aria-live="polite"></span></div>`;
+  return `<h2>${done?'Today completed':'Your work, stacking up'}</h2><div class="card plate-card"><div class="plate-date">${plateDateLabel()}</div><div class="plate-scene"><canvas class="plate-canvas" role="img" aria-label="Today's lifted volume as stacked plates"></canvas>${mascotMode()==='off'?'':'<span class="plate-mascot-shadow" aria-hidden="true"></span>'+mascotHTML(done?'cool':'jump')}</div><div class="plate-total"><b>${plateNumber(m.kg)}</b> ${U()} moved</div><div class="plate-caption">${m.sets} set${m.sets===1?'':'s'} · ${m.exercises} exercise${m.exercises===1?'':'s'}</div><div class="plate-bank"></div><button type="button" class="plate-replay" aria-label="Replay today's plate stack">↻ <span>Tap to replay</span></button><span class="plate-announcement" aria-live="polite"></span></div>`;
 }
 // Pure position calculation shared with browser regression tests.
 function platePose(age,landingY,direction){

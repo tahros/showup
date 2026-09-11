@@ -1,6 +1,40 @@
 # ShowUp — changelog
 
 
+
+## v4.2.5 (2026-09-11) — The completed card says which day
+
+The plate card carried the number, the sets and the exercises, but not the
+date — so on a screen you can reach any time it read as *some day's work*. It
+now opens with the completion moment's own line, `FRIDAY · SEPTEMBER 11`, in
+the same format and the same mono caps. One voice for one fact.
+
+### Diagnosed, not fixed: a selected body part producing nothing
+
+Biceps and Triceps selected for Sep 12; neither appears; the card says so and
+offers **Use draft** anyway. Three causes, all local and all in `js/writer.js`:
+
+**1. The repair brief argues against itself.** Line 830 tells the repair to
+*"write the exercises payload.usual lists for the day's part before any new
+one."* When a selected part has no history it has no `usual` entries — so the
+brief restates the very constraint that caused the omission, and never restates
+the one that matters: a selected part must appear.
+
+**2. The accept test is strictly-fewer.** Line 840 keeps a repair only if the
+total violation count drops. A rewrite that adds the biceps work but trips any
+lesser rule nets to equal and is thrown away whole.
+
+**3. One attempt.** After that the first answer stands with the fault printed
+below it and a blue **Use draft** beneath that.
+
+The fix is to name the selected parts as the repair's first requirement, accept
+a repair that clears a parts violation even when it trades a lesser one, and
+allow a second attempt. I have not shipped it: the writer's round trip goes
+through the Edge Function, so I cannot exercise it end to end here, and this is
+the wrong end of a session to change the thing that writes the plans on
+reasoning alone.
+
+
 ## v4.2.4 (2026-09-11) — The completion mascot is blue, and still jumps
 
 Blue was only reachable as mode `cool`, and mode also chooses the animation —
