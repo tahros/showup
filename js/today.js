@@ -219,7 +219,7 @@ function dayOneHTML(){
       <h3 class="d1h">One set is day one.</h3>
       <p class="muted d1p">ShowUp counts days, not perfection.</p>
       <button class="onbbtn pri" data-d1="start">Log your first set</button>
-      ${refinedFlow()&&!d1.preview?(planningWorkspace()?`<div class="pw-actions">${pwButton('open','Plan a workout')}${pwButton('paste-open','Paste routine','',`data-date="${todayISO}"`)}</div>`:`<div class="flow-dayone-plan"><span class="mono muted">Have a routine?</span><span class="planedge"><button class="pedge" data-planpaste>${icon('paste',ICON_SZ.sm)}Paste</button><button class="pedge pwrite" data-planwrite>${icon('sparkle',ICON_SZ.sm)}Write</button></span></div>`):''}
+      ${refinedFlow()&&!d1.preview?(planningWorkspace()?`<div class="pw-actions">${pwAction('open','Plan','sparkle')}${pwAction('paste-open','Paste','paste','',`data-date="${todayISO}"`)}</div>`:`<div class="flow-dayone-plan"><span class="mono muted">Have a routine?</span><span class="planedge"><button class="pedge" data-planpaste>${icon('paste',ICON_SZ.sm)}Paste</button><button class="pedge pwrite" data-planwrite>${icon('sparkle',ICON_SZ.sm)}Write</button></span></div>`):''}
       <button class="onbbtn d1soon" data-d1="soon" aria-disabled="true">Bring my logs over \u00b7 soon</button>
       ${d1.preview?`<button class="d1link" data-d1="moment">See the moment</button>`
                   :`<button class="d1link" data-onbact="demo">Explore with sample data</button>`}

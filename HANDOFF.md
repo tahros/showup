@@ -1,5 +1,35 @@
 # ShowUp — handoff (2026-08-22, v3.3.267)
 
+## One planning editor — v4.0.1 (2026-09-10)
+
+Fetched main/header checked at a123bad / v4.0.0 before editing and rechecked
+before release. Branch codex/planning-one-editor. Scope: planner.js,
+planner.css, the first-day shared actions in today.js, tests and stamps/docs.
+No header, navigation, Progression, writer or server implementation changes.
+
+Today -> editor -> Save. Calendar and body parts/goal are inline; paste,
+editrow, adjust, busy and candidate are contextual panels in the same shell.
+Old dates/focus/review draft steps normalize to edit. Multi-date chips remain
+visible, per-date focus is retained, and empty selected days block Save.
+An empty active day offers Plan/Paste instead of a disabled Save. Candidate
+approval remains explicit; pwApply updates only the draft. pwSave retains its
+fingerprint guard, neighboring-day merge and no-workout-ledger guarantee.
+Draft, Undo, locks and Previous rollback keys are unchanged.
+
+Goal range maps to the existing writer objective. Hidden legacy notes remain
+in payloads rather than silently discarding previously entered instructions.
+Writing reuses writerWaitHTML/Start/Stop. Clipboard calls are user-triggered;
+late reads check account, active date and mounted textarea before applying.
+Footer clearance is scoped to pw-save-dock and measures the existing nav;
+it does not mutate the header/tab bar. Context collapses for inline tools.
+
+QA: 73 planner assertions pass; isolated synthetic browser flow in light/dark
+at 320/393/430/1000px, including touch/mouse reorder and cancel, writing/cancel,
+calendar, clipboard selection, equal-width focus, CTA/nav clearance, inline
+preview, direct Save, completed Today and animated Coming up. Full suite:
+73/74 scripts pass; sole failure is the pre-existing test-runclose jsdom
+computed-width assertion, as in v4.0.0. No real records or paid model calls.
+
 ## Planning polish — v4.0.0 (2026-09-10)
 
 Fetched main/header checked at 496f03c / v3.3.543 before editing; isolated on
