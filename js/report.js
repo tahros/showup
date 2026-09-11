@@ -914,6 +914,7 @@ function drawHeat(o){
    disagree with what Share sends. Reduced motion skips straight to the whole
    image, because an unrevealed card is not a card. */
 async function showCard(drawFn,label,fromCarousel,reveal){
+  if(typeof plateExportCleanup==='function')plateExportCleanup();
   try{
     if(document.fonts&&document.fonts.ready) await document.fonts.ready;
     const cv=drawFn();
@@ -1096,8 +1097,14 @@ document.addEventListener('click',e=>{
     if(at) showCard(at.card.draw, at.card.file(), true);   // v3.3.139: swipeable
     return;
   }
-  if(hit('repClose')){ repOvEl().style.display='none'; return; }
+  if(hit('repClose')){ if(typeof plateExportCleanup==='function')plateExportCleanup();repOvEl().style.display='none'; return; }
   if(hit('repDo')&&_repCv){
+    if(_repCv.gifBlob){
+      const blob=_repCv.gifBlob,name=String(_repCv.label)+'.gif',file=new File([blob],name,{type:'image/gif'});
+      if(navigator.canShare&&navigator.canShare({files:[file]}))navigator.share({files:[file]}).catch(e=>{if(e.name!=='AbortError')toast('Could not share the GIF. Try saving it instead.');});
+      else{const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),60000);}
+      return;
+    }
     const name='showup-'+String(_repCv.label).toLowerCase().replace(/[^a-z0-9]+/g,'-')+'.png';
     _repCv.cv.toBlob(b=>{
       const f=new File([b],name,{type:'image/png'});

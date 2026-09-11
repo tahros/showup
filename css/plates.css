@@ -1,4 +1,9 @@
 :root{--plate-side:#2c2c2c;--plate-top:#404040;--plate-hole:#222}
+.plate-export-options{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;max-width:420px}
+.plate-export-options .btn{width:auto;margin:0;min-height:44px}
+.plate-export-options [aria-pressed="true"]{outline:2px solid var(--accent);outline-offset:1px}
+.plate-export-options [role="status"]{flex-basis:100%;text-align:center;color:#fff;font:12px var(--body)}
+#repOv:has(.plate-export-options) #repImg{max-height:65dvh;object-fit:contain}
 [data-theme="dark"]{--plate-side:#bbb;--plate-top:#ededed;--plate-hole:#929292}
 .plate-mini{height:48px;display:flex;align-items:center;gap:10px;font:11px var(--mono);color:var(--muted)}
 .plate-mini svg{width:40px;height:38px;flex:none;overflow:hidden}

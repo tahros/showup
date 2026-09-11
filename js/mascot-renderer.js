@@ -252,5 +252,7 @@ export function createMascot(stage, options={}) {
      when it ends -- the same path a fresh mount takes, so there is one
      sequence to get right rather than two. */
   function replay(next){if(disposed||lost||still)return;if(next)mode=next;elapsed=0;previous=0;resume();}
-  return {pause,resume,update,dispose,replay,capture:()=>{paint(0);return renderer.domElement.toDataURL('image/png');}};
+  // Export uses the same geometry and pose clock, sampled without real-time drift.
+  function captureFrame(t){pause();elapsed=Math.max(0,t);paint(elapsed);return renderer.domElement;}
+  return {pause,resume,update,dispose,replay,captureFrame,capture:()=>{paint(0);return renderer.domElement.toDataURL('image/png');}};
 }

@@ -1,5 +1,16 @@
 # ShowUp — changelog
 
+## v4.3.0 (2026-09-11) — Share the motion
+
+- Completed stack sharing now offers Image or Animation (GIF), generated locally
+  at 1080 × 1280 with 50 fps motion and a final hold. Plates fall and the total
+  counts up alongside the actual approved 3D mascot jump.
+- Bundle IBM Plex Sans for consistent exports. Place the smaller, theme-matched
+  mascot logo bottom left and the profile first name bottom right.
+- Encode GIFs in a worker with progress, cancellation and image fallback; bundle
+  the encoder, fonts and animation modules for offline availability.
+- Other share cards, profile fields and workout records remain unchanged.
+
 ## v4.2.7 (2026-09-11) — Share the stack
 
 - TODAY COMPLETED's plate-card Share now exports the approved 1080 × 1280

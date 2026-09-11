@@ -48,6 +48,14 @@ assert(await page.evaluate(()=>getComputedStyle(document.querySelectorAll('.plat
 await page.locator('.plate-card').screenshot({path:path.join(root,'../plate-colors-shipped.png')});
 const beforeShare=await page.evaluate(()=>JSON.stringify(DB));await page.locator('.plate-share').click();await page.locator('#repOv').waitFor({state:'visible'});
 fs.writeFileSync(path.join(root,'../stacked-share-verified.png'),Buffer.from(await page.evaluate(()=>_repCv.cv.toDataURL('image/png').split(',')[1]),'base64'));
+assert(await page.evaluate(()=>document.fonts.check('700 20px "ShowUp Export Plex"')),'Export uses loaded IBM Plex Sans, not fallback');
+await page.locator('[data-format="gif"]').click();await page.waitForTimeout(100);await page.locator('[data-format="image"]').click();
+assert(await page.locator('#repDo').innerText()==='Share image','Cancel generation returns to image');
+await page.locator('[data-format="gif"]').click();await page.waitForFunction(()=>!!_repCv.gifBlob,{},{timeout:180000});
+assert(await page.locator('#repDo').innerText()==='Share GIF','Ready animation has real Share GIF action');
+const gif64=await page.evaluate(()=>new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result.split(',')[1]);f.readAsDataURL(_repCv.gifBlob)}));
+fs.writeFileSync(path.join(root,'../stacked-share-production.gif'),Buffer.from(gif64,'base64'));
+await page.locator('[data-format="image"]').click();assert(await page.evaluate(()=>!_repCv.gifBlob),'Image sharing does not reuse GIF data');
 assert(await page.evaluate(()=>JSON.stringify(DB))===beforeShare,'Export never modifies profile or workout');await page.locator('#repClose').click();
 await page.evaluate(()=>{view='lift';lift.ex='Barbell Bench Press';lift.part='Chest';lift.copy=false;renderLift()});assert(await page.locator('.plate-mini').count(),'Training receipt retained');await page.locator('#addrep').click();assert((await page.locator('.plate-mini').innerText()).includes('today'),'Real Add set updates receipt');
 console.log('PASS canvas plates: real Stats entry/replay, downward path, alternating tilt, count-up, mascot/shadow, lifecycle, profile, reduced motion and mobile width');

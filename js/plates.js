@@ -31,17 +31,22 @@ async function sharePlateCard(){
   const css=getComputedStyle(document.documentElement),read=(k,f)=>css.getPropertyValue(k).trim()||f;
   const data={date,record,name:firstName()||'',unit:U(),total:plateNumber(plateMetrics(record).kg),
     surface:read('--surface','#fff'),ink:read('--chalk','#1c1c1c'),muted:read('--muted','#686868'),line:read('--line','#ededed'),
-    colors:Object.fromEntries(Object.entries(PART_COLORS).map(([p,v])=>[p,read(v.slice(4,-1),'#888888')]))};
+    dark:document.documentElement.dataset.theme==='dark',colors:Object.fromEntries(Object.entries(PART_COLORS).map(([p,v])=>[p,read(v.slice(4,-1),'#888888')]))};
   try{
-    const mascot=new Image();mascot.src='assets/mascot-blue.png';await mascot.decode();
-    return showCard(()=>drawPlateShare(data,mascot),'showup-stacked-'+date,false);
+    const mascot=new Image();mascot.src='assets/mascot-blue.png';
+    const logo=new Image();logo.src='assets/mascot-mark-'+(data.dark?'white':'charcoal')+'.png';
+    const module=await import('./plate-gif.js');
+    await Promise.all([mascot.decode(),logo.decode(),module.loadExportFonts()]);data.logo=logo;
+    await showCard(()=>drawPlateShare(data,mascot),'showup-stacked-'+date,false);
+    bindPlateExport(data,mascot,module);
   }catch(e){toast('Could not prepare the stacked image. Please try again.');}
 }
-function drawPlateShare(data,mascot){
-  const cv=document.createElement('canvas');cv.width=1080;cv.height=1280;
+function drawPlateShare(data,mascot,frame={}){
+  const cv=frame.canvas||document.createElement('canvas');cv.width=1080;cv.height=1280;
   const x=cv.getContext('2d');if(!x)return null;
   const m=plateMetrics(data.record),plates=plateLedger(data.record),bank=Math.max(0,Math.floor((plates.length-1)/30))*30;
-  const sans='"IBM Plex Sans",sans-serif',mono='"IBM Plex Mono",monospace';
+  const sans='"ShowUp Export Plex", "IBM Plex Sans",sans-serif',mono=sans;
+  const animated=Number.isFinite(frame.time);let total=bank?plates[bank-1].end:0;
   x.fillStyle=data.surface;x.fillRect(0,0,1080,1280);
   const text=(s,y,font,color=data.ink)=>{x.font=font;x.fillStyle=color;x.textAlign='center';x.fillText(s,540,y,944);};
   text('WORKOUT COMPLETE',98,'500 25px '+mono,data.muted);
@@ -50,17 +55,27 @@ function drawPlateShare(data,mascot){
   function shadow(cx,cy,rx,ry){x.save();x.translate(cx,cy);x.scale(rx,ry);const g=x.createRadialGradient(0,0,0,0,0,1);g.addColorStop(0,'rgba(90,90,90,.20)');g.addColorStop(1,'rgba(90,90,90,0)');x.fillStyle=g;x.beginPath();x.arc(0,0,1,0,Math.PI*2);x.fill();x.restore();}
   const shade=(c,f)=>{const hex=c.replace('#','');return /^[\da-f]{6}$/i.test(hex)?'#'+[0,2,4].map(i=>Math.round(parseInt(hex.slice(i,i+2),16)*f).toString(16).padStart(2,'0')).join(''):c;};
   for(let c=0;c<Math.min(3,Math.ceil((plates.length-bank)/10));c++)shadow(210+c*195,774,130,22);
+  x.save();x.beginPath();x.rect(60,190,960,610);x.clip();
   for(let i=bank;i<plates.length;i++){
-    const p=plates[i],n=i-bank,c=data.colors[p.part]||'#888888',cx=210+Math.floor(n/10)*195,cy=741-(n%10)*29,h=19*Math.min(1,p.kg/(500/LB));
+    const p=plates[i],n=i-bank,c=data.colors[p.part]||'#888888',cx=210+Math.floor(n/10)*195,end=741-(n%10)*29,h=19*Math.min(1,p.kg/(500/LB));
+    const age=animated?frame.time-n*70:1e6;if(age<0)continue;
+    let cy=end,angle=0;
+    if(age<340){const v=age/340;cy=155+(end-155)*v*v;angle=(i%2?-1:1)*.28*(1-v*.6);}
+    else{total=p.end;const v=Math.min(1,(age-340)/110);cy=end-7*Math.sin(v*Math.PI)*(1-v);angle=(i%2?-1:1)*.035*Math.sin(v*Math.PI*2)*(1-v);}
+    x.save();x.translate(cx,cy);x.rotate(angle);x.translate(-cx,-cy);
     x.fillStyle=shade(c,.7);x.beginPath();x.ellipse(cx,cy+h,88,20,0,0,Math.PI*2);x.fill();x.fillRect(cx-88,cy,176,h);
     x.fillStyle=c;x.beginPath();x.ellipse(cx,cy,88,20,0,0,Math.PI*2);x.fill();
     x.fillStyle=shade(c,.42);x.beginPath();x.ellipse(cx,cy,13,6,0,0,Math.PI*2);x.fill();
+    x.restore();
+    if(age>=340&&age<680){const v=(age-340)/340;for(const d of [-1,1])shadow(cx+d*(65+v*36),end+4-v*15,15+v*35,6+v*12);}
   }
-  shadow(891,778,80,13);x.drawImage(mascot,783,659,216,132);
-  x.font='700 112px '+sans;const numberWidth=x.measureText(data.total).width;
+  x.restore();
+  if(!frame.mascot)shadow(891,778,80,13);x.drawImage(frame.mascot||mascot,783,659,216,132);
+  const shown=animated?Math.round(data.unit==='lb'?total*LB:total).toLocaleString():data.total;
+  x.font='700 112px '+sans;const numberWidth=x.measureText(shown).width;
   x.font='400 34px '+mono;const unitText=data.unit+' moved',unitWidth=x.measureText(unitText).width;
   const left=(1080-numberWidth-unitWidth-23)/2;
-  x.textAlign='left';x.fillStyle=data.ink;x.font='700 112px '+sans;x.fillText(data.total,left,915);
+  x.textAlign='left';x.fillStyle=data.ink;x.font='700 112px '+sans;x.fillText(shown,left,915);
   x.font='400 34px '+mono;x.fillStyle=data.muted;x.fillText(unitText,left+numberWidth+23,915);
   text(`${m.sets} set${m.sets===1?'':'s'} · ${m.exercises} exercise${m.exercises===1?'':'s'}`,982,'500 30px '+mono,data.muted);
   // Wrap the legend rather than shrinking names when more parts are present.
@@ -69,9 +84,27 @@ function drawPlateShare(data,mascot){
   rows.forEach((row,r)=>{let left=(1080-row.reduce((s,p)=>s+p.w,0))/2;for(const {p,w} of row){x.fillStyle=data.colors[p]||data.muted;x.beginPath();x.arc(left+7,1030+r*37,7,0,Math.PI*2);x.fill();x.fillStyle=data.muted;x.textAlign='left';x.fillText(p,left+24,1038+r*37);left+=w;}});
   if(bank)text(`${bank/10} completed stacks + current stacks`,1140,'400 24px '+mono,data.muted);
   x.strokeStyle=data.line;x.lineWidth=1;x.beginPath();x.moveTo(70,1180);x.lineTo(1010,1180);x.stroke();
-  x.fillStyle=data.muted;x.font='400 28px '+sans;x.textAlign='left';x.fillText(data.name,70,1230,680);
-  x.fillStyle=data.ink;x.font='600 30px '+sans;x.textAlign='right';x.fillText('Show Up',1010,1230);
+  x.fillStyle=data.muted;x.font='400 28px '+sans;x.textAlign='right';x.fillText(data.name,1010,1230,680);
+  if(data.logo)x.drawImage(data.logo,14,85,485,292,70,1201,82,49);
   return cv;
+}
+let plateExportCleanup=()=>{};
+function bindPlateExport(data,mascot,module){
+  const current=_repCv,ov=repOvEl(),img=ov.querySelector('#repImg'),share=ov.querySelector('#repDo');
+  const row=document.createElement('div');row.className='plate-export-options';
+  row.innerHTML='<button type="button" class="btn ghost" data-format="image">Image</button><button type="button" class="btn ghost" data-format="gif">Animation · GIF</button><span role="status" aria-live="polite"></span>';
+  ov.insertBefore(row,img);let controller=null,url=null,blob=null,closed=false;
+  const imageButton=row.querySelector('[data-format="image"]'),gifButton=row.querySelector('[data-format="gif"]'),status=row.querySelector('[role="status"]');
+  function image(){controller?.abort();controller=null;current.gifBlob=null;img.src=current.cv.toDataURL();share.textContent='Share image';gifButton.disabled=false;imageButton.setAttribute('aria-pressed','true');gifButton.setAttribute('aria-pressed','false');status.textContent='';}
+  function preview(){current.gifBlob=blob;url ||= URL.createObjectURL(blob);img.src=url;share.textContent='Share GIF';imageButton.setAttribute('aria-pressed','false');gifButton.setAttribute('aria-pressed','true');status.textContent='';}
+  imageButton.onclick=image;gifButton.onclick=async()=>{
+    if(blob){preview();return;}const task=new AbortController();controller=task;gifButton.disabled=true;status.textContent='Preparing animation…';
+    try{const result=await module.createPlateGif({signal:task.signal,dark:data.dark,onProgress:n=>{status.textContent='Preparing animation · '+n+'%';},render:(time,canvas,motion)=>drawPlateShare(data,mascot,{time,canvas,mascot:motion})});
+      if(closed||task.signal.aborted||_repCv!==current)return;blob=result;preview();
+    }catch(e){if(!task.signal.aborted)status.textContent='Animation unavailable. You can still share the image.';}
+    finally{if(controller===task){controller=null;gifButton.disabled=false;}}
+  };
+  plateExportCleanup=()=>{closed=true;controller?.abort();if(url)URL.revokeObjectURL(url);row.remove();current.gifBlob=null;share.textContent='Share';};image();
 }
 function plateMark(x,y,w,h){return `<path d="M${x} ${y-h}a${w/2} 7 0 0 1 ${w} 0v${h}a${w/2} 7 0 0 1 -${w} 0z" fill="var(--plate-side)"/><ellipse cx="${x+w/2}" cy="${y-h}" rx="${w/2}" ry="7" fill="var(--plate-top)"/><ellipse cx="${x+w/2}" cy="${y-h}" rx="5" ry="2" fill="var(--plate-hole)"/>`;}
 function plateMiniHTML(){const m=plateCurrent();return `<div class="plate-mini" aria-live="polite"><svg viewBox="0 0 48 42" aria-hidden="true">${[0,1,2].map(i=>`<g>${plateMark(6,32-i*8,34,5)}</g>`).join('')}</svg><span>${plateNumber(m.kg)} ${U()} moved today</span></div>`;}
