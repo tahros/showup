@@ -1083,8 +1083,13 @@
      Second time in three releases that specificity let me overwrite something
      that was already right. The narrow rule is the honest one: this is the
      MISSED fill, so it should say so and match nothing else. */
-  :root[data-theme="light"] .h-week .hwd:not(.on){background:#DADADA}
-  :root[data-theme="light"] .h-week .hwd.ahead{background:none;
+  /* v4.1.13: header:not(.live) -- the light greys are for the ORDINARY
+     header. Without it this rule (0,4,0) outranks `header.live .h-week .hwd`
+     (0,3,1) and the live strip keeps the light greys instead of its dark
+     marks. Third cascade fault in this corner; caught by resolved style
+     before it shipped, which is the whole reason those assertions exist. */
+  :root[data-theme="light"] header:not(.live) .h-week .hwd:not(.on){background:#DADADA}
+  :root[data-theme="light"] header:not(.live) .h-week .hwd.ahead{background:none;
     box-shadow:inset 0 0 0 1.2px #E2E2E2}
   /* v4.1.9 REMOVES what v4.1.8 added here. Today ALREADY had its ring -- an
      `outline` with a 2px offset (below), whose colour hwpulse breathes. I gave
@@ -1108,9 +1113,43 @@
     transition:background .4s ease,outline-color .4s ease}
   header.resting .h-week .hwd.tod.resting{background:var(--rest-ink);outline-color:var(--rest-ink)}
   .h-week .hwd:last-child{margin-right:4px}
-  header.live .h-week .hwd{background:rgba(255,255,255,.28)}
+  /* ---- v4.1.13: THE LIVE STRIP ------------------------------------------
+     A skipped day was white at 28% and a trained day white at 100% -- the
+     same colour at two strengths, so a skip read as a DIM TRAINED DAY rather
+     than as a different thing. Separation 3.50:1 against the trained white.
+     A dark mark on the red takes that to 8.14:1 and, more to the point,
+     gives the skip its own language instead of borrowing the trained day's.
+     .ahead had no live rule at all and was drawing its outline from --chalk:
+     near-black on a red wash. Fixed here rather than left for later. */
+  header.live .h-week .hwd{background:rgba(0,0,0,.22)}
   header.live .h-week .hwd.on{background:#fff}
-  header.live .h-week .hwd.tod{outline:1.5px solid #fff;outline-offset:2px}
+  header.live .h-week .hwd.ahead{background:none;
+    box-shadow:inset 0 0 0 1.2px rgba(255,255,255,.32)}
+  /* TODAY OWNS THE ROW while a session is open: the ring it always had, a
+     halo outside it, and a soft bloom behind -- all breathing on the 2.4s
+     beat the ring already uses, so there is one pulse in the header, not two.
+     It grows by TRANSFORM, never by width: the seven-square window has not
+     changed shape since it was fixed, and a strip that reflows when a session
+     starts would break that for a flourish. transform-origin is the centre so
+     the neighbours are not nudged. */
+  header.live .h-week .hwd.tod{outline:1.5px solid #fff;outline-offset:2px;
+    transform:scale(1.18);transform-origin:50% 50%;
+    background:rgba(255,255,255,.35);
+    /* BLUR ONLY, NO SPREAD. The first cut had a hard 4px halo ring and
+       test-rest caught it: the squares sit 5px apart, so a 4px ring -- on a
+       square already scaled 1.18 -- crowds its neighbours. That guard exists
+       because a ring must be drawn outside the box without spreading into the
+       gap, and it was right. A blurred bloom FADES into the gap instead of
+       filling it, which is the same flourish without the crowding. */
+    box-shadow:0 0 10px rgba(255,255,255,.50);
+    animation:hwlive 2.4s ease-in-out infinite}
+  @keyframes hwlive{
+    0%,100%{box-shadow:0 0 10px rgba(255,255,255,.50)}
+    50%{box-shadow:0 0 16px rgba(255,255,255,.22)}
+  }
+  @media (prefers-reduced-motion:reduce){
+    header.live .h-week .hwd.tod{animation:none}
+  }
   /* the timer joins the facts it belongs with. On a 390 header the date
      column, seven squares, the numeral, the flame AND the timer come to
      333px in 298px -- the timer is a session fact, not a record fact, so it

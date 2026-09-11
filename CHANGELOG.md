@@ -2,6 +2,52 @@
 
 
 
+
+## v4.1.13 (2026-09-11) — The live strip, and today owning the row
+
+A skipped day in the live header was **white at 28%** while a trained day was
+white at 100% — the same colour at two strengths, so a skip read as *a dim
+trained day* rather than as a different thing. Separation 3.50:1.
+
+It is a dark mark on the red now: **8.14:1**, and more to the point it has its
+own language instead of borrowing the trained day's.
+
+`.ahead` had **no live rule at all** and was drawing its outline from `--chalk`
+— near-black on a red wash. Found while looking at the rest, fixed here.
+
+**Today owns the row** while a session is open: the ring it always had, at 1.18
+with a bloom behind it, breathing on the 2.4s beat the ring already uses so
+there is one pulse in the header rather than two. It grows by **transform**,
+never by width — the seven-square window has not changed shape since it was
+fixed, and a strip that reflowed when a session started would trade that for a
+flourish.
+
+### Two cascade faults caught before shipping, not after
+
+The v4.1.11 light rule `:root[data-theme="light"] .h-week .hwd:not(.on)` is
+`(0,4,0)`; `header.live .h-week .hwd` is `(0,3,1)`. The light greys would have
+outranked the live marks and the whole flourish would have been invisible.
+Scoped to `header:not(.live)` — the light greys are for the ordinary header.
+
+And the first cut of the bloom was a hard **4px halo ring**. `test-rest` caught
+it: the squares sit 5px apart, so a 4px ring on a square already scaled 1.18
+crowds its neighbours. That guard was right. The bloom is blur-only with zero
+spread now, so it fades into the gap instead of filling it.
+
+Both found by **resolved-style assertions in a real document** — the ones added
+in v4.1.12 after a text-matching test let a grey week ship. That is two saves in
+two releases from the same change of method.
+
+The ring guard is narrowed rather than loosened: it forbade `box-shadow` on
+today's square outright, and what it was protecting is the 5px gap. It forbids
+**spread** now, and applies only to rules that actually draw the ring — a
+reduced-motion `animation:none` draws nothing.
+
+### Two reds, neither this release's
+
+`test-planner-server` since v4.0.2, `test-daydone` since v4.1.10.
+
+
 ## v4.1.12 (2026-09-11) — Give the blues back
 
 v4.1.11 turned the whole week grey. Every trained day, painted over.

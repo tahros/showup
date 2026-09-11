@@ -580,9 +580,23 @@ ok("the status-bar style no longer puts content under the status bar",
   check("both stop when motion is unwelcome",
         `${/prefers-reduced-motion:reduce\)\{[^@]*\.h-week \.hwd\.on::after\{animation:none/.test(css)}`, "true");
 
+  /* v4.1.13 NARROWS this to its own reason. It forbade box-shadow outright on
+     today's square; what it was really protecting is the 5px gap between
+     squares -- a ring with SPREAD grows into the neighbour, and that is the
+     bug it caught when the live bloom first shipped with a hard 4px halo.
+     A blurred shadow with zero spread fades into the gap instead of filling
+     it, so spread is the thing to forbid, not the property. */
   check("today's ring is drawn outside the box, not spread into the gap",
         `${(function(){const ms=css.match(/\.h-week \.hwd\.tod\{[^}]*\}/g)||[];
-          return ms.length>=2 && ms.every(r=>/outline-offset/.test(r) && !/box-shadow/.test(r));})()}`, "true");
+          /* only the rules that DRAW the ring are in scope -- a
+             reduced-motion rule that says animation:none draws nothing and
+             has no business carrying an outline-offset */
+          const draws=ms.filter(r=>/outline:/.test(r));
+          if(draws.length<2 || !draws.every(r=>/outline-offset/.test(r))) return false;
+          const spread=/box-shadow:[^;}]*?\b0 0 0 \d/;      // 4th length = spread
+          return ms.every(r=>!spread.test(r));})()}`, "true");
+  check("...and the live bloom spreads by nothing, only blurs",
+        `${!/@keyframes hwlive\{[^}]*0 0 0 \d/.test(css) && /@keyframes hwlive/.test(css)}`, "true");
   /* v3.3.517: even at risk, the count stays neutral; the ring owns risk. */
   check("the streak count is ink, not the alarm colour",
         `${/\.streak\{[^}]*color:var\(--chalk\)/.test(css)}`, "true");

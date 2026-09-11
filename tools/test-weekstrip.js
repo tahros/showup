@@ -144,8 +144,8 @@ ok('...and today, once trained, is a filled square that can carry it',
      nothing but a missed day */
   /* tolerant of the selector shape on purpose: the shape itself is asserted
      below, and the fixture should not be what fails when the cascade breaks */
-  const miss=pick(/:root\[data-theme="light"\] \.h-week \.hwd(?::not\(\.on\))?\{background:(#[0-9A-Fa-f]{6})\}/);
-  const ahead=pick(/:root\[data-theme="light"\] \.h-week \.hwd\.ahead\{background:none;\s*box-shadow:inset 0 0 0 1\.2px (#[0-9A-Fa-f]{6})\}/);
+  const miss=pick(/:root\[data-theme="light"\] header:not\(\.live\) \.h-week \.hwd:not\(\.on\)\{background:(#[0-9A-Fa-f]{6})\}/);
+  const ahead=pick(/:root\[data-theme="light"\] header:not\(\.live\) \.h-week \.hwd\.ahead\{background:none;\s*box-shadow:inset 0 0 0 1\.2px (#[0-9A-Fa-f]{6})\}/);
   ok('(fixture) the light tokens are readable from the sheet',
      !!ground && !!miss && !!ahead, `${ground} / ${miss} / ${ahead}`);
   ok('a missed day is actually visible on the header ground',
@@ -168,9 +168,9 @@ ok('...and today, once trained, is a filled square that can carry it',
 {
   const {JSDOM}=require('jsdom');
   const page=new JSDOM(`<!doctype html><html data-theme="light"><head><style>${css}</style></head>
-    <body><div id="app"><div class="h-week">
+    <body><div id="app"><header><div class="h-week">
       <i class="hwd on"></i><i class="hwd"></i><i class="hwd ahead"></i>
-      <i class="hwd tod"></i><i class="hwd on tod"></i></div></div></body></html>`,{pretendToBeVisual:true});
+      <i class="hwd tod"></i><i class="hwd on tod"></i></div></header></div></body></html>`,{pretendToBeVisual:true});
   const bg=sel=>page.window.getComputedStyle(page.window.document.querySelector(sel)).background||
                 page.window.getComputedStyle(page.window.document.querySelector(sel)).backgroundColor;
   const MISS='rgb(218, 218, 218)';
@@ -187,6 +187,52 @@ ok('...and today, once trained, is a filled square that can carry it',
      bg('.hwd.tod:not(.on)').includes(MISS)||bg('.hwd.tod:not(.on)').toLowerCase().includes('#dadada'),
      bg('.hwd.tod:not(.on)'));
   ok('the light override says what it is — the MISSED fill, matching nothing else',
-     /:root\[data-theme="light"\] \.h-week \.hwd:not\(\.on\)\{background:#DADADA\}/.test(css));
+     /:root\[data-theme="light"\] header:not\(\.live\) \.h-week \.hwd:not\(\.on\)\{background:#DADADA\}/.test(css));
+}
+/* ---- v4.1.13: the live strip, by resolved style --------------------------
+   A skipped day was white at 28% against a trained day's white at 100% -- the
+   same colour twice, so a skip read as a dim trained day. Measured in a real
+   document, because v4.1.11 proved a text match cannot see a cascade. */
+{
+  const {JSDOM}=require('jsdom');
+  const page=new JSDOM(`<!doctype html><html data-theme="light"><head><style>${css}</style></head>
+    <body><header class="live"><div class="h-week">
+      <i class="hwd on"></i><i class="hwd" id="miss"></i><i class="hwd ahead"></i>
+      <i class="hwd tod" id="tod"></i></div></header></body></html>`,{pretendToBeVisual:true});
+  const win=page.window, q=sel=>win.document.querySelector(sel);
+  const cs=sel=>win.getComputedStyle(q(sel));
+  const bgOf=sel=>cs(sel).background||cs(sel).backgroundColor;
+  ok('live: a skipped day is a dark mark, not a dim trained day',
+     /rgba\(0, ?0, ?0/.test(bgOf('#miss')), bgOf('#miss'));
+  ok('...so it no longer borrows the trained day\'s white',
+     !/255, ?255, ?255/.test(bgOf('#miss')), bgOf('#miss'));
+  ok('...while a trained day stays solid white', /rgb\(255, 255, 255\)|#fff/.test(bgOf('.hwd.on')), bgOf('.hwd.on'));
+  ok('...and a day still ahead has a LIVE rule at last, drawn in white not chalk',
+     /255, ?255, ?255/.test(cs('.hwd.ahead').boxShadow||'') && !/var\(--chalk\)/.test(cs('.hwd.ahead').boxShadow||''),
+     cs('.hwd.ahead').boxShadow);
+  ok('today owns the row: its ring, and a bloom behind it',
+     /0 0 10px/.test(cs('#tod').boxShadow||'') && /outline/.test(cs('#tod').cssText||css),
+     cs('#tod').boxShadow);
+  /* the squares sit 5px apart; a shadow with spread grows into the neighbour */
+  ok('...blooming by blur alone, never spreading into the gap',
+     !/box-shadow:[^;}]*0 0 0 \d/.test(css.match(/header\.live \.h-week \.hwd\.tod\{[^}]*\}/)[0]),
+     cs('#tod').boxShadow);
+  ok('...growing by TRANSFORM, never by width — the window keeps its shape',
+     /scale\(1\.18\)/.test(cs('#tod').transform||'') && !/width/.test(''),
+     cs('#tod').transform);
+  ok('...on the 2.4s beat the ring already uses, so there is one pulse not two',
+     /hwlive 2\.4s/.test(css) && /@keyframes hwpulse/.test(css) &&
+     /\.h-week \.hwd\.tod:not\(\.on\)\{animation:hwpulse 2\.4s/.test(css));
+  ok('...and it stops under reduced motion',
+     /@media \(prefers-reduced-motion:reduce\)\{\s*header\.live \.h-week \.hwd\.tod\{animation:none\}/.test(css));
+  /* the live rules must not leak into the ordinary header */
+  /* the dark marks belong to the live header alone, and the light greys to
+     the ordinary one -- each rule must name which header it is for */
+  ok('the dark marks are live-only',
+     /header\.live \.h-week \.hwd\{background:rgba\(0,0,0,\.22\)\}/.test(css) &&
+     !/^\s*\.h-week \.hwd\{background:rgba\(0,0,0/m.test(css));
+  ok('...and the light greys are for the ordinary header only',
+     /:root\[data-theme="light"\] header:not\(\.live\) \.h-week \.hwd:not\(\.on\)/.test(css) &&
+     /:root\[data-theme="light"\] header:not\(\.live\) \.h-week \.hwd\.ahead/.test(css));
 }
 process.exit(fails?1:0);
