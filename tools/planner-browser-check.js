@@ -7,7 +7,7 @@ const routine='Squat\n  135 lb × 8 (warm-up)\n  205 lb × 8 8 8 8\n\nRomanian D
   fs.mkdirSync(out,{recursive:true});const browser=await chromium.launch({headless:true,...(process.argv[4]?{executablePath:process.argv[4]}:{})});
   const errors=[];
   for(const theme of ['light','dark'])for(const width of [320,393,430,1000]){
-    const ctx=await browser.newContext({viewport:{width,height:852},colorScheme:theme,reducedMotion:'reduce',serviceWorkers:'block'});
+    const ctx=await browser.newContext({viewport:{width,height:852},colorScheme:theme,reducedMotion:width===393?'no-preference':'reduce',serviceWorkers:'block'});
     await ctx.route('**/*',r=>new URL(r.request().url()).origin===new URL(url).origin?r.continue():r.abort());
     const page=await ctx.newPage();page.on('pageerror',e=>errors.push(e.message));await page.goto(url);
     await page.evaluate(theme=>{
@@ -26,11 +26,38 @@ const routine='Squat\n  135 lb × 8 (warm-up)\n  205 lb × 8 8 8 8\n\nRomanian D
     await page.locator('[data-pw="focus"]').click();await page.locator('[data-pw="part"][data-part="Legs"]').click();await page.locator('[data-pw="part"][data-part="Sixpack"]').click();await capture('focus');
     await page.locator('[data-pw="workspace"]').click();await page.locator('[data-pw="paste"]').first().click();await page.locator('[data-pw-field="pasteText"]').fill(routine);await capture('paste');
     await page.locator('[data-pw="readpaste"]').click();await capture('candidate');await page.locator('[data-pw="apply"]').click();await capture('editor');
+    assert.equal(await page.locator('.pw-heading h1').innerText(),'Edit your plan');
+    await page.locator('[data-pw="lock"]').first().click();
+    const grip=page.locator('[data-pw-grip="0"]');await grip.scrollIntoViewIfNeeded();
+    const gb=await grip.boundingBox(),target=await page.locator('[data-pw-row="1"]').boundingBox();
+    await page.mouse.move(gb.x+gb.width/2,gb.y+gb.height/2);await page.mouse.down();await page.waitForTimeout(200);
+    await page.mouse.move(gb.x+gb.width/2,target.y+target.height-5,{steps:8});await page.waitForTimeout(100);await page.mouse.up();
+    assert(await page.evaluate(()=>pwDay(pw().active).rows[0].ex==='Romanian Deadlift'&&pwDay(pw().active).locks.includes(1)),'drag order and lock');
+    await page.locator('[data-pw="undo"]').click();assert(await page.evaluate(()=>pwDay(pw().active).rows[0].ex==='Squat'));
+    if(width===393){
+      // Real touch input, including cancellation; no synthetic click shortcut.
+      const cdp=await ctx.newCDPSession(page),handle=page.locator('[data-pw-grip="0"]');await handle.scrollIntoViewIfNeeded();
+      const p=await handle.boundingBox(),r=await page.locator('[data-pw-row="1"]').boundingBox(),x=p.x+22,y=p.y+22;
+      for(const cancel of [true,false]){
+        await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y}]});await page.waitForTimeout(220);
+        await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x,y:r.y+r.height-5}]});await page.waitForTimeout(120);
+        await cdp.send('Input.dispatchTouchEvent',{type:cancel?'touchCancel':'touchEnd',touchPoints:[]});
+        assert(await page.evaluate(cancel=>pwDay(pw().active).rows[0].ex===(cancel?'Squat':'Romanian Deadlift'),cancel),'touch drag / cancel');
+      }
+      await page.locator('[data-pw="undo"]').click();await cdp.detach();
+    }
     await page.locator('[data-pw="adjust"]').click();await capture('adjust');await page.locator('[data-pw="edit"]').click();await page.locator('[data-pw="review"]').click();await capture('review');
     await page.locator('[data-pw="save"]').click();await capture('saved');
     const sets=await page.evaluate(()=>DB.week.days['2026-09-10'].items.reduce((n,i)=>n+i.lines.reduce((n,l)=>n+l.reps.length,0),0));assert.equal(sets,18);
     await page.evaluate(()=>{day(todayISO).w=[{part:'Chest',ex:'Barbell Bench Press',w:70,reps:[8,8],at:1}];day(todayISO).doneAll=true;SEED=deriveAll();render();});await capture('completed');
     assert(await page.locator('[data-replayday]').count());assert(await page.getByText('Plan ahead',{exact:true}).count());
+    await page.evaluate(()=>{for(const d of ['2026-09-11','2026-09-12'])DB.week.days[d]={...pwCopy(DB.week.days[todayISO]),d};render();});
+    await capture('plan-ahead');await page.emulateMedia({reducedMotion:'no-preference'});
+    const fold=page.locator('.pw-fold');assert.equal((await fold.boundingBox()).height,0);
+    await page.locator('[data-pw="upcoming"]').click();await page.waitForTimeout(70);const midway=(await fold.boundingBox()).height;
+    await page.waitForTimeout(320);const full=(await fold.boundingBox()).height;assert(midway>0&&midway<full,'disclosure animates between endpoints');
+    assert.equal(await page.locator('[data-pw="upcoming"]').getAttribute('aria-expanded'),'true');await capture('coming-up');
+    await page.locator('[data-pw="upcoming"]').click();await page.waitForTimeout(320);assert.equal((await fold.boundingBox()).height,0);
     console.log(`PASS real browser ${theme} ${width}px: dates → focus → paste → edit → adjust → review → save; completed Today`);await ctx.close();
   }
   await browser.close();assert.deepEqual(errors,[]);console.log('PASS no browser exceptions or horizontal overflow');

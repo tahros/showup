@@ -5,7 +5,7 @@
 .pw-top{margin:0 0 28px}.pw-heading{margin:0 0 24px}
 .pw-eyebrow{display:block;color:var(--muted);font:500 10px/1.6 var(--mono);letter-spacing:.08em;text-transform:uppercase}
 .pw-heading h1{font:600 clamp(25px,6vw,34px)/1.18 var(--body);letter-spacing:-.8px;margin:7px 0 0;color:var(--chalk)}
-.pw-home h2{margin:0;flex:1}.pw-home-heading{margin:20px 0 12px}
+.pw-home h2{margin:0;flex:1}.pw-home-heading{margin:16px 0 4px}
 .pw-home h3,.pw-workspace h3{font:600 21px/1.3 var(--body);letter-spacing:-.35px;margin:9px 0;color:var(--chalk)}
 .pw-home .card,.pw-workspace .card{padding:22px 18px;margin:0 0 16px;border-radius:24px}
 .pw-small{display:block;color:var(--muted);font:400 11px/1.6 var(--mono);letter-spacing:0;overflow-wrap:anywhere}
@@ -44,4 +44,34 @@ p.pw-small{margin:10px 0 16px}.pw-workspace p:not(.pw-small){font:400 14px/1.6 v
 .pw-resume{width:100%;background:transparent;border-style:dashed;margin:0 0 18px;color:var(--muted);font-size:12px}
 @keyframes pw-arrive{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}@keyframes pw-shine{from{transform:translateX(-160%)}65%,to{transform:translateX(160%)}}
 @media(max-width:360px){.pw-home .card,.pw-workspace .card{padding:18px 13px}.pw-btn{padding:9px 12px}.pw-calendar{gap:2px}.pw-ex-title strong{font-size:15px}.pw-prescription{font-size:11px}.pw-top .pw-small{font-size:9px}}
+/* v4.0: compact planning hierarchy, without shrinking touch targets. */
+.pw-step-edit .pw-top,.pw-step-review .pw-top{margin-bottom:10px}
+.pw-step-edit .pw-heading,.pw-step-review .pw-heading{margin-bottom:16px}
+.pw-step-edit .pw-days{padding-bottom:4px;margin-bottom:4px}
+.pw-step-edit .pw-card-heading,.pw-step-review .pw-card-heading{margin-bottom:4px}
+.pw-step-edit .pw-count{margin:4px 0 12px}.pw-step-edit .pw-count>strong{font-size:28px}
+.pw-step-edit .pw-edit-actions{margin-top:0;margin-bottom:12px}
+.pw-step-edit .card,.pw-step-review .card{padding-top:14px;padding-bottom:14px}
+.pw-step-edit .pw-exercise,.pw-step-review .pw-exercise{padding-top:10px;padding-bottom:10px}
+.pw-step-edit .pw-exercise:first-child,.pw-step-review .pw-exercise:first-child{padding-top:0}
+.pw-step-edit .pw-exercise:last-child,.pw-step-review .pw-exercise:last-child{padding-bottom:0}
+.pw-step-edit .pw-prescription,.pw-step-review .pw-prescription{line-height:1.65;margin-top:2px;margin-bottom:2px}
+.pw-step-review p.pw-small{margin:6px 0 12px}
+.pw-step-edit .pw-ex-tools{margin-top:0;min-height:44px}
+.pw-editable .pw-ex-body{display:flex;align-items:center;gap:6px}.pw-editable .pw-prescription{flex:1;min-width:0}.pw-editable .pw-ex-tools{flex:none}
+.pw-editable{position:relative;padding-left:36px}
+.pw-exercises{position:relative}
+.pw-row-actions{display:flex;flex:none;gap:0;align-items:center}
+.pw-row-actions .pw-btn.pw-icon{width:44px;min-width:44px;height:44px;min-height:44px;color:var(--muted)}
+.pw-editable .pw-ex-title{gap:4px}.pw-editable .pw-ex-title strong{font-size:15px}
+.pw-btn.pw-grip{position:absolute;left:-8px;top:10px;width:44px;min-width:44px;height:44px;padding:0;border:0;background:transparent;color:var(--faint);cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.pw-editable:first-child .pw-grip{top:0}.pw-grip:active{transform:none;cursor:grabbing;color:var(--accent-ink)}
+.pw-exercise.pw-lifting{z-index:2;background:var(--surface);border-radius:12px;box-shadow:0 8px 24px #00000020,0 0 0 1px var(--line)}
+.pw-sr-only{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.pw-disclosure{appearance:none;display:flex;align-items:center;gap:10px;width:100%;min-height:58px;padding:16px;border:0;border-radius:20px;background:transparent;color:var(--muted);font:500 12px/1.5 var(--mono);text-align:left;cursor:pointer}
+.pw-disclosure span:first-child{flex:1}.pw-disclosure .ic{flex:none;transform:rotate(0deg);transition:transform 280ms cubic-bezier(.22,.68,0,1)}
+.pw-coming.is-open .pw-disclosure .ic{transform:rotate(90deg)}
+.pw-disclosure:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.pw-fold{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows 280ms cubic-bezier(.22,.68,0,1),opacity 200ms ease}
+.pw-fold>div{min-height:0;overflow:hidden}.pw-coming.is-open .pw-fold{grid-template-rows:1fr;opacity:1}
 @media(prefers-reduced-motion:reduce){.pw-workspace,.pw-workspace *,.pw-home *{animation:none!important;transition:none!important}}

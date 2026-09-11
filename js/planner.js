@@ -59,8 +59,8 @@ function pwTabs(){const s=pw();return `<div class="pw-days" aria-label="Days bei
 function pwRowsHTML(rows,editable=false){
   const s=pw(),day=s.active?pwDay(s.active):null;
   return `<div class="pw-exercises">${(rows||[]).map((r,i)=>{
-    if(r.kind!=='ex'||!r.ex)return `<div class="pw-unread"><span class="pw-eyebrow">Kept as a note · check this line</span><pre>${hesc(r.raw||r.name||'')}</pre>${editable?pwButton('editrow','Edit text','pw-text',`data-index="${i}"`):''}</div>`;
-    return `<article class="pw-exercise"><div class="pw-ex-title"><strong>${hesc(r.ex)}</strong>${editable?pwButton('editrow','Edit','pw-text',`data-index="${i}" aria-label="Edit ${hesc(r.ex)}"`):''}</div><pre class="pw-prescription">${hesc(pwText([r]).split('\n').slice(1).join('\n').trim())}</pre>${editable?`<div class="pw-ex-tools">${pwButton('lock',day.locks.includes(i)?'Kept fixed':'Keep fixed',day.locks.includes(i)?'pw-fixed':'pw-text',`data-index="${i}" aria-pressed="${day.locks.includes(i)}"`)}<span class="pw-spacer"></span>${pwButton('up','↑','pw-icon',`data-index="${i}" aria-label="Move ${hesc(r.ex)} up" ${i===0?'disabled':''}`)}${pwButton('down','↓','pw-icon',`data-index="${i}" aria-label="Move ${hesc(r.ex)} down" ${i===rows.length-1?'disabled':''}`)}${pwButton('remove','Remove','pw-text',`data-index="${i}"`)}</div>`:''}</article>`;
+    if(r.kind!=='ex'||!r.ex)return `<div class="pw-unread" data-pw-row="${i}"><span class="pw-eyebrow">Kept as a note · check this line</span><pre>${hesc(r.raw||r.name||'')}</pre>${editable?pwButton('editrow','Edit text','pw-text',`data-index="${i}"`):''}</div>`;
+    return `<article class="pw-exercise ${editable?'pw-editable':''}" data-pw-row="${i}"><div class="pw-ex-title"><strong>${hesc(r.ex)}</strong>${editable?`<div class="pw-row-actions">${pwButton('editrow',icon('edit',ICON_SZ.md),'pw-icon',`data-index="${i}" aria-label="Edit ${hesc(r.ex)}" title="Edit exercise"`)}${pwButton('remove',icon('clear',ICON_SZ.md),'pw-icon',`data-index="${i}" aria-label="Remove ${hesc(r.ex)}" title="Remove exercise"`)}</div>`:''}</div><div class="pw-ex-body"><pre class="pw-prescription">${hesc(pwText([r]).split('\n').slice(1).join('\n').trim())}</pre>${editable?`<div class="pw-ex-tools">${pwButton('lock',day.locks.includes(i)?'Kept fixed':'Keep fixed',day.locks.includes(i)?'pw-fixed':'pw-text',`data-index="${i}" aria-pressed="${day.locks.includes(i)}"`)}</div>`:''}</div>${editable?`<button type="button" class="pw-btn pw-grip" data-pw-grip="${i}" aria-label="Reorder ${hesc(r.ex)}" aria-describedby="pw-reorder-help" title="Hold and drag · arrow keys to move">${icon('grip',ICON_SZ.md)}</button>`:''}</article>`;
   }).join('')}</div>`;
 }
 function pwTodayHTML(){
@@ -71,7 +71,7 @@ function pwTodayHTML(){
   let h=`<section class="pw-home"><div class="pw-home-heading"><h2>${closed?'Plan ahead':'Your plan'}</h2>${pwButton('open','Choose dates','pw-text')}</div>`;
   if(now&&!closed)h+=`<details class="pw-saved"><summary><span>Today</span><span>${now.items.length} exercises</span></summary>${planCardHTML(now,true)}${pwButton('open-date','Edit today','pw-text',`data-date="${todayISO}"`)}</details>`;
   if(closed||!now)h+=`<div class="card pw-home-card"><div><span class="pw-eyebrow">${closed?(next===tomorrowISO()?'Tomorrow':hesc(pwDate(next))):'Make room for your next session'}</span><h3>${upcoming&&closed?hesc(pwParts(pwRead(planText(upcoming))).join(' + ')||'Your plan'):(closed?'Today is yours. Tomorrow is open.':'A little intention. Then train.')}</h3><p class="pw-small">${upcoming&&closed?'Saved plan · ready when you are.':closed?'Plan what comes next. Today’s record stays as it is.':'Build a plan, bring your own routine, or just start below.'}</p></div><div class="pw-actions">${pwButton('open-date',upcoming&&closed?'Edit plan':closed?'Plan tomorrow':'Plan a workout','primary',`data-date="${closed?next:writeDateISO()}"`)}${pwButton('paste-open','Paste routine','',`data-date="${closed?next:writeDateISO()}"`)}</div></div>`;
-  if(future.length)h+=`<details class="pw-saved"><summary><span>Coming up</span><span>${future.length} planned ${future.length===1?'day':'days'}</span></summary>${future.map(d=>`<div class="pw-upcoming"><div><strong>${hesc(pwDate(d))}</strong><span class="pw-small">${hesc(pwParts(pwRead(planText(pwSaved(d)))).join(' · '))}</span></div>${pwButton('open-date','Edit','',`data-date="${d}"`)}</div>`).join('')}</details>`;
+  if(future.length)h+=`<div class="pw-saved pw-coming ${s.upcomingOpen?'is-open':''}"><button type="button" class="pw-disclosure" data-pw="upcoming" aria-expanded="${!!s.upcomingOpen}" aria-controls="pw-coming-days"><span>Coming up</span><span>${future.length} planned ${future.length===1?'day':'days'}</span>${icon('chevron',ICON_SZ.sm)}</button><div id="pw-coming-days" class="pw-fold" ${s.upcomingOpen?'':'inert'}><div>${future.map(d=>`<div class="pw-upcoming"><div><strong>${hesc(pwDate(d))}</strong><span class="pw-small">${hesc(pwParts(pwRead(planText(pwSaved(d)))).join(' · '))}</span></div>${pwButton('open-date','Edit','',`data-date="${d}"`)}</div>`).join('')}</div></div></div>`;
   const drafts=s.dates.filter(d=>d>=todayISO&&s.book[d]&&s.book[d].source!=='Saved plan'&&(s.book[d].rows.length||s.book[d].parts.length));
   if(drafts.length)h+=pwButton('resume',`Resume draft · ${drafts.length} ${drafts.length===1?'day':'days'}`,'pw-resume');
   return h+'</section>';
@@ -79,7 +79,7 @@ function pwTodayHTML(){
 function pwRender(){
   const s=pw(),day=s.active?pwDay(s.active):null;
   const entering=pwPaintedStep!==s.step;pwPaintedStep=s.step;
-  let h=`<section class="pw-workspace ${entering?'pw-enter':''}" aria-label="Planning workspace"><div class="pw-top">${pwButton('close','← Today','pw-text')}<span class="pw-small">Draft · on this device</span></div><div class="pw-heading"><span class="pw-eyebrow">${s.step==='review'?'One last look':'Your next session'}</span><h1>${({dates:'Choose your days.',focus:'Give each day a focus.',edit:'Make it yours.',paste:'Bring your own routine.',editrow:'The details are yours.',adjust:'Find the right amount.',candidate:'Read it. Make it yours.',review:'Ready when you are.',busy:'Reading your training.'})[s.step]||'Make it yours.'}</h1></div>`;
+  let h=`<section class="pw-workspace pw-step-${s.step} ${entering?'pw-enter':''}" aria-label="Planning workspace"><div class="pw-top">${pwButton('close','← Today','pw-text')}<span class="pw-small">Draft · on this device</span></div><div class="pw-heading"><span class="pw-eyebrow">${s.step==='review'?'One last look':'Your next session'}</span><h1>${({dates:'Choose your days.',focus:'Give each day a focus.',edit:'Edit your plan',paste:'Bring your own routine.',editrow:'The details are yours.',adjust:'Find the right amount.',candidate:'Read it. Make it yours.',review:'Save your plan',busy:'Reading your training.'})[s.step]||'Edit your plan'}</h1></div>`;
   if(s.error)h+=`<div class="pw-message" role="alert">${hesc(s.error)}</div>`;
   if(s.conflict){const d=s.conflict;h+=`<div class="card pw-card"><strong>Newer saved plan · ${hesc(pwDate(d))}</strong>${pwRowsHTML(pwRead(planText(pwSaved(d))))}<div class="pw-actions">${pwButton('load-newer','Use newer saved plan')}${pwButton('replace-newer','Keep my draft for review')}</div><p class="pw-small">Both choices stay in the draft. Nothing is replaced until you tap Save again.</p></div>`;}
   if(s.step==='dates'){
@@ -99,7 +99,7 @@ function pwRender(){
     h+=`<div class="pw-actions">${pwButton('add','+ Add exercise','pw-text')}${pwButton(day.rows.length?'rewrite':'generate',day.rows.length?'Rewrite this draft':'Write selected days','pw-text')}</div>`;
     if(day.source)h+=`<p class="pw-small">${hesc(day.source)}</p>`;
     if(day.notes?.length)h+=`<details class="pw-preferences"><summary>Checked by the app · ${day.notes.length}</summary>${day.notes.map(n=>`<p class="pw-small">${hesc(n)}</p>`).join('')}</details>`;
-    h+=pwFields()+pwButton('review','Review selected days →','primary wide');
+    h+=`<span id="pw-reorder-help" class="pw-sr-only">Hold and drag to reorder. Or use the up and down arrow keys.</span><span id="pw-reorder-status" class="pw-sr-only" role="status"></span>`+pwFields()+pwButton('review','Review selected days →','primary wide');
   }else if(s.step==='paste'||s.step==='editrow'){
     const editing=s.step==='editrow';h+=`<p class="pw-small">${hesc(pwDate(s.active,true))} only. ${editing?'Edit the exercise name, weight lines and reps.':'Paste is read locally. The writer will not rewrite your routine.'}</p><div class="card pw-card">${editing?`<label>Exercise name<select data-pw-field="exercise">${['<Keep typed name>',...Object.values(SEED.catalog).flat()].map(x=>`<option value="${hesc(x)}" ${s.exercise===x?'selected':''}>${hesc(x)}</option>`).join('')}</select></label>`:''}<label>${editing?'Exercise & prescriptions':'Your routine'}<textarea class="pw-routine" data-pw-field="pasteText" rows="9" spellcheck="false" placeholder="Squat&#10;  135 lb × 8 (warm-up)&#10;  205 lb × 8 8 8 8">${hesc(s.pasteText||'')}</textarea></label><p class="pw-small">One exercise heading, then weight × reps. BW, added weight, by feel and timed holds are supported.</p></div><div class="pw-actions">${pwButton('edit','Cancel')}${pwButton('readpaste','Read my routine →','primary')}</div>`;
   }else if(s.step==='adjust'){
@@ -208,6 +208,7 @@ function pwHandle(e){
   const el=e.target.closest('[data-pw]');if(!el)return false;
   const a=el.dataset.pw,s=pw(),d=el.dataset.date,i=Number(el.dataset.index),b=s.active?pwDay(s.active):null;
   try{
+    if(a==='upcoming'){s.upcomingOpen=!s.upcomingOpen;const box=el.closest('.pw-coming');el.setAttribute('aria-expanded',String(s.upcomingOpen));box.classList.toggle('is-open',s.upcomingOpen);box.querySelector('.pw-fold').toggleAttribute('inert',!s.upcomingOpen);pwPersist();return true;}
     if(a==='mode'){pwRequest++;if(s.busy)lift.writeAbort?.abort();s.busy=false;localStorage.setItem(PW_MODE_KEY,el.dataset.mode);lift.plan=null;render({inplace:true});return true;}
     if(a==='open'||a==='resume'){pwOpen(null,a==='open'?'dates':undefined);return true;}
     if(a==='open-date'||a==='paste-open'){pwOpen(d);if(a==='paste-open'){s.pasteText='';s.editIndex=undefined;pwGo('paste');}return true;}
@@ -249,3 +250,69 @@ document.addEventListener('change',e=>{
   }else if(f==='objective')s.objective=e.target.value;
   pwPersist();
 });
+
+/* Reorder the local draft only. Indices identify duplicate exercises too;
+   notes and fixed flags travel with their rows. One gesture = one undo point. */
+function pwApplyOrder(order){
+  const s=pw(),b=pwDay(s.active);
+  if(order.length!==b.rows.length||new Set(order).size!==order.length||order.some(i=>!Number.isInteger(i)||i<0||i>=b.rows.length))return false;
+  if(order.every((i,j)=>i===j))return false;
+  pwUndoPoint(b);const rows=b.rows,locks=new Set(b.locks);
+  b.rows=order.map(i=>rows[i]);b.locks=order.flatMap((i,j)=>locks.has(i)?[j]:[]);
+  b.source='Your draft';pwPersist();return true;
+}
+function pwReorderFocus(index,message){
+  pwRender();document.querySelector(`[data-pw-grip="${index}"]`)?.focus({preventScroll:true});
+  const status=document.getElementById('pw-reorder-status');if(status)status.textContent=message;
+}
+(()=>{
+  let drag=null;
+  // Own touch gestures on the handle, not the prescription or the page.
+  for(const type of ['touchstart','touchmove','touchend','touchcancel'])document.addEventListener(type,e=>{
+    if(e.target.closest?.('[data-pw-grip]'))e.stopPropagation();
+  },{capture:true,passive:true});
+  function finish(cancel=false){
+    if(!drag)return;const d=drag;drag=null;clearTimeout(d.hold);cancelAnimationFrame(d.frame);
+    d.row.classList.remove('pw-lifting');try{d.list.releasePointerCapture(d.id);}catch(_){}
+    if(!d.row.isConnected||pwKey()!==d.owner||pw().active!==d.date||pw().step!=='edit')return;
+    const order=[...d.list.children].map(r=>Number(r.dataset.pwRow));
+    if(!cancel&&pwApplyOrder(order))pwReorderFocus(order.indexOf(d.index),`${d.name} moved to position ${order.indexOf(d.index)+1}.`);
+    else if(d.active)pwReorderFocus(d.index,cancel?'Reorder cancelled.':'Order unchanged.');
+  }
+  function frame(){
+    const d=drag;if(!d?.active)return;
+    if(!d.row.isConnected){finish(true);return;}
+    const edge=80,delta=d.y<edge?-8:d.y>innerHeight-edge?8:0;
+    if(delta)window.scrollBy(0,delta);
+    const other=[...d.list.children].filter(r=>r!==d.row);
+    // Layout coordinates ignore the FLIP animation, so neighbors cannot
+    // oscillate back across the pointer while they ease into their new slot.
+    const top=r=>d.list.getBoundingClientRect().top+r.offsetTop;
+    const target=other.find(r=>d.y<top(r)+r.offsetHeight/2)||null;
+    if(d.row.nextElementSibling!==target){
+      const before=new Map(other.map(r=>[r,top(r)]));d.list.insertBefore(d.row,target);
+      if(!matchMedia('(prefers-reduced-motion: reduce)').matches)for(const r of other){const dy=before.get(r)-top(r);if(dy){r.getAnimations?.().forEach(a=>a.cancel());r.animate?.([{transform:`translateY(${dy}px)`},{transform:'none'}],{duration:160,easing:'ease-out'});}}
+    }
+    d.frame=requestAnimationFrame(frame);
+  }
+  document.addEventListener('pointerdown',e=>{
+    const grip=e.target.closest?.('[data-pw-grip]');if(!grip||e.button!==0||drag)return;
+    const row=grip.closest('[data-pw-row]'),index=Number(grip.dataset.pwGrip);
+    drag={grip,row,list:row.parentNode,index,name:pwDay(pw().active).rows[index].ex,id:e.pointerId,y:e.clientY,date:pw().active,owner:pwKey(),active:false};
+    // Capture on the stable list: moving the grip's row can release capture.
+    try{drag.list.setPointerCapture(e.pointerId);}catch(_){}e.preventDefault();
+    const d=drag;d.hold=setTimeout(()=>{if(drag!==d)return;d.active=true;d.row.classList.add('pw-lifting');d.frame=requestAnimationFrame(frame);},e.pointerType==='touch'?180:0);
+  });
+  document.addEventListener('pointermove',e=>{if(drag&&e.pointerId===drag.id){drag.y=e.clientY;e.preventDefault();}});
+  document.addEventListener('pointerup',e=>{if(drag&&e.pointerId===drag.id)finish();});
+  document.addEventListener('pointercancel',e=>{if(drag&&e.pointerId===drag.id)finish(true);});
+  document.addEventListener('lostpointercapture',e=>{if(drag&&e.pointerId===drag.id)finish(true);});
+  window.addEventListener('blur',()=>finish(true));
+  document.addEventListener('keydown',e=>{
+    if(drag&&e.key==='Escape'){e.preventDefault();finish(true);return;}
+    const grip=e.target.closest?.('[data-pw-grip]'),dir=e.key==='ArrowUp'?-1:e.key==='ArrowDown'?1:0;if(!grip||!dir||drag)return;
+    e.preventDefault();const i=Number(grip.dataset.pwGrip),b=pwDay(pw().active),j=i+dir;if(j<0||j>=b.rows.length)return;
+    const name=b.rows[i].ex,order=b.rows.map((_,k)=>k);[order[i],order[j]]=[order[j],order[i]];
+    if(pwApplyOrder(order))pwReorderFocus(j,`${name} moved to position ${j+1}.`);
+  });
+})();
