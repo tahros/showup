@@ -85,6 +85,10 @@ p.pw-small{margin:10px 0 16px}.pw-workspace p:not(.pw-small){font:400 14px/1.6 v
 .pw-disclosure span:first-child{flex:1}.pw-disclosure .ic{flex:none;transform:rotate(0deg);transition:transform 280ms cubic-bezier(.22,.68,0,1)}
 .pw-coming.is-open .pw-disclosure .ic{transform:rotate(90deg)}
 .pw-disclosure:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+/* Planning disclosures share one rhythm with the Train Next card stack. */
+.pw-saved{box-shadow:var(--shadow);margin-bottom:8px}
+.pw-saved+.pw-saved{margin-top:8px}
+.pw-saved>summary,:is(.pw-home,.pw-workspace) .pw-saved>summary.pw-fold-summary,.pw-saved>.pw-disclosure{box-sizing:border-box;min-height:54px;padding:16px;line-height:1.5}
 .pw-fold{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows 280ms cubic-bezier(.22,.68,0,1),opacity 200ms ease}
 .pw-fold>div{min-height:0;overflow:hidden}.pw-coming.is-open .pw-fold{grid-template-rows:1fr;opacity:1}
 @media(prefers-reduced-motion:reduce){.pw-workspace,.pw-workspace *,.pw-home *{animation:none!important;transition:none!important}}

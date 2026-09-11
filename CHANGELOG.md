@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.1.6 (2026-09-11) — Consistent planning cards
+
+Today and Coming up share the same collapsed row height, padding and line
+height. Both use the existing card shadow and an 8px gap matching Train Next.
+Shared planning disclosure styles apply across the planning surface; existing
+expansion animations and chevron behavior are preserved. Based on v4.1.5.
+
 
 
 
