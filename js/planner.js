@@ -77,7 +77,7 @@ function pwTodayHTML(){
   if(future.length)html+=`<div class="pw-saved pw-coming ${s.upcomingOpen?'is-open':''}"><button type="button" class="pw-disclosure" data-pw="upcoming" aria-expanded="${!!s.upcomingOpen}" aria-controls="pw-coming-days"><span>Coming up</span><span>${future.length} planned ${future.length===1?'day':'days'}</span>${icon('chevron',ICON_SZ.sm)}</button><div id="pw-coming-days" class="pw-fold" ${s.upcomingOpen?'':'inert'}><div>${future.map(d=>`<div class="pw-upcoming"><div><strong>${hesc(pwDate(d))}</strong><span class="pw-small">${hesc(pwParts(pwRead(planText(pwSaved(d)))).join(' · '))}</span></div>${pwAction('open-date','Edit','edit','',`data-date="${d}"`)}</div>`).join('')}</div></div></div>`;
   const drafts=s.dates.filter(d=>d>=todayISO&&s.book[d]&&s.book[d].source!=='Saved plan'&&(s.book[d].rows.length||s.book[d].parts.length));
   if(drafts.length)html+=pwAction('resume','Resume draft','edit','pw-resume');
-  return html+'</section>';
+  return pwFoldMarkup(html+'</section>');
 }
 function pwCalendarHTML(){
   const s=pw(),base=new Date((s.month||(s.active||todayISO).slice(0,7)+'-01')+'T12:00');base.setDate(1);
@@ -91,7 +91,7 @@ function pwRender(){
   if(!s.active&&s.dates.length)s.active=s.dates[0];
   const day=s.active?pwDay(s.active):null,entering=pwPaintedStep===null;pwPaintedStep=s.step;
   const panel=['paste','editrow','adjust','candidate','busy'].includes(s.step),hasRows=!!day?.rows.length;
-  let html=`<section class="pw-workspace pw-step-edit pw-single ${entering?'pw-enter':''}" aria-label="Planning workspace"><div class="pw-editor-head"><button type="button" class="icobtn pw-back" data-pw="back" aria-label="Back">←</button><h1>${hasRows?'Edit your plan':'Build your plan'}</h1><span class="pw-small">Draft</span></div>`;
+  let html=`<section class="pw-workspace pw-step-edit pw-single ${entering?'pw-enter':''}" aria-label="Planning workspace"><div class="pw-editor-head"><button type="button" class="icobtn pw-back" data-pw="back" aria-label="Back">←</button><h1>${hasRows?'Edit your plan':'Build your plan'}</h1>${hasRows&&!panel?pwAction('clear-day','Clear','clear','pw-text pw-clear'):'<span class="pw-small">Draft</span>'}</div>`;
   if(s.error)html+=`<div class="pw-message" role="alert">${hesc(s.error)}</div>`;
   if(s.conflict){const d=s.conflict;html+=`<div class="card pw-card"><strong>Newer plan · ${hesc(pwDate(d))}</strong>${pwRowsHTML(pwRead(planText(pwSaved(d))))}<div class="pw-actions">${pwButton('load-newer','Use newer plan')}${pwButton('replace-newer','Keep my draft')}</div></div>`;}
   html+=`<fieldset class="pw-context" ${panel||s.conflict?'disabled':''}><div class="pw-datebar">${pwTabs()}${pwDatesButton('dates-toggle')}</div>`;
@@ -112,24 +112,86 @@ function pwRender(){
     html+=`<div class="card pw-card pw-input-panel"><h3>${editing?(s.editIndex===day.rows.length?'Add exercise':'Edit exercise'):'Paste routine'}</h3><div class="pw-text-tools">${pwButton('text-select','Select All','pw-text')}${pwAction('text-copy','Copy','copy','pw-text')}${pwAction('text-paste','Paste','paste','pw-text')}</div>${editing?`<label class="pw-sr-only" for="pw-exercise">Exercise name</label><select id="pw-exercise" data-pw-field="exercise">${['<Keep typed name>',...Object.values(SEED.catalog).flat()].map(x=>`<option value="${hesc(x)}" ${s.exercise===x?'selected':''}>${hesc(x)}</option>`).join('')}</select>`:''}<label class="pw-sr-only" for="pw-routine">Routine text</label><textarea id="pw-routine" class="pw-routine" data-pw-field="pasteText" rows="7" spellcheck="false" placeholder="Squat&#10;135 lb × 8&#10;225 lb × 6 6 6">${hesc(s.pasteText||'')}</textarea></div>`;
     footer=pwButton('edit','Cancel')+pwButton('readpaste','Preview','primary');
   }else if(s.step==='adjust'){
-    html+=`<div class="card pw-card pw-adjust"><label>Total sets<input type="number" min="1" max="100" step="1" data-pw-field="target" value="${day.target||pwCounts(day.rows).total}"></label><p class="pw-small">Warm-ups and fixed exercises stay.</p></div>`;
-    footer=pwButton('edit','Cancel')+pwButton('adjustgo','Preview','primary');
+    if(!s.adjustBase||s.adjustDate!==s.active)pwBeginAdjust();
+    const limits=pwSetLimits(s.adjustBase),total=pwCounts(s.adjustRows).total;
+    html+=`<div class="card pw-card pw-adjust"><span class="pw-small">Total sets</span><div class="pw-stepper">${pwButton('set-minus','−','','aria-label="Remove one set"'+(total<=limits.min?' disabled':''))}<output aria-live="polite">${total}</output>${pwButton('set-plus','+','','aria-label="Add one set"'+(total>=limits.max?' disabled':''))}</div><p class="pw-small">Warm-ups and fixed exercises stay.</p></div><div class="card pw-card pw-live-routine"><div class="pw-card-heading"><strong>Your routine</strong><span class="pw-small">Updates live</span></div><div id="pw-live-rows">${pwRowsHTML(s.adjustRows)}</div></div>`;
+    footer=`<span class="pw-save-scope" id="pw-live-total" role="status">${total} sets · ${pwDate(s.active)}</span>`+pwButton('adjust-cancel','Cancel')+pwButton('adjust-keep','Keep changes','primary');
   }else if(s.step==='candidate'&&s.candidate){
     const c=s.candidate;
     html+='<h2 class="pw-preview-label">Preview changes</h2>';
     for(const [d,b]of Object.entries(c.days))html+=`<div class="card pw-card"><div class="pw-card-heading"><strong>${hesc(pwDate(d))}</strong></div>${pwRowsHTML(b.rows)}${(b.notes||[]).map(n=>`<p class="pw-small">${hesc(n)}</p>`).join('')}</div>`;
     footer=pwButton(c.type==='paste'?'paste-back':'edit','Back')+(c.type==='paste'&&c.index===undefined?pwButton('apply-add','Add'):'')+pwButton('apply',c.type==='paste'?(c.index!==undefined?'Keep edit':'Replace'):'Use draft','primary');
   }else if(day){
-    if(hasRows)html+=`<div class="pw-actions pw-edit-actions">${pwAction('rewrite','Plan','sparkle')}${pwAction('paste','Paste','paste')}${pwButton('adjust','Adjust sets')}${day.undo?pwButton('undo','Undo','pw-text'):''}</div>`;
+if(hasRows||day.cleared)html+=`<div class="pw-actions pw-edit-actions">${pwAction('rewrite','Plan','sparkle')}${pwAction('paste','Paste','paste')}${hasRows?pwButton('adjust','Adjust sets'):''}${hasRows&&day.undo?pwButton('undo','Undo','pw-text'):''}</div>`;
     if(hasRows)html+=`<div class="card pw-card">${pwRowsHTML(day.rows,true)}</div>`;
     html+=`<div class="pw-actions">${pwButton('add','+ Exercise','pw-text')}${!hasRows&&day.undo?pwButton('undo','Undo','pw-text'):''}</div>`;
+    if(day.cleared&&!hasRows)html+='<p class="pw-small">Routine cleared. Save to apply, or Undo to restore.</p>';
     if(day.notes?.length)html+=`<details class="pw-preferences"><summary>Checks · ${day.notes.length}</summary>${day.notes.map(n=>`<p class="pw-small">${hesc(n)}</p>`).join('')}</details>`;
-    const empty=s.dates.filter(d=>!pwDay(d).rows.length).length;
-    footer=hasRows?`<span class="pw-save-scope">${empty?`${empty} ${empty===1?'day needs':'days need'} a routine`:s.dates.map(d=>new Date(d+'T12:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})).join(' · ')}</span>`+pwButton('save',s.dates.length>1?`Save ${s.dates.length} days`:'Save plan','primary',empty||s.conflict?'disabled':''):pwAction('paste','Paste','paste')+pwAction('generate','Plan','sparkle','primary');
+    const empty=s.dates.filter(d=>!pwDay(d).rows.length&&!pwDay(d).cleared).length;
+    footer=hasRows||day.cleared?`<span class="pw-save-scope">${empty?`${empty} ${empty===1?'day needs':'days need'} a routine`:s.dates.map(d=>(pwDay(d).cleared&&!pwDay(d).rows.length?'Clear ':'')+new Date(d+'T12:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})).join(' · ')}</span>`+pwButton('save',s.dates.length>1?`Save ${s.dates.length} days`:'Save plan','primary',empty||s.conflict?'disabled':''):pwAction('paste','Paste','paste')+pwAction('generate','Plan','sparkle','primary');
   }
   html+=`<span id="pw-reorder-help" class="pw-sr-only">Hold and drag to reorder. Or use the up and down arrow keys.</span><span id="pw-reorder-status" class="pw-sr-only" role="status"></span>${footer?`<div class="pw-save-dock">${footer}</div>`:''}</section>`;
-  $('#view').innerHTML=html;if(entering)window.scrollTo(0,0);requestAnimationFrame(pwPositionDock);
+  $('#view').innerHTML=pwFoldMarkup(html);if(entering)window.scrollTo(0,0);requestAnimationFrame(pwPositionDock);
 }
+
+/* Instant count editing: proportional to the original prescription, not a
+   new AI workout. Never changes loads/reps, warm-ups, locked rows or cardio. */
+function pwSetLimits(day){
+  const slots=[];
+  day.rows.forEach((r,i)=>{if(r.kind!=='ex'||day.locks.includes(i)||homePartOf(r.ex)==='Run')return;
+    (r.lines||[]).forEach((l,k)=>{if(l.reps?.length&&!/warm/i.test((l.qual||'')+(l.tag||'')))slots.push({i,k,n:l.reps.length});});});
+  const total=pwCounts(day.rows).total,fixed=total-slots.reduce((a,x)=>a+x.n,0);
+  return {slots,min:fixed+slots.length,max:Math.max(total,Math.min(100,fixed+slots.reduce((a,x)=>a+Math.max(12,x.n),0)))};
+}
+function pwAllocateSets(base,target){
+  const {slots,min,max}=pwSetLimits(base),rows=pwCopy(base.rows),total=pwCounts(rows).total;
+  target=Math.max(min,Math.min(max,target));
+  const counts=slots.map(x=>x.n),sign=target>=total?1:-1;
+  for(let left=Math.abs(target-total);left>0;left--){
+    const choices=slots.map((x,j)=>({x,j})).filter(({x,j})=>sign>0?counts[j]<Math.max(12,x.n):counts[j]>1);
+    choices.sort((a,b)=>sign>0?(counts[a.j]/a.x.n-counts[b.j]/b.x.n)||(a.j-b.j):(counts[b.j]/b.x.n-counts[a.j]/a.x.n)||(b.j-a.j));
+    if(!choices.length)break;counts[choices[0].j]+=sign;
+  }
+  slots.forEach((x,j)=>{const original=base.rows[x.i].lines[x.k].reps;rows[x.i].lines[x.k].reps=Array.from({length:counts[j]},(_,i)=>original[Math.min(i,original.length-1)]);});
+  return rows;
+}
+function pwBeginAdjust(){const s=pw();s.adjustDate=s.active;s.adjustBase=pwCopy(pwDay(s.active));s.adjustRows=pwCopy(s.adjustBase.rows);}
+function pwAdjustLive(delta){
+  const s=pw();if(s.step!=='adjust'||s.adjustDate!==s.active)return;
+  const total=pwCounts(s.adjustRows).total,limits=pwSetLimits(s.adjustBase);
+  s.adjustRows=pwAllocateSets(s.adjustBase,total+delta);const n=pwCounts(s.adjustRows).total;
+  document.querySelector('.pw-stepper output').textContent=n;
+  document.querySelector('[data-pw="set-minus"]').disabled=n<=limits.min;
+  document.querySelector('[data-pw="set-plus"]').disabled=n>=limits.max;
+  document.getElementById('pw-live-rows').innerHTML=pwRowsHTML(s.adjustRows);
+  document.getElementById('pw-live-total').textContent=n+' sets · '+pwDate(s.active);
+  pwPersist();
+}
+/* Native details semantics plus interruptible height animation in both directions.
+   All planning disclosures use the same icon, including nested saved routines. */
+function pwFoldMarkup(html){
+  const t=document.createElement('template');t.innerHTML=html;
+  t.content.querySelectorAll('details').forEach(d=>{
+    const summary=d.querySelector(':scope > summary');if(!summary)return;
+    summary.classList.add('pw-fold-summary');summary.setAttribute('aria-expanded',String(d.open));
+    if(!summary.querySelector(':scope > .ic'))summary.insertAdjacentHTML('beforeend',icon('chevron',ICON_SZ.sm));
+  });return t.innerHTML;
+}
+document.addEventListener('click',e=>{
+  const summary=e.target.closest('summary.pw-fold-summary');if(!summary||!summary.closest('.pw-home,.pw-workspace'))return;
+  e.preventDefault();if(summary.closest('fieldset:disabled'))return;
+  const d=summary.parentElement,open=d._pwTarget===undefined?!d.open:!d._pwTarget;
+  const start=d.getBoundingClientRect().height;d._pwAnimation?.cancel();d._pwTarget=open;
+  d.open=true;summary.setAttribute('aria-expanded',String(open));
+  const full=d.getBoundingClientRect().height;
+  d.open=false;const shut=d.getBoundingClientRect().height;d.open=true;
+  [...d.children].filter(x=>x!==summary).forEach(x=>x.inert=!open);
+  const finish=()=>{if(!d.isConnected)return;d.open=open;d.style.overflow='';delete d._pwTarget;d._pwAnimation=null;if(d.hasAttribute('data-pw-setup')){pw().setupOpen=open;pwPersist();}};
+  if(!d.animate||matchMedia('(prefers-reduced-motion: reduce)').matches){finish();return;}
+  d.style.overflow='hidden';d._pwAnimation=d.animate([{height:start+'px'},{height:(open?full:shut)+'px'}],{duration:280,easing:'cubic-bezier(.22,.68,0,1)'});
+  d._pwAnimation.onfinish=finish;
+},true);
+
 function pwPositionDock(){const dock=document.querySelector('.pw-save-dock'),nav=document.getElementById('nav');if(dock&&nav)dock.style.bottom=Math.max(78,innerHeight-nav.getBoundingClientRect().top+8)+'px';}
 window.addEventListener('resize',pwPositionDock,{passive:true});
 
@@ -158,7 +220,7 @@ function pwApply(add=false){
     if(c.index!==undefined){dst.rows.splice(c.index,1,...pwCopy(b.rows));dst.locks=dst.locks.filter(i=>i!==c.index).map(i=>i>c.index?i+b.rows.length-1:i);b.rows.forEach((r,i)=>{if(r.kind==='ex')dst.locks.push(c.index+i);});}
     else if(add)dst.rows.push(...pwCopy(b.rows));
     else{dst.rows=pwCopy(b.rows);dst.locks=c.type==='paste'?[]:dst.locks;}
-    dst.parts=pwParts(dst.rows);dst.source=c.type==='paste'?'Your routine · not rewritten':c.type==='adjust'?'Writer-adjusted set count':'Written from your training';dst.notes=b.notes||[];
+    dst.cleared=false;dst.parts=pwParts(dst.rows);dst.source=c.type==='paste'?'Your routine · not rewritten':c.type==='adjust'?'Writer-adjusted set count':'Written from your training';dst.notes=b.notes||[];
   }s.candidate=null;s.setupOpen=false;pwGo('edit');
 }
 function pwValidateAdjustment(rows,day){
@@ -211,12 +273,12 @@ async function pwGenerate(adjust=false,rewrite=false){
 }
 function pwSave(){
   const s=pw();
-  for(const d of s.dates){if(d<todayISO)throw Error('A draft date has passed. Choose a current or future date.');const b=pwDay(d);if(!b.rows.length)throw Error(`${pwDate(d)} is still empty. Add a routine or remove that date.`);if(b.base!==pwFingerprint(d)){s.conflict=d;throw Error(`${pwDate(d)} changed since you opened it, possibly on another device. Compare the newer plan below before saving. Your draft is safe.`);}}
+  for(const d of s.dates){if(d<todayISO)throw Error('A draft date has passed. Choose a current or future date.');const b=pwDay(d);if(!b.rows.length&&!b.cleared)throw Error(`${pwDate(d)} is still empty. Add a routine or remove that date.`);if(b.base!==pwFingerprint(d)){s.conflict=d;throw Error(`${pwDate(d)} changed since you opened it, possibly on another device. Compare the newer plan below before saving. Your draft is safe.`);}}
   // Merge ONLY reviewed dates; unlike weekSave, preserve all other blocks and
   // a separately saved today/tomorrow plan. Existing timestamps drive cloud sync.
   const days=pwCopy(DB.week?.days||{}),at=Date.now();
-  for(const d of s.dates){const b=pwDay(d),doc={...planItemsFrom(b.rows),raw:pwText(b.rows),title:pwParts(b.rows).join(' + ')};days[d]=doc;if(DB.plan?.d===d){DB.plan={d,...doc};DB.planAt=at;}}
-  const all=Object.keys(days).sort();DB.week={from:all[0],to:all[all.length-1],days,raw:'',at};DB.weekAt=at;planRailRefresh();save(true);
+  for(const d of s.dates){const b=pwDay(d);if(b.cleared&&!b.rows.length){delete days[d];if(DB.plan?.d===d){DB.plan=null;DB.planAt=at;}continue;}const doc={...planItemsFrom(b.rows),raw:pwText(b.rows),title:pwParts(b.rows).join(' + ')};days[d]=doc;if(DB.plan?.d===d){DB.plan={d,...doc};DB.planAt=at;}}
+  const all=Object.keys(days).sort();DB.week=all.length?{from:all[0],to:all[all.length-1],days,raw:'',at}:null;DB.weekAt=at;planRailRefresh();save(true);
   for(const d of s.dates){const b=pwDay(d);b.base=pwFingerprint(d);b.source='Saved plan';delete b.undo;}
   s.step='edit';pwPersist();lift.plan=null;view='today';toast('Plan saved');render({soft:true});
 }
@@ -224,6 +286,7 @@ function pwHandle(e){
   const el=e.target.closest('[data-pw]');if(!el)return false;
   const a=el.dataset.pw,s=pw(),d=el.dataset.date,i=Number(el.dataset.index),b=s.active?pwDay(s.active):null;
   try{
+    if(a==='set-minus'||a==='set-plus'){pwAdjustLive(a==='set-plus'?1:-1);return true;}
     if(a==='back'){if(s.step!=='edit'||s.datesOpen){pwRequest++;lift.writeAbort?.abort();writerWaitStop();s.busy=false;s.candidate=null;s.datesOpen=false;pwGo('edit');}else{pwPersist();lift.plan=null;view='today';render({soft:true});}return true;}
     if(a.startsWith('text-')){pwTextTool(a);return true;}
     if(a==='upcoming'){s.upcomingOpen=!s.upcomingOpen;const box=el.closest('.pw-coming');el.setAttribute('aria-expanded',String(s.upcomingOpen));box.classList.toggle('is-open',s.upcomingOpen);box.querySelector('.pw-fold').toggleAttribute('inert',!s.upcomingOpen);pwPersist();return true;}
@@ -239,7 +302,10 @@ function pwHandle(e){
     else if(a==='part'){const x=pwDay(d),p=el.dataset.part;x.parts=x.parts.includes(p)?x.parts.filter(v=>v!==p):[...x.parts,p];}
     else if(a==='day'){s.active=d;s.step='edit';}
     else if(a==='workspace')s.step='edit';
-    else if(['dates','focus','edit','review','adjust'].includes(a)){s.step=a;s.error='';if(a==='adjust')b.target=pwCounts(b.rows).total;}
+    else if(['dates','focus','edit','review','adjust'].includes(a)){s.step=a;s.error='';if(a==='adjust')pwBeginAdjust();}
+    else if(a==='adjust-cancel'){s.adjustBase=null;s.adjustRows=null;s.step='edit';}
+    else if(a==='adjust-keep'){if(s.adjustDate!==s.active)throw Error('Open Adjust sets for this day again.');pwUndoPoint(b);b.rows=pwCopy(s.adjustRows);b.target=pwCounts(b.rows).total;b.source='Adjusted set count';s.adjustBase=null;s.adjustRows=null;s.step='edit';}
+    else if(a==='clear-day'){pwUndoPoint(b);b.rows=[];b.locks=[];b.notes=[];b.target=null;b.cleared=true;b.source='Your draft';s.setupOpen=false;}
     else if(a==='paste'){s.pasteText='';s.editIndex=undefined;s.step='paste';}
     else if(a==='editrow'||a==='add'){s.editIndex=a==='add'?b.rows.length:i;s.pasteText=a==='add'?'':pwText([b.rows[i]]);s.exercise='<Keep typed name>';s.step='editrow';}
     else if(a==='readpaste'){

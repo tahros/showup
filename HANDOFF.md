@@ -1,5 +1,39 @@
 # ShowUp — handoff (2026-08-22, v3.3.267)
 
+## Live planning controls — v4.0.2 (2026-09-11)
+
+Fetched origin/main and checked header at 55deb91 / v4.0.1. Branch
+codex/planner-live-controls. Only planner.js/css, tests and release docs/stamps
+changed. Header, tab bars, Progression and AI generation remain untouched.
+
+Adjust sets now uses a local, deterministic live allocation, not repeated
+Claude calls. pwSetLimits/pwAllocateSets operate from an immutable adjustment
+baseline, preserving original proportions and rep prefixes. Warm-ups, locked
+rows, notes and Run are fixed; each adjustable line keeps 1..12 sets (existing
+larger lines are never truncated merely by opening the panel). Total growth
+caps at 100, without truncating an existing larger routine. The working copy
+is separate until Keep changes; Cancel discards it. Snapshot persists locally.
+
+Clear sets a draft-only cleared flag and Undo snapshot. Save explicitly
+removes that date from DB.week and same-date DB.plan, advances their existing
+sync stamps and uses the existing fingerprint conflict guard. Empty unmarked
+days still cannot save. Other dates and DB.days never change. Plan/Paste stay
+available after Clear; applying a replacement unsets the flag.
+
+pwFoldMarkup standardizes native details chevrons; capture-click handling
+animates height with interruption support and keeps closed children inert.
+Detached animation callbacks cannot overwrite a newer screen's setup state.
+Existing Coming up CSS-grid transition remains. No global animation override.
+
+QA: 88 planner assertions and isolated Chromium light/dark flows at
+320/393/430/1000px pass: live counts, Keep/Cancel/Undo, Clear, identical
+16px chevrons on the same edge, measured slide-in/out heights, touch reorder,
+CTA/nav clearance and no overflow/errors. Full suite: 72/74 pass. Existing
+test-runclose computed-width failure remains; test-progression's latest-12
+assertion also fails with the unchanged HEAD planner, so is not introduced
+here. No real user records or paid model calls used. Previous UI rollback
+remains in Settings > Planning interface > Previous.
+
 ## One planning editor — v4.0.1 (2026-09-10)
 
 Fetched main/header checked at a123bad / v4.0.0 before editing and rechecked

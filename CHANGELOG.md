@@ -1,5 +1,21 @@
 # ShowUp — changelog
 
+## v4.0.2 (2026-09-11) — Adjust in place
+
+- **Total sets − / +** updates the routine below and the bottom count
+  immediately. No Preview step or AI wait. Keep changes updates the draft;
+  Cancel leaves it alone, and Undo restores the previous routine.
+- Instant allocation follows the original working-set proportions. Loads,
+  rep targets, timed durations, warm-ups, fixed exercises and cardio remain
+  unchanged. Each working line retains at least one set; unavailable steps
+  disable at the limits. AI plan generation itself is unchanged.
+- **Clear**, beside the editor title, empties only the selected day's draft.
+  Undo restores it. Save applies the removal to that day's saved plan without
+  touching neighboring plans or logged workouts. Plan/Paste remain available.
+- Planning disclosures slide open and closed, including body parts and saved
+  routines. Chevrons use one icon and size; Dates and body parts share a right
+  edge. Reduced-motion preferences are respected.
+
 ## v4.0.1 (2026-09-10) — One place to plan
 
 **Today → Plan editor → Save.** Dates, body parts and training goal now live

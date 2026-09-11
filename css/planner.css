@@ -81,7 +81,7 @@ p.pw-small{margin:10px 0 16px}.pw-workspace p:not(.pw-small){font:400 14px/1.6 v
 .pw-context{min-width:0;padding:0;margin:0;border:0}.pw-datebar{display:flex;gap:8px;align-items:flex-start;margin-bottom:12px}.pw-datebar .pw-days{flex:1;min-width:0;padding:0;margin:0}.pw-datebar>.pw-btn{flex:none;gap:5px}
 .pw-calendar-icon{width:16px;height:16px;fill:currentColor;flex:none}.pw-calendar-icon .frame{fill:none;stroke:currentColor;stroke-width:2}
 .pw-single .pw-calendar-panel{padding:12px;margin-bottom:0}.pw-calendar-panel .pw-month{margin-bottom:4px}.pw-calendar-panel .pw-calendar .pw-btn{min-height:36px}.pw-calendar-panel p.pw-small{margin:8px 0 0}
-.pw-setup{margin:0 0 16px}.pw-setup summary{display:flex;align-items:center;gap:10px;min-height:44px;cursor:pointer;list-style:none}.pw-setup summary::-webkit-details-marker{display:none}.pw-setup summary span{flex:1;font:500 14px/1.4 var(--body)}.pw-setup summary .ic{transition:transform 220ms}.pw-setup[open] summary .ic{transform:rotate(90deg)}
+.pw-setup{margin:0 0 16px}.pw-setup summary{display:flex;align-items:center;gap:10px;min-height:44px;cursor:pointer;list-style:none}.pw-setup summary::-webkit-details-marker{display:none}.pw-setup summary span{flex:1;font:500 14px/1.4 var(--body)}.pw-setup summary .ic{transition:transform 220ms}.pw-setup summary[aria-expanded="true"] .ic{transform:rotate(90deg)}
 .pw-setup-body{padding:4px 0 8px}.pw-single .pw-setup h3{font:500 14px/1.4 var(--body);margin:0 0 4px}.pw-setup p.pw-small{margin:0 0 12px}.pw-single .pw-parts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.pw-single .pw-parts .pw-btn{width:100%;min-width:0;padding:8px 3px;font-size:12px;min-height:42px;border-radius:12px}
 .pw-goal{margin-top:14px}.pw-goal label{margin:0;font:500 11px/1.5 var(--mono)}.pw-single .pw-goal input{appearance:auto;accent-color:var(--accent);padding:0;min-height:28px;margin:4px 0 0;border:0;background:transparent;box-shadow:none}.pw-goal-labels{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}.pw-goal-labels .pw-btn{padding:6px 2px;min-height:36px;font-size:12px;border-color:transparent;background:transparent}.pw-goal-labels .pw-goal-on{color:var(--accent-ink);font-weight:600}
 .pw-single .pw-edit-actions{margin:0 0 12px;gap:6px}.pw-single .pw-edit-actions .pw-btn{padding:8px 12px}.pw-single .pw-edit-actions>.primary{flex:0 1 auto}
@@ -91,3 +91,16 @@ p.pw-small{margin:10px 0 16px}.pw-workspace p:not(.pw-small){font:400 14px/1.6 v
 .pw-save-dock{position:fixed;bottom:96px;left:50%;transform:translateX(-50%);z-index:29;width:calc(100% - 36px);max-width:484px;box-sizing:border-box;display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:8px;background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:0 4px 18px #00000014}.pw-save-dock>.primary{flex:1;min-height:44px}.pw-save-dock>.pw-save-scope{flex-basis:100%;text-align:center;color:var(--muted);font:400 10px/1.4 var(--mono)}
 @media(pointer:coarse){.pw-single textarea.pw-routine,.pw-single .pw-input-panel select{font-size:16px}}
 @media(prefers-reduced-motion:reduce){.pw-setup summary .ic{transition:none}}
+/* Shared planning controls; keep the header and tab bar untouched. */
+.pw-clear{flex:none;gap:5px}.pw-editor-head .pw-clear{font-size:12px}
+.pw-single .pw-adjust{padding:16px 18px}.pw-stepper{display:flex;align-items:center;justify-content:center;gap:22px;margin:10px 0}
+.pw-stepper .pw-btn{width:48px;height:48px;border-radius:50%;padding:0;font:400 26px/1 var(--body)}
+.pw-stepper output{min-width:70px;font:500 34px/1.2 var(--body);font-variant-numeric:tabular-nums;letter-spacing:-1px}
+.pw-single .pw-adjust p.pw-small{margin:8px 0 0}.pw-live-routine .pw-exercise{padding:12px 0}.pw-live-routine .pw-ex-title strong{font-size:14px}
+.pw-home .pw-fold-summary,.pw-workspace .pw-fold-summary{display:flex;align-items:center;gap:10px;list-style:none;cursor:pointer;min-height:44px}
+.pw-home .pw-fold-summary::-webkit-details-marker,.pw-workspace .pw-fold-summary::-webkit-details-marker{display:none}
+.pw-home .pw-fold-summary::after,.pw-workspace .pw-fold-summary::after{display:none}
+.pw-home .pw-fold-summary>.ic,.pw-workspace .pw-fold-summary>.ic,.pw-disclosure>.ic,.pw-datebar>.pw-btn>.ic:last-child{width:16px;height:16px;flex:0 0 16px;margin-left:auto;transform:rotate(0);transition:transform 280ms cubic-bezier(.22,.68,0,1)}
+.pw-home .pw-fold-summary[aria-expanded="true"]>.ic,.pw-workspace .pw-fold-summary[aria-expanded="true"]>.ic,.pw-coming.is-open .pw-disclosure>.ic{transform:rotate(90deg)}
+.pw-datebar>.pw-btn{padding-right:0;border-right-width:0}.pw-setup summary{padding-right:0}
+@media(prefers-reduced-motion:reduce){.pw-fold-summary>.ic{transition:none!important}}
