@@ -1,5 +1,43 @@
 # ShowUp — changelog
 
+
+## v4.3.4 (2026-09-11) — The resolver, run over a record's worth of names
+
+Still resolve-only. Nothing reads it, nothing is written, the record is
+untouched — asserted.
+
+Run over the 103 catalog names plus the hand-typed variants a real record
+accumulates: **127 of 131 resolved into 15 merge groups.** Four left alone, and
+those four are the point.
+
+Four repairs the run surfaced that a handful of guessed examples never would
+have:
+
+- **"pullups"** — the compound split required both halves to be three
+  characters, so `pull` + `up` was never tried. A three-letter floor silently
+  excluded every compound ending in a short word.
+- **"Skullcrushers"** — a run-together compound whose second half is also
+  plural. Each repair alone leaves it unresolved; the split is now tried on the
+  word and on its singular.
+- **"lat pulldowns"** — a plural that has to survive the synonym rewrite. The
+  repair runs twice, once either side of it.
+- **"overhead tricep extension"** — a singular abbreviation inside a longer
+  name.
+
+**The four refusals:** "Triceps Extension" and "Tricep Ext" sit between
+*Overhead Triceps Extension* and *Overhead Cable Extension*. "Seated Row" and
+"seated rows" name no implement while the catalog holds *Seated Cable Row*.
+Every one is a guess the resolver declines to make, and each is now pinned by
+an assertion — the refusals matter more than the merges, because a wrong merge
+across 963 days cannot be undone.
+
+A raw-spelling vocabulary pass was added and then **removed**: a probe showed
+it carried nothing once the repair ran on both sides of the synonym rewrite.
+Untested code that looks load-bearing is worse than no code.
+
+Next: the migration — stamp the ids on the record, keeping the original text.
+
+
 ## v4.3.3 (2026-09-11) — Cleaner MP4 stacks
 
 - Remove impact dust from MP4 exports only. Keep ground shadows, falling plates,

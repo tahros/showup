@@ -56,6 +56,23 @@ ok('an empty name resolves to nothing', to('')===null&&to(null)===null);
 ok('a plural is only undone when the singular is a word the app knows',
    exidKey('press')===exidKey('presses') && exidKey('gas')!==exidKey('ga'));
 
+/* the four repairs that only work together, found by running the resolver over
+   a real record's worth of names rather than a handful of guesses */
+ok('a compound whose second half is short still splits: "pullups"',
+   to('pullups')==='Pull Up', to('pullups')||'(unresolved)');
+ok('...and one whose second half is plural: "Skullcrushers"',
+   to('Skullcrushers')==='Skull Crusher', to('Skullcrushers')||'(unresolved)');
+ok('a plural survives the synonym rewrite: "lat pulldowns"',
+   to('lat pulldowns')==='Lat Pulldown', to('lat pulldowns')||'(unresolved)');
+ok('...and a singular abbreviation inside a longer name',
+   to('overhead tricep extension')==='Overhead Triceps Extension',
+   to('overhead tricep extension')||'(unresolved)');
+/* the refusals that matter more than the merges */
+ok('"Seated Row" is NOT merged into Seated Cable Row — it names no implement',
+   to('Seated Row')===null, to('Seated Row')||'(unresolved)');
+ok('...and "Tricep Ext" is not guessed at either',
+   to('Tricep Ext')===null, to('Tricep Ext')||'(unresolved)');
+
 // ---- and it changes nothing yet
 const files=fs.readdirSync(path.join(dir,'js')).filter(f=>f!=='exid.js');
 const used=files.filter(f=>/exidResolve|exidBuild/.test(fs.readFileSync(path.join(dir,'js',f),'utf8')));

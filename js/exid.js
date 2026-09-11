@@ -41,7 +41,14 @@ function exidNorm(name){
 let EXID_VOCAB=new Set();
 function exidVocab(names){
   EXID_VOCAB=new Set();
-  for(const n of names) for(const w of exidNorm(n).split(' ')) if(w) EXID_VOCAB.add(w);
+  for(const n of names){
+    /* Only the normalised words. A raw-spelling pass was added here first and
+       a probe showed it carried nothing: the repair runs twice around the
+       synonym expansion, so a plural is repaired on whichever side of that
+       rewrite it lands. Untested code that looks load-bearing is worse than
+       no code, so it went. */
+    for(const w of exidNorm(n).split(' ')) if(w) EXID_VOCAB.add(w);
+  }
   return EXID_VOCAB;
 }
 function exidFix(words){
@@ -55,11 +62,25 @@ function exidFix(words){
     if(w.endsWith('s')&&EXID_VOCAB.has(w.slice(0,-1))){ out.push(w.slice(0,-1)); continue; }
     /* a run-together compound only if BOTH halves are known: "skullcrusher"
        splits, a typo does not */
+    /* "skullcrushers" and "pullups" need BOTH repairs at once: a run-together
+       compound whose second half is also plural. Each rule alone leaves them
+       unresolved, so the split is tried on the word and on its singular. Both
+       halves must still be words the catalog knows -- a typo never splits. */
     let split=null;
-    for(let i=3;i<=w.length-3;i++){
-      const a=w.slice(0,i), b=w.slice(i);
-      if(EXID_VOCAB.has(a)&&EXID_VOCAB.has(b)){ split=[a,b]; break; }
-    }
+    const tryAt=t=>{
+      /* halves of two letters are allowed: "pullup" is "pull"+"up", and a
+         three-character floor silently excluded every compound ending in a
+         short word. Both halves must still be known, which is what stops
+         this splitting things that are not compounds. */
+      for(let i=2;i<=t.length-2;i++){
+        const a=t.slice(0,i), b=t.slice(i);
+        if(EXID_VOCAB.has(a)&&EXID_VOCAB.has(b)) return [a,b];
+      }
+      return null;
+    };
+    split=tryAt(w)
+      || (w.endsWith('es')?tryAt(w.slice(0,-2)):null)
+      || (w.endsWith('s') ?tryAt(w.slice(0,-1)):null);
     if(split){ out.push(...split); continue; }
     out.push(w);
   }
@@ -73,7 +94,15 @@ function exidKey(name){
   /* joined forms the catalog spells as one word */
   s=s.replace(/\bdead lift\b/g,'deadlift').replace(/\bpull down\b/g,'pulldown');
   let words=s.split(' ').filter(w=>w&&!EXID_DROP.has(w));
-  if(EXID_VOCAB.size) words=exidFix(words);
+  if(EXID_VOCAB.size){
+    words=exidFix(words);
+    /* a repaired word may itself be a synonym -- "pulldowns" becomes
+       "pulldown", which only then expands to "pull down" */
+    let again=words.join(' ');
+    for(const [k,v] of Object.entries(EXID_SYN)) again=again.replace(new RegExp('\\b'+k+'\\b','g'),v);
+    again=again.replace(/\bdead lift\b/g,'deadlift').replace(/\bpull down\b/g,'pulldown');
+    words=exidFix(again.split(' ').filter(Boolean));
+  }
   return words.sort().join(' ');
 }
 
