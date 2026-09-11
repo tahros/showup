@@ -1692,7 +1692,7 @@ function celebrateDayDone(nowrite, forceCount, forceMile, forceShow){
   o.setAttribute('role','dialog');
   o.setAttribute('aria-modal','true');
   o.setAttribute('aria-labelledby','ddHeading');
-  o.innerHTML=`<div class="ddinner"><div class="dddate">${dateLabel}</div><div class="ddbody">${withMascot?mascotHTML('jump'):''}`+(mile
+  o.innerHTML=`<div class="ddinner"><div class="dddate">${dateLabel}</div><div class="ddbody">${withMascot?mascotHTML('jump','','blue'):''}`+(mile
     ? `<span class="ddstage"><i class="ddsq" aria-hidden="true"></i><span class="ddmk" aria-hidden="true">${icon('brandmark',44)}</span></span>`
     : withMascot?'':`<i class="ddsq" aria-hidden="true"></i>`)+
     `<b class="ddn${count>=1000?' ddlarge':''}">${fmt(count)}</b><span class="ddu">${count===1?'day':'days'} of showing up</span>`+
@@ -1760,7 +1760,7 @@ function celebrateDayDone(nowrite, forceCount, forceMile, forceShow){
   o.addEventListener('click',e=>{
     const action=e.target.closest('[data-dd]');
     if(action?.dataset.dd==='milestone'){
-      o.querySelector('.ddbody').innerHTML=mascotHTML('dance')+
+      o.querySelector('.ddbody').innerHTML=mascotHTML('dance','','blue')+
         '<h2 class="ddyou" id="ddHeading">25 sessions. All you.</h2><p class="su-milestone-note">Built one visit at a time.</p>'+
         mascotMilestoneHTML()+'<p class="su-milestone-note">Every square is a day you showed up.</p>';
       o.querySelector('[data-dd="done"]').remove();

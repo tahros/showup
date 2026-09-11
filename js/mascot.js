@@ -1,10 +1,19 @@
 /* ShowUp mascot integration. Decorative, optional, lazy and entirely local.
    No workout data is sent to the renderer. */
 function mascotMode(){return ['still','off'].includes(DB.settings.mascotMotion)?DB.settings.mascotMotion:'animated';}
-function mascotHTML(mode='hello',className=''){
+/* v4.2.4: TONE IS NOT A MOTION. Blue was only reachable as mode 'cool', and
+   mode also chooses the animation -- so asking for a blue mascot meant giving
+   up whatever it was doing. The completion moment wants blue AND its jump,
+   then blue AND its dance. tone is its own argument now; mode keeps the
+   motion, and 'cool' still implies blue so nothing that asked for it changes. */
+function mascotTone(mode,tone){
+  if(tone)return tone;
+  if(mode==='cool')return 'blue';
+  return document.documentElement.dataset.theme==='dark'?'white':'charcoal';
+}
+function mascotHTML(mode='hello',className='',tone=''){
   if(mascotMode()==='off')return '';
-  const tone=mode==='cool'?'blue':document.documentElement.dataset.theme==='dark'?'white':'charcoal';
-  return '<span class="su-mascot '+className+'" data-mascot="'+mode+'" aria-hidden="true"><img src="assets/mascot-'+tone+'.png" alt="" width="360" height="220"></span>';
+  return '<span class="su-mascot '+className+'" data-mascot="'+mode+'"'+(tone?' data-mascot-tone="'+tone+'"':'')+' aria-hidden="true"><img src="assets/mascot-'+mascotTone(mode,tone)+'.png" alt="" width="360" height="220"></span>';
 }
 function workoutCompletionMetrics(record){
   const rows=record?.w||[];
@@ -64,7 +73,7 @@ for(const tone of ['white','charcoal']){
       modulePromise ||= import('./mascot-renderer.js');
       const module=await modulePromise;
       if(!el.isConnected||!visible.has(el)||document.hidden||still()||live.size>=2)return;
-      const instance=module.createMascot(el,{mode:el.dataset.mascot,theme:document.documentElement.dataset.theme,still:false});
+      const instance=module.createMascot(el,{mode:el.dataset.mascot,tone:el.dataset.mascotTone||'',theme:document.documentElement.dataset.theme,still:false});
       live.set(el,instance);el.classList.add('su-ready');
       /* v4.1.2: TAP TO SAY HELLO. The mascot stays aria-hidden and out of the
          tab order on purpose: it carries no information and performs no
@@ -103,7 +112,7 @@ for(const tone of ['white','charcoal']){
     }
     document.querySelectorAll('[data-mascot]').forEach(el=>{
       const image=el.querySelector('img');
-      const path='assets/mascot-'+(el.dataset.mascot==='cool'?'blue':theme==='dark'?'white':'charcoal')+'.png';
+      const path='assets/mascot-'+mascotTone(el.dataset.mascot,el.dataset.mascotTone)+'.png';
       if(image&&image.getAttribute('src')!==path)image.src=path;
       if(!el.dataset.observed){el.dataset.observed='true';intersection.observe(el);}
       if(mode==='off'||still()||document.hidden)remove(el);

@@ -195,10 +195,15 @@ export function createMascot(stage, options={}) {
     }
 
   let theme=options.theme||'light', mode=options.mode||'hello', still=!!options.still;
+  /* v4.2.4: colour and motion are separate questions. 'cool' still means blue,
+     so nothing that already asked for it changes, but a tone may now be given
+     on its own -- the completion moment is blue while it jumps and dances. */
+  let tone=options.tone||'';
+  const isBlue=()=>tone==='blue'||(!tone&&mode==='cool');
   let raf=0, elapsed=0, previous=0, paused=true, disposed=false, lost=false;
   const keys=['dark','mid','light'];
   function paint(t=elapsed) {
-    const base=mode==='cool'?['#2033af','#3049dc','#5368ed']:theme==='dark'?['#d7d7d7','#f1f1f1','#ffffff']:tones.soft;
+    const base=isBlue()?['#2033af','#3049dc','#5368ed']:tone==='white'?['#d7d7d7','#f1f1f1','#ffffff']:theme==='dark'?['#d7d7d7','#f1f1f1','#ffffff']:tones.soft;
     const target=mode==='active'?['#a92523','#d74236','#f46b52']:['#2749bd','#4779df','#78b3f4'];
     const pulse=mode==='active';
     const wave=still?.5:.5-.5*Math.cos(t/(mode==='active'?3200:4800)*Math.PI*2);
@@ -207,7 +212,7 @@ export function createMascot(stage, options={}) {
       charcoal.uniforms[key].value.set(base[i]);
       if(pulse) charcoal.uniforms[key].value.lerp(new THREE.Color(target[i]),strength);
     });
-    white.color.set(mode==='cool'?'#ffffff':theme==='dark'?'#303030':'#ffffff');
+    white.color.set(isBlue()?'#ffffff':theme==='dark'?'#303030':'#ffffff');
     const motion=motions[mode==='cool'?'jump':mode];
     const end=motion?.frames.at(-1).t||0;
     /* v4.1.2: when no show is running the mascot idles rather than freezing
@@ -232,7 +237,7 @@ export function createMascot(stage, options={}) {
   }
   function pause(){paused=true;cancelAnimationFrame(raf);previous=0;}
   function resume(){if(disposed||lost)return;pause();paused=false;paint();if(!still)raf=requestAnimationFrame(frame);}
-  function update(next={}){if(disposed||lost)return;theme=next.theme||theme;still=next.still??still;paint();resume();}
+  function update(next={;if(typeof next.tone==='string')tone=next.tone;}){if(disposed||lost)return;theme=next.theme||theme;still=next.still??still;paint();resume();}
   const observer=new ResizeObserver(resize);observer.observe(stage);
   renderer.domElement.addEventListener('webglcontextlost',()=>{lost=true;pause();stage.classList.remove('su-ready');});
   function dispose(){

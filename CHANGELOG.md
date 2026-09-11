@@ -1,5 +1,41 @@
 # ShowUp — changelog
 
+
+## v4.2.4 (2026-09-11) — The completion mascot is blue, and still jumps
+
+Blue was only reachable as mode `cool`, and mode also chooses the animation —
+so asking for a blue mascot meant giving up whatever it was doing. The
+completion moment wants blue **and** its jump, then blue **and** its dance.
+
+`tone` is its own argument now. Mode keeps the motion; `cool` still implies
+blue, so nothing that already asked for it changes. The tone rides on the
+element as `data-mascot-tone` so the poster, the theme sweep and the 3D
+renderer all read the same answer from one place.
+
+In the renderer, `isBlue()` decides colour and `mode` still decides motion —
+asserted separately, with a probe that makes blue steal the jump and turns the
+motion claim red.
+
+Everything that did not ask is untouched: a plain mascot is charcoal in light,
+white in dark, and `cool` is blue.
+
+### Shipping over Codex's red, as authorised
+
+Their HEAD (v4.2.3, canvas skyfall) fails **17 suites** on a clean tree with
+this work stashed — verified by running the suite against it directly. With
+this change it is 16: the tone split happens to fix one of them.
+
+Every suite this session's work owns is green: `test-mascottone`,
+`test-mascot-idle`, `test-weekstrip`, `test-planzone`, `test-pgfocus`,
+`test-staleclear`, `test-plandates`, `test-planfold`, `test-editall`,
+`test-runclose`.
+
+**Seventeen failing suites is not a state to build on.** Two of them
+(`test-planner-server`, `test-daydone`) have been red for days; the other
+fifteen arrived with v4.2.0–4.2.3. Whoever picks this up next should stop and
+fix the gates before adding anything.
+
+
 ## v4.2.3 (2026-09-11) — Card-sky drops and a jumping companion
 
 Approved skyfall preview implemented in Stats: queued plates are not drawn;
