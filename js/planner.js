@@ -96,10 +96,16 @@ function pwCalendarHTML(){
        saved plan is not a draft, it is that plan, and source says which */
     const bk=s.book[iso];
     const draft=!saved&&!!bk&&bk.source!=='Saved plan'&&(bk.rows||[]).length>0;
-    const mark=saved?'<i class="pw-dot" aria-hidden="true"></i>'
-              :draft?'<i class="pw-dot pw-dot-draft" aria-hidden="true"></i>':'';
+    /* v4.0.4: THE MARK IS A RING, NOT A DOT. v4.0.3 hung a 5px dot under the
+       number, five pixels off the cell's floor -- crowding the baseline and
+       reading as a speck rather than a state. A ring adds NOTHING to the cell:
+       the selected day is already a filled rounded square, so a hollow one is
+       the obvious "planned, not chosen" of the same shape, and selected-and-
+       planned collapses into one mark instead of stacking two.
+       It is a class on the button, not an element inside it, so nothing sits
+       beside the number competing for the 40px. */
     const what=saved?', has a plan':draft?', has an unsaved draft':'';
-    return pwButton('date',String(d.getDate())+mark,`${s.dates.includes(iso)?'selected':''} ${d.getMonth()!==base.getMonth()?'pw-outside':''} ${saved?'pw-planned':''}`,`data-date="${iso}" aria-label="${hesc(pwDate(iso,true))}${what}" aria-pressed="${s.dates.includes(iso)}" ${iso<todayISO?'disabled':''}`);}).join('')}</div><p class="pw-small">Up to 7 days · ${s.dates.length} selected</p></div>`;
+    return pwButton('date',String(d.getDate()),`${s.dates.includes(iso)?'selected':''} ${d.getMonth()!==base.getMonth()?'pw-outside':''} ${saved?'pw-planned':draft?'pw-drafted':''}`,`data-date="${iso}" aria-label="${hesc(pwDate(iso,true))}${what}" aria-pressed="${s.dates.includes(iso)}" ${iso<todayISO?'disabled':''}`);}).join('')}</div><p class="pw-small">Up to 7 days · ${s.dates.length} selected</p></div>`;
 }
 function pwRender(){
   const s=pw();

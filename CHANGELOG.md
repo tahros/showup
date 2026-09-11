@@ -1,6 +1,36 @@
 # ShowUp — changelog
 
 
+
+## v4.0.4 (2026-09-11) — The mark is a ring
+
+v4.0.3 hung a 5px dot under the number, five pixels off the cell's floor. It
+crowded the baseline and read as a speck on the glass rather than a state, and
+it shipped because I wrote it without ever looking at it.
+
+A ring adds **nothing** to the cell. The selected day is already a filled
+rounded square, so the hollow one is the same shape saying *planned, not
+chosen* — and a date that is both collapses into one mark instead of stacking
+two. Same radius, so the two read as one family. Drawn with `box-shadow`, not
+`border`, so it cannot change the cell's box and nudge the grid.
+
+A draft is **dashed**: a promise not kept yet.
+
+It is a class on the day button rather than an element inside it, so nothing
+sits beside the number competing for forty pixels. The accessible names are
+unchanged — *has a plan* and *has an unsaved draft* still ride on the label,
+because a ring is no more readable aloud than a dot was.
+
+Checked by rendering the calendar the code actually produces and looking at it,
+rather than the mock that argued for it.
+
+### Still red, still not this release's
+
+`test-planner-server` and `test-progression` were failing on v4.0.2 before any
+of this began. `tools/demo-tabtrip.js` drives a scope pill v4.0 removed and
+needs rewriting or retiring. All three are unchanged by this work.
+
+
 ## v4.0.3 (2026-09-11) — A calendar that says where you have already planned
 
 **The dates show their plans.** The calendar told you which dates were

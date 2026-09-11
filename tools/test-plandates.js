@@ -28,15 +28,22 @@ run(String.raw`DB.days={};DB.settings.onboarded=true;DB.settings.unit='lb';
 // ---- 1. the marks
 run(`pwOpen(null,'dates');pw().datesFrom='today';pwDay('2026-09-14').rows=[{ex:'Plank',lines:[]}];pwDay('2026-09-14').source='Your draft';pwRender();`);
 ok('the calendar is open', `!!document.querySelector('.pw-calendar')`);
-const dot = iso => `!!document.querySelector('[data-pw="date"][data-date="${iso}"] .pw-dot')`;
+/* v4.0.4: the mark is a class on the day, not an element inside it -- a ring
+   of the same shape as the selected day, so a date that is both wears one mark
+   rather than two stacked. */
+const dot = iso => `document.querySelector('[data-pw="date"][data-date="${iso}"]').classList.contains('pw-planned')`;
 ok('a date with a saved plan is marked', dot('2026-09-11'));
 ok('...including one that lives in the week, not today', dot('2026-09-12'));
 ok('...and a date with no plan is not marked',
-   `!document.querySelector('[data-pw="date"][data-date="2026-09-13"] .pw-dot')`);
+   `(function(){const c=document.querySelector('[data-pw="date"][data-date="2026-09-13"]').classList;
+     return !c.contains('pw-planned')&&!c.contains('pw-drafted');})()`);
 ok('an unsaved draft is marked differently — a different promise',
-   `!!document.querySelector('[data-pw="date"][data-date="2026-09-14"] .pw-dot.pw-dot-draft')`);
+   `document.querySelector('[data-pw="date"][data-date="2026-09-14"]').classList.contains('pw-drafted')`);
 ok('...and the saved ones are not the draft mark',
-   `!document.querySelector('[data-pw="date"][data-date="2026-09-11"] .pw-dot.pw-dot-draft')`);
+   `!document.querySelector('[data-pw="date"][data-date="2026-09-11"]').classList.contains('pw-drafted')`);
+/* the point of the ring: nothing is added inside the 40px cell */
+ok('...and nothing is stacked inside the cell beside the number',
+   `!document.querySelector('.pw-calendar .pw-dot')`);
 /* a dot is not readable aloud */
 ok('the mark is in the accessible name too, not only the dot',
    `/has a plan/.test(document.querySelector('[data-pw="date"][data-date="2026-09-11"]').getAttribute('aria-label'))
