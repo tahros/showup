@@ -235,4 +235,31 @@ ok('...and today, once trained, is a filled square that can carry it',
      /:root\[data-theme="light"\] header:not\(\.live\) \.h-week \.hwd:not\(\.on\)/.test(css) &&
      /:root\[data-theme="light"\] header:not\(\.live\) \.h-week \.hwd\.ahead/.test(css));
 }
+/* ---- v4.1.14: the shimmer in live, and today's fill ----------------------
+   The sweep is rgba(255,255,255,.92) and a trained day in the live header is
+   #fff: the shimmer had been running INVISIBLY for the whole of every
+   session. And v4.1.13's today rule shared specificity with the trained fill
+   and sat later, so today-once-trained went translucent mid-session. */
+{
+  const {JSDOM}=require('jsdom');
+  const page=new JSDOM(`<!doctype html><html data-theme="light"><head><style>${css}</style></head>
+    <body><header class="live"><div class="h-week">
+      <i class="hwd on" id="t"></i><i class="hwd on tod" id="tt"></i>
+      <i class="hwd tod" id="to"></i></div></header></body></html>`,{pretendToBeVisual:true});
+  const win=page.window, cs=s=>win.getComputedStyle(win.document.querySelector(s));
+  const bg=s=>cs(s).background||cs(s).backgroundColor;
+  ok('live: today, once trained, keeps the solid trained fill',
+     /rgb\(255, ?255, ?255\)$/.test(bg('#tt').trim()), bg('#tt'));
+  ok('...while an untrained today takes the softer fill',
+     /0\.35|,\.35/.test(bg('#to')), bg('#to'));
+  /* the band must differ from the square it sweeps, or there is no shimmer */
+  const live=css.match(/header\.live \.h-week \.hwd\.on::after\{[^}]*\}/);
+  ok('the live sheen has its own band, not white on white',
+     !!live && /var\(--live\)/.test(live[0]) && !/rgba\(255,255,255/.test(live[0]),
+     live?live[0].replace(/\s+/g,' ').slice(0,90):'(no live sheen rule)');
+  ok('...and the ordinary sheen is untouched',
+     /\.h-week \.hwd\.on::after\{content:'';[^}]*rgba\(255,255,255,\.92\)/.test(css));
+  ok('...still on hwsheen, staggered across the week',
+     /animation:hwsheen 1\.15s/.test(css) && /nth-child\(7\)\.on::after\{animation-delay:\.60s\}/.test(css));
+}
 process.exit(fails?1:0);

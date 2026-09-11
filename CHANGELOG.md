@@ -3,6 +3,40 @@
 
 
 
+
+## v4.1.14 (2026-09-11) — The shimmer was running invisibly
+
+The sweep band is `rgba(255,255,255,.92)`. A trained day in the live header is
+`#fff`. **White on white** — so for the whole of every session since the live
+header existed, the shimmer has been playing and showing nothing.
+
+Nobody had looked at the strip mid-session until the live squares got attention
+this week. On the red wash the band has to be the **red**, not more white: the
+same light travelling across the week, read as a shadow rather than a
+highlight. The ordinary sheen is untouched.
+
+**And today, once trained, had gone translucent.** v4.1.13's
+`header.live .h-week .hwd.tod` set a fill, sharing specificity with
+`header.live .h-week .hwd.on` and sitting later — so mid-session the one square
+that mattered most resolved to `rgba(255,255,255,.35)` instead of solid white.
+`:not(.on)` on the fill alone; the ring, the scale and the bloom still apply to
+today whether trained or not.
+
+**Fourth time specificity has let me overwrite something already correct** —
+v4.1.9, v4.1.12, v4.1.13, and now this. The rule I should have been applying
+since the first: add `:not()` the moment a new selector shares ground with an
+existing one, rather than after someone notices the damage.
+
+Both held by resolved style: today-once-trained must be solid white, an
+untrained today must not, and the live band must differ from the square it
+sweeps — because a sheen the same colour as its surface is not a shimmer, it is
+nothing, and only a computed value can tell those apart.
+
+### Two reds, neither this release's
+
+`test-planner-server` since v4.0.2, `test-daydone` since v4.1.10.
+
+
 ## v4.1.13 (2026-09-11) — The live strip, and today owning the row
 
 A skipped day in the live header was **white at 28%** while a trained day was

@@ -1134,7 +1134,14 @@
      the neighbours are not nudged. */
   header.live .h-week .hwd.tod{outline:1.5px solid #fff;outline-offset:2px;
     transform:scale(1.18);transform-origin:50% 50%;
-    background:rgba(255,255,255,.35);
+    /* v4.1.14: :not(.on) on the FILL only. Without it this beat
+       `header.live .h-week .hwd.on` -- same specificity, later in the file --
+       and today, once trained, went translucent mid-session. The ring, the
+       scale and the bloom still apply to today whether trained or not; only
+       the fill steps aside. Fourth time specificity has let me overwrite
+       something already right, so the rule is now: add :not() the moment a
+       new selector shares ground with an existing one. */
+    animation-name:hwlive;
     /* BLUR ONLY, NO SPREAD. The first cut had a hard 4px halo ring and
        test-rest caught it: the squares sit 5px apart, so a 4px ring -- on a
        square already scaled 1.18 -- crowds its neighbours. That guard exists
@@ -1143,6 +1150,15 @@
        filling it, which is the same flourish without the crowding. */
     box-shadow:0 0 10px rgba(255,255,255,.50);
     animation:hwlive 2.4s ease-in-out infinite}
+  header.live .h-week .hwd.tod:not(.on){background:rgba(255,255,255,.35)}
+  /* THE SHEEN WAS WHITE ON WHITE. A trained day is #fff in the live header
+     and the sweep is rgba(255,255,255,.92) -- the shimmer has been running
+     invisibly the whole time a session is open. On the red wash the band has
+     to be the RED, not more white: the same light travelling across the week,
+     read as a shadow instead of a highlight. */
+  header.live .h-week .hwd.on::after{
+    background:linear-gradient(100deg,transparent 0%,
+      color-mix(in srgb,var(--live) 62%,transparent) 50%,transparent 100%)}
   @keyframes hwlive{
     0%,100%{box-shadow:0 0 10px rgba(255,255,255,.50)}
     50%{box-shadow:0 0 16px rgba(255,255,255,.22)}
