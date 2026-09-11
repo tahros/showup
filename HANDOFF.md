@@ -1,5 +1,28 @@
 # ShowUp — handoff (2026-08-22, v3.3.267)
 
+## Planning polish — v4.0.0 (2026-09-10)
+
+Fetched main/header checked at 496f03c / v3.3.543 before editing; isolated on
+codex/planner-v4-polish. Scope: planner.js / planner.css, tests, release stamps
+and this documentation. No header, navigation, Progression, writer or server
+changes. User-facing release is v4.0; synchronized stamps use semver 4.0.0.
+
+Coming up is an aria-expanded button + inert CSS-grid disclosure, animated
+without rerendering its DOM. Open state stays in the existing local draft.
+Editor/review spacing is scoped to pw-step-edit/review. Reorder uses stable
+list pointer capture (not the moving row), touch hold, edge auto-scroll, and
+keyboard arrows. DOM positions are committed as a validated permutation once
+on release; pointercancel/Escape/blur restore the original. Duplicate rows,
+notes and locks retain identity. Undo and persistence use existing draft paths.
+
+Tests: 63 planner behavioral assertions; isolated browser flow in light/dark
+at 320/393/430/1000px, mouse drag, touch drag/cancel at 393px, and measured
+disclosure intermediate heights. Full suite: 73/74 pass; sole failure remains
+the pre-existing test-runclose jsdom computed-width assertion (100% versus
+intrinsic width), unrelated to planner files. Buildcheck and smoke pass.
+No real records used. Same local rollback:
+Settings > Planning interface > Previous; no saved-plan migration required.
+
 ## Planning workspace — v3.3.543 (2026-09-10)
 
 Header/clean tree and fetched origin/main checked at f2f42b7 / v3.3.542;

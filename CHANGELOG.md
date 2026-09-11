@@ -1,5 +1,27 @@
 # ShowUp — changelog
 
+## v4.0.0 (2026-09-10) — Your next workout, made yours
+
+The new planning workspace graduates to **v4.0**: choose dates and body parts,
+build with Claude or paste your own routine, adjust total sets, edit, review,
+and save only the days you chose. The previous interface remains available in
+Settings, and existing plans and workout records need no migration.
+
+- **Edit your plan** and **Save your plan** replace the less direct headings.
+  Tighter spacing brings the dates, set totals and prescriptions together;
+  the review is compact enough to scan without oversized gaps.
+- Hold the three-line handle to reorder an exercise. Prescriptions, duplicate
+  entries and Keep fixed flags move together. Mouse and keyboard arrow keys
+  work too; cancellation restores the order, and Undo reverses a completed move.
+- Pencil and remove icons now sit together at each exercise's top right, with
+  accessible names and 44px targets. Keep fixed sits beside the prescription.
+- Plan ahead sits closer to its card. Coming up expands and collapses smoothly
+  in place; the chevron points right when closed and down when open. Hidden
+  links leave the focus order, and reduced-motion settings are respected.
+
+Claude's model, prompts and generation/validation pipeline are unchanged in
+this release. Header, tab bars and Progression visuals are unchanged.
+
 ## v3.3.543 (2026-09-10) — A workspace for what comes next
 
 Planning now starts with dates and a focus for each day. Choose up to seven
