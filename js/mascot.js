@@ -75,6 +75,8 @@ for(const tone of ['white','charcoal']){
          mascot that answers late reads as broken rather than shy. */
       if(!el.dataset.tapBound){
         el.dataset.tapBound='1';
+        // Plate replay restarts the approved jump without simulating a user tap.
+        el.addEventListener('mascotreplay',()=>live.get(el)?.replay());
         el.addEventListener('pointerdown',()=>{
           const inst=live.get(el); if(!inst) return;
           el.classList.remove('su-poke'); void el.offsetWidth; el.classList.add('su-poke');

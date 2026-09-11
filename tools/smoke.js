@@ -8,7 +8,7 @@ const dir = process.argv[2] || "stage";
 
 const html = fs.readFileSync(path.join(dir, "index.html"), "utf8");
 const order = [...html.matchAll(/src="(js\/[^?"]+)\?v=/g)].map(m => m[1]);
-if (order.length !== 16) { console.error("expected 16 scripts, got", order.length); process.exit(1); }   // includes plate rewards
+if (order.length !== 17) { console.error("expected 17 scripts, got", order.length); process.exit(1); }   // includes plate canvas renderer
 
 const dom = new JSDOM(html.replace(/<script[^>]*src=[^>]*><\/script>/g, ""), {
   runScripts: "outside-only",

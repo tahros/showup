@@ -1,5 +1,23 @@
 # ShowUp — changelog
 
+## v4.2.3 (2026-09-11) — Card-sky drops and a jumping companion
+
+Approved skyfall preview implemented in Stats: queued plates are not drawn;
+each enters through the card's top edge, alternates tilt, lands with a light
+dust puff, and increments the exact volume. Canvas replaces the viewport SVG
+overlay, keeping all positions in one coordinate system on mobile browsers.
+Plate shadows are soft radial gradients. Replay is a bordered, touch-sized
+pill button. It also restarts the approved mascot jump; the mascot has a soft
+shadow beneath it, with a hopping fallback when WebGL is unavailable. Still,
+Off and reduced-motion preferences are respected. Hidden pages and detached
+cards release the animation; nested Stats scrolling no longer matters.
+
+Chromium and WebKit browser checks pass for real tab entry/replay, count-up,
+incremental viewing state, opposite tilt, downward coordinates, mobile width,
+reduced motion, completion and profile preservation. Mascot regression, build
+and smoke checks also pass. Physical iPhone verification remains distinct from
+desktop WebKit testing. Header and profile settings are unchanged.
+
 ## v4.2.2 (2026-09-11) — Faster drops, counted as they land
 
 Queued plates remain transparent until their own fall starts. Falls take 420 ms

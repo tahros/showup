@@ -2,13 +2,23 @@
 [data-theme="dark"]{--plate-side:#bbb;--plate-top:#ededed;--plate-hole:#929292}
 .plate-mini{height:48px;display:flex;align-items:center;gap:10px;font:11px var(--mono);color:var(--muted)}
 .plate-mini svg{width:40px;height:38px;flex:none;overflow:hidden}
-.plate-replay{display:block;width:100%;padding:0;background:none;border:0;color:inherit;text-align:center;cursor:pointer;font:inherit}
-.plate-scene{position:relative;height:218px;max-width:430px;margin:auto}
-.plate-scene>svg{width:100%;height:100%}
+.plate-card{padding-top:0!important;overflow:hidden;text-align:center}
+.plate-replay{display:flex;align-items:center;justify-content:center;gap:7px;width:auto;min-height:44px;margin:14px auto 0;padding:9px 18px;border:1px solid var(--line);border-radius:22px;background:var(--surface2);color:var(--chalk);cursor:pointer;font:500 12px var(--body)}
+.plate-replay:hover{filter:brightness(.96)}
+.plate-replay:active{transform:scale(.97)}
+.plate-replay:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.plate-scene{position:relative;height:255px;max-width:430px;margin:auto;overflow:hidden}
+.plate-canvas{display:block;width:100%;height:100%}
 .plate-scene .su-mascot{position:absolute;right:0;bottom:3px;width:94px;pointer-events:none}
 .plate-total{font:14px var(--mono);color:var(--muted)}
 .plate-total b{font:700 32px var(--body);color:var(--chalk);font-variant-numeric:tabular-nums}
 .plate-caption,.plate-bank{font:11px var(--mono);color:var(--muted);margin-top:10px}
 .plate-bank:empty{display:none}
-.plate-replay-hint{font:10px var(--mono);color:var(--muted);opacity:.65;margin-top:12px}
-.plate-fall-layer{position:fixed;inset:0;width:100%;height:100%;z-index:10000;pointer-events:none;overflow:hidden}
+.plate-mascot-shadow{position:absolute;right:17px;bottom:12px;width:62px;height:12px;background:radial-gradient(ellipse,rgba(80,80,80,.18),rgba(100,100,100,.06) 45%,transparent 72%);pointer-events:none}
+.plate-announcement{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+@media(prefers-reduced-motion:no-preference){
+  .plate-running .su-mascot:not(.su-ready){animation:plate-hop .7s ease-in-out infinite}
+  .plate-running .plate-mascot-shadow{animation:plate-shadow .7s ease-in-out infinite}
+}
+@keyframes plate-hop{0%,100%{transform:translateY(0)}45%{transform:translateY(-12px)}80%{transform:translateY(1px)}}
+@keyframes plate-shadow{0%,100%{transform:scaleX(1);opacity:1}45%{transform:scaleX(.75);opacity:.55}}
