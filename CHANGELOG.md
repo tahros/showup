@@ -1,15 +1,43 @@
 # ShowUp — changelog
 
-## v4.3.0 (2026-09-11) — Share the motion
 
-- Completed stack sharing now offers Image or Animation (GIF), generated locally
-  at 1080 × 1280 with 50 fps motion and a final hold. Plates fall and the total
-  counts up alongside the actual approved 3D mascot jump.
-- Bundle IBM Plex Sans for consistent exports. Place the smaller, theme-matched
-  mascot logo bottom left and the profile first name bottom right.
-- Encode GIFs in a worker with progress, cancellation and image fallback; bundle
-  the encoder, fonts and animation modules for offline availability.
-- Other share cards, profile fields and workout records remain unchanged.
+## v4.2.8 (2026-09-11) — Canonical exercise ids: the resolver
+
+"Barbell Bench Press", "Bench Press (Barbell)" and "bb bench press" are one
+movement, and the app treats them as three. History splits, `usual` looks
+thinner than it is, and per-muscle coverage counts the same work under
+different names.
+
+`js/exid.js` resolves a typed name to a canonical one. **It writes nothing,
+migrates nothing, and nothing else reads it yet** — there is an assertion
+holding that last part, because the record stays untouched until the merges
+have been looked at and agreed.
+
+Run over the 103 names the app ships, plus realistic variants, it resolves 31
+of 33 and merges nothing inside the catalog itself — correct, that list is
+already clean. It handles case, spacing, punctuation, **word order** (sorting
+the words is what lets "Bench Press Barbell" meet "Barbell Bench Press" without
+a rule per pair), abbreviations, plurals, hyphens and run-together compounds.
+
+**The two it refuses are the point.** "Triceps Extension" is not in the
+catalog; the nearest are *Overhead Triceps Extension* and *Overhead Cable
+Extension*, which are different movements. It returns null rather than pick
+one. A wrong merge is unrecoverable across 963 days of record; an unresolved
+name costs nothing.
+
+Plurals and compounds are undone **only against a vocabulary built from the
+catalog's own words** — "squats" becomes "squat" because squat is a word here;
+"skullcrusher" splits because both halves are. Blind English rules are how a
+resolver merges two real exercises, and there are probes for both: remove the
+vocabulary check on plurals, or the compound split, and the suite goes red.
+
+Next: run it over the full record and show which names actually merge, before
+anything is written.
+
+### One red, not this release's
+
+`test-planner-server` since v4.0.2. Codex restored the rest in v4.2.6.
+
 
 ## v4.2.7 (2026-09-11) — Share the stack
 
