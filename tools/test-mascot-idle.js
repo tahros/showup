@@ -115,4 +115,30 @@ ok('only the live mascot is tappable — the poster stays inert',
    /\.su-mascot\{[^}]*pointer-events:none/.test(css) && /\.su-mascot\.su-ready\{[^}]*pointer-events:auto/.test(css));
 ok('the press nudge is off under reduced motion',
    /@media\(prefers-reduced-motion:no-preference\)\{[\s\S]{0,200}su-poke/.test(css));
+
+/* ---- v4.1.4: the size in the greeting row -------------------------------
+   82 -> 94px. The row is a flex line with the greeting on flex:1, so every
+   pixel the mascot takes comes out of "Morning, Sungjee." Asserted as
+   RESOLVED width with the stylesheet actually installed -- a CSS-text check
+   would prove the rule exists, not that the row still fits. */
+{
+  const {JSDOM}=require('jsdom');
+  const css=fs.readFileSync(path.join(dir,'css/mascot.css'),'utf8');
+  const page=new JSDOM(`<!doctype html><html><head><style>${css}</style></head><body>
+    <div id="app" style="width:358px"><div class="su-hello-row">
+      <div class="hello">Morning, Sungjee.</div>
+      <span class="su-mascot"><img></span></div></div></body></html>`,{pretendToBeVisual:true});
+  const q=s=>page.window.document.querySelector(s);
+  const w=s=>page.window.getComputedStyle(q(s)).width;
+  ok('(fixture) the stylesheet is installed, or these prove nothing',
+     w('.su-mascot')!=='' && w('.su-mascot')!=='auto', w('.su-mascot'));
+  ok('the greeting mascot is 94px — 15% up from 82', w('.su-mascot')==='94px', w('.su-mascot'));
+  ok('...leaving the greeting most of the row, so it stays the headline',
+     94/358 < .32, (94/358*100).toFixed(0)+'% of a 358px row');
+  ok('...and the narrow-screen size moved by the same 15%, not left behind',
+     /@media\(max-width:360px\)\{\.su-hello-row \.su-mascot\{width:71px\}/.test(css));
+  ok('...while the other mascots are untouched',
+     /\.su-live-companion \.su-mascot\{width:76px\}/.test(css) &&
+     /^\.su-mascot\{[^}]*width:180px/m.test(css));
+}
 process.exit(fails?1:0);

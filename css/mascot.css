@@ -16,7 +16,12 @@
 .su-live-companion .su-mascot{width:76px}
 .su-hello-row{display:flex;align-items:center;gap:8px}
 .su-hello-row .hello{flex:1;min-width:0}
-.su-hello-row .su-mascot{width:82px}
+/* v4.1.4: 82 -> 94px, +15%. Rendered at 82, 94, 98 and 103 against the real
+   greeting row and chosen there. Past 94 the mascot starts competing with
+   "Morning, Sungjee." for the eye, and in that row the greeting should win --
+   the mascot is a companion, not the headline. 94 makes the face legible
+   without changing who is talking. */
+.su-hello-row .su-mascot{width:94px}
 .su-active-row{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:70px;margin:0 0 14px}
 .su-active-row strong{display:block;font:600 24px/1.2 var(--disp);margin:0 0 6px}
 .su-active-row span.mono{font-size:11px}
@@ -39,4 +44,4 @@
 :root[data-mascot-motion="still"] .su-milestone-grid i{animation:none}
 @keyframes su-box-in{from{opacity:0;transform:translateY(4px) scale(.82)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){.su-milestone-grid i{animation:none}}
-@media(max-width:360px){.su-hello-row .su-mascot{width:62px}#dayDone .su-mascot{width:190px}}
+@media(max-width:360px){.su-hello-row .su-mascot{width:71px}#dayDone .su-mascot{width:190px}}

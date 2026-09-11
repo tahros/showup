@@ -3,6 +3,34 @@
 
 
 
+
+## v4.1.4 (2026-09-11) — The greeting mascot, 15% bigger
+
+82px → **94px**. Rendered at 82, 94, 98 and 103 against the real greeting row
+and chosen there rather than argued about.
+
+Past 94 the mascot starts competing with *Morning, Sungjee.* for the eye, and in
+that row the greeting should win — the mascot is a companion, not the headline.
+94 makes the face legible without changing who is talking.
+
+The narrow-screen override moved by the same 15% (62 → 71px) rather than being
+left behind, and the other mascots — the live companion at 76px, the completion
+moment at 180px — are untouched.
+
+The row is a flex line with the greeting on `flex:1`, so every pixel the mascot
+takes comes out of the greeting. Asserted as **resolved width** with the
+stylesheet installed, plus the share of the row it occupies — 26% of a 358px
+line. A CSS-text check would have proved the rule exists, not that the row still
+fits.
+
+That block was appended after `process.exit()` on its first cut and silently
+never ran. Caught by grepping for its own output.
+
+### One red left, not this release's
+
+`test-planner-server` has failed since v4.0.2.
+
+
 ## v4.1.3 (2026-09-11) — A blink the way an eye blinks
 
 The v4.1.2 blink was a sine over a period that drifted on another sine. Two
