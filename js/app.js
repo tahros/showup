@@ -4,6 +4,7 @@
 /* ---------- events ---------- */
 document.addEventListener('click',e=>{
   if(checkDate()) return;   // v3.3.158: the day rolled mid-tap — re-render, next tap lands right
+  if(pwHandle(e)) return;
   const flowPick=e.target.closest('[data-flowpick]');
   if(flowPick){
     flowLayout=flowPick.dataset.flowpick==='previous'?'previous':'refined';

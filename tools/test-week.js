@@ -14,6 +14,7 @@ const dom = new JSDOM(html.replace(/<script[^>]*src=[^>]*><\/script>/g, ""), {
   url: "https://tahros.github.io/showup/", runScripts: "outside-only",
   pretendToBeVisual: true });
 const w = dom.window, ctx = dom.getInternalVMContext();
+w.localStorage.setItem('showup:planning-interface','previous'); // Legacy interface contract; workspace covered by test-planner.
 w.fetch = () => Promise.reject(new Error("offline"));
 /* v3.3.492: the stub answered `matches:false` to EVERY query, including
    `(prefers-reduced-motion:no-preference)` -- so MOTION_OK was false and

@@ -1,5 +1,31 @@
 # ShowUp — changelog
 
+## v3.3.543 (2026-09-10) — A workspace for what comes next
+
+Planning now starts with dates and a focus for each day. Choose up to seven
+dates, including dates beyond tomorrow or this week, then work on the routine
+itself: edit prescriptions, swap names, reorder, remove, keep exercises fixed,
+or add your own. **Adjust sets** changes the total number of sets, not time or
+equipment. The writer previews its allocation; warm-ups and fixed edits stay.
+
+**Paste routine** lives beside Adjust sets. Read it locally, then explicitly
+add it to the active day or replace that day's draft. Unknown lines remain
+visible as notes; duplicate exercise entries remain separate. Undo restores
+the previous draft. Review all selected days before saving. Other saved days
+and the workout record are never replaced by a planning operation.
+
+Completed Today keeps its completion card, a separate Plan ahead area, and
+Trained today. Before training, Train next still works without a plan. Drafts
+stay on this device; accepted plans use the existing account sync. A newer
+saved plan detected during editing must be reviewed before replacement.
+
+Claude's model and base coaching prompt are unchanged. The complete existing
+context and validation/repair path are retained; explicit per-date focus,
+draft locks and total-set instructions are added. Calendar skeleton and shape
+fields, previously computed only on the client, now reach the server prompt.
+**Settings → Planning interface → Previous** restores the old flow without
+changing saved plans or workouts. Header, tab bars and Progression are unchanged.
+
 ## v3.3.542 (2026-09-10) — History remembers where you were
 
 The 4- and 12-session charts now share one position: the earliest visible

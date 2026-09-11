@@ -45,6 +45,15 @@ function renderSync(){
       </span>
       <div class="note" style="margin-top:10px">Switch back anytime. Only this device’s layout changes. Your workouts and plans stay exactly as they are.</div>
     </div>
+    <h2>Planning</h2>
+    <div class="card">
+      <div class="note" style="margin-bottom:8px">Planning interface</div>
+      <span class="seg" style="display:flex">
+        <button data-pw="mode" data-mode="workspace" class="${planningWorkspace()?'sel':''}" aria-pressed="${planningWorkspace()}">Workspace</button>
+        <button data-pw="mode" data-mode="previous" class="${planningWorkspace()?'':'sel'}" aria-pressed="${!planningWorkspace()}">Previous</button>
+      </span>
+      <div class="note" style="margin-top:10px">Switch back anytime, on this device. Saved plans and workouts do not change. Unfinished workspace drafts stay on this device.</div>
+    </div>
     <h2>Account & cloud sync</h2>
     <div class="card">
       ${session?`

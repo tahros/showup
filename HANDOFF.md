@@ -1,5 +1,46 @@
 # ShowUp — handoff (2026-08-22, v3.3.267)
 
+## Planning workspace — v3.3.543 (2026-09-10)
+
+Header/clean tree and fetched origin/main checked at f2f42b7 / v3.3.542;
+isolated on codex/planning-workspace. New classic script js/planner.js loads
+after writer.js, and css/planner.css is scoped to pw-* surfaces. Both are
+versioned/pre-cached (14 scripts, 16 stamped assets). No header/nav/progression
+edits. Today's existing no-plan training path remains; completed Today has a
+separate Plan ahead area and quiet actual record.
+
+Drafts: localStorage showup:planning-draft:v1:<account-id or local>, parsed
+rows, per-date focus, goal/note, locks, undo and original saved-plan fingerprint.
+No DB writes while drafting. Save merges only reviewed dates into DB.week,
+updates an existing same-date DB.plan to agree, advances existing clocks and
+uses the existing save/cloud path. No storage migration. A changed fingerprint
+blocks saving and offers an explicit comparison/review of the newer plan.
+Rollback is Settings > Planning interface > Previous (device-local
+showup:planning-interface). The legacy writer, parser and plan screens remain.
+
+writerGenerateChecked is the shared generation/one-repair boundary. The new
+payload starts with writerPayload, retaining all existing history, load,
+shape, usual, coverage, objective and cadence fields. Workspace extends it with
+per-date selections, surrounding saved/selected drafts, current draft and
+locks. The server keeps MODEL, SYSTEM and temperature unchanged. It now
+actually forwards skeleton/shape/recovery_days, and uses conditional workspace
+instructions and a larger bounded multi-day output/time budget. Set adjustment
+has a strict separate check: same exercises/order/weight lines, same loads and
+rep targets, untouched marked warm-ups and locked rows, exact total; one repair
+before a visible refusal. Never use a demo's round-robin set allocator.
+
+QA: test-planner has 50 passing behavioral assertions; conflict, neighboring
+day merge and fixed-edit mutations are killed. test-planner-server executes
+the actual transpiled Edge handler with network/model stubbed. Legacy UI
+suites explicitly select Previous; their assertions remain intact. Full suite
+before the added server test: 72/73 passed, sole failure the pre-existing
+test-runclose jsdom computed-width assertion. Browser checks use isolated
+synthetic data: full paste/edit/save flow, completed Today, light/dark at
+320/393/430/1000px, no page exceptions or horizontal overflow. Browser plugin
+control unavailable; tools/planner-browser-check.js uses isolated Chromium.
+External test dependencies: jsdom, canvas, playwright, typescript. The AI
+contract checks are not a claim that stochastic coaching quality is identical.
+
 ## Linked, remembered progression ranges — v3.3.542 (2026-09-10)
 
 Fresh origin/main and header checked at v3.3.541. The old state was a page

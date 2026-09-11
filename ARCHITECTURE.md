@@ -31,6 +31,8 @@ after boot.) Keep the order in index.html as-is unless you have a reason.
 | `js/report.js` | 5.5 KB | Monthly report card: `repData`, canvas drawing, share overlay. |
 | `js/today.js` | 21 KB | Daily Fire, onboarding overlay, demo mode, `trainingPlan`, `renderToday`. |
 | `js/lift.js` | 39 KB | Part list, exercise view, logger, Suggested, Last Time, plate hints, Run view, done/reopen. |
+| `js/writer.js` | — | Existing Claude payload, checks and shared generation/repair boundary. |
+| `js/planner.js` | — | Reversible planning workspace; per-date local drafts, editing/paste, strict set adjustment, reviewed save into existing plan schema. Styles in `css/planner.css`. |
 | `js/stats.js` | 16 KB | Consistency grid, drift view, charts, records, `renderStats`. |
 | `js/history.js` | 4.3 KB | `renderHistory`. |
 | `js/settings.js` | 4.0 KB | `renderSync` — settings, account, sync UI, INSTALL prose. |

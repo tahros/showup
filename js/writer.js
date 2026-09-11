@@ -376,7 +376,7 @@ async function writeSession(payload){
   if(typeof WRITER_STUB==='function') return WRITER_STUB(payload);        // tests
   if(typeof navigator!=='undefined'&&navigator.onLine===false) throw new Error('offline');
   const ctl=new AbortController(); lift.writeAbort=ctl;
-  const t=setTimeout(()=>ctl.abort(),WRITER_TIMEOUT_MS[payload.scope==='week'?'week':'day']);
+  const t=setTimeout(()=>ctl.abort(),payload.workspace?150000:WRITER_TIMEOUT_MS[payload.scope==='week'?'week':'day']);
   try{
     const tok=(typeof freshToken==='function'?await freshToken():null)||cloudCfg().anon;
     const r=await fetch(cloudCfg().url+WRITER_PATH,{method:'POST',signal:ctl.signal,
@@ -603,6 +603,13 @@ function writerCheck(resp, ctx){
     if(payload.shape&&majorCount>0&&majorCount<payload.shape.min)
       violations.push(`${majorCount} exercise${majorCount===1?'':'s'}, and your shortest session is ${payload.shape.min}`);
 
+    // Workspace choices are explicit, per date, not a vague weekly focus.
+    const choice=(payload.workspace?.schedule||[]).find(x=>x.date===d.date);
+    if(choice&&choice.parts.length){
+      for(const p of choice.parts) if(!dayParts.includes(p)) violations.push(`${p} was selected but has no exercise`);
+      for(const p of dayParts) if(!choice.parts.includes(p)) violations.push(`${p} was not selected for this day`);
+    }
+
     /* RULE 11 -- THE USUAL BEFORE THE NEW. If the day's main part has usual
        exercises (payload.usual) and the day OMITS one of them while ADDING a
        movement the record has never seen in the same head, that is novelty
@@ -634,6 +641,7 @@ function writerCheck(resp, ctx){
     out.push({date:d.date, part, title:String(d.title||'').slice(0,60), rows, text:planTextFromRows(rows), violations});
   }
   if(!out.length) throw {refused:'no day matched the days you picked'};
+  if(payload.workspace&&[...want].some(d=>!seen.has(d))) throw {refused:'a selected date is missing; the draft was not replaced'};
   /* v3.3.432: the violations travel out with the result so writerGo can ask
      for ONE repair. They are also named in the read-back if the repair fails,
      so a day is never quietly wrong. */
@@ -795,18 +803,13 @@ function writerWaitStart(){
 }
 function writerWaitStop(){ clearInterval(_writeTick); _writeTick=null; }
 
-/* tap Write: build, call, check, hand to the preview */
-async function writerGo(){
-  const o=writerState(); if(o.busy) return;
-  const ta=document.getElementById('writeNote'); if(ta) o.note=ta.value;
-  if(o.scope==='week') writerDays(o);
-  const payload=writerPayload(o);
-  o.busy=true; o.err=''; o.cancelled=false; planGo('writing'); render(); writerWaitStart();
-  try{
+/* Shared generation boundary. Both planning interfaces use the same model,
+   mechanical checks and one compositional repair. UI state stays outside. */
+async function writerGenerateChecked(payload, cancelled=()=>false){
     /* An already-planned week needs no model call: merge and show the fixed
        blocks immediately. This keeps "Write" harmless and reviewable. */
-    const resp=o.scope==='week'&&!payload.days.length?{days:[],reason:null}:await writeSession(payload);
-    if(o.cancelled) return;
+    const resp=payload.scope==='week'&&!payload.days.length?{days:[],reason:null}:await writeSession(payload);
+    if(cancelled()) return null;
     const merged=writerResponseWithLocked(resp,payload);
     const checkedPayload=payload.selected_days?{...payload,days:payload.selected_days}:payload;
     let chk=writerCheck(merged,{payload:checkedPayload});
@@ -818,7 +821,7 @@ async function writerGo(){
        days only, once. If the repair still violates, the read-back says so and
        the day stands as written rather than being silently dropped -- the
        person decides, with the fault in front of him. */
-    if((chk.violations||[]).length && !o.cancelled){
+    if((chk.violations||[]).length && !cancelled()){
       const bad=new Set(chk.violations.map(v=>v.date));
       const fixNote=[
         (payload.note||'').trim(),
@@ -829,7 +832,7 @@ async function writerGo(){
       const p2={...payload, note:fixNote.slice(0,900), days:payload.days.filter(d=>bad.has(d))};
       try{
         const r2=await writeSession(p2);
-        if(!o.cancelled&&r2&&(r2.days||[]).length){
+        if(!cancelled()&&r2&&(r2.days||[]).length){
           const kept=(merged.days||[]).filter(d=>!bad.has(d.date));
           const fixed=(r2.days||[]).filter(d=>bad.has(d.date));
           const chk2=writerCheck({...merged, days:[...kept,...fixed]},{payload:checkedPayload});
@@ -838,6 +841,19 @@ async function writerGo(){
         }
       }catch(e){ /* a failed repair leaves the first answer, faults named */ }
     }
+    return cancelled()?null:chk;
+}
+
+/* tap Write: build, call, check, hand to the preview */
+async function writerGo(){
+  const o=writerState(); if(o.busy) return;
+  const ta=document.getElementById('writeNote'); if(ta) o.note=ta.value;
+  if(o.scope==='week') writerDays(o);
+  const payload=writerPayload(o);
+  o.busy=true; o.err=''; o.cancelled=false; planGo('writing'); render(); writerWaitStart();
+  try{
+    const chk=await writerGenerateChecked(payload,()=>o.cancelled);
+    if(!chk) return;
     lift.planSource='writer'; lift.planReason=chk.reason; lift.planNotes=chk.notes;
     lift.planText=chk.text; lift.planRows=chk.rows; lift.planDate=chk.date;
     if(chk.week){ lift.planMode='week'; lift.planWeek=chk.week; } else { lift.planMode='day'; lift.planWeek=null; }

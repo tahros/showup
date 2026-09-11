@@ -1,0 +1,251 @@
+/* ShowUp — the planning workspace. Drafts never write the workout ledger.
+   Classic script, loaded after writer.js. Previous UI remains a local switch.
+   Saved plans use the existing cloud document; only unfinished drafts are local. */
+const PW_MODE_KEY='showup:planning-interface';
+const pwCopy=x=>JSON.parse(JSON.stringify(x));
+let pwState=null, pwOwner=null, pwRequest=0, pwPaintedStep=null;
+function planningWorkspace(){ try{return localStorage.getItem(PW_MODE_KEY)!=='previous';}catch(_){return true;} }
+function pwKey(){return 'showup:planning-draft:v1:'+(session?.user?.id||'local');}
+function pwDate(iso,long=false){return new Date(iso+'T12:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',...(long?{year:'numeric'}:{})});}
+function pwISO(d){return d.toLocaleDateString('en-CA');}
+function pwSaved(d){return (DB.plan?.d===d?DB.plan:DB.week?.days?.[d])||null;}
+function pwFingerprint(d){return JSON.stringify(pwSaved(d));}
+function pwRead(text){return parsePlan(text).map(r=>r.kind==='ex'&&!r.ex?{kind:'note',raw:planTextFromRows([r]).trim()}:{...r,...(r.lines?{lines:r.lines.flatMap(l=>Array.from({length:Math.ceil(l.reps.length/12)},(_,i)=>({...l,unit:l.unit||U(),reps:l.reps.slice(i*12,i*12+12)})))}:{})});}
+function pwText(rows){
+  // Numeric rows are the truth after checks/adjustment. Old raw text can still
+  // describe a pre-clamp weight or the old number of sets.
+  return (rows||[]).map(r=>{
+    if(r.kind!=='ex'||!r.ex)return r.raw||'';
+    return r.ex+'\n'+r.lines.map(l=>{
+      const unit=l.unit||U(),weight=+Number(l.w||0).toFixed(4);
+      const load=l.nw?'by feel':l.bw?(weight?`BW +${weight} ${unit}`:'BW'):`${l.est?'≈':''}${weight} ${unit}`;
+      const reps=isHold(l.su)?`${l.reps[0]} sec × ${l.reps.length}`:l.reps.join(' ');
+      return `  ${l.tag?l.tag+': ':''}${load} × ${reps}${l.qual?' ('+l.qual+')':''}`;
+    }).join('\n');
+  }).join('\n\n')+'\n';
+}
+function pwCounts(rows){let total=0,warm=0;for(const r of rows||[])for(const l of r.lines||[]){total+=l.reps.length;if(/warm/i.test((l.qual||'')+(l.tag||'')))warm+=l.reps.length;}return {total,warm,work:total-warm};}
+function pwExercises(rows){return (rows||[]).filter(r=>r.kind==='ex'&&r.ex);}
+function pwParts(rows){return [...new Set(pwExercises(rows).map(r=>homePartOf(r.ex)).filter(Boolean))];}
+function pw(){
+  const key=pwKey();
+  if(pwOwner!==key){
+    pwOwner=key;pwState=null;pwRequest++;
+    try{const x=JSON.parse(localStorage.getItem(key));if(x?.v===1&&Array.isArray(x.dates)&&x.book&&typeof x.book==='object')pwState=x;}catch(_){}
+    if(!pwState)pwState={v:1,step:'dates',dates:[],active:null,book:{},objective:['grow','lose','strength'].includes(DB.settings.objective)?DB.settings.objective:'grow',note:''};
+    pwState.busy=false;pwState.error='';pwState.candidate=null;
+    if(['busy','candidate'].includes(pwState.step))pwState.step='edit';
+  }
+  return pwState;
+}
+function pwPersist(){const s=pw();try{localStorage.setItem(pwKey(),JSON.stringify({...s,busy:false,candidate:null,error:''}));return true;}catch(_){s.error='This device cannot keep a draft between visits. Keep this screen open until you save.';return false;}}
+function pwDay(d){
+  const s=pw();if(!s.book[d]){const saved=pwSaved(d),rows=saved?pwRead(planText(saved)):[];
+    s.book[d]={rows,parts:pwParts(rows),title:saved?.title||'',base:pwFingerprint(d),source:saved?'Saved plan':'Your draft',notes:[],locks:[],target:null};
+  }return s.book[d];
+}
+function pwOpen(d,step){
+  const s=pw();s.error='';s.candidate=null;
+  if(s.busy){pwRequest++;lift.writeAbort?.abort();s.busy=false;}
+  if(d){s.dates=[d];s.active=d;s.month=d.slice(0,7)+'-01';pwDay(d);s.step=step||(pwDay(d).rows.length?'edit':'dates');}
+  else if(!s.dates.length){s.active=dayClosed()?tomorrowISO():writeDateISO();s.dates=[s.active];pwDay(s.active);s.step='dates';}
+  else{s.step=step||s.step;if(['busy','candidate','saved'].includes(s.step))s.step='edit';}
+  pwPaintedStep=null;lift.plan='workspace';view='today';pwPersist();render({soft:true});
+}
+function pwGo(step){const s=pw();s.step=step;s.error='';pwPersist();render({inplace:true});}
+function pwButton(action,label,cls='',extra=''){return `<button type="button" class="pw-btn ${cls}" data-pw="${action}" ${extra}>${label}</button>`;}
+function pwFields(){const s=pw();return `<details class="pw-preferences"><summary>Goal & a note for the writer</summary><label>Training goal<select data-pw-field="objective">${[['grow','Grow'],['strength','Strength'],['lose','Lose weight']].map(([v,t])=>`<option value="${v}" ${s.objective===v?'selected':''}>${t}</option>`).join('')}</select></label><label>Anything to keep in mind<textarea data-pw-field="note" maxlength="400" rows="2" placeholder="Keep my usual exercises, or tell the writer what to change.">${hesc(s.note)}</textarea></label><p class="pw-small">Writing sends eight weeks of sets, your catalog, relevant saved plans and this note to the writer. Pasting and editing do not.</p></details>`;}
+function pwTabs(){const s=pw();return `<div class="pw-days" aria-label="Days being planned">${s.dates.map(d=>pwButton('day',hesc(pwDate(d)),s.active===d?'selected':'',`data-date="${d}" aria-pressed="${s.active===d}"`)).join('')}</div>`;}
+function pwRowsHTML(rows,editable=false){
+  const s=pw(),day=s.active?pwDay(s.active):null;
+  return `<div class="pw-exercises">${(rows||[]).map((r,i)=>{
+    if(r.kind!=='ex'||!r.ex)return `<div class="pw-unread"><span class="pw-eyebrow">Kept as a note · check this line</span><pre>${hesc(r.raw||r.name||'')}</pre>${editable?pwButton('editrow','Edit text','pw-text',`data-index="${i}"`):''}</div>`;
+    return `<article class="pw-exercise"><div class="pw-ex-title"><strong>${hesc(r.ex)}</strong>${editable?pwButton('editrow','Edit','pw-text',`data-index="${i}" aria-label="Edit ${hesc(r.ex)}"`):''}</div><pre class="pw-prescription">${hesc(pwText([r]).split('\n').slice(1).join('\n').trim())}</pre>${editable?`<div class="pw-ex-tools">${pwButton('lock',day.locks.includes(i)?'Kept fixed':'Keep fixed',day.locks.includes(i)?'pw-fixed':'pw-text',`data-index="${i}" aria-pressed="${day.locks.includes(i)}"`)}<span class="pw-spacer"></span>${pwButton('up','↑','pw-icon',`data-index="${i}" aria-label="Move ${hesc(r.ex)} up" ${i===0?'disabled':''}`)}${pwButton('down','↓','pw-icon',`data-index="${i}" aria-label="Move ${hesc(r.ex)} down" ${i===rows.length-1?'disabled':''}`)}${pwButton('remove','Remove','pw-text',`data-index="${i}"`)}</div>`:''}</article>`;
+  }).join('')}</div>`;
+}
+function pwTodayHTML(){
+  const s=pw(),closed=dayClosed(),now=planNow();
+  const future=[...new Set([...(DB.plan?.d>todayISO?[DB.plan.d]:[]),...Object.keys(DB.week?.days||{}).filter(d=>d>todayISO)])].sort();
+  const next=future[0]||tomorrowISO();
+  const upcoming=pwSaved(next);
+  let h=`<section class="pw-home"><div class="pw-home-heading"><h2>${closed?'Plan ahead':'Your plan'}</h2>${pwButton('open','Choose dates','pw-text')}</div>`;
+  if(now&&!closed)h+=`<details class="pw-saved"><summary><span>Today</span><span>${now.items.length} exercises</span></summary>${planCardHTML(now,true)}${pwButton('open-date','Edit today','pw-text',`data-date="${todayISO}"`)}</details>`;
+  if(closed||!now)h+=`<div class="card pw-home-card"><div><span class="pw-eyebrow">${closed?(next===tomorrowISO()?'Tomorrow':hesc(pwDate(next))):'Make room for your next session'}</span><h3>${upcoming&&closed?hesc(pwParts(pwRead(planText(upcoming))).join(' + ')||'Your plan'):(closed?'Today is yours. Tomorrow is open.':'A little intention. Then train.')}</h3><p class="pw-small">${upcoming&&closed?'Saved plan · ready when you are.':closed?'Plan what comes next. Today’s record stays as it is.':'Build a plan, bring your own routine, or just start below.'}</p></div><div class="pw-actions">${pwButton('open-date',upcoming&&closed?'Edit plan':closed?'Plan tomorrow':'Plan a workout','primary',`data-date="${closed?next:writeDateISO()}"`)}${pwButton('paste-open','Paste routine','',`data-date="${closed?next:writeDateISO()}"`)}</div></div>`;
+  if(future.length)h+=`<details class="pw-saved"><summary><span>Coming up</span><span>${future.length} planned ${future.length===1?'day':'days'}</span></summary>${future.map(d=>`<div class="pw-upcoming"><div><strong>${hesc(pwDate(d))}</strong><span class="pw-small">${hesc(pwParts(pwRead(planText(pwSaved(d)))).join(' · '))}</span></div>${pwButton('open-date','Edit','',`data-date="${d}"`)}</div>`).join('')}</details>`;
+  const drafts=s.dates.filter(d=>d>=todayISO&&s.book[d]&&s.book[d].source!=='Saved plan'&&(s.book[d].rows.length||s.book[d].parts.length));
+  if(drafts.length)h+=pwButton('resume',`Resume draft · ${drafts.length} ${drafts.length===1?'day':'days'}`,'pw-resume');
+  return h+'</section>';
+}
+function pwRender(){
+  const s=pw(),day=s.active?pwDay(s.active):null;
+  const entering=pwPaintedStep!==s.step;pwPaintedStep=s.step;
+  let h=`<section class="pw-workspace ${entering?'pw-enter':''}" aria-label="Planning workspace"><div class="pw-top">${pwButton('close','← Today','pw-text')}<span class="pw-small">Draft · on this device</span></div><div class="pw-heading"><span class="pw-eyebrow">${s.step==='review'?'One last look':'Your next session'}</span><h1>${({dates:'Choose your days.',focus:'Give each day a focus.',edit:'Make it yours.',paste:'Bring your own routine.',editrow:'The details are yours.',adjust:'Find the right amount.',candidate:'Read it. Make it yours.',review:'Ready when you are.',busy:'Reading your training.'})[s.step]||'Make it yours.'}</h1></div>`;
+  if(s.error)h+=`<div class="pw-message" role="alert">${hesc(s.error)}</div>`;
+  if(s.conflict){const d=s.conflict;h+=`<div class="card pw-card"><strong>Newer saved plan · ${hesc(pwDate(d))}</strong>${pwRowsHTML(pwRead(planText(pwSaved(d))))}<div class="pw-actions">${pwButton('load-newer','Use newer saved plan')}${pwButton('replace-newer','Keep my draft for review')}</div><p class="pw-small">Both choices stay in the draft. Nothing is replaced until you tap Save again.</p></div>`;}
+  if(s.step==='dates'){
+    const base=new Date((s.month||todayISO.slice(0,7)+'-01')+'T12:00');base.setDate(1);
+    const start=new Date(base);start.setDate(1-base.getDay());
+    h+=`<div class="card pw-card"><div class="pw-month">${pwButton('month','‹','pw-icon','data-delta="-1" aria-label="Previous month"')}<strong>${base.toLocaleDateString('en-US',{month:'long',year:'numeric'})}</strong>${pwButton('month','›','pw-icon','data-delta="1" aria-label="Next month"')}</div><div class="pw-calendar">${['S','M','T','W','T','F','S'].map(x=>`<span class="pw-weekday">${x}</span>`).join('')}${Array.from({length:42},(_,i)=>{const d=new Date(start);d.setDate(d.getDate()+i);const iso=pwISO(d),outside=d.getMonth()!==base.getMonth();return pwButton('date',String(d.getDate()),`${s.dates.includes(iso)?'selected':''} ${outside?'pw-outside':''}`,`data-date="${iso}" aria-label="${hesc(pwDate(iso,true))}${pwSaved(iso)?', saved plan':''}" aria-pressed="${s.dates.includes(iso)}" ${iso<todayISO?'disabled':''}`);}).join('')}</div><p class="pw-small">Pick up to seven days, in any month. Existing plans stay saved while you edit.</p><div class="pw-selected-dates">${s.dates.map(d=>`<span>${hesc(pwDate(d))}${pwSaved(d)?' · saved':''}</span>`).join('')}</div></div>${pwButton('focus','Choose body parts →','primary wide',s.dates.length?'':'disabled')}`;
+  }else if(s.step==='focus'){
+    h+=`<p class="pw-small">Choose each day’s body parts, or leave it to your training history. Nothing is saved yet.</p>`;
+    const p=trainingPlan();
+    for(const d of s.dates){const b=pwDay(d);h+=`<div class="card pw-card"><div class="pw-card-heading"><strong>${hesc(pwDate(d,true))}</strong><span class="pw-small">${pwSaved(d)?'Editing a saved plan':'New plan'}</span></div><div class="pw-parts">${Object.keys(SEED.catalog).filter(x=>x!=='Run'&&myPartsSet().has(x)).map(x=>pwButton('part',hesc(x),b.parts.includes(x)?'selected':'',`data-date="${d}" data-part="${hesc(x)}" aria-pressed="${b.parts.includes(x)}"`)).join('')}</div><p class="pw-small">${b.parts.length?hesc(b.parts.join(' + ')):`Writer’s choice · ${hesc(p.pick||'your history')} is next in your rotation`}</p></div>`;}
+    h+=pwFields()+`<div class="pw-actions">${pwButton('dates','← Dates')}${pwButton('workspace','Open workspace →','primary')}</div>`;
+  }else if(s.step==='edit'){
+    h+=pwTabs()+`<div class="pw-card-heading"><strong>${hesc((day.rows.length?pwParts(day.rows):day.parts).join(' + ')||'Your workout')}</strong>${pwButton('focus','Dates & focus','pw-text')}</div>`;
+    if(day.rows.length&&day.parts.length&&day.parts.slice().sort().join()!==pwParts(day.rows).sort().join())h+=`<p class="pw-small" role="status">Selected focus: ${hesc(day.parts.join(' + '))}. The exercises below are unchanged. Use Rewrite this draft to ask the writer for the new focus.</p>`;
+    if(day.rows.length){const c=pwCounts(day.rows);h+=`<div class="pw-count"><strong>${c.total}</strong><span>total sets<span class="pw-small">${c.work} working · ${c.warm} marked warm-up</span></span></div><div class="pw-actions pw-edit-actions">${pwButton('adjust','Adjust sets')}${pwButton('paste','Paste routine')}${day.undo?pwButton('undo','Undo','pw-text'):''}</div><div class="card pw-card">${pwRowsHTML(day.rows,true)}</div>`;}
+    else h+=`<div class="card pw-card pw-empty"><div class="pw-seed" aria-hidden="true"></div><h3>A starting point, not a contract.</h3><p>Let the writer read your training and the days around this one. Or paste exactly what you want to do.</p><div class="pw-actions">${pwButton('generate','Build my draft','primary')}${pwButton('paste','Paste routine')}</div></div>`;
+    h+=`<div class="pw-actions">${pwButton('add','+ Add exercise','pw-text')}${pwButton(day.rows.length?'rewrite':'generate',day.rows.length?'Rewrite this draft':'Write selected days','pw-text')}</div>`;
+    if(day.source)h+=`<p class="pw-small">${hesc(day.source)}</p>`;
+    if(day.notes?.length)h+=`<details class="pw-preferences"><summary>Checked by the app · ${day.notes.length}</summary>${day.notes.map(n=>`<p class="pw-small">${hesc(n)}</p>`).join('')}</details>`;
+    h+=pwFields()+pwButton('review','Review selected days →','primary wide');
+  }else if(s.step==='paste'||s.step==='editrow'){
+    const editing=s.step==='editrow';h+=`<p class="pw-small">${hesc(pwDate(s.active,true))} only. ${editing?'Edit the exercise name, weight lines and reps.':'Paste is read locally. The writer will not rewrite your routine.'}</p><div class="card pw-card">${editing?`<label>Exercise name<select data-pw-field="exercise">${['<Keep typed name>',...Object.values(SEED.catalog).flat()].map(x=>`<option value="${hesc(x)}" ${s.exercise===x?'selected':''}>${hesc(x)}</option>`).join('')}</select></label>`:''}<label>${editing?'Exercise & prescriptions':'Your routine'}<textarea class="pw-routine" data-pw-field="pasteText" rows="9" spellcheck="false" placeholder="Squat&#10;  135 lb × 8 (warm-up)&#10;  205 lb × 8 8 8 8">${hesc(s.pasteText||'')}</textarea></label><p class="pw-small">One exercise heading, then weight × reps. BW, added weight, by feel and timed holds are supported.</p></div><div class="pw-actions">${pwButton('edit','Cancel')}${pwButton('readpaste','Read my routine →','primary')}</div>`;
+  }else if(s.step==='adjust'){
+    const c=pwCounts(day.rows);h+=`<p class="pw-small">${hesc(pwDate(s.active,true))} · total sets, including warm-ups.</p><div class="card pw-card pw-adjust"><label>Total sets<input type="number" min="1" max="100" step="1" data-pw-field="target" value="${day.target||c.total}"></label><p class="pw-small">Now ${c.total} total · ${c.work} working · ${c.warm} marked warm-up.</p><p>Keep the exercise order, loads and rep targets. The writer adjusts only how many sets you do.</p><p class="pw-small">Marked warm-ups and exercises you’ve kept fixed stay exactly as written.</p></div><div class="pw-actions">${pwButton('edit','Cancel')}${pwButton('adjustgo','Preview adjustment →','primary')}</div>`;
+  }else if(s.step==='candidate'){
+    const c=s.candidate;
+    if(!c){s.step='edit';return pwRender();}
+    h+=`<p class="pw-small">${c.type==='paste'?'Read from your paste. Unreadable lines stay visible.':c.type==='adjust'?'Only the set allocation changes.':'From the writer · not saved yet.'}</p>`;
+    if(c.reason)h+=`<div class="pw-message"><strong>${hesc(c.reason.head)}</strong><p>${hesc(c.reason.text)}</p></div>`;
+    for(const [d,b]of Object.entries(c.days)){const n=pwCounts(b.rows),before=pwCounts(pwDay(d).rows);h+=`<div class="card pw-card"><div class="pw-card-heading"><strong>${hesc(pwDate(d,true))}</strong><span class="pw-small">${before.total} → ${n.total} sets</span></div>${pwRowsHTML(b.rows)}${(b.notes||[]).map(n=>`<p class="pw-small">${hesc(n)}</p>`).join('')}</div>`;}
+    h+=`<div class="pw-actions">${pwButton(c.type==='paste'?'paste-back':'edit','Back')}${c.type==='paste'&&c.index===undefined?pwButton('apply-add','Add to this day'):''}${pwButton('apply',c.type==='paste'?(c.index!==undefined?'Keep edit':'Replace this day'):'Use this draft','primary')}</div><p class="pw-small">This changes the draft only. You’ll review before saving.</p>`;
+  }else if(s.step==='review'){
+    h+='<p class="pw-small">Only these dates will change. All other plans and every logged set stay untouched.</p>';
+    for(const d of s.dates){const b=pwDay(d),c=pwCounts(b.rows);h+=`<div class="card pw-card"><div class="pw-card-heading"><strong>${hesc(pwDate(d,true))}</strong>${pwButton('day','Edit','pw-text',`data-date="${d}"`)}</div><p class="pw-small">${pwSaved(d)?'Replaces the saved plan':'New plan'} · ${c.total} sets</p>${pwRowsHTML(b.rows)}${(b.notes||[]).map(n=>`<p class="pw-small">${hesc(n)}</p>`).join('')}</div>`;}
+    h+=`<div class="pw-actions">${pwButton('edit','← Edit')}${pwButton('save',`Save ${s.dates.length===1?'plan':s.dates.length+' days'}`,'primary')}</div><p class="pw-small">${session?'Saved plans use your existing account sync.':'Saved on this device. Sign in in Settings to sync plans across devices.'}</p>`;
+  }else if(s.step==='busy')h+=`<div class="card pw-card pw-wait" role="status"><div class="pw-seed" aria-hidden="true"></div><h3>${s.task==='adjust'?'Rebalancing the sets.':'Your week comes first.'}</h3><p class="pw-small">Reading recent sessions, the surrounding days and your choices. Your current draft stays safe.</p></div>${pwButton('cancel','Stop writing','wide')}`;
+  h+='</section>';$('#view').innerHTML=h;if(entering)window.scrollTo(0,0);
+}
+
+/* Full history payload, plus explicit workspace intent. Fixed neighboring
+   drafts are included alongside saved plans, on both sides of each date. */
+function pwPayload(dates,action='generate'){
+  const s=pw(),p=writerPayload({scope:'week',days:new Set(dates),rewrite:true,focus:[],objective:s.objective,note:s.note,part:'auto'});
+  const context=new Map();
+  for(const d of dates){for(const w of writerWeekContext([d],dates))context.set(w.date,w);
+    for(let k=-WRITER_RECOVERY_DAYS;k<=WRITER_RECOVERY_DAYS;k++){const t=new Date(d+'T12:00');t.setDate(t.getDate()+k);const date=pwISO(t);if(!context.has(date))context.set(date,{date,requested:dates.includes(date),planned:dates.includes(date)?null:writerPlanSummary(date)});}}
+  for(const w of context.values()){
+    const b=s.book[w.date];if(!dates.includes(w.date)&&s.dates.includes(w.date)&&b?.rows.length)w.planned={text:pwText(b.rows),parts:pwParts(b.rows),exercises:pwExercises(b.rows).map(r=>r.ex)};
+    w.parts=w.planned?.parts||[];
+  }
+  p.week_context=[...context.values()].sort((a,b)=>a.date.localeCompare(b.date));
+  p.skeleton=dates.map(date=>({date,weekday:WEEKDAYS[new Date(date+'T12:00').getDay()],resting:writerPartsResting(date,p.recent_sessions,p.week_context),due:pwDay(date).parts.length?pwDay(date).parts:p.rotation.ranking.map(x=>x.part).slice(0,4)}));
+  p.workspace={version:1,action,today:todayISO,schedule:s.dates.map(date=>({date,parts:pwDay(date).parts})),drafts:dates.map(date=>({date,text:pwText(pwDay(date).rows),target_total_sets:action==='adjust'?pwDay(date).target:null,locked_exercises:pwDay(date).locks.map(i=>pwText([pwDay(date).rows[i]]))}))};
+  return p;
+}
+function pwUndoPoint(b){const {undo,...before}=b;b.undo=pwCopy(before);}
+function pwApply(add=false){
+  const s=pw(),c=s.candidate;if(!c)return;
+  for(const [d,b] of Object.entries(c.days)){const dst=pwDay(d);pwUndoPoint(dst);
+    if(c.index!==undefined){dst.rows.splice(c.index,1,...pwCopy(b.rows));dst.locks=dst.locks.filter(i=>i!==c.index).map(i=>i>c.index?i+b.rows.length-1:i);b.rows.forEach((r,i)=>{if(r.kind==='ex')dst.locks.push(c.index+i);});}
+    else if(add)dst.rows.push(...pwCopy(b.rows));
+    else{dst.rows=pwCopy(b.rows);dst.locks=c.type==='paste'?[]:dst.locks;}
+    dst.parts=pwParts(dst.rows);dst.source=c.type==='paste'?'Your routine · not rewritten':c.type==='adjust'?'Writer-adjusted set count':'Written from your training';dst.notes=b.notes||[];
+  }s.candidate=null;pwGo('edit');
+}
+function pwValidateAdjustment(rows,day){
+  const before=day.rows;
+  if(rows.length!==before.length)throw Error('The writer changed the exercise list. Your draft is unchanged.');
+  for(let i=0;i<rows.length;i++){
+    const a=before[i],b=rows[i];
+    if(a.kind!=='ex'||day.locks.includes(i)){if(pwText([a])!==pwText([b]))throw Error('A fixed exercise or note changed. Your draft is unchanged.');continue;}
+    if(a.ex!==b.ex||a.lines.length!==b.lines.length)throw Error('The writer changed an exercise or weight line. Your draft is unchanged.');
+    for(let k=0;k<a.lines.length;k++){
+      const x=a.lines[k],y=b.lines[k],warm=/warm/i.test((x.qual||'')+(x.tag||''));
+      const kg=l=>l.unit==='lb'?l.w/LB:l.unit==='kg'?l.w:toKg(l.w);
+      if(Math.abs(kg(x)-kg(y))>.01||!!x.bw!==!!y.bw||!!x.nw!==!!y.nw||x.su!==y.su||!y.reps.length||y.reps.length>12||y.reps.some((r,j)=>r!==x.reps[Math.min(j,x.reps.length-1)])||warm&&x.reps.length!==y.reps.length)throw Error('The writer changed a load, rep target or warm-up. Your draft is unchanged.');
+      // Preserve exact input metadata and values; only the requested count changes.
+      b.lines[k]={...pwCopy(x),reps:Array.from({length:y.reps.length},(_,j)=>x.reps[Math.min(j,x.reps.length-1)])};
+    }
+  }
+  if(pwCounts(rows).total!==day.target)throw Error(`The writer did not reach ${day.target} total sets. Your draft is unchanged.`);
+  return rows;
+}
+async function pwGenerate(adjust=false,rewrite=false){
+  const s=pw();if(s.busy)return;
+  const dates=adjust||rewrite?[s.active]:s.dates.filter(d=>!pwDay(d).rows.length);
+  if(!dates.length)dates.push(s.active);
+  if(dates.some(d=>d<todayISO)){s.error='Choose today or a future date before writing.';return pwRender();}
+  const b=pwDay(s.active);if(adjust){b.target=Number(b.target||pwCounts(b.rows).total);if(!Number.isInteger(b.target)||b.target<1||b.target>100){s.error='Choose a whole number from 1 to 100.';return pwRender();}}
+  const payload=pwPayload(dates,adjust?'adjust':'generate'),token=++pwRequest,owner=pwKey();
+  s.task=adjust?'adjust':'generate';s.busy=true;s.step='busy';s.error='';pwPersist();pwRender();
+  const cancelled=()=>token!==pwRequest||owner!==pwKey();
+  try{
+    let candidate;
+    if(adjust){
+      let rows,err;
+      for(let attempt=0;attempt<2;attempt++){
+        const resp=await writeSession({...payload,...(attempt?{note:`${payload.note}\nRepair the previous answer: ${err}. Return only the corrected full draft.`}:{})});if(cancelled())return;
+        try{if(resp.days?.length!==1||resp.days[0].date!==s.active)throw Error('The adjustment returned the wrong date');rows=pwValidateAdjustment(pwRead(resp.days[0].text),b);break;}catch(e){err=e.message;}
+      }
+      if(!rows)throw Error(err);
+      candidate={type:'adjust',days:{[s.active]:{rows,notes:[]}}};
+    }else{
+      const chk=await writerGenerateChecked(payload,cancelled);if(!chk||cancelled())return;
+      const days={};let date=null;
+      for(const r of chk.rows){if(r.kind==='day'){date=r.iso;days[date]={rows:[],notes:chk.notes};}else if(date)days[date].rows.push(r);}
+      if(!Object.keys(days).length)throw Error('No readable days came back. Your draft is unchanged.');
+      for(const [d,doc] of Object.entries(days))for(const i of pwDay(d).locks)if(pwText([pwDay(d).rows[i]])!==pwText([doc.rows[i]||{}]))throw Error('The writer changed an exercise you kept fixed. Your draft is unchanged.');
+      candidate={type:'generate',days,reason:chk.reason};
+    }
+    if(cancelled())return;s.candidate=candidate;s.step='candidate';s.busy=false;pwPersist();if(view==='today'&&lift.plan==='workspace')pwRender();
+  }catch(e){if(cancelled())return;s.busy=false;s.step=adjust?'adjust':'edit';s.error=e.refused?`Could not use that answer: ${e.refused}. Nothing saved.`:e.message||'Could not write. Your draft is unchanged.';pwPersist();if(view==='today'&&lift.plan==='workspace')pwRender();}
+}
+function pwSave(){
+  const s=pw();
+  for(const d of s.dates){if(d<todayISO)throw Error('A draft date has passed. Choose a current or future date.');const b=pwDay(d);if(!b.rows.length)throw Error(`${pwDate(d)} is still empty. Add a routine or remove that date.`);if(b.base!==pwFingerprint(d)){s.conflict=d;throw Error(`${pwDate(d)} changed since you opened it, possibly on another device. Compare the newer plan below before saving. Your draft is safe.`);}}
+  // Merge ONLY reviewed dates; unlike weekSave, preserve all other blocks and
+  // a separately saved today/tomorrow plan. Existing timestamps drive cloud sync.
+  const days=pwCopy(DB.week?.days||{}),at=Date.now();
+  for(const d of s.dates){const b=pwDay(d),doc={...planItemsFrom(b.rows),raw:pwText(b.rows),title:pwParts(b.rows).join(' + ')};days[d]=doc;if(DB.plan?.d===d){DB.plan={d,...doc};DB.planAt=at;}}
+  const all=Object.keys(days).sort();DB.week={from:all[0],to:all[all.length-1],days,raw:'',at};DB.weekAt=at;planRailRefresh();save(true);
+  for(const d of s.dates){const b=pwDay(d);b.base=pwFingerprint(d);b.source='Saved plan';delete b.undo;}
+  s.step='edit';pwPersist();lift.plan=null;view='today';toast('Plan saved');render({soft:true});
+}
+function pwHandle(e){
+  const el=e.target.closest('[data-pw]');if(!el)return false;
+  const a=el.dataset.pw,s=pw(),d=el.dataset.date,i=Number(el.dataset.index),b=s.active?pwDay(s.active):null;
+  try{
+    if(a==='mode'){pwRequest++;if(s.busy)lift.writeAbort?.abort();s.busy=false;localStorage.setItem(PW_MODE_KEY,el.dataset.mode);lift.plan=null;render({inplace:true});return true;}
+    if(a==='open'||a==='resume'){pwOpen(null,a==='open'?'dates':undefined);return true;}
+    if(a==='open-date'||a==='paste-open'){pwOpen(d);if(a==='paste-open'){s.pasteText='';s.editIndex=undefined;pwGo('paste');}return true;}
+    if(a==='close'){pwRequest++;if(s.busy)lift.writeAbort?.abort();s.busy=false;if(s.step==='busy')s.step='edit';pwPersist();lift.plan=null;view='today';render({soft:true});return true;}
+    if(a==='month'){const m=new Date((s.month||todayISO.slice(0,7)+'-01')+'T12:00');m.setMonth(m.getMonth()+Number(el.dataset.delta));s.month=pwISO(m);}
+    else if(a==='date'){if(s.dates.includes(d))s.dates=s.dates.filter(x=>x!==d);else if(s.dates.length<7){s.dates.push(d);s.dates.sort();pwDay(d);}else throw Error('Choose up to seven days in one draft.');s.active=s.dates[0];}
+    else if(a==='part'){const x=pwDay(d),p=el.dataset.part;x.parts=x.parts.includes(p)?x.parts.filter(v=>v!==p):[...x.parts,p];}
+    else if(a==='day'){s.active=d;s.step='edit';}
+    else if(a==='workspace')s.step='edit';
+    else if(['dates','focus','edit','review','adjust'].includes(a)){s.step=a;s.error='';if(a==='adjust')b.target=pwCounts(b.rows).total;}
+    else if(a==='paste'){s.pasteText='';s.editIndex=undefined;s.step='paste';}
+    else if(a==='editrow'||a==='add'){s.editIndex=a==='add'?b.rows.length:i;s.pasteText=a==='add'?'':pwText([b.rows[i]]);s.exercise='<Keep typed name>';s.step='editrow';}
+    else if(a==='readpaste'){
+      const rows=pwRead(s.pasteText||'');if(!rows.length)throw Error('Paste a routine first.');if(s.step==='editrow'&&pwExercises(rows).length>1)throw Error('Edit one exercise here. Use Paste routine to add several.');
+      s.candidate={type:'paste',index:s.step==='editrow'?s.editIndex:undefined,days:{[s.active]:{rows,notes:[]}}};s.step='candidate';
+    }else if(a==='paste-back')s.step=s.candidate?.index!==undefined?'editrow':'paste';
+    else if(a==='apply'||a==='apply-add'){pwApply(a==='apply-add');return true;}
+    else if(a==='lock'){b.locks=b.locks.includes(i)?b.locks.filter(x=>x!==i):[...b.locks,i];}
+    else if(a==='remove'){pwUndoPoint(b);b.rows.splice(i,1);b.locks=b.locks.filter(x=>x!==i).map(x=>x>i?x-1:x);b.source='Your draft';}
+    else if(a==='up'||a==='down'){const j=i+(a==='up'?-1:1);if(j>=0&&j<b.rows.length){pwUndoPoint(b);[b.rows[i],b.rows[j]]=[b.rows[j],b.rows[i]];b.locks=b.locks.map(x=>x===i?j:x===j?i:x);}}
+    else if(a==='undo'&&b.undo){s.book[s.active]=b.undo;}
+    else if(a==='generate'||a==='adjustgo'||a==='rewrite'){pwGenerate(a==='adjustgo',a==='rewrite');return true;}
+    else if(a==='cancel'){pwRequest++;lift.writeAbort?.abort();s.busy=false;s.step='edit';}
+    else if(a==='load-newer'||a==='replace-newer'){const d=s.conflict;if(d){const x=pwDay(d);pwUndoPoint(x);if(a==='load-newer'){x.rows=pwRead(planText(pwSaved(d)));x.parts=pwParts(x.rows);x.locks=[];}x.base=pwFingerprint(d);s.conflict=null;s.error='';s.step='review';}}
+    else if(a==='save'){pwSave();return true;}
+    pwPersist();pwRender();
+  }catch(err){s.error=err.message||String(err);pwRender();}
+  return true;
+}
+document.addEventListener('input',e=>{
+  const f=e.target.dataset.pwField;if(!f)return;const s=pw();
+  if(f==='target')pwDay(s.active).target=e.target.value;else s[f]=e.target.value;
+  pwPersist();
+});
+document.addEventListener('change',e=>{
+  const f=e.target.dataset.pwField;if(!f)return;const s=pw();
+  if(f==='exercise'&&e.target.value!=='<Keep typed name>'){
+    const lines=(s.pasteText||'').split('\n');lines[0]=e.target.value;s.pasteText=lines.join('\n');const ta=document.querySelector('[data-pw-field="pasteText"]');if(ta)ta.value=s.pasteText;
+  }else if(f==='objective')s.objective=e.target.value;
+  pwPersist();
+});
