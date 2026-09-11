@@ -69,7 +69,7 @@ function drawPlateShare(data,mascot,frame={}){
     x.fillStyle=c;x.beginPath();x.ellipse(cx,cy,88,20,0,0,Math.PI*2);x.fill();
     x.fillStyle=shade(c,.42);x.beginPath();x.ellipse(cx,cy,13,6,0,0,Math.PI*2);x.fill();
     x.restore();
-    if(age>=340&&age<680){const v=(age-340)/340;for(const d of [-1,1])shadow(cx+d*(65+v*36),end+4-v*15,15+v*35,6+v*12);}
+    if(frame.dust!==false&&age>=340&&age<680){const v=(age-340)/340;for(const d of [-1,1])shadow(cx+d*(65+v*36),end+4-v*15,15+v*35,6+v*12);}
   }
   x.restore();
   if(!frame.mascot)shadow(891,778,80,13);x.drawImage(frame.mascot||mascot,783,659,216,132);
@@ -112,7 +112,7 @@ function bindPlateExport(data,mascot,module,videoModule){
     const task=new AbortController();controller=task;share.disabled=true;share.textContent='Preparing…';status.textContent=format==='mp4'?'Keep this screen open · preparing video…':'Preparing GIF…';
     try{
       const create=format==='mp4'?videoModule.createPlateVideo:module.createPlateGif;
-      const result=await create({signal:task.signal,dark:data.dark,onProgress:n=>{if(controller===task)status.textContent=(format==='mp4'?'Preparing video · ':'Preparing GIF · ')+n+'%';},render:(time,canvas,motion)=>drawPlateShare(data,mascot,{time,canvas,mascot:motion})});
+      const result=await create({signal:task.signal,dark:data.dark,onProgress:n=>{if(controller===task)status.textContent=(format==='mp4'?'Preparing video · ':'Preparing GIF · ')+n+'%';},render:(time,canvas,motion)=>drawPlateShare(data,mascot,{time,canvas,mascot:motion,dust:format!=='mp4'})});
       if(closed||task.signal.aborted||_repCv!==current)return;blobs[format]=result;preview(format);
     }catch(e){if(!task.signal.aborted){image();status.textContent=format==='mp4'?'Video unavailable. Try again with this screen open, or choose GIF.':'GIF unavailable. You can still share the image.';}}
     finally{if(controller===task)controller=null;}

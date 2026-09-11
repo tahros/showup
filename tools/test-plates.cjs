@@ -48,6 +48,7 @@ await page.evaluate(()=>{document.documentElement.dataset.theme='light';DB.days[
 assert(await page.locator('.plate-legend span').count()===3,'Legend names each weighted body part');
 assert(await page.evaluate(()=>getComputedStyle(document.querySelectorAll('.plate-legend i')[1]).backgroundColor==='rgb(200, 117, 77)'&&getComputedStyle(document.documentElement).getPropertyValue('--p-shoulder').trim()==='#C8754D'),'Shoulder is shared terracotta, not signature blue');
 await page.locator('.plate-card').screenshot({path:path.join(root,'../plate-colors-shipped.png')});
+await page.evaluate(()=>{window.exportDustFlags=[];const draw=drawPlateShare;drawPlateShare=(data,mascot,frame={})=>{if(Number.isFinite(frame.time))exportDustFlags.push(frame.dust);return draw(data,mascot,frame);};});
 const beforeShare=await page.evaluate(()=>JSON.stringify(DB));await page.locator('.plate-share').click();await page.locator('#repOv').waitFor({state:'visible'});
 fs.writeFileSync(path.join(root,'../stacked-share-verified.png'),Buffer.from(await page.evaluate(()=>_repCv.cv.toDataURL('image/png').split(',')[1]),'base64'));
 assert(await page.evaluate(()=>document.fonts.check('700 20px "ShowUp Export Plex"')),'Export uses loaded IBM Plex Sans, not fallback');
@@ -55,6 +56,7 @@ await page.waitForSelector('[data-format="mp4"]');
 if(!await page.locator('[data-format="mp4"]').isDisabled()){
  await page.waitForFunction(()=>!!_repCv.videoBlob,{},{timeout:30000});
  assert(await page.locator('#repDo').innerText()==='Share video','MP4 is the default export');
+ assert(await page.evaluate(()=>exportDustFlags.length>0&&exportDustFlags.every(v=>v===false)),'MP4 excludes impact dust');
  const mp4=await page.evaluate(()=>new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result.split(',')[1]);f.readAsDataURL(_repCv.videoBlob)}));
  fs.writeFileSync(path.join(root,'../stacked-share-'+(process.env.PLATE_BROWSER||'chromium')+'.mp4'),Buffer.from(mp4,'base64'));
  await page.waitForFunction(()=>document.querySelector('.plate-export-video').videoWidth===1080);
@@ -65,6 +67,7 @@ await page.locator('[data-format="gif"]').click();await page.waitForTimeout(100)
 assert(await page.locator('#repDo').innerText()==='Share image','Cancel generation returns to image');
 await page.locator('[data-format="gif"]').click();await page.waitForFunction(()=>!!_repCv.gifBlob,{},{timeout:180000});
 assert(await page.locator('#repDo').innerText()==='Share GIF','Ready animation has real Share GIF action');
+assert(await page.evaluate(()=>exportDustFlags.includes(true)),'GIF retains impact dust');
 const gif64=await page.evaluate(()=>new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result.split(',')[1]);f.readAsDataURL(_repCv.gifBlob)}));
 fs.writeFileSync(path.join(root,'../stacked-share-production.gif'),Buffer.from(gif64,'base64'));
 await page.locator('[data-format="image"]').click();assert(await page.evaluate(()=>!_repCv.gifBlob),'Image sharing does not reuse GIF data');

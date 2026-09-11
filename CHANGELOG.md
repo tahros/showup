@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.3.3 (2026-09-11) — Cleaner MP4 stacks
+
+- Remove impact dust from MP4 exports only. Keep ground shadows, falling plates,
+  count-up and the mascot jump unchanged; GIF retains its impact dust.
+- Verify the actual exported video and add regression checks for format-specific
+  dust. No profile, workout data, header or layout changes.
+
 ## v4.3.2 (2026-09-11) — Share as video
 
 - Completed-stack sharing defaults to H.264 MP4 where browser encoding is
