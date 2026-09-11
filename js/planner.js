@@ -83,7 +83,23 @@ function pwCalendarHTML(){
   const s=pw(),base=new Date((s.month||(s.active||todayISO).slice(0,7)+'-01')+'T12:00');base.setDate(1);
   const start=new Date(base);start.setDate(1-base.getDay());
   const count=Math.ceil((base.getDay()+new Date(base.getFullYear(),base.getMonth()+1,0).getDate())/7)*7;
-  return `<div class="card pw-calendar-panel"><div class="pw-month">${pwButton('month',icon('chevron',ICON_SZ.sm,180),'pw-icon','data-delta="-1" aria-label="Previous month"')}<strong>${base.toLocaleDateString('en-US',{month:'long',year:'numeric'})}</strong>${pwButton('month',icon('chevron',ICON_SZ.sm),'pw-icon','data-delta="1" aria-label="Next month"')}</div><div class="pw-calendar">${['S','M','T','W','T','F','S'].map(x=>`<span class="pw-weekday">${x}</span>`).join('')}${Array.from({length:count},(_,i)=>{const d=new Date(start);d.setDate(d.getDate()+i);const iso=pwISO(d);return pwButton('date',String(d.getDate()),`${s.dates.includes(iso)?'selected':''} ${d.getMonth()!==base.getMonth()?'pw-outside':''}`,`data-date="${iso}" aria-label="${hesc(pwDate(iso,true))}" aria-pressed="${s.dates.includes(iso)}" ${iso<todayISO?'disabled':''}`);}).join('')}</div><p class="pw-small">Up to 7 days · ${s.dates.length} selected</p></div>`;
+  return `<div class="card pw-calendar-panel"><div class="pw-month">${pwButton('month',icon('chevron',ICON_SZ.sm,180),'pw-icon','data-delta="-1" aria-label="Previous month"')}<strong>${base.toLocaleDateString('en-US',{month:'long',year:'numeric'})}</strong>${pwButton('month',icon('chevron',ICON_SZ.sm),'pw-icon','data-delta="1" aria-label="Next month"')}</div><div class="pw-calendar">${['S','M','T','W','T','F','S'].map(x=>`<span class="pw-weekday">${x}</span>`).join('')}${Array.from({length:count},(_,i)=>{const d=new Date(start);d.setDate(d.getDate()+i);const iso=pwISO(d);
+    /* v4.0.3: A DATE THAT ALREADY HAS A PLAN SAYS SO. The calendar showed only
+       which dates were selected, so the one thing you open it to find out --
+       where have I already planned? -- was the one thing it would not tell
+       you. A saved plan gets a solid mark; a draft you have not saved yet gets
+       a hollow one, because those are different promises. The mark carries in
+       the aria-label too: a dot is not readable to a screen reader. */
+    const sv=pwSaved(iso);
+    const saved=!!sv&&(sv.items||[]).length>0;
+    /* a draft is a book entry the maker has worked on -- one seeded FROM a
+       saved plan is not a draft, it is that plan, and source says which */
+    const bk=s.book[iso];
+    const draft=!saved&&!!bk&&bk.source!=='Saved plan'&&(bk.rows||[]).length>0;
+    const mark=saved?'<i class="pw-dot" aria-hidden="true"></i>'
+              :draft?'<i class="pw-dot pw-dot-draft" aria-hidden="true"></i>':'';
+    const what=saved?', has a plan':draft?', has an unsaved draft':'';
+    return pwButton('date',String(d.getDate())+mark,`${s.dates.includes(iso)?'selected':''} ${d.getMonth()!==base.getMonth()?'pw-outside':''} ${saved?'pw-planned':''}`,`data-date="${iso}" aria-label="${hesc(pwDate(iso,true))}${what}" aria-pressed="${s.dates.includes(iso)}" ${iso<todayISO?'disabled':''}`);}).join('')}</div><p class="pw-small">Up to 7 days · ${s.dates.length} selected</p></div>`;
 }
 function pwRender(){
   const s=pw();
@@ -104,7 +120,7 @@ function pwRender(){
   html+='</fieldset>';
   let footer='';
   if(s.datesOpen&&!panel){
-    footer=pwButton('dates-done','Done','primary',s.dates.length?'':'disabled');
+    footer=pwButton('dates-cancel','Cancel')+pwButton('dates-edit','Edit','primary',s.dates.length?'':'disabled');
   }else if(s.step==='busy'){
     html+=writerWaitHTML().replace('data-writecancel','data-pw="cancel"').replace('data-what="the week"',`data-what="${s.task==='adjust'?'the set adjustment':'your plan'}"`);
   }else if(s.step==='paste'||s.step==='editrow'){
@@ -287,15 +303,30 @@ function pwHandle(e){
   const a=el.dataset.pw,s=pw(),d=el.dataset.date,i=Number(el.dataset.index),b=s.active?pwDay(s.active):null;
   try{
     if(a==='set-minus'||a==='set-plus'){pwAdjustLive(a==='set-plus'?1:-1);return true;}
-    if(a==='back'){if(s.step!=='edit'||s.datesOpen){pwRequest++;lift.writeAbort?.abort();writerWaitStop();s.busy=false;s.candidate=null;s.datesOpen=false;pwGo('edit');}else{pwPersist();lift.plan=null;view='today';render({soft:true});}return true;}
+    if(a==='back'){
+      /* v4.0.3: from the calendar, Back goes where the calendar was opened
+         from. It used to close the panel and leave you in the editor -- a
+         screen the maker had not asked to see. */
+      if(s.datesOpen&&s.datesFrom!=='edit'){s.datesOpen=false;s.step='edit';pwPersist();lift.plan=null;view='today';render({soft:true});return true;}
+      if(s.step!=='edit'||s.datesOpen){pwRequest++;lift.writeAbort?.abort();writerWaitStop();s.busy=false;s.candidate=null;s.datesOpen=false;pwGo('edit');}else{pwPersist();lift.plan=null;view='today';render({soft:true});}return true;}
     if(a.startsWith('text-')){pwTextTool(a);return true;}
     if(a==='upcoming'){s.upcomingOpen=!s.upcomingOpen;const box=el.closest('.pw-coming');el.setAttribute('aria-expanded',String(s.upcomingOpen));box.classList.toggle('is-open',s.upcomingOpen);box.querySelector('.pw-fold').toggleAttribute('inert',!s.upcomingOpen);pwPersist();return true;}
     if(a==='mode'){pwRequest++;if(s.busy)lift.writeAbort?.abort();s.busy=false;localStorage.setItem(PW_MODE_KEY,el.dataset.mode);lift.plan=null;render({inplace:true});return true;}
-    if(a==='open'||a==='resume'){pwOpen(null,a==='open'?'dates':undefined);return true;}
+    /* v4.0.3: the calendar remembers where it was opened FROM, so Back and
+       Cancel return there rather than always landing in the editor. From
+       Today's "Dates >" that is Today; from the editor's datebar it is the
+       editor. "Where we came from" is the rule, not a fixed destination. */
+    if(a==='open'||a==='resume'){if(a==='open')pw().datesFrom='today';pwOpen(null,a==='open'?'dates':undefined);return true;}
     if(a==='open-date'||a==='paste-open'){pwOpen(d);if(a==='paste-open'){s.pasteText='';s.editIndex=undefined;pwGo('paste');}return true;}
     if(a==='close'){pwRequest++;if(s.busy)lift.writeAbort?.abort();s.busy=false;if(s.step==='busy')s.step='edit';pwPersist();lift.plan=null;view='today';render({soft:true});return true;}
-    if(a==='dates-toggle'){s.datesOpen=!s.datesOpen;s.step='edit';}
-    else if(a==='dates-done'){s.datesOpen=false;s.step='edit';}
+    if(a==='dates-toggle'){s.datesOpen=!s.datesOpen;if(s.datesOpen)s.datesFrom='edit';s.step='edit';}
+    /* v4.0.3: Done became Cancel + Edit. "Done" read as "I have finished
+       choosing" and then dropped you into the day's routine, which is a
+       different screen from the one you asked for -- Edit says that plainly,
+       and Cancel is the way out that did not exist. */
+    else if(a==='dates-edit'){s.datesOpen=false;s.step='edit';}
+    else if(a==='dates-cancel'){s.datesOpen=false;s.step='edit';
+      if(s.datesFrom!=='edit'){pwPersist();lift.plan=null;view='today';render({soft:true});return true;}}
     else if(a==='goal'){s.objective=el.dataset.goal;}
     else if(a==='month'){const m=new Date((s.month||todayISO.slice(0,7)+'-01')+'T12:00');m.setMonth(m.getMonth()+Number(el.dataset.delta));s.month=pwISO(m);}
     else if(a==='date'){if(s.dates.includes(d))s.dates=s.dates.filter(x=>x!==d);else if(s.dates.length<7){s.dates.push(d);s.dates.sort();pwDay(d);}else throw Error('Choose up to seven days in one draft.');if(!s.dates.includes(s.active))s.active=s.dates[0]||null;}

@@ -32,10 +32,15 @@ run(`pw().setupOpen=true;pwRender();var goalInput=document.querySelector('[data-
 ok('goal slider updates actual writer objective',`pw().objective==='strength'&&pwPayload(pw().dates).objective==='strength'`);
 click('dates-toggle');ok('calendar stays in editor',`!!document.querySelector('.pw-editor-head')&&!!document.querySelector('.pw-calendar')&&pw().step==='edit'`);
 run(`var calendarState=pwCopy(pw());pw().month=null;pw().active=null;pw().dates=[];pwRender();`);
-ok('empty calendar selection stays valid and Done is disabled',`!document.getElementById('view').textContent.includes('Invalid Date')&&document.querySelectorAll('.pw-calendar [data-pw="date"]').length===35&&document.querySelector('[data-pw="dates-done"]').disabled`);
+/* v4.0.3 RESTATES: Done became Cancel + Edit. "Done" read as "I have finished
+   choosing" and then dropped you into the day's routine, a screen you had not
+   asked for; Edit says that plainly, and Cancel is the way out that did not
+   exist. The claim is unchanged -- an empty selection renders cleanly and
+   offers no way forward -- measured on the button that now carries forward. */
+ok('empty calendar selection stays valid and Edit is disabled',`!document.getElementById('view').textContent.includes('Invalid Date')&&document.querySelectorAll('.pw-calendar [data-pw="date"]').length===35&&document.querySelector('[data-pw="dates-edit"]').disabled&&!document.querySelector('[data-pw="dates-cancel"]').disabled`);
 run(`pwState=calendarState;pwRender();`);
 run(`document.querySelector('[data-pw="date"][data-date="2026-09-12"]').click();`);ok('adding a date keeps active day',`pw().active==='2026-09-11'`);
-run(`document.querySelector('[data-pw="date"][data-date="2026-09-12"]').click();`);click('dates-done');
+run(`document.querySelector('[data-pw="date"][data-date="2026-09-12"]').click();`);click('dates-edit');
 click('paste');run(String.raw`pw().pasteText='Squat\n  135 lb × 8 (warm-up)\n  205 lb × 8 8 8 8\n\nPlank\n  BW × 60 sec × 3\n\nMystery movement\n  20 lb × 12 12';`);click('readpaste');
 ok('paste has explicit Add versus Replace',String.raw`!!document.querySelector('[data-pw="apply-add"]')&&/Replace/.test(document.querySelector('[data-pw="apply"]').textContent)`);
 ok('unreadable headings retain weight/reps',String.raw`document.querySelector('.pw-unread').textContent.includes('20 lb × 12 12')`);

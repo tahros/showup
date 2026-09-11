@@ -24,7 +24,17 @@ p.pw-small{margin:10px 0 16px}.pw-workspace p:not(.pw-small){font:400 14px/1.6 v
 .pw-card-heading .pw-small{font-size:10px;text-align:right}
 .pw-days{display:flex;gap:8px;overflow-x:auto;padding:0 0 12px;margin:0 0 16px;scrollbar-width:thin}.pw-days .pw-btn{flex-shrink:0;font:500 11px var(--mono)}
 .pw-month{display:grid;grid-template-columns:44px 1fr 44px;align-items:center;text-align:center;margin-bottom:16px}.pw-month strong{font-size:16px}
-.pw-calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}.pw-calendar .pw-btn{padding:0;min-width:0;min-height:40px;border:0;background:transparent;font:500 12px var(--mono);border-radius:12px}.pw-calendar .selected{background:var(--accent);color:#fff}.pw-calendar .pw-outside:not(.selected){color:var(--faint)}.pw-weekday{text-align:center;font:400 10px var(--mono);color:var(--muted);padding-bottom:8px}
+.pw-calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}.pw-calendar .pw-btn{padding:0;min-width:0;min-height:40px;border:0;background:transparent;font:500 12px var(--mono);border-radius:12px}.pw-calendar .selected{background:var(--accent);color:#fff}.pw-calendar .pw-outside:not(.selected){color:var(--faint)}/* v4.0.3: the calendar marks dates that already carry a plan. Solid for a
+   saved plan, hollow for an unsaved draft -- different promises, different
+   marks. On a selected date the mark inverts to white, or a blue dot on a blue
+   fill would vanish exactly where it matters most. */
+.pw-calendar .pw-btn{position:relative}
+.pw-dot{position:absolute;left:50%;transform:translateX(-50%);bottom:5px;width:5px;height:5px;border-radius:50%;background:var(--accent);pointer-events:none}
+.pw-dot-draft{background:none;box-shadow:inset 0 0 0 1.5px var(--accent)}
+.pw-calendar .selected .pw-dot{background:#fff}
+.pw-calendar .selected .pw-dot-draft{background:none;box-shadow:inset 0 0 0 1.5px #fff}
+.pw-calendar .pw-outside .pw-dot{opacity:.45}
+.pw-weekday{text-align:center;font:400 10px var(--mono);color:var(--muted);padding-bottom:8px}
 .pw-selected-dates{display:flex;gap:8px;flex-wrap:wrap}.pw-selected-dates span{padding:5px 8px;background:var(--surface2);border-radius:8px;font:400 10px/1.5 var(--mono);color:var(--muted)}
 .pw-parts{display:flex;flex-wrap:wrap;gap:7px}.pw-parts .pw-btn{font-size:12px;padding:8px 12px}
 .pw-preferences{margin:18px 0 24px;border-top:1px solid var(--line);padding-top:12px}.pw-preferences summary{font:500 12px/1.5 var(--body);color:var(--muted);cursor:pointer;min-height:36px;display:list-item}

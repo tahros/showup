@@ -1,5 +1,41 @@
 # ShowUp — changelog
 
+
+## v4.0.3 (2026-09-11) — A calendar that says where you have already planned
+
+**The dates show their plans.** The calendar told you which dates were
+*selected* and nothing else — so the one thing you open it to find out, *where
+have I already planned?*, was the one thing it would not say. A saved plan now
+carries a solid mark; a draft you have not saved yet carries a hollow one,
+because those are different promises. Both are in the accessible name as well:
+a dot is not readable aloud.
+
+**Back goes where you came from.** From the calendar it closed the panel and
+left you in the day's routine — a screen you had not asked to see. It now
+returns to wherever the calendar was opened: Today if you came from Today's
+*Dates*, the editor if you came from the editor's date bar.
+
+**Done became Cancel and Edit.** *Done* read as "I have finished choosing" and
+then dropped you into the routine. *Edit* says that plainly, and *Cancel* is the
+way out that did not exist — it follows the same where-you-came-from rule. An
+empty selection still disables the way forward, and Cancel is never disabled.
+
+`tools/test-plandates.js` drives all three through real clicks on the real
+controls, because every claim here is about which screen you land on, and a
+navigation test that reaches around a control cannot see a bug that lives in
+one. Three probes: strip the marks, restore the old Back, and make Cancel always
+leave.
+
+### Shipped over three red suites, none of them this release's
+
+`test-planner-server` and `test-progression` already failed on v4.0.2 before
+this work began — both verified red against a clean tree with this change
+stashed. `tools/demo-tabtrip.js` is red for a different reason: it drives
+`.scopepill[data-planscope="week"]`, a control v4.0 removed when planning moved
+into the workspace, so the demo is stale rather than broken. It needs rewriting
+against whatever now carries the Today ↔ Train viewpoint, or retiring.
+
+
 ## v4.0.2 (2026-09-11) — Adjust in place
 
 - **Total sets − / +** updates the routine below and the bottom count
