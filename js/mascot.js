@@ -95,9 +95,7 @@ for(const tone of ['white','charcoal']){
     scheduled=false;
     const mode=mascotMode(),theme=document.documentElement.dataset.theme;
     document.documentElement.dataset.mascotMotion=mode;
-    const favicon=document.querySelector('link[rel="icon"]');
-    const iconPath=theme==='dark'?'assets/mascot-mark-white.png':'favicon-32.png';
-    if(favicon&&favicon.getAttribute('href')!==iconPath)favicon.setAttribute('href',iconPath);
+    // Browser/install identity stays blue in both themes; only in-page art changes.
     for(const el of [...visible,...live.keys()]){
       if(!el.isConnected){remove(el);visible.delete(el);intersection.unobserve(el);}
     }

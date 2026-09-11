@@ -3,9 +3,9 @@
 <script>/* pre-paint: apply the saved theme before any CSS renders */
 try{var _de=document.documentElement,_qp=new URLSearchParams(location.search);_de.dataset.theme=/^(light|dark)$/.test(_qp.get('theme')||'')?_qp.get('theme'):(localStorage.getItem('showup-theme')||'dark');_de.dataset.skin=localStorage.getItem('showup-skin')||'minimal';_de.dataset.bar=localStorage.getItem('showup-bar')||_de.dataset.theme;if(_qp.get('design')==='modern')_de.dataset.designPreview='modern';}catch(e){}</script>
 <link rel="manifest" href="manifest.webmanifest">
-<!-- Browser mascot is transparent; existing OS-masked install tiles are separate. -->
-<link rel="icon" href="favicon-32.png" sizes="32x32">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<!-- Approved C: white mascot on blue; the OS applies the installation mask. -->
+<link rel="icon" href="favicon-blue-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="apple-touch-icon-blue.png" sizes="180x180">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <!-- v3.3.246: NOT black-translucent. That setting pushes the page behind the
      status bar, and on iOS 26 the system composites its own progressive blur
@@ -25,9 +25,9 @@ try{var _de=document.documentElement,_qp=new URLSearchParams(location.search);_d
 <meta name="theme-color" content="#F2F3F6">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/app.css?v=4.1.6">
-  <link rel="stylesheet" href="css/planner.css?v=4.1.6">
-  <link rel="stylesheet" href="css/mascot.css?v=4.1.6">
+  <link rel="stylesheet" href="css/app.css?v=4.1.7">
+  <link rel="stylesheet" href="css/planner.css?v=4.1.7">
+  <link rel="stylesheet" href="css/mascot.css?v=4.1.7">
 
 
 <div id="app">
@@ -97,17 +97,17 @@ try{var _de=document.documentElement,_qp=new URLSearchParams(location.search);_d
   <path d="M12 4v13M6 12l6 6 6-6"/></svg></div>
 </div>
 
-  <script src="js/core.js?v=4.1.6"></script>
-  <script src="js/derive.js?v=4.1.6"></script>
-  <script src="js/util.js?v=4.1.6"></script>
-  <script src="js/header.js?v=4.1.6"></script>
-  <script src="js/mascot.js?v=4.1.6"></script>
-  <script src="js/report.js?v=4.1.6"></script>
-  <script src="js/today.js?v=4.1.6"></script>
-  <script src="js/progression.js?v=4.1.6"></script>
-  <script src="js/lift.js?v=4.1.6"></script><script src="js/writer.js?v=4.1.6"></script>
-  <script src="js/planner.js?v=4.1.6"></script>
-  <script src="js/stats.js?v=4.1.6"></script>
-  <script src="js/history.js?v=4.1.6"></script>
-  <script src="js/settings.js?v=4.1.6"></script>
-  <script src="js/app.js?v=4.1.6"></script>
+  <script src="js/core.js?v=4.1.7"></script>
+  <script src="js/derive.js?v=4.1.7"></script>
+  <script src="js/util.js?v=4.1.7"></script>
+  <script src="js/header.js?v=4.1.7"></script>
+  <script src="js/mascot.js?v=4.1.7"></script>
+  <script src="js/report.js?v=4.1.7"></script>
+  <script src="js/today.js?v=4.1.7"></script>
+  <script src="js/progression.js?v=4.1.7"></script>
+  <script src="js/lift.js?v=4.1.7"></script><script src="js/writer.js?v=4.1.7"></script>
+  <script src="js/planner.js?v=4.1.7"></script>
+  <script src="js/stats.js?v=4.1.7"></script>
+  <script src="js/history.js?v=4.1.7"></script>
+  <script src="js/settings.js?v=4.1.7"></script>
+  <script src="js/app.js?v=4.1.7"></script>

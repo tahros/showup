@@ -1,5 +1,16 @@
 # ShowUp — changelog
 
+## v4.1.7 (2026-09-11) — ShowUp Blue installation icon
+
+Approved option C: the existing white mascot centered on #3049dc. New 192px
+and 512px PWA tiles, 180px Apple touch icon, and 32px favicon use the approved
+82% composition. A separate 512px maskable tile has extra safe padding.
+All install tiles have opaque backgrounds; the OS supplies the corner mask.
+The manifest, Apple/favicon links and offline cache reference the new filenames.
+Browser identity now stays blue across themes. In-page mascots still adapt to
+light/dark content. Start URL, scope, workout data, header and app layout remain
+unchanged. Existing home-screen icons may refresh on the OS's own schedule.
+
 ## v4.1.6 (2026-09-11) — Consistent planning cards
 
 Today and Coming up share the same collapsed row height, padding and line

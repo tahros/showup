@@ -1034,8 +1034,10 @@ for _f in ("js/lift.js", "js/writer.js", "js/today.js", "js/history.js", "js/sta
 # the mark's own corners on white.
 # Checked here because a PNG cannot be diffed in the JS suites, and because
 # this is exactly the kind of asset that gets regenerated wrongly later.
-_ICONS = {"icon-192.png": 192, "icon-512.png": 512,
-          "icon-maskable-512.png": 512, "apple-touch-icon.png": 180}
+# v4.1.7: approved white mascot on blue replaces the chevron installation tiles.
+_ICONS = {"app-icon-blue-192.png": 192, "app-icon-blue-512.png": 512,
+          "app-icon-blue-maskable-512.png": 512, "apple-touch-icon-blue.png": 180,
+          "favicon-blue-32.png": 32}
 def _png_size(p):
     b = p.read_bytes()
     if b[:8] != b"\x89PNG\r\n\x1a\n": return None
@@ -1048,12 +1050,17 @@ for _n, _sz in _ICONS.items():
     _wh = _png_size(_p)
     if _wh != (_sz, _sz):
         fail.append(f"the icon: {_n} is {_wh}, expected {_sz}x{_sz} (v3.3.423)")
-if not (d / "favicon-32.png").exists():
-    fail.append("the icon: favicon-32.png is missing — the browser tab falls back to a 192px app icon (v3.3.423)")
-if 'href="favicon-32.png"' not in idx:
-    fail.append("the icon: index.html does not point rel=icon at favicon-32.png (v3.3.423)")
-if "./favicon-32.png" not in sw:
-    fail.append("the icon: sw.js does not cache favicon-32.png, so it will not work offline (v3.3.423)")
+for _icon in _ICONS:
+    if "./" + _icon not in sw:
+        fail.append(f"the icon: {_icon} is not cached offline")
+for _rel, _name in [("icon", "favicon-blue-32.png"), ("apple-touch-icon", "apple-touch-icon-blue.png")]:
+    if f'rel="{_rel}" href="{_name}"' not in idx:
+        fail.append(f"the icon: {_rel} does not reference {_name}")
+import json
+_manifest = json.loads((d / "manifest.webmanifest").read_text())
+for _name, _size, _purpose in [("app-icon-blue-192.png", 192, "any"), ("app-icon-blue-512.png", 512, "any"), ("app-icon-blue-maskable-512.png", 512, "maskable")]:
+    if not any(i.get("src") == _name and i.get("sizes") == f"{_size}x{_size}" and i.get("purpose") == _purpose for i in _manifest.get("icons", [])):
+        fail.append(f"the icon: manifest entry missing or incorrect for {_name}")
 
 # -- v3.3.430: ONE FOLD CONTROL.
 # A fold was drawn two ways: the plan used the icon system's chevron, rotated;

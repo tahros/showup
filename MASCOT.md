@@ -20,12 +20,18 @@ No screenshot reconstruction, bloom, motion blur, or replacement app layout.
 - css/mascot.css: local decorative slots and completion/milestone presentation.
 - assets/mascot-{charcoal,white}.png: transparent 720×440 stills.
 - assets/mascot-mark-{charcoal,white}.png: transparent 512×512 identity crops.
-- favicon-32.png: charcoal browser default, switches to White for dark content.
+- favicon-blue-32.png: fixed white mascot on ShowUp Blue browser identity.
 - vendor/three-r169.module.min.js and three-LICENSE.txt: Three.js 0.169.0, MIT.
   Source distribution: https://cdn.jsdelivr.net/npm/three@0.169.0/
 
-Installed OS home-screen assets are deliberately unchanged. These receive OS
-masks/background compositing and are not transparent in-page mascot slots.
+As of v4.1.7, installed icons use approved C: white mascot on #3049dc.
+app-icon-blue-{192,512}.png and apple-touch-icon-blue.png use the preview's
+82% composition. app-icon-blue-maskable-512.png uses 66% to fit the central
+80%-diameter safe circle. All tiles are opaque, square, and receive OS masks.
+Generate them with node tools/render-pwa-icons.cjs (requires canvas). The
+transparent source marks and in-page theme behavior are separate and unchanged.
+New icon filenames refresh browser/PWA asset references without changing the
+manifest start URL, scope, or installation identity. Older icon files are retained.
 
 ## States
 
