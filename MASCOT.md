@@ -39,6 +39,13 @@ Hello plays once. Active bounces continuously with a 3.2-second red pulse.
 Completion uses the original 2.7-second jump. The 25-day milestone uses the
 original dance and a 5×5 sequence of attendance boxes. Completed Today jumps
 once, then rests while its material breathes blue over 4.8 seconds.
+As of v4.1.10, the completed Today mascot stays signature blue with a white
+face in both themes. The jump and idle remain; the cooling color pulse is
+retired. Its 94px slot (71px on compact screens) matches the greeting. The
+completed card has no square; its count and date remain. mascot-blue.png is
+the transparent still/reduced-motion fallback. Regenerate only this still
+with node tools/render-mascot-assets.cjs http://127.0.0.1:8768 --blue.
+
 On the 25th day, completion offers See your milestone; that explicit button
 opens the separate milestone beat within the existing accessible dialog.
 Keep showing up returns to Today, and Share still opens the unchanged receipt.

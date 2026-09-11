@@ -198,16 +198,16 @@ export function createMascot(stage, options={}) {
   let raf=0, elapsed=0, previous=0, paused=true, disposed=false, lost=false;
   const keys=['dark','mid','light'];
   function paint(t=elapsed) {
-    const base=theme==='dark'?['#d7d7d7','#f1f1f1','#ffffff']:tones.soft;
+    const base=mode==='cool'?['#2033af','#3049dc','#5368ed']:theme==='dark'?['#d7d7d7','#f1f1f1','#ffffff']:tones.soft;
     const target=mode==='active'?['#a92523','#d74236','#f46b52']:['#2749bd','#4779df','#78b3f4'];
-    const pulse=mode==='active'||mode==='cool';
+    const pulse=mode==='active';
     const wave=still?.5:.5-.5*Math.cos(t/(mode==='active'?3200:4800)*Math.PI*2);
     const strength=mode==='active'?.32+.62*wave:.24+.53*wave;
     keys.forEach((key,i)=>{
       charcoal.uniforms[key].value.set(base[i]);
       if(pulse) charcoal.uniforms[key].value.lerp(new THREE.Color(target[i]),strength);
     });
-    white.color.set(theme==='dark'?'#303030':'#ffffff');
+    white.color.set(mode==='cool'?'#ffffff':theme==='dark'?'#303030':'#ffffff');
     const motion=motions[mode==='cool'?'jump':mode];
     const end=motion?.frames.at(-1).t||0;
     /* v4.1.2: when no show is running the mascot idles rather than freezing

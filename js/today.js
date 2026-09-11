@@ -569,7 +569,6 @@ function renderToday(){
        the card do it visually. */
     return `<button class="card dayclosed" data-replayday="1" aria-label="Day ${fmt(_n)}, ${pretty(todayISO)}. Today is complete; logging another set reopens it. Tap to see it again.">
           ${mascotHTML('cool')}
-          <i class="dcsq" aria-hidden="true"></i>
           <b class="dcn">${fmt(_n)}</b>
           <span class="dcm mono">${pretty(todayISO)}</span>
         </button>`;

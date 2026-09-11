@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v4.1.10 (2026-09-11) — A smaller blue mascot for completed days
+
+The completed Today card uses a signature-blue mascot with white eyes and
+smile in either theme. Its size matches the greeting mascot: 94px, or 71px
+on compact screens. The redundant square is removed; count and date remain.
+The approved jump and idle motion remain, with a steady blue material instead
+of the old cooling color pulse. A transparent blue still is cached for reduced
+motion and WebGL fallback. Based on v4.1.9; header/week-strip updates preserved.
+
 
 
 ## v4.1.9 (2026-09-11) — Give the maker his shimmer back

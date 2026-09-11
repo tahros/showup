@@ -26,7 +26,7 @@
 .su-active-row strong{display:block;font:600 24px/1.2 var(--disp);margin:0 0 6px}
 .su-active-row span.mono{font-size:11px}
 .su-active-row .su-mascot{width:104px}
-.card.dayclosed .su-mascot{margin:-8px auto -10px;width:156px}
+.card.dayclosed .su-mascot{margin:-8px auto -10px;width:94px}
 #dayDone .su-mascot{width:240px;max-width:100%;margin:0 auto 8px}
 #dayDone.su-celebration .ddbody{padding:12px 0 20px}
 #dayDone.su-celebration .ddyou{margin:18px 0 12px}
@@ -44,4 +44,4 @@
 :root[data-mascot-motion="still"] .su-milestone-grid i{animation:none}
 @keyframes su-box-in{from{opacity:0;transform:translateY(4px) scale(.82)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){.su-milestone-grid i{animation:none}}
-@media(max-width:360px){.su-hello-row .su-mascot{width:71px}#dayDone .su-mascot{width:190px}}
+@media(max-width:360px){.su-hello-row .su-mascot,.card.dayclosed .su-mascot{width:71px}#dayDone .su-mascot{width:190px}}

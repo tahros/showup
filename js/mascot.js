@@ -3,7 +3,7 @@
 function mascotMode(){return ['still','off'].includes(DB.settings.mascotMotion)?DB.settings.mascotMotion:'animated';}
 function mascotHTML(mode='hello',className=''){
   if(mascotMode()==='off')return '';
-  const tone=document.documentElement.dataset.theme==='dark'?'white':'charcoal';
+  const tone=mode==='cool'?'blue':document.documentElement.dataset.theme==='dark'?'white':'charcoal';
   return '<span class="su-mascot '+className+'" data-mascot="'+mode+'" aria-hidden="true"><img src="assets/mascot-'+tone+'.png" alt="" width="360" height="220"></span>';
 }
 function workoutCompletionMetrics(record){
@@ -101,7 +101,7 @@ for(const tone of ['white','charcoal']){
     }
     document.querySelectorAll('[data-mascot]').forEach(el=>{
       const image=el.querySelector('img');
-      const path='assets/mascot-'+(theme==='dark'?'white':'charcoal')+'.png';
+      const path='assets/mascot-'+(el.dataset.mascot==='cool'?'blue':theme==='dark'?'white':'charcoal')+'.png';
       if(image&&image.getAttribute('src')!==path)image.src=path;
       if(!el.dataset.observed){el.dataset.observed='true';intersection.observe(el);}
       if(mode==='off'||still()||document.hidden)remove(el);

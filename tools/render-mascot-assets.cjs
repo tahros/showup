@@ -7,14 +7,15 @@ const fs=require('fs'),path=require('path');
  const page=await browser.newPage({viewport:{width:720,height:440},deviceScaleFactor:1,serviceWorkers:'block'});
  await page.goto(process.argv[2]||'http://127.0.0.1:8768');
  await page.evaluate(()=>{document.body.innerHTML='<div id="asset" style="width:720px;height:440px"></div>';});
- for(const [tone,theme] of [['charcoal','light'],['white','dark']]){
-   const png=await page.evaluate(async theme=>{
+ for(const [tone,theme] of (process.argv.includes('--blue')?[['blue','light']]:[['charcoal','light'],['white','dark'],['blue','light']])){
+   const png=await page.evaluate(async ({theme,tone})=>{
      const {createMascot}=await import('./js/mascot-renderer.js');
-     const m=createMascot(document.querySelector('#asset'),{theme,mode:'still',still:true});
+     const m=createMascot(document.querySelector('#asset'),{theme,mode:tone==='blue'?'cool':'still',still:true});
      const png=m.capture();m.dispose();return png;
-   },theme);
+   },{theme,tone});
    const filename=path.join(__dirname,'../assets/mascot-'+tone+'.png');
    fs.writeFileSync(filename,Buffer.from(png.split(',')[1],'base64'));
+   if(tone==='blue')continue;
    // Square identity is a tight transparent crop, keeping every plate and the bottom shadow.
    const mark=await page.evaluate(async png=>{
       const im=new Image();im.src=png;await im.decode();
@@ -37,5 +38,5 @@ const fs=require('fs'),path=require('path');
    }
  }
  await browser.close();
- console.log('Generated four transparent mascot PNG assets.');
+ console.log(process.argv.includes('--blue')?'Generated transparent completed-day blue still.':'Generated transparent mascot assets.');
 })().catch(e=>{console.error(e);process.exit(1);});
