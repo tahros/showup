@@ -66,7 +66,7 @@ function bindPlateStats(){
   function dispose(){if(ended)return;ended=true;request++;cancelAnimationFrame(raf);resize.disconnect();observer.disconnect();themeObserver.disconnect();document.removeEventListener('visibilitychange',visibility);reduced.removeEventListener('change',motionChange);}
   async function settledPlay(replay=false){const ticket=++request;await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));if(ended||ticket!==request)return;await Promise.allSettled((host.getAnimations?.()||[]).filter(a=>Number.isFinite(a.effect?.getComputedTiming().endTime)).map(a=>a.finished));if(!ended&&!document.hidden&&ticket===request)play(replay);}
   colors();resize.observe(canvas);observer.observe(document.getElementById('view'),{childList:true});themeObserver.observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});document.addEventListener('visibilitychange',visibility);reduced.addEventListener('change',motionChange);
-  host.querySelector('.plate-share').onclick=()=>showCard(()=>{const cv=document.createElement('canvas');cv.width=cv.height=1080;const x=cv.getContext('2d');if(!x)return null;drawDayCard(x,1080,todayISO);return cv;},'showup-'+todayISO,false);
+  host.querySelector('.plate-share').onclick=()=>{if(DB.days?.[todayISO]?.doneAll)return sharePlateCard();return showCard(()=>{const cv=document.createElement('canvas');cv.width=cv.height=1080;const x=cv.getContext('2d');if(!x)return null;drawDayCard(x,1080,todayISO);return cv;},'showup-'+todayISO,false);};
   host.querySelector('.plate-mascot-button')?.addEventListener('click',()=>{
     if(reduced.matches||mascotMode()!=='animated')return;
     const el=host.querySelector('.su-mascot');el?.dispatchEvent(new Event('mascotreplay'));

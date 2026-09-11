@@ -36,6 +36,9 @@ await page.evaluate(()=>{DB.days[todayISO].w.push({ex:'Bench',w:500/LB,reps:[1]}
 await page.evaluate(()=>{DB.days[todayISO].w.pop();renderStats()});await page.waitForSelector('.plate-canvas[data-playing="false"]');assert(await page.locator('.plate-total b').innerText()==='14,335','Deletion recomputes total');
 await page.emulateMedia({reducedMotion:'reduce'});await page.locator('.plate-replay').click();await page.waitForTimeout(100);assert(await page.locator('.plate-canvas').getAttribute('data-playing')==='false','Reduced motion suppresses replay and hopping');
 await page.evaluate(()=>{document.documentElement.dataset.theme='dark';DB.days[todayISO].doneAll=true;renderStats()});await page.waitForTimeout(100);assert(await page.locator('.plate-card [data-mascot="cool"]').count(),'Completion uses blue mascot');
+await page.locator('.plate-share').click();await page.locator('#repOv').waitFor({state:'visible'});
+assert(await page.evaluate(()=>_repCv.label==='showup-stacked-'+todayISO&&_repCv.cv.width===1080&&_repCv.cv.height===1280),'Completed card shares high-resolution stacks, not the receipt');
+await page.locator('#repClose').click();
 await page.setViewportSize({width:320,height:740});await page.waitForTimeout(100);assert(await page.evaluate(()=>document.documentElement.scrollWidth<=320),'320px layout fits');
 assert(await page.evaluate(()=>plateMetrics({w:[{ex:'Run',w:5,reps:[1]},{ex:'Plank',w:20,reps:[60],su:SET_SEC},{ex:'Squat',w:10,reps:[8,9]},{ex:'Pull Up',w:0,reps:[10]}]}).kg===170),'No fabricated running, hold or bodyweight volume');
 assert(await page.evaluate(()=>{const p=plateLedger({w:[{part:'Chest',ex:'Bench',w:650/LB,reps:[1]},{part:'Shoulder',ex:'Press',w:300/LB,reps:[1]}]});return p.length===3&&p[0].part==='Chest'&&p[1].part==='Chest'&&p[2].part==='Shoulder'&&Math.abs(p.at(-1).end*LB-950)<1e-6;}),'Fractional plates preserve body-part totals exactly');
@@ -43,6 +46,9 @@ await page.evaluate(()=>{document.documentElement.dataset.theme='light';DB.days[
 assert(await page.locator('.plate-legend span').count()===3,'Legend names each weighted body part');
 assert(await page.evaluate(()=>getComputedStyle(document.querySelectorAll('.plate-legend i')[1]).backgroundColor==='rgb(200, 117, 77)'&&getComputedStyle(document.documentElement).getPropertyValue('--p-shoulder').trim()==='#C8754D'),'Shoulder is shared terracotta, not signature blue');
 await page.locator('.plate-card').screenshot({path:path.join(root,'../plate-colors-shipped.png')});
+const beforeShare=await page.evaluate(()=>JSON.stringify(DB));await page.locator('.plate-share').click();await page.locator('#repOv').waitFor({state:'visible'});
+fs.writeFileSync(path.join(root,'../stacked-share-verified.png'),Buffer.from(await page.evaluate(()=>_repCv.cv.toDataURL('image/png').split(',')[1]),'base64'));
+assert(await page.evaluate(()=>JSON.stringify(DB))===beforeShare,'Export never modifies profile or workout');await page.locator('#repClose').click();
 await page.evaluate(()=>{view='lift';lift.ex='Barbell Bench Press';lift.part='Chest';lift.copy=false;renderLift()});assert(await page.locator('.plate-mini').count(),'Training receipt retained');await page.locator('#addrep').click();assert((await page.locator('.plate-mini').innerText()).includes('today'),'Real Add set updates receipt');
 console.log('PASS canvas plates: real Stats entry/replay, downward path, alternating tilt, count-up, mascot/shadow, lifecycle, profile, reduced motion and mobile width');
 }finally{await browser.close();server.close()}})().catch(e=>{console.error(e);server.close();process.exitCode=1});

@@ -1,5 +1,17 @@
 # ShowUp — changelog
 
+## v4.2.7 (2026-09-11) — Share the stack
+
+- TODAY COMPLETED's plate-card Share now exports the approved 1080 × 1280
+  composition: finished coloured plates, blue mascot and soft shadows, date,
+  lifted total, set/exercise counts, named legend, profile first name and Show Up.
+- Render from a snapshot of the ledger, units and theme, never a partially
+  animated screenshot. Image and fonts finish loading before the share overlay.
+- Reuse the existing image sharing/download flow. Active-workout, History,
+  Progression and other share cards are unchanged. No profile or ledger writes.
+- Browser regression covers the completed-only route, dimensions and read-only
+  export in Chromium and WebKit; behavioural suites and build gates checked.
+
 ## v4.2.6 (2026-09-11) — Your work, in its own colours
 
 - Stats plates reuse the What You Did body-part palette, with the approved
