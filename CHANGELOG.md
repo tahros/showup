@@ -1,5 +1,16 @@
 # ShowUp — changelog
 
+## v4.2.1 (2026-09-11) — Let the plates finish falling
+
+Stats' horizontal chart scrollers emitted scroll events during page setup and
+could cancel the plate overlay. The listener now distinguishes real viewport
+movement from nested chart scrolling. Playback waits for page setup and the
+card entrance before measuring landing positions. Replay uses the same path.
+The animation-only viewing key advances to v2 so an invisible old playback
+cannot suppress the first corrected entrance. Profile and workout data remain
+untouched. Regression coverage reproduces the old scroll cancellation, then
+checks actual Stats navigation and replay through the complete page lifecycle.
+
 ## v4.2.0 (2026-09-11) — Your work, stacking up
 
 Training gives each saved lifting set a compact animated receipt under Add set,

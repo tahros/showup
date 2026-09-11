@@ -12,7 +12,7 @@ function plateMetrics(record){
 }
 function plateCurrent(){return plateMetrics(DB.days?.[todayISO]);}
 function plateNumber(kg){return Math.round(toU(kg)).toLocaleString();}
-function plateKey(){return 'showup.plates.v1.'+(session?.user?.id||'local')+'.'+todayISO;}
+function plateKey(){return 'showup.plates.v2.'+(session?.user?.id||'local')+'.'+todayISO;}
 function plateSeen(){try{return Math.max(0,Number(localStorage.getItem(plateKey()))||0);}catch(e){return 0;}}
 function plateRemember(kg){try{localStorage.setItem(plateKey(),String(kg));}catch(e){}}
 function plateMark(x,y,w,h){return `<path d="M${x} ${y-h}a${w/2} 7 0 0 1 ${w} 0v${h}a${w/2} 7 0 0 1 -${w} 0z" fill="var(--plate-side)"/><ellipse cx="${x+w/2}" cy="${y-h}" rx="${w/2}" ry="7" fill="var(--plate-top)"/><ellipse cx="${x+w/2}" cy="${y-h}" rx="5" ry="2" fill="var(--plate-hole)"/>`;}
@@ -43,14 +43,17 @@ function bindPlateStats(){
     const n=i-bank,g=document.createElementNS('http://www.w3.org/2000/svg','g');
     g.dataset.index=i;g.innerHTML=plateMark(7+Math.floor(n/10)*67,167-(n%10)*13,57,9*Math.min(1,(m.kg-i*unit)/unit));stack.append(g);
   }
-  let animations=[],layer=null,ended=false;
+  let animations=[],layer=null,ended=false,startY=window.scrollY,playRequest=0;
   const cancel=()=>{animations.forEach(a=>a.cancel());animations=[];layer?.remove();layer=null;stack.querySelectorAll('g').forEach(g=>g.style.visibility='');};
-  const onScroll=()=>cancel();window.addEventListener('scroll',onScroll,{passive:true,capture:true});
+  // Stats' own horizontal charts scroll during setup (and smooth-scroll later).
+  // Their events are not movement of the viewport or of our landing targets.
+  const onScroll=e=>{if((e.target===document||e.target===window)&&Math.abs(window.scrollY-startY)>2)cancel();};
+  window.addEventListener('scroll',onScroll,{passive:true,capture:true});
   const observer=new MutationObserver(()=>{if(!host.isConnected){ended=true;cancel();window.removeEventListener('scroll',onScroll,true);observer.disconnect();}});
   observer.observe(document.getElementById('view'),{childList:true});
   plateCancel=()=>{ended=true;cancel();window.removeEventListener('scroll',onScroll,true);observer.disconnect();};
   const play=async(replay=false)=>{
-    cancel();const seen=replay?0:Math.min(m.kg,plateSeen());
+    cancel();startY=window.scrollY;const seen=replay?0:Math.min(m.kg,plateSeen());
     const candidates=[...stack.children].filter(g=>replay||Number(g.dataset.index)>=Math.floor(seen/unit)&&m.kg>seen);
     const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
     if(reduced||!Element.prototype.animate){plateRemember(m.kg);return;}
@@ -69,6 +72,16 @@ function bindPlateStats(){
     if(ended||layer!==activeLayer)return;layer.remove();layer=null;plateRemember(m.kg);
     const mascot=host.querySelector('.su-mascot');if(mascot)animations.push(mascot.animate([{transform:'translateY(0)'},{transform:'translateY(-10px)',offset:.5},{transform:'translateY(0)'}],{duration:600}));
   };
-  host.querySelector('.plate-replay').onclick=()=>play(true);
-  requestAnimationFrame(()=>{if(host.isConnected&&!ended)play();});
+  const settledPlay=async(replay=false)=>{
+    const request=++playRequest;
+    // paint() positions chart scrollers and the viewport after renderStats().
+    // Measure only once that work and the card's entrance have completed.
+    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+    if(ended||!host.isConnected||request!==playRequest)return;
+    const entry=(host.getAnimations?.()||[]).filter(a=>Number.isFinite(a.effect?.getComputedTiming().endTime));
+    await Promise.allSettled(entry.map(a=>a.finished));
+    if(!ended&&host.isConnected&&request===playRequest)play(replay);
+  };
+  host.querySelector('.plate-replay').onclick=()=>settledPlay(true);
+  settledPlay();
 }
