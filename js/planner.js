@@ -38,6 +38,9 @@ function pw(){
   }
   return pwState;
 }
+/* v4.0.5: a fold's remembered state, defaulting to shut so nothing that used
+   to open closed now opens by surprise on first run. */
+function pwFoldOpen(key){return !!pw().folds?.[key];}
 function pwPersist(){const s=pw();try{localStorage.setItem(pwKey(),JSON.stringify({...s,busy:false,candidate:null,error:''}));return true;}catch(_){s.error='This device cannot keep a draft between visits. Keep this screen open until you save.';return false;}}
 function pwDay(d){
   const s=pw();if(!s.book[d]){const saved=pwSaved(d),rows=saved?pwRead(planText(saved)):[];
@@ -72,7 +75,10 @@ function pwTodayHTML(){
   const future=[...new Set([...(DB.plan?.d>todayISO?[DB.plan.d]:[]),...Object.keys(DB.week?.days||{}).filter(d=>d>todayISO)])].sort();
   const next=future[0]||tomorrowISO(),upcoming=pwSaved(next);
   let html=`<section class="pw-home"><div class="pw-home-heading"><h2>${closed?'Plan ahead':'Your plan'}</h2>${pwDatesButton()}</div>`;
-  if(now&&!closed)html+=`<details class="pw-saved"><summary><span>Today</span><span>${now.items.length} exercises</span></summary>${planCardHTML(now,true)}${pwAction('open-date','Edit','edit','pw-text',`data-date="${todayISO}"`)}</details>`;
+  /* v4.0.5: Today's plan remembers whether it was open. It was a bare
+     <details> with no open attribute, so it collapsed on EVERY render -- not
+     only on coming back from an exercise. */
+  if(now&&!closed)html+=`<details class="pw-saved" data-pw-fold="today" ${pwFoldOpen('today')?'open':''}><summary><span>Today</span><span>${now.items.length} exercises</span></summary>${planCardHTML(now,true)}${pwAction('open-date','Edit','edit','pw-text',`data-date="${todayISO}"`)}</details>`;
   if(closed||!now)html+=`<div class="card pw-home-card"><span class="pw-eyebrow">${closed?(next===tomorrowISO()?'Tomorrow':hesc(pwDate(next))):'Next workout'}</span><h3>${upcoming&&closed?hesc(pwParts(pwRead(planText(upcoming))).join(' + ')||'Your plan'):'Plan your next workout'}</h3>${upcoming&&closed?'<p class="pw-small">Ready to go.</p>':''}<div class="pw-actions">${pwAction('open-date',upcoming&&closed?'Edit':'Plan',upcoming&&closed?'edit':'sparkle','primary',`data-date="${closed?next:writeDateISO()}"`)}${pwAction('paste-open','Paste','paste','',`data-date="${closed?next:writeDateISO()}"`)}</div></div>`;
   if(future.length)html+=`<div class="pw-saved pw-coming ${s.upcomingOpen?'is-open':''}"><button type="button" class="pw-disclosure" data-pw="upcoming" aria-expanded="${!!s.upcomingOpen}" aria-controls="pw-coming-days"><span>Coming up</span><span>${future.length} planned ${future.length===1?'day':'days'}</span>${icon('chevron',ICON_SZ.sm)}</button><div id="pw-coming-days" class="pw-fold" ${s.upcomingOpen?'':'inert'}><div>${future.map(d=>`<div class="pw-upcoming"><div><strong>${hesc(pwDate(d))}</strong><span class="pw-small">${hesc(pwParts(pwRead(planText(pwSaved(d)))).join(' · '))}</span></div>${pwAction('open-date','Edit','edit','',`data-date="${d}"`)}</div>`).join('')}</div></div></div>`;
   const drafts=s.dates.filter(d=>d>=todayISO&&s.book[d]&&s.book[d].source!=='Saved plan'&&(s.book[d].rows.length||s.book[d].parts.length));
@@ -208,7 +214,17 @@ document.addEventListener('click',e=>{
   const full=d.getBoundingClientRect().height;
   d.open=false;const shut=d.getBoundingClientRect().height;d.open=true;
   [...d.children].filter(x=>x!==summary).forEach(x=>x.inert=!open);
-  const finish=()=>{if(!d.isConnected)return;d.open=open;d.style.overflow='';delete d._pwTarget;d._pwAnimation=null;if(d.hasAttribute('data-pw-setup')){pw().setupOpen=open;pwPersist();}};
+  /* v4.0.5: ANY DISCLOSURE THAT NAMES ITSELF IS REMEMBERED. This hook already
+     persisted one fold -- the editor's body-parts panel, by a hard-coded check
+     for data-pw-setup -- so every other disclosure reopened shut on the next
+     render. Today's plan was the one the maker met: expand it, tap an exercise,
+     come back, and it had forgotten. A fold now keeps its state whenever it
+     carries data-pw-fold, so the next one added inherits the memory instead of
+     needing a third branch here. */
+  const finish=()=>{if(!d.isConnected)return;d.open=open;d.style.overflow='';delete d._pwTarget;d._pwAnimation=null;
+    const key=d.getAttribute('data-pw-fold');
+    if(key){const st=pw();(st.folds=st.folds||{})[key]=open;pwPersist();}
+    if(d.hasAttribute('data-pw-setup')){pw().setupOpen=open;pwPersist();}};
   if(!d.animate||matchMedia('(prefers-reduced-motion: reduce)').matches){finish();return;}
   d.style.overflow='hidden';d._pwAnimation=d.animate([{height:start+'px'},{height:(open?full:shut)+'px'}],{duration:280,easing:'cubic-bezier(.22,.68,0,1)'});
   d._pwAnimation.onfinish=finish;

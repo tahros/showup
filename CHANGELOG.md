@@ -2,6 +2,39 @@
 
 
 
+
+## v4.0.5 (2026-09-11) — A disclosure that was opened stays open
+
+Expand **Today**, tap an exercise, come back — and it had forgotten. You had to
+open it again every time.
+
+It was worse than a navigation fault. Today's plan was a bare `<details>` with
+no `open` attribute bound to anything, so it collapsed on **every render**, not
+only on the trip out and back. Logging a set, switching units, anything that
+repainted the screen shut it.
+
+The fold machinery already persisted one disclosure — the editor's body-parts
+panel — through a hard-coded check for `data-pw-setup`. Every other fold in the
+planner had no memory because the memory was written for exactly one of them.
+
+Now any disclosure that names itself is remembered: carry `data-pw-fold="…"` and
+its state is kept and read back. Today's plan carries it. The next fold someone
+adds inherits the memory instead of needing a third branch in that hook.
+
+Folds default to shut, so nothing that used to open closed now springs open on
+first run.
+
+`tools/test-planfold.js` drives the real summary click and the real trip into an
+exercise and back, because the claim is about what survives a render — setting
+the flag directly would never see a render throw it away. Two probes: drop the
+`open` attribute, and drop the persistence.
+
+### Still red, still not this release's
+
+`test-planner-server` and `test-progression` have failed since v4.0.2.
+`tools/demo-tabtrip.js` drives a scope pill v4.0 removed.
+
+
 ## v4.0.4 (2026-09-11) — The mark is a ring
 
 v4.0.3 hung a 5px dot under the number, five pixels off the cell's floor. It
