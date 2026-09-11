@@ -1,6 +1,38 @@
 # ShowUp — changelog
 
 
+
+## v4.3.5 (2026-09-11) — The ceremony number counts up
+
+It was written finished. The one number the whole screen is built around simply
+appeared.
+
+`countUpEl` has existed since the Today card and reads `data-from`/`data-to`.
+The ceremony gave it neither, and never called it — a grep of the overlay for
+count-up machinery returned **zero**. So nothing here is new machinery; the
+number just declares a range and the helper is run once the overlay is in the
+document, since a node still inside a string has nothing to animate.
+
+**It climbs from zero, not from yesterday's total.** 962 → 963 is a single
+frame and says nothing; 0 → 963 is the shape of the whole thing and takes about
+a second to watch. There is a probe that changes it to start at `count-1`, and
+the assertion goes red.
+
+Watched frame by frame in the suite with a hand-driven clock, rather than
+checked for the presence of an attribute: the first frame is not the final
+number, the number rises between frames, and it lands exactly on the total
+instead of near it. Under reduced motion it arrives whole and requests no
+frames at all.
+
+### Noted, not fixed: `dayCountUp` has been a no-op
+
+It targets `.rhythm .big.dayn`. That selector exists in `css/app.css` and in
+nothing else — **no markup emits it**, so every one of its five call sites has
+been animating nothing for some time. The ceremony fix does not depend on it,
+and it wants its own look rather than a rushed rename. There is an assertion
+recording the state so it cannot be rediscovered as a mystery.
+
+
 ## v4.3.4 (2026-09-11) — The resolver, run over a record's worth of names
 
 Still resolve-only. Nothing reads it, nothing is written, the record is

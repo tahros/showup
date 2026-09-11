@@ -1695,7 +1695,14 @@ function celebrateDayDone(nowrite, forceCount, forceMile, forceShow){
   o.innerHTML=`<div class="ddinner"><div class="dddate">${dateLabel}</div><div class="ddbody">${withMascot?mascotHTML('jump','','blue'):''}`+(mile
     ? `<span class="ddstage"><i class="ddsq" aria-hidden="true"></i><span class="ddmk" aria-hidden="true">${icon('brandmark',44)}</span></span>`
     : withMascot?'':`<i class="ddsq" aria-hidden="true"></i>`)+
-    `<b class="ddn${count>=1000?' ddlarge':''}">${fmt(count)}</b><span class="ddu">${count===1?'day':'days'} of showing up</span>`+
+    /* v4.3.5: THE NUMBER COUNTS UP. It was written finished, so the one
+       number the whole screen is built around simply appeared.
+       It climbs from ZERO, not from yesterday's total: 962 -> 963 is a single
+       frame and says nothing, while 0 -> 963 is the shape of the whole thing
+       and takes about a second to watch. countUpEl reads data-from/data-to
+       and has existed since the Today card -- the ceremony never gave it
+       either, so nothing here is new machinery. */
+    `<b class="ddn${count>=1000?' ddlarge':''}" data-from="0" data-to="${count}">${fmt(count)}</b><span class="ddu">${count===1?'day':'days'} of showing up</span>`+
     `<h2 class="ddyou" id="ddHeading">You showed up.</h2>`+
     `<div class="ddsummary">${withMascot&&forceCount==null?completionMetricsHTML(DB.days[todayISO]):summary}</div></div>`+
     /* v3.3.506: the photo option is gone from the ceremony -- the maker judged
@@ -1707,6 +1714,11 @@ function celebrateDayDone(nowrite, forceCount, forceMile, forceShow){
     `<div class="ddactions">${is25?'<button class="btn done" data-dd="milestone">See your milestone →</button>':''}<button class="${is25?'ddshare':'btn done'}" data-dd="done">Done</button>`+
     `<button class="ddshare" data-dd="share">Share this day</button></div></div>`;
   document.body.appendChild(o);
+  /* v4.3.5: run it once the overlay is in the document -- countUpEl drives
+     requestAnimationFrame against a real element, and a node still in a string
+     has nothing to animate. It respects prefers-reduced-motion itself, so the
+     number simply arrives whole for anyone who asked for that. */
+  countUpEl(o.querySelector('.ddn'),1100);
   o.querySelector('[data-dd="milestone"],[data-dd="done"]').focus({preventScroll:true});
   let leaving=false;
   const leave=(share=false)=>{
