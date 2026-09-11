@@ -18,15 +18,21 @@ const routine='Squat\n  135 lb × 8 (warm-up)\n  205 lb × 8 8 8 8\n\nRomanian D
     },theme);
     async function capture(name){
       await page.evaluate(()=>window.scrollTo(0,0));
+      await page.waitForTimeout(400);
       const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1);
       assert(!overflow,`${theme} ${width} ${name} overflows`);
       if(width===393)await page.screenshot({path:path.join(out,`${theme}-${name}.png`),fullPage:true});
     }
-    await capture('today');await page.locator('[data-pw="open-date"]').first().click();await capture('dates');
-    await page.locator('[data-pw="focus"]').click();await page.locator('[data-pw="part"][data-part="Legs"]').click();await page.locator('[data-pw="part"][data-part="Sixpack"]').click();await capture('focus');
-    await page.locator('[data-pw="workspace"]').click();await page.locator('[data-pw="paste"]').first().click();await page.locator('[data-pw-field="pasteText"]').fill(routine);await capture('paste');
+    await capture('today');await page.locator('[data-pw="open-date"]').first().click();await capture('empty-editor');
+    await page.locator('[data-pw="dates-toggle"]').click();await capture('dates');
+    const done=await page.locator('[data-pw="dates-done"]').boundingBox(),nav=await page.locator('#nav').boundingBox();assert(done.y>=0&&done.y+done.height<nav.y,'calendar CTA clears tab bar');
+    await page.locator('[data-pw="dates-done"]').click();await page.locator('[data-pw="part"][data-part="Legs"]').click();await page.locator('[data-pw="part"][data-part="Sixpack"]').click();await capture('focus');
+    const widths=await page.locator('.pw-parts .pw-btn').evaluateAll(bs=>bs.map(b=>b.getBoundingClientRect().width));assert(Math.max(...widths)-Math.min(...widths)<1,'equal body part widths');
+    if(width===393){await page.evaluate(()=>{window.checkedWriter=writerGenerateChecked;writerGenerateChecked=()=>new Promise(()=>{});});await page.locator('[data-pw="generate"]').click();await capture('writing');assert.equal(await page.locator('.writing .wsq').count(),56);await page.locator('[data-pw="cancel"]').click();await page.evaluate(()=>{writerGenerateChecked=window.checkedWriter;});}
+    await page.locator('[data-pw="paste"]').first().click();await page.locator('[data-pw-field="pasteText"]').fill(routine);await capture('paste');
+    await page.locator('[data-pw="text-select"]').click();assert(await page.locator('[data-pw-field="pasteText"]').evaluate(el=>el.selectionEnd===el.value.length&&el.selectionStart===0));
     await page.locator('[data-pw="readpaste"]').click();await capture('candidate');await page.locator('[data-pw="apply"]').click();await capture('editor');
-    assert.equal(await page.locator('.pw-heading h1').innerText(),'Edit your plan');
+    assert.equal(await page.locator('.pw-editor-head h1').innerText(),'Edit your plan');
     await page.locator('[data-pw="lock"]').first().click();
     const grip=page.locator('[data-pw-grip="0"]');await grip.scrollIntoViewIfNeeded();
     const gb=await grip.boundingBox(),target=await page.locator('[data-pw-row="1"]').boundingBox();
@@ -46,7 +52,8 @@ const routine='Squat\n  135 lb × 8 (warm-up)\n  205 lb × 8 8 8 8\n\nRomanian D
       }
       await page.locator('[data-pw="undo"]').click();await cdp.detach();
     }
-    await page.locator('[data-pw="adjust"]').click();await capture('adjust');await page.locator('[data-pw="edit"]').click();await page.locator('[data-pw="review"]').click();await capture('review');
+    await page.locator('[data-pw="adjust"]').click();await capture('adjust');await page.locator('[data-pw="edit"]').click();await capture('ready-to-save');
+    const save=await page.locator('[data-pw="save"]').boundingBox(),bar=await page.locator('#nav').boundingBox();assert(save.y+save.height<bar.y,'Save clears tab bar');
     await page.locator('[data-pw="save"]').click();await capture('saved');
     const sets=await page.evaluate(()=>DB.week.days['2026-09-10'].items.reduce((n,i)=>n+i.lines.reduce((n,l)=>n+l.reps.length,0),0));assert.equal(sets,18);
     await page.evaluate(()=>{day(todayISO).w=[{part:'Chest',ex:'Barbell Bench Press',w:70,reps:[8,8],at:1}];day(todayISO).doneAll=true;SEED=deriveAll();render();});await capture('completed');
@@ -58,7 +65,7 @@ const routine='Squat\n  135 lb × 8 (warm-up)\n  205 lb × 8 8 8 8\n\nRomanian D
     await page.waitForTimeout(320);const full=(await fold.boundingBox()).height;assert(midway>0&&midway<full,'disclosure animates between endpoints');
     assert.equal(await page.locator('[data-pw="upcoming"]').getAttribute('aria-expanded'),'true');await capture('coming-up');
     await page.locator('[data-pw="upcoming"]').click();await page.waitForTimeout(320);assert.equal((await fold.boundingBox()).height,0);
-    console.log(`PASS real browser ${theme} ${width}px: dates → focus → paste → edit → adjust → review → save; completed Today`);await ctx.close();
+    console.log(`PASS real browser ${theme} ${width}px: one editor, inline dates/focus/paste/adjust, direct save; completed Today`);await ctx.close();
   }
   await browser.close();assert.deepEqual(errors,[]);console.log('PASS no browser exceptions or horizontal overflow');
 })().catch(e=>{console.error(e);process.exit(1)});

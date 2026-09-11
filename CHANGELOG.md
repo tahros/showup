@@ -1,5 +1,28 @@
 # ShowUp — changelog
 
+## v4.0.1 (2026-09-10) — One place to plan
+
+**Today → Plan editor → Save.** Dates, body parts and training goal now live
+in one editor. The separate focus, empty-workspace and final-review screens
+are gone. Paste, exercise edits, set adjustments and AI previews open inline;
+accept a preview to update the draft, then save directly when ready.
+
+- Shared Calendar + Dates, sparkle + Plan, Paste and pencil + Edit actions.
+  Shorter copy, aligned prescriptions and equal-width body-part buttons.
+- A Lose weight / Strength / Grow slider replaces the goal-and-note section.
+  Leaving body parts unselected lets the writer choose from existing context.
+- The original sparkle and animated writing squares return. Coming up keeps
+  its smooth expansion and correctly rotating chevron.
+- Paste tools include Select All, Copy and Paste. Drag handles, Keep fixed
+  and Undo remain; the redundant total-set summary is removed.
+- Calendar Done, preview actions and Save stay above the tab bar. An empty
+  draft offers Plan and Paste rather than a disabled Save button.
+
+Existing local drafts resume in the editor. Saving still affects only chosen
+dates, protects newer saved plans and never writes workout records. The
+previous planning interface remains available in Settings. Claude's model,
+server prompts and shared generation/validation pipeline are unchanged.
+
 ## v4.0.0 (2026-09-10) — Your next workout, made yours
 
 The new planning workspace graduates to **v4.0**: choose dates and body parts,
