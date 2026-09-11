@@ -1,6 +1,6 @@
 # ShowUp — changelog
 
-## v4.0.6 (2026-09-11) — A companion for showing up
+## v4.1.0 (2026-09-11) — A companion for showing up
 
 The approved Soft Charcoal mascot now accompanies real app states, without
 replacing the header, tab bars, planner, Progression or workout receipt layout.
@@ -26,11 +26,17 @@ replacing the header, tab bars, planner, Progression or workout receipt layout.
   extracted into a reusable renderer. Local r169 dependency and PNG fallbacks
   are precached. Offscreen/hidden renderers are disposed, with two contexts max.
 
-Verified: 75 passing behavioral suites, structural buildcheck, smoke, completion/reopen/share regressions,
+Two stale failures were repaired as part of the major release. Progression's
+synthetic-date test now owns its clock instead of being erased by the real
+midnight guard, so it tests all 12-session ranges in every timezone and on
+every later date. Run's two actions now declare their auto widths after the
+global full-width button rule, matching the flex layout in both browsers and
+computed-style tests.
+
+Verified: all 77 behavioral suites, structural buildcheck, smoke, completion/reopen/share regressions,
 new mascot behavior tests, isolated Chromium at 320/393/430px in both themes,
 animated red/blue frames, PNG transparency, reduced motion, Off, and offline
 reload. Two existing suite failures reproduce on untouched v4.0.5:
-test-progression.js (12-session window assertion), test-runclose.js (jsdom width).
 Windows import verification needs PYTHONUTF8=1.
 
 

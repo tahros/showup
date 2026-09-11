@@ -7,7 +7,7 @@ const {chromium}=require('playwright'),assert=require('assert');
  await page.waitForTimeout(2000);
  await page.evaluate(()=>navigator.serviceWorker.ready);
  const keys=await page.evaluate(async()=>{
-   const names=await caches.keys();const cache=await caches.open(names.find(n=>n==='showup-v4.0.6'));
+   const names=await caches.keys();const cache=await caches.open(names.find(n=>n==='showup-v4.1.0'));
    return (await cache.keys()).map(r=>new URL(r.url).pathname);
  });
  for(const filename of ['js/mascot-renderer.js','vendor/three-r169.module.min.js','assets/mascot-white.png','assets/mascot-charcoal.png','assets/mascot-mark-white.png','assets/mascot-mark-charcoal.png'])
@@ -22,4 +22,3 @@ const {chromium}=require('playwright'),assert=require('assert');
  assert(await page.locator('[data-mascot="cool"] img').evaluate(im=>im.complete&&im.naturalWidth>0));
  await browser.close();console.log('PASS offline reload: local geometry, renderer, PNG fallbacks and WebGL animation.');
 })().catch(e=>{console.error(e);process.exit(1)});
-

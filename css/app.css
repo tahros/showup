@@ -1803,15 +1803,6 @@
     display:flex;justify-content:space-between;font-family:var(--mono);font-size:13px;color:var(--muted)}
   .tot b{color:var(--chalk);font-weight:700}
   .delta.up{color:var(--accent)} .delta.down{color:var(--record)}
-  /* v3.3.530: Add run and the day's close, on one row. .btn is width:100% by
-     design (v3.3.68), so both need releasing from it; Add run takes the space
-     and the close takes only what its word needs. The close is capped at a
-     third so it can never grow into the primary on a wide screen, and the gap
-     is the same 10px the field row above uses. */
-  .runacts{display:flex;gap:10px;align-items:stretch}
-  .runacts .btn{width:auto;margin:0}
-  .runacts #addrun{flex:1 1 auto;min-width:0}
-  .runacts .runclose{flex:0 1 auto;max-width:33%;min-width:88px;white-space:nowrap}
   .runrow{display:flex;gap:10px;margin:14px 0}
   .fld{flex:1;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
   .fld label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:var(--track-label);
@@ -1824,6 +1815,13 @@
     white-space:nowrap}   /* v3.3.279: a button label never wraps, so a button
                              never changes height because of its own text */
   .btn.ghost{font-size:14px;background:none;border:1px solid var(--line);color:var(--muted);font-weight:500}
+  /* v4.1.0: Add run and the day's close are one row. Keep this AFTER the
+     global .btn rule: the override is visually clearer and jsdom/older WebKit
+     no longer report the inherited 100% width even though flex corrected it. */
+  .runacts{display:flex;gap:10px;align-items:stretch}
+  .runacts .btn{width:auto;margin:0}
+  .runacts #addrun{flex:1 1 auto;min-width:0}
+  .runacts .runclose{flex:0 1 auto;max-width:33%;min-width:88px;white-space:nowrap}
   /* stats */
   .rhythm .big{font-family:var(--mono);font-size:38px;font-weight:700;line-height:1;letter-spacing:var(--track-num)}
   /* v3.3.86: numbers share a BASELINE, captions share a row — a 2x2 grid is

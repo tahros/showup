@@ -34,7 +34,7 @@ for(const m of html.matchAll(/src="(js\/[^?"]+)\?v=/g)){
 }
 const run=c=>vm.runInContext(c,ctx);
 const check=(name,c)=>{assert.ok(run(c),name);console.log('PASS '+name);};
-run(`todayISO='2026-09-10';DB.days={};DB.settings.unit='lb';DB.settings.onboarded=true;
+run(`todayISO='2026-09-10';checkDate=()=>false;DB.days={};DB.settings.unit='lb';DB.settings.onboarded=true;
   SEED.sessions={
     '2026-01-01':[['Legs','Squat',50,[20,10],null,null,null]],
     '2026-01-02':[['Legs','Squat',100,[3,2]]],
