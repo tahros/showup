@@ -1,5 +1,18 @@
 # ShowUp — changelog
 
+## v4.3.2 (2026-09-11) — Share as video
+
+- Completed-stack sharing defaults to H.264 MP4 where browser encoding is
+  supported. Image and GIF remain available; unsupported devices get an explicit
+  fallback rather than a mislabeled WebM file.
+- Record the original 1080 × 1280 canvas and approved mascot motion, preserving
+  IBM Plex Sans, theme-matched footer logo, name, plate colours and count-up.
+  Video includes a final hold, native playback controls, share/download support,
+  cancellation and cleanup. Keep the screen open during preparation.
+- Preserve v4.3.1 and the canonical exercise resolver. Restore the GIF modules
+  and encoder to precache alongside the new MP4 module and existing fonts.
+- No changes to header, profile, name/gender or workout records.
+
 
 
 ## v4.3.1 (2026-09-11) — Repair: four font entries I dropped

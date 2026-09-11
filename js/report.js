@@ -1099,9 +1099,9 @@ document.addEventListener('click',e=>{
   }
   if(hit('repClose')){ if(typeof plateExportCleanup==='function')plateExportCleanup();repOvEl().style.display='none'; return; }
   if(hit('repDo')&&_repCv){
-    if(_repCv.gifBlob){
-      const blob=_repCv.gifBlob,name=String(_repCv.label)+'.gif',file=new File([blob],name,{type:'image/gif'});
-      if(navigator.canShare&&navigator.canShare({files:[file]}))navigator.share({files:[file]}).catch(e=>{if(e.name!=='AbortError')toast('Could not share the GIF. Try saving it instead.');});
+    if(_repCv.gifBlob||_repCv.videoBlob){
+      const video=!!_repCv.videoBlob,blob=_repCv.videoBlob||_repCv.gifBlob,name=String(_repCv.label)+(video?'.mp4':'.gif'),file=new File([blob],name,{type:video?'video/mp4':'image/gif'});
+      if(navigator.canShare&&navigator.canShare({files:[file]}))navigator.share({files:[file]}).catch(e=>{if(e.name!=='AbortError')toast('Could not share. Please try again.');});
       else{const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),60000);}
       return;
     }

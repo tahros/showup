@@ -2,6 +2,8 @@
 const {chromium,webkit}=require('playwright');
 const fs=require('fs'),path=require('path'),http=require('http'),assert=require('assert');
 const root=path.resolve(process.argv[2]||'.');
+const sw=fs.readFileSync(path.join(root,'sw.js'),'utf8');
+for(const asset of ['js/plate-video.js','js/plate-gif.js','js/plate-gif-worker.js','vendor/gifenc-1.0.3.js',...['Regular','Medium','SemiBold','Bold'].map(w=>'assets/fonts/IBMPlexSans-'+w+'.ttf')])assert(sw.includes("'./"+asset+"'"),'Export asset precached: '+asset);
 const server=http.createServer((req,res)=>{let f=path.join(root,decodeURIComponent(req.url.split('?')[0]));if(f===root+path.sep)f=path.join(root,'index.html');if(!f.startsWith(root+path.sep)){res.writeHead(403).end();return;}try{const data=fs.readFileSync(f);res.setHeader('Content-Type',f.endsWith('.js')?'text/javascript':f.endsWith('.css')?'text/css':f.endsWith('.png')?'image/png':'text/html');res.end(data)}catch{res.writeHead(404).end()}});
 (async()=>{await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin='http://127.0.0.1:'+server.address().port;
 const browser=process.env.PLATE_BROWSER==='webkit'?await webkit.launch({headless:true}):await chromium.launch({headless:true,executablePath:process.env.CHROMIUM_PATH||'C:/Users/sungj/AppData/Local/ms-playwright/chromium-1217/chrome-win64/chrome.exe'});
@@ -49,6 +51,16 @@ await page.locator('.plate-card').screenshot({path:path.join(root,'../plate-colo
 const beforeShare=await page.evaluate(()=>JSON.stringify(DB));await page.locator('.plate-share').click();await page.locator('#repOv').waitFor({state:'visible'});
 fs.writeFileSync(path.join(root,'../stacked-share-verified.png'),Buffer.from(await page.evaluate(()=>_repCv.cv.toDataURL('image/png').split(',')[1]),'base64'));
 assert(await page.evaluate(()=>document.fonts.check('700 20px "ShowUp Export Plex"')),'Export uses loaded IBM Plex Sans, not fallback');
+await page.waitForSelector('[data-format="mp4"]');
+if(!await page.locator('[data-format="mp4"]').isDisabled()){
+ await page.waitForFunction(()=>!!_repCv.videoBlob,{},{timeout:30000});
+ assert(await page.locator('#repDo').innerText()==='Share video','MP4 is the default export');
+ const mp4=await page.evaluate(()=>new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result.split(',')[1]);f.readAsDataURL(_repCv.videoBlob)}));
+ fs.writeFileSync(path.join(root,'../stacked-share-'+(process.env.PLATE_BROWSER||'chromium')+'.mp4'),Buffer.from(mp4,'base64'));
+ await page.waitForFunction(()=>document.querySelector('.plate-export-video').videoWidth===1080);
+ assert(await page.locator('.plate-export-video').evaluate(v=>v.videoHeight===1280),'Real MP4 decodes at export dimensions');
+ await page.locator('[data-format="image"]').click();assert(await page.evaluate(()=>!_repCv.videoBlob),'Image clears MP4');
+}else console.log('MP4 encoder unavailable: fallback confirmed');
 await page.locator('[data-format="gif"]').click();await page.waitForTimeout(100);await page.locator('[data-format="image"]').click();
 assert(await page.locator('#repDo').innerText()==='Share image','Cancel generation returns to image');
 await page.locator('[data-format="gif"]').click();await page.waitForFunction(()=>!!_repCv.gifBlob,{},{timeout:180000});

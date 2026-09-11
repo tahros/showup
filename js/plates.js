@@ -38,11 +38,13 @@ async function sharePlateCard(){
     const module=await import('./plate-gif.js');
     await Promise.all([mascot.decode(),logo.decode(),module.loadExportFonts()]);data.logo=logo;
     await showCard(()=>drawPlateShare(data,mascot),'showup-stacked-'+date,false);
-    bindPlateExport(data,mascot,module);
+    bindPlateExport(data,mascot,module,await import('./plate-video.js'));
   }catch(e){toast('Could not prepare the stacked image. Please try again.');}
 }
 function drawPlateShare(data,mascot,frame={}){
-  const cv=frame.canvas||document.createElement('canvas');cv.width=1080;cv.height=1280;
+  const cv=frame.canvas||document.createElement('canvas');
+  // Do not resize a live captureStream canvas on every frame.
+  if(cv.width!==1080)cv.width=1080;if(cv.height!==1280)cv.height=1280;
   const x=cv.getContext('2d');if(!x)return null;
   const m=plateMetrics(data.record),plates=plateLedger(data.record),bank=Math.max(0,Math.floor((plates.length-1)/30))*30;
   const sans='"ShowUp Export Plex", "IBM Plex Sans",sans-serif',mono=sans;
@@ -89,22 +91,35 @@ function drawPlateShare(data,mascot,frame={}){
   return cv;
 }
 let plateExportCleanup=()=>{};
-function bindPlateExport(data,mascot,module){
+function bindPlateExport(data,mascot,module,videoModule){
   const current=_repCv,ov=repOvEl(),img=ov.querySelector('#repImg'),share=ov.querySelector('#repDo');
   const row=document.createElement('div');row.className='plate-export-options';
-  row.innerHTML='<button type="button" class="btn ghost" data-format="image">Image</button><button type="button" class="btn ghost" data-format="gif">Animation · GIF</button><span role="status" aria-live="polite"></span>';
-  ov.insertBefore(row,img);let controller=null,url=null,blob=null,closed=false;
-  const imageButton=row.querySelector('[data-format="image"]'),gifButton=row.querySelector('[data-format="gif"]'),status=row.querySelector('[role="status"]');
-  function image(){controller?.abort();controller=null;current.gifBlob=null;img.src=current.cv.toDataURL();share.textContent='Share image';gifButton.disabled=false;imageButton.setAttribute('aria-pressed','true');gifButton.setAttribute('aria-pressed','false');status.textContent='';}
-  function preview(){current.gifBlob=blob;url ||= URL.createObjectURL(blob);img.src=url;share.textContent='Share GIF';imageButton.setAttribute('aria-pressed','false');gifButton.setAttribute('aria-pressed','true');status.textContent='';}
-  imageButton.onclick=image;gifButton.onclick=async()=>{
-    if(blob){preview();return;}const task=new AbortController();controller=task;gifButton.disabled=true;status.textContent='Preparing animation…';
-    try{const result=await module.createPlateGif({signal:task.signal,dark:data.dark,onProgress:n=>{status.textContent='Preparing animation · '+n+'%';},render:(time,canvas,motion)=>drawPlateShare(data,mascot,{time,canvas,mascot:motion})});
-      if(closed||task.signal.aborted||_repCv!==current)return;blob=result;preview();
-    }catch(e){if(!task.signal.aborted)status.textContent='Animation unavailable. You can still share the image.';}
-    finally{if(controller===task){controller=null;gifButton.disabled=false;}}
-  };
-  plateExportCleanup=()=>{closed=true;controller?.abort();if(url)URL.revokeObjectURL(url);row.remove();current.gifBlob=null;share.textContent='Share';};image();
+  row.innerHTML='<button type="button" class="btn ghost" data-format="image">Image</button><button type="button" class="btn ghost" data-format="mp4">Video · MP4</button><button type="button" class="btn ghost" data-format="gif">GIF</button><span role="status" aria-live="polite"></span>';
+  const video=document.createElement('video');video.className='plate-export-video';video.controls=true;video.muted=true;video.loop=true;video.playsInline=true;video.hidden=true;video.setAttribute('aria-label','Workout video preview');
+  ov.insertBefore(row,img);img.after(video);let controller=null,closed=false;const blobs={},urls={};
+  const buttons=[...row.querySelectorAll('button')],status=row.querySelector('[role="status"]'),supported=!!videoModule.mp4Type();
+  row.querySelector('[data-format="mp4"]').disabled=!supported;
+  function select(format){buttons.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.format===format)));}
+  function reset(){controller?.abort();controller=null;current.gifBlob=null;current.videoBlob=null;share.disabled=false;video.pause();video.hidden=true;img.hidden=false;}
+  function image(){reset();img.src=current.cv.toDataURL();share.textContent='Share image';select('image');status.textContent='';}
+  function preview(format){
+    const blob=blobs[format];urls[format] ||= URL.createObjectURL(blob);share.disabled=false;select(format);status.textContent='';
+    if(format==='mp4'){current.videoBlob=blob;img.hidden=true;video.hidden=false;video.src=urls[format];video.play().catch(()=>{});share.textContent='Share video';}
+    else{current.gifBlob=blob;img.src=urls[format];share.textContent='Share GIF';}
+  }
+  async function generate(format){
+    reset();select(format);if(blobs[format]){preview(format);return;}
+    const task=new AbortController();controller=task;share.disabled=true;share.textContent='Preparing…';status.textContent=format==='mp4'?'Keep this screen open · preparing video…':'Preparing GIF…';
+    try{
+      const create=format==='mp4'?videoModule.createPlateVideo:module.createPlateGif;
+      const result=await create({signal:task.signal,dark:data.dark,onProgress:n=>{if(controller===task)status.textContent=(format==='mp4'?'Preparing video · ':'Preparing GIF · ')+n+'%';},render:(time,canvas,motion)=>drawPlateShare(data,mascot,{time,canvas,mascot:motion})});
+      if(closed||task.signal.aborted||_repCv!==current)return;blobs[format]=result;preview(format);
+    }catch(e){if(!task.signal.aborted){image();status.textContent=format==='mp4'?'Video unavailable. Try again with this screen open, or choose GIF.':'GIF unavailable. You can still share the image.';}}
+    finally{if(controller===task)controller=null;}
+  }
+  buttons.forEach(b=>b.onclick=()=>b.dataset.format==='image'?image():generate(b.dataset.format));
+  plateExportCleanup=()=>{closed=true;reset();Object.values(urls).forEach(u=>URL.revokeObjectURL(u));video.removeAttribute('src');video.load();video.remove();row.remove();share.textContent='Share';};
+  image();if(supported)generate('mp4');else status.textContent='MP4 is unavailable in this browser. Image and GIF are available.';
 }
 function plateMark(x,y,w,h){return `<path d="M${x} ${y-h}a${w/2} 7 0 0 1 ${w} 0v${h}a${w/2} 7 0 0 1 -${w} 0z" fill="var(--plate-side)"/><ellipse cx="${x+w/2}" cy="${y-h}" rx="${w/2}" ry="7" fill="var(--plate-top)"/><ellipse cx="${x+w/2}" cy="${y-h}" rx="5" ry="2" fill="var(--plate-hole)"/>`;}
 function plateMiniHTML(){const m=plateCurrent();return `<div class="plate-mini" aria-live="polite"><svg viewBox="0 0 48 42" aria-hidden="true">${[0,1,2].map(i=>`<g>${plateMark(6,32-i*8,34,5)}</g>`).join('')}</svg><span>${plateNumber(m.kg)} ${U()} moved today</span></div>`;}
