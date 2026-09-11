@@ -96,12 +96,23 @@ Deno.serve(async (req: Request) => {
   if (!payload || payload.v !== 1 || !Array.isArray(payload.days) || !payload.days.length)
     return new Response(JSON.stringify({ error: "bad payload" }), { status: 400, headers: H });
 
-  const user = `Today is ${payload.date}. Unit: ${payload.unit}. Scope: ${payload.scope}. Days to write: ${payload.days.join(", ")}.
+  const workspace = payload.workspace?.version === 1 ? payload.workspace : null;
+  if (workspace && (payload.days.length > 7 || !Array.isArray(workspace.schedule)))
+    return new Response(JSON.stringify({ error: "invalid workspace schedule" }), { status: 400, headers: H });
+  const user = `Today is ${workspace?.today || payload.date}. Unit: ${payload.unit}. Scope: ${payload.scope}. Days to write: ${payload.days.join(", ")}.
 Part: ${payload.part || "your call"}. Objective: ${payload.objective}. Focus parts (week only): ${(payload.focus || []).join(", ") || "none"}.
 Note from the person: ${payload.note ? JSON.stringify(payload.note) : "none"}.
 band: ${payload.band}. fallback step: ${payload.step ?? payload.step_kg ?? 2.5} ${payload.unit}. new_max: ${payload.new_max}.
 
 rotation: ${JSON.stringify(payload.rotation)}
+calendar skeleton (resting and due for each writable date): ${JSON.stringify(payload.skeleton || [])}
+recovery days: ${JSON.stringify(payload.recovery_days)}
+session shape from the record (minimum, median and maximum): ${JSON.stringify(payload.shape || null)}
+${workspace ? `WORKSPACE INSTRUCTIONS (the person's explicit choices take precedence over generic composition defaults):
+${JSON.stringify(workspace)}
+The schedule gives separate selected body parts per date. When nonempty, include ALL and ONLY those parts; when empty, use the record and calendar. Selected future dates may span several weeks. Return exactly payload.days. Other draft/saved days in week_context are fixed. Explain any conflict with recovery; never silently move a date or choose a different part.
+For action=generate, compose using the full coaching rules and the person's goal and note. If a draft exists, respect locked_exercises exactly.
+For action=adjust, do NOT re-coach or progress the draft. Preserve every exercise, note, exercise order, load, rep target, unit, qualifier and weight line. Change ONLY the number of sets on unlocked, non-warm-up lines to reach target_total_sets INCLUDING warm-ups. Keep at least one set per line, no more than 12. Trim from the end or repeat that line's last rep value when adding. Keep all marked warm-up lines and locked_exercises exactly unchanged. Return the complete adjusted draft, not a delta. If impossible, return the unchanged draft; the app will explain that it could not fit the requested total.\n` : ''}
 catalog: ${JSON.stringify(payload.catalog)}
 load step by exercise (${payload.unit}): ${JSON.stringify(payload.steps || {})}
 next loadable weight after last (${payload.unit}; use this exact number for STEP): ${JSON.stringify(payload.next || {})}
@@ -116,7 +127,7 @@ history (date, part, exercise, load in ${payload.unit}, reps, hold?) — eight w
 ${(payload.history || []).map((h: any[]) => h.join("|")).join("\n")}`;
 
   const body = {
-    model: MODEL, max_tokens: 2500, temperature: 0.4,
+    model: MODEL, max_tokens: workspace ? Math.min(8500, Math.max(2500, payload.days.length * 1200)) : 2500, temperature: 0.4,
     system: SYSTEM,
     messages: [{ role: "user", content: user }],
   };
@@ -128,7 +139,7 @@ ${(payload.history || []).map((h: any[]) => h.join("|")).join("\n")}`;
   // waits longer than this in both scopes (30 s / 75 s), so the function, not
   // the phone, is always the one that decides it has waited long enough.
   const abortMs = payload.scope === "week" ? 60_000 : 25_000;
-  const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), abortMs);
+  const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), workspace ? 135_000 : abortMs);
   let text = "";
   try {
     const r = await fetch("https://api.anthropic.com/v1/messages", {

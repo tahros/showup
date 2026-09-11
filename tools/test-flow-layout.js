@@ -6,6 +6,7 @@ const html=fs.readFileSync(path.join(dir,'index.html'),'utf8');
 const css=fs.readFileSync(path.join(dir,'css/app.css'),'utf8');
 const dom=new JSDOM(html.replace(/<script[^>]*src=[^>]*><\/script>/g,''),{url:'https://tahros.github.io/showup/',runScripts:'outside-only',pretendToBeVisual:true});
 const w=dom.window,ctx=dom.getInternalVMContext();
+w.localStorage.setItem('showup:planning-interface','previous'); // Original layout contract; new planning tested separately.
 w.fetch=()=>Promise.reject(new Error('offline'));
 w.matchMedia=()=>({matches:false,addEventListener(){},removeEventListener(){},addListener(){}});
 w.scrollTo=()=>{};w.navigator.vibrate=()=>{};

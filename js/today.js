@@ -57,7 +57,7 @@ function todayHeroHTML(){
   /* v3.3.319: today's PLAN leads this tab, not Rhythm. Rhythm restated the
      streak and the day count that the header already carries and that Stats
      tells properly; the plan is the one thing you open Today to read. */
-  return planSectionHTML();
+  return planningWorkspace()?pwTodayHTML():planSectionHTML();
 }
 /* ============ v3.1 Clean Slate: onboarding · demo · honest empty states ============ */
 function hasAnyDays(){ return Object.values(DB.days).some(v=>v.w&&v.w.length); }
@@ -219,7 +219,7 @@ function dayOneHTML(){
       <h3 class="d1h">One set is day one.</h3>
       <p class="muted d1p">ShowUp counts days, not perfection.</p>
       <button class="onbbtn pri" data-d1="start">Log your first set</button>
-      ${refinedFlow()&&!d1.preview?`<div class="flow-dayone-plan"><span class="mono muted">Have a routine?</span><span class="planedge"><button class="pedge" data-planpaste>${icon('paste',ICON_SZ.sm)}Paste</button><button class="pedge pwrite" data-planwrite>${icon('sparkle',ICON_SZ.sm)}Write</button></span></div>`:''}
+      ${refinedFlow()&&!d1.preview?(planningWorkspace()?`<div class="pw-actions">${pwButton('open','Plan a workout')}${pwButton('paste-open','Paste routine','',`data-date="${todayISO}"`)}</div>`:`<div class="flow-dayone-plan"><span class="mono muted">Have a routine?</span><span class="planedge"><button class="pedge" data-planpaste>${icon('paste',ICON_SZ.sm)}Paste</button><button class="pedge pwrite" data-planwrite>${icon('sparkle',ICON_SZ.sm)}Write</button></span></div>`):''}
       <button class="onbbtn d1soon" data-d1="soon" aria-disabled="true">Bring my logs over \u00b7 soon</button>
       ${d1.preview?`<button class="d1link" data-d1="moment">See the moment</button>`
                   :`<button class="d1link" data-onbact="demo">Explore with sample data</button>`}
@@ -352,6 +352,7 @@ function dayCountUp(){
   _dayUpPlayed=true; countUpEl(el,900);
 }
 function renderToday(){
+  if(lift.plan==='workspace'){pwRender();return;}
   /* v3.3.319: the paste/preview screen is a full-tab takeover that renderLift
      has owned since v3.3.278. Now that Paste lives on Today, this tab has to
      open it too — otherwise the button the maker taps does nothing. Same
@@ -405,7 +406,7 @@ function renderToday(){
        section the mid-session branch leads with, so Today shows one thing in
        both states. Rhythm left with it; it restated the streak and the day
        count that the header already carries and that Stats tells properly. */
-    h+=planSectionHTML();
+    h+=todayHeroHTML();
     /* v3.3.79: annotation, never homework. The button sits here; it never
        prompts, never nags, and an undeclared rest day is not a lesser rest
        day. Tap again to undo — every state walks out. Gone the moment a
@@ -597,7 +598,7 @@ function renderToday(){
   /* v3.3.285: the parts trained today move off the heading onto their own
      quiet line. Inline, four parts wrapped into the title and collided with
      it; the heading is a label and should stay one short thing. */
-  h+=`<h2>Training today</h2>`;
+  h+=`<h2>${_closed&&planningWorkspace()?'Trained today':'Training today'}</h2>`;
   if(doneLift.length) h+=`<div class="todaypartsline mono">${doneLift.join(' · ')}</div>`;
   const byPart={};
   t.w.forEach(s=>{(byPart[s.part]=byPart[s.part]||[]).push(s);});
@@ -615,7 +616,7 @@ function renderToday(){
       const detail = ex==='Run'
         ? list.map(s=>`${dDisp(s.w)}${DU()} · ${s.mins||0}'${String(s.secs||0).padStart(2,'0')}"`).join('  ')
         : list.map(s=>`${wLabel(ex,s.w)}×${s.reps[0]}`).join('  ');
-      const open=exOpen(ex);
+      const open=exOpen(ex)&&!(_closed&&planningWorkspace());
       /* v3.3.299: no trailing arrow — the row is the button, and the arrow
          was the middle-child-of-space-between problem in a third place. The
          sets count moves into a fixed column so it lines up down the card. */
@@ -624,12 +625,12 @@ function renderToday(){
             <span class="tsets">${list.length} set${list.length>1?'s':''}</span>
           </button>`;
     }
-    if(partOpen(part)) h+=`<button class="chip on ${isLive()?'livego':''}" data-go="${part}" style="margin-top:2px">Continue ${part} →</button>`;
+    if(partOpen(part)&&!(_closed&&planningWorkspace())) h+=`<button class="chip on ${isLive()?'livego':''}" data-go="${part}" style="margin-top:2px">Continue ${part} →</button>`;
     h+=`</div>`;
   }
 
   // still worth a nudge if the run isn't in yet
-  if(!ranRaw && P.run){
+  if(!ranRaw && P.run && !(_closed&&planningWorkspace())){
     h+=`<div class="row spread card" style="margin-top:8px;padding:11px 14px">
           <span class="mono muted" style="font-size:12px">Run not logged yet · ${P.run.since}d since</span>
           <button class="chip" data-go="Run">Go</button></div>`;
