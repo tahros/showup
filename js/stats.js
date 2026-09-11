@@ -1457,6 +1457,7 @@ function renderStats(){
   // pace and the year story.
   h = _S.pmix + wovenSection() + _S.mc + _S.rz + _S.kpis + _S.mpace + _S.consrace;
   h = progressionLiveSection() + h;
+  h = plateStatsHTML() + h;
 
   // the whole Run story lives here now (was its own tab in v2.04 — reverted)
   /* v3.3.473: Daily runs sits directly after the Running month card, before
@@ -1477,6 +1478,7 @@ function renderStats(){
       <div class="note" style="text-align:center">${session?`Signed in as ${session.user.email||'—'}`:'Not signed in — data is on this device only'} · ${APP_VERSION}</div>`;
   $('#view').innerHTML=h;
   bindPaceAll();   // v3.3.236: the pace chart reads by touch
+  bindPlateStats();
   bindWoven();
   bindProgression();
 

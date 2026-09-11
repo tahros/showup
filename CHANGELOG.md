@@ -1,5 +1,27 @@
 # ShowUp — changelog
 
+## v4.2.0 (2026-09-11) — Your work, stacking up
+
+Training gives each saved lifting set a compact animated receipt under Add set,
+without changing the controls or navigating away. Stats gains today's plate
+stacks, a running volume total, and the approved mascot. New plates enter from
+above the screen edge, tilt and settle; tap the card to replay. Viewing progress
+is stored per account and day separately from profile settings. Leaving or
+scrolling cancels the overlay; reduced motion shows the finished state directly.
+
+Each plate represents 500 lb of weight × reps. The supplied 2026 export contains
+2,014 positive-load sets: median 882 lb, middle half 486–1,433 lb; median session
+13,492 lb. Ten plates make a stack. Completed groups bank at the same scale.
+Running, timed holds, and unweighted work contribute set counts, not invented
+tonnage. Edits and deletions recompute from the ledger. Kg display is supported.
+Completed days use the blue mascot; Today is unchanged. Name and sex are never
+written by this feature. Includes all upstream changes through v4.1.16.
+
+Validated with isolated browser coverage for screen-top entry, incremental and
+replay animation, navigation cleanup, persisted viewing state, reduced motion,
+compact layout, real Add set, completion, and profile preservation; build,
+smoke, mascot and settings checks.
+
 
 
 

@@ -707,6 +707,7 @@ function renderLift(){
     }
     h+=repRulerHTML(ex,lift.weight)+`
         <button class="btn${isLive()?' livego':''}" id="addrep" style="margin:10px 0 0">Add set</button>
+        ${plateMiniHTML()}
         </div>`;
     /* ---- v3.3.534: THE PLAN, NOT A GUESS -------------------------------
        SUGGESTED read your history and proposed loads. The maker already
@@ -951,6 +952,7 @@ function renderLift(){
   }
   bindLbScrub();   // v3.3.164: idempotent, every render of the live chart
   bindProgression();
+  bindPlateMini(lift._animSave);
   if(lift._animSave){ lift._animSave=false; volCountUp(); lbGrow(); }
 }
 

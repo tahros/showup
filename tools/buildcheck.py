@@ -35,7 +35,7 @@ for a in assets:
     if not (d/a).exists(): fail.append(f"stamped asset missing on disk: {a}")
     if f"./{a}?v=" not in sw: fail.append(f"asset not in sw SHELL: {a}")
 shell_count = len(re.findall(r"'\./[^']+\?v=", sw))
-if shell_count != 18: fail.append(f"sw SHELL has {shell_count} stamped assets, expected 18")
+if shell_count != 20: fail.append(f"sw SHELL has {shell_count} stamped assets, expected 20")
 for a in re.findall(r"'\./([^']+)'", sw):
     if not (d/a.split('?')[0]).exists(): fail.append(f"offline SHELL asset missing: {a}")
 
