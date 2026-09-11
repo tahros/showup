@@ -1064,6 +1064,19 @@
      missed fill at 10px. */
   .h-week .hwd.ahead{background:none;
     box-shadow:inset 0 0 0 1.2px color-mix(in srgb,var(--chalk) 20%,transparent)}
+  /* v4.1.11: LIGHT MODE HAD THE HIERARCHY INVERTED. A missed day is
+     --surface2 (#F7F7F7) on a --ground of #EFEFEF: 1.06:1, the weakest mark
+     the strip can make. The ahead outline resolved to about #C3C3C3 at
+     1.53:1. So the loudest square in the week was the one where NOTHING had
+     happened, and the quietest was a fact.
+     Measured, not guessed: missed goes to 1.22:1 and ahead down to 1.13:1, so
+     a day that happened reads stronger than a day that has not.
+     Scoped to the strip and to light: --surface2 dresses half the app, and
+     dark has the opposite arithmetic already (#272727 on #0A0A0A is a clear
+     step), so neither is touched. */
+  :root[data-theme="light"] .h-week .hwd{background:#DADADA}
+  :root[data-theme="light"] .h-week .hwd.ahead{background:none;
+    box-shadow:inset 0 0 0 1.2px #E2E2E2}
   /* v4.1.9 REMOVES what v4.1.8 added here. Today ALREADY had its ring -- an
      `outline` with a 2px offset (below), whose colour hwpulse breathes. I gave
      it a second one as an inset shadow and set background:none, so an open

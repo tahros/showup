@@ -123,4 +123,37 @@ ok('the shimmer still sweeps every trained square',
    /\.h-week \.hwd:nth-child\(7\)\.on::after\{animation-delay:\.60s\}/.test(css));
 ok('...and today, once trained, is a filled square that can carry it',
    /\.h-week \.hwd\.on\{background:var\(--accent\)\}/.test(css));
+/* ---- v4.1.11: the light-mode hierarchy, measured -------------------------
+   A missed day was --surface2 (#F7F7F7) on a --ground of #EFEFEF: 1.06:1, the
+   weakest mark the strip can make, while the ahead outline sat at 1.53:1. The
+   loudest square in the week was the one where nothing had happened.
+   Asserted as CONTRAST RATIOS against the real ground, because "looks better"
+   is not a claim a test can hold and a ratio is. */
+{
+  const hex=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
+  const lum=h=>{const[r,g,b]=hex(h).map(v=>{v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4);});
+    return .2126*r+.7152*g+.0722*b;};
+  const cr=(a,b)=>{const[hi,lo]=[lum(a),lum(b)].sort((p,q)=>q-p);return (hi+.05)/(lo+.05);};
+  const pick=re=>{const m=css.match(re);return m&&m[1];};
+  /* anchored to the LIGHT block: --ground appears in the dark block first, and
+     an unanchored match measured everything against #0A0A0A and called the
+     inversion fixed when it was not */
+  const lightBlock=css.slice(css.indexOf(':root[data-theme="light"]{'));
+  const ground=(lightBlock.match(/--ground:(#[0-9A-Fa-f]{6})/)||[])[1];
+  const miss=pick(/:root\[data-theme="light"\] \.h-week \.hwd\{background:(#[0-9A-Fa-f]{6})\}/);
+  const ahead=pick(/:root\[data-theme="light"\] \.h-week \.hwd\.ahead\{background:none;\s*box-shadow:inset 0 0 0 1\.2px (#[0-9A-Fa-f]{6})\}/);
+  ok('(fixture) the light tokens are readable from the sheet',
+     !!ground && !!miss && !!ahead, `${ground} / ${miss} / ${ahead}`);
+  ok('a missed day is actually visible on the header ground',
+     cr(miss,ground)>=1.18, cr(miss,ground).toFixed(2)+':1');
+  ok('...and a day that has not arrived is QUIETER than one that has',
+     cr(ahead,ground) < cr(miss,ground),
+     `ahead ${cr(ahead,ground).toFixed(2)}:1 vs missed ${cr(miss,ground).toFixed(2)}:1`);
+  ok('...but still visible enough to read as a square at all',
+     cr(ahead,ground)>=1.08, cr(ahead,ground).toFixed(2)+':1');
+  ok('dark mode is untouched — it had the opposite arithmetic already',
+     !/:root\[data-theme="dark"\] \.h-week \.hwd\{/.test(css));
+  ok('...and --surface2 itself is not repainted for half the app',
+     /--ground:#EFEFEF; --surface:#FFFFFF; --surface2:#F7F7F7/.test(css));
+}
 process.exit(fails?1:0);

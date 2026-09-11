@@ -135,8 +135,11 @@ ok('the press nudge is off under reduced motion',
   ok('the greeting mascot is 94px — 15% up from 82', w('.su-mascot')==='94px', w('.su-mascot'));
   ok('...leaving the greeting most of the row, so it stays the headline',
      94/358 < .32, (94/358*100).toFixed(0)+'% of a 358px row');
+  /* the rule may carry other selectors alongside this one -- v4.1.10 added
+     .card.dayclosed to it -- so match the SELECTOR and its width, not the
+     exact shape of the whole block */
   ok('...and the narrow-screen size moved by the same 15%, not left behind',
-     /@media\(max-width:360px\)\{\.su-hello-row \.su-mascot\{width:71px\}/.test(css));
+     /@media\(max-width:360px\)\{[^}]*\.su-hello-row \.su-mascot[^}]*\{width:71px\}/.test(css));
   ok('...while the other mascots are untouched',
      /\.su-live-companion \.su-mascot\{width:76px\}/.test(css) &&
      /^\.su-mascot\{[^}]*width:180px/m.test(css));

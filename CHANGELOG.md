@@ -1,5 +1,42 @@
 # ShowUp — changelog
 
+
+## v4.1.11 (2026-09-11) — Light mode had the hierarchy inverted
+
+A missed day was `--surface2` (#F7F7F7) on a `--ground` of #EFEFEF: **1.06:1**,
+the weakest mark the strip can make. The ahead outline resolved to about
+#C3C3C3 at **1.53:1**.
+
+So the loudest square in the week was the one where **nothing had happened**,
+and the quietest was a fact about the maker's training. Backwards.
+
+Missed goes to #DADADA (1.22:1) and ahead down to #E2E2E2 (1.13:1). The rule
+holds now: a day that happened reads stronger than a day that has not.
+
+Scoped to the strip and to light. `--surface2` dresses half the app, so
+repainting the token to fix seven squares would have been a change to
+everything to fix one thing — there is an assertion against exactly that. Dark
+is untouched: #272727 on #0A0A0A is already a clear step, and it has the
+opposite arithmetic.
+
+Held as **contrast ratios** rather than hex values, because "looks better" is
+not a claim a test can keep and a ratio is. The first cut of that measurement
+read `--ground` from the DARK block — it appears first in the file — and
+reported 14:1 for everything, calling the inversion fixed while it was still
+there. Anchored to the light block now.
+
+### Two reds, neither this release's
+
+`test-planner-server` since v4.0.2. `test-daydone` crashes on v4.1.10 — both
+verified against a clean tree with this work stashed.
+
+`test-mascot-idle` also failed on v4.1.10, but that one was **my** assertion
+being brittle rather than their change being wrong: v4.1.10 added
+`.card.dayclosed` alongside `.su-hello-row` in the narrow-screen rule and my
+regex pinned the exact shape of the block. It matches the selector and its
+width now. The value was never wrong.
+
+
 ## v4.1.10 (2026-09-11) — A smaller blue mascot for completed days
 
 The completed Today card uses a signature-blue mascot with white eyes and
