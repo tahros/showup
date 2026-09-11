@@ -241,6 +241,23 @@ function renderProgression(card){
   const kinds=[...new Set(all.map(r=>r.kind))];
   if(!kinds.includes(state.kind))state.kind=kinds.at(-1)||'load';
   progressionHydrate(state,ex,state.kind);
+  /* ---- v4.1.15: A SET YOU JUST DID IS THE ONE YOU WANT TO SEE -----------
+     The pick only moved when it fell OUT of scope, so logging a set left the
+     reading on whatever was selected before -- often a session from a fortnight
+     ago, while the set you just finished sat unread at the right-hand edge.
+     When the record GROWS, the chart goes to the new set: its kind, the latest
+     range, and the set itself.
+     state.seen is deliberately NOT persisted. On the first paint after a
+     reload there is nothing to compare against, so the remembered range
+     survives (v3.3.542) and only growth within a session moves the view --
+     which is the difference between "I came back to this chart" and "I just
+     did a set". */
+  const newest=all.at(-1);
+  if(newest&&state.seen!==newest.id){
+    const first=state.seen===undefined;
+    state.seen=newest.id;
+    if(!first){state.kind=newest.kind;state.anchor=null;state.span=null;state.pick=newest.id;}
+  }
   const typed=all.filter(r=>r.kind===state.kind),allDates=[...new Set(typed.map(r=>r.d))],count=state.mode==='dots'?12:4;
   const rangeWindow=progressionWindow(allDates,count,state),{start,end,latestStart}=rangeWindow,dates=allDates.slice(start,end),dateSet=new Set(dates),scope=typed.filter(r=>dateSet.has(r.d));
   state.anchor=rangeWindow.latest?null:allDates[start];state.span=rangeWindow.latest?null:dates.length;

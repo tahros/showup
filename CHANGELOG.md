@@ -4,6 +4,40 @@
 
 
 
+
+## v4.1.15 (2026-09-11) — The chart follows the set you just did
+
+The pick only moved when it fell **out** of scope. So logging a set left the
+reading on whatever was selected before — often a session from a fortnight ago
+— while the set you had just finished sat unread at the right-hand edge.
+
+When the record grows, the chart goes to the new set: its kind, the latest
+range, and the set itself. Browsing back is let go of, because a range you were
+reading is not where the set you just did lives.
+
+**The jump is in-session only.** `state.seen` is deliberately not persisted, so
+the first paint after a reload has nothing to compare against and the remembered
+range survives untouched — v3.3.542's point stands. Only growth *within* a
+session moves the view, which is the difference between "I came back to this
+chart" and "I just did a set". A repaint with no new set leaves your browsing
+exactly where it was.
+
+Driven by growing the real record and rendering, with browsing done through the
+real range arrow — setting `state.anchor` by hand does not survive
+`renderProgression`, which recomputes it from the window, so a hand-set fixture
+would have tested nothing.
+
+**One assertion was hollow and the probe found it.** The claim that a reload
+does not jump passed with the guard forced off, because the fixture's first
+paint had no saved view to protect. It now restores a browsed view, drops the
+in-memory state as a reload would, and repaints — and forcing the guard off
+turns it red.
+
+### Two reds, neither this release's
+
+`test-planner-server` since v4.0.2, `test-daydone` since v4.1.10.
+
+
 ## v4.1.14 (2026-09-11) — The shimmer was running invisibly
 
 The sweep band is `rgba(255,255,255,.92)`. A trained day in the live header is
