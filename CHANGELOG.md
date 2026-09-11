@@ -1,5 +1,16 @@
 # ShowUp — changelog
 
+## v4.2.2 (2026-09-11) — Faster drops, counted as they land
+
+Queued plates remain transparent until their own fall starts. Falls take 420 ms
+with 70 ms spacing; a 29-plate build now takes about 2.4 seconds. The volume
+counter advances when each plate settles, including the final partial plate;
+incremental playback begins at the already-viewed volume, replay at zero (or
+the banked-stack total). Cancelling restores the exact ledger total. Removed
+the visible plate-scale explanation and softened the replay hint. Browser
+checks cover queue invisibility and per-plate counting as well as tab entry,
+replay, reduced motion and profile preservation.
+
 ## v4.2.1 (2026-09-11) — Let the plates finish falling
 
 Stats' horizontal chart scrollers emitted scroll events during page setup and

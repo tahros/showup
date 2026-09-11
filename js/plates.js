@@ -31,7 +31,7 @@ function bindPlateMini(saved){
 function plateStatsHTML(){
   const m=plateCurrent();if(!m.sets)return '';
   const done=!!DB.days?.[todayISO]?.doneAll;
-  return `<h2>${done?'Today completed':'Your work, stacking up'}</h2><div class="card plate-card"><button type="button" class="plate-replay" aria-label="Replay today's plate stack"><div class="plate-scene"><svg viewBox="0 0 300 190" role="img" aria-label="Today's volume, one plate per 500 pounds of work"><ellipse cx="126" cy="178" rx="111" ry="8" fill="currentColor" opacity=".07"/><g id="plate-stack"></g></svg>${mascotHTML(done?'cool':'hello')}</div><div class="plate-total"><b>${plateNumber(m.kg)}</b> ${U()} moved</div><div class="plate-caption">${m.sets} set${m.sets===1?'':'s'} · ${m.exercises} exercise${m.exercises===1?'':'s'}</div><div class="plate-caption">1 plate = ${isLb()?'500 lb':'≈227 kg'} of work</div><div class="plate-bank"></div><div class="plate-caption">Tap to replay</div></button></div>`;
+  return `<h2>${done?'Today completed':'Your work, stacking up'}</h2><div class="card plate-card"><button type="button" class="plate-replay" aria-label="Replay today's plate stack"><div class="plate-scene"><svg viewBox="0 0 300 190" role="img" aria-label="Today's volume, one plate per 500 pounds of work"><ellipse cx="126" cy="178" rx="111" ry="8" fill="currentColor" opacity=".07"/><g id="plate-stack"></g></svg>${mascotHTML(done?'cool':'hello')}</div><div class="plate-total"><b>${plateNumber(m.kg)}</b> ${U()} moved</div><div class="plate-caption">${m.sets} set${m.sets===1?'':'s'} · ${m.exercises} exercise${m.exercises===1?'':'s'}</div><div class="plate-bank"></div><div class="plate-replay-hint">Tap to replay</div></button></div>`;
 }
 let plateCancel=()=>{};
 function bindPlateStats(){
@@ -44,7 +44,8 @@ function bindPlateStats(){
     g.dataset.index=i;g.innerHTML=plateMark(7+Math.floor(n/10)*67,167-(n%10)*13,57,9*Math.min(1,(m.kg-i*unit)/unit));stack.append(g);
   }
   let animations=[],layer=null,ended=false,startY=window.scrollY,playRequest=0;
-  const cancel=()=>{animations.forEach(a=>a.cancel());animations=[];layer?.remove();layer=null;stack.querySelectorAll('g').forEach(g=>g.style.visibility='');};
+  const totalLabel=host.querySelector('.plate-total b');
+  const cancel=()=>{animations.forEach(a=>a.cancel());animations=[];layer?.remove();layer=null;stack.querySelectorAll('g').forEach(g=>g.style.visibility='');totalLabel.textContent=plateNumber(m.kg);};
   // Stats' own horizontal charts scroll during setup (and smooth-scroll later).
   // Their events are not movement of the viewport or of our landing targets.
   const onScroll=e=>{if((e.target===document||e.target===window)&&Math.abs(window.scrollY-startY)>2)cancel();};
@@ -60,15 +61,21 @@ function bindPlateStats(){
     if(!candidates.length){animations.push(stack.animate([{translate:'0 0'},{translate:'0 2px',offset:.5},{translate:'0 0'}],{duration:400}));plateRemember(m.kg);return;}
     // A viewport overlay makes the entry edge the SCREEN top, not the card top.
     layer=document.createElementNS('http://www.w3.org/2000/svg','svg');layer.classList.add('plate-fall-layer');layer.setAttribute('aria-hidden','true');layer.setAttribute('viewBox',`0 0 ${innerWidth} ${innerHeight}`);document.body.append(layer);
-    const promises=[];
+    const promises=[],activeLayer=layer;
+    totalLabel.textContent=plateNumber(Math.max(seen,bank*unit));
     candidates.forEach((g,i)=>{
       const rect=g.getBoundingClientRect(),box=g.getBBox(),copy=document.createElementNS('http://www.w3.org/2000/svg','svg');
       copy.setAttribute('x',rect.left);copy.setAttribute('y',rect.top);copy.setAttribute('width',rect.width);copy.setAttribute('height',rect.height);copy.setAttribute('viewBox',`${box.x} ${box.y} ${box.width} ${box.height}`);copy.style.overflow='visible';copy.innerHTML=g.innerHTML;layer.append(copy);g.style.visibility='hidden';
-      const dir=i%2?1:-1,delay=i*160;
-      const a=copy.animate([{transform:`translate(${dir*12}px,${-rect.bottom-40}px) rotate(${dir*7}deg)`,easing:'cubic-bezier(.42,0,.78,.55)'},{transform:'translate(0,2px) rotate(-1deg)',offset:.7},{transform:'translate(0,-5px) rotate(1deg)',offset:.83},{transform:'translate(0,0)',offset:1}],{duration:850,delay,fill:'both'});
-      animations.push(a);promises.push(a.finished.then(()=>{g.style.visibility='';copy.remove();},()=>{}));
+      const dir=i%2?1:-1,delay=i*70;
+      // No backwards fill: waiting plates stay fully hidden, not parked overhead.
+      copy.style.opacity='0';
+      const a=copy.animate([{opacity:1,transform:`translate(${dir*12}px,${-rect.bottom-40}px) rotate(${dir*7}deg)`,easing:'cubic-bezier(.42,0,.78,.55)'},{opacity:1,transform:'translate(0,2px) rotate(-1deg)',offset:.7},{opacity:1,transform:'translate(0,-3px) rotate(1deg)',offset:.85},{opacity:1,transform:'translate(0,0)',offset:1}],{duration:420,delay,fill:'forwards'});
+      animations.push(a);promises.push(a.finished.then(()=>{
+        g.style.visibility='';copy.remove();
+        if(layer===activeLayer)totalLabel.textContent=plateNumber(Math.min(m.kg,(Number(g.dataset.index)+1)*unit));
+      },()=>{}));
     });
-    const activeLayer=layer;await Promise.all(promises);
+    await Promise.all(promises);
     if(ended||layer!==activeLayer)return;layer.remove();layer=null;plateRemember(m.kg);
     const mascot=host.querySelector('.su-mascot');if(mascot)animations.push(mascot.animate([{transform:'translateY(0)'},{transform:'translateY(-10px)',offset:.5},{transform:'translateY(0)'}],{duration:600}));
   };

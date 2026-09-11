@@ -10,4 +10,5 @@
 .plate-total b{font:700 32px var(--body);color:var(--chalk);font-variant-numeric:tabular-nums}
 .plate-caption,.plate-bank{font:11px var(--mono);color:var(--muted);margin-top:10px}
 .plate-bank:empty{display:none}
+.plate-replay-hint{font:10px var(--mono);color:var(--muted);opacity:.65;margin-top:12px}
 .plate-fall-layer{position:fixed;inset:0;width:100%;height:100%;z-index:10000;pointer-events:none;overflow:hidden}
