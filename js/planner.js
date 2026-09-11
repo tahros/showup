@@ -137,7 +137,7 @@ function pwRender(){
     html+=writerWaitHTML().replace('data-writecancel','data-pw="cancel"').replace('data-what="the week"',`data-what="${s.task==='adjust'?'the set adjustment':'your plan'}"`);
   }else if(s.step==='paste'||s.step==='editrow'){
     const editing=s.step==='editrow';
-    html+=`<div class="card pw-card pw-input-panel"><h3>${editing?(s.editIndex===day.rows.length?'Add exercise':'Edit exercise'):'Paste routine'}</h3><div class="pw-text-tools">${pwButton('text-select','Select All','pw-text')}${pwAction('text-copy','Copy','copy','pw-text')}${pwAction('text-paste','Paste','paste','pw-text')}</div>${editing?`<label class="pw-sr-only" for="pw-exercise">Exercise name</label><select id="pw-exercise" data-pw-field="exercise">${['<Keep typed name>',...Object.values(SEED.catalog).flat()].map(x=>`<option value="${hesc(x)}" ${s.exercise===x?'selected':''}>${hesc(x)}</option>`).join('')}</select>`:''}<label class="pw-sr-only" for="pw-routine">Routine text</label><textarea id="pw-routine" class="pw-routine" data-pw-field="pasteText" rows="7" spellcheck="false" placeholder="Squat&#10;135 lb × 8&#10;225 lb × 6 6 6">${hesc(s.pasteText||'')}</textarea></div>`;
+    html+=`<div class="card pw-card pw-input-panel"><h3>${editing?(s.editIndex===day.rows.length?'Add exercise':'Edit exercise'):(s.editAll?'Edit routine':'Paste routine')}</h3><div class="pw-text-tools">${pwButton('text-select','Select All','pw-text')}${pwAction('text-copy','Copy','copy','pw-text')}${pwAction('text-paste','Paste','paste','pw-text')}</div>${editing?`<label class="pw-sr-only" for="pw-exercise">Exercise name</label><select id="pw-exercise" data-pw-field="exercise">${['<Keep typed name>',...Object.values(SEED.catalog).flat()].map(x=>`<option value="${hesc(x)}" ${s.exercise===x?'selected':''}>${hesc(x)}</option>`).join('')}</select>`:''}<label class="pw-sr-only" for="pw-routine">Routine text</label><textarea id="pw-routine" class="pw-routine" data-pw-field="pasteText" rows="7" spellcheck="false" placeholder="Squat&#10;135 lb × 8&#10;225 lb × 6 6 6">${hesc(s.pasteText||'')}</textarea></div>`;
     footer=pwButton('edit','Cancel')+pwButton('readpaste','Preview','primary');
   }else if(s.step==='adjust'){
     if(!s.adjustBase||s.adjustDate!==s.active)pwBeginAdjust();
@@ -150,7 +150,13 @@ function pwRender(){
     for(const [d,b]of Object.entries(c.days))html+=`<div class="card pw-card"><div class="pw-card-heading"><strong>${hesc(pwDate(d))}</strong></div>${pwRowsHTML(b.rows)}${(b.notes||[]).map(n=>`<p class="pw-small">${hesc(n)}</p>`).join('')}</div>`;
     footer=pwButton(c.type==='paste'?'paste-back':'edit','Back')+(c.type==='paste'&&c.index===undefined?pwButton('apply-add','Add'):'')+pwButton('apply',c.type==='paste'?(c.index!==undefined?'Keep edit':'Replace'):'Use draft','primary');
   }else if(day){
-if(hasRows||day.cleared)html+=`<div class="pw-actions pw-edit-actions">${pwAction('rewrite','Plan','sparkle')}${pwAction('paste','Paste','paste')}${hasRows?pwButton('adjust','Adjust sets'):''}${hasRows&&day.undo?pwButton('undo','Undo','pw-text'):''}</div>`;
+/* v4.1.1: EDIT THE WHOLE DAY, NOT ONE ROW AT A TIME. The pencil on a row
+   opens that row; there was no way to open the day. Paste was the nearest
+   thing and it clears the box, so using it to change one weight meant retyping
+   the routine. Edit opens the same box with the day already in it.
+   Only when there are rows: an empty day has nothing to edit, and Paste is
+   already the way in. */
+if(hasRows||day.cleared)html+=`<div class="pw-actions pw-edit-actions">${pwAction('rewrite','Plan','sparkle')}${pwAction('paste','Paste','paste')}${hasRows?pwAction('edit-all','Edit','edit'):''}${hasRows?pwButton('adjust','Adjust sets'):''}${hasRows&&day.undo?pwButton('undo','Undo','pw-text'):''}</div>`;
     if(hasRows)html+=`<div class="card pw-card">${pwRowsHTML(day.rows,true)}</div>`;
     html+=`<div class="pw-actions">${pwButton('add','+ Exercise','pw-text')}${!hasRows&&day.undo?pwButton('undo','Undo','pw-text'):''}</div>`;
     if(day.cleared&&!hasRows)html+='<p class="pw-small">Routine cleared. Save to apply, or Undo to restore.</p>';
@@ -339,7 +345,7 @@ function pwHandle(e){
        Today's "Dates >" that is Today; from the editor's datebar it is the
        editor. "Where we came from" is the rule, not a fixed destination. */
     if(a==='open'||a==='resume'){if(a==='open')pw().datesFrom='today';pwOpen(null,a==='open'?'dates':undefined);return true;}
-    if(a==='open-date'||a==='paste-open'){pwOpen(d);if(a==='paste-open'){s.pasteText='';s.editIndex=undefined;pwGo('paste');}return true;}
+    if(a==='open-date'||a==='paste-open'){pwOpen(d);if(a==='paste-open'){s.pasteText='';s.editIndex=undefined;s.editAll=false;pwGo('paste');}return true;}
     if(a==='close'){pwRequest++;if(s.busy)lift.writeAbort?.abort();s.busy=false;if(s.step==='busy')s.step='edit';pwPersist();lift.plan=null;view='today';render({soft:true});return true;}
     if(a==='dates-toggle'){s.datesOpen=!s.datesOpen;if(s.datesOpen)s.datesFrom='edit';s.step='edit';}
     /* v4.0.3: Done became Cancel + Edit. "Done" read as "I have finished
@@ -359,7 +365,11 @@ function pwHandle(e){
     else if(a==='adjust-cancel'){s.adjustBase=null;s.adjustRows=null;s.step='edit';}
     else if(a==='adjust-keep'){if(s.adjustDate!==s.active)throw Error('Open Adjust sets for this day again.');pwUndoPoint(b);b.rows=pwCopy(s.adjustRows);b.target=pwCounts(b.rows).total;b.source='Adjusted set count';s.adjustBase=null;s.adjustRows=null;s.step='edit';}
     else if(a==='clear-day'){pwUndoPoint(b);b.rows=[];b.locks=[];b.notes=[];b.target=null;b.cleared=true;b.source='Your draft';s.setupOpen=false;}
-    else if(a==='paste'){s.pasteText='';s.editIndex=undefined;s.step='paste';}
+    else if(a==='paste'){s.pasteText='';s.editIndex=undefined;s.editAll=false;s.step='paste';}
+    /* the day's own text, in the box that already knows how to parse it --
+       editIndex stays undefined so Replace swaps the whole routine, which is
+       what editing a day means */
+    else if(a==='edit-all'){s.pasteText=pwText(b.rows);s.editIndex=undefined;s.editAll=true;s.step='paste';}
     else if(a==='editrow'||a==='add'){s.editIndex=a==='add'?b.rows.length:i;s.pasteText=a==='add'?'':pwText([b.rows[i]]);s.exercise='<Keep typed name>';s.step='editrow';}
     else if(a==='readpaste'){
       const rows=pwRead(s.pasteText||'');if(!rows.length)throw Error('Paste a routine first.');if(s.step==='editrow'&&pwExercises(rows).length>1)throw Error('Edit one exercise here. Use Paste routine to add several.');

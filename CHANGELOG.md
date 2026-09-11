@@ -1,5 +1,35 @@
 # ShowUp — changelog
 
+
+## v4.1.1 (2026-09-11) — Edit the day, not one row at a time
+
+The pencil on a row opened that row. Nothing opened the **day**. Paste was the
+nearest thing, and Paste clears the box — so changing one weight in a five
+exercise routine meant retyping the routine.
+
+**Edit** opens the same text box with the day already in it. Same parser, same
+Replace, same panel — the only difference is what is in the box when it arrives,
+and the heading says *Edit routine* rather than *Paste routine* so the two
+doors do not look identical.
+
+`editIndex` stays undefined, so Replace swaps the whole routine. That is what
+editing a day means, and it is the difference from the row pencil, which
+targets one index.
+
+It appears only when there are rows. An empty day has nothing to edit, and
+Paste is already the way in.
+
+Paste still opens empty. Two doors that did the same thing would be worse than
+the one door that was missing — there is an assertion holding that line, and a
+probe that makes Paste prefill turns it red.
+
+### One red left, not this release's
+
+`test-planner-server` has failed since v4.0.2 and survived the v4.1.0 "green
+suite" release. `tools/demo-tabtrip.js` drives a scope pill v4.0 removed and
+still needs rewriting or retiring.
+
+
 ## v4.1.0 (2026-09-11) — A companion for showing up
 
 The approved Soft Charcoal mascot now accompanies real app states, without
