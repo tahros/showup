@@ -37,6 +37,14 @@ function renderSync(){
         <button data-barpick="dark" class="${DB.settings.barTheme==='dark'?'sel':''}">Dark</button>
       </span>
     </div>
+    <!-- v4.1.8: the header strip is a calendar week now, so which day starts
+         it is the maker's to choose. A viewing choice only: no record moves,
+         the heatmap and Stats are untouched, and the same week counts the same
+         under either setting. -->
+    <h2>Week starts on</h2>
+    <div class="card"><span class="seg" style="display:flex">
+      ${[['sunday','Sunday'],['monday','Monday']].map(([v,label])=>`<button data-week-start="${v}" class="${weekStartDow()===(v==='monday'?1:0)?'sel':''}" aria-pressed="${weekStartDow()===(v==='monday'?1:0)}">${label}</button>`).join('')}
+    </span></div>
     <h2>Mascot</h2>
     <div class="card"><span class="seg" style="display:flex">
       ${['animated','still','off'].map(mode=>`<button data-mascot-pick="${mode}" class="${mascotMode()===mode?'sel':''}" aria-pressed="${mascotMode()===mode}">${mode[0].toUpperCase()+mode.slice(1)}</button>`).join('')}

@@ -858,6 +858,25 @@ function loadLine(ex,totalKg){
 }
 
 /* every workout DATE ever: seed history + anything logged in the app */
+/* ---- v4.1.8: THE HEADER STRIP IS A CALENDAR WEEK -------------------------
+   It was a rolling seven days ending on today, so "the live square is on the
+   right" was geometry rather than a fact about today. A calendar week puts
+   today wherever the week puts it, and introduces a state the strip has never
+   had: a day that HAS NOT ARRIVED.
+   weekStartDow() is a viewing choice and nothing else -- no record moves, the
+   heatmap and Stats are untouched, and the same week reads the same count
+   under either setting. */
+function weekStartDow(){return DB.settings.weekStart==='monday'?1:0;}
+function weekDays(iso){
+  const d=new Date((iso||todayISO)+'T00:00'), start=weekStartDow();
+  d.setDate(d.getDate()-((d.getDay()-start+7)%7));
+  return Array.from({length:7},(_,i)=>{const c=new Date(d);c.setDate(c.getDate()+i);
+    return c.toLocaleDateString('en-CA');});
+}
+/* days trained inside the current week -- filled squares, nothing else. A
+   ringed-but-open today is not filled, so it does not count until a set lands,
+   and a declared rest never counts at all. */
+function weekTrained(){const t=workoutDates();return weekDays().filter(d=>t.has(d)).length;}
 function workoutDates(){
   const s=new Set(SEED.dates);
   for(const [d,v] of Object.entries(DB.days)) if(v.w&&v.w.length) s.add(d);

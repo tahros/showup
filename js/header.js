@@ -60,10 +60,17 @@ function renderHeader(){
     const trainedOn=workoutDates();
     const _rst=restingToday();
     let html='';
-    for(let i=6;i>=0;i--){
-      const d=new Date(todayISO+'T00:00'); d.setDate(d.getDate()-i);
-      const iso=d.toLocaleDateString('en-CA');
-      html+=`<i class="hwd${trainedOn.has(iso)?' on':''}${i===0?' tod':''}${i===0&&_rst?' resting':''}"></i>`;
+    /* v4.1.8: a CALENDAR week, Sunday- or Monday-start by the setting, so
+       today lands wherever the week puts it and the ring travels with it.
+       Five states, on one rule: FILLED means it happened, OUTLINED means it
+       has not. A day still ahead is dotted -- a container, not an absence --
+       because a row of grey would read as a week already failed on a Monday
+       morning. Green stays exactly what v3.3.437 made it: a LIVE grade, only
+       today, gone at midnight, never in the record. */
+    for(const iso of weekDays()){
+      const isTod=iso===todayISO, future=iso>todayISO;
+      html+=`<i class="hwd${trainedOn.has(iso)?' on':''}${isTod?' tod':''}${
+        isTod&&_rst?' resting':''}${future?' ahead':''}"></i>`;
     }
     /* v3.3.385: WRITE ONLY WHEN THE WEEK ACTUALLY CHANGES. renderHeader runs
        on every render, and rewriting innerHTML replaces the elements -- new
@@ -98,7 +105,12 @@ function renderHeader(){
        says the same thing louder. During a live session the rest timer takes
        this slot (CSS slot-swap on #hTimer.on), so the count and the clock
        never crowd one line. */
-    $('#hStreak').textContent=s?s+'d':'';
+    /* v4.1.8: the chip counts the WEEK, not the streak -- it sits beside a
+       calendar week now, and a number on a different clock from the squares
+       beneath it was two facts wearing one label. 0d on the first morning of
+       a week is correct and becomes 1d on the first set. */
+    const wk=weekTrained();
+    $('#hStreak').textContent=wk+'d';
     $('#hStreak').classList.remove('restchip');
     $('#hStreak').classList.toggle('atrisk', streakAtRisk());
   }

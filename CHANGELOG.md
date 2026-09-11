@@ -1,5 +1,53 @@
 # ShowUp — changelog
 
+
+## v4.1.8 (2026-09-11) — The header strip is a calendar week
+
+It was a rolling seven days ending on today, so *"the live square is on the
+right"* was **geometry, not a fact about today**. It is a calendar week now —
+Sunday- or Monday-start, chosen in Settings — and today lands wherever the week
+puts it, with the ring travelling to it.
+
+That introduces a state the strip has never had: **a day that has not arrived.**
+
+One rule carries the whole thing: **filled means it happened, outlined means it
+has not.** A future day is a quiet outline — a container, not an absence —
+because a row of grey on a Monday morning would read as a week already failed,
+while a row of outlines reads as a week ahead of you. An open today is outlined
+by the same rule, and fills the moment a set lands.
+
+Green is untouched: still the live grade v3.3.437 made it, only today, gone at
+midnight, never in the record. A declared rest that has passed goes grey like
+every other untrained day — which is what the strip has done since v3.3.379 and
+what survives the reframe intact.
+
+**The chip counts the week, not the streak.** It sits beside a calendar week
+now, and a number on a different clock from the squares beneath it was two facts
+wearing one label. `0d` on the first morning of a week is correct, and becomes
+`1d` on the first set. A rest day still shows the word rather than a numeral,
+per v3.3.437.
+
+**Settings → Week starts on [ Sunday | Monday ].** A viewing choice and nothing
+else: no record moves, the heatmap and Stats are untouched, and the same week
+counts the same under either setting — asserted, because that is the whole
+claim.
+
+The outline is an inset shadow rather than a border. `test-skin` collects any
+rule carrying `border:…px` as a **new surface** that must then be skinned, and a
+future day is a colour state on a box `.hwd` already owns. At 10px the dash was
+barely two strokes a side, so nothing legible was lost — and the guard stays
+meaningful, which mattered more.
+
+Eight assertions across `test-rest` and `test-skin` pinned the rolling window:
+today as the last square, the streak in the chip, rest measured against
+`s[s.length-1]`. All restated against what they were really claiming — today
+carries the ring *wherever the week puts it* — rather than deleted.
+
+### One red left, not this release's
+
+`test-planner-server` has failed since v4.0.2.
+
+
 ## v4.1.7 (2026-09-11) — ShowUp Blue installation icon
 
 Approved option C: the existing white mascot centered on #3049dc. New 192px

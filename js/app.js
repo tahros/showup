@@ -5,6 +5,13 @@
 document.addEventListener('click',e=>{
   if(checkDate()) return;   // v3.3.158: the day rolled mid-tap — re-render, next tap lands right
   if(pwHandle(e)) return;
+  /* v4.1.8: which day the header's week starts on. A viewing choice, so it
+     saves and repaints and touches nothing in the record. */
+  const weekPick=e.target.closest('[data-week-start]');
+  if(weekPick){
+    DB.settings.weekStart=weekPick.dataset.weekStart==='monday'?'monday':'sunday';
+    save(true);return render();
+  }
   const mascotPick=e.target.closest('[data-mascot-pick]');
   if(mascotPick){
     DB.settings.mascotMotion=mascotPick.dataset.mascotPick;

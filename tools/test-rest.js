@@ -364,10 +364,21 @@ ok("the status-bar style no longer puts content under the status bar",
   /* trained 6,5,4,2,1 and 0 days ago -- the gap is 3 days ago, which is the
      FOURTH square of seven, not the third. My first version had it in the
      wrong slot and failed for the right reason. */
+  /* v4.1.8 RESTATES: the strip is a CALENDAR week now, so today is wherever
+     the week puts it and is no longer guaranteed last -- "the live square is
+     on the right" was geometry, not a fact about today. What survives intact
+     is the claim this pair was really making: trained days fill, a gap stays
+     grey, and today carries the ring. Days after today are outlined, not
+     grey, because they have not happened. */
+  /* ask the app for the week's own count rather than hard-coding one: the
+     figure depends on which day the fixture's "today" falls on */
+  const weekCount=()=>run(`weekTrained()+'d'`);
   check("...trained days filled, the gap left grey",
-        `${week()==="hwd on|hwd on|hwd on|hwd|hwd on|hwd on|hwd on tod"}`, "true");
-  check("...and today is the last of them, ringed",
-        `${/tod$/.test(week())}`, "true");
+        `${/hwd on/.test(week()) && /\|hwd\|/.test('|'+week()+'|')}`, "true");
+  check("...and today carries the ring, wherever the week puts it",
+        `${(week().match(/tod/g)||[]).length===1}`, "true");
+  check("...with days still ahead outlined, never grey",
+        `${week().split("|").filter(c=>/ahead/.test(c)).every(c=>!/ on/.test(c))}`, "true");
 
   /* a rest day is drawn like any other untrained day -- the acknowledgement
      is the WORD, not a third fill. Green would have had to spread to the
@@ -399,11 +410,15 @@ ok("the status-bar style no longer puts content under the status bar",
   /* v3.3.389 RESTATES the pair that once asserted the fire's two states. The
      count is now plain in BOTH: live is worn by the whole header (red), and
      the timer takes this slot while it runs (#hTimer.on~.streak). */
-  check("...with the count stated exactly, and no fire even while live",
-        `$('#hStreak').textContent`, "41d");
+  /* v4.1.8 RESTATES again: the chip counts the WEEK, not the streak. It sits
+     beside a calendar week now, and a number on a different clock from the
+     squares under it was two facts wearing one label. The claim that survives
+     is that the count is stated plainly and no fire rides beside it. */
+  check("...with the week's count stated exactly, and no fire even while live",
+        `$('#hStreak').textContent`, weekCount());
   run(`(function(){DB.days[todayISO].doneAll=true; renderHeader();})()`);
   check("...and unchanged when the session closes",
-        `$('#hStreak').textContent`, "41d");
+        `$('#hStreak').textContent`, weekCount());
   /* the slot-swap: while the rest timer is showing, the count steps aside --
      one slot, two tenants, never both */
   const css389=fs.readFileSync(path.join(dir,"css/app.css"),"utf8").replace(/\r?\n\s*/g,"");
@@ -597,15 +612,20 @@ ok("the status-bar style no longer puts content under the status bar",
 
   seed();
   ok("before rest: the rail asks what to train", /Train next/.test(V()));
+  /* v4.1.8: today is no longer the last square -- find it by its own mark */
   ok("...today's square is the open ring, not green",
-     run(`(function(){const s=document.querySelectorAll('#hWeek .hwd'); const t=s[s.length-1];
-       return t.classList.contains('tod')&&!t.classList.contains('resting');})()`));
+     run(`(function(){const t=document.querySelector('#hWeek .hwd.tod');
+       return !!t&&!t.classList.contains('resting');})()`));
 
   tap();
   // 1. the square
+  /* v4.1.8: "the last square" was the rolling window's geometry. The claim is
+     about TODAY -- green is a live grade and never enters the record -- so it
+     is now measured against whichever square carries .tod. */
   ok("resting: today's square wears .rst, and only today's",
      run(`(function(){const s=[...document.querySelectorAll('#hWeek .hwd')];
-       return s[s.length-1].classList.contains('resting') && s.slice(0,-1).every(x=>!x.classList.contains('resting'));})()`));
+       const t=s.filter(x=>x.classList.contains('resting'));
+       return t.length===1 && t[0].classList.contains('tod');})()`));
   // 2. the greeting
   ok("...the greeting shortens to 'Rest.'", /Rest\./.test(V()) && !/Morning|Afternoon|Evening/.test(V()));
   ok("...keeping the day count, dropping the countdown",
