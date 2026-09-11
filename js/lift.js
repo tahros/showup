@@ -541,6 +541,7 @@ function renderLift(){
   const todaySets=t.w.filter(s=>s.ex===ex);
   const l=lastFor(ex),p=prFor(ex);
   let h=``;   // the sticky header already shows the exercise + part
+  if(isLive())h+=`<div class="su-live-companion">${mascotHTML('active')}</div>`;
 
   /* v3.1.2: the footer answers ONE question — "what did I do last time?" —
      the full previous session, so today has a target. (PRs live in Records.)

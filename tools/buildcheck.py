@@ -35,7 +35,9 @@ for a in assets:
     if not (d/a).exists(): fail.append(f"stamped asset missing on disk: {a}")
     if f"./{a}?v=" not in sw: fail.append(f"asset not in sw SHELL: {a}")
 shell_count = len(re.findall(r"'\./[^']+\?v=", sw))
-if shell_count != 16: fail.append(f"sw SHELL has {shell_count} stamped assets, expected 16")
+if shell_count != 18: fail.append(f"sw SHELL has {shell_count} stamped assets, expected 18")
+for a in re.findall(r"'\./([^']+)'", sw):
+    if not (d/a.split('?')[0]).exists(): fail.append(f"offline SHELL asset missing: {a}")
 
 # -- CSS vars used are defined (runtime-set vars from js/app.js are allowlisted)
 # v3.3.324: --planw/--planr are measured in js/lift.js and written onto the
@@ -49,7 +51,7 @@ RUNTIME = {"--i", "--len", "--sat", "--planw", "--planr", "--h", "--j", "--f"}  
 # --h: v3.3.512, the week shape's column height, written inline per weekday
 # --j: v3.3.513, that column's place in the week, for the growth stagger
 # --f: v3.3.534, a plan row's fill, written inline as done/planned for that row
-used = set(re.findall(r"var\((--[A-Za-z0-9-]+)", css+(d/"css/planner.css").read_text()))
+used = set(re.findall(r"var\((--[A-Za-z0-9-]+)", css+(d/"css/planner.css").read_text()+(d/"css/mascot.css").read_text()))
 defined = set(re.findall(r"(--[A-Za-z0-9-]+)\s*:", css))
 undef = used - defined - RUNTIME
 for v in sorted(undef): fail.append(f"CSS var used but never defined: {v}")

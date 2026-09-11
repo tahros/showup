@@ -215,6 +215,7 @@ function dayOneHTML(){
   }
   /* step 0 -- the square you are about to fill, stated before it is explained */
   return `${bar}<div class="card d1card d1hero">
+      ${mascotHTML('hello','su-first-day')}
       <i class="d1sq" aria-hidden="true"></i>
       <h3 class="d1h">One set is day one.</h3>
       <p class="muted d1p">ShowUp counts days, not perfection.</p>
@@ -401,7 +402,7 @@ function renderToday(){
 
   if(!logged){
     // ---- before the gym: what should I train
-    h+=helloCard();
+    h+=`<div class="su-hello-row">${helloCard()}${mascotHTML('hello')}</div>`;
     /* v3.3.319: before the gym, the plan is what you came to read — the same
        section the mid-session branch leads with, so Today shows one thing in
        both states. Rhythm left with it; it restated the streak and the day
@@ -567,6 +568,7 @@ function renderToday(){
        still carries the state and the invitation for anyone who cannot see
        the card do it visually. */
     return `<button class="card dayclosed" data-replayday="1" aria-label="Day ${fmt(_n)}, ${pretty(todayISO)}. Today is complete; logging another set reopens it. Tap to see it again.">
+          ${mascotHTML('cool')}
           <i class="dcsq" aria-hidden="true"></i>
           <b class="dcn">${fmt(_n)}</b>
           <span class="dcm mono">${pretty(todayISO)}</span>
@@ -599,6 +601,10 @@ function renderToday(){
      quiet line. Inline, four parts wrapped into the title and collided with
      it; the heading is a label and should stay one short thing. */
   h+=`<h2>${_closed&&planningWorkspace()?'Trained today':'Training today'}</h2>`;
+  if(!_closed&&isLive()&&mascotMode()!=='off'){
+    const activeSets=workoutCompletionMetrics(t).sets;
+    h+=`<div class="su-active-row"><div><strong>You're in.</strong><span class="mono muted">${activeSets} set${activeSets===1?'':'s'} logged</span></div>${mascotHTML('active')}</div>`;
+  }
   if(doneLift.length) h+=`<div class="todaypartsline mono">${doneLift.join(' · ')}</div>`;
   const byPart={};
   t.w.forEach(s=>{(byPart[s.part]=byPart[s.part]||[]).push(s);});

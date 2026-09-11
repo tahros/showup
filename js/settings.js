@@ -37,6 +37,10 @@ function renderSync(){
         <button data-barpick="dark" class="${DB.settings.barTheme==='dark'?'sel':''}">Dark</button>
       </span>
     </div>
+    <h2>Mascot</h2>
+    <div class="card"><span class="seg" style="display:flex">
+      ${['animated','still','off'].map(mode=>`<button data-mascot-pick="${mode}" class="${mascotMode()===mode?'sel':''}" aria-pressed="${mascotMode()===mode}">${mode[0].toUpperCase()+mode.slice(1)}</button>`).join('')}
+    </span></div>
     <h2>TODAY & TRAIN layout</h2>
     <div class="card">
       <span class="seg" style="display:flex">

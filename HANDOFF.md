@@ -1,5 +1,27 @@
 # ShowUp — handoff (2026-08-22, v3.3.267)
 
+## Mascot moments — v4.0.6 (2026-09-11)
+
+Built from main 4d2bc29 / v4.0.5 on codex/mascot-moments. Header re-read before
+implementation and not modified. v4.0.3–5 planner fixes preserved.
+
+See MASCOT.md for source, component API, generation and verification commands.
+New classic js/mascot.js loads after header and before report. Its only ESM
+is the lazy graphics leaf js/mascot-renderer.js, which imports vendored Three
+r169. No app data enters the renderer. css/mascot.css is scoped and standalone.
+The full offline shell has 18 stamped assets plus the renderer/vendor/PNGs.
+
+completedAt is day data: stamp only at #doneAllBtn, preserve through sync and
+read-only replays. mascotMotion and mascot25Date are normally synced settings.
+Do not award a milestone inside derive/render/import. Reduced motion and Still
+do not allocate WebGL. Off is the instant rollback for in-app mascot surfaces.
+The top-left share mark changes only its bitmap; leave drawDayCard geometry
+and every exercise/weight/rep row intact.
+
+Existing v4.0.5 test-progression/test-runclose failures were reproduced from
+a clean git archive. New mascot tests and completion/share regressions pass.
+
+
 ## Live planning controls — v4.0.2 (2026-09-11)
 
 Fetched origin/main and checked header at 55deb91 / v4.0.1. Branch

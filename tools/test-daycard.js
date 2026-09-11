@@ -180,7 +180,7 @@ check("42px and 58px and 48px are gone", fonts.some(f => f.includes("42px") || f
 // ---- the icon: drawn when the bitmap arrived, skipped (never fatal) when not
 check("no bitmap → no drawImage, receipt still whole", calls.some(c => c[0] === "drawImage"), false);
 calls = [];
-run("_dayIcon={complete:true,naturalWidth:192,naturalHeight:192}; drawDayCard(window._cv.getContext('2d'),1080,todayISO); _dayIcon=null;");
+run("mascotMarks[document.documentElement.dataset.theme==='dark'?'white':'charcoal']={complete:true,naturalWidth:512,naturalHeight:512}; drawDayCard(window._cv.getContext('2d'),1080,todayISO); mascotMarks.white=null;mascotMarks.charcoal=null;");
 check("bitmap present → icon drawn", calls.some(c => c[0] === "drawImage"), true);
 
 run("DB.settings.name='';");

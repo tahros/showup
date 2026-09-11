@@ -1,0 +1,34 @@
+/* Decorative mascot slots never overlay a control or change the app header. */
+.su-mascot{display:block;position:relative;width:180px;aspect-ratio:720/440;flex:none;pointer-events:none}
+.su-mascot img,.su-mascot canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.su-mascot.su-ready img{visibility:hidden}
+.su-mascot:not(.su-ready) canvas{visibility:hidden}
+.su-first-day{margin:0 auto 6px}
+.su-live-companion{display:flex;justify-content:center;margin:-8px 0 4px}
+.su-live-companion .su-mascot{width:76px}
+.su-hello-row{display:flex;align-items:center;gap:8px}
+.su-hello-row .hello{flex:1;min-width:0}
+.su-hello-row .su-mascot{width:82px}
+.su-active-row{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:70px;margin:0 0 14px}
+.su-active-row strong{display:block;font:600 24px/1.2 var(--disp);margin:0 0 6px}
+.su-active-row span.mono{font-size:11px}
+.su-active-row .su-mascot{width:104px}
+.card.dayclosed .su-mascot{margin:-8px auto -10px;width:156px}
+#dayDone .su-mascot{width:240px;max-width:100%;margin:0 auto 8px}
+#dayDone.su-celebration .ddbody{padding:12px 0 20px}
+#dayDone.su-celebration .ddyou{margin:18px 0 12px}
+.su-completion-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;margin:12px auto 0}
+#dayDone.su-celebration .ddsummary{width:100%}
+.su-completion-metrics>div{display:flex;flex-direction:column;gap:5px}
+.su-completion-metrics b{font:600 24px/1.2 var(--disp);color:var(--chalk);font-variant-numeric:tabular-nums}
+.su-completion-metrics span{font:400 11px/1.4 var(--mono);color:var(--muted)}
+.su-milestone{width:100%;margin:18px auto 0}
+.su-milestone-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;width:126px;margin:auto}
+.su-milestone-grid i{aspect-ratio:1;border-radius:5px;background:var(--accent);animation:su-box-in .36s var(--settle) both}
+.su-milestone-note{font:400 12px/1.5 var(--mono);color:var(--muted);margin:0 0 12px}
+#dayDone .ddyou::after{display:none}
+:root[data-mascot-motion="off"] .su-mascot{display:none}
+:root[data-mascot-motion="still"] .su-milestone-grid i{animation:none}
+@keyframes su-box-in{from{opacity:0;transform:translateY(4px) scale(.82)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.su-milestone-grid i{animation:none}}
+@media(max-width:360px){.su-hello-row .su-mascot{width:62px}#dayDone .su-mascot{width:190px}}

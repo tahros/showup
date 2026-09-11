@@ -8,6 +8,11 @@ meta tags, the DOM skeleton (header / #view / nav / overlays), one inline
 pre-paint theme script, and ordered `<link>` + `<script src>` tags.
 
 ## Why classic scripts, not ES modules
+The app still uses classic scripts. v4.0.6 adds one deliberately isolated ESM
+leaf: mascot-renderer.js, lazily imported by classic mascot.js. It owns only
+graphics; no app state, routing, logging or sync moves into modules. The local
+Three.js dependency and transparent fallback PNGs are included in the SW shell.
+
 Every file is a plain `<script src>`, so they all share ONE global scope —
 exactly as when everything lived in a single `<script>` block. Loading files
 in order is semantically identical to concatenating them. That is what made

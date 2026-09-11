@@ -1,5 +1,39 @@
 # ShowUp — changelog
 
+## v4.0.6 (2026-09-11) — A companion for showing up
+
+The approved Soft Charcoal mascot now accompanies real app states, without
+replacing the header, tab bars, planner, Progression or workout receipt layout.
+
+- Transparent, theme-aware identity: White on dark content; Soft Charcoal on
+  light content. New browser mark and top-left receipt mark. Installed OS
+  home-screen tiles remain unchanged; their platform masking is separate.
+- Today greeting, a looping red-pulse training companion, a joyful completion
+  jump, and a slow blue-pulse companion centered above the completed-day
+  square/count/date. No flames, glow halos, rolling, or motion blur.
+- Completion shows minutes, sets and exercises. The finish time is stored at
+  the explicit Complete tap. The earliest run log is adjusted by its entered
+  running time. Duration includes the time between first logged set and finish;
+  untimed or partially timed historical records show a dash instead of a guess.
+  Replaying does not write or extend the clock. Re-completing updates the end.
+- The 25th trained day gets the approved dance and 25 animated attendance
+  squares, not checkmarks. Non-consecutive days count. Imports/renders never
+  trigger an award; the existing century milestones remain intact.
+- Settings → Mascot: Animated / Still / Off. Reduced motion uses the static
+  transparent mascot. Off removes mascot slots and restores the old completion
+  summary. Share keeps every exercise/set/rep and has no footer mascot.
+- Original Three.js geometry, proportions, keyframes and motion conversion
+  extracted into a reusable renderer. Local r169 dependency and PNG fallbacks
+  are precached. Offscreen/hidden renderers are disposed, with two contexts max.
+
+Verified: 75 passing behavioral suites, structural buildcheck, smoke, completion/reopen/share regressions,
+new mascot behavior tests, isolated Chromium at 320/393/430px in both themes,
+animated red/blue frames, PNG transparency, reduced motion, Off, and offline
+reload. Two existing suite failures reproduce on untouched v4.0.5:
+test-progression.js (12-session window assertion), test-runclose.js (jsdom width).
+Windows import verification needs PYTHONUTF8=1.
+
+
 
 
 

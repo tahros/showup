@@ -21,7 +21,9 @@ for(const unit of ['kg','lb']){
  seed(unit);click('#doneAllBtn');
  check(`${unit}: completion is a real declaration, accurate units, real day count`,()=>{
   assert(run(`dayMeta().doneAll`));assert.equal(run(`document.querySelector('.ddn').textContent`),'1');
-  assert(run(`document.querySelector('.ddsummary').textContent`).includes(unit==='kg'?'5.00 km':'3.11 mi'));
+  assert.equal(run(`document.querySelectorAll('.su-completion-metrics>div').length`),3);
+  assert.equal(run(`document.querySelector('.su-completion-metrics b').textContent`),'—'); // untimed legacy fixture
+  assert(run(`document.querySelector('.ddsummary').textContent`).includes('2 exercises'));
   assert(run(`document.querySelector('.ddsummary').textContent`).includes('2 sets'));
   assert.equal(run(`document.querySelectorAll('.ddtrail').length`),0);
  });
@@ -60,7 +62,7 @@ check('only explicit Share opens the existing day-card path once',()=>assert.equ
 seed('kg',false);click('#doneAllBtn');
 check('strength-only days do not invent a run',()=>{
  const s=run(`document.querySelector('.ddsummary').textContent`);
- assert(s.includes('1 set'));assert(!/km|mi|1 sets/.test(s));
+ assert(s.includes('1 set'));assert(!/km| mi\b|1 sets/.test(s));
 });
 run(`document.querySelector('[data-dd="done"]').dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}))`);
 check('Escape closes accessibly',()=>assert(!run(`!!document.getElementById('dayDone')`)));

@@ -5,6 +5,11 @@
 document.addEventListener('click',e=>{
   if(checkDate()) return;   // v3.3.158: the day rolled mid-tap — re-render, next tap lands right
   if(pwHandle(e)) return;
+  const mascotPick=e.target.closest('[data-mascot-pick]');
+  if(mascotPick){
+    DB.settings.mascotMotion=mascotPick.dataset.mascotPick;
+    save(true);document.dispatchEvent(new Event('mascotsettingschange'));return render();
+  }
   const flowPick=e.target.closest('[data-flowpick]');
   if(flowPick){
     flowLayout=flowPick.dataset.flowpick==='previous'?'previous':'refined';
@@ -124,6 +129,7 @@ document.addEventListener('click',e=>{
     m.w.forEach(s=>{ if(!m.doneEx.includes(s.ex)) m.doneEx.push(s.ex);
                      if(!m.donePart.includes(s.part)) m.donePart.push(s.part); });
     m.doneAll=true;
+    stampWorkoutCompletion(m);
     /* v3.3.490: this is an explicit request for the completion moment. The
        once-a-day stamp prevents automatic interruptions; it must not turn a
        button the person just pressed into a no-op after reopening the day. */
@@ -1660,6 +1666,9 @@ function celebrateDayDone(nowrite, forceCount, forceMile, forceShow){
   const o=document.createElement('div');
   o.id='dayDone';
   if(mile) o.classList.add('century');
+  const withMascot=mascotMode()!=='off';
+  const is25=withMascot&&forceCount==null&&DB.settings.mascot25Date===todayISO;
+  if(withMascot)o.classList.add('su-celebration');
   /* v3.3.425: THE MARK IS A SIBLING OF THE SQUARE, NOT ITS CHILD. It was
      inside .ddsq, and .ddsq fades and shrinks as it hands over -- opacity on a
      parent applies to its children, so the white mark faded with it and
@@ -1676,22 +1685,22 @@ function celebrateDayDone(nowrite, forceCount, forceMile, forceShow){
   o.setAttribute('role','dialog');
   o.setAttribute('aria-modal','true');
   o.setAttribute('aria-labelledby','ddHeading');
-  o.innerHTML=`<div class="ddinner"><div class="dddate">${dateLabel}</div><div class="ddbody">`+(mile
+  o.innerHTML=`<div class="ddinner"><div class="dddate">${dateLabel}</div><div class="ddbody">${withMascot?mascotHTML('jump'):''}`+(mile
     ? `<span class="ddstage"><i class="ddsq" aria-hidden="true"></i><span class="ddmk" aria-hidden="true">${icon('brandmark',44)}</span></span>`
-    : `<i class="ddsq" aria-hidden="true"></i>`)+
+    : withMascot?'':`<i class="ddsq" aria-hidden="true"></i>`)+
     `<b class="ddn${count>=1000?' ddlarge':''}">${fmt(count)}</b><span class="ddu">${count===1?'day':'days'} of showing up</span>`+
     `<h2 class="ddyou" id="ddHeading">You showed up.</h2>`+
-    `<div class="ddsummary">${summary}</div></div>`+
+    `<div class="ddsummary">${withMascot&&forceCount==null?completionMetricsHTML(DB.days[todayISO]):summary}</div></div>`+
     /* v3.3.506: the photo option is gone from the ceremony -- the maker judged
        it not ready. The compositor, the picker and their suite go with it
        rather than sitting unreachable behind no door: dead code ships to every
        user and rots against every later change. All of it is one restore away
        at 8bbe7b0 (v3.3.504), where drawPhotoCard, loadPickedImage,
        photoSession and tools/test-photocard.js are whole and green. */
-    `<div class="ddactions"><button class="btn done" data-dd="done">Done</button>`+
+    `<div class="ddactions">${is25?'<button class="btn done" data-dd="milestone">See your milestone →</button>':''}<button class="${is25?'ddshare':'btn done'}" data-dd="done">Done</button>`+
     `<button class="ddshare" data-dd="share">Share this day</button></div></div>`;
   document.body.appendChild(o);
-  o.querySelector('[data-dd="done"]').focus({preventScroll:true});
+  o.querySelector('[data-dd="milestone"],[data-dd="done"]').focus({preventScroll:true});
   let leaving=false;
   const leave=(share=false)=>{
     if(leaving) return;
@@ -1743,6 +1752,14 @@ function celebrateDayDone(nowrite, forceCount, forceMile, forceShow){
   // v3.3.489: the moment waits for an explicit choice, never an automatic share.
   o.addEventListener('click',e=>{
     const action=e.target.closest('[data-dd]');
+    if(action?.dataset.dd==='milestone'){
+      o.querySelector('.ddbody').innerHTML=mascotHTML('dance')+
+        '<h2 class="ddyou" id="ddHeading">25 sessions. All you.</h2><p class="su-milestone-note">Built one visit at a time.</p>'+
+        mascotMilestoneHTML()+'<p class="su-milestone-note">Every square is a day you showed up.</p>';
+      o.querySelector('[data-dd="done"]').remove();
+      action.dataset.dd='done';action.textContent='Keep showing up →';
+      action.focus({preventScroll:true});o.scrollTop=0;return;
+    }
     if(action) leave(action.dataset.dd==='share');
   });
   o.addEventListener('keydown',e=>{

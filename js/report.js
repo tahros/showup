@@ -535,11 +535,12 @@ function drawDayCard(x,S,d){
   x.fillStyle=V('--surface'); rr(FRAME,FRAME,S-FRAME*2,H-FRAME*2,40); x.fill();
   x.textBaseline='alphabetic'; x.textAlign='left';
 
-  /* identity: icon + name, top-left. Icon is the app tile, rounded-clipped;
-     absent bitmap degrades to name alone, absent name to icon alone. */
+  /* Theme-aware transparent mascot + name, in the existing top-left slot.
+     Off uses the previous app mark; missing artwork never blocks a receipt. */
   let ix=L;
-  if(typeof _dayIcon!=='undefined'&&_dayIcon&&_dayIcon.complete&&_dayIcon.naturalWidth){
-    x.save(); rr(L,TOP,ICON,ICON,13); x.clip(); x.drawImage(_dayIcon,L,TOP,ICON,ICON); x.restore();
+  const receiptMark=mascotMode()==='off'?_dayIcon:mascotReceiptMark();
+  if(receiptMark){
+    x.save(); x.drawImage(receiptMark,L,TOP,ICON,ICON); x.restore();
     ix=L+ICON+16;
   }
   const nm=(typeof firstName==='function'&&firstName())?firstName().toUpperCase():'';
