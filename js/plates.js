@@ -13,35 +13,21 @@ function plateMetrics(record){
 function plateCurrent(){return plateMetrics(DB.days?.[todayISO]);}
 // Each body part owns its volume, including its fractional last plate.
 // No rounding of the ledger and no borrowing another part's colour.
-/* v4.5.3: THE MIX IS SPREAD THROUGH THE STACK, not grouped by part.
-   It totalled each part and laid all of one part's plates down together. On
-   the maker's Aug 20 that made 33 plates -- Back 25, Biceps 4, Triceps 4 --
-   with every Back plate at the bottom. Only the CURRENT stack is drawn, so
-   what he saw was the tail: he did a Back session and the card showed him
-   Triceps.
-   Chronological order does not fix it either; he trained Back first, so the
-   tail is still arms. The stack is a picture of VOLUME, not a timeline, so the
-   parts are interleaved in proportion: each part's plates are spaced evenly
-   across the whole stack, which makes any ten-plate window a fair sample of
-   the session. Totals and plate counts are untouched -- only the order. */
+/* v4.5.4: GROUPED BANDS, HEAVIEST PART AT THE BOTTOM.
+   v4.5.3 interleaved the parts so any ten-plate window sampled the session.
+   That fixed the Aug 20 complaint -- a Back day showing Triceps -- and created
+   a worse one: every stack became a stripe of mixed colour, which says nothing
+   at a glance. The maker wants what a real stack looks like: the part you did
+   most on the floor, the least on top.
+   So parts are grouped as they always were, and ORDERED BY VOLUME rather than
+   by whatever order the sets were logged in. The heaviest band is the widest
+   and sits lowest, which is both the honest picture and the readable one. */
 function plateLedger(record,unit=isLb()?500/LB:250){
   const parts=new Map();
   for(const s of record?.w||[]){const kg=plateMetrics({w:[s]}).kg;if(kg>0)parts.set(s.part,(parts.get(s.part)||0)+kg);}
-  /* the plates each part is owed, in the old order and the old sizes */
-  const runs=[];
-  for(const [part,kg] of parts){const list=[];let left=kg;
-    while(left>1e-8){const amount=Math.min(unit,left);list.push({part,kg:amount});left-=amount;}
-    runs.push(list);}
-  const total=runs.reduce((n,r)=>n+r.length,0);
-  /* space each run evenly: a part with a quarter of the plates appears every
-     fourth one. Sorting by the fractional position interleaves every run at
-     once without a scheduler. */
-  const slots=[];
-  runs.forEach((list,ri)=>list.forEach((p,k)=>
-    slots.push({p,at:(k+0.5)/list.length,ri})));
-  slots.sort((a,b)=>a.at-b.at||a.ri-b.ri);
+  const ordered=[...parts.entries()].sort((a,b)=>b[1]-a[1]||String(a[0]).localeCompare(String(b[0])));
   const plates=[];let end=0;
-  for(const s of slots){end+=s.p.kg;plates.push({part:s.p.part,kg:s.p.kg,end});}
+  for(const [part,kg] of ordered){let left=kg;while(left>1e-8){const amount=Math.min(unit,left);end+=amount;plates.push({part,kg:amount,end});left-=amount;}}
   return plates;
 }
 // Bottom-up physical thickness, shared by the live canvas and all exports.

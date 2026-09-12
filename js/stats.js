@@ -42,8 +42,15 @@ let PMIX_FOCUS=null;
 let PMIX_MODE='sets';   // v3.3.277: 'sets' (default identity) | 'weight' (opt-in reading)
 /* weight totals must fit a 12.5px bar: compact thousands, one decimal under
    10k, none above — "5.5k", "12k" — and plain numbers below 1000. */
+/* v4.5.4: a whole thousand prints whole. The axis rounds to clean steps now,
+   so 8000 was arriving here and leaving as "8.0k" -- a decimal point on a
+   number that has no fraction, which is the opposite of the readable scale
+   the rounding was for. Only a genuinely fractional value keeps the .1. */
 const pmixFmtV=v=>PMIX_MODE==='weight'
-  ? (v>=9950 ? Math.round(v/1000)+'k' : v>=1000 ? (v/1000).toFixed(1)+'k' : fmt(Math.round(v)))
+  ? (v>=1000
+      ? (Math.abs(v/1000-Math.round(v/1000))<0.05 ? Math.round(v/1000)+'k'
+        : v>=9950 ? Math.round(v/1000)+'k' : (v/1000).toFixed(1)+'k')
+      : fmt(Math.round(v)))
   : fmt(Math.round(v));
 /* v3.3.122: press a column and read that day out in full. The chart is
    discrete, so this is an index lookup rather than the interpolation the
@@ -137,7 +144,7 @@ const pmixTick=v=>fmt(Math.round(v));
    just under its own gridline instead of touching the ceiling. */
 function pmixNiceMax(max,mode){
   if(!(max>0)) return 1;
-  const steps=mode==='weight'?[1000,2000,2500,5000,8000,10000,20000,25000,50000]:[1,2,4,5,10,20,25,50];
+  const steps=mode==='weight'?[1000,2000,5000,8000,10000,20000,25000,50000]:[1,2,4,5,10,20,25,50];   /* v4.5.4: 2500 dropped -- it is a clean step but it prints 2.5k, and the point of rounding was whole numbers */
   for(const st of steps){ const top=Math.ceil(max/(st*4))*(st*4); if(top/4===st) return top; }
   const st=Math.pow(10,Math.floor(Math.log10(max/4)));
   return Math.ceil(max/(st*4))*(st*4);
@@ -149,7 +156,7 @@ function pmixAxisSvg(rows){
   for(let i=0;i<=4;i++){
     const y=PMIX_BASE-(i/4)*(PMIX_BASE-PMIX_TOP);
     s+=`<text x="${PMIX_AXW-4}" y="${(y+2.5).toFixed(1)}" text-anchor="end"
-         font-family="var(--mono)" font-size="11" fill="var(--muted)">${pmixFmtV(max*i/4)}</text>`;
+         font-family="var(--body)" font-size="11" fill="var(--muted)">${pmixFmtV(max*i/4)}</text>`;
   }
   return s+`</svg>`;
 }

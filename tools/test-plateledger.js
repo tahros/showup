@@ -29,16 +29,19 @@ const L=led();
 const count=p=>L.filter(x=>x===p).length;
 
 ok('the Back session is mostly Back plates', count('Back')===25, JSON.stringify({Back:count('Back'),Biceps:count('Biceps'),Triceps:count('Triceps')}));
-/* the visible stack: the canvas draws the CURRENT stack of ten */
-const topTen=L.slice(-10), backTop=topTen.filter(x=>x==='Back').length;
-ok('THE VISIBLE STACK IS MOSTLY BACK, not the part that happened to be last',
-   backTop>=5, topTen.join(','));
-ok('...and it still shows the arms that were trained',
-   new Set(topTen).size>=2, [...new Set(topTen)].join(', '));
-/* every ten-plate window is a fair sample, not just the top one */
-let worst=1;
-for(let i=0;i+10<=L.length;i++){const f=L.slice(i,i+10).filter(x=>x==='Back').length/10;if(f<worst)worst=f;}
-ok('every ten-plate window is a fair sample of the session', worst>=0.5, 'worst window is '+(worst*100)+'% Back');
+/* v4.5.4: GROUPED BANDS, heaviest part lowest. v4.5.3 interleaved them so any
+   window sampled the session; that made every stack a stripe of mixed colour,
+   which reads as noise. A stack should look like a stack. */
+ok('the heaviest part is the band at the bottom', L[0]==='Back', L[0]);
+ok('...and each part is one unbroken band, not a stripe',
+   (function(){const seen=new Set();let last=null;
+     for(const p of L){ if(p!==last){ if(seen.has(p)) return false; seen.add(p); last=p; } }
+     return true;})(), L.join(',').slice(0,60)+'…');
+ok('...ordered by how much was lifted, not by when it was logged',
+   (function(){const order=[...new Set(L)];
+     const vol=p=>L.filter(x=>x===p).length;
+     return order.every((p,i)=>i===0||vol(order[i-1])>=vol(p));})(),
+   [...new Set(L)].join(' > '));
 
 /* nothing about the totals changed */
 ok('the plate count is unchanged', L.length===33, String(L.length));

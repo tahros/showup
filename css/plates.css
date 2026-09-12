@@ -7,7 +7,11 @@
 [data-theme="dark"]{--plate-side:#bbb;--plate-top:#ededed;--plate-hole:#929292}
 .plate-mini{height:48px;display:flex;align-items:center;gap:10px;font:11px var(--mono);color:var(--muted)}
 .plate-mini svg{width:40px;height:38px;flex:none;overflow:hidden}
-.plate-card{padding-top:0!important;overflow:hidden;text-align:center}
+/* v4.5.4: the replay button used to sit under the caption as a full row, and
+   its margin went with it when the button moved into the heading -- leaving a
+   band of empty card below "21 sets · 6 exercises" with nothing in it. */
+.plate-card{padding-top:0!important;padding-bottom:14px;overflow:hidden;text-align:center}
+.plate-card .plate-bank:empty{display:none;margin:0}
 /* v4.5.3: top-left, beside the date, and it says Replay. It sat under the
    card as a full row that read as a second action; the arrow already says
    "again", so "Tap to" was the instruction on a button, which every other

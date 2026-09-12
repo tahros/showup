@@ -1,6 +1,43 @@
 # ShowUp — changelog
 
 
+
+## v4.5.4 (2026-09-11) — The card he is actually looking at
+
+Most of v4.5.3 never reached the maker's screen. **`stats-story.js` overrides
+`pmixAxisSvg` with its own copy**, and that copy kept computing `max/4` from the
+raw max in a hard-coded 164-high box. So the suite proved the rounded axis
+worked while he went on seeing 8.7k / 17k / 26k / 35k, because nothing on his
+screen was running it. The review legend had the same shape of problem: its own
+`flex-wrap:wrap` in the same file, which the `nowrap` added to app.css could
+never reach.
+
+**Two copies of a rule is one rule and one lie.** The new suite,
+`test-reviewcard`, reads the RENDERED review card rather than the source of the
+module it hopes is running.
+
+**Plates are grouped bands again, heaviest part on the floor.** v4.5.3
+interleaved them so any ten-plate window sampled the session; that fixed the
+Aug 20 complaint and made every stack a stripe of mixed colour, which reads as
+noise. Grouped as before, but **ordered by volume** rather than by logging
+order — which is what the Aug 20 case actually needed.
+
+**Whole numbers on the axis**: 0 / 5k / 10k / 15k / 20k. `2500` is a clean step
+but prints `2.5k`, so it is out of the step list, and a whole thousand no longer
+arrives as `8.0k`.
+
+**Axis type matches the legend** — 11px, body face, both.
+
+**The dates line up**, asserted by comparing each column's centre against its
+label's x rather than by trusting the two renderers agree.
+
+**Plate separation** went from a 0.45px hairline to a third of the plate capped
+at 1.1px — visible on a phone.
+
+**The whitespace under the caption** was the replay button's margin, left behind
+when the button moved into the heading.
+
+
 ## v4.5.3 (2026-09-11) — Six on the history card
 
 **The Back session that showed Triceps.** The maker reviewed Aug 20 — Back,

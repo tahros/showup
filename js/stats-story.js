@@ -10,7 +10,7 @@ partMixSvg=days=>{
   const scale=(PMIX_BASE-PMIX_TOP)/pmixNiceMax(pmixMax(partMix(days,PMIX_MODE)),PMIX_MODE),quantum=isLb()?500:250;   /* v4.5.3: the SAME rounded top the axis prints, or this overlay draws past the gridlines */
   svg.querySelectorAll('.pmixseg').forEach(el=>{
    const x=+el.getAttribute('x'),y=+el.getAttribute('y'),w=+el.getAttribute('width'),h=+el.getAttribute('height'),step=quantum*scale;
-   for(let bottom=y+h;bottom>y+.0001;bottom-=step){const height=Math.min(step,bottom-y),plate=document.createElementNS('http://www.w3.org/2000/svg','rect');for(const [k,v]of Object.entries({class:'pmixplate'+(el.classList.contains('latest')?' latest':''),x,y:bottom-height,width:w,height:Math.max(.01,height-Math.min(.45,height*.2)),rx:Math.min(1.2,height/2),fill:el.getAttribute('fill'),'data-plate-unit':quantum,'data-pt':el.getAttribute('data-pt')}))plate.setAttribute(k,v);el.parentNode.insertBefore(plate,el);}el.remove();
+   for(let bottom=y+h;bottom>y+.0001;bottom-=step){const height=Math.min(step,bottom-y),plate=document.createElementNS('http://www.w3.org/2000/svg','rect');for(const [k,v]of Object.entries({class:'pmixplate'+(el.classList.contains('latest')?' latest':''),x,y:bottom-height,width:w,height:Math.max(.01,height-Math.min(1.1,height*.34))   /* v4.5.4: the gap between plates was up to .45px -- a hairline that vanished on a phone. A third of the plate, capped at 1.1px, so a stack reads as plates rather than a bar. */,rx:Math.min(1.2,height/2),fill:el.getAttribute('fill'),'data-plate-unit':quantum,'data-pt':el.getAttribute('data-pt')}))plate.setAttribute(k,v);el.parentNode.insertBefore(plate,el);}el.remove();
   });
  }const rows=partMix(days,PMIX_MODE);svg.querySelectorAll('.pmixcol').forEach(c=>{const date=rows[+c.dataset.col]?.d;if(date){c.setAttribute('tabindex','0');c.setAttribute('role','button');c.setAttribute('aria-label',new Date(date+'T00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'}));}});
  // Scale plotted geometry only. Text is rendered at native 11px, never stretched.
@@ -29,7 +29,24 @@ partMixSvg=days=>{
  rows.forEach((r,i)=>{const x=8+i*PMIX_COLW+(PMIX_COLW-2.5)/2,t=document.createElementNS(ns,'text');for(const [k,v]of Object.entries({x,y:PMIXC_H-38,transform:`rotate(-90 ${x} ${PMIXC_H-38})`,'text-anchor':'end','font-family':'var(--mono)','font-size':11,fill:'var(--muted)'}))t.setAttribute(k,v);t.textContent=(+r.d.slice(5,7))+'/'+(+r.d.slice(8,10));svg.append(t);});
  svg.setAttribute('viewBox',`0 0 ${svg.getAttribute('width')} ${PMIXC_H}`);svg.setAttribute('height',String(PMIXC_H));svg.style.height=PMIXC_H+'px';svg.setAttribute('preserveAspectRatio','xMinYMin meet');return svg.outerHTML;
 };
-pmixAxisSvg=()=>{const max=pmixMax(partMix(PMIX_DAYS,PMIX_MODE));return '<svg class="pmixaxis" width="42" height="164" viewBox="0 0 42 164">'+Array.from({length:5},(_,i)=>`<text x="38" y="${124-i*21.5}" text-anchor="end" font-family="var(--mono)" font-size="11" fill="var(--muted)">${pmixFmtV(max*i/4)}</text>`).join('')+'</svg>';};
+/* v4.5.4: THIS OVERRODE THE REAL AXIS. stats.js grew pmixNiceMax so the ticks
+   land on round numbers, and this copy -- which the review card actually uses
+   -- kept computing max/4 from the RAW max. The maker went on seeing
+   8.7k / 17k / 26k / 35k while the suite proved the rounded version worked,
+   because nothing on his screen was running it.
+   It also hard-coded a 164-high box and 21.5px tick spacing while the plot
+   beside it follows PMIX_H, so the ticks drifted from the gridlines they name.
+   Same rounded max, same geometry, same type as the legend. */
+pmixAxisSvg=()=>{
+  const max=pmixNiceMax(pmixMax(partMix(PMIX_DAYS,PMIX_MODE)),PMIX_MODE);
+  const H=Math.max(PMIX_BASE+16,Math.round(PMIX_H*0.9)), plot=Math.round(H*0.52);
+  const scale=plot/(PMIX_BASE-PMIX_TOP), base=PMIX_BASE*scale+(34-PMIX_TOP*scale), top=PMIX_TOP*scale+(34-PMIX_TOP*scale);
+  return `<svg class="pmixaxis" width="42" height="${H}" viewBox="0 0 42 ${H}">`+
+    Array.from({length:5},(_,i)=>{
+      const y=base-(i/4)*(base-top);
+      return `<text x="38" y="${(y+3.5).toFixed(1)}" text-anchor="end" font-family="var(--body)" font-size="11" fill="var(--muted)">${pmixFmtV(max*i/4)}</text>`;
+    }).join('')+'</svg>';
+};
 pmixSetFocus=()=>{};
 function reviewDay(date){
  reviewSelected=date;const el=document.getElementById('review-day');if(!date||!el)return;
@@ -57,8 +74,13 @@ const style=document.createElement('style');style.textContent=`
 #view.review-stats>.plate-card{box-shadow:0 3px 5px #00000004,0 16px 38px #00000008}
 #view.review-stats .pmixhead{align-items:center;justify-content:space-between;gap:12px}
 #view.review-stats .review-scale{font:400 11px var(--mono);color:var(--muted)}
-#view.review-stats .pmixlgd{display:flex;gap:14px;flex-wrap:wrap}
-#view.review-stats .pmixlgd>span{display:inline-flex;align-items:center;gap:5px;font:400 11px var(--body);color:var(--muted)}
+/* v4.5.4: NOWRAP, scrolled. This rule is the review card's own, and it set
+   flex-wrap:wrap -- so the nowrap added to .pmixlgd in app.css never reached
+   this screen and eight parts still broke onto a second line. Fixed where the
+   wrap actually lives rather than by out-specifying it from elsewhere. */
+#view.review-stats .pmixlgd{display:flex;gap:14px;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+#view.review-stats .pmixlgd::-webkit-scrollbar{display:none}
+#view.review-stats .pmixlgd>span{display:inline-flex;align-items:center;gap:5px;flex:0 0 auto;white-space:nowrap;font:400 11px var(--body);color:var(--muted)}
 #view.review-stats .pmixlgd>span i{width:7px;height:7px;border-radius:2px}
 #view.review-stats .pmixplate.latest{transform-box:fill-box;transform-origin:center bottom;animation:pmixrise var(--dur-arrive) var(--settle) both}
 #view.review-stats #review-day{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px;padding:13px 0 0;font:400 12px var(--body);color:var(--muted)}
