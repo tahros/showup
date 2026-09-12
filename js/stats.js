@@ -883,7 +883,10 @@ function currentRhythmSection(inverse){
     if(done) cls.push('on');
     if(future) cls.push('fut');
     if(isToday) cls.push('tod');
-    return `<i class="${cls.join(' ')}" role="img" aria-label="${x}${done?(inverse?' \u00b7 rested':' \u00b7 trained'):future?' \u00b7 future':(inverse?' \u00b7 trained':' \u00b7 rest')}"></i>`;
+    /* v4.5.14: --c is the cell's COLUMN (its week). Only the rest card reads it,
+       to stagger the green across the week as it fills; it costs nothing here and
+       keeps the stagger in CSS instead of a second pass over the grid. */
+    return `<i class="${cls.join(' ')}" style="--c:${Math.floor(k/7)}" role="img" aria-label="${x}${done?(inverse?' \u00b7 rested':' \u00b7 trained'):future?' \u00b7 future':(inverse?' \u00b7 trained':' \u00b7 rest')}"></i>`;
   }).join('');
   const liveTotal=msLiveTotal(),firstDay=SEED.totals.first;
   const total=inverse?(R?R.rests:0):liveTotal;
@@ -970,15 +973,40 @@ function weekShape(R){
   const sorted=[...cols].sort((a,b)=>b.rate-a.rate);
   const top=sorted[0], second=sorted[1];
   const spread=top.rate-sorted[sorted.length-1].rate;
+  /* v4.5.14: THE SAME FINDING, NOT THE SAME SENTENCE. The branches below are
+     unchanged -- which one fires is still decided by the data, and every phrasing
+     inside a branch says exactly what that branch found. What changed is that a
+     branch now holds several true wordings and picks one by the DATE, so a rhythm
+     that has been stable for two years stops reading like a stuck label. By the
+     date and not at random: it is steady all day, and it is the same sentence on
+     the same day on every device, which a random pick could not promise. Nothing
+     here praises, targets or escalates -- a rest day is a fact, not a score. */
+  const pick=list=>{
+    let h=0; for(const ch of (todayISO||'')) h=(h*31+ch.charCodeAt(0))>>>0;
+    return list[h%list.length];
+  };
   let line;
   if(top.rate>=.5&&top.rate-second.rate>=.12)
-    line=`You rest on ${top.name}.`;
+    line=pick([`You rest on ${top.name}.`,
+               `${top.name} are your rest day.`,
+               `Your week takes ${top.name} off.`,
+               `Rest lands on ${top.name}.`,
+               `${top.name} are when you stop.`]);
   else if(spread<.15)
-    line=`You rest evenly across the week.`;
+    line=pick([`You rest evenly across the week.`,
+               `No weekday carries your rest.`,
+               `Your rest is spread flat across the week.`,
+               `Every weekday takes a turn resting.`]);
   else if(top.rate-sorted[2].rate>=.12)
-    line=`You rest on ${top.name} and ${second.name}.`;
+    line=pick([`You rest on ${top.name} and ${second.name}.`,
+               `${top.name} and ${second.name} are your rest days.`,
+               `Rest lands on ${top.name} and ${second.name}.`,
+               `Your week takes ${top.name} and ${second.name} off.`]);
   else
-    line=`You rest most on ${top.name}.`;
+    line=pick([`You rest most on ${top.name}.`,
+               `${top.name} lean toward rest.`,
+               `Rest leans to ${top.name}.`,
+               `${top.name} are your likeliest rest day.`]);
   const sub=(top.rate>=.5&&top.rate-second.rate>=.12)
     ? `${Math.round(top.rate*100)}% of them, across ${fmt(R.daysIn)} days.`
     : `across ${fmt(R.daysIn)} days.`;

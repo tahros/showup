@@ -568,6 +568,21 @@
      wording runs longer than "streak" and crowded the number. */
   .crcard.resting .heatgrid .hc.on{background-color:var(--rest)}
   .crcard.resting .crtotal b{color:var(--rest-ink)}
+  /* v4.5.14: the green ARRIVES. Declaring rest replaces the card's markup, so a
+     CSS transition has nothing to travel from -- the new cells are simply born
+     green. These keyframes give them the journey instead, growing left to right
+     across the week at the same 40ms-per-step the other staggers use, so the
+     grid fills like a breath rather than flicking over. --c is the column index,
+     already written on every cell by the builder. Capped so a two-year grid does
+     not take a minute to finish; the number changes colour on its own, once. */
+  @keyframes restfill{from{background-color:var(--surface2)}to{background-color:var(--rest)}}
+  @keyframes restink{from{color:var(--accent-ink)}to{color:var(--rest-ink)}}
+  .crcard.resting .heatgrid .hc.on{
+    animation:restfill .42s var(--settle) both;
+    animation-delay:calc(min(var(--c,0),22) * 18ms)}
+  .crcard.resting .crtotal b{animation:restink .5s var(--settle) both}
+  @media (prefers-reduced-motion:reduce){
+    .crcard.resting .heatgrid .hc.on,.crcard.resting .crtotal b{animation:none}}
   /* v4.5.11: BOTH cards stack. The rest card has read as two right-aligned
      lines since v3.3.469; the attendance card kept one long nowrap string
      ("streak 2 days \u00b7 best 10") that crowded the card's right edge. Same

@@ -1574,6 +1574,19 @@ function paint(opts){
   const y=inplace?(window.scrollY||window.pageYOffset||0):0;
   const v=document.getElementById('view');
   if(v) v.classList.toggle('norise',inplace);
+  /* v4.5.14: #view's VIEW-SCOPED classes are cleared here, before the view draws.
+     stats-story adds `stats-system` (and `review-stats`) to #view and nothing ever
+     took them off, so after one visit to Stats they rode along onto Today and
+     Train for the rest of the session. That matters because those rules carry an
+     ID -- `#view.stats-system .heatgrid .hc.on{background-color:var(--accent)}`
+     outranks `.crcard.resting .heatgrid .hc.on{background-color:var(--rest)}`
+     however many classes the latter has -- so the rest card's green silently lost
+     to the training blue. Symptom: rest sometimes looked blue, "sometimes" being
+     exactly "after you opened Stats". Cleared unconditionally: Stats and Settings
+     re-add what they need on the very next line, so a `view!=='stats'` guard here
+     would read like a rule while enforcing nothing -- proved by removing it and
+     watching every assertion stay green. */
+  if(v) v.classList.remove('stats-system','review-stats');
   ({today:renderToday,lift:renderLift,stats:renderStats,history:renderHistory,sync:renderSync})[view]();
   document.querySelectorAll('[data-zoom]').forEach(bindZoom);
   bindPmix();

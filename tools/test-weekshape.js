@@ -96,8 +96,14 @@ ok("two rest days are named as two, not crowned as one",
 // ---- a flat record says so rather than crowning the tallest column
 let seed=1; const rnd=()=>((seed=seed*1103515245+12345&0x7fffffff)/0x7fffffff);
 build("dow=>((dow*2654435761)%97)>24");
+/* v4.5.14: the claim is that a flat record is HEDGED, not that it uses two
+   particular words. The wordings rotate now, so the accepted hedges are listed
+   -- and the definite forms are named too, because "is it hedged" is only worth
+   asserting if "is it definite" can fail. */
 ok("a record with no rhythm is not given one",
-   /evenly|most on/.test(line()), line());
+   /evenly|most on|leans? to|lean toward|likeliest|No weekday carries|spread flat|takes a turn/.test(line()), line());
+ok("...and it never states a rest day outright",
+   !/are your rest day|Rest lands on|are when you stop|takes \w+days off|^You rest on \w+days\.$/.test(line().trim()), line());
 
 // ---- nothing is a target
 ok("the shape sets no goal, grades nothing and names no ideal",
