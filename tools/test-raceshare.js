@@ -22,7 +22,9 @@ w.Element.prototype.releasePointerCapture = function(){};
 if (!w.PointerEvent) w.PointerEvent = class extends w.MouseEvent {
   constructor(t, o = {}) { super(t, o); this.pointerId = o.pointerId || 1; this.pointerType = o.pointerType || "touch"; }
 };
-for (const s of order) vm.runInContext(fs.readFileSync(path.join(dir, s), "utf8"), ctx, { filename: s });
+// Legacy race arithmetic remains available to exports. Exercise that component
+// directly; the v4.5 page uses pinned, absolute comparisons covered in test-stats-connected.
+for (const s of order.filter(s=>s!=='js/stats-story.js')) vm.runInContext(fs.readFileSync(path.join(dir, s), "utf8"), ctx, { filename: s });
 w.document.dispatchEvent(new w.Event("DOMContentLoaded", { bubbles: true }));
 const run = c => vm.runInContext(c, ctx);
 

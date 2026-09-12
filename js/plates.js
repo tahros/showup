@@ -1,5 +1,5 @@
 /* ShowUp plate rewards. Ledger-derived volume; local viewing state only.
-   500 lb per plate, 10 plates per stack. Never change scale during a day. */
+   500 lb or 250 kg per plate, 10 plates per stack. Scale follows display units. */
 function plateMetrics(record){
   let kg=0,sets=0; const exercises=new Set();
   for(const s of record?.w||[]){
@@ -13,17 +13,17 @@ function plateMetrics(record){
 function plateCurrent(){return plateMetrics(DB.days?.[todayISO]);}
 // Each body part owns its volume, including its fractional last plate.
 // No rounding of the ledger and no borrowing another part's colour.
-function plateLedger(record){
+function plateLedger(record,unit=isLb()?500/LB:250){
   const parts=new Map();
   for(const s of record?.w||[]){const kg=plateMetrics({w:[s]}).kg;if(kg>0)parts.set(s.part,(parts.get(s.part)||0)+kg);}
-  const plates=[];let end=0;const unit=500/LB;
+  const plates=[];let end=0;
   for(const [part,kg] of parts){let left=kg;while(left>1e-8){const amount=Math.min(unit,left);end+=amount;plates.push({part,kg:amount,end});left-=amount;}}
   return plates;
 }
 function plateNumber(kg){return Math.round(toU(kg)).toLocaleString();}
-function plateKey(){return 'showup.plates.v2.'+(session?.user?.id||'local')+'.'+todayISO;}
-function plateSeen(){try{return Math.max(0,Number(localStorage.getItem(plateKey()))||0);}catch(e){return 0;}}
-function plateRemember(kg){try{localStorage.setItem(plateKey(),String(kg));}catch(e){}}
+function plateKey(date=todayISO){return 'showup.plates.v2.'+(session?.user?.id||'local')+'.'+date;}
+function plateSeen(date=todayISO){try{return Math.max(0,Number(localStorage.getItem(plateKey(date)))||0);}catch(e){return 0;}}
+function plateRemember(kg,date=todayISO){try{localStorage.setItem(plateKey(date),String(kg));}catch(e){}}
 // A finished image, never a screenshot of the animation's current frame.
 // Snapshot the date, ledger, theme and units before awaiting image/font loading.
 async function sharePlateCard(){
@@ -46,12 +46,12 @@ function drawPlateShare(data,mascot,frame={}){
   // Do not resize a live captureStream canvas on every frame.
   if(cv.width!==1080)cv.width=1080;if(cv.height!==1280)cv.height=1280;
   const x=cv.getContext('2d');if(!x)return null;
-  const m=plateMetrics(data.record),plates=plateLedger(data.record),bank=Math.max(0,Math.floor((plates.length-1)/30))*30;
+  const unit=data.unit==='lb'?500/LB:250,m=plateMetrics(data.record),plates=plateLedger(data.record,unit),bank=Math.max(0,Math.floor((plates.length-1)/30))*30;
   const sans='"ShowUp Export Plex", "IBM Plex Sans",sans-serif',mono=sans;
   const animated=Number.isFinite(frame.time);let total=bank?plates[bank-1].end:0;
   x.fillStyle=data.surface;x.fillRect(0,0,1080,1280);
   const text=(s,y,font,color=data.ink)=>{x.font=font;x.fillStyle=color;x.textAlign='center';x.fillText(s,540,y,944);};
-  text('WORKOUT COMPLETE',98,'500 25px '+mono,data.muted);
+  text(data.record.doneAll?'WORKOUT COMPLETE':'YOUR WORKOUT',98,'500 25px '+mono,data.muted);
   const date=new Date(data.date+'T00:00');
   text(date.toLocaleDateString('en-US',{weekday:'long'})+' · '+date.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),148,'500 30px '+mono);
   function shadow(cx,cy,rx,ry){x.save();x.translate(cx,cy);x.scale(rx,ry);const g=x.createRadialGradient(0,0,0,0,0,1);g.addColorStop(0,'rgba(90,90,90,.20)');g.addColorStop(1,'rgba(90,90,90,0)');x.fillStyle=g;x.beginPath();x.arc(0,0,1,0,Math.PI*2);x.fill();x.restore();}
@@ -59,7 +59,7 @@ function drawPlateShare(data,mascot,frame={}){
   for(let c=0;c<Math.min(3,Math.ceil((plates.length-bank)/10));c++)shadow(210+c*195,774,130,22);
   x.save();x.beginPath();x.rect(60,190,960,610);x.clip();
   for(let i=bank;i<plates.length;i++){
-    const p=plates[i],n=i-bank,c=data.colors[p.part]||'#888888',cx=210+Math.floor(n/10)*195,end=741-(n%10)*29,h=19*Math.min(1,p.kg/(500/LB));
+    const p=plates[i],n=i-bank,c=data.colors[p.part]||'#888888',cx=210+Math.floor(n/10)*195,end=741-(n%10)*29,h=19*Math.min(1,p.kg/unit);
     const age=animated?frame.time-n*70:1e6;if(age<0)continue;
     let cy=end,angle=0;
     if(age<340){const v=age/340;cy=155+(end-155)*v*v;angle=(i%2?-1:1)*.28*(1-v*.6);}

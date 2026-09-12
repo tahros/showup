@@ -22,10 +22,10 @@ function platePose(age,landingY,direction){
   return {y:landingY-3*Math.sin(s*Math.PI)*(1-s),angle:direction*.035*Math.sin(s*Math.PI*2)*(1-s),landed:true};
 }
 let plateCancel=()=>{};
-function bindPlateStats(){
+function bindPlateStats(date=todayISO,staticView=false){
   plateCancel();const host=document.querySelector('.plate-card');if(!host)return;
   const canvas=host.querySelector('.plate-canvas'),ctx=canvas.getContext('2d');if(!ctx){host.querySelector('.plate-replay').hidden=true;return;}
-  const m=plateCurrent(),unit=500/LB,ledger=plateLedger(DB.days?.[todayISO]),count=ledger.length,bank=Math.max(0,Math.floor((count-1)/30))*30;
+  const m=plateMetrics(DB.days?.[date]),unit=isLb()?500/LB:250,ledger=plateLedger(DB.days?.[date],unit),count=ledger.length,bank=Math.max(0,Math.floor((count-1)/30))*30;
   host.querySelector('.plate-bank').textContent=bank?`${bank/10} completed stacks + current stacks`:'';
   const reduced=matchMedia('(prefers-reduced-motion: reduce)'),number=host.querySelector('.plate-total b'),announcement=host.querySelector('.plate-announcement');
   const bankKg=bank?ledger[bank-1].end:0;
@@ -49,15 +49,15 @@ function bindPlateStats(){
   }
   function rest(){host.classList.remove('plate-running');canvas.dataset.playing='false';}
   function stop(){cancelAnimationFrame(raf);raf=0;playing=false;rest();from=m.kg;first=count;draw(1e6);}
-  function tick(now){if(ended||!host.isConnected)return;const t=now-start;draw(t);if(t<(count-first-1)*70+780)raf=requestAnimationFrame(tick);else{playing=false;rest();plateRemember(m.kg);announcement.textContent=`${plateNumber(m.kg)} ${U()} moved`;}}
+  function tick(now){if(ended||!host.isConnected)return;const t=now-start;draw(t);if(t<(count-first-1)*70+780)raf=requestAnimationFrame(tick);else{playing=false;rest();plateRemember(m.kg,date);announcement.textContent=`${plateNumber(m.kg)} ${U()} moved`;}}
   function play(replay=false){
-    stop();colors();from=replay?bankKg:Math.max(bankKg,Math.min(m.kg,plateSeen()));first=Math.max(bank,ledger.findIndex(p=>p.end>from+1e-8));if(first<bank)first=count;
-    if(reduced.matches||from>=m.kg||!count){from=m.kg;first=count;draw(1e6);plateRemember(m.kg);return;}
+    stop();colors();from=replay?bankKg:staticView?m.kg:Math.max(bankKg,Math.min(m.kg,plateSeen(date)));first=Math.max(bank,ledger.findIndex(p=>p.end>from+1e-8));if(first<bank)first=count;
+    if(reduced.matches||from>=m.kg||!count){from=m.kg;first=count;draw(1e6);if(!staticView)plateRemember(m.kg,date);return;}
     playing=true;canvas.dataset.playing='true';announcement.textContent='';start=performance.now();
     if(mascotMode()==='animated'){host.classList.add('plate-running');host.querySelector('.su-mascot')?.dispatchEvent(new Event('mascotreplay'));}
     draw(0);raf=requestAnimationFrame(tick);
   }
-  function resizeCanvas(){width=canvas.clientWidth;const dpr=Math.min(window.devicePixelRatio||1,2);canvas.width=Math.round(width*dpr);canvas.height=height*dpr;if(typeof ctx.setTransform==='function')ctx.setTransform(dpr,0,0,dpr,0,0);draw(playing?performance.now()-start:1e6);}
+  function resizeCanvas(){width=canvas.clientWidth;height=canvas.clientHeight||255;const dpr=Math.min(window.devicePixelRatio||1,2);canvas.width=Math.round(width*dpr);canvas.height=height*dpr;if(typeof ctx.setTransform==='function')ctx.setTransform(dpr,0,0,dpr,0,0);draw(playing?performance.now()-start:1e6);}
   const resize=typeof ResizeObserver==='undefined'?{observe(){resizeCanvas();window.addEventListener('resize',resizeCanvas);},disconnect(){window.removeEventListener('resize',resizeCanvas);}}:new ResizeObserver(resizeCanvas);
   const observer=new MutationObserver(()=>{if(!host.isConnected)dispose();});
   function visibility(){if(document.hidden){request++;stop();}}

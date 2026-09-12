@@ -1,4 +1,5 @@
-/* v4.4.0 — the approved Stats page, installed before the app's first render. */
+/* v4.5.0 — connected workout history and pinned multi-year comparisons.
+   Installs before first render; never mutates profile or workout records. */
 (()=>{
 /* Weight-first daily plate columns. */
 const reviewSvg=partMixSvg,reviewAxis=pmixAxisSvg,reviewRender=renderStats;
@@ -11,17 +12,23 @@ partMixSvg=days=>{
    const x=+el.getAttribute('x'),y=+el.getAttribute('y'),w=+el.getAttribute('width'),h=+el.getAttribute('height'),step=quantum*scale;
    for(let bottom=y+h;bottom>y+.0001;bottom-=step){const height=Math.min(step,bottom-y),plate=document.createElementNS('http://www.w3.org/2000/svg','rect');for(const [k,v]of Object.entries({class:'pmixplate'+(el.classList.contains('latest')?' latest':''),x,y:bottom-height,width:w,height:Math.max(.01,height-Math.min(.45,height*.2)),rx:Math.min(1.2,height/2),fill:el.getAttribute('fill'),'data-plate-unit':quantum,'data-pt':el.getAttribute('data-pt')}))plate.setAttribute(k,v);el.parentNode.insertBefore(plate,el);}el.remove();
   });
- }return svg.outerHTML;
+ }svg.setAttribute('preserveAspectRatio','none');const rows=partMix(days,PMIX_MODE);svg.querySelectorAll('.pmixcol').forEach(c=>{const date=rows[+c.dataset.col]?.d;if(date){c.setAttribute('tabindex','0');c.setAttribute('role','button');c.setAttribute('aria-label',new Date(date+'T00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'}));}});return svg.outerHTML;
 };
-pmixAxisSvg=()=>reviewAxis(partMix(PMIX_DAYS,PMIX_MODE));
+pmixAxisSvg=()=>reviewAxis(partMix(PMIX_DAYS,PMIX_MODE)).replace('<svg ','<svg preserveAspectRatio="none" ');
 pmixSetFocus=()=>{};
-function reviewDay(date){reviewSelected=date;const el=document.getElementById('review-day');if(!date||!el)return;const m=plateMetrics(DB.days[date]);el.innerHTML='<strong>'+new Date(date+'T00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})+'</strong><span>'+plateNumber(m.kg)+' '+U()+' · '+m.sets+' sets</span>';const rows=partMix(PMIX_DAYS,PMIX_MODE);document.querySelectorAll('.pmixcol').forEach(c=>c.classList.toggle('latest',rows[+c.getAttribute('data-col')]?.d===date));}
+function reviewDay(date){
+ reviewSelected=date;const el=document.getElementById('review-day');if(!date||!el)return;
+ const m=plateMetrics(DB.days[date]);el.innerHTML='<strong>'+new Date(date+'T00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})+'</strong><span>'+plateNumber(m.kg)+' '+U()+' · '+m.sets+' sets</span>';
+ const rows=partMix(PMIX_DAYS,PMIX_MODE);document.querySelectorAll('.pmixcol').forEach(c=>{const selected=rows[+c.dataset.col]?.d===date;c.classList.toggle('latest',selected);c.setAttribute('tabindex',selected?'0':'-1');c.setAttribute('aria-pressed',String(selected));c.querySelectorAll('.pmixplate').forEach(p=>p.classList.toggle('latest',selected));});
+ if(document.querySelector('.work-combined'))updateWork(date);
+}
 function reviewDecorate(){
  const root=document.getElementById('view');root.classList.add('review-stats');const box=document.getElementById('pmixWrap');if(box){const card=box.closest('.card');
  const key=document.createElement('div');key.className='review-scale';key.textContent=PMIX_MODE==='weight'?'One plate · '+(isLb()?'500 lb':'250 kg'):'One block · one set';card.querySelector('.pmixhead').prepend(key);
  const receipt=document.createElement('div');receipt.id='review-day';receipt.setAttribute('aria-live','polite');card.querySelector('.pmixbox').after(receipt);
+ box.addEventListener('keydown',e=>{const c=e.target.closest('.pmixcol');if(!c||!['Enter',' ','ArrowLeft','ArrowRight'].includes(e.key))return;e.preventDefault();const index=+c.dataset.col+(e.key==='ArrowLeft'?-1:e.key==='ArrowRight'?1:0),date=partMix(PMIX_DAYS,PMIX_MODE)[index]?.d;if(date){reviewDay(date);const next=box.querySelector('[data-col="'+index+'"]');next?.focus({preventScroll:true});next?.scrollIntoView?.({block:'nearest',inline:'nearest'});}});
  card.querySelector('.pmixlgd').setAttribute('aria-label','Body-part colors');card.querySelectorAll('.pmixlgd button').forEach(b=>{const span=document.createElement('span');span.innerHTML=b.innerHTML;span.style.cssText=b.style.cssText;b.replaceWith(span);});
- let down;box.addEventListener('pointerdown',e=>down={x:e.clientX,y:e.clientY},{passive:true});box.addEventListener('pointerup',e=>{if(!down||Math.hypot(e.clientX-down.x,e.clientY-down.y)>6)return;const rows=partMix(PMIX_DAYS,PMIX_MODE),i=Math.floor((e.clientX-box.getBoundingClientRect().left+box.scrollLeft-8)/PMIX_COLW);if(rows[i])reviewDay(rows[i].d);down=null;},{passive:true});reviewDay(reviewSelected||partMix(PMIX_DAYS,PMIX_MODE).at(-1)?.d);}
+ let down;box.addEventListener('pointerdown',e=>down={x:e.clientX,y:e.clientY},{passive:true});box.addEventListener('pointerup',e=>{if(!down||Math.hypot(e.clientX-down.x,e.clientY-down.y)>6)return;const rows=partMix(PMIX_DAYS,PMIX_MODE),i=Math.floor((e.clientX-box.getBoundingClientRect().left+box.scrollLeft-8)/PMIX_COLW);if(rows[i])reviewDay(rows[i].d);down=null;},{passive:true});reviewDay(storyWorkoutDate());}
  const show=root.querySelector('.crhead');if(show){const mark=document.createElement('picture');mark.className='review-mascot';mark.innerHTML='<img src="assets/mascot-mark-'+(document.documentElement.dataset.theme==='dark'?'white':'charcoal')+'.png" alt="Show Up mascot">';show.append(mark);}
  root.querySelectorAll('h2').forEach(h=>{const t=h.firstChild;if(t?.nodeType===3&&t.textContent.startsWith('Show up —'))t.textContent='Show up';});
  bindPmix();bindHeat();pmixSummary();
@@ -74,12 +81,12 @@ document.addEventListener('click',()=>setTimeout(()=>document.getElementById('vi
 PMIX_MODE='weight';PMIX_FOCUS=null;
 
 
-/* Workout summary and accumulation chart remain independent. */
+/* Selected workout context is shared by the summary and accumulation chart. */
 const storyPlate=plateStatsHTML,storyBind=bindPlateStats,storyGrowth=growthAuditSection,storyYear=consistencyRaceSection,storyWeight=bwCard,storySettings=renderSync;
-function storyWorkoutDate(){return plateCurrent().sets?todayISO:Object.keys(DB.days).sort().reverse().find(d=>d<=todayISO&&plateMetrics(DB.days[d]).sets);}
+function storyWorkoutDate(){return reviewSelected&&DB.days[reviewSelected]?reviewSelected:(plateCurrent().sets?todayISO:Object.keys(DB.days).sort().reverse().find(d=>d<=todayISO&&plateMetrics(DB.days[d]).sets));}
 function storyAtDate(date,fn){const original=todayISO;todayISO=date;try{return fn();}finally{todayISO=original;}}
 plateStatsHTML=()=>{const date=storyWorkoutDate();if(!date)return '<h2>Your first workout</h2><div class="card story-empty">'+mascotHTML('idle')+'<h3>Start with one set.</h3><p>Your workout story will appear here.</p><button class="btn" onclick="view=\'lift\';render()">Start training</button></div>';return storyAtDate(date,()=>storyPlate()).replace('Today completed',date===todayISO?'Today completed':'Your last workout');};
-bindPlateStats=()=>{const date=storyWorkoutDate();if(!date)return;if(date!==todayISO)storyAtDate(date,()=>plateRemember(plateMetrics(DB.days[date]).kg));storyAtDate(date,()=>storyBind());const share=document.querySelector('.plate-share');if(share)share.onclick=()=>storyAtDate(date,()=>sharePlateCard());};
+bindPlateStats=()=>{const date=storyWorkoutDate();if(!date)return;storyBind(date,date!==todayISO);const share=document.querySelector('.plate-share');if(share)share.onclick=()=>storyAtDate(date,()=>sharePlateCard());};
 growthAuditSection=()=>{const html=storyGrowth(),g=growthAuditData().groups[ga.grp];if(!g)return html;const records=g.ex.filter(e=>e.ago<GA_RECENT_DAYS).map(e=>gaPR(e).change).filter(Boolean);const heavier=records.filter(r=>r.beat&&r.w>r.beat.w+.001).length,reps=records.filter(r=>r.beat&&Math.abs(r.w-r.beat.w)<.001&&r.rep>r.beat.rep).length;const headline=records.length?records.length+' exercise'+(records.length===1?' is':'s are')+' progressing':g.sets?'No new strength record yet':'Build your baseline';const detail=records.length?'Compared with the recent records below.':'Your logged sets are the evidence—not a prediction.';const summary='<div class="story-growth"><h3>'+headline+'</h3><p>'+detail+'</p><div class="story-signals"><span><b>'+heavier+'</b> heavier weight</span><span><b>'+reps+'</b> more repetitions</span></div><small>Additional sets measure training volume, not a strength record.</small></div>';return html.replace('<div class="gahead">',summary+'<div class="gahead">');};
 consistencyRaceSection=()=>{const year=+todayISO.slice(0,4),end=todayISO.slice(5),years=[year,year-1],data=years.map(y=>{const dates=Object.keys(DB.days).filter(d=>d.startsWith(y+'-')&&d.slice(5)<=end&&plateMetrics(DB.days[d]).sets);return {year:y,days:dates.length,kg:dates.reduce((n,d)=>n+plateMetrics(DB.days[d]).kg,0),exists:dates.length>0};});const cutoff=new Date(todayISO+'T00:00').toLocaleDateString('en-US',{month:'long',day:'numeric'});return '<h2>This year vs last</h2><div class="card story-year"><p class="story-period">January 1 – '+cutoff+' · both years</p><div class="story-compare"><span></span>'+data.map(d=>'<b>'+d.year+'</b>').join('')+'<span>Days trained</span>'+data.map(d=>'<strong>'+ (d.exists?d.days:'—')+'</strong>').join('')+'<span>Weight moved</span>'+data.map(d=>'<strong>'+(d.exists?plateNumber(d.kg)+' '+U():'—')+'</strong>').join('')+'</div>'+(!data[1].exists?'<p class="story-missing">No previous-year records yet. No comparison claimed.</p>':'')+'</div>';};
 // Relocate the existing history UI, not the data it reads.
@@ -128,7 +135,9 @@ function v4YearControls(card,kind){
 }
 const v4Render=renderStats;renderStats=()=>{const keep=[wovenSection,growthAuditSection,monthlyPaceSection];wovenSection=()=>'';growthAuditSection=()=>'';monthlyPaceSection=()=>'';try{v4Render();}finally{[wovenSection,growthAuditSection,monthlyPaceSection]=keep;}const root=document.getElementById('view');const heads=[...root.querySelectorAll('h2')];for(const h of heads){const t=h.firstChild;if(t?.nodeType!==3)continue;const s=t.textContent.trim();if(s==='Every week'){h.nextElementSibling?.remove();h.remove();}if(s==='Progression')t.textContent='Your progress';if(s==='Show up')t.textContent='Your daily streak';if(s==='The last 7 days'){t.textContent='This week';const p=document.createElement('p');p.className='v4-note';p.textContent=weekDays().map(d=>new Date(d+'T00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})).filter((_,i)=>i===0||i===6).join(' – ');h.nextElementSibling.prepend(p);}}
  const running=heads.find(h=>h.textContent.startsWith('Running ·'));if(running){const intro=root.querySelector('.story-running');if(intro)running.before(intro);}
- root.querySelectorAll('.conrace').forEach(c=>v4YearControls(c,c.classList.contains('runrace')?'distance':'days'));
+ // A historical runner still has a distance story even with no run this year.
+ if(!root.querySelector('.runrace')&&Object.entries(DB.days).some(([d,r])=>d<=todayISO&&(r.w||[]).some(s=>s.ex==='Run'&&s.w>0))){const heading=document.createElement('h2'),card=document.createElement('div');heading.textContent='Distance';card.className='card conrace runrace';const pace=root.querySelector('.pacecard')?.previousElementSibling;if(pace){pace.before(heading,card);}else root.append(heading,card);}
+ root.querySelectorAll('.conrace').forEach(c=>comparisonCard(c,c.classList.contains('runrace')?'distance':'days'));
  const titleMap=new Map([
   ['Today completed','Workout complete'],
   ['What you did','Your work adds up'],
@@ -155,7 +164,7 @@ const systemRender=renderStats,systemSync=renderSync;
 const systemLongDate=iso=>new Date(iso+'T00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
 function systemDates(root){
  const workout=storyWorkoutDate();const plate=root.querySelector('.plate-date');if(plate&&workout)plate.textContent=systemLongDate(workout).replace(', ',' · ');
- const week=root.querySelector('.mccard .v4-note');if(week){const d=weekDays(),a=new Date(d[0]+'T00:00'),b=new Date(d[6]+'T00:00');week.textContent=a.toLocaleDateString('en-US',{month:'long',day:'numeric'})+'–'+b.toLocaleDateString('en-US',{month:a.getMonth()===b.getMonth()?undefined:'long',day:'numeric',year:'numeric'});}
+ const week=root.querySelector('.mccard .v4-note');if(week){const d=weekDays(),a=new Date(d[0]+'T00:00'),b=new Date(d[6]+'T00:00'),sameYear=a.getFullYear()===b.getFullYear();week.textContent=a.toLocaleDateString('en-US',{month:'long',day:'numeric',...(!sameYear?{year:'numeric'}:{})})+'–'+(sameYear&&a.getMonth()===b.getMonth()?b.getDate():b.toLocaleDateString('en-US',{month:'long',day:'numeric'}))+', '+b.getFullYear();}
  const pg=root.querySelector('.pg-period');if(pg){const main=pg.querySelector('.pg-period-main'),year=pg.querySelector('.pg-period-year');if(main){main.textContent=main.textContent.replace(/\bJan\b/g,'January').replace(/\bFeb\b/g,'February').replace(/\bMar\b/g,'March').replace(/\bApr\b/g,'April').replace(/\bJun\b/g,'June').replace(/\bJul\b/g,'July').replace(/\bAug\b/g,'August').replace(/\bSep\b/g,'September').replace(/\bOct\b/g,'October').replace(/\bNov\b/g,'November').replace(/\bDec\b/g,'December');}if(year)year.textContent=year.textContent.trim();}
  root.querySelectorAll('.plate-date,#review-day,.v4-note,.pg-period,.pg-read-date,.story-running p,.conkick').forEach(e=>e.classList.add('stats-date'));
 }
@@ -179,7 +188,7 @@ function systemColorRoles(root){
  root.querySelectorAll('.pacecard .paceval').forEach(e=>{e.setAttribute('fill',e.classList.contains('latest')?'var(--accent)':'var(--muted)');e.setAttribute('font-size','6.5');e.setAttribute('font-weight',e.classList.contains('latest')?'600':'500');});
 }
 function systemApply(){const root=document.getElementById('view');if(!root||view!=='stats')return;root.classList.add('stats-system');systemDates(root);systemUnits(root);systemControls(root);systemColorRoles(root);root.querySelector('.pmixsum')?.remove();root.querySelectorAll('.plate-bank:empty,.plate-legend:empty').forEach(e=>e.remove());}
-renderStats=()=>{systemRender();systemApply();};
+renderStats=()=>{systemRender();systemApply();combineWork();document.querySelectorAll('.heatscroll').forEach(e=>{const months=e.querySelector('.heatticks'),grid=e.querySelector('.heatgrid');if(months&&grid)e.insertBefore(months,grid);});};
 renderSync=()=>{systemSync();const root=document.getElementById('view');root?.classList.add('stats-system');systemControls(root);systemUnits(root);};
 const systemStyle=document.createElement('style');systemStyle.textContent=`
 #view.stats-system{--stats-edge:0px;--stats-radius:22px;--stats-pad-x:18px;--stats-pad-y:20px;--stats-section:30px;--stats-heading:10px}
@@ -229,4 +238,93 @@ const systemStyle=document.createElement('style');systemStyle.textContent=`
 #view.stats-system .plate-legend{margin-top:9px}
 @media(max-width:360px){#view.stats-system{--stats-edge:0px;--stats-pad-x:14px}#view.stats-system .plate-date{font-size:9px}}
 `;document.head.append(systemStyle);
+/* One date owns the receipt, canvas and share snapshot. Browsing never writes logs. */
+function combineWork(){
+ const hero=document.querySelector('.plate-card'),history=document.getElementById('pmixWrap')?.closest('.card');
+ if(!hero||!history)return;
+ const heading=history.previousElementSibling;if(heading?.tagName==='H2')heading.remove();
+ const shell=document.createElement('div');shell.className='card stats-card work-combined';hero.before(shell);
+ const title=shell.previousElementSibling;if(title?.tagName==='H2')title.textContent=reviewSelected===todayISO&&DB.days[todayISO]?.doneAll?'Workout complete':'Your work, stacking up';
+ hero.classList.remove('card','stats-card');hero.classList.add('work-hero');shell.append(hero);
+ history.classList.remove('card','stats-card');history.classList.add('work-history');shell.append(history);
+ const receipt=history.querySelector('#review-day');if(receipt)receipt.hidden=true;
+ history.querySelector('.pmixaxis')?.setAttribute('preserveAspectRatio','none');
+ const wrap=history.querySelector('#pmixWrap'),selectedIndex=partMix(PMIX_DAYS,PMIX_MODE).findIndex(d=>d.d===reviewSelected);wrap.style.scrollBehavior='auto';wrap.scrollLeft=selectedIndex<0?wrap.scrollWidth:8+(selectedIndex+.5)*PMIX_COLW-wrap.clientWidth/2;
+ const latest=document.createElement('button');latest.className='work-latest';latest.textContent='Latest ↗';latest.onclick=()=>{const date=Object.keys(DB.days).sort().reverse().find(d=>d<=todayISO&&plateMetrics(DB.days[d]).sets);if(date)reviewDay(date);const box=document.getElementById('pmixWrap');box.scrollLeft=box.scrollWidth;};history.querySelector('.pmixhead').append(latest);
+ history.setAttribute('aria-label','Select a day to see its workout above');
+}
+function updateWork(date){
+ const shell=document.querySelector('.work-combined');if(!shell)return;
+ const old=shell.querySelector('.work-hero'),doc=document.createElement('div');
+ const m=plateMetrics(DB.days[date]);
+ doc.innerHTML=m.sets?storyAtDate(date,()=>storyPlate()):'<div class="work-hero work-empty"><div class="plate-date">'+new Date(date+'T00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})+'</div><strong>No workout recorded</strong></div>';
+ const next=doc.querySelector('.plate-card,.work-hero');next.classList.remove('card');next.classList.add('work-hero');old.replaceWith(next);
+ if(m.sets){next.querySelector('.plate-date').textContent=systemLongDate(date).replace(', ',' · ');storyBind(date,true);next.querySelector('.plate-share').onclick=()=>storyAtDate(date,()=>sharePlateCard());}
+ else plateCancel();
+ const title=shell.previousElementSibling;if(title?.tagName==='H2')title.textContent=date===todayISO&&DB.days[date]?.doneAll?'Workout complete':'Your work, stacking up';
+}
+const comparisonMemory=new Map();
+function comparisonCard(card,kind){
+ const current=+todayISO.slice(0,4),records=Object.keys(DB.days).filter(d=>d<=todayISO&&(kind==='distance'?(DB.days[d]?.w||[]).some(s=>s.ex==='Run'):plateMetrics(DB.days[d]).sets));
+ const available=[...new Set(records.map(d=>+d.slice(0,4)))].sort((a,b)=>b-a);
+ if(!available.length){card.innerHTML='<p>No records to compare yet.</p>';return;}
+ const dates=[];for(let d=new Date(current,0,1);d<=new Date(todayISO+'T00:00');d.setDate(d.getDate()+1))dates.push([d.getMonth(),d.getDate()]);
+ const memory=comparisonMemory.get(kind)||{years:available.slice(0,2),index:dates.length-1};comparisonMemory.set(kind,memory);
+ memory.years=memory.years.filter(y=>available.includes(y));if(!memory.years.length)memory.years=[available[0]];
+ memory.index=Math.min(memory.index,dates.length-1);
+ const series=new Map();available.forEach(y=>{let total=0,last='';series.set(y,dates.map(([m,d])=>{const iso=y+'-'+String(m+1).padStart(2,'0')+'-'+String(Math.min(d,new Date(y,m+1,0).getDate())).padStart(2,'0');if(iso!==last){const r=DB.days[iso];total+=kind==='distance'?(r?.w||[]).filter(s=>s.ex==='Run'&&s.completed!==false).reduce((n,s)=>n+toD(s.w),0):(plateMetrics(r).sets?1:0);}last=iso;return total;}));});
+ card.classList.add('comparison-card');card.innerHTML='<div class="comparison-years"></div><div class="comparison-heading"><span class="comparison-date"></span><button class="comparison-latest">Latest ↗</button></div><div class="comparison-values" aria-live="polite"></div><svg class="comparison-plot" viewBox="0 0 340 210" role="img" aria-label="Cumulative '+(kind==='distance'?'distance':'training days')+' by year"></svg><input class="comparison-scrub" type="range" min="0" max="'+(dates.length-1)+'" aria-label="Scrub comparison date"><p class="comparison-foot">'+(kind==='distance'?'Distance accumulated':'Training days accumulated')+' · same calendar date</p>';
+ const palette=['var(--accent)','#B36F47','#349484','#9875B8','#BE8C38'];
+ const color=y=>palette[available.indexOf(y)%palette.length];
+ const svg=card.querySelector('svg'),slider=card.querySelector('input'),values=card.querySelector('.comparison-values');
+ const difference=document.createElement('p');difference.className='comparison-delta';values.after(difference);
+ const node=(tag,attrs,text)=>{const e=document.createElementNS('http://www.w3.org/2000/svg',tag);Object.entries(attrs).forEach(([k,v])=>e.setAttribute(k,v));if(text!==undefined)e.textContent=text;svg.append(e);return e;};
+ let maximum=1;
+ const x=i=>32+i/Math.max(1,dates.length-1)*296,y=v=>178-v/maximum*158;
+ function show(i){memory.index=Math.max(0,Math.min(dates.length-1,i));slider.value=memory.index;const [m,d]=dates[memory.index];const label=new Date(current,m,d).toLocaleDateString('en-US',{month:'long',day:'numeric'});card.querySelector('.comparison-date').textContent=label;slider.setAttribute('aria-valuetext',label);card.querySelector('.comparison-latest').disabled=memory.index===dates.length-1;
+ values.innerHTML=memory.years.map(yr=>'<div style="--year-color:'+color(yr)+'"><span>'+yr+'</span><strong>'+series.get(yr)[memory.index].toLocaleString('en-US',{maximumFractionDigits:kind==='distance'?1:0})+' <small>'+(kind==='distance'?DU():'days')+'</small></strong></div>').join('');
+ difference.hidden=memory.years.length<2;if(!difference.hidden){const [a,b]=memory.years,scale=kind==='distance'?10:1,delta=Math.round((series.get(a)[memory.index]-series.get(b)[memory.index])*scale)/scale;difference.textContent=(delta===0?'Same total':(delta>0?'+':'−')+Math.abs(delta).toLocaleString()+' '+(kind==='distance'?DU():'days'))+' · '+a+' vs '+b;}
+ svg.querySelectorAll('.comparison-marker').forEach(e=>e.remove());node('line',{class:'comparison-marker',x1:x(memory.index),x2:x(memory.index),y1:14,y2:178,stroke:'var(--muted)','stroke-dasharray':'3 3'});
+ const groups=new Map();memory.years.forEach(yr=>{const key=Math.round(y(series.get(yr)[memory.index]));if(!groups.has(key))groups.set(key,[]);groups.get(key).push(yr);});
+ groups.forEach(years=>years.forEach((yr,i)=>node('circle',{class:'comparison-marker','data-year':yr,cx:x(memory.index),cy:y(series.get(yr)[memory.index]),r:4.5+(years.length-1-i)*2.5,fill:'var(--surface)',stroke:color(yr),'stroke-width':2})));
+ }
+ function draw(){const row=card.querySelector('.comparison-years');row.innerHTML=memory.years.map(yr=>'<button aria-label="Remove '+yr+' from comparison" style="--year-color:'+color(yr)+'" data-year="'+yr+'">'+yr+' <span>×</span></button>').join('')+'<details><summary>+ Year</summary><div>'+available.filter(yr=>!memory.years.includes(yr)).map(yr=>'<button data-add="'+yr+'">'+yr+'</button>').join('')+'</div></details>';
+ row.querySelector('details').hidden=memory.years.length===available.length;
+ row.querySelectorAll('[data-year]').forEach(b=>{b.disabled=memory.years.length===1;b.onclick=()=>{memory.years=memory.years.filter(yr=>yr!==+b.dataset.year);draw();};});row.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{memory.years.push(+b.dataset.add);memory.years.sort((a,b)=>b-a);draw();});
+ maximum=Math.max(1,...memory.years.map(yr=>series.get(yr).at(-1)));maximum=Math.ceil(maximum/4)*4;svg.replaceChildren();for(let n=0;n<=4;n++){const value=maximum*n/4;node('line',{x1:32,x2:328,y1:y(value),y2:y(value),stroke:'var(--line)','stroke-dasharray':'2 4'});node('text',{x:26,y:y(value)+3,'text-anchor':'end',fill:'var(--muted)','font-size':8},Math.round(value));}
+ [0,Math.floor((dates.length-1)/3),Math.floor((dates.length-1)*2/3),dates.length-1].forEach(i=>{const [m,d]=dates[i];node('text',{x:x(i),y:199,'text-anchor':i===0?'start':i===dates.length-1?'end':'middle',fill:'var(--muted)','font-size':8},new Date(current,m,d).toLocaleDateString('en-US',{month:'short',day:'numeric'}));});
+ memory.years.forEach(yr=>node('polyline',{'data-year':yr,points:series.get(yr).map((v,i)=>x(i)+','+y(v)).join(' '),fill:'none',stroke:color(yr),'stroke-width':2.4,'stroke-dasharray':available.indexOf(yr)?['5 3','2 4','8 3 2 3'][(available.indexOf(yr)-1)%3]:'none','stroke-linejoin':'round'}));show(memory.index);}
+ slider.oninput=()=>show(+slider.value);card.querySelector('.comparison-latest').onclick=()=>show(dates.length-1);
+ const scrub=e=>{const r=svg.getBoundingClientRect();show(Math.round(((e.clientX-r.left)/r.width*340-32)/296*(dates.length-1)));};
+ let pointer=null;svg.addEventListener('pointerdown',e=>{pointer=e.pointerId;svg.setPointerCapture?.(e.pointerId);scrub(e);});svg.addEventListener('pointermove',e=>{if(pointer!==null&&pointer===e.pointerId)scrub(e);});svg.addEventListener('pointerup',e=>{if(pointer===e.pointerId){scrub(e);svg.releasePointerCapture?.(e.pointerId);pointer=null;}});svg.addEventListener('pointercancel',()=>{pointer=null;});draw();
+}
+const compactStyle=document.createElement('style');compactStyle.textContent=`
+#view.stats-system .work-combined{padding:12px 16px 14px;overflow:hidden}
+#view.stats-system .work-hero{padding:0;box-shadow:none;background:none;border-radius:0;margin:0}
+#view.stats-system .work-hero .plate-heading{min-height:40px;margin:0}
+#view.stats-system .work-hero .plate-scene{height:165px;margin:0}
+#view.stats-system .work-hero .plate-total{font-size:13px;margin:0}#view.stats-system .work-hero .plate-total b{font-size:34px}
+#view.stats-system .work-hero .plate-total .stats-unit{font-size:11px}
+#view.stats-system .work-hero .plate-caption{font-size:11px;margin-top:4px}
+#view.stats-system .work-hero .plate-legend{display:none}
+#view.stats-system .work-hero .plate-replay{min-height:32px;padding:4px 10px;margin:8px auto;font-size:11px}
+#view.stats-system .work-history{background:none;box-shadow:none;padding:8px 0 0;margin:0;border-radius:0;border-top:1px solid var(--line)}
+#view.stats-system .work-history .pmixhead{min-height:30px}#view.stats-system .work-history .pmixlgd{gap:6px 12px;margin:3px 0 7px}
+#view.stats-system .work-history .pmixlgdwrap{overflow:visible;mask-image:none;-webkit-mask-image:none}#view.stats-system .work-history .pmixlgd{width:auto;max-width:100%}#view.stats-system .work-history .pmixlgd>span{white-space:nowrap}
+#view.stats-system .work-history .pmixlgdwrap::after{display:none}
+.work-latest{border:0;background:none;color:var(--accent-ink);font:500 11px var(--body);min-height:36px}.work-history .review-scale{display:none}
+#view.stats-system .work-history #review-day{display:none}
+#view.stats-system .work-history .pmixnow{display:none}
+#view.stats-system .work-history .pmixbox{margin:0}#view.stats-system .work-history :is(.pmixaxis,.pmixwrap>svg){height:125px!important}
+#view.stats-system .work-empty{min-height:240px;display:grid;place-content:center;gap:20px;text-align:center}
+.comparison-years{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.comparison-years button,.comparison-years summary,.comparison-latest{border:1px solid var(--line);background:var(--surface2);border-radius:12px;padding:10px 12px;color:var(--chalk);font:500 12px var(--body);cursor:pointer}
+.comparison-years button[data-year]{border-color:var(--year-color);color:var(--year-color)}.comparison-years button span{opacity:.6;margin-left:6px}.comparison-years details{position:relative}.comparison-years details>div{position:absolute;z-index:3;min-width:90px;padding:6px;background:var(--surface);box-shadow:0 6px 20px #0002;border-radius:12px}.comparison-years details button{display:block;width:100%}
+.comparison-heading{display:flex;align-items:center;justify-content:space-between;margin:16px 0 10px;font:500 12px var(--body)}.comparison-latest:disabled{opacity:.35}.comparison-values{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:12px}.comparison-values>div{flex:1;min-width:85px;border-left:3px solid var(--year-color);padding-left:10px}.comparison-values span{display:block;font:400 11px var(--mono);color:var(--muted)}.comparison-values strong{font:600 25px var(--body);font-variant-numeric:tabular-nums}.comparison-values small{font:400 11px var(--body);color:var(--muted)}.comparison-plot{width:100%;display:block;touch-action:pan-y}.comparison-scrub{width:100%;accent-color:var(--accent);min-height:40px}.comparison-foot{font:400 10px var(--body);color:var(--muted);margin:2px 0 0}
+.comparison-delta{font:500 12px var(--body);color:var(--accent-ink);background:var(--surface2);border-radius:10px;padding:9px 12px;margin:0 0 12px;font-variant-numeric:tabular-nums}
+#view.stats-system .heatticks{margin-top:0;margin-bottom:8px;line-height:12px}#view.stats-system .wdrail{padding-top:40px}
+.pg-title-row .pg-title{flex:1;min-width:0}.pg-search-open{display:grid;place-items:center;width:44px;height:44px;flex:0 0 44px;border:0;border-radius:50%;background:var(--surface2);color:var(--chalk)}
+.pg-library{margin:12px 0 18px}.pg-parts{display:flex;gap:7px;overflow-x:auto;padding-bottom:10px}.pg-parts button{flex:0 0 auto;padding:9px 12px;border-radius:18px;border:1px solid var(--line);background:var(--surface2);color:var(--muted);font:500 11px var(--body)}.pg-parts button[aria-pressed=true]{background:var(--accent);color:white;border-color:var(--accent)}
+.pg-exercise-shelf{display:grid;grid-template-columns:1fr 1fr;gap:8px}.pg-exercise-shelf button,.pg-search-results button{padding:12px;text-align:left;border:1px solid var(--line);border-radius:12px;background:var(--surface2);color:var(--chalk);min-width:0}.pg-exercise-shelf strong,.pg-search-results strong{display:block;font:500 12px/1.35 var(--body)}.pg-exercise-shelf small,.pg-search-results small{display:block;margin-top:5px;font:400 10px var(--mono);color:var(--muted)}.pg-exercise-shelf button[aria-pressed=true]{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--surface))}
+.pg-search-dialog{box-sizing:border-box;width:min(440px,calc(100% - 28px));max-height:75dvh;border:1px solid var(--line);border-radius:22px;padding:20px;background:var(--surface);color:var(--chalk)}.pg-search-dialog::backdrop{background:#0008;backdrop-filter:blur(4px)}.pg-search-heading{display:flex;align-items:center;justify-content:space-between;gap:16px}.pg-search-heading h3{font:600 19px var(--body);margin:0}.pg-search-heading button{width:44px;height:44px;border:0;border-radius:50%;font-size:25px;background:var(--surface2);color:var(--chalk)}.pg-search-dialog input{box-sizing:border-box;width:100%;margin:12px 0;padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--surface2);color:var(--chalk);font:400 16px var(--body)}.pg-search-results{display:grid;gap:8px}.pg-search-results button[hidden]{display:none}
+`;document.head.append(compactStyle);
 })();

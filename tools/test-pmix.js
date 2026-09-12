@@ -16,7 +16,7 @@ run(`(function(){DB.days={};const d=new Date(todayISO+'T00:00'),iso=x=>x.toLocal
  DB.days[iso(b)]={w:[{part:'Chest',ex:'Press',w:70,reps:[10,10],at:1},{part:'Back',ex:'Row',w:60,reps:[10],at:2}],upd:1};
  SEED=deriveAll();view='stats';render();})()`);
 const titles=()=>run(`[...document.querySelectorAll('#view h2')].map(h=>h.firstChild.textContent.trim())`);
-ok('the page leads with the last workout, then accumulation',titles()[0]==='Your work, stacking up'&&titles()[1]==='Your work adds up',titles().slice(0,3).join(' / '));
+ok('the page combines the workout and accumulation in one card',titles()[0]==='Your work, stacking up'&&run(`!!document.querySelector('.work-combined .plate-card')&&!!document.querySelector('.work-combined #pmixWrap')`),titles().slice(0,3).join(' / '));
 ok('weight is the default reading',run(`PMIX_MODE==='weight'`));
 ok('the alternate sets reading remains available',run(`!!document.querySelector('[data-pmixmode]')&&document.querySelector('[data-pmixmode]').textContent.includes('sets')`));
 ok('pounds use whole 500 lb plates',run(`[...document.querySelectorAll('.pmixplate')].every(p=>p.dataset.plateUnit==='500')`));

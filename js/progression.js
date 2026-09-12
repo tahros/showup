@@ -269,7 +269,7 @@ function renderProgression(card){
   const tip=card.closest('section').querySelector('.tipbubble');
   if(tip)tip.textContent=state.kind==='run'?'Distance by session; numbers are elapsed times, not pace. 12 Sessions uses dots. Date arrows browse ranges; the slider reads individual sets. Share exports this view.':'Blue marks the most '+(state.kind==='time'?'seconds':'reps')+' at the same load in the displayed sessions. Every number is a set; 12 Sessions uses dots. Date arrows browse ranges; the slider reads individual sets. Share exports this view.';
   const names=card.dataset.pgPicker==='1'?[...new Set(progressionRows().flatMap(d=>d.rows.map(s=>s.ex)))].sort((a,b)=>a.localeCompare(b)):[];
-  const picker=names.length?'<select class="pg-ex" data-pg-action="exercise" aria-label="Exercise history">'+names.map(n=>'<option'+(ex===n?' selected':'')+'>'+pgEscape(n)+'</option>').join('')+'</select>':'<h3 class="pg-title">'+pgEscape(ex)+'</h3>';
+  const picker='<h3 class="pg-title">'+pgEscape(ex)+'</h3>'+(names.length?'<button class="pg-search-open" data-pg-action="search" aria-label="Search exercise history"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10" cy="10" r="6.5"/><path d="m15 15 6 6"/></svg></button>':'');
   let h='<div class="pg-title-row">'+picker+'<button class="pg-share" data-pg-action="share" aria-label="Share this progression chart" title="Share"'+(!scope.length?' disabled':'')+'>'+ICO_SHARE+'</button></div><div class="pg-toolbar"><div class="pg-modes" role="group" aria-label="History range"><button data-pg-action="numbers" aria-pressed="'+(state.mode==='numbers')+'">4 Sessions</button><button data-pg-action="dots" aria-pressed="'+(state.mode==='dots')+'">12 Sessions</button></div></div>';
   if(kinds.length>1)h+='<select class="pg-kind" data-pg-action="kind" aria-label="Measurement type">'+kinds.map(k=>'<option value="'+k+'"'+(k===state.kind?' selected':'')+'>'+pgEscape(pgKinds[k])+'</option>').join('')+'</select>';
   const period=progressionPeriod(dates);
@@ -289,6 +289,17 @@ function renderProgression(card){
   const omitted=data.omitted.filter(r=>!dates.length||r.d>=dates[0]&&r.d<=dates.at(-1));
   if(omitted.length)h+='<details class="pg-unmeasured"><summary>Unplotted entries · '+omitted.length+'</summary>'+omitted.map(r=>'<div>'+pgShortDate(r.d)+' · Set '+r.ordinal+' · '+pgEscape(r.reason)+'</div>').join('')+'</details>';
   card.innerHTML=h;
+  if(names.length){
+    const rows=progressionRows(),meta=names.map(name=>{const last=rows.filter(d=>d.rows.some(r=>r.ex===name)).at(-1);return {name,date:last?.d||'',part:last?.rows.find(r=>r.ex===name)?.part||SEED.ex2part[name]||'Other'};}).sort((a,b)=>b.date.localeCompare(a.date)||a.name.localeCompare(b.name));
+    const parts=[...new Set(meta.map(m=>m.part))];
+    const shelf=document.createElement('div');shelf.className='pg-library';
+    const buttons=list=>list.map(m=>'<button data-pg-action="exercise" value="'+pgEscape(m.name)+'" aria-pressed="'+(m.name===ex)+'"><strong>'+pgEscape(m.name)+'</strong><small>'+pgEscape(pgShortDate(m.date))+'</small></button>').join('');
+    shelf.innerHTML='<div class="pg-parts" aria-label="Filter exercise history by body part">'+['All',...parts].map(p=>'<button data-pg-part="'+pgEscape(p)+'" aria-pressed="'+((card._pgPart||'All')===p)+'">'+pgEscape(p)+'</button>').join('')+'</div><div class="pg-exercise-shelf">'+buttons(meta.filter(m=>!card._pgPart||card._pgPart==='All'||m.part===card._pgPart).slice(0,4))+'</div>';
+    card.querySelector('.pg-toolbar').before(shelf);
+    shelf.querySelectorAll('[data-pg-part]').forEach(b=>b.onclick=()=>{card._pgPart=b.dataset.pgPart;renderProgression(card);});
+    const dialog=document.createElement('dialog');dialog.className='pg-search-dialog';dialog.innerHTML='<div class="pg-search-heading"><h3>Find an exercise</h3><button type="button" aria-label="Close exercise search">×</button></div><input type="search" placeholder="Search your exercises" aria-label="Search your exercises"><div class="pg-search-results">'+buttons(meta)+'</div>';card.append(dialog);
+    dialog.querySelector('.pg-search-heading button').onclick=()=>dialog.close();dialog.querySelector('input').oninput=e=>{const query=e.target.value.trim().toLowerCase();dialog.querySelectorAll('[data-pg-action="exercise"]').forEach(b=>b.hidden=!b.value.toLowerCase().includes(query));};
+  }
   card.querySelectorAll('[data-pg-surface]').forEach(bindProgressionSurface);
 }
 function progressionPick(card,id){
@@ -392,6 +403,7 @@ function bindProgression(){
       const action=el.dataset.pgAction,select=el.tagName==='SELECT';
       if(action==='scrub')return;
       if(select!==(e.type==='change'))return;
+      if(action==='search'){const dialog=card.querySelector('.pg-search-dialog');dialog.showModal();dialog.querySelector('input').focus();return;}
       const {state,scope,start,end,total,allDates,latestStart}=card._pg;
       if(action==='share'){progressionShare(card);return;}
       if(action==='prev-set'||action==='next-set'){

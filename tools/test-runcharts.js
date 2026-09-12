@@ -44,11 +44,11 @@ run(`(function(){
 // ---- 1. Distance: the month row exists again
 // `+todayISO.slice(5)` parsed "08-14" as NaN, so the loop never ran once.
 const monthLetters = `[...document.querySelectorAll('.runrace text')]
-  .map(t=>t.textContent).filter(t=>/^[JFMAMJJASOND]$/.test(t)).join('')`;
+  .map(t=>t.textContent).filter(t=>/^[A-Z][a-z]{2} \\d/.test(t)).join('|')`;
 check("the distance chart labels its months",
       `${monthLetters}.length > 0`, true);
-check("...one per month elapsed this year, in order",
-      `${monthLetters}`, run(`'JFMAMJJASOND'.slice(0,+todayISO.slice(5,7))`));
+check("...four readable calendar anchors, starting at January 1",
+      `${monthLetters}.split('|').length===4&&${monthLetters}.startsWith('Jan 1|')`, true);
 check("...and the parse that broke it is gone",
       `${!/\+todayISO\.slice\(5\)-1/.test(fs.readFileSync(path.join(dir,"js/lift.js"),"utf8"))}`, "true");
 check("...with every label inside the viewBox",

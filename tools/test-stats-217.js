@@ -10,15 +10,15 @@ w.document.dispatchEvent(new w.Event('DOMContentLoaded',{bubbles:true}));const r
 function ok(name,value,detail=''){console.log(value?'PASS':'FAIL',name,detail);if(!value)fail++;}
 run(`(function(){DB.days={};const md=todayISO.slice(5);for(const y of [2024,2025,2026]){const d=y+'-'+md;DB.days[d]={w:[{part:'Legs',ex:'Squat',w:80,reps:[8,8],at:1},{part:'Run',ex:'Run',w:3,mins:27,secs:0,at:2}],upd:1,doneAll:y===2026};}SEED=deriveAll();view='stats';render();})()`);
 const titles=run(`[...document.querySelectorAll('#view h2')].map(h=>h.firstChild.textContent.trim())`);
-const ordered=['Workout complete','Your work adds up','This week','Your strength progress','You keep showing up','Year over year','Your running story','Run by run','Distance over time','Pace over time','Your data'];
+const ordered=['Workout complete','This week','Your strength progress','You keep showing up','Year over year','Your running story','Run by run','Distance over time','Pace over time','Your data'];
 ok('Stats tells the approved story in order',ordered.every((t,i)=>titles.indexOf(t)>(i?titles.indexOf(ordered[i-1]):-1)),titles.join(' / '));
 ok('retired summaries stay absent',!titles.some(t=>/Woven|growing|Monthly pace|Every week|^Weight$/i.test(t)));
 ok('Workout complete retains Share',run(`!!document.querySelector('.plate-card .stats-share')`));
 ok('Progression retains Share',run(`!!document.querySelector('.progression-card .stats-share')`));
-ok('year and distance comparisons each expose years',run(`document.querySelectorAll('.v4-years').length===2`));
-ok('recorded prior years are selectable',run(`[...document.querySelectorAll('.v4-years input[value="2024"]')].length===2&&[...document.querySelectorAll('.v4-years input[value="2024"]')].every(x=>!x.disabled)`));
+ok('year and distance comparisons each expose years',run(`document.querySelectorAll('.comparison-years').length===2`));
+ok('recorded prior years are selectable',run(`document.querySelectorAll('.comparison-years button[data-add="2024"]').length===2`));
 ok('both historical comparisons retain scrubbers',run(`document.querySelectorAll('.conrace>input[type="range"]').length===2`));
-ok('current comparison lines use signature blue',run(`[...document.querySelectorAll('.v4-line[data-yr="2026"]')].every(x=>x.getAttribute('stroke')==='var(--accent)')`));
+ok('current comparison lines use signature blue',run(`document.querySelectorAll('.comparison-plot polyline[stroke="var(--accent)"]').length===2`));
 ok('running distance and pace use signature blue',run(`document.querySelector('.drcard .drline').getAttribute('stroke')==='var(--accent)'&&document.querySelector('.pacecard polyline').getAttribute('stroke')==='var(--accent)'`));
 ok('pace labels stay restrained',run(`[...document.querySelectorAll('.paceval')].every(x=>x.getAttribute('font-size')==='6.5')`));
 ok('personal Weight is absent from Stats',run(`!document.getElementById('secWeight')`));

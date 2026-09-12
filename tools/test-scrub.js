@@ -28,7 +28,9 @@ w.HTMLCanvasElement.prototype.toDataURL = function(){ return "data:image/png;bas
 w.Element.prototype.setPointerCapture = function(){};
 w.Element.prototype.releasePointerCapture = function(){};
 
-for (const s of order) vm.runInContext(fs.readFileSync(path.join(dir, s), "utf8"), ctx, { filename: s });
+// Keep the shared legacy zoom/pinch component contract independent of the v4.5
+// comparison replacement. New page gestures are covered by test-stats-connected.
+for (const s of order.filter(s=>s!=='js/stats-story.js')) vm.runInContext(fs.readFileSync(path.join(dir, s), "utf8"), ctx, { filename: s });
 w.document.dispatchEvent(new w.Event("DOMContentLoaded", { bubbles: true }));
 const run = c => vm.runInContext(c, ctx);
 

@@ -1,5 +1,27 @@
 # ShowUp — changelog
 
+## v4.5.0 (2026-09-11) — One workout story, clearer comparisons
+
+- Combined the workout stacks and daily work chart into one compact Stats card.
+  Selecting a day updates its date, stacks, exact totals and Share snapshot;
+  history browsing is static, while fresh work and Replay retain the animation.
+  The existing Image, GIF and MP4 exports, mascot and profile name are preserved.
+- Replaced the strength exercise dropdown with body-part chips, a recent exercise
+  shelf and a searchable full-history dialog. Per-exercise 4/12-session memory stays.
+- Moved attendance months directly below years, above the streak grid; the fixed
+  weekday rail remains aligned and follows the configured week start.
+- Rebuilt training-day and distance comparisons with recorded-year chips, a year
+  picker, same-calendar-date totals, pinned scrubbing and Latest. Every selected
+  year has a visible point; coincident values use concentric rings. Historical
+  distance remains available even when there are no runs in the current year.
+- Kept whole plate units consistent: 500 lb or 250 kg in the summary, chart and
+  exports. Fractional final plates retain the exact underlying volume.
+- Added connected-Stats regressions for date sharing, search, profile preservation,
+  pinned multi-year points, leap-year counting and empty history. Retained legacy
+  zoom/share arithmetic coverage separately from the replacement page controls.
+
+No migration or deletion of names, sex, weight history, plans or workout records.
+
 
 
 ## v4.4.2 (2026-09-11) — The repair honours a selected part

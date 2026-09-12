@@ -58,7 +58,7 @@ const cards = () => run(`[...document.querySelectorAll('#view .card')].length`);
 
 // ---- 1. the plots are taller -----------------------------------------------
 const vbs = run(`[...document.querySelectorAll('#view svg')].map(s=>s.getAttribute('viewBox'))`);
-ok("the same-date consistency race has its dedicated plot", vbs.includes("0 0 340 215"), vbs.find(v=>/340/.test(v)));
+ok("the same-date comparison has its compact plot", vbs.includes("0 0 340 210"), vbs.find(v=>/340/.test(v)));
 ok("Monthly pace is retired from Stats", run(`![...document.querySelectorAll('#view h2')].some(h=>h.textContent.includes('Monthly pace'))`));
 /* v3.3.129 was scoped to FOUR charts: consistency, days-by-month, weekdays,
    distance. Weight and Pace were deliberately left at 118 — they were not in
@@ -78,8 +78,8 @@ ok("the hint precedes its chart in the DOM", run(`(function(){
       return z && (h.compareDocumentPosition(z) & Node.DOCUMENT_POSITION_FOLLOWING); });
   })()`));
 ok("the race uses its visible date header instead of adding another hint", run(`(function(){
-    const z=document.querySelector('.conrace .zoom[data-zoom]');
-    return !!z && !z.parentElement.querySelector('.zoomhint') && !!z.parentElement.querySelector('[data-con-date]');
+    const z=document.querySelector('.conrace .comparison-plot');
+    return !!z && !z.parentElement.querySelector('.zoomhint') && !!z.parentElement.querySelector('.comparison-date');
   })()`));
 ok("the hint is no longer absolutely positioned over the plot",
    !/\.zoomhint\{[^}]*position:absolute/.test(run(`document.querySelector('style')?document.querySelector('style').textContent:''`) ||
@@ -174,10 +174,10 @@ ok("...with every day of the window present, none blank",
 ok("the retired Weekdays plot is gone", run(`document.querySelectorAll('.wd-col').length`) === 0);
 
 // ---- 4. Consistency: verdict plus graph ------------------------------------
-ok("Consistency leads with two exact day totals", run(`document.querySelectorAll('.conrace:not(.runrace) .conscore>span b').length`) === 2);
-ok("Year over year draws the selected current-year line", run(`document.querySelectorAll('.conrace:not(.runrace) .v4-line[stroke="var(--accent)"]').length`) === 1);
+ok("Consistency leads with two exact day totals", run(`document.querySelectorAll('.conrace:not(.runrace) .comparison-values strong').length`) === 2);
+ok("Year over year draws the selected current-year line", run(`document.querySelectorAll('.conrace:not(.runrace) polyline[stroke="var(--accent)"]').length`) === 1);
 ok("Consistency draws one line for each self", run(`document.querySelectorAll('.conrace:not(.runrace) polyline').length`) === 2);
-ok("Distance uses the same two-self score language",run(`document.querySelectorAll('.runrace .conscore>span b').length`)===2);
+ok("Distance uses the same two-self score language",run(`document.querySelectorAll('.runrace .comparison-values strong').length`)===2);
 
 // ---- 5. nothing escapes the taller viewBox --------------------------------
 ok("nothing is drawn below the bottom of any stats plot", run(`(function(){
@@ -197,21 +197,19 @@ ok("nothing is drawn below the bottom of any stats plot", run(`(function(){
 /* If sy0/syh drift from the drawn baseline the legend silently reports wrong
    numbers while scrubbing — no crash, just lies. */
 ok("scrub anchors track both race baselines", run(`(function(){
-    const c=document.querySelector('.conrace:not(.runrace) [data-scrub]'),d=document.querySelector('.runrace [data-scrub]');
-    return c&&d&&c.dataset.sy0==='182'&&c.dataset.syh==='150'&&d.dataset.sy0==='180'&&d.dataset.syh==='145';
+    return [...document.querySelectorAll('.comparison-plot')].every(s=>s.querySelectorAll('circle.comparison-marker').length===s.querySelectorAll('polyline').length);
   })()`), run(`[...document.querySelectorAll('[data-scrub]')].map(s=>s.getAttribute('data-sy0')+'/'+s.getAttribute('data-syh')).join(' ')`));
 
 // the distance chart comes in via runStatsHTML(), appended by renderStats
 const distVb = run(`(function(){
-  const s=document.querySelector('.runrace [data-scrub="race"]');
+  const s=document.querySelector('.runrace .comparison-plot');
   return s?s.getAttribute('viewBox'):'none';
 })()`);
-ok("the distance race uses its own compact plot", distVb === "0 0 340 205", distVb);
+ok("the distance race uses its own compact plot", distVb === "0 0 340 210", distVb);
 ok("the distance race uses its visible date instead of a hint", run(`(function(){
-    const s=document.querySelector('.runrace [data-scrub="race"]');
+    const s=document.querySelector('.runrace .comparison-plot');
     if(!s) return false;
-    const z=s.closest('.zoom');
-    return !z.querySelector('.zoomhint') && !!z.parentElement.querySelector('[data-con-date]');
+    return !s.parentElement.querySelector('.zoomhint') && !!s.parentElement.querySelector('.comparison-date');
   })()`));
 
 console.log(fail ? "\n" + fail + " FAILED" : "\nALL PASS");

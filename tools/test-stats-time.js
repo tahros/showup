@@ -83,26 +83,27 @@ ok("the attendance card no longer carries a second copy of that calendar",
   !/\.crgrid\b/.test(css) && run(`!document.querySelector('.crgrid')`));
 ok("Growth Audit uses the same base section gap as Session Build",
   !/class="gah"/.test(fs.readFileSync(path.join(dir,"js/stats.js"),"utf8")) && !/\.gah[\s,{:+>.\[]/.test(css));
-ok("Consistency renders two scoreboard totals", run(`document.querySelectorAll('.conscore>span b').length===2`));
+ok("Consistency renders two scoreboard totals", run(`document.querySelectorAll('.comparison-values strong').length===2`));
 ok("Monthly pace is retired from Stats", run(`document.querySelectorAll('.mpacecard').length===0`));
 ok("retired time sections do not render", run(`![...document.querySelectorAll('#view h2')].some(h=>/^(Days by month|Last 6 months|Weekdays)$/.test(h.firstChild.textContent.trim()))`));
 
 // v3.3.214: the new scoreboard is the scrub readout. It changes to the
 // exact selected day while held, then returns to today's totals on release.
-const score=()=>run(`[...document.querySelectorAll('[data-con-count]')].map(b=>b.textContent).join('|')`);
-const score0=score(),date0=run(`document.querySelector('[data-con-date]').textContent`);
-run(`(function(){const b=document.querySelector('.conrace [data-zoom]');
+const score=()=>run(`[...document.querySelectorAll('.comparison-values strong')].map(b=>b.textContent).join('|')`);
+const score0=score(),date0=run(`document.querySelector('.comparison-date').textContent`);
+run(`(function(){const b=document.querySelector('.comparison-plot');
   b.getBoundingClientRect=()=>({left:0,top:0,width:340,height:215,right:340,bottom:215});
   b.dispatchEvent(new PointerEvent('pointerdown',{pointerId:1,clientX:38,clientY:100,bubbles:true}));})()`);
 ok("Consistency reveals a guide and two dots while scrubbing",
-  run(`document.querySelector('.conrace .scrubg').style.display!== 'none'`) &&
-  run(`document.querySelectorAll('.conrace .scrubg circle').length===2`));
+  run(`document.querySelectorAll('.comparison-plot .comparison-marker').length===3`));
 ok("Consistency scoreboard changes at the selected date",score()!==score0,score0+" → "+score());
-ok("Consistency date follows the selected day",run(`document.querySelector('[data-con-date]').textContent`)!==date0,
-  run(`document.querySelector('[data-con-date]').textContent`));
-run(`(function(){const b=document.querySelector('.conrace [data-zoom]');
+ok("Consistency date follows the selected day",run(`document.querySelector('.comparison-date').textContent`)!==date0,
+  run(`document.querySelector('.comparison-date').textContent`));
+const pinned=score();run(`(function(){const b=document.querySelector('.comparison-plot');
   b.dispatchEvent(new PointerEvent('pointerup',{pointerId:1,clientX:38,clientY:100,bubbles:true}));})()`);
-ok("releasing Consistency restores today's scoreboard",score()===score0 && run(`document.querySelector('[data-con-date]').textContent`)===date0);
+ok("releasing keeps the selected date pinned",score()===pinned);
+run(`document.querySelector('.comparison-latest').click()`);
+ok("Latest restores today's scoreboard",score()===score0 && run(`document.querySelector('.comparison-date').textContent`)===date0);
 
 console.log(fail?"\n"+fail+" FAILED":"\nALL PASS");
 process.exit(fail?1:0);
