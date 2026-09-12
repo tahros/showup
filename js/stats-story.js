@@ -364,7 +364,14 @@ function comparisonCard(card,kind){
 }
 const compactStyle=document.createElement('style');compactStyle.textContent=`
 #view.stats-system .work-combined{padding:12px 16px 14px;overflow:hidden}
-#view.stats-system .work-hero{padding:0;box-shadow:none;background:none;border-radius:0;margin:0;height:328.5px}
+/* v4.5.6: THE 68px OF EMPTY CARD. This height was fixed at 328.5px back when
+   the legend and the bank sat under the caption. Both are display:none on this
+   view now, and the replay button moved into the heading, so the contents come
+   to 260.5px -- heading 44 + scene 148.5 + total 45 + caption 23 -- and the
+   remainder was a band of nothing between "18 sets · 6 exercises" and the rule
+   below it. A fixed height outlives the reason it was chosen; min-height keeps
+   the card from jumping as days change without inventing space. */
+#view.stats-system .work-hero{padding:0;box-shadow:none;background:none;border-radius:0;margin:0;min-height:260.5px}
 #view.stats-system .work-hero .plate-heading{height:44px;min-height:44px;margin:0;padding-top:0}
 #view.stats-system .work-hero .plate-scene{height:148.5px;margin:0}
 #view.stats-system .work-hero .plate-total{font-size:13px;margin:0;height:45px;display:flex;align-items:center;justify-content:center;gap:7px}#view.stats-system .work-hero .plate-total b{font-size:34px}

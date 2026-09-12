@@ -3,6 +3,37 @@
 
 
 
+
+## v4.5.6 (2026-09-12) — Sixty-eight pixels of nothing
+
+`#view.stats-system .work-hero{...height:328.5px}` — a fixed height, chosen
+when the legend and the bank still sat under the caption. Both are
+`display:none` on this view now and the replay button moved into the heading in
+v4.5.3, so the contents come to **260.5px**: heading 44 + scene 148.5 + total 45
++ caption 23. The other 68px was card with nothing in it, which is the band the
+maker has drawn a circle around.
+
+A fixed height outlives the reason it was chosen. `min-height` keeps the card
+from jumping between days without inventing space.
+
+### The assertion that passed on null
+
+The first version measured the rendered card and compared its height to its
+children. **jsdom has no layout engine**, so `getComputedStyle(...).height` came
+back `null`, `null - 260.5` is negative, and the check passed while proving
+nothing — the same class of mistake as v4.5.4 asserting the dates were present
+while every one was invisible.
+
+The stylesheet is the thing that can be checked here, so it is: the card must
+declare no fixed height, and the floor it does set must equal the sum of the
+heights it declares for its own parts. Both probes turn it red — restoring
+328.5px, and setting a floor larger than the contents.
+
+Getting there took three passes at one regex: `[^}]*?[^-]height:` cannot match
+a declaration that sits immediately after the brace, which is where three of
+the four heights are.
+
+
 ## v4.5.5 (2026-09-12) — Present is not visible
 
 The dates on the history chart were in the DOM every time. Thirty of them,

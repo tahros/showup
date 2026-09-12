@@ -78,6 +78,36 @@ ok('...in the same size and face as the axis', /work-periods span\{[^}]*font:400
 const bankH=run(`(function(){const b=document.querySelector('.work-hero .plate-bank');return b?getComputedStyle(b).height:'none'})()`);
 ok('an empty bank takes no height under the caption', bankH==='0px'||bankH==='none', bankH);
 
+// ---- v4.5.6: no band of empty card under the caption
+/* the hero's height was fixed at 328.5px when the legend and bank still sat
+   under the caption. Both are hidden on this view and the replay button moved
+   into the heading, so 68px of the card held nothing.
+   jsdom has no layout engine, so a computed height here is null and comparing
+   it proves nothing -- the first cut of this assertion "passed" on null. The
+   stylesheet is the thing that can actually be checked: the card's own height
+   must not exceed the heights it declares for its parts. */
+{
+  const px=re=>{const m=story.match(re);return m?parseFloat(m[1]):null;};
+  const card   =px(/\.work-hero\{(?:[^}]*?;)?height:([\d.]+)px/);
+  const minCard=px(/\.work-hero\{[^}]*?min-height:([\d.]+)px/);
+  const heading=px(/\.work-hero \.plate-heading\{(?:[^}]*?;)?height:([\d.]+)px/);
+  const scene  =px(/\.work-hero \.plate-scene\{(?:[^}]*?;)?height:([\d.]+)px/);
+  const total  =px(/\.work-hero \.plate-total\{(?:[^}]*?;)?height:([\d.]+)px/);
+  const caption=px(/\.work-hero \.plate-caption\{(?:[^}]*?;)?height:([\d.]+)px/);
+  const parts=[heading,scene,total,caption];
+  ok('(fixture) the card declares a height for each of its parts',
+     parts.every(v=>v!==null), JSON.stringify({heading,scene,total,caption}));
+  const sum=parts.reduce((a,b)=>a+(b||0),0);
+  ok('the card is not pinned taller than its own parts',
+     card===null, card===null?'no fixed height, min-height '+minCard+'px':'pinned to '+card+'px');
+  ok('...and the floor it does set matches what is in it',
+     minCard!==null && Math.abs(minCard-sum)<=2, `min-height ${minCard}px vs parts ${sum}px`);
+  /* the legend and bank are hidden here, so they must not be counted in */
+  ok('...counting only the parts this view actually shows',
+     /#view\.stats-system \.work-hero \.plate-legend\{display:none\}/.test(story) &&
+     /\.work-hero \.plate-bank:empty\{display:none;height:0\}/.test(story));
+}
+
 // ---- plates read as plates
 ok('the gap between plates is wide enough to see',
    /height-Math\.min\(1\.1,height\*\.34\)/.test(story));
