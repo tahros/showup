@@ -172,6 +172,7 @@ check('x and y axis lines are drawn solid, heavier than the dotted grid',`(()=>{
 check('the axis labels are drawn lighter than the card body',`(()=>{const a=pgShareCalls.filter(c=>c[0]==='set'&&c[1]==='globalAlpha'&&c[2]<1&&c[2]>0);return a.length>=3&&a.every(c=>c[2]<=.6);})()`);
 check('...and the set numbers are drawn heavier than the axis',`(()=>{const fonts=pgShareCalls.filter(c=>c[0]==='set'&&c[1]==='font').map(c=>String(c[2]));const chip=fonts.find(f=>/^600 11px/.test(f)),axis=fonts.find(f=>/^400 10px/.test(f));return !!chip&&!!axis;})()`);
 run(`document.querySelector('[data-pg-action="next-range"]').click();`);
+
 run(`render=window.pgSavedRender;showCard=pgSavedShow;HTMLCanvasElement.prototype.getContext=pgOriginalContext;window.pgBeforeHold=progressionUI.train.pick;`);
 
 // The touch protocol is exercised, including the 2D choice between loads.
@@ -193,5 +194,71 @@ run(`DB.days[todayISO].doneAll=true`);
 check('completion removes live duplicate but preserves permanent Stats',`progressionLiveSection()===''&&progressionStatsSection().includes('data-pg-picker="1"')`);
 run(`document.getElementById('view').innerHTML=progressionSection('<img src=x onerror=1>','train');bindProgression()`);
 check('unknown/empty exercises safe and honest',`!document.querySelector('.progression-card img')&&document.querySelector('.pg-empty')`);
+/* LAST, deliberately: this block rewrites DB.days and the view to get a card that
+   actually has a part rail, which would pull the ground out from under any test
+   that ran after it. */
+/* v4.5.22: the part rail keeps its place. jsdom has no layout, so offsetLeft and
+   clientWidth are stubbed -- the point is the ARITHMETIC and the carry-across, not
+   pixels the harness cannot produce. The rail is scrolled, a chip off the right
+   edge is tapped, and the rebuilt rail must not be back at zero. */
+/* jsdom keeps scrollLeft at 0 on anything it does not consider scrollable, so the
+   product's own assignment would be swallowed and the test would pass or fail for
+   the wrong reason. A plain stored value on the prototype makes the property behave
+   the way a real scroller does. */
+/* Geometry has to exist WHEN THE PRODUCT RUNS, not when the assertion looks. The
+   first version stubbed offsetLeft after the rebuild, so the centering branch saw
+   clientWidth 0, skipped -- correctly -- and then the check judged it on numbers it
+   invented afterwards. These getters are scoped to the rail and its chips so the
+   rest of the card keeps jsdom's real (zero) geometry. */
+run(`Object.defineProperty(Element.prototype,'scrollLeft',{configurable:true,get(){return this.__sl||0;},set(v){this.__sl=v;}});
+  const inRail=el=>el&&el.parentElement&&el.parentElement.classList&&el.parentElement.classList.contains('pg-parts');
+  Object.defineProperty(Element.prototype,'clientWidth',{configurable:true,get(){return this.classList&&this.classList.contains('pg-parts')?300:0;}});
+  Object.defineProperty(HTMLElement.prototype,'offsetLeft',{configurable:true,get(){return inRail(this)?[...this.parentElement.children].indexOf(this)*100:0;}});
+  Object.defineProperty(HTMLElement.prototype,'offsetWidth',{configurable:true,get(){return inRail(this)?90:0;}});`);
+/* the part rail only exists on a card built WITH the picker (third argument), and
+   only with enough parts to overflow -- the rest of this suite uses a plain card,
+   so the fixture is built here rather than assumed. */
+run(`(function(){
+  const D=(n)=>{const t=new Date('2026-09-11T00:00');t.setDate(t.getDate()-n);return t.toLocaleDateString('en-CA');};
+  const kit=[['Chest','Incline Barbell Bench Press'],['Back','Pull Up'],['Biceps','EZ Bar Curl'],
+             ['Shoulder','Dumbbell Shoulder Press'],['Triceps','Triceps Pushdown'],['Legs','Squat'],['Sixpack','Hanging Leg Raise']];
+  DB.days={};
+  kit.forEach(([part,ex],i)=>{for(let k=0;k<4;k++){const d=D(i+k*8);
+    DB.days[d]=DB.days[d]||{w:[],upd:1};DB.days[d].w.push({part,ex,w:40+k,reps:[8,8],at:1});}});
+  SEED=deriveAll();
+  document.getElementById('view').innerHTML=progressionSection('Squat','train',true);
+  bindProgression();
+})()`);
+run(`(function(){
+  const card=document.querySelector('.progression-card'),rail=card&&card.querySelector('.pg-parts');
+  if(!rail){window.__railBefore='NO RAIL';return;}
+  rail.scrollLeft=420;window.__railBefore=rail.scrollLeft;
+})()`);
+check('(fixture) the part rail exists and was scrolled away from the start',`window.__railBefore===420`);
+run(`(function(){const all=[...document.querySelectorAll('[data-pg-part]')];
+  const target=all[all.length-1];window.__pickedPart=target.dataset.pgPart;target.click();})()`);
+check('tapping a part actually selects it',`(function(){const p=[...document.querySelectorAll('[data-pg-part]')].find(b=>b.getAttribute('aria-pressed')==='true');return !!p&&p.dataset.pgPart===window.__pickedPart;})()`);
+check('THE BUG: the rebuilt rail is not thrown back to the start',`document.querySelector('.pg-parts').scrollLeft>0`);
+check('...the offset is carried on the card, so it survives the rebuild',`document.querySelector('.progression-card')._pgPartScroll>0`);
+check('...and the chip you pressed is inside the visible window',`(function(){const rail=document.querySelector('.pg-parts');
+  const p=rail.querySelector('[aria-pressed="true"]');if(!p)return false;
+  return p.offsetLeft>=rail.scrollLeft-1&&p.offsetLeft+p.offsetWidth<=rail.scrollLeft+rail.clientWidth+1;})()`);
+/* Restoring the offset and centring the chip are DIFFERENT behaviours, and the
+   checks above could not tell them apart -- deleting the restore left them green,
+   because centring happened to bring the chip into view anyway. This is the case
+   that separates them: tap a chip that is ALREADY visible at the current offset.
+   Restoring means the rail does not move at all; centring alone would jerk it to a
+   new position under the thumb. */
+run(`(function(){const rail=document.querySelector('.pg-parts');rail.scrollLeft=420;
+  const all=[...rail.querySelectorAll('[data-pg-part]')];
+  const visible=all.find(b=>b.offsetLeft>=420&&b.offsetLeft+b.offsetWidth<=720);
+  window.__visiblePart=visible?visible.dataset.pgPart:null;if(visible)visible.click();})()`);
+check('(fixture) a chip was already visible at that offset',`!!window.__visiblePart`);
+check('tapping a chip already in view leaves the rail exactly where it was -- no jump',`document.querySelector('.pg-parts').scrollLeft===420`);
+
+run(`(function(){const all=[...document.querySelectorAll('[data-pg-part]')];all[0].click();})()`);
+check('choosing All still works and keeps a sane offset',`(function(){const p=document.querySelector('.pg-parts [aria-pressed="true"]');return !!p&&p.dataset.pgPart==='All'&&document.querySelector('.pg-parts').scrollLeft>=0;})()`);
+
+
 console.log('PROGRESSION PASS');process.exit(0);
 })();

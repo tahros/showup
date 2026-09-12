@@ -296,7 +296,29 @@ function renderProgression(card){
     const buttons=list=>list.map(m=>'<button data-pg-action="exercise" value="'+pgEscape(m.name)+'" aria-pressed="'+(m.name===ex)+'"><strong>'+pgEscape(m.name)+'</strong><small>'+pgEscape(pgShortDate(m.date))+'</small></button>').join('');
     shelf.innerHTML='<div class="pg-parts" aria-label="Filter exercise history by body part">'+['All',...parts].map(p=>'<button data-pg-part="'+pgEscape(p)+'" aria-pressed="'+((card._pgPart||'All')===p)+'">'+pgEscape(p)+'</button>').join('')+'</div><div class="pg-exercise-shelf">'+buttons(meta.filter(m=>!card._pgPart||card._pgPart==='All'||m.part===card._pgPart).slice(0,4))+'</div>';
     card.querySelector('.pg-toolbar').before(shelf);
-    shelf.querySelectorAll('[data-pg-part]').forEach(b=>b.onclick=()=>{card._pgPart=b.dataset.pgPart;renderProgression(card);});
+    /* v4.5.22: THE PART RAIL KEEPS ITS PLACE. Tapping a chip re-renders the card,
+       which rebuilds this shelf from scratch -- and a brand new overflow-x element
+       starts at scrollLeft 0. So choosing "Shoulder", which lives off the right
+       edge, worked but scrolled the rail back to "All" and took the chip you just
+       pressed off screen with it. The offset is remembered on the card across the
+       rebuild, and then the pressed chip is checked: if the restored offset does
+       not actually show it -- a part disappearing from the list, a narrower phone
+       -- it is scrolled into view, so the rule is "your selection is visible",
+       not merely "the pixels are where they were". */
+    const rail=shelf.querySelector('.pg-parts');
+    if(rail){
+      if(card._pgPartScroll)rail.scrollLeft=card._pgPartScroll;
+      const pressed=rail.querySelector('[aria-pressed="true"]');
+      if(pressed&&rail.clientWidth){
+        const left=pressed.offsetLeft,right=left+pressed.offsetWidth;
+        if(left<rail.scrollLeft||right>rail.scrollLeft+rail.clientWidth)
+          rail.scrollLeft=Math.max(0,left-(rail.clientWidth-pressed.offsetWidth)/2);
+      }
+      rail.addEventListener('scroll',()=>{card._pgPartScroll=rail.scrollLeft;},{passive:true});
+    }
+    shelf.querySelectorAll('[data-pg-part]').forEach(b=>b.onclick=()=>{
+      const scroller=b.closest('.pg-parts');if(scroller)card._pgPartScroll=scroller.scrollLeft;
+      card._pgPart=b.dataset.pgPart;renderProgression(card);});
     const dialog=document.createElement('dialog');dialog.className='pg-search-dialog';dialog.innerHTML='<div class="pg-search-heading"><h3>Find an exercise</h3><button type="button" aria-label="Close exercise search">×</button></div><input type="search" placeholder="Search your exercises" aria-label="Search your exercises"><div class="pg-search-results">'+buttons(meta)+'</div>';card.append(dialog);
     dialog.querySelector('.pg-search-heading button').onclick=()=>dialog.close();dialog.querySelector('input').oninput=e=>{const query=e.target.value.trim().toLowerCase();dialog.querySelectorAll('[data-pg-action="exercise"]').forEach(b=>b.hidden=!b.value.toLowerCase().includes(query));};
   }
