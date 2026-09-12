@@ -10,6 +10,9 @@ for(const m of html.matchAll(/src="(js\/[^?"]+)\?v=/g))vm.runInContext(fs.readFi
 const run=c=>vm.runInContext(c,ctx),check=(name,code)=>{assert.ok(run(code),name);console.log('PASS '+name);};
 run(`todayISO='2026-09-11';checkDate=()=>false;DB.settings.name='Preserve Me';DB.settings.sex='F';DB.settings.unit='lb';DB.days={};for(const y of [2024,2025,2026]){for(const md of ['01-03','02-10','09-11'])DB.days[y+'-'+md]={w:[{part:'Legs',ex:'Squat',w:y-1950,reps:[8,8]},{part:'Chest',ex:'Incline Barbell Bench Press',w:60,reps:[10]},{part:'Run',ex:'Run',w:5,mins:30,reps:[1]}],doneAll:true};}SEED=deriveAll();view='stats';render();window.savedDB=JSON.stringify(DB);`);
 check('one card combines the selected workout and its selectable history',`!!document.querySelector('.work-combined .plate-canvas')&&!!document.querySelector('.work-combined #pmixWrap')`);
+check('history text has native 11px geometry, not a squeezed SVG',`document.querySelector('#pmixWrap svg').getAttribute('height')==='164'&&document.querySelector('#pmixWrap svg').getAttribute('preserveAspectRatio')==='xMinYMin meet'&&[...document.querySelectorAll('.work-history svg text')].every(t=>t.getAttribute('font-size')==='11')`);
+run(`document.querySelector('#pmixWrap').scrollLeft=0;document.querySelector('#pmixWrap').dispatchEvent(new Event('scroll'));`);
+check('sticky period header names the leftmost year and full month',`document.querySelector('.work-periods').textContent.includes('2024')&&document.querySelector('.work-periods').textContent.includes('January')`);
 check('two comparisons start with two selected years and visible markers',`document.querySelectorAll('.comparison-plot circle.comparison-marker').length===4`);
 check('only recorded years are offered',`document.querySelectorAll('[data-add="2024"]').length===2&&!document.querySelector('[data-add="2023"]')`);
 run(`const slider=document.querySelector('.comparison-scrub');slider.value=40;slider.dispatchEvent(new Event('input',{bubbles:true}));window.pinnedDate=document.querySelector('.comparison-date').textContent;window.oldSlider=slider;`);
@@ -38,6 +41,7 @@ run(`todayISO='2024-03-01';DB.days={'2023-02-28':{w:[{part:'Run',ex:'Run',w:5,mi
 check('single February 28 is counted only once in leap comparison',`document.querySelector('.runrace .comparison-values').textContent.includes('3.1')||document.querySelector('.runrace .comparison-values').textContent.includes('5')`);
 run(`DB.days={};SEED=deriveAll();view='stats';render();`);
 check('empty history renders without invented comparison data',`!document.querySelector('.comparison-plot')`);
-check('fractional plates touch the preceding plate in live and export geometry',`[8,19].every(thickness=>{const a=[{kg:500},{kg:50},{kg:500}];const y=a.map((_,i)=>plateStackTop(a,i,0,500,thickness,200));return Math.abs(y[1]+thickness*.1-y[0])<1e-8&&Math.abs(y[2]+thickness-y[1])<1e-8;})`);
+check('fractional plates retain only a subtle lip in live and export geometry',`[8,19].every(thickness=>{const a=[{kg:500},{kg:50},{kg:500}];const y=a.map((_,i)=>plateStackTop(a,i,0,500,thickness,200));return Math.abs(y[1]+thickness*.35-y[0])<1e-8&&Math.abs(y[2]+thickness*1.25-y[1])<1e-8;})`);
+check('full replays finish in 3.5 seconds with different visible plate counts',`[2,8,15,30].every(n=>Math.abs((n-1)*plateStagger(n)+780-3500)<1e-8)&&plateStagger(1)===0`);
 check('each column and completed bank restarts on the same ground',`(()=>{const a=Array.from({length:42},()=>({kg:250}));return plateStackTop(a,30,30,250,8,144)===136&&plateStackTop(a,40,30,250,8,144)===136;})()`);
 console.log('PASS connected Stats contract');process.exit(0);

@@ -1,5 +1,17 @@
 # ShowUp — changelog
 
+## v4.5.2 (2026-09-11) — Clearer history, more measured stacking
+
+- Reduced Stats plate illustrations by 10% and gave the daily chart more room.
+  Re-rendered axis/date text at native 11px instead of squeezing the SVG.
+  Year and full month labels pin to the left and are pushed out by the next period.
+
+- Spread multi-plate replays over 3.5 seconds, preserving the fast individual fall,
+  landing/count-up and reduced-motion behavior. Single-plate additions stay brief.
+- Added subtle plate separation halfway between flush and the old full-plate pitch;
+  partial plates still use actual thickness. Shared geometry applies to exports.
+- Extended GIF/MP4 motion to match while retaining the two-second final hold.
+
 ## v4.5.1 (2026-09-11) — Tighter rows, grounded plates
 
 - Slightly reduced exercise spacing in plan editing and review without shrinking controls.

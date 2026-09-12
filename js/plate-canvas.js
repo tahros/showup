@@ -32,14 +32,14 @@ function bindPlateStats(date=todayISO,staticView=false){
   let raf=0,start=0,playing=false,ended=false,request=0,width=0,height=255,from=m.kg,first=count,tone;
   function colors(){const probe=document.createElement('span');host.append(probe);const read=k=>{probe.style.color=`var(${k})`;return getComputedStyle(probe).color;};tone={top:read('--plate-top'),side:read('--plate-side'),hole:read('--plate-hole')};probe.remove();}
   function mist(x,y,rx,ry,alpha){ctx.save();ctx.translate(x,y);ctx.scale(rx,ry);const g=ctx.createRadialGradient(0,0,0,0,0,1);g.addColorStop(0,`rgba(130,130,130,${alpha})`);g.addColorStop(.45,`rgba(150,150,150,${alpha*.5})`);g.addColorStop(1,'rgba(160,160,160,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,1,0,Math.PI*2);ctx.fill();ctx.restore();}
-  function plate(x,y,w,h,angle,part){const token=PART_COLORS[part];const top=token?getComputedStyle(document.documentElement).getPropertyValue(token.slice(4,-1)).trim():null;const shade=f=>{const hex=top?.replace('#','');return hex?.length===6?'#'+[0,2,4].map(i=>Math.round(parseInt(hex.slice(i,i+2),16)*f).toString(16).padStart(2,'0')).join(''):tone.side;};ctx.save();ctx.translate(x,y);ctx.rotate(angle);ctx.fillStyle=top?shade(.70):tone.side;ctx.beginPath();ctx.ellipse(0,h,w/2,7,0,0,Math.PI*2);ctx.fill();ctx.fillRect(-w/2,0,w,h);ctx.fillStyle=top||tone.top;ctx.beginPath();ctx.ellipse(0,0,w/2,7,0,0,Math.PI*2);ctx.fill();ctx.fillStyle=top?shade(.42):tone.hole;ctx.beginPath();ctx.ellipse(0,0,4.5,2,0,0,Math.PI*2);ctx.fill();ctx.restore();}
-  function geom(i){const n=i-bank;return {x:width*(.2+Math.floor(n/10)*.19),y:plateStackTop(ledger,i,bank,unit,8,height-21),w:width*.166,h:8*Math.min(1,ledger[i].kg/unit)};}
+  function plate(x,y,w,h,angle,part){const token=PART_COLORS[part];const top=token?getComputedStyle(document.documentElement).getPropertyValue(token.slice(4,-1)).trim():null;const shade=f=>{const hex=top?.replace('#','');return hex?.length===6?'#'+[0,2,4].map(i=>Math.round(parseInt(hex.slice(i,i+2),16)*f).toString(16).padStart(2,'0')).join(''):tone.side;};ctx.save();ctx.translate(x,y);ctx.rotate(angle);const size=host.classList.contains('work-hero')?.9:1;ctx.scale(size,size);ctx.fillStyle=top?shade(.70):tone.side;ctx.beginPath();ctx.ellipse(0,h,w/2,7,0,0,Math.PI*2);ctx.fill();ctx.fillRect(-w/2,0,w,h);ctx.fillStyle=top||tone.top;ctx.beginPath();ctx.ellipse(0,0,w/2,7,0,0,Math.PI*2);ctx.fill();ctx.fillStyle=top?shade(.42):tone.hole;ctx.beginPath();ctx.ellipse(0,0,4.5,2,0,0,Math.PI*2);ctx.fill();ctx.restore();}
+  function geom(i){const n=i-bank,size=host.classList.contains('work-hero')?.9:1;return {x:width*(.2+Math.floor(n/10)*.19),y:plateStackTop(ledger,i,bank,unit,8*size,height-21),w:width*.166,h:8*Math.min(1,ledger[i].kg/unit)};}
   function draw(t){
     if(!width)return;ctx.clearRect(0,0,width,height);let landed=from;
     for(let c=0;c<Math.min(3,Math.ceil((count-bank)/10));c++)mist(width*(.2+c*.19),height-17,width*.115,8,.19);
     // Draw the grounded stack first, falling plates second, then impact dust.
     for(let pass=0;pass<2;pass++)for(let i=bank;i<count;i++){
-      const age=i<first?1e6:t-(i-first)*70,g=geom(i),pose=platePose(age,g.y,i%2?-1:1);
+      const age=i<first?1e6:t-(i-first)*plateStagger(count-first),g=geom(i),pose=platePose(age,g.y,i%2?-1:1);
       if(!pose)continue;
       if(pose.landed){landed=Math.max(landed,Math.min(m.kg,ledger[i].end));if(pass===0)plate(g.x,pose.y,g.w,g.h,pose.angle,ledger[i].part);}
       else if(pass===1){for(let k=1;k<4;k++)mist(g.x,pose.y-10-k*7,5+k,3+k,.013*(1-k/5));plate(g.x,pose.y,g.w,g.h,pose.angle,ledger[i].part);}
@@ -49,7 +49,7 @@ function bindPlateStats(date=todayISO,staticView=false){
   }
   function rest(){host.classList.remove('plate-running');canvas.dataset.playing='false';}
   function stop(){cancelAnimationFrame(raf);raf=0;playing=false;rest();from=m.kg;first=count;draw(1e6);}
-  function tick(now){if(ended||!host.isConnected)return;const t=now-start;draw(t);if(t<(count-first-1)*70+780)raf=requestAnimationFrame(tick);else{playing=false;rest();plateRemember(m.kg,date);announcement.textContent=`${plateNumber(m.kg)} ${U()} moved`;}}
+  function tick(now){if(ended||!host.isConnected)return;const t=now-start;draw(t);if(t<(count-first-1)*plateStagger(count-first)+780)raf=requestAnimationFrame(tick);else{playing=false;rest();plateRemember(m.kg,date);announcement.textContent=`${plateNumber(m.kg)} ${U()} moved`;}}
   function play(replay=false){
     stop();colors();from=replay?bankKg:staticView?m.kg:Math.max(bankKg,Math.min(m.kg,plateSeen(date)));first=Math.max(bank,ledger.findIndex(p=>p.end>from+1e-8));if(first<bank)first=count;
     if(reduced.matches||from>=m.kg||!count){from=m.kg;first=count;draw(1e6);if(!staticView)plateRemember(m.kg,date);return;}

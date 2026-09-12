@@ -28,10 +28,10 @@ export async function createPlateVideo({render,signal,onProgress,dark}){
       function tick(){
         if(failed||signal.aborted)return;
         try{
-          const elapsed=performance.now()-start,t=Math.min(2800,elapsed-200);
+          const elapsed=performance.now()-start,t=Math.min(3500,elapsed-200);
           render(t,scene,mascot.captureFrame(Math.max(0,t)));output.drawImage(scene,0,0);
-          onProgress(Math.min(99,Math.round(elapsed/50)));
-          if(elapsed>=5000){recorder.stop();return;}
+          onProgress(Math.min(99,Math.round(elapsed/57)));
+          if(elapsed>=5700){recorder.stop();return;}
           timer=setTimeout(tick,20);
         }catch(e){fail(e);}
       }

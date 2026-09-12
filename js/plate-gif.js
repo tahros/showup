@@ -21,16 +21,16 @@ export async function createPlateGif({render,signal,onProgress,dark}){
     const send=(data,transfer=[])=>new Promise((resolve,reject)=>{if(signal.aborted)return reject(new DOMException('Cancelled','AbortError'));pending={resolve,reject};worker.postMessage(data,transfer);});
     const canvas=document.createElement('canvas');
     // Quantize the final composition so the initial empty sky does not decide colours.
-    render(undefined,canvas,mascot.captureFrame(2800));
+    render(undefined,canvas,mascot.captureFrame(3500));
     let pixels=canvas.getContext('2d').getImageData(0,0,1080,1280).data;
     await send({type:'init',pixels:pixels.buffer},[pixels.buffer]);
     // 50 fps motion, then a two-second final hold. Repeated hold frames need not encode.
-    for(let i=0;i<=150;i++){
+    for(let i=0;i<=185;i++){
       if(signal.aborted)throw new DOMException('Cancelled','AbortError');
-      const t=i*20-200;render(t,canvas,mascot.captureFrame(Math.max(0,Math.min(2800,t))));
+      const t=i*20-200;render(t,canvas,mascot.captureFrame(Math.max(0,Math.min(3500,t))));
       pixels=canvas.getContext('2d').getImageData(0,0,1080,1280).data;
-      await send({type:'frame',pixels:pixels.buffer,delay:i===150?2000:20},[pixels.buffer]);
-      onProgress(Math.round((i+1)/151*100));
+      await send({type:'frame',pixels:pixels.buffer,delay:i===185?2000:20},[pixels.buffer]);
+      onProgress(Math.round((i+1)/186*100));
       await new Promise(r=>setTimeout(r,0));
     }
     const result=await send({type:'finish'});return new Blob([result.bytes],{type:'image/gif'});

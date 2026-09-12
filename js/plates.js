@@ -26,8 +26,12 @@ function plateStackTop(ledger,i,bank,unit,thickness,bottom){
   const first=bank+Math.floor((i-bank)/10)*10;
   let y=bottom;
   for(let j=first;j<=i;j++)y-=thickness*Math.min(1,ledger[j].kg/unit);
+  // A subtle lip between plates: halfway between flush and the old spacing.
+  y-=(i-first)*thickness*.25;
   return y;
 }
+// Keep a full replay near 3.5 seconds regardless of visible plate count.
+function plateStagger(count){return count>1?2720/(count-1):0;}
 function plateNumber(kg){return Math.round(toU(kg)).toLocaleString();}
 function plateKey(date=todayISO){return 'showup.plates.v2.'+(session?.user?.id||'local')+'.'+date;}
 function plateSeen(date=todayISO){try{return Math.max(0,Number(localStorage.getItem(plateKey(date)))||0);}catch(e){return 0;}}
@@ -68,7 +72,7 @@ function drawPlateShare(data,mascot,frame={}){
   x.save();x.beginPath();x.rect(60,190,960,610);x.clip();
   for(let i=bank;i<plates.length;i++){
     const p=plates[i],n=i-bank,c=data.colors[p.part]||'#888888',cx=210+Math.floor(n/10)*195,end=plateStackTop(plates,i,bank,unit,19,760),h=19*Math.min(1,p.kg/unit);
-    const age=animated?frame.time-n*70:1e6;if(age<0)continue;
+    const age=animated?frame.time-n*plateStagger(plates.length-bank):1e6;if(age<0)continue;
     let cy=end,angle=0;
     if(age<340){const v=age/340;cy=155+(end-155)*v*v;angle=(i%2?-1:1)*.28*(1-v*.6);}
     else{total=p.end;const v=Math.min(1,(age-340)/110);cy=end-7*Math.sin(v*Math.PI)*(1-v);angle=(i%2?-1:1)*.035*Math.sin(v*Math.PI*2)*(1-v);}
