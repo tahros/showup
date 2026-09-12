@@ -49,8 +49,26 @@ ok('the year is the first column\'s year, bare -- four digits and nothing else',
 ok('...no day count rides along with it', !/day/i.test(run(`document.querySelector('.crcard.resting .heat-periods').textContent`)));
 ok('the month is the first column\'s month in sentence case, not the old all-caps tick',
    mo===monthOf(first)&&mo!==mo.toUpperCase(), JSON.stringify(mo));
-ok('year sits on the top line and month 14px under it, the .work-periods stack',
-   run(`(function(){const r=document.querySelector('.crcard.resting .heat-periods');return r.querySelector('.yr').style.top==='0px'&&r.querySelector('.mo').style.top==='14px';})()`));
+ok('year sits on the top line and month 12px under it, the tier gap the 9px type asks for',
+   run(`(function(){const r=document.querySelector('.crcard.resting .heat-periods');return r.querySelector('.yr').style.top==='0px'&&r.querySelector('.mo').style.top==='12px';})()`));
+
+/* v4.5.20: the rail is sized to the weekday letters beside it. Read off the CSS
+   the app actually ships, not off the numbers restated here, and compared with
+   .wdrail rather than asserted as a constant -- if the weekday rail moves, this
+   should fail rather than quietly drift apart from it. */
+{
+  const cssA=fs.readFileSync(path.join(dir,'css/app.css'),'utf8');
+  const wd=cssA.match(/\.wdrail\{[^}]*font-size:(\d+)px;[\s\S]*?color:var\(--([a-z]+)\)/);
+  const rail=story.match(/\.crcard \.heat-periods span\{[^}]*font:400 (\d+)px\/(\d+)px var\(--mono\);color:var\(--([a-z]+)\)/);
+  ok('(fixture) both rails are readable from the shipped CSS', !!wd&&!!rail, wd&&rail?`wdrail ${wd[1]}px/${wd[2]} · rail ${rail[1]}px/${rail[3]}`:'unreadable');
+  ok('the date rail is the same size as the weekday letters', !!wd&&!!rail&&wd[1]===rail[1], wd&&rail?`${rail[1]}px vs ${wd[1]}px`:'');
+  ok('...and the same tone', !!wd&&!!rail&&wd[2]===rail[3], wd&&rail?`--${rail[3]} vs --${wd[2]}`:'');
+  ok('...and both still name the same family', /\.wdrail\{[^}]*font-family:var\(--mono\)/.test(cssA)&&/heat-periods span\{[^}]*var\(--mono\)/.test(story));
+  ok('the year keeps its weight so it still reads as a header',
+     /\.crcard \.heat-periods span\.yr\{font-weight:600/.test(story));
+  ok('the history chart rail is untouched -- it is a different rail on a different card',
+     /\[\[4,0\],\[7,14\]\]/.test(story)&&(story.match(/\[\[4,0\],\[7,1[24]\]\]/g)||[]).length===2);
+}
 
 // ---- and it MOVES. A rail that only paints once is the mock's bug.
 {

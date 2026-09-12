@@ -259,7 +259,10 @@ function installHeatPeriods(){
    const pitch=r7&&r7.left-r0.left>0?r7.left-r0.left:15;   /* --hcell 11 + column-gap 4 when there is no layout */
    const cols=[];for(let k=0;k<cells.length;k+=7)cols.push(cells[k].getAttribute('aria-label').slice(0,10));
    const left=wrap.scrollLeft;
-   for(const [length,top]of [[4,0],[7,14]]){
+   /* v4.5.20: 12, not 14 -- the tier gap follows the 9px/12px the rail now sets.
+      The history chart's own work-periods rail keeps 14; it is still 11px type,
+      and it is a different rail on a different card. */
+   for(const [length,top]of [[4,0],[7,12]]){
     const periods=[];cols.forEach((d,c)=>{const key=d.slice(0,length);if(periods.at(-1)?.key!==key)periods.push({key,x:c*pitch,label:length===4?key:new Date(d+'T00:00').toLocaleDateString('en-US',{month:'short'})});});
     let index=0;while(index+1<periods.length&&periods[index+1].x<=left+2)index++;
     const current=periods[index],next=periods[index+1],label=document.createElement('span');label.className=length===4?'yr':'mo';label.textContent=current.label;label.style.top=top+'px';rail.append(label);
@@ -617,8 +620,15 @@ const compactStyle=document.createElement('style');compactStyle.textContent=`
    padding-top so the S row still lines up with row one. */
 .crcard .heatgrid{margin-top:30px;padding:0 4px 4px 0}.crcard .wdrail{padding-top:30px}
 .crcard .heat-periods{position:absolute;right:0;top:0;height:30px;overflow:hidden;pointer-events:none;background:var(--surface);z-index:1}
-.crcard .heat-periods span{position:absolute;white-space:nowrap;font:400 11px/14px var(--mono);color:var(--muted)}
-.crcard .heat-periods span.yr{font-weight:600;color:var(--chalk)}
+/* v4.5.20: the date rail is sized to the WEEKDAY RAIL beside it. Both already
+   named var(--mono), so this was never a family mismatch -- .wdrail is 9px in
+   --faint while this was 11px in --muted with the year in full --chalk, and at
+   that distance two identical faces read as two different ones. Matching the
+   9px and the --faint lets the calendar's chrome recede as one layer. The year
+   keeps 600 and steps up one tone to --muted: it still has to read as the header
+   of the months under it, and weight alone carries that without size. */
+.crcard .heat-periods span{position:absolute;white-space:nowrap;font:400 9px/12px var(--mono);color:var(--faint)}
+.crcard .heat-periods span.yr{font-weight:600;color:var(--muted)}
 .pg-title-row .pg-title{flex:1;min-width:0}.pg-search-open{display:grid;place-items:center;width:44px;height:44px;flex:0 0 44px;border:0;border-radius:50%;background:var(--surface2);color:var(--chalk)}
 .pg-library{margin:12px 0 18px}.pg-parts{display:flex;gap:7px;overflow-x:auto;padding-bottom:10px}.pg-parts button{flex:0 0 auto;padding:9px 12px;border-radius:18px;border:1px solid var(--line);background:var(--surface2);color:var(--muted);font:500 11px var(--body)}.pg-parts button[aria-pressed=true]{background:var(--accent);color:white;border-color:var(--accent)}
 .pg-exercise-shelf{display:grid;grid-template-columns:1fr 1fr;gap:8px}.pg-exercise-shelf button,.pg-search-results button{padding:12px;text-align:left;border:1px solid var(--line);border-radius:12px;background:var(--surface2);color:var(--chalk);min-width:0}.pg-exercise-shelf strong,.pg-search-results strong{display:block;font:500 12px/1.35 var(--body)}.pg-exercise-shelf small,.pg-search-results small{display:block;margin-top:5px;font:400 10px var(--mono);color:var(--muted)}.pg-exercise-shelf button[aria-pressed=true]{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--surface))}
