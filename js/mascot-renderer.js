@@ -19,7 +19,7 @@ export function createMascot(stage, options={}) {
       original:['#090909','#111111','#1b1b1b'],
       soft:['#2c2c2c','#363636','#404040'],
       light:['#484848','#525252','#5c5c5c'],
-      silver:['#8a8a8a','#9e9e9e','#b4b4b4']   /* v4.5.15: the matte silver, same relationship as soft */
+      chrome:['#6a6a6a','#a2a2a2','#e6e6e6']   /* v4.5.16: chrome -- a WIDER dark-to-light spread than soft on purpose; that gap is what reads as polished rather than painted */
     };
     const charcoal=new THREE.ShaderMaterial({
       uniforms:{dark:{value:new THREE.Color(tones.soft[0])},mid:{value:new THREE.Color(tones.soft[1])},light:{value:new THREE.Color(tones.soft[2])}},
@@ -204,11 +204,11 @@ export function createMascot(stage, options={}) {
   let raf=0, elapsed=0, previous=0, paused=true, disposed=false, lost=false;
   const keys=['dark','mid','light'];
   function paint(t=elapsed) {
-    /* v4.5.15: silver is a tone here too. Without this the PNG would be silver and
+    /* v4.5.16: chrome is a tone here too. Without this the PNG would be chrome and
        the WebGL mascot -- the one that actually shows once the renderer is ready --
        would still be charcoal, which is the two-copies-of-a-rule trap. The three
        stops keep the shader's dark/mid/light relationship, lifted to match the PNG. */
-    const base=isBlue()?['#2033af','#3049dc','#5368ed']:tone==='white'?['#d7d7d7','#f1f1f1','#ffffff']:theme==='dark'?['#d7d7d7','#f1f1f1','#ffffff']:tone==='silver'?tones.silver:tones.soft;
+    const base=isBlue()?['#2033af','#3049dc','#5368ed']:tone==='white'?['#d7d7d7','#f1f1f1','#ffffff']:theme==='dark'?['#d7d7d7','#f1f1f1','#ffffff']:tone==='chrome'?tones.chrome:tones.soft;
     const target=mode==='active'?['#a92523','#d74236','#f46b52']:['#2749bd','#4779df','#78b3f4'];
     const pulse=mode==='active';
     const wave=still?.5:.5-.5*Math.cos(t/(mode==='active'?3200:4800)*Math.PI*2);

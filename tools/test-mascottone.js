@@ -25,14 +25,14 @@ ok('...and the tone rides on the element for the 3D renderer to read',
 ok('...while dance stays dance', run(`/data-mascot="dance"/.test(mascotHTML('dance','','blue'))`));
 
 // ---- nothing that did not ask changes
-/* v4.5.15: a plain mascot in the light theme is SILVER, not charcoal, and the
+/* v4.5.15: a plain mascot in the light theme is CHROME, not charcoal, and the
    resolved tone is always written to the element -- CSS needs it to hang the
-   satin highlight on, and "silver" is never requested, only resolved, so the
+   satin highlight on, and "chrome" is never requested, only resolved, so the
    old "no attribute unless asked" rule left it blank in the one case that
    needed it. Charcoal is asserted gone: shipping both would be two tones for
    one decision. */
-ok('a plain mascot in the light theme is silver',
-   run(`/mascot-silver\\.png/.test(mascotHTML('hello'))&&/data-mascot-tone="silver"/.test(mascotHTML('hello'))`),
+ok('a plain mascot in the light theme is chrome',
+   run(`/mascot-chrome\\.png/.test(mascotHTML('hello'))&&/data-mascot-tone="chrome"/.test(mascotHTML('hello'))`),
    run(`mascotHTML('hello').slice(0,96)`));
 ok('...and charcoal is not reachable from a plain mascot any more',
    run(`!/mascot-charcoal/.test(mascotHTML('hello'))`));
@@ -105,22 +105,34 @@ ok('...so a blue jump is a jump, not the cool routine',
 /* v4.5.15: the satin highlight, and the two-renderers trap. The PNG path and the
    WebGL path are separate implementations of one decision; the whole bug class
    this repo keeps hitting is a fix landing in the copy the maker is not running,
-   so silver is asserted in BOTH, and the highlight is asserted to switch off once
+   so chrome is asserted in BOTH, and the highlight is asserted to switch off once
    the canvas takes over. */
 {
   const css=fs.readFileSync(path.join(dir,'css/mascot.css'),'utf8');
   const rsrc=fs.readFileSync(path.join(dir,'js/mascot-renderer.js'),'utf8');
 
-  ok('the silver asset exists and is precached',
-     fs.existsSync(path.join(dir,'assets/mascot-silver.png')) &&
-     /\.\/assets\/mascot-silver\.png/.test(fs.readFileSync(path.join(dir,'sw.js'),'utf8')));
-  ok('the WebGL renderer knows silver too, so the 3D mascot is not left charcoal',
-     /silver:\[/.test(rsrc) && /tone===.silver.\?tones\.silver/.test(rsrc));
-  ok('...and its silver is a mid grey, not near-black like soft',
-     (()=>{const m=rsrc.match(/silver:\['#([0-9a-f]{6})'/);return m&&parseInt(m[1].slice(0,2),16)>=0x70;})(),
-     (rsrc.match(/silver:\['#[0-9a-f]{6}'/)||[])[0]);
-  ok('silver carries a masked satin highlight',
-     /\.su-mascot\[data-mascot-tone="silver"\]::after\{[^}]*mask:url\(\.\.\/assets\/mascot-silver\.png\)/.test(css.replace(/\s+/g,m=>m.includes('\n')?'\n':' ').replace(/\n\s*/g,'')));
+  ok('the chrome asset exists and is precached',
+     fs.existsSync(path.join(dir,'assets/mascot-chrome.png')) &&
+     /\.\/assets\/mascot-chrome\.png/.test(fs.readFileSync(path.join(dir,'sw.js'),'utf8')));
+  ok('the WebGL renderer knows chrome too, so the 3D mascot is not left charcoal',
+     /chrome:\[/.test(rsrc) && /tone===.chrome.\?tones\.chrome/.test(rsrc));
+  /* v4.5.16: the claim for chrome is the SPREAD, not the floor. A flat lift reads
+     as grey paint; what makes metal look polished is a wide gap between its darkest
+     and brightest stop, with the dark one still clearly lifted off the old charcoal
+     (#2c2c2c). Asserting "every stop is at least mid grey" would have banned the
+     horizon that makes it chrome in the first place. */
+  {
+    const stops=(rsrc.match(/chrome:\['#([0-9a-f]{6})','#([0-9a-f]{6})','#([0-9a-f]{6})'\]/)||[]).slice(1)
+      .map(h=>parseInt(h.slice(0,2),16));
+    ok('(fixture) the renderer declares three chrome stops', stops.length===3, stops.join(' → '));
+    ok('...they run dark to bright with a wide gap -- polished, not painted',
+       stops.length===3&&stops[2]-stops[0]>=0x50&&stops[0]<stops[1]&&stops[1]<stops[2],
+       stops.map(n=>n.toString(16)).join(' → ')+' (spread '+(stops[2]-stops[0])+')');
+    ok('...and even its darkest stop is well clear of the old charcoal',
+       stops.length===3&&stops[0]>0x44, stops[0]&&stops[0].toString(16));
+  }
+  ok('chrome carries a masked satin highlight',
+     /\.su-mascot\[data-mascot-tone="chrome"\]::after\{[^}]*mask:url\(\.\.\/assets\/mascot-chrome\.png\)/.test(css.replace(/\s+/g,m=>m.includes('\n')?'\n':' ').replace(/\n\s*/g,'')));
   {/* the flattened text has no space after @keyframes, and [^}]* cannot cross the
       inner stop braces -- match the stops themselves instead of the block. */
    const flat=css.replace(/\s+/g,'');
@@ -132,13 +144,13 @@ ok('...so a blue jump is a jump, not the cool routine',
         return moves.length>0&&Math.max(...moves)<=10;})(),
       [...body.matchAll(/translate\((-?[\d.]+)%/g)].map(m=>m[1]+'%').join(' '));}
   ok('...and it steps aside once the WebGL renderer is ready',
-     /\.su-mascot\.su-ready\[data-mascot-tone="silver"\]::after\{display:none\}/.test(css.replace(/\s+/g,'')));
+     /\.su-mascot\.su-ready\[data-mascot-tone="chrome"\]::after\{display:none\}/.test(css.replace(/\s+/g,'')));
   ok('...it holds still for reduced motion and for the still/off motion settings',
-     /prefers-reduced-motion:reduce\)\{\.su-mascot\[data-mascot-tone="silver"\]::after\{animation:none\}/.test(css.replace(/\s+/g,''))&&
-     /data-mascot-motion="still"\]\.su-mascot\[data-mascot-tone="silver"\]::after/.test(css.replace(/\s+/g,'')));
-  ok('the dark theme is untouched -- still white, no silver',
+     /prefers-reduced-motion:reduce\)\{\.su-mascot\[data-mascot-tone="chrome"\]::after\{animation:none\}/.test(css.replace(/\s+/g,''))&&
+     /data-mascot-motion="still"\]\.su-mascot\[data-mascot-tone="chrome"\]::after/.test(css.replace(/\s+/g,'')));
+  ok('the dark theme is untouched -- still white, no chrome',
      run(`(function(){document.documentElement.dataset.theme='dark';const h=mascotHTML('hello');
-       document.documentElement.dataset.theme='light';return /mascot-white\\.png/.test(h)&&!/silver/.test(h);})()`));
+       document.documentElement.dataset.theme='light';return /mascot-white\\.png/.test(h)&&!/chrome/.test(h);})()`));
   ok('...and blue still wins over the theme, so a logged day is unaffected',
      run(`/mascot-blue\\.png/.test(mascotHTML('jump','','blue'))&&/mascot-blue\\.png/.test(mascotHTML('cool'))`));
 }

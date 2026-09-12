@@ -27,10 +27,10 @@ run("document.documentElement.dataset.theme='dark'");
 ok('dark content gets white mascot',run("mascotHTML().includes('mascot-white.png')"));
 ok('completed dark content gets blue still',run("mascotHTML('cool').includes('mascot-blue.png')"));
 run("document.documentElement.dataset.theme='light'");
-/* v4.5.15: silver, not charcoal -- the near-black read as a hole in a pale card.
+/* v4.5.15: chrome, not charcoal -- the near-black read as a hole in a pale card.
    Asserted here as well as in test-mascottone because this file makes the same
    claim, and one decision recorded in two states is the bug this repo keeps. */
-ok('light content gets silver mascot',run("mascotHTML().includes('mascot-silver.png')"));
+ok('light content gets chrome mascot',run("mascotHTML().includes('mascot-chrome.png')"));
 ok('completed light content gets blue still',run("mascotHTML('cool').includes('mascot-blue.png')"));
 run("DB.settings.mascotMotion='off'");
 ok('off restores non-mascot layout',run("mascotHTML()===''"));
