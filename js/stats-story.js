@@ -41,7 +41,7 @@ partMixSvg=days=>{
  const ns='http://www.w3.org/2000/svg',g=document.createElementNS(ns,'g'),scale=PMIXC_PLOT/(PMIX_BASE-PMIX_TOP);
  g.setAttribute('transform',`translate(0 ${34-PMIX_TOP*scale}) scale(1 ${scale})`);
  [...svg.children].filter(e=>e.tagName.toLowerCase()!=='defs').forEach(e=>g.append(e));svg.append(g);
- rows.forEach((r,i)=>{const x=8+i*PMIX_COLW+(PMIX_COLW-2.5)/2,t=document.createElementNS(ns,'text');for(const [k,v]of Object.entries({x,y:PMIXC_H-38,transform:`rotate(-90 ${x} ${PMIXC_H-38})`,'text-anchor':'end','font-family':'var(--mono)','font-size':11,fill:'var(--muted)'}))t.setAttribute(k,v);t.textContent=(+r.d.slice(5,7))+'/'+(+r.d.slice(8,10));svg.append(t);});
+ rows.forEach((r,i)=>{const x=8+i*PMIX_COLW+(PMIX_COLW-2.5)/2,t=document.createElementNS(ns,'text');for(const [k,v]of Object.entries({x,y:PMIXC_H-38,transform:`rotate(-90 ${x} ${PMIXC_H-38})`,'text-anchor':'end','dominant-baseline':'central','font-family':'var(--body)','font-size':10,fill:'var(--muted)','data-date-col':i}))t.setAttribute(k,v);t.textContent=(+r.d.slice(5,7))+'/'+(+r.d.slice(8,10));svg.append(t);});
  svg.setAttribute('viewBox',`0 0 ${svg.getAttribute('width')} ${PMIXC_H}`);svg.setAttribute('height',String(PMIXC_H));svg.style.height=PMIXC_H+'px';svg.setAttribute('preserveAspectRatio','xMinYMin meet');return svg.outerHTML;
 };
 /* v4.5.4: THIS OVERRODE THE REAL AXIS. stats.js grew pmixNiceMax so the ticks
@@ -59,7 +59,7 @@ pmixAxisSvg=()=>{
   return `<svg class="pmixaxis" width="42" height="${H}" viewBox="0 0 42 ${H}">`+
     Array.from({length:5},(_,i)=>{
       const y=base-(i/4)*(base-top);
-      return `<text x="38" y="${(y+3.5).toFixed(1)}" text-anchor="end" font-family="var(--body)" font-size="11" fill="var(--muted)">${pmixFmtV(max*i/4)}</text>`;
+      return `<text x="38" y="${(y+3).toFixed(1)}" text-anchor="end" font-family="var(--body)" font-size="10" fill="var(--muted)">${pmixFmtV(max*i/4)}</text>`;
     }).join('')+'</svg>';
 };
 pmixSetFocus=()=>{};

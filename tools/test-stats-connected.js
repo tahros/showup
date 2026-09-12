@@ -10,12 +10,12 @@ for(const m of html.matchAll(/src="(js\/[^?"]+)\?v=/g))vm.runInContext(fs.readFi
 const run=c=>vm.runInContext(c,ctx),check=(name,code)=>{assert.ok(run(code),name);console.log('PASS '+name);};
 run(`todayISO='2026-09-11';checkDate=()=>false;DB.settings.name='Preserve Me';DB.settings.sex='F';DB.settings.unit='lb';DB.days={};for(const y of [2024,2025,2026]){for(const md of ['01-03','02-10','09-11'])DB.days[y+'-'+md]={w:[{part:'Legs',ex:'Squat',w:y-1950,reps:[8,8]},{part:'Chest',ex:'Incline Barbell Bench Press',w:60,reps:[10]},{part:'Run',ex:'Run',w:5,mins:30,reps:[1]}],doneAll:true};}SEED=deriveAll();view='stats';render();window.savedDB=JSON.stringify(DB);`);
 check('one card combines the selected workout and its selectable history',`!!document.querySelector('.work-combined .plate-canvas')&&!!document.querySelector('.work-combined #pmixWrap')`);
-check('history text has native 11px geometry, not a squeezed SVG',`/* v4.5.3: the height was a literal and is derived now. What this guard
+check('history text has native compact geometry, not a squeezed SVG',`/* v4.5.3: the height was a literal and is derived now. What this guard
    protects is that the text is NATIVE size rather than scaled by a squeezed
    viewBox, so it checks viewBox height === height (no squeeze) instead of
    naming a number the geometry is free to change. */
 (function(){const v=document.querySelector('#pmixWrap svg');
-  return !!v && v.getAttribute('viewBox').split(/\\s+/)[3]===v.getAttribute('height');})()&&document.querySelector('#pmixWrap svg').getAttribute('preserveAspectRatio')==='xMinYMin meet'&&[...document.querySelectorAll('.work-history svg text')].every(t=>t.getAttribute('font-size')==='11'||t.hasAttribute('data-yrmark'))   /* v4.5.3: the year mark is deliberately smaller; every other label, the axis included, is 11 */`);
+  return !!v && v.getAttribute('viewBox').split(/\\s+/)[3]===v.getAttribute('height');})()&&document.querySelector('#pmixWrap svg').getAttribute('preserveAspectRatio')==='xMinYMin meet'&&[...document.querySelectorAll('.work-history svg text')].every(t=>t.getAttribute('font-size')==='10'||t.hasAttribute('data-yrmark'))   /* both axes share one compact native size; year markers remain deliberately smaller */`);
 run(`document.querySelector('#pmixWrap').scrollLeft=0;document.querySelector('#pmixWrap').dispatchEvent(new Event('scroll'));`);
 check('sticky period header names the leftmost year and full month',`document.querySelector('.work-periods').textContent.includes('2024')&&document.querySelector('.work-periods').textContent.includes('Jan')   /* v4.5.3: months are three letters now */`);
 check('two comparisons start with two selected years and visible markers',`document.querySelectorAll('.comparison-plot circle.comparison-marker').length===4`);

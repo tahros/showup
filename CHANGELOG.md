@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v4.5.9 (2026-09-12) — Honest full-day stacks and aligned dates
+
+- Matched the history chart's x- and y-axis labels at the same compact size and
+  centered each rotated date glyph on its corresponding bar.
+- Removed the 30-plate visual window that hid completed stacks. Every body-part
+  band in the selected workout now remains visible, with stack width adapting
+  to fit higher-volume days without colliding with the mascot.
+
 ## v4.5.8 (2026-09-12) — Balanced summary and restored history chart
 
 - Added two pixels of symmetrical breathing room above and below the workout

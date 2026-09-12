@@ -68,9 +68,9 @@ function drawPlateShare(data,mascot,frame={}){
   // Do not resize a live captureStream canvas on every frame.
   if(cv.width!==1080)cv.width=1080;if(cv.height!==1280)cv.height=1280;
   const x=cv.getContext('2d');if(!x)return null;
-  const unit=data.unit==='lb'?500/LB:250,m=plateMetrics(data.record),plates=plateLedger(data.record,unit),bank=Math.max(0,Math.floor((plates.length-1)/30))*30;
+  const unit=data.unit==='lb'?500/LB:250,m=plateMetrics(data.record),plates=plateLedger(data.record,unit),bank=0;
   const sans='"ShowUp Export Plex", "IBM Plex Sans",sans-serif',mono=sans;
-  const animated=Number.isFinite(frame.time);let total=bank?plates[bank-1].end:0;
+  const animated=Number.isFinite(frame.time);let total=0;
   x.fillStyle=data.surface;x.fillRect(0,0,1080,1280);
   const text=(s,y,font,color=data.ink)=>{x.font=font;x.fillStyle=color;x.textAlign='center';x.fillText(s,540,y,944);};
   text(data.record.doneAll?'WORKOUT COMPLETE':'YOUR WORKOUT',98,'500 25px '+mono,data.muted);
@@ -78,20 +78,21 @@ function drawPlateShare(data,mascot,frame={}){
   text(date.toLocaleDateString('en-US',{weekday:'long'})+' · '+date.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),148,'500 30px '+mono);
   function shadow(cx,cy,rx,ry){x.save();x.translate(cx,cy);x.scale(rx,ry);const g=x.createRadialGradient(0,0,0,0,0,1);g.addColorStop(0,'rgba(90,90,90,.20)');g.addColorStop(1,'rgba(90,90,90,0)');x.fillStyle=g;x.beginPath();x.arc(0,0,1,0,Math.PI*2);x.fill();x.restore();}
   const shade=(c,f)=>{const hex=c.replace('#','');return /^[\da-f]{6}$/i.test(hex)?'#'+[0,2,4].map(i=>Math.round(parseInt(hex.slice(i,i+2),16)*f).toString(16).padStart(2,'0')).join(''):c;};
-  for(let c=0;c<Math.min(3,Math.ceil((plates.length-bank)/10));c++)shadow(210+c*195,774,130,22);
+  const stackCount=Math.ceil((plates.length-bank)/10),stacks=Math.max(1,stackCount),stackGap=stacks<=3?195:600/(stacks-1),stackX=c=>stacks<=3?210+c*195:120+c*stackGap,plateRX=stacks<=3?88:Math.min(76,stackGap*.42);
+  for(let c=0;c<stackCount;c++)shadow(stackX(c),774,Math.max(plateRX*1.35,45),22);
   x.save();x.beginPath();x.rect(60,190,960,610);x.clip();
   for(let i=bank;i<plates.length;i++){
-    const p=plates[i],n=i-bank,c=data.colors[p.part]||'#888888',cx=210+Math.floor(n/10)*195,end=plateStackTop(plates,i,bank,unit,19,760),h=19*Math.min(1,p.kg/unit);
+    const p=plates[i],n=i-bank,c=data.colors[p.part]||'#888888',cx=stackX(Math.floor(n/10)),end=plateStackTop(plates,i,bank,unit,19,760),h=19*Math.min(1,p.kg/unit);
     const age=animated?frame.time-n*plateStagger(plates.length-bank):1e6;if(age<0)continue;
     let cy=end,angle=0;
     if(age<340){const v=age/340;cy=155+(end-155)*v*v;angle=(i%2?-1:1)*.28*(1-v*.6);}
     else{total=p.end;const v=Math.min(1,(age-340)/110);cy=end-7*Math.sin(v*Math.PI)*(1-v);angle=(i%2?-1:1)*.035*Math.sin(v*Math.PI*2)*(1-v);}
     x.save();x.translate(cx,cy);x.rotate(angle);x.translate(-cx,-cy);
-    x.fillStyle=shade(c,.7);x.beginPath();x.ellipse(cx,cy+h,88,20,0,0,Math.PI*2);x.fill();x.fillRect(cx-88,cy,176,h);
-    x.fillStyle=c;x.beginPath();x.ellipse(cx,cy,88,20,0,0,Math.PI*2);x.fill();
-    x.fillStyle=shade(c,.42);x.beginPath();x.ellipse(cx,cy,13,6,0,0,Math.PI*2);x.fill();
+    x.fillStyle=shade(c,.7);x.beginPath();x.ellipse(cx,cy+h,plateRX,20,0,0,Math.PI*2);x.fill();x.fillRect(cx-plateRX,cy,plateRX*2,h);
+    x.fillStyle=c;x.beginPath();x.ellipse(cx,cy,plateRX,20,0,0,Math.PI*2);x.fill();
+    x.fillStyle=shade(c,.42);x.beginPath();x.ellipse(cx,cy,Math.min(13,plateRX*.15),6,0,0,Math.PI*2);x.fill();
     x.restore();
-    if(frame.dust!==false&&age>=340&&age<680){const v=(age-340)/340;for(const d of [-1,1])shadow(cx+d*(65+v*36),end+4-v*15,15+v*35,6+v*12);}
+    if(frame.dust!==false&&age>=340&&age<680){const v=(age-340)/340;for(const d of [-1,1])shadow(cx+d*(plateRX*.74+v*36),end+4-v*15,15+v*35,6+v*12);}
   }
   x.restore();
   if(!frame.mascot)shadow(891,778,80,13);x.drawImage(frame.mascot||mascot,783,659,216,132);
@@ -106,7 +107,6 @@ function drawPlateShare(data,mascot,frame={}){
   const parts=[...new Set(plates.map(p=>p.part||'Other'))],rows=[[]];let width=0;x.font='400 25px '+mono;
   for(const p of parts){const w=x.measureText(p).width+48;if(width+w>900){rows.push([]);width=0;}rows.at(-1).push({p,w});width+=w;}
   rows.forEach((row,r)=>{let left=(1080-row.reduce((s,p)=>s+p.w,0))/2;for(const {p,w} of row){x.fillStyle=data.colors[p]||data.muted;x.beginPath();x.arc(left+7,1030+r*37,7,0,Math.PI*2);x.fill();x.fillStyle=data.muted;x.textAlign='left';x.fillText(p,left+24,1038+r*37);left+=w;}});
-  if(bank)text(`${bank/10} completed stacks + current stacks`,1140,'400 24px '+mono,data.muted);
   x.strokeStyle=data.line;x.lineWidth=1;x.beginPath();x.moveTo(70,1180);x.lineTo(1010,1180);x.stroke();
   x.fillStyle=data.muted;x.font='400 28px '+sans;x.textAlign='right';x.fillText(data.name,1010,1230,680);
   if(data.logo)x.drawImage(data.logo,14,85,485,292,70,1201,82,49);

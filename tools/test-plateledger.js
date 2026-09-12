@@ -56,4 +56,17 @@ run(`globalThis.ONE={w:[{part:'Legs',ex:'Squat',w:toKg(225),reps:[6,6,6,6],at:1}
 ok('a single-part day is one colour, as it should be',
    new Set(JSON.parse(run(`JSON.stringify(plateLedger(ONE).map(p=>p.part))`))).size===1);
 ok('an empty day has no plates', run(`plateLedger({w:[]}).length`)===0 && run(`plateLedger(null).length`)===0);
+
+/* Aug 25: 14,465 lb Back + 700 lb Biceps = 31 plates. The retired 30-plate
+   window began at plate 31 and therefore rendered only Biceps. */
+run(`globalThis.AUG25={w:[
+  {part:'Back',ex:'Back work',w:toKg(14465),reps:[1]},
+  {part:'Biceps',ex:'Dumbbell Curl',w:toKg(25),reps:[10,10,8]}]};`);
+const aug25=JSON.parse(run(`JSON.stringify(plateLedger(AUG25).map(p=>p.part))`));
+ok('Aug 25 contains the expected 29 Back and 2 Biceps plates',
+   aug25.length===31&&aug25.filter(p=>p==='Back').length===29&&aug25.filter(p=>p==='Biceps').length===2,
+   JSON.stringify({Back:aug25.filter(p=>p==='Back').length,Biceps:aug25.filter(p=>p==='Biceps').length}));
+const live=fs.readFileSync(path.join(dir,'js/plate-canvas.js'),'utf8'),share=fs.readFileSync(path.join(dir,'js/plates.js'),'utf8');
+ok('the live and shared stacks both begin at plate zero',
+   /count=ledger\.length,bank=0/.test(live)&&/plates=plateLedger\(data\.record,unit\),bank=0/.test(share));
 process.exit(fails?1:0);

@@ -29,7 +29,7 @@ ok('...evenly stepped, so the gaps are readable',
    (function(){const v=ticks.map(t=>/k$/.test(t)?parseFloat(t)*1000:parseFloat(t.replace(/,/g,'')));
      const d=v[1]-v[0]; return v.every((x,i)=>i===0||Math.abs((x-v[i-1])-d)<1);})(), ticks.join(' / '));
 ok('...in the same type as the legend beside it',
-   [...new Set(JSON.parse(run(`JSON.stringify([...document.querySelectorAll('.pmixaxis text')].map(t=>t.getAttribute('font-size')+'/'+t.getAttribute('font-family')))`)))].join()==='11/var(--body)',
+   [...new Set(JSON.parse(run(`JSON.stringify([...document.querySelectorAll('.pmixaxis text')].map(t=>t.getAttribute('font-size')+'/'+t.getAttribute('font-family')))`)))].join()==='10/var(--body)',
    run(`document.querySelector('.pmixaxis text').getAttribute('font-size')`));
 
 // ---- and it is not a second copy of the rule
@@ -57,6 +57,10 @@ const align=run(`(function(){
   const worst=Math.max(...cols.map((c,i)=>Math.abs(c-labs[i])));
   return worst<=2 ? 'ok' : 'drift '+worst.toFixed(1);})()`);
 ok('every date sits under the column it names', align==='ok', align);
+ok('x and y axes use the same compact type',
+   run(`document.querySelector('#pmixWrap [data-date-col]').getAttribute('font-size')===document.querySelector('.pmixaxis text').getAttribute('font-size')&&document.querySelector('#pmixWrap [data-date-col]').getAttribute('font-family')===document.querySelector('.pmixaxis text').getAttribute('font-family')`));
+ok('rotated dates center their visible glyphs on the bar',
+   run(`document.querySelector('#pmixWrap [data-date-col]').getAttribute('dominant-baseline')==='central'`));
 
 // ---- v4.5.5: the dates are VISIBLE, not merely present
 /* v4.5.4 asserted the dates lined up with their columns and passed -- while
