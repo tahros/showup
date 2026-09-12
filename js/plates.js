@@ -48,6 +48,25 @@ function plateSeen(date=todayISO){try{return Math.max(0,Number(localStorage.getI
 function plateRemember(kg,date=todayISO){try{localStorage.setItem(plateKey(date),String(kg));}catch(e){}}
 // A finished image, never a screenshot of the animation's current frame.
 // Snapshot the date, ledger, theme and units before awaiting image/font loading.
+/* v4.5.18: ONE FOOTER, ONE PLACE. The rule, the first name and the mark were
+   written out twice -- here and in the comparison share -- with the same four
+   magic numbers in both. The maker asked for the bottom margin to match the
+   sides; had this stayed duplicated, the fix would have landed in one card and
+   not the other, which is the failure this repo keeps paying for.
+   SHARE_EDGE is the one margin: 70px on the left, the right, above the title,
+   and now below the mark. The old bottom margin was 30 -- the mark sat 1201..1250
+   in a 1280 canvas -- so everything in the footer moves up 40px. The internal
+   spacing (mark to name, name to rule) is unchanged; only the block's foot moves
+   to where the side margins say it belongs. */
+const SHARE_EDGE=70, SHARE_CARD_H=1280, SHARE_MARK_H=49;
+const SHARE_MARK_Y=SHARE_CARD_H-SHARE_EDGE-SHARE_MARK_H;   /* 1161 */
+const SHARE_NAME_Y=SHARE_MARK_Y+29;                        /* 1190 — as before, relative to the mark */
+const SHARE_RULE_Y=SHARE_NAME_Y-50;                        /* 1140 — as before, relative to the name */
+function drawShareFooter(x,data,sans){
+  x.strokeStyle=data.line;x.lineWidth=1;x.beginPath();x.moveTo(SHARE_EDGE,SHARE_RULE_Y);x.lineTo(1080-SHARE_EDGE,SHARE_RULE_Y);x.stroke();
+  x.fillStyle=data.muted;x.font='400 28px '+sans;x.textAlign='right';x.fillText(data.name,1080-SHARE_EDGE,SHARE_NAME_Y,680);
+  if(data.logo)x.drawImage(data.logo,14,85,485,292,SHARE_EDGE,SHARE_MARK_Y,82,SHARE_MARK_H);
+}
 async function sharePlateCard(){
   const date=todayISO,record=JSON.parse(JSON.stringify(DB.days?.[date]||{}));
   const css=getComputedStyle(document.documentElement),read=(k,f)=>css.getPropertyValue(k).trim()||f;
@@ -106,10 +125,13 @@ function drawPlateShare(data,mascot,frame={}){
   // Wrap the legend rather than shrinking names when more parts are present.
   const parts=[...new Set(plates.map(p=>p.part||'Other'))],rows=[[]];let width=0;x.font='400 25px '+mono;
   for(const p of parts){const w=x.measureText(p).width+48;if(width+w>900){rows.push([]);width=0;}rows.at(-1).push({p,w});width+=w;}
-  rows.forEach((row,r)=>{let left=(1080-row.reduce((s,p)=>s+p.w,0))/2;for(const {p,w} of row){x.fillStyle=data.colors[p]||data.muted;x.beginPath();x.arc(left+7,1030+r*37,7,0,Math.PI*2);x.fill();x.fillStyle=data.muted;x.textAlign='left';x.fillText(p,left+24,1038+r*37);left+=w;}});
-  x.strokeStyle=data.line;x.lineWidth=1;x.beginPath();x.moveTo(70,1180);x.lineTo(1010,1180);x.stroke();
-  x.fillStyle=data.muted;x.font='400 28px '+sans;x.textAlign='right';x.fillText(data.name,1010,1230,680);
-  if(data.logo)x.drawImage(data.logo,14,85,485,292,70,1201,82,49);
+  /* v4.5.18: the legend is lifted so its LAST row clears the footer rule, which
+     moved up 40px. Four rows of parts used to fit under a 1180 rule and would now
+     sit on top of a 1140 one; anchoring the block to the rule instead of to a
+     fixed 1030 keeps any number of rows clear of it. */
+  const legendBase=Math.min(1030,SHARE_RULE_Y-18-(rows.length-1)*37);
+  rows.forEach((row,r)=>{let left=(1080-row.reduce((s,p)=>s+p.w,0))/2;for(const {p,w} of row){x.fillStyle=data.colors[p]||data.muted;x.beginPath();x.arc(left+7,legendBase+r*37,7,0,Math.PI*2);x.fill();x.fillStyle=data.muted;x.textAlign='left';x.fillText(p,left+24,legendBase+8+r*37);left+=w;}});
+  drawShareFooter(x,data,sans);
   return cv;
 }
 let plateExportCleanup=()=>{};

@@ -524,7 +524,10 @@ function comparisonCard(card,kind){
    if(!difference.hidden){x.fillStyle=dark?'rgba(255,255,255,.06)':'rgba(0,0,0,.04)';x.beginPath();x.roundRect(70,Y,940,64,14);x.fill();
     text(difference.textContent,94,Y+41,'500 26px '+sans,data.accent);Y+=64;}
    /* the plot: same series, same scale rule as the card (ceil to a multiple of 4) */
-   const top=Y+40,bottom=1110,left=130,right=1010;
+   /* v4.5.18: the plot's floor is derived from the rule, not typed. The axis
+      labels hang 34px under it, so a hard 1110 put them at 1144 -- four pixels
+      BELOW the footer rule once it moved up for the wider bottom margin. */
+   const top=Y+40,bottom=SHARE_RULE_Y-70,left=130,right=1080-SHARE_EDGE;
    const maxV=Math.ceil(Math.max(1,...yrs.map(yr=>series.get(yr).at(-1)))/4)*4;
    const px=i=>left+i/Math.max(1,dates.length-1)*(right-left),py=v=>bottom-v/maxV*(bottom-top);
    x.strokeStyle=data.line;x.lineWidth=1;x.setLineDash([3,6]);
@@ -537,10 +540,8 @@ function comparisonCard(card,kind){
    yrs.forEach(yr=>{x.strokeStyle=col(yr);x.beginPath();series.get(yr).forEach((v,i)=>{i?x.lineTo(px(i),py(v)):x.moveTo(px(i),py(v));});x.stroke();});
    x.strokeStyle=data.muted;x.lineWidth=2;x.setLineDash([6,6]);x.beginPath();x.moveTo(px(memory.index),top-10);x.lineTo(px(memory.index),bottom);x.stroke();x.setLineDash([]);
    yrs.forEach(yr=>{x.fillStyle=data.surface;x.strokeStyle=col(yr);x.lineWidth=4;x.beginPath();x.arc(px(memory.index),py(series.get(yr)[memory.index]),11,0,Math.PI*2);x.fill();x.stroke();});
-   /* the footer: the plate share's, to the pixel */
-   x.strokeStyle=data.line;x.lineWidth=1;x.beginPath();x.moveTo(70,1180);x.lineTo(1010,1180);x.stroke();
-   text(data.name,1010,1230,'400 28px '+sans,data.muted,'right',680);
-   if(data.logo)x.drawImage(data.logo,14,85,485,292,70,1201,82,49);
+   /* the footer: literally the plate share's, not a copy of it (v4.5.18) */
+   drawShareFooter(x,data,sans);
    return cv;
   },'showup-'+(kind==='distance'?'distance':'days')+'-compare-'+current+'-'+String(mm+1).padStart(2,'0')+String(dd).padStart(2,'0'),false);
  }

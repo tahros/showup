@@ -154,9 +154,39 @@ ok('the distance card offers no flip button -- miles have no honest denominator'
   ok('the distance card shares as well, under its own name', dcv!=='null'&&/^showup-distance-compare-/.test(JSON.parse(dcv).label), dcv);
   ok('...titled DISTANCE OVER TIME, in the distance unit', ddrawn.includes('DISTANCE OVER TIME')&&/\b(mi|km)\b/.test(ddrawn)&&!ddrawn.includes('%'), ddrawn.slice(0,120));
 
-  ok('the footer geometry is the plate share\'s -- rule at 1180, name at 1010/1230, mark at 70/1201',
+  /* v4.5.18: the footer is no longer written here at all -- both share cards call
+     one drawShareFooter. Asserting the numbers in this file would have re-created
+     the duplication the helper exists to remove, so what is asserted is that this
+     card DELEGATES, and the geometry itself is checked once, below. */
+  ok('the comparison share delegates its footer rather than redrawing it',
      (()=>{const src=fs.readFileSync(path.join(dir,'js/stats-story.js'),'utf8');
-       return /moveTo\(70,1180\);x\.lineTo\(1010,1180\)/.test(src)&&/text\(data\.name,1010,1230/.test(src)&&/drawImage\(data\.logo,14,85,485,292,70,1201,82,49\)/.test(src);})());
+       return /drawShareFooter\(x,data,sans\)/.test(src)&&!/moveTo\(70,11\d\d\)/.test(src)&&!/drawImage\(data\.logo/.test(src);})());
+
+  /* the margin the maker asked for: the bottom should match the sides */
+  {
+    const pl=fs.readFileSync(path.join(dir,'js/plates.js'),'utf8');
+    const num=re=>{const m=pl.match(re);return m?+m[1]:null;};
+    /* v4.5.18: MEASURED, not restated. The first version of this check wrote the
+       formula out again -- h-(h-edge-markH)-markH===edge -- which reduces to
+       edge===edge and passed happily with the old 30px bottom. These constants are
+       live globals once plates.js has loaded, so the gap is computed from them. */
+    const edge=run(`SHARE_EDGE`), gapBottom=run(`SHARE_CARD_H-(SHARE_MARK_Y+SHARE_MARK_H)`);
+    const gapRight=run(`1080-SHARE_EDGE`)&&edge;
+    ok('(fixture) the share footer exposes its geometry', Number.isFinite(edge)&&Number.isFinite(gapBottom), `edge ${edge}, bottom gap ${gapBottom}`);
+    ok('the space under the mark equals the space at the sides',
+       gapBottom===edge, `bottom ${gapBottom}px vs sides ${edge}px`);
+    ok('...and that is wider than it used to be, which is the whole request',
+       gapBottom>30, `${gapBottom}px, was 30px`);
+    ok('...and the mark still sits bottom-LEFT, the name bottom-right',
+       /drawImage\(data\.logo,14,85,485,292,SHARE_EDGE,SHARE_MARK_Y/.test(pl)&&
+       /fillText\(data\.name,1080-SHARE_EDGE,SHARE_NAME_Y/.test(pl));
+    ok('nothing in the comparison plot reaches the footer rule -- axis labels hang 34px below the floor',
+       (()=>{const src=fs.readFileSync(path.join(dir,'js/stats-story.js'),'utf8');
+         const m=src.match(/bottom=SHARE_RULE_Y-(\d+)/);return m&&+m[1]>=34+8;})(),
+       (fs.readFileSync(path.join(dir,'js/stats-story.js'),'utf8').match(/bottom=SHARE_RULE_Y-\d+/)||[])[0]);
+    ok('...and the plate legend is anchored to the rule, so even four rows clear it',
+       /legendBase=Math\.min\(1030,SHARE_RULE_Y-18-\(rows\.length-1\)\*37\)/.test(pl));
+  }
 }
 
 console.log(fails?`FAIL ${fails}`:'ALL PASS');process.exit(fails?1:0);
