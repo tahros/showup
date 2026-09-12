@@ -5,6 +5,57 @@
 
 
 
+
+## v4.3.9 (2026-09-11) — The verdict reaches the writer
+
+The first of this run that changes what the app does.
+
+`next` — the plate face above your last top set — has been the only
+precomputed load in the package since it was written. Filled for every lift,
+always, **pointing only up**. When 215 gave the maker 6/6/4/4 the package
+handed the model 225, and the prompt's own rule had nothing to enforce it with.
+**A rule with no field behind it is a wish.**
+
+The package now carries `verdict`, `load`, `want` and `because` alongside it,
+and the prompt is told the verdict **decides** — that the STEP rule does not
+apply where a verdict exists, that *hold* means write the same weight and do
+not raise it for any reason, that climbing reps never moves the load, and that
+no verdict ever lowers a weight. `next` stays, because STEP still needs the
+plate face for lifts the verdict does not cover.
+
+`realset`, `reprange` and `verdict` now load in the app and sit in the service
+worker shell — the verdict is computed on the client before the writer is
+called, so an uncached module means a plan written offline silently loses its
+verdict fields.
+
+### Four things the tests caught that I had wrong
+
+**The reason was in kilograms.** It read `97.52247552866254 × 6/6/4/4` — true
+and useless. `verdictFor` takes a formatter now; the record stores kg and a
+person reads pounds.
+
+**The plate face was compared in the wrong unit** — `next` is display units,
+the range is kg, and the first cut mixed them.
+
+**The app did not boot.** `smoke.js` asserts an exact script count and three
+new modules made it twenty. A hard-coded count is a real guard: it would have
+caught a module silently dropped from the shell.
+
+**The shell went six bytes over its limit.** Trimmed from a comment rather than
+raising the limit.
+
+### And two probes that could not fail
+
+Removing `realSets` from the verdict path passed, because `repRangeFor` already
+votes for the weight with the most sets. It is only load-bearing when a
+**burnout has more sets than the work** — five sets of twenty at 135 outnumber
+four sets at 215, and the vote picks the burnout. That case is now in the
+suite, and the probe fails correctly.
+
+The prompt assertion matched on the word `BINDING`, which survived gutting the
+sentence around it. It reads the sentence now.
+
+
 ## v4.3.8 (2026-09-11) — Step up, or hold
 
 The writer's package has carried one precomputed load per exercise since it was

@@ -16,8 +16,12 @@
    separates his 185 x 8/8/8/8 -> step up from his 125 x 8/8/6/4 -> hold, and
    a drop-off rule gets the second right and the first wrong.
 */
-function verdictFor(sessions,range){
+function verdictFor(sessions,range,fmt){
   if(!range||!(sessions||[]).length) return null;
+  /* the reason is shown to a person, so the weight in it must be in THEIR
+     units. The range carries kg; without a formatter the reason read
+     "97.52247552866254 × 6/6/4/4", which is true and useless. */
+  const W=w=>fmt?fmt(w):w;
   const last=sessions[sessions.length-1];
   const at=(last.sets||[]).filter(s=>Math.abs(s.w-range.weight)<1e-6);
   if(at.length<2) return null;                 // one set says nothing
@@ -35,12 +39,12 @@ function verdictFor(sessions,range){
   const n=reps[0];
   if(uniform && n>=range.high)
     return {verdict:'step up weight', reps:range.low,
-      why:`${range.weight} × ${reps.join('/')} — ${range.high} on every set`};
+      why:`${W(range.weight)} × ${reps.join('/')} — ${range.high} on every set`};
   if(uniform && n>=range.low)
     return {verdict:'step up reps', reps:Math.min(range.high,n+2),
-      why:`${range.weight} × ${reps.join('/')} — clean at ${n}, climb to ${Math.min(range.high,n+2)}`};
+      why:`${W(range.weight)} × ${reps.join('/')} — clean at ${n}, climb to ${Math.min(range.high,n+2)}`};
   return {verdict:'hold', reps:range.high,
-    why:`${range.weight} × ${reps.join('/')} — ${range.low}\u2013${range.high} not yet complete`};
+    why:`${W(range.weight)} × ${reps.join('/')} — ${range.low}\u2013${range.high} not yet complete`};
 }
 /* the load the verdict implies. Holding means the SAME weight -- the package
    used to have no way to say that, which is the whole bug. */

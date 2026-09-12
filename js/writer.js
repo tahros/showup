@@ -165,6 +165,19 @@ function writerUsual(history){
   }
   return usual;
 }
+/* v4.3.9: one exercise's recent sessions as REAL sets only -- warm-ups and
+   burnouts must not reach the verdict, or a 35 lb warm-up under a 55 lb
+   working set makes the session look uneven and every verdict becomes hold. */
+function writerVerdictSessions(ex){
+  const out=[];
+  for(const d of Object.keys(DB.days||{}).sort()){
+    const rows=(DB.days[d].w||[]).filter(r=>r.ex===ex&&(r.reps||[]).length);
+    if(!rows.length) continue;
+    const real=(typeof realSets==='function')?realSets(rows):[];
+    if(real.length) out.push({d,sets:real.map(s=>({w:s.w,reps:s.reps}))});
+  }
+  return out.slice(-6);
+}
 function writerRecentSessions(history){
   const byDay={};
   for(const h of history){
@@ -300,6 +313,31 @@ function writerPayload(o){
     const top=Math.max(...ls.rows.map(r=>+r[0]||0));
     if(top>0) next[ex]=inU(nextFaceAbove(top,ex));
   }
+  /* ---- v4.3.9: A FIELD THAT CAN SAY NO -------------------------------
+     `next` above is the only precomputed load the package has ever carried,
+     it is filled for every lift, and it ONLY EVER POINTS UP. When 215 gave
+     the maker 6/6/4/4 the package still handed over 225, and the prompt's own
+     rule -- step only if the reps held -- had nothing to enforce it with.
+     A rule with no field behind it is a wish.
+     So: the verdict, the load it implies, the reps it asks for, and the
+     maker's own numbers as the reason. `next` stays, because STEP still needs
+     the plate face; what changes is that the package now also says whether
+     stepping is warranted at all. */
+  const verdict={}, load={}, want={}, because={};
+  for(const [ex,ls] of Object.entries(SEED.lastSess||{})){
+    if(ex==='Run'||!ls||!ls.rows||!ls.rows.length) continue;
+    const sessions=writerVerdictSessions(ex);
+    if(sessions.length<1) continue;
+    const range=(typeof repRangeFor==='function')?repRangeFor(sessions):null;
+    const v=(typeof verdictFor==='function')?verdictFor(sessions,range,w=>Math.round(inU(w)*10)/10):null;
+    if(!v||!range) continue;
+    verdict[ex]=v.verdict;
+    /* next[] is already in display units; the range's weight is in kg, so the
+       plate face has to come back to kg before verdictLoad picks between them */
+    load[ex]=inU(verdictLoad(v,range,next[ex]!=null?toKg(next[ex]):null));
+    want[ex]=v.reps;
+    because[ex]=v.why;
+  }
   /* the eight-week best per exercise, precomputed: the band the loads must
      sit in is a number the writer should not have to derive from raw rows */
   /* v3.3.435: since v3.3.401 this read `h[3]>best[h[2]]` with best[] empty,
@@ -356,7 +394,7 @@ function writerPayload(o){
     focus:o.scope==='week'?(o.focus?[...o.focus]:[]):[],
     rotation:{pick:P.pick, addon:P.addon, ranking},
     objective:o.objective, note:(o.note||'').trim().slice(0,400),
-    catalog, heads, history, recent_sessions, recent_weeks, usual, week_context, best, last, steps, next, coverage,
+    catalog, heads, history, recent_sessions, recent_weeks, usual, week_context, best, last, steps, next, verdict, load, want, because, coverage,
     new_days:WRITER_HISTORY_DAYS, band:WRITER_LOAD_BAND, step:U()==='lb'?5:WRITER_STEP_KG, new_max:WRITER_NEW_MAX
   };
 }

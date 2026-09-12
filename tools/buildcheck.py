@@ -35,7 +35,10 @@ for a in assets:
     if not (d/a).exists(): fail.append(f"stamped asset missing on disk: {a}")
     if f"./{a}?v=" not in sw: fail.append(f"asset not in sw SHELL: {a}")
 shell_count = len(re.findall(r"'\./[^']+\?v=", sw))
-if shell_count != 21: fail.append(f"sw SHELL has {shell_count} stamped assets, expected 21")
+# v4.3.9: 24. realset, reprange and verdict join the shell -- the verdict is
+# computed on the client before the writer is called, so all three must be
+# cached or a plan written offline silently loses its verdict fields.
+if shell_count != 24: fail.append(f"sw SHELL has {shell_count} stamped assets, expected 24")
 for a in re.findall(r"'\./([^']+)'", sw):
     if not (d/a.split('?')[0]).exists(): fail.append(f"offline SHELL asset missing: {a}")
 
