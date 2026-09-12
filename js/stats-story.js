@@ -106,8 +106,11 @@ const style=document.createElement('style');style.textContent=`
 #view.review-stats .garow{padding-top:14px;padding-bottom:14px}
 #view.review-stats .garow>b{font:500 14px var(--body)}
 #view.review-stats .gadelta{font-size:11px;border-radius:8px}
-#view.review-stats .pg-read{border-radius:15px;background:var(--surface2);padding:10px 18px}
-#view.review-stats .pg-read-value{font:600 23px var(--body);letter-spacing:-.4px}
+/* v4.5.23: the Stats readout was the largest thing on the card and outweighed the
+   date above it -- 23px down to 20px, and the chip gets room to breathe. Train keeps
+   its 16px: that one is read at arm's length from a rack, and smaller is worse there. */
+#view.review-stats .pg-read{border-radius:15px;background:var(--surface2);padding:15px 18px}
+#view.review-stats .pg-read-value{font:600 20px var(--body);letter-spacing:-.3px}
 #view.review-stats .pg-read-date{font-size:11px}
 #view.review-stats .pg-head h3{font:600 18px var(--body);letter-spacing:-.3px}
 #view.review-stats .crhead{position:relative;align-items:center;flex-wrap:wrap;padding-right:66px;gap:10px}

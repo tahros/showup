@@ -68,6 +68,10 @@
 .progression-card .pg-history-row{height:40px;display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 3px 5px}
 .progression-card .pg-available{font:400 11px/16px var(--mono);color:var(--muted);min-width:0}
 .progression-card .pg-available[aria-hidden=true]{visibility:hidden}
+  /* v4.5.23: nothing to show, so almost no height. 14px rather than 0 keeps the
+     readout from jumping when Latest reappears -- it grows by 26px instead of
+     materialising out of nothing. */
+  .progression-card .pg-history-row.pg-history-empty{height:14px;margin-bottom:0}
 .progression-card .pg-latest{min-width:72px;min-height:36px;height:36px;padding:0 9px;display:flex;align-items:center;justify-content:center;gap:5px;border-radius:18px;background:color-mix(in srgb,var(--accent) 13%,transparent);color:var(--accent-ink);font:500 10px var(--mono);letter-spacing:.02em;white-space:nowrap}
 .progression-card .pg-latest:hover{background:color-mix(in srgb,var(--accent) 19%,transparent)}
 .progression-card .pg-latest[hidden]{visibility:hidden;pointer-events:none}
@@ -90,8 +94,12 @@
 .progression-card .pg-pages{display:flex;align-items:center;justify-content:space-between;margin:-5px 4px 0;font:400 11px var(--mono);color:var(--muted)}
 .progression-card .pg-pages button{font:400 24px var(--body)}
 .progression-card button:disabled{opacity:.28;cursor:default}
-.progression-card .pg-read-slot{height:52px;display:flex;justify-content:center;align-items:flex-start}
-.progression-card .pg-read{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:190px;max-width:100%;height:52px;padding:4px 12px;border-radius:12px;background:var(--surface2);text-align:center;font-variant-numeric:tabular-nums;pointer-events:none}
+.progression-card .pg-read-slot{min-height:52px;display:flex;justify-content:center;align-items:flex-start}
+  /* v4.5.23: min-height, not height. A fixed 52px meant padding could not do
+     anything -- the box was already exactly as tall as it was allowed to be, so
+     more padding just squeezed the text. The slot below follows for the same
+     reason. */
+.progression-card .pg-read{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:190px;max-width:100%;min-height:52px;padding:10px 12px;border-radius:12px;background:var(--surface2);text-align:center;font-variant-numeric:tabular-nums;pointer-events:none}
 .progression-card .pg-read-date{font:400 11px/14px var(--mono);color:var(--muted);white-space:nowrap}
 .progression-card .pg-read-value{font:500 16px/18px var(--body);color:var(--chalk);overflow-wrap:anywhere}
 .progression-card .pg-unmeasured{font:400 11px/1.7 var(--mono);color:var(--muted);margin:12px 4px 0}

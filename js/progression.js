@@ -278,7 +278,14 @@ function renderProgression(card){
   // axes still need their meaning (e.g. assistance or seconds, not reps).
   if(state.kind!=='load')h+='<div class="pg-axis-unit">'+pgEscape(progressionAxis(state.kind))+'</div>';
   const availability=dates.length+' session'+(dates.length===1?'':'s')+(allDates.length<count?' on record':' in this range');
-  h+='<div class="pg-history-row"><div class="pg-available"'+(dates.length===count||!scope.length?' aria-hidden="true"':'')+'>'+availability+'</div><button class="pg-latest" data-pg-action="latest" aria-label="Return to the latest '+count+' sessions"'+(rangeWindow.latest?' hidden':'')+'>Latest <span aria-hidden="true">↗</span></button></div>';
+  const availableHidden=dates.length===count||!scope.length, latestHidden=!!rangeWindow.latest;
+  h+='<div class="pg-history-row'+(availableHidden&&latestHidden?' pg-history-empty':'')+'"><div class="pg-available"'+(availableHidden?' aria-hidden="true"':'')+'>'+availability+'</div><button class="pg-latest" data-pg-action="latest" aria-label="Return to the latest '+count+' sessions"'+(latestHidden?' hidden':'')+'>Latest <span aria-hidden="true">↗</span></button></div>';
+  /* v4.5.23: the row is 40px tall and holds two things -- the availability text and
+     the Latest button. When you are at full range AND already at the latest window
+     both are hidden, and the row becomes 40px of reserved space for nothing: the gap
+     between the date and the readout the maker asked about. It collapses to 14px
+     rather than to 0 so the readout does not jump when Latest comes back. Marked
+     with a class rather than :has(), which older iOS does not support. */
   if(!scope.length)h+='<p class="pg-empty">No measured sets yet. Your completed sets will appear here.</p>';
   else{
     h+='<div class="pg-read-slot"><div class="pg-read" aria-live="polite" aria-atomic="true">'+progressionReceipt(scope.find(r=>r.id===state.pick))+'</div></div>';

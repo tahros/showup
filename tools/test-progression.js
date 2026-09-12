@@ -34,6 +34,10 @@ for(const m of html.matchAll(/src="(js\/[^?"]+)\?v=/g)){
 }
 const run=c=>vm.runInContext(c,ctx);
 const check=(name,c)=>{assert.ok(run(c),name);console.log('PASS '+name);};
+/* check() evaluates a string inside the page. ok() asserts on a value already in
+   node, for claims that compare two renders or read the shipped CSS -- both fail
+   the suite the same way, and both print what they saw. */
+const ok=(name,cond,detail)=>{if(!cond){console.log('FAIL '+name+(detail!==undefined?' → '+detail:''));assert.ok(cond,name);}console.log('PASS '+name+(detail!==undefined?' → '+detail:''));};
 run(`todayISO='2026-09-10';checkDate=()=>false;DB.days={};DB.settings.unit='lb';DB.settings.onboarded=true;
   SEED.sessions={
     '2026-01-01':[['Legs','Squat',50,[20,10],null,null,null]],
@@ -259,6 +263,57 @@ check('tapping a chip already in view leaves the rail exactly where it was -- no
 run(`(function(){const all=[...document.querySelectorAll('[data-pg-part]')];all[0].click();})()`);
 check('choosing All still works and keeps a sane offset',`(function(){const p=document.querySelector('.pg-parts [aria-pressed="true"]');return !!p&&p.dataset.pgPart==='All'&&document.querySelector('.pg-parts').scrollLeft>=0;})()`);
 
+
+
+/* v4.5.23: the 40px row that held space for nothing, and the readout sizing.
+   Asserted on BOTH views, because the row is shared and the type is not -- a
+   single-view check would have let Train keep the bug. */
+{
+  /* the suite's own fixture has exactly 4 sessions, so "previous range" is disabled
+     and the un-collapse case cannot occur. Eight sessions of one exercise give the
+     range something to browse. */
+  run(`(function(){const D=n=>{const t=new Date(todayISO+'T00:00');t.setDate(t.getDate()-n);return t.toLocaleDateString('en-CA');};
+    DB.days={};for(let k=0;k<8;k++)DB.days[D(k*3+1)]={w:[{part:'Chest',ex:'Incline Barbell Bench Press',w:70+k,reps:[10,9,8],at:1}],upd:1};
+    SEED=deriveAll();progressionUI.stats={mode:'numbers'};progressionUI.train={mode:'numbers'};
+    lift.part='Chest';lift.ex='Incline Barbell Bench Press';})()`);
+  const state=v=>run(`(function(){view='${v}';render();
+    const r=document.querySelector('.pg-history-row');if(!r)return 'NO CARD';
+    const a=r.querySelector('.pg-available'),b=r.querySelector('.pg-latest');
+    return JSON.stringify({collapsed:r.classList.contains('pg-history-empty'),
+      availableHidden:a.getAttribute('aria-hidden')==='true',latestHidden:b.hasAttribute('hidden')});})()`);
+  const stats=state('stats'), train=state('lift');
+  ok('Stats reaches the card', stats!=='NO CARD', stats);
+  ok('Train reaches it too -- the row is shared', train!=='NO CARD', train);
+  ok('the row collapses on Stats when it has nothing to show',
+     stats!=='NO CARD'&&JSON.parse(stats).collapsed&&JSON.parse(stats).availableHidden&&JSON.parse(stats).latestHidden, stats);
+  ok('...and on Train, where the same 40px of nothing sat', train!=='NO CARD'&&JSON.parse(train).collapsed, train);
+
+  /* the half that keeps it honest: browsing back brings Latest back, and the row
+     must take its height again or the button would have nowhere to live */
+  run(`view='stats';render();document.querySelector('[data-pg-action="prev-range"]').click();`);
+  const browsed=run(`(function(){const r=document.querySelector('.pg-history-row'),b=r.querySelector('.pg-latest');
+    return JSON.stringify({collapsed:r.classList.contains('pg-history-empty'),latestHidden:b.hasAttribute('hidden')});})()`);
+  ok('browsing back un-collapses the row, because Latest needs the space',
+     !JSON.parse(browsed).collapsed&&!JSON.parse(browsed).latestHidden, browsed);
+  run(`document.querySelector('[data-pg-action="latest"]')?.click();`);
+
+  const cssA=fs.readFileSync(path.join(dir,'css/app.css'),'utf8');
+  const story=fs.readFileSync(path.join(dir,'js/stats-story.js'),'utf8');
+  ok('the collapsed row keeps a little height, so the readout does not jump',
+     (()=>{const m=cssA.match(/pg-history-empty\{height:(\d+)px/);return m&&+m[1]>0&&+m[1]<40;})(),
+     (cssA.match(/pg-history-empty\{height:\d+px/)||[])[0]);
+  ok('the chip is free to grow -- a fixed height would swallow the padding',
+     /\.pg-read\{[^}]*min-height:52px/.test(cssA)&&!/\.pg-read\{[^}]*[^-]height:52px/.test(cssA));
+  ok('...and the slot follows it', /\.pg-read-slot\{min-height:52px/.test(cssA));
+  ok('both views gained vertical padding on the chip',
+     (()=>{const base=cssA.match(/\.pg-read\{[^}]*padding:(\d+)px/),st=story.match(/review-stats \.pg-read\{[^}]*padding:(\d+)px/);
+       return base&&st&&+base[1]>=10&&+st[1]>=15;})(),
+     `train ${(cssA.match(/\.pg-read\{[^}]*padding:(\d+)px/)||[])[1]}px · stats ${(story.match(/review-stats \.pg-read\{[^}]*padding:(\d+)px/)||[])[1]}px`);
+  ok('the Stats value came down from 23px, and Train kept its 16px',
+     (()=>{const st=story.match(/review-stats \.pg-read-value\{font:600 (\d+)px/),tr=cssA.match(/\.pg-read-value\{font:500 (\d+)px/);
+       return st&&tr&&+st[1]<23&&+st[1]>=18&&+tr[1]===16;})(),
+     `stats ${(story.match(/review-stats \.pg-read-value\{font:600 (\d+)px/)||[])[1]}px · train ${(cssA.match(/\.pg-read-value\{font:500 (\d+)px/)||[])[1]}px`);
+}
 
 console.log('PROGRESSION PASS');process.exit(0);
 })();
