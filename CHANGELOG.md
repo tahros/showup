@@ -3,6 +3,51 @@
 
 
 
+
+## v4.3.7 (2026-09-11) — Rep ranges, derived
+
+A rep range is what turns a session into a verdict: hit the top of it on every
+set and the weight goes up. Without one the app can only watch reps drift.
+
+Derived, never prescribed. Scored against the maker's own fourteen answers:
+**12 of 14 exactly**, up from 10.
+
+Two rules got it there, both found by scoring rather than by reasoning:
+
+**It must not read across a weight change.** His cable fly reps of 15 were at
+15 lb in August, before he moved to 30. Pooling proposed 13–15 for a lift he
+now does for 12.
+
+**Which END of the range the evidence gives you depends on the shape.** If reps
+FALL across the session, the best you repeat is the ceiling — you are reaching
+for it. If they are UNIFORM you have mastered that number and it is the floor.
+That is the whole difference between his `185 × 8/8/8/8 → step up to 10` and
+his `125 × 8/8/6/4 → hold 6-8`. Same weight, opposite answers. And when uniform,
+the number is THAT session's, not the best ever managed at the weight —
+pooling read his 55 lb press as 10–12 because he once hit tens, when he is now
+doing clean eights and climbing.
+
+**The two misses are preference, not error**, and chasing them would overfit one
+man's taste into everyone's app. Cable fly at `30 × 12/12/12` derives 12–14; he
+says 10–12 and adds weight instead, because on an isolation lift he caps the
+reps. Nothing in a record says which lifts a person treats that way. Pull-up
+derives 3–5 from his current `+25 × 6/5/4/4`; he said 5–8, which is where he
+intends to be, and a goal is not in the record by definition.
+
+Both are what the correction step exists for: propose, let him fix it, never
+re-derive over the fix.
+
+### Two probes that could not fail
+
+The weight split is enforced twice — once at session level, once at set level —
+and they are redundant for every case the suite can construct. Probing either
+alone passes, because the other still does the job. I could not build a case
+that separates them. Kept as a pair and recorded in the source as untested
+rather than claimed as covered.
+
+Nothing reads this yet. The verdict comes next, into the writer's package.
+
+
 ## v4.3.6 (2026-09-11) — Which sets are real
 
 ### The suite is green, and it was never the server's fault
