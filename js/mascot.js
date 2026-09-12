@@ -9,11 +9,24 @@ function mascotMode(){return ['still','off'].includes(DB.settings.mascotMotion)?
 function mascotTone(mode,tone){
   if(tone)return tone;
   if(mode==='cool')return 'blue';
-  return document.documentElement.dataset.theme==='dark'?'white':'charcoal';
+  /* v4.5.15: SILVER, NOT CHARCOAL, in the light theme. The charcoal read as a
+     hole punched in a pale card -- near-black on #FFF, heavier than anything
+     around it. Silver is the same render lifted to a mid grey, and mascot.css
+     gives it one slow satin highlight so it reads as metal rather than as a
+     greyed-out control. The dark theme keeps white: a light mascot on a dark
+     card already has the contrast silver was reaching for. */
+  return document.documentElement.dataset.theme==='dark'?'white':'silver';
 }
 function mascotHTML(mode='hello',className='',tone=''){
   if(mascotMode()==='off')return '';
-  return '<span class="su-mascot '+className+'" data-mascot="'+mode+'"'+(tone?' data-mascot-tone="'+tone+'"':'')+' aria-hidden="true"><img src="assets/mascot-'+mascotTone(mode,tone)+'.png" alt="" width="360" height="220"></span>';
+  /* v4.5.15: the RESOLVED tone rides on the element, not just an explicitly asked
+     one. CSS needs to know the mascot is silver to give it its satin highlight,
+     and "silver" is a resolution, never a request -- nothing passes it. Writing
+     only the requested tone left the attribute empty in exactly the case that
+     needed it. The renderer reads the same attribute, so both agree by
+     construction rather than by two lookups that could drift. */
+  const resolved=mascotTone(mode,tone);
+  return '<span class="su-mascot '+className+'" data-mascot="'+mode+'" data-mascot-tone="'+resolved+'" aria-hidden="true"><img src="assets/mascot-'+resolved+'.png" alt="" width="360" height="220"></span>';
 }
 function workoutCompletionMetrics(record){
   const rows=record?.w||[];

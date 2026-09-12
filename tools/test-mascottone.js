@@ -25,9 +25,22 @@ ok('...and the tone rides on the element for the 3D renderer to read',
 ok('...while dance stays dance', run(`/data-mascot="dance"/.test(mascotHTML('dance','','blue'))`));
 
 // ---- nothing that did not ask changes
-ok('a plain mascot is still charcoal in light',
-   run(`/mascot-charcoal\\.png/.test(mascotHTML('hello')) && !/data-mascot-tone/.test(mascotHTML('hello'))`),
-   `mascotHTML('hello').slice(0,80)`);
+/* v4.5.15: a plain mascot in the light theme is SILVER, not charcoal, and the
+   resolved tone is always written to the element -- CSS needs it to hang the
+   satin highlight on, and "silver" is never requested, only resolved, so the
+   old "no attribute unless asked" rule left it blank in the one case that
+   needed it. Charcoal is asserted gone: shipping both would be two tones for
+   one decision. */
+ok('a plain mascot in the light theme is silver',
+   run(`/mascot-silver\\.png/.test(mascotHTML('hello'))&&/data-mascot-tone="silver"/.test(mascotHTML('hello'))`),
+   run(`mascotHTML('hello').slice(0,96)`));
+ok('...and charcoal is not reachable from a plain mascot any more',
+   run(`!/mascot-charcoal/.test(mascotHTML('hello'))`));
+ok('...the resolved tone rides on the element for every mascot, not only asked ones',
+   run(`['hello','jump','cool','dance'].every(m=>/data-mascot-tone="[a-z]+"/.test(mascotHTML(m)))`));
+ok('...and the img and the attribute always name the SAME tone',
+   run(`['hello','jump','cool','dance'].every(m=>{const h=mascotHTML(m);
+     return h.match(/mascot-([a-z]+)\\.png/)[1]===h.match(/data-mascot-tone="([a-z]+)"/)[1];})`));
 run(`document.documentElement.dataset.theme='dark';`);
 ok('...and white in dark', run(`/mascot-white\\.png/.test(mascotHTML('hello'))`));
 run(`document.documentElement.dataset.theme='light';`);
@@ -86,6 +99,48 @@ ok('...so a blue jump is a jump, not the cool routine',
      JSON.stringify(sealed.heading)+' vs '+JSON.stringify(open_.heading));
   ok('...the tone rides on the element, so the 3D renderer gets blue too',
      open_.tone==='blue'&&sealed.tone==='blue', open_.tone+' / '+sealed.tone);
+}
+
+
+/* v4.5.15: the satin highlight, and the two-renderers trap. The PNG path and the
+   WebGL path are separate implementations of one decision; the whole bug class
+   this repo keeps hitting is a fix landing in the copy the maker is not running,
+   so silver is asserted in BOTH, and the highlight is asserted to switch off once
+   the canvas takes over. */
+{
+  const css=fs.readFileSync(path.join(dir,'css/mascot.css'),'utf8');
+  const rsrc=fs.readFileSync(path.join(dir,'js/mascot-renderer.js'),'utf8');
+
+  ok('the silver asset exists and is precached',
+     fs.existsSync(path.join(dir,'assets/mascot-silver.png')) &&
+     /\.\/assets\/mascot-silver\.png/.test(fs.readFileSync(path.join(dir,'sw.js'),'utf8')));
+  ok('the WebGL renderer knows silver too, so the 3D mascot is not left charcoal',
+     /silver:\[/.test(rsrc) && /tone===.silver.\?tones\.silver/.test(rsrc));
+  ok('...and its silver is a mid grey, not near-black like soft',
+     (()=>{const m=rsrc.match(/silver:\['#([0-9a-f]{6})'/);return m&&parseInt(m[1].slice(0,2),16)>=0x70;})(),
+     (rsrc.match(/silver:\['#[0-9a-f]{6}'/)||[])[0]);
+  ok('silver carries a masked satin highlight',
+     /\.su-mascot\[data-mascot-tone="silver"\]::after\{[^}]*mask:url\(\.\.\/assets\/mascot-silver\.png\)/.test(css.replace(/\s+/g,m=>m.includes('\n')?'\n':' ').replace(/\n\s*/g,'')));
+  {/* the flattened text has no space after @keyframes, and [^}]* cannot cross the
+      inner stop braces -- match the stops themselves instead of the block. */
+   const flat=css.replace(/\s+/g,'');
+   const body=(flat.match(/@keyframessu-satin\{(.*?)\}\}/)||[])[1]||'';
+   ok('...it BREATHES rather than sweeping -- a rest-and-return, not a crossing',
+      /0%,100%\{/.test(body)&&/50%\{/.test(body)&&/opacity:/.test(body),body||'(no su-satin keyframes)');
+   ok('...and it never travels far enough to read as a band crossing the card',
+      (()=>{const moves=[...body.matchAll(/translate\((-?[\d.]+)%/g)].map(m=>Math.abs(+m[1]));
+        return moves.length>0&&Math.max(...moves)<=10;})(),
+      [...body.matchAll(/translate\((-?[\d.]+)%/g)].map(m=>m[1]+'%').join(' '));}
+  ok('...and it steps aside once the WebGL renderer is ready',
+     /\.su-mascot\.su-ready\[data-mascot-tone="silver"\]::after\{display:none\}/.test(css.replace(/\s+/g,'')));
+  ok('...it holds still for reduced motion and for the still/off motion settings',
+     /prefers-reduced-motion:reduce\)\{\.su-mascot\[data-mascot-tone="silver"\]::after\{animation:none\}/.test(css.replace(/\s+/g,''))&&
+     /data-mascot-motion="still"\]\.su-mascot\[data-mascot-tone="silver"\]::after/.test(css.replace(/\s+/g,'')));
+  ok('the dark theme is untouched -- still white, no silver',
+     run(`(function(){document.documentElement.dataset.theme='dark';const h=mascotHTML('hello');
+       document.documentElement.dataset.theme='light';return /mascot-white\\.png/.test(h)&&!/silver/.test(h);})()`));
+  ok('...and blue still wins over the theme, so a logged day is unaffected',
+     run(`/mascot-blue\\.png/.test(mascotHTML('jump','','blue'))&&/mascot-blue\\.png/.test(mascotHTML('cool'))`));
 }
 
 process.exit(fails?1:0);
