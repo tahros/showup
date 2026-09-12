@@ -4,6 +4,46 @@
 
 
 
+
+## v4.3.8 (2026-09-11) — Step up, or hold
+
+The writer's package has carried one precomputed load per exercise since it was
+written: `next`, the plate face above your last top set. Populated for every
+lift, always, and **it only ever points up**. So when 215 gave the maker
+6/6/4/4 the package still handed the model 225, and the prompt's own rule — step
+only if the reps held — had nothing to enforce it with.
+
+`js/verdict.js` is a field that can say no.
+
+**Three outcomes, and none of them is down.** There was a *back off* and the
+maker deleted it: *"I should be able to do 8 8 8 8, so until that day, hold."*
+The weight is not wrong; he has not finished with it.
+
+The other two came from his corrections. `185 × 8/8/8/8` → **step up reps**.
+`30 × 12/12/12` → **step up weight**. Same clean shape, different answer, and
+the difference is where the uniform number sits in the range: at the floor you
+climb in reps, at the ceiling you add load. Climbing reps never moves the
+weight — which is precisely what `next` had no way to express.
+
+**Uniform is the test, not "cleared the top".** A session that wobbles —
+`155 × 10/10/10/9` — he called a hold, and every uneven session in his twelve is
+a hold. Holding the same number on every set is what says you own the weight.
+
+Agrees with **11 of his 12 rulings**. The miss is Romanian Deadlift
+`175 × 6/8/8`, which he called step-up-weight: it is not uniform, and every
+other uneven session of his is a hold. He knows 175 felt easy; the record
+cannot. Recorded rather than special-cased.
+
+Three probes: collapse the two step-ups into one (8 of 12), ignore uniformity
+(4 of 12), let a rep climb move the load.
+
+My first fixture had five of his step-ups written down as holds, because I had
+only two outcomes to put them in — the disagreement was in my transcription of
+his answer, not in his answer.
+
+Nothing reads it yet. The payload swap is next.
+
+
 ## v4.3.7 (2026-09-11) — Rep ranges, derived
 
 A rep range is what turns a session into a verdict: hit the top of it on every
