@@ -240,7 +240,43 @@ function systemColorRoles(root){
  root.querySelectorAll('.pacecard .paceval').forEach(e=>{e.setAttribute('fill',e.classList.contains('latest')?'var(--accent)':'var(--muted)');e.setAttribute('font-size','6.5');e.setAttribute('font-weight',e.classList.contains('latest')?'600':'500');});
 }
 function systemApply(){const root=document.getElementById('view');if(!root||view!=='stats')return;root.classList.add('stats-system');systemDates(root);systemUnits(root);systemControls(root);systemColorRoles(root);root.querySelector('.pmixsum')?.remove();root.querySelectorAll('.plate-legend:empty').forEach(e=>e.remove());}
-renderStats=()=>{systemRender();systemApply();combineWork();document.querySelectorAll('.heatscroll').forEach(e=>{const months=e.querySelector('.heatticks'),grid=e.querySelector('.heatgrid');if(months&&grid)e.insertBefore(months,grid);});};
+/* v4.5.10: the sticky year/month rail on the two streak cards. Same shape as
+ installWorkPeriods, with two differences that matter: a column here is a WEEK,
+ so the pitch is measured from two cells rather than taken from PMIX_COLW; and
+ the rail is appended to .heatframe, the scroller's PARENT, never inside
+ .heatwrap -- inside, it scrolls away with the grid and is off-screen from the
+ first paint (the mock made exactly that mistake). Its left edge is the weekday
+ rail's width plus the frame's gap, measured, since the rail is not fixed-width. */
+function installHeatPeriods(){
+ document.querySelectorAll('.crcard .heatframe').forEach(frame=>{
+  if(frame.querySelector('.heat-periods'))return;
+  const wrap=frame.querySelector('.heatwrap'),grid=frame.querySelector('.heatgrid'),wd=frame.querySelector('.wdrail');if(!wrap||!grid)return;
+  const rail=document.createElement('div');rail.className='heat-periods';rail.setAttribute('aria-hidden','true');frame.append(rail);
+  const sync=()=>{
+   const cells=grid.querySelectorAll('.hc');rail.replaceChildren();if(cells.length<7)return;
+   rail.style.left=((wd?wd.offsetWidth:0)+6)+'px';
+   const r0=cells[0].getBoundingClientRect(),r7=cells[7]?cells[7].getBoundingClientRect():null;
+   const pitch=r7&&r7.left-r0.left>0?r7.left-r0.left:15;   /* --hcell 11 + column-gap 4 when there is no layout */
+   const cols=[];for(let k=0;k<cells.length;k+=7)cols.push(cells[k].getAttribute('aria-label').slice(0,10));
+   const left=wrap.scrollLeft;
+   for(const [length,top]of [[4,0],[7,14]]){
+    const periods=[];cols.forEach((d,c)=>{const key=d.slice(0,length);if(periods.at(-1)?.key!==key)periods.push({key,x:c*pitch,label:length===4?key:new Date(d+'T00:00').toLocaleDateString('en-US',{month:'short'})});});
+    let index=0;while(index+1<periods.length&&periods[index+1].x<=left+2)index++;
+    const current=periods[index],next=periods[index+1],label=document.createElement('span');label.className=length===4?'yr':'mo';label.textContent=current.label;label.style.top=top+'px';rail.append(label);
+    const width=label.getBoundingClientRect().width||current.label.length*7;
+    label.style.left=Math.min(2,next?next.x-left-width-10:2)+'px';
+    let edge=next?next.x-left:Infinity;
+    for(let j=index+1;j<periods.length;j++){const p=periods[j],x=p.x-left;if(x>wrap.clientWidth)break;if(x<edge)continue;const incoming=document.createElement('span');incoming.className=label.className;incoming.textContent=p.label;incoming.style.cssText='top:'+top+'px;left:'+x+'px';rail.append(incoming);edge=x+(incoming.getBoundingClientRect().width||p.label.length*7)+10;}
+   }
+  };
+  wrap.addEventListener('scroll',sync,{passive:true});sync();requestAnimationFrame(sync);
+ });
+}
+renderStats=()=>{systemRender();systemApply();combineWork();document.querySelectorAll('.heatscroll').forEach(e=>{const months=e.querySelector('.heatticks'),grid=e.querySelector('.heatgrid');if(months&&grid)e.insertBefore(months,grid);});installHeatPeriods();};
+/* The rest card is drawn on TODAY by the same builder; today.js loads before this
+   file, so its render can be wrapped the way renderStats is. (bindHeat cannot:
+   app.js loads after this file, so it is not defined yet.) */
+const todayRender=renderToday;renderToday=()=>{todayRender();installHeatPeriods();};
 renderSync=()=>{systemSync();const root=document.getElementById('view');root?.classList.add('stats-system');systemControls(root);systemUnits(root);};
 const systemStyle=document.createElement('style');systemStyle.textContent=`
 #view.stats-system{--stats-edge:0px;--stats-radius:22px;--stats-pad-x:18px;--stats-pad-y:20px;--stats-section:30px;--stats-heading:10px}
@@ -422,7 +458,22 @@ const compactStyle=document.createElement('style');compactStyle.textContent=`
 .comparison-years button[data-year]{border-color:var(--year-color);color:var(--year-color)}.comparison-years button span{opacity:.6;margin-left:6px}.comparison-years details{position:relative}.comparison-years details>div{position:absolute;z-index:3;min-width:90px;padding:6px;background:var(--surface);box-shadow:0 6px 20px #0002;border-radius:12px}.comparison-years details button{display:block;width:100%}
 .comparison-heading{display:flex;align-items:center;justify-content:space-between;margin:16px 0 10px;font:500 12px var(--body)}.comparison-latest:disabled{opacity:.35}.comparison-values{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:12px}.comparison-values>div{flex:1;min-width:85px;border-left:3px solid var(--year-color);padding-left:10px}.comparison-values span{display:block;font:400 11px var(--mono);color:var(--muted)}.comparison-values strong{font:600 25px var(--body);font-variant-numeric:tabular-nums}.comparison-values small{font:400 11px var(--body);color:var(--muted)}.comparison-plot{width:100%;display:block;touch-action:pan-y}.comparison-scrub{width:100%;accent-color:var(--accent);min-height:40px}.comparison-foot{font:400 10px var(--body);color:var(--muted);margin:2px 0 0}
 .comparison-delta{font:500 12px var(--body);color:var(--accent-ink);background:var(--surface2);border-radius:10px;padding:9px 12px;margin:0 0 12px;font-variant-numeric:tabular-nums}
-#view.stats-system .heatticks{margin-top:0;margin-bottom:8px;line-height:12px}#view.stats-system .wdrail{padding-top:40px}
+/* v4.5.10: THE STREAK CARDS TAKE THE HISTORY CHART'S DATE RAIL. The year row and
+   the month row were painted once, one label per column, all caps, and the year
+   sat over its January -- off-screen from the first paint, since the card opens
+   on today. The maker asked for the same mechanism as .work-periods: one sticky
+   year-over-month label pinned to the left edge, the next period sliding in at
+   its real column as it approaches. installHeatPeriods() draws it from the
+   grid's own cells, so it cannot disagree with the squares. The two rows stay
+   in the markup (test-scrollpos measures their geometry, test-rest checks the
+   rest card carries the same markup) and are hidden. Scoped to .crcard, not to
+   the stats view: the rest card is drawn on TODAY. 30px = rail height =
+   grid offset = rail padding, one number three times, checked by test-heatperiods. */
+.crcard .heatticks,.crcard .heatyears{display:none}
+.crcard .heatgrid{margin-top:30px}.crcard .wdrail{padding-top:30px}
+.crcard .heat-periods{position:absolute;right:0;top:0;height:30px;overflow:hidden;pointer-events:none;background:var(--surface);z-index:1}
+.crcard .heat-periods span{position:absolute;white-space:nowrap;font:400 11px/14px var(--mono);color:var(--muted)}
+.crcard .heat-periods span.yr{font-weight:600;color:var(--chalk)}
 .pg-title-row .pg-title{flex:1;min-width:0}.pg-search-open{display:grid;place-items:center;width:44px;height:44px;flex:0 0 44px;border:0;border-radius:50%;background:var(--surface2);color:var(--chalk)}
 .pg-library{margin:12px 0 18px}.pg-parts{display:flex;gap:7px;overflow-x:auto;padding-bottom:10px}.pg-parts button{flex:0 0 auto;padding:9px 12px;border-radius:18px;border:1px solid var(--line);background:var(--surface2);color:var(--muted);font:500 11px var(--body)}.pg-parts button[aria-pressed=true]{background:var(--accent);color:white;border-color:var(--accent)}
 .pg-exercise-shelf{display:grid;grid-template-columns:1fr 1fr;gap:8px}.pg-exercise-shelf button,.pg-search-results button{padding:12px;text-align:left;border:1px solid var(--line);border-radius:12px;background:var(--surface2);color:var(--chalk);min-width:0}.pg-exercise-shelf strong,.pg-search-results strong{display:block;font:500 12px/1.35 var(--body)}.pg-exercise-shelf small,.pg-search-results small{display:block;margin-top:5px;font:400 10px var(--mono);color:var(--muted)}.pg-exercise-shelf button[aria-pressed=true]{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--surface))}

@@ -7,16 +7,14 @@ try{var _de=document.documentElement,_qp=new URLSearchParams(location.search);_d
 <link rel="icon" href="favicon-blue-32.png" sizes="32x32">
 <link rel="apple-touch-icon" href="apple-touch-icon-blue.png" sizes="180x180">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<!-- v3.3.246: NOT black-translucent. That setting pushes the page behind the
-     status bar, and on iOS 26 the system composites its own progressive blur
-     over whatever sits in that strip — which is what has been washing out the
-     date and the settings button. Every previous attempt fought the effect
-     (opaque colours, fixed instead of sticky, transparent-parent glass); the
-     effect applies to content in that zone regardless. With the default
-     style, iOS insets the web view BELOW the status bar, so nothing of ours
-     is under it and there is nothing to blur. env(safe-area-inset-top) then
-     reports 0 and the header's own padding shrinks to suit, so the layout
-     needs no other change. -->
+<!-- v3.3.246: NOT black-translucent. That setting pushes the page behind the status bar, and on iOS
+     26 the system composites its own progressive blur over whatever sits in that strip — which is
+     what has been washing out the date and the settings button. Every previous attempt fought the
+     effect (opaque colours, fixed instead of sticky, transparent-parent glass); the effect applies
+     to content in that zone regardless. With the default style, iOS insets the web view BELOW the
+     status bar, so nothing of ours is under it and there is nothing to blur.
+     env(safe-area-inset-top) then reports 0 and the header's own padding shrinks to suit, so the
+     layout needs no other change. -->
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>ShowUp</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -25,7 +23,7 @@ try{var _de=document.documentElement,_qp=new URLSearchParams(location.search);_d
 <meta name="theme-color" content="#F2F3F6">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="css/app.css?v=4.5.9"><link rel="stylesheet" href="css/planner.css?v=4.5.9"><link rel="stylesheet" href="css/mascot.css?v=4.5.9"><link rel="stylesheet" href="css/plates.css?v=4.5.9">
+<link rel="stylesheet" href="css/app.css?v=4.5.10"><link rel="stylesheet" href="css/planner.css?v=4.5.10"><link rel="stylesheet" href="css/mascot.css?v=4.5.10"><link rel="stylesheet" href="css/plates.css?v=4.5.10">
 
 
 <div id="app">
@@ -34,15 +32,14 @@ try{var _de=document.documentElement,_qp=new URLSearchParams(location.search);_d
     <div class="brandrow">
       <button class="icobtn hback back" aria-label="Back">←</button>
       <div class="h-idcol">
-        <!-- v3.3.388: date and streak share the top line but hold opposite
-             anchors: date at the left, rhythm at the right beside settings.
-             Normal flow keeps both stable without a divider or coordinates. -->
+        <!-- v3.3.388: date and streak share the top line but hold opposite anchors: date at the left,
+     rhythm at the right beside settings. Normal flow keeps both stable without a divider or
+     coordinates. -->
         <div class="h-toprow">
           <div class="h-date" id="hDate">—</div>
-          <!-- v3.3.389: the timer lives in the week row and swaps with the
-               count (#hTimer.on hides .streak) -- one slot, two tenants,
-               never both. The subtitle line below is EXERCISE MODE's alone
-               now; on the day header it is empty and takes no height. -->
+          <!-- v3.3.389: the timer lives in the week row and swaps with the count (#hTimer.on hides .streak)
+     -- one slot, two tenants, never both. The subtitle line below is EXERCISE MODE's alone now; on
+     the day header it is empty and takes no height. -->
           <div class="h-weekrow" aria-hidden="true">
             <div class="h-week" id="hWeek"></div>
             <span class="streak" id="hStreak"></span>
@@ -51,33 +48,29 @@ try{var _de=document.documentElement,_qp=new URLSearchParams(location.search);_d
         <div class="h-subrow"><div class="h-sub" id="hSub">—</div></div>
       </div>
     </div>
-    <!-- v3.3.392: the clock sits WITH THE CONTROLS, not inside the record's
-         row. In the record's row it rode line one of whatever column held it
-         -- centred on the one-line day header, but pinned to the exercise
-         name's line on the two-line exercise header, so its y jumped between
-         screens. The controls are one row of fixed-height items centred on
-         the header's axis, which is the same y in every mode by construction. -->
+    <!-- v3.3.392: the clock sits WITH THE CONTROLS, not inside the record's row. In the record's row it
+     rode line one of whatever column held it -- centred on the one-line day header, but pinned to
+     the exercise name's line on the two-line exercise header, so its y jumped between screens. The
+     controls are one row of fixed-height items centred on the header's axis, which is the same y in
+     every mode by construction. -->
     <div class="hbtns">
       <span class="resttimer" id="hTimer"></span>
       <button class="icobtn" id="gearBtn" aria-label="Settings, account &amp; sync" title="Settings, account &amp; sync">⚙</button>
     </div>
   </header>
   <main id="view"></main>
-  <!-- v3.3.458: THE NAV SPEAKS THE APP'S OWN LANGUAGE. Four emoji were the only
-       full-colour objects on a two-ink screen, rendered by the OS in the OS's
-       colours, differently on every phone. Every glyph below is built from the
-       square that already means "a day" in the heatmap and the header: Today is
-       one square; Train is a plate; Stats is squares rising; History is the
-       heatmap. currentColor, so they take the nav's ink and its accent, and the
-       brand mark (the chevron in the tile) stays where it is: nowhere here.
-       v3.3.459: heavier, at Threads' proportions -- 24-unit glyphs drawn to fill
-       their box, so the bar reads at a glance from arm's length.
-       v3.3.461: NO WORDS. Icons only, bolder still; each button carries its name
-       as aria-label so the tab is still announced. Today's square is HOLLOW
-       while the day is open and FILLS when the day is closed (nav.dayclosed,
-       set in syncNav from dayMeta().doneAll) -- the header's square is the
-       record and fills at the first set; this one is the day's STATE. History
-       is a calendar built from squares: a frame, a header bar, two pins, days. -->
+  <!-- v3.3.458: THE NAV SPEAKS THE APP'S OWN LANGUAGE. Four emoji were the only full-colour objects
+     on a two-ink screen, rendered by the OS in the OS's colours, differently on every phone. Every
+     glyph below is built from the square that already means "a day" in the heatmap and the header:
+     Today is one square; Train is a plate; Stats is squares rising; History is the heatmap.
+     currentColor, so they take the nav's ink and its accent, and the brand mark (the chevron in the
+     tile) stays where it is: nowhere here. v3.3.459: heavier, at Threads' proportions -- 24-unit
+     glyphs drawn to fill their box, so the bar reads at a glance from arm's length. v3.3.461: NO
+     WORDS. Icons only, bolder still; each button carries its name as aria-label so the tab is still
+     announced. Today's square is HOLLOW while the day is open and FILLS when the day is closed
+     (nav.dayclosed, set in syncNav from dayMeta().doneAll) -- the header's square is the record and
+     fills at the first set; this one is the day's STATE. History is a calendar built from squares:
+     a frame, a header bar, two pins, days. -->
   <nav id="nav">
     <button data-v="today" class="on" aria-label="Today"><span class="ng" aria-hidden="true"><svg viewBox="0 0 24 24"><rect class="sq" x="4" y="4" width="16" height="16" rx="4"/></svg></span></button>
     <button data-v="lift" aria-label="Train"><span class="ng" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2.5" y="10.6" width="19" height="2.8" rx="1.4"/><rect x="3" y="6" width="4" height="12" rx="1.4"/><rect x="17" y="6" width="4" height="12" rx="1.4"/></svg></span></button>
@@ -95,23 +88,23 @@ try{var _de=document.documentElement,_qp=new URLSearchParams(location.search);_d
   <path d="M12 4v13M6 12l6 6 6-6"/></svg></div>
 </div>
 
-  <script src="js/core.js?v=4.5.9"></script>
-  <script src="js/derive.js?v=4.5.9"></script>
-  <script src="js/util.js?v=4.5.9"></script>
-  <script src="js/realset.js?v=4.5.9"></script>
-  <script src="js/reprange.js?v=4.5.9"></script>
-  <script src="js/verdict.js?v=4.5.9"></script>
-  <script src="js/header.js?v=4.5.9"></script>
-  <script src="js/mascot.js?v=4.5.9"></script>
-  <script src="js/plates.js?v=4.5.9"></script>
-  <script src="js/plate-canvas.js?v=4.5.9"></script>
-  <script src="js/report.js?v=4.5.9"></script>
-  <script src="js/today.js?v=4.5.9"></script>
-  <script src="js/progression.js?v=4.5.9"></script>
-  <script src="js/lift.js?v=4.5.9"></script><script src="js/writer.js?v=4.5.9"></script>
-  <script src="js/planner.js?v=4.5.9"></script>
-  <script src="js/stats.js?v=4.5.9"></script>
-  <script src="js/history.js?v=4.5.9"></script>
-  <script src="js/settings.js?v=4.5.9"></script>
-  <script src="js/stats-story.js?v=4.5.9"></script>
-  <script src="js/app.js?v=4.5.9"></script>
+  <script src="js/core.js?v=4.5.10"></script>
+  <script src="js/derive.js?v=4.5.10"></script>
+  <script src="js/util.js?v=4.5.10"></script>
+  <script src="js/realset.js?v=4.5.10"></script>
+  <script src="js/reprange.js?v=4.5.10"></script>
+  <script src="js/verdict.js?v=4.5.10"></script>
+  <script src="js/header.js?v=4.5.10"></script>
+  <script src="js/mascot.js?v=4.5.10"></script>
+  <script src="js/plates.js?v=4.5.10"></script>
+  <script src="js/plate-canvas.js?v=4.5.10"></script>
+  <script src="js/report.js?v=4.5.10"></script>
+  <script src="js/today.js?v=4.5.10"></script>
+  <script src="js/progression.js?v=4.5.10"></script>
+  <script src="js/lift.js?v=4.5.10"></script><script src="js/writer.js?v=4.5.10"></script>
+  <script src="js/planner.js?v=4.5.10"></script>
+  <script src="js/stats.js?v=4.5.10"></script>
+  <script src="js/history.js?v=4.5.10"></script>
+  <script src="js/settings.js?v=4.5.10"></script>
+  <script src="js/stats-story.js?v=4.5.10"></script>
+  <script src="js/app.js?v=4.5.10"></script>
