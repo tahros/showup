@@ -848,7 +848,7 @@ async function writerGenerateChecked(payload, cancelled=()=>false){
        blocks immediately. This keeps "Write" harmless and reviewable. */
     const resp=payload.scope==='week'&&!payload.days.length?{days:[],reason:null}:await writeSession(payload);
     if(cancelled()) return null;
-    const merged=writerResponseWithLocked(resp,payload);
+    let merged=writerResponseWithLocked(resp,payload);
     const checkedPayload=payload.selected_days?{...payload,days:payload.selected_days}:payload;
     let chk=writerCheck(merged,{payload:checkedPayload});
     /* v3.3.432: ONE REPAIR, NOT A NEGOTIATION. A wrong load has one arithmetic
@@ -859,25 +859,49 @@ async function writerGenerateChecked(payload, cancelled=()=>false){
        days only, once. If the repair still violates, the read-back says so and
        the day stands as written rather than being silently dropped -- the
        person decides, with the fault in front of him. */
-    if((chk.violations||[]).length && !cancelled()){
+    /* ---- v4.4.2: THE REPAIR ARGUED AGAINST ITSELF ------------------------
+       The maker selected Biceps twice and got "Biceps was selected but has no
+       exercise" twice. Three causes, each fixed here:
+       1. The brief told the repair to write the exercises payload.usual lists
+          "before any new one". A part with little history has few usual
+          entries, so the brief restated the very constraint that caused the
+          omission and never restated the one that mattered. Selected parts
+          are now the FIRST line of the brief, by name.
+       2. The repair was kept only if the TOTAL count fell. A rewrite that
+          added the missing part but tripped a lesser rule netted to equal and
+          was thrown away whole. A missing selected part is the worst fault
+          the check can find, so a repair that clears one is kept.
+       3. One attempt. Two now, and the second is told what the first did. */
+    const partsMissing=v=>(v.why||[]).filter(w=>/was selected but has no exercise/.test(w)).length;
+    const missingCount=c=>(c.violations||[]).reduce((n,v)=>n+partsMissing(v),0);
+    for(let attempt=0; attempt<2 && (chk.violations||[]).length && !cancelled(); attempt++){
       const bad=new Set(chk.violations.map(v=>v.date));
+      const wanted=[...bad].map(d=>{
+        const parts=((payload.workspace||{}).schedule||[]).find(x=>x.date===d)?.parts||[];
+        return parts.length?`${d}: include an exercise for EACH of ${parts.join(', ')} -- a selected part with no exercise is the fault being repaired.`:'';
+      }).filter(Boolean);
       const fixNote=[
         (payload.note||'').trim(),
+        ...wanted,
         'REWRITE ONLY THESE DAYS, leaving every other day exactly as written:',
         ...chk.violations.map(v=>`${v.date}: ${v.why.join('; ')}.`),
-        'Respect payload.skeleton: never use a part listed as resting, give each day at least payload.shape.min exercises outside core, and write the exercises payload.usual lists for the day\u2019s part before any new one.'   // v3.3.479: rule 11 in the repair brief
+        attempt?'This is the second attempt; the first still left a selected part with no exercise. Add one from payload.catalog for that part even if it is new.':'',
+        'Respect payload.skeleton: never use a part listed as resting, and give each day at least payload.shape.min exercises outside core. A selected part outranks payload.usual: if usual lists nothing for it, take an exercise from payload.catalog.'
       ].filter(Boolean).join('\n');
-      const p2={...payload, note:fixNote.slice(0,900), days:payload.days.filter(d=>bad.has(d))};
+      const p2={...payload, note:fixNote.slice(0,1100), days:payload.days.filter(d=>bad.has(d))};
       try{
         const r2=await writeSession(p2);
         if(!cancelled()&&r2&&(r2.days||[]).length){
           const kept=(merged.days||[]).filter(d=>!bad.has(d.date));
           const fixed=(r2.days||[]).filter(d=>bad.has(d.date));
           const chk2=writerCheck({...merged, days:[...kept,...fixed]},{payload:checkedPayload});
-          /* the repair is taken only if it is actually better */
-          if((chk2.violations||[]).length < chk.violations.length) chk=chk2;
+          /* kept if it clears a missing part, or if it is simply better */
+          const better=(chk2.violations||[]).length<chk.violations.length;
+          const clearsPart=missingCount(chk2)<missingCount(chk);
+          if(better||clearsPart){ chk=chk2; merged={...merged, days:[...kept,...fixed]}; }
+          else break;                       // no progress: a third try will not help
         }
-      }catch(e){ /* a failed repair leaves the first answer, faults named */ }
+      }catch(e){ break; }                    // a failed repair leaves the last good answer, faults named
     }
     return cancelled()?null:chk;
 }

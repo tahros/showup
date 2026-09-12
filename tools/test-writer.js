@@ -784,7 +784,13 @@ await_(async()=>{
     run(`writerState().note='';`);
     /* the repair brief carries the rule */
     const W=fs.readFileSync(path.join(dir,"js/writer.js"),"utf8");
-    ok("the repair brief tells the writer to write payload.usual before any new one", /write the exercises payload\.usual lists for the day/.test(W));
+    /* v4.4.2 RESTATES v3.3.479. That rule -- usual before any new one -- was
+       the very sentence that kept Biceps out of a day the maker had selected
+       it for: a part with little history has few usual entries, so the brief
+       restated the constraint that caused the omission. Usual still counts,
+       but a SELECTED part outranks it, and the brief now says so. */
+    ok("the repair brief puts a selected part above payload.usual", /A selected part outranks payload\.usual/.test(W));
+    ok("...and names the selected parts before any other rule", /include an exercise for EACH of/.test(W));
     const F=fs.readFileSync(path.join(dir,"supabase/functions/write-session/index.ts"),"utf8");
     ok("...and the prompt names payload.usual, and no longer offers the catalog as licence to rotate core",
        /payload\.usual makes this a fact you can check/.test(F) && /only among movements the RECORD already contains/.test(F) && !/rotate the exact movement or pattern when the catalog and record provide alternatives/.test(F));

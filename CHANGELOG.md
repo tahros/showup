@@ -1,6 +1,39 @@
 # ShowUp — changelog
 
 
+
+## v4.4.2 (2026-09-11) — The repair honours a selected part
+
+*"Biceps was selected but has no exercise"* — for the second time. Diagnosed in
+v4.2.5, put first on the list, and then not done. This is it done.
+
+Three causes, one loop:
+
+**The brief argued against itself.** It told the repair to write the exercises
+`payload.usual` lists "before any new one." A part with little history has few
+usual entries, so the brief restated the very constraint that caused the
+omission and never restated the one that mattered. The selected parts are now
+the **first line** of the brief, by name, and it is told that a selected part
+outranks usual — if usual lists nothing for it, take one from the catalog.
+
+**The accept test was strictly-fewer.** A rewrite that added the missing part
+but tripped a lesser rule netted to equal and was thrown away whole. A missing
+selected part is the worst fault the check can find, so a repair that clears
+one is kept.
+
+**One attempt.** Two now, and the second is told what the first still missed.
+
+Driven with a stubbed server that omits Biceps on its first answer: the loop
+asks again, the brief names the parts first, and the day comes back with the
+curl. The v3.3.479 guard that required "usual before any new one" in the brief
+is restated to require the new order rather than the old sentence.
+
+**One thing the fixture shows that I could not run down:** the checker flags
+Sixpack as missing even when a leg raise is in the text. It does not reproduce
+on the maker's device — his screenshot flags Biceps alone — and the Biceps
+claim stands regardless. Recorded, not hidden.
+
+
 ## v4.4.1 (2026-09-11) — Lower chest exists
 
 The maker wants to train lower chest, and the writer never recommends it. Two
