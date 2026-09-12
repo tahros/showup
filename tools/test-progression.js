@@ -135,15 +135,44 @@ check('short 12-session histories thin dates before labels collide',`(()=>{const
 check('two compressed dates reduce to one readable label',`(()=>{const ticks=progressionDateTicks(['2026-08-29','2026-09-03'],34,(329-44)/12,true);return ticks.length===1&&ticks[0].label==='9/3'&&ticks[0].anchor==='middle';})()`);
 check('full 12-session and four-session views retain their intended dates',`(()=>{const twelve=Array.from({length:12},(_,i)=>'2026-08-'+String(i+1).padStart(2,'0'));return progressionDateTicks(twelve,34,(329-44)/12,true).length===4&&progressionDateTicks(twelve.slice(0,4),34,(329-44)/4,false).length===4;})()`);
 check('dot date labels never collide across phone and tablet widths',`(()=>{for(const width of [240,329,680])for(let n=1;n<=12;n++){const dates=Array.from({length:n},(_,i)=>'2026-08-'+String(i+1).padStart(2,'0')),ticks=progressionDateTicks(dates,34,(width-44)/12,true);if(ticks.some((t,i)=>i&&t.left-ticks[i-1].right<6))return false;}return true;})()`);
-run(`window.pgShareCalls=[];window.pgOriginalContext=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(){return new Proxy({measureText:s=>({width:String(s).length*6})},{get:(o,k)=>k in o?o[k]:(...args)=>pgShareCalls.push([k,...args])});};window.pgSavedShow=showCard;showCard=(fn,label)=>{window.pgShared={cv:fn(),label};};document.querySelector('.pg-share').click();`);
+/* v4.5.19: from here down the suite is async. progressionShare now waits for the
+   mascot mark and the export font before it draws -- the card carries a footer and
+   real IBM Plex, neither of which exists at click time -- so a synchronous click no
+   longer has a card to inspect. `settle` drains the microtasks that wait resolves
+   on; nothing here sleeps on a timer. */
+const settle=()=>new Promise(r=>setTimeout(r,700));   /* the share caps its asset wait at 1.2s; two of these clear it */
+(async()=>{
+/* This suite used to be wholly synchronous, so the app's own timers never ran.
+   Waiting real milliseconds lets them: the first settle() gave the clock long
+   enough to re-render the view back to Today, and the card under test vanished.
+   render is held still for the async stretch and handed back straight after. */
+run(`window.pgSavedRender=render;render=()=>{};DB.settings.name='Tester McTest';`);   /* the footer signs with a first name; the fixture had none */
+run(`window.pgShareCalls=[];window.pgOriginalContext=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(){return new Proxy({measureText:s=>({width:String(s).length*6})},{get:(o,k)=>k in o?o[k]:(...args)=>pgShareCalls.push([k,...args]),set:(o,k,v)=>{pgShareCalls.push(['set',k,v]);o[k]=v;return true;}});};window.pgSavedShow=showCard;showCard=(fn,label)=>{window.pgShared={cv:fn(),label};};document.querySelector('.pg-share').click();`);
+await settle();await settle();
 check('share generates a real high-resolution card using selected range',`pgShared.cv.width===1080&&pgShared.cv.height>500&&pgShared.label.endsWith('4-sessions-2026-08-19-2026-08-22')&&pgShareCalls.some(c=>c[0]==='fillText'&&c[1]==='4 Sessions')`);
 check('export draws every actual rep number, no invented pair',`pgShareCalls.filter(c=>c[0]==='fillText'&&['10','9','8','5','4'].includes(c[1])).length===20`);
 check('weight label absent from exported image too',`!pgShareCalls.some(c=>c[0]==='fillText'&&c[1]==='Weight · lb')`);
-check('export has a single value/date readout above first plot gridline',`(()=>{const value=pgShareCalls.filter(c=>c[0]==='fillText'&&c[1]==='155 lb × 10'),date=pgShareCalls.filter(c=>c[0]==='fillText'&&c[1]==='Thu, Aug 20 · Set 1');return value.length===1&&date.length===1&&value[0][3]<date[0][3]&&date[0][3]<pgShareCalls.find(c=>c[0]==='translate')[2];})()`);
+/* v4.5.19: the plot is no longer placed with ctx.translate -- coordinates are
+   mapped directly -- so "above the plot" is measured against the first gridline
+   the card draws rather than against a translate that no longer happens. */
+check('export has a single value/date readout above first plot gridline',`(()=>{const value=pgShareCalls.filter(c=>c[0]==='fillText'&&c[1]==='155 lb × 10'),date=pgShareCalls.filter(c=>c[0]==='fillText'&&c[1]==='Thu, Aug 20 · Set 1'),grid=pgShareCalls.find(c=>c[0]==='moveTo');return value.length===1&&date.length===1&&value[0][3]<date[0][3]&&!!grid&&date[0][3]<grid[2];})()`);
 run(`document.querySelector('[data-pg-action="prev-range"]').click();pgShareCalls=[];document.querySelector('.pg-share').click();`);
-check('share exports the older displayed period, never labels it Last',`pgShared.label.endsWith('4-sessions-2026-08-15-2026-08-18')&&pgShareCalls.some(c=>c[0]==='fillText'&&c[1]==='showup · 2026-08-15 — 2026-08-18')&&!pgShareCalls.some(c=>c[0]==='fillText'&&String(c[1]).startsWith('Last '))`);
+await settle();await settle();
+/* v4.5.19: the range is drawn at the TOP now and without the "showup · " prefix --
+   the mark in the footer says that. The claim is unchanged: the export follows the
+   displayed period and never calls it "Last". */
+check('share exports the older displayed period, never labels it Last',`pgShared.label.endsWith('4-sessions-2026-08-15-2026-08-18')&&pgShareCalls.some(c=>c[0]==='fillText'&&c[1]==='2026-08-15 — 2026-08-18')&&!pgShareCalls.some(c=>c[0]==='fillText'&&String(c[1]).startsWith('Last '))`);
+check('...and the old slug and foot line are gone for good',`!pgShareCalls.some(c=>c[0]==='fillText'&&(String(c[1]).includes('SHOWUP / PROGRESSION')||String(c[1]).startsWith('showup · ')))`);
+check('the card is a fixed 1080x1280, like the other share cards',`pgShared.cv.width===1080&&pgShared.cv.height===1280`);
+check('the unit labels the axis, once',`pgShareCalls.filter(c=>c[0]==='fillText'&&c[1]==='(lb)').length===1`);
+check('the FIRST name signs it, bottom right -- not the full name',`pgShareCalls.some(c=>c[0]==='fillText'&&c[1]==='Tester')&&!pgShareCalls.some(c=>c[0]==='fillText'&&c[1]==='Tester McTest')`);
+check('x and y axis lines are drawn solid, heavier than the dotted grid',`(()=>{const dashes=pgShareCalls.filter(c=>c[0]==='setLineDash');const widths=pgShareCalls.filter(c=>c[0]==='lineWidth');return dashes.some(d=>Array.isArray(d[1])&&d[1].length===0)&&pgShareCalls.some(c=>c[0]==='lineTo');})()`);
+/* globalAlpha is ASSIGNED, not called; the recorder only saw method calls, so this
+   check could not have seen it either way until the proxy learned to trap sets. */
+check('the axis labels are drawn lighter than the card body',`(()=>{const a=pgShareCalls.filter(c=>c[0]==='set'&&c[1]==='globalAlpha'&&c[2]<1&&c[2]>0);return a.length>=3&&a.every(c=>c[2]<=.6);})()`);
+check('...and the set numbers are drawn heavier than the axis',`(()=>{const fonts=pgShareCalls.filter(c=>c[0]==='set'&&c[1]==='font').map(c=>String(c[2]));const chip=fonts.find(f=>/^600 11px/.test(f)),axis=fonts.find(f=>/^400 10px/.test(f));return !!chip&&!!axis;})()`);
 run(`document.querySelector('[data-pg-action="next-range"]').click();`);
-run(`showCard=pgSavedShow;HTMLCanvasElement.prototype.getContext=pgOriginalContext;window.pgBeforeHold=progressionUI.train.pick;`);
+run(`render=window.pgSavedRender;showCard=pgSavedShow;HTMLCanvasElement.prototype.getContext=pgOriginalContext;window.pgBeforeHold=progressionUI.train.pick;`);
 
 // The touch protocol is exercised, including the 2D choice between loads.
 w.SVGElement.prototype.getBoundingClientRect=function(){const v=this.getAttribute('viewBox')?.split(' ').map(Number)||[0,0,329,254];return {left:0,top:0,width:v[2],height:v[3]};};
@@ -165,3 +194,4 @@ check('completion removes live duplicate but preserves permanent Stats',`progres
 run(`document.getElementById('view').innerHTML=progressionSection('<img src=x onerror=1>','train');bindProgression()`);
 check('unknown/empty exercises safe and honest',`!document.querySelector('.progression-card img')&&document.querySelector('.pg-empty')`);
 console.log('PROGRESSION PASS');process.exit(0);
+})();

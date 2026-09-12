@@ -330,38 +330,147 @@ function progressionShare(card){
   const {state,scope,layout,count}=card._pg;if(!scope.length)return;
   const style=getComputedStyle(card),color=name=>style.getPropertyValue(name).trim();
   const snapshot={ex:state.ex,count,layout,read:progressionReadoutParts(scope.find(r=>r.id===state.pick)||scope.at(-1)),axis:state.kind==='load'?'':progressionAxis(state.kind),picked:state.pick,
+    /* v4.5.19: the unit belongs over the axis, not buried in the readout. For a
+       load chart the numbers down the left ARE weights, so say so once. */
+    unit:state.kind==='load'?'('+U()+')':'',
+    name:(typeof firstName==='function'&&firstName())||'',
+    range:layout.dates[0]+' — '+layout.dates.at(-1),logo:null,
+    /* drawShareFooter reads line/muted/name/logo off the top level, so mirror them there */
+    line:color('--line'),muted:color('--muted'),
     colors:{paper:color('--surface'),ink:color('--chalk'),muted:color('--muted'),line:color('--line'),blue:color('--accent-ink'),soft:color('--surface2')},
-    font:style.getPropertyValue('--body').trim()||'sans-serif',mono:style.getPropertyValue('--mono').trim()||'monospace'};
-  return showCard(()=>drawProgressionCard(snapshot),'progression-'+state.ex.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/-$/,'')+'-'+count+'-sessions-'+layout.dates[0]+'-'+layout.dates.at(-1));
+    font:'"ShowUp Export Plex", "IBM Plex Sans", sans-serif',mono:'"ShowUp Export Plex", "IBM Plex Sans", sans-serif'};
+  const label='progression-'+state.ex.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/-$/,'')+'-'+count+'-sessions-'+layout.dates[0]+'-'+layout.dates.at(-1);
+  /* the mark has to be decoded before the canvas is drawn; showCard draws
+     synchronously. A failed decode is not a reason to lose the card. */
+  const mark=new Image();mark.src='assets/mascot-mark-'+(document.documentElement.dataset.theme==='dark'?'white':'charcoal')+'.png';
+  /* v4.5.19: the real IBM Plex, not whatever the canvas falls back to. The plate
+     share has loaded it for export since v3.3.x; this card was reading the CSS
+     family names, which a canvas may or may not resolve. Fonts and mark are both
+     best-effort: a failure costs the typeface, never the card. */
+  /* decode() is the right call in a browser but is not universal -- older Safari
+     and any non-browser host lack it -- so fall back to load/error. Either way the
+     wait is best-effort: a missing mark or font costs the trimming, never the card. */
+  const ready=img=>img.decode?img.decode():new Promise((ok,no)=>{img.onload=ok;img.onerror=no;});
+  /* import() can THROW rather than reject where module loading is unavailable, and
+     a bare .catch() never sees that -- the card would then wait on a promise that
+     never settles and simply not appear. Both waits are wrapped, and neither is
+     allowed to fail the share: worst case the type falls back and the mark is
+     missing, which is a plainer card, not an absent one. */
+  const settleFonts=()=>{try{return Promise.resolve(import('./plate-gif.js')).then(mod=>mod.loadExportFonts()).catch(()=>{});}catch(_e){return Promise.resolve();}};
+  /* AND A CEILING ON THE WAIT. An image that never loads fires neither load nor
+     error -- a blocked asset, an offline cold start -- and the share would then sit
+     on a promise that never settles and no card would ever open. The waits are
+     races: after 1.2s the card is drawn with whatever arrived. Slightly plainer
+     beats silently nothing. */
+  const capped=p=>Promise.race([p,new Promise(r=>setTimeout(r,1200))]);
+  return Promise.all([capped(ready(mark).then(()=>{snapshot.logo=mark;},()=>{})),capped(settleFonts())])
+    .then(()=>showCard(()=>drawProgressionCard(snapshot),label));
 }
+/* v4.5.19: THE PROGRESSION SHARE, REDRAWN.
+   Out: the "SHOWUP / PROGRESSION" slug at the top and the "showup · date — date"
+   line at the foot -- the first said nothing the mark does not, the second put
+   the range where a signature belongs.
+   In: the range at the top left under the title, where you read it before the
+   chart rather than after; "(lb)" over the axis it labels; a tinted panel behind
+   the plot so the numbers sit ON something; and the same footer every other share
+   card has -- mark bottom-left, first name bottom-right.
+   The margin is one number, EDGE, on all four sides, as on the other cards. The
+   panel is inset from it, the plot inset again, so the eye steps in twice. */
+/* v4.5.19: THE PROGRESSION SHARE, REDRAWN.
+   Out: the "SHOWUP / PROGRESSION" slug and the "showup · date — date" foot line --
+   the first said nothing the mark does not, the second put the range where a
+   signature belongs.
+   In: the range at the top left, read before the chart rather than after; the unit
+   over the axis it labels; solid x and y axis lines; and the footer every other
+   share card has, via the same drawShareFooter.
+   FIXED 1080x1280, like the comparison share. This card used to size itself to the
+   plot and scale the whole canvas to 1080 wide, so its type came out a different
+   size on every exercise -- a long name meant a taller card meant smaller text. The
+   chrome is now drawn in absolute pixels at the reference sizes (25/30/24/62/26/20)
+   and only the PLOT is scaled, to fit the space left between the header and the
+   footer rule. Type is constant; the chart flexes. */
+/* v4.5.19: THE PROGRESSION SHARE, REDRAWN.
+   Out: the "SHOWUP / PROGRESSION" slug and the "showup · date — date" foot line.
+   In: the range at the top left, the unit over the axis it labels, solid x and y
+   axis lines, and the mark and first name in the footer every other card has.
+   TYPE IS THE SCREENSHOT'S. Everything is drawn in the local units the card has
+   always used and scaled by 1080/(plot+40) -- the exact scale the old card used --
+   so 18px title, 16px readout, 11px chips and 10px axis land at the same size on
+   the image as before. What changed is only the canvas: a fixed 1080x1280 instead
+   of a height that followed the plot, with the chart placed in the space between
+   the header and the footer. */
 function drawProgressionCard(s){
   const cv=document.createElement('canvas'),x=cv.getContext('2d');if(!x)return null;
-  const m=s.layout,W=Math.max(320,m.width+40),scale=1080/W,pad=20;
+  const m=s.layout,pad=20,W=m.width+pad*2,scale=1080/W,H=SHARE_CARD_H/scale;
+  cv.width=1080;cv.height=SHARE_CARD_H;x.scale(scale,scale);
+  const sans=s.font,mono=s.mono;
   const wrap=(text,font,max)=>{x.font=font;const lines=[];let line='';for(const word of text.split(' ')){const next=line?line+' '+word:word;if(line&&x.measureText(next).width>max){lines.push(line);line=word;}else line=next;}if(line)lines.push(line);return lines;};
-  const title=wrap(s.ex,'600 18px '+s.font,W-pad*2),read=wrap(s.read.value,'500 16px '+s.font,W-pad*2);
-  const chartY=62+title.length*24,H=chartY+52+m.height+32;
-  cv.width=1080;cv.height=Math.ceil(H*scale);x.scale(scale,scale);
   x.fillStyle=s.colors.paper;x.fillRect(0,0,W,H);x.textBaseline='alphabetic';
-  x.fillStyle=s.colors.muted;x.font='500 10px '+s.mono;x.fillText('SHOWUP / PROGRESSION',pad,23);
-  x.fillStyle=s.colors.ink;x.font='600 18px '+s.font;title.forEach((line,i)=>x.fillText(line,pad,51+i*24));
-  x.fillStyle=s.colors.muted;x.font='500 11px '+s.mono;
-  x.fillText(s.count+' Sessions'+(m.dates.length<s.count?' · '+m.dates.length+' in this range':''),pad,chartY-17);
-  if(s.axis){x.textAlign='right';x.fillText(s.axis,W-pad,chartY-1);x.textAlign='left';}
-  x.textAlign='center';x.fillStyle=s.colors.ink;x.font='500 16px '+s.font;read.forEach((line,i)=>x.fillText(line,W/2,chartY+18+i*18));
-  x.fillStyle=s.colors.muted;x.font='400 11px '+s.mono;x.fillText(s.read.date,W/2,chartY+read.length*18+17);
-  x.save();x.translate((W-m.width)/2,chartY+52);
-  for(const t of m.ticks){x.strokeStyle=s.colors.line;x.lineWidth=.7;x.setLineDash([2,4]);x.beginPath();x.moveTo(m.left,t.y);x.lineTo(m.width-m.right,t.y);x.stroke();x.setLineDash([]);if(t.showLabel){x.fillStyle=s.colors.muted;x.textAlign='right';x.font='400 10px '+s.mono;x.fillText(t.label,m.left-7,t.y+3.5);}}
-  for(const p of m.points)if(p.leader){x.strokeStyle=s.colors.muted;x.globalAlpha=.5;x.lineWidth=.7;x.beginPath();x.moveTo(p.x-2,p.trueY);x.lineTo(p.x+2,p.trueY);x.moveTo(p.x,p.trueY);x.lineTo(p.x,p.y);x.stroke();x.globalAlpha=1;}
-  for(const p of m.points){
-    x.fillStyle=m.dots?(p.winning?s.colors.blue:s.colors.muted):s.colors.soft;
-    x.beginPath();if(!m.dots&&p.label.length>2)x.rect(p.x-p.labelWidth/2,p.y-7,p.labelWidth,14);else x.arc(p.x,p.y,p.radius,0,Math.PI*2);x.fill();
-    if(p.r.id===s.picked){x.strokeStyle=s.colors.blue;x.lineWidth=1.2;x.stroke();}
-    if(!m.dots){x.fillStyle=p.winning?s.colors.blue:s.colors.muted;x.font='400 11px '+s.mono;x.textAlign='center';x.fillText(p.label,p.x,p.y+3.5);}
+
+  /* header — the range takes the slug's place */
+  x.textAlign='left';x.fillStyle=s.colors.muted;x.font='400 10px '+mono;
+  x.fillText(s.range,pad,23);
+  const title=wrap(s.ex,'600 18px '+sans,W-pad*2);
+  x.fillStyle=s.colors.ink;x.font='600 18px '+sans;
+  title.forEach((line,i)=>x.fillText(line,pad,51+i*24));
+  let y=51+(title.length-1)*24;
+  x.fillStyle=s.colors.muted;x.font='500 11px '+mono;
+  x.fillText(s.count+' Sessions'+(m.dates.length<s.count?' · '+m.dates.length+' in this range':''),pad,y+22);
+  if(s.axis){x.textAlign='right';x.fillText(s.axis,W-pad,y+22);x.textAlign='left';}
+  y+=22;
+
+  /* the readout, centred */
+  const read=wrap(s.read.value,'500 16px '+sans,W-pad*2);
+  x.textAlign='center';x.fillStyle=s.colors.ink;x.font='500 16px '+sans;
+  read.forEach((line,i)=>x.fillText(line,W/2,y+40+i*18));
+  y+=40+(read.length-1)*18;
+  x.fillStyle=s.colors.muted;x.font='400 11px '+mono;x.fillText(s.read.date,W/2,y+19);
+  y+=19;
+
+  /* the footer lives at the foot, one pad from the bottom, as on every other card */
+  const footRule=H-pad-30, markH=17, markY=H-pad-markH;
+  /* the plot fills what is left, its own units stretched to the band */
+  const axisY=Math.max(...m.ticks.map(t=>t.y));
+  const top=y+18, band=footRule-30-top;   /* 30: the date row under the axis, and air before the rule */
+  const sx=(W-pad*2)/m.width, sy=band/axisY, ox=pad, oy=top;
+  const X=v=>ox+v*sx, Y=v=>oy+v*sy;
+  for(const t of m.ticks){
+    x.strokeStyle=s.colors.line;x.lineWidth=.7;x.setLineDash([2,4]);
+    x.beginPath();x.moveTo(X(m.left),Y(t.y));x.lineTo(X(m.width-m.right),Y(t.y));x.stroke();x.setLineDash([]);
+    if(t.showLabel){/* v4.5.19: the axis reads a shade lighter than the card's body
+       text -- same colour, less of it. Weight cannot go below 400 in the bundled
+       family, so the step down is in alpha, not in the face. */
+      x.save();x.globalAlpha=.5;x.fillStyle=s.colors.muted;x.textAlign='right';x.font='400 10px '+mono;x.fillText(t.label,X(m.left)-7,Y(t.y)+3.5);x.restore();}
   }
-  x.fillStyle=s.colors.muted;x.font='500 10px '+s.mono;
-  for(const t of m.dateTicks){x.textAlign=t.anchor==='start'?'left':t.anchor==='end'?'right':'center';x.fillText(t.label,t.x,m.height-11);}
-  x.restore();x.textAlign='left';
-  x.fillStyle=s.colors.muted;x.font='400 10px '+s.mono;x.fillText('showup · '+m.dates[0]+' — '+m.dates.at(-1),pad,H-14);
+  /* x and y axis lines: solid, heavier than the dotted grid, the x on the LOWEST
+     tick so the frame and the numbers beside it agree */
+  {const topY=Math.min(...m.ticks.map(t=>t.y));
+   x.strokeStyle=s.colors.line;x.lineWidth=1.2;x.setLineDash([]);x.lineCap='square';
+   x.beginPath();x.moveTo(X(m.left),Y(topY)-6);x.lineTo(X(m.left),Y(axisY));x.lineTo(X(m.width-m.right),Y(axisY));x.stroke();
+   if(s.unit){x.save();x.globalAlpha=.5;x.fillStyle=s.colors.muted;x.font='400 10px '+mono;x.textAlign='right';x.fillText(s.unit,X(m.left)-7,Y(topY)-13);x.restore();}}
+  for(const p of m.points)if(p.leader){x.strokeStyle=s.colors.muted;x.globalAlpha=.5;x.lineWidth=.7;x.beginPath();x.moveTo(X(p.x)-2,Y(p.trueY));x.lineTo(X(p.x)+2,Y(p.trueY));x.moveTo(X(p.x),Y(p.trueY));x.lineTo(X(p.x),Y(p.y));x.stroke();x.globalAlpha=1;}
+  for(const p of m.points){
+    const cx=X(p.x),cy=Y(p.y);
+    x.font='600 11px '+mono;   /* v4.5.19: the sets are the content -- SemiBold against an axis at half strength */
+    x.fillStyle=m.dots?(p.winning?s.colors.blue:s.colors.muted):s.colors.soft;
+    x.beginPath();
+    if(!m.dots&&p.label.length>2){const w=Math.max(p.labelWidth,x.measureText(p.label).width+6);x.roundRect(cx-w/2,cy-7,w,14,4);}
+    else if(m.dots)x.arc(cx,cy,p.radius,0,Math.PI*2);
+    else x.arc(cx,cy,7,0,Math.PI*2);
+    x.fill();
+    if(p.r.id===s.picked){x.strokeStyle=s.colors.blue;x.lineWidth=1.2;x.stroke();}
+    if(!m.dots){x.fillStyle=p.winning?s.colors.blue:s.colors.muted;x.textAlign='center';x.fillText(p.label,cx,cy+3.5);}
+  }
+  x.save();x.globalAlpha=.5;x.fillStyle=s.colors.muted;x.font='400 10px '+mono;
+  for(const t of m.dateTicks){x.textAlign=t.anchor==='start'?'left':t.anchor==='end'?'right':'center';x.fillText(t.label,X(t.x),Y(axisY)+18);}
+  x.restore();
+
+  /* footer: rule, mark left, first name right */
+  x.textAlign='left';x.strokeStyle=s.colors.line;x.lineWidth=1;
+  x.beginPath();x.moveTo(pad,footRule);x.lineTo(W-pad,footRule);x.stroke();
+  if(s.logo)x.drawImage(s.logo,14,85,485,292,pad,markY,28,markH);
+  x.fillStyle=s.colors.muted;x.font='400 10px '+sans;x.textAlign='right';
+  x.fillText(s.name,W-pad,markY+12,W/2);
   return cv;
 }
 function bindProgressionSurface(surface){
