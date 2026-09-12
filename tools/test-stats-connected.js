@@ -36,7 +36,18 @@ run(`document.querySelector('.pg-search-results button:not([hidden])').click()`)
 check('choosing a result opens its real progression',`document.querySelector('.progression-card')._pg.state.ex==='Incline Barbell Bench Press'&&!document.querySelector('.pg-search-dialog[open]')`);
 run(`document.querySelector('#pmixWrap [aria-label*="January 3, 2024"]').dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));window.sharedDate=null;sharePlateCard=()=>{window.sharedDate=todayISO;};document.querySelector('.plate-share').click();`);
 check('history Share snapshots selected date without changing today',`window.sharedDate==='2024-01-03'&&todayISO==='2026-09-11'&&document.querySelector('.plate-date').textContent.includes('2024')`);
-check('browsing leaves profile and all workout records untouched',`JSON.stringify(DB)===window.savedDB`);
+/* v4.5.13: this compared the WHOLE DB blob, which made "Stats never writes the
+   record" and "Stats never writes anything" the same assertion. Remembering which
+   years the comparison shows is an explicitly requested preference, and it rides
+   DB.settings like the unit does. The doctrine is about the RECORD, so the record
+   and the profile are still compared byte for byte -- and settings are now pinned
+   to the single key that is allowed to move, which is stricter than a blob compare
+   was: any OTHER settings write from this view fails here. */
+check('browsing leaves every workout record untouched',`JSON.stringify(DB.days)===JSON.stringify(JSON.parse(window.savedDB).days)`);
+check('...and the profile untouched',`(function(){const a=DB.settings,b=JSON.parse(window.savedDB).settings;return ['name','sex','unit','bw','birth'].every(k=>JSON.stringify(a[k])===JSON.stringify(b[k]));})()`);
+check('...and the ONLY setting it may write is the remembered comparison years',`(function(){const a=DB.settings,b=JSON.parse(window.savedDB).settings;
+  const moved=[...new Set([...Object.keys(a),...Object.keys(b)])].filter(k=>JSON.stringify(a[k])!==JSON.stringify(b[k]));
+  return moved.length===0||(moved.length===1&&moved[0]==='comparisonYears');})()`);
 check('whole-number plate units are consistent in kilograms and pounds',`plateLedger({w:[{part:'Legs',ex:'Squat',w:100,reps:[10]}]},250).length===4&&plateLedger({w:[{part:'Legs',ex:'Squat',w:1000/LB,reps:[1]}]},500/LB).length===2`);
 check('month row directly precedes attendance cells',`document.querySelector('.heatgrid').previousElementSibling.classList.contains('heatticks')`);
 run(`DB.settings.weekStart=1;view='stats';render();`);

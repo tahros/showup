@@ -384,13 +384,28 @@ function updateWork(date){
  else plateCancel();
  const title=shell.previousElementSibling;if(title?.tagName==='H2')title.textContent=date===todayISO&&DB.days[date]?.doneAll?'Workout complete':'Your work, stacking up';
 }
+/* v4.5.13: THE CHOSEN YEARS SURVIVE A REFRESH. comparisonMemory was a plain Map,
+   so adding 2023 and 2022 lasted exactly as long as the page did. The years now
+   live in DB.settings.comparisonYears, keyed by card kind, which rides the
+   per-key settings clock (DB.settingsAtK) and therefore syncs like any other
+   setting. The scrub index stays in memory on purpose -- where you dragged to is
+   about this glance, not a preference, and restoring it would fight the card's
+   own habit of opening on the latest date. */
 const comparisonMemory=new Map();
+function comparisonSavedYears(kind){const all=DB.settings.comparisonYears;return Array.isArray(all?.[kind])?all[kind].map(Number).filter(Number.isFinite):null;}
+function comparisonSaveYears(kind,years){
+  const all=DB.settings.comparisonYears&&typeof DB.settings.comparisonYears==='object'?DB.settings.comparisonYears:{};
+  const next={...all,[kind]:[...years]};
+  if(JSON.stringify(next)===JSON.stringify(DB.settings.comparisonYears))return;
+  DB.settings.comparisonYears=next;save(true);
+}
 function comparisonCard(card,kind){
  const current=+todayISO.slice(0,4),records=Object.keys(DB.days).filter(d=>d<=todayISO&&(kind==='distance'?(DB.days[d]?.w||[]).some(s=>s.ex==='Run'):plateMetrics(DB.days[d]).sets));
  const available=[...new Set(records.map(d=>+d.slice(0,4)))].sort((a,b)=>b-a);
  if(!available.length){card.innerHTML='<p>No records to compare yet.</p>';return;}
  const dates=[];for(let d=new Date(current,0,1);d<=new Date(todayISO+'T00:00');d.setDate(d.getDate()+1))dates.push([d.getMonth(),d.getDate()]);
- const memory=comparisonMemory.get(kind)||{years:available.slice(0,2),index:dates.length-1};comparisonMemory.set(kind,memory);
+ const saved=comparisonSavedYears(kind);
+ const memory=comparisonMemory.get(kind)||{years:(saved&&saved.filter(y=>available.includes(y)).length?saved:available.slice(0,2)),index:dates.length-1,pct:false};comparisonMemory.set(kind,memory);
  memory.years=memory.years.filter(y=>available.includes(y));if(!memory.years.length)memory.years=[available[0]];
  memory.index=Math.min(memory.index,dates.length-1);
  const series=new Map();available.forEach(y=>{let total=0,last='';series.set(y,dates.map(([m,d])=>{const iso=y+'-'+String(m+1).padStart(2,'0')+'-'+String(Math.min(d,new Date(y,m+1,0).getDate())).padStart(2,'0');if(iso!==last){const r=DB.days[iso];total+=kind==='distance'?(r?.w||[]).filter(s=>s.ex==='Run'&&s.completed!==false).reduce((n,s)=>n+toD(s.w),0):(plateMetrics(r).sets?1:0);}last=iso;return total;}));});
@@ -402,19 +417,73 @@ function comparisonCard(card,kind){
  const node=(tag,attrs,text)=>{const e=document.createElementNS('http://www.w3.org/2000/svg',tag);Object.entries(attrs).forEach(([k,v])=>e.setAttribute(k,v));if(text!==undefined)e.textContent=text;svg.append(e);return e;};
  let maximum=1;
  const x=i=>32+i/Math.max(1,dates.length-1)*296,y=v=>178-v/maximum*158;
+ /* v4.5.13: TAP A NUMBER TO SEE THE SHARE. The denominator is days ELAPSED in
+    that year up to the scrubbed calendar date -- not the whole year, and not
+    today -- so scrubbing to March compares March against March. Leap years are
+    counted by real date arithmetic rather than a 365 constant. Distance has no
+    honest denominator, so that card does not offer the toggle. */
+ const canPct=kind!=='distance';
+ const pctOf=(yr,i)=>{const [m,d]=dates[i];const days=Math.round((Date.UTC(yr,m,Math.min(d,new Date(yr,m+1,0).getDate()))-Date.UTC(yr,0,1))/86400000)+1;return days>0?series.get(yr)[i]/days*100:0;};
+ const shown=yr=>memory.pct&&canPct?pctOf(yr,memory.index):series.get(yr)[memory.index];
+ const unit=()=>memory.pct&&canPct?'%':(kind==='distance'?DU():'days');
+ const fmtVal=v=>memory.pct&&canPct?v.toFixed(1):v.toLocaleString('en-US',{maximumFractionDigits:kind==='distance'?1:0});
  function show(i){memory.index=Math.max(0,Math.min(dates.length-1,i));slider.value=memory.index;const [m,d]=dates[memory.index];const label=new Date(current,m,d).toLocaleDateString('en-US',{month:'long',day:'numeric'});card.querySelector('.comparison-date').textContent=label;slider.setAttribute('aria-valuetext',label);card.querySelector('.comparison-latest').disabled=memory.index===dates.length-1;
- values.innerHTML=memory.years.map(yr=>'<div style="--year-color:'+color(yr)+'"><span>'+yr+'</span><strong>'+series.get(yr)[memory.index].toLocaleString('en-US',{maximumFractionDigits:kind==='distance'?1:0})+' <small>'+(kind==='distance'?DU():'days')+'</small></strong></div>').join('');
- difference.hidden=memory.years.length<2;if(!difference.hidden){const [a,b]=memory.years,scale=kind==='distance'?10:1,delta=Math.round((series.get(a)[memory.index]-series.get(b)[memory.index])*scale)/scale;difference.textContent=(delta===0?'Same total':(delta>0?'+':'−')+Math.abs(delta).toLocaleString()+' '+(kind==='distance'?DU():'days'))+' · '+a+' vs '+b;}
+ values.innerHTML=memory.years.map(yr=>'<div style="--year-color:'+color(yr)+'">'+(canPct?'<button type="button" class="comparison-flip" aria-label="'+yr+': tap to switch between days and share of days elapsed">':'<div class="comparison-flip">')+'<span>'+yr+'</span><strong data-year="'+yr+'"><i>'+fmtVal(shown(yr))+'</i> <small>'+unit()+'</small></strong>'+(canPct?'</button>':'</div>')+'</div>').join('');
+ difference.hidden=memory.years.length<2;if(!difference.hidden){const [a,b]=memory.years;
+  if(memory.pct&&canPct){const delta=pctOf(a,memory.index)-pctOf(b,memory.index);
+   /* points, not percent: the gap between two percentages is percentage POINTS, and
+      writing "%" there would be a second, wrong number on the same line. */
+   difference.textContent=(Math.abs(delta)<0.05?'Same share':(delta>0?'+':'−')+Math.abs(delta).toFixed(1)+' points')+' · '+a+' vs '+b;}
+  else{const scale=kind==='distance'?10:1,delta=Math.round((series.get(a)[memory.index]-series.get(b)[memory.index])*scale)/scale;
+   difference.textContent=(delta===0?'Same total':(delta>0?'+':'−')+Math.abs(delta).toLocaleString()+' '+(kind==='distance'?DU():'days'))+' · '+a+' vs '+b;}}
  svg.querySelectorAll('.comparison-marker').forEach(e=>e.remove());node('line',{class:'comparison-marker',x1:x(memory.index),x2:x(memory.index),y1:14,y2:178,stroke:'var(--muted)','stroke-dasharray':'3 3'});
  const groups=new Map();memory.years.forEach(yr=>{const key=Math.round(y(series.get(yr)[memory.index]));if(!groups.has(key))groups.set(key,[]);groups.get(key).push(yr);});
  groups.forEach(years=>years.forEach((yr,i)=>node('circle',{class:'comparison-marker','data-year':yr,cx:x(memory.index),cy:y(series.get(yr)[memory.index]),r:4.5+(years.length-1-i)*2.5,fill:'var(--surface)',stroke:color(yr),'stroke-width':2})));
  }
  function draw(){const row=card.querySelector('.comparison-years');row.innerHTML=memory.years.map(yr=>'<button aria-label="Remove '+yr+' from comparison" style="--year-color:'+color(yr)+'" data-year="'+yr+'">'+yr+' <span>×</span></button>').join('')+'<details><summary>+ Year</summary><div>'+available.filter(yr=>!memory.years.includes(yr)).map(yr=>'<button data-add="'+yr+'">'+yr+'</button>').join('')+'</div></details>';
  row.querySelector('details').hidden=memory.years.length===available.length;
- row.querySelectorAll('[data-year]').forEach(b=>{b.disabled=memory.years.length===1;b.onclick=()=>{memory.years=memory.years.filter(yr=>yr!==+b.dataset.year);draw();};});row.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{memory.years.push(+b.dataset.add);memory.years.sort((a,b)=>b-a);draw();});
+ row.querySelectorAll('[data-year]').forEach(b=>{b.disabled=memory.years.length===1;b.onclick=()=>{memory.years=memory.years.filter(yr=>yr!==+b.dataset.year);comparisonSaveYears(kind,memory.years);draw();};});row.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{memory.years.push(+b.dataset.add);memory.years.sort((a,b)=>b-a);comparisonSaveYears(kind,memory.years);draw();});
  maximum=Math.max(1,...memory.years.map(yr=>series.get(yr).at(-1)));maximum=Math.ceil(maximum/4)*4;svg.replaceChildren();for(let n=0;n<=4;n++){const value=maximum*n/4;node('line',{x1:32,x2:328,y1:y(value),y2:y(value),stroke:'var(--line)','stroke-dasharray':'2 4'});node('text',{x:26,y:y(value)+3,'text-anchor':'end',fill:'var(--muted)','font-size':8},Math.round(value));}
  [0,Math.floor((dates.length-1)/3),Math.floor((dates.length-1)*2/3),dates.length-1].forEach(i=>{const [m,d]=dates[i];node('text',{x:x(i),y:199,'text-anchor':i===0?'start':i===dates.length-1?'end':'middle',fill:'var(--muted)','font-size':8},new Date(current,m,d).toLocaleDateString('en-US',{month:'short',day:'numeric'}));});
  memory.years.forEach(yr=>node('polyline',{'data-year':yr,points:series.get(yr).map((v,i)=>x(i)+','+y(v)).join(' '),fill:'none',stroke:color(yr),'stroke-width':2.4,'stroke-dasharray':available.indexOf(yr)?['5 3','2 4','8 3 2 3'][(available.indexOf(yr)-1)%3]:'none','stroke-linejoin':'round'}));show(memory.index);}
+ /* v4.5.13: the flip. Tapping ONE number flips them all -- half the row in days
+    and half in percent would be two scales side by side pretending to compare.
+    ORDER MATTERS HERE: the card is put into its final, correct state FIRST and
+    the animation only paints over the top of it. Deriving the final text at the
+    end of the tween instead left the number stranded mid-flip ("17.0 days")
+    whenever requestAnimationFrame did not run -- a backgrounded tab, a throttled
+    phone. The tween tweens; it is never the thing that makes the value true. */
+ function flip(){
+  if(!canPct)return;
+  const before=memory.years.map(yr=>shown(yr));
+  memory.pct=!memory.pct;
+  show(memory.index);                       /* correct and complete, right now */
+  const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduce)return;
+  const tiles=[...values.querySelectorAll('strong')];
+  const after=memory.years.map(yr=>shown(yr));
+  const oldUnit=memory.pct?(kind==='distance'?DU():'days'):'%';
+  const t0=performance.now(),D=520;
+  /* scheduled, never called inline: a synchronous first frame at p=0 repaints the
+     old number over the correct one that show() just wrote. */
+  function step(now){
+   const raw=Math.min(1,(now-t0)/D),p=1-Math.pow(1-raw,3);
+   tiles.forEach((t,i)=>{
+    if(!t.isConnected)return;
+    const v=before[i]+(after[i]-before[i])*p;
+    t.querySelector('i').textContent=memory.pct?v.toFixed(1):Math.round(v).toLocaleString('en-US');
+    t.querySelector('small').textContent=p<0.5?oldUnit:unit();
+    const tile=t.parentElement;
+    tile.style.transform='rotateX('+(Math.sin(p*Math.PI)*-16).toFixed(2)+'deg)';
+    tile.style.opacity=(1-Math.sin(p*Math.PI)*0.35).toFixed(3);});
+   if(raw<1)requestAnimationFrame(step);
+   else tiles.forEach((t,i)=>{if(!t.isConnected)return;
+    t.querySelector('i').textContent=fmtVal(after[i]);t.querySelector('small').textContent=unit();
+    t.parentElement.style.transform='';t.parentElement.style.opacity='';});
+  }
+  requestAnimationFrame(step);
+ }
+ values.addEventListener('click',e=>{if(e.target.closest('.comparison-flip'))flip();});
  slider.oninput=()=>show(+slider.value);card.querySelector('.comparison-latest').onclick=()=>show(dates.length-1);
  const scrub=e=>{const r=svg.getBoundingClientRect();show(Math.round(((e.clientX-r.left)/r.width*340-32)/296*(dates.length-1)));};
  let pointer=null;svg.addEventListener('pointerdown',e=>{pointer=e.pointerId;svg.setPointerCapture?.(e.pointerId);scrub(e);});svg.addEventListener('pointermove',e=>{if(pointer!==null&&pointer===e.pointerId)scrub(e);});svg.addEventListener('pointerup',e=>{if(pointer===e.pointerId){scrub(e);svg.releasePointerCapture?.(e.pointerId);pointer=null;}});svg.addEventListener('pointercancel',()=>{pointer=null;});draw();
@@ -460,6 +529,10 @@ const compactStyle=document.createElement('style');compactStyle.textContent=`
 .comparison-years{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.comparison-years button,.comparison-years summary,.comparison-latest{border:1px solid var(--line);background:var(--surface2);border-radius:12px;padding:10px 12px;color:var(--chalk);font:500 12px var(--body);cursor:pointer}
 .comparison-years button[data-year]{border-color:var(--year-color);color:var(--year-color)}.comparison-years button span{opacity:.6;margin-left:6px}.comparison-years details{position:relative}.comparison-years details>div{position:absolute;z-index:3;min-width:90px;padding:6px;background:var(--surface);box-shadow:0 6px 20px #0002;border-radius:12px}.comparison-years details button{display:block;width:100%}
 .comparison-heading{display:flex;align-items:center;justify-content:space-between;margin:16px 0 10px;font:500 12px var(--body)}.comparison-latest:disabled{opacity:.35}.comparison-values{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:12px}.comparison-values>div{flex:1;min-width:85px;border-left:3px solid var(--year-color);padding-left:10px}.comparison-values span{display:block;font:400 11px var(--mono);color:var(--muted)}.comparison-values strong{font:600 25px var(--body);font-variant-numeric:tabular-nums}.comparison-values small{font:400 11px var(--body);color:var(--muted)}.comparison-plot{width:100%;display:block;touch-action:pan-y}.comparison-scrub{width:100%;accent-color:var(--accent);min-height:40px}.comparison-foot{font:400 10px var(--body);color:var(--muted);margin:2px 0 0}
+.comparison-flip{display:block;width:100%;text-align:left;border:0;background:none;padding:0;margin:0;color:inherit;font:inherit;cursor:pointer;transform-origin:50% 50%;will-change:transform}
+.comparison-flip:disabled{cursor:default}
+.comparison-values strong i{font-style:normal}
+@media (prefers-reduced-motion:reduce){.comparison-flip{transition:none}}
 .comparison-delta{font:500 12px var(--body);color:var(--accent-ink);background:var(--surface2);border-radius:10px;padding:9px 12px;margin:0 0 12px;font-variant-numeric:tabular-nums}
 /* v4.5.10: THE STREAK CARDS TAKE THE HISTORY CHART'S DATE RAIL. The year row and
    the month row were painted once, one label per column, all caps, and the year
