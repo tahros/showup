@@ -148,9 +148,9 @@ ok("the Monthly-pace card uses the same fair day cutoff as the chart",
 const FRAME_TEXTS = 4;
 const expectedMonths = JSON.parse(run(`JSON.stringify(monthlyPaceData(12).months.map(m=>m.key.slice(5)))`));
 const expectedInitials=expectedMonths.map(m=>'JFMAMJJASOND'[+m-1]);
-ok("...and each surface uses its requested 12-month language",
-   expectedInitials.every(m=>dbmSvg.includes(m))&&expectedMonths.every(m=>dbmCard.includes(m)),
-   expectedInitials.join(",")+" on Stats; numeric Report Card preserved");
+ok("Monthly pace is absent from Stats while its Report Card keeps numeric months",
+   dbmSvg.length===0&&expectedMonths.every(m=>dbmCard.includes(m)),
+   "Stats retired; numeric Report Card preserved");
 
 // the shared coordinate mapper is what makes fidelity structural.
 // v3.3.148: since v3.3.133 the painters go through vbMapCentered, which

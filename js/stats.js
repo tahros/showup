@@ -757,17 +757,18 @@ const HEAT_MIN_WEEKS=35;
    they are before, and stay unlit in both cards. */
 function currentRhythmSection(inverse){
   const dates=workoutDates(),now=new Date(todayISO+'T00:00');
+  const weekStart=weekStartDow();
   const R=inverse?restStats():null;
   const streak=inverse?(R?restRunNow(R):0):currentStreak(),best=inverse?(R?restRunBest(R):0):longestStreak();
   /* end the grid on today's column; start on the Monday of the ledger's
      first week, or HEAT_MIN_WEEKS back, whichever reaches further */
-  const end=new Date(now); end.setDate(end.getDate()+(7-((now.getDay()+6)%7)-1));
+  const end=new Date(now); end.setDate(end.getDate()+((weekStart+6-now.getDay()+7)%7));
   const iso=d=>d.toLocaleDateString('en-CA');
   const floorStart=new Date(end); floorStart.setDate(floorStart.getDate()-(HEAT_MIN_WEEKS*7-1));
   let start=floorStart;
   if(SEED.totals.first){
     const f=new Date(SEED.totals.first+'T00:00');
-    f.setDate(f.getDate()-((f.getDay()+6)%7));          // back to that week's Monday
+    f.setDate(f.getDate()-((f.getDay()-weekStart+7)%7));
     if(f<start) start=f;
   }
   /* count the span in DAYS and divide -- adding weeks to a Date across a DST
@@ -904,7 +905,7 @@ function currentRhythmSection(inverse){
            aria-hidden: the cells already name their own dates, and a screen
            reader does not need seven more letters to get through. -->
       <div class="heatframe">
-        <div class="wdrail" aria-hidden="true">${['M','','W','','F','','S'].map(d=>`<span>${d}</span>`).join('')}</div>
+        <div class="wdrail" aria-hidden="true">${(weekStart===1?['M','T','W','T','F','S','S']:['S','M','T','W','T','F','S']).map(d=>`<span>${d}</span>`).join('')}</div>
         <div class="heatwrap"><div class="heatscroll">
         <div class="heatyears" style="--hw:${HEAT_WEEKS}">${years.map(y=>`<span style="--c:${y.c}">${y.label}<small>${y.n} days</small></span>`).join('')}</div>
         <div class="heatgrid" style="--hw:${HEAT_WEEKS}">${cells}</div>

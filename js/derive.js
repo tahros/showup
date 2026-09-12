@@ -117,10 +117,9 @@ function exMuscle(ex,part){
    over volume) and completed sets; per internal muscle the same, plus the
    per-day dot strip. Reads the canonical merge every other reader uses. */
 function muscleCoverage(){
-  const days=[]; for(let i=6;i>=0;i--){
-    const d=new Date(todayISO+'T00:00'); d.setDate(d.getDate()-i);
-    days.push(d.toLocaleDateString('en-CA'));
-  }
+  /* v4.4.0: this is the current calendar week, using the week boundary the
+     maker chose in Settings. It no longer slides one day at a time. */
+  const days=weekDays();
   /* v3.3.357: seeded with the FULL roster at zero, so a muscle you did not
      train is a row that says so instead of a row that does not exist. */
   const g={}; for(const v of VISIBLE_GROUPS){

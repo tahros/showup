@@ -87,28 +87,19 @@ console.log((spreadOK?"PASS":"FAIL"), "a 0.2kg move does not fill the chart →"
 if (!spreadOK) fail++;
 
 // ---- 5. the inline weigh-in: edit → save → recorded on TODAY --------------
-run(`${fresh} setBw('2024-01-10',70); view='stats'; renderStats();`);
-check("stats renders the weight section", `/id="secWeight"/.test($('#view').innerHTML)`, true);
-/* v3.3.111 revises this rather than deleting it. The original (v3.3.69)
-   pinned Weight above "Report card" and "Last 30 days, vs your usual" —
-   both sections the maker has now removed, so the assertion pointed at
-   markup that no longer exists. The surviving intent is the one that
-   mattered: Weight closes the days story and sits BEFORE the Run block. */
-/* Anchored on secRecords, which always renders — the Run block does NOT
-   when a fixture has no runs, so anchoring there returns -1 and the
-   comparison silently inverts. The next check already pins the same
-   boundary, so this one just states the days-story side. */
-check("...below Monthly pace, closing the days story",
-      `$('#view').innerHTML.indexOf('secWeight') > $('#view').innerHTML.indexOf('Monthly pace')`, true);
+run(`${fresh} setBw('2024-01-10',70); view='sync'; renderSync();`);
+check("Settings renders the weight section", `/id="secWeight"/.test($('#view').innerHTML)`, true);
+check("Stats no longer owns personal weight tracking",
+      `(renderStats(), !/id="secWeight"/.test($('#view').innerHTML))`, true);
 // the removed sections must be gone from every render, not merely reordered
 // v3.3.130: Report card RETURNS — as the single share surface, not the old month-stepper
 check("Report card is absent from Stats", `/id="secReport"/.test($('#view').innerHTML)`, false);
 run(`view='history'; render();`);
 check("...and lives collapsed in History", `!!document.getElementById('secReport')&&!document.getElementById('secReport').open`, true);
-run(`view='stats'; render();`);
+run(`view='sync'; render();`);
 check("Last 30 days no longer renders", `/vs your usual/.test($('#view').innerHTML)`, false);
-check("...and remains after the retained analysis sections",
-      `$('#view').innerHTML.indexOf('secWeight') > $('#view').innerHTML.indexOf('Monthly pace')`, true);
+check("...and Weight remains available in Settings",
+      `/id="secWeight"/.test($('#view').innerHTML)`, true);
 check("this fixture has no drift rows at all", `/Last 30 days/.test($('#view').innerHTML)`, false);
 check("...and the weight card renders anyway (it precedes the conditional)",
       `/id="secWeight"/.test($('#view').innerHTML)`, true);
@@ -118,7 +109,7 @@ check("...prefilled with the current weight", `/value="70"/.test(bwCard())`, tru
 check("...and a save button", `/id="bwSave"/.test(bwCard())`, true);
 check("...and keeps its inline rule while you type", `/silence means unchanged/.test(bwCard())`, true);
 
-run(`${fresh} setBw('2024-01-10',70); bwEdit=false; view='stats'; renderStats();
+run(`${fresh} setBw('2024-01-10',70); bwEdit=false; view='sync'; renderSync();
      $('#view').querySelector('#bwEditBtn').click();`);
 check("tapping Update opens the editor", `bwEdit`, true);
 run(`$('#bwIn').value='68.5'; $('#bwSave').click();`);
@@ -129,7 +120,7 @@ check("...and the derived scalar follows too", `DB.settings.bodyKg`, 68.5);
 
 // ---- 5b. Cancel backs out without recording anything ----------------------
 run(`${fresh} setBw('2024-01-10',70); delete DB.days[todayISO];
-     bwEdit=false; view='stats'; renderStats();
+     bwEdit=false; view='sync'; renderSync();
      $('#view').querySelector('#bwEditBtn').click();`);
 check("edit mode offers a way out", `!!$('#bwCancel')`, true);
 run(`$('#bwIn').value='55'; $('#bwCancel').click();`);
@@ -147,7 +138,7 @@ if (!usesBtnrow) fail++;
 
 // ---- 6. an UNCHANGED number records nothing — the whole rule --------------
 run(`${fresh} setBw('2024-01-10',70); delete DB.days[todayISO];
-     bwEdit=false; view='stats'; renderStats();
+     bwEdit=false; view='sync'; renderSync();
      $('#view').querySelector('#bwEditBtn').click(); $('#bwIn').value='70'; $('#bwSave').click();`);
 check("re-entering the same weight records no new entry",
       `!!(DB.days[todayISO]&&DB.days[todayISO].bw)`, false);
@@ -155,7 +146,7 @@ check("...and the series is untouched", `bwDays().length`, 1);
 
 // ---- 7. the streak guard still holds after a weigh-in through the UI ------
 run(`${fresh} setBw('2024-01-10',70); SEED=deriveAll(); globalThis.__b=SEED.totals.sessions;
-     delete DB.days[todayISO]; bwEdit=false; view='stats'; renderStats();
+     delete DB.days[todayISO]; bwEdit=false; view='sync'; renderSync();
      $('#view').querySelector('#bwEditBtn').click(); $('#bwIn').value='69'; $('#bwSave').click();
      SEED=deriveAll();`);
 check("a UI weigh-in still adds no training day", `SEED.totals.sessions === __b`, true);

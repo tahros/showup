@@ -59,7 +59,7 @@ const cards = () => run(`[...document.querySelectorAll('#view .card')].length`);
 // ---- 1. the plots are taller -----------------------------------------------
 const vbs = run(`[...document.querySelectorAll('#view svg')].map(s=>s.getAttribute('viewBox'))`);
 ok("the same-date consistency race has its dedicated plot", vbs.includes("0 0 340 215"), vbs.find(v=>/340/.test(v)));
-ok("Monthly pace has its padded 12-bar plot", vbs.includes("0 0 330 160"), vbs.find(v=>v==="0 0 330 160"));
+ok("Monthly pace is retired from Stats", run(`![...document.querySelectorAll('#view h2')].some(h=>h.textContent.includes('Monthly pace'))`));
 /* v3.3.129 was scoped to FOUR charts: consistency, days-by-month, weekdays,
    distance. Weight and Pace were deliberately left at 118 — they were not in
    the request, and a chart is not made better by being taller on principle.
@@ -175,7 +175,7 @@ ok("the retired Weekdays plot is gone", run(`document.querySelectorAll('.wd-col'
 
 // ---- 4. Consistency: verdict plus graph ------------------------------------
 ok("Consistency leads with two exact day totals", run(`document.querySelectorAll('.conrace:not(.runrace) .conscore>span b').length`) === 2);
-ok("Consistency draws the filled difference field", run(`document.querySelectorAll('.conrace:not(.runrace) polygon').length`) === 1);
+ok("Year over year draws the selected current-year line", run(`document.querySelectorAll('.conrace:not(.runrace) .v4-line[stroke="var(--accent)"]').length`) === 1);
 ok("Consistency draws one line for each self", run(`document.querySelectorAll('.conrace:not(.runrace) polyline').length`) === 2);
 ok("Distance uses the same two-self score language",run(`document.querySelectorAll('.runrace .conscore>span b').length`)===2);
 

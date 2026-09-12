@@ -191,9 +191,10 @@ check("...each naming the month its own column starts",
 check("the weekday rail stands outside the scroller",
       `(function(){const r=document.querySelector('.wdrail');
         return !!r && !r.closest('.heatwrap') && !!r.closest('.heatframe');})()`, true);
-check("...labelling M W F S down the seven rows",
+check("...labelling the chosen week from Sunday or Monday",
       `(function(){const sp=[...document.querySelectorAll('.wdrail span')];
-        return sp.length===7 && sp.map(s=>s.textContent).join('|')==='M||W||F||S';})()`, true);
+        const want=weekStartDow()===1?'M|T|W|T|F|S|S':'S|M|T|W|T|F|S';
+        return sp.length===7 && sp.map(s=>s.textContent).join('|')===want;})()`, true);
 {
   const cssH = fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\r?\n\s*/g, "");
   /* the floor is now a CELL SIZE, not a fitting trick: columns hold 11px and

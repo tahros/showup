@@ -244,7 +244,7 @@ check("the confirmation says BW for a bodyweight set, not '0kg'",
   check("the number line itself never reorders",
         `(function(){const r=[...document.querySelectorAll('.repruler .rr')].map(b=>+b.dataset.rep);
           return r.every((v,i)=>i===0||v===r[i-1]+1) && r[0]===1;})()`, true);
-  run(`setBw(todayISO,70); view='stats'; render(); document.querySelector('#secWeight .ibtn.tipi').click();`);
+  run(`setBw(todayISO,70); view='sync'; render(); document.querySelector('#secWeight .ibtn.tipi').click();`);
   check("scrolling closes an open tip",
         `(()=>{document.dispatchEvent(new Event('scroll'));
               return document.getElementById('tipFloat').hidden===true
@@ -529,11 +529,8 @@ check("...badged as the added kilos",
       `gaPR(Object.values(gaExerciseSessions()).find(e=>e.name==='Pull Up')).change.text`, "+10 kg");
 check("...and the compact audit row omits the competing load record",
       `!document.querySelector('.garecord')`, true);
-run(`document.querySelector('.garow[data-gaex]').click();`);
-check("...and in the receipt, which names the BW set it beat",
-      `(function(){const rows=[...document.querySelectorAll('.garcrow')];
-        return /BW\\+10/.test(rows[0].textContent)
-          && rows[1].querySelector('b').textContent==='BW \u00d7 10';})()`, true);
+check("the retired Growth Audit has no interactive receipt in Stats",
+      `!document.querySelector('.garow[data-gaex]')`, true);
 
 // ---- v3.3.283: editing the bar weight is a FORM, not a load line ---------
 // Four children in the one-row flex built for three meant the label

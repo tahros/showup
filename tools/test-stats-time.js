@@ -84,7 +84,7 @@ ok("the attendance card no longer carries a second copy of that calendar",
 ok("Growth Audit uses the same base section gap as Session Build",
   !/class="gah"/.test(fs.readFileSync(path.join(dir,"js/stats.js"),"utf8")) && !/\.gah[\s,{:+>.\[]/.test(css));
 ok("Consistency renders two scoreboard totals", run(`document.querySelectorAll('.conscore>span b').length===2`));
-ok("Monthly pace renders 12 bars", run(`document.querySelectorAll('.mpacecard rect.gbar').length===12`));
+ok("Monthly pace is retired from Stats", run(`document.querySelectorAll('.mpacecard').length===0`));
 ok("retired time sections do not render", run(`![...document.querySelectorAll('#view h2')].some(h=>/^(Days by month|Last 6 months|Weekdays)$/.test(h.firstChild.textContent.trim()))`));
 
 // v3.3.214: the new scoreboard is the scrub readout. It changes to the

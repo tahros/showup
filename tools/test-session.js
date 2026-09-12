@@ -265,10 +265,10 @@ ok("...with recent pace shown beside it for the honest gap",
 
 /* ---- 13. v3.3.162: the month metrics card ------------------------------- */
 run(`(function(){DB.days={};DB.days[todayISO]={w:[{part:'Run',ex:'Run',w:4,reps:[],mins:30,secs:0,at:1}],upd:1};SEED=deriveAll();view='stats';render();})()`);
-ok("RUNNING · month card renders on Stats with a run this month",
-   /Running \u00b7/.test(run(`$('#view').innerHTML`)));
+ok("the named month summary renders inside Your running story",
+   /Your running story/.test(run(`$('#view').innerHTML`)) && /so far/.test(run(`$('#view').innerHTML`)));
 ok("...as a visual hero plus metric grid (v3.3.217)", run(`(function(){
-     const h2=[...document.querySelectorAll('#view h2')].find(h=>/Running \u00b7/.test(h.textContent));
+     const h2=[...document.querySelectorAll('#view h2')].find(h=>/so far/.test(h.textContent));
      const c=h2&&h2.nextElementSibling;
      return !!(c&&c.querySelector('.runmonthhero')&&c.querySelectorAll('.runmonthgrid span').length===6);})()`));
 ok("...projection is calendar-rate (km/elapsed \u00d7 days-in-month)", (() => {

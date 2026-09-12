@@ -1,4 +1,4 @@
-// smoke.js DIR — boots the app in jsdom: 13 scripts eval'd in index order,
+// smoke.js DIR — boots the app in jsdom: all scripts eval'd in index order,
 // asserts no throw, header renders, a view mounts. Not the full harness —
 // markup snapshots come back with the harness rebuild. Good enough to prove
 // a CSS/head-only release didn't break boot.
@@ -8,7 +8,7 @@ const dir = process.argv[2] || "stage";
 
 const html = fs.readFileSync(path.join(dir, "index.html"), "utf8");
 const order = [...html.matchAll(/src="(js\/[^?"]+)\?v=/g)].map(m => m[1]);
-if (order.length !== 20) { console.error("expected 20 scripts, got", order.length); process.exit(1); }   // + realset, reprange, verdict (v4.3.9)
+if (order.length !== 21) { console.error("expected 21 scripts, got", order.length); process.exit(1); }   // + stats-story (v4.4.0)
 
 const dom = new JSDOM(html.replace(/<script[^>]*src=[^>]*><\/script>/g, ""), {
   runScripts: "outside-only",

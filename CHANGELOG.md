@@ -1,5 +1,27 @@
 # ShowUp — changelog
 
+## v4.4.0 (2026-09-11) — Your training tells a story
+
+Stats is now one deliberate page instead of a stack of unrelated reports.
+Workout complete remains the shareable opening moment, while What you did is
+its own weight-first daily history: whole plates represent 500 lb or 250 kg,
+partial plates keep the total honest, and body-part colors stay consistent.
+Sets remain available as the alternate measure.
+
+The page now moves through This week, Your strength progress, You keep showing
+up, Year over year, and Your running story. Calendar weeks and attendance begin
+on the weekday chosen in Settings. Year-over-year and distance comparisons keep
+their scrubbers and can add any recorded prior year without inventing missing
+history. Distance and pace share one running section; body-weight history moves
+to Settings without moving or deleting a record.
+
+Every card uses the same width, radius, spacing, date, unit, Share, and chevron
+rules. Signature blue returns as a positive-performance color across current
+attendance, current-year, distance, pace, and running data; it is not assigned
+to a body part. The existing sheen, latest-column breath, current-marker pulse,
+and plate-rise motion remain, with Reduced Motion support. Pace point labels are
+smaller and medium weight, with only the latest value receiving extra emphasis.
+
 
 
 

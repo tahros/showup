@@ -57,7 +57,7 @@ function bindPlateStats(){
     if(mascotMode()==='animated'){host.classList.add('plate-running');host.querySelector('.su-mascot')?.dispatchEvent(new Event('mascotreplay'));}
     draw(0);raf=requestAnimationFrame(tick);
   }
-  function resizeCanvas(){width=canvas.clientWidth;const dpr=Math.min(window.devicePixelRatio||1,2);canvas.width=Math.round(width*dpr);canvas.height=height*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);draw(playing?performance.now()-start:1e6);}
+  function resizeCanvas(){width=canvas.clientWidth;const dpr=Math.min(window.devicePixelRatio||1,2);canvas.width=Math.round(width*dpr);canvas.height=height*dpr;if(typeof ctx.setTransform==='function')ctx.setTransform(dpr,0,0,dpr,0,0);draw(playing?performance.now()-start:1e6);}
   const resize=typeof ResizeObserver==='undefined'?{observe(){resizeCanvas();window.addEventListener('resize',resizeCanvas);},disconnect(){window.removeEventListener('resize',resizeCanvas);}}:new ResizeObserver(resizeCanvas);
   const observer=new MutationObserver(()=>{if(!host.isConnected)dispose();});
   function visibility(){if(document.hidden){request++;stop();}}

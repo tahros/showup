@@ -167,8 +167,8 @@ run(`view='lift'; lift={part:'Shoulder',ex:'Dumbbell Press',weight:16}; render()
    toggling, single-open, and specific labels. */
 check("the session card carries NO i dot any more",
       `!document.querySelector('#view .lastcard.sess .ibtn.tipi')`, true);
-run(`setBw(todayISO,70); view='stats'; render();`);
-check("a retained tip trigger renders (Stats · Weight)",
+run(`setBw(todayISO,70); view='sync'; render();`);
+check("a retained tip trigger renders (Settings · Weight)",
       `!!document.querySelector('#secWeight .ibtn.tipi')`, true);
 check("its aria label is specific, not 'Info'",
       `document.querySelector('#secWeight .ibtn.tipi').getAttribute('aria-label')`,
@@ -178,13 +178,8 @@ check("tip opens, and the trigger reports expanded",
              b.click(); const tf=document.getElementById('tipFloat');
              return !!(tf&&!tf.hidden&&tf.textContent.length>10)
                     && b.getAttribute('aria-expanded')==='true';})()`, true);
-check("opening a second tip closes the first (single-open)",
-      `(()=>{const a=document.querySelector('#secWeight .ibtn.tipi');
-             const b2=document.querySelector('.ibtn.tipi[data-tip="yoy2"]');
-             if(!b2) return 'no consistency trigger';
-             b2.click(); const tf=document.getElementById('tipFloat');
-             return tf.dataset.tip==='yoy2' && a.getAttribute('aria-expanded')==='false'
-                    && b2.getAttribute('aria-expanded')==='true';})()`, true);
+check("only the open weight tip reports expanded",
+      `document.querySelectorAll('.tipi[aria-expanded="true"]').length`, 1);
 check("tapping outside closes and collapses",
       `(()=>{document.body.click(); const tf=document.getElementById('tipFloat');
              return tf.hidden===true
