@@ -6,7 +6,7 @@ const {JSDOM}=require('jsdom'),fs=require('fs'),path=require('path'),vm=require(
 const dir=process.argv[2]||'.',html=fs.readFileSync(path.join(dir,'index.html'),'utf8');
 const dom=new JSDOM(html.replace(/<script[^>]*src=[^>]*><\/script>/g,''),{url:'https://tahros.github.io/showup/',runScripts:'outside-only',pretendToBeVisual:true});
 const w=dom.window,ctx=dom.getInternalVMContext();w.fetch=()=>Promise.reject(Error('offline'));
-w.matchMedia=()=>({matches:true,addEventListener(){}});w.scrollTo=()=>{};w.navigator.vibrate=()=>{};
+w.matchMedia=()=>({matches:true,addEventListener(){},removeEventListener(){}});   /* v4.5.12: bindPlateStats disposes its listener */w.scrollTo=()=>{};w.navigator.vibrate=()=>{};
 w.HTMLCanvasElement.prototype.getContext=()=>new Proxy({measureText:()=>({width:10})},{get:(o,k)=>o[k]||(()=>({}))});
 for(const m of html.matchAll(/src="(js\/[^?"]+)\?v=/g))
   vm.runInContext(fs.readFileSync(path.join(dir,m[1]),'utf8'),ctx,{filename:m[1]});
@@ -55,4 +55,37 @@ ok('...while the motion still comes from the mode',
    /const motion=motions\[mode==='cool'\?'jump':mode\]/.test(rsrc));
 ok('...so a blue jump is a jump, not the cool routine',
    !/isBlue\(\)\?'jump'/.test(rsrc));
+
+/* v4.5.12: the plate card's mascot is blue on every logged day. Its colour used
+   to be a side effect of `done`: 'cool' implies blue, 'jump' passed no tone and
+   fell through to the theme, so the character reported whether the Done button
+   had been tapped. The card's own markup is built BOTH ways and the tone read
+   out of that markup, not out of the source. (plateStatsHTML directly rather
+   than render(): the whole stats view through this harness exhausts the heap.) */
+{
+  const card=`(function(done){DB.settings.unit='lb';DB.settings.onboarded=true;DB.settings.mascotMotion='animated';
+    document.documentElement.dataset.theme='light';
+    DB.days={};DB.days[todayISO]={w:[{part:'Legs',ex:'Squat',w:toKg(225),reps:[8,8,8],at:1}],upd:1};
+    if(done)DB.days[todayISO].doneAll=true;
+    SEED=deriveAll();
+    const d=document.createElement('div');d.innerHTML=plateStatsHTML();
+    const el=d.querySelector('.plate-mascot-button [data-mascot]');
+    return JSON.stringify({found:!!el,mode:el&&el.dataset.mascot,tone:el&&el.dataset.mascotTone,
+      src:el&&el.querySelector('img').getAttribute('src'),heading:d.querySelector('h2')&&d.querySelector('h2').textContent});})`;
+  const sealed=JSON.parse(run(card+'(true)')), open_=JSON.parse(run(card+'(false)'));
+  ok('(fixture) the card draws a mascot both ways', sealed.found&&open_.found);
+  ok('a day that was never closed still draws the BLUE mascot', /mascot-blue\.png/.test(open_.src||''), open_.src);
+  ok('a closed day draws it blue too -- unchanged', /mascot-blue\.png/.test(sealed.src||''), sealed.src);
+  ok('...so the two cannot differ by colour at all', open_.src===sealed.src);
+  ok('the charcoal mascot is unreachable from this card in light theme',
+     !/charcoal/.test(open_.src||'')&&!/charcoal/.test(sealed.src||''));
+  ok('but the MOTION still tells them apart: cool when sealed, jump when open',
+     sealed.mode==='cool'&&open_.mode==='jump', sealed.mode+' vs '+open_.mode);
+  ok('...and the heading still reports the seal, so the flag is not ignored',
+     /completed/i.test(sealed.heading||'')&&!/completed/i.test(open_.heading||''),
+     JSON.stringify(sealed.heading)+' vs '+JSON.stringify(open_.heading));
+  ok('...the tone rides on the element, so the 3D renderer gets blue too',
+     open_.tone==='blue'&&sealed.tone==='blue', open_.tone+' / '+sealed.tone);
+}
+
 process.exit(fails?1:0);

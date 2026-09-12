@@ -9,10 +9,19 @@ function plateDateLabel(){
   return d.toLocaleDateString('en-US',{weekday:'long'})+' \u00b7 '+
          d.toLocaleDateString('en-US',{month:'long',day:'numeric'});
 }
+/* v4.5.12: THE MASCOT IS BLUE ON EVERY LOGGED DAY. Its colour used to fall out
+   of `done` by accident: mode 'cool' implies blue, and 'jump' passes no tone, so
+   it fell through to the theme and came back charcoal. That made the character's
+   colour a report on whether the Done button had ever been tapped -- a fact about
+   logging habit, not about the workout -- and days closed on another device, or
+   reopened later (app.js:129, core.js:304), read black too. tone is passed
+   explicitly now, which is what v4.2.4 added the argument for. `done` still picks
+   the MOTION, cool vs jump, and still writes the heading; only the colour is
+   pinned. */
 function plateStatsHTML(){
   const m=plateCurrent();if(!m.sets)return '';
   const done=!!DB.days?.[todayISO]?.doneAll;
-  return `<h2>${done?'Today completed':'Your work, stacking up'}</h2><div class="card plate-card"><div class="plate-heading"><button type="button" class="plate-replay" aria-label="Replay today's plate stack">↻ <span>Replay</span></button><div class="plate-date">${plateDateLabel()}</div><button type="button" class="plate-share ico" aria-label="Share this workout">${ICO_SHARE}</button></div><div class="plate-scene"><canvas class="plate-canvas" role="img" aria-label="Today's lifted volume as stacked plates"></canvas>${mascotMode()==='off'?'':'<span class="plate-mascot-shadow" aria-hidden="true"></span>'+'<button type="button" class="plate-mascot-button" aria-label="Make the mascot jump">'+mascotHTML(done?'cool':'jump')+'</button>'}</div><div class="plate-total"><b>${plateNumber(m.kg)}</b> ${U()} moved</div><div class="plate-caption">${m.sets} set${m.sets===1?'':'s'} · ${m.exercises} exercise${m.exercises===1?'':'s'}</div><div class="plate-legend">${[...new Set(plateLedger(DB.days?.[todayISO]).map(p=>p.part))].map(p=>`<span><i style="background:${PART_COLORS[p]||'var(--muted)'}"></i>${pgEscape(p||'Other')}</span>`).join('')}</div><div class="plate-bank"></div><span class="plate-announcement" aria-live="polite"></span></div>`;
+  return `<h2>${done?'Today completed':'Your work, stacking up'}</h2><div class="card plate-card"><div class="plate-heading"><button type="button" class="plate-replay" aria-label="Replay today's plate stack">↻ <span>Replay</span></button><div class="plate-date">${plateDateLabel()}</div><button type="button" class="plate-share ico" aria-label="Share this workout">${ICO_SHARE}</button></div><div class="plate-scene"><canvas class="plate-canvas" role="img" aria-label="Today's lifted volume as stacked plates"></canvas>${mascotMode()==='off'?'':'<span class="plate-mascot-shadow" aria-hidden="true"></span>'+'<button type="button" class="plate-mascot-button" aria-label="Make the mascot jump">'+mascotHTML(done?'cool':'jump','','blue')+'</button>'}</div><div class="plate-total"><b>${plateNumber(m.kg)}</b> ${U()} moved</div><div class="plate-caption">${m.sets} set${m.sets===1?'':'s'} · ${m.exercises} exercise${m.exercises===1?'':'s'}</div><div class="plate-legend">${[...new Set(plateLedger(DB.days?.[todayISO]).map(p=>p.part))].map(p=>`<span><i style="background:${PART_COLORS[p]||'var(--muted)'}"></i>${pgEscape(p||'Other')}</span>`).join('')}</div><div class="plate-bank"></div><span class="plate-announcement" aria-live="polite"></span></div>`;
 }
 // Pure position calculation shared with browser regression tests.
 function platePose(age,landingY,direction){
