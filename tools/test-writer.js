@@ -87,7 +87,9 @@ ok("...and which head each catalog exercise trains, grouped by head",
    !!pay.heads && !!pay.heads.Chest && Object.keys(pay.heads.Chest).length>=2, JSON.stringify(Object.keys(pay.heads||{})));
 ok("...so an incline press and a Dip are visibly different movements",
    pay.heads.Chest['upper-chest'].includes('Incline Barbell Bench Press') &&
-   pay.heads.Chest['chest'].includes('Dip') &&
+   /* v4.3.10: a Dip is LOWER chest now -- the head this assertion was written
+      to prove the writer could tell apart from an incline press */
+   pay.heads.Chest['lower-chest'].includes('Dip') &&
    !pay.heads.Chest['upper-chest'].includes('Dip'), JSON.stringify(pay.heads.Chest));
 ok("...and every catalog exercise is placed, none left out",
    Object.entries(pay.catalog).every(([p2,list])=>{ const flat=Object.values(pay.heads[p2]||{}).flat();

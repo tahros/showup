@@ -30,7 +30,7 @@ const PART_VISIBLE={Chest:'Chest',Back:'Back',Shoulder:'Shoulders',Legs:'Legs',
    posterior -- which genuinely can be trained apart, and which is the point:
    the rear delt is the muscle a pressing-heavy programme misses, and it is
    exactly what this card could not say before. */
-const MUSCLE_VISIBLE={'upper-chest':'Chest', chest:'Chest',
+const MUSCLE_VISIBLE={'upper-chest':'Chest', chest:'Chest', 'lower-chest':'Chest',   /* v4.3.10 */
   lats:'Back','upper-back':'Back',
   'front-delts':'Shoulders','side-delts':'Shoulders','rear-delts':'Shoulders',
   biceps:'Arms',triceps:'Arms',quads:'Legs',hamstrings:'Legs',calves:'Legs',
@@ -47,16 +47,22 @@ const MUSCLE_LABEL={'upper-chest':'upper chest', chest:'mid / lower chest',
    cannot drift; the order here is the order on screen. */
 const GROUP_MUSCLES=Object.entries(MUSCLE_VISIBLE)
   .reduce((a,[m,v])=>((a[v]=a[v]||[]).push(m),a),{});
+/* v4.3.10: LOWER CHEST EXISTS. The map had two chest heads, chest and
+   upper-chest, and every lower-chest movement -- dips, decline presses, the
+   high-to-low cable fly -- was filed under plain chest. So the coverage the
+   writer receives could never show lower chest as a gap, because the app did
+   not know lower chest was a thing. The maker asked why it never recommends
+   what it cannot see. This is why. */
 const EX_MUSCLE={
   /* Chest — all pressing/fly patterns */
   'Incline Smith Machine Bench Press':'upper-chest','Flat Smith Machine Bench Press':'chest',
   'Incline Dumbbell Bench Press':'upper-chest','Chest Press':'chest','Chest Fly':'chest',
   'Cable Fly Up':'upper-chest',   /* low-to-high: the clavicular head */
-  'Cable Fly Down':'chest',       /* high-to-low: the sternocostal head */
-  'Chest Squeeze':'chest','Dip':'chest',
+  'Cable Fly Down':'lower-chest',       /* high-to-low: the sternocostal head */
+  'Chest Squeeze':'chest','Dip':'lower-chest',
   'Barbell Bench Press':'chest','Incline Barbell Bench Press':'upper-chest',
-  'Decline Barbell Bench Press':'chest','Dumbbell Bench Press':'chest',
-  'Decline Dumbbell Bench Press':'chest','Machine Chest Press':'chest',
+  'Decline Barbell Bench Press':'lower-chest','Dumbbell Bench Press':'chest',
+  'Decline Dumbbell Bench Press':'lower-chest','Machine Chest Press':'chest',
   'Cable Crossover':'chest','Incline Cable Fly':'upper-chest','Low Cable Fly':'upper-chest',
   'Dumbbell Pullover':'chest','Landmine Press':'chest','Svend Press':'chest',
   'Push Up':'chest','Weighted Push Up':'chest',

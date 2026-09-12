@@ -1,5 +1,35 @@
 # ShowUp — changelog
 
+
+## v4.4.1 (2026-09-11) — Lower chest exists
+
+The maker wants to train lower chest, and the writer never recommends it. Two
+causes, and the app could not have found either on its own.
+
+**It did not know lower chest was a thing.** `EX_MUSCLE` had two chest heads,
+chest and upper-chest, and every lower-chest movement — Dip, the decline
+presses, the high-to-low cable fly — was filed under plain chest. So the
+coverage the writer receives could never show lower chest as a gap. A gap in a
+head the map does not contain is invisible by construction.
+
+His real record, once the head exists: **upper chest 55 real sets in three
+weeks, lower chest 10.** A five-to-one skew. His instinct was right.
+
+**And the gap rule fired only at zero.** Ten sets is not zero, so even with the
+head added the writer would have read lower chest as covered. A head is now a
+gap when it is at zero **or under a third of the part's best-covered head** —
+graded, the way the debt model is, rather than binary.
+
+Two existing guards fired, both correctly: one requires every head to roll up
+to a visible group (it does now), and one proves the writer can tell an incline
+press from a Dip by their heads. That assertion followed the Dip to its new
+head rather than being loosened.
+
+Shipped on top of Codex's v4.4.0, which landed mid-work. The HEAD guard
+stopped the first deploy; the rebase kept both sets of changes, and their
+version stamps won the three-way merge.
+
+
 ## v4.4.0 (2026-09-11) — Your training tells a story
 
 Stats is now one deliberate page instead of a stack of unrelated reports.
