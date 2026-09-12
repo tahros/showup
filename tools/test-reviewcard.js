@@ -101,6 +101,24 @@ ok('an empty bank takes no height under the caption', bankH==='0px'||bankH==='no
   const capPB=px(/\.work-hero \.plate-caption\{(?:[^}]*?;)?padding-bottom:([\d.]+)px/);
   ok('the space above and below the sets line is the same',
      capPT!==null && capPT===capPB, `${capPT}px above, ${capPB}px below`);
+  /* v4.5.8: the check above only reads ONE rule's own padding-top/bottom and
+     was true both before and after a stray `.plate-caption{margin-top:10px}`
+     in a different style block doubled the space above -- one scoped rule
+     being internally symmetric proves nothing about what else targets the
+     same class from outside that scope. This sums top vs bottom spacing
+     across EVERY rule block anywhere in the file whose selector contains
+     .plate-caption, so a leftover rule in another block is not invisible. */
+  {
+    let top=0,bottom=0;
+    for(const m of story.matchAll(/([^{}]*\.plate-caption[^{}]*)\{([^}]*)\}/g)){
+      const body=m[2];
+      const val=prop=>{const mm=body.match(new RegExp(prop+':([\\d.]+)px'));return mm?parseFloat(mm[1]):0;};
+      top+=val('margin-top')+val('padding-top');
+      bottom+=val('margin-bottom')+val('padding-bottom');
+    }
+    ok('...and no OTHER rule anywhere adds to one side but not the other',
+       top===bottom, `${top}px total above, ${bottom}px total below (summed across every .plate-caption rule)`);
+  }
   ok('...and nothing else adds slack between them',
      px(/\.work-hero \.plate-total\{(?:[^}]*?;)?height:([\d.]+)px/)===
      px(/\.work-hero \.plate-total b\{font-size:([\d.]+)px/),

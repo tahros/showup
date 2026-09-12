@@ -286,8 +286,11 @@ const systemStyle=document.createElement('style');systemStyle.textContent=`
 #view.stats-system .runmonthgrid span{padding:8px 7px}
 #view.stats-system .runmonthgoal{padding:11px 0}
 #view.stats-system .runmonthfoot{margin-top:10px;padding-top:10px}
-#view.stats-system .plate-caption{margin-top:10px}
 #view.stats-system .plate-legend{margin-top:9px}
+/* v4.5.8: .plate-caption's own margin-top:10px lived here, stacking on top of
+   .work-hero .plate-caption's symmetric padding-top:10px below (two rules, one
+   property, two style blocks) -- 20px above the caption vs 10px below. Removed;
+   the work-hero padding is now the only thing setting either side. */
 @media(max-width:360px){#view.stats-system{--stats-edge:0px;--stats-pad-x:14px}#view.stats-system .plate-date{font-size:9px}}
 `;document.head.append(systemStyle);
 /* One date owns the receipt, canvas and share snapshot. Browsing never writes logs. */
