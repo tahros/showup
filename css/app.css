@@ -2454,9 +2454,14 @@
     border-bottom:1px solid var(--line)}
   .pmixlgdwrap::after{content:'';position:absolute;right:0;top:0;bottom:12px;width:34px;
     pointer-events:none;background:linear-gradient(270deg,var(--surface) 0%,var(--surface) 18%,transparent 100%)}
-  .pmixlgd{display:flex;gap:14px;overflow-x:auto;overflow-y:hidden;
+  /* v4.5.3: ONE LINE, scrolled. The legend was already scrollable but its
+     items were free to wrap, so eight parts became two rows and the second
+     row stole height from the chart below it. flex-wrap:nowrap and a fixed
+     basis on each item keep it to a single line whatever the part count. */
+  .pmixlgd{display:flex;flex-wrap:nowrap;gap:14px;overflow-x:auto;overflow-y:hidden;
     -webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;
     overscroll-behavior-x:contain}
+  .pmixlgd>*{flex:0 0 auto;white-space:nowrap}
   .pmixlgd::-webkit-scrollbar{display:none}
   /* v3.3.123: the year rides just outside the plot, top-left, and swaps as
      you scroll past a boundary — so a deep scroll always says where it is. */

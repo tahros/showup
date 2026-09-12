@@ -1,5 +1,58 @@
 # ShowUp — changelog
 
+
+## v4.5.3 (2026-09-11) — Six on the history card
+
+**The Back session that showed Triceps.** The maker reviewed Aug 20 — Back,
+Biceps, Triceps — and the plates were teal. `plateLedger` totalled each part
+and laid all of one part's plates down together: 33 plates, Back 25, with every
+Back plate at the bottom. Only the CURRENT stack is drawn, so what reached the
+screen was the tail.
+
+Chronological order does not fix it — he trained Back first, so the tail is
+still arms. The stack is a picture of **volume, not a timeline**, so the parts
+are interleaved in proportion: each part's plates spaced evenly across the
+whole stack. Every ten-plate window is now at least 60% Back. Totals, plate
+count and plate sizes are untouched — only the order. 15,515 lb, as on his
+screen.
+
+**The legend on one line.** Already scrollable, but its items were free to
+wrap, so eight parts became two rows and the second row stole height from the
+chart. `flex-wrap:nowrap` with a fixed basis per item. `PMIX_H` 186→208 takes
+back what the wrap was using.
+
+**Round numbers on the y-axis.** Ticks were `max/4`, so a 34,900 lb week
+printed 8.7k / 17k / 26k / 35k. `pmixNiceMax()` rounds the top up to a clean
+step: 0 / 8k / 16k / 24k / 32k. The bars and the story overlay share that
+rounded top — they each computed their own scale before, which is what made the
+overlay draw past the gridlines the moment the axis changed.
+
+**Axis type matches the dates** at 11px.
+
+**Months in three letters** across stats, story and history.
+
+**Share opens on Image.** It did open on the image, then started the MP4 — and
+`generate()` calls `preview()` when it finishes, which SELECTS what it just
+built. The 44% progress the maker photographed was the thing taking his
+selection. The MP4 still prepares in the background; it no longer claims the
+selection it was never given.
+
+**Replay is top-left** beside the date, and says `Replay`. The arrow already
+means "again", so "Tap to" was an instruction on a button.
+
+### Three guards restated, one of them mine
+
+`test-chartsize` and `test-stats-connected` both fired on the new geometry —
+correctly, and both were hard-coded literals (`164`, `'January'`) standing in
+for a relationship. They check the relationship now: viewBox height equals
+height, months are three letters, and the year mark is exempt from the 11px
+rule because it is deliberately smaller.
+
+The viewBox assertion then failed for a day because I wrote `\s` inside a
+template literal, where it collapses to a plain `s` — so it split on the letter
+instead of whitespace.
+
+
 ## v4.5.2 (2026-09-11) — Clearer history, more measured stacking
 
 - Reduced Stats plate illustrations by 10% and gave the daily chart more room.

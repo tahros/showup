@@ -110,7 +110,7 @@ function periodText(y,m){
       if(rows.length) days.push([iso,rows]);
     }
   }
-  const periodName=m?new Date(y,m-1,1).toLocaleDateString('en-US',{month:'long',year:'numeric'}):String(y);
+  const periodName=m?new Date(y,m-1,1).toLocaleDateString('en-US',{month:'short',year:'numeric'}):String(y);
   let mv=0,mkm=0,msets=0;
   const lines=[];
   for(const [iso,rows] of days){
@@ -257,7 +257,7 @@ function renderHistory(){
   }
   h+=`<div class="card" style="margin-top:12px">
         <div class="row spread" style="margin-bottom:10px">
-          <b style="font-family:var(--disp)">${new Date(hist.y,hist.m-1,1).toLocaleDateString('en-US',{month:'long',year:'numeric'})}</b>
+          <b style="font-family:var(--disp)">${new Date(hist.y,hist.m-1,1).toLocaleDateString('en-US',{month:'short',year:'numeric'})}</b>
           <span class="mono muted" style="font-size:12px"><b style="color:var(--accent)">${mm.days}</b> days trained</span>
         </div>
         <div class="cal">

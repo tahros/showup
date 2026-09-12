@@ -120,20 +120,36 @@ function pmixSetFocus(part){
    more of the archive is legible at once. PMIX_H 232→186 because the drawn
    content ended near y=182 — rotated dates run from PMIX_BASE+6 down about
    26px — leaving ~50px of empty box under every render. */
-const PMIX_COLW=15, PMIX_H=186, PMIX_TOP=8, PMIX_BASE=150;   // v3.3.127: bars 10→12.5, exactly 25% wider
+/* v4.5.3: 186 -> 208. The legend gave back a wrapped second row of about
+   22px when it was forced to one line; the chart takes exactly that, so the
+   card's total height is unchanged and the bars get the room. */
+const PMIX_COLW=15, PMIX_H=208, PMIX_TOP=8, PMIX_BASE=172;
 const PMIX_AXW=25;   // v3.3.126: 34→25, ~26% of the left gutter reclaimed
 /* v3.3.120: the plot's vertical scale must be identical in the fixed axis
    and the scrolling body, so BOTH read this one function. */
 function pmixMax(rows){ return Math.max(...rows.map(r=>r.total), 1); }
 const pmixTick=v=>fmt(Math.round(v));
+/* v4.5.3: ROUND NUMBERS ON THE AXIS. The ticks were max/4, so a 34,900 lb week
+   printed 8.7k / 17k / 26k / 35k -- five figures nobody has a feel for. A scale
+   is read by its gaps, and gaps of 8.7 are not read at all. The top tick is
+   rounded UP to a clean step so every label is a whole multiple: 0 8k 16k 24k
+   32k. The bars are drawn against that rounded top, so the tallest bar sits
+   just under its own gridline instead of touching the ceiling. */
+function pmixNiceMax(max,mode){
+  if(!(max>0)) return 1;
+  const steps=mode==='weight'?[1000,2000,2500,5000,8000,10000,20000,25000,50000]:[1,2,4,5,10,20,25,50];
+  for(const st of steps){ const top=Math.ceil(max/(st*4))*(st*4); if(top/4===st) return top; }
+  const st=Math.pow(10,Math.floor(Math.log10(max/4)));
+  return Math.ceil(max/(st*4))*(st*4);
+}
 function pmixAxisSvg(rows){
-  const max=pmixMax(rows);
+  const max=pmixNiceMax(pmixMax(rows),PMIX_MODE);
   let s=`<svg class="pmixaxis" viewBox="0 0 ${PMIX_AXW} ${PMIX_H}" width="${PMIX_AXW}"
       height="${PMIX_H}" style="height:${PMIX_H}px">`;
   for(let i=0;i<=4;i++){
     const y=PMIX_BASE-(i/4)*(PMIX_BASE-PMIX_TOP);
     s+=`<text x="${PMIX_AXW-4}" y="${(y+2.5).toFixed(1)}" text-anchor="end"
-         font-family="var(--mono)" font-size="7" fill="var(--muted)">${pmixFmtV(max*i/4)}</text>`;
+         font-family="var(--mono)" font-size="11" fill="var(--muted)">${pmixFmtV(max*i/4)}</text>`;
   }
   return s+`</svg>`;
 }
@@ -153,7 +169,7 @@ function partMixSvg(days){
       latestIndex=i; break;
     }
   }
-  const max=pmixMax(rows);
+  const max=pmixNiceMax(pmixMax(rows),PMIX_MODE);   /* v4.5.3: the same rounded top the axis prints */
   const W=Math.max(320,rows.length*PMIX_COLW+16);
   const bw=PMIX_COLW-2.5, unit=(PMIX_BASE-PMIX_TOP)/max;
   let s=`<svg viewBox="0 0 ${W} ${PMIX_H}" width="${W}" height="${PMIX_H}"
@@ -317,7 +333,7 @@ function bwCard(){
       for(const gv of (minV===maxV?[minV]:[maxV,minV])){
         const gy=Y(gv);
         grid+=`<line x1="32" y1="${gy.toFixed(1)}" x2="300" y2="${gy.toFixed(1)}" stroke="var(--line)" stroke-width="0.6" stroke-dasharray="2 3"></line>
-               <text x="28" y="${(gy+2.5).toFixed(1)}" text-anchor="end" font-family="var(--mono)" font-size="7" fill="var(--muted)">${n1(gv)}</text>`;
+               <text x="28" y="${(gy+2.5).toFixed(1)}" text-anchor="end" font-family="var(--mono)" font-size="10" fill="var(--muted)">${n1(gv)}</text>`;
       }
       let d='', prevY=0, dots='';
       pts.forEach((p,i)=>{
@@ -335,8 +351,8 @@ function bwCard(){
           ${dots}
           <text x="${X(t1).toFixed(1)}" y="${(prevY-5).toFixed(1)}" text-anchor="end" font-family="var(--mono)"
                 font-size="8" font-weight="700" fill="var(--accent-ink)">${n1(toU(cur))}</text>
-          <text x="32" y="112" font-family="var(--mono)" font-size="7" fill="var(--muted)">${md(first)}</text>
-          <text x="300" y="112" text-anchor="end" font-family="var(--mono)" font-size="7" fill="var(--muted)">today</text>
+          <text x="32" y="112" font-family="var(--mono)" font-size="10" fill="var(--muted)">${md(first)}</text>
+          <text x="300" y="112" text-anchor="end" font-family="var(--mono)" font-size="10" fill="var(--muted)">today</text>
         </svg></div>`;
     }
     body=head+chart;
@@ -985,14 +1001,14 @@ function consistencyRaceSection(){
   const grid=[0,.25,.5,.75,1].map(p=>{
     const y=y0-p*yh,v=Math.round(max*p);
     return `<line x1="${x0}" y1="${y}" x2="${x0+xw}" y2="${y}" stroke="var(--line)" stroke-width=".6" ${p?'stroke-dasharray="2 3"':''}></line>
-      <text x="${x0-5}" y="${y+3}" text-anchor="end" font-family="var(--mono)" font-size="7" fill="var(--muted)">${v}</text>`;
+      <text x="${x0-5}" y="${y+3}" text-anchor="end" font-family="var(--mono)" font-size="10" fill="var(--muted)">${v}</text>`;
   }).join('');
   const now=new Date(todayISO+'T00:00'),mNow=now.getMonth(),start=new Date(now.getFullYear(),0,1);
   const span=Math.max(1,daysBetween(start.toLocaleDateString('en-CA'),todayISO));
   const months=[];
   for(let m=0;m<=mNow;m++){
     const d=new Date(now.getFullYear(),m,1),frac=Math.min(1,daysBetween(start.toLocaleDateString('en-CA'),d.toLocaleDateString('en-CA'))/span);
-    months.push(`<text x="${x0+frac*xw}" y="202" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="var(--muted)">${'JFMAMJJASOND'[m]}</text>`);
+    months.push(`<text x="${x0+frac*xw}" y="202" text-anchor="middle" font-family="var(--mono)" font-size="10" fill="var(--muted)">${'JFMAMJJASOND'[m]}</text>`);
   }
   const cy=+cp[cp.length-1].split(',')[1],py=+pp[pp.length-1].split(',')[1];
   const cLabel=Math.max(12,cy-7),pLabel=Math.min(177,py+12);
@@ -1025,9 +1041,9 @@ function consistencyRaceSection(){
         <circle class="conend" cx="${x0+xw}" cy="${py}" r="3" fill="var(--surface)" stroke="var(--faint)" stroke-width="1.5"></circle>
         <circle class="beacon conend" cx="${x0+xw}" cy="${cy}" r="3.2" fill="var(--accent)"></circle>
         <text class="conend" x="${x0+xw-5}" y="${cLabel}" text-anchor="end" font-family="var(--mono)" font-size="7" font-weight="700" fill="var(--accent)">${current.year} · ${current.total}</text>
-        <text class="conend" x="${x0+xw-5}" y="${pLabel}" text-anchor="end" font-family="var(--mono)" font-size="7" fill="var(--muted)">${previous.year} · ${previous.total}</text>
+        <text class="conend" x="${x0+xw-5}" y="${pLabel}" text-anchor="end" font-family="var(--mono)" font-size="10" fill="var(--muted)">${previous.year} · ${previous.total}</text>
         ${months.join('')}
-        <text x="9" y="107" text-anchor="middle" transform="rotate(-90 9 107)" font-family="var(--mono)" font-size="7" fill="var(--muted)">DAYS SHOWN UP</text>
+        <text x="9" y="107" text-anchor="middle" transform="rotate(-90 9 107)" font-family="var(--mono)" font-size="10" fill="var(--muted)">DAYS SHOWN UP</text>
       </svg></div>
     </div>`;
 }
@@ -1181,7 +1197,7 @@ function dailyRunsSvg(rows,u,mode,ax){
            ${newest?'font-weight="700" fill="var(--chalk)"':'fill="var(--muted)"'} data-lbl="total">${drunFmt(r.v,mode)}</text>`;
     }
     const lab=(+r.d.slice(5,7))+'/'+(+r.d.slice(8,10));
-    s+=`<text x="${cx(i).toFixed(1)}" y="${DRUN_BASE+6}" transform="rotate(-90 ${cx(i).toFixed(1)} ${DRUN_BASE+6})" text-anchor="end" font-family="var(--mono)" font-size="7" fill="var(--muted)">${lab}</text>`;
+    s+=`<text x="${cx(i).toFixed(1)}" y="${DRUN_BASE+6}" transform="rotate(-90 ${cx(i).toFixed(1)} ${DRUN_BASE+6})" text-anchor="end" font-family="var(--mono)" font-size="10" fill="var(--muted)">${lab}</text>`;
   });
   return s+'</svg>';
 }
@@ -1194,7 +1210,7 @@ function dailyRunsSection(){
   /* the footer is THIS MONTH to date: it resets on the 1st, so the number
      answers "how am I doing now" rather than accumulating forever. */
   const mo=todayISO.slice(0,7), mrows=rows.filter(r=>r.d.startsWith(mo));
-  const monthName=new Date(todayISO+'T00:00').toLocaleDateString('en-US',{month:'long'});
+  const monthName=new Date(todayISO+'T00:00').toLocaleDateString('en-US',{month:'short'});   /* v4.5.3 */
   const f=v=>(Math.round(v*100)/100).toFixed(2);
   let foot;
   if(mode==='pace'){

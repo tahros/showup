@@ -13,11 +13,35 @@ function plateMetrics(record){
 function plateCurrent(){return plateMetrics(DB.days?.[todayISO]);}
 // Each body part owns its volume, including its fractional last plate.
 // No rounding of the ledger and no borrowing another part's colour.
+/* v4.5.3: THE MIX IS SPREAD THROUGH THE STACK, not grouped by part.
+   It totalled each part and laid all of one part's plates down together. On
+   the maker's Aug 20 that made 33 plates -- Back 25, Biceps 4, Triceps 4 --
+   with every Back plate at the bottom. Only the CURRENT stack is drawn, so
+   what he saw was the tail: he did a Back session and the card showed him
+   Triceps.
+   Chronological order does not fix it either; he trained Back first, so the
+   tail is still arms. The stack is a picture of VOLUME, not a timeline, so the
+   parts are interleaved in proportion: each part's plates are spaced evenly
+   across the whole stack, which makes any ten-plate window a fair sample of
+   the session. Totals and plate counts are untouched -- only the order. */
 function plateLedger(record,unit=isLb()?500/LB:250){
   const parts=new Map();
   for(const s of record?.w||[]){const kg=plateMetrics({w:[s]}).kg;if(kg>0)parts.set(s.part,(parts.get(s.part)||0)+kg);}
+  /* the plates each part is owed, in the old order and the old sizes */
+  const runs=[];
+  for(const [part,kg] of parts){const list=[];let left=kg;
+    while(left>1e-8){const amount=Math.min(unit,left);list.push({part,kg:amount});left-=amount;}
+    runs.push(list);}
+  const total=runs.reduce((n,r)=>n+r.length,0);
+  /* space each run evenly: a part with a quarter of the plates appears every
+     fourth one. Sorting by the fractional position interleaves every run at
+     once without a scheduler. */
+  const slots=[];
+  runs.forEach((list,ri)=>list.forEach((p,k)=>
+    slots.push({p,at:(k+0.5)/list.length,ri})));
+  slots.sort((a,b)=>a.at-b.at||a.ri-b.ri);
   const plates=[];let end=0;
-  for(const [part,kg] of parts){let left=kg;while(left>1e-8){const amount=Math.min(unit,left);end+=amount;plates.push({part,kg:amount,end});left-=amount;}}
+  for(const s of slots){end+=s.p.kg;plates.push({part:s.p.part,kg:s.p.kg,end});}
   return plates;
 }
 // Bottom-up physical thickness, shared by the live canvas and all exports.
@@ -119,19 +143,27 @@ function bindPlateExport(data,mascot,module,videoModule){
     if(format==='mp4'){current.videoBlob=blob;img.hidden=true;video.hidden=false;video.src=urls[format];video.play().catch(()=>{});share.textContent='Share video';}
     else{current.gifBlob=blob;img.src=urls[format];share.textContent='Share GIF';}
   }
-  async function generate(format){
+  async function generate(format,opts){
     reset();select(format);if(blobs[format]){preview(format);return;}
     const task=new AbortController();controller=task;share.disabled=true;share.textContent='Preparing…';status.textContent=format==='mp4'?'Keep this screen open · preparing video…':'Preparing GIF…';
     try{
       const create=format==='mp4'?videoModule.createPlateVideo:module.createPlateGif;
       const result=await create({signal:task.signal,dark:data.dark,onProgress:n=>{if(controller===task)status.textContent=(format==='mp4'?'Preparing video · ':'Preparing GIF · ')+n+'%';},render:(time,canvas,motion)=>drawPlateShare(data,mascot,{time,canvas,mascot:motion,dust:format!=='mp4'})});
-      if(closed||task.signal.aborted||_repCv!==current)return;blobs[format]=result;preview(format);
+      if(closed||task.signal.aborted||_repCv!==current)return;blobs[format]=result;if(opts&&opts.keepSelection){status.textContent='';}else preview(format);
     }catch(e){if(!task.signal.aborted){image();status.textContent=format==='mp4'?'Video unavailable. Try again with this screen open, or choose GIF.':'GIF unavailable. You can still share the image.';}}
     finally{if(controller===task)controller=null;}
   }
   buttons.forEach(b=>b.onclick=()=>b.dataset.format==='image'?image():generate(b.dataset.format));
   plateExportCleanup=()=>{closed=true;reset();Object.values(urls).forEach(u=>URL.revokeObjectURL(u));video.removeAttribute('src');video.load();video.remove();row.remove();share.textContent='Share';};
-  image();if(supported)generate('mp4');else status.textContent='MP4 is unavailable in this browser. Image and GIF are available.';
+  /* v4.5.3: THE IMAGE STAYS SELECTED. It opened on the image and then started
+     the MP4, and generate() calls preview() when it finishes -- which selects
+     the format it just built. So the sheet always ended up on Video, and the
+     44% progress the maker saw was the thing stealing his selection.
+     The MP4 is still prepared in the background, so choosing it is instant;
+     it just no longer takes the selection it was never given. */
+  image();
+  if(supported) generate('mp4',{keepSelection:true});
+  else status.textContent='MP4 is unavailable in this browser. Image and GIF are available.';
 }
 function plateMark(x,y,w,h){return `<path d="M${x} ${y-h}a${w/2} 7 0 0 1 ${w} 0v${h}a${w/2} 7 0 0 1 -${w} 0z" fill="var(--plate-side)"/><ellipse cx="${x+w/2}" cy="${y-h}" rx="${w/2}" ry="7" fill="var(--plate-top)"/><ellipse cx="${x+w/2}" cy="${y-h}" rx="5" ry="2" fill="var(--plate-hole)"/>`;}
 function plateMiniHTML(){const m=plateCurrent();return `<div class="plate-mini" aria-live="polite"><svg viewBox="0 0 48 42" aria-hidden="true">${[0,1,2].map(i=>`<g>${plateMark(6,32-i*8,34,5)}</g>`).join('')}</svg><span>${plateNumber(m.kg)} ${U()} moved today</span></div>`;}

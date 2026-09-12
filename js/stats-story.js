@@ -7,7 +7,7 @@ let reviewSelected=null;
 partMixSvg=days=>{
  const markup=reviewSvg(days),doc=new DOMParser().parseFromString(markup,'text/html'),svg=doc.querySelector('svg');if(!svg)return markup;
  if(PMIX_MODE==='weight'){
-  const scale=(PMIX_BASE-PMIX_TOP)/pmixMax(partMix(days,PMIX_MODE)),quantum=isLb()?500:250;
+  const scale=(PMIX_BASE-PMIX_TOP)/pmixNiceMax(pmixMax(partMix(days,PMIX_MODE)),PMIX_MODE),quantum=isLb()?500:250;   /* v4.5.3: the SAME rounded top the axis prints, or this overlay draws past the gridlines */
   svg.querySelectorAll('.pmixseg').forEach(el=>{
    const x=+el.getAttribute('x'),y=+el.getAttribute('y'),w=+el.getAttribute('width'),h=+el.getAttribute('height'),step=quantum*scale;
    for(let bottom=y+h;bottom>y+.0001;bottom-=step){const height=Math.min(step,bottom-y),plate=document.createElementNS('http://www.w3.org/2000/svg','rect');for(const [k,v]of Object.entries({class:'pmixplate'+(el.classList.contains('latest')?' latest':''),x,y:bottom-height,width:w,height:Math.max(.01,height-Math.min(.45,height*.2)),rx:Math.min(1.2,height/2),fill:el.getAttribute('fill'),'data-plate-unit':quantum,'data-pt':el.getAttribute('data-pt')}))plate.setAttribute(k,v);el.parentNode.insertBefore(plate,el);}el.remove();
@@ -15,17 +15,25 @@ partMixSvg=days=>{
  }const rows=partMix(days,PMIX_MODE);svg.querySelectorAll('.pmixcol').forEach(c=>{const date=rows[+c.dataset.col]?.d;if(date){c.setAttribute('tabindex','0');c.setAttribute('role','button');c.setAttribute('aria-label',new Date(date+'T00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'}));}});
  // Scale plotted geometry only. Text is rendered at native 11px, never stretched.
  svg.querySelectorAll('text').forEach(t=>t.remove());
- const ns='http://www.w3.org/2000/svg',g=document.createElementNS(ns,'g'),scale=86/(PMIX_BASE-PMIX_TOP);
+ /* v4.5.3: this compact renderer squashed the plot into a FIXED 164-high box
+   while the plot's own height is PMIX_H. When PMIX_H grew the box did not, so
+   the full-height column targets drew past the bottom. Both follow PMIX_H now:
+   the plot area keeps its share of the box and the box keeps its proportion. */
+ /* at least as tall as the plot it contains: the column targets run the full
+    PMIX_BASE and a shorter box puts them past its own bottom edge. This is
+    also where the height the legend gave back actually lands. */
+ const PMIXC_H=Math.max(PMIX_BASE+16,Math.round(PMIX_H*0.9)), PMIXC_PLOT=Math.round(PMIXC_H*0.52);
+ const ns='http://www.w3.org/2000/svg',g=document.createElementNS(ns,'g'),scale=PMIXC_PLOT/(PMIX_BASE-PMIX_TOP);
  g.setAttribute('transform',`translate(0 ${34-PMIX_TOP*scale}) scale(1 ${scale})`);
  [...svg.children].filter(e=>e.tagName.toLowerCase()!=='defs').forEach(e=>g.append(e));svg.append(g);
- rows.forEach((r,i)=>{const x=8+i*PMIX_COLW+(PMIX_COLW-2.5)/2,t=document.createElementNS(ns,'text');for(const [k,v]of Object.entries({x,y:126,transform:`rotate(-90 ${x} 126)`,'text-anchor':'end','font-family':'var(--mono)','font-size':11,fill:'var(--muted)'}))t.setAttribute(k,v);t.textContent=(+r.d.slice(5,7))+'/'+(+r.d.slice(8,10));svg.append(t);});
- svg.setAttribute('viewBox',`0 0 ${svg.getAttribute('width')} 164`);svg.setAttribute('height','164');svg.style.height='164px';svg.setAttribute('preserveAspectRatio','xMinYMin meet');return svg.outerHTML;
+ rows.forEach((r,i)=>{const x=8+i*PMIX_COLW+(PMIX_COLW-2.5)/2,t=document.createElementNS(ns,'text');for(const [k,v]of Object.entries({x,y:PMIXC_H-38,transform:`rotate(-90 ${x} ${PMIXC_H-38})`,'text-anchor':'end','font-family':'var(--mono)','font-size':11,fill:'var(--muted)'}))t.setAttribute(k,v);t.textContent=(+r.d.slice(5,7))+'/'+(+r.d.slice(8,10));svg.append(t);});
+ svg.setAttribute('viewBox',`0 0 ${svg.getAttribute('width')} ${PMIXC_H}`);svg.setAttribute('height',String(PMIXC_H));svg.style.height=PMIXC_H+'px';svg.setAttribute('preserveAspectRatio','xMinYMin meet');return svg.outerHTML;
 };
 pmixAxisSvg=()=>{const max=pmixMax(partMix(PMIX_DAYS,PMIX_MODE));return '<svg class="pmixaxis" width="42" height="164" viewBox="0 0 42 164">'+Array.from({length:5},(_,i)=>`<text x="38" y="${124-i*21.5}" text-anchor="end" font-family="var(--mono)" font-size="11" fill="var(--muted)">${pmixFmtV(max*i/4)}</text>`).join('')+'</svg>';};
 pmixSetFocus=()=>{};
 function reviewDay(date){
  reviewSelected=date;const el=document.getElementById('review-day');if(!date||!el)return;
- const m=plateMetrics(DB.days[date]);el.innerHTML='<strong>'+new Date(date+'T00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})+'</strong><span>'+plateNumber(m.kg)+' '+U()+' · '+m.sets+' sets</span>';
+ const m=plateMetrics(DB.days[date]);el.innerHTML='<strong>'+new Date(date+'T00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+'</strong><span>'+plateNumber(m.kg)+' '+U()+' · '+m.sets+' sets</span>';
  const rows=partMix(PMIX_DAYS,PMIX_MODE);document.querySelectorAll('.pmixcol').forEach(c=>{const selected=rows[+c.dataset.col]?.d===date;c.classList.toggle('latest',selected);c.setAttribute('tabindex',selected?'0':'-1');c.setAttribute('aria-pressed',String(selected));c.querySelectorAll('.pmixplate').forEach(p=>p.classList.toggle('latest',selected));});
  if(document.querySelector('.work-combined'))updateWork(date);
 }
@@ -99,7 +107,7 @@ consistencyRaceSection=()=>{const year=+todayISO.slice(0,4),end=todayISO.slice(5
 // Relocate the existing history UI, not the data it reads.
 renderSync=()=>{storySettings();const root=document.getElementById('view'),holder=document.createElement('section');holder.id='story-weight-settings';holder.innerHTML=storyWeight()||'<h2 id="secWeight">Weight history</h2><div class="card"><p>No weight entries yet.</p></div>';root.append(holder);};
 const storyRender=renderStats;
-renderStats=()=>{const keep=bwCard;bwCard=()=>'';try{storyRender();}finally{bwCard=keep;}const root=document.getElementById('view');root.querySelectorAll('.review-mascot').forEach(e=>e.remove());const headings=[...root.querySelectorAll('h2')],distance=headings.find(h=>h.textContent.trim().startsWith('Distance'));if(distance){const dates=Object.keys(DB.days).filter(d=>DB.days[d].w.some(s=>s.ex==='Run')).sort();const date=d=>new Date(d+'T00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});const group=document.createElement('div');group.className='story-running';group.innerHTML='<h2>Your running story</h2><p>'+date(dates[0])+' – '+date(dates.at(-1))+'</p><span>Distance tracks how far. Pace tracks time per '+DU()+'.</span>';distance.before(group);}
+renderStats=()=>{const keep=bwCard;bwCard=()=>'';try{storyRender();}finally{bwCard=keep;}const root=document.getElementById('view');root.querySelectorAll('.review-mascot').forEach(e=>e.remove());const headings=[...root.querySelectorAll('h2')],distance=headings.find(h=>h.textContent.trim().startsWith('Distance'));if(distance){const dates=Object.keys(DB.days).filter(d=>DB.days[d].w.some(s=>s.ex==='Run')).sort();const date=d=>new Date(d+'T00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});const group=document.createElement('div');group.className='story-running';group.innerHTML='<h2>Your running story</h2><p>'+date(dates[0])+' – '+date(dates.at(-1))+'</p><span>Distance tracks how far. Pace tracks time per '+DU()+'.</span>';distance.before(group);}
 };
 const storyStyle=document.createElement('style');storyStyle.textContent=`
 .story-growth{padding:2px 0 19px;margin-bottom:17px;border-bottom:1px solid var(--line)}
@@ -283,7 +291,7 @@ function updateWork(date){
  const shell=document.querySelector('.work-combined');if(!shell)return;
  const old=shell.querySelector('.work-hero'),doc=document.createElement('div');
  const m=plateMetrics(DB.days[date]);
- doc.innerHTML=m.sets?storyAtDate(date,()=>storyPlate()):'<div class="work-hero work-empty"><div class="plate-date">'+new Date(date+'T00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})+'</div><strong>No workout recorded</strong></div>';
+ doc.innerHTML=m.sets?storyAtDate(date,()=>storyPlate()):'<div class="work-hero work-empty"><div class="plate-date">'+new Date(date+'T00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+'</div><strong>No workout recorded</strong></div>';
  const next=doc.querySelector('.plate-card,.work-hero');next.classList.remove('card');next.classList.add('work-hero');old.replaceWith(next);
  if(m.sets){next.querySelector('.plate-date').textContent=systemLongDate(date).replace(', ',' · ');next.querySelector('.plate-date').classList.add('stats-date');systemUnits(next);systemControls(next);storyBind(date,true);next.querySelector('.plate-share').onclick=()=>storyAtDate(date,()=>sharePlateCard());}
  else plateCancel();
