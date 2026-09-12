@@ -16,7 +16,8 @@
    card as a full row that read as a second action; the arrow already says
    "again", so "Tap to" was the instruction on a button, which every other
    button here manages without. */
-.plate-replay{display:inline-flex;align-items:center;justify-content:center;gap:6px;width:auto;min-height:32px;margin:0;padding:5px 12px;border:1px solid var(--line);border-radius:18px;background:var(--surface2);color:var(--chalk);cursor:pointer;font:500 11px var(--body);justify-self:start}
+.plate-replay{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:6px;width:auto;min-height:32px;margin:0;padding:5px 12px;border:1px solid var(--line);border-radius:18px;background:var(--surface2);color:var(--chalk);cursor:pointer;font:500 11px var(--body);justify-self:start}
+.plate-replay::after{content:"";position:absolute;inset:-6px -4px}
 .plate-replay:hover{filter:brightness(.96)}
 .plate-replay:active{transform:scale(.97)}
 .plate-replay:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
@@ -26,10 +27,12 @@
 .plate-total{font:14px var(--mono);color:var(--muted)}
 .plate-total b{font:700 32px var(--body);color:var(--chalk);font-variant-numeric:tabular-nums}
 .plate-caption,.plate-bank{font:11px var(--mono);color:var(--muted);margin-top:10px}
-/* v4.5.3: the left cell holds Replay now, so it needs a button's width */
-.plate-heading{display:grid;grid-template-columns:auto minmax(0,1fr) 44px;align-items:center;padding-top:12px;gap:4px}
+/* Matching flexible side cells keep the date centered independently of the
+   different Replay and Share widths. */
+.plate-heading{display:grid;grid-template-columns:minmax(44px,1fr) auto minmax(44px,1fr);align-items:center;padding-top:12px;gap:4px}
 .plate-heading .plate-date{padding:0;margin:0;letter-spacing:1px;font-size:10px}
 .plate-share{width:44px;height:44px;border:0;border-radius:50%;background:var(--surface2);color:var(--muted);cursor:pointer}
+.plate-share{justify-self:end}
 .plate-share svg{width:18px;height:18px}
 .plate-mascot-button{position:absolute;right:0;bottom:3px;width:94px;height:94px;padding:0;border:0;background:transparent;cursor:pointer}
 .plate-mascot-button .su-mascot{bottom:0}

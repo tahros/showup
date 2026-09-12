@@ -389,7 +389,7 @@ const compactStyle=document.createElement('style');compactStyle.textContent=`
    remainder was a band of nothing between "18 sets · 6 exercises" and the rule
    below it. A fixed height outlives the reason it was chosen; min-height keeps
    the card from jumping as days change without inventing space. */
-#view.stats-system .work-hero{padding:0;box-shadow:none;background:none;border-radius:0;margin:0;min-height:261.5px}
+#view.stats-system .work-hero{padding:0;box-shadow:none;background:none;border-radius:0;margin:0;min-height:265.5px}
 #view.stats-system .work-hero .plate-heading{height:44px;min-height:44px;margin:0;padding-top:0}
 #view.stats-system .work-hero .plate-scene{height:148.5px;margin:0}
 /* v4.5.7: the box is the numeral, nothing more. At 45px around a 34px number
@@ -400,7 +400,7 @@ const compactStyle=document.createElement('style');compactStyle.textContent=`
    declaration rather than a guess. */
 #view.stats-system .work-hero .plate-total{font-size:13px;margin:0;height:34px;display:flex;align-items:center;justify-content:center;gap:7px}#view.stats-system .work-hero .plate-total b{font-size:34px}
 #view.stats-system .work-hero .plate-total .stats-unit{font-size:11px}
-#view.stats-system .work-hero .plate-caption{font-size:11px;margin:0;height:15px;padding-top:10px;padding-bottom:10px}   /* v4.5.7: equal above and below */
+#view.stats-system .work-hero .plate-caption{font-size:11px;margin:0;height:15px;padding-top:12px;padding-bottom:12px}   /* equal breathing room above and below */
 #view.stats-system .work-hero .plate-bank{display:block;height:20px;margin:0;font-size:10px;line-height:20px}
 #view.stats-system .work-hero .plate-bank:empty{display:none;height:0}   /* v4.5.5: the empty bank was a 20px band under the caption */
 #view.stats-system .work-history [data-lbl]{display:none}
@@ -413,7 +413,7 @@ const compactStyle=document.createElement('style');compactStyle.textContent=`
 .work-latest{border:0;background:none;color:var(--accent-ink);font:500 11px var(--body);min-height:36px}.work-history .review-scale{display:none}
 #view.stats-system .work-history #review-day{display:none}
 #view.stats-system .work-history .pmixnow{display:none}
-#view.stats-system .work-history .pmixbox{margin:0}#view.stats-system .work-history :is(.pmixaxis,.pmixwrap>svg){height:164px!important}
+#view.stats-system .work-history .pmixbox{margin:0}
 #view.stats-system .work-history #pmixYr{display:none}
 #view.stats-system .work-periods{position:absolute;left:44px;right:0;top:0;height:30px;overflow:hidden;pointer-events:none;background:var(--surface);z-index:1}
 #view.stats-system .work-periods span{position:absolute;white-space:nowrap;font:400 11px/14px var(--body);color:var(--muted)}   /* v4.5.5: the same size and face as the axis beside it */

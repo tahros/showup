@@ -16,7 +16,7 @@ assert(await page.evaluate(()=>platePose(0,200,1).y<0&&platePose(80,200,1).y<pla
 assert(await page.evaluate(()=>platePose(120,200,1).angle*platePose(120,200,-1).angle<0),'Consecutive plates tilt opposite ways');
 assert(await page.locator('.plate-running .su-mascot').count(),'Mascot jumps during build');
 assert(await page.locator('.plate-mascot-shadow').count(),'Shadow beneath mascot');
-const button=await page.locator('.plate-replay').boundingBox();assert(button.height>=44,'Replay has touch-sized button');
+const button=await page.locator('.plate-replay').evaluate(el=>{const b=el.getBoundingClientRect(),a=getComputedStyle(el,'::after');return {visual:b.height,touch:b.height-Math.min(0,parseFloat(a.top)||0)-Math.min(0,parseFloat(a.bottom)||0)}});assert(button.visual>=32&&button.touch>=44,'Replay stays compact with a touch-sized hit target');
 await page.evaluate(()=>document.querySelector('#pmixWrap')?.dispatchEvent(new Event('scroll')));
 assert(await page.locator('.plate-canvas').getAttribute('data-playing')==='true','Unrelated chart scrolling leaves playback running');
 await page.waitForFunction(()=>{const n=Number(document.querySelector('.plate-total b').textContent.replaceAll(',',''));return n>0&&n<14335});
@@ -28,7 +28,7 @@ const centered=await page.evaluate(()=>{const a=document.querySelector('.plate-h
 await page.evaluate(()=>{window.jumpEvents=0;document.querySelector('.plate-card .su-mascot').addEventListener('mascotreplay',()=>window.jumpEvents++);});
 await page.locator('.plate-mascot-button').click();assert(await page.evaluate(()=>window.jumpEvents===1),'Tap replays mascot motion');
 assert(await page.evaluate(()=>Math.abs(plateSeen()-plateCurrent().kg)<.001),'Mascot tap does not replay or change ledger');
-await page.locator('.plate-share').click();await page.waitForSelector('#repOv');assert(await page.evaluate(()=>_repCv.label==='showup-'+todayISO&&document.querySelector('#repImg').src.startsWith('data:image/png')),'Real workout receipt opens');await page.locator('#repClose').click();
+await page.locator('.plate-share').click();await page.waitForSelector('#repOv');assert(await page.evaluate(()=>_repCv.label==='showup-stacked-'+todayISO&&document.querySelector('#repImg').src.startsWith('data:image/png')),'Stacked workout share opens');await page.locator('#repClose').click();
 await page.screenshot({path:path.join(root,'../plate-canvas-verified.png')});
 await page.locator('.plate-replay').click();await page.waitForSelector('.plate-canvas[data-playing="true"]');
 assert(await page.evaluate(()=>Number(document.querySelector('.plate-total b').textContent.replaceAll(',',''))<14335),'Replay resets counter');
@@ -73,5 +73,15 @@ fs.writeFileSync(path.join(root,'../stacked-share-production.gif'),Buffer.from(g
 await page.locator('[data-format="image"]').click();assert(await page.evaluate(()=>!_repCv.gifBlob),'Image sharing does not reuse GIF data');
 assert(await page.evaluate(()=>JSON.stringify(DB))===beforeShare,'Export never modifies profile or workout');await page.locator('#repClose').click();
 await page.evaluate(()=>{view='lift';lift.ex='Barbell Bench Press';lift.part='Chest';lift.copy=false;renderLift()});assert(await page.locator('.plate-mini').count(),'Training receipt retained');await page.locator('#addrep').click();assert((await page.locator('.plate-mini').innerText()).includes('today'),'Real Add set updates receipt');
-console.log('PASS canvas plates: real Stats entry/replay, downward path, alternating tilt, count-up, mascot/shadow, lifecycle, profile, reduced motion and mobile width');
+/* A tall, horizontally scrolling history catches layout failures that jsdom
+   cannot: if CSS makes the 188px SVG shorter, preserveAspectRatio also scales
+   its width and the newest columns disappear before the scroller reaches them. */
+await page.setViewportSize({width:393,height:852});
+await page.evaluate(()=>{const days={};for(let i=0;i<161;i++){const date=new Date(Date.UTC(2026,3,1+i)).toISOString().slice(0,10);days[date]={doneAll:true,w:[{part:'Chest',ex:'Bench',w:(135+i%9*5)/LB,reps:[8]}]};}DB.days=days;todayISO='2026-09-11';SEED=deriveAll();view='stats';render();});
+await page.waitForTimeout(500);await page.locator('#pmixWrap').evaluate(e=>e.scrollLeft=e.scrollWidth);await page.waitForTimeout(100);
+const historyLayout=await page.evaluate(()=>{const wrap=document.querySelector('#pmixWrap'),svg=wrap.querySelector('svg'),box=wrap.getBoundingClientRect(),plates=[...svg.querySelectorAll('.pmixplate,.pmixseg')],dates=[...svg.querySelectorAll('text')],visible=plates.filter(p=>{const b=p.getBoundingClientRect();return b.right>box.left&&b.left<box.right&&b.bottom>box.top&&b.top<box.bottom;});const lastPlate=plates.at(-1)?.getBoundingClientRect(),lastDate=dates.at(-1)?.getBoundingClientRect();return {visible:visible.length,svgHeight:svg.getBoundingClientRect().height,declaredHeight:+svg.getAttribute('height'),aligned:!!lastPlate&&!!lastDate&&Math.abs((lastPlate.left+lastPlate.right-lastDate.left-lastDate.right)/2)<1};});
+assert(historyLayout.visible>0,'Newest history bars remain visible at the end of a long chart');
+assert(Math.abs(historyLayout.svgHeight-historyLayout.declaredHeight)<1,'History SVG renders at its declared height without horizontal scaling');
+assert(historyLayout.aligned,'Newest bar and its x-axis date stay centered on the same column');
+console.log('PASS canvas plates: real Stats entry/replay, downward path, alternating tilt, count-up, mascot/shadow, lifecycle, profile, reduced motion, mobile width and aligned history chart');
 }finally{await browser.close();server.close()}})().catch(e=>{console.error(e);server.close();process.exitCode=1});

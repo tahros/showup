@@ -1,5 +1,16 @@
 # ShowUp — changelog
 
+## v4.5.8 (2026-09-12) — Balanced summary and restored history chart
+
+- Added two pixels of symmetrical breathing room above and below the workout
+  set/exercise count while keeping the summary stable across dates.
+- Kept the compact Replay control while restoring its full 44px touch target.
+- Kept the workout date mathematically centered between Replay and Share.
+- Preserved the v4.5.7 chart repair: visible weight bars, native-size labels,
+  aligned dates and columns, and left-pinned year/month context while scrolling.
+- Removed a leftover 164px CSS override that scaled the 188px SVG horizontally
+  and moved the newest bars outside the visible scroll window.
+
 
 
 

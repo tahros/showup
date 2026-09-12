@@ -38,6 +38,8 @@ ok('the review axis uses the SAME rounded max as the plot, not its own',
    /pmixNiceMax\(pmixMax\(partMix\(PMIX_DAYS/.test(story));
 ok('...and follows PMIX_H rather than a hard-coded box',
    !/viewBox="0 0 42 164"/.test(story));
+ok('the rendered SVG height is not overridden by a shorter CSS box',
+   !/work-history :is\(\.pmixaxis,\.pmixwrap>svg\)\{height:\d+px!important\}/.test(story));
 
 // ---- the legend stays on one line
 ok('the review legend does not wrap', /#view\.review-stats \.pmixlgd\{[^}]*flex-wrap:nowrap/.test(story));
@@ -101,6 +103,8 @@ ok('an empty bank takes no height under the caption', bankH==='0px'||bankH==='no
   const capPB=px(/\.work-hero \.plate-caption\{(?:[^}]*?;)?padding-bottom:([\d.]+)px/);
   ok('the space above and below the sets line is the same',
      capPT!==null && capPT===capPB, `${capPT}px above, ${capPB}px below`);
+  ok('the sets line has the approved extra breathing room',
+     capPT>=12, `${capPT}px above and below`);
   /* v4.5.8: the check above only reads ONE rule's own padding-top/bottom and
      was true both before and after a stray `.plate-caption{margin-top:10px}`
      in a different style block doubled the space above -- one scoped rule
