@@ -297,7 +297,7 @@ function installWorkPeriods(history){
   const rows=partMix(PMIX_DAYS,PMIX_MODE),left=wrap.scrollLeft;if(!rows.length){rail.replaceChildren();return;}
   rail.replaceChildren();
   for(const [length,top]of [[4,0],[7,14]]){
-   const periods=[];rows.forEach((r,i)=>{const key=r.d.slice(0,length);if(periods.at(-1)?.key!==key)periods.push({key,x:8+i*PMIX_COLW,label:length===4?key:new Date(r.d+'T00:00').toLocaleDateString('en-US',{month:'long'})});});
+   const periods=[];rows.forEach((r,i)=>{const key=r.d.slice(0,length);if(periods.at(-1)?.key!==key)periods.push({key,x:8+i*PMIX_COLW,label:length===4?key:new Date(r.d+'T00:00').toLocaleDateString('en-US',{month:'short'})   /* v4.5.5 */});});
    let index=0;while(index+1<periods.length&&periods[index+1].x<=left+2)index++;
    const current=periods[index],next=periods[index+1],label=document.createElement('span');label.textContent=current.label;label.style.top=top+'px';rail.append(label);
    const width=label.getBoundingClientRect().width||current.label.length*7;
@@ -305,7 +305,15 @@ function installWorkPeriods(history){
    let edge=next?next.x-left:Infinity;
    for(let j=index+1;j<periods.length;j++){const p=periods[j],x=p.x-left;if(x>wrap.clientWidth)break;if(x<edge)continue;const incoming=document.createElement('span');incoming.textContent=p.label;incoming.style.cssText='top:'+top+'px;left:'+x+'px';rail.append(incoming);edge=x+(incoming.getBoundingClientRect().width||p.label.length*7)+10;}
   }
-  wrap.querySelectorAll('svg>text').forEach(t=>{const x=+t.getAttribute('x');t.style.visibility=x-11<left||x>left+wrap.clientWidth?'hidden':'';});
+  /* v4.5.5: THE DATES WERE ALWAYS THERE, AND ALWAYS HIDDEN. This line hides a
+     label once it scrolls out of the visible window -- and when it runs before
+     the wrap has a width (clientWidth 0), EVERY label fails the test and is
+     hidden. Nothing re-ran it until a scroll, so on a fresh paint the axis
+     was empty and the maker saw a blank band where his dates should be, three
+     releases running. The wrap already clips with overflow, so hiding is only
+     cosmetic; it never runs against a width of zero now. */
+  if(wrap.clientWidth>0) wrap.querySelectorAll('svg>text').forEach(t=>{const x=+t.getAttribute('x');t.style.visibility=x-11<left||x>left+wrap.clientWidth?'hidden':'';});
+  else wrap.querySelectorAll('svg>text').forEach(t=>{t.style.visibility='';});
  };
  wrap.addEventListener('scroll',sync,{passive:true});new MutationObserver(sync).observe(wrap,{childList:true});sync();requestAnimationFrame(sync);
 }
@@ -363,6 +371,7 @@ const compactStyle=document.createElement('style');compactStyle.textContent=`
 #view.stats-system .work-hero .plate-total .stats-unit{font-size:11px}
 #view.stats-system .work-hero .plate-caption{font-size:11px;margin:0;height:23px;padding-top:4px}
 #view.stats-system .work-hero .plate-bank{display:block;height:20px;margin:0;font-size:10px;line-height:20px}
+#view.stats-system .work-hero .plate-bank:empty{display:none;height:0}   /* v4.5.5: the empty bank was a 20px band under the caption */
 #view.stats-system .work-history [data-lbl]{display:none}
 #view.stats-system .work-hero .plate-legend{display:none}
 #view.stats-system .work-hero .plate-replay{min-height:32px;padding:4px 10px;margin:8px auto;font-size:11px}
@@ -376,7 +385,7 @@ const compactStyle=document.createElement('style');compactStyle.textContent=`
 #view.stats-system .work-history .pmixbox{margin:0}#view.stats-system .work-history :is(.pmixaxis,.pmixwrap>svg){height:164px!important}
 #view.stats-system .work-history #pmixYr{display:none}
 #view.stats-system .work-periods{position:absolute;left:44px;right:0;top:0;height:30px;overflow:hidden;pointer-events:none;background:var(--surface);z-index:1}
-#view.stats-system .work-periods span{position:absolute;white-space:nowrap;font:500 11px/14px var(--mono);color:var(--muted)}
+#view.stats-system .work-periods span{position:absolute;white-space:nowrap;font:400 11px/14px var(--body);color:var(--muted)}   /* v4.5.5: the same size and face as the axis beside it */
 #view.stats-system .work-empty{min-height:240px;display:grid;place-content:center;gap:20px;text-align:center}
 .comparison-years{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.comparison-years button,.comparison-years summary,.comparison-latest{border:1px solid var(--line);background:var(--surface2);border-radius:12px;padding:10px 12px;color:var(--chalk);font:500 12px var(--body);cursor:pointer}
 .comparison-years button[data-year]{border-color:var(--year-color);color:var(--year-color)}.comparison-years button span{opacity:.6;margin-left:6px}.comparison-years details{position:relative}.comparison-years details>div{position:absolute;z-index:3;min-width:90px;padding:6px;background:var(--surface);box-shadow:0 6px 20px #0002;border-radius:12px}.comparison-years details button{display:block;width:100%}

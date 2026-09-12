@@ -2,6 +2,33 @@
 
 
 
+
+## v4.5.5 (2026-09-12) — Present is not visible
+
+The dates on the history chart were in the DOM every time. Thirty of them,
+positioned under their columns, 11px, well inside the box. v4.5.4 asserted they
+lined up with their columns and passed. **Every one carried
+`visibility:hidden`.**
+
+`installWorkPeriods` hides a label once it scrolls outside the visible window:
+`x > left + wrap.clientWidth`. When that runs before the wrap has been laid out,
+`clientWidth` is 0, every label fails the test, and nothing re-runs it until a
+scroll. On a fresh paint the axis was blank — three releases running, while the
+suite was green because it checked for the labels' presence and position, never
+whether anyone could see them. The rule no longer runs against a zero width.
+
+**Months above the chart are three letters.** The period rail in
+`stats-story.js` had its own `{month:'long'}` — the same file-that-draws-the-card
+problem as the axis in v4.5.4 — and its own font, now the axis's 11px body face.
+
+**The band under the caption** was `.plate-bank` forced to `height:20px` on the
+stats-system view even when empty, out-specifying the `:empty` rule added in
+v4.5.4 from plates.css. Fixed in the rule that set the height.
+
+Every assertion for this release reads computed style off the rendered card:
+visibility, the rail's text, the bank's height. Three probes.
+
+
 ## v4.5.4 (2026-09-11) — The card he is actually looking at
 
 Most of v4.5.3 never reached the maker's screen. **`stats-story.js` overrides

@@ -56,6 +56,28 @@ const align=run(`(function(){
   return worst<=2 ? 'ok' : 'drift '+worst.toFixed(1);})()`);
 ok('every date sits under the column it names', align==='ok', align);
 
+// ---- v4.5.5: the dates are VISIBLE, not merely present
+/* v4.5.4 asserted the dates lined up with their columns and passed -- while
+   every one of them carried visibility:hidden. The sync that hides labels
+   outside the scroll window ran before the wrap had a width, so all of them
+   failed the test, and nothing re-ran it. Present is not visible. */
+const vis=JSON.parse(run(`JSON.stringify([...document.querySelectorAll('#pmixWrap svg text')]
+  .filter(t=>/^\\d+\\/\\d+$/.test(t.textContent)).map(t=>getComputedStyle(t).visibility))`));
+ok('the dates are visible on a fresh paint', vis.length>0 && vis.every(v=>v!=='hidden'),
+   vis.length+' labels, '+vis.filter(v=>v==='hidden').length+' hidden');
+ok('...and the hide-outside-window rule never runs against a zero width',
+   /if\(wrap\.clientWidth>0\) wrap\.querySelectorAll\('svg>text'\)/.test(story));
+
+// ---- the period rail: three-letter months, in the axis's own type
+const periods=JSON.parse(run(`JSON.stringify([...document.querySelectorAll('.work-periods span')].map(s=>s.textContent))`));
+ok('the month above the chart is three letters', periods.some(p=>/^[A-Z][a-z]{2}$/.test(p)), periods.join(' · '));
+ok('...never the long name', !periods.some(p=>/^(January|February|March|April|June|July|August|September|October|November|December)$/.test(p)), periods.join(' · '));
+ok('...in the same size and face as the axis', /work-periods span\{[^}]*font:400 11px\/14px var\(--body\)/.test(story));
+
+// ---- no empty band under the caption
+const bankH=run(`(function(){const b=document.querySelector('.work-hero .plate-bank');return b?getComputedStyle(b).height:'none'})()`);
+ok('an empty bank takes no height under the caption', bankH==='0px'||bankH==='none', bankH);
+
 // ---- plates read as plates
 ok('the gap between plates is wide enough to see',
    /height-Math\.min\(1\.1,height\*\.34\)/.test(story));
