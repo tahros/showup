@@ -4,6 +4,39 @@
 
 
 
+
+## v4.5.7 (2026-09-12) — The bars I made invisible
+
+**The chart had no bars, and that was my doing.** v4.5.4 widened the gap between
+plates to a third of each plate, capped at 1.1px, because a 0.45px hairline
+vanished on a phone. What I did not account for is that this plot is SQUASHED to
+about 0.6 by the compact renderer. On the maker's record — axis topping out at
+40k, a plate worth 500 lb — a plate is 3 user units, reaches the screen as
+1.8px, and my gap took 1.0 of it. **Roughly 0.8px of colour per plate.** He
+reported a chart with no bars and he was exactly right.
+
+Below a legible size the segment is now left whole. A solid bar says the same
+thing honestly, and the plate texture returns as soon as a plate is worth
+seeing. Asserted by driving a record with a small plate unit and measuring every
+plate's on-screen height; the probe that removes the guard finds 119 sub-pixel
+plates.
+
+I had reproduced this twice and failed both times, because my fixtures used
+round volumes that kept the plate unit large. The maker's numbers are what broke
+it.
+
+### The space above and below the sets line
+
+`.plate-total` was a 45px box around a 34px numeral — 5.5px of slack beneath it,
+landing on top of the caption's own 4px of padding. So the gap above
+"18 sets · 6 exercises" was bigger than the gap below.
+
+The box is the numeral now, so the only space around the caption is the
+caption's own padding, and that is symmetric: 10px above, 10px below. Equal by
+construction rather than by eye, and checkable from the stylesheet — which is
+the only thing that can be checked here, since jsdom has no layout.
+
+
 ## v4.5.6 (2026-09-12) — Sixty-eight pixels of nothing
 
 `#view.stats-system .work-hero{...height:328.5px}` — a fixed height, chosen

@@ -94,7 +94,18 @@ ok('an empty bank takes no height under the caption', bankH==='0px'||bankH==='no
   const scene  =px(/\.work-hero \.plate-scene\{(?:[^}]*?;)?height:([\d.]+)px/);
   const total  =px(/\.work-hero \.plate-total\{(?:[^}]*?;)?height:([\d.]+)px/);
   const caption=px(/\.work-hero \.plate-caption\{(?:[^}]*?;)?height:([\d.]+)px/);
-  const parts=[heading,scene,total,caption];
+  /* v4.5.7: padding counts. The caption carries equal padding above and below
+     so the gaps around "18 sets · 6 exercises" match; a sum that ignored it
+     would report the card as taller than its contents and be wrong. */
+  const capPT=px(/\.work-hero \.plate-caption\{(?:[^}]*?;)?padding-top:([\d.]+)px/);
+  const capPB=px(/\.work-hero \.plate-caption\{(?:[^}]*?;)?padding-bottom:([\d.]+)px/);
+  ok('the space above and below the sets line is the same',
+     capPT!==null && capPT===capPB, `${capPT}px above, ${capPB}px below`);
+  ok('...and nothing else adds slack between them',
+     px(/\.work-hero \.plate-total\{(?:[^}]*?;)?height:([\d.]+)px/)===
+     px(/\.work-hero \.plate-total b\{font-size:([\d.]+)px/),
+     'total box '+total+'px around a '+px(/\.work-hero \.plate-total b\{font-size:([\d.]+)px/)+'px numeral');
+  const parts=[heading,scene,total,caption,capPT,capPB];
   ok('(fixture) the card declares a height for each of its parts',
      parts.every(v=>v!==null), JSON.stringify({heading,scene,total,caption}));
   const sum=parts.reduce((a,b)=>a+(b||0),0);
@@ -106,6 +117,30 @@ ok('an empty bank takes no height under the caption', bankH==='0px'||bankH==='no
   ok('...counting only the parts this view actually shows',
      /#view\.stats-system \.work-hero \.plate-legend\{display:none\}/.test(story) &&
      /\.work-hero \.plate-bank:empty\{display:none;height:0\}/.test(story));
+}
+
+// ---- v4.5.7: a plate too thin to see is not a plate
+/* the plot is squashed to about 0.6, so a 3-unit step reaches the screen as
+   1.8px and the v4.5.4 gap took most of what was left. On the maker's record
+   that was ~0.8px of colour per plate and he reported the chart as having no
+   bars. He was right. Below a legible size the segment is left whole. */
+ok('a segment too thin to split is left whole rather than shredded',
+   /const onScreen=step\*squash;/.test(story) && /if\(onScreen<3\)\{[^}]*return;\}/.test(story));
+{
+  /* driven: a record whose plate unit is tiny against the axis top */
+  run(`DB.days={};
+    for(let i=1;i<120;i++){const d=new Date(todayISO+'T00:00');d.setDate(d.getDate()-i);
+      DB.days[d.toLocaleDateString('en-CA')]={w:[
+        {part:'Legs',ex:'Squat',w:toKg(225),reps:[8,8,8,8,8],at:1},
+        {part:'Back',ex:'Deadlift',w:toKg(215),reps:[8,8,8,8],at:2}],upd:1};}
+    SEED=deriveAll();PMIX_MODE='weight';render();`);
+  const tall=run(`(function(){
+    const els=[...document.querySelectorAll('#pmixWrap svg .pmixplate')];
+    if(!els.length) return 'no bars at all';
+    const squash=Math.round(Math.max(PMIX_BASE+16,Math.round(PMIX_H*0.9))*0.52)/(PMIX_BASE-PMIX_TOP);
+    const thin=els.filter(e=>(+e.getAttribute('height'))*squash<1.5).length;
+    return thin===0 ? 'ok' : thin+' of '+els.length+' under 1.5px';})()`);
+  ok('THE BARS ARE VISIBLE on a record with a small plate unit', tall==='ok', tall);
 }
 
 // ---- plates read as plates

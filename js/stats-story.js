@@ -10,6 +10,21 @@ partMixSvg=days=>{
   const scale=(PMIX_BASE-PMIX_TOP)/pmixNiceMax(pmixMax(partMix(days,PMIX_MODE)),PMIX_MODE),quantum=isLb()?500:250;   /* v4.5.3: the SAME rounded top the axis prints, or this overlay draws past the gridlines */
   svg.querySelectorAll('.pmixseg').forEach(el=>{
    const x=+el.getAttribute('x'),y=+el.getAttribute('y'),w=+el.getAttribute('width'),h=+el.getAttribute('height'),step=quantum*scale;
+   /* v4.5.7: A PLATE TOO THIN TO SEE IS NOT A PLATE.
+      The whole plot is squashed by PMIXC_PLOT/(PMIX_BASE-PMIX_TOP) -- about
+      0.6 -- so a step of 3 user units reaches the screen as 1.8px, and the
+      v4.5.4 gap of a third took most of what was left. On the maker's record,
+      where the axis tops out at 40k and a plate is 500 lb, that left roughly
+      0.8px of colour per plate and the bars READ AS EMPTY. He reported the
+      chart as having no bars, and he was right: I had made them invisible
+      while trying to make the lines between them visible.
+      Below a legible size the segment is left whole -- a solid bar says the
+      same thing honestly. Above it, the plates and their gaps are drawn. */
+   /* PMIXC_PLOT is declared further down, so the same ratio is spelled out
+      here rather than reached for before it exists */
+   const squash=Math.round(Math.max(PMIX_BASE+16,Math.round(PMIX_H*0.9))*0.52)/(PMIX_BASE-PMIX_TOP);
+   const onScreen=step*squash;
+   if(onScreen<3){el.classList.add('pmixplate');return;}
    for(let bottom=y+h;bottom>y+.0001;bottom-=step){const height=Math.min(step,bottom-y),plate=document.createElementNS('http://www.w3.org/2000/svg','rect');for(const [k,v]of Object.entries({class:'pmixplate'+(el.classList.contains('latest')?' latest':''),x,y:bottom-height,width:w,height:Math.max(.01,height-Math.min(1.1,height*.34))   /* v4.5.4: the gap between plates was up to .45px -- a hairline that vanished on a phone. A third of the plate, capped at 1.1px, so a stack reads as plates rather than a bar. */,rx:Math.min(1.2,height/2),fill:el.getAttribute('fill'),'data-plate-unit':quantum,'data-pt':el.getAttribute('data-pt')}))plate.setAttribute(k,v);el.parentNode.insertBefore(plate,el);}el.remove();
   });
  }const rows=partMix(days,PMIX_MODE);svg.querySelectorAll('.pmixcol').forEach(c=>{const date=rows[+c.dataset.col]?.d;if(date){c.setAttribute('tabindex','0');c.setAttribute('role','button');c.setAttribute('aria-label',new Date(date+'T00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'}));}});
@@ -371,12 +386,18 @@ const compactStyle=document.createElement('style');compactStyle.textContent=`
    remainder was a band of nothing between "18 sets · 6 exercises" and the rule
    below it. A fixed height outlives the reason it was chosen; min-height keeps
    the card from jumping as days change without inventing space. */
-#view.stats-system .work-hero{padding:0;box-shadow:none;background:none;border-radius:0;margin:0;min-height:260.5px}
+#view.stats-system .work-hero{padding:0;box-shadow:none;background:none;border-radius:0;margin:0;min-height:261.5px}
 #view.stats-system .work-hero .plate-heading{height:44px;min-height:44px;margin:0;padding-top:0}
 #view.stats-system .work-hero .plate-scene{height:148.5px;margin:0}
-#view.stats-system .work-hero .plate-total{font-size:13px;margin:0;height:45px;display:flex;align-items:center;justify-content:center;gap:7px}#view.stats-system .work-hero .plate-total b{font-size:34px}
+/* v4.5.7: the box is the numeral, nothing more. At 45px around a 34px number
+   it carried 5.5px of slack below it, which landed on top of the caption's own
+   padding and made the space ABOVE "18 sets · 6 exercises" bigger than the
+   space below. With the slack gone, the only gaps around the caption are the
+   caption's own padding -- so making them equal is a matter of one symmetric
+   declaration rather than a guess. */
+#view.stats-system .work-hero .plate-total{font-size:13px;margin:0;height:34px;display:flex;align-items:center;justify-content:center;gap:7px}#view.stats-system .work-hero .plate-total b{font-size:34px}
 #view.stats-system .work-hero .plate-total .stats-unit{font-size:11px}
-#view.stats-system .work-hero .plate-caption{font-size:11px;margin:0;height:23px;padding-top:4px}
+#view.stats-system .work-hero .plate-caption{font-size:11px;margin:0;height:15px;padding-top:10px;padding-bottom:10px}   /* v4.5.7: equal above and below */
 #view.stats-system .work-hero .plate-bank{display:block;height:20px;margin:0;font-size:10px;line-height:20px}
 #view.stats-system .work-hero .plate-bank:empty{display:none;height:0}   /* v4.5.5: the empty bank was a 20px band under the caption */
 #view.stats-system .work-history [data-lbl]{display:none}
