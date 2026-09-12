@@ -20,6 +20,14 @@ function plateLedger(record,unit=isLb()?500/LB:250){
   for(const [part,kg] of parts){let left=kg;while(left>1e-8){const amount=Math.min(unit,left);end+=amount;plates.push({part,kg:amount,end});left-=amount;}}
   return plates;
 }
+// Bottom-up physical thickness, shared by the live canvas and all exports.
+// A fractional plate rests on the previous top instead of occupying a full slot.
+function plateStackTop(ledger,i,bank,unit,thickness,bottom){
+  const first=bank+Math.floor((i-bank)/10)*10;
+  let y=bottom;
+  for(let j=first;j<=i;j++)y-=thickness*Math.min(1,ledger[j].kg/unit);
+  return y;
+}
 function plateNumber(kg){return Math.round(toU(kg)).toLocaleString();}
 function plateKey(date=todayISO){return 'showup.plates.v2.'+(session?.user?.id||'local')+'.'+date;}
 function plateSeen(date=todayISO){try{return Math.max(0,Number(localStorage.getItem(plateKey(date)))||0);}catch(e){return 0;}}
@@ -59,7 +67,7 @@ function drawPlateShare(data,mascot,frame={}){
   for(let c=0;c<Math.min(3,Math.ceil((plates.length-bank)/10));c++)shadow(210+c*195,774,130,22);
   x.save();x.beginPath();x.rect(60,190,960,610);x.clip();
   for(let i=bank;i<plates.length;i++){
-    const p=plates[i],n=i-bank,c=data.colors[p.part]||'#888888',cx=210+Math.floor(n/10)*195,end=741-(n%10)*29,h=19*Math.min(1,p.kg/unit);
+    const p=plates[i],n=i-bank,c=data.colors[p.part]||'#888888',cx=210+Math.floor(n/10)*195,end=plateStackTop(plates,i,bank,unit,19,760),h=19*Math.min(1,p.kg/unit);
     const age=animated?frame.time-n*70:1e6;if(age<0)continue;
     let cy=end,angle=0;
     if(age<340){const v=age/340;cy=155+(end-155)*v*v;angle=(i%2?-1:1)*.28*(1-v*.6);}

@@ -38,4 +38,6 @@ run(`todayISO='2024-03-01';DB.days={'2023-02-28':{w:[{part:'Run',ex:'Run',w:5,mi
 check('single February 28 is counted only once in leap comparison',`document.querySelector('.runrace .comparison-values').textContent.includes('3.1')||document.querySelector('.runrace .comparison-values').textContent.includes('5')`);
 run(`DB.days={};SEED=deriveAll();view='stats';render();`);
 check('empty history renders without invented comparison data',`!document.querySelector('.comparison-plot')`);
+check('fractional plates touch the preceding plate in live and export geometry',`[8,19].every(thickness=>{const a=[{kg:500},{kg:50},{kg:500}];const y=a.map((_,i)=>plateStackTop(a,i,0,500,thickness,200));return Math.abs(y[1]+thickness*.1-y[0])<1e-8&&Math.abs(y[2]+thickness-y[1])<1e-8;})`);
+check('each column and completed bank restarts on the same ground',`(()=>{const a=Array.from({length:42},()=>({kg:250}));return plateStackTop(a,30,30,250,8,144)===136&&plateStackTop(a,40,30,250,8,144)===136;})()`);
 console.log('PASS connected Stats contract');process.exit(0);

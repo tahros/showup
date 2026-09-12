@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v4.5.1 (2026-09-11) — Tighter rows, grounded plates
+
+- Slightly reduced exercise spacing in plan editing and review without shrinking controls.
+- Kept the combined workout summary height stable across dates and weight totals,
+  including the completed-stack caption; retained consistent date and unit styling.
+- Hid the daily chart's above-column data labels while preserving axes and grid lines.
+- Grounded fractional plates using their actual thickness in the live animation
+  and Image, GIF and MP4 exports. Profile and workout records are untouched.
+
 ## v4.5.0 (2026-09-11) — One workout story, clearer comparisons
 
 - Combined the workout stacks and daily work chart into one compact Stats card.

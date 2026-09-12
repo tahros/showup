@@ -65,7 +65,7 @@ p.pw-small{margin:10px 0 16px}.pw-workspace p:not(.pw-small){font:400 14px/1.6 v
 .pw-step-edit .pw-count{margin:4px 0 12px}.pw-step-edit .pw-count>strong{font-size:28px}
 .pw-step-edit .pw-edit-actions{margin-top:0;margin-bottom:12px}
 .pw-step-edit .card,.pw-step-review .card{padding-top:14px;padding-bottom:14px}
-.pw-step-edit .pw-exercise,.pw-step-review .pw-exercise{padding-top:10px;padding-bottom:10px}
+.pw-step-edit .pw-exercise,.pw-step-review .pw-exercise{padding-top:7px;padding-bottom:7px}
 .pw-step-edit .pw-exercise:first-child,.pw-step-review .pw-exercise:first-child{padding-top:0}
 .pw-step-edit .pw-exercise:last-child,.pw-step-review .pw-exercise:last-child{padding-bottom:0}
 .pw-step-edit .pw-prescription,.pw-step-review .pw-prescription{line-height:1.65;margin-top:2px;margin-bottom:2px}

@@ -187,7 +187,7 @@ function systemColorRoles(root){
  root.querySelectorAll('.pacecard .pacepoint').forEach(e=>e.setAttribute('fill','var(--accent)'));
  root.querySelectorAll('.pacecard .paceval').forEach(e=>{e.setAttribute('fill',e.classList.contains('latest')?'var(--accent)':'var(--muted)');e.setAttribute('font-size','6.5');e.setAttribute('font-weight',e.classList.contains('latest')?'600':'500');});
 }
-function systemApply(){const root=document.getElementById('view');if(!root||view!=='stats')return;root.classList.add('stats-system');systemDates(root);systemUnits(root);systemControls(root);systemColorRoles(root);root.querySelector('.pmixsum')?.remove();root.querySelectorAll('.plate-bank:empty,.plate-legend:empty').forEach(e=>e.remove());}
+function systemApply(){const root=document.getElementById('view');if(!root||view!=='stats')return;root.classList.add('stats-system');systemDates(root);systemUnits(root);systemControls(root);systemColorRoles(root);root.querySelector('.pmixsum')?.remove();root.querySelectorAll('.plate-legend:empty').forEach(e=>e.remove());}
 renderStats=()=>{systemRender();systemApply();combineWork();document.querySelectorAll('.heatscroll').forEach(e=>{const months=e.querySelector('.heatticks'),grid=e.querySelector('.heatgrid');if(months&&grid)e.insertBefore(months,grid);});};
 renderSync=()=>{systemSync();const root=document.getElementById('view');root?.classList.add('stats-system');systemControls(root);systemUnits(root);};
 const systemStyle=document.createElement('style');systemStyle.textContent=`
@@ -259,7 +259,7 @@ function updateWork(date){
  const m=plateMetrics(DB.days[date]);
  doc.innerHTML=m.sets?storyAtDate(date,()=>storyPlate()):'<div class="work-hero work-empty"><div class="plate-date">'+new Date(date+'T00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})+'</div><strong>No workout recorded</strong></div>';
  const next=doc.querySelector('.plate-card,.work-hero');next.classList.remove('card');next.classList.add('work-hero');old.replaceWith(next);
- if(m.sets){next.querySelector('.plate-date').textContent=systemLongDate(date).replace(', ',' · ');storyBind(date,true);next.querySelector('.plate-share').onclick=()=>storyAtDate(date,()=>sharePlateCard());}
+ if(m.sets){next.querySelector('.plate-date').textContent=systemLongDate(date).replace(', ',' · ');next.querySelector('.plate-date').classList.add('stats-date');systemUnits(next);systemControls(next);storyBind(date,true);next.querySelector('.plate-share').onclick=()=>storyAtDate(date,()=>sharePlateCard());}
  else plateCancel();
  const title=shell.previousElementSibling;if(title?.tagName==='H2')title.textContent=date===todayISO&&DB.days[date]?.doneAll?'Workout complete':'Your work, stacking up';
 }
@@ -300,12 +300,14 @@ function comparisonCard(card,kind){
 }
 const compactStyle=document.createElement('style');compactStyle.textContent=`
 #view.stats-system .work-combined{padding:12px 16px 14px;overflow:hidden}
-#view.stats-system .work-hero{padding:0;box-shadow:none;background:none;border-radius:0;margin:0}
-#view.stats-system .work-hero .plate-heading{min-height:40px;margin:0}
+#view.stats-system .work-hero{padding:0;box-shadow:none;background:none;border-radius:0;margin:0;height:357px}
+#view.stats-system .work-hero .plate-heading{height:56px;min-height:56px;margin:0;padding-top:0}
 #view.stats-system .work-hero .plate-scene{height:165px;margin:0}
-#view.stats-system .work-hero .plate-total{font-size:13px;margin:0}#view.stats-system .work-hero .plate-total b{font-size:34px}
+#view.stats-system .work-hero .plate-total{font-size:13px;margin:0;height:45px;display:flex;align-items:center;justify-content:center;gap:7px}#view.stats-system .work-hero .plate-total b{font-size:34px}
 #view.stats-system .work-hero .plate-total .stats-unit{font-size:11px}
-#view.stats-system .work-hero .plate-caption{font-size:11px;margin-top:4px}
+#view.stats-system .work-hero .plate-caption{font-size:11px;margin:0;height:23px;padding-top:4px}
+#view.stats-system .work-hero .plate-bank{display:block;height:20px;margin:0;font-size:10px;line-height:20px}
+#view.stats-system .work-history [data-lbl]{display:none}
 #view.stats-system .work-hero .plate-legend{display:none}
 #view.stats-system .work-hero .plate-replay{min-height:32px;padding:4px 10px;margin:8px auto;font-size:11px}
 #view.stats-system .work-history{background:none;box-shadow:none;padding:8px 0 0;margin:0;border-radius:0;border-top:1px solid var(--line)}
