@@ -1,7 +1,13 @@
 // Execute the actual TypeScript Edge handler with Deno/fetch replaced. No network.
 const ts=require('typescript'),fs=require('fs'),vm=require('vm'),assert=require('assert'),path=require('path');
 const source=fs.readFileSync(path.join(process.argv[2]||'.','supabase/functions/write-session/index.ts'),'utf8');
-const compiled=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.None},reportDiagnostics:true});
+/* v4.3.6: ignoreDeprecations. This suite has been red since v4.0.2 and it was
+   never the server's fault -- TypeScript began ERRORING on `module: None`
+   rather than warning, and the assertion below reads any error as broken
+   syntax. The handler compiles and runs exactly as before; module:None is
+   still what this test needs, because it executes the output in a bare vm
+   with no module loader. */
+const compiled=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.None,ignoreDeprecations:'6.0'},reportDiagnostics:true});
 assert(!compiled.diagnostics.some(d=>d.category===ts.DiagnosticCategory.Error),'server TypeScript syntax');
 let handler,called=[];
 const response={days:[{date:'2026-09-11',part:'Legs',title:'Legs',text:'Squat\n  205 lb × 8 8 8'}],reason:null};

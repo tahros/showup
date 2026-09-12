@@ -2,6 +2,57 @@
 
 
 
+
+## v4.3.6 (2026-09-11) — Which sets are real
+
+### The suite is green, and it was never the server's fault
+
+`test-planner-server` has been red since v4.0.2. The Edge Function compiles
+fine — **TypeScript started erroring rather than warning on `module: None`**,
+and the assertion reads any error as broken syntax. One compiler option.
+86 suites green for the first time in days.
+
+### Real sets
+
+Counting sets treats a warm-up, a burnout and a working set as one thing. The
+maker's record shows what that costs: his shoulder press ran ten to twelve sets
+a session all spring and **four of them were work**. When he cut the junk in
+August the set count halved while every real set got heavier — and an app
+counting sets reads that as a 40% decline and tells him to undo the best change
+he made all year.
+
+`js/realset.js` decides it from three facts already in the record:
+
+**Load, against that exercise's own top today.** Not the day's top: with
+bodyweight counted, a dip at BW+45 outweighs a 175 lb bench single, so a
+day-wide comparison measures cable flies against dips. 70% floor — `155×10` at
+89% is work, `110×25` at 67% is not.
+
+**Bodyweight is load.** A pull-up at "0 lb" is 154 lb. Without this every
+bodyweight set has a top of zero and the arithmetic is void.
+
+**Reps, as a ceiling at 20.** The rep-band table puts hypertrophy at 6–30, and
+on that reading January's `35.3 lb × 30` at 80% of its day's top is real work.
+The maker says it is trash, and he is right for a reason the percentage cannot
+see: **his top that day was itself light**, so measuring against it proves
+nothing. Thirty reps is the tell. Twenty is the highest ceiling that gets every
+one of his rulings right — `132×15` survives, a 16-rep pull-up survives,
+30-rep burnouts do not.
+
+I had this at 35 and said the load did nearly all the separating. It does not.
+January is the case where the rep ceiling is the only thing that works, and the
+test that caught it is the one that matters:
+
+```
+AUGUST READS AS AN IMPROVEMENT   spring 4 of 12 real · now 4 of 5 real
+```
+
+Same real work, half the junk. That assertion is the standard everything built
+on this has to meet.
+
+Nothing reads it yet. Rep ranges, the verdict and targets come next.
+
+
 ## v4.3.5 (2026-09-11) — The ceremony number counts up
 
 It was written finished. The one number the whole screen is built around simply
