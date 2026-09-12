@@ -409,10 +409,14 @@ function comparisonCard(card,kind){
  memory.years=memory.years.filter(y=>available.includes(y));if(!memory.years.length)memory.years=[available[0]];
  memory.index=Math.min(memory.index,dates.length-1);
  const series=new Map();available.forEach(y=>{let total=0,last='';series.set(y,dates.map(([m,d])=>{const iso=y+'-'+String(m+1).padStart(2,'0')+'-'+String(Math.min(d,new Date(y,m+1,0).getDate())).padStart(2,'0');if(iso!==last){const r=DB.days[iso];total+=kind==='distance'?(r?.w||[]).filter(s=>s.ex==='Run'&&s.completed!==false).reduce((n,s)=>n+toD(s.w),0):(plateMetrics(r).sets?1:0);}last=iso;return total;}));});
- card.classList.add('comparison-card');card.innerHTML='<div class="comparison-years"></div><div class="comparison-heading"><span class="comparison-date"></span><button class="comparison-latest">Latest ↗</button></div><div class="comparison-values" aria-live="polite"></div><svg class="comparison-plot" viewBox="0 0 340 210" role="img" aria-label="Cumulative '+(kind==='distance'?'distance':'training days')+' by year"></svg><input class="comparison-scrub" type="range" min="0" max="'+(dates.length-1)+'" aria-label="Scrub comparison date"><p class="comparison-foot">'+(kind==='distance'?'Distance accumulated':'Training days accumulated')+' · same calendar date</p>';
+ card.classList.add('comparison-card');card.innerHTML='<div class="comparison-years"></div><div class="comparison-heading"><span class="comparison-date"></span><span class="comparison-tools"><button class="comparison-latest">Latest ↗</button><button type="button" class="comparison-share stats-share ico" aria-label="Share this comparison">'+ICO_SHARE+'</button></span></div><div class="comparison-values" aria-live="polite"></div><svg class="comparison-plot" viewBox="0 0 340 210" role="img" aria-label="Cumulative '+(kind==='distance'?'distance':'training days')+' by year"></svg><input class="comparison-scrub" type="range" min="0" max="'+(dates.length-1)+'" aria-label="Scrub comparison date"><p class="comparison-foot">'+(kind==='distance'?'Distance accumulated':'Training days accumulated')+' · same calendar date</p>';
  const palette=['var(--accent)','#B36F47','#349484','#9875B8','#BE8C38'];
  const color=y=>palette[available.indexOf(y)%palette.length];
- const svg=card.querySelector('svg'),slider=card.querySelector('input'),values=card.querySelector('.comparison-values');
+ /* v4.5.17: BY CLASS, not by tag. The share button in the heading is an SVG too,
+    and it comes first in the DOM -- querySelector('svg') handed the plot's lines,
+    markers and axis to a 16px icon and left the chart empty. Six suites went red
+    at once and every one of them was this line. */
+ const svg=card.querySelector('svg.comparison-plot'),slider=card.querySelector('input.comparison-scrub'),values=card.querySelector('.comparison-values');
  const difference=document.createElement('p');difference.className='comparison-delta';values.after(difference);
  const node=(tag,attrs,text)=>{const e=document.createElementNS('http://www.w3.org/2000/svg',tag);Object.entries(attrs).forEach(([k,v])=>e.setAttribute(k,v));if(text!==undefined)e.textContent=text;svg.append(e);return e;};
  let maximum=1;
@@ -483,6 +487,64 @@ function comparisonCard(card,kind){
   }
   requestAnimationFrame(step);
  }
+ /* v4.5.17: SHARE. The image is the card as it stands -- the same years, the same
+    scrubbed date, days or percent as currently shown -- drawn at the plate share's
+    size with the plate share's footer: rule, first name right, mark bottom-left.
+    Same sheet (showCard), same fonts, same logo file, so the three images read as
+    one family. Nothing is recomputed for the picture; it draws what you see. */
+ async function share(){
+  const css=getComputedStyle(document.documentElement),read=(k,f)=>css.getPropertyValue(k).trim()||f;
+  const dark=document.documentElement.dataset.theme==='dark';
+  const data={surface:read('--surface','#fff'),ink:read('--chalk','#1c1c1c'),muted:read('--muted','#686868'),line:read('--line','#ededed'),
+    accent:read('--accent','#2F4BD8'),name:firstName()||'',logo:null};
+  try{const m=await import('./plate-gif.js');await m.loadExportFonts();}catch(_e){}
+  try{const logo=new Image();logo.src='assets/mascot-mark-'+(dark?'white':'charcoal')+'.png';await logo.decode();data.logo=logo;}catch(_e){}
+  const [mm,dd]=dates[memory.index];
+  const dateLabel=new Date(current,mm,dd).toLocaleDateString('en-US',{month:'long',day:'numeric'});
+  showCard(()=>{
+   const cv=document.createElement('canvas');cv.width=1080;cv.height=1280;const x=cv.getContext('2d');if(!x)return null;
+   const sans='"ShowUp Export Plex", "IBM Plex Sans",sans-serif',mono=sans;
+   const col=yr=>{const c=color(yr);return c.startsWith('var(')?data.accent:c;};
+   x.fillStyle=data.surface;x.fillRect(0,0,1080,1280);
+   const text=(t,X,Y,font,c=data.ink,align='left',max)=>{x.font=font;x.fillStyle=c;x.textAlign=align;x.fillText(t,X,Y,max);};
+   text(kind==='distance'?'DISTANCE OVER TIME':'YEAR OVER YEAR',540,98,'500 25px '+mono,data.muted,'center');
+   text(dateLabel,540,148,'500 30px '+mono,data.ink,'center');
+   /* the tiles: up to three across, in the card's own order and colours */
+   const yrs=memory.years,perRow=Math.min(3,yrs.length),tileW=(940-(perRow-1)*30)/perRow;
+   yrs.forEach((yr,i)=>{
+    const r=Math.floor(i/perRow),c=i%perRow,X=70+c*(tileW+30),Y=200+r*150;
+    x.fillStyle=col(yr);x.fillRect(X,Y,6,112);
+    text(String(yr),X+24,Y+30,'400 24px '+mono,data.muted);
+    const v=shown(yr),num=fmtVal(v);
+    x.font='700 62px '+sans;const nw=x.measureText(num).width;
+    text(num,X+24,Y+96,'700 62px '+sans,data.ink,'left',tileW-40);
+    text(unit(),X+24+nw+12,Y+96,'400 24px '+mono,data.muted);
+   });
+   const rows=Math.ceil(yrs.length/perRow);let Y=200+rows*150+10;
+   if(!difference.hidden){x.fillStyle=dark?'rgba(255,255,255,.06)':'rgba(0,0,0,.04)';x.beginPath();x.roundRect(70,Y,940,64,14);x.fill();
+    text(difference.textContent,94,Y+41,'500 26px '+sans,data.accent);Y+=64;}
+   /* the plot: same series, same scale rule as the card (ceil to a multiple of 4) */
+   const top=Y+40,bottom=1110,left=130,right=1010;
+   const maxV=Math.ceil(Math.max(1,...yrs.map(yr=>series.get(yr).at(-1)))/4)*4;
+   const px=i=>left+i/Math.max(1,dates.length-1)*(right-left),py=v=>bottom-v/maxV*(bottom-top);
+   x.strokeStyle=data.line;x.lineWidth=1;x.setLineDash([3,6]);
+   for(let n=0;n<=4;n++){const v=maxV*n/4;x.beginPath();x.moveTo(left,py(v));x.lineTo(right,py(v));x.stroke();
+    text(kind==='distance'?Math.round(v).toString():Math.round(v).toString(),left-18,py(v)+7,'400 20px '+mono,data.muted,'right');}
+   x.setLineDash([]);
+   [0,Math.floor((dates.length-1)/3),Math.floor((dates.length-1)*2/3),dates.length-1].forEach(i=>{const [m,d]=dates[i];
+    text(new Date(current,m,d).toLocaleDateString('en-US',{month:'short',day:'numeric'}),px(i),bottom+34,'400 20px '+mono,data.muted,i===0?'left':i===dates.length-1?'right':'center');});
+   x.lineWidth=5;x.lineJoin='round';x.lineCap='round';
+   yrs.forEach(yr=>{x.strokeStyle=col(yr);x.beginPath();series.get(yr).forEach((v,i)=>{i?x.lineTo(px(i),py(v)):x.moveTo(px(i),py(v));});x.stroke();});
+   x.strokeStyle=data.muted;x.lineWidth=2;x.setLineDash([6,6]);x.beginPath();x.moveTo(px(memory.index),top-10);x.lineTo(px(memory.index),bottom);x.stroke();x.setLineDash([]);
+   yrs.forEach(yr=>{x.fillStyle=data.surface;x.strokeStyle=col(yr);x.lineWidth=4;x.beginPath();x.arc(px(memory.index),py(series.get(yr)[memory.index]),11,0,Math.PI*2);x.fill();x.stroke();});
+   /* the footer: the plate share's, to the pixel */
+   x.strokeStyle=data.line;x.lineWidth=1;x.beginPath();x.moveTo(70,1180);x.lineTo(1010,1180);x.stroke();
+   text(data.name,1010,1230,'400 28px '+sans,data.muted,'right',680);
+   if(data.logo)x.drawImage(data.logo,14,85,485,292,70,1201,82,49);
+   return cv;
+  },'showup-'+(kind==='distance'?'distance':'days')+'-compare-'+current+'-'+String(mm+1).padStart(2,'0')+String(dd).padStart(2,'0'),false);
+ }
+ const shareBtn=card.querySelector('.comparison-share');if(shareBtn)shareBtn.onclick=()=>{share().catch(()=>toast('Could not prepare the image. Please try again.'));};
  values.addEventListener('click',e=>{if(e.target.closest('.comparison-flip'))flip();});
  slider.oninput=()=>show(+slider.value);card.querySelector('.comparison-latest').onclick=()=>show(dates.length-1);
  const scrub=e=>{const r=svg.getBoundingClientRect();show(Math.round(((e.clientX-r.left)/r.width*340-32)/296*(dates.length-1)));};
@@ -528,7 +590,7 @@ const compactStyle=document.createElement('style');compactStyle.textContent=`
 #view.stats-system .work-empty{min-height:240px;display:grid;place-content:center;gap:20px;text-align:center}
 .comparison-years{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.comparison-years button,.comparison-years summary,.comparison-latest{border:1px solid var(--line);background:var(--surface2);border-radius:12px;padding:10px 12px;color:var(--chalk);font:500 12px var(--body);cursor:pointer}
 .comparison-years button[data-year]{border-color:var(--year-color);color:var(--year-color)}.comparison-years button span{opacity:.6;margin-left:6px}.comparison-years details{position:relative}.comparison-years details>div{position:absolute;z-index:3;min-width:90px;padding:6px;background:var(--surface);box-shadow:0 6px 20px #0002;border-radius:12px}.comparison-years details button{display:block;width:100%}
-.comparison-heading{display:flex;align-items:center;justify-content:space-between;margin:16px 0 10px;font:500 12px var(--body)}.comparison-latest:disabled{opacity:.35}.comparison-values{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:12px}.comparison-values>div{flex:1;min-width:85px;border-left:3px solid var(--year-color);padding-left:10px}.comparison-values span{display:block;font:400 11px var(--mono);color:var(--muted)}.comparison-values strong{font:600 25px var(--body);font-variant-numeric:tabular-nums}.comparison-values small{font:400 11px var(--body);color:var(--muted)}.comparison-plot{width:100%;display:block;touch-action:pan-y}.comparison-scrub{width:100%;accent-color:var(--accent);min-height:40px}.comparison-foot{font:400 10px var(--body);color:var(--muted);margin:2px 0 0}
+.comparison-heading{display:flex;align-items:center;justify-content:space-between;margin:16px 0 10px;font:500 12px var(--body)}.comparison-tools{display:flex;align-items:center;gap:8px}#view.stats-system .comparison-share{flex-basis:36px;width:36px;height:36px}#view.stats-system .comparison-share svg{width:16px;height:16px}   /* v4.5.17: a 36px share beside Latest, not the 44px plate one -- this row is the heading, not a toolbar */.comparison-latest:disabled{opacity:.35}.comparison-values{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:12px}.comparison-values>div{flex:1;min-width:85px;border-left:3px solid var(--year-color);padding-left:10px}.comparison-values span{display:block;font:400 11px var(--mono);color:var(--muted)}.comparison-values strong{font:600 25px var(--body);font-variant-numeric:tabular-nums}.comparison-values small{font:400 11px var(--body);color:var(--muted)}.comparison-plot{width:100%;display:block;touch-action:pan-y}.comparison-scrub{width:100%;accent-color:var(--accent);min-height:40px}.comparison-foot{font:400 10px var(--body);color:var(--muted);margin:2px 0 0}
 .comparison-flip{display:block;width:100%;text-align:left;border:0;background:none;padding:0;margin:0;color:inherit;font:inherit;cursor:pointer;transform-origin:50% 50%;will-change:transform}
 .comparison-flip:disabled{cursor:default}
 .comparison-values strong i{font-style:normal}

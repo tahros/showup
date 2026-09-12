@@ -13,7 +13,15 @@ ok('every Stats card receives one shared card contract',run(`[...document.queryS
 ok('every title receives one shared title contract',run(`[...document.querySelectorAll('#view h2')].every(h=>h.classList.contains('stats-title'))`));
 ok('dates use the shared date treatment',run(`document.querySelectorAll('.stats-date').length>=5`));
 ok('units use the shared unit treatment',run(`document.querySelectorAll('.stats-unit,.stats-measure').length>=4`));
-ok('only the two approved Share actions remain',run(`document.querySelectorAll('.stats-share').length===2`));
+/* v4.5.17: four, and NAMED. "Exactly two" was the right guard while share was
+   plate + progression; the maker added share to both comparison cards. A bare
+   count of 4 would pass if a fifth crept in and a named one dropped out, so each
+   approved share is listed and the total is pinned. */
+ok('only the four approved Share actions remain -- plate, progression, and the two comparisons',
+   run(`(function(){const all=[...document.querySelectorAll('.stats-share')];
+     return all.length===4&&all.filter(b=>b.classList.contains('plate-share')).length===1
+       &&all.filter(b=>b.classList.contains('pg-share')).length===1
+       &&all.filter(b=>b.classList.contains('comparison-share')).length===2;})()`));
 ok('chevrons use one control treatment',run(`[...document.querySelectorAll('.pg-range-nav button,.pg-pages button')].every(b=>b.classList.contains('stats-chevron'))`));
 ok('the repeated What you did summary is gone',run(`!document.querySelector('.pmixsum')`));
 ok('the completion total is the only oversized workout takeaway',run(`!!document.querySelector('.plate-total')&&!!document.querySelector('.crtotal')`));

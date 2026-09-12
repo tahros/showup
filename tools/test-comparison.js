@@ -100,13 +100,64 @@ ok('a leap year is counted by real dates, not a 365 constant',
    run(`Math.round((Date.UTC(2024,8,12)-Date.UTC(2024,0,1))/86400000)+1`)===elapsed+1);
 
 // ---- the distance card has no honest denominator
-run(`for(let m=0;m<9;m++){const iso='2026-'+String(m+1).padStart(2,'0')+'-20';
-  if(iso<=todayISO)DB.days[iso]={w:[{part:'Run',ex:'Run',w:0,reps:[1],km:5,at:1}],upd:1};}
+/* a Run row is a distance row only when w>0 -- w IS the distance. The first
+   version of this fixture wrote w:0, the distance card never rendered, and the
+   two assertions below passed against the days card. Hollow, both of them. */
+run(`for(const y of [2026,2025]) for(let m=0;m<9;m++){const iso=y+'-'+String(m+1).padStart(2,'0')+'-20';
+  if(iso<=todayISO)DB.days[iso]={w:[{part:'Run',ex:'Run',w:5,reps:[1],mins:30,at:1}],upd:1};}
   SEED=deriveAll();view='stats';render();`);
-ok('the distance card renders', run(`document.querySelectorAll('.comparison-card').length`)>=1);
-ok('...and offers no flip button on distance',
-   run(`(function(){const c=[...document.querySelectorAll('.conrace')].find(e=>e.classList.contains('runrace'));
-     return c?c.querySelectorAll('.comparison-flip[type="button"]').length:0;})()`)===0);
+ok('(fixture) the distance card really renders -- .runrace exists and is a comparison card',
+   run(`!!document.querySelector('.conrace.runrace.comparison-card')`));
+ok('the distance card offers no flip button -- miles have no honest denominator',
+   run(`(function(){const c=document.querySelector('.conrace.runrace.comparison-card');
+     return !!c&&c.querySelectorAll('.comparison-flip[type="button"]').length===0&&c.querySelectorAll('.comparison-values strong').length>0;})()`));
+
+
+// ---- v4.5.17: share. Both cards, one button each, an image the size and shape
+//      of the plate share, and it draws what is on screen -- the same years and
+//      the same mode -- not a fresh computation.
+{
+  run(`DB.settings.comparisonYears={days:[2026,2025]};DB.settings.name='Sungjee Yoo';SEED=deriveAll();view='stats';render();`);
+  const both=run(`[...document.querySelectorAll('.comparison-card')].map(c=>c.querySelectorAll('.comparison-share').length).join(',')`);
+  ok('every comparison card carries exactly one share button', both.split(',').every(n=>n==='1')&&both.split(',').length>=2, both);
+  ok('...it is the share ARROW, in the round stats style, beside Latest',
+     run(`(function(){const b=document.querySelector('.comparison-card:not(.runrace) .comparison-share');
+       return !!b&&!!b.querySelector('svg')&&b.classList.contains('stats-share')&&b.previousElementSibling?.classList.contains('comparison-latest');})()`));
+  ok('...and it is smaller than the plate share, so the heading stays a heading',
+     (()=>{const m=fs.readFileSync(path.join(dir,'js/stats-story.js'),'utf8').match(/\.comparison-share\{[^}]*width:(\d+)px/);return m&&+m[1]<44;})());
+
+  // click, on the days card, in percent mode, scrubbed off the latest date
+  run(`document.querySelector('.comparison-card:not(.runrace) .comparison-flip').click();`);
+  run(`(function(){const s=document.querySelector('.comparison-card:not(.runrace) .comparison-scrub');s.value=100;s.dispatchEvent(new Event('input',{bubbles:true}));})()`);
+  const onScreen=run(`JSON.stringify({date:document.querySelector('.comparison-card:not(.runrace) .comparison-date').textContent,
+     tiles:[...document.querySelectorAll('.comparison-card:not(.runrace) .comparison-values strong')].map(s=>s.textContent.replace(/\s+/g,' ').trim())})`);
+  run(`_repCv=null;window.__drawn=[];(function(){const orig=HTMLCanvasElement.prototype.getContext;
+     HTMLCanvasElement.prototype.getContext=function(){const ctx=orig.apply(this,arguments);
+       return new Proxy(ctx,{get:(o,k)=>k==='fillText'?((t,x,y)=>{window.__drawn.push(String(t));}):o[k]});};})();
+     document.querySelector('.comparison-card:not(.runrace) .comparison-share').click();`);
+  await new Promise(r=>setTimeout(r,250));
+  const cv=run(`_repCv?JSON.stringify({w:_repCv.cv.width,h:_repCv.cv.height,label:_repCv.label}):'null'`);
+  ok('tapping share opens the sheet with a 1080×1280 image, the plate share\'s size', cv!=='null'&&JSON.parse(cv).w===1080&&JSON.parse(cv).h===1280, cv);
+  ok('...named for the card, the year and the scrubbed date', cv!=='null'&&/^showup-days-compare-2026-\d{4}$/.test(JSON.parse(cv).label), cv!=='null'&&JSON.parse(cv).label);
+  const drawn=run(`window.__drawn.join(' | ')`);
+  const scr=JSON.parse(onScreen);
+  ok('the image carries the date that was on screen, not today', drawn.includes(scr.date), scr.date+' in: '+drawn.slice(0,140));
+  ok('...and the numbers that were on screen -- percent, because the card was flipped',
+     scr.tiles.every(t=>{const n=t.split(' ')[0];return drawn.includes(n);})&&drawn.includes('%'), scr.tiles.join(' / '));
+  ok('...the first name, bottom right', drawn.includes('Sungjee')&&!drawn.includes('Sungjee Yoo'), 'name drawn: '+(drawn.includes('Sungjee')?'Sungjee':'(none)'));
+  ok('...and the card\'s own title in the small-caps slot', drawn.includes('YEAR OVER YEAR'));
+  // the distance card shares too, with its own title and unit
+  run(`_repCv=null;window.__drawn=[];document.querySelector('.runrace .comparison-share').click();`);
+  await new Promise(r=>setTimeout(r,250));
+  const dcv=run(`_repCv?JSON.stringify({w:_repCv.cv.width,label:_repCv.label}):'null'`);
+  const ddrawn=run(`window.__drawn.join(' | ')`);
+  ok('the distance card shares as well, under its own name', dcv!=='null'&&/^showup-distance-compare-/.test(JSON.parse(dcv).label), dcv);
+  ok('...titled DISTANCE OVER TIME, in the distance unit', ddrawn.includes('DISTANCE OVER TIME')&&/\b(mi|km)\b/.test(ddrawn)&&!ddrawn.includes('%'), ddrawn.slice(0,120));
+
+  ok('the footer geometry is the plate share\'s -- rule at 1180, name at 1010/1230, mark at 70/1201',
+     (()=>{const src=fs.readFileSync(path.join(dir,'js/stats-story.js'),'utf8');
+       return /moveTo\(70,1180\);x\.lineTo\(1010,1180\)/.test(src)&&/text\(data\.name,1010,1230/.test(src)&&/drawImage\(data\.logo,14,85,485,292,70,1201,82,49\)/.test(src);})());
+}
 
 console.log(fails?`FAIL ${fails}`:'ALL PASS');process.exit(fails?1:0);
 })();
