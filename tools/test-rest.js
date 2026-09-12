@@ -1039,7 +1039,7 @@ ok("the status-bar style no longer puts content under the status bar",
   ok("...the number is days rested: 5", run(`document.querySelector('.crcard.resting .crtotal b').textContent`)==='5' && /days rested/.test(T));
   ok("...the run line is the rest analogue in TWO lines: resting 1 day / longest 1",
      run(`[...document.querySelectorAll('.crcard.resting .crstreak > span')].map(x=>x.textContent).join('|')`)==='resting 1 day|longest 1'
-     && /\.crcard\.resting \.crstreak\{display:flex;flex-direction:column/.test(fs.readFileSync(path.join(dir,"css/app.css"),"utf8")),
+     && /\.crcard(?:\.resting)? \.crstreak\{display:flex;flex-direction:column/.test(fs.readFileSync(path.join(dir,"css/app.css"),"utf8")),   /* v4.5.11: the rule widened to .crcard -- the attendance card stacks too now, and that selector still covers .crcard.resting */
      run(`document.querySelector('.crcard.resting .crstreak').textContent`));
   const lit=run(`document.querySelectorAll('.crcard.resting .heatgrid .hc.on').length`);
   ok("...exactly the five rest days are lit, and nothing before the ledger began", lit===5, lit);

@@ -74,4 +74,67 @@ ok('rail height, grid offset and weekday-rail padding are one number',
 ok('no second rule in stats-story sets .wdrail padding-top',
    (story.match(/\.wdrail\{[^}]*padding-top/g)||[]).length===1);
 
+// ---- v4.5.11: the three things the maker circled
+const cssA=fs.readFileSync(path.join(dir,'css/app.css'),'utf8');
+
+// (1) streak and best on two lines, on BOTH cards
+run(`view='stats';render();`);
+ok('the attendance card puts streak and best in two elements, not one nowrap string',
+   run(`document.querySelectorAll('#view .crcard:not(.resting) .crstreak > span').length`)===2,
+   run(`[...document.querySelectorAll('#view .crcard:not(.resting) .crstreak > span')].map(s=>s.textContent).join(' | ')`));
+ok('...best is the SECOND one, so it lands on the lower line',
+   /^best /.test(run(`document.querySelectorAll('#view .crcard:not(.resting) .crstreak > span')[1].textContent`)));
+ok('...and the stacking rule is no longer scoped to .resting',
+   /\.crcard \.crstreak\{[^}]*flex-direction:column/.test(cssA) && !/\.crcard\.resting \.crstreak\{[^}]*flex-direction:column/.test(cssA));
+
+// (2) today's halo has a gutter to breathe into. The ring reaches inset:-3.5px,
+//     so anything less than 3.5px of padding still clips it.
+{
+  const pad=story.match(/\.crcard \.heatgrid\{[^}]*padding:0 ([\d.]+)px ([\d.]+)px 0/);
+  const peak=Math.abs(parseFloat((cssA.match(/60%\s*\{opacity:[\d.]+;\s*inset:(-[\d.]+)px/)||[])[1]));
+  ok('(fixture) the halo peak is known from todbreath', !isNaN(peak), 'inset -'+peak+'px');
+  ok('the grid reserves at least the halo peak on the right and the bottom',
+     !!pad && parseFloat(pad[1])>=peak && parseFloat(pad[2])>=peak,
+     pad?`right ${pad[1]}px, bottom ${pad[2]}px vs a ${peak}px halo`:'no padding rule');
+  ok('...and the squares themselves did not move -- no left or top padding',
+     !!pad && /padding:0 [\d.]+px [\d.]+px 0/.test(story));
+}
+
+// (3) no month label is left hanging off the rail's right edge.
+//     jsdom has no layout, so a naive "does it fit" check waves itself through.
+//     Geometry is stubbed AND the scroll is parked so the next month lands 10px
+//     from the right edge with 21px of text to draw -- the exact situation that
+//     cut "Sep" to "Se". Without the clamp this must overflow.
+{
+  const cols=run(`[...document.querySelectorAll('#view .crcard .heatgrid .hc')].filter((_,i)=>i%7===0).map(c=>c.getAttribute('aria-label').slice(0,10))`);
+  const target=cols.findIndex(d=>d.slice(0,7)!==cols[0].slice(0,7));
+  ok('(fixture) a second month exists to push against the edge', target>0, 'column '+target);
+  const res=run(`(function(){
+    const w=document.querySelector('#view .crcard .heatwrap'),r=document.querySelector('#view .crcard .heat-periods');
+    const ROOM=200, CH=7, PITCH=15, MARGIN=10;
+    Object.defineProperty(r,'clientWidth',{value:ROOM,configurable:true});
+    Object.defineProperty(w,'clientWidth',{value:ROOM,configurable:true});
+    Object.defineProperty(w,'scrollWidth',{value:5000,configurable:true});
+    const orig=Element.prototype.getBoundingClientRect;
+    Element.prototype.getBoundingClientRect=function(){
+      if(this.classList&&(this.classList.contains('yr')||this.classList.contains('mo')))
+        return {width:(this.textContent||'').length*CH,height:14,top:0,left:0,right:0,bottom:0};
+      return orig.call(this);
+    };
+    w.scrollLeft=${target}*PITCH-(ROOM-MARGIN);          // next month lands at x = ROOM-10
+    w.dispatchEvent(new Event('scroll'));
+    const out=[...r.querySelectorAll('span')].map(s=>({t:s.textContent,l:parseFloat(s.style.left),w:s.textContent.length*CH}));
+    Element.prototype.getBoundingClientRect=orig;
+    return JSON.stringify({room:ROOM,all:out,over:out.filter(o=>o.l+o.w>ROOM+0.5).map(o=>o.t),neg:out.filter(o=>o.l<0).map(o=>o.t)});
+  })()`);
+  const g=JSON.parse(res);
+  const incoming=g.all.filter(o=>o.l>g.room/2);
+  ok('(fixture) a label really is pressed against the right edge', incoming.length>0,
+     g.all.map(o=>o.t+'@'+o.l).join(' '));
+  ok('every label ends inside the rail -- none is cut off mid-word', g.over.length===0,
+     g.over.length?'overflowing: '+g.over.join(', '):'none overflow');
+  ok('...and none was pushed off the left edge to achieve it', g.neg.length===0,
+     g.neg.length?'negative left: '+g.neg.join(', '):'none negative');
+}
+
 console.log(fails?`FAIL ${fails}`:'ALL PASS');process.exit(fails?1:0);

@@ -568,7 +568,11 @@
      wording runs longer than "streak" and crowded the number. */
   .crcard.resting .heatgrid .hc.on{background-color:var(--rest)}
   .crcard.resting .crtotal b{color:var(--rest-ink)}
-  .crcard.resting .crstreak{display:flex;flex-direction:column;align-items:flex-end;line-height:1.35}
+  /* v4.5.11: BOTH cards stack. The rest card has read as two right-aligned
+     lines since v3.3.469; the attendance card kept one long nowrap string
+     ("streak 2 days \u00b7 best 10") that crowded the card's right edge. Same
+     markup, same rule, no .resting in the selector. */
+  .crcard .crstreak{display:flex;flex-direction:column;align-items:flex-end;line-height:1.35}
   /* v3.3.471: today's breathing ring is the rest ink on the rest card -- the
      same darker green the header's and the bar's rings wear. */
   .crcard.resting .heatgrid .hc.tod::after{border-color:var(--rest-ink)}

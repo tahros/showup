@@ -905,7 +905,7 @@ function currentRhythmSection(inverse){
     <div class="card crcard${inverse?' resting':''}">
       <div class="crhead">
         <span class="crtotal"><b>${fmt(total)}</b><small>${inverse?'days rested':'days in'}</small></span>
-        <span class="crstreak">${inverse?`<span>resting ${streak} day${streak===1?'':'s'}</span><span>longest ${best}</span>`:`streak ${streak} day${streak===1?'':'s'} \u00b7 best ${best}`}</span>
+        <span class="crstreak">${inverse?`<span>resting ${streak} day${streak===1?'':'s'}</span><span>longest ${best}</span>`:`<span>streak ${streak} day${streak===1?'':'s'}</span><span>best ${best}</span>`}</span>
       </div>
       ${lifetime?`<div class="crsince">${lifetime}</div>`:''}
       <!-- v3.3.332: the month row lives INSIDE the scroller, beside the grid.

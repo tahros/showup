@@ -266,7 +266,10 @@ function installHeatPeriods(){
     const width=label.getBoundingClientRect().width||current.label.length*7;
     label.style.left=Math.min(2,next?next.x-left-width-10:2)+'px';
     let edge=next?next.x-left:Infinity;
-    for(let j=index+1;j<periods.length;j++){const p=periods[j],x=p.x-left;if(x>wrap.clientWidth)break;if(x<edge)continue;const incoming=document.createElement('span');incoming.className=label.className;incoming.textContent=p.label;incoming.style.cssText='top:'+top+'px;left:'+x+'px';rail.append(incoming);edge=x+(incoming.getBoundingClientRect().width||p.label.length*7)+10;}
+    for(let j=index+1;j<periods.length;j++){const p=periods[j],x=p.x-left;if(x>wrap.clientWidth)break;if(x<edge)continue;const incoming=document.createElement('span');incoming.className=label.className;incoming.textContent=p.label;incoming.style.cssText='top:'+top+'px;left:'+x+'px';rail.append(incoming);const iw=incoming.getBoundingClientRect().width||p.label.length*7,room=rail.clientWidth||wrap.clientWidth;/* v4.5.11: the rail is overflow:hidden, so the last month in view was losing its
+   tail ("Sep" read "Se"). Pull it back to the edge rather than let it be cut --
+   a label a few px from its column still points at it; half a word points nowhere. */
+const cx=room&&x+iw>room?Math.max(0,room-iw):x;if(cx!==x)incoming.style.left=cx+'px';edge=cx+iw+10;}
    }
   };
   wrap.addEventListener('scroll',sync,{passive:true});sync();requestAnimationFrame(sync);
@@ -470,7 +473,13 @@ const compactStyle=document.createElement('style');compactStyle.textContent=`
    the stats view: the rest card is drawn on TODAY. 30px = rail height =
    grid offset = rail padding, one number three times, checked by test-heatperiods. */
 .crcard .heatticks,.crcard .heatyears{display:none}
-.crcard .heatgrid{margin-top:30px}.crcard .wdrail{padding-top:30px}
+/* v4.5.11: today's halo is a ::after at inset:-3.5px at the peak of todbreath,
+   drawn OUTSIDE the 11px cell on purpose (v3.3.348). The grid's content box ends
+   at the last cell and .heatwrap clips both axes, so on today -- last column,
+   bottom row -- the ring was cut on two sides. 4px of padding on the grid gives
+   the halo its gutter without moving a single square; the wdrail keeps its own
+   padding-top so the S row still lines up with row one. */
+.crcard .heatgrid{margin-top:30px;padding:0 4px 4px 0}.crcard .wdrail{padding-top:30px}
 .crcard .heat-periods{position:absolute;right:0;top:0;height:30px;overflow:hidden;pointer-events:none;background:var(--surface);z-index:1}
 .crcard .heat-periods span{position:absolute;white-space:nowrap;font:400 11px/14px var(--mono);color:var(--muted)}
 .crcard .heat-periods span.yr{font-weight:600;color:var(--chalk)}
