@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v4.5.30 (2026-09-13) — Current mascots in share exports
+
+- Use approved chrome logos on light share cards and updated white logos on dark
+  cards, including progression, workout receipts, stacked workouts, attendance,
+  and distance comparisons. Keep the current blue celebration mascot.
+- Regenerate transparent share marks from the shared renderer and cache the new
+  chrome mark for offline exports.
+
 ## v4.5.29 (2026-09-13) — Clearer header streak squares
 
 - Apply the approved subtle midpoint gray to light-theme header squares:

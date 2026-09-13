@@ -8,14 +8,15 @@ const fs=require('fs'),path=require('path');
  await page.goto(process.argv[2]||'http://127.0.0.1:8768');
  await page.evaluate(()=>{document.body.innerHTML='<div id="asset" style="width:720px;height:440px"></div>';});
  const finishesOnly=process.argv.includes('--finishes');
- for(const [tone,theme] of (finishesOnly?[['chrome','light'],['white','dark'],['blue','light']]:process.argv.includes('--blue')?[['blue','light']]:[['charcoal','light'],['white','dark'],['blue','light']])){
+ const shareMarksOnly=process.argv.includes('--share-marks');
+ for(const [tone,theme] of (shareMarksOnly?[['chrome','light'],['white','dark']]:finishesOnly?[['chrome','light'],['white','dark'],['blue','light']]:process.argv.includes('--blue')?[['blue','light']]:[['charcoal','light'],['white','dark'],['blue','light']])){
    const png=await page.evaluate(async ({theme,tone})=>{
      const {createMascot}=await import('./js/mascot-renderer.js');
      const m=createMascot(document.querySelector('#asset'),{theme,tone,mode:tone==='blue'?'cool':'still',still:true});
      const png=m.capture();m.dispose();return png;
    },{theme,tone});
    const filename=path.join(__dirname,'../assets/mascot-'+tone+'.png');
-   fs.writeFileSync(filename,Buffer.from(png.split(',')[1],'base64'));
+   if(!shareMarksOnly)fs.writeFileSync(filename,Buffer.from(png.split(',')[1],'base64'));
    if(finishesOnly||tone==='blue')continue;
    // Square identity is a tight transparent crop, keeping every plate and the bottom shadow.
    const mark=await page.evaluate(async png=>{
@@ -25,7 +26,7 @@ const fs=require('fs'),path=require('path');
       return c.toDataURL();
    },png);
    fs.writeFileSync(path.join(__dirname,'../assets/mascot-mark-'+tone+'.png'),Buffer.from(mark.split(',')[1],'base64'));
-   if(tone==='charcoal'){
+   if(tone==='charcoal'&&!shareMarksOnly){
      // Browser mark only. Platform-masked installation tiles are a separate asset.
      for(const [name,size,inset] of [['favicon-32.png',32,0]]){
        const icon=await page.evaluate(async ({mark,size,inset})=>{
@@ -39,5 +40,5 @@ const fs=require('fs'),path=require('path');
    }
  }
  await browser.close();
- console.log(process.argv.includes('--finishes')?'Generated chrome, white and blue stills; installation icons and identity marks unchanged.':process.argv.includes('--blue')?'Generated transparent completed-day blue still.':'Generated transparent mascot assets.');
+ console.log(shareMarksOnly?'Generated approved chrome and white share marks.':finishesOnly?'Generated chrome, white and blue stills; installation icons and identity marks unchanged.':process.argv.includes('--blue')?'Generated transparent completed-day blue still.':'Generated transparent mascot assets.');
 })().catch(e=>{console.error(e);process.exit(1);});

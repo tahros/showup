@@ -90,6 +90,12 @@ Existing 100-day celebrations are preserved.
 
 ## Regeneration and verification
 
+Share exports use `mascot-mark-chrome.png` for light content and
+`mascot-mark-white.png` for dark content. These are cropped from the approved
+renderer with `node tools/render-mascot-assets.cjs URL --share-marks`.
+The blue celebration uses `mascot-blue.png` (animated exports use the same renderer).
+Run `node tools/test-share-mascots.cjs` to verify both themes across export paths.
+
 No build step is introduced. For local browser checks run a localhost server
 from the repository on 8768. Install/use Playwright in an isolated tooling
 location; set NODE_PATH to it and CHROMIUM_PATH to a local Chromium executable.

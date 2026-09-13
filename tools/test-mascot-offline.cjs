@@ -10,7 +10,7 @@ const {chromium}=require('playwright'),assert=require('assert');
    const names=await caches.keys();const key='showup-'+APP_VERSION;if(!names.includes(key))throw new Error('Current release cache missing: '+key);const cache=await caches.open(key);
    return (await cache.keys()).map(r=>new URL(r.url).pathname);
  });
- for(const filename of ['js/mascot-renderer.js','vendor/three-r169.module.min.js','assets/mascot-white.png','assets/mascot-charcoal.png','assets/mascot-mark-white.png','assets/mascot-mark-charcoal.png'])
+ for(const filename of ['js/mascot-renderer.js','vendor/three-r169.module.min.js','assets/mascot-white.png','assets/mascot-charcoal.png','assets/mascot-mark-white.png','assets/mascot-mark-charcoal.png','assets/mascot-mark-chrome.png','assets/mascot-blue.png'])
    assert(keys.includes('/'+filename),filename+' must be precached');
  await context.setOffline(true);await page.reload();await page.waitForTimeout(600);
  await page.evaluate(()=>{

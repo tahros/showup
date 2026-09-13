@@ -504,7 +504,7 @@ function comparisonCard(card,kind){
   const data={surface:read('--surface','#fff'),ink:read('--chalk','#1c1c1c'),muted:read('--muted','#686868'),line:read('--line','#ededed'),
     accent:read('--accent','#2F4BD8'),name:firstName()||'',logo:null};
   try{const m=await import('./plate-gif.js');await m.loadExportFonts();}catch(_e){}
-  try{const logo=new Image();logo.src='assets/mascot-mark-'+(dark?'white':'charcoal')+'.png';await logo.decode();data.logo=logo;}catch(_e){}
+  try{const logo=new Image();logo.src='assets/mascot-mark-'+(dark?'white':'chrome')+'.png';await logo.decode();data.logo=logo;}catch(_e){}
   const [mm,dd]=dates[memory.index];
   const dateLabel=new Date(current,mm,dd).toLocaleDateString('en-US',{month:'long',day:'numeric'});
   showCard(()=>{

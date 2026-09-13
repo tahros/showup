@@ -75,7 +75,7 @@ async function sharePlateCard(){
     dark:document.documentElement.dataset.theme==='dark',colors:Object.fromEntries(Object.entries(PART_COLORS).map(([p,v])=>[p,read(v.slice(4,-1),'#888888')]))};
   try{
     const mascot=new Image();mascot.src='assets/mascot-blue.png';
-    const logo=new Image();logo.src='assets/mascot-mark-'+(data.dark?'white':'charcoal')+'.png';
+    const logo=new Image();logo.src='assets/mascot-mark-'+(data.dark?'white':'chrome')+'.png';
     const module=await import('./plate-gif.js');
     await Promise.all([mascot.decode(),logo.decode(),module.loadExportFonts()]);data.logo=logo;
     await showCard(()=>drawPlateShare(data,mascot),'showup-stacked-'+date,false);

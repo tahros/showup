@@ -53,10 +53,10 @@ function mascotMilestoneHTML(){
 }
 const mascotMarks={};
 function mascotReceiptMark(){
-  const tone=document.documentElement.dataset.theme==='dark'?'white':'charcoal';
+  const tone=document.documentElement.dataset.theme==='dark'?'white':'chrome';
   return mascotMarks[tone]?.complete&&mascotMarks[tone]?.naturalWidth?mascotMarks[tone]:null;
 }
-for(const tone of ['white','charcoal']){
+for(const tone of ['white','chrome']){
   const image=new Image();image.src='assets/mascot-mark-'+tone+'.png';mascotMarks[tone]=image;
 }
 (function mascotLifecycle(){
