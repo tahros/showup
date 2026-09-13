@@ -1,5 +1,11 @@
 # ShowUp — changelog
 
+## v4.5.31 (2026-09-13) — Light Matcha rest-day squares
+
+- Apply the approved A palette to light-content Rest headers: #B2C3A0 filled
+  squares and #A0B58D future-day outlines, with the existing green today ring.
+- Keep ordinary-day, trained-day, dark-theme, and active-workout colors.
+
 ## v4.5.30 (2026-09-13) — Current mascots in share exports
 
 - Use approved chrome logos on light share cards and updated white logos on dark
