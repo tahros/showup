@@ -3,6 +3,10 @@
    are adapted here. Three.js r169 is vendored for offline operation. */
 import * as THREE from '../vendor/three-r169.module.min.js';
 export function createMascot(stage, options={}) {
+  /* declared HERE, not beside paint(): the material is built at the top of this
+     function, so a `let` further down would be in its temporal dead zone and throw
+     on the first mascot the app draws. */
+  let faceMaterial=null;
     const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true, preserveDrawingBuffer:true,powerPreference:'low-power'});
     renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
     renderer.setClearColor(0x000000,0);
@@ -26,7 +30,13 @@ export function createMascot(stage, options={}) {
       vertexShader:'varying vec3 vN; void main(){vN=normalize(normalMatrix*normal);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
       fragmentShader:'uniform vec3 dark;uniform vec3 mid;uniform vec3 light;varying vec3 vN;void main(){float n=dot(normalize(vN),normalize(vec3(-0.35,0.75,0.6)));vec3 c=mix(dark,mid,smoothstep(-0.6,0.45,n));c=mix(c,light,0.65*smoothstep(0.35,1.0,n));gl_FragColor=vec4(c,1.0);\n#include <tonemapping_fragment>\n#include <colorspace_fragment>\n}'
     });
-    const white=new THREE.MeshBasicMaterial({color:0xffffff,side:THREE.DoubleSide});
+    /* v4.5.24: the face material is no longer permanently white -- paint() sets its
+       colour from the tone. On charcoal, white or blue the face is knocked OUT of a
+       dark body and white is maximum contrast; on chrome the body is light, so a
+       white face sat 12 brightness levels from its background and all but vanished.
+       One material for eyes, mouth and its end caps, so the whole expression moves
+       together and the PNG and the WebGL mascot cannot disagree. */
+    const white=new THREE.MeshBasicMaterial({color:0xffffff,side:THREE.DoubleSide});faceMaterial=white;
     const profile=[];
     profile.push(new THREE.Vector2(0,-1.3),new THREE.Vector2(2.15,-1.3));
     for(let i=1;i<=12;i++){const a=-Math.PI/2+i*Math.PI/24;profile.push(new THREE.Vector2(2.15+.35*Math.cos(a),-.95+.35*Math.sin(a)));}
@@ -208,6 +218,8 @@ export function createMascot(stage, options={}) {
        the WebGL mascot -- the one that actually shows once the renderer is ready --
        would still be charcoal, which is the two-copies-of-a-rule trap. The three
        stops keep the shader's dark/mid/light relationship, lifted to match the PNG. */
+    /* the face follows the body: dark on chrome, white on everything else */
+    if(faceMaterial)faceMaterial.color.set(!isBlue()&&tone==='chrome'&&theme!=='dark'?0x3a3a3a:0xffffff);
     const base=isBlue()?['#2033af','#3049dc','#5368ed']:tone==='white'?['#d7d7d7','#f1f1f1','#ffffff']:theme==='dark'?['#d7d7d7','#f1f1f1','#ffffff']:tone==='chrome'?tones.chrome:tones.soft;
     const target=mode==='active'?['#a92523','#d74236','#f46b52']:['#2749bd','#4779df','#78b3f4'];
     const pulse=mode==='active';

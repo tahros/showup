@@ -19,6 +19,14 @@ w.matchMedia = w.matchMedia || (q => ({ matches:/no-preference/.test(q), addEven
 w.navigator.vibrate = () => {}; w.scrollTo = () => {};
 w.HTMLCanvasElement.prototype.getContext = function(){ return new Proxy({}, { get: () => () => ({}) }); };
 for (const s of order) vm.runInContext(fs.readFileSync(path.join(dir, s), "utf8"), ctx, { filename: s });
+/* v4.5.24: PINNED DATE. This suite built its fixture from the real clock, so what
+   it asserted depended on the day it happened to run -- it passed all afternoon and
+   went red at midnight UTC on code that had not changed. A gate that reports a
+   different answer tomorrow is not a gate. Saturday 2026-09-12 is chosen deliberately:
+   these fixtures count back 1, 3 and 5 days and expect all three inside ONE
+   Monday-Sunday week, with 9 days back outside it. A midweek pin silently pushed
+   the oldest of them into the previous week and the counts came up short. */
+vm.runInContext(`todayISO='2026-09-12';checkDate=()=>false;`,ctx);
 w.document.dispatchEvent(new w.Event("DOMContentLoaded", { bubbles: true }));
 const run = c => vm.runInContext(c, ctx);
 

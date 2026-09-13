@@ -14,6 +14,14 @@ w.matchMedia = w.matchMedia || (() => ({ matches:false, addEventListener(){}, re
 w.navigator.vibrate = () => {}; w.scrollTo = () => {};
 w.HTMLCanvasElement.prototype.getContext = function(){ return new Proxy({}, { get: () => () => ({}) }); };
 for (const s of order) vm.runInContext(fs.readFileSync(path.join(dir, s), "utf8"), ctx, { filename: s });
+/* v4.5.24: PINNED DATE. This suite built its fixture from the real clock, so what
+   it asserted depended on the day it happened to run -- it passed all afternoon and
+   went red at midnight UTC on code that had not changed. A gate that reports a
+   different answer tomorrow is not a gate. Saturday 2026-09-12 is chosen deliberately:
+   these fixtures count back 1, 3 and 5 days and expect all three inside ONE
+   Monday-Sunday week, with 9 days back outside it. A midweek pin silently pushed
+   the oldest of them into the previous week and the counts came up short. */
+vm.runInContext(`todayISO='2026-09-12';checkDate=()=>false;`,ctx);
 w.document.dispatchEvent(new w.Event("DOMContentLoaded", { bubbles: true }));
 const run = c => vm.runInContext(c, ctx);
 
@@ -37,7 +45,7 @@ check("six visible groups, as specced", `VISIBLE_GROUPS.length`, 6);
 
 // ---- fixture: 3 days inside the window, 1 outside; Run present
 run(`(function(){
-  const D=n=>{const d=new Date();d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA');};
+  const D=n=>{const d=new Date(todayISO+'T00:00');d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA');};   /* v4.5.24: the fixture counts back from todayISO, not from the wall clock -- the app's coverage window is measured from todayISO, so a fixture on a different clock puts its days outside the window and the counts collapse */
   DB.days={}; DB.settings.canon={};
   DB.days[D(1)]={w:[
     {part:'Back',ex:'Deadlift',w:100,reps:[5,5,5],at:1},          /* primary: hamstrings → Legs */
@@ -67,7 +75,7 @@ check("a set outside the 7-day window is not counted",
 
 // ---- 2. rollup: lats vs upper-back both land in Back
 run(`(function(){
-  const D=n=>{const d=new Date();d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA');};
+  const D=n=>{const d=new Date(todayISO+'T00:00');d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA');};   /* v4.5.24: the fixture counts back from todayISO, not from the wall clock -- the app's coverage window is measured from todayISO, so a fixture on a different clock puts its days outside the window and the counts collapse */
   DB.days[D(2)]={w:[{part:'Back',ex:'Seated Cable Row',w:40,reps:[12],at:7}],upd:1};
   SEED=deriveAll(); render();})()`);
 check("lats and upper-back roll up into one visible Back",
@@ -221,7 +229,7 @@ run(`_mcOpen=null;`);
 // ---- 5. fallbacks: unknown non-Legs exercise credits its part's group;
 // unknown Legs exercise is stated as unassigned, never guessed into quads
 run(`(function(){
-  const D=n=>{const d=new Date();d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA');};
+  const D=n=>{const d=new Date(todayISO+'T00:00');d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA');};   /* v4.5.24: the fixture counts back from todayISO, not from the wall clock -- the app's coverage window is measured from todayISO, so a fixture on a different clock puts its days outside the window and the counts collapse */
   DB.days[D(2)].w.push({part:'Chest',ex:'My Weird Press',w:20,reps:[10],at:8});
   DB.days[D(2)].w.push({part:'Legs',ex:'Sled Push',w:60,reps:[5],at:9});
   SEED=deriveAll(); render();})()`);

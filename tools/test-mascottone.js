@@ -155,4 +155,70 @@ ok('...so a blue jump is a jump, not the cool routine',
      run(`/mascot-blue\\.png/.test(mascotHTML('jump','','blue'))&&/mascot-blue\\.png/.test(mascotHTML('cool'))`));
 }
 
+
+/* v4.5.24: the face. On charcoal, white and blue the features are knocked OUT of a
+   dark body, so white is maximum contrast; on chrome the body is light and a white
+   face measured 12 brightness levels from its background -- all but invisible at the
+   94px the Rest header actually draws. The asset carries a #3A3A3A face now, and the
+   WebGL material follows the tone, because those are two renderers of one decision. */
+{
+  const rsrc=fs.readFileSync(path.join(dir,'js/mascot-renderer.js'),'utf8');
+  ok('the WebGL face is no longer permanently white',
+     /faceMaterial\.color\.set\(/.test(rsrc));
+  ok('...it is dark only for chrome, and only in the light theme',
+     /tone===.chrome.&&theme!==.dark.\?0x3a3a3a:0xffffff/.test(rsrc));
+  ok('...blue still keeps its white face, whatever the tone says',
+     /!isBlue\(\)&&tone===.chrome./.test(rsrc));
+  ok('the face material is declared before it is assigned -- no dead zone',
+     (()=>{const decl=rsrc.indexOf('let faceMaterial'),use=rsrc.indexOf('faceMaterial=white');
+       return decl>-1&&use>-1&&decl<use;})(),
+     `declared at ${rsrc.indexOf('let faceMaterial')}, assigned at ${rsrc.indexOf('faceMaterial=white')}`);
+  /* [^)]* cannot cross the nested TubeGeometry(...) call, so the meshes are counted
+     by the material they are handed rather than by the shape of the constructor. */
+  ok('...and one material serves eyes, mouth and caps, so the face cannot half-change',
+     (rsrc.match(/,white\)/g)||[]).length>=3,
+     (rsrc.match(/,white\)/g)||[]).length+' meshes share it');
+}
+
+
+/* The asset, measured rather than trusted. A face is only a face if you can see it:
+   the white one sat 12 brightness levels from the chrome body, which is why it
+   disappeared at 94px. PNG decoding here is a tiny hand-rolled reader -- no image
+   library in this harness -- but the claim is worth the twenty lines. */
+{
+  const zlib=require('zlib');
+  const read=f=>{
+    const buf=fs.readFileSync(path.join(dir,f));let i=8,w=0,h=0,idat=[];
+    while(i<buf.length){const len=buf.readUInt32BE(i),type=buf.toString('ascii',i+4,i+8);
+      if(type==='IHDR'){w=buf.readUInt32BE(i+8);h=buf.readUInt32BE(i+12);}
+      if(type==='IDAT')idat.push(buf.slice(i+8,i+8+len));
+      i+=12+len;}
+    const raw=zlib.inflateSync(Buffer.concat(idat)),px=[],stride=w*4;
+    let prev=Buffer.alloc(stride);
+    for(let y=0,o=0;y<h;y++){const ft=raw[o++];const line=Buffer.from(raw.slice(o,o+stride));o+=stride;
+      for(let x=0;x<stride;x++){const a=x>=4?line[x-4]:0,b=prev[x],c=x>=4?prev[x-4]:0;
+        if(ft===1)line[x]=(line[x]+a)&255;else if(ft===2)line[x]=(line[x]+b)&255;
+        else if(ft===3)line[x]=(line[x]+((a+b)>>1))&255;
+        else if(ft===4){const p2=a+b-c,pa=Math.abs(p2-a),pb=Math.abs(p2-b),pc=Math.abs(p2-c);
+          line[x]=(line[x]+(pa<=pb&&pa<=pc?a:pb<=pc?b:c))&255;}}
+      px.push(line);prev=line;}
+    return {w,h,px};
+  };
+  const chrome=read('assets/mascot-chrome.png'), charcoal=read('assets/mascot-charcoal.png');
+  ok('(fixture) both mascot assets decode at the same size',
+     chrome.w===charcoal.w&&chrome.h===charcoal.h, chrome.w+'x'+chrome.h);
+  let faceSum=0,faceN=0,bodySum=0,bodyN=0;
+  for(let y=0;y<chrome.h;y++)for(let x=0;x<chrome.w;x++){
+    const o=x*4, cl=charcoal.px[y], ch=chrome.px[y];
+    if(ch[o+3]<200)continue;
+    const v=(ch[o]+ch[o+1]+ch[o+2])/3;
+    bodySum+=v;bodyN++;
+    if(cl[o+3]>200&&(cl[o]+cl[o+1]+cl[o+2])/3>200){faceSum+=v;faceN++;}
+  }
+  const face=Math.round(faceSum/Math.max(1,faceN)), body=Math.round(bodySum/Math.max(1,bodyN));
+  ok('(fixture) the face pixels were found', faceN>500, faceN+' pixels');
+  ok('the chrome face is DARK against its body, not a white ghost on light metal',
+     body-face>60, `face ${face} vs body ${body} (gap ${body-face})`);
+}
+
 process.exit(fails?1:0);

@@ -43,6 +43,14 @@ w.IntersectionObserver=class{
 };
 const scrollCardTo=y=>{ cardTop=y; ios.forEach(o=>o.check()); };
 for(const s of order) vm.runInContext(fs.readFileSync(path.join(dir,s),"utf8"),ctx,{filename:s});
+/* v4.5.24: PINNED DATE. This suite built its fixture from the real clock, so what
+   it asserted depended on the day it happened to run -- it passed all afternoon and
+   went red at midnight UTC on code that had not changed. A gate that reports a
+   different answer tomorrow is not a gate. Saturday 2026-09-12 is chosen deliberately:
+   these fixtures count back 1, 3 and 5 days and expect all three inside ONE
+   Monday-Sunday week, with 9 days back outside it. A midweek pin silently pushed
+   the oldest of them into the previous week and the counts came up short. */
+vm.runInContext(`todayISO='2026-09-12';checkDate=()=>false;`,ctx);
 w.document.dispatchEvent(new w.Event("DOMContentLoaded",{bubbles:true}));
 const run=c=>vm.runInContext(c,ctx);
 /* the week card's box is ours to move; everything else keeps jsdom's zeros */
@@ -71,7 +79,12 @@ const line=()=>run(`(function(){const el=document.querySelector('.restweek .rwli
 build("dow=>dow!==0");
 ok("the shape appears under the rest grid",
    run(`!!document.querySelector('.crcard.resting .restweek')`));
-ok("...and names the day, because the data names it", line()==="You rest on Sundays.", line());
+/* v4.5.24: the wording rotates by date (v4.5.14), so pinning one exact sentence
+   pinned the calendar too. The claim was never the phrasing -- it is that the
+   sentence NAMES the day the data found, and states it outright rather than
+   hedging. Both halves are asserted; the wording is free to vary. */
+ok("...and names the day, because the data names it",
+   /\bSundays\b/.test(line())&&!/most on|evenly|leans?|likeliest/.test(line()), line());
 ok("...with seven columns, Monday first",
    run(`[...document.querySelectorAll('.restweek .rwbar b')].map(b=>b.textContent).join('')`)==="MTWTFSS",
    run(`[...document.querySelectorAll('.restweek .rwbar b')].map(b=>b.textContent).join('')`));
