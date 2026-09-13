@@ -166,5 +166,33 @@ run(String.raw`localStorage.removeItem(PW_MODE_KEY);pwOpen('2026-09-11');pwDay('
        !/notes:chk\.notes/.test(src));
   }
 
+
+  /* v4.5.27: the day's set count in the preview heading. Counted from the parsed
+     rows, warm-ups included (v3.3.280: a plan holds the session as written), and
+     asserted against a fixture whose answer is known by hand. */
+  run(String.raw`(function(){const s=pw();
+    s.candidate={type:'write',days:{
+      '2026-09-14':{rows:pwRead('Dumbbell Shoulder Press\n  35 lb × 10 (warm-up)\n  60 lb × 6 6 6 6\nLateral Raise\n  45 lb × 8 8 8'),notes:[]},
+      '2026-09-15':{rows:pwRead('Deadlift\n  215 lb × 8'),notes:[]}}};
+    s.step='candidate';pwRender();})()`);
+  ok('(fixture) the counter reads 1 warm-up + 4 + 3 = 8 for the first day',
+     run(String.raw`pwSetCount(pw().candidate.days['2026-09-14'].rows)===8`));
+  ok('...and warm-ups are counted, because a plan holds the session as written',
+     run(String.raw`pwSetCount(pwRead('Squat\n  95 lb × 5 (warm-up)\n  185 lb × 5 5'))===3`));
+  ok('...a single set says "set", not "sets"',
+     run(String.raw`/1 set(?!s)/.test(document.getElementById('view').innerHTML)`));
+  ok('the count appears in the day heading, not in the exercise list',
+     run(String.raw`(function(){const h=document.querySelector('.pw-card-heading .pw-setcount');
+       return !!h&&/^\d+ sets?$/.test(h.textContent.trim());})()`),
+     run(String.raw`document.querySelector('.pw-card-heading .pw-setcount')?.textContent`));
+  ok('every previewed day carries its own count',
+     run(String.raw`document.querySelectorAll('.pw-card .pw-setcount').length===2`));
+  ok('...and they differ, so it is not one number repeated',
+     run(String.raw`(function(){const t=[...document.querySelectorAll('.pw-setcount')].map(e=>e.textContent.trim());
+       return t[0]==='8 sets'&&t[1]==='1 set';})()`),
+     run(String.raw`[...document.querySelectorAll('.pw-setcount')].map(e=>e.textContent.trim()).join(' | ')`));
+  ok('a day the parser could not read shows no invented count',
+     run(String.raw`pwSetCount([{kind:'note',raw:'something unreadable'}])===0`));
+
   console.log(`${checks-fails}/${checks} planner assertions passed`);dom.window.close();process.exit(fails?1:0);
 })().catch(e=>{console.error(e);process.exit(1)});

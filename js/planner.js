@@ -27,6 +27,15 @@ function pwText(rows){
 function pwCounts(rows){let total=0,warm=0;for(const r of rows||[])for(const l of r.lines||[]){total+=l.reps.length;if(/warm/i.test((l.qual||'')+(l.tag||'')))warm+=l.reps.length;}return {total,warm,work:total-warm};}
 function pwExercises(rows){return (rows||[]).filter(r=>r.kind==='ex'&&r.ex);}
 function pwParts(rows){return [...new Set(pwExercises(rows).map(r=>homePartOf(r.ex)).filter(Boolean))];}
+/* v4.5.27: a day's set count for the preview heading. One rep entry is one set, and
+   WARM-UPS COUNT -- v3.3.280 settled that a plan holds the session as written and a
+   paste saying "6 sets" must not display 4. Rows the parser could not read carry no
+   lines and contribute nothing rather than guessing. */
+function pwSetCount(rows){
+  let n=0;
+  for(const r of pwExercises(rows)) for(const line of (r.lines||[])) n+=(line.reps||[]).length;
+  return n;
+}
 function pw(){
   const key=pwKey();
   if(pwOwner!==key){
@@ -152,7 +161,10 @@ function pwRender(){
        reps up Y - a push" repeated per card, burying the four exercises they were
        meant to explain. The notes are still kept, and still reachable under Checks
        on the day itself, where they belong to one day and can be read on purpose. */
-    for(const [d,b]of Object.entries(c.days))html+=`<div class="card pw-card"><div class="pw-card-heading"><strong>${hesc(pwDate(d))}</strong></div>${pwRowsHTML(b.rows)}</div>`;
+    for(const [d,b]of Object.entries(c.days)){
+      const n=pwSetCount(b.rows);
+      html+=`<div class="card pw-card"><div class="pw-card-heading"><strong>${hesc(pwDate(d))}</strong>${n?`<span class="pw-setcount">${n} ${n===1?'set':'sets'}</span>`:''}</div>${pwRowsHTML(b.rows)}</div>`;
+    }
     footer=pwButton(c.type==='paste'?'paste-back':'edit','Back')+(c.type==='paste'&&c.index===undefined?pwButton('apply-add','Add'):'')+pwButton('apply',c.type==='paste'?(c.index!==undefined?'Keep edit':'Replace'):'Use draft','primary');
   }else if(day){
 /* v4.1.1: EDIT THE WHOLE DAY, NOT ONE ROW AT A TIME. The pencil on a row

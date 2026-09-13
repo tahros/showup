@@ -22,6 +22,11 @@ p.pw-small{margin:10px 0 16px}.pw-workspace p:not(.pw-small){font:400 14px/1.6 v
 .pw-actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:16px}.pw-actions>.primary{flex:1}
 .pw-workspace .pw-card-heading{margin-bottom:16px}.pw-card-heading strong{font:600 15px/1.45 var(--body)}
 .pw-card-heading .pw-small{font-size:10px;text-align:right}
+/* v4.5.27: the day's set count, top right. The heading is already a flex row with
+   space-between, so it needs no layout -- only the quieter voice the rest of the
+   card's chrome uses, so it reads as a fact about the day rather than a heading of
+   its own. flex:none keeps it from being squeezed by a long date. */
+.pw-card-heading .pw-setcount{flex:none;font:400 11px/1.45 var(--mono);color:var(--muted);letter-spacing:.01em}
 .pw-days{display:flex;gap:8px;overflow-x:auto;padding:0 0 12px;margin:0 0 16px;scrollbar-width:thin}.pw-days .pw-btn{flex-shrink:0;font:500 11px var(--mono)}
 .pw-month{display:grid;grid-template-columns:44px 1fr 44px;align-items:center;text-align:center;margin-bottom:16px}.pw-month strong{font-size:16px}
 .pw-calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}.pw-calendar .pw-btn{padding:0;min-width:0;min-height:40px;border:0;background:transparent;font:500 12px var(--mono);border-radius:12px}.pw-calendar .selected{background:var(--accent);color:#fff}.pw-calendar .pw-outside:not(.selected){color:var(--faint)}/* v4.0.4: A DATE THAT HAS A PLAN WEARS A RING. v4.0.3 hung a dot under the
