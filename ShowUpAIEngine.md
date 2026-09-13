@@ -24,6 +24,44 @@ correctness check; this is the quality bar.
 
 ---
 
+## The loop, as drawn
+
+```
+APP · AI layer     ┌─────────── LEARN → PLAN ───────────┐   (hidden)
+                   │  goals · preferences · results     │
+                   ▼            ▲         ▲          ▲
+APP · on screen  YOUR PLAN ↔ PLAN FEEDBACK │  LOG ──► WORKOUT FEEDBACK
+                                │          └───┘
+GYM · off screen                └────────► WORKOUT ↕ LOG
+```
+
+Three things this settles, and one it still leaves open.
+
+**The AI layer is one thing, and it is hidden.** LEARN and PLAN are not two steps the
+user waits through; they are the same background pass. Nothing on screen should ever
+say "learning". What the user sees is a plan that got better and one line saying why.
+
+**Three separate signals reach it, and they are not interchangeable.**
+*Plan feedback* is intent before the fact — edits, swaps, rejections. *Log* is
+evidence, and it needs no question asked: planning 165×8,8,8,8 and logging 8,8,6,5
+is feedback with zero friction, which is why the arrow from LOG goes straight up.
+*Workout feedback* is explanation after the fact, and it is the only one that is
+optional. Collapsing these into one "feedback" input is the mistake that lets one bad
+Tuesday rewrite a program.
+
+**Plan feedback is a loop, not a step.** YOUR PLAN ↔ PLAN FEEDBACK runs both ways:
+edit, see the revised plan, edit again, then accept — or reject outright. Reject is a
+signal the spec does not currently model; a rejected plan says something a hundred
+small edits do not.
+
+**Still missing: LOG → PLAN inside the week.** Every arrow out of LOG goes up to the
+AI layer for *next* time. If Tuesday is skipped, Wednesday through Saturday should
+reflow now — back moves, the second chest day holds. Without it a plan is written on
+Sunday and decays all week, and the most common real-world event (a missed day) is
+handled only by hindsight. Added as S16b.
+
+---
+
 ## Standing rules
 
 Decided before Session 1, and not re-litigated without writing down why.
@@ -86,7 +124,8 @@ destroying the first, and 981 days of history are byte-identical after.
 
 **S3 · Planned vs actual, on screen**
 Ships: during training, planned and logged side by side; extra sets marked as
-unplanned. Builds: link on log, preserve through delete/undo.
+unplanned. Builds: link on log, preserve through delete/undo. **The deviation itself
+is the signal** — LOG feeds the AI layer directly, with no question asked.
 Done when: following, changing and missing a target are three distinguishable states
 in the record — the distinction the whole loop rests on.
 
@@ -97,8 +136,10 @@ Ships: nothing new visible. Builds: every edit (swap, remove, set count, load)
 recorded as a before/after event with optional reason and explicit scope.
 Done when: an edit is replayable from the event alone.
 
-**S5 · "Just this workout" / "Remember this"**
-Ships: the scope prompt, only where it changes a future decision.
+**S5 · "Just this workout" / "Remember this" · and reject**
+Ships: the scope prompt, only where it changes a future decision; and an explicit
+**reject** on a proposed plan — a rejection says something a hundred small edits do
+not, and the spec does not yet model it.
 Builds: scoped write — one-off vs durable correction. Durable corrections are the
 oldest unbuilt item in the project (rep-range corrections from the day-963 handoff);
 this is where they land.
@@ -151,6 +192,11 @@ Done when: the finish-line test passes.
 
 ### Stage 6 — Dependability
 
+**S16b · The week reflows**
+Ships: a missed or moved day re-flows the rest of the week — back moves, the second
+chest day holds. Builds: LOG → PLAN inside the week, the arrow the diagram does not
+have yet. Without it the plan decays from Monday.
+
 **S17 · States**: generating, retry, unavailable. No draft lost, no logging blocked.
 **S18 · Evaluation harness**: historical replay, invalid output, latency, cost.
 **S19 · Rollout**: feature flag, compare against the existing planner.
@@ -158,7 +204,7 @@ Done when: the finish-line test passes.
 places one decision can be recorded differently — the failure this codebase names
 most often.
 
-**Estimate: 15–25 sessions.** Every estimate in this project has run about a third
+**Estimate: 16–26 sessions** (S16b added from the loop diagram). Every estimate in this project has run about a third
 short. S11, S13 and S16 are the likely overruns.
 
 ---
