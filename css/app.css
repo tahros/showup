@@ -1115,9 +1115,11 @@
      (0,3,1) and the live strip keeps the light greys instead of its dark
      marks. Third cascade fault in this corner; caught by resolved style
      before it shipped, which is the whole reason those assertions exist. */
-  :root[data-theme="light"] header:not(.live) .h-week .hwd:not(.on){background:#DADADA}
+  /* Stronger neutral marks at header size: filled days remain more prominent
+     than future outlines, with trained days and the today ring unchanged. */
+  :root[data-theme="light"] header:not(.live) .h-week .hwd:not(.on){background:#D4D4D4}
   :root[data-theme="light"] header:not(.live) .h-week .hwd.ahead{background:none;
-    box-shadow:inset 0 0 0 1.2px #E2E2E2}
+    box-shadow:inset 0 0 0 1.2px #DDDDDD}
   /* v4.1.9 REMOVES what v4.1.8 added here. Today ALREADY had its ring -- an
      `outline` with a 2px offset (below), whose colour hwpulse breathes. I gave
      it a second one as an inset shadow and set background:none, so an open

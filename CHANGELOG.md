@@ -1,5 +1,11 @@
 # ShowUp — changelog
 
+## v4.5.29 (2026-09-13) — Clearer header streak squares
+
+- Apply the approved subtle midpoint gray to light-theme header squares:
+  #D4D4D4 for filled days and #DDDDDD for future-day outlines.
+- Preserve trained-day colors, today's ring, and active-workout styling.
+
 ## v4.5.28 (2026-09-13) — Approved mascot finishes
 
 - Light theme: preserve the silver base with ultra-soft moving studio reflections
