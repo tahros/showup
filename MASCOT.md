@@ -35,6 +35,20 @@ manifest start URL, scope, or installation identity. Older icon files are retain
 
 ## States
 
+### v4.5.28 approved finishes
+
+- Light chrome: original silver stops, reflection mix 0.03 (final B), #363636 face.
+- Dark white: #bfc2c7 / #e6e8eb / #ffffff body shading (A), original dark face;
+  matte, no studio reflection. This is body shading, not a heavier ground shadow.
+- Blue: original blue stops, non-metallic clearcoat mixed at 0.08 (B), white face.
+- Physical studio reflections are layered over the existing base shader. The
+  environment rotates on the existing animation/export clock; no CSS overlay,
+  glow or new motion. Still mode freezes the reflection. Active red is unchanged.
+- PMREM is built once per reflective renderer, never every frame; its temporary
+  scene/generator and retained texture/material are disposed with their owner.
+- Regenerate only in-app stills with `node tools/render-mascot-assets.cjs URL --finishes`.
+  Installation icons and small brand identity marks remain separate and unchanged.
+
 Hello plays once. Active bounces continuously with a 3.2-second red pulse.
 Completion uses the original 2.7-second jump. The 25-day milestone uses the
 original dance and a 5×5 sequence of attendance boxes. Completed Today jumps

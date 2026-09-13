@@ -40,28 +40,8 @@
 .su-milestone-grid i{aspect-ratio:1;border-radius:5px;background:var(--accent);animation:su-box-in .36s var(--settle) both}
 .su-milestone-note{font:400 12px/1.5 var(--mono);color:var(--muted);margin:0 0 12px}
 #dayDone .ddyou::after{display:none}
-/* v4.5.16: THE HIGHLIGHT ON CHROME. The asset already carries the material -- the
-   bright crown, the dark horizon through the handle, the bounce underneath. This
-   layer is the LIGHT on it: one soft highlight that drifts and swells, the way a
-   reflection shifts when you tilt polished metal. It is masked by the mascot's own silhouette,
-   so nothing bleeds past the character onto the card.
-   Deliberately not a sweep: a band that crosses is an EVENT, and this sits on the
-   rest surface, where nothing should arrive or leave. Breathing has no beginning.
-   Hidden once the WebGL renderer takes over -- that path shades the geometry itself,
-   and two highlights on one mascot is two rules and one lie. */
-.su-mascot[data-mascot-tone="chrome"]::after{
-  content:'';position:absolute;inset:0;pointer-events:none;
-  background:radial-gradient(58% 62% at 32% 28%,rgba(255,255,255,.92),rgba(255,255,255,0) 70%);
-  -webkit-mask:url(../assets/mascot-chrome.png) center/contain no-repeat;
-          mask:url(../assets/mascot-chrome.png) center/contain no-repeat;
-  opacity:.42;animation:su-satin 4300ms ease-in-out infinite}
-.su-mascot.su-ready[data-mascot-tone="chrome"]::after{display:none}
-@keyframes su-satin{
-  0%,100%{opacity:.40;transform:translate(-2%,-1.5%) scale(1)}
-  50%    {opacity:.76;transform:translate(2%,1.5%)   scale(1.06)}}
-:root[data-mascot-motion="still"] .su-mascot[data-mascot-tone="chrome"]::after,
-:root[data-mascot-motion="off"] .su-mascot[data-mascot-tone="chrome"]::after{animation:none}
-@media(prefers-reduced-motion:reduce){.su-mascot[data-mascot-tone="chrome"]::after{animation:none}}
+/* Reflections belong to the 3D material. Static/reduced-motion PNGs are sampled
+   from that same material, with no second CSS highlight or surrounding glow. */
 :root[data-mascot-motion="off"] .su-mascot{display:none}
 :root[data-mascot-motion="still"] .su-milestone-grid i{animation:none}
 @keyframes su-box-in{from{opacity:0;transform:translateY(4px) scale(.82)}to{opacity:1;transform:none}}

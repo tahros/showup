@@ -131,23 +131,16 @@ ok('...so a blue jump is a jump, not the cool routine',
     ok('...and even its darkest stop is well clear of the old charcoal',
        stops.length===3&&stops[0]>0x44, stops[0]&&stops[0].toString(16));
   }
-  ok('chrome carries a masked satin highlight',
-     /\.su-mascot\[data-mascot-tone="chrome"\]::after\{[^}]*mask:url\(\.\.\/assets\/mascot-chrome\.png\)/.test(css.replace(/\s+/g,m=>m.includes('\n')?'\n':' ').replace(/\n\s*/g,'')));
-  {/* the flattened text has no space after @keyframes, and [^}]* cannot cross the
-      inner stop braces -- match the stops themselves instead of the block. */
-   const flat=css.replace(/\s+/g,'');
-   const body=(flat.match(/@keyframessu-satin\{(.*?)\}\}/)||[])[1]||'';
-   ok('...it BREATHES rather than sweeping -- a rest-and-return, not a crossing',
-      /0%,100%\{/.test(body)&&/50%\{/.test(body)&&/opacity:/.test(body),body||'(no su-satin keyframes)');
-   ok('...and it never travels far enough to read as a band crossing the card',
-      (()=>{const moves=[...body.matchAll(/translate\((-?[\d.]+)%/g)].map(m=>Math.abs(+m[1]));
-        return moves.length>0&&Math.max(...moves)<=10;})(),
-      [...body.matchAll(/translate\((-?[\d.]+)%/g)].map(m=>m[1]+'%').join(' '));}
-  ok('...and it steps aside once the WebGL renderer is ready',
-     /\.su-mascot\.su-ready\[data-mascot-tone="chrome"\]::after\{display:none\}/.test(css.replace(/\s+/g,'')));
-  ok('...it holds still for reduced motion and for the still/off motion settings',
-     /prefers-reduced-motion:reduce\)\{\.su-mascot\[data-mascot-tone="chrome"\]::after\{animation:none\}/.test(css.replace(/\s+/g,''))&&
-     /data-mascot-motion="still"\]\.su-mascot\[data-mascot-tone="chrome"\]::after/.test(css.replace(/\s+/g,'')));
+  ok('no second CSS highlight can overpower the selected ultra-soft reflection',
+     !/su-satin|mask:url\(\.\.\/assets\/mascot-chrome/.test(css));
+  ok('chrome and blue use actual reflected studio lighting over their existing base',
+     /MeshPhysicalMaterial/.test(rsrc)&&/PMREMGenerator/.test(rsrc)&&/mix\(silverBase,outgoingLight,reflectionMix\)/.test(rsrc));
+  ok('the final B reflection strengths are retained: chrome .03, blue .08',
+     /reflectionMix.value=blue\?\.08:\.03/.test(rsrc));
+  ok('the reflection clock freezes for still/reduced motion',
+     /const time=still\?0:t/.test(rsrc)&&/envMapRotation.set/.test(rsrc));
+  ok('white keeps the approved A shading, without a reflective material',
+     /white:\['#bfc2c7','#e6e8eb','#ffffff'\]/.test(rsrc)&&/!whiteBody&&tone==='chrome'\?'chrome':'matte'/.test(rsrc));
   ok('the dark theme is untouched -- still white, no chrome',
      run(`(function(){document.documentElement.dataset.theme='dark';const h=mascotHTML('hello');
        document.documentElement.dataset.theme='light';return /mascot-white\\.png/.test(h)&&!/chrome/.test(h);})()`));
@@ -165,19 +158,17 @@ ok('...so a blue jump is a jump, not the cool routine',
   const rsrc=fs.readFileSync(path.join(dir,'js/mascot-renderer.js'),'utf8');
   ok('the WebGL face is no longer permanently white',
      /faceMaterial\.color\.set\(/.test(rsrc));
-  ok('...it is dark only for chrome, and only in the light theme',
-     /tone===.chrome.&&theme!==.dark.\?0x3a3a3a:0xffffff/.test(rsrc));
+  ok('...chrome has the approved #363636 expression; white retains its dark face',
+     /whiteBody\?0x303030:!pulse&&tone==='chrome'\?0x363636:0xffffff/.test(rsrc));
   ok('...blue still keeps its white face, whatever the tone says',
-     /!isBlue\(\)&&tone===.chrome./.test(rsrc));
-  ok('the face material is declared before it is assigned -- no dead zone',
-     (()=>{const decl=rsrc.indexOf('let faceMaterial'),use=rsrc.indexOf('faceMaterial=white');
-       return decl>-1&&use>-1&&decl<use;})(),
-     `declared at ${rsrc.indexOf('let faceMaterial')}, assigned at ${rsrc.indexOf('faceMaterial=white')}`);
+     /faceMaterial.color.set\(isBlue\(\)\?0xffffff/.test(rsrc));
+  ok('the face material exists before any face geometry uses it',
+     rsrc.indexOf('const faceMaterial=')<rsrc.indexOf('new THREE.Mesh(geometry,faceMaterial)'));
   /* [^)]* cannot cross the nested TubeGeometry(...) call, so the meshes are counted
      by the material they are handed rather than by the shape of the constructor. */
   ok('...and one material serves eyes, mouth and caps, so the face cannot half-change',
-     (rsrc.match(/,white\)/g)||[]).length>=3,
-     (rsrc.match(/,white\)/g)||[]).length+' meshes share it');
+     /new THREE.Mesh\(geometry,faceMaterial\)/.test(rsrc)&&/stroke\(mouth,\.045,faceMaterial\)/.test(rsrc)&&
+     /SphereGeometry\(radius,12,8\),ink\)/.test(rsrc));
 }
 
 

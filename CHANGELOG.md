@@ -1,5 +1,16 @@
 # ShowUp — changelog
 
+## v4.5.28 (2026-09-13) — Approved mascot finishes
+
+- Light theme: preserve the silver base with ultra-soft moving studio reflections
+  (B) and #363636 eyes/smile. Dark theme: matte white with very-light body shading
+  (A) and its dark face. Blue: subtle non-metallic moving sheen (B), white face.
+- Keep mascot geometry, size, jump/idle timing, active-workout red pulse, and
+  contact shadows unchanged. Remove the old overlaid CSS chrome highlight.
+- Sample the three transparent PNG fallbacks from the same renderer; keep
+  reduced motion, offline use, exports, and resource disposal supported.
+- Preserve the newer v4.5.26–27 planner changes, profile fields, and workout data.
+
 ## v4.5.9 (2026-09-12) — Honest full-day stacks and aligned dates
 
 - Matched the history chart's x- and y-axis labels at the same compact size and

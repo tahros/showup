@@ -3,10 +3,6 @@
    are adapted here. Three.js r169 is vendored for offline operation. */
 import * as THREE from '../vendor/three-r169.module.min.js';
 export function createMascot(stage, options={}) {
-  /* declared HERE, not beside paint(): the material is built at the top of this
-     function, so a `let` further down would be in its temporal dead zone and throw
-     on the first mascot the app draws. */
-  let faceMaterial=null;
     const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true, preserveDrawingBuffer:true,powerPreference:'low-power'});
     renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
     renderer.setClearColor(0x000000,0);
@@ -23,20 +19,62 @@ export function createMascot(stage, options={}) {
       original:['#090909','#111111','#1b1b1b'],
       soft:['#2c2c2c','#363636','#404040'],
       light:['#484848','#525252','#5c5c5c'],
-      chrome:['#6a6a6a','#a2a2a2','#e6e6e6']   /* v4.5.16: chrome -- a WIDER dark-to-light spread than soft on purpose; that gap is what reads as polished rather than painted */
+      chrome:['#6a6a6a','#a2a2a2','#e6e6e6'],
+      white:['#bfc2c7','#e6e8eb','#ffffff'] // Approved very-light body shading (A).
     };
     const charcoal=new THREE.ShaderMaterial({
-      uniforms:{dark:{value:new THREE.Color(tones.soft[0])},mid:{value:new THREE.Color(tones.soft[1])},light:{value:new THREE.Color(tones.soft[2])}},
+      uniforms:{dark:{value:new THREE.Color(tones.soft[0])},mid:{value:new THREE.Color(tones.soft[1])},light:{value:new THREE.Color(tones.soft[2])},lightDirection:{value:new THREE.Vector3(-.35,.75,.6)}},
       vertexShader:'varying vec3 vN; void main(){vN=normalize(normalMatrix*normal);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
-      fragmentShader:'uniform vec3 dark;uniform vec3 mid;uniform vec3 light;varying vec3 vN;void main(){float n=dot(normalize(vN),normalize(vec3(-0.35,0.75,0.6)));vec3 c=mix(dark,mid,smoothstep(-0.6,0.45,n));c=mix(c,light,0.65*smoothstep(0.35,1.0,n));gl_FragColor=vec4(c,1.0);\n#include <tonemapping_fragment>\n#include <colorspace_fragment>\n}'
+      fragmentShader:'uniform vec3 dark;uniform vec3 mid;uniform vec3 light;uniform vec3 lightDirection;varying vec3 vN;void main(){float n=dot(normalize(vN),normalize(lightDirection));vec3 c=mix(dark,mid,smoothstep(-0.6,0.45,n));c=mix(c,light,0.65*smoothstep(0.35,1.0,n));gl_FragColor=vec4(c,1.0);\n#include <tonemapping_fragment>\n#include <colorspace_fragment>\n}'
     });
-    /* v4.5.24: the face material is no longer permanently white -- paint() sets its
-       colour from the tone. On charcoal, white or blue the face is knocked OUT of a
-       dark body and white is maximum contrast; on chrome the body is light, so a
-       white face sat 12 brightness levels from its background and all but vanished.
-       One material for eyes, mouth and its end caps, so the whole expression moves
-       together and the PNG and the WebGL mascot cannot disagree. */
-    const white=new THREE.MeshBasicMaterial({color:0xffffff,side:THREE.DoubleSide});faceMaterial=white;
+    // Face and structural strokes are separate: chrome's face is #363636,
+    // without darkening the white seams. Blue keeps its white expression.
+    const white=new THREE.MeshBasicMaterial({color:0xffffff,side:THREE.DoubleSide});
+    const faceMaterial=new THREE.MeshBasicMaterial({color:0xffffff,side:THREE.DoubleSide});
+    const bodyMeshes=[];
+    let reflectionMaterial=null,environment=null;
+    const reflectionUniforms={silverDark:charcoal.uniforms.dark,silverMid:charcoal.uniforms.mid,silverLight:charcoal.uniforms.light,reflectionMix:{value:0}};
+    function reflectiveSurface(){
+      if(reflectionMaterial)return reflectionMaterial;
+      // Local studio softboxes, baked once per renderer. Only the reflection
+      // rotates, not the background or a painted highlight on the mascot.
+      const studio=new THREE.Scene();studio.background=new THREE.Color('#b9b9b9');
+      function softbox(w,h,x,y,z,power){
+        const box=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({color:new THREE.Color().setScalar(power),side:THREE.DoubleSide}));
+        box.position.set(x,y,z);box.lookAt(0,0,0);studio.add(box);
+      }
+      softbox(8,13,-6,4,7,1.8);softbox(6,12,6,2,5,2.1);
+      softbox(12,7,0,9,-2,1.7);softbox(8,2,0,-5,5,1.2);
+      const pmrem=new THREE.PMREMGenerator(renderer);
+      try{environment=pmrem.fromScene(studio,0,.1,100);}
+      finally{pmrem.dispose();studio.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});}
+      reflectionMaterial=new THREE.MeshPhysicalMaterial({color:0xd5d5d5,metalness:1,roughness:.46,envMap:environment.texture,envMapIntensity:1.05});
+      reflectionMaterial.onBeforeCompile=shader=>{
+        Object.assign(shader.uniforms,reflectionUniforms);
+        shader.fragmentShader='uniform vec3 silverDark;uniform vec3 silverMid;uniform vec3 silverLight;uniform float reflectionMix;\n'+shader.fragmentShader;
+        shader.fragmentShader=shader.fragmentShader.replace('#include <opaque_fragment>',
+          'float silverN=dot(normalize(vNormal),normalize(vec3(-0.35,0.75,0.6)));vec3 silverBase=mix(silverDark,silverMid,smoothstep(-0.6,0.45,silverN));silverBase=mix(silverBase,silverLight,0.65*smoothstep(0.35,1.0,silverN));outgoingLight=mix(silverBase,outgoingLight,reflectionMix);\n#include <opaque_fragment>');
+      };
+      return reflectionMaterial;
+    }
+    let surfaceKind='matte';
+    function setSurface(kind,t){
+      if(kind==='matte'){
+        if(surfaceKind!==kind)bodyMeshes.forEach(mesh=>{mesh.material=charcoal;});
+      }else{
+        const material=reflectiveSurface(),blue=kind==='blue';
+        if(surfaceKind!==kind){
+          material.color.set(blue?0x3049dc:0xd5d5d5);material.metalness=blue?0:1;
+          material.clearcoat=blue?1:0;material.clearcoatRoughness=.35;material.needsUpdate=true;
+          bodyMeshes.forEach(mesh=>{mesh.material=material;});
+        }
+        // Final B choices: 3% silver reflection and 8% blue coating.
+        reflectionUniforms.reflectionMix.value=blue?.08:.03;
+        const time=still?0:t;
+        material.envMapRotation.set(.10*Math.sin(time/2100),time/3400,.10*Math.sin(time/2700));
+      }
+      surfaceKind=kind;
+    }
     const profile=[];
     profile.push(new THREE.Vector2(0,-1.3),new THREE.Vector2(2.15,-1.3));
     for(let i=1;i<=12;i++){const a=-Math.PI/2+i*Math.PI/24;profile.push(new THREE.Vector2(2.15+.35*Math.cos(a),-.95+.35*Math.sin(a)));}
@@ -46,26 +84,26 @@ export function createMascot(stage, options={}) {
     const weightGeometry=new THREE.LatheGeometry(profile,96);
     // Approved B: each plate is 2.08 wide by 5 tall; preserve the 3.80 handle gap.
     for(const x of [-2.94,2.94]){
-      const weight=new THREE.Mesh(weightGeometry,charcoal);weight.rotation.z=Math.PI/2;weight.position.x=x;weight.scale.set(1,.8,1);weight.castShadow=true;body.add(weight);
+      const weight=new THREE.Mesh(weightGeometry,charcoal);weight.rotation.z=Math.PI/2;weight.position.x=x;weight.scale.set(1,.8,1);weight.castShadow=true;body.add(weight);bodyMeshes.push(weight);
     }
     // A gently flared handle bridges the heads without seams or stacked plates.
     const handleProfile=[new THREE.Vector2(0,-2.01),new THREE.Vector2(1.24,-2.01),new THREE.Vector2(1.18,-1.87),new THREE.Vector2(1.12,-1.67),new THREE.Vector2(1.12,1.67),new THREE.Vector2(1.18,1.87),new THREE.Vector2(1.24,2.01),new THREE.Vector2(0,2.01)];
-    const handle=new THREE.Mesh(new THREE.LatheGeometry(handleProfile,96),charcoal);handle.rotation.z=Math.PI/2;handle.castShadow=true;body.add(handle);
+    const handle=new THREE.Mesh(new THREE.LatheGeometry(handleProfile,96),charcoal);handle.rotation.z=Math.PI/2;handle.castShadow=true;body.add(handle);bodyMeshes.push(handle);
     // White face geometry is conformed to the cylinder, so it turns with the model.
     function facePatch(cx,cy,rx,ry){
       const geometry=new THREE.CircleGeometry(1,64);const p=geometry.attributes.position;
       const base=[];
       for(let i=0;i<p.count;i++){const x=p.getX(i)*rx,y=p.getY(i)*ry;base.push([x,y]);p.setXYZ(i,x,y,Math.sqrt(1.12*1.12-(y+cy)*(y+cy))+.035);}
-      geometry.computeVertexNormals();const eye=new THREE.Mesh(geometry,white);eye.userData.base=base;eye.position.set(cx,cy,0);body.add(eye);return eye;
+      geometry.computeVertexNormals();const eye=new THREE.Mesh(geometry,faceMaterial);eye.userData.base=base;eye.position.set(cx,cy,0);body.add(eye);return eye;
     }
     const eyes=[facePatch(-.49,.27,.22,.35),facePatch(.49,.27,.22,.35)];
-    function stroke(points,radius=.043){
-      const curve=new THREE.CatmullRomCurve3(points);const mesh=new THREE.Mesh(new THREE.TubeGeometry(curve,64,radius,8,false),white);body.add(mesh);
-      for(const endpoint of [points[0],points[points.length-1]]){const cap=new THREE.Mesh(new THREE.SphereGeometry(radius,12,8),white);cap.position.copy(endpoint);body.add(cap);}
+    function stroke(points,radius=.043,ink=white){
+      const curve=new THREE.CatmullRomCurve3(points);const mesh=new THREE.Mesh(new THREE.TubeGeometry(curve,64,radius,8,false),ink);body.add(mesh);
+      for(const endpoint of [points[0],points[points.length-1]]){const cap=new THREE.Mesh(new THREE.SphereGeometry(radius,12,8),ink);cap.position.copy(endpoint);body.add(cap);}
     }
     const mouth=[];
     for(let i=0;i<=32;i++){const x=-.44+i*.88/32,y=-.40-.20*(1-Math.pow(x/.44,2));mouth.push(new THREE.Vector3(x,y,Math.sqrt(1.12*1.12-y*y)+.017));}
-    stroke(mouth,.045);
+    stroke(mouth,.045,faceMaterial);
     // Trim both tips while preserving the original surface-following curve; slightly finer strokes.
     for(const side of [-1,1]){
       const arc=[];
@@ -214,15 +252,12 @@ export function createMascot(stage, options={}) {
   let raf=0, elapsed=0, previous=0, paused=true, disposed=false, lost=false;
   const keys=['dark','mid','light'];
   function paint(t=elapsed) {
-    /* v4.5.16: chrome is a tone here too. Without this the PNG would be chrome and
-       the WebGL mascot -- the one that actually shows once the renderer is ready --
-       would still be charcoal, which is the two-copies-of-a-rule trap. The three
-       stops keep the shader's dark/mid/light relationship, lifted to match the PNG. */
-    /* the face follows the body: dark on chrome, white on everything else */
-    if(faceMaterial)faceMaterial.color.set(!isBlue()&&tone==='chrome'&&theme!=='dark'?0x3a3a3a:0xffffff);
-    const base=isBlue()?['#2033af','#3049dc','#5368ed']:tone==='white'?['#d7d7d7','#f1f1f1','#ffffff']:theme==='dark'?['#d7d7d7','#f1f1f1','#ffffff']:tone==='chrome'?tones.chrome:tones.soft;
-    const target=mode==='active'?['#a92523','#d74236','#f46b52']:['#2749bd','#4779df','#78b3f4'];
+    const whiteBody=!isBlue()&&(tone==='white'||theme==='dark');
     const pulse=mode==='active';
+    const base=isBlue()?['#2033af','#3049dc','#5368ed']:whiteBody?(pulse?['#d7d7d7','#f1f1f1','#ffffff']:tones.white):tone==='chrome'?tones.chrome:tones.soft;
+    faceMaterial.color.set(isBlue()?0xffffff:whiteBody?0x303030:!pulse&&tone==='chrome'?0x363636:0xffffff);
+    charcoal.uniforms.lightDirection.value.set(...(whiteBody&&!pulse?[-.65,.85,.5]:[-.35,.75,.6]));
+    const target=mode==='active'?['#a92523','#d74236','#f46b52']:['#2749bd','#4779df','#78b3f4'];
     const wave=still?.5:.5-.5*Math.cos(t/(mode==='active'?3200:4800)*Math.PI*2);
     const strength=mode==='active'?.32+.62*wave:.24+.53*wave;
     keys.forEach((key,i)=>{
@@ -230,6 +265,7 @@ export function createMascot(stage, options={}) {
       if(pulse) charcoal.uniforms[key].value.lerp(new THREE.Color(target[i]),strength);
     });
     white.color.set(isBlue()?'#ffffff':theme==='dark'?'#303030':'#ffffff');
+    setSurface(pulse?'matte':isBlue()?'blue':!whiteBody&&tone==='chrome'?'chrome':'matte',t);
     const motion=motions[mode==='cool'?'jump':mode];
     const end=motion?.frames.at(-1).t||0;
     /* v4.1.2: when no show is running the mascot idles rather than freezing
@@ -261,7 +297,8 @@ export function createMascot(stage, options={}) {
     if(disposed)return;disposed=true;pause();observer.disconnect();
     const geometries=new Set(),materials=new Set();
     scene.traverse(o=>{if(o.geometry)geometries.add(o.geometry);if(o.material)materials.add(o.material);});
-    geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());
+    materials.add(charcoal);if(reflectionMaterial)materials.add(reflectionMaterial);
+    geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());environment?.dispose();
     renderer.dispose();renderer.forceContextLoss();renderer.domElement.remove();
   }
   resize();resume();
