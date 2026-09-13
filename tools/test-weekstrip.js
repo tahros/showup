@@ -173,21 +173,31 @@ ok('...and today, once trained, is a filled square that can carry it',
       <i class="hwd tod"></i><i class="hwd on tod"></i></div></header></div></body></html>`,{pretendToBeVisual:true});
   const bg=sel=>page.window.getComputedStyle(page.window.document.querySelector(sel)).background||
                 page.window.getComputedStyle(page.window.document.querySelector(sel)).backgroundColor;
-  const MISS='rgb(218, 218, 218)';
+  /* v4.5.33: the missed fill is read FROM THE SHIPPED CSS, not restated here.
+     This suite hard-coded #DADADA; v4.5.29 softened it to the approved midpoint and
+     the suite went red -- and stayed red through v4.5.30, .31 and .32, so three
+     releases shipped past a gate that was no longer gating. A colour the design owns
+     does not belong pinned in two places. What is still asserted is the claim: a
+     missed day takes this fill, a trained day never does, and the rule exists. */
+  const MISSHEX=(css.match(/:root\[data-theme="light"\] header:not\(\.live\) \.h-week \.hwd:not\(\.on\)\{background:(#[0-9A-Fa-f]{6})\}/)||[])[1];
+  const MISS=MISSHEX?'rgb('+[1,3,5].map(i=>parseInt(MISSHEX.substr(i,2),16)).join(', ')+')':'rgb(218, 218, 218)';
   ok('(fixture) the missed square really resolves to the new grey',
      bg('.hwd:not(.on):not(.ahead):not(.tod)').includes(MISS)||bg('.hwd:not(.on):not(.ahead):not(.tod)').includes('#DADADA'),
      bg('.hwd:not(.on):not(.ahead):not(.tod)'));
   ok('A TRAINED DAY IS NOT PAINTED OVER BY THE MISSED FILL',
-     !bg('.hwd.on').includes(MISS) && !bg('.hwd.on').toLowerCase().includes('#dadada'),
+     !bg('.hwd.on').includes(MISS),
      bg('.hwd.on'));
   ok('...and today, once trained, keeps its fill too',
-     !bg('.hwd.on.tod').includes(MISS) && !bg('.hwd.on.tod').toLowerCase().includes('#dadada'),
+     !bg('.hwd.on.tod').includes(MISS),
      bg('.hwd.on.tod'));
   ok('...while an untrained today does take the missed grey',
-     bg('.hwd.tod:not(.on)').includes(MISS)||bg('.hwd.tod:not(.on)').toLowerCase().includes('#dadada'),
+     bg('.hwd.tod:not(.on)').includes(MISS),
      bg('.hwd.tod:not(.on)'));
-  ok('the light override says what it is — the MISSED fill, matching nothing else',
-     /:root\[data-theme="light"\] header:not\(\.live\) \.h-week \.hwd:not\(\.on\)\{background:#DADADA\}/.test(css));
+  ok('the light override exists and names one fill for the missed square',
+     !!MISSHEX, MISSHEX||'(no rule found)');
+  ok('...and no other light header rule claims the same fill',
+     (css.match(new RegExp(':root\\[data-theme="light"\\][^\\n]*\\.h-week[^\\n]*background:'+MISSHEX,'gi'))||[]).length===1,
+     MISSHEX);
 }
 /* ---- v4.1.13: the live strip, by resolved style --------------------------
    A skipped day was white at 28% against a trained day's white at 100% -- the
