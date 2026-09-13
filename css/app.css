@@ -1120,10 +1120,20 @@
   :root[data-theme="light"] header:not(.live) .h-week .hwd:not(.on){background:#D4D4D4}
   :root[data-theme="light"] header:not(.live) .h-week .hwd.ahead{background:none;
     box-shadow:inset 0 0 0 1.2px #DDDDDD}
-  /* Approved Light Matcha: neutral day marks on the light Rest header. */
+  /* Light Rest header: matcha past days, fresh sage future outlines. */
   :root[data-theme="light"] header.resting:not(.live) .h-week .hwd:not(.on){background:#B2C3A0}
   :root[data-theme="light"] header.resting:not(.live) .h-week .hwd.ahead{background:none;
-    box-shadow:inset 0 0 0 1.2px #A0B58D}
+    box-shadow:inset 0 0 0 1.2px #82AD85}
+  :root[data-theme="light"] header.resting:not(.live) .h-week .hwd.tod.resting:not(.on){
+    background:#2E7D32;outline-color:#2E7D32;animation:restSelectionPulse 2.4s ease-in-out infinite}
+  :root[data-theme="light"] header.resting:not(.live) #hStreak.restchip{color:#2E7D32}
+  @keyframes restSelectionPulse{
+    0%,100%{outline-color:#2E7D32}
+    50%{outline-color:rgba(46,125,50,.35)}
+  }
+  @media(prefers-reduced-motion:reduce){
+    :root[data-theme="light"] header.resting:not(.live) .h-week .hwd.tod.resting:not(.on){animation:none}
+  }
   /* v4.1.9 REMOVES what v4.1.8 added here. Today ALREADY had its ring -- an
      `outline` with a 2px offset (below), whose colour hwpulse breathes. I gave
      it a second one as an inset shadow and set background:none, so an open

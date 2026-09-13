@@ -1,5 +1,11 @@
 # ShowUp — changelog
 
+## v4.5.32 (2026-09-13) — Fresh Sage rest header
+
+- Use #82AD85 for future-day outlines in the light Rest header.
+- Use #2E7D32 for today's rest square, pulsing selection ring, and rest text.
+  Respect reduced motion and preserve other header modes and trained-day colors.
+
 ## v4.5.31 (2026-09-13) — Light Matcha rest-day squares
 
 - Apply the approved A palette to light-content Rest headers: #B2C3A0 filled
