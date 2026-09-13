@@ -1,15 +1,15 @@
-const CACHE = 'showup-v4.5.24';
+const CACHE = 'showup-v4.5.25';
 const SHELL = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './css/app.css?v=4.5.24',
-  './css/planner.css?v=4.5.24',
-  './css/mascot.css?v=4.5.24',
-  './js/mascot.js?v=4.5.24',
-  './js/plates.js?v=4.5.24',
-  './js/plate-canvas.js?v=4.5.24',
-  './css/plates.css?v=4.5.24',
+  './css/app.css?v=4.5.25',
+  './css/planner.css?v=4.5.25',
+  './css/mascot.css?v=4.5.25',
+  './js/mascot.js?v=4.5.25',
+  './js/plates.js?v=4.5.25',
+  './js/plate-canvas.js?v=4.5.25',
+  './css/plates.css?v=4.5.25',
   './js/mascot-renderer.js',
   './js/plate-gif.js',
   './js/plate-gif-worker.js',
@@ -26,24 +26,24 @@ const SHELL = [
   './assets/mascot-blue.png',
   './assets/mascot-mark-charcoal.png',
   './assets/mascot-mark-white.png',
-  './js/core.js?v=4.5.24',
-  './js/derive.js?v=4.5.24',
-  './js/util.js?v=4.5.24',
-  './js/realset.js?v=4.5.24',
-  './js/reprange.js?v=4.5.24',
-  './js/verdict.js?v=4.5.24',
-  './js/header.js?v=4.5.24',
-  './js/report.js?v=4.5.24',
-  './js/today.js?v=4.5.24',
-  './js/progression.js?v=4.5.24',
-  './js/lift.js?v=4.5.24',
-  './js/writer.js?v=4.5.24',
-  './js/planner.js?v=4.5.24',
-  './js/stats.js?v=4.5.24',
-  './js/history.js?v=4.5.24',
-  './js/settings.js?v=4.5.24',
-  './js/stats-story.js?v=4.5.24',
-  './js/app.js?v=4.5.24',
+  './js/core.js?v=4.5.25',
+  './js/derive.js?v=4.5.25',
+  './js/util.js?v=4.5.25',
+  './js/realset.js?v=4.5.25',
+  './js/reprange.js?v=4.5.25',
+  './js/verdict.js?v=4.5.25',
+  './js/header.js?v=4.5.25',
+  './js/report.js?v=4.5.25',
+  './js/today.js?v=4.5.25',
+  './js/progression.js?v=4.5.25',
+  './js/lift.js?v=4.5.25',
+  './js/writer.js?v=4.5.25',
+  './js/planner.js?v=4.5.25',
+  './js/stats.js?v=4.5.25',
+  './js/history.js?v=4.5.25',
+  './js/settings.js?v=4.5.25',
+  './js/stats-story.js?v=4.5.25',
+  './js/app.js?v=4.5.25',
   './assets/status-flat.png',
   './assets/status-up.png',
   './app-icon-blue-192.png',
@@ -53,7 +53,16 @@ const SHELL = [
   './favicon-blue-32.png'
 ];
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)));
+  /* v4.5.25: EVERY SHELL ENTRY IS FETCHED FROM THE NETWORK, NOT THE HTTP CACHE.
+     Half the shell carries no ?v= stamp -- the dynamically imported modules
+     (mascot-renderer, plate-gif, plate-video), the vendored three.js, the fonts and
+     every mascot PNG. Their URLs never change, so a plain addAll() could be
+     satisfied out of the browser's own cache and a brand new CACHE would be filled
+     with the PREVIOUS release's bytes. That is how a shipped dark-faced mascot and
+     a shipped renderer fix both kept rendering the old white face: the deploy was
+     correct and the install quietly re-cached what was already there.
+     cache:'reload' makes install mean install. */
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL.map(u => new Request(u, {cache: 'reload'})))));
   self.skipWaiting();
 });
 self.addEventListener('activate', e => {
