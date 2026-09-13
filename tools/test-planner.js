@@ -134,5 +134,37 @@ run(String.raw`localStorage.removeItem(PW_MODE_KEY);pwOpen('2026-09-11');pwDay('
   ok('fold opens with matching accessible chevron state',`document.querySelector('.pw-setup').open&&document.querySelector('.pw-setup summary').getAttribute('aria-expanded')==='true'`);
   run(`document.querySelector('.pw-setup summary').click();`);
   ok('fold closes with hidden controls inert',`!document.querySelector('.pw-setup').open&&document.querySelector('.pw-setup-body').inert&&document.querySelector('.pw-setup summary').getAttribute('aria-expanded')==='false'`);
+
+  /* v4.5.26: the preview shows the plan, not the writer's reasoning -- and each day
+     keeps only the notes that are about it. Both halves matter: the first is what the
+     maker asked for, the second is the bug underneath it, where every day was handed
+     the whole week's notes and "Use draft" saved that copy to all seven. */
+  /* rows come from the real parser, not hand-built objects -- the first version of
+     this fixture invented a row shape pwRowsHTML could not read and blew up inside
+     the renderer rather than testing it. */
+  run(String.raw`(function(){const s=pw();
+    s.candidate={type:'write',days:{
+      '2026-09-14':{rows:pwRead('Lateral Raise\n  45 lb × 8 8 8'),
+        notes:['Lateral Raise: held at 45 lb, reps up 5 → 24 — a push']},
+      '2026-09-15':{rows:pwRead('Deadlift\n  215 lb × 8 8 8'),
+        notes:['Deadlift: held at 215 lb, reps up 25 → 32 — a push']}}};
+    s.step='candidate';pwRender();})()`);
+  const previewHTML=run(`document.getElementById('view').innerHTML`);
+  ok('the preview no longer prints the writer notes under each day',
+     !/reps up|a push|reason given/.test(previewHTML));
+  ok('...while the plan itself is still shown',
+     /Lateral Raise/.test(previewHTML)&&/Deadlift/.test(previewHTML));
+  {
+    const src=fs.readFileSync(path.join(dir,'js/planner.js'),'utf8');
+    ok('the preview builder has no notes loop left in it',
+       !/pw-card-heading[\s\S]{0,240}b\.notes/.test(src));
+    ok('every day starts with its OWN empty notes list',
+       /days\[date\]=\{rows:\[\],notes:\[\]\}/.test(src));
+    ok('...and is filled only from notes naming one of that day\u2019s exercises',
+       /mine\.has\(String\(n\)\.split\(':'\)\[0\]\.trim\(\)\)/.test(src));
+    ok('the whole-week list is never handed to a day again',
+       !/notes:chk\.notes/.test(src));
+  }
+
   console.log(`${checks-fails}/${checks} planner assertions passed`);dom.window.close();process.exit(fails?1:0);
 })().catch(e=>{console.error(e);process.exit(1)});

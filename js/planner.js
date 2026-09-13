@@ -147,7 +147,12 @@ function pwRender(){
   }else if(s.step==='candidate'&&s.candidate){
     const c=s.candidate;
     html+='<h2 class="pw-preview-label">Preview changes</h2>';
-    for(const [d,b]of Object.entries(c.days))html+=`<div class="card pw-card"><div class="pw-card-heading"><strong>${hesc(pwDate(d))}</strong></div>${pwRowsHTML(b.rows)}${(b.notes||[]).map(n=>`<p class="pw-small">${hesc(n)}</p>`).join('')}</div>`;
+    /* v4.5.26: the preview shows the PLAN, not the writer's reasoning. Every note for
+       the whole week was printed under every day -- twenty-odd lines of "held at X,
+       reps up Y - a push" repeated per card, burying the four exercises they were
+       meant to explain. The notes are still kept, and still reachable under Checks
+       on the day itself, where they belong to one day and can be read on purpose. */
+    for(const [d,b]of Object.entries(c.days))html+=`<div class="card pw-card"><div class="pw-card-heading"><strong>${hesc(pwDate(d))}</strong></div>${pwRowsHTML(b.rows)}</div>`;
     footer=pwButton(c.type==='paste'?'paste-back':'edit','Back')+(c.type==='paste'&&c.index===undefined?pwButton('apply-add','Add'):'')+pwButton('apply',c.type==='paste'?(c.index!==undefined?'Keep edit':'Replace'):'Use draft','primary');
   }else if(day){
 /* v4.1.1: EDIT THE WHOLE DAY, NOT ONE ROW AT A TIME. The pencil on a row
@@ -307,7 +312,15 @@ async function pwGenerate(adjust=false,rewrite=false){
     }else{
       const chk=await writerGenerateChecked(payload,cancelled);if(!chk||cancelled())return;
       const days={};let date=null;
-      for(const r of chk.rows){if(r.kind==='day'){date=r.iso;days[date]={rows:[],notes:chk.notes};}else if(date)days[date].rows.push(r);}
+      /* v4.5.26: notes belong to the day whose exercise they describe. Handing every
+         day the whole week's list meant the Checks disclosure on Tuesday listed
+         Saturday's squats, and "Use draft" then saved that copy to all seven days.
+         Each note names its exercise before the colon, which is what assigns it. */
+      for(const r of chk.rows){if(r.kind==='day'){date=r.iso;days[date]={rows:[],notes:[]};}else if(date)days[date].rows.push(r);}
+      for(const doc of Object.values(days)){
+        const mine=new Set(doc.rows.map(r=>r.ex).filter(Boolean));
+        doc.notes=(chk.notes||[]).filter(n=>mine.has(String(n).split(':')[0].trim()));
+      }
       if(!Object.keys(days).length)throw Error('No readable days came back. Your draft is unchanged.');
       for(const [d,doc] of Object.entries(days))for(const i of pwDay(d).locks)if(pwText([pwDay(d).rows[i]])!==pwText([doc.rows[i]||{}]))throw Error('The writer changed an exercise you kept fixed. Your draft is unchanged.');
       candidate={type:'generate',days,reason:chk.reason};
