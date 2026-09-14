@@ -151,28 +151,26 @@ function bindPlateExport(data,mascot,module,videoModule,options={}){
     if(format==='mp4'){current.videoBlob=blob;img.hidden=true;video.hidden=false;video.src=urls[format];video.play().catch(()=>{});share.textContent='Share video';}
     else{current.gifBlob=blob;img.src=urls[format];share.textContent='Share GIF';}
   }
-  async function generate(format,opts){
+  async function generate(format){
     reset();select(format);if(blobs[format]){preview(format);return;}
     const task=new AbortController();controller=task;share.disabled=true;share.textContent='Preparing…';status.textContent=format==='mp4'?'Keep this screen open · preparing video…':'Preparing GIF…';
     try{
       const create=format==='mp4'?videoModule.createPlateVideo:module.createPlateGif;
       const result=await create({signal:task.signal,dark:data.dark,withMascot:!options.render,onProgress:n=>{if(controller===task)status.textContent=(format==='mp4'?'Preparing video · ':'Preparing GIF · ')+n+'%';},render:options.render||((time,canvas,motion)=>drawPlateShare(data,mascot,{time,canvas,mascot:motion,dust:format!=='mp4'}))});
-      if(closed||task.signal.aborted||_repCv!==current)return;blobs[format]=result;if(opts&&opts.keepSelection){status.textContent='';}else preview(format);
-    }catch(e){if(!task.signal.aborted){image();status.textContent=format==='mp4'?'Video unavailable. Try again with this screen open, or choose GIF.':'GIF unavailable. You can still share the image.';}}
+      if(closed||task.signal.aborted||controller!==task||_repCv!==current)return;
+      if(!result?.size)throw Error('Empty export');
+      blobs[format]=result;preview(format);
+    }catch(e){if(!closed&&!task.signal.aborted&&controller===task&&_repCv===current){image();status.textContent=format==='mp4'?'Video unavailable. Try again with this screen open, or choose GIF.':'GIF unavailable. You can still share the image.';}}
     finally{if(controller===task)controller=null;}
   }
   buttons.forEach(b=>b.onclick=()=>b.dataset.format==='image'?image():generate(b.dataset.format));
   plateExportCleanup=()=>{closed=true;reset();Object.values(urls).forEach(u=>URL.revokeObjectURL(u));video.removeAttribute('src');video.load();video.remove();row.remove();share.textContent='Share';};
-  /* v4.5.3: THE IMAGE STAYS SELECTED. It opened on the image and then started
-     the MP4, and generate() calls preview() when it finishes -- which selects
-     the format it just built. So the sheet always ended up on Video, and the
-     44% progress the maker saw was the thing stealing his selection.
-     The MP4 is still prepared in the background, so choosing it is instant;
-     it just no longer takes the selection it was never given. */
+  /* Generate only the format explicitly selected. The old background MP4 job
+     disabled Share, then keepSelection skipped preview and never enabled it.
+     One owner and one completion path keep the selected format and UI in sync. */
   image();
   if(options.label)video.setAttribute('aria-label',options.label);
-  if(supported&&!options.render) generate('mp4',{keepSelection:true});
-  else if(!supported)status.textContent='MP4 is unavailable in this browser. Image and GIF are available.';
+  if(!supported)status.textContent='MP4 is unavailable in this browser. Image and GIF are available.';
 }
 function plateMark(x,y,w,h){return `<path d="M${x} ${y-h}a${w/2} 7 0 0 1 ${w} 0v${h}a${w/2} 7 0 0 1 -${w} 0z" fill="var(--plate-side)"/><ellipse cx="${x+w/2}" cy="${y-h}" rx="${w/2}" ry="7" fill="var(--plate-top)"/><ellipse cx="${x+w/2}" cy="${y-h}" rx="5" ry="2" fill="var(--plate-hole)"/>`;}
 function plateMiniHTML(){const m=plateCurrent();return `<div class="plate-mini" aria-live="polite"><svg viewBox="0 0 48 42" aria-hidden="true">${[0,1,2].map(i=>`<g>${plateMark(6,32-i*8,34,5)}</g>`).join('')}</svg><span>${plateNumber(m.kg)} ${U()} moved today</span></div>`;}

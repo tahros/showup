@@ -7,7 +7,7 @@ for(const asset of ['js/plate-video.js','js/plate-gif.js','js/plate-gif-worker.j
 const server=http.createServer((req,res)=>{let f=path.join(root,decodeURIComponent(req.url.split('?')[0]));if(f===root+path.sep)f=path.join(root,'index.html');if(!f.startsWith(root+path.sep)){res.writeHead(403).end();return;}try{const data=fs.readFileSync(f);res.setHeader('Content-Type',f.endsWith('.js')?'text/javascript':f.endsWith('.css')?'text/css':f.endsWith('.png')?'image/png':'text/html');res.end(data)}catch{res.writeHead(404).end()}});
 (async()=>{await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin='http://127.0.0.1:'+server.address().port;
 const browser=process.env.PLATE_BROWSER==='webkit'?await webkit.launch({headless:true}):await chromium.launch({headless:true,executablePath:process.env.CHROMIUM_PATH||'C:/Users/sungj/AppData/Local/ms-playwright/chromium-1217/chrome-win64/chrome.exe'});
-try{const page=await browser.newPage({viewport:{width:393,height:852}});await page.route('**/*',r=>r.request().url().startsWith(origin)?r.continue():r.abort());await page.goto(origin);await page.waitForTimeout(1400);
+try{const page=await browser.newPage({viewport:{width:393,height:852},serviceWorkers:'block'});await page.route('**/*',r=>r.request().url().startsWith(origin)?r.continue():r.abort());await page.goto(origin);await page.waitForTimeout(1400);
 await page.evaluate(()=>{document.getElementById('onb')?.remove();checkDate=()=>false;DB.settings.name='Profile fixture';DB.settings.sex='f';DB.settings.unit='lb';DB.settings.mascotMotion='animated';DB.days[todayISO]={w:[{ex:'Barbell Bench Press',part:'Chest',w:1433.5/LB,reps:[10],at:Date.now()}]};SEED=deriveAll();view='today';render();});
 await page.locator('#nav [data-v="stats"]').click();
 await page.waitForSelector('.plate-canvas[data-playing="true"]');
@@ -54,8 +54,10 @@ fs.writeFileSync(path.join(root,'../stacked-share-verified.png'),Buffer.from(awa
 assert(await page.evaluate(()=>document.fonts.check('700 20px "ShowUp Export Plex"')),'Export uses loaded IBM Plex Sans, not fallback');
 await page.waitForSelector('[data-format="mp4"]');
 if(!await page.locator('[data-format="mp4"]').isDisabled()){
+ assert(await page.locator('#repDo').innerText()==='Share image'&&await page.locator('#repDo').isEnabled(),'Image is usable before requesting a video');
+ await page.locator('[data-format="mp4"]').click();
  await page.waitForFunction(()=>!!_repCv.videoBlob,{},{timeout:30000});
- assert(await page.locator('#repDo').innerText()==='Share video','MP4 is the default export');
+ assert(await page.locator('#repDo').innerText()==='Share video'&&await page.locator('#repDo').isEnabled(),'Requested MP4 completes with an enabled Share video button');
  assert(await page.evaluate(()=>exportDustFlags.length>0&&exportDustFlags.every(v=>v===false)),'MP4 excludes impact dust');
  const mp4=await page.evaluate(()=>new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result.split(',')[1]);f.readAsDataURL(_repCv.videoBlob)}));
  fs.writeFileSync(path.join(root,'../stacked-share-'+(process.env.PLATE_BROWSER||'chromium')+'.mp4'),Buffer.from(mp4,'base64'));
