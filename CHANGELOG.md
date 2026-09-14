@@ -1,5 +1,11 @@
 # ShowUp — changelog
 
+## v4.6.8 (2026-09-14) — Visible selected day and separated Top control
+
+- Keep the selected day tab visible after rerenders and resizing.
+- Use compact matching day labels such as Thu, 9/17.
+- Position Top 12px above the planner action dock instead of overlapping it.
+
 ## v4.6.7 (2026-09-14) — Calendar saved-plan eligibility
 
 - Hide markers on past calendar dates without deleting historical plans or logs.

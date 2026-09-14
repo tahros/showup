@@ -554,6 +554,9 @@ function syncTopBtn(){
   const deep=(window.scrollY||0)>520;
   b.hidden=!(deep||_backTo);         // an armed jump-back shows regardless of depth
   b.textContent=_backTo?`↑ ${_backTo.label}`:'↑ top';
+  const dock=document.querySelector('.pw-save-dock');
+  if(dock)b.style.bottom=Math.max(0,innerHeight-dock.getBoundingClientRect().top+12)+'px';
+  else b.style.removeProperty('bottom');
 }
 function setBackTarget(label,getEl){ _backTo={label,getEl}; syncTopBtn(); }
 function clearBackTarget(){ _backTo=null; syncTopBtn(); }

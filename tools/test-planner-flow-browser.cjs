@@ -95,7 +95,15 @@ const {chromium}=require('playwright'),assert=require('assert'),fs=require('fs')
   assert.equal(await page.evaluate(()=>pw().active),'2026-09-15');
   await page.locator('header .hback').click();
   assert.equal(await page.evaluate(()=>view==='today'&&!lift.plan),true);
-  assert.equal(errors.length,0,errors.join('\n'));console.log('PASS '+theme+' '+width+'px planner flow, direct Today edit and screen-history Back');
+  await page.waitForTimeout(1100);
+  await page.evaluate(()=>pwOpen('2026-09-14'));await page.waitForTimeout(1100);
+  await page.evaluate(()=>{pw().dates=Array.from({length:7},(_,i)=>'2026-09-'+(14+i));for(const d of pw().dates)pwDay(d).rows=Array.from({length:8},()=>pwRead('Squat\n135 lb × 8 8 8')[0]);pfAnchor();pfNavigate('edit');});
+  await page.locator('.pw-days [data-date="2026-09-20"]').click();await page.waitForTimeout(500);
+  assert.equal(await page.locator('.pw-days .selected').textContent(),'Sun, 9/20');
+  assert(await page.evaluate(()=>{const r=document.querySelector('.pw-days').getBoundingClientRect(),s=document.querySelector('.pw-days .selected').getBoundingClientRect();return s.left>=r.left-1&&s.right<=r.right+1;}),'selected final tab remains fully visible after rerender');
+  await page.evaluate(()=>{window.scrollTo(0,document.body.scrollHeight);syncTopBtn();});await page.waitForTimeout(400);
+  assert(await page.evaluate(()=>{const b=document.querySelector('#calReturn'),dock=document.querySelector('.pw-save-dock');return !b.hidden&&dock.getBoundingClientRect().top-b.getBoundingClientRect().bottom>=11;}),'Top has padding above the action dock');
+  assert.equal(errors.length,0,errors.join('\n'));console.log('PASS '+theme+' '+width+'px planner flow, day-tab visibility and Top clearance');
   await ctx.close();
  }
  await browser.close();

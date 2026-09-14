@@ -71,7 +71,7 @@ function pwFields(){const s=pw(),goals=[['lose','Lose weight'],['strength','Stre
 function pwCalendarIcon(){const svg=document.querySelector('#nav [data-v="history"] svg')?.cloneNode(true);if(!svg)return '';svg.setAttribute('class','pw-calendar-icon');svg.setAttribute('aria-hidden','true');return svg.outerHTML;}
 function pwAction(action,label,glyph,cls='',extra=''){return pwButton(action,icon(glyph,ICON_SZ.sm)+label,cls,extra);}
 function pwDatesButton(action='open'){return pwButton(action,pwCalendarIcon()+'Dates '+icon('chevron',ICON_SZ.sm),'pw-text','aria-label="Choose dates"');}
-function pwTabs(){const s=pw();return `<div class="pw-days" aria-label="Days being planned">${s.dates.map(d=>pwButton('day',hesc(pwDate(d)),s.active===d?'selected':'',`data-date="${d}" aria-pressed="${s.active===d}"`)).join('')}</div>`;}
+function pwTabs(){const s=pw();return `<div class="pw-days" aria-label="Days being planned">${s.dates.map(d=>pwButton('day',hesc(new Date(d+'T12:00').toLocaleDateString('en-US',{weekday:'short',month:'numeric',day:'numeric'})),s.active===d?'selected':'',`data-date="${d}" aria-pressed="${s.active===d}"`)).join('')}</div>`;}
 function pwRowsHTML(rows,editable=false){
   const s=pw(),day=s.active?pwDay(s.active):null;
   return `<div class="pw-exercises">${(rows||[]).map((r,i)=>{
@@ -253,7 +253,7 @@ document.addEventListener('click',e=>{
   d._pwAnimation.onfinish=finish;
 },true);
 
-function pwPositionDock(){const dock=document.querySelector('.pw-save-dock'),nav=document.getElementById('nav');if(dock&&nav)dock.style.bottom=Math.max(78,innerHeight-nav.getBoundingClientRect().top+8)+'px';}
+function pwPositionDock(){const dock=document.querySelector('.pw-save-dock'),nav=document.getElementById('nav');if(dock&&nav)dock.style.bottom=Math.max(78,innerHeight-nav.getBoundingClientRect().top+8)+'px';const rail=document.querySelector('.pw-days'),selected=rail?.querySelector('.selected');if(selected){const r=rail.getBoundingClientRect(),b=selected.getBoundingClientRect();if(b.left<r.left)rail.scrollLeft-=r.left-b.left;else if(b.right>r.right)rail.scrollLeft+=b.right-r.right;}if(typeof syncTopBtn==='function')syncTopBtn();}
 window.addEventListener('resize',pwPositionDock,{passive:true});
 
 
