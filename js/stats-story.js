@@ -432,12 +432,21 @@ function comparisonCard(card,kind){
  const shareControl=card.querySelector('.comparison-share');shareControl.classList.remove('ico');shareControl.classList.add('btn','ghost');shareControl.insertAdjacentHTML('beforeend','<span>Share</span>');
  const replay=document.createElement('button');replay.type='button';replay.className='btn ghost comparison-replay';replay.textContent='↻ Replay';
  actions.append(replay,shareControl);card.querySelector('.comparison-foot').before(actions);
+ let playback=null;
+ function paintLines(end=dates.length-1){svg.querySelectorAll('polyline[data-year]').forEach(line=>line.setAttribute('points',series.get(+line.dataset.year).slice(0,end+1).map((v,i)=>x(i)+','+y(v)).join(' ')));}
+ function stopReplay(restore=true){if(!playback)return;const target=playback.target;cancelAnimationFrame(playback.frame);playback=null;card.dataset.playing='false';values.setAttribute('aria-live','polite');paintLines();if(restore)show(target);}
  replay.onclick=()=>{
-  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
-  card.querySelectorAll('.comparison-plot polyline').forEach(line=>{
-   line.getAnimations().forEach(a=>a.cancel());
-   line.animate([{clipPath:'inset(0 100% 0 0)'},{clipPath:'inset(0 0% 0 0)'}],{duration:2800,easing:'ease-in-out'});
-  });
+  const target=playback?playback.target:memory.index;stopReplay();
+  const state={target,frame:0,start:performance.now(),last:-1};playback=state;card.dataset.playing='true';values.setAttribute('aria-live','off');
+  // Change actual SVG geometry, not CSS clipping (unreliable on mobile SVG).
+  // A deliberate Replay also works with reduced motion, in quiet discrete steps.
+  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function tick(now){if(playback!==state)return;if(!card.isConnected){stopReplay();return;}
+   const progress=Math.min(1,Math.max(0,(now-state.start)/3000)),i=Math.floor(target*(reduced?Math.floor(progress*12)/12:progress));
+   if(i!==state.last){show(i);paintLines(i);state.last=i;}
+   if(progress<1)state.frame=requestAnimationFrame(tick);else{show(target);paintLines(target);playback=null;card.dataset.playing='false';values.setAttribute('aria-live','polite');}
+  }
+  tick(state.start);
  };
  const color=y=>palette[available.indexOf(y)%palette.length];
  /* v4.5.17: BY CLASS, not by tag. The share button in the heading is an SVG too,
@@ -472,7 +481,7 @@ function comparisonCard(card,kind){
  const groups=new Map();memory.years.forEach(yr=>{const key=Math.round(y(series.get(yr)[memory.index]));if(!groups.has(key))groups.set(key,[]);groups.get(key).push(yr);});
  groups.forEach(years=>years.forEach((yr,i)=>node('circle',{class:'comparison-marker','data-year':yr,cx:x(memory.index),cy:y(series.get(yr)[memory.index]),r:4.5+(years.length-1-i)*2.5,fill:'var(--surface)',stroke:color(yr),'stroke-width':2})));
  }
- function draw(){const row=card.querySelector('.comparison-years');row.innerHTML=memory.years.map(yr=>'<button aria-label="Remove '+yr+' from comparison" style="--year-color:'+color(yr)+'" data-year="'+yr+'">'+yr+' <span>×</span></button>').join('')+'<details><summary>+ Year</summary><div>'+available.filter(yr=>!memory.years.includes(yr)).map(yr=>'<button data-add="'+yr+'">'+yr+'</button>').join('')+'</div></details>';
+ function draw(){stopReplay();const row=card.querySelector('.comparison-years');row.innerHTML=memory.years.map(yr=>'<button aria-label="Remove '+yr+' from comparison" style="--year-color:'+color(yr)+'" data-year="'+yr+'">'+yr+' <span>×</span></button>').join('')+'<details><summary>+ Year</summary><div>'+available.filter(yr=>!memory.years.includes(yr)).map(yr=>'<button data-add="'+yr+'">'+yr+'</button>').join('')+'</div></details>';
  row.querySelector('details').hidden=memory.years.length===available.length;
  row.querySelectorAll('[data-year]').forEach(b=>{b.disabled=memory.years.length===1;b.onclick=()=>{memory.years=memory.years.filter(yr=>yr!==+b.dataset.year);comparisonSaveYears(kind,memory.years);draw();};});row.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{memory.years.push(+b.dataset.add);memory.years.sort((a,b)=>b-a);comparisonSaveYears(kind,memory.years);draw();});
  maximum=Math.max(1,...memory.years.map(yr=>series.get(yr).at(-1)));maximum=Math.ceil(maximum/4)*4;svg.replaceChildren();for(let n=0;n<=4;n++){const value=maximum*n/4;node('line',{x1:32,x2:328,y1:y(value),y2:y(value),stroke:'var(--line)','stroke-dasharray':'2 4'});node('text',{x:26,y:y(value)+3,'text-anchor':'end',fill:'var(--muted)','font-size':8},Math.round(value));}
@@ -486,6 +495,7 @@ function comparisonCard(card,kind){
     whenever requestAnimationFrame did not run -- a backgrounded tab, a throttled
     phone. The tween tweens; it is never the thing that makes the value true. */
  function flip(){
+  stopReplay();
   if(!canPct)return;
   const before=memory.years.map(yr=>shown(yr));
   memory.pct=!memory.pct;
@@ -521,7 +531,11 @@ function comparisonCard(card,kind){
     Same sheet (showCard), same fonts, same logo file, so the three images read as
     one family. Nothing is recomputed for the picture; it draws what you see. */
  async function share(){
-  const snapshot={...memory,years:[...memory.years]},exportUnit=unit(),exportValues=new Map(snapshot.years.map(yr=>[yr,fmtVal(shown(yr))])),delta=difference.hidden?'':difference.textContent;
+  stopReplay();
+  const snapshot={...memory,years:[...memory.years]},exportUnit=unit();
+  const exportValue=(yr,i)=>snapshot.pct&&canPct?pctOf(yr,i):series.get(yr)[i];
+  const exportFormat=v=>snapshot.pct&&canPct?v.toFixed(1):v.toLocaleString('en-US',{maximumFractionDigits:kind==='distance'?1:0});
+  const exportDelta=i=>{if(snapshot.years.length<2)return '';const [a,b]=snapshot.years,pct=snapshot.pct&&canPct,scale=pct||kind==='distance'?10:1,diff=Math.round((exportValue(a,i)-exportValue(b,i))*scale)/scale;return (diff===0?(pct?'Same share':'Same total'):(diff>0?'+':'−')+(pct?Math.abs(diff).toFixed(1):Math.abs(diff).toLocaleString())+' '+(pct?'points':exportUnit))+' · '+a+' vs '+b;};
   const css=getComputedStyle(document.documentElement),read=(k,f)=>css.getPropertyValue(k).trim()||f;
   const dark=document.documentElement.dataset.theme==='dark';
   const data={surface:read('--surface','#fff'),ink:read('--chalk','#1c1c1c'),muted:read('--muted','#686868'),line:read('--line','#ededed'),
@@ -530,10 +544,10 @@ function comparisonCard(card,kind){
   try{[gifModule,videoModule]=await Promise.all([import('./plate-gif.js'),import('./plate-video.js')]);await gifModule.loadExportFonts();}catch(_e){/* Image remains available when animation modules cannot load. */}
   try{const logo=new Image();logo.src='assets/mascot-mark-'+(dark?'white':'chrome')+'.png';await logo.decode();data.logo=logo;}catch(_e){}
   const [mm,dd]=dates[snapshot.index];
-  const dateLabel=new Date(current,mm,dd).toLocaleDateString('en-US',{month:'long',day:'numeric'});
   const render=(time,canvas)=>{
    const cv=canvas||document.createElement('canvas');cv.width=1080;cv.height=1280;const x=cv.getContext('2d');if(!x)return null;
    const progress=Number.isFinite(time)?Math.max(0,Math.min(1,time/3000)):1;
+   const index=Math.floor(snapshot.index*progress),[month,day]=dates[index],dateLabel=new Date(current,month,day).toLocaleDateString('en-US',{month:'long',day:'numeric'}),delta=exportDelta(index);
    const sans='"ShowUp Export Plex", "IBM Plex Sans",sans-serif',mono=sans;
    const col=yr=>{const c=color(yr);return c.startsWith('var(')?data.accent:c;};
    x.fillStyle=data.surface;x.fillRect(0,0,1080,1280);
@@ -546,7 +560,7 @@ function comparisonCard(card,kind){
     const r=Math.floor(i/perRow),c=i%perRow,X=70+c*(tileW+30),Y=200+r*150;
     x.fillStyle=col(yr);x.fillRect(X,Y,6,112);
     text(String(yr),X+24,Y+30,'400 24px '+mono,data.muted);
-    const num=exportValues.get(yr);
+    const num=exportFormat(exportValue(yr,index));
     x.font='700 62px '+sans;const nw=x.measureText(num).width;
     text(num,X+24,Y+96,'700 62px '+sans,data.ink,'left',tileW-40);
     text(exportUnit,X+24+nw+12,Y+96,'400 24px '+mono,data.muted);
@@ -568,10 +582,9 @@ function comparisonCard(card,kind){
    [0,Math.floor((dates.length-1)/3),Math.floor((dates.length-1)*2/3),dates.length-1].forEach(i=>{const [m,d]=dates[i];
     text(new Date(current,m,d).toLocaleDateString('en-US',{month:'short',day:'numeric'}),px(i),bottom+34,'400 20px '+mono,data.muted,i===0?'left':i===dates.length-1?'right':'center');});
    x.lineWidth=5;x.lineJoin='round';x.lineCap='round';
-   x.save();x.beginPath();x.rect(left-6,top-12,(right-left+12)*progress,bottom-top+24);x.clip();
-   yrs.forEach(yr=>{x.strokeStyle=col(yr);const idx=available.indexOf(yr);x.setLineDash(idx?[[15,9],[6,12],[24,9,6,9]][(idx-1)%3]:[]);x.beginPath();series.get(yr).forEach((v,i)=>{i?x.lineTo(px(i),py(v)):x.moveTo(px(i),py(v));});x.stroke();});x.restore();
-   x.strokeStyle=data.muted;x.lineWidth=2;x.setLineDash([6,6]);x.beginPath();x.moveTo(px(snapshot.index),top-10);x.lineTo(px(snapshot.index),bottom);x.stroke();x.setLineDash([]);
-   if(progress===1)yrs.forEach(yr=>{x.fillStyle=data.surface;x.strokeStyle=col(yr);x.lineWidth=4;x.beginPath();x.arc(px(snapshot.index),py(series.get(yr)[snapshot.index]),11,0,Math.PI*2);x.fill();x.stroke();});
+   yrs.forEach(yr=>{x.strokeStyle=col(yr);const idx=available.indexOf(yr);x.setLineDash(idx?[[15,9],[6,12],[24,9,6,9]][(idx-1)%3]:[]);x.beginPath();series.get(yr).slice(0,index+1).forEach((v,i)=>{i?x.lineTo(px(i),py(v)):x.moveTo(px(i),py(v));});x.stroke();});
+   x.strokeStyle=data.muted;x.lineWidth=2;x.setLineDash([6,6]);x.beginPath();x.moveTo(px(index),top-10);x.lineTo(px(index),bottom);x.stroke();x.setLineDash([]);
+   yrs.forEach(yr=>{x.fillStyle=data.surface;x.strokeStyle=col(yr);x.lineWidth=4;x.beginPath();x.arc(px(index),py(series.get(yr)[index]),11,0,Math.PI*2);x.fill();x.stroke();});
    /* the footer: literally the plate share's, not a copy of it (v4.5.18) */
    drawShareFooter(x,data,sans);
    return cv;
@@ -581,8 +594,8 @@ function comparisonCard(card,kind){
  }
  const shareBtn=card.querySelector('.comparison-share');if(shareBtn)shareBtn.onclick=async()=>{shareBtn.disabled=true;try{await share();}catch(_e){toast('Could not prepare the export. Please try again.');}finally{shareBtn.disabled=false;}};
  values.addEventListener('click',e=>{if(e.target.closest('.comparison-flip'))flip();});
- slider.oninput=()=>show(+slider.value);card.querySelector('.comparison-latest').onclick=()=>show(dates.length-1);
- const scrub=e=>{const r=svg.getBoundingClientRect();show(Math.round(((e.clientX-r.left)/r.width*340-32)/296*(dates.length-1)));};
+ slider.oninput=()=>{stopReplay(false);paintLines();show(+slider.value);};card.querySelector('.comparison-latest').onclick=()=>{stopReplay(false);paintLines();show(dates.length-1);};
+ const scrub=e=>{stopReplay(false);paintLines();const r=svg.getBoundingClientRect();show(Math.round(((e.clientX-r.left)/r.width*340-32)/296*(dates.length-1)));};
  let pointer=null;svg.addEventListener('pointerdown',e=>{pointer=e.pointerId;svg.setPointerCapture?.(e.pointerId);scrub(e);});svg.addEventListener('pointermove',e=>{if(pointer!==null&&pointer===e.pointerId)scrub(e);});svg.addEventListener('pointerup',e=>{if(pointer===e.pointerId){scrub(e);svg.releasePointerCapture?.(e.pointerId);pointer=null;}});svg.addEventListener('pointercancel',()=>{pointer=null;});draw();
 }
 const compactStyle=document.createElement('style');compactStyle.textContent=`
