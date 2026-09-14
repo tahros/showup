@@ -62,5 +62,13 @@ run(`pfHandle('pf-prefs-save',{dataset:{}});pw().dates=['2026-09-16'];pw().activ
 (async()=>{
  await run('pwGenerate()');
  test('checked generation opens editable days directly, without saving',`pfState().page==='days'&&pfMatch()&&pwSetCount(pwDay('2026-09-16').rows)===3&&!pwSaved('2026-09-16')`);
+ run(`pfHandle('pf-edit-first',{dataset:{}});pfHandle('pf-clear',{dataset:{}});pfBack();`);
+ test('Back closes the clear screen without leaving the routine',`pfState().page==='edit'&&!pfState().clear`);
+ run(`pfNavigate('dates');pfNavigate('prefs');pfBack();`);
+ test('Back retraces visited preferences to dates',`pfState().page==='dates'`);
+ run(`pfBack();`);
+ test('Back from dates returns to the routine that opened it',`pfState().page==='edit'&&pw().active==='2026-09-16'`);
+ run(`pfHandle('pf-settings',{dataset:{}});pfBack();`);
+ test('Settings preferences Back returns to Settings',`view==='sync'&&!lift.plan`);
  console.log(checks+' planner journey checks passed');dom.window.close();process.exit(0);
 })().catch(e=>{console.error(e);process.exit(1)});

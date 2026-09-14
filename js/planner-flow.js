@@ -4,6 +4,27 @@ const pfLegacy={open:pwOpen,render:pwRender,handle:pwHandle,apply:pwApply,payloa
 function pfOn(){return (pwState?.journey?.prefOrigin==='settings'||planningWorkspace())&&localStorage.getItem('showup:planner-flow')!=='legacy';}
 function pfState(){const s=pw();s.journey=s.journey||{page:'dates',furthest:1,anchor:[],removed:[],saved:[]};return s.journey;}
 function pfDates(){return [...pw().dates].sort();}
+function pfTrackScreen(){
+ const s=pw(),j=pfState(),screen={page:j.page,step:s.step,active:s.active,clear:!!j.clear,emptyConfirm:!!j.emptyConfirm,group:j.group?pwCopy(j.group):null};
+ const key=x=>JSON.stringify([x.page,x.step,x.active,x.clear,x.emptyConfirm,!!x.group]);
+ j.history=j.history||[];
+ if(!j.returning&&j.lastScreen&&key(screen)!==key(j.lastScreen))j.history.push({...j.lastScreen,scroll:window.scrollY});
+ j.returning=false;j.lastScreen=screen;
+}
+function pfBack(){
+ const s=pw(),j=pfState();pwRequest++;lift.writeAbort?.abort();writerWaitStop();s.busy=false;
+ let previous;
+ while(j.history?.length){
+  const candidate=j.history.pop();
+  if(['busy','candidate'].includes(candidate.step))continue;
+  if(['days','edit','done'].includes(candidate.page)&&!pfMatch())continue;
+  if(candidate.page==='edit'&&!s.dates.includes(candidate.active))continue;
+  previous=candidate;break;
+ }
+ if(!previous){const destination=j.prefOrigin==='settings'?'sync':j.returnView||'today';j.prefOrigin=null;j.lastScreen=null;s.step='edit';s.candidate=null;pwPersist();lift.plan=null;view=destination;render({soft:true});return;}
+ Object.assign(j,{page:previous.page,clear:previous.clear,emptyConfirm:previous.emptyConfirm,group:previous.group,returning:true});
+ s.step=previous.step;s.active=previous.active;s.error='';s.candidate=null;pwPersist();pwRender();window.scrollTo(0,previous.scroll||0);
+}
 function pfMatch(){return JSON.stringify(pfDates())===JSON.stringify([...pfState().anchor].sort());}
 function pfPrefs(){return pwCopy(DB.settings.plannerPreferences||{frequency:5,mode:'time',minutes:45,minSets:20,maxSets:25,emphasis:{},avoid:[],split:'auto'});}
 function pfSummary(p=pfPrefs()){const more=Object.keys(p.emphasis).filter(k=>p.emphasis[k]>0);return `${p.frequency==='varies'?'Flexible':p.frequency+' days'} · ${p.mode==='time'?p.minutes+' min':p.minSets+'–'+p.maxSets+' sets'}${more.length?' · More '+more.join(', '):''} · ${p.avoid.length} exercises avoided`;}
@@ -51,7 +72,7 @@ function pfDoneHTML(){
   return `<section class="pf-day pf-done-day"><div class="pf-day-date">${hesc(pfShort(x.date))}</div><div class="card">${x.sets?`<details data-pf-saved-fold="${x.date}" ${j.doneOpen?.[x.date]?'open':''}><summary><span class="pf-done-label"><strong>${hesc(x.parts.join(' + ')||'Workout')}</strong><span>${x.sets} sets · ${count} exercises</span></span></summary>${pfRoutine(rows)}</details>`:'<div class="pf-no-plan">No plan</div>'}</div></section>`;
  }).join('')}</div>`;
 }
-function pfRender(){renderHeader();const s=pw(),j=pfState(),panel=['paste','editrow','adjust','candidate','busy'].includes(s.step);if(panel){pfLegacy.render();const box=document.querySelector('.pw-workspace');if(box){box.classList.add('pf-workspace');box.querySelector('.pw-editor-head')?.remove();box.insertAdjacentHTML('afterbegin',pfStepbar());if(s.step==='paste'&&!s.editAll)box.querySelector('.pw-input-panel')?.insertAdjacentHTML('beforeend',`<label class="pw-small"><input type="checkbox" data-pf-paste-all ${j.pasteAll?'checked':''}> Use this routine for all selected days</label>`);}return;}let body='',footer='',heading={dates:'Choose your dates',prefs:'Your preferences',days:'Edit your plan',edit:'Edit your routine',done:'Your dates are updated'}[j.page];
+function pfRender(){pfTrackScreen();renderHeader();const s=pw(),j=pfState(),panel=['paste','editrow','adjust','candidate','busy'].includes(s.step);if(panel){pfLegacy.render();const box=document.querySelector('.pw-workspace');if(box){box.classList.add('pf-workspace');box.querySelector('.pw-editor-head')?.remove();box.insertAdjacentHTML('afterbegin',pfStepbar());if(s.step==='paste'&&!s.editAll)box.querySelector('.pw-input-panel')?.insertAdjacentHTML('beforeend',`<label class="pw-small"><input type="checkbox" data-pf-paste-all ${j.pasteAll?'checked':''}> Use this routine for all selected days</label>`);}return;}let body='',footer='',heading={dates:'Choose your dates',prefs:'Your preferences',days:'Edit your plan',edit:'Edit your routine',done:'Your dates are updated'}[j.page];
  if(j.page==='prefs'){body=pfPrefHTML();footer=pwButton('pf-prefs-save','Save preferences','primary');}
  else if(j.page==='dates'){body=`<div class="card"><div class="pw-card-heading"><strong>Your preferences</strong>${pwAction('pf-prefs','Edit','edit','pw-text')}</div><p class="pw-small">${hesc(pfSummary())}</p></div>${pfCalendar()}<p class="pw-small">Generating creates a draft. Saving replaces existing plans only on the selected dates. Logged workouts stay untouched.</p>`;footer=pwAction('pf-generate','Generate plan','sparkle','primary',s.dates.length?'':'disabled')+pwAction('pf-paste-dates','Paste','paste','',s.dates.length?'':'disabled');}
  else if(j.page==='days'){body=pfDaysHTML();footer='<div class="pf-primary-row">'+pwButton('pf-edit-first','Edit first day →','primary',s.dates.length?'':'disabled')+pfSaveButton()+'</div><p class="pw-small">Saves every routine above to its date.</p>';}
@@ -63,7 +84,7 @@ function pfRender(){renderHeader();const s=pw(),j=pfState(),panel=['paste','edit
  $('#view').innerHTML=pwFoldMarkup(`<section class="pw-workspace pf-workspace" aria-label="Planning workspace">${j.prefOrigin==='settings'&&j.page==='prefs'?'':pfStepbar()}${s.error?`<p class="pw-message" role="alert">${hesc(s.error)}</p>`:''}${body}<span id="pw-reorder-help" class="pw-sr-only">Drag or use arrow keys to reorder.</span><span id="pw-reorder-status" role="status" class="pw-sr-only"></span>${footer?`<div class="pw-save-dock pf-dock">${footer}</div>`:''}</section>`);requestAnimationFrame(pwPositionDock);
 }
 pwRender=function(){return pfOn()?pfRender():pfLegacy.render();};
-pwOpen=function(d,step){if(!pfOn())return pfLegacy.open(d,step);const s=pw(),j=pfState();if(s.busy){pwRequest++;lift.writeAbort?.abort();s.busy=false;}if(d){s.dates=[d];s.active=d;s.month=d.slice(0,7)+'-01';pwDay(d);}else if(!s.dates.length){s.active=dayClosed()?tomorrowISO():writeDateISO();s.dates=[s.active];pwDay(s.active);}j.page=step==='dates'?'dates':d&&pwSaved(d)?'days':d?'dates':j.page;j.prefOrigin=null;if(d&&pwSaved(d))pfAnchor();lift.plan='workspace';view='today';s.step='edit';pwPersist();render({soft:true});};
+pwOpen=function(d,step){if(!pfOn())return pfLegacy.open(d,step);const s=pw(),j=pfState();j.history=[];j.lastScreen=null;j.returnView=view==='sync'?'sync':'today';if(s.busy){pwRequest++;lift.writeAbort?.abort();s.busy=false;}if(d){s.dates=[d];s.active=d;s.month=d.slice(0,7)+'-01';pwDay(d);}else if(!s.dates.length){s.active=dayClosed()?tomorrowISO():writeDateISO();s.dates=[s.active];pwDay(s.active);}j.page=step==='dates'?'dates':d&&pwSaved(d)?'edit':d?'dates':j.page;j.prefOrigin=null;if(d&&pwSaved(d))pfAnchor();lift.plan='workspace';view='today';s.step='edit';pwPersist();render({soft:true});};
 pwApply=function(add=false){if(!pfOn())return pfLegacy.apply(add);const c=pw().candidate;if(!c)return;const generated=c.type==='generate',adjust=c.type==='adjust';if(c.type==='paste'&&c.index===undefined&&pfState().pasteAll){const one=Object.values(c.days)[0];c.days=Object.fromEntries(pfDates().map(d=>[d,pwCopy(one)]));}pfLegacy.apply(add);for(const d of Object.keys(c.days)){pwDay(d).target=null;}pfAnchor();pfNavigate(generated?'days':'edit');};
 pwPayload=function(dates,action){const p=pfLegacy.payload(dates,action);if(!pfOn())return p;const prefs=pfPrefs();p.workspace.preferences=prefs;p.note=[p.note,'Confirmed planning preferences: '+JSON.stringify(prefs),"Respect avoided exercises. Frequency describes the usual week; only generate the explicitly selected dates. Time is an approximate budget, not a promise."].filter(Boolean).join('\n');return p;};
 function pfMoveDay(from,to){const ds=pfDates(),a=ds.indexOf(from),b=ds.indexOf(to);if(a<0||b<0||a===b)return;const bundles=ds.map(d=>pwCopy(pwDay(d))),[moved]=bundles.splice(a,1);bundles.splice(b,0,moved);ds.forEach((d,i)=>{const old=pwDay(d);pw().book[d]={...bundles[i],base:old.base,source:'Your draft'};});pwPersist();pwRender();}
@@ -76,9 +97,9 @@ function pfSave(confirm=false){const s=pw(),j=pfState();if(!pfMatch())throw Erro
 }
 pwSave=function(){return pfOn()?pfSave():pfLegacy.save();};
 function pfHandle(a,el){const s=pw(),j=pfState(),d=el.dataset.date,i=+el.dataset.index,b=s.active?pwDay(s.active):null;
- if(a==='pf-settings'){j.prefOrigin='settings';j.prefs=pfPrefs();lift.plan='workspace';view='today';pfNavigate('prefs');return;}
+ if(a==='pf-settings'){j.history=[];j.lastScreen=null;j.returnView='sync';j.prefOrigin='settings';j.prefs=pfPrefs();lift.plan='workspace';view='today';pfNavigate('prefs');return;}
  if(a==='pf-prefs'){j.prefOrigin=j.page;j.prefs=pfPrefs();pfNavigate('prefs');return;}
- if(a==='pf-back'){if(['paste','editrow','adjust','candidate','busy'].includes(s.step)){pwRequest++;lift.writeAbort?.abort();writerWaitStop();s.busy=false;s.candidate=null;pfNavigate(pfMatch()?'edit':'dates');return;}if(j.page==='prefs'){if(j.prefOrigin==='settings'){j.prefOrigin=null;lift.plan=null;view='sync';render();}else pfNavigate(j.prefOrigin||'dates');}else if(j.page==='edit')pfNavigate('days');else if(j.page==='days'||j.page==='done')pfNavigate('dates');else{lift.plan=null;view='today';render();}return;}
+ if(a==='pf-back'){pfBack();return;}
  if(a==='pf-stage'){j.prefOrigin=null;const n=+el.dataset.stage;if(n>j.furthest||n>=2&&!pfMatch())return;pfNavigate(['prefs','dates','days','done'][n]);return;}
  if(a==='pf-frequency'){j.prefs.frequency=el.dataset.value==='varies'?'varies':+el.dataset.value;}
  else if(a==='pf-size')j.prefs.mode=el.dataset.value;

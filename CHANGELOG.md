@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.5 (2026-09-14) — Direct routine editing and screen-history Back
+
+- Today Edit opens the selected saved day's routine directly.
+- Header Back retraces visited planner screens, including day and panel changes,
+  rather than moving to a fixed earlier stage. Entry Back returns to Today.
+- Keep draft edits and stage eligibility intact while navigating backward.
+
 ## v4.6.4 (2026-09-14) — Saved routine review
 
 - Compact saved-day cards with shared typography, spacing and chevrons.

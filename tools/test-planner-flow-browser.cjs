@@ -77,7 +77,20 @@ const {chromium}=require('playwright'),assert=require('assert'),fs=require('fs')
   }),'saved-plan dots are white when selected and theme blue otherwise');
   await page.locator('[data-stage="2"]').click();
   assert(await page.locator('[data-pw="pf-edit-first"]').count()===1);
-  assert.equal(errors.length,0,errors.join('\n'));console.log('PASS '+theme+' '+width+'px planner flow, real clicks and save');
+  await page.evaluate(()=>{lift.plan=null;view='today';pw().upcomingOpen=true;render({soft:true});});
+  await page.locator('[data-pw="open-date"][data-date="2026-09-15"]').click();
+  assert.equal(await page.evaluate(()=>pfState().page),'edit');
+  assert.equal(await page.evaluate(()=>pw().active),'2026-09-15');
+  await page.locator('[data-stage="1"]').click();
+  await page.locator('[data-pw="pf-prefs"]').click();
+  await page.locator('header .hback').click();
+  assert.equal(await page.evaluate(()=>pfState().page),'dates');
+  await page.locator('header .hback').click();
+  assert.equal(await page.evaluate(()=>pfState().page),'edit');
+  assert.equal(await page.evaluate(()=>pw().active),'2026-09-15');
+  await page.locator('header .hback').click();
+  assert.equal(await page.evaluate(()=>view==='today'&&!lift.plan),true);
+  assert.equal(errors.length,0,errors.join('\n'));console.log('PASS '+theme+' '+width+'px planner flow, direct Today edit and screen-history Back');
   await ctx.close();
  }
  await browser.close();
