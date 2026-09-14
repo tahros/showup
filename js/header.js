@@ -23,7 +23,7 @@ function renderHeader(){
     $('#hStreak').textContent='';
     return;
   }
-  $('#hDate').textContent=wd(todayISO);
+  $('#hDate').textContent=inPlan?'Plan':wd(todayISO);
   /* the sets/parts/distance assembly that fed the old subtitle went with it
      -- dead computation on every render is rent. */
   /* v3.3.389: THE DAY HEADER SAYS EACH THING ONCE. Both of the subtitle's

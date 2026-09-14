@@ -19,7 +19,12 @@ const {chromium}=require('playwright'),assert=require('assert'),fs=require('fs')
     const hdr=document.querySelector('header'),date=document.querySelector('#hDate'),week=document.querySelector('#hWeek'),gear=document.querySelector('#gearBtn');
     const rect=e=>e.getBoundingClientRect(),center=e=>rect(e).top+rect(e).height/2;
     const css=getComputedStyle(date),font=[css.fontFamily,css.fontSize,css.fontWeight].join('|');
-    hdr.classList.remove('planmode');const normal=getComputedStyle(date),standard=[normal.fontFamily,normal.fontSize,normal.fontWeight].join('|');hdr.classList.add('planmode');
+    const positions=()=>[rect(hdr).height,rect(gear).x,rect(gear).y,rect(week).x,rect(week).y];
+    const plannerPositions=positions();
+    hdr.classList.remove('planmode');const normal=getComputedStyle(date),standard=[normal.fontFamily,normal.fontSize,normal.fontWeight].join('|'),todayPositions=positions();hdr.classList.add('planmode');
+    if(date.textContent!=='Plan'||plannerPositions.some((v,i)=>Math.abs(v-todayPositions[i])>.1))return false;
+    const title=document.querySelector('.pf-routine-date');
+    if(title){const c=getComputedStyle(title);if(c.font!==css.font||c.letterSpacing!==css.letterSpacing)return false;}
     return font===standard&&Math.abs(center(date)-center(gear))<1&&Math.abs(center(week)-center(gear))<1&&
      week.children.length===7&&rect(week).width>0&&date.scrollWidth<=date.clientWidth+1&&rect(date).right<=rect(week).left;
    }),theme+' '+width+' '+label+' shared date font, centered header and visible streak');
@@ -44,7 +49,7 @@ const {chromium}=require('playwright'),assert=require('assert'),fs=require('fs')
    const rect=e=>e.getBoundingClientRect(),cy=e=>rect(e).top+rect(e).height/2;
    const out=document.querySelector('.pf-total output'),minus=document.querySelector('[data-pw="pf-minus"]'),plus=document.querySelector('[data-pw="pf-plus"]');
    const centered=Math.abs((rect(out).left+rect(out).right)/2-(rect(minus).right+rect(plus).left)/2)<1;
-   return !document.querySelector('.pw-setup,[data-pw="lock"]')&&document.querySelector('.pf-routine-heading h2')&&centered&&parseFloat(getComputedStyle(out).fontSize)<=20&&
+   return !document.querySelector('.pw-setup,[data-pw="lock"]')&&document.querySelector('.pf-routine-date')&&centered&&parseFloat(getComputedStyle(out).fontSize)<=20&&
     [...document.querySelectorAll('.pw-editable')].every(e=>Math.abs(cy(e.querySelector('.pw-grip'))-cy(e.querySelector('.pw-ex-title')))<1)&&
     [...document.querySelectorAll('.pf-row-button')].every(e=>e.querySelector('svg'))&&
     Math.abs(rect(document.querySelector('.pf-add-button')).width-rect(document.querySelector('.pf-add-summary')).width)<1;

@@ -1,5 +1,11 @@
 # ShowUp — changelog
 
+## v4.6.6 (2026-09-14) — Stable planning header and shared date typography
+
+- Label the planning header Plan instead of today's date.
+- Match Today's header height and streak/settings positions without a vertical shift.
+- Use the shared date typography for the routine date, including theme variants.
+
 ## v4.6.5 (2026-09-14) — Direct routine editing and screen-history Back
 
 - Today Edit opens the selected saved day's routine directly.
