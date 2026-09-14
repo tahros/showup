@@ -1,5 +1,11 @@
 # ShowUp — changelog
 
+## v4.6.15 (2026-09-14) — Cinematic completion entrances
+
+- Three coordinated entrances: soft rise, playful arc and spring landing, with no immediate repeats.
+- Stagger the mascot, attendance count and workout summary while keeping actions available.
+- Preserve the mascot animation, milestone ceremony and reduced-motion behavior.
+
 ## v4.6.14 (2026-09-14) — Tomorrow card focus and actions
 
 - Show body parts beneath Tomorrow in the collapsed card header.

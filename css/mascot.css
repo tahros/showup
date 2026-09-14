@@ -28,6 +28,25 @@
 .su-active-row .su-mascot{width:104px}
 .card.dayclosed .su-mascot{margin:-8px auto -10px;width:94px}
 #dayDone .su-mascot{width:240px;max-width:100%;margin:0 auto 8px}
+#dayDone .ddhero{width:240px;max-width:100%}
+/* Entrance motion wraps, rather than replaces, the mascot's own 3D jump. */
+#dayDone[data-entrance]{animation:ddcinema-in 360ms ease-out both}
+#dayDone[data-entrance] .ddhero{transform-origin:50% 85%;animation:ddcinema-rise 1050ms cubic-bezier(.2,.75,.25,1) both}
+#dayDone[data-entrance="arc"] .ddhero{animation-name:ddcinema-arc}
+#dayDone[data-entrance="land"] .ddhero{animation-name:ddcinema-land}
+#dayDone[data-entrance] .dddate{animation:ddcinema-copy 550ms ease-out both 80ms}
+#dayDone[data-entrance] .ddn{animation:ddcinema-number 750ms cubic-bezier(.2,.75,.25,1) both 180ms}
+#dayDone[data-entrance] .ddu{animation:ddcinema-copy 550ms ease-out both 300ms}
+#dayDone[data-entrance] .ddyou{animation:ddcinema-copy 550ms ease-out both 420ms}
+#dayDone[data-entrance] .ddsummary{animation:ddcinema-copy 600ms ease-out both 520ms}
+@keyframes ddcinema-in{from{opacity:0}to{opacity:1}}
+@keyframes ddcinema-rise{0%{opacity:0;transform:translateY(36px) scale(.78)}60%{opacity:1;transform:translateY(-6px) scale(1.025)}100%{opacity:1;transform:none}}
+@keyframes ddcinema-arc{0%{opacity:0;transform:translate(-38px,20px) rotate(-12deg) scale(.9)}55%{opacity:1;transform:translate(5px,-8px) rotate(3deg)}100%{opacity:1;transform:none}}
+@keyframes ddcinema-land{0%{opacity:0;transform:translateY(-50px) scale(.86)}42%{opacity:1;transform:translateY(8px) scale(1.05,.94)}67%{transform:translateY(-10px) scale(.98,1.02)}100%{opacity:1;transform:none}}
+@keyframes ddcinema-number{from{opacity:0;transform:translateY(18px) scale(.94)}to{opacity:1;transform:none}}
+@keyframes ddcinema-copy{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media(max-width:360px){#dayDone .ddhero{width:190px}}
+@media(prefers-reduced-motion:reduce){#dayDone[data-entrance],#dayDone[data-entrance] .ddhero,#dayDone[data-entrance] .dddate,#dayDone[data-entrance] .ddn,#dayDone[data-entrance] .ddu,#dayDone[data-entrance] .ddyou,#dayDone[data-entrance] .ddsummary{animation:none;transform:none;opacity:1}}
 #dayDone.su-celebration .ddbody{padding:12px 0 20px}
 #dayDone.su-celebration .ddyou{margin:18px 0 12px}
 .su-completion-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;margin:12px auto 0}

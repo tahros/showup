@@ -1668,6 +1668,8 @@ const liftEnter=o=>{
   PLAN_VIEW_KEYS.forEach(k=>{ if(k in (lift||{})) keep[k]=lift[k]; });
   lift=Object.assign({part:null,ex:null,weight:0,ret:null},o,keep);
 };
+let ddLastEntrance='';
+function ddNextEntrance(){const choices=['rise','arc','land'].filter(x=>x!==ddLastEntrance);return ddLastEntrance=choices[Math.floor(Math.random()*choices.length)];}
 function celebrateDayDone(nowrite, forceCount, forceMile, forceShow){
   if(document.getElementById('dayDone')) return;
   if(!nowrite){
@@ -1692,6 +1694,7 @@ function celebrateDayDone(nowrite, forceCount, forceMile, forceShow){
   const withMascot=mascotMode()!=='off';
   const is25=withMascot&&forceCount==null&&DB.settings.mascot25Date===todayISO;
   if(withMascot)o.classList.add('su-celebration');
+  if(withMascot&&!mile&&mascotMode()==='animated')o.dataset.entrance=ddNextEntrance();
   /* v3.3.425: THE MARK IS A SIBLING OF THE SQUARE, NOT ITS CHILD. It was
      inside .ddsq, and .ddsq fades and shrinks as it hands over -- opacity on a
      parent applies to its children, so the white mark faded with it and
@@ -1708,7 +1711,7 @@ function celebrateDayDone(nowrite, forceCount, forceMile, forceShow){
   o.setAttribute('role','dialog');
   o.setAttribute('aria-modal','true');
   o.setAttribute('aria-labelledby','ddHeading');
-  o.innerHTML=`<div class="ddinner"><div class="dddate">${dateLabel}</div><div class="ddbody">${withMascot?mascotHTML('jump','','blue'):''}`+(mile
+  o.innerHTML=`<div class="ddinner"><div class="dddate">${dateLabel}</div><div class="ddbody">${withMascot?'<div class="ddhero">'+mascotHTML('jump','','blue')+'</div>':''}`+(mile
     ? `<span class="ddstage"><i class="ddsq" aria-hidden="true"></i><span class="ddmk" aria-hidden="true">${icon('brandmark',44)}</span></span>`
     : withMascot?'':`<i class="ddsq" aria-hidden="true"></i>`)+
     /* v4.3.5: THE NUMBER COUNTS UP. It was written finished, so the one
