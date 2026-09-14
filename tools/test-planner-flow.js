@@ -70,5 +70,15 @@ run(`pfHandle('pf-prefs-save',{dataset:{}});pw().dates=['2026-09-16'];pw().activ
  test('Back from dates returns to the routine that opened it',`pfState().page==='edit'&&pw().active==='2026-09-16'`);
  run(`pfHandle('pf-settings',{dataset:{}});pfBack();`);
  test('Settings preferences Back returns to Settings',`view==='sync'&&!lift.plan`);
+ run(`view='today';lift.plan='workspace';DB.plan=null;const doc=planItemsFrom(pwRead('Squat\\n135 lb × 8 8'));DB.week={days:{'2026-09-11':doc,'2026-09-13':doc,'2026-09-15':doc}};pw().book={};delete pw().journey;pwOpen('2026-09-13','dates');`);
+ test('past dates have no plan markers while today keeps its marker',`!document.querySelector('[data-date="2026-09-11"] .pf-plan-dot')&&document.querySelector('[data-date="2026-09-11"] small').textContent===''&&document.querySelector('[data-date="2026-09-13"] .pf-plan-dot')`);
+ run(`pw().dates=['2026-09-13','2026-09-15'];pfState().anchor=[];pfState().furthest=1;pwRender();`);
+ test('saved selection enables Edit without enabling Done',`!document.querySelector('[data-stage="2"]').disabled&&document.querySelector('[data-stage="3"]').disabled`);
+ run(`pfHandle('pf-stage',{dataset:{stage:'2'}});`);
+ test('Edit loads all selected saved routines without generating',`pfState().page==='days'&&pfMatch()&&pwSetCount(pwDay('2026-09-13').rows)===2&&pwSetCount(pwDay('2026-09-15').rows)===2`);
+ run(`pfNavigate('dates');pw().dates=[];pwRender();`);
+ test('empty selection cannot enable Edit',`document.querySelector('[data-stage="2"]').disabled`);
+ run(`pw().dates=['2026-09-15','2026-09-18'];pwRender();`);
+ test('mixed saved and unplanned selection still needs a draft',`document.querySelector('[data-stage="2"]').disabled`);
  console.log(checks+' planner journey checks passed');dom.window.close();process.exit(0);
 })().catch(e=>{console.error(e);process.exit(1)});

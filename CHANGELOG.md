@@ -1,5 +1,11 @@
 # ShowUp — changelog
 
+## v4.6.7 (2026-09-14) — Calendar saved-plan eligibility
+
+- Hide markers on past calendar dates without deleting historical plans or logs.
+- Enable Edit for nonempty selections of saved dates from today onward.
+- Open the selected routines without generation; retain existing local drafts.
+
 ## v4.6.6 (2026-09-14) — Stable planning header and shared date typography
 
 - Label the planning header Plan instead of today's date.
