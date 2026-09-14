@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.3 (2026-09-14) — Compact day routine editor
+
+- Replace the body-part selector with the date, set count and exercise count.
+- Remove Keep fixed controls, tighten exercise spacing and align reorder handles.
+- Center the smaller total-set value; use icon buttons for Add set, Edit and Remove.
+- Make Add exercise a full-width button.
+
 ## v4.6.2 (2026-09-14) — Planner header and calendar markers
 
 - Restore the planner's seven-day streak bar and center the header controls,

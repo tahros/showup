@@ -40,6 +40,15 @@ const {chromium}=require('playwright'),assert=require('assert'),fs=require('fs')
   }),'compact overview and single-row CTAs');
   await page.locator('[data-pw="pf-expand"]').click();await verify('days');
   await page.locator('[data-pw="pf-edit-first"]').click();await verify('routine');
+  assert(await page.evaluate(()=>{
+   const rect=e=>e.getBoundingClientRect(),cy=e=>rect(e).top+rect(e).height/2;
+   const out=document.querySelector('.pf-total output'),minus=document.querySelector('[data-pw="pf-minus"]'),plus=document.querySelector('[data-pw="pf-plus"]');
+   const centered=Math.abs((rect(out).left+rect(out).right)/2-(rect(minus).right+rect(plus).left)/2)<1;
+   return !document.querySelector('.pw-setup,[data-pw="lock"]')&&document.querySelector('.pf-routine-heading h2')&&centered&&parseFloat(getComputedStyle(out).fontSize)<=20&&
+    [...document.querySelectorAll('.pw-editable')].every(e=>Math.abs(cy(e.querySelector('.pw-grip'))-cy(e.querySelector('.pw-ex-title')))<1)&&
+    [...document.querySelectorAll('.pf-row-button')].every(e=>e.querySelector('svg'))&&
+    Math.abs(rect(document.querySelector('.pf-add-button')).width-rect(document.querySelector('.pf-add-summary')).width)<1;
+  }),'compact routine title, centered set count, aligned grips and icon buttons');
   assert((await page.locator('.pf-history-row').first().textContent()).includes('185 lb × 8 8 8 8'));
   assert(await page.evaluate(()=>!document.querySelector('[data-pw="pf-dates"]')&&getComputedStyle(document.querySelector('header .hback')).display!=='none'));
   await page.locator('header .hback').click();
