@@ -1,5 +1,10 @@
 # ShowUp — changelog
 
+## v4.6.9 (2026-09-14) — Focused Today plan section
+
+- Remove Coming up from Today; retain Dates for future-plan access.
+- Preserve saved plans, today's routine and all workout records.
+
 ## v4.6.8 (2026-09-14) — Visible selected day and separated Top control
 
 - Keep the selected day tab visible after rerenders and resizing.

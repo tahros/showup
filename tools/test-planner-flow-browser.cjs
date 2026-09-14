@@ -82,8 +82,10 @@ const {chromium}=require('playwright'),assert=require('assert'),fs=require('fs')
   }),'saved-plan dots are white when selected and theme blue otherwise');
   await page.locator('[data-stage="2"]').click();
   assert(await page.locator('[data-pw="pf-edit-first"]').count()===1);
-  await page.evaluate(()=>{lift.plan=null;view='today';pw().upcomingOpen=true;render({soft:true});});
-  await page.locator('[data-pw="open-date"][data-date="2026-09-15"]').click();
+  await page.evaluate(()=>{lift.plan=null;view='today';render({soft:true});});
+  assert.equal(await page.locator('.pw-coming,[data-pw="upcoming"]').count(),0);
+  await page.waitForTimeout(1100);
+  await page.evaluate(()=>pwOpen('2026-09-15'));
   assert.equal(await page.evaluate(()=>pfState().page),'edit');
   assert.equal(await page.evaluate(()=>pw().active),'2026-09-15');
   await page.locator('[data-stage="1"]').click();
