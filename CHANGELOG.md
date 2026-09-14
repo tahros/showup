@@ -1,5 +1,10 @@
 # ShowUp — changelog
 
+## v4.6.17 (2026-09-14) — Keep today's calendar highlight visible
+
+- Position the attendance calendar after its final layout so today's breathing outline isn't clipped at the right edge.
+- Preserve manual scrolling, the calendar layout and reduced-motion behavior.
+
 ## v4.6.16 (2026-09-14) — Normal & Neon body-part colors
 
 - Choose Normal or Neon in Settings, with a labeled preview of all eight colors.

@@ -1391,6 +1391,13 @@ function bindHeat(){
   if(!box||box.dataset.bound) return;
   box.dataset.bound='1';
   if(box.scrollWidth>box.clientWidth) box.scrollLeft=box.scrollWidth;   // today, not eight months ago
+  /* The Stats wrapper finishes the card layout after this binding (including
+     hiding the old date rows). Re-pin on the completed layout so today's
+     4px halo gutter is scrolled into view too. Never undo a user's scroll. */
+  const initialLeft=box.scrollLeft;
+  requestAnimationFrame(()=>{
+    if(box.isConnected&&Math.abs(box.scrollLeft-initialLeft)<1) box.scrollLeft=box.scrollWidth;
+  });
 }
 function bindPmix(){
   const box=document.getElementById('pmixWrap');

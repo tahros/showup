@@ -155,4 +155,16 @@ ok('...and the stacking rule is no longer scoped to .resting',
      g.neg.length?'negative left: '+g.neg.join(', '):'none negative');
 }
 
+// Final layout can widen the scroll extent after bindHeat's initial alignment.
+const edge=run(`(()=>{
+ const box=document.querySelector('.heatwrap'),raf=requestAnimationFrame;
+ let width=500,left=0,pending;
+ Object.defineProperties(box,{scrollWidth:{configurable:true,get:()=>width},clientWidth:{configurable:true,get:()=>300},scrollLeft:{configurable:true,get:()=>left,set:v=>left=Math.min(v,width-300)}});
+ requestAnimationFrame=f=>{pending=f};delete box.dataset.bound;bindHeat();
+ width=504;pending();const end=left;
+ delete box.dataset.bound;bindHeat();left=100;width=508;pending();const manual=left;
+ requestAnimationFrame=raf;return {end,manual};
+})()`);
+ok('after-layout scroll includes the new halo gutter',edge.end===204);
+ok('after-layout correction preserves manual scrolling',edge.manual===100);
 console.log(fails?`FAIL ${fails}`:'ALL PASS');process.exit(fails?1:0);
