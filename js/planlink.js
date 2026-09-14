@@ -169,7 +169,15 @@ function plHTML(ex){
   return `<section class="zone mini plan-link" aria-label="Planned and logged sets">
     <div class="lasthead"><span>Planned · Logged</span><span class="ago">${frozen?'Started plan':'Saved plan'}</span></div>
     ${changed?'<p class="pl-context">Plan edited since you started. These targets stay with this workout.</p>':''}
-    <div class="pl-next"><span>Next: ${selected?'set '+selected.ordinal+' · '+hesc(plTargetText(selected)):'extra set'}</span>
+    <div class="pl-next">${selected
+      ? /* v4.6.11: the Next line IS the target, so it is tappable. Selecting a set
+           loaded its weight and reps all along -- but only from inside the collapsed
+           "View targets & results". The one planned set you can actually see was the
+           one you could not tap, so the obvious gesture did nothing and the values
+           had to be dialled by hand. Same handler, same data-link-slot; it just
+           stops being a span. */
+        `<button type="button" class="pl-next-target" data-link-slot="${selected.ordinal}" aria-pressed="${true}">Next: set ${selected.ordinal} · ${hesc(plTargetText(selected))}</button>`
+      : `<span>Next: extra set</span>`}
       <button type="button" class="pl-extra" data-link-slot="-1" aria-pressed="${!selected}">Extra set</button></div>
     <details class="pl-details"><summary><span>View targets &amp; results</span>${icon('chevron',ICON_SZ.sm)}</summary>
     <div class="pl-columns" aria-hidden="true"><span>Set</span><span>Planned</span><span>Logged</span></div>

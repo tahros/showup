@@ -112,5 +112,23 @@ test('moving an exercise preserves identity but detaches the incompatible target
     console.log('PASS ...and clears the stale selection rather than forcing a date');checks++;
   }
 
+
+  /* v4.6.11: the visible Next line is tappable, and tapping it loads that target's
+     weight and reps into the picker. Selecting always loaded them -- but only from
+     inside the collapsed details, which is the one place you would not think to look.
+     Uses the app's own plan seed, not an invented helper. */
+  run(`DB.planTracking=null;delete DB.days[todayISO];lift={part:'Legs',ex:'Squat',weight:999,rep:1};
+       DB.plan={d:todayISO,...plCopy({items:[{ex:'Squat',lines:[{w:100,reps:[8,8]}]}]})};plCapture();`);
+  const card=run(`plHTML('Squat')`);
+  test('(fixture) the comparison card renders with a Next target',/Next: set 1/.test(card)?'true':'false');
+  test('the Next line is a button carrying the target slot, not a bare span',
+       /<button[^>]*pl-next-target[^>]*data-link-slot="1"/.test(card)?'true':'false');
+  run(`(function(){const d=document.createElement('div');d.innerHTML=${JSON.stringify(card)};
+        document.body.appendChild(d);
+        const b=d.querySelector('.pl-next-target');
+        plHandle({target:b});})()`);
+  test('tapping it loads that target\u2019s weight into the picker',`Math.round(lift.weight)===100`);
+  test('...and its reps',`lift.rep===8`);
+
   console.log(checks+' linkage checks passed');dom.window.close();process.exit(0);
 })().catch(e=>{console.error(e);dom.window.close();process.exit(1)});
