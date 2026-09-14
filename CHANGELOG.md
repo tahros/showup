@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.2 (2026-09-14) — Planner header and calendar markers
+
+- Restore the planner's seven-day streak bar and center the header controls,
+  retaining the app's shared date typography at narrow phone widths.
+- Selected saved-plan dates use solid white dots; unselected saved dates stay blue.
+- Add mobile checks for header alignment, font consistency and both dot states.
+
 ## v4.6.1 (2026-09-14) — Planner spacing and navigation polish
 
 - Theme-blue saved-plan dots and more visible step connectors.

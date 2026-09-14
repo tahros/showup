@@ -15,6 +15,14 @@ const {chromium}=require('playwright'),assert=require('assert'),fs=require('fs')
   const verify=async label=>{
    await page.waitForTimeout(1100); // Capture settled app entry/view transitions.
    assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),theme+' '+width+' '+label+' overflow');
+   assert(await page.evaluate(()=>{
+    const hdr=document.querySelector('header'),date=document.querySelector('#hDate'),week=document.querySelector('#hWeek'),gear=document.querySelector('#gearBtn');
+    const rect=e=>e.getBoundingClientRect(),center=e=>rect(e).top+rect(e).height/2;
+    const css=getComputedStyle(date),font=[css.fontFamily,css.fontSize,css.fontWeight].join('|');
+    hdr.classList.remove('planmode');const normal=getComputedStyle(date),standard=[normal.fontFamily,normal.fontSize,normal.fontWeight].join('|');hdr.classList.add('planmode');
+    return font===standard&&Math.abs(center(date)-center(gear))<1&&Math.abs(center(week)-center(gear))<1&&
+     week.children.length===7&&rect(week).width>0&&date.scrollWidth<=date.clientWidth+1&&rect(date).right<=rect(week).left;
+   }),theme+' '+width+' '+label+' shared date font, centered header and visible streak');
    await page.screenshot({path:path.join(out,theme+'-'+width+'-'+label+'.png'),fullPage:true});
   };
   await verify('dates');await page.locator('[data-pw="pf-prefs"]').click();await verify('preferences');
@@ -45,10 +53,13 @@ const {chromium}=require('playwright'),assert=require('assert'),fs=require('fs')
   assert(await page.evaluate(()=>plCurrent('2026-09-14').targets.length===8));
   await page.locator('[data-stage="1"]').click();await verify('saved-dates');
   assert(await page.evaluate(()=>{
-   const dot=document.querySelector('.pf-calendar .pf-plan-dot'),probe=document.createElement('span');
+   const dot=document.querySelector('.pf-calendar .selected .pf-plan-dot'),probe=document.createElement('span');
+   if(!dot||getComputedStyle(dot).color!=='rgb(255, 255, 255)'||getComputedStyle(dot).backgroundColor!=='rgba(0, 0, 0, 0)')return false;
+   dot.closest('button').classList.remove('selected');
    probe.style.color='var(--accent)';document.body.append(probe);
-   const same=getComputedStyle(dot).color===getComputedStyle(probe).color;probe.remove();return same;
-  }),'saved-plan dots use actual theme blue');
+   const same=getComputedStyle(dot).color===getComputedStyle(probe).color;probe.remove();
+   dot.closest('button').classList.add('selected');return same;
+  }),'saved-plan dots are white when selected and theme blue otherwise');
   await page.locator('[data-stage="2"]').click();
   assert(await page.locator('[data-pw="pf-edit-first"]').count()===1);
   assert.equal(errors.length,0,errors.join('\n'));console.log('PASS '+theme+' '+width+'px planner flow, real clicks and save');

@@ -32,12 +32,20 @@
 @media(max-width:360px){:root .pf-workspace .pf-day>.card{padding-left:46px}}
 /* Planner polish: match the app's compact cards and existing header back control. */
 header.planmode .hback{display:grid}
-header.planmode .h-week,header.planmode .streak{display:none}
-header.planmode .h-weekrow{flex:0 0 auto}
+header.planmode .brandrow{align-items:center;gap:8px}
+header.planmode .h-toprow{gap:8px}
+/* Keep the shared .h-date typography and all seven streak squares. */
+header.planmode .hback{flex:0 0 32px;width:32px}
+@media(max-width:360px){
+  header.planmode .brandrow{gap:5px}
+  header.planmode .h-toprow,header.planmode .h-weekrow{gap:5px}
+  header.planmode .h-week{gap:3px}
+  header.planmode .h-week .hwd{width:8px;height:8px}
+}
 .pf-steps{margin:0 0 12px}
 .pf-steps button:not(:last-child):after{height:2px;background:color-mix(in srgb,var(--muted) 65%,var(--surface))}
 .pf-plan-dot{color:var(--accent);font-style:normal}
-.pf-calendar .selected .pf-plan-dot{background:var(--surface);border-radius:50%;width:12px}
+.pf-calendar .selected .pf-plan-dot{color:#fff;background:transparent}
 .pf-calendar .pw-btn:disabled:has(.pf-plan-dot){opacity:1}
 .pf-calendar .pw-btn:disabled:has(.pf-plan-dot)>span{opacity:.3}
 :root .pf-workspace .pf-day>.card{padding-top:10px;padding-bottom:10px;margin-bottom:0}
