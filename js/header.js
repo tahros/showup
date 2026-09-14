@@ -60,6 +60,8 @@ function renderHeader(){
      is untouched, Stats is untouched, and no past square ever turns green.
      The word keeps its own job in the rest ink (v3.3.92). */
   const _wk=$('#hWeek');
+  /* the strip itself needs a name, or the seven labels arrive with no context */
+  if(_wk&&!_wk.getAttribute('aria-label'))_wk.setAttribute('aria-label','This week');
   if(_wk){
     const trainedOn=workoutDates();
     const _rst=restingToday();
@@ -71,10 +73,18 @@ function renderHeader(){
        because a row of grey would read as a week already failed on a Monday
        morning. Green stays exactly what v3.3.437 made it: a LIVE grade, only
        today, gone at midnight, never in the record. */
+    /* v4.6.12: THE WEEK IS SAID OUT LOUD. Seven squares carried the week's state
+       and announced nothing -- no label on the strip, none on a square. Everywhere
+       else the app labels this kind of grid (the Stats heatmap gives every cell its
+       date and whether it was trained); the header was simply missed. The state is
+       already computed here, so saying it costs one attribute. Colour alone was
+       also the only carrier, which fails anyone who cannot separate the greys. */
     for(const iso of weekDays()){
-      const isTod=iso===todayISO, future=iso>todayISO;
-      html+=`<i class="hwd${trainedOn.has(iso)?' on':''}${isTod?' tod':''}${
-        isTod&&_rst?' resting':''}${future?' ahead':''}"></i>`;
+      const isTod=iso===todayISO, future=iso>todayISO, on=trainedOn.has(iso);
+      const day=new Date(iso+'T00:00').toLocaleDateString('en-US',{weekday:'long'});
+      const said=on?'trained':future?'ahead':(isTod&&_rst)?'resting':isTod?'not yet':'missed';
+      html+=`<i class="hwd${on?' on':''}${isTod?' tod':''}${
+        isTod&&_rst?' resting':''}${future?' ahead':''}" role="img" aria-label="${day}${isTod?', today':''} · ${said}"></i>`;
     }
     /* v3.3.385: WRITE ONLY WHEN THE WEEK ACTUALLY CHANGES. renderHeader runs
        on every render, and rewriting innerHTML replaces the elements -- new

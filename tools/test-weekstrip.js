@@ -272,4 +272,25 @@ ok('...and today, once trained, is a filled square that can carry it',
   ok('...still on hwsheen, staggered across the week',
      /animation:hwsheen 1\.15s/.test(css) && /nth-child\(7\)\.on::after\{animation-delay:\.60s\}/.test(css));
 }
+
+/* v4.6.12: the week is said out loud. Seven squares carried the week's state and
+   announced nothing -- colour was the only carrier, which fails anyone who cannot
+   separate the greys, and the strip had no name, so even labelled squares would
+   have arrived without context. Details are passed pre-rendered: this suite's ok()
+   evaluates a string detail as page code, and a label like "Sunday · missed" is
+   not code. */
+{
+  const labels=run(`JSON.stringify([...document.querySelectorAll('.h-week .hwd')].map(e=>e.getAttribute('aria-label')||''))`);
+  const L=JSON.parse(labels);
+  ok('every square in the week says what it is', L.length===7&&L.every(l=>l.length>3), L.length+' labelled');
+  ok('...each names its weekday', L.every(l=>/Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday/.test(l)));
+  ok('...and its state, in words rather than colour alone',
+     L.every(l=>/trained|missed|ahead|resting|not yet/.test(l)));
+  ok('today is announced as today', L.filter(l=>/, today/.test(l)).length===1);
+  ok('a trained day and a missed day do not read the same',
+     new Set(L.map(l=>(l.split('·')[1]||'').trim())).size>1);
+  ok('the strip itself is named, so the labels have context',
+     run(`document.querySelector('.h-week')?.getAttribute('aria-label')==='This week'`));
+}
+
 process.exit(fails?1:0);
