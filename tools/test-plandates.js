@@ -11,6 +11,7 @@ w.HTMLCanvasElement.prototype.getContext=()=>new Proxy({measureText:()=>({width:
 for(const m of html.matchAll(/src="(js\/[^?"]+)\?v=/g))
   vm.runInContext(fs.readFileSync(path.join(dir,m[1]),'utf8'),ctx,{filename:m[1]});
 const run=s=>vm.runInContext(s,ctx);let fails=0;
+w.localStorage.setItem('showup:planner-flow','legacy'); // New calendar states are covered in test-planner-flow.
 const ok=(n,e,g)=>{let good;try{good=typeof e==='string'?run(e):e;}catch(err){good=false;console.log(err.message);}
   console.log(`${good?'PASS':'FAIL'} ${n}`+(g!==undefined?` → ${typeof g==='string'?run(g):g}`:''));if(!good)fails++;};
 const tap=a=>run(String.raw`document.querySelector('[data-pw=\"${a}\"]').dispatchEvent(new window.MouseEvent('click',{bubbles:true}))`);

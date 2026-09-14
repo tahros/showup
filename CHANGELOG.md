@@ -1,5 +1,36 @@
 # ShowUp — changelog
 
+## v4.6.0 (2026-09-13) — Planner journey and plan-to-workout linkage
+
+- Preferences → Dates → Edit → Done, with connected, revisitable stages.
+  Changing date selection pauses later stages; restoring the editing dates
+  restores access without deleting the draft. Editing dates pulse light blue.
+- Preferences are available from the planner and Settings: 1–7 days or flexible,
+  time/set budgets, per-body-part emphasis, split and avoided exercises.
+- Reorder workouts between dates and exercises within a day; expand all,
+  edit grouped prescriptions, add sets/exercises and navigate adjacent days.
+- Changed total sets highlight Regenerate and require regeneration before save.
+  Pasted routines remain editable; optional application to all selected dates.
+- Empty days require confirmation and become No plan, not empty saved workouts.
+  Saving changes only the selected dates. Existing profile and history stay intact.
+- Keep the existing checked AI writer; add explicit preference/date checks.
+  This is not the full adaptive-learning engine or a new progression policy.
+
+- Archive versioned saved plans and stable individual targets in the existing
+  synced account document. Saving a plan never writes workout sets.
+- Pin the saved plan at the first newly logged set. Store actual values and
+  their target separately; later edits or clears cannot rewrite that evidence.
+- Training shows a compact Planned / Logged comparison, individual selectable
+  targets and an Extra set action. Holds retain seconds; display weights are
+  whole numbers while stored loads retain their original precision.
+- Preserve legacy history without guessing links, retain IDs through edits
+  and Undo, and detach incompatible targets when moving an exercise.
+- Sync immutable revisions by ID and preserve additive linkage metadata when
+  an older device returns identical workout facts. Profile fields are untouched.
+- Running records remain unchanged in meaning: they receive an actual-record
+  ID but are not matched to the strength planner's weight/rep prescriptions.
+- No new AI calls, feedback questions or personal-memory inference in Stage 1.
+
 ## v4.5.32 (2026-09-13) — Fresh Sage rest header
 
 - Use #82AD85 for future-day outlines in the light Rest header.

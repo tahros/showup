@@ -5,6 +5,7 @@
 document.addEventListener('click',e=>{
   if(checkDate()) return;   // v3.3.158: the day rolled mid-tap — re-render, next tap lands right
   if(pwHandle(e)) return;
+  if(plHandle(e)) return;
   /* v4.1.8: which day the header's week starts on. A viewing choice, so it
      saves and repaints and touches nothing in the record. */
   const weekPick=e.target.closest('[data-week-start]');
@@ -95,6 +96,7 @@ document.addEventListener('click',e=>{
         const reps=$('#edR').value.split(',').map(x=>Math.round(+x)).filter(x=>x>0);
         if(!reps.length) return toast('Enter reps');
         es.w=wv; es.reps=reps;
+        plSplitEditedSet(t,es);
         saveExW(es.ex,wv);
       }
       touchToday();
@@ -316,7 +318,7 @@ document.addEventListener('click',e=>{
   if(rb){
     lift.weight=toKg(+($('#wv').value||0));
     saveExW(lift.ex,lift.weight);
-    t.w.push({part:lift.part,ex:lift.ex,w:lift.weight,reps:[+rb.dataset.rep],at:Date.now()});
+    plLog({part:lift.part,ex:lift.ex,w:lift.weight,reps:[+rb.dataset.rep],at:Date.now()});
     undoInvalidate();   // v3.3.143: new work makes an older snapshot unsafe to restore
     reopen(lift.ex,lift.part);
     lift.justSaved=true;save();renderHeader();setToast(lift.ex,lift.weight,+rb.dataset.rep);return renderLift();
@@ -330,7 +332,7 @@ document.addEventListener('click',e=>{
     /* SLICE 2: su rides on the SET, not only on the exercise. Change the unit
        later and everything already logged keeps meaning what it meant -- the
        same promise the equipment editor makes. */
-    t.w.push({part:lift.part,ex:lift.ex,w:lift.weight,reps:[r],...(su?{su}:{}),at:Date.now()});
+    plLog({part:lift.part,ex:lift.ex,w:lift.weight,reps:[r],...(su?{su}:{}),at:Date.now()});
     undoInvalidate();   // v3.3.143
     reopen(lift.ex,lift.part);
     lift.justSaved=true;save();renderHeader();setToast(lift.ex,lift.weight,r);return renderLift();
@@ -355,7 +357,7 @@ document.addEventListener('click',e=>{
        exactly the drift the suppression is guarding against, so it carries
        the unit regardless. */
     const su2=unitOf(lift.ex);
-    t.w.push({part:lift.part,ex:lift.ex,w,reps:[r],...(su2?{su:su2}:{}),at:Date.now()});
+    plLog({part:lift.part,ex:lift.ex,w,reps:[r],...(su2?{su:su2}:{}),at:Date.now()});
     undoInvalidate();   // v3.3.143: new work makes an older snapshot unsafe
     reopen(lift.ex,lift.part);
     lift.weight=w;
@@ -779,9 +781,10 @@ document.addEventListener('click',e=>{
     if(!sets.length){ lift.copy=false; return renderLift(); }
     if(moving){
       snapshot(`moved ${sets.length} sets to ${target}`);
+      const moved=t.w.filter(s=>s.ex===lift.ex).map(s=>plMovedSet(s,target,tpart));
       t.w=t.w.filter(s=>s.ex!==lift.ex);
       DB.days[todayISO].w=t.w;
-      sets.forEach(s=>DB.days[todayISO].w.push({part:tpart,ex:target,w:s.w,reps:[s.r]}));
+      moved.forEach(s=>DB.days[todayISO].w.push(s));
       toast(`${sets.length} sets moved to ${target}`);
     }else{
       sugOv()[target]={sets:[...sets], d:lift.copy.d||todayISO, from:lift.ex};
@@ -823,7 +826,7 @@ document.addEventListener('click',e=>{
     const km=fromD(dist);
     /* v3.3.143: no snapshot. Logging a run is additive and the run can just
        be deleted; this was the only additive action pushing an Undo button. */
-    t.w.push({part:'Run',ex:'Run',w:km,reps:[],mins:+($('#rm').value||0),secs:+($('#rs').value||0),at:Date.now()});
+    plLog({part:'Run',ex:'Run',w:km,reps:[],mins:+($('#rm').value||0),secs:+($('#rs').value||0),at:Date.now()});
     undoInvalidate();
     reopen('Run','Run');
     save();renderHeader();return renderLift();

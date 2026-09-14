@@ -126,3 +126,20 @@ p.pw-small{margin:10px 0 16px}.pw-workspace p:not(.pw-small){font:400 14px/1.6 v
 .pw-home .pw-fold-summary[aria-expanded="true"]>.ic,.pw-workspace .pw-fold-summary[aria-expanded="true"]>.ic,.pw-coming.is-open .pw-disclosure>.ic{transform:rotate(90deg)}
 .pw-datebar>.pw-btn{padding-right:0;border-right-width:0}.pw-setup summary{padding-right:0}
 @media(prefers-reduced-motion:reduce){.pw-fold-summary>.ic{transition:none!important}}
+/* Stage 1: compact, neutral comparison in Training, using existing tokens. */
+.plan-link .pl-next{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px;line-height:1.5;margin-top:8px}
+.plan-link .pl-extra{flex:0 0 auto;width:auto;min-height:44px;border:1px solid var(--line);border-radius:12px;padding:8px 12px;background:var(--surface2);color:var(--chalk);font:inherit}
+.plan-link .pl-extra[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+.plan-link .pl-details{margin-top:6px}
+.plan-link summary{cursor:pointer;min-height:44px;display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--muted)}
+.plan-link summary .ic{transition:transform 180ms ease}
+.plan-link details[open] summary .ic{transform:rotate(90deg)}
+@media(prefers-reduced-motion:reduce){.plan-link summary .ic{transition:none}}
+.plan-link .pl-columns,.plan-link .pl-result{display:grid;grid-template-columns:28px minmax(0,1fr) minmax(0,1fr);gap:8px;align-items:center;text-align:left}
+.plan-link .pl-columns{font-size:11px;color:var(--muted);padding:8px 0}
+.plan-link .pl-result{width:100%;min-height:44px;padding:9px 0;border:0;border-top:1px solid var(--line);background:transparent;color:var(--chalk);font:inherit;font-size:12px;line-height:1.5}
+.plan-link .pl-result[aria-pressed="true"]{color:var(--accent)}
+.plan-link .pl-result:disabled{opacity:1;cursor:default}
+.plan-link .pl-result span{min-width:0;overflow-wrap:anywhere}
+.plan-link .pl-result small{display:block;color:var(--muted)}
+.plan-link .pl-context{font-size:12px;line-height:1.5;color:var(--muted);margin:8px 0 0}

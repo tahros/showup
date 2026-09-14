@@ -414,9 +414,9 @@ run(`(function(){view='lift'; lift.ex='Lateral Raise'; lift.part='Shoulder'; lif
    -- the exercise page names the plan as the source, and it carries the
    plan's own numbers -- measured against the card that replaced the strip. */
 ok("...so the exercise page names the plan as the source",
-   run(`/plan/i.test([...document.querySelectorAll('.planzone .lasthead span')][0].textContent)`));
+   run(`/plan/i.test(document.querySelector('.plan-link .lasthead').textContent)`));
 ok("...and the rows carry the plan's numbers",
-   run(`/35/.test(document.querySelector('.planzone .planrows').textContent)`));
+   run(`/35/.test(document.querySelector('.plan-link .pl-details').textContent)`));
 // ---- v3.3.282: management actions ride the heading's right edge ----------
 // Edit and Clear left the card body — a full-width pair under the last
 // exercise read as another row of the session. The (i) did NOT move: its

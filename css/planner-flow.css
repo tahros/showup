@@ -1,0 +1,32 @@
+/* Shared app tokens. No global header/nav/profile changes. */
+.pf-workspace{padding-bottom:220px}.pf-workspace .card{padding:18px;margin-bottom:14px;border-radius:24px}
+.pf-workspace h1{font:600 23px/1.25 var(--body);letter-spacing:-.5px}.pf-workspace h3{font-size:16px}
+.pf-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;margin:8px 0 20px}
+.pf-steps .pw-btn{position:relative;display:flex;flex-direction:column;background:transparent;border:0;padding:8px 0;font:400 11px/1.4 var(--body);gap:5px;box-shadow:none}
+.pf-steps b{display:grid;place-items:center;width:25px;height:25px;border:1px solid var(--line);border-radius:50%;font-weight:500;background:var(--surface);z-index:1}
+.pf-steps button:not(:last-child):after{content:'';position:absolute;top:20px;left:calc(50% + 13px);width:calc(100% - 26px);height:1px;background:var(--line)}
+.pf-steps .pf-current{color:var(--accent)}.pf-steps .pf-current b{background:var(--accent);color:#fff;border-color:var(--accent)}.pf-steps .pf-passed b{border-color:var(--accent)}
+.pf-options{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.pf-fields{display:flex;gap:12px}.pf-fields label{flex:1;min-width:0;font-size:12px}.pf-fields input{width:100%;box-sizing:border-box;min-height:44px;margin-top:6px;font:400 16px var(--body)}
+.pf-select{display:block;font-size:14px;margin-top:16px}.pf-select select{width:100%;min-height:44px;margin-top:8px;font-size:16px}
+.pf-slider{display:block;margin:16px 0}.pf-slider strong{font-size:14px}.pf-slider input{display:block;width:100%;margin:8px 0;accent-color:var(--accent)}.pf-slider>span{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
+.pf-calendar .pw-btn{min-width:0;min-height:44px;display:flex;flex-direction:column;gap:3px;padding:4px;font:400 13px var(--mono);position:relative}.pf-calendar small{font-size:11px;line-height:1}
+.pf-calendar-key{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font:400 11px var(--body);margin-top:12px;color:var(--muted)}
+.pf-key-selected{background:var(--accent);color:#fff;padding:3px 5px;border-radius:5px}.pf-key-editing{border:2px solid #85bff7;padding:1px 4px;border-radius:5px}
+.pf-calendar .pf-editing{animation:pf-edit-pulse 2.4s ease-in-out infinite;box-shadow:inset 0 0 0 2px #85bff7}
+@keyframes pf-edit-pulse{0%,100%{box-shadow:inset 0 0 0 2px #b6d8fa}50%{box-shadow:inset 0 0 0 3px #7ab9f5}}
+.pf-day{margin-bottom:16px}.pf-day-date{font:500 13px var(--mono);margin:0 0 8px}.pf-day>.card{position:relative;padding-left:54px}.pf-day-grip{position:absolute;left:7px;top:14px;width:40px;padding:0;touch-action:none;border:0;background:transparent}
+.pf-day summary{min-height:44px;font-size:16px}.pf-day .pw-exercise{padding:8px 0}.pf-day .pw-ex-title strong{font-size:14px}.pf-day .pw-prescription{font-size:12px;margin:6px 0}.pf-right{display:flex;justify-content:flex-end;margin:4px 0 12px}
+.pf-workspace .pw-exercise{padding-top:16px;padding-bottom:12px}.pf-workspace .pw-ex-title{align-items:flex-start}.pf-workspace .pw-ex-title strong{font-size:15px;overflow-wrap:anywhere}.pf-workspace .pw-ex-title .pw-btn{padding:0 3px;min-height:36px;font-size:11px;flex:none}
+.pf-set-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px}.pf-set-row>span{min-width:0;font-size:12px;line-height:1.65;overflow-wrap:anywhere}.pf-set-row>div{display:flex;flex:none;gap:2px}.pf-set-row .pw-btn{padding:8px 3px;min-height:44px;font-size:11px}
+.pf-total{display:flex;align-items:center;justify-content:space-between;margin:12px 0;font-size:14px}.pf-total .pw-stepper{gap:10px;margin:0}.pf-total .pw-stepper output{font-size:24px;min-width:40px}.pf-total .pw-stepper .pw-btn{width:44px;height:44px}
+.pf-changed{color:var(--accent)}.pf-balloon{background:var(--surface2);border-left:2px solid var(--accent);padding:10px 12px;border-radius:12px;font-size:12px!important}
+.pf-beam{position:relative;overflow:hidden}.pf-beam:after{content:'';position:absolute;inset:-30% -50%;background:linear-gradient(110deg,transparent 42%,#ffffff40 50%,transparent 58%);animation:pf-sheen 2.8s ease-in-out infinite;pointer-events:none}@keyframes pf-sheen{from{transform:translateX(-55%)}to{transform:translateX(55%)}}
+.pf-add-summary{text-align:center;margin:14px 0}.pf-add-button{border:1px solid var(--muted);background:transparent}.pf-add-summary p{margin:8px 0}
+.pf-history summary{display:flex;align-items:center;gap:8px;justify-content:space-between}.pf-history summary strong{font-size:13px}.pf-history summary span{font-size:11px;margin-left:auto}.pf-history-row{border-top:1px solid var(--line);padding:10px 0}.pf-history-row strong{font-size:13px}.pf-history-row p{font:400 12px/1.65 var(--mono)!important;margin:6px 0}
+.pf-dock{display:flex;flex-direction:column;align-items:stretch}.pf-dock>.pw-btn{width:100%;flex:none}.pf-dock .pw-small{margin:0;text-align:center;font-size:11px}.pf-neighbors{display:grid;grid-template-columns:1fr 1fr;gap:8px}.pf-neighbors .pw-btn{padding:8px 4px;font-size:12px}
+.pf-saved{padding:10px 0;border-bottom:1px solid var(--line)}.pf-saved:last-child{border:0}.pf-group-form .pw-actions{margin-top:10px}
+@media(max-width:360px){.pf-workspace .pw-exercise.pw-editable{padding-left:36px}.pf-set-row{flex-wrap:wrap}.pf-set-row>div{margin-left:auto}.pf-workspace .pw-ex-title{flex-wrap:wrap}.pf-day>.card{padding-left:46px}}
+@media(prefers-reduced-motion:reduce){.pf-calendar .pf-editing,.pf-beam:after{animation:none}}
+/* Outrank the minimal skin's card padding without changing other app cards. */
+:root .pf-workspace .pf-day>.card{padding-left:54px}
+@media(max-width:360px){:root .pf-workspace .pf-day>.card{padding-left:46px}}

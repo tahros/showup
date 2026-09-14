@@ -97,7 +97,7 @@ ok("calling undo anyway cannot destroy the new work", setsToday() === afterLog,
 
 // ---- 4. invalidation is wired to every additive path -------------------
 const appSrc = fs.readFileSync(path.join(dir, "js/app.js"), "utf8");
-const pushes = (appSrc.match(/t\.w\.push\(/g) || []).length;
+const pushes = (appSrc.match(/plLog\(/g) || []).length;
 const invalidations = (appSrc.match(/undoInvalidate\(\)/g) || []).length;
 ok("every path that logs a set invalidates the stack",
    invalidations === pushes && pushes >= 3, invalidations + " guards / " + pushes + " pushes");

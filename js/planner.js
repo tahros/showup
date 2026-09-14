@@ -89,7 +89,7 @@ function pwTodayHTML(){
      only on coming back from an exercise. */
   if(now&&!closed)html+=`<details class="pw-saved" data-pw-fold="today" ${pwFoldOpen('today')?'open':''}><summary><span>Today</span><span>${now.items.length} exercises</span></summary>${planCardHTML(now,true)}${pwAction('open-date','Edit','edit','pw-text',`data-date="${todayISO}"`)}</details>`;
   if(closed||!now)html+=`<div class="card pw-home-card"><span class="pw-eyebrow">${closed?(next===tomorrowISO()?'Tomorrow':hesc(pwDate(next))):'Next workout'}</span><h3>${upcoming&&closed?hesc(pwParts(pwRead(planText(upcoming))).join(' + ')||'Your plan'):'Plan your next workout'}</h3>${upcoming&&closed?'<p class="pw-small">Ready to go.</p>':''}<div class="pw-actions">${pwAction('open-date',upcoming&&closed?'Edit':'Plan',upcoming&&closed?'edit':'sparkle','primary',`data-date="${closed?next:writeDateISO()}"`)}${pwAction('paste-open','Paste','paste','',`data-date="${closed?next:writeDateISO()}"`)}</div></div>`;
-  if(future.length)html+=`<div class="pw-saved pw-coming ${s.upcomingOpen?'is-open':''}"><button type="button" class="pw-disclosure" data-pw="upcoming" aria-expanded="${!!s.upcomingOpen}" aria-controls="pw-coming-days"><span>Coming up</span><span>${future.length} planned ${future.length===1?'day':'days'}</span>${icon('chevron',ICON_SZ.sm)}</button><div id="pw-coming-days" class="pw-fold" ${s.upcomingOpen?'':'inert'}><div>${future.map(d=>`<div class="pw-upcoming"><div><strong>${hesc(pwDate(d))}</strong><span class="pw-small">${hesc(pwParts(pwRead(planText(pwSaved(d)))).join(' · '))}</span></div>${pwAction('open-date','Edit','edit','',`data-date="${d}"`)}</div>`).join('')}</div></div></div>`;
+  if(future.length+(now?1:0)>1)html+=`<div class="pw-saved pw-coming ${s.upcomingOpen?'is-open':''}"><button type="button" class="pw-disclosure" data-pw="upcoming" aria-expanded="${!!s.upcomingOpen}" aria-controls="pw-coming-days"><span>Coming up</span><span>${future.length} planned ${future.length===1?'day':'days'}</span>${icon('chevron',ICON_SZ.sm)}</button><div id="pw-coming-days" class="pw-fold" ${s.upcomingOpen?'':'inert'}><div>${future.map(d=>`<div class="pw-upcoming"><div><strong>${hesc(pwDate(d))}</strong><span class="pw-small">${hesc(pwParts(pwRead(planText(pwSaved(d)))).join(' · '))}</span></div>${pwAction('open-date','Edit','edit','',`data-date="${d}"`)}</div>`).join('')}</div></div></div>`;
   const drafts=s.dates.filter(d=>d>=todayISO&&s.book[d]&&s.book[d].source!=='Saved plan'&&(s.book[d].rows.length||s.book[d].parts.length));
   if(drafts.length)html+=pwAction('resume','Resume draft','edit','pw-resume');
   return pwFoldMarkup(html+'</section>');
@@ -146,7 +146,7 @@ function pwRender(){
     html+=writerWaitHTML().replace('data-writecancel','data-pw="cancel"').replace('data-what="the week"',`data-what="${s.task==='adjust'?'the set adjustment':'your plan'}"`);
   }else if(s.step==='paste'||s.step==='editrow'){
     const editing=s.step==='editrow';
-    html+=`<div class="card pw-card pw-input-panel"><h3>${editing?(s.editIndex===day.rows.length?'Add exercise':'Edit exercise'):(s.editAll?'Edit routine':'Paste routine')}</h3><div class="pw-text-tools">${pwButton('text-select','Select All','pw-text')}${pwAction('text-copy','Copy','copy','pw-text')}${pwAction('text-paste','Paste','paste','pw-text')}</div>${editing?`<label class="pw-sr-only" for="pw-exercise">Exercise name</label><select id="pw-exercise" data-pw-field="exercise">${['<Keep typed name>',...Object.values(SEED.catalog).flat()].map(x=>`<option value="${hesc(x)}" ${s.exercise===x?'selected':''}>${hesc(x)}</option>`).join('')}</select>`:''}<label class="pw-sr-only" for="pw-routine">Routine text</label><textarea id="pw-routine" class="pw-routine" data-pw-field="pasteText" rows="7" spellcheck="false" placeholder="Squat&#10;135 lb × 8&#10;225 lb × 6 6 6">${hesc(s.pasteText||'')}</textarea></div>`;
+    html+=`<div class="card pw-card pw-input-panel"><h3>${editing?(s.editIndex===day.rows.length?'Add exercise':'Edit exercise'):(s.editAll?'Edit routine':'Paste routine')}</h3><div class="pw-text-tools">${pwAction('text-select','Select All','selectall','pw-text')}${pwAction('text-copy','Copy','copy','pw-text')}${pwAction('text-paste','Paste','paste','pw-text')}</div>${editing?`<label class="pw-sr-only" for="pw-exercise">Exercise name</label><select id="pw-exercise" data-pw-field="exercise">${['<Keep typed name>',...Object.values(SEED.catalog).flat()].map(x=>`<option value="${hesc(x)}" ${s.exercise===x?'selected':''}>${hesc(x)}</option>`).join('')}</select>`:''}<label class="pw-sr-only" for="pw-routine">Routine text</label><textarea id="pw-routine" class="pw-routine" data-pw-field="pasteText" rows="7" spellcheck="false" placeholder="Squat&#10;135 lb × 8&#10;225 lb × 6 6 6">${hesc(s.pasteText||'')}</textarea></div>`;
     footer=pwButton('edit','Cancel')+pwButton('readpaste','Preview','primary');
   }else if(s.step==='adjust'){
     if(!s.adjustBase||s.adjustDate!==s.active)pwBeginAdjust();
@@ -304,7 +304,7 @@ function pwValidateAdjustment(rows,day){
 }
 async function pwGenerate(adjust=false,rewrite=false){
   const s=pw();if(s.busy)return;
-  const dates=adjust||rewrite?[s.active]:s.dates.filter(d=>!pwDay(d).rows.length);
+  const dates=adjust||rewrite?[s.active]:(typeof pfOn==='function'&&pfOn()?s.dates.slice():s.dates.filter(d=>!pwDay(d).rows.length));
   if(!dates.length)dates.push(s.active);
   if(dates.some(d=>d<todayISO)){s.error='Choose today or a future date before writing.';return pwRender();}
   const b=pwDay(s.active);if(adjust){b.target=Number(b.target||pwCounts(b.rows).total);if(!Number.isInteger(b.target)||b.target<1||b.target>100){s.error='Choose a whole number from 1 to 100.';return pwRender();}}
@@ -337,7 +337,7 @@ async function pwGenerate(adjust=false,rewrite=false){
       for(const [d,doc] of Object.entries(days))for(const i of pwDay(d).locks)if(pwText([pwDay(d).rows[i]])!==pwText([doc.rows[i]||{}]))throw Error('The writer changed an exercise you kept fixed. Your draft is unchanged.');
       candidate={type:'generate',days,reason:chk.reason};
     }
-    if(cancelled())return;s.candidate=candidate;s.step='candidate';s.busy=false;pwPersist();if(view==='today'&&lift.plan==='workspace')pwRender();
+    if(cancelled())return;if(typeof pfValidateCandidate==='function'&&pfOn())pfValidateCandidate(candidate,dates);s.candidate=candidate;s.step='candidate';s.busy=false;pwPersist();if(typeof pfOn==='function'&&pfOn()){pwApply();return;}if(view==='today'&&lift.plan==='workspace')pwRender();
   }catch(e){if(cancelled())return;s.busy=false;s.step=adjust?'adjust':'edit';s.error=e.refused?`Could not use that answer: ${e.refused}. Nothing saved.`:e.message||'Could not write. Your draft is unchanged.';pwPersist();if(view==='today'&&lift.plan==='workspace')pwRender();}
 }
 function pwSave(){

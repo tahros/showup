@@ -3,6 +3,9 @@ const {JSDOM}=require('jsdom'),fs=require('fs'),path=require('path'),vm=require(
 const dir=process.argv[2]||'.',html=fs.readFileSync(path.join(dir,'index.html'),'utf8');
 const dom=new JSDOM(html.replace(/<script[^>]*src=[^>]*><\/script>/g,''),{url:'https://tahros.github.io/showup/',runScripts:'outside-only',pretendToBeVisual:true});
 const w=dom.window,ctx=dom.getInternalVMContext();w.fetch=()=>Promise.reject(Error('offline'));w.matchMedia=()=>({matches:false,addEventListener(){}});w.scrollTo=()=>{};w.navigator.vibrate=()=>{};
+// Preserve the prior workspace's parser and safety coverage. The approved
+// multi-stage journey is exercised separately in test-planner-flow.js.
+w.localStorage.setItem('showup:planner-flow','legacy');
 w.HTMLCanvasElement.prototype.getContext=()=>new Proxy({measureText:()=>({width:10})},{get:(o,k)=>o[k]||(()=>({}))});
 for(const m of html.matchAll(/src="(js\/[^?"]+)\?v=/g)){
   let source=fs.readFileSync(path.join(dir,m[1]),'utf8');

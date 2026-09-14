@@ -727,7 +727,9 @@ function renderLift(){
     {
       const pl=(typeof planFor==='function')?planFor(ex):null;
       const lines=(pl&&pl.lines||[]).filter(l=>l&&(l.reps||[]).length);
-      if(lines.length&&!isHold(unitOf(ex))){
+      const linkedPlanHTML=plHTML(ex);
+      if(linkedPlanHTML)h+=linkedPlanHTML;
+      if(!linkedPlanHTML&&!Object.prototype.hasOwnProperty.call(DB.days[todayISO]||{},'planBasis')&&lines.length&&!isHold(unitOf(ex))){
         /* how many sets landed at each weight today, spent down the plan in
            order so two rows at the same load cannot both claim the same sets */
         const pool={};

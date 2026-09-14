@@ -20,6 +20,7 @@ run(String.raw`DB.days={};DB.settings.onboarded=true;DB.settings.unit='lb';
   DB.settings.myParts=['Legs','Sixpack'];todayISO='2026-09-11';checkDate=()=>false;
   DB.days['2026-09-09']={w:[{part:'Legs',ex:'Squat',w:90,reps:[8,8,8],at:1}],upd:1};
   SEED=deriveAll();view='today';lift.plan=null;try{localStorage.clear();}catch(_){}
+  localStorage.setItem('showup:planner-flow','legacy'); // Retain the previous editor's text-edit coverage.
   dayMeta();render();
   pwOpen('2026-09-11');
   pw().book['2026-09-11']={rows:pwRead('Squat\n  135 lb x 8\n  225 lb x 6 6 6 6\n\nRomanian Deadlift\n  175 lb x 8 8 8'),

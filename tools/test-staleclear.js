@@ -23,6 +23,7 @@ const setup=()=>run(`DB.days={};DB.settings.onboarded=true;DB.settings.unit='lb'
     {ex:'Romanian Deadlift',lines:[{w:79,reps:[8,8,8],note:''}]},
     {ex:'Dumbbell Lunge',lines:[{w:20,reps:[10,10,10],note:''}]}]};
   SEED=deriveAll();view='today';lift.plan=null;try{localStorage.clear();}catch(_){}
+  localStorage.setItem('showup:planner-flow','legacy'); // Previous editor recovery remains covered.
   pwOwner=null;dayMeta();render();`);
 /* parenthesised: the ternary binds looser than ===, so an unwrapped
    `${rows}===0` parses as `cond ? len : (-1===0)` and yields 0 -- falsy, and

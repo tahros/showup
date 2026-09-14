@@ -59,6 +59,8 @@ function renderSync(){
     </div>
     <h2>Planning</h2>
     <div class="card">
+      <button type="button" class="btn ghost" data-pw="pf-settings">${icon('edit',ICON_SZ.sm)} Planning preferences ${icon('chevron',ICON_SZ.sm)}</button>
+      <p class="note">${hesc(pfSummary())}</p>
       <div class="note" style="margin-bottom:8px">Planning interface</div>
       <span class="seg" style="display:flex">
         <button data-pw="mode" data-mode="workspace" class="${planningWorkspace()?'sel':''}" aria-pressed="${planningWorkspace()}">Workspace</button>

@@ -32,6 +32,7 @@ after boot.) Keep the order in index.html as-is unless you have a reason.
 | `js/core.js` | 25 KB | `APP_VERSION`, `SEED0` static catalog, storage (`KEY`/`SKEY`, `DB`, `save`, `day()`), Supabase config, Google OAuth, cloud push/pull/merge, `buildArchive`. |
 | `js/derive.js` | 10 KB | `deriveAll()` → `SEED` (sessions, partDays, last, totals), `migrateV3`, stamped migrations. |
 | `js/util.js` | 22 KB | Gestures (rubber-band, tab swipe, pull-to-refresh), formatting, units, bar/plate math, `toast`, `iBtn`, session flow (`isLive`, `exOpen`, `partOpen`, `reopen`). |
+| `js/planlink.js` | — | Stage 1 accepted-plan revisions, frozen workout basis, target IDs, actual-set linkage, metadata merge and Training comparison. See docs/PLAN-LINKAGE.md. |
 | `js/header.js` | 5.6 KB | `renderHeader`, rest timer, live/at-risk states, `activeFocus`. |
 | `js/report.js` | 5.5 KB | Monthly report card: `repData`, canvas drawing, share overlay. |
 | `js/today.js` | 21 KB | Daily Fire, onboarding overlay, demo mode, `trainingPlan`, `renderToday`. |
@@ -44,6 +45,12 @@ after boot.) Keep the order in index.html as-is unless you have a reason.
 | `js/app.js` | 23 KB | Global click delegation (most button handlers), chart zoom, `render()` router, boot. |
 
 ## Common tasks → files
+- Approved planner journey → `js/planner-flow.js`, `css/planner-flow.css`.
+  It layers on the existing parser, checked writer and owner-scoped draft
+  primitives in `planner.js`. Preferences live in
+  `DB.settings.plannerPreferences`; no additional database is needed.
+- Accepted plan snapshots and actual-set linkage → `js/planlink.js`;
+  see `docs/PLAN-LINKAGE.md` for storage and sync limitations.
 - Logger / set chips / suggestions → `lift.js`
 - Anything on the Today screen → `today.js` (fire chart maths: same file)
 - Charts, grid, drift → `stats.js`; the shareable image → `report.js`
