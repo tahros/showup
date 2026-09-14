@@ -18,6 +18,8 @@ run(`var rows=pwRead('Squat\\n135 lb × 10 (warm-up)\\n225 lb × 8 8 8 8');var b
 test('day overview includes compact date, reorder and expand controls',`document.querySelector('[data-pf-day-grip]')&&document.querySelector('[data-pw="pf-expand"]')&&document.querySelector('[data-pw="pf-save"]')`);
 run(`pfSave();var revision=plCurrent('2026-09-14');`);
 test('saving archives targets without logging a workout',`pfState().page==='done'&&revision.targets.length===5&&Object.values(DB.days).every(d=>!(d.w||[]).length)`);
+test('saved review owns an independent routine snapshot',`pfState().saved[0].rows!==pwDay(pw().active).rows&&JSON.stringify(pfState().saved[0].rows)===JSON.stringify(pwDay(pw().active).rows)`);
+test('saved review has disclosures but no editing controls',`document.querySelector('[data-pf-saved-fold]')&&document.querySelector('[data-pw="pf-done-expand"]')&&!document.querySelector('.pf-done [data-pw="pf-edit-day"],.pf-done [data-pw-grip]')`);
 run(`pfNavigate('dates');`);
 test('returning to Dates retains completed steps',`!document.querySelector('[data-stage="2"]').disabled&&!document.querySelector('[data-stage="3"]').disabled`);
 run(`pw().dates.push('2026-09-15');pwDay('2026-09-15');pwRender();`);

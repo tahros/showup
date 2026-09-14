@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.4 (2026-09-14) — Saved routine review
+
+- Compact saved-day cards with shared typography, spacing and chevrons.
+- Read-only expandable routines, plus Expand All and Collapse All.
+- Keep saved routine snapshots separate from later unsaved edits.
+- Confirm completion with Plans saved · Done.
+
 ## v4.6.3 (2026-09-14) — Compact day routine editor
 
 - Replace the body-part selector with the date, set count and exercise count.

@@ -59,6 +59,12 @@ const {chromium}=require('playwright'),assert=require('assert'),fs=require('fs')
   await page.locator('[data-pw="pf-plus"]').click();
   assert(await page.locator('.pf-beam').count()===1);await page.locator('[data-pw="pf-minus"]').click();
   await page.locator('[data-pw="pf-save"]').click();await verify('done');
+  assert.equal(await page.locator('.pf-done [data-pw="pf-edit-day"],.pf-done [data-pw-grip],.pf-done [data-pw="editrow"]').count(),0);
+  assert.equal(await page.locator('.pf-dock [data-pw="close"]').textContent(),'Plans saved · Done');
+  await page.locator('[data-pw="pf-done-expand"]').click();await verify('done-expanded');
+  assert.equal(await page.locator('[data-pf-saved-fold][open]').count(),2);
+  await page.locator('[data-pw="pf-done-expand"]').click();
+  assert.equal(await page.locator('[data-pf-saved-fold][open]').count(),0);
   assert(await page.evaluate(()=>plCurrent('2026-09-14').targets.length===8));
   await page.locator('[data-stage="1"]').click();await verify('saved-dates');
   assert(await page.evaluate(()=>{
