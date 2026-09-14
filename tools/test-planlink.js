@@ -83,5 +83,34 @@ test('moving an exercise preserves identity but detaches the incompatible target
   w.fetch=async()=>({ok:true,json:async()=>[{doc:remote}]});
   await run('cloudPull()');
   test('real cloud pull restores revision archive and preserves profile',`Object.keys(DB.planTracking.revisions).length>0&&DB.settings.name==='Sungjee'&&DB.settings.sex==='M'`);
+
+  /* v4.6.10: logging today moves the review to today -- but only on the day's
+     FIRST set, and only if the card was parked on another day. Browsing back
+     mid-session has to keep sticking, or the fix trades one annoyance for a
+     worse one. */
+  /* stats-story keeps reviewSelected inside an IIFE, so the test watches the EVENT
+     that carries the fact across, and the day the review layer resolves to. */
+  run(`window.__firstSet=[];document.addEventListener('showup:first-set',e=>window.__firstSet.push(e.detail.date));
+       DB.days['2026-09-11']={w:[{part:'Legs',ex:'Squat',w:100,reps:[8],at:1,setId:'x1'}],upd:1};
+       delete DB.days[todayISO];`);
+  run(`plLog({part:'Legs',ex:'Squat',w:100,reps:[8],at:Date.now()});`);
+  test("today's FIRST set announces itself",`window.__firstSet.length===1&&window.__firstSet[0]===todayISO`);
+  run(`plLog({part:'Legs',ex:'Squat',w:100,reps:[8],at:Date.now()+1});`);
+  test('...and a later set does not, so a day you opened on purpose keeps sticking',
+       `window.__firstSet.length===1`);
+  run(`delete DB.days[todayISO];window.__firstSet=[];plLog({part:'Run',ex:'Run',w:5,reps:[],mins:27,at:Date.now()});`);
+  test('...a run counts as the first set too -- it is still the day starting',
+       `window.__firstSet.length===1`);
+  /* storyWorkoutDate lives in the same IIFE and is deliberately not reachable.
+     What is assertable from here is the wiring: the listener exists and clears the
+     stale selection. The resolved day is covered by the browser suite. */
+  {
+    const story=fs.readFileSync(path.join(dir,'js/stats-story.js'),'utf8');
+    assert(/addEventListener\('showup:first-set'/.test(story),'stats-story listens for the first set');
+    console.log('PASS stats-story listens for the first set');checks++;
+    assert(/reviewSelected=null;/.test(story),'...and clears the stale selection rather than forcing a date');
+    console.log('PASS ...and clears the stale selection rather than forcing a date');checks++;
+  }
+
   console.log(checks+' linkage checks passed');dom.window.close();process.exit(0);
 })().catch(e=>{console.error(e);dom.window.close();process.exit(1)});

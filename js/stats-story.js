@@ -63,6 +63,17 @@ pmixAxisSvg=()=>{
     }).join('')+'</svg>';
 };
 pmixSetFocus=()=>{};
+/* v4.6.10: LOGGING TODAY MOVES THE REVIEW TO TODAY. reviewSelected beat everything,
+   including today gaining its first set -- so the card sat on Friday while you were
+   mid-workout on Monday, with Friday's column still highlighted in the volume chart.
+   Only the FIRST set moves it: browsing back to an older day mid-session must keep
+   sticking, and a second set must not yank the view off a day you opened on purpose. */
+document.addEventListener('showup:first-set',e=>{
+  const date=e?.detail?.date;
+  if(!date||!reviewSelected||reviewSelected===date)return;
+  reviewSelected=null;            // fall back to the default: today, since today now has sets
+  if(typeof render==='function')render({inplace:true});
+});
 function reviewDay(date){
  reviewSelected=date;const el=document.getElementById('review-day');if(!date||!el)return;
  const m=plateMetrics(DB.days[date]);el.innerHTML='<strong>'+new Date(date+'T00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+'</strong><span>'+plateNumber(m.kg)+' '+U()+' · '+m.sets+' sets</span>';

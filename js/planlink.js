@@ -116,7 +116,19 @@ function plLog(set){
   set.setId=plId();
   if(target)set.planRef={revisionId:day.planBasis.revision.id,setId:target.id,target:plCopy(target),method:choice.method};
   else set.planLinkStatus=set.ex==='Run'?'unlinked-run':'unplanned';
+  /* v4.6.10: LOGGING TODAY MOVES THE REVIEW TO TODAY. The review card keeps the
+     day you last looked at (reviewSelected), and that choice beat everything --
+     including today gaining its very first set. So the card sat on Friday while
+     you were mid-workout on Monday, and the volume chart kept Friday's column
+     highlighted. Cleared only when this set is the day's FIRST: browsing back to
+     an older day mid-session must still stick, and a second set must not yank
+     the view away from a day you deliberately opened. */
+  /* v4.6.10: the day's FIRST set is a fact worth announcing. stats-story keeps the
+     review selection inside its own IIFE, so this cannot reach in and move it --
+     and should not: logging records, the review layer decides what to show. */
+  const first=!day.w.length;
   day.w.push(set);
+  if(first)try{document.dispatchEvent(new CustomEvent('showup:first-set',{detail:{date:todayISO}}));}catch(_e){}
   delete lift.linkChoice;
   return set;
 }
