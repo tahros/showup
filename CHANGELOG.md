@@ -1,5 +1,10 @@
 # ShowUp — changelog
 
+## v4.6.14 (2026-09-14) — Tomorrow card focus and actions
+
+- Show body parts beneath Tomorrow in the collapsed card header.
+- Give Edit and Paste equal-width buttons with centered icons and balanced padding.
+
 ## v4.6.13 (2026-09-14) — Expand tomorrow's saved routine
 
 - Use Today's saved-plan disclosure style for tomorrow's planned workout.

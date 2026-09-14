@@ -20,6 +20,13 @@ p.pw-small{margin:10px 0 16px}.pw-workspace p:not(.pw-small){font:400 14px/1.6 v
 .pw-btn.pw-icon{min-width:36px;width:36px;height:40px;min-height:40px;padding:0;font-size:20px;background:transparent;border-color:transparent}
 .pw-btn:disabled{opacity:.3;cursor:default;transform:none;box-shadow:none}
 .pw-actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:16px}.pw-actions>.primary{flex:1}
+.pw-future-label{display:flex;flex-direction:column;gap:3px;min-width:0}
+.pw-future-label>span{font:400 12px/1.4 var(--body);color:var(--muted)}
+.pw-future-label>strong{font:600 15px/1.4 var(--body);color:var(--chalk);overflow-wrap:anywhere}
+.pw-future summary>span:nth-child(2){flex:none;font-size:11px;white-space:nowrap}
+.pw-future .pw-future-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:center;margin:0;padding:16px}
+.pw-future-actions .pw-btn{display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;margin:0;padding:10px 12px;line-height:1.2}
+.pw-future-actions .pw-btn .ic{flex:none}
 .pw-workspace .pw-card-heading{margin-bottom:16px}.pw-card-heading strong{font:600 15px/1.45 var(--body)}
 .pw-card-heading .pw-small{font-size:10px;text-align:right}
 /* v4.5.27: the day's set count, top right. The heading is already a flex row with
