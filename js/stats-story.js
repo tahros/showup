@@ -428,6 +428,17 @@ function comparisonCard(card,kind){
  const series=new Map();available.forEach(y=>{let total=0,last='';series.set(y,dates.map(([m,d])=>{const iso=y+'-'+String(m+1).padStart(2,'0')+'-'+String(Math.min(d,new Date(y,m+1,0).getDate())).padStart(2,'0');if(iso!==last){const r=DB.days[iso];total+=kind==='distance'?(r?.w||[]).filter(s=>s.ex==='Run'&&s.completed!==false).reduce((n,s)=>n+toD(s.w),0):(plateMetrics(r).sets?1:0);}last=iso;return total;}));});
  card.classList.add('comparison-card');card.innerHTML='<div class="comparison-years"></div><div class="comparison-heading"><span class="comparison-date"></span><span class="comparison-tools"><button class="comparison-latest">Latest ↗</button><button type="button" class="comparison-share stats-share ico" aria-label="Share this comparison">'+ICO_SHARE+'</button></span></div><div class="comparison-values" aria-live="polite"></div><svg class="comparison-plot" viewBox="0 0 340 210" role="img" aria-label="Cumulative '+(kind==='distance'?'distance':'training days')+' by year"></svg><input class="comparison-scrub" type="range" min="0" max="'+(dates.length-1)+'" aria-label="Scrub comparison date"><p class="comparison-foot">'+(kind==='distance'?'Distance accumulated':'Training days accumulated')+' · same calendar date</p>';
  const palette=['var(--accent)','#B36F47','#349484','#9875B8','#BE8C38'];
+ const actions=document.createElement('div');actions.className='comparison-actions';
+ const shareControl=card.querySelector('.comparison-share');shareControl.classList.remove('ico');shareControl.classList.add('btn','ghost');shareControl.insertAdjacentHTML('beforeend','<span>Share</span>');
+ const replay=document.createElement('button');replay.type='button';replay.className='btn ghost comparison-replay';replay.textContent='↻ Replay';
+ actions.append(replay,shareControl);card.querySelector('.comparison-foot').before(actions);
+ replay.onclick=()=>{
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  card.querySelectorAll('.comparison-plot polyline').forEach(line=>{
+   line.getAnimations().forEach(a=>a.cancel());
+   line.animate([{clipPath:'inset(0 100% 0 0)'},{clipPath:'inset(0 0% 0 0)'}],{duration:2800,easing:'ease-in-out'});
+  });
+ };
  const color=y=>palette[available.indexOf(y)%palette.length];
  /* v4.5.17: BY CLASS, not by tag. The share button in the heading is an SVG too,
     and it comes first in the DOM -- querySelector('svg') handed the plot's lines,
@@ -510,16 +521,19 @@ function comparisonCard(card,kind){
     Same sheet (showCard), same fonts, same logo file, so the three images read as
     one family. Nothing is recomputed for the picture; it draws what you see. */
  async function share(){
+  const snapshot={...memory,years:[...memory.years]},exportUnit=unit(),exportValues=new Map(snapshot.years.map(yr=>[yr,fmtVal(shown(yr))])),delta=difference.hidden?'':difference.textContent;
   const css=getComputedStyle(document.documentElement),read=(k,f)=>css.getPropertyValue(k).trim()||f;
   const dark=document.documentElement.dataset.theme==='dark';
   const data={surface:read('--surface','#fff'),ink:read('--chalk','#1c1c1c'),muted:read('--muted','#686868'),line:read('--line','#ededed'),
-    accent:read('--accent','#2F4BD8'),name:firstName()||'',logo:null};
-  try{const m=await import('./plate-gif.js');await m.loadExportFonts();}catch(_e){}
+    accent:read('--accent','#2F4BD8'),name:firstName()||'',logo:null,dark};
+  let gifModule,videoModule;
+  try{[gifModule,videoModule]=await Promise.all([import('./plate-gif.js'),import('./plate-video.js')]);await gifModule.loadExportFonts();}catch(_e){/* Image remains available when animation modules cannot load. */}
   try{const logo=new Image();logo.src='assets/mascot-mark-'+(dark?'white':'chrome')+'.png';await logo.decode();data.logo=logo;}catch(_e){}
-  const [mm,dd]=dates[memory.index];
+  const [mm,dd]=dates[snapshot.index];
   const dateLabel=new Date(current,mm,dd).toLocaleDateString('en-US',{month:'long',day:'numeric'});
-  showCard(()=>{
-   const cv=document.createElement('canvas');cv.width=1080;cv.height=1280;const x=cv.getContext('2d');if(!x)return null;
+  const render=(time,canvas)=>{
+   const cv=canvas||document.createElement('canvas');cv.width=1080;cv.height=1280;const x=cv.getContext('2d');if(!x)return null;
+   const progress=Number.isFinite(time)?Math.max(0,Math.min(1,time/3000)):1;
    const sans='"ShowUp Export Plex", "IBM Plex Sans",sans-serif',mono=sans;
    const col=yr=>{const c=color(yr);return c.startsWith('var(')?data.accent:c;};
    x.fillStyle=data.surface;x.fillRect(0,0,1080,1280);
@@ -527,19 +541,19 @@ function comparisonCard(card,kind){
    text(kind==='distance'?'DISTANCE OVER TIME':'YEAR OVER YEAR',540,98,'500 25px '+mono,data.muted,'center');
    text(dateLabel,540,148,'500 30px '+mono,data.ink,'center');
    /* the tiles: up to three across, in the card's own order and colours */
-   const yrs=memory.years,perRow=Math.min(3,yrs.length),tileW=(940-(perRow-1)*30)/perRow;
+   const yrs=snapshot.years,perRow=Math.min(3,yrs.length),tileW=(940-(perRow-1)*30)/perRow;
    yrs.forEach((yr,i)=>{
     const r=Math.floor(i/perRow),c=i%perRow,X=70+c*(tileW+30),Y=200+r*150;
     x.fillStyle=col(yr);x.fillRect(X,Y,6,112);
     text(String(yr),X+24,Y+30,'400 24px '+mono,data.muted);
-    const v=shown(yr),num=fmtVal(v);
+    const num=exportValues.get(yr);
     x.font='700 62px '+sans;const nw=x.measureText(num).width;
     text(num,X+24,Y+96,'700 62px '+sans,data.ink,'left',tileW-40);
-    text(unit(),X+24+nw+12,Y+96,'400 24px '+mono,data.muted);
+    text(exportUnit,X+24+nw+12,Y+96,'400 24px '+mono,data.muted);
    });
    const rows=Math.ceil(yrs.length/perRow);let Y=200+rows*150+10;
-   if(!difference.hidden){x.fillStyle=dark?'rgba(255,255,255,.06)':'rgba(0,0,0,.04)';x.beginPath();x.roundRect(70,Y,940,64,14);x.fill();
-    text(difference.textContent,94,Y+41,'500 26px '+sans,data.accent);Y+=64;}
+   if(delta){x.fillStyle=dark?'rgba(255,255,255,.06)':'rgba(0,0,0,.04)';x.beginPath();x.roundRect(70,Y,940,64,14);x.fill();
+    text(delta,94,Y+41,'500 26px '+sans,data.accent);Y+=64;}
    /* the plot: same series, same scale rule as the card (ceil to a multiple of 4) */
    /* v4.5.18: the plot's floor is derived from the rule, not typed. The axis
       labels hang 34px under it, so a hard 1110 put them at 1144 -- four pixels
@@ -554,15 +568,18 @@ function comparisonCard(card,kind){
    [0,Math.floor((dates.length-1)/3),Math.floor((dates.length-1)*2/3),dates.length-1].forEach(i=>{const [m,d]=dates[i];
     text(new Date(current,m,d).toLocaleDateString('en-US',{month:'short',day:'numeric'}),px(i),bottom+34,'400 20px '+mono,data.muted,i===0?'left':i===dates.length-1?'right':'center');});
    x.lineWidth=5;x.lineJoin='round';x.lineCap='round';
-   yrs.forEach(yr=>{x.strokeStyle=col(yr);x.beginPath();series.get(yr).forEach((v,i)=>{i?x.lineTo(px(i),py(v)):x.moveTo(px(i),py(v));});x.stroke();});
-   x.strokeStyle=data.muted;x.lineWidth=2;x.setLineDash([6,6]);x.beginPath();x.moveTo(px(memory.index),top-10);x.lineTo(px(memory.index),bottom);x.stroke();x.setLineDash([]);
-   yrs.forEach(yr=>{x.fillStyle=data.surface;x.strokeStyle=col(yr);x.lineWidth=4;x.beginPath();x.arc(px(memory.index),py(series.get(yr)[memory.index]),11,0,Math.PI*2);x.fill();x.stroke();});
+   x.save();x.beginPath();x.rect(left-6,top-12,(right-left+12)*progress,bottom-top+24);x.clip();
+   yrs.forEach(yr=>{x.strokeStyle=col(yr);const idx=available.indexOf(yr);x.setLineDash(idx?[[15,9],[6,12],[24,9,6,9]][(idx-1)%3]:[]);x.beginPath();series.get(yr).forEach((v,i)=>{i?x.lineTo(px(i),py(v)):x.moveTo(px(i),py(v));});x.stroke();});x.restore();
+   x.strokeStyle=data.muted;x.lineWidth=2;x.setLineDash([6,6]);x.beginPath();x.moveTo(px(snapshot.index),top-10);x.lineTo(px(snapshot.index),bottom);x.stroke();x.setLineDash([]);
+   if(progress===1)yrs.forEach(yr=>{x.fillStyle=data.surface;x.strokeStyle=col(yr);x.lineWidth=4;x.beginPath();x.arc(px(snapshot.index),py(series.get(yr)[snapshot.index]),11,0,Math.PI*2);x.fill();x.stroke();});
    /* the footer: literally the plate share's, not a copy of it (v4.5.18) */
    drawShareFooter(x,data,sans);
    return cv;
-  },'showup-'+(kind==='distance'?'distance':'days')+'-compare-'+current+'-'+String(mm+1).padStart(2,'0')+String(dd).padStart(2,'0'),false);
+  };
+  await showCard(()=>render(),'showup-'+(kind==='distance'?'distance':'days')+'-compare-'+current+'-'+String(mm+1).padStart(2,'0')+String(dd).padStart(2,'0'),false);
+  if(gifModule&&videoModule)bindPlateExport(data,null,gifModule,videoModule,{render,label:'Year comparison video preview'});
  }
- const shareBtn=card.querySelector('.comparison-share');if(shareBtn)shareBtn.onclick=()=>{share().catch(()=>toast('Could not prepare the image. Please try again.'));};
+ const shareBtn=card.querySelector('.comparison-share');if(shareBtn)shareBtn.onclick=async()=>{shareBtn.disabled=true;try{await share();}catch(_e){toast('Could not prepare the export. Please try again.');}finally{shareBtn.disabled=false;}};
  values.addEventListener('click',e=>{if(e.target.closest('.comparison-flip'))flip();});
  slider.oninput=()=>show(+slider.value);card.querySelector('.comparison-latest').onclick=()=>show(dates.length-1);
  const scrub=e=>{const r=svg.getBoundingClientRect();show(Math.round(((e.clientX-r.left)/r.width*340-32)/296*(dates.length-1)));};
@@ -614,6 +631,7 @@ const compactStyle=document.createElement('style');compactStyle.textContent=`
 .comparison-values strong i{font-style:normal}
 @media (prefers-reduced-motion:reduce){.comparison-flip{transition:none}}
 .comparison-delta{font:500 12px var(--body);color:var(--accent-ink);background:var(--surface2);border-radius:10px;padding:9px 12px;margin:0 0 12px;font-variant-numeric:tabular-nums}
+.comparison-actions{display:flex;gap:10px;margin:8px 0 14px}#view.stats-system .comparison-actions .btn{display:flex;align-items:center;justify-content:center;gap:8px;flex:1;width:auto;height:44px;min-height:44px;padding:8px 12px;font:500 13px var(--body);border:1px solid var(--line);border-radius:14px;background:var(--surface2);color:var(--chalk)}#view.stats-system .comparison-actions svg{width:18px;height:18px;flex:none}
 /* v4.5.10: THE STREAK CARDS TAKE THE HISTORY CHART'S DATE RAIL. The year row and
    the month row were painted once, one label per column, all caps, and the year
    sat over its January -- off-screen from the first paint, since the card opens

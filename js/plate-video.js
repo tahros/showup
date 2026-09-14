@@ -3,15 +3,15 @@ export function mp4Type(){
   if(!globalThis.MediaRecorder||!HTMLCanvasElement.prototype.captureStream)return '';
   return ['video/mp4;codecs=avc1.42E02A','video/mp4'].find(t=>MediaRecorder.isTypeSupported(t))||'';
 }
-export async function createPlateVideo({render,signal,onProgress,dark}){
+export async function createPlateVideo({render,signal,onProgress,dark,withMascot=true}){
   const mimeType=mp4Type();if(!mimeType)throw Error('MP4 unavailable on this browser');
   const {createMascot}=await import('./mascot-renderer.js');
   if(signal.aborted)throw new DOMException('Cancelled','AbortError');
   const stage=document.createElement('div');stage.style.cssText='position:fixed;left:-10000px;top:0;width:216px;height:132px';stage.setAttribute('aria-hidden','true');document.body.append(stage);
   let mascot,stream,recorder,timer,watchdog,abort,visibility;
   try{
-    mascot=createMascot(stage,{mode:'jump',tone:'blue',theme:dark?'dark':'light'});mascot.pause();
-    const scene=document.createElement('canvas');render(-200,scene,mascot.captureFrame(0));
+    if(withMascot){mascot=createMascot(stage,{mode:'jump',tone:'blue',theme:dark?'dark':'light'});mascot.pause();}
+    const scene=document.createElement('canvas');render(-200,scene,mascot?.captureFrame(0));
     const canvas=document.createElement('canvas');canvas.width=1080;canvas.height=1280;
     const output=canvas.getContext('2d');output.drawImage(scene,0,0);
     stream=canvas.captureStream(50);
@@ -29,7 +29,7 @@ export async function createPlateVideo({render,signal,onProgress,dark}){
         if(failed||signal.aborted)return;
         try{
           const elapsed=performance.now()-start,t=Math.min(3500,elapsed-200);
-          render(t,scene,mascot.captureFrame(Math.max(0,t)));output.drawImage(scene,0,0);
+          render(t,scene,mascot?.captureFrame(Math.max(0,t)));output.drawImage(scene,0,0);
           onProgress(Math.min(99,Math.round(elapsed/57)));
           if(elapsed>=5700){recorder.stop();return;}
           timer=setTimeout(tick,20);

@@ -120,11 +120,10 @@ ok('the distance card offers no flip button -- miles have no honest denominator'
   run(`DB.settings.comparisonYears={days:[2026,2025]};DB.settings.name='Sungjee Yoo';SEED=deriveAll();view='stats';render();`);
   const both=run(`[...document.querySelectorAll('.comparison-card')].map(c=>c.querySelectorAll('.comparison-share').length).join(',')`);
   ok('every comparison card carries exactly one share button', both.split(',').every(n=>n==='1')&&both.split(',').length>=2, both);
-  ok('...it is the share ARROW, in the round stats style, beside Latest',
+  ok('...Share is labeled and paired with Replay',
      run(`(function(){const b=document.querySelector('.comparison-card:not(.runrace) .comparison-share');
-       return !!b&&!!b.querySelector('svg')&&b.classList.contains('stats-share')&&b.previousElementSibling?.classList.contains('comparison-latest');})()`));
-  ok('...and it is smaller than the plate share, so the heading stays a heading',
-     (()=>{const m=fs.readFileSync(path.join(dir,'js/stats-story.js'),'utf8').match(/\.comparison-share\{[^}]*width:(\d+)px/);return m&&+m[1]<44;})());
+       return !!b&&!!b.querySelector('svg')&&b.textContent.includes('Share')&&b.previousElementSibling?.classList.contains('comparison-replay');})()`));
+  ok('...the date heading retains Latest without crowding',run(`!!document.querySelector('.comparison-heading .comparison-latest')&&!document.querySelector('.comparison-heading .comparison-share')`));
 
   // click, on the days card, in percent mode, scrubbed off the latest date
   run(`document.querySelector('.comparison-card:not(.runrace) .comparison-flip').click();`);

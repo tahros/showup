@@ -135,7 +135,7 @@ function drawPlateShare(data,mascot,frame={}){
   return cv;
 }
 let plateExportCleanup=()=>{};
-function bindPlateExport(data,mascot,module,videoModule){
+function bindPlateExport(data,mascot,module,videoModule,options={}){
   const current=_repCv,ov=repOvEl(),img=ov.querySelector('#repImg'),share=ov.querySelector('#repDo');
   const row=document.createElement('div');row.className='plate-export-options';
   row.innerHTML='<button type="button" class="btn ghost" data-format="image">Image</button><button type="button" class="btn ghost" data-format="mp4">Video · MP4</button><button type="button" class="btn ghost" data-format="gif">GIF</button><span role="status" aria-live="polite"></span>';
@@ -156,7 +156,7 @@ function bindPlateExport(data,mascot,module,videoModule){
     const task=new AbortController();controller=task;share.disabled=true;share.textContent='Preparing…';status.textContent=format==='mp4'?'Keep this screen open · preparing video…':'Preparing GIF…';
     try{
       const create=format==='mp4'?videoModule.createPlateVideo:module.createPlateGif;
-      const result=await create({signal:task.signal,dark:data.dark,onProgress:n=>{if(controller===task)status.textContent=(format==='mp4'?'Preparing video · ':'Preparing GIF · ')+n+'%';},render:(time,canvas,motion)=>drawPlateShare(data,mascot,{time,canvas,mascot:motion,dust:format!=='mp4'})});
+      const result=await create({signal:task.signal,dark:data.dark,withMascot:!options.render,onProgress:n=>{if(controller===task)status.textContent=(format==='mp4'?'Preparing video · ':'Preparing GIF · ')+n+'%';},render:options.render||((time,canvas,motion)=>drawPlateShare(data,mascot,{time,canvas,mascot:motion,dust:format!=='mp4'}))});
       if(closed||task.signal.aborted||_repCv!==current)return;blobs[format]=result;if(opts&&opts.keepSelection){status.textContent='';}else preview(format);
     }catch(e){if(!task.signal.aborted){image();status.textContent=format==='mp4'?'Video unavailable. Try again with this screen open, or choose GIF.':'GIF unavailable. You can still share the image.';}}
     finally{if(controller===task)controller=null;}
@@ -170,8 +170,9 @@ function bindPlateExport(data,mascot,module,videoModule){
      The MP4 is still prepared in the background, so choosing it is instant;
      it just no longer takes the selection it was never given. */
   image();
-  if(supported) generate('mp4',{keepSelection:true});
-  else status.textContent='MP4 is unavailable in this browser. Image and GIF are available.';
+  if(options.label)video.setAttribute('aria-label',options.label);
+  if(supported&&!options.render) generate('mp4',{keepSelection:true});
+  else if(!supported)status.textContent='MP4 is unavailable in this browser. Image and GIF are available.';
 }
 function plateMark(x,y,w,h){return `<path d="M${x} ${y-h}a${w/2} 7 0 0 1 ${w} 0v${h}a${w/2} 7 0 0 1 -${w} 0z" fill="var(--plate-side)"/><ellipse cx="${x+w/2}" cy="${y-h}" rx="${w/2}" ry="7" fill="var(--plate-top)"/><ellipse cx="${x+w/2}" cy="${y-h}" rx="5" ry="2" fill="var(--plate-hole)"/>`;}
 function plateMiniHTML(){const m=plateCurrent();return `<div class="plate-mini" aria-live="polite"><svg viewBox="0 0 48 42" aria-hidden="true">${[0,1,2].map(i=>`<g>${plateMark(6,32-i*8,34,5)}</g>`).join('')}</svg><span>${plateNumber(m.kg)} ${U()} moved today</span></div>`;}
