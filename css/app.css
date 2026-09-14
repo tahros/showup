@@ -195,8 +195,10 @@
        every adjacency that has failed, both themes, before shipping. The one
        deliberate departure from the Google set, which had no readable slot
        left. */
-    --p-chest:#FABB05; --p-back:#EA4335; --p-shoulder:#C8754D; --p-legs:#34A853;
-    --p-biceps:#00584A; --p-triceps:#46BDC6; --p-sixpack:#A142F4; --p-run:#78909C;
+    /* v4.6.16 supersedes the historical palettes above: user-selected Normal
+       and opt-in Neon. Normal Chest is deepened slightly for light-ground contrast. */
+    --p-chest:#D6A209; --p-back:#E76236; --p-shoulder:#4169C8; --p-legs:#56A344;
+    --p-biceps:#CE588E; --p-triceps:#19AEBB; --p-sixpack:#9261CF; --p-run:#7C899B;
     --chart-soft:#616EA3;                   /* v3.3.92: 2025's year line — accent-soft was 2.10:1 as a stroke */
     --live:#C93A2B;                         /* the header while your heart is pumping */
     /* v3.3.201: text ramp lifted per the Dark Mode V3 handoff. The failure
@@ -275,8 +277,8 @@
        palest part colours fell under the v3.3.121 2.0:1 floor against it —
        chest to 1.99, triceps to 1.95. Both stepped down the smallest amount
        that clears it, hue held. The guard found these; I did not. */
-    --p-chest:#D89A00; --p-back:#EA4335; --p-shoulder:#C8754D; --p-legs:#34A853;
-    --p-biceps:#00584A; --p-triceps:#42B7C0; --p-sixpack:#A142F4; --p-run:#78909C;
+    --p-chest:#D6A209; --p-back:#E76236; --p-shoulder:#4169C8; --p-legs:#56A344;
+    --p-biceps:#CE588E; --p-triceps:#19AEBB; --p-sixpack:#9261CF; --p-run:#7C899B;
     --chart-soft:#7F859F;                   /* 2025's line, light — C3CCF5 was 1.58:1 on white */
     --live:#BE3324;
     /* v3.3.92: muted 4.10:1 on surface2 and faint 2.62:1 on white failed AA;
@@ -291,6 +293,19 @@
     --edge:#A3A3A3;                       /* v3.3.322, see the dark theme */
     --accent-ink:#2A44C8;
   }
+  /* Normal is the default, including absent/unknown preferences. Neon changes
+     categorical fills only: semantic status colors and mascot remain intact. */
+  :root[data-body-palette="neon"]{
+    --p-chest:#E9D929; --p-back:#FF6544; --p-shoulder:#5278FF; --p-legs:#83D43B;
+    --p-biceps:#F04AA3; --p-triceps:#16CFDC; --p-sixpack:#AA68FA; --p-run:#8D9AA7;
+  }
+  /* Keep the bright hues legible on pale chart grounds (2:1 fill floor). */
+  :root[data-body-palette="neon"][data-theme="light"]{
+    --p-chest:#B9AC21; --p-legs:#74BC34; --p-triceps:#14BBC7;
+  }
+  .body-palette-preview{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 16px;margin:14px 0}
+  .body-palette-preview span{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--chalk)}
+  .body-palette-preview i{width:12px;height:12px;border-radius:3px;flex:none}
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;background:var(--ground);color:var(--chalk)}
   /* v3.3.110: this is an APPLICATION shell, not a document. Every surface

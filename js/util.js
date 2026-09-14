@@ -290,6 +290,7 @@ function systemTheme(){
   catch(e){ return 'dark'; }
 }
 let _themeWatched=false;
+function bodyPalette(){return DB.settings.bodyPalette==='neon'?'neon':'normal';}
 function applyTheme(){
   const pref=DB.settings.theme;
   /* Design-review links may pin a theme without mutating the user's saved
@@ -300,6 +301,8 @@ function applyTheme(){
     ? previewTheme
     : (pref==='system' ? systemTheme() : (pref==='light'?'light':'dark'));
   document.documentElement.dataset.theme=t;
+  document.documentElement.dataset.bodyPalette=bodyPalette();
+  try{localStorage.setItem('showup-body-palette',bodyPalette());}catch(e){}
   /* v3.3.168: the SKIN rides the same rail as the theme — one applier, one
      pre-paint read, one storage slot each. Two values: 'minimal' (default)
      and 'classic'. Absence and anything unrecognised resolve MINIMAL, so

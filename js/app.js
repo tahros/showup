@@ -14,6 +14,11 @@ document.addEventListener('click',e=>{
     save(true);return render();
   }
   const mascotPick=e.target.closest('[data-mascot-pick]');
+  const palettePick=e.target.closest('[data-body-palette-pick]');
+  if(palettePick){
+    DB.settings.bodyPalette=palettePick.dataset.bodyPalettePick==='neon'?'neon':'normal';
+    applyTheme();save(true);return render({inplace:true});
+  }
   if(mascotPick){
     DB.settings.mascotMotion=mascotPick.dataset.mascotPick;
     save(true);document.dispatchEvent(new Event('mascotsettingschange'));return render();

@@ -41,6 +41,14 @@ function renderSync(){
          it is the maker's to choose. A viewing choice only: no record moves,
          the heatmap and Stats are untouched, and the same week counts the same
          under either setting. -->
+    <h2>Body-part colors</h2>
+    <div class="card body-palette-settings">
+      <span class="seg" style="display:flex" role="group" aria-label="Body-part colors">
+        ${[['normal','Normal'],['neon','Neon']].map(([value,label])=>`<button type="button" data-body-palette-pick="${value}" class="${bodyPalette()===value?'sel':''}" aria-pressed="${bodyPalette()===value}">${label}</button>`).join('')}
+      </span>
+      <div class="body-palette-preview">${Object.entries(PART_COLORS).map(([part,color])=>`<span><i style="background:${color}" aria-hidden="true"></i>${part==='Shoulder'?'Shoulders':part}</span>`).join('')}</div>
+      <div class="note">Normal is balanced. Neon is brighter. Applies to body-part colors in charts, plates and shared images.</div>
+    </div>
     <h2>Week starts on</h2>
     <div class="card"><span class="seg" style="display:flex">
       ${[['sunday','Sunday'],['monday','Monday']].map(([v,label])=>`<button data-week-start="${v}" class="${weekStartDow()===(v==='monday'?1:0)?'sel':''}" aria-pressed="${weekStartDow()===(v==='monday'?1:0)}">${label}</button>`).join('')}

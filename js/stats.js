@@ -65,10 +65,10 @@ function pmixSummary(){
   if(!vals.length){ el.textContent=''; return; }
   const sum=vals.reduce((a,b)=>a+b,0), avg=sum/vals.length;
   el.innerHTML=PMIX_MODE==='weight'
-    ? `${P?`<b style="color:${PART_COLORS[P]}">${P}</b>`:'All strength'}
+    ? `${P?`<b style="border-bottom:2px solid ${PART_COLORS[P]}">${P}</b>`:'All strength'}
     · ${fmt(Math.round(sum))} ${isLb()?'lb':'kg'} lifted across ${vals.length} session${vals.length===1?'':'s'}
     · ${fmt(Math.round(avg))} avg`
-    : `${P?`<b style="color:${PART_COLORS[P]}">${P}</b>`:'All strength'}
+    : `${P?`<b style="border-bottom:2px solid ${PART_COLORS[P]}">${P}</b>`:'All strength'}
     · ${fmt(sum)} completed set${sum===1?'':'s'} across ${vals.length} session${vals.length===1?'':'s'}
     · ${fmt(+avg.toFixed(1))} avg`;
 }

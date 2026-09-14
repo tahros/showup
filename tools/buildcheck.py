@@ -227,6 +227,17 @@ for _name, _blkc, _ground_name in (("dark", _dark, "ground"), ("light", _light, 
         if _r < 2.0:
             fail.append(f"part colour --p-{_m.group(1)} = {_r:.2f}:1 on {_name} ground (< 2.0) (v3.3.121)")
 
+# The opt-in palette has the same chart-fill floor as Normal. Light overrides
+# deepen only its three brightest fills; never weaken the guard for Neon.
+_neon = _blk(css, ':root[data-body-palette="neon"]')
+_neon_light = _blk(css, ':root[data-body-palette="neon"][data-theme="light"]')
+for _name, _base in (("dark", _dark), ("light", _light)):
+    _g = _tok(_base, "ground") or _tok(_dark, "ground")
+    for _part in ("chest", "back", "shoulder", "legs", "biceps", "triceps", "sixpack", "run"):
+        _color = (_tok(_neon_light, "p-"+_part) if _name == "light" else None) or _tok(_neon, "p-"+_part)
+        if not _color or _cr(_color, _g) < 2.0:
+            fail.append(f"Neon {_part} must clear 2:1 on {_name} ground")
+
 # -- card rhythm (v3.3.138): the containers stacked down the Lift view are
 #    different classes with the same job — a card in a column. They drifted
 #    apart once (.lastcard sat at 26px against .zone's 14px, which read as a

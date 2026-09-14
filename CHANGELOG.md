@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v4.6.16 (2026-09-14) — Normal & Neon body-part colors
+
+- Choose Normal or Neon in Settings, with a labeled preview of all eight colors.
+- Normal is the new default, with royal-blue Shoulders and rose Biceps.
+- The choice is saved and synced with your settings, and shared across charts, plates and plate exports.
+- App themes, buttons, rest colors, mascots and workout records stay unchanged.
+- Bright fills deepen slightly on light backgrounds for readability; body-part labels keep readable text colors.
+
 ## v4.6.15 (2026-09-14) — Cinematic completion entrances
 
 - Three coordinated entrances: soft rise, playful arc and spring landing, with no immediate repeats.
