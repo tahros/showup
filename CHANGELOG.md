@@ -1,5 +1,15 @@
 # ShowUp — changelog
 
+## v4.6.1 (2026-09-14) — Planner spacing and navigation polish
+
+- Theme-blue saved-plan dots and more visible step connectors.
+- Move planner Back into the existing app header; remove redundant screen titles
+  and the routine's Dates shortcut. Navigation behavior stays the same.
+- Remove history from the day overview, tighten planner cards and controls,
+  and place Edit first day / Save days side by side.
+- Group matching logged sets into one history line without modifying records.
+- Give Clear the same button treatment as Regenerate and Paste.
+
 ## v4.6.0 (2026-09-13) — Planner journey and plan-to-workout linkage
 
 - Preferences → Dates → Edit → Done, with connected, revisitable stages.

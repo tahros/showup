@@ -9,6 +9,7 @@ const {chromium}=require('playwright'),assert=require('assert'),fs=require('fs')
   await page.waitForFunction(()=>typeof pfOpen==='function'||typeof pfState==='function');
   await page.evaluate(theme=>{
    DB={days:{},settings:{name:'Test User',sex:'M',unit:'lb',theme,onboarded:true,myParts:['Legs','Sixpack']}};
+   DB.days['2026-09-12']={w:[...Array.from({length:4},()=>({part:'Legs',ex:'Squat',w:185/LB,reps:[8]})),{part:'Sixpack',ex:'Hanging Leg Raise',w:0,reps:[12,12,12]}]};
    todayISO='2026-09-13';checkDate=()=>false;lift={part:'Legs',ex:'Squat'};SEED=deriveAll();document.getElementById('onb')?.remove();applyTheme();pwOpen('2026-09-14');
   },theme);
   const verify=async label=>{
@@ -24,15 +25,31 @@ const {chromium}=require('playwright'),assert=require('assert'),fs=require('fs')
    }
    pw().dates=['2026-09-14','2026-09-15'];pfAnchor();pfNavigate('days');
   });
+  await verify('days-collapsed');
+  assert(await page.evaluate(()=>{
+   const card=document.querySelector('.pf-day>.card').getBoundingClientRect(),row=document.querySelector('.pf-primary-row'),buttons=[...row.children].map(e=>e.getBoundingClientRect());
+   return card.height<130&&Math.abs(buttons[0].top-buttons[1].top)<1&&!document.querySelector('.pf-history,.pw-editor-head');
+  }),'compact overview and single-row CTAs');
   await page.locator('[data-pw="pf-expand"]').click();await verify('days');
   await page.locator('[data-pw="pf-edit-first"]').click();await verify('routine');
+  assert((await page.locator('.pf-history-row').first().textContent()).includes('185 lb × 8 8 8 8'));
+  assert(await page.evaluate(()=>!document.querySelector('[data-pw="pf-dates"]')&&getComputedStyle(document.querySelector('header .hback')).display!=='none'));
+  await page.locator('header .hback').click();
+  assert(await page.locator('[data-pw="pf-edit-first"]').count()===1);
+  await page.locator('[data-pw="pf-edit-first"]').click();
   await page.locator('[data-pw-grip="0"]').focus();await page.keyboard.press('ArrowDown');
   assert.equal(await page.evaluate(()=>pwDay(pw().active).rows[0].ex),'Hanging Leg Raise');
   await page.locator('[data-pw="pf-plus"]').click();
   assert(await page.locator('.pf-beam').count()===1);await page.locator('[data-pw="pf-minus"]').click();
   await page.locator('[data-pw="pf-save"]').click();await verify('done');
   assert(await page.evaluate(()=>plCurrent('2026-09-14').targets.length===8));
-  await page.locator('[data-stage="1"]').click();await page.locator('[data-stage="2"]').click();
+  await page.locator('[data-stage="1"]').click();await verify('saved-dates');
+  assert(await page.evaluate(()=>{
+   const dot=document.querySelector('.pf-calendar .pf-plan-dot'),probe=document.createElement('span');
+   probe.style.color='var(--accent)';document.body.append(probe);
+   const same=getComputedStyle(dot).color===getComputedStyle(probe).color;probe.remove();return same;
+  }),'saved-plan dots use actual theme blue');
+  await page.locator('[data-stage="2"]').click();
   assert(await page.locator('[data-pw="pf-edit-first"]').count()===1);
   assert.equal(errors.length,0,errors.join('\n'));console.log('PASS '+theme+' '+width+'px planner flow, real clicks and save');
   await ctx.close();

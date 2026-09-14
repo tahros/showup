@@ -10,6 +10,10 @@ function renderHeader(){
   const _rd=DB.days&&DB.days[todayISO];
   hdr.classList.toggle('resting', !!(_rd&&_rd.rest&&!(_rd.w||[]).length));  // v3.3.81: the mirror of live
   const inEx = view==='lift' && lift.ex && !lift.copy;
+  const inPlan=view==='today'&&lift.plan==='workspace'&&typeof pfOn==='function'&&pfOn();
+  hdr.classList.toggle('planmode',!!inPlan);
+  const plannerBack=hdr.querySelector('.hback');
+  if(plannerBack){if(inPlan)plannerBack.dataset.pw='pf-back';else delete plannerBack.dataset.pw;}
   hdr.classList.toggle('exmode',!!inEx);
   if(inEx){
     $('#hSub').classList.remove('donetoday');   // stale ✓ from the last non-live render

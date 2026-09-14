@@ -30,3 +30,28 @@
 /* Outrank the minimal skin's card padding without changing other app cards. */
 :root .pf-workspace .pf-day>.card{padding-left:54px}
 @media(max-width:360px){:root .pf-workspace .pf-day>.card{padding-left:46px}}
+/* Planner polish: match the app's compact cards and existing header back control. */
+header.planmode .hback{display:grid}
+header.planmode .h-week,header.planmode .streak{display:none}
+header.planmode .h-weekrow{flex:0 0 auto}
+.pf-steps{margin:0 0 12px}
+.pf-steps button:not(:last-child):after{height:2px;background:color-mix(in srgb,var(--muted) 65%,var(--surface))}
+.pf-plan-dot{color:var(--accent);font-style:normal}
+.pf-calendar .selected .pf-plan-dot{background:var(--surface);border-radius:50%;width:12px}
+.pf-calendar .pw-btn:disabled:has(.pf-plan-dot){opacity:1}
+.pf-calendar .pw-btn:disabled:has(.pf-plan-dot)>span{opacity:.3}
+:root .pf-workspace .pf-day>.card{padding-top:10px;padding-bottom:10px;margin-bottom:0}
+.pf-workspace .pf-day .pw-card-heading{margin:0;min-height:36px}
+.pf-day{margin-bottom:12px}
+.pf-day-date{margin-bottom:6px}
+.pf-day-grip{top:10px}
+.pf-workspace .pf-right{margin:0 0 8px}
+.pf-primary-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pf-primary-row>.pw-btn{min-width:0;padding:10px 6px;font-size:12px}
+.pf-workspace .pw-datebar{margin-bottom:6px}
+.pf-workspace .pw-setup{margin-bottom:6px}
+.pf-workspace .pw-actions{margin-top:8px}
+.pf-total{margin:8px 0}
+.pf-workspace .pw-exercise{padding-top:10px;padding-bottom:10px}
+.pf-workspace .pw-ex-title{align-items:center}
+.pf-workspace .pw-ex-title .pw-btn{min-height:44px}
