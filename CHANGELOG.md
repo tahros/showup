@@ -1,5 +1,11 @@
 # ShowUp — changelog
 
+## v4.6.13 (2026-09-14) — Expand tomorrow's saved routine
+
+- Use Today's saved-plan disclosure style for tomorrow's planned workout.
+- Reuse the chevron, animation and set renderer; remember expansion per date.
+- Keep Edit and Paste targeted to the future date and preserve newer upstream updates.
+
 ## v4.6.9 (2026-09-14) — Focused Today plan section
 
 - Remove Coming up from Today; retain Dates for future-plan access.

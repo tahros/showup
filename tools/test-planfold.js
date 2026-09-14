@@ -59,4 +59,13 @@ const src=fs.readFileSync(path.join(dir,'js/planner.js'),'utf8');
 ok('any disclosure carrying data-pw-fold is remembered, not just this one',
    /const key=d\.getAttribute\('data-pw-fold'\);/.test(src) &&
    /\(st\.folds=st\.folds\|\|\{\}\)\[key\]=open/.test(src));
+run(`DB.week={days:{'2026-09-12':JSON.parse(JSON.stringify(DB.plan))}};DB.days[todayISO]={w:[{part:'Legs',ex:'Squat',w:90,reps:[8],at:1}],doneAll:true};view='today';lift.plan=null;render();`);
+const tomorrow=`document.querySelector('details[data-pw-fold="future:2026-09-12"]')`;
+ok('tomorrow reuses the saved-plan disclosure',`!!${tomorrow}&&!${tomorrow}.open&&${tomorrow}.querySelector('summary').textContent.includes('Tomorrow')`);
+run(`${tomorrow}.querySelector('summary').dispatchEvent(new window.MouseEvent('click',{bubbles:true,cancelable:true}))`);
+ok('tomorrow opens and displays saved exercises and sets',`${tomorrow}.open&&${tomorrow}.textContent.includes('Squat')&&${tomorrow}.textContent.includes('6 6 6 6')`);
+run(`render();`);
+ok('tomorrow expansion survives render and Edit targets tomorrow',`${tomorrow}.open&&!!${tomorrow}.querySelector('[data-pw="open-date"][data-date="2026-09-12"]')`);
+run(`${tomorrow}.querySelector('summary').dispatchEvent(new window.MouseEvent('click',{bubbles:true,cancelable:true}))`);
+ok('tomorrow collapses again',`!${tomorrow}.open`);
 process.exit(fails?1:0);
