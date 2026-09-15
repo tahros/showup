@@ -1063,7 +1063,7 @@ check("a lift still reads as a weight",
   check("a held set renders in seconds, not as a rep count",
         `/1\u2032/.test(document.getElementById('app').innerHTML)`, true);
   check("...marked as a hold so it can be styled apart",
-        `document.querySelectorAll('.repchip.hold').length > 0`, true);
+        `document.querySelectorAll('.sc-rep.hold').length > 0`, true);
 }
 
 /* v3.3.343 SLICE 2+3. The v3.3.341 tripwire read "no writer sets a unit yet"
