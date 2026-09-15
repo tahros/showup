@@ -6,6 +6,8 @@ try{for(const theme of ['light','dark'])for(const width of [320,393,430]){
  const footer=p.locator('.pw-later>summary');assert((await footer.innerText()).includes('2 later plans'));
  assert(await p.locator('[data-pw-fold="today"]').evaluate(e=>!e.open),'Footer visible with today collapsed');
  await footer.click();await p.waitForTimeout(300);assert(await p.locator('.pw-later-day').count()===2);
+ const balanced=await p.locator('.pw-later-day>summary').first().evaluate(e=>{const r=s=>e.querySelector(s).getBoundingClientRect(),a=r('.pw-plan-totals>strong'),b=r('.pw-plan-totals>small'),label=r('.pw-future-label'),totals=r('.pw-plan-totals'),icon=r('.ic');return b.top>=a.bottom+2&&Math.abs(a.right-b.right)<1&&totals.left-label.right>=11&&icon.left-totals.right>=11&&Math.abs((label.top+label.bottom)/2-(totals.top+totals.bottom)/2)<1;});assert(balanced,'Later plan totals stack, align and have breathing room');
+ if(width===393)await p.screenshot({path:'../later-expanded-'+theme+'.png',fullPage:true});
  await p.locator('.pw-later-day>summary').first().click();await p.waitForTimeout(300);assert(await p.locator('.pw-later-day').first().evaluate(e=>e.open));assert(await p.locator('.pw-later-day .plancard').first().isVisible());
  const before=await p.evaluate(()=>JSON.stringify(DB));await p.evaluate(()=>render());await p.waitForTimeout(300);assert(await p.locator('.pw-later').evaluate(e=>e.open));assert(await p.locator('.pw-later-day').first().evaluate(e=>e.open));assert(await p.evaluate(()=>JSON.stringify(DB))===before);
  await footer.click();await p.waitForTimeout(300);assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
