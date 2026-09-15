@@ -1300,7 +1300,20 @@
      the layout, and at these sizes it is under two pixels. */
   .card.dayclosed{display:flex;flex-direction:column;align-items:center;gap:18px;
     width:100%;text-align:center;padding:24px 16px 20px;
-    margin-bottom:18px;border:1px solid var(--line);cursor:pointer}
+    margin-bottom:18px;border:1px solid var(--line);cursor:pointer;position:relative}
+  /* A quiet orbit celebrates completion without moving the card or its content.
+     Only the gradient angle changes; rotating a rectangle would clip its corners. */
+  @property --completed-edge-angle{syntax:'<angle>';initial-value:0deg;inherits:false}
+  .card.dayclosed::after{content:'';position:absolute;inset:-1px;border-radius:inherit;
+    padding:1.6px;pointer-events:none;
+    background:conic-gradient(from var(--completed-edge-angle),transparent 0deg,
+      transparent 240deg,rgba(52,69,220,.25) 280deg,#3445dc 322deg,#a0c9ff 344deg,transparent 360deg);
+    -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+    mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude;
+    animation:completed-edge-orbit 7s linear infinite}
+  @keyframes completed-edge-orbit{to{--completed-edge-angle:360deg}}
+  @media(prefers-reduced-motion:reduce){.card.dayclosed::after{animation:none;opacity:.35}}
   .dayclosed .dcsq{display:block;width:32px;height:32px;margin:0;
     border-radius:var(--sq);background:var(--accent)}
   /* v3.3.505: THE DESCENDER TRIM. v3.3.501 made the two declared gaps one
