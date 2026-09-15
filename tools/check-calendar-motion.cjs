@@ -12,7 +12,7 @@ const {chromium}=require('playwright'),assert=require('assert');
  await p.evaluate(()=>{writerGenerateChecked=()=>new Promise(resolve=>window.finishDraft=resolve);});
  await p.locator('[data-pw="pf-generate"]').click();
  assert(await p.locator('.pf-generating').isVisible());assert(await p.locator('.pf-calendar').isVisible());
- assert(await p.locator('[data-pw="pf-paste-dates"]').isDisabled());
+ assert.equal(await p.locator('[data-pw="pf-paste-dates"]').count(),0);
  await p.evaluate(()=>window.finishDraft({rows:pw().dates.flatMap(d=>[{kind:'day',iso:d},...pwRead('Squat\n135 lb × 8 8 8')]),notes:[]}));
  await p.locator('[data-pw="pf-edit-first"]').waitFor();
  assert.equal(await p.evaluate(()=>pfState().page),'days');
