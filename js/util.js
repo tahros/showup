@@ -1221,7 +1221,8 @@ const ICON_STROKE={
      carries 33% and clear 28%: the lightest thing in every row it appeared
      in. Drawn as two lines it inherits the system's weight BY CONSTRUCTION
      rather than by tuning, and every future chevron is right for free. */
-  chevron:'M38 24 L64 50 L38 76'
+  chevron:'M38 24 L64 50 L38 76',
+  check:'M24 50 L43 69 L76 31'
 };
 /* v3.3.411: THE LIVE AREA. Every icon shared one viewBox, but the ink inside
    filled anywhere from 52% (clear) to 100% (edit, copy) of it -- so a toolbar
@@ -1237,7 +1238,7 @@ const ICON_INK={
   edit:[0,0,100,100],    copy:[0,0,100,100],
   paste:[14,5,86,96], selectall:[12,12,88,88],
   clear:[24,24,76,76],   grip:[16,28,84,72],      chevron:[33.5,19.5,68.5,80.5],
-  brandmark:[154.6,136,357.4,271.2]
+  brandmark:[154.6,136,357.4,271.2], check:[19.5,26.5,80.5,73.5]
 };
 const ICON_LIVE=0.76;      // share of the box the ink meets
 const ICON_STROKE_W=9;     // rendered stroke, in box units, for every stroked icon
