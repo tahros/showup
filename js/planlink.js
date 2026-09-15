@@ -187,6 +187,13 @@ function plHTML(ex){
     ${old?'<p class="pl-context">'+old+' logged '+(old===1?'entry':'entries')+' without a plan link.</p>':''}
     <p class="pl-context">Tap an unlogged target to choose it. Extra sets stay separate.</p></details></section>`;
 }
+function plRepFeedback(reps){
+  if(!(reps>0)||reps===repRulerValue())return;
+  // One tick for the explicit selection, not for the resulting scroll/repaint.
+  if(typeof _rrGestureUntil!=='undefined')_rrGestureUntil=0;
+  if(typeof repTickInit==='function')repTickInit();
+  if(typeof repTick==='function')repTick();
+}
 function plHandle(e){
   const button=e.target.closest('[data-link-slot]');
   if(!button)return false;
@@ -194,6 +201,7 @@ function plHandle(e){
   lift.linkChoice={key:choice.key,slot:+button.dataset.linkSlot};
   const target=choice.targets.find(t=>t.ordinal===+button.dataset.linkSlot);
   if(target){
+    plRepFeedback(target.reps);
     if(!target.nw){lift.weight=target.w;saveExW(lift.ex,target.w);}
     lift.rep=target.reps;
   }
@@ -309,6 +317,6 @@ document.addEventListener('click',e=>{
   const b=e.target.closest('[data-sc-load]');if(!b)return;
   const w=+b.dataset.scLoad;if(!Number.isFinite(w))return;
   lift.weight=w;saveExW(lift.ex,w);
-  const reps=+b.dataset.scReps;if(Number.isFinite(reps)&&reps>0)lift.rep=reps;
+  const reps=+b.dataset.scReps;if(Number.isFinite(reps)&&reps>0){plRepFeedback(reps);lift.rep=reps;}
   renderLift();if(Number.isFinite(reps)&&reps>0&&typeof repRulerBand==='function')repRulerBand(reps);
 });
