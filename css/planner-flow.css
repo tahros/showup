@@ -1,4 +1,38 @@
 /* Shared app tokens. No global header/nav/profile changes. */
+/* Refined calendar: one surface, quieter stage navigation, in-flow actions. */
+.pf-workspace .pf-steps{gap:8px;grid-template-columns:1.3fr 1fr 1fr .8fr;margin-bottom:16px}
+.pf-workspace .pf-steps .pw-btn{min-height:40px;border-radius:0;border-bottom:2px solid var(--line);padding:8px 0 10px;display:block}
+.pf-workspace .pf-steps b{display:none}
+.pf-workspace .pf-steps button:after{display:none}
+.pf-workspace .pf-steps .pf-current{border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+:root .pf-workspace.pf-dates-page{padding-bottom:100px}
+:root .pf-dates-page .pf-date-sheet{padding:0 16px;margin-bottom:0;border-radius:22px}
+.pf-compact-prefs{padding:14px 0;border-bottom:1px solid var(--line)}
+.pf-compact-prefs>div{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.pf-compact-prefs strong{font:600 13px/1.4 var(--body)}
+.pf-compact-prefs .pw-btn{font-size:12px;min-height:32px;padding:0 2px}
+.pf-workspace .pf-compact-prefs p{font:400 12px/1.6 var(--body);color:var(--muted);margin:2px 0 0}
+.pf-date-sheet .pw-month{margin:0;padding:12px 0 6px;display:flex;gap:0}
+.pf-date-sheet .pw-month strong{order:-1;text-align:left;margin-right:auto;font:600 19px/1.4 var(--body);letter-spacing:-.4px}
+.pf-date-sheet .pw-month .pw-btn{width:34px;min-width:34px}
+.pf-date-sheet .pf-calendar{gap:4px 2px}
+.pf-date-sheet .pf-calendar .pw-btn{font-family:var(--body);border:0;border-radius:12px;box-shadow:none;animation:none;min-height:44px;transition:background-color 180ms,color 180ms}
+.pf-date-sheet .pf-calendar small{font-size:8px;min-height:8px}
+.pf-date-sheet .pf-calendar-key{justify-content:space-between;padding:14px 0 16px;margin:0;font-size:11px}
+.pf-dates-page .pw-save-dock.pf-dock{position:static!important;inset:auto!important;transform:none!important;width:auto;max-width:none;margin:16px 0 0;padding:0;border:0;background:none;box-shadow:none;backdrop-filter:none}
+.pf-selection{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:20px;font:400 12px/1.4 var(--body);font-variant-numeric:tabular-nums}
+.pf-selection strong{display:flex;align-items:center;gap:4px;overflow:hidden;font-weight:600}
+.pf-selection>span{color:var(--muted)}
+.pf-count{display:inline-block;min-width:1ch}
+.pf-date-actions{display:grid;grid-template-columns:1fr auto;gap:8px}
+.pf-date-actions .pw-btn{min-height:48px;padding:10px 15px;border-radius:14px}
+:root .pf-workspace .pf-date-help{font:400 11px/1.5 var(--body);color:var(--muted);margin:0 2px}
+.pf-generating{position:relative;overflow:hidden;opacity:1!important}
+.pf-generating:after{content:'';position:absolute;inset:0;background:linear-gradient(110deg,transparent 20%,#ffffff30 48%,transparent 75%);animation:pf-generate-sweep 1s ease-in-out infinite;pointer-events:none}
+.pf-generating .ic{animation:pf-generate-spark 650ms ease both}
+@keyframes pf-generate-sweep{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+@keyframes pf-generate-spark{0%{transform:scale(.8) rotate(-15deg)}45%{transform:scale(1.25) rotate(12deg)}100%{transform:none}}
+@media(prefers-reduced-motion:reduce){.pf-generating:after,.pf-generating .ic{animation:none}.pf-date-sheet .pf-calendar .pw-btn{transition:none}}
 .pf-workspace{padding-bottom:220px}.pf-workspace .card{padding:18px;margin-bottom:14px;border-radius:24px}
 .pf-workspace h1{font:600 23px/1.25 var(--body);letter-spacing:-.5px}.pf-workspace h3{font-size:16px}
 .pf-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;margin:8px 0 20px}

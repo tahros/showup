@@ -1,0 +1,24 @@
+const {chromium}=require('playwright'),assert=require('assert');
+(async()=>{const b=await chromium.launch({executablePath:'C:/Users/sungj/AppData/Local/ms-playwright/chromium-1217/chrome-win64/chrome.exe'});try{
+ const p=await b.newPage({viewport:{width:393,height:852},serviceWorkers:'block'});
+ await p.route('**/*',r=>r.request().url().startsWith('http://127.0.0.1:8784/')?r.continue():r.abort());await p.goto('http://127.0.0.1:8784/');
+ await p.evaluate(()=>{DB={days:{},settings:{onboarded:true,unit:'lb'}};todayISO='2026-09-15';checkDate=()=>false;document.querySelector('#onb')?.remove();lift={};pwOpen('2026-09-15');});
+ await p.locator('[data-pw="date"][data-date="2026-09-16"]').click();
+ assert.equal(await p.locator('.pf-count').innerText(),'2');
+ assert(await p.locator('.pf-count').evaluate(e=>e.getAnimations().length>0));
+ assert(await p.locator('.pf-dock').evaluate(e=>getComputedStyle(e).position==='static'));
+ await p.locator('[data-pw="month"][data-delta="1"]').click();assert((await p.locator('.pw-month').innerText()).includes('October'));
+ await p.locator('[data-pw="month"][data-delta="-1"]').click();
+ await p.evaluate(()=>{writerGenerateChecked=()=>new Promise(resolve=>window.finishDraft=resolve);});
+ await p.locator('[data-pw="pf-generate"]').click();
+ assert(await p.locator('.pf-generating').isVisible());assert(await p.locator('.pf-calendar').isVisible());
+ assert(await p.locator('[data-pw="pf-paste-dates"]').isDisabled());
+ await p.evaluate(()=>window.finishDraft({rows:pw().dates.flatMap(d=>[{kind:'day',iso:d},...pwRead('Squat\n135 lb × 8 8 8')]),notes:[]}));
+ await p.locator('[data-pw="pf-edit-first"]').waitFor();
+ assert.equal(await p.evaluate(()=>pfState().page),'days');
+ await p.locator('[data-pw="pf-edit-first"]').click();
+ assert(await p.locator('[data-pw="pf-add-line"]').count()>0);
+ assert(await p.locator('[data-pw="pf-edit-line"]').count()>0);
+ assert.equal(await p.evaluate(()=>Object.values(DB.days).flatMap(d=>d.w||[]).length),0);
+ console.log('PASS selection roll, month navigation, nonoverlapping dock, real busy lifecycle, full editor, no logged records');
+}finally{await b.close();}})().catch(e=>{console.error(e);process.exitCode=1});
