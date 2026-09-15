@@ -86,9 +86,18 @@ function pwPlanTotals(plan){
 function pwPlanHeading(label,plan){
   return `<span class="pw-future-label"><span>${hesc(label)}</span><strong>${hesc(pwParts(pwRead(planText(plan))).join(' + ')||'Your workout')}</strong></span>${pwPlanTotals(plan)}`;
 }
+function pwLaterPlans(html,dates){
+  if(!dates.length)return html;
+  const t=document.createElement('template');t.innerHTML=html;
+  const card=t.content.querySelector('.pw-saved,.pw-home-card');if(!card)return html;
+  const group=document.createElement('div');group.className='pw-plan-group';card.before(group);group.append(card);
+  const days=dates.slice(0,3).map(d=>new Date(d+'T12:00').toLocaleDateString('en-US',{weekday:'short'})).join(' · ')+(dates.length>3?' +'+(dates.length-3):'');
+  group.insertAdjacentHTML('beforeend',`<details class="pw-later" data-pw-fold="later" ${pwFoldOpen('later')?'open':''}><summary><span>${dates.length} later ${dates.length===1?'plan':'plans'}</span><small>${hesc(days)}</small></summary><div class="pw-later-list">${dates.map(d=>`<details class="pw-later-day" data-pw-fold="later:${d}" ${pwFoldOpen('later:'+d)?'open':''}><summary>${pwPlanHeading(pwDate(d),pwSaved(d))}</summary>${planCardHTML(pwSaved(d),false)}</details>`).join('')}</div></details>`);
+  return t.innerHTML;
+}
 function pwTodayHTML(){
   const s=pw(),closed=dayClosed(),now=planNow();
-  const future=[...new Set([...(DB.plan?.d>todayISO?[DB.plan.d]:[]),...Object.keys(DB.week?.days||{}).filter(d=>d>todayISO)])].sort();
+  const future=[...new Set([...(DB.plan?.d>todayISO?[DB.plan.d]:[]),...Object.keys(DB.week?.days||{}).filter(d=>d>todayISO)])].filter(d=>pwSaved(d)?.items?.length).sort();
   const next=future[0]||tomorrowISO(),upcoming=pwSaved(next);
   let html=`<section class="pw-home"><div class="pw-home-heading"><h2>${closed?'Plan ahead':'Your plan'}</h2>${pwDatesButton()}</div>`;
   /* v4.0.5: Today's plan remembers whether it was open. It was a bare
@@ -99,7 +108,7 @@ function pwTodayHTML(){
   else if(closed||!now)html+=`<div class="card pw-home-card"><span class="pw-eyebrow">${closed?(next===tomorrowISO()?'Tomorrow':hesc(pwDate(next))):'Next workout'}</span><h3>${upcoming&&closed?hesc(pwParts(pwRead(planText(upcoming))).join(' + ')||'Your plan'):'Plan your next workout'}</h3>${upcoming&&closed?'<p class="pw-small">Ready to go.</p>':''}<div class="pw-actions">${pwAction('open-date',upcoming&&closed?'Edit':'Plan',upcoming&&closed?'edit':'sparkle','primary',`data-date="${closed?next:writeDateISO()}"`)}${pwAction('paste-open','Paste','paste','',`data-date="${closed?next:writeDateISO()}"`)}</div></div>`;
   const drafts=s.dates.filter(d=>d>=todayISO&&s.book[d]&&s.book[d].source!=='Saved plan'&&(s.book[d].rows.length||s.book[d].parts.length));
   if(drafts.length)html+=pwAction('resume','Resume draft','edit','pw-resume');
-  return pwFoldMarkup(html+'</section>');
+  return pwFoldMarkup(pwLaterPlans(html+'</section>',future.filter(d=>d>tomorrowISO()&&!(closed&&upcoming&&d===next))));
 }
 function pwCalendarHTML(){
   const s=pw(),base=new Date((s.month||(s.active||todayISO).slice(0,7)+'-01')+'T12:00');base.setDate(1);
