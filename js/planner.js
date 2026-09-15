@@ -83,6 +83,9 @@ function pwPlanTotals(plan){
   const items=(plan.items||[]).map(planItemShape),sets=items.reduce((n,item)=>n+(item.lines||[]).reduce((s,line)=>s+(line.reps||[]).length,0),0);
   return `<span class="pw-plan-totals"><strong>${sets} ${sets===1?'set':'sets'}</strong><small>${items.length} ${items.length===1?'exercise':'exercises'}</small></span>`;
 }
+function pwPlanHeading(label,plan){
+  return `<span class="pw-future-label"><span>${hesc(label)}</span><strong>${hesc(pwParts(pwRead(planText(plan))).join(' + ')||'Your workout')}</strong></span>${pwPlanTotals(plan)}`;
+}
 function pwTodayHTML(){
   const s=pw(),closed=dayClosed(),now=planNow();
   const future=[...new Set([...(DB.plan?.d>todayISO?[DB.plan.d]:[]),...Object.keys(DB.week?.days||{}).filter(d=>d>todayISO)])].sort();
@@ -91,8 +94,8 @@ function pwTodayHTML(){
   /* v4.0.5: Today's plan remembers whether it was open. It was a bare
      <details> with no open attribute, so it collapsed on EVERY render -- not
      only on coming back from an exercise. */
-  if(now&&!closed)html+=`<details class="pw-saved" data-pw-fold="today" ${pwFoldOpen('today')?'open':''}><summary><span>Today</span>${pwPlanTotals(now)}</summary>${planCardHTML(now,true)}${pwAction('open-date','Edit','edit','pw-text',`data-date="${todayISO}"`)}</details>`;
-  if(closed&&upcoming){const key='future:'+next;html+=`<details class="pw-saved pw-future" data-pw-fold="${key}" ${pwFoldOpen(key)?'open':''}><summary><span class="pw-future-label"><span>${next===tomorrowISO()?'Tomorrow':hesc(pwDate(next))}</span><strong>${hesc(pwParts(pwRead(planText(upcoming))).join(' + ')||'Your workout')}</strong></span>${pwPlanTotals(upcoming)}</summary>${planCardHTML(upcoming,false)}<div class="pw-actions pw-future-actions">${pwAction('open-date','Edit','edit','',`data-date="${next}"`)}${pwAction('paste-open','Paste','paste','',`data-date="${next}"`)}</div></details>`;}
+  if(now&&!closed)html+=`<details class="pw-saved" data-pw-fold="today" ${pwFoldOpen('today')?'open':''}><summary>${pwPlanHeading('Today',now)}</summary>${planCardHTML(now,true)}${pwAction('open-date','Edit','edit','pw-text',`data-date="${todayISO}"`)}</details>`;
+  if(closed&&upcoming){const key='future:'+next;html+=`<details class="pw-saved pw-future" data-pw-fold="${key}" ${pwFoldOpen(key)?'open':''}><summary>${pwPlanHeading(next===tomorrowISO()?'Tomorrow':pwDate(next),upcoming)}</summary>${planCardHTML(upcoming,false)}<div class="pw-actions pw-future-actions">${pwAction('open-date','Edit','edit','',`data-date="${next}"`)}${pwAction('paste-open','Paste','paste','',`data-date="${next}"`)}</div></details>`;}
   else if(closed||!now)html+=`<div class="card pw-home-card"><span class="pw-eyebrow">${closed?(next===tomorrowISO()?'Tomorrow':hesc(pwDate(next))):'Next workout'}</span><h3>${upcoming&&closed?hesc(pwParts(pwRead(planText(upcoming))).join(' + ')||'Your plan'):'Plan your next workout'}</h3>${upcoming&&closed?'<p class="pw-small">Ready to go.</p>':''}<div class="pw-actions">${pwAction('open-date',upcoming&&closed?'Edit':'Plan',upcoming&&closed?'edit':'sparkle','primary',`data-date="${closed?next:writeDateISO()}"`)}${pwAction('paste-open','Paste','paste','',`data-date="${closed?next:writeDateISO()}"`)}</div></div>`;
   const drafts=s.dates.filter(d=>d>=todayISO&&s.book[d]&&s.book[d].source!=='Saved plan'&&(s.book[d].rows.length||s.book[d].parts.length));
   if(drafts.length)html+=pwAction('resume','Resume draft','edit','pw-resume');

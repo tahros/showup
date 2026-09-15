@@ -16,6 +16,12 @@ const {chromium}=require('playwright'),assert=require('assert');
   assert(await p.evaluate(()=>{const row=document.querySelector('.pw-future-actions'),rr=row.getBoundingClientRect(),buttons=[...row.querySelectorAll('button')].map(e=>e.getBoundingClientRect());return buttons.length===2&&buttons.every(r=>Math.abs((r.top+r.bottom)/2-(rr.top+rr.bottom)/2)<1)&&Math.abs(buttons[0].width-buttons[1].width)<1&&buttons[0].left-rr.left>=15&&rr.right-buttons[1].right>=15&&document.documentElement.scrollWidth<=innerWidth+1;}));
   if(process.argv[2])await p.screenshot({path:process.argv[2]+'/'+theme+'-'+width+'.png',fullPage:true});
   await card.locator('summary').click();await p.waitForTimeout(400);assert(!(await card.evaluate(e=>e.open)));
+  await p.evaluate(()=>{todayISO='2026-09-15';render();});
+  const today=p.locator('[data-pw-fold="today"]');
+  await today.waitFor();assert((await today.locator('summary').textContent()).includes('Back + Biceps'),'Rollover preserves body parts');
+  assert((await today.locator('.pw-plan-totals').innerText()).replace(/\s+/g,' ').trim()==='6 sets 2 exercises');
+  assert(await today.locator('summary').evaluate(e=>{const a=e.querySelector('.pw-future-label').getBoundingClientRect(),b=e.querySelector('.pw-plan-totals').getBoundingClientRect();return a.right+10<=b.left&&Math.abs((a.top+a.bottom-b.top-b.bottom)/2)<2;}),'Today heading remains aligned');
+  if(process.argv[2])await p.screenshot({path:process.argv[2]+'/today-'+theme+'-'+width+'.png',fullPage:true});
   console.log('PASS tomorrow focus, centered action row and disclosure '+theme+' '+width);await p.close();
  }
  await b.close();
