@@ -10,7 +10,7 @@
 .sc-table th:last-child{color:var(--accent-ink)}
 .sc-table th small,.sc-date{display:flex;align-items:center;justify-content:center;height:24px;font:400 11px/1.4 var(--body);margin:2px auto 0;color:var(--muted);letter-spacing:0;text-transform:none}
 .sc-date{border:0;background:none;min-height:24px;padding:0;text-decoration:underline;text-decoration-style:dotted}
-.sc-table td,.sc-table tbody th{border-top:1px solid var(--line);padding:2px;text-align:center;vertical-align:middle}
+.sc-table td,.sc-table tbody th{border-top:1px solid var(--line);padding:5px 2px;text-align:center;vertical-align:middle}
 .sc-table tbody th{font:400 10px/1.4 var(--body);color:var(--muted);letter-spacing:0;white-space:nowrap}
 .sc-value{display:inline-flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px;max-width:100%;min-height:44px;border:0;background:none;color:var(--chalk);padding:3px 0;cursor:pointer}
 .sc-value:disabled{opacity:1;cursor:default}
@@ -37,17 +37,24 @@
 @keyframes sc-save-pop{0%{transform:scale(.85)}45%{transform:translateY(-3px) scale(1.12)}100%{transform:none}}
 @keyframes sc-save-spark{0%{transform:scale(.6) rotate(-25deg)}45%{transform:scale(1.4) rotate(10deg)}100%{transform:none}}
 @media(prefers-reduced-motion:reduce){.sc-fresh .sc-rep,.sc-celebrate .sc-seal,.sc-fresh.sc-win summary .ic{animation:none}}
-.sc-toolbar{display:flex;align-items:center;justify-content:space-between;min-height:28px;margin-bottom:4px;color:var(--muted);font:400 11px/1.4 var(--body)}
+.sc-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;min-height:28px;margin:8px 0 10px;color:var(--muted);font:400 11px/1.4 var(--body)}
 .sc-toolbar button{border:0;background:none;color:var(--accent-ink);font:500 12px/1.4 var(--body);min-height:32px;padding:4px 0 4px 12px}
 .sc-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-.sc-tools button{display:inline-flex;align-items:center;gap:5px}
+.sc-tools button{display:inline-flex;align-items:center;justify-content:center;gap:5px;border:1px solid var(--line);border-radius:11px;background:var(--surface2);color:var(--chalk);min-height:36px;padding:7px 10px;white-space:nowrap}
+.sc-tools button .ic{flex:none}
+.sc-warm-mark,.sc-warm-key>span{font:500 9px/16px var(--body);color:var(--muted);background:var(--surface2);border-radius:4px;text-align:center;width:17px}
+.sc-warm-mark{display:block;margin-top:3px}
+.sc-warm-key{display:flex;align-items:center;gap:6px;margin:10px 0 4px;color:var(--muted);font:400 11px/1.4 var(--body)}
 .sc-group-value{display:flex;flex-direction:column;gap:3px;width:100%;min-height:44px;padding:3px 0}
 .sc-group-value .sc-weight{font-size:13px;line-height:16px}
 .sc-reps{display:flex;justify-content:center;gap:1px;flex-wrap:wrap;max-width:100%}
 .sc-table:not(:has(thead th:nth-child(4))) .sc-reps{gap:4px}
 .sc-group-value .sc-rep{font-size:12px;min-width:14px;padding:3px 1px;border-radius:5px}
 .sc-compact .sc-celebrate{padding:10px;margin-top:6px}
-.sc-session.sc-compact{padding-top:10px;padding-bottom:10px}
+.sc-session.sc-compact{padding-top:14px;padding-bottom:14px}
+.sc-session.sc-dense{padding-top:10px;padding-bottom:10px}
+.sc-dense .sc-table td,.sc-dense .sc-table tbody th{padding:2px}
+.sc-dense .sc-toolbar{margin:0 0 4px}
 .sc-compact .sc-celebrate small{display:none}
 .sc-compact .sc-volume{margin-top:8px;padding-top:8px}
 .sc-compact .pl-next{margin-top:4px}

@@ -25,10 +25,17 @@ const {chromium}=require('playwright'),assert=require('assert');
   assert(await p.locator('.sc-session').evaluate(e=>e.scrollWidth<=e.clientWidth));
   await p.evaluate(()=>{
    const ex=lift.ex,last={d:'2026-09-10',sets:[[45,[10]],[55,[10]],[70,[10,10,10,9]],[80,[5]]]};
+   DB.week.days['2026-09-16'].items[0].lines=[{w:45,reps:[10],qual:'warm-up'},{w:55,reps:[10],qual:'warm-up'},{w:75,reps:[8,8,8,8]},{w:80,reps:[6]}];
    document.querySelector('#view').innerHTML=plSessionHTML(ex,last,[]);
   });
   assert.equal(await p.locator('.sc-table thead th').count(),4);
   assert(await p.locator('.sc-session').evaluate(e=>e.scrollWidth<=e.clientWidth));
+  assert.equal(await p.locator('.sc-warm-mark').count(),2);
+  assert.equal(await p.locator('.sc-qual').count(),0);
+  assert.equal((await p.locator('[data-sc-details]').innerText()).trim(),'Expand');
+  assert.equal(await p.locator('.sc-tools button .ic').count(),2);
+  await p.setViewportSize({width:393,height:852});
+  await p.locator('.sc-session').screenshot({path:'../comparison-spacing-warmups.png'});
   assert(await p.evaluate(()=>{
    DB.plan={d:todayISO,items:[{ex:lift.ex,lines:[{w:50,reps:[8]}]}]};
    return plDisplayPlan(lift.ex).date===todayISO&&!plSessionRows(lift.ex,null,[]).preview;
