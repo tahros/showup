@@ -250,12 +250,14 @@ function plSessionGroups(rows){
   }
   return groups;
 }
+function plTapAttrs(s){
+  return `data-sc-load="${s.w}" data-sc-reps="${s.r??s.reps}"${s.ordinal&&!s.preview&&!plActual(todayISO,s.id).length?` data-link-slot="${s.ordinal}"`:''}`;
+}
 function plCompactBody(ex,groups,hasLast,hasPlan,choice,latest,fresh){
   const cell=(sets,kind,attrs)=>{
     if(!sets.length)return '<span class="sc-empty">—</span>';
-    if(sets[0].preview)attrs='disabled aria-label="Future plan target"';
     const s=sets[0],load=s.nw?'By feel':s.bw?(s.w?'BW + '+wDisp(s.w):'BW'):wLabel(ex,s.w);
-    return `<button type="button" class="sc-value sc-group-value ${kind}" ${attrs}><span class="sc-weight">${hesc((s.est?'≈':'')+load)}<span class="sc-times"> ×</span></span><span class="sc-reps">${sets.map(s=>`<span class="sc-rep${isHold(s.su)?' hold':''}${fresh&&s===latest?' sc-chip-fresh':''}">${hesc(String(setNum(s.r??s.reps,s.su)))}</span>`).join('')}</span></button>`;
+    return `<div class="sc-value sc-group-value ${kind}"><button type="button" class="sc-load-weight" ${plTapAttrs(s)} aria-label="Load ${hesc(load)} and ${s.r??s.reps} reps"><span class="sc-weight">${hesc((s.est?'≈':'')+load)}<span class="sc-times"> ×</span></span></button><span class="sc-reps">${sets.map(s=>`<button type="button" ${plTapAttrs(s)} aria-label="Load ${hesc(load)} and ${s.r??s.reps} reps" class="sc-rep${isHold(s.su)?' hold':''}${fresh&&s===latest?' sc-chip-fresh':''}">${hesc(String(setNum(s.r??s.reps,s.su)))}</button>`).join('')}</span></div>`;
   };
   return groups.map(({rows})=>{
     const first=rows[0],last=rows.at(-1),past=rows.map(r=>r.last).filter(Boolean),targets=rows.map(r=>r.target).filter(Boolean),actual=rows.flatMap(r=>r.actual);
@@ -274,7 +276,7 @@ function plSessionHTML(ex,last,today){
   const latest=actual.at(-1),fresh=!!lift.justSaved&&!!latest;
   const text=(s,target=false)=>target?plTargetText(s):wLabel(ex,s.w)+' × '+setNum(s.r,s.su);
   const value=(s,kind,attrs='')=>{
-    if(s.preview)attrs='disabled aria-label="Future plan target"';
+    attrs=attrs.replace(/data-sc-load="[^"]*"|data-link-slot="[^"]*"|disabled/g,'')+' '+plTapAttrs(s);
     const r=s.r??s.reps,load=s.nw?'By feel':s.bw?(s.w?'BW + '+wDisp(s.w):'BW'):wLabel(ex,s.w);
     return `<button type="button" class="sc-value ${kind}" ${attrs}><span class="sc-weight">${hesc((s.est?'≈':'')+load)}</span><span class="sc-times">×</span><span class="sc-rep${isHold(s.su)?' hold':''}">${hesc(String(setNum(r,s.su)))}</span></button>`;
   };
@@ -290,7 +292,7 @@ function plSessionHTML(ex,last,today){
     return `<tr><th scope="row">${row.label}${plWarmMark(t)}</th>${hasLast?'<td>'+past+'</td>':''}${hasPlan?'<td>'+target+'</td>':''}<td>${logged}</td></tr>`;
   }).join('');
   const done=targets.filter(t=>plActual(todayISO,t.id).length).length,groups=plSessionGroups(rows),canCompact=rows.length>4&&groups.length<rows.length,compact=canCompact&&lift.scDetails!==ex;
-  return `<section class="lastcard sc-session plan-link${compact?' sc-compact':''}${compact&&groups.length>6?' sc-dense':''}" aria-label="Your sets comparison"><div class="sc-head"><strong>Your sets</strong><span>${actual.length} sets logged</span>${today.length?'<button class="ago sessedit" id="sessEdit">EDIT</button>':''}</div><div class="sc-toolbar"><span>${U()} · ${isHold(unitOf(ex))?'seconds':'reps'}</span><div class="sc-tools">${hasPlan?`<button type="button" data-sc-edit-plan="${displayPlan.date}">${icon('edit',ICON_SZ.sm)} Edit Plan</button>`:''}${canCompact?`<button type="button" data-sc-details aria-expanded="${!compact}">${icon(compact?'expand':'collapse',ICON_SZ.sm)} ${compact?'Expand':'Collapse'}</button>`:''}</div></div>
+  return `<section class="lastcard sc-session plan-link${compact?' sc-compact':''}${compact&&groups.length>6?' sc-dense':''}" aria-label="Your sets comparison"><div class="sc-head"><strong>Your sets</strong><span>${actual.length} sets logged</span></div><div class="sc-toolbar"><span>${U()} · ${isHold(unitOf(ex))?'seconds':'reps'}</span><div class="sc-tools">${today.length?`<button type="button" class="sessedit" id="sessEdit">${icon('edit',ICON_SZ.sm)} Edit Logged</button>`:''}${hasPlan?`<button type="button" data-sc-edit-plan="${displayPlan.date}">${icon('edit',ICON_SZ.sm)} Edit Plan</button>`:''}${canCompact?`<button type="button" data-sc-details aria-expanded="${!compact}">${icon(compact?'expand':'collapse',ICON_SZ.sm)} ${compact?'Expand':'Collapse'}</button>`:''}</div></div>
     ${changed&&!preview?'<p class="pl-context">Plan edited since you started. These targets stay with this workout.</p>':''}
     ${body?`<table class="sc-table"><thead><tr><th scope="col">Set</th>${hasLast?`<th scope="col">Last<button class="sc-date linkdate" data-histd="${last.d}">${hesc(wd(last.d))}</button></th>`:''}${hasPlan?'<th scope="col">Plan<small>'+hesc(wd(displayPlan.date))+'</small></th>':''}<th scope="col">Logged<small>Today</small></th></tr></thead><tbody>${compact?plCompactBody(ex,groups,hasLast,hasPlan,choice,latest,fresh):body}</tbody></table>`:'<p class="sc-intro">Your first set starts here. Log your weight and reps above.</p>'}
     ${targets.some(plWarm)?'<p class="sc-warm-key"><span aria-hidden="true">W</span> Planned warm-up</p>':''}
@@ -306,5 +308,7 @@ document.addEventListener('click',e=>{
   if(e.target.closest('[data-sc-details]')){lift.scDetails=lift.scDetails===lift.ex?null:lift.ex;renderLift();return;}
   const b=e.target.closest('[data-sc-load]');if(!b)return;
   const w=+b.dataset.scLoad;if(!Number.isFinite(w))return;
-  lift.weight=w;saveExW(lift.ex,w);renderLift();
+  lift.weight=w;saveExW(lift.ex,w);
+  const reps=+b.dataset.scReps;if(Number.isFinite(reps)&&reps>0)lift.rep=reps;
+  renderLift();if(Number.isFinite(reps)&&reps>0&&typeof repRulerBand==='function')repRulerBand(reps);
 });

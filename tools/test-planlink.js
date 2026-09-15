@@ -62,7 +62,7 @@ run(`document.querySelector('[data-link-slot="3"]').click();`);
 test('target selection loads the logger without logging',`lift.weight===100&&day(todayISO).w.length===0&&plChoice('Squat').target.ordinal===3`);
 run(`document.getElementById('wv').value='210';repRulerTo(6,false);document.getElementById('addrep').click();`);
 test('real Add set handler stores chosen target and actual result',`day(todayISO).w[0].planRef.target.ordinal===3&&day(todayISO).w[0].reps[0]===6&&Math.abs(toU(day(todayISO).w[0].w)-210)<0.01`);
-test('result row preserves both numbers and disables reusing the target',`document.querySelector('[data-link-slot="3"]').disabled&&document.querySelector('[data-link-slot="3"]').closest('tr').textContent.includes('210')`);
+test('result row preserves both numbers and allows copying without reusing the target',`!document.querySelector('.sc-session .sc-plan[data-link-slot="3"]')&&document.querySelectorAll('.sc-session .sc-plan')[2].closest('tr').textContent.includes('210')&&!document.querySelectorAll('.sc-session .sc-plan')[2].disabled`);
 run(`document.querySelector('[data-link-slot="-1"]').click();document.getElementById('addrep').click();`);
 test('Extra set button logs without consuming target',`!day(todayISO).w[1].planRef&&plChoice('Squat').target.ordinal===1`);
 run(`planSave([{ex:'Squat',lines:[{w:120,reps:[10]}]}],'','',todayISO);render();`);

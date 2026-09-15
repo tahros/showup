@@ -50,11 +50,17 @@
 .sc-reps{display:flex;justify-content:center;gap:1px;flex-wrap:wrap;max-width:100%}
 .sc-table:not(:has(thead th:nth-child(4))) .sc-reps{gap:4px}
 .sc-group-value .sc-rep{font-size:12px;min-width:14px;padding:3px 1px;border-radius:5px}
+.sc-load-weight{border:0;background:none;color:inherit;padding:0;cursor:pointer;font:inherit}
+button.sc-rep{border:0;color:inherit;cursor:pointer;margin:0}
+.sc-group-value button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .sc-compact .sc-celebrate{padding:10px;margin-top:6px}
 .sc-session.sc-compact{padding-top:14px;padding-bottom:14px}
 .sc-session.sc-dense{padding-top:10px;padding-bottom:10px}
 .sc-dense .sc-table td,.sc-dense .sc-table tbody th{padding:2px}
 .sc-dense .sc-toolbar{margin:0 0 4px}
+.sc-dense .sc-toolbar>span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.sc-dense .sc-tools{flex-wrap:nowrap;gap:5px}
+.sc-dense .sc-tools button{font-size:11px;padding:6px 8px}
 .sc-compact .sc-celebrate small{display:none}
 .sc-compact .sc-volume{margin-top:8px;padding-top:8px}
 .sc-compact .pl-next{margin-top:4px}
