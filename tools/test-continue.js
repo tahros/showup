@@ -43,6 +43,27 @@ expect("open part → last exercise",   click("Shoulder"), {view:"lift", part:"S
 expect("sealed part → part view",     click("Back"),     {view:"lift", part:"Back",     ex:null});
 expect("untouched part → part view",  click("Chest"),    {view:"lift", part:"Chest",    ex:null});
 expect("Run → part view (owns itself)", click("Run"),    {view:"lift", part:"Run",      ex:null});
+
+/* ---- v4.6.27: CONTINUE CONTINUES, even after a look at the list ------------
+   liftWhere is written on the way through EVERY Train screen, the exercise LIST
+   included ({part, ex:null}). v3.3.344 let that remembered screen win outright,
+   so stepping back to the list and tapping Continue dropped you on the list --
+   not on the set you were between. The remembered screen still wins when it
+   names an exercise; it no longer outranks an open part's record. */
+run(`liftWhere={part:'Shoulder', ex:null, d:todayISO};`);
+expect("open part, last screen was the LIST → the exercise, not the list",
+       click("Shoulder"), {view:"lift", part:"Shoulder", ex:"Dumbbell Press"});
+run(`liftWhere={part:'Shoulder', ex:'Lateral Raise', d:todayISO};`);
+expect("...but a remembered EXERCISE still wins (v3.3.344 preserved)",
+       click("Shoulder"), {view:"lift", part:"Shoulder", ex:"Lateral Raise"});
+run(`liftWhere={part:'Chest', ex:null, d:todayISO};`);
+expect("...and an untouched part still lands on its list",
+       click("Chest"), {view:"lift", part:"Chest", ex:null});
+run(`liftWhere={part:'Shoulder', ex:null, d:'2000-01-01'};`);
+expect("...a memory from another day is ignored, as it always was",
+       click("Shoulder"), {view:"lift", part:"Shoulder", ex:"Dumbbell Press"});
+run(`liftWhere=null;`);
+
 // ---- v3.3.87: the "· today" section appears WITH the first set ------------
 // (this suite's expect() is JSON-shaped; a plain boolean helper for these)
 const okb = (name, got, want) => {

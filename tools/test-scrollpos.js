@@ -254,9 +254,17 @@ if (!noSwipe) fail++;
   tapNav('today'); tapNav('lift');
   checkVal("the part list you left is the part list you return to", where(), "list:Chest");
 
+  /* v4.6.27: REVERSED AT THE MAKER'S WORD, and recorded as a reversal rather than
+     an edit. v3.3.344 made the live card restore the list you left -- his words then:
+     "the maker steps to Today to read the plan and taps back, and got dropped into an
+     exercise instead of the list he left." Today, the opposite complaint: Continue did
+     not go into the active workout. Both are true reports; they disagree because the
+     button means different things at different moments. The split now: the TAB still
+     restores the list you left (asserted above, unchanged) -- that is navigation.
+     CONTINUE goes to the set you are between -- that is what the word promises. */
   start(`view='lift'; lift={part:'Chest',ex:null,weight:0};`);
   tapNav('today'); tapGo();
-  checkVal("...including via the live card on Today", where(), "list:Chest");
+  checkVal("Continue enters the open part's last exercise, not the list", where(), "ex:Cable Fly Up");
 
   /* the memory is not a cage: leave from inside an exercise and you return
      to it, which is the same rule and not a special case */
