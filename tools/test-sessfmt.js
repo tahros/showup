@@ -96,7 +96,7 @@ check("no dangling × from empty reps",
 run(`lift={part:'Shoulder',ex:'Dumbbell Press'}; view='lift'; render();`);
 check("LAST TIME card still renders", `!!document.querySelector('.lastcard')`, true);
 check("LAST TIME rows still tappable",
-      `!!document.querySelector('.lastcard .lastrow[data-lw]')`, true);
+      `!!document.querySelector('.sc-history[data-sc-load]')`, true);
 /* ---- v3.3.493: THIS SESSION answers the same tap ----
    Both groups read in one grammar (v3.3.144); until now only the dimmed one
    was live, so stepping down to last week's weight was a tap and stepping
@@ -104,20 +104,20 @@ check("LAST TIME rows still tappable",
    the logger's weight is read back -- not merely that the attribute is on the
    markup, which would pass on a row nothing listens to. */
 check("THIS SESSION rows are tappable too",
-      `!!document.querySelector('.lastcard .sess-now .lastrow[data-lw]')`, true);
+      `!!document.querySelector('.sc-now[data-sc-load]')`, true);
 check("...and tapping one loads that weight into the logger",
       `(function(){
-         const row=document.querySelector('.lastcard .sess-now .lastrow[data-lw]');
+         const row=document.querySelector('.sc-now[data-sc-load]');
          if(!row) return 'no row';
-         const want=+row.dataset.lw;
+         const want=+row.dataset.scLoad;
          lift.weight=0;
          row.click();
          return lift.weight===want ? 'loaded' : 'weight='+lift.weight+' want='+want;})()`, "loaded");
 check("...and the dimmed row below still does the same",
       `(function(){
-         const row=document.querySelector('.lastcard .sess-then .lastrow[data-lw]');
+         const row=document.querySelector('.sc-history[data-sc-load]');
          if(!row) return 'no row';
-         const want=+row.dataset.lw;
+         const want=+row.dataset.scLoad;
          lift.weight=0;
          row.click();
          return lift.weight===want ? 'loaded' : 'weight='+lift.weight+' want='+want;})()`, "loaded");
@@ -129,6 +129,6 @@ check("a run's session rows stay untappable",
    dimmed group of THIS SESSION now and the card's own .tot carries the
    numbers. This assertion crashed the suite silently from that release. */
 check("LAST TIME lives inside the session card, not alone",
-      `!!document.querySelector('.lastcard.sess .sess-then')`, true);
+      `!!document.querySelector('.sc-session .sc-history')`, true);
 
 process.exit(fail ? 1 : 0);

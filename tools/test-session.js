@@ -53,26 +53,22 @@ run(`(function(){
   view='lift'; render();})()`);
 
 // ---- 1. one card where two used to be ------------------------------------
-ok("exactly one session card renders", run(`document.querySelectorAll('.lastcard.sess').length`) === 1);
+ok("exactly one unified session card renders", run(`document.querySelectorAll('.sc-session').length`) === 1);
 ok("no standalone Logged-today zone survives", run(`!document.querySelector('.zone.logged')`));
 ok("no standalone Last-time card survives",
    run(`document.querySelectorAll('.lastcard').length`) === 1,
    run(`document.querySelectorAll('.lastcard').length`) + " lastcards");
 
 // ---- 2. one grammar, two distances ---------------------------------------
-ok("today renders as weight-grouped rows of rep chips",
-   run(`document.querySelectorAll('.sess-now .lastrow').length`) >= 2,
-   run(`document.querySelectorAll('.sess-now .lastrow').length`) + " rows");
-ok("...folded: two 12kg sets share one row", run(`(function(){
-     const first=document.querySelector('.sess-now .lastrow');
-     return first && first.querySelectorAll('.repchip').length===2;})()`));
-ok("last time renders in the SAME grammar", run(`document.querySelectorAll('.sess-then .lastrow').length`) >= 1);
+ok("today renders individual comparable sets",run(`document.querySelectorAll('.sc-now').length`)===3);
+ok("same-weight sets remain distinct",run(`document.querySelectorAll('.sc-now .sc-rep').length`)===3);
+ok("last time renders in the SAME grammar", run(`document.querySelectorAll('.sc-history').length`) >= 1);
 ok("...dimmed, not restyled", (() => {
   const css = fs.readFileSync(path.join(dir, "css/app.css"), "utf8");
   return /\.sess-then\{[^}]*opacity:\.\d+/.test(css);
 })());
 ok("...and dated with the existing history link",
-   run(`!!document.querySelector('.sess-then .linkdate')`));
+   run(`!!document.querySelector('.sc-session .linkdate')`));
 
 // ---- 3. deletion is gated, but two taps away ------------------------------
 ok("read mode arms NO delete surfaces",
@@ -102,9 +98,9 @@ ok("DONE returns to read mode, disarmed",
 
 // ---- 4. footer survives the merge ----------------------------------------
 ok("the volume footer renders inside the card",
-   run(`!!document.querySelector('.lastcard.sess #volNum')`));
-ok("...with the vs-last-session delta",
-   run(`!!document.querySelector('.lastcard.sess .delta')`));
+   run(`!!document.querySelector('.sc-session #volNum')`));
+ok("...without a negative unfinished-session comparison",
+   run(`!document.querySelector('.sc-session .delta')`));
 
 // ---- 5. the strip is back above it ---------------------------------------
 /* v3.3.534: SUGGESTED read your history and proposed loads; the maker had
@@ -119,7 +115,7 @@ ok("...and no plan card either, because this fixture has no plan", run(`(functio
    card, without one the session card simply follows the log zone. */
 ok("...and the session card still follows the log zone", run(`(function(){
      const log=document.querySelector('.zone.prime')||document.querySelector('.zone');
-     const card=document.querySelector('.lastcard.sess');
+     const card=document.querySelector('.sc-session');
      return !!(log&&card&&(log.compareDocumentPosition(card)&Node.DOCUMENT_POSITION_FOLLOWING));
    })()`));
 
@@ -134,10 +130,10 @@ ok("...but the stepper, the rep ruler and Add survive", run(`!!document.getEleme
 // ---- 7. empty states stay honest ------------------------------------------
 run(`DB.days[todayISO]={w:[],upd:1}; SEED=deriveAll(); lift.editToday=false; renderLift();`);
 ok("no sets today: the card says so bluntly",
-   /Nothing yet/.test(run(`document.querySelector('.lastcard.sess').textContent`)));
+   /0 sets logged/.test(run(`document.querySelector('.sc-session').textContent`)));
 ok("...and offers no EDIT for nothing", run(`!document.getElementById('sessEdit')`));
 ok("...while last time still shows below",
-   run(`!!document.querySelector('.sess-then .lastrow')`));
+   run(`!!document.querySelector('.sc-history')`));
 
 /* ---- 8. v3.3.146: done today = go-to today -------------------------------
    A lift last touched 1,162 days ago sat in "Sometimes" while its sets were

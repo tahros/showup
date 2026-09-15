@@ -550,7 +550,7 @@ function renderLift(){
     const mine=Object.entries(DB.days)
       .filter(([d,v])=>d<todayISO&&v.w.some(s=>s.ex===ex))
       .sort((a,b)=>a[0]<b[0]?1:-1)[0];
-    const seed=SEED.last[ex];
+    const seed=SEED.last[ex]?.d<todayISO?SEED.last[ex]:null;
     if(mine&&(!seed||mine[0]>seed.d))
       return {d:mine[0],sets:mine[1].w.filter(s=>s.ex===ex).map(s=>[s.w,s.reps,s.mins,s.secs,s.su])};
     return seed||null;
@@ -727,8 +727,8 @@ function renderLift(){
     {
       const pl=(typeof planFor==='function')?planFor(ex):null;
       const lines=(pl&&pl.lines||[]).filter(l=>l&&(l.reps||[]).length);
-      const linkedPlanHTML=plHTML(ex);
-      if(linkedPlanHTML)h+=linkedPlanHTML;
+      const linkedPlanHTML=plSessionHTML(ex,lastPrev,todaySets);
+      if(!lift.editToday)h+=linkedPlanHTML;
       if(!linkedPlanHTML&&!Object.prototype.hasOwnProperty.call(DB.days[todayISO]||{},'planBasis')&&lines.length&&!isHold(unitOf(ex))){
         /* how many sets landed at each weight today, spent down the plan in
            order so two rows at the same load cannot both claim the same sets */
@@ -809,7 +809,8 @@ function renderLift(){
     const editing=!!lift.editToday;
     /* the (i) explains what EDIT hides — with deletion now behind a mode,
        this tip is where its discoverability lives */
-    h+=`<div class="lastcard sess"><div class="lasthead"><span>THIS SESSION</span>${
+    if(isRun||editing){
+    h+=`<div class="lastcard sess"><div class="lasthead"><span>${isRun?'THIS SESSION':'EDIT SETS'}</span>${
         todaySets.length?`<button class="ago sessedit" id="sessEdit">${editing?'DONE':'EDIT'}</button>`:''}</div>`;
 
     if(!todaySets.length){
@@ -894,12 +895,13 @@ function renderLift(){
         const lastVol=ls?ls.sets.reduce((a,s)=>a+s.w*s.r,0):0;
         const d=lastVol?Math.round((v/lastVol-1)*100):0;
         h+=`<div class="tot"><span>Volume <b><span id="volNum" data-kg="${v}">${vDisp(v)}</span> ${U()}</b> · ${todaySets.length} sets</span>
-            ${lastVol?`<button class="delta linkdate ${d>=0?'up':'down'}" data-histd="${ls.d}">${d>=0?'+':''}${d}% vs ${wd(ls.d)}</button>`:''}</div>`;
+            </div>`;
       }
     }
 
-    h+=lastGroup;      // the dimmed then-group closes the card
+    if(isRun)h+=lastGroup;
     h+=`</div>`;
+    }
     /* v3.3.150: Undo shows WHEREVER there is something to undo, not only
        behind EDIT. Since v3.3.143 the stack clears on any log, so a
        non-empty stack means "you just destroyed something and have logged

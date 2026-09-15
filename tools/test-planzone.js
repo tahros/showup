@@ -21,7 +21,7 @@ w.document.dispatchEvent(new w.Event("DOMContentLoaded",{bubbles:true}));
 const run=c=>vm.runInContext(c,ctx);
 // Stage 1's ID-linked UI is covered by test-planlink. Retain this suite for
 // the legacy fallback renderer rather than asserting inferred links as facts.
-run("plHTML=()=>''");
+run("plSessionHTML=()=>''");
 
 /* the plan is built in its own shape rather than parsed from text: the card
    is what is under test, and parsePlan's grammar is another suite's job. */

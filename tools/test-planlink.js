@@ -57,20 +57,24 @@ test('warm-up labels survive real parser conversion',`planItemsFrom(parsePlan('S
 run(`DB.days={};DB.planTracking=null;DB.plan=null;DB.week=null;
 todayISO='2026-09-16';lift={ex:'Squat',part:'Legs',weight:0};view='lift';DB.settings.unit='lb';SEED=deriveAll();
 planSave([{ex:'Squat',lines:[{w:60,reps:[8],qual:'warm-up'},{w:100,reps:[8,8]}]}],'','',todayISO);render();`);
-test('new plan renders individual targets with details collapsed',`document.querySelectorAll('.pl-result').length===3&&!document.querySelector('.pl-details').open`);
+test('new plan renders individual targets in the unified comparison',`document.querySelectorAll('.sc-plan').length===3&&!document.querySelector('.pl-details')`);
 run(`document.querySelector('[data-link-slot="3"]').click();`);
 test('target selection loads the logger without logging',`lift.weight===100&&day(todayISO).w.length===0&&plChoice('Squat').target.ordinal===3`);
 run(`document.getElementById('wv').value='210';repRulerTo(6,false);document.getElementById('addrep').click();`);
 test('real Add set handler stores chosen target and actual result',`day(todayISO).w[0].planRef.target.ordinal===3&&day(todayISO).w[0].reps[0]===6&&Math.abs(toU(day(todayISO).w[0].w)-210)<0.01`);
-test('result row preserves both numbers and disables reusing the target',`document.querySelector('[data-link-slot="3"]').disabled&&document.querySelector('[data-link-slot="3"]').textContent.includes('210')`);
+test('result row preserves both numbers and disables reusing the target',`document.querySelector('[data-link-slot="3"]').disabled&&document.querySelector('[data-link-slot="3"]').closest('tr').textContent.includes('210')`);
 run(`document.querySelector('[data-link-slot="-1"]').click();document.getElementById('addrep').click();`);
 test('Extra set button logs without consuming target',`!day(todayISO).w[1].planRef&&plChoice('Squat').target.ordinal===1`);
 run(`planSave([{ex:'Squat',lines:[{w:120,reps:[10]}]}],'','',todayISO);render();`);
-test('mid-session revision explains why started targets stay',`document.querySelectorAll('.pl-result').length===3&&document.querySelector('.plan-link').textContent.includes('Plan edited since you started')`);
+test('mid-session revision explains why started targets stay',`document.querySelectorAll('.sc-plan').length===3&&document.querySelector('.plan-link').textContent.includes('Plan edited since you started')`);
 run(`var edit=day(todayISO).w[0],originalId=edit.setId,originalRef=JSON.stringify(edit.planRef);edit.reps=[5,4,3];plSplitEditedSet(day(todayISO),edit);`);
 test('multi-set edit preserves original identity and gives extras distinct IDs',`edit.setId===originalId&&JSON.stringify(edit.planRef)===originalRef&&edit.reps.length===1&&new Set(day(todayISO).w.map(s=>s.setId)).size===day(todayISO).w.length`);
 run(`var moved=plMovedSet(edit,'Romanian Deadlift','Legs');`);
 test('moving an exercise preserves identity but detaches the incompatible target',`moved.setId===edit.setId&&!moved.planRef&&moved.previousPlanRef.setId===edit.planRef.setId&&edit.planRef`);
+test('completion is positive below target; load/reps tradeoffs are not wins',`plSetOutcome('Squat',{w:40,r:6},{w:50,r:8},{w:55,reps:8}).label==='Set done'&&!plSetOutcome('Squat',{w:60,r:6},{w:50,r:8},{w:55,reps:8}).win`);
+test('comparable increases distinguish last, plan, both, and on-target',`plSetOutcome('Squat',{w:60,r:8},{w:50,r:8},{w:55,reps:8}).label==='Beat both'&&plSetOutcome('Squat',{w:60,r:8},{w:65,r:8},{w:55,reps:8}).label==='Above plan'&&plSetOutcome('Squat',{w:60,r:8},{w:50,r:8},{w:65,reps:8}).label==='Beat last'&&plSetOutcome('Squat',{w:55,r:8},null,{w:55,reps:8}).label==='On target'`);
+test('bodyweight and estimated targets do not claim automatic progress',`!plSetOutcome('Pull Up',{w:60,r:8},{w:50,r:8},{w:55,reps:8}).win&&!plSetOutcome('Squat',{w:60,r:8},null,{w:55,reps:8,est:true}).win`);
+test('unified view stays read-only and unlinked sets never consume targets',`(()=>{const before=JSON.stringify(DB),sets=day(todayISO).w,model=plSessionRows('Squat',null,sets);plSessionHTML('Squat',null,sets);return before===JSON.stringify(DB)&&model.rows.filter(r=>r.unlinked).flatMap(r=>r.actual).every(a=>!a.source.planRef);})()`);
 (async()=>{
   run(`DB.settings.demo=false;session={access_token:'test',refresh_token:'test',expires_at:Date.now()+600000,user:{id:'test-only'}};pulledOK=true;`);
   let sent;w.fetch=async(url,opt)=>{sent=JSON.parse(opt.body);return {ok:true,json:async()=>({})};};

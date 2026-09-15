@@ -86,19 +86,19 @@ ok("...and nothing on the screen offers to dismiss a suggestion",
 
 // ---- 2. Last time took its place ----------------------------------------
 const viewHTML = run(`$('#view').innerHTML`);
-ok("Last time renders", /LAST TIME/i.test(viewHTML));
+ok("Last time renders",run(`!!document.querySelector('.sc-history')`));
 ok("...and the old standalone zone is gone", !/Logged today/.test(viewHTML));
 /* v3.3.144: "Logged today" no longer exists — LAST TIME is the dimmed
    lower group of the This-session card, so it must render INSIDE it and
    AFTER today's rows. */
 ok("...as the dimmed group inside the session card",
-   run(`!!document.querySelector('.lastcard.sess .sess-then')`));
+   run(`!!document.querySelector('.sc-session .sc-history')`));
 /* asserted on the DOM, not on indexOf — the (i) tip text also contains the
    words "last time", which a string search happily matched first */
 ok("...after today's rows, not before", run(`(function(){
-     const card=document.querySelector('.lastcard.sess'); if(!card) return false;
-     const now=card.querySelector('.sess-now'), then=card.querySelector('.sess-then');
-     return !!(now&&then&&(now.compareDocumentPosition(then)&Node.DOCUMENT_POSITION_FOLLOWING));
+     const card=document.querySelector('.sc-session'); if(!card) return false;
+     const now=card.querySelector('.sc-now'), then=card.querySelector('.sc-history');
+     return !!(now&&then&&now.closest('tr')===then.closest('tr'));
    })()`));
 
 // ---- 3. the dot marks last session's reps at the current weight ---------
