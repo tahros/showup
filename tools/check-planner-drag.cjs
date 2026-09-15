@@ -1,0 +1,25 @@
+const {chromium}=require('playwright'),assert=require('assert');
+(async()=>{const b=await chromium.launch({headless:true,executablePath:'C:/Users/sungj/AppData/Local/ms-playwright/chromium-1217/chrome-win64/chrome.exe'});
+try{for(const theme of ['light','dark']){
+ const p=await b.newPage({viewport:{width:393,height:852},serviceWorkers:'block'});
+ await p.route('**/*',r=>r.request().url().startsWith('http://127.0.0.1:8784/')?r.continue():r.abort());await p.goto('http://127.0.0.1:8784/');
+ await p.evaluate(theme=>{document.querySelector('#onb')?.remove();todayISO='2026-09-15';checkDate=()=>false;DB={days:{},settings:{onboarded:true,unit:'lb',theme}};applyTheme();pwOpen(todayISO);
+ const dates=['2026-09-15','2026-09-16'];dates.forEach((d,i)=>{const day=pwDay(d);day.rows=pwRead(i?'Squat\n135 lb × 8 8':'Deadlift\n135 lb × 8 8\nEZ Bar Curl\n55 lb × 12');day.parts=i?['Legs']:['Back','Biceps'];});pw().dates=dates;pfAnchor();pfNavigate('days');},theme);
+ await p.waitForTimeout(1100);const before=await p.evaluate(()=>JSON.stringify(DB));
+ const grip=p.locator('[data-pf-day-grip]').first(),box=await grip.boundingBox(),dest=await p.locator('.pf-day').nth(1).boundingBox();
+ await p.mouse.move(box.x+20,box.y+20);await p.mouse.down();
+ assert(await p.locator('.pf-dragging>.card').evaluate(e=>getComputedStyle(e).outlineWidth==='2px'&&getComputedStyle(e).boxShadow!=='none'));
+ await p.mouse.move(dest.x+80,dest.y+65);assert(await p.locator('.pf-drop-target').count()===1);
+ await p.screenshot({path:'../drag-'+theme+'.png'});
+ await p.mouse.up();assert(await p.locator('.pf-dragging,.pf-drop-target').count()===0);assert(await p.evaluate(()=>pwDay('2026-09-16').rows[0].ex==='Deadlift'));
+ const g=await p.locator('[data-pf-day-grip]').first().boundingBox();await p.mouse.move(g.x+20,g.y+20);await p.mouse.down();await p.keyboard.press('Escape');await p.mouse.up();assert(await p.locator('.pf-dragging,.pf-drop-target').count()===0);
+ await p.locator('[data-pf-day-grip]').first().evaluate(g=>g.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,pointerId:73,pointerType:'touch',button:0})));
+ assert(await p.locator('.pf-dragging').count()===1,'Touch hold highlights immediately');
+ await p.evaluate(()=>document.dispatchEvent(new PointerEvent('pointercancel',{bubbles:true,pointerId:74,pointerType:'touch'})));assert(await p.locator('.pf-dragging').count()===1,'Unrelated finger cannot cancel drag');
+ await p.evaluate(()=>document.dispatchEvent(new PointerEvent('pointercancel',{bubbles:true,pointerId:73,pointerType:'touch'})));assert(await p.locator('.pf-dragging,.pf-drop-target').count()===0,'Touch cancellation clears all highlights');
+ await p.evaluate(()=>{pw().active='2026-09-16';pfNavigate('edit');});await p.waitForTimeout(300);
+ const ex=p.locator('[data-pw-grip]').first();await ex.scrollIntoViewIfNeeded();const eb=await ex.boundingBox();await p.mouse.move(eb.x+20,eb.y+20);await p.mouse.down();await p.waitForTimeout(200);
+ assert(await p.locator('.pw-lifting').evaluate(e=>getComputedStyle(e).outlineWidth==='2px'&&getComputedStyle(e).boxShadow!=='none'));await p.keyboard.press('Escape');await p.mouse.up();assert(await p.locator('.pw-lifting').count()===0);
+ assert(await p.evaluate(()=>JSON.stringify(DB))===before,'Only draft changes, never saved history');
+ console.log('PASS day highlight, target, reorder, cancellation, exercise highlight and history '+theme);await p.close();
+}}finally{await b.close();}})().catch(e=>{console.error(e);process.exitCode=1});
