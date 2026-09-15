@@ -1936,9 +1936,9 @@
     /* no will-change here: there are forty-odd notches and promoting each to its
        own layer costs more than the transition saves. */
     transform:scale(.5);transform-origin:50% 50%;
-    transition:color var(--dur-quick) var(--settle),transform var(--dur-quick) var(--settle)}
+    transition:color var(--dur-quick) var(--settle)}
   .repruler .rr.maj{color:var(--chalk);transform:scale(.654)}   /* reps you actually do */
-  .repruler .rr.on{color:var(--chalk);font-weight:700;transform:scale(1)}
+  .repruler .rr.on{color:var(--chalk);transform:scale(1)}
   @media (prefers-reduced-motion:reduce){.repruler .rr{transition:color var(--dur-quick) var(--settle)}}
   .repruler .rr.maj::after{content:'';position:absolute;left:50%;bottom:13px;
     transform:translateX(-50%);width:14px;height:2px;border-radius:1px;background:var(--line)}

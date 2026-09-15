@@ -189,7 +189,7 @@ const toasted = (appSrc104.match(/lift\.justSaved=true;save\(\);renderHeader\(\)
   const maj  = (flat.match(/\.repruler \.rr\.maj\{[^}]*\}/)||[''])[0];
   const t = (name,cond,got)=>{console.log((cond?'PASS':'FAIL'),name,got!==undefined?'→ '+got:'');if(!cond)fail++;};
   t('the notch transition no longer animates font-size', !/transition:[^;}]*font-size/.test(rule), rule.match(/transition:[^;}]*/)?.[0]);
-  t('...it animates transform instead', /transition:[^;}]*transform/.test(rule));
+  t('...scale follows scroll position without a lagging transition', !/transition:[^;}]*transform/.test(rule));
   t('the selected notch is still visibly larger than a plain one',
     /transform:scale\(1\)/.test(on) && /transform:scale\(\.\d+\)/.test(rule));
   t('...and a major notch sits between the two',
@@ -740,9 +740,9 @@ check("the ruler always lands ON a rep, never between two",
    like a pass-by-accident in the other direction */
 check("a slow scrub taps at every notch",
       `(function(){window.__t=0; navigator.vibrate=()=>{window.__t++; return true;};
-        _rrPrevX=null; _rrPrevT=0; _hapAt=0;
+        _rrPrevX=null; _rrPrevT=0; _hapAt=0; _rrGestureUntil=Date.now()+4000;
         const el=document.getElementById('repRuler');
-        for(let i=1;i<=6;i++){ el.scrollLeft=i*REP_W; _rrOnScroll(el); _hapAt=0; }
+        for(let i=1;i<=6;i++){ _rrPrevT=Date.now()-17;el.scrollLeft=i*REP_W; _rrOnScroll(el); _hapAt=0; }
         return window.__t;})()`, 6);
 check("...but a fling coasts instead of grinding through them",
       `(function(){window.__t=0; _rrPrevX=null; _rrPrevT=0; _hapAt=0;

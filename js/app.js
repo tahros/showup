@@ -983,8 +983,7 @@ function barViz(ex,totalKg){
    refuses to start one otherwise, and is reused after that. */
 let _tickCtx=null, _tickOn=true;
 function repTickInit(){
-  if(_tickCtx) return;
-  try{ const C=window.AudioContext||window.webkitAudioContext; if(C) _tickCtx=new C(); }catch(_e){}
+  try{ const C=window.AudioContext||window.webkitAudioContext; if(!_tickCtx&&C) _tickCtx=new C(); }catch(_e){}
   if(_tickCtx&&_tickCtx.state==='suspended') _tickCtx.resume().catch(()=>{});
 }
 /* v3.3.291: REAL haptics on iPhone, via the one door iOS leaves open.
@@ -1013,15 +1012,16 @@ function repTick(){
   /* a flick can cross notches faster than a taptic engine can answer;
      without this the queue backs up and the feel smears */
   const now=Date.now();
-  if(now-_hapAt < 28) return;
+  if(now-_hapAt < 45) return;
   _hapAt=now;
   let felt=false;
-  try{ if(navigator.vibrate){ navigator.vibrate(8); felt=true; } }catch(_e){}   // Android
+  try{ if(navigator.vibrate) felt=navigator.vibrate(8)===true; }catch(_e){}
   if(!felt){
     const el=repHapticEl();                                                     // iOS 17.4+
     if(el){ try{ el.click(); felt=true; }catch(_e){} }
   }
-  if(felt) return;            // a real tap beats a sound standing in for one
+  // A switch click is only a best-effort haptic, not proof the phone vibrated.
+  // Keep the quiet audio tick available; web APIs cannot detect Silent Mode.
   if(!_tickCtx||_tickCtx.state!=='running') return;
   try{
     const t=_tickCtx.currentTime, o=_tickCtx.createOscillator(), g=_tickCtx.createGain();
@@ -1029,6 +1029,7 @@ function repTick(){
     g.gain.setValueAtTime(0.035,t);
     g.gain.exponentialRampToValueAtTime(0.0001,t+0.009);
     o.connect(g); g.connect(_tickCtx.destination);
+    o.onended=()=>{o.disconnect();g.disconnect();};
     o.start(t); o.stop(t+0.012);
   }catch(_e){}
 }
@@ -1057,7 +1058,9 @@ document.addEventListener('touchstart',repTickInit,{passive:true});
    band and the label still track every notch — those are free — but the tap
    is skipped. Slow down and every notch taps again, which is exactly when
    you can feel them individually anyway. */
-let _rrLast=null, _rrRaf=0, _rrPrevX=null, _rrPrevT=0;
+let _rrLast=null, _rrRaf=0, _rrPrevX=null, _rrPrevT=0, _rrGestureUntil=0;
+document.addEventListener('pointerdown',e=>{if(e.target.closest?.('.repruler'))_rrGestureUntil=Date.now()+4000;},{passive:true});
+document.addEventListener('wheel',e=>{if(e.target.closest?.('.repruler'))_rrGestureUntil=Date.now()+1000;},{passive:true});
 const RR_FLING=REP_W*1.6;         // px per frame above which taps are skipped
 function _rrOnScroll(el){
   const x=el.scrollLeft, t=Date.now();
@@ -1065,13 +1068,21 @@ function _rrOnScroll(el){
      this the first frame of every flick compares against wherever the last
      one ended and silently swallows a tap */
   const fresh=t-_rrPrevT>120;
-  const fast=!fresh && _rrPrevX!==null && Math.abs(x-_rrPrevX)>RR_FLING;
+  const fast=!fresh && _rrPrevX!==null && Math.abs(x-_rrPrevX)*16.67/Math.max(1,t-_rrPrevT)>RR_FLING;
   _rrPrevX=x; _rrPrevT=t;
   const v=Math.max(1,Math.round(x/REP_W)+1);
   if(v!==_rrLast){
     _rrLast=v; lift.rep=v;
-    if(!fast) repTick();
+    if(!fast&&t<_rrGestureUntil) repTick();
     repRulerBand(v);          // v3.3.290: class swap + one text node, nothing else
+  }
+  // Interpolate glyph scale from actual position, not a delayed on/off animation.
+  // Only nearby notches are touched; native scrolling and snap stay in charge.
+  if(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)return;
+  const center=x/REP_W;
+  const near=[...el.querySelectorAll('.rr')].filter((b,i)=>Math.abs(i-center)<3||b.style.transform);
+  for(const b of near){const index=+b.dataset.rep/rulerStep(lift.ex)-1,d=Math.abs(index-center);
+    b.style.transform=d<2?`scale(${(b.classList.contains('maj')?.654:.5)+(1-(b.classList.contains('maj')?.654:.5))*Math.max(0,1-d/1.4)})`:'';
   }
 }
 document.addEventListener('scroll',e=>{
