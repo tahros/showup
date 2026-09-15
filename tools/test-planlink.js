@@ -130,5 +130,26 @@ test('moving an exercise preserves identity but detaches the incompatible target
   test('tapping it loads that target\u2019s weight into the picker',`Math.round(lift.weight)===100`);
   test('...and its reps',`lift.rep===8`);
 
+
+  /* v4.6.26: plLog dispatches showup:first-set synchronously from the middle of the
+     Add-set handler. Nothing listening to it may render from inside that call, or it
+     rebuilds the DOM underneath the rest of the handler. */
+  run(`window.__renders=0;const _r=render;render=function(){window.__renders++;return _r.apply(this,arguments);};
+       DB.planTracking=null;delete DB.days[todayISO];view='lift';`);
+  run(`plLog({part:'Legs',ex:'Squat',w:100,reps:[8],at:Date.now()});`);
+  test('logging the first set does not render from inside the log call',`window.__renders===0`);
+  run(`render=_r;`);
+  {
+    const story=fs.readFileSync(path.join(dir,'js/stats-story.js'),'utf8');
+    assert(!/showup:first-set'[\s\S]{0,400}?[^e]render\(\{inplace:true\}\);\n\}\);/.test(story),'the listener does not call render synchronously');
+    console.log('PASS the listener does not call render synchronously');checks++;
+    /* the listener carries a long comment, so a fixed character window lands inside
+       the prose rather than the code -- slice to the end of the listener instead. */
+    const li=story.indexOf("showup:first-set");
+    const body=story.slice(li,story.indexOf("});",li)+3);
+    assert(/requestAnimationFrame/.test(body),'...any repaint waits for the handler to finish');
+    console.log('PASS ...any repaint waits for the handler to finish');checks++;
+  }
+
   console.log(checks+' linkage checks passed');dom.window.close();process.exit(0);
 })().catch(e=>{console.error(e);dom.window.close();process.exit(1)});
