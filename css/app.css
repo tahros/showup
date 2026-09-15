@@ -1909,12 +1909,24 @@
   /* the hidden iOS haptic switch: present, togglable, never seen */
   .haptswitch{position:absolute;width:1px;height:1px;opacity:0;
     pointer-events:none;left:-9999px;top:0;overflow:hidden}
+  /* v4.6.28: THE NOTCHES SCALE, THEY DO NOT RESIZE. font-size was in the
+     transition, so every notch animated a LAYOUT property for 200ms -- during a
+     flick the flex track re-measured its forty-odd children continuously, which is
+     what "not smooth" was. Each notch is now rendered at its largest size and
+     scaled DOWN: the glyph is rasterised at 26px so it stays crisp, and transform
+     is composited, so crossing a notch costs no layout at all. Widths are fixed at
+     44px and scaling does not affect them, so neighbours never shift and the snap
+     points stay exactly where they were. */
   .repruler .rr{flex:0 0 44px;height:74px;scroll-snap-align:center;position:relative;
     background:none;border:0;padding:0;cursor:pointer;color:var(--faint);
-    font-family:var(--mono);font-size:13px;font-weight:500;
-    transition:color var(--dur-quick) var(--settle),font-size var(--dur-quick) var(--settle)}
-  .repruler .rr.maj{color:var(--chalk);font-size:17px}          /* reps you actually do */
-  .repruler .rr.on{color:var(--chalk);font-size:26px;font-weight:700}
+    font-family:var(--mono);font-size:26px;font-weight:500;
+    /* no will-change here: there are forty-odd notches and promoting each to its
+       own layer costs more than the transition saves. */
+    transform:scale(.5);transform-origin:50% 50%;
+    transition:color var(--dur-quick) var(--settle),transform var(--dur-quick) var(--settle)}
+  .repruler .rr.maj{color:var(--chalk);transform:scale(.654)}   /* reps you actually do */
+  .repruler .rr.on{color:var(--chalk);font-weight:700;transform:scale(1)}
+  @media (prefers-reduced-motion:reduce){.repruler .rr{transition:color var(--dur-quick) var(--settle)}}
   .repruler .rr.maj::after{content:'';position:absolute;left:50%;bottom:13px;
     transform:translateX(-50%);width:14px;height:2px;border-radius:1px;background:var(--line)}
   .repruler .rr.sug::after{content:'';position:absolute;left:50%;bottom:12px;
