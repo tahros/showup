@@ -203,12 +203,20 @@ function plHandle(e){
 }
 
 // Presentation only: immutable plan IDs, never weight-matching or retroactive links.
+function plDisplayPlan(ex){
+  const current=plBasis(todayISO);
+  if(current?.targets?.some(t=>plSameExercise(t,ex)))return current;
+  const dates=[...new Set([DB.plan?.d,...Object.keys(DB.week?.days||{})])].filter(d=>d>=todayISO).sort();
+  for(const d of dates){const plan=plCurrent(d);if(plan?.targets?.some(t=>plSameExercise(t,ex)))return plan;}
+  return null;
+}
 function plSessionRows(ex,last,today){
-  const targets=(plBasis(todayISO)?.targets||[]).filter(t=>plSameExercise(t,ex));
+  const displayPlan=plDisplayPlan(ex),preview=!!displayPlan&&!(plBasis(todayISO)?.targets||[]).some(t=>plSameExercise(t,ex));
+  const targets=(displayPlan?.targets||[]).filter(t=>plSameExercise(t,ex)).map(t=>preview?{...t,preview:true}:t);
   const history=(last?.sets||[]).flatMap(s=>(s[1]||[]).map(r=>({w:s[0],r,su:s[4]||''})));
   const actual=today.flatMap((s,index)=>(s.reps||[]).map((r,ri)=>({w:s.w,r,su:s.su||'',source:s,index,ri})));
   const used=new Set(),rows=targets.map((t,i)=>{
-    const matches=actual.filter(a=>a.source.planRef?.setId===t.id);
+    const matches=t.preview?[]:actual.filter(a=>a.source.planRef?.setId===t.id);
     matches.forEach(a=>used.add(a));
     return {label:String(t.ordinal),target:t,last:history[i]||null,actual:matches};
   });
@@ -217,7 +225,7 @@ function plSessionRows(ex,last,today){
   }else actual.filter(a=>!used.has(a)).forEach(a=>rows.push({label:'+',last:null,actual:[a],unlinked:true}));
   // Older sessions can contain more sets than today's plan. Keep them visible.
   if(targets.length)history.slice(targets.length).forEach((s,i)=>rows.push({label:String(targets.length+i+1),last:s,actual:[]}));
-  return {targets,history,actual,rows};
+  return {targets,history,actual,rows,displayPlan,preview};
 }
 function plSetOutcome(ex,a,last,target){
   // More load with fewer reps is not a win. BW/assistance, holds, estimates,
@@ -243,6 +251,7 @@ function plSessionGroups(rows){
 function plCompactBody(ex,groups,hasLast,hasPlan,choice,latest,fresh){
   const cell=(sets,kind,attrs)=>{
     if(!sets.length)return '<span class="sc-empty">—</span>';
+    if(sets[0].preview)attrs='disabled aria-label="Future plan target"';
     const s=sets[0],load=s.nw?'By feel':s.bw?(s.w?'BW + '+wDisp(s.w):'BW'):wLabel(ex,s.w);
     return `<button type="button" class="sc-value sc-group-value ${kind}" ${attrs}><span class="sc-weight">${hesc((s.est?'≈':'')+load)}<span class="sc-times"> ×</span></span><span class="sc-reps">${sets.map(s=>`<span class="sc-rep${isHold(s.su)?' hold':''}${fresh&&s===latest?' sc-chip-fresh':''}">${hesc(String(setNum(s.r??s.reps,s.su)))}</span>`).join('')}</span></button>`;
   };
@@ -256,19 +265,20 @@ function plCompactBody(ex,groups,hasLast,hasPlan,choice,latest,fresh){
   }).join('');
 }
 function plSessionHTML(ex,last,today){
-  const data=plSessionRows(ex,last,today),{targets,history,actual,rows}=data;
+  const data=plSessionRows(ex,last,today),{targets,history,actual,rows,displayPlan,preview}=data;
   const hasLast=history.length>0,hasPlan=targets.length>0,choice=plChoice(ex,unitOf(ex));
   const basis=plBasis(todayISO),frozen=Object.prototype.hasOwnProperty.call(DB.days?.[todayISO]||{},'planBasis');
   const changed=frozen&&basis&&plStable(basis.content)!==plStable(plCurrent(todayISO)?.content||null);
   const latest=actual.at(-1),fresh=!!lift.justSaved&&!!latest;
   const text=(s,target=false)=>target?plTargetText(s):wLabel(ex,s.w)+' × '+setNum(s.r,s.su);
   const value=(s,kind,attrs='')=>{
+    if(s.preview)attrs='disabled aria-label="Future plan target"';
     const r=s.r??s.reps,load=s.nw?'By feel':s.bw?(s.w?'BW + '+wDisp(s.w):'BW'):wLabel(ex,s.w);
     return `<button type="button" class="sc-value ${kind}" ${attrs}><span class="sc-weight">${hesc((s.est?'≈':'')+load)}</span><span class="sc-times">×</span><span class="sc-rep${isHold(s.su)?' hold':''}">${hesc(String(setNum(r,s.su)))}</span></button>`;
   };
   let latestOutcome=null;
   const body=rows.map(row=>{
-    const t=row.target,pending=t&&!row.actual.length;
+    const t=row.target,pending=t&&!t.preview&&!row.actual.length;
     const past=row.last?value(row.last,'sc-history',`data-sc-load="${row.last.w}" aria-label="Load last session weight ${hesc(text(row.last))}"`):'<span class="sc-empty">—</span>';
     const target=t?value(t,'sc-plan',`data-link-slot="${t.ordinal}" ${pending?'':'disabled'} aria-pressed="${choice.target?.id===t.id}" aria-label="${pending?'Select':'Planned'} set ${t.ordinal}: ${hesc(plTargetText(t))}"`)+(t.qualifier?`<small class="sc-qual">${hesc(t.qualifier)}</small>`:''):`<span class="sc-empty">${row.unlinked?'Unlinked':'—'}</span>`;
     const logged=row.actual.map(a=>{
@@ -278,16 +288,18 @@ function plSessionHTML(ex,last,today){
     return `<tr><th scope="row">${row.label}</th>${hasLast?'<td>'+past+'</td>':''}${hasPlan?'<td>'+target+'</td>':''}<td>${logged}</td></tr>`;
   }).join('');
   const done=targets.filter(t=>plActual(todayISO,t.id).length).length,groups=plSessionGroups(rows),canCompact=rows.length>4&&groups.length<rows.length,compact=canCompact&&lift.scDetails!==ex;
-  return `<section class="lastcard sc-session plan-link${compact?' sc-compact':''}" aria-label="Your sets comparison"><div class="sc-head"><strong>Your sets</strong><span>${actual.length} sets logged</span>${today.length?'<button class="ago sessedit" id="sessEdit">EDIT</button>':''}</div><div class="sc-toolbar"><span>${U()} · ${isHold(unitOf(ex))?'seconds':'reps'}</span>${canCompact?`<button type="button" data-sc-details aria-expanded="${!compact}">${compact?'Details':'Compact view'}</button>`:''}</div>
-    ${changed?'<p class="pl-context">Plan edited since you started. These targets stay with this workout.</p>':''}
-    ${body?`<table class="sc-table"><thead><tr><th scope="col">Set</th>${hasLast?`<th scope="col">Last<button class="sc-date linkdate" data-histd="${last.d}">${hesc(wd(last.d))}</button></th>`:''}${hasPlan?'<th scope="col">Plan<small>'+ (frozen?'Started plan':'Saved plan')+'</small></th>':''}<th scope="col">Logged<small>Today</small></th></tr></thead><tbody>${compact?plCompactBody(ex,groups,hasLast,hasPlan,choice,latest,fresh):body}</tbody></table>`:'<p class="sc-intro">Your first set starts here. Log your weight and reps above.</p>'}
-    ${!hasLast&&hasPlan?'<p class="pl-context">Today becomes your reference next time.</p>':''}
+  return `<section class="lastcard sc-session plan-link${compact?' sc-compact':''}" aria-label="Your sets comparison"><div class="sc-head"><strong>Your sets</strong><span>${actual.length} sets logged</span>${today.length?'<button class="ago sessedit" id="sessEdit">EDIT</button>':''}</div><div class="sc-toolbar"><span>${U()} · ${isHold(unitOf(ex))?'seconds':'reps'}</span><div class="sc-tools">${hasPlan?`<button type="button" data-sc-edit-plan="${displayPlan.date}">${icon('edit',ICON_SZ.sm)} Edit Plan</button>`:''}${canCompact?`<button type="button" data-sc-details aria-expanded="${!compact}">${compact?'Details':'Compact view'}</button>`:''}</div></div>
+    ${changed&&!preview?'<p class="pl-context">Plan edited since you started. These targets stay with this workout.</p>':''}
+    ${body?`<table class="sc-table"><thead><tr><th scope="col">Set</th>${hasLast?`<th scope="col">Last<button class="sc-date linkdate" data-histd="${last.d}">${hesc(wd(last.d))}</button></th>`:''}${hasPlan?'<th scope="col">Plan<small>'+hesc(wd(displayPlan.date))+'</small></th>':''}<th scope="col">Logged<small>Today</small></th></tr></thead><tbody>${compact?plCompactBody(ex,groups,hasLast,hasPlan,choice,latest,fresh):body}</tbody></table>`:'<p class="sc-intro">Your first set starts here. Log your weight and reps above.</p>'}
+    ${!hasLast&&hasPlan&&!preview?'<p class="pl-context">Today becomes your reference next time.</p>':''}
     ${fresh?`<div class="sc-celebrate" role="status"><span class="sc-seal" aria-hidden="true">✓</span><div><strong>That set counts.</strong><small>${latestOutcome?.win?'Set saved. A little extra to celebrate.':latestOutcome?.label==='On target'?'Set saved. Right on target.':'Set saved. Another one in the books.'}</small></div></div>`:''}
     ${actual.length?`<div class="sc-volume"><span>${isHold(unitOf(ex))?'Sets logged':'Volume so far'}</span><strong>${isHold(unitOf(ex))?actual.length:`<span id="volNum" data-kg="${today.reduce((sum,s)=>sum+volOf(s),0)}">${vDisp(today.reduce((sum,s)=>sum+volOf(s),0))}</span> ${U()}`}</strong></div>`:''}
-    ${hasPlan?`<div class="pl-next">${choice.target?`<button type="button" class="pl-next-target" data-link-slot="${choice.target.ordinal}">Next: set ${choice.target.ordinal} · ${hesc(plTargetText(choice.target))}</button>`:`<span>${done===targets.length?'All targets logged · extra sets welcome':'Next: extra set · targets remain above'}</span>`}<button type="button" class="pl-extra" data-link-slot="-1" aria-pressed="${!choice.target}">Extra set</button></div>`:'<p class="pl-context">No set target · go at your own pace.</p>'}
-    ${hasPlan&&rows.some(r=>r.unlinked)?'<p class="pl-context">Unlinked sets count too. They are not assigned to a plan target.</p>':''}</section>`;
+    ${preview?'<p class="pl-context">Upcoming plan · today’s sets are logged separately.</p>':hasPlan?`<div class="pl-next">${choice.target?`<button type="button" class="pl-next-target" data-link-slot="${choice.target.ordinal}">Next: set ${choice.target.ordinal} · ${hesc(plTargetText(choice.target))}</button>`:`<span>${done===targets.length?'All targets logged · extra sets welcome':'Next: extra set · targets remain above'}</span>`}<button type="button" class="pl-extra" data-link-slot="-1" aria-pressed="${!choice.target}">Extra set</button></div>`:'<p class="pl-context">No set target · go at your own pace.</p>'}
+    ${hasPlan&&!preview&&rows.some(r=>r.unlinked)?'<p class="pl-context">Unlinked sets count too. They are not assigned to a plan target.</p>':''}</section>`;
 }
 document.addEventListener('click',e=>{
+  const editPlan=e.target.closest('[data-sc-edit-plan]');
+  if(editPlan){pwOpen(editPlan.dataset.scEditPlan);if(typeof pfState==='function'){pfState().returnView='lift';pwPersist();}return;}
   if(e.target.closest('[data-sc-details]')){lift.scDetails=lift.scDetails===lift.ex?null:lift.ex;renderLift();return;}
   const b=e.target.closest('[data-sc-load]');if(!b)return;
   const w=+b.dataset.scLoad;if(!Number.isFinite(w))return;
