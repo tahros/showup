@@ -153,17 +153,17 @@ check("the first tile's data-del points at the LAST array entry (reversal is dis
       `+document.querySelector('.settile').dataset.del === day(todayISO).w.length-1`, true);
 // read mode: rows, not tiles — the fold is the cap now
 run(`lift.editToday=false; render();`);
-check("read mode preserves 11 individual comparable sets",
-      `document.querySelectorAll('.sc-now').length`, 11);
+check("read mode groups 11 same-weight sets without losing reps",
+      `document.querySelectorAll('.sc-now').length`, 1);
 check("...carrying all 11 chips", `document.querySelectorAll('.sc-now .sc-rep').length`, 11);
 
 // the save flash follows the set — on the newest CHIP now, the tile's
 // successor since v3.3.144 (the tile only exists in EDIT mode)
 run(`(function(){lift.justSaved=true; render();})()`);
 check("the fresh-save flash lands on the newest chip",
-      `!!document.querySelector('.sc-fresh .sc-rep')`, true);
+      `!!document.querySelector('.sc-fresh .sc-rep,.sc-chip-fresh')`, true);
 check("...which is the LAST chip, the set just logged",
-      `[...document.querySelectorAll('.sc-now')].pop().closest('.sc-actual').classList.contains('sc-fresh')`, true);
+      `[...document.querySelectorAll('.sc-now .sc-rep')].pop().classList.contains('sc-chip-fresh')`, true);
 
 
 // ---- v3.3.104: every log path confirms, at the point of action -----------
