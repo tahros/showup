@@ -2,13 +2,15 @@ const {chromium}=require('playwright'),assert=require('assert');
 (async()=>{
  const b=await chromium.launch({executablePath:'C:/Users/sungj/AppData/Local/ms-playwright/chromium-1217/chrome-win64/chrome.exe',headless:true});
  for(const theme of ['light','dark'])for(const width of [320,393,430]){
-  const p=await b.newPage({viewport:{width,height:852}});
+  const p=await b.newPage({viewport:{width,height:852},serviceWorkers:'block'});
   await p.route('**/*',r=>new URL(r.request().url()).origin==='http://127.0.0.1:8784'?r.continue():r.abort());
   await p.goto('http://127.0.0.1:8784/');
   await p.evaluate(theme=>{todayISO='2026-09-14';checkDate=()=>false;DB={days:{'2026-09-14':{w:[{part:'Legs',ex:'Squat',w:90,reps:[8],at:1}],doneAll:true}},settings:{unit:'lb',onboarded:true,theme}};DB.week={days:{'2026-09-15':planItemsFrom(pwRead('Deadlift\n135 lb × 8 8 8\nEZ Bar Curl\n55 lb × 12 12 12'))}};view='today';lift={};document.querySelector('#onb')?.remove();applyTheme();render();},theme);
   await p.waitForTimeout(1100);
   const card=p.locator('.pw-future');
   assert((await card.locator('summary').textContent()).includes('Back + Biceps'));
+  assert((await card.locator('.pw-plan-totals').innerText()).replace(/\s+/g,' ').trim()==='6 sets 2 exercises');
+  assert(await card.locator('summary').evaluate(e=>{const label=e.querySelector('.pw-future-label').getBoundingClientRect(),totals=e.querySelector('.pw-plan-totals').getBoundingClientRect(),r=e.getBoundingClientRect();return label.right+10<=totals.left&&totals.right<r.right-16&&Math.abs((label.top+label.bottom-totals.top-totals.bottom)/2)<2&&r.height<85;}),'Two-line totals remain centered and fit the compact header');
   await card.locator('summary').click();await p.waitForTimeout(400);
   assert(await card.evaluate(e=>e.open));
   assert(await p.evaluate(()=>{const row=document.querySelector('.pw-future-actions'),rr=row.getBoundingClientRect(),buttons=[...row.querySelectorAll('button')].map(e=>e.getBoundingClientRect());return buttons.length===2&&buttons.every(r=>Math.abs((r.top+r.bottom)/2-(rr.top+rr.bottom)/2)<1)&&Math.abs(buttons[0].width-buttons[1].width)<1&&buttons[0].left-rr.left>=15&&rr.right-buttons[1].right>=15&&document.documentElement.scrollWidth<=innerWidth+1;}));

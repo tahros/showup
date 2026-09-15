@@ -194,5 +194,8 @@ run(String.raw`localStorage.removeItem(PW_MODE_KEY);pwOpen('2026-09-11');pwDay('
   ok('a day the parser could not read shows no invented count',
      run(String.raw`pwSetCount([{kind:'note',raw:'something unreadable'}])===0`));
 
+  ok('saved plan summary counts individual sets including warmups',run(`pwPlanTotals({items:[{ex:'Squat',lines:[{reps:[10],warm:true},{reps:[8,8,8,8]}]},{ex:'Plank',lines:[{reps:[60,60]}]}]}).includes('7 sets')`));
+  ok('saved plan summary supports legacy rows and singular labels',run(`pwPlanTotals({items:[{ex:'Squat',reps:[8]}]}).includes('1 set</strong>')&&pwPlanTotals({items:[{ex:'Squat',reps:[8]}]}).includes('1 exercise</small>')`));
+  ok('empty saved plans do not invent sets',run(`pwPlanTotals({items:[]}).includes('0 sets')`));
   console.log(`${checks-fails}/${checks} planner assertions passed`);dom.window.close();process.exit(fails?1:0);
 })().catch(e=>{console.error(e);process.exit(1)});
