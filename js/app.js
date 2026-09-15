@@ -229,12 +229,20 @@ document.addEventListener('click',e=>{
        exercise you logged -- is a guess for someone arriving cold, and it was
        overriding a fact: the maker steps to Today to read the plan and taps
        back, and got dropped into an exercise instead of the list he left. */
+    /* v4.6.27: CONTINUE CONTINUES. v3.3.344 made the remembered screen win, so
+       returning to Today from the part LIST recorded {part, ex:null} -- liftWhere
+       is written on the way through EVERY Train screen, the list included -- and
+       Continue then landed you back on that list instead of the exercise you were
+       between sets of. The remembered screen still wins when it names an exercise,
+       and still wins for a part with nothing logged. It no longer outranks the
+       record: if the part is open, the last exercise you logged is where Continue
+       goes, because that is what the word promises. */
     const _b=liftBack();
-    const goEx=(_b&&_b.part===goP)
+    const _open=goP!=='Run'&&partOpen(goP);
+    const _lastLogged=_open?(([...day(todayISO).w].reverse().find(s=>s.part===goP&&s.ex)||{}).ex||null):null;
+    const goEx=(_b&&_b.part===goP&&_b.ex)
       ? _b.ex
-      : (goP!=='Run'&&partOpen(goP))
-        ? (([...day(todayISO).w].reverse().find(s=>s.part===goP&&s.ex)||{}).ex||null)
-        : null;
+      : _lastLogged;
     /* v3.3.434: Train Next's Start replaces lift wholesale, so the return has
        to be carried across the assignment rather than set before it. */
     const _ret=view==='lift'?null:view;

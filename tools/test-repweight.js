@@ -175,6 +175,35 @@ const toasted = (appSrc104.match(/lift\.justSaved=true;save\(\);renderHeader\(\)
    deleted with the chips. The invariant under test is logPaths === toasted,
    that every path which logs also confirms; the floor is only a guard
    against the regex matching nothing at all. */
+/* v4.6.28: the ruler scales, it does not resize. font-size was in the transition,
+   so crossing a notch animated a LAYOUT property and the flex track re-measured
+   its forty-odd children mid-flick. The size difference has to survive -- the
+   selected rep must still read larger than its neighbours -- but it is carried by
+   transform now, which composites. */
+{
+  /* comments are stripped first: the rule's own note explains why there is no
+     will-change, and matching the prose instead of the code failed the check. */
+  const flat = fs.readFileSync(path.join(dir,'css/app.css'),'utf8').replace(/\/\*[\s\S]*?\*\//g,'').replace(/\s+/g,' ');
+  const rule = (flat.match(/\.repruler \.rr\{[^}]*\}/)||[''])[0];
+  const on   = (flat.match(/\.repruler \.rr\.on\{[^}]*\}/)||[''])[0];
+  const maj  = (flat.match(/\.repruler \.rr\.maj\{[^}]*\}/)||[''])[0];
+  const t = (name,cond,got)=>{console.log((cond?'PASS':'FAIL'),name,got!==undefined?'→ '+got:'');if(!cond)fail++;};
+  t('the notch transition no longer animates font-size', !/transition:[^;}]*font-size/.test(rule), rule.match(/transition:[^;}]*/)?.[0]);
+  t('...it animates transform instead', /transition:[^;}]*transform/.test(rule));
+  t('the selected notch is still visibly larger than a plain one',
+    /transform:scale\(1\)/.test(on) && /transform:scale\(\.\d+\)/.test(rule));
+  t('...and a major notch sits between the two',
+    (()=>{const b=+(rule.match(/transform:scale\((\.\d+)\)/)||[])[1],m=+(maj.match(/transform:scale\((\.\d+)\)/)||[])[1];
+      return b>0&&m>0&&b<m&&m<1;})(),
+    (rule.match(/scale\([^)]*\)/)||[])[0]+' < '+(maj.match(/scale\([^)]*\)/)||[])[0]+' < scale(1)');
+  t('every notch is rasterised at the LARGEST size and scaled down, so text stays crisp',
+    /font-size:26px/.test(rule) && !/font-size/.test(on.replace('font-weight','')) );
+  t('notches are not each promoted to their own compositor layer',
+    !/will-change/.test(rule));
+  t('the snap contract is untouched -- fixed width and centre alignment',
+    /flex:0 0 44px/.test(rule) && /scroll-snap-align:center/.test(rule));
+}
+
 console.log((logPaths === toasted && toasted >= 2 ? "PASS" : "FAIL"),
   "every log path calls setToast \u2014", `${toasted}/${logPaths}`);
 if (!(logPaths === toasted && toasted >= 3)) fail++;

@@ -72,7 +72,16 @@ document.addEventListener('showup:first-set',e=>{
   const date=e?.detail?.date;
   if(!date||!reviewSelected||reviewSelected===date)return;
   reviewSelected=null;            // fall back to the default: today, since today now has sets
-  if(typeof render==='function')render({inplace:true});
+  /* v4.6.26: CLEAR THE SELECTION, DO NOT RENDER FROM HERE. plLog dispatches this
+     synchronously from the middle of the Add-set handler, which afterwards still
+     runs reopen(), save(), renderHeader() and renderLift(). Rendering here rebuilt
+     the DOM underneath the rest of that handler -- a re-entrant render, and the
+     caller then painted into elements it no longer owned. The caller always
+     repaints anyway; Today's card is rebuilt when Today is next drawn. Only the
+     rare case of already standing on Today needs a nudge, and it waits for the
+     handler to finish first. */
+  if(typeof view!=='undefined'&&view==='today'&&typeof render==='function')
+    requestAnimationFrame(()=>{ if(view==='today')render({inplace:true}); });
 });
 function reviewDay(date){
  reviewSelected=date;const el=document.getElementById('review-day');if(!date||!el)return;
