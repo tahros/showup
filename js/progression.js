@@ -274,9 +274,9 @@ function renderProgression(card){
   if(kinds.length>1)h+='<select class="pg-kind" data-pg-action="kind" aria-label="Measurement type">'+kinds.map(k=>'<option value="'+k+'"'+(k===state.kind?' selected':'')+'>'+pgEscape(pgKinds[k])+'</option>').join('')+'</select>';
   const period=progressionPeriod(dates);
   h+='<div class="pg-range-head"><div class="pg-range-nav" role="group" aria-label="Browse session ranges"><button data-pg-action="prev-range" aria-label="Previous '+count+' sessions"'+(!start?' disabled':'')+'>‹</button><span class="pg-period" aria-live="polite" aria-atomic="true"><span class="pg-period-main">'+period.label+'</span><span class="pg-period-year">'+period.years+'</span></span><button data-pg-action="next-range" aria-label="Next '+count+' sessions"'+(rangeWindow.latest||end===allDates.length?' disabled':'')+'>›</button></div></div>';
-  // Weight units already appear in the selected-set readout. Other measurement
-  // axes still need their meaning (e.g. assistance or seconds, not reps).
-  if(state.kind!=='load')h+='<div class="pg-axis-unit">'+pgEscape(progressionAxis(state.kind))+'</div>';
+  // Weight and bodyweight readouts already establish the measurement. Omit
+  // their redundant unit row entirely, including its reserved spacing.
+  if(!['load','body'].includes(state.kind))h+='<div class="pg-axis-unit">'+pgEscape(progressionAxis(state.kind))+'</div>';
   const availability=dates.length+' session'+(dates.length===1?'':'s')+(allDates.length<count?' on record':' in this range');
   const availableHidden=dates.length===count||!scope.length, latestHidden=!!rangeWindow.latest;
   h+='<div class="pg-history-row'+(availableHidden&&latestHidden?' pg-history-empty':'')+'"><div class="pg-available"'+(availableHidden?' aria-hidden="true"':'')+'>'+availability+'</div><button class="pg-latest" data-pg-action="latest" aria-label="Return to the latest '+count+' sessions"'+(latestHidden?' hidden':'')+'>Latest <span aria-hidden="true">↗</span></button></div>';
@@ -358,7 +358,7 @@ function progressionRefreshPeers(card){
 function progressionShare(card){
   const {state,scope,layout,count}=card._pg;if(!scope.length)return;
   const style=getComputedStyle(card),color=name=>style.getPropertyValue(name).trim();
-  const snapshot={ex:state.ex,count,layout,read:progressionReadoutParts(scope.find(r=>r.id===state.pick)||scope.at(-1)),axis:state.kind==='load'?'':progressionAxis(state.kind),picked:state.pick,
+  const snapshot={ex:state.ex,count,layout,read:progressionReadoutParts(scope.find(r=>r.id===state.pick)||scope.at(-1)),axis:['load','body'].includes(state.kind)?'':progressionAxis(state.kind),picked:state.pick,
     /* v4.5.19: the unit belongs over the axis, not buried in the readout. For a
        load chart the numbers down the left ARE weights, so say so once. */
     unit:state.kind==='load'?'('+U()+')':'',

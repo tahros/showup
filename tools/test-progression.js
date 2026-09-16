@@ -64,6 +64,8 @@ run(`DB.days['2026-09-08']={w:[
   {ex:'Run',w:5,reps:[1],mins:28,secs:30}
 ]};DB.days['2026-09-09']={w:[{ex:'Run',w:2,reps:[1]},{ex:'Dip',w:0,reps:[12]}]};`);
 check('bodyweight is reps, not zero-weight progress',`progressionData('Hanging Leg Raise').records.every(r=>r.kind==='body')`);
+run(`document.getElementById('view').innerHTML=progressionSection('Hanging Leg Raise','train');bindProgression();`);
+check('bodyweight has no redundant Reps row but retains accessible axis and readout',`!document.querySelector('.pg-axis-unit')&&document.querySelector('.pg-read-value').textContent.includes('BW')&&document.querySelector('.pg-plot').getAttribute('aria-label').includes('Reps')`);
 check('added load and bodyweight remain separate modes',`progressionData('Dip').records.map(r=>r.kind).join(',')==='added,added,body'`);
 check('assistance is labelled, never negative bodyweight',`progressionData('Pull Up').records.every(r=>r.kind==='assisted'&&progressionRead(r).includes('assistance'))`);
 check('holds preserve seconds and do not become reps',`progressionData('Plank').records[1].kind==='time'&&progressionRead(progressionData('Plank').records[1]).includes('1:30')`);
