@@ -1700,15 +1700,28 @@ const liftEnter=o=>{
   lift=Object.assign({part:null,ex:null,weight:0,ret:null},o,keep);
 };
 let ddLastEntrance='';
+let ddCardArrival=null;
+function ddGreetCompletedCard(){
+  if(!ddCardArrival||document.getElementById('dayDone'))return;
+  const card=document.querySelector('.card.dayclosed');if(!card)return;
+  const pending=ddCardArrival;ddCardArrival=null;
+  if(pending.date!==todayISO||mascotMode()!=='animated'||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const mascot=card.querySelector('.su-mascot');
+  if(mascot?.animate)mascot.animate(pending.milestone?[{transform:'translateY(0)'},{transform:'translateY(-7px)',offset:.4},{transform:'translateY(0)'}]:[{transform:'rotate(0)'},{transform:'rotate(-6deg)',offset:.35},{transform:'rotate(3deg)',offset:.7},{transform:'rotate(0)'}],{duration:750,easing:'ease-in-out'});
+  if(pending.milestone&&card.animate)card.animate([{boxShadow:'0 0 0 transparent'},{boxShadow:'0 0 20px #3445dc35',offset:.4},{boxShadow:'0 0 0 transparent'}],{duration:1800});
+}
 function ddNextEntrance(){const choices=['rise','arc','land'].filter(x=>x!==ddLastEntrance);return ddLastEntrance=choices[Math.floor(Math.random()*choices.length)];}
-function celebrateDayDone(nowrite, forceCount, forceMile, forceShow){
+function celebrateDayDone(nowrite, forceCount, forceMile, forceShow, sourceCard){
   if(document.getElementById('dayDone')) return;
+  const connected=sourceCard?.isConnected&&mascotMode()==='animated'&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const origins=connected?['.su-mascot','.dcn'].map(selector=>sourceCard.querySelector(selector)?.getBoundingClientRect()):null;
   if(!nowrite){
     if(DB.settings.dayDone===todayISO&&!forceShow) return;
     if(DB.settings.dayDone!==todayISO){ DB.settings.dayDone=todayISO; save(); }
   }
   const n=forceCount!=null?forceCount
     :SEED.totals.sessions+((((DB.days[todayISO]||{}).w)||[]).length?1:0);
+  if(!nowrite)ddCardArrival={date:todayISO,milestone:n>0&&n%25===0};
   /* v3.3.424: THE CENTURY BEAT. Every hundredth day the square OPENS and the
      mark rises out of it -- the app's two symbols becoming one. The square is
      what you did; the chevron is where it goes.
@@ -1725,7 +1738,7 @@ function celebrateDayDone(nowrite, forceCount, forceMile, forceShow){
   const withMascot=mascotMode()!=='off';
   const is25=withMascot&&forceCount==null&&DB.settings.mascot25Date===todayISO;
   if(withMascot)o.classList.add('su-celebration');
-  if(withMascot&&!mile&&mascotMode()==='animated')o.dataset.entrance=ddNextEntrance();
+  if(withMascot&&!mile&&mascotMode()==='animated'&&!connected)o.dataset.entrance=ddNextEntrance();
   /* v3.3.425: THE MARK IS A SIBLING OF THE SQUARE, NOT ITS CHILD. It was
      inside .ddsq, and .ddsq fades and shrinks as it hands over -- opacity on a
      parent applies to its children, so the white mark faded with it and
@@ -1768,7 +1781,10 @@ function celebrateDayDone(nowrite, forceCount, forceMile, forceShow){
      requestAnimationFrame against a real element, and a node still in a string
      has nothing to animate. It respects prefers-reduced-motion itself, so the
      number simply arrives whole for anyone who asked for that. */
-  countUpEl(o.querySelector('.ddn'),1100);
+  if(connected){
+    o.classList.add('dd-connected');
+    ['.ddhero .su-mascot','.ddn'].forEach((selector,i)=>{const el=o.querySelector(selector),from=origins[i];if(!el||!from||!from.width)return;el.style.animation='none';const to=el.getBoundingClientRect();if(!to.width||!to.height)return;el.style.transformOrigin='0 0';el.animate([{transform:`translate(${from.left-to.left}px,${from.top-to.top}px) scale(${from.width/to.width},${from.height/to.height})`},{transform:'translate(0,0) scale(1)'}],{duration:620,easing:'cubic-bezier(.2,.75,.25,1)'});});
+  }else countUpEl(o.querySelector('.ddn'),1100);
   o.querySelector('[data-dd="milestone"],[data-dd="done"]').focus({preventScroll:true});
   let leaving=false;
   const leave=(share=false)=>{

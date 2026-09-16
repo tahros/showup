@@ -91,6 +91,7 @@ for(const tone of ['white','chrome']){
         // Plate replay restarts the approved jump without simulating a user tap.
         el.addEventListener('mascotreplay',()=>live.get(el)?.replay());
         el.addEventListener('pointerdown',()=>{
+          if(el.closest('[data-replayday]'))return; // The whole card opens the achievement; no competing poke.
           const inst=live.get(el); if(!inst) return;
           el.classList.remove('su-poke'); void el.offsetWidth; el.classList.add('su-poke');
           inst.replay();
@@ -108,6 +109,7 @@ for(const tone of ['white','chrome']){
   });
   function reconcile(){
     scheduled=false;
+    if(typeof ddGreetCompletedCard==='function')ddGreetCompletedCard();
     const mode=mascotMode(),theme=document.documentElement.dataset.theme;
     document.documentElement.dataset.mascotMotion=mode;
     // Browser/install identity stays blue in both themes; only in-page art changes.

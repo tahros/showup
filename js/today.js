@@ -258,7 +258,7 @@ document.addEventListener('click',e=>{
      to see it again is not a second completion. */
   /* v3.3.377: one shareable artifact, reachable two ways -- the replay runs
      the same ceremony and lands on the same card. */
-  if(e.target.closest('[data-replayday]')){ celebrateDayDone(true); return; }
+  if(e.target.closest('[data-replayday]')){ celebrateDayDone(true,undefined,undefined,undefined,e.target.closest('[data-replayday]')); return; }
   const d=e.target.closest('[data-d1]');
   if(d){
     const act=d.dataset.d1;
@@ -570,7 +570,7 @@ function renderToday(){
     return `<button class="card dayclosed" data-replayday="1" aria-label="Day ${fmt(_n)}, ${pretty(todayISO)}. Today is complete; logging another set reopens it. Tap to see it again.">
           ${mascotHTML('cool')}
           <b class="dcn">${fmt(_n)}</b>
-          <span class="dcm mono">${pretty(todayISO)}</span>
+          <span class="dcm">${_n===1?'day':'days'} of showing up</span>
         </button>`;
   };
   if(_closed) h+=_closedCard();
