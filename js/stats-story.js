@@ -632,9 +632,13 @@ const compactStyle=document.createElement('style');compactStyle.textContent=`
 #view.stats-system .work-hero .plate-bank:empty{display:none;height:0}   /* v4.5.5: the empty bank was a 20px band under the caption */
 #view.stats-system .work-history [data-lbl]{display:none}
 #view.stats-system .work-hero .plate-legend{display:none}
-#view.stats-system .work-hero .plate-replay{min-height:32px;padding:4px 10px;margin:8px auto;font-size:11px}
-#view.stats-system .work-history{background:none;box-shadow:none;padding:8px 0 0;margin:0;border-radius:0;border-top:1px solid var(--line)}
-#view.stats-system .work-history .pmixhead{min-height:30px}#view.stats-system .work-history .pmixlgd{gap:6px 12px;margin:3px 0 7px}
+#view.stats-system .work-hero .plate-heading{align-items:start}
+#view.stats-system .work-hero .plate-replay{min-height:36px;height:36px;padding:0 10px;margin:0;font-size:11px;justify-self:start}
+#view.stats-system .work-hero .plate-share{width:36px;height:36px;min-height:36px;position:relative}
+#view.stats-system .work-hero .plate-share::after{content:'';position:absolute;inset:-4px}
+#view.stats-system .work-hero .plate-date{line-height:36px}
+#view.stats-system .work-history{background:none;box-shadow:none;padding:0;margin:0;border-radius:0;border-top:1px solid var(--line)}
+#view.stats-system .work-history .pmixhead{height:44px;min-height:44px;margin:10px 0;align-items:center}#view.stats-system .work-history .pmixlgd{gap:6px 12px;margin:0 0 7px}
 #view.stats-system .work-history .pmixlgdwrap{overflow:visible;mask-image:none;-webkit-mask-image:none}#view.stats-system .work-history .pmixlgd{width:auto;max-width:100%}#view.stats-system .work-history .pmixlgd>span{white-space:nowrap}
 #view.stats-system .work-history .pmixlgdwrap::after{display:none}
 .work-latest{border:0;background:none;color:var(--accent-ink);font:500 11px var(--body);min-height:36px}.work-history .review-scale{display:none}
