@@ -296,5 +296,16 @@ check("an untrained muscle says so in words, and counts nothing",
         return !!none && /not this week/.test(none.textContent)
             && !/\\d/.test(none.querySelector('.mciwhen').textContent);})()`, true);
 
+// Week orientation is calendar-based, including Monday-first and year rollover.
+for(const [date,start,index,left] of [
+ ['2026-09-16','sunday',3,3],['2026-09-16','monday',2,4],
+ ['2026-09-13','sunday',0,6],['2026-09-19','sunday',6,0],
+ ['2026-09-20','monday',6,0],['2027-01-01','sunday',5,1]]){
+ run(`todayISO='${date}';DB.settings.weekStart='${start}';document.querySelector('.mccard').innerHTML=muscleCard();`);
+ check(`${date} ${start}: one today column`, `document.querySelectorAll('.mccard .mc-today').length`,7);
+ check('today header aligns with actual date', `Array.from(document.querySelectorAll('.mchead .mccell')).findIndex(e=>e.classList.contains('mc-today'))`,index);
+ check('remaining days caption', `document.querySelector('.mc-key').textContent.includes('${left?left+' day':'Last day'}')`,true);
+ check('future marks have upcoming labels', `[...document.querySelectorAll('.mc-future')].every(e=>e.parentElement.getAttribute('aria-label').includes('upcoming'))`,true);
+}
 process.exit(fail ? 1 : 0);
 })();

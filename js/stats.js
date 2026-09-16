@@ -702,10 +702,12 @@ function muscleCard(){
      every track for a wider character than it holds. Nothing is measured in
      JS now; the layout measures itself. */
   const WD=days.map(d=>new Date(d+'T00:00')
-    .toLocaleDateString('en-US',{weekday:'narrow'}));
+    .toLocaleDateString('en-US',{weekday:'short'}).slice(0,2));
+  const current=days.indexOf(todayISO),remaining=days.filter(d=>d>todayISO);
+  const cellClass=i=>`mccell${i===current?' mc-today':''}`;
   const head=`<div class="mchead" aria-hidden="true"><span></span>
-      <span class="mcdots">${WD.map(w=>`<i>${w}</i>`).join('')}</span>
-      <span></span><span></span><span></span><span></span></div>`;
+      <span class="mcdots">${WD.map((w,i)=>`<span class="${cellClass(i)}"><i>${w}${i===current?'<small>now</small>':''}</i></span>`).join('')}</span>
+      <span></span></div>`;
   /* v3.3.354: the separator is an ELEMENT spanning the grid, not a border on
      each cell -- cells are centre-aligned and each drew its own top edge, so
      the rule came out as offset dashes. One before every row but the first. */
@@ -736,21 +738,23 @@ function muscleCard(){
     }
     return `${vi?line:''}<div class="mcrow ${open?'open':''}" data-mcg="${v}">
       <span class="mcname">${v}</span>
-      <span class="mcdots">${gg.dots.map(on=>`<i class="${on?'on':''}"></i>`).join('')}</span>
-      <b class="mcv">${gg.days.size}</b>
+      <span class="mcdots">${gg.dots.map((on,i)=>`<span class="${cellClass(i)}" aria-label="${days[i]}${i===current?', today':''}: ${on?'trained':days[i]>todayISO?'upcoming':'no training'}"><i class="${on?'on':days[i]>todayISO?'mc-future':''}" aria-hidden="true"></i></span>`).join('')}</span>
+      <span class="mcsummary"><b class="mcv">${gg.days.size}</b>
       <span class="mcu">day${gg.days.size===1?'':'s'}</span>
       <span class="mcsep" aria-hidden="true">\u00b7</span>
-      <span class="mcs">${gg.sets} set${gg.sets===1?'':'s'}</span>
+      <span class="mcs">${gg.sets} set${gg.sets===1?'':'s'}</span></span>
     </div>${inner}`;
   }).join('');
-  return `<div class="mcgrid">${head}${line}${body}</div>`;
+  const short=d=>new Date(d+'T00:00').toLocaleDateString('en-US',{weekday:'short'});
+  const futureLabel=remaining.length?`${short(remaining[0])}${remaining.length>1?'–'+short(remaining.at(-1)):''} · ${remaining.length} day${remaining.length===1?'':'s'} left`:'Last day of this week';
+  return `<div class="mc-position">Today · ${short(todayISO)} ${new Date(todayISO+'T00:00').getDate()}</div><div class="mcgrid">${head}${line}${body}</div><div class="mc-key"><span><i class="mc-key-trained"></i>Trained</span><span>${remaining.length?'<i class="mc-key-future"></i>':''}${futureLabel}</span></div>`;
 }
 document.addEventListener('click',e=>{
   const r=e.target.closest&&e.target.closest('[data-mcg]');
   if(!r) return;
   _mcOpen=_mcOpen===r.dataset.mcg?null:r.dataset.mcg;
   const card=document.querySelector('.mccard');
-  if(card) card.innerHTML=muscleCard(); else render();
+  if(card){const date=card.querySelector('.v4-note');card.innerHTML=muscleCard();if(date)card.prepend(date);} else render();
 });
 /* v3.3.307: the month calendar becomes a YEAR HEATMAP whose runs join up.
    The grid was 42 cells for 31 days — blanks before the 1st, greyed future
