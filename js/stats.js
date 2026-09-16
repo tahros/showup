@@ -98,12 +98,7 @@ function pmixSetMode(){
     if(ax) ax.outerHTML=pmixAxisSvg(partMix(PMIX_DAYS,PMIX_MODE));
     wrap.scrollLeft=keep; wrap.style.scrollBehavior=sb;
   }
-  const btn=document.querySelector('[data-pmixmode]');
-  if(btn){
-    btn.setAttribute('aria-label',`Show ${PMIX_MODE==='sets'?'total weight':'set counts'} instead`);
-    const [a,c]=btn.querySelectorAll('span');
-    if(a&&c){ a.classList.toggle('on',PMIX_MODE==='sets'); c.classList.toggle('on',PMIX_MODE==='weight'); }
-  }
+  document.querySelectorAll('[data-pmixmode]').forEach(btn=>btn.setAttribute('aria-pressed',String(btn.dataset.pmixmode===PMIX_MODE)));
   pmixApplyFocus();
 }
 function pmixSetFocus(part){
@@ -1469,8 +1464,7 @@ function renderStats(){
      what it is of. */
   h+=`<h2>What you did${hActs('pmix',"One block per completed set, stacked by body part. Tap a label to follow it; tap again for all. The sets/weight switch reads the same days as total weight lifted. Runs stay separate.",'About what you did')}</h2>
       <div class="card">
-        <div class="pmixhead"><button type="button" class="pmixmode" data-pmixmode
-          aria-label="Show ${PMIX_MODE==='sets'?'total weight':'set counts'} instead"><span class="${PMIX_MODE==='sets'?'on':''}">sets</span><span class="${PMIX_MODE==='weight'?'on':''}">${isLb()?'lb':'kg'}</span></button></div>
+        <div class="pmixhead"><div class="pmix-measures" role="group" aria-label="Chart measure"><button type="button" data-pmixmode="sets" aria-pressed="${PMIX_MODE==='sets'}">Sets</button><button type="button" data-pmixmode="weight" aria-pressed="${PMIX_MODE==='weight'}" aria-label="Weight in ${isLb()?'pounds':'kilograms'}">Weight</button></div></div>
         <div class="pmixlgdwrap"><div class="pmixlgd" role="group" aria-label="Follow a body part">${Object.keys(SEED.catalog).filter(p=>p!=='Run').map(p=>
           `<button type="button" data-pt="${p}" aria-pressed="${PMIX_FOCUS===p}" style="--pmix-part:${PART_COLORS[p]||'var(--muted)'}"><i></i><span>${p}</span></button>`).join('')}</div></div>
         <div class="pmixbox">

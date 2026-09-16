@@ -670,7 +670,7 @@ document.addEventListener('click',e=>{
     toast(`${ex2} steps ${fmt(wStep(ex2))} ${U()} now`);
     return renderLift();
   }
-  if(e.target.closest&&e.target.closest('[data-pmixmode]')){ pmixSetMode(); return; }
+  if(e.target.closest&&e.target.closest('[data-pmixmode]')){ if(e.target.closest('[data-pmixmode]').dataset.pmixmode!==PMIX_MODE)pmixSetMode(); return; }
   /* v3.3.473: the daily-runs card's own unit. A setting, so it persists and
      syncs (per-key clock); independent of the weight unit. Patches the card
      in place rather than repainting Stats -- a repaint was the flicker. */

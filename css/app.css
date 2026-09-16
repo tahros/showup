@@ -2525,6 +2525,11 @@
   .planpv.ask .pc{flex-basis:100%;justify-content:flex-start;padding-left:24px}
   .btn.tiny{font-size:11px;padding:5px 9px;min-height:0}
   .pmixhead{display:flex;justify-content:flex-end;margin-bottom:2px}
+  .pmix-measures{display:inline-flex;gap:2px;padding:3px;border-radius:12px;background:var(--surface2);flex-shrink:0}
+  .pmix-measures button{min-height:38px;min-width:64px;padding:0 13px;border:0;border-radius:9px;background:transparent;color:var(--muted);font:500 13px var(--body);cursor:pointer;transition:background .16s,color .16s,box-shadow .16s}
+  .pmix-measures button[aria-pressed="true"]{background:var(--surface);color:var(--accent-ink);box-shadow:0 1px 4px #00000012}
+  @media(pointer:coarse){.pmix-measures button{min-height:44px}}
+  @media(prefers-reduced-motion:reduce){.pmix-measures button{transition:none}}
   .pmixmode{background:none;border:0;padding:2px 4px;cursor:pointer;
     font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--faint)}
   .pmixmode span{color:var(--faint)}
