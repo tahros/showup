@@ -236,9 +236,9 @@ const v4Style=document.createElement('style');v4Style.textContent='.v4-years{dis
 
 /* Shared Stats-page geometry, typography, color, and motion contract. */
 const systemRender=renderStats,systemSync=renderSync;
-const systemLongDate=iso=>new Date(iso+'T00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+const systemLongDate=iso=>new Date(iso+'T00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
 function systemDates(root){
- const workout=storyWorkoutDate();const plate=root.querySelector('.plate-date');if(plate&&workout)plate.textContent=systemLongDate(workout).replace(', ',' · ');
+ const workout=storyWorkoutDate();const plate=root.querySelector('.plate-date');if(plate&&workout)plate.textContent=systemLongDate(workout);
  const week=root.querySelector('.mccard .v4-note');if(week){const d=weekDays(),a=new Date(d[0]+'T00:00'),b=new Date(d[6]+'T00:00'),sameYear=a.getFullYear()===b.getFullYear();week.textContent=a.toLocaleDateString('en-US',{month:'long',day:'numeric',...(!sameYear?{year:'numeric'}:{})})+'–'+(sameYear&&a.getMonth()===b.getMonth()?b.getDate():b.toLocaleDateString('en-US',{month:'long',day:'numeric'}))+', '+b.getFullYear();}
  const pg=root.querySelector('.pg-period');if(pg){const main=pg.querySelector('.pg-period-main'),year=pg.querySelector('.pg-period-year');if(main){main.textContent=main.textContent.replace(/\bJan\b/g,'January').replace(/\bFeb\b/g,'February').replace(/\bMar\b/g,'March').replace(/\bApr\b/g,'April').replace(/\bJun\b/g,'June').replace(/\bJul\b/g,'July').replace(/\bAug\b/g,'August').replace(/\bSep\b/g,'September').replace(/\bOct\b/g,'October').replace(/\bNov\b/g,'November').replace(/\bDec\b/g,'December');}if(year)year.textContent=year.textContent.trim();}
  root.querySelectorAll('.plate-date,#review-day,.v4-note,.pg-period,.pg-read-date,.story-running p,.conkick').forEach(e=>e.classList.add('stats-date'));
@@ -406,7 +406,7 @@ function updateWork(date){
  const m=plateMetrics(DB.days[date]);
  doc.innerHTML=m.sets?storyAtDate(date,()=>storyPlate()):'<div class="work-hero work-empty"><div class="plate-date">'+new Date(date+'T00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+'</div><strong>No workout recorded</strong></div>';
  const next=doc.querySelector('.plate-card,.work-hero');next.classList.remove('card');next.classList.add('work-hero');old.replaceWith(next);
- if(m.sets){next.querySelector('.plate-date').textContent=systemLongDate(date).replace(', ',' · ');next.querySelector('.plate-date').classList.add('stats-date');systemUnits(next);systemControls(next);storyBind(date,true);next.querySelector('.plate-share').onclick=()=>storyAtDate(date,()=>sharePlateCard());}
+ if(m.sets){next.querySelector('.plate-date').textContent=systemLongDate(date);next.querySelector('.plate-date').classList.add('stats-date');systemUnits(next);systemControls(next);storyBind(date,true);next.querySelector('.plate-share').onclick=()=>storyAtDate(date,()=>sharePlateCard());}
  else plateCancel();
  const title=shell.previousElementSibling;if(title?.tagName==='H2')title.textContent=date===todayISO&&DB.days[date]?.doneAll?'Workout complete':'Your work, stacking up';
 }
