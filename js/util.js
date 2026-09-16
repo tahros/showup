@@ -558,7 +558,9 @@ function syncTopBtn(){
   b.hidden=!(deep||_backTo);         // an armed jump-back shows regardless of depth
   b.textContent=_backTo?`↑ ${_backTo.label}`:'↑ top';
   const dock=document.querySelector('.pw-save-dock');
-  if(dock)b.style.bottom=Math.max(0,innerHeight-dock.getBoundingClientRect().top+12)+'px';
+  const live=document.getElementById('liveWorkoutBar');
+  const obstacles=[dock,live&&!live.hidden?live:null].filter(Boolean);
+  if(obstacles.length)b.style.bottom=Math.max(0,...obstacles.map(el=>innerHeight-el.getBoundingClientRect().top+12))+'px';
   else b.style.removeProperty('bottom');
 }
 function setBackTarget(label,getEl){ _backTo={label,getEl}; syncTopBtn(); }
@@ -709,15 +711,7 @@ function planComplete(){
    its action) and QUIET otherwise (a ghost door). Never automatic: closing is
    a declaration, like rest. #doneAllBtn stays the one id that sets doneAll. */
 function dayCloseHTML(){
-  if(!isLive()) return '';
-  if(view==='today') return `<button class="btn done dayclose today-complete" id="doneAllBtn">Complete today’s workout <span aria-hidden="true">→</span></button>`;
-  const n=dayMeta().w.length, sets=`${n} set${n===1?'':'s'}`;
-  /* stacked, not a row: .btn is width:100% by design (v3.3.68), so the
-     sentence sits above the button rather than beside it */
-  if(planComplete()) return `<div class="card dayclose" style="margin-top:14px;padding:12px 14px">
-      <div class="mono" style="font-size:12px;color:var(--chalk)">That\u2019s the plan.</div>
-      <button class="btn done" id="doneAllBtn" style="margin-top:10px">Close the day \u2192</button></div>`;
-  return `<button class="btn ghost dayclose" id="doneAllBtn" style="margin-top:14px">Close the day \u00b7 ${sets}</button>`;
+  return ''; // The persistent live-workout bar is the single completion entry.
 }
 const partOpen=p =>{const t=dayMeta();return t.w.some(s=>s.part===p)&&!t.donePart.includes(p);};
 let lastSetAt=null;

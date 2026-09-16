@@ -3,6 +3,7 @@
    shares one global scope with its siblings, loaded in order by index.html. */
 /* ---------- header ---------- */
 function renderHeader(){
+  if(typeof syncLiveWorkout==='function')syncLiveWorkout();
   const _tf=document.getElementById('tipFloat'); if(_tf) _tf.hidden=true;
   const live=isLive();
   const hdr=document.querySelector('header');

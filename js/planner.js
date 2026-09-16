@@ -269,7 +269,7 @@ document.addEventListener('click',e=>{
   d._pwAnimation.onfinish=finish;
 },true);
 
-function pwPositionDock(){const dock=document.querySelector('.pw-save-dock'),nav=document.getElementById('nav');if(dock&&nav)dock.style.bottom=Math.max(78,innerHeight-nav.getBoundingClientRect().top+8)+'px';const rail=document.querySelector('.pw-days'),selected=rail?.querySelector('.selected');if(selected){const r=rail.getBoundingClientRect(),b=selected.getBoundingClientRect();if(b.left<r.left)rail.scrollLeft-=r.left-b.left;else if(b.right>r.right)rail.scrollLeft+=b.right-r.right;}if(typeof syncTopBtn==='function')syncTopBtn();}
+function pwPositionDock(){const dock=document.querySelector('.pw-save-dock'),nav=document.getElementById('nav'),live=document.getElementById('liveWorkoutBar');const anchor=live&&!live.hidden?live:nav;if(dock&&anchor)dock.style.bottom=Math.max(78,innerHeight-anchor.getBoundingClientRect().top+8)+'px';const rail=document.querySelector('.pw-days'),selected=rail?.querySelector('.selected');if(selected){const r=rail.getBoundingClientRect(),b=selected.getBoundingClientRect();if(b.left<r.left)rail.scrollLeft-=r.left-b.left;else if(b.right>r.right)rail.scrollLeft+=b.right-r.right;}if(typeof syncTopBtn==='function')syncTopBtn();}
 window.addEventListener('resize',pwPositionDock,{passive:true});
 
 

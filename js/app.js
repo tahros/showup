@@ -138,7 +138,16 @@ document.addEventListener('click',e=>{
     return render();
   }
   /* v3.3.457: the part-level Complete handler is gone with its button (lift.js). */
+  if(e.target.closest('#liveWorkoutFinish')){ openWorkoutFinish(); return; }
+  if(e.target.closest('#liveWorkoutResume')){
+    if(view!=='lift'){liftEnter();view='lift';render();}
+    return;
+  }
   if(e.target.closest('#doneAllBtn')){
+    const confirmation=document.getElementById('workoutFinishDialog');
+    if(confirmation&&confirmation.dataset.date!==todayISO){confirmation.remove();return render();}
+    confirmation?.remove();
+    if(!isLive())return;
     const m=dayMeta(); m.upd=Date.now();
     m.w.forEach(s=>{ if(!m.doneEx.includes(s.ex)) m.doneEx.push(s.ex);
                      if(!m.donePart.includes(s.part)) m.donePart.push(s.part); });
@@ -1860,7 +1869,49 @@ const doneToast=(m,alt,explicit)=>{
   if(m.doneAll){ celebrateDayDone(false,null,null,!!explicit); }
   else toast(alt);
 };
+function liveWorkoutSummary(){
+  const m=workoutCompletionMetrics({...DB.days[todayISO],completedAt:Date.now()});
+  return {m,text:[m.minutes==null?null:`${m.minutes} min`,`${m.sets} set${m.sets===1?'':'s'}`].filter(Boolean).join(' · ')};
+}
+function positionLiveWorkout(){
+  const bar=document.getElementById('liveWorkoutBar'),nav=document.getElementById('nav');
+  if(!bar||bar.hidden||!nav)return;
+  const r=nav.getBoundingClientRect();
+  if(!r.width)return;
+  bar.style.left=r.left+'px';bar.style.width=r.width+'px';
+  bar.style.bottom=Math.max(0,innerHeight-r.top+10)+'px';
+  document.documentElement.style.setProperty('--live-workout-extra',(bar.getBoundingClientRect().height+10)+'px');
+  if(document.querySelector('.pw-save-dock')&&typeof pwPositionDock==='function')pwPositionDock();
+  if(typeof syncTopBtn==='function')syncTopBtn();
+}
+function syncLiveWorkout(){
+  let bar=document.getElementById('liveWorkoutBar');
+  if(!bar){
+    bar=document.createElement('div');bar.id='liveWorkoutBar';
+    bar.innerHTML=`<button id="liveWorkoutResume" aria-label="Return to workout"><span class="live-workout-title"><i aria-hidden="true"></i>Workout in progress</span><span class="live-workout-meta" aria-live="polite"></span></button><button id="liveWorkoutFinish">Finish ${icon('check',16)}</button>`;
+    document.body.appendChild(bar);
+  }
+  const active=!!DB.days[todayISO]?.w?.length&&!DB.days[todayISO].doneAll;
+  bar.hidden=!active;document.documentElement.classList.toggle('workout-active',active);
+  if(!active){document.documentElement.style.removeProperty('--live-workout-extra');document.getElementById('workoutFinishDialog')?.remove();return;}
+  const text=liveWorkoutSummary().text,meta=bar.querySelector('.live-workout-meta');
+  if(meta.textContent!==text)meta.textContent=text;
+  requestAnimationFrame(positionLiveWorkout);
+}
+function openWorkoutFinish(){
+  if(!isLive()||document.getElementById('workoutFinishDialog'))return;
+  const d=document.createElement('dialog'),{m,text}=liveWorkoutSummary();
+  d.id='workoutFinishDialog';d.dataset.date=todayISO;d.setAttribute('aria-labelledby','workoutFinishTitle');
+  d.innerHTML=`<div class="workout-finish-handle" aria-hidden="true"></div><h2 id="workoutFinishTitle">Complete today’s workout?</h2><div class="muted">${text} · ${m.exercises} exercise${m.exercises===1?'':'s'}</div><p>Your sets are saved. You can always log more later.</p><button class="btn" id="doneAllBtn">${icon('check',18)} Complete workout</button><button class="btn ghost" id="workoutKeepTraining">Keep training</button>`;
+  const leave=()=>{d.remove();document.getElementById('liveWorkoutFinish')?.focus({preventScroll:true});};
+  d.addEventListener('cancel',e=>{e.preventDefault();leave();});
+  d.addEventListener('click',e=>{if(e.target.closest('#workoutKeepTraining')||e.target===d)leave();});
+  document.body.appendChild(d);d.showModal();d.querySelector('#doneAllBtn').focus({preventScroll:true});
+}
+addEventListener('resize',()=>requestAnimationFrame(positionLiveWorkout),{passive:true});
+setInterval(()=>{if(document.visibilityState==='visible'&&document.documentElement.classList.contains('workout-active'))syncLiveWorkout();},60000);
 function syncNav(){
+  syncLiveWorkout();
   scheduleNavLayoutCheck();
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
   /* v3.3.461: Today's square in the bar shows the day's STATE -- hollow while

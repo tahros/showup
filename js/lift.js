@@ -622,8 +622,7 @@ function renderLift(){
              Quiet beside the loud one, and never the wider of the two: Add run
              is what you came here to press, and closing the day is reversible
              but not something to hit by accident reaching for it. -->
-        <div class="runacts"><button class="btn" id="addrun">Add run</button>${
-          isLive()?`<button class="btn ghost runclose" id="doneAllBtn">Done</button>`:''}</div></div>`;
+        <div class="runacts"><button class="btn" id="addrun">Add run</button></div></div>`;
     /* v3.1.9: the Run view finally shows its history — recent runs with
        date · distance · time · pace, same visual language as Last Time. */
     // v3.3.153: deferred — see the emit point after the session card

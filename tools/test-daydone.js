@@ -13,6 +13,7 @@ const dom = new JSDOM(html.replace(/<script[^>]*src=[^>]*><\/script>/g, ""), {
 const w = dom.window, ctx = dom.getInternalVMContext();
 w.fetch = () => Promise.reject(new Error("offline"));
 w.matchMedia = w.matchMedia || (() => ({ matches:false, addEventListener(){}, removeEventListener(){} }));
+w.HTMLDialogElement.prototype.showModal=function(){this.open=true;};
 w.navigator.vibrate = () => {}; w.scrollTo = () => {};
 w.HTMLCanvasElement.prototype.getContext = function(){ return new Proxy({}, { get: () => () => ({}) }); };
 for (const s of order) vm.runInContext(fs.readFileSync(path.join(dir, s), "utf8"), ctx, { filename: s });
@@ -90,10 +91,10 @@ run(`(function(){DB.days={}; delete DB.settings.dayDone;
   DB.days[todayISO]={w:[{part:'Chest',ex:'Dip',w:0,reps:[10]},
                         {part:'Chest',ex:'Dip',w:0,reps:[9]}],upd:1,doneEx:[],donePart:[]};
   SEED=deriveAll(); view='today'; render();})()`);
-const endBtn = () => run(`(function(){const b=document.getElementById('doneAllBtn');
+const endBtn = () => run(`(function(){const b=document.getElementById('liveWorkoutFinish');
   return b?b.textContent.trim():'(absent)';})()`);
 ok("a live day offers the button that ends it", endBtn()!=='(absent)', endBtn());
-ok("...plainly names the action", /Complete today’s workout/.test(endBtn()), endBtn());
+ok("...plainly names the action", /Finish/.test(endBtn()), endBtn());
 
 const css2=fs.readFileSync(path.join(dir,"css/app.css"),"utf8").replace(/\r?\n\s*/g,"");
 /* v3.3.375 RESTATES. These pinned position:sticky, which was the MECHANISM I
@@ -104,14 +105,8 @@ const css2=fs.readFileSync(path.join(dir,"css/app.css"),"utf8").replace(/\r?\n\s
    not something you have to hunt for: it sits directly under the work it
    closes, ABOVE the offer to add more, which is checkable as document order
    and cannot be satisfied by a floating element that covers its neighbours. */
-ok("...and it sits above the offer to add another part",
-   run(`(function(){const v=document.getElementById('view');
-     const b=document.getElementById('doneAllBtn');
-     const h=[...v.querySelectorAll('h2')].find(x=>/Add another part/i.test(x.textContent));
-     if(!b||!h) return 'missing';
-     return (b.compareDocumentPosition(h) & 4) === 4;})()`) === true);
-ok("...and it does not float over its neighbours",
-   !/\.btn\.done\.dayend\{[^}]*position:(sticky|fixed)/.test(css2));
+ok("one persistent completion entry, outside page content",run(`!!document.getElementById('liveWorkoutFinish') && !document.querySelector('#view #doneAllBtn')`));
+ok("active bar reserves content space", /workout-active[^}]*padding-bottom/.test(css2));
 
 /* one voice for the end of the day: the step-level buttons stopped borrowing
    its word, so "Complete workout" means one thing in one place */
@@ -124,7 +119,7 @@ ok("only the day's end says \"Complete\"; the exercise tick is the one step-leve
    && /Done with \$\{ex\}/.test(liftSrc));
 
 /* and the door still opens the room */
-run(`document.getElementById('doneAllBtn').dispatchEvent(new window.Event('click',{bubbles:true}))`);
+run(`openWorkoutFinish(); document.getElementById('doneAllBtn').dispatchEvent(new window.Event('click',{bubbles:true}))`);
 ok("pressing it places the day", run(`!!document.getElementById('dayDone')`));
 
 /* v3.3.376: THE FINISHED DAY. What stood here was two lines of grey mono --
@@ -378,7 +373,7 @@ ok("pressing it places the day", run(`!!document.getElementById('dayDone')`));
   seed();
   ok("one logged set opens the day", run(`isLive()`)===true);
   ok("...and offers the button that ends it",
-     run(`!!document.getElementById('doneAllBtn')`));
+     run(`!document.getElementById('liveWorkoutBar').hidden`));
   ok("...with no finished card until it is pressed",
      run(`!document.querySelector('.dayclosed')`));
 
@@ -387,12 +382,12 @@ ok("pressing it places the day", run(`!!document.getElementById('dayDone')`));
   ok("sealing the only exercise does not close the day",
      run(`dayMeta().doneAll`)===false && run(`isLive()`)===true, JSON.stringify(run(`dayMeta().doneAll`)));
   ok("...the button is still there",
-     run(`!!document.getElementById('doneAllBtn')`));
+     run(`!document.getElementById('liveWorkoutBar').hidden`));
   ok("...and the ceremony has not been spent",
      run(`DB.settings.dayDone!==todayISO`));
 
   /* pressing it is what closes the day -- and that is when the ceremony fires */
-  run(`document.getElementById('doneAllBtn').dispatchEvent(new window.Event('click',{bubbles:true}))`);
+  run(`openWorkoutFinish(); document.getElementById('doneAllBtn').dispatchEvent(new window.Event('click',{bubbles:true}))`);
   ok("pressing Complete closes the day", run(`dayMeta().doneAll`)===true);
   ok("...fires the ceremony", run(`!!document.getElementById('dayDone')`));
   ok("...and stamps it once", run(`DB.settings.dayDone===todayISO`));
@@ -406,7 +401,7 @@ ok("pressing it places the day", run(`!!document.getElementById('dayDone')`));
      only assignment to doneAll:true in a handler belongs to #doneAllBtn. */
   {
     const src=fs.readFileSync(path.join(dir,"js/app.js"),"utf8");
-    const block=(id)=>{ const i=src.indexOf(id); const j=src.indexOf("return render();", i);
+    const block=(id)=>{ const i=src.indexOf(id); const j=src.indexOf("/* v3.3.534", i);
       return i<0?'':src.slice(i,j); };
     ok("finishing an exercise does not close the day",
        !/doneAll\s*=\s*true/.test(block("#reopenPartBtn")===''?'':src.slice(src.indexOf("const exsInPart="), src.indexOf("#reopenPartBtn"))));
@@ -421,8 +416,8 @@ ok("pressing it places the day", run(`!!document.getElementById('dayDone')`));
      claim was always that this line carries the DATE rather than a set count;
      the "· Workout complete" tail it used to trail was the part the maker
      struck. */
-  ok("...showing the completed date, and only the date",
-     run(`document.querySelector('.dayclosed .dcm').textContent.trim()===pretty(todayISO)`),
+  ok("...showing the attendance caption",
+     run(`document.querySelector('.dayclosed .dcm').textContent.trim().endsWith('of showing up')`),
      run(`document.querySelector('.dayclosed .dcm').textContent`));
 }
 
@@ -439,36 +434,36 @@ ok("pressing it places the day", run(`!!document.getElementById('dayDone')`));
     planSave(items,'',"Squat\\n  195 lb x 8\\n\\nDip\\n  BW+45 lb x 10",todayISO);
     DB.settings.dayDone=null; SEED=deriveAll(); view='lift'; lift.part='Legs'; lift.ex=null; render(); })()`);
   seedPlan();
-  ok("before any set there is no close: the day is not live", !run(`!!document.getElementById('doneAllBtn')`));
+  ok("before any set there is no close: the day is not live", !run(`!document.getElementById('liveWorkoutBar').hidden`));
   // log a squat set on Train
   run(`(function(){const m=dayMeta(); m.w.push({part:'Legs',ex:'Squat',w:toKg(195),reps:[8],at:Date.now()}); lastSetAt=Date.now(); save(); SEED=deriveAll(); render();})()`);
   ok("one set in, Train shows the close, QUIET (a ghost door)",
-     run(`(function(){const b=document.getElementById('doneAllBtn'); return !!b && b.classList.contains('ghost') && !document.querySelector('.dayclose.card');})()`));
+     run(`(function(){const b=document.getElementById('liveWorkoutBar'); return !!b && !b.hidden && !document.querySelector('.dayclose.card');})()`));
   ok("...and no part-level Complete", !run(`!!document.getElementById('donePartBtn')`));
   ok("...the plan is not complete: Dip has no set", !run(`planComplete()`));
   // tick Squat from its screen
   run(`lift.ex='Squat'; render(); document.getElementById('doneExBtn').click();`);
   ok("ticking Squat does not close the day (v3.3.431 stands)", run(`!dayMeta().doneAll`) && run(`lift.ex===null`));
-  ok("...and the close is still the quiet door", run(`(function(){const b=document.getElementById('doneAllBtn'); return !!b && b.classList.contains('ghost');})()`));
+  ok("...and the close is still the quiet door", run(`(function(){const b=document.getElementById('liveWorkoutBar'); return !!b && !b.hidden;})()`));
   // dip: set, then tick -> plan complete -> the offer
   run(`(function(){const m=dayMeta(); m.w.push({part:'Chest',ex:'Dip',w:toKg(45),bw:true,reps:[10],at:Date.now()}); save(); SEED=deriveAll(); lift.part='Chest'; lift.ex='Dip'; render();})()`);
   run(`globalThis.__toast=''; const _t=toast; toast=function(m){__toast=m; return _t.apply(this,arguments);}; document.getElementById('doneExBtn').click(); toast=_t;`);
   ok("ticking the last planned exercise says so", /that\u2019s the plan|that's the plan/.test(run(`__toast`)), run(`__toast`));
   ok("...the plan is complete", run(`planComplete()`));
   ok("...but the day is NOT closed by it -- the app offers, never performs", run(`!dayMeta().doneAll`) && !run(`!!document.getElementById('dayDone')`));
-  ok("...and the close is now PROMINENT: a card that says so, with the close as its action",
-     run(`(function(){const c=document.querySelector('.dayclose.card'); return !!c && /the plan/.test(c.textContent) && !!c.querySelector('#doneAllBtn');})()`));
+  ok("...and the same bar remains available when the plan is complete",
+     run(`(function(){const c=document.getElementById('liveWorkoutBar'); return !!c && !c.hidden && !document.querySelector('.dayclose.card');})()`));
   ok("...on Train, where the person is", run(`view==='lift'`));
   // the tap closes it, from Train
-  run(`document.getElementById('doneAllBtn').click();`);
+  run(`openWorkoutFinish(); document.getElementById('doneAllBtn').click();`);
   ok("one tap on Train closes the day", run(`dayMeta().doneAll===true`));
   ok("...and the ceremony plays from here", run(`!!document.getElementById('dayDone')`));
   // Today uses the same helper: same button, same states
   run(`document.getElementById('dayDone')?.remove(); dayMeta().doneAll=false; DB.settings.dayDone=null; view='today'; render();`);
   ok("Today shows the same prominent close for a complete plan",
-     run(`!!document.querySelector('#view #doneAllBtn.today-complete')`));
+     run(`!document.getElementById('liveWorkoutBar').hidden && !document.querySelector('#view #doneAllBtn')`));
   run(`dayMeta().doneEx=['Squat']; render();`);
-  ok("...and Today stays prominent even without a completed plan", run(`(function(){const b=document.querySelector('#view #doneAllBtn'); return !!b && b.classList.contains('today-complete') && !b.classList.contains('ghost');})()`));
+  ok("...and Today stays prominent even without a completed plan", run(`(function(){const b=document.getElementById('liveWorkoutBar'); return !!b && !b.hidden;})()`));
   run(`DB.settings.dayDone=null; lift.part=null; lift.ex=null; view='today'; render();`);
 }
 
