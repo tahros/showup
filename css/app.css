@@ -3121,7 +3121,7 @@
   .mccard .mchead .mc-today:after{content:'';position:absolute;bottom:7px;left:calc(50% - 7px);width:14px;height:2px;border-radius:2px;background:var(--accent)}
   .mccard .mchead .mcdots i{font-family:var(--body);font-size:11px;color:var(--muted)}
   .mccard .mchead .mc-today i{color:var(--accent);font-weight:600}
-  .mccard .mcrow .mcdots i:not(.on):not(.mc-future){background:color-mix(in srgb,var(--muted) 38%,var(--surface))}
+  .mccard .mcrow .mcdots i:not(.on):not(.mc-future){background:color-mix(in srgb,var(--muted) 28%,var(--surface))}
   .mccard .mc-future{background:transparent;border:1px solid color-mix(in srgb,var(--muted) 22%,var(--surface))}
   .mccard .mcname{font-family:var(--body);font-size:13px;padding-right:6px}
   .mccard .mcsummary{text-align:right;white-space:nowrap;padding:9px 0}
