@@ -92,7 +92,7 @@ function pwLaterPlans(html,dates){
   const card=t.content.querySelector('.pw-saved,.pw-home-card');if(!card)return html;
   const group=document.createElement('div');group.className='pw-plan-group';card.before(group);group.append(card);
   const days=dates.slice(0,3).map(d=>new Date(d+'T12:00').toLocaleDateString('en-US',{weekday:'short'})).join(' · ')+(dates.length>3?' +'+(dates.length-3):'');
-  group.insertAdjacentHTML('beforeend',`<details class="pw-later" data-pw-fold="later" ${pwFoldOpen('later')?'open':''}><summary><span>${dates.length} later ${dates.length===1?'plan':'plans'}</span><small>${hesc(days)}</small></summary><div class="pw-later-list">${dates.map(d=>`<details class="pw-later-day" data-pw-fold="later:${d}" ${pwFoldOpen('later:'+d)?'open':''}><summary>${pwPlanHeading(pwDate(d),pwSaved(d))}</summary>${planCardHTML(pwSaved(d),false)}</details>`).join('')}</div></details>`);
+  group.insertAdjacentHTML('beforeend',`<details class="pw-later" data-pw-fold="later" ${pwFoldOpen('later')?'open':''}><summary><span>${dates.length} later ${dates.length===1?'plan':'plans'}</span><small>${hesc(days)}</small></summary><div class="pw-later-list">${dates.map(d=>`<details class="pw-later-day" data-pw-fold="later:${d}" ${pwFoldOpen('later:'+d)?'open':''}><summary>${pwPlanHeading(pwDate(d),pwSaved(d))}</summary>${planCardHTML(pwSaved(d),false)}<div class="pw-actions pw-future-actions pw-later-actions" role="group" aria-label="Actions for ${hesc(pwDate(d))} plan">${pwAction('open-date','Edit','edit','',`data-date="${d}"`)}${pwAction('paste-open','Paste','paste','',`data-date="${d}"`)}</div></details>`).join('')}</div></details>`);
   return t.innerHTML;
 }
 function pwTodayHTML(){

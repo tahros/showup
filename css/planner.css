@@ -114,6 +114,9 @@ p.pw-small{margin:10px 0 16px}.pw-workspace p:not(.pw-small){font:400 14px/1.6 v
 .pw-future-label>strong{font:600 15px/1.4 var(--body);color:var(--chalk);overflow-wrap:anywhere}
 .pw-future summary>span:nth-child(2){flex:none;font-size:11px;white-space:nowrap}
 .pw-future .pw-future-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:center;margin:0;padding:16px}
+/* The later-plan list already provides its 16px horizontal inset. Keep the
+   same button geometry as Tomorrow without nesting another side gutter. */
+.pw-later-day .pw-later-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:center;margin:0;padding:16px 0}
 .pw-future-actions .pw-btn{display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;margin:0;padding:10px 12px;line-height:1.2}
 .pw-future-actions .pw-btn .ic{flex:none}
 .pw-workspace .pw-card-heading{margin-bottom:16px}.pw-card-heading strong{font:600 15px/1.45 var(--body)}
