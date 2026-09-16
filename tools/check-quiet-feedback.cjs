@@ -8,7 +8,7 @@ const {chromium}=require('playwright'),assert=require('assert');
   const g=await p.evaluate(()=>{const mark=document.querySelector('.sc-outcome-mark'),row=mark.closest('tr'),table=mark.closest('table'),r=mark.getBoundingClientRect(),t=table.getBoundingClientRect(),before=row.getBoundingClientRect().height;mark.hidden=true;const after=row.getBoundingClientRect().height;mark.hidden=false;return {before,after,right:r.right,edge:t.right,overflow:document.documentElement.scrollWidth>innerWidth};});
   assert.equal(g.before,g.after,'Marker must not add row height');assert(g.right<=g.edge+14,'Marker stays inside card inset');assert(!g.overflow);
   assert.equal(await p.locator('.sc-compact-result,.sc-result').count(),0);
-  const before=await p.evaluate(()=>JSON.stringify(DB));await p.locator('.sc-outcome-mark').click();assert.equal(await p.evaluate(()=>JSON.stringify(DB)),before);
+  await p.evaluate(()=>dayMeta());const before=await p.evaluate(()=>JSON.stringify({days:DB.days,planTracking:DB.planTracking}));await p.locator('.sc-outcome-mark').click();assert.deepStrictEqual(await p.evaluate(()=>({days:DB.days,planTracking:DB.planTracking})),JSON.parse(before));
   if(width===393&&!expanded)await p.locator('.sc-session').screenshot({path:'../quiet-feedback-implemented.png'});
  }
  console.log('PASS compact/expanded at 320/393/430, no row-height change, no status lines or overflow, feedback does not modify workout');

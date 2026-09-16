@@ -255,20 +255,24 @@ const plWarmMark=t=>plWarm(t)?'<span class="sc-warm-mark" aria-label="Planned wa
 function plSessionGroups(rows){
   const shape=s=>s?[s.w,s.su||'',!!s.bw,!!s.nw,!!s.est,s.qualifier||'']:null,groups=[];
   for(const row of rows){
-    const key=JSON.stringify([shape(row.last),shape(row.target),row.actual.map(shape),!!row.unlinked]);
+    const key=JSON.stringify([shape(row.last),shape(row.target),row.last||row.target?null:row.actual.map(shape),!!row.unlinked]);
     const prev=groups.at(-1);
     // Consecutive only: returning to a weight later remains a separate group.
-    if(prev&&prev.key===key&&row.actual.length<=1)prev.rows.push(row);
+    if(prev&&prev.key===key)prev.rows.push(row);
     else groups.push({key,rows:[row]});
   }
   return groups;
 }
 function plTapAttrs(s){
-  return `data-sc-load="${s.w}" data-sc-reps="${s.r??s.reps}"${s.ordinal&&!s.preview&&!plActual(todayISO,s.id).length?` data-link-slot="${s.ordinal}"`:''}`;
+  return `data-sc-load="${s.w}" data-sc-reps="${s.r??s.reps}"`;
 }
 function plCompactBody(ex,groups,hasLast,hasPlan,choice,latest,fresh){
   const cell=(sets,kind,attrs,feedback='')=>{
     if(!sets.length)return '<span class="sc-empty">—</span>';
+    // Keep differing logged loads truthful within a stable reference group.
+    const runs=[];
+    for(const set of sets){const key=JSON.stringify([set.w,set.su||'',!!set.bw,!!set.nw,!!set.est]);const prev=runs.at(-1);if(prev?.key===key)prev.sets.push(set);else runs.push({key,sets:[set]});}
+    if(runs.length>1)return runs.map(run=>cell(run.sets,kind,'',run.sets.includes(latest)?feedback:'')).join('');
     const s=sets[0],load=s.nw?'By feel':s.bw?(s.w?'BW + '+wDisp(s.w):'BW'):wLabel(ex,s.w);
     return `<div class="sc-value sc-group-value ${kind}"><button type="button" class="sc-load-weight" ${plTapAttrs(s)} aria-label="Load ${hesc(load)} and ${s.r??s.reps} reps"><span class="sc-weight">${hesc((s.est?'≈':'')+load)}<span class="sc-times"> ×</span></span></button><span class="sc-reps-wrap"><span class="sc-reps">${sets.map(s=>`<button type="button" ${plTapAttrs(s)} aria-label="Load ${hesc(load)} and ${s.r??s.reps} reps" class="sc-rep${isHold(s.su)?' hold':''}${fresh&&s===latest?' sc-chip-fresh':''}">${hesc(String(setNum(s.r??s.reps,s.su)))}</button>`).join('')}</span>${feedback}</span></div>`;
   };
@@ -302,7 +306,7 @@ function plSessionHTML(ex,last,today){
       const outcome=plSetOutcome(ex,a,row.last,t),isLatest=a===latest;if(isLatest)latestOutcome=outcome;
       return `<div class="sc-actual sc-marked-value${fresh&&isLatest?' sc-fresh':''}${outcome.win?' sc-win':''}">${value(a,'sc-now',`data-sc-load="${a.w}" aria-label="Load logged weight ${hesc(text(a))}"`)}${isLatest||outcome.win?plOutcomeMark(ex,a,row.last,t,outcome):''}</div>`;
     }).join('')||`<span class="sc-empty">${pending?(choice.target?.id===t.id?'Next':'Not yet'):'—'}</span>`;
-    return `<tr><th scope="row">${row.label}${plWarmMark(t)}</th>${hasLast?'<td>'+past+'</td>':''}${hasPlan?'<td>'+target+'</td>':''}<td>${logged}</td></tr>`;
+    return `<tr><th scope="row">${pending?`<button type="button" class="sc-slot" data-link-slot="${t.ordinal}" aria-label="Use planned set ${t.ordinal}" aria-pressed="${choice.target?.id===t.id}">${row.label}</button>`:row.label}${plWarmMark(t)}</th>${hasLast?'<td>'+past+'</td>':''}${hasPlan?'<td>'+target+'</td>':''}<td>${logged}</td></tr>`;
   }).join('');
   const done=targets.filter(t=>plActual(todayISO,t.id).length).length,groups=plSessionGroups(rows),canCompact=rows.length>4&&groups.length<rows.length,compact=canCompact&&lift.scDetails!==ex;
   return `<section class="lastcard sc-session plan-link${compact?' sc-compact':''}${compact&&groups.length>6?' sc-dense':''}" aria-label="Your sets comparison"><div class="sc-head"><strong>Your sets</strong><span>${actual.length} set${actual.length===1?'':'s'} logged</span></div><div class="sc-toolbar"><span>${U()} · ${isHold(unitOf(ex))?'seconds':'reps'}</span><div class="sc-tools">${today.length?`<button type="button" class="sessedit" id="sessEdit">${icon('edit',ICON_SZ.sm)} Edit Logged</button>`:''}${hasPlan?`<button type="button" data-sc-edit-plan="${displayPlan.date}">${icon('edit',ICON_SZ.sm)} Edit Plan</button>`:''}${canCompact?`<button type="button" data-sc-details aria-expanded="${!compact}">${icon(compact?'expand':'collapse',ICON_SZ.sm)} ${compact?'Expand':'Collapse'}</button>`:''}</div></div>
