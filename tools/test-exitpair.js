@@ -9,6 +9,11 @@ const order = [...html.matchAll(/src="(js\/[^?"]+)\?v=/g)].map(m => m[1]);
 const dom = new JSDOM(html.replace(/<script[^>]*src=[^>]*><\/script>/g, ""), {
   url: "https://tahros.github.io/showup/", runScripts: "outside-only", pretendToBeVisual: true });
 const w = dom.window, ctx = dom.getInternalVMContext();
+/* v4.6.45: jsdom has no dialog. The completion action moved into one in v4.6.44,
+   so reaching it needs the same stub test-daydone has carried since that change. */
+w.HTMLDialogElement.prototype.showModal=function(){this.open=true;};
+w.HTMLDialogElement.prototype.close=function(){this.open=false;};
+
 w.fetch = () => Promise.reject(new Error("offline"));
 w.matchMedia = w.matchMedia || (() => ({ matches:false, addEventListener(){}, removeEventListener(){} }));
 w.navigator.vibrate = () => {}; w.scrollTo = () => {};
@@ -42,8 +47,16 @@ check("Continue carries data-go",
 check("Continue is red while live",
       `document.querySelector('.btnrow .btn[data-go]').classList.contains('livego')`, true);
 check("no part-level Complete anywhere", `!!document.getElementById('donePartBtn')`, false);
-check("...but the day's close is on this screen, quiet while the plan is not done",
-      `(function(){const b=document.getElementById('doneAllBtn'); return !!b && b.classList.contains('ghost');})()`, true);
+/* v4.6.45: the day's close moved off the page and into the persistent bar
+   (v4.6.44). The claim survives the move: it is REACHABLE from this screen, and it
+   stays quiet -- it must not compete with Continue, which is the loud control while
+   a workout is live. Asserted on the bar entry, and on Continue still being the
+   only button in the row above. */
+check("...but the day's close is reachable from this screen",
+      `!!document.getElementById('liveWorkoutFinish')`, true);
+check("...and it does not compete with Continue for the eye",
+      `(function(){const b=document.getElementById('liveWorkoutFinish');
+         return !!b && !b.classList.contains('livego') && !b.classList.contains('pri');})()`, true);
 
 // a part sealed by an earlier build still offers Reopen
 run(`dayMeta().donePart.push('Shoulder'); render();`);

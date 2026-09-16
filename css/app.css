@@ -327,7 +327,10 @@
      v3.3.110 rule never reached it — which is why its buttons could be
      text-selected. Covered explicitly. The IMAGE keeps its callout, since
      long-press to save the card is the one long-press that should work. */
-  #repOv,.calreturn{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+  /* v4.6.45: the live-workout bar joins this list. It is fixed furniture mounted
+     outside #app, and furniture must not be text-selectable -- a long press during
+     a set should not raise a selection handle over the thing you are tapping. */
+  #repOv,.calreturn,#liveWorkoutBar{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   #repOv img{-webkit-touch-callout:default}
   #app{
     max-width:520px;margin:0 auto;min-height:100vh;

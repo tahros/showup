@@ -4,6 +4,11 @@ const dir=process.argv[2]||'.',html=fs.readFileSync(path.join(dir,'index.html'),
 const order=[...html.matchAll(/src="(js\/[^?"]+)\?v=/g)].map(m=>m[1]);
 const dom=new JSDOM(html.replace(/<script[^>]*src=[^>]*><\/script>/g,''),{url:'https://tahros.github.io/showup/',runScripts:'outside-only',pretendToBeVisual:true});
 const w=dom.window,ctx=dom.getInternalVMContext(),run=c=>vm.runInContext(c,ctx);
+/* v4.6.45: jsdom has no dialog. The completion action moved into one in v4.6.44,
+   so reaching it needs the same stub test-daydone has carried since that change. */
+w.HTMLDialogElement.prototype.showModal=function(){this.open=true;};
+w.HTMLDialogElement.prototype.close=function(){this.open=false;};
+
 w.fetch=()=>Promise.reject(new Error('offline'));w.matchMedia=()=>({matches:false,addEventListener(){},removeEventListener(){},addListener(){}});w.scrollTo=()=>{};w.navigator.vibrate=()=>{};
 w.HTMLCanvasElement.prototype.getContext=()=>new Proxy({measureText:()=>({width:10})},{get:(o,k)=>k in o?o[k]:()=>({})});
 for(const s of order)vm.runInContext(fs.readFileSync(path.join(dir,s),'utf8'),ctx,{filename:s});
@@ -15,7 +20,9 @@ function seed(unit,hasRun=true){run(`document.getElementById('dayDone')?.remove(
  DB.settings.unit='${unit}';delete DB.settings.dayDone;delete DB.settings.century;
  DB.days[todayISO]={w:[{part:'Legs',ex:'Squat',w:60,reps:[8]}${hasRun?",{part:'Run',ex:'Run',w:5,mins:30,secs:0}":''}],upd:1,doneEx:[],donePart:[]};
  SEED=deriveAll();view='today';render();`);}
-function click(sel){run(`document.querySelector('${sel}').click()`);}
+/* v4.6.45: #doneAllBtn moved into the confirmation dialog in v4.6.44; openWorkoutFinish()
+   is the step that reaches it. Behaviour asserted is unchanged. */
+function click(sel){run(`${sel==='#doneAllBtn'?'openWorkoutFinish();':''}document.querySelector('${sel}').click()`);}
 (async()=>{
 for(const unit of ['kg','lb']){
  seed(unit);click('#doneAllBtn');
@@ -50,7 +57,13 @@ for(const unit of ['kg','lb']){
   assert.equal(run(`document.querySelector('.card.dayclosed .dcn').textContent.trim()`),'1');
   assert(!run(`document.querySelector('.card.dayclosed').textContent.includes('In the book')`));
   assert(!run(`document.querySelector('.card.dayclosed').textContent.includes('Workout complete')`));
-  assert(run(`document.querySelector('.card.dayclosed').textContent.includes(pretty(todayISO))`));
+  /* v4.6.45: REVERSED, at the maker's word. The card used to carry the date in its
+     visible text; it now reads "N days of showing up" and the date lives in the
+     aria-label. Deliberate, so the claim moves rather than being deleted: the date
+     must still REACH the reader -- a screen reader included -- just not as body
+     text. Asserting it in the label keeps the promise testable. */
+  assert(run(`document.querySelector('.card.dayclosed').getAttribute('aria-label').includes(pretty(todayISO))`));
+  assert(run(`/\\bday(s)? of showing up\\b/.test(document.querySelector('.card.dayclosed').textContent)`));
   // the state and the reopen rule are not lost, they move to the button's label
   assert(/complete/i.test(run(`document.querySelector('.card.dayclosed').getAttribute('aria-label')`)));
  });
@@ -67,7 +80,11 @@ check('strength-only days do not invent a run',()=>{
 run(`document.querySelector('[data-dd="done"]').dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}))`);
 check('Escape closes accessibly',()=>assert(!run(`!!document.getElementById('dayDone')`)));
 run(`reopen('Squat','Legs');render()`);
-check('another set/reopen restores the completion action',()=>assert(run(`!!document.getElementById('doneAllBtn')`)));
+/* v4.6.45: the completion ACTION is the persistent bar entry now (v4.6.44);
+   #doneAllBtn only exists once that opens its dialog. The claim is unchanged --
+   logging again after a completed day must put the way to finish back within
+   reach -- so it is asserted on the control the reader can actually see. */
+check('another set/reopen restores the completion action',()=>assert(run(`!!document.getElementById('liveWorkoutFinish')`)));
 click('#doneAllBtn');
 check('an explicit completion always opens the moment even after today was stamped',()=>{
  assert(run(`!!document.getElementById('dayDone')`));

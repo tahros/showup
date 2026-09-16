@@ -13,6 +13,9 @@ const order=[...html.matchAll(/src="(js\/[^?"]+)\?v=/g)].map(m=>m[1]);
 const dom=new JSDOM(html.replace(/<script[^>]*src=[^>]*><\/script>/g,""),
   {url:"https://tahros.github.io/showup/",runScripts:"outside-only",pretendToBeVisual:true});
 const w=dom.window, ctx=dom.getInternalVMContext();
+/* v4.6.45: jsdom has no dialog; the day's close lives in one since v4.6.44. */
+w.HTMLDialogElement.prototype.showModal=function(){this.open=true;};
+w.HTMLDialogElement.prototype.close=function(){this.open=false;};
 w.fetch=()=>Promise.reject(new Error("offline"));
 w.matchMedia=q=>({matches:/no-preference/.test(String(q)),media:String(q),addEventListener(){},removeEventListener(){}});
 w.navigator.vibrate=()=>{}; w.scrollTo=()=>{}; w.confirm=()=>true;
@@ -28,15 +31,18 @@ const openRun=()=>run(`(function(){DB.days={};DB.settings.unit='lb';DB.settings.
   SEED=deriveAll(); view='lift'; lift.part='Run'; lift.ex='Run'; lift.weight=0; render();})()`);
 
 openRun();
-ok("the run screen offers the close, beside Add run",
-   run(`(function(){const b=document.getElementById('doneAllBtn');
-     return !!b && !!b.closest('.runacts') && !!document.querySelector('.runacts #addrun');})()`));
-ok("...as the only one on the screen, which is the rule for that id",
-   run(`document.querySelectorAll('#doneAllBtn').length`)===1,
-   run(`document.querySelectorAll('#doneAllBtn').length`));
+/* v4.6.45: the day's close left the page for the persistent bar (v4.6.44), so it is
+   no longer "beside Add run" -- but the promises it carried survive the move and are
+   asserted on the bar instead: it is REACHABLE from the run screen, there is exactly
+   ONE of it, and it stays QUIET so Add run is what the thumb finds first. */
+ok("the run screen can reach the day's close",
+   run(`!!document.getElementById('liveWorkoutFinish')`));
+ok("...exactly one of it, which is the rule for that id",
+   run(`document.querySelectorAll('#liveWorkoutFinish').length`)===1,
+   run(`document.querySelectorAll('#liveWorkoutFinish').length`));
 ok("...quiet beside the loud one, so it is not what your thumb finds first",
-   run(`(function(){const b=document.getElementById('doneAllBtn');
-     return b.classList.contains('ghost') && !document.getElementById('addrun').classList.contains('ghost');})()`));
+   run(`(function(){const b=document.getElementById('liveWorkoutFinish'),a=document.getElementById('addrun');
+     return !!b && !!a && !b.classList.contains('livego') && !a.classList.contains('ghost');})()`));
 /* .btn is width:100% by design (v3.3.68) -- both need releasing from it, and
    the close must never grow into the primary */
 {
@@ -48,19 +54,21 @@ ok("...quiet beside the loud one, so it is not what your thumb finds first",
   ok("(fixture) the stylesheet is loaded, or these prove nothing",
      run(`getComputedStyle(document.querySelector('.runacts')).display`)==='flex',
      run(`getComputedStyle(document.querySelector('.runacts')).display`));
-  ok("...neither is stretched to the full width of the card",
-     !/^100%/.test(cs('.runacts #addrun')) && !/^100%/.test(cs('.runacts .runclose')),
-     cs('.runacts #addrun')+"   "+cs('.runacts .runclose'));
-  ok("...Add run takes the room and the close takes only its word",
-     run(`getComputedStyle(document.querySelector('.runacts #addrun')).flexGrow`)==='1' &&
-     run(`getComputedStyle(document.querySelector('.runacts .runclose')).flexGrow`)==='0',
-     "addrun grow="+run(`getComputedStyle(document.querySelector('.runacts #addrun')).flexGrow`)+
-     ", close grow="+run(`getComputedStyle(document.querySelector('.runacts .runclose')).flexGrow`));
+  /* v4.6.45: .runacts held a PAIR -- Add run and the close -- and these two checks
+     were about how they shared the row. The close moved to the persistent bar, so
+     the pair is gone and the sharing rule with it. What remains true, and worth
+     keeping, is that Add run is the primary and takes the row. */
+  ok("...Add run takes the room",
+     run(`getComputedStyle(document.querySelector('.runacts #addrun')).flexGrow`)==='1',
+     "addrun grow="+run(`getComputedStyle(document.querySelector('.runacts #addrun')).flexGrow`));
+  ok("...and nothing else competes for it in that row",
+     run(`document.querySelectorAll('.runacts button').length`)===1,
+     run(`document.querySelectorAll('.runacts button').length`)+' button(s)');
   run(`(function(){const s=document.getElementById('__c'); if(s) s.remove();})()`);
 }
 /* it must actually close the day, through the one handler that owns doneAll */
 ok("(fixture) the day is open", run(`!dayMeta().doneAll`));
-run(`document.getElementById('doneAllBtn').dispatchEvent(new window.MouseEvent('click',{bubbles:true}))`);
+run(`openWorkoutFinish(); document.getElementById('doneAllBtn').dispatchEvent(new window.MouseEvent('click',{bubbles:true}))`);
 ok("tapping it closes the day, the same as the close anywhere else",
    run(`!!dayMeta().doneAll`));
 /* and when the day is already shut there is nothing to close */
