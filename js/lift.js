@@ -938,7 +938,7 @@ function renderLift(){
   /* v3.3.40: Last Time leads. It is the thing you act on between sets — the
      numbers you're about to match — while Progression is context you read
      once. The terminal action stays last. */
-  if(!isRun && isLive() && todaySets.length) h+=liveBars(ex,todaySets);
+  // Exercise history is shown once, in Progression below.
   h+=progressionSection(ex, 'train');
   /* v3.3.371: only ONE control in the app says "Complete workout" -- the one
      that ends the day. These two close a step within it, and saying the same
