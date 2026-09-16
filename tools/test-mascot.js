@@ -8,6 +8,11 @@ const order = [...html.matchAll(/src="(js\/[^?"]+)\?v=/g)].map(m => m[1]);
 const dom = new JSDOM(html.replace(/<script[^>]*src=[^>]*><\/script>/g, ""), {
   url: "https://tahros.github.io/showup/", runScripts: "outside-only", pretendToBeVisual: true });
 const w = dom.window, ctx = dom.getInternalVMContext();
+/* v4.6.45: jsdom has no dialog. The completion action moved into one in v4.6.44,
+   so reaching it needs the same stub test-daydone has carried since that change. */
+w.HTMLDialogElement.prototype.showModal=function(){this.open=true;};
+w.HTMLDialogElement.prototype.close=function(){this.open=false;};
+
 w.fetch = () => Promise.reject(new Error("offline"));
 w.matchMedia = w.matchMedia || (() => ({ matches:false, addEventListener(){}, removeEventListener(){} }));
 w.navigator.vibrate = () => {}; w.scrollTo = () => {};
@@ -44,7 +49,12 @@ ok('partially timed records are also unknown',run("workoutCompletionMetrics({com
 ok('empty rows are zero sets and exercises',run("workoutCompletionMetrics({w:[]}).sets===0&&workoutCompletionMetrics({w:[]}).exercises===0"));
 run("DB.days={};delete DB.settings.mascot25Date;for(let i=1;i<=24;i++){const d=new Date(todayISO+'T12:00');d.setDate(d.getDate()-i*2);DB.days[d.toLocaleDateString('en-CA')]={w:[{part:'Legs',ex:'Squat',reps:[8]}]};}DB.days[todayISO]={w:record.w,doneAll:false,doneEx:[],donePart:[]};SEED=deriveAll();view='today';render();");
 ok('imports/rendering never award milestone',run('!DB.settings.mascot25Date'));
-run("document.querySelector('#doneAllBtn').click()");
+/* v4.6.45: the completion action moved INTO a confirmation dialog in v4.6.44 --
+   #liveWorkoutFinish opens it, #doneAllBtn still does the work. Four suites clicked
+   the button where it used to live and went red at v4.6.44; main shipped past them.
+   openWorkoutFinish() is the step that was missing, and it is what test-daydone
+   already did. The behaviour asserted here is unchanged. */
+run("openWorkoutFinish(); document.querySelector('#doneAllBtn').click()");
 ok('actual completion earns the 25 non-consecutive days milestone',run('DB.settings.mascot25Date===todayISO'));
 run("document.querySelector('[data-dd=milestone]').click()");
 ok('all 25 boxes rendered, no checkmarks',run("document.querySelectorAll('.su-milestone-grid i').length===25&&!document.querySelector('.su-milestone-grid').textContent.includes('✓')"));

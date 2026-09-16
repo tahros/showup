@@ -95,8 +95,14 @@ check("no dangling × from empty reps",
 // ---- LAST TIME card unchanged by the extraction
 run(`lift={part:'Shoulder',ex:'Dumbbell Press'}; view='lift'; render();`);
 check("LAST TIME card still renders", `!!document.querySelector('.lastcard')`, true);
+/* v4.6.45: data-sc-load is not always ON the .sc-history element. In a GROUPED row
+   (a superset, which is what this fixture builds) .sc-history is the wrapper and the
+   loader is an inner button; in a simple row they are the same element. The claim is
+   that a LAST TIME row is tappable, so it is asserted as "the attribute is inside the
+   row", which holds for both shapes. The old compound selector only ever matched the
+   simple one, and went false the moment the grouped markup arrived. */
 check("LAST TIME rows still tappable",
-      `!!document.querySelector('.sc-history[data-sc-load]')`, true);
+      `!!document.querySelector('.sc-history[data-sc-load], .sc-history [data-sc-load]')`, true);
 /* ---- v3.3.493: THIS SESSION answers the same tap ----
    Both groups read in one grammar (v3.3.144); until now only the dimmed one
    was live, so stepping down to last week's weight was a tap and stepping
@@ -104,10 +110,10 @@ check("LAST TIME rows still tappable",
    the logger's weight is read back -- not merely that the attribute is on the
    markup, which would pass on a row nothing listens to. */
 check("THIS SESSION rows are tappable too",
-      `!!document.querySelector('.sc-now[data-sc-load]')`, true);
+      `!!document.querySelector('.sc-now[data-sc-load], .sc-now [data-sc-load]')`, true);
 check("...and tapping one loads that weight into the logger",
       `(function(){
-         const row=document.querySelector('.sc-now[data-sc-load]');
+         const row=document.querySelector('.sc-now[data-sc-load], .sc-now [data-sc-load]');
          if(!row) return 'no row';
          const want=+row.dataset.scLoad;
          lift.weight=0;
@@ -115,7 +121,7 @@ check("...and tapping one loads that weight into the logger",
          return lift.weight===want ? 'loaded' : 'weight='+lift.weight+' want='+want;})()`, "loaded");
 check("...and the dimmed row below still does the same",
       `(function(){
-         const row=document.querySelector('.sc-history[data-sc-load]');
+         const row=document.querySelector('.sc-history[data-sc-load], .sc-history [data-sc-load]');
          if(!row) return 'no row';
          const want=+row.dataset.scLoad;
          lift.weight=0;

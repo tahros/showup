@@ -6,6 +6,11 @@ const fn=source.slice(source.indexOf('function repairNavLayout(){'),source.index
 assert(fn && fn.includes('return true;'));
 const dom=new JSDOM(fs.readFileSync(path.join(dir,'index.html'),'utf8'),{runScripts:'outside-only'});
 const w=dom.window,n=w.document.querySelector('#nav'),bs=[...n.children];
+/* v4.6.45: jsdom has no dialog. The completion action moved into one in v4.6.44,
+   so reaching it needs the same stub test-daydone has carried since that change. */
+w.HTMLDialogElement.prototype.showModal=function(){this.open=true;};
+w.HTMLDialogElement.prototype.close=function(){this.open=false;};
+
 w.document.documentElement.dataset.skin='minimal';
 Object.defineProperty(w.document.documentElement,'clientWidth',{value:390,configurable:true});
 n.style.cssText='position:fixed;display:flex;flex-direction:row';
@@ -39,7 +44,15 @@ rect={left:0,right:0,top:0,width:0,height:0};
 assert.strictEqual(w.repairNavLayout(),false);
 assert(source.includes("addEventListener('resize',scheduleNavLayoutCheck"));
 assert(source.includes("if(document.visibilityState==='visible') scheduleNavLayoutCheck();"));
-assert(/function syncNav\(\)\{\s*scheduleNavLayoutCheck\(\)/.test(fs.readFileSync(path.join(dir,'js/app.js'),'utf8')));
+/* v4.6.45: the claim is that syncNav SCHEDULES THE LAYOUT CHECK -- not that it is
+   the first statement in the body. v4.6.44 added syncLiveWorkout() above it and the
+   regex failed on the ordering, which was never the promise. Matched inside the
+   function body instead, so another line can join it without a false alarm. */
+{
+  const src=fs.readFileSync(path.join(dir,'js/app.js'),'utf8');
+  const body=(src.match(/function syncNav\(\)\{[\s\S]*?\n\}/)||[''])[0];
+  assert(/scheduleNavLayoutCheck\(\)/.test(body),'syncNav schedules the nav layout check');
+}
 // v3.3.495: the scroll-idle trigger is gone with navReanchor(). repairNavLayout
 // keeps render, resize and resume; it no longer re-pins inline !important
 // geometry every time a scroll settles.

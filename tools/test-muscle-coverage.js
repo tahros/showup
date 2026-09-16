@@ -35,10 +35,14 @@ const check = (name, expr, want) => {
 (async () => {
 await new Promise(r => setTimeout(r, 80));
 
-// ---- structural: every catalog exercise (bar Run) has a primary muscle in a
-// visible group. This is the whole-catalog dry run, as an assertion.
+// ---- structural: every catalog exercise (bar CARDIO) has a primary muscle in a
+// visible group. v4.6.45: the carve-out was the single name 'Run'; cardio is now
+// eight exercises and none of them has a primary lifting muscle -- that is the
+// point of the carve-out, not an oversight about one row.
 check("every catalog exercise maps to a primary muscle",
-      `Object.keys(SEED0.ex2part).filter(e=>e!=='Run'&&!EX_MUSCLE[e]).length`, 0);
+      `Object.keys(SEED0.ex2part).filter(e=>!isCardioEx(e)&&!EX_MUSCLE[e]).length`, 0);
+check("...and every cardio exercise is deliberately outside that map",
+      `Object.keys(CARDIO_EX).filter(e=>EX_MUSCLE[e]).length`, 0);
 check("every mapped muscle rolls up to a visible group",
       `[...new Set(Object.values(EX_MUSCLE))].filter(m=>!MUSCLE_VISIBLE[m]).length`, 0);
 check("six visible groups, as specced", `VISIBLE_GROUPS.length`, 6);
