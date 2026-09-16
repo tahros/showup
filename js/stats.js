@@ -1441,6 +1441,9 @@ document.addEventListener('input',e=>{
 });
 
 function renderStats(){
+  // One progression surface: the active workout leads; the history explorer
+  // returns to its usual position when the workout is no longer live.
+  const liveProgression=progressionLiveSection();
   const _S={}; const cut=k=>{ _S[k]=h; h=''; };
   if(SEED.totals.sessions===0 && !hasAnyDays()){ $('#view').innerHTML=emptyHero('stats'); return; }
   const dates=workoutDates();
@@ -1485,7 +1488,7 @@ function renderStats(){
       <div class="card mccard">${muscleCard()}</div>`;
   cut('mc');
   h+=growthAuditSection();
-  h+=progressionStatsSection();
+  if(!liveProgression)h+=progressionStatsSection();
   cut('rz');
   /* v3.3.271: five retired time sections DELETED — Consistency curves,
      Last 6 months, Days by month, Weekdays, Every month. Retired from the
@@ -1508,7 +1511,7 @@ function renderStats(){
   // week's coverage, then the audit's verdict, then the attendance hero, then
   // pace and the year story.
   h = _S.pmix + wovenSection() + _S.mc + _S.rz + _S.kpis + _S.mpace + _S.consrace;
-  h = progressionLiveSection() + h;
+  h = liveProgression + h;
   h = plateStatsHTML() + h;
 
   // the whole Run story lives here now (was its own tab in v2.04 — reverted)
