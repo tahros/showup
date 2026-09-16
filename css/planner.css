@@ -64,7 +64,12 @@ button.sc-rep{border:0;color:inherit;cursor:pointer;margin:0}
 .sc-compact .sc-celebrate small{display:none}
 .sc-compact .sc-volume{margin-top:8px;padding-top:8px}
 .sc-compact .pl-next{margin-top:4px}
-.sc-compact-result{display:flex;justify-content:center;align-items:center;gap:3px;color:var(--accent-ink);font:400 11px/1.4 var(--body);padding-bottom:3px}
+.sc-reps-wrap{position:relative;display:inline-flex;justify-content:center;max-width:calc(100% - 28px)}
+.sc-group-value:not(.sc-now) .sc-reps-wrap{max-width:100%}
+.sc-outcome-mark{position:absolute;left:calc(100% + 2px);top:50%;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;width:24px;min-height:32px;padding:0;border:0;border-radius:6px;background:none;color:var(--accent-ink);cursor:pointer}
+.sc-outcome-mark .ic{width:12px;height:12px;opacity:.8}
+.sc-outcome-mark:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.sc-marked-value{position:relative;display:table;margin:0 auto;max-width:calc(100% - 28px)}
 .sc-chip-fresh{animation:sc-save-pop 650ms ease-out}
 @media(prefers-reduced-motion:reduce){.sc-chip-fresh{animation:none}}
 .pw-workspace,.pw-home{min-width:0;color:var(--chalk);font-family:var(--body)}

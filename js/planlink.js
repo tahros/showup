@@ -246,6 +246,11 @@ function plSetOutcome(ex,a,last,target){
   return {label:bl&&bp?'Beat both':bl?'Beat last':bp?'Above plan':met?'On target':'Set done',win:!!(bl||bp)};
 }
 const plWarm=t=>/warm[ -]?up|^prep$/i.test(t?.qualifier||'');
+function plOutcomeMark(ex,a,last,target,outcome){
+  const recorded=wLabel(ex,a.w)+' × '+setNum(a.r,a.su);
+  const message=(outcome.label==='Set done'?'Set done. Every set counts.':outcome.label+'. Set recorded.')+' '+recorded+'.'+(last?' Last: '+wLabel(ex,last.w)+' × '+setNum(last.r,last.su)+'.':'')+(target?' Plan: '+plTargetText(target)+'.':'');
+  return `<button type="button" class="sc-outcome-mark" data-sc-feedback="${hesc(message)}" aria-label="${hesc(outcome.label)}. Show set comparison">${icon('check',12)}</button>`;
+}
 const plWarmMark=t=>plWarm(t)?'<span class="sc-warm-mark" aria-label="Planned warm-up">W</span>':'';
 function plSessionGroups(rows){
   const shape=s=>s?[s.w,s.su||'',!!s.bw,!!s.nw,!!s.est,s.qualifier||'']:null,groups=[];
@@ -262,10 +267,10 @@ function plTapAttrs(s){
   return `data-sc-load="${s.w}" data-sc-reps="${s.r??s.reps}"${s.ordinal&&!s.preview&&!plActual(todayISO,s.id).length?` data-link-slot="${s.ordinal}"`:''}`;
 }
 function plCompactBody(ex,groups,hasLast,hasPlan,choice,latest,fresh){
-  const cell=(sets,kind,attrs)=>{
+  const cell=(sets,kind,attrs,feedback='')=>{
     if(!sets.length)return '<span class="sc-empty">—</span>';
     const s=sets[0],load=s.nw?'By feel':s.bw?(s.w?'BW + '+wDisp(s.w):'BW'):wLabel(ex,s.w);
-    return `<div class="sc-value sc-group-value ${kind}"><button type="button" class="sc-load-weight" ${plTapAttrs(s)} aria-label="Load ${hesc(load)} and ${s.r??s.reps} reps"><span class="sc-weight">${hesc((s.est?'≈':'')+load)}<span class="sc-times"> ×</span></span></button><span class="sc-reps">${sets.map(s=>`<button type="button" ${plTapAttrs(s)} aria-label="Load ${hesc(load)} and ${s.r??s.reps} reps" class="sc-rep${isHold(s.su)?' hold':''}${fresh&&s===latest?' sc-chip-fresh':''}">${hesc(String(setNum(s.r??s.reps,s.su)))}</button>`).join('')}</span></div>`;
+    return `<div class="sc-value sc-group-value ${kind}"><button type="button" class="sc-load-weight" ${plTapAttrs(s)} aria-label="Load ${hesc(load)} and ${s.r??s.reps} reps"><span class="sc-weight">${hesc((s.est?'≈':'')+load)}<span class="sc-times"> ×</span></span></button><span class="sc-reps-wrap"><span class="sc-reps">${sets.map(s=>`<button type="button" ${plTapAttrs(s)} aria-label="Load ${hesc(load)} and ${s.r??s.reps} reps" class="sc-rep${isHold(s.su)?' hold':''}${fresh&&s===latest?' sc-chip-fresh':''}">${hesc(String(setNum(s.r??s.reps,s.su)))}</button>`).join('')}</span>${feedback}</span></div>`;
   };
   return groups.map(({rows})=>{
     const first=rows[0],last=rows.at(-1),past=rows.map(r=>r.last).filter(Boolean),targets=rows.map(r=>r.target).filter(Boolean),actual=rows.flatMap(r=>r.actual);
@@ -273,7 +278,7 @@ function plCompactBody(ex,groups,hasLast,hasPlan,choice,latest,fresh){
     const label=rows.length>1&&first.label!=='+'?first.label+'–'+last.label:first.label;
     const selected=targets.some(t=>t.id===choice.target?.id);
     const latestRow=rows.find(r=>r.actual.includes(latest)),outcome=latestRow?plSetOutcome(ex,latest,latestRow.last,latestRow.target):null;
-    return `<tr><th scope="row">${label}${plWarmMark(first.target)}</th>${hasLast?`<td>${cell(past,'sc-history',past.length?`data-sc-load="${past[0].w}" aria-label="Load last-session weight for sets ${label}"`:'')}</td>`:''}${hasPlan?`<td>${targets.length?cell(targets,'sc-plan',`data-link-slot="${(selected?choice.target:available||targets[0]).ordinal}" ${available?'':'disabled'} aria-pressed="${selected}" aria-label="Select next unlogged target in sets ${label}; use Details to choose an individual set"`):'<span class="sc-empty">'+(first.unlinked?'Unlinked':'—')+'</span>'}${first.target?.qualifier&&!plWarm(first.target)?'<small class="sc-qual">'+hesc(first.target.qualifier)+'</small>':''}</td>`:''}<td>${cell(actual,'sc-now',actual.length?`data-sc-load="${actual[0].w}" aria-label="Load logged weight for sets ${label}"`:'')}${outcome?`<span class="sc-compact-result">${outcome.win?icon('sparkle',ICON_SZ.sm):'✓'} ${outcome.label}</span>`:''}</td></tr>`;
+    return `<tr><th scope="row">${label}${plWarmMark(first.target)}</th>${hasLast?`<td>${cell(past,'sc-history',past.length?`data-sc-load="${past[0].w}" aria-label="Load last-session weight for sets ${label}"`:'')}</td>`:''}${hasPlan?`<td>${targets.length?cell(targets,'sc-plan',`data-link-slot="${(selected?choice.target:available||targets[0]).ordinal}" ${available?'':'disabled'} aria-pressed="${selected}" aria-label="Select next unlogged target in sets ${label}; use Details to choose an individual set"`):'<span class="sc-empty">'+(first.unlinked?'Unlinked':'—')+'</span>'}${first.target?.qualifier&&!plWarm(first.target)?'<small class="sc-qual">'+hesc(first.target.qualifier)+'</small>':''}</td>`:''}<td>${cell(actual,'sc-now','',outcome?plOutcomeMark(ex,latest,latestRow.last,latestRow.target,outcome):'')}</td></tr>`;
   }).join('');
 }
 function plSessionHTML(ex,last,today){
@@ -295,12 +300,12 @@ function plSessionHTML(ex,last,today){
     const target=t?value(t,'sc-plan',`data-link-slot="${t.ordinal}" ${pending?'':'disabled'} aria-pressed="${choice.target?.id===t.id}" aria-label="${pending?'Select':'Planned'} set ${t.ordinal}: ${hesc(plTargetText(t))}"`)+(t.qualifier&&!plWarm(t)?`<small class="sc-qual">${hesc(t.qualifier)}</small>`:''):`<span class="sc-empty">${row.unlinked?'Unlinked':'—'}</span>`;
     const logged=row.actual.map(a=>{
       const outcome=plSetOutcome(ex,a,row.last,t),isLatest=a===latest;if(isLatest)latestOutcome=outcome;
-      return `<div class="sc-actual${fresh&&isLatest?' sc-fresh':''}${outcome.win?' sc-win':''}">${value(a,'sc-now',`data-sc-load="${a.w}" aria-label="Load logged weight ${hesc(text(a))}"`)}${isLatest||outcome.win?`<details class="sc-result"><summary aria-label="${hesc(outcome.label)}. Show comparison">${outcome.win?icon('sparkle',ICON_SZ.sm):'<span aria-hidden="true">✓</span>'}<span>${outcome.label}</span></summary><p>Set recorded: ${hesc(text(a))}.${row.last?' Last: '+hesc(text(row.last))+'.':''}${t?' Plan: '+hesc(plTargetText(t))+'.':''}</p></details>`:''}</div>`;
+      return `<div class="sc-actual sc-marked-value${fresh&&isLatest?' sc-fresh':''}${outcome.win?' sc-win':''}">${value(a,'sc-now',`data-sc-load="${a.w}" aria-label="Load logged weight ${hesc(text(a))}"`)}${isLatest||outcome.win?plOutcomeMark(ex,a,row.last,t,outcome):''}</div>`;
     }).join('')||`<span class="sc-empty">${pending?(choice.target?.id===t.id?'Next':'Not yet'):'—'}</span>`;
     return `<tr><th scope="row">${row.label}${plWarmMark(t)}</th>${hasLast?'<td>'+past+'</td>':''}${hasPlan?'<td>'+target+'</td>':''}<td>${logged}</td></tr>`;
   }).join('');
   const done=targets.filter(t=>plActual(todayISO,t.id).length).length,groups=plSessionGroups(rows),canCompact=rows.length>4&&groups.length<rows.length,compact=canCompact&&lift.scDetails!==ex;
-  return `<section class="lastcard sc-session plan-link${compact?' sc-compact':''}${compact&&groups.length>6?' sc-dense':''}" aria-label="Your sets comparison"><div class="sc-head"><strong>Your sets</strong><span>${actual.length} sets logged</span></div><div class="sc-toolbar"><span>${U()} · ${isHold(unitOf(ex))?'seconds':'reps'}</span><div class="sc-tools">${today.length?`<button type="button" class="sessedit" id="sessEdit">${icon('edit',ICON_SZ.sm)} Edit Logged</button>`:''}${hasPlan?`<button type="button" data-sc-edit-plan="${displayPlan.date}">${icon('edit',ICON_SZ.sm)} Edit Plan</button>`:''}${canCompact?`<button type="button" data-sc-details aria-expanded="${!compact}">${icon(compact?'expand':'collapse',ICON_SZ.sm)} ${compact?'Expand':'Collapse'}</button>`:''}</div></div>
+  return `<section class="lastcard sc-session plan-link${compact?' sc-compact':''}${compact&&groups.length>6?' sc-dense':''}" aria-label="Your sets comparison"><div class="sc-head"><strong>Your sets</strong><span>${actual.length} set${actual.length===1?'':'s'} logged</span></div><div class="sc-toolbar"><span>${U()} · ${isHold(unitOf(ex))?'seconds':'reps'}</span><div class="sc-tools">${today.length?`<button type="button" class="sessedit" id="sessEdit">${icon('edit',ICON_SZ.sm)} Edit Logged</button>`:''}${hasPlan?`<button type="button" data-sc-edit-plan="${displayPlan.date}">${icon('edit',ICON_SZ.sm)} Edit Plan</button>`:''}${canCompact?`<button type="button" data-sc-details aria-expanded="${!compact}">${icon(compact?'expand':'collapse',ICON_SZ.sm)} ${compact?'Expand':'Collapse'}</button>`:''}</div></div>
     ${changed&&!preview?'<p class="pl-context">Plan edited since you started. These targets stay with this workout.</p>':''}
     ${body?`<table class="sc-table"><thead><tr><th scope="col">Set</th>${hasLast?`<th scope="col">Last<button class="sc-date linkdate" data-histd="${last.d}">${hesc(wd(last.d))}</button></th>`:''}${hasPlan?'<th scope="col">Plan<small>'+hesc(wd(displayPlan.date))+'</small></th>':''}<th scope="col">Logged<small>Today</small></th></tr></thead><tbody>${compact?plCompactBody(ex,groups,hasLast,hasPlan,choice,latest,fresh):body}</tbody></table>`:'<p class="sc-intro">Your first set starts here. Log your weight and reps above.</p>'}
     ${targets.some(plWarm)?'<p class="sc-warm-key"><span aria-hidden="true">W</span> Planned warm-up</p>':''}
@@ -311,6 +316,8 @@ function plSessionHTML(ex,last,today){
     ${hasPlan&&!preview&&rows.some(r=>r.unlinked)?'<p class="pl-context">Unlinked sets count too. They are not assigned to a plan target.</p>':''}</section>`;
 }
 document.addEventListener('click',e=>{
+  const feedback=e.target.closest('[data-sc-feedback]');
+  if(feedback){toast(feedback.dataset.scFeedback);return;}
   const editPlan=e.target.closest('[data-sc-edit-plan]');
   if(editPlan){pwOpen(editPlan.dataset.scEditPlan);if(typeof pfState==='function'){pfState().returnView='lift';pwPersist();}return;}
   if(e.target.closest('[data-sc-details]')){lift.scDetails=lift.scDetails===lift.ex?null:lift.ex;renderLift();return;}
