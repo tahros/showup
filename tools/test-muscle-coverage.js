@@ -100,9 +100,9 @@ check("Legs row lights two dots (Deadlift and Hip Thrust days)",
    and the set total are separate cells, because "1 day" and "2 days" can only
    share a column if the number is measured apart from its word. Reading the
    row's whole text still proves the ORDER, which is the property. */
-check("days come before sets in the count (days > volume)",
+check("overview shows day counts only",
       `(function(){const r=[...document.querySelectorAll('.mcrow')].find(x=>x.querySelector('.mcname').textContent==='Legs');
-        return /\\d+\\s*days? \\u00b7 \\d+ sets?/.test(r.textContent.replace(/\\s+/g,' '));})()`, true);
+        return /\\d+\\s*days?/.test(r.textContent.replace(/\\s+/g,' ')) && !r.querySelector('.mcs') && !document.querySelector('.mchead small');})()`, true);
 check("an untrained group states 0 days in the same voice",
       `(function(){const r=[...document.querySelectorAll('.mcrow')].find(x=>x.querySelector('.mcname').textContent==='Arms');
         return r.querySelector('.mcv').textContent;})()`, 0);
@@ -174,9 +174,9 @@ check("...the day marks are seven fixed cells, flush at both ends",
             && !/repeat\(7,1fr\)/.test(r);})()}`, "true");
 /* the tail: count right, unit left, dot centred, sets right -- four cells on
    four tracks, measured across ALL rows so they line up down the card */
-check("...and the tail is four aligned cells, not one string",
+check("...and the tail contains only a day count and unit",
       `(function(){const r=document.querySelector('.mcrow');
-        return ['.mcv','.mcu','.mcsep','.mcs'].every(c=>!!r.querySelector(c));})()`, true);
+        return ['.mcv','.mcu'].every(c=>!!r.querySelector(c)) && !r.querySelector('.mcsep,.mcs');})()`, true);
 check("...and the card carries no measured widths of its own",
       /* v3.3.352: nothing is written onto the card any more -- the grid sizes
          its own tail. What must hold is that the card IS the grid. */

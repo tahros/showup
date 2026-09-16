@@ -706,7 +706,7 @@ function muscleCard(){
   const current=days.indexOf(todayISO),remaining=days.filter(d=>d>todayISO);
   const cellClass=i=>`mccell${i===current?' mc-today':''}`;
   const head=`<div class="mchead" aria-hidden="true"><span></span>
-      <span class="mcdots">${WD.map((w,i)=>`<span class="${cellClass(i)}"><i>${w}${i===current?'<small>now</small>':''}</i></span>`).join('')}</span>
+      <span class="mcdots">${WD.map((w,i)=>`<span class="${cellClass(i)}"><i>${w}</i></span>`).join('')}</span>
       <span></span></div>`;
   /* v3.3.354: the separator is an ELEMENT spanning the grid, not a border on
      each cell -- cells are centre-aligned and each drew its own top edge, so
@@ -740,9 +740,7 @@ function muscleCard(){
       <span class="mcname">${v}</span>
       <span class="mcdots">${gg.dots.map((on,i)=>`<span class="${cellClass(i)}" aria-label="${days[i]}${i===current?', today':''}: ${on?'trained':days[i]>todayISO?'upcoming':'no training'}"><i class="${on?'on':days[i]>todayISO?'mc-future':''}" aria-hidden="true"></i></span>`).join('')}</span>
       <span class="mcsummary"><b class="mcv">${gg.days.size}</b>
-      <span class="mcu">day${gg.days.size===1?'':'s'}</span>
-      <span class="mcsep" aria-hidden="true">\u00b7</span>
-      <span class="mcs">${gg.sets} set${gg.sets===1?'':'s'}</span></span>
+      <span class="mcu">day${gg.days.size===1?'':'s'}</span></span>
     </div>${inner}`;
   }).join('');
   const short=d=>new Date(d+'T00:00').toLocaleDateString('en-US',{weekday:'short'});
