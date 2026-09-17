@@ -3906,6 +3906,22 @@
 .live-workout-title i{width:6px;height:6px;flex-shrink:0;border-radius:50%;background:var(--accent);animation:live-workout-pulse 2.8s ease-in-out infinite}
 .live-workout-meta{display:block;color:var(--muted);font-size:11px;line-height:1.4;margin:3px 0 0 13px;font-variant-numeric:tabular-nums}
 #liveWorkoutFinish{display:flex;align-items:center;justify-content:center;gap:7px;padding:8px 12px;flex-shrink:0;background:var(--surface2);color:var(--accent-ink);border-radius:12px;font-size:13px;font-weight:500}
+/* v4.6.60: THE LIVE BAR FOLLOWS THE BAR, NOT THE PAGE. It was painted --surface /
+   --chalk / --line, which are PAGE-theme tokens, so a dark nav in a light app left
+   a white slab sitting directly on top of it. This is the same finding as v3.3.478
+   (the selected glyph) and v3.3.510 (the rest ring): the bar's appearance is chosen
+   independently of the page, so anything that belongs to the bar needs the bar's
+   own ink. --pill / --pill-ink / --pill-chalk / --pill-accent already exist for
+   exactly this and are keyed to data-bar; the live bar simply never joined them.
+   Guarded on the tokens being defined, so the classic skin -- which has no pill
+   block -- keeps the page tokens it was designed with. */
+:root[data-skin="minimal"] #liveWorkoutBar{background:var(--pill);color:var(--pill-chalk);
+  border-color:color-mix(in srgb, var(--pill-chalk) 14%, transparent);box-shadow:var(--pill-shadow)}
+:root[data-skin="minimal"] #liveWorkoutResume{color:var(--pill-chalk)}
+:root[data-skin="minimal"] .live-workout-meta{color:var(--pill-ink)}
+:root[data-skin="minimal"] .live-workout-title i{background:var(--pill-accent)}
+:root[data-skin="minimal"] #liveWorkoutFinish{
+  background:color-mix(in srgb, var(--pill-chalk) 12%, transparent);color:var(--pill-accent)}
 :root.workout-active.workout-active #app{padding-bottom:calc(134px + var(--live-workout-extra,72px))}
 :root.workout-active .pw-save-dock{bottom:calc(96px + var(--live-workout-extra,72px))}
 #workoutFinishDialog{position:fixed;inset:auto 0 0;margin:0 auto;width:100%;max-width:520px;box-sizing:border-box;padding:14px 24px calc(24px + env(safe-area-inset-bottom,0px));border:1px solid var(--line);border-radius:26px 26px 0 0;background:var(--surface);color:var(--chalk);font-family:var(--body);max-height:90%;overflow:auto}
