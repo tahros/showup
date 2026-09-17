@@ -469,3 +469,32 @@ ok("pressing it places the day", run(`!!document.getElementById('dayDone')`));
 
 process.exit(fail?1:0);
 })();
+
+/* ---- v4.6.59: THE LIVE BAR POSITIONS ITSELF -------------------------------
+   positionLiveWorkout() copied the NAV's measured rectangle into inline
+   left/width/bottom on every render, one frame late. A frame measured during a
+   transition wrote a transient rectangle into durable inline styles, where it
+   stayed until the next render -- one bad frame, a bar stuck off screen. The
+   constraints are stated in CSS now, so there is nothing to measure. */
+{
+  const src=fs.readFileSync(path.join(dir,'js/app.js'),'utf8');
+  const body=(src.match(/function positionLiveWorkout\(\)\{[\s\S]*?\n\}/)||[''])[0];
+  ok("the bar's position is not copied from the nav's rectangle",
+     !/nav\.getBoundingClientRect|bar\.style\.left\s*=|bar\.style\.width\s*=|bar\.style\.bottom\s*=/.test(body));
+  ok("...and stale inline geometry from an older build is cleared",
+     /removeProperty\('left'\)/.test(body)&&/removeProperty\('bottom'\)/.test(body));
+  ok("...while its own height is still measured, since nothing else knows it",
+     /--live-workout-extra/.test(body)&&/getBoundingClientRect\(\)\.height/.test(body));
+  ok("...and a zero height is discarded rather than published",
+     /h>0/.test(body));
+  const css=fs.readFileSync(path.join(dir,'css/app.css'),'utf8');
+  /* there is more than one #liveWorkoutBar rule (one of them only disables text
+     selection), so match the one that actually carries the geometry. */
+  const rules=(css.replace(/\/\*[\s\S]*?\*\//g,'').match(/#liveWorkoutBar\{[^}]*\}/g)||[]);
+  const rule=rules.find(r=>/position:fixed/.test(r))||'';
+  ok("the bar states the same constraints the nav uses",
+     /left:0/.test(rule)&&/right:0/.test(rule)&&/margin:0 auto/.test(rule)&&/520px/.test(rule), rule.slice(-120));
+  ok("...and sits above the nav, not on top of it",
+     /bottom:calc\(58px/.test(rule));
+}
+console.log('PASS live bar positioning');

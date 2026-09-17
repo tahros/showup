@@ -11,7 +11,12 @@ function ok(name,value){console.log(value?'PASS':'FAIL',name);if(!value)fail++;}
 run(`DB.days[todayISO]={w:[{part:'Chest',ex:'Chest Press',w:40,reps:[8,8],at:1}],upd:1};SEED=deriveAll();view='stats';render();`);
 ok('Are you growing is absent',run(`![...document.querySelectorAll('#view h2')].some(h=>/growing/i.test(h.textContent))`));
 ok('its card is absent',run(`!document.querySelector('.gacard')`));
-ok('Your strength progress replaces the decision layer',run(`[...document.querySelectorAll('#view h2')].some(h=>h.textContent.includes('Your strength progress'))`));
+/* v4.6.59: Stats now carries ONE progression section (check-single-live-stats), and
+   it is titled "Training now" while a workout is live -- "Your strength progress" is
+   the idle title. The claim was never the wording: it is that the old decision layer
+   is gone and a progress section stands in its place. Both titles satisfy that, and
+   the fixture here logs today, so it is the live one. */
+ok('a progress section replaces the decision layer',run(`[...document.querySelectorAll('#view h2')].some(h=>/Your strength progress|Training now/.test(h.textContent))`));
 ok('the set-level progression chart remains',run(`!!document.querySelector('.progression-card')`));
 ok('the retired computation remains data-only and does not rename body parts',run(`typeof growthAuditData==='function'&&typeof gaPR==='function'`));
 process.exit(fail?1:0);

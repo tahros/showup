@@ -1874,13 +1874,19 @@ function liveWorkoutSummary(){
   return {m,text:[m.minutes==null?null:`${m.minutes} min`,`${m.sets} set${m.sets===1?'':'s'}`].filter(Boolean).join(' · ')};
 }
 function positionLiveWorkout(){
-  const bar=document.getElementById('liveWorkoutBar'),nav=document.getElementById('nav');
-  if(!bar||bar.hidden||!nav)return;
-  const r=nav.getBoundingClientRect();
-  if(!r.width)return;
-  bar.style.left=r.left+'px';bar.style.width=r.width+'px';
-  bar.style.bottom=Math.max(0,innerHeight-r.top+10)+'px';
-  document.documentElement.style.setProperty('--live-workout-extra',(bar.getBoundingClientRect().height+10)+'px');
+  const bar=document.getElementById('liveWorkoutBar');
+  if(!bar||bar.hidden)return;
+  /* v4.6.59: no longer copies the nav's rectangle. left/width/bottom are stated in
+     CSS from the same constraints the nav uses, so a frame measured mid-transition
+     can no longer be written into inline styles and stick. Any left over from a
+     previous build are cleared once, or they would outrank the stylesheet forever. */
+  if(bar.style.left||bar.style.width||bar.style.bottom){
+    bar.style.removeProperty('left');bar.style.removeProperty('width');bar.style.removeProperty('bottom');
+  }
+  /* the bar's OWN height is still measured -- it is content-dependent and nothing
+     else knows it -- but a zero reading is discarded rather than published. */
+  const h=bar.getBoundingClientRect().height;
+  if(h>0)document.documentElement.style.setProperty('--live-workout-extra',(h+10)+'px');
   if(document.querySelector('.pw-save-dock')&&typeof pwPositionDock==='function')pwPositionDock();
   if(typeof syncTopBtn==='function')syncTopBtn();
 }

@@ -284,24 +284,12 @@ run(`(function(){
   DB.days[todayISO]={w:[{part:'Back',ex:'Deadlift',w:80,reps:[6],at:9}],upd:1};
   SEED=deriveAll();
   lift={ex:'Deadlift',part:'Back',weight:80,editToday:false}; view='lift'; render();})()`);
-ok("history bars carry date and volume", run(`(function(){
-     const b=document.querySelector('.lbbar:not(.lbNow)');
-     return !!(b&&b.dataset.d&&+b.dataset.v===400&&b.dataset.cx);})()`));
-ok("the now bar is scrubbable too, dated today",
-   run(`document.querySelector('.lbNow').dataset.d`) === run(`todayISO`));
-ok("a pointerdown on the chart writes DATE · VOLUME into the readout", run(`(function(){
-     const svg=document.querySelector('.lbsvg');
-     const b=document.querySelector('.lbbar:not(.lbNow)');
-     svg.getBoundingClientRect=()=>({left:0,width:330});
-     svg.dispatchEvent(new MouseEvent('pointerdown',{clientX:+b.dataset.cx,bubbles:true}));
-     return document.querySelector('.lbread').textContent;})()`).includes("400"));
-ok("...and highlights the bar under the finger",
-   run(`document.querySelector('.lbbar:not(.lbNow)').getAttribute('fill')`) === "var(--accent)");
-/* v3.3.356: nothing competes for this chart's horizontal axis now. */
-ok("the chart still owns its horizontal axis",
-   /touch-action:pan-y/.test(run(`document.querySelector('.lbsvg').getAttribute('style')`)));
-ok("...and vertical page scroll stays alive (touch-action:pan-y)",
-   /touch-action:pan-y/.test(run(`document.querySelector('.lbsvg').getAttribute('style')`)));
+/* v4.6.59: THE LIVE VOLUME CHART IS GONE, deliberately -- v4.6.49 "remove Today
+   live volume chart from exercise screen". Six assertions here described its bars,
+   its scrub readout and its axis; they are removed rather than reworded, because
+   the thing they protected no longer ships and a test for absent UI is noise. The
+   scrub grammar they guarded survives elsewhere: the progression chart's own
+   scrubbing is covered by test-scrub and test-progression. */
 
 /* ---- 15. v3.3.165: dual-home exercises — confirmed, forward-only -------- */
 run(`(function(){

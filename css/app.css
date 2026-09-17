@@ -3884,7 +3884,21 @@
   }
 /* Persistent workout action, independent of plans and the four navigation tabs. */
 :root{--live-workout-extra:72px}
-#liveWorkoutBar{position:fixed;z-index:31;box-sizing:border-box;display:flex;align-items:center;gap:8px;padding:8px 10px 8px 14px;background:var(--surface);color:var(--chalk);border:1px solid var(--line);border-radius:18px;box-shadow:0 4px 16px #0000000c}
+/* v4.6.59: THE BAR POSITIONS ITSELF. positionLiveWorkout() copied the NAV's
+   measured rectangle into inline left/width/bottom on every render, one frame
+   late. Measure during a transition -- a tab switch, a soft render -- and a
+   transient rectangle got written into durable inline styles, where it stayed
+   until the next render or resize. That is how one bad frame became a bar stuck
+   off the right edge, and why the nav beside it looked wrong at the same moment:
+   they were reading the same instant. The nav is fixed, centred and capped at
+   520px by CSS; the bar now states the SAME constraints instead of copying the
+   result of them, so there is nothing to measure and nothing to get stale. */
+#liveWorkoutBar{position:fixed;z-index:31;box-sizing:border-box;display:flex;align-items:center;gap:8px;padding:8px 10px 8px 14px;background:var(--surface);color:var(--chalk);border:1px solid var(--line);border-radius:18px;box-shadow:0 4px 16px #0000000c;
+  left:0;right:0;margin:0 auto;width:min(520px,100%);max-width:100%;
+  bottom:calc(58px + env(safe-area-inset-bottom, 0px) + 10px)}
+/* the minimal skin floats its nav 10px off the floor and narrows it to 472px */
+:root[data-skin="minimal"] #liveWorkoutBar{width:min(472px,calc(100% - 48px));
+  bottom:calc(58px + 10px + env(safe-area-inset-bottom, 0px) + 10px)}
 #liveWorkoutBar[hidden]{display:none}
 #liveWorkoutBar button{font-family:var(--body);border:0;margin:0;cursor:pointer;min-height:44px}
 #liveWorkoutResume{flex:1;min-width:0;text-align:left;padding:0;background:none;color:var(--chalk)}

@@ -18,7 +18,10 @@ run(`(function(){DB.days={};const d=new Date(todayISO+'T00:00'),iso=x=>x.toLocal
 const titles=()=>run(`[...document.querySelectorAll('#view h2')].map(h=>h.firstChild.textContent.trim())`);
 ok('the page combines the workout and accumulation in one card',titles()[0]==='Your work, stacking up'&&run(`!!document.querySelector('.work-combined .plate-card')&&!!document.querySelector('.work-combined #pmixWrap')`),titles().slice(0,3).join(' / '));
 ok('weight is the default reading',run(`PMIX_MODE==='weight'`));
-ok('the alternate sets reading remains available',run(`!!document.querySelector('[data-pmixmode]')&&document.querySelector('[data-pmixmode]').textContent.includes('sets')`));
+/* v4.6.59: the measure control became a two-button toggle with capitalised labels
+   in v4.6.58. The claim is that the SETS reading is still reachable, not how the
+   word is cased -- matched case-insensitively across the toggle's buttons. */
+ok('the alternate sets reading remains available',run(`[...document.querySelectorAll('[data-pmixmode]')].some(b=>/sets/i.test(b.textContent))`));
 ok('pounds use whole 500 lb plates',run(`[...document.querySelectorAll('.pmixplate')].every(p=>p.dataset.plateUnit==='500')`));
 ok('partial plates preserve non-multiple totals',run(`[...document.querySelectorAll('.pmixplate')].some(p=>+p.getAttribute('height')<5)`));
 ok('body-part legend is explanatory, not a filter',run(`document.querySelectorAll('.pmixlgd button').length===0&&document.querySelectorAll('.pmixlgd span').length>=3`));
