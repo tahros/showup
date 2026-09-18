@@ -110,39 +110,69 @@ run(`document.getElementById('sessEdit').click()`);
 ok("DONE returns to read mode, disarmed",
    run(`document.querySelectorAll('[data-lw-del]').length`) === 0);
 
-/* ---- v4.6.65: TAPPING A VALUE MUST PRODUCE AN EDITOR ---------------------
+/* ---- v4.6.65 / v4.6.66: TAPPING A VALUE MUST PRODUCE AN EDITOR, IN THE ROW --
    v4.6.64 shipped chips that set lift.editSet and rendered nothing, because
-   the editor lived inside the card that release stopped drawing. The suite
-   was green: it asserted the chips existed. Existence is the mechanism; an
-   editor on screen carrying that set's numbers, and a save that reaches the
-   ledger, are the effect. Asserted end to end here so the chips can never
-   again be present and inert. */
+   the editor lived inside the card that release stopped drawing; the suite
+   was green because it asserted the chips existed. v4.6.66 moves the editor
+   into the row itself. Asserted end to end: the editor appears IN THAT ROW,
+   carries that rep's number, the save reaches the ledger, and an edit to one
+   rep of a multi-rep entry leaves the others alone. */
 {
-  run(`lift.editToday=true; lift.editSet=null; lift.editField=null; renderLift();`);
-  ok("no editor before anything is tapped", !run(`!!document.getElementById('edW')`));
+  run(`lift.editToday=true; lift.editSet=null; lift.editRep=null; lift.editField=null; renderLift();`);
+  ok("no editor before anything is tapped", !run(`!!document.getElementById('lwInput')`));
+  ok("...every row offers its delete", run(`document.querySelectorAll('.sc-editing [data-lw-del]').length`) === 3);
 
-  run(`document.querySelector('[data-lw-edit][data-lw-field="w"]').click()`);
-  ok("tapping the WEIGHT raises an editor", run(`!!document.querySelector('.editcard')`));
-  ok("...carrying that set's own weight",
-     run(`document.getElementById('edW').value`) === run(`String(wDisp(day(todayISO).w[+document.querySelector('[data-lw-edit]').dataset.lwEdit].w))`),
-     run(`document.getElementById('edW').value`));
-  ok("...with the weight field actually focused, not merely marked autofocus",
-     run(`document.activeElement && document.activeElement.id`) === "edW",
-     run(`document.activeElement && document.activeElement.id`));
+  run(`document.querySelector('[data-lw-edit][data-lw-field="r"]').click()`);
+  ok("tapping the REPS raises an editor", run(`!!document.getElementById('lwInput')`));
+  ok("...inside the row that was tapped, where the x was",
+     run(`!!document.querySelector('tr.lw-editing .lw-inline #lwInput')`));
+  ok("...and that row's delete steps aside for it",
+     run(`document.querySelectorAll('tr.lw-editing [data-lw-del]').length`) === 0);
+  ok("...the other rows keep theirs", run(`document.querySelectorAll('.sc-editing [data-lw-del]').length`) === 2);
+  ok("...carrying that rep's own number",
+     run(`document.getElementById('lwInput').value`) === run(`String(day(todayISO).w[+document.querySelector('[data-lw-edit]').dataset.lwEdit].reps[0])`),
+     run(`document.getElementById('lwInput').value`));
+  ok("...focused, so the keyboard is already up",
+     run(`document.activeElement && document.activeElement.id`) === "lwInput");
+  ok("...and the tapped chip is the one that rings",
+     run(`document.querySelector('tr.lw-editing [data-lw-field="r"] .lw-chip').classList.contains('lw-on')`) &&
+     !run(`document.querySelector('tr.lw-editing [data-lw-field="w"] .lw-chip').classList.contains('lw-on')`));
 
-  run(`lift.editSet=null; renderLift(); document.querySelector('[data-lw-edit][data-lw-field="r"]').click()`);
-  ok("tapping the REPS raises the same editor, focused on reps",
-     run(`!!document.getElementById('edR')`) && run(`document.activeElement && document.activeElement.id`) === "edR",
-     run(`document.activeElement && document.activeElement.id`));
-
-  // and the save reaches the ledger
   const target = run(`+document.querySelector('[data-lw-edit]').dataset.lwEdit`);
-  run(`document.getElementById('edR').value='7'; document.getElementById('editSave').click();`);
+  run(`document.getElementById('lwInput').value='7'; document.getElementById('lwSave').click();`);
   ok("saving writes the new reps onto that set",
      run(`JSON.stringify(day(todayISO).w[${target}].reps)`) === "[7]",
      run(`JSON.stringify(day(todayISO).w[${target}].reps)`));
-  ok("...and the editor closes behind it", !run(`!!document.querySelector('.editcard')`));
-  run(`undo&&undoStack.length&&undo(); lift.editToday=false; lift.editSet=null; renderLift();`);
+  ok("...and the row closes behind it", !run(`!!document.getElementById('lwInput')`));
+  ok("...undoably", run(`undoStack.length`) >= 1);
+  run(`undo();`);
+
+  // the weight goes the same way, through the same conversion as #editSave
+  run(`document.querySelector('[data-lw-edit][data-lw-field="w"]').click()`);
+  ok("tapping the WEIGHT opens a decimal field", run(`document.getElementById('lwInput').getAttribute('inputmode')`) === "decimal");
+  run(`document.getElementById('lwInput').value='20'; document.getElementById('lwSave').click();`);
+  ok("saving writes the weight in kg", Math.abs(run(`day(todayISO).w[${target}].w`) - run(`toKg(20)`)) < 1e-9,
+     run(`day(todayISO).w[${target}].w`));
+  run(`undo();`);
+
+  // a legacy multi-rep entry: one row per rep, one rep per edit
+  run(`(function(){ day(todayISO).w[${target}].reps=[8,8,6]; SEED=deriveAll(); renderLift(); })()`);
+  ok("a three-rep entry shows as three rows", run(`document.querySelectorAll('.sc-editing [data-lw-del]').length`) === 5);
+  run(`[...document.querySelectorAll('[data-lw-edit][data-lw-field="r"]')].find(b=>b.dataset.lwEdit==='${target}'&&b.dataset.lwRep==='2').click()`);
+  run(`document.getElementById('lwInput').value='5'; document.getElementById('lwSave').click();`);
+  ok("editing the third rep changes ONLY the third rep",
+     run(`JSON.stringify(day(todayISO).w[${target}].reps)`) === "[8,8,5]",
+     run(`JSON.stringify(day(todayISO).w[${target}].reps)`));
+
+  // the same chip again cancels; Escape cancels
+  run(`(function(){ day(todayISO).w[${target}].reps=[15]; SEED=deriveAll(); lift.editSet=null; renderLift(); })()`);
+  run(`document.querySelector('[data-lw-edit][data-lw-field="r"]').click(); document.querySelector('[data-lw-edit][data-lw-field="r"]').click();`);
+  ok("tapping the open chip again cancels", !run(`!!document.getElementById('lwInput')`));
+  run(`document.querySelector('[data-lw-edit][data-lw-field="r"]').click(); document.getElementById('lwInput').dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));`);
+  ok("Escape cancels", !run(`!!document.getElementById('lwInput')`));
+  run(`document.querySelector('[data-lw-edit][data-lw-field="r"]').click(); document.getElementById('lwInput').value='9'; document.getElementById('lwInput').dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));`);
+  ok("Enter saves", run(`JSON.stringify(day(todayISO).w[${target}].reps)`) === "[9]");
+  run(`undo(); lift.editToday=false; lift.editSet=null; renderLift();`);
 }
 
 /* ---- v4.6.64: the morph is a PAIRING, not a fade -------------------------

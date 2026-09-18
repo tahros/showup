@@ -768,9 +768,8 @@ function renderLift(){
          only a fallback for surfaces the table does not cover (runs). */
       liftHasPlanTable=!!linkedPlanHTML;
       h+=linkedPlanHTML;
-      /* the table hosts no editor of its own, so it raises the shared one */
-      if(liftHasPlanTable&&lift.editToday)
-        h+=liftEditCardHTML(ex,isRun,(lift.editSet!=null)?t.w[lift.editSet]:null);
+      /* v4.6.66: the table edits IN THE ROW now (planlink.js); the card below
+         is the run surface's alone. */
       if(!linkedPlanHTML&&!Object.prototype.hasOwnProperty.call(DB.days[todayISO]||{},'planBasis')&&lines.length&&!isHold(unitOf(ex))){
         /* how many sets landed at each weight today, spent down the plan in
            order so two rows at the same load cannot both claim the same sets */

@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.66 (2026-09-18) — Edit in the row
+
+- Tapping a weight or rep chip now opens the editor in that row, in the space to its right, instead of a card below the table.
+- One field at a time, pre-selected, keyboard already up. Enter or the check saves; Escape or tapping the chip again cancels.
+- Editing one rep of a set logged with several reps changes only that rep.
+- Measured to fit from 320px up, for bodyweight and weighted lifts alike; the narrowest phones drop the pencil glyphs to make room.
+
 ## v4.6.65 (2026-09-18) — Tapping a value actually edits it
 
 - Fixes v4.6.64: tapping a weight or rep chip did nothing, because the editor was drawn by the card that release removed.

@@ -299,14 +299,22 @@ function plEditBody(ex,rows){
   return rows.filter(r=>r.actual.length).map(row=>row.actual.map(a=>{
     const gi=w.indexOf(a.source);
     const load=a.nw?'By feel':(a.bw||a.source?.bw)?(a.w?'BW + '+wDisp(a.w):'BW'):wLabel(ex,a.w);
-    const chip=(field,label,aria)=>`<button type="button" class="lw-tap" data-lw-edit="${gi}" data-lw-rep="${a.ri}" data-lw-field="${field}" aria-label="${aria}"><span class="lw-chip">${hesc(label)}${PL_PEN}</span></button>`;
-    return `<tr><th scope="row">${row.label}</th>`+
+    /* v4.6.66: THE EDITOR SITS IN THE ROW. The card under the table was the old
+       design's leftover; the row has the room to its right, and one field at a
+       time is exactly right because a tap names the field. The x cell becomes
+       [input][check] for THAT row; the tapped chip rings so the eye lands. */
+    const open=lift.editSet===gi&&lift.editRep===a.ri&&(lift.editField==='w'||lift.editField==='r');
+    const chip=(field,label,aria)=>`<button type="button" class="lw-tap" data-lw-edit="${gi}" data-lw-rep="${a.ri}" data-lw-field="${field}" aria-label="${aria}" aria-pressed="${open&&lift.editField===field}"><span class="lw-chip${open&&lift.editField===field?' lw-on':''}">${hesc(label)}${PL_PEN}</span></button>`;
+    const right=open
+      ?`<span class="lw-inline"><input id="lwInput" type="number" inputmode="${lift.editField==='r'?'numeric':'decimal'}" step="${lift.editField==='r'?1:wStep(ex)}" min="0" value="${lift.editField==='r'?hesc(String(a.r)):hesc(String(wDisp(a.w)))}" aria-label="${lift.editField==='r'?'Reps':'Weight '+U()} for set ${row.label}"><button type="button" id="lwSave" aria-label="Save">${icon('check',15)}</button></span>`
+      :`<button type="button" class="lw-del" data-lw-del="${gi}" data-lw-rep="${a.ri}" aria-label="Delete set ${row.label}">${icon('clear',14)}</button>`;
+    return `<tr${open?' class="lw-editing"':''}><th scope="row">${row.label}</th>`+
       `<td><span class="lw-pair" style="view-transition-name:${plVtName(a)}">`+
       chip('w',load,`Edit weight for set ${row.label}`)+
       '<span class="sc-times">\u00d7</span>'+
       chip('r',String(setNum(a.r,a.su)),`Edit reps for set ${row.label}`)+
       '</span></td>'+
-      `<td class="lw-delcell"><button type="button" class="lw-del" data-lw-del="${gi}" data-lw-rep="${a.ri}" aria-label="Delete set ${row.label}">${icon('clear',14)}</button></td></tr>`;
+      `<td class="lw-delcell">${right}</td></tr>`;
   }).join('')).join('');
 }
 function plSessionHTML(ex,last,today){

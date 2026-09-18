@@ -741,7 +741,7 @@ document.addEventListener('click',e=>{
      the numbers TRAVEL to their new column instead of reappearing there.
      Same guard as render(): MOTION_OK, and the API may simply not exist. */
   if(e.target.closest('#sessEdit')){
-    const flip=()=>{ lift.editToday=!lift.editToday; lift.editSet=null; lift.editField=null; renderLift(); };
+    const flip=()=>{ lift.editToday=!lift.editToday; lift.editSet=null; lift.editRep=null; lift.editField=null; renderLift(); };
     if(MOTION_OK&&document.startViewTransition) document.startViewTransition(flip); else flip();
     return;
   }
@@ -751,17 +751,16 @@ document.addEventListener('click',e=>{
      the same row. */
   const lwEd=e.target.closest('[data-lw-edit]');
   if(lwEd){
-    lift.editSet=+lwEd.dataset.lwEdit; lift.editField=lwEd.dataset.lwField;
+    const gi=+lwEd.dataset.lwEdit, ri=+lwEd.dataset.lwRep, field=lwEd.dataset.lwField;
+    /* the same chip again is a cancel; any other chip moves the editor there */
+    if(lift.editSet===gi&&lift.editRep===ri&&lift.editField===field){ lwCancel(); return; }
+    lift.editSet=gi; lift.editRep=ri; lift.editField=field;
     renderLift();
-    /* autofocus is unreliable on markup inserted after load, and the editor
-       lands BELOW the table, so the field is focused and brought into view
-       explicitly -- otherwise the keyboard opens over a control the person
-       cannot see. */
-    const f=document.getElementById(lift.editField==='r'?'edR':'edW');
-    if(f){ try{ f.focus({preventScroll:true}); f.select&&f.select(); }catch(_e){ f.focus(); }
-      f.closest('.editcard')?.scrollIntoView({block:'nearest',behavior:MOTION_OK?'smooth':'auto'}); }
+    const f=document.getElementById('lwInput');
+    if(f){ try{ f.focus({preventScroll:true}); f.select&&f.select(); }catch(_e){ f.focus(); } }
     return;
   }
+  if(e.target.closest('#lwSave')){ lwCommit(); return; }
   const lwDel=e.target.closest('[data-lw-del]');
   if(lwDel){
     const i=+lwDel.dataset.lwDel, ri=+lwDel.dataset.lwRep, st=dayMeta(), sset=st.w[i];
@@ -1947,6 +1946,32 @@ function positionLiveWorkout(){
   if(document.querySelector('.pw-save-dock')&&typeof pwPositionDock==='function')pwPositionDock();
   if(typeof syncTopBtn==='function')syncTopBtn();
 }
+/* v4.6.66: inline edit of one field on one logged rep. Mirrors #editSave's
+   conversions (toKg, saveExW, plSplitEditedSet, touchToday) so the ledger is
+   written the same way from both surfaces. A rep edit touches ONLY reps[ri]:
+   a legacy 8,8,6 entry keeps its other reps. A weight edit is per entry, which
+   is the data model -- every rep of an entry shares its load. */
+function lwCancel(){ lift.editSet=null; lift.editRep=null; lift.editField=null; renderLift(); }
+function lwCommit(){
+  const st=dayMeta(), es=st.w[lift.editSet], inp=document.getElementById('lwInput');
+  if(!es||!inp) return lwCancel();
+  const v=+inp.value;
+  if(lift.editField==='r'){
+    const r=Math.round(v); if(!(r>0)) return toast('Enter reps');
+    snapshot(`edited ${es.ex} reps`); es.reps[lift.editRep]=r;
+  }else{
+    if(!(v>=0)||!Number.isFinite(v)) return toast('Enter a weight');
+    const wv=toKg(v); snapshot(`edited ${es.ex} weight`); es.w=wv; saveExW(es.ex,wv);
+  }
+  plSplitEditedSet(st,es); touchToday(); save(); renderHeader(); toast('Set updated');
+  lwCancel();
+}
+document.addEventListener('keydown',e=>{
+  if(e.target&&e.target.id==='lwInput'){
+    if(e.key==='Enter'){ e.preventDefault(); lwCommit(); }
+    else if(e.key==='Escape'){ e.preventDefault(); lwCancel(); }
+  }
+});
 function setLiveFold(on){
   if(!!DB.settings.liveFold===!!on) return;
   DB.settings.liveFold=!!on; DB.settingsAt=Date.now(); save(true);
