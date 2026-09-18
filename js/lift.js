@@ -940,9 +940,12 @@ function renderLift(){
      once. The terminal action stays last. */
   // Exercise history is shown once, in Progression below.
   h+=progressionSection(ex, 'train');
-  /* v3.3.371: only ONE control in the app says "Complete workout" -- the one
-     that ends the day. These two close a step within it, and saying the same
-     word at three scopes made "done" a thing the reader had to assemble. */
+  /* v3.3.371: the words "Complete workout" belong to the DAY, never to a step
+     inside it. This button closes an EXERCISE and says exactly that; saying the
+     same word at three scopes made "done" a thing the reader had to assemble.
+     v4.6.62: the day's own control now sits in the session card above, and the
+     sheet it opens is its confirmation -- one action, so "done" still reads at
+     exactly two scopes, not three. */
   if(exOpen(ex)) h+=`<button class="btn done" id="doneExBtn">✓ Done with ${ex}</button>`;
   $('#view').innerHTML=h;
   /* v3.3.286: the ruler is positioned AFTER the markup lands, and opens on

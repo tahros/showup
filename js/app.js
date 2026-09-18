@@ -138,7 +138,9 @@ document.addEventListener('click',e=>{
     return render();
   }
   /* v3.3.457: the part-level Complete handler is gone with its button (lift.js). */
-  if(e.target.closest('#liveWorkoutFinish')){ openWorkoutFinish(); return; }
+  /* v4.6.62: two doors, one room -- the live bar's Finish and the session
+     card's Complete workout open the same confirmation sheet. */
+  if(e.target.closest('#liveWorkoutFinish')||e.target.closest('#scFinishBtn')){ openWorkoutFinish(); return; }
   if(e.target.closest('#liveWorkoutResume')){
     if(view!=='lift'){liftEnter();view='lift';render();}
     return;

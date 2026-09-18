@@ -173,5 +173,31 @@ test('unified view stays read-only and unlinked sets never consume targets',`(()
          (cPlan<0||cLog<0)||((iPlan<iLog)===(cPlan<cLog)));
   }
 
+  /* v4.6.62: the day's exit lives in the session card, and only while the day
+     is open. The banner it replaced said nothing the ticked row did not. */
+  {
+    const live=run(`plSessionHTML('Squat',[],(DB.days[todayISO]||{}).w||[])`);
+    test('a live workout offers Complete workout inside the card',
+         live.includes('id="scFinishBtn"')&&live.includes('Complete workout'));
+    test('the congratulation banner is gone',
+         !live.includes('sc-celebrate')&&!live.includes('That set counts.'));
+    run(`day(todayISO).doneAll=true;`);
+    const closed=run(`plSessionHTML('Squat',[],(DB.days[todayISO]||{}).w||[])`);
+    test('a closed day offers no way to close it again',
+         !closed.includes('scFinishBtn')&&!closed.includes('Complete workout'));
+    run(`day(todayISO).doneAll=false;`);
+    const reopened=run(`plSessionHTML('Squat',[],(DB.days[todayISO]||{}).w||[])`);
+    test('reopening the day brings the control back',
+         reopened.includes('id="scFinishBtn"'));
+    /* A button that renders and does nothing is worse than no button, so the
+       click is exercised, not the markup that implies it. */
+    run(`if(!HTMLDialogElement.prototype.showModal)HTMLDialogElement.prototype.showModal=function(){this.open=true;};
+         document.getElementById('workoutFinishDialog')?.remove();
+         document.getElementById('view').innerHTML=plSessionHTML('Squat',[],(DB.days[todayISO]||{}).w||[]);
+         document.getElementById('scFinishBtn').click();`);
+    test('pressing it opens the same confirmation the live bar opens',
+         run(`!!document.querySelector('#workoutFinishDialog #doneAllBtn')`));
+  }
+
   console.log(checks+' linkage checks passed');dom.window.close();process.exit(0);
 })().catch(e=>{console.error(e);dom.window.close();process.exit(1)});

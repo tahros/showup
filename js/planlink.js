@@ -297,24 +297,30 @@ function plSessionHTML(ex,last,today){
     const r=s.r??s.reps,load=s.nw?'By feel':s.bw?(s.w?'BW + '+wDisp(s.w):'BW'):wLabel(ex,s.w);
     return `<button type="button" class="sc-value ${kind}" ${attrs}><span class="sc-weight">${hesc((s.est?'≈':'')+load)}</span><span class="sc-times">×</span><span class="sc-rep${isHold(s.su)?' hold':''}">${hesc(String(setNum(r,s.su)))}</span></button>`;
   };
-  let latestOutcome=null;
   const body=rows.map(row=>{
     const t=row.target,pending=t&&!t.preview&&!row.actual.length;
     const past=row.last?value(row.last,'sc-history',`data-sc-load="${row.last.w}" aria-label="Load last session weight ${hesc(text(row.last))}"`):'<span class="sc-empty">—</span>';
     const target=t?value(t,'sc-plan',`data-link-slot="${t.ordinal}" ${pending?'':'disabled'} aria-pressed="${choice.target?.id===t.id}" aria-label="${pending?'Select':'Planned'} set ${t.ordinal}: ${hesc(plTargetText(t))}"`)+(t.qualifier&&!plWarm(t)?`<small class="sc-qual">${hesc(t.qualifier)}</small>`:''):`<span class="sc-empty">${row.unlinked?'Unlinked':'—'}</span>`;
     const logged=row.actual.map(a=>{
-      const outcome=plSetOutcome(ex,a,row.last,t),isLatest=a===latest;if(isLatest)latestOutcome=outcome;
+      const outcome=plSetOutcome(ex,a,row.last,t),isLatest=a===latest;
       return `<div class="sc-actual sc-marked-value${fresh&&isLatest?' sc-fresh':''}${outcome.win?' sc-win':''}">${value(a,'sc-now',`data-sc-load="${a.w}" aria-label="Load logged weight ${hesc(text(a))}"`)}${isLatest||outcome.win?plOutcomeMark(ex,a,row.last,t,outcome):''}</div>`;
     }).join('')||`<span class="sc-empty">${pending?(choice.target?.id===t.id?'Next':'Not yet'):'—'}</span>`;
     return `<tr><th scope="row">${pending?`<button type="button" class="sc-slot" data-link-slot="${t.ordinal}" aria-label="Use planned set ${t.ordinal}" aria-pressed="${choice.target?.id===t.id}">${row.label}</button>`:row.label}${plWarmMark(t)}</th>${hasLast?'<td>'+past+'</td>':''}${hasPlan?'<td>'+target+'</td>':''}<td>${logged}</td></tr>`;
   }).join('');
+  /* v4.6.62: THE DAY ENDS FROM THE CARD. The slot under the table held a
+     congratulation ("That set counts.") that said nothing the ticked row above
+     it had not already said. The maker's finding is that the control ending
+     the DAY is the hard one to find, so that slot now carries it: the workout
+     is live, your sets are in front of you, and the way out is where your eye
+     already is. It opens the same sheet the live bar's Finish opens -- one
+     path to doneAll, not a second one to keep in step. */
   const done=targets.filter(t=>plActual(todayISO,t.id).length).length,groups=plSessionGroups(rows),canCompact=rows.length>4&&groups.length<rows.length,compact=canCompact&&lift.scDetails!==ex;
   return `<section class="lastcard sc-session plan-link${compact?' sc-compact':''}${compact&&groups.length>6?' sc-dense':''}" aria-label="Your sets comparison"><div class="sc-head"><strong>Your sets</strong><span>${actual.length} set${actual.length===1?'':'s'} logged</span></div><div class="sc-toolbar"><span>${U()} · ${isHold(unitOf(ex))?'seconds':'reps'}</span><div class="sc-tools">${hasPlan?`<button type="button" data-sc-edit-plan="${displayPlan.date}">${icon('edit',ICON_SZ.sm)} Edit Plan</button>`:''}${today.length?`<button type="button" class="sessedit" id="sessEdit">${icon('edit',ICON_SZ.sm)} Edit Logged</button>`:''}${canCompact?`<button type="button" data-sc-details aria-expanded="${!compact}">${icon(compact?'expand':'collapse',ICON_SZ.sm)} ${compact?'Expand':'Collapse'}</button>`:''}</div></div>
     ${changed&&!preview?'<p class="pl-context">Plan edited since you started. These targets stay with this workout.</p>':''}
     ${body?`<table class="sc-table"><thead><tr><th scope="col">Set</th>${hasLast?`<th scope="col">Last<button class="sc-date linkdate" data-histd="${last.d}">${hesc(wd(last.d))}</button></th>`:''}${hasPlan?'<th scope="col">Plan<small>'+hesc(wd(displayPlan.date))+'</small></th>':''}<th scope="col">Logged<small>Today</small></th></tr></thead><tbody>${compact?plCompactBody(ex,groups,hasLast,hasPlan,choice,latest,fresh):body}</tbody></table>`:'<p class="sc-intro">Your first set starts here. Log your weight and reps above.</p>'}
     ${targets.some(plWarm)?'<p class="sc-warm-key"><span aria-hidden="true">W</span> Planned warm-up</p>':''}
     ${!hasLast&&hasPlan&&!preview?'<p class="pl-context">Today becomes your reference next time.</p>':''}
-    ${fresh?`<div class="sc-celebrate" role="status"><span class="sc-seal" aria-hidden="true">✓</span><div><strong>That set counts.</strong><small>${latestOutcome?.win?'Set saved. A little extra to celebrate.':latestOutcome?.label==='On target'?'Set saved. Right on target.':'Set saved. Another one in the books.'}</small></div></div>`:''}
+    ${isLive()?`<button type="button" class="btn done sc-finish" id="scFinishBtn">${icon('check',18)} Complete workout</button>`:''}
     ${actual.length?`<div class="sc-volume"><span>${isHold(unitOf(ex))?'Sets logged':'Volume so far'}</span><strong>${isHold(unitOf(ex))?actual.length:`<span id="volNum" data-kg="${today.reduce((sum,s)=>sum+volOf(s),0)}">${vDisp(today.reduce((sum,s)=>sum+volOf(s),0))}</span> ${U()}`}</strong></div>`:''}
     ${preview?'<p class="pl-context">Upcoming plan · today’s sets are logged separately.</p>':hasPlan?`<div class="pl-next">${choice.target?`<button type="button" class="pl-next-target" data-link-slot="${choice.target.ordinal}">Next: set ${choice.target.ordinal} · ${hesc(plTargetText(choice.target))}</button>`:`<span>${done===targets.length?'All targets logged · extra sets welcome':'Next: extra set · targets remain above'}</span>`}<button type="button" class="pl-extra" data-link-slot="-1" aria-pressed="${!choice.target}">Extra set</button></div>`:'<p class="pl-context">No set target · go at your own pace.</p>'}
     ${hasPlan&&!preview&&rows.some(r=>r.unlinked)?'<p class="pl-context">Unlinked sets count too. They are not assigned to a plan target.</p>':''}</section>`;

@@ -11,7 +11,14 @@ for(const theme of ['light','dark'])for(const width of [320,393,430]){
  for(let i=0;i<4;i++)plLog({ex:lift.ex,part:'Back',w:54.431,reps:[6],at:100+i});lift.justSaved=true;applyTheme();render();}, {theme,scenario});
  await p.waitForTimeout(150);const card=p.locator('.sc-session');assert.equal(await card.count(),1);
  assert.equal(await card.locator('thead th').count(),scenario==='both'?4:scenario==='neither'?2:3);
- assert((await card.innerText()).includes('That set counts.'));assert.equal(await p.locator('.sess-then').count(),0);
+ assert(!(await card.innerText()).includes('That set counts.'));assert.equal(await p.locator('.sess-then').count(),0);
+ // v4.6.62: the day's exit lives in the card, and it opens the same sheet the live bar opens
+ assert.equal(await card.locator('#scFinishBtn').count(),1);
+ assert.equal((await card.locator('#scFinishBtn').innerText()).trim(),'Complete workout');
+ await card.locator('#scFinishBtn').click();await p.waitForTimeout(80);
+ assert.equal(await p.locator('#workoutFinishDialog #doneAllBtn').count(),1);
+ await p.locator('#workoutKeepTraining').click();await p.waitForTimeout(80);
+ assert.equal(await p.locator('#workoutFinishDialog').count(),0);
  assert.equal(await card.locator('tbody tr').count(),4);assert.equal(await card.locator('.sc-result').count(),1);
  assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
  const before=await p.evaluate(()=>JSON.stringify(DB));await card.locator('.sc-result summary').last().click();assert.equal(await p.evaluate(()=>JSON.stringify(DB)),before);
