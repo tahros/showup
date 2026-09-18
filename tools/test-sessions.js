@@ -73,6 +73,30 @@ run(`DB.days[todayISO].w.push({part:'Sixpack',ex:'Hanging Leg Raise',w:0,reps:[1
 ok("the live bar shows the new session's minutes, not the day's",
    /^[1-4] min · 1 set$/.test(run(`document.querySelector('.live-workout-meta').textContent`)), run(`document.querySelector('.live-workout-meta').textContent`));
 
+// ---- v4.6.71: the stray set, deleted -- the maker's own afternoon
+/* Completed at 11:00. One accidental set at 15:50 reopened the day and started
+   a session, which is right. Deleting it must put the day BACK in the book:
+   no bar, no Finish, and certainly not the morning's 7 h 8 min. */
+seed([T('08:45'),T('09:30')]);
+run(`stampWorkoutCompletion(DB.days[todayISO],${T('11:00')});DB.days[todayISO].doneAll=true;render();syncLiveWorkout();`);
+ok("(fixture) the morning is in the book: no bar", run(`document.getElementById('liveWorkoutBar').hidden`) && !run(`isLive()`));
+run(`plLog({part:'Sixpack',ex:'Hanging Leg Raise',w:0,reps:[12],at:${T('15:50')}});reopen('Hanging Leg Raise','Sixpack');save();SEED=deriveAll();render();syncLiveWorkout();`);
+ok("a stray set reopens the day and the bar shows the NEW session", !run(`document.getElementById('liveWorkoutBar').hidden`) && /1 set$/.test(run(`document.querySelector('.live-workout-meta').textContent`)), run(`document.querySelector('.live-workout-meta').textContent`));
+// Edit Logged, and the x on the stray row itself -- the path the maker took
+run(`lift.editToday=true;renderLift();(function(){const i=dayMeta().w.findIndex(s=>s.at===${T('15:50')});document.querySelector('[data-lw-del="'+i+'"]').click();})()`);
+ok("deleting it puts the day back in the book -- doneAll restored from the Complete on record", run(`DB.days[todayISO].doneAll===true`));
+ok("...the bar is gone, not showing the morning", run(`document.getElementById('liveWorkoutBar').hidden`));
+ok("...isLive agrees", !run(`isLive()`));
+ok("...and the morning's sets are untouched", run(`DB.days[todayISO].w.length`)===2);
+/* v3.3.431 still holds where it should: a day NOBODY completed does not close itself */
+seed([T('08:45'),T('09:30')]);
+run(`(function(){const t=dayMeta();t.w.splice(1,1);resealDay(t);})()`);
+ok("a day with no Complete on record never closes itself on a delete (v3.3.431)", run(`DB.days[todayISO].doneAll!==true`));
+/* and a real second session is not closed by deleting one of ITS sets while others remain */
+seed([T('08:45')],[T('11:00')]);
+run(`DB.days[todayISO].w.push({part:'Sixpack',ex:'Hanging Leg Raise',w:0,reps:[12],at:${T('15:50')}},{part:'Sixpack',ex:'Hanging Leg Raise',w:0,reps:[12],at:${T('15:55')}});reopen('Hanging Leg Raise','Sixpack');(function(){const t=dayMeta();t.w.splice(1,1);resealDay(t);})();syncLiveWorkout();`);
+ok("deleting one set of a live second session keeps it live", run(`DB.days[todayISO].doneAll===false`) && !run(`document.getElementById('liveWorkoutBar').hidden`));
+
 // ---- sync keeps every boundary
 const src=fs.readFileSync(path.join(dir,'js/core.js'),'utf8').replace(/\/\*[\s\S]*?\*\//g,'');
 ok("the day merge unions closed boundaries rather than dropping them", /lv\.closed\s*=\s*\[\.\.\.new Set\(\[\.\.\.\(lv\.closed\|\|\[\]\),\.\.\.rv\.closed\]\)\]/.test(src));

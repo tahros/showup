@@ -79,7 +79,7 @@ check('strength-only days do not invent a run',()=>{
 });
 run(`document.querySelector('[data-dd="done"]').dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}))`);
 check('Escape closes accessibly',()=>assert(!run(`!!document.getElementById('dayDone')`)));
-run(`reopen('Squat','Legs');render()`);
+run(`plLog({part:'Legs',ex:'Squat',w:60,reps:[5],at:Date.now()});reopen('Squat','Legs');render()`);   // v4.6.71: a reopen is a SET, in the product -- the flag alone is a state the app cannot reach
 /* v4.6.45: the completion ACTION is the persistent bar entry now (v4.6.44);
    #doneAllBtn only exists once that opens its dialog. The claim is unchanged --
    logging again after a completed day must put the way to finish back within

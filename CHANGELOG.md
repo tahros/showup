@@ -1,5 +1,10 @@
 # ShowUp — changelog
 
+## v4.6.71 (2026-09-18) — Deleting a stray set closes the day again
+
+- A set logged by accident after Complete reopened the day; deleting it left the day open and the bar describing the morning ("7 h 8 min"). Now, with a Complete on record and nothing logged after it, deleting that set puts the day back in the book: no bar, no Finish.
+- A day nobody completed still never closes itself on a delete.
+
 ## v4.6.70 (2026-09-18) — The fold has a body
 
 - Folding the workout bar is three beats now: the words breathe out and the chevron turns over, the bar squeezes down to the capsule with a small overshoot and a squash-and-stretch, and the minutes pop in. Unfolding is the same three beats the other way.

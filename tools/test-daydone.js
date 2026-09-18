@@ -459,7 +459,9 @@ ok("pressing it places the day", run(`!!document.getElementById('dayDone')`));
   ok("one tap on Train closes the day", run(`dayMeta().doneAll===true`));
   ok("...and the ceremony plays from here", run(`!!document.getElementById('dayDone')`));
   // Today uses the same helper: same button, same states
-  run(`document.getElementById('dayDone')?.remove(); dayMeta().doneAll=false; DB.settings.dayDone=null; view='today'; render();`);
+  /* v4.6.71: "reopened" is a set logged after the close, never the flag alone;
+     with a Complete on record and nothing after it, the day is closed. */
+  run(`document.getElementById('dayDone')?.remove(); dayMeta().w.push({part:'Legs',ex:'Squat',w:toKg(195),reps:[8],at:Date.now()}); reopen('Squat','Legs'); DB.settings.dayDone=null; view='today'; render();`);
   ok("Today shows the same prominent close for a complete plan",
      run(`!document.getElementById('liveWorkoutBar').hidden && !document.querySelector('#view #doneAllBtn')`));
   run(`dayMeta().doneEx=['Squat']; render();`);

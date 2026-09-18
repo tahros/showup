@@ -61,10 +61,16 @@ ok('all 25 boxes rendered, no checkmarks',run("document.querySelectorAll('.su-mi
 const snapshot=run('JSON.stringify(DB)');
 run("document.querySelector('[data-dd=\"done\"]').click();celebrateDayDone(true)");
 ok('milestone replay cannot change ledger or timestamps',snapshot===run('JSON.stringify(DB)'));
-run("document.querySelector('[data-dd=\"done\"]').click();reopen('Bench Press','Chest');render();");
+run("document.querySelector('[data-dd=\"done\"]').click();plLog({part:'Chest',ex:'Bench Press',w:60,reps:[5],at:Date.now()});reopen('Bench Press','Chest');render();");   // v4.6.71: a reopen comes with its set
 ok('new set reopens live red mascot',run('!dayMeta().doneAll&&!!document.querySelector("[data-mascot=active]")'));
-run("stampWorkoutCompletion(dayMeta(),end+60000)");
-ok('recompletion updates the endpoint, keeps original start',run('workoutCompletionMetrics(dayMeta()).minutes===36'));
+/* v4.6.69/71: a set after Complete is a NEW session, and the recompletion
+   describes that session -- from its own first set, not the morning's. The
+   old assertion here ("keeps original start") was the 7-hour bar. The fixture
+   completed at `end`; the reopening set is stamped now, so it is placed at
+   end+5min and the second close at end+15min: one set, ten minutes. */
+run("(function(){const t=dayMeta();const s=t.w[t.w.length-1];s.at=end+5*60000;stampWorkoutCompletion(t,end+15*60000);})()");
+ok('recompletion describes the second session, not the day since morning',run('workoutCompletionMetrics(dayMeta()).minutes===10&&workoutCompletionMetrics(dayMeta()).sets===1'),run('JSON.stringify(workoutCompletionMetrics(dayMeta()))'));
+ok('...and both Completes are on record',run('dayMeta().closed.length===2'));
 ok('setting is present in sync snapshot',run("'mascotMotion' in settingsSnap()"));
 const renderer=fs.readFileSync(path.join(dir,'js/mascot-renderer.js'),'utf8');
 ok('renderer transparent and free of glow filters',renderer.includes('alpha:true')&&renderer.includes('scene.background=null')&&!/BloomPass|blur\(|drop-shadow/.test(renderer));

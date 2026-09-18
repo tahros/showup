@@ -472,6 +472,18 @@ function resealDay(t){
      nobody pressing anything -- a third silent door to a state that should
      have exactly one. Closing is the Complete button's job; this function's
      job is to drop seals for work that no longer exists. */
+  /* v4.6.71: ...and RESTORING a close the person made is not closing. A day
+     completed at 11:00 and reopened by one stray set at 15:50 is, once that
+     set is deleted, exactly the day the person closed: their own Complete is
+     the evidence, recorded in `closed`. Left open, the bar stayed up with no
+     workout under it and described the morning instead -- "7 h 8 min". So:
+     if a Complete is on record and no remaining set is later than the last
+     one, the day goes back into the book. A day nobody completed has no
+     `closed`, and v3.3.431 holds for it exactly. */
+  if(Array.isArray(t.closed)&&t.closed.length){
+    const last=Math.max(...t.closed.map(Number).filter(Number.isFinite));
+    if(Number.isFinite(last)&&!t.w.some(s=>Number(s.at)>last)) t.doneAll=true;
+  }
 }
 /* v3.3.43: one formatter for "a session, grouped by weight". Lift's LAST TIME
    card and History's session detail now render through the same two functions,
@@ -677,7 +689,12 @@ document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='visible') scheduleNavLayoutCheck();
 });
 function dayMeta(){const t=day(todayISO);t.doneEx=t.doneEx||[];t.donePart=t.donePart||[];t.sugX=t.sugX||{};t.planOpen=t.planOpen||{};return t;}   /* v3.3.534: planOpen — which exercises have their folded plan rows showing */
-const isLive =()=>{const t=day(todayISO);return t.w.length>0&&!t.doneAll;};
+/* v4.6.71: a workout is in progress iff there is a set LATER than the last
+   Complete. doneAll says the same thing on every honest path; this makes the
+   bar and Finish button agree with the session model even if some path --
+   a merge, a legacy device -- leaves doneAll false on a closed day. */
+const sessionOpen=t=>{const c=(t.closed||[]).map(Number).filter(Number.isFinite);if(!c.length)return true;const last=Math.max(...c);return t.w.some(s=>Number(s.at)>last);};
+const isLive =()=>{const t=day(todayISO);return t.w.length>0&&!t.doneAll&&sessionOpen(t);};
 /* v3.3.412: the day is CLOSED -- work logged and the day-end pressed. Named
    once so Today's body and the plan header ask the same question; the third
    header state (filled, still) already answers it visually. */

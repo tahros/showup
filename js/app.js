@@ -2088,7 +2088,7 @@ function syncLiveWorkout(){
     bar.innerHTML=`<button id="liveWorkoutResume" aria-label="Return to workout"><span class="live-workout-title"><i aria-hidden="true"></i><span class="lw-label">Workout in progress</span><span class="lw-brief"></span></span><span class="live-workout-meta" aria-live="polite"></span></button><button id="liveWorkoutFinish">Finish ${icon('check',16)}</button><button id="liveWorkoutFold" aria-label="Fold the workout bar">${icon('chevron',16,90)}</button>`;
     document.body.appendChild(bar);
   }
-  const active=!!DB.days[todayISO]?.w?.length&&!DB.days[todayISO].doneAll;
+  const active=!!DB.days[todayISO]?.w?.length&&!DB.days[todayISO].doneAll&&sessionOpen(DB.days[todayISO]);   // v4.6.71: same predicate as isLive()
   bar.hidden=!active;document.documentElement.classList.toggle('workout-active',active);
   if(!active){document.documentElement.style.removeProperty('--live-workout-extra');document.getElementById('workoutFinishDialog')?.remove();return;}
   const {m,text}=liveWorkoutSummary(),meta=bar.querySelector('.live-workout-meta');
