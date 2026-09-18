@@ -1,5 +1,11 @@
 # ShowUp — changelog
 
+## v4.6.69 (2026-09-18) — A day can hold more than one workout
+
+- Completing a workout closes it. The next set you log starts a new one: the workout bar and the completion card count from that set, not from the morning.
+- A set logged two hours or more after your last one also starts a new workout, for the days you forget to press Complete.
+- The day is still one day — the square, the streak, History and the daily total are unchanged.
+
 ## v4.6.68 (2026-09-18) — Time reads as time, and the fold folds
 
 - Past 99 minutes the workout bar, its folded capsule and the completion card show hours: "1 h 40 min", not "100 min".

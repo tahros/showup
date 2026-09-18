@@ -601,7 +601,7 @@ function renderToday(){
      it; the heading is a label and should stay one short thing. */
   h+=`<h2>${_closed&&planningWorkspace()?'Trained today':'Training today'}</h2>`;
   if(!_closed&&isLive()&&mascotMode()!=='off'){
-    const activeSets=workoutCompletionMetrics(t).sets;
+    const activeSets=workoutCompletionMetrics({...t,completedAt:Date.now()}).sets;   // v4.6.69: the session you are in, not the day
     h+=`<div class="su-active-row"><div><strong>You're in.</strong><span class="mono muted">${activeSets} set${activeSets===1?'':'s'} logged</span></div>${mascotHTML('active')}</div>`;
   }
   if(doneLift.length) h+=`<div class="todaypartsline mono">${doneLift.join(' · ')}</div>`;

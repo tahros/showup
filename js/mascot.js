@@ -19,9 +19,39 @@ function mascotHTML(mode='hello',className='',tone=''){
   const resolved=mascotTone(mode,tone);
   return '<span class="su-mascot '+className+'" data-mascot="'+mode+'" data-mascot-tone="'+resolved+'" aria-hidden="true"><img src="assets/mascot-'+resolved+'.png" alt="" width="360" height="220"></span>';
 }
-function workoutCompletionMetrics(record){
+/* v4.6.69: A DAY CAN HOLD MORE THAN ONE WORKOUT.
+   The day is the unit of showing up -- the square, the streak, History, the
+   daily total all stay day-sized. But the BAR and the completion CARD describe
+   a workout, and a set logged at 3 pm after an 11 am Complete is not the same
+   workout: the bar read "399 min" and a second Complete would have printed a
+   six-hour session. Nothing was modelled below the day.
+   The rule, chosen by the maker: Complete closes a session -- the next set
+   starts a new one, no question asked, because Complete was the answer. And a
+   set two hours or more after the previous one also starts a new session,
+   silently, for the person who forgot to press it; two hours is longer than
+   any rest, so a real workout never splits.
+   Sessions are DERIVED, never stored: the day keeps an append-only list of
+   its completion times (`closed`) and the sets keep their `at`; everything
+   else is arithmetic on those. A record without `closed` and without gaps is
+   one session, which is every day that existed before this. */
+const SESSION_GAP_MS=2*60*60*1000;
+function sessionRows(record,end){
   const rows=record?.w||[];
+  const closed=(record?.closed||[]).map(Number).filter(c=>Number.isFinite(c)&&(!Number.isFinite(end)||c<end));
+  const lastClosed=closed.length?Math.max(...closed):-Infinity;
+  const dated=rows.map((r,i)=>({r,i,at:Number(r.at)}));
+  const sorted=dated.slice().sort((a,b)=>Number.isFinite(a.at)&&Number.isFinite(b.at)?a.at-b.at:a.i-b.i);
+  let start=0;
+  for(let k=1;k<sorted.length;k++){
+    const p=sorted[k-1].at,c=sorted[k].at;
+    if(!Number.isFinite(p)||!Number.isFinite(c))continue;
+    if((p<=lastClosed&&c>lastClosed)||c-p>=SESSION_GAP_MS)start=k;
+  }
+  return sorted.slice(start).map(x=>x.r);
+}
+function workoutCompletionMetrics(record){
   const end=Number(record?.completedAt);
+  const rows=sessionRows(record,end);
   const starts=rows.map(row=>{
     const at=Number(row.at);
     if(!Number.isFinite(at)||at<946684800000||at>end)return null;
@@ -42,6 +72,10 @@ function completionMetricsHTML(record){
 }
 function stampWorkoutCompletion(record,now=Date.now()){
   record.completedAt=now;
+  /* the session boundary, kept: completedAt alone is overwritten by the next
+     Complete, and the boundary between the two workouts would go with it */
+  const closed=Array.isArray(record.closed)?record.closed:(record.closed=[]);
+  if(!closed.includes(now))closed.push(now);
   // Only an explicit completion can earn the milestone. Imports and renders cannot.
   const count=Object.values(DB.days).filter(d=>d.w?.length).length;
   if(count===25&&!DB.settings.mascot25Date) DB.settings.mascot25Date=todayISO;
