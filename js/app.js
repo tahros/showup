@@ -2029,10 +2029,57 @@ document.addEventListener('keydown',e=>{
     else if(e.key==='Escape'){ e.preventDefault(); if(lift.editTarget!=null) ptCancel(); else lwCancel(); }
   }
 });
+/* v4.6.70: THE FOLD HAS A BODY. It was a class toggle: one frame the bar,
+   the next frame the capsule. Three beats now, on the house curve --
+   nothing here adds an easing, every timing is a --dur token and --settle:
+     1. EXHALE   the words breathe out and the chevron turns over (--dur-quick)
+     2. SQUEEZE  the bar's width springs to the capsule with a small
+                 overshoot, and the bar squashes and stretches as it goes,
+                 the way the completion card lands (--dur-arrive)
+     3. POP      what belongs to the new shape pops in, a beat apart
+   Unfolding is the same three beats the other way. Everything runs through
+   the Web Animations API on the element that already exists, so the class
+   toggle and the persisted setting are exactly what they were; with reduced
+   motion, or without WAAPI, it is that toggle and nothing more. */
 function setLiveFold(on){
   if(!!DB.settings.liveFold===!!on) return;
-  DB.settings.liveFold=!!on; DB.settingsAt=Date.now(); save(true);
-  syncLiveWorkout();
+  const bar=document.getElementById('liveWorkoutBar');
+  const commit=()=>{ DB.settings.liveFold=!!on; DB.settingsAt=Date.now(); save(true); syncLiveWorkout(); };
+  if(!(MOTION_OK&&bar&&!bar.hidden&&typeof bar.animate==='function')){ commit(); return; }
+  const css=getComputedStyle(document.documentElement);
+  const ease=css.getPropertyValue('--settle').trim()||'ease';
+  const ms=v=>Math.round(parseFloat(css.getPropertyValue(v))*1000)||0;
+  const quick=ms('--dur-quick')||160, arrive=ms('--dur-arrive')||420;
+  const shown=sel=>[...bar.querySelectorAll(sel)].filter(el=>getComputedStyle(el).display!=='none');
+  const from=bar.getBoundingClientRect();
+  // 1. exhale
+  const leaving=shown('.lw-label,.live-workout-meta,#liveWorkoutFinish,.lw-brief');
+  const out=leaving.map(el=>el.animate([{opacity:1,transform:'none'},{opacity:0,transform:'scale(.9)'}],{duration:quick,easing:ease,fill:'forwards'}));
+  const chev=bar.querySelector('#liveWorkoutFold');   // the BUTTON turns; the glyph keeps its own 90deg (it is a bare chevron pointed down)
+  if(chev&&on) out.push(chev.animate([{transform:'rotate(0deg)'},{transform:'rotate(180deg)'}],{duration:quick,easing:ease,fill:'forwards'}));
+  Promise.all(out.map(a=>a.finished.catch(()=>{}))).then(()=>{
+    out.forEach(a=>a.cancel());   // the class decides what shows now; no forwards-fill may outrank it
+    commit();
+    const to=bar.getBoundingClientRect();
+    if(!to.width||!from.width) return;
+    // 2. squeeze -- width springs past the mark and settles; the body squashes and stretches
+    const over=on?.94:1.03;
+    /* while the width is in flight the words must not wrap inside it -- the
+       bar grew to two lines mid-squeeze and bounced in height */
+    bar.classList.add('lw-anim');
+    const squeeze=bar.animate([{width:from.width+'px'},{width:(to.width*over)+'px',offset:.62},{width:to.width+'px'}],{duration:arrive,easing:ease});
+    squeeze.finished.catch(()=>{}).then(()=>bar.classList.remove('lw-anim'));
+    bar.animate(on
+      ?[{transform:'scale(1)'},{transform:'scale(1.02,.88)',offset:.3},{transform:'scale(.985,1.05)',offset:.68},{transform:'none'}]
+      :[{transform:'scale(1)'},{transform:'scale(.97,1.08)',offset:.3},{transform:'scale(1.012,.96)',offset:.68},{transform:'none'}],
+      {duration:arrive,easing:ease});
+    // 3. pop -- a beat apart, the chevron turning back the way it came
+    shown('.lw-brief,.lw-label,.live-workout-meta,#liveWorkoutFinish,#liveWorkoutFold').forEach((el,i)=>{
+      const spin=el.id==='liveWorkoutFold'?' rotate(-180deg)':'';
+      el.animate([{opacity:0,transform:'scale(.6)'+spin},{opacity:1,transform:'scale(1.08)',offset:.6},{opacity:1,transform:'none'}],
+        {duration:arrive,delay:Math.round(arrive*.2)+i*40,easing:ease,fill:'backwards'});
+    });
+  });
 }
 function syncLiveWorkout(){
   let bar=document.getElementById('liveWorkoutBar');

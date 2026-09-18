@@ -1,5 +1,10 @@
 # ShowUp — changelog
 
+## v4.6.70 (2026-09-18) — The fold has a body
+
+- Folding the workout bar is three beats now: the words breathe out and the chevron turns over, the bar squeezes down to the capsule with a small overshoot and a squash-and-stretch, and the minutes pop in. Unfolding is the same three beats the other way.
+- Same curve and timings as everything else in the app; with reduced motion it is the plain toggle it was.
+
 ## v4.6.69 (2026-09-18) — A day can hold more than one workout
 
 - Completing a workout closes it. The next set you log starts a new one: the workout bar and the completion card count from that set, not from the morning.

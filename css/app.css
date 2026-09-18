@@ -3923,6 +3923,7 @@
 .live-workout-title i{width:7px;height:7px;flex-shrink:0;border-radius:50%;background:var(--live-bar-ink);animation:live-workout-pulse 2.8s ease-in-out infinite}
 .live-workout-meta{display:block;color:var(--live-bar-meta);font-size:11px;line-height:1.4;margin:3px 0 0 14px;font-variant-numeric:tabular-nums}
 #liveWorkoutFinish{display:flex;align-items:center;justify-content:center;gap:7px;padding:8px 12px;flex-shrink:0;background:var(--live-bar-cap);color:var(--live-bar-ink);border-radius:12px;font-size:13px;font-weight:500}
+#liveWorkoutBar.lw-anim{overflow:hidden;white-space:nowrap}   /* v4.6.70: no reflow while the fold is mid-squeeze */
 #liveWorkoutFold{display:flex;align-items:center;justify-content:center;width:38px;flex-shrink:0;background:none;color:var(--live-bar-quiet);padding:0}
 
 /* v4.6.63: FOLDED. Same element, same red, same breath -- less of it. The fold

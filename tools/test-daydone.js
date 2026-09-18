@@ -574,4 +574,26 @@ console.log('PASS the bar is the live surface');
      /:root\[data-skin="minimal"\] #liveWorkoutBar\.folded\{[^}]*width:fit-content/.test(raw));
 }
 console.log('PASS minutes read as time, the fold folds');
+/* ---- v4.6.70: the fold has a body, and still folds without one --------------
+   The choreography runs on WAAPI, gated exactly like every other motion here:
+   MOTION_OK and the API existing. jsdom has neither (matchMedia says reduce,
+   Element.animate is absent), which is the reduced-motion path, and that path
+   must be the plain toggle it always was -- synchronous, persisted, same
+   class. The animated path is proven in Chromium (tools/check-live-fold.cjs). */
+{
+  run(`(function(){DB.days={};DB.days[todayISO]={w:[{part:'Sixpack',ex:'Hanging Leg Raise',w:0,reps:[15],at:Date.now()-30*60000}],doneEx:[],donePart:[],upd:1};SEED=deriveAll();view='lift';lift.part='Sixpack';lift.ex='Hanging Leg Raise';DB.settings.liveFold=false;render();syncLiveWorkout();})()`);
+  ok("(fixture) no WAAPI here", !run(`typeof document.getElementById('liveWorkoutBar').animate==='function'`));
+  run(`document.getElementById('liveWorkoutFold').click()`);
+  ok("without motion the fold is the plain toggle, at once", run(`DB.settings.liveFold===true && document.getElementById('liveWorkoutBar').classList.contains('folded')`));
+  ok("...and leaves no animation class behind", !run(`document.getElementById('liveWorkoutBar').classList.contains('lw-anim')`));
+  run(`document.getElementById('liveWorkoutResume').click()`);
+  ok("...and unfolds the same way", run(`DB.settings.liveFold===false && !document.getElementById('liveWorkoutBar').classList.contains('folded')`));
+  const src=fs.readFileSync(path.join(dir,'js/app.js'),'utf8').replace(/\/\*[\s\S]*?\*\//g,'');
+  ok("the animated path is gated on MOTION_OK and the API, like render()",
+     /function setLiveFold[\s\S]{0,600}MOTION_OK&&bar&&!bar\.hidden&&typeof bar\.animate==='function'/.test(src));
+  ok("...and takes its curve and durations from the tokens, not a new easing",
+     /getPropertyValue\('--settle'\)/.test(src) && /--dur-quick/.test(src) && /--dur-arrive/.test(src) && !/cubic-bezier/.test(src.slice(src.indexOf('function setLiveFold'),src.indexOf('function syncLiveWorkout'))));
+}
+console.log('PASS the fold has a body');
+
 
