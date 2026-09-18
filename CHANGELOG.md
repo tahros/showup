@@ -1,5 +1,10 @@
 # ShowUp — changelog
 
+## v4.6.65 (2026-09-18) — Tapping a value actually edits it
+
+- Fixes v4.6.64: tapping a weight or rep chip did nothing, because the editor was drawn by the card that release removed.
+- The editor opens below the table with the field you tapped focused and scrolled into view.
+
 ## v4.6.64 (2026-09-18) — Edit Logged is the same table
 
 - Editing your logged sets now happens in the Your sets table instead of a second card that drew them a different way.

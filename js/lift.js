@@ -234,6 +234,41 @@ function planSectionHTML(){
 /* "Sep 2" -- the day a plan is for, as the seg and the pending line say it */
 function planDayLabel(iso){ const [y,m,d]=iso.split('-').map(Number); return new Date(y,m-1,d).toLocaleDateString('en-US',{month:'short',day:'numeric'}); }
 
+/* v4.6.65: THE EDITOR IS NOT PART OF THE CARD THAT RAISED IT.
+   v4.6.64 moved editing into the comparison table and stopped rendering the
+   EDIT SETS card for lifts -- and the editor lived INSIDE that card, so a tap
+   set lift.editSet and then drew nothing. The tests passed because they
+   asserted the chips EXIST, not that tapping one produces an editor: a hollow
+   assertion, the mechanism instead of the effect, and the second time in two
+   releases that removing the card orphaned something it was hosting (see
+   #undoBtn, v4.6.64). It is its own function now, raised by whichever surface
+   is showing. */
+function liftEditCardHTML(ex,isRun,es){
+  if(!es||es.ex!==ex) return '';
+  const focus=f=>lift.editField===f?' autofocus':'';
+  return isRun
+    ?`<div class="card editcard" style="margin-top:10px">
+        <div class="mono muted" style="font-size:11px;margin-bottom:8px">EDIT RUN</div>
+        <div class="row" style="gap:8px">
+          <div class="fld"><label>Distance ${DU()}</label><input id="edW" type="number" inputmode="decimal" step="0.01" value="${dDisp(es.w)}"></div>
+          <div class="fld"><label>Min</label><input id="edM" type="number" inputmode="numeric" value="${es.mins||0}"></div>
+          <div class="fld"><label>Sec</label><input id="edS" type="number" inputmode="numeric" value="${es.secs||0}"></div>
+        </div>
+        <div class="row" style="gap:8px;margin-top:10px">
+          <button class="btn" id="editSave" style="margin:0">Save</button>
+          <button class="btn ghost" id="editCancel" style="margin:0;flex:0 0 96px">Cancel</button>
+        </div></div>`
+    :`<div class="card editcard" style="margin-top:10px">
+        <div class="mono muted" style="font-size:11px;margin-bottom:8px">EDIT SET</div>
+        <div class="row" style="gap:8px">
+          <div class="fld"><label>Weight ${U()}</label><input id="edW" type="number" inputmode="decimal" step="${wStep(ex)}" value="${wDisp(es.w)}"${focus('w')}></div>
+          <div class="fld"><label>Reps</label><input id="edR" type="text" inputmode="numeric" value="${es.reps.join(',')}"${focus('r')}></div>
+        </div>
+        <div class="row" style="gap:8px;margin-top:10px">
+          <button class="btn" id="editSave" style="margin:0">Save</button>
+          <button class="btn ghost" id="editCancel" style="margin:0;flex:0 0 96px">Cancel</button>
+        </div></div>`;
+}
 function renderLift(){
   applyFlow(); // direct logger repaints bypass render(), but share its scope
   /* recorded on the way THROUGH, so it is always the screen actually shown */
@@ -733,6 +768,9 @@ function renderLift(){
          only a fallback for surfaces the table does not cover (runs). */
       liftHasPlanTable=!!linkedPlanHTML;
       h+=linkedPlanHTML;
+      /* the table hosts no editor of its own, so it raises the shared one */
+      if(liftHasPlanTable&&lift.editToday)
+        h+=liftEditCardHTML(ex,isRun,(lift.editSet!=null)?t.w[lift.editSet]:null);
       if(!linkedPlanHTML&&!Object.prototype.hasOwnProperty.call(DB.days[todayISO]||{},'planBasis')&&lines.length&&!isHold(unitOf(ex))){
         /* how many sets landed at each weight today, spent down the plan in
            order so two rows at the same load cannot both claim the same sets */
@@ -859,31 +897,7 @@ function renderLift(){
           <button class="btn ghost" id="moveToday" style="margin:0;flex:1;white-space:nowrap;padding:12px 6px">Move to another lift →</button>
         </div>
         ${undoStack.length?`<button class="btn ghost" id="undoBtn" style="margin-top:8px">↺ Undo — ${undoStack[undoStack.length-1].label}</button>`:''}`;
-      const es=(lift.editSet!=null)?t.w[lift.editSet]:null;
-      if(es&&es.ex===ex){
-        h+=isRun
-          ?`<div class="card editcard" style="margin-top:10px">
-              <div class="mono muted" style="font-size:11px;margin-bottom:8px">EDIT RUN</div>
-              <div class="row" style="gap:8px">
-                <div class="fld"><label>Distance ${DU()}</label><input id="edW" type="number" inputmode="decimal" step="0.01" value="${dDisp(es.w)}"></div>
-                <div class="fld"><label>Min</label><input id="edM" type="number" inputmode="numeric" value="${es.mins||0}"></div>
-                <div class="fld"><label>Sec</label><input id="edS" type="number" inputmode="numeric" value="${es.secs||0}"></div>
-              </div>
-              <div class="row" style="gap:8px;margin-top:10px">
-                <button class="btn" id="editSave" style="margin:0">Save</button>
-                <button class="btn ghost" id="editCancel" style="margin:0;flex:0 0 96px">Cancel</button>
-              </div></div>`
-          :`<div class="card editcard" style="margin-top:10px">
-              <div class="mono muted" style="font-size:11px;margin-bottom:8px">EDIT SET</div>
-              <div class="row" style="gap:8px">
-                <div class="fld"><label>Weight ${U()}</label><input id="edW" type="number" inputmode="decimal" step="${wStep(ex)}" value="${wDisp(es.w)}"${lift.editField==='w'?' autofocus':''}></div>
-                <div class="fld"><label>Reps</label><input id="edR" type="text" inputmode="numeric" value="${es.reps.join(',')}"${lift.editField==='r'?' autofocus':''}></div>
-              </div>
-              <div class="row" style="gap:8px;margin-top:10px">
-                <button class="btn" id="editSave" style="margin:0">Save</button>
-                <button class="btn ghost" id="editCancel" style="margin:0;flex:0 0 96px">Cancel</button>
-              </div></div>`;
-      }
+      h+=liftEditCardHTML(ex,isRun,(lift.editSet!=null)?t.w[lift.editSet]:null);
     }
 
     /* footer: today's volume against last session — unchanged math */

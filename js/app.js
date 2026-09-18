@@ -750,7 +750,18 @@ document.addEventListener('click',e=>{
      writes the whole entry, and splitting the write would be a second path to
      the same row. */
   const lwEd=e.target.closest('[data-lw-edit]');
-  if(lwEd){ lift.editSet=+lwEd.dataset.lwEdit; lift.editField=lwEd.dataset.lwField; return renderLift(); }
+  if(lwEd){
+    lift.editSet=+lwEd.dataset.lwEdit; lift.editField=lwEd.dataset.lwField;
+    renderLift();
+    /* autofocus is unreliable on markup inserted after load, and the editor
+       lands BELOW the table, so the field is focused and brought into view
+       explicitly -- otherwise the keyboard opens over a control the person
+       cannot see. */
+    const f=document.getElementById(lift.editField==='r'?'edR':'edW');
+    if(f){ try{ f.focus({preventScroll:true}); f.select&&f.select(); }catch(_e){ f.focus(); }
+      f.closest('.editcard')?.scrollIntoView({block:'nearest',behavior:MOTION_OK?'smooth':'auto'}); }
+    return;
+  }
   const lwDel=e.target.closest('[data-lw-del]');
   if(lwDel){
     const i=+lwDel.dataset.lwDel, ri=+lwDel.dataset.lwRep, st=dayMeta(), sset=st.w[i];

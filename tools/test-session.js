@@ -110,6 +110,41 @@ run(`document.getElementById('sessEdit').click()`);
 ok("DONE returns to read mode, disarmed",
    run(`document.querySelectorAll('[data-lw-del]').length`) === 0);
 
+/* ---- v4.6.65: TAPPING A VALUE MUST PRODUCE AN EDITOR ---------------------
+   v4.6.64 shipped chips that set lift.editSet and rendered nothing, because
+   the editor lived inside the card that release stopped drawing. The suite
+   was green: it asserted the chips existed. Existence is the mechanism; an
+   editor on screen carrying that set's numbers, and a save that reaches the
+   ledger, are the effect. Asserted end to end here so the chips can never
+   again be present and inert. */
+{
+  run(`lift.editToday=true; lift.editSet=null; lift.editField=null; renderLift();`);
+  ok("no editor before anything is tapped", !run(`!!document.getElementById('edW')`));
+
+  run(`document.querySelector('[data-lw-edit][data-lw-field="w"]').click()`);
+  ok("tapping the WEIGHT raises an editor", run(`!!document.querySelector('.editcard')`));
+  ok("...carrying that set's own weight",
+     run(`document.getElementById('edW').value`) === run(`String(wDisp(day(todayISO).w[+document.querySelector('[data-lw-edit]').dataset.lwEdit].w))`),
+     run(`document.getElementById('edW').value`));
+  ok("...with the weight field actually focused, not merely marked autofocus",
+     run(`document.activeElement && document.activeElement.id`) === "edW",
+     run(`document.activeElement && document.activeElement.id`));
+
+  run(`lift.editSet=null; renderLift(); document.querySelector('[data-lw-edit][data-lw-field="r"]').click()`);
+  ok("tapping the REPS raises the same editor, focused on reps",
+     run(`!!document.getElementById('edR')`) && run(`document.activeElement && document.activeElement.id`) === "edR",
+     run(`document.activeElement && document.activeElement.id`));
+
+  // and the save reaches the ledger
+  const target = run(`+document.querySelector('[data-lw-edit]').dataset.lwEdit`);
+  run(`document.getElementById('edR').value='7'; document.getElementById('editSave').click();`);
+  ok("saving writes the new reps onto that set",
+     run(`JSON.stringify(day(todayISO).w[${target}].reps)`) === "[7]",
+     run(`JSON.stringify(day(todayISO).w[${target}].reps)`));
+  ok("...and the editor closes behind it", !run(`!!document.querySelector('.editcard')`));
+  run(`undo&&undoStack.length&&undo(); lift.editToday=false; lift.editSet=null; renderLift();`);
+}
+
 /* ---- v4.6.64: the morph is a PAIRING, not a fade -------------------------
    The columns collapse and each value moves ~150px left. A cross-fade would
    read as "the table was replaced"; the browser only interpolates elements
