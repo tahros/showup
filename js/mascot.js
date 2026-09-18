@@ -37,7 +37,7 @@ function workoutCompletionMetrics(record){
 function completionMetricsHTML(record){
   const m=workoutCompletionMetrics(record);
   return '<div class="su-completion-metrics">'+
-    [[m.minutes==null?'—':m.minutes,m.minutes===1?'minute':'minutes'],[m.sets,m.sets===1?'set':'sets'],[m.exercises,m.exercises===1?'exercise':'exercises']]
+    [(m.minutes==null?['—','minutes']:m.minutes<100?[m.minutes,m.minutes===1?'minute':'minutes']:[`${Math.floor(m.minutes/60)} h ${m.minutes%60}`,'min']),[m.sets,m.sets===1?'set':'sets'],[m.exercises,m.exercises===1?'exercise':'exercises']]
     .map(([n,label])=>'<div'+(n==='—'?' title="Duration unavailable: older sets have no recorded start time"':'')+'><b>'+n+'</b> <span>'+label+'</span></div>').join('')+'</div>';
 }
 function stampWorkoutCompletion(record,now=Date.now()){

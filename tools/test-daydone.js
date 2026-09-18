@@ -553,3 +553,25 @@ console.log('PASS live bar positioning');
      /@media\(prefers-reduced-motion:reduce\)\{[\s\S]*?#liveWorkoutBar\{animation:none;box-shadow:/.test(raw));
 }
 console.log('PASS the bar is the live surface');
+/* ---- v4.6.68: minutes read as time; the fold actually folds ---------------- */
+{
+  const f=(m,l)=>run(`fmtMinutes(${m},${!!l})`);
+  ok("under 100, minutes stay minutes", f(99)==="99 min" && f(1)==="1 min");
+  ok("from 100, hours come out", f(100)==="1 h 40 min" && f(399)==="6 h 39 min", f(399));
+  ok("...a whole hour has no trailing zero", f(120)==="2 h");
+  ok("...the long register spells it out for the card", f(399,1)==="6 hours 39 minutes" && f(100,1)==="1 hour 40 minutes");
+  ok("...and unknown stays unknown", run(`fmtMinutes(null)`)===null);
+  run(`(function(){DB.days={};DB.days[todayISO]={w:[{part:'Sixpack',ex:'Hanging Leg Raise',w:0,reps:[15],at:Date.now()-399*60000}],doneEx:[],donePart:[],upd:1};SEED=deriveAll();view='lift';lift.part='Sixpack';lift.ex='Hanging Leg Raise';DB.settings.liveFold=false;render();syncLiveWorkout();})()`);
+  ok("the live bar says the time, not the arithmetic", /6 h 39 min/.test(run(`document.querySelector('.live-workout-meta').textContent`)), run(`document.querySelector('.live-workout-meta').textContent`));
+  run(`DB.settings.liveFold=true;syncLiveWorkout();`);
+  ok("...and so does the folded capsule", run(`document.querySelector('#liveWorkoutBar .lw-brief').textContent`)==="6 h 39 min");
+  run(`DB.settings.liveFold=false;syncLiveWorkout();`);
+  /* jsdom has no layout, so the fold's width is asserted where it was lost:
+     in the cascade. The rule that shrinks it must carry the skin's own
+     specificity, or the skin's full width wins and the capsule never appears. */
+  const raw=fs.readFileSync(path.join(dir,'css/app.css'),'utf8').replace(/\/\*[\s\S]*?\*\//g,'');
+  ok("the fold's width rule is stated at the skin's specificity, so it wins",
+     /:root\[data-skin="minimal"\] #liveWorkoutBar\.folded\{[^}]*width:fit-content/.test(raw));
+}
+console.log('PASS minutes read as time, the fold folds');
+

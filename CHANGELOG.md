@@ -1,5 +1,10 @@
 # ShowUp — changelog
 
+## v4.6.68 (2026-09-18) — Time reads as time, and the fold folds
+
+- Past 99 minutes the workout bar, its folded capsule and the completion card show hours: "1 h 40 min", not "100 min".
+- Folding the bar now actually shrinks it to a capsule on the minimal skin; a cascade slip had left it full width.
+
 ## v4.6.67 (2026-09-18) — Edit Plan is the same screen
 
 - Edit Plan no longer leaves for the planner: it opens the same in-table editor as Edit Logged, with today's planned load and reps as tappable chips and the same editor in the row.

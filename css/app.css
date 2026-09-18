@@ -3930,7 +3930,11 @@
    because a workout is still open and the app must not pretend otherwise.
    Folded, the whole bar is one target and it unfolds; Finish is reached by
    unfolding, which is why nothing destructive hides behind the fold. */
-#liveWorkoutBar.folded{width:fit-content;max-width:calc(100% - 48px);padding:0 16px;gap:9px;
+/* v4.6.68: the fold never shrank on the minimal skin. Its width rule lost the
+   cascade to `:root[data-skin="minimal"] #liveWorkoutBar` (1,2,0 beats 1,1,0),
+   so the capsule the mock showed shipped as a full-width bar. Stated at the
+   skin's own specificity, for both skins. */
+#liveWorkoutBar.folded,:root[data-skin="minimal"] #liveWorkoutBar.folded{width:fit-content;max-width:calc(100% - 48px);padding:0 16px;gap:9px;
   animation-name:live-workout-breathe-sm}
 #liveWorkoutBar.folded #liveWorkoutResume{flex:0 0 auto;display:flex;align-items:center;gap:9px}
 #liveWorkoutBar.folded .live-workout-title{gap:9px}

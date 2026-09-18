@@ -1261,6 +1261,19 @@ const ICON_STROKE_W=9;     // rendered stroke, in box units, for every stroked i
 /* the sizes icons are allowed to be. A raw number at a call site is how the
    11/12/14/16/17 spread happened; buildcheck rejects one now. */
 const ICON_SZ={ sm:15, md:18, lg:22, hero:44 };
+/* v4.6.68: MINUTES READ AS TIME PAST 99. "399 min" is arithmetic, not a
+   duration anyone thinks in. Under 100 the bare minutes stay -- "95 min" is
+   how a workout is talked about; from 100 the hours come out. Two registers:
+   short for the bar and its capsule, long for the completion card and the
+   finish sheet, which have room for words. */
+function fmtMinutes(m,long){
+  if(m==null||!Number.isFinite(m)) return null;
+  m=Math.max(0,Math.round(m));
+  if(m<100) return long?`${m} minute${m===1?'':'s'}`:`${m} min`;
+  const h=Math.floor(m/60), r=m%60;
+  if(long) return `${h} hour${h===1?'':'s'}`+(r?` ${r} minute${r===1?'':'s'}`:'');
+  return `${h} h`+(r?` ${r} min`:'');
+}
 function icon(name,sz,rot){
   sz=sz||ICON_SZ.md;
   const tf=rot?` style="transform:rotate(${rot}deg)"`:'';

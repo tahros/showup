@@ -1937,7 +1937,7 @@ const doneToast=(m,alt,explicit)=>{
 };
 function liveWorkoutSummary(){
   const m=workoutCompletionMetrics({...DB.days[todayISO],completedAt:Date.now()});
-  return {m,text:[m.minutes==null?null:`${m.minutes} min`,`${m.sets} set${m.sets===1?'':'s'}`].filter(Boolean).join(' · ')};
+  return {m,text:[fmtMinutes(m.minutes),`${m.sets} set${m.sets===1?'':'s'}`].filter(Boolean).join(' · ')};
 }
 function positionLiveWorkout(){
   const bar=document.getElementById('liveWorkoutBar');
@@ -2052,7 +2052,7 @@ function syncLiveWorkout(){
      with no timestamps) falls back to the set count rather than an empty
      capsule. */
   const brief=bar.querySelector('.lw-brief');
-  const briefText=m.minutes==null?`${m.sets} set${m.sets===1?'':'s'}`:`${m.minutes} min`;
+  const briefText=m.minutes==null?`${m.sets} set${m.sets===1?'':'s'}`:fmtMinutes(m.minutes);
   if(brief&&brief.textContent!==briefText)brief.textContent=briefText;
   const folded=!!DB.settings.liveFold;
   bar.classList.toggle('folded',folded);
