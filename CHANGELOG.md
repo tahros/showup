@@ -1,5 +1,10 @@
 # ShowUp — changelog
 
+## v4.6.72 (2026-09-18) — The arrow leaves; Today knows where it was tapped
+
+- In the planning workspace, the top-left arrow now returns to the screen you came from — Today, Train or Settings — from any step. It no longer walks the steps backwards; the step bar does that.
+- Tapping Today while already inside one of Today's sub-sections returns to Today's default page. From any other tab, and from Today itself, the tap is unchanged.
+
 ## v4.6.71 (2026-09-18) — Deleting a stray set closes the day again
 
 - A set logged by accident after Complete reopened the day; deleting it left the day open and the bar describing the morning ("7 h 8 min"). Now, with a Complete on record and nothing logged after it, deleting that set puts the day back in the book: no bar, no Finish.

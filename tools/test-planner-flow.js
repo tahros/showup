@@ -41,7 +41,7 @@ test('matching logged sets render together without changing source records',`(()
 test('different loads and timed sets stay separate',`pfHistoryLines([{ex:'Squat',w:50,reps:[8]},{ex:'Squat',w:60,reps:[8]},{ex:'Squat',w:60,reps:[60],su:'s'}]).split('<br>').length===3`);
 test('overview excludes history entirely',`!pfDaysHTML().includes('Last workout day')`);
 test('routine has no redundant title or Dates CTA; Clear matches its neighbors',`!document.querySelector('.pw-editor-head,[data-pw="pf-dates"]')&&!document.querySelector('[data-pw="pf-clear"]').classList.contains('pw-text')`);
-test('back button lives in the existing app header',`document.querySelector('header.planmode .hback[data-pw="pf-back"]')&&!document.querySelector('.pf-workspace [data-pw="pf-back"]')`);
+test('back button lives in the existing app header (v4.6.72: it LEAVES to the previous navigation point)',`document.querySelector('header.planmode .hback[data-pw="pf-leave"]')&&!document.querySelector('.pf-workspace [data-pw="pf-leave"],.pf-workspace [data-pw="pf-back"]')`);
 run(`pw().dates.push('2026-09-15');pw().book['2026-09-15']={...pwCopy(pwDay('2026-09-14')),rows:pwRead('Dip\\nBW × 8 8'),parts:['Chest'],base:pwFingerprint('2026-09-15')};pfAnchor();pfMoveDay('2026-09-14','2026-09-15');`);
 test('moving a workout keeps destination dates and source targets',`pw().dates[0]==='2026-09-14'&&pwDay('2026-09-14').rows[0].ex==='Dip'&&pwDay('2026-09-15').rows[0].ex==='Squat'`);
 run(`pfSave();pw().active='2026-09-14';pfNavigate('edit');pfHandle('pf-empty-day',{dataset:{}});pfSave();`);

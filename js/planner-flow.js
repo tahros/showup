@@ -12,6 +12,20 @@ function pfTrackScreen(){
  if(!j.returning&&j.lastScreen&&key(screen)!==key(j.lastScreen))j.history.push({...j.lastScreen,scroll:window.scrollY});
  j.returning=false;j.lastScreen=screen;
 }
+/* v4.6.72: THE ARROW IS NAVIGATION, NOT UNDO. The header arrow ran pfBack(),
+   which pops the flow's own step history first -- Dates back to Preferences --
+   and only leaves the workspace once that is empty. The maker's rule: the
+   arrow goes to the PREVIOUS NAVIGATION POINT, the screen you entered from,
+   whatever step you are on. j.returnView has always recorded that point
+   (today, lift through the Edit Plan door, sync from Settings); pfLeave goes
+   there directly. pfBack keeps the step-popping for the one control that
+   means "undo": Cancel while a write is running. `to` lets the Today tab send
+   the same leave home rather than to where you came from. */
+function pfLeave(to){
+ const s=pw(),j=pfState();pwRequest++;lift.writeAbort?.abort();writerWaitStop();s.busy=false;
+ const destination=to||(j.prefOrigin==='settings'?'sync':j.returnView||'today');
+ j.prefOrigin=null;j.lastScreen=null;j.history=[];s.step='edit';s.candidate=null;pwPersist();lift.plan=null;view=destination;render({soft:true});
+}
 function pfBack(){
  const s=pw(),j=pfState();pwRequest++;lift.writeAbort?.abort();writerWaitStop();s.busy=false;
  let previous;
@@ -22,7 +36,7 @@ function pfBack(){
   if(candidate.page==='edit'&&!s.dates.includes(candidate.active))continue;
   previous=candidate;break;
  }
- if(!previous){const destination=j.prefOrigin==='settings'?'sync':j.returnView||'today';j.prefOrigin=null;j.lastScreen=null;s.step='edit';s.candidate=null;pwPersist();lift.plan=null;view=destination;render({soft:true});return;}
+ if(!previous){pfLeave();return;}
  Object.assign(j,{page:previous.page,clear:previous.clear,emptyConfirm:previous.emptyConfirm,group:previous.group,returning:true});
  if(previous.dates)s.dates=[...previous.dates];s.step=previous.step;s.active=previous.active;s.error='';s.candidate=null;pwPersist();pwRender();window.scrollTo(0,previous.scroll||0);
 }
@@ -131,6 +145,7 @@ pwSave=function(){return pfOn()?pfSave():pfLegacy.save();};
 function pfHandle(a,el){const s=pw(),j=pfState(),d=el.dataset.date,i=+el.dataset.index,b=s.active?pwDay(s.active):null;
  if(a==='pf-settings'){j.history=[];j.lastScreen=null;j.returnView='sync';j.prefOrigin='settings';j.prefs=pfPrefs();lift.plan='workspace';view='today';pfNavigate('prefs');return;}
  if(a==='pf-prefs'){j.prefOrigin=j.page;j.prefs=pfPrefs();pfNavigate('prefs');return;}
+ if(a==='pf-leave'){pfLeave();return;}
  if(a==='pf-back'){pfBack();return;}
  if(a==='pf-stage'){j.prefOrigin=null;const n=+el.dataset.stage;if(n===2&&pfSavedSelection()){s.dates.forEach(d=>pwDay(d));if(!s.dates.includes(s.active))s.active=pfDates()[0];pfAnchor();}else if(n>j.furthest||n>=2&&!pfMatch())return;pfNavigate(['prefs','dates','days','done'][n]);return;}
  if(a==='pf-frequency'){j.prefs.frequency=el.dataset.value==='varies'?'varies':+el.dataset.value;}
@@ -158,7 +173,7 @@ function pfHandle(a,el){const s=pw(),j=pfState(),d=el.dataset.date,i=+el.dataset
  else if(a==='pf-save'||a==='pf-confirm-save'){pfSave(a==='pf-confirm-save');return;}
  pwPersist();pwRender();
 }
-pwHandle=function(e){if(e.target.closest('[data-pw="pf-settings"]')){pfHandle('pf-settings',e.target.closest('[data-pw]'));return true;}if(!pfOn())return pfLegacy.handle(e);const el=e.target.closest('[data-pw]');if(!el)return false;const a=el.dataset.pw,s=pw(),j=pfState();try{if(s.busy&&a!=='pf-back')return true;if(a==='date'||a==='month')pfMotion={kind:a,date:el.dataset.date,dir:+el.dataset.delta||1,before:s.dates.length};if(a.startsWith('pf-')){pfHandle(a,el);return true;}if(a==='date'){const result=pfLegacy.handle(e);j.removed=j.removed.filter(x=>!s.dates.includes(x.date));pwPersist();return result;}if(a==='load-newer'||a==='replace-newer'){const d=s.conflict,result=pfLegacy.handle(e);if(d){if(a==='load-newer')j.removed=j.removed.filter(x=>x.date!==d);else j.removed.forEach(x=>{if(x.date===d)x.base=pwFingerprint(d);});s.step='edit';pwPersist();pwRender();}return result;}if(a==='save'){pfSave();return true;}if(a==='dates-toggle'){pfNavigate('dates');return true;}if(a==='day'){s.active=el.dataset.date;pfNavigate('edit');return true;}if(a==='back'&&['paste','editrow','candidate'].includes(s.step)){s.candidate=null;pfNavigate(pfMatch()?'edit':'dates');return true;}if(a==='edit'){s.candidate=null;pfNavigate(pfMatch()?'edit':'dates');return true;}return pfLegacy.handle(e);}catch(err){s.error=err.message;pwRender();return true;}};
+pwHandle=function(e){if(e.target.closest('[data-pw="pf-settings"]')){pfHandle('pf-settings',e.target.closest('[data-pw]'));return true;}if(!pfOn())return pfLegacy.handle(e);const el=e.target.closest('[data-pw]');if(!el)return false;const a=el.dataset.pw,s=pw(),j=pfState();try{if(s.busy&&a!=='pf-back'&&a!=='pf-leave')return true;if(a==='date'||a==='month')pfMotion={kind:a,date:el.dataset.date,dir:+el.dataset.delta||1,before:s.dates.length};if(a.startsWith('pf-')){pfHandle(a,el);return true;}if(a==='date'){const result=pfLegacy.handle(e);j.removed=j.removed.filter(x=>!s.dates.includes(x.date));pwPersist();return result;}if(a==='load-newer'||a==='replace-newer'){const d=s.conflict,result=pfLegacy.handle(e);if(d){if(a==='load-newer')j.removed=j.removed.filter(x=>x.date!==d);else j.removed.forEach(x=>{if(x.date===d)x.base=pwFingerprint(d);});s.step='edit';pwPersist();pwRender();}return result;}if(a==='save'){pfSave();return true;}if(a==='dates-toggle'){pfNavigate('dates');return true;}if(a==='day'){s.active=el.dataset.date;pfNavigate('edit');return true;}if(a==='back'&&['paste','editrow','candidate'].includes(s.step)){s.candidate=null;pfNavigate(pfMatch()?'edit':'dates');return true;}if(a==='edit'){s.candidate=null;pfNavigate(pfMatch()?'edit':'dates');return true;}return pfLegacy.handle(e);}catch(err){s.error=err.message;pwRender();return true;}};
 document.addEventListener('input',e=>{if(!pfOn())return;const key=e.target.dataset.pfPref,part=e.target.dataset.pfEmphasis;if(!key&&!part)return;const p=pfState().prefs;if(!p)return;if(part){p.emphasis[part]=+e.target.value;e.target.setAttribute('aria-valuetext',['Less','Balanced','More'][+e.target.value+1]);}else p[key]=key==='split'?e.target.value:+e.target.value;pwPersist();});
 document.addEventListener('change',e=>{if(!pfOn())return;if(e.target.matches('[data-pf-paste-all]')){pfState().pasteAll=e.target.checked;pwPersist();return;}if(!e.target.matches('[data-pf-avoid]'))return;const p=pfState().prefs,ex=e.target.value;if(ex&&!p.avoid.includes(ex)){p.avoid.push(ex);pwPersist();pwRender();}});
 document.addEventListener('toggle',e=>{if(!pfOn()||!e.target.isConnected)return;const j=pfState();if(e.target.matches?.('[data-pf-saved-fold]')){j.doneOpen=j.doneOpen||{};j.doneOpen[e.target.dataset.pfSavedFold]=e.target.open;pwPersist();return;}if(!e.target.matches?.('[data-pf-fold]'))return;j.open=j.open||{};j.open[e.target.dataset.pfFold]=e.target.open;pwPersist();},true);

@@ -179,6 +179,16 @@ document.addEventListener('click',e=>{
   const nav=e.target.closest('nav button');
   if(nav){
     if(session) cloudPush();
+    /* v4.6.72: THE TAB KNOWS WHERE IT WAS TAPPED FROM. Today, tapped while
+       already on Today but inside one of its sub-sections -- the planning
+       workspace, the writer's ask screen -- returns to Today's default page.
+       That is the whole rule: from any other tab, and from Today's own
+       default page, the tap does what it always did. */
+    if(nav.dataset.v==='today'&&view==='today'&&lift&&(lift.plan||lift.write)){
+      if(lift.plan==='workspace'&&typeof pfLeave==='function') pfLeave('today');
+      else { lift.writeAbort?.abort(); lift.plan=null; lift.write=null; render({soft:true}); }
+      return;
+    }
     view=nav.dataset.v;
     /* v3.3.347: the tab remembers, live or not */
     /* v3.3.434: a tab tap is a fresh start, never a return. Taking the Train

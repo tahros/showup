@@ -14,7 +14,7 @@ function renderHeader(){
   const inPlan=view==='today'&&lift.plan==='workspace'&&typeof pfOn==='function'&&pfOn();
   hdr.classList.toggle('planmode',!!inPlan);
   const plannerBack=hdr.querySelector('.hback');
-  if(plannerBack){if(inPlan)plannerBack.dataset.pw='pf-back';else delete plannerBack.dataset.pw;}
+  if(plannerBack){if(inPlan)plannerBack.dataset.pw='pf-leave';else delete plannerBack.dataset.pw;}   // v4.6.72: the arrow LEAVES to where you came from; it does not step back
   hdr.classList.toggle('exmode',!!inEx);
   if(inEx){
     $('#hSub').classList.remove('donetoday');   // stale ✓ from the last non-live render
