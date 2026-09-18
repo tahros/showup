@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.63 (2026-09-18) — The live bar goes red, and folds
+
+- The workout bar is the live surface now: red while a session is open, with a slow glow that breathes on a 4.2s cycle.
+- Fold it with the chevron to hand back the screen — it collapses to a small capsule showing elapsed time, and unfolds with a tap.
+- The fold is remembered and syncs across your devices, so a bar you folded on the phone stays folded on the desktop.
+- Reduced-motion settles the glow at a fixed strength instead of stopping it, so the bar still reads as live without moving.
+
 ## v4.6.17 (2026-09-14) — Keep today's calendar highlight visible
 
 - Position the attendance calendar after its final layout so today's breathing outline isn't clipped at the right edge.

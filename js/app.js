@@ -141,7 +141,15 @@ document.addEventListener('click',e=>{
   /* v4.6.62: two doors, one room -- the live bar's Finish and the session
      card's Complete workout open the same confirmation sheet. */
   if(e.target.closest('#liveWorkoutFinish')||e.target.closest('#scFinishBtn')){ openWorkoutFinish(); return; }
+  /* v4.6.63: the fold is a SETTING, not a session flag. It rides the per-key
+     settings clock like planFold does, so folding on the phone folds on the
+     PC and nothing else in the blob travels with it (v3.3.439). save(true)
+     stamps only the key that moved. */
+  if(e.target.closest('#liveWorkoutFold')){ setLiveFold(true); return; }
   if(e.target.closest('#liveWorkoutResume')){
+    /* folded, the whole bar is the unfold target -- Finish and the chevron are
+       not rendered, so there is nothing destructive behind a single tap. */
+    if(DB.settings.liveFold){ setLiveFold(false); return; }
     if(view!=='lift'){liftEnter();view='lift';render();}
     return;
   }
@@ -1902,18 +1910,35 @@ function positionLiveWorkout(){
   if(document.querySelector('.pw-save-dock')&&typeof pwPositionDock==='function')pwPositionDock();
   if(typeof syncTopBtn==='function')syncTopBtn();
 }
+function setLiveFold(on){
+  if(!!DB.settings.liveFold===!!on) return;
+  DB.settings.liveFold=!!on; DB.settingsAt=Date.now(); save(true);
+  syncLiveWorkout();
+}
 function syncLiveWorkout(){
   let bar=document.getElementById('liveWorkoutBar');
   if(!bar){
     bar=document.createElement('div');bar.id='liveWorkoutBar';
-    bar.innerHTML=`<button id="liveWorkoutResume" aria-label="Return to workout"><span class="live-workout-title"><i aria-hidden="true"></i>Workout in progress</span><span class="live-workout-meta" aria-live="polite"></span></button><button id="liveWorkoutFinish">Finish ${icon('check',16)}</button>`;
+    bar.innerHTML=`<button id="liveWorkoutResume" aria-label="Return to workout"><span class="live-workout-title"><i aria-hidden="true"></i><span class="lw-label">Workout in progress</span><span class="lw-brief"></span></span><span class="live-workout-meta" aria-live="polite"></span></button><button id="liveWorkoutFinish">Finish ${icon('check',16)}</button><button id="liveWorkoutFold" aria-label="Fold the workout bar">${icon('chevron',16,90)}</button>`;
     document.body.appendChild(bar);
   }
   const active=!!DB.days[todayISO]?.w?.length&&!DB.days[todayISO].doneAll;
   bar.hidden=!active;document.documentElement.classList.toggle('workout-active',active);
   if(!active){document.documentElement.style.removeProperty('--live-workout-extra');document.getElementById('workoutFinishDialog')?.remove();return;}
-  const text=liveWorkoutSummary().text,meta=bar.querySelector('.live-workout-meta');
+  const {m,text}=liveWorkoutSummary(),meta=bar.querySelector('.live-workout-meta');
   if(meta.textContent!==text)meta.textContent=text;
+  /* v4.6.63: folded, the bar says the one thing it still has room to say.
+     Minutes, not sets: the fold is about reclaiming the screen mid-session,
+     and elapsed time is what you glance down for. Unknown duration (a day
+     with no timestamps) falls back to the set count rather than an empty
+     capsule. */
+  const brief=bar.querySelector('.lw-brief');
+  const briefText=m.minutes==null?`${m.sets} set${m.sets===1?'':'s'}`:`${m.minutes} min`;
+  if(brief&&brief.textContent!==briefText)brief.textContent=briefText;
+  const folded=!!DB.settings.liveFold;
+  bar.classList.toggle('folded',folded);
+  const resume=bar.querySelector('#liveWorkoutResume');
+  if(resume)resume.setAttribute('aria-label',folded?'Unfold the workout bar':'Return to workout');
   requestAnimationFrame(positionLiveWorkout);
 }
 function openWorkoutFinish(){

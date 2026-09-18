@@ -3893,35 +3893,64 @@
    they were reading the same instant. The nav is fixed, centred and capped at
    520px by CSS; the bar now states the SAME constraints instead of copying the
    result of them, so there is nothing to measure and nothing to get stale. */
-#liveWorkoutBar{position:fixed;z-index:31;box-sizing:border-box;display:flex;align-items:center;gap:8px;padding:8px 10px 8px 14px;background:var(--surface);color:var(--chalk);border:1px solid var(--line);border-radius:18px;box-shadow:0 4px 16px #0000000c;
+/* v4.6.63: THE BAR IS THE LIVE SURFACE. The bar only exists while a workout is
+   open -- syncLiveWorkout() hides it the moment there are no sets or the day is
+   closed -- so "live" is not a state the bar can be in, it is the only state it
+   has. That means the red needs no state class, and it also means v4.6.60's
+   pill-token paint job is now a dead constraint: it chose the bar's charcoal
+   against the NAV's appearance, and the bar is no longer charcoal in any skin.
+   Removed rather than left to rot, per the named pattern.
+
+   --live-bar is NOT var(--live). The theme grades of --live (#C93A2B dark,
+   #BE3324 light) are tuned for red AS INK ON THE PAGE; this is white ink ON
+   red, which is the opposite problem. #BE3324 is the grade where the 11px meta
+   line clears 4.5:1 (4.89:1); the dark grade lands at 4.40:1 and misses. The
+   bar's appearance is chosen independently of the page, so it takes one value
+   in both themes. Title 5.69:1, meta 4.89:1, Finish ink on its cap 7.6:1. */
+:root{--live-bar:#BE3324;--live-bar-ink:#FFFFFF;--live-bar-meta:#F8EBE9;
+  --live-bar-cap:#9C2A1E;--live-bar-quiet:#F3D4D0}
+#liveWorkoutBar{position:fixed;z-index:31;box-sizing:border-box;display:flex;align-items:center;gap:6px;padding:8px 6px 8px 14px;background:var(--live-bar);color:var(--live-bar-ink);border:1px solid rgba(255,255,255,.20);border-radius:18px;
   left:0;right:0;margin:0 auto;width:min(520px,100%);max-width:100%;
-  bottom:calc(58px + env(safe-area-inset-bottom, 0px) + 10px)}
+  bottom:calc(58px + env(safe-area-inset-bottom, 0px) + 10px);
+  animation:live-workout-breathe 4.2s ease-in-out infinite}
 /* the minimal skin floats its nav 10px off the floor and narrows it to 472px */
 :root[data-skin="minimal"] #liveWorkoutBar{width:min(472px,calc(100% - 48px));
   bottom:calc(58px + 10px + env(safe-area-inset-bottom, 0px) + 10px)}
 #liveWorkoutBar[hidden]{display:none}
 #liveWorkoutBar button{font-family:var(--body);border:0;margin:0;cursor:pointer;min-height:44px}
-#liveWorkoutResume{flex:1;min-width:0;text-align:left;padding:0;background:none;color:var(--chalk)}
+#liveWorkoutResume{flex:1;min-width:0;text-align:left;padding:0;background:none;color:var(--live-bar-ink)}
 .live-workout-title{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:500;line-height:1.4}
-.live-workout-title i{width:6px;height:6px;flex-shrink:0;border-radius:50%;background:var(--accent);animation:live-workout-pulse 2.8s ease-in-out infinite}
-.live-workout-meta{display:block;color:var(--muted);font-size:11px;line-height:1.4;margin:3px 0 0 13px;font-variant-numeric:tabular-nums}
-#liveWorkoutFinish{display:flex;align-items:center;justify-content:center;gap:7px;padding:8px 12px;flex-shrink:0;background:var(--surface2);color:var(--accent-ink);border-radius:12px;font-size:13px;font-weight:500}
-/* v4.6.60: THE LIVE BAR FOLLOWS THE BAR, NOT THE PAGE. It was painted --surface /
-   --chalk / --line, which are PAGE-theme tokens, so a dark nav in a light app left
-   a white slab sitting directly on top of it. This is the same finding as v3.3.478
-   (the selected glyph) and v3.3.510 (the rest ring): the bar's appearance is chosen
-   independently of the page, so anything that belongs to the bar needs the bar's
-   own ink. --pill / --pill-ink / --pill-chalk / --pill-accent already exist for
-   exactly this and are keyed to data-bar; the live bar simply never joined them.
-   Guarded on the tokens being defined, so the classic skin -- which has no pill
-   block -- keeps the page tokens it was designed with. */
-:root[data-skin="minimal"] #liveWorkoutBar{background:var(--pill);color:var(--pill-chalk);
-  border-color:color-mix(in srgb, var(--pill-chalk) 14%, transparent);box-shadow:var(--pill-shadow)}
-:root[data-skin="minimal"] #liveWorkoutResume{color:var(--pill-chalk)}
-:root[data-skin="minimal"] .live-workout-meta{color:var(--pill-ink)}
-:root[data-skin="minimal"] .live-workout-title i{background:var(--pill-accent)}
-:root[data-skin="minimal"] #liveWorkoutFinish{
-  background:color-mix(in srgb, var(--pill-chalk) 12%, transparent);color:var(--pill-accent)}
+.live-workout-title i{width:7px;height:7px;flex-shrink:0;border-radius:50%;background:var(--live-bar-ink);animation:live-workout-pulse 2.8s ease-in-out infinite}
+.live-workout-meta{display:block;color:var(--live-bar-meta);font-size:11px;line-height:1.4;margin:3px 0 0 14px;font-variant-numeric:tabular-nums}
+#liveWorkoutFinish{display:flex;align-items:center;justify-content:center;gap:7px;padding:8px 12px;flex-shrink:0;background:var(--live-bar-cap);color:var(--live-bar-ink);border-radius:12px;font-size:13px;font-weight:500}
+#liveWorkoutFold{display:flex;align-items:center;justify-content:center;width:38px;flex-shrink:0;background:none;color:var(--live-bar-quiet);padding:0}
+
+/* v4.6.63: FOLDED. Same element, same red, same breath -- less of it. The fold
+   gives back the screen the bar was covering; it does not stop saying live,
+   because a workout is still open and the app must not pretend otherwise.
+   Folded, the whole bar is one target and it unfolds; Finish is reached by
+   unfolding, which is why nothing destructive hides behind the fold. */
+#liveWorkoutBar.folded{width:fit-content;max-width:calc(100% - 48px);padding:0 16px;gap:9px;
+  animation-name:live-workout-breathe-sm}
+#liveWorkoutBar.folded #liveWorkoutResume{flex:0 0 auto;display:flex;align-items:center;gap:9px}
+#liveWorkoutBar.folded .live-workout-title{gap:9px}
+#liveWorkoutBar.folded .lw-label,
+#liveWorkoutBar.folded .live-workout-meta,
+#liveWorkoutBar.folded #liveWorkoutFinish,
+#liveWorkoutBar.folded #liveWorkoutFold{display:none}
+#liveWorkoutBar.folded .lw-brief{display:inline;font-variant-numeric:tabular-nums}
+.lw-brief{display:none}
+
+@keyframes live-workout-breathe{
+  0%,100%{box-shadow:inset 0 1px 0 rgba(255,255,255,.30),inset 0 -10px 18px -12px rgba(0,0,0,.40),
+    0 3px 16px rgba(190,51,36,.32),0 0 34px rgba(190,51,36,.18),0 1px 2px rgba(0,0,0,.30)}
+  50%{box-shadow:inset 0 1px 0 rgba(255,255,255,.30),inset 0 -10px 18px -12px rgba(0,0,0,.40),
+    0 5px 22px rgba(190,51,36,.46),0 0 48px rgba(190,51,36,.30),0 1px 2px rgba(0,0,0,.30)}
+}
+@keyframes live-workout-breathe-sm{
+  0%,100%{box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 2px 10px rgba(190,51,36,.30),0 0 22px rgba(190,51,36,.16)}
+  50%{box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 3px 14px rgba(190,51,36,.42),0 0 32px rgba(190,51,36,.26)}
+}
 :root.workout-active.workout-active #app{padding-bottom:calc(134px + var(--live-workout-extra,72px))}
 :root.workout-active .pw-save-dock{bottom:calc(96px + var(--live-workout-extra,72px))}
 #workoutFinishDialog{position:fixed;inset:auto 0 0;margin:0 auto;width:100%;max-width:520px;box-sizing:border-box;padding:14px 24px calc(24px + env(safe-area-inset-bottom,0px));border:1px solid var(--line);border-radius:26px 26px 0 0;background:var(--surface);color:var(--chalk);font-family:var(--body);max-height:90%;overflow:auto}
@@ -3932,4 +3961,13 @@
 #workoutKeepTraining{margin-top:8px}
 .workout-finish-handle{width:34px;height:4px;background:var(--line);border-radius:4px;margin:0 auto 24px}
 @keyframes live-workout-pulse{50%{opacity:.4}}
-@media(prefers-reduced-motion:reduce){.live-workout-title i{animation:none}}
+@media(prefers-reduced-motion:reduce){
+  .live-workout-title i{animation:none}
+  /* the bar still has to READ as live without moving: the breath settles at
+     its own midpoint instead of stopping at whichever frame it was on. */
+  #liveWorkoutBar{animation:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.30),
+    inset 0 -10px 18px -12px rgba(0,0,0,.40),0 3px 18px rgba(190,51,36,.36),
+    0 0 38px rgba(190,51,36,.22),0 1px 2px rgba(0,0,0,.30)}
+  #liveWorkoutBar.folded{animation:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.28),
+    0 2px 12px rgba(190,51,36,.32),0 0 26px rgba(190,51,36,.18)}
+}

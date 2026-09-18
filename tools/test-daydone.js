@@ -499,41 +499,57 @@ process.exit(fail?1:0);
 }
 console.log('PASS live bar positioning');
 
-/* ---- v4.6.60: THE LIVE BAR FOLLOWS THE BAR, NOT THE PAGE ------------------
-   It was painted with --surface / --chalk / --line, which are PAGE-theme tokens,
-   so a dark nav in a light app left a white slab sitting on top of it. Same
-   finding as v3.3.478 (selected glyph) and v3.3.510 (rest ring): anything
-   belonging to the bar takes the bar's own ink. Contrast is COMPUTED here, in
-   both bar modes, rather than asserted as a colour name. */
+/* ---- v4.6.63: THE BAR IS THE LIVE SURFACE --------------------------------
+   v4.6.60 painted the live bar from the NAV's tokens, because the bar was
+   charcoal furniture sitting on charcoal furniture. It is neither any more:
+   the bar exists only while a workout is open, so it is red in every skin and
+   every theme, and the pill overrides it used to carry are gone. Those four
+   assertions went with them -- a test that guards a removed mechanism is the
+   "dead constraint outliving its premise" pattern in test form.
+   What is guarded instead: the red is taken from a token, the inks are
+   READABLE ON IT (computed, not named), the fold keeps the red, and nothing
+   destructive hides behind a single tap on a folded bar. */
 {
   const raw=fs.readFileSync(path.join(dir,'css/app.css'),'utf8').replace(/\/\*[\s\S]*?\*\//g,'');
   const blk=sel=>{const m=raw.match(new RegExp(sel.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\{([^}]*)\\}'));return m?m[1]:'';};
-  const tok=(bar,n)=>{const m=blk(`:root[data-skin="minimal"][data-bar="${bar}"]`).match(new RegExp('--'+n+':\\s*([^;]+)'));return m?m[1].trim():null;};
   const hx=h=>{h=h.replace('#','');return [0,2,4].map(i=>parseInt(h.substr(i,2),16));};
   const lum=c=>{const [r,g,b]=hx(c).map(v=>{v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4);});return .2126*r+.7152*g+.0722*b;};
   const ratio=(a,b)=>{const [x,y]=[lum(a),lum(b)].sort((m,n)=>n-m);return (x+.05)/(y+.05);};
-  /* there are two :root[data-skin="minimal"] #liveWorkoutBar rules -- one sets the
-     width, one the colour -- and blk() returns the first. Pick the one that paints. */
-  const allBar=raw.match(/:root\[data-skin="minimal"\] #liveWorkoutBar\{[^}]*\}/g)||[];
-  const barRule=(allBar.find(r=>/background:/.test(r))||'');
-  ok('the live bar takes the bar surface, not the page surface',
-     /background:var\(--pill\)/.test(barRule)&&!/background:var\(--surface\)/.test(barRule), barRule.slice(0,60));
-  ok('...and the bar\u2019s strong ink for its title',
-     /color:var\(--pill-chalk\)/.test(barRule));
-  ok('...the meta line takes the bar\u2019s quiet ink',
-     /color:var\(--pill-ink\)/.test(blk(':root[data-skin="minimal"] .live-workout-meta')));
-  ok('...and the live dot and Finish take the bar\u2019s accent',
-     /background:var\(--pill-accent\)/.test(blk(':root[data-skin="minimal"] .live-workout-title i'))&&
-     /color:var\(--pill-accent\)/.test(blk(':root[data-skin="minimal"] #liveWorkoutFinish')));
-  for(const bar of ['dark','light']){
-    const pill=tok(bar,'pill'),chalk=tok(bar,'pill-chalk'),ink=tok(bar,'pill-ink'),acc=tok(bar,'pill-accent');
-    ok(`(fixture) the ${bar} bar defines its own tokens`, !!(pill&&chalk&&ink&&acc), `${pill} / ${chalk} / ${ink} / ${acc}`);
-    ok(`title is readable on the ${bar} bar`, ratio(chalk,pill)>=4.5, ratio(chalk,pill).toFixed(2)+':1');
-    ok(`...the meta line too on the ${bar} bar`, ratio(ink,pill)>=4.5, ratio(ink,pill).toFixed(2)+':1');
-    ok(`...and Finish on the ${bar} bar`, ratio(acc,pill)>=4.5, ratio(acc,pill).toFixed(2)+':1');
-  }
-  /* the classic skin has no pill block, so it must keep the page tokens */
-  ok('the classic skin is untouched -- it has no bar tokens to take',
-     /:root\[data-skin="minimal"\] #liveWorkoutBar/.test(raw));
+  const token=n=>{const m=raw.match(new RegExp('--'+n+':\\s*([^;}]+)'));return m?m[1].trim():null;};
+
+  /* there is more than one #liveWorkoutBar rule -- one sets user-select
+     (v4.6.45), one the geometry, one the paint. Take the one that paints;
+     matching the first is how this assertion read a user-select block and
+     called the release broken. */
+  const allBar=raw.match(/#liveWorkoutBar\{[^}]*\}/g)||[];
+  const barRule=allBar.find(r=>/background:/.test(r))||'';
+  ok('the live bar paints itself the live surface',
+     /background:var\(--live-bar\)/.test(barRule), barRule.slice(0,70));
+  ok('...and no longer takes the page or the nav surface',
+     !/background:var\(--surface\)/.test(barRule)&&!/background:var\(--pill\)/.test(barRule));
+
+  const fill=token('live-bar'),ink=token('live-bar-ink'),meta=token('live-bar-meta'),cap=token('live-bar-cap');
+  ok('(fixture) the live surface defines its own inks', !!(fill&&ink&&meta&&cap), `${fill} / ${ink} / ${meta} / ${cap}`);
+  ok('the title is readable on the live surface', ratio(ink,fill)>=4.5, ratio(ink,fill).toFixed(2)+':1');
+  ok('...the meta line too -- 11px, so no large-text exemption',
+     ratio(meta,fill)>=4.5, ratio(meta,fill).toFixed(2)+':1');
+  ok('...and Finish on its own recessed cap', ratio(ink,cap)>=4.5, ratio(ink,cap).toFixed(2)+':1');
+
+  /* v4.6.60's overrides must be GONE, not merely outranked: left in place they
+     would repaint the bar charcoal the moment a later rule changed order. */
+  for(const dead of ['#liveWorkoutResume','.live-workout-meta','.live-workout-title i','#liveWorkoutFinish'])
+    ok(`the dead pill override for ${dead} is removed`,
+       !new RegExp(':root\\[data-skin="minimal"\\] '+dead.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\{').test(raw));
+
+  const fold=blk('#liveWorkoutBar.folded');
+  ok('folded, the bar keeps the red -- a fold is not a dismiss',
+     !!fold&&!/background:/.test(fold), fold.slice(0,70));
+  ok('...and still breathes, just smaller',
+     /animation-name:live-workout-breathe-sm/.test(fold));
+  ok('...Finish is not reachable behind one tap while folded',
+     /#liveWorkoutBar\.folded #liveWorkoutFinish/.test(raw)||
+     /#liveWorkoutBar\.folded[^{]*#liveWorkoutFinish[^{]*\{display:none\}/.test(raw));
+  ok('reduced motion settles the glow rather than stopping mid-breath',
+     /@media\(prefers-reduced-motion:reduce\)\{[\s\S]*?#liveWorkoutBar\{animation:none;box-shadow:/.test(raw));
 }
-console.log('PASS live bar follows the bar theme');
+console.log('PASS the bar is the live surface');
