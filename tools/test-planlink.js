@@ -155,5 +155,23 @@ test('unified view stays read-only and unlinked sets never consume targets',`(()
     console.log('PASS ...any repaint waits for the handler to finish');checks++;
   }
 
+
+  /* v4.6.61: Plan before Logged, matching the columns under them. The toolbar read
+     "Edit Logged | Edit Plan" while the table below read "Plan | Logged", so each
+     button sat above the other one's column. Asserted by ORDER IN THE MARKUP, not
+     by either label alone, which is the only thing that was actually wrong. */
+  run(`DB.planTracking=null;delete DB.days[todayISO];lift={part:'Legs',ex:'Squat',weight:100,rep:8};
+       DB.plan={d:todayISO,...plCopy({items:[{ex:'Squat',lines:[{w:100,reps:[8,8]}]}]})};plCapture();
+       plLog({part:'Legs',ex:'Squat',w:100,reps:[8],at:Date.now()});`);
+  {
+    const card=run(`plSessionHTML('Squat',[],(DB.days[todayISO]||{}).w||[])`);
+    const iPlan=card.indexOf('Edit Plan'), iLog=card.indexOf('Edit Logged');
+    const cPlan=card.indexOf('>Plan<'), cLog=card.indexOf('>Logged<');
+    test('(fixture) both buttons and both columns render', iPlan>-1&&iLog>-1);
+    test('Edit Plan comes before Edit Logged', iPlan<iLog);
+    test('...in the same order as the Plan and Logged columns beneath them',
+         (cPlan<0||cLog<0)||((iPlan<iLog)===(cPlan<cLog)));
+  }
+
   console.log(checks+' linkage checks passed');dom.window.close();process.exit(0);
 })().catch(e=>{console.error(e);dom.window.close();process.exit(1)});

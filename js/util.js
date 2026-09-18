@@ -202,8 +202,21 @@ const catFor=part=>[
    settings, checked ahead of the catalog. The W_TABLE still owns the LAW
    (what each class steps); this only decides which class an exercise is. */
 const equipOv=()=>DB.settings.equipOv||(DB.settings.equipOv={});
-const equipOf=ex=>equipOv()[ex] || customs()[ex]?.equip || SEED.equip[ex] || 'machine';
-const EQUIP_LABEL={barbell:'Barbell (bar + plates)',smith:'Smith machine',dumbbell:'Dumbbell (per hand)',
+/* v4.6.61: AN EZ BAR IS NOT AN OLYMPIC BAR. Both were class 'barbell', so a curl
+   bar inherited the 45 lb default: the load line read "45 lb bar / 5 lb per side"
+   on a 55 lb curl, and pressing "All barbell" from that screen re-barred Squat,
+   Deadlift and Bench in one tap. It gets its own class, exactly as Smith already
+   has one, so a change to either cannot reach the other.
+   THE RULE IS THE NAME, at the maker's word -- which also covers a custom "EZ Bar
+   Skull Crusher" that no seed knows about. An explicit per-exercise override still
+   wins, so anyone whose curl bar IS a straight bar can say so.
+   Deliberately NOT applied to SEED.equip: migrateUnits() reads that map to rebuild
+   historical totals as (2*w + 45), and that 45 is what the bar WAS when those rows
+   were written. What the bar IS now, for stepping and display, is this function's
+   question. Two different questions, so two different answers is correct here. */
+const EZ_NAME=/\bEZ[\s-]?bar\b/i;
+const equipOf=ex=>equipOv()[ex] || customs()[ex]?.equip || (EZ_NAME.test(ex||'')?'ezbar':null) || SEED.equip[ex] || 'machine';
+const EQUIP_LABEL={barbell:'Barbell (bar + plates)',ezbar:'EZ / curl bar',smith:'Smith machine',dumbbell:'Dumbbell (per hand)',
   cable:'Cable',machine:'Machine (stack)',plate:'Machine (plate-loaded)',body:'Bodyweight'};
 
 /* ---------- helpers ---------- */
@@ -390,9 +403,11 @@ const vDisp=kg=>fmt(Math.round(toU(kg)));            // volume
    settings screen writes in display units, so an lb user who typed 45 has
    20.41 stored, not 20). In kg, 20 is simply the bar. */
 const barDefaultKg=()=>isLb()?45/LB:20;
-const barSetting=key=>{
+/* a curl bar is not an Olympic bar: 25 lb / 10 kg is the common rack EZ bar. */
+const ezBarDefaultKg=()=>isLb()?25/LB:10;
+const barSetting=(key,dflt=barDefaultKg)=>{
   const v=DB.settings[key];
-  if(v==null||(isLb()&&Math.abs(v-20)<0.01)) return barDefaultKg();
+  if(v==null||(isLb()&&Math.abs(v-20)<0.01)) return dflt();
   return v;
 };
 const barKg=ex=>{
@@ -405,10 +420,16 @@ const barKg=ex=>{
      that weighs in pounds racks a 45 lb bar; one that weighs in kilos racks a
      20 kg bar. A bar you have SET yourself still wins. */
   if(e==='barbell') return barSetting('barKg');
+  if(e==='ezbar')   return barSetting('ezBarKg',ezBarDefaultKg);
   if(e==='smith')   return barSetting('smithKg');
   return 0;
 };
-const usesPlates=ex=>['barbell','smith'].includes(equipOf(ex));
+/* v4.6.61: READ FROM THE TABLE, not a second list. This was ['barbell','smith'],
+   so adding the EZ class made loadLine fall through to '' and the bar/plate line
+   vanished -- a hard-coded list beside a table that already declares the same
+   fact. W_TABLE's `bar` flag IS the declaration of "this class is a bar you load
+   plates onto", and buildcheck already fails if a class lacks a row there. */
+const usesPlates=ex=>!!(W_TABLE[equipOf(ex)]||{})[isLb()?'lb':'kg']?.bar;
 const agoStr=d=>{const n=daysAgo(d);return n<=0?'today':n===1?'yesterday':`${n} days ago`;};
 /* v3.3.329: how long since, in ONE grammar. Days stop being useful somewhere
    around a month -- "1464d ago" is a number you have to divide before it
@@ -774,6 +795,7 @@ const isBody=ex=>equipOf(ex)==='body';
    between faces, which is exactly what the writer's push needs to know. */
 const W_TABLE={
   barbell:  {kg:{s:5,  bar:1}, lb:{s:10, bar:1}},
+  ezbar:    {kg:{s:5,  bar:1}, lb:{s:10, bar:1}},   /* same plates, its own bar */
   smith:    {kg:{s:5,  bar:1}, lb:{s:10, bar:1}},
   cable:    {kg:{s:5},         lb:{s:5}},
   machine:  {kg:{s:5},         lb:{s:10}},

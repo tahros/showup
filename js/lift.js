@@ -1453,7 +1453,7 @@ function loadInner(ex,kg){
             <input id="barIn" type="number" inputmode="decimal" step="0.5" value="${wDisp(barKg(ex))}" class="barinput">
             <div class="ll-choices">
               <button class="ll-bar save" data-savebar="${ex}">This lift</button>
-              <button class="ll-bar save" data-savebarall="${ex}">All ${equipOf(ex)==='smith'?'Smith':'barbell'}</button>
+              <button class="ll-bar save" data-savebarall="${ex}">All ${({smith:'Smith',ezbar:'EZ bar'})[equipOf(ex)]||'barbell'}</button>
               <button class="ll-bar" data-cancelbar="1">Cancel</button>
             </div>`;
   }

@@ -609,10 +609,16 @@ check("the catalog's answer is what you get by default",
 check("...and the line states the step AND the equipment behind it",
       `/steps 10 lb . Machine \\(stack\\)/.test(document.querySelector('.eqline').textContent)`, true);
 run(`document.querySelector('[data-editequip]').click()`);
+/* v4.6.61: counted from EQUIP_LABEL, not pinned at 7. The claim is "EVERY class",
+   and a literal count restates a number the map already holds -- so adding the EZ
+   class failed a check about the picker being complete, which was the one thing
+   that had not gone wrong. */
 check("the picker offers every class, with the current one marked",
       `(function(){const on=document.querySelectorAll('[data-seteq].on');
-        return document.querySelectorAll('[data-seteq]').length===7
+        return document.querySelectorAll('[data-seteq]').length===Object.keys(EQUIP_LABEL).length
           && on.length===1 && on[0].dataset.seteq==='machine';})()`, true);
+check("...and the EZ bar is one of the classes it offers",
+      `!!document.querySelector('[data-seteq="ezbar"]')`, true);
 run(`[...document.querySelectorAll('[data-seteq]')].find(b=>b.dataset.seteq==='dumbbell').click()`);
 check("choosing dumbbell changes the class", `equipOf('Overhead Triceps Extension')`, "dumbbell");
 check("...and the STEP follows, because W_TABLE still owns the law",
@@ -1133,5 +1139,59 @@ check("a lift still reads as a weight",
         `(function(){const n=[...document.querySelectorAll('.rr')].map(b=>+b.dataset.rep);
           return n[0]===5 && n[1]===10 && n[n.length-1]===180;})()`, true);
 }
+
+
+/* ---- v4.6.61: THE EZ BAR IS ITS OWN BAR ----------------------------------
+   An EZ bar and an Olympic bar were both class 'barbell', so a curl bar carried
+   the 45 lb default and "All barbell" pressed from EZ Bar Curl re-barred Squat,
+   Deadlift and Bench in one tap. The rule is the NAME, at the maker's word. */
+run(`DB.settings={unit:'lb',onboarded:true};`);
+checkVal("EZ Bar Curl is its own equipment class", run(`equipOf('EZ Bar Curl')`), "ezbar");
+checkVal("...and it defaults to a curl bar, not an Olympic bar", run(`wDisp(barKg('EZ Bar Curl'))`), 25);
+checkVal("...while a real barbell still defaults to 45", run(`wDisp(barKg('Barbell Bench Press'))`), 45);
+checkVal("...so the load line decomposes it honestly",
+         run(`loadLine('EZ Bar Curl',toKg(55))`).replace(/<br>/g,' / '), "25 lb bar / 15 lb per side");
+/* the name rule, and its edges */
+checkVal("a custom EZ lift is caught by name, with no seed entry",
+         run(`equipOf('EZ Bar Skull Crusher')`), "ezbar");
+checkVal("...but Skull Crusher itself is untouched", run(`equipOf('Skull Crusher')`), "barbell");
+checkVal("...and so is Barbell Curl", run(`equipOf('Barbell Curl')`), "barbell");
+checkVal("...and Squat", run(`equipOf('Squat')`), "barbell");
+checkVal("an explicit override still beats the name",
+         run(`DB.settings.equipOv={'EZ Bar Curl':'barbell'};const r=equipOf('EZ Bar Curl');delete DB.settings.equipOv;r`), "barbell");
+/* THE HAZARD, THROUGH THE REAL BUTTON. The first version of this check copied the
+   handler's logic into the test and asserted on the copy -- so gutting app.js left
+   it green. It proved my arithmetic, not the app's. Now it opens the bar editor on
+   EZ Bar Curl, types a weight and clicks the actual "All EZ bar" control. */
+run(`DB.settings={unit:'lb',onboarded:true};DB.days={};SEED=deriveAll();
+  lift={part:'Biceps',ex:'EZ Bar Curl',weight:toKg(55),editBar:false};view='lift';render();`);
+checkVal("(fixture) the bar editor opens on an EZ lift",
+         run(`(function(){const b=document.querySelector('[data-editbar]');if(!b)return 'no edit button';
+           b.dispatchEvent(new window.MouseEvent('click',{bubbles:true}));
+           return !!document.querySelector('#barIn');})()`), true);
+checkVal("...and the class-wide button names the EZ bar, not 'barbell'",
+         run(`document.querySelector('[data-savebarall]').textContent.trim()`), "All EZ bar");
+run(`(function(){document.querySelector('#barIn').value='20';
+  document.querySelector('[data-savebarall]').dispatchEvent(new window.MouseEvent('click',{bubbles:true}));})()`);
+checkVal("clicking it moves the EZ bar", run(`wDisp(barKg('EZ Bar Curl'))`), 20);
+checkVal("...and leaves Squat alone", run(`wDisp(barKg('Squat'))`), 45);
+checkVal("...and Deadlift", run(`wDisp(barKg('Deadlift'))`), 45);
+checkVal("...and Bench", run(`wDisp(barKg('Barbell Bench Press'))`), 45);
+checkVal("...and the Smith bar, which had its own setting all along",
+         run(`wDisp(barKg('Flat Smith Machine Bench Press'))`), 45);
+checkVal("...and the shared barbell setting was never written",
+         run(`DB.settings.barKg===undefined`), true);
+checkVal("an EZ bar is a bar you load plates onto", run(`usesPlates('EZ Bar Curl')`), true);
+checkVal("(source) plate-use is read from W_TABLE, not a literal class list",
+         /usesPlates=ex=>!!\(W_TABLE\[/.test(fs.readFileSync(path.join(dir,'js/util.js'),'utf8')), true);
+/* THE MIGRATION MUST NOT MOVE. migrateUnits rebuilds historical totals as
+   (2*w + 45) for class 'barbell', read straight from SEED.equip. That 45 is what
+   the bar WAS when those rows were written; re-classing the seed would silently
+   re-convert 981 days of history. equipOf answers a different question. */
+checkVal("the seed still calls EZ Bar Curl a barbell, so old rows convert as before",
+         run(`SEED.equip['EZ Bar Curl']`), "barbell");
+checkVal("...even though the app now treats it as an EZ bar",
+         run(`equipOf('EZ Bar Curl')!==SEED.equip['EZ Bar Curl']`), true);
+run(`DB.settings={unit:'lb',onboarded:true};`);
 
 process.exit(fail ? 1 : 0);

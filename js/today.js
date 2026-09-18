@@ -783,7 +783,7 @@ function overloadNudge(ex){
      cannot reach is worse than none.
      The bar keeps its own lb branch on purpose: a 20 kg bar is 44.1 lb, so
      the honest law would print decimals, and suggestions are IRON. */
-  const eq=equipOf(ex), bb=(eq==='barbell'||eq==='smith');
+  const eq=equipOf(ex), bb=usesPlates(ex);   // v4.6.61: the EZ bar is a bar too — one definition, in usesPlates
   const {s:lawS,a:lawA}=wLaw(ex);
   const snapSug=v=>{
     if(bb){

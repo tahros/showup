@@ -663,7 +663,10 @@ document.addEventListener('click',e=>{
     const ex2=_se.dataset.seteqex, to=_se.dataset.seteq;
     equipOv()[ex2]=to;
     /* back to the catalog's own answer? then there is nothing to override */
-    if((customs()[ex2]?.equip||SEED.equip[ex2]||'machine')===to) delete DB.settings.equipOv[ex2];
+    /* v4.6.61: "back home" is where equipOf would land WITHOUT the override -- the
+       EZ name rule included, or an EZ bar set back to EZ would keep a pointless
+       override forever. */
+    if((customs()[ex2]?.equip||(EZ_NAME.test(ex2||'')?'ezbar':null)||SEED.equip[ex2]||'machine')===to) delete DB.settings.equipOv[ex2];
     DB.settingsAt=Date.now(); save(true);
     lift.editEquip=null;
     lift.weight=snapW(lift.weight,ex2);   // (kg, ex) — the old weight may be off the new grid
@@ -826,10 +829,17 @@ document.addEventListener('click',e=>{
     const ex2=sba.dataset.savebarall;
     const kg=toKg(parseFloat($('#barIn').value));
     if(isNaN(kg)||kg<0) return toast('Enter a number');
-    if(equipOf(ex2)==='smith') DB.settings.smithKg=kg; else DB.settings.barKg=kg;
-    if(DB.settings.barByEx) delete DB.settings.barByEx[ex2];   // global now applies here too
+    /* v4.6.61: "everywhere" means everywhere IN THIS CLASS. It wrote barKg for
+       anything that was not Smith, so setting a 25 lb curl bar from EZ Bar Curl
+       silently re-barred Squat, Deadlift and Bench -- on the one screen where the
+       number was most obviously wrong, so most likely to be corrected. Each class
+       owns its own setting now, and the toast says which class it moved. */
+    const cls=equipOf(ex2), CLS={smith:['smithKg','Smith'],ezbar:['ezBarKg','EZ'],barbell:['barKg','Barbell']};
+    const [key,label]=CLS[cls]||CLS.barbell;
+    DB.settings[key]=kg;
+    if(DB.settings.barByEx) delete DB.settings.barByEx[ex2];   // the class default applies here again
     lift.editBar=false;
-    save(true);toast(`${equipOf(ex2)==='smith'?'Smith':'Barbell'} bar set to ${wDisp(kg)}${U()} everywhere`);
+    save(true);toast(`${label} bar set to ${wDisp(kg)}${U()} everywhere`);
     return renderLift();
   }
   const sb=e.target.closest('[data-savebar]');
