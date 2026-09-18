@@ -41,10 +41,32 @@ const CHROME=[process.env.PW_CHROME,'C:/Users/sungj/AppData/Local/ms-playwright/
       }
     }
   }
+  /* v4.6.67: Edit Plan uses the same row editor -- measure it too, for a weighted plan */
+  for(const width of [320,375,390,430]){
+    await p.setViewportSize({width,height:852});
+    await p.evaluate(()=>{DB={days:{},settings:{onboarded:true,unit:'lb',mascotMotion:'still'},plan:null,week:null,planTracking:null};todayISO='2026-09-18';checkDate=()=>false;document.querySelector('#onb')?.remove();
+      const text="Squat\n  195 lb x 8 8 8";const {items}=planItemsFrom(parsePlan(text));planSave(items,'',text,todayISO);
+      DB.days[todayISO]={w:[],doneEx:[],donePart:[],upd:1};SEED=deriveAll();view='lift';lift.part="Legs";lift.ex="Squat";lift.editToday=false;lift.editPlan=true;lift.editTarget=null;render();});
+    await p.waitForSelector('[data-pt-edit]',{timeout:5000});
+    for(const field of ['w','r']){
+      await p.evaluate(f=>{lift.editTarget=null;renderLift();document.querySelector(`[data-pt-edit][data-lw-field="${f}"]`).click();},field);
+      await p.waitForSelector('#lwInput',{timeout:5000});
+      const m=await p.evaluate(()=>{const card=document.querySelector('.sc-session'),cs=getComputedStyle(card);const r=card.getBoundingClientRect().right-parseFloat(cs.paddingRight);
+        const tbl=document.querySelector('.sc-editing-plan'),sv=document.getElementById('lwSave');
+        return {tblOverflow:tbl.scrollWidth-tbl.clientWidth,saveRight:Math.round(sv.getBoundingClientRect().right-r),pageOverflow:document.documentElement.scrollWidth>innerWidth,rowH:Math.round(document.querySelector('tr.lw-editing').getBoundingClientRect().height)};});
+      const ok=m.tblOverflow<=0&&m.saveRight<=0&&!m.pageOverflow&&m.rowH<70; if(!ok)bad++;
+      console.log(`${ok?'OK  ':'FAIL'} ${width}px PLAN 195 lb ${field}  save→edge=${m.saveRight} tblOverflow=${m.tblOverflow} rowH=${m.rowH}`);
+    }
+  }
   await p.setViewportSize({width:390,height:852});
+  await p.evaluate(()=>{lift.editTarget=null;renderLift();document.querySelector('[data-pt-edit][data-lw-field="r"]').click();});
+  await p.waitForSelector('#lwInput',{timeout:5000});
+  await p.screenshot({path:'../edit-plan-390.png',clip:{x:0,y:0,width:390,height:852}});
+  await p.evaluate(()=>{lift.editPlan=false;lift.editTarget=null;DB.days[todayISO].w=[1,2,3].map(i=>({part:"Legs",ex:"Squat",w:88.45,reps:[15],at:Date.now()+i}));SEED=deriveAll();lift.editToday=true;render();});
+  await p.waitForSelector('[data-lw-edit]',{timeout:5000});
   await p.evaluate(()=>{lift.editSet=null;renderLift();document.querySelector('[data-lw-edit][data-lw-field="r"]').click();});
   await p.waitForTimeout(80);
   await p.screenshot({path:'../edit-fit-390.png',clip:{x:0,y:0,width:390,height:852}});
-  console.log(bad||errors.length?`FAIL ${bad} layouts, errors: ${JSON.stringify(errors)}`:'PASS inline editor fits at 320/375/390/430, BW and weighted, weight and reps');
+  console.log(bad||errors.length?`FAIL ${bad} layouts, errors: ${JSON.stringify(errors)}`:'PASS inline editor fits at 320/375/390/430 -- logged (BW and weighted) and plan (weighted), weight and reps');
   await b.close(); process.exit(bad||errors.length?1:0);
 })().catch(e=>{console.error(e);process.exit(1)});

@@ -741,7 +741,7 @@ document.addEventListener('click',e=>{
      the numbers TRAVEL to their new column instead of reappearing there.
      Same guard as render(): MOTION_OK, and the API may simply not exist. */
   if(e.target.closest('#sessEdit')){
-    const flip=()=>{ lift.editToday=!lift.editToday; lift.editSet=null; lift.editRep=null; lift.editField=null; renderLift(); };
+    const flip=()=>{ lift.editToday=!lift.editToday; lift.editPlan=false; lift.editSet=null; lift.editRep=null; lift.editTarget=null; lift.editField=null; renderLift(); };
     if(MOTION_OK&&document.startViewTransition) document.startViewTransition(flip); else flip();
     return;
   }
@@ -760,7 +760,17 @@ document.addEventListener('click',e=>{
     if(f){ try{ f.focus({preventScroll:true}); f.select&&f.select(); }catch(_e){ f.focus(); } }
     return;
   }
-  if(e.target.closest('#lwSave')){ lwCommit(); return; }
+  const ptEd=e.target.closest('[data-pt-edit]');
+  if(ptEd){
+    const id=ptEd.dataset.ptEdit, field=ptEd.dataset.lwField;
+    if(lift.editTarget===id&&lift.editField===field){ ptCancel(); return; }
+    lift.editTarget=id; lift.editField=field; lift.editSet=null; lift.editRep=null;
+    renderLift();
+    const f=document.getElementById('lwInput');
+    if(f){ try{ f.focus({preventScroll:true}); f.select&&f.select(); }catch(_e){ f.focus(); } }
+    return;
+  }
+  if(e.target.closest('#lwSave')){ if(lift.editTarget!=null) ptCommit(); else lwCommit(); return; }
   const lwDel=e.target.closest('[data-lw-del]');
   if(lwDel){
     const i=+lwDel.dataset.lwDel, ri=+lwDel.dataset.lwRep, st=dayMeta(), sset=st.w[i];
@@ -1951,6 +1961,53 @@ function positionLiveWorkout(){
    written the same way from both surfaces. A rep edit touches ONLY reps[ri]:
    a legacy 8,8,6 entry keeps its other reps. A weight edit is per entry, which
    is the data model -- every rep of an entry shares its load. */
+/* v4.6.67: editing ONE TARGET of the plan, in place.
+   Two copies have to agree. The saved plan document (DB.plan / DB.week) is
+   what tomorrow reads and what the planner opens; today's day.planBasis is a
+   frozen copy taken at the first log so that "a plan saved later must not
+   rewrite this workout" (plLog). An edit the person makes on purpose, mid-
+   workout, is not a plan saved later -- it is intent -- so it lands on BOTH,
+   at the same positional line, and no id is minted or moved: the logged sets
+   keep their links, and the "edited since you started" notice does not fire,
+   because the two contents are equal again. raw is regenerated from the
+   items, or the planner would reopen on stale text. */
+function ptCancel(){ lift.editTarget=null; lift.editField=null; renderLift(); }
+function ptDoc(d){ return DB.plan?.d===d?DB.plan:(DB.week?.days?.[d]||null); }
+function ptCommit(){
+  const inp=document.getElementById('lwInput'), id=lift.editTarget;
+  if(!inp||id==null) return ptCancel();
+  const parts=String(id).split(':'), ri=+parts.pop(), li=+parts.pop(), ei=+parts.pop();
+  const date=(typeof plDisplayPlan==='function'?plDisplayPlan(lift.ex)?.date:null)||todayISO;
+  const doc=ptDoc(date), line=doc?.items?.[ei]?.lines?.[li];
+  if(!line||!Array.isArray(line.reps)||!(ri<line.reps.length)){ toast('That set is no longer in the plan'); return ptCancel(); }
+  const v=+inp.value;
+  const apply=l=>{
+    if(lift.editField==='r'){ l.reps[ri]=Math.round(v); }
+    else { l.w=toKg(v); if(l.nw&&v>0) l.nw=false; }
+  };
+  if(lift.editField==='r'){ if(!(Math.round(v)>0)) return toast('Enter reps'); }
+  else if(!(v>=0)||!Number.isFinite(v)) return toast('Enter a weight');
+  apply(line);
+  doc.raw=planToText(doc);
+  const at=Date.now();
+  if(DB.plan?.d===date) DB.planAt=at;
+  /* DB.plan and DB.week.days[d] are two objects. The planner writes them from
+     one doc so their items arrays start shared, but a cloud merge can leave
+     them as separate copies -- so the week copy gets the edit applied, not
+     assumed. */
+  const wk=DB.week?.days?.[date];
+  if(wk){ if(wk!==doc){ const wl=wk.items?.[ei]?.lines?.[li]; if(wl&&wl!==line) apply(wl); wk.raw=doc.raw; } DB.weekAt=at; }
+  /* today's frozen copy follows, at the same position, id untouched */
+  const day=DB.days?.[todayISO], basis=day?.planBasis?.revision;
+  if(date===todayISO&&basis?.content?.items?.[ei]?.lines?.[li]&&basis.content.items[ei].ex===doc.items[ei].ex){
+    apply(basis.content.items[ei].lines[li]); basis.content.raw=doc.raw;
+    const t=(basis.targets||[]).find(t=>t.id===id);
+    if(t){ if(lift.editField==='r') t.reps=Math.round(v); else { t.w=toKg(v); if(t.nw&&v>0) t.nw=false; } }
+  }
+  if(typeof planRailRefresh==='function') planRailRefresh();
+  save(true); renderHeader(); toast('Plan updated');
+  ptCancel();
+}
 function lwCancel(){ lift.editSet=null; lift.editRep=null; lift.editField=null; renderLift(); }
 function lwCommit(){
   const st=dayMeta(), es=st.w[lift.editSet], inp=document.getElementById('lwInput');
@@ -1968,8 +2025,8 @@ function lwCommit(){
 }
 document.addEventListener('keydown',e=>{
   if(e.target&&e.target.id==='lwInput'){
-    if(e.key==='Enter'){ e.preventDefault(); lwCommit(); }
-    else if(e.key==='Escape'){ e.preventDefault(); lwCancel(); }
+    if(e.key==='Enter'){ e.preventDefault(); if(lift.editTarget!=null) ptCommit(); else lwCommit(); }
+    else if(e.key==='Escape'){ e.preventDefault(); if(lift.editTarget!=null) ptCancel(); else lwCancel(); }
   }
 });
 function setLiveFold(on){

@@ -299,6 +299,9 @@ p.pw-small{margin:10px 0 16px}.pw-workspace p:not(.pw-small){font:400 14px/1.6 v
 .lw-actions .btn{margin:0;flex:1;white-space:nowrap;padding:12px 6px}
 /* Done is a MODE, so it reads as held down rather than as another tool */
 .sc-tools button.sc-on{background:var(--accent);border-color:var(--accent);color:#fff}
+/* v4.6.67: the plan values wrap for the morph; the wrapper must not change layout */
+.sc-plan-wrap{display:inline-block;max-width:100%;vertical-align:middle}   /* a real box: a view-transition-name on display:contents is silently ignored */
+.sc-editing-plan .sc-qual{display:block;width:100%;margin:2px 0 0 2px}
 /* the morph: one duration for the whole app, the fold's curve */
 ::view-transition-group(*){animation-duration:340ms;animation-timing-function:cubic-bezier(.2,.8,.25,1)}
 @media(prefers-reduced-motion:reduce){::view-transition-group(*){animation-duration:1ms}}

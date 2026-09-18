@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.67 (2026-09-18) — Edit Plan is the same screen
+
+- Edit Plan no longer leaves for the planner: it opens the same in-table editor as Edit Logged, with today's planned load and reps as tappable chips and the same editor in the row.
+- A change lands on the saved plan and on today's copy together, so your logged sets stay linked to their targets and no "edited since you started" notice fires.
+- Adding or removing sets still happens in the planner, behind a named door under the table.
+- Edit Plan and Edit Logged are one mode at a time; the values morph between them.
+
 ## v4.6.66 (2026-09-18) — Edit in the row
 
 - Tapping a weight or rep chip now opens the editor in that row, in the space to its right, instead of a card below the table.
