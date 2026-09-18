@@ -734,7 +734,33 @@ document.addEventListener('click',e=>{
     return render();   // v3.3.161: the card lives on Stats now — render the CURRENT view
   }
   if(e.target.closest('#moGoalEdit')){ DB.settings._moEdit=1; return render(); }  // v3.3.159: edit prefills, never wipes
-  if(e.target.closest('#sessEdit')){ lift.editToday=!lift.editToday; lift.editSet=null; return renderLift(); }
+  /* v4.6.64: EDIT LOGGED MORPHS. The columns collapse and the values move about
+     150px left, so a hard cut reads as "the table was replaced". Each logged
+     value carries a view-transition-name (planlink.js), so the browser
+     interpolates them individually while the rest of the card cross-fades:
+     the numbers TRAVEL to their new column instead of reappearing there.
+     Same guard as render(): MOTION_OK, and the API may simply not exist. */
+  if(e.target.closest('#sessEdit')){
+    const flip=()=>{ lift.editToday=!lift.editToday; lift.editSet=null; lift.editField=null; renderLift(); };
+    if(MOTION_OK&&document.startViewTransition) document.startViewTransition(flip); else flip();
+    return;
+  }
+  /* tapping a value opens the entry's editor with that field focused. Weight and
+     reps are two targets on one record, not two records -- editSave already
+     writes the whole entry, and splitting the write would be a second path to
+     the same row. */
+  const lwEd=e.target.closest('[data-lw-edit]');
+  if(lwEd){ lift.editSet=+lwEd.dataset.lwEdit; lift.editField=lwEd.dataset.lwField; return renderLift(); }
+  const lwDel=e.target.closest('[data-lw-del]');
+  if(lwDel){
+    const i=+lwDel.dataset.lwDel, ri=+lwDel.dataset.lwRep, st=dayMeta(), sset=st.w[i];
+    if(!sset) return renderLift();
+    snapshot(`deleted ${wTxt(sset.ex||lift.ex,sset.w)}\u00d7${(sset.reps||[])[ri]||''}`);
+    /* a row is ONE REP, not one entry: a legacy 8,8,6 row must lose only the rep
+       whose ✕ was pressed. The entry goes only when its last rep does. */
+    if((sset.reps||[]).length>1) sset.reps.splice(ri,1); else st.w.splice(i,1);
+    resealDay(st); reanchorRest(); save(); renderHeader(); return renderLift();
+  }
   // v3.3.144: #allSets removed with the CAP — edit mode shows every set
   if(e.target.closest('#addEx')){ lift.adding=true; return renderLift(); }
   if(e.target.closest('#cancelEx')){ lift.adding=false; return renderLift(); }

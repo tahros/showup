@@ -71,22 +71,36 @@ ok("...and dated with the existing history link",
    run(`!!document.querySelector('.sc-session .linkdate')`));
 
 // ---- 3. deletion is gated, but two taps away ------------------------------
+/* v4.6.64: the gate is unchanged -- read mode arms nothing, EDIT arms one
+   delete per set, the delete is real and undoable. What changed is WHERE:
+   editing happens in the comparison table now, not in a second card of
+   chips, so the surfaces are .sc-editing/[data-lw-del] rather than
+   .lastcard.sess/[data-del]. Asserting the behaviour, not the old markup. */
 ok("read mode arms NO delete surfaces",
-   run(`document.querySelectorAll('.lastcard.sess [data-del]').length`) === 0);
+   run(`document.querySelectorAll('[data-lw-del]').length`) === 0);
+ok("...and does not draw a second card of the same sets",
+   run(`document.querySelectorAll('.lastcard.sess').length`) === 0);
 ok("the EDIT button is offered", run(`!!document.getElementById('sessEdit')`));
 run(`document.getElementById('sessEdit').click()`);
-ok("EDIT shows one tile per individual set, armed",
-   run(`document.querySelectorAll('.lastcard.sess [data-del]').length`) === 3,
-   run(`document.querySelectorAll('.lastcard.sess [data-del]').length`) + " armed");
+ok("EDIT arms one delete per individual set, in the table",
+   run(`document.querySelectorAll('.sc-editing [data-lw-del]').length`) === 3,
+   run(`document.querySelectorAll('.sc-editing [data-lw-del]').length`) + " armed");
+ok("...each set offering weight and reps as separate targets",
+   run(`document.querySelectorAll('.sc-editing [data-lw-edit]').length`) === 6);
+ok("...the context columns step aside",
+   run(`document.querySelectorAll('.sc-editing thead th').length`) === 3);
 ok("...with Clear and Move alongside",
    run(`!!document.getElementById('clearToday') && !!document.getElementById('moveToday')`));
-ok("...and the button now reads DONE",
-   run(`document.getElementById('sessEdit').textContent`) === "DONE");
+ok("...Complete workout is not a thumb-width from Clear",
+   run(`!document.getElementById('scFinishBtn')`));
+ok("...and the button now reads Done",
+   /Done/.test(run(`document.getElementById('sessEdit').textContent`)),
+   run(`document.getElementById('sessEdit').textContent`));
 
 // deleting in EDIT actually deletes — the two-tap path works end to end
 const before = run(`day(todayISO).w.length`);
-run(`document.querySelector('.lastcard.sess [data-del]').click()`);
-ok("a tap on an armed tile deletes the set", run(`day(todayISO).w.length`) === before - 1,
+run(`document.querySelector('.sc-editing [data-lw-del]').click()`);
+ok("a tap on an armed delete removes the set", run(`day(todayISO).w.length`) === before - 1,
    run(`day(todayISO).w.length`) + " vs " + (before - 1));
 ok("...and the removal is undoable", run(`undoStack.length`) >= 1);
 run(`undo()`);
@@ -94,7 +108,33 @@ ok("...undo restores it", run(`day(todayISO).w.length`) === before);
 
 run(`document.getElementById('sessEdit').click()`);
 ok("DONE returns to read mode, disarmed",
-   run(`document.querySelectorAll('.lastcard.sess [data-del]').length`) === 0);
+   run(`document.querySelectorAll('[data-lw-del]').length`) === 0);
+
+/* ---- v4.6.64: the morph is a PAIRING, not a fade -------------------------
+   The columns collapse and each value moves ~150px left. A cross-fade would
+   read as "the table was replaced"; the browser only interpolates elements
+   that carry the SAME view-transition-name in both states. So the test that
+   matters is that the names exist and MATCH across the mode change -- a name
+   present in one state and absent in the other silently degrades to a fade,
+   which is the bug this guards. */
+{
+  const names = () => run(`[...document.querySelectorAll('[style*="view-transition-name"]')]
+     .map(n=>n.style.viewTransitionName).sort().join(',')`);
+  run(`lift.editToday=false; renderLift();`);
+  const reading = names();
+  ok("read mode names every logged value for the morph", reading.split(',').filter(Boolean).length === 3, reading);
+  run(`lift.editToday=true; renderLift();`);
+  const editing = names();
+  ok("...and edit mode carries the very same names", editing === reading, editing + " vs " + reading);
+  ok("...so nothing falls back to a plain cross-fade", editing.length > 0 && !/undefined/.test(editing));
+  run(`lift.editToday=false; renderLift();`);
+  const src = fs.readFileSync(path.join(dir, "js/app.js"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+  ok("the toggle is guarded by MOTION_OK and feature detection, like render()",
+     /sessEdit[\s\S]{0,400}MOTION_OK&&document\.startViewTransition/.test(src));
+  const pcss = fs.readFileSync(path.join(dir, "css/planner.css"), "utf8").replace(/\n/g, "");
+  ok("...and reduced motion collapses the duration rather than leaving it long",
+     /@media\(prefers-reduced-motion:reduce\)\{::view-transition-group\(\*\)\{animation-duration:1ms/.test(pcss));
+}
 
 // ---- 4. footer survives the merge ----------------------------------------
 ok("the volume footer renders inside the card",

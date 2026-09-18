@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v4.6.64 (2026-09-18) — Edit Logged is the same table
+
+- Editing your logged sets now happens in the Your sets table instead of a second card that drew them a different way.
+- The context columns step aside, today's sets move left, and each weight and rep count becomes its own tappable chip.
+- Tapping Edit Logged morphs between the two: your numbers travel to their new column instead of being replaced.
+- Every set has its own delete, and a set logged with several reps loses only the rep you removed.
+- Undo stays reachable while editing.
+
 ## v4.6.63 (2026-09-18) — The live bar goes red, and folds
 
 - The workout bar is the live surface now: red while a session is open, with a slow glow that breathes on a 4.2s cycle.

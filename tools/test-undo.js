@@ -115,7 +115,7 @@ ok("the [data-rep-w] handler is restored", /data-rep-w/.test(appSrc.replace(/\/\
    exactly when the button must be visible without hunting. */
 fresh();
 run(`lift.editToday=true; renderLift();`);
-run(`document.querySelector('.lastcard.sess [data-del]').click();`);
+run(`document.querySelector('[data-lw-del]').click();`);   // v4.6.64: editing moved into the table
 run(`lift.editToday=false; renderLift();`);
 ok("after deleting and leaving EDIT, Undo is still visible", undoShown());
 ok("...and it works from there", (() => {

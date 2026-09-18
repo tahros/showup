@@ -539,6 +539,7 @@ function renderLift(){
   }
 
   const todaySets=t.w.filter(s=>s.ex===ex);
+  let liftHasPlanTable=false;
   const l=lastFor(ex),p=prFor(ex);
   let h=``;   // the sticky header already shows the exercise + part
   if(isLive())h+=`<div class="su-live-companion">${mascotHTML('active')}</div>`;
@@ -727,7 +728,11 @@ function renderLift(){
       const pl=(typeof planFor==='function')?planFor(ex):null;
       const lines=(pl&&pl.lines||[]).filter(l=>l&&(l.reps||[]).length);
       const linkedPlanHTML=plSessionHTML(ex,lastPrev,todaySets);
-      if(!lift.editToday)h+=linkedPlanHTML;
+      /* v4.6.64: the comparison table used to be REPLACED by the EDIT SETS card.
+         It now carries edit mode itself, so it stays put and the card below is
+         only a fallback for surfaces the table does not cover (runs). */
+      liftHasPlanTable=!!linkedPlanHTML;
+      h+=linkedPlanHTML;
       if(!linkedPlanHTML&&!Object.prototype.hasOwnProperty.call(DB.days[todayISO]||{},'planBasis')&&lines.length&&!isHold(unitOf(ex))){
         /* how many sets landed at each weight today, spent down the plan in
            order so two rows at the same load cannot both claim the same sets */
@@ -808,7 +813,7 @@ function renderLift(){
     const editing=!!lift.editToday;
     /* the (i) explains what EDIT hides — with deletion now behind a mode,
        this tip is where its discoverability lives */
-    if(isRun||editing){
+    if(isRun||(editing&&!liftHasPlanTable)){
     h+=`<div class="lastcard sess"><div class="lasthead"><span>${isRun?'THIS SESSION':'EDIT SETS'}</span>${
         todaySets.length?`<button class="ago sessedit" id="sessEdit">${editing?'DONE':'EDIT'}</button>`:''}</div>`;
 
@@ -871,8 +876,8 @@ function renderLift(){
           :`<div class="card editcard" style="margin-top:10px">
               <div class="mono muted" style="font-size:11px;margin-bottom:8px">EDIT SET</div>
               <div class="row" style="gap:8px">
-                <div class="fld"><label>Weight ${U()}</label><input id="edW" type="number" inputmode="decimal" step="${wStep(ex)}" value="${wDisp(es.w)}"></div>
-                <div class="fld"><label>Reps</label><input id="edR" type="text" inputmode="numeric" value="${es.reps.join(',')}"></div>
+                <div class="fld"><label>Weight ${U()}</label><input id="edW" type="number" inputmode="decimal" step="${wStep(ex)}" value="${wDisp(es.w)}"${lift.editField==='w'?' autofocus':''}></div>
+                <div class="fld"><label>Reps</label><input id="edR" type="text" inputmode="numeric" value="${es.reps.join(',')}"${lift.editField==='r'?' autofocus':''}></div>
               </div>
               <div class="row" style="gap:8px;margin-top:10px">
                 <button class="btn" id="editSave" style="margin:0">Save</button>
@@ -907,8 +912,12 @@ function renderLift(){
        nothing since" — precisely the moment the way back must be in plain
        sight. The button self-expires on the next set, so it cannot become
        permanent chrome. EDIT keeps its own copy inside; skip the outer one
-       there or the same action renders twice. */
-    if(!editing&&undoStack.length)
+       there or the same action renders twice.
+       v4.6.64: "inside" is now only the RUN card. A lift edits in the
+       comparison table, which has no undo of its own, so the outer button is
+       what that mode gets -- without this it had none, and the way back was
+       hidden again by exactly the fix that was meant to surface it. */
+    if((!editing||liftHasPlanTable)&&undoStack.length)
       h+=`<button class="btn ghost" id="undoBtn" style="margin-top:12px">↺ Undo — ${undoStack[undoStack.length-1].label}</button>`;
     h+=runHist;   // v3.3.153: today first, then the history it joins at midnight
     /* v3.3.165: dual-home exercises offer their other home — quiet, at the

@@ -245,3 +245,27 @@ p.pw-small{margin:10px 0 16px}.pw-workspace p:not(.pw-small){font:400 14px/1.6 v
 .plan-link .pl-result span{min-width:0;overflow-wrap:anywhere}
 .plan-link .pl-result small{display:block;color:var(--muted)}
 .plan-link .pl-context{font-size:12px;line-height:1.5;color:var(--muted);margin:8px 0 0}
+
+/* v4.6.64: EDIT LOGGED -- the same table, two columns narrower.
+   The value has to READ as tappable: v4.6.63's dotted underline was a 24px
+   target that looked like a footnote. Weight and reps now take the SAME chip,
+   which is what says "these two are the controls" and leaves the × between
+   them plainly notation. The pencil removes the last doubt. */
+.sc-editing th:first-child{width:30px}
+.sc-editing thead th:nth-child(2){text-align:left;color:var(--accent-ink)}
+.sc-editing th:last-child{width:46px}
+.sc-editing tbody td{text-align:left}
+.lw-pair{display:inline-flex;align-items:center;gap:5px}
+.lw-tap{border:0;background:none;padding:0;cursor:pointer;font:inherit;display:inline-flex;align-items:center;justify-content:center;min-height:44px}
+.lw-chip{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-width:46px;padding:10px 11px;border-radius:11px;
+  background:color-mix(in srgb,var(--accent) 11%,var(--surface));color:var(--accent-ink);font:600 15px/1 var(--body)}
+.lw-pen{opacity:.75;flex:none}
+.lw-delcell{text-align:right}
+.lw-del{width:40px;height:44px;display:inline-flex;align-items:center;justify-content:center;border:0;background:none;color:var(--muted);cursor:pointer;padding:0}
+.lw-actions{display:flex;gap:8px;margin-top:14px}
+.lw-actions .btn{margin:0;flex:1;white-space:nowrap;padding:12px 6px}
+/* Done is a MODE, so it reads as held down rather than as another tool */
+.sc-tools button.sc-on{background:var(--accent);border-color:var(--accent);color:#fff}
+/* the morph: one duration for the whole app, the fold's curve */
+::view-transition-group(*){animation-duration:340ms;animation-timing-function:cubic-bezier(.2,.8,.25,1)}
+@media(prefers-reduced-motion:reduce){::view-transition-group(*){animation-duration:1ms}}

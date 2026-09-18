@@ -106,51 +106,57 @@ console.log((!/(?:top|right):\s*-\d/.test(lsxRule) ? "PASS" : "FAIL"),
   "...and never with a negative offset (the v3.3.49 clip trap)");
 if (/(?:top|right):\s*-\d/.test(lsxRule)) fail++;
 
-// ---- v3.3.103: Logged Today's number and unit are one visual word --------
-/* v3.3.148: settiles are EDIT-mode-only since v3.3.144 — read mode renders
-   the History grammar. The tile-anatomy checks below still matter (the tile
-   is the edit surface), so enter EDIT before inspecting. The old render
-   crashed here silently from that release on. */
+// ---- v3.3.103 / v4.6.64: the edit surface's anatomy ----------------------
+/* v3.3.148 moved these onto the settile; v4.6.64 moved them again, into the
+   comparison table -- a lift now edits in the same rows it reads, and the
+   settile survives only for runs. The guarantees are unchanged and are what
+   is asserted here: every set is individually addressable, weight and reps
+   are separate targets, and a delete hits the set it points at. */
 run(`(function(){DB.days={}; day(todayISO).w.push({part:'Chest',ex:'Chest Press',w:16,reps:[35],at:Date.now()});
   SEED=deriveAll(); lift.ex='Chest Press'; lift.part='Chest'; lift.editToday=true; view='lift'; render();})()`);
 // house lesson, repeated: a regex containing HTML closing tags collapses its
 // own \/ escaping across this template-literal boundary before it ever
 // reaches vm, so the regex terminates early on the first real "/" and the
-// engine reads what's left as invalid flags. .includes() sidesteps it \u2014
+// engine reads what's left as invalid flags. .includes() sidesteps it —
 // this exact failure mode is already in the harness's own notes.
-check("the unit nests INSIDE the weight span, no separate flex item for it",
-      `document.querySelector('.settile').innerHTML.includes('class="w">16<small>kg</small></span>')`, true);
-check("...and the separator span carries ONLY the \u00d7, no duplicated unit text",
-      `document.querySelector('.settile .x').textContent`, "×");
-// the nested unit must read visually distinct (muted, smaller) like the
-// Suggested chip's own <small>, not inherit the bold number style
+check("the weight and the rep count are two separate targets on one set",
+      `document.querySelectorAll('.sc-editing [data-lw-edit]').length`, 2);
+check("...the weight target names the field it opens",
+      `document.querySelector('[data-lw-edit][data-lw-field="w"]').dataset.lwField`, "w");
+check("...and the separator carries ONLY the ×",
+      `document.querySelector('.lw-pair .sc-times').textContent`, "×");
+/* the unit is stated ONCE, in the toolbar, not repeated on every row -- the
+   thing v3.3.103 was protecting (no duplicated unit text) now holds by
+   construction rather than by nesting a <small> in each tile. */
+check("the row does not repeat the unit",
+      `document.querySelector('.lw-pair').textContent.includes('kg')`, false);
+check("...because the toolbar already said it once",
+      `document.querySelector('.sc-toolbar>span').textContent.includes('kg')`, true);
+// runs still edit on tiles, so the tile's nested-unit style must survive
 const flatCss = cssSrc103.replace(/\n/g, "");
 console.log((/\.settile \.w small\{[^}]*font-size:10px[^}]*color:var\(--muted\)/.test(flatCss) ? "PASS" : "FAIL"),
-  "the nested unit has its own muted, smaller style rule");
+  "the run tile's nested unit keeps its muted, smaller style rule");
 if (!/\.settile \.w small\{[^}]*font-size:10px[^}]*color:var\(--muted\)/.test(flatCss)) fail++;
-// a bodyweight set has no unit to nest \u2014 must not render an empty <small>
+// a bodyweight set has no unit to show
 run(`(function(){DB.days={}; day(todayISO).w.push({part:'Chest',ex:'Push Up',w:0,reps:[20],at:Date.now()});
-  SEED=deriveAll(); lift.ex='Push Up'; lift.part='Chest'; view='lift'; render();})()`);
-check("a bodyweight set renders no unit at all (not even an empty <small>)",
-      `document.querySelector('.settile').innerHTML.includes('<small>')`, false);
+  SEED=deriveAll(); lift.ex='Push Up'; lift.part='Chest'; lift.editToday=true; view='lift'; render();})()`);
+check("a bodyweight set reads BW, with no unit hung off it",
+      `document.querySelector('.lw-chip').textContent.includes('BW')`, true);
 
-// ---- v3.3.104: the newest set leads, and the list stays short ------------
-// Seed 11 sets. v3.3.148: the CAP and #allSets died in the v3.3.144 merge —
-// EDIT mode shows every set, read mode folds them into rows. This block
-// asserted the cap for four releases after it was removed, crashing the
-// suite silently at the #allSets deref. It now asserts the REPLACEMENT
-// behaviour on both surfaces.
+// ---- v3.3.104 / v4.6.64: every set, individually addressable -------------
 run(`(function(){DB.days={};
   for(let i=1;i<=11;i++) day(todayISO).w.push({part:'Chest',ex:'Chest Press',w:16,reps:[i],at:Date.now()+i});
   SEED=deriveAll(); lift.ex='Chest Press'; lift.part='Chest'; lift.editToday=true;
   view='lift'; render();})()`);
 check("EDIT shows every one of the 11 sets — no cap, no expand control",
-      `document.querySelectorAll('.settile').length===11 && !document.querySelector('#allSets')`, true);
-check("...and the NEWEST set is the first tile, where it cannot be missed",
-      `document.querySelector('.settile').textContent.includes('11')`, true);
-// deletion still targets the right set despite the reversed render order
-check("the first tile's data-del points at the LAST array entry (reversal is display-only)",
-      `+document.querySelector('.settile').dataset.del === day(todayISO).w.length-1`, true);
+      `document.querySelectorAll('.sc-editing [data-lw-del]').length===11 && !document.querySelector('#allSets')`, true);
+/* the table reads in LOGGING order (set 1 first), unlike the tile list, which
+   reversed to put the newest on top. The index a delete carries must follow
+   the row it sits in, or the wrong set goes. */
+check("the first row's delete points at the FIRST array entry",
+      `+document.querySelector('.sc-editing [data-lw-del]').dataset.lwDel`, 0);
+check("...and the last row's at the last",
+      `+[...document.querySelectorAll('.sc-editing [data-lw-del]')].pop().dataset.lwDel`, 10);
 // read mode: rows, not tiles — the fold is the cap now
 run(`lift.editToday=false; render();`);
 check("read mode groups 11 same-weight sets without losing reps",
