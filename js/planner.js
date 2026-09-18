@@ -56,12 +56,34 @@ function pwDay(d){
     s.book[d]={rows,parts:pwParts(rows),title:saved?.title||'',base:pwFingerprint(d),source:saved?'Saved plan':'Your draft',notes:[],locks:[],target:null};
   }return s.book[d];
 }
+/* v4.6.61: A SELECTED DATE THAT HAS PASSED IS STALE. The planner's state persists
+   in localStorage under a key carrying no date, so a day picked on Wednesday was
+   still picked on Friday: the calendar opened with Sep 16 shaded, "1 day selected"
+   named a day already gone, and Plan would have written into the past -- pfSave
+   already refuses that ("A draft date has passed"), which is the app agreeing the
+   selection was invalid, just two screens too late.
+   The old default only ran when the selection was EMPTY, and it is never empty
+   again once the planner has been used once.
+   Future picks are left alone: a week planned ahead is still a week planned ahead,
+   and only days that have actually gone are dropped.
+   ONE helper, called by BOTH pwOpen implementations -- planner-flow.js overrides
+   pwOpen, and the same line was wrong in each. Two copies of a rule is one rule
+   and one lie. */
+function pwFreshenDates(){
+  const s=pw();
+  const fresh=s.dates.filter(x=>x>=todayISO), stale=fresh.length!==s.dates.length;
+  if(stale){s.dates=fresh;if(!fresh.includes(s.active))s.active=fresh[0]||null;}
+  if(!s.dates.length){s.active=dayClosed()?tomorrowISO():writeDateISO();s.dates=[s.active];}
+  if(stale||!s.month)s.month=(s.active||todayISO).slice(0,7)+'-01';
+  if(s.active)pwDay(s.active);
+  return stale;
+}
 function pwOpen(d,step){
   const s=pw();s.error='';s.candidate=null;
   const resume=!d&&!step&&['paste','editrow','adjust'].includes(s.step);
   if(s.busy){pwRequest++;lift.writeAbort?.abort();s.busy=false;}
   if(d){s.dates=[d];s.active=d;s.month=d.slice(0,7)+'-01';pwDay(d);}
-  else if(!s.dates.length){s.active=dayClosed()?tomorrowISO():writeDateISO();s.dates=[s.active];pwDay(s.active);}
+  else pwFreshenDates();
   s.step=resume?s.step:'edit';s.datesOpen=step==='dates';
   pwPaintedStep=null;lift.plan='workspace';view='today';pwPersist();render({soft:true});
 }

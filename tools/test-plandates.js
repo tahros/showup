@@ -90,4 +90,20 @@ run(`pwOpen('2026-09-11');pwRender();`);tap('dates-toggle');tap('back');
 ok('...and Back from the editor does the same',
    `lift.plan==='workspace' && !pw().datesOpen && !!document.querySelector('.pw-editor-head')`,
    `'plan='+lift.plan`);
+
+/* v4.6.61: the same rule on the LEGACY open. planner-flow.js overrides pwOpen, so
+   this bug existed twice and in identical words; both now call pwFreshenDates().
+   This suite pins the legacy copy so a fix to one can never quietly leave the
+   other behind -- two copies of a rule is one rule and one lie. */
+run(`pwState={v:1,step:'edit',dates:['2026-09-08'],active:'2026-09-08',month:'2026-09-01',book:{},objective:'grow'};pwOwner=pwKey();pwOpen(null,'dates');`);
+ok('legacy open also drops a date that has passed', `pw().dates.every(d=>d>=todayISO)`,
+   `JSON.stringify(pw().dates)`);
+ok('...and lands on today', `pw().active===todayISO`, `pw().active`);
+run(`pwState={v:1,step:'edit',dates:['2026-09-12','2026-09-13'],active:'2026-09-12',month:'2026-09-01',book:{},objective:'grow'};pwOwner=pwKey();pwOpen(null,'dates');`);
+ok('...while dates still ahead are untouched',
+   `JSON.stringify(pw().dates)===JSON.stringify(['2026-09-12','2026-09-13'])`, `JSON.stringify(pw().dates)`);
+ok('(source) one helper serves both opens, not two copies of the rule',
+   /pwFreshenDates\(\)/.test(fs.readFileSync(path.join(dir,'js/planner.js'),'utf8')) &&
+   /pwFreshenDates\(\)/.test(fs.readFileSync(path.join(dir,'js/planner-flow.js'),'utf8')));
+
 process.exit(fails?1:0);

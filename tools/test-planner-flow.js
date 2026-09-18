@@ -80,5 +80,42 @@ run(`pfHandle('pf-prefs-save',{dataset:{}});pw().dates=['2026-09-16'];pw().activ
  test('empty selection cannot enable Edit',`document.querySelector('[data-stage="2"]').disabled`);
  run(`pw().dates=['2026-09-15','2026-09-18'];pwRender();`);
  test('mixed saved and unplanned selection still needs a draft',`document.querySelector('[data-stage="2"]').disabled`);
+
+ /* v4.6.61: opening the planner drops dates that have already gone. The state
+    persists in localStorage under a key with no date in it, so a day picked on
+    Wednesday was still shaded on Friday, and "1 day selected" named a day that
+    had passed. Future picks are untouched -- a week planned ahead is still a
+    week planned ahead. Asserted on the LIVE flow; test-plandates asserts the
+    same rule on the legacy one, because both share pwFreshenDates(). */
+ run(`todayISO='2026-09-18';DB.days={};SEED=deriveAll();
+   pwState={v:1,step:'edit',dates:['2026-09-16'],active:'2026-09-16',month:'2026-09-01',book:{},objective:'grow'};pwOwner=pwKey();
+   pwOpen(null,'dates');`);
+ test('a date that has passed is not still selected when the planner opens',
+      `pw().dates.every(d=>d>=todayISO)`);
+ test('...and the selection lands on today',`pw().active===todayISO`);
+ test('...and the calendar opens on the month that holds it',`pw().month==='2026-09-01'`);
+ run(`pwState={v:1,step:'edit',dates:['2026-09-19','2026-09-20','2026-09-21'],active:'2026-09-19',month:'2026-09-01',book:{},objective:'grow'};pwOwner=pwKey();
+   pwOpen(null,'dates');`);
+ test('a week planned ahead is left exactly as it was',
+      `JSON.stringify(pw().dates)===JSON.stringify(['2026-09-19','2026-09-20','2026-09-21'])&&pw().active==='2026-09-19'`);
+ run(`pwState={v:1,step:'edit',dates:['2026-09-15','2026-09-16','2026-09-19','2026-09-20'],active:'2026-09-16',month:'2026-09-01',book:{},objective:'grow'};pwOwner=pwKey();
+   pwOpen(null,'dates');`);
+ test('a mixed selection loses only the days that have gone',
+      `JSON.stringify(pw().dates)===JSON.stringify(['2026-09-19','2026-09-20'])&&pw().active==='2026-09-19'`);
+ /* TODAY IS NOT A PASSED DAY. Without this, x>todayISO passes every other check
+    here -- a lone stale date still lands on today via the empty-selection default,
+    so the off-by-one only shows when today is picked ALONGSIDE a future day and is
+    silently dropped out from under the plan. */
+ run(`pwState={v:1,step:'edit',dates:['2026-09-18','2026-09-19'],active:'2026-09-18',month:'2026-09-01',book:{},objective:'grow'};pwOwner=pwKey();
+   pwOpen(null,'dates');`);
+ test('today itself survives beside a future day',
+      `JSON.stringify(pw().dates)===JSON.stringify(['2026-09-18','2026-09-19'])&&pw().active==='2026-09-18'`);
+ run(`DB.days['2026-09-18']={w:[{part:'Legs',ex:'Squat',w:100,reps:[8]}],doneAll:true,upd:1};SEED=deriveAll();
+   pwState={v:1,step:'edit',dates:['2026-09-16'],active:'2026-09-16',month:'2026-09-01',book:{},objective:'grow'};pwOwner=pwKey();
+   pwOpen(null,'dates');`);
+ test('...and with today already complete it offers tomorrow, not today',
+      `pw().active==='2026-09-19'`);
+ run(`DB.days={};SEED=deriveAll();`);
+
  console.log(checks+' planner journey checks passed');dom.window.close();process.exit(0);
 })().catch(e=>{console.error(e);process.exit(1)});
