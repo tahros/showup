@@ -250,3 +250,30 @@ header.planmode .hback::after{content:'';position:absolute;inset:-3px -6px}
 .pe-removed .pe-undo{min-height:36px;padding:0 12px;border-radius:10px;font-size:12px;color:var(--accent)}
 .pe-ex .pe-removed{margin:0}
 @media(max-width:360px){.pf-routine-page .pw-exercise.pw-editable.pe-ex{--pad:26px}.pf-routine-page .pw-exercise.pw-editable.pe-ex.pe-open{--bleed:8px}.pe-line{grid-template-columns:70px 20px minmax(0,1fr);font-size:12.5px}.pe-line .pe-r i{width:2.9ch}.pe-line .pe-r i:first-child{width:2.4ch}.pe-d{margin-left:6px;padding:0 5px}.pe-chip{width:32px}.pe-line.pe-edit .pe-r{gap:3px}.pe-chip.pe-cw{max-width:70px;min-width:40px;padding:0 4px;font-size:12px}.pw-workspace .pe-chip.pe-in{width:34px}.pe-open .pe-last .pe-r i,.pe-open .pe-last .pe-r i:first-child{width:32px;margin-right:3px}.pe-actions{gap:6px}.pe-actions .pe-btn{padding:0 9px;font-size:11px;white-space:nowrap;gap:4px}}
+/* v4.6.75: THE WEEK STRIP, AND THE TOOLBAR AS BUTTONS. Chips for every
+   planned day sit above the routine; the active one is the accent fill the
+   calendar already uses for a selected date. The "··· More" disclosure is
+   gone: Paste and Clear are icon buttons beside Regenerate, one row with the
+   stepper, at the toolbar's own 44px. */
+.pf-strip{display:flex;gap:6px;margin:2px 0 12px}
+.pf-strip .pw-btn.pf-chip{flex:1;min-width:0;flex-direction:column;gap:0;min-height:56px;padding:7px 2px 8px;border-radius:12px;font:600 11px/1.3 var(--mono)}
+.pf-chip s{display:block;text-decoration:none;font:400 10px/1.3 var(--mono);color:var(--faint);margin-top:1px}
+.pf-chip u{display:block;text-decoration:none;max-width:100%;font:500 9px/1.3 var(--body);color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pf-chip.selected s{color:color-mix(in srgb,#fff 75%,var(--accent))}
+.pf-chip.selected u{color:#fff}
+:root .pf-routine-page .pf-routine-controls{align-items:flex-end}
+.pf-tools{display:flex;gap:6px;flex:none}
+:root .pf-routine-controls .pf-tools .pw-btn.pw-icon.pf-tool{width:44px;min-width:44px;height:44px;min-height:44px;border-radius:12px;background:var(--surface2);border-color:var(--line);color:var(--chalk)}
+:root .pf-routine-controls .pf-quiet-regenerate{width:auto;padding:8px 12px}
+/* D3 spacing on the card: the routine reads as one block, not five cards */
+.pf-routine-page .pw-exercise.pw-editable.pe-ex{padding-top:8px;padding-bottom:8px}
+/* the grip is 44 tall against a 36 name row: centre it, do not top-align it */
+.pf-routine-page .pe-ex .pw-grip{top:4px}
+.pf-routine-page .pe-ex:first-child{padding-top:0}
+.pf-routine-page .pe-ex:first-child .pw-grip{top:-4px}
+.pf-routine-page .pe-ex .pf-ex-summary{min-height:36px;gap:8px}
+.pf-routine-page .pe-ex .pf-ex-summary strong{font:600 14px/1.4 var(--body)}
+.pe-lines{margin-top:0;gap:2px}
+.pe-line{font-size:13px;line-height:1.5}
+.pf-workspace .pf-routine-card.card{padding-top:12px;padding-bottom:12px}
+@media(max-width:360px){.pf-strip{gap:4px}.pf-strip .pw-btn.pf-chip{padding:6px 1px 7px;font-size:10px}.pf-chip u{font-size:8px}:root .pf-routine-controls .pf-quiet-regenerate{padding:8px 9px;font-size:11px}}

@@ -15,7 +15,8 @@ test('one through seven days and every body-part slider',`document.querySelector
 run(`pfState().prefs.emphasis.Chest=1;pfHandle('pf-prefs-save',{dataset:{}});`);
 test('preference save preserves profile',`DB.settings.plannerPreferences.emphasis.Chest===1&&DB.settings.name==='Sungjee'&&DB.settings.sex==='M'`);
 run(`var rows=pwRead('Squat\\n135 lb × 10 (warm-up)\\n225 lb × 8 8 8 8');var b=pwDay(pw().active);b.rows=pwCopy(rows);b.parts=['Legs'];pfAnchor();pfNavigate('days');`);
-test('day overview includes compact date, reorder and expand controls',`document.querySelector('[data-pf-day-grip]')&&document.querySelector('[data-pw="pf-expand"]')&&document.querySelector('[data-pw="pf-save"]')`);
+/* v4.6.75: 'days' lands on the routine page with the week strip */
+test('the week is a strip above the routine, with Paste and Clear as buttons and no More',`pfState().page==='edit'&&document.querySelectorAll('.pf-strip .pf-chip').length===1&&document.querySelector('.pf-strip .pf-chip.selected')&&document.querySelector('.pf-tools [data-pw="paste"]')&&document.querySelector('.pf-tools [data-pw="pf-clear"]')&&!document.querySelector('.pf-routine-more,.pf-day-navigation')&&document.querySelector('[data-pw="pf-save"]')`);
 run(`pfSave();var revision=plCurrent('2026-09-14');`);
 test('saving archives targets without logging a workout',`pfState().page==='done'&&revision.targets.length===5&&Object.values(DB.days).every(d=>!(d.w||[]).length)`);
 test('saved review owns an independent routine snapshot',`pfState().saved[0].rows!==pwDay(pw().active).rows&&JSON.stringify(pfState().saved[0].rows)===JSON.stringify(pwDay(pw().active).rows)`);
@@ -64,7 +65,7 @@ test('Settings opens the same preferences without a misleading stage bar',`pfSta
 run(`pfHandle('pf-prefs-save',{dataset:{}});pw().dates=['2026-09-16'];pw().active='2026-09-16';pwDay('2026-09-16').locks=[];view='today';lift.plan='workspace';pfNavigate('dates');writerGenerateChecked=async()=>({rows:[{kind:'day',iso:'2026-09-16'},...pwRead('Dip\\nBW × 8 8 8')],notes:[]});`);
 (async()=>{
  await run('pwGenerate()');
- test('checked generation opens editable days directly, without saving',`pfState().page==='days'&&pfMatch()&&pwSetCount(pwDay('2026-09-16').rows)===3&&!pwSaved('2026-09-16')`);
+ test('checked generation opens editable days directly, without saving',`pfState().page==='edit'&&pfMatch()&&pwSetCount(pwDay('2026-09-16').rows)===3&&!pwSaved('2026-09-16')`);
  run(`pfHandle('pf-edit-first',{dataset:{}});pfHandle('pf-clear',{dataset:{}});pfBack();`);
  test('Back closes the clear screen without leaving the routine',`pfState().page==='edit'&&!pfState().clear`);
  run(`pfNavigate('dates');pfNavigate('prefs');pfBack();`);
@@ -78,7 +79,7 @@ run(`pfHandle('pf-prefs-save',{dataset:{}});pw().dates=['2026-09-16'];pw().activ
  run(`pw().dates=['2026-09-13','2026-09-15'];pfState().anchor=[];pfState().furthest=1;pwRender();`);
  test('saved selection enables Edit without enabling Done',`!document.querySelector('[data-stage="2"]').disabled&&document.querySelector('[data-stage="3"]').disabled`);
  run(`pfHandle('pf-stage',{dataset:{stage:'2'}});`);
- test('Edit loads all selected saved routines without generating',`pfState().page==='days'&&pfMatch()&&pwSetCount(pwDay('2026-09-13').rows)===2&&pwSetCount(pwDay('2026-09-15').rows)===2`);
+ test('Edit loads all selected saved routines without generating',`pfState().page==='edit'&&document.querySelectorAll('.pf-strip .pf-chip').length===2&&pfMatch()&&pwSetCount(pwDay('2026-09-13').rows)===2&&pwSetCount(pwDay('2026-09-15').rows)===2`);
  run(`pfNavigate('dates');pw().dates=[];pwRender();`);
  test('empty selection cannot enable Edit',`document.querySelector('[data-stage="2"]').disabled`);
  run(`pw().dates=['2026-09-15','2026-09-18'];pwRender();`);
