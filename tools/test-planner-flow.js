@@ -8,6 +8,7 @@ w.HTMLCanvasElement.prototype.getContext=()=>new Proxy({measureText:()=>({width:
 for(const m of html.matchAll(/src="(js\/[^?"]+)\?v=/g))vm.runInContext(fs.readFileSync(path.join(dir,m[1]),'utf8'),ctx,{filename:m[1]});
 const run=s=>vm.runInContext(s,ctx);let checks=0;
 function test(name,code){assert(run(code),name);console.log('PASS '+name);checks++;}
+function ok2(name,value){assert(value,name);console.log('PASS '+name);checks++;}
 run(`DB={days:{},settings:{unit:'lb',name:'Sungjee',sex:'M',onboarded:true}};todayISO='2026-09-13';checkDate=()=>false;pwState=null;lift={part:'Legs',ex:'Squat'};pwOpen('2026-09-14');`);
 test('new date opens calendar, not a fake saved plan',`pfState().page==='dates'&&!DB.week&&!(DB.days[todayISO]?.w||[]).length`);
 run(`pfState().prefs=pfPrefs();pfNavigate('prefs');`);
@@ -22,6 +23,12 @@ test('saving archives targets without logging a workout',`pfState().page==='done
 test('saved review owns an independent routine snapshot',`pfState().saved[0].rows!==pwDay(pw().active).rows&&JSON.stringify(pfState().saved[0].rows)===JSON.stringify(pwDay(pw().active).rows)`);
 test('saved review has disclosures but no editing controls',`document.querySelector('[data-pf-saved-fold]')&&document.querySelector('[data-pw="pf-done-expand"]')&&!document.querySelector('.pf-done [data-pw="pf-edit-day"],.pf-done [data-pw-grip]')`);
 run(`pfNavigate('dates');`);
+/* v4.6.78: the dates page drops its two headings; the selection is an inset
+   square, drawn on the day's ::before so the 44px target keeps its size. */
+const pfcss=fs.readFileSync(path.join(dir,'css/planner-flow.css'),'utf8');
+test('the dates page has no prompt line, and the month labels its own arrows',`pfState().page==='dates'&&!document.querySelector('.pf-date-prompt')&&!/Select dates/.test(document.getElementById('view').textContent)&&document.querySelector('.pw-month strong').textContent.includes('2026')`);
+ok2('the selection is an inset square, not a full-bleed fill',/inset:5px 3px/.test(pfcss.match(/\.pf-date-sheet \.pf-calendar \.pw-btn::before\{([^}]+)\}/)?.[1]||'')&&/border-radius:10px/.test(pfcss.match(/\.pf-date-sheet \.pf-calendar \.pw-btn::before\{([^}]+)\}/)?.[1]||'')&&/\.pf-date-sheet \.pf-calendar \.selected::before\{background:var\(--accent\)\}/.test(pfcss));
+ok2('the day cell is taller than the 44 it was',/\.pf-dates-page \.pf-date-sheet \.pf-calendar \.pw-btn\{height:52px\}/.test(pfcss));
 test('returning to Dates retains completed steps',`!document.querySelector('[data-stage="2"]').disabled&&!document.querySelector('[data-stage="3"]').disabled`);
 run(`pw().dates.push('2026-09-15');pwDay('2026-09-15');pwRender();`);
 test('changing date selection disables later steps, retaining draft markers',`document.querySelector('[data-stage="2"]').disabled&&document.querySelector('[data-stage="3"]').disabled&&document.querySelector('[data-date="2026-09-14"].pf-editing')`);
