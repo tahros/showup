@@ -1677,7 +1677,8 @@
   .logmain{flex:1;min-width:0;background:none;border:0;color:var(--chalk);font:inherit;text-align:left;cursor:pointer;padding:0}
   .logmain b{font-weight:500}
   .xbtn{flex:0 0 40px;height:40px;border-radius:10px;border:1px solid var(--line);
-    background:var(--surface2);color:var(--muted);font-size:14px;cursor:pointer}
+    background:var(--surface2);color:var(--muted);font-size:14px;cursor:pointer;
+    display:inline-flex;align-items:center;justify-content:center}   /* v4.6.73: holds the bin */
   .xbtn:active{border-color:var(--record);color:var(--record)}
   /* v3.3.298: the go-to list is B1 — slim raised rows, copied from the
      mockup the maker approved, metric for metric. The old design was a
@@ -2828,12 +2829,15 @@
   .day.editing .dayedit{background:var(--accent);border-color:var(--accent);color:#fff}
   .hsets{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
   .hset{position:relative;display:flex;align-items:baseline;gap:6px;background:var(--surface2);
-    border:1px solid var(--line);border-radius:9px;padding:8px 26px 8px 10px;cursor:pointer;
+    border:1px solid var(--line);border-radius:9px;padding:8px 30px 8px 10px;cursor:pointer;
     font-family:var(--mono);font-size:13px;color:var(--chalk)}
   .hset .muted{font-size:12px}
-  .hsx{position:absolute;top:4px;right:4px;width:16px;height:16px;border-radius:50%;
+  /* v4.6.73: the tile's corner control is the bin now, not a cross -- a tap
+     here deletes the set. 20px so the glyph reads; the tile pads for it. */
+  .hsx{position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;
     background:var(--ground);border:1px solid var(--line);color:var(--muted);
-    font-size:9px;line-height:1;display:flex;align-items:center;justify-content:center;font-style:normal}
+    line-height:1;display:flex;align-items:center;justify-content:center;font-style:normal}
+  .hsx svg{width:11px;height:11px}
   .hadd{margin-top:7px;font-family:var(--mono);font-size:11px;color:var(--accent);
     background:none;border:1px dashed var(--line);border-radius:9px;padding:6px 12px;cursor:pointer}
   .day .body .exgrp+.exgrp{margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}

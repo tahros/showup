@@ -1242,6 +1242,13 @@ const ICON_STROKE={
   paste:"M34 16 L34 10 A5 5 0 0 1 39 5 L61 5 A5 5 0 0 1 66 10 L66 16 L76 16 A10 10 0 0 1 86 26 L86 86 A10 10 0 0 1 76 96 L24 96 A10 10 0 0 1 14 86 L14 26 A10 10 0 0 1 24 16 Z M50 40 L50 74 M36 60 L50 74 L64 60",
 
   clear:'M30 30l40 40M70 30 30 70',
+  /* v4.6.73: THE BIN MEANS DELETE. The cross meant two things -- dismiss a
+     suggestion, delete a logged set -- and the same glyph cannot promise
+     both "nothing happens to your data" and "this is gone". So: the bin is
+     for anything that destroys a record (a logged set, a plan line, a custom
+     exercise); the cross stays for dismissing, skipping and closing. Drawn
+     as strokes like clear and grip so it inherits the set's weight. */
+  trash:'M22 30h56M40 30v-8h20v8M30 30l4 52h32l4-52M44 44v26M56 44v26',
   grip:'M22 34h56M22 50h56M22 66h56',
   /* v3.3.424: THE BRAND MARK'S CHEVRON, the artwork itself -- lifted from
      showup-mark-black.svg unaltered, not redrawn. It is the only icon in this
@@ -1271,6 +1278,7 @@ const ICON_INK={
   edit:[0,0,100,100],    copy:[0,0,100,100],
   paste:[14,5,86,96], selectall:[12,12,88,88],
   clear:[24,24,76,76],   grip:[16,28,84,72],      chevron:[33.5,19.5,68.5,80.5],
+  trash:[17.5,17.5,82.5,86.5],
   brandmark:[154.6,136,357.4,271.2], check:[19.5,26.5,80.5,73.5]
 };
 const ICON_LIVE=0.76;      // share of the box the ink meets

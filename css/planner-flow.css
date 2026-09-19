@@ -183,3 +183,58 @@ header.planmode .hback::after{content:'';position:absolute;inset:-3px -6px}
 .pf-workspace .pf-set-row>div{gap:5px}
 .pf-add-summary .pf-add-button{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;min-height:44px;border:1px solid var(--line);background:var(--surface2)}
 @media(max-width:360px){.pf-workspace .pf-set-row{row-gap:0}.pf-workspace .pw-ex-title{flex-wrap:nowrap}}
+/* v4.6.73: THE ROUTINE PAGE -- one spine, last time beneath, edit in place.
+   Weight right | x centred | reps left, each rep in its own invisible column,
+   so every line of every exercise lands on the same three verticals whether
+   it is ink (the plan), a step lighter (last time) or a row of chips (edit). */
+.pf-routine-page .pw-exercise.pw-editable.pe-ex{padding:12px 0 12px 29px}
+.pf-routine-page .pe-ex:first-child{padding-top:2px}
+.pf-routine-page .pe-ex .pw-grip{top:12px}
+.pf-routine-page .pe-ex:first-child .pw-grip{top:2px}
+.pf-routine-page .pe-ex .pf-ex-summary{min-height:44px;gap:10px}
+.pf-routine-page .pe-ex .pf-ex-summary strong{font:600 16px/1.5 var(--body)}
+.pf-routine-page .pe-toggle.pw-btn{position:relative;width:auto;min-width:44px;height:30px;min-height:30px;padding:0 10px;border-radius:10px;font:500 12px/1 var(--body);gap:5px}
+.pf-routine-page .pe-toggle.pw-btn::after{content:'';position:absolute;inset:-7px}   /* the tap target stays 44 */
+.pf-routine-page .pe-toggle svg{width:13px;height:13px}
+.pe-lines{position:relative;margin-top:2px;display:flex;flex-direction:column;gap:4px}
+.pe-line{display:grid;grid-template-columns:80px 26px minmax(0,1fr);align-items:center;font:500 14px/1.6 var(--mono);color:var(--chalk);font-variant-numeric:tabular-nums;min-width:0}
+.pe-line .pe-w{text-align:right;white-space:nowrap;overflow:hidden;text-overflow:clip}
+.pe-line .pe-x{text-align:center;color:color-mix(in srgb,var(--faint) 45%,transparent);font-weight:400}
+.pe-line .pe-r{display:flex;align-items:center;flex-wrap:wrap;white-space:nowrap;min-width:0;padding-left:2px}
+.pe-reps{display:inline-flex;white-space:nowrap}   /* the reps never break; the date may */
+.pe-line .pe-r i{font-style:normal;display:inline-block;width:3ch;text-align:right}
+.pe-line .pe-r i:first-child{width:2.5ch}
+.pe-q{font:500 10px/1 var(--body);color:var(--faint);margin-left:8px}
+.pe-d{display:inline-flex;align-items:center;height:18px;padding:0 7px;margin-left:12px;border-radius:6px;background:var(--surface2);font:500 10px/1 var(--body);letter-spacing:.02em;color:var(--faint)}
+.pe-up{color:var(--accent)}
+.pe-last{font-weight:400;color:var(--faint);opacity:.75}
+.pe-last .pe-x{opacity:.6}
+/* EDIT: the numbers become chips, in the same columns */
+.pe-open{background:var(--ground);margin:0 -12px;padding-left:41px!important;padding-right:8px!important;border-radius:14px;border-bottom-color:transparent}
+.pe-open .pw-grip{left:4px}
+.pe-open+.pe-ex{border-top-color:transparent}
+.pe-line.pe-edit{position:relative;min-height:32px;column-gap:0}
+.pe-line.pe-edit .pe-w{display:flex;justify-content:flex-end;overflow:visible}
+.pe-line.pe-edit .pe-r{gap:4px;row-gap:6px}
+/* under chips, last time keeps the chips' slots: 34px centred, 4px apart */
+.pe-open .pe-last .pe-r i,.pe-open .pe-last .pe-r i:first-child{width:34px;margin-right:4px;text-align:center}
+.pe-open .pe-last .pe-d{margin-left:auto;padding:0 5px}   /* rides the right edge; if it must wrap, it wraps alone, still right */
+.pe-chip{appearance:none;display:inline-flex;align-items:center;justify-content:center;width:34px;height:28px;padding:0;border:1px dotted var(--muted);border-radius:8px;background:transparent;color:var(--chalk);font:500 13px/1 var(--mono);font-variant-numeric:tabular-nums;cursor:pointer;box-sizing:border-box}
+.pe-chip.pe-cw{width:auto;max-width:80px;min-width:44px;padding:0 6px;white-space:nowrap}
+.pe-chip.pe-add{width:26px;color:var(--faint);border-color:var(--line);font-family:var(--body)}
+/* the input IS the chip: same box, same place; 16px so iOS does not zoom */
+.pw-workspace .pe-chip.pe-in{display:inline-flex;width:36px;max-width:none;min-width:0;height:28px;margin:0;padding:0 2px;border:1px solid var(--accent);border-radius:8px;background:var(--surface);color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 18%,transparent);font:500 16px/1 var(--mono);text-align:center;outline:0;-moz-appearance:textfield}
+.pe-chip.pe-in::-webkit-outer-spin-button,.pe-chip.pe-in::-webkit-inner-spin-button{appearance:none;margin:0}
+.pw-workspace .pe-chip.pe-in.pe-cw{width:64px}
+.pe-del{position:absolute;left:-44px;top:50%;transform:translateY(-50%);width:26px;height:26px;padding:0;border:1px dotted color-mix(in srgb,var(--live) 45%,var(--line));border-radius:8px;background:transparent;color:var(--live);display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+.pe-del svg{width:13px;height:13px}
+.pe-del::after{content:'';position:absolute;inset:-9px}
+.pe-actions{display:flex;gap:8px;margin:12px 0 2px}
+.pe-actions .pe-btn{min-height:40px;padding:0 12px;border-radius:12px;font-size:12px;gap:6px;background:var(--surface)}
+.pe-actions .pe-btn svg{width:13px;height:13px}
+.pe-actions .pe-danger{color:var(--live)}
+.pe-removed{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;font:400 13px/1.4 var(--body);color:var(--faint)}
+.pe-removed b{font-weight:500;color:var(--chalk)}
+.pe-removed .pe-undo{min-height:36px;padding:0 12px;border-radius:10px;font-size:12px;color:var(--accent)}
+.pe-ex .pe-removed{margin:0}
+@media(max-width:360px){.pf-routine-page .pw-exercise.pw-editable.pe-ex{padding-left:26px}.pe-line{grid-template-columns:70px 20px minmax(0,1fr);font-size:12.5px}.pe-line .pe-r i{width:2.9ch}.pe-line .pe-r i:first-child{width:2.4ch}.pe-d{margin-left:6px;padding:0 5px}.pe-chip{width:32px}.pe-line.pe-edit .pe-r{gap:3px}.pe-chip.pe-cw{max-width:70px;min-width:40px;padding:0 4px;font-size:12px}.pw-workspace .pe-chip.pe-in{width:34px}.pe-open .pe-last .pe-r i,.pe-open .pe-last .pe-r i:first-child{width:32px;margin-right:3px}.pe-open{margin:0 -8px;padding-left:34px!important;padding-right:8px!important}.pe-del{left:-37px}.pe-actions{gap:6px}.pe-actions .pe-btn{padding:0 9px;font-size:11px;white-space:nowrap;gap:4px}}

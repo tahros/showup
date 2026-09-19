@@ -69,9 +69,13 @@ ok("legacy sets with no time stay unknown, not zero", live(T('10:00')).minutes==
 
 // ---- the bar reads the session, end to end
 seed([T('08:45')],[T('11:00')]);
-run(`DB.days[todayISO].w.push({part:'Sixpack',ex:'Hanging Leg Raise',w:0,reps:[12],at:Date.now()-3*60000});SEED=deriveAll();render();syncLiveWorkout();`);
+/* v4.6.73: the clock is pinned to the afternoon. This check read the wall
+   clock, so it went red whenever the suite ran before 11:00 local -- the set
+   "three minutes ago" landed inside the closed morning session. */
+run(`Date._real=Date._real||Date.now;Date.now=()=>${T('15:53')};DB.days[todayISO].w.push({part:'Sixpack',ex:'Hanging Leg Raise',w:0,reps:[12],at:Date.now()-3*60000});SEED=deriveAll();render();syncLiveWorkout();`);
 ok("the live bar shows the new session's minutes, not the day's",
    /^[1-4] min · 1 set$/.test(run(`document.querySelector('.live-workout-meta').textContent`)), run(`document.querySelector('.live-workout-meta').textContent`));
+run(`Date.now=Date._real;`);
 
 // ---- v4.6.71: the stray set, deleted -- the maker's own afternoon
 /* Completed at 11:00. One accidental set at 15:50 reopened the day and started

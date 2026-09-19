@@ -32,9 +32,12 @@ test('total change is pending, highlighted and does not mutate sets',`pfPending(
 test('pending total prevents saving',`(()=>{try{pfSave();return false;}catch(e){return /Regenerate/.test(e.message);}})()`);
 run(`pfHandle('pf-minus',{dataset:{}});`);
 test('returning to original count clears pending state',`!pfPending()`);
-test('repeated reps are grouped on one editable line',`pfGroups(pwDay(pw().active).rows[0]).length===2&&document.querySelectorAll('[data-pw="pf-edit-line"]').length===2`);
-run(`pfHandle('pf-edit-line',{dataset:{index:'0',line:'1'}});document.getElementById('pf-reps').value='7 7 7';pfHandle('pf-group-save',{dataset:{}});`);
-test('editing one grouped row preserves warmup and saved target',`pwSetCount(pwDay(pw().active).rows)===4&&pwDay(pw().active).rows[0].lines[0].reps[0]===10&&revision.targets.length===5`);
+test('repeated reps are grouped on one line of the spine',`pfGroups(pwDay(pw().active).rows[0]).length===2&&document.querySelectorAll('.pe-ex[data-pw-row="0"] .pe-line.pe-plan').length===2`);
+/* v4.6.73: the form card is gone; a line is edited chip by chip, in place */
+run(`pfHandle('pf-row-toggle',{dataset:{index:'0'}});pfHandle('pf-chip',{dataset:{index:'0',line:'1',field:'r',rep:'3'}});`);
+test('a tapped rep is an input in its slot',`document.getElementById('peInput')&&document.getElementById('peInput').value==='8'`);
+run(`document.getElementById('peInput').value='7';pfChipClose(true);pfHandle('pf-del-line',{dataset:{index:'0',line:'1'}});pfHandle('pf-add-line',{dataset:{index:'0'}});document.getElementById('peInput').value='225';pfChipClose(true);pfHandle('pf-add-rep',{dataset:{index:'0',line:'1'}});pfHandle('pf-add-rep',{dataset:{index:'0',line:'1'}});pfHandle('pf-row-toggle',{dataset:{index:'0'}});`);
+test('editing one grouped row preserves the opener and saved target',`pwSetCount(pwDay(pw().active).rows)===4&&pwDay(pw().active).rows[0].lines[0].reps[0]===10&&pwDay(pw().active).rows[0].lines[1].w===225&&revision.targets.length===5`);
 run(`DB.days['2026-09-12']={w:[{part:'Legs',ex:'Squat',w:100,reps:[8,8]},{part:'Sixpack',ex:'Plank',w:0,reps:[60],su:'s'}]};`);
 test('history includes the entire matching day, including Core',`pfHistoryHTML().includes('Plank')&&pfHistoryHTML().includes('3 sets · 2 exercises')`);
 test('matching logged sets render together without changing source records',`(()=>{const rows=Array.from({length:4},()=>({ex:'Squat',w:185/LB,reps:[8]})),before=JSON.stringify(rows),text=pfHistoryLines(rows);return text==='185 lb × 8 8 8 8'&&JSON.stringify(rows)===before;})()`);

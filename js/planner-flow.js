@@ -87,17 +87,122 @@ function pfHistoryLines(rows){
  return groups.map(({row:r,reps})=>hesc(r.ex==='Run'?dDisp(r.w)+' '+DU():Math.round(toU(r.w))+' '+U()+' × '+reps.join(' ')+(isHold(r.su)?' sec':'')+(r.qual?' ('+r.qual+')':''))).join('<br>');
 }
 function pfLineText(ex,line){return pwText([{kind:'ex',ex,lines:[line]}]).split('\n').slice(1).map(x=>x.trim()).join('\n');}
-function pfEditRows(){const b=pwDay(pw().active),j=pfState();return '<div class="pw-exercises">'+b.rows.map((r,i)=>{
- if(r.kind!=='ex'||!r.ex)return '<div data-pw-row="'+i+'" class="pw-unread"><pre>'+hesc(r.raw||'')+'</pre>'+pwButton('editrow','Edit text','',`data-index="${i}"`)+'</div>';
- const open=j.routineOpen?.[pw().active]?.[i],groups=pfGroups(r);
- return `<article class="pw-exercise pw-editable" data-pw-row="${i}"><button class="pw-btn pw-grip" data-pw-grip="${i}" aria-label="Reorder ${hesc(r.ex)}; drag or use arrow keys">${icon('grip',ICON_SZ.sm)}</button><div class="pf-ex-summary"><div><strong>${hesc(r.ex)}</strong><div class="pf-ex-preview" ${open?'hidden':''}>${groups.map(g=>'<div>'+hesc(pfLineText(r.ex,g.line))+'</div>').join('')}</div></div>${pwButton('pf-row-toggle',icon(open?'collapse':'edit',ICON_SZ.sm),'pf-row-toggle',`data-index="${i}" aria-expanded="${!!open}" aria-label="${open?'Collapse':'Edit'} ${hesc(r.ex)}"`)}</div><div class="pf-ex-controls" ${open?'':'hidden'}>${groups.map((g,k)=>`<div class="pf-set-row"><span class="mono">${hesc(pfLineText(r.ex,g.line))}</span><div>${pwAction('pf-edit-line','Edit','edit','pf-row-button',`data-index="${i}" data-line="${k}"`)}${pwAction('pf-remove-line','Remove','clear','pf-row-button',`data-index="${i}" data-line="${k}"`)}</div></div>`).join('')}${pwButton('pf-add-line',icon('clear',12,45)+' Add set','pf-row-button',`data-index="${i}"`)}</div></article>`;
- }).join('')+'</div>';}
+/* v4.6.73: THE ROUTINE PAGE SHOWS LAST TIME, AND EDITS IN PLACE.
+   The page listed each exercise's prescription as a line of text and sent
+   every change through a form card: tap the pencil, tap Edit on a line, fill
+   two fields, Keep changes. The maker's ask was to see what he did LAST TIME
+   next to what he plans, without breaking the layout -- and the answer that
+   survived eleven boards is a spine: weight right-aligned, the x centred to
+   the pixel, reps left-aligned into invisible columns, one per set. The plan
+   sits on the spine in ink; last time sits under it a step lighter, folded
+   the way it was lifted (consecutive same-weight sets on one line), with the
+   date as a small chip after the final line. Anything that changed since
+   last time is blue, compared position by position.
+   Edit opens the exercise in place: the same lines, every number a dotted
+   chip; a tapped chip IS the input. A bin in the gutter deletes a line; a
+   plus chip adds a set; Add a line and Remove exercise sit under the lines,
+   and a removal leaves an Undo strip where the thing was. No warm-up marks
+   on this page: a qualifier a plan was pasted with is kept on the line but
+   not shown or asked for. */
+const pfMD=d=>{const [,m,dd]=String(d).split('-').map(Number);return m+'/'+dd;};
+function pfLoadText(line){const unit=line.unit||U(),w=+Number(line.w||0).toFixed(4);return line.nw?'By feel':line.bw?(w?`BW+${w} ${unit}`:'BW'):`${line.est?'≈':''}${w} ${unit}`;}
+function pfLastGroups(ex){
+ const last=typeof lastFor==='function'&&typeof SEED!=='undefined'?lastFor(ex):null;if(!last?.sets?.length)return null;
+ const groups=[];
+ for(const s of last.sets){const w=+s[0]||0,reps=(s[1]||[]).map(Number).filter(Number.isFinite);if(!reps.length)continue;const g=groups.at(-1);if(g&&Math.abs(g.w-w)<1e-6)g.reps.push(...reps);else groups.push({w,reps:[...reps]});}
+ if(!groups.length)return null;
+ return {d:last.d,groups:groups.map(g=>({load:isBody(ex)&&g.w<=0.01?'BW':(isBody(ex)?'BW+':'')+wDisp(g.w)+' '+U(),reps:g.reps}))};
+}
+function pfSpineLine(load,reps,cls,ref,tail=''){
+ const wup=!!ref&&ref.load!==load;
+ const rs=reps.map((r,i)=>`<i${ref&&(i>=ref.reps.length||ref.reps[i]!==r)?' class="pe-up"':''}>${hesc(String(r))}</i>`).join('');
+ return `<div class="pe-line ${cls}"><span class="pe-w${wup?' pe-up':''}">${hesc(load)}</span><span class="pe-x" aria-hidden="true">×</span><span class="pe-r"><span class="pe-reps">${rs}</span>${tail}</span></div>`;
+}
+function pfChipOpen(i,k,field,rep){const c=pfState().chip;return !!c&&c.row===i&&c.line===k&&c.field===field&&(field==='w'||c.rep===rep);}
+function pfChip(i,k,field,rep,text,aria,step){
+ if(pfChipOpen(i,k,field,rep))return `<input id="peInput" class="pe-chip pe-in${field==='w'?' pe-cw':''}" type="number" inputmode="${field==='r'?'numeric':'decimal'}" step="${field==='r'?1:step}" min="0" value="${hesc(String(text))}" aria-label="${aria}">`;
+ return `<button type="button" class="pe-chip${field==='w'?' pe-cw':''}" data-pw="pf-chip" data-index="${i}" data-line="${k}" data-field="${field}"${field==='r'?` data-rep="${rep}"`:''} aria-label="${aria}">${hesc(String(text))}</button>`;
+}
+function pfEditLine(ex,i,k,g){
+ const c=pfState().chip,open=c&&c.row===i&&c.line===k,line=g.line,unit=line.unit||U();
+ const wText=open&&c.field==='w'?(c.fresh?c.fresh.w:line.nw?'':+Number(line.w||0).toFixed(4)):pfLoadText(line);
+ const reps=line.reps.map((r,ri)=>pfChip(i,k,'r',ri,r,`Set ${ri+1}: ${r}${isHold(line.su)?' seconds':' reps'}`)).join('');
+ return `<div class="pe-line pe-edit"><button type="button" class="pe-del" data-pw="pf-del-line" data-index="${i}" data-line="${k}" aria-label="Delete ${hesc(pfLoadText(line))} × ${hesc(line.reps.join(' '))}">${icon('trash',ICON_SZ.sm)}</button><span class="pe-w">${pfChip(i,k,'w',0,wText,`Weight, ${unit}`,typeof wStep==='function'?wStep(ex):'any')}</span><span class="pe-x" aria-hidden="true">×</span><span class="pe-r">${reps}<button type="button" class="pe-chip pe-add" data-pw="pf-add-rep" data-index="${i}" data-line="${k}" aria-label="Add a set">+</button></span></div>`;
+}
+function pfStripHTML(text){return `<div class="pe-removed" role="status"><span>Removed <b>${hesc(text)}</b></span>${pwButton('undo','\u21BA Undo','pe-undo')}</div>`;}
+function pfExerciseHTML(r,i){
+ const j=pfState(),b=pwDay(pw().active),open=!!j.routineOpen?.[pw().active]?.[i],groups=pfGroups(r),last=r.ex==='Run'?null:pfLastGroups(r.ex),strip=b.strip&&b.strip.row===i&&b.strip.line!=null?b.strip:null;
+ const lines=[];
+ groups.forEach((g,k)=>{
+  if(strip&&strip.line===k)lines.push(pfStripHTML(strip.text));
+  /* compared from the END: the working sets are the last lines on both sides,
+     so a plan with a lighter opener still meets last time's top set */
+  const ref=last?last.groups[k-(groups.length-last.groups.length)]||null:null,tail=isHold(g.line.su)?'<span class="pe-q">sec</span>':'';
+  lines.push(open?pfEditLine(r.ex,i,k,g):pfSpineLine(pfLoadText(g.line),g.line.reps,'pe-plan',ref,tail));
+ });
+ if(strip&&strip.line>=groups.length)lines.push(pfStripHTML(strip.text));
+ if(last)last.groups.forEach((g,k)=>lines.push(pfSpineLine(g.load,g.reps,'pe-last',null,k===last.groups.length-1?`<span class="pe-d">${hesc(pfMD(last.d))}</span>`:'')));
+ const toggle=pwButton('pf-row-toggle',open?icon('check',ICON_SZ.sm)+' Done':icon('edit',ICON_SZ.sm),'pf-row-toggle pe-toggle'+(open?' primary':''),`data-index="${i}" aria-expanded="${open}" aria-label="${open?'Done editing':'Edit'} ${hesc(r.ex)}"`);
+ const actions=open?`<div class="pe-actions">${pwButton('pf-add-line',icon('clear',ICON_SZ.sm,45)+' Add a line','pe-btn',`data-index="${i}"`)}${pwButton('pf-remove-ex',icon('trash',ICON_SZ.sm)+' Remove exercise','pe-btn pe-danger',`data-index="${i}"`)}</div>`:'';
+ return `<article class="pw-exercise pw-editable pe-ex${open?' pe-open':''}" data-pw-row="${i}"><button class="pw-btn pw-grip" data-pw-grip="${i}" aria-label="Reorder ${hesc(r.ex)}; drag or use arrow keys">${icon('grip',ICON_SZ.sm)}</button><div class="pf-ex-summary"><div><strong>${hesc(r.ex)}</strong></div>${toggle}</div><div class="pe-lines">${lines.join('')}</div>${actions}</article>`;
+}
+function pfEditRows(){const b=pwDay(pw().active),strip=b.strip&&b.strip.line==null?b.strip:null;return '<div class="pw-exercises">'+b.rows.map((r,i)=>{
+ const before=strip&&strip.row===i?pfStripHTML(strip.text):'';
+ if(r.kind!=='ex'||!r.ex)return before+'<div data-pw-row="'+i+'" class="pw-unread"><pre>'+hesc(r.raw||'')+'</pre>'+pwButton('editrow','Edit text','',`data-index="${i}"`)+'</div>';
+ return before+pfExerciseHTML(r,i);
+ }).join('')+(strip&&strip.row>=b.rows.length?pfStripHTML(strip.text):'')+'</div>';}
+/* one gesture = one undo point, and a strip only ever describes the LAST one */
+function pfChange(b){delete b.strip;pwUndoPoint(b);b.source='Your draft';b.target=null;}
+function pfSetGroup(b,i,g,line){
+ pfChange(b);delete line.raw;if(line.w>0)delete line.nw;
+ const reps=line.reps,lines=Array.from({length:Math.ceil(reps.length/12)},(_,k)=>({...line,reps:reps.slice(k*12,k*12+12)}));
+ b.rows[i].lines.splice(g.indices[0],g.indices.length,...lines);if(!b.locks.includes(i))b.locks.push(i);
+}
+function pfChipCommit(){
+ const j=pfState(),c=j.chip;if(!c)return false;j.chip=null;
+ const inp=document.getElementById('peInput'),b=pwDay(pw().active),r=b.rows[c.row],g=r&&pfGroups(r)[c.line];
+ if(!inp||!g)return false;
+ const v=Number(inp.value),line=pwCopy(g.line);
+ if(c.field==='w'){if(inp.value.trim()===''||!Number.isFinite(v)||v<0||v>10000)return false;if(v===+Number(line.w||0).toFixed(4))return false;line.w=+v.toFixed(4);}
+ else{if(!Number.isInteger(v)||v<1||v>10000||line.reps[c.rep]===v)return false;line.reps[c.rep]=v;}
+ pfSetGroup(b,c.row,g,line);pwPersist();return true;
+}
+function pfRoutineHandle(a,el,b,j){
+ const i=+el.dataset.index,k=+el.dataset.line,r=b.rows[i],g=r&&pfGroups(r)[k];
+ if(a==='pf-chip'){const next={row:i,line:k,field:el.dataset.field,rep:+el.dataset.rep||0};if(j.chip&&j.chip.row===next.row&&j.chip.line===next.line&&j.chip.field===next.field&&j.chip.rep===next.rep)return;pfChipClose(true);j.chip=next;}
+ else if(a==='pf-add-rep'){pfChipClose(true);if(!g)return;const line=pwCopy(g.line);line.reps.push(line.reps.at(-1)||8);pfSetGroup(b,i,g,line);}
+ else if(a==='pf-del-line'){pfChipClose(true);if(!g)return;const text=pfLoadText(g.line)+' × '+g.line.reps.join(' ');pfChange(b);r.lines=r.lines.filter((_,x)=>!g.indices.includes(x));b.strip={row:i,line:k,text};if(!b.locks.includes(i))b.locks.push(i);}
+ else if(a==='pf-add-line'){if(!r)return;pfChipClose(true);const from=r.lines.at(-1)||{w:0,unit:U(),reps:[8]},line={w:0,unit:from.unit||U(),reps:[from.reps.at(-1)||8]};if(from.su)line.su=from.su;if(from.bw)line.bw=true;pfChange(b);r.lines.push(line);if(!b.locks.includes(i))b.locks.push(i);j.chip={row:i,line:pfGroups(r).length-1,field:'w',rep:0,fresh:{w:+Number(from.w||0).toFixed(4)}};}
+ else if(a==='pf-remove-ex'){pfChipClose(false);if(!r)return;pfChange(b);b.rows.splice(i,1);b.locks=b.locks.filter(x=>x!==i).map(x=>x>i?x-1:x);b.strip={row:i,text:r.ex||'exercise'};const o=j.routineOpen?.[pw().active];if(o){const n={};for(const [key,v] of Object.entries(o)){const x=+key;if(x<i)n[x]=v;else if(x>i)n[x-1]=v;}j.routineOpen[pw().active]=n;}}
+}
+document.addEventListener('pointerdown',e=>{
+ /* a tap on another chip while one is open: commit first, then open. The
+    click that follows would land on a re-rendered element, so the chip
+    opens from here and the click finds it already open. */
+ if(!pfOn())return;const chip=e.target.closest('[data-pw="pf-chip"]');if(!chip||!pfState().chip)return;
+ e.preventDefault();pfHandle('pf-chip',chip);
+});
+document.addEventListener('keydown',e=>{
+ if(e.target.id!=='peInput'||!pfOn())return;
+ if(e.key==='Enter'){e.preventDefault();pfChipClose(true);pwPersist();pwRender();}
+ else if(e.key==='Escape'){e.preventDefault();pfChipClose(false);pwPersist();pwRender();}
+});
+document.addEventListener('focusout',e=>{
+ if(e.target.id!=='peInput'||!pfOn()||!pfState().chip||e.target!==document.getElementById('peInput'))return;
+ pfChipClose(true);pwPersist();pwRender();
+});
+/* close the open chip: commit (or not), then drop a fresh line nothing was typed into */
+function pfChipClose(commit){
+ const j=pfState(),c=j.chip;if(!c)return;
+ if(commit)pfChipCommit();else j.chip=null;
+ if(c.fresh){const b=pwDay(pw().active),r=b.rows[c.row],g=r&&pfGroups(r)[c.line];if(g&&!(g.line.w>0)&&!g.line.bw&&!g.line.nw)r.lines=r.lines.filter((_,x)=>!g.indices.includes(x));}
+}
+function pfFocusChip(){const inp=document.getElementById('peInput');if(!inp)return;inp.focus();try{inp.select();}catch(_e){}}
 function pfHistoryHTML(compact=false){const s=pw(),parts=s.active?(pwDay(s.active).parts.length?pwDay(s.active).parts:pwParts(pwDay(s.active).rows)):[],date=Object.keys(DB.days).filter(d=>d<(s.active||todayISO)&&(DB.days[d].w||[]).length&&(!parts.length||(DB.days[d].w||[]).some(r=>r.part===parts[0]))).sort().at(-1);if(!date)return '';const rows=DB.days[date].w,exercises=[...new Set(rows.map(r=>r.ex))],sets=rows.reduce((n,r)=>n+(r.ex==='Run'?1:(r.reps||[]).length),0);return `<details class="card pf-history" ${compact?'':'open'}><summary><strong>Last workout day</strong><span>${hesc(pfShort(date))}</span></summary><p class="pw-small">${sets} sets · ${exercises.length} exercises · Entire day</p>${exercises.map(ex=>`<div class="pf-history-row"><strong>${hesc(ex)}</strong><p class="mono">${pfHistoryLines(rows.filter(r=>r.ex===ex))}</p></div>`).join('')}</details>`;}
 function pfDayHTML(){const s=pw(),b=pwDay(s.active),j=pfState(),total=pwSetCount(b.rows),changed=b.target!=null&&b.target!==total,ds=pfDates(),index=ds.indexOf(s.active),prev=ds[index-1],next=ds[index+1];
  const nav=ds.length>1?`<div class="pf-day-navigation">${pwButton('pf-edit-day',icon('chevron',14,180)+'Previous','',prev?`data-date="${prev}"`:'disabled')}<div><div class="h-date pf-routine-date">${hesc(pfShort(s.active))}</div><span>${index+1} of ${ds.length} days</span></div>${pwButton('pf-edit-day','Next'+icon('chevron',14),'',next?`data-date="${next}"`:'disabled')}</div>`:`<div class="h-date pf-routine-date">${hesc(pfShort(s.active))}</div>`;
- return nav+`<div class="pf-routine-heading"><span>${hesc((b.parts.length?b.parts:pwParts(b.rows)).join(' + ')||'Choose body parts')}</span><details class="pf-routine-more"><summary class="pw-btn"><span aria-hidden="true">···</span> More</summary><div>${pwAction('paste','Paste','paste')}${pwAction('pf-clear','Clear','clear')}</div></details></div><div class="pf-routine-controls"><div class="pf-total"><span>Set target</span><div class="pw-stepper">${pwButton('pf-minus','−','','aria-label="Decrease total sets"'+(!b.rows.length?' disabled':''))}<output class="${changed?'pf-changed':''}">${b.target??total}</output>${pwButton('pf-plus','+','','aria-label="Increase total sets"'+(!b.rows.length?' disabled':''))}</div></div>${pwAction('pf-regenerate','Regenerate','sparkle','pf-quiet-regenerate'+(changed?' pf-beam pf-target-pending':''))}</div><p class="pf-target-hint" role="status">${changed?total+' current → '+b.target+' target · Regenerate to apply':total+' sets · '+pwExercises(b.rows).length+' exercises'}</p>${j.group?pfGroupForm():''}<div class="card pf-routine-card">${b.rows.length?pfEditRows():'<p>No exercises yet.</p>'}</div><div class="pf-add-summary">${pwButton('add',icon('clear',14,45)+' Add exercise','pf-add-button')}</div>${b.undo?pwButton('undo','Undo','pw-text'):''}${pfHistoryHTML(true)}`;
+ return nav+`<div class="pf-routine-heading"><span>${hesc((b.parts.length?b.parts:pwParts(b.rows)).join(' + ')||'Choose body parts')}</span><details class="pf-routine-more"><summary class="pw-btn"><span aria-hidden="true">···</span> More</summary><div>${pwAction('paste','Paste','paste')}${pwAction('pf-clear','Clear','clear')}</div></details></div><div class="pf-routine-controls"><div class="pf-total"><span>Set target</span><div class="pw-stepper">${pwButton('pf-minus','−','','aria-label="Decrease total sets"'+(!b.rows.length?' disabled':''))}<output class="${changed?'pf-changed':''}">${b.target??total}</output>${pwButton('pf-plus','+','','aria-label="Increase total sets"'+(!b.rows.length?' disabled':''))}</div></div>${pwAction('pf-regenerate','Regenerate','sparkle','pf-quiet-regenerate'+(changed?' pf-beam pf-target-pending':''))}</div><p class="pf-target-hint" role="status">${changed?total+' current → '+b.target+' target · Regenerate to apply':total+' sets · '+pwExercises(b.rows).length+' exercises'}</p><div class="card pf-routine-card">${b.rows.length?pfEditRows():'<p>No exercises yet.</p>'}</div><div class="pf-add-summary">${pwButton('add',icon('clear',14,45)+' Add exercise','pf-add-button')}</div>${b.undo&&!b.strip?pwButton('undo','Undo','pw-text'):''}${pfHistoryHTML(true)}`;
 }
-function pfGroupForm(){const g=pfState().group;return `<div class="card pf-group-form"><h3>${g.add?'Add set':'Edit sets'}</h3><div class="pf-fields"><label>Weight (${hesc(g.line.unit||U())})<input id="pf-weight" type="number" min="0" step="any" value="${g.line.w||0}"></label><label>${isHold(g.line.su)?'Seconds per set':'Reps per set'}<input id="pf-reps" value="${g.line.reps.join(' ')}" aria-describedby="pf-reps-help"></label></div><p id="pf-reps-help" class="pw-small">Separate each set with a space.</p><div class="pw-actions">${pwButton('pf-group-save','Keep changes','primary')}${pwButton('pf-group-cancel','Cancel')}</div></div>`;}
 function pfPending(){return pw().dates.some(d=>{const b=pwDay(d);return b.target!=null&&b.target!==pwSetCount(b.rows);});}
 function pfValidateCandidate(candidate,dates){
  const p=pfPrefs(),expected=[...dates].sort(),received=Object.keys(candidate.days).sort();
@@ -127,7 +232,7 @@ function pfRender(){pfTrackScreen();renderHeader();const s=pw(),j=pfState(),pane
  if(j.clear){body=`<div class="card" role="alert"><h3>Clear ${hesc(pfShort(s.active))}?</h3>${pwButton('pf-remove-day','Remove this day')}<p class="pw-small">Remove its plan when you save.</p>${pwButton('pf-empty-day','Keep day, empty routine')}<p class="pw-small">Add exercises manually. No logged workouts change.</p>${pwButton('pf-clear-cancel','Cancel')}</div>`;footer='';}
  if(j.emptyConfirm){const empty=pfDates().filter(d=>!pwSetCount(pwDay(d).rows)),valid=s.dates.length-empty.length;body=`<div class="card" role="alert"><h3>Empty days won’t be saved</h3>${empty.map(d=>`<p><strong>${hesc(pwDate(d))}</strong><br>0 planned sets · No plan</p>`).join('')}<p class="pw-small">These dates will become No plan. Any existing saved plan on these dates will be removed. Logged workouts stay untouched.</p>${pwButton('pf-confirm-save',valid?'Save '+valid+' days & clear empty days':'Set dates to No plan','primary')}${pwButton('pf-clear-cancel','Back to editing')}</div>`;footer='';}
  if(s.conflict){body=`<div class="card" role="alert"><h3>Newer plan · ${hesc(pwDate(s.conflict))}</h3>${pfRoutine(pwRead(planText(pwSaved(s.conflict))))}${pwButton('load-newer','Use newer plan')}${pwButton('replace-newer','Keep my draft')}</div>`;footer='';}
- $('#view').innerHTML=pwFoldMarkup(`<section class="pw-workspace pf-workspace${j.page==='dates'?' pf-dates-page':j.page==='edit'?' pf-routine-page':j.page==='days'?' pf-overview-page':''}" aria-label="Planning workspace">${j.prefOrigin==='settings'&&j.page==='prefs'?'':pfStepbar()}${s.error?`<p class="pw-message" role="alert">${hesc(s.error)}</p>`:''}${body}<span id="pw-reorder-help" class="pw-sr-only">Drag or use arrow keys to reorder.</span><span id="pw-reorder-status" role="status" class="pw-sr-only"></span>${footer?`<div class="pw-save-dock pf-dock">${footer}</div>`:''}</section>`);if(s.busy)document.querySelectorAll('.pf-date-sheet button,.pf-steps button').forEach(b=>b.disabled=true);pfPlayMotion();requestAnimationFrame(pwPositionDock);
+ $('#view').innerHTML=pwFoldMarkup(`<section class="pw-workspace pf-workspace${j.page==='dates'?' pf-dates-page':j.page==='edit'?' pf-routine-page':j.page==='days'?' pf-overview-page':''}" aria-label="Planning workspace">${j.prefOrigin==='settings'&&j.page==='prefs'?'':pfStepbar()}${s.error?`<p class="pw-message" role="alert">${hesc(s.error)}</p>`:''}${body}<span id="pw-reorder-help" class="pw-sr-only">Drag or use arrow keys to reorder.</span><span id="pw-reorder-status" role="status" class="pw-sr-only"></span>${footer?`<div class="pw-save-dock pf-dock">${footer}</div>`:''}</section>`);if(s.busy)document.querySelectorAll('.pf-date-sheet button,.pf-steps button').forEach(b=>b.disabled=true);pfPlayMotion();requestAnimationFrame(pwPositionDock);pfFocusChip();
 }
 pwRender=function(){return pfOn()?pfRender():pfLegacy.render();};
 pwOpen=function(d,step){if(!pfOn())return pfLegacy.open(d,step);const s=pw(),j=pfState();j.history=[];j.lastScreen=null;j.returnView=view==='sync'?'sync':'today';if(s.busy){pwRequest++;lift.writeAbort?.abort();s.busy=false;}if(d){s.dates=[d];s.active=d;s.month=d.slice(0,7)+'-01';pwDay(d);}else pwFreshenDates();/* v4.6.61: same rule as the legacy open, from the same helper */j.page=step==='dates'?'dates':d&&pwSaved(d)?'edit':d?'dates':j.page;j.prefOrigin=null;if(d&&pwSaved(d))pfAnchor();lift.plan='workspace';view='today';s.step='edit';pwPersist();render({soft:true});};
@@ -139,7 +244,7 @@ function pfSave(confirm=false){const s=pw(),j=pfState();if(!pfMatch())throw Erro
  for(const d of dates){if(d<todayISO)throw Error('A draft date has passed. Choose today or a future date.');const base=j.removed.find(x=>x.date===d)?.base??pwDay(d).base;if(base!==pwFingerprint(d)){s.conflict=d;throw Error(`${pwDate(d)} changed on another device. Review it before saving.`);}}
  const days=pwCopy(DB.week?.days||{}),at=Date.now();j.saved=dates.map(d=>({date:d,sets:j.removed.some(x=>x.date===d)?0:pwSetCount(pwDay(d).rows),parts:pwParts(pwDay(d).rows),rows:pwCopy(pwDay(d).rows)}));
  for(const d of dates){const remove=empty.includes(d)||j.removed.some(x=>x.date===d);if(remove){delete days[d];if(DB.plan?.d===d){DB.plan=null;DB.planAt=at;}}else{const b=pwDay(d),doc={...planItemsFrom(b.rows),raw:pwText(b.rows),title:pwParts(b.rows).join(' + ')};days[d]=doc;if(DB.plan?.d===d){DB.plan={d,...doc};DB.planAt=at;}}}
- const all=Object.keys(days).sort();DB.week=all.length?{from:all[0],to:all.at(-1),days,raw:'',at}:null;DB.weekAt=at;planRailRefresh();save(true);for(const d of s.dates){const b=pwDay(d);b.base=pwFingerprint(d);b.source='Saved plan';delete b.undo;}j.removed=[];j.furthest=3;j.emptyConfirm=false;pfNavigate('done');
+ const all=Object.keys(days).sort();DB.week=all.length?{from:all[0],to:all.at(-1),days,raw:'',at}:null;DB.weekAt=at;planRailRefresh();save(true);for(const d of s.dates){const b=pwDay(d);b.base=pwFingerprint(d);b.source='Saved plan';delete b.undo;delete b.strip;}j.removed=[];j.furthest=3;j.emptyConfirm=false;pfNavigate('done');
 }
 pwSave=function(){return pfOn()?pfSave():pfLegacy.save();};
 function pfHandle(a,el){const s=pw(),j=pfState(),d=el.dataset.date,i=+el.dataset.index,b=s.active?pwDay(s.active):null;
@@ -159,17 +264,14 @@ function pfHandle(a,el){const s=pw(),j=pfState(),d=el.dataset.date,i=+el.dataset
  else if(a==='pf-expand'){j.open=j.open||{};const open=!s.dates.every(x=>j.open[x]);s.dates.forEach(x=>j.open[x]=open);}
  else if(a==='pf-done-expand'){j.doneOpen=j.doneOpen||{};const dates=(j.saved||[]).filter(x=>x.sets).map(x=>x.date),open=!dates.every(d=>j.doneOpen[d]);dates.forEach(d=>j.doneOpen[d]=open);}
  else if(a==='pf-edit-day'||a==='pf-edit-first'){s.active=d||pfDates()[0];pfMotion={kind:'arrive'};pfNavigate('edit');return;}
- else if(a==='pf-row-toggle'){j.routineOpen=j.routineOpen||{};const open=j.routineOpen[s.active]||(j.routineOpen[s.active]={});open[i]=!open[i];}
+ else if(a==='pf-row-toggle'){pfChipClose(true);j.routineOpen=j.routineOpen||{};const open=j.routineOpen[s.active]||(j.routineOpen[s.active]={});open[i]=!open[i];}
+ else if(['pf-chip','pf-add-rep','pf-del-line','pf-add-line','pf-remove-ex'].includes(a)){if(!b)return;pfRoutineHandle(a,el,b,j);}
  else if(a==='pf-clear'){j.clear=true;}
  else if(a==='pf-clear-cancel'){j.clear=false;j.emptyConfirm=false;}
  else if(a==='pf-empty-day'){pwUndoPoint(b);b.rows=[];b.parts=[];b.locks=[];b.target=null;b.cleared=true;b.source='Your draft';j.clear=false;}
  else if(a==='pf-remove-day'){j.removed.push({date:s.active,base:b.base});s.dates=s.dates.filter(x=>x!==s.active);j.anchor=j.anchor.filter(x=>x!==s.active);s.active=s.dates[0]||null;pfNavigate('days');return;}
  else if(a==='pf-plus'||a==='pf-minus'){const total=pwSetCount(b.rows),limit=pwSetLimits(b);b.target=Math.max(limit.min,Math.min(limit.max,(b.target??total)+(a==='pf-plus'?1:-1)));if(b.target===total)b.target=null;}
  else if(a==='pf-regenerate'){pwGenerate(b.target!=null&&b.target!==pwSetCount(b.rows),true);return;}
- else if(a==='pf-edit-line'||a==='pf-add-line'){const r=b.rows[i],g=a==='pf-add-line'?null:pfGroups(r)[+el.dataset.line];j.group={index:i,indices:g?.indices||[],line:pwCopy(g?.line||r.lines.at(-1)||{w:0,unit:U(),reps:[8]}),add:!g};if(!g){j.group.line.reps=[j.group.line.reps.at(-1)||8];delete j.group.line.qual;delete j.group.line.tag;}}
- else if(a==='pf-remove-line'){const g=pfGroups(b.rows[i])[+el.dataset.line];pwUndoPoint(b);b.rows[i].lines=b.rows[i].lines.filter((_,k)=>!g.indices.includes(k));b.source='Your draft';b.target=null;}
- else if(a==='pf-group-cancel')j.group=null;
- else if(a==='pf-group-save'){const g=j.group,w=Number(document.getElementById('pf-weight').value),text=document.getElementById('pf-reps').value.trim(),reps=text.split(/\s+/).map(Number);if(!Number.isFinite(w)||w<0||w>10000||!text||reps.length>100||reps.some(n=>!Number.isInteger(n)||n<1||n>10000))throw Error('Enter a valid weight and positive whole-number reps separated by spaces.');pwUndoPoint(b);const line={...g.line,w,reps};delete line.raw;const lines=Array.from({length:Math.ceil(reps.length/12)},(_,k)=>({...line,reps:reps.slice(k*12,k*12+12)}));if(g.add)b.rows[g.index].lines.push(...lines);else b.rows[g.index].lines.splice(g.indices[0],g.indices.length,...lines);b.source='Your draft';b.target=null;if(!b.locks.includes(g.index))b.locks.push(g.index);j.group=null;}
  else if(a==='pf-save'||a==='pf-confirm-save'){pfSave(a==='pf-confirm-save');return;}
  pwPersist();pwRender();
 }

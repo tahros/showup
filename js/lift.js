@@ -383,7 +383,7 @@ function renderLift(){
                 <b>${ex}</b><div class="sub">${sub}</div>
               </button>
               <span class="tvol mono">${v?vDisp(v)+' '+U():''}</span>
-              <button class="xbtn" data-dropex="${ex}" aria-label="Remove ${ex} from today">✕</button>
+              <button class="xbtn" data-dropex="${ex}" aria-label="Remove ${ex} from today">${icon('trash',ICON_SZ.sm)}</button>
             </div>`;
       }
       h+=`${undoStack.length?`<button class="btn ghost" id="undoBtn">↺ Undo — ${undoStack[undoStack.length-1].label}</button>`:''}
@@ -481,7 +481,7 @@ function renderLift(){
             <span class="flow-exname"><b>${ex}</b><span class="sub">${meta}${mine?` · yours · ${eq.toLowerCase()}`:''}</span></span>
             <span class="pr-cell"><span class="pr-top">${(w=>w?(ex==='Run'?dDisp(w)+' '+DU():trainListWeight(w)+' '+U()):'<i class="pr-nil" aria-label="no weight logged"></i>')(nextWFor(ex))}</span></span>
             <span class="flow-exchev" aria-hidden="true">${icon('chevron',ICON_SZ.sm)}</span>
-          </button>${(mine&&!last)?`<button class="xbtn" data-delex="${ex}" aria-label="Delete ${ex}">✕</button>`:''}
+          </button>${(mine&&!last)?`<button class="xbtn" data-delex="${ex}" aria-label="Delete ${ex}">${icon('trash',ICON_SZ.sm)}</button>`:''}
         </div>`;
       return `<div class="item logrow ${big?'goto':''}${_enter?' enter':''}" style="--i:${Math.min(_ei++,10)};${big?'':'padding:10px 10px 10px 14px'}">
             <button class="logmain" data-ex="${ex}">
@@ -490,7 +490,7 @@ function renderLift(){
             <span class="pr-cell">
               <span class="pr-top">${(w=>w?(ex==='Run'?dDisp(w)+' '+DU():trainListWeight(w)+' '+U()):'<i class="pr-nil" aria-label="no weight logged"></i>')(nextWFor(ex))}</span>
             </span>
-            ${(mine&&!last)?`<button class="xbtn" data-delex="${ex}" aria-label="Delete ${ex}">✕</button>`:''}
+            ${(mine&&!last)?`<button class="xbtn" data-delex="${ex}" aria-label="Delete ${ex}">${icon('trash',ICON_SZ.sm)}</button>`:''}
           </div>`;
     };
     /* v3.3.240: Go-to orders by RECENCY, frequency only breaks ties — the

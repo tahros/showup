@@ -307,7 +307,7 @@ function plEditBody(ex,rows){
     const chip=(field,label,aria)=>`<button type="button" class="lw-tap" data-lw-edit="${gi}" data-lw-rep="${a.ri}" data-lw-field="${field}" aria-label="${aria}" aria-pressed="${open&&lift.editField===field}"><span class="lw-chip${open&&lift.editField===field?' lw-on':''}">${hesc(label)}${PL_PEN}</span></button>`;
     const right=open
       ?`<span class="lw-inline"><input id="lwInput" type="number" inputmode="${lift.editField==='r'?'numeric':'decimal'}" step="${lift.editField==='r'?1:wStep(ex)}" min="0" value="${lift.editField==='r'?hesc(String(a.r)):hesc(String(wDisp(a.w)))}" aria-label="${lift.editField==='r'?'Reps':'Weight '+U()} for set ${row.label}"><button type="button" id="lwSave" aria-label="Save">${icon('check',15)}</button></span>`
-      :`<button type="button" class="lw-del" data-lw-del="${gi}" data-lw-rep="${a.ri}" aria-label="Delete set ${row.label}">${icon('clear',14)}</button>`;
+      :`<button type="button" class="lw-del" data-lw-del="${gi}" data-lw-rep="${a.ri}" aria-label="Delete set ${row.label}">${icon('trash',ICON_SZ.sm)}</button>`;
     return `<tr${open?' class="lw-editing"':''}><th scope="row">${row.label}</th>`+
       `<td><span class="lw-pair" style="view-transition-name:${plVtName(a)}">`+
       chip('w',load,`Edit weight for set ${row.label}`)+

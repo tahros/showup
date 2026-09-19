@@ -373,11 +373,11 @@ function renderHistory(){
             if(s.ex==='Run'){
               h+=`<button class="hset" data-hs="${wi}"><span class="mono">${dDisp(s.w)} ${DU()}</span>`
                 +`<span class="mono muted">${s.mins||0}'${String(s.secs||0).padStart(2,'0')}"</span>`
-                +`<i class="hsx" data-hdel="${wi}:-1">✕</i></button>`;
+                +`<i class="hsx" data-hdel="${wi}:-1" aria-label="Delete run">${icon('trash',ICON_SZ.sm)}</i></button>`;
             }else (s.reps||[]).forEach((r,ri)=>{
               h+=`<button class="hset" data-hs="${wi}:${ri}"><span class="mono">${wLabel(g.ex,s.w)}</span>`
                 +`<span class="mono muted">× ${r}</span>`
-                +`<i class="hsx" data-hdel="${wi}:${ri}">✕</i></button>`;
+                +`<i class="hsx" data-hdel="${wi}:${ri}" aria-label="Delete set">${icon('trash',ICON_SZ.sm)}</i></button>`;
             });
           });
           h+=`</div><button class="hadd" data-hadd="${g.ex}">+ set</button>`;
