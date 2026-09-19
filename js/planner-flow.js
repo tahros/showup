@@ -245,9 +245,31 @@ function pfHistoryHTML(compact=false){const s=pw(),parts=s.active?(pwDay(s.activ
    no saved plan behind it counts as unsaved too: it is, until Save runs. */
 function pfDirty(d){const b=pw().book?.[d];return !!b&&(b.source!=='Saved plan'||!pwSaved(d)?.items?.length);}
 function pfDirtyDates(){return pfDates().filter(pfDirty);}
-function pfWeekStrip(){const s=pw();return `<div class="pf-strip" role="tablist" aria-label="Planned days">${pfDates().map(d=>{const b=pwDay(d),part=(b.parts.length?b.parts:pwParts(b.rows))[0]||'\u2014',on=d===s.active,dirty=pfDirty(d);return pwButton('pf-edit-day',`<b>${hesc(new Date(d+'T12:00').toLocaleDateString('en-US',{weekday:'short'}))}</b><s>${hesc(pfMD(d))}</s><u>${hesc(part)}</u>${dirty?'<em class="pf-dot" aria-hidden="true"></em>':''}`,'pf-chip'+(on?' selected':'')+(dirty?' pf-edited':''),`data-date="${d}" role="tab" aria-selected="${on}" aria-label="${hesc(pfShort(d))}${dirty?', unsaved changes':''}"`);}).join('')}</div>`;}
-function pfDayHTML(){const s=pw(),b=pwDay(s.active),j=pfState(),total=pwSetCount(b.rows),changed=b.target!=null&&b.target!==total;
- return pfWeekStrip()+`<div class="pf-routine-controls"><div class="pf-total"><span>Set target</span><div class="pw-stepper">${pwButton('pf-minus','\u2212','','aria-label="Decrease total sets"'+(!b.rows.length?' disabled':''))}<output class="${changed?'pf-changed':''}">${b.target??total}</output>${pwButton('pf-plus','+','','aria-label="Increase total sets"'+(!b.rows.length?' disabled':''))}</div></div><div class="pf-tools">${pwAction('pf-regenerate','Regenerate','sparkle','pf-quiet-regenerate'+(changed?' pf-beam pf-target-pending':''))}${pwButton('paste',icon('paste',ICON_SZ.sm),'pw-icon pf-tool','aria-label="Paste a routine" title="Paste"')}${pwButton('pf-clear',icon('clear',ICON_SZ.sm),'pw-icon pf-tool','aria-label="Clear this day" title="Clear"')}</div></div><p class="pf-target-hint" role="status">${changed?total+' current \u2192 '+b.target+' target \u00b7 Regenerate to apply':total+' sets \u00b7 '+pwExercises(b.rows).length+' exercises'}</p><div class="card pf-routine-card">${b.rows.length?pfEditRows():'<p>No exercises yet.</p>'}</div><div class="pf-add-summary">${pwButton('add',icon('clear',ICON_SZ.sm,45)+' Add exercise','pf-add-button')}</div>${b.undo&&!b.strip?pwButton('undo','Undo','pw-text'):''}`;
+function pfWeekStrip(){const s=pw();return `<div class="pf-strip" role="tablist" aria-label="Planned days">${pfDates().map(d=>{const b=pwDay(d),part=(b.parts.length?b.parts:pwParts(b.rows))[0]||'\u2014',on=d===s.active,dirty=pfDirty(d);return pwButton('pf-pick-day',`<b>${hesc(new Date(d+'T12:00').toLocaleDateString('en-US',{weekday:'short'}))}</b><s>${hesc(pfMD(d))}</s><u>${hesc(part)}</u>${dirty?'<em class="pf-dot" aria-hidden="true"></em>':''}`,'pf-chip'+(on?' selected':'')+(dirty?' pf-edited':''),`data-date="${d}" role="tab" aria-selected="${on}" aria-label="${hesc(pfShort(d))}${dirty?', unsaved changes':''}"`);}).join('')}</div>`;}
+function pfDayHTML(){return pfWeekStrip()+`<div class="pf-day-body">${pfDayBodyHTML()}</div>`;}
+function pfDayBodyHTML(){const s=pw(),b=pwDay(s.active),j=pfState(),total=pwSetCount(b.rows),changed=b.target!=null&&b.target!==total;
+ return `<div class="pf-routine-controls"><div class="pf-total"><span>Set target</span><div class="pw-stepper">${pwButton('pf-minus','\u2212','','aria-label="Decrease total sets"'+(!b.rows.length?' disabled':''))}<output class="${changed?'pf-changed':''}">${b.target??total}</output>${pwButton('pf-plus','+','','aria-label="Increase total sets"'+(!b.rows.length?' disabled':''))}</div></div><div class="pf-tools">${pwAction('pf-regenerate','Regenerate','sparkle','pf-quiet-regenerate'+(changed?' pf-beam pf-target-pending':''))}${pwButton('paste',icon('paste',ICON_SZ.sm),'pw-icon pf-tool','aria-label="Paste a routine" title="Paste"')}${pwButton('pf-clear',icon('clear',ICON_SZ.sm),'pw-icon pf-tool','aria-label="Clear this day" title="Clear"')}</div></div><p class="pf-target-hint" role="status">${changed?total+' current \u2192 '+b.target+' target \u00b7 Regenerate to apply':total+' sets \u00b7 '+pwExercises(b.rows).length+' exercises'}</p><div class="card pf-routine-card">${b.rows.length?pfEditRows():'<p>No exercises yet.</p>'}</div><div class="pf-add-summary">${pwButton('add',icon('clear',ICON_SZ.sm,45)+' Add exercise','pf-add-button')}</div>${b.undo&&!b.strip?pwButton('undo','Undo','pw-text'):''}`;
+}
+/* v4.6.77: PICKING A DAY IS NOT A NAVIGATION. Every chip tap ran pfNavigate,
+   which rebuilt the whole workspace, played the 'arrive' motion -- the page
+   translating 12px and fading, 360ms -- and then scrolled to the top. Three
+   movements to swap the content under a strip that never moves. The strip is
+   a tab bar: the chips flip their own selected state and only the body below
+   them is rewritten, in place, with the scroll left where it was. */
+function pfSwapDay(){
+ const body=document.querySelector('.pf-day-body'),strip=document.querySelector('.pf-strip');
+ if(!body||!strip)return pwRender();
+ const active=pw().active;
+ for(const chip of strip.querySelectorAll('.pf-chip')){
+  const on=chip.dataset.date===active;
+  chip.classList.toggle('selected',on);chip.setAttribute('aria-selected',String(on));
+ }
+ const y=window.scrollY;
+ body.innerHTML=pfDayBodyHTML();
+ /* the new day can be shorter than the scroll position the old one allowed */
+ const max=Math.max(0,document.documentElement.scrollHeight-window.innerHeight);
+ if(y>max)window.scrollTo(0,max);
+ pwPositionDock();
 }
 function pfPending(){return pw().dates.some(d=>{const b=pwDay(d);return b.target!=null&&b.target!==pwSetCount(b.rows);});}
 function pfValidateCandidate(candidate,dates){
@@ -309,6 +331,11 @@ function pfHandle(a,el){const s=pw(),j=pfState(),d=el.dataset.date,i=+el.dataset
  else if(a==='pf-paste-dates'){if(!s.dates.length)return;s.active=s.dates[0];s.editIndex=undefined;s.pasteText='';s.step='paste';}
  else if(a==='pf-expand'){j.open=j.open||{};const open=!s.dates.every(x=>j.open[x]);s.dates.forEach(x=>j.open[x]=open);}
  else if(a==='pf-done-expand'){j.doneOpen=j.doneOpen||{};const dates=(j.saved||[]).filter(x=>x.sets).map(x=>x.date),open=!dates.every(d=>j.doneOpen[d]);dates.forEach(d=>j.doneOpen[d]=open);}
+ else if(a==='pf-pick-day'){
+  if(!d||d===s.active)return;                 // the day you are on: nothing moves
+  pfChipClose(true);                          // an open rep chip commits before the day goes
+  s.active=d;j.group=null;s.error='';pwPersist();pfSwapDay();return;
+ }
  else if(a==='pf-edit-day'||a==='pf-edit-first'){s.active=d||pfDates()[0];pfMotion={kind:'arrive'};pfNavigate('edit');return;}
  else if(a==='pf-row-toggle'){pfChipClose(true);j.routineOpen=j.routineOpen||{};const open=j.routineOpen[s.active]||(j.routineOpen[s.active]={});open[i]=!open[i];}
  else if(['pf-chip','pf-add-rep','pf-del-line','pf-add-line','pf-remove-ex'].includes(a)){if(!b)return;pfRoutineHandle(a,el,b,j);}

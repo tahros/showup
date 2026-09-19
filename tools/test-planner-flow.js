@@ -80,6 +80,13 @@ run(`pfHandle('pf-prefs-save',{dataset:{}});pw().dates=['2026-09-16'];pw().activ
  test('saved selection enables Edit without enabling Done',`!document.querySelector('[data-stage="2"]').disabled&&document.querySelector('[data-stage="3"]').disabled`);
  run(`pfHandle('pf-stage',{dataset:{stage:'2'}});`);
  test('Edit loads all selected saved routines without generating',`pfState().page==='edit'&&document.querySelectorAll('.pf-strip .pf-chip').length===2&&pfMatch()&&pwSetCount(pwDay('2026-09-13').rows)===2&&pwSetCount(pwDay('2026-09-15').rows)===2`);
+ /* v4.6.77: picking a day swaps the body under a strip that does not move.
+    pfMotion left null is the assertion that matters: 'arrive' is the 360ms
+    translate-and-fade of the whole workspace that made every tap bounce. */
+ run(`pw().active='2026-09-13';pwRender();pfMotion=null;window.__strip=document.querySelector('.pf-strip');document.querySelector('.pf-strip .pf-chip[data-date="2026-09-15"]').dispatchEvent(new MouseEvent('click',{bubbles:true}));`);
+ test('picking a day swaps the routine in place: same strip node, no arrive motion, no navigation',`pw().active==='2026-09-15'&&pfState().page==='edit'&&pfMotion===null&&document.querySelector('.pf-strip')===window.__strip&&document.querySelector('.pf-chip.selected').dataset.date==='2026-09-15'&&document.querySelector('.pf-chip[data-date="2026-09-13"]').getAttribute('aria-selected')==='false'`);
+ run(`window.__body=document.querySelector('.pf-day-body');document.querySelector('.pf-strip .pf-chip[data-date="2026-09-15"]').dispatchEvent(new MouseEvent('click',{bubbles:true}));`);
+ test('tapping the day you are already on changes nothing at all',`pw().active==='2026-09-15'&&document.querySelector('.pf-day-body')===window.__body`);
  run(`pfNavigate('dates');pw().dates=[];pwRender();`);
  test('empty selection cannot enable Edit',`document.querySelector('[data-stage="2"]').disabled`);
  run(`pw().dates=['2026-09-15','2026-09-18'];pwRender();`);
