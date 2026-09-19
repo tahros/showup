@@ -22,8 +22,13 @@ const {items}=planItemsFrom(parsePlan(text));planSave(items,'',text,todayISO);SE
 test('the routine page opens on the spine, no prescription text, no form card',`pfState().page==='edit'&&document.querySelectorAll('.pe-ex').length===3&&!document.querySelector('.pf-ex-preview,.pf-group-form,[data-pw="pf-edit-line"]')`);
 test('every plan line is weight | x | reps',`[...document.querySelectorAll('.pe-line.pe-plan')].every(l=>l.children.length===3&&l.children[1].textContent==='×')&&document.querySelectorAll('.pe-line.pe-plan').length===4`);
 test('last time sits under the plan, folded by weight, with the date after the final line',`(()=>{const ex=document.querySelector('.pe-ex[data-pw-row="0"]'),last=[...ex.querySelectorAll('.pe-line.pe-last')];return last.length===2&&last[0].querySelector('.pe-w').textContent==='35 lb'&&last[1].querySelector('.pe-w').textContent==='55 lb'&&last[1].querySelectorAll('.pe-reps i').length===4&&last[0].querySelectorAll('.pe-reps i').length===2&&!last[0].querySelector('.pe-d')&&last[1].querySelector('.pe-d').textContent==='9/14';})()`);
-test('changes are blue by position, compared from the end: 60 vs 55 is blue, its reps are not, the opener matches',`(()=>{const ex=document.querySelector('.pe-ex[data-pw-row="0"]'),plan=[...ex.querySelectorAll('.pe-line.pe-plan')];return plan[1].querySelector('.pe-w').classList.contains('pe-up')&&!plan[1].querySelector('.pe-reps i.pe-up')&&!plan[0].querySelector('.pe-up');})()`);
-test('a rep that changed is blue on its own',`(()=>{const ex=document.querySelector('.pe-ex[data-pw-row="1"]'),ups=[...ex.querySelectorAll('.pe-plan .pe-up')];return ups.length===2&&ups[0].classList.contains('pe-w')&&ups[1].textContent==='10'&&ex.querySelectorAll('.pe-plan .pe-reps i')[3]===ups[1];})()`);
+/* v4.6.76: a line is compared to the line at the SAME load, not to whatever
+   sits at its index. Repeating last week's opener is not a change. */
+test('a load repeated from last time is not blue; a new load is blue in the weight alone',`(()=>{const ex=document.querySelector('.pe-ex[data-pw-row="0"]'),plan=[...ex.querySelectorAll('.pe-line.pe-plan')];return !plan[0].querySelector('.pe-up')&&plan[1].querySelector('.pe-w').classList.contains('pe-up')&&!plan[1].querySelector('.pe-reps i.pe-up');})()`);
+test('reps are compared against what that same load actually did',`(()=>{const ex=document.querySelector('.pe-ex[data-pw-row="1"]'),ups=[...ex.querySelectorAll('.pe-plan .pe-up')];return ups.length===1&&ups[0].classList.contains('pe-w')&&ups[0].textContent==='35 lb';})()`);
+run(`(function(){const b=pwDay(pw().active);b.rows[1].lines[0].w=30;b.rows[1].lines[0].reps=[10,10,10,10];pwRender();})()`);
+test('...so at the matching load only the differing rep is blue',`(()=>{const ex=document.querySelector('.pe-ex[data-pw-row="1"]'),ups=[...ex.querySelectorAll('.pe-plan .pe-up')];return ups.length===1&&ups[0].tagName==='I'&&ups[0].textContent==='10'&&ex.querySelectorAll('.pe-plan .pe-reps i')[3]===ups[0];})()`);
+run(`(function(){const b=pwDay(pw().active);b.rows[1].lines[0].w=35;b.rows[1].lines[0].reps=[10,10,10,10];pwRender();})()`);
 test('an exercise with no last time shows nothing blue and no last line',`(()=>{const ex=document.querySelector('.pe-ex[data-pw-row="2"]');return !ex.querySelector('.pe-up')&&!ex.querySelector('.pe-last');})()`);
 test('no warm-up mark anywhere on the page',`!/warm|\\bw\\b/i.test(document.querySelector('.pf-routine-card').textContent)`);
 
@@ -43,10 +48,27 @@ click('[data-pw="pf-chip"][data-index="0"][data-line="1"][data-field="r"][data-r
 run(`document.getElementById('peInput').value='12'`);key('Escape');
 test('Escape discards',`pwDay(pw().active).rows[0].lines[1].reps[0]===8&&!document.getElementById('peInput')`);
 click('[data-pw="pf-chip"][data-index="0"][data-line="1"][data-field="r"][data-rep="0"]');
-run(`document.getElementById('peInput').value='0'`);key('Enter');
-test('a rep of 0 is refused, the line keeps its set',`pwDay(pw().active).rows[0].lines[1].reps.join(' ')==='8 9 8 8'`);
+run(`document.getElementById('peInput').value='99999'`);key('Enter');
+test('an impossible rep count is refused, the line keeps its set',`pwDay(pw().active).rows[0].lines[1].reps.join(' ')==='8 9 8 8'`);
 click('[data-pw="pf-add-rep"][data-index="0"][data-line="1"]');
 test('the plus chip adds a set copying the last rep',`pwDay(pw().active).rows[0].lines[1].reps.join(' ')==='8 9 8 8 8'`);
+/* v4.6.76: + adds a set, clearing one takes it away */
+click('[data-pw="pf-chip"][data-index="0"][data-line="1"][data-field="r"][data-rep="4"]');
+run(`document.getElementById('peInput').value='0'`);key('Enter');
+test('clearing a rep with 0 removes that set',`pwDay(pw().active).rows[0].lines[1].reps.join(' ')==='8 9 8 8'&&!document.getElementById('peInput')`);
+click('[data-pw="pf-chip"][data-index="0"][data-line="1"][data-field="r"][data-rep="3"]');
+run(`document.getElementById('peInput').value=''`);key('Enter');
+test('clearing with an empty field removes it too',`pwDay(pw().active).rows[0].lines[1].reps.join(' ')==='8 9 8'`);
+/* a line of no sets is not a line: clearing the last one takes the line */
+click('[data-pw="pf-row-toggle"][data-index="2"]');
+click('[data-pw="pf-chip"][data-index="2"][data-line="0"][data-field="r"][data-rep="1"]');
+run(`document.getElementById('peInput').value='0'`);key('Enter');
+click('[data-pw="pf-chip"][data-index="2"][data-line="0"][data-field="r"][data-rep="0"]');
+run(`document.getElementById('peInput').value=''`);key('Enter');
+test("clearing a line's last rep removes the line, with the Undo strip in its place",`(()=>{const b=pwDay(pw().active),strip=document.querySelector('.pe-ex[data-pw-row="2"] .pe-removed');return !b.rows[2].lines.length&&strip&&/30 lb/.test(strip.textContent);})()`);
+click('.pe-removed [data-pw="undo"]');
+test('Undo brings that line back',`pwDay(pw().active).rows[2].lines.length===1&&pwDay(pw().active).rows[2].lines[0].reps.join(' ')==='12'`);
+run(`pfHandle('pf-row-toggle',{dataset:{index:'2'}});`);
 
 // ---- lines: delete with the bin, add with Add a line
 click('[data-pw="pf-del-line"][data-index="0"][data-line="0"]');
@@ -69,9 +91,15 @@ test('Undo brings the exercise back where it was',`pwDay(pw().active).rows.lengt
 click('[data-pw="pf-row-toggle"][data-index="0"]');
 test('Done closes the exercise back to the spine, with the edits shown in blue',`(()=>{const ex=document.querySelector('.pe-ex[data-pw-row="0"]');return !ex.classList.contains('pe-open')&&ex.querySelectorAll('.pe-line.pe-plan').length===3&&ex.querySelectorAll('.pe-plan .pe-w')[1].textContent==='65 lb'&&!ex.querySelector('.pe-chip');})()`);
 
+// ---- v4.6.76: a day that is not saved says so, on its chip and in the dock
+test('an edited day wears a dot on its chip and the dock counts it',`(()=>{const chip=document.querySelector('.pf-strip .pf-chip');return pfDirty(pw().active)&&chip.classList.contains('pf-edited')&&chip.querySelector('.pf-dot')&&/unsaved changes/.test(document.querySelector('.pf-compact-save p').textContent);})()`);
+
 // ---- save carries the edits into the plan; the strip never outlives a save
 run(`pfHandle('pf-row-toggle',{dataset:{index:'2'}});pfHandle('pf-remove-ex',{dataset:{index:'2'}});pfSave();`);
-test('saving writes the edited routine and drops the strip with the undo',`(()=>{const doc=DB.week?.days?.[todayISO]||DB.plan;const b=pwDay(todayISO);return doc&&doc.items.length===2&&Math.round(doc.items[0].lines[1].w/0.45359237)===65&&doc.items[0].lines[1].reps.join(' ')==='8 9 8 8 8'&&doc.items[0].lines.length===3&&!b.strip&&!b.undo;})()`);
+test('saving writes the edited routine and drops the strip with the undo',`(()=>{const doc=DB.week?.days?.[todayISO]||DB.plan;const b=pwDay(todayISO);return doc&&doc.items.length===2&&Math.round(doc.items[0].lines[1].w/0.45359237)===65&&doc.items[0].lines[1].reps.join(' ')==='8 9 8'&&doc.items[0].lines.length===3&&!b.strip&&!b.undo;})()`);
+
+run(`pfNavigate('edit');`);
+test('saving clears the dot, and the dock says everything is saved',`!pfDirty(todayISO)&&!document.querySelector('.pf-dot')&&/Everything here is saved/.test(document.querySelector('.pf-compact-save p').textContent)`);
 
 // ---- the bin means delete, everywhere; the cross still dismisses
 run(`DB.days[todayISO]={w:[{part:'Shoulders',ex:'Rear Deltoids',w:13.6,reps:[10],at:1}],upd:1};lift.plan=null;view='lift';lift.part='Shoulders';lift.ex='Rear Deltoids';lift.editToday=true;render();`);

@@ -117,8 +117,8 @@ function pfLastGroups(ex){
  if(!groups.length)return null;
  return {d:last.d,groups:groups.map(g=>({load:isBody(ex)&&g.w<=0.01?'BW':(isBody(ex)?'BW+':'')+wDisp(g.w)+' '+U(),reps:g.reps}))};
 }
-function pfSpineLine(load,reps,cls,ref,tail=''){
- const wup=!!ref&&ref.load!==load;
+function pfSpineLine(load,reps,cls,ref,tail='',compare=false){
+ const wup=compare&&!ref;                       // no line at this load last time: the load is the change
  const rs=reps.map((r,i)=>`<i${ref&&(i>=ref.reps.length||ref.reps[i]!==r)?' class="pe-up"':''}>${hesc(String(r))}</i>`).join('');
  return `<div class="pe-line ${cls}"><span class="pe-w${wup?' pe-up':''}">${hesc(load)}</span><span class="pe-x" aria-hidden="true">×</span><span class="pe-r"><span class="pe-reps">${rs}</span>${tail}</span></div>`;
 }
@@ -134,15 +134,33 @@ function pfEditLine(ex,i,k,g){
  return `<div class="pe-line pe-edit"><button type="button" class="pe-del" data-pw="pf-del-line" data-index="${i}" data-line="${k}" aria-label="Delete ${hesc(pfLoadText(line))} × ${hesc(line.reps.join(' '))}">${icon('trash',ICON_SZ.sm)}</button><span class="pe-w">${pfChip(i,k,'w',0,wText,`Weight, ${unit}`,typeof wStep==='function'?wStep(ex):'any')}</span><span class="pe-x" aria-hidden="true">×</span><span class="pe-r">${reps}<button type="button" class="pe-chip pe-add" data-pw="pf-add-rep" data-index="${i}" data-line="${k}" aria-label="Add a set">+</button></span></div>`;
 }
 function pfStripHTML(text){return `<div class="pe-removed" role="status"><span>Removed <b>${hesc(text)}</b></span>${pwButton('undo','\u21BA Undo','pe-undo')}</div>`;}
+function pfRefs(groups,last){
+ const all=last?.groups||[],used=new Set();
+ return groups.map(g=>{
+  const key=pfLoadText(g.line).replace(/^\u2248/,'');
+  let k=all.findIndex((x,ix)=>!used.has(ix)&&x.load===key);
+  const fresh=k<0;
+  if(fresh)k=all.findIndex(x=>x.load===key);   // a second line at a load already used: same reference, not a new load
+  if(k<0)return null;
+  used.add(k);
+  return {...all[k],fresh:false};
+ });
+}
 function pfExerciseHTML(r,i){
  const j=pfState(),b=pwDay(pw().active),open=!!j.routineOpen?.[pw().active]?.[i],groups=pfGroups(r),last=r.ex==='Run'?null:pfLastGroups(r.ex),strip=b.strip&&b.strip.row===i&&b.strip.line!=null?b.strip:null;
+ /* v4.6.76: BLUE MEANS YOU CHANGED IT, AND A LOAD IS COMPARED TO ITSELF.
+    Lines were matched by their position in the list, counted from the end --
+    so adding a warm-up above shifted every line onto the wrong reference and
+    a plan that repeated last week's 95 x 10 came out blue against last week's
+    115. A plan line is compared to the LAST-TIME LINE AT THE SAME LOAD: the
+    weight goes blue only when that load is new to this exercise, and the reps
+    only where they differ from what that same load actually did. */
+ const refs=pfRefs(groups,last);
  const lines=[];
  groups.forEach((g,k)=>{
   if(strip&&strip.line===k)lines.push(pfStripHTML(strip.text));
-  /* compared from the END: the working sets are the last lines on both sides,
-     so a plan with a lighter opener still meets last time's top set */
-  const ref=last?last.groups[k-(groups.length-last.groups.length)]||null:null,tail=isHold(g.line.su)?'<span class="pe-q">sec</span>':'';
-  lines.push(open?pfEditLine(r.ex,i,k,g):pfSpineLine(pfLoadText(g.line),g.line.reps,'pe-plan',ref,tail));
+  const ref=refs[k],tail=isHold(g.line.su)?'<span class="pe-q">sec</span>':'';
+  lines.push(open?pfEditLine(r.ex,i,k,g):pfSpineLine(pfLoadText(g.line),g.line.reps,'pe-plan',ref,tail,!!last));
  });
  if(strip&&strip.line>=groups.length)lines.push(pfStripHTML(strip.text));
  if(last)last.groups.forEach((g,k)=>lines.push(pfSpineLine(g.load,g.reps,'pe-last',null,k===last.groups.length-1?`<span class="pe-d">${hesc(pfMD(last.d))}</span>`:'')));
@@ -168,7 +186,25 @@ function pfChipCommit(){
  if(!inp||!g)return false;
  const v=Number(inp.value),line=pwCopy(g.line);
  if(c.field==='w'){if(inp.value.trim()===''||!Number.isFinite(v)||v<0||v>10000)return false;if(v===+Number(line.w||0).toFixed(4))return false;line.w=+v.toFixed(4);}
- else{if(!Number.isInteger(v)||v<1||v>10000||line.reps[c.rep]===v)return false;line.reps[c.rep]=v;}
+ else{
+  /* v4.6.76: CLEARING A REP REMOVES IT. + adds a set to a line, and nothing
+     took one away: 0 was refused as an invalid rep count, which is true of a
+     rep you keep and wrong for one you are deleting. Empty or 0 removes that
+     set; clearing a line's last rep removes the line, with the same Undo
+     strip the bin leaves, because a line of no sets is not a line. */
+  const blank=inp.value.trim()==='';
+  if(blank||v===0){
+   if(line.reps.length<2){
+    const text=pfLoadText(g.line)+' \u00d7 '+g.line.reps.join(' ');
+    pfChange(b);r.lines=r.lines.filter((_,x)=>!g.indices.includes(x));
+    b.strip={row:c.row,line:c.line,text};if(!b.locks.includes(c.row))b.locks.push(c.row);
+    pwPersist();return true;
+   }
+   line.reps.splice(c.rep,1);
+  }
+  else if(!Number.isInteger(v)||v<1||v>10000||line.reps[c.rep]===v)return false;
+  else line.reps[c.rep]=v;
+ }
  pfSetGroup(b,c.row,g,line);pwPersist();return true;
 }
 function pfRoutineHandle(a,el,b,j){
@@ -203,7 +239,13 @@ function pfChipClose(commit){
 }
 function pfFocusChip(){const inp=document.getElementById('peInput');if(!inp)return;inp.focus();try{inp.select();}catch(_e){}}
 function pfHistoryHTML(compact=false){const s=pw(),parts=s.active?(pwDay(s.active).parts.length?pwDay(s.active).parts:pwParts(pwDay(s.active).rows)):[],date=Object.keys(DB.days).filter(d=>d<(s.active||todayISO)&&(DB.days[d].w||[]).length&&(!parts.length||(DB.days[d].w||[]).some(r=>r.part===parts[0]))).sort().at(-1);if(!date)return '';const rows=DB.days[date].w,exercises=[...new Set(rows.map(r=>r.ex))],sets=rows.reduce((n,r)=>n+(r.ex==='Run'?1:(r.reps||[]).length),0);return `<details class="card pf-history" ${compact?'':'open'}><summary><strong>Last workout day</strong><span>${hesc(pfShort(date))}</span></summary><p class="pw-small">${sets} sets · ${exercises.length} exercises · Entire day</p>${exercises.map(ex=>`<div class="pf-history-row"><strong>${hesc(ex)}</strong><p class="mono">${pfHistoryLines(rows.filter(r=>r.ex===ex))}</p></div>`).join('')}</details>`;}
-function pfWeekStrip(){const s=pw();return `<div class="pf-strip" role="tablist" aria-label="Planned days">${pfDates().map(d=>{const b=pwDay(d),part=(b.parts.length?b.parts:pwParts(b.rows))[0]||'\u2014',on=d===s.active;return pwButton('pf-edit-day',`<b>${hesc(new Date(d+'T12:00').toLocaleDateString('en-US',{weekday:'short'}))}</b><s>${hesc(pfMD(d))}</s><u>${hesc(part)}</u>`,'pf-chip'+(on?' selected':''),`data-date="${d}" role="tab" aria-selected="${on}"`);}).join('')}</div>`;}
+/* v4.6.76: A DAY THAT IS NOT SAVED SAYS SO. Every edit lands in a draft that
+   only Save writes, and once the week is a strip the edited day can be three
+   taps away -- so the chip carries a dot, and the dock counts them. A day with
+   no saved plan behind it counts as unsaved too: it is, until Save runs. */
+function pfDirty(d){const b=pw().book?.[d];return !!b&&(b.source!=='Saved plan'||!pwSaved(d)?.items?.length);}
+function pfDirtyDates(){return pfDates().filter(pfDirty);}
+function pfWeekStrip(){const s=pw();return `<div class="pf-strip" role="tablist" aria-label="Planned days">${pfDates().map(d=>{const b=pwDay(d),part=(b.parts.length?b.parts:pwParts(b.rows))[0]||'\u2014',on=d===s.active,dirty=pfDirty(d);return pwButton('pf-edit-day',`<b>${hesc(new Date(d+'T12:00').toLocaleDateString('en-US',{weekday:'short'}))}</b><s>${hesc(pfMD(d))}</s><u>${hesc(part)}</u>${dirty?'<em class="pf-dot" aria-hidden="true"></em>':''}`,'pf-chip'+(on?' selected':'')+(dirty?' pf-edited':''),`data-date="${d}" role="tab" aria-selected="${on}" aria-label="${hesc(pfShort(d))}${dirty?', unsaved changes':''}"`);}).join('')}</div>`;}
 function pfDayHTML(){const s=pw(),b=pwDay(s.active),j=pfState(),total=pwSetCount(b.rows),changed=b.target!=null&&b.target!==total;
  return pfWeekStrip()+`<div class="pf-routine-controls"><div class="pf-total"><span>Set target</span><div class="pw-stepper">${pwButton('pf-minus','\u2212','','aria-label="Decrease total sets"'+(!b.rows.length?' disabled':''))}<output class="${changed?'pf-changed':''}">${b.target??total}</output>${pwButton('pf-plus','+','','aria-label="Increase total sets"'+(!b.rows.length?' disabled':''))}</div></div><div class="pf-tools">${pwAction('pf-regenerate','Regenerate','sparkle','pf-quiet-regenerate'+(changed?' pf-beam pf-target-pending':''))}${pwButton('paste',icon('paste',ICON_SZ.sm),'pw-icon pf-tool','aria-label="Paste a routine" title="Paste"')}${pwButton('pf-clear',icon('clear',ICON_SZ.sm),'pw-icon pf-tool','aria-label="Clear this day" title="Clear"')}</div></div><p class="pf-target-hint" role="status">${changed?total+' current \u2192 '+b.target+' target \u00b7 Regenerate to apply':total+' sets \u00b7 '+pwExercises(b.rows).length+' exercises'}</p><div class="card pf-routine-card">${b.rows.length?pfEditRows():'<p>No exercises yet.</p>'}</div><div class="pf-add-summary">${pwButton('add',icon('clear',ICON_SZ.sm,45)+' Add exercise','pf-add-button')}</div>${b.undo&&!b.strip?pwButton('undo','Undo','pw-text'):''}`;
 }
@@ -231,7 +273,7 @@ function pfRender(){pfTrackScreen();renderHeader();const s=pw(),j=pfState(),pane
  if(j.page==='prefs'){body=pfPrefHTML();footer=pwButton('pf-prefs-save','Save preferences','primary');}
  else if(j.page==='dates'){body=pfCalendar();footer=pfDateFooter();}
  else if(j.page==='days'){body=pfDaysHTML();footer='<div class="pf-primary-row">'+pwButton('pf-edit-first','Edit first day →','primary',s.dates.length?'':'disabled')+pfSaveButton()+'</div><p class="pw-small">Saves every routine above to its date.</p>';}
- else if(j.page==='edit'&&s.active){body=pfDayHTML();footer='<div class="pf-compact-save"><div><strong>'+s.dates.length+' planned '+(s.dates.length===1?'day':'days')+'</strong><p>Changes stay in draft until saved.</p></div>'+pwAction('pf-save','Save','check','primary',pfPending()?'disabled':'')+'</div>';}
+ else if(j.page==='edit'&&s.active){body=pfDayHTML();const dirty=pfDirtyDates().length;footer='<div class="pf-compact-save"><div><strong>'+s.dates.length+' planned '+(s.dates.length===1?'day':'days')+'</strong><p>'+(dirty?dirty+(dirty===1?' day has':' days have')+' unsaved changes.':'Everything here is saved.')+'</p></div>'+pwAction('pf-save','Save','check','primary',pfPending()?'disabled':'')+'</div>';}
  else if(j.page==='done'){body=pfDoneHTML();footer=pwButton('close','Plans saved · Done','primary');}
  if(j.clear){body=`<div class="card" role="alert"><h3>Clear ${hesc(pfShort(s.active))}?</h3>${pwButton('pf-remove-day','Remove this day')}<p class="pw-small">Remove its plan when you save.</p>${pwButton('pf-empty-day','Keep day, empty routine')}<p class="pw-small">Add exercises manually. No logged workouts change.</p>${pwButton('pf-clear-cancel','Cancel')}</div>`;footer='';}
  if(j.emptyConfirm){const empty=pfDates().filter(d=>!pwSetCount(pwDay(d).rows)),valid=s.dates.length-empty.length;body=`<div class="card" role="alert"><h3>Empty days won’t be saved</h3>${empty.map(d=>`<p><strong>${hesc(pwDate(d))}</strong><br>0 planned sets · No plan</p>`).join('')}<p class="pw-small">These dates will become No plan. Any existing saved plan on these dates will be removed. Logged workouts stay untouched.</p>${pwButton('pf-confirm-save',valid?'Save '+valid+' days & clear empty days':'Set dates to No plan','primary')}${pwButton('pf-clear-cancel','Back to editing')}</div>`;footer='';}

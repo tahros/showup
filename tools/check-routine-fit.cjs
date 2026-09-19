@@ -37,6 +37,10 @@ const CHROME=[process.env.PW_CHROME,'C:/Users/sungj/AppData/Local/ms-playwright/
        of the grips above and below it, with the bin lined up on the moved grip.
        Grips open and closed, and every bin, share one centre -- and the open
        panel's content right edge meets the closed rows'. */
+    /* v4.6.76: the grip is centred on the NAME, not pinned by a hand-tuned
+       top that drifts every time the row's padding changes. */
+    const off=[...document.querySelectorAll('.pe-ex')].map(ex=>{const g=ex.querySelector('.pw-grip svg').getBoundingClientRect(),n=ex.querySelector('.pf-ex-summary strong').getBoundingClientRect();return Math.round(((g.top+g.bottom)/2-(n.top+n.bottom)/2)*10)/10;});
+    const gripOff=Math.max(...off.map(Math.abs));
     const del=[...new Set([...document.querySelectorAll('.pe-del')].map(c))];
     const open=document.querySelector('.pe-open'),shut=document.querySelector('.pe-ex:not(.pe-open)');
     const R=x=>Math.round(x.getBoundingClientRect().right);
@@ -45,21 +49,21 @@ const CHROME=[process.env.PW_CHROME,'C:/Users/sungj/AppData/Local/ms-playwright/
       shutGrip:shut?c(shut.querySelector('.pw-grip svg')):null,
       btnR:open?R(open.querySelector('.pe-toggle')):null,
       shutBtnR:shut?R(shut.querySelector('.pf-row-toggle')):null,
-      pageOverflow:document.documentElement.scrollWidth>innerWidth,input:!!document.getElementById('peInput')};
+      gripOff,pageOverflow:document.documentElement.scrollWidth>innerWidth,input:!!document.getElementById('peInput')};
   });
   for(const width of [320,360,390,430]){
     await p.setViewportSize({width,height:852});
     await seed(); await p.waitForSelector('.pe-line',{timeout:5000});
     const r=await spine();
-    let ok=r.xs.length===1&&r.wr.length===1&&r.r1.length===1&&!r.wrapped&&!r.out&&!r.pageOverflow;
+    let ok=r.xs.length===1&&r.wr.length===1&&r.r1.length===1&&!r.wrapped&&!r.out&&!r.pageOverflow&&r.gripOff<=1.5;
     if(!ok)bad++;
-    console.log(`${ok?'OK  ':'FAIL'} ${width}px read  x=${r.xs} wRight=${r.wr} reps=${r.r1} wrapped=${r.wrapped} out=${r.out} overflow=${r.pageOverflow}`);
+    console.log(`${ok?'OK  ':'FAIL'} ${width}px read  x=${r.xs} wRight=${r.wr} reps=${r.r1} wrapped=${r.wrapped} out=${r.out} overflow=${r.pageOverflow} gripOffCentre=${r.gripOff}`);
     await p.click('[data-pw="pf-row-toggle"][data-index="0"]');
     await p.click('[data-pw="pf-chip"][data-index="0"][data-line="1"][data-field="r"][data-rep="1"]');
     await p.waitForSelector('#peInput',{timeout:5000});
     const e=await spine();
     const gutter=e.del.length===1&&e.grip===e.shutGrip&&Math.abs(e.del[0]-e.grip)<=1&&e.btnR===e.shutBtnR;
-    ok=e.xs.length===1&&e.wr.length===1&&e.r1.length===1&&!e.wrapped&&!e.out&&!e.pageOverflow&&e.input&&gutter;
+    ok=e.xs.length===1&&e.wr.length===1&&e.r1.length===1&&!e.wrapped&&!e.out&&!e.pageOverflow&&e.input&&gutter&&e.gripOff<=1.5;
     if(!ok)bad++;
     console.log(`${ok?'OK  ':'FAIL'} ${width}px edit  x=${e.xs} wRight=${e.wr} reps=${e.r1} out=${e.out} overflow=${e.pageOverflow} gutter: bin=${e.del} grip=${e.grip} closedGrip=${e.shutGrip} rightEdge=${e.btnR}/${e.shutBtnR} input=${e.input}`);
     if(width===390){await p.screenshot({path:'../routine-edit-390.png',clip:{x:0,y:0,width:390,height:852}});}
