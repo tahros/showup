@@ -6,7 +6,9 @@
    set plus a logged 9/14, and checks: one x centre on the page in read mode
    and again with an exercise open; no page-level horizontal scroll; no read
    line whose reps wrap; the gutter bin centred under the grip; the chip
-   input inside the card. Serve the repo on 127.0.0.1:8784 first. */
+   input inside the card, and (v4.6.74) one gutter vertical for the grips and
+   bins whether a row is open or closed, with matching right edges.
+   Serve the repo on 127.0.0.1:8784 first. */
 const {chromium}=require('playwright'),fs=require('fs');
 const CHROME=[process.env.PW_CHROME,'C:/Users/sungj/AppData/Local/ms-playwright/chromium-1217/chrome-win64/chrome.exe','/opt/pw-browsers/chromium-1194/chrome-linux/chrome'].find(p=>p&&fs.existsSync(p));
 (async()=>{
@@ -30,8 +32,20 @@ const CHROME=[process.env.PW_CHROME,'C:/Users/sungj/AppData/Local/ms-playwright/
     const wrapped=[...document.querySelectorAll('.pe-line:not(.pe-edit) .pe-reps')].filter(x=>x.getBoundingClientRect().height>28).length;
     const card=document.querySelector('.pf-routine-card').getBoundingClientRect();
     const out=[...document.querySelectorAll('.pe-chip,.pe-d,.pe-reps')].filter(x=>{const r=x.getBoundingClientRect();return r.right>card.right||r.left<card.left;}).length;
-    const del=[...document.querySelectorAll('.pe-del')].map(c),grip=document.querySelector('.pe-open .pw-grip svg');
-    return {xs,wr,r1,wrapped,out,del:[...new Set(del)],grip:grip?c(grip):null,pageOverflow:document.documentElement.scrollWidth>innerWidth,input:!!document.getElementById('peInput')};
+    /* v4.6.74: THE GUTTER IS ONE VERTICAL. The open exercise bleeds into the
+       card's padding, and the first cut let that bleed drag its grip 12px left
+       of the grips above and below it, with the bin lined up on the moved grip.
+       Grips open and closed, and every bin, share one centre -- and the open
+       panel's content right edge meets the closed rows'. */
+    const del=[...new Set([...document.querySelectorAll('.pe-del')].map(c))];
+    const open=document.querySelector('.pe-open'),shut=document.querySelector('.pe-ex:not(.pe-open)');
+    const R=x=>Math.round(x.getBoundingClientRect().right);
+    return {xs,wr,r1,wrapped,out,del,
+      grip:open?c(open.querySelector('.pw-grip svg')):null,
+      shutGrip:shut?c(shut.querySelector('.pw-grip svg')):null,
+      btnR:open?R(open.querySelector('.pe-toggle')):null,
+      shutBtnR:shut?R(shut.querySelector('.pf-row-toggle')):null,
+      pageOverflow:document.documentElement.scrollWidth>innerWidth,input:!!document.getElementById('peInput')};
   });
   for(const width of [320,360,390,430]){
     await p.setViewportSize({width,height:852});
@@ -44,9 +58,10 @@ const CHROME=[process.env.PW_CHROME,'C:/Users/sungj/AppData/Local/ms-playwright/
     await p.click('[data-pw="pf-chip"][data-index="0"][data-line="1"][data-field="r"][data-rep="1"]');
     await p.waitForSelector('#peInput',{timeout:5000});
     const e=await spine();
-    ok=e.xs.length===1&&e.wr.length===1&&e.r1.length===1&&!e.wrapped&&!e.out&&!e.pageOverflow&&e.input&&e.del.length===1&&Math.abs(e.del[0]-e.grip)<=2;
+    const gutter=e.del.length===1&&e.grip===e.shutGrip&&Math.abs(e.del[0]-e.grip)<=1&&e.btnR===e.shutBtnR;
+    ok=e.xs.length===1&&e.wr.length===1&&e.r1.length===1&&!e.wrapped&&!e.out&&!e.pageOverflow&&e.input&&gutter;
     if(!ok)bad++;
-    console.log(`${ok?'OK  ':'FAIL'} ${width}px edit  x=${e.xs} wRight=${e.wr} reps=${e.r1} out=${e.out} overflow=${e.pageOverflow} bin=${e.del} grip=${e.grip} input=${e.input}`);
+    console.log(`${ok?'OK  ':'FAIL'} ${width}px edit  x=${e.xs} wRight=${e.wr} reps=${e.r1} out=${e.out} overflow=${e.pageOverflow} gutter: bin=${e.del} grip=${e.grip} closedGrip=${e.shutGrip} rightEdge=${e.btnR}/${e.shutBtnR} input=${e.input}`);
     if(width===390){await p.screenshot({path:'../routine-edit-390.png',clip:{x:0,y:0,width:390,height:852}});}
   }
   console.log(bad||errors.length?`FAIL ${bad} layouts, errors: ${JSON.stringify(errors)}`:'PASS the routine page holds one spine at 320/360/390/430, read and edit');

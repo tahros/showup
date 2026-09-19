@@ -187,7 +187,15 @@ header.planmode .hback::after{content:'';position:absolute;inset:-3px -6px}
    Weight right | x centred | reps left, each rep in its own invisible column,
    so every line of every exercise lands on the same three verticals whether
    it is ink (the plan), a step lighter (last time) or a row of chips (edit). */
-.pf-routine-page .pw-exercise.pw-editable.pe-ex{padding:12px 0 12px 29px}
+/* v4.6.74: ONE GUTTER, OPEN OR CLOSED. The open exercise bleeds into the
+   card's padding to carry its panel, and that bleed used to move everything
+   left with it: the grip landed 12px off the grips above and below it, and
+   the bin in the gutter lined up with the moved grip rather than with the
+   column. The bleed is a variable now, the indent is a variable, and both
+   the grip and the bin are positioned FROM them -- so the gutter is one
+   vertical down the whole page whichever rows are open, at any width, and
+   the open panel's right edge meets the closed rows' too. */
+.pf-routine-page .pw-exercise.pw-editable.pe-ex{--pad:29px;--bleed:0px;margin:0 calc(0px - var(--bleed));padding:12px var(--bleed) 12px calc(var(--pad) + var(--bleed))}
 .pf-routine-page .pe-ex:first-child{padding-top:2px}
 .pf-routine-page .pe-ex .pw-grip{top:12px}
 .pf-routine-page .pe-ex:first-child .pw-grip{top:2px}
@@ -210,8 +218,11 @@ header.planmode .hback::after{content:'';position:absolute;inset:-3px -6px}
 .pe-last{font-weight:400;color:var(--faint);opacity:.75}
 .pe-last .pe-x{opacity:.6}
 /* EDIT: the numbers become chips, in the same columns */
-.pe-open{background:var(--ground);margin:0 -12px;padding-left:41px!important;padding-right:8px!important;border-radius:14px;border-bottom-color:transparent}
-.pe-open .pw-grip{left:4px}
+/* same weight as the rule that declares --bleed, or 0px keeps winning */
+.pf-routine-page .pw-exercise.pw-editable.pe-ex.pe-open{--bleed:12px}
+.pe-open{background:var(--ground);border-radius:14px;border-bottom-color:transparent}
+/* beats `:root .pf-routine-page .pw-grip`, which pinned every grip to -8px */
+:root .pf-routine-page .pe-ex .pw-grip{left:calc(var(--bleed) - 8px)}
 .pe-open+.pe-ex{border-top-color:transparent}
 .pe-line.pe-edit{position:relative;min-height:32px;column-gap:0}
 .pe-line.pe-edit .pe-w{display:flex;justify-content:flex-end;overflow:visible}
@@ -226,7 +237,8 @@ header.planmode .hback::after{content:'';position:absolute;inset:-3px -6px}
 .pw-workspace .pe-chip.pe-in{display:inline-flex;width:36px;max-width:none;min-width:0;height:28px;margin:0;padding:0 2px;border:1px solid var(--accent);border-radius:8px;background:var(--surface);color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 18%,transparent);font:500 16px/1 var(--mono);text-align:center;outline:0;-moz-appearance:textfield}
 .pe-chip.pe-in::-webkit-outer-spin-button,.pe-chip.pe-in::-webkit-inner-spin-button{appearance:none;margin:0}
 .pw-workspace .pe-chip.pe-in.pe-cw{width:64px}
-.pe-del{position:absolute;left:-44px;top:50%;transform:translateY(-50%);width:26px;height:26px;padding:0;border:1px dotted color-mix(in srgb,var(--live) 45%,var(--line));border-radius:8px;background:transparent;color:var(--live);display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+/* centre = the grip's centre: (bleed-8)+18 - (pad+bleed) - 13 */
+.pe-del{position:absolute;left:calc(-3px - var(--pad));top:50%;transform:translateY(-50%);width:26px;height:26px;padding:0;border:1px dotted color-mix(in srgb,var(--live) 45%,var(--line));border-radius:8px;background:transparent;color:var(--live);display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
 .pe-del svg{width:13px;height:13px}
 .pe-del::after{content:'';position:absolute;inset:-9px}
 .pe-actions{display:flex;gap:8px;margin:12px 0 2px}
@@ -237,4 +249,4 @@ header.planmode .hback::after{content:'';position:absolute;inset:-3px -6px}
 .pe-removed b{font-weight:500;color:var(--chalk)}
 .pe-removed .pe-undo{min-height:36px;padding:0 12px;border-radius:10px;font-size:12px;color:var(--accent)}
 .pe-ex .pe-removed{margin:0}
-@media(max-width:360px){.pf-routine-page .pw-exercise.pw-editable.pe-ex{padding-left:26px}.pe-line{grid-template-columns:70px 20px minmax(0,1fr);font-size:12.5px}.pe-line .pe-r i{width:2.9ch}.pe-line .pe-r i:first-child{width:2.4ch}.pe-d{margin-left:6px;padding:0 5px}.pe-chip{width:32px}.pe-line.pe-edit .pe-r{gap:3px}.pe-chip.pe-cw{max-width:70px;min-width:40px;padding:0 4px;font-size:12px}.pw-workspace .pe-chip.pe-in{width:34px}.pe-open .pe-last .pe-r i,.pe-open .pe-last .pe-r i:first-child{width:32px;margin-right:3px}.pe-open{margin:0 -8px;padding-left:34px!important;padding-right:8px!important}.pe-del{left:-37px}.pe-actions{gap:6px}.pe-actions .pe-btn{padding:0 9px;font-size:11px;white-space:nowrap;gap:4px}}
+@media(max-width:360px){.pf-routine-page .pw-exercise.pw-editable.pe-ex{--pad:26px}.pf-routine-page .pw-exercise.pw-editable.pe-ex.pe-open{--bleed:8px}.pe-line{grid-template-columns:70px 20px minmax(0,1fr);font-size:12.5px}.pe-line .pe-r i{width:2.9ch}.pe-line .pe-r i:first-child{width:2.4ch}.pe-d{margin-left:6px;padding:0 5px}.pe-chip{width:32px}.pe-line.pe-edit .pe-r{gap:3px}.pe-chip.pe-cw{max-width:70px;min-width:40px;padding:0 4px;font-size:12px}.pw-workspace .pe-chip.pe-in{width:34px}.pe-open .pe-last .pe-r i,.pe-open .pe-last .pe-r i:first-child{width:32px;margin-right:3px}.pe-actions{gap:6px}.pe-actions .pe-btn{padding:0 9px;font-size:11px;white-space:nowrap;gap:4px}}
