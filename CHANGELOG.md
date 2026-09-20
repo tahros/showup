@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.86 (2026-09-20) — Rest fits the screen
+
+- Remove the period from Rest day.
+- Match the outer page and browser theme color to the sage Rest surface; restore normal chrome when leaving Rest Home.
+- Use the available viewport height for the collapsed Rest screen, including header and bottom-navigation clearance. Expanded plans and larger accessibility text can still grow instead of being clipped.
+- Verify no default scrolling at 320×568, 393×852 and 430×932, with Undo above the navigation.
+
 ## v4.6.85 (2026-09-20) — A quieter Rest home
 
 - Simplify Rest Home to the breathing mascot, attendance count and next saved plan, with a softer sage wash and no weekly header strip.

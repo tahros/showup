@@ -2188,6 +2188,7 @@ function render(opts){
      read, written or measured here, and neither is anything fixed. */
   const both=()=>{
     document.body.classList.toggle('rest-home',view==='today'&&!lift.plan&&restingToday());
+    syncRestChrome();
     renderHeader(); paint({inplace:inplace||restMorph});
     if(restMorph)window.scrollTo({top:0,behavior:'instant'});
   };

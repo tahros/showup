@@ -1,3 +1,11 @@
+/* v4.6.86: fit the collapsed home to the available viewport, not a fixed hero.
+   Expanded plans and large text may grow naturally; never clip content. */
+html.rest-home{background:color-mix(in srgb,var(--rest) 10%,var(--ground));overscroll-behavior-y:none}
+html.rest-home body.rest-home #app{min-height:100dvh;box-sizing:border-box;padding-bottom:calc(100px + env(safe-area-inset-bottom,0px))}
+html.rest-home body.rest-home #view{box-sizing:border-box;display:flex;flex-direction:column;min-height:calc(100dvh - var(--hdr-h) - 100px - env(safe-area-inset-bottom,0px));padding-top:0;padding-bottom:0}
+html.rest-home body.rest-home .su-hello-row{flex:1;min-height:140px;padding:8px 0;gap:12px}
+html.rest-home body.rest-home .hello{flex:0 0 auto}
+html.rest-home body.rest-home #restBtn{flex-shrink:0;margin:12px auto 12px}
 /* v4.6.85: the Rest home is a pause, not a dashboard. */
 body.rest-home header .h-weekrow{display:none}
 body.rest-home header.resting .hglass{background:linear-gradient(180deg,color-mix(in srgb,var(--rest) 10%,var(--ground)),color-mix(in srgb,var(--rest) 9%,var(--ground)));border:0;box-shadow:none;animation:none}

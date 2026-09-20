@@ -4,12 +4,14 @@ const p=await b.newPage({serviceWorkers:'block'}),errors=[];p.on('pageerror',e=>
 async function setup(kind='sunday'){await p.evaluate(kind=>{todayISO='2026-09-20';checkDate=()=>false;document.querySelector('#onb')?.remove();DB={days:{'2026-09-19':{w:[{ex:'Squat',part:'Legs',w:135,reps:[8],at:1}],doneAll:true}},settings:{onboarded:true,unit:'lb',mascotMotion:'off'},week:{days:{}}};const doc=planItemsFrom(pwRead('Squat\n135 lb × 8 8 8\n\nHanging Leg Raise\nBW × 12 12'));for(const d of ['2026-09-21','2026-09-22','2026-09-23','2026-09-24','2026-09-25'])DB.week.days[d]={...pwCopy(doc),d};if(kind==='today')DB.plan={...pwCopy(doc),d:todayISO};if(kind==='closed')DB.days[todayISO]={w:[{ex:'Squat',part:'Legs',w:135,reps:[8],at:1}],doneAll:true};if(kind==='gap')delete DB.week.days['2026-09-21'];if(kind==='empty')DB.week.days={};if(kind==='single'){DB.plan={...pwCopy(doc),d:'2026-09-21'};DB.week.days={}}pwState=null;pwOwner=null;localStorage.removeItem(pwKey());SEED=deriveAll();lift={};view='today';render({inplace:true});},kind);await p.waitForTimeout(450);}
 
 await p.setViewportSize({width:393,height:852});
-for(const width of [320,393,430]){
- await p.setViewportSize({width,height:852});await setup();
+for(const [width,height] of [[320,568],[393,852],[430,932]]){
+ await p.setViewportSize({width,height});await setup();
  const plans=await p.evaluate(()=>JSON.stringify(DB.week));
  await p.locator('#restBtn').click();await p.waitForTimeout(1100);
  assert(await p.locator('body').evaluate(e=>e.classList.contains('rest-home')));
- assert.equal(await p.locator('.hello .hi').textContent(),'Rest day.');
+ assert.equal(await p.locator('.hello .hi').textContent(),'Rest day');
+ assert(await p.evaluate(()=>document.documentElement.scrollHeight<=innerHeight+1),'collapsed Rest fits viewport');
+ assert.notEqual(await p.locator('meta[name="theme-color"]').getAttribute('content'),'#F2F3F6');
  assert.equal(await p.locator('header .h-weekrow').isVisible(),false);
  assert.equal(await p.locator('#view .crcard').count(),0);
  await p.locator('[data-rest-menu]').click();
@@ -25,6 +27,7 @@ for(const width of [320,393,430]){
  assert.equal(await p.locator('.pw-later-day>summary:visible').count(),4);
  await p.locator('#restBtn').click();await p.waitForTimeout(1100);
  assert(!(await p.locator('body').evaluate(e=>e.classList.contains('rest-home'))));
+ assert(!(await p.locator('html').evaluate(e=>e.classList.contains('rest-home'))));
  assert.equal(await p.evaluate(()=>JSON.stringify(DB.week)),plans);
  assert.equal(await p.evaluate(()=>!!DB.days[todayISO].doneAll),false);
 }
