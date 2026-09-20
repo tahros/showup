@@ -60,7 +60,12 @@
 .pf-date-sheet .pw-month .pw-btn{width:34px;min-width:34px}
 .pf-date-sheet .pf-calendar{gap:0}
 .pf-date-sheet .pf-calendar>span:nth-child(-n+7){text-align:center;min-width:0}
-.pf-dates-page .pf-steps{margin-top:4px;margin-bottom:10px}
+/* v4.6.79: THE TAB BAR IS CHROME AND CHROME DOES NOT MOVE. The dates page
+   gave the step bar its own margins -- 4px above, 6px less below -- so every
+   tap between the tabs slid the bar down 4px and pulled the content up 2px,
+   in opposite directions. The top margin collapsed through the workspace as
+   well, moving the whole page with it. One box for the step bar, everywhere:
+   a page may style what is under the tabs, never the tabs themselves. */
 .pf-dates-page .pf-compact-prefs{position:relative;min-height:62px;padding:10px 76px 8px 0}
 .pf-dates-page .pf-compact-prefs p{font-size:11px;line-height:1.4}
 .pf-dates-page .pf-compact-prefs .pf-pref-edit{position:absolute;right:0;top:10px;min-height:44px;padding:8px 10px;border-radius:12px}

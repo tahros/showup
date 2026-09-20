@@ -28,6 +28,11 @@ run(`pfNavigate('dates');`);
 const pfcss=fs.readFileSync(path.join(dir,'css/planner-flow.css'),'utf8');
 test('the dates page has no prompt line, and the month labels its own arrows',`pfState().page==='dates'&&!document.querySelector('.pf-date-prompt')&&!/Select dates/.test(document.getElementById('view').textContent)&&document.querySelector('.pw-month strong').textContent.includes('2026')`);
 ok2('the selection is an inset square, not a full-bleed fill',/inset:5px 3px/.test(pfcss.match(/\.pf-date-sheet \.pf-calendar \.pw-btn::before\{([^}]+)\}/)?.[1]||'')&&/border-radius:10px/.test(pfcss.match(/\.pf-date-sheet \.pf-calendar \.pw-btn::before\{([^}]+)\}/)?.[1]||'')&&/\.pf-date-sheet \.pf-calendar \.selected::before\{background:var\(--accent\)\}/.test(pfcss));
+/* v4.6.79: the tab bar is chrome. A page may style what sits UNDER the tabs,
+   never the tabs themselves -- a per-page margin there moved the bar on every
+   tap, and collapsed through the workspace to move the whole page with it.
+   check-tabbar.cjs measures the result; this stops the shape coming back. */
+ok2('no page scopes its own box onto the step bar',!pfcss.split('}').some(r=>/\.pf-[a-z-]*page[^{]*\.pf-steps[^{]*\{/.test(r+'}')&&/(^|[;{])\s*(margin|padding)/.test(r.split('{')[1]||'')));
 ok2('the day cell is taller than the 44 it was',/\.pf-dates-page \.pf-date-sheet \.pf-calendar \.pw-btn\{height:52px\}/.test(pfcss));
 test('returning to Dates retains completed steps',`!document.querySelector('[data-stage="2"]').disabled&&!document.querySelector('[data-stage="3"]').disabled`);
 run(`pw().dates.push('2026-09-15');pwDay('2026-09-15');pwRender();`);
