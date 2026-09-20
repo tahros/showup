@@ -44,6 +44,17 @@ ok2('dropping a day runs the ink back, carrying its own fill',/@keyframes pf-ink
 ok2('reduced motion gets no flood',/@media\(prefers-reduced-motion:reduce\)\{[^}]*\.pf-ink[^{]*\{animation:none\}\}/.test(pfcss.replace(/\n\s*/g,'')));
 ok2('no page scopes its own box onto the step bar',!pfcss.split('}').some(r=>/\.pf-[a-z-]*page[^{]*\.pf-steps[^{]*\{/.test(r+'}')&&/(^|[;{])\s*(margin|padding)/.test(r.split('{')[1]||'')));
 ok2('the day cell is taller than the 44 it was',/\.pf-dates-page \.pf-date-sheet \.pf-calendar \.pw-btn\{height:52px\}/.test(pfcss));
+/* v4.6.82: EVERY MARK ON THE CALENDAR HAS A NAME UNDER IT. The ring drawn
+   around the days the Edit draft covers had no key, so it read as an
+   unexplained box next to days that looked the same otherwise. The key
+   appears with the ring and leaves with it -- a legend for a mark that is
+   not on screen is its own confusion. */
+run(`window.__anchorWas=pfState().anchor.slice();pfState().anchor=[...pw().dates];pwRender();`);
+test('the ring around a drafted day is named in the key',`!!document.querySelector('.pf-calendar .pf-editing')&&!!document.querySelector('.pf-calendar-key .pf-key-ring')&&/Editing/.test(document.querySelector('.pf-calendar-key').textContent)&&/Saved plan/.test(document.querySelector('.pf-calendar-key').textContent)`);
+run(`pfState().anchor=[];pwRender();`);
+test('with nothing drafted the key drops the ring',`!document.querySelector('.pf-calendar .pf-editing')&&!document.querySelector('.pf-key-ring')&&/Saved plan/.test(document.querySelector('.pf-calendar-key').textContent)`);
+run(`pfState().anchor=window.__anchorWas;pwRender();`);
+ok2('the key swatch is the ring, shrunk -- same colour, not a new one',/\.pf-key-ring\{[^}]*box-shadow:inset 0 0 0 2px #85bff7/.test(pfcss)&&/\.pf-calendar \.pf-editing\{[^}]*box-shadow:inset 0 0 0 2px #85bff7/.test(pfcss));
 test('returning to Dates retains completed steps',`!document.querySelector('[data-stage="2"]').disabled&&!document.querySelector('[data-stage="3"]').disabled`);
 run(`pw().dates.push('2026-09-15');pwDay('2026-09-15');pwRender();`);
 test('changing date selection disables later steps, retaining draft markers',`document.querySelector('[data-stage="2"]').disabled&&document.querySelector('[data-stage="3"]').disabled&&document.querySelector('[data-date="2026-09-14"].pf-editing')`);
