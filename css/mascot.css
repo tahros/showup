@@ -1,6 +1,37 @@
+/* v4.6.85: the Rest home is a pause, not a dashboard. */
+body.rest-home header .h-weekrow{display:none}
+body.rest-home header.resting .hglass{background:linear-gradient(180deg,color-mix(in srgb,var(--rest) 10%,var(--ground)),color-mix(in srgb,var(--rest) 9%,var(--ground)));border:0;box-shadow:none;animation:none}
+body.rest-home #app,body.rest-home{background:linear-gradient(180deg,color-mix(in srgb,var(--rest) 10%,var(--ground)),var(--ground) 510px) fixed}
+body.rest-home .su-hello-row{min-height:320px;justify-content:center;padding:24px 0 36px;gap:20px}
+body.rest-home .su-hello-row .su-mascot{width:140px}
+body.rest-home .hello .hi{font:400 34px/1.2 var(--body);letter-spacing:-1px}
+body.rest-home .hello .hisub{font-family:var(--body)}
+body.rest-home .pw-home{position:relative;margin:0}
+body.rest-home .pw-home-heading{display:none}
+body.rest-home .pw-home .pw-plan-group,body.rest-home .pw-home>.pw-saved{background:transparent;box-shadow:none;border-radius:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:0}
+body.rest-home .pw-home .pw-saved{background:transparent;border-radius:0;box-shadow:none}
+body.rest-home .pw-home .pw-saved>summary{padding:22px 0;min-height:100px}
+body.rest-home .pw-rest-later{border:0}
+body.rest-home .pw-rest-later>summary{padding:10px 90px 10px 0;min-height:58px;justify-content:flex-start;color:var(--muted)}
+body.rest-home .pw-rest-later .pw-later-list{padding:0}
+body.rest-home .rest-plan-open{display:flex;align-items:center;gap:6px;min-height:40px;padding:8px 12px;border:1px solid var(--line);border-radius:11px;background:var(--surface);color:var(--chalk);font:400 12px var(--body);margin:12px 0 0 auto}
+body.rest-home .pw-plan-group:has(.pw-rest-later:not([open]))~.rest-plan-open{position:absolute;right:0;bottom:9px;margin:0}
+:root body.rest-home #restBtn{margin:22px auto 24px;font-family:var(--body);font-size:12px}
+.rest-plan-dialog{width:min(390px,calc(100% - 28px));max-height:75dvh;padding:22px;border:1px solid var(--line);border-radius:24px;background:var(--surface);color:var(--chalk);box-shadow:var(--shadow)}
+.rest-plan-dialog::backdrop{background:#0005;backdrop-filter:blur(4px)}
+.rest-plan-title{display:flex;align-items:center;justify-content:space-between;gap:16px}.rest-plan-title h3{margin:0;font:500 21px var(--body)}
+.rest-plan-title button{width:44px;height:44px;border:0;border-radius:50%;background:var(--surface2);color:var(--chalk)}
+body.rest-home .rest-plan-dialog .pw-home-tools{display:flex;flex-direction:column;align-items:stretch;margin:16px 0 0;gap:10px}
+body.rest-home .rest-plan-dialog .pw-home-tools button{display:flex;align-items:center;justify-content:flex-start;gap:10px;min-height:48px;font-size:14px;padding:12px;background:var(--surface2)}
+@media(min-height:800px){body.rest-home .su-hello-row{min-height:350px}}
 /* v4.6.84: one continuous rest wash, and shared elements for the exhale. */
-body.rest-home,body.rest-home #app{background:linear-gradient(180deg,color-mix(in srgb,var(--rest) 22%,var(--ground)),var(--ground) 440px) fixed}
-body.rest-home header.resting .hglass{background:transparent;border-color:transparent;box-shadow:none;animation:none}
+body.rest-home,body.rest-home #app{background:linear-gradient(180deg,color-mix(in srgb,var(--rest) 10%,var(--ground)),var(--ground) 510px) fixed}
+body.rest-home header.resting .hglass{background:linear-gradient(180deg,color-mix(in srgb,var(--rest) 10%,var(--ground)),color-mix(in srgb,var(--rest) 9%,var(--ground)));border-color:transparent;box-shadow:none;animation:none}
+body.rest-home .pw-home .pw-saved>summary .pw-future-label{gap:8px}
+body.rest-home .pw-home .pw-saved>summary .pw-future-label>strong{font:500 21px/1.25 var(--body);letter-spacing:-.4px}
+body.rest-home .pw-home .pw-saved>summary .pw-plan-totals{display:flex;flex-direction:row;align-items:center;gap:6px}
+body.rest-home .pw-home .pw-saved>summary .pw-plan-totals>strong,body.rest-home .pw-home .pw-saved>summary .pw-plan-totals>small{font:400 12px/1.4 var(--body);color:var(--muted)}
+body.rest-home .pw-home .pw-saved>summary .pw-plan-totals>small:before{content:'·';margin-right:6px}
 .rest-home .su-hello-row{flex-direction:column-reverse;gap:4px;padding:16px 0 22px}
 .rest-home .su-hello-row .su-mascot{width:172px;max-width:55vw}
 .rest-home .hello{display:flex;flex-direction:column;align-items:center;gap:6px;margin:0;text-align:center}

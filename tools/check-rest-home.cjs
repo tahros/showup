@@ -9,7 +9,14 @@ for(const width of [320,393,430]){
  const plans=await p.evaluate(()=>JSON.stringify(DB.week));
  await p.locator('#restBtn').click();await p.waitForTimeout(1100);
  assert(await p.locator('body').evaluate(e=>e.classList.contains('rest-home')));
- assert.equal(await p.locator('.hello .hi').textContent(),'Rest day');
+ assert.equal(await p.locator('.hello .hi').textContent(),'Rest day.');
+ assert.equal(await p.locator('header .h-weekrow').isVisible(),false);
+ assert.equal(await p.locator('#view .crcard').count(),0);
+ await p.locator('[data-rest-menu]').click();
+ assert.equal(await p.locator('#restPlanMenu').isVisible(),true);
+ assert.equal(await p.locator('#restPlanMenu [data-pw]:visible').count(),3);
+ await p.locator('[data-rest-menu-close]').click();
+ assert.equal(await p.locator('#restPlanMenu').isVisible(),false);
  assert.equal(await p.locator('.pw-rest-later').getAttribute('open'),null);
  assert.equal(await p.locator('.pw-home-tools button').count(),3);
  assert.equal(await p.locator('.pw-home .pw-saved>summary:visible').count(),1);
@@ -28,4 +35,3 @@ assert(!(await p.locator('body').evaluate(e=>e.classList.contains('rest-home')))
 for(const kind of ['today','empty','gap']){await setup(kind);await p.locator('#restBtn').click();await p.waitForTimeout(150);assert.equal(await p.locator('.pw-home-tools button').count(),3);}
 assert.deepEqual(errors,[]);console.log('PASS rest morph, undo, mobile, disclosures, reduced motion, no-plan and existing-plan cases, records preserved');
 }finally{await b.close();}})().catch(e=>{console.error(e);process.exitCode=1;});
-

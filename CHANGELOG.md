@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.85 (2026-09-20) — A quieter Rest home
+
+- Simplify Rest Home to the breathing mascot, attendance count and next saved plan, with a softer sage wash and no weekly header strip.
+- Unbox the next plan and group its counts below the title. Keep later days expandable and collect Plan, Paste and Dates in one accessible planning dialog.
+- Move the rest-history heatmap and weekday analysis to Stats during Rest; preserve saved plans, Undo, the rest transition, reduced motion and training access.
+- Keep the header background opaque while scrolling so content cannot show through its controls.
+
 ## v4.6.84 (2026-09-20) — Today exhales into Rest
 
 - Morph the greeting, mascot, next plan and planning controls between Today and Rest; respect reduced motion.

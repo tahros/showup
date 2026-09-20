@@ -117,6 +117,12 @@ function pwLaterPlans(html,dates){
   group.insertAdjacentHTML('beforeend',`<div class="pw-later pw-later-visible"><div class="pw-later-heading"><span>${dates.length} more ${dates.length===1?'plan':'plans'}</span><small>${hesc(days)}</small></div><div class="pw-later-list">${dates.map(d=>`<details class="pw-later-day" data-pw-fold="later:${d}" ${pwFoldOpen('later:'+d)?'open':''}><summary>${pwPlanHeading((d===tomorrowISO()?'Tomorrow · ':'')+pwDate(d),pwSaved(d))}</summary>${planCardHTML(pwSaved(d),false)}<div class="pw-actions pw-future-actions pw-later-actions" role="group" aria-label="Actions for ${hesc(pwDate(d))} plan">${pwAction('open-date','Edit','edit','',`data-date="${d}"`)}${pwAction('paste-open','Paste','paste','',`data-date="${d}"`)}</div></details>`).join('')}</div></div>`);
   return t.innerHTML;
 }
+function datesForRestLabel(later){const n=later.querySelectorAll('.pw-later-day').length;return n+' more planned '+(n===1?'day':'days');}
+document.addEventListener('click',e=>{
+  const menu=document.getElementById('restPlanMenu');if(!menu)return;
+  if(e.target.closest('[data-rest-menu]')){menu.showModal();return;}
+  if(e.target.closest('[data-rest-menu-close]')||e.target.closest('#restPlanMenu [data-pw]')||e.target===menu)menu.close();
+},true);
 function pwTodayHTML(){
   const s=pw(),closed=dayClosed(),now=planNow();
   const future=[...new Set([...(DB.plan?.d>todayISO?[DB.plan.d]:[]),...Object.keys(DB.week?.days||{}).filter(d=>d>todayISO)])].filter(d=>pwSaved(d)?.items?.length).sort();
@@ -137,16 +143,24 @@ function pwTodayHTML(){
     const heading=home.querySelector('.pw-home-heading');
     heading.querySelector('h2').textContent=hasToday?'Your saved plan':upcoming?'Looking ahead':'Your plan';
     tools.querySelector(':scope > span')?.remove();
-    tools.insertAdjacentHTML('beforeend',pwDatesButton());home.append(tools);
+    tools.insertAdjacentHTML('beforeend',pwDatesButton());
+    const dialog=document.createElement('dialog');dialog.className='rest-plan-dialog';dialog.id='restPlanMenu';
+    dialog.setAttribute('aria-labelledby','restPlanTitle');
+    dialog.innerHTML='<div class="rest-plan-title"><h3 id="restPlanTitle">Plan</h3><button type="button" data-rest-menu-close aria-label="Close planning menu">'+icon('clear',ICON_SZ.sm)+'</button></div>';
+    dialog.append(tools);home.append(dialog);
+    const manage=document.createElement('button');manage.type='button';manage.className='rest-plan-open';manage.dataset.restMenu='';
+    manage.innerHTML=pwCalendarIcon()+'Plan';manage.setAttribute('aria-haspopup','dialog');home.append(manage);
     heading.querySelector('button')?.remove();
     const later=home.querySelector('.pw-later');
     if(later){
       const fold=document.createElement('details');fold.className='pw-rest-later';
       fold.dataset.pwFold='rest-later';fold.open=pwFoldOpen('rest-later');
       const summary=document.createElement('summary');
-      summary.innerHTML=later.querySelector('.pw-later-heading').innerHTML;
+      summary.innerHTML='<span>'+datesForRestLabel(later)+'</span>';
       fold.append(summary,later.querySelector('.pw-later-list'));later.replaceWith(fold);
     }
+    const lead=home.querySelector('.pw-saved>summary');
+    if(lead)lead.querySelector('.pw-future-label').append(lead.querySelector('.pw-plan-totals'));
     html=t.innerHTML;
   }
   return pwFoldMarkup(html);

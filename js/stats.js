@@ -1456,7 +1456,7 @@ function renderStats(){
   for(const [m,v] of Object.entries(SEED.monthly)) monthCounts[m]=Math.max(monthCounts[m]||0,v.days);
 
   // v3.3.230: lifetime total + current rhythm are one attendance hero.
-  let h=currentRhythmSection();   // v3.3.469: the v3.3.468 rest lead was reverted at the maker's word
+  let h=currentRhythmSection(restingToday());   // v3.3.469: the v3.3.468 rest lead was reverted at the maker's word
   cut('kpis');
   /* v3.3.208: Session Build keeps the honest part mix and the live-growing
      skyline, but every unit is now one completed set — never mixed tonnage. */

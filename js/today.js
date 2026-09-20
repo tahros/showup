@@ -321,7 +321,7 @@ function helloCard(){
      is the countdown that goes, since you are not closing on anything today.
      The name goes with it: "Rest, Sungjee." reads as an instruction. */
   if(restingToday())
-    return `<div class="hello resting"><span class="hi">Rest day</span><span class="hisub">${
+    return `<div class="hello resting"><span class="hi">Rest day.</span><span class="hisub">${
       fmt(SEED.totals.sessions)} days in.</span></div>`;
   const part=helloPart(new Date().getHours());
   const sub=helloSub(SEED.totals.sessions);
@@ -475,7 +475,7 @@ function renderToday(){
          function, with the days you did NOT train lit in the rest green. The
          one place green enters a grid of days, and it is the day's own frame,
          shown only while the frame is true. */
-      h+=currentRhythmSection(true);
+      // Rest history lives in Stats; Today stays a quiet pause.
       $('#view').innerHTML=h; msCountUp(); dayCountUp(); return;
     }
     if(_pl0){
