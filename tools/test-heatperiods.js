@@ -87,8 +87,8 @@ const px=re=>{const m=story.match(re);return m?parseFloat(m[1]):null;};
 ok('the old month and year rows are hidden on the card, whichever view draws it',
    /\.crcard \.heatticks,\.crcard \.heatyears\{display:none\}/.test(story));
 const railH=px(/\.heat-periods\{[^}]*?height:([\d.]+)px/),gridTop=px(/\.crcard \.heatgrid\{margin-top:([\d.]+)px/),wdTop=px(/\.crcard \.wdrail\{padding-top:([\d.]+)px/);
-ok('rail height, grid offset and weekday-rail padding are one number',
-   railH!==null&&railH===gridTop&&railH===wdTop, `${railH} / ${gridTop} / ${wdTop}`);
+ok('weekday rail includes the new four-pixel top gutter',
+   railH!==null&&railH===gridTop&&railH+4===wdTop, `${railH} / ${gridTop} / ${wdTop}`);
 ok('no second rule in stats-story sets .wdrail padding-top',
    (story.match(/\.wdrail\{[^}]*padding-top/g)||[]).length===1);
 
@@ -108,14 +108,14 @@ ok('...and the stacking rule is no longer scoped to .resting',
 // (2) today's halo has a gutter to breathe into. The ring reaches inset:-3.5px,
 //     so anything less than 3.5px of padding still clips it.
 {
-  const pad=story.match(/\.crcard \.heatgrid\{[^}]*padding:0 ([\d.]+)px ([\d.]+)px 0/);
+  const pad=story.match(/\.crcard \.heatgrid\{[^}]*padding:4px ([\d.]+)px ([\d.]+)px 0/);
   const peak=Math.abs(parseFloat((cssA.match(/60%\s*\{opacity:[\d.]+;\s*inset:(-[\d.]+)px/)||[])[1]));
   ok('(fixture) the halo peak is known from todbreath', !isNaN(peak), 'inset -'+peak+'px');
   ok('the grid reserves at least the halo peak on the right and the bottom',
      !!pad && parseFloat(pad[1])>=peak && parseFloat(pad[2])>=peak,
      pad?`right ${pad[1]}px, bottom ${pad[2]}px vs a ${peak}px halo`:'no padding rule');
-  ok('...and the squares themselves did not move -- no left or top padding',
-     !!pad && /padding:0 [\d.]+px [\d.]+px 0/.test(story));
+  ok('top gutter clears the month rail without changing horizontal alignment',
+     !!pad && /padding:4px [\d.]+px [\d.]+px 0/.test(story));
 }
 
 // (3) no month label is left hanging off the rail's right edge.
