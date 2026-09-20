@@ -475,7 +475,7 @@ function renderToday(){
          function, with the days you did NOT train lit in the rest green. The
          one place green enters a grid of days, and it is the day's own frame,
          shown only while the frame is true. */
-      // Rest history lives in Stats; Today stays a quiet pause.
+      h+=currentRhythmSection(true);
       $('#view').innerHTML=h; msCountUp(); dayCountUp(); return;
     }
     if(_pl0){

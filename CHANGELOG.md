@@ -1,5 +1,11 @@
 # ShowUp — changelog
 
+## v4.6.87 (2026-09-20) — Restore the v4.6.84 Rest screen
+
+- Restore the requested v4.6.84 Rest layout: larger mascot, sage wash, weekly header, boxed next plan, visible Plan/Paste/Dates controls and rest history on Today.
+- Restore its natural scrolling and original Stats layout; retain the v4.6.84 Today-to-Rest morph, breathing mascot, Undo and saved-plan behavior.
+- This is a new release restoring the Rest screen, not a rollback of workout data or unrelated features.
+
 ## v4.6.86 (2026-09-20) — Rest fits the screen
 
 - Remove the period from Rest day.

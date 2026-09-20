@@ -304,19 +304,6 @@ function systemTheme(){
 }
 let _themeWatched=false;
 function bodyPalette(){return DB.settings.bodyPalette==='neon'?'neon':'normal';}
-function syncRestChrome(){
-  const resting=document.body.classList.contains('rest-home');
-  document.documentElement.classList.toggle('rest-home',resting);
-  const meta=document.querySelector('meta[name="theme-color"]');if(!meta)return;
-  if(!resting){meta.content=document.documentElement.dataset.theme==='light'?'#F2F3F6':'#0C0E13';return;}
-  // Resolve the same surface color to opaque RGB for Safari's browser chrome.
-  const probe=document.createElement('span');probe.style.backgroundColor='color-mix(in srgb,var(--rest) 10%,var(--ground))';
-  probe.hidden=true;document.body.append(probe);
-  const canvas=document.createElement('canvas');canvas.width=canvas.height=1;
-  const ctx=canvas.getContext('2d');ctx.fillStyle=getComputedStyle(probe).backgroundColor;ctx.fillRect(0,0,1,1);
-  const rgb=ctx.getImageData(0,0,1,1).data;probe.remove();
-  meta.content='#'+Array.from(rgb).slice(0,3).map(n=>n.toString(16).padStart(2,'0')).join('');
-}
 function applyTheme(){
   const pref=DB.settings.theme;
   /* Design-review links may pin a theme without mutating the user's saved
@@ -358,7 +345,6 @@ function applyTheme(){
   try{localStorage.setItem('showup-theme',t);localStorage.setItem('showup-skin',sk);localStorage.setItem('showup-bar',bar);}catch(e){}
   const m=document.querySelector('meta[name="theme-color"]');
   if(m) m.setAttribute('content', t==='light'?'#F2F3F6':'#0C0E13');
-  if(document.body.classList.contains('rest-home'))syncRestChrome();
   if(!_themeWatched){
     _themeWatched=true;
     try{
