@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.83 (2026-09-20) — Tomorrow leads, all saved plans stay visible
+
+- Show the next saved workout even when today has not been completed; tomorrow no longer falls between the featured card and later-plan list.
+- Keep every upcoming saved date visible in chronological order, with expandable exercises and date-specific Edit/Paste actions.
+- Add compact, neutral Plan and Paste buttons above the plans, alongside the planned-day count.
+- Preserve the current header, planner navigation, calendar interactions, tab bar, workout history and saved drafts from v4.6.82.
+
 ## v4.6.72 (2026-09-18) — The arrow leaves; Today knows where it was tapped
 
 - In the planning workspace, the top-left arrow now returns to the screen you came from — Today, Train or Settings — from any step. It no longer walks the steps backwards; the step bar does that.
