@@ -272,6 +272,12 @@ export function createMascot(stage, options={}) {
        on rest. still (reduced motion, or the setting off animated) keeps the
        old behaviour exactly: one pose, no loop. */
     const showing=!still&&motion&&(mode==='active'||t<end);
+    if(mode==='rest'){
+      // A slow exhale; tapping restarts one small stretch, never a celebration.
+      const breathe=still?0:Math.sin(t/5200*Math.PI*2);
+      const stretch=!still&&t<1800?Math.sin(t/1800*Math.PI):0;
+      draw({...rest,roll:-.045+stretch*.08,squash:1+breathe*.012+stretch*.045,blink:.22+stretch*.78});return;
+    }
     draw(showing?pose(motion.frames,mode==='active'?t%end:t)
         :still?rest:idlePose(t,end?(t-end)/900:t/900));
   }

@@ -321,7 +321,7 @@ function helloCard(){
      is the countdown that goes, since you are not closing on anything today.
      The name goes with it: "Rest, Sungjee." reads as an instruction. */
   if(restingToday())
-    return `<div class="hello resting"><span class="hi">Rest.</span><span class="hisub">${
+    return `<div class="hello resting"><span class="hi">Rest day</span><span class="hisub">${
       fmt(SEED.totals.sessions)} days in.</span></div>`;
   const part=helloPart(new Date().getHours());
   const sub=helloSub(SEED.totals.sessions);
@@ -402,7 +402,7 @@ function renderToday(){
 
   if(!logged){
     // ---- before the gym: what should I train
-    h+=`<div class="su-hello-row">${helloCard()}${mascotHTML('hello')}</div>`;
+    h+=`<div class="su-hello-row">${helloCard()}${mascotHTML(restingToday()?'rest':'hello')}</div>`;
     /* v3.3.319: before the gym, the plan is what you came to read — the same
        section the mid-session branch leads with, so Today shows one thing in
        both states. Rhythm left with it; it restated the streak and the day
@@ -428,7 +428,7 @@ function renderToday(){
     const _pl0=planNow();
     const _rest=!!(DB.days[todayISO]&&DB.days[todayISO].rest);
     h+=`<button class="btn ghost restbtn ${_rest?'on':''}" id="restBtn">${
-      _rest?'Resting today · tap to undo':'Rest day'}</button>`;
+      _rest?'Undo rest day':'Rest day'}</button>`;
     /* v3.3.374: WITH A PLAN, "Train next" IS THE PLAN. The planner answers
        "what should I train?" from the rotation; the moment you save a plan you
        have answered it yourself, and a card arguing with your own decision is
@@ -465,7 +465,7 @@ function renderToday(){
          moving one day out of a week would leave a hole in it) and no plan
          already stamped for tomorrow. */
       const _carry=!!(DB.plan&&DB.plan.d===todayISO&&(DB.plan.items||[]).length&&!_srcT);
-      if(_label||_carry){
+      if(_carry){
         h+=`<div class="row spread card tmwnext" style="margin-top:14px;padding:11px 14px">
               <span class="mono" style="font-size:12px">${_label?`Tomorrow \u00b7 ${hesc(_label)}`:'Tomorrow'}</span>${
               _carry?`<button class="chip" data-carrytmw>carry today's plan →</button>`:''}</div>`;

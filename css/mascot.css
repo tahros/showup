@@ -1,3 +1,25 @@
+/* v4.6.84: one continuous rest wash, and shared elements for the exhale. */
+body.rest-home,body.rest-home #app{background:linear-gradient(180deg,color-mix(in srgb,var(--rest) 22%,var(--ground)),var(--ground) 440px) fixed}
+body.rest-home header.resting .hglass{background:transparent;border-color:transparent;box-shadow:none;animation:none}
+.rest-home .su-hello-row{flex-direction:column-reverse;gap:4px;padding:16px 0 22px}
+.rest-home .su-hello-row .su-mascot{width:172px;max-width:55vw}
+.rest-home .hello{display:flex;flex-direction:column;align-items:center;gap:6px;margin:0;text-align:center}
+.rest-home .hello .hi{font-size:27px;line-height:1.2}
+.rest-home .hello .hisub{font-size:12px;margin:0;color:var(--muted)}
+.rest-home .pw-home-tools{justify-content:center;margin:14px 0 0;gap:8px}
+.rest-home .pw-home-tools button{flex:0 0 auto}
+:root body.rest-home #restBtn{display:block;min-height:44px;width:auto;margin:12px auto 24px;padding:8px 18px;background:transparent;border-color:transparent;box-shadow:none;color:var(--muted);font-size:13px}
+.pw-rest-later{border-top:1px solid var(--line)}
+.pw-rest-later>summary{display:flex;align-items:center;gap:10px;padding:15px 16px;min-height:48px;cursor:pointer;list-style:none;font-size:12px;color:var(--accent-ink)}
+.pw-rest-later>summary::-webkit-details-marker{display:none}
+.pw-rest-later>summary small{margin-left:auto;font-size:11px;color:var(--muted)}
+.rest-morph .su-hello-row .su-mascot{view-transition-name:rest-mascot}
+.rest-morph .su-hello-row .hello{view-transition-name:rest-greeting}
+.rest-morph .pw-home .pw-saved{view-transition-name:rest-plan}
+.rest-morph .pw-home-tools{view-transition-name:rest-tools}
+.rest-morph #restBtn{view-transition-name:rest-action}
+.rest-morph::view-transition-group(*){animation-duration:850ms;animation-timing-function:var(--settle)}
+.rest-morph::view-transition-old(root),.rest-morph::view-transition-new(root){animation-duration:650ms}
 /* Decorative mascot slots never overlay a control or change the app header. */
 .su-mascot{display:block;position:relative;width:180px;aspect-ratio:720/440;flex:none;pointer-events:none}
 /* v4.1.2: only the live 3D mascot takes a tap. The poster PNG stays inert, so

@@ -130,7 +130,26 @@ function pwTodayHTML(){
   else html+='<div class="card pw-home-card pw-home-empty"><h3>Plan your next workout</h3><p class="pw-small">Choose dates or paste a routine to get started.</p></div>';
   const drafts=s.dates.filter(d=>d>=todayISO&&s.book[d]&&s.book[d].source!=='Saved plan'&&(s.book[d].rows.length||s.book[d].parts.length));
   if(drafts.length)html+=pwAction('resume','Resume draft','edit','pw-resume');
-  return pwFoldMarkup(pwLaterPlans(html+'</section>',hasToday?future:future.filter(d=>d!==next)));
+  html=pwLaterPlans(html+'</section>',hasToday?future:future.filter(d=>d!==next));
+  if(restingToday()){
+    const t=document.createElement('template');t.innerHTML=html;
+    const home=t.content.querySelector('.pw-home'),tools=home.querySelector('.pw-home-tools');
+    const heading=home.querySelector('.pw-home-heading');
+    heading.querySelector('h2').textContent=hasToday?'Your saved plan':upcoming?'Looking ahead':'Your plan';
+    tools.querySelector(':scope > span')?.remove();
+    tools.insertAdjacentHTML('beforeend',pwDatesButton());home.append(tools);
+    heading.querySelector('button')?.remove();
+    const later=home.querySelector('.pw-later');
+    if(later){
+      const fold=document.createElement('details');fold.className='pw-rest-later';
+      fold.dataset.pwFold='rest-later';fold.open=pwFoldOpen('rest-later');
+      const summary=document.createElement('summary');
+      summary.innerHTML=later.querySelector('.pw-later-heading').innerHTML;
+      fold.append(summary,later.querySelector('.pw-later-list'));later.replaceWith(fold);
+    }
+    html=t.innerHTML;
+  }
+  return pwFoldMarkup(html);
 }
 function pwCalendarHTML(){
   const s=pw(),base=new Date((s.month||(s.active||todayISO).slice(0,7)+'-01')+'T12:00');base.setDate(1);

@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.84 (2026-09-20) — Today exhales into Rest
+
+- Morph the greeting, mascot, next plan and planning controls between Today and Rest; respect reduced motion.
+- Blend the resting header into a continuous soft green wash, with a centered Rest day hero and the existing 3D mascot breathing slowly. Tapping the mascot gives a small stretch.
+- Collapse later plans only in Rest, keep the next saved plan visible, and place Plan, Paste and Dates below it. Undo remains available without changing saved plans or workout completion.
+- Preserve existing rest history, carry-tomorrow action and training-tab access; remove the redundant tomorrow summary when the saved plan is already shown.
+
 ## v4.6.83 (2026-09-20) — Tomorrow leads, all saved plans stay visible
 
 - Show the next saved workout even when today has not been completed; tomorrow no longer falls between the featured card and later-plan list.

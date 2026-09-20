@@ -977,7 +977,7 @@ document.addEventListener('click',e=>{
     const t=day(todayISO);
     if(t.rest) delete t.rest; else t.rest=true;   // toggle; no confirm, no prompt
     t.upd=Date.now();
-    save(true); render({soft:true}); return;   // v3.3.440: the exhale cross-fades instead of cutting
+    save(true); render({soft:true,restMorph:true}); return;
   }
   if(e.target.closest&&e.target.closest('[data-carrytmw]')){
     /* v3.3.437: CARRY MOVES, it does not copy. Two identical plans stamped
@@ -2155,7 +2155,7 @@ function render(opts){
      `render({soft:true})` asks for the same cross-fade a tab switch gets, and
      brings the header INTO the transition so the wash, the square and the
      view arrive as one motion rather than header-then-body. */
-  const soft=!!(opts&&opts.soft);
+  const soft=!!(opts&&opts.soft),restMorph=!!(opts&&opts.restMorph);
   /* v3.3.492: IN PLACE. Switching the plan scope (today <-> week) genuinely
      changes the content, so unlike the fold it cannot be a class toggle --
      there is new HTML either way. What it must NOT do is behave like arriving
@@ -2186,9 +2186,16 @@ function render(opts){
      becoming a different page and both snapshots are the same size.
      This touches nothing outside render(): the nav and the header are not
      read, written or measured here, and neither is anything fixed. */
-  const both=()=>{ renderHeader(); paint({inplace}); };
+  const both=()=>{
+    document.body.classList.toggle('rest-home',view==='today'&&!lift.plan&&restingToday());
+    renderHeader(); paint({inplace:inplace||restMorph});
+    if(restMorph)window.scrollTo({top:0,behavior:'instant'});
+  };
   if(MOTION_OK && document.startViewTransition && ((lastView!==null && lastView!==view) || soft)){
-    lastView=view; document.startViewTransition(both);
+    lastView=view;
+    if(restMorph)document.documentElement.classList.add('rest-morph');
+    const transition=document.startViewTransition(both);
+    transition.finished.catch(()=>{}).finally(()=>document.documentElement.classList.remove('rest-morph'));
   } else { lastView=view; both(); }
 }
 let floatIO=null;
