@@ -50,17 +50,17 @@ ok2('the day cell is taller than the 44 it was',/\.pf-dates-page \.pf-date-sheet
    appears with the ring and leaves with it -- a legend for a mark that is
    not on screen is its own confusion. */
 run(`window.__anchorWas=pfState().anchor.slice();pfState().anchor=[...pw().dates];pwRender();`);
-test('the ring around a drafted day is named in the key',`!!document.querySelector('.pf-calendar .pf-editing')&&!!document.querySelector('.pf-calendar-key .pf-key-ring')&&/Editing/.test(document.querySelector('.pf-calendar-key').textContent)&&/Saved plan/.test(document.querySelector('.pf-calendar-key').textContent)`);
+test('selection and filled statuses have separate keys',`!document.querySelector('.pf-calendar .pf-editing')&&!!document.querySelector('.pf-key-selected')&&/Draft/.test(document.querySelector('.pf-calendar-key').textContent)&&/Saved plan/.test(document.querySelector('.pf-calendar-key').textContent)`);
 run(`pfState().anchor=[];pwRender();`);
 test('with nothing drafted the key drops the ring',`!document.querySelector('.pf-calendar .pf-editing')&&!document.querySelector('.pf-key-ring')&&/Saved plan/.test(document.querySelector('.pf-calendar-key').textContent)`);
 run(`pfState().anchor=window.__anchorWas;pwRender();`);
-ok2('the key swatch is the ring, shrunk -- same colour, not a new one',/\.pf-key-ring\{[^}]*box-shadow:inset 0 0 0 2px #85bff7/.test(pfcss)&&/\.pf-calendar \.pf-editing\{[^}]*box-shadow:inset 0 0 0 2px #85bff7/.test(pfcss));
+test('calendar uses filled icons rather than dots or editing rings',`!document.querySelector('.pf-calendar .pf-plan-dot,.pf-calendar .pf-editing')&&document.querySelectorAll('.pf-calendar-key svg[fill="currentColor"]').length===2`);
 test('returning to Dates retains completed steps',`!document.querySelector('[data-stage="2"]').disabled&&!document.querySelector('[data-stage="3"]').disabled`);
 run(`pw().dates.push('2026-09-15');pwDay('2026-09-15');pwRender();`);
-test('changing date selection disables later steps, retaining draft markers',`document.querySelector('[data-stage="2"]').disabled&&document.querySelector('[data-stage="3"]').disabled&&document.querySelector('[data-date="2026-09-14"].pf-editing')`);
+test('changing date selection disables later steps, retaining saved status icons',`document.querySelector('[data-stage="2"]').disabled&&document.querySelector('[data-stage="3"]').disabled&&document.querySelector('[data-date="2026-09-14"] .pf-status-icon')`);
 run(`pw().dates=['2026-09-14'];pwRender();`);
 test('restoring exact dates reenables stages',`!document.querySelector('[data-stage="3"]').disabled&&pwSetCount(pwDay('2026-09-14').rows)===5`);
-test('saved calendar dates have dedicated themed dots',`document.querySelector('[data-date="2026-09-14"] .pf-plan-dot')`);
+test('saved calendar dates have filled status icons',`document.querySelector('[data-date="2026-09-14"] .pf-status-icon')`);
 run(`pfNavigate('edit');pfHandle('pf-plus',{dataset:{}});`);
 test('total change is pending, highlighted and does not mutate sets',`pfPending()&&pwSetCount(pwDay(pw().active).rows)===5&&document.querySelector('.pf-changed')&&document.querySelector('.pf-beam')`);
 test('pending total prevents saving',`(()=>{try{pfSave();return false;}catch(e){return /Regenerate/.test(e.message);}})()`);
@@ -108,7 +108,7 @@ run(`pfHandle('pf-prefs-save',{dataset:{}});pw().dates=['2026-09-16'];pw().activ
  run(`pfHandle('pf-settings',{dataset:{}});pfBack();`);
  test('Settings preferences Back returns to Settings',`view==='sync'&&!lift.plan`);
  run(`view='today';lift.plan='workspace';DB.plan=null;const doc=planItemsFrom(pwRead('Squat\\n135 lb × 8 8'));DB.week={days:{'2026-09-11':doc,'2026-09-13':doc,'2026-09-15':doc}};pw().book={};delete pw().journey;pwOpen('2026-09-13','dates');`);
- test('past dates have no plan markers while today keeps its marker',`!document.querySelector('[data-date="2026-09-11"] .pf-plan-dot')&&document.querySelector('[data-date="2026-09-11"] small').textContent===''&&document.querySelector('[data-date="2026-09-13"] .pf-plan-dot')`);
+ test('past dates have no plan markers while today keeps its marker',`!document.querySelector('[data-date="2026-09-11"] .pf-status-icon')&&document.querySelector('[data-date="2026-09-11"] small').textContent===''&&document.querySelector('[data-date="2026-09-13"] .pf-status-icon')`);
  run(`pw().dates=['2026-09-13','2026-09-15'];pfState().anchor=[];pfState().furthest=1;pwRender();`);
  test('saved selection enables Edit without enabling Done',`!document.querySelector('[data-stage="2"]').disabled&&document.querySelector('[data-stage="3"]').disabled`);
  run(`pfHandle('pf-stage',{dataset:{stage:'2'}});`);

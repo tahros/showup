@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.88 (2026-09-20) — Clear calendar selection and draft status
+
+- Use solid rounded blue selections with the existing ink-in/ink-out animation and reduced-motion support.
+- Replace saved-plan dots and editing rings with filled calendar and pencil icons; distinguish selected, saved and unsaved states in the legend and accessible labels.
+- Show separate new-day, saved-plan and draft counts. Resume unsaved drafts without replacing them, including unsaved edits to saved plans.
+- Verify mixed selections, draft persistence, untouched workout records and mobile light/dark layouts.
+
 ## v4.6.87 (2026-09-20) — Restore the v4.6.84 Rest screen
 
 - Restore the requested v4.6.84 Rest layout: larger mascot, sage wash, weekly header, boxed next plan, visible Plan/Paste/Dates controls and rest history on Today.

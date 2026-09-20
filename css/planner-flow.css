@@ -341,3 +341,15 @@ header.planmode .hback::after{content:'';position:absolute;inset:-3px -6px}
  :root .pf-date-sheet .pf-calendar .pf-ink,:root .pf-date-sheet .pf-calendar .pf-ink::before,
  :root .pf-date-sheet .pf-calendar .pf-ink .pf-plan-dot,
  :root .pf-date-sheet .pf-calendar .pf-ink-out,:root .pf-date-sheet .pf-calendar .pf-ink-out::before{animation:none}}
+/* v4.6.88: status belongs to the icon, selection to the filled square. */
+.pf-date-sheet .pf-status-icon{display:block;flex:none;width:14px;height:14px;fill:currentColor}
+:root .pf-date-sheet .pf-calendar .pf-day-status{height:14px;min-height:14px;display:flex;align-items:center;justify-content:center;color:inherit}
+:root .pf-date-sheet .pf-calendar .pw-btn::before{inset:2px;border-radius:11px}
+:root .pf-date-sheet .pf-calendar .selected{color:#fff}
+.pf-keys{flex-wrap:wrap}
+.pf-key-selected{display:inline-block;width:14px;height:14px;border-radius:4px;background:var(--accent)}
+.pf-calendar-key .pf-keys>span{display:inline-flex;align-items:center;gap:5px}
+:root .pf-workspace .pf-date-breakdown{margin:0;font:400 12px/1.5 var(--body);color:var(--muted)}
+:root .pf-workspace .pf-draft-detail{margin:0;font:400 11px/1.5 var(--body);color:var(--muted)}
+.pf-draft-resume{margin:0}
+.pf-draft-resume .pw-btn{width:100%;min-height:44px;color:var(--accent-ink)}
