@@ -32,6 +32,12 @@ ok2('the selection is an inset square, not a full-bleed fill',/inset:5px 3px/.te
    never the tabs themselves -- a per-page margin there moved the bar on every
    tap, and collapsed through the workspace to move the whole page with it.
    check-tabbar.cjs measures the result; this stops the shape coming back. */
+/* v4.6.80: picking a day floods the SQUARE; the cell itself never paints.
+   The flash was a leftover animation filling the whole button. */
+ok2('no motion paints the day cell itself',!/backgroundColor:'var\(--surface\)'|backgroundColor:'var\(--accent\)'/.test(fs.readFileSync(path.join(dir,'js/planner-flow.js'),'utf8')));
+ok2('the ink floods the square and is clipped by its corner',/@keyframes pf-ink-in\{from\{clip-path:circle\(0%[^}]*\}to\{clip-path:circle\(78%/.test(pfcss)&&/\.pf-ink::before\{animation:pf-ink-in 260ms/.test(pfcss));
+ok2('dropping a day runs the ink back, carrying its own fill',/@keyframes pf-ink-out\{from\{background:var\(--accent\)/.test(pfcss)&&/\.pf-ink-out::before\{animation:pf-ink-out 180ms/.test(pfcss));
+ok2('reduced motion gets no flood',/@media\(prefers-reduced-motion:reduce\)\{[^}]*\.pf-ink[^{]*\{animation:none\}\}/.test(pfcss.replace(/\n\s*/g,'')));
 ok2('no page scopes its own box onto the step bar',!pfcss.split('}').some(r=>/\.pf-[a-z-]*page[^{]*\.pf-steps[^{]*\{/.test(r+'}')&&/(^|[;{])\s*(margin|padding)/.test(r.split('{')[1]||'')));
 ok2('the day cell is taller than the 44 it was',/\.pf-dates-page \.pf-date-sheet \.pf-calendar \.pw-btn\{height:52px\}/.test(pfcss));
 test('returning to Dates retains completed steps',`!document.querySelector('[data-stage="2"]').disabled&&!document.querySelector('[data-stage="3"]').disabled`);

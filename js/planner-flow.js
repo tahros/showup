@@ -63,8 +63,26 @@ function pfDateFooter(){
 let pfMotion=null;
 function pfPlayMotion(){const m=pfMotion;pfMotion=null;if(!m)return;const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
  const animate=(el,frames,duration=260)=>{if(el?.animate)el.animate(reduced?[{opacity:.6},{opacity:1}]:frames,{duration:reduced?100:duration,easing:'cubic-bezier(.22,.7,.25,1)'});};
- if(m.kind==='date'){const button=document.querySelector(`.pf-calendar [data-date="${m.date}"]`);animate(button,[{transform:'scale(.92)'},{transform:'scale(1.035)',offset:.6},{transform:'scale(1)'}]);if(button?.classList.contains('selected'))animate(button,[{backgroundColor:'var(--surface)'},{backgroundColor:'var(--accent)'}],180);if(m.before!==pw().dates.length)animate(document.querySelector('.pf-count'),[{transform:`translateY(${pw().dates.length>m.before?'-100%':'100%'})`,opacity:0},{transform:'translateY(0)',opacity:1}]);}
- if(m.kind==='date'){animate(document.querySelector('.pf-selection>span'),[{opacity:.35},{opacity:1}],180);const dot=document.querySelector(`.pf-calendar .selected[data-date="${m.date}"] .pf-plan-dot`);animate(dot,[{color:'var(--accent)'},{color:'#fff'}],180);}
+ /* v4.6.80: PICKING A DAY IS AN INK FLOOD, AND THE CELL NEVER PAINTS.
+    This animated the BUTTON's background from white to accent over 180ms, from
+    the days when a selected day was a filled rounded cell. Since v4.6.78 the
+    fill lives on the day's ::before and the button's own corners went square to
+    make room for it -- so the leftover was painting a hard-cornered square
+    behind the rounded one on every tap. That is the flash the maker saw.
+    What replaces it: colour floods out from the centre of the square and is
+    clipped by its corner, the number turning white once the ink has passed
+    under it. Nothing moves -- no scale on the cell, so forty numbers in a grid
+    stay still while one of them fills. The scale went with the background. */
+ if(m.kind==='date'){
+  const button=document.querySelector(`.pf-calendar [data-date="${m.date}"]`);
+  if(button&&!reduced){
+   const cls=button.classList.contains('selected')?'pf-ink':'pf-ink-out';
+   button.classList.add(cls);
+   button.addEventListener('animationend',()=>button.classList.remove(cls),{once:true});
+  }
+  if(m.before!==pw().dates.length)animate(document.querySelector('.pf-count'),[{transform:`translateY(${pw().dates.length>m.before?'-100%':'100%'})`,opacity:0},{transform:'translateY(0)',opacity:1}]);
+  animate(document.querySelector('.pf-selection>span'),[{opacity:.35},{opacity:1}],180);
+ }
  if(m.kind==='month')for(const el of document.querySelectorAll('.pf-calendar,.pf-date-sheet .pw-month'))animate(el,[{transform:`translateX(${m.dir*16}px)`,opacity:0},{transform:'translateX(0)',opacity:1}]);
  if(m.kind==='arrive')animate(document.querySelector('.pf-workspace'),[{transform:'translateY(12px)',opacity:0},{transform:'translateY(0)',opacity:1}],360);
 }

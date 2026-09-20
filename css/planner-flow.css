@@ -304,7 +304,7 @@ header.planmode .hback::after{content:'';position:absolute;inset:-3px -6px}
 :root .pf-date-sheet .pw-month strong{order:0;margin:0;flex:1;text-align:center;font:600 14px/1.4 var(--body);letter-spacing:0;color:var(--chalk)}
 :root .pf-dates-page .pf-date-sheet .pw-month .pw-btn{width:40px;min-width:40px;min-height:40px}
 /* the day is a 44px target; the square it wears is inset inside it */
-:root .pf-date-sheet .pf-calendar .pw-btn{background:transparent;border-radius:0}
+:root .pf-date-sheet .pf-calendar .pw-btn{background:transparent;border-radius:12px}
 :root .pf-date-sheet .pf-calendar .pw-btn::before{content:'';position:absolute;inset:5px 3px;border-radius:10px;background:transparent;z-index:0;transition:background-color 180ms}
 :root .pf-date-sheet .pf-calendar .selected::before{background:var(--accent)}
 :root .pf-date-sheet .pf-calendar .pw-btn>*{position:relative;z-index:1}
@@ -319,3 +319,29 @@ header.planmode .hback::after{content:'';position:absolute;inset:-3px -6px}
 :root .pf-date-sheet .pf-calendar .pf-editing:not(.selected)::before{animation:pf-edit-pulse 2.4s ease-in-out infinite;box-shadow:inset 0 0 0 2px #85bff7}
 @media(prefers-reduced-motion:reduce){:root .pf-date-sheet .pf-calendar .pf-editing:not(.selected)::before{animation:none}}
 @media(max-width:360px){:root .pf-date-sheet .pf-calendar .pw-btn::before,:root .pf-date-sheet .pf-calendar .pw-drafted:not(.selected)::after{inset:5px 2px}}
+
+/* v4.6.80: THE INK FLOOD. A day fills from the centre of its own square and is
+   clipped by the corner, the number turning white once the ink has passed
+   under it; dropping a day runs it back into the centre. Only the square and
+   the type change -- nothing in the grid moves, which is what lets forty
+   numbers sit still while one of them fills. The keyframes carry the fill on
+   the way out because by then the day is no longer selected and its ::before
+   has nothing to paint. */
+@keyframes pf-ink-in{from{clip-path:circle(0% at 50% 50%)}to{clip-path:circle(78% at 50% 50%)}}
+@keyframes pf-ink-out{from{background:var(--accent);clip-path:circle(78% at 50% 50%)}
+                      to{background:var(--accent);clip-path:circle(0% at 50% 50%)}}
+/* the number holds its ink colour until the flood reaches it, then turns
+   white quickly: a long crossfade leaves it grey on blue, which is the one
+   moment in this animation where the day is hard to read. */
+@keyframes pf-ink-ink{0%,45%{color:var(--chalk)}72%,100%{color:#fff}}
+@keyframes pf-ink-ink-out{from{color:#fff}to{color:var(--chalk)}}
+@keyframes pf-ink-dot{0%,45%{color:var(--accent)}72%,100%{color:#fff}}
+:root .pf-date-sheet .pf-calendar .pf-ink::before{animation:pf-ink-in 260ms cubic-bezier(.4,0,.2,1)}
+:root .pf-date-sheet .pf-calendar .pf-ink{animation:pf-ink-ink 260ms linear}
+:root .pf-date-sheet .pf-calendar .pf-ink .pf-plan-dot{animation:pf-ink-dot 260ms linear}
+:root .pf-date-sheet .pf-calendar .pf-ink-out::before{animation:pf-ink-out 180ms cubic-bezier(.4,0,1,1)}
+:root .pf-date-sheet .pf-calendar .pf-ink-out{animation:pf-ink-ink-out 180ms linear}
+@media(prefers-reduced-motion:reduce){
+ :root .pf-date-sheet .pf-calendar .pf-ink,:root .pf-date-sheet .pf-calendar .pf-ink::before,
+ :root .pf-date-sheet .pf-calendar .pf-ink .pf-plan-dot,
+ :root .pf-date-sheet .pf-calendar .pf-ink-out,:root .pf-date-sheet .pf-calendar .pf-ink-out::before{animation:none}}
