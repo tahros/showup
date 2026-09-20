@@ -34,6 +34,10 @@ ok2('the selection is an inset square, not a full-bleed fill',/inset:5px 3px/.te
    check-tabbar.cjs measures the result; this stops the shape coming back. */
 /* v4.6.80: picking a day floods the SQUARE; the cell itself never paints.
    The flash was a leftover animation filling the whole button. */
+/* v4.6.81: the dates card opens on the calendar. The preferences summary and
+   its Edit button are gone -- that button left for the Preferences tab, which
+   is already on this screen, while reading as "edit these dates". */
+test('the dates card opens on the month, with no preferences summary and one door to Preferences',`pfState().page==='dates'&&!document.querySelector('.pf-compact-prefs,.pf-pref-edit')&&document.querySelector('.pf-date-sheet').firstElementChild.classList.contains('pw-month')&&!/exercises avoided/.test(document.getElementById('view').textContent)&&document.querySelectorAll('.pf-workspace [data-pw="pf-prefs"]').length===0&&!!document.querySelector('.pf-steps [data-stage="0"],.pf-steps button')`);
 ok2('no motion paints the day cell itself',!/backgroundColor:'var\(--surface\)'|backgroundColor:'var\(--accent\)'/.test(fs.readFileSync(path.join(dir,'js/planner-flow.js'),'utf8')));
 ok2('the ink floods the square and is clipped by its corner',/@keyframes pf-ink-in\{from\{clip-path:circle\(0%[^}]*\}to\{clip-path:circle\(78%/.test(pfcss)&&/\.pf-ink::before\{animation:pf-ink-in 260ms/.test(pfcss));
 ok2('dropping a day runs the ink back, carrying its own fill',/@keyframes pf-ink-out\{from\{background:var\(--accent\)/.test(pfcss)&&/\.pf-ink-out::before\{animation:pf-ink-out 180ms/.test(pfcss));
