@@ -1,5 +1,10 @@
 # ShowUp — changelog
 
+## v4.6.89 (2026-09-20) — Keep the streak outline fully visible
+
+- Reserve a small gutter inside the streak heatmap scroller so today's breathing outline is not clipped at the edges, including Rest mode.
+- Keep weekday labels aligned with the squares and preserve the existing animation and horizontal scrolling.
+
 ## v4.6.88 (2026-09-20) — Clear calendar selection and draft status
 
 - Use solid rounded blue selections with the existing ink-in/ink-out animation and reduced-motion support.

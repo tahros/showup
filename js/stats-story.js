@@ -676,7 +676,9 @@ const compactStyle=document.createElement('style');compactStyle.textContent=`
    bottom row -- the ring was cut on two sides. 4px of padding on the grid gives
    the halo its gutter without moving a single square; the wdrail keeps its own
    padding-top so the S row still lines up with row one. */
-.crcard .heatgrid{margin-top:30px;padding:0 4px 4px 0}.crcard .wdrail{padding-top:30px}
+/* v4.6.89: the opaque month rail ends at 30px. Leave 4px ABOVE the first
+   row too, so Sunday's breathing ring does not paint beneath that rail. */
+.crcard .heatgrid{margin-top:30px;padding:4px 4px 4px 0}.crcard .wdrail{padding-top:34px}
 .crcard .heat-periods{position:absolute;right:0;top:0;height:30px;overflow:hidden;pointer-events:none;background:var(--surface);z-index:1}
 /* v4.5.20: the date rail is sized to the WEEKDAY RAIL beside it. Both already
    named var(--mono), so this was never a family mismatch -- .wdrail is 9px in
