@@ -49,7 +49,7 @@ function pw(){
 }
 /* v4.0.5: a fold's remembered state, defaulting to shut so nothing that used
    to open closed now opens by surprise on first run. */
-function pwFoldOpen(key){return !!pw().folds?.[key];}
+function pwFoldOpen(key,fallback=false){const f=pw().folds;return f&&key in f?!!f[key]:fallback;}
 function pwPersist(){const s=pw();try{localStorage.setItem(pwKey(),JSON.stringify({...s,busy:false,candidate:null,error:''}));return true;}catch(_){s.error='This device cannot keep a draft between visits. Keep this screen open until you save.';return false;}}
 function pwDay(d){
   const s=pw();if(!s.book[d]){const saved=pwSaved(d),rows=saved?pwRead(planText(saved)):[];
@@ -108,13 +108,24 @@ function pwPlanTotals(plan){
 function pwPlanHeading(label,plan){
   return `<span class="pw-future-label"><span>${hesc(label)}</span><strong>${hesc(pwParts(pwRead(planText(plan))).join(' + ')||'Your workout')}</strong></span>${pwPlanTotals(plan)}`;
 }
+/* v4.6.94: EVERYTHING AFTER TOMORROW FOLDS. v4.6.83 put every upcoming plan
+   on the home screen, which is right for today and tomorrow and long for the
+   rest -- five planned days push Train next off the bottom. The days after
+   tomorrow now sit behind one row that remembers whether it is open. It
+   STARTS open, so nothing vanishes from a screen that had it yesterday:
+   shut it once and it stays shut. Today and tomorrow never fold away. */
+function pwLaterDayHTML(d){
+  return `<details class="pw-later-day" data-pw-fold="later:${d}" ${pwFoldOpen('later:'+d)?'open':''}><summary>${pwPlanHeading((d===tomorrowISO()?'Tomorrow · ':'')+pwDate(d),pwSaved(d))}</summary>${planCardHTML(pwSaved(d),false)}<div class="pw-actions pw-future-actions pw-later-actions" role="group" aria-label="Actions for ${hesc(pwDate(d))} plan">${pwAction('open-date','Edit','edit','',`data-date="${d}"`)}${pwAction('paste-open','Paste','paste','',`data-date="${d}"`)}</div></details>`;
+}
+function pwWeekdays(dates){return dates.map(d=>new Date(d+'T12:00').toLocaleDateString('en-US',{weekday:'short'})).join(' · ');}
 function pwLaterPlans(html,dates){
   if(!dates.length)return html;
   const t=document.createElement('template');t.innerHTML=html;
   const card=t.content.querySelector('.pw-saved,.pw-home-card');if(!card)return html;
   const group=document.createElement('div');group.className='pw-plan-group';card.before(group);group.append(card);
-  const days=dates.map(d=>new Date(d+'T12:00').toLocaleDateString('en-US',{weekday:'short'})).join(' · ');
-  group.insertAdjacentHTML('beforeend',`<div class="pw-later pw-later-visible"><div class="pw-later-heading"><span>${dates.length} more ${dates.length===1?'plan':'plans'}</span><small>${hesc(days)}</small></div><div class="pw-later-list">${dates.map(d=>`<details class="pw-later-day" data-pw-fold="later:${d}" ${pwFoldOpen('later:'+d)?'open':''}><summary>${pwPlanHeading((d===tomorrowISO()?'Tomorrow · ':'')+pwDate(d),pwSaved(d))}</summary>${planCardHTML(pwSaved(d),false)}<div class="pw-actions pw-future-actions pw-later-actions" role="group" aria-label="Actions for ${hesc(pwDate(d))} plan">${pwAction('open-date','Edit','edit','',`data-date="${d}"`)}${pwAction('paste-open','Paste','paste','',`data-date="${d}"`)}</div></details>`).join('')}</div></div>`);
+  const tom=tomorrowISO(),soon=dates.filter(d=>d<=tom),rest=dates.filter(d=>d>tom);
+  const fold=rest.length?`<details class="pw-later-fold" data-pw-fold="later" ${pwFoldOpen('later',true)?'open':''}><summary><span>After tomorrow</span><small>${hesc(pwWeekdays(rest))}</small></summary>${rest.map(pwLaterDayHTML).join('')}</details>`:'';
+  group.insertAdjacentHTML('beforeend',`<div class="pw-later pw-later-visible"><div class="pw-later-heading"><span>${dates.length} more ${dates.length===1?'plan':'plans'}</span><small>${fold?'':hesc(pwWeekdays(dates))}</small></div><div class="pw-later-list">${soon.map(pwLaterDayHTML).join('')}${fold}</div></div>`);
   return t.innerHTML;
 }
 function pwTodayHTML(){
@@ -140,6 +151,10 @@ function pwTodayHTML(){
     tools.insertAdjacentHTML('beforeend',pwDatesButton());home.append(tools);
     heading.querySelector('button')?.remove();
     const later=home.querySelector('.pw-later');
+    /* the Rest screen already hides all of this behind one summary, so the
+       inner fold would be a second lid on the same box */
+    const inner=later?.querySelector('.pw-later-fold');
+    if(inner)inner.replaceWith(...[...inner.children].filter(x=>x.tagName!=='SUMMARY'));
     if(later){
       const fold=document.createElement('details');fold.className='pw-rest-later';
       fold.dataset.pwFold='rest-later';fold.open=pwFoldOpen('rest-later');
