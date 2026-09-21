@@ -128,6 +128,7 @@ function plLog(set){
      and should not: logging records, the review layer decides what to show. */
   const first=!day.w.length;
   day.w.push(set);
+  if(typeof retroSound==='function')retroSound('click');
   if(first)try{document.dispatchEvent(new CustomEvent('showup:first-set',{detail:{date:todayISO}}));}catch(_e){}
   delete lift.linkChoice;
   return set;

@@ -65,17 +65,17 @@ const SHARE_RULE_Y=SHARE_NAME_Y-50;                        /* 1140 — as before
 function drawShareFooter(x,data,sans){
   x.strokeStyle=data.line;x.lineWidth=1;x.beginPath();x.moveTo(SHARE_EDGE,SHARE_RULE_Y);x.lineTo(1080-SHARE_EDGE,SHARE_RULE_Y);x.stroke();
   x.fillStyle=data.muted;x.font='400 28px '+sans;x.textAlign='right';x.fillText(data.name,1080-SHARE_EDGE,SHARE_NAME_Y,680);
-  if(data.logo)x.drawImage(data.logo,14,85,485,292,SHARE_EDGE,SHARE_MARK_Y,82,SHARE_MARK_H);
+  if(data.logo){x.save();if(data.retro){x.imageSmoothingEnabled=false;x.drawImage(data.logo,SHARE_EDGE,SHARE_MARK_Y,49,49);}else x.drawImage(data.logo,14,85,485,292,SHARE_EDGE,SHARE_MARK_Y,82,SHARE_MARK_H);x.restore();}
 }
 async function sharePlateCard(){
   const date=todayISO,record=JSON.parse(JSON.stringify(DB.days?.[date]||{}));
   const css=getComputedStyle(document.documentElement),read=(k,f)=>css.getPropertyValue(k).trim()||f;
-  const data={date,record,name:firstName()||'',unit:U(),total:plateNumber(plateMetrics(record).kg),
+  const data={date,record,retro:isRetro(),name:firstName()||'',unit:U(),total:plateNumber(plateMetrics(record).kg),
     surface:read('--surface','#fff'),ink:read('--chalk','#1c1c1c'),muted:read('--muted','#686868'),line:read('--line','#ededed'),
     dark:document.documentElement.dataset.theme==='dark',colors:Object.fromEntries(Object.entries(PART_COLORS).map(([p,v])=>[p,read(v.slice(4,-1),'#888888')]))};
   try{
-    const mascot=new Image();mascot.src='assets/mascot-blue.png';
-    const logo=new Image();logo.src='assets/mascot-mark-'+(data.dark?'white':'chrome')+'.png';
+    const mascot=new Image();mascot.src=data.retro?retroStill('hello','blue'):'assets/mascot-blue.png';
+    const logo=new Image();logo.src=data.retro?retroMark().toDataURL():'assets/mascot-mark-'+(data.dark?'white':'chrome')+'.png';
     const module=await import('./plate-gif.js');
     await Promise.all([mascot.decode(),logo.decode(),module.loadExportFonts()]);data.logo=logo;
     await showCard(()=>drawPlateShare(data,mascot),'showup-stacked-'+date,false);
@@ -88,7 +88,7 @@ function drawPlateShare(data,mascot,frame={}){
   if(cv.width!==1080)cv.width=1080;if(cv.height!==1280)cv.height=1280;
   const x=cv.getContext('2d');if(!x)return null;
   const unit=data.unit==='lb'?500/LB:250,m=plateMetrics(data.record),plates=plateLedger(data.record,unit),bank=0;
-  const sans='"ShowUp Export Plex", "IBM Plex Sans",sans-serif',mono=sans;
+  const sans=data.retro?'"IBM Plex Mono",monospace':'"ShowUp Export Plex", "IBM Plex Sans",sans-serif',mono=sans;
   const animated=Number.isFinite(frame.time);let total=0;
   x.fillStyle=data.surface;x.fillRect(0,0,1080,1280);
   const text=(s,y,font,color=data.ink)=>{x.font=font;x.fillStyle=color;x.textAlign='center';x.fillText(s,540,y,944);};
@@ -114,7 +114,7 @@ function drawPlateShare(data,mascot,frame={}){
     if(frame.dust!==false&&age>=340&&age<680){const v=(age-340)/340;for(const d of [-1,1])shadow(cx+d*(plateRX*.74+v*36),end+4-v*15,15+v*35,6+v*12);}
   }
   x.restore();
-  if(!frame.mascot)shadow(891,778,80,13);x.drawImage(frame.mascot||mascot,783,659,216,132);
+  if(!frame.mascot&&!data.retro)shadow(891,778,80,13);x.save();if(data.retro)x.imageSmoothingEnabled=false;x.drawImage(frame.mascot||mascot,783,659,216,132);x.restore();
   const shown=animated?Math.round(data.unit==='lb'?total*LB:total).toLocaleString():data.total;
   x.font='700 112px '+sans;const numberWidth=x.measureText(shown).width;
   x.font='400 34px '+mono;const unitText=data.unit+' moved',unitWidth=x.measureText(unitText).width;
@@ -156,7 +156,7 @@ function bindPlateExport(data,mascot,module,videoModule,options={}){
     const task=new AbortController();controller=task;share.disabled=true;share.textContent='Preparing…';status.textContent=format==='mp4'?'Keep this screen open · preparing video…':'Preparing GIF…';
     try{
       const create=format==='mp4'?videoModule.createPlateVideo:module.createPlateGif;
-      const result=await create({signal:task.signal,dark:data.dark,withMascot:!options.render,onProgress:n=>{if(controller===task)status.textContent=(format==='mp4'?'Preparing video · ':'Preparing GIF · ')+n+'%';},render:options.render||((time,canvas,motion)=>drawPlateShare(data,mascot,{time,canvas,mascot:motion,dust:format!=='mp4'}))});
+      const result=await create({signal:task.signal,dark:data.dark,retro:!!data.retro,withMascot:!options.render,onProgress:n=>{if(controller===task)status.textContent=(format==='mp4'?'Preparing video · ':'Preparing GIF · ')+n+'%';},render:options.render||((time,canvas,motion)=>drawPlateShare(data,mascot,{time,canvas,mascot:motion,dust:format!=='mp4'}))});
       if(closed||task.signal.aborted||controller!==task||_repCv!==current)return;
       if(!result?.size)throw Error('Empty export');
       blobs[format]=result;preview(format);

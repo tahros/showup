@@ -6,8 +6,8 @@ export function loadExportFonts(){
     await face.load();document.fonts.add(face);
   })).catch(e=>{fontPromise=null;throw e;});
 }
-export async function createPlateGif({render,signal,onProgress,dark,withMascot=true}){
-  const {createMascot}=await import('./mascot-renderer.js');
+export async function createPlateGif({render,signal,onProgress,dark,withMascot=true,retro=false}){
+  const {createMascot}=retro?{createMascot:window.createRetroMascot}:await import('./mascot-renderer.js');
   if(signal.aborted)throw new DOMException('Cancelled','AbortError');
   const stage=document.createElement('div');stage.style.cssText='position:fixed;left:-10000px;top:0;width:216px;height:132px;pointer-events:none';stage.setAttribute('aria-hidden','true');document.body.append(stage);
   let mascot,worker,pending;

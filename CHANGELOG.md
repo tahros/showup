@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v4.6.93 (2026-09-20) — Optional Retro appearance
+
+- Add Retro | Minimal | Classic, independent of Light/Dark; keep Minimal as the default.
+- Retro uses IBM Plex Mono, restrained framed panels and simpler controls with the current palette, spacing and navigation.
+- Add a reference-led pixel mascot and short celebrations within the existing completion/replay moments; respect Animated / Still / Off and reduced motion.
+- Add optional 8-bit completion sounds, off by default. Preserve the existing workout flow, records and run results; no quests, stamps or rewards.
+- Use the pixel mascot and monospace type in share receipts without adding duration labels.
+
 ## v4.6.92 (2026-09-20) — Blend Rest into the status area
 
 - Match the document canvas and browser theme color to the top of the Rest gradient in both themes.

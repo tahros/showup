@@ -363,7 +363,7 @@ function progressionShare(card){
        load chart the numbers down the left ARE weights, so say so once. */
     unit:state.kind==='load'?'('+U()+')':'',
     name:(typeof firstName==='function'&&firstName())||'',
-    range:layout.dates[0]+' — '+layout.dates.at(-1),logo:null,
+    range:layout.dates[0]+' — '+layout.dates.at(-1),logo:null,retro:isRetro(),
     /* drawShareFooter reads line/muted/name/logo off the top level, so mirror them there */
     line:color('--line'),muted:color('--muted'),
     colors:{paper:color('--surface'),ink:color('--chalk'),muted:color('--muted'),line:color('--line'),blue:color('--accent-ink'),soft:color('--surface2')},
@@ -371,7 +371,8 @@ function progressionShare(card){
   const label='progression-'+state.ex.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/-$/,'')+'-'+count+'-sessions-'+layout.dates[0]+'-'+layout.dates.at(-1);
   /* the mark has to be decoded before the canvas is drawn; showCard draws
      synchronously. A failed decode is not a reason to lose the card. */
-  const mark=new Image();mark.src='assets/mascot-mark-'+(document.documentElement.dataset.theme==='dark'?'white':'chrome')+'.png';
+  if(snapshot.retro)snapshot.font=snapshot.mono='"IBM Plex Mono",monospace';
+  const mark=new Image();mark.src=snapshot.retro?retroMark().toDataURL():'assets/mascot-mark-'+(document.documentElement.dataset.theme==='dark'?'white':'chrome')+'.png';
   /* v4.5.19: the real IBM Plex, not whatever the canvas falls back to. The plate
      share has loaded it for export since v3.3.x; this card was reading the CSS
      family names, which a canvas may or may not resolve. Fonts and mark are both

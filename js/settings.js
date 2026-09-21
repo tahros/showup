@@ -24,9 +24,11 @@ function renderSync(){
         <button data-thm="dark" class="${DB.settings.theme!=='system'&&DB.settings.theme!=='light'?'sel':''}">Dark</button>
       </span>
       <span class="seg" style="display:flex;margin-top:8px">
-        <button data-skn="minimal" class="${DB.settings.skin!=='classic'?'sel':''}">Minimal</button>
+        <button data-skn="retro" class="${DB.settings.skin==='retro'?'sel':''}">Retro</button>
+        <button data-skn="minimal" class="${!['retro','classic'].includes(DB.settings.skin)?'sel':''}">Minimal</button>
         <button data-skn="classic" class="${DB.settings.skin==='classic'?'sel':''}">Classic</button>
       </span>
+      ${DB.settings.skin==='retro'?'<button class="btn ghost" id="retroSoundBtn" aria-pressed="'+(DB.settings.retroSound===true)+'" style="margin-top:12px">8-bit sounds · '+(DB.settings.retroSound===true?'On':'Off')+'</button>':''}
       <!-- v3.3.477: the tab bar's own appearance. "Match" rather than
            "System" because the row above already means the system, and one
            word must not mean two things two rows apart. -->

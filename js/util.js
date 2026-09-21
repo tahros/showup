@@ -324,8 +324,10 @@ function applyTheme(){
      RESOLVED for the same reason as the theme: index.html paints both
      attributes before any script runs, and a value that needs resolving
      would reintroduce the first-frame flash. */
-  const sk = DB.settings.skin==='classic' ? 'classic' : 'minimal';
-  document.documentElement.dataset.skin=sk;
+  const sk = ['retro','classic'].includes(DB.settings.skin) ? DB.settings.skin : 'minimal';
+  // Retro inherits Minimal's layout and palette; only the presentation changes.
+  document.documentElement.dataset.skin=sk==='retro'?'minimal':sk;
+  document.documentElement.dataset.appearance=sk;
   /* v3.3.477: THE BAR MAY WEAR ITS OWN APPEARANCE. v3.3.168 made the pill dark
      in both themes and v3.3.169 reverted it -- "a dark slab in light mode read
      as chrome from another app". That was an OPAQUE slab; the pill is glass

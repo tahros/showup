@@ -17,7 +17,8 @@ function mascotHTML(mode='hello',className='',tone=''){
   if(mascotMode()==='off')return '';
   // The PNG and renderer use the same resolved tone, including explicit blue.
   const resolved=mascotTone(mode,tone);
-  return '<span class="su-mascot '+className+'" data-mascot="'+mode+'" data-mascot-tone="'+resolved+'" aria-hidden="true"><img src="assets/mascot-'+resolved+'.png" alt="" width="360" height="220"></span>';
+  const src=isRetro()?retroStill(mode,resolved):'assets/mascot-'+resolved+'.png';
+  return '<span class="su-mascot '+className+'" data-mascot="'+mode+'" data-mascot-tone="'+resolved+'" aria-hidden="true"><img src="'+src+'" alt="" width="360" height="220"></span>';
 }
 /* v4.6.69: A DAY CAN HOLD MORE THAN ONE WORKOUT.
    The day is the unit of showing up -- the square, the streak, History, the
@@ -71,6 +72,7 @@ function completionMetricsHTML(record){
     .map(([n,label])=>'<div'+(n==='—'?' title="Duration unavailable: older sets have no recorded start time"':'')+'><b>'+n+'</b> <span>'+label+'</span></div>').join('')+'</div>';
 }
 function stampWorkoutCompletion(record,now=Date.now()){
+  retroSound('complete');
   record.completedAt=now;
   /* the session boundary, kept: completedAt alone is overwritten by the next
      Complete, and the boundary between the two workouts would go with it */
@@ -87,6 +89,7 @@ function mascotMilestoneHTML(){
 }
 const mascotMarks={};
 function mascotReceiptMark(){
+  if(isRetro())return retroMark();
   const tone=document.documentElement.dataset.theme==='dark'?'white':'chrome';
   return mascotMarks[tone]?.complete&&mascotMarks[tone]?.naturalWidth?mascotMarks[tone]:null;
 }
@@ -108,10 +111,12 @@ for(const tone of ['white','chrome']){
     if(still())return;
     pending.add(el);
     try{
-      modulePromise ||= import('./mascot-renderer.js');
-      const module=await modulePromise;
+      const skin=isRetro()?'retro':'normal';
+      const module=isRetro()?{createMascot:createRetroMascot}:await (modulePromise ||= import('./mascot-renderer.js'));
+      if(skin!==(isRetro()?'retro':'normal'))return;
       if(!el.isConnected||!visible.has(el)||document.hidden||still()||live.size>=2)return;
       const instance=module.createMascot(el,{mode:el.dataset.mascot,tone:el.dataset.mascotTone||'',theme:document.documentElement.dataset.theme,still:false});
+      el.dataset.renderSkin=skin;
       live.set(el,instance);el.classList.add('su-ready');
       /* v4.1.2: TAP TO SAY HELLO. The mascot stays aria-hidden and out of the
          tab order on purpose: it carries no information and performs no
@@ -152,9 +157,11 @@ for(const tone of ['white','chrome']){
     }
     document.querySelectorAll('[data-mascot]').forEach(el=>{
       const image=el.querySelector('img');
-      const path='assets/mascot-'+mascotTone(el.dataset.mascot,el.dataset.mascotTone)+'.png';
+      const tone=mascotTone(el.dataset.mascot,el.dataset.mascotTone);
+      const path=isRetro()?retroStill(el.dataset.mascot,tone):'assets/mascot-'+tone+'.png';
       if(image&&image.getAttribute('src')!==path)image.src=path;
       if(!el.dataset.observed){el.dataset.observed='true';intersection.observe(el);}
+      if(live.has(el)&&el.dataset.renderSkin!==(isRetro()?'retro':'normal'))remove(el);
       if(mode==='off'||still()||document.hidden)remove(el);
       else if(live.has(el))live.get(el).update({theme,still:false});
       else mount(el);
@@ -162,7 +169,7 @@ for(const tone of ['white','chrome']){
   }
   function queue(){if(!scheduled){scheduled=true;queueMicrotask(reconcile);}}
   new MutationObserver(queue).observe(document.body,{childList:true,subtree:true});
-  new MutationObserver(queue).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+  new MutationObserver(queue).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','data-appearance']});
   document.addEventListener('visibilitychange',queue);
   reduced.addEventListener('change',queue);
   window.addEventListener('pagehide',()=>{live.forEach((_,el)=>remove(el));});

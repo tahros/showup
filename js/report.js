@@ -37,7 +37,7 @@ function drawGrid(gd){
   const cv=document.createElement('canvas'); cv.width=S; cv.height=S;
   const x=cv.getContext('2d'); if(!x) return null;
   const V=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim()||'#888';
-  const SANS='"IBM Plex Sans",system-ui,sans-serif', MONO='"IBM Plex Mono",ui-monospace,monospace';
+  const SANS=isRetro()?'"IBM Plex Mono",ui-monospace,monospace':'"IBM Plex Sans",system-ui,sans-serif', MONO='"IBM Plex Mono",ui-monospace,monospace';
   /* canvas normalises whatever colour it is handed, so use it to resolve the
      theme var to #rrggbb — the cells need an alpha tint, which is what
      color-mix(... N%, transparent) does in the CSS grid. */
@@ -137,7 +137,7 @@ function drawYoy(curves,o){
   const CV=spec=>{ x.fillStyle='#000';
     x.fillStyle=/^var\((--[^)]+)\)$/.test(spec)?V(spec.match(/^var\((--[^)]+)\)$/)[1]):spec;
     return x.fillStyle; };
-  const SANS='"IBM Plex Sans",system-ui,sans-serif', MONO='"IBM Plex Mono",ui-monospace,monospace';
+  const SANS=isRetro()?'"IBM Plex Mono",ui-monospace,monospace':'"IBM Plex Sans",system-ui,sans-serif', MONO='"IBM Plex Mono",ui-monospace,monospace';
   const thisYear=todayISO.slice(0,4);
   const years=Object.keys(curves).filter(y=>y>='2022').sort();
   if(!years.length) return null;
@@ -271,7 +271,7 @@ function drawThousandPoster(n){
   const S=1080, cv=document.createElement('canvas'); cv.width=S; cv.height=S;
   const x=cv.getContext('2d'); if(!x) return null;
   const V=nm=>getComputedStyle(document.documentElement).getPropertyValue(nm).trim()||'#888';
-  const SANS='"IBM Plex Sans",system-ui,sans-serif', MONO='"IBM Plex Mono",ui-monospace,monospace';
+  const SANS=isRetro()?'"IBM Plex Mono",ui-monospace,monospace':'"IBM Plex Sans",system-ui,sans-serif', MONO='"IBM Plex Mono",ui-monospace,monospace';
   x.fillStyle=V('--ground'); x.fillRect(0,0,S,S);
 
   // the last n calendar days, ending today — trained or not, each is a cell
@@ -323,7 +323,7 @@ function drawMilestone(n){
   // per-drawer helpers, matching the file's idiom (V is function-local in
   // every drawer here — drawMilestone borrowed one that didn't exist)
   const V=nm=>getComputedStyle(document.documentElement).getPropertyValue(nm).trim()||'#888';
-  const SANS='"IBM Plex Sans",system-ui,sans-serif', MONO='"IBM Plex Mono",ui-monospace,monospace';
+  const SANS=isRetro()?'"IBM Plex Mono",ui-monospace,monospace':'"IBM Plex Sans",system-ui,sans-serif', MONO='"IBM Plex Mono",ui-monospace,monospace';
   x.fillStyle=V('--ground'); x.fillRect(0,0,S,S);
   // faded grid of every month ever, oldest first
   const gd=gridData(); const keys=Object.keys(gd.mDays).sort();
@@ -431,11 +431,11 @@ function shareCards(){
    two-lift day shares as a short card, a six-lift day as a tall one. */
 function drawDayCard(x,S,d){
   const V=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim()||'#888';
-  const SANS='"IBM Plex Sans",system-ui,sans-serif', MONO='"IBM Plex Mono",ui-monospace,monospace';
+  const SANS=isRetro()?'"IBM Plex Mono",ui-monospace,monospace':'"IBM Plex Sans",system-ui,sans-serif', MONO='"IBM Plex Mono",ui-monospace,monospace';
   const AC=V('--accent');
   const tint=(hex,a)=>{const m=hex.replace('#','');const n=m.length===3?m.split('').map(c=>c+c).join(''):m;
     return `rgba(${parseInt(n.slice(0,2),16)},${parseInt(n.slice(2,4),16)},${parseInt(n.slice(4,6),16)},${a})`;};
-  const rr=(x0,y0,w,h,r2)=>{x.beginPath();
+  const rr=(x0,y0,w,h,r2)=>{if(isRetro())r2=4;x.beginPath();
     x.moveTo(x0+r2,y0);x.arcTo(x0+w,y0,x0+w,y0+h,r2);x.arcTo(x0+w,y0+h,x0,y0+h,r2);
     x.arcTo(x0,y0+h,x0,y0,r2);x.arcTo(x0,y0,x0+w,y0,r2);x.closePath();};
   /* v3.3.172: second annotated pass. (1) counts return to RIGHT-FLUSH at the
@@ -540,7 +540,8 @@ function drawDayCard(x,S,d){
   let ix=L;
   const receiptMark=mascotMode()==='off'?_dayIcon:mascotReceiptMark();
   if(receiptMark){
-    x.save(); x.drawImage(receiptMark,L,TOP,ICON,ICON); x.restore();
+    x.save();if(isRetro())x.imageSmoothingEnabled=false;
+    x.drawImage(receiptMark,L,TOP,ICON,ICON); x.restore();
     ix=L+ICON+16;
   }
   const nm=(typeof firstName==='function'&&firstName())?firstName().toUpperCase():'';
@@ -631,7 +632,7 @@ function ensureDayIcon(){
 try{ ensureDayIcon(); }catch(e){}
 function cardFrame(x,S,o){
   const V=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim()||'#888';
-  const SANS='"IBM Plex Sans",system-ui,sans-serif', MONO='"IBM Plex Mono",ui-monospace,monospace';
+  const SANS=isRetro()?'"IBM Plex Mono",ui-monospace,monospace':'"IBM Plex Sans",system-ui,sans-serif', MONO='"IBM Plex Mono",ui-monospace,monospace';
   const P=64;
   x.fillStyle=V('--ground'); x.fillRect(0,0,S,S);
   x.textAlign='left'; x.textBaseline='alphabetic';

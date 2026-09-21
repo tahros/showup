@@ -1,0 +1,19 @@
+/* Retro is presentation only. Inherit Minimal's layout, theme and state colors. */
+:root[data-appearance="retro"]{--body:var(--mono)}
+:root[data-appearance="retro"] body{font-family:var(--mono)}
+:root[data-appearance="retro"] :is(.card,.zone,.lastcard,.day,.kpi,.cal,.pw-saved){
+  border:1px solid var(--line);border-radius:4px;
+  box-shadow:inset 0 0 0 3px var(--surface),inset 0 0 0 4px var(--line)}
+:root[data-appearance="retro"] :is(button,.btn,.chip,.seg,.seg button,input,select,textarea){border-radius:4px}
+:root[data-appearance="retro"] :is(.btn,.seg button){box-shadow:none}
+:root[data-appearance="retro"] :is(h1,h2,h3,.h-date,.hello,.hi,.dcn){font-family:var(--mono)}
+:root[data-appearance="retro"] .hello .hi{font-size:clamp(20px,5vw,27px)}
+:root[data-appearance="retro"] nav{border-radius:6px;background:var(--pill);box-shadow:inset 0 0 0 1px var(--line);backdrop-filter:none}
+:root[data-appearance="retro"] nav :is(button,.navpill){border-radius:4px}
+:root[data-appearance="retro"] .su-mascot img{inset:auto;left:50%;top:50%;transform:translate(-50%,-50%);width:84px;height:56px;image-rendering:pixelated}
+:root[data-appearance="retro"] :is(.rest-home,#dayDone) .su-mascot img{width:168px;height:112px}
+:root[data-appearance="retro"] .su-mascot canvas{inset:auto;left:50%;top:50%;transform:translate(-50%,-50%);image-rendering:pixelated}
+:root[data-appearance="retro"] .su-mascot.su-poke{animation:none}
+:root[data-appearance="retro"] #dayDone .ddinner{border-radius:4px}
+:root[data-appearance="retro"] .plate-mascot-shadow{display:none}
+@media(prefers-reduced-motion:reduce){:root[data-appearance="retro"] .su-mascot{animation:none!important}}

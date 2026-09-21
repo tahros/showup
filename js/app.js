@@ -48,8 +48,12 @@ document.addEventListener('click',e=>{
     applyTheme();save(true);render();
     return;
   }
+  if(e.target.closest('#retroSoundBtn')){
+    DB.settings.retroSound=DB.settings.retroSound!==true;
+    save(true);if(DB.settings.retroSound)retroSound('click');render();return;
+  }
   if(e.target.closest('[data-skn]')){
-    DB.settings.skin=e.target.closest('[data-skn]').dataset.skn;    // v3.3.168: 'minimal' | 'classic'
+    DB.settings.skin=e.target.closest('[data-skn]').dataset.skn;
     applyTheme();save(true);render();
     return;
   }

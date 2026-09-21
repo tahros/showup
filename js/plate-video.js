@@ -3,9 +3,9 @@ export function mp4Type(){
   if(!globalThis.MediaRecorder||!HTMLCanvasElement.prototype.captureStream)return '';
   return ['video/mp4;codecs=avc1.42E02A','video/mp4'].find(t=>MediaRecorder.isTypeSupported(t))||'';
 }
-export async function createPlateVideo({render,signal,onProgress,dark,withMascot=true}){
+export async function createPlateVideo({render,signal,onProgress,dark,withMascot=true,retro=false}){
   const mimeType=mp4Type();if(!mimeType)throw Error('MP4 unavailable on this browser');
-  const {createMascot}=await import('./mascot-renderer.js');
+  const {createMascot}=retro?{createMascot:window.createRetroMascot}:await import('./mascot-renderer.js');
   if(signal.aborted)throw new DOMException('Cancelled','AbortError');
   const stage=document.createElement('div');stage.style.cssText='position:fixed;left:-10000px;top:0;width:216px;height:132px';stage.setAttribute('aria-hidden','true');document.body.append(stage);
   let mascot,stream,recorder,timer,watchdog,abort,visibility;

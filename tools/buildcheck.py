@@ -37,7 +37,7 @@ for a in assets:
 shell_count = len(re.findall(r"'\./[^']+\?v=", sw))
 # v4.4.0: 25. stats-story is installed before the first app render and must be
 # present offline or Stats silently falls back to the previous page contract.
-if shell_count != 28: fail.append(f"sw SHELL has {shell_count} stamped assets, expected 28")
+if shell_count != 30: fail.append(f"sw SHELL has {shell_count} stamped assets, expected 30")
 for a in re.findall(r"'\./([^']+)'", sw):
     if not (d/a.split('?')[0]).exists(): fail.append(f"offline SHELL asset missing: {a}")
 
