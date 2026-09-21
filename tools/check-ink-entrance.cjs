@@ -97,6 +97,10 @@ const seed=`
          is decided by which promise a starved frame happens to resolve first. */
       assert.deepEqual(ev,['ink:on','tone:white','ink:off','tone:blue'],
         'the entrance runs in one order: '+ev);
+      /* the last of the flood peels off after the colour change, so wait for
+         the ink to actually reach nothing before measuring where it went */
+      await p.waitForFunction(()=>/circle\(0(\.\d+)?px/.test(getComputedStyle(document.querySelector('#dayDone .ddink')).clipPath),
+        {timeout:20000,polling:50});
       const done=await p.evaluate(()=>{const o=document.getElementById('dayDone'),hero=o.querySelector('.ddhero .su-mascot');
         const r=hero.getBoundingClientRect(),clip=getComputedStyle(o.querySelector('.ddink')).clipPath;
         return {clip,heroCx:r.left+r.width/2,heroCy:r.top+r.height*.62,
@@ -106,6 +110,26 @@ const seed=`
       assert(Math.abs(+end[2]-done.heroCx)<=2&&Math.abs(+end[3]-done.heroCy)<=2,
         'it drained into where the mascot landed');
       assert.equal(done.copy,'ddcinema-copy','the copy arrives on the entrance stagger');
+
+      /* v4.6.100: THE DRAIN IS TWO MOVES AND THE COLOUR CHANGES BETWEEN THEM.
+         Asserted from the keyframes rather than from a sampled instant: the
+         first move must stop at a disc that still covers the mascot WHOLE, or
+         the swap happens in front of the maker. */
+      const moves=await p.evaluate(()=>{const o=document.getElementById('dayDone'),hero=o.querySelector('.ddhero .su-mascot');
+        const r=hero.getBoundingClientRect();
+        return {cover:Math.hypot(r.width,r.height)/2,half:Math.min(innerWidth,innerHeight)/2,
+          radii:o.querySelector('.ddink').getAnimations().map(a=>a.effect.getKeyframes()
+            .map(k=>+((k.clipPath||'').match(/circle\(([\d.]+)px/)||[0,NaN])[1]))};});
+      /* the browser drops the first move once the second covers the same
+         property, so what is left to read is the LAST one -- and that is the
+         one that carries the claim: it begins from a small disc, which means
+         the big collapse already happened and the colour changed underneath. */
+      const last=moves.radii.filter(r=>r.length===2&&r[1]===0&&r[0]>0);
+      assert.equal(last.length,1,'one move takes the last of the ink away: '+JSON.stringify(moves.radii));
+      assert(last[0][0]>=moves.cover,
+        `it begins from a disc that still covers the mascot (${last[0][0]} vs ${Math.round(moves.cover)})`);
+      assert(last[0][0]<moves.half,
+        `...and only that -- the flood collapsed before the colour changed (${last[0][0]} vs ${Math.round(moves.half)})`);
       assert.deepEqual(errors,[],'no page errors');
 
       /* closing it gives the card its mascot back */

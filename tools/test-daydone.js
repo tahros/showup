@@ -133,12 +133,19 @@ ok("only the day's end says \"Complete\"; the exercise tick is the one step-leve
 const mascotCss=fs.readFileSync(path.join(dir,"css/mascot.css"),"utf8");
 const rule=sel=>(mascotCss.match(new RegExp(sel.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\{([^}]*)\\}'))||[])[1]||'';
 ok("while the flood is up the overlay has no surface of its own",
-   /background:transparent/.test(rule('#dayDone.dd-ink'))&&/animation:none/.test(rule('#dayDone.dd-ink')));
+   /background:transparent/.test(rule('#dayDone.dd-ink')));
 ok("...and nothing of the summary shows through it but the mascot",
    /visibility:hidden/.test(rule('#dayDone.dd-ink>:not(.ddink)'))&&/visibility:visible/.test(rule('#dayDone.dd-ink .ddhero')));
 ok("the ink is over the summary and under the mascot",
    /z-index:2/.test(rule('#dayDone .ddink'))&&/z-index:3/.test(rule('#dayDone .ddhero'))
    &&/background:var\(--accent\)/.test(rule('#dayDone .ddink')));
+/* v4.6.100: ddin, the overlay's own fade-in, is held off by a class that
+   lives as long as the overlay does. On .dd-ink -- which comes off at the
+   landing -- the animation-name went from none back to ddin, which STARTS an
+   animation: the whole overlay dropped to opacity 0 and faded back up at the
+   landing, showing Today through the gap. That was the blink. */
+ok("the overlay's fade-in is suppressed for the life of an ink entrance, not just the flood",
+   /animation:none/.test(rule('#dayDone.dd-inked'))&&!/animation:none/.test(rule('#dayDone.dd-ink')));
 ok("reduced motion is never flooded",
    /@media\(prefers-reduced-motion:reduce\)\{[^}]*#dayDone \.ddink\{display:none\}/.test(mascotCss.replace(/\n\s*/g,'')));
 /* the tone change the entrance needs: a mounted mascot hears it, and a mascot

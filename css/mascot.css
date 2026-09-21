@@ -56,7 +56,15 @@ body.rest-home header.resting .hglass{background:transparent;border-color:transp
    of its own -- the ink is what you see, the mascot crosses above it, and the
    drain is what reveals the summary underneath. visibility, not display, so
    the hero lands on the layout it will keep. */
-#dayDone.dd-ink{background:transparent;animation:none}
+/* v4.6.100: ddin -- the overlay's own 180ms fade-in -- is suppressed for the
+   WHOLE life of an ink entrance, on a class that is never taken off again.
+   v4.6.99 put animation:none on .dd-ink, which is removed at the landing: the
+   property went from none back to ddin, and a changed animation-name starts a
+   NEW animation, so the entire overlay -- flood, mascot and summary together
+   -- fell to opacity 0 and faded back up at the exact moment of the landing.
+   What you saw through it for those 180ms was Today. That was the blink. */
+#dayDone.dd-inked{animation:none}
+#dayDone.dd-ink{background:transparent}
 #dayDone.dd-ink>:not(.ddink){visibility:hidden}
 #dayDone.dd-ink .ddhero{visibility:visible}
 #dayDone .ddink{position:fixed;inset:0;background:var(--accent);z-index:2;clip-path:circle(0px at 50% 50%);pointer-events:none}

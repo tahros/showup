@@ -1,5 +1,11 @@
 # ShowUp — changelog
 
+## v4.6.100 (2026-09-21) — No blink in the ink
+
+- Fix the flash at the landing: the overlay's own fade-in was being restarted when the flood came off, dropping the whole screen to nothing for 180ms and showing Today through the gap.
+- Change the mascot's colour under the last of the flood instead of after it, so it is never seen white on the white summary and never pops into blue.
+- The drain is two moves now: the flood collapses to a disc that still covers the mascot, the colour goes back, and the rest peels away.
+
 ## v4.6.99 (2026-09-21) — The ink entrance
 
 - Tapping the day's card floods the screen with ShowUp Blue from where the mascot stands, flies the mascot across on its own jump, and drains the blue into where it lands.

@@ -1925,7 +1925,9 @@ function celebrateDayDone(nowrite, forceCount, forceMile, forceShow, sourceCard)
   const hero=o.querySelector('.ddhero .su-mascot');
   const inky=connected&&!mile&&!!source&&!!hero&&!!origins[0]?.width;
   if(inky){
-    o.classList.add('dd-connected','dd-ink');
+    /* dd-inked stays for the life of the overlay (it holds ddin off);
+       dd-ink is only the flood phase and comes off at the landing */
+    o.classList.add('dd-connected','dd-inked','dd-ink');
     const ink=document.createElement('i');ink.className='ddink';ink.setAttribute('aria-hidden','true');o.prepend(ink);
     const from=origins[0],to=hero.getBoundingClientRect();
     /* the source mascot steps aside for its own double, so the two are never
@@ -1963,16 +1965,28 @@ function celebrateDayDone(nowrite, forceCount, forceMile, forceShow, sourceCard)
       flight.finished.then(()=>{
         if(!o.isConnected)return;
         o.classList.remove('dd-ink');
-        const drain=ink.animate([{clipPath:`circle(${reach}px at ${cx}px ${cy}px)`},{clipPath:`circle(0px at ${land}px ${landY}px)`}],
-          {duration:380,easing:'cubic-bezier(.4,0,1,1)',fill:'forwards'});
-        /* the colour comes back when the ink is GONE, not on the landing frame.
-           The drain collapses towards the mascot, so the mascot is the last
-           thing the blue leaves -- and a disc still 300px wide at the halfway
-           mark is a disc that covers it whole. Blue on blue is the one thing
-           the white was for, so the white holds to the end: it is the app's
-           own white finish, grey-shaded with a dark face, which reads on the
-           summary's white perfectly well for the frame it is there. */
-        if(typeof mascotTint==='function')drain.finished.then(()=>{if(o.isConnected)mascotTint(hero,'blue');}).catch(()=>{});
+        /* THE DRAIN IS TWO MOVES, AND THE COLOUR CHANGES BETWEEN THEM. The ink
+           collapses towards the mascot, so the mascot is the last thing the
+           blue leaves -- which leaves exactly one moment where the swap can
+           happen unseen: while the last of the flood still covers it whole.
+           Before that is blue on blue for the length of the drain; after it is
+           a white mascot on the white summary and then a pop into colour.
+           Both of those are what the maker saw and called a blink.
+           So the flood shrinks to a disc that still covers the mascot, the
+           colour goes back to blue underneath it, and the rest of the disc
+           peels away to reveal a mascot nobody watched change.
+           It is chained on the first move's own finish, not on a clock: a
+           timer or a second animation can land out of order on a busy phone,
+           and this is the one frame that must not be missed. */
+        const hide=Math.max(160,Math.hypot(to.width,to.height)*.56);
+        const drain=ink.animate([{clipPath:`circle(${reach}px at ${cx}px ${cy}px)`},{clipPath:`circle(${hide}px at ${land}px ${landY}px)`}],
+          {duration:300,easing:'cubic-bezier(.4,0,.6,1)',fill:'forwards'});
+        drain.finished.then(()=>{
+          if(!o.isConnected)return;
+          if(typeof mascotTint==='function')mascotTint(hero,'blue');
+          ink.animate([{clipPath:`circle(${hide}px at ${land}px ${landY}px)`},{clipPath:`circle(0px at ${land}px ${landY}px)`}],
+            {duration:150,easing:'cubic-bezier(.4,0,1,1)',fill:'forwards'});
+        }).catch(()=>{});
         o.classList.add('dd-copy');
         countUpEl(o.querySelector('.ddn'),1100);
       }).catch(()=>{});
