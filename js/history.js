@@ -352,6 +352,7 @@ function renderHistory(){
       h+=`<details class="day${editing?' editing':''}" open data-d="${d}"><summary>
           <span><span class="d">${pretty(d)}</span><div class="s">${(m=>m?`Day ${fmt(m)} · `:'')(msMarkFor(d))}${parts||'—'}</div></span>
           <span class="s">${editable?`<button class="dayedit ico" data-dshare="${d}" aria-label="Share this day as an image" title="Share">${ICO_SHARE}</button><button class="dayedit ico" data-hedit="${d}" aria-label="${editing?'Finish editing this day':'Edit this day'}" title="${editing?'Done':'Edit'}">${editing?ICO_DONE:ICO_EDIT}</button>`:''}</span></summary><div class="body">`;
+      const timing=historyTiming(dayW.filter(s=>!P||s.part===P));let shownSets=0;
       byEx.forEach(g=>{
         /* v3.3.62: a set is a REP. Legacy sheet rows carry reps:[] as bare
            markers — they render nothing, so counting them as 1 printed
@@ -361,8 +362,9 @@ function renderHistory(){
            `if(!folded.length) return`. */
         const n=g.sets.reduce((a,s)=>a+(g.ex==='Run'?1:(s[1]||[]).length),0);
         if(!n) return;
-        h+=`<div class="exgrp"><div class="lasthead"><span>${g.ex}</span>`
-          +`<span class="ago">${n} set${n>1?'s':''}</span></div>`;
+        shownSets+=n;
+        h+=`<div class="exgrp"><div class="lasthead"><span>${g.ex}</span></div>`
+          +`<div class="history-meta">${historyTimingHTML(timing.exercises[g.ex])}<span class="ago">${n} set${n>1?'s':''}</span></div>`;
         if(!editing){
           const folded=foldSets(g.sets,g.ex);
           h+= folded.length?setRows(g.ex,folded,false):'';
@@ -385,7 +387,7 @@ function renderHistory(){
         }
         h+=`</div>`;
       });
-      h+=`</div></details>`;
+      h+=`<div class="history-totals"><span>${timing.total?`<strong>${historyTotalLabel(timing.total)}</strong><small>${timing.total.estimated?'to last set':'first–last log'}${P?' · shown exercises':''}</small>`:''}</span><span><strong>${shownSets}</strong> sets<small>${P?'shown':'total'}</small></span></div></div></details>`;
     });
   }else if(mm.days){
     h+=`<div class="note" style="margin-top:12px">Set-level detail for this month lives in the sheet —

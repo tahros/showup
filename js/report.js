@@ -478,6 +478,8 @@ function drawDayCard(x,S,d){
     g.subs[g.subSeen[r2[2]]].reps.push(...(r2[3]||[]));
   }
   const groups=by;
+  const timing=historyTiming(DB.days[d]?.w||[]);
+  const TIME_ROW=Object.keys(timing.exercises).length?34:0;
   /* v3.3.174: air. The four vertical intervals are one named set, and the
      group height is derived FROM them rather than restated as a literal —
      the v3.3.170 tightening drifted out of sync with the type that grew
@@ -512,7 +514,7 @@ function drawDayCard(x,S,d){
   const RULE_AIR=29, CAP=24, DG=21, SUB=106;
   const RN=RULE_AIR+CAP;                  /* rule → name baseline */
   const VR=RULE_AIR-(SUB-CH)/2;           /* band edge → next rule */
-  const GH=k=>RN+DG+VR+SUB*k;
+  const GH=k=>RN+DG+VR+SUB*k+TIME_ROW;
   /* v3.3.177: the card's top and bottom air are ONE constant. v3.3.176 tied
      the top to the SIDE padding (52) while the bottom worked out to 44 from
      the footer's own numbers — two ends of the same card, set from two
@@ -527,7 +529,7 @@ function drawDayCard(x,S,d){
   const TOP=FRAME+CARD_AIR, ICON=52;
   const NAMEY=TOP+ICON/2+9, DATEY=NAMEY+68, PARTY=DATEY+48;
   const HEAD=PARTY+RULE_AIR+6;    /* +6: the parts line's descender */
-  const FOOT=CARD_AIR+DESC+44;    /* frame air + descender + footer baseline lift */
+  const FOOT=CARD_AIR+DESC+44+(TIME_ROW?86:0);
   const H=Math.max(640,HEAD+(km?GH(1):0)+groups.reduce((a,g)=>a+GH(g.subs.length),0)+FOOT);
   const cv2=x.canvas; if(cv2&&cv2.height!==H) cv2.height=H;
 
@@ -560,9 +562,13 @@ function drawDayCard(x,S,d){
     x.save();x.strokeStyle=V('--line');x.lineWidth=2;x.beginPath();x.moveTo(L,ry);x.lineTo(R,ry);x.stroke();x.restore();
     const ny=ry+RN;
     x.fillStyle=V('--muted'); x.font='500 34px '+MONO; x.fillText(name,L,ny);
-    x.textAlign='right'; x.fillText(nSets,R,ny); x.textAlign='left';
-    dash(ny+DG,true);
-    let cy=ny+DG+SUB/2;          /* centre of the first row band */
+    const metaY=ny+TIME_ROW;
+    if(TIME_ROW)x.font='400 26px '+MONO;
+    x.textAlign='right'; x.fillText(nSets,R,metaY); x.textAlign='left';
+    const t=timing.exercises[name];
+    if(t){x.font='400 26px '+MONO;x.fillText(historyTimeLabel(t.seconds),L,metaY);}
+    dash(metaY+DG,true);
+    let cy=metaY+DG+SUB/2;
     subDraws.forEach((fn,i)=>{
       if(i>0){ dash(cy-SUB/2,true); }   /* hairline on the band boundary */
       fn(cy); cy+=SUB;
@@ -608,10 +614,17 @@ function drawDayCard(x,S,d){
      counts above it (34px) — it was 28 and read as a different word. */
   x.fillStyle=V('--muted'); x.font='500 34px '+MONO;
   const sw=x.measureText('sets').width;
-  x.fillText('sets',R,H-(CARD_AIR+DESC+44));
+  const footerY=H-(CARD_AIR+DESC+44)-(TIME_ROW?62:0);
+  x.fillText('sets',R,footerY);
   x.fillStyle=V('--chalk'); x.font='700 36px '+MONO;
-  x.fillText(String(sets),R-sw-14,H-(CARD_AIR+DESC+44));
+  x.fillText(String(sets),R-sw-14,footerY);
   x.textAlign='left';
+  if(timing.total){
+    x.fillText(historyTotalLabel(timing.total),L,footerY);
+    x.fillStyle=V('--muted');x.font='400 22px '+MONO;
+    x.fillText(timing.total.estimated?'estimated start → last set':'first → last set logged',L,footerY+30);
+  }
+  if(TIME_ROW){x.fillStyle=V('--muted');x.font='400 22px '+MONO;x.fillText('Exercise times span set logs; run time is recorded.',L,footerY+58);}
 }
 let _dayIcon=null;
 function ensureDayIcon(){

@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.90 (2026-09-20) — Workout timing in history and sharing
+
+- Show available exercise timing on the left and set counts on the right, with quiet timestamp details in history.
+- Keep the share receipt's mascot, name, volume and distance; add total duration bottom left and total sets bottom right.
+- Measure lifting spans between logged sets, not active lifting time. Use recorded run duration and end the total at the last logged set, excluding a delayed Complete tap.
+- Leave unavailable timing blank and preserve all saved workout records. Verify mobile light/dark layouts and timing against the supplied backup.
+
 ## v4.6.89 (2026-09-20) — Keep the streak outline fully visible
 
 - Reserve a small gutter inside the streak heatmap scroller so today's breathing outline is not clipped at the edges, including Rest mode.
