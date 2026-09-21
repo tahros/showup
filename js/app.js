@@ -1906,7 +1906,78 @@ function celebrateDayDone(nowrite, forceCount, forceMile, forceShow, sourceCard)
      requestAnimationFrame against a real element, and a node still in a string
      has nothing to animate. It respects prefers-reduced-motion itself, so the
      number simply arrives whole for anyone who asked for that. */
-  if(connected){
+  /* v4.6.99: THE INK ENTRANCE. v4.6.62 flew the mascot and the number from
+     the card into place by growing them -- and a mascot that grows is a photo
+     being enlarged, not a character arriving. This one is a DUMBBELL THAT
+     JUMPS, which is the only show its renderer has ever played, so the travel
+     is timed to that jump's own beats rather than laid on top of it: it holds
+     through the crouch (570ms in the renderer), leaves the card with the
+     launch, clears its landing by a head, and comes down as the renderer's
+     own landing squash fires at 1410.
+     The room changes around it in the calendar's language (v4.6.80): ShowUp
+     Blue floods out from where the mascot was standing, and drains into where
+     it lands. Blue inside blue is invisible, so for the crossing the mascot
+     turns white -- the installed icon's own pairing, white mascot on ShowUp
+     Blue -- and is blue again on the floor.
+     The century keeps its own ceremony (the square opening, the mark rising);
+     an ink flood through that would be two thesis statements at once. */
+  const source=connected?sourceCard.querySelector('.su-mascot'):null;
+  const hero=o.querySelector('.ddhero .su-mascot');
+  const inky=connected&&!mile&&!!source&&!!hero&&!!origins[0]?.width;
+  if(inky){
+    o.classList.add('dd-connected','dd-ink');
+    const ink=document.createElement('i');ink.className='ddink';ink.setAttribute('aria-hidden','true');o.prepend(ink);
+    const from=origins[0],to=hero.getBoundingClientRect();
+    /* the source mascot steps aside for its own double, so the two are never
+       on screen together during the 180ms the overlay would have faded in */
+    source.style.visibility='hidden';
+    const restore=()=>{source.style.visibility='';};
+    o.addEventListener('dd-left',restore,{once:true});
+    if(!to.width||!to.height){o.classList.remove('dd-ink');restore();countUpEl(o.querySelector('.ddn'),1100);}
+    else{
+      const cx=from.left+from.width/2,cy=from.top+from.height*.62;
+      const reach=Math.hypot(Math.max(cx,innerWidth-cx),Math.max(cy,innerHeight-cy));
+      const land=to.left+to.width/2,landY=to.top+to.height*.62;
+      /* the flood is what the TAP does, so it starts on the tap -- and the
+         mascot goes white in the same breath, before anything is animating.
+         An earlier cut waited 300ms and then cued the colour off a second
+         animation; two promises that finish in one starved frame resolve in
+         creation order, not in time order, and the mascot crossed the blue
+         still blue. Nothing here is ordered by a race any more: white is set
+         before the first keyframe, blue comes back on the drain's own end. */
+      if(typeof mascotTint==='function')mascotTint(hero,'white');
+      ink.animate([{clipPath:`circle(0px at ${cx}px ${cy}px)`},{clipPath:`circle(${reach}px at ${cx}px ${cy}px)`}],
+        {duration:900,easing:'cubic-bezier(.4,0,.2,1)',fill:'both'});
+      const dx=from.left-to.left,dy=from.top-to.top,k=from.width/to.width;
+      const apex=Math.min(1.05,(k+1)/2+.18);
+      hero.style.animation='none';hero.style.transformOrigin='0 0';
+      const flight=hero.animate([
+        {transform:`translate(${dx}px,${dy}px) scale(${k})`,offset:0,easing:'linear'},
+        {transform:`translate(${dx}px,${dy}px) scale(${k})`,offset:600/1400,easing:'cubic-bezier(.2,.75,.25,1)'},
+        {transform:`translate(${dx/2}px,-44px) scale(${apex})`,offset:1000/1400,easing:'cubic-bezier(.4,0,1,1)'},
+        {transform:'translate(0,0) scale(1)',offset:1}],
+        {duration:1400,easing:'linear',fill:'both'});
+      /* the overlay's own surface returns at the landing, UNDER the ink that
+         is still covering everything -- so the drain is what reveals it, and
+         nothing of the summary is ever painted over the flood */
+      flight.finished.then(()=>{
+        if(!o.isConnected)return;
+        o.classList.remove('dd-ink');
+        const drain=ink.animate([{clipPath:`circle(${reach}px at ${cx}px ${cy}px)`},{clipPath:`circle(0px at ${land}px ${landY}px)`}],
+          {duration:380,easing:'cubic-bezier(.4,0,1,1)',fill:'forwards'});
+        /* the colour comes back when the ink is GONE, not on the landing frame.
+           The drain collapses towards the mascot, so the mascot is the last
+           thing the blue leaves -- and a disc still 300px wide at the halfway
+           mark is a disc that covers it whole. Blue on blue is the one thing
+           the white was for, so the white holds to the end: it is the app's
+           own white finish, grey-shaded with a dark face, which reads on the
+           summary's white perfectly well for the frame it is there. */
+        if(typeof mascotTint==='function')drain.finished.then(()=>{if(o.isConnected)mascotTint(hero,'blue');}).catch(()=>{});
+        o.classList.add('dd-copy');
+        countUpEl(o.querySelector('.ddn'),1100);
+      }).catch(()=>{});
+    }
+  }else if(connected){
     o.classList.add('dd-connected');
     ['.ddhero .su-mascot','.ddn'].forEach((selector,i)=>{const el=o.querySelector(selector),from=origins[i];if(!el||!from||!from.width)return;el.style.animation='none';const to=el.getBoundingClientRect();if(!to.width||!to.height)return;el.style.transformOrigin='0 0';el.animate([{transform:`translate(${from.left-to.left}px,${from.top-to.top}px) scale(${from.width/to.width},${from.height/to.height})`},{transform:'translate(0,0) scale(1)'}],{duration:620,easing:'cubic-bezier(.2,.75,.25,1)'});});
   }else countUpEl(o.querySelector('.ddn'),1100);
@@ -1915,6 +1986,7 @@ function celebrateDayDone(nowrite, forceCount, forceMile, forceShow, sourceCard)
   const leave=(share=false)=>{
     if(leaving) return;
     leaving=true;
+    o.dispatchEvent(new CustomEvent('dd-left'));
     o.remove();
     if(closed && forceCount==null){ view='today'; render(); }
     const target=previousFocus?.isConnected?previousFocus:document.querySelector('[data-replayday],nav button.on');

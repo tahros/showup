@@ -124,6 +124,36 @@ ok("only the day's end says \"Complete\"; the exercise tick is the one step-leve
    && /Done with \$\{hesc\(ex\)\}/.test(linkSrc) && !/doneExBtn/.test(liftSrc)
    && !/id="scFinishBtn"/.test(linkSrc));
 
+/* v4.6.99: THE INK ENTRANCE'S CONTRACT. The choreography itself is measured
+   in a real browser (check-ink-entrance.cjs) -- jsdom has neither layout nor
+   element.animate. What can be held here is the shape the CSS must keep: while
+   the flood is up the overlay has NO surface of its own, only the mascot shows
+   through it, the ink sits under the mascot and over everything else, and
+   reduced motion never sees any of it. */
+const mascotCss=fs.readFileSync(path.join(dir,"css/mascot.css"),"utf8");
+const rule=sel=>(mascotCss.match(new RegExp(sel.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\{([^}]*)\\}'))||[])[1]||'';
+ok("while the flood is up the overlay has no surface of its own",
+   /background:transparent/.test(rule('#dayDone.dd-ink'))&&/animation:none/.test(rule('#dayDone.dd-ink')));
+ok("...and nothing of the summary shows through it but the mascot",
+   /visibility:hidden/.test(rule('#dayDone.dd-ink>:not(.ddink)'))&&/visibility:visible/.test(rule('#dayDone.dd-ink .ddhero')));
+ok("the ink is over the summary and under the mascot",
+   /z-index:2/.test(rule('#dayDone .ddink'))&&/z-index:3/.test(rule('#dayDone .ddhero'))
+   &&/background:var\(--accent\)/.test(rule('#dayDone .ddink')));
+ok("reduced motion is never flooded",
+   /@media\(prefers-reduced-motion:reduce\)\{[^}]*#dayDone \.ddink\{display:none\}/.test(mascotCss.replace(/\n\s*/g,'')));
+/* the tone change the entrance needs: a mounted mascot hears it, and a mascot
+   that has not mounted yet still comes up in the colour it was asked for. */
+ok("a mascot on screen can be retinted", run(`typeof mascotTint==='function'`));
+run(`document.getElementById('view').insertAdjacentHTML('beforeend',mascotHTML('jump','','blue'));
+     window.__m=document.querySelector('#view .su-mascot');window.__heard=[];
+     window.__m.addEventListener('mascottone',e=>window.__heard.push(e.detail));
+     mascotTint(window.__m,'white');`);
+ok("...the ask reaches the renderer, the dataset and the still fallback",
+   run(`window.__heard[0]==='white'&&window.__m.dataset.mascotTone==='white'&&/mascot-white/.test(window.__m.querySelector('img').src)`));
+run(`mascotTint(window.__m,'blue');`);
+ok("...and back again", run(`window.__heard[1]==='blue'&&/mascot-blue/.test(window.__m.querySelector('img').src)`));
+run(`window.__m.remove();`);
+
 /* and the door still opens the room */
 run(`openWorkoutFinish(); document.getElementById('doneAllBtn').dispatchEvent(new window.Event('click',{bubbles:true}))`);
 ok("pressing it places the day", run(`!!document.getElementById('dayDone')`));

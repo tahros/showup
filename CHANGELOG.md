@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.99 (2026-09-21) — The ink entrance
+
+- Tapping the day's card floods the screen with ShowUp Blue from where the mascot stands, flies the mascot across on its own jump, and drains the blue into where it lands.
+- The mascot crosses the flood in the installed icon's white, and takes its blue back when the ink is gone; blue inside blue would be invisible.
+- The travel is timed to the renderer's approved jump: it holds through the crouch, leaves on the launch, clears its landing by a head, and comes down as the landing squash fires.
+- The century ceremony and reduced motion are untouched; neither is ever flooded.
+
 ## v4.6.98 (2026-09-21) — Every tab, tapped from inside, goes home
 
 - History tapped while on another month, or with a day open for editing, returns to this month; a part filter is a viewpoint and stays.

@@ -51,7 +51,21 @@ body.rest-home header.resting .hglass{background:transparent;border-color:transp
 .su-active-row .su-mascot{width:104px}
 .card.dayclosed .su-mascot{margin:-8px auto -10px;width:94px}
 #dayDone .su-mascot{width:240px;max-width:100%;margin:0 auto 8px}
-#dayDone .ddhero{width:240px;max-width:100%}
+#dayDone .ddhero{width:240px;max-width:100%;position:relative;z-index:3}
+/* v4.6.99: THE INK ENTRANCE. While the flood is up the overlay has no surface
+   of its own -- the ink is what you see, the mascot crosses above it, and the
+   drain is what reveals the summary underneath. visibility, not display, so
+   the hero lands on the layout it will keep. */
+#dayDone.dd-ink{background:transparent;animation:none}
+#dayDone.dd-ink>:not(.ddink){visibility:hidden}
+#dayDone.dd-ink .ddhero{visibility:visible}
+#dayDone .ddink{position:fixed;inset:0;background:var(--accent);z-index:2;clip-path:circle(0px at 50% 50%);pointer-events:none}
+/* the copy arrives as the ink drains, on the entrance's own stagger */
+#dayDone.dd-copy .dddate{animation:ddcinema-copy 550ms ease-out both 80ms}
+#dayDone.dd-copy .ddn{animation:ddcinema-number 750ms cubic-bezier(.2,.75,.25,1) both 180ms}
+#dayDone.dd-copy .ddu{animation:ddcinema-copy 550ms ease-out both 300ms}
+#dayDone.dd-copy .ddyou{animation:ddcinema-copy 550ms ease-out both 420ms}
+#dayDone.dd-copy .ddsummary{animation:ddcinema-copy 600ms ease-out both 520ms}
 /* Entrance motion wraps, rather than replaces, the mascot's own 3D jump. */
 #dayDone[data-entrance]{animation:ddcinema-in 360ms ease-out both}
 #dayDone[data-entrance] .ddhero{transform-origin:50% 85%;animation:ddcinema-rise 1050ms cubic-bezier(.2,.75,.25,1) both}
@@ -69,7 +83,7 @@ body.rest-home header.resting .hglass{background:transparent;border-color:transp
 @keyframes ddcinema-number{from{opacity:0;transform:translateY(18px) scale(.94)}to{opacity:1;transform:none}}
 @keyframes ddcinema-copy{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 @media(max-width:360px){#dayDone .ddhero{width:190px}}
-@media(prefers-reduced-motion:reduce){#dayDone[data-entrance],#dayDone[data-entrance] .ddhero,#dayDone[data-entrance] .dddate,#dayDone[data-entrance] .ddn,#dayDone[data-entrance] .ddu,#dayDone[data-entrance] .ddyou,#dayDone[data-entrance] .ddsummary{animation:none;transform:none;opacity:1}}
+@media(prefers-reduced-motion:reduce){#dayDone .ddink{display:none}#dayDone.dd-copy .dddate,#dayDone.dd-copy .ddn,#dayDone.dd-copy .ddu,#dayDone.dd-copy .ddyou,#dayDone.dd-copy .ddsummary{animation:none}#dayDone[data-entrance],#dayDone[data-entrance] .ddhero,#dayDone[data-entrance] .dddate,#dayDone[data-entrance] .ddn,#dayDone[data-entrance] .ddu,#dayDone[data-entrance] .ddyou,#dayDone[data-entrance] .ddsummary{animation:none;transform:none;opacity:1}}
 #dayDone.su-celebration .ddbody{padding:12px 0 20px}
 #dayDone.su-celebration .ddyou{margin:18px 0 12px}
 .su-completion-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;margin:12px auto 0}

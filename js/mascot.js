@@ -6,6 +6,20 @@ function mascotMode(){return ['still','off'].includes(DB.settings.mascotMotion)?
    up whatever it was doing. The completion moment wants blue AND its jump,
    then blue AND its dance. tone is its own argument now; mode keeps the
    motion, and 'cool' still implies blue so nothing that asked for it changes. */
+/* v4.6.99: retint a mascot already on screen -- the live renderer if it has
+   one, and always the still fallback and the dataset, so a later reconcile
+   (or a mount that lands after the ask) agrees with what is being shown. */
+function mascotTint(el,tone){
+  if(!el)return;
+  el.dataset.mascotTone=tone||'';
+  const image=el.querySelector('img');
+  if(image){
+    const resolved=mascotTone(el.dataset.mascot,tone);
+    const path=(typeof isRetro==='function'&&isRetro())?retroStill(el.dataset.mascot,resolved):'assets/mascot-'+resolved+'.png';
+    if(image.getAttribute('src')!==path)image.src=path;
+  }
+  el.dispatchEvent(new CustomEvent('mascottone',{detail:tone||''}));
+}
 function mascotTone(mode,tone){
   if(tone)return tone;
   if(mode==='cool')return 'blue';
@@ -129,6 +143,11 @@ for(const tone of ['white','chrome']){
         el.dataset.tapBound='1';
         // Plate replay restarts the approved jump without simulating a user tap.
         el.addEventListener('mascotreplay',()=>live.get(el)?.replay());
+        /* v4.6.99: and its TONE can change mid-show. The ink entrance floods
+           the screen with ShowUp Blue, and a blue mascot inside blue is a
+           mascot you cannot see -- it turns white for the crossing, which is
+           the installed icon's own pairing, and blue again as it lands. */
+        el.addEventListener('mascottone',e=>live.get(el)?.update({tone:e.detail||''}));
         el.addEventListener('pointerdown',()=>{
           if(el.closest('[data-replayday]'))return; // The whole card opens the achievement; no competing poke.
           const inst=live.get(el); if(!inst) return;
