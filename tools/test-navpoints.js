@@ -84,5 +84,42 @@ fresh();
 tapTab('stats');tapTab('today');
 ok("from Stats with nothing open, Today is Today", atTodayRoot());
 
-console.log(fail?`FAIL ${fail}`:"PASS the arrow goes to the previous navigation point; Today from inside Today goes home");
+/* v4.6.97: the same rule for Train -- and the older one it must not break.
+   From another tab, Train RESUMES the exercise you left (v3.3.527). Tapped
+   from inside Train, it goes up to the tab's front page. */
+/* Train's front page always carries a part -- the renderer picks one when
+   none is set (lift.js: focus || P.pick || order[0]) -- so "root" means no
+   exercise and no sub-screen, not no part. */
+const atTrainRoot=()=>run(`view==='lift'&&!lift.ex&&!lift.plan`);
+const trainFixture=()=>run(`(function(){DB.days={};DB.settings.unit='lb';DB.settings.onboarded=true;DB.plan=null;DB.week=null;
+  const text="Squat\\n  195 lb x 8 8 8";const {items}=planItemsFrom(parsePlan(text));planSave(items,'',text,todayISO);
+  SEED=deriveAll();plLog({ex:'Squat',part:'Legs',w:88.45,reps:[8],at:1});
+  lift={part:'Legs',ex:'Squat',weight:88.45};view='lift';render();})()`);
+
+trainFixture();
+ok("(fixture) standing on an exercise inside Train", run(`view==='lift'&&lift.ex==='Squat'`));
+tapTab('lift');
+ok("Train tapped from INSIDE an exercise goes to Train's front page", atTrainRoot(),
+   run(`JSON.stringify({view,part:lift.part,ex:lift.ex})`));
+tapTab('lift');
+ok("...and tapping it again there does not dive back into the exercise", atTrainRoot(),
+   run(`JSON.stringify({view,part:lift.part,ex:lift.ex})`));
+
+// a part you picked by hand survives the tap: the front page is not a flow
+trainFixture();
+run(`lift.ex=null;lift.part='Chest';render();`);
+ok("(fixture) on the front page with a hand-picked part", run(`view==='lift'&&lift.part==='Chest'&&!lift.ex`));
+tapTab('lift');
+ok("Train tapped ON the front page keeps the part you chose", run(`view==='lift'&&lift.part==='Chest'&&!lift.ex`),
+   run(`JSON.stringify({part:lift.part,ex:lift.ex})`));
+
+// and the older rule survives: from ANOTHER tab, Train resumes where you were
+trainFixture();
+tapTab('today');
+ok("(fixture) stepped out to Today", run(`view==='today'`));
+tapTab('lift');
+ok("Train tapped from ANOTHER tab still resumes the exercise you left", run(`view==='lift'&&lift.ex==='Squat'`),
+   run(`JSON.stringify({view,part:lift.part,ex:lift.ex})`));
+
+console.log(fail?`FAIL ${fail}`:"PASS the arrow goes to the previous navigation point; Today and Train, tapped from inside, go home");
 process.exit(fail?1:0);

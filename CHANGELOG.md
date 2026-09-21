@@ -1,5 +1,11 @@
 # ShowUp — changelog
 
+## v4.6.97 (2026-09-21) — Tapping the tab you are on goes home
+
+- Tap Train while already inside an exercise and it returns to Train's front page, matching the rule Today has had since v4.6.72.
+- Tapped from another tab, Train still resumes the exercise you left; the two rules answer different questions.
+- Tapped while already on the front page it scrolls to the top and keeps the part you picked.
+
 ## v4.6.96 (2026-09-21) — The exercise ends from its own card
 
 - Swap the two terminal actions on an exercise screen: the session card now carries "✓ Done with <exercise>", where "Complete workout" used to sit.

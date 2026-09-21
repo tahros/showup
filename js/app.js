@@ -194,6 +194,28 @@ document.addEventListener('click',e=>{
       else { lift.writeAbort?.abort(); lift.plan=null; lift.write=null; render({soft:true}); }
       return;
     }
+    /* v4.6.97: TRAIN KNOWS IT TOO. v4.6.72 gave Today the rule -- tapped from
+       inside one of its sub-sections, the tab returns to its own default page
+       -- and left Train with the opposite: tapped from an exercise, it read
+       the tab as an arrival and resumed the very screen you were standing on,
+       so the tap did nothing you could see.
+       The two rules do not fight, because they answer different questions.
+       Arriving from another tab, Train resumes the exercise you left (v3.3.527
+       -- you walked to the rack, checked the plan, came back). Tapped while you
+       are ALREADY in Train, it goes up to the tab's own front page. Standing at
+       that page it scrolls to the top, and never dives back into an exercise:
+       a tab tap that undoes itself on the next tap is a toggle, not a tab.
+       lift.part is NOT a sub-screen: the front page always carries a part,
+       chosen by the renderer or by you. Clearing it on a tap would throw away
+       a part you had just picked, which no other path in Train does. */
+    if(nav.dataset.v==='lift'&&view==='lift'){
+      if(lift&&(lift.ex||lift.plan||lift.write)){
+        lift.writeAbort?.abort();
+        liftEnter({});
+        render({soft:true});
+      } else scrollTo({top:0,behavior:MOTION_OK?'smooth':'auto'});
+      return;
+    }
     view=nav.dataset.v;
     /* v3.3.347: the tab remembers, live or not */
     /* v3.3.434: a tab tap is a fresh start, never a return. Taking the Train
