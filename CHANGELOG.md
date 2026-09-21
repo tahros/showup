@@ -1,5 +1,10 @@
 # ShowUp — changelog
 
+## v4.6.92 (2026-09-20) — Blend Rest into the status area
+
+- Match the document canvas and browser theme color to the top of the Rest gradient in both themes.
+- Restore the normal page color when leaving Rest Home; retain the existing layout and animation.
+
 ## v4.6.91 (2026-09-20) — Remove workout duration labels
 
 - Remove the newly added exercise timing, total minutes and timing notes from history and share images.

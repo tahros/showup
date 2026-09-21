@@ -343,8 +343,7 @@ function applyTheme(){
   const bar = (bp==='dark'||bp==='light') ? bp : t;
   document.documentElement.dataset.bar=bar;
   try{localStorage.setItem('showup-theme',t);localStorage.setItem('showup-skin',sk);localStorage.setItem('showup-bar',bar);}catch(e){}
-  const m=document.querySelector('meta[name="theme-color"]');
-  if(m) m.setAttribute('content', t==='light'?'#F2F3F6':'#0C0E13');
+  syncPageChrome();
   if(!_themeWatched){
     _themeWatched=true;
     try{
@@ -353,6 +352,21 @@ function applyTheme(){
       if(mq.addEventListener) mq.addEventListener('change',on); else mq.addListener(on);
     }catch(e){}
   }
+}
+/* Match the OS/browser status area to the actual top of Rest Home, not
+   the normal page ground. Clear the root override when leaving Rest Home. */
+function syncPageChrome(){
+  const root=document.documentElement,rest=document.body.classList.contains('rest-home');
+  if(rest)root.dataset.restHome='1';else delete root.dataset.restHome;
+  const probe=document.createElement('span');
+  probe.style.cssText='position:absolute;visibility:hidden;pointer-events:none';
+  probe.style.backgroundColor=rest?'var(--rest-top)':'var(--ground)';
+  document.body.appendChild(probe);
+  let color=getComputedStyle(probe).backgroundColor;probe.remove();
+  const srgb=color.match(/^color\(srgb\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)/);
+  if(srgb)color='rgb('+srgb.slice(1).map(v=>Math.round(Number(v)*255)).join(', ')+')';
+  const meta=document.querySelector('meta[name="theme-color"]');
+  if(meta)meta.content=color;
 }
 /* weights are always STORED in kg; the unit setting only changes what you see and type */
 const LB=2.20462, MI=0.621371;

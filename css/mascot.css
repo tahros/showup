@@ -1,5 +1,6 @@
 /* v4.6.84: one continuous rest wash, and shared elements for the exhale. */
-body.rest-home,body.rest-home #app{background:linear-gradient(180deg,color-mix(in srgb,var(--rest) 22%,var(--ground)),var(--ground) 440px) fixed}
+:root[data-rest-home="1"]{background-color:var(--rest-top)}
+body.rest-home,body.rest-home #app{background:linear-gradient(180deg,var(--rest-top),var(--ground) 440px) fixed}
 body.rest-home header.resting .hglass{background:transparent;border-color:transparent;box-shadow:none;animation:none}
 .rest-home .su-hello-row{flex-direction:column-reverse;gap:4px;padding:16px 0 22px}
 .rest-home .su-hello-row .su-mascot{width:172px;max-width:55vw}
