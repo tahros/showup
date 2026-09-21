@@ -1,5 +1,11 @@
 # ShowUp — changelog
 
+## v4.6.98 (2026-09-21) — Every tab, tapped from inside, goes home
+
+- History tapped while on another month, or with a day open for editing, returns to this month; a part filter is a viewpoint and stays.
+- Stats has only viewpoints, so its tap scrolls to the top and changes nothing.
+- One shape now covers Train, History and Stats: places pop, viewpoints stay.
+
 ## v4.6.97 (2026-09-21) — Tapping the tab you are on goes home
 
 - Tap Train while already inside an exercise and it returns to Train's front page, matching the rule Today has had since v4.6.72.

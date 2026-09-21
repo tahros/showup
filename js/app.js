@@ -208,12 +208,25 @@ document.addEventListener('click',e=>{
        lift.part is NOT a sub-screen: the front page always carries a part,
        chosen by the renderer or by you. Clearing it on a tap would throw away
        a part you had just picked, which no other path in Train does. */
-    if(nav.dataset.v==='lift'&&view==='lift'){
-      if(lift&&(lift.ex||lift.plan||lift.write)){
-        lift.writeAbort?.abort();
-        liftEnter({});
-        render({soft:true});
-      } else scrollTo({top:0,behavior:MOTION_OK?'smooth':'auto'});
+    /* v4.6.98: AND THE OTHER TWO. One shape for all three: the tab you are
+       already on names the PLACES it can be inside of; if you are in one, the
+       tap goes home, otherwise it scrolls to the top. A place is somewhere you
+       walked into -- an exercise, a month that is not this one, a day opened
+       for editing. A viewpoint is how you are reading the page -- a body part
+       followed on the chart, a measure toggled, a filter on the month -- and
+       the tap leaves those alone, by the same rule PLAN_VIEW_KEYS keeps for
+       Train: leaving a screen should not abandon a viewpoint.
+       Stats has only viewpoints, so its tap only ever scrolls. History's month
+       is a place because null means "this month" (core.js), and the renderer
+       re-derives it from today. */
+    if(nav.dataset.v===view&&view!=='today'){
+      const home={
+        lift:()=>lift&&(lift.ex||lift.plan||lift.write)&&(()=>{lift.writeAbort?.abort();liftEnter({});}),
+        history:()=>(hist.edit||(hist.y&&hist.y!==+todayISO.slice(0,4))||(hist.m&&hist.m!==+todayISO.slice(5,7)))&&(()=>{hist.edit=null;hist.editSet=null;hist.y=null;hist.m=null;}),
+        stats:()=>null
+      }[view]?.();
+      if(home){home();render({soft:true});}
+      else scrollTo({top:0,behavior:MOTION_OK?'smooth':'auto'});
       return;
     }
     view=nav.dataset.v;

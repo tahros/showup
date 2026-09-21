@@ -121,5 +121,42 @@ tapTab('lift');
 ok("Train tapped from ANOTHER tab still resumes the exercise you left", run(`view==='lift'&&lift.ex==='Squat'`),
    run(`JSON.stringify({view,part:lift.part,ex:lift.ex})`));
 
-console.log(fail?`FAIL ${fail}`:"PASS the arrow goes to the previous navigation point; Today and Train, tapped from inside, go home");
+/* v4.6.98: History and Stats. A PLACE is somewhere you walked into (another
+   month, a day open for editing); a VIEWPOINT is how you read the page (a
+   part filter, a chart toggle). The tap goes home from a place and leaves a
+   viewpoint alone. Stats has only viewpoints. */
+const histFixture=()=>run(`(function(){DB.days={};DB.settings.unit='lb';DB.settings.onboarded=true;
+  DB.days['2026-07-04']={w:[{ex:'Squat',part:'Legs',w:88.45,reps:[8],at:1}],doneAll:true,upd:1};
+  SEED=deriveAll();hist={y:null,m:null,part:null,edit:null,editSet:null};view='history';render();})()`);
+const thisMonth=()=>run(`view==='history'&&hist.y===+todayISO.slice(0,4)&&hist.m===+todayISO.slice(5,7)&&!hist.edit`);
+
+histFixture();
+run(`hist.y=2026;hist.m=7;render();`);
+ok("(fixture) History paged back to July", run(`view==='history'&&hist.m===7`));
+tapTab('history');
+ok("History tapped from another month comes home to this month", thisMonth(), run(`JSON.stringify({y:hist.y,m:hist.m})`));
+
+histFixture();
+run(`hist.edit='2026-07-04';hist.y=2026;hist.m=7;render();`);
+ok("(fixture) a day open for editing", run(`hist.edit==='2026-07-04'`));
+tapTab('history');
+ok("History tapped with a day open closes it and comes home", thisMonth()&&run(`!hist.edit&&!hist.editSet`));
+
+histFixture();
+run(`hist.part='Legs';render();`);
+ok("(fixture) on this month with a part filter", thisMonth()&&run(`hist.part==='Legs'`));
+tapTab('history');
+ok("History tapped at home keeps the part filter: a viewpoint, not a place", thisMonth()&&run(`hist.part==='Legs'`));
+
+// and the older rule: from another tab, History opens where you left it
+histFixture();
+run(`hist.y=2026;hist.m=7;render();`);
+tapTab('stats');tapTab('history');
+ok("History tapped from ANOTHER tab opens the month you were reading", run(`view==='history'&&hist.m===7`));
+
+run(`view='stats';PMIX_FOCUS='Legs';render();`);
+tapTab('stats');
+ok("Stats tapped on Stats keeps its viewpoint: nothing to pop, only scroll", run(`view==='stats'&&PMIX_FOCUS==='Legs'`));
+
+console.log(fail?`FAIL ${fail}`:"PASS the arrow goes to the previous navigation point; every tab, tapped from inside, goes home");
 process.exit(fail?1:0);
