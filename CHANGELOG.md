@@ -1,5 +1,11 @@
 # ShowUp — changelog
 
+## v4.6.91 (2026-09-20) — Remove workout duration labels
+
+- Remove the newly added exercise timing, total minutes and timing notes from history and share images.
+- Restore compact exercise headings with set counts; retain total sets, existing run results, mascot and name.
+- Keep all saved timing and workout records unchanged.
+
 ## v4.6.90 (2026-09-20) — Workout timing in history and sharing
 
 - Show available exercise timing on the left and set counts on the right, with quiet timestamp details in history.

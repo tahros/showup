@@ -528,19 +528,10 @@
   .crtotal>b{font-size:30px;line-height:1;color:var(--accent-ink);letter-spacing:var(--track-num);font-weight:500}
   .crtotal>small,.crstreak,.crsince{font-family:var(--mono);letter-spacing:.02em}
   .crtotal>small{font-size:11px;color:var(--faint)}
-  .history-meta{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;color:var(--muted);font-size:12px;margin:3px 0 6px}
-  .history-time{min-width:0;flex:1}
-  .day .history-time>summary{min-height:28px;display:flex;justify-content:flex-start;align-items:center;gap:6px;padding:0;cursor:pointer;list-style:none;font:400 12px var(--mono);color:var(--muted);background:none}
-  .history-time>summary::-webkit-details-marker{display:none}
-  .history-time>summary::after{content:'⌄';font-family:var(--body)}
-  .history-time[open]>summary::after{content:'⌃'}
-  .history-time>div{font:400 11px/1.5 var(--body);max-width:260px;padding:4px 0 8px}
-  .history-meta>.ago{padding-top:6px;white-space:nowrap}
   .history-totals{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;border-top:1px solid var(--line);padding-top:14px;margin-top:14px}
   .history-totals>span:last-child{text-align:right}
   .history-totals strong{font-weight:600}
   .history-totals small{display:block;font-size:11px;color:var(--muted);margin-top:2px}
-  @media(pointer:coarse){.day .history-time>summary{min-height:44px}.history-meta>.ago{padding-top:14px}}
   .crstreak{font-size:11px;color:var(--muted);white-space:nowrap}
   .crsince{font-size:10.5px;color:var(--faint);margin-top:3px}
   /* v3.3.333: the sheen belongs to the WINDOW, not to what slides past it.

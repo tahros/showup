@@ -515,35 +515,6 @@ const SET_SEC='s';
 const isHold=su=>su===SET_SEC;
 /* 45 -> 45", 60 -> 1', 90 -> 1'30". Minutes only once there are whole ones,
    so a plank reads in the unit it was held in. */
-/* Recorded timing only. A lifting span is between log events, not active
-   exercise time. The total ends at the last log, never a late Complete tap. */
-function historyTiming(rows){
-  const live=(rows||[]).filter(r=>r.ex==='Run'||(r.reps||[]).length);
-  const valid=r=>Number.isFinite(r.at)&&r.at>=946684800000;
-  const runSeconds=r=>{const m=Number(r.mins),s=Number(r.secs||0);return r.mins!=null&&Number.isFinite(m)&&Number.isFinite(s)&&m>=0&&s>=0?m*60+s:null;};
-  const groups={};for(const r of live)(groups[r.ex]||(groups[r.ex]=[])).push(r);
-  const exercises={};
-  for(const [ex,rs] of Object.entries(groups)){
-    if(ex==='Run'){const seconds=rs.map(runSeconds);if(seconds.every(s=>s!=null&&s>0))exercises[ex]={seconds:Math.round(seconds.reduce((a,b)=>a+b,0)),recorded:true};continue;}
-    if(rs.length<2||!rs.every(valid))continue;
-    const first=Math.min(...rs.map(r=>r.at)),last=Math.max(...rs.map(r=>r.at));
-    if(last>first&&last-first<=86400000)exercises[ex]={seconds:Math.round((last-first)/1000),first,last};
-  }
-  let total=null;
-  if(live.length&&live.every(valid)&&live.every(r=>r.ex!=='Run'||runSeconds(r)>0)){
-    const first=Math.min(...live.map(r=>r.at-(r.ex==='Run'?runSeconds(r)*1000:0))),last=Math.max(...live.map(r=>r.at));
-    if(last>first&&last-first<=86400000)total={seconds:Math.round((last-first)/1000),estimated:live.some(r=>r.ex==='Run'),first,last};
-  }
-  return {exercises,total};
-}
-function historyTimeLabel(seconds){return Math.floor(seconds/60)+'m '+String(seconds%60).padStart(2,'0')+'s';}
-function historyTotalLabel(t){return (t.estimated?'~':'')+Math.round(t.seconds/60)+' min';}
-function historyTimingHTML(t){
-  if(!t)return '<span></span>';
-  const clock=at=>new Date(at).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',second:'2-digit'});
-  const note=t.recorded?'Recorded run duration.':`First log ${clock(t.first)} · last log ${clock(t.last)}. Includes gaps between logs, not active lifting time.`;
-  return `<details class="history-time"><summary aria-label="${hesc(historyTimeLabel(t.seconds)+'. Show timing details')}">${historyTimeLabel(t.seconds)}</summary><div>${hesc(note)}</div></details>`;
-}
 function secLabel(n){
   const v=Math.max(0,Math.round(+n||0));
   if(v<60) return `${v}\u2033`;
