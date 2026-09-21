@@ -1,5 +1,17 @@
 # ShowUp — changelog
 
+## v4.6.95 (2026-09-21) — Fold the plans behind today
+
+- Pin the workout you are about to do and fold every planned day behind it under one row.
+- Today planned: today is the card and tomorrow folds with the rest. Today finished, or today unplanned: tomorrow is the card and does not fold.
+- The fold remembers whether it is open and starts open, so no planned day disappears from a screen that showed it yesterday.
+- Add AGENTS.md, the working agreement for the two agents pushing to this branch.
+
+## v4.6.94 (2026-09-21) — Fold the later plans
+
+- Put the planned days after tomorrow behind one row that remembers whether it is open.
+- Superseded the same day by v4.6.95, which folds tomorrow too when today's workout is still ahead of you.
+
 ## v4.6.93 (2026-09-20) — Optional Retro appearance
 
 - Add Retro | Minimal | Classic, independent of Light/Dark; keep Minimal as the default.

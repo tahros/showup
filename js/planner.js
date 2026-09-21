@@ -108,12 +108,14 @@ function pwPlanTotals(plan){
 function pwPlanHeading(label,plan){
   return `<span class="pw-future-label"><span>${hesc(label)}</span><strong>${hesc(pwParts(pwRead(planText(plan))).join(' + ')||'Your workout')}</strong></span>${pwPlanTotals(plan)}`;
 }
-/* v4.6.94: EVERYTHING AFTER TOMORROW FOLDS. v4.6.83 put every upcoming plan
-   on the home screen, which is right for today and tomorrow and long for the
-   rest -- five planned days push Train next off the bottom. The days after
-   tomorrow now sit behind one row that remembers whether it is open. It
-   STARTS open, so nothing vanishes from a screen that had it yesterday:
-   shut it once and it stays shut. Today and tomorrow never fold away. */
+/* v4.6.95: THE NEXT WORKOUT IS PINNED; EVERYTHING BEHIND IT FOLDS. v4.6.94
+   pinned tomorrow as well, which double-pinned it: when today is unplanned or
+   already done, tomorrow is ALREADY the headline card, and a second copy of
+   the rule kept a day on screen that the card above it was about. The list
+   this builds never contains the headline day, so the whole list is the
+   fold -- one lid, on exactly the days you are not about to train.
+   It starts open, so nothing vanishes from a screen that had it yesterday;
+   shut it once and it stays shut. */
 function pwLaterDayHTML(d){
   return `<details class="pw-later-day" data-pw-fold="later:${d}" ${pwFoldOpen('later:'+d)?'open':''}><summary>${pwPlanHeading((d===tomorrowISO()?'Tomorrow · ':'')+pwDate(d),pwSaved(d))}</summary>${planCardHTML(pwSaved(d),false)}<div class="pw-actions pw-future-actions pw-later-actions" role="group" aria-label="Actions for ${hesc(pwDate(d))} plan">${pwAction('open-date','Edit','edit','',`data-date="${d}"`)}${pwAction('paste-open','Paste','paste','',`data-date="${d}"`)}</div></details>`;
 }
@@ -123,9 +125,7 @@ function pwLaterPlans(html,dates){
   const t=document.createElement('template');t.innerHTML=html;
   const card=t.content.querySelector('.pw-saved,.pw-home-card');if(!card)return html;
   const group=document.createElement('div');group.className='pw-plan-group';card.before(group);group.append(card);
-  const tom=tomorrowISO(),soon=dates.filter(d=>d<=tom),rest=dates.filter(d=>d>tom);
-  const fold=rest.length?`<details class="pw-later-fold" data-pw-fold="later" ${pwFoldOpen('later',true)?'open':''}><summary><span>After tomorrow</span><small>${hesc(pwWeekdays(rest))}</small></summary>${rest.map(pwLaterDayHTML).join('')}</details>`:'';
-  group.insertAdjacentHTML('beforeend',`<div class="pw-later pw-later-visible"><div class="pw-later-heading"><span>${dates.length} more ${dates.length===1?'plan':'plans'}</span><small>${fold?'':hesc(pwWeekdays(dates))}</small></div><div class="pw-later-list">${soon.map(pwLaterDayHTML).join('')}${fold}</div></div>`);
+  group.insertAdjacentHTML('beforeend',`<details class="pw-later pw-later-visible" data-pw-fold="later" ${pwFoldOpen('later',true)?'open':''}><summary class="pw-later-heading"><span>${dates.length} more ${dates.length===1?'plan':'plans'}</span><small>${hesc(pwWeekdays(dates))}</small></summary><div class="pw-later-list">${dates.map(pwLaterDayHTML).join('')}</div></details>`);
   return t.innerHTML;
 }
 function pwTodayHTML(){
@@ -151,10 +151,6 @@ function pwTodayHTML(){
     tools.insertAdjacentHTML('beforeend',pwDatesButton());home.append(tools);
     heading.querySelector('button')?.remove();
     const later=home.querySelector('.pw-later');
-    /* the Rest screen already hides all of this behind one summary, so the
-       inner fold would be a second lid on the same box */
-    const inner=later?.querySelector('.pw-later-fold');
-    if(inner)inner.replaceWith(...[...inner.children].filter(x=>x.tagName!=='SUMMARY'));
     if(later){
       const fold=document.createElement('details');fold.className='pw-rest-later';
       fold.dataset.pwFold='rest-later';fold.open=pwFoldOpen('rest-later');
