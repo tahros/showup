@@ -142,9 +142,10 @@ document.addEventListener('click',e=>{
     return render();
   }
   /* v3.3.457: the part-level Complete handler is gone with its button (lift.js). */
-  /* v4.6.62: two doors, one room -- the live bar's Finish and the session
-     card's Complete workout open the same confirmation sheet. */
-  if(e.target.closest('#liveWorkoutFinish')||e.target.closest('#scFinishBtn')){ openWorkoutFinish(); return; }
+  /* v4.6.96: one door. The session card's copy of this is gone -- that slot
+     now ends the EXERCISE (#doneExBtn, handled above) -- so the day ends from
+     the live bar, at day scope, where it reads as the day's action. */
+  if(e.target.closest('#liveWorkoutFinish')){ openWorkoutFinish(); return; }
   /* v4.6.63: the fold is a SETTING, not a session flag. It rides the per-key
      settings clock like planFold does, so folding on the phone folds on the
      PC and nothing else in the blob travels with it (v3.3.439). save(true)

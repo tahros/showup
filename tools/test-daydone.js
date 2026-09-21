@@ -114,9 +114,15 @@ const liftSrc=fs.readFileSync(path.join(dir,"js/lift.js"),"utf8");
 /* v3.3.457 RESTATES: the part-level "Done with <part>" is gone at the
    maker's word -- exercise and day are the two units that mean something.
    Only the exercise tick remains, and the day's end keeps its own words. */
+/* v4.6.96: the exercise tick moved into the session card (planlink.js), taking
+   the slot "Complete workout" had there; the day's end now says its words in
+   exactly one place, the live bar. So the tick is looked for where it lives
+   now, and lift.js is checked for not rendering a second copy of it. */
+const linkSrc=fs.readFileSync(path.join(dir,"js/planlink.js"),"utf8");
 ok("only the day's end says \"Complete\"; the exercise tick is the one step-level button left",
    !/>\u2713 Complete /.test(liftSrc) && !/Done with \$\{lift\.part\}/.test(liftSrc)
-   && /Done with \$\{ex\}/.test(liftSrc));
+   && /Done with \$\{hesc\(ex\)\}/.test(linkSrc) && !/doneExBtn/.test(liftSrc)
+   && !/id="scFinishBtn"/.test(linkSrc));
 
 /* and the door still opens the room */
 run(`openWorkoutFinish(); document.getElementById('doneAllBtn').dispatchEvent(new window.Event('click',{bubbles:true}))`);

@@ -53,7 +53,7 @@ ok("...the same names, so the values morph rather than fade",
 ok("...no delete: structure stays in the planner, behind a named door",
    run(`document.querySelectorAll('.sc-editing-plan [data-lw-del]').length`)===0 && run(`!!document.querySelector('[data-pl-planner]')`));
 ok("...and the button reads Done", /Done/.test(run(`document.querySelector('[data-sc-edit-plan]').textContent`)));
-ok("...Complete workout steps aside here too", !run(`!!document.getElementById('scFinishBtn')`));
+ok("...the terminal action steps aside here too", !run(`!!document.getElementById('scFinishBtn')||!!document.getElementById('doneExBtn')`));
 
 // ---- editing reps on the THIRD target (unlogged)
 run(`[...document.querySelectorAll('[data-pt-edit][data-lw-field="r"]')].pop().click()`);

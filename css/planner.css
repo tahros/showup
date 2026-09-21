@@ -27,7 +27,7 @@
 .sc-result summary{justify-content:center!important;gap:3px;min-height:32px!important;font:400 11px/1.3 var(--body)!important;color:var(--accent-ink)!important;list-style:none;flex-wrap:wrap}
 .sc-result summary::-webkit-details-marker{display:none}
 .sc-result p{font:400 11px/1.5 var(--body);color:var(--muted);margin:6px 0;overflow-wrap:anywhere}
-.sc-finish{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:14px}
+.sc-finish{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:14px;white-space:normal;line-height:1.35;overflow-wrap:break-word;text-wrap:balance}
 .sc-volume{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;border-top:1px solid var(--line);padding-top:14px;font:400 12px/1.4 var(--body);color:var(--muted)}
 .sc-volume strong{font:500 14px/1.4 var(--body);color:var(--chalk)}
 .sc-intro{font:400 14px/1.6 var(--body);color:var(--muted)}

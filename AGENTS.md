@@ -43,7 +43,10 @@ _nothing_
 
 ## Known red
 
-Carried from v4.6.84–v4.6.93 (Codex), still failing as of v4.6.95:
+Carried from v4.6.84–v4.6.93 (Codex), still failing as of v4.6.96. Verified
+pre-existing by running each against the unmodified commit.
+
+Suites (`bash tools/runsuite.sh .`):
 
 - `test-rest.js` — 4: the `Rest.` greeting, the undo button reading, the rest
   state after it, and `--rest` appearing outside rest rules
@@ -51,5 +54,14 @@ Carried from v4.6.84–v4.6.93 (Codex), still failing as of v4.6.95:
 - `test-plan.js` — 1: the undo button reading
 - `test-planner.js` — 1: workspace default vs the legacy Write toolbar
 
+Chromium checks (run by hand, see each file's header):
+
+- `check-session-comparison.cjs` — `.sc-result` is absent where it expects one
+- `check-live-workout.cjs` — the live bar's meta no longer reads `4 sets`
+
 Claude has not touched these; they are someone's in-flight intent, and
 guessing at it would do more harm than leaving them.
+
+Several `check-*.cjs` files hard-coded a Windows Chromium path and a port.
+Those now read `PW_CHROME` and `PW_PORT` first and fall back to what they
+had, so either of us can run them.

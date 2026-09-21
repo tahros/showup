@@ -91,8 +91,8 @@ ok("...the context columns step aside",
    run(`document.querySelectorAll('.sc-editing thead th').length`) === 3);
 ok("...with Clear and Move alongside",
    run(`!!document.getElementById('clearToday') && !!document.getElementById('moveToday')`));
-ok("...Complete workout is not a thumb-width from Clear",
-   run(`!document.getElementById('scFinishBtn')`));
+ok("...the terminal action is not a thumb-width from Clear",
+   run(`!document.getElementById('scFinishBtn')&&!document.getElementById('doneExBtn')`));
 ok("...and the button now reads Done",
    /Done/.test(run(`document.getElementById('sessEdit').textContent`)),
    run(`document.getElementById('sessEdit').textContent`));

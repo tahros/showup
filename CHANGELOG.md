@@ -1,5 +1,11 @@
 # ShowUp — changelog
 
+## v4.6.96 (2026-09-21) — The exercise ends from its own card
+
+- Swap the two terminal actions on an exercise screen: the session card now carries "✓ Done with <exercise>", where "Complete workout" used to sit.
+- Remove "Complete workout" from the exercise screen. The day ends from the live bar's Finish, which is now the only path to it.
+- Let that button's label wrap, since it carries an exercise name in a narrower slot than the page; it was clipping at both ends.
+
 ## v4.6.95 (2026-09-21) — Fold the plans behind today
 
 - Pin the workout you are about to do and fold every planned day behind it under one row.

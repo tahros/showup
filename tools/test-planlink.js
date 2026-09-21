@@ -173,31 +173,35 @@ test('unified view stays read-only and unlinked sets never consume targets',`(()
          (cPlan<0||cLog<0)||((iPlan<iLog)===(cPlan<cLog)));
   }
 
-  /* v4.6.62: the day's exit lives in the session card, and only while the day
-     is open. The banner it replaced said nothing the ticked row did not. */
+  /* v4.6.96: that slot holds the EXERCISE's exit, not the day's. "Complete
+     workout" sat one thumb-width under the sets of a single lift, reading as
+     though it belonged to them, while "Done with <exercise>" -- the action
+     that DID belong to them -- sat below the progression chart. They swapped.
+     The day still ends from the live bar, and only from there. */
   {
     const live=run(`plSessionHTML('Squat',[],(DB.days[todayISO]||{}).w||[])`);
-    test('a live workout offers Complete workout inside the card',
-         live.includes('id="scFinishBtn"')&&live.includes('Complete workout'));
+    test('the card ends the exercise, and names it',
+         live.includes('id="doneExBtn"')&&live.includes('Done with Squat'));
+    test('...and no longer offers to end the day',
+         !live.includes('scFinishBtn')&&!live.includes('Complete workout'));
     test('the congratulation banner is gone',
          !live.includes('sc-celebrate')&&!live.includes('That set counts.'));
     run(`day(todayISO).doneAll=true;`);
     const closed=run(`plSessionHTML('Squat',[],(DB.days[todayISO]||{}).w||[])`);
-    test('a closed day offers no way to close it again',
-         !closed.includes('scFinishBtn')&&!closed.includes('Complete workout'));
+    test('a finished day offers no way to finish a piece of it',
+         !closed.includes('doneExBtn'));
     run(`day(todayISO).doneAll=false;`);
     const reopened=run(`plSessionHTML('Squat',[],(DB.days[todayISO]||{}).w||[])`);
     test('reopening the day brings the control back',
-         reopened.includes('id="scFinishBtn"'));
+         reopened.includes('id="doneExBtn"'));
     /* A button that renders and does nothing is worse than no button, so the
        click is exercised, not the markup that implies it. */
-    run(`if(!HTMLDialogElement.prototype.showModal)HTMLDialogElement.prototype.showModal=function(){this.open=true;};
-         document.getElementById('workoutFinishDialog')?.remove();
+    run(`lift={part:'Legs',ex:'Squat'};
          document.getElementById('view').innerHTML=plSessionHTML('Squat',[],(DB.days[todayISO]||{}).w||[]);
-         document.getElementById('scFinishBtn').click();`);
-    test('pressing it opens the same confirmation the live bar opens',
-         run(`!!document.querySelector('#workoutFinishDialog #doneAllBtn')`));
+         document.getElementById('doneExBtn').click();`);
+    test('pressing it closes the exercise, not the day',
+         run(`dayMeta().doneEx.includes('Squat')&&!day(todayISO).doneAll`));
+    run(`dayMeta().doneEx=dayMeta().doneEx.filter(x=>x!=='Squat');lift={part:'Legs',ex:'Squat'};`);
   }
-
   console.log(checks+' linkage checks passed');dom.window.close();process.exit(0);
 })().catch(e=>{console.error(e);dom.window.close();process.exit(1)});

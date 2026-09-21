@@ -373,13 +373,14 @@ function plSessionHTML(ex,last,today){
     }).join('')||`<span class="sc-empty">${pending?(choice.target?.id===t.id?'Next':'Not yet'):'—'}</span>`;
     return `<tr><th scope="row">${pending?`<button type="button" class="sc-slot" data-link-slot="${t.ordinal}" aria-label="Use planned set ${t.ordinal}" aria-pressed="${choice.target?.id===t.id}">${row.label}</button>`:row.label}${plWarmMark(t)}</th>${hasLast?'<td>'+past+'</td>':''}${hasPlan?'<td>'+target+'</td>':''}<td>${logged}</td></tr>`;
   }).join('');
-  /* v4.6.62: THE DAY ENDS FROM THE CARD. The slot under the table held a
-     congratulation ("That set counts.") that said nothing the ticked row above
-     it had not already said. The maker's finding is that the control ending
-     the DAY is the hard one to find, so that slot now carries it: the workout
-     is live, your sets are in front of you, and the way out is where your eye
-     already is. It opens the same sheet the live bar's Finish opens -- one
-     path to doneAll, not a second one to keep in step. */
+  /* v4.6.96: THE EXERCISE ENDS FROM THE CARD; THE DAY DOES NOT. v4.6.62 put
+     "Complete workout" in this slot, one thumb-width under the sets of ONE
+     lift -- the day's exit reading as though it belonged to the exercise you
+     were looking at, while the exercise's own exit sat far below the
+     progression chart where you had to scroll to find it. The slot now
+     carries the action that matches its scope: this exercise is done. The
+     day still ends from the live bar's Finish, which is where a day-sized
+     action belongs and the only path to doneAll again. */
   const editing=!!lift.editToday&&!!actual.length;
   const editingPlan=!editing&&!!lift.editPlan&&hasPlan;
   const done=targets.filter(t=>plActual(todayISO,t.id).length).length,groups=plSessionGroups(rows),canCompact=rows.length>4&&groups.length<rows.length,compact=canCompact&&lift.scDetails!==ex;
@@ -392,7 +393,7 @@ function plSessionHTML(ex,last,today){
       :body?`<table class="sc-table"><thead><tr><th scope="col">Set</th>${hasLast?`<th scope="col">Last<button class="sc-date linkdate" data-histd="${last.d}">${hesc(wd(last.d))}</button></th>`:''}${hasPlan?'<th scope="col">Plan<small>'+hesc(wd(displayPlan.date))+'</small></th>':''}<th scope="col">Logged<small>Today</small></th></tr></thead><tbody>${compact?plCompactBody(ex,groups,hasLast,hasPlan,choice,latest,fresh):body}</tbody></table>`:'<p class="sc-intro">Your first set starts here. Log your weight and reps above.</p>'}
     ${!editing&&!editingPlan&&targets.some(plWarm)?'<p class="sc-warm-key"><span aria-hidden="true">W</span> Planned warm-up</p>':''}
     ${!hasLast&&hasPlan&&!preview?'<p class="pl-context">Today becomes your reference next time.</p>':''}
-    ${isLive()&&!editing&&!editingPlan?`<button type="button" class="btn done sc-finish" id="scFinishBtn">${icon('check',18)} Complete workout</button>`:''}
+    ${isLive()&&exOpen(ex)&&!editing&&!editingPlan&&!preview?`<button type="button" class="btn done sc-finish" id="doneExBtn">\u2713 Done with ${hesc(ex)}</button>`:''}
     ${actual.length?`<div class="sc-volume"><span>${isHold(unitOf(ex))?'Sets logged':'Volume so far'}</span><strong>${isHold(unitOf(ex))?actual.length:`<span id="volNum" data-kg="${today.reduce((sum,s)=>sum+volOf(s),0)}">${vDisp(today.reduce((sum,s)=>sum+volOf(s),0))}</span> ${U()}`}</strong></div>`:''}
     ${editing||editingPlan?'':preview?'<p class="pl-context">Upcoming plan · today’s sets are logged separately.</p>':hasPlan?`<div class="pl-next">${choice.target?`<button type="button" class="pl-next-target" data-link-slot="${choice.target.ordinal}">Next: set ${choice.target.ordinal} · ${hesc(plTargetText(choice.target))}</button>`:`<span>${done===targets.length?'All targets logged · extra sets welcome':'Next: extra set · targets remain above'}</span>`}<button type="button" class="pl-extra" data-link-slot="-1" aria-pressed="${!choice.target}">Extra set</button></div>`:'<p class="pl-context">No set target · go at your own pace.</p>'}
     ${!editing&&!editingPlan&&hasPlan&&!preview&&rows.some(r=>r.unlinked)?'<p class="pl-context">Unlinked sets count too. They are not assigned to a plan target.</p>':''}</section>`;

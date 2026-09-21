@@ -965,10 +965,9 @@ function renderLift(){
   /* v3.3.371: the words "Complete workout" belong to the DAY, never to a step
      inside it. This button closes an EXERCISE and says exactly that; saying the
      same word at three scopes made "done" a thing the reader had to assemble.
-     v4.6.62: the day's own control now sits in the session card above, and the
-     sheet it opens is its confirmation -- one action, so "done" still reads at
-     exactly two scopes, not three. */
-  if(exOpen(ex)) h+=`<button class="btn done" id="doneExBtn">✓ Done with ${ex}</button>`;
+     v4.6.96: it moved UP into the session card, into the slot v4.6.62 had given
+     the day's exit -- ending this lift is what the sets above it are about, and
+     down here it sat below a progression chart you had to scroll past. */
   $('#view').innerHTML=h;
   /* v3.3.286: the ruler is positioned AFTER the markup lands, and opens on
      the suggested rep so the common case stays one tap. lift.rep survives a
