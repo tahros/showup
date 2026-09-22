@@ -1265,6 +1265,7 @@ const ICON_STROKE={
      exercise); the cross stays for dismissing, skipping and closing. Drawn
      as strokes like clear and grip so it inherits the set's weight. */
   trash:'M22 30h56M40 30v-8h20v8M30 30l4 52h32l4-52M44 44v26M56 44v26',
+  move:'M18 38h64M66 24l16 14-16 14M82 62H18M34 48 18 62l16 14',
   grip:'M22 34h56M22 50h56M22 66h56',
   /* v3.3.424: THE BRAND MARK'S CHEVRON, the artwork itself -- lifted from
      showup-mark-black.svg unaltered, not redrawn. It is the only icon in this
@@ -1295,6 +1296,7 @@ const ICON_INK={
   paste:[14,5,86,96], selectall:[12,12,88,88],
   clear:[24,24,76,76],   grip:[16,28,84,72],      chevron:[33.5,19.5,68.5,80.5],
   trash:[17.5,17.5,82.5,86.5],
+  move:[15,20,86,80],
   brandmark:[154.6,136,357.4,271.2], check:[19.5,26.5,80.5,73.5]
 };
 const ICON_LIVE=0.76;      // share of the box the ink meets

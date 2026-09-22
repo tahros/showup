@@ -353,3 +353,17 @@ header.planmode .hback::after{content:'';position:absolute;inset:-3px -6px}
 :root .pf-workspace .pf-draft-detail{margin:0;font:400 11px/1.5 var(--body);color:var(--muted)}
 .pf-draft-resume{margin:0}
 .pf-draft-resume .pw-btn{width:100%;min-height:44px;color:var(--accent-ink)}
+
+/* v4.6.101: Move. The stepper is the routine page's set stepper in a row of
+   its own; the landing cell is the saved-plan ring, dashed, so "will be
+   here" and "is here" read as the same idea in two tenses. */
+.pf-dates-page .pf-move{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:10px 0 0;padding:8px 8px 8px 14px;border-radius:14px;background:var(--surface);border:1px solid var(--line)}
+.pf-dates-page .pf-move-label{font:400 12px/1.3 var(--body);color:var(--muted)}
+.pf-dates-page .pf-move-label b{display:block;font:600 15px/1.3 var(--body);color:var(--chalk)}
+.pf-dates-page .pf-move-ctl{display:flex;align-items:center;gap:4px}
+.pf-dates-page .pf-move-ctl .pw-btn{width:44px;min-width:44px;height:44px;min-height:44px;padding:0;border-radius:11px;font:600 18px var(--body)}
+.pf-dates-page .pf-move-ctl output{min-width:52px;text-align:center;font:600 16px var(--mono);font-variant-numeric:tabular-nums}
+:root .pf-dates-page .pf-move-note{font:400 11px/1.5 var(--body);color:var(--muted);margin:8px 2px 0;min-height:16px}
+:root .pf-dates-page .pf-move-problem{color:var(--chalk);font-weight:500}
+:root .pf-date-sheet .pf-calendar .pf-lands::before{box-shadow:inset 0 0 0 2px var(--accent-soft)}
+:root .pf-date-sheet .pf-calendar .pf-lands{color:var(--accent-ink)}

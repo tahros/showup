@@ -3966,10 +3966,11 @@
 }
 :root.workout-active.workout-active #app{padding-bottom:calc(134px + var(--live-workout-extra,72px))}
 :root.workout-active .pw-save-dock{bottom:calc(96px + var(--live-workout-extra,72px))}
-#workoutFinishDialog{position:fixed;inset:auto 0 0;margin:0 auto;width:100%;max-width:520px;box-sizing:border-box;padding:14px 24px calc(24px + env(safe-area-inset-bottom,0px));border:1px solid var(--line);border-radius:26px 26px 0 0;background:var(--surface);color:var(--chalk);font-family:var(--body);max-height:90%;overflow:auto}
-#workoutFinishDialog::backdrop{background:#0007}
-#workoutFinishDialog h2{font:500 23px/1.2 var(--body);letter-spacing:-.4px;margin:0 0 12px}
-#workoutFinishDialog p{font:400 14px/1.5 var(--body);color:var(--muted);margin:12px 0 22px}
+#workoutFinishDialog,#planMoveDialog{position:fixed;inset:auto 0 0;margin:0 auto;width:100%;max-width:520px;box-sizing:border-box;padding:14px 24px calc(24px + env(safe-area-inset-bottom,0px));border:1px solid var(--line);border-radius:26px 26px 0 0;background:var(--surface);color:var(--chalk);font-family:var(--body);max-height:90%;overflow:auto}
+#workoutFinishDialog::backdrop,#planMoveDialog::backdrop{background:#0007}
+#workoutFinishDialog h2,#planMoveDialog h2{font:500 23px/1.2 var(--body);letter-spacing:-.4px;margin:0 0 12px;text-transform:none;opacity:1;display:block}
+#planMoveDialog h2::after,#planMoveDialog h2::before{content:none}
+#workoutFinishDialog p,#planMoveDialog p{font:400 14px/1.5 var(--body);color:var(--muted);margin:12px 0 22px}
 #workoutFinishDialog .btn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px}
 #workoutKeepTraining{margin-top:8px}
 .workout-finish-handle{width:34px;height:4px;background:var(--line);border-radius:4px;margin:0 auto 24px}

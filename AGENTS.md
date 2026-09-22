@@ -39,7 +39,7 @@ push being rejected. These rules exist so that doesn't repeat.
 
 ## In flight
 
-_nothing_
+- 2026-09-22 · Claude · moving planned days by N (Push on Today, Move in Dates) · js/planner.js js/planner-flow.js css/planner.css css/planner-flow.css css/app.css
 
 ## Known red
 

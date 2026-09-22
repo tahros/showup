@@ -314,3 +314,21 @@ p.pw-small{margin:10px 0 16px}.pw-workspace p:not(.pw-small){font:400 14px/1.6 v
 /* the morph: one duration for the whole app, the fold's curve */
 ::view-transition-group(*){animation-duration:340ms;animation-timing-function:cubic-bezier(.2,.8,.25,1)}
 @media(prefers-reduced-motion:reduce){::view-transition-group(*){animation-duration:1ms}}
+
+/* v4.6.101: the line under today's plan that moves the week, and the sheet
+   it opens. The line is quiet -- dashed, muted, one accent word -- because
+   most days you will not need it and it must not read as the plan's action. */
+.pw-home .pw-push{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;box-sizing:border-box;margin:8px 0 0;padding:11px 16px;min-height:44px;border:1px dashed var(--line);border-radius:14px;background:transparent;color:var(--muted);font:400 13px/1.4 var(--body);text-align:left;cursor:pointer}
+.pw-home .pw-push b{display:inline-flex;align-items:center;gap:2px;font-weight:500;color:var(--accent-ink);white-space:nowrap}
+.pw-home .pw-push .ic{width:16px;height:16px}
+#planMoveDialog .pm-map{list-style:none;margin:0 0 4px;padding:0;font-variant-numeric:tabular-nums}
+#planMoveDialog .pm-map li{display:flex;flex-direction:column;gap:2px;padding:10px 0;border-top:1px solid var(--line);font:400 14px/1.35 var(--body)}
+#planMoveDialog .pm-map li:first-child{border-top:0}
+#planMoveDialog .pm-from{color:var(--muted)}
+#planMoveDialog .pm-arrow{color:var(--faint)}
+#planMoveDialog .pm-to{font-weight:600;color:var(--chalk);display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+#planMoveDialog .pm-to small{font:400 11px var(--mono);color:var(--faint);margin-left:auto}
+#planMoveDialog .pm-free{color:var(--accent-ink)}
+#planMoveDialog .pm-warn{color:var(--chalk);font-weight:500}
+#planMoveDialog .pm-note{font:400 12px/1.5 var(--body);color:var(--muted);margin:8px 0 0}
+#planMoveDialog .pm-actions{margin-top:16px}

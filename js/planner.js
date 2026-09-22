@@ -9,6 +9,55 @@ function pwKey(){return 'showup:planning-draft:v1:'+(session?.user?.id||'local')
 function pwDate(iso,long=false){return new Date(iso+'T12:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',...(long?{year:'numeric'}:{})});}
 function pwISO(d){return d.toLocaleDateString('en-CA');}
 function pwSaved(d){return (DB.plan?.d===d?DB.plan:DB.week?.days?.[d])||null;}
+/* v4.6.101: A PLANNED WEEK CAN MOVE. "I can't train Tuesday" is the most
+   common thing that happens to a planned week, and until now the answer was
+   delete-and-regenerate. This is one operation -- shift these planned days by
+   N -- that two doors call: Push on Today, Move in the Dates step.
+   What it keeps, in order of what would hurt most to break:
+     LOGGED WORKOUTS STAY UNTOUCHED. A day with sets logged never moves, and
+       nothing may land on one -- the plan under a logged day is the frozen
+       basis those sets link to.
+     NOTHING LANDS IN THE PAST.
+     A saved plan that is NOT part of the move is reported, not overwritten:
+       the door asks before it lands on one. Landing on a free day just lands.
+     Drafts travel with their day, and so does the selection.
+   planShiftable answers "what would happen"; planShift does it and hands back
+   the inverse, so a toast can undo it as one move. */
+function pwShiftISO(d,delta){const x=new Date(d+'T12:00');x.setDate(x.getDate()+delta);return pwISO(x);}
+function planShiftable(dates,delta){
+  const days=DB.week?.days||{};
+  const moves=[...new Set(dates)].filter(d=>pwSaved(d)?.items?.length).sort().map(from=>({from,to:pwShiftISO(from,delta)}));
+  if(!moves.length)return {ok:false,reason:'nothing',moves:[]};
+  if(!delta)return {ok:false,reason:'still',moves};
+  for(const {from,to} of moves){
+    if((DB.days[from]?.w||[]).length)return {ok:false,reason:'logged',date:from,moves};
+    if(to<todayISO)return {ok:false,reason:'past',date:to,moves};
+    if((DB.days[to]?.w||[]).length)return {ok:false,reason:'landsOnLogged',date:to,moves};
+  }
+  const leaving=new Set(moves.map(m=>m.from));
+  const replaces=moves.map(m=>m.to).filter(t=>!leaving.has(t)&&pwSaved(t)?.items?.length);
+  return {ok:true,moves,replaces};
+}
+function planShift(dates,delta){
+  const plan=planShiftable(dates,delta);if(!plan.ok)return plan;
+  const days={...(DB.week?.days||{})},carried={};
+  for(const {from} of plan.moves){carried[from]=days[from];delete days[from];}
+  for(const {from,to} of plan.moves){days[to]={...carried[from],d:to};}
+  if(DB.plan&&plan.moves.some(m=>m.from===DB.plan.d))DB.plan={...DB.plan,d:plan.moves.find(m=>m.from===DB.plan.d).to};
+  const all=Object.keys(days).sort();
+  DB.week=all.length?{...(DB.week||{}),from:all[0],to:all.at(-1),days,raw:'',at:Date.now()}:null;DB.weekAt=Date.now();
+  /* drafts and the selection follow their days */
+  const s=pw(),book={};
+  for(const [d,b] of Object.entries(s.book||{})){const m=plan.moves.find(x=>x.from===d);book[m?m.to:d]=b;}
+  s.book=book;s.dates=s.dates.map(d=>plan.moves.find(x=>x.from===d)?.to||d);
+  if(s.active&&!s.dates.includes(s.active))s.active=s.dates[0]||null;
+  pwPersist();planRailRefresh();DB.planAt=Date.now();save(true);
+  return {...plan,undo:()=>planShift(plan.moves.map(m=>m.to),-delta)};
+}
+/* the run Push moves: today and every planned day after it, up to the first
+   free day. A plan for next Monday, with a gap before it, stays put. */
+function planRunFrom(d){const run=[];for(let x=d;pwSaved(x)?.items?.length;x=pwShiftISO(x,1))run.push(x);return run;}
+
 function pwFingerprint(d){return JSON.stringify(pwSaved(d));}
 function pwRead(text){return parsePlan(text).map(r=>r.kind==='ex'&&!r.ex?{kind:'note',raw:planTextFromRows([r]).trim()}:{...r,...(r.lines?{lines:r.lines.flatMap(l=>Array.from({length:Math.ceil(l.reps.length/12)},(_,i)=>({...l,unit:l.unit||U(),reps:l.reps.slice(i*12,i*12+12)})))}:{})});}
 function pwText(rows){
@@ -137,6 +186,10 @@ function pwTodayHTML(){
   const count=future.length+(hasToday?1:0),target=next||writeDateISO();
   let html=`<section class="pw-home"><div class="pw-home-heading"><h2>${closed?'Plan ahead':'Your plan'}</h2>${pwDatesButton()}</div><div class="pw-home-tools" role="group" aria-label="Plan actions">${pwAction('open','Plan','sparkle')}${pwAction('paste-open','Paste','paste','',`data-date="${target}"`)}${count?`<span>${count} planned ${count===1?'day':'days'}</span>`:''}</div>`;
   if(hasToday)html+=`<details class="pw-saved" data-pw-fold="today" ${pwFoldOpen('today')?'open':''}><summary>${pwPlanHeading('Today · '+pwDate(todayISO),now)}</summary>${planCardHTML(now,true)}<div class="pw-actions pw-future-actions">${pwAction('open-date','Edit','edit','',`data-date="${todayISO}"`)}${pwAction('paste-open','Paste','paste','',`data-date="${todayISO}"`)}</div></details>`;
+  /* v4.6.101: the day you can't do, on the day you can't do it. One line
+     under today's plan, only while nothing has been logged -- once a set is
+     down the day is not movable, and the line would be a lie. */
+  if(hasToday&&!(DB.days[todayISO]?.w||[]).length&&planShiftable(planRunFrom(todayISO),1).ok)html+=`<button type="button" class="pw-push" data-pw="plan-push-ask"><span>Can’t train today?</span><b>Push the week ${icon('chevron',ICON_SZ.sm)}</b></button>`;
   else if(upcoming){const key='future:'+next;html+=`<details class="pw-saved pw-future" data-pw-fold="${key}" ${pwFoldOpen(key)?'open':''}><summary>${pwPlanHeading((next===tomorrowISO()?'Tomorrow · ':'')+pwDate(next),upcoming)}</summary>${planCardHTML(upcoming,false)}<div class="pw-actions pw-future-actions">${pwAction('open-date','Edit','edit','',`data-date="${next}"`)}${pwAction('paste-open','Paste','paste','',`data-date="${next}"`)}</div></details>`;}
   else html+='<div class="card pw-home-card pw-home-empty"><h3>Plan your next workout</h3><p class="pw-small">Choose dates or paste a routine to get started.</p></div>';
   const drafts=s.dates.filter(d=>d>=todayISO&&s.book[d]&&s.book[d].source!=='Saved plan'&&(s.book[d].rows.length||s.book[d].parts.length));
@@ -419,6 +472,26 @@ function pwSave(){
   for(const d of s.dates){const b=pwDay(d);b.base=pwFingerprint(d);b.source='Saved plan';delete b.undo;}
   s.step='edit';pwPersist();lift.plan=null;view='today';toast('Plan saved');render({soft:true});
 }
+
+/* v4.6.101: the Push sheet. The same bottom sheet the day's finish uses, with
+   the one thing you need before saying yes: where each day lands, and what
+   was there. Nothing is regenerated; the plans keep their contents. */
+function planPushSheet(){
+  if(document.getElementById('planMoveDialog'))return;
+  const run=planRunFrom(todayISO),plan=planShiftable(run,1);if(!plan.ok)return;
+  const label=d=>{const p=pwSaved(d);return p?hesc(pwParts(pwRead(planText(p))).join(' + ')||'Plan'):'';};
+  const short=d=>{const x=new Date(d+'T12:00');return x.toLocaleDateString('en-US',{weekday:'short'})+' '+x.getDate();};
+  const leaving=new Set(plan.moves.map(m=>m.from));
+  const rows=plan.moves.map(({from,to})=>{const was=leaving.has(to)?'was '+label(to):pwSaved(to)?.items?.length?'replaces '+label(to):'free';
+    return `<li><span class="pm-from">${short(from)} \u00b7 ${label(from)}</span><span class="pm-to"><span class="pm-arrow" aria-hidden="true">\u2192</span> ${short(to)}<small class="${was==='free'?'pm-free':was.startsWith('replaces')?'pm-warn':''}">${was}</small></span></li>`;}).join('');
+  const n=plan.moves.length;
+  const d=document.createElement('dialog');d.id='planMoveDialog';d.setAttribute('aria-labelledby','planMoveTitle');
+  d.innerHTML=`<div class="workout-finish-handle" aria-hidden="true"></div><h2 id="planMoveTitle">Push the week by a day</h2><p>${n} planned ${n===1?'day moves':'days move'}. Nothing is regenerated.</p><ul class="pm-map">${rows}</ul>${plan.replaces.length?'<p class="pm-note">'+plan.replaces.map(short).join(', ')+' already '+(plan.replaces.length===1?'has a plan; it will be replaced.':'have plans; they will be replaced.')+'</p>':''}<div class="pw-actions pm-actions">${pwButton('plan-push-close','Not now')}${pwButton('plan-push-go','Push '+n+(n===1?' day':' days'),'primary')}</div>`;
+  const leave=()=>d.remove();
+  d.addEventListener('cancel',e=>{e.preventDefault();leave();});
+  d.addEventListener('click',e=>{if(e.target===d)leave();});
+  document.body.appendChild(d);d.showModal();d.querySelector('[data-pw="plan-push-go"]').focus({preventScroll:true});
+}
 function pwHandle(e){
   const el=e.target.closest('[data-pw]');if(!el)return false;
   const a=el.dataset.pw,s=pw(),d=el.dataset.date,i=Number(el.dataset.index),b=s.active?pwDay(s.active):null;
@@ -437,6 +510,9 @@ function pwHandle(e){
        Cancel return there rather than always landing in the editor. From
        Today's "Dates >" that is Today; from the editor's datebar it is the
        editor. "Where we came from" is the rule, not a fixed destination. */
+    if(a==='plan-push-ask'){planPushSheet();return true;}
+    if(a==='plan-push-go'){const r=planShift(planRunFrom(todayISO),1);document.getElementById('planMoveDialog')?.remove();if(r.ok){render({soft:true});toastUndo('Moved '+r.moves.length+(r.moves.length===1?' day':' days'),()=>{r.undo();render({soft:true});});}return true;}
+    if(a==='plan-push-close'){document.getElementById('planMoveDialog')?.remove();return true;}
     if(a==='open'||a==='resume'){if(a==='open')pw().datesFrom='today';pwOpen(null,a==='open'?'dates':undefined);return true;}
     if(a==='open-date'||a==='paste-open'){
       /* v4.1.5: A CLEAR THAT WAS NEVER SAVED IS NOT THE RECORD.
