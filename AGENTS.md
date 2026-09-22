@@ -52,7 +52,7 @@ current-session count after reopening; both pass. No workout behavior changed.
 Header glass, Rest chrome, and Retro checks also pass. Local test dependencies:
 jsdom 26, canvas, TypeScript 6 (7 no longer exposes the compiler API used here).
 The header's absolute material layer is the sole approved backdrop-blur
-exception (4px); nav/fixed-element blur remains prohibited. iOS device QA is
+exception (4px; Normal Light 8px as of v4.6.103); nav/fixed-element blur remains prohibited. iOS device QA is
 still advisable given the older fixed-chrome issue.
 
 Historical record (not current failures):

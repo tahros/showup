@@ -386,8 +386,10 @@ if _re.search(r"requestAnimationFrame\(\(\)=>\{ _topRaf=0;[^}]*nav", _util):
 _glass_rule = r'header \.hglass,header\.resting \.hglass,header\.live \.hglass\{[^{}]*\}'
 _approved_glass = _re.findall(_glass_rule, css)
 for _rule in _approved_glass:
-    if 'backdrop-filter:blur' in _rule and not all(v == '4px' for v in _re.findall(r'backdrop-filter:blur\(([^)]+)\)', _rule)):
-        fail.append('header glass changed from the approved 10 percent / 4px blur')
+    if 'backdrop-filter:blur' in _rule and 'blur(var(--header-glass-blur))' not in _rule:
+        fail.append('header glass must use the mode-specific blur token')
+if set(_re.findall(r'--header-glass-blur:([^;}]+)',css)) != {'4px','8px'}:
+    fail.append('header blur tokens must stay at the approved 10/20 percent (4/8px)')
 _other_glass = _re.sub(_glass_rule, '', css)
 if _re.search(r"(^|\n)\s*(-webkit-)?backdrop-filter:\s*blur", _other_glass):
     fail.append("backdrop-filter is back — it sits on fixed chrome and is the standing suspect for fixed positioning failing page-wide on iOS (v3.3.497)")

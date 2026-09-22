@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.103 (2026-09-22) — Blur the backdrop, not just tint it
+
+- Use 20% blur (8px) for Normal Light; retain 10% (4px) for Normal Dark, Rest in both themes, and Active Workout.
+- Move named view-transition layers from the header ancestor to its background and control siblings. The old ancestor isolated the backdrop, so its child reported blur but only displayed transparency.
+- Preserve sharp controls, stationary chrome transitions, the existing tint and reduced-transparency fallback.
+- Add rendered-pixel checks for all six mode/theme combinations, comparing actual blur against an unblurred backdrop.
+
 ## v4.6.102 (2026-09-22) — Subtle liquid-glass header
 
 - Apply the approved 10% blur (4px) and 78% tint to Normal, Rest and Active Workout headers in both themes.

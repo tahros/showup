@@ -755,7 +755,7 @@ ok("the status-bar style no longer puts content under the status bar",
    those names. Restating nothing: the root rules are unchanged. */
 {
   const cssNow=fs.readFileSync(path.join(dir,"css/app.css"),"utf8");
-  ok("the header has its own transition group", /header\{view-transition-name:showup-header\}/.test(cssNow));
+  ok("header siblings have transition groups without trapping the backdrop", /header\{view-transition-name:none\}/.test(cssNow)&&/header \.hglass\{view-transition-name:showup-header\}/.test(cssNow)&&/header>\.brandrow\{view-transition-name:showup-header-title\}/.test(cssNow)&&/header>\.hbtns\{view-transition-name:showup-header-controls\}/.test(cssNow));
   ok("...and so does the tab bar",                /nav\{view-transition-name:showup-nav\}/.test(cssNow));
   ok("...neither is given the root's drift or fade",
      !/view-transition-(old|new)\((showup-header|showup-nav)\)[^{]*\{[^}]*\bvt(in|out)\b/.test(cssNow));

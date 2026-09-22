@@ -1375,10 +1375,12 @@
   .hglass{position:absolute;inset:0;z-index:0;background:var(--ground);
     border-bottom:1px solid var(--line);pointer-events:none}
   /* Approved glass preview: 10% of its 0–40px range = 4px, not 10% opacity.
+     v4.6.103: Normal Light uses 20% (8px); all other states stay at 4px.
      Keep the fixed header transparent for Safari's edge sampling; only its
      absolute material layer blurs. Controls stay sharp on their own layer.
      Solid defaults remain readable without backdrop-filter support. */
-  header{--header-glass-top:var(--ground);--header-glass-bottom:var(--surface)}
+  header{--header-glass-top:var(--ground);--header-glass-bottom:var(--surface);--header-glass-blur:4px}
+  :root[data-theme="light"] header:not(.resting):not(.live){--header-glass-blur:8px}
   header.resting{--header-glass-top:var(--rest-top);--header-glass-bottom:var(--surface)}
   header.live{--header-glass-top:var(--live);--header-glass-bottom:var(--live)}
   header .hglass,header.resting .hglass,header.live .hglass{
@@ -1390,8 +1392,8 @@
       background:linear-gradient(160deg,
         color-mix(in srgb,var(--header-glass-top) 78%,transparent),
         color-mix(in srgb,var(--header-glass-bottom) 78%,transparent));
-      -webkit-backdrop-filter:blur(4px) saturate(135%);
-      backdrop-filter:blur(4px) saturate(135%)}
+      -webkit-backdrop-filter:blur(var(--header-glass-blur)) saturate(135%);
+      backdrop-filter:blur(var(--header-glass-blur)) saturate(135%)}
   }
   @media(prefers-reduced-transparency:reduce){
     header .hglass,header.resting .hglass,header.live .hglass{
@@ -2208,13 +2210,23 @@
      blended plus-lighter, so IDENTICAL pixels are invisible and only real
      change (the wash arriving on rest, the nav's active mark moving) shows.
      The view keeps its drift; the chrome stays where chrome belongs. */
-  header{view-transition-name:showup-header}
+  /* A named ancestor forms a backdrop root: naming header itself traps the
+     glass against an empty backdrop, rendering transparency without blur.
+     Name its paint/control siblings instead, preserving stationary chrome. */
+  header{view-transition-name:none}
+  header .hglass{view-transition-name:showup-header}
+  header>.brandrow{view-transition-name:showup-header-title}
+  header>.hbtns{view-transition-name:showup-header-controls}
   nav{view-transition-name:showup-nav}
   ::view-transition-old(showup-header),::view-transition-new(showup-header),
+  ::view-transition-old(showup-header-title),::view-transition-new(showup-header-title),
+  ::view-transition-old(showup-header-controls),::view-transition-new(showup-header-controls),
   ::view-transition-old(showup-nav),::view-transition-new(showup-nav){animation-duration:var(--dur-quick)}
   @media (prefers-reduced-motion:reduce){
     ::view-transition-old(root),::view-transition-new(root),
     ::view-transition-old(showup-header),::view-transition-new(showup-header),
+    ::view-transition-old(showup-header-title),::view-transition-new(showup-header-title),
+    ::view-transition-old(showup-header-controls),::view-transition-new(showup-header-controls),
     ::view-transition-old(showup-nav),::view-transition-new(showup-nav){animation:none}}
 
 
