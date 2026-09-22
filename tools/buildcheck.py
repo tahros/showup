@@ -469,6 +469,45 @@ if _sbs and _sbs.group(1) == "black-translucent":
                 "it puts the header under the status bar, where iOS 26 blurs it (v3.3.246)")
 if 'class="hglass"' not in (d/"index.html").read_text():
     fail.append("the header is missing its .hglass paint layer (v3.3.245)")
+# -- v4.6.105: the iOS shell. Three things must stay true or the app bundle
+#    and the web build quietly diverge.
+import json as _json
+_pkg_f = d/"package.json"
+if not _pkg_f.exists():
+    fail.append("package.json is missing — the iOS shell has no manifest (v4.6.105)")
+else:
+    _pkg = _json.loads(_pkg_f.read_text())
+    _v = _re.search(r"APP_VERSION\s*=\s*'v([\d.]+)'", (d/"js/core.js").read_text())
+    if _v and _pkg.get("version") != _v.group(1):
+        fail.append(f"package.json says {_pkg.get('version')} but APP_VERSION is {_v.group(1)} — "
+                    "the shell would ship a version that does not exist (v4.6.105)")
+    for _s in ("build:dist", "check:dist"):
+        if _s not in _pkg.get("scripts", {}):
+            fail.append(f"package.json lost the {_s} script (v4.6.105)")
+_cap_f = d/"capacitor.config.json"
+if not _cap_f.exists():
+    fail.append("capacitor.config.json is missing (v4.6.105)")
+else:
+    _cap = _json.loads(_cap_f.read_text())
+    if _cap.get("webDir") != "dist":
+        fail.append(f"capacitor webDir is {_cap.get('webDir')!r}, not 'dist' — the shell would bundle "
+                    "the whole repo, or nothing (v4.6.105)")
+    if _cap.get("appId") != "co.yooooooooo.showup":
+        fail.append(f"capacitor appId changed to {_cap.get('appId')!r} — the bundle identifier is "
+                    "permanent once the app is on the store (v4.6.105)")
+# the service worker must NOT run inside the native shell: the app bundle is
+# already the cache there, and two cache layers over one set of files is a bug
+# that only reproduces on a phone.
+_derive = (d/"js/derive.js").read_text()
+if not _re.search(r"if\('serviceWorker' in navigator\s*&&\s*!NATIVE_SHELL\)", _derive):
+    fail.append("the service worker registers without checking NATIVE_SHELL — inside the iOS shell "
+                "that puts a second cache layer over the app bundle (v4.6.105)")
+if "const NATIVE_SHELL" not in (d/"js/core.js").read_text():
+    fail.append("NATIVE_SHELL is gone from core.js — nothing can tell the shell from a browser (v4.6.105)")
+_order = _re.findall(r"js/(core|derive)\.js", (d/"index.html").read_text())
+if _order[:2] != ["core", "derive"]:
+    fail.append("core.js no longer loads before derive.js — NATIVE_SHELL would be undefined when the "
+                "service-worker guard reads it (v4.6.105)")
 # v4.6.104: the app's type ships WITH the app. Google's CDN was a cold-start
 # network dependency the service worker could never cache (it only caches
 # same-origin), so an offline launch rendered in the system font -- on an

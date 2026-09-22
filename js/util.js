@@ -124,7 +124,7 @@
     pageShift('translateY(52px)');   // hold, briefly, while it works
     try{ stashWhere(); flushSave(); }catch(e){}
     try{ if(session) await cloudPushNow(); }catch(e){}    // phone → cloud, synchronously
-    try{ const reg=await navigator.serviceWorker.getRegistration(); if(reg) await reg.update(); }catch(e){}
+    if(!NATIVE_SHELL)try{ const reg=await navigator.serviceWorker.getRegistration(); if(reg) await reg.update(); }catch(e){}
     setTimeout(()=>location.reload(),150);
   },{passive:true});
 })();

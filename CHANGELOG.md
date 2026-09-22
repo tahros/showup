@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v4.6.105 (2026-09-22) — The app learns to be a bundle
+
+- Add `tools/build-dist.py`: assemble `dist/` with only what the app serves. 24 MB repo to a 3.50 MB bundle, 84 files.
+- Add `tools/check-dist.cjs`, which proves that bundle by **running** it — `dist/` served alone on a throwaway port, every tab walked, every mascot tone cycled, both themes — and fails on any non-200 or any page error. A static list could not do this: half the app's assets are named at runtime by concatenation (`'assets/mascot-' + tone`), so nothing that parses the markup can enumerate them. Mutation-tested against a dropped mascot, a dropped font and a dropped vendor module.
+- Add `package.json` and `capacitor.config.json` (`appId` `co.yooooooooo.showup`, `webDir` `dist`).
+- Add `NATIVE_SHELL` to core.js and gate service-worker registration on it. Inside the iOS shell the app bundle is already the cache; a second cache layer over the same files is a bug that only reproduces on a phone.
+- Guard all of it in `buildcheck.py`: package version tracks `APP_VERSION`, the bundle identifier and `webDir` cannot drift, the service-worker gate cannot be removed, and core.js must keep loading before derive.js. Each guard mutation-tested.
+- Fix `test-exid.js`, which read core.js's first twelve lines to reach `SEED0` and so crashed on any new declaration near the top of that file. It now takes the declaration by name. My change exposed it; the brittleness predated it.
+
 ## v4.6.104 (2026-09-22) — The type ships with the app
 
 - Serve IBM Plex Sans and Mono from `assets/fonts/web` instead of Google's CDN. The service worker only caches same-origin responses, so an offline launch had been rendering in the system font — on an app whose point is that it works with no signal.

@@ -525,7 +525,7 @@ document.addEventListener('pointermove',e=>{
 document.addEventListener('focusin',e=>{
   if(['wv','rc','rk','rm','rs','barIn','bodyW'].includes(e.target.id)) setTimeout(()=>e.target.select(),0);
 });
-if('serviceWorker' in navigator){
+if('serviceWorker' in navigator && !NATIVE_SHELL){
   let reloadedForUpdate=false;
   navigator.serviceWorker.addEventListener('controllerchange',()=>{
     if(reloadedForUpdate) return; reloadedForUpdate=true;

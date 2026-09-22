@@ -1,0 +1,6 @@
+# the iOS shell is generated from capacitor.config.json + dist/ — never committed
+node_modules/
+ios/
+dist/
+# outputs of the browser checks, which write beside the repo
+*.local.png

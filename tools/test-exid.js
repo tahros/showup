@@ -11,7 +11,13 @@ const ok=(n,c,g)=>{console.log((c?'PASS ':'FAIL ')+n+(g!==undefined?' → '+g:''
 const {exidBuild,exidResolve,exidKey}=require(path.resolve(dir,'js/exid.js'));
 /* the catalog the app actually ships, read through its own source */
 const dom=new JSDOM('<html></html>',{runScripts:'outside-only'});
-vm.runInContext(fs.readFileSync(path.join(dir,'js/core.js'),'utf8').split('\n').slice(0,12).join('\n'),dom.getInternalVMContext());
+/* v4.6.105: take the SEED0 declaration BY NAME. This used to read the first
+   twelve lines of core.js, which meant any new const near the top of that
+   file cut a declaration in half and crashed this suite. */
+const _coreSrc=fs.readFileSync(path.join(dir,'js/core.js'),'utf8');
+const _seed=_coreSrc.split('\n').find(l=>l.startsWith('const SEED0'));
+if(!_seed){console.log('FAIL (fixture) core.js has no single-line SEED0 declaration');process.exit(1);}
+vm.runInContext(_seed,dom.getInternalVMContext());
 const cat=vm.runInContext('SEED0.catalog',dom.getInternalVMContext());
 const names=Object.values(cat).flat();
 const byKey=exidBuild(names);

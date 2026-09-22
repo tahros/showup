@@ -1,0 +1,8 @@
+{
+  "appId": "co.yooooooooo.showup",
+  "appName": "ShowUp",
+  "webDir": "dist",
+  "ios": {
+    "backgroundColor": "#F2F3F6"
+  }
+}

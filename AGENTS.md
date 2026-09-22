@@ -45,6 +45,9 @@ shell around the existing static app, so most of the work lands in this repo
 and some of it changes the web build too. Landed and planned:
 
 - v4.6.104 — IBM Plex self-hosted (done). Also fixes an offline bug in the PWA.
+- v4.6.105 — `dist/` pipeline, Capacitor config, service worker gated out of
+  the native shell (done). `npm run build:dist && npm run check:dist`; both are
+  guarded in buildcheck. `dist/`, `ios/` and `node_modules/` are gitignored.
 - Next: a `dist/` assembly step so the app bundle carries only shipping assets;
   Capacitor scaffold wrapping `dist/` as local files, never a remote URL;
   storage moved off `localStorage` (WKWebView evicts it under pressure);
