@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v4.6.104 (2026-09-22) — The type ships with the app
+
+- Serve IBM Plex Sans and Mono from `assets/fonts/web` instead of Google's CDN. The service worker only caches same-origin responses, so an offline launch had been rendering in the system font — on an app whose point is that it works with no signal.
+- Keep `unicode-range` per subset, so latin-ext downloads only when a glyph needs it. 16 woff2 files, 267 KB, of which 7 are precached in the shell.
+- Drop the two `preconnect` hints and the CDN stylesheet; preload Sans 400 and 600, the two faces the first paint needs.
+- Add `tools/check-fonts.cjs`: asserts the page makes no off-origin request at load, forces every declared face to load, and proves each family renders by measuring it against a deliberately dissimilar fallback. Both failure modes were mutation-tested.
+- Point `test-fontweights.js` at the `@font-face` block rather than a query string; its claim is unchanged, and it immediately caught a missing Mono 700.
+- Guard the arrangement in `buildcheck.py`: no font CDN in the markup, every used weight declared, `unicode-range` intact, every `url()` resolving on disk, and the first-paint faces present in the service-worker shell.
+
 ## v4.6.103 (2026-09-22) — Blur the backdrop, not just tint it
 
 - Use 20% blur (8px) for Normal Light; retain 10% (4px) for Normal Dark, Rest in both themes, and Active Workout.

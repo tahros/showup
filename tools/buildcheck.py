@@ -37,7 +37,8 @@ for a in assets:
 shell_count = len(re.findall(r"'\./[^']+\?v=", sw))
 # v4.4.0: 25. stats-story is installed before the first app render and must be
 # present offline or Stats silently falls back to the previous page contract.
-if shell_count != 30: fail.append(f"sw SHELL has {shell_count} stamped assets, expected 30")
+# v4.6.104: 31 — css/fonts.css joined the shell when IBM Plex moved in-house.
+if shell_count != 31: fail.append(f"sw SHELL has {shell_count} stamped assets, expected 31")
 for a in re.findall(r"'\./([^']+)'", sw):
     if not (d/a.split('?')[0]).exists(): fail.append(f"offline SHELL asset missing: {a}")
 
@@ -468,6 +469,34 @@ if _sbs and _sbs.group(1) == "black-translucent":
                 "it puts the header under the status bar, where iOS 26 blurs it (v3.3.246)")
 if 'class="hglass"' not in (d/"index.html").read_text():
     fail.append("the header is missing its .hglass paint layer (v3.3.245)")
+# v4.6.104: the app's type ships WITH the app. Google's CDN was a cold-start
+# network dependency the service worker could never cache (it only caches
+# same-origin), so an offline launch rendered in the system font -- on an
+# app whose whole point is that it works with no signal. It is also a
+# third-party data disclosure on the App Privacy form for no benefit.
+# tools/check-fonts.cjs proves the faces actually render; this guard keeps
+# the CDN from creeping back into the markup.
+if _re.search(r"fonts\.(googleapis|gstatic)\.com", _html):
+    fail.append("index.html reaches Google's font CDN again — IBM Plex is served "
+                "from assets/fonts/web and must stay there (v4.6.104)")
+_fontcss = d/"css/fonts.css"
+if not _fontcss.exists():
+    fail.append("css/fonts.css is missing — the self-hosted faces have no @font-face (v4.6.104)")
+else:
+    _fc = _fontcss.read_text()
+    for _fam, _ws in (("IBM Plex Sans", (400, 500, 600, 700)), ("IBM Plex Mono", (400, 500, 600))):
+        for _w in _ws:
+            if not _re.search(r"font-family:'" + _fam + r"'[^}]*font-weight:" + str(_w) + r"\b", _fc):
+                fail.append(f"css/fonts.css declares no {_fam} {_w} face — that weight is used in the CSS (v4.6.104)")
+    if "unicode-range" not in _fc:
+        fail.append("css/fonts.css dropped unicode-range — latin-ext would download for every user (v4.6.104)")
+    for _m in _re.finditer(r"url\((\.\./assets/fonts/web/[^)]+)\)", _fc):
+        if not (d / "css" / _m.group(1)).resolve().exists():
+            fail.append(f"css/fonts.css points at a missing font file: {_m.group(1)} (v4.6.104)")
+_sw = (d/"sw.js").read_text()
+for _fam, _w in (("sans", 400), ("sans", 600), ("mono", 400)):
+    if f"ibm-plex-{_fam}-latin-{_w}-normal.woff2" not in _sw:
+        fail.append(f"sw.js does not precache IBM Plex {_fam} {_w} — offline falls back to system type (v4.6.104)")
 # the article's other requirement: an explicit root colour for Safari to fall back to
 if not _re.search(r"html,\s*body\{[^}]*background:", css):
     fail.append("html/body must declare an explicit background — Safari 26 falls "

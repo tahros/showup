@@ -39,7 +39,22 @@ push being rejected. These rules exist so that doesn't repeat.
 
 ## In flight
 
-_nothing_
+**Claude — iOS App Store track.** Sungjee wants ShowUp on the App Store, with
+the listing live before the day-1,000 Show HN post. This is a native Capacitor
+shell around the existing static app, so most of the work lands in this repo
+and some of it changes the web build too. Landed and planned:
+
+- v4.6.104 — IBM Plex self-hosted (done). Also fixes an offline bug in the PWA.
+- Next: a `dist/` assembly step so the app bundle carries only shipping assets;
+  Capacitor scaffold wrapping `dist/` as local files, never a remote URL;
+  storage moved off `localStorage` (WKWebView evicts it under pressure);
+  Sign in with Apple (App Review 4.8, forced by the Google provider);
+  in-app account deletion (4.9/5.1.1(v)); HealthKit write + local
+  notifications (4.2 minimum functionality).
+
+If you touch `index.html`'s head, `sw.js`'s SHELL, `css/fonts.css`, or the
+sign-in/settings flow, say so here first — those are the files this track is
+standing on.
 
 ## Resolved test debt (v4.6.102)
 

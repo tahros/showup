@@ -5,6 +5,11 @@
  * to say so. This suite closes that gap in general: whatever weights the CSS
  * asks of a family, the document must load — and it fails in BOTH directions,
  * so a weight that stops being used gets noticed too.
+ *
+ * v4.6.104: the faces moved off Google's CDN into css/fonts.css, so the
+ * "what the document loads" half now reads the @font-face block instead of a
+ * query string. The claim is unchanged, and it is the same claim that caught
+ * the original bug: asked-for and loaded must be the same set.
  */
 const fs=require('fs'),path=require('path');
 const dir=process.argv[2]||'.';
@@ -18,14 +23,18 @@ let fails=0;
 const ok=(n,c,g)=>{console.log((c?'PASS ':'FAIL ')+n+(g!==undefined?' → '+g:''));if(!c)fails++;};
 
 /* what the document loads */
-const link=html.match(/fonts\.googleapis\.com\/css2\?([^"']+)/);
-ok('(fixture) the document loads its families from one link', !!link, link?link[1].slice(0,72)+'…':'no link');
+const facePath=path.join(dir,'css/fonts.css');
+const faces=fs.existsSync(facePath)?fs.readFileSync(facePath,'utf8'):'';
+ok('(fixture) the document loads its families from its own stylesheet',
+   /fonts\.css/.test(html)&&!!faces, faces?'css/fonts.css':'no css/fonts.css');
+ok('(fixture) and reaches no font CDN', !/fonts\.(googleapis|gstatic)\.com/.test(html),
+   /fonts\.(googleapis|gstatic)\.com/.test(html)?'still linking Google':'self-hosted');
 const loaded={};
-for(const m of (link?link[1]:'').matchAll(/family=([^:&]+):wght@([\d;]+)/g))
-  loaded[m[1].replace(/\+/g,' ')]=m[2].split(';').map(Number);
+for(const m of faces.matchAll(/font-family:'([^']+)'[^}]*?font-weight:(\d{3})/g))
+  (loaded[m[1]]=loaded[m[1]]||[]).includes(+m[2])||loaded[m[1]].push(+m[2]);
 ok('(fixture) both Plex families are loaded with explicit weights',
    !!loaded['IBM Plex Sans']&&!!loaded['IBM Plex Mono'],
-   Object.entries(loaded).map(([f,w])=>f+' '+w.join('/')).join(' · '));
+   Object.entries(loaded).map(([f,w])=>f+' '+w.sort((a,b)=>a-b).join('/')).join(' · '));
 
 /* what the stylesheet asks for.
    Two shapes: the `font:` shorthand carries its weight inline, and a bare
