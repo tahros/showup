@@ -8,7 +8,7 @@ const dir = process.argv[2] || "stage";
 
 const html = fs.readFileSync(path.join(dir, "index.html"), "utf8");
 const order = [...html.matchAll(/src="(js\/[^?"]+)\?v=/g)].map(m => m[1]);
-if (order.length !== 23) { console.error("expected 23 scripts, got", order.length); process.exit(1); }   // + planlink and planner-flow
+if (order.length !== 24) { console.error("expected 24 scripts, got", order.length); process.exit(1); }   // + planlink, planner-flow and retro (v4.6.93)
 
 const dom = new JSDOM(html.replace(/<script[^>]*src=[^>]*><\/script>/g, ""), {
   runScripts: "outside-only",

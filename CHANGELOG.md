@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v4.6.101 (2026-09-22) — A planned week can move
+
+- Push the week: on Today, while nothing is logged, one line moves today's plan and every planned day behind it forward a day. The sheet shows where each one lands and what was there.
+- Move, in the Dates step: select saved days, step by any number of days either way, and the calendar draws where they land before you commit.
+- Logged workouts stay untouched — a day with sets never moves and nothing lands on one. Nothing lands in the past. Drafts travel with their day, and the selection follows.
+- Both are one undo. Undo restores exactly what was there, including a saved plan the move replaced.
+- When every selected day already has a plan, Edit and Move take the Dates footer instead of a disabled "Plan new days".
+
 ## v4.6.100 (2026-09-21) — No blink in the ink
 
 - Fix the flash at the landing: the overlay's own fade-in was being restarted when the flood came off, dropping the whole screen to nothing for 180ms and showing Today through the gap.

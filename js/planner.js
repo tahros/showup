@@ -40,19 +40,38 @@ function planShiftable(dates,delta){
 }
 function planShift(dates,delta){
   const plan=planShiftable(dates,delta);if(!plan.ok)return plan;
+  const s=pw();
+  /* UNDO IS A SNAPSHOT, NOT AN INVERSE. Shifting back by -delta looks like the
+     opposite of shifting forward and is not: a move that replaced a saved plan
+     destroyed it, and no amount of shifting brings it back. Everything this
+     touches is small, so undo puts back exactly what was there. */
+  const before={week:pwCopy(DB.week),plan:pwCopy(DB.plan),book:pwCopy(s.book||{}),dates:[...s.dates],active:s.active};
   const days={...(DB.week?.days||{})},carried={};
+  /* sources leave in one pass and land in the next, so a day that is both a
+     source and a destination -- every middle day of a week being pushed -- is
+     never read after it has been written */
   for(const {from} of plan.moves){carried[from]=days[from];delete days[from];}
   for(const {from,to} of plan.moves){days[to]={...carried[from],d:to};}
-  if(DB.plan&&plan.moves.some(m=>m.from===DB.plan.d))DB.plan={...DB.plan,d:plan.moves.find(m=>m.from===DB.plan.d).to};
   const all=Object.keys(days).sort();
   DB.week=all.length?{...(DB.week||{}),from:all[0],to:all.at(-1),days,raw:'',at:Date.now()}:null;DB.weekAt=Date.now();
-  /* drafts and the selection follow their days */
-  const s=pw(),book={};
-  for(const [d,b] of Object.entries(s.book||{})){const m=plan.moves.find(x=>x.from===d);book[m?m.to:d]=b;}
+  /* DB.plan is a second copy of ONE day's plan, and pwSaved reads it first, so
+     it has to agree with the week after the move -- whether its day travelled
+     (it follows) or something landed on it (it takes what landed). */
+  if(DB.plan){
+    const moved=plan.moves.find(m=>m.from===DB.plan.d),at=moved?moved.to:DB.plan.d;
+    if(moved||plan.moves.some(m=>m.to===at))DB.plan=days[at]?{...days[at],d:at}:null;
+  }
+  /* drafts travel with their day, in the same two passes and for the same
+     reason; the selection follows the plans it was pointing at */
+  const book={...(s.book||{})},held={};
+  for(const {from} of plan.moves){if(from in book){held[from]=book[from];delete book[from];}}
+  for(const {from,to} of plan.moves){if(from in held)book[to]=held[from];else delete book[to];}
   s.book=book;s.dates=s.dates.map(d=>plan.moves.find(x=>x.from===d)?.to||d);
   if(s.active&&!s.dates.includes(s.active))s.active=s.dates[0]||null;
   pwPersist();planRailRefresh();DB.planAt=Date.now();save(true);
-  return {...plan,undo:()=>planShift(plan.moves.map(m=>m.to),-delta)};
+  return {...plan,undo(){const st=pw();DB.week=before.week;DB.plan=before.plan;DB.weekAt=DB.planAt=Date.now();
+    st.book=before.book;st.dates=before.dates;st.active=before.active;
+    pwPersist();planRailRefresh();save(true);}};
 }
 /* the run Push moves: today and every planned day after it, up to the first
    free day. A plan for next Monday, with a gap before it, stays put. */

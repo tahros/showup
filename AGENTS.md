@@ -39,11 +39,11 @@ push being rejected. These rules exist so that doesn't repeat.
 
 ## In flight
 
-- 2026-09-22 · Claude · moving planned days by N (Push on Today, Move in Dates) · js/planner.js js/planner-flow.js css/planner.css css/planner-flow.css css/app.css
+_nothing_
 
 ## Known red
 
-Carried from v4.6.84–v4.6.93 (Codex), still failing as of v4.6.96. Verified
+Carried from v4.6.84–v4.6.93 (Codex), still failing as of v4.6.101. Verified
 pre-existing by running each against the unmodified commit.
 
 Suites (`bash tools/runsuite.sh .`):
@@ -58,6 +58,11 @@ Chromium checks (run by hand, see each file's header):
 
 - `check-session-comparison.cjs` — `.sc-result` is absent where it expects one
 - `check-live-workout.cjs` — the live bar's meta no longer reads `4 sets`
+
+`smoke.js` was red the same way from v4.6.93 (Codex): adding `js/retro.js`
+left its script count at 23. That one is a stale constant with no intent to
+guess at, so it is fixed at 24 rather than listed here — the whole suite was
+crashing on it.
 
 Claude has not touched these; they are someone's in-flight intent, and
 guessing at it would do more harm than leaving them.
