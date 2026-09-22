@@ -355,17 +355,20 @@ function dailyBackup(){
   try{
     const k='showup:bak:'+todayISO;
     if(localStorage.getItem(k)) return;
-    localStorage.setItem(k, JSON.stringify({days:DB.days,settings:DB.settings,settingsAt:DB.settingsAt,settingsAtK:DB.settingsAtK||{}}));
+    const raw=JSON.stringify({days:DB.days,settings:DB.settings,settingsAt:DB.settingsAt,settingsAtK:DB.settingsAtK||{}});
+    localStorage.setItem(k, raw);
     Object.keys(localStorage).filter(x=>x.startsWith('showup:bak:')).sort().slice(0,-5)
       .forEach(x=>localStorage.removeItem(x));            // keep the last 5 days
+    if(durable.available()) durable.writeBak(todayISO, raw).catch(()=>{});   // v4.6.106: mirrored, same five-day window
   }catch(e){}
 }
 function flushSave(){
   if(session) cloudPushNow(true);       // phone → cloud on every background/close (keepalive)
   if(!saveDirty) return;
   clearTimeout(saveTimer); saveDirty=false;
-  try{ localStorage.setItem(KEY, JSON.stringify(DB)); }catch(e){}
-  store.set(KEY, JSON.stringify(DB));   // async layer too, if it gets the chance
+  /* v4.6.106: one path. dbWrite hits localStorage synchronously first -- the
+     write that survives a kill -- then the durable slot if it gets the chance. */
+  if(!dbWrite()) saveDirty=true;
 }
 document.addEventListener('change',e=>{
   if(e.target && e.target.id==='wv' && lift.ex){

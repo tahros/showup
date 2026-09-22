@@ -49,6 +49,18 @@ for rel in ["index.html", "sw.js", "js/core.js"]:
     print(f"  {rel}: {n} stamps")
     total += n
 
+# v4.6.106: package.json carries the version too (the iOS shell reads it), and
+# buildcheck fails the build if it and APP_VERSION disagree. One JSON field, so
+# it is edited as JSON rather than by regex.
+import json
+pj = stage / "package.json"
+if pj.exists():
+    j = json.loads(pj.read_text(encoding="utf-8"))
+    if j.get("version") == old:
+        j["version"] = new
+        pj.write_text(json.dumps(j, indent=2) + "\n", encoding="utf-8")
+        print("  package.json: 1 stamps"); total += 1
+
 print("total stamps moved:", total)
 if not total:
     print("NOTHING MOVED — check the version arguments")

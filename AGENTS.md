@@ -48,6 +48,10 @@ and some of it changes the web build too. Landed and planned:
 - v4.6.105 — `dist/` pipeline, Capacitor config, service worker gated out of
   the native shell (done). `npm run build:dist && npm run check:dist`; both are
   guarded in buildcheck. `dist/`, `ios/` and `node_modules/` are gitignored.
+- v4.6.106 — the durable record (done). Read the block comment above `durable`
+  in js/core.js before touching save/load/flushSave: four rules, each guarded
+  in buildcheck and proven in tools/test-durable.js. **`localStorage` is not
+  legacy; it is the write-ahead log.** Do not remove it.
 - Next: a `dist/` assembly step so the app bundle carries only shipping assets;
   Capacitor scaffold wrapping `dist/` as local files, never a remote URL;
   storage moved off `localStorage` (WKWebView evicts it under pressure);

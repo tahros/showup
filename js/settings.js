@@ -254,6 +254,8 @@ function restoreBackup(file){
       const theirs=Object.keys(doc.days).filter(d=>(doc.days[d].w||[]).length).length;
       if(!confirm(`Replace the data on this device with this backup?\n\nThis device: ${mine} days → backup: ${theirs} days.\n\nA safety copy of current data is kept locally, and the restored data will sync to the cloud as the newest version.`)) return;
       localStorage.setItem('showup:bak:prerestore', JSON.stringify(DB));
+      if(durable.available()) durable.writeBak('prerestore', JSON.stringify(DB)).catch(()=>{});   // v4.6.106
+      allowEmptySave=true;                                                                          // a restore replaces the record on purpose
       doc.settings=doc.settings||{};
       if(DB.settings.cloud&&!doc.settings.cloud) doc.settings.cloud=DB.settings.cloud;   // keep this device's DB config
       const now=Date.now();

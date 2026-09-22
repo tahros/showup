@@ -1,7 +1,7 @@
 /* ShowUp — core.js
    Extracted verbatim from index.html (v3.2.5 refactor). Classic script:
    shares one global scope with its siblings, loaded in order by index.html. */
-const APP_VERSION = 'v4.6.105';
+const APP_VERSION = 'v4.6.106';
 const SEED0 = {catalog:{"Chest":["Incline Smith Machine Bench Press","Flat Smith Machine Bench Press","Incline Dumbbell Bench Press","Chest Press","Chest Fly","Cable Fly Up","Cable Fly Down","Chest Squeeze","Dip","Barbell Bench Press","Incline Barbell Bench Press","Decline Barbell Bench Press","Dumbbell Bench Press","Decline Dumbbell Bench Press","Machine Chest Press","Cable Crossover","Incline Cable Fly","Low Cable Fly","Dumbbell Pullover","Landmine Press","Svend Press","Push Up","Weighted Push Up"],"Back":["Pull Up","Lat Pulldown","Bent-Over Row","Deadlift","Chin Up","Weighted Pull Up","Seated Cable Row","Single-Arm Dumbbell Row","T-Bar Row","Pendlay Row","Barbell Shrug","Rack Pull","Straight-Arm Pulldown","Close-Grip Lat Pulldown","Inverted Row","Chest-Supported Row","Machine Row"],"Shoulder":["Dumbbell Shoulder Press","Lateral Raise","Dumbbell Front Raise","Dumbbell Combination","Dumbbell Bent Over Side Raise","Rear Deltoids","Overhead Barbell Press","Arnold Press","Machine Shoulder Press","Cable Lateral Raise","Face Pull","Upright Row","Reverse Pec Deck","Landmine Lateral Raise","Cable Rear Delt Fly"],"Legs":["Squat","Dumbbell Lunge","Front Squat","Hack Squat","Leg Press","Romanian Deadlift","Bulgarian Split Squat","Walking Lunge","Leg Extension","Lying Leg Curl","Seated Leg Curl","Hip Thrust","Goblet Squat","Standing Calf Raise","Seated Calf Raise","Step Up"],"Biceps":["Barbell Curl","Dumbbell Curl","Hammer Curl","EZ Bar Curl","Preacher Curl","Cable Curl","Incline Dumbbell Curl","Concentration Curl","Spider Curl","Reverse Curl","Cable Hammer Curl"],"Triceps":["Overhead Triceps Extension","Close Grip Bench Press","Triceps Pushdown","Rope Pushdown","Skull Crusher","Bench Dip","Dumbbell Kickback","Overhead Cable Extension","Diamond Push Up"],"Sixpack":["Hanging Leg Raise","Leg Raise","Plank","Cable Crunch","Russian Twist","Ab Wheel Rollout","Bicycle Crunch","Sit Up","Decline Sit Up","Mountain Climber","Side Plank"],"Run":["Run","Walk","Cycling","Rowing","Elliptical","Stair Climber","Swimming","Jump Rope"]},ex2part:{"Incline Smith Machine Bench Press":"Chest","Flat Smith Machine Bench Press":"Chest","Incline Dumbbell Bench Press":"Chest","Chest Press":"Chest","Chest Fly":"Chest","Cable Fly Up":"Chest","Cable Fly Down":"Chest","Chest Squeeze":"Chest","Dip":"Chest","Barbell Bench Press":"Chest","Incline Barbell Bench Press":"Chest","Decline Barbell Bench Press":"Chest","Dumbbell Bench Press":"Chest","Decline Dumbbell Bench Press":"Chest","Machine Chest Press":"Chest","Cable Crossover":"Chest","Incline Cable Fly":"Chest","Low Cable Fly":"Chest","Dumbbell Pullover":"Chest","Landmine Press":"Chest","Svend Press":"Chest","Push Up":"Chest","Weighted Push Up":"Chest","Pull Up":"Back","Lat Pulldown":"Back","Bent-Over Row":"Back","Deadlift":"Back","Chin Up":"Back","Weighted Pull Up":"Back","Seated Cable Row":"Back","Single-Arm Dumbbell Row":"Back","T-Bar Row":"Back","Pendlay Row":"Back","Barbell Shrug":"Back","Rack Pull":"Back","Straight-Arm Pulldown":"Back","Close-Grip Lat Pulldown":"Back","Inverted Row":"Back","Chest-Supported Row":"Back","Machine Row":"Back","Dumbbell Shoulder Press":"Shoulder","Lateral Raise":"Shoulder","Dumbbell Front Raise":"Shoulder","Dumbbell Combination":"Shoulder","Dumbbell Bent Over Side Raise":"Shoulder","Rear Deltoids":"Shoulder","Overhead Barbell Press":"Shoulder","Arnold Press":"Shoulder","Machine Shoulder Press":"Shoulder","Cable Lateral Raise":"Shoulder","Face Pull":"Shoulder","Upright Row":"Shoulder","Reverse Pec Deck":"Shoulder","Landmine Lateral Raise":"Shoulder","Cable Rear Delt Fly":"Shoulder","Squat":"Legs","Dumbbell Lunge":"Legs","Front Squat":"Legs","Hack Squat":"Legs","Leg Press":"Legs","Romanian Deadlift":"Legs","Bulgarian Split Squat":"Legs","Walking Lunge":"Legs","Leg Extension":"Legs","Lying Leg Curl":"Legs","Seated Leg Curl":"Legs","Hip Thrust":"Legs","Goblet Squat":"Legs","Standing Calf Raise":"Legs","Seated Calf Raise":"Legs","Step Up":"Legs","Barbell Curl":"Biceps","Dumbbell Curl":"Biceps","Hammer Curl":"Biceps","EZ Bar Curl":"Biceps","Preacher Curl":"Biceps","Cable Curl":"Biceps","Incline Dumbbell Curl":"Biceps","Concentration Curl":"Biceps","Spider Curl":"Biceps","Reverse Curl":"Biceps","Cable Hammer Curl":"Biceps","Overhead Triceps Extension":"Triceps","Close Grip Bench Press":"Triceps","Triceps Pushdown":"Triceps","Rope Pushdown":"Triceps","Skull Crusher":"Triceps","Bench Dip":"Triceps","Dumbbell Kickback":"Triceps","Overhead Cable Extension":"Triceps","Diamond Push Up":"Triceps","Hanging Leg Raise":"Sixpack","Leg Raise":"Sixpack","Plank":"Sixpack","Cable Crunch":"Sixpack","Russian Twist":"Sixpack","Ab Wheel Rollout":"Sixpack","Bicycle Crunch":"Sixpack","Sit Up":"Sixpack","Decline Sit Up":"Sixpack","Mountain Climber":"Sixpack","Side Plank":"Sixpack","Run":"Run","Walk":"Run","Cycling":"Run","Rowing":"Run","Elliptical":"Run","Stair Climber":"Run","Swimming":"Run","Jump Rope":"Run"},equip:{"Incline Smith Machine Bench Press":"smith","Flat Smith Machine Bench Press":"smith","Incline Dumbbell Bench Press":"dumbbell","Chest Press":"machine","Chest Fly":"machine","Cable Fly Up":"cable","Cable Fly Down":"cable","Chest Squeeze":"body","Dip":"body","Barbell Bench Press":"barbell","Incline Barbell Bench Press":"barbell","Decline Barbell Bench Press":"barbell","Dumbbell Bench Press":"dumbbell","Decline Dumbbell Bench Press":"dumbbell","Machine Chest Press":"machine","Cable Crossover":"cable","Incline Cable Fly":"cable","Low Cable Fly":"cable","Dumbbell Pullover":"dumbbell","Landmine Press":"barbell","Svend Press":"dumbbell","Push Up":"body","Weighted Push Up":"body","Pull Up":"body","Lat Pulldown":"cable","Bent-Over Row":"barbell","Deadlift":"barbell","Chin Up":"body","Weighted Pull Up":"body","Seated Cable Row":"cable","Single-Arm Dumbbell Row":"dumbbell","T-Bar Row":"barbell","Pendlay Row":"barbell","Barbell Shrug":"barbell","Rack Pull":"barbell","Straight-Arm Pulldown":"cable","Close-Grip Lat Pulldown":"cable","Inverted Row":"body","Chest-Supported Row":"cable","Machine Row":"cable","Dumbbell Shoulder Press":"dumbbell","Lateral Raise":"dumbbell","Dumbbell Front Raise":"dumbbell","Dumbbell Combination":"dumbbell","Dumbbell Bent Over Side Raise":"dumbbell","Rear Deltoids":"machine","Overhead Barbell Press":"barbell","Arnold Press":"dumbbell","Machine Shoulder Press":"machine","Cable Lateral Raise":"cable","Face Pull":"cable","Upright Row":"barbell","Reverse Pec Deck":"machine","Landmine Lateral Raise":"cable","Cable Rear Delt Fly":"cable","Squat":"barbell","Dumbbell Lunge":"dumbbell","Front Squat":"barbell","Hack Squat":"plate","Leg Press":"plate","Romanian Deadlift":"barbell","Bulgarian Split Squat":"dumbbell","Walking Lunge":"dumbbell","Leg Extension":"machine","Lying Leg Curl":"machine","Seated Leg Curl":"machine","Hip Thrust":"barbell","Goblet Squat":"barbell","Standing Calf Raise":"machine","Seated Calf Raise":"machine","Step Up":"dumbbell","Barbell Curl":"barbell","Dumbbell Curl":"dumbbell","Hammer Curl":"dumbbell","EZ Bar Curl":"barbell","Preacher Curl":"barbell","Cable Curl":"cable","Incline Dumbbell Curl":"dumbbell","Concentration Curl":"dumbbell","Spider Curl":"dumbbell","Reverse Curl":"barbell","Cable Hammer Curl":"cable","Overhead Triceps Extension":"machine","Close Grip Bench Press":"barbell","Triceps Pushdown":"cable","Rope Pushdown":"cable","Skull Crusher":"barbell","Bench Dip":"body","Dumbbell Kickback":"dumbbell","Overhead Cable Extension":"cable","Diamond Push Up":"body","Hanging Leg Raise":"body","Leg Raise":"body","Plank":"body","Cable Crunch":"cable","Russian Twist":"body","Ab Wheel Rollout":"body","Bicycle Crunch":"body","Sit Up":"body","Decline Sit Up":"body","Mountain Climber":"body","Side Plank":"body","Run":"run"},sessions:{},dates:[],monthly:{},pr:{},hist:{},last:{},lastSess:{},repFreq:{},exFreq:{},exLast:{},partCount:{},partLast:{},partDays:{},totals:{sessions:0,first:null,last:'0000-00-00',km:0,vol:0}};
 /* v3.2.1: the 918-day seed literal is GONE (~75% of this file). History lives
    in doc.days (Supabase + localStorage). Full seed preserved forever in git
@@ -204,7 +204,7 @@ async function cloudTest(){
   }catch(e){ toast('Cannot reach '+url+' — check the URL'); }
 }
 function signInGoogle(){
-  if(DB.settings.demo){ DB.days={}; delete DB.settings.demo; save(); }   // real life starts clean
+  if(DB.settings.demo){ DB.days={}; delete DB.settings.demo; allowEmptySave=true; save(); }   // real life starts clean
   if(!cloudReady()) return toast('Set the Supabase URL & key in Settings first');
   const {url,anon}=cloudCfg();
   const back=location.origin+location.pathname;
@@ -227,6 +227,7 @@ async function signOut(){
     Object.keys(localStorage).filter(k=>k.startsWith('showup:bak')).forEach(k=>localStorage.removeItem(k));
     sessionStorage.clear();
   }catch(e){}
+  try{ await durable.removeAll(); }catch(e){}   // v4.6.106: the slots and their backups too
   try{ location.reload(); }catch(e){}
 }
 
@@ -402,9 +403,126 @@ const store = {
     try{ localStorage.setItem(k,v); return true; }catch(e){ return false; }
   }
 };
+
+/* ================= v4.6.106: the durable record (iOS shell) =================
+   Capacitor's own guidance: localStorage in a web view "must be considered
+   transient" -- the OS reclaims it under storage pressure. So inside the app
+   the record ALSO lives in a file under the app's Library directory, which
+   iOS backs up and never purges. Four rules, each one a failure this app has
+   either already had or would have on day one:
+
+   1. localStorage STAYS, as the synchronous write-ahead log. iOS kills a
+      swiped-away app instantly; a native write is a bridge call and a
+      promise started in pagehide does not finish. localStorage.setItem does.
+      The last set of a workout is the write most likely to be in flight at
+      that moment, so the sync path is not optional.
+   2. Two slots, not one file and a rename. A kill mid-write can truncate the
+      slot being written; the other slot is untouched. Boot reads both and
+      localStorage, parses each, and takes the newest by savedAt. Nothing
+      here depends on rename being atomic, which the plugin does not promise.
+   3. loadedOK: until every read has SUCCEEDED (a missing file is a success
+      -- it says "nothing here"; a bridge error is not), nothing may save.
+      An async read can answer "not ready" where localStorage.getItem never
+      could, and load() used to treat that as a fresh install and then let
+      the first save() overwrite a healthy record with an empty one. This is
+      the pulledOK gate that already protects the cloud, extended to local.
+   4. The zero-day guard: a DB with no logged days may not overwrite a stored
+      one that has them, except through a path that says so (allowEmptySave)
+      -- sign-out, leaving demo, restoring a backup.
+
+   Mechanism, from the Capacitor iOS runtime's own JSExport.swift: for each
+   installed native plugin it injects a document-start script that creates
+   window.Capacitor.Plugins.<Name> with every method routed to nativePromise.
+   No bundler, no import; Plugins.Filesystem is simply absent in a browser. */
+const DUR_DIR='LIBRARY', DUR_SLOTS=['showup/db.a.json','showup/db.b.json'], DUR_BAK='showup/bak/';
+let loadedOK=false, storedDays=0, allowEmptySave=false, _durSlot=0;
+const daysWithWork=d=>Object.values((d&&d.days)||{}).filter(v=>v&&v.w&&v.w.length).length;
+const _fsMissing=e=>/not exist|does not exist|0008|ENOENT|no such/i.test(String(e&&(e.message||e.code||e)));
+const durable={
+  fs(){ try{ return (typeof window!=='undefined' && window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Filesystem)||null; }catch(e){ return null; } },
+  available(){ return NATIVE_SHELL && !!this.fs(); },
+  /* -> {ok, raw} per slot: ok:false only for a bridge/read ERROR; absent is ok with raw:null */
+  async read(path){
+    const fs=this.fs(); if(!fs) return {ok:true,raw:null};
+    try{ await fs.stat({path,directory:DUR_DIR}); }
+    catch(e){ return _fsMissing(e)?{ok:true,raw:null}:{ok:false,raw:null,error:e}; }
+    try{ const r=await fs.readFile({path,directory:DUR_DIR,encoding:'utf8'}); return {ok:true,raw:typeof r.data==='string'?r.data:null}; }
+    catch(e){ return {ok:false,raw:null,error:e}; }
+  },
+  async write(raw){
+    const fs=this.fs(); if(!fs) return false;
+    const path=DUR_SLOTS[_durSlot^1];        // the slot NOT most recently written
+    try{
+      await fs.writeFile({path,data:raw,directory:DUR_DIR,encoding:'utf8',recursive:true});
+      const back=await fs.readFile({path,directory:DUR_DIR,encoding:'utf8'});   // prove the bytes landed
+      if(back.data!==raw) return false;
+      _durSlot^=1; return true;
+    }catch(e){ return false; }
+  },
+  async writeBak(name,raw){
+    const fs=this.fs(); if(!fs) return false;
+    try{
+      await fs.writeFile({path:DUR_BAK+name+'.json',data:raw,directory:DUR_DIR,encoding:'utf8',recursive:true});
+      const ls=await fs.readdir({path:DUR_BAK,directory:DUR_DIR});
+      const names=(ls.files||[]).map(f=>typeof f==='string'?f:f.name).filter(n=>/^\d{4}-\d{2}-\d{2}\.json$/.test(n)).sort();
+      for(const n of names.slice(0,-5)) await fs.deleteFile({path:DUR_BAK+n,directory:DUR_DIR}).catch(()=>{});
+      return true;
+    }catch(e){ return false; }
+  },
+  async removeAll(){
+    const fs=this.fs(); if(!fs) return true;
+    try{ await fs.rmdir({path:'showup',directory:DUR_DIR,recursive:true}); return true; }
+    catch(e){ return _fsMissing(e); }
+  }
+};
+/* One record out of every candidate: localStorage plus both slots. A candidate
+   that fails to PARSE is corrupt (a truncated slot after a kill) and is simply
+   passed over; a candidate that fails to READ blocks saving. */
+function _parseRecord(raw){ if(!raw) return null; try{ const d=JSON.parse(raw); return d&&typeof d==='object'?d:null; }catch(e){ return null; } }
+function _recordAge(d){
+  if(!d) return -1;
+  let t=Number(d.savedAt)||0;
+  for(const v of Object.values(d.days||{})) if(v&&Number(v.upd)>t) t=Number(v.upd);
+  if(Number(d.settingsAt)>t) t=Number(d.settingsAt);
+  return t;
+}
+async function dbRead(){
+  const cands=[]; let ok=true;
+  let ls=null; try{ ls=localStorage.getItem(KEY); }catch(e){}
+  if(ls==null){ try{ ls=await store.get(KEY); }catch(e){} }   // the legacy artifact-storage layer
+  cands.push({src:'local',rec:_parseRecord(ls)});
+  if(durable.available()){
+    for(let i=0;i<DUR_SLOTS.length;i++){
+      const r=await durable.read(DUR_SLOTS[i]);
+      if(!r.ok) ok=false;
+      const rec=_parseRecord(r.raw);
+      cands.push({src:'slot'+i,rec});
+      if(rec&&_recordAge(rec)>=_recordAge(cands.find(c=>c.src==='slot'+(i^1))?.rec)) _durSlot=i;   // next write goes to the other one
+    }
+  }
+  let best=null;
+  for(const c of cands) if(c.rec&&(!best||_recordAge(c.rec)>_recordAge(best.rec))) best=c;
+  storedDays=Math.max(0,...cands.map(c=>daysWithWork(c.rec)));
+  loadedOK=ok;
+  return best?best.rec:null;
+}
+function dbSerialize(){ DB.savedAt=Date.now(); return JSON.stringify(DB); }
+/* -> true when the record is on disk somewhere it will survive. In a browser
+   that is localStorage; in the shell it is localStorage now and a slot shortly. */
+function dbWrite(){
+  if(!loadedOK){ return false; }
+  if(!allowEmptySave && storedDays>0 && daysWithWork(DB)===0){ return false; }
+  const raw=dbSerialize();
+  let ok=false;
+  try{ localStorage.setItem(KEY,raw); ok=true; }catch(e){}
+  if(!ok){ store.set(KEY,raw).then(r=>{ if(r) storedDays=Math.max(storedDays,daysWithWork(DB)); }); }
+  else storedDays=Math.max(storedDays,daysWithWork(DB));
+  if(durable.available()) durable.write(raw).catch(()=>{});
+  return ok||durable.available();
+}
 async function load(){
-  const raw = await store.get(KEY);
-  if(raw){ try{ const d=JSON.parse(raw); DB={...DB,...d, settings:{...DB.settings,...(d.settings||{}), gh:{...DB.settings.gh,...((d.settings||{}).gh||{})}}}; }catch(e){} }
+  const d = await dbRead();
+  if(d){ DB={...DB,...d, settings:{...DB.settings,...(d.settings||{}), gh:{...DB.settings.gh,...((d.settings||{}).gh||{})}}}; }
   if(!DB.days) DB.days={};
   migrateExNames();           // v3.3.167: before anything derives or renders
   migrateCanon();             // v3.3.191: ids assigned before anything groups
@@ -754,10 +872,10 @@ function save(markSettings){
   _setSig=sig;
   saveDirty=true;
   clearTimeout(saveTimer);
-  saveTimer=setTimeout(async()=>{
+  saveTimer=setTimeout(()=>{
     saveDirty=false;
-    const ok = await store.set(KEY, JSON.stringify(DB));
-    if(!ok){ saveDirty=true; toast('Not saved — storage unavailable'); }
+    const ok = dbWrite();
+    if(!ok){ saveDirty=true; toast(loadedOK?'Not saved — storage unavailable':'Not saved — your history has not finished loading'); }
   },350);
   if(session) cloudPush();
 }

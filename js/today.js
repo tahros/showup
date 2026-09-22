@@ -166,7 +166,7 @@ function demoLoad(){
   toast('Demo data loaded — nothing here syncs anywhere');
 }
 function demoClear(){
-  DB.days={}; delete DB.settings.demo; delete DB.settings.onboarded; delete DB.settings.myParts;
+  DB.days={}; delete DB.settings.demo; delete DB.settings.onboarded; delete DB.settings.myParts; allowEmptySave=true;   // v4.6.106: an empty ledger on purpose
   save(); SEED=deriveAll(); _fireDist=null;
   demoBarSync(); render(); maybeOnboard();
 }

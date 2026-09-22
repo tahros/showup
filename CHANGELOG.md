@@ -1,5 +1,18 @@
 # ShowUp — changelog
 
+## v4.6.106 (2026-09-22) — The record that survives the shell
+
+- Inside the iOS app the record now also lives in a file under the app's Library directory, which iOS backs up and never purges. Capacitor's own guidance is that web-view `localStorage` "must be considered transient".
+- **`localStorage` stays**, as the synchronous write-ahead log. iOS kills a swiped-away app instantly; a native write is a bridge call and a promise started in `pagehide` does not finish, while `localStorage.setItem` does. The last set of a workout is the write most likely to be in flight at that moment.
+- Two slots, alternating, each write read back before the slot is trusted. A kill mid-write can truncate the slot being written; the other is untouched. Boot reads both slots and `localStorage`, skips anything that fails to parse, and takes the newest by `savedAt`. Nothing depends on `rename` being atomic, which the plugin does not promise.
+- `loadedOK`: until every read has *succeeded* (a missing file is a success; a bridge error is not), nothing saves. `load()` used to treat an unanswered async read as a fresh install, and the first `save()` would then have overwritten a healthy record with an empty one. This is the `pulledOK` gate that already protects the cloud, extended to local.
+- The zero-day guard: a DB with no logged days may not overwrite a stored one that has them, except through a path that says so — sign-out, leaving demo, restoring a backup.
+- Daily backups mirrored into the shell with the same five-day window; sign-out clears the slots and the backups too.
+- In a browser nothing changes: `Plugins.Filesystem` is absent, the durable layer is never offered, and the 110 existing suites pass untouched.
+- `tools/test-durable.js`: 28 assertions against a fake of the injected `Plugins.Filesystem` — a bridge that errors, a write that never returns, a slot truncated mid-write, a short write. Every guard mutation-tested; two mutations survived the first pass and each exposed a gap the suite now covers.
+- `buildcheck.py` guards the declarations; `bump.py` now moves `package.json`'s version too.
+- Mechanism verified against the Capacitor iOS runtime's `JSExport.swift`: for each installed native plugin it injects `window.Capacitor.Plugins.<Name>` at document start, every method routed to `nativePromise`. No bundler, no import.
+
 ## v4.6.105 (2026-09-22) — The app learns to be a bundle
 
 - Add `tools/build-dist.py`: assemble `dist/` with only what the app serves. 24 MB repo to a 3.50 MB bundle, 84 files.

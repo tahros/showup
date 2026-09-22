@@ -508,6 +508,35 @@ _order = _re.findall(r"js/(core|derive)\.js", (d/"index.html").read_text())
 if _order[:2] != ["core", "derive"]:
     fail.append("core.js no longer loads before derive.js — NATIVE_SHELL would be undefined when the "
                 "service-worker guard reads it (v4.6.105)")
+# -- v4.6.106: the durable record. Four rules, each of which tools/test-durable.js
+#    proves behaviourally; these keep the declarations from being edited away.
+_core = (d/"js/core.js").read_text()
+if not _re.search(r"function dbWrite\(\)\{[^}]*if\(!loadedOK\)", _core):
+    fail.append("dbWrite() no longer refuses to save before a successful read — an async read that "
+                "answers 'not ready' would let an empty record overwrite a full one (v4.6.106)")
+if not _re.search(r"function dbWrite\(\)\{.*?storedDays>0\s*&&\s*daysWithWork\(DB\)===0", _core, _re.S):
+    fail.append("dbWrite() lost the zero-day guard — an empty ledger could overwrite a stored one by accident (v4.6.106)")
+if "localStorage.setItem(KEY,raw)" not in _core:
+    fail.append("dbWrite() no longer writes localStorage synchronously — that is the only write that survives "
+                "iOS killing the app on swipe-away (v4.6.106)")
+if _re.search(r"store\.set\(KEY,\s*JSON\.stringify\(DB\)\)", _core + _derive):
+    fail.append("something writes the record around dbWrite() — every save must pass the loadedOK and zero-day guards (v4.6.106)")
+if not _re.search(r"function flushSave\(\)\{.*?dbWrite\(\)", _derive, _re.S):
+    fail.append("flushSave() no longer goes through dbWrite() (v4.6.106)")
+if "durable.removeAll()" not in _core:
+    fail.append("sign-out no longer clears the durable record — the next user of the phone would inherit the last one's history (v4.6.106)")
+if len(_re.findall(r"DUR_SLOTS\[_durSlot\^1\]", _core)) != 1:
+    fail.append("the durable write no longer alternates slots — a kill mid-write could take the only copy (v4.6.106)")
+for _f, _needle, _why in (
+    ("js/today.js", "allowEmptySave=true", "leaving demo / resetting onboarding empties the ledger on purpose and must say so"),
+    ("js/settings.js", "allowEmptySave=true", "restoring a backup replaces the record on purpose and must say so"),
+):
+    if _needle not in (d/_f).read_text():
+        fail.append(f"{_f}: {_why}, or the zero-day guard refuses it (v4.6.106)")
+_pkg_deps = (_pkg.get("dependencies", {}) if _pkg_f.exists() else {})
+if "@capacitor/filesystem" not in _pkg_deps:
+    fail.append("package.json does not depend on @capacitor/filesystem — without the pod, Plugins.Filesystem is "
+                "never injected and the shell silently runs on transient localStorage alone (v4.6.106)")
 # v4.6.104: the app's type ships WITH the app. Google's CDN was a cold-start
 # network dependency the service worker could never cache (it only caches
 # same-origin), so an offline launch rendered in the system font -- on an
