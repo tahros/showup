@@ -10,6 +10,7 @@ function renderHeader(){
   hdr.classList.toggle('live',live);
   const _rd=DB.days&&DB.days[todayISO];
   hdr.classList.toggle('resting', !!(_rd&&_rd.rest&&!(_rd.w||[]).length));  // v3.3.81: the mirror of live
+  syncPageChrome(); // Match status-area tint after the mode classes change.
   const inEx = view==='lift' && lift.ex && !lift.copy;
   const inPlan=view==='today'&&lift.plan==='workspace'&&typeof pfOn==='function'&&pfOn();
   hdr.classList.toggle('planmode',!!inPlan);

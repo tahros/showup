@@ -1,8 +1,9 @@
 const {chromium}=require('playwright'),assert=require('assert');
+const ORIGIN='http://127.0.0.1:'+(process.env.PW_PORT||'8784')+'/';
 (async()=>{const b=await chromium.launch({executablePath:process.env.PW_CHROME||'C:/Users/sungj/AppData/Local/ms-playwright/chromium-1217/chrome-win64/chrome.exe'});try{
  const p=await b.newPage({viewport:{width:393,height:852},serviceWorkers:'block'}),errors=[];
  p.on('pageerror',e=>errors.push(e.message));
- await p.route('**/*',r=>r.request().url().startsWith('http://127.0.0.1:8784/')?r.continue():r.abort());await p.goto('http://127.0.0.1:8784/');
+ await p.route('**/*',r=>r.request().url().startsWith(ORIGIN)?r.continue():r.abort());await p.goto(ORIGIN);
  await p.evaluate(()=>{DB={days:{},settings:{onboarded:true,unit:'lb',mascotMotion:'still'}};todayISO='2026-09-15';checkDate=()=>false;document.querySelector('#onb')?.remove();SEED=deriveAll();view='today';render();});
  assert(await p.locator('#liveWorkoutBar').isHidden());
  await p.evaluate(()=>{DB.days[todayISO]={w:[{part:'Back',ex:'Deadlift',w:100,reps:[8,8,6],at:Date.now()-42*60000}],doneEx:[],donePart:[],upd:1};SEED=deriveAll();render();});
@@ -26,8 +27,14 @@ const {chromium}=require('playwright'),assert=require('assert');
  assert.equal(await p.evaluate(()=>JSON.stringify(DB.days[todayISO].w)),JSON.stringify(JSON.parse(before)['2026-09-15'].w));
  await p.locator('#dayDone button').filter({hasText:/^Done$/}).click();
  await p.evaluate(()=>{plLog({part:'Back',ex:'Deadlift',w:100,reps:[8],at:Date.now()});reopen('Deadlift','Back');renderHeader();renderLift();});
- assert(await p.locator('#liveWorkoutBar').isVisible());assert((await p.locator('.live-workout-meta').innerText()).includes('4 sets'));
- await p.evaluate(()=>{DB.days[todayISO].w.forEach(s=>delete s.at);render();});assert(!(await p.locator('.live-workout-meta').innerText()).includes('min'));
+ // The completed three sets belong to the prior session; the reopened
+ // workout contains one new set, while all four remain in today's record.
+ assert(await p.locator('#liveWorkoutBar').isVisible());assert((await p.locator('.live-workout-meta').innerText()).includes('1 set'));
+ assert.equal(await p.evaluate(()=>DB.days[todayISO].w.reduce((n,s)=>n+s.reps.length,0)),4);
+ // A legacy untimed workout has no explicit completion boundary either.
+ // Keeping a prior closed boundary would correctly hide the bar, leaving
+ // its old (hidden) text behind rather than displaying an untimed session.
+ await p.evaluate(()=>{const d=DB.days[todayISO];d.w.forEach(s=>delete s.at);delete d.closed;delete d.completedAt;render();});assert(await p.locator('#liveWorkoutBar').isVisible());assert(!(await p.locator('.live-workout-meta').innerText()).includes('min'));
  await p.emulateMedia({reducedMotion:'reduce'});assert.equal(await p.locator('.live-workout-title i').evaluate(e=>getComputedStyle(e).animationName),'none');
  await p.screenshot({path:'../live-workout-implemented.png',fullPage:false});
  await p.evaluate(()=>{pwOpen('2026-09-17');pw().dates=['2026-09-17'];const d=pwDay('2026-09-17');d.rows=pwRead('Squat\n195 lb × 8 8 8');d.parts=['Legs'];pw().active='2026-09-17';pfAnchor();pfNavigate('days');});

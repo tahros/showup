@@ -73,9 +73,17 @@ ok("index.html still paints from the resolved key before scripts run",
    /localStorage\.getItem\('showup-theme'\)\s*\|\|\s*'dark'/.test(html));
 
 // ---- the status bar follows too -------------------------------------------
-ok("theme-color matches light ground when light", metaTC() === "#F2F3F6", metaTC());
+// jsdom does not resolve stylesheet custom properties. Supply the browser
+// boundary here; actual palette matching is checked in check-rest-chrome.cjs.
+const realComputed=w.getComputedStyle.bind(w);
+w.getComputedStyle=(el)=>el.style.backgroundColor==='var(--ground)'
+  ? {backgroundColor:applied()==='light'?'rgb(239, 239, 239)':'rgb(10, 10, 10)'}
+  : realComputed(el);
+run('syncPageChrome()');
+ok("theme-color receives the computed light ground", metaTC() === "rgb(239, 239, 239)", metaTC());
 osFlip(false);
-ok("...and dark ground when dark", metaTC() === "#0C0E13", metaTC());
+ok("...and computed dark ground when dark", metaTC() === "rgb(10, 10, 10)", metaTC());
+w.getComputedStyle=realComputed;
 
 // ---- back-compat: older blobs behave exactly as before --------------------
 for (const legacy of ["dark", undefined, null, "", "weird"]) {

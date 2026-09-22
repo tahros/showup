@@ -355,14 +355,17 @@ function applyTheme(){
     }catch(e){}
   }
 }
-/* Match the OS/browser status area to the actual top of Rest Home, not
-   the normal page ground. Clear the root override when leaving Rest Home. */
+/* Match browser/status tint to Normal, Rest or Live. Rest Home retains its
+   separate body-gradient flag; header state is refreshed after mode changes. */
 function syncPageChrome(){
   const root=document.documentElement,rest=document.body.classList.contains('rest-home');
   if(rest)root.dataset.restHome='1';else delete root.dataset.restHome;
+  const hdr=document.querySelector('header');
+  const mode=hdr&&hdr.classList.contains('live')?'live':(rest||hdr&&hdr.classList.contains('resting'))?'rest':'normal';
+  root.dataset.headerMode=mode;
   const probe=document.createElement('span');
   probe.style.cssText='position:absolute;visibility:hidden;pointer-events:none';
-  probe.style.backgroundColor=rest?'var(--rest-top)':'var(--ground)';
+  probe.style.backgroundColor=mode==='live'?'var(--live)':mode==='rest'?'var(--rest-top)':'var(--ground)';
   document.body.appendChild(probe);
   let color=getComputedStyle(probe).backgroundColor;probe.remove();
   const srgb=color.match(/^color\(srgb\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)/);

@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v4.6.102 (2026-09-22) — Subtle liquid-glass header
+
+- Apply the approved 10% blur (4px) and 78% tint to Normal, Rest and Active Workout headers in both themes.
+- Keep header text and controls sharp above the glass; remove Rest Home's fully transparent header that let scrolling text collide with the date.
+- Match status-area tint to the current mode, retaining existing safe-area spacing and navigation.
+- Keep an opaque fallback for reduced transparency and browsers without backdrop blur. No workout records or flows change.
+- Repair stale regression expectations for current Rest copy, Plan entry, theme resolution, comparison controls and reopened-session counts; all 110 suites pass.
+
 ## v4.6.101 (2026-09-22) — A planned week can move
 
 - Push the week: on Today, while nothing is logged, one line moves today's plan and every planned day behind it forward a day. The sheet shows where each one lands and what was there.

@@ -380,7 +380,16 @@ if _re.search(r"requestAnimationFrame\(\(\)=>\{ _topRaf=0;[^}]*nav", _util):
 # header, the nav and the top button all scrolling with the content. This guard
 # keeps it off until that result is read; a comment mentioning it is fine, a
 # declaration is not.
-if _re.search(r"(^|\n)\s*(-webkit-)?backdrop-filter:\s*blur", css):
+# v4.6.102: explicitly approved 4px glass on the ABSOLUTE background child,
+# not the fixed chrome itself. Allow only that exact material rule; preserve
+# the old prohibition everywhere else (especially nav).
+_glass_rule = r'header \.hglass,header\.resting \.hglass,header\.live \.hglass\{[^{}]*\}'
+_approved_glass = _re.findall(_glass_rule, css)
+for _rule in _approved_glass:
+    if 'backdrop-filter:blur' in _rule and not all(v == '4px' for v in _re.findall(r'backdrop-filter:blur\(([^)]+)\)', _rule)):
+        fail.append('header glass changed from the approved 10 percent / 4px blur')
+_other_glass = _re.sub(_glass_rule, '', css)
+if _re.search(r"(^|\n)\s*(-webkit-)?backdrop-filter:\s*blur", _other_glass):
     fail.append("backdrop-filter is back — it sits on fixed chrome and is the standing suspect for fixed positioning failing page-wide on iOS (v3.3.497)")
 if _re.search(r'data-skin="minimal"\]\s*nav\{[^}]*overflow:hidden', css):
     fail.append("minimal nav re-added overflow:hidden — extra iOS layer trigger (v3.3.179)")

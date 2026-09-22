@@ -1,7 +1,9 @@
 /* v4.6.84: one continuous rest wash, and shared elements for the exhale. */
 :root[data-rest-home="1"]{background-color:var(--rest-top)}
+:root[data-header-mode="rest"]{background-color:var(--rest-top)}
+:root[data-header-mode="live"]{background-color:var(--live)}
 body.rest-home,body.rest-home #app{background:linear-gradient(180deg,var(--rest-top),var(--ground) 440px) fixed}
-body.rest-home header.resting .hglass{background:transparent;border-color:transparent;box-shadow:none;animation:none}
+/* Rest uses the shared glass header; never expose sharp scrolling text behind it. */
 .rest-home .su-hello-row{flex-direction:column-reverse;gap:4px;padding:16px 0 22px}
 .rest-home .su-hello-row .su-mascot{width:172px;max-width:55vw}
 .rest-home .hello{display:flex;flex-direction:column;align-items:center;gap:6px;margin:0;text-align:center}

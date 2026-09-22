@@ -9,9 +9,11 @@ const root=document.documentElement,meta=document.querySelector('meta[name="them
 const normalize=color=>{const c=document.createElement('canvas');c.width=c.height=1;const x=c.getContext('2d');x.fillStyle=color;x.fillRect(0,0,1,1);return Array.from(x.getImageData(0,0,1,1).data).join(',');};
 const rest={root:normalize(getComputedStyle(root).backgroundColor),meta:normalize(meta.content),flag:root.dataset.restHome};
 document.body.classList.remove('rest-home');syncPageChrome();
-return {rest,cleared:!root.hasAttribute('data-rest-home'),normal:normalize(meta.content)};
+const probe=document.createElement('span');probe.style.backgroundColor='var(--ground)';document.body.appendChild(probe);const ground=normalize(getComputedStyle(probe).backgroundColor);probe.remove();
+return {rest,cleared:!root.hasAttribute('data-rest-home'),normal:normalize(meta.content),ground};
 },theme);
 assert.equal(result.rest.root,result.rest.meta);assert.equal(result.rest.flag,'1');assert(result.cleared);assert.notEqual(result.normal,result.rest.meta);
+assert.equal(result.normal,result.ground,'normal status tint follows the real theme palette');
 console.log('PASS '+theme+': status color matches Rest canvas; normal color restored');
 }
 }finally{await b.close();}})().catch(e=>{console.error(e);process.exitCode=1;});

@@ -61,7 +61,7 @@ run(`$('#view').querySelector('#restBtn').click();`);
 check("tap declares: the flag lands on today", `!!DB.days[todayISO].rest`, true);
 check("...with a fresh stamp for LWW", `DB.days[todayISO].upd>0`, true);
 ok("...and the button flips to the undo reading",
-   /Resting today \u00b7 tap to undo/.test(run(`$('#view').innerHTML`)));
+   run(`document.getElementById('restBtn').textContent.trim()`)==='Undo rest day');
 run(`$('#view').querySelector('#restBtn').click();`);
 check("tap again walks out: flag gone", `!!DB.days[todayISO].rest`, false);
 
@@ -256,7 +256,8 @@ ok("...and the fixed header itself paints nothing",
 // rest-named. A keyframes block nests one level: outer{ stops{...} }.
 const KF = /@keyframes restbreathe[^{]*\{(?:[^{}]*\{[^}]*\})*[^}]*\}/g;
 const kfBlocks = cssSrc.match(KF) || [];
-const stripped = cssSrc.replace(KF, "");
+// A root token definition is not a painted non-Rest component.
+const stripped = cssSrc.replace(KF, "").replace(/--rest-top\s*:[^;]+;/g,'');
 const restUses = [...stripped.matchAll(/^[^\n{]*\{[^}]*var\(--rest\)[^}]*\}/gm)].map(m => m[0].split("{")[0].trim());
 ok("...and --rest appears ONLY in rest rules (one meaning, nowhere else)",
    restUses.length > 0 && restUses.every(sel => /rest/i.test(sel)), restUses.join(" | "));
@@ -649,7 +650,7 @@ ok("the status-bar style no longer puts content under the status bar",
        const t=s.filter(x=>x.classList.contains('resting'));
        return t.length===1 && t[0].classList.contains('tod');})()`));
   // 2. the greeting
-  ok("...the greeting shortens to 'Rest.'", /Rest\./.test(V()) && !/Morning|Afternoon|Evening/.test(V()));
+  ok("...the greeting is 'Rest day' without a dot", run(`document.querySelector('.hello .hi')?.textContent`)==='Rest day' && !/Morning|Afternoon|Evening/.test(V()));
   ok("...keeping the day count, dropping the countdown",
      /days in\./.test(V()) && !/to 1,000|to 1000/.test(V()));
   // 3. the fold
@@ -727,20 +728,20 @@ ok("the status-bar style no longer puts content under the status bar",
     const y=new Date(todayISO+'T00:00'); y.setDate(y.getDate()-1);
     DB.days[y.toLocaleDateString('en-CA')]={w:[{part:'Legs',ex:'Squat',w:90,reps:[8],at:1}],upd:1};   // a record, so Today is not day one
     SEED=deriveAll(); render();
-    globalThis.__vt=[]; document.startViewTransition=function(cb){ globalThis.__vt.push('call'); cb(); };
+    globalThis.__vt=[]; document.startViewTransition=function(cb){ globalThis.__vt.push('call'); cb(); return {finished:Promise.resolve()}; };
   })()`);
   ok("(harness) MOTION_OK is true, so the cross-fade path is reachable", run(`MOTION_OK`)===true);
   run(`render();`);
   ok("an ordinary in-view render does not cross-fade", run(`__vt.length`)===0, run(`__vt.length`));
   run(`document.getElementById('restBtn').click();`);
   ok("tapping rest DOES cross-fade instead of cutting", run(`__vt.length`)===1, run(`__vt.length`));
-  ok("...and the screen is in the rest state after it", /Rest\./.test(run(`$('#view').innerHTML`)));
+  ok("...and the screen is in the rest state after it", run(`document.querySelector('.hello.resting .hi')?.textContent`)==='Rest day');
   run(`document.getElementById('restBtn').click();`);
   ok("...undo cross-fades too", run(`__vt.length`)===2, run(`__vt.length`));
-  ok("...and the greeting is back", !/Rest\./.test(run(`$('#view').innerHTML`)));
+  ok("...and the greeting is back", !run(`document.querySelector('.hello.resting')`));
   // the header must ride inside the transition, not before it
   run(`globalThis.__seq=[]; const _rh=renderHeader; renderHeader=function(){ __seq.push('header'); return _rh.apply(this,arguments); };
-       document.startViewTransition=function(cb){ __seq.push('vt-start'); cb(); __seq.push('vt-end'); };
+       document.startViewTransition=function(cb){ __seq.push('vt-start'); cb(); __seq.push('vt-end'); return {finished:Promise.resolve()}; };
        document.getElementById('restBtn').click(); renderHeader=_rh;`);
   ok("the header renders INSIDE the cross-fade, so wash and view arrive together",
      run(`JSON.stringify(__seq)`)==='["vt-start","header","vt-end"]', run(`JSON.stringify(__seq)`));
@@ -804,8 +805,8 @@ ok("the status-bar style no longer puts content under the status bar",
      read as glass (v3.3.463 said so) -- and the tint closes up, because
      without a blur behind it a 66% pill over scrolling content is unreadable.
      This assertion is now what keeps the blur off until the result is read. */
-  ok("no backdrop-filter anywhere: the one that existed was on the nav, which is fixed",
-     !/(^|\n)\s*(-webkit-)?backdrop-filter:\s*blur/.test(cssN),
+  ok("no backdrop-filter outside the approved absolute header material",
+     !/(^|\n)\s*(-webkit-)?backdrop-filter:\s*blur/.test(cssN.replace(/header \.hglass,header\.resting \.hglass,header\.live \.hglass\{[^{}]*\}/g,'')),
      (cssN.match(/(^|\n)\s*(-webkit-)?backdrop-filter:[^;}]*/g)||[]).join(" | "));
   ok("...the minimal pill keeps its lighting and closes its tint to opaque",
      /:root\[data-skin="minimal"\] nav\{background:transparent;box-shadow:none\}/.test(cssN) &&

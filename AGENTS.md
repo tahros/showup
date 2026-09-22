@@ -41,7 +41,21 @@ push being rejected. These rules exist so that doesn't repeat.
 
 _nothing_
 
-## Known red
+## Resolved test debt (v4.6.102)
+
+2026-09-22: all 110 suites exit 0. The historical failures listed below are
+resolved: assertions now follow the approved Rest day / Undo rest day copy,
+the no-plan Plan entry, and computed theme colors (real palette checked in
+Chromium). View-transition stubs return finished promises. The two Chromium
+checks now follow the outcome checkmark, asynchronous edit transition and
+current-session count after reopening; both pass. No workout behavior changed.
+Header glass, Rest chrome, and Retro checks also pass. Local test dependencies:
+jsdom 26, canvas, TypeScript 6 (7 no longer exposes the compiler API used here).
+The header's absolute material layer is the sole approved backdrop-blur
+exception (4px); nav/fixed-element blur remains prohibited. iOS device QA is
+still advisable given the older fixed-chrome issue.
+
+Historical record (not current failures):
 
 Carried from v4.6.84–v4.6.93 (Codex), still failing as of v4.6.101. Verified
 pre-existing by running each against the unmodified commit.

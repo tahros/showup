@@ -42,7 +42,8 @@ const stops=[...dark.split(';')[0].matchAll(/rgba\((\d+),(\d+),(\d+),([.\d]+)\) 
 assert.deepStrictEqual(stops,[{rgb:[78,78,78],alpha:.98,at:0},{rgb:[46,46,46],alpha:.98,at:15},{rgb:[29,29,29],alpha:.94,at:48},{rgb:[21,21,21],alpha:.82,at:100}],'approved polished highlight with a more transparent lower half');
 assert(dark.includes('inset 0 1px 0 rgba(255,255,255,.52)'),'polished top rim remains visible');
 assert(/\[data-flow="refined"\]\[data-skin="minimal"\]\[data-bar="dark"\] nav button\.on\{\s*background:linear-gradient\(180deg,#4C4C4C,#303030\)/.test(css),'selected capsule stays opaque, dark-bar only');
-assert(!/backdrop-filter\s*:\s*blur\([^;{}]*[;}]/.test(css),'no backdrop blur reintroduced');
+const outsideHeader=css.replace(/header \.hglass,header\.resting \.hglass,header\.live \.hglass\{[^{}]*\}/g,'');
+assert(!/backdrop-filter\s*:\s*blur\([^;{}]*[;}]/.test(outsideHeader),'no backdrop blur on nav or fixed chrome; approved absolute header material only');
 const mix=(a,b,t)=>a.map((v,i)=>v*t+b[i]*(1-t));
 const lum=a=>a.map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;}).reduce((s,v,i)=>s+v*[.2126,.7152,.0722][i],0);
 const cr=(a,b)=>(Math.max(lum(a),lum(b))+.05)/(Math.min(lum(a),lum(b))+.05);

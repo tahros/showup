@@ -1023,7 +1023,7 @@ run(`(function(){view='today'; lift.ex=null; render();})()`);
     ok("...and one line about tomorrow takes its place",
        /Tomorrow \u00b7/.test(run(`$('#view').innerHTML`)));
     ok("...while the button reads as the undo",
-       /Resting today/.test(run(`document.getElementById('restBtn').textContent`)));
+       run(`document.getElementById('restBtn').textContent.trim()`)==='Undo rest day');
     run(`document.getElementById('restBtn').click();`);
     ok("...and a second tap walks out, plan still standing",
        run(`!(DB.days[todayISO]&&DB.days[todayISO].rest) && DB.plan.items.length===2`));

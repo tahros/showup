@@ -24,10 +24,10 @@ for(const theme of ['light','dark'])for(const width of [320,393,430]){
  assert(await card.locator('#doneExBtn').evaluate(b=>{const r=b.getBoundingClientRect(),c=b.closest('.sc-session').getBoundingClientRect();
    return b.scrollWidth<=b.clientWidth+1&&b.scrollHeight<=b.clientHeight+1&&r.left>=c.left-1&&r.right<=c.right+1&&r.height>=44;}),'done button fits its slot');
  assert.equal(await p.locator('#liveWorkoutFinish').count(),1,'the day still ends from the live bar');
- assert.equal(await card.locator('tbody tr').count(),4);assert.equal(await card.locator('.sc-result').count(),1);
+ assert.equal(await card.locator('tbody tr').count(),4);assert.equal(await card.locator('.sc-outcome-mark').count(),1);
  assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
- const before=await p.evaluate(()=>JSON.stringify(DB));await card.locator('.sc-result summary').last().click();assert.equal(await p.evaluate(()=>JSON.stringify(DB)),before);
- if(scenario==='both'&&width===393){await card.screenshot({path:'../session-live-'+theme+'.png'});await p.locator('#sessEdit').click();assert(await p.locator('#sessEdit').innerText()==='DONE');await p.locator('#sessEdit').click();assert.equal(await p.locator('.sc-session').count(),1);}
+ const before=await p.evaluate(()=>JSON.stringify(DB));await card.locator('.sc-outcome-mark').click();assert.equal(await p.evaluate(()=>JSON.stringify(DB)),before);assert((await p.locator('#toast').innerText()).includes('Set done'));
+ if(scenario==='both'&&width===393){await card.screenshot({path:'../session-live-'+theme+'.png'});await p.locator('#sessEdit').click();await p.locator('#sessEdit[aria-pressed="true"]').waitFor();assert.equal((await p.locator('#sessEdit').innerText()).trim(),'Done');await p.locator('#sessEdit').click();await p.locator('#sessEdit[aria-pressed="false"]').waitFor();assert.equal(await p.locator('.sc-session').count(),1);}
  }
  const invariants=await p.evaluate(()=>{
  const ex='Lat Pulldown',last={w:50,r:8},target={w:55,reps:8},below={w:45,r:6},trade={w:60,r:6},both={w:60,r:8};
