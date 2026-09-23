@@ -4,9 +4,9 @@ function plateMetrics(record){
   let kg=0,sets=0; const exercises=new Set();
   for(const s of record?.w||[]){
     const reps=(s.reps||[]).map(Number).filter(r=>Number.isFinite(r)&&r>0);
-    const count=s.ex==='Run'?1:reps.length;
+    const count=isCardio(s)?1:reps.length;
     sets+=count;if(count)exercises.add(s.ex);
-    if(s.ex!=='Run'&&!isHold(s.su)&&Number.isFinite(+s.w)&&+s.w>0)kg+=+s.w*reps.reduce((a,b)=>a+b,0);
+    if(!isCardio(s)&&!isHold(s.su)&&Number.isFinite(+s.w)&&+s.w>0)kg+=+s.w*reps.reduce((a,b)=>a+b,0);
   }
   return {kg,sets,exercises:exercises.size};
 }

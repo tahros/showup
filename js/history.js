@@ -48,14 +48,14 @@ function hsetEditor(d){
   const es=hist.editSet; if(!es) return '';
   const w=((DB.days[d]||{}).w)||[];
   const s=es.wi!=null?w[es.wi]:null;
-  const isRun=es.ex==='Run';
-  const wv=s?(isRun?dDisp(s.w):wDisp(s.w)):'';
+  const isRun=s?isCardio(s):isCardioEx(es.ex), C=cardioOf(es.ex);   // v4.6.108: every cardio activity
+  const wv=s?(isRun?(s.w>0?cFromKm(es.ex,s.w):''):wDisp(s.w)):'';
   const rv=s&&!isRun?((s.reps||[])[es.ri]??''):'';
   return `<div class="card editcard hsedit" style="margin-top:8px">
       <div class="mono muted" style="font-size:11px;margin-bottom:8px">${es.wi==null?'ADD':'EDIT'} — ${es.ex}</div>
       <div class="row" style="gap:8px">
-        <div class="fld"><label>${isRun?'Distance '+DU():'Weight '+U()}</label>
-          <input id="hsW" type="number" inputmode="decimal" step="${isRun?'0.01':wStep(es.ex)}" value="${wv}"></div>
+        ${isRun&&!C.dist?'':`<div class="fld"><label>${isRun?'Distance '+cUnit(es.ex):'Weight '+U()}</label>
+          <input id="hsW" type="number" inputmode="decimal" step="${isRun?cStep(es.ex):wStep(es.ex)}" value="${wv}"></div>`}
         ${isRun
           ?`<div class="fld"><label>Min</label><input id="hsM" type="number" inputmode="numeric" value="${s?(s.mins||0):0}"></div>
             <div class="fld"><label>Sec</label><input id="hsS" type="number" inputmode="numeric" value="${s?(s.secs||0):0}"></div>`
@@ -70,7 +70,7 @@ function hsetEditor(d){
    deriveAll() must run or the calendar, digests and totals keep stale numbers. */
 function commitPastDay(d,label){
   const t=DB.days[d]; if(!t) return;
-  t.w=t.w.filter(s=>s.ex==='Run'||(s.reps||[]).length);   // drop emptied entries
+  t.w=t.w.filter(s=>isCardio(s)||(s.reps||[]).length);   // drop emptied entries -- v4.6.108: a ride or a row has no reps and is NOT empty
   if(!t.w.length){ delete DB.days[d]; }
   else { t.upd=Date.now(); resealDay(t); }
   SEED=deriveAll(); _fireDist=null;
@@ -115,10 +115,11 @@ function periodText(y,m){
   const lines=[];
   for(const [iso,rows] of days){
     const parts=[],byEx=[],seen={};
-    let v=0,km=0,sets=0,run=null;
+    let v=0,km=0,sets=0,run=null,cardioTxt=null;
     for(const r of rows){
       if(!parts.includes(r[0])) parts.push(r[0]);
       if(r[1]==='Run'){ km+=r[2]; sets++; run={km:r[2],min:r[4],sec:r[5]}; continue; }
+      if(isCardioR(r)){ sets++; (cardioTxt=cardioTxt||[]).push(`  ${r[1]}: ${cardioLine({ex:r[1],w:r[2],mins:r[4],secs:r[5]})}`); continue; }   // v4.6.108
       v+=r[2]*(r[3]||[]).reduce((a,b)=>a+b,0); sets+=(r[3]||[]).length;
       if(!(r[1] in seen)){ seen[r[1]]=byEx.length; byEx.push({ex:r[1],subs:[]}); }
       byEx[seen[r[1]]].subs.push([r[2],r[3]||[]]);
@@ -134,6 +135,7 @@ function periodText(y,m){
       const t=run.min!=null?` in ${run.min+Math.floor((run.sec||0)/60)}'${String((run.sec||0)%60).padStart(2,'0')}`:'';
       lines.push(`  Run: ${dDisp(run.km)} ${DU()}${t}`);
     }
+    if(cardioTxt) lines.push(...cardioTxt);
     for(const g of byEx){
       const n=g.subs.reduce((a,s2)=>a+s2[1].length,0);
       const runTxt=g.subs.map(([w2,reps])=>`${wDisp(w2)}${U()}\u00d7${reps.join('/')}`).join(' \u00b7 ');
@@ -277,14 +279,15 @@ function renderHistory(){
   }
   h+=`</div>`;
   if(hist.bf&&hist.bf.startsWith(key)){
-    const B=hist.bf, isR=hist.bfPart==='Run';
+    const B=hist.bf, isR=hist.bfPart==='Run', bfEx=isCardioEx(hist.bfEx)?hist.bfEx:'Run', bfC=cardioOf(bfEx);
     const parts=Object.keys(SEED0.catalog);
     h+=`<div class="card bfcard" style="margin-top:12px">
       <div class="lasthead"><span>LOG A PAST DAY</span><span class="ago">${B}</span></div>
-      <div class="chips" style="margin-bottom:8px">${parts.map(pt=>`<button class="chip ${hist.bfPart===pt?'on':''}" data-bfpart="${pt}">${pt}</button>`).join('')}</div>
+      <div class="chips" style="margin-bottom:8px">${parts.map(pt=>`<button class="chip ${hist.bfPart===pt?'on':''}" data-bfpart="${pt}">${partLabel(pt)}</button>`).join('')}</div>
       ${hist.bfPart?(isR
-        ?`<div class="row" style="gap:8px">
-            <div class="fld"><label>Distance ${DU()}</label><input id="bfKm" type="number" inputmode="decimal" step="0.01"></div>
+        ?`<div class="chips" style="margin-bottom:8px">${Object.keys(CARDIO_EX).map(x=>`<button class="chip ${bfEx===x?'on':''}" data-bfex="${x}">${x}</button>`).join('')}</div>
+          <div class="row" style="gap:8px">
+            ${bfC.dist?`<div class="fld"><label>Distance ${cUnit(bfEx)}</label><input id="bfKm" type="number" inputmode="decimal" step="${cStep(bfEx)}"></div>`:''}
             <div class="fld"><label>Min</label><input id="bfMin" type="number" inputmode="numeric"></div>
             <div class="fld"><label>Sec</label><input id="bfSec" type="number" inputmode="numeric"></div></div>`
         :`<div class="fld text" style="margin-bottom:8px"><label>Exercise</label>
@@ -313,7 +316,7 @@ function renderHistory(){
       if(!list.length) return;
       /* v3.3.62: a part whose only entry is an empty legacy marker isn't a
          part you trained — don't name it in the summary. */
-      const parts=[...new Set(list.filter(s=>s.ex==='Run'||(s.reps||[]).length)
+      const parts=[...new Set(list.filter(s=>isCardio(s)||(s.reps||[]).length)
                                   .map(s=>s.part).filter(Boolean))].join(' · ');
       /* v3.3.361: the per-session TOTALS are gone from the header. A day's
          tonnage and distance were computed here and printed opposite the
@@ -360,7 +363,7 @@ function renderHistory(){
            itself a set. A group with nothing real to show is skipped
            entirely, which v3.3.61 stopped doing when it replaced the old
            `if(!folded.length) return`. */
-        const n=g.sets.reduce((a,s)=>a+(g.ex==='Run'?1:(s[1]||[]).length),0);
+        const n=g.sets.reduce((a,s)=>a+((g.ex==='Run'||(isCardioEx(g.ex)&&!(s[1]||[]).length))?1:(s[1]||[]).length),0);
         if(!n) return;
         shownSets+=n;
         h+=`<div class="exgrp"><div class="lasthead"><span>${g.ex}</span>`
@@ -372,10 +375,10 @@ function renderHistory(){
           h+=`<div class="hsets">`;
           g.idx.forEach(wi=>{
             const s=dayW[wi];
-            if(s.ex==='Run'){
-              h+=`<button class="hset" data-hs="${wi}"><span class="mono">${dDisp(s.w)} ${DU()}</span>`
-                +`<span class="mono muted">${s.mins||0}'${String(s.secs||0).padStart(2,'0')}"</span>`
-                +`<i class="hsx" data-hdel="${wi}:-1" aria-label="Delete run">${icon('trash',ICON_SZ.sm)}</i></button>`;
+            if(isCardio(s)){
+              h+=`<button class="hset" data-hs="${wi}"><span class="mono">${s.w>0?cDistTxt(s.ex,s.w):cClock(cSecs(s))}</span>`
+                +`<span class="mono muted">${s.w>0?cClock(cSecs(s)):''}</span>`
+                +`<i class="hsx" data-hdel="${wi}:-1" aria-label="Delete ${cardioOf(s.ex).noun}">${icon('trash',ICON_SZ.sm)}</i></button>`;
             }else (s.reps||[]).forEach((r,ri)=>{
               h+=`<button class="hset" data-hs="${wi}:${ri}"><span class="mono">${wLabel(g.ex,s.w)}</span>`
                 +`<span class="mono muted">× ${r}</span>`
@@ -422,13 +425,20 @@ document.addEventListener('click',e=>{
   const bfc=e.target.closest('[data-backfill]');
   if(bfc){ hist.bf=bfc.dataset.backfill; hist.bfPart=null; return render(); }
   if(e.target.closest('[data-bfpart]')){ hist.bfPart=e.target.closest('[data-bfpart]').dataset.bfpart; return render(); }
+  if(e.target.closest('[data-bfex]')){ hist.bfEx=e.target.closest('[data-bfex]').dataset.bfex; return render(); }   // v4.6.108
   if(e.target.closest('#bfClose')){ hist.bf=null; hist.bfPart=null; return render(); }
   if(e.target.closest('#bfAdd')&&hist.bf&&hist.bfPart){
     const B=hist.bf, d=(DB.days[B]=DB.days[B]||{w:[]}); d.w=d.w||[];
     if(hist.bfPart==='Run'){
-      const km=+(document.getElementById('bfKm').value||0);
-      if(!(km>0)) return toast('Enter a distance');
-      d.w.push({part:'Run',ex:'Run',w:km,reps:[],mins:+(document.getElementById('bfMin').value||0),secs:+(document.getElementById('bfSec').value||0),at:Date.now()});
+      /* v4.6.108: the field is labelled in YOUR unit and was stored as km with
+         no conversion, so a 3.1 mi run went in as 3.1 km. cToKm converts it, and
+         the activity is now whichever one you picked, not always Run. */
+      const ex=isCardioEx(hist.bfEx)?hist.bfEx:'Run', C=cardioOf(ex);
+      const dist=C.dist?+((document.getElementById('bfKm')||{}).value||0):0;
+      const mins=Math.max(0,Math.round(+(document.getElementById('bfMin').value||0))), secs=Math.max(0,Math.round(+(document.getElementById('bfSec').value||0)));
+      if(ex==='Run'){ if(!(dist>0)) return toast('Enter a distance'); }
+      else if(!(dist>0)&&!(mins||secs)) return toast(C.dist?'Distance or time needed':'Time needed');
+      d.w.push({part:'Run',ex,w:dist>0?cToKm(ex,dist):0,reps:[],mins,secs,at:Date.now()});
     }else{
       const ex=(document.getElementById('bfEx').value||'').trim();
       const wv=toKg(+(document.getElementById('bfW').value||0));
@@ -461,7 +471,7 @@ document.addEventListener('click',e=>{
     const d=hist.edit, t=DB.days[d]; if(!t) return;
     const [wi,ri]=del.dataset.hdel.split(':').map(Number);
     const s=t.w[wi]; if(!s) return;
-    if(ri<0||s.ex==='Run'){ t.w.splice(wi,1); }
+    if(ri<0||isCardio(s)){ t.w.splice(wi,1); }
     else { s.reps.splice(ri,1); }
     hist.editSet=null;
     commitPastDay(d,'Set deleted'); return renderHistory();
@@ -488,15 +498,18 @@ document.addEventListener('click',e=>{
   if(e.target.closest('#hsSave')){
     const es=hist.editSet; if(!es) return;
     const d=es.d, t=DB.days[d]; if(!t) return;
-    const isRun=es.ex==='Run';
+    const cur=es.wi!=null?t.w[es.wi]:null;
+    const isRun=cur?isCardio(cur):isCardioEx(es.ex);   // v4.6.108
     const wIn=+((document.getElementById('hsW')||{}).value||0);
     if(!wIn&&!isRun&&!isBody(es.ex)) return toast('Weight needed');
     if(isRun){
-      if(!wIn) return toast('Distance needed');
-      const mins=+((document.getElementById('hsM')||{}).value||0);
-      const secs=+((document.getElementById('hsS')||{}).value||0);
-      if(es.wi==null) t.w.push({part:partForEx(es.ex,d)||'Run',ex:es.ex,w:fromD(wIn),mins,secs,reps:[]});
-      else { const s=t.w[es.wi]; s.w=fromD(wIn); s.mins=mins; s.secs=secs; }
+      const mins=Math.max(0,Math.round(+((document.getElementById('hsM')||{}).value||0)));
+      const secs=Math.max(0,Math.round(+((document.getElementById('hsS')||{}).value||0)));
+      if(es.ex==='Run'){ if(!wIn) return toast('Distance needed'); }
+      else if(!(wIn>0)&&!(mins||secs)) return toast(cardioOf(es.ex).dist?'Distance or time needed':'Time needed');
+      const km=wIn>0?cToKm(es.ex,wIn):0;
+      if(es.wi==null) t.w.push({part:partForEx(es.ex,d)||'Run',ex:es.ex,w:km,mins,secs,reps:[]});
+      else { const s=cur; s.w=km; s.mins=mins; s.secs=secs; }
     }else{
       const r=Math.round(+((document.getElementById('hsR')||{}).value||0));
       if(!(r>0)) return toast('Enter reps');

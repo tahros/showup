@@ -64,40 +64,43 @@ function progressionData(ex){
   for(const {d,rows} of progressionRows()){
     let ordinal=0;
     rows.filter(s=>s.ex===ex).forEach(s=>{
-      const load=pgNumber(s.w), vals=ex==='Run'?[1]:Array.isArray(s.reps)&&s.reps.length?s.reps:[null];
+      const cardio=isCardio(s);   // v4.6.108: every cardio row, by shape -- a legacy weight-shaped row stays a set
+      const load=pgNumber(s.w), vals=cardio?[1]:Array.isArray(s.reps)&&s.reps.length?s.reps:[null];
       vals.forEach(raw=>{
         ordinal++;
         const count=pgNumber(raw), seconds=(pgNumber(s.mins)||0)*60+(pgNumber(s.secs)||0);
-        const kind=ex==='Run'?'run':s.su==='s'?'time':load===null?'unknown':load<0?'assisted':body?(load===0?'body':'added'):load>0?'load':'unknown';
-        const r={d,ordinal,load,count,seconds:seconds>0?seconds:null,kind,id:`${d}:${ordinal}`};
-        if(kind==='run'?load!==null&&load>0:count!==null&&count>0){ records.push(r); }
-        else omitted.push({...r,reason:kind==='run'?'distance not recorded':raw===null?'reps not recorded':String(raw)});
+        const kind=cardio?(cardioOf(ex).dist?'run':'dur'):s.su==='s'?'time':load===null?'unknown':load<0?'assisted':body?(load===0?'body':'added'):load>0?'load':'unknown';
+        const r={d,ordinal,load,count,seconds:seconds>0?seconds:null,kind,ex,id:`${d}:${ordinal}`};
+        if(kind==='run'?load!==null&&load>0:kind==='dur'?seconds>0:count!==null&&count>0){ records.push(r); }
+        else omitted.push({...r,reason:kind==='run'?'distance not recorded':kind==='dur'?'time not recorded':raw===null?'reps not recorded':String(raw)});
       });
     });
   }
   return {records,omitted};
 }
 function progressionValue(r){
-  return r.kind==='run'?toD(r.load):['time','body','unknown'].includes(r.kind)?r.count:toU(Math.abs(r.load));
+  return r.kind==='run'?(r.ex&&cShort(r.ex)?cFromKm(r.ex,r.load):toD(r.load)):r.kind==='dur'?r.seconds/60:['time','body','unknown'].includes(r.kind)?r.count:toU(Math.abs(r.load));
 }
 function progressionRead(r){
   const d=new Date(r.d+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
   let value;
-  if(r.kind==='run') value=`${toD(r.load).toFixed(2)} ${DU()} · ${r.seconds?pgDuration(r.seconds):'time not recorded'}`;
+  if(r.kind==='run') value=`${r.ex&&cShort(r.ex)?cDistTxt(r.ex,r.load):toD(r.load).toFixed(2)+' '+DU()} · ${r.seconds?pgDuration(r.seconds):'time not recorded'}`;
+  else if(r.kind==='dur') value=pgDuration(r.seconds);
   else if(r.kind==='time') value=`${r.load===0?'BW':r.load===null?'load not recorded':pgWeight(toU(r.load))+' '+U()} · ${pgDuration(r.count)}`;
   else value=`${r.kind==='body'?'BW':r.kind==='unknown'?'load not recorded':r.kind==='assisted'?pgWeight(toU(-r.load))+' '+U()+' assistance':(r.kind==='added'?'BW + ':'')+pgWeight(toU(r.load))+' '+U()} × ${r.count}`;
-  return `${d} · ${r.kind==='run'?'Run':'Set'} ${r.ordinal} · ${value}`;
+  const noun=r.kind==='run'||r.kind==='dur'?(r.ex&&r.ex!=='Run'?cardioOf(r.ex).noun.replace(/^./,c=>c.toUpperCase()):'Run'):'Set';
+  return `${d} · ${noun} ${r.ordinal} · ${value}`;
 }
-const pgKinds={load:'Weight',body:'Reps',added:'Added weight',assisted:'Assistance',time:'Time',run:'Distance',unknown:'Reps · load not recorded'};
-function progressionAxis(kind){return pgKinds[kind]+(['load','added','assisted'].includes(kind)?' · '+U():kind==='run'?' · '+DU():kind==='time'?' · seconds':'');}
+const pgKinds={load:'Weight',body:'Reps',added:'Added weight',assisted:'Assistance',time:'Time',run:'Distance',dur:'Time',unknown:'Reps · load not recorded'};
+function progressionAxis(kind,ex){return pgKinds[kind]+(['load','added','assisted'].includes(kind)?' · '+U():kind==='run'?' · '+(ex?cUnit(ex):DU()):kind==='dur'?' · minutes':kind==='time'?' · seconds':'');}
 function progressionBest(records){
   const best=new Map();
   for(const r of records){
-    if(['run','unknown'].includes(r.kind)) continue;
+    if(['run','dur','unknown'].includes(r.kind)) continue;
     const key=r.kind+':'+(r.load===null?'?':r.load.toFixed(3));
     best.set(key,Math.max(best.get(key)||0,r.count));
   }
-  return r=>!['run','unknown'].includes(r.kind)&&r.count===best.get(r.kind+':'+(r.load===null?'?':r.load.toFixed(3)));
+  return r=>!['run','dur','unknown'].includes(r.kind)&&r.count===best.get(r.kind+':'+(r.load===null?'?':r.load.toFixed(3)));
 }
 function progressionSection(ex,role='train',picker=false){
   const state=progressionUI[role]||(progressionUI[role]={mode:'numbers'});
@@ -125,7 +128,8 @@ function progressionFrame(records,kind,width=330,columns=4){
   // A single frame for the entire exercise/measurement history, not just the
   // visible page. Paging and 4/12 switching cannot move the grid or slider.
   const values=records.map(progressionValue),low=values.length?Math.min(...values):0,high=values.length?Math.max(...values):1;
-  const minStep=kind==='run'?.25:kind==='time'?15:['body','unknown'].includes(kind)?1:isLb()?5:2.5;
+  const cx=records[0]?.ex;   // v4.6.108: a metre or yard axis steps in hundreds, minutes in fives
+  const minStep=kind==='run'?(cx&&cShort(cx)?100:.25):kind==='dur'?5:kind==='time'?15:['body','unknown'].includes(kind)?1:isLb()?5:2.5;
   const step=Math.max(minStep,Math.ceil((high-low||minStep*3)/12/minStep)*minStep);
   const lo=Math.max(0,Math.floor(low/step)*step-step),hi=Math.ceil(high/step)*step+step;
   const col=(width-44)/Math.max(1,columns),days=new Map();
@@ -137,7 +141,7 @@ function progressionFrame(records,kind,width=330,columns=4){
   let plotHeight=176;
   for(const groups of days.values()){
     const levels=[...groups].map(([v,rs])=>{
-      const cell=Math.max(14,...rs.map(r=>(kind==='run'?(r.seconds?pgDuration(r.seconds):'—'):pgDecimal(r.count)).length*6.7+2));
+      const cell=Math.max(14,...rs.map(r=>(kind==='run'?(r.seconds?pgDuration(r.seconds):'—'):kind==='dur'?pgDuration(r.seconds):pgDecimal(r.count)).length*6.7+2));
       const capacity=Math.max(1,Math.floor((col-4)/cell));
       return {v,h:Math.ceil(rs.length/capacity)*15};
     }).sort((a,b)=>a.v-b.v);
@@ -172,7 +176,7 @@ function progressionDateTicks(dates,left,col,dots){
 }
 function progressionLayout(records,kind,{dates=[],width=330,dots=false,best=()=>false,pick=null,columns=dates.length,frame=null}={}){
   const left=34,right=10,top=20,usable=width-left-right,col=usable/Math.max(1,columns);
-  const labelFor=r=>kind==='run'?(r.seconds?pgDuration(r.seconds):'—'):pgDecimal(r.count);
+  const labelFor=r=>kind==='run'?(r.seconds?pgDuration(r.seconds):'—'):kind==='dur'?pgDuration(r.seconds):pgDecimal(r.count);
   const groups=new Map();
   records.forEach(r=>{const key=r.d+':'+progressionValue(r).toFixed(5);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(r);});
   const labels=new Map();
@@ -208,7 +212,7 @@ function progressionLayout(records,kind,{dates=[],width=330,dots=false,best=()=>
 }
 function progressionPlot(records,kind,options={}){
   const m=progressionLayout(records,kind,options),selected=m.points.find(p=>p.r.id===options.pick);
-  let h='<svg class="pg-plot '+(m.dots?'pg-dots':'pg-detail')+'" viewBox="0 0 '+m.width+' '+m.height+'" style="width:100%" role="group" aria-label="'+pgEscape(progressionAxis(kind)+'; every logged set across '+m.dates.length+' sessions')+'">';
+  let h='<svg class="pg-plot '+(m.dots?'pg-dots':'pg-detail')+'" viewBox="0 0 '+m.width+' '+m.height+'" style="width:100%" role="group" aria-label="'+pgEscape(progressionAxis(kind,records[0]?.ex)+'; every logged set across '+m.dates.length+' sessions')+'">';
   h+='<rect class="pg-selection-band" x="'+(selected?m.left+m.dates.indexOf(selected.r.d)*m.col:m.left)+'" y="'+(m.top-8)+'" width="'+m.col+'" height="'+(m.bottom-m.top+8)+'" rx="4"'+(selected?'':' visibility="hidden"')+'/>';
   for(const t of m.ticks){h+='<line class="pg-grid" x1="'+m.left+'" x2="'+(m.width-m.right)+'" y1="'+t.y+'" y2="'+t.y+'"/>';if(t.showLabel)h+='<text class="pg-axis" x="'+(m.left-7)+'" y="'+(t.y+3.5)+'" text-anchor="end">'+t.label+'</text>';}
   for(const p of m.points)if(p.leader)h+='<path class="pg-leader" d="M'+(p.x-2)+' '+p.trueY+'h4M'+p.x+' '+p.trueY+'V'+p.y+'"/>';
@@ -276,7 +280,7 @@ function renderProgression(card){
   h+='<div class="pg-range-head"><div class="pg-range-nav" role="group" aria-label="Browse session ranges"><button data-pg-action="prev-range" aria-label="Previous '+count+' sessions"'+(!start?' disabled':'')+'>‹</button><span class="pg-period" aria-live="polite" aria-atomic="true"><span class="pg-period-main">'+period.label+'</span><span class="pg-period-year">'+period.years+'</span></span><button data-pg-action="next-range" aria-label="Next '+count+' sessions"'+(rangeWindow.latest||end===allDates.length?' disabled':'')+'>›</button></div></div>';
   // Weight and bodyweight readouts already establish the measurement. Omit
   // their redundant unit row entirely, including its reserved spacing.
-  if(!['load','body'].includes(state.kind))h+='<div class="pg-axis-unit">'+pgEscape(progressionAxis(state.kind))+'</div>';
+  if(!['load','body'].includes(state.kind))h+='<div class="pg-axis-unit">'+pgEscape(progressionAxis(state.kind,state.ex))+'</div>';
   const availability=dates.length+' session'+(dates.length===1?'':'s')+(allDates.length<count?' on record':' in this range');
   const availableHidden=dates.length===count||!scope.length, latestHidden=!!rangeWindow.latest;
   h+='<div class="pg-history-row'+(availableHidden&&latestHidden?' pg-history-empty':'')+'"><div class="pg-available"'+(availableHidden?' aria-hidden="true"':'')+'>'+availability+'</div><button class="pg-latest" data-pg-action="latest" aria-label="Return to the latest '+count+' sessions"'+(latestHidden?' hidden':'')+'>Latest <span aria-hidden="true">↗</span></button></div>';
@@ -358,7 +362,7 @@ function progressionRefreshPeers(card){
 function progressionShare(card){
   const {state,scope,layout,count}=card._pg;if(!scope.length)return;
   const style=getComputedStyle(card),color=name=>style.getPropertyValue(name).trim();
-  const snapshot={ex:state.ex,count,layout,read:progressionReadoutParts(scope.find(r=>r.id===state.pick)||scope.at(-1)),axis:['load','body'].includes(state.kind)?'':progressionAxis(state.kind),picked:state.pick,
+  const snapshot={ex:state.ex,count,layout,read:progressionReadoutParts(scope.find(r=>r.id===state.pick)||scope.at(-1)),axis:['load','body'].includes(state.kind)?'':progressionAxis(state.kind,state.ex),picked:state.pick,
     /* v4.5.19: the unit belongs over the axis, not buried in the readout. For a
        load chart the numbers down the left ARE weights, so say so once. */
     unit:state.kind==='load'?'('+U()+')':'',

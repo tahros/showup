@@ -21,7 +21,9 @@ function renderHeader(){
     $('#hSub').classList.remove('donetoday');   // stale ✓ from the last non-live render
     $('#hDate').textContent=lift.ex;
     const n=day(todayISO).w.filter(s=>s.ex===lift.ex).length;
-    $('#hSub').textContent=`${lift.part} · ${n?n+' set'+(n>1?'s':'')+' logged':'no sets yet'}`;
+    /* v4.6.108: the Cardio part says Cardio, and counts rides, rows, swims -- not sets */
+    const noun=isCardioEx(lift.ex)?cardioOf(lift.ex).noun:'set';
+    $('#hSub').textContent=`${partLabel(lift.part)} · ${n?n+' '+noun+(n>1?'s':'')+' logged':'no '+noun+'s yet'}`;
     $('#hStreak').textContent='';
     return;
   }

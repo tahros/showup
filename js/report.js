@@ -467,10 +467,13 @@ function drawDayCard(x,S,d){
      Session card already solved this shape, so the receipt follows its
      logic. Sub-rows keep logged order; dashed hairlines separate weights
      WITHIN an exercise, solid rules separate exercises. */
-  let vol=0,km=0,sets=0,tmin=null,tsec=0; const by=[],seenEx={},parts=[];
+  let vol=0,km=0,sets=0,tmin=null,tsec=0; const by=[],seenEx={},parts=[],cardio=[],cardioSeen={};
   for(const r2 of rows){
     if(!parts.includes(r2[0])) parts.push(r2[0]);
     if(r2[1]==='Run'){ km+=r2[2]; if(r2[4]!=null){tmin=(tmin||0)+r2[4];tsec+=r2[5]||0;} sets++; continue; }
+    /* v4.6.108: rides, rows, swims... their own block, one line per session, in
+       their own unit. Not added to km: the card's km is running distance. */
+    if(isCardioR(r2)){ sets++; if(!(r2[1] in cardioSeen)){cardioSeen[r2[1]]=cardio.length;cardio.push({ex:r2[1],rows:[]});} cardio[cardioSeen[r2[1]]].rows.push(r2); continue; }
     vol+=r2[2]*(r2[3]||[]).reduce((a,b)=>a+b,0); sets+=(r2[3]||[]).length;
     if(!(r2[1] in seenEx)){ seenEx[r2[1]]=by.length; by.push({ex:r2[1],subs:[],subSeen:{}}); }
     const g=by[seenEx[r2[1]]];
@@ -528,7 +531,7 @@ function drawDayCard(x,S,d){
   const NAMEY=TOP+ICON/2+9, DATEY=NAMEY+68, PARTY=DATEY+48;
   const HEAD=PARTY+RULE_AIR+6;    /* +6: the parts line's descender */
   const FOOT=CARD_AIR+DESC+44;    /* frame air + descender + footer baseline lift */
-  const H=Math.max(640,HEAD+(km?GH(1):0)+groups.reduce((a,g)=>a+GH(g.subs.length),0)+FOOT);
+  const H=Math.max(640,HEAD+(km?GH(1):0)+cardio.reduce((a,c)=>a+GH(c.rows.length),0)+groups.reduce((a,g)=>a+GH(g.subs.length),0)+FOOT);
   const cv2=x.canvas; if(cv2&&cv2.height!==H) cv2.height=H;
 
   x.fillStyle=V('--ground'); x.fillRect(0,0,S,H);
@@ -588,6 +591,17 @@ function drawDayCard(x,S,d){
       x.fillStyle=V('--muted'); x.font='500 26px '+MONO; x.fillText(DU(),L+dw+12,cy+16);
       if(t) chips([t],cy);
     }]);
+  }
+  for(const c of cardio){
+    const n=c.rows.length, noun=cardioOf(c.ex).noun;
+    block(c.ex,n+' '+noun+(n>1?'s':''),c.rows.map(r2=>cy=>{
+      const sec=(+r2[4]||0)*60+(+r2[5]||0), hasD=r2[2]>0;
+      const main=hasD?cDistTxt(c.ex,r2[2]).replace(/ \S+$/,''):cClock(sec), unit=hasD?cUnit(c.ex):'';
+      x.fillStyle=V('--chalk'); x.font='700 46px '+SANS; x.fillText(main,L,cy+16);
+      const mw=x.measureText(main).width;
+      if(unit){ x.fillStyle=V('--muted'); x.font='500 26px '+MONO; x.fillText(unit,L+mw+12,cy+16); }
+      if(hasD&&sec) chips([cClock(sec).replace(/"$/,'')],cy);
+    }));
   }
   for(const g of groups){
     const n=g.subs.reduce((a,s2)=>a+s2.reps.length,0);

@@ -1,5 +1,20 @@
 # ShowUp — changelog
 
+## v4.6.108 (2026-09-23) — Every cardio activity logs distance and time
+
+- **The cardio model had no callers.** `CARDIO_EX` was declared in v4.6.45 and nothing read it; every site still asked `ex==='Run'`. So Walk, Cycling, Rowing, Swimming, Elliptical, Stair Climber and Jump Rope opened on a 45 lb weight stepper, "Machine (stack)", a rep ruler and "Add set · 5 reps". Each now has Run's screen: a distance field where distance exists, minutes and seconds, "Add ride / row / swim / walk…", today's total with the figure the sport quotes, its own recent-sessions list, and its last session on the Cardio list.
+- Units follow the sport *and* the km/mi setting: road distances in km or mi; rowing in metres everywhere (every erg reads metres); swimming in m or yd. Storage stays km in `w`, like the 946 runs already on file. Rates: pace for run and walk, speed for cycling, the /500 m split for rowing, /100 for swimming.
+- Elliptical, stair climber and jump rope log **time only**: they have no distance you could attest to. One line in `CARDIO_EX` flips any of them.
+- A cardio row is decided by **shape**, not name: `isCardio` is true for a cardio exercise with no reps. Anything already logged through the old weight screen — a "Cycling 45 lb × 5" row — still has reps, so it keeps reading exactly as the set it was logged as. Nothing on file is reinterpreted or migrated.
+- **Running totals stay running.** Lifetime km, monthly km, the km milestones, the distance race, the Cardio part's "usual session" and the day-done km count runs only; 20 km on a bike is not 20 km of running.
+- **Three data-loss paths closed**:
+  - Editing *any* entry on a past day deleted every rep-less row that was not literally "Run" (`commitPastDay`).
+  - The CSV export wrote a non-run cardio row as a zero-rep set and dropped its minutes and seconds.
+  - "Log a past day" stored a run's distance **unconverted**: the field is labelled in your unit, so an imperial 3.1 mi run was saved as 3.1 km. It now converts, and the Cardio chip picks the activity.
+- History edits, deletes and the text export; the Today summary and its nudge ("Cardio not logged yet", answered by any cardio); the share card (its own block per activity, counted in the card's height); the progression chart (distance in the activity's unit, and a new duration kind for time-only activities, which previously charted nothing); plates; plan linking; the planner; the writer — all read cardio by shape.
+- The header and Train page say **Cardio** and count rides, rows and swims, not sets.
+- `tools/test-cardio.js` (43 assertions) and `tools/check-cardio.cjs` (all eight activities logged through the UI in both themes; History edit and delete; the share card, verified by recording every string it paints). Every key claim mutation-tested, including each data-loss path. `test-coldstart.js` now finds part tiles by their `data-part` key rather than their label, which this release changes.
+
 ## v4.6.107 (2026-09-23) — The set arrives where you can see it
 
 - Tapping a value in Your sets — Last, Plan or Logged — used to load it into the entry panel instantly and off-screen. Now the page glides up to the panel first (280–560 ms, eased, scaled to distance) and the values change **on arrival**: the weight swaps with a small accent pop, the rep ruler slides to its new notch, and the Add button's label follows.

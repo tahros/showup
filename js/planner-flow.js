@@ -135,10 +135,10 @@ function pfHistoryLines(rows){
  for(const r of rows){
   const key=JSON.stringify([r.ex,r.w,r.su||'',r.qual||'',r.bw||false,r.tag||'']);
   const last=groups.at(-1);
-  if(r.ex!=='Run'&&last?.key===key)last.reps.push(...(r.reps||[]));
+  if(!isCardio(r)&&last?.key===key)last.reps.push(...(r.reps||[]));
   else groups.push({key,row:r,reps:[...(r.reps||[])]});
  }
- return groups.map(({row:r,reps})=>hesc(r.ex==='Run'?dDisp(r.w)+' '+DU():Math.round(toU(r.w))+' '+U()+' × '+reps.join(' ')+(isHold(r.su)?' sec':'')+(r.qual?' ('+r.qual+')':''))).join('<br>');
+ return groups.map(({row:r,reps})=>hesc(isCardio(r)?cardioLine(r):Math.round(toU(r.w))+' '+U()+' × '+reps.join(' ')+(isHold(r.su)?' sec':'')+(r.qual?' ('+r.qual+')':''))).join('<br>');
 }
 function pfLineText(ex,line){return pwText([{kind:'ex',ex,lines:[line]}]).split('\n').slice(1).map(x=>x.trim()).join('\n');}
 /* v4.6.73: THE ROUTINE PAGE SHOWS LAST TIME, AND EDITS IN PLACE.
@@ -197,7 +197,7 @@ function pfRefs(groups,last){
  });
 }
 function pfExerciseHTML(r,i){
- const j=pfState(),b=pwDay(pw().active),open=!!j.routineOpen?.[pw().active]?.[i],groups=pfGroups(r),last=r.ex==='Run'?null:pfLastGroups(r.ex),strip=b.strip&&b.strip.row===i&&b.strip.line!=null?b.strip:null;
+ const j=pfState(),b=pwDay(pw().active),open=!!j.routineOpen?.[pw().active]?.[i],groups=pfGroups(r),last=isCardio(r)?null:pfLastGroups(r.ex),strip=b.strip&&b.strip.row===i&&b.strip.line!=null?b.strip:null;
  /* v4.6.76: BLUE MEANS YOU CHANGED IT, AND A LOAD IS COMPARED TO ITSELF.
     Lines were matched by their position in the list, counted from the end --
     so adding a warm-up above shifted every line onto the wrong reference and

@@ -96,10 +96,13 @@ document.addEventListener('click',e=>{
     const es=t.w[lift.editSet];
     if(es){
       snapshot(`edited ${es.ex} set`);
-      if(es.ex==='Run'){
-        const dist=+($('#edW').value||0);
-        if(!dist) return toast('Distance needed');
-        es.w=fromD(dist); es.mins=+($('#edM').value||0); es.secs=+($('#edS').value||0);
+      if(isCardio(es)){
+        const C=cardioOf(es.ex);
+        const dist=C.dist?+($('#edW')?.value||0):0;
+        const mins=Math.max(0,Math.round(+($('#edM').value||0))), secs=Math.max(0,Math.round(+($('#edS').value||0)));
+        if(es.ex==='Run'){ if(!dist) return toast('Distance needed'); }
+        else if(!(dist>0)&&!(mins||secs)) return toast(C.dist?'Distance or time needed':'Time needed');
+        es.w=dist>0?cToKm(es.ex,dist):0; es.mins=mins; es.secs=secs;
       }else{
         const wv=toKg(+($('#edW').value||0));
         const reps=$('#edR').value.split(',').map(x=>Math.round(+x)).filter(x=>x>0);
@@ -959,14 +962,24 @@ document.addEventListener('click',e=>{
     save(true);toast(`Bar set to ${wDisp(kg)}${U()} for ${ex2}`);return renderLift();
   }
   if(e.target.closest('#addrun')){
-    const dist=+($('#rk').value||0);
-    if(!dist)return toast('Distance needed');
-    const km=fromD(dist);
+    /* v4.6.108: every cardio activity logs here. Running is unchanged -- a run
+       still needs its distance. The others need distance OR time (a walk you
+       only timed is still a walk); time-only activities need time. Distance is
+       entered in the activity's own unit and stored as km, like every run.
+       part stays 'Run', the cardio part's internal key, so the 50-odd sites
+       that already route the Cardio part keep working untouched. */
+    const ex=isCardioEx(lift.ex)?lift.ex:'Run', C=cardioOf(ex);
+    const dist=C.dist?+($('#rk')?.value||0):0;
+    const mins=Math.max(0,Math.round(+($('#rm')?.value||0))), secs=Math.max(0,Math.round(+($('#rs')?.value||0)));
+    if(!(dist>=0)) return toast('Enter a number');
+    if(ex==='Run'){ if(!dist) return toast('Distance needed'); }
+    else if(!(dist>0)&&!(mins||secs)) return toast(C.dist?'Distance or time needed':'Time needed');
+    const km=dist>0?cToKm(ex,dist):0;
     /* v3.3.143: no snapshot. Logging a run is additive and the run can just
        be deleted; this was the only additive action pushing an Undo button. */
-    plLog({part:'Run',ex:'Run',w:km,reps:[],mins:+($('#rm').value||0),secs:+($('#rs').value||0),at:Date.now()});
+    plLog({part:'Run',ex,w:km,reps:[],mins,secs,at:Date.now()});
     undoInvalidate();
-    reopen('Run','Run');
+    reopen(ex,'Run');                                   // (ex, part) -- the old call was symmetric
     save();renderHeader();return renderLift();
   }
   const del=e.target.closest('[data-del]');
@@ -1874,7 +1887,7 @@ function celebrateDayDone(nowrite, forceCount, forceMile, forceShow, sourceCard)
      on its own: the square can recede while the mark stays pure white. */
   const closed=!!(DB.days[todayISO]||{}).doneAll;
   const rows=(DB.days[todayISO]||{}).w||[];
-  const km=rows.filter(s=>s.part==='Run').reduce((sum,s)=>sum+(Number(s.w)||0),0);
+  const km=rows.filter(s=>s.ex==='Run').reduce((sum,s)=>sum+(Number(s.w)||0),0);   // v4.6.108: running km; a ride is not a run, and part==='Run' also summed legacy kg
   const count=mile||n;
   const date=new Date(todayISO+'T00:00');
   const dateLabel=date.toLocaleDateString('en-US',{weekday:'long'})+' · '+date.toLocaleDateString('en-US',{month:'long',day:'numeric'});

@@ -162,11 +162,14 @@ run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
   DB.days[D(21)]={w:[{part:'Biceps',ex:'Dumbbell Curl',w:10,reps:[10],at:1}],upd:1};
   DB.settings.myParts=['Chest','Triceps','Shoulder','Back','Legs','Biceps'];
   SEED=deriveAll(); view='lift'; lift.ex=null; lift.part=null; render();})()`);
+/* v4.6.108: tiles are found by their data-part KEY, not their label. The Cardio
+   tile's key is still 'Run' but it now SAYS Cardio, and a test that finds a tile
+   by the words on it breaks on every copy change without anything being wrong. */
 const chip=p=>`(function(){const b=[...document.querySelectorAll('.partcard')]
-  .find(x=>x.querySelector('b').textContent==='${p}');
+  .find(x=>x.dataset.part==='${p}');
   return b ? b.querySelector('.ps').textContent : '(absent)';})()`;
 const grey=p=>`(function(){const b=[...document.querySelectorAll('.partcard')]
-  .find(x=>x.querySelector('b').textContent==='${p}');
+  .find(x=>x.dataset.part==='${p}');
   return b ? b.classList.contains('dead') : '(absent)';})()`;
 
 /* v3.3.329 RESTATES the SPELLING, not the rule. These three assertions

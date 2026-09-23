@@ -25,7 +25,7 @@ function plContent(doc){
 function plTargets(content,id){
   const targets=[];
   for(const [ei,item] of (content?.items||[]).entries()){
-    if(item.ex==='Run')continue; // distance/time is not a strength-set prescription
+    if(isCardioEx(item.ex))continue; // distance/time is not a strength-set prescription (v4.6.108: any cardio)
     for(const [li,line] of (item.lines||[]).entries())for(const [ri,reps] of (line.reps||[]).entries()){
       targets.push({id:id+':'+ei+':'+li+':'+ri,ex:item.ex,exerciseId:plExerciseId(item.ex),
         w:+line.w||0,reps:+reps,su:line.su||'',bw:!!line.bw,nw:!!line.nw,est:!!line.est,
@@ -112,10 +112,10 @@ function plLog(set){
   // Pin even a null plan: a plan saved later must not rewrite this workout.
   if(!Object.prototype.hasOwnProperty.call(day,'planBasis'))
     day.planBasis={startedAt:set.at||Date.now(),revision:plCopy(plCurrent(todayISO))};
-  const choice=set.ex==='Run'?null:plChoice(set.ex,set.su),target=choice?.target;
+  const choice=isCardio(set)?null:plChoice(set.ex,set.su),target=choice?.target;
   set.setId=plId();
   if(target)set.planRef={revisionId:day.planBasis.revision.id,setId:target.id,target:plCopy(target),method:choice.method};
-  else set.planLinkStatus=set.ex==='Run'?'unlinked-run':'unplanned';
+  else set.planLinkStatus=isCardio(set)?'unlinked-run':'unplanned';
   /* v4.6.10: LOGGING TODAY MOVES THE REVIEW TO TODAY. The review card keeps the
      day you last looked at (reviewSelected), and that choice beat everything --
      including today gaining its very first set. So the card sat on Friday while

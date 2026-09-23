@@ -29,7 +29,7 @@ function liveExNow(){
   const t=dayMeta();
   for(let i=t.w.length-1;i>=0;i--){
     const s=t.w[i];
-    if(s.ex&&s.ex!=='Run'&&!t.doneEx.includes(s.ex)) return s.ex;
+    if(s.ex&&!isCardioEx(s.ex)&&!t.doneEx.includes(s.ex)) return s.ex;   // v4.6.108: no cardio activity is ever 'in progress'
   }
   return null;
 }
@@ -372,7 +372,7 @@ function renderToday(){
   const msN=msPending();
   const donePartsRaw=[...new Set(t.w.map(s=>s.part))];
   const doneLift=donePartsRaw.filter(p=>p!=='Run');
-  const ranRaw=t.w.some(s=>s.ex==='Run');
+  const ranRaw=t.w.some(isCardio);   // v4.6.108: any cardio counts -- a ride answers the Cardio nudge
   const cur=yearCurves()[thisYear];
   const pct=cur?Math.round(cur.curve[cur.end-1]*100):0;
 
@@ -618,8 +618,8 @@ function renderToday(){
             <span class="mono muted" style="font-size:12px">${vol?vDisp(vol)+' '+U():''}${km?dDisp(km)+' '+DU():''}</span>
           </div>`;
     for(const [ex,list] of Object.entries(byEx)){
-      const detail = ex==='Run'
-        ? list.map(s=>`${dDisp(s.w)}${DU()} · ${s.mins||0}'${String(s.secs||0).padStart(2,'0')}"`).join('  ')
+      const detail = list.every(isCardio)
+        ? list.map(cardioLine).join('  ')
         : list.map(s=>`${wLabel(ex,s.w)}×${s.reps[0]}`).join('  ');
       const open=exOpen(ex)&&!(_closed&&planningWorkspace());
       /* v3.3.299: no trailing arrow — the row is the button, and the arrow
@@ -637,7 +637,7 @@ function renderToday(){
   // still worth a nudge if the run isn't in yet
   if(!ranRaw && P.run && !(_closed&&planningWorkspace())){
     h+=`<div class="row spread card" style="margin-top:8px;padding:11px 14px">
-          <span class="mono muted" style="font-size:12px">Run not logged yet · ${P.run.since}d since</span>
+          <span class="mono muted" style="font-size:12px">Cardio not logged yet · ${P.run.since}d since</span>
           <button class="chip" data-go="Run">Go</button></div>`;
   }
 

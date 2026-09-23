@@ -1,7 +1,7 @@
 /* ShowUp — core.js
    Extracted verbatim from index.html (v3.2.5 refactor). Classic script:
    shares one global scope with its siblings, loaded in order by index.html. */
-const APP_VERSION = 'v4.6.107';
+const APP_VERSION = 'v4.6.108';
 const SEED0 = {catalog:{"Chest":["Incline Smith Machine Bench Press","Flat Smith Machine Bench Press","Incline Dumbbell Bench Press","Chest Press","Chest Fly","Cable Fly Up","Cable Fly Down","Chest Squeeze","Dip","Barbell Bench Press","Incline Barbell Bench Press","Decline Barbell Bench Press","Dumbbell Bench Press","Decline Dumbbell Bench Press","Machine Chest Press","Cable Crossover","Incline Cable Fly","Low Cable Fly","Dumbbell Pullover","Landmine Press","Svend Press","Push Up","Weighted Push Up"],"Back":["Pull Up","Lat Pulldown","Bent-Over Row","Deadlift","Chin Up","Weighted Pull Up","Seated Cable Row","Single-Arm Dumbbell Row","T-Bar Row","Pendlay Row","Barbell Shrug","Rack Pull","Straight-Arm Pulldown","Close-Grip Lat Pulldown","Inverted Row","Chest-Supported Row","Machine Row"],"Shoulder":["Dumbbell Shoulder Press","Lateral Raise","Dumbbell Front Raise","Dumbbell Combination","Dumbbell Bent Over Side Raise","Rear Deltoids","Overhead Barbell Press","Arnold Press","Machine Shoulder Press","Cable Lateral Raise","Face Pull","Upright Row","Reverse Pec Deck","Landmine Lateral Raise","Cable Rear Delt Fly"],"Legs":["Squat","Dumbbell Lunge","Front Squat","Hack Squat","Leg Press","Romanian Deadlift","Bulgarian Split Squat","Walking Lunge","Leg Extension","Lying Leg Curl","Seated Leg Curl","Hip Thrust","Goblet Squat","Standing Calf Raise","Seated Calf Raise","Step Up"],"Biceps":["Barbell Curl","Dumbbell Curl","Hammer Curl","EZ Bar Curl","Preacher Curl","Cable Curl","Incline Dumbbell Curl","Concentration Curl","Spider Curl","Reverse Curl","Cable Hammer Curl"],"Triceps":["Overhead Triceps Extension","Close Grip Bench Press","Triceps Pushdown","Rope Pushdown","Skull Crusher","Bench Dip","Dumbbell Kickback","Overhead Cable Extension","Diamond Push Up"],"Sixpack":["Hanging Leg Raise","Leg Raise","Plank","Cable Crunch","Russian Twist","Ab Wheel Rollout","Bicycle Crunch","Sit Up","Decline Sit Up","Mountain Climber","Side Plank"],"Run":["Run","Walk","Cycling","Rowing","Elliptical","Stair Climber","Swimming","Jump Rope"]},ex2part:{"Incline Smith Machine Bench Press":"Chest","Flat Smith Machine Bench Press":"Chest","Incline Dumbbell Bench Press":"Chest","Chest Press":"Chest","Chest Fly":"Chest","Cable Fly Up":"Chest","Cable Fly Down":"Chest","Chest Squeeze":"Chest","Dip":"Chest","Barbell Bench Press":"Chest","Incline Barbell Bench Press":"Chest","Decline Barbell Bench Press":"Chest","Dumbbell Bench Press":"Chest","Decline Dumbbell Bench Press":"Chest","Machine Chest Press":"Chest","Cable Crossover":"Chest","Incline Cable Fly":"Chest","Low Cable Fly":"Chest","Dumbbell Pullover":"Chest","Landmine Press":"Chest","Svend Press":"Chest","Push Up":"Chest","Weighted Push Up":"Chest","Pull Up":"Back","Lat Pulldown":"Back","Bent-Over Row":"Back","Deadlift":"Back","Chin Up":"Back","Weighted Pull Up":"Back","Seated Cable Row":"Back","Single-Arm Dumbbell Row":"Back","T-Bar Row":"Back","Pendlay Row":"Back","Barbell Shrug":"Back","Rack Pull":"Back","Straight-Arm Pulldown":"Back","Close-Grip Lat Pulldown":"Back","Inverted Row":"Back","Chest-Supported Row":"Back","Machine Row":"Back","Dumbbell Shoulder Press":"Shoulder","Lateral Raise":"Shoulder","Dumbbell Front Raise":"Shoulder","Dumbbell Combination":"Shoulder","Dumbbell Bent Over Side Raise":"Shoulder","Rear Deltoids":"Shoulder","Overhead Barbell Press":"Shoulder","Arnold Press":"Shoulder","Machine Shoulder Press":"Shoulder","Cable Lateral Raise":"Shoulder","Face Pull":"Shoulder","Upright Row":"Shoulder","Reverse Pec Deck":"Shoulder","Landmine Lateral Raise":"Shoulder","Cable Rear Delt Fly":"Shoulder","Squat":"Legs","Dumbbell Lunge":"Legs","Front Squat":"Legs","Hack Squat":"Legs","Leg Press":"Legs","Romanian Deadlift":"Legs","Bulgarian Split Squat":"Legs","Walking Lunge":"Legs","Leg Extension":"Legs","Lying Leg Curl":"Legs","Seated Leg Curl":"Legs","Hip Thrust":"Legs","Goblet Squat":"Legs","Standing Calf Raise":"Legs","Seated Calf Raise":"Legs","Step Up":"Legs","Barbell Curl":"Biceps","Dumbbell Curl":"Biceps","Hammer Curl":"Biceps","EZ Bar Curl":"Biceps","Preacher Curl":"Biceps","Cable Curl":"Biceps","Incline Dumbbell Curl":"Biceps","Concentration Curl":"Biceps","Spider Curl":"Biceps","Reverse Curl":"Biceps","Cable Hammer Curl":"Biceps","Overhead Triceps Extension":"Triceps","Close Grip Bench Press":"Triceps","Triceps Pushdown":"Triceps","Rope Pushdown":"Triceps","Skull Crusher":"Triceps","Bench Dip":"Triceps","Dumbbell Kickback":"Triceps","Overhead Cable Extension":"Triceps","Diamond Push Up":"Triceps","Hanging Leg Raise":"Sixpack","Leg Raise":"Sixpack","Plank":"Sixpack","Cable Crunch":"Sixpack","Russian Twist":"Sixpack","Ab Wheel Rollout":"Sixpack","Bicycle Crunch":"Sixpack","Sit Up":"Sixpack","Decline Sit Up":"Sixpack","Mountain Climber":"Sixpack","Side Plank":"Sixpack","Run":"Run","Walk":"Run","Cycling":"Run","Rowing":"Run","Elliptical":"Run","Stair Climber":"Run","Swimming":"Run","Jump Rope":"Run"},equip:{"Incline Smith Machine Bench Press":"smith","Flat Smith Machine Bench Press":"smith","Incline Dumbbell Bench Press":"dumbbell","Chest Press":"machine","Chest Fly":"machine","Cable Fly Up":"cable","Cable Fly Down":"cable","Chest Squeeze":"body","Dip":"body","Barbell Bench Press":"barbell","Incline Barbell Bench Press":"barbell","Decline Barbell Bench Press":"barbell","Dumbbell Bench Press":"dumbbell","Decline Dumbbell Bench Press":"dumbbell","Machine Chest Press":"machine","Cable Crossover":"cable","Incline Cable Fly":"cable","Low Cable Fly":"cable","Dumbbell Pullover":"dumbbell","Landmine Press":"barbell","Svend Press":"dumbbell","Push Up":"body","Weighted Push Up":"body","Pull Up":"body","Lat Pulldown":"cable","Bent-Over Row":"barbell","Deadlift":"barbell","Chin Up":"body","Weighted Pull Up":"body","Seated Cable Row":"cable","Single-Arm Dumbbell Row":"dumbbell","T-Bar Row":"barbell","Pendlay Row":"barbell","Barbell Shrug":"barbell","Rack Pull":"barbell","Straight-Arm Pulldown":"cable","Close-Grip Lat Pulldown":"cable","Inverted Row":"body","Chest-Supported Row":"cable","Machine Row":"cable","Dumbbell Shoulder Press":"dumbbell","Lateral Raise":"dumbbell","Dumbbell Front Raise":"dumbbell","Dumbbell Combination":"dumbbell","Dumbbell Bent Over Side Raise":"dumbbell","Rear Deltoids":"machine","Overhead Barbell Press":"barbell","Arnold Press":"dumbbell","Machine Shoulder Press":"machine","Cable Lateral Raise":"cable","Face Pull":"cable","Upright Row":"barbell","Reverse Pec Deck":"machine","Landmine Lateral Raise":"cable","Cable Rear Delt Fly":"cable","Squat":"barbell","Dumbbell Lunge":"dumbbell","Front Squat":"barbell","Hack Squat":"plate","Leg Press":"plate","Romanian Deadlift":"barbell","Bulgarian Split Squat":"dumbbell","Walking Lunge":"dumbbell","Leg Extension":"machine","Lying Leg Curl":"machine","Seated Leg Curl":"machine","Hip Thrust":"barbell","Goblet Squat":"barbell","Standing Calf Raise":"machine","Seated Calf Raise":"machine","Step Up":"dumbbell","Barbell Curl":"barbell","Dumbbell Curl":"dumbbell","Hammer Curl":"dumbbell","EZ Bar Curl":"barbell","Preacher Curl":"barbell","Cable Curl":"cable","Incline Dumbbell Curl":"dumbbell","Concentration Curl":"dumbbell","Spider Curl":"dumbbell","Reverse Curl":"barbell","Cable Hammer Curl":"cable","Overhead Triceps Extension":"machine","Close Grip Bench Press":"barbell","Triceps Pushdown":"cable","Rope Pushdown":"cable","Skull Crusher":"barbell","Bench Dip":"body","Dumbbell Kickback":"dumbbell","Overhead Cable Extension":"cable","Diamond Push Up":"body","Hanging Leg Raise":"body","Leg Raise":"body","Plank":"body","Cable Crunch":"cable","Russian Twist":"body","Ab Wheel Rollout":"body","Bicycle Crunch":"body","Sit Up":"body","Decline Sit Up":"body","Mountain Climber":"body","Side Plank":"body","Run":"run"},sessions:{},dates:[],monthly:{},pr:{},hist:{},last:{},lastSess:{},repFreq:{},exFreq:{},exLast:{},partCount:{},partLast:{},partDays:{},totals:{sessions:0,first:null,last:'0000-00-00',km:0,vol:0}};
 /* v3.2.1: the 918-day seed literal is GONE (~75% of this file). History lives
    in doc.days (Supabase + localStorage). Full seed preserved forever in git
@@ -564,20 +564,63 @@ const partOv=()=>DB.settings.partOv||(DB.settings.partOv={});
    Distance is optional and duration is required, because that is what you can
    actually attest to. No calories, no machine levels: unverifiable numbers
    would be invented data wearing a record's clothes. */
+/* v4.6.108: the table above was declared in v4.6.45 and never wired -- it had
+   no callers, every site still asked ex==='Run', and Walk, Cycling, Rowing and
+   the rest opened on a weight stepper and a rep ruler ("Add set · 5 reps" for
+   a bike ride). It now drives the whole cardio path. Each activity says:
+     dist  -- whether a distance is logged at all. Elliptical, stair climber
+              and jump rope have no distance you could attest to (an elliptical
+              "mile" is the machine's guess), so they log time only.
+     unit  -- how distance READS. 'road' follows the km/mi setting; rowing is
+              metres everywhere because every erg reads metres; a pool reads
+              metres or yards with the same setting. STORAGE is always km in
+              w, exactly like the 946 runs already on file.
+     noun  -- "Log a ride", "Add ride", "RECENT RIDES".
+     rate  -- the number each sport actually quotes: pace for run and walk,
+              speed for a bike, the /500m split for a rower, /100 for a swim. */
 const CARDIO_EX={
-  'Run':        {dist:true,  unit:'km'},
-  'Walk':       {dist:true,  unit:'km'},
-  'Cycling':    {dist:true,  unit:'km'},
-  'Rowing':     {dist:true,  unit:'km'},
-  'Swimming':   {dist:true,  unit:'km'},
-  'Elliptical': {dist:false, unit:'km'},
-  'Stair Climber':{dist:false,unit:'km'},
-  'Jump Rope':  {dist:false, unit:'km'}
+  'Run':          {dist:true,  unit:'road', noun:'run',     rate:'pace'},
+  'Walk':         {dist:true,  unit:'road', noun:'walk',    rate:'pace'},
+  'Cycling':      {dist:true,  unit:'road', noun:'ride',    rate:'speed'},
+  'Rowing':       {dist:true,  unit:'m',    noun:'row',     rate:'split500'},
+  'Swimming':     {dist:true,  unit:'pool', noun:'swim',    rate:'per100'},
+  'Elliptical':   {dist:false,              noun:'session'},
+  'Stair Climber':{dist:false,              noun:'climb'},
+  'Jump Rope':    {dist:false,              noun:'session'}
 };
 const CARDIO_PART='Cardio';
 const isCardioEx=ex=>!!CARDIO_EX[ex];
-/* an ENTRY is cardio when its exercise is, or when it carries the legacy part */
-const isCardio=e=>!!e&&(isCardioEx(e.ex)||e.part==='Run'||e.part===CARDIO_PART);
+/* v4.6.108: a cardio ROW is decided by its SHAPE, not its name. Before this,
+   non-run cardio was logged through the weight screen, so a record can hold a
+   "Cycling" row that is 45 lb x 5 reps. Reading that as 20.4 km would invent a
+   ride nobody took. A row with reps is a set, whatever it is called, and keeps
+   rendering as one; a cardio exercise with no reps is distance and time. Run
+   rows never carried reps, so every run on file answers exactly as before. */
+const isCardio=e=>!!e&&(e.ex==='Run'||(isCardioEx(e.ex)&&!(e.reps||[]).length));
+const isCardioR=r=>!!r&&(r[1]==='Run'||(isCardioEx(r[1])&&!(r[3]||[]).length));
+const cardioOf=ex=>CARDIO_EX[ex]||CARDIO_EX.Run;
+/* the unit a distance READS in for this activity */
+const cUnit=ex=>{const u=cardioOf(ex).unit;return u==='m'?'m':u==='pool'?(isLb()?'yd':'m'):DU();};
+const cShort=ex=>['m','yd'].includes(cUnit(ex));          // whole numbers, no decimals
+const cStep=ex=>cShort(ex)?1:0.01;
+/* input value (in cUnit) -> stored km, and back */
+const cToKm=(ex,v)=>{const u=cUnit(ex);return u==='m'?v/1000:u==='yd'?v*0.9144/1000:fromD(v);};
+const cFromKm=(ex,km)=>{const u=cUnit(ex);return u==='m'?Math.round(km*1000):u==='yd'?Math.round(km*1000/0.9144):+dDisp(km);};
+const cDistTxt=(ex,km)=>!(km>0)?'':(cShort(ex)?fmt(cFromKm(ex,km)):dDisp(km))+' '+cUnit(ex);
+const cSecs=s=>((+s.mins||0)*60)+(+s.secs||0);
+const cClock=sec=>{sec=Math.round(sec);const h=Math.floor(sec/3600),m=Math.floor(sec%3600/60),x=sec%60;
+  return h?`${h}:${String(m).padStart(2,'0')}:${String(x).padStart(2,'0')}`:`${m}'${String(x).padStart(2,'0')}"`;};
+/* the figure each sport quotes, or '' when distance or time is missing */
+function cRate(ex,km,sec){
+  if(!(km>0)||!(sec>0)) return '';
+  const r=cardioOf(ex).rate;
+  if(r==='speed'){ const v=toD(km)/(sec/3600); return `${v.toFixed(1)} ${isLb()?'mph':'km/h'}`; }
+  if(r==='split500') return `${cClock(sec/(km*2))}/500m`;
+  if(r==='per100'){ const n=cFromKm(ex,km)/100; return n>0?`${cClock(sec/n)}/100${cUnit(ex)}`:''; }
+  return `${cClock(sec/toD(km))}/${DU()}`;                  // pace
+}
+/* one line for one cardio row: "20.4 km · 45'10"" / "32'00"" */
+const cardioLine=s=>[cDistTxt(s.ex,s.w),cSecs(s)>0?cClock(cSecs(s)):''].filter(Boolean).join(' · ');
 /* THE PART KEY STAYS 'Run'. Renaming the key itself broke nine suites at once:
    53 sites test part==='Run', and a new key makes every one of them silently miss
    a walk or a row. So 'Run' remains the internal name -- the value in the record,

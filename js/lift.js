@@ -246,11 +246,11 @@ function planDayLabel(iso){ const [y,m,d]=iso.split('-').map(Number); return new
 function liftEditCardHTML(ex,isRun,es){
   if(!es||es.ex!==ex) return '';
   const focus=f=>lift.editField===f?' autofocus':'';
-  return isRun
+  return isRun&&isCardio(es)
     ?`<div class="card editcard" style="margin-top:10px">
-        <div class="mono muted" style="font-size:11px;margin-bottom:8px">EDIT RUN</div>
+        <div class="mono muted" style="font-size:11px;margin-bottom:8px">EDIT ${cardioOf(ex).noun.toUpperCase()}</div>
         <div class="row" style="gap:8px">
-          <div class="fld"><label>Distance ${DU()}</label><input id="edW" type="number" inputmode="decimal" step="0.01" value="${dDisp(es.w)}"></div>
+          ${cardioOf(ex).dist?`<div class="fld"><label>Distance ${cUnit(ex)}</label><input id="edW" type="number" inputmode="${cShort(ex)?'numeric':'decimal'}" step="${cStep(ex)}" value="${es.w>0?cFromKm(ex,es.w):''}"></div>`:''}
           <div class="fld"><label>Min</label><input id="edM" type="number" inputmode="numeric" value="${es.mins||0}"></div>
           <div class="fld"><label>Sec</label><input id="edS" type="number" inputmode="numeric" value="${es.secs||0}"></div>
         </div>
@@ -268,6 +268,46 @@ function liftEditCardHTML(ex,isRun,es){
           <button class="btn" id="editSave" style="margin:0">Save</button>
           <button class="btn ghost" id="editCancel" style="margin:0;flex:0 0 96px">Cancel</button>
         </div></div>`;
+}
+/* ---- v4.6.108: cardio history, built the way RECENT RUNS is ----
+   Every logged session of this one activity, newest first, from the sealed
+   record plus today. A legacy weight-shaped row ("Cycling 45 lb x 5") is not
+   a session and is not listed -- isCardio decides by shape. */
+function cardioSessions(ex){
+  const out=[];
+  for(const [d,rows] of Object.entries(SEED.sessions||{})) if(d<todayISO)
+    for(const r of rows) if(r[1]===ex&&isCardioR(r)) out.push({d,ex,w:r[2]||0,mins:r[4],secs:r[5]});
+  for(const s of (DB.days[todayISO]?.w||[])) if(s.ex===ex&&isCardio(s)) out.push({d:todayISO,ex,w:s.w||0,mins:s.mins,secs:s.secs});
+  return out.sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:0);
+}
+function cardioHistHTML(ex){
+  const all=cardioSessions(ex).filter(r=>r.d<todayISO);
+  if(!all.length) return '';
+  const C=cardioOf(ex), shown=all.slice(0,8), mo=todayISO.slice(0,7);
+  const rows=shown.map(r=>{const sec=cSecs(r);return `<div class="lastrow">
+      <span class="runD mono">${wd2(r.d)} ${+r.d.slice(5,7)}/${+r.d.slice(8,10)}</span>
+      <span class="lastw mono">${C.dist&&r.w>0?cDistTxt(ex,r.w).replace(/ (\S+)$/,' <span class="u">$1</span>'):(sec?cClock(sec):'—')}</span>
+      <span class="runT mono">${C.dist&&r.w>0&&sec?cClock(sec):''}</span>
+      <span class="runP mono">${cRate(ex,r.w,sec)}</span>
+    </div>`;}).join('');
+  const inMo=cardioSessions(ex).filter(r=>r.d.startsWith(mo));
+  const sum=(list,f)=>list.reduce((a,r)=>a+f(r),0);
+  const foot=C.dist
+    ?`${cDistTxt(ex,sum(inMo,r=>r.w))||'0 '+cUnit(ex)} this month · ${cDistTxt(ex,sum(cardioSessions(ex),r=>r.w))||'0 '+cUnit(ex)} total`
+    :`${cClock(sum(inMo,cSecs))} this month · ${fmt(cardioSessions(ex).length)} session${cardioSessions(ex).length===1?'':'s'}`;
+  return `<div class="lastcard runhist">
+      <div class="lasthead"><span>RECENT ${C.noun.toUpperCase()}S</span><span class="ago">last ${shown.length} of ${fmt(all.length)}</span></div>
+      ${rows}
+      <div class="lastfoot mono">${foot}</div>
+    </div>`;
+}
+/* the train list's right-hand figure for a cardio activity: the last session,
+   not a weight. null = not cardio (or Run, which keeps its own figure). */
+function cardioTrainTxt(ex){
+  if(!isCardioEx(ex)||ex==='Run') return null;
+  const last=cardioSessions(ex)[0];
+  if(!last) return '<i class="pr-nil" aria-label="nothing logged yet"></i>';
+  return last.w>0?cDistTxt(ex,last.w):cClock(cSecs(last));
 }
 function renderLift(){
   applyFlow(); // direct logger repaints bypass render(), but share its scope
@@ -358,7 +398,7 @@ function renderLift(){
                    (p===focus&&!hasToday&&!isLive())?'hot':'',   // no suggestions mid-workout
                    open?'liveP':'', finished?'finP':''].filter(Boolean).join(' ');
       h+=`<button class="partcard ${sel?'sel':''} ${cls}" data-part="${p}">
-            <b>${p}</b><span class="ps">${sub}</span></button>`;
+            <b>${partLabel(p)}</b><span class="ps">${sub}</span></button>`;
     });
     h+=`</div>`;
 
@@ -366,13 +406,12 @@ function renderLift(){
     // header included — appears with the first set and not before (v3.3.87).
     const mine=t.w.filter(s=>s.part===lift.part);
     if(mine.length){
-      h+=`<h2>${lift.part} · today</h2>`;
+      h+=`<h2>${partLabel(lift.part)} · today</h2>`;
       const byEx={};
       mine.forEach(s=>{(byEx[s.ex]=byEx[s.ex]||[]).push(s);});
       for(const [ex,list] of Object.entries(byEx)){
-        const isRun=ex==='Run';
-        const sub=isRun
-          ?list.map(s=>`${dDisp(s.w)} ${DU()} · ${s.mins||0}'${String(s.secs||0).padStart(2,'0')}"`).join('  ')
+        const sub=list.every(isCardio)
+          ?list.map(cardioLine).join('  ')
           :list.map(s=>isHold(s.su)
               ? `${wTxt(ex,s.w)} ${s.reps.map(r=>secLabel(r)).join(',')}`
               : `${wTxt(ex,s.w)} × ${s.reps.join(',')}`).join('   ');
@@ -389,7 +428,9 @@ function renderLift(){
       h+=`${undoStack.length?`<button class="btn ghost" id="undoBtn">↺ Undo — ${undoStack[undoStack.length-1].label}</button>`:''}
 `;
       const usual=avgSessionVol(lift.part);
-      if(usual>0){
+      /* v4.6.108: for Cardio this card compares running distance. A ride is not
+         a fraction of your usual run, so it only appears when you ran today. */
+      if(usual>0&&!(lift.part==='Run'&&!mine.some(s=>s.ex==='Run'))){
         const isRunPart=lift.part==='Run';
         const cur=mine.reduce((a,s)=>a+(s.ex==='Run'?s.w:volOf(s)),0);
         const pct=Math.round(cur/usual*100);
@@ -479,7 +520,7 @@ function renderLift(){
       if(refinedFlow()) return `<div class="item logrow ${big?'goto':''}${_enter?' enter':''}" style="--i:${Math.min(_ei++,6)}">
           <button class="logmain" data-ex="${ex}">
             <span class="flow-exname"><b>${ex}</b><span class="sub">${meta}${mine?` · yours · ${eq.toLowerCase()}`:''}</span></span>
-            <span class="pr-cell"><span class="pr-top">${(w=>w?(ex==='Run'?dDisp(w)+' '+DU():trainListWeight(w)+' '+U()):'<i class="pr-nil" aria-label="no weight logged"></i>')(nextWFor(ex))}</span></span>
+            <span class="pr-cell"><span class="pr-top">${cardioTrainTxt(ex)??(w=>w?(ex==='Run'?dDisp(w)+' '+DU():trainListWeight(w)+' '+U()):'<i class="pr-nil" aria-label="no weight logged"></i>')(nextWFor(ex))}</span></span>
             <span class="flow-exchev" aria-hidden="true">${icon('chevron',ICON_SZ.sm)}</span>
           </button>${(mine&&!last)?`<button class="xbtn" data-delex="${ex}" aria-label="Delete ${ex}">${icon('trash',ICON_SZ.sm)}</button>`:''}
         </div>`;
@@ -488,7 +529,7 @@ function renderLift(){
               <b>${ex}</b><div class="sub">${meta}${mine?` · yours · ${eq.toLowerCase()}`:''}</div>
             </button>
             <span class="pr-cell">
-              <span class="pr-top">${(w=>w?(ex==='Run'?dDisp(w)+' '+DU():trainListWeight(w)+' '+U()):'<i class="pr-nil" aria-label="no weight logged"></i>')(nextWFor(ex))}</span>
+              <span class="pr-top">${cardioTrainTxt(ex)??(w=>w?(ex==='Run'?dDisp(w)+' '+DU():trainListWeight(w)+' '+U()):'<i class="pr-nil" aria-label="no weight logged"></i>')(nextWFor(ex))}</span>
             </span>
             ${(mine&&!last)?`<button class="xbtn" data-delex="${ex}" aria-label="Delete ${ex}">${icon('trash',ICON_SZ.sm)}</button>`:''}
           </div>`;
@@ -542,7 +583,10 @@ function renderLift(){
     $('#view').innerHTML=h; return;
   }
 
-  const ex=lift.ex,isRun=ex==='Run';
+  /* v4.6.108: isRun means "logs distance and time" -- every cardio activity,
+     not the one exercise called Run. Running's own dashboard (month km, the
+     10K estimate, lifetime) still asks ex==='Run' where it is built. */
+  const ex=lift.ex,isRun=isCardioEx(ex),C=cardioOf(ex);
 
   // ---- Copy Picker: two modes — copy the SUGGESTION, or move TODAY's sets
   if(lift.copy){
@@ -638,9 +682,9 @@ function renderLift(){
      already using, and Last time takes its place in the column. */
 
   if(isRun){
-    h+=`<div class="zone prime"><div class="zonehead"><span>Log a run</span></div>
+    h+=`<div class="zone prime"><div class="zonehead"><span>Log a ${C.noun}</span></div>
         <div class="runrow" style="margin:10px 0">
-          <div class="fld"><label>Distance ${DU()}</label><input id="rk" type="number" inputmode="decimal" step="0.01" placeholder="0.00"></div>
+          ${C.dist?`<div class="fld"><label>Distance ${cUnit(ex)}</label><input id="rk" type="number" inputmode="${cShort(ex)?'numeric':'decimal'}" step="${cStep(ex)}" placeholder="${cShort(ex)?'0':'0.00'}"></div>`:''}
           <div class="fld"><label>Min</label><input id="rm" type="number" inputmode="numeric" placeholder="0"></div>
           <div class="fld"><label>Sec</label><input id="rs" type="number" inputmode="numeric" placeholder="0"></div>
         </div>
@@ -658,7 +702,7 @@ function renderLift(){
              Quiet beside the loud one, and never the wider of the two: Add run
              is what you came here to press, and closing the day is reversible
              but not something to hit by accident reaching for it. -->
-        <div class="runacts"><button class="btn" id="addrun">Add run</button></div></div>`;
+        <div class="runacts"><button class="btn" id="addrun">Add ${C.noun}</button></div></div>`;
     /* v3.1.9: the Run view finally shows its history — recent runs with
        date · distance · time · pace, same visual language as Last Time. */
     // v3.3.153: deferred — see the emit point after the session card
@@ -666,7 +710,8 @@ function renderLift(){
     for(const [d,rows] of Object.entries(SEED.sessions))
       for(const r of rows) if(r[1]==='Run'&&r[2]>0) runs.push({d,km:r[2],mins:r[4],secs:r[5]});
     runs.sort((a,b)=>a.d<b.d?1:-1);
-    if(runs.length){
+    if(ex!=='Run') runHist=cardioHistHTML(ex);   // v4.6.108: rides, rows, swims... each its own list
+    else if(runs.length){
       const fmtPace=r=>{
         if(r.mins==null||!r.km) return '';
         const t=r.mins+(r.secs||0)/60, p=t/r.km, pm=Math.floor(p), ps=Math.round((p-pm)*60);
@@ -855,7 +900,7 @@ function renderLift(){
         todaySets.length?`<button class="ago sessedit" id="sessEdit">${editing?'DONE':'EDIT'}</button>`:''}</div>`;
 
     if(!todaySets.length){
-      h+=`<div class="muted" style="font-size:13px">Nothing yet — log the first set.</div>`;
+      h+=`<div class="muted" style="font-size:13px">Nothing yet — log the first ${isRun?C.noun:'set'}.</div>`;
     }else if(!editing){
       /* read mode: fold today exactly the way History folds a day */
       const folded=foldSets(todaySets.map(s=>[s.w,s.reps,s.mins,s.secs,s.su]),ex);
@@ -886,8 +931,8 @@ function renderLift(){
       ordered.forEach(s=>{
         const idx=t.w.indexOf(s);
         const isPR=!isRun&&s.reps.length&&s.w>=p.mw;
-        h+=isRun
-          ?`<div class="settile${lift.editSet===idx?' editing':''}" data-del="${idx}"><span class="w">${dDisp(s.w)}<small>${DU()}</small></span><span class="x">${s.mins||0}'${String(s.secs||0).padStart(2,'0')}"</span></div>`
+        h+=isCardio(s)
+          ?`<div class="settile${lift.editSet===idx?' editing':''}" data-del="${idx}"><span class="w">${s.w>0?(cShort(ex)?fmt(cFromKm(ex,s.w)):dDisp(s.w)):cClock(cSecs(s))}<small>${s.w>0?cUnit(ex):''}</small></span><span class="x">${s.w>0?cClock(cSecs(s)):''}</span></div>`
           :`<div class="settile ${isPR?'pr':''}${lift.editSet===idx?' editing':''}" data-del="${idx}"><span class="w">${wLabel(ex,s.w)}${isBody(ex)?'':`<small>${U()}</small>`}</span><span class="x">${isHold(s.su)?'':'\u00d7'}</span><span class="w">${setNum(s.reps[0],s.su)}</span></div>`;
       });
       h+=`</div>
@@ -902,11 +947,13 @@ function renderLift(){
     /* footer: today's volume against last session — unchanged math */
     if(todaySets.length){
       if(isRun){
-        const km=todaySets.reduce((a,s)=>a+s.w,0);
-        const sec=todaySets.reduce((a,s)=>a+(s.mins||0)*60+(s.secs||0),0);
-        const pace=km?sec/toD(km):0;
-        h+=`<div class="tot"><span>Today <b>${dDisp(km)} ${DU()}</b></span>
-            <span>pace <b>${Math.floor(pace/60)}'${String(Math.round(pace%60)).padStart(2,'0')}"</b>/${DU()}</span></div>`;
+        const km=todaySets.filter(isCardio).reduce((a,s)=>a+(+s.w||0),0);
+        const sec=todaySets.filter(isCardio).reduce((a,s)=>a+cSecs(s),0);
+        const rate=cRate(ex,km,sec), kind=cardioOf(ex).rate;
+        /* pace keeps running's own wording ("pace 8'30"/mi"); the others read as quoted */
+        const rateHTML=!rate?'':kind==='pace'?`<span>pace <b>${rate.split('/')[0]}</b>/${rate.split('/')[1]}</span>`
+          :`<span>${kind==='split500'?'split ':kind==='speed'?'avg ':''}<b>${rate}</b></span>`;
+        h+=`<div class="tot"><span>Today <b>${km>0?cDistTxt(ex,km):cClock(sec)}</b></span>${rateHTML}</div>`;
       }else{
         const v=todaySets.reduce((a,s)=>a+volOf(s),0);
         const lastVol=ls?ls.sets.reduce((a,s)=>a+s.w*s.r,0):0;

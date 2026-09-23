@@ -272,6 +272,7 @@ function avgSessionVol(part){
     for(const rows of Object.values(SEED.sessions)){
       const per={};
       for(const r of rows){
+        if(r[0]==='Run'&&r[1]!=='Run') continue;          // v4.6.108: the Cardio part's usual is RUNNING distance
         const v=r[1]==='Run'? r[2] : r[2]*(r[3]||[]).reduce((a,b)=>a+b,0);
         per[r[0]]=(per[r[0]]||0)+v;
       }
@@ -280,7 +281,7 @@ function avgSessionVol(part){
     for(const [d,day] of Object.entries(DB.days)){
       if(d<=SEED.totals.last||d===todayISO) continue;
       const per={};
-      for(const s of day.w){ const v=s.ex==='Run'?s.w:volOf(s); per[s.part]=(per[s.part]||0)+v; }
+      for(const s of day.w){ if(s.part==='Run'&&s.ex!=='Run') continue; const v=s.ex==='Run'?s.w:volOf(s); per[s.part]=(per[s.part]||0)+v; }
       feed(per);
     }
     for(const [p,a] of Object.entries(acc)) _avgVol[p]=a.s/a.n;
@@ -559,7 +560,7 @@ function foldSets(sets,ex){
      survived and printed a bare weight row with no chips. Reps ARE the
      content of a lift; only a run is described by its distance and time, so
      Run is the sole exemption. */
-  const isRunEx = ex==='Run';
+  const isRunEx = isCardioEx(ex);   // v4.6.108: every cardio activity, not only Run
   const folded=[];
   for(const [w2,reps,mins,secs,su] of sets){
     if(!isRunEx && (!reps||!reps.length) && mins==null) continue;   // bare marker rows carry nothing
@@ -574,11 +575,16 @@ function foldSets(sets,ex){
 }
 function setRows(ex,folded,tappable){
   return folded.map(([w2,reps,mins,secs,su])=>{
+    /* v4.6.108: a cardio row (no reps, cardio exercise) reads distance in its
+       own unit with its time as the chip; a time-only row leads with the time.
+       A legacy weight-shaped cardio row still has reps, so it reads as a set. */
+    const cardio=isCardioEx(ex)&&!(reps&&reps.length);
     const chips=(reps&&reps.length)
       ? reps.map(r2=>`<i class="repchip${isHold(su)?' hold':''}">${setNum(r2,su)}</i>`).join('')
+      : (cardio&&!(w2>0)) ? ''
       : (mins!=null?`<i class="repchip">${mins}${secs?`'${String(secs).padStart(2,'0')}`:'′'}</i>`:'');
-    const wtxt = ex==='Run'
-      ? `${dDisp(w2)} <span class="u">${DU()}</span>`
+    const wtxt = cardio
+      ? (w2>0 ? `${cShort(ex)?fmt(cFromKm(ex,w2)):dDisp(w2)} <span class="u">${cUnit(ex)}</span>` : cClock((+mins||0)*60+(+secs||0)))
       : (isBody(ex)&&w2<=0.01 ? 'BW' : `${wDisp(w2)} <span class="u">${U()}</span>`);
     return `<div class="lastrow"${tappable?` data-lw="${w2}" role="button"`:''}>`
       +`<span class="lastw mono">${wtxt}</span><span class="lastreps">${chips}</span></div>`;

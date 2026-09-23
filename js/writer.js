@@ -308,7 +308,7 @@ function writerPayload(o){
   const inU=v=>U()==='lb'?+((+v||0)*LB).toFixed(1):+(+v||0).toFixed(2);
   const last={}, steps={}, next={};
   for(const list of Object.values(catalog)) for(const ex of list) steps[ex]=wStep(ex);
-  for(const [ex,ls] of Object.entries(SEED.lastSess||{})) if(ex!=='Run'&&ls&&ls.rows&&ls.rows.length){
+  for(const [ex,ls] of Object.entries(SEED.lastSess||{})) if(!isCardioEx(ex)&&ls&&ls.rows&&ls.rows.length){
     last[ex]=[ls.d, ls.rows.map(r=>[inU(r[0]), r[1]])];
     const top=Math.max(...ls.rows.map(r=>+r[0]||0));
     if(top>0) next[ex]=inU(nextFaceAbove(top,ex));
@@ -325,7 +325,7 @@ function writerPayload(o){
      stepping is warranted at all. */
   const verdict={}, load={}, want={}, because={};
   for(const [ex,ls] of Object.entries(SEED.lastSess||{})){
-    if(ex==='Run'||!ls||!ls.rows||!ls.rows.length) continue;
+    if(isCardioEx(ex)||!ls||!ls.rows||!ls.rows.length) continue;
     const sessions=writerVerdictSessions(ex);
     if(sessions.length<1) continue;
     const range=(typeof repRangeFor==='function')?repRangeFor(sessions):null;

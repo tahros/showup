@@ -107,6 +107,16 @@ Several `check-*.cjs` files hard-coded a Windows Chromium path and a port.
 Those now read `PW_CHROME` and `PW_PORT` first and fall back to what they
 had, so either of us can run them.
 
+## Cardio (v4.6.108)
+
+`CARDIO_EX` in js/core.js is the single source for cardio. Two rules:
+- **Shape, not name.** Use `isCardio(s)` / `isCardioR(r)` — a cardio exercise
+  with NO reps. A legacy "Cycling 45 lb × 5" row has reps and must keep
+  reading as a set. Never test `ex==='Run'` to mean "distance/time row".
+- **`ex==='Run'` means running.** Lifetime km, monthly km, milestones, the
+  distance race and the day-done km are running-only on purpose. `part` stays
+  `'Run'` (the Cardio part's key); `partLabel()` makes it say Cardio.
+
 ## Known flaky
 
 - `tools/check-session-comparison.cjs` fails intermittently with `0 == 1`: 2 of

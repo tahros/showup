@@ -187,6 +187,9 @@ function exportRows(){
   for(const d of Object.keys(DB.days).sort()){
     for(const s of (DB.days[d].w||[])){
       if(s.ex==='Run') out.push([d,'Run','Run','','','',s.mins||0,s.secs||0,s.w||0]);
+      /* v4.6.108: every cardio row exports as distance and time. It used to fall
+         into the set branch below and leave with its minutes and seconds dropped. */
+      else if(isCardio(s)) out.push([d,s.part||'Run',s.ex,'','','',s.mins||0,s.secs||0,s.w||0]);
       else (s.reps&&s.reps.length?s.reps:[0]).forEach((r,i)=>out.push([d,s.part||'',s.ex||'',s.w??'',r,i+1,'','','']));
     }
   }

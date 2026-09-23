@@ -159,6 +159,9 @@ function deriveAll(){
     if(rows.length) S[d]=rows;
   }
   const days=Object.keys(S).sort();
+  /* v4.6.108: isRunR is RUNNING -- it feeds totals.km and the monthly km, and a
+     ride is not a run. isCardioR (any cardio row) is used only where a row's own
+     shape matters: summing a day's distance for one activity, and volume. */
   const isRunR=r=>r[1]==='Run';
   /* SLICE 3: a HOLD's number is seconds, not reps, so nothing here may
      multiply it or rank it. isHoldR is the one predicate; every site that
@@ -168,7 +171,7 @@ function deriveAll(){
      is reps.length and it is untouched, which is the whole point of the
      v3.3.341 storage choice. */
   const isHoldR=r=>r[7]==='s';
-  const volR=r=>(isRunR(r)||isHoldR(r))?0:r[2]*(r[3]||[]).reduce((a,b)=>a+b,0);
+  const volR=r=>(isCardioR(r)||isHoldR(r))?0:r[2]*(r[3]||[]).reduce((a,b)=>a+b,0);
   const D={sessions:S, dates:days, catalog:SEED0.catalog, ex2part:SEED0.ex2part, equip:SEED0.equip};
   if(!days.length){ D.totals={sessions:0,first:null,last:'0000-00-00',km:0,vol:0};
     D.monthly={};D.partCount={};D.partLast={};D.partDays={};D.exLast={};D.exFreq={};
@@ -231,13 +234,13 @@ function deriveAll(){
       }
       let hw=0, hr=0;
       for(const r of rows){
-        if(isRunR(r)){ hw+=r[2]; }
+        if(isCardioR(r)){ hw+=r[2]; }
         else { if(r[2]>hw) hw=r[2]; for(const rep of r[3]||[]) if(rep>hr) hr=rep; }
       }
-      if(ex==='Run') hw=Math.round(hw*100)/100;
+      if(isCardioEx(ex)) hw=Math.round(hw*100)/100;
       (D.hist[ex]=D.hist[ex]||[]).push([d,hw,hr]);
       D.last[ex]={d, sets:rows.map(r=>[r[2],r[3]||[],r[4],r[5]])};
-      const lr=rows.filter(r=>isRunR(r)||(r[3]||[]).length).map(r=>[r[2],r[3]||[]]);
+      const lr=rows.filter(r=>isCardioR(r)||(r[3]||[]).length).map(r=>[r[2],r[3]||[]]);
       if(lr.length) D.lastSess[ex]={d, rows:lr};
     }
   }
@@ -416,7 +419,7 @@ function tickRest(){
   const last=(last0&&doneEx.includes(last0.ex))?null:last0;
   let ctx='', sub='';
   if(last){
-    const lw = last.ex==='Run' ? `${dDisp(last.w)}${DU()}`
+    const lw = isCardio(last) ? cardioLine(last)
              : isHold(last.su) ? `${(last.reps||[])[0]||0}\u2033`
              : `${wTxt(last.ex,last.w)} \u00d7 ${(last.reps||[])[0]||0}`;
     ctx = `${last.ex.toUpperCase()}  ${lw}`;
