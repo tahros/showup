@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v4.6.109 (2026-09-23) — Your sets, one size down
+
+- The maker's pick (option B of four previewed): weights 15 → 13px, rep chips 14 → 12px, the × 11 → 10px.
+- The logged value no longer wraps under its check mark. Smaller type alone never fixed it: the mark reserved 28px of a 99px column, so "BW+25 × 6" broke onto two lines at every size tried. The mark now takes 18px and the logged value is set not to wrap. Rows go from 69px to 55px on a 402px phone.
+- Phones narrower than 360px get one step smaller (12/11px). At 375px one cell can still wrap on a bodyweight table; noted, not hidden.
+- The check mark's tap area narrows from 24px to 16px wide (32px tall, unchanged).
+- `tools/check-sets-type.cjs` rebuilds the maker's Pull Up table and fails if any value wraps at 393 or 402; mutation-tested against the old 28px reserve.
+
 ## v4.6.108 (2026-09-23) — Every cardio activity logs distance and time
 
 - **The cardio model had no callers.** `CARDIO_EX` was declared in v4.6.45 and nothing read it; every site still asked `ex==='Run'`. So Walk, Cycling, Rowing, Swimming, Elliptical, Stair Climber and Jump Rope opened on a 45 lb weight stepper, "Machine (stack)", a rep ruler and "Add set · 5 reps". Each now has Run's screen: a distance field where distance exists, minutes and seconds, "Add ride / row / swim / walk…", today's total with the figure the sport quotes, its own recent-sessions list, and its last session on the Cardio list.

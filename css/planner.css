@@ -16,10 +16,10 @@
 .sc-slot[aria-pressed="true"]{color:var(--accent-ink)}
 .sc-value{display:inline-flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px;max-width:100%;min-height:44px;border:0;background:none;color:var(--chalk);padding:3px 0;cursor:pointer}
 .sc-value:disabled{opacity:1;cursor:default}
-.sc-weight{font:600 15px/1.3 var(--body);letter-spacing:-.3px;overflow-wrap:anywhere}
+.sc-weight{font:600 13px/1.3 var(--body);letter-spacing:-.2px;overflow-wrap:anywhere}   /* v4.6.109: 15 -> 13, the maker's pick (B) */
 .sc-history .sc-weight{font-weight:400;color:var(--muted)}
-.sc-times{font:400 11px/1.3 var(--body);color:var(--muted)}
-.sc-rep{font:600 14px/1 var(--body);min-width:23px;padding:7px 4px;border-radius:9px;background:var(--surface2)}
+.sc-times{font:400 10px/1.3 var(--body);color:var(--muted)}
+.sc-rep{font:600 12px/1 var(--body);min-width:19px;padding:5px 3px;border-radius:7px;background:var(--surface2)}
 .sc-now .sc-weight,.sc-now .sc-rep{color:var(--accent-ink)}
 .sc-now .sc-rep{background:color-mix(in srgb,var(--accent) 11%,var(--surface))}
 .sc-empty{display:flex;align-items:center;justify-content:center;min-height:44px;font:400 11px/1.4 var(--body);color:var(--muted)}
@@ -64,10 +64,22 @@ button.sc-rep{border:0;color:inherit;cursor:pointer;margin:0}
 .sc-compact .pl-next{margin-top:4px}
 .sc-reps-wrap{position:relative;display:inline-flex;justify-content:center;max-width:calc(100% - 28px)}
 .sc-group-value:not(.sc-now) .sc-reps-wrap{max-width:100%}
-.sc-outcome-mark{position:absolute;left:calc(100% + 2px);top:50%;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;width:24px;min-height:32px;padding:0;border:0;border-radius:6px;background:none;color:var(--accent-ink);cursor:pointer}
+.sc-outcome-mark{position:absolute;left:calc(100% + 1px);top:50%;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;width:16px;min-height:32px;padding:0;border:0;border-radius:6px;background:none;color:var(--accent-ink);cursor:pointer}
 .sc-outcome-mark .ic{width:12px;height:12px;opacity:.8}
 .sc-outcome-mark:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
-.sc-marked-value{position:relative;display:table;margin:0 auto;max-width:calc(100% - 28px)}
+.sc-marked-value{position:relative;display:table;margin:0 auto;max-width:calc(100% - 18px)}
+/* v4.6.109: the logged value stays on ONE line. Shrinking the type alone never
+   fixed the maker's screenshot -- the check mark reserved 28px of a 99px column,
+   so "BW+25 x 6" broke onto two lines at every size tried. The mark now takes
+   18px, and the value is told not to wrap. */
+.sc-marked-value>.sc-value{flex-wrap:nowrap;gap:3px;padding-left:0;padding-right:0}
+/* the 320px phones (first-gen SE) get one step smaller still */
+@media (max-width:359px){
+  .sc-weight{font-size:12px;letter-spacing:-.1px}
+  .sc-rep{font-size:11px;padding:4px 3px;min-width:17px;border-radius:6px}
+  .sc-times{font-size:9px}
+  .sc-value{gap:3px}
+}
 .sc-chip-fresh{animation:sc-save-pop 650ms ease-out}
 @media(prefers-reduced-motion:reduce){.sc-chip-fresh{animation:none}}
 .pw-workspace,.pw-home{min-width:0;color:var(--chalk);font-family:var(--body)}
