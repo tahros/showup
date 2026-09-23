@@ -1390,9 +1390,20 @@ function repRulerHTML(ex,kg){
             </div>
           </div>`;
 }
+/* v4.6.107: while the ruler SLIDES to a value the app chose, the ruler does not
+   get a vote. Its scroll listener writes lift.rep from whichever notch is under
+   the band -- right for a finger, wrong for an animation: sliding 6 -> 12 made
+   lift.rep read 7, 8, 9, 10, 11 on the way, and an Add tap in that ~300ms
+   logged a number nobody chose. The lock holds the chosen value until the
+   ruler arrives (or ~900ms passes); a finger or wheel on the ruler drops it at
+   once, so scrubbing is untouched. Declared here, not in app.js, because this
+   file loads first and a `let` read before its declaration throws. */
+let _rrProg=null;
 /* centre the ruler on a value without animating (used on first paint) */
 function repRulerTo(r,smooth){
   lift.rep=r;
+  _rrProg=smooth?{r,until:Date.now()+900}:null;
+  if(typeof _rrLast!=='undefined')_rrLast=r;
   const el=document.getElementById('repRuler'); if(!el) return;
   /* v3.3.289: the CSS no longer declares scroll-behavior (it was filtering
      finger scrolling), so a programmatic move asks for its own animation. */

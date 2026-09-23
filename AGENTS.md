@@ -106,3 +106,13 @@ guessing at it would do more harm than leaving them.
 Several `check-*.cjs` files hard-coded a Windows Chromium path and a port.
 Those now read `PW_CHROME` and `PW_PORT` first and fall back to what they
 had, so either of us can run them.
+
+## Known flaky
+
+- `tools/check-session-comparison.cjs` fails intermittently with `0 == 1`: 2 of
+  4 runs on unmodified v4.6.106, passing the rest. Found by Claude while
+  confirming v4.6.107 did not cause it. Not fixed; flagged here for the owner.
+- Browser checks write screenshots with `../` paths, i.e. into the repo root.
+  `.gitignore` now covers `session-live-*.png` and `live-workout-*.png`;
+  `header-glass-live-qa.png` is tracked, so a check run leaves it modified —
+  `git checkout -- header-glass-live-qa.png` before committing.

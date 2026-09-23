@@ -195,19 +195,95 @@ function plRepFeedback(reps){
   if(typeof repTickInit==='function')repTickInit();
   if(typeof repTick==='function')repTick();
 }
+/* ============ v4.6.107: the values arrive where you can see them ============
+   A tap in the Your sets table loads that weight and those reps into the entry
+   panel -- which, once you have scrolled down to the table, is off screen. The
+   change used to happen instantly, out of sight, so you scrolled back up to
+   check it. Now the page glides up to the panel FIRST and the values change on
+   arrival: the weight swaps with a small pop, the rep ruler slides to its new
+   notch, and the Add button's label follows.
+
+   Four rules:
+   - Values commit on LANDING, not on tap. That is the whole point: a change
+     that has already happened by the time you arrive is not one you saw.
+   - #wv is never animated. Other code reads its value directly (refreshReps
+     does), so a counting tween would have the field lie to the app for 400ms.
+     The swap is honest; the pop is decoration on top of it.
+   - Your thumb wins. A touch or wheel mid-glide stops the glide where it is
+     and commits immediately -- the set still loads, you are just in charge.
+   - A newer tap supersedes an older one, and leaving the exercise mid-glide
+     drops the load: nothing ever lands on a different exercise than you tapped.
+   Reduced motion: no glide, no pop -- commit, then jump to the panel. */
+let _plArriveRun=null;
+function plZoneY(){
+  const zone=document.querySelector('#view .zone.prime');if(!zone)return null;
+  const hb=document.querySelector('header')?.getBoundingClientRect().bottom||0;
+  const r=zone.getBoundingClientRect();
+  if(r.top>=hb-1&&r.top<=innerHeight*0.45)return null;      // already where you can see it
+  let y=scrollY+r.top-hb-12;if(y<120)y=0;                      // near the top reads as "the top"
+  return Math.max(0,Math.round(y));
+}
+function plGlide(y,done){
+  const y0=scrollY,dy=y-y0;
+  const dur=Math.max(280,Math.min(560,200+Math.abs(dy)*0.35));
+  let t0=null,raf=0,over=false;
+  const take=()=>end(true);
+  const off=()=>{removeEventListener('touchstart',take,true);removeEventListener('wheel',take,true);};
+  const end=run=>{if(over)return;over=true;cancelAnimationFrame(raf);off();if(run)done();};
+  addEventListener('touchstart',take,{capture:true,passive:true});
+  addEventListener('wheel',take,{capture:true,passive:true});
+  const step=now=>{
+    if(t0===null)t0=now;
+    const p=Math.min(1,(now-t0)/dur);
+    scrollTo(0,y0+dy*(1-Math.pow(1-p,3)));
+    if(p<1)raf=requestAnimationFrame(step);else end(true);
+  };
+  raf=requestAnimationFrame(step);
+  return {cancel:()=>end(false)};
+}
+function plPulse(sel,delay){
+  const el=document.querySelector(sel);if(!el)return;
+  el.style.animationDelay=(delay||0)+'ms';
+  el.classList.remove('pl-arrive');void el.offsetWidth;el.classList.add('pl-arrive');
+  el.addEventListener('animationend',()=>{el.classList.remove('pl-arrive');el.style.animationDelay='';},{once:true});
+}
+function plArrive(ex,w,reps){
+  if(_plArriveRun){_plArriveRun.cancel();_plArriveRun=null;}
+  const hasW=Number.isFinite(w),hasR=reps>0;
+  const fromW=lift.weight,fromR=repRulerValue();
+  if(!MOTION_OK){
+    if(hasW){lift.weight=w;saveExW(ex,w);}
+    if(hasR)lift.rep=reps;
+    renderLift();
+    if(hasR&&typeof repRulerBand==='function')repRulerBand(reps);
+    const y=plZoneY();if(y!=null)scrollTo(0,y);
+    return;
+  }
+  const land=()=>{
+    _plArriveRun=null;
+    if(view!=='lift'||lift.ex!==ex)return;                    // left the exercise mid-glide
+    if(hasW){lift.weight=w;saveExW(ex,w);}
+    renderLift();                                             // new weight; the ruler still on the OLD notch
+    const movedW=hasW&&Math.abs(w-fromW)>=0.01,movedR=hasR&&reps!==fromR;
+    if(movedR)repRulerTo(reps,true);                          // ...so it slides to the new one in view
+    else if(hasR){lift.rep=reps;if(typeof repRulerMark==='function')repRulerMark();}
+    if(movedW||!movedR)plPulse('#view .zone.prime .wsel .val',0);
+    if(movedR)plPulse('#view .zone.prime .repwrap .rrband',260);
+  };
+  const y=plZoneY();
+  if(y==null){land();return;}
+  _plArriveRun=plGlide(y,land);
+}
 function plHandle(e){
   const button=e.target.closest('[data-link-slot]');
   if(!button)return false;
   const choice=plChoice(lift.ex,unitOf(lift.ex));
   lift.linkChoice={key:choice.key,slot:+button.dataset.linkSlot};
   const target=choice.targets.find(t=>t.ordinal===+button.dataset.linkSlot);
-  if(target){
-    plRepFeedback(target.reps);
-    if(!target.nw){lift.weight=target.w;saveExW(lift.ex,target.w);}
-    lift.rep=target.reps;
-  }
-  renderLift();
-  if(target&&typeof repRulerBand==='function')repRulerBand(target.reps);
+  if(!target){renderLift();return true;}
+  plRepFeedback(target.reps);                                  // the tick is for the tap, so it fires now
+  renderLift();                                                // the chosen target lights up under your finger
+  plArrive(lift.ex,target.nw?NaN:target.w,target.reps);
   return true;
 }
 
@@ -413,7 +489,7 @@ document.addEventListener('click',e=>{
   if(e.target.closest('[data-sc-details]')){lift.scDetails=lift.scDetails===lift.ex?null:lift.ex;renderLift();return;}
   const b=e.target.closest('[data-sc-load]');if(!b)return;
   const w=+b.dataset.scLoad;if(!Number.isFinite(w))return;
-  lift.weight=w;saveExW(lift.ex,w);
-  const reps=+b.dataset.scReps;if(Number.isFinite(reps)&&reps>0){plRepFeedback(reps);lift.rep=reps;}
-  renderLift();if(Number.isFinite(reps)&&reps>0&&typeof repRulerBand==='function')repRulerBand(reps);
+  const reps=+b.dataset.scReps,hasR=Number.isFinite(reps)&&reps>0;
+  if(hasR)plRepFeedback(reps);
+  plArrive(lift.ex,w,hasR?reps:0);                             // v4.6.107: glide up, then load
 });

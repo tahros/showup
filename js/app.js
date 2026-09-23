@@ -1184,8 +1184,8 @@ document.addEventListener('touchstart',repTickInit,{passive:true});
    is skipped. Slow down and every notch taps again, which is exactly when
    you can feel them individually anyway. */
 let _rrLast=null, _rrRaf=0, _rrPrevX=null, _rrPrevT=0, _rrGestureUntil=0;
-document.addEventListener('pointerdown',e=>{if(e.target.closest?.('.repruler'))_rrGestureUntil=Date.now()+4000;},{passive:true});
-document.addEventListener('wheel',e=>{if(e.target.closest?.('.repruler'))_rrGestureUntil=Date.now()+1000;},{passive:true});
+document.addEventListener('pointerdown',e=>{if(e.target.closest?.('.repruler')){_rrGestureUntil=Date.now()+4000;_rrProg=null;}},{passive:true});   // v4.6.107: a finger on the ruler ends any programmatic slide's lock
+document.addEventListener('wheel',e=>{if(e.target.closest?.('.repruler')){_rrGestureUntil=Date.now()+1000;_rrProg=null;}},{passive:true});
 const RR_FLING=REP_W*1.6;         // px per frame above which taps are skipped
 function _rrOnScroll(el){
   const x=el.scrollLeft, t=Date.now();
@@ -1196,6 +1196,9 @@ function _rrOnScroll(el){
   const fast=!fresh && _rrPrevX!==null && Math.abs(x-_rrPrevX)*16.67/Math.max(1,t-_rrPrevT)>RR_FLING;
   _rrPrevX=x; _rrPrevT=t;
   const v=Math.max(1,Math.round(x/REP_W)+1);
+  /* v4.6.107: an app-driven slide in flight -- the notch passing under the band
+     is motion, not a choice. Hold the chosen value; release on arrival or timeout. */
+  if(_rrProg){ if(v===_rrProg.r||t>=_rrProg.until) _rrProg=null; else { _rrPrevX=x; return; } }
   if(v!==_rrLast){
     _rrLast=v; lift.rep=v;
     if(!fast&&t<_rrGestureUntil) repTick();

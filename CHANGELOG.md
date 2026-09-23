@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v4.6.107 (2026-09-23) — The set arrives where you can see it
+
+- Tapping a value in Your sets — Last, Plan or Logged — used to load it into the entry panel instantly and off-screen. Now the page glides up to the panel first (280–560 ms, eased, scaled to distance) and the values change **on arrival**: the weight swaps with a small accent pop, the rep ruler slides to its new notch, and the Add button's label follows.
+- Your thumb wins: a touch or wheel mid-glide stops it where it is and loads the set at once. A second tap supersedes the first, and leaving the exercise mid-glide drops the load. Reduced motion commits in one tick and jumps.
+- `#wv` is never animated; other code reads its value directly, so a counting tween would have had the field disagree with the app for 400 ms.
+- **Fixes a latent logging hazard in the rep ruler.** Its scroll listener wrote `lift.rep` from whichever notch passed under the band, including during an app-driven slide — sliding 6 → 12 read 7, 8, 9, 10, 11 on the way, so an Add tap mid-slide logged a number nobody chose. The two older paths that slide the ruler (`app.js`, plan nudge and suggestion) had the same window. A slide now holds the chosen value until it arrives; a finger on the ruler releases it immediately.
+- `tools/check-set-arrive.cjs`, measured frame by frame at 320 and 402 in both themes: the panel first appears still showing the old weight; the new one lands only after the glide; Add mid-slide logs the chosen reps; a scrub mid-slide wins. Every claim mutation-tested — one survived the first pass (a superseded tap's values landing for a frame), and the check now asserts it never happens.
+- `check-session-comparison.cjs` is flaky on unmodified v4.6.106 (2 of 4 runs fail) — recorded in AGENTS.md, not touched here.
+
 ## v4.6.106 (2026-09-22) — The record that survives the shell
 
 - Inside the iOS app the record now also lives in a file under the app's Library directory, which iOS backs up and never purges. Capacitor's own guidance is that web-view `localStorage` "must be considered transient".

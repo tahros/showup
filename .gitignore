@@ -4,3 +4,5 @@ ios/
 dist/
 # outputs of the browser checks, which write beside the repo
 *.local.png
+session-live-*.png
+live-workout-*.png

@@ -4020,3 +4020,16 @@
   #liveWorkoutBar.folded{animation:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.28),
     0 2px 12px rgba(190,51,36,.32),0 0 26px rgba(190,51,36,.18)}
 }
+
+/* v4.6.107: a set loaded from the Your sets table lands in the entry panel
+   with one small pop -- the weight scales and takes an accent wash, the rep
+   band rings once as the ruler settles. Decoration over an honest swap; the
+   values themselves are never animated. Reduced motion never adds the class. */
+@keyframes plArriveVal{0%{transform:scale(1);background:transparent}
+  30%{transform:scale(1.07);background:color-mix(in srgb,var(--accent) 14%,transparent)}
+  100%{transform:scale(1);background:transparent}}
+@keyframes plArriveBand{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--accent) 50%,transparent)}
+  100%{box-shadow:0 0 0 12px color-mix(in srgb,var(--accent) 0%,transparent)}}
+.zone.prime .wsel .val.pl-arrive{animation:plArriveVal .52s var(--settle) both;border-radius:12px}
+.zone.prime .repwrap .rrband.pl-arrive{animation:plArriveBand .6s var(--settle) both}
+@media (prefers-reduced-motion:reduce){.pl-arrive{animation:none!important}}
