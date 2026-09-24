@@ -614,6 +614,15 @@ if 'id="deleteAcctBtn"' not in (d/"js/settings.js").read_text():
     fail.append("Settings lost the Delete account button (v4.6.113)")
 if "nativeAuthBoot()" not in (d/"js/app.js").read_text():
     fail.append("boot no longer calls nativeAuthBoot() -- the sign-in link would arrive with nobody listening (v4.6.111)")
+# -- v4.6.114: a queued update is applied by US, at launch. The plugin's own
+#    background install is held off by the kill delay, which otaCheck re-arms
+#    every launch -- without the launch-time set() nothing ever installs.
+_ota_js = (d/"js/ota.js").read_text()
+_m = _re.search(r"async function otaApplyPending\(P\)\{.*?\n\}", _ota_js, _re.S)
+if not _m or "P.set({id:n.id})" not in _m.group(0) or "otaNewer(n.version,cur)" not in _m.group(0):
+    fail.append("js/ota.js: otaApplyPending() must set() a newer next bundle at launch, and only a newer one -- otherwise updates queue forever, or a leftover downgrades the app (v4.6.114)")
+if "otaBoot=otaApplyPending(P)" not in _ota_js:
+    fail.append("js/ota.js no longer applies pending updates at launch (v4.6.114)")
 _pkg_deps = (_pkg.get("dependencies", {}) if _pkg_f.exists() else {})
 for _dep, _why in (("@capacitor/app", "appUrlOpen, the sign-in link back into the app"),
                    ("@capacitor/browser", "the in-app Safari sheet Google sign-in opens in")):

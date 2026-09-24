@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v4.6.114 (2026-09-24) — iOS updates actually install
+
+- **The bug (found on the phone):** 4.6.112 and 4.6.113 downloaded to the test app, verified, were queued as next, and never installed. The updater installs a queued bundle only when the app goes to the background with no delay condition set, and it clears the "wait for a cold start" delay at each launch. But `otaCheck` ran 4 seconds after every launch, found the same bundle and set the delay again, so every time the app was backgrounded the hold was back. The v4.6.110 test's fake updater had no delay conditions at all, which is how this passed.
+- **The fix:** at every launch, before anything else, `otaApplyPending()` asks the updater for its next bundle and, if it is newer than the running code, switches to it (`set()`), so the app reloads into it within a second of opening. The delay stays and now only does its real job: stopping the updater's own background install, which would otherwise reload the app mid-session when you switch to another app.
+- A queued bundle that is **not** newer than the running code (left over after a native rebuild) is never applied, since that would be a downgrade. It is deleted, along with any other stale bundle. A newer bundle already marked bad is not applied.
+- The check reuses the updater's own next bundle instead of downloading the same version again. The phone had three copies of 4.6.113.
+- `tools/test-ota.js`'s fake now follows the updater's real rules, read from its Swift source (launch clears kill delays; background installs only with no delay; `set()` switches at once). New cases: the end-to-end two-launch lifecycle, the trap as found on the phone, the no-downgrade rule, and the bad-version rule. 6 mutants, all killed. buildcheck guards the launch-time apply.
+- **This cannot reach the current test app by itself:** the copy on the phone is 4.6.111 and has the bug that stops updates installing. One Mac rebuild brings it to 4.6.114; updates after that install on their own.
+
 ## v4.6.113 (2026-09-24) — Delete your account from inside the app
 
 - **Why:** App Store guideline 5.1.1(v). An app that creates accounts must let people delete the account and its data in the app. Signing out is not deletion, and reviewers check.

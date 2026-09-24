@@ -17,23 +17,38 @@ const manifest=(over={})=>({v:1,version:bump(APP),requires:['CapacitorUpdater','
   files:[{file_name:'index.html',file_hash:h,download_url:'https://tahros.github.io/showup/index.html?ota=x'},
          {file_name:'js/app.js',file_hash:'b'.repeat(64),download_url:'https://tahros.github.io/showup/js/app.js?ota=x'}],...over});
 
+/* v4.6.114: the fake now models the plugin's real state machine (read from its
+   Swift source): delay conditions, a next bundle, a current bundle; a LAUNCH
+   clears 'kill' delays; a BACKGROUND installs next only if no delay remains;
+   set() switches and reloads at once. The v4.6.110 fake had none of this, and
+   a queued update that could never install passed every test. */
 function fakeUpdater(){
-  const calls=[],listeners={},state={bundles:[],downloadFails:0,readyAt:null};
+  const calls=[],listeners={},state={bundles:[],downloadFails:0,readyAt:null,delays:[],next:null,current:{id:'builtin',version:'1.0',status:'success'}};
+  const byId=id=>state.bundles.find(b=>b.id===id);
+  const sim={
+    launch(){ state.delays=state.delays.filter(d=>d.kind!=='kill'); },
+    background(){ if(state.delays.length) return 'delayed';
+      const n=state.next; if(n&&n.version!==state.current.version){ state.current=n; state.next=null; calls.push('install:'+n.id); return 'installed'; } return 'nothing'; },
+  };
   const api={
+    getNextBundle(){calls.push('getNext');return Promise.resolve(state.next?{...state.next}:null);},
+    current(){calls.push('current');return Promise.resolve({bundle:{...state.current},native:'1.0'});},
+    set(o){calls.push('set:'+o.id);const b=byId(o.id);if(!b)return Promise.reject(new Error('no bundle'));state.current=b;state.reloaded=(state.reloaded||0)+1;return Promise.resolve();},
+    delete(o){calls.push('delete:'+o.id);if(o.id===state.current.id)return Promise.reject(new Error('current'));state.bundles=state.bundles.filter(b=>b.id!==o.id);if(state.next&&state.next.id===o.id)state.next=null;return Promise.resolve();},
     notifyAppReady(){calls.push('notifyAppReady');state.readyAt=calls.length;return Promise.resolve({bundle:{id:'builtin'}});},
     addListener(ev,fn){(listeners[ev]=listeners[ev]||[]).push(fn);calls.push('listen:'+ev);return Promise.resolve({remove(){}});},
     list(){calls.push('list');return Promise.resolve({bundles:state.bundles.slice()});},
     download(o){calls.push('download:'+o.version);state.lastDownload=o;
       if(state.downloadFails>0){state.downloadFails--;return Promise.reject(new Error('Computed checksum is not equal'));}
       const b={id:'b'+state.bundles.length,version:o.version,status:'success',checksum:'',downloaded:''};state.bundles.push(b);return Promise.resolve(b);},
-    setMultiDelay(o){calls.push('delay:'+o.delayConditions.map(c=>c.kind).join(','));return Promise.resolve();},
-    next(o){calls.push('next:'+o.id);return Promise.resolve({id:o.id});},
+    setMultiDelay(o){calls.push('delay:'+o.delayConditions.map(c=>c.kind).join(','));state.delays=o.delayConditions.slice();return Promise.resolve();},
+    next(o){calls.push('next:'+o.id);state.next=byId(o.id)||null;return Promise.resolve({id:o.id});},
   };
-  return {api,calls,listeners,state};
+  return {api,calls,listeners,state,sim};
 }
-async function boot({shell=true,plugins=['CapacitorUpdater','Filesystem'],serve=()=>manifest(),status=200,local={}}={}){
+async function boot({shell=true,plugins=['CapacitorUpdater','Filesystem'],serve=()=>manifest(),status=200,local={},up:upIn=null}={}){
   const dom=new JSDOM(html.replace(/<script[^>]*src=[^>]*><\/script>/g,''),{url:'https://tahros.github.io/showup/',runScripts:'outside-only',pretendToBeVisual:true});
-  const w=dom.window,ctx=dom.getInternalVMContext(),up=fakeUpdater(),fetches=[];
+  const w=dom.window,ctx=dom.getInternalVMContext(),up=upIn||fakeUpdater(),fetches=[];
   for(const [k,v] of Object.entries(local)) w.localStorage.setItem(k,JSON.stringify(v));
   w.localStorage.setItem('showup:planning-interface','previous');
   if(shell){const P={};if(plugins.includes('CapacitorUpdater'))P.CapacitorUpdater=up.api;if(plugins.includes('Filesystem'))P.Filesystem={};
@@ -109,6 +124,43 @@ async function boot({shell=true,plugins=['CapacitorUpdater','Filesystem'],serve=
  /* 12. throttling: the foreground check does not hammer the network */
  { const b=await boot({serve:()=>manifest({version:APP})}); await b.check(true); const n=b.fetches.length;
    ok('a second foreground check within 30 min is throttled', await b.check(false)==='throttled' && b.fetches.length===n);}
+ /* 14. v4.6.114: the lifecycle on the phone, end to end, against the plugin's real rules */
+ { const b1=await boot(); const r=await b1.check(); const up=b1.up, id=up.state.next?.id;
+   ok('launch 1: downloaded and queued as next', r==='queued:'+bump(APP) && !!id, r);
+   ok('launch 1: nothing applied mid-session', up.state.current.id==='builtin' && !up.state.reloaded);
+   ok('backgrounding during launch 1 installs nothing (the kill hold)', up.sim.background()==='delayed');
+   up.sim.launch();                                   // swipe away, open again
+   const b2=await boot({up}); const boot2=await b2.run('otaBoot');
+   ok('launch 2: the queued update is applied at launch', boot2==='applying:'+bump(APP) && up.calls.includes('set:'+id), boot2);
+   ok('launch 2: it is now the running bundle', up.state.current.id===id && up.state.reloaded===1);
+ }
+ { /* the exact trap found on the phone: without the launch-time set, the plugin never installs */
+   const b1=await boot(); await b1.check(); const up=b1.up;
+   up.sim.launch(); await b1.check(true);            // the 4-second check re-arms the hold...
+   ok('the trap, reproduced: launch clears the hold, the check re-arms it, background installs nothing', up.sim.background()==='delayed');
+ }
+ { /* a bundle left over that is not newer than the running code: never applied, deleted */
+   const up=fakeUpdater(); const older=APP.replace(/\d+$/,m=>String(Math.max(0,+m-1)));
+   up.state.bundles.push({id:'old1',version:older,status:'pending'},{id:'same1',version:APP,status:'pending'});
+   up.state.next=up.state.bundles[0];
+   const b=await boot({up}); const r=await b.run('otaBoot');
+   ok('an older pending bundle is never applied (no downgrade after a native rebuild)', !up.calls.some(c=>c.startsWith('set:')), up.calls.join(' '));
+   ok('bundles not newer than the running code are deleted', r==='tidied:2' && up.state.bundles.length===0, r);
+ }
+ { /* a newer bundle marked bad is not applied */
+   const up=fakeUpdater(); up.state.bundles.push({id:'nb',version:bump(APP),status:'pending'}); up.state.next=up.state.bundles[0];
+   const b=await boot({up,local:{'showup:ota:bad':[bump(APP)]}}); await b.run('otaBoot');
+   ok('a newer bundle already marked bad is not applied', !up.calls.includes('set:nb'));
+ }
+ { /* the next bundle is reused, not downloaded again */
+   const up=fakeUpdater(); up.state.bundles.push({id:'nx',version:bump(APP),status:'pending'}); up.state.next=up.state.bundles[0];
+   up.api.list=()=>Promise.resolve({bundles:[]});      // even if list() misses it
+   const b=await boot({up}); up.state.current={id:'builtin',version:'1.0'}; const r=await b.check();
+   ok('already next: queued again without a second download', r==='queued:'+bump(APP) && !up.calls.some(c=>c.startsWith('download')), up.calls.join(' '));
+ }
+ { /* browser: the boot hook does nothing */
+   const b=await boot({shell:false}); ok('browser: no launch-time apply', b.run('otaBoot')===null);
+ }
  /* 13. the real ota.json on disk matches the files it lists */
  { const m=JSON.parse(fs.readFileSync(path.join(dir,'ota.json'),'utf8'));
    ok('ota.json version is this build\'s version', m.version===APP, m.version+' vs '+APP);

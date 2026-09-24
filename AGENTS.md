@@ -73,6 +73,10 @@ and some of it changes the web build too. Landed and planned:
   supabase/functions/delete-account (deployed by deploy-fn.yml, no secrets).
   Sign-out and deletion both go through forgetDevice() in js/core.js.
   Any new Edge Function must allow `capacitor://localhost` (buildcheck).
+- v4.6.114 — OTA updates now install: js/ota.js applies a newer queued bundle
+  at launch (otaApplyPending). Read its header before touching the updater
+  calls; the fake in tools/test-ota.js models the plugin's delay rules and
+  must keep doing so.
 - Next: Sign in with Apple (App Review 4.8, forced by the Google provider);
   in-app account deletion (4.9/5.1.1(v)); HealthKit write + local
   notifications (4.2 minimum functionality).
