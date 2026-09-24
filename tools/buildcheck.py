@@ -625,6 +625,16 @@ if "P.next({id:curId||'builtin'})" not in _ota_js:
     fail.append("js/ota.js no longer un-queues a next bundle it did not apply -- the plugin installs it on background, a downgrade after a rebuild (v4.6.116)")
 if "otaBoot=otaApplyPending(P)" not in _ota_js:
     fail.append("js/ota.js no longer applies pending updates at launch (v4.6.114)")
+# -- v4.6.117: App Store Connect needs a privacy policy URL and a support URL
+#    that load, and 5.1.1(i) wants the policy reachable from inside the app.
+for _pg in ("privacy.html", "support.html"):
+    if not (d/_pg).exists():
+        fail.append(f"{_pg} is gone -- App Store Connect links to it (v4.6.117)")
+_st = (d/"js/settings.js").read_text()
+if "https://tahros.github.io/showup/privacy.html" not in _st:
+    fail.append("Settings no longer links the privacy policy by absolute URL -- App Review 5.1.1(i) (v4.6.117)")
+if (d/"privacy.html").exists() and "Delete account" not in (d/"privacy.html").read_text():
+    fail.append("privacy.html no longer says how to delete the account (v4.6.117)")
 _pkg_deps = (_pkg.get("dependencies", {}) if _pkg_f.exists() else {})
 for _dep, _why in (("@capacitor/app", "appUrlOpen, the sign-in link back into the app"),
                    ("@capacitor/browser", "the in-app Safari sheet Google sign-in opens in")):

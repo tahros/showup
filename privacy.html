@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ShowUp Privacy Policy</title>
+<meta name="description" content="What ShowUp stores, where, who it is shared with, and how to delete it.">
+<link rel="stylesheet" href="css/fonts.css">
+<link rel="stylesheet" href="legal.css">
+</head>
+<body>
+<main>
+<p class="eyebrow"><a href="./">ShowUp</a></p>
+<h1>Privacy Policy</h1>
+<p class="meta">Effective September 24, 2026 · ShowUp is made by YOOOOOOOOO LLC</p>
+
+<p class="lead">ShowUp is a workout log. It keeps what you log so it can show it back to you. It has no ads, no analytics, no tracking, and it sells nothing about you to anyone.</p>
+
+<h2>Without an account</h2>
+<p>You can use ShowUp without signing in. Everything you log stays on your device, in the app's own storage. Nothing leaves the device, and we never see it.</p>
+
+<h2>With an account</h2>
+<p>Signing in turns on sync between your devices. You sign in with Google through Supabase, the database provider that hosts ShowUp's sync. When you do, we store:</p>
+<ul>
+  <li><strong>Your email address and a Google account ID</strong>, to know which records are yours.</li>
+  <li><strong>What you log in the app</strong>: workouts, sets, runs and other activities, plans, bodyweight if you record it, and your app settings, including the name you give the app.</li>
+</ul>
+<p>Each account can read and write only its own record. We use it for one purpose: to keep your devices in sync.</p>
+
+<h2>The session writer</h2>
+<p>ShowUp can write a workout session or a week for you. This happens only when you tap <strong>Write</strong>. At that moment the app sends a summary of your recent training to our server, which forwards it to Anthropic's Claude model and returns the session:</p>
+<ul>
+  <li>Your last eight weeks of sets: dates, exercises, weights and reps.</li>
+  <li>Your exercise list, and figures the app computes from your history (which body parts are due, how your recent sessions were built).</li>
+  <li>The objective you pick and any note you type.</li>
+</ul>
+<p>It does not send your name, your email, or your day count. Our server does not store the request or the answer. Anthropic processes it under its <a href="https://www.anthropic.com/legal/commercial-terms">commercial terms</a>, which do not allow it to train models on this data. If you never tap Write, none of this is sent.</p>
+
+<h2>Who else handles your data</h2>
+<ul>
+  <li><strong>Supabase</strong> hosts the sync database and runs our two server functions.</li>
+  <li><strong>Google</strong> handles sign-in when you choose Google.</li>
+  <li><strong>Anthropic</strong> writes sessions, only when you ask.</li>
+  <li><strong>GitHub Pages</strong> serves the app's files and its updates. Like any web host, it sees the IP address of the device downloading them.</li>
+</ul>
+<p>We share nothing with anyone else, and nothing for advertising.</p>
+
+<h2>Deleting your data</h2>
+<ul>
+  <li><strong>Delete your account</strong> in the app: Settings → Account &amp; cloud sync → Delete account. This permanently erases your account and everything synced to it, and clears the copy on that device.</li>
+  <li><strong>Sign out</strong> removes your data from that device only. Your synced copy stays, so you can sign back in.</li>
+  <li><strong>Without an account,</strong> deleting the app deletes your data.</li>
+</ul>
+<p>You can also email us to have your account deleted. Before deleting, you can download everything you've logged with <strong>Backup</strong> in Settings.</p>
+
+<h2>Children</h2>
+<p>ShowUp is not directed at children under 13, and we do not knowingly collect their data.</p>
+
+<h2>Changes</h2>
+<p>If this policy changes, we'll update this page and its effective date.</p>
+
+<h2>Contact</h2>
+<p>Questions or requests: <a href="mailto:sungjee@yooooooooo.co">sungjee@yooooooooo.co</a></p>
+
+<p class="foot"><a href="support.html">Support</a> · <a href="./">Open ShowUp</a></p>
+</main>
+</body>
+</html>

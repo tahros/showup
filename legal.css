@@ -1,0 +1,21 @@
+/* v4.6.117: the privacy policy and support pages (App Store Connect needs both
+   URLs, and 5.1.1(i) wants the policy reachable from inside the app). Plain
+   reading pages in the app's own type, light and dark. Not part of the app
+   bundle: build-dist ships a root file only if the app references it. */
+:root{--bg:#F2F3F6;--ink:#1B1B1B;--soft:#525252;--line:#E1E3E8;--link:#1F5FD6;color-scheme:light dark}
+@media (prefers-color-scheme:dark){:root{--bg:#111214;--ink:#F1F1F1;--soft:#A9A9A9;--line:#2A2C31;--link:#7FA8FF}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.6 'IBM Plex Sans',system-ui,-apple-system,sans-serif;-webkit-text-size-adjust:100%}
+main{max-width:640px;margin:0 auto;padding:40px 20px 64px}
+a{color:var(--link);text-underline-offset:2px}
+.eyebrow{margin:0 0 8px;font:600 13px/1 'IBM Plex Mono',ui-monospace,monospace;letter-spacing:.06em;text-transform:uppercase}
+.eyebrow a{color:var(--soft);text-decoration:none}
+h1{margin:0 0 6px;font-size:32px;line-height:1.15;font-weight:700;letter-spacing:-.01em}
+.meta{margin:0 0 24px;color:var(--soft);font-size:14px}
+.lead{font-size:18px;line-height:1.55;margin:0 0 8px}
+h2{margin:36px 0 8px;padding-top:20px;border-top:1px solid var(--line);font-size:19px;font-weight:600}
+h3{margin:22px 0 4px;font-size:16px;font-weight:600}
+p{margin:0 0 12px}
+ul{margin:0 0 12px;padding-left:20px}
+li{margin:0 0 6px}
+.foot{margin-top:40px;padding-top:16px;border-top:1px solid var(--line);color:var(--soft);font-size:14px}

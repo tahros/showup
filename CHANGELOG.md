@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v4.6.117 (2026-09-24) — Privacy policy and support pages
+
+- **`privacy.html`** and **`support.html`**, served at tahros.github.io/showup/. App Store Connect needs both URLs, and they must load. The contact on both is sungjee@yooooooooo.co.
+- The policy describes what the code does, checked against it: nothing leaves the device without an account; with one, the email, a Google account ID, and what you log, used only for sync and readable only by that account; the session writer sends eight weeks of sets, the exercise list, computed figures, the objective and the note to Anthropic **only when you tap Write**, never your name, email or day count, and the server stores nothing; four processors (Supabase, Google, Anthropic, GitHub Pages); deletion in the app, by sign-out, or by email; no ads, analytics or tracking.
+- **Settings → Privacy Policy · Support**, under the account card, in the note style. Guideline 5.1.1(i) wants the policy reachable from inside the app. The links are absolute, because inside the iOS app a relative link would point at the app's own files, which don't include these pages.
+- The pages use the app's type (IBM Plex, self-hosted) and follow light and dark. Their stylesheet, `legal.css`, sits at the root, so it stays out of the app bundle.
+- buildcheck: both pages exist, the in-app link is absolute, and the policy still explains deletion.
+
 ## v4.6.116 (2026-09-24) — No downgrade after a native rebuild
 
 - **Found on the phone:** after the Mac rebuild put 4.6.114 into the test app, it went back to 4.6.113. An old 4.6.113 bundle was still queued as the updater's "next" one. v4.6.114 correctly refused to apply it and tried to delete it, but the updater will not delete its next bundle. The first time the app went to the background it installed that bundle on its own. That was a downgrade, back to code with the original bug.

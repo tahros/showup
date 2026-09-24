@@ -106,6 +106,10 @@ function renderSync(){
           <div class="note" style="margin-top:8px">One-time setup — see INSTALL.md — create the free database, run one SQL file, switch on Google sign-in.</div>`}
       `}
     </div>
+    <!-- v4.6.117: App Store 5.1.1(i) wants the privacy policy reachable in the app.
+         Absolute URLs: inside the iOS app a relative link would resolve to the
+         app's own files, which do not carry these pages. -->
+    <div class="note legal-links" style="text-align:center;margin:10px 0 0"><a href="https://tahros.github.io/showup/privacy.html" target="_blank" rel="noopener">Privacy Policy</a> · <a href="https://tahros.github.io/showup/support.html" target="_blank" rel="noopener">Support</a></div>
     <h2>You</h2>
     <div class="card">
       <div class="fld text" style="margin-bottom:8px"><label>Name — what the app calls you</label>

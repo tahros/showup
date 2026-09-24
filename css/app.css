@@ -1538,6 +1538,7 @@
   .repcard .btn{margin:0}
   .repcard .btn:disabled{opacity:.6}
   /* v3.3.513: the version, at the top of Settings where you land */
+  .legal-links a{color:inherit;text-underline-offset:2px}   /* v4.6.117 */
   .vertag{margin:2px 0 -6px;text-align:center;font-size:11px;color:var(--faint);
     letter-spacing:.2px}
   #view>.card.rephistory{padding:0;overflow:hidden}
