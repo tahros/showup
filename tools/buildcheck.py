@@ -661,7 +661,7 @@ for _ic in ("AppIcon-1024.png", "AppIcon-1024-dark.png"):
     if _b[:8] != b"\x89PNG\r\n\x1a\n" or (_w, _h) != (1024, 1024) or _b[25] not in (0, 2):
         fail.append(f"assets/ios/{_ic} must be a 1024x1024 PNG with no alpha channel -- run tools/ios-icon-finish.py (v4.6.119)")
 import subprocess as _sp
-if (d/".git").exists() and _sp.run(["git","-C",str(d),"check-ignore","-q","assets/ios/AppIcon-1024.png"]).returncode == 0:
+if (d/".git").exists() and _sp.run(["git","-C",str(d),"check-ignore","-q","--no-index","assets/ios/AppIcon-1024.png"]).returncode == 0:
     fail.append(".gitignore hides assets/ios/ -- the icon would never reach the Mac (anchor the generated folder as /ios/) (v4.6.119)")
 if "AppIcon-1024.png" not in (d/"tools/ios-config.py").read_text():
     fail.append("ios-config.py no longer installs the app icon (v4.6.119)")
