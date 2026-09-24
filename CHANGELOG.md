@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v4.6.112 (2026-09-24) — Signing in combines a day, it no longer picks one
+
+- **The incident:** this morning's sets in the PWA were replaced by test sets logged in the iOS build before it could sign in. Sync keeps the newer copy of each day, whole. That is right between devices that are already in sync, because each pulls before it logs. It is wrong for a device that logged while signed out: it never saw the cloud's copy, so "newer" only meant "logged last".
+- **The fix:** the first pull after sign-in (the web page return and the iOS app link alike) unions every day both sides have: sets by their key-order-safe signature, in logged order, plus completion, session boundaries, weigh-in and rest. The combined day is stamped now, so every other device takes it whole.
+- **Only that one pull.** Every later pull is newest-wins as before, so a set deleted on one device stays deleted. The flag is consumed by the pull that *merges*, not the one that starts, because boot fires a second pull right behind sign-in's; a pull that fails leaves it armed for the next.
+- The legacy unstamped-day union now shares the same function (`unionDay`), unchanged in behaviour apart from sorting combined sets by time.
+- `tools/test-signin-merge.js` (16 assertions, both sign-in paths, the race, a failed pull, and the unchanged ordinary sync); all 7 mutants killed. buildcheck fails if either sign-in path stops arming the combine.
+- Not recoverable by this release: the sets already lost this morning. Only a local daily backup could still hold them.
+
 ## v4.6.111 (2026-09-24) — Google sign-in works inside the iOS app
 
 - **The bug:** in the iOS test build, Continue with Google opened Chrome and never came back. The web flow is a full-page redirect that returns to the page it left, and in the app that page is `capacitor://localhost`: no redirect can reach it, and Capacitor handed the Google page to the default browser.

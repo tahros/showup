@@ -1,7 +1,7 @@
 /* ShowUp — core.js
    Extracted verbatim from index.html (v3.2.5 refactor). Classic script:
    shares one global scope with its siblings, loaded in order by index.html. */
-const APP_VERSION = 'v4.6.111';
+const APP_VERSION = 'v4.6.112';
 const SEED0 = {catalog:{"Chest":["Incline Smith Machine Bench Press","Flat Smith Machine Bench Press","Incline Dumbbell Bench Press","Chest Press","Chest Fly","Cable Fly Up","Cable Fly Down","Chest Squeeze","Dip","Barbell Bench Press","Incline Barbell Bench Press","Decline Barbell Bench Press","Dumbbell Bench Press","Decline Dumbbell Bench Press","Machine Chest Press","Cable Crossover","Incline Cable Fly","Low Cable Fly","Dumbbell Pullover","Landmine Press","Svend Press","Push Up","Weighted Push Up"],"Back":["Pull Up","Lat Pulldown","Bent-Over Row","Deadlift","Chin Up","Weighted Pull Up","Seated Cable Row","Single-Arm Dumbbell Row","T-Bar Row","Pendlay Row","Barbell Shrug","Rack Pull","Straight-Arm Pulldown","Close-Grip Lat Pulldown","Inverted Row","Chest-Supported Row","Machine Row"],"Shoulder":["Dumbbell Shoulder Press","Lateral Raise","Dumbbell Front Raise","Dumbbell Combination","Dumbbell Bent Over Side Raise","Rear Deltoids","Overhead Barbell Press","Arnold Press","Machine Shoulder Press","Cable Lateral Raise","Face Pull","Upright Row","Reverse Pec Deck","Landmine Lateral Raise","Cable Rear Delt Fly"],"Legs":["Squat","Dumbbell Lunge","Front Squat","Hack Squat","Leg Press","Romanian Deadlift","Bulgarian Split Squat","Walking Lunge","Leg Extension","Lying Leg Curl","Seated Leg Curl","Hip Thrust","Goblet Squat","Standing Calf Raise","Seated Calf Raise","Step Up"],"Biceps":["Barbell Curl","Dumbbell Curl","Hammer Curl","EZ Bar Curl","Preacher Curl","Cable Curl","Incline Dumbbell Curl","Concentration Curl","Spider Curl","Reverse Curl","Cable Hammer Curl"],"Triceps":["Overhead Triceps Extension","Close Grip Bench Press","Triceps Pushdown","Rope Pushdown","Skull Crusher","Bench Dip","Dumbbell Kickback","Overhead Cable Extension","Diamond Push Up"],"Sixpack":["Hanging Leg Raise","Leg Raise","Plank","Cable Crunch","Russian Twist","Ab Wheel Rollout","Bicycle Crunch","Sit Up","Decline Sit Up","Mountain Climber","Side Plank"],"Run":["Run","Walk","Cycling","Rowing","Elliptical","Stair Climber","Swimming","Jump Rope"]},ex2part:{"Incline Smith Machine Bench Press":"Chest","Flat Smith Machine Bench Press":"Chest","Incline Dumbbell Bench Press":"Chest","Chest Press":"Chest","Chest Fly":"Chest","Cable Fly Up":"Chest","Cable Fly Down":"Chest","Chest Squeeze":"Chest","Dip":"Chest","Barbell Bench Press":"Chest","Incline Barbell Bench Press":"Chest","Decline Barbell Bench Press":"Chest","Dumbbell Bench Press":"Chest","Decline Dumbbell Bench Press":"Chest","Machine Chest Press":"Chest","Cable Crossover":"Chest","Incline Cable Fly":"Chest","Low Cable Fly":"Chest","Dumbbell Pullover":"Chest","Landmine Press":"Chest","Svend Press":"Chest","Push Up":"Chest","Weighted Push Up":"Chest","Pull Up":"Back","Lat Pulldown":"Back","Bent-Over Row":"Back","Deadlift":"Back","Chin Up":"Back","Weighted Pull Up":"Back","Seated Cable Row":"Back","Single-Arm Dumbbell Row":"Back","T-Bar Row":"Back","Pendlay Row":"Back","Barbell Shrug":"Back","Rack Pull":"Back","Straight-Arm Pulldown":"Back","Close-Grip Lat Pulldown":"Back","Inverted Row":"Back","Chest-Supported Row":"Back","Machine Row":"Back","Dumbbell Shoulder Press":"Shoulder","Lateral Raise":"Shoulder","Dumbbell Front Raise":"Shoulder","Dumbbell Combination":"Shoulder","Dumbbell Bent Over Side Raise":"Shoulder","Rear Deltoids":"Shoulder","Overhead Barbell Press":"Shoulder","Arnold Press":"Shoulder","Machine Shoulder Press":"Shoulder","Cable Lateral Raise":"Shoulder","Face Pull":"Shoulder","Upright Row":"Shoulder","Reverse Pec Deck":"Shoulder","Landmine Lateral Raise":"Shoulder","Cable Rear Delt Fly":"Shoulder","Squat":"Legs","Dumbbell Lunge":"Legs","Front Squat":"Legs","Hack Squat":"Legs","Leg Press":"Legs","Romanian Deadlift":"Legs","Bulgarian Split Squat":"Legs","Walking Lunge":"Legs","Leg Extension":"Legs","Lying Leg Curl":"Legs","Seated Leg Curl":"Legs","Hip Thrust":"Legs","Goblet Squat":"Legs","Standing Calf Raise":"Legs","Seated Calf Raise":"Legs","Step Up":"Legs","Barbell Curl":"Biceps","Dumbbell Curl":"Biceps","Hammer Curl":"Biceps","EZ Bar Curl":"Biceps","Preacher Curl":"Biceps","Cable Curl":"Biceps","Incline Dumbbell Curl":"Biceps","Concentration Curl":"Biceps","Spider Curl":"Biceps","Reverse Curl":"Biceps","Cable Hammer Curl":"Biceps","Overhead Triceps Extension":"Triceps","Close Grip Bench Press":"Triceps","Triceps Pushdown":"Triceps","Rope Pushdown":"Triceps","Skull Crusher":"Triceps","Bench Dip":"Triceps","Dumbbell Kickback":"Triceps","Overhead Cable Extension":"Triceps","Diamond Push Up":"Triceps","Hanging Leg Raise":"Sixpack","Leg Raise":"Sixpack","Plank":"Sixpack","Cable Crunch":"Sixpack","Russian Twist":"Sixpack","Ab Wheel Rollout":"Sixpack","Bicycle Crunch":"Sixpack","Sit Up":"Sixpack","Decline Sit Up":"Sixpack","Mountain Climber":"Sixpack","Side Plank":"Sixpack","Run":"Run","Walk":"Run","Cycling":"Run","Rowing":"Run","Elliptical":"Run","Stair Climber":"Run","Swimming":"Run","Jump Rope":"Run"},equip:{"Incline Smith Machine Bench Press":"smith","Flat Smith Machine Bench Press":"smith","Incline Dumbbell Bench Press":"dumbbell","Chest Press":"machine","Chest Fly":"machine","Cable Fly Up":"cable","Cable Fly Down":"cable","Chest Squeeze":"body","Dip":"body","Barbell Bench Press":"barbell","Incline Barbell Bench Press":"barbell","Decline Barbell Bench Press":"barbell","Dumbbell Bench Press":"dumbbell","Decline Dumbbell Bench Press":"dumbbell","Machine Chest Press":"machine","Cable Crossover":"cable","Incline Cable Fly":"cable","Low Cable Fly":"cable","Dumbbell Pullover":"dumbbell","Landmine Press":"barbell","Svend Press":"dumbbell","Push Up":"body","Weighted Push Up":"body","Pull Up":"body","Lat Pulldown":"cable","Bent-Over Row":"barbell","Deadlift":"barbell","Chin Up":"body","Weighted Pull Up":"body","Seated Cable Row":"cable","Single-Arm Dumbbell Row":"dumbbell","T-Bar Row":"barbell","Pendlay Row":"barbell","Barbell Shrug":"barbell","Rack Pull":"barbell","Straight-Arm Pulldown":"cable","Close-Grip Lat Pulldown":"cable","Inverted Row":"body","Chest-Supported Row":"cable","Machine Row":"cable","Dumbbell Shoulder Press":"dumbbell","Lateral Raise":"dumbbell","Dumbbell Front Raise":"dumbbell","Dumbbell Combination":"dumbbell","Dumbbell Bent Over Side Raise":"dumbbell","Rear Deltoids":"machine","Overhead Barbell Press":"barbell","Arnold Press":"dumbbell","Machine Shoulder Press":"machine","Cable Lateral Raise":"cable","Face Pull":"cable","Upright Row":"barbell","Reverse Pec Deck":"machine","Landmine Lateral Raise":"cable","Cable Rear Delt Fly":"cable","Squat":"barbell","Dumbbell Lunge":"dumbbell","Front Squat":"barbell","Hack Squat":"plate","Leg Press":"plate","Romanian Deadlift":"barbell","Bulgarian Split Squat":"dumbbell","Walking Lunge":"dumbbell","Leg Extension":"machine","Lying Leg Curl":"machine","Seated Leg Curl":"machine","Hip Thrust":"barbell","Goblet Squat":"barbell","Standing Calf Raise":"machine","Seated Calf Raise":"machine","Step Up":"dumbbell","Barbell Curl":"barbell","Dumbbell Curl":"dumbbell","Hammer Curl":"dumbbell","EZ Bar Curl":"barbell","Preacher Curl":"barbell","Cable Curl":"cable","Incline Dumbbell Curl":"dumbbell","Concentration Curl":"dumbbell","Spider Curl":"dumbbell","Reverse Curl":"barbell","Cable Hammer Curl":"cable","Overhead Triceps Extension":"machine","Close Grip Bench Press":"barbell","Triceps Pushdown":"cable","Rope Pushdown":"cable","Skull Crusher":"barbell","Bench Dip":"body","Dumbbell Kickback":"dumbbell","Overhead Cable Extension":"cable","Diamond Push Up":"body","Hanging Leg Raise":"body","Leg Raise":"body","Plank":"body","Cable Crunch":"cable","Russian Twist":"body","Ab Wheel Rollout":"body","Bicycle Crunch":"body","Sit Up":"body","Decline Sit Up":"body","Mountain Climber":"body","Side Plank":"body","Run":"run"},sessions:{},dates:[],monthly:{},pr:{},hist:{},last:{},lastSess:{},repFreq:{},exFreq:{},exLast:{},partCount:{},partLast:{},partDays:{},totals:{sessions:0,first:null,last:'0000-00-00',km:0,vol:0}};
 /* v3.2.1: the 918-day seed literal is GONE (~75% of this file). History lives
    in doc.days (Supabase + localStorage). Full seed preserved forever in git
@@ -174,6 +174,7 @@ async function captureOAuth(){
   }catch(e){}
   await saveSession({access_token:at,refresh_token:rt,expires_at:Date.now()+ei*1000,user});
   toast('Signed in'+(user.email?' as '+user.email:''));
+  pullUnion=true;                  // v4.6.112: first pull after sign-in combines days
   cloudPull();
 }
 async function freshToken(){
@@ -303,6 +304,7 @@ async function handleAuthLink(link){
     expires_at:Date.now()+(+j.expires_in||3600)*1000,user});
   try{ if(document.getElementById('googleBtn')) renderSync(); }catch(e){}   // the open settings sheet flips to signed-in
   toast('Signed in'+(user.email?' as '+user.email:''));
+  pullUnion=true;                  // v4.6.112: first pull after sign-in combines days
   cloudPull();
   return 'signed-in';
 }
@@ -392,6 +394,41 @@ function syncState(s){
           : 'Settings, account & sync';
 }
 let pulledOK=false, lastPullAt=0;
+/* v4.6.112: THE FIRST PULL AFTER SIGN-IN COMBINES, IT DOES NOT CHOOSE.
+   Normal sync is per-day newest-wins, which is right between devices that
+   are already in sync: each one pulled before it logged, so the newer day
+   already contains the older one, and a deletion travels as a newer day.
+   It is wrong for a device signing in with work it logged while signed out.
+   That device never saw the cloud's copy of the day, so "newest" is just
+   "whoever logged last", and the other copy was discarded whole. That is how
+   a morning's sets in the PWA were replaced by test sets logged in the iOS
+   build before it could sign in (2026-09-24).
+   So sign-in arms pullUnion. The next pull that reaches the cloud unions
+   every day both sides have (sets by key-order-safe signature, completion
+   and metadata as the legacy branch always did) and stamps the result now,
+   so every other device takes the combined day whole. The flag is consumed
+   by the pull that MERGES, not the one that starts: boot fires a second pull
+   right behind the sign-in one, and whichever lands first must union.
+   A deletion cannot be undone by this: a device that just signed in has no
+   copy of another device's sets to resurrect (sign-out wipes the device). */
+let pullUnion=false;
+function unionDay(lv,rv){
+  let n=0;
+  lv.w=lv.w||[];
+  const seen=new Set(lv.w.map(sig));
+  for(const s of rv.w||[]) if(!seen.has(sig(s))){lv.w.push(s);seen.add(sig(s));n++;}
+  if(n&&lv.w.every(s=>s.at)) lv.w.sort((a,b)=>a.at-b.at);
+  if(rv.doneEx)   lv.doneEx  =[...new Set([...(lv.doneEx||[]),  ...rv.doneEx])];
+  if(rv.donePart) lv.donePart=[...new Set([...(lv.donePart||[]),...rv.donePart])];
+  if(rv.doneAll)  lv.doneAll = true;      // completed anywhere = completed everywhere
+  if(rv.lastAt)   lv.lastAt  = Math.max(lv.lastAt||0, rv.lastAt);
+  if(rv.completedAt) lv.completedAt=Math.max(lv.completedAt||0,rv.completedAt);
+  if(rv.closed)   lv.closed  =[...new Set([...(lv.closed||[]),...rv.closed])].sort((a,b)=>a-b);   // v4.6.69: session boundaries union
+  if(rv.sugX)     lv.sugX    = Object.assign({}, rv.sugX, lv.sugX||{});
+  if(rv.bw&&!lv.bw) lv.bw = rv.bw;   // v3.3.66: a weigh-in is day data too
+  if(rv.rest&&!lv.rest) lv.rest = rv.rest;   // v3.3.79: so is a declared rest day
+  return n;
+}
 async function cloudPull(){
   const tok=await freshToken(); if(!tok) return;
   try{
@@ -399,6 +436,7 @@ async function cloudPull(){
       headers:{apikey:cloudCfg().anon,Authorization:'Bearer '+tok}});
     if(!r.ok) return toast('Cloud pull failed ('+r.status+')');
     const rows=await r.json();
+    const union=pullUnion; pullUnion=false;               // consumed by the pull that merges (see above)
     if(!rows.length){ pulledOK=true; cloudPush(); maybeOnboard(); return; }   // cloud confirmed empty: safe to seed
     const remote=rows[0].doc||{};
     let merged=0;
@@ -410,22 +448,15 @@ async function cloudPull(){
       if(typeof plMergeDayMetadata==='function'){
         plMergeDayMetadata(rv,lv);plMergeDayMetadata(lv,rv);
       }
+      if(union){                                         // v4.6.112: signing in with local work -- combine
+        merged+=unionDay(lv,rv); lv.upd=Date.now(); continue;
+      }
       if(ru>lu){ DB.days[d]=rv; merged++; continue; }   // remote day is newer: take it whole
       if(lu>ru) continue;                                // local day is newer: keep it whole
       // both unstamped (pre-v2.19 legacy): key-order-safe union of sets —
       // AND of the completion state, which the old union silently dropped
       // (that's how a workout completed on the phone stayed "live" on the laptop).
-      const seen=new Set(lv.w.map(sig));
-      for(const s of rv.w||[]) if(!seen.has(sig(s))){lv.w.push(s);seen.add(sig(s));merged++;}
-      if(rv.doneEx)   lv.doneEx  =[...new Set([...(lv.doneEx||[]),  ...rv.doneEx])];
-      if(rv.donePart) lv.donePart=[...new Set([...(lv.donePart||[]),...rv.donePart])];
-      if(rv.doneAll)  lv.doneAll = true;      // completed anywhere = completed everywhere
-      if(rv.lastAt)   lv.lastAt  = Math.max(lv.lastAt||0, rv.lastAt);
-      if(rv.completedAt) lv.completedAt=Math.max(lv.completedAt||0,rv.completedAt);
-      if(rv.closed)   lv.closed  =[...new Set([...(lv.closed||[]),...rv.closed])].sort((a,b)=>a-b);   // v4.6.69: session boundaries union
-      if(rv.sugX)     lv.sugX    = Object.assign({}, rv.sugX, lv.sugX||{});
-      if(rv.bw&&!lv.bw) lv.bw = rv.bw;   // v3.3.66: a weigh-in is day data too
-      if(rv.rest&&!lv.rest) lv.rest = rv.rest;   // v3.3.79: so is a declared rest day
+      merged+=unionDay(lv,rv);
     }
     adoptRemoteSettings(remote);
     if(typeof plMerge==='function')plMerge(remote);

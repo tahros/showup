@@ -585,6 +585,13 @@ if "code_challenge_method:'s256'" not in _core or "grant_type=pkce" not in _core
     fail.append("the iOS sign-in is no longer PKCE with s256 -- a code caught by another app could be redeemed (v4.6.111)")
 if not _re.search(r"function signInGoogle\(\)\{.*?if\(NATIVE_SHELL\) return signInGoogleNative\(\)", _core, _re.S):
     fail.append("signInGoogle() no longer routes the iOS app to the native flow -- it would strand the user in Chrome (v4.6.111)")
+# -- v4.6.112: both sign-in paths arm the combine; the pull that merges consumes it.
+for _fn in ("captureOAuth", "handleAuthLink"):
+    _m = _re.search(r"async function " + _fn + r"\(.*?\n\}", _core, _re.S)
+    if not _m or "pullUnion=true" not in _m.group(0):
+        fail.append(f"{_fn}() no longer arms pullUnion -- signing in would discard the sets this device logged while signed out (v4.6.112)")
+if "const union=pullUnion; pullUnion=false;" not in _core:
+    fail.append("cloudPull() no longer consumes pullUnion at merge time -- a second pull could combine forever, or the race with boot's pull could skip it (v4.6.112)")
 if "nativeAuthBoot()" not in (d/"js/app.js").read_text():
     fail.append("boot no longer calls nativeAuthBoot() -- the sign-in link would arrive with nobody listening (v4.6.111)")
 _pkg_deps = (_pkg.get("dependencies", {}) if _pkg_f.exists() else {})
