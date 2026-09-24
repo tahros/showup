@@ -17,6 +17,8 @@ What it sets, and why:
                         rest timer lives during a live set (v3.3.426).
   app icon              assets/ios/AppIcon-1024(-dark).png into the asset
                         catalog, replacing Capacitor's placeholder (v4.6.119).
+  scroll bounce         Capacitor turns it off; a CAPBridgeViewController
+                        subclass turns it back on (v4.6.120).
   iPhone only           TARGETED_DEVICE_FAMILY 1, no iPad, and no "Designed for
                         iPad" builds on Mac or Vision Pro. Shipping iPad means
                         a mandatory iPad screenshot set and an iPad review.
@@ -77,4 +79,36 @@ if (icons / "AppIcon-1024.png").exists() and iconset.exists():
     old_ph = iconset / "AppIcon-512@2x.png"
     if old_ph.exists():
         old_ph.unlink()                                  # Capacitor's placeholder, now unreferenced
-print(f"ios-config: {SCHEME}:// registered, portrait + landscape, iPhone only, ShowUp icon")
+# v4.6.120: the scroll bounce. Capacitor hard-codes scrollView.bounces = false
+# when it builds the web view (CAPBridgeViewController.prepareWebView), with no
+# config key to undo it, so the app felt rigid at both ends. Its documented
+# hook, capacitorDidLoad(), runs after that; a subclass turns the bounce back
+# on and the storyboard points at the subclass. The class lives in
+# AppDelegate.swift, a file already in the Xcode target, so the project file
+# needs no new entry. The web side already keeps the bounce (css/app.css:
+# html{overscroll-behavior-y:contain}).
+VC_MARK = "// ShowUp: ShowUpViewController (tools/ios-config.py)"
+VC_SWIFT = """
+// ShowUp: ShowUpViewController (tools/ios-config.py)
+// Capacitor sets scrollView.bounces = false; ShowUp wants iOS's rubber-band
+// at the top and bottom. capacitorDidLoad() runs after Capacitor's setup.
+class ShowUpViewController: CAPBridgeViewController {
+    override func capacitorDidLoad() {
+        super.capacitorDidLoad()
+        webView?.scrollView.bounces = true
+        webView?.scrollView.alwaysBounceVertical = true
+    }
+}
+"""
+ad = d / "ios/App/App/AppDelegate.swift"
+sb = d / "ios/App/App/Base.lproj/Main.storyboard"
+if ad.exists() and sb.exists():
+    src = ad.read_text()
+    if VC_MARK not in src:
+        ad.write_text(src.rstrip("\n") + "\n" + VC_SWIFT)
+    s = sb.read_text()
+    s2 = s.replace('customClass="CAPBridgeViewController" customModule="Capacitor"',
+                   'customClass="ShowUpViewController" customModule="App" customModuleProvider="target"')
+    if s2 != s:
+        sb.write_text(s2)
+print(f"ios-config: {SCHEME}:// registered, portrait + landscape, iPhone only, ShowUp icon, scroll bounce")

@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.120 (2026-09-24) — The iOS app bounces again
+
+- **The bug (found on the phone):** scrolling in the test app felt rigid and stuck at the ends. Capacitor sets `scrollView.bounces = false` when it creates the web view, and there is no setting to undo it. The web app never had this problem, because Safari keeps the bounce and the CSS already allows it (`html{overscroll-behavior-y:contain}`).
+- **The fix:** `tools/ios-config.py` adds a small `ShowUpViewController` subclass of Capacitor's view controller. Its `capacitorDidLoad()` hook runs after Capacitor's setup and turns the bounce back on, and the storyboard is pointed at it. The class goes into `AppDelegate.swift`, which is already part of the Xcode target, so no project file is edited by hand. Running it twice changes nothing.
+- At the top of a page, pull-to-refresh still owns the drag, as it does in the web app. The spring shows at the bottom and while flinging.
+- Native only, so it needs the Mac rebuild. buildcheck fails if ios-config stops restoring the bounce.
+
 ## v4.6.119 (2026-09-24) — The App Store icon
 
 - **`assets/ios/AppIcon-1024.png`**: the approved "C" composition (white mascot at 82% on ShowUp Blue #3049dc, MASCOT.md v4.1.7). It is re-rendered from the mascot's 3D renderer on a stage four times larger, because the only existing mark was 512px and Apple needs 1024. The size is the same as the installed web icons, and the mascot is centred on its body: the old crop left it about 39px high, with 237px above and 315px below; now there are 277px above and below. The faint contact shadow hangs below the centred body. The mascot's body now has the approved v4.5.28 white shading, a little softer at the edges than the older web icon.
