@@ -1,7 +1,7 @@
 /* ShowUp — core.js
    Extracted verbatim from index.html (v3.2.5 refactor). Classic script:
    shares one global scope with its siblings, loaded in order by index.html. */
-const APP_VERSION = 'v4.6.110';
+const APP_VERSION = 'v4.6.111';
 const SEED0 = {catalog:{"Chest":["Incline Smith Machine Bench Press","Flat Smith Machine Bench Press","Incline Dumbbell Bench Press","Chest Press","Chest Fly","Cable Fly Up","Cable Fly Down","Chest Squeeze","Dip","Barbell Bench Press","Incline Barbell Bench Press","Decline Barbell Bench Press","Dumbbell Bench Press","Decline Dumbbell Bench Press","Machine Chest Press","Cable Crossover","Incline Cable Fly","Low Cable Fly","Dumbbell Pullover","Landmine Press","Svend Press","Push Up","Weighted Push Up"],"Back":["Pull Up","Lat Pulldown","Bent-Over Row","Deadlift","Chin Up","Weighted Pull Up","Seated Cable Row","Single-Arm Dumbbell Row","T-Bar Row","Pendlay Row","Barbell Shrug","Rack Pull","Straight-Arm Pulldown","Close-Grip Lat Pulldown","Inverted Row","Chest-Supported Row","Machine Row"],"Shoulder":["Dumbbell Shoulder Press","Lateral Raise","Dumbbell Front Raise","Dumbbell Combination","Dumbbell Bent Over Side Raise","Rear Deltoids","Overhead Barbell Press","Arnold Press","Machine Shoulder Press","Cable Lateral Raise","Face Pull","Upright Row","Reverse Pec Deck","Landmine Lateral Raise","Cable Rear Delt Fly"],"Legs":["Squat","Dumbbell Lunge","Front Squat","Hack Squat","Leg Press","Romanian Deadlift","Bulgarian Split Squat","Walking Lunge","Leg Extension","Lying Leg Curl","Seated Leg Curl","Hip Thrust","Goblet Squat","Standing Calf Raise","Seated Calf Raise","Step Up"],"Biceps":["Barbell Curl","Dumbbell Curl","Hammer Curl","EZ Bar Curl","Preacher Curl","Cable Curl","Incline Dumbbell Curl","Concentration Curl","Spider Curl","Reverse Curl","Cable Hammer Curl"],"Triceps":["Overhead Triceps Extension","Close Grip Bench Press","Triceps Pushdown","Rope Pushdown","Skull Crusher","Bench Dip","Dumbbell Kickback","Overhead Cable Extension","Diamond Push Up"],"Sixpack":["Hanging Leg Raise","Leg Raise","Plank","Cable Crunch","Russian Twist","Ab Wheel Rollout","Bicycle Crunch","Sit Up","Decline Sit Up","Mountain Climber","Side Plank"],"Run":["Run","Walk","Cycling","Rowing","Elliptical","Stair Climber","Swimming","Jump Rope"]},ex2part:{"Incline Smith Machine Bench Press":"Chest","Flat Smith Machine Bench Press":"Chest","Incline Dumbbell Bench Press":"Chest","Chest Press":"Chest","Chest Fly":"Chest","Cable Fly Up":"Chest","Cable Fly Down":"Chest","Chest Squeeze":"Chest","Dip":"Chest","Barbell Bench Press":"Chest","Incline Barbell Bench Press":"Chest","Decline Barbell Bench Press":"Chest","Dumbbell Bench Press":"Chest","Decline Dumbbell Bench Press":"Chest","Machine Chest Press":"Chest","Cable Crossover":"Chest","Incline Cable Fly":"Chest","Low Cable Fly":"Chest","Dumbbell Pullover":"Chest","Landmine Press":"Chest","Svend Press":"Chest","Push Up":"Chest","Weighted Push Up":"Chest","Pull Up":"Back","Lat Pulldown":"Back","Bent-Over Row":"Back","Deadlift":"Back","Chin Up":"Back","Weighted Pull Up":"Back","Seated Cable Row":"Back","Single-Arm Dumbbell Row":"Back","T-Bar Row":"Back","Pendlay Row":"Back","Barbell Shrug":"Back","Rack Pull":"Back","Straight-Arm Pulldown":"Back","Close-Grip Lat Pulldown":"Back","Inverted Row":"Back","Chest-Supported Row":"Back","Machine Row":"Back","Dumbbell Shoulder Press":"Shoulder","Lateral Raise":"Shoulder","Dumbbell Front Raise":"Shoulder","Dumbbell Combination":"Shoulder","Dumbbell Bent Over Side Raise":"Shoulder","Rear Deltoids":"Shoulder","Overhead Barbell Press":"Shoulder","Arnold Press":"Shoulder","Machine Shoulder Press":"Shoulder","Cable Lateral Raise":"Shoulder","Face Pull":"Shoulder","Upright Row":"Shoulder","Reverse Pec Deck":"Shoulder","Landmine Lateral Raise":"Shoulder","Cable Rear Delt Fly":"Shoulder","Squat":"Legs","Dumbbell Lunge":"Legs","Front Squat":"Legs","Hack Squat":"Legs","Leg Press":"Legs","Romanian Deadlift":"Legs","Bulgarian Split Squat":"Legs","Walking Lunge":"Legs","Leg Extension":"Legs","Lying Leg Curl":"Legs","Seated Leg Curl":"Legs","Hip Thrust":"Legs","Goblet Squat":"Legs","Standing Calf Raise":"Legs","Seated Calf Raise":"Legs","Step Up":"Legs","Barbell Curl":"Biceps","Dumbbell Curl":"Biceps","Hammer Curl":"Biceps","EZ Bar Curl":"Biceps","Preacher Curl":"Biceps","Cable Curl":"Biceps","Incline Dumbbell Curl":"Biceps","Concentration Curl":"Biceps","Spider Curl":"Biceps","Reverse Curl":"Biceps","Cable Hammer Curl":"Biceps","Overhead Triceps Extension":"Triceps","Close Grip Bench Press":"Triceps","Triceps Pushdown":"Triceps","Rope Pushdown":"Triceps","Skull Crusher":"Triceps","Bench Dip":"Triceps","Dumbbell Kickback":"Triceps","Overhead Cable Extension":"Triceps","Diamond Push Up":"Triceps","Hanging Leg Raise":"Sixpack","Leg Raise":"Sixpack","Plank":"Sixpack","Cable Crunch":"Sixpack","Russian Twist":"Sixpack","Ab Wheel Rollout":"Sixpack","Bicycle Crunch":"Sixpack","Sit Up":"Sixpack","Decline Sit Up":"Sixpack","Mountain Climber":"Sixpack","Side Plank":"Sixpack","Run":"Run","Walk":"Run","Cycling":"Run","Rowing":"Run","Elliptical":"Run","Stair Climber":"Run","Swimming":"Run","Jump Rope":"Run"},equip:{"Incline Smith Machine Bench Press":"smith","Flat Smith Machine Bench Press":"smith","Incline Dumbbell Bench Press":"dumbbell","Chest Press":"machine","Chest Fly":"machine","Cable Fly Up":"cable","Cable Fly Down":"cable","Chest Squeeze":"body","Dip":"body","Barbell Bench Press":"barbell","Incline Barbell Bench Press":"barbell","Decline Barbell Bench Press":"barbell","Dumbbell Bench Press":"dumbbell","Decline Dumbbell Bench Press":"dumbbell","Machine Chest Press":"machine","Cable Crossover":"cable","Incline Cable Fly":"cable","Low Cable Fly":"cable","Dumbbell Pullover":"dumbbell","Landmine Press":"barbell","Svend Press":"dumbbell","Push Up":"body","Weighted Push Up":"body","Pull Up":"body","Lat Pulldown":"cable","Bent-Over Row":"barbell","Deadlift":"barbell","Chin Up":"body","Weighted Pull Up":"body","Seated Cable Row":"cable","Single-Arm Dumbbell Row":"dumbbell","T-Bar Row":"barbell","Pendlay Row":"barbell","Barbell Shrug":"barbell","Rack Pull":"barbell","Straight-Arm Pulldown":"cable","Close-Grip Lat Pulldown":"cable","Inverted Row":"body","Chest-Supported Row":"cable","Machine Row":"cable","Dumbbell Shoulder Press":"dumbbell","Lateral Raise":"dumbbell","Dumbbell Front Raise":"dumbbell","Dumbbell Combination":"dumbbell","Dumbbell Bent Over Side Raise":"dumbbell","Rear Deltoids":"machine","Overhead Barbell Press":"barbell","Arnold Press":"dumbbell","Machine Shoulder Press":"machine","Cable Lateral Raise":"cable","Face Pull":"cable","Upright Row":"barbell","Reverse Pec Deck":"machine","Landmine Lateral Raise":"cable","Cable Rear Delt Fly":"cable","Squat":"barbell","Dumbbell Lunge":"dumbbell","Front Squat":"barbell","Hack Squat":"plate","Leg Press":"plate","Romanian Deadlift":"barbell","Bulgarian Split Squat":"dumbbell","Walking Lunge":"dumbbell","Leg Extension":"machine","Lying Leg Curl":"machine","Seated Leg Curl":"machine","Hip Thrust":"barbell","Goblet Squat":"barbell","Standing Calf Raise":"machine","Seated Calf Raise":"machine","Step Up":"dumbbell","Barbell Curl":"barbell","Dumbbell Curl":"dumbbell","Hammer Curl":"dumbbell","EZ Bar Curl":"barbell","Preacher Curl":"barbell","Cable Curl":"cable","Incline Dumbbell Curl":"dumbbell","Concentration Curl":"dumbbell","Spider Curl":"dumbbell","Reverse Curl":"barbell","Cable Hammer Curl":"cable","Overhead Triceps Extension":"machine","Close Grip Bench Press":"barbell","Triceps Pushdown":"cable","Rope Pushdown":"cable","Skull Crusher":"barbell","Bench Dip":"body","Dumbbell Kickback":"dumbbell","Overhead Cable Extension":"cable","Diamond Push Up":"body","Hanging Leg Raise":"body","Leg Raise":"body","Plank":"body","Cable Crunch":"cable","Russian Twist":"body","Ab Wheel Rollout":"body","Bicycle Crunch":"body","Sit Up":"body","Decline Sit Up":"body","Mountain Climber":"body","Side Plank":"body","Run":"run"},sessions:{},dates:[],monthly:{},pr:{},hist:{},last:{},lastSess:{},repFreq:{},exFreq:{},exLast:{},partCount:{},partLast:{},partDays:{},totals:{sessions:0,first:null,last:'0000-00-00',km:0,vol:0}};
 /* v3.2.1: the 918-day seed literal is GONE (~75% of this file). History lives
    in doc.days (Supabase + localStorage). Full seed preserved forever in git
@@ -206,11 +206,113 @@ async function cloudTest(){
 function signInGoogle(){
   if(DB.settings.demo){ DB.days={}; delete DB.settings.demo; allowEmptySave=true; save(); }   // real life starts clean
   if(!cloudReady()) return toast('Set the Supabase URL & key in Settings first');
+  if(NATIVE_SHELL) return signInGoogleNative();                  // v4.6.111: see below
   const {url,anon}=cloudCfg();
   const back=location.origin+location.pathname;
   // a full-page redirect can't carry headers, so the apikey must go in the query string
   const q=new URLSearchParams({provider:'google', redirect_to:back, apikey:anon});
   location.href=`${url}/auth/v1/authorize?${q}`;
+}
+/* ---------- v4.6.111: sign-in inside the iOS app ----------
+   The web flow is a full-page redirect that comes back to this page with the
+   tokens in the hash. In the iOS app that cannot work: the page is
+   capacitor://localhost, which no Google or Supabase redirect can reach, and
+   Capacitor hands the external URL to the default browser (Chrome), where the
+   user is stranded. So the app does what native apps do:
+   1. PKCE: a random verifier stays on the phone; only its SHA-256 challenge
+      goes out. A code that comes back is useless without the verifier.
+   2. Google opens in an in-app Safari sheet (Plugins.Browser), which Google
+      accepts, rather than an embedded web view, which it refuses.
+   3. Supabase redirects to co.yooooooooo.showup://login?code=…, a URL scheme
+      registered by tools/ios-config.py, so iOS hands it back to this app.
+   4. The app closes the sheet and trades code + verifier for a session.
+   Rules: only a code is accepted on this path (never tokens in a link, which
+   any app could forge); the verifier is single-use and expires after 10 min;
+   links that are not ours are ignored. The web path is unchanged. */
+const AUTH_SCHEME='co.yooooooooo.showup';
+const AUTH_REDIRECT=AUTH_SCHEME+'://login';
+const PKCE_KEY='showup:pkce';
+const PKCE_TTL=10*60*1000;
+const capPlugin=n=>{ try{ return window.Capacitor?.Plugins?.[n]||null; }catch(e){ return null; } };
+const b64url=bytes=>btoa(String.fromCharCode(...bytes)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+/* crypto.subtle needs a secure context; WKWebView on a custom scheme is not
+   guaranteed to be one, so a plain SHA-256 stands behind it. */
+function sha256js(str){
+  const m=new TextEncoder().encode(str),K=[],H=[1779033703,3144134277,1013904242,2773480762,1359893119,2600822924,528734635,1541459225];
+  for(let i=0,n=2;i<64;n++){let p=true;for(let d=2;d*d<=n;d++)if(n%d===0){p=false;break;}if(p)K[i++]=(Math.pow(n,1/3)%1)*4294967296|0;}
+  const l=((m.length+9+63)>>6)<<6,b=new Uint8Array(l);b.set(m);b[m.length]=0x80;
+  const bits=m.length*8;for(let i=0;i<4;i++)b[l-1-i]=(bits/Math.pow(2,8*i))&255;
+  const W=new Int32Array(64),r=(x,n)=>(x>>>n)|(x<<(32-n));
+  for(let o=0;o<l;o+=64){
+    for(let i=0;i<16;i++)W[i]=(b[o+4*i]<<24)|(b[o+4*i+1]<<16)|(b[o+4*i+2]<<8)|b[o+4*i+3];
+    for(let i=16;i<64;i++){const a=W[i-15],c=W[i-2];W[i]=(W[i-16]+(r(a,7)^r(a,18)^(a>>>3))+W[i-7]+(r(c,17)^r(c,19)^(c>>>10)))|0;}
+    let [A,B,C,D,E,F,G,Hh]=H;
+    for(let i=0;i<64;i++){
+      const t1=(Hh+(r(E,6)^r(E,11)^r(E,25))+((E&F)^(~E&G))+K[i]+W[i])|0,t2=((r(A,2)^r(A,13)^r(A,22))+((A&B)^(A&C)^(B&C)))|0;
+      Hh=G;G=F;F=E;E=(D+t1)|0;D=C;C=B;B=A;A=(t1+t2)|0;
+    }
+    H[0]=(H[0]+A)|0;H[1]=(H[1]+B)|0;H[2]=(H[2]+C)|0;H[3]=(H[3]+D)|0;H[4]=(H[4]+E)|0;H[5]=(H[5]+F)|0;H[6]=(H[6]+G)|0;H[7]=(H[7]+Hh)|0;
+  }
+  const out=new Uint8Array(32);H.forEach((h,i)=>{out[4*i]=h>>>24;out[4*i+1]=(h>>>16)&255;out[4*i+2]=(h>>>8)&255;out[4*i+3]=h&255;});
+  return out;
+}
+async function pkceChallenge(verifier){
+  try{ if(crypto?.subtle) return b64url(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(verifier)))); }catch(e){}
+  return b64url(sha256js(verifier));
+}
+async function signInGoogleNative(){
+  const Browser=capPlugin('Browser');
+  if(!Browser) return toast('Sign-in needs an app update — reinstall the latest build');
+  const {url,anon}=cloudCfg();
+  const verifier=Array.from(crypto.getRandomValues(new Uint8Array(32)),x=>x.toString(16).padStart(2,'0')).join('');
+  try{ localStorage.setItem(PKCE_KEY,JSON.stringify({v:verifier,at:Date.now()})); }catch(e){ return toast('Sign-in could not start — storage is full'); }
+  const q=new URLSearchParams({provider:'google',redirect_to:AUTH_REDIRECT,
+    code_challenge:await pkceChallenge(verifier),code_challenge_method:'s256',apikey:anon});
+  try{ await Browser.open({url:`${url}/auth/v1/authorize?${q}`,presentationStyle:'popover'}); }
+  catch(e){ toast('Could not open sign-in'); }
+}
+/* the one entry point for links into the app; returns what it did, for tests */
+async function handleAuthLink(link){
+  if(typeof link!=='string') return 'ignored';
+  let u; try{ u=new URL(link); }catch(e){ return 'ignored'; }
+  if(u.protocol!==AUTH_SCHEME+':'||u.host!=='login') return 'ignored';
+  try{ await capPlugin('Browser')?.close?.(); }catch(e){}
+  const qs=new URLSearchParams(u.search), hs=new URLSearchParams(u.hash.slice(1));
+  let rec=null; try{ rec=JSON.parse(localStorage.getItem(PKCE_KEY)||'null'); }catch(e){}
+  try{ localStorage.removeItem(PKCE_KEY); }catch(e){}           // single use, whatever happens next
+  const err=qs.get('error_description')||hs.get('error_description');
+  if(err){ toast('Sign-in failed: '+err.slice(0,80)); return 'error'; }
+  const code=qs.get('code');
+  if(!code||!/^[A-Za-z0-9._~-]{8,200}$/.test(code)) return 'no-code';
+  if(!rec||typeof rec.v!=='string'||!(Date.now()-rec.at<PKCE_TTL&&Date.now()>=rec.at)){
+    toast('Sign-in expired — tap Sign in again'); return 'no-verifier';
+  }
+  if(!cloudReady()) return 'no-cloud';
+  const {url,anon}=cloudCfg();
+  let j;
+  try{
+    const r=await fetch(url+'/auth/v1/token?grant_type=pkce',{method:'POST',
+      headers:{apikey:anon,'Content-Type':'application/json'},
+      body:JSON.stringify({auth_code:code,code_verifier:rec.v})});
+    if(!r.ok){ toast('Sign-in failed ('+r.status+') — try again'); return 'rejected'; }
+    j=await r.json();
+  }catch(e){ toast('Sign-in failed — check your connection'); return 'offline'; }
+  if(!j||!j.access_token||!j.refresh_token){ toast('Sign-in failed — try again'); return 'rejected'; }
+  const user={id:j.user?.id,email:j.user?.email};
+  await saveSession({access_token:j.access_token,refresh_token:j.refresh_token,
+    expires_at:Date.now()+(+j.expires_in||3600)*1000,user});
+  try{ if(document.getElementById('googleBtn')) renderSync(); }catch(e){}   // the open settings sheet flips to signed-in
+  toast('Signed in'+(user.email?' as '+user.email:''));
+  cloudPull();
+  return 'signed-in';
+}
+/* boot: listen for links while running, and read the one that launched us */
+async function nativeAuthBoot(){
+  if(!NATIVE_SHELL) return 'no-shell';
+  const App=capPlugin('App'); if(!App) return 'no-app';
+  try{ App.addListener('appUrlOpen',e=>{ handleAuthLink(e&&e.url); }); }catch(e){}
+  try{ const l=await App.getLaunchUrl?.(); if(l&&l.url) return handleAuthLink(l.url); }catch(e){}
+  return 'listening';
 }
 async function signOut(){
   /* v3.1.1: logout = this device forgets you. Data is synced BEFORE the wipe

@@ -23,6 +23,8 @@ import hashlib, json, pathlib, re, sys
 
 SITE = "https://tahros.github.io/showup/"
 PLUGIN_JS = {                      # npm package -> runtime plugin name
+    "@capacitor/app": "App",
+    "@capacitor/browser": "Browser",
     "@capacitor/filesystem": "Filesystem",
     "@capgo/capacitor-updater": "CapacitorUpdater",
 }

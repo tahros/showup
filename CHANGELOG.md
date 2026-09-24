@@ -1,5 +1,16 @@
 # ShowUp — changelog
 
+## v4.6.111 (2026-09-24) — Google sign-in works inside the iOS app
+
+- **The bug:** in the iOS test build, Continue with Google opened Chrome and never came back. The web flow is a full-page redirect that returns to the page it left, and in the app that page is `capacitor://localhost`: no redirect can reach it, and Capacitor handed the Google page to the default browser.
+- **The fix:** sign-in opens in an in-app Safari sheet (`@capacitor/browser`, `SFSafariViewController`, which Google accepts). Supabase then redirects to `co.yooooooooo.showup://login?code=…`, a URL scheme the app registers, so iOS hands the link back to ShowUp (`@capacitor/app`, `appUrlOpen`, plus the launch URL on a cold start). The app closes the sheet and exchanges the code for a session.
+- **PKCE (s256):** a random verifier stays on the phone and only its SHA-256 goes out, so a code intercepted by another app is useless. The verifier is single-use and expires after 10 minutes. The app link accepts only a code, never tokens (a link can be forged by any app), and ignores any link that isn't its own. A plain-JS SHA-256 stands behind `crypto.subtle` in case the web view isn't a secure context.
+- The web and PWA sign-in is unchanged.
+- **`tools/ios-config.py`** (new) writes what Xcode would otherwise need by hand, because `ios/` is regenerated and gitignored: the URL scheme; Portrait plus both Landscapes (the landscape rest timer); iPhone only; and no Mac/Vision Pro "Designed for iPhone" listing. It is idempotent and never touches the bundle ID.
+- **`npm run sync:ios`** is now `build-dist → cap sync ios → ios-config`. It had included `check:dist`, which needs Playwright and failed on the Mac.
+- `tools/test-auth-native.js` (40 assertions against fake Browser/App plugins and network): challenge = base64url(SHA-256(verifier)) checked against Node; the fallback SHA-256 checked byte-for-byte; exchange body; replay, expiry, future-dated verifier, foreign links, forged tokens, error link, 400, offline, cold-start launch link, and an old binary without the plugin. Mutation-tested: 13 of 15 mutants killed; the 2 survivors produce identical output (the fallback hash and the length's top byte). buildcheck fails if the scheme in core.js differs from the one ios-config registers, if the flow stops being PKCE s256, or if either plugin leaves package.json.
+- **Needs a new native build** (two new plugins). The current test build will skip this OTA update: it lacks the plugins, so `ota.json`'s `requires` list rules it out.
+
 ## v4.6.110 (2026-09-23) — Web updates reach the iOS app without a review
 
 - **Over-the-air updates.** After the App Store build ships, a web-only change reaches it on the next cold start, no App Review. `tools/build-ota.py` writes `ota.json`: every shipped file with its SHA-256 and a URL on the live site. On launch and on return, `js/ota.js` reads it; when it names a newer version, the native updater (`@capgo/capacitor-updater`, open source, self-hosted, no service) reuses every file whose hash already matches what is on the phone, downloads only the rest, and **verifies each one natively** — a mismatch throws before anything installs. Nothing binary is committed to git.

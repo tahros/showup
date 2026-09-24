@@ -1,16 +1,18 @@
 {
   "name": "showup",
-  "version": "4.6.110",
+  "version": "4.6.111",
   "private": true,
   "description": "ShowUp \u2014 habits and workouts. A static PWA; this manifest exists only for the iOS shell.",
   "scripts": {
     "build:dist": "python3 tools/build-dist.py .",
     "check:dist": "node tools/check-dist.cjs .",
-    "sync:ios": "npm run build:dist && npm run check:dist && npx cap sync ios",
+    "sync:ios": "python3 tools/build-dist.py . && npx cap sync ios && python3 tools/ios-config.py .",
     "open:ios": "npx cap open ios",
     "build:ota": "python3 tools/build-dist.py . && python3 tools/build-ota.py ."
   },
   "dependencies": {
+    "@capacitor/app": "^8.1.1",
+    "@capacitor/browser": "^8.0.4",
     "@capacitor/core": "^8.5.2",
     "@capacitor/filesystem": "^8.1.3",
     "@capacitor/ios": "^8.5.2",

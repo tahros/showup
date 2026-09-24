@@ -2452,6 +2452,7 @@ function motionPass(){
   lastSetAt=(DB.days[todayISO]&&DB.days[todayISO].lastAt)||null;
   await loadSession();
   render();
+  nativeAuthBoot();                             // v4.6.111: iOS app sign-in returns by link
   if(cloudReady()){
     await captureOAuth();                       // fresh sign-in pulls (initial sync) inside
     if(session) cloudPull();                    // every device syncs on open (per-day newest-wins)

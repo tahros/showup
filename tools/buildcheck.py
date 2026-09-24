@@ -569,7 +569,34 @@ if _cu.get("autoUpdate", True) is not False:
 _order2 = _re.findall(r'src="js/([\w-]+)\.js', (d/"index.html").read_text())
 if _order2[:2] != ["core", "ota"]:
     fail.append("js/ota.js must load immediately after core.js -- notifyAppReady has to run before anything that could fail, or a good update is rolled back (v4.6.110)")
+# -- v4.6.111: sign-in inside the iOS app. tools/test-auth-native.js proves the
+#    behaviour; these keep the pieces that live in DIFFERENT files in step, which
+#    no single test can see: the scheme core.js redirects to must be the scheme
+#    ios-config.py registers, or iOS has nowhere to deliver the link.
+_scheme_js = _re.search(r"const AUTH_SCHEME='([^']+)'", _core)
+_iocfg = (d/"tools/ios-config.py")
+_scheme_py = _re.search(r'^SCHEME\s*=\s*"([^"]+)"', _iocfg.read_text(), _re.M) if _iocfg.exists() else None
+if not _scheme_js:
+    fail.append("core.js lost AUTH_SCHEME -- Google sign-in in the iOS app has no way back (v4.6.111)")
+elif not _scheme_py or _scheme_py.group(1) != _scheme_js.group(1):
+    fail.append(f"AUTH_SCHEME {_scheme_js.group(1)!r} is not the URL scheme tools/ios-config.py registers "
+                f"({_scheme_py.group(1) if _scheme_py else 'none'!r}) -- the sign-in link would never reach the app (v4.6.111)")
+if "code_challenge_method:'s256'" not in _core or "grant_type=pkce" not in _core:
+    fail.append("the iOS sign-in is no longer PKCE with s256 -- a code caught by another app could be redeemed (v4.6.111)")
+if not _re.search(r"function signInGoogle\(\)\{.*?if\(NATIVE_SHELL\) return signInGoogleNative\(\)", _core, _re.S):
+    fail.append("signInGoogle() no longer routes the iOS app to the native flow -- it would strand the user in Chrome (v4.6.111)")
+if "nativeAuthBoot()" not in (d/"js/app.js").read_text():
+    fail.append("boot no longer calls nativeAuthBoot() -- the sign-in link would arrive with nobody listening (v4.6.111)")
 _pkg_deps = (_pkg.get("dependencies", {}) if _pkg_f.exists() else {})
+for _dep, _why in (("@capacitor/app", "appUrlOpen, the sign-in link back into the app"),
+                   ("@capacitor/browser", "the in-app Safari sheet Google sign-in opens in")):
+    if _dep not in _pkg_deps:
+        fail.append(f"package.json does not depend on {_dep} -- it provides {_why} (v4.6.111)")
+_sync = (_pkg.get("scripts", {}).get("sync:ios", "") if _pkg_f.exists() else "")
+if "check:dist" in _sync or "check-dist" in _sync:
+    fail.append("npm run sync:ios runs check:dist, which needs Playwright -- it cannot run on the Mac (v4.6.111)")
+if "ios-config.py" not in _sync:
+    fail.append("npm run sync:ios no longer runs tools/ios-config.py -- the URL scheme and orientations would be lost on a fresh ios/ (v4.6.111)")
 if "@capacitor/filesystem" not in _pkg_deps:
     fail.append("package.json does not depend on @capacitor/filesystem — without the pod, Plugins.Filesystem is "
                 "never injected and the shell silently runs on transient localStorage alone (v4.6.106)")

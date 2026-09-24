@@ -61,10 +61,15 @@ and some of it changes the web build too. Landed and planned:
 - v4.6.110 — over-the-air web updates for the iOS app (done): js/ota.js,
   tools/build-ota.py, ota.json. Adding a native plugin to package.json fails
   build-ota until it is named in PLUGIN_JS — on purpose (see the file header).
-- Next: a `dist/` assembly step so the app bundle carries only shipping assets;
-  Capacitor scaffold wrapping `dist/` as local files, never a remote URL;
-  storage moved off `localStorage` (WKWebView evicts it under pressure);
-  Sign in with Apple (App Review 4.8, forced by the Google provider);
+- v4.6.111 — Google sign-in inside the iOS app (done): PKCE through the
+  in-app Safari sheet, back via `co.yooooooooo.showup://login`. Read the
+  block above `AUTH_SCHEME` in js/core.js. The web path is untouched. The
+  scheme is registered by tools/ios-config.py, which `npm run sync:ios` runs
+  after `cap sync` (ios/ is gitignored, so Info.plist edits live in that
+  script, not by hand in Xcode). buildcheck ties the two schemes together.
+  `sync:ios` no longer runs check:dist: it needs Playwright, which the Mac
+  does not have. Run check:dist here, before pushing.
+- Next: Sign in with Apple (App Review 4.8, forced by the Google provider);
   in-app account deletion (4.9/5.1.1(v)); HealthKit write + local
   notifications (4.2 minimum functionality).
 
