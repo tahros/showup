@@ -1,5 +1,16 @@
 # ShowUp — changelog
 
+## v4.6.110 (2026-09-23) — Web updates reach the iOS app without a review
+
+- **Over-the-air updates.** After the App Store build ships, a web-only change reaches it on the next cold start, no App Review. `tools/build-ota.py` writes `ota.json`: every shipped file with its SHA-256 and a URL on the live site. On launch and on return, `js/ota.js` reads it; when it names a newer version, the native updater (`@capgo/capacitor-updater`, open source, self-hosted, no service) reuses every file whose hash already matches what is on the phone, downloads only the rest, and **verifies each one natively** — a mismatch throws before anything installs. Nothing binary is committed to git.
+- **Never mid-session.** An update is queued behind a `kill` delay condition, so it applies only on a cold start; backgrounding the app to change a song does not reload it. Verified against the plugin's Swift source (`DelayUpdateUtils`), not its docs.
+- **Rollback.** `notifyAppReady()` is the first line `ota.js` runs. A bundle that cannot reach it within 10 s is rolled back to the last good one, and the rollback event marks that version bad for good. Three failed downloads of a version and it is left alone.
+- **Native compatibility.** `ota.json` lists the native plugins the bundle needs; a binary missing any of them skips the update. `build-ota.py` refuses to publish if `package.json` has a dependency it cannot name.
+- **No third party.** The plugin's three default endpoints (updates, stats, channels) all point at Capgo; all three are set to `""` and auto-update is off, so the app contacts only `tahros.github.io`. buildcheck enforces it.
+- **Fixed in `build-dist.py` (v4.6.105):** the root `*.png` glob shipped the browser checks' screenshots inside the app bundle. Root images now ship only if the app references them — 88 files to 81.
+- `tools/test-ota.js` (32 assertions against a fake native updater; every rule mutation-tested, including the version pair a string compare gets wrong, 4.6.110 vs 4.6.99). buildcheck fails on a stale or incomplete `ota.json`, a Capgo endpoint, or `ota.js` loading anywhere but straight after `core.js`.
+- Unproven until it runs on a phone: that the first real update arrives, applies on relaunch, and that a deliberately broken one rolls back.
+
 ## v4.6.109 (2026-09-23) — Your sets, one size down
 
 - The maker's pick (option B of four previewed): weights 15 → 13px, rep chips 14 → 12px, the × 11 → 10px.

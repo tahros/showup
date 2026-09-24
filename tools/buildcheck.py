@@ -38,7 +38,8 @@ shell_count = len(re.findall(r"'\./[^']+\?v=", sw))
 # v4.4.0: 25. stats-story is installed before the first app render and must be
 # present offline or Stats silently falls back to the previous page contract.
 # v4.6.104: 31 — css/fonts.css joined the shell when IBM Plex moved in-house.
-if shell_count != 31: fail.append(f"sw SHELL has {shell_count} stamped assets, expected 31")
+# v4.6.110: 32 — js/ota.js.
+if shell_count != 32: fail.append(f"sw SHELL has {shell_count} stamped assets, expected 32")
 for a in re.findall(r"'\./([^']+)'", sw):
     if not (d/a.split('?')[0]).exists(): fail.append(f"offline SHELL asset missing: {a}")
 
@@ -533,6 +534,41 @@ for _f, _needle, _why in (
 ):
     if _needle not in (d/_f).read_text():
         fail.append(f"{_f}: {_why}, or the zero-day guard refuses it (v4.6.106)")
+# -- v4.6.110: over-the-air updates. ota.json must describe EXACTLY the files
+#    this commit ships, or every phone's update fails its hash check and is
+#    skipped, silently. It is regenerated, never hand-edited.
+import hashlib as _hl
+_ota_f = d/"ota.json"
+_OTA_FIX = "run: python3 tools/build-dist.py . && python3 tools/build-ota.py ."
+if not _ota_f.exists():
+    fail.append("ota.json is missing -- " + _OTA_FIX + " (v4.6.110)")
+else:
+    _ota = _json.loads(_ota_f.read_text())
+    _v2 = _re.search(r"APP_VERSION\s*=\s*'v([\d.]+)'", (d/"js/core.js").read_text()).group(1)
+    if _ota.get("version") != _v2:
+        fail.append(f"ota.json is for {_ota.get('version')}, this build is {_v2} -- " + _OTA_FIX + " (v4.6.110)")
+    _listed = {f["file_name"]: f["file_hash"] for f in _ota.get("files", [])}
+    _stale = [n for n, h in _listed.items() if not (d/n).is_file() or _hl.sha256((d/n).read_bytes()).hexdigest() != h]
+    if _stale:
+        fail.append(f"ota.json is stale for {len(_stale)} file(s) ({', '.join(_stale[:3])}) -- phones would reject the update -- " + _OTA_FIX + " (v4.6.110)")
+    _ship = set()
+    for _sub in ("css", "js", "assets", "vendor"):
+        _ship |= {q.relative_to(d).as_posix() for q in (d/_sub).rglob("*") if q.is_file()}
+    _ship |= {"index.html", "sw.js", "manifest.webmanifest"}
+    _missing = sorted(_ship - set(_listed))
+    if _missing:
+        fail.append(f"ota.json does not list {len(_missing)} shipped file(s) ({', '.join(_missing[:3])}) -- " + _OTA_FIX + " (v4.6.110)")
+    if any(_re.search(r"session-live|live-workout|header-glass|-qa\.png", n) for n in _listed):
+        fail.append("ota.json lists a test screenshot -- build-dist must ship only referenced root files (v4.6.110)")
+_cu = (_json.loads(_cap_f.read_text()).get("plugins", {}).get("CapacitorUpdater", {}) if _cap_f.exists() else {})
+for _k in ("updateUrl", "statsUrl", "channelUrl"):
+    if _cu.get(_k, None) != "":
+        fail.append(f"capacitor.config.json CapacitorUpdater.{_k} must be \"\" -- its default sends data to Capgo, a third party on the App Privacy form (v4.6.110)")
+if _cu.get("autoUpdate", True) is not False:
+    fail.append("CapacitorUpdater.autoUpdate must be false -- updates are driven by js/ota.js from our own ota.json (v4.6.110)")
+_order2 = _re.findall(r'src="js/([\w-]+)\.js', (d/"index.html").read_text())
+if _order2[:2] != ["core", "ota"]:
+    fail.append("js/ota.js must load immediately after core.js -- notifyAppReady has to run before anything that could fail, or a good update is rolled back (v4.6.110)")
 _pkg_deps = (_pkg.get("dependencies", {}) if _pkg_f.exists() else {})
 if "@capacitor/filesystem" not in _pkg_deps:
     fail.append("package.json does not depend on @capacitor/filesystem — without the pod, Plugins.Filesystem is "

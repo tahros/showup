@@ -31,6 +31,12 @@ push being rejected. These rules exist so that doesn't repeat.
    `python3 tools/buildcheck.py .` must exit 0, plus any `tools/check-*.cjs`
    covering what you changed — those drive real Chromium and need a local
    server; each file's header says how to run it.
+4b. **Regenerate the update manifest, last, after every other edit:**
+   `python3 tools/build-dist.py . && python3 tools/build-ota.py .` (or
+   `npm run build:ota`). `ota.json` lists the SHA-256 of every shipped file;
+   the iOS app installs an over-the-air update only if every hash matches, so
+   a stale manifest means phones silently skip the release. buildcheck fails
+   on a stale one and names the file. Commit `ota.json`; `dist/` stays ignored.
 5. **A `CHANGELOG.md` entry in the same commit**, newest at the top.
 6. **Never force-push `main`.** A rejected push means your base is stale:
    fetch, rebase, re-run the gates, re-bump, push again.
@@ -52,6 +58,9 @@ and some of it changes the web build too. Landed and planned:
   in js/core.js before touching save/load/flushSave: four rules, each guarded
   in buildcheck and proven in tools/test-durable.js. **`localStorage` is not
   legacy; it is the write-ahead log.** Do not remove it.
+- v4.6.110 — over-the-air web updates for the iOS app (done): js/ota.js,
+  tools/build-ota.py, ota.json. Adding a native plugin to package.json fails
+  build-ota until it is named in PLUGIN_JS — on purpose (see the file header).
 - Next: a `dist/` assembly step so the app bundle carries only shipping assets;
   Capacitor scaffold wrapping `dist/` as local files, never a remote URL;
   storage moved off `localStorage` (WKWebView evicts it under pressure);

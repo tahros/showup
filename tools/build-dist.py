@@ -38,9 +38,16 @@ for sub in DIRS:
             copied += 1
             total += f.stat().st_size
 
+# v4.6.110: a root image ships only if the app REFERENCES it. This was a bare
+# *.png glob, and the browser checks write their screenshots into the repo root
+# -- so running a check before a build shipped test screenshots inside the app,
+# and from this release, listed them in the over-the-air manifest too.
+_refs = "".join(q.read_text(errors="ignore") for q in
+                [d/"index.html", d/"manifest.webmanifest", d/"sw.js",
+                 *sorted((d/"js").glob("*.js")), *sorted((d/"css").glob("*.css"))] if q.exists())
 names = list(ROOT_FILES)
 for pat in ROOT_GLOBS:
-    names += [p.name for p in sorted(d.glob(pat))]
+    names += [p.name for p in sorted(d.glob(pat)) if p.name in _refs]
 for name in dict.fromkeys(names):
     if name in SKIP_ROOT:
         continue
