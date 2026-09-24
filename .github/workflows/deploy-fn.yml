@@ -1,8 +1,9 @@
-# v3.3.401: deploys ShowUp's one server component, the session writer's Edge
-# Function, whenever it changes on main. Secrets live in the repo's settings
+# v3.3.401: deploys ShowUp's Edge Functions whenever they change on main:
+# the session writer, and (v4.6.113) delete-account, which needs no secrets of
+# its own -- Supabase gives every function its URL, anon and service keys. Secrets live in the repo's settings
 # (SUPABASE_ACCESS_TOKEN, ANTHROPIC_API_KEY, ANTHROPIC_WORKSPACE_ID) and are
 # pushed to the function's environment; nothing is written into the tree.
-name: deploy write-session
+name: deploy edge functions
 on:
   push:
     branches: [main]
@@ -19,6 +20,7 @@ jobs:
       - uses: supabase/setup-cli@v1
         with: { version: latest }
       - run: supabase functions deploy write-session --project-ref "$REF"
+      - run: supabase functions deploy delete-account --project-ref "$REF"
       - run: |
           supabase secrets set ANTHROPIC_API_KEY="${{ secrets.ANTHROPIC_API_KEY }}" \
             ${{ secrets.ANTHROPIC_WORKSPACE_ID != '' && format('ANTHROPIC_WORKSPACE_ID={0}', secrets.ANTHROPIC_WORKSPACE_ID) || '' }} \

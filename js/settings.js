@@ -90,7 +90,9 @@ function renderSync(){
         <div class="row" style="gap:8px;margin-top:10px">
           <button class="btn ghost" id="cloudPullBtn" style="margin:0">Pull ↓</button>
           <button class="btn ghost" id="signOutBtn" style="margin:0">Sign out</button>
-        </div>`
+        </div>
+        <button class="btn ghost danger" id="deleteAcctBtn" style="margin:14px 0 0">Delete account…</button>
+        <div class="note" style="margin-top:6px">Erases your account and everything synced to it. Sign out only removes this device.</div>`
       :`
         ${cloudReady()?`
           <button class="btn" id="googleBtn" style="margin:0">Continue with Google</button>

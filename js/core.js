@@ -1,7 +1,7 @@
 /* ShowUp — core.js
    Extracted verbatim from index.html (v3.2.5 refactor). Classic script:
    shares one global scope with its siblings, loaded in order by index.html. */
-const APP_VERSION = 'v4.6.112';
+const APP_VERSION = 'v4.6.113';
 const SEED0 = {catalog:{"Chest":["Incline Smith Machine Bench Press","Flat Smith Machine Bench Press","Incline Dumbbell Bench Press","Chest Press","Chest Fly","Cable Fly Up","Cable Fly Down","Chest Squeeze","Dip","Barbell Bench Press","Incline Barbell Bench Press","Decline Barbell Bench Press","Dumbbell Bench Press","Decline Dumbbell Bench Press","Machine Chest Press","Cable Crossover","Incline Cable Fly","Low Cable Fly","Dumbbell Pullover","Landmine Press","Svend Press","Push Up","Weighted Push Up"],"Back":["Pull Up","Lat Pulldown","Bent-Over Row","Deadlift","Chin Up","Weighted Pull Up","Seated Cable Row","Single-Arm Dumbbell Row","T-Bar Row","Pendlay Row","Barbell Shrug","Rack Pull","Straight-Arm Pulldown","Close-Grip Lat Pulldown","Inverted Row","Chest-Supported Row","Machine Row"],"Shoulder":["Dumbbell Shoulder Press","Lateral Raise","Dumbbell Front Raise","Dumbbell Combination","Dumbbell Bent Over Side Raise","Rear Deltoids","Overhead Barbell Press","Arnold Press","Machine Shoulder Press","Cable Lateral Raise","Face Pull","Upright Row","Reverse Pec Deck","Landmine Lateral Raise","Cable Rear Delt Fly"],"Legs":["Squat","Dumbbell Lunge","Front Squat","Hack Squat","Leg Press","Romanian Deadlift","Bulgarian Split Squat","Walking Lunge","Leg Extension","Lying Leg Curl","Seated Leg Curl","Hip Thrust","Goblet Squat","Standing Calf Raise","Seated Calf Raise","Step Up"],"Biceps":["Barbell Curl","Dumbbell Curl","Hammer Curl","EZ Bar Curl","Preacher Curl","Cable Curl","Incline Dumbbell Curl","Concentration Curl","Spider Curl","Reverse Curl","Cable Hammer Curl"],"Triceps":["Overhead Triceps Extension","Close Grip Bench Press","Triceps Pushdown","Rope Pushdown","Skull Crusher","Bench Dip","Dumbbell Kickback","Overhead Cable Extension","Diamond Push Up"],"Sixpack":["Hanging Leg Raise","Leg Raise","Plank","Cable Crunch","Russian Twist","Ab Wheel Rollout","Bicycle Crunch","Sit Up","Decline Sit Up","Mountain Climber","Side Plank"],"Run":["Run","Walk","Cycling","Rowing","Elliptical","Stair Climber","Swimming","Jump Rope"]},ex2part:{"Incline Smith Machine Bench Press":"Chest","Flat Smith Machine Bench Press":"Chest","Incline Dumbbell Bench Press":"Chest","Chest Press":"Chest","Chest Fly":"Chest","Cable Fly Up":"Chest","Cable Fly Down":"Chest","Chest Squeeze":"Chest","Dip":"Chest","Barbell Bench Press":"Chest","Incline Barbell Bench Press":"Chest","Decline Barbell Bench Press":"Chest","Dumbbell Bench Press":"Chest","Decline Dumbbell Bench Press":"Chest","Machine Chest Press":"Chest","Cable Crossover":"Chest","Incline Cable Fly":"Chest","Low Cable Fly":"Chest","Dumbbell Pullover":"Chest","Landmine Press":"Chest","Svend Press":"Chest","Push Up":"Chest","Weighted Push Up":"Chest","Pull Up":"Back","Lat Pulldown":"Back","Bent-Over Row":"Back","Deadlift":"Back","Chin Up":"Back","Weighted Pull Up":"Back","Seated Cable Row":"Back","Single-Arm Dumbbell Row":"Back","T-Bar Row":"Back","Pendlay Row":"Back","Barbell Shrug":"Back","Rack Pull":"Back","Straight-Arm Pulldown":"Back","Close-Grip Lat Pulldown":"Back","Inverted Row":"Back","Chest-Supported Row":"Back","Machine Row":"Back","Dumbbell Shoulder Press":"Shoulder","Lateral Raise":"Shoulder","Dumbbell Front Raise":"Shoulder","Dumbbell Combination":"Shoulder","Dumbbell Bent Over Side Raise":"Shoulder","Rear Deltoids":"Shoulder","Overhead Barbell Press":"Shoulder","Arnold Press":"Shoulder","Machine Shoulder Press":"Shoulder","Cable Lateral Raise":"Shoulder","Face Pull":"Shoulder","Upright Row":"Shoulder","Reverse Pec Deck":"Shoulder","Landmine Lateral Raise":"Shoulder","Cable Rear Delt Fly":"Shoulder","Squat":"Legs","Dumbbell Lunge":"Legs","Front Squat":"Legs","Hack Squat":"Legs","Leg Press":"Legs","Romanian Deadlift":"Legs","Bulgarian Split Squat":"Legs","Walking Lunge":"Legs","Leg Extension":"Legs","Lying Leg Curl":"Legs","Seated Leg Curl":"Legs","Hip Thrust":"Legs","Goblet Squat":"Legs","Standing Calf Raise":"Legs","Seated Calf Raise":"Legs","Step Up":"Legs","Barbell Curl":"Biceps","Dumbbell Curl":"Biceps","Hammer Curl":"Biceps","EZ Bar Curl":"Biceps","Preacher Curl":"Biceps","Cable Curl":"Biceps","Incline Dumbbell Curl":"Biceps","Concentration Curl":"Biceps","Spider Curl":"Biceps","Reverse Curl":"Biceps","Cable Hammer Curl":"Biceps","Overhead Triceps Extension":"Triceps","Close Grip Bench Press":"Triceps","Triceps Pushdown":"Triceps","Rope Pushdown":"Triceps","Skull Crusher":"Triceps","Bench Dip":"Triceps","Dumbbell Kickback":"Triceps","Overhead Cable Extension":"Triceps","Diamond Push Up":"Triceps","Hanging Leg Raise":"Sixpack","Leg Raise":"Sixpack","Plank":"Sixpack","Cable Crunch":"Sixpack","Russian Twist":"Sixpack","Ab Wheel Rollout":"Sixpack","Bicycle Crunch":"Sixpack","Sit Up":"Sixpack","Decline Sit Up":"Sixpack","Mountain Climber":"Sixpack","Side Plank":"Sixpack","Run":"Run","Walk":"Run","Cycling":"Run","Rowing":"Run","Elliptical":"Run","Stair Climber":"Run","Swimming":"Run","Jump Rope":"Run"},equip:{"Incline Smith Machine Bench Press":"smith","Flat Smith Machine Bench Press":"smith","Incline Dumbbell Bench Press":"dumbbell","Chest Press":"machine","Chest Fly":"machine","Cable Fly Up":"cable","Cable Fly Down":"cable","Chest Squeeze":"body","Dip":"body","Barbell Bench Press":"barbell","Incline Barbell Bench Press":"barbell","Decline Barbell Bench Press":"barbell","Dumbbell Bench Press":"dumbbell","Decline Dumbbell Bench Press":"dumbbell","Machine Chest Press":"machine","Cable Crossover":"cable","Incline Cable Fly":"cable","Low Cable Fly":"cable","Dumbbell Pullover":"dumbbell","Landmine Press":"barbell","Svend Press":"dumbbell","Push Up":"body","Weighted Push Up":"body","Pull Up":"body","Lat Pulldown":"cable","Bent-Over Row":"barbell","Deadlift":"barbell","Chin Up":"body","Weighted Pull Up":"body","Seated Cable Row":"cable","Single-Arm Dumbbell Row":"dumbbell","T-Bar Row":"barbell","Pendlay Row":"barbell","Barbell Shrug":"barbell","Rack Pull":"barbell","Straight-Arm Pulldown":"cable","Close-Grip Lat Pulldown":"cable","Inverted Row":"body","Chest-Supported Row":"cable","Machine Row":"cable","Dumbbell Shoulder Press":"dumbbell","Lateral Raise":"dumbbell","Dumbbell Front Raise":"dumbbell","Dumbbell Combination":"dumbbell","Dumbbell Bent Over Side Raise":"dumbbell","Rear Deltoids":"machine","Overhead Barbell Press":"barbell","Arnold Press":"dumbbell","Machine Shoulder Press":"machine","Cable Lateral Raise":"cable","Face Pull":"cable","Upright Row":"barbell","Reverse Pec Deck":"machine","Landmine Lateral Raise":"cable","Cable Rear Delt Fly":"cable","Squat":"barbell","Dumbbell Lunge":"dumbbell","Front Squat":"barbell","Hack Squat":"plate","Leg Press":"plate","Romanian Deadlift":"barbell","Bulgarian Split Squat":"dumbbell","Walking Lunge":"dumbbell","Leg Extension":"machine","Lying Leg Curl":"machine","Seated Leg Curl":"machine","Hip Thrust":"barbell","Goblet Squat":"barbell","Standing Calf Raise":"machine","Seated Calf Raise":"machine","Step Up":"dumbbell","Barbell Curl":"barbell","Dumbbell Curl":"dumbbell","Hammer Curl":"dumbbell","EZ Bar Curl":"barbell","Preacher Curl":"barbell","Cable Curl":"cable","Incline Dumbbell Curl":"dumbbell","Concentration Curl":"dumbbell","Spider Curl":"dumbbell","Reverse Curl":"barbell","Cable Hammer Curl":"cable","Overhead Triceps Extension":"machine","Close Grip Bench Press":"barbell","Triceps Pushdown":"cable","Rope Pushdown":"cable","Skull Crusher":"barbell","Bench Dip":"body","Dumbbell Kickback":"dumbbell","Overhead Cable Extension":"cable","Diamond Push Up":"body","Hanging Leg Raise":"body","Leg Raise":"body","Plank":"body","Cable Crunch":"cable","Russian Twist":"body","Ab Wheel Rollout":"body","Bicycle Crunch":"body","Sit Up":"body","Decline Sit Up":"body","Mountain Climber":"body","Side Plank":"body","Run":"run"},sessions:{},dates:[],monthly:{},pr:{},hist:{},last:{},lastSess:{},repFreq:{},exFreq:{},exLast:{},partCount:{},partLast:{},partDays:{},totals:{sessions:0,first:null,last:'0000-00-00',km:0,vol:0}};
 /* v3.2.1: the 918-day seed literal is GONE (~75% of this file). History lives
    in doc.days (Supabase + localStorage). Full seed preserved forever in git
@@ -324,15 +324,62 @@ async function signOut(){
     const ok=await cloudPushNow();
     if(!ok && !confirm('Could not confirm a cloud sync. Sign out anyway and discard the local copy? (Anything already synced is safe.)')) return;
   }
+  await forgetDevice();
+}
+/* the device forgets you: session, record, backups, durable slots. Shared by
+   sign-out and account deletion (v4.6.113), so the two can never drift. */
+async function forgetDevice(){
   await saveSession(null);
   try{
     localStorage.removeItem(KEY);
     localStorage.removeItem(SKEY);
+    localStorage.removeItem(PKCE_KEY);
     Object.keys(localStorage).filter(k=>k.startsWith('showup:bak')).forEach(k=>localStorage.removeItem(k));
     sessionStorage.clear();
   }catch(e){}
   try{ await durable.removeAll(); }catch(e){}   // v4.6.106: the slots and their backups too
   try{ location.reload(); }catch(e){}
+}
+
+/* ---------- v4.6.113: delete the account ----------
+   App Store 5.1.1(v): an app that creates accounts must delete them, with
+   their data, from inside the app; signing out is not deletion. The server
+   half is supabase/functions/delete-account, which deletes only the caller
+   (the id comes from the caller's own token) and whose rows go by cascade
+   in one transaction. Here:
+   - two deliberate steps: a confirm that says exactly what is erased and what
+     is not, then typing DELETE;
+   - the device is wiped only AFTER the server confirms, so a failure leaves
+     everything as it was and says so;
+   - nothing is pushed first: the whole point is that the cloud copy goes. */
+const DELETE_PATH='/functions/v1/delete-account';
+async function deleteAccount(){
+  if(!session) return 'signed-out';
+  const who=session.user?.email||'this account';
+  if(!confirm(`Delete ${who} permanently?\n\n`+
+    `Erased now: your ShowUp account and everything synced to it: every workout, plan and setting.\n`+
+    `Also erased: the copy on this device.\n`+
+    `Not touched: copies on your other devices until you sign out there, and backup files you downloaded.\n\n`+
+    `This cannot be undone. To keep your history, cancel and tap Backup first.`)) return 'cancelled';
+  const typed=prompt('Type DELETE to delete your account.');
+  if((typed||'').trim().toUpperCase()!=='DELETE'){ toast('Not deleted'); return 'cancelled'; }
+  const tok=await freshToken();
+  if(!tok){ toast('Sign in again, then delete. Nothing was deleted.'); return 'no-token'; }
+  const {url,anon}=cloudCfg();
+  let r;
+  try{
+    r=await fetch(url+DELETE_PATH,{method:'POST',
+      headers:{apikey:anon,Authorization:'Bearer '+tok,'Content-Type':'application/json'},
+      body:JSON.stringify({confirm:'DELETE'})});
+  }catch(e){ toast('Could not reach the server. Nothing was deleted.'); return 'offline'; }
+  if(!r.ok){
+    toast(r.status===404?'Account deletion is not set up on the server yet. Nothing was deleted.'
+                        :'Deletion failed ('+r.status+'). Nothing was deleted.');
+    return 'failed';
+  }
+  toast('Account deleted');
+  await forgetDevice();
+  return 'deleted';
 }
 
 /* one row per user: the whole app state as a document */

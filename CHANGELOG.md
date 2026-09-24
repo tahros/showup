@@ -1,5 +1,15 @@
 # ShowUp — changelog
 
+## v4.6.113 (2026-09-24) — Delete your account from inside the app
+
+- **Why:** App Store guideline 5.1.1(v). An app that creates accounts must let people delete the account and its data in the app. Signing out is not deletion, and reviewers check.
+- **Settings → Account & cloud sync → Delete account…** (only when signed in). Two deliberate steps: a confirmation that says exactly what goes (the account and everything synced to it, plus this device's copy) and what does not (other devices until you sign out there, and backup files you downloaded), then typing DELETE. It points to Backup first.
+- **The device is wiped only after the server confirms.** Any failure (offline, the function not deployed yet, a server error, an expired sign-in) leaves everything as it was and says "Nothing was deleted". Nothing is pushed before deleting.
+- **Server: `supabase/functions/delete-account`.** The user id comes from the caller's own token via Supabase Auth, never from the request, so a caller can only delete itself; the anon key is refused. Deleting the auth user removes `app_state` and `profiles` by `ON DELETE CASCADE` in one transaction, so there is no half-deleted state; any row that somehow remains is deleted outright. Needs no secrets. Deployed by the existing workflow, now named "deploy edge functions".
+- Sign-out and deletion share one `forgetDevice()`, so what "the device forgets you" means cannot drift between them. It now also clears a pending sign-in verifier.
+- **Fixed:** `write-session` (the session writer) refused the iOS app's origin, `capacitor://localhost`, so writing a session would have failed in the app on CORS. Both functions now allow it.
+- `tools/test-delete-account.js` (35 assertions: the real server handler against a fake Supabase, and the real app); 12 mutants, all killed. buildcheck guards the id source, the iOS origin in both functions, the deploy step, and wipe-after-confirm.
+
 ## v4.6.112 (2026-09-24) — Signing in combines a day, it no longer picks one
 
 - **The incident:** this morning's sets in the PWA were replaced by test sets logged in the iOS build before it could sign in. Sync keeps the newer copy of each day, whole. That is right between devices that are already in sync, because each pulls before it logs. It is wrong for a device that logged while signed out: it never saw the cloud's copy, so "newer" only meant "logged last".

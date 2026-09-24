@@ -16,7 +16,7 @@
 
 const MODEL = Deno.env.get("WRITER_MODEL") || "claude-sonnet-4-5";
 const MAX_BODY = 120_000;
-const ORIGINS = ["https://tahros.github.io", "http://localhost:8898", "http://localhost:8899", "http://localhost:8080"];
+const ORIGINS = ["https://tahros.github.io", "capacitor://localhost", "http://localhost:8898", "http://localhost:8899", "http://localhost:8080"];
 
 const cors = (origin: string | null) => ({
   "Access-Control-Allow-Origin": origin && ORIGINS.some(o => origin.startsWith(o)) ? origin : ORIGINS[0],

@@ -208,8 +208,9 @@ loop on every release, so treat it as the fallback it is.
 
 ## 5. The Edge Function deploys itself
 
-`supabase/functions/write-session` is the app's one server component. It is
-**not** deployed from a session: `.github/workflows/deploy-fn.yml` deploys it on
+`supabase/functions/write-session` and (v4.6.113) `supabase/functions/delete-account`
+are the app's server components. They are
+**not** deployed from a session: `.github/workflows/deploy-fn.yml` deploys both on
 every push that touches `supabase/functions/**`, and can be run by hand from the
 Actions tab. It reads three repository secrets — `SUPABASE_ACCESS_TOKEN`,
 `ANTHROPIC_API_KEY`, `ANTHROPIC_WORKSPACE_ID`.

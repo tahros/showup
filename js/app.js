@@ -999,6 +999,7 @@ document.addEventListener('click',e=>{
   }
   if(e.target.closest('#googleBtn')) return signInGoogle();
   if(e.target.closest('#signOutBtn')) return signOut();
+  if(e.target.closest('#deleteAcctBtn')) return deleteAccount();
   if(e.target.closest('#cloudPullBtn')) return cloudPull();
   if(e.target.closest('#cloudTest')){
     DB.settings.cloud={url:$('#cloudUrl').value, anon:$('#cloudAnon').value};

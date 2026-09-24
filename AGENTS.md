@@ -69,6 +69,10 @@ and some of it changes the web build too. Landed and planned:
   script, not by hand in Xcode). buildcheck ties the two schemes together.
   `sync:ios` no longer runs check:dist: it needs Playwright, which the Mac
   does not have. Run check:dist here, before pushing.
+- v4.6.113 — account deletion (done): Settings → Delete account…, server in
+  supabase/functions/delete-account (deployed by deploy-fn.yml, no secrets).
+  Sign-out and deletion both go through forgetDevice() in js/core.js.
+  Any new Edge Function must allow `capacitor://localhost` (buildcheck).
 - Next: Sign in with Apple (App Review 4.8, forced by the Google provider);
   in-app account deletion (4.9/5.1.1(v)); HealthKit write + local
   notifications (4.2 minimum functionality).

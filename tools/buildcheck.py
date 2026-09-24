@@ -592,6 +592,26 @@ for _fn in ("captureOAuth", "handleAuthLink"):
         fail.append(f"{_fn}() no longer arms pullUnion -- signing in would discard the sets this device logged while signed out (v4.6.112)")
 if "const union=pullUnion; pullUnion=false;" not in _core:
     fail.append("cloudPull() no longer consumes pullUnion at merge time -- a second pull could combine forever, or the race with boot's pull could skip it (v4.6.112)")
+# -- v4.6.113: account deletion (App Store 5.1.1(v)). tools/test-delete-account.js
+#    proves both halves; these keep the pieces in different files together.
+_delfn = d/"supabase/functions/delete-account/index.ts"
+if not _delfn.exists():
+    fail.append("supabase/functions/delete-account is gone -- App Review rejects an app with sign-in and no in-app deletion (v4.6.113)")
+else:
+    _dsrc = _delfn.read_text()
+    if "/auth/v1/user" not in _dsrc or "body.user_id" in _dsrc or "body.id" in _dsrc:
+        fail.append("delete-account must take the user id from the caller's own token, never the request body (v4.6.113)")
+for _fnf in ("write-session", "delete-account"):
+    _ff = d/f"supabase/functions/{_fnf}/index.ts"
+    if _ff.exists() and "capacitor://localhost" not in _ff.read_text():
+        fail.append(f"supabase/functions/{_fnf} does not allow the iOS app's origin (capacitor://localhost) -- every call from the app fails CORS (v4.6.113)")
+if "functions deploy delete-account" not in (d/".github/workflows/deploy-fn.yml").read_text():
+    fail.append("deploy-fn.yml no longer deploys delete-account -- the button would answer 404 (v4.6.113)")
+if not _re.search(r"async function signOut\(\)\{.*?await forgetDevice\(\)", _core, _re.S) or \
+   not _re.search(r"async function deleteAccount\(\)\{.*?if\(!r\.ok\)\{.*?return 'failed';.*?await forgetDevice\(\)", _core, _re.S):
+    fail.append("sign-out and account deletion must both wipe the device through forgetDevice(), and deletion only after the server confirms (v4.6.113)")
+if 'id="deleteAcctBtn"' not in (d/"js/settings.js").read_text():
+    fail.append("Settings lost the Delete account button (v4.6.113)")
 if "nativeAuthBoot()" not in (d/"js/app.js").read_text():
     fail.append("boot no longer calls nativeAuthBoot() -- the sign-in link would arrive with nobody listening (v4.6.111)")
 _pkg_deps = (_pkg.get("dependencies", {}) if _pkg_f.exists() else {})
