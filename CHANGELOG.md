@@ -1,5 +1,9 @@
 # ShowUp — changelog
 
+## v4.6.115 (2026-09-24) — Over-the-air test release
+
+- No app changes. The first update shipped to an iOS build that already carries the v4.6.114 fix, to prove the whole cycle on a real phone: it downloads on one launch and applies within a second of the next.
+
 ## v4.6.114 (2026-09-24) — iOS updates actually install
 
 - **The bug (found on the phone):** 4.6.112 and 4.6.113 downloaded to the test app, verified, were queued as next, and never installed. The updater installs a queued bundle only when the app goes to the background with no delay condition set, and it clears the "wait for a cold start" delay at each launch. But `otaCheck` ran 4 seconds after every launch, found the same bundle and set the delay again, so every time the app was backgrounded the hold was back. The v4.6.110 test's fake updater had no delay conditions at all, which is how this passed.
