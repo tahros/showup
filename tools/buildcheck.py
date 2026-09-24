@@ -554,7 +554,8 @@ else:
         fail.append(f"ota.json is stale for {len(_stale)} file(s) ({', '.join(_stale[:3])}) -- phones would reject the update -- " + _OTA_FIX + " (v4.6.110)")
     _ship = set()
     for _sub in ("css", "js", "assets", "vendor"):
-        _ship |= {q.relative_to(d).as_posix() for q in (d/_sub).rglob("*") if q.is_file()}
+        _ship |= {q.relative_to(d).as_posix() for q in (d/_sub).rglob("*") if q.is_file()
+                  and not q.relative_to(d).as_posix().startswith("assets/ios/")}   # v4.6.119: native-only
     _ship |= {"index.html", "sw.js", "manifest.webmanifest"}
     _missing = sorted(_ship - set(_listed))
     if _missing:
@@ -648,6 +649,19 @@ else:
         fail.append("the reminders switch must stay device-local -- syncing it would raise a permission prompt on another phone (v4.6.118)")
     if _re.search(r"streak|dayCount|!'", _rem.split("*/",1)[1]):
         fail.append("reminders.js mentions a streak or day count, or shouts -- no escalation, no scores (v4.6.118)")
+# -- v4.6.119: the App Store icon. Apple rejects an icon with an alpha channel
+#    or the wrong size; ios-config.py installs it into the regenerated ios/.
+for _ic in ("AppIcon-1024.png", "AppIcon-1024-dark.png"):
+    _p = d/"assets/ios"/_ic
+    if not _p.exists():
+        fail.append(f"assets/ios/{_ic} is missing -- the iOS app falls back to Capacitor's placeholder (v4.6.119)")
+        continue
+    _b = _p.read_bytes()
+    _w, _h = int.from_bytes(_b[16:20], "big"), int.from_bytes(_b[20:24], "big")
+    if _b[:8] != b"\x89PNG\r\n\x1a\n" or (_w, _h) != (1024, 1024) or _b[25] not in (0, 2):
+        fail.append(f"assets/ios/{_ic} must be a 1024x1024 PNG with no alpha channel -- run tools/ios-icon-finish.py (v4.6.119)")
+if "AppIcon-1024.png" not in (d/"tools/ios-config.py").read_text():
+    fail.append("ios-config.py no longer installs the app icon (v4.6.119)")
 _pkg_deps = (_pkg.get("dependencies", {}) if _pkg_f.exists() else {})
 for _dep, _why in (("@capacitor/app", "appUrlOpen, the sign-in link back into the app"),
                    ("@capacitor/browser", "the in-app Safari sheet Google sign-in opens in")):

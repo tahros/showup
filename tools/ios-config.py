@@ -15,13 +15,15 @@ What it sets, and why:
                         nowhere to deliver the login and it dead-ends in Safari.
   orientations          portrait + both landscapes: landscape is where the big
                         rest timer lives during a live set (v3.3.426).
+  app icon              assets/ios/AppIcon-1024(-dark).png into the asset
+                        catalog, replacing Capacitor's placeholder (v4.6.119).
   iPhone only           TARGETED_DEVICE_FAMILY 1, no iPad, and no "Designed for
                         iPad" builds on Mac or Vision Pro. Shipping iPad means
                         a mandatory iPad screenshot set and an iPad review.
 It never touches the bundle identifier: that is chosen per signing account
 (.dev on a personal team, the real one under YOOOOOOOOO LLC).
 """
-import pathlib, plistlib, re, sys
+import json, pathlib, plistlib, re, shutil, sys
 
 SCHEME = "co.yooooooooo.showup"          # must equal AUTH_SCHEME in js/core.js
 d = pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else ".").resolve()
@@ -53,4 +55,26 @@ for key in ("SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD", "SUPPORTS_XR_DESIGNED_FOR_I
                  lambda m: m.group(1) + "\n" + m.group(2) + key + " = NO;", new)
 if new != pbx:
     pbx_f.write_text(new)
-print(f"ios-config: {SCHEME}:// registered, portrait + landscape, iPhone only")
+# v4.6.119: the app icon. assets/ios/ holds the 1024 icons (rendered by
+# tools/render-ios-icon.cjs, flattened by tools/ios-icon-finish.py); copy them
+# into the asset catalog with an iOS 18 dark variant. Replaces Capacitor's
+# placeholder. Byte-compare first so a re-run changes nothing.
+icons = d / "assets/ios"
+iconset = d / "ios/App/App/Assets.xcassets/AppIcon.appiconset"
+if (icons / "AppIcon-1024.png").exists() and iconset.exists():
+    for src, dst in (("AppIcon-1024.png", "AppIcon-1024.png"), ("AppIcon-1024-dark.png", "AppIcon-1024-dark.png")):
+        s = icons / src
+        if s.exists() and (not (iconset / dst).exists() or (iconset / dst).read_bytes() != s.read_bytes()):
+            shutil.copyfile(s, iconset / dst)
+    images = [{"filename": "AppIcon-1024.png", "idiom": "universal", "platform": "ios", "size": "1024x1024"}]
+    if (icons / "AppIcon-1024-dark.png").exists():
+        images.append({"appearances": [{"appearance": "luminosity", "value": "dark"}],
+                       "filename": "AppIcon-1024-dark.png", "idiom": "universal", "platform": "ios", "size": "1024x1024"})
+    contents = json.dumps({"images": images, "info": {"author": "xcode", "version": 1}}, indent=2) + "\n"
+    cf = iconset / "Contents.json"
+    if not cf.exists() or cf.read_text() != contents:
+        cf.write_text(contents)
+    old_ph = iconset / "AppIcon-512@2x.png"
+    if old_ph.exists():
+        old_ph.unlink()                                  # Capacitor's placeholder, now unreferenced
+print(f"ios-config: {SCHEME}:// registered, portrait + landscape, iPhone only, ShowUp icon")

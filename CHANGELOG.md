@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v4.6.119 (2026-09-24) — The App Store icon
+
+- **`assets/ios/AppIcon-1024.png`**: the approved "C" composition (white mascot at 82% on ShowUp Blue #3049dc, MASCOT.md v4.1.7). It is re-rendered from the mascot's 3D renderer on a stage four times larger, because the only existing mark was 512px and Apple needs 1024. The size is the same as the installed web icons, and the mascot is centred on its body: the old crop left it about 39px high, with 237px above and 315px below; now there are 277px above and below. The faint contact shadow hangs below the centred body. The mascot's body now has the approved v4.5.28 white shading, a little softer at the edges than the older web icon.
+- **`AppIcon-1024-dark.png`**: the iOS 18 dark-mode variant, the same mascot on #10131B (the approved dark tile).
+- Both are opaque RGB with no alpha channel (App Store Connect rejects any alpha channel) and have square corners, since iOS applies its own mask. `tools/render-ios-icon.cjs` renders them; `tools/ios-icon-finish.py` flattens and checks them.
+- **`tools/ios-config.py`** installs both into the regenerated Xcode asset catalog, with the dark appearance, and removes Capacitor's placeholder, so `npm run sync:ios` always leaves the real icon in place. Running it twice changes nothing.
+- The icons are native-only: `build-dist` leaves `assets/ios/` out of the web bundle and the over-the-air update. buildcheck checks both icons are 1024×1024 with no alpha channel, and that ios-config still installs them.
+
 ## v4.6.118 (2026-09-24) — Reminders, in the iOS app
 
 - **Settings → Reminders** (iOS app only; a website cannot schedule notifications on iOS). Off by default. iOS asks for permission only when you turn it on. If you refuse, it stays off and says where to change that.

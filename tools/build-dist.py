@@ -32,7 +32,9 @@ for sub in DIRS:
     src = d / sub
     if not src.is_dir():
         sys.exit(f"build-dist: missing directory {sub}/")
-    shutil.copytree(src, dist / sub)
+    # v4.6.119: assets/ios/ is the App Store icon, compiled into the binary by
+    # Xcode from the asset catalog; the web bundle never loads it.
+    shutil.copytree(src, dist / sub, ignore=(shutil.ignore_patterns("ios") if sub == "assets" else None))
     for f in (dist / sub).rglob("*"):
         if f.is_file():
             copied += 1
