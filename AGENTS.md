@@ -77,6 +77,10 @@ and some of it changes the web build too. Landed and planned:
   at launch (otaApplyPending). Read its header before touching the updater
   calls; the fake in tools/test-ota.js models the plugin's delay rules and
   must keep doing so.
+- v4.6.118 — reminders (done): js/reminders.js, iOS only, off by default,
+  one a day at most, facts only (no streaks, no escalation). Read its header.
+  The switch is device-local on purpose. New native plugin: every native
+  plugin added means a Mac rebuild before the iOS app takes OTA updates again.
 - Next: Sign in with Apple (App Review 4.8, forced by the Google provider);
   in-app account deletion (4.9/5.1.1(v)); HealthKit write + local
   notifications (4.2 minimum functionality).

@@ -26,6 +26,7 @@ PLUGIN_JS = {                      # npm package -> runtime plugin name
     "@capacitor/app": "App",
     "@capacitor/browser": "Browser",
     "@capacitor/filesystem": "Filesystem",
+    "@capacitor/local-notifications": "LocalNotifications",
     "@capgo/capacitor-updater": "CapacitorUpdater",
 }
 NOT_PLUGINS = {"@capacitor/core", "@capacitor/ios", "@capacitor/cli", "@capacitor/android"}

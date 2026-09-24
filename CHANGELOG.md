@@ -1,5 +1,19 @@
 # ShowUp — changelog
 
+## v4.6.118 (2026-09-24) — Reminders, in the iOS app
+
+- **Settings → Reminders** (iOS app only; a website cannot schedule notifications on iOS). Off by default. iOS asks for permission only when you turn it on. If you refuse, it stays off and says where to change that.
+- **At most one a day, and only facts:**
+  - A **planned** day gets one note at a morning time you choose (default 7:00): *"Planned: Upper chest + triceps."* The plan is the reminder, so nothing follows it that day.
+  - An **unplanned usual training day** gets one line 30 minutes after the time you usually start on that weekday, if nothing is logged yet. Today's names the part the rotation has due (*"Legs is due."*). Later days say *"Your usual training time."* and are rewritten with the part when you open the app that day.
+  - **Rest days** get nothing, whether declared or a weekday you don't usually train.
+  - Never a streak count, a day number, an exclamation mark, a second nudge, or anything special on a milestone day.
+- **From the ledger, nothing new collected.** Usual weekdays are the writer's own `writerHabitDays()` (trained in at least half of the last eight weeks). The usual time is the median time of each day's first set on that weekday, needing at least three known starts. There are no reminders before 06:00 or after 21:30.
+- **All local:** `@capacitor/local-notifications` schedules the next seven days on the phone, with no server and no push token. Every save reschedules, so logging a set removes today's line within seconds, and so does returning to the app. Unchanged schedules are not rewritten.
+- **The switch is per device** (localStorage), never synced, because turning it on on one phone must not raise a permission prompt on another.
+- **Needs a native rebuild** (a new plugin). Until then, the test app skips this update by design: `ota.json` requires `LocalNotifications`.
+- `tools/test-reminders.js` (28 assertions on a pinned week with real history: times, weekdays, plan replacing the line, rest days, quiet hours, too few samples, logging cancels, permission refused, off cancels, no churn, the Settings card); 12 mutants, all killed. buildcheck: save() requeues, the switch stays device-local, and no streak language.
+
 ## v4.6.117 (2026-09-24) — Privacy policy and support pages
 
 - **`privacy.html`** and **`support.html`**, served at tahros.github.io/showup/. App Store Connect needs both URLs, and they must load. The contact on both is sungjee@yooooooooo.co.

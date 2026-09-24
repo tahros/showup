@@ -78,6 +78,18 @@ function renderSync(){
       </span>
       <div class="note" style="margin-top:10px">Switch back anytime, on this device. Saved plans and workouts do not change. Unfinished workspace drafts stay on this device.</div>
     </div>
+    ${typeof remPlugin==='function'&&remPlugin()?(()=>{ const rp=remPrefs(); return `
+    <!-- v4.6.118: reminders, iOS app only (a website cannot schedule them). -->
+    <h2>Reminders</h2>
+    <div class="card">
+      <span class="seg" style="display:flex">
+        <button data-rem="off" class="${rp.on?'':'sel'}" aria-pressed="${!rp.on}">Off</button>
+        <button data-rem="on" class="${rp.on?'sel':''}" aria-pressed="${rp.on}">On</button>
+      </span>
+      ${rp.on?`<div class="fld text" style="margin-top:10px"><label>Planned-day note at</label>
+        <input id="remMorning" type="time" value="${rp.morning}"></div>`:''}
+      <div class="note" style="margin-top:10px">At most one a day. On a planned day, your plan in the morning. On a usual training day with no plan, one line 30 minutes after you usually start, if nothing is logged. Nothing on rest days.</div>
+    </div>`; })():''}
     <h2>Account & cloud sync</h2>
     <div class="card">
       ${session?`
@@ -298,8 +310,11 @@ document.addEventListener('click',e=>{
   if(hit('expJson')){ dlFile('showup-backup-'+todayISO+'.json','application/json',
     JSON.stringify({app:'showup',v:APP_VERSION,exported:new Date().toISOString(),doc:DB})); return; }
   if(hit('impJson')){ const i=document.getElementById('impFile'); if(i) i.click(); return; }
+  const rb=e.target.closest&&e.target.closest('[data-rem]');   // v4.6.118
+  if(rb){ const on=rb.dataset.rem==='on'; if(on!==remPrefs().on) remToggle(on).then(()=>renderSync()); return; }
 });
 document.addEventListener('change',e=>{
+  if(e.target&&e.target.id==='remMorning'){ remSetMorning(e.target.value); return; }   // v4.6.118
   if(e.target&&(e.target.id==='mgFrom'||e.target.id==='mgTo')){
     _mg[e.target.id==='mgFrom'?'from':'to']=e.target.value; render(); return;
   }

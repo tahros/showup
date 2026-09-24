@@ -39,7 +39,8 @@ shell_count = len(re.findall(r"'\./[^']+\?v=", sw))
 # present offline or Stats silently falls back to the previous page contract.
 # v4.6.104: 31 — css/fonts.css joined the shell when IBM Plex moved in-house.
 # v4.6.110: 32 — js/ota.js.
-if shell_count != 32: fail.append(f"sw SHELL has {shell_count} stamped assets, expected 32")
+# v4.6.118: 33 — js/reminders.js.
+if shell_count != 33: fail.append(f"sw SHELL has {shell_count} stamped assets, expected 33")
 for a in re.findall(r"'\./([^']+)'", sw):
     if not (d/a.split('?')[0]).exists(): fail.append(f"offline SHELL asset missing: {a}")
 
@@ -635,6 +636,18 @@ if "https://tahros.github.io/showup/privacy.html" not in _st:
     fail.append("Settings no longer links the privacy policy by absolute URL -- App Review 5.1.1(i) (v4.6.117)")
 if (d/"privacy.html").exists() and "Delete account" not in (d/"privacy.html").read_text():
     fail.append("privacy.html no longer says how to delete the account (v4.6.117)")
+# -- v4.6.118: reminders. tools/test-reminders.js proves the rules; these keep
+#    the pieces in other files wired.
+_rem = (d/"js/reminders.js").read_text() if (d/"js/reminders.js").exists() else ""
+if not _rem:
+    fail.append("js/reminders.js is gone (v4.6.118)")
+else:
+    if "remQueue()" not in _core:
+        fail.append("save() no longer requeues reminders -- logging a set would not cancel today's line (v4.6.118)")
+    if "localStorage.setItem(REM_KEY" not in _rem or "DB.settings.reminders" in _rem:
+        fail.append("the reminders switch must stay device-local -- syncing it would raise a permission prompt on another phone (v4.6.118)")
+    if _re.search(r"streak|dayCount|!'", _rem.split("*/",1)[1]):
+        fail.append("reminders.js mentions a streak or day count, or shouts -- no escalation, no scores (v4.6.118)")
 _pkg_deps = (_pkg.get("dependencies", {}) if _pkg_f.exists() else {})
 for _dep, _why in (("@capacitor/app", "appUrlOpen, the sign-in link back into the app"),
                    ("@capacitor/browser", "the in-app Safari sheet Google sign-in opens in")):
