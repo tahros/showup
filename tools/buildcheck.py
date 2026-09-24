@@ -621,6 +621,8 @@ _ota_js = (d/"js/ota.js").read_text()
 _m = _re.search(r"async function otaApplyPending\(P\)\{.*?\n\}", _ota_js, _re.S)
 if not _m or "P.set({id:n.id})" not in _m.group(0) or "otaNewer(n.version,cur)" not in _m.group(0):
     fail.append("js/ota.js: otaApplyPending() must set() a newer next bundle at launch, and only a newer one -- otherwise updates queue forever, or a leftover downgrades the app (v4.6.114)")
+if "P.next({id:curId||'builtin'})" not in _ota_js:
+    fail.append("js/ota.js no longer un-queues a next bundle it did not apply -- the plugin installs it on background, a downgrade after a rebuild (v4.6.116)")
 if "otaBoot=otaApplyPending(P)" not in _ota_js:
     fail.append("js/ota.js no longer applies pending updates at launch (v4.6.114)")
 _pkg_deps = (_pkg.get("dependencies", {}) if _pkg_f.exists() else {})

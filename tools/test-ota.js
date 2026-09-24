@@ -34,7 +34,9 @@ function fakeUpdater(){
     getNextBundle(){calls.push('getNext');return Promise.resolve(state.next?{...state.next}:null);},
     current(){calls.push('current');return Promise.resolve({bundle:{...state.current},native:'1.0'});},
     set(o){calls.push('set:'+o.id);const b=byId(o.id);if(!b)return Promise.reject(new Error('no bundle'));state.current=b;state.reloaded=(state.reloaded||0)+1;return Promise.resolve();},
-    delete(o){calls.push('delete:'+o.id);if(o.id===state.current.id)return Promise.reject(new Error('current'));state.bundles=state.bundles.filter(b=>b.id!==o.id);if(state.next&&state.next.id===o.id)state.next=null;return Promise.resolve();},
+    delete(o){calls.push('delete:'+o.id);if(o.id===state.current.id)return Promise.reject(new Error('current'));
+      if(state.next&&state.next.id===o.id&&state.next.id!==state.current.id)return Promise.reject(new Error('cannot delete the next bundle'));   // as the real plugin
+      state.bundles=state.bundles.filter(b=>b.id!==o.id);if(state.next&&state.next.id===o.id)state.next=null;return Promise.resolve();},
     notifyAppReady(){calls.push('notifyAppReady');state.readyAt=calls.length;return Promise.resolve({bundle:{id:'builtin'}});},
     addListener(ev,fn){(listeners[ev]=listeners[ev]||[]).push(fn);calls.push('listen:'+ev);return Promise.resolve({remove(){}});},
     list(){calls.push('list');return Promise.resolve({bundles:state.bundles.slice()});},
@@ -42,7 +44,7 @@ function fakeUpdater(){
       if(state.downloadFails>0){state.downloadFails--;return Promise.reject(new Error('Computed checksum is not equal'));}
       const b={id:'b'+state.bundles.length,version:o.version,status:'success',checksum:'',downloaded:''};state.bundles.push(b);return Promise.resolve(b);},
     setMultiDelay(o){calls.push('delay:'+o.delayConditions.map(c=>c.kind).join(','));state.delays=o.delayConditions.slice();return Promise.resolve();},
-    next(o){calls.push('next:'+o.id);state.next=byId(o.id)||null;return Promise.resolve({id:o.id});},
+    next(o){calls.push('next:'+o.id);const b=byId(o.id)||(o.id===state.current.id?state.current:null);if(!b)return Promise.reject(new Error('no bundle'));state.next=b;return Promise.resolve({id:o.id});},
   };
   return {api,calls,listeners,state,sim};
 }
@@ -147,10 +149,21 @@ async function boot({shell=true,plugins=['CapacitorUpdater','Filesystem'],serve=
    ok('an older pending bundle is never applied (no downgrade after a native rebuild)', !up.calls.some(c=>c.startsWith('set:')), up.calls.join(' '));
    ok('bundles not newer than the running code are deleted', r==='tidied:2' && up.state.bundles.length===0, r);
  }
+ { /* v4.6.116: the downgrade found on the phone. A native rebuild ships NEWER code than an
+      old bundle still queued as next; the plugin would install that bundle on the next background. */
+   const up=fakeUpdater(); const older=APP.replace(/\d+$/,m=>String(Math.max(0,+m-1)));
+   up.state.bundles.push({id:'stale',version:older,status:'pending'}); up.state.next=up.state.bundles[0];
+   up.sim.launch();
+   const b=await boot({up}); await b.run('otaBoot');
+   ok('after a rebuild: the stale bundle is no longer next', !up.state.next||up.state.next.id==='builtin', JSON.stringify(up.state.next));
+   ok('after a rebuild: backgrounding installs nothing (no downgrade)', up.sim.background()!=='installed' && up.state.current.id==='builtin', up.calls.join(' '));
+   ok('after a rebuild: the stale bundle is deleted', !up.state.bundles.some(b=>b.id==='stale'));
+ }
  { /* a newer bundle marked bad is not applied */
    const up=fakeUpdater(); up.state.bundles.push({id:'nb',version:bump(APP),status:'pending'}); up.state.next=up.state.bundles[0];
    const b=await boot({up,local:{'showup:ota:bad':[bump(APP)]}}); await b.run('otaBoot');
    ok('a newer bundle already marked bad is not applied', !up.calls.includes('set:nb'));
+   ok('...nor left as next for the plugin to install on background', up.sim.background()!=='installed');
  }
  { /* the next bundle is reused, not downloaded again */
    const up=fakeUpdater(); up.state.bundles.push({id:'nx',version:bump(APP),status:'pending'}); up.state.next=up.state.bundles[0];

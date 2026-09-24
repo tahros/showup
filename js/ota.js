@@ -67,6 +67,15 @@ async function otaApplyPending(P){
       return 'applying:'+n.version;
     }
     let curId=null; try{ curId=(await P.current())?.bundle?.id||null; }catch(e){}
+    /* v4.6.116: a next bundle we did NOT apply must stop being next. The
+       plugin installs "next" on its own the moment the app is backgrounded
+       with no delay (and launch clears the kill delay), and it refuses to
+       delete the next bundle. So after a native rebuild ships newer code than
+       an old queued bundle, that bundle stayed next and the plugin installed
+       it: a downgrade, found on the phone (4.6.114 -> 4.6.113). Pointing next
+       at the running bundle makes the plugin's install a no-op, and frees the
+       stale one to be deleted below. */
+    if(n&&n.id&&n.id!==curId){ try{ await P.next({id:curId||'builtin'}); }catch(e){} }
     const l=await P.list(); let gone=0;
     for(const b of l?.bundles||[]){
       if(b.id===curId||b.id==='builtin') continue;

@@ -1,5 +1,11 @@
 # ShowUp — changelog
 
+## v4.6.116 (2026-09-24) — No downgrade after a native rebuild
+
+- **Found on the phone:** after the Mac rebuild put 4.6.114 into the test app, it went back to 4.6.113. An old 4.6.113 bundle was still queued as the updater's "next" one. v4.6.114 correctly refused to apply it and tried to delete it, but the updater will not delete its next bundle. The first time the app went to the background it installed that bundle on its own. That was a downgrade, back to code with the original bug.
+- **The fix:** at launch, any next bundle that is not applied (older, the same version, or marked bad) stops being next: next is pointed at the running bundle, which makes the updater's own install a no-op. Then it is deleted.
+- The test's fake updater now refuses to delete the next bundle, as the real one does. With that, the old code fails exactly as the phone did (`install:stale`).
+
 ## v4.6.115 (2026-09-24) — Over-the-air test release
 
 - No app changes. The first update shipped to an iOS build that already carries the v4.6.114 fix, to prove the whole cycle on a real phone: it downloads on one launch and applies within a second of the next.
