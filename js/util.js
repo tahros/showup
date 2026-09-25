@@ -4,11 +4,19 @@
 /* ---------- rubber-band at the bottom ----------
    iOS gives a native bounce; disabling it for pull-to-refresh killed it everywhere.
    This restores the feel at the bottom edge: drag past the end and the content
-   stretches with diminishing returns (÷2.6), then springs back with a slight
-   overshoot. Purely visual — no scroll state is touched. */
+   stretches with diminishing returns, then springs back with a slight
+   overshoot. Purely visual — no scroll state is touched.
+   v4.6.121: springier, at the maker's ask ("still too rigid"). The stretch
+   was a flat ÷2.6 capped at 80px -- stiff from the first pixel, then a wall.
+   It is now UIScrollView's own rubber-band curve, offset = (1 - 1/(d·c/H + 1))·H
+   with c = 0.55 and H the viewport height: 100px of drag gives ~52px (was 38),
+   300px gives ~139px (was 80, capped), and it never hits a hard stop. The
+   release now overshoots ~11% past rest before settling (was ~0%, which
+   read as a wall), over 0.6s (css: body.bandback). */
 (()=>{
   let y0=null, band=0, active=false;
   const atBottom=()=>innerHeight+scrollY>=document.body.scrollHeight-1;
+  const rubber=d=>{ const H=innerHeight||800; return (1-1/(d*0.55/H+1))*H; };   // UIScrollView's curve
   addEventListener('touchstart',e=>{
     if(e.touches.length!==1){y0=null;return;}
     y0=e.touches[0].clientY; band=0; active=false;
@@ -17,7 +25,7 @@
     if(y0===null) return;
     const dy=e.touches[0].clientY-y0;
     if(dy<0 && atBottom()){                    // dragging up, already at the end
-      active=true; band=Math.min(80,(-dy)/2.6);
+      active=true; band=rubber(-dy);
       document.body.classList.add('banding');
       document.body.classList.remove('bandback');
       pageShift(`translateY(${(-band).toFixed(1)}px)`);
@@ -31,7 +39,7 @@
     document.body.classList.remove('banding');
     document.body.classList.add('bandback');
     pageShift('');
-    setTimeout(()=>document.body.classList.remove('bandback'),450);
+    setTimeout(()=>document.body.classList.remove('bandback'),650);
   };
   ['touchend','touchcancel'].forEach(ev=>addEventListener(ev,()=>{release();y0=null;},{passive:true}));
 })();

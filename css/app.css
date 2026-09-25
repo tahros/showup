@@ -2238,7 +2238,7 @@
   /* v3.3.309: the transition follows the transform onto #view. Left on body
      it would animate nothing, since body no longer moves. */
   body.banding #view{transition:none}
-  body.bandback #view{transition:transform .42s cubic-bezier(.16,1.06,.3,1)}  /* overshoot, like iOS */
+  body.bandback #view{transition:transform .6s cubic-bezier(.3,1.6,.5,1)}  /* v4.6.121: ~11% overshoot past rest, then settle (was ~0%) */
   body.pulling #view{transition:none}
   body.settling #view{transition:transform .28s var(--settle)}
   #swipehint{position:fixed;top:50%;z-index:55;pointer-events:none;

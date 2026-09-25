@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v4.6.121 (2026-09-24) — A springier bottom edge
+
+- **Asked for on the phone: "still too rigid".** The rubber-band at the bottom of every page was a flat ÷2.6 stretch capped at 80px, and its release curve overshot by about 0%, so it was stiff from the first pixel, then a wall, then a dead stop.
+- **The stretch** now follows UIScrollView's own rubber-band curve, `(1 − 1/(d·0.55/H + 1))·H`, where H is the screen height. 100px of drag gives about 52px (was 38), 300px gives about 139px (was 80, capped), and there is no hard stop, just more resistance the further you pull.
+- **The release** overshoots about 11% past rest before settling, over 0.6s (was 0.42s with no visible overshoot).
+- This applies to the web app and the iOS app alike. It arrives over the air, no rebuild needed. At the top of a page, pull-to-refresh is unchanged.
+- `tools/test-rubber.js` drives a real drag through the app and checks the curve; it fails on the old stretch. The motion allowlist swaps the old band-back curve for the new one.
+
 ## v4.6.120 (2026-09-24) — The iOS app bounces again
 
 - **The bug (found on the phone):** scrolling in the test app felt rigid and stuck at the ends. Capacitor sets `scrollView.bounces = false` when it creates the web view, and there is no setting to undo it. The web app never had this problem, because Safari keeps the bounce and the CSS already allows it (`html{overscroll-behavior-y:contain}`).

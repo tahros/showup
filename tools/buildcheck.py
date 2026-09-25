@@ -1072,7 +1072,7 @@ for _tok in ("--settle:", "--dur-quick:", "--dur-move:", "--dur-arrive:"):
 _MOTION_ALLOW = {"cubic-bezier(.22,1,.36,1)",   # the settle voice itself
                  "cubic-bezier(.2,.9,.3,1.4)",  # tap press spring
                  "cubic-bezier(.3,1.4,.4,1)",   # save celebration spring
-                 "cubic-bezier(.16,1.06,.3,1)"} # band-back overshoot, like iOS
+                 "cubic-bezier(.3,1.6,.5,1)"}   # band-back overshoot (~11%), v4.6.121; replaced (.16,1.06,.3,1)
 for _cb in set(_re.findall(r"cubic-bezier\([^)]*\)", _css_motion)):
     if _cb not in _MOTION_ALLOW:
         fail.append(f"motion: ad-hoc curve {_cb} — speak with var(--settle) or allowlist it (v3.3.270)")
