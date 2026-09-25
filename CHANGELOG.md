@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v4.6.127 (2026-09-24) — Verify the native bounce controller
+
+- Investigation: Capacitor starts WKWebView with bounce disabled. The v4.6.120 installer could silently miss reordered storyboard attributes and never updated an existing generated controller. OTA updates cannot install that native code; the installed Mac/Xcode binary was not available for inspection here.
+- Native setup now matches storyboard attributes independent of order/whitespace, verifies one recognized controller, and fails clearly if the files or expected controller are missing.
+- Refresh the owned Swift class on every sync, without duplicates or changing unrelated code. Enable vertical bounce at Capacitor startup and again when the controller appears; Debug builds print the actual bounce flags.
+- Seven generated-project tests cover formatting variants, legacy upgrades, byte-identical repeated runs, missing files and preservation of custom code. PWA gesture code is unchanged.
+- Requires git pull, npm run sync:ios, then a fresh Xcode build/run. Native compilation and physical bounce still need Mac/device verification; docs/IOS-BOUNCE.md contains the exact steps.
+
 ## v4.6.126 (2026-09-24) — A quiet, steady sync dot
 
 - **Found on the phone:** the red "not syncing" dot on the gear was loud, and it sat in a different place depending on the tab. It was drawn on the gear button's `::after`, the same layer the selected tab uses for its shimmer, so opening Settings stretched that layer across the pill and the dot jumped to the gear's left side.

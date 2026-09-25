@@ -88,27 +88,77 @@ if (icons / "AppIcon-1024.png").exists() and iconset.exists():
 # needs no new entry. The web side already keeps the bounce (css/app.css:
 # html{overscroll-behavior-y:contain}).
 VC_MARK = "// ShowUp: ShowUpViewController (tools/ios-config.py)"
-VC_SWIFT = """
+VC_SWIFT = r"""
 // ShowUp: ShowUpViewController (tools/ios-config.py)
 // Capacitor sets scrollView.bounces = false; ShowUp wants iOS's rubber-band
 // at the top and bottom. capacitorDidLoad() runs after Capacitor's setup.
 class ShowUpViewController: CAPBridgeViewController {
     override func capacitorDidLoad() {
         super.capacitorDidLoad()
+        enableShowUpBounce()
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        enableShowUpBounce()
+    }
+
+    private func enableShowUpBounce() {
         webView?.scrollView.bounces = true
         webView?.scrollView.alwaysBounceVertical = true
+        #if DEBUG
+        if let scroll = webView?.scrollView {
+            print("[ShowUp] Native scroll bounce: enabled=\(scroll.bounces), vertical=\(scroll.alwaysBounceVertical)")
+        }
+        #endif
     }
 }
+// End ShowUp: ShowUpViewController
 """
 ad = d / "ios/App/App/AppDelegate.swift"
 sb = d / "ios/App/App/Base.lproj/Main.storyboard"
-if ad.exists() and sb.exists():
-    src = ad.read_text()
-    if VC_MARK not in src:
-        ad.write_text(src.rstrip("\n") + "\n" + VC_SWIFT)
-    s = sb.read_text()
-    s2 = s.replace('customClass="CAPBridgeViewController" customModule="Capacitor"',
-                   'customClass="ShowUpViewController" customModule="App" customModuleProvider="target"')
-    if s2 != s:
-        sb.write_text(s2)
-print(f"ios-config: {SCHEME}:// registered, portrait + landscape, iPhone only, ShowUp icon, scroll bounce")
+if not ad.exists() or not sb.exists():
+    sys.exit("ios-config: cannot install bounce: AppDelegate.swift or Main.storyboard is missing")
+src = ad.read_text()
+s = sb.read_text()
+# Match attributes, not their ordering or Xcode's whitespace/quote choices.
+# Preserve the rest of the storyboard instead of serializing all its XML.
+tags = list(re.finditer(r"<viewController\b[^>]*>", s))
+targets = [m for m in tags if re.search(
+    r"""\bcustomClass\s*=\s*["'](?:CAPBridgeViewController|ShowUpViewController)["']""", m.group())]
+if len(targets) != 1:
+    sys.exit("ios-config: expected exactly one Capacitor/ShowUp controller in Main.storyboard; bounce NOT installed")
+tag = targets[0]
+updated_tag = re.sub(r"""\s+custom(?:Class|Module|ModuleProvider)\s*=\s*["'][^"']*["']""", "", tag.group())
+updated_tag = updated_tag[:-1] + ' customClass="ShowUpViewController" customModule="App" customModuleProvider="target">'
+s2 = s[:tag.start()] + updated_tag + s[tag.end():]
+
+# Replace only our generated class, including the old v4.6.120 block.
+# Updating is necessary: a marker is ownership, not proof that code is current.
+if VC_MARK in src:
+    start = src.index(VC_MARK)
+    cls = re.search(r"class ShowUpViewController\s*:\s*CAPBridgeViewController\s*\{", src[start:])
+    if not cls:
+        sys.exit("ios-config: generated controller marker has no recognized class; refusing to overwrite")
+    opening = start + cls.end() - 1
+    depth, end = 1, opening + 1
+    while end < len(src) and depth:
+        depth += (src[end] == "{") - (src[end] == "}")
+        end += 1
+    if depth:
+        sys.exit("ios-config: generated controller is incomplete; refusing to overwrite")
+    tail = src[end:]
+    tail = re.sub(r"^\s*// End ShowUp: ShowUpViewController[^\n]*", "", tail, count=1)
+    src2 = src[:start].rstrip("\n") + "\n" + VC_SWIFT + tail.lstrip("\n")
+else:
+    if re.search(r"class\s+ShowUpViewController\b", src):
+        sys.exit("ios-config: unowned ShowUpViewController exists; refusing to overwrite")
+    src2 = src.rstrip("\n") + "\n" + VC_SWIFT
+if not re.search(r"^import Capacitor\s*$", src2, re.M):
+    sys.exit("ios-config: AppDelegate.swift must import Capacitor")
+if src2 != src:
+    ad.write_text(src2)
+if s2 != s:
+    sb.write_text(s2)
+print(f"ios-config: {SCHEME}:// registered, portrait + landscape, iPhone only, ShowUp icon")
+print("ios-config: bounce controller installed and storyboard verified. Rebuild/run in Xcode; OTA cannot install native code.")
