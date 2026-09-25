@@ -6,6 +6,8 @@
 .progress-switch button svg{width:17px;height:17px;flex-shrink:0;fill:currentColor}
 .progress-switch button[aria-pressed=true]{color:var(--accent-ink)}
 .today-focus{margin-top:-20px}
+/* v4.6.135: the pull-up is for the top of the page; after a card (the milestone moment) it put the greeting under that card */
+.card + .today-focus{margin-top:0}
 .today-focus .su-hello-row{margin:0 0 8px}
 .today-focus-card.card{padding:20px 18px}
 .today-focus-title{display:flex;align-items:center;justify-content:space-between;gap:12px}

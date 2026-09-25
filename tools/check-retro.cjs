@@ -20,7 +20,7 @@ await p.locator('#retroSoundBtn').click();
 await p.evaluate(()=>{DB.settings.mascotMotion='animated';window.testHost=document.createElement('div');testHost.style.width='168px';document.body.appendChild(testHost);window.testSprite=createRetroMascot(testHost,{mode:'jump',tone:'blue'});window.spriteBefore=testHost.querySelector('canvas').toDataURL();testSprite.replay();});
 await p.waitForTimeout(400);
 assert(await p.evaluate(()=>testHost.querySelector('canvas').toDataURL()!==spriteBefore));
-await p.waitForTimeout(850);
+await p.waitForTimeout(3300);   // v4.6.135: the film's jump (2.7s) and its settle, then back to standing
 assert(await p.evaluate(()=>testHost.querySelector('canvas').toDataURL()===spriteBefore));
 await p.emulateMedia({reducedMotion:'reduce'});
 await p.evaluate(()=>testSprite.replay());await p.waitForTimeout(400);
@@ -32,7 +32,8 @@ await p.evaluate(t=>{DB.settings.theme=t;applyTheme();render();},theme);
 const colors=await p.evaluate(()=>{
 const props=['--ground','--surface','--chalk','--accent','--rest'],get=()=>props.map(k=>getComputedStyle(document.documentElement).getPropertyValue(k));
 const retro=get();DB.settings.skin='minimal';applyTheme();const minimal=get();DB.settings.skin='retro';applyTheme();return {retro,minimal};
-});assert.deepEqual(colors.retro,colors.minimal);
+});/* v4.6.135: Retro wears the gym film's palette now; rest green is shared */
+assert.equal(colors.retro[0].trim(),theme==='dark'?'#0B0D14':'#E6E8EB');assert.equal(colors.retro[4],colors.minimal[4]);assert.notDeepEqual(colors.retro,colors.minimal);
 for(const width of [320,393,430]){
 await p.setViewportSize({width,height:900});
 for(const v of ['today','sync','lift','history','stats']){

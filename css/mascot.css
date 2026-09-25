@@ -113,3 +113,11 @@ body.rest-home,body.rest-home #app{background:linear-gradient(180deg,var(--rest-
 @keyframes su-box-in{from{opacity:0;transform:translateY(4px) scale(.82)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){.su-milestone-grid i{animation:none}}
 @media(max-width:360px){.su-hello-row .su-mascot,.card.dayclosed .su-mascot{width:71px}#dayDone .su-mascot{width:190px}}
+/* v4.6.135: the secret gym film (js/mascot.js, js/gym-tour.js). Above everything,
+   edge to edge including the safe areas; the film letterboxes itself in its own
+   night colour, so upright it plays full width and sideways it fills the screen. */
+#gymTour{position:fixed;inset:0;z-index:2147483000;background:#0B0D14;touch-action:none;cursor:pointer}
+#gymTour canvas{position:absolute;inset:0;width:100%;height:100%;display:block;image-rendering:pixelated;image-rendering:crisp-edges}
+html.gym-tour-open,html.gym-tour-open body{overflow:hidden}
+/* the secret's door is the Today mascot itself: tappable in every motion setting */
+#view .su-mascot{pointer-events:auto;-webkit-tap-highlight-color:transparent}

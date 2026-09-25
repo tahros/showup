@@ -198,3 +198,41 @@ for(const tone of ['white','chrome']){
   document.addEventListener('mascotsettingschange',queue);
   queue();
 })();
+
+/* v4.6.135: THE SECRET. Three taps on the Today mascot, each within 600ms of
+   the last, open the gym film (js/gym-tour.js) full screen. It loops, keeps
+   playing through a rotation (the film reflows to the new size; sideways it
+   fills the screen), and any tap closes it back to Today exactly as it was.
+   Nothing on screen points at it. Works in every look and motion setting, as
+   long as a mascot is there to tap. Reads and writes nothing. */
+(()=>{
+  let taps=[],open=null;
+  function close(){
+    if(!open)return;
+    const o=open;open=null;o.player?.stop();o.el.remove();document.removeEventListener('keydown',o.key,true);
+    document.documentElement.classList.remove('gym-tour-open');
+  }
+  async function play(){
+    if(open)return;
+    const el=document.createElement('div');el.id='gymTour';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');
+    el.setAttribute('aria-label','ShowUp gym film. Tap anywhere to close.');
+    el.innerHTML='<canvas id="gymTourScreen" role="img" aria-label="Pixel-art ShowUp dumbbell mascot jumping through twelve US gyms, one per month."></canvas>';
+    const key=e=>{if(e.key==='Escape'||e.key==='Enter'||e.key===' '){e.preventDefault();close();}};
+    open={el,key,player:null};document.body.append(el);document.documentElement.classList.add('gym-tour-open');
+    document.addEventListener('keydown',key,true);
+    /* the tap that opened it must not close it: listen from the next one */
+    setTimeout(()=>{if(open&&open.el===el)el.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();close();});},350);
+    try{
+      const {playGymTour}=await import('./gym-tour.js');
+      if(open&&open.el===el)open.player=playGymTour(el.querySelector('canvas'));
+    }catch(_){close();}
+  }
+  document.addEventListener('pointerdown',e=>{
+    const m=e.target.closest?.('.su-mascot');
+    if(!m||open||typeof view==='undefined'||view!=='today'||!m.closest('#view')||m.closest('#dayDone,[data-replayday]')){taps=[];return;}
+    const now=performance.now();taps=taps.filter(t=>now-t<600*2);taps.push(now);
+    if(taps.length>=3&&taps[taps.length-1]-taps[taps.length-3]<1200){taps=[];play();}
+  },{capture:true,passive:true});
+  window.gymTour={play,close,get open(){return open;}};
+})();
+

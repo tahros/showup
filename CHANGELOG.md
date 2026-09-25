@@ -1,5 +1,24 @@
 # ShowUp — changelog
 
+## v4.6.135 (2026-09-25) — Retro follows the gym film, and a secret
+
+- **The Retro look now matches the maker's pixel gym film.**
+  - **Palette:** the film's night palette in dark (`#0B0D14` ground, `#10131B` panels, steel outlines), and white panels outlined in navy on light grey in light.
+  - **Boxes:** 2px outlined, square corners, flat. The header and tab bar become the film's HUD boxes with notched corners.
+  - **Selected states** are the film's blue badge. Buttons sink 2px when pressed.
+  - **Pixel type:** "ShowUp Pixel", built from the film's own 3×5 letters (`assets/fonts/web/showup-pixel.woff2`, generator `tools/build-pixel-font.py`). It's used for headings, labels, buttons and big numbers, sized to whole pixels: labels 12px, titles and the header date 16px, big numbers 40px (reduced at the maker's request). Sentences stay in the mono face.
+  - **Pixel tab icons** (today, train, progress, settings) drawn at 12×12, 2px a pixel.
+  - Heatmap days and the header's week are true squares. Minimal and Classic are unchanged.
+- **The film's sprite replaces the Retro mascot everywhere**: Today, the finish screen, rest days and share exports. It's a 42×24 dumbbell with a 1px outline, a three-step light ramp and a live face. Its jump is the approved 3D jump's own keyframes, and its tones follow the 3D rules (silver on light, white on dark, blue for completion, green on rest days).
+- **A secret: three quick taps on the Today mascot open the twelve-gym film** (`js/gym-tour.js`, the maker's "ShowUp Gym Tour 2", embedded unchanged apart from drawing into a given canvas and being stoppable).
+  - It loops, upright at full width, and fills the screen sideways without restarting.
+  - Any tap closes it back to Today exactly as it was. It reads and writes nothing, is loaded only when opened, and is cached for offline.
+  - It works in every look, theme and motion setting while a mascot is on screen.
+- **Fix:** Today's greeting row was pulled up 20px even when a card (the milestone moment) sat above it, hiding the top of "Afternoon." in every look.
+- **Tests:**
+  - new `tools/check-gym-tour.cjs` covers two looks × two themes × two motion settings: two taps do nothing; three open, draw and move; rotation keeps playing and fills; one tap closes with the record untouched; it never opens from another tab;
+  - `tools/check-retro.cjs` is updated for the new palette and jump length.
+
 ## v4.6.134 (2026-09-25) — An even gear
 
 - **Found on the phone:** the Settings gear in the tab bar was lopsided. It was a hand-traced `clip-path` polygon with teeth of different widths at uneven angles and a bulging left side.

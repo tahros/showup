@@ -683,6 +683,9 @@ if "updated_tag[:-1]" in _ioc or 'closing = "/>" if updated_tag.rstrip().endswit
 _gear = re.search(r"\.nav-settings-gear\{[^}]*\}", (d/"css/app.css").read_text())
 if not _gear or "clip-path:polygon" in _gear.group() or "mask:url(" not in _gear.group().replace("-webkit-mask:url(","mask:url(") :
     fail.append("the Settings gear must be the generated even mask, not a hand-traced clip-path (v4.6.134)")
+# v4.6.135: the secret film is cached for offline and its door is still there.
+if "'./js/gym-tour.js'," not in (d/"sw.js").read_text() or "import('./gym-tour.js')" not in (d/"js/mascot.js").read_text():
+    fail.append("the gym film must be in sw.js SHELL and opened from js/mascot.js (v4.6.135)")
 if "AppIcon-1024.png" not in (d/"tools/ios-config.py").read_text():
     fail.append("ios-config.py no longer installs the app icon (v4.6.119)")
 # -- v4.6.125: the gear is a tab. Its old header rules must not reach the nav:
