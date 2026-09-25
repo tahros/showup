@@ -375,7 +375,7 @@ if (!noSwipe) fail++;
   checkVal("the toggle lives in one place",
            ((fs.readFileSync(path.join(dir,"js/app.js"),"utf8")
              + fs.readFileSync(path.join(dir,"js/core.js"),"utf8"))
-            .match(/nav button'\)\.forEach\(b=>b\.classList\.toggle\('on'/g) || []).length,
+            .match(/nav button'\)\.forEach\(b=>\{?b\.classList\.toggle\('on'/g) || []).length,
            1);
 }
 

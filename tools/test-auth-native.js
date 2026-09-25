@@ -20,6 +20,7 @@ const settle=async(n=20)=>{for(let i=0;i<n;i++)await tick();};
 async function boot({shell=true,plugins=['App','Browser'],launch=null,token=200,noSubtle=false,seed=null}={}){
   const dom=new JSDOM(html.replace(/<script[^>]*src=[^>]*><\/script>/g,''),{url:'https://tahros.github.io/showup/',runScripts:'outside-only',pretendToBeVisual:true});
   const w=dom.window,ctx=dom.getInternalVMContext(),calls=[],listeners={},fetches=[];
+  w.TextEncoder=TextEncoder; // jsdom does not expose the browser encoding API.
   w.localStorage.setItem('showup:planning-interface','previous');
   if(seed) w.localStorage.setItem('showup:pkce',JSON.stringify(seed));
   w.localStorage.setItem('tracker-v1',JSON.stringify({days:{},settings:{cloud:{url:SB,anon:ANON}}}));

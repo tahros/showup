@@ -13,10 +13,10 @@ try{var _de=document.documentElement,_qp=new URLSearchParams(location.search);_d
 <meta name="theme-color" content="#F2F3F6">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="assets/fonts/web/ibm-plex-sans-latin-400-normal.woff2">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="assets/fonts/web/ibm-plex-sans-latin-600-normal.woff2">
-<link rel="stylesheet" href="css/fonts.css?v=4.6.122">
+<link rel="stylesheet" href="css/fonts.css?v=4.6.123">
 
-<link rel="stylesheet" href="css/app.css?v=4.6.122"><link rel="stylesheet" href="css/planner.css?v=4.6.122"><link rel="stylesheet" href="css/mascot.css?v=4.6.122"><link rel="stylesheet" href="css/plates.css?v=4.6.122">
-<link rel="stylesheet" href="css/planner-flow.css?v=4.6.122"><link rel="stylesheet" href="css/retro.css?v=4.6.122">
+<link rel="stylesheet" href="css/app.css?v=4.6.123"><link rel="stylesheet" href="css/planner.css?v=4.6.123"><link rel="stylesheet" href="css/mascot.css?v=4.6.123"><link rel="stylesheet" href="css/plates.css?v=4.6.123">
+<link rel="stylesheet" href="css/planner-flow.css?v=4.6.123"><link rel="stylesheet" href="css/retro.css?v=4.6.123">
 
 
 <div id="app">
@@ -48,7 +48,6 @@ try{var _de=document.documentElement,_qp=new URLSearchParams(location.search);_d
      every mode by construction. -->
     <div class="hbtns">
       <span class="resttimer" id="hTimer"></span>
-      <button class="icobtn" id="gearBtn" aria-label="Settings, account &amp; sync" title="Settings, account &amp; sync">⚙</button>
     </div>
   </header>
   <main id="view"></main>
@@ -65,10 +64,12 @@ try{var _de=document.documentElement,_qp=new URLSearchParams(location.search);_d
      fills at the first set; this one is the day's STATE. History is a calendar built from squares:
      a frame, a header bar, two pins, days. -->
   <nav id="nav">
+    <!-- Settings is the fifth destination, appended after History below. -->
     <button data-v="today" class="on" aria-label="Today"><span class="ng" aria-hidden="true"><svg viewBox="0 0 24 24"><rect class="sq" x="4" y="4" width="16" height="16" rx="4"/></svg></span></button>
     <button data-v="lift" aria-label="Train"><span class="ng" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2.5" y="10.6" width="19" height="2.8" rx="1.4"/><rect x="3" y="6" width="4" height="12" rx="1.4"/><rect x="17" y="6" width="4" height="12" rx="1.4"/></svg></span></button>
     <button data-v="stats" aria-label="Stats"><span class="ng" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2.5" y="13.5" width="5" height="7.5" rx="1.6"/><rect x="9.5" y="8.5" width="5" height="12.5" rx="1.6"/><rect x="16.5" y="3" width="5" height="18" rx="1.6"/></svg></span></button>
     <button data-v="history" aria-label="History"><span class="ng" aria-hidden="true"><svg viewBox="0 0 24 24"><rect class="frame" x="3" y="4.5" width="18" height="17" rx="3.2"/><rect x="3" y="4.5" width="18" height="4.6" rx="2.2"/><rect x="7" y="2" width="2.4" height="5" rx="1.2"/><rect x="14.6" y="2" width="2.4" height="5" rx="1.2"/><rect x="6.5" y="12" width="3" height="3" rx="1"/><rect x="10.5" y="12" width="3" height="3" rx="1"/><rect x="14.5" y="12" width="3" height="3" rx="1"/><rect x="6.5" y="16" width="3" height="3" rx="1"/><rect x="10.5" y="16" width="3" height="3" rx="1"/></svg></span></button>
+    <button data-v="sync" id="gearBtn" aria-label="Settings"><span class="ng" aria-hidden="true"><span class="nav-settings-gear"></span></span></button>
   </nav>
   <div id="toast"></div>
 <div id="portraitveil" aria-hidden="true">
@@ -81,26 +82,26 @@ try{var _de=document.documentElement,_qp=new URLSearchParams(location.search);_d
   <path d="M12 4v13M6 12l6 6 6-6"/></svg></div>
 </div>
 
-  <script src="js/core.js?v=4.6.122"></script>
-  <script src="js/ota.js?v=4.6.122"></script>
-  <script src="js/derive.js?v=4.6.122"></script>
-  <script src="js/util.js?v=4.6.122"></script>
-  <script src="js/planlink.js?v=4.6.122"></script>
-  <script src="js/realset.js?v=4.6.122"></script>
-  <script src="js/reprange.js?v=4.6.122"></script>
-  <script src="js/verdict.js?v=4.6.122"></script>
-  <script src="js/header.js?v=4.6.122"></script>
-  <script src="js/retro.js?v=4.6.122"></script><script src="js/mascot.js?v=4.6.122"></script>
-  <script src="js/plates.js?v=4.6.122"></script>
-  <script src="js/plate-canvas.js?v=4.6.122"></script>
-  <script src="js/report.js?v=4.6.122"></script>
-  <script src="js/today.js?v=4.6.122"></script>
-  <script src="js/progression.js?v=4.6.122"></script>
-  <script src="js/lift.js?v=4.6.122"></script><script src="js/writer.js?v=4.6.122"></script><script src="js/reminders.js?v=4.6.122"></script>
-  <script src="js/planner.js?v=4.6.122"></script>
-  <script src="js/planner-flow.js?v=4.6.122"></script>
-  <script src="js/stats.js?v=4.6.122"></script>
-  <script src="js/history.js?v=4.6.122"></script>
-  <script src="js/settings.js?v=4.6.122"></script>
-  <script src="js/stats-story.js?v=4.6.122"></script>
-  <script src="js/app.js?v=4.6.122"></script>
+  <script src="js/core.js?v=4.6.123"></script>
+  <script src="js/ota.js?v=4.6.123"></script>
+  <script src="js/derive.js?v=4.6.123"></script>
+  <script src="js/util.js?v=4.6.123"></script>
+  <script src="js/planlink.js?v=4.6.123"></script>
+  <script src="js/realset.js?v=4.6.123"></script>
+  <script src="js/reprange.js?v=4.6.123"></script>
+  <script src="js/verdict.js?v=4.6.123"></script>
+  <script src="js/header.js?v=4.6.123"></script>
+  <script src="js/retro.js?v=4.6.123"></script><script src="js/mascot.js?v=4.6.123"></script>
+  <script src="js/plates.js?v=4.6.123"></script>
+  <script src="js/plate-canvas.js?v=4.6.123"></script>
+  <script src="js/report.js?v=4.6.123"></script>
+  <script src="js/today.js?v=4.6.123"></script>
+  <script src="js/progression.js?v=4.6.123"></script>
+  <script src="js/lift.js?v=4.6.123"></script><script src="js/writer.js?v=4.6.123"></script><script src="js/reminders.js?v=4.6.123"></script>
+  <script src="js/planner.js?v=4.6.123"></script>
+  <script src="js/planner-flow.js?v=4.6.123"></script>
+  <script src="js/stats.js?v=4.6.123"></script>
+  <script src="js/history.js?v=4.6.123"></script>
+  <script src="js/settings.js?v=4.6.123"></script>
+  <script src="js/stats-story.js?v=4.6.123"></script>
+  <script src="js/app.js?v=4.6.123"></script>

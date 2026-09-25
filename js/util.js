@@ -677,7 +677,7 @@ addEventListener('scroll',()=>{
 function repairNavLayout(){
   const nav=document.getElementById('nav'); if(!nav) return false;
   const buttons=[...nav.children].filter(b=>b.matches('button[data-v]'));
-  if(buttons.length!==4) return false;
+  if(buttons.length<4) return false;
   const rect=nav.getBoundingClientRect(), boxes=buttons.map(b=>b.getBoundingClientRect());
   if(!rect.width||!rect.height||boxes.some(b=>!b.width||!b.height)) return false;
   const style=getComputedStyle(nav), vw=document.documentElement.clientWidth||innerWidth;
@@ -2457,7 +2457,8 @@ addEventListener('orientationchange',()=>setTimeout(edgeFadeGuard,120));
 function syncHeaderHeight(){
   const h=document.querySelector('header');
   if(!h) return;
-  const px=Math.round(h.getBoundingClientRect().height);
+  const rect=h.getBoundingClientRect();
+  const px=Math.round(rect.height+Math.max(0,rect.top)+22);
   if(px>0) document.documentElement.style.setProperty('--hdr-h',px+'px');
 }
 let _hdrRO=null;

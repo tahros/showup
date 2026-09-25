@@ -147,6 +147,8 @@ check("...persisted", `localStorage.getItem('showup-skin')`, "minimal");
        evidence, but "no skin rule matches this element at all" is exactly the
        bug that shipped, and it is what this catches. */
     els.forEach((e, i) => {
+      // Inline action wrapper no longer paints a surface; header .hglass does.
+      if(e.matches('header #liveWorkoutBar')) return;
       if (mini[i] !== clas[i]) return;
       const covered = skinSubjects.some(sel => { try { return e.matches(sel); } catch (x) { return false; } });
       if (!covered) flat.add(`${v}: ${why.get(e)}`);

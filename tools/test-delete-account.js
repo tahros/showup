@@ -52,7 +52,7 @@ const req=({method='POST',token='user-token',body={confirm:'DELETE'},origin='cap
     body:method==='POST'?(raw!==undefined?raw:JSON.stringify(body)):undefined});
 
 async function server(){
-  const {handle}=await import(path.join(dir,'supabase/functions/delete-account/index.ts'));
+  const {handle}=await import(require('url').pathToFileURL(path.join(dir,'supabase/functions/delete-account/index.ts')).href);
   { const f=fakeSupabase(); const r=await handle(req(),env,f.net); const j=await r.json();
     ok('server: the caller is deleted', r.status===200&&j.deleted===true&&!f.users.has(UID), r.status);
     ok('server: their row goes with them (cascade)', !f.rows.has(UID));

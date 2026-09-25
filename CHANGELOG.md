@@ -1,5 +1,15 @@
 # ShowUp — changelog
 
+## v4.6.123 (2026-09-24) — One floating header, five destinations
+
+- Implements the approved compact preview: a 64px minimum-height floating header, 14px title, and 24px filled Settings gear in the fifth bottom tab.
+- Normal and Rest headers share the bottom bar's exact gradient and shadow tokens. Active training uses the approved red translucent gradient, white text and soft red edge glow.
+- The exercise name, real rest timer and Finish action live together at the top. The timer sits immediately before Finish; the former bottom workout bar no longer occupies screen space. Finishing still opens the existing confirmation. An old collapsed-bar preference cannot hide Finish.
+- Long names wrap and reserve their measured height. Safe-area spacing, the landscape timer, current tab accessibility, existing skins and workout records are preserved.
+- Regression coverage checks light/dark at 320/393/430px, material equality, 14/24/64 dimensions, aligned five-tab glyphs, long titles, skin switching, Settings navigation, completion/cancel and unchanged logged sets.
+- Updated legacy four-tab/bottom-bar assertions. Test-only portability fixes provide the browser TextEncoder API in jsdom and use a file URL for the Windows server-test import; app authentication/account deletion are unchanged.
+- Regenerated the native OTA manifest with the release.
+
 ## v4.6.122 (2026-09-24) — The Dates calendar shows what's done
 
 - **Found on the phone:** in Plan → Dates, a day whose plan you had finished looked the same as one still ahead of you. The calendar only ever said what a day was going to be.

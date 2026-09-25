@@ -99,9 +99,13 @@ checks now follow the outcome checkmark, asynchronous edit transition and
 current-session count after reopening; both pass. No workout behavior changed.
 Header glass, Rest chrome, and Retro checks also pass. Local test dependencies:
 jsdom 26, canvas, TypeScript 6 (7 no longer exposes the compiler API used here).
-The header's absolute material layer is the sole approved backdrop-blur
-exception (4px; Normal Light 8px as of v4.6.103); nav/fixed-element blur remains prohibited. iOS device QA is
-still advisable given the older fixed-chrome issue.
+As of v4.6.123 the approved floating header shares the nav's gradient and
+transparency, with a red material/glow during training. Its absolute .hglass
+layer paints the surface; fixed chrome itself remains unpainted and blur-free.
+check-floating-header.cjs covers dimensions, material equality, five tabs,
+the inline Finish action and persisted folded-state compatibility. The older
+header-glass/live-fold entry points now run that replacement contract.
+iOS device QA is still advisable given the older fixed-chrome issue.
 
 Historical record (not current failures):
 

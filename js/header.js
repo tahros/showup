@@ -28,6 +28,10 @@ function renderHeader(){
     return;
   }
   $('#hDate').textContent=inPlan?'Plan':wd(todayISO);
+  if(live&&!inPlan){
+    const rows=(DB.days[todayISO]||{}).w||[];
+    $('#hDate').textContent=rows.length?rows[rows.length-1].ex:'Workout';
+  }
   /* the sets/parts/distance assembly that fed the old subtitle went with it
      -- dead computation on every render is rent. */
   /* v3.3.389: THE DAY HEADER SAYS EACH THING ONCE. Both of the subtitle's

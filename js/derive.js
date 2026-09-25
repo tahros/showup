@@ -489,7 +489,8 @@ function tickBig(){
     document.body.appendChild(el);
     document.documentElement.classList.add('bigtimer');
   }else if(!want && isOut){
-    (_bigHome||document.querySelector('.hbtns')||document.body).appendChild(el);
+    const home=_bigHome||document.querySelector('.hbtns')||document.body;
+    home.insertBefore(el,home.querySelector('#liveWorkoutBar'));
     document.documentElement.classList.remove('bigtimer');
   }
 }

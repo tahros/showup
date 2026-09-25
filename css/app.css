@@ -4034,3 +4034,73 @@
 .zone.prime .wsel .val.pl-arrive{animation:plArriveVal .52s var(--settle) both;border-radius:12px}
 .zone.prime .repwrap .rrband.pl-arrive{animation:plArriveBand .6s var(--settle) both}
 @media (prefers-reduced-motion:reduce){.pl-arrive{animation:none!important}}
+
+/* v4.6.123: one floating chrome surface. The absolute paint layer keeps
+   fixed chrome out of the backdrop root. Header and nav share material tokens. */
+:root{
+  --chrome-material:linear-gradient(180deg,rgba(255,255,255,.97) 0%,rgba(251,251,251,.94) 15%,rgba(241,241,241,.95) 48%,rgba(230,230,230,.94) 78%,rgba(192,192,192,.48) 100%);
+  --chrome-shadow:inset 0 1px 0 #fff,inset 0 0 0 .5px rgba(255,255,255,.79),inset 0 -1px 0 rgba(0,0,0,.19),inset 0 9px 12px -10px #fff,0 10px 30px rgba(0,0,0,.20),0 1px 2px rgba(0,0,0,.08);
+  --chrome-ink:#181818;--live-workout-extra:0px;
+}
+:root[data-bar="dark"]{
+  --chrome-material:linear-gradient(180deg,rgba(78,78,78,.98) 0%,rgba(46,46,46,.98) 15%,rgba(29,29,29,.94) 48%,rgba(21,21,21,.82) 100%);
+  --chrome-shadow:inset 0 1px 0 rgba(255,255,255,.52),inset 0 0 0 .5px rgba(255,255,255,.19),inset 0 -1px 0 rgba(0,0,0,.4),0 12px 24px rgba(0,0,0,.33),0 2px 3px rgba(0,0,0,.2);
+  --chrome-ink:#f5f5f5;
+}
+:root[data-theme="dark"][data-bar="light"]{
+  --chrome-material:linear-gradient(180deg,rgba(215,215,215,.92) 0%,rgba(181,181,181,.85) 43%,rgba(151,151,151,.88) 100%);
+  --chrome-shadow:inset 0 1px 1px rgba(255,255,255,.75),inset 0 0 0 .5px rgba(255,255,255,.40),inset 0 -1px 2px rgba(0,0,0,.16),0 12px 25px rgba(0,0,0,.40);
+}
+html body #nav::before{background:var(--chrome-material);box-shadow:var(--chrome-shadow)}
+html body #app header{
+  top:calc(12px + env(safe-area-inset-top,0px));left:18px;right:18px;width:auto;max-width:484px;
+  min-height:64px;height:auto;margin:auto;padding:10px 12px 10px 8px;gap:8px;border-radius:24px;
+  background:transparent;box-shadow:none;border:0;color:var(--chrome-ink);
+}
+html body #app header .hglass{
+  border:0;border-radius:inherit;background:var(--chrome-material);box-shadow:var(--chrome-shadow);
+  backdrop-filter:none;-webkit-backdrop-filter:none;animation:none;
+}
+html body #app header.live .hglass{
+  background:linear-gradient(180deg,rgba(199,71,56,.97) 0%,rgba(187,53,39,.94) 15%,rgba(171,43,31,.95) 48%,rgba(154,35,25,.94) 78%,rgba(128,29,21,.70) 100%);
+  box-shadow:var(--chrome-shadow),0 0 0 1px rgba(226,68,48,.72),0 0 12px rgba(225,57,40,.36),0 5px 25px rgba(219,51,35,.22);
+}
+html[data-theme="dark"] body #app header.live .hglass{
+  background:linear-gradient(180deg,rgba(177,57,44,.98) 0%,rgba(154,40,30,.98) 15%,rgba(135,32,24,.94) 48%,rgba(110,26,20,.82) 100%);
+}
+html body #app header .brandrow{flex:1;min-width:0;gap:7px;align-items:center}
+html body #app header .h-date{font-size:14px;line-height:1.25;letter-spacing:-.3px;white-space:normal;overflow:visible;text-overflow:clip;color:var(--chrome-ink)}
+html body #app header .h-subrow,html body #app header.live .h-weekrow{display:none}
+html body #app header .hback{width:28px;min-width:28px;height:44px;padding:0;background:transparent;border:0;box-shadow:none;color:var(--chrome-ink)}
+html body #app header .hbtns{gap:8px;flex:0 0 auto;align-items:center}
+html body #app header #hTimer{font-size:12px;font-weight:500;min-width:37px;white-space:nowrap;justify-content:center;color:var(--chrome-ink)}
+html body #app header #hTimer::before{display:none}
+html body #app header:not(.live) #hTimer{display:none}
+html body #app header.live .h-date,html body #app header.live .hback,html body #app header.live #hTimer{color:#fff}
+html body #app header:not(.live){padding-left:18px;padding-right:18px}
+html body #app header #liveWorkoutBar{
+  position:static;inset:auto;width:auto;min-width:0;max-width:none;height:auto;min-height:0;margin:0;padding:0;
+  display:flex;flex:0 0 auto;gap:0;border:0;border-radius:0;background:none;box-shadow:none;animation:none;transform:none;
+}
+html body #app header #liveWorkoutBar[hidden]{display:none}
+html body #app header #liveWorkoutBar > :not(#liveWorkoutFinish){display:none}
+html body #app header #liveWorkoutBar #liveWorkoutFinish{
+  display:flex;align-items:center;justify-content:center;gap:6px;height:44px;min-height:44px;min-width:0;
+  font:500 13px var(--body);padding:0 11px;border:0;border-radius:13px;
+  background:rgba(255,255,255,.16);box-shadow:inset 0 1px 0 rgba(255,255,255,.22);color:#fff;white-space:nowrap;
+}
+html body #nav{grid-template-columns:repeat(5,minmax(0,1fr))}
+html body #nav #gearBtn{width:auto;height:auto;min-width:0;flex:1;border:0;padding:10px 4px;border-radius:24px;color:var(--pill-ink,var(--muted))}
+html body #nav #gearBtn.on{color:var(--pill-chalk,var(--chalk))}
+html body #nav #gearBtn .ng{display:grid;place-items:center}
+html body #nav #gearBtn:not(.on){background:transparent;box-shadow:none}
+.nav-settings-gear{display:block;width:24px;height:24px;background:currentColor;
+  clip-path:polygon(40% 0,60% 0,63% 13%,71% 17%,83% 10%,96% 25%,88% 36%,90% 43%,100% 46%,100% 62%,86% 66%,82% 74%,88% 87%,73% 97%,63% 88%,56% 89%,52% 100%,35% 98%,33% 84%,25% 80%,12% 86%,2% 70%,12% 60%,11% 52%,0 48%,2% 31%,16% 30%,21% 22%,15% 10%,31% 2%,39% 14%);
+  mask-image:radial-gradient(circle at center,transparent 0 22%,#000 24%);
+  -webkit-mask-image:radial-gradient(circle at center,transparent 0 22%,#000 24%);
+}
+@media(max-width:350px){
+  html body #app header{left:14px;right:14px;gap:5px;padding-left:5px;padding-right:9px}
+  html body #app header .brandrow{gap:4px}
+  html body #app header .hbtns{gap:5px}
+}

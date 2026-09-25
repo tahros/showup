@@ -179,7 +179,7 @@ document.addEventListener('click',e=>{
   }
   /* v3.3.534: the ✕ went with the chips -- you do not dismiss your own plan,
      you change it. Nothing emits data-sugx now. */
-  if(e.target.closest('#settingsBtn')||e.target.closest('#gearBtn')){
+  if(e.target.closest('#settingsBtn')||(e.target.closest('#gearBtn')&&!e.target.closest('nav'))){
     if(view==='sync'){ view=prevView||'today'; }
     else { prevView=view; view='sync'; }
     return render();
@@ -232,6 +232,7 @@ document.addEventListener('click',e=>{
       else scrollTo({top:0,behavior:MOTION_OK?'smooth':'auto'});
       return;
     }
+    if(nav.dataset.v==='sync') prevView=view;
     view=nav.dataset.v;
     /* v3.3.347: the tab remembers, live or not */
     /* v3.3.434: a tab tap is a fresh start, never a return. Taking the Train
@@ -2095,6 +2096,10 @@ function liveWorkoutSummary(){
 function positionLiveWorkout(){
   const bar=document.getElementById('liveWorkoutBar');
   if(!bar||bar.hidden)return;
+  if(bar.closest('header')){
+    document.documentElement.style.setProperty('--live-workout-extra','0px');
+    return;
+  }
   /* v4.6.59: no longer copies the nav's rectangle. left/width/bottom are stated in
      CSS from the same constraints the nav uses, so a frame measured mid-transition
      can no longer be written into inline styles and stick. Any left over from a
@@ -2239,7 +2244,7 @@ function syncLiveWorkout(){
   if(!bar){
     bar=document.createElement('div');bar.id='liveWorkoutBar';
     bar.innerHTML=`<button id="liveWorkoutResume" aria-label="Return to workout"><span class="live-workout-title"><i aria-hidden="true"></i><span class="lw-label">Workout in progress</span><span class="lw-brief"></span></span><span class="live-workout-meta" aria-live="polite"></span></button><button id="liveWorkoutFinish">Finish ${icon('check',16)}</button><button id="liveWorkoutFold" aria-label="Fold the workout bar">${icon('chevron',16,90)}</button>`;
-    document.body.appendChild(bar);
+    (document.querySelector('header .hbtns')||document.body).appendChild(bar);
   }
   const active=!!DB.days[todayISO]?.w?.length&&!DB.days[todayISO].doneAll&&sessionOpen(DB.days[todayISO]);   // v4.6.71: same predicate as isLive()
   bar.hidden=!active;document.documentElement.classList.toggle('workout-active',active);
@@ -2258,7 +2263,7 @@ function syncLiveWorkout(){
   bar.classList.toggle('folded',folded);
   const resume=bar.querySelector('#liveWorkoutResume');
   if(resume)resume.setAttribute('aria-label',folded?'Unfold the workout bar':'Return to workout');
-  requestAnimationFrame(positionLiveWorkout);
+  document.documentElement.style.setProperty('--live-workout-extra','0px');
 }
 function openWorkoutFinish(){
   if(!isLive()||document.getElementById('workoutFinishDialog'))return;
@@ -2275,7 +2280,7 @@ setInterval(()=>{if(document.visibilityState==='visible'&&document.documentEleme
 function syncNav(){
   syncLiveWorkout();
   scheduleNavLayoutCheck();
-  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
+  document.querySelectorAll('nav button').forEach(b=>{b.classList.toggle('on',b.dataset.v===view);if(b.dataset.v===view)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
   /* v3.3.461: Today's square in the bar shows the day's STATE -- hollow while
      open, filled once closed (doneAll). Every render passes through here, and
      every doneAll flip renders, so the square cannot lag the ledger. */

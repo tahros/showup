@@ -26,6 +26,7 @@ async function boot({native=true,local={},remote=()=>null,getDelays=[],webReturn
   const url='https://tahros.github.io/showup/'+(webReturn?'#access_token=WEBAT&refresh_token=WEBRT&expires_in=3600':'');
   const dom=new JSDOM(html.replace(/<script[^>]*src=[^>]*><\/script>/g,''),{url,runScripts:'outside-only',pretendToBeVisual:true});
   const w=dom.window,ctx=dom.getInternalVMContext(),pushes=[],gets=[];
+  w.TextEncoder=TextEncoder; // Browser API absent in jsdom.
   w.localStorage.setItem('showup:planning-interface','previous');
   w.localStorage.setItem('tracker-v1',JSON.stringify({days:local,settings:{cloud:{url:SB,anon:ANON}}}));
   if(!w.crypto||!w.crypto.getRandomValues) Object.defineProperty(w,'crypto',{value:{},configurable:true});

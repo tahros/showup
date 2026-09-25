@@ -18,10 +18,10 @@ assert(buttonRule && /min-width:0\s*;/.test(buttonRule), 'tabs share available w
 console.log('PASS fixed bar has one non-wrapping row with equal flexible tabs');
 const dom = new JSDOM(html);
 const nav = dom.window.document.querySelector('#nav');
-assert.deepStrictEqual([...nav.children].map(b => b.dataset.v), ['today', 'lift', 'stats', 'history']);
-assert([...nav.children].every(b => b.tagName === 'BUTTON' && b.getAttribute('aria-label') && b.querySelector('svg')));
+assert.deepStrictEqual([...nav.children].map(b => b.dataset.v), ['today', 'lift', 'stats', 'history', 'sync']);
+assert([...nav.children].every(b => b.tagName === 'BUTTON' && b.getAttribute('aria-label') && b.querySelector('svg,.nav-settings-gear')));
 assert(!/grid-template-columns/.test(navRule), 'tab layout has no grid-track dependency');
-console.log('PASS all four named navigation buttons remain direct children in their original order');
+console.log('PASS five named navigation buttons remain direct children; Settings follows History');
 // v3.3.519: neutral chrome and bounded translucency, never fixed-layer blur.
 const block=mode=>css.match(new RegExp(':root\\[data-skin="minimal"\\]\\[data-bar="'+mode+'"\\]\\{([^}]+)'))[1];
 const token=(mode,k)=>block(mode).match(new RegExp('--'+k+':(#[0-9A-Fa-f]{6})'))[1];
