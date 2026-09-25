@@ -90,6 +90,16 @@ function renderSync(){
         <input id="remMorning" type="time" value="${rp.morning}"></div>`:''}
       <div class="note" style="margin-top:10px">At most one a day. On a planned day, your plan in the morning. On a usual training day with no plan, one line 30 minutes after you usually start, if nothing is logged. Nothing on rest days.</div>
     </div>`; })():''}
+    ${typeof hlPlugin==='function'&&hlPlugin()?(()=>{ const hp=hlPrefs(); return `
+    <!-- v4.6.132: Apple Health, iOS app only, write-only (js/health.js). -->
+    <h2>Apple Health</h2>
+    <div class="card">
+      <span class="seg" style="display:flex">
+        <button data-hl="off" class="${hp.on?'':'sel'}" aria-pressed="${!hp.on}">Off</button>
+        <button data-hl="on" class="${hp.on?'sel':''}" aria-pressed="${hp.on}">On</button>
+      </span>
+      <div class="note" style="margin-top:10px">When you press Finish, the workout is saved to Apple Health: your lifting as strength training, and each run, ride, row, swim or walk as its own workout with its time and distance. From now on only; nothing earlier is sent. ShowUp never reads your Health data.</div>
+    </div>`; })():''}
     <h2>Account & cloud sync</h2>
     <div class="card">
       ${session?`
@@ -310,6 +320,8 @@ document.addEventListener('click',e=>{
   if(hit('expJson')){ dlFile('showup-backup-'+todayISO+'.json','application/json',
     JSON.stringify({app:'showup',v:APP_VERSION,exported:new Date().toISOString(),doc:DB})); return; }
   if(hit('impJson')){ const i=document.getElementById('impFile'); if(i) i.click(); return; }
+  const hb=e.target.closest&&e.target.closest('[data-hl]');   // v4.6.132
+  if(hb){ const on=hb.dataset.hl==='on'; if(on!==hlPrefs().on) healthToggle(on).then(()=>renderSync()); return; }
   const rb=e.target.closest&&e.target.closest('[data-rem]');   // v4.6.118
   if(rb){ const on=rb.dataset.rem==='on'; if(on!==remPrefs().on) remToggle(on).then(()=>renderSync()); return; }
 });

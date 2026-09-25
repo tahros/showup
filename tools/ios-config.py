@@ -19,6 +19,11 @@ What it sets, and why:
                         catalog, replacing Capacitor's placeholder (v4.6.119).
   scroll bounce         Capacitor turns it off; a CAPBridgeViewController
                         subclass turns it back on (v4.6.120).
+  Apple Health          write-only HealthKit (v4.6.132): the ShowUpHealth plugin
+                        (generated into AppDelegate.swift and registered by the
+                        controller), the HealthKit entitlement, and the
+                        NSHealthUpdateUsageDescription purpose string. No read
+                        permission is ever requested, so no read string exists.
   iPhone only           TARGETED_DEVICE_FAMILY 1, no iPad, and no "Designed for
                         iPad" builds on Mac or Vision Pro. Shipping iPad means
                         a mandatory iPad screenshot set and an iPad review.
@@ -28,6 +33,9 @@ It never touches the bundle identifier: that is chosen per signing account
 import json, pathlib, plistlib, re, shutil, sys
 
 SCHEME = "co.yooooooooo.showup"          # must equal AUTH_SCHEME in js/core.js
+HEALTH_WHY = ("ShowUp saves each workout you finish to Apple Health, if you turn this on in Settings: "
+              "strength sessions, and runs, rides, rows, swims and walks with their time and distance. "
+              "ShowUp never reads your Health data.")
 d = pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else ".").resolve()
 plist_f = d / "ios/App/App/Info.plist"
 pbx_f = d / "ios/App/App.xcodeproj/project.pbxproj"
@@ -45,6 +53,10 @@ pl["UISupportedInterfaceOrientations"] = [
     "UIInterfaceOrientationLandscapeLeft",
     "UIInterfaceOrientationLandscapeRight"]
 pl.pop("UISupportedInterfaceOrientations~ipad", None)
+# v4.6.132: Apple Health. Specific, because a vague purpose string is its own
+# rejection (5.1.1). Write only: ShowUp asks to share workouts, never to read.
+pl["NSHealthUpdateUsageDescription"] = HEALTH_WHY
+pl.pop("NSHealthShareUsageDescription", None)
 if plistlib.dumps(pl) != before:
     with open(plist_f, "wb") as f:
         plistlib.dump(pl, f)
@@ -92,9 +104,11 @@ VC_SWIFT = r"""
 // ShowUp: ShowUpViewController (tools/ios-config.py)
 // Capacitor sets scrollView.bounces = false; ShowUp wants iOS's rubber-band
 // at the top and bottom. capacitorDidLoad() runs after Capacitor's setup.
+// It also registers ShowUp's own Apple Health plugin (v4.6.132).
 class ShowUpViewController: CAPBridgeViewController {
     override func capacitorDidLoad() {
         super.capacitorDidLoad()
+        bridge?.registerPluginInstance(ShowUpHealthPlugin())
         enableShowUpBounce()
     }
 
@@ -114,6 +128,137 @@ class ShowUpViewController: CAPBridgeViewController {
     }
 }
 // End ShowUp: ShowUpViewController
+"""
+HL_SWIFT = r"""
+// ShowUp: ShowUpHealthPlugin (tools/ios-config.py)
+// Apple Health, write-only. js/health.js decides what a finished session is;
+// this only asks for permission to SHARE workouts and distances, and saves one
+// workout per call. It never requests read access and never queries Health.
+@objc(ShowUpHealthPlugin)
+public class ShowUpHealthPlugin: CAPPlugin, CAPBridgedPlugin {
+    public let identifier = "ShowUpHealthPlugin"
+    public let jsName = "ShowUpHealth"
+    public let pluginMethods: [CAPPluginMethod] = [
+        CAPPluginMethod(name: "status", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "requestAuthorization", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "saveWorkout", returnType: CAPPluginReturnPromise)
+    ]
+    private let store = HKHealthStore()
+
+    private var shareTypes: Set<HKSampleType> {
+        var types: Set<HKSampleType> = [HKObjectType.workoutType()]
+        let ids: [HKQuantityTypeIdentifier] = [.distanceWalkingRunning, .distanceCycling, .distanceSwimming]
+        for id in ids {
+            if let t = HKObjectType.quantityType(forIdentifier: id) { types.insert(t) }
+        }
+        return types
+    }
+
+    private func currentStatus() -> String {
+        guard HKHealthStore.isHealthDataAvailable() else { return "unavailable" }
+        switch store.authorizationStatus(for: HKObjectType.workoutType()) {
+        case .sharingAuthorized: return "authorized"
+        case .sharingDenied: return "denied"
+        default: return "notDetermined"
+        }
+    }
+
+    @objc func status(_ call: CAPPluginCall) {
+        call.resolve(["status": currentStatus()])
+    }
+
+    @objc func requestAuthorization(_ call: CAPPluginCall) {
+        guard HKHealthStore.isHealthDataAvailable() else {
+            call.resolve(["status": "unavailable"])
+            return
+        }
+        store.requestAuthorization(toShare: shareTypes, read: nil) { _, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    call.reject(error.localizedDescription)
+                    return
+                }
+                call.resolve(["status": self.currentStatus()])
+            }
+        }
+    }
+
+    private func activityType(_ name: String) -> HKWorkoutActivityType? {
+        switch name {
+        case "strength": return .traditionalStrengthTraining
+        case "running": return .running
+        case "walking": return .walking
+        case "cycling": return .cycling
+        case "rowing": return .rowing
+        case "swimming": return .swimming
+        case "elliptical": return .elliptical
+        case "stairs": return .stairClimbing
+        case "jumprope": return .jumpRope
+        default: return nil
+        }
+    }
+
+    private func distanceType(_ activity: HKWorkoutActivityType) -> HKQuantityType? {
+        switch activity {
+        case .running, .walking: return HKObjectType.quantityType(forIdentifier: .distanceWalkingRunning)
+        case .cycling: return HKObjectType.quantityType(forIdentifier: .distanceCycling)
+        case .swimming: return HKObjectType.quantityType(forIdentifier: .distanceSwimming)
+        default: return nil
+        }
+    }
+
+    @objc func saveWorkout(_ call: CAPPluginCall) {
+        guard HKHealthStore.isHealthDataAvailable() else {
+            call.reject("Apple Health is not available on this device")
+            return
+        }
+        guard let name = call.getString("activity"), let activity = activityType(name),
+              let id = call.getString("id"),
+              let startMs = call.getDouble("start"), let endMs = call.getDouble("end"), endMs > startMs else {
+            call.reject("Invalid workout")
+            return
+        }
+        let start = Date(timeIntervalSince1970: startMs / 1000)
+        let end = Date(timeIntervalSince1970: endMs / 1000)
+        let meters = call.getDouble("meters") ?? 0
+        let configuration = HKWorkoutConfiguration()
+        configuration.activityType = activity
+        if activity == .swimming { configuration.swimmingLocationType = .unknown }
+        let builder = HKWorkoutBuilder(healthStore: store, configuration: configuration, device: .local())
+        builder.beginCollection(withStart: start) { began, error in
+            guard began else {
+                call.reject(error?.localizedDescription ?? "Could not start the workout")
+                return
+            }
+            let finish: () -> Void = {
+                builder.endCollection(withEnd: end) { ended, error in
+                    guard ended else {
+                        call.reject(error?.localizedDescription ?? "Could not end the workout")
+                        return
+                    }
+                    builder.addMetadata([HKMetadataKeyExternalUUID: id]) { _, _ in
+                        builder.finishWorkout { workout, error in
+                            if let workout = workout {
+                                call.resolve(["saved": true, "uuid": workout.uuid.uuidString])
+                            } else {
+                                call.reject(error?.localizedDescription ?? "Could not save the workout")
+                            }
+                        }
+                    }
+                }
+            }
+            if meters > 0, let type = self.distanceType(activity) {
+                let sample = HKQuantitySample(type: type, quantity: HKQuantity(unit: .meter(), doubleValue: meters),
+                                              start: start, end: end)
+                // A refused distance type still saves the workout itself.
+                builder.add([sample]) { _, _ in finish() }
+            } else {
+                finish()
+            }
+        }
+    }
+}
+// End ShowUp: ShowUpHealthPlugin
 """
 ad = d / "ios/App/App/AppDelegate.swift"
 sb = d / "ios/App/App/Base.lproj/Main.storyboard"
@@ -156,9 +301,55 @@ else:
     src2 = src.rstrip("\n") + "\n" + VC_SWIFT
 if not re.search(r"^import Capacitor\s*$", src2, re.M):
     sys.exit("ios-config: AppDelegate.swift must import Capacitor")
+# v4.6.132: the Apple Health plugin, a generated block of its own between two
+# markers, replaced whole on every run. Write-only by construction: the only
+# requestAuthorization call passes read: nil.
+HL_START = "// ShowUp: ShowUpHealthPlugin (tools/ios-config.py)"
+HL_END = "// End ShowUp: ShowUpHealthPlugin"
+if HL_START in src2:
+    if HL_END not in src2[src2.index(HL_START):]:
+        sys.exit("ios-config: generated Health plugin has no end marker; refusing to overwrite")
+    a0 = src2.index(HL_START); a1 = src2.index(HL_END, a0) + len(HL_END)
+    src2 = src2[:a0].rstrip("\n") + "\n\n" + HL_SWIFT.strip("\n") + "\n" + src2[a1:].lstrip("\n")
+else:
+    if re.search(r"class\s+ShowUpHealthPlugin\b", src2):
+        sys.exit("ios-config: unowned ShowUpHealthPlugin exists; refusing to overwrite")
+    src2 = src2.rstrip("\n") + "\n\n" + HL_SWIFT.strip("\n") + "\n"
+if not re.search(r"^import HealthKit\s*$", src2, re.M):
+    src2 = re.sub(r"^(import Capacitor\s*)$", r"\1\nimport HealthKit", src2, count=1, flags=re.M)
 if src2 != src:
     ad.write_text(src2)
 if s2 != s:
     sb.write_text(s2)
-print(f"ios-config: {SCHEME}:// registered, portrait + landscape, iPhone only, ShowUp icon")
+# v4.6.132: the HealthKit entitlement. If a target already names an
+# entitlements file (Xcode writes one the day any capability is added by hand),
+# merge into THAT file; otherwise create App/App.entitlements and point every
+# App target configuration at it. Keys already there are kept.
+ent_rel = None
+pbx = pbx_f.read_text()
+new = pbx
+m = re.search(r'CODE_SIGN_ENTITLEMENTS = "?([^";\n]+)"?;', new)
+if m:
+    ent_rel = m.group(1).strip()
+else:
+    ent_rel = "App/App.entitlements"
+    new = re.sub(r"(\n(\s*)INFOPLIST_FILE = App/Info\.plist;)",
+                 lambda mm: mm.group(1) + "\n" + mm.group(2) + "CODE_SIGN_ENTITLEMENTS = App/App.entitlements;", new)
+    if "CODE_SIGN_ENTITLEMENTS" not in new:
+        sys.exit("ios-config: found no App target build settings (INFOPLIST_FILE = App/Info.plist); HealthKit NOT installed")
+ent_f = d / "ios/App" / ent_rel
+ent = {}
+if ent_f.exists():
+    with open(ent_f, "rb") as f:
+        ent = plistlib.load(f)
+ent_before = plistlib.dumps(ent)
+ent["com.apple.developer.healthkit"] = True
+ent.setdefault("com.apple.developer.healthkit.access", [])
+if not ent_f.exists() or plistlib.dumps(ent) != ent_before:
+    ent_f.parent.mkdir(parents=True, exist_ok=True)
+    with open(ent_f, "wb") as f:
+        plistlib.dump(ent, f)
+if new != pbx:
+    pbx_f.write_text(new)
+print(f"ios-config: {SCHEME}:// registered, portrait + landscape, iPhone only, ShowUp icon, Apple Health (write-only, {ent_rel})")
 print("ios-config: bounce controller installed and storyboard verified. Rebuild/run in Xcode; OTA cannot install native code.")

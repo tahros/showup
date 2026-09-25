@@ -1,5 +1,16 @@
 # ShowUp — changelog
 
+## v4.6.132 (2026-09-25) — Apple Health, write-only
+
+- **Settings → Apple Health (iOS app only; off by default).** Once it's on, pressing Finish saves the session you just finished to Apple Health. The lifting becomes one Traditional Strength Training workout, from your first set to the moment you pressed Finish (or to your last set if cardio followed it). Each cardio entry becomes its own workout of its own type (running, walking, cycling, rowing, swimming, elliptical, stair climbing, jump rope), lasting the time you logged and ending when it was logged, with its distance where the sport has one.
+- It saves only what the record attests to: no calories, no heart rate, no guessed durations. A set without a recorded time, a session under a minute or one over six hours is skipped. Only workouts finished from now on are sent.
+- **Write-only.** The plugin asks only to share workouts and distances (`read: nil`); there is no read purpose string and no Health query anywhere. buildcheck fails if that changes.
+- **Once per session.** Each workout carries an external id; the ids sent live on this device, so pressing Finish again, reloading or syncing never writes a second copy. A write iOS refuses is not marked sent and is tried at the next Finish.
+- **The switch is device-local**, like Reminders. iOS asks for permission when you turn it on; if you decline, it stays off and says where to allow it.
+- **Native side:** `tools/ios-config.py` now also generates the ShowUpHealth plugin into AppDelegate.swift, registers it from ShowUpViewController, writes the HealthKit entitlement (merging into an existing entitlements file if one exists) and sets NSHealthUpdateUsageDescription. It needs a Mac rebuild. Builds without the plugin keep taking web updates and simply show no Health card.
+- Tests: `tools/test-health.js` covers 27 cases (browser, older build, header-only bridge, off by default, permission granted/refused/unavailable, what a session becomes, once-per-session, refused writes). The generated-project tests cover the write-only plugin, the purpose string, the entitlement and merging into existing entitlements.
+- Runbook 4.7.
+
 ## v4.6.131 (2026-09-25) — Run first, quieter Progress navigation
 
 - Today's planned-workout card opens Run from its primary Start action. The extra “Then / Squat / Open” row is omitted; lifting exercises remain accessible in the expandable plan. This shortcut does not alter saved plans or log a workout automatically.

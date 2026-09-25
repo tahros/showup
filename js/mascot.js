@@ -88,6 +88,8 @@ function completionMetricsHTML(record){
 function stampWorkoutCompletion(record,now=Date.now()){
   retroSound('complete');
   record.completedAt=now;
+  /* v4.6.132: Apple Health (js/health.js) -- writes nothing unless switched on in the iOS app */
+  if(typeof healthOnComplete==='function') healthOnComplete(record,now).catch(()=>{});
   /* the session boundary, kept: completedAt alone is overwritten by the next
      Complete, and the boundary between the two workouts would go with it */
   const closed=Array.isArray(record.closed)?record.closed:(record.closed=[]);

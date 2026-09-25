@@ -81,6 +81,13 @@ and some of it changes the web build too. Landed and planned:
   one a day at most, facts only (no streaks, no escalation). Read its header.
   The switch is device-local on purpose. New native plugin: every native
   plugin added means a Mac rebuild before the iOS app takes OTA updates again.
+- v4.6.132 — Apple Health, write-only (done): js/health.js decides what a
+  finished session becomes; tools/ios-config.py generates the ShowUpHealth
+  plugin into AppDelegate.swift, registers it from ShowUpViewController, and
+  writes the entitlement and NSHealthUpdateUsageDescription. Called from
+  stampWorkoutCompletion (js/mascot.js). Device-local switch. buildcheck keeps
+  it write-only. The plugin is local (not in package.json), so it is NOT in
+  ota.json requires: older binaries keep taking web updates and show no card.
 - Next: Sign in with Apple (App Review 4.8, forced by the Google provider);
   in-app account deletion (4.9/5.1.1(v)); HealthKit write + local
   notifications (4.2 minimum functionality).

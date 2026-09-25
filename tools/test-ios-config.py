@@ -16,7 +16,10 @@ class BounceInstall(unittest.TestCase):
         (self.app / "Info.plist").write_bytes(plistlib.dumps({"CFBundleIdentifier": "test.preserve"}))
         pbx = self.root / "ios/App/App.xcodeproj/project.pbxproj"
         pbx.parent.mkdir()
-        pbx.write_text('TARGETED_DEVICE_FAMILY = "1,2";\nPRODUCT_BUNDLE_IDENTIFIER = test.preserve;\n')
+        pbx.write_text('/* Debug */ buildSettings = {\n\t\t\t\tINFOPLIST_FILE = App/Info.plist;\n\t\t\t\tTARGETED_DEVICE_FAMILY = "1,2";\n'
+                       '\t\t\t\tPRODUCT_BUNDLE_IDENTIFIER = test.preserve;\n\t\t\t};\n'
+                       '/* Release */ buildSettings = {\n\t\t\t\tINFOPLIST_FILE = App/Info.plist;\n\t\t\t\tTARGETED_DEVICE_FAMILY = "1,2";\n\t\t\t};\n')
+        self.pbx = pbx
         self.sb = self.app / "Base.lproj/Main.storyboard"
         self.sb.parent.mkdir()
         self.story('customClass="CAPBridgeViewController" customModule="Capacitor"')
@@ -80,6 +83,38 @@ class KeepCustomCode { let untouched = true }
         self.install()
         self.check()
 
+    def health(self, ent_rel="App/App.entitlements"):
+        pl = plistlib.loads((self.app / "Info.plist").read_bytes())
+        self.assertIn("never reads", pl["NSHealthUpdateUsageDescription"])
+        self.assertNotIn("NSHealthShareUsageDescription", pl)
+        ent = plistlib.loads((self.root / "ios/App" / ent_rel).read_bytes())
+        self.assertIs(ent["com.apple.developer.healthkit"], True)
+        self.assertEqual(ent["com.apple.developer.healthkit.access"], [])
+        pbx = self.pbx.read_text()
+        self.assertEqual(pbx.count("CODE_SIGN_ENTITLEMENTS = " + ent_rel + ";"), 2)
+        text = self.ad.read_text()
+        self.assertEqual(text.count("import HealthKit"), 1)
+        self.assertEqual(text.count("class ShowUpHealthPlugin: CAPPlugin, CAPBridgedPlugin"), 1)
+        self.assertEqual(text.count("bridge?.registerPluginInstance(ShowUpHealthPlugin())"), 1)
+        self.assertIn('public let jsName = "ShowUpHealth"', text)
+        self.assertIn("requestAuthorization(toShare: shareTypes, read: nil)", text)
+        self.assertNotRegex(text, r"read:\s*\[|HKSampleQuery|HKStatisticsQuery|execute\(")   # write-only
+
+    def test_health_installed_write_only(self):
+        self.install()
+        self.health()
+
+    def test_health_merges_existing_entitlements(self):
+        pbx = self.pbx.read_text().replace("INFOPLIST_FILE = App/Info.plist;",
+                                           "INFOPLIST_FILE = App/Info.plist;\n\t\t\t\tCODE_SIGN_ENTITLEMENTS = App/Custom.entitlements;")
+        self.pbx.write_text(pbx)
+        (self.app / "Custom.entitlements").write_bytes(plistlib.dumps({"com.apple.developer.applesignin": ["Default"]}))
+        self.install()
+        self.health("App/Custom.entitlements")
+        ent = plistlib.loads((self.app / "Custom.entitlements").read_bytes())
+        self.assertEqual(ent["com.apple.developer.applesignin"], ["Default"])
+        self.assertFalse((self.app / "App.entitlements").exists())
+
     def test_missing_swift_fails_loudly(self):
         self.ad.unlink()
         self.assertIn("missing", self.install(False).stderr)
@@ -104,5 +139,5 @@ class KeepCustomCode { let untouched = true }
 if __name__ == "__main__":
     result = unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(BounceInstall))
     if result.wasSuccessful():
-        print("PASS native bounce: storyboard variants, upgrade, idempotency, missing files and custom-code safety")
+        print("PASS native bounce + Apple Health: storyboard variants, upgrade, idempotency, missing files, custom-code safety, write-only HealthKit, entitlement merge")
     sys.exit(0 if result.wasSuccessful() else 1)

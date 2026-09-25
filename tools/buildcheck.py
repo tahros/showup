@@ -41,7 +41,8 @@ shell_count = len(re.findall(r"'\./[^']+\?v=", sw))
 # v4.6.110: 32 — js/ota.js.
 # v4.6.118: 33 — js/reminders.js.
 # v4.6.128: 34 — js/heat-replay.js.
-if shell_count != 34: fail.append(f"sw SHELL has {shell_count} stamped assets, expected 34")
+# v4.6.132: 35 — js/health.js.
+if shell_count != 35: fail.append(f"sw SHELL has {shell_count} stamped assets, expected 35")
 for a in re.findall(r"'\./([^']+)'", sw):
     if not (d/a.split('?')[0]).exists(): fail.append(f"offline SHELL asset missing: {a}")
 
@@ -666,6 +667,16 @@ if (d/".git").exists() and _sp.run(["git","-C",str(d),"check-ignore","-q","--no-
     fail.append(".gitignore hides assets/ios/ -- the icon would never reach the Mac (anchor the generated folder as /ios/) (v4.6.119)")
 if "webView?.scrollView.bounces = true" not in (d/"tools/ios-config.py").read_text():
     fail.append("ios-config.py no longer restores the scroll bounce -- Capacitor turns it off and the iOS app feels rigid (v4.6.120)")
+# v4.6.132: Apple Health is WRITE-ONLY. The plugin asks to share and never to
+# read, the only purpose string is the update one, and the web side keeps its
+# switch on the device (never in synced settings).
+_ioc = (d/"tools/ios-config.py").read_text()
+if "requestAuthorization(toShare: shareTypes, read: nil)" not in _ioc or re.search(r"read:\s*\[|HKSampleQuery|HKStatisticsQuery|NSHealthShareUsageDescription\"\]\s*=", _ioc):
+    fail.append("Apple Health must stay write-only: share permission only, read: nil, no queries, no read purpose string (v4.6.132)")
+if 'pl["NSHealthUpdateUsageDescription"] = HEALTH_WHY' not in _ioc:
+    fail.append("ios-config.py no longer sets the HealthKit purpose string -- a missing or vague one is a rejection (v4.6.132)")
+if "DB.settings" in (d/"js/health.js").read_text().split("*/",1)[-1]:
+    fail.append("js/health.js must keep its switch device-local, never in DB.settings (v4.6.132)")
 if "AppIcon-1024.png" not in (d/"tools/ios-config.py").read_text():
     fail.append("ios-config.py no longer installs the app icon (v4.6.119)")
 # -- v4.6.125: the gear is a tab. Its old header rules must not reach the nav:
