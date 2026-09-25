@@ -1439,7 +1439,11 @@
   }
   /* v3.3.386: settings is available, not the subject. Its smaller, recessed
      surface leaves the date as the first thing the eye lands on. */
-  #gearBtn{width:38px;height:38px;border-radius:12px;background:var(--surface2);
+  /* v4.6.125: scoped to the header. Since v4.6.123 the gear lives in the tab
+     bar, and this ID rule outranked every nav pill rule -- the selected gear
+     wore --surface2 (a dark pill on the white-pill bars) and the tab bar's
+     own selected style never reached it. */
+  header #gearBtn{width:38px;height:38px;border-radius:12px;background:var(--surface2);
     color:var(--muted);font-size:17px}
   /* The 320px fallback preserves all seven days and the full count. Ordinary
      iPhones keep the 10px marks; only the genuinely narrow edge uses 8px. */
@@ -4052,6 +4056,13 @@
   --chrome-shadow:inset 0 1px 1px rgba(255,255,255,.75),inset 0 0 0 .5px rgba(255,255,255,.40),inset 0 -1px 2px rgba(0,0,0,.16),0 12px 25px rgba(0,0,0,.40);
 }
 html body #nav::before{background:var(--chrome-material);box-shadow:var(--chrome-shadow)}
+/* v4.6.125: a missed day on the silver header of dark theme + light bar.
+   It kept dark's --surface2 (#272727) and read as a black square on silver.
+   The maker picked #858585 of six shades: plainly lighter, still a square. */
+:root[data-theme="dark"][data-bar="light"] body #app header:not(.live) .h-week .hwd:not(.on):not(.ahead){background:#858585}
+/* v4.6.125: the day count takes the header's ink. It kept the page's --chalk,
+   so on the silver header of dark theme + light bar it was white on silver. */
+html body #app header:not(.live) .streak:not(.restchip){color:var(--chrome-ink)}
 html body #app header{
   top:calc(12px + env(safe-area-inset-top,0px));left:18px;right:18px;width:auto;max-width:484px;
   min-height:64px;height:auto;margin:auto;padding:10px 12px 10px 8px;gap:8px;border-radius:24px;
@@ -4090,8 +4101,9 @@ html body #app header #liveWorkoutBar #liveWorkoutFinish{
   background:rgba(255,255,255,.16);box-shadow:inset 0 1px 0 rgba(255,255,255,.22);color:#fff;white-space:nowrap;
 }
 html body #nav{grid-template-columns:repeat(5,minmax(0,1fr))}
-html body #nav #gearBtn{width:auto;height:auto;min-width:0;flex:1;border:0;padding:10px 4px;border-radius:24px;color:var(--pill-ink,var(--muted))}
-html body #nav #gearBtn.on{color:var(--pill-chalk,var(--chalk))}
+/* v4.6.125: no colour or background here -- the gear is a tab like the other
+   four, so the per-bar nav rules (nav button / nav button.on) dress it. */
+html body #nav #gearBtn{width:auto;height:auto;min-width:0;flex:1;border:0;padding:10px 4px;border-radius:24px}
 html body #nav #gearBtn .ng{display:grid;place-items:center}
 html body #nav #gearBtn:not(.on){background:transparent;box-shadow:none}
 .nav-settings-gear{display:block;width:24px;height:24px;background:currentColor;

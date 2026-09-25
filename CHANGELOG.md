@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.125 (2026-09-24) — The gear tab lights up like the others
+
+- **Found on the phone** (dark theme, light tab bar). With Settings open, the gear's selected pill was dark, while every other tab's is white. An old rule from when the gear lived in the header still gave it a dark background, and because that rule is written against the gear's ID it outranked all of the tab bar's selected styles. It is now scoped to the header, and the gear's own colour rule is gone, so the gear is dressed exactly like the other four tabs in every theme and bar pairing (checked: dark/light, dark/dark, light/light, light/dark, dark/match).
+- **"3d" is black on the silver header.** The day count kept the page's text colour, which is white in dark theme. It now takes the header's ink, as the date already did. The rest-day colour is unchanged.
+- **Days you didn't train are lighter** in the header strip for dark theme with the light bar: #858585 instead of #272727, which read as a black square on silver. The maker picked it from six shades. Other combinations are unchanged.
+- buildcheck: no unscoped `#gearBtn` background, no gear-specific tab colour, and the day count uses the header ink.
+
 ## v4.6.124 (2026-09-24) — Identical update bytes on Windows and Pages
 
 - Live verification of v4.6.123 caught CRLF line endings in the Windows build while GitHub Pages served LF. The web UI was correct, but native update hashes would reject those files.

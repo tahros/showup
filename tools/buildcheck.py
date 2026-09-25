@@ -667,6 +667,16 @@ if "webView?.scrollView.bounces = true" not in (d/"tools/ios-config.py").read_te
     fail.append("ios-config.py no longer restores the scroll bounce -- Capacitor turns it off and the iOS app feels rigid (v4.6.120)")
 if "AppIcon-1024.png" not in (d/"tools/ios-config.py").read_text():
     fail.append("ios-config.py no longer installs the app icon (v4.6.119)")
+# -- v4.6.125: the gear is a tab. Its old header rules must not reach the nav:
+#    an unscoped #gearBtn background outranked every nav pill (a dark selected
+#    pill on the white-pill bars), and a #nav #gearBtn colour did the same to ink.
+_appcss = (d/"css/app.css").read_text()
+if _re.search(r"(?m)^\s*#gearBtn\{[^}]*background", _appcss):
+    fail.append("an unscoped #gearBtn rule sets a background -- it outranks the tab bar's selected pill (v4.6.125)")
+if _re.search(r"#nav #gearBtn(\.on)?\{[^}]*color", _appcss):
+    fail.append("#nav #gearBtn sets its own colour -- the gear must take the tab bar's ink like the other tabs (v4.6.125)")
+if "header:not(.live) .streak:not(.restchip){color:var(--chrome-ink)}" not in _appcss:
+    fail.append("the header day count no longer uses the header's ink -- white on the silver header (v4.6.125)")
 _pkg_deps = (_pkg.get("dependencies", {}) if _pkg_f.exists() else {})
 for _dep, _why in (("@capacitor/app", "appUrlOpen, the sign-in link back into the app"),
                    ("@capacitor/browser", "the in-app Safari sheet Google sign-in opens in")):
