@@ -1,5 +1,11 @@
 # ShowUp — changelog
 
+## v4.6.134 (2026-09-25) — An even gear
+
+- **Found on the phone:** the Settings gear in the tab bar was lopsided. It was a hand-traced `clip-path` polygon with teeth of different widths at uneven angles and a bulging left side.
+- It is now a generated, symmetric mask: 8 identical teeth every 45°, the same 24px size and centre hole, and corners softened slightly. The maker's pick A of two (8 teeth over 6). Colour still comes from the tab bar, so selected and unselected, light and dark, and every bar pairing are unchanged.
+- buildcheck fails if the gear goes back to a hand-traced polygon.
+
 ## v4.6.133 (2026-09-25) — The Mac sync writes a valid storyboard
 
 - **Found on the Mac, before the first Apple Health build.** `npm run sync:ios` wrote invalid XML into `ios/App/App/Base.lproj/Main.storyboard`. Capacitor's scene tag is self-closing (`<viewController …/>`), and since v4.6.120 `tools/ios-config.py` appended the ShowUpViewController attributes after the slash (`…"viewController"/ customClass=…>`). ibtool rejects that before any Swift compiles, and re-running the script reproduced it.
