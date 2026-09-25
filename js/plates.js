@@ -156,7 +156,7 @@ function bindPlateExport(data,mascot,module,videoModule,options={}){
     const task=new AbortController();controller=task;share.disabled=true;share.textContent='Preparing…';status.textContent=format==='mp4'?'Keep this screen open · preparing video…':'Preparing GIF…';
     try{
       const create=format==='mp4'?videoModule.createPlateVideo:module.createPlateGif;
-      const result=await create({signal:task.signal,dark:data.dark,retro:!!data.retro,withMascot:!options.render,onProgress:n=>{if(controller===task)status.textContent=(format==='mp4'?'Preparing video · ':'Preparing GIF · ')+n+'%';},render:options.render||((time,canvas,motion)=>drawPlateShare(data,mascot,{time,canvas,mascot:motion,dust:format!=='mp4'}))});
+      const result=await create({signal:task.signal,dark:data.dark,retro:!!data.retro,withMascot:!options.render,...(options.duration?{duration:options.duration}:{}),onProgress:n=>{if(controller===task)status.textContent=(format==='mp4'?'Preparing video · ':'Preparing GIF · ')+n+'%';},render:options.render||((time,canvas,motion)=>drawPlateShare(data,mascot,{time,canvas,mascot:motion,dust:format!=='mp4'}))});
       if(closed||task.signal.aborted||controller!==task||_repCv!==current)return;
       if(!result?.size)throw Error('Empty export');
       blobs[format]=result;preview(format);

@@ -907,7 +907,7 @@ function currentRhythmSection(inverse){
         <span class="crtotal"><b>${fmt(total)}</b><small>${inverse?'days rested':'days in'}</small></span>
         <span class="crstreak">${inverse?`<span>resting ${streak} day${streak===1?'':'s'}</span><span>longest ${best}</span>`:`<span>streak ${streak} day${streak===1?'':'s'}</span><span>best ${best}</span>`}</span>
       </div>
-      ${lifetime?`<div class="crsince">${lifetime}</div>`:''}
+      ${lifetime?`<div class="crsince"><span>${lifetime}</span>${inverse?'':'<span class="heat-acts"><button type="button" class="heat-replay" aria-label="Replay every day you showed up">↻ <span>Replay</span></button><button type="button" class="heat-share" aria-label="Share every day you showed up">'+ICO_SHARE+'</button></span>'}</div>`:''}
       <!-- v3.3.332: the month row lives INSIDE the scroller, beside the grid.
            It used to be a sibling of .heatwrap, so the two resolved their 35
            columns against DIFFERENT widths: the grid carries min-width:100%

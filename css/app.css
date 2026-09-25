@@ -534,6 +534,33 @@
   .history-totals small{display:block;font-size:11px;color:var(--muted);margin-top:2px}
   .crstreak{font-size:11px;color:var(--muted);white-space:nowrap}
   .crsince{font-size:10.5px;color:var(--faint);margin-top:3px}
+  /* v4.6.128: REPLAY. The button rides the since-line, so the card gains no
+     height; the attendance card only. The canvas (js/heat-replay.js) covers the
+     since-line and the frame while it plays; the real cells are hidden under it,
+     never removed, and are revealed on the frame the canvas leaves. The labels
+     around the grid come back with the settle voice. Reduced motion: no button,
+     so the card is only ever its end state. */
+  .crcard{position:relative}
+  .crsince:has(.heat-replay){display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .crsince .heat-acts{display:flex;align-items:center;gap:8px;flex:none}
+  /* the plate card's Replay and Share, restated under their own names: the plate
+     card's scripts find ITS buttons by class, so borrowing the class would let
+     the first match on the page be this card's */
+  .crsince .heat-replay{display:inline-flex;align-items:center;justify-content:center;gap:6px;flex:none;
+    min-height:32px;margin:0;padding:4px 11px;border:1px solid var(--line);border-radius:18px;
+    background:var(--surface2);color:var(--chalk);cursor:pointer;font:500 11px var(--body);letter-spacing:0}
+  .crsince .heat-share{width:32px;height:32px;display:grid;place-items:center;padding:0;position:relative;
+    border:0;border-radius:50%;background:var(--surface2);color:var(--muted);cursor:pointer}
+  .crsince .heat-share svg{width:15px;height:15px}
+  .crsince .heat-replay:focus-visible,.crsince .heat-share:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .crsince .heat-share::after{content:'';position:absolute;inset:-6px}
+  .heat-replay-canvas{position:absolute;pointer-events:none;z-index:3}
+  .crcard.heat-replaying .heatgrid,.crcard.heat-replaying .wdrail,.crcard.heat-replaying .heat-periods,
+  .crcard.heat-replaying .crsince,.crcard.heat-replaying .heatframe::after{visibility:hidden}
+  .crcard.heat-replayed .wdrail,.crcard.heat-replayed .heat-periods,.crcard.heat-replayed .crsince{
+    animation:hrback .3s var(--settle) both}
+  @keyframes hrback{from{opacity:0}to{opacity:1}}
+  @media (prefers-reduced-motion:reduce){.crsince .heat-replay{display:none}}
   /* v3.3.333: the sheen belongs to the WINDOW, not to what slides past it.
      It was .heatwrap::after -- absolutely positioned inside the scroll
      container, so its containing block was the scrollable overflow area, not

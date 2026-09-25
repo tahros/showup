@@ -1918,6 +1918,7 @@ function celebrateDayDone(nowrite, forceCount, forceMile, forceShow, sourceCard)
        at 8bbe7b0 (v3.3.504), where drawPhotoCard, loadPickedImage,
        photoSession and tools/test-photocard.js are whole and green. */
     `<div class="ddactions">${is25?'<button class="btn done" data-dd="milestone">See your milestone →</button>':''}<button class="${is25?'ddshare':'btn done'}" data-dd="done">Done</button>`+
+    (forceCount==null&&typeof heatReplay==='object'?`<button class="ddshare" data-dd="seeall">↻ See it all</button>`:'')+
     `<button class="ddshare" data-dd="share">Share this day</button></div></div>`;
   document.body.appendChild(o);
   /* v4.3.5: run it once the overlay is in the document -- countUpEl drives
@@ -2074,6 +2075,8 @@ function celebrateDayDone(nowrite, forceCount, forceMile, forceShow, sourceCard)
       action.dataset.dd='done';action.textContent='Keep showing up →';
       action.focus({preventScroll:true});o.scrollTop=0;return;
     }
+    /* v4.6.128: the finish screen hands over to the replay, on tap only */
+    if(action?.dataset.dd==='seeall'){ leave(); heatReplay.seeAll(); return; }
     if(action) leave(action.dataset.dd==='share');
   });
   o.addEventListener('keydown',e=>{

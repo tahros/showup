@@ -40,7 +40,8 @@ shell_count = len(re.findall(r"'\./[^']+\?v=", sw))
 # v4.6.104: 31 — css/fonts.css joined the shell when IBM Plex moved in-house.
 # v4.6.110: 32 — js/ota.js.
 # v4.6.118: 33 — js/reminders.js.
-if shell_count != 33: fail.append(f"sw SHELL has {shell_count} stamped assets, expected 33")
+# v4.6.128: 34 — js/heat-replay.js.
+if shell_count != 34: fail.append(f"sw SHELL has {shell_count} stamped assets, expected 34")
 for a in re.findall(r"'\./([^']+)'", sw):
     if not (d/a.split('?')[0]).exists(): fail.append(f"offline SHELL asset missing: {a}")
 

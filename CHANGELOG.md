@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v4.6.128 (2026-09-25) — Replay: every day you showed up
+
+- **Replay on "You keep showing up" (Stats).** A tap on ↻ Replay pulls one camera back from today's square to this week, then this year, then every year in the ledger, stacked as calendar-year rows (the oldest at the top). Trained days fill in, missed days stay grey, days ahead keep their outline, and "days in" counts up to the real number. Then it zooms back into this year's row and lands on the strip you normally scroll. About 4.7s. It uses the card's own squares, colours and today's ring, with no confetti, sound or score. It plays only on a tap, and a tap anywhere jumps to the end. With Reduce Motion on there is no Replay button.
+- Drawn on one canvas over the card (never 1,800 DOM nodes). Every position is read from the cells the heatmap builder made, so the last frame lands on the real grid to within one device pixel, and the grid underneath is never touched.
+- **↻ See it all on the finish screen.** It sits between Done and Share this day. A tap closes the ceremony, opens Stats on this card and plays the replay from the square you just filled. It never plays by itself.
+- **Share.** A share button next to Replay offers Image, Video (MP4) or GIF in the plate share's frame and footer. The video ends on every year at once rather than landing on the strip; the still is that frame. The plate exporters take an optional duration (the default stays 3.5s).
+- `tools/check-heat-replay.cjs` (Chromium, light and dark) checks five things: no canvas without a tap; after the replay the canvas is gone and the heatmap, count and scroll are unchanged and pixel-identical; the last frame matches the grid within one device pixel; a tap mid-replay ends it; and with Reduce Motion no canvas appears.
+
 ## v4.6.127 (2026-09-24) — Verify the native bounce controller
 
 - Investigation: Capacitor starts WKWebView with bounce disabled. The v4.6.120 installer could silently miss reordered storyboard attributes and never updated an existing generated controller. OTA updates cannot install that native code; the installed Mac/Xcode binary was not available for inspection here.

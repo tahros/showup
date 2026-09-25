@@ -6,7 +6,7 @@ export function loadExportFonts(){
     await face.load();document.fonts.add(face);
   })).catch(e=>{fontPromise=null;throw e;});
 }
-export async function createPlateGif({render,signal,onProgress,dark,withMascot=true,retro=false}){
+export async function createPlateGif({render,signal,onProgress,dark,withMascot=true,retro=false,duration=3500}){
   const {createMascot}=retro?{createMascot:window.createRetroMascot}:await import('./mascot-renderer.js');
   if(signal.aborted)throw new DOMException('Cancelled','AbortError');
   const stage=document.createElement('div');stage.style.cssText='position:fixed;left:-10000px;top:0;width:216px;height:132px;pointer-events:none';stage.setAttribute('aria-hidden','true');document.body.append(stage);
@@ -25,12 +25,13 @@ export async function createPlateGif({render,signal,onProgress,dark,withMascot=t
     let pixels=canvas.getContext('2d').getImageData(0,0,1080,1280).data;
     await send({type:'init',pixels:pixels.buffer},[pixels.buffer]);
     // 50 fps motion, then a two-second final hold. Repeated hold frames need not encode.
-    for(let i=0;i<=185;i++){
+    const last=Math.round((duration+200)/20);
+    for(let i=0;i<=last;i++){
       if(signal.aborted)throw new DOMException('Cancelled','AbortError');
       const t=i*20-200;render(t,canvas,mascot?.captureFrame(Math.max(0,Math.min(3500,t))));
       pixels=canvas.getContext('2d').getImageData(0,0,1080,1280).data;
-      await send({type:'frame',pixels:pixels.buffer,delay:i===185?2000:20},[pixels.buffer]);
-      onProgress(Math.round((i+1)/186*100));
+      await send({type:'frame',pixels:pixels.buffer,delay:i===last?2000:20},[pixels.buffer]);
+      onProgress(Math.round((i+1)/(last+1)*100));
       await new Promise(r=>setTimeout(r,0));
     }
     const result=await send({type:'finish'});return new Blob([result.bytes],{type:'image/gif'});

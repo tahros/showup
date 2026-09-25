@@ -3,7 +3,7 @@ export function mp4Type(){
   if(!globalThis.MediaRecorder||!HTMLCanvasElement.prototype.captureStream)return '';
   return ['video/mp4;codecs=avc1.42E02A','video/mp4'].find(t=>MediaRecorder.isTypeSupported(t))||'';
 }
-export async function createPlateVideo({render,signal,onProgress,dark,withMascot=true,retro=false}){
+export async function createPlateVideo({render,signal,onProgress,dark,withMascot=true,retro=false,duration=3500}){
   const mimeType=mp4Type();if(!mimeType)throw Error('MP4 unavailable on this browser');
   const {createMascot}=retro?{createMascot:window.createRetroMascot}:await import('./mascot-renderer.js');
   if(signal.aborted)throw new DOMException('Cancelled','AbortError');
@@ -28,14 +28,14 @@ export async function createPlateVideo({render,signal,onProgress,dark,withMascot
       function tick(){
         if(failed||signal.aborted)return;
         try{
-          const elapsed=performance.now()-start,t=Math.min(3500,elapsed-200);
+          const elapsed=performance.now()-start,t=Math.min(duration,elapsed-200);
           render(t,scene,mascot?.captureFrame(Math.max(0,t)));output.drawImage(scene,0,0);
-          onProgress(Math.min(99,Math.round(elapsed/57)));
-          if(elapsed>=5700){recorder.stop();return;}
+          onProgress(Math.min(99,Math.round(elapsed/(duration+2200)*100)));
+          if(elapsed>=duration+2200){recorder.stop();return;}
           timer=setTimeout(tick,20);
         }catch(e){fail(e);}
       }
-      watchdog=setTimeout(()=>fail(Error('Video preparation timed out')),15000);
+      watchdog=setTimeout(()=>fail(Error('Video preparation timed out')),duration+11500);
       if(signal.aborted){abort();return;}start=performance.now();recorder.start();tick();
     });
   }finally{

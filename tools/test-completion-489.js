@@ -37,6 +37,8 @@ for(const unit of ['kg','lb']){
  check('dialog focus and keyboard stay inside',()=>{
   assert.equal(run(`document.activeElement.dataset.dd`),'done');
   run(`document.activeElement.dispatchEvent(new KeyboardEvent('keydown',{key:'Tab',bubbles:true}))`);
+  assert.equal(run(`document.activeElement.dataset.dd`),'seeall');   // v4.6.128: ↻ See it all sits between Done and Share
+  run(`document.activeElement.dispatchEvent(new KeyboardEvent('keydown',{key:'Tab',bubbles:true}))`);
   assert.equal(run(`document.activeElement.dataset.dd`),'share');
   assert.equal(run(`document.querySelector('#dayDone').getAttribute('aria-modal')`),'true');
  });
