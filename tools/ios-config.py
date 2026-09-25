@@ -109,6 +109,7 @@ class ShowUpViewController: CAPBridgeViewController {
     override func capacitorDidLoad() {
         super.capacitorDidLoad()
         bridge?.registerPluginInstance(ShowUpHealthPlugin())
+        bridge?.registerPluginInstance(ShowUpAwakePlugin())
         enableShowUpBounce()
     }
 
@@ -255,6 +256,28 @@ public class ShowUpHealthPlugin: CAPPlugin, CAPBridgedPlugin {
             } else {
                 finish()
             }
+        }
+    }
+}
+
+// v4.6.136: KEEP AWAKE. The web Wake Lock ShowUp asks for during a sideways
+// rest timer is not honoured by iOS's in-app web view, so the screen slept
+// mid-rest. js/derive.js calls set({on}) under exactly the same rule (live
+// workout, landscape, timer showing -- i.e. within 30 minutes of the last
+// set) and turns it off the moment any of those stops.
+@objc(ShowUpAwakePlugin)
+public class ShowUpAwakePlugin: CAPPlugin, CAPBridgedPlugin {
+    public let identifier = "ShowUpAwakePlugin"
+    public let jsName = "ShowUpAwake"
+    public let pluginMethods: [CAPPluginMethod] = [
+        CAPPluginMethod(name: "set", returnType: CAPPluginReturnPromise)
+    ]
+
+    @objc func set(_ call: CAPPluginCall) {
+        let on = call.getBool("on") ?? false
+        DispatchQueue.main.async {
+            UIApplication.shared.isIdleTimerDisabled = on
+            call.resolve(["on": on])
         }
     }
 }

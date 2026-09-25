@@ -458,9 +458,28 @@ setInterval(tickRest,1000);
    Wake Lock is unsupported on some browsers and rejects when the page is
    hidden; both are non-events here, so failures are swallowed rather than
    surfaced. The feature degrades to what it was: a screen that sleeps. */
-let _wake=null, _wakeWant=false;
+let _wake=null, _wakeWant=false, _awakeNative=null;
+/* v4.6.136: IN THE iOS APP THE SAME RULE ALSO GOES NATIVE. iOS's in-app web
+   view does not honour the Wake Lock above, so the screen slept mid-rest. The
+   app's own ShowUpAwake plugin (tools/ios-config.py) holds the idle timer off
+   instead -- same three conditions, same 30-minute end (the timer's own), off
+   when hidden. Told only when the answer changes. Older builds without the
+   plugin fall back to the web path, which is what they had. */
+function awakeNative(on){
+  try{
+    const cap=window.Capacitor;
+    if(!NATIVE_SHELL||!cap) return;
+    const has=cap.isPluginAvailable?.('ShowUpAwake')||(cap.PluginHeaders||[]).some(h=>h&&h.name==='ShowUpAwake')||!!cap.Plugins?.ShowUpAwake;
+    if(!has||_awakeNative===on) return;
+    _awakeNative=on;
+    const P=cap.Plugins?.ShowUpAwake;
+    const r=P&&typeof P.set==='function'?P.set({on}):typeof cap.nativePromise==='function'?cap.nativePromise('ShowUpAwake','set',{on}):null;
+    r&&r.catch&&r.catch(()=>{_awakeNative=null;});
+  }catch(e){ _awakeNative=null; }
+}
 async function syncWakeLock(){
   const want = _wakeWant && !document.hidden;
+  awakeNative(want);
   try{
     if(want && !_wake && navigator.wakeLock){
       _wake = await navigator.wakeLock.request('screen');

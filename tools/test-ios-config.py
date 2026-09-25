@@ -135,6 +135,9 @@ class KeepCustomCode { let untouched = true }
         self.assertEqual(text.count("import HealthKit"), 1)
         self.assertEqual(text.count("class ShowUpHealthPlugin: CAPPlugin, CAPBridgedPlugin"), 1)
         self.assertEqual(text.count("bridge?.registerPluginInstance(ShowUpHealthPlugin())"), 1)
+        self.assertEqual(text.count("class ShowUpAwakePlugin: CAPPlugin, CAPBridgedPlugin"), 1)          # v4.6.136
+        self.assertEqual(text.count("bridge?.registerPluginInstance(ShowUpAwakePlugin())"), 1)
+        self.assertIn("UIApplication.shared.isIdleTimerDisabled = on", text)
         self.assertIn('public let jsName = "ShowUpHealth"', text)
         self.assertIn("requestAuthorization(toShare: shareTypes, read: nil)", text)
         self.assertNotRegex(text, r"read:\s*\[|HKSampleQuery|HKStatisticsQuery|execute\(")   # write-only
