@@ -8,7 +8,7 @@ const ORIGIN='http://127.0.0.1:'+(process.env.PW_PORT||'8784')+'/';
  assert(await p.locator('#liveWorkoutBar').isHidden());
  await p.evaluate(()=>{DB.days[todayISO]={w:[{part:'Back',ex:'Deadlift',w:100,reps:[8,8,6],at:Date.now()-42*60000}],doneEx:[],donePart:[],upd:1};SEED=deriveAll();render();});
  assert(await p.locator('#liveWorkoutBar').isVisible());assert((await p.locator('.live-workout-meta').innerText()).includes('3 sets'));
- assert.equal(await p.locator('#nav button').count(),5);assert.equal(await p.locator('#view #doneAllBtn').count(),0);
+ assert.equal(await p.locator('#nav button').count(),4);assert.equal(await p.locator('#view #doneAllBtn').count(),0);
  const before=await p.evaluate(()=>JSON.stringify(DB.days));
  await p.locator('#liveWorkoutFinish').click();assert(await p.locator('#workoutFinishDialog').isVisible());
  await p.locator('#workoutKeepTraining').click();assert.equal(await p.evaluate(()=>JSON.stringify(DB.days)),before);

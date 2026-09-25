@@ -32,7 +32,7 @@ const fresh=()=>run(`(function(){DB.days={};DB.settings.unit='lb';DB.settings.on
   SEED=deriveAll();lift.plan=null;lift.part=null;lift.ex=null;view='today';render();})()`);
 const where=()=>run(`JSON.stringify({view,plan:lift.plan||null,page:(typeof pfState==='function'&&lift.plan==='workspace')?pfState().page:null})`);
 const tapArrow=()=>run(`(function(){const b=document.querySelector('.hback');const role=b.dataset.pw||'(plain)';b.click();return role;})()`);
-const tapTab=v=>run(`document.querySelector('nav button[data-v="${v}"]').click()`);
+const tapTab=v=>run(`(function(){const v='${v}';if(v==='stats'||v==='history'){if(view!==v){if(!['stats','history'].includes(view))document.querySelector('nav [data-progress]').click();if(view!==v)document.querySelector('[data-progress-view="'+v+'"]').click();}else document.querySelector('nav [data-progress]').click();}else document.querySelector('nav button[data-v="'+v+'"]').click();})()`);
 const inWorkspace=()=>run(`view==='today'&&lift.plan==='workspace'`);
 const atTodayRoot=()=>run(`view==='today'&&!lift.plan`);
 
@@ -74,7 +74,7 @@ ok("Today tapped from INSIDE Today returns to Today's default page", atTodayRoot
 fresh();
 run(`pwOpen(todayISO);pfNavigate('dates');`);
 tapTab('stats');
-ok("(fixture) stepped out to Stats with the workspace still open", run(`view==='stats'`) && run(`lift.plan==='workspace'`));
+ok("(fixture) stepped out to Progress with the workspace still open", run(`['stats','history'].includes(view)`) && run(`lift.plan==='workspace'`));
 tapTab('today');
 ok("Today tapped from ANOTHER tab opens Today as it was: the sub-section", inWorkspace(), where());
 tapTab('today');

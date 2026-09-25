@@ -33,7 +33,7 @@ const rows=`(pw().book[todayISO]?pw().book[todayISO].rows.length:-1)`;
 // ---- the maker's trip
 setup();
 ok('(fixture) Today shows the saved routine',
-   `/Squat/.test(document.querySelector('details[data-pw-fold="today"]').textContent)`);
+   `/Squat/.test(document.querySelector('.today-focus-card').textContent)`);
 run(`pwOpen(todayISO);pwRender();`);
 tap('clear-day');
 ok('(fixture) Clear empties the day inside the editor', `${rows}===0`,
@@ -46,9 +46,9 @@ ok('the abandoned clear is still on the book — nothing was saved',
    `pw().book[todayISO].cleared===true && ${rows}===0`,
    `'cleared='+pw().book[todayISO].cleared+' rows='+(${rows})`);
 ok('...and Today still shows the routine, because DB.plan is untouched',
-   `/Squat/.test(document.querySelector('details[data-pw-fold="today"]').textContent) && DB.plan.items.length===3`);
+   `/Squat/.test(document.querySelector('.today-focus-card').textContent) && DB.plan.items.length===3`);
 
-run(`document.querySelector('details[data-pw-fold="today"] [data-pw="open-date"]').dispatchEvent(new window.MouseEvent('click',{bubbles:true}))`);
+run(`document.querySelector('.today-focus-tools [data-pw="open-date"]').dispatchEvent(new window.MouseEvent('click',{bubbles:true}))`);
 ok('EDIT OPENS THE ROUTINE YOU WERE LOOKING AT, not an empty day',
    `${rows}===3`, rows);
 ok('...seeded from what is actually saved',

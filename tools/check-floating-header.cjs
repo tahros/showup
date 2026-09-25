@@ -22,7 +22,7 @@ const origin='http://127.0.0.1:'+(process.env.PW_PORT||8843)+'/';
     material:getComputedStyle(g).backgroundImage,nav:getComputedStyle(n,'::before').backgroundImage};
   });
   assert.equal(normal.height,64,JSON.stringify(normal));assert.equal(normal.title,'14px');assert.equal(normal.gear,24);
-  assert.equal(normal.material,normal.nav);assert.equal(await p.locator('#nav button').count(),5);
+  assert.equal(normal.material,normal.nav);assert.equal(await p.locator('#nav button').count(),4);
   const alignment=await p.evaluate(()=>[...document.querySelectorAll('#nav .ng')].map(e=>{const r=e.getBoundingClientRect();return r.top+r.height/2}));
   assert(Math.max(...alignment)-Math.min(...alignment)<1,'all five icons share a center line');
   if(width===393)await p.screenshot({path:'../floating-normal-'+theme+'.png'});
@@ -51,7 +51,7 @@ const origin='http://127.0.0.1:'+(process.env.PW_PORT||8843)+'/';
  for(const skin of ['classic','minimal','retro']){
   await p.evaluate(skin=>{DB.settings.skin=skin;applyTheme();render();tickRest();},skin);
   assert(await p.locator('#liveWorkoutFinish').isVisible());
-  assert.equal(await p.locator('#nav button').count(),5);
+  assert.equal(await p.locator('#nav button').count(),4);
  }
  await p.evaluate(()=>{DB.settings.skin='minimal';applyTheme();render();tickRest()});
  await p.setViewportSize({width:320,height:852});

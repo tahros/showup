@@ -773,15 +773,15 @@ ok("the status-bar style no longer puts content under the status bar",
 {
   const navHtml=run(`document.getElementById('nav').innerHTML`);
   ok("no emoji left in the nav", !/[\u{1F300}-\u{1FAFF}\u2705\u2714\u{1F4AA}\u{1F4C8}\u{1F4DC}]/u.test(navHtml), navHtml.slice(0,80));
-  ok("five tabs: original four SVG glyphs and the filled Settings gear",
-     run(`(function(){const bs=[...document.querySelectorAll('#nav button')]; return bs.length===5 && bs.every(b=>{if(b.dataset.v==='sync')return !!b.querySelector('.nav-settings-gear');const s=b.querySelector('.ng svg'); return !!s && s.querySelectorAll('rect').length>0 && !s.querySelector('[fill]:not([fill="currentColor"])');});})()`));
+  ok("four tabs: three SVG glyphs and the filled Settings gear",
+     run(`(function(){const bs=[...document.querySelectorAll('#nav button')]; return bs.length===4 && bs.every(b=>{if(b.dataset.v==='sync')return !!b.querySelector('.nav-settings-gear');const s=b.querySelector('.ng svg'); return !!s && s.querySelectorAll('rect').length>0 && !s.querySelector('[fill]:not([fill="currentColor"])');});})()`));
   ok("...Today is the single square: one rect", run(`document.querySelector('#nav [data-v="today"] svg rect').parentNode.querySelectorAll('rect').length`)===1);
-  ok("...History has nine rects (v3.3.461: a calendar now, asserted in detail below)", run(`document.querySelectorAll('#nav [data-v="history"] svg rect').length`)===9);
+  ok("...Progress uses the existing rising-square Stats glyph", run(`document.querySelectorAll('#nav [data-progress] svg rect').length`)===3);
   /* v3.3.461 RESTATES: no words in the bar. The glyph is decorative and the
      NAME moved to aria-label, so each tab is still announced. */
   ok("...the glyph span is decorative and the name is on the button as aria-label",
      run(`[...document.querySelectorAll('#nav .ng')].every(s=>s.getAttribute('aria-hidden')==='true')`) &&
-     run(`[...document.querySelectorAll('#nav button')].every(b=>/^(Today|Train|Stats|History|Settings)$/.test(b.getAttribute('aria-label')||'') && b.textContent.trim()==='')`));
+     run(`[...document.querySelectorAll('#nav button')].every(b=>/^(Today|Train|Progress|Settings)$/.test(b.getAttribute('aria-label')||'') && b.textContent.trim()==='')`));
   const cssN=fs.readFileSync(path.join(dir,"css/app.css"),"utf8");
   ok("the glyphs take the button's ink", /nav button \.ng svg\{[^}]*fill:currentColor/.test(cssN));
   ok("the emoji grayscale filter is gone with the emoji", !/nav button span\{[^}]*grayscale/.test(cssN));
@@ -1006,9 +1006,8 @@ ok("the status-bar style no longer puts content under the status bar",
      /nav\.dayclosed button\[data-v="today"\] \.ng svg \.sq\{fill:var\(--accent\)/.test(cssN));
   run(`dayMeta().doneAll=false; render();`);
   ok("...and empties again if the day is reopened", run(`!document.getElementById('nav').classList.contains('dayclosed')`));
-  ok("History is a calendar: a stroked frame with a header bar, two pins and days",
-     run(`(function(){const s=document.querySelector('#nav [data-v="history"] svg'); return !!s.querySelector('rect.frame') && s.querySelectorAll('rect').length===9;})()`) &&
-     /nav button \.ng svg \.frame\{fill:none;stroke:currentColor/.test(cssN));
+  ok("History remains an explicit view inside Progress",
+     run(`!!document.querySelector('#progressSwitch [data-progress-view="history"]') && !!document.querySelector('#progressSwitch [data-progress-view="stats"]')`));
   ok("the active tab is a capsule, and the underline is gone from the base sheet",
      /nav button\.on\{[^}]*background:color-mix/.test(cssN) && !/\n\s*nav button\.on::after\{content/.test(cssN)
      && !/:root\[data-skin="minimal"\] nav button\.on::after\{background/.test(cssN));

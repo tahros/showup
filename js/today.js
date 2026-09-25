@@ -352,6 +352,29 @@ function dayCountUp(){
   const el=document.querySelector('.rhythm .big.dayn'); if(!el) return;
   _dayUpPlayed=true; countUpEl(el,900);
 }
+/* One decision before training. Rest, active and completed days keep their
+   established screens. A future plan is context, never today's prescription. */
+function focusedTodayHTML(){
+  const now=planNow(),items=(now?.items||[]).map(planItemShape),fresh=SEED.totals.sessions===0;
+  const next=nextPlanItem(),sets=items.reduce((n,it)=>n+(it.lines||[]).reduce((s,l)=>s+(l.reps||[]).length,0),0);
+  const future=[...new Set([...(DB.plan?.d>todayISO?[DB.plan.d]:[]),...Object.keys(DB.week?.days||{}).filter(d=>d>todayISO)])].filter(d=>pwSaved(d)?.items?.length).sort();
+  const parts=items.length?pwParts(pwRead(planText(now))).join(' + '):'';
+  let h=`<section class="today-focus"><div class="su-hello-row">${fresh?'<div class="hello"><span class="hi">Welcome to ShowUp.</span></div>':helloCard()}${mascotHTML('hello')}</div><div class="card today-focus-card"><div class="today-focus-kicker">${items.length?'Today’s workout':'Today'}</div><h3>${items.length?hesc(parts||'Your workout'):fresh?'Start with one set.':'What’s today’s workout?'}</h3>`;
+  if(items.length){
+    h+=`<div class="mono muted today-focus-meta">${sets} ${sets===1?'set':'sets'} · ${items.length} ${items.length===1?'exercise':'exercises'}</div><div class="today-focus-next"><div><small>First exercise</small><b>${hesc(next?.ex||items[0].ex)}</b></div><button class="btn" data-planex="${hesc(next?.ex||items[0].ex)}">Start →</button></div>`;
+  }else h+=`<p class="today-focus-copy">Choose an exercise and log what you do.${fresh?' No plan needed.':''}</p><button class="btn" id="goLift">Choose exercise →</button>`;
+  h+='</div>';
+  if(future.length){
+    const first=future[0];h+=`<div class="today-focus-upcoming">${pwLaterDayHTML(first)}</div>`;
+    if(future.length>1)h+=`<details class="today-focus-more"><summary>${future.length-1} more planned ${future.length===2?'day':'days'}</summary>${future.slice(1).map(pwLaterDayHTML).join('')}</details>`;
+  }
+  h+=`<div class="today-focus-tools">${items.length?pwAction('open-date','Edit plan','edit','',`data-date="${todayISO}"`):pwAction('open','Plan','sparkle')}${pwAction('paste-open','Paste','paste','',`data-date="${items.length?todayISO:future[0]||todayISO}"`)}${pwDatesButton()}</div>`;
+  const s=pw();if(s.dates.some(d=>d>=todayISO&&s.book[d]&&s.book[d].source!=='Saved plan'&&(s.book[d].rows.length||s.book[d].parts.length)))h+=pwAction('resume','Resume draft','edit','today-focus-secondary');
+  // Keep rescheduling available without putting a second call-to-action card on Today.
+  if(items.length&&planShiftable(planRunFrom(todayISO),1).ok)h+=`<details class="today-focus-more"><summary>Can’t train today?</summary>${pwButton('plan-push-ask','Push the week →','pw-text')}</details>`;
+  if(!fresh)h+='<button class="btn ghost restbtn today-focus-rest" id="restBtn">Rest day</button>';
+  return h+'</section>';
+}
 function renderToday(){
   if(lift.plan==='workspace'){pwRender();return;}
   /* v3.3.319: the paste/preview screen is a full-tab takeover that renderLift
@@ -362,7 +385,7 @@ function renderToday(){
   if(lift.plan==='write'){ $('#view').innerHTML=writerScreenHTML(); return; }   // v3.3.400: the writer's ask screen
   if(lift.plan==='writing'){ $('#view').innerHTML=writerWaitHTML(); return; }   // v3.3.406: the wait, as a receipt
   if(refinedFlow()) planWake();
-  if(d1.preview || (SEED.totals.sessions===0 && !((DB.days[todayISO]||{}).w||[]).length && !(refinedFlow()&&planNow()))){
+  if(d1.preview || (SEED.totals.sessions===0 && !((DB.days[todayISO]||{}).w||[]).length && !(refinedFlow()&&planningWorkspace()) && !(refinedFlow()&&planNow()))){
     $('#view').innerHTML=dayOneHTML(); return; }
   planWake();   // v3.3.397: a plan written last night for today feeds the rail now
   const P=trainingPlan();
@@ -400,6 +423,9 @@ function renderToday(){
     </div>`;
   }
 
+  if(!logged&&!restingToday()&&refinedFlow()&&planningWorkspace()){
+    $('#view').innerHTML=h+focusedTodayHTML();msCountUp();dayCountUp();return;
+  }
   if(!logged){
     // ---- before the gym: what should I train
     h+=`<div class="su-hello-row">${helloCard()}${mascotHTML(restingToday()?'rest':'hello')}</div>`;

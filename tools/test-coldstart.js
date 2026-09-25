@@ -12,6 +12,7 @@ const order = [...html.matchAll(/src="(js\/[^?"]+)\?v=/g)].map(m => m[1]);
 const dom = new JSDOM(html.replace(/<script[^>]*src=[^>]*><\/script>/g, ""), {
   url: "https://tahros.github.io/showup/", runScripts: "outside-only", pretendToBeVisual: true });
 const w = dom.window, ctx = dom.getInternalVMContext();
+w.localStorage.setItem('showup:planning-interface','previous'); // Retained rotation UI; focused Today is covered by check-progress-home.
 w.fetch = () => Promise.reject(new Error("offline"));
 w.matchMedia = w.matchMedia || (() => ({ matches:false, addEventListener(){}, removeEventListener(){} }));
 w.navigator.vibrate = () => {}; w.scrollTo = () => {};

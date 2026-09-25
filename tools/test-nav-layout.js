@@ -18,10 +18,11 @@ assert(buttonRule && /min-width:0\s*;/.test(buttonRule), 'tabs share available w
 console.log('PASS fixed bar has one non-wrapping row with equal flexible tabs');
 const dom = new JSDOM(html);
 const nav = dom.window.document.querySelector('#nav');
-assert.deepStrictEqual([...nav.children].map(b => b.dataset.v), ['today', 'lift', 'stats', 'history', 'sync']);
+assert.deepStrictEqual([...nav.children].map(b => b.dataset.v), ['today', 'lift', 'stats', 'sync']);
+assert(nav.querySelector('[data-progress][aria-label="Progress"]'));
 assert([...nav.children].every(b => b.tagName === 'BUTTON' && b.getAttribute('aria-label') && b.querySelector('svg,.nav-settings-gear')));
 assert(!/grid-template-columns/.test(navRule), 'tab layout has no grid-track dependency');
-console.log('PASS five named navigation buttons remain direct children; Settings follows History');
+console.log('PASS four named navigation buttons remain direct children; Settings follows Progress');
 // v3.3.519: neutral chrome and bounded translucency, never fixed-layer blur.
 const block=mode=>css.match(new RegExp(':root\\[data-skin="minimal"\\]\\[data-bar="'+mode+'"\\]\\{([^}]+)'))[1];
 const token=(mode,k)=>block(mode).match(new RegExp('--'+k+':(#[0-9A-Fa-f]{6})'))[1];
@@ -89,7 +90,7 @@ console.log('PASS neutral bar tokens, bounded gradients, no blur and readable da
 const porcelainScope=':root[data-flow="refined"][data-skin="minimal"][data-theme="light"][data-bar="light"] nav button.on';
 assert.equal(css.split(porcelainScope+'{').length,2,'one exclusive light/light Porcelain rule');
 assert.equal(css.split(porcelainScope+'{')[1].split('}')[0].trim(),'background:radial-gradient(ellipse at 50% -35%,#FFFFFF 0%,#FFFFFF55 43%,transparent 72%),linear-gradient(180deg,#FFFFFF 0%,#F8F8F8 42%,#EDEDED 100%)','A changes only the selected background, with exact approved gradient');
-for(const theme of ['light','dark'])for(const bar of ['light','dark'])for(const selected of ['today','lift','stats','history']){
+for(const theme of ['light','dark'])for(const bar of ['light','dark'])for(const selected of ['today','lift','stats','sync']){
  const el=dom.window.document.documentElement;el.dataset.theme=theme;el.dataset.bar=bar;
  nav.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===selected));
  assert.equal(dom.window.document.querySelectorAll(porcelainScope).length,theme==='light'&&bar==='light'?1:0,'Porcelain only matches the selected tab in light/light');

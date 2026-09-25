@@ -2,10 +2,20 @@
    Extracted verbatim from index.html (v3.2.5 refactor). Classic script:
    shares one global scope with its siblings, loaded in order by index.html. */
 /* ---------- events ---------- */
+// A navigation preference, not training data. Keep the underlying routes so
+// calendar, chart, share and exercise return links retain their semantics.
+let progressView='history';
+try{if(localStorage.getItem('showup:progress-view')==='stats')progressView='stats';}catch(_e){}
 document.addEventListener('click',e=>{
   if(checkDate()) return;   // v3.3.158: the day rolled mid-tap — re-render, next tap lands right
   if(pwHandle(e)) return;
   if(plHandle(e)) return;
+  const progressPick=e.target.closest('[data-progress-view]');
+  if(progressPick){
+    const next=progressPick.dataset.progressView;
+    if(!['history','stats'].includes(next)||next===view)return;
+    view=next;if(lift)lift.ret=null;return render();
+  }
   /* v4.1.8: which day the header's week starts on. A viewing choice, so it
      saves and repaints and touches nothing in the record. */
   const weekPick=e.target.closest('[data-week-start]');
@@ -186,13 +196,14 @@ document.addEventListener('click',e=>{
   }
   const nav=e.target.closest('nav button');
   if(nav){
+    const target=nav.hasAttribute('data-progress')?(['history','stats'].includes(view)?view:progressView):nav.dataset.v;
     if(session) cloudPush();
     /* v4.6.72: THE TAB KNOWS WHERE IT WAS TAPPED FROM. Today, tapped while
        already on Today but inside one of its sub-sections -- the planning
        workspace, the writer's ask screen -- returns to Today's default page.
        That is the whole rule: from any other tab, and from Today's own
        default page, the tap does what it always did. */
-    if(nav.dataset.v==='today'&&view==='today'&&lift&&(lift.plan||lift.write)){
+    if(target==='today'&&view==='today'&&lift&&(lift.plan||lift.write)){
       if(lift.plan==='workspace'&&typeof pfLeave==='function') pfLeave('today');
       else { lift.writeAbort?.abort(); lift.plan=null; lift.write=null; render({soft:true}); }
       return;
@@ -222,7 +233,7 @@ document.addEventListener('click',e=>{
        Stats has only viewpoints, so its tap only ever scrolls. History's month
        is a place because null means "this month" (core.js), and the renderer
        re-derives it from today. */
-    if(nav.dataset.v===view&&view!=='today'){
+    if(target===view&&view!=='today'){
       const home={
         lift:()=>lift&&(lift.ex||lift.plan||lift.write)&&(()=>{lift.writeAbort?.abort();liftEnter({});}),
         history:()=>(hist.edit||(hist.y&&hist.y!==+todayISO.slice(0,4))||(hist.m&&hist.m!==+todayISO.slice(5,7)))&&(()=>{hist.edit=null;hist.editSet=null;hist.y=null;hist.m=null;}),
@@ -232,8 +243,8 @@ document.addEventListener('click',e=>{
       else scrollTo({top:0,behavior:MOTION_OK?'smooth':'auto'});
       return;
     }
-    if(nav.dataset.v==='sync') prevView=view;
-    view=nav.dataset.v;
+    if(target==='sync') prevView=view;
+    view=target;
     /* v3.3.347: the tab remembers, live or not */
     /* v3.3.434: a tab tap is a fresh start, never a return. Taking the Train
        tab deliberately clears any pending return, so back on that screen
@@ -2283,7 +2294,15 @@ setInterval(()=>{if(document.visibilityState==='visible'&&document.documentEleme
 function syncNav(){
   syncLiveWorkout();
   scheduleNavLayoutCheck();
-  document.querySelectorAll('nav button').forEach(b=>{b.classList.toggle('on',b.dataset.v===view);if(b.dataset.v===view)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
+  const inProgress=view==='history'||view==='stats';
+  if(inProgress&&progressView!==view){progressView=view;try{localStorage.setItem('showup:progress-view',view);}catch(_e){}}
+  const switcher=document.getElementById('progressSwitch');
+  if(switcher){
+    switcher.hidden=!inProgress;
+    switcher.style.setProperty('--progress-slide',view==='stats'?'100%':'0%');
+    switcher.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.progressView===view)));
+  }
+  document.querySelectorAll('nav button').forEach(b=>{const selected=b.hasAttribute('data-progress')?inProgress:b.dataset.v===view;b.classList.toggle('on',selected);if(selected)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
   /* v3.3.461: Today's square in the bar shows the day's STATE -- hollow while
      open, filled once closed (doneAll). Every render passes through here, and
      every doneAll flip renders, so the square cannot lag the ledger. */

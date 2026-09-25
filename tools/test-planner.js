@@ -22,8 +22,8 @@ run(String.raw`DB.days={}; DB.settings.onboarded=true;DB.settings.unit='lb';DB.s
   todayISO='2026-09-10';checkDate=()=>false;
   DB.days['2026-09-08']={w:[{part:'Legs',ex:'Squat',w:90,reps:[8,8,8],at:1}],upd:1};
   SEED=deriveAll();view='today';lift.plan=null;dayMeta();render();`);
-ok('workspace Plan entry is the default, no legacy Write toolbar',String.raw`planningWorkspace() && !!document.querySelector('.pw-home-tools [data-pw="open"]') && !document.querySelector('[data-planwrite]')`);
-ok('no-plan Train next is retained',String.raw`/Train next/i.test(document.getElementById('view').textContent)`);
+ok('workspace Plan entry is the default, no legacy Write toolbar',String.raw`planningWorkspace() && !!document.querySelector('.today-focus-tools [data-pw="open"]') && !document.querySelector('[data-planwrite]')`);
+ok('no-plan Choose exercise leads to Train',String.raw`document.querySelector('#goLift').textContent.includes('Choose exercise')`);
 run(String.raw`pwOpen('2026-09-11');`);ok('new day opens one editor with inline focus and calendar access',String.raw`pw().step==='edit'&&!!document.querySelector('.pw-setup')&&!!document.querySelector('[data-pw="dates-toggle"]')`);
 run(String.raw`pw().dates=['2026-09-11','2026-10-03'];pw().active='2026-09-11';pwDay('2026-10-03');pwGo('focus');`);
 run(`pw().active='2026-10-03';pwRender();`);ok('per-date focus for dates across months',String.raw`document.querySelectorAll('[data-pw="part"][data-date="2026-10-03"]').length===8`);run(`pw().active='2026-09-11';`);

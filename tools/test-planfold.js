@@ -16,7 +16,9 @@ const run=s=>vm.runInContext(s,ctx);let fails=0;
 const ok=(n,e,g)=>{let good;try{good=typeof e==='string'?run(e):e;}catch(err){good=false;console.log(err.message);}
   console.log(`${good?'PASS':'FAIL'} ${n}`+(g!==undefined?` → ${typeof g==='string'?run(g):g}`:''));if(!good)fails++;};
 
-run(String.raw`DB.days={};DB.settings.onboarded=true;DB.settings.unit='lb';
+// The retained previous Today layout still uses this disclosure; the new
+// default has one focus card and is exercised by check-progress-home.cjs.
+run(String.raw`flowLayout='previous';DB.days={};DB.settings.onboarded=true;DB.settings.unit='lb';
   DB.settings.myParts=['Legs','Chest','Sixpack'];todayISO='2026-09-11';checkDate=()=>false;
   DB.days['2026-09-09']={w:[{part:'Legs',ex:'Squat',w:90,reps:[8,8,8],at:1}],upd:1};
   DB.plan={d:'2026-09-11',items:[

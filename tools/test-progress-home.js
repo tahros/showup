@@ -1,0 +1,23 @@
+// Default navigation and Today contract, offline synthetic records only.
+const {JSDOM}=require('jsdom'),fs=require('fs'),path=require('path'),vm=require('vm'),assert=require('assert');
+const dir=process.argv[2]||'.',html=fs.readFileSync(path.join(dir,'index.html'),'utf8');
+const dom=new JSDOM(html.replace(/<script[^>]*src=[^>]*><\/script>/g,''),{url:'https://tahros.github.io/showup/',runScripts:'outside-only',pretendToBeVisual:true}),w=dom.window,ctx=dom.getInternalVMContext();
+w.fetch=()=>Promise.reject(Error('offline'));w.matchMedia=()=>({matches:false,addEventListener(){},removeEventListener(){}});w.scrollTo=()=>{};w.navigator.vibrate=()=>{};w.HTMLCanvasElement.prototype.getContext=()=>new Proxy({measureText:()=>({width:10})},{get:(o,k)=>o[k]||(()=>({}))});
+for(const m of html.matchAll(/src="(js\/[^?"]+)\?v=/g))vm.runInContext(fs.readFileSync(path.join(dir,m[1]),'utf8'),ctx,{filename:m[1]});
+const run=s=>vm.runInContext(s,ctx),test=(label,s)=>{assert(run(s),label);console.log('PASS '+label)};
+run(`DB={days:{},settings:{onboarded:true,unit:'lb'}};todayISO='2026-09-25';checkDate=()=>false;view='today';lift.plan=null;d1.preview=false;flowLayout='refined';SEED=deriveAll();render();`);
+test('fresh user receives one action, not the legacy picker',`!!document.querySelector('.today-focus-card #goLift')&&!document.querySelector('[data-d1="start"]')`);
+run(`document.querySelector('#goLift').click()`);test('Choose exercise opens Train',`view==='lift'&&!lift.ex`);
+run(`DB.days['2026-09-23']={w:[{ex:'Squat',part:'Legs',w:60,reps:[8,8,8]}],doneAll:true};DB.plan={d:'2026-09-26',items:[{ex:'Squat',lines:[{w:60,reps:[8,8,8]}]}]};const beforePlan=JSON.stringify(DB.plan);SEED=deriveAll();view='today';render();`);
+test('tomorrow-only copy is factual and today stays unplanned',`document.querySelector('.today-focus-card h3').textContent==='What’s today’s workout?'&&!planNow()`);
+test('tomorrow remains reachable with Edit and Paste',`!!document.querySelector('.today-focus-upcoming [data-pw="open-date"][data-date="2026-09-26"]')&&!!document.querySelector('.today-focus-upcoming [data-pw="paste-open"]')&&JSON.stringify(DB.plan)===beforePlan`);
+run(`DB.week={days:{'2026-09-27':JSON.parse(beforePlan),'2026-09-28':JSON.parse(beforePlan)}};render();`);
+test('all future plans appear once',`document.querySelectorAll('.today-focus [data-pw-fold^="later:"]').length===3&&document.querySelector('.today-focus-more summary').textContent==='2 more planned days'`);
+run(`DB.plan.d=todayISO;render();`);test('today plan has a real set total and one Start',`document.querySelector('.today-focus-meta').textContent==='3 sets · 1 exercise'&&document.querySelectorAll('.today-focus-card [data-planex="Squat"]').length===1`);
+run(`view='today';lift.plan=null;render();document.querySelector('#nav [data-progress]').click();`);
+test('Progress opens calendar History first',`view==='history'&&!document.querySelector('#progressSwitch').hidden&&document.querySelectorAll('#nav button').length===4`);
+run(`document.querySelector('[data-progress-view="stats"]').click();document.querySelector('#nav [data-v="today"]').click();document.querySelector('#nav [data-progress]').click();`);
+test('Progress remembers Trends and lights one tab',`view==='stats'&&localStorage.getItem('showup:progress-view')==='stats'&&document.querySelectorAll('#nav .on').length===1`);
+run(`view='history';render();`);test('direct History route shares Progress selection',`document.querySelector('#nav [data-progress]').getAttribute('aria-current')==='page'&&document.querySelector('[data-progress-view="history"]').getAttribute('aria-pressed')==='true'`);
+test('calendar button no longer depends on removed tab',`pwCalendarIcon().includes('<svg')`);
+console.log('PASS Progress and focused Today default contract');process.exit(0);

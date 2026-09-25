@@ -366,7 +366,7 @@ if (!noSwipe) fail++;
      render, whatever route set it */
   for (const v of ['today','lift','stats','history']) {
     run(`view='${v}'; render();`);
-    checkVal(`the bar reads ${v} when view is ${v}`, lit(), v);
+    checkVal(`the bar reads ${v} when view is ${v}`, lit(), v==='history'?'stats':v);
   }
   /* and it is derived ONCE -- a second hand-written toggle is the bug coming
      back, since that is exactly how six of them accumulated */
@@ -375,7 +375,7 @@ if (!noSwipe) fail++;
   checkVal("the toggle lives in one place",
            ((fs.readFileSync(path.join(dir,"js/app.js"),"utf8")
              + fs.readFileSync(path.join(dir,"js/core.js"),"utf8"))
-            .match(/nav button'\)\.forEach\(b=>\{?b\.classList\.toggle\('on'/g) || []).length,
+            .match(/nav button'\)\.forEach\(b=>\{/g) || []).length,
            1);
 }
 

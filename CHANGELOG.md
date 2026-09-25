@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.129 (2026-09-25) — A quieter Today, one home for Progress
+
+- Four bottom destinations: Today, Train, Progress, Settings. Progress groups the existing History and Stats screens behind an animated History / Trends switch; calendar, charts, records, sharing and Replay remain unchanged. The device remembers the last Progress view. Existing deep links and return paths keep their original destinations.
+- Before training, Today has one focused workout card. A saved plan shows its actual exercise/set totals and the first exercise; without a plan, “What’s today’s workout?” leads to Train via Choose exercise. First-time users see “Start with one set.”
+- Future plans remain dated, expandable, editable and pasteable; additional plans fold below the next one. Plan, Paste, Dates, drafts and rescheduling stay available with quieter presentation. No future plan is moved to today automatically. Rest, live workouts and completed-day experiences are unchanged.
+- No workout migration or account-data change. Browser coverage checks four no-plan states, planned entry, all four tabs, remembered Progress selection, mobile light/dark layouts and rest/live behavior; default-contract and retained-layout regressions run in the suite.
+
 ## v4.6.128 (2026-09-25) — Replay: every day you showed up
 
 - **Replay on "You keep showing up" (Stats).** A tap on ↻ Replay pulls one camera back from today's square to this week, then this year, then every year in the ledger, stacked as calendar-year rows (the oldest at the top). Trained days fill in, missed days stay grey, days ahead keep their outline, and "days in" counts up to the real number. Then it zooms back into this year's row and lands on the strip you normally scroll. About 4.7s. It uses the card's own squares, colours and today's ring, with no confetti, sound or score. It plays only on a tap, and a tap anywhere jumps to the end. With Reduce Motion on there is no Replay button.

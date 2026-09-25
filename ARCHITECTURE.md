@@ -45,6 +45,12 @@ after boot.) Keep the order in index.html as-is unless you have a reason.
 | `js/app.js` | 23 KB | Global click delegation (most button handlers), chart zoom, `render()` router, boot. |
 
 ## Common tasks → files
+- Bottom navigation (v4.6.129): Today / Train / Progress / Settings. Progress
+  groups the existing `history` and `stats` routes, with `#progressSwitch`
+  outside `#view` so direct chart/calendar repaints retain the switch.
+  `syncNav()` persists only the device-local `showup:progress-view` preference.
+- Before training, refined Today uses `focusedTodayHTML()` in `today.js`;
+  Rest, logged/active and completed-day rendering remain on their existing paths.
 - Approved planner journey → `js/planner-flow.js`, `css/planner-flow.css`.
   It layers on the existing parser, checked writer and owner-scoped draft
   primitives in `planner.js`. Preferences live in
