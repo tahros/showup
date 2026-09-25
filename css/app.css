@@ -1017,8 +1017,15 @@
   .zone.mini .lastsets::-webkit-scrollbar{display:none}
   .zone.mini .lastset{padding:7px 11px;font-size:12px;flex:none}
   #gearBtn{position:relative}
-  #gearBtn.warn::after{content:'';position:absolute;top:4px;right:4px;width:8px;height:8px;
-    border-radius:50%;background:var(--record);border:1.5px solid var(--surface)}
+  /* v4.6.126: the "not syncing" dot hangs on the ICON, not the button, and
+     not on the button's ::after. That pseudo-element is also the selected
+     tab's shimmer (nav button.on::after, inset:0), so opening Settings moved
+     the dot from the top-right corner to the gear's left side. On .ng it has
+     one position in every state. Smaller and softer (the maker's pick B):
+     worth a glance, not an alarm. */
+  #gearBtn.warn .ng{position:relative}
+  #gearBtn.warn .ng::after{content:'';position:absolute;top:-1px;right:-2px;width:5px;height:5px;
+    border-radius:50%;background:var(--record);opacity:.7;pointer-events:none}
   .btn.done{background:var(--accent);border:1px solid var(--accent);color:#fff;font-weight:600;margin-top:12px}
   /* v3.3.33: the open-part exit pair. Two filled blues side by side would be
      indistinguishable when the session isn't live, so Complete takes the
@@ -4060,6 +4067,10 @@ html body #nav::before{background:var(--chrome-material);box-shadow:var(--chrome
    It kept dark's --surface2 (#272727) and read as a black square on silver.
    The maker picked #858585 of six shades: plainly lighter, still a square. */
 :root[data-theme="dark"][data-bar="light"] body #app header:not(.live) .h-week .hwd:not(.on):not(.ahead){background:#858585}
+/* v4.6.126: the same fix for the other mixed pairing -- light theme, dark bar.
+   The missed day kept light's #D4D4D4 and was the brightest mark on the
+   graphite header, louder than the days trained. #5C5C5C, the maker's pick. */
+:root[data-theme="light"][data-bar="dark"] body #app header:not(.live) .h-week .hwd:not(.on):not(.ahead){background:#5C5C5C}
 /* v4.6.125: the day count takes the header's ink. It kept the page's --chalk,
    so on the silver header of dark theme + light bar it was white on silver. */
 html body #app header:not(.live) .streak:not(.restchip){color:var(--chrome-ink)}

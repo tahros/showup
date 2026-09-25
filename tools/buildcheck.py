@@ -675,6 +675,8 @@ if _re.search(r"(?m)^\s*#gearBtn\{[^}]*background", _appcss):
     fail.append("an unscoped #gearBtn rule sets a background -- it outranks the tab bar's selected pill (v4.6.125)")
 if _re.search(r"#nav #gearBtn(\.on)?\{[^}]*color", _appcss):
     fail.append("#nav #gearBtn sets its own colour -- the gear must take the tab bar's ink like the other tabs (v4.6.125)")
+if _re.search(r"#gearBtn\.warn::after", _appcss) or "#gearBtn.warn .ng::after" not in _appcss:
+    fail.append("the sync dot must hang on the gear icon (.ng::after), never the button's ::after -- that is the selected tab's shimmer layer and it moves the dot (v4.6.126)")
 if "header:not(.live) .streak:not(.restchip){color:var(--chrome-ink)}" not in _appcss:
     fail.append("the header day count no longer uses the header's ink -- white on the silver header (v4.6.125)")
 _pkg_deps = (_pkg.get("dependencies", {}) if _pkg_f.exists() else {})

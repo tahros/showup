@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.126 (2026-09-24) — A quiet, steady sync dot
+
+- **Found on the phone:** the red "not syncing" dot on the gear was loud, and it sat in a different place depending on the tab. It was drawn on the gear button's `::after`, the same layer the selected tab uses for its shimmer, so opening Settings stretched that layer across the pill and the dot jumped to the gear's left side.
+- It now hangs on the gear icon itself, just off the top-right tooth, in one position in every state and in every theme and bar pairing. It is smaller and softer (5px at 70%, the maker's pick B of three).
+- **Light theme with the dark tab bar:** days you didn't train in the header strip are #5C5C5C instead of #D4D4D4, which had been the brightest mark on the graphite header. The maker picked it from six shades, mirroring v4.6.125's fix for the other mixed pairing.
+- buildcheck fails if the dot goes back onto the button's `::after`.
+
 ## v4.6.125 (2026-09-24) — The gear tab lights up like the others
 
 - **Found on the phone** (dark theme, light tab bar). With Settings open, the gear's selected pill was dark, while every other tab's is white. An old rule from when the gear lived in the header still gave it a dark background, and because that rule is written against the gear's ID it outranked all of the tab bar's selected styles. It is now scoped to the header, and the gear's own colour rule is gone, so the gear is dressed exactly like the other four tabs in every theme and bar pairing (checked: dark/light, dark/dark, light/light, light/dark, dark/match).
