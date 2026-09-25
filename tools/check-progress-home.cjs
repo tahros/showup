@@ -20,8 +20,22 @@ assert(await p.locator('.today-focus-plan').evaluate(e=>e.open));assert.equal(aw
 await p.locator('.today-focus-plan>summary').click();await p.waitForTimeout(350);
 assert(!await p.locator('.today-focus-plan').evaluate(e=>e.open));
 await p.screenshot({path:'../today-release-130.png'});
-await p.locator('.today-focus-next [data-planex="Squat"]').click();await p.waitForTimeout(300);assert.equal(await p.evaluate(()=>lift.ex),'Squat');
-await p.locator('#nav [data-progress]').click();await p.waitForTimeout(300);assert.equal(await p.evaluate(()=>view),'history');assert(await p.locator('#progressSwitch').isVisible());assert.equal(await p.locator('#nav button').count(),4);
+await p.locator('.today-focus-next [data-ex="Run"]').click();await p.waitForTimeout(300);assert.equal(await p.evaluate(()=>lift.ex),'Run');
+await p.locator('#nav [data-progress]').click();await p.waitForTimeout(300);assert.equal(await p.evaluate(()=>view),'stats');assert(await p.locator('#progressSwitch').isVisible());assert.equal(await p.locator('#nav button').count(),4);
+await p.evaluate(()=>{window.checkHeader=document.querySelector('header');window.checkTabs=document.querySelector('#progressSwitch');});
+for(const target of ['history','stats']){
+ await p.evaluate(()=>window.scrollTo(0,20));
+ const scrollBefore=await p.evaluate(()=>scrollY);
+ // Dispatch without Playwright auto-scrolling the target before the click.
+ await p.locator('[data-progress-view="'+target+'"]').evaluate(e=>e.click());await p.waitForTimeout(300);
+ assert.equal(await p.evaluate(()=>scrollY),scrollBefore);
+ assert(await p.evaluate(()=>window.checkHeader===document.querySelector('header')&&window.checkTabs===document.querySelector('#progressSwitch')));
+ assert.equal(await p.locator('#secReport').count(),0);
+ assert(await p.locator('[data-progress-view="'+target+'"] svg').evaluate(e=>getComputedStyle(e).fill===getComputedStyle(e.parentElement).color));
+ assert(await p.locator('#view').evaluate(e=>e.classList.contains('norise')));
+ await p.screenshot({path:'../progress-131-'+target+'.png'});
+}
+await p.evaluate(()=>window.scrollTo(0,0));
 await p.locator('[data-progress-view="stats"]').click();await p.waitForTimeout(300);assert.equal(await p.evaluate(()=>view),'stats');await p.locator('#nav [data-v="today"]').click();await p.waitForTimeout(300);assert(await p.locator('#progressSwitch').isHidden());await p.locator('#nav [data-progress]').click();await p.waitForTimeout(300);assert.equal(await p.evaluate(()=>view),'stats');assert.equal(await p.evaluate(()=>localStorage.getItem('showup:progress-view')),'stats');
 for(const theme of ['light','dark'])for(const width of [320,393,430]){await p.setViewportSize({width,height:852});await p.evaluate(theme=>{DB.settings.theme=theme;DB.settings.barTheme=theme;applyTheme();view='today';render();},theme);await p.waitForTimeout(200);assert(!await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth));if(width===393)await p.screenshot({path:'../progress-home-'+theme+'.png'});}
 await seed('tomorrow');const before=await p.evaluate(()=>JSON.stringify(DB.plan));assert(await p.locator('.today-focus-upcoming details').evaluate(e=>e.open));await p.locator('.today-focus-upcoming summary').click();await p.waitForTimeout(350);assert(!await p.locator('.today-focus-upcoming details').evaluate(e=>e.open));await p.locator('.today-focus-upcoming summary').click();await p.waitForTimeout(350);assert(await p.locator('.today-focus-upcoming [data-pw="open-date"]').isVisible());assert.equal(await p.evaluate(()=>JSON.stringify(DB.plan)),before);

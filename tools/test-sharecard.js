@@ -210,7 +210,7 @@ ok("...and the retired section's tip left with it",
    This click was a null deref that crashed the suite silently for fourteen
    releases; everything below here never ran. Rotate to the grid card and go
    through the real button. */
-run(`view='history'; render(); document.getElementById('secReport').open=true; paintRepCard();
+run(`view='history'; render(); document.querySelector('#view').insertAdjacentHTML('afterbegin',reportCardSection()); document.getElementById('secReport').open=true; paintRepCard();
      _repIdx=shareCards().findIndex(c=>c.id==='grid');
      document.getElementById('repShare').click();`);
 // showCard awaits document.fonts.ready; drain the microtask queue
@@ -356,7 +356,7 @@ module.exports = settled.then(() => {
        /id="secDays"/.test(run(`$('#view').innerHTML`)) &&
        !/id="secReport"/.test(run(`$('#view').innerHTML`)));
     run(`view='history'; render();`);
-    ok("History owns the one report surface", /id="secReport"/.test(run(`$('#view').innerHTML`)));
+    ok("History omits the report launcher", !/id="secReport"/.test(run(`$('#view').innerHTML`)));
 
     // ---- 8d. v3.3.92: 2025's line moved to chart grade -------------------
     const statsSrc92 = fs.readFileSync(path.join(dir, "js/stats.js"), "utf8");

@@ -95,7 +95,7 @@ check("Stats no longer owns personal weight tracking",
 // v3.3.130: Report card RETURNS — as the single share surface, not the old month-stepper
 check("Report card is absent from Stats", `/id="secReport"/.test($('#view').innerHTML)`, false);
 run(`view='history'; render();`);
-check("...and lives collapsed in History", `!!document.getElementById('secReport')&&!document.getElementById('secReport').open`, true);
+check("...and the launcher is also absent from History", `!document.getElementById('secReport')`, true);
 run(`view='sync'; render();`);
 check("Last 30 days no longer renders", `/vs your usual/.test($('#view').innerHTML)`, false);
 check("...and Weight remains available in Settings",

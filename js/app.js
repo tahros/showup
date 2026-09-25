@@ -4,8 +4,8 @@
 /* ---------- events ---------- */
 // A navigation preference, not training data. Keep the underlying routes so
 // calendar, chart, share and exercise return links retain their semantics.
-let progressView='history';
-try{if(localStorage.getItem('showup:progress-view')==='stats')progressView='stats';}catch(_e){}
+let progressView='stats';
+try{if(localStorage.getItem('showup:progress-view')==='history')progressView='history';}catch(_e){}
 document.addEventListener('click',e=>{
   if(checkDate()) return;   // v3.3.158: the day rolled mid-tap — re-render, next tap lands right
   if(pwHandle(e)) return;
@@ -14,7 +14,9 @@ document.addEventListener('click',e=>{
   if(progressPick){
     const next=progressPick.dataset.progressView;
     if(!['history','stats'].includes(next)||next===view)return;
-    view=next;if(lift)lift.ret=null;return render();
+    const y=window.scrollY||0;
+    view=next;if(lift)lift.ret=null;paint({inplace:true});syncNav();
+    window.scrollTo({top:y,behavior:'instant'});return;
   }
   /* v4.1.8: which day the header's week starts on. A viewing choice, so it
      saves and repaints and touches nothing in the record. */
@@ -2298,8 +2300,10 @@ function syncNav(){
   if(inProgress&&progressView!==view){progressView=view;try{localStorage.setItem('showup:progress-view',view);}catch(_e){}}
   const switcher=document.getElementById('progressSwitch');
   if(switcher){
+    const historyButton=switcher.querySelector('[data-progress-view="history"]');
+    if(historyButton&&!historyButton.querySelector('svg'))historyButton.insertAdjacentHTML('afterbegin',pwCalendarIcon());
     switcher.hidden=!inProgress;
-    switcher.style.setProperty('--progress-slide',view==='stats'?'100%':'0%');
+    switcher.style.setProperty('--progress-slide',view==='stats'?'0%':'100%');
     switcher.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.progressView===view)));
   }
   document.querySelectorAll('nav button').forEach(b=>{const selected=b.hasAttribute('data-progress')?inProgress:b.dataset.v===view;b.classList.toggle('on',selected);if(selected)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});

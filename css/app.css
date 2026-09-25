@@ -1,8 +1,9 @@
 /* v4.6.129: Progress is a navigation group, not a new analytics screen. */
-.progress-switch{--progress-slide:0%;display:flex;position:relative;isolation:isolate;background:var(--surface2);border-radius:16px;padding:4px;margin:4px 0 24px}
+.progress-switch{--progress-slide:0%;display:flex;position:relative;isolation:isolate;background:none;border-bottom:1px solid var(--line);padding:0;margin:8px 18px 0}
 .progress-switch[hidden]{display:none}
-.progress-switch:before{content:'';position:absolute;left:4px;top:4px;bottom:4px;width:calc(50% - 4px);border-radius:12px;background:var(--surface);transform:translateX(var(--progress-slide,0%));transition:transform var(--dur-move) var(--settle);z-index:-1;box-shadow:0 2px 5px #0000000a}
-.progress-switch button{flex:1;border:0;background:transparent;padding:10px;color:var(--muted);font:500 14px var(--body);min-height:44px;cursor:pointer}
+.progress-switch:before{content:'';position:absolute;left:0;bottom:-1px;width:50%;height:2px;background:var(--accent);transform:translateX(var(--progress-slide,0%));transition:transform var(--dur-move) var(--settle);z-index:-1}
+.progress-switch button{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;border:0;background:transparent;padding:10px;color:var(--muted);font:500 14px var(--body);min-height:46px;cursor:pointer}
+.progress-switch button svg{width:17px;height:17px;flex-shrink:0;fill:currentColor}
 .progress-switch button[aria-pressed=true]{color:var(--accent-ink)}
 .today-focus{margin-top:-20px}
 .today-focus .su-hello-row{margin:0 0 8px}

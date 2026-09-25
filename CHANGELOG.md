@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.131 (2026-09-25) — Run first, quieter Progress navigation
+
+- Today's planned-workout card opens Run from its primary Start action. The extra “Then / Squat / Open” row is omitted; lifting exercises remain accessible in the expandable plan. This shortcut does not alter saved plans or log a workout automatically.
+- Progress uses icon-led text tabs, Trends before History. Selected icons and labels share the blue accent. Trends is the default for devices without a saved Progress preference.
+- Switching History/Trends updates the content in place without replaying the whole-screen transition, resetting scroll, or rebuilding the header/tab strip.
+- Removed the “Share your progress / cards” launcher from History. Individual workout sharing remains available; export rendering tests retain isolated component coverage.
+
 ## v4.6.130 (2026-09-25) — A tighter Today, plans within reach
 
 - Reduced greeting spacing and resized today's workout title to 21 px. Its chevron expands the exercise plan in place, with the open/closed state remembered.

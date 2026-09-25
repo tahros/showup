@@ -60,6 +60,9 @@ ok("the download icon asset was deleted with its last caller",
 // ---- 2. the one surface moved from analysis to the ledger -----------------
 ok("the report card is absent from Stats", run(`!document.getElementById('repCard')`));
 run(`view='history'; render();`);
+ok("History omits the sharing launcher", run(`!document.getElementById('secReport')`));
+// Mount the export component explicitly to retain its rendering/rotation coverage.
+run(`document.querySelector('#view').insertAdjacentHTML('afterbegin',reportCardSection());`);
 ok("the report card renders", run(`!!document.getElementById('repCard')`));
 ok("the compact share launcher is the first History control",
    run(`document.getElementById('secReport').nextElementSibling.classList.contains('ychips')`));
@@ -140,7 +143,9 @@ ok("a lifter who never runs is offered no Pace card", !liftOnly.includes("pace")
 ok("...no Distance card either", !liftOnly.includes("dist"));
 ok("...but still gets the days cards", liftOnly.includes("grid") && liftOnly.includes("yoy"));
 run(`view='history'; render();`);
-ok("the carousel still renders for them", run(`!!document.getElementById('repShare')`));
+ok("History still omits the launcher for non-runners", run(`!document.getElementById('secReport')`));
+run(`document.querySelector('#view').insertAdjacentHTML('afterbegin',reportCardSection());`);
+ok("the isolated export component still renders for them", run(`!!document.getElementById('repShare')`));
 
 /* and the index cannot point past the end after the list shrinks — the
    rotate-to-Pace-then-delete-your-runs case */

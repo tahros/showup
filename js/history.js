@@ -205,10 +205,9 @@ function renderHistory(){
 
   const firstYear=SEED.totals.first?+SEED.totals.first.slice(0,4):+thisYear;
   const years=[]; for(let y=firstYear; y<=+thisYear; y++) years.push(y);
-  /* v3.3.267: sharing is an action, not the final chapter of the ledger.
-     Keep its collapsed launcher at the top, before History's date controls,
-     and let reportCardSection own the expanded carousel in the same place. */
-  let h=typeof reportCardSection==='function'?reportCardSection():'';
+  /* v4.6.131: History starts with date navigation. Individual session share
+     actions remain; the report carousel launcher no longer occupies this view. */
+  let h='';
   h+=`<div class="chips ychips">`;
   years.forEach(y=>{
     const n=[...dates].filter(d=>+d.slice(0,4)===y).length;

@@ -50,7 +50,7 @@ run(`(function(){DB.days={}; const t=new Date(todayISO+'T00:00');
     DB.days[iso]={w:[{part:'Chest',ex:'Chest Press',w:40,reps:[10],at:1},
                      {part:'Run',ex:'Run',w:4,reps:[],mins:26,secs:0,at:2}],upd:1};
   }
-  SEED=deriveAll(); view='history'; render(); document.getElementById('secReport').open=true; paintRepCard();})()`);
+  SEED=deriveAll(); view='history'; render(); document.querySelector('#view').insertAdjacentHTML('afterbegin',reportCardSection()); document.getElementById('secReport').open=true; paintRepCard();})()`);
 
 // drag helper: down at (x0,y0), up at (x0+dx, y0+dy)
 const drag = (sel, dx, dy) => run(`(function(){
@@ -129,7 +129,7 @@ const touchSwipe = sel => run(`(function(){
   el.dispatchEvent(mk('touchend',120));
   return view;})()`);
 
-run(`view='history'; render(); document.getElementById('secReport').open=true; paintRepCard(); _repIdx=0;`);
+run(`view='history'; render(); document.querySelector('#view').insertAdjacentHTML('afterbegin',reportCardSection()); document.getElementById('secReport').open=true; paintRepCard(); _repIdx=0;`);
 run(`document.getElementById('repShare').click();`);
 const viewAfterOv = touchSwipe("#repImg");
 ok("a touch-swipe on the share image does NOT change tab",
@@ -229,7 +229,7 @@ ok("...and the view is released afterwards",
 // ---- 7. overlay swipe, and the card it would SHARE ----------------------
 /* the ruler block above left the app inside the Train tab; put History's
    report card back on screen before section 7 (v3.3.288). */
-run(`view='history'; render(); document.getElementById('secReport').open=true; paintRepCard();`);
+run(`view='history'; render(); document.querySelector('#view').insertAdjacentHTML('afterbegin',reportCardSection()); document.getElementById('secReport').open=true; paintRepCard();`);
 run(`_repIdx=0; document.getElementById('repShare').click();`);
 const label0 = run(`_repCv&&_repCv.label`);
 ok("opening the overlay records the card on screen", !!label0, String(label0));
@@ -256,6 +256,7 @@ setTimeout(() => {
      "idx stayed " + run(`_repIdx`));
 
   // ---- 9. save all ----------------------------------------------------
+  run(`if(!document.getElementById('secReport'))document.querySelector('#view').insertAdjacentHTML('afterbegin',reportCardSection());`);
   ok("the save-all button renders", run(`!!document.getElementById('repAll')`));
   ok("...and counts the registry, not a hardcoded 8",
      /Save all \d+/.test(run(`document.getElementById('repAll').textContent`)) &&

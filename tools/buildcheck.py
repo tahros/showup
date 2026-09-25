@@ -1129,8 +1129,8 @@ if "runStatsHTML217" not in (d/"js/lift.js").read_text():
 _lift = (d/"js/lift.js").read_text()
 if "<h2>Monthly milestone" in _lift or "runmonthgoal" not in _lift:
     fail.append("running: monthly milestone must be embedded in the Running month card (v3.3.230)")
-if 'id="secReport"' in _stats or "reportCardSection()" not in (d/"js/history.js").read_text():
-    fail.append("report card: must live once in History, not Stats (v3.3.230)")
+if 'id="secReport"' in _stats or "reportCardSection()" in (d/"js/history.js").read_text():
+    fail.append("report launcher: absent from History and Stats (v4.6.131)")
 if "if(!ds.length&&!bwEdit) return '';" not in _stats:
     fail.append("weight: empty Stats card must stay hidden (v3.3.230)")
 
