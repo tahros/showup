@@ -370,7 +370,7 @@ function pwFoldMarkup(html){
   });return t.innerHTML;
 }
 document.addEventListener('click',e=>{
-  const summary=e.target.closest('summary.pw-fold-summary');if(!summary||!summary.closest('.pw-home,.pw-workspace'))return;
+  const summary=e.target.closest('summary.pw-fold-summary');if(!summary||!summary.closest('.pw-home,.pw-workspace,.today-focus'))return;
   e.preventDefault();if(summary.closest('fieldset:disabled'))return;
   const d=summary.parentElement,open=d._pwTarget===undefined?!d.open:!d._pwTarget;
   const start=d.getBoundingClientRect().height;d._pwAnimation?.cancel();d._pwTarget=open;

@@ -359,21 +359,23 @@ function focusedTodayHTML(){
   const next=nextPlanItem(),sets=items.reduce((n,it)=>n+(it.lines||[]).reduce((s,l)=>s+(l.reps||[]).length,0),0);
   const future=[...new Set([...(DB.plan?.d>todayISO?[DB.plan.d]:[]),...Object.keys(DB.week?.days||{}).filter(d=>d>todayISO)])].filter(d=>pwSaved(d)?.items?.length).sort();
   const parts=items.length?pwParts(pwRead(planText(now))).join(' + '):'';
-  let h=`<section class="today-focus"><div class="su-hello-row">${fresh?'<div class="hello"><span class="hi">Welcome to ShowUp.</span></div>':helloCard()}${mascotHTML('hello')}</div><div class="card today-focus-card"><div class="today-focus-kicker">${items.length?'Today’s workout':'Today'}</div><h3>${items.length?hesc(parts||'Your workout'):fresh?'Start with one set.':'What’s today’s workout?'}</h3>`;
+  let h=`<section class="today-focus"><div class="su-hello-row">${fresh?'<div class="hello"><span class="hi">Welcome to ShowUp.</span></div>':helloCard()}${mascotHTML('hello')}</div><div class="card today-focus-card"><div class="today-focus-kicker">${items.length?'Today’s workout':'Today'}</div>${items.length?'':`<h3>${fresh?'Start with one set.':'What’s today’s workout?'}</h3>`}`;
   if(items.length){
-    h+=`<div class="mono muted today-focus-meta">${sets} ${sets===1?'set':'sets'} · ${items.length} ${items.length===1?'exercise':'exercises'}</div><div class="today-focus-next"><div><small>First exercise</small><b>${hesc(next?.ex||items[0].ex)}</b></div><button class="btn" data-planex="${hesc(next?.ex||items[0].ex)}">Start →</button></div>`;
+    h+=`<details class="today-focus-plan" data-pw-fold="focus:${todayISO}" ${pwFoldOpen('focus:'+todayISO)?'open':'' }><summary><div class="today-focus-title"><h3>${hesc(parts||'Your workout')}</h3>${icon('chevron',ICON_SZ.md)}</div><div class="mono muted today-focus-meta">${sets} ${sets===1?'set':'sets'} · ${items.length} ${items.length===1?'exercise':'exercises'}</div></summary><div class="today-focus-plan-content">${planCardHTML(now,false)}</div></details><div class="today-focus-next"><div><small>First exercise</small><b>${hesc(next?.ex||items[0].ex)}</b></div><button class="btn" data-planex="${hesc(next?.ex||items[0].ex)}">Start →</button></div>`;
   }else h+=`<p class="today-focus-copy">Choose an exercise and log what you do.${fresh?' No plan needed.':''}</p><button class="btn" id="goLift">Choose exercise →</button>`;
   h+='</div>';
   if(future.length){
-    const first=future[0];h+=`<div class="today-focus-upcoming">${pwLaterDayHTML(first)}</div>`;
-    if(future.length>1)h+=`<details class="today-focus-more"><summary>${future.length-1} more planned ${future.length===2?'day':'days'}</summary>${future.slice(1).map(pwLaterDayHTML).join('')}</details>`;
+    const first=future[0];const later=d=>pwLaterDayHTML(d).replace('</summary>',`${icon('chevron',ICON_SZ.sm)}</summary>`).replace('class="pw-later-day"','class="pw-later-day today-focus-later"');let firstHTML=later(first);if(!items.length&&first===tomorrowISO()&&pwFoldOpen('later:'+first,true))firstHTML=firstHTML.replace('<details ','<details open ');h+=`<div class="today-focus-upcoming">${firstHTML}</div>`;
+    if(future.length>1)h+=`<details class="today-focus-more"><summary>${future.length-1} more planned ${future.length===2?'day':'days'}${icon('chevron',ICON_SZ.sm)}</summary>${future.slice(1).map(later).join('')}</details>`;
   }
   h+=`<div class="today-focus-tools">${items.length?pwAction('open-date','Edit plan','edit','',`data-date="${todayISO}"`):pwAction('open','Plan','sparkle')}${pwAction('paste-open','Paste','paste','',`data-date="${items.length?todayISO:future[0]||todayISO}"`)}${pwDatesButton()}</div>`;
   const s=pw();if(s.dates.some(d=>d>=todayISO&&s.book[d]&&s.book[d].source!=='Saved plan'&&(s.book[d].rows.length||s.book[d].parts.length)))h+=pwAction('resume','Resume draft','edit','today-focus-secondary');
   // Keep rescheduling available without putting a second call-to-action card on Today.
-  if(items.length&&planShiftable(planRunFrom(todayISO),1).ok)h+=`<details class="today-focus-more"><summary>Can’t train today?</summary>${pwButton('plan-push-ask','Push the week →','pw-text')}</details>`;
+  if(items.length&&planShiftable(planRunFrom(todayISO),1).ok)h+=`<div class="pw-home"><button type="button" class="pw-push" data-pw="plan-push-ask"><span>Can’t train today?</span><b>Push the week ${icon('chevron',ICON_SZ.sm)}</b></button></div>`;
   if(!fresh)h+='<button class="btn ghost restbtn today-focus-rest" id="restBtn">Rest day</button>';
-  return h+'</section>';
+  const template=document.createElement('template');template.innerHTML=h+'</section>';
+  template.content.querySelectorAll('details').forEach(d=>{const s=d.querySelector(':scope > summary');if(s){s.classList.add('pw-fold-summary');s.setAttribute('aria-expanded',String(d.open));}});
+  return template.innerHTML;
 }
 function renderToday(){
   if(lift.plan==='workspace'){pwRender();return;}

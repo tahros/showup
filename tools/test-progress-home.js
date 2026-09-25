@@ -13,7 +13,7 @@ test('tomorrow-only copy is factual and today stays unplanned',`document.querySe
 test('tomorrow remains reachable with Edit and Paste',`!!document.querySelector('.today-focus-upcoming [data-pw="open-date"][data-date="2026-09-26"]')&&!!document.querySelector('.today-focus-upcoming [data-pw="paste-open"]')&&JSON.stringify(DB.plan)===beforePlan`);
 run(`DB.week={days:{'2026-09-27':JSON.parse(beforePlan),'2026-09-28':JSON.parse(beforePlan)}};render();`);
 test('all future plans appear once',`document.querySelectorAll('.today-focus [data-pw-fold^="later:"]').length===3&&document.querySelector('.today-focus-more summary').textContent==='2 more planned days'`);
-run(`DB.plan.d=todayISO;render();`);test('today plan has a real set total and one Start',`document.querySelector('.today-focus-meta').textContent==='3 sets · 1 exercise'&&document.querySelectorAll('.today-focus-card [data-planex="Squat"]').length===1`);
+run(`DB.plan.d=todayISO;render();`);test('today plan has a real set total and one Start',`document.querySelector('.today-focus-meta').textContent==='3 sets · 1 exercise'&&document.querySelectorAll('.today-focus-next [data-planex="Squat"]').length===1`);
 run(`view='today';lift.plan=null;render();document.querySelector('#nav [data-progress]').click();`);
 test('Progress opens calendar History first',`view==='history'&&!document.querySelector('#progressSwitch').hidden&&document.querySelectorAll('#nav button').length===4`);
 run(`document.querySelector('[data-progress-view="stats"]').click();document.querySelector('#nav [data-v="today"]').click();document.querySelector('#nav [data-progress]').click();`);

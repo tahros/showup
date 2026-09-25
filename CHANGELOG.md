@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.130 (2026-09-25) — A tighter Today, plans within reach
+
+- Reduced greeting spacing and resized today's workout title to 21 px. Its chevron expands the exercise plan in place, with the open/closed state remembered.
+- Tomorrow-only plans start expanded below their row; they can be collapsed. All focused Today disclosures use the app's chevrons instead of native filled triangles.
+- Restored the direct “Can't train today? / Push the week” row and a full-width, clearly bounded Rest day button. Existing Edit, Paste, Dates and Start actions remain available.
+- Preview states are labeled A–E in the design studio only. No account data, workout records, header or bottom navigation behavior changed.
+
 ## v4.6.129 (2026-09-25) — A quieter Today, one home for Progress
 
 - Four bottom destinations: Today, Train, Progress, Settings. Progress groups the existing History and Stats screens behind an animated History / Trends switch; calendar, charts, records, sharing and Replay remain unchanged. The device remembers the last Progress view. Existing deep links and return paths keep their original destinations.
