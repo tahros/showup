@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.137 (2026-09-25) — Once today has started, tomorrow folds
+
+- **Found on the phone:** mid-workout, Today showed Legs + Sixpack with "1 more plan · Sat" under it, and then a separate "Tomorrow · Sat, Sep 26" card below, the same plan twice. The page's own rule says every future plan appears exactly once, but the next plan's card only stood aside for the "Can't train today?" line, and was still also listed in the fold.
+- Now, with a plan today and a set logged, the next plan lives only in the "N more plans" fold, which opens by default and stays shut once you shut it.
+- Nothing else moves. Before the first set it's unchanged (the push line, tomorrow folded). With no plan today, the next plan is still the headline card. With several plans ahead, each appears once.
+- `tools/test-plan-fold.js` covers the maker's case, before the first set, no plan today and two plans ahead. It fails 3 of 6 on v4.6.136.
+
 ## v4.6.136 (2026-09-25) — The sideways timer keeps the iOS screen on
 
 - **Found on the phone:** in the test app, the screen went to sleep during a sideways rest. The web app already asked for a Wake Lock while the big timer shows, but iOS's in-app web view does not honour it.

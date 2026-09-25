@@ -203,18 +203,26 @@ function pwTodayHTML(){
   // Display selection is independent of whether today's workout is closed.
   // Every saved future date is rendered exactly once, including tomorrow.
   const hasToday=!!now&&!closed,next=future[0],upcoming=next?pwSaved(next):null;
+  const started=hasToday&&!!(DB.days[todayISO]?.w||[]).length;
+  const pushing=hasToday&&!started&&planShiftable(planRunFrom(todayISO),1).ok,showNext=!!upcoming&&!pushing&&!started;
   const count=future.length+(hasToday?1:0),target=next||writeDateISO();
   let html=`<section class="pw-home"><div class="pw-home-heading"><h2>${closed?'Plan ahead':'Your plan'}</h2>${pwDatesButton()}</div><div class="pw-home-tools" role="group" aria-label="Plan actions">${pwAction('open','Plan','sparkle')}${pwAction('paste-open','Paste','paste','',`data-date="${target}"`)}${count?`<span>${count} planned ${count===1?'day':'days'}</span>`:''}</div>`;
   if(hasToday)html+=`<details class="pw-saved" data-pw-fold="today" ${pwFoldOpen('today')?'open':''}><summary>${pwPlanHeading('Today · '+pwDate(todayISO),now)}</summary>${planCardHTML(now,true)}<div class="pw-actions pw-future-actions">${pwAction('open-date','Edit','edit','',`data-date="${todayISO}"`)}${pwAction('paste-open','Paste','paste','',`data-date="${todayISO}"`)}</div></details>`;
   /* v4.6.101: the day you can't do, on the day you can't do it. One line
      under today's plan, only while nothing has been logged -- once a set is
      down the day is not movable, and the line would be a lie. */
-  if(hasToday&&!(DB.days[todayISO]?.w||[]).length&&planShiftable(planRunFrom(todayISO),1).ok)html+=`<button type="button" class="pw-push" data-pw="plan-push-ask"><span>Can’t train today?</span><b>Push the week ${icon('chevron',ICON_SZ.sm)}</b></button>`;
-  else if(upcoming){const key='future:'+next;html+=`<details class="pw-saved pw-future" data-pw-fold="${key}" ${pwFoldOpen(key)?'open':''}><summary>${pwPlanHeading((next===tomorrowISO()?'Tomorrow · ':'')+pwDate(next),upcoming)}</summary>${planCardHTML(upcoming,false)}<div class="pw-actions pw-future-actions">${pwAction('open-date','Edit','edit','',`data-date="${next}"`)}${pwAction('paste-open','Paste','paste','',`data-date="${next}"`)}</div></details>`;}
-  else html+='<div class="card pw-home-card pw-home-empty"><h3>Plan your next workout</h3><p class="pw-small">Choose dates or paste a routine to get started.</p></div>';
+  if(pushing)html+=`<button type="button" class="pw-push" data-pw="plan-push-ask"><span>Can’t train today?</span><b>Push the week ${icon('chevron',ICON_SZ.sm)}</b></button>`;
+  /* v4.6.137: ONCE TODAY HAS STARTED, TOMORROW FOLDS. With today's plan on
+     screen and a set already logged, the day being trained is the headline and
+     the next plan is only "what's after" -- it lives in the "N more plans" fold
+     with the rest, not as a second card under today's (it used to appear in
+     both). Before the first set nothing changes. Every future plan is still
+     shown exactly once: in this card, or in the fold, never both. */
+  else if(showNext){const key='future:'+next;html+=`<details class="pw-saved pw-future" data-pw-fold="${key}" ${pwFoldOpen(key)?'open':''}><summary>${pwPlanHeading((next===tomorrowISO()?'Tomorrow · ':'')+pwDate(next),upcoming)}</summary>${planCardHTML(upcoming,false)}<div class="pw-actions pw-future-actions">${pwAction('open-date','Edit','edit','',`data-date="${next}"`)}${pwAction('paste-open','Paste','paste','',`data-date="${next}"`)}</div></details>`;}
+  else if(!upcoming)html+='<div class="card pw-home-card pw-home-empty"><h3>Plan your next workout</h3><p class="pw-small">Choose dates or paste a routine to get started.</p></div>';
   const drafts=s.dates.filter(d=>d>=todayISO&&s.book[d]&&s.book[d].source!=='Saved plan'&&(s.book[d].rows.length||s.book[d].parts.length));
   if(drafts.length)html+=pwAction('resume','Resume draft','edit','pw-resume');
-  html=pwLaterPlans(html+'</section>',hasToday?future:future.filter(d=>d!==next));
+  html=pwLaterPlans(html+'</section>',showNext?future.filter(d=>d!==next):future);
   if(restingToday()){
     const t=document.createElement('template');t.innerHTML=html;
     const home=t.content.querySelector('.pw-home'),tools=home.querySelector('.pw-home-tools');
