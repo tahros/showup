@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v4.6.133 (2026-09-25) — The Mac sync writes a valid storyboard
+
+- **Found on the Mac, before the first Apple Health build.** `npm run sync:ios` wrote invalid XML into `ios/App/App/Base.lproj/Main.storyboard`. Capacitor's scene tag is self-closing (`<viewController …/>`), and since v4.6.120 `tools/ios-config.py` appended the ShowUpViewController attributes after the slash (`…"viewController"/ customClass=…>`). ibtool rejects that before any Swift compiles, and re-running the script reproduced it.
+- The script now keeps the tag's own terminator. Because `cap sync` never regenerates the storyboard, the Mac's already-broken file has to be repaired in place: stripping the old custom attributes leaves the stray slash directly before `>` again, and one run of the new script produces a valid tag. A test feeds it the exact broken tag and parses the result.
+- A project whose scene builds its root in code (`SceneDelegate.swift`, `rootViewController = CAPBridgeViewController()`) is pointed at ShowUpViewController too. Only that assignment changes.
+- Codex found and fixed both on the Mac on 2026-09-24 but never pushed; this publishes that fix (its two tests included) plus the repair test. buildcheck fails if the terminator handling goes.
+- Needs `npm run sync:ios` on the Mac. The sync's last line is unchanged.
+
 ## v4.6.132 (2026-09-25) — Apple Health, write-only
 
 - **Settings → Apple Health (iOS app only; off by default).** Once it's on, pressing Finish saves the session you just finished to Apple Health. The lifting becomes one Traditional Strength Training workout, from your first set to the moment you pressed Finish (or to your last set if cardio followed it). Each cardio entry becomes its own workout of its own type (running, walking, cycling, rowing, swimming, elliptical, stair climbing, jump rope), lasting the time you logged and ending when it was logged, with its distance where the sport has one.

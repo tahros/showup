@@ -275,7 +275,13 @@ if len(targets) != 1:
     sys.exit("ios-config: expected exactly one Capacitor/ShowUp controller in Main.storyboard; bounce NOT installed")
 tag = targets[0]
 updated_tag = re.sub(r"""\s+custom(?:Class|Module|ModuleProvider)\s*=\s*["'][^"']*["']""", "", tag.group())
-updated_tag = updated_tag[:-1] + ' customClass="ShowUpViewController" customModule="App" customModuleProvider="target">'
+# v4.6.133: keep the tag's own terminator. Capacitor's scene is SELF-CLOSING
+# (<viewController .../>); v4.6.120 appended after the slash and wrote
+# `.../ customClass=...>`, which ibtool rejects. Stripping the custom* attributes
+# first also repairs a tag an earlier run already broke: the stray slash is left
+# directly before '>' again.
+closing = "/>" if updated_tag.rstrip().endswith("/>") else ">"
+updated_tag = updated_tag[:-len(closing)].rstrip() + ' customClass="ShowUpViewController" customModule="App" customModuleProvider="target"' + closing
 s2 = s[:tag.start()] + updated_tag + s[tag.end():]
 
 # Replace only our generated class, including the old v4.6.120 block.
@@ -321,6 +327,16 @@ if src2 != src:
     ad.write_text(src2)
 if s2 != s:
     sb.write_text(s2)
+# v4.6.133: a project whose scene builds its root in code (SceneDelegate.swift,
+# rootViewController = CAPBridgeViewController()) never reads the storyboard's
+# class, so point that line at the subclass too. Only that exact expression.
+scene = d / "ios/App/App/SceneDelegate.swift"
+if scene.exists():
+    original_scene = scene.read_text()
+    configured_scene = re.sub(r"(\brootViewController\s*=\s*)CAPBridgeViewController\s*\(\s*\)",
+                              r"\1ShowUpViewController()", original_scene)
+    if configured_scene != original_scene:
+        scene.write_text(configured_scene)
 # v4.6.132: the HealthKit entitlement. If a target already names an
 # entitlements file (Xcode writes one the day any capability is added by hand),
 # merge into THAT file; otherwise create App/App.entitlements and point every

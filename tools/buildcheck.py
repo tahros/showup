@@ -677,6 +677,8 @@ if 'pl["NSHealthUpdateUsageDescription"] = HEALTH_WHY' not in _ioc:
     fail.append("ios-config.py no longer sets the HealthKit purpose string -- a missing or vague one is a rejection (v4.6.132)")
 if "DB.settings" in (d/"js/health.js").read_text().split("*/",1)[-1]:
     fail.append("js/health.js must keep its switch device-local, never in DB.settings (v4.6.132)")
+if "updated_tag[:-1]" in _ioc or 'closing = "/>" if updated_tag.rstrip().endswith("/>") else ">"' not in _ioc:
+    fail.append("ios-config.py must keep the storyboard tag's own terminator -- appending after '/>' wrote XML ibtool rejects (v4.6.133)")
 if "AppIcon-1024.png" not in (d/"tools/ios-config.py").read_text():
     fail.append("ios-config.py no longer installs the app icon (v4.6.119)")
 # -- v4.6.125: the gear is a tab. Its old header rules must not reach the nav:

@@ -59,6 +59,45 @@ class BounceInstall(unittest.TestCase):
                 self.install()
                 self.check()
 
+    def test_self_closing_controller(self):
+        # Capacitor's real scene tag is self-closing (v4.6.133)
+        self.sb.write_text('<document><scenes><scene><objects><viewController id="BYZ-38-t0r" '
+                           'customClass="CAPBridgeViewController" customModule="Capacitor" sceneMemberID="viewController"/>'
+                           '<placeholder id="x" sceneMemberID="firstResponder"/></objects></scene></scenes></document>')
+        self.install()
+        self.check()
+        self.assertIn('sceneMemberID="viewController" customClass="ShowUpViewController" customModule="App" customModuleProvider="target"/>',
+                      self.sb.read_text())
+        before = self.sb.read_bytes()
+        self.install()
+        self.assertEqual(self.sb.read_bytes(), before)
+
+    def test_repairs_tag_broken_by_4_6_132(self):
+        # the exact tag v4.6.120-v4.6.132 wrote on the Mac; cap sync never regenerates it
+        self.sb.write_text('<document><scenes><scene><objects><viewController id="BYZ-38-t0r" sceneMemberID="viewController"/ '
+                           'customClass="ShowUpViewController" customModule="App" customModuleProvider="target">'
+                           '<placeholder id="x" sceneMemberID="firstResponder"/></objects></scene></scenes></document>')
+        with self.assertRaises(ET.ParseError):
+            ET.parse(self.sb)
+        self.install()
+        self.check()                                   # parses, and the class is set
+        text = self.sb.read_text()
+        self.assertIn('<viewController id="BYZ-38-t0r" sceneMemberID="viewController" customClass="ShowUpViewController" '
+                      'customModule="App" customModuleProvider="target"/>', text)
+        self.assertNotRegex(text, r'/\s+custom')
+
+    def test_programmatic_scene_controller(self):
+        scene = self.app / "SceneDelegate.swift"
+        scene.write_text("import UIKit\nimport Capacitor\nclass SceneDelegate {\n    func go() {\n"
+                         "        window?.rootViewController = CAPBridgeViewController( )\n        let other = CAPBridgeViewController()\n    }\n}\n")
+        self.install()
+        text = scene.read_text()
+        self.assertIn("window?.rootViewController = ShowUpViewController()", text)
+        self.assertIn("let other = CAPBridgeViewController()", text)   # only the root assignment
+        before = scene.read_bytes()
+        self.install()
+        self.assertEqual(scene.read_bytes(), before)
+
     def test_repeat_is_byte_identical(self):
         self.install()
         before = {p: p.read_bytes() for p in self.root.rglob("*") if p.is_file()}
