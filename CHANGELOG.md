@@ -1,5 +1,17 @@
 # ShowUp — changelog
 
+## v4.6.122 (2026-09-24) — The Dates calendar shows what's done
+
+- **Found on the phone:** in Plan → Dates, a day whose plan you had finished looked the same as one still ahead of you. The calendar only ever said what a day was going to be.
+- **One rule, whatever the date** (option D, the maker's pick):
+  - a day with a saved plan that you trained on shows the saved-plan calendar with a check, in blue ("plan done");
+  - a day you trained on with no plan shows a small blue square, the app's own mark for a day;
+  - today counts once the session is closed with Complete, not while it is live.
+- A draft still outranks both on today and later days, because you're editing it. A done day stays selectable, since a second session in the evening is normal.
+- The key adds **Done** and **Trained** only when they appear in the month shown. The square is 8px against the 14px Selected swatch, so the two don't read as one mark. On a selected day both turn white, like the other status icons. When the key wraps, "Up to 7 days" stays right-aligned.
+- VoiceOver reads "plan done" and "trained".
+- `tools/test-calendar-done.js` (13 assertions against the real calendar: past and today, planned and not, live and closed, draft precedence, the key); 4 mutants, all killed. Checked at 320 and 393px in light and dark: nothing overflows.
+
 ## v4.6.121 (2026-09-24) — A springier bottom edge
 
 - **Asked for on the phone: "still too rigid".** The rubber-band at the bottom of every page was a flat ÷2.6 stretch capped at 80px, and its release curve overshot by about 0%, so it was stiff from the first pixel, then a wall, then a dead stop.

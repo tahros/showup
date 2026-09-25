@@ -348,6 +348,16 @@ header.planmode .hback::after{content:'';position:absolute;inset:-3px -6px}
 :root .pf-date-sheet .pf-calendar .selected{color:#fff}
 .pf-keys{flex-wrap:wrap}
 .pf-key-selected{display:inline-block;width:14px;height:14px;border-radius:4px;background:var(--accent)}
+/* v4.6.122: done and trained. The square is smaller than the Selected swatch
+   (8 vs 14px) so the two never read as one mark. On a selected (filled) day
+   both turn white, like every other status icon there. */
+.pf-date-sheet .pf-done{color:var(--accent)}
+.pf-trained{display:block;flex:none;width:8px;height:8px;border-radius:2px;background:var(--accent)}
+.pf-calendar-key .pf-trained{display:inline-block}
+:root .pf-date-sheet .pf-calendar .selected .pf-done{color:#fff}
+:root .pf-date-sheet .pf-calendar .selected .pf-trained{background:#fff}
+/* with Done and Trained in the key, 'Up to 7 days' can wrap; it keeps to the right */
+.pf-date-sheet .pf-calendar-key>span:last-child{margin-left:auto}
 .pf-calendar-key .pf-keys>span{display:inline-flex;align-items:center;gap:5px}
 :root .pf-workspace .pf-date-breakdown{margin:0;font:400 12px/1.5 var(--body);color:var(--muted)}
 :root .pf-workspace .pf-draft-detail{margin:0;font:400 11px/1.5 var(--body);color:var(--muted)}
