@@ -1,5 +1,10 @@
 # ShowUp — changelog
 
+## v4.6.124 (2026-09-24) — Identical update bytes on Windows and Pages
+
+- Live verification of v4.6.123 caught CRLF line endings in the Windows build while GitHub Pages served LF. The web UI was correct, but native update hashes would reject those files.
+- Pin shipped text files to LF in .gitattributes, normalize the local build inputs and regenerate the OTA manifest. No workout or visual behavior changes.
+
 ## v4.6.123 (2026-09-24) — One floating header, five destinations
 
 - Implements the approved compact preview: a 64px minimum-height floating header, 14px title, and 24px filled Settings gear in the fifth bottom tab.

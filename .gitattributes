@@ -1,0 +1,9 @@
+# OTA hashes must match the bytes GitHub Pages serves on every developer OS.
+*.html text eol=lf
+*.css text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+*.webmanifest text eol=lf
+*.svg text eol=lf
+*.txt text eol=lf
+*.md text eol=lf
