@@ -1,11 +1,23 @@
 # ShowUp — changelog
 
+## v4.6.140 (2026-09-25) — Another day's plan steps aside once you log
+
+- **Found on the phone:** no EZ Bar Curl in Friday's plan, Saturday's plan has it. The Train card previewed Saturday's targets, but after two sets Friday night it put them beside Saturday's plan and labelled them "Unlinked", and "Done with EZ Bar Curl" was missing (the preview hid it). A set can only link to today's plan, so nothing could have linked it.
+- Now the preview shows until you log; once you log that exercise today, the card compares with Last only, row by row, and the Done button is back. Saturday's plan is untouched.
+- Unchanged: before the first set, and any day whose own plan has the exercise (sets still link to the next target without a tap).
+- `tools/test-plan-preview-log.js` covers both; it fails 3 of 6 on v4.6.139.
+
 ## v4.6.139 (2026-09-25) — Red stage rest timer
 
 - Landscape uses the approved full red gradient, large minutes:seconds clock, current exercise title and quiet Last/Next set detail. No “Since last set” label; only the colon blinks, with reduced-motion support.
 - Opening an unfinished exercise changes the title before its first log. Completing an exercise reads “Between exercises.” Completion and navigation retain the last-set timestamp; a newly logged set starts the next rest interval.
 - Timer nodes persist across ticks so the colon animation is not restarted every second. Portrait remains compact. The session-scoped metadata and native keep-awake behavior from v4.6.138/v4.6.136 are preserved; Finish and the existing 30-minute timeout still end fullscreen mode.
 - Added a real-browser regression check for completion, navigation, logging, title/detail, light/dark themes, rotation and reduced motion.
+
+## v4.6.138 (2026-09-25) — The rest timer counts the workout you are in
+
+- **Found on the phone:** 15 sets, Complete pressed, one EZ bar curl two hours later, and the sideways timer read "16 sets · 3h in". The live bar, the Complete sheet and Apple Health already split the day at each Complete (and at a two-hour gap) through `sessionRows`; this line predated sessions. It now uses the same rows: "1 set · 1 min in".
+- `tools/test-rest-session.js`; the 16-hour case in `test-resttimer.js` is now one unbroken workout. (Entry added in v4.6.140; v4.6.138 shipped without one.)
 
 ## v4.6.137 (2026-09-25) — Once today has started, tomorrow folds
 

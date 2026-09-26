@@ -296,7 +296,14 @@ function plDisplayPlan(ex){
   return null;
 }
 function plSessionRows(ex,last,today){
-  const displayPlan=plDisplayPlan(ex),preview=!!displayPlan&&!(plBasis(todayISO)?.targets||[]).some(t=>plSameExercise(t,ex));
+  /* v4.6.139: ANOTHER DAY'S PLAN IS A PREVIEW UNTIL YOU LOG, then it steps aside.
+     With nothing planned today, the Plan column shows the next day that plans
+     this exercise -- useful before you start. But a set logged today can only
+     link to TODAY's plan, so once you log one, the card put tonight's sets
+     beside Saturday's targets and called them "Unlinked": off plan, when there
+     was no plan. Logged today, the card compares with Last and nothing else. */
+  let displayPlan=plDisplayPlan(ex),preview=!!displayPlan&&!(plBasis(todayISO)?.targets||[]).some(t=>plSameExercise(t,ex));
+  if(preview&&today.length){displayPlan=null;preview=false;}
   const targets=(displayPlan?.targets||[]).filter(t=>plSameExercise(t,ex)).map(t=>preview?{...t,preview:true}:t);
   const history=(last?.sets||[]).flatMap(s=>(s[1]||[]).map(r=>({w:s[0],r,su:s[4]||''})));
   const actual=today.flatMap((s,index)=>(s.reps||[]).map((r,ri)=>({w:s.w,r,su:s.su||'',source:s,index,ri})));
