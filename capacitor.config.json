@@ -3,7 +3,7 @@
   "appName": "ShowUp",
   "webDir": "dist",
   "ios": {
-    "backgroundColor": "#F2F3F6"
+    "backgroundColor": "#0A0A0A"
   },
   "plugins": {
     "CapacitorUpdater": {

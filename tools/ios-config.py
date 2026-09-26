@@ -104,12 +104,14 @@ VC_SWIFT = r"""
 // ShowUp: ShowUpViewController (tools/ios-config.py)
 // Capacitor sets scrollView.bounces = false; ShowUp wants iOS's rubber-band
 // at the top and bottom. capacitorDidLoad() runs after Capacitor's setup.
-// It also registers ShowUp's own Apple Health plugin (v4.6.132).
+// It also registers ShowUp's own Apple Health plugin (v4.6.132), Awake (v4.6.136)
+// and Chrome (v4.6.143).
 class ShowUpViewController: CAPBridgeViewController {
     override func capacitorDidLoad() {
         super.capacitorDidLoad()
         bridge?.registerPluginInstance(ShowUpHealthPlugin())
         bridge?.registerPluginInstance(ShowUpAwakePlugin())
+        bridge?.registerPluginInstance(ShowUpChromePlugin())
         enableShowUpBounce()
     }
 
@@ -279,6 +281,42 @@ public class ShowUpAwakePlugin: CAPPlugin, CAPBridgedPlugin {
             UIApplication.shared.isIdleTimerDisabled = on
             call.resolve(["on": on])
         }
+    }
+}
+
+// v4.6.143: THE PAGE'S OWN GROUND UNDER THE BOUNCE. capacitor.config.json's
+// backgroundColor paints the web view and its scroll view, and iOS shows that
+// colour when you pull past the end of the page -- a pale band under a dark
+// page. js/util.js (groundNative) sends the theme's --ground as #RRGGBB every
+// time the theme applies, and this paints everything behind the page with it.
+@objc(ShowUpChromePlugin)
+public class ShowUpChromePlugin: CAPPlugin, CAPBridgedPlugin {
+    public let identifier = "ShowUpChromePlugin"
+    public let jsName = "ShowUpChrome"
+    public let pluginMethods: [CAPPluginMethod] = [
+        CAPPluginMethod(name: "setGround", returnType: CAPPluginReturnPromise)
+    ]
+
+    @objc func setGround(_ call: CAPPluginCall) {
+        guard let hex = call.getString("color"), let c = ShowUpChromePlugin.color(hex) else {
+            call.reject("color must be #RRGGBB"); return
+        }
+        DispatchQueue.main.async {
+            if let wv = self.bridge?.webView {
+                wv.backgroundColor = c
+                wv.scrollView.backgroundColor = c
+                if #available(iOS 15.0, *) { wv.underPageBackgroundColor = c }
+            }
+            self.bridge?.viewController?.view.backgroundColor = c
+            call.resolve(["color": hex])
+        }
+    }
+
+    static func color(_ hex: String) -> UIColor? {
+        let s = hex.hasPrefix("#") ? String(hex.dropFirst()) : hex
+        guard s.count == 6, let v = UInt32(s, radix: 16) else { return nil }
+        return UIColor(red: CGFloat((v >> 16) & 0xFF) / 255, green: CGFloat((v >> 8) & 0xFF) / 255,
+                       blue: CGFloat(v & 0xFF) / 255, alpha: 1)
     }
 }
 // End ShowUp: ShowUpHealthPlugin

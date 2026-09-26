@@ -92,6 +92,9 @@ and some of it changes the web build too. Landed and planned:
   in-app account deletion (4.9/5.1.1(v)); HealthKit write + local
   notifications (4.2 minimum functionality).
 
+- v4.6.143 — ShowUpChrome (done): a third local plugin in tools/ios-config.py.
+  applyTheme() -> groundNative() (js/util.js) paints everything native behind
+  the page in --ground, so the iOS bounce never shows a different colour.
 - v4.6.142 — usage metrics + owner dashboard (done; runbook 9.5/9.6, spec
   claude/paywall-and-metrics-spec.md). js/metrics.js (read its header): what
   is counted and the request body, which carries named fields only; the

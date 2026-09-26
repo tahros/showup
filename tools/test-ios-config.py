@@ -137,6 +137,9 @@ class KeepCustomCode { let untouched = true }
         self.assertEqual(text.count("bridge?.registerPluginInstance(ShowUpHealthPlugin())"), 1)
         self.assertEqual(text.count("class ShowUpAwakePlugin: CAPPlugin, CAPBridgedPlugin"), 1)          # v4.6.136
         self.assertEqual(text.count("bridge?.registerPluginInstance(ShowUpAwakePlugin())"), 1)
+        self.assertEqual(text.count("class ShowUpChromePlugin: CAPPlugin, CAPBridgedPlugin"), 1)         # v4.6.143
+        self.assertEqual(text.count("bridge?.registerPluginInstance(ShowUpChromePlugin())"), 1)
+        self.assertIn("underPageBackgroundColor = c", text)
         self.assertIn("UIApplication.shared.isIdleTimerDisabled = on", text)
         self.assertIn('public let jsName = "ShowUpHealth"', text)
         self.assertIn("requestAuthorization(toShare: shareTypes, read: nil)", text)

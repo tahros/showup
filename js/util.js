@@ -355,6 +355,7 @@ function applyTheme(){
   document.documentElement.dataset.bar=bar;
   try{localStorage.setItem('showup-theme',t);localStorage.setItem('showup-skin',sk);localStorage.setItem('showup-bar',bar);}catch(e){}
   syncPageChrome();
+  groundNative();
   if(!_themeWatched){
     _themeWatched=true;
     try{
@@ -381,6 +382,33 @@ function syncPageChrome(){
   if(srgb)color='rgb('+srgb.slice(1).map(v=>Math.round(Number(v)*255)).join(', ')+')';
   const meta=document.querySelector('meta[name="theme-color"]');
   if(meta)meta.content=color;
+}
+/* v4.6.143: iOS paints what shows past the ends of the page (the rubber-band
+   bounce) from the native web view's own colour, not the page's. Tell it the
+   theme's --ground, so a dark page never bounces onto a pale band. Only the
+   iOS app, only a build with ShowUpChrome (tools/ios-config.py), only when
+   the colour changed. */
+let _groundNative=null;
+function groundNative(){
+  try{
+    const cap=window.Capacitor;
+    if(!NATIVE_SHELL||!cap) return null;
+    if(!(cap.isPluginAvailable?.('ShowUpChrome')||(cap.PluginHeaders||[]).some(h=>h&&h.name==='ShowUpChrome')||cap.Plugins?.ShowUpChrome)) return null;
+    let hex=getComputedStyle(document.documentElement).getPropertyValue('--ground').trim().toUpperCase();
+    if(!/^#[0-9A-F]{6}$/.test(hex)){        /* a token written some other way: let the engine resolve it */
+      const probe=document.createElement('span');probe.style.cssText='position:absolute;visibility:hidden;background-color:var(--ground)';
+      document.body.appendChild(probe);const c=getComputedStyle(probe).backgroundColor;probe.remove();
+      const m=c.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/)||c.match(/^color\(srgb\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)/);
+      if(!m) return null;
+      hex='#'+m.slice(1,4).map(Number).map(x=>c.startsWith('color(')?Math.round(x*255):x).map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase();
+    }
+    if(hex===_groundNative) return hex;
+    _groundNative=hex;
+    const P=cap.Plugins?.ShowUpChrome;
+    const r=P&&typeof P.setGround==='function'?P.setGround({color:hex}):typeof cap.nativePromise==='function'?cap.nativePromise('ShowUpChrome','setGround',{color:hex}):null;
+    r&&r.catch&&r.catch(()=>{_groundNative=null;});
+    return hex;
+  }catch(e){ _groundNative=null; return null; }
 }
 /* weights are always STORED in kg; the unit setting only changes what you see and type */
 const LB=2.20462, MI=0.621371;
