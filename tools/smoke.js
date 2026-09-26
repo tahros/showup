@@ -8,7 +8,7 @@ const dir = process.argv[2] || "stage";
 
 const html = fs.readFileSync(path.join(dir, "index.html"), "utf8");
 const order = [...html.matchAll(/src="(js\/[^?"]+)\?v=/g)].map(m => m[1]);
-if (order.length !== 29) { console.error("expected 29 scripts, got", order.length); process.exit(1); }   // + planlink, planner-flow and retro (v4.6.93), ota (v4.6.110), reminders (v4.6.118), heat-replay (v4.6.128), health (v4.6.132), metrics (v4.6.142)
+if (order.length !== 30) { console.error("expected 30 scripts, got", order.length); process.exit(1); }   // + planlink, planner-flow and retro (v4.6.93), ota (v4.6.110), reminders (v4.6.118), heat-replay (v4.6.128), health (v4.6.132), metrics (v4.6.142), membership (v4.6.144)
 
 const dom = new JSDOM(html.replace(/<script[^>]*src=[^>]*><\/script>/g, ""), {
   runScripts: "outside-only",

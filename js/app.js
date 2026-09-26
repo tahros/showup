@@ -415,6 +415,7 @@ document.addEventListener('click',e=>{
   }
   const rb=e.target.closest('[data-rep]');
   if(rb){
+    if(typeof dayGate==='function'&&!dayGate(todayISO)) return;   // v4.6.144: the trial (js/membership.js)
     lift.weight=toKg(+($('#wv').value||0));
     saveExW(lift.ex,lift.weight);
     plLog({part:lift.part,ex:lift.ex,w:lift.weight,reps:[+rb.dataset.rep],at:Date.now()});
@@ -426,6 +427,7 @@ document.addEventListener('click',e=>{
     const r=repRulerValue();   // v3.3.286: the ruler is the field now
     const su=unitOf(lift.ex);
     if(!r||r<1) return toast(isHold(su)?'Set a hold':'Enter a rep count');
+    if(typeof dayGate==='function'&&!dayGate(todayISO)) return;   // v4.6.144: the trial (js/membership.js)
     lift.weight=toKg(+($('#wv').value||0));
     saveExW(lift.ex,lift.weight);
     /* SLICE 2: su rides on the SET, not only on the exercise. Change the unit
@@ -456,6 +458,7 @@ document.addEventListener('click',e=>{
        exactly the drift the suppression is guarding against, so it carries
        the unit regardless. */
     const su2=unitOf(lift.ex);
+    if(typeof dayGate==='function'&&!dayGate(todayISO)) return;   // v4.6.144: the trial (js/membership.js)
     plLog({part:lift.part,ex:lift.ex,w,reps:[r],...(su2?{su:su2}:{}),at:Date.now()});
     undoInvalidate();   // v3.3.143: new work makes an older snapshot unsafe
     reopen(lift.ex,lift.part);
@@ -989,6 +992,7 @@ document.addEventListener('click',e=>{
     if(ex==='Run'){ if(!dist) return toast('Distance needed'); }
     else if(!(dist>0)&&!(mins||secs)) return toast(C.dist?'Distance or time needed':'Time needed');
     const km=dist>0?cToKm(ex,dist):0;
+    if(typeof dayGate==='function'&&!dayGate(todayISO)) return;   // v4.6.144: the trial (js/membership.js)
     /* v3.3.143: no snapshot. Logging a run is additive and the run can just
        be deleted; this was the only additive action pushing an Undo button. */
     plLog({part:'Run',ex,w:km,reps:[],mins,secs,at:Date.now()});

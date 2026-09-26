@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v4.6.144 (2026-09-26) — The trial and the paywall, switched off until launch
+
+- **Built, not live** (runbook 9.7; spec D1–D9 confirmed 2026-09-26). `js/membership.js`: a 20-logged-day free trial counted from the record itself; after it, starting a new day (Train, History backfill, History edit of an empty date) and the plan writer need membership. A day already started can always be finished and edited; history, Stats, export and paste-a-plan are never gated.
+- **`PAYWALL_ON` is false**, so nothing changes for anyone. While it is off, every record with a logged day is marked a founding member (a synced setting) and will never see the paywall.
+- **The paywall:** one calm screen at the moment of a gated action: your own days as squares, what stays free, yearly $29.99 then monthly $4.99, Export my data, Restore purchases, Not now, and Apple's subscription terms with Terms of Use and Privacy Policy links. No countdown anywhere; the only trace is one row under the version in Settings. `paywall_seen` is counted once a day. Buying and restoring say "not yet" until RevenueCat (9.8).
+- **Preview for the owner:** set `localStorage['showup:paywall-preview']='1'` on a device to act as a new user there (founding ignored).
+- **Also:** in the red live-workout header with no back arrow, the exercise title now starts 12px from the edge, the same inset as Finish on the right (it was 8px). Narrow phones: 9px both sides.
+- `tools/test-membership.js` (36 checks: spec acceptance 1–6 and 12, founding, grace, preview).
+
 ## v4.6.143 (2026-09-26) — No pale band past the end of a dark page
 
 - **Found on the phone:** in the iOS app, dark mode, pushing Today up past its end showed a light grey band under the tab bar. That band is the native web view's own colour (`capacitor.config.json`'s `backgroundColor`, #F2F3F6), which iOS shows during the rubber-band bounce; the page's dark ground cannot reach it.

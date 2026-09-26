@@ -92,6 +92,10 @@ and some of it changes the web build too. Landed and planned:
   in-app account deletion (4.9/5.1.1(v)); HealthKit write + local
   notifications (4.2 minimum functionality).
 
+- v4.6.144 — trial + paywall, OFF (done; runbook 9.7). js/membership.js
+  (read its header). Every path that adds a set to a date calls dayGate(iso)
+  first; the writer calls writerGate(). A NEW set-adding path must do the same
+  (tools/test-membership.js). PAYWALL_ON flips on launch day, not before.
 - v4.6.143 — ShowUpChrome (done): a third local plugin in tools/ios-config.py.
   applyTheme() -> groundNative() (js/util.js) paints everything native behind
   the page in --ground, so the iOS bounce never shows a different colour.

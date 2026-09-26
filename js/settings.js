@@ -12,6 +12,7 @@ function renderSync(){
          footnote to the controls, so it goes where you land. The credits keep
          the foot to themselves. -->
     <div class="vertag mono" id="verTag">ShowUp ${APP_VERSION}</div>
+    ${typeof membershipRowHTML==='function'?membershipRowHTML():''}
     ${typeof ownerIs==='function'&&ownerIs()?'<a class="vertag mono" id="ownerLink" href="#owner">Owner dashboard</a>':''}
     ${!session&&Object.keys(DB.days).some(d=>DB.days[d].w&&DB.days[d].w.length)?`
     <div class="card" style="border-color:var(--record)"><b>Not syncing.</b>

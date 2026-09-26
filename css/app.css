@@ -4188,6 +4188,8 @@ html body #app header #hTimer::before{display:none}
 html body #app header:not(.live) #hTimer{display:none}
 html body #app header.live .h-date,html body #app header.live .hback,html body #app header.live #hTimer{color:#fff}
 html body #app header:not(.live){padding-left:18px;padding-right:18px}
+/* v4.6.144: with no back arrow, the title's inset matches Finish's on the right (12px) */
+html body #app header.live:not(.exmode){padding-left:12px}
 html body #app header #liveWorkoutBar{
   position:static;inset:auto;width:auto;min-width:0;max-width:none;height:auto;min-height:0;margin:0;padding:0;
   display:flex;flex:0 0 auto;gap:0;border:0;border-radius:0;background:none;box-shadow:none;animation:none;transform:none;
@@ -4218,4 +4220,5 @@ html body #nav #gearBtn:not(.on){background:transparent;box-shadow:none}
   html body #app header{left:14px;right:14px;gap:5px;padding-left:5px;padding-right:9px}
   html body #app header .brandrow{gap:4px}
   html body #app header .hbtns{gap:5px}
+  html body #app header.live:not(.exmode){padding-left:9px}   /* v4.6.144: matches padding-right here */
 }

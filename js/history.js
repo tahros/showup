@@ -427,6 +427,7 @@ document.addEventListener('click',e=>{
   if(e.target.closest('[data-bfex]')){ hist.bfEx=e.target.closest('[data-bfex]').dataset.bfex; return render(); }   // v4.6.108
   if(e.target.closest('#bfClose')){ hist.bf=null; hist.bfPart=null; return render(); }
   if(e.target.closest('#bfAdd')&&hist.bf&&hist.bfPart){
+    if(typeof dayGate==='function'&&!dayGate(hist.bf)) return;   // v4.6.144: backfilling an empty date starts a new day
     const B=hist.bf, d=(DB.days[B]=DB.days[B]||{w:[]}); d.w=d.w||[];
     if(hist.bfPart==='Run'){
       /* v4.6.108: the field is labelled in YOUR unit and was stored as km with
@@ -497,6 +498,7 @@ document.addEventListener('click',e=>{
   if(e.target.closest('#hsSave')){
     const es=hist.editSet; if(!es) return;
     const d=es.d, t=DB.days[d]; if(!t) return;
+    if(es.wi==null&&typeof dayGate==='function'&&!dayGate(d)) return;   // v4.6.144: a first set on an empty date starts a new day
     const cur=es.wi!=null?t.w[es.wi]:null;
     const isRun=cur?isCardio(cur):isCardioEx(es.ex);   // v4.6.108
     const wIn=+((document.getElementById('hsW')||{}).value||0);

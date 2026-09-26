@@ -411,6 +411,7 @@ function writerResponseWithLocked(resp,payload){
 
 /* ---- the call ---- */
 async function writeSession(payload){
+  if(typeof writerGate==='function'&&!writerGate()) throw new Error('The plan writer is part of membership.');   // v4.6.144
   if(typeof WRITER_STUB==='function') return WRITER_STUB(payload);        // tests
   if(typeof navigator!=='undefined'&&navigator.onLine===false) throw new Error('offline');
   const ctl=new AbortController(); lift.writeAbort=ctl;
