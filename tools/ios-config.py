@@ -24,6 +24,11 @@ What it sets, and why:
                         controller), the HealthKit entitlement, and the
                         NSHealthUpdateUsageDescription purpose string. No read
                         permission is ever requested, so no read string exists.
+  Sign in with Apple    (v4.6.145) the ShowUpApple plugin is always generated;
+                        the capability (entitlement) and the ShowUpAppleSignIn
+                        Info.plist switch follow ios-flags.json "appleSignIn".
+                        Off until the paid developer account exists: a personal
+                        team cannot sign an app that has the capability.
   iPhone only           TARGETED_DEVICE_FAMILY 1, no iPad, and no "Designed for
                         iPad" builds on Mac or Vision Pro. Shipping iPad means
                         a mandatory iPad screenshot set and an iPad review.
@@ -37,6 +42,10 @@ HEALTH_WHY = ("ShowUp saves each workout you finish to Apple Health, if you turn
               "strength sessions, and runs, rides, rows, swims and walks with their time and distance. "
               "ShowUp never reads your Health data.")
 d = pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else ".").resolve()
+# v4.6.145: switches that need the paid developer account. Absent file = all off.
+flags_f = d / "ios-flags.json"
+FLAGS = json.loads(flags_f.read_text()) if flags_f.exists() else {}
+APPLE_SIGNIN = FLAGS.get("appleSignIn") is True
 plist_f = d / "ios/App/App/Info.plist"
 pbx_f = d / "ios/App/App.xcodeproj/project.pbxproj"
 if not plist_f.exists() or not pbx_f.exists():
@@ -57,6 +66,8 @@ pl.pop("UISupportedInterfaceOrientations~ipad", None)
 # rejection (5.1.1). Write only: ShowUp asks to share workouts, never to read.
 pl["NSHealthUpdateUsageDescription"] = HEALTH_WHY
 pl.pop("NSHealthShareUsageDescription", None)
+# v4.6.145: the app asks this at launch (ShowUpApple.status) before it shows the button
+pl["ShowUpAppleSignIn"] = APPLE_SIGNIN
 if plistlib.dumps(pl) != before:
     with open(plist_f, "wb") as f:
         plistlib.dump(pl, f)
@@ -112,6 +123,7 @@ class ShowUpViewController: CAPBridgeViewController {
         bridge?.registerPluginInstance(ShowUpHealthPlugin())
         bridge?.registerPluginInstance(ShowUpAwakePlugin())
         bridge?.registerPluginInstance(ShowUpChromePlugin())
+        bridge?.registerPluginInstance(ShowUpApplePlugin())
         enableShowUpBounce()
     }
 
@@ -319,6 +331,73 @@ public class ShowUpChromePlugin: CAPPlugin, CAPBridgedPlugin {
                        blue: CGFloat(v & 0xFF) / 255, alpha: 1)
     }
 }
+
+// v4.6.145: SIGN IN WITH APPLE (App Review 4.8: offering Google sign-in obliges
+// an equivalent that can hide your email). Native, so no web page and no
+// Services ID: iOS shows its own sheet and returns an identity token, which
+// js/core.js (signInApple) gives to Supabase with the matching raw nonce.
+// status() reads ShowUpAppleSignIn from Info.plist (ios-flags.json), so the
+// button appears only in a build that carries the capability.
+@objc(ShowUpApplePlugin)
+public class ShowUpApplePlugin: CAPPlugin, CAPBridgedPlugin, ASAuthorizationControllerDelegate, ASAuthorizationControllerPresentationContextProviding {
+    public let identifier = "ShowUpApplePlugin"
+    public let jsName = "ShowUpApple"
+    public let pluginMethods: [CAPPluginMethod] = [
+        CAPPluginMethod(name: "status", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "signIn", returnType: CAPPluginReturnPromise)
+    ]
+    private var pending: CAPPluginCall?
+
+    private var enabled: Bool {
+        return (Bundle.main.object(forInfoDictionaryKey: "ShowUpAppleSignIn") as? Bool) ?? false
+    }
+
+    @objc func status(_ call: CAPPluginCall) {
+        call.resolve(["enabled": enabled])
+    }
+
+    @objc func signIn(_ call: CAPPluginCall) {
+        guard enabled else { call.reject("disabled"); return }
+        guard let nonce = call.getString("nonce"), !nonce.isEmpty else { call.reject("nonce"); return }
+        DispatchQueue.main.async {
+            if self.pending != nil { call.reject("busy"); return }
+            self.pending = call
+            let request = ASAuthorizationAppleIDProvider().createRequest()
+            request.requestedScopes = [.email]
+            request.nonce = nonce
+            let controller = ASAuthorizationController(authorizationRequests: [request])
+            controller.delegate = self
+            controller.presentationContextProvider = self
+            controller.performRequests()
+        }
+    }
+
+    public func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
+        return self.bridge?.viewController?.view.window ?? UIWindow()
+    }
+
+    public func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
+        guard let call = pending else { return }
+        pending = nil
+        guard let credential = authorization.credential as? ASAuthorizationAppleIDCredential,
+              let tokenData = credential.identityToken,
+              let token = String(data: tokenData, encoding: .utf8) else {
+            call.reject("no-token"); return
+        }
+        var result: [String: Any] = ["idToken": token]
+        if let codeData = credential.authorizationCode, let code = String(data: codeData, encoding: .utf8) {
+            result["code"] = code
+        }
+        call.resolve(result)
+    }
+
+    public func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
+        guard let call = pending else { return }
+        pending = nil
+        let cancelled = (error as? ASAuthorizationError)?.code == .canceled
+        call.reject(cancelled ? "cancelled" : "failed")
+    }
+}
 // End ShowUp: ShowUpHealthPlugin
 """
 ad = d / "ios/App/App/AppDelegate.swift"
@@ -384,6 +463,8 @@ else:
     src2 = src2.rstrip("\n") + "\n\n" + HL_SWIFT.strip("\n") + "\n"
 if not re.search(r"^import HealthKit\s*$", src2, re.M):
     src2 = re.sub(r"^(import Capacitor\s*)$", r"\1\nimport HealthKit", src2, count=1, flags=re.M)
+if not re.search(r"^import AuthenticationServices\s*$", src2, re.M):
+    src2 = re.sub(r"^(import HealthKit\s*)$", r"\1\nimport AuthenticationServices", src2, count=1, flags=re.M)
 if src2 != src:
     ad.write_text(src2)
 if s2 != s:
@@ -422,11 +503,13 @@ if ent_f.exists():
 ent_before = plistlib.dumps(ent)
 ent["com.apple.developer.healthkit"] = True
 ent.setdefault("com.apple.developer.healthkit.access", [])
+if APPLE_SIGNIN:      # added when the flag is on; one added by hand in Xcode is kept either way
+    ent["com.apple.developer.applesignin"] = ["Default"]
 if not ent_f.exists() or plistlib.dumps(ent) != ent_before:
     ent_f.parent.mkdir(parents=True, exist_ok=True)
     with open(ent_f, "wb") as f:
         plistlib.dump(ent, f)
 if new != pbx:
     pbx_f.write_text(new)
-print(f"ios-config: {SCHEME}:// registered, portrait + landscape, iPhone only, ShowUp icon, Apple Health (write-only, {ent_rel})")
+print(f"ios-config: {SCHEME}:// registered, portrait + landscape, iPhone only, ShowUp icon, Apple Health (write-only, {ent_rel}), Sign in with Apple {'ON' if APPLE_SIGNIN else 'off (ios-flags.json)'}")
 print("ios-config: bounce controller installed and storyboard verified. Rebuild/run in Xcode; OTA cannot install native code.")

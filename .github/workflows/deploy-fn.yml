@@ -22,6 +22,18 @@ jobs:
       - run: supabase functions deploy write-session --project-ref "$REF"
       - run: supabase functions deploy delete-account --project-ref "$REF"
       - run: supabase functions deploy track --project-ref "$REF"
+      - run: supabase functions deploy apple-link --project-ref "$REF"
+      # v4.6.145: Sign in with Apple token revocation. Pushed only once the repo has
+      # the secrets (from the paid developer account's key); until then the two
+      # functions skip Apple quietly.
+      - env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_KEY_ID: ${{ secrets.APPLE_KEY_ID }}
+          APPLE_PRIVATE_KEY: ${{ secrets.APPLE_PRIVATE_KEY }}
+        run: |
+          if [ -n "$APPLE_PRIVATE_KEY" ] && [ -n "$APPLE_TEAM_ID" ] && [ -n "$APPLE_KEY_ID" ]; then
+            supabase secrets set APPLE_TEAM_ID="$APPLE_TEAM_ID" APPLE_KEY_ID="$APPLE_KEY_ID" APPLE_PRIVATE_KEY="$APPLE_PRIVATE_KEY" --project-ref "$REF"
+          fi
       - run: |
           supabase secrets set ANTHROPIC_API_KEY="${{ secrets.ANTHROPIC_API_KEY }}" \
             ${{ secrets.ANTHROPIC_WORKSPACE_ID != '' && format('ANTHROPIC_WORKSPACE_ID={0}', secrets.ANTHROPIC_WORKSPACE_ID) || '' }} \

@@ -92,6 +92,13 @@ and some of it changes the web build too. Landed and planned:
   in-app account deletion (4.9/5.1.1(v)); HealthKit write + local
   notifications (4.2 minimum functionality).
 
+- v4.6.145 — Sign in with Apple, OFF (done; runbook 4.4). Native plugin in
+  tools/ios-config.py; signInApple() in js/core.js; apple-link + revoke in
+  delete-account (supabase/functions/_shared/apple.ts). ios-flags.json
+  "appleSignIn" gates the capability and the button: flip it only after the
+  paid account exists (a personal team cannot sign it). When flipping, also:
+  the Supabase Apple provider (client id co.yooooooooo.showup), the APPLE_*
+  GitHub secrets, privacy.html ("Google or Apple"), and the listing copy.
 - v4.6.144 — trial + paywall, OFF (done; runbook 9.7). js/membership.js
   (read its header). Every path that adds a set to a date calls dayGate(iso)
   first; the writer calls writerGate(). A NEW set-adding path must do the same

@@ -24,6 +24,8 @@
 // No secrets to set: SUPABASE_URL, SUPABASE_ANON_KEY and
 // SUPABASE_SERVICE_ROLE_KEY are provided to every function by Supabase.
 
+import { appleConfig, appleClientSecret, appleForm } from "../_shared/apple.ts";
+
 const ORIGINS = ["https://tahros.github.io", "capacitor://localhost",
   "http://localhost:8898", "http://localhost:8899", "http://localhost:8080"];
 
@@ -60,6 +62,23 @@ export async function handle(req, env = (k) => Deno.env.get(k), net = fetch) {
   if (!uid || !/^[0-9a-f-]{36}$/i.test(uid)) return out(401, { error: "not-a-user" });
 
   const admin = { apikey: service, Authorization: `Bearer ${service}` };
+
+  // 2b. (v4.6.145) Sign in with Apple: Apple requires its tokens be revoked when
+  //     the account is deleted. Only when the Apple secrets exist; a failure here
+  //     does not stop the deletion (the account is what the person asked to erase).
+  const apple = appleConfig(env);
+  if (apple) {
+    try {
+      const r = await net(`${url}/rest/v1/apple_tokens?user_id=eq.${uid}&select=refresh_token`, { headers: admin });
+      const rows = r.ok ? await r.json() : [];
+      const rt = Array.isArray(rows) && typeof rows[0]?.refresh_token === "string" ? rows[0].refresh_token : null;
+      if (rt) {
+        const v = await appleForm(net, "https://appleid.apple.com/auth/revoke", {
+          client_id: apple.client, client_secret: await appleClientSecret(apple), token: rt, token_type_hint: "refresh_token" });
+        console.log("delete-account: apple revoke", v.status);
+      }
+    } catch (_e) { console.log("delete-account: apple revoke failed"); }
+  }
 
   // 3. the account, and by cascade its rows, in one transaction
   try {

@@ -4222,3 +4222,10 @@ html body #nav #gearBtn:not(.on){background:transparent;box-shadow:none}
   html body #app header .hbtns{gap:5px}
   html body #app header.live:not(.exmode){padding-left:9px}   /* v4.6.144: matches padding-right here */
 }
+
+/* v4.6.145: Continue with Apple, in Apple's own two styles: black on light, white on dark.
+   The logo is the system font's own glyph (U+F8FF), which only Apple devices draw --
+   and the button only exists in the iOS app. Same size and weight as Google's, above it. */
+.btn.apple-btn{display:flex;align-items:center;justify-content:center;gap:8px;margin:0 0 10px;background:#000;color:#fff;border-color:#000}
+[data-theme="dark"] .btn.apple-btn{background:#fff;color:#000;border-color:#fff}
+.apple-btn .apple-glyph{font:500 19px -apple-system,system-ui,sans-serif;line-height:1;margin-top:-2px}

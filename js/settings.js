@@ -119,8 +119,9 @@ function renderSync(){
         <div class="note" style="margin-top:6px">Erases your account and everything synced to it. Sign out only removes this device.</div>`
       :`
         ${cloudReady()?`
+          ${typeof appleReady==='function'&&appleReady()?`<button class="btn apple-btn" id="appleBtn"><span class="apple-glyph" aria-hidden="true">&#xF8FF;</span>Continue with Apple</button>`:''}
           <button class="btn" id="googleBtn" style="margin:0">Continue with Google</button>
-          <div class="note" style="margin-top:8px">Your data stays on this device until you sign in. Signing in syncs it to your own database, private to your Google account.</div>`
+          <div class="note" style="margin-top:8px">Your data stays on this device until you sign in. Signing in syncs it to your own database, private to your account.</div>`
         :`
           <div class="fld text" style="margin-bottom:8px"><label>Supabase project URL</label>
             <input id="cloudUrl" value="${DB.settings.cloud?.url||''}" placeholder="https://xxxx.supabase.co" autocapitalize="off"></div>

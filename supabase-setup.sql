@@ -140,3 +140,18 @@ begin
 end $$;
 revoke all on function public.owner_metrics(date, date, text) from public, anon;
 grant execute on function public.owner_metrics(date, date, text) to authenticated;
+
+-- ============================================================================
+-- v4.6.145 — Sign in with Apple token revocation (App Store runbook 4.4).
+-- Run this section once, like the one above. Safe to run again.
+-- Apple's refresh token for each account that signed in with Apple, kept only
+-- so that deleting the account can revoke it (Apple requires this). Row-level
+-- security on and NO policies: only the service role (apple-link,
+-- delete-account) can read or write it. It goes with the account.
+-- ============================================================================
+create table if not exists public.apple_tokens (
+  user_id       uuid primary key references auth.users(id) on delete cascade,
+  refresh_token text not null,
+  updated_at    timestamptz not null default now()
+);
+alter table public.apple_tokens enable row level security;

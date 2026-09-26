@@ -138,6 +138,9 @@ class KeepCustomCode { let untouched = true }
         self.assertEqual(text.count("class ShowUpAwakePlugin: CAPPlugin, CAPBridgedPlugin"), 1)          # v4.6.136
         self.assertEqual(text.count("bridge?.registerPluginInstance(ShowUpAwakePlugin())"), 1)
         self.assertEqual(text.count("class ShowUpChromePlugin: CAPPlugin, CAPBridgedPlugin"), 1)         # v4.6.143
+        self.assertEqual(text.count("class ShowUpApplePlugin: CAPPlugin, CAPBridgedPlugin"), 1)          # v4.6.145
+        self.assertEqual(text.count("bridge?.registerPluginInstance(ShowUpApplePlugin())"), 1)
+        self.assertEqual(text.count("import AuthenticationServices"), 1)
         self.assertEqual(text.count("bridge?.registerPluginInstance(ShowUpChromePlugin())"), 1)
         self.assertIn("underPageBackgroundColor = c", text)
         self.assertIn("UIApplication.shared.isIdleTimerDisabled = on", text)
@@ -159,6 +162,23 @@ class KeepCustomCode { let untouched = true }
         ent = plistlib.loads((self.app / "Custom.entitlements").read_bytes())
         self.assertEqual(ent["com.apple.developer.applesignin"], ["Default"])
         self.assertFalse((self.app / "App.entitlements").exists())
+
+    def test_apple_signin_follows_the_flag(self):                     # v4.6.145
+        self.install()
+        pl = plistlib.loads((self.app / "Info.plist").read_bytes())
+        ent = plistlib.loads((self.app / "App.entitlements").read_bytes())
+        self.assertIs(pl["ShowUpAppleSignIn"], False)
+        self.assertNotIn("com.apple.developer.applesignin", ent)     # a personal team could not sign it
+        (self.root / "ios-flags.json").write_text('{"appleSignIn": true}')
+        self.install()
+        pl = plistlib.loads((self.app / "Info.plist").read_bytes())
+        ent = plistlib.loads((self.app / "App.entitlements").read_bytes())
+        self.assertIs(pl["ShowUpAppleSignIn"], True)
+        self.assertEqual(ent["com.apple.developer.applesignin"], ["Default"])
+        self.assertIs(ent["com.apple.developer.healthkit"], True)
+        before = (self.app / "App.entitlements").read_bytes()
+        self.install()
+        self.assertEqual((self.app / "App.entitlements").read_bytes(), before)
 
     def test_missing_swift_fails_loudly(self):
         self.ad.unlink()

@@ -1015,6 +1015,7 @@ document.addEventListener('click',e=>{
     reanchorRest();
     save();renderHeader();return renderLift();
   }
+  if(e.target.closest('#appleBtn')) return signInApple();   // v4.6.145
   if(e.target.closest('#googleBtn')) return signInGoogle();
   if(e.target.closest('#signOutBtn')) return signOut();
   if(e.target.closest('#deleteAcctBtn')) return deleteAccount();
@@ -2489,6 +2490,7 @@ function motionPass(){
   await loadSession();
   render();
   nativeAuthBoot();                             // v4.6.111: iOS app sign-in returns by link
+  appleSignInBoot();                            // v4.6.145: shows Continue with Apple when the build has it
   if(cloudReady()){
     await captureOAuth();                       // fresh sign-in pulls (initial sync) inside
     if(session) cloudPull();                    // every device syncs on open (per-day newest-wins)

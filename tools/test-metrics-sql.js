@@ -75,6 +75,9 @@ const rls=(await db.query(`select relrowsecurity from pg_class where relname='ev
 ok('row-level security on, no policies: the app cannot read or write it directly', rls===true && pol===0);
 const anonExec=(await db.query(`select has_function_privilege('anon','public.owner_metrics(date,date,text)','execute') as a`)).rows[0].a;
 ok('anon cannot even call owner_metrics', anonExec===false);
+const at=(await db.query(`select relrowsecurity r from pg_class where relname='apple_tokens'`)).rows[0];
+const atp=(await db.query(`select count(*)::int n from pg_policies where tablename='apple_tokens'`)).rows[0].n;
+ok('v4.6.145 apple_tokens: row-level security on, no policies (service role only)', at?.r===true && atp===0);
 await db.exec(section);
 ok('the section runs twice without error (safe to paste again)', true);
 console.log(fails?`\n${fails} FAILED`:'\nall passed'); process.exit(fails?1:0);
