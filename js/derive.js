@@ -444,8 +444,28 @@ function tickRest(){
   node('rt-detail').textContent=detail;
   // Preserve session-scoped metadata for consumers, not the focused landscape UI.
   node('rt-sub').textContent=rows.length?restSessionLine(t):'';
+  let buddy=el.querySelector('.rt-buddy');
+  if(!buddy){
+    buddy=document.createElement('img');buddy.className='rt-buddy';
+    buddy.src='assets/mascot-white.png';buddy.alt='';buddy.setAttribute('aria-hidden','true');
+    el.appendChild(buddy);
+  }
 }
 setInterval(tickRest,1000);
+/* The landscape clock and colon use the same last-set timestamp on every
+   paint. A free-running CSS blink drifts against the displayed seconds. */
+function tickBigDigits(){
+  if(!document.documentElement.classList.contains('bigtimer')||!lastSetAt)return;
+  const el=document.getElementById('hTimer'),clock=el&&el.querySelector('.rt-time');
+  if(!clock)return;
+  const elapsed=Math.max(0,Date.now()-lastSetAt);
+  clock.querySelector('.rt-min').textContent=Math.floor(elapsed/60000);
+  clock.querySelector('.rt-sec').textContent=String(Math.floor(elapsed/1000)%60).padStart(2,'0');
+  const colon=clock.querySelector('.rt-colon');
+  const reduced=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches);
+  colon.style.opacity=reduced||elapsed%1000<500?'1':'.22';
+}
+setInterval(tickBigDigits,100);
 /* v3.3.426: KEEP THE SCREEN AWAKE WHILE THE BIG CLOCK IS SHOWING. Without
    this the display dims about thirty seconds into a ninety-second rest and the
    landscape timer is decoration. Held only while all three are true -- live,
@@ -503,10 +523,13 @@ function tickBig(){
     _bigHome = el.parentElement;
     document.body.appendChild(el);
     document.documentElement.classList.add('bigtimer');
+    tickBigDigits();
   }else if(!want && isOut){
     const home=_bigHome||document.querySelector('.hbtns')||document.body;
     home.insertBefore(el,home.querySelector('#liveWorkoutBar'));
     document.documentElement.classList.remove('bigtimer');
+    const colon=el.querySelector('.rt-colon');
+    if(colon)colon.style.removeProperty('opacity');
   }
 }
 setInterval(tickBig,400);

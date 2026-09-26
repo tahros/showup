@@ -140,26 +140,24 @@ console.log(fail ? "\n" + fail + " FAILED" : "\nALL PASS");
        return veil>0 && timer>veil;
      })());
 
-  /* v3.3.429: THE TYPE IS PROPORTIONAL. The clock was 22vw and shouted over
-     everything while the exercise -- the thing you read from the floor -- was
-     a caption. Ratios, not absolute sizes, so they hold at every viewport:
-     the name is a fifth of the clock and BOLDER, the clock is lighter than
-     the name, and every gap is set in em so it scales with the type. */
+  /* The approved landscape composition uses matching small labels around
+     a single-size clock, with one shared gap for both relationships. */
   const rel=(re)=>{const m=css.match(re); return m?parseFloat(m[1]):-1;};
-  ok("the exercise name leads: a fifth of the clock, and bolder",
+  ok("exercise and last-set labels match in size and weight",
      (function(){
        const nameEm=rel(/#hTimer\.on \.rt-ctx\{[^}]*font-size:([\d.]+)em/);
        const nameW =rel(/#hTimer\.on \.rt-ctx\{[^}]*font-weight:(\d+)/);
-       const clockW=rel(/html\.bigtimer body > #hTimer\.on\{[^}]*font-weight:(\d+)/);
-       return nameEm>=.18 && nameW>clockW;
+       const detailEm=rel(/#hTimer\.on \.rt-detail\{[^}]*font-size:([\d.]+)em/);
+       const detailW=rel(/#hTimer\.on \.rt-detail\{[^}]*font-weight:(\d+)/);
+       return nameEm===detailEm && nameW===detailW && nameEm<.18;
      })());
   ok("...the clock steps back from 22vw",
      (function(){const m=css.match(/html\.bigtimer body > #hTimer\.on\{[^}]*font-size:clamp\([^,]+,\s*([\d.]+)vw/);
        return !!m && parseFloat(m[1])<=16;})());
-  ok("...and the spacing is set in em, so it scales with the type",
-     /#hTimer\.on \.rt-ctx\{[^}]*margin-bottom:[\d.]+em/.test(css) &&
-     /#hTimer\.on \.rt-sub\{[^}]*margin-top:[\d.]+em/.test(css) &&
-     /#hTimer\.on::before\{[^}]*margin:0 0 [\d.]+em/.test(css));
+  ok("...and both labels share one responsive gap",
+     /#hTimer\.on\{[^}]*gap:[\d.]+em/.test(css) &&
+     /#hTimer\.on \.rt-ctx\{[^}]*margin:0/.test(css) &&
+     /#hTimer\.on \.rt-detail\{[^}]*margin:0/.test(css));
 
   /* "986 min in" -- sixteen hours. Not every set carries an `at`, and
      `z.at||Date.now()` fed Math.min a mix of stamps and NOW. */
@@ -196,8 +194,9 @@ console.log(fail ? "\n" + fail + " FAILED" : "\nALL PASS");
        SEED=deriveAll(); lastSetAt=t-30000; tickRest();
        return (document.querySelector('#hTimer .rt-sub')||{}).textContent;})()`).includes('45 min in'));
 
-  ok("...in the header's own live red, not a new colour",
-     /html\.bigtimer body > #hTimer\.on\{[^}]*background:var\(--live\)/.test(css));
+  ok("...on the approved seamless pulsing red light",
+     /#hTimer\.on::after\{[^}]*radial-gradient/.test(css) &&
+     /@keyframes rtSunPulse/.test(css));
   ok("...and shown in landscape",
      /html\.bigtimer body > #hTimer\.on \.rt-ctx[^{]*\{[^}]*display:block/.test(css));
 

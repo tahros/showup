@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.141 (2026-09-25) — A brighter, calmer landscape timer
+
+- The approved rest timer keeps the red stage but adds a broad, seamless, gently pulsing glow behind the clock and a small animated white mascot at the lower right. Motion follows the existing Still/Off settings and reduced-motion preference.
+- Exercise name and Last/Next detail now match in size. Minutes and seconds use the same large type; the centered colon blinks from the same elapsed timestamp as the displayed seconds, so it cannot drift out of sync.
+- The compact portrait timer returns to a fully visible colon after rotation. The existing workout timing, wake-lock and completion behavior are unchanged.
+- Updated timer assertions and the browser check for the glow, mascot, centered colon and synchronized seconds in light/dark themes and every look.
+
 ## v4.6.140 (2026-09-25) — Another day's plan steps aside once you log
 
 - **Found on the phone:** no EZ Bar Curl in Friday's plan, Saturday's plan has it. The Train card previewed Saturday's targets, but after two sets Friday night it put them beside Saturday's plan and labelled them "Unlinked", and "Done with EZ Bar Curl" was missing (the preview hid it). A set can only link to today's plan, so nothing could have linked it.
