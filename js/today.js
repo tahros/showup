@@ -258,7 +258,21 @@ document.addEventListener('click',e=>{
      to see it again is not a second completion. */
   /* v3.3.377: one shareable artifact, reachable two ways -- the replay runs
      the same ceremony and lands on the same card. */
-  if(e.target.closest('[data-replayday]')){ celebrateDayDone(true,undefined,undefined,undefined,e.target.closest('[data-replayday]')); return; }
+  const _rd=e.target.closest('[data-replayday]');
+  if(_rd){
+    /* v4.6.146: on a finished day the whole card is the replay button, so one tap
+       on the mascot opened the summary and the second and third never reached it.
+       A tap on the MASCOT now waits a beat (450ms, reset by each tap): three taps
+       make the secret (js/mascot.js) and the summary stays shut; one or two
+       open the summary as before, once. Taps anywhere else on the card are
+       immediate. */
+    if(e.target.closest('.su-mascot')){
+      clearTimeout(window._replayTap);
+      window._replayTap=setTimeout(()=>{ if(!window.gymTour?.open&&_rd.isConnected) celebrateDayDone(true,undefined,undefined,undefined,_rd); },450);
+      return;
+    }
+    celebrateDayDone(true,undefined,undefined,undefined,_rd); return;
+  }
   const d=e.target.closest('[data-d1]');
   if(d){
     const act=d.dataset.d1;

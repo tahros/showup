@@ -75,7 +75,7 @@ async function trainLog(b){
  /* the trial (D1, D4) */
  { const b=await boot({live:true,days:record(19)});
    b.run(`view='sync';render();`);
-   ok('12. during the trial, Settings says "Free days used: 19 of 20" and nothing else counts down', /Free days used: 19 of 20/.test(b.d.getElementById('mbRow')?.textContent||''));
+   ok('12. during the trial, Settings says "Free logged days: 19 of 20" and nothing else counts down', /Free logged days: 19 of 20/.test(b.d.getElementById('mbRow')?.textContent||''));
    ok('1. 19 logged days: the 20th day logs', await trainLog(b)==='clicked' && b.today()===1 && !b.wall());
    ok('1. that made 20', b.run('loggedDays()')===20);
    ok('2. more sets on the 20th day (already started): allowed', await trainLog(b)==='clicked' && b.today()===2 && !b.wall());

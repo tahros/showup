@@ -15,7 +15,10 @@ try{for(const skin of ['minimal','retro'])for(const theme of ['light','dark'])fo
  await p.goto('http://127.0.0.1:8784/');await p.waitForTimeout(900);
  await p.evaluate(([skin,theme,motion])=>{document.querySelector('#onb')?.remove();todayISO='2026-09-25';checkDate=()=>false;
    DB.days={'2026-09-24':{w:[{ex:'Squat',part:'Legs',w:100,reps:[5],at:Date.parse('2026-09-24T10:00')}]}};
-   DB.settings={...DB.settings,skin,theme,mascotMotion:motion,onboarded:true};SEED=deriveAll();applyTheme();view='today';render();},[skin,theme,motion]);
+   DB.settings={...DB.settings,skin,theme,mascotMotion:motion,onboarded:true};SEED=deriveAll();applyTheme();
+   /* v4.6.146: settle the one-time founding-member mark (js/membership.js, v4.6.144) now,
+      so the "record untouched" comparison below measures the film alone */
+   if(typeof foundingMark==='function')foundingMark();view='today';render();},[skin,theme,motion]);
  await p.waitForTimeout(1200);
  const tag=`${skin}/${theme}/${motion}`;
  const before=await p.evaluate(()=>JSON.stringify(DB));

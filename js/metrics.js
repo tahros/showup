@@ -114,6 +114,12 @@ const O_RANGES=[['today','Today'],['7','7 days'],['30','30 days'],['all','All']]
 const O_LAUNCH=null;   // set to 'YYYY-MM-DD' on launch day to add a "Launch day" range
 let _o={range:'7',ref:'',data:null,err:''};
 function ownerIs(){ return typeof session!=='undefined'&&!!session&&String(session.user?.email||'').toLowerCase()===M_OWNER; }
+/* the owner's door in Settings: centred, the mascot under the words, one button */
+function ownerEntryHTML(){
+  if(!ownerIs()) return '';
+  const m=typeof mascotHTML==='function'?mascotHTML('hello','oe-mascot'):'';
+  return `<a class="owner-entry" id="ownerLink" href="#owner"><span class="oe-label">Owner dashboard</span><span class="oe-sub">Opens, loggers and the funnel</span>${m}</a>`;
+}
 function ownerRoute(){
   if(location.hash==='#owner'&&ownerIs()) ownerOpen();
   else document.getElementById('ownerDash')?.remove();
@@ -227,5 +233,12 @@ function ownerChart(days,from,to){
 #ownerDash figcaption{display:flex;justify-content:space-between;color:var(--muted);font:400 11px var(--mono);margin-top:8px}
 #ownerDash .o-table{margin-top:10px}#ownerDash .o-table summary{color:var(--accent-ink);cursor:pointer;font-size:13px}
 #ownerDash table{width:100%;border-collapse:collapse;font:400 12px var(--mono);margin-top:8px;display:block;overflow-x:auto}#ownerDash th,#ownerDash td{padding:5px 6px;text-align:right;white-space:nowrap}#ownerDash th:first-child,#ownerDash td:first-child{text-align:left}`;
+  s.textContent+=`
+.owner-entry{display:flex;flex-direction:column;align-items:center;gap:4px;margin:14px auto 22px;max-width:320px;padding:18px 20px 14px;border-radius:22px;background:var(--surface);border:1px solid var(--line);color:var(--chalk);text-decoration:none;text-align:center;box-shadow:var(--shadow);-webkit-tap-highlight-color:transparent;transition:transform .15s ease}
+.owner-entry:active{transform:scale(.98)}
+.owner-entry .oe-label{font:600 17px var(--body);letter-spacing:-.2px}
+.owner-entry .oe-sub{font:400 12px var(--mono);color:var(--muted)}
+.owner-entry .su-mascot.oe-mascot{width:156px;margin-top:6px}
+@media(prefers-reduced-motion:reduce){.owner-entry{transition:none}}`;
   document.head.appendChild(s);
 })();

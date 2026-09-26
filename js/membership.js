@@ -119,8 +119,8 @@ function membershipRowHTML(){
   let body;
   if(memberFounding()) body='Founding member · free for good';
   else if(memberEntitled()) body='Member';
-  else if(loggedDays()<TRIAL_DAYS) body=`Free days used: ${loggedDays()} of ${TRIAL_DAYS}`;
-  else body='Free days used: 20 of 20 · <button type="button" class="linkbtn" data-mb-open>Membership options</button>';
+  else if(loggedDays()<TRIAL_DAYS) body=`Free logged days: ${loggedDays()} of ${TRIAL_DAYS}`;
+  else body='Free logged days: 20 of 20 · <button type="button" class="linkbtn" data-mb-open>Membership options</button>';
   return `<div class="mb-row mono" id="mbRow">${body}</div>`;
 }
 document.addEventListener('click',e=>{ if(e.target.closest&&e.target.closest('[data-mb-open]')) paywallOpen('settings'); });

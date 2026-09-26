@@ -229,7 +229,7 @@ for(const tone of ['white','chrome']){
   }
   document.addEventListener('pointerdown',e=>{
     const m=e.target.closest?.('.su-mascot');
-    if(!m||open||typeof view==='undefined'||view!=='today'||!m.closest('#view')||m.closest('#dayDone,[data-replayday]')){taps=[];return;}
+    if(!m||open||typeof view==='undefined'||view!=='today'||!m.closest('#view')||m.closest('#dayDone')){taps=[];return;}
     const now=performance.now();taps=taps.filter(t=>now-t<600*2);taps.push(now);
     if(taps.length>=3&&taps[taps.length-1]-taps[taps.length-3]<1200){taps=[];play();}
   },{capture:true,passive:true});
