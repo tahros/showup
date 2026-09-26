@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.139 (2026-09-25) — Red stage rest timer
+
+- Landscape uses the approved full red gradient, large minutes:seconds clock, current exercise title and quiet Last/Next set detail. No “Since last set” label; only the colon blinks, with reduced-motion support.
+- Opening an unfinished exercise changes the title before its first log. Completing an exercise reads “Between exercises.” Completion and navigation retain the last-set timestamp; a newly logged set starts the next rest interval.
+- Timer nodes persist across ticks so the colon animation is not restarted every second. Portrait remains compact. The session-scoped metadata and native keep-awake behavior from v4.6.138/v4.6.136 are preserved; Finish and the existing 30-minute timeout still end fullscreen mode.
+- Added a real-browser regression check for completion, navigation, logging, title/detail, light/dark themes, rotation and reduced motion.
+
 ## v4.6.137 (2026-09-25) — Once today has started, tomorrow folds
 
 - **Found on the phone:** mid-workout, Today showed Legs + Sixpack with "1 more plan · Sat" under it, and then a separate "Tomorrow · Sat, Sep 26" card below, the same plan twice. The page's own rule says every future plan appears exactly once, but the next plan's card only stood aside for the "Can't train today?" line, and was still also listed in the fold.

@@ -258,11 +258,11 @@ console.log(fail ? "\n" + fail + " FAILED" : "\nALL PASS");
                        doneEx:${JSON.stringify(done)}, upd:1};
     SEED=deriveAll(); lastSetAt=t-30000; tickRest();})()`);
   seed([]);
-  ok("mid-exercise the timer names what you just lifted", /DIP/.test(ctxTxt()), ctxTxt());
+  ok("mid-exercise the timer names what you just lifted", /Dip/.test(ctxTxt()), ctxTxt());
   ok("...with the clock and the session line beside it",
      /^\d+:\d\d$/.test(timeTxt()) && /2 sets/.test(subTxt2()), timeTxt()+" | "+subTxt2());
   seed(['Dip']);
-  ok("completing Dip takes its NAME off the screen", !/DIP/.test(ctxTxt()), ctxTxt());
+  ok("completing Dip shows Between exercises", ctxTxt()==='Between exercises', ctxTxt());
   /* v3.3.149 stands: the clock is time-since-last-set, whatever is marked done */
   ok("...but the clock keeps running (v3.3.149)", /^\d+:\d\d$/.test(timeTxt()), timeTxt());
   ok("...and the session line stays, because it describes the DAY not the lift",
@@ -272,11 +272,11 @@ console.log(fail ? "\n" + fail + " FAILED" : "\nALL PASS");
   run(`(function(){const t=Date.now();
     DB.days[todayISO].w.push({part:'Chest',ex:'Cable Fly Up',w:toKg(30),reps:[12],at:t-5000});
     SEED=deriveAll(); lastSetAt=t-5000; tickRest();})()`);
-  ok("a set on an open exercise brings the name back", /CABLE FLY UP/.test(ctxTxt()), ctxTxt());
+  ok("a set on an open exercise brings the name back", /Cable Fly Up/.test(ctxTxt()), ctxTxt());
   /* completing the LAST open thing still leaves a readable screen */
   run(`(function(){DB.days[todayISO].doneEx=['Dip','Cable Fly Up']; SEED=deriveAll(); tickRest();})()`);
   ok("...and closing that one too leaves the clock and the day, not a blank",
-     !/CABLE/.test(ctxTxt()) && /^\d+:\d\d$/.test(timeTxt()) && /3 sets/.test(subTxt2()),
+     ctxTxt()==='Between exercises' && /^\d+:\d\d$/.test(timeTxt()) && /3 sets/.test(subTxt2()),
      ctxTxt()+" | "+timeTxt()+" | "+subTxt2());
 }
 

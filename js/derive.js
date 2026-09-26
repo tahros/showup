@@ -407,55 +407,43 @@ function tickRest(){
   el.classList.toggle('done',show&&!isLive());
   if(!show){ el.textContent=''; return; }
   const s=Math.max(0,Math.floor((Date.now()-lastSetAt)/1000));
-  el.textContent='';
-  /* v3.3.426: THE LANDSCAPE CONTEXT. Turned sideways during a live session the
-     timer becomes the screen, and two more facts earn their place at that
-     size: what you just lifted, and how the session is going. They are
-     appended as SIBLING NODES of the clock. My first cut claimed textContent
-     would still read as the clock alone; it does not -- textContent
-     concatenates descendants, and the suite caught the timer reporting
-     "1:30PULL UP BW+70kg...". The clock therefore keeps its own node, and
-     .rt-time is what every reader asks for.
-     Hidden in portrait; nothing about the header changes. */
-  const t=day(todayISO), w=t.w||[];
-  /* v3.3.456: THE LINE NAMES ONLY AN EXERCISE STILL OPEN. The context line
-     reads the last set logged, which stays true after ✓ Complete -- so the
-     maker finished Dips and the screen went on saying DIP BW+45lb in the
-     largest type the app owns. That reads as a prompt to do another set of
-     something he had just closed out. v3.3.149 deliberately keeps the CLOCK
-     running past Complete ("time since my last set" is useful whatever is
-     marked done) and that stands; what does not survive Complete is the
-     NAME. So the line is dropped when its exercise is in doneEx, and the
-     clock and the session line -- both still true -- carry the screen. A
-     later set on another exercise brings the line straight back. */
-  const doneEx=t.doneEx||[];
-  const last0=w[w.length-1];
-  const last=(last0&&doneEx.includes(last0.ex))?null:last0;
-  let ctx='', sub='';
-  if(last){
-    const lw = isCardio(last) ? cardioLine(last)
-             : isHold(last.su) ? `${(last.reps||[])[0]||0}\u2033`
-             : `${wTxt(last.ex,last.w)} \u00d7 ${(last.reps||[])[0]||0}`;
-    ctx = `${last.ex.toUpperCase()}  ${lw}`;
-    /* v3.3.429: "986 min in". My first reading was a stale timestamp; the
-       probe would not go red, and it was right not to -- 986 minutes is 16.4
-       hours, and the maker trains after midnight and again in the evening, so
-       the span was TRUE. The fault is the unit: past a couple of hours,
-       minutes-since-the-first-set stops describing a session and starts
-       describing the clock. Hours past 120 minutes, and nothing over a day.
-       The filter on `at` stays regardless -- a set from an import or an edit
-       carries no stamp, and Math.min must not see a zero. */
-    sub = restSessionLine(t);
-  }else if(w.length){
-    /* the session line is about the DAY, not the last exercise, so it stays
-       when the name goes -- otherwise closing an exercise would empty the
-       whole screen but the clock. */
-    sub = restSessionLine(t);
+  // The viewed exercise and the last-set timestamp are independent facts.
+  // Keep these nodes alive: recreating the colon every second restarts its animation.
+  const t=day(todayISO), rows=typeof sessionRows==='function'?sessionRows(t):(t.w||[]);
+  const done=t.doneEx||[], last=rows[rows.length-1];
+  const opened=typeof lift!=='undefined'&&view==='lift'&&!lift.copy&&!lift.plan&&lift.ex;
+  const ex=opened&&!done.includes(opened)?opened:last&&!done.includes(last.ex)?last.ex:null;
+  let detail='';
+  if(ex){
+    const own=rows.filter(z=>z.ex===ex), previous=own[own.length-1];
+    if(previous){
+      const text=isCardio(previous)?cardioLine(previous):isHold(previous.su)?
+        `${(previous.reps||[])[0]||0}″`:`${wTxt(previous.ex,previous.w).replace(/(kg|lb)$/,' $1')} × ${(previous.reps||[])[0]||0}`;
+      detail='Last · '+text;
+    }else if(typeof plChoice==='function'){
+      const next=plChoice(ex,unitOf(ex)).target;
+      if(next)detail='Next · '+plTargetText(next);
+    }
   }
-  const mk=(cls,txt)=>{ const n=document.createElement('span'); n.className=cls; n.textContent=txt; return n; };
-  el.appendChild(mk('rt-ctx',ctx));
-  el.appendChild(mk('rt-time',`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`));
-  el.appendChild(mk('rt-sub',sub));
+  function node(cls){
+    let n=el.querySelector('.'+cls);
+    if(!n){n=document.createElement('span');n.className=cls;el.appendChild(n);}
+    return n;
+  }
+  node('rt-ctx').textContent=ex||'Between exercises';
+  const clock=node('rt-time');
+  if(!clock.querySelector('.rt-colon')){
+    clock.textContent='';
+    for(const cls of ['rt-min','rt-colon','rt-sec']){
+      const n=document.createElement('span');n.className=cls;clock.appendChild(n);
+    }
+    clock.querySelector('.rt-colon').textContent=':';
+  }
+  clock.querySelector('.rt-min').textContent=Math.floor(s/60);
+  clock.querySelector('.rt-sec').textContent=String(s%60).padStart(2,'0');
+  node('rt-detail').textContent=detail;
+  // Preserve session-scoped metadata for consumers, not the focused landscape UI.
+  node('rt-sub').textContent=rows.length?restSessionLine(t):'';
 }
 setInterval(tickRest,1000);
 /* v3.3.426: KEEP THE SCREEN AWAKE WHILE THE BIG CLOCK IS SHOWING. Without
