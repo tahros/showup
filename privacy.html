@@ -12,9 +12,9 @@
 <main>
 <p class="eyebrow"><a href="./">ShowUp</a></p>
 <h1>Privacy Policy</h1>
-<p class="meta">Effective September 24, 2026 · ShowUp is made by YOOOOOOOOO LLC</p>
+<p class="meta">Effective September 26, 2026 · ShowUp is made by YOOOOOOOOO LLC</p>
 
-<p class="lead">ShowUp is a workout log. It keeps what you log so it can show it back to you. It has no ads, no analytics, no tracking, and it sells nothing about you to anyone.</p>
+<p class="lead">ShowUp is a workout log. It keeps what you log so it can show it back to you. It has no ads and no tracking, it counts only how the app is used, never what you log, and it sells nothing about you to anyone.</p>
 
 <h2>Without an account</h2>
 <p>You can use ShowUp without signing in. Everything you log stays on your device, in the app's own storage. Nothing leaves the device, and we never see it.</p>
@@ -27,6 +27,15 @@
 </ul>
 <p>Each account can read and write only its own record. We use it for one purpose: to keep your devices in sync.</p>
 
+<h2>Usage counts</h2>
+<p>To know whether ShowUp is working for people, the app sends a few anonymous counts to our server: that the app was opened today, that a day was logged and which day it was (your 1st, 2nd, 20th…), that a backup or export was made, and that the session writer was used. Each count carries only:</p>
+<ul>
+  <li>a random ID the app makes for your device, which is not linked to your phone's own identifiers or to any other app;</li>
+  <li>where you first came from, if you arrived by a link that says so (for example, from Hacker News);</li>
+  <li>whether it is the iPhone app or the website, and the app version.</li>
+</ul>
+<p>If you are signed in, the count is also stored against your account ID; deleting your account removes that link and keeps only the anonymous count. The counts never include your workouts, exercises, weights, reps, plans, notes, name or email. They are used only to improve ShowUp, are read only by us, and are not sold, shared or used for advertising. Nothing is tracked across other apps or websites.</p>
+
 <h2>The session writer</h2>
 <p>ShowUp can write a workout session or a week for you. This happens only when you tap <strong>Write</strong>. At that moment the app sends a summary of your recent training to our server, which forwards it to Anthropic's Claude model and returns the session:</p>
 <ul>
@@ -38,7 +47,7 @@
 
 <h2>Who else handles your data</h2>
 <ul>
-  <li><strong>Supabase</strong> hosts the sync database and runs our two server functions.</li>
+  <li><strong>Supabase</strong> hosts the sync database and runs our server functions, including the one that receives the usage counts.</li>
   <li><strong>Google</strong> handles sign-in when you choose Google.</li>
   <li><strong>Anthropic</strong> writes sessions, only when you ask.</li>
   <li><strong>GitHub Pages</strong> serves the app's files and its updates. Like any web host, it sees the IP address of the device downloading them.</li>

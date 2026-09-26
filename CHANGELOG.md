@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v4.6.142 (2026-09-26) — Usage counts and the owner dashboard
+
+- **Anonymous usage counts** (runbook 9.5): open (once a day), day_logged (the first set of a day, with the record's day count), first_set, export and writer calls go in batches to a new `track` Edge Function. Each carries a random device id, a first-touch source tag (`?ref=hn`, or `as` in the iOS app), platform and version, and nothing else: never a weight, rep, exercise, plan, note, name or email. The server drops fields and names it does not know and caps a device at 60 events an hour. Nothing is sent from localhost or automated browsers.
+- **Owner dashboard** (runbook 9.6): `#owner`, and an entry at the top of Settings, for sungjee.u@gmail.com only. Range (today, 7, 30 days, all) and source filter, active devices and loggers, the funnel from open to day 20, daily loggers, writer calls, and a table view. The server's `owner_metrics()` refuses every other account.
+- **Privacy policy** gains a Usage counts section; the lead no longer says "no analytics".
+- **Needs one step by hand:** run the v4.6.142 section of `supabase-setup.sql` in the Supabase SQL editor. Until then the app queues counts, the function cannot store them, and the dashboard says so.
+- Tests: `tools/test-metrics.js` (client and server, 56 checks) and `tools/test-metrics-sql.js` (the SQL in a real Postgres via PGlite).
+
 ## v4.6.141 (2026-09-25) — A brighter, calmer landscape timer
 
 - The approved rest timer keeps the red stage but adds a broad, seamless, gently pulsing glow behind the clock and a small animated white mascot at the lower right. Motion follows the existing Still/Off settings and reduced-motion preference.

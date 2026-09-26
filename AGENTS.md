@@ -92,6 +92,17 @@ and some of it changes the web build too. Landed and planned:
   in-app account deletion (4.9/5.1.1(v)); HealthKit write + local
   notifications (4.2 minimum functionality).
 
+- v4.6.142 — usage metrics + owner dashboard (done; runbook 9.5/9.6, spec
+  claude/paywall-and-metrics-spec.md). js/metrics.js (read its header): what
+  is counted and the request body, which carries named fields only; the
+  #owner dashboard (sungjee.u@gmail.com only, entry at the top of Settings).
+  Server: supabase/functions/track (deployed by deploy-fn.yml) and the
+  v4.6.142 section of supabase-setup.sql (events table, is_owner(),
+  owner_metrics()), which Sungjee runs once in the SQL editor. Tested in a
+  real Postgres by tools/test-metrics-sql.js (needs @electric-sql/pglite;
+  skips without it). New events: add the name in THREE places -- the SQL
+  check, CLIENT_NAMES in track, and the caller -- or the server drops it.
+
 If you touch `index.html`'s head, `sw.js`'s SHELL, `css/fonts.css`, or the
 sign-in/settings flow, say so here first — those are the files this track is
 standing on.

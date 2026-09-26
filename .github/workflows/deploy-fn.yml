@@ -1,5 +1,5 @@
 # v3.3.401: deploys ShowUp's Edge Functions whenever they change on main:
-# the session writer, and (v4.6.113) delete-account, which needs no secrets of
+# the session writer, plus (v4.6.113) delete-account and (v4.6.142) track, which need no secrets of
 # its own -- Supabase gives every function its URL, anon and service keys. Secrets live in the repo's settings
 # (SUPABASE_ACCESS_TOKEN, ANTHROPIC_API_KEY, ANTHROPIC_WORKSPACE_ID) and are
 # pushed to the function's environment; nothing is written into the tree.
@@ -21,6 +21,7 @@ jobs:
         with: { version: latest }
       - run: supabase functions deploy write-session --project-ref "$REF"
       - run: supabase functions deploy delete-account --project-ref "$REF"
+      - run: supabase functions deploy track --project-ref "$REF"
       - run: |
           supabase secrets set ANTHROPIC_API_KEY="${{ secrets.ANTHROPIC_API_KEY }}" \
             ${{ secrets.ANTHROPIC_WORKSPACE_ID != '' && format('ANTHROPIC_WORKSPACE_ID={0}', secrets.ANTHROPIC_WORKSPACE_ID) || '' }} \

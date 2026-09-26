@@ -421,6 +421,7 @@ async function writeSession(payload){
       headers:{'Content-Type':'application/json',apikey:cloudCfg().anon,Authorization:'Bearer '+tok},
       body:JSON.stringify(payload)});
     if(!r.ok) throw new Error('http '+r.status);
+    if(typeof mTrack==='function') mTrack('plan_written');   // v4.6.142: a count, for the writer's cost
     return await r.json();
   }finally{ clearTimeout(t); lift.writeAbort=null; }
 }
