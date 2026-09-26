@@ -178,9 +178,13 @@ console.log(fail ? "\n" + fail + " FAILED" : "\nALL PASS");
      evening, so the first set really was 16 hours back. The fault was the
      unit: past two hours, minutes stop describing a session and start
      describing the clock. */
-  run(`(function(){const t=Date.now();
-    DB.days[todayISO]={w:[{part:'Legs',ex:'Squat',w:60,reps:[8],at:t-986*60000},
-                          {part:'Legs',ex:'Squat',w:60,reps:[8],at:t-30000}],upd:1};
+  /* v4.6.138: the line now counts the workout you are in, and a gap of two
+     hours starts a new one (sessionRows) -- so the 16 hours are one unbroken
+     workout here, a set every 100 minutes, not two sets a day apart. */
+  run(`(function(){const t=Date.now(),w=[];
+    for(let m=986;m>0;m-=100) w.push({part:'Legs',ex:'Squat',w:60,reps:[8],at:t-m*60000});
+    w.push({part:'Legs',ex:'Squat',w:60,reps:[8],at:t-30000});
+    DB.days[todayISO]={w,upd:1};
     SEED=deriveAll(); lastSetAt=t-30000; tickRest();})()`);
   ok("...and a long one reads in hours, not 986 minutes",
      /\b16h in\b/.test(subTxt()) && !/min in/.test(subTxt()), subTxt());

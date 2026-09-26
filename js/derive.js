@@ -379,6 +379,20 @@ document.addEventListener('change',e=>{
     saveExW(lift.ex,lift.weight);save(true);
   }
 });
+/* v4.6.138: THE SESSION LINE COUNTS THE WORKOUT YOU ARE IN, not the day.
+   The maker completed a 15-set session, came back two hours later, logged one
+   curl, turned sideways and read "16 sets · 3h in" -- the whole day since the
+   afternoon's first set. Everything else (the live bar, the Complete sheet,
+   Apple Health) already split the day at each Complete and at a two-hour gap
+   through sessionRows (js/mascot.js); this line predated sessions and never
+   moved. Same rows now, so it reads "1 set · 1 min in". */
+function restSessionLine(t){
+  const rows=typeof sessionRows==='function'?sessionRows(t):(t.w||[]);
+  const stamps=rows.map(z=>+z.at).filter(x=>x>0);
+  const mins=stamps.length?Math.min(1440,Math.round((Date.now()-Math.min(...stamps))/60000)):0;
+  const span = mins<=0 ? '' : mins<120 ? `${mins} min in` : `${Math.round(mins/60)}h in`;
+  return `${rows.length} set${rows.length===1?'':'s'}${span?`  \u00b7  ${span}`:''}`;
+}
 function tickRest(){
   const el=$('#hTimer'); if(!el) return;
   /* v3.3.149: the WIDER rule. This used to require isLive(), so tapping
@@ -431,18 +445,12 @@ function tickRest(){
        describing the clock. Hours past 120 minutes, and nothing over a day.
        The filter on `at` stays regardless -- a set from an import or an edit
        carries no stamp, and Math.min must not see a zero. */
-    const stamps=w.map(z=>+z.at).filter(t=>t>0);
-    const mins=stamps.length?Math.min(1440,Math.round((Date.now()-Math.min(...stamps))/60000)):0;
-    const span = mins<=0 ? '' : mins<120 ? `${mins} min in` : `${Math.round(mins/60)}h in`;
-    sub = `${w.length} set${w.length===1?'':'s'}${span?`  \u00b7  ${span}`:''}`;
+    sub = restSessionLine(t);
   }else if(w.length){
     /* the session line is about the DAY, not the last exercise, so it stays
        when the name goes -- otherwise closing an exercise would empty the
        whole screen but the clock. */
-    const stamps=w.map(z=>+z.at).filter(x=>x>0);
-    const mins=stamps.length?Math.min(1440,Math.round((Date.now()-Math.min(...stamps))/60000)):0;
-    const span = mins<=0 ? '' : mins<120 ? `${mins} min in` : `${Math.round(mins/60)}h in`;
-    sub = `${w.length} set${w.length===1?'':'s'}${span?`  \u00b7  ${span}`:''}`;
+    sub = restSessionLine(t);
   }
   const mk=(cls,txt)=>{ const n=document.createElement('span'); n.className=cls; n.textContent=txt; return n; };
   el.appendChild(mk('rt-ctx',ctx));
