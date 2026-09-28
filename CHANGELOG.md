@@ -1,5 +1,11 @@
 # ShowUp — changelog
 
+## v4.6.149 (2026-09-28) — "↑ top" sits above the tab bar again
+
+- **Found on the phone:** mid-run, scrolled down in Train, the "↑ top" button rose to the top right beside the red header. It measured its height from the live workout bar, which now lives inside the floating header at the top of the screen, so "above the live bar" meant the top of the screen.
+- It now sits 12px above whatever occupies the bottom of the screen (the tab bar, or a save dock), counting only elements in the lower half. Without a live workout it was also 6px from the tab bar instead of the intended 12.
+- `tools/check-top-button.cjs` (Chromium): light and dark, with and without a live workout; fails on v4.6.148.
+
 ## v4.6.148 (2026-09-28) — One line for the days ahead
 
 - **Found on the phone:** Today showed "Tomorrow · Tue, Sep 29 / Back" and, under it, "2 more planned days": two lines about days that are not today. And inside the fold, the days sat crammed together.

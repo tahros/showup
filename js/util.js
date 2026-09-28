@@ -651,10 +651,14 @@ function syncTopBtn(){
   const deep=(window.scrollY||0)>520;
   b.hidden=!(deep||_backTo);         // an armed jump-back shows regardless of depth
   b.textContent=_backTo?`↑ ${_backTo.label}`:'↑ top';
-  const dock=document.querySelector('.pw-save-dock');
-  const live=document.getElementById('liveWorkoutBar');
-  const obstacles=[dock,live&&!live.hidden?live:null].filter(Boolean);
-  if(obstacles.length)b.style.bottom=Math.max(0,...obstacles.map(el=>innerHeight-el.getBoundingClientRect().top+12))+'px';
+  /* v4.6.149: sit 12px above whatever occupies the BOTTOM of the screen -- the
+     tab bar, a save dock, a bottom live bar. Since the live workout bar moved
+     into the floating header it sits at the TOP, and measuring from
+     it put the button up beside the header. Only elements in the lower half
+     count now, and the tab bar always does. */
+  const els=[document.querySelector('.pw-save-dock'),document.getElementById('liveWorkoutBar'),document.getElementById('nav')];
+  const low=els.filter(el=>el&&!el.hidden&&el.getClientRects().length).map(el=>el.getBoundingClientRect()).filter(r=>r.height&&r.top>innerHeight/2);
+  if(low.length)b.style.bottom=Math.max(0,...low.map(r=>innerHeight-r.top+12))+'px';
   else b.style.removeProperty('bottom');
 }
 function setBackTarget(label,getEl){ _backTo={label,getEl}; syncTopBtn(); }
