@@ -483,10 +483,11 @@ async function pwGenerate(adjust=false,rewrite=false){
         doc.notes=(chk.notes||[]).filter(n=>mine.has(String(n).split(':')[0].trim()));
       }
       if(!Object.keys(days).length)throw Error('No readable days came back. Your draft is unchanged.');
-      for(const [d,doc] of Object.entries(days))for(const i of pwDay(d).locks)if(pwText([pwDay(d).rows[i]])!==pwText([doc.rows[i]||{}]))throw Error('The writer changed an exercise you kept fixed. Your draft is unchanged.');
+      /* v4.6.147: an exercise you kept fixed that the writer changed is put back as you had it; the rest of its answer stands */
+      for(const [d,doc] of Object.entries(days))for(const i of pwDay(d).locks)if(pwText([pwDay(d).rows[i]])!==pwText([doc.rows[i]||{}])){doc.rows[i]=pwCopy(pwDay(d).rows[i]);(doc.notes=doc.notes||[]).push(pwDay(d).rows[i].ex+': kept as you fixed it.');}
       candidate={type:'generate',days,reason:chk.reason};
     }
-    if(cancelled())return;if(typeof pfValidateCandidate==='function'&&pfOn())pfValidateCandidate(candidate,dates);s.candidate=candidate;s.step='candidate';s.busy=false;pwPersist();if(typeof pfOn==='function'&&pfOn()){pwApply();return;}if(view==='today'&&lift.plan==='workspace')pwRender();
+    if(cancelled())return;if(typeof pfValidateCandidate==='function'&&pfOn())pfValidateCandidate(candidate,dates);s.candidate=candidate;s.step='candidate';s.busy=false;pwPersist();if(typeof pfOn==='function'&&pfOn()){const miss=candidate.missing||[];pwApply();if(miss.length)toast(miss.map(d=>pfShort(d)).join(', ')+(miss.length===1?' did':' did')+' not come back from the writer. Tap Plan again for '+(miss.length===1?'it.':'them.'));return;}if(view==='today'&&lift.plan==='workspace')pwRender();
   }catch(e){if(cancelled())return;s.busy=false;s.step=adjust?'adjust':'edit';s.error=e.refused?`Could not use that answer: ${e.refused}. Nothing saved.`:e.message||'Could not write. Your draft is unchanged.';pwPersist();if(view==='today'&&lift.plan==='workspace')pwRender();}
 }
 function pwSave(){

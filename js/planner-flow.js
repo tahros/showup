@@ -341,16 +341,56 @@ function pfSwapDay(){
  pwPositionDock();
 }
 function pfPending(){return pw().dates.some(d=>{const b=pwDay(d);return b.target!=null&&b.target!==pwSetCount(b.rows);});}
+function pfFitSets(rows,min,max,locked=[]){
+ const rs=pwCopy(rows),warm=l=>/warm|prep/i.test((l.qual||'')+(l.tag||'')),work=r=>r.lines.filter(l=>!warm(l)).reduce((n,l)=>n+l.reps.length,0);
+ const ex=rs.map((r,i)=>({r,i})).filter(x=>x.r.kind==='ex'&&x.r.ex&&(x.r.lines||[]).length&&!locked.includes(pwText([x.r])));   // locked = the fixed rows' text, so a removed row before them cannot shift the match
+ const from=pwSetCount(rs);let total=from;
+ const lastWork=r=>[...r.lines].reverse().find(l=>!warm(l)&&l.reps.length);
+ while(total>max){
+  const c=ex.filter(x=>work(x.r)>1).sort((a,b)=>work(b.r)-work(a.r)||b.i-a.i)[0];if(!c)break;
+  const l=lastWork(c.r);l.reps.pop();if(!l.reps.length)c.r.lines.splice(c.r.lines.indexOf(l),1);total--;
+ }
+ /* still over with one working set each: whole exercises go, last first, until it fits */
+ const gone=[];
+ while(total>max){
+  const c=[...ex].reverse().find(x=>!gone.includes(x)&&rs.includes(x.r));if(!c)break;
+  total-=pwSetCount([c.r]);rs.splice(rs.indexOf(c.r),1);gone.push(c);
+ }
+ while(total<min){
+  const c=ex.filter(x=>rs.includes(x.r)&&lastWork(x.r)).sort((a,b)=>work(a.r)-work(b.r)||a.i-b.i)[0];if(!c)break;
+  const l=lastWork(c.r);l.reps.push(l.reps[l.reps.length-1]);total++;
+ }
+ return {rows:rs,from,to:total,dropped:gone.map(x=>x.r.ex)};
+}
 function pfValidateCandidate(candidate,dates){
- const p=pfPrefs(),expected=[...dates].sort(),received=Object.keys(candidate.days).sort();
- if(JSON.stringify(expected)!==JSON.stringify(received))throw Error('The writer returned different dates. Your draft is unchanged.');
+ const p=pfPrefs();
+ /* v4.6.147: a day the writer added that you did not pick is dropped; a day it
+    left out (or left empty) keeps your draft, and the others still arrive. */
+ for(const d of Object.keys(candidate.days))if(!dates.includes(d))delete candidate.days[d];
  for(const [date,day] of Object.entries(candidate.days)){
   const avoided=day.rows.filter(r=>p.avoid.some(ex=>ex.trim().toLowerCase()===String(r.ex||'').trim().toLowerCase()));
-  if(avoided.length)throw Error('The writer included an avoided exercise: '+avoided.map(r=>r.ex).join(', ')+'. Your draft is unchanged.');
+  /* v4.6.147: an avoided exercise comes out of the day; the rest of the plan stays */
+  if(avoided.length){day.rows=day.rows.filter(r=>!avoided.includes(r));(day.notes=day.notes||[]).push('Removed '+avoided.map(r=>r.ex).join(', ')+': on your avoid list.');}
   const total=pwSetCount(day.rows);
-  if(!total)throw Error(pfShort(date)+' has no planned sets. Your draft is unchanged.');
-  if(candidate.type!=='adjust'&&p.mode==='sets'&&(total<p.minSets||total>p.maxSets))throw Error(pfShort(date)+' is outside your '+p.minSets+'–'+p.maxSets+' set range. Your draft is unchanged.');
+  if(!total){delete candidate.days[date];continue;}
+  if(candidate.type!=='adjust'&&p.mode==='sets'&&(total<p.minSets||total>p.maxSets)){
+   /* v4.6.147: a writer answer a few sets outside the range used to throw away
+      the WHOLE draft ("outside your 15-25 set range. Your draft is
+      unchanged."), leaving the maker with nothing for any of the dates. The
+      range is arithmetic, so the app does it: working sets come off the
+      exercise with the most (each keeps one) or go on the one with the fewest
+      (repeating its last set), warm-ups and locked exercises untouched, and
+      the day's Checks say what moved. Only a day that cannot fit (more
+      exercises than the maximum) is still refused. */
+   /* v4.6.147 (maker): the plan is what was asked for, so nothing here refuses.
+      If one working set each is still too many, whole exercises go (last first);
+      only exercises you locked yourself are kept even past the maximum. */
+   const fit=pfFitSets(day.rows,p.minSets,p.maxSets,(pwDay(date).locks||[]).map(i=>pwText([pwDay(date).rows[i]])));
+   day.rows=fit.rows;(day.notes=day.notes||[]).push('Set count fitted to your '+p.minSets+'–'+p.maxSets+' range: '+fit.from+' → '+fit.to+' sets'+(fit.dropped.length?' (removed '+fit.dropped.join(', ')+')':'')+'.');
+  }
  }
+ candidate.missing=dates.filter(d=>!candidate.days[d]).sort();
+ if(!Object.keys(candidate.days).length)throw Error('The writer did not return a usable plan. Your draft is unchanged. Tap Plan to try again.');
 }
 function pfSaveButton(){return pwButton('pf-save',pw().dates.length?`Save ${pw().dates.length} ${pw().dates.length===1?'day':'days'}`:'Save changes','primary',(!pw().dates.length&&!pfState().removed.length)||pfPending()?'disabled':'');}
 function pfDoneHTML(){
@@ -374,7 +414,7 @@ function pfRender(){pfTrackScreen();renderHeader();const s=pw(),j=pfState(),pane
 pwRender=function(){return pfOn()?pfRender():pfLegacy.render();};
 pwOpen=function(d,step){if(!pfOn())return pfLegacy.open(d,step);const s=pw(),j=pfState();j.history=[];j.lastScreen=null;j.returnView=view==='sync'?'sync':'today';if(s.busy){pwRequest++;lift.writeAbort?.abort();s.busy=false;}if(d){s.dates=[d];s.active=d;s.month=d.slice(0,7)+'-01';pwDay(d);}else pwFreshenDates();/* v4.6.61: same rule as the legacy open, from the same helper */j.page=step==='dates'?'dates':d&&pwSaved(d)?'edit':d?'dates':j.page;j.prefOrigin=null;if(d&&pwSaved(d))pfAnchor();lift.plan='workspace';view='today';s.step='edit';pwPersist();render({soft:true});};
 pwApply=function(add=false){if(!pfOn())return pfLegacy.apply(add);const c=pw().candidate;if(!c)return;const generated=c.type==='generate',adjust=c.type==='adjust';if(c.type==='paste'&&c.index===undefined&&pfState().pasteAll){const one=Object.values(c.days)[0];c.days=Object.fromEntries(pfDates().map(d=>[d,pwCopy(one)]));}pfLegacy.apply(add);for(const d of Object.keys(c.days)){pwDay(d).target=null;}pfAnchor();pfMotion={kind:'arrive'};pfNavigate(generated?'days':'edit');};
-pwPayload=function(dates,action){const p=pfLegacy.payload(dates,action);if(!pfOn())return p;const prefs=pfPrefs();p.workspace.preferences=prefs;p.note=[p.note,'Confirmed planning preferences: '+JSON.stringify(prefs),"Respect avoided exercises. Frequency describes the usual week; only generate the explicitly selected dates. Time is an approximate budget, not a promise."].filter(Boolean).join('\n');return p;};
+pwPayload=function(dates,action){const p=pfLegacy.payload(dates,action);if(!pfOn())return p;const prefs=pfPrefs();p.workspace.preferences=prefs;p.note=[p.note,'Confirmed planning preferences: '+JSON.stringify(prefs),"Respect avoided exercises. Frequency describes the usual week; only generate the explicitly selected dates. Time is an approximate budget, not a promise.",prefs.mode==='sets'?`Each selected day must total between ${prefs.minSets} and ${prefs.maxSets} sets, counting every set including warm-ups.`:''].filter(Boolean).join('\n');return p;};
 function pfMoveDay(from,to){const ds=pfDates(),a=ds.indexOf(from),b=ds.indexOf(to);if(a<0||b<0||a===b)return;const bundles=ds.map(d=>pwCopy(pwDay(d))),[moved]=bundles.splice(a,1);bundles.splice(b,0,moved);ds.forEach((d,i)=>{const old=pwDay(d);pw().book[d]={...bundles[i],base:old.base,source:'Your draft'};});pwPersist();pwRender();}
 function pfSave(confirm=false){const s=pw(),j=pfState();if(!pfMatch())throw Error('Restore the editing dates, or generate a new draft first.');if(pfPending())throw Error('Regenerate the changed total sets before saving.');const empty=s.dates.filter(d=>!pwSetCount(pwDay(d).rows));if(empty.length&&!confirm){j.emptyConfirm=true;pwRender();return;}
  const dates=[...new Set([...s.dates,...j.removed.map(x=>x.date)])];if(!dates.length)throw Error('Choose at least one date.');

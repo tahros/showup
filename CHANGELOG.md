@@ -1,5 +1,17 @@
 # ShowUp — changelog
 
+## v4.6.147 (2026-09-28) — The writer's answer is fitted, not thrown away
+
+- **Found on the phone:** planning Sep 28 – Oct 2 in "Total sets" mode (15–25), the writer returned Tue 9/29 outside the range, and the whole draft was discarded: "Tue, 9/29 is outside your 15–25 set range. Your draft is unchanged." Nothing came back for any of the five days.
+- **The maker's rule:** the user gets the plan they asked for; the app fixes what it can instead of refusing. So:
+  - **Set range** (`pfFitSets`, js/planner-flow.js): too many sets come off the exercise with the most working sets; if one working set each is still too many, whole exercises go, last first. Too few are added to the exercise with the fewest, repeating its last set. Warm-ups and exercises you locked are untouched. The day's Checks say what moved ("Set count fitted to your 15–25 range: 29 → 25 sets").
+  - **Avoided exercises** come out of the day ("Removed Squat: on your avoid list.") instead of discarding the draft.
+  - **A locked exercise the writer changed** is put back as you had it ("kept as you fixed it").
+  - **Dates:** a day you did not pick is dropped; a day that did not come back (or came back empty) keeps its draft, the other days arrive, and a toast names the missing day.
+  - Only an answer with no usable day at all is still refused, with "Tap Plan to try again".
+- The writer is also told the range in plain words ("Each selected day must total between 15 and 25 sets, counting every set including warm-ups"); before, it only saw it inside a JSON blob.
+- `tools/test-planner-flow.js` (70 checks): 29 → 25, 5 → 15, 30 exercises → 25 sets, avoid, dates.
+
 ## v4.6.146 (2026-09-26) — Privacy policy: Apple sign-in and membership
 
 - **privacy.html:** sign-in is "Apple or Google"; Hide My Email means only Apple's relay address reaches us; Google sign-in's account name is kept by Supabase and not used; the Apple token kept only to revoke access on account deletion; a Membership section (20 free logged days; Apple takes payment, RevenueCat keeps membership status); Apple and RevenueCat added to who handles data.
