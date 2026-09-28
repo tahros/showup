@@ -29,6 +29,9 @@ What it sets, and why:
                         Info.plist switch follow ios-flags.json "appleSignIn".
                         Off until the paid developer account exists: a personal
                         team cannot sign an app that has the capability.
+  Share as image        (v4.6.154) the ShowUpShare plugin gives the share sheet
+                        a real image, so Save Image appears; plus the add-only
+                        NSPhotoLibraryAddUsageDescription it needs.
   iPhone only           TARGETED_DEVICE_FAMILY 1, no iPad, and no "Designed for
                         iPad" builds on Mac or Vision Pro. Shipping iPad means
                         a mandatory iPad screenshot set and an iPad review.
@@ -38,6 +41,9 @@ It never touches the bundle identifier: that is chosen per signing account
 import json, pathlib, plistlib, re, shutil, sys
 
 SCHEME = "co.yooooooooo.showup"          # must equal AUTH_SCHEME in js/core.js
+# v4.6.154: Save Image in the share sheet writes to Photos; iOS requires this
+# purpose string for add-only access, and ends the app without one.
+PHOTOS_ADD_WHY = "ShowUp saves a card you share to your Photos when you choose Save Image."
 HEALTH_WHY = ("ShowUp saves each workout you finish to Apple Health, if you turn this on in Settings: "
               "strength sessions, and runs, rides, rows, swims and walks with their time and distance. "
               "ShowUp never reads your Health data.")
@@ -66,6 +72,7 @@ pl.pop("UISupportedInterfaceOrientations~ipad", None)
 # rejection (5.1.1). Write only: ShowUp asks to share workouts, never to read.
 pl["NSHealthUpdateUsageDescription"] = HEALTH_WHY
 pl.pop("NSHealthShareUsageDescription", None)
+pl["NSPhotoLibraryAddUsageDescription"] = PHOTOS_ADD_WHY      # v4.6.154, add-only
 # v4.6.145: the app asks this at launch (ShowUpApple.status) before it shows the button
 pl["ShowUpAppleSignIn"] = APPLE_SIGNIN
 if plistlib.dumps(pl) != before:
@@ -115,8 +122,8 @@ VC_SWIFT = r"""
 // ShowUp: ShowUpViewController (tools/ios-config.py)
 // Capacitor sets scrollView.bounces = false; ShowUp wants iOS's rubber-band
 // at the top and bottom. capacitorDidLoad() runs after Capacitor's setup.
-// It also registers ShowUp's own Apple Health plugin (v4.6.132), Awake (v4.6.136)
-// and Chrome (v4.6.143).
+// It also registers ShowUp's own Apple Health plugin (v4.6.132), Awake (v4.6.136),
+// Chrome (v4.6.143), Apple sign-in (v4.6.145) and Share (v4.6.154).
 class ShowUpViewController: CAPBridgeViewController {
     override func capacitorDidLoad() {
         super.capacitorDidLoad()
@@ -124,6 +131,7 @@ class ShowUpViewController: CAPBridgeViewController {
         bridge?.registerPluginInstance(ShowUpAwakePlugin())
         bridge?.registerPluginInstance(ShowUpChromePlugin())
         bridge?.registerPluginInstance(ShowUpApplePlugin())
+        bridge?.registerPluginInstance(ShowUpSharePlugin())
         enableShowUpBounce()
     }
 
@@ -398,6 +406,47 @@ public class ShowUpApplePlugin: CAPPlugin, CAPBridgedPlugin, ASAuthorizationCont
         call.reject(cancelled ? "cancelled" : "failed")
     }
 }
+
+// v4.6.154: SHARE A CARD AS AN IMAGE. navigator.share inside WKWebView hands a
+// PNG to the share sheet as a generic document -- no thumbnail, no "Save
+// Image", only "Save to Files". js/util.js (shareImageFiles) sends the card(s)
+// here as base64 PNG/JPEG, and they go to UIActivityViewController as UIImage,
+// which is what gives the sheet its preview, Save Image(s), AirDrop and the
+// rest. Saving to Photos is add-only (NSPhotoLibraryAddUsageDescription); the
+// app asks for no read access to the library. Resolves when the sheet closes:
+// completed false means it was dismissed, which the page treats as nothing.
+@objc(ShowUpSharePlugin)
+public class ShowUpSharePlugin: CAPPlugin, CAPBridgedPlugin {
+    public let identifier = "ShowUpSharePlugin"
+    public let jsName = "ShowUpShare"
+    public let pluginMethods: [CAPPluginMethod] = [
+        CAPPluginMethod(name: "shareImages", returnType: CAPPluginReturnPromise)
+    ]
+
+    @objc func shareImages(_ call: CAPPluginCall) {
+        let list = call.getArray("images", String.self) ?? []
+        let images = list.compactMap { Data(base64Encoded: $0, options: .ignoreUnknownCharacters) }
+                         .compactMap { UIImage(data: $0) }
+        guard !list.isEmpty, images.count == list.count else {
+            call.reject("images must be base64 PNG or JPEG"); return
+        }
+        DispatchQueue.main.async {
+            guard var top = self.bridge?.viewController else { call.reject("no view to present from"); return }
+            while let next = top.presentedViewController { top = next }
+            let sheet = UIActivityViewController(activityItems: images, applicationActivities: nil)
+            sheet.completionWithItemsHandler = { type, completed, _, error in
+                if let error = error { call.reject(error.localizedDescription); return }
+                call.resolve(["completed": completed, "activity": type?.rawValue ?? ""])
+            }
+            if let pop = sheet.popoverPresentationController {
+                pop.sourceView = top.view
+                pop.sourceRect = CGRect(x: top.view.bounds.midX, y: top.view.bounds.maxY, width: 0, height: 0)
+                pop.permittedArrowDirections = []
+            }
+            top.present(sheet, animated: true)
+        }
+    }
+}
 // End ShowUp: ShowUpHealthPlugin
 """
 ad = d / "ios/App/App/AppDelegate.swift"
@@ -511,5 +560,5 @@ if not ent_f.exists() or plistlib.dumps(ent) != ent_before:
         plistlib.dump(ent, f)
 if new != pbx:
     pbx_f.write_text(new)
-print(f"ios-config: {SCHEME}:// registered, portrait + landscape, iPhone only, ShowUp icon, Apple Health (write-only, {ent_rel}), Sign in with Apple {'ON' if APPLE_SIGNIN else 'off (ios-flags.json)'}")
+print(f"ios-config: {SCHEME}:// registered, portrait + landscape, iPhone only, ShowUp icon, Apple Health (write-only, {ent_rel}), Sign in with Apple {'ON' if APPLE_SIGNIN else 'off (ios-flags.json)'}, share as image")
 print("ios-config: bounce controller installed and storyboard verified. Rebuild/run in Xcode; OTA cannot install native code.")

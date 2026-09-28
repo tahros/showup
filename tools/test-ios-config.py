@@ -142,6 +142,12 @@ class KeepCustomCode { let untouched = true }
         self.assertEqual(text.count("bridge?.registerPluginInstance(ShowUpApplePlugin())"), 1)
         self.assertEqual(text.count("import AuthenticationServices"), 1)
         self.assertEqual(text.count("bridge?.registerPluginInstance(ShowUpChromePlugin())"), 1)
+        self.assertEqual(text.count("class ShowUpSharePlugin: CAPPlugin, CAPBridgedPlugin"), 1)          # v4.6.154
+        self.assertEqual(text.count("bridge?.registerPluginInstance(ShowUpSharePlugin())"), 1)
+        self.assertIn('public let jsName = "ShowUpShare"', text)
+        self.assertIn("UIActivityViewController(activityItems: images", text)
+        self.assertIn("Save Image", pl.get("NSPhotoLibraryAddUsageDescription", ""))
+        self.assertNotIn("NSPhotoLibraryUsageDescription", pl)                                           # add-only
         self.assertIn("underPageBackgroundColor = c", text)
         self.assertIn("UIApplication.shared.isIdleTimerDisabled = on", text)
         self.assertIn('public let jsName = "ShowUpHealth"', text)

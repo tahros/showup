@@ -1,5 +1,15 @@
 # ShowUp — changelog
 
+## v4.6.154 (2026-09-28) — Save Image is back in the iOS app
+
+- **Asked for:** the share sheet in the iOS test app showed the card as a generic PNG document with only Save to Files, and no Save Image.
+- **Why:** inside the iOS app the page runs in a web view, and its `navigator.share` hands iOS a file, not an image. Safari (the web app) hands it an image, which is why Save Image was there before.
+- **Fix:** a native share for the iOS app. A new local plugin, `ShowUpShare` (tools/ios-config.py), opens the iOS share sheet with the card as a real image: thumbnail, Save Image (Save Images for "every card"), AirDrop, Messages and the rest. `shareImageFiles()` (js/util.js) routes PNG/JPEG there. Everything else keeps the web share exactly as before: the web app, GIF and video exports, the CSV export, and any iOS build older than this one. Closing the sheet is not an error on either path.
+- Photos permission is add-only (`NSPhotoLibraryAddUsageDescription`): the app can save a card you choose, and asks for no read access to your library.
+- The shared file is named `showup-2026-09-28.png`, not `showup-showup-2026-09-28.png`.
+- **Needs a Mac rebuild** of the iOS app (`npm run sync:ios`, then run from Xcode); an over-the-air update cannot add native code. Until then the iOS app keeps today's sheet.
+- Tests: `test-share-native.js` (17 checks: native, header-only bridge, dismissed, plugin failure, older build, web app, GIF, save-all, non-image, filename); `test-ios-config.py` checks the plugin, its registration and the add-only Photos string.
+
 ## v4.6.153 (2026-09-28) — Less space under the header
 
 - **Asked for:** reduce the gap between the header and the first card (circled on the phone). Chosen from a mock of three: B.

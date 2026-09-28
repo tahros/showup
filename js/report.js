@@ -989,12 +989,11 @@ async function saveAllCards(){
       if(!cv) continue;
       const blob=await new Promise(res=>cv.toBlob(res,'image/png'));
       if(!blob) continue;
-      files.push(new File([blob],'showup-'+String(c.file()).toLowerCase().replace(/[^a-z0-9]+/g,'-')+'.png',{type:'image/png'}));
+      files.push(new File([blob],cardFileName(c.file()),{type:'image/png'}));
     }
     if(!files.length){ toast('Could not draw the cards'); return; }
-    if(navigator.canShare&&navigator.canShare({files})){
-      await navigator.share({files});
-    }else{
+    /* v4.6.154: the iOS app shares them as images (Save Images); see shareImageFiles */
+    if(!(await shareImageFiles(files))){
       // one at a time, or the browser blocks the burst
       for(const f of files){
         const a=document.createElement('a');
@@ -1120,11 +1119,13 @@ document.addEventListener('click',e=>{
       else{const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),60000);}
       return;
     }
-    const name='showup-'+String(_repCv.label).toLowerCase().replace(/[^a-z0-9]+/g,'-')+'.png';
-    _repCv.cv.toBlob(b=>{
+    const name=cardFileName(_repCv.label), cv=_repCv.cv;
+    cv.toBlob(b=>{
       const f=new File([b],name,{type:'image/png'});
-      if(navigator.canShare&&navigator.canShare({files:[f]})) navigator.share({files:[f]}).catch(()=>{});
-      else{ const a=document.createElement('a'); a.href=_repCv.cv.toDataURL('image/png'); a.download=name; a.click(); }
+      /* v4.6.154: as an image in the iOS app (thumbnail + Save Image); web share elsewhere */
+      shareImageFiles([f]).then(how=>{
+        if(!how){ const a=document.createElement('a'); a.href=cv.toDataURL('image/png'); a.download=name; a.click(); }
+      }).catch(()=>{});
     },'image/png');
     return;
   }

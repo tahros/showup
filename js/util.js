@@ -419,6 +419,47 @@ function groundNative(){
     e.innerHTML='<i></i><i></i><i></i><i></i>';document.body.appendChild(e);
   }
 })();
+/* v4.6.154: SHARE AN IMAGE AS AN IMAGE. Inside the iOS app, navigator.share
+   hands a PNG to the share sheet as a generic document: no thumbnail and no
+   "Save Image", only "Save to Files". ShowUpShare (tools/ios-config.py) hands
+   iOS a real UIImage instead, so the sheet shows the card and Save Image comes
+   back. PNG/JPEG only; anything else, the web app, and an iOS build older than
+   the plugin all take the web share exactly as before. Resolves 'native',
+   'web', or null (no share sheet here: the caller downloads). Closing the sheet
+   is not an error on either path. */
+function sharePlugin(){
+  try{
+    if(!NATIVE_SHELL) return null;
+    const cap=window.Capacitor; if(!cap) return null;
+    const has=!!(cap.isPluginAvailable?.('ShowUpShare')||(cap.PluginHeaders||[]).some(h=>h&&h.name==='ShowUpShare')||cap.Plugins?.ShowUpShare);
+    if(!has) return null;
+    const P=cap.Plugins?.ShowUpShare;
+    if(P&&typeof P.shareImages==='function') return P;
+    if(typeof cap.nativePromise==='function') return {shareImages:o=>cap.nativePromise('ShowUpShare','shareImages',o||{})};
+    const R=typeof cap.registerPlugin==='function'?cap.registerPlugin('ShowUpShare'):null;
+    return R&&typeof R.shareImages==='function'?R:null;
+  }catch(e){ return null; }
+}
+const blobB64=b=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).replace(/^data:[^,]*,/,''));r.onerror=()=>rej(r.error);r.readAsDataURL(b);});
+async function shareImageFiles(files){
+  files=(files||[]).filter(Boolean);
+  if(!files.length) return null;
+  const P=sharePlugin();
+  if(P&&files.every(f=>/^image\/(png|jpeg)$/.test(f.type))){
+    try{
+      const images=await Promise.all(files.map(blobB64));
+      await P.shareImages({images});
+      return 'native';
+    }catch(e){ /* the plugin failed before a sheet showed: the web share still can */ }
+  }
+  if(navigator.canShare&&navigator.canShare({files})){
+    try{ await navigator.share({files}); }catch(e){ if(!e||e.name!=='AbortError') throw e; }
+    return 'web';
+  }
+  return null;
+}
+/* "showup-" once: some cards are already named showup-2026-09-28 (v4.6.154) */
+const cardFileName=label=>'showup-'+String(label).toLowerCase().replace(/^showup-/,'').replace(/[^a-z0-9]+/g,'-')+'.png';
 /* weights are always STORED in kg; the unit setting only changes what you see and type */
 const LB=2.20462, MI=0.621371;
 const isLb=()=>DB.settings.unit==='lb';       // 'lb' == imperial, 'kg' == metric

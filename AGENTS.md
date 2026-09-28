@@ -106,6 +106,12 @@ and some of it changes the web build too. Landed and planned:
 - v4.6.143 — ShowUpChrome (done): a third local plugin in tools/ios-config.py.
   applyTheme() -> groundNative() (js/util.js) paints everything native behind
   the page in --ground, so the iOS bounce never shows a different colour.
+- v4.6.154 — share as image (done): a fifth local plugin, ShowUpShare, in
+  tools/ios-config.py. In WKWebView navigator.share hands the sheet a generic
+  document (no Save Image); shareImageFiles() in js/util.js sends PNG/JPEG to
+  the plugin as UIImage instead and falls back to the web share everywhere
+  else. Any NEW image share should go through shareImageFiles. Needs a Mac
+  rebuild; NSPhotoLibraryAddUsageDescription (add-only) is written with it.
 - v4.6.142 — usage metrics + owner dashboard (done; runbook 9.5/9.6, spec
   claude/paywall-and-metrics-spec.md). js/metrics.js (read its header): what
   is counted and the request body, which carries named fields only; the
