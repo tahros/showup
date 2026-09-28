@@ -410,6 +410,15 @@ function groundNative(){
     return hex;
   }catch(e){ _groundNative=null; return null; }
 }
+/* v4.6.151: the edge blur bands (css/app.css, "EDGE BLUR"). Made here, not in
+   index.html, because the shell has an 8 KB budget. Once, at load, after <nav>. */
+(function edgeBlur(){
+  if(document.querySelector('.edgeblur')) return;
+  for(const k of ['top','bot']){
+    const e=document.createElement('div');e.className='edgeblur '+k;e.setAttribute('aria-hidden','true');
+    e.innerHTML='<i></i><i></i><i></i><i></i>';document.body.appendChild(e);
+  }
+})();
 /* weights are always STORED in kg; the unit setting only changes what you see and type */
 const LB=2.20462, MI=0.621371;
 const isLb=()=>DB.settings.unit==='lb';       // 'lb' == imperial, 'kg' == metric

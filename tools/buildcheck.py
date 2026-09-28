@@ -396,6 +396,17 @@ for _rule in _approved_glass:
 if set(_re.findall(r'--header-glass-blur:([^;}]+)',css)) != {'4px','8px'}:
     fail.append('header blur tokens must stay at the approved 10/20 percent (4/8px)')
 _other_glass = _re.sub(_glass_rule, '', css)
+# v4.6.151: the owner approved the edge blur (mock C, 2026-09-28). Allow its
+# four blur layers -- on the ABSOLUTE <i> children, never the fixed band --
+# at exactly 1/3/7/14px, and nothing else. If iOS fixed chrome hangs again,
+# that block is the first suspect (see its comment in css/app.css).
+_edge_rule = r'\.edgeblur i:nth-child\(([1-4])\)\{-webkit-backdrop-filter:blur\((\d+)px\);backdrop-filter:blur\(\2px\)\}'
+_edge = _re.findall(_edge_rule, css)
+if _edge and sorted(_edge) != [('1','1'),('2','3'),('3','7'),('4','14')]:
+    fail.append(f"edge blur layers changed ({_edge}) — approved as exactly 1/3/7/14px (v4.6.151)")
+if _re.search(r'\.edgeblur(?:\.\w+)?\{[^}]*backdrop-filter', css):
+    fail.append("the fixed .edgeblur band declares backdrop-filter itself — the blur must stay on its absolute children (v4.6.151, v3.3.245)")
+_other_glass = _re.sub(_edge_rule, '', _other_glass)
 if _re.search(r"(^|\n)\s*(-webkit-)?backdrop-filter:\s*blur", _other_glass):
     fail.append("backdrop-filter is back — it sits on fixed chrome and is the standing suspect for fixed positioning failing page-wide on iOS (v3.3.497)")
 if _re.search(r'data-skin="minimal"\]\s*nav\{[^}]*overflow:hidden', css):

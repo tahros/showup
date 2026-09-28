@@ -4235,3 +4235,38 @@ html body #nav #gearBtn:not(.on){background:transparent;box-shadow:none}
 .btn.apple-btn{display:flex;align-items:center;justify-content:center;gap:8px;margin:0 0 10px;background:#000;color:#fff;border-color:#000}
 [data-theme="dark"] .btn.apple-btn{background:#fff;color:#000;border-color:#fff}
 .apple-btn .apple-glyph{font:500 19px -apple-system,system-ui,sans-serif;line-height:1;margin-top:-2px}
+
+/* v4.6.151: EDGE BLUR. A progressive Gaussian blur above the header and below
+   the tab bar, so content fades out of focus as it slides under the chrome
+   instead of reading sharp through it. Four stacked layers, each blurrier and
+   masked closer to the screen edge (1/3/7/14px), plus a light ground wash on
+   the outermost. The bands sit under the header (z 20) and the nav (z 30) and
+   take no taps.
+   Built around the chrome lessons above: the fixed band paints nothing and
+   declares no backdrop-filter itself (v3.3.245 -- Safari samples those on
+   fixed elements); the blur lives on absolute children. This IS the first
+   backdrop-filter near fixed chrome since v3.3.497 took the nav's off, owner-
+   approved as C in the 2026-09-28 mock with a device test to follow: if the
+   header, nav or "top" button hang on scroll on iOS again, this block is the
+   first suspect -- delete it (and the two divs in index.html) to go back.
+   buildcheck allows exactly these four blur values here and nowhere else. */
+.edgeblur{position:fixed;left:0;right:0;z-index:19;pointer-events:none;-webkit-user-select:none;user-select:none}
+.edgeblur.top{top:0;height:calc(env(safe-area-inset-top,0px) + 98px)}
+.edgeblur.bot{bottom:0;height:calc(env(safe-area-inset-bottom,0px) + 90px)}
+.edgeblur i{position:absolute;inset:0}
+.edgeblur.top i{--eb-dir:0deg}
+.edgeblur.bot i{--eb-dir:180deg}
+.edgeblur i:nth-child(1){-webkit-mask:linear-gradient(var(--eb-dir),transparent 0%,#000 25%);mask:linear-gradient(var(--eb-dir),transparent 0%,#000 25%)}
+.edgeblur i:nth-child(2){-webkit-mask:linear-gradient(var(--eb-dir),transparent 20%,#000 50%);mask:linear-gradient(var(--eb-dir),transparent 20%,#000 50%)}
+.edgeblur i:nth-child(3){-webkit-mask:linear-gradient(var(--eb-dir),transparent 45%,#000 75%);mask:linear-gradient(var(--eb-dir),transparent 45%,#000 75%)}
+.edgeblur i:nth-child(4){-webkit-mask:linear-gradient(var(--eb-dir),transparent 70%,#000 100%);mask:linear-gradient(var(--eb-dir),transparent 70%,#000 100%);
+  background:linear-gradient(calc(var(--eb-dir) + 180deg),color-mix(in srgb,var(--ground) 45%,transparent),transparent)}
+@supports ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+.edgeblur i:nth-child(1){-webkit-backdrop-filter:blur(1px);backdrop-filter:blur(1px)}
+.edgeblur i:nth-child(2){-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+.edgeblur i:nth-child(3){-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px)}
+.edgeblur i:nth-child(4){-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+}
+/* Retro is flat by design (no glass anywhere), and reduced transparency means none. */
+:root[data-appearance="retro"] .edgeblur{display:none}
+@media(prefers-reduced-transparency:reduce){.edgeblur{display:none}}

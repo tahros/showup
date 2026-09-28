@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v4.6.151 (2026-09-28) — Edge blur above the header and below the tab bar
+
+- **Asked for:** a natural Gaussian blur at the top and bottom of the screen, above the top bar and below the tab bar. Chosen from a mock of three (today / soft fade / blur) as C.
+- Content now goes out of focus as it slides under the header and the tab bar instead of reading sharp through them. The blur builds in four steps (1, 3, 7, 14px) toward the screen edge, with a light wash of the page colour at the outermost edge. Each band covers its bar plus 22px, sits under it, and takes no taps.
+- Off in Retro (flat by design) and under Reduce Transparency.
+- **Device test needed:** this is the first backdrop blur near the fixed chrome since v3.3.497 took the tab bar's off, when the header, tab bar and "top" button hung on scroll on iOS. The blur sits on absolute children, never on the fixed band itself. If the bars hang again, remove the EDGE BLUR block in css/app.css and `edgeBlur()` in js/util.js.
+- buildcheck allows exactly these four blur layers and still blocks backdrop-filter everywhere else. The bands are created in js/util.js because index.html is at its 8 KB budget.
+- Tests: `tools/check-edge-blur.cjs` (Chromium): light and dark at 320/393/430px, and Retro.
+
 ## v4.6.150 (2026-09-28) — Choose the body parts for a planned day
 
 - **Asked for:** while editing a day the planner wrote, choose which body parts that day trains.
