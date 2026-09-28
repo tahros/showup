@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v4.6.150 (2026-09-28) — Choose the body parts for a planned day
+
+- **Asked for:** while editing a day the planner wrote, choose which body parts that day trains.
+- The Edit page has a **Body parts** row under the day tabs: one chip per part you train, plus Run, with the day's current parts selected. Tapping chips changes the choice only; the exercises stay until you decide. The day tab follows at once.
+- A different choice lights **Regenerate** and the line under it says "Back + Biceps · Regenerate to rebuild this day". Regenerate rewrites that day for those parts, with your set range and avoid list, and keeps what you locked. A set target changed at the same time is applied in the same pass.
+- Fit, not reject: an exercise the writer adds for a part you did not choose comes out, and the day's Checks say so. If that would leave nothing, the writer's day is kept as written, with a note. All chips off means the writer picks, as before.
+- Tests: `test-planner-flow.js` +12 checks; `tools/check-body-parts.cjs` (Chromium): light and dark at 320/393/430px.
+
 ## v4.6.149 (2026-09-28) — "↑ top" sits above the tab bar again
 
 - **Found on the phone:** mid-run, scrolled down in Train, the "↑ top" button rose to the top right beside the red header. It measured its height from the live workout bar, which now lives inside the floating header at the top of the screen, so "above the live bar" meant the top of the screen.

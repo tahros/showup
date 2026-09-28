@@ -171,6 +171,23 @@ run(`pfHandle('pf-prefs-save',{dataset:{}});pw().dates=['2026-09-16'];pw().activ
    pwOpen(null,'dates');`);
  test('...and with today already complete it offers tomorrow, not today',
       `pw().active==='2026-09-19'`);
+ /* v4.6.150: choose the day's body parts on the Edit page */
+ run(`DB.settings.plannerPreferences={...pfPrefs(),mode:'sets',minSets:1,maxSets:100,avoid:[]};var BD='2026-10-06';if(!pw().dates.includes(BD))pw().dates.push(BD);pw().active=BD;var bd=pwDay(BD);bd.rows=pwRead('Dumbbell Shoulder Press\\n35 lb × 8 8 8\\nLateral Raise\\n15 lb × 15 15 15');bd.parts=pwParts(bd.rows);bd.locks=[];delete bd.partsPick;bd.target=null;pfNavigate('edit');`);
+ test('the Edit page shows a Body parts row with the day\'s parts selected and nothing pending',`(()=>{const h=pfDayBodyHTML(),d=document.createElement('div');d.innerHTML=h;const on=[...d.querySelectorAll('[data-pw="pf-part"][aria-pressed="true"]')].map(x=>x.dataset.part);return /Body parts/.test(h)&&on.join()==='Shoulder'&&d.querySelectorAll('[data-pw="pf-part"]').length>=2&&!d.querySelector('.pf-target-pending');})()`);
+ run(`pfHandle('pf-part',{dataset:{part:'Shoulder'}});pfHandle('pf-part',{dataset:{part:'Back'}});pfHandle('pf-part',{dataset:{part:'Biceps'}});`);
+ test('tapping chips changes the choice, not the exercises',`pwDay(BD).parts.join()==='Back,Biceps'&&pwDay(BD).partsPick===true&&pwExercises(pwDay(BD).rows).length===2`);
+ test('a different choice lights Regenerate and says what it will do',`(()=>{const d=document.createElement('div');d.innerHTML=pfDayBodyHTML();return !!d.querySelector('[data-pw="pf-regenerate"].pf-target-pending')&&/Back \\+ Biceps · Regenerate to rebuild this day/.test(d.querySelector('.pf-target-hint').textContent);})()`);
+ test('the day tab shows the chosen part at once',`/<u>Back<\\/u>/.test(pfWeekStrip())`);
+ test('the writer is asked for the chosen parts',`JSON.stringify(pwPayload([BD]).skeleton[0].due)==='["Back","Biceps"]'`);
+ test('an exercise for a part you did not choose comes out of the writer\'s day',`(()=>{const c={type:'generate',days:{[BD]:{rows:pwRead('Lat Pulldown\\n120 lb × 10 10 10\\nLateral Raise\\n15 lb × 15 15\\nEZ Bar Curl\\n55 lb × 12 12 12'),notes:[]}}};pfValidateCandidate(c,[BD]);const r=c.days[BD];return r.rows.map(x=>x.ex).join()==='Lat Pulldown,EZ Bar Curl'&&r.notes.some(n=>/Removed Lateral Raise: not in Back \\+ Biceps/.test(n));})()`);
+ test('...but an exercise you locked stays',`(()=>{pwDay(BD).locks=[1];const c={type:'generate',days:{[BD]:{rows:pwRead('Lat Pulldown\\n120 lb × 10 10 10\\nLateral Raise\\n15 lb × 15 15'),notes:[]}}};pfValidateCandidate(c,[BD]);pwDay(BD).locks=[];return c.days[BD].rows.some(x=>x.ex==='Lateral Raise');})()`);
+ test('if nothing would be left, the writer\'s day is kept (fit, not reject)',`(()=>{const c={type:'generate',days:{[BD]:{rows:pwRead('Lateral Raise\\n15 lb × 15 15'),notes:[]}}};pfValidateCandidate(c,[BD]);return c.days[BD].rows.length===1&&c.days[BD].notes.some(n=>/did not write for Back \\+ Biceps/.test(n));})()`);
+ test('with nothing chosen by you, the writer\'s parts are left alone',`(()=>{const b=pwDay(BD),keep=b.partsPick;delete b.partsPick;const c={type:'generate',days:{[BD]:{rows:pwRead('Lat Pulldown\\n120 lb × 10 10\\nLateral Raise\\n15 lb × 15 15'),notes:[]}}};pfValidateCandidate(c,[BD]);b.partsPick=keep;return c.days[BD].rows.length===2;})()`);
+ test('parts and a new set target together: one Regenerate applies both',`(()=>{pwDay(BD).target=8;const c={type:'generate',days:{[BD]:{rows:pwRead('Lat Pulldown\\n120 lb × 10 10 10\\nEZ Bar Curl\\n55 lb × 12 12 12'),notes:[]}}};pfValidateCandidate(c,[BD]);pwDay(BD).target=null;return pwSetCount(c.days[BD].rows)===8&&c.days[BD].rows.length===2;})()`);
+ run(`pfHandle('pf-part',{dataset:{part:'Back'}});pfHandle('pf-part',{dataset:{part:'Biceps'}});`);
+ test('all chips off: the writer picks, and the line says so',`(()=>{const d=document.createElement('div');d.innerHTML=pfDayBodyHTML();return pwDay(BD).parts.length===0&&/No parts chosen: the writer picks/.test(d.querySelector('.pf-target-hint').textContent)&&pwPayload([BD]).skeleton[0].due.length>0;})()`);
+ run(`pw().candidate={type:'generate',days:{[BD]:{rows:pwRead('Lat Pulldown\\n120 lb × 10 10'),notes:[]}}};pwApply();`);
+ test('once the new day lands, the chips follow it and nothing is pending',`pwDay(BD).parts.join()==='Back'&&!pwDay(BD).partsPick&&!pfPartsPending(pwDay(BD))`);
  run(`DB.days={};SEED=deriveAll();`);
 
  console.log(checks+' planner journey checks passed');dom.window.close();process.exit(0);

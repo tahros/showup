@@ -430,7 +430,7 @@ function pwApply(add=false){
     if(c.index!==undefined){dst.rows.splice(c.index,1,...pwCopy(b.rows));dst.locks=dst.locks.filter(i=>i!==c.index).map(i=>i>c.index?i+b.rows.length-1:i);b.rows.forEach((r,i)=>{if(r.kind==='ex')dst.locks.push(c.index+i);});}
     else if(add)dst.rows.push(...pwCopy(b.rows));
     else{dst.rows=pwCopy(b.rows);dst.locks=c.type==='paste'?[]:dst.locks;}
-    dst.cleared=false;dst.parts=pwParts(dst.rows);dst.source=c.type==='paste'?'Your routine · not rewritten':c.type==='adjust'?'Writer-adjusted set count':'Written from your training';dst.notes=b.notes||[];
+    dst.cleared=false;dst.parts=pwParts(dst.rows);delete dst.partsPick;dst.source=c.type==='paste'?'Your routine · not rewritten':c.type==='adjust'?'Writer-adjusted set count':'Written from your training';dst.notes=b.notes||[];
   }s.candidate=null;s.setupOpen=false;pwGo('edit');
 }
 function pwValidateAdjustment(rows,day){

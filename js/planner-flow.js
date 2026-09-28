@@ -316,8 +316,15 @@ function pfDirty(d){const b=pw().book?.[d];return !!b&&(b.source!=='Saved plan'|
 function pfDirtyDates(){return pfDates().filter(pfDirty);}
 function pfWeekStrip(){const s=pw();return `<div class="pf-strip" role="tablist" aria-label="Planned days">${pfDates().map(d=>{const b=pwDay(d),part=(b.parts.length?b.parts:pwParts(b.rows))[0]||'\u2014',on=d===s.active,dirty=pfDirty(d);return pwButton('pf-pick-day',`<b>${hesc(new Date(d+'T12:00').toLocaleDateString('en-US',{weekday:'short'}))}</b><s>${hesc(pfMD(d))}</s><u>${hesc(part)}</u>${dirty?'<em class="pf-dot" aria-hidden="true"></em>':''}`,'pf-chip'+(on?' selected':'')+(dirty?' pf-edited':''),`data-date="${d}" role="tab" aria-selected="${on}" aria-label="${hesc(pfShort(d))}${dirty?', unsaved changes':''}"`);}).join('')}</div>`;}
 function pfDayHTML(){return pfWeekStrip()+`<div class="pf-day-body">${pfDayBodyHTML()}</div>`;}
-function pfDayBodyHTML(){const s=pw(),b=pwDay(s.active),j=pfState(),total=pwSetCount(b.rows),changed=b.target!=null&&b.target!==total;
- return `<div class="pf-routine-controls"><div class="pf-total"><span>Set target</span><div class="pw-stepper">${pwButton('pf-minus','\u2212','','aria-label="Decrease total sets"'+(!b.rows.length?' disabled':''))}<output class="${changed?'pf-changed':''}">${b.target??total}</output>${pwButton('pf-plus','+','','aria-label="Increase total sets"'+(!b.rows.length?' disabled':''))}</div></div><div class="pf-tools">${pwAction('pf-regenerate','Regenerate','sparkle','pf-quiet-regenerate'+(changed?' pf-beam pf-target-pending':''))}${pwButton('paste',icon('paste',ICON_SZ.sm),'pw-icon pf-tool','aria-label="Paste a routine" title="Paste"')}${pwButton('pf-clear',icon('clear',ICON_SZ.sm),'pw-icon pf-tool','aria-label="Clear this day" title="Clear"')}</div></div><p class="pf-target-hint" role="status">${changed?total+' current \u2192 '+b.target+' target \u00b7 Regenerate to apply':total+' sets \u00b7 '+pwExercises(b.rows).length+' exercises'}</p><div class="card pf-routine-card">${b.rows.length?pfEditRows():'<p>No exercises yet.</p>'}</div><div class="pf-add-summary">${pwButton('add',icon('clear',ICON_SZ.sm,45)+' Add exercise','pf-add-button')}</div>${b.undo&&!b.strip?pwButton('undo','Undo','pw-text'):''}`;
+/* body parts for the day you are editing: the chips show what the day trains;
+   choosing different ones marks Regenerate, which rewrites the day for them */
+function pfPartList(){return Object.keys(SEED.catalog).filter(x=>x==='Run'||myPartsSet().has(x));}
+function pfPartsSel(b){return b.partsPick||b.parts.length?b.parts:pwParts(b.rows);}
+function pfPartsPending(b){return !!b.partsPick&&b.parts.slice().sort().join()!==pwParts(b.rows).slice().sort().join();}
+function pfPartsHTML(b){const sel=pfPartsSel(b);
+ return `<div class="pf-parts" role="group" aria-labelledby="pfPartsLabel"><span class="pf-parts-label" id="pfPartsLabel">Body parts</span><div class="pf-parts-chips">${pfPartList().map(x=>pwButton('pf-part',hesc(x),'pf-part'+(sel.includes(x)?' selected':''),`data-part="${hesc(x)}" aria-pressed="${sel.includes(x)}"`)).join('')}</div></div>`;}
+function pfDayBodyHTML(){const s=pw(),b=pwDay(s.active),j=pfState(),total=pwSetCount(b.rows),changed=b.target!=null&&b.target!==total,parts=pfPartsPending(b);
+ return pfPartsHTML(b)+`<div class="pf-routine-controls"><div class="pf-total"><span>Set target</span><div class="pw-stepper">${pwButton('pf-minus','\u2212','','aria-label="Decrease total sets"'+(!b.rows.length?' disabled':''))}<output class="${changed?'pf-changed':''}">${b.target??total}</output>${pwButton('pf-plus','+','','aria-label="Increase total sets"'+(!b.rows.length?' disabled':''))}</div></div><div class="pf-tools">${pwAction('pf-regenerate','Regenerate','sparkle','pf-quiet-regenerate'+(changed||parts?' pf-beam pf-target-pending':''))}${pwButton('paste',icon('paste',ICON_SZ.sm),'pw-icon pf-tool','aria-label="Paste a routine" title="Paste"')}${pwButton('pf-clear',icon('clear',ICON_SZ.sm),'pw-icon pf-tool','aria-label="Clear this day" title="Clear"')}</div></div><p class="pf-target-hint" role="status">${parts?(b.parts.length?hesc(b.parts.join(' + ')):'No parts chosen: the writer picks')+(changed?' \u00b7 '+b.target+' sets':'')+' \u00b7 Regenerate to rebuild this day':changed?total+' current \u2192 '+b.target+' target \u00b7 Regenerate to apply':total+' sets \u00b7 '+pwExercises(b.rows).length+' exercises'}</p><div class="card pf-routine-card">${b.rows.length?pfEditRows():'<p>No exercises yet.</p>'}</div><div class="pf-add-summary">${pwButton('add',icon('clear',ICON_SZ.sm,45)+' Add exercise','pf-add-button')}</div>${b.undo&&!b.strip?pwButton('undo','Undo','pw-text'):''}`;
 }
 /* v4.6.77: PICKING A DAY IS NOT A NAVIGATION. Every chip tap ran pfNavigate,
    which rebuilt the whole workspace, played the 'arrive' motion -- the page
@@ -371,6 +378,19 @@ function pfValidateCandidate(candidate,dates){
   const avoided=day.rows.filter(r=>p.avoid.some(ex=>ex.trim().toLowerCase()===String(r.ex||'').trim().toLowerCase()));
   /* v4.6.147: an avoided exercise comes out of the day; the rest of the plan stays */
   if(avoided.length){day.rows=day.rows.filter(r=>!avoided.includes(r));(day.notes=day.notes||[]).push('Removed '+avoided.map(r=>r.ex).join(', ')+': on your avoid list.');}
+  /* v4.6.150: body parts you chose on the Edit page are the day. An exercise
+     the writer added for another part comes out (yours locked stay); if that
+     would leave nothing, the writer's day is kept and the Checks say so. */
+  const src=pwDay(date);
+  if(candidate.type!=='adjust'&&candidate.type!=='paste'&&src.partsPick&&src.parts.length){
+   const keep=new Set((src.locks||[]).map(i=>src.rows[i]?.ex).filter(Boolean)),
+     off=day.rows.filter(r=>r.kind==='ex'&&!keep.has(r.ex)&&homePartOf(r.ex)&&!src.parts.includes(homePartOf(r.ex)));
+   if(off.length&&pwSetCount(day.rows.filter(r=>!off.includes(r)))){day.rows=day.rows.filter(r=>!off.includes(r));(day.notes=day.notes||[]).push('Removed '+off.map(r=>r.ex).join(', ')+': not in '+src.parts.join(' + ')+'.');}
+   else if(off.length)(day.notes=day.notes||[]).push('The writer did not write for '+src.parts.join(' + ')+'; its day is shown as written.');
+
+   /* a set target changed alongside the parts: one Regenerate applies both */
+   if(src.target!=null&&pwSetCount(day.rows)!==src.target){const fit=pfFitSets(day.rows,src.target,src.target,(src.locks||[]).map(i=>pwText([src.rows[i]])));day.rows=fit.rows;(day.notes=day.notes||[]).push('Set count fitted to your target: '+fit.from+' → '+fit.to+' sets'+(fit.dropped.length?' (removed '+fit.dropped.join(', ')+')':'')+'.');}
+  }
   const total=pwSetCount(day.rows);
   if(!total){delete candidate.days[date];continue;}
   if(candidate.type!=='adjust'&&p.mode==='sets'&&(total<p.minSets||total>p.maxSets)){
@@ -455,10 +475,11 @@ function pfHandle(a,el){const s=pw(),j=pfState(),d=el.dataset.date,i=+el.dataset
  else if(['pf-chip','pf-add-rep','pf-del-line','pf-add-line','pf-remove-ex'].includes(a)){if(!b)return;pfRoutineHandle(a,el,b,j);}
  else if(a==='pf-clear'){j.clear=true;}
  else if(a==='pf-clear-cancel'){j.clear=false;j.emptyConfirm=false;}
- else if(a==='pf-empty-day'){pwUndoPoint(b);b.rows=[];b.parts=[];b.locks=[];b.target=null;b.cleared=true;b.source='Your draft';j.clear=false;}
+ else if(a==='pf-empty-day'){pwUndoPoint(b);b.rows=[];b.parts=[];delete b.partsPick;b.locks=[];b.target=null;b.cleared=true;b.source='Your draft';j.clear=false;}
  else if(a==='pf-remove-day'){j.removed.push({date:s.active,base:b.base});s.dates=s.dates.filter(x=>x!==s.active);j.anchor=j.anchor.filter(x=>x!==s.active);s.active=s.dates[0]||null;pfNavigate('days');return;}
  else if(a==='pf-plus'||a==='pf-minus'){const total=pwSetCount(b.rows),limit=pwSetLimits(b);b.target=Math.max(limit.min,Math.min(limit.max,(b.target??total)+(a==='pf-plus'?1:-1)));if(b.target===total)b.target=null;}
- else if(a==='pf-regenerate'){pwGenerate(b.target!=null&&b.target!==pwSetCount(b.rows),true);return;}
+ else if(a==='pf-part'){const p=el.dataset.part,cur=pfPartsSel(b);b.parts=cur.includes(p)?cur.filter(v=>v!==p):[...cur,p];b.partsPick=true;}
+ else if(a==='pf-regenerate'){pwGenerate(!pfPartsPending(b)&&b.target!=null&&b.target!==pwSetCount(b.rows),true);return;}
  else if(a==='pf-save'||a==='pf-confirm-save'){pfSave(a==='pf-confirm-save');return;}
  pwPersist();pwRender();
 }
