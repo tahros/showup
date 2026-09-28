@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.152 (2026-09-28) — Header and tab bar closer to the screen edges
+
+- **Asked for:** less space between the screen edges and the top bar and tab bar, like Threads. Chosen from a mock of four at iPhone 17 Pro size: C at the top, D at the bottom.
+- On an iPhone 17 Pro the header now starts 58pt from the top (was 74), 10pt under the Dynamic Island. The tab bar ends 22pt from the bottom (was 44), clear of the home indicator, and sits 20pt from the sides (was 24).
+- Two tokens, `--bar-top` and `--bar-bot` (css/app.css), set both distances. The page content, the red workout bar, the "top" button and the edge blur bands all follow them. On screens with no safe area (desktop browsers, home-button iPhones) the old 12/10px floors apply, so neither bar goes off-screen.
+- Tests: `test-rest.js` now expects the tab bar 20px in.
+
 ## v4.6.151 (2026-09-28) — Edge blur above the header and below the tab bar
 
 - **Asked for:** a natural Gaussian blur at the top and bottom of the screen, above the top bar and below the tab bar. Chosen from a mock of three (today / soft fade / blur) as C.

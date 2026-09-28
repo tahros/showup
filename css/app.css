@@ -2157,7 +2157,7 @@
      it never sits over the content you're reading, and hidden via [hidden]
      so a single boolean drives it. */
   .calreturn{position:fixed;right:14px;
-    bottom:calc(64px + env(safe-area-inset-bottom,0px) + 10px);z-index:60;
+    bottom:calc(var(--bar-bot) + 64px);z-index:60;   /* v4.6.152: 6px above the tab bar, wherever it sits */
     font-family:var(--mono);font-size:12px;letter-spacing:var(--track-label);
     background:var(--accent);color:#fff;border:0;border-radius:999px;
     padding:9px 15px;box-shadow:0 4px 14px rgba(0,0,0,.22);cursor:pointer;
@@ -3498,7 +3498,7 @@
      bar's own box-shadow moves to the glass layer below so the lighting and
      the surface are one object. */
   :root[data-skin="minimal"] nav{
-    left:24px;right:24px;bottom:calc(10px + env(safe-area-inset-bottom,0px));
+    left:20px;right:20px;bottom:var(--bar-bot);   /* v4.6.152: 20px in, like Threads (was 24) */
     max-width:472px;border-top:0;border-radius:26px;background:var(--pill);
     padding:0 8px;box-shadow:var(--pill-shadow);
     -webkit-backdrop-filter:none;backdrop-filter:none}
@@ -4063,8 +4063,8 @@
   bottom:calc(58px + env(safe-area-inset-bottom, 0px) + 10px);
   animation:live-workout-breathe 4.2s ease-in-out infinite}
 /* the minimal skin floats its nav 10px off the floor and narrows it to 472px */
-:root[data-skin="minimal"] #liveWorkoutBar{width:min(472px,calc(100% - 48px));
-  bottom:calc(58px + 10px + env(safe-area-inset-bottom, 0px) + 10px)}
+:root[data-skin="minimal"] #liveWorkoutBar{width:min(472px,calc(100% - 40px));
+  bottom:calc(var(--bar-bot) + 58px + 10px)}
 #liveWorkoutBar[hidden]{display:none}
 #liveWorkoutBar button{font-family:var(--body);border:0;margin:0;cursor:pointer;min-height:44px}
 #liveWorkoutResume{flex:1;min-width:0;text-align:left;padding:0;background:none;color:var(--live-bar-ink)}
@@ -4084,7 +4084,7 @@
    cascade to `:root[data-skin="minimal"] #liveWorkoutBar` (1,2,0 beats 1,1,0),
    so the capsule the mock showed shipped as a full-width bar. Stated at the
    skin's own specificity, for both skins. */
-#liveWorkoutBar.folded,:root[data-skin="minimal"] #liveWorkoutBar.folded{width:fit-content;max-width:calc(100% - 48px);padding:0 16px;gap:9px;
+#liveWorkoutBar.folded,:root[data-skin="minimal"] #liveWorkoutBar.folded{width:fit-content;max-width:calc(100% - 40px);padding:0 16px;gap:9px;
   animation-name:live-workout-breathe-sm}
 #liveWorkoutBar.folded #liveWorkoutResume{flex:0 0 auto;display:flex;align-items:center;gap:9px}
 #liveWorkoutBar.folded .live-workout-title{gap:9px}
@@ -4146,6 +4146,14 @@
   --chrome-material:linear-gradient(180deg,rgba(255,255,255,.97) 0%,rgba(251,251,251,.94) 15%,rgba(241,241,241,.95) 48%,rgba(230,230,230,.94) 78%,rgba(192,192,192,.48) 100%);
   --chrome-shadow:inset 0 1px 0 #fff,inset 0 0 0 .5px rgba(255,255,255,.79),inset 0 -1px 0 rgba(0,0,0,.19),inset 0 9px 12px -10px #fff,0 10px 30px rgba(0,0,0,.20),0 1px 2px rgba(0,0,0,.08);
   --chrome-ink:#181818;--live-workout-extra:0px;
+  /* v4.6.152: how far the floating bars sit from the screen edges. Tighter, like
+     Threads: the header 4px INTO the top safe area (10pt under the Dynamic
+     Island), the tab bar 12px into the bottom one (22pt off the screen edge,
+     clear of the home indicator). Floors keep the old 12/10px on screens with
+     no safe area (desktop, home-button iPhones), where "into" would be off-screen.
+     Everything that sits against a bar reads these two tokens. */
+  --bar-top:max(12px,calc(env(safe-area-inset-top,0px) - 4px));
+  --bar-bot:max(10px,calc(env(safe-area-inset-bottom,0px) - 12px));
 }
 :root[data-bar="dark"]{
   --chrome-material:linear-gradient(180deg,rgba(78,78,78,.98) 0%,rgba(46,46,46,.98) 15%,rgba(29,29,29,.94) 48%,rgba(21,21,21,.82) 100%);
@@ -4169,7 +4177,7 @@ html body #nav::before{background:var(--chrome-material);box-shadow:var(--chrome
    so on the silver header of dark theme + light bar it was white on silver. */
 html body #app header:not(.live) .streak:not(.restchip){color:var(--chrome-ink)}
 html body #app header{
-  top:calc(12px + env(safe-area-inset-top,0px));left:18px;right:18px;width:auto;max-width:484px;
+  top:var(--bar-top);left:18px;right:18px;width:auto;max-width:484px;
   min-height:64px;height:auto;margin:auto;padding:10px 12px 10px 8px;gap:8px;border-radius:24px;
   background:transparent;box-shadow:none;border:0;color:var(--chrome-ink);
 }
@@ -4251,8 +4259,8 @@ html body #nav #gearBtn:not(.on){background:transparent;box-shadow:none}
    first suspect -- delete it (and the two divs in index.html) to go back.
    buildcheck allows exactly these four blur values here and nowhere else. */
 .edgeblur{position:fixed;left:0;right:0;z-index:19;pointer-events:none;-webkit-user-select:none;user-select:none}
-.edgeblur.top{top:0;height:calc(env(safe-area-inset-top,0px) + 98px)}
-.edgeblur.bot{bottom:0;height:calc(env(safe-area-inset-bottom,0px) + 90px)}
+.edgeblur.top{top:0;height:calc(var(--bar-top) + 86px)}   /* header 64 + 22 */
+.edgeblur.bot{bottom:0;height:calc(var(--bar-bot) + 80px)}   /* tab bar 58 + 22 */
 .edgeblur i{position:absolute;inset:0}
 .edgeblur.top i{--eb-dir:0deg}
 .edgeblur.bot i{--eb-dir:180deg}

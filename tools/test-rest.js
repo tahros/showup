@@ -818,8 +818,8 @@ ok("the status-bar style no longer puts content under the status bar",
   ok("...no colour in the light: every lighting term is white or black", !/--pill-shadow:[^;]*rgba\((?!255,255,255|0,0,0|22,26,40)/.test(cssN));
   ok("...and the active tab is a glass bead: its own top highlight and a whisper of drop",
      /nav button\.on\{box-shadow:inset 0 1px 0 color-mix\(in srgb,#fff 70%,var\(--pill\)\),0 1px 3px/.test(cssN));
-  ok("the bar is narrower and its tabs closer (24px in, 2px between)",
-     /:root\[data-skin="minimal"\] nav\{\s*left:24px;right:24px;/.test(cssN) && /:root\[data-skin="minimal"\] nav button\{margin:5px 2px\}/.test(cssN));
+  ok("the bar is narrower and its tabs closer (20px in since v4.6.152, 2px between)",
+     /:root\[data-skin="minimal"\] nav\{\s*left:20px;right:20px;/.test(cssN) && /:root\[data-skin="minimal"\] nav button\{margin:5px 2px\}/.test(cssN));
   ok("...and the pseudo-element carries no transform of its own (the reason it works)",
      !/nav::before\{[^}]*transform/.test(cssN));
   /* v3.3.465: NOTHING ON THE NAV MAY MAKE IT A BACKDROP ROOT, or its glass
