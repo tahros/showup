@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.148 (2026-09-28) — One line for the days ahead
+
+- **Found on the phone:** Today showed "Tomorrow · Tue, Sep 29 / Back" and, under it, "2 more planned days": two lines about days that are not today. And inside the fold, the days sat crammed together.
+- Two or more planned days ahead now fold into ONE line: "3 planned days" on the left, the next day on the right ("Tomorrow · Back"), clipped rather than wrapped. It opens to every day, tomorrow first, and remembers whether you left it open. A single day ahead keeps its own row, as before.
+- Inside the fold each day gets the same room as that single row (18px above and below, a hairline between) and the same left inset as the line itself.
+- `tools/test-progress-home.js` updated to the single line.
+
 ## v4.6.147 (2026-09-28) — The writer's answer is fitted, not thrown away
 
 - **Found on the phone:** planning Sep 28 – Oct 2 in "Total sets" mode (15–25), the writer returned Tue 9/29 outside the range, and the whole draft was discarded: "Tue, 9/29 is outside your 15–25 set range. Your draft is unchanged." Nothing came back for any of the five days.

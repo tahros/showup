@@ -34,7 +34,13 @@
 .today-focus-tools button{width:auto;margin:0}
 #view .today-focus .today-focus-rest.btn{display:block;margin:10px 0 0;width:100%;min-height:52px;padding:14px 18px;border:1px solid var(--line);border-radius:16px;background:var(--surface);box-shadow:0 2px 4px #00000003;color:var(--chalk);font-weight:500}
 .today-focus-more{border-bottom:1px solid var(--line);font:400 13px var(--body);color:var(--muted);margin:8px 0}
-.today-focus-more>summary{padding:14px 4px;cursor:pointer;min-height:44px}
+.today-focus-more>summary{padding:18px 4px;cursor:pointer;min-height:44px}
+/* v4.6.148: the one future line -- the count, then the next day, quiet, clipped rather than wrapped */
+.today-focus-more>summary .tfm-count{font:500 14px var(--body);color:var(--chalk);white-space:nowrap}
+.today-focus-more>summary .tfm-next{flex:1;min-width:0;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted)}
+/* the days inside get the same air as the single upcoming row, and the same inset */
+.today-focus-more .pw-later-day{background:transparent;border-top:1px solid var(--line)}
+.today-focus-more .pw-later-day>summary{padding:18px 4px}
 .today-focus-upcoming .pw-later-day{background:transparent;border-bottom:1px solid var(--line)}
 .today-focus-upcoming .pw-later-day>summary{padding:20px 4px}
 .today-focus-upcoming .pw-plan-totals{display:none}
