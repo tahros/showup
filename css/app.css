@@ -285,7 +285,7 @@
     /* v3.3.243: reserved height for the fixed header. Defined here so the
        first paint is right before JS measures; syncHeaderHeight() then
        overwrites it on documentElement with the real px. */
-    --hdr-h:calc(67px + env(safe-area-inset-top,0px));
+    --hdr-h:calc(64px + max(12px,calc(env(safe-area-inset-top,0px) - 4px)));   /* v4.6.152: = --bar-top + the 64px header */
     --body:'IBM Plex Sans',system-ui,sans-serif;
     --mono:'IBM Plex Mono',ui-monospace,monospace;
   }
@@ -4259,7 +4259,7 @@ html body #nav #gearBtn:not(.on){background:transparent;box-shadow:none}
    first suspect -- delete it (and the two divs in index.html) to go back.
    buildcheck allows exactly these four blur values here and nowhere else. */
 .edgeblur{position:fixed;left:0;right:0;z-index:19;pointer-events:none;-webkit-user-select:none;user-select:none}
-.edgeblur.top{top:0;height:calc(var(--bar-top) + 86px)}   /* header 64 + 22 */
+.edgeblur.top{top:0;height:calc(var(--bar-top) + 82px)}   /* header 64 + the 18px gap, so the first card stays sharp at rest */
 .edgeblur.bot{bottom:0;height:calc(var(--bar-bot) + 80px)}   /* tab bar 58 + 22 */
 .edgeblur i{position:absolute;inset:0}
 .edgeblur.top i{--eb-dir:0deg}

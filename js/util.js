@@ -2499,7 +2499,9 @@ function syncHeaderHeight(){
   const h=document.querySelector('header');
   if(!h) return;
   const rect=h.getBoundingClientRect();
-  const px=Math.round(rect.height+Math.max(0,rect.top)+22);
+  /* v4.6.152: no extra reserve under the header (was +22). main's own 18px top
+     padding is the whole gap now, the same as the side margins. */
+  const px=Math.round(rect.height+Math.max(0,rect.top));
   if(px>0) document.documentElement.style.setProperty('--hdr-h',px+'px');
 }
 let _hdrRO=null;

@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.153 (2026-09-28) — Less space under the header
+
+- **Asked for:** reduce the gap between the header and the first card (circled on the phone). Chosen from a mock of three: B.
+- The gap is 18pt (was 40), the same as the side margins, so the first card sits the same distance from the header as from the screen's edges. On every tab.
+- `syncHeaderHeight()` no longer adds 22px under the header; main's own 18px top padding is the whole gap. The first-paint `--hdr-h` now matches the header's real position (`--bar-top` + 64px), and the top blur band ends at the gap (18px), so the first card stays sharp at rest.
+- Tests: `check-edge-blur.cjs` expects the top band at 18px.
+
 ## v4.6.152 (2026-09-28) — Header and tab bar closer to the screen edges
 
 - **Asked for:** less space between the screen edges and the top bar and tab bar, like Threads. Chosen from a mock of four at iPhone 17 Pro size: C at the top, D at the bottom.

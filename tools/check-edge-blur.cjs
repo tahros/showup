@@ -1,7 +1,7 @@
 /* check-edge-blur.cjs -- v4.6.151: the edge blur above the header and below the tab bar.
    Opens the real app in Chromium, light and dark, at 320/393/430px, on a long
    Progress screen scrolled under both bars, and checks: each band covers its
-   bar plus 22px, sits UNDER the header and the nav, takes no taps (a tap in the
+   bar plus the gap to the page (18px top since v4.6.153, 22px bottom), sits UNDER the header and the nav, takes no taps (a tap in the
    band lands on the page), carries its blur on the four absolute children only
    (1/3/7/14px, none on the fixed band), and is gone in Retro. Nothing is logged.
    Serve the repo on 127.0.0.1:8784 first (python3 -m http.server 8784). */
@@ -33,7 +33,7 @@ const PORT=process.env.PORT||8784;
         under:+cs(top).zIndex<+cs(h).zIndex && +cs(bot).zIndex<+cs(n).zIndex, fixed:cs(top).position==='fixed'&&cs(bot).position==='fixed',
         taps:!hit.closest('.edgeblur'), bandBlur:blur(top)+'|'+blur(bot), kids};
     },theme);
-    const ok=r.topCover===22&&r.botCover===22&&r.topAt===0&&r.botAt===0&&r.under&&r.fixed&&r.taps&&
+    const ok=r.topCover===18&&r.botCover===22&&r.topAt===0&&r.botAt===0&&r.under&&r.fixed&&r.taps&&
       r.bandBlur==='none|none'&&r.kids==='blur(1px) blur(3px) blur(7px) blur(14px)';
     if(!ok)bad++;
     console.log(`${ok?'OK  ':'FAIL'} ${theme.padEnd(5)} ${width}px ${JSON.stringify(r)}`);
