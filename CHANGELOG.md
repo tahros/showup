@@ -1,5 +1,11 @@
 # ShowUp — changelog
 
+## v4.6.160 (2026-09-29) — The day strip matches the chips
+
+- **Asked for:** the planner Edit page's "Tue 9/29 Back" looked out of place; make the design consistent. Chosen as B ("quiet tiles") from a mock of four.
+- With one planned day the strip stretched into a full-width block of solid accent. Each day is now a tile 68pt wide at most, sharing the row evenly when a week needs more room, and the selected day reads like the selected Body parts chip below it: a tinted surface with an accent edge. Unselected days sit on the surface with a hairline. The unsaved dot stays, in accent.
+- Tests: `tools/check-day-strip.cjs` (Chromium): 1, 3 and 7 days at 320/393/430px, light and dark: tile width, no overflow, selected style equal to the chips', no solid-accent tile, dot shown.
+
 ## v4.6.159 (2026-09-28) — Save works after adding an exercise
 
 - **Reported:** after adding Decline Sit Up (Sixpack) to a Back day, Save stayed disabled and the hint read "Back · 18 sets · Regenerate to rebuild this day".

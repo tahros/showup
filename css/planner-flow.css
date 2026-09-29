@@ -380,3 +380,15 @@ header.planmode .hback::after{content:'';position:absolute;inset:-3px -6px}
 .pf-parts{margin:4px 0 12px}.pf-parts-label{display:block;font:400 11px/1.4 var(--body);color:var(--muted);margin:0 0 6px}.pf-parts-chips{display:flex;flex-wrap:wrap;gap:6px}
 .pf-parts .pw-btn.pf-part{min-height:34px;padding:6px 12px;border-radius:999px;font:500 12px/1 var(--body);background:var(--surface);color:var(--muted);border:1px solid var(--line)}
 .pf-parts .pw-btn.pf-part.selected{background:color-mix(in srgb,var(--accent) 16%,var(--surface));color:var(--chalk);border-color:var(--accent)}
+
+/* v4.6.160: THE DAY STRIP SPEAKS THE CHIPS' LANGUAGE. One planned day stretched
+   into a full-width slab of solid accent -- the loudest thing on the page, over
+   Body parts chips that say "selected" with a tinted surface and an accent edge.
+   Each tile is now 68px at most (sharing the row evenly when a week needs it)
+   and selected the way the chips are. Chosen as B from the 2026-09-29 mock. */
+.pf-strip{justify-content:flex-start}
+.pf-strip .pw-btn.pf-chip{flex:1 1 0;max-width:68px;background:var(--surface);color:var(--chalk);border:1px solid var(--line);box-shadow:none}
+.pf-strip .pw-btn.pf-chip.selected{background:color-mix(in srgb,var(--accent) 16%,var(--surface));color:var(--chalk);border-color:var(--accent);box-shadow:none}
+.pf-chip.selected s{color:var(--muted)}
+.pf-chip.selected u{color:var(--chalk)}
+.pf-chip.selected .pf-dot{background:var(--accent)}
