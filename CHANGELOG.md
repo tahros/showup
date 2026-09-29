@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.162 (2026-09-29) — A short range sits at the right of the chart
+
+- **Asked for:** when a range doesn't have enough dates to fill the chart (the oldest range of an exercise's history), the chart should be right-aligned.
+- The exercise chart has fixed columns (12 Sessions or 4). A range with fewer sessions, such as the oldest range or a history shorter than the chart, used to start at the left and leave the right side empty. Its sessions now sit in the right-hand columns, the newest in the last one (where every full range puts it), and the empty columns fall on the left, before the history begins. Date labels, the selection band, the slider and the Share image follow.
+- Tests: `tools/check-chart-right-align.cjs` (Chromium, Progress, light and dark, 16 checks: 12 and 4 Sessions at the latest and oldest ranges, and a 3-session history). It fails on v4.6.161.
+- `check-progress-home.cjs` still expected the Today greeting's −20px pull-up that v4.6.161 removed (the check wasn't run then); it now expects 0.
+
 ## v4.6.161 (2026-09-29) — Room above the Today greeting
 
 - **Reported:** too little space between the top bar and the greeting on Today.

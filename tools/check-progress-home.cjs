@@ -10,7 +10,8 @@ if(scenario==='planned'||scenario==='tomorrow')DB.plan={d:scenario==='planned'?t
 for(const scenario of ['new','week','month','tomorrow']){await seed(scenario);assert(await p.locator('#goLift').isVisible());assert.equal(await p.locator('.today-focus-card').count(),1);if(scenario!=='new')assert((await p.locator('.today-focus-card h3').innerText()).includes('What’s today’s workout?'));const before=await p.evaluate(()=>JSON.stringify({days:DB.days,plan:DB.plan}));await p.locator('#goLift').click();await p.waitForTimeout(300);assert.equal(await p.evaluate(()=>view),'lift');assert.equal(await p.evaluate(()=>JSON.stringify({days:DB.days,plan:DB.plan})),before);}
 await seed('planned');assert((await p.locator('.today-focus-meta').innerText()).includes('6 sets · 2 exercises'));
 assert.equal(await p.locator('.today-focus-title h3').evaluate(e=>getComputedStyle(e).fontSize),'21px');
-assert.equal(await p.locator('.today-focus').evaluate(e=>getComputedStyle(e).marginTop),'-20px');
+/* v4.6.161: no pull-up -- the greeting sits at the page's 18px like every screen's first element (was -20px from v4.6.130) */
+assert.equal(await p.locator('.today-focus').evaluate(e=>getComputedStyle(e).marginTop),'0px');
 assert(await p.locator('.pw-push').isVisible());assert((await p.locator('#restBtn').boundingBox()).height>=52);
 const planBefore=await p.evaluate(()=>JSON.stringify(DB.plan));
 await p.locator('.today-focus-plan>summary').click();await p.waitForTimeout(350);

@@ -157,10 +157,11 @@ function progressionFrame(records,kind,width=330,columns=4){
    chart geometry; that can leave only a few occupied, tightly spaced columns.
    The period header already carries the full range, so axis dates may thin,
    but they may never collide. */
-function progressionDateTicks(dates,left,col,dots){
+function progressionDateTicks(dates,left,col,dots,lead=0,columns=dates.length){
   const make=indices=>indices.map(i=>{
-    const label=pgShortDate(dates[i]),x=left+(i+.5)*col;
-    const anchor=indices.length===1?'middle':i===0?'start':i===dates.length-1?'end':'middle';
+    const label=pgShortDate(dates[i]),slot=lead+i,x=left+(slot+.5)*col;
+    /* flush to an edge only in the first or last COLUMN, not the first date */
+    const anchor=indices.length===1&&!lead?'middle':slot===0?'start':slot===columns-1?'end':'middle';
     const width=Math.max(24,label.length*6.2);
     return {x,label,anchor,left:anchor==='start'?x:anchor==='end'?x-width:x-width/2,right:anchor==='start'?x+width:anchor==='end'?x:x+width/2};
   });
@@ -176,6 +177,11 @@ function progressionDateTicks(dates,left,col,dots){
 }
 function progressionLayout(records,kind,{dates=[],width=330,dots=false,best=()=>false,pick=null,columns=dates.length,frame=null}={}){
   const left=34,right=10,top=20,usable=width-left-right,col=usable/Math.max(1,columns);
+  /* v4.6.162: fewer sessions than columns (the oldest range, or a short
+     history): the sessions sit at the RIGHT, the newest in the last column --
+     where every full range puts it -- and the empty columns fall on the left,
+     before your history begins. */
+  const lead=Math.max(0,columns-dates.length),slot=d=>lead+dates.indexOf(d);
   const labelFor=r=>kind==='run'?(r.seconds?pgDuration(r.seconds):'—'):kind==='dur'?pgDuration(r.seconds):pgDecimal(r.count);
   const groups=new Map();
   records.forEach(r=>{const key=r.d+':'+progressionValue(r).toFixed(5);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(r);});
@@ -201,19 +207,19 @@ function progressionLayout(records,kind,{dates=[],width=330,dots=false,best=()=>
     const key=r.d+':'+progressionValue(r).toFixed(5),same=groups.get(key),at=same.indexOf(r),g=labels.get(key);
     const row=Math.floor(at/g.capacity),inRow=Math.min(g.capacity,same.length-row*g.capacity),index=at%g.capacity;
     const gap=dots?Math.min(4,(col-2)/same.length):g.cell;
-    const x=left+(dates.indexOf(r.d)+.5)*col+(dots?at-(same.length-1)/2:index-(inRow-1)/2)*gap;
+    const x=left+(slot(r.d)+.5)*col+(dots?at-(same.length-1)/2:index-(inRow-1)/2)*gap;
     const trueY=Y(progressionValue(r));
     const y=dots?trueY:centers.get(key)+(row-(g.nRows-1)/2)*15;
     return {r,x,y,trueY,leader:!dots&&Math.abs(y-trueY)>1,winning:best(r),label:labelFor(r),radius:dots?Math.max(.5,Math.min(1.8,gap*.38)):Math.min(7,g.cell/2),labelWidth:Math.max(14,labelFor(r).length*6.7+2)};
   });
   const ticks=[];for(let v=lo;v<=hi+step*.001;v+=step)ticks.push({y:Y(v),showLabel:ticks.length%2===0,label:kind==='added'&&v===0?'BW':['load','added','assisted'].includes(kind)?pgWeight(v):pgDecimal(v)});
-  const dateTicks=progressionDateTicks(dates,left,col,dots);
-  return {width,height,left,right,top,bottom,col,dates,dots,points,ticks,dateTicks,pick};
+  const dateTicks=progressionDateTicks(dates,left,col,dots,lead,columns);
+  return {width,height,left,right,top,bottom,col,lead,dates,dots,points,ticks,dateTicks,pick};
 }
 function progressionPlot(records,kind,options={}){
   const m=progressionLayout(records,kind,options),selected=m.points.find(p=>p.r.id===options.pick);
   let h='<svg class="pg-plot '+(m.dots?'pg-dots':'pg-detail')+'" viewBox="0 0 '+m.width+' '+m.height+'" style="width:100%" role="group" aria-label="'+pgEscape(progressionAxis(kind,records[0]?.ex)+'; every logged set across '+m.dates.length+' sessions')+'">';
-  h+='<rect class="pg-selection-band" x="'+(selected?m.left+m.dates.indexOf(selected.r.d)*m.col:m.left)+'" y="'+(m.top-8)+'" width="'+m.col+'" height="'+(m.bottom-m.top+8)+'" rx="4"'+(selected?'':' visibility="hidden"')+'/>';
+  h+='<rect class="pg-selection-band" x="'+(selected?m.left+((m.lead||0)+m.dates.indexOf(selected.r.d))*m.col:m.left)+'" y="'+(m.top-8)+'" width="'+m.col+'" height="'+(m.bottom-m.top+8)+'" rx="4"'+(selected?'':' visibility="hidden"')+'/>';
   for(const t of m.ticks){h+='<line class="pg-grid" x1="'+m.left+'" x2="'+(m.width-m.right)+'" y1="'+t.y+'" y2="'+t.y+'"/>';if(t.showLabel)h+='<text class="pg-axis" x="'+(m.left-7)+'" y="'+(t.y+3.5)+'" text-anchor="end">'+t.label+'</text>';}
   for(const p of m.points)if(p.leader)h+='<path class="pg-leader" d="M'+(p.x-2)+' '+p.trueY+'h4M'+p.x+' '+p.trueY+'V'+p.y+'"/>';
   for(const p of m.points){
@@ -348,7 +354,7 @@ function progressionPick(card,id){
   if(slider){slider.value=cursor;slider.setAttribute('aria-valuetext',progressionRead(r));slider.style.setProperty('--pg-progress',(100*cursor/Math.max(1,scope.length-1))+'%');}
   card.querySelector('[data-pg-action="prev-set"]').disabled=cursor===0;
   card.querySelector('[data-pg-action="next-set"]').disabled=cursor===scope.length-1;
-  const band=card.querySelector('.pg-selection-band');if(band){band.setAttribute('x',layout.left+layout.dates.indexOf(r.d)*layout.col);band.removeAttribute('visibility');}
+  const band=card.querySelector('.pg-selection-band');if(band){band.setAttribute('x',layout.left+((layout.lead||0)+layout.dates.indexOf(r.d))*layout.col);band.removeAttribute('visibility');}
   progressionRefreshPeers(card);
 }
 function progressionRefreshPeers(card){
