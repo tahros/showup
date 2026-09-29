@@ -323,7 +323,7 @@ function pfPartsSel(b){return b.partsPick||b.parts.length?b.parts:pwParts(b.rows
 function pfPartsPending(b){return !!b.partsPick&&b.parts.slice().sort().join()!==pwParts(b.rows).slice().sort().join();}
 function pfPartsHTML(b){const sel=pfPartsSel(b);
  return `<div class="pf-parts" role="group" aria-labelledby="pfPartsLabel"><span class="pf-parts-label" id="pfPartsLabel">Body parts</span><div class="pf-parts-chips">${pfPartList().map(x=>pwButton('pf-part',hesc(x),'pf-part'+(sel.includes(x)?' selected':''),`data-part="${hesc(x)}" aria-pressed="${sel.includes(x)}"`)).join('')}</div></div>`;}
-function pfDayBodyHTML(){const s=pw(),b=pwDay(s.active),j=pfState(),total=pwSetCount(b.rows),changed=b.target!=null&&b.target!==total,parts=pfPartsPending(b);
+function pfDayBodyHTML(){pfDropStaleTargets();const s=pw(),b=pwDay(s.active),j=pfState(),total=pwSetCount(b.rows),changed=b.target!=null&&b.target!==total,parts=pfPartsPending(b);
  return pfPartsHTML(b)+`<div class="pf-routine-controls"><div class="pf-total"><span>Set target</span><div class="pw-stepper">${pwButton('pf-minus','\u2212','','aria-label="Decrease total sets"'+(!b.rows.length?' disabled':''))}<output class="${changed?'pf-changed':''}">${b.target??total}</output>${pwButton('pf-plus','+','','aria-label="Increase total sets"'+(!b.rows.length?' disabled':''))}</div></div><div class="pf-tools">${pwAction('pf-regenerate','Regenerate','sparkle','pf-quiet-regenerate'+(changed||parts?' pf-beam pf-target-pending':''))}${pwButton('paste',icon('paste',ICON_SZ.sm),'pw-icon pf-tool','aria-label="Paste a routine" title="Paste"')}${pwButton('pf-clear',icon('clear',ICON_SZ.sm),'pw-icon pf-tool','aria-label="Clear this day" title="Clear"')}</div></div><p class="pf-target-hint" role="status">${parts?(b.parts.length?hesc(b.parts.join(' + ')):'No parts chosen: the writer picks')+(changed?' \u00b7 '+b.target+' sets':'')+' \u00b7 Regenerate to rebuild this day':changed?total+' current \u2192 '+b.target+' target \u00b7 Regenerate to apply':total+' sets \u00b7 '+pwExercises(b.rows).length+' exercises'}</p><div class="card pf-routine-card">${b.rows.length?pfEditRows():'<p>No exercises yet.</p>'}</div><div class="pf-add-summary">${pwButton('add-open',icon('clear',ICON_SZ.sm,45)+' Add exercise','pf-add-button','data-ctx="edit"')}</div>${b.undo&&!b.strip?pwButton('undo','Undo','pw-text'):''}${s.addOpen&&s.addCtx==='edit'?pwAddSheetHTML(s):''}`;
 }
 /* v4.6.77: PICKING A DAY IS NOT A NAVIGATION. Every chip tap ran pfNavigate,
@@ -347,7 +347,12 @@ function pfSwapDay(){
  if(y>max)window.scrollTo(0,max);
  pwPositionDock();
 }
-function pfPending(){return pw().dates.some(d=>{const b=pwDay(d);return b.target!=null&&b.target!==pwSetCount(b.rows);});}
+/* v4.6.159: since v4.6.157 Set target changes the routine live and leaves no
+   target pending, so a target that disagrees with the routine is a leftover
+   from an older draft. It kept Save disabled after an exercise was added;
+   drop it here rather than hold the save for a Regenerate nobody asked for. */
+function pfDropStaleTargets(){for(const d of pw().dates){const b=pwDay(d);if(b.target!=null&&b.target!==pwSetCount(b.rows))b.target=null;}}
+function pfPending(){pfDropStaleTargets();return false;}
 function pfFitSets(rows,min,max,locked=[]){
  const rs=pwCopy(rows),warm=l=>/warm|prep/i.test((l.qual||'')+(l.tag||'')),work=r=>r.lines.filter(l=>!warm(l)).reduce((n,l)=>n+l.reps.length,0);
  const ex=rs.map((r,i)=>({r,i})).filter(x=>x.r.kind==='ex'&&x.r.ex&&(x.r.lines||[]).length&&!locked.includes(pwText([x.r])));   // locked = the fixed rows' text, so a removed row before them cannot shift the match

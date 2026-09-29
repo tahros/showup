@@ -34,7 +34,7 @@ const PLAN='Deadlift\n  135 lb × 8 (warm-up)\n  235 lb × 6 6 6 6\nBent-Over Ro
     if(history){
       const log=[['2026-09-25','Seated Cable Row','Back',130,[10,10,10,10]],['2026-09-21','Lat Pulldown','Back',120,[10,10,10]],['2026-09-10','Chest-Supported Row','Back',70,[12,12,12]],
         ['2026-09-18','Deadlift','Back',135,[8]],['2026-09-18','Deadlift','Back',235,[6,6,6,6]],['2026-09-11','Deadlift','Back',135,[8,8]],['2026-09-11','Deadlift','Back',225,[6,6,6,6]],
-        ['2026-09-18','Bent-Over Row','Back',165,[10,10,10,10]],['2026-09-18','Pull Up','Back',25,[6,6,6,6]],['2026-09-20','Barbell Curl','Biceps',65,[10,10,10]]];
+        ['2026-09-18','Bent-Over Row','Back',165,[10,10,10,10]],['2026-09-18','Pull Up','Back',25,[6,6,6,6]],['2026-09-20','Barbell Curl','Biceps',65,[10,10,10]],['2026-08-31','Decline Sit Up','Sixpack',0,[10,10,10]]];
       let k=0;for(const [iso,ex,part,lb,reps] of log)for(const r of reps)set(iso,ex,part,lb,r,k++);
     }
     DB={days,settings:{onboarded:true,unit:'lb',skin:'minimal',flow:'refined',theme,bar:theme,mascotMotion:'still'}};
@@ -130,6 +130,27 @@ const PLAN='Deadlift\n  135 lb × 8 (warm-up)\n  235 lb × 6 6 6 6\nBent-Over Ro
     await click('.pf-add-button');await click('.pw-add-type');
     ok(`${theme} Edit: "Type an exercise…" opens the text box as before`, await p.evaluate(()=>pw().step==='editrow'&&!pw().addOpen));
   }
+  /* v4.6.159: the maker's night -- a Back day with parts chosen, a target of 18
+     left over from before v4.6.157, then Decline Sit Up (Sixpack) added from the
+     sheet. Save stayed disabled and the hint asked for Regenerate. */
+  for(const theme of ['dark','light']){
+    await boot(theme,true);
+    await p.evaluate(()=>{const s=pw(),d=pwDay('2026-09-29');d.partsPick=true;d.parts=['Back'];d.target=18;s.step='edit';s.adjustBase=null;s.adjustRows=null;pfState().page='edit';pwRender();});
+    await p.waitForTimeout(120);
+    await click('.pf-add-button');await click('[data-pw="add-part"][data-part="Sixpack"]');await click('[data-pw="add-pick"][data-ex="Decline Sit Up"]');
+    const st=await p.evaluate(()=>{const d=pwDay('2026-09-29'),save=document.querySelector('[data-pw="pf-save"]');
+      return {rows:d.rows.map(r=>r.ex).join(', '),parts:d.parts.join('+'),target:d.target,pending:pfPending(),save:!!save&&!save.disabled,
+        hint:document.querySelector('.pf-target-hint')?.textContent,changed:!!document.querySelector('.pf-total output.pf-changed')};});
+    ok(`${theme}: Decline Sit Up (Sixpack) joins a Back day`, /Decline Sit Up$/.test(st.rows), st.rows);
+    ok(`${theme}: ...its body part joins the day's parts`, st.parts==='Back+Sixpack', st.parts);
+    ok(`${theme}: ...no target is left pending and Save is enabled`, st.target==null&&!st.pending&&st.save, JSON.stringify({target:st.target,save:st.save}));
+    ok(`${theme}: ...the hint no longer asks for Regenerate`, !/Regenerate/.test(st.hint)&&!st.changed, st.hint);
+  }
+  /* and a draft already stuck that way unlocks on its own */
+  await boot('dark',true);
+  const stuck=await p.evaluate(()=>{const s=pw(),d=pwDay('2026-09-29');d.target=18;s.step='edit';s.adjustBase=null;s.adjustRows=null;pfState().page='edit';pwRender();
+    const save=document.querySelector('[data-pw="pf-save"]');return {save:!!save&&!save.disabled,target:d.target};});
+  ok('a draft stuck on a leftover target (18 vs 14) unlocks on the next render', stuck.save&&stuck.target==null, JSON.stringify(stuck));
   if(errors.length){bad++;console.log('FAIL page errors: '+errors.join(' | '));}
   }finally{await b.close();}
   console.log(bad?`FAIL add exercise (${bad})`:'PASS add exercise');process.exit(bad?1:0);

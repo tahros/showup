@@ -439,6 +439,14 @@ function pwAddSheetHTML(s){
 }
 /* v4.6.158: Escape closes the sheet, like its × and the scrim */
 document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;const s=typeof pw==='function'?pw():null;if(!s||!s.addOpen)return;s.addOpen=false;pwPersist();pwRender();});
+/* v4.6.159: an exercise you add is a change you made, not a request to the
+   writer. Its body part joins the day's parts (a Sixpack exercise on a Back
+   day made the parts read as changed, "Regenerate to rebuild this day"), and
+   no set target is left pending -- a stale one kept Save disabled. */
+function pwAddedToDay(b){
+  b.target=null;
+  if(b.partsPick&&b.parts){const have=pwParts(b.rows).filter(p=>p!=='Run'||b.parts.includes('Run'));b.parts=[...new Set([...b.parts,...have])];}
+}
 function pwBeginAdjust(){const s=pw();s.adjustSkip=[];s.addOpen=false;s.adjustDate=s.active;s.adjustBase=pwCopy(pwDay(s.active));s.adjustRows=pwCopy(s.adjustBase.rows);}
 function pwAdjustLive(delta){
   const s=pw();if(s.step!=='adjust'||s.adjustDate!==s.active)return;
@@ -667,12 +675,12 @@ function pwHandle(e){
     else if(a==='add-open'){s.addOpen=true;s.addPart=null;s.addCtx=el.dataset.ctx==='edit'?'edit':'adjust';}
     else if(a==='add-close'){s.addOpen=false;}
     else if(a==='add-part'){s.addPart=el.dataset.part;}
-    else if(a==='add-pick'&&s.addCtx==='edit'){const r=pwExerciseRow(el.dataset.ex,pwTypicalSets(el.dataset.ex));if(r&&b){delete r.added;pwUndoPoint(b);b.rows.push(r);b.source='Your draft';}s.addOpen=false;}
+    else if(a==='add-pick'&&s.addCtx==='edit'){const r=pwExerciseRow(el.dataset.ex,pwTypicalSets(el.dataset.ex));if(r&&b){delete r.added;pwUndoPoint(b);b.rows.push(r);b.source='Your draft';pwAddedToDay(b);}s.addOpen=false;}
     else if(a==='add-pick'){const r=pwExerciseRow(el.dataset.ex,pwTypicalSets(el.dataset.ex),'new');if(r){s.adjustBase.rows.push(pwCopy(r));s.adjustRows.push(r);s.adjustSkip=(s.adjustSkip||[]).filter(x=>x!==r.ex);}s.addOpen=false;}
     else if(a==='add-remove'){const r=s.adjustRows[i];if(r){
       if(r.added==='new'){const k=s.adjustBase.rows.findIndex(x=>x.added==='new'&&x.ex===r.ex);if(k>=0)s.adjustBase.rows.splice(k,1);s.adjustRows.splice(i,1);}
       else{s.adjustSkip=[...(s.adjustSkip||[]),r.ex];s.adjustRows=pwAllocateSets(s.adjustBase,pwCounts(s.adjustRows).total-pwCounts([r]).total,s.adjustSkip);}}}
-    else if(a==='adjust-keep'){if(s.adjustDate!==s.active)throw Error('Open Adjust sets for this day again.');pwUndoPoint(b);b.rows=pwCopy(s.adjustRows).map(r=>{delete r.added;return r;});b.target=pwCounts(b.rows).total;b.source='Adjusted set count';s.adjustBase=null;s.adjustRows=null;s.addOpen=false;s.step='edit';}
+    else if(a==='adjust-keep'){if(s.adjustDate!==s.active)throw Error('Open Adjust sets for this day again.');pwUndoPoint(b);b.rows=pwCopy(s.adjustRows).map(r=>{delete r.added;return r;});b.source='Adjusted set count';pwAddedToDay(b);s.adjustBase=null;s.adjustRows=null;s.addOpen=false;s.step='edit';}
     else if(a==='clear-day'){pwUndoPoint(b);b.rows=[];b.locks=[];b.notes=[];b.target=null;b.cleared=true;b.source='Your draft';s.setupOpen=false;}
     else if(a==='paste'){s.pasteText='';s.editIndex=undefined;s.editAll=false;s.step='paste';}
     /* the day's own text, in the box that already knows how to parse it --

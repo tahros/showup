@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.159 (2026-09-28) — Save works after adding an exercise
+
+- **Reported:** after adding Decline Sit Up (Sixpack) to a Back day, Save stayed disabled and the hint read "Back · 18 sets · Regenerate to rebuild this day".
+- **Cause, twice over:** (1) the day still held a set target of 18 from before v4.6.157, when the Edit page's + only recorded a target for Regenerate; adding an exercise grew the routine past it, and a target that disagrees with the routine held Save. (2) The day's chosen body parts said Back only, so a Sixpack exercise made the parts read as changed, which is what asks for Regenerate.
+- **Fix:** adding an exercise (from the sheet, on either page) clears any target and adds its body part to the day's parts. Since v4.6.157 nothing leaves a target pending, so a leftover one is dropped; a draft already stuck this way unlocks as soon as it opens.
+- Tests: `check-add-exercise.cjs` +9 checks (65): the maker's exact case in light and dark, and a stuck draft unlocking. They fail on v4.6.158 with the reported hint text.
+
 ## v4.6.158 (2026-09-28) — Close the Add exercise sheet
 
 - **Asked for:** a way to close the Add exercise sheet without picking anything.
