@@ -1,5 +1,10 @@
 # ShowUp — changelog
 
+## v4.6.161 (2026-09-29) — Room above the Today greeting
+
+- **Reported:** too little space between the top bar and the greeting on Today.
+- v4.6.130 pulled the greeting up 20pt from what was then a 40pt gap, leaving 20. v4.6.153 cut the gap to 18pt, and the same pull-up then left the greeting about 2pt under the header. The pull-up is gone: the greeting row now starts 18pt below the header, the same as the first element of every other screen (was −2; its text 29pt, was 9). After the milestone card nothing changes.
+
 ## v4.6.160 (2026-09-29) — The day strip matches the chips
 
 - **Asked for:** the planner Edit page's "Tue 9/29 Back" looked out of place; make the design consistent. Chosen as B ("quiet tiles") from a mock of four.

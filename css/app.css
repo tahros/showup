@@ -5,7 +5,11 @@
 .progress-switch button{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;border:0;background:transparent;padding:10px;color:var(--muted);font:500 14px var(--body);min-height:46px;cursor:pointer}
 .progress-switch button svg{width:17px;height:17px;flex-shrink:0;fill:currentColor}
 .progress-switch button[aria-pressed=true]{color:var(--accent-ink)}
-.today-focus{margin-top:-20px}
+/* v4.6.161: no pull-up. v4.6.130 pulled the greeting up 20px from a 40px gap
+   (leaving 20); v4.6.153 made the gap 18px, and the same pull-up then parked
+   the greeting ~2px under the header. It now sits at the page's 18px, like the
+   first element of every other screen. */
+.today-focus{margin-top:0}
 /* v4.6.135: the pull-up is for the top of the page; after a card (the milestone moment) it put the greeting under that card */
 .card + .today-focus{margin-top:0}
 .today-focus .su-hello-row{margin:0 0 8px}
