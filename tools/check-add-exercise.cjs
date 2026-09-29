@@ -92,6 +92,30 @@ const PLAN='Deadlift\n  135 lb × 8 (warm-up)\n  235 lb × 6 6 6 6\nBent-Over Ro
   await click('[data-pw="add-open"]');
   const empty=await p.textContent('.pw-add-list');
   ok('no history: the sheet says so instead of an empty list', /Nothing logged for this body part yet/.test(empty), empty);
+  /* v4.6.157: the Edit page (Set target + Regenerate) -- its Add exercise opens
+     the same sheet, with "Type an exercise…" last; Set target changes the
+     routine live by the same rule, and - takes added exercises away first. */
+  for(const theme of ['dark','light']){
+    await boot(theme,true);
+    await p.evaluate(()=>{const s=pw();s.step='edit';s.adjustBase=null;s.adjustRows=null;pfState().page='edit';pwRender();});await p.waitForTimeout(150);
+    const rows=()=>p.evaluate(()=>pwDay('2026-09-29').rows.map(r=>`${r.ex}:${pwCounts([r]).total}`).join(', '));
+    const shown=()=>p.evaluate(()=>+document.querySelector('.pf-total output').textContent);
+    await click('.pf-add-button');
+    const sh=await p.evaluate(()=>({ctx:pw().addCtx,title:document.querySelector('#pw-add-title')?.textContent,
+      list:[...document.querySelectorAll('.pw-add-pick')].map(b=>b.querySelector('strong').textContent).join(' / '),last:document.querySelector('.pw-add-list > :last-child')?.dataset.pw}));
+    ok(`${theme} Edit: Add exercise opens the same sheet (not the text box)`, sh.ctx==='edit'&&sh.title==='Add to Tuesday'&&!(await p.$('.pw-input-panel')), sh.title);
+    ok(`${theme} Edit: ...most recent first, with "Type an exercise…" last`, sh.list==='Seated Cable Row / Lat Pulldown / Bent-Over Row / Deadlift / Pull Up / Chest-Supported Row / Type an exercise…'&&sh.last==='add', sh.list);
+    await click('[data-pw="add-pick"][data-ex="Lat Pulldown"]');
+    ok(`${theme} Edit: a pick joins the routine with its usual sets`, (await rows())==='Deadlift:5, Bent-Over Row:5, Pull Up:4, Lat Pulldown:3'&&!(await p.$('.pw-add-sheet')), await rows());
+    await click('[data-pw="pf-plus"]');
+    ok(`${theme} Edit: Set target + adds the next most recent exercise, live`, (await rows())==='Deadlift:5, Bent-Over Row:5, Pull Up:4, Lat Pulldown:3, Seated Cable Row:1'&&(await shown())===18, await rows());
+    await click('[data-pw="pf-plus"]');await click('[data-pw="pf-minus"]');await click('[data-pw="pf-minus"]');
+    ok(`${theme} Edit: - takes it away first`, (await rows())==='Deadlift:5, Bent-Over Row:5, Pull Up:4, Lat Pulldown:3'&&(await shown())===17, await rows());
+    const hint=await p.textContent('.pf-target-hint');
+    ok(`${theme} Edit: no pending "Regenerate to apply" for a live change`, !/Regenerate to apply/.test(hint), hint);
+    await click('.pf-add-button');await click('.pw-add-type');
+    ok(`${theme} Edit: "Type an exercise…" opens the text box as before`, await p.evaluate(()=>pw().step==='editrow'&&!pw().addOpen));
+  }
   if(errors.length){bad++;console.log('FAIL page errors: '+errors.join(' | '));}
   }finally{await b.close();}
   console.log(bad?`FAIL add exercise (${bad})`:'PASS add exercise');process.exit(bad?1:0);

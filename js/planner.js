@@ -426,13 +426,16 @@ function pwAllocateSets(base,target,skip=[]){
    it every exercise you have done, most recent first, with its last working
    sets and the day you did them. Already in the plan: shown, not pickable. */
 function pwAddSheetHTML(s){
-  const day=s.adjustBase,own=pwDayParts(day),done=p=>pwDoneFor([p]).length>0;
+  /* v4.6.157: one sheet for both screens -- Total sets ('adjust') and the Edit
+     page ('edit', which also offers typing an exercise you have not logged) */
+  const edit=s.addCtx==='edit',day=edit?pwDay(s.active):s.adjustBase,now=edit?day.rows:s.adjustRows;
+  const own=pwDayParts(day),done=p=>pwDoneFor([p]).length>0;
   const parts=[...own,...Object.keys(SEED.catalog).filter(p=>p!=='Run'&&!own.includes(p)&&done(p))];
   const part=parts.includes(s.addPart)?s.addPart:parts[0];
-  const inPlan=new Set(s.adjustRows.map(r=>r.ex)),short=d=>new Date(d+'T12:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  const inPlan=new Set(now.map(r=>r.ex)),short=d=>new Date(d+'T12:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
   const list=part?pwDoneFor([part]).map(ex=>{const l=pwLastLine(ex),on=inPlan.has(ex);
     return `<button type="button" class="pw-add-pick" data-pw="add-pick" data-ex="${hesc(ex)}" ${on?'disabled':''}><span><strong>${hesc(ex)}</strong><small>${on?'In this plan':hesc(l.load+' × '+l.reps.join(' '))}</small></span><i>${on?'':short(SEED.exLast[ex])}</i></button>`;}).join(''):'';
-  return `<div class="pw-add-scrim" data-pw="add-close"></div><div class="pw-add-sheet" role="dialog" aria-modal="true" aria-labelledby="pw-add-title"><div class="pw-add-grab" aria-hidden="true"></div><h3 id="pw-add-title">Add to ${hesc(new Date(s.active+'T12:00').toLocaleDateString('en-US',{weekday:'long'}))}</h3><p class="pw-small">Most recent first · last time you did each</p><div class="pw-add-parts" role="tablist">${parts.map(p=>`<button type="button" role="tab" data-pw="add-part" data-part="${hesc(p)}" aria-selected="${p===part}" class="${p===part?'on':''}">${hesc(typeof partLabel==='function'?partLabel(p):p)}</button>`).join('')}</div><div class="pw-add-list">${list||'<p class="pw-small">Nothing logged for this body part yet.</p>'}</div></div>`;
+  return `<div class="pw-add-scrim" data-pw="add-close"></div><div class="pw-add-sheet" role="dialog" aria-modal="true" aria-labelledby="pw-add-title"><div class="pw-add-grab" aria-hidden="true"></div><h3 id="pw-add-title">Add to ${hesc(new Date(s.active+'T12:00').toLocaleDateString('en-US',{weekday:'long'}))}</h3><p class="pw-small">Most recent first · last time you did each</p><div class="pw-add-parts" role="tablist">${parts.map(p=>`<button type="button" role="tab" data-pw="add-part" data-part="${hesc(p)}" aria-selected="${p===part}" class="${p===part?'on':''}">${hesc(typeof partLabel==='function'?partLabel(p):p)}</button>`).join('')}</div><div class="pw-add-list">${list||'<p class="pw-small">Nothing logged for this body part yet.</p>'}${edit?pwButton('add','<span><strong>Type an exercise…</strong><small>For one you have not logged</small></span>','pw-add-pick pw-add-type'):''}</div></div>`;
 }
 function pwBeginAdjust(){const s=pw();s.adjustSkip=[];s.addOpen=false;s.adjustDate=s.active;s.adjustBase=pwCopy(pwDay(s.active));s.adjustRows=pwCopy(s.adjustBase.rows);}
 function pwAdjustLive(delta){
@@ -659,9 +662,10 @@ function pwHandle(e){
     else if(a==='adjust-cancel'){s.adjustBase=null;s.adjustRows=null;s.addOpen=false;s.step='edit';}
     /* v4.6.156: Add exercise -- a pick joins the plan being adjusted (base and
        live rows), so +/- treat it like any planned exercise */
-    else if(a==='add-open'){s.addOpen=true;s.addPart=null;}
+    else if(a==='add-open'){s.addOpen=true;s.addPart=null;s.addCtx=el.dataset.ctx==='edit'?'edit':'adjust';}
     else if(a==='add-close'){s.addOpen=false;}
     else if(a==='add-part'){s.addPart=el.dataset.part;}
+    else if(a==='add-pick'&&s.addCtx==='edit'){const r=pwExerciseRow(el.dataset.ex,pwTypicalSets(el.dataset.ex));if(r&&b){delete r.added;pwUndoPoint(b);b.rows.push(r);b.source='Your draft';}s.addOpen=false;}
     else if(a==='add-pick'){const r=pwExerciseRow(el.dataset.ex,pwTypicalSets(el.dataset.ex),'new');if(r){s.adjustBase.rows.push(pwCopy(r));s.adjustRows.push(r);s.adjustSkip=(s.adjustSkip||[]).filter(x=>x!==r.ex);}s.addOpen=false;}
     else if(a==='add-remove'){const r=s.adjustRows[i];if(r){
       if(r.added==='new'){const k=s.adjustBase.rows.findIndex(x=>x.added==='new'&&x.ex===r.ex);if(k>=0)s.adjustBase.rows.splice(k,1);s.adjustRows.splice(i,1);}
@@ -673,7 +677,7 @@ function pwHandle(e){
        editIndex stays undefined so Replace swaps the whole routine, which is
        what editing a day means */
     else if(a==='edit-all'){s.pasteText=pwText(b.rows);s.editIndex=undefined;s.editAll=true;s.step='paste';}
-    else if(a==='editrow'||a==='add'){s.editIndex=a==='add'?b.rows.length:i;s.pasteText=a==='add'?'':pwText([b.rows[i]]);s.exercise='<Keep typed name>';s.step='editrow';}
+    else if(a==='editrow'||a==='add'){s.addOpen=false;s.editIndex=a==='add'?b.rows.length:i;s.pasteText=a==='add'?'':pwText([b.rows[i]]);s.exercise='<Keep typed name>';s.step='editrow';}
     else if(a==='readpaste'){
       const rows=pwRead(s.pasteText||'');if(!rows.length)throw Error('Paste a routine first.');if(s.step==='editrow'&&pwExercises(rows).length>1)throw Error('Edit one exercise here. Use Paste routine to add several.');
       s.candidate={type:'paste',index:s.step==='editrow'?s.editIndex:undefined,days:{[s.active]:{rows,notes:[]}}};s.step='candidate';

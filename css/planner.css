@@ -366,3 +366,5 @@ p.pw-small{margin:10px 0 16px}.pw-workspace p:not(.pw-small){font:400 14px/1.6 v
 .pw-add-pick small{display:block;margin-top:3px;font:400 13px var(--mono);color:var(--muted)}
 .pw-add-pick i{font-style:normal;font:400 12px var(--mono);color:var(--muted)}
 .pw-add-pick:disabled{cursor:default}.pw-add-pick:disabled strong,.pw-add-pick:disabled small{opacity:.4}
+/* v4.6.157: "Type an exercise…" is a pw-btn (it reuses the old add action); read it as one more row of the list */
+.pw-add-sheet .pw-add-pick.pw-add-type{border:0;border-top:1px solid var(--line);border-radius:0;background:none;box-shadow:none;min-height:0;height:auto;margin:0;padding:13px 0;justify-content:flex-start;font:inherit}

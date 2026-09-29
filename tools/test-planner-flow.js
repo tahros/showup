@@ -61,11 +61,12 @@ test('changing date selection disables later steps, retaining saved status icons
 run(`pw().dates=['2026-09-14'];pwRender();`);
 test('restoring exact dates reenables stages',`!document.querySelector('[data-stage="3"]').disabled&&pwSetCount(pwDay('2026-09-14').rows)===5`);
 test('saved calendar dates have filled status icons',`document.querySelector('[data-date="2026-09-14"] .pf-status-icon')`);
-run(`pfNavigate('edit');pfHandle('pf-plus',{dataset:{}});`);
-test('total change is pending, highlighted and does not mutate sets',`pfPending()&&pwSetCount(pwDay(pw().active).rows)===5&&document.querySelector('.pf-changed')&&document.querySelector('.pf-beam')`);
-test('pending total prevents saving',`(()=>{try{pfSave();return false;}catch(e){return /Regenerate/.test(e.message);}})()`);
+/* v4.6.157: Set target changes the routine LIVE (the maker's call, 2026-09-28);
+   it used to hold a pending number that only Regenerate applied. */
+run(`window.__rowsWas=JSON.stringify(pwDay(pw().active).rows);pfNavigate('edit');pfHandle('pf-plus',{dataset:{}});`);
+test('Set target + changes the sets live: 5 -> 6, nothing pending (so Save is not held for Regenerate)',`!pfPending()&&pwSetCount(pwDay(pw().active).rows)===6&&!document.querySelector('.pf-changed')`);
 run(`pfHandle('pf-minus',{dataset:{}});`);
-test('returning to original count clears pending state',`!pfPending()`);
+test('- returns to the original routine exactly',`!pfPending()&&pwSetCount(pwDay(pw().active).rows)===5&&JSON.stringify(pwDay(pw().active).rows.map(r=>{const{added,...x}=r;return x;}))===window.__rowsWas`);
 test('repeated reps are grouped on one line of the spine',`pfGroups(pwDay(pw().active).rows[0]).length===2&&document.querySelectorAll('.pe-ex[data-pw-row="0"] .pe-line.pe-plan').length===2`);
 /* v4.6.73: the form card is gone; a line is edited chip by chip, in place */
 run(`pfHandle('pf-row-toggle',{dataset:{index:'0'}});pfHandle('pf-chip',{dataset:{index:'0',line:'1',field:'r',rep:'3'}});`);

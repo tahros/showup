@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.157 (2026-09-28) — One "Add exercise" everywhere
+
+- **Reported:** the planner's Edit page (Set target + Regenerate) had its own "+ Add exercise" from v4.6.0 that opened a blank text box, so the same label did two different things.
+- The Edit page's **Add exercise** now opens the same sheet as Total sets: the day's body part first, every exercise you have done most recent first, with last sets and date; already planned ones can't be picked. A pick joins the routine with your usual number of sets. The sheet's last row, **Type an exercise…**, opens the old text box for one you haven't logged.
+- **Set target** on the Edit page now changes the routine live, by the same rule as Total sets: each exercise up to your usual working sets, then the day's most recent exercise not in the plan. − takes the added exercises away first. It used to only set a number for Regenerate ("18 current → 20 target · Regenerate to apply"); Regenerate itself is unchanged.
+- Tests: `check-add-exercise.cjs` +14 checks for the Edit page (46 in all), light and dark. `test-planner-flow.js`: the old "total change is pending / pending total prevents saving" checks now assert the live behavior, and that − restores the original routine exactly.
+
 ## v4.6.156 (2026-09-28) — More sets become another exercise, and Add exercise
 
 - **Asked for:** add an extra exercise to tomorrow's plan; 14 sets was too few, and + on Total sets could only make the same three exercises longer. Built from the approved mock (frames 2–5).
