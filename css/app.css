@@ -4282,3 +4282,23 @@ html body #nav #gearBtn:not(.on){background:transparent;box-shadow:none}
 /* Retro is flat by design (no glass anywhere), and reduced transparency means none. */
 :root[data-appearance="retro"] .edgeblur{display:none}
 @media(prefers-reduced-transparency:reduce){.edgeblur{display:none}}
+
+/* v4.6.163: Best lifts (Progress). Two columns: the lift and its note on the
+   left; weight x reps on one right edge that the total shares. Values sit on
+   the name's line, not centred on two. Mock C, 2026-09-29. */
+.bl-head{display:flex;align-items:baseline;gap:8px}
+.bl-head small{font:400 12px var(--mono);color:var(--muted);letter-spacing:0;text-transform:none}
+.card.bl-card,#view.stats-system .stats-card.bl-card{padding:0 18px;overflow:hidden}   /* the stats layer pads every card by id */
+.bl-row,.bl-total{display:grid;grid-template-columns:minmax(0,1fr) 44px 34px 10px;column-gap:6px;align-items:start;width:100%;padding:14px 0;border:0;border-top:1px solid var(--line);background:none;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.bl-card>.bl-row:first-child{border-top:0}
+.bl-name{min-width:0}
+.bl-name strong{display:flex;align-items:center;gap:7px;font:600 15px/20px var(--body);color:var(--chalk)}
+.bl-name small{display:block;margin-top:3px;font:400 11px/15px var(--mono);color:var(--muted);overflow-wrap:anywhere}
+.bl-tag{padding:2px 7px;border-radius:999px;font:500 10px/1.3 var(--mono);color:var(--accent-ink,var(--accent));background:color-mix(in srgb,var(--accent) 14%,transparent)}
+.bl-row b,.bl-total b{font:600 15px/20px var(--mono);color:var(--chalk);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.bl-row i,.bl-total i{font-style:normal;font:400 15px/20px var(--mono);color:var(--chalk);white-space:nowrap}
+.bl-row svg{width:8px;height:14px;margin-top:3px;fill:none;stroke:var(--muted);stroke-width:2}
+.bl-none b{color:var(--muted)}
+.bl-total{margin:0 -18px;width:calc(100% + 36px);padding:14px 18px 16px;cursor:default;background:color-mix(in srgb,var(--chalk) 3%,transparent)}
+.bl-total b{font-weight:700}
+.bl-total i{color:var(--muted)}

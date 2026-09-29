@@ -1,5 +1,16 @@
 # ShowUp — changelog
 
+## v4.6.163 (2026-09-29) — Best lifts on Progress
+
+- **Asked for:** see my PRs for the major lifts on the Progress tab. Built as the approved list card (B), in the aligned two-column layout (C).
+- **Which lifts:** the big three, fixed: Squat, Bench Press, Deadlift (the "3대" everyone tracks against), with a **Big 3 total** under them.
+- **Actuals only:** each row is the heaviest weight you actually lifted, with its reps (235 × 6 reads 235 × 6). Nothing is estimated. Ties go to more reps, then the most recent.
+- **Last 12 months:** the headline is your best in the last 365 days, so it shows what you can lift now. An older, heavier best stays as a quiet line ("all-time 315 × 1 · 2022") and counts toward nothing.
+- **Variants:** a slot takes the nearest barbell variant when you haven't done the lift itself this year, with a tag: bench goes flat → incline → decline, squat back → front, deadlift conventional only. Machines, Smith and dumbbells never stand in.
+- **Missing lifts:** a lift with nothing in 12 months shows "—" and when it was last done ("Last: Mar 2023 · 275 × 5"). The total leaves it out and says what it holds ("Bench Press + Deadlift · no squat in 12 months", "Includes Incline bench").
+- **Layout:** the lift and its date on the left; weight × reps on one right edge that the total shares. Values sit on the lift's line. Tap a row to open that lift in the strength chart below. No big-three history at all: no card.
+- Tests: `tools/check-best-lifts.cjs` (Chromium, light and dark, 320 and 402px, 62 checks): the maker's case (235 × 6 now, 315 × 1 in 2022), incline filling in, squat missing, both at once, a Smith machine not standing in, no history, kg, alignment, and tap-to-chart.
+
 ## v4.6.162 (2026-09-29) — A short range sits at the right of the chart
 
 - **Asked for:** when a range doesn't have enough dates to fill the chart (the oldest range of an exercise's history), the chart should be right-aligned.

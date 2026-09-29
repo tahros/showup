@@ -1437,6 +1437,84 @@ document.addEventListener('input',e=>{
   if(e.target.id==='wovenScrub'){const rows=wovenWindow(),r=rows[Number(e.target.value)];if(r)wovenChoose(r.d);}
 });
 
+/* v4.6.163: BEST LIFTS -- the big three (squat, bench, deadlift: "3대"), the
+   benchmark lifters everywhere track, fixed rather than chosen.
+   Rules, decided with the maker 2026-09-29:
+   - ACTUALS ONLY. The heaviest weight actually lifted, with its reps (235 x 6
+     reads 235 x 6); nothing is estimated. Ties go to more reps, then recency.
+   - THE LAST 12 MONTHS. The headline is the best in the last 365 days, so it
+     says what you can lift now; an older, heavier best stays as a quiet
+     "all-time" line and never inflates the headline or the total.
+   - A SLOT TAKES THE NEAREST BARBELL VARIANT, SAID OUT LOUD. Bench: flat, then
+     incline, then decline; squat: back, then front; deadlift: conventional
+     only. The first one done in the window fills the slot and wears a tag.
+     Machines, Smith and dumbbells never stand in.
+   - THE TOTAL adds the three window bests (as shown), and says what it holds:
+     a variant, or a lift missing from the window.
+   A slot with nothing in the window shows "-" and when it was last done. */
+const BIG3=[
+  {label:'Squat',noun:'squat',family:[['Squat',''],['Front Squat','Front']]},
+  {label:'Bench Press',noun:'bench',family:[['Barbell Bench Press',''],['Incline Barbell Bench Press','Incline'],['Decline Barbell Bench Press','Decline']]},
+  {label:'Deadlift',noun:'deadlift',family:[['Deadlift','']]}
+];
+function bestSets(ex,from){   /* heaviest set of ex on or after `from` (all time if null) */
+  let best=null;
+  for(const [d,day] of Object.entries(DB.days||{})){
+    if(d>todayISO||(from&&d<from))continue;
+    for(const s of day.w||[]){
+      if(s.ex!==ex||!(s.reps||[]).length||!(s.w>0))continue;
+      const r=Math.max(...s.reps);
+      if(!best||s.w>best.w||(s.w===best.w&&(r>best.r||(r===best.r&&d>best.d))))best={w:s.w,r,d};
+    }
+  }
+  return best;
+}
+function lastDone(exs){   /* the most recent day any of exs was done, and its heaviest set that day */
+  let last=null;
+  for(const ex of exs){const b=bestSets(ex,null);if(!b)continue;
+    const d=Object.keys(DB.days).filter(k=>k<=todayISO&&(DB.days[k].w||[]).some(s=>s.ex===ex&&s.w>0&&(s.reps||[]).length)).sort().pop();
+    if(d&&(!last||d>last.d))last={d,...bestSetsOn(ex,d)};}
+  return last;
+}
+function bestSetsOn(ex,d){let best={w:0,r:0};for(const s of DB.days[d].w||[])if(s.ex===ex&&s.w>0&&(s.reps||[]).length){const r=Math.max(...s.reps);if(s.w>best.w||(s.w===best.w&&r>best.r))best={w:s.w,r};}return best;}
+function bestLiftsData(){
+  const cut=new Date(todayISO+'T12:00');cut.setDate(cut.getDate()-365);const from=cut.toLocaleDateString('en-CA');
+  const shown=kg=>isLb()?Math.round(toU(kg)):Math.round(toU(kg)*10)/10;
+  const slots=BIG3.map(L=>{
+    for(const [ex,tag] of L.family){const b=bestSets(ex,from);if(!b)continue;
+      const all=bestSets(ex,null),older=all&&all.w>b.w?all:null;
+      return {...L,ex,tag,w:shown(b.w),r:b.r,d:b.d,all:older&&{w:shown(older.w),r:older.r,y:older.d.slice(0,4)}};}
+    const last=lastDone(L.family.map(f=>f[0]));
+    return {...L,ex:last?L.family.find(f=>bestSets(f[0],null))?.[0]:L.family[0][0],none:true,last:last&&{w:shown(last.w),r:last.r,d:last.d}};
+  });
+  return {slots,any:slots.some(s=>!s.none||s.last)};
+}
+function bestLiftsSection(){
+  const {slots,any}=bestLiftsData();if(!any)return '';
+  const md=d=>new Date(d+'T12:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  const my=d=>new Date(d+'T12:00').toLocaleDateString('en-US',{month:'short',year:'numeric'});
+  const chev='<svg viewBox="0 0 8 14" aria-hidden="true"><path d="M1 1l6 6-6 6"/></svg>';
+  const have=slots.filter(s=>!s.none),sum=Math.round(have.reduce((a,s)=>a+s.w,0)*10)/10;
+  const rows=slots.map(s=>{
+    const sub=s.none?(s.last?`Last: ${my(s.last.d)} · ${s.last.w} × ${s.last.r}`:'Not logged yet')
+      :md(s.d)+(s.tag?` · no ${s.noun==='bench'?'flat bench':'back squat'} this year`:'')+(s.all?` · all-time ${s.all.w} × ${s.all.r} · ${s.all.y}`:'');
+    return `<button type="button" class="bl-row${s.none?' bl-none':''}" data-bl-ex="${hesc(s.ex)}" aria-label="${hesc(s.label)}${s.tag?' ('+s.tag+')':''}: ${s.none?'none in the last 12 months':s.w+' '+U()+' × '+s.r}. Show its chart."><span class="bl-name"><strong>${hesc(s.label)}${s.tag?`<span class="bl-tag">${hesc(s.tag)}</span>`:''}</strong><small>${sub}</small></span>${s.none?'<b>—</b><i></i>':`<b>${s.w}</b><i>× ${s.r}</i>`}${chev}</button>`;
+  }).join('');
+  const missing=slots.filter(s=>s.none).map(s=>s.noun),variant=have.filter(s=>s.tag).map(s=>s.tag+' '+s.noun);
+  /* one sentence: what the total holds. A stand-in is named in the list when a lift
+     is missing ("Incline bench + Deadlift · no squat"), and on its own otherwise. */
+  const named=have.map(s=>s.tag?s.tag+' '+s.noun:s.label);
+  const note=!have.length?'Nothing in the last 12 months':missing.length?named.join(' + ')+' · no '+missing.join(' or ')+' in 12 months':variant.length?'Includes '+variant.join(', '):'';
+  return `<h2 class="bl-head">Best lifts <small>last 12 months</small></h2><div class="card bl-card">${rows}<div class="bl-total"><span class="bl-name"><strong>Big 3 total</strong>${note?`<small>${hesc(note)}</small>`:''}</span><b>${have.length?sum:'—'}</b><i>${have.length?U():''}</i><u></u></div></div>`;
+}
+/* a row opens its lift in the strength chart below */
+document.addEventListener('click',e=>{
+  const row=e.target.closest?.('[data-bl-ex]');if(!row)return;
+  const ex=row.dataset.blEx,card=document.querySelector('.progression-section[data-pg-role="stats"] .progression-card')||document.querySelector('.progression-section .progression-card');
+  const st=progressionUI.stats||(progressionUI.stats={mode:'numbers'});
+  st.ex=ex;st.kind=null;st.anchor=null;st.span=null;st.pick=null;st.viewId=null;
+  if(card){card.dataset.pgEx=ex;if(card._pg)card._pg.state=st;renderProgression(card);progressionRefreshPeers?.(card);card.closest('.progression-section').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});}
+});
 function renderStats(){
   // One progression surface: the active workout leads; the history explorer
   // returns to its usual position when the workout is no longer live.
@@ -1484,6 +1562,7 @@ function renderStats(){
       <div class="card mccard">${muscleCard()}</div>`;
   cut('mc');
   h+=growthAuditSection();
+  h+=bestLiftsSection();   /* v4.6.163 */
   if(!liveProgression)h+=progressionStatsSection();
   cut('rz');
   /* v3.3.271: five retired time sections DELETED — Consistency curves,
