@@ -1,5 +1,11 @@
 # ShowUp — changelog
 
+## v4.6.158 (2026-09-28) — Close the Add exercise sheet
+
+- **Asked for:** a way to close the Add exercise sheet without picking anything.
+- A × on the sheet's title line closes it and adds nothing, on both the Total sets and Edit pages. Escape and tapping outside the sheet do the same.
+- Tests: `check-add-exercise.cjs` +10 checks (56 in all): ×, Escape and tapping outside, on both pages, light and dark; the × is a 36pt target on the title's line.
+
 ## v4.6.157 (2026-09-28) — One "Add exercise" everywhere
 
 - **Reported:** the planner's Edit page (Set target + Regenerate) had its own "+ Add exercise" from v4.6.0 that opened a blank text box, so the same label did two different things.

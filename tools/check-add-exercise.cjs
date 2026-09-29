@@ -77,6 +77,9 @@ const PLAN='Deadlift\n  135 lb × 8 (warm-up)\n  235 lb × 6 6 6 6\nBent-Over Ro
     const bi=await p.evaluate(()=>[...document.querySelectorAll('.pw-add-pick strong')].map(e=>e.textContent).join(','));
     ok(`${theme}: another body part's chip lists its exercises`, bi==='Barbell Curl', bi);
     await click('[data-pw="add-part"][data-part="Back"]');
+    const was=(await state()).rows;await click('.pw-add-close');
+    ok(`${theme}: × on Total sets closes the sheet and changes nothing`, !(await p.$('.pw-add-sheet'))&&(await state()).rows===was);
+    await click('[data-pw="add-open"]');
     await click('[data-pw="add-pick"][data-ex="Lat Pulldown"]');s=await state();
     ok(`${theme}: a pick joins as "new" with its usual sets (3): 14 → 17`, s.rows.endsWith('Lat Pulldown[new]:3')&&s.total===17&&!(await p.$('.pw-add-sheet')), s.rows);
     await click('[data-pw="set-plus"]');s=await state();
@@ -105,6 +108,17 @@ const PLAN='Deadlift\n  135 lb × 8 (warm-up)\n  235 lb × 6 6 6 6\nBent-Over Ro
       list:[...document.querySelectorAll('.pw-add-pick')].map(b=>b.querySelector('strong').textContent).join(' / '),last:document.querySelector('.pw-add-list > :last-child')?.dataset.pw}));
     ok(`${theme} Edit: Add exercise opens the same sheet (not the text box)`, sh.ctx==='edit'&&sh.title==='Add to Tuesday'&&!(await p.$('.pw-input-panel')), sh.title);
     ok(`${theme} Edit: ...most recent first, with "Type an exercise…" last`, sh.list==='Seated Cable Row / Lat Pulldown / Bent-Over Row / Deadlift / Pull Up / Chest-Supported Row / Type an exercise…'&&sh.last==='add', sh.list);
+    /* v4.6.158: the sheet closes without adding -- its ×, the scrim, Escape */
+    const before=await rows();
+    await click('.pw-add-close');
+    ok(`${theme} Edit: × closes the sheet and adds nothing`, !(await p.$('.pw-add-sheet'))&&(await rows())===before, await rows());
+    await click('.pf-add-button');await p.keyboard.press('Escape');await p.waitForTimeout(60);
+    ok(`${theme} Edit: Escape closes it too`, !(await p.$('.pw-add-sheet'))&&(await rows())===before);
+    await click('.pf-add-button');await p.mouse.click(200,80);await p.waitForTimeout(60);
+    ok(`${theme} Edit: so does tapping outside it`, !(await p.$('.pw-add-sheet'))&&(await rows())===before);
+    await click('.pf-add-button');
+    const xy=await p.evaluate(()=>{const x=document.querySelector('.pw-add-close').getBoundingClientRect(),h=document.querySelector('#pw-add-title').getBoundingClientRect();return {w:Math.round(x.width),inRow:Math.abs((x.top+x.height/2)-(h.top+h.height/2))<3,right:Math.round(innerWidth-x.right)};});
+    ok(`${theme} Edit: the × is a 36pt target on the title's line, at the right`, xy.w===36&&xy.inRow&&xy.right<=24, JSON.stringify(xy));
     await click('[data-pw="add-pick"][data-ex="Lat Pulldown"]');
     ok(`${theme} Edit: a pick joins the routine with its usual sets`, (await rows())==='Deadlift:5, Bent-Over Row:5, Pull Up:4, Lat Pulldown:3'&&!(await p.$('.pw-add-sheet')), await rows());
     await click('[data-pw="pf-plus"]');
