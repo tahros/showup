@@ -47,25 +47,15 @@ check("'classic' is the one opt-out", `document.documentElement.dataset.skin`, "
 check("...and persists resolved", `localStorage.getItem('showup-skin')`, "classic");
 run(`delete DB.settings.skin; applyTheme();`);
 
-// ---- the Settings seg: both options render, Minimal selected by default
+// ---- v4.6.164: Settings no longer offers Retro / Minimal / Classic -- ShowUp
+//      is Minimal (the maker's call). A record that still holds Classic or
+//      Retro moves to Minimal as it loads, or it would be stuck with no way back.
 run(`renderSync();`);
-check("settings offers Minimal", `!!document.querySelector('[data-skn="minimal"]')`, true);
-check("settings offers Classic", `!!document.querySelector('[data-skn="classic"]')`, true);
-check("Minimal is selected by default", `document.querySelector('[data-skn="minimal"]').classList.contains('sel')`, true);
-
-// ---- the toggle: one tap opts out, effect + record + stamp all land
-run(`DB.settingsAt=0; _setSig=settingsSig(); document.querySelector('[data-skn="classic"]').click();`);
-check("tap Classic flips the attribute", `document.documentElement.dataset.skin`, "classic");
-check("...records the choice", `DB.settings.skin`, "classic");
-check("...persists for the pre-paint", `localStorage.getItem('showup-skin')`, "classic");
-check("...and stamps settingsAt so the choice syncs", `DB.settingsAt>0`, true);
-
-// ---- and back — the round trip is exact
-run(`renderSync(); document.querySelector('[data-skn="minimal"]').click();`);
-check("tap Minimal returns", `document.documentElement.dataset.skin`, "minimal");
-check("...recorded", `DB.settings.skin`, "minimal");
-check("...persisted", `localStorage.getItem('showup-skin')`, "minimal");
-
+check("Settings no longer offers a skin choice", `!!document.querySelector('[data-skn],#retroSoundBtn')`, false);
+for (const old of ["classic", "retro"]) {
+  await run(`(async()=>{localStorage.setItem(KEY,JSON.stringify({days:{},settings:{skin:'${old}'}}));await load();applyTheme();})()`);
+  check(`a stored '${old}' loads as minimal`, `DB.settings.skin+'/'+document.documentElement.dataset.skin`, "minimal/minimal");
+}
 
 /* v3.3.331: the skin has to CHANGE THE SCREEN, on every screen.
    The maker put two screenshots side by side -- Minimal and Classic -- and

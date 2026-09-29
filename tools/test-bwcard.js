@@ -88,7 +88,8 @@ if (!spreadOK) fail++;
 
 // ---- 5. the inline weigh-in: edit → save → recorded on TODAY --------------
 run(`${fresh} setBw('2024-01-10',70); view='sync'; renderSync();`);
-check("Settings renders the weight section", `/id="secWeight"/.test($('#view').innerHTML)`, true);
+check("v4.6.164: Settings has no Weight history section", `/id="secWeight"/.test($('#view').innerHTML)`, false);
+check("...the weight is entered under You", `!!document.getElementById('youBw')`, true);
 check("Stats no longer owns personal weight tracking",
       `(renderStats(), !/id="secWeight"/.test($('#view').innerHTML))`, true);
 // the removed sections must be gone from every render, not merely reordered
@@ -98,34 +99,30 @@ run(`view='history'; render();`);
 check("...and the launcher is also absent from History", `!document.getElementById('secReport')`, true);
 run(`view='sync'; render();`);
 check("Last 30 days no longer renders", `/vs your usual/.test($('#view').innerHTML)`, false);
-check("...and Weight remains available in Settings",
-      `/id="secWeight"/.test($('#view').innerHTML)`, true);
+check("...and the weight stays enterable in Settings (under You)",
+      `!!document.getElementById('youBw')`, true);
 check("this fixture has no drift rows at all", `/Last 30 days/.test($('#view').innerHTML)`, false);
-check("...and the weight card renders anyway (it precedes the conditional)",
-      `/id="secWeight"/.test($('#view').innerHTML)`, true);
+check("...and no Weight history section comes back (v4.6.164)",
+      `/id="secWeight"/.test($('#view').innerHTML)`, false);
 run(`bwEdit=true;`);
 check("edit mode offers an input", `/id="bwIn"/.test(bwCard())`, true);
 check("...prefilled with the current weight", `/value="70"/.test(bwCard())`, true);
 check("...and a save button", `/id="bwSave"/.test(bwCard())`, true);
 check("...and keeps its inline rule while you type", `/silence means unchanged/.test(bwCard())`, true);
 
-run(`${fresh} setBw('2024-01-10',70); bwEdit=false; view='sync'; renderSync();
-     $('#view').querySelector('#bwEditBtn').click();`);
-check("tapping Update opens the editor", `bwEdit`, true);
-run(`$('#bwIn').value='68.5'; $('#bwSave').click();`);
-check("saving closes the editor", `bwEdit`, false);
+// v4.6.164: the Weight history section (and its Update editor) left Settings;
+// the weigh-in is the You card's weight field, with the same rules.
+run(`${fresh} setBw('2024-01-10',70); view='sync'; renderSync();`);
+check("Settings has no Update editor any more", `!!$('#view').querySelector('#bwEditBtn')`, false);
+run(`$('#youBw').value='68.5'; $('#youSave').click();`);
 check("...records the change against TODAY", `DB.days[todayISO].bw`, 68.5);
 check("...and the current value follows", `bwNow()`, 68.5);
 check("...and the derived scalar follows too", `DB.settings.bodyKg`, 68.5);
 
-// ---- 5b. Cancel backs out without recording anything ----------------------
-run(`${fresh} setBw('2024-01-10',70); delete DB.days[todayISO];
-     bwEdit=false; view='sync'; renderSync();
-     $('#view').querySelector('#bwEditBtn').click();`);
-check("edit mode offers a way out", `!!$('#bwCancel')`, true);
-run(`$('#bwIn').value='55'; $('#bwCancel').click();`);
-check("cancel closes the editor", `bwEdit`, false);
-check("...and records nothing", `!!(DB.days[todayISO]&&DB.days[todayISO].bw)`, false);
+// ---- 5b. a blank weight field records nothing -----------------------------
+run(`${fresh} setBw('2024-01-10',70); delete DB.days[todayISO]; view='sync'; renderSync();
+     $('#youBw').value=''; $('#youSave').click();`);
+check("a blank weight records nothing", `!!(DB.days[todayISO]&&DB.days[todayISO].bw)`, false);
 
 // ---- 5c. the layout bug of v3.3.67: .btn is width:100% -------------------
 const statsSrc = fs.readFileSync(path.join(dir, "js/stats.js"), "utf8");
@@ -138,16 +135,15 @@ if (!usesBtnrow) fail++;
 
 // ---- 6. an UNCHANGED number records nothing — the whole rule --------------
 run(`${fresh} setBw('2024-01-10',70); delete DB.days[todayISO];
-     bwEdit=false; view='sync'; renderSync();
-     $('#view').querySelector('#bwEditBtn').click(); $('#bwIn').value='70'; $('#bwSave').click();`);
+     view='sync'; renderSync(); $('#youBw').value='70'; $('#youSave').click();`);
 check("re-entering the same weight records no new entry",
       `!!(DB.days[todayISO]&&DB.days[todayISO].bw)`, false);
 check("...and the series is untouched", `bwDays().length`, 1);
 
 // ---- 7. the streak guard still holds after a weigh-in through the UI ------
 run(`${fresh} setBw('2024-01-10',70); SEED=deriveAll(); globalThis.__b=SEED.totals.sessions;
-     delete DB.days[todayISO]; bwEdit=false; view='sync'; renderSync();
-     $('#view').querySelector('#bwEditBtn').click(); $('#bwIn').value='69'; $('#bwSave').click();
+     delete DB.days[todayISO]; view='sync'; renderSync();
+     $('#youBw').value='69'; $('#youSave').click();
      SEED=deriveAll();`);
 check("a UI weigh-in still adds no training day", `SEED.totals.sessions === __b`, true);
 

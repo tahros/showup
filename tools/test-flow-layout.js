@@ -67,11 +67,11 @@ run('render()');
 ok('Last time remembers its fold',w.document.querySelector('[data-plfold]').getAttribute('aria-expanded')==='true');
 run(`view='sync';render();`);
 const before=run(`JSON.stringify({days:DB.days,plan:DB.plan,week:DB.week,settings:DB.settings})`);
-tap('[data-flowpick="previous"]');
+run(`flowLayout='previous';localStorage.setItem(FLOW_KEY,'previous');render();`);   /* v4.6.164: no Settings switch; the Previous renderer is still exercised */
 ok('Previous changes only a local presentation key',run(`!refinedFlow() && localStorage.getItem(FLOW_KEY)==='previous'`)&&before===run(`JSON.stringify({days:DB.days,plan:DB.plan,week:DB.week,settings:DB.settings})`));
 run(`view='lift';lift.ex=null;render();`);
 ok('Previous restores original rows and fold renderer',!w.document.querySelector('.flow-exgroup')&&!w.document.querySelector('[data-flow-lastbody]'));
-run(`view='sync';render();`);tap('[data-flowpick="refined"]');
+run(`view='sync';render();`);ok('Settings no longer offers the layout switch (v4.6.164)',!w.document.querySelector('[data-flowpick]'));run(`flowLayout='refined';localStorage.setItem(FLOW_KEY,'refined');render();`);
 run(`view='lift';render();`);
 ok('Refined can be restored without losing the ledger',!!w.document.querySelector('.flow-exgroup')&&before===run(`JSON.stringify({days:DB.days,plan:DB.plan,week:DB.week,settings:DB.settings})`));
 run(`view='stats';render();`);

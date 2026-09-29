@@ -96,7 +96,8 @@ run(`pwState=null;pwOwner=null;pwRender();`);ok('reordered draft persists across
 run(`pw().book[pw().active]=savedDraft;pwGo('review');`);ok('old review state resolves to the editor with direct Save',`pw().step==='edit'&&!!document.querySelector('.pw-save-dock [data-pw="save"]')&&!document.querySelector('[data-pw="review"]')`);
 run(`lift.plan=null;view='today';render();`);
 ok('Today omits Coming up while retaining Dates and saved plans',`!document.querySelector('.pw-coming,[data-pw="upcoming"]')&&document.querySelector('.pw-home-heading [data-pw]')&&Object.keys(DB.week.days).length>0`);
-run(String.raw`view='sync';render();`);click('mode');run(String.raw`document.querySelector('[data-pw="mode"][data-mode="previous"]').click();view='today';render();`);
+/* v4.6.164: Settings no longer offers the Planning interface switch; the Previous planner is still exercised through its key */
+run(String.raw`view='sync';render();`);ok('Settings no longer offers the Planning interface switch (v4.6.164)',!run(String.raw`!!document.querySelector('[data-pw="mode"]')`));run(String.raw`localStorage.setItem(PW_MODE_KEY,'previous');lift.plan=null;view='today';render();`);
 ok('Previous restores old Write door without changing records',String.raw`!planningWorkspace()&&!!document.querySelector('[data-planwrite]')&&JSON.stringify(DB.days)===closedRecord`);
 run(String.raw`localStorage.removeItem(PW_MODE_KEY);pwOpen('2026-09-11');pwDay('2026-09-11').rows=[];pwDay('2026-09-11').locks=[];pw().dates=['2026-09-11'];pwDay('2026-09-11').parts=['Legs'];var WRITER_STUB=async p=>({days:p.days.map(date=>({date,part:'Legs',title:'Legs',text:'Squat\n  205 lb × 8 8 8'})),reason:null});`);
 (async()=>{

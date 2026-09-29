@@ -279,7 +279,7 @@ check("the confirmation says BW for a bodyweight set, not '0kg'",
   check("the number line itself never reorders",
         `(function(){const r=[...document.querySelectorAll('.repruler .rr')].map(b=>+b.dataset.rep);
           return r.every((v,i)=>i===0||v===r[i-1]+1) && r[0]===1;})()`, true);
-  run(`setBw(todayISO,70); view='sync'; render(); document.querySelector('#secWeight .ibtn.tipi').click();`);
+  run(`view='stats'; render(); [...document.querySelectorAll('#view .ibtn.tipi')].find(b=>b.getAttribute('aria-label')==='About the last 7 days').click();`);   /* v4.6.164: Settings' weight tip is gone */
   check("scrolling closes an open tip",
         `(()=>{document.dispatchEvent(new Event('scroll'));
               return document.getElementById('tipFloat').hidden===true

@@ -167,18 +167,21 @@ run(`view='lift'; lift={part:'Shoulder',ex:'Dumbbell Press',weight:16}; render()
    toggling, single-open, and specific labels. */
 check("the session card carries NO i dot any more",
       `!document.querySelector('#view .lastcard.sess .ibtn.tipi')`, true);
-run(`setBw(todayISO,70); view='sync'; render();`);
-check("a retained tip trigger renders (Settings · Weight)",
-      `!!document.querySelector('#secWeight .ibtn.tipi')`, true);
+/* v4.6.164: the Settings weight section is gone; the tip mechanics move to
+   Progress's "The last 7 days" tip, the same trigger and float. */
+run(`view='stats'; render();`);
+const TIP=`[...document.querySelectorAll('#view .ibtn.tipi')].find(b=>b.getAttribute('aria-label')==='About the last 7 days')`;
+check("a retained tip trigger renders (Progress · The last 7 days)",
+      `!!${TIP}`, true);
 check("its aria label is specific, not 'Info'",
-      `document.querySelector('#secWeight .ibtn.tipi').getAttribute('aria-label')`,
-      "About the weight chart");
+      `${TIP}.getAttribute('aria-label')`,
+      "About the last 7 days");
 check("tip opens, and the trigger reports expanded",
-      `(()=>{const b=document.querySelector('#secWeight .ibtn.tipi');
+      `(()=>{const b=${TIP};
              b.click(); const tf=document.getElementById('tipFloat');
              return !!(tf&&!tf.hidden&&tf.textContent.length>10)
                     && b.getAttribute('aria-expanded')==='true';})()`, true);
-check("only the open weight tip reports expanded",
+check("only the open tip reports expanded",
       `document.querySelectorAll('.tipi[aria-expanded="true"]').length`, 1);
 check("tapping outside closes and collapses",
       `(()=>{document.body.click(); const tf=document.getElementById('tipFloat');

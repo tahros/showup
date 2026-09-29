@@ -25,12 +25,8 @@ function renderSync(){
         <button data-thm="light" class="${DB.settings.theme==='light'?'sel':''}">Light</button>
         <button data-thm="dark" class="${DB.settings.theme!=='system'&&DB.settings.theme!=='light'?'sel':''}">Dark</button>
       </span>
-      <span class="seg" style="display:flex;margin-top:8px">
-        <button data-skn="retro" class="${DB.settings.skin==='retro'?'sel':''}">Retro</button>
-        <button data-skn="minimal" class="${!['retro','classic'].includes(DB.settings.skin)?'sel':''}">Minimal</button>
-        <button data-skn="classic" class="${DB.settings.skin==='classic'?'sel':''}">Classic</button>
-      </span>
-      ${DB.settings.skin==='retro'?'<button class="btn ghost" id="retroSoundBtn" aria-pressed="'+(DB.settings.retroSound===true)+'" style="margin-top:12px">8-bit sounds · '+(DB.settings.retroSound===true?'On':'Off')+'</button>':''}
+      <!-- v4.6.164: Retro / Minimal / Classic is gone -- ShowUp is Minimal (the
+           maker's call, 2026-09-29). load() moves a stored Retro or Classic to Minimal. -->
       <!-- v3.3.477: the tab bar's own appearance. "Match" rather than
            "System" because the row above already means the system, and one
            word must not mean two things two rows apart. -->
@@ -61,24 +57,12 @@ function renderSync(){
     <div class="card"><span class="seg" style="display:flex">
       ${['animated','still','off'].map(mode=>`<button data-mascot-pick="${mode}" class="${mascotMode()===mode?'sel':''}" aria-pressed="${mascotMode()===mode}">${mode[0].toUpperCase()+mode.slice(1)}</button>`).join('')}
     </span></div>
-    <h2>TODAY & TRAIN layout</h2>
-    <div class="card">
-      <span class="seg" style="display:flex">
-        <button data-flowpick="refined" class="${refinedFlow()?'sel':''}" aria-pressed="${refinedFlow()}">Refined</button>
-        <button data-flowpick="previous" class="${refinedFlow()?'':'sel'}" aria-pressed="${!refinedFlow()}">Previous</button>
-      </span>
-      <div class="note" style="margin-top:10px">Switch back anytime. Only this device’s layout changes. Your workouts and plans stay exactly as they are.</div>
-    </div>
+    <!-- v4.6.164: the TODAY & TRAIN layout switch is gone -- Refined only; load() moves a stored Previous to Refined. -->
     <h2>Planning</h2>
     <div class="card">
       <button type="button" class="btn ghost" data-pw="pf-settings">${icon('edit',ICON_SZ.sm)} Planning preferences ${icon('chevron',ICON_SZ.sm)}</button>
       <p class="note">${hesc(pfSummary())}</p>
-      <div class="note" style="margin-bottom:8px">Planning interface</div>
-      <span class="seg" style="display:flex">
-        <button data-pw="mode" data-mode="workspace" class="${planningWorkspace()?'sel':''}" aria-pressed="${planningWorkspace()}">Workspace</button>
-        <button data-pw="mode" data-mode="previous" class="${planningWorkspace()?'':'sel'}" aria-pressed="${!planningWorkspace()}">Previous</button>
-      </span>
-      <div class="note" style="margin-top:10px">Switch back anytime, on this device. Saved plans and workouts do not change. Unfinished workspace drafts stay on this device.</div>
+      <!-- v4.6.164: the Planning interface switch is gone -- Workspace only. -->
     </div>
     ${typeof remPlugin==='function'&&remPlugin()?(()=>{ const rp=remPrefs(); return `
     <!-- v4.6.118: reminders, iOS app only (a website cannot schedule them). -->

@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v4.6.164 (2026-09-29) — Settings: fewer choices
+
+- **Asked for:** remove four things from Settings. ShowUp keeps one look and one layout.
+- **Look:** the Retro / Minimal / Classic picker is gone; ShowUp is Minimal. A saved Retro or Classic moves to Minimal when the app loads, so no one is stuck on a look Settings can no longer change.
+- **Today & Train layout:** the card is gone; the layout is Refined. A device that still held Previous is moved to Refined at start-up.
+- **Planning interface:** the Workspace / Previous choice is gone; planning uses Workspace. Planning preferences stay in that card.
+- **Weight at the bottom:** the Weight history section is gone. It repeated the weight field already in the You card, which is where a weigh-in is entered (same rule: an unchanged number records nothing).
+- Tests: test-skin (old Retro/Classic records load as Minimal), test-flow-layout, test-planner, test-bwcard (weigh-in through You), test-stats-217, test-todayhero and test-repweight updated to the new Settings.
+
 ## v4.6.163 (2026-09-29) — Best lifts on Progress
 
 - **Asked for:** see my PRs for the major lifts on the Progress tab. Built as the approved list card (B), in the aligned two-column layout (C).

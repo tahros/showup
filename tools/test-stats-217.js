@@ -23,5 +23,5 @@ ok('running distance and pace use signature blue',run(`document.querySelector('.
 ok('pace labels stay restrained',run(`[...document.querySelectorAll('.paceval')].every(x=>x.getAttribute('font-size')==='6.5')`));
 ok('personal Weight is absent from Stats',run(`!document.getElementById('secWeight')`));
 run(`view='sync';render();`);
-ok('personal Weight and its history live in Settings',run(`!!document.getElementById('secWeight')`));
+ok('v4.6.164: Settings has no Weight history section; the weight is entered under You',run(`!document.getElementById('secWeight')&&!!document.getElementById('youBw')`));
 process.exit(fail?1:0);
