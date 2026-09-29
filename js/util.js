@@ -781,8 +781,12 @@ function repairNavLayout(){
   put(nav,{'position':'fixed','display':'flex','flex-direction':'row','flex-wrap':'nowrap',
     'align-items':'stretch','justify-content':'flex-start','gap':'0px',
     'box-sizing':'border-box','top':'auto','left':'0px','right':'0px',
-    'bottom':minimal?'calc(10px + env(safe-area-inset-bottom, 0px))':'0px',
-    'width':Math.max(0,Math.min(vw-(minimal?48:0),minimal?472:520))+'px',
+    /* v4.6.155: the bar's position comes from the SAME token as the stylesheet
+       (--bar-bot, 20px sides since v4.6.152). This safety net pinned the old
+       10px-above-the-safe-area and 24px sides, so on the phone -- the only place
+       it fires -- the tab bar stayed 44pt up after v4.6.152 moved it to 22. */
+    'bottom':minimal?'var(--bar-bot)':'0px',
+    'width':Math.max(0,Math.min(vw-(minimal?40:0),minimal?472:520))+'px',
     'max-width':'100%','min-width':'0px','margin':'0px auto',
     'height':minimal?'58px':'calc(58px + env(safe-area-inset-bottom, 0px))',
     'min-height':'0px','max-height':'none','padding-top':'0px',

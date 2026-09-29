@@ -28,7 +28,7 @@ console.log('PASS healthy bar receives no inline overrides');
 n.style.setProperty('display','block','important');
 rect={left:24,right:444,top:510,width:420,height:232};tops=[515,573,631,689];
 assert.strictEqual(w.repairNavLayout(),true);
-for(const [k,v] of Object.entries({display:'flex',position:'fixed','flex-direction':'row','flex-wrap':'nowrap',width:'342px',height:'58px'})){
+for(const [k,v] of Object.entries({display:'flex',position:'fixed','flex-direction':'row','flex-wrap':'nowrap',width:'350px',height:'58px',bottom:'var(--bar-bot)'})){
   assert.strictEqual(n.style.getPropertyValue(k),v);
   assert.strictEqual(n.style.getPropertyPriority(k),'important');
 }
@@ -36,8 +36,9 @@ assert(bs.every(b=>b.style.flex==='1 1 0px'&&b.style.getPropertyPriority('flex')
 assert.strictEqual(JSON.parse(n.dataset.layoutFailure).display,'block');
 assert.deepStrictEqual([...n.children],bs);
 console.log('PASS detected stacking and overflow receive higher-priority row constraints without replacing buttons');
+console.log('PASS the recovered bar sits where the stylesheet puts it (--bar-bot, 20px sides), not the pre-v4.6.152 44pt');
 Object.defineProperty(w.document.documentElement,'clientWidth',{value:320,configurable:true});
-w.repairNavLayout();assert.strictEqual(n.style.width,'272px');
+w.repairNavLayout();assert.strictEqual(n.style.width,'280px');   // v4.6.155: 20px sides
 w.document.documentElement.dataset.skin='classic';w.repairNavLayout();assert.strictEqual(n.style.width,'320px');
 console.log('PASS recovered width follows resize and skin changes');
 rect={left:0,right:0,top:0,width:0,height:0};

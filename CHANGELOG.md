@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.155 (2026-09-28) — The tab bar sits 22pt from the bottom on the phone too
+
+- **Reported:** after the recent updates the tab bar looked further from the bottom of the screen, not closer.
+- **Cause:** v4.6.152 moved the tab bar to 22pt from the bottom and 20pt from the sides, but only in the stylesheet. `repairNavLayout()` (js/util.js, v4.5.4) is a safety net for the iOS fixed-layout bug: when it fires, it pins the bar with inline `!important` styles, and it still carried the old numbers (10pt above the safe area = 44pt, 24pt sides). It only fires on a real iPhone, so every browser check measured 22pt while the phone showed 44. The phone screenshots from before and after v4.6.152 both show the bar about 45pt up, with the header moved as planned.
+- **Fix:** the safety net now reads the same `--bar-bot` token as the stylesheet, with 20pt sides. Forced to fire at iPhone 17 Pro size, the bar now stays at 22pt (was 44).
+- Tests: `test-nav-recovery.js` asserts the recovered bar uses `--bar-bot` and 20pt sides.
+
 ## v4.6.154 (2026-09-28) — Save Image is back in the iOS app
 
 - **Asked for:** the share sheet in the iOS test app showed the card as a generic PNG document with only Save to Files, and no Save Image.
