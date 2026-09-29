@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v4.6.156 (2026-09-28) — More sets become another exercise, and Add exercise
+
+- **Asked for:** add an extra exercise to tomorrow's plan; 14 sets was too few, and + on Total sets could only make the same three exercises longer. Built from the approved mock (frames 2–5).
+- **Add exercise:** a new row at the end of "Your routine" on the Total sets page. It opens a sheet, "Add to Tuesday", one body part at a time (the day's own first). It lists every exercise you have done for that part, most recent first, with your last working sets and the date. Exercises already in the plan are shown and can't be picked. A pick joins the routine marked **new** with your usual number of sets; × removes it.
+- **+ past full adds an exercise:** each exercise is full at the number of working sets you actually do for it: the most common count over your last 8 sessions, never below what is planned. Warm-ups are left out; a logged set counts as working when its load is at least 80% of that session's top load. With no history the full point is 3 (ACSM 2026: 2–3 sets an exercise for strength). + fills the plan's exercises to their full point, then adds the day's body-part exercise you did most recently that isn't in the plan, with your last load and reps, marked **added**, growing to its own full point before the next one starts. − takes added exercises away first. × on an added exercise removes it, and + skips it for the rest of that adjustment. Past every exercise you have ever done for the part (or with no history), + keeps adding sets the old way, up to 12 a line.
+- The note under the stepper reads "More sets add an exercise once each is full." Keep changes saves the exercises without the new/added marks.
+- `SEED.exSets` (js/derive.js): working sets per session per exercise, last 8.
+- Tests: `tools/check-add-exercise.cjs` (Chromium, 402×874 with iPhone safe areas, light and dark, 32 checks, including no history).
+
 ## v4.6.155 (2026-09-28) — The tab bar sits 22pt from the bottom on the phone too
 
 - **Reported:** after the recent updates the tab bar looked further from the bottom of the screen, not closer.

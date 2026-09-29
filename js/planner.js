@@ -163,11 +163,11 @@ function pwCalendarIcon(){return '<svg class="pw-calendar-icon" viewBox="0 0 24 
 function pwAction(action,label,glyph,cls='',extra=''){return pwButton(action,icon(glyph,ICON_SZ.sm)+label,cls,extra);}
 function pwDatesButton(action='open'){return pwButton(action,pwCalendarIcon()+'Dates '+icon('chevron',ICON_SZ.sm),'pw-text','aria-label="Choose dates"');}
 function pwTabs(){const s=pw();return `<div class="pw-days" aria-label="Days being planned">${s.dates.map(d=>pwButton('day',hesc(new Date(d+'T12:00').toLocaleDateString('en-US',{weekday:'short',month:'numeric',day:'numeric'})),s.active===d?'selected':'',`data-date="${d}" aria-pressed="${s.active===d}"`)).join('')}</div>`;}
-function pwRowsHTML(rows,editable=false){
+function pwRowsHTML(rows,editable=false,marks=false){
   const s=pw(),day=s.active?pwDay(s.active):null;
   return `<div class="pw-exercises">${(rows||[]).map((r,i)=>{
     if(r.kind!=='ex'||!r.ex)return `<div class="pw-unread" data-pw-row="${i}"><span class="pw-eyebrow">Kept as a note · check this line</span><pre>${hesc(r.raw||r.name||'')}</pre>${editable?pwButton('editrow','Edit text','pw-text',`data-index="${i}"`):''}</div>`;
-    return `<article class="pw-exercise ${editable?'pw-editable':''}" data-pw-row="${i}"><div class="pw-ex-title"><strong>${hesc(r.ex)}</strong>${editable?`<div class="pw-row-actions">${pwButton('editrow',icon('edit',ICON_SZ.md),'pw-icon',`data-index="${i}" aria-label="Edit ${hesc(r.ex)}" title="Edit exercise"`)}${pwButton('remove',icon('trash',ICON_SZ.md),'pw-icon',`data-index="${i}" aria-label="Remove ${hesc(r.ex)}" title="Remove exercise"`)}</div>`:''}</div><div class="pw-ex-body"><pre class="pw-prescription">${hesc(pwText([r]).split('\n').slice(1).map(line=>line.trim()).join('\n'))}</pre>${editable?`<div class="pw-ex-tools">${pwButton('lock',day.locks.includes(i)?'Kept fixed':'Keep fixed',day.locks.includes(i)?'pw-fixed':'pw-text',`data-index="${i}" aria-pressed="${day.locks.includes(i)}"`)}</div>`:''}</div>${editable?`<button type="button" class="pw-btn pw-grip" data-pw-grip="${i}" aria-label="Reorder ${hesc(r.ex)}" aria-describedby="pw-reorder-help" title="Hold and drag · arrow keys to move">${icon('grip',ICON_SZ.md)}</button>`:''}</article>`;
+    return `<article class="pw-exercise ${editable?'pw-editable':''}" data-pw-row="${i}"><div class="pw-ex-title"><strong>${hesc(r.ex)}</strong>${marks&&r.added?`<span class="pw-added">${r.added==='new'?'new':'added'}</span>${pwButton('add-remove','×','pw-added-x',`data-index="${i}" aria-label="Remove ${hesc(r.ex)}"`)}`:''}${editable?`<div class="pw-row-actions">${pwButton('editrow',icon('edit',ICON_SZ.md),'pw-icon',`data-index="${i}" aria-label="Edit ${hesc(r.ex)}" title="Edit exercise"`)}${pwButton('remove',icon('trash',ICON_SZ.md),'pw-icon',`data-index="${i}" aria-label="Remove ${hesc(r.ex)}" title="Remove exercise"`)}</div>`:''}</div><div class="pw-ex-body"><pre class="pw-prescription">${hesc(pwText([r]).split('\n').slice(1).map(line=>line.trim()).join('\n'))}</pre>${editable?`<div class="pw-ex-tools">${pwButton('lock',day.locks.includes(i)?'Kept fixed':'Keep fixed',day.locks.includes(i)?'pw-fixed':'pw-text',`data-index="${i}" aria-pressed="${day.locks.includes(i)}"`)}</div>`:''}</div>${editable?`<button type="button" class="pw-btn pw-grip" data-pw-grip="${i}" aria-label="Reorder ${hesc(r.ex)}" aria-describedby="pw-reorder-help" title="Hold and drag · arrow keys to move">${icon('grip',ICON_SZ.md)}</button>`:''}</article>`;
   }).join('')}</div>`;
 }
 function pwPlanTotals(plan){
@@ -299,8 +299,8 @@ function pwRender(){
     footer=pwButton('edit','Cancel')+pwButton('readpaste','Preview','primary');
   }else if(s.step==='adjust'){
     if(!s.adjustBase||s.adjustDate!==s.active)pwBeginAdjust();
-    const limits=pwSetLimits(s.adjustBase),total=pwCounts(s.adjustRows).total;
-    html+=`<div class="card pw-card pw-adjust"><span class="pw-small">Total sets</span><div class="pw-stepper">${pwButton('set-minus','−','','aria-label="Remove one set"'+(total<=limits.min?' disabled':''))}<output aria-live="polite">${total}</output>${pwButton('set-plus','+','','aria-label="Add one set"'+(total>=limits.max?' disabled':''))}</div><p class="pw-small">Warm-ups and fixed exercises stay.</p></div><div class="card pw-card pw-live-routine"><div class="pw-card-heading"><strong>Your routine</strong><span class="pw-small">Updates live</span></div><div id="pw-live-rows">${pwRowsHTML(s.adjustRows)}</div></div>`;
+    const skip=s.adjustSkip||[],limits=pwSetLimits(s.adjustBase,skip),total=pwCounts(s.adjustRows).total;
+    html+=`<div class="card pw-card pw-adjust"><span class="pw-small">Total sets</span><div class="pw-stepper">${pwButton('set-minus','−','','aria-label="Remove one set"'+(total<=limits.min?' disabled':''))}<output aria-live="polite">${total}</output>${pwButton('set-plus','+','','aria-label="Add one set"'+(total>=limits.max?' disabled':''))}</div><p class="pw-small">More sets add an exercise once each is full.</p></div><div class="card pw-card pw-live-routine"><div class="pw-card-heading"><strong>Your routine</strong><span class="pw-small">Updates live</span></div><div id="pw-live-rows">${pwRowsHTML(s.adjustRows,false,true)}</div>${pwButton('add-open','<b aria-hidden="true">+</b>Add exercise','pw-add-ex')}</div>${s.addOpen?pwAddSheetHTML(s):''}`;
     footer=`<span class="pw-save-scope" id="pw-live-total" role="status">${total} sets · ${pwDate(s.active)}</span>`+pwButton('adjust-cancel','Cancel')+pwButton('adjust-keep','Keep changes','primary');
   }else if(s.step==='candidate'&&s.candidate){
     const c=s.candidate;
@@ -336,34 +336,113 @@ if(hasRows||day.cleared)html+=`<div class="pw-actions pw-edit-actions">${pwActio
 
 /* Instant count editing: proportional to the original prescription, not a
    new AI workout. Never changes loads/reps, warm-ups, locked rows or cardio. */
-function pwSetLimits(day){
-  const slots=[];
-  day.rows.forEach((r,i)=>{if(r.kind!=='ex'||day.locks.includes(i)||homePartOf(r.ex)==='Run')return;
-    (r.lines||[]).forEach((l,k)=>{if(l.reps?.length&&!/warm/i.test((l.qual||'')+(l.tag||'')))slots.push({i,k,n:l.reps.length});});});
-  const total=pwCounts(day.rows).total,fixed=total-slots.reduce((a,x)=>a+x.n,0);
-  return {slots,min:fixed+slots.length,max:Math.max(total,Math.min(100,fixed+slots.reduce((a,x)=>a+Math.max(12,x.n),0)))};
+/* v4.6.156: MORE SETS BECOME ANOTHER EXERCISE. Each exercise is "full" at the
+   number of working sets you actually do for it (pwTypicalSets); + fills the
+   plan's exercises up to that point, then adds the next exercise for the day's
+   body parts -- the one you did most recently that is not already in the plan
+   (pwAddCandidates) -- with your last weight and reps, marked "added". The
+   added rows are computed from the plan and the target, never stored in it, so
+   - takes them away again before it trims anything you planned. Rows you pick
+   yourself (Add exercise) join the plan as ordinary rows marked "new". */
+const PW_SETS_FALLBACK=3;   /* no history: ACSM 2026 puts strength work at 2-3 sets an exercise */
+function pwTypicalSets(ex){
+  const h=SEED.exSets?.[ex];if(!h||!h.length)return PW_SETS_FALLBACK;
+  const c={};h.forEach(n=>c[n]=(c[n]||0)+1);
+  return +Object.keys(c).sort((a,b)=>c[b]-c[a]||b-a)[0];   /* most common; a tie goes to the larger */
 }
-function pwAllocateSets(base,target){
-  const {slots,min,max}=pwSetLimits(base),rows=pwCopy(base.rows),total=pwCounts(rows).total;
+function pwDayParts(day){return (day.parts&&day.parts.length?day.parts:pwParts(day.rows)).filter(p=>p!=='Run');}
+/* your last session of an exercise as a plan line: the working sets at their top load */
+function pwLastLine(ex,n){
+  const ls=SEED.lastSess?.[ex];if(!ls)return null;
+  const sets=ls.rows.filter(r=>(r[1]||[]).length);if(!sets.length)return null;
+  const top=Math.max(0,...sets.map(r=>r[0]||0)),work=sets.filter(r=>(r[0]||0)>=top*0.8),reps=work.flatMap(r=>r[1]);
+  const w=Math.max(0,...work.map(r=>r[0]||0)),body=typeof isBody==='function'&&isBody(ex);
+  const load=body?(w>0?`BW +${trainListWeight(w)} ${U()}`:'BW'):`${trainListWeight(w)} ${U()}`;
+  const count=n||reps.length;
+  return {load,reps:Array.from({length:count},(_,i)=>reps[Math.min(i,reps.length-1)])};
+}
+function pwExerciseRow(ex,n,mark){
+  const l=pwLastLine(ex,n);if(!l)return null;
+  const r=pwRead(`${ex}\n  ${l.load} × ${l.reps.join(' ')}`)[0];
+  if(!r||r.kind!=='ex')return null;r.added=mark;return r;
+}
+/* the exercises you have done for these parts, most recent first */
+function pwDoneFor(parts){
+  return Object.keys(SEED.exLast||{}).filter(ex=>parts.includes(homePartOf(ex))&&homePartOf(ex)!=='Run'&&SEED.lastSess?.[ex])
+    .sort((a,b)=>SEED.exLast[b].localeCompare(SEED.exLast[a])||a.localeCompare(b));
+}
+function pwAddCandidates(day,skip=[]){
+  const have=new Set((day.rows||[]).map(r=>r.ex));
+  return pwDoneFor(pwDayParts(day)).filter(ex=>!have.has(ex)&&!skip.includes(ex)&&pwLastLine(ex));
+}
+function pwSetLimits(day,skip=[]){
+  const slots=[],rowN={};
+  day.rows.forEach((r,i)=>{if(r.kind!=='ex'||day.locks.includes(i)||homePartOf(r.ex)==='Run')return;
+    (r.lines||[]).forEach((l,k)=>{if(l.reps?.length&&!/warm/i.test((l.qual||'')+(l.tag||''))){slots.push({i,k,n:l.reps.length});rowN[i]=(rowN[i]||0)+l.reps.length;}});});
+  const caps={};for(const i of Object.keys(rowN))caps[i]=Math.max(pwTypicalSets(day.rows[i].ex),rowN[i]);
+  const total=pwCounts(day.rows).total,fixed=total-slots.reduce((a,x)=>a+x.n,0);
+  const full=fixed+Object.values(caps).reduce((a,n)=>a+n,0);
+  const extra=pwAddCandidates(day,skip).reduce((a,ex)=>a+pwTypicalSets(ex),0);
+  /* nothing left to add (no history, or every past exercise is in): the plan's
+     own exercises take the rest, as before v4.6.156, up to 12 a line -- the
+     app fits the ask rather than refusing it */
+  const over=slots.reduce((a,x)=>a+Math.max(12,x.n),0)-(full-fixed);
+  return {slots,caps,full,extra,min:fixed+slots.length,max:Math.max(total,Math.min(100,full+extra+Math.max(0,over)))};
+}
+function pwAllocateSets(base,target,skip=[]){
+  const {slots,caps,full,extra,min,max}=pwSetLimits(base,skip),rows=pwCopy(base.rows),total=pwCounts(rows).total;
   target=Math.max(min,Math.min(max,target));
-  const counts=slots.map(x=>x.n),sign=target>=total?1:-1;
-  for(let left=Math.abs(target-total);left>0;left--){
-    const choices=slots.map((x,j)=>({x,j})).filter(({x,j})=>sign>0?counts[j]<Math.max(12,x.n):counts[j]>1);
-    choices.sort((a,b)=>sign>0?(counts[a.j]/a.x.n-counts[b.j]/b.x.n)||(a.j-b.j):(counts[b.j]/b.x.n-counts[a.j]/a.x.n)||(b.j-a.j));
-    if(!choices.length)break;counts[choices[0].j]+=sign;
+  const counts=slots.map(x=>x.n),rowCount=i=>slots.reduce((a,x,j)=>a+(x.i===i?counts[j]:0),0);
+  if(target<total){
+    for(let left=total-target;left>0;left--){
+      const choices=slots.map((x,j)=>({x,j})).filter(({j})=>counts[j]>1);
+      choices.sort((a,b)=>(counts[b.j]/b.x.n-counts[a.j]/a.x.n)||(b.j-a.j));
+      if(!choices.length)break;counts[choices[0].j]--;
+    }
+  }else{
+    /* fill each exercise toward its own full point, the emptiest first */
+    for(let left=Math.min(target,full)-total;left>0;left--){
+      const choices=slots.map((x,j)=>({x,j})).filter(({x})=>rowCount(x.i)<caps[x.i]);
+      choices.sort((a,b)=>(rowCount(a.x.i)/caps[a.x.i]-rowCount(b.x.i)/caps[b.x.i])||(a.j-b.j));
+      if(!choices.length)break;counts[choices[0].j]++;
+    }
+    /* past every exercise AND every candidate: the old spread, 12 a line at most */
+    for(let left=target-Math.max(total,full)-extra;left>0;left--){
+      const choices=slots.map((x,j)=>({x,j})).filter(({x,j})=>counts[j]<Math.max(12,x.n));
+      choices.sort((a,b)=>(counts[a.j]/a.x.n-counts[b.j]/b.x.n)||(a.j-b.j));
+      if(!choices.length)break;counts[choices[0].j]++;
+    }
   }
   slots.forEach((x,j)=>{const original=base.rows[x.i].lines[x.k].reps;rows[x.i].lines[x.k].reps=Array.from({length:counts[j]},(_,i)=>original[Math.min(i,original.length-1)]);});
+  /* past full: whole exercises, most recent first, each up to its own full point */
+  let left=target-Math.max(total,full);
+  for(const ex of pwAddCandidates(base,skip)){
+    if(left<=0)break;const n=Math.min(left,pwTypicalSets(ex)),r=pwExerciseRow(ex,n,'added');
+    if(r){rows.push(r);left-=pwCounts([r]).total;}
+  }
   return rows;
 }
-function pwBeginAdjust(){const s=pw();s.adjustDate=s.active;s.adjustBase=pwCopy(pwDay(s.active));s.adjustRows=pwCopy(s.adjustBase.rows);}
+/* v4.6.156: Add exercise. One body part at a time, the day's own first; within
+   it every exercise you have done, most recent first, with its last working
+   sets and the day you did them. Already in the plan: shown, not pickable. */
+function pwAddSheetHTML(s){
+  const day=s.adjustBase,own=pwDayParts(day),done=p=>pwDoneFor([p]).length>0;
+  const parts=[...own,...Object.keys(SEED.catalog).filter(p=>p!=='Run'&&!own.includes(p)&&done(p))];
+  const part=parts.includes(s.addPart)?s.addPart:parts[0];
+  const inPlan=new Set(s.adjustRows.map(r=>r.ex)),short=d=>new Date(d+'T12:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  const list=part?pwDoneFor([part]).map(ex=>{const l=pwLastLine(ex),on=inPlan.has(ex);
+    return `<button type="button" class="pw-add-pick" data-pw="add-pick" data-ex="${hesc(ex)}" ${on?'disabled':''}><span><strong>${hesc(ex)}</strong><small>${on?'In this plan':hesc(l.load+' × '+l.reps.join(' '))}</small></span><i>${on?'':short(SEED.exLast[ex])}</i></button>`;}).join(''):'';
+  return `<div class="pw-add-scrim" data-pw="add-close"></div><div class="pw-add-sheet" role="dialog" aria-modal="true" aria-labelledby="pw-add-title"><div class="pw-add-grab" aria-hidden="true"></div><h3 id="pw-add-title">Add to ${hesc(new Date(s.active+'T12:00').toLocaleDateString('en-US',{weekday:'long'}))}</h3><p class="pw-small">Most recent first · last time you did each</p><div class="pw-add-parts" role="tablist">${parts.map(p=>`<button type="button" role="tab" data-pw="add-part" data-part="${hesc(p)}" aria-selected="${p===part}" class="${p===part?'on':''}">${hesc(typeof partLabel==='function'?partLabel(p):p)}</button>`).join('')}</div><div class="pw-add-list">${list||'<p class="pw-small">Nothing logged for this body part yet.</p>'}</div></div>`;
+}
+function pwBeginAdjust(){const s=pw();s.adjustSkip=[];s.addOpen=false;s.adjustDate=s.active;s.adjustBase=pwCopy(pwDay(s.active));s.adjustRows=pwCopy(s.adjustBase.rows);}
 function pwAdjustLive(delta){
   const s=pw();if(s.step!=='adjust'||s.adjustDate!==s.active)return;
-  const total=pwCounts(s.adjustRows).total,limits=pwSetLimits(s.adjustBase);
-  s.adjustRows=pwAllocateSets(s.adjustBase,total+delta);const n=pwCounts(s.adjustRows).total;
+  const skip=s.adjustSkip||[],total=pwCounts(s.adjustRows).total,limits=pwSetLimits(s.adjustBase,skip);
+  s.adjustRows=pwAllocateSets(s.adjustBase,total+delta,skip);const n=pwCounts(s.adjustRows).total;
   document.querySelector('.pw-stepper output').textContent=n;
   document.querySelector('[data-pw="set-minus"]').disabled=n<=limits.min;
   document.querySelector('[data-pw="set-plus"]').disabled=n>=limits.max;
-  document.getElementById('pw-live-rows').innerHTML=pwRowsHTML(s.adjustRows);
+  document.getElementById('pw-live-rows').innerHTML=pwRowsHTML(s.adjustRows,false,true);
   document.getElementById('pw-live-total').textContent=n+' sets · '+pwDate(s.active);
   pwPersist();
 }
@@ -577,8 +656,17 @@ function pwHandle(e){
     else if(a==='day'){s.active=d;s.step='edit';}
     else if(a==='workspace')s.step='edit';
     else if(['dates','focus','edit','review','adjust'].includes(a)){s.step=a;s.error='';if(a==='adjust')pwBeginAdjust();}
-    else if(a==='adjust-cancel'){s.adjustBase=null;s.adjustRows=null;s.step='edit';}
-    else if(a==='adjust-keep'){if(s.adjustDate!==s.active)throw Error('Open Adjust sets for this day again.');pwUndoPoint(b);b.rows=pwCopy(s.adjustRows);b.target=pwCounts(b.rows).total;b.source='Adjusted set count';s.adjustBase=null;s.adjustRows=null;s.step='edit';}
+    else if(a==='adjust-cancel'){s.adjustBase=null;s.adjustRows=null;s.addOpen=false;s.step='edit';}
+    /* v4.6.156: Add exercise -- a pick joins the plan being adjusted (base and
+       live rows), so +/- treat it like any planned exercise */
+    else if(a==='add-open'){s.addOpen=true;s.addPart=null;}
+    else if(a==='add-close'){s.addOpen=false;}
+    else if(a==='add-part'){s.addPart=el.dataset.part;}
+    else if(a==='add-pick'){const r=pwExerciseRow(el.dataset.ex,pwTypicalSets(el.dataset.ex),'new');if(r){s.adjustBase.rows.push(pwCopy(r));s.adjustRows.push(r);s.adjustSkip=(s.adjustSkip||[]).filter(x=>x!==r.ex);}s.addOpen=false;}
+    else if(a==='add-remove'){const r=s.adjustRows[i];if(r){
+      if(r.added==='new'){const k=s.adjustBase.rows.findIndex(x=>x.added==='new'&&x.ex===r.ex);if(k>=0)s.adjustBase.rows.splice(k,1);s.adjustRows.splice(i,1);}
+      else{s.adjustSkip=[...(s.adjustSkip||[]),r.ex];s.adjustRows=pwAllocateSets(s.adjustBase,pwCounts(s.adjustRows).total-pwCounts([r]).total,s.adjustSkip);}}}
+    else if(a==='adjust-keep'){if(s.adjustDate!==s.active)throw Error('Open Adjust sets for this day again.');pwUndoPoint(b);b.rows=pwCopy(s.adjustRows).map(r=>{delete r.added;return r;});b.target=pwCounts(b.rows).total;b.source='Adjusted set count';s.adjustBase=null;s.adjustRows=null;s.addOpen=false;s.step='edit';}
     else if(a==='clear-day'){pwUndoPoint(b);b.rows=[];b.locks=[];b.notes=[];b.target=null;b.cleared=true;b.source='Your draft';s.setupOpen=false;}
     else if(a==='paste'){s.pasteText='';s.editIndex=undefined;s.editAll=false;s.step='paste';}
     /* the day's own text, in the box that already knows how to parse it --

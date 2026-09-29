@@ -344,3 +344,25 @@ p.pw-small{margin:10px 0 16px}.pw-workspace p:not(.pw-small){font:400 14px/1.6 v
 #planMoveDialog .pm-warn{color:var(--chalk);font-weight:500}
 #planMoveDialog .pm-note{font:400 12px/1.5 var(--body);color:var(--muted);margin:8px 0 0}
 #planMoveDialog .pm-actions{margin-top:16px}
+
+/* v4.6.156: Add exercise (the adjust page). A pick is marked "new", an exercise
+   + added past full is marked "added"; both carry an x. The picker is a bottom
+   sheet over a scrim, one body part at a time, most recent first. */
+.pw-added{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:999px;font:500 11px var(--mono);letter-spacing:.04em;vertical-align:middle;color:var(--accent);background:color-mix(in srgb,var(--accent) 16%,transparent)}
+.pw-ex-title .pw-added-x{margin-left:auto;min-width:32px;min-height:32px;padding:0;border:0;background:none;color:var(--muted);font-size:20px;line-height:1;cursor:pointer}
+.pw-live-routine .pw-ex-title{display:flex;align-items:center}
+.pw-add-ex{display:flex;align-items:center;gap:10px;width:100%;margin-top:6px;padding:16px 0 4px;border:0;border-top:1px solid var(--line);background:none;color:var(--accent);font:600 15px var(--body);text-align:left;cursor:pointer}
+.pw-add-ex b{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:color-mix(in srgb,var(--accent) 16%,transparent);font-size:18px;font-weight:500}
+.pw-add-scrim{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.5)}
+.pw-add-sheet{position:fixed;left:0;right:0;bottom:0;z-index:41;max-width:520px;max-height:78vh;overflow:auto;margin:0 auto;padding:10px 20px calc(24px + env(safe-area-inset-bottom,0px));background:var(--surface);border-radius:26px 26px 0 0;box-shadow:0 -10px 30px rgba(0,0,0,.3);text-align:left}
+.pw-add-grab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 14px}
+.pw-add-sheet h3{margin:0 0 2px;font:600 20px var(--body);color:var(--chalk)}
+.pw-add-sheet>.pw-small{margin:0 0 10px}
+.pw-add-parts{display:flex;gap:8px;overflow-x:auto;margin:4px 0 8px;scrollbar-width:none}
+.pw-add-parts button{flex:0 0 auto;padding:7px 13px;border:0;border-radius:999px;font:500 13px var(--body);color:var(--muted);background:color-mix(in srgb,var(--chalk) 6%,transparent);cursor:pointer}
+.pw-add-parts button.on{color:#fff;background:var(--accent)}
+.pw-add-pick{display:flex;justify-content:space-between;align-items:center;width:100%;padding:13px 0;border:0;border-top:1px solid var(--line);background:none;text-align:left;cursor:pointer;color:inherit}
+.pw-add-pick strong{display:block;font:600 16px var(--body);color:var(--chalk)}
+.pw-add-pick small{display:block;margin-top:3px;font:400 13px var(--mono);color:var(--muted)}
+.pw-add-pick i{font-style:normal;font:400 12px var(--mono);color:var(--muted)}
+.pw-add-pick:disabled{cursor:default}.pw-add-pick:disabled strong,.pw-add-pick:disabled small{opacity:.4}

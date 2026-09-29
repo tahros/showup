@@ -175,7 +175,7 @@ function deriveAll(){
   const D={sessions:S, dates:days, catalog:SEED0.catalog, ex2part:SEED0.ex2part, equip:SEED0.equip};
   if(!days.length){ D.totals={sessions:0,first:null,last:'0000-00-00',km:0,vol:0};
     D.monthly={};D.partCount={};D.partLast={};D.partDays={};D.exLast={};D.exFreq={};
-    D.pr={};D.hist={};D.repFreq={};D.last={};D.lastSess={}; return D; }
+    D.pr={};D.hist={};D.repFreq={};D.last={};D.lastSess={};D.exSets={}; return D; }
   let kmF=0, v=0;
   for(const d of days) for(const r of S[d]){ if(isRunR(r)) kmF+=r[2]; else v+=volR(r); }
   D.totals={sessions:days.length, first:days[0], last:days[days.length-1],
@@ -193,7 +193,7 @@ function deriveAll(){
   }
   for(const o of Object.values(D.monthly)){o.km=+((o.kmF||0)).toFixed(1);delete o.kmF;o.vol=bank(o.vol);}
   D.partCount={};D.partLast={};D.partDays={};D.exLast={};D.exFreq={};
-  D.pr={};D.hist={};D.repFreq={};D.last={};D.lastSess={};
+  D.pr={};D.hist={};D.repFreq={};D.last={};D.lastSess={};D.exSets={};
   const cutD=new Date(todayISO+'T00:00:00'); cutD.setDate(cutD.getDate()-365);
   const freqCut=cutD.toLocaleDateString('en-CA');
   const repCount={};
@@ -242,9 +242,19 @@ function deriveAll(){
       D.last[ex]={d, sets:rows.map(r=>[r[2],r[3]||[],r[4],r[5]])};
       const lr=rows.filter(r=>isCardioR(r)||(r[3]||[]).length).map(r=>[r[2],r[3]||[]]);
       if(lr.length) D.lastSess[ex]={d, rows:lr};
+      /* v4.6.156: WORKING sets per session, for the planner's "full" point
+         (js/planner.js, pwTypicalSets). Logged sets carry no warm-up mark, so a
+         set counts when its load is at least 80% of the session's top load for
+         the exercise; bodyweight sets (load 0) all count. Timed/cardio rows skip. */
+      if(!isCardioEx(ex)){
+        const sets=rows.filter(r=>!isCardioR(r)&&(r[3]||[]).length), top=Math.max(0,...sets.map(r=>r[2]||0));
+        const n=sets.reduce((a,r)=>a+((r[2]||0)>=top*0.8?r[3].length:0),0);
+        if(n) (D.exSets[ex]=D.exSets[ex]||[]).push(n);
+      }
     }
   }
   for(const ex of Object.keys(D.hist)) D.hist[ex]=D.hist[ex].slice(-14);
+  for(const ex of Object.keys(D.exSets)) D.exSets[ex]=D.exSets[ex].slice(-8);
   for(const [ex,rc] of Object.entries(repCount))
     D.repFreq[ex]=Object.keys(rc.c).sort((a,b)=>rc.c[b]-rc.c[a]||rc.o[a]-rc.o[b]).map(k=>+k).slice(0,8);
   return D;
