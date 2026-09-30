@@ -75,6 +75,20 @@ test('completion is positive below target; load/reps tradeoffs are not wins',`pl
 test('comparable increases distinguish last, plan, both, and on-target',`plSetOutcome('Squat',{w:60,r:8},{w:50,r:8},{w:55,reps:8}).label==='Beat both'&&plSetOutcome('Squat',{w:60,r:8},{w:65,r:8},{w:55,reps:8}).label==='Above plan'&&plSetOutcome('Squat',{w:60,r:8},{w:50,r:8},{w:65,reps:8}).label==='Beat last'&&plSetOutcome('Squat',{w:55,r:8},null,{w:55,reps:8}).label==='On target'`);
 test('bodyweight and estimated targets do not claim automatic progress',`!plSetOutcome('Pull Up',{w:60,r:8},{w:50,r:8},{w:55,reps:8}).win&&!plSetOutcome('Squat',{w:60,r:8},null,{w:55,reps:8,est:true}).win`);
 test('unified view stays read-only and unlinked sets never consume targets',`(()=>{const before=JSON.stringify(DB),sets=day(todayISO).w,model=plSessionRows('Squat',null,sets);plSessionHTML('Squat',null,sets);return before===JSON.stringify(DB)&&model.rows.filter(r=>r.unlinked).flatMap(r=>r.actual).every(a=>!a.source.planRef);})()`);
+/* v4.6.165: the maker's Cable Fly Up. Plan 3 sets; Last had 4 (the 4th: 30 x 10);
+   one extra logged after the plan. The extra is set 4, beside Last's set 4 --
+   not a "+" row with Last's set 4 stacked under it, empty. */
+run(`var keepDB=DB,keepLift=lift;DB={days:{},settings:{unit:'kg',onboarded:true}};lift={part:'Chest',ex:'Cable Fly Up',weight:40};
+DB.plan={d:todayISO,...plCopy({items:[{ex:'Cable Fly Up',lines:[{w:40,reps:[12,12,12]}]}]})};plCapture();
+[[40,10],[35,12],[35,12],[35,12]].forEach(([w,r],i)=>plLog({part:'Chest',ex:'Cable Fly Up',w,reps:[r],at:10+i}));
+var flyLast={d:'2026-09-10',sets:[[40,[10,12,12]],[30,[10]]]},fly=plSessionRows('Cable Fly Up',flyLast,DB.days[todayISO].w);`);
+test('an extra set past the plan is set 4, beside Last\'s set 4',`(()=>{const r=fly.rows;return r.length===4&&r.map(x=>x.label).join()==='1,2,3,4'&&r[3].unlinked&&r[3].last.w===30&&r[3].actual[0].w===35&&!r.some(x=>x.label==='+');})()`);
+test('...and the card shows no empty set-4 row under it',`(()=>{const d=document.createElement('div');d.innerHTML=plSessionHTML('Cable Fly Up',flyLast,DB.days[todayISO].w);return [...d.querySelectorAll('tbody th[scope=row]')].map(t=>t.textContent.replace(/W/,'')).filter(l=>/(^|–)4$|^4$|^\\+$/.test(l)).length===1;})()`);
+run(`plLog({part:'Chest',ex:'Cable Fly Up',w:35,reps:[10],at:20});fly=plSessionRows('Cable Fly Up',flyLast,DB.days[todayISO].w);`);
+test('a second extra is set 5, with no Last beside it',`fly.rows.map(x=>x.label).join()==='1,2,3,4,5'&&fly.rows[4].unlinked&&!fly.rows[4].last`);
+run(`fly=plSessionRows('Cable Fly Up',{d:'2026-09-10',sets:[[40,[10,12,12]],[30,[10,8]]]},DB.days[todayISO].w.slice(0,3));`);
+test('Last\'s sets past the plan still show when nothing extra is logged',`fly.rows.map(x=>x.label).join()==='1,2,3,4,5'&&!fly.rows[3].actual.length&&fly.rows[4].last.r===8`);
+run(`DB=keepDB;lift=keepLift;`);
 (async()=>{
   run(`DB.settings.demo=false;session={access_token:'test',refresh_token:'test',expires_at:Date.now()+600000,user:{id:'test-only'}};pulledOK=true;`);
   let sent;w.fetch=async(url,opt)=>{sent=JSON.parse(opt.body);return {ok:true,json:async()=>({})};};

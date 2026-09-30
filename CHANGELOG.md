@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.165 (2026-09-30) — an extra set is the next set
+
+- **Reported:** on Cable Fly Up (plan 3 sets, Last 4), logging an extra set put it in its own "+ Unlinked" row, and Last's set 4 (30 × 10) sat under it as a separate "4" row with nothing logged beside it.
+- **Fixed:** a set logged past the plan takes the next number and sits beside Last's set at that position: set 4 is now 35 × 12 today next to 30 × 10 last time, in one row. A second extra is set 5, and so on. Last's sets beyond what you logged stay visible, as before. The compact card and Expand read the same rows, so both are fixed.
+- Nothing about linking changed: an extra set still counts, and still takes no plan target.
+- Tests: test-planlink adds the maker's case (plan 3, Last 4, one extra → rows 1–4, no "+" row), a second extra (set 5, no Last), and Last's extra sets with nothing extra logged.
+
 ## v4.6.164 (2026-09-29) — Settings: fewer choices
 
 - **Asked for:** remove four things from Settings. ShowUp keeps one look and one layout.

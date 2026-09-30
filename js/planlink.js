@@ -314,9 +314,16 @@ function plSessionRows(ex,last,today){
   });
   if(!targets.length){
     for(let i=0;i<Math.max(history.length,actual.length);i++)rows.push({label:String(i+1),last:history[i]||null,actual:actual[i]?[actual[i]]:[]});
-  }else actual.filter(a=>!used.has(a)).forEach(a=>rows.push({label:'+',last:null,actual:[a],unlinked:true}));
-  // Older sessions can contain more sets than today's plan. Keep them visible.
-  if(targets.length)history.slice(targets.length).forEach((s,i)=>rows.push({label:String(targets.length+i+1),last:s,actual:[]}));
+  }else{
+    /* v4.6.165: AN EXTRA SET IS THE NEXT SET. Past the plan, a logged set used to
+       get its own "+" row, and Last's own set 4 was stacked under it with an empty
+       Logged cell -- set 4 twice, compared with nothing. An extra set takes the
+       next number and sits beside Last's set at that position; Last's sets beyond
+       it stay visible as before. */
+    const extra=actual.filter(a=>!used.has(a)),more=history.slice(targets.length);
+    for(let i=0;i<Math.max(extra.length,more.length);i++)
+      rows.push({label:String(targets.length+i+1),last:more[i]||null,actual:extra[i]?[extra[i]]:[],unlinked:!!extra[i]});
+  }
   return {targets,history,actual,rows,displayPlan,preview};
 }
 function plSetOutcome(ex,a,last,target){
