@@ -1,5 +1,11 @@
 # ShowUp — changelog
 
+## v4.6.169 (2026-09-30) — one grounded mascot shadow
+
+- Removed the baked-in floor/contact shadow from completion posters by exporting the existing 3D model with its ground hidden. Original mascot assets and other screens are unchanged.
+- Completion now has one soft ground shadow: broader and lighter at the jump apex, tighter on landing. Hidden during the blue ink flight, so no detached oval sits at the destination.
+- Preserved the approved letter animation, mascot dimensions, reduced-motion behavior and all workout data.
+
 ## v4.6.168 (2026-09-30) — every letter shows up
 
 - **Approved completion lockup:** Compact mascot (96.6px), unchanged 124px lettering and Open 14px gap. Welcome A remains unchanged.

@@ -64,6 +64,15 @@ const types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg
   await p.locator('#dayDone [data-dd="done"]').click();await p.locator('#dayDone').waitFor({state:'detached'});
   await p.evaluate(()=>{DB.settings.mascotMotion='animated';document.dispatchEvent(new Event('mascotsettingschange'));DB.settings.theme='light';applyTheme();celebrateDayDone(true,12,0,true);});
   assert.equal(await p.locator('#dayDone canvas').count(),0,'approved poster choreography has no competing renderer');
+  assert.equal(await p.locator('#dayDone .showuppp-ground').count(),1,'exactly one ground shadow');
+  assert((await p.locator('#dayDone .su-mascot img').getAttribute('src')).endsWith('mascot-blue-body.png'),'moving poster has no baked ground');
+  await p.locator('#dayDone .su-mascot img').evaluate(async img=>{
+    await img.decode();
+    const c=document.createElement('canvas');c.width=img.naturalWidth;c.height=img.naturalHeight;
+    const x=c.getContext('2d');x.drawImage(img,0,0);
+    const data=x.getImageData(0,340,c.width,c.height-340).data;
+    if(data.some((v,i)=>i%4===3&&v!==0))throw Error('baked shadow pixels below body');
+  });
   const letters=await p.locator('#dayDone [data-letter]').evaluateAll(es=>es.map(e=>({letter:e.dataset.letter,animations:e.getAnimations().length})));
   assert.equal(letters.length,8);assert(letters.every(e=>e.animations===1),'every letter animates independently');
   await p.waitForTimeout(400);
@@ -81,6 +90,8 @@ const types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg
   // Exercise the existing connected ink flight with the new two-part hero.
   await p.evaluate(()=>{const source=document.createElement('div');source.id='brand-flight-source';source.style.cssText='position:fixed;left:40px;top:300px;width:180px';source.innerHTML=mascotHTML('cool','','blue')+'<b class="dcn">12</b>';document.body.append(source);celebrateDayDone(true,12,0,true,source);});
   assert.equal(await p.locator('#dayDone.dd-inked').count(),1);
+  assert.equal(await p.locator('#dayDone .showuppp-ground').evaluate(e=>getComputedStyle(e).visibility),'hidden','no stranded shadow during ink flight');
+  assert((await p.locator('#dayDone .su-mascot img').getAttribute('src')).endsWith('mascot-white-body.png'));
   await p.waitForFunction(()=>!document.querySelector('#dayDone.dd-ink')&&getComputedStyle(document.querySelector('#dayDone .ddink')).clipPath.startsWith('circle(0px'));
   await p.waitForFunction(()=>[...document.querySelectorAll('#dayDone [data-letter]')].every(e=>e.getAnimations().length===1));
   assert.equal(await p.locator('#dayDone .showuppp-lettering').evaluate(e=>getComputedStyle(e).visibility),'visible');
@@ -109,10 +120,12 @@ const types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg
   await op.waitForFunction(()=>!!navigator.serviceWorker.controller);
   await op.waitForLoadState('networkidle');await op.waitForTimeout(500);
   for(const name of ['a','c'])assert(await op.evaluate(async name=>!!(await caches.match('assets/showuppp-'+name+'.svg')),name),'lettering is precached');
+  for(const tone of ['blue','white'])assert(await op.evaluate(async tone=>!!(await caches.match('assets/mascot-'+tone+'-body.png')),tone),'shadow-free posters are precached');
   await offline.setOffline(true);await op.reload();
   await op.locator('.onblogo .showuppp-lettering').evaluate(i=>i.decode());
   await op.evaluate(()=>{document.querySelector('#onb')?.remove();celebrateDayDone(true,12,0,true);});
   assert.equal(await op.locator('#dayDone .showuppp-lettering [data-letter]').count(),8,'offline vector available');
+  await op.locator('#dayDone .su-mascot img').evaluate(i=>i.decode());
   await offline.close();
   console.log('PASS A/C artwork, 6 welcome + 6 completion layouts, still/off/OS-reduce/animated/WebGL fallback, unchanged workout data');
  }finally{await browser?.close();await new Promise(r=>server.close(r));}

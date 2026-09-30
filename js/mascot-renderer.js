@@ -123,6 +123,8 @@ export function createMascot(stage, options={}) {
       const patch=new THREE.Mesh(new THREE.PlaneGeometry(3.4,2.6),mat);patch.rotation.x=-Math.PI/2;patch.position.set(side*2.94,.005,0);contactGroup.add(patch);contacts.push(patch);
     }
 
+  // A moving poster needs a separate ground shadow, never one baked into its body.
+  if(options.shadow===false){floor.visible=false;contactGroup.visible=false;}
   const neutral={x:0,y:0,sx:1,sy:1,r:0,bend:0,lag:0,eye:1,wink:1,look:0,face:0,grin:0};
   const key=(t,p={})=>({t,...neutral,...p});
   const shows={

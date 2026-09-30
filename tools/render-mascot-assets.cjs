@@ -9,15 +9,16 @@ const fs=require('fs'),path=require('path');
  await page.evaluate(()=>{document.body.innerHTML='<div id="asset" style="width:720px;height:440px"></div>';});
  const finishesOnly=process.argv.includes('--finishes');
  const shareMarksOnly=process.argv.includes('--share-marks');
- for(const [tone,theme] of (shareMarksOnly?[['chrome','light'],['white','dark']]:finishesOnly?[['chrome','light'],['white','dark'],['blue','light']]:process.argv.includes('--blue')?[['blue','light']]:[['charcoal','light'],['white','dark'],['blue','light']])){
-   const png=await page.evaluate(async ({theme,tone})=>{
+ const bodyOnly=process.argv.includes('--body-only');
+ for(const [tone,theme] of (bodyOnly?[['white','dark'],['blue','light']]:shareMarksOnly?[['chrome','light'],['white','dark']]:finishesOnly?[['chrome','light'],['white','dark'],['blue','light']]:process.argv.includes('--blue')?[['blue','light']]:[['charcoal','light'],['white','dark'],['blue','light']])){
+   const png=await page.evaluate(async ({theme,tone,bodyOnly})=>{
      const {createMascot}=await import('./js/mascot-renderer.js');
-     const m=createMascot(document.querySelector('#asset'),{theme,tone,mode:tone==='blue'?'cool':'still',still:true});
+     const m=createMascot(document.querySelector('#asset'),{theme,tone,mode:tone==='blue'?'cool':'still',still:true,shadow:!bodyOnly});
      const png=m.capture();m.dispose();return png;
-   },{theme,tone});
-   const filename=path.join(__dirname,'../assets/mascot-'+tone+'.png');
+   },{theme,tone,bodyOnly});
+   const filename=path.join(__dirname,'../assets/mascot-'+tone+(bodyOnly?'-body':'')+'.png');
    if(!shareMarksOnly)fs.writeFileSync(filename,Buffer.from(png.split(',')[1],'base64'));
-   if(finishesOnly||tone==='blue')continue;
+   if(bodyOnly||finishesOnly||tone==='blue')continue;
    // Square identity is a tight transparent crop, keeping every plate and the bottom shadow.
    const mark=await page.evaluate(async png=>{
       const im=new Image();im.src=png;await im.decode();
