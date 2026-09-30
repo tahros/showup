@@ -1916,7 +1916,7 @@ function celebrateDayDone(nowrite, forceCount, forceMile, forceShow, sourceCard)
   o.setAttribute('role','dialog');
   o.setAttribute('aria-modal','true');
   o.setAttribute('aria-labelledby','ddHeading');
-  o.innerHTML=`<div class="ddinner"><div class="dddate">${dateLabel}</div><div class="ddbody">${withMascot?'<div class="ddhero">'+mascotHTML('jump','','blue')+'</div>':''}`+(mile
+  o.innerHTML=`<div class="ddinner"><div class="dddate">${dateLabel}</div><div class="ddbody">${withMascot?'<div class="ddhero ddbrand">'+showupppLogoHTML('c',true)+'</div>':''}`+(mile
     ? `<span class="ddstage"><i class="ddsq" aria-hidden="true"></i><span class="ddmk" aria-hidden="true">${icon('brandmark',44)}</span></span>`
     : withMascot?'':`<i class="ddsq" aria-hidden="true"></i>`)+
     /* v4.3.5: THE NUMBER COUNTS UP. It was written finished, so the one

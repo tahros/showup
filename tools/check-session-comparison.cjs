@@ -6,7 +6,10 @@ for(const theme of ['light','dark'])for(const width of [320,393,430]){
  const p=await b.newPage({viewport:{width,height:900},serviceWorkers:'block'}),errors=[];p.on('pageerror',e=>errors.push(e.message));
  await p.route('**/*',r=>r.request().url().startsWith('http://127.0.0.1:'+PORT+'/')?r.continue():r.abort());await p.goto('http://127.0.0.1:'+PORT+'/');
  for(const scenario of ['both','plan','last','neither']){
- await p.evaluate(({theme,scenario})=>{todayISO='2026-09-22';checkDate=()=>false;DB={days:{},settings:{unit:'lb',onboarded:true,theme}};SEED={...SEED,last:{},sessions:1};
+ // An established member fixture must include its founding marker. Otherwise
+ // membership's 3-second startup timer changes settings during the read-only
+ // assertion (also reproduced against untouched v4.6.166).
+ await p.evaluate(({theme,scenario})=>{todayISO='2026-09-22';checkDate=()=>false;DB={days:{},settings:{unit:'lb',onboarded:true,founding:'2026-09-22',theme}};SEED={...SEED,last:{},sessions:1};
  if(['both','last'].includes(scenario))DB.days['2026-09-15']={w:[{ex:'Lat Pulldown',part:'Back',w:56.699,reps:[8,8,8,8],at:1}]};
  if(['both','plan'].includes(scenario))DB.plan={d:todayISO,items:[{ex:'Lat Pulldown',lines:[{w:58.967,reps:[8,8,8,8]}]}]};
  lift={part:'Back',ex:'Lat Pulldown',weight:54.431,rep:6};view='lift';document.querySelector('#onb')?.remove();
@@ -26,7 +29,8 @@ for(const theme of ['light','dark'])for(const width of [320,393,430]){
  assert.equal(await p.locator('#liveWorkoutFinish').count(),1,'the day still ends from the live bar');
  assert.equal(await card.locator('tbody tr').count(),4);assert.equal(await card.locator('.sc-outcome-mark').count(),1);
  assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
- const before=await p.evaluate(()=>JSON.stringify(DB));await card.locator('.sc-outcome-mark').click();assert.equal(await p.evaluate(()=>JSON.stringify(DB)),before);assert((await p.locator('#toast').innerText()).includes('Set done'));
+ // Finish the fixture's pending save before measuring a read-only click.
+ const before=await p.evaluate(()=>{flushSave();return JSON.stringify(DB);});await card.locator('.sc-outcome-mark').click();assert.deepStrictEqual(await p.evaluate(()=>JSON.parse(JSON.stringify(DB))),JSON.parse(before));assert((await p.locator('#toast').innerText()).includes('Set done'));
  if(scenario==='both'&&width===393){await card.screenshot({path:'../session-live-'+theme+'.png'});await p.locator('#sessEdit').click();await p.locator('#sessEdit[aria-pressed="true"]').waitFor();assert.equal((await p.locator('#sessEdit').innerText()).trim(),'Done');await p.locator('#sessEdit').click();await p.locator('#sessEdit[aria-pressed="false"]').waitFor();assert.equal(await p.locator('.sc-session').count(),1);}
  }
  const invariants=await p.evaluate(()=>{

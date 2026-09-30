@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v4.6.167 (2026-09-30) — ShowUppp welcomes and celebrates
+
+- **Approved lettering, not a replacement font:** traced the maker's A (Sidekick) and C (Rising) board into local SVG paths. A appears on the first welcome screen; C joins the existing completion moment. The functional app name and UI typography stay unchanged.
+- **One mascot system:** reuse the existing rounded 3D renderer and PNG fallback, soft charcoal on welcome (white in dark mode), existing blue on completion. No new renderer, animation loop, wait before an action, sign-in logic, workout logging or saved-data changes.
+- **Fallbacks:** OS reduced motion and Still show the static mascot. Off retains welcome lettering and the existing mascot-free completion screen. Dark mode gets white lettering. Both vector files are precached and included in the OTA bundle.
+- **Checks:** new `check-brand-lockup.cjs` covers welcome/completion at 320, 393 and 768px in both themes, all motion settings, failed WebGL, offline artwork, and unchanged workout records. The baseline Apple sign-in test lacked jsdom's `TextEncoder`; supplied the real platform encoder in that test only, leaving production authentication unchanged.
+- **Existing test timing:** reproduced session-comparison's state failure on untouched v4.6.166. Its synthetic established-member record now includes the founding marker and finishes its pending save before testing the read-only click; the full state assertion remains. Production membership and persistence are untouched. The mascot-tone regression now checks the new C helper's actual blue/jump output.
+
 ## v4.6.166 (2026-09-30) — share previews clear the Dynamic Island
 
 - **Reported:** on an iPhone 17 Pro, sharing the consistency poster as a video put the Image / Video · MP4 / GIF row under the Dynamic Island, and Share / Close down on the home bar.

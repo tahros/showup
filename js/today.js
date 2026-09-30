@@ -85,7 +85,7 @@ function onbRender(){
   let b='';
   if(onbStep===1){
     b=`<div class="onbcard">
-      <div class="onblogo">ShowUp</div>
+      <div class="onblogo">${showupppLogoHTML('a')}</div>
       <p class="onbtag">Show up. The rest is bookkeeping.<br><span class="muted">A training log that celebrates days, not numbers.</span></p>
       <button class="onbbtn pri" data-onbact="signin">Sign in with Google</button>
       <button class="onbbtn" data-onbact="local">Continue on this device</button>

@@ -20,6 +20,9 @@ const RELAY='x7y2k9q4mz@privaterelay.appleid.com';
 async function boot({shell=true,plugin=true,enabled=true,apple=async o=>({idToken:'apple.id.token',code:'c0de-abcdef-12345'}),supabase=()=>({status:200,body:{access_token:'at',refresh_token:'rt',expires_in:3600,user:{id:'u-1',email:RELAY}}})}={}){
   const dom=new JSDOM(html.replace(/<script[^>]*src=[^>]*><\/script>/g,''),{url:'https://tahros.github.io/showup/',runScripts:'outside-only',pretendToBeVisual:true});
   const w=dom.window,ctx=dom.getInternalVMContext(),calls=[],asked=[];
+  // jsdom lacks the browser TextEncoder used by the real SHA-256 fallback.
+  // Supply the platform primitive, not a stubbed hash or a production change.
+  w.TextEncoder=TextEncoder;
   w.localStorage.setItem('showup:planning-interface','previous');
   w.localStorage.setItem('tracker-v1',JSON.stringify({days:{},settings:{onboarded:true}}));
   if(shell){

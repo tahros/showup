@@ -34,6 +34,17 @@ function mascotHTML(mode='hello',className='',tone=''){
   const src=isRetro()?retroStill(mode,resolved):'assets/mascot-'+resolved+'.png';
   return '<span class="su-mascot '+className+'" data-mascot="'+mode+'" data-mascot-tone="'+resolved+'" aria-hidden="true"><img src="'+src+'" alt="" width="360" height="220"></span>';
 }
+/* Approved A / C artwork, traced from the maker's board (see trace-showuppp.cjs).
+   Presentation only: no timers, settings writes or completion bookkeeping.
+   Keep the existing renderer lifecycle, static PNG and OS motion fallback. */
+function showupppLogoHTML(variant='a',completion=false){
+  const v=variant==='c'?'c':'a';
+  const tone=completion?'blue':document.documentElement.dataset.theme==='dark'?'white':'charcoal';
+  const mascot=mascotHTML(completion?'jump':'hello','',tone);
+  return '<div class="showuppp-lockup showuppp-'+v+(mascot?'':' showuppp-word-only')+'" role="img" aria-label="ShowUppp">'+
+    (mascot?'<span class="showuppp-character">'+mascot+'</span>':'')+
+    '<img class="showuppp-lettering" src="assets/showuppp-'+v+'.svg" alt="" aria-hidden="true" width="'+(v==='a'?345:350)+'" height="'+(v==='a'?230:232)+'"></div>';
+}
 /* v4.6.69: A DAY CAN HOLD MORE THAN ONE WORKOUT.
    The day is the unit of showing up -- the square, the streak, History, the
    daily total all stay day-sized. But the BAR and the completion CARD describe

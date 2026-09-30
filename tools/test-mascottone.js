@@ -50,7 +50,8 @@ ok('...and "cool" still means blue, as it always did',
 // ---- the ceremony itself
 const src=fs.readFileSync(path.join(dir,'js/app.js'),'utf8');
 ok('the completion moment asks for blue on its jump',
-   /mascotHTML\('jump','','blue'\)/.test(src));
+   /showupppLogoHTML\('c',true\)/.test(src) &&
+   run(`/data-mascot="jump"/.test(showupppLogoHTML('c',true)) && /data-mascot-tone="blue"/.test(showupppLogoHTML('c',true))`));
 ok('...and on its dance', /mascotHTML\('dance','','blue'\)/.test(src));
 ok('...and no longer leaves either to the theme',
    !/mascotHTML\('jump'\)/.test(src) && !/mascotHTML\('dance'\)/.test(src));

@@ -121,3 +121,23 @@ body.rest-home,body.rest-home #app{background:linear-gradient(180deg,var(--rest-
 html.gym-tour-open,html.gym-tour-open body{overflow:hidden}
 /* the secret's door is the Today mascot itself: tappable in every motion setting */
 #view .su-mascot{pointer-events:auto;-webkit-tap-highlight-color:transparent}
+
+/* ShowUppp A welcomes; C marks completion. The functional UI keeps its type.
+   Art is a traced vector, not live text. The mascot canvas has generous empty
+   margins: compensate inside its column without scaling the lettering. */
+.showuppp-lockup{display:grid;grid-template-columns:46% 54%;align-items:center;width:100%;max-width:360px;margin:0 auto}
+.showuppp-character{position:relative;display:block;width:100%;aspect-ratio:1}
+.showuppp-lockup .showuppp-character .su-mascot,#dayDone .ddbrand .showuppp-character .su-mascot{position:absolute;left:-40%;top:-5%;width:180%;max-width:none;margin:0}
+.showuppp-lettering{display:block;width:100%;height:auto;min-width:0}
+:root[data-theme="dark"] .showuppp-lettering{filter:brightness(0) invert(1)}
+.onblogo:has(.showuppp-lockup){margin:0 0 18px}
+.onblogo .showuppp-lockup{max-width:340px}
+.showuppp-word-only,:root[data-mascot-motion="off"] .showuppp-lockup{display:block;max-width:190px}
+:root[data-mascot-motion="off"] .showuppp-character{display:none}
+#dayDone .ddhero.ddbrand{width:320px;max-width:100%;margin:0 auto 12px}
+/* While the existing ink transition travels, only its flying mascot is visible. */
+#dayDone.dd-ink .showuppp-lettering{visibility:hidden}
+/* Brand introduces no extra animation loop. Existing hello/jump is stopped by
+   the shared renderer for OS reduce / Still, with the PNG staying visible. */
+:root[data-mascot-motion="still"] #dayDone .ddbrand,:root[data-mascot-motion="off"] #dayDone .ddbrand{animation:none;transform:none;opacity:1}
+@media(prefers-reduced-motion:reduce){#dayDone .ddbrand{animation:none;transform:none;opacity:1}}
