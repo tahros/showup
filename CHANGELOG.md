@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.166 (2026-09-30) — share previews clear the Dynamic Island
+
+- **Reported:** on an iPhone 17 Pro, sharing the consistency poster as a video put the Image / Video · MP4 / GIF row under the Dynamic Island, and Share / Close down on the home bar.
+- **Why:** the share preview is one overlay for every card. Its padding was a flat 20px that ignored the phone's safe areas, and the video preview had `margin:auto`, which in that column pushes everything above it to the screen's top edge and everything below to the bottom edge.
+- **Fixed, for every share option:** the overlay's padding now includes the top and bottom safe areas, the video no longer takes auto margins, and the preview (image or video) shrinks to fit the space left between the insets. The format row, preview and Share / Close stay together in the middle.
+- Tests: `tools/check-share-safe-area.cjs` (Chromium, simulated iPhone 17 Pro / Pro Max / SE insets and a short window, 40 checks): every card in the share carousel, the consistency poster and year-comparison exports as image and as video, and the plates export. Each must clear both insets without overflow. On v4.6.165 the video cases fail exactly as reported (format row at 20px, under a 62px inset).
+
 ## v4.6.165 (2026-09-30) — an extra set is the next set
 
 - **Reported:** on Cable Fly Up (plan 3 sets, Last 4), logging an extra set put it in its own "+ Unlinked" row, and Last's set 4 (30 × 10) sat under it as a separate "4" row with nothing logged beside it.

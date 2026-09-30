@@ -166,7 +166,7 @@
 @media(max-width:350px){.progression-card .pg-modes button{font-size:11px}}
 @media(max-width:359px){.progression-card .pg-period-main{font-size:13px}.progression-card .pg-read-value{font-size:16px}}
 @media(prefers-reduced-motion:reduce){.progression-card button{transition:none}}
-:root{--rest-top:color-mix(in srgb,var(--rest) 22%,var(--ground));--sat:env(safe-area-inset-top,0px);
+:root{--rest-top:color-mix(in srgb,var(--rest) 22%,var(--ground));--sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px);
     /* v3.3.270 — THE MOTION VOICE. One settle curve, three speeds, spoken
        everywhere something arrives or changes state. The curve starts fast
        and lands long — things settle like architecture, they do not snap.
@@ -1155,6 +1155,12 @@
   /* v3.3.377: the share image wipes in from the top. The <img> already holds
      the finished canvas -- this only uncovers it, so the reveal can never show
      something other than what Share sends. */
+  /* v4.6.166: THE SHARE PREVIEW FITS BETWEEN THE SAFE AREAS. A tall card (the
+     consistency poster) used to overflow the centred overlay at both ends: the
+     format row slid under the Dynamic Island, Share and Close onto the home bar.
+     The overlay's padding now holds the insets and the card shrinks to what is
+     left after the button row (48) and the gap (14) -- every share card, one rule. */
+  #repImg{max-height:calc(100dvh - var(--sat) - var(--sab) - 24px - 62px);flex:0 0 auto}
   #repImg{clip-path:inset(0 0 0 0);transition:clip-path 1.2s var(--settle)}
   #repImg.revealing{clip-path:inset(0 0 100% 0)}
   @media (prefers-reduced-motion:reduce){

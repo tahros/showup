@@ -3,7 +3,8 @@
 .plate-export-options .btn{width:auto;margin:0;min-height:44px}
 .plate-export-options [aria-pressed="true"]{outline:2px solid var(--accent);outline-offset:1px}
 .plate-export-options [role="status"]{flex-basis:100%;text-align:center;color:#fff;font:12px var(--body)}
-#repOv:has(.plate-export-options) #repImg{max-height:65dvh;object-fit:contain}
+/* v4.6.166: with the format row (44) and its gap (14) above, and the status line when one shows */
+#repOv:has(.plate-export-options) #repImg,.plate-export-video{max-height:calc(100dvh - var(--sat) - var(--sab) - 24px - 62px - 58px - 22px);object-fit:contain}
 [data-theme="dark"]{--plate-side:#bbb;--plate-top:#ededed;--plate-hole:#929292}
 .plate-mini{height:48px;display:flex;align-items:center;gap:10px;font:11px var(--mono);color:var(--muted)}
 .plate-mini svg{width:40px;height:38px;flex:none;overflow:hidden}
@@ -49,5 +50,5 @@
 }
 @keyframes plate-hop{0%,100%{transform:translateY(0)}45%{transform:translateY(-12px)}80%{transform:translateY(1px)}}
 @keyframes plate-shadow{0%,100%{transform:scaleX(1);opacity:1}45%{transform:scaleX(.75);opacity:.55}}
-.plate-export-video{display:block;max-width:100%;max-height:65dvh;margin:auto;border-radius:12px}
+.plate-export-video{display:block;max-width:100%;margin:0;border-radius:12px}   /* v4.6.166: margin:auto in the column overlay pushed the format row to the screen's top edge (under the Dynamic Island) and Share to the bottom one */
 .plate-export-video[hidden],#repImg[hidden]{display:none!important}
