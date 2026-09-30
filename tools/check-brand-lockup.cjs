@@ -39,13 +39,12 @@ const types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg
   for(const theme of ['light','dark'])for(const width of [320,393,768]){
    await p.setViewportSize({width,height:852});
    await p.evaluate(theme=>{DB.settings.theme=theme;applyTheme();celebrateDayDone(true,12,0,true);},theme);
-   await p.locator('#dayDone .showuppp-lettering').evaluate(img=>img.decode());
-   assert((await p.locator('#dayDone .showuppp-lettering').getAttribute('src')).endsWith('showuppp-c.svg'));
+   assert.equal(await p.locator('#dayDone .showuppp-lettering [data-letter]').count(),8);
    assert.equal(await p.locator('#dayDone .su-mascot canvas').count(),0,'Still is a static PNG');
    assert.equal(await p.locator('#dayDone .ddbrand').evaluate(el=>getComputedStyle(el).animationName),'none');
    const g=await p.locator('#dayDone .showuppp-lockup').boundingBox();assert(g.x>=0&&g.x+g.width<=width);
-   const sizing=await p.locator('#dayDone .showuppp-character').evaluate(el=>{const a=el.getBoundingClientRect(),b=el.firstElementChild.getBoundingClientRect();return {ratio:b.width/a.width,center:Math.abs((a.y+a.height/2)-(b.y+b.height/2))};});
-   assert(sizing.ratio>1.79&&sizing.ratio<1.81&&sizing.center<1,'existing hero rules must not shrink or displace the mascot');
+   const sizing=await p.locator('#dayDone .showuppp-lockup').evaluate(el=>({mascot:el.querySelector('.showuppp-character').getBoundingClientRect().width,letters:el.querySelector('.showuppp-lettering').getBoundingClientRect().width,gap:parseFloat(getComputedStyle(el).gap)}));
+   assert(Math.abs(sizing.mascot-96.6)<.1&&Math.abs(sizing.letters-124)<.1&&sizing.gap===14,'approved Compact / Open sizes');
    assert(await p.locator('#dayDone [data-dd="done"]').isVisible());
    if(width===393)await snap('complete-'+theme);
    await p.locator('#dayDone [data-dd="done"]').click();await p.locator('#dayDone').waitFor({state:'detached'});
@@ -58,21 +57,37 @@ const types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg
   assert.equal(await p.locator('#dayDone .ddbrand').evaluate(el=>getComputedStyle(el).animationName),'none');
   await p.locator('#dayDone [data-dd="done"]').click();await p.locator('#dayDone').waitFor({state:'detached'});
   await p.emulateMedia({reducedMotion:'no-preference'});
+  await p.setViewportSize({width:393,height:852});
   await p.evaluate(()=>{DB.settings.mascotMotion='still';document.dispatchEvent(new Event('mascotsettingschange'));celebrateDayDone(true,12,0,true);});
   await p.waitForTimeout(300);
   assert.equal(await p.locator('#dayDone canvas').count(),0,'Still works independently of the OS setting');
   await p.locator('#dayDone [data-dd="done"]').click();await p.locator('#dayDone').waitFor({state:'detached'});
   await p.evaluate(()=>{DB.settings.mascotMotion='animated';document.dispatchEvent(new Event('mascotsettingschange'));DB.settings.theme='light';applyTheme();celebrateDayDone(true,12,0,true);});
-  await p.locator('#dayDone .su-ready canvas').waitFor({timeout:15000});
+  assert.equal(await p.locator('#dayDone canvas').count(),0,'approved poster choreography has no competing renderer');
+  const letters=await p.locator('#dayDone [data-letter]').evaluateAll(es=>es.map(e=>({letter:e.dataset.letter,animations:e.getAnimations().length})));
+  assert.equal(letters.length,8);assert(letters.every(e=>e.animations===1),'every letter animates independently');
+  await p.waitForTimeout(400);
+  const transforms=await p.locator('#dayDone [data-letter]').evaluateAll(es=>es.slice(0,4).map(e=>getComputedStyle(e).transform));
+  assert(new Set(transforms).size===4,'Show is a stagger, not one moving word');
   await snap('complete-animated');
+  await p.waitForTimeout(1700);
+  assert(await p.locator('#dayDone [data-letter]').evaluateAll(es=>es.every(e=>e.getAnimations().length===0&&getComputedStyle(e).transform==='none')),'settles once without looping');
+  await p.evaluate(()=>showupppAnimate(document.querySelector('#dayDone')));
+  await p.emulateMedia({reducedMotion:'reduce'});
+  await p.waitForFunction(()=>[...document.querySelectorAll('#dayDone [data-letter]')].every(e=>e.getAnimations().length===0));
+  assert(await p.locator('#dayDone [data-letter]').evaluateAll(es=>es.every(e=>e.getAnimations().length===0)),'live reduced-motion change cancels motion');
+  await p.emulateMedia({reducedMotion:'no-preference'});
   await p.locator('#dayDone [data-dd="done"]').click();await p.locator('#dayDone').waitFor({state:'detached'});
   // Exercise the existing connected ink flight with the new two-part hero.
   await p.evaluate(()=>{const source=document.createElement('div');source.id='brand-flight-source';source.style.cssText='position:fixed;left:40px;top:300px;width:180px';source.innerHTML=mascotHTML('cool','','blue')+'<b class="dcn">12</b>';document.body.append(source);celebrateDayDone(true,12,0,true,source);});
   assert.equal(await p.locator('#dayDone.dd-inked').count(),1);
   await p.waitForFunction(()=>!document.querySelector('#dayDone.dd-ink')&&getComputedStyle(document.querySelector('#dayDone .ddink')).clipPath.startsWith('circle(0px'));
+  await p.waitForFunction(()=>[...document.querySelectorAll('#dayDone [data-letter]')].every(e=>e.getAnimations().length===1));
   assert.equal(await p.locator('#dayDone .showuppp-lettering').evaluate(e=>getComputedStyle(e).visibility),'visible');
   assert.equal(await p.locator('#dayDone .su-mascot').getAttribute('data-mascot-tone'),'blue');
+  await p.evaluate(()=>{window.brandAnimationRefs=[...document.querySelectorAll('#dayDone [data-letter]')].flatMap(e=>e.getAnimations());});
   await p.locator('#dayDone [data-dd="done"]').click();await p.locator('#dayDone').waitFor({state:'detached'});
+  assert(await p.evaluate(()=>window.brandAnimationRefs.every(a=>a.playState==='idle')),'dismissal cancels all logo animations');
   await p.locator('#brand-flight-source').evaluate(e=>e.remove());
   // Off leaves the welcome lettering, and keeps the existing no-mascot ceremony.
   await p.evaluate(()=>{DB.settings.mascotMotion='off';document.dispatchEvent(new Event('mascotsettingschange'));const host=document.createElement('div');host.id='brand-off-test';host.innerHTML=showupppLogoHTML('a');document.body.append(host);celebrateDayDone(true,12,0,true);});
@@ -97,7 +112,7 @@ const types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg
   await offline.setOffline(true);await op.reload();
   await op.locator('.onblogo .showuppp-lettering').evaluate(i=>i.decode());
   await op.evaluate(()=>{document.querySelector('#onb')?.remove();celebrateDayDone(true,12,0,true);});
-  await op.locator('#dayDone .showuppp-lettering').evaluate(i=>i.decode());
+  assert.equal(await op.locator('#dayDone .showuppp-lettering [data-letter]').count(),8,'offline vector available');
   await offline.close();
   console.log('PASS A/C artwork, 6 welcome + 6 completion layouts, still/off/OS-reduce/animated/WebGL fallback, unchanged workout data');
  }finally{await browser?.close();await new Promise(r=>server.close(r));}

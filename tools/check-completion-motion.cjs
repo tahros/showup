@@ -1,6 +1,6 @@
 const {chromium}=require('playwright'),assert=require('assert');
 (async()=>{
- const b=await chromium.launch({executablePath:'C:/Users/sungj/AppData/Local/ms-playwright/chromium-1217/chrome-win64/chrome.exe',headless:true});
+ const b=await chromium.launch({executablePath:process.env.PW_CHROME||'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});
  for(const theme of ['light','dark'])for(const reducedMotion of ['no-preference','reduce']){
   const p=await b.newPage({viewport:{width:393,height:852},reducedMotion});
   await p.route('**/*',r=>new URL(r.request().url()).origin==='http://127.0.0.1:8784'?r.continue():r.abort());
@@ -13,7 +13,9 @@ const {chromium}=require('playwright'),assert=require('assert');
    const current=await p.locator('#dayDone').getAttribute('data-entrance');assert(current!==previous);previous=current;
    await p.evaluate(variant=>document.querySelector('#dayDone').dataset.entrance=variant,variant);
    const animation=await p.locator('.ddhero').evaluate(e=>getComputedStyle(e).animationName);
-   assert.equal(animation,reducedMotion==='reduce'?'none':'ddcinema-'+variant);
+   assert.equal(animation,'none','the lockup stays anchored; its individual letters move');
+   const moving=await p.locator('#dayDone [data-letter]').evaluateAll(es=>es.filter(e=>e.getAnimations().length).length);
+   assert.equal(moving,reducedMotion==='reduce'?0:8);
    await p.waitForTimeout(1250);
    assert.equal(await p.locator('.ddn').textContent(),'964');
    assert(await p.locator('.ddhero').evaluate(e=>{const r=e.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth;}));

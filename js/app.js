@@ -2021,8 +2021,9 @@ function celebrateDayDone(nowrite, forceCount, forceMile, forceShow, sourceCard)
         drain.finished.then(()=>{
           if(!o.isConnected)return;
           if(typeof mascotTint==='function')mascotTint(hero,'blue');
-          ink.animate([{clipPath:`circle(${hide}px at ${land}px ${landY}px)`},{clipPath:`circle(0px at ${land}px ${landY}px)`}],
+          const reveal=ink.animate([{clipPath:`circle(${hide}px at ${land}px ${landY}px)`},{clipPath:`circle(0px at ${land}px ${landY}px)`}],
             {duration:150,easing:'cubic-bezier(.4,0,1,1)',fill:'forwards'});
+          reveal.finished.then(()=>{if(o.isConnected&&typeof showupppAnimate==='function')showupppAnimate(o);}).catch(()=>{});
         }).catch(()=>{});
         o.classList.add('dd-copy');
         countUpEl(o.querySelector('.ddn'),1100);
@@ -2032,6 +2033,7 @@ function celebrateDayDone(nowrite, forceCount, forceMile, forceShow, sourceCard)
     o.classList.add('dd-connected');
     ['.ddhero .su-mascot','.ddn'].forEach((selector,i)=>{const el=o.querySelector(selector),from=origins[i];if(!el||!from||!from.width)return;el.style.animation='none';const to=el.getBoundingClientRect();if(!to.width||!to.height)return;el.style.transformOrigin='0 0';el.animate([{transform:`translate(${from.left-to.left}px,${from.top-to.top}px) scale(${from.width/to.width},${from.height/to.height})`},{transform:'translate(0,0) scale(1)'}],{duration:620,easing:'cubic-bezier(.2,.75,.25,1)'});});
   }else countUpEl(o.querySelector('.ddn'),1100);
+  if(!connected&&typeof showupppAnimate==='function')showupppAnimate(o);
   o.querySelector('[data-dd="milestone"],[data-dd="done"]').focus({preventScroll:true});
   let leaving=false;
   const leave=(share=false)=>{

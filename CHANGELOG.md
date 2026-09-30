@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.168 (2026-09-30) — every letter shows up
+
+- **Approved completion lockup:** Compact mascot (96.6px), unchanged 124px lettering and Open 14px gap. Welcome A remains unchanged.
+- **One-shot celebration:** S, h, o and w bounce independently, followed by the Uppp wave and the higher mascot jump with a springy landing. Exact traced letter paths and the existing 3D-rendered poster are used; no replacement font or competing WebGL loop in this lockup.
+- **Safe motion:** starts after the connected ink reveal, settles in under two seconds, cancels on dismissal, hidden page or motion-setting changes; Still, Off and OS reduced motion stay static. Done never waits for the animation.
+- **Checks:** brand and completion browser regressions cover individual letter motion, settled state, dimensions, both themes, small screens, offline assets and unchanged workout records. Logging and persistence logic are unchanged.
+
 ## v4.6.167 (2026-09-30) — ShowUppp welcomes and celebrates
 
 - **Approved lettering, not a replacement font:** traced the maker's A (Sidekick) and C (Rising) board into local SVG paths. A appears on the first welcome screen; C joins the existing completion moment. The functional app name and UI typography stay unchanged.

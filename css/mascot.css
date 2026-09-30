@@ -141,3 +141,13 @@ html.gym-tour-open,html.gym-tour-open body{overflow:hidden}
    the shared renderer for OS reduce / Still, with the PNG staying visible. */
 :root[data-mascot-motion="still"] #dayDone .ddbrand,:root[data-mascot-motion="off"] #dayDone .ddbrand{animation:none;transform:none;opacity:1}
 @media(prefers-reduced-motion:reduce){#dayDone .ddbrand{animation:none;transform:none;opacity:1}}
+/* Approved Compact mascot / Open gap. Letter size stays independent. */
+#dayDone .ddhero.ddbrand{width:234.6px;animation:none;transform:none;opacity:1}
+.showuppp-c{display:flex;gap:14px;align-items:center;justify-content:center;max-width:234.6px}
+.showuppp-c .showuppp-character{width:96.6px;height:59.892px;aspect-ratio:auto;flex:none;isolation:isolate}
+#dayDone .ddbrand .showuppp-c .su-mascot{width:184.615%;left:-42.308%;top:-43.83%;pointer-events:none}
+.showuppp-c .su-mascot img{clip-path:inset(0 0 21% 0);transform-origin:50% 79%}
+.showuppp-c .showuppp-lettering{width:124px;flex:none;overflow:visible}
+.showuppp-c [data-letter]{transform-box:fill-box;transform-origin:50% 100%}
+.showuppp-ground{position:absolute;left:0;right:0;bottom:-1px;height:3px;border-radius:50%;background:#00000020;z-index:-1}
+:root[data-theme="dark"] .showuppp-ground{background:#0006}

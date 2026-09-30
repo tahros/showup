@@ -1,6 +1,6 @@
 const {chromium}=require('playwright'),assert=require('assert');
 (async()=>{
- const b=await chromium.launch({executablePath:'C:/Users/sungj/AppData/Local/ms-playwright/chromium-1217/chrome-win64/chrome.exe'});
+ const b=await chromium.launch({executablePath:process.env.PW_CHROME||'C:/Program Files/Google/Chrome/Application/chrome.exe'});
  try{
   const p=await b.newPage({viewport:{width:393,height:852},serviceWorkers:'block'});
   await p.route('**/*',r=>r.request().url().startsWith('http://127.0.0.1:8784/')?r.continue():r.abort());
