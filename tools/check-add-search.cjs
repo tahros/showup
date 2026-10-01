@@ -42,6 +42,15 @@ const PORT=process.env.PORT||8784,wait=ms=>new Promise(r=>setTimeout(r,ms));
     ok(`${tag} yours first: the day's body part and still addable (Barbell Curl), then in the plan, then other parts`,r.rows.slice(0,6).join('|')==='Barbell Curl|Dumbbell Curl*|EZ Bar Curl*|Hammer Curl*|Lying Leg Curl|Seated Leg Curl',r.rows.join('|'));
     ok(`${tag} an avoided exercise of yours stays out of the top rows (it sorts last)`,!r.rows.slice(0,6).some(x=>/Preacher/.test(x)),r.rows.join('|'));
     ok(`${tag} then "Not tried yet"; at most eight rows, with the rest counted`,r.heads.length===2&&/^Yours/.test(r.heads[0])&&r.heads[1]==='Not tried yet'&&r.rows.length<=8&&/\d+ more · keep typing/.test(r.more)&&r.marks>=r.rows.length,JSON.stringify({h:r.heads,n:r.rows.length,more:r.more}));
+    /* v4.6.182: with a keyboard up (simulated: --kb is what visualViewport reports
+       on a phone) the sheet's surface still reaches the bottom of the screen --
+       so the keyboard's translucent top bar has the sheet behind it, not the
+       dimmed page -- and the last result can be scrolled clear of the keyboard */
+    const kb=await p.evaluate(()=>{document.documentElement.style.setProperty('--kb','336px');const sh=document.querySelector('.pw-add-sheet'),r=sh.getBoundingClientRect();sh.scrollTop=sh.scrollHeight;
+      const last=[...sh.querySelectorAll('.pw-add-results > *')].pop().getBoundingClientRect();const el=document.elementFromPoint(innerWidth/2,innerHeight-336-20);
+      const out={bottom:Math.round(r.bottom),h:innerHeight,lastBottom:Math.round(last.bottom),clear:innerHeight-336,behindBar:!!(el&&el.closest('.pw-add-sheet'))};sh.scrollTop=0;document.documentElement.style.setProperty('--kb','0px');return out;});
+    ok(`${tag} keyboard up: the sheet reaches the screen's bottom (it is what shows behind the keyboard's bar)`,kb.bottom===kb.h&&kb.behindBar,JSON.stringify(kb));
+    ok(`${tag} ...and the last result scrolls clear of the keyboard`,kb.lastBottom<=kb.clear,JSON.stringify(kb));
     if(shots)await p.screenshot({path:'../add-search-2.png'});
     await p.fill('#pw-add-q','');await p.keyboard.type('preacher');await wait(150);
     const av=await res();

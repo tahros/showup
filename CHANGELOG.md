@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.182 (2026-10-01) — The Add sheet runs behind the keyboard
+
+- **Reported:** with the keyboard up in "Add to Friday", the background of the keyboard's top bar (the ‹ › ✓ strip) looked out of place.
+- **Why:** the sheet stopped where the keyboard area began. That strip is translucent, so what showed through it was the dimmed plan page behind the sheet ("Everything here is saved", the Save button).
+- **Now:** the sheet's surface runs to the bottom of the screen, behind the keyboard, and the list is padded by the keyboard's height so its last row still scrolls clear. What shows through the strip is the sheet itself.
+- Tests: `tools/check-add-search.cjs` simulates the keyboard's height and checks the sheet reaches the screen's bottom and the last result clears the keyboard. 68 checks. On v4.6.181 the first fails (the sheet stopped at 538 of 874).
+
 ## v4.6.181 (2026-10-01) — Search in the Add sheet
 
 - **Reported:** the screen behind "Type an exercise…" needed a rework: the name could not be typed, the list was not in an intuitive order and far too long, and the content sat at the top of an empty page. Shown as a mock first and approved.

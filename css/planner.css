@@ -381,9 +381,14 @@ p.pw-small{margin:10px 0 16px}.pw-workspace p:not(.pw-small){font:400 14px/1.6 v
 .pw-add-search input::-webkit-search-cancel-button,.pw-add-search input::-webkit-search-decoration{-webkit-appearance:none;display:none}
 .pw-add-sheet .pw-add-clear{flex:0 0 auto;display:grid;place-items:center;width:32px;height:32px;margin:0;padding:0;border:0;background:none;color:var(--muted);font:400 20px/1 var(--body);cursor:pointer}
 .pw-add-sheet .pw-add-clear[hidden]{display:none}
-/* while you search the sheet stands tall: the box sits near the top, and the
-   sheet ends where the keyboard begins (--kb, from visualViewport) */
-.pw-add-sheet.pw-add-tall{top:calc(var(--sat,0px) + 56px);bottom:var(--kb,0px);max-height:none}
+/* while you search the sheet stands tall: the box sits near the top; --kb is
+   the keyboard's height (from visualViewport) */
+/* v4.6.182: the sheet runs to the BOTTOM OF THE SCREEN, behind the keyboard,
+   and pads its list by the keyboard's height instead of stopping at its edge.
+   Stopping there left a band where the keyboard's translucent top bar (the
+   ‹ › ✓ strip) floated over the dimmed plan page -- its background was the
+   wrong screen. Now what shows through it is the sheet's own surface. */
+.pw-add-sheet.pw-add-tall{top:calc(var(--sat,0px) + 56px);bottom:0;max-height:none;padding-bottom:calc(24px + var(--kb,0px) + env(safe-area-inset-bottom,0px));scroll-padding-bottom:calc(24px + var(--kb,0px))}
 .pw-add-h{margin:14px 0 2px;font:600 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
 .pw-add-results .pw-add-h:first-child{margin-top:4px}
 .pw-add-results mark{background:none;color:var(--accent);font-weight:700}
