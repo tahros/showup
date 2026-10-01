@@ -96,7 +96,7 @@ const PLAN='Deadlift\n  135 lb × 8 (warm-up)\n  235 lb × 6 6 6 6\nBent-Over Ro
   const empty=await p.textContent('.pw-add-list');
   ok('no history: the sheet says so instead of an empty list', /Nothing logged for this body part yet/.test(empty), empty);
   /* v4.6.157: the Edit page (Set target + Regenerate) -- its Add exercise opens
-     the same sheet, with "Type an exercise…" last; Set target changes the
+     the same sheet, with a search box (v4.6.181); Set target changes the
      routine live by the same rule, and - takes added exercises away first. */
   for(const theme of ['dark','light']){
     await boot(theme,true);
@@ -107,7 +107,8 @@ const PLAN='Deadlift\n  135 lb × 8 (warm-up)\n  235 lb × 6 6 6 6\nBent-Over Ro
     const sh=await p.evaluate(()=>({ctx:pw().addCtx,title:document.querySelector('#pw-add-title')?.textContent,
       list:[...document.querySelectorAll('.pw-add-pick')].map(b=>b.querySelector('strong').textContent).join(' / '),last:document.querySelector('.pw-add-list > :last-child')?.dataset.pw}));
     ok(`${theme} Edit: Add exercise opens the same sheet (not the text box)`, sh.ctx==='edit'&&sh.title==='Add to Tuesday'&&!(await p.$('.pw-input-panel')), sh.title);
-    ok(`${theme} Edit: ...most recent first, with "Type an exercise…" last`, sh.list==='Seated Cable Row / Lat Pulldown / Bent-Over Row / Deadlift / Pull Up / Chest-Supported Row / Type an exercise…'&&sh.last==='add', sh.list);
+    /* v4.6.181: "Type an exercise…" is gone -- the sheet has a search box instead */
+    ok(`${theme} Edit: ...most recent first, under a search box (no "Type an exercise…" row)`, sh.list==='Seated Cable Row / Lat Pulldown / Bent-Over Row / Deadlift / Pull Up / Chest-Supported Row'&&!!(await p.$('#pw-add-q'))&&!(await p.$('.pw-add-type')), sh.list);
     /* v4.6.158: the sheet closes without adding -- its ×, the scrim, Escape */
     const before=await rows();
     await click('.pw-add-close');
@@ -127,8 +128,10 @@ const PLAN='Deadlift\n  135 lb × 8 (warm-up)\n  235 lb × 6 6 6 6\nBent-Over Ro
     ok(`${theme} Edit: - takes it away first`, (await rows())==='Deadlift:5, Bent-Over Row:5, Pull Up:4, Lat Pulldown:3'&&(await shown())===17, await rows());
     const hint=await p.textContent('.pf-target-hint');
     ok(`${theme} Edit: no pending "Regenerate to apply" for a live change`, !/Regenerate to apply/.test(hint), hint);
-    await click('.pf-add-button');await click('.pw-add-type');
-    ok(`${theme} Edit: "Type an exercise…" opens the text box as before`, await p.evaluate(()=>pw().step==='editrow'&&!pw().addOpen));
+    /* v4.6.181: typing a name adds it from the sheet; the text screen is not part of adding */
+    await click('.pf-add-button');await p.click('#pw-add-q');await p.keyboard.type('face pu');await p.waitForTimeout(150);
+    await click('.pw-add-results [data-pw="add-new"][data-ex="Face Pull"]');
+    ok(`${theme} Edit: typing a name adds it from the sheet, by feel, without the text screen`, await p.evaluate(()=>pw().step!=='editrow'&&!pw().addOpen&&/Face Pull\n\s+by feel × 10 10 10/.test(pwText([pwDay(pw().active).rows.at(-1)]))));
   }
   /* v4.6.159: the maker's night -- a Back day with parts chosen, a target of 18
      left over from before v4.6.157, then Decline Sit Up (Sixpack) added from the

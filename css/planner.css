@@ -371,3 +371,29 @@ p.pw-small{margin:10px 0 16px}.pw-workspace p:not(.pw-small){font:400 14px/1.6 v
 /* v4.6.158: the sheet closes from its own × (as well as the scrim and Escape) */
 .pw-add-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .pw-add-sheet .pw-add-close{flex:0 0 auto;display:grid;place-items:center;width:36px;height:36px;min-height:0;padding:0;border:0;border-radius:50%;background:color-mix(in srgb,var(--chalk) 8%,transparent);color:var(--chalk);font:400 22px/1 var(--body);box-shadow:none;cursor:pointer}
+
+/* v4.6.181 — search in the Add sheet */
+.pw-add-sheet label.pw-add-search{display:flex;align-items:center;gap:10px;margin:10px 0 12px;padding:0 8px 0 14px;height:48px;border-radius:14px;background:color-mix(in srgb,var(--chalk) 6%,transparent);border:1.5px solid transparent;cursor:text}
+.pw-add-sheet label.pw-add-search:focus-within{border-color:var(--accent);background:var(--surface)}
+.pw-add-mag{width:18px;height:18px;flex:0 0 auto;color:var(--muted)}
+.pw-add-sheet label.pw-add-search input,.pw-add-sheet label.pw-add-search input:focus,.pw-add-sheet label.pw-add-search input:focus-visible{display:block;flex:1 1 auto;width:auto;min-width:0;height:100%;min-height:0;margin:0;padding:0;border:0;border-radius:0;outline:0;background:none;box-shadow:none;color:var(--chalk);font:500 16px var(--body);-webkit-appearance:none;appearance:none}
+.pw-add-sheet label.pw-add-search input::placeholder{color:var(--muted);font-weight:400}
+.pw-add-search input::-webkit-search-cancel-button,.pw-add-search input::-webkit-search-decoration{-webkit-appearance:none;display:none}
+.pw-add-sheet .pw-add-clear{flex:0 0 auto;display:grid;place-items:center;width:32px;height:32px;margin:0;padding:0;border:0;background:none;color:var(--muted);font:400 20px/1 var(--body);cursor:pointer}
+.pw-add-sheet .pw-add-clear[hidden]{display:none}
+/* while you search the sheet stands tall: the box sits near the top, and the
+   sheet ends where the keyboard begins (--kb, from visualViewport) */
+.pw-add-sheet.pw-add-tall{top:calc(var(--sat,0px) + 56px);bottom:var(--kb,0px);max-height:none}
+.pw-add-h{margin:14px 0 2px;font:600 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.pw-add-results .pw-add-h:first-child{margin-top:4px}
+.pw-add-results mark{background:none;color:var(--accent);font-weight:700}
+.pw-add-part{display:inline-block;margin-right:7px;padding:1px 7px;border-radius:9px;background:color-mix(in srgb,var(--chalk) 7%,transparent);font:500 11px var(--body);color:var(--muted);vertical-align:1px}
+.pw-add-more{margin:12px 0 0}
+.pw-add-new{margin:6px 0 0;padding:14px;border-radius:16px;border:1px solid var(--accent);background:color-mix(in srgb,var(--accent) 6%,var(--surface))}
+.pw-add-new>strong{display:block;font:600 16px var(--body);color:var(--chalk);overflow-wrap:anywhere}
+.pw-add-new>small{display:block;margin:3px 0 10px;font:400 13px/1.4 var(--body);color:var(--muted)}
+.pw-add-newparts{display:flex;flex-wrap:wrap;gap:6px}
+.pw-add-newparts button{min-height:0;height:34px;margin:0;padding:0 12px;border:0;border-radius:17px;background:color-mix(in srgb,var(--chalk) 7%,transparent);color:var(--chalk);font:500 13px var(--body);cursor:pointer}
+.pw-add-newparts button.on{background:var(--accent);color:#fff}
+.pw-add-new .pw-btn.pw-add-go{display:flex;width:100%;margin:12px 0 0;min-height:46px;border-radius:14px}
+.pw-add-sheet .pw-add-pick.pw-add-asnew strong{color:var(--accent);font-weight:600;font-size:15px}

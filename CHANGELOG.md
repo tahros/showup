@@ -1,5 +1,18 @@
 # ShowUp — changelog
 
+## v4.6.181 (2026-10-01) — Search in the Add sheet
+
+- **Reported:** the screen behind "Type an exercise…" needed a rework: the name could not be typed, the list was not in an intuitive order and far too long, and the content sat at the top of an empty page. Shown as a mock first and approved.
+- **Why it felt wrong:** it was the paste-a-routine screen reused for adding one exercise: a native menu of the whole catalog in catalog order (Chest first), a text box expecting the paste format, then a Preview.
+- **Now:** the Add sheet has a search box at the top; the "Type an exercise…" row and that screen are gone from adding.
+  - **Type the name.** Results update under the box as you type, the cursor stays put, and the sheet stands tall so the box and results clear the keyboard.
+  - **Order:** your exercises first: the day's body parts, what you can still add before what is already in the plan, a name that starts with what you typed, then most recent. Then "Not tried yet" from the catalog. Avoided exercises sort last, tagged.
+  - **Length:** at most eight rows, with "N more · keep typing to narrow".
+  - **One tap adds.** Yours come in with your last working sets; one you have not done starts "by feel × 10 10 10". No Preview. Enter adds the first result.
+  - **A name the app does not know** gets an "Add …" card: choose its body part (the day's is preselected) and it becomes one of your exercises and joins the plan by feel. With partial matches showing, a quiet "Add … as a new exercise" line offers the same.
+- Unchanged: "Paste routine" and "Edit text" on an unreadable line still use the text screen; browsing by body part works as before.
+- Tests: `tools/check-add-search.cjs` (Chromium, light and dark, 320 and 402px, 60 checks); `check-add-exercise.cjs` updated for the search box.
+
 ## v4.6.180 (2026-10-01) — The Add sheet stays on the bottom edge
 
 - **Reported:** with "Add to Friday" open, dragging inside it made the sheet let go of the bottom of the screen and ride up; the header lost its dimming and the tab bar showed under the sheet.

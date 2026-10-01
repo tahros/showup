@@ -423,13 +423,67 @@ function pwAllocateSets(base,target,skip=[]){
   }
   return rows;
 }
+const PW_MAG='<svg class="pw-add-mag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg>';
+const PW_ADD_MAX=8;
+/* every strength exercise the app knows: the catalog and your own */
+function pwAllExercises(){
+  const seen=new Set(),out=[];
+  for(const [p,list] of Object.entries(SEED.catalog||{}))if(p!=='Run')for(const ex of list)if(!seen.has(ex)&&!(typeof isCardioEx==='function'&&isCardioEx(ex))){seen.add(ex);out.push(ex);}
+  for(const ex of Object.keys(customs()))if(!seen.has(ex)&&!(typeof isCardioEx==='function'&&isCardioEx(ex))){seen.add(ex);out.push(ex);}
+  for(const ex of Object.keys(SEED.exLast||{}))if(!seen.has(ex)&&homePartOf(ex)&&homePartOf(ex)!=='Run'&&!(typeof isCardioEx==='function'&&isCardioEx(ex))){seen.add(ex);out.push(ex);}
+  return out;
+}
+/* The order a person expects: what you have done before what you have not;
+   within each, the day's own body parts first, then a name that STARTS with
+   what you typed, then the most recent (yours) or the alphabet (not tried).
+   Avoided exercises sink to the end of their group. */
+function pwAddSearch(q,day,inPlan=new Set()){
+  const toks=canonKey(q).split(' ').filter(Boolean),own=new Set(pwDayParts(day));
+  const hit=ex=>{const n=canonKey(ex);return toks.every(t=>n.includes(t));};
+  const starts=ex=>{const n=canonKey(ex),t=toks[0]||'';return n.startsWith(t)?0:n.split(' ').some(w=>w.startsWith(t))?1:2;};
+  const av=ex=>typeof isAvoided==='function'&&isAvoided(ex)?1:0,done=ex=>!!(SEED.lastSess?.[ex]&&pwLastLine(ex));
+  /* ...and within the day's parts, what you can still add before what is already in the plan */
+  const all=pwAllExercises().filter(hit),key=ex=>[av(ex),own.has(homePartOf(ex))?0:1,inPlan.has(ex)?1:0,starts(ex)];
+  const cmp=(a,b,tie)=>{const x=key(a),y=key(b);for(let i=0;i<4;i++)if(x[i]!==y[i])return x[i]-y[i];return tie(a,b);};
+  const mine=all.filter(done).sort((a,b)=>cmp(a,b,(a,b)=>(SEED.exLast[b]||'').localeCompare(SEED.exLast[a]||'')||a.localeCompare(b)));
+  const fresh=all.filter(ex=>!done(ex)).sort((a,b)=>cmp(a,b,(a,b)=>a.localeCompare(b)));
+  return {mine,fresh,exact:all.some(ex=>canonKey(ex)===canonKey(q))};
+}
+const pwTitleCase=str=>String(str).trim().replace(/\s+/g,' ').replace(/(^|[\s-])([a-z])/g,(m,a,c)=>a+c.toUpperCase());
+function pwAddResultsHTML(s,q,day,inPlan){
+  const {mine,fresh,exact}=pwAddSearch(q,day,inPlan),toks=canonKey(q).split(' ').filter(Boolean);
+  const mark=name=>{let h=hesc(name);for(const t of toks)if(t)h=h.replace(new RegExp('('+t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')(?![^<]*>)','i'),'<mark>$1</mark>');return h;};
+  const short=d=>new Date(d+'T12:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  const pill=ex=>`<span class="pw-add-part">${hesc(partLabel(homePartOf(ex)||''))}</span>`;
+  const tag=ex=>typeof isAvoided==='function'&&isAvoided(ex)?`<span class="xp-tag">${XP_ICON}avoided</span>`:'';
+  const dim=ex=>typeof isAvoided==='function'&&isAvoided(ex)?' xp-dim':'';
+  const nMine=Math.min(mine.length,Math.max(PW_ADD_MAX-Math.min(fresh.length,2),PW_ADD_MAX-fresh.length)),nFresh=Math.min(fresh.length,PW_ADD_MAX-nMine);
+  const day0=new Date(s.active+'T12:00').toLocaleDateString('en-US',{weekday:'long'});
+  let h='';
+  if(nMine){h+=`<div class="pw-add-h">Yours · ${hesc(day0)}’s body parts first</div>`+mine.slice(0,nMine).map(ex=>{const l=pwLastLine(ex),on=inPlan.has(ex);
+    return `<button type="button" class="pw-add-pick${dim(ex)}" data-pw="add-pick" data-ex="${hesc(ex)}" ${on?'disabled':''}><span><strong>${mark(ex)}</strong><small>${pill(ex)}${on?'In this plan':hesc(l.load+' × '+l.reps.join(' '))}${tag(ex)}</small></span><i>${on?'':short(SEED.exLast[ex])}</i></button>`;}).join('');}
+  if(nFresh){h+=`<div class="pw-add-h">Not tried yet</div>`+fresh.slice(0,nFresh).map(ex=>{const on=inPlan.has(ex);
+    return `<button type="button" class="pw-add-pick${dim(ex)}" data-pw="add-new" data-ex="${hesc(ex)}" data-part="${hesc(homePartOf(ex)||'')}" ${on?'disabled':''}><span><strong>${mark(ex)}</strong><small>${pill(ex)}${on?'In this plan':'starts by feel'}${tag(ex)}</small></span><i></i></button>`;}).join('');}
+  const more=mine.length+fresh.length-nMine-nFresh;
+  if(more>0)h+=`<p class="pw-small pw-add-more">${more} more · keep typing to narrow</p>`;
+  /* a name the app does not know: yours to add, with its body part */
+  const name=pwTitleCase(q),none=!mine.length&&!fresh.length;
+  if(!exact&&name.length>=2&&(none||s.addNewOpen)){
+    const parts=Object.keys(SEED.catalog||{}).filter(p=>p!=='Run'),pick=parts.includes(s.addNewPart)?s.addNewPart:(pwDayParts(day)[0]||parts[0]);
+    h+=`${none?'<div class="pw-add-h">No match</div>':''}<div class="pw-add-new"><strong>Add “${hesc(name)}”</strong><small>A new exercise of yours. Starts by feel × 10 10 10; set the weight in the plan.</small><div class="pw-add-newparts" role="group" aria-label="Body part">${parts.map(p=>`<button type="button" data-add-newpart="${hesc(p)}" aria-pressed="${p===pick}" class="${p===pick?'on':''}">${hesc(partLabel(p))}</button>`).join('')}</div>${pwButton('add-new','Add to '+hesc(day0),'primary pw-add-go',`data-ex="${hesc(name)}" data-part="${hesc(pick)}" data-new="1"`)}</div>`;
+  }else if(!exact&&name.length>=4&&!none){
+    h+=`<button type="button" class="pw-add-pick pw-add-asnew" data-add-newopen><span><strong>Add “${hesc(name)}” as a new exercise</strong><small>if none of these is it</small></span><i></i></button>`;
+  }
+  return `<div class="pw-add-list pw-add-results">${h}</div>`;
+}
 /* v4.6.156: Add exercise. One body part at a time, the day's own first; within
    it every exercise you have done, most recent first, with its last working
    sets and the day you did them. Already in the plan: shown, not pickable. */
-function pwAddSheetHTML(s){
+function pwAddSheetHTML(s,bodyOnly){
   /* v4.6.157: one sheet for both screens -- Total sets ('adjust') and the Edit
      page ('edit', which also offers typing an exercise you have not logged) */
   const edit=s.addCtx==='edit',day=edit?pwDay(s.active):s.adjustBase,now=edit?day.rows:s.adjustRows;
+  const q=String(s.addQ||'').trim();
   const own=pwDayParts(day),done=p=>pwDoneFor([p]).length>0;
   const parts=[...own,...Object.keys(SEED.catalog).filter(p=>p!=='Run'&&!own.includes(p)&&done(p))];
   const part=parts.includes(s.addPart)?s.addPart:parts[0];
@@ -439,7 +493,13 @@ function pwAddSheetHTML(s){
   const av=ex=>typeof isAvoided==='function'&&isAvoided(ex),ordered=part?[...pwDoneFor([part]).filter(ex=>!av(ex)),...pwDoneFor([part]).filter(av)]:[];
   const list=ordered.map(ex=>{const l=pwLastLine(ex),on=inPlan.has(ex),a=av(ex);
     return `<button type="button" class="pw-add-pick${a?' xp-dim':''}" data-pw="add-pick" data-ex="${hesc(ex)}" ${on?'disabled':''}><span><strong>${hesc(ex)}</strong><small>${on?'In this plan':hesc(l.load+' × '+l.reps.join(' '))}${a?`<span class="xp-tag">${XP_ICON}avoided</span>`:''}</small></span><i>${on?'':short(SEED.exLast[ex])}</i></button>`;}).join('');
-  return `<div class="pw-add-scrim" data-pw="add-close"></div><div class="pw-add-sheet" role="dialog" aria-modal="true" aria-labelledby="pw-add-title"><div class="pw-add-grab" aria-hidden="true"></div><div class="pw-add-head"><h3 id="pw-add-title">Add to ${hesc(new Date(s.active+'T12:00').toLocaleDateString('en-US',{weekday:'long'}))}</h3>${pwButton('add-close','×','pw-add-close','aria-label="Close without adding"')}</div><p class="pw-small">Most recent first · last time you did each</p><div class="pw-add-parts" role="tablist">${parts.map(p=>`<button type="button" role="tab" data-pw="add-part" data-part="${hesc(p)}" aria-selected="${p===part}" class="${p===part?'on':''}">${hesc(typeof partLabel==='function'?partLabel(p):p)}</button>`).join('')}</div><div class="pw-add-list">${list||'<p class="pw-small">Nothing logged for this body part yet.</p>'}${edit?pwButton('add','<span><strong>Type an exercise…</strong><small>For one you have not logged</small></span>','pw-add-pick pw-add-type'):''}</div></div>`;
+  const browse=`<p class="pw-small">Or browse by body part · most recent first</p><div class="pw-add-parts" role="tablist">${parts.map(p=>`<button type="button" role="tab" data-pw="add-part" data-part="${hesc(p)}" aria-selected="${p===part}" class="${p===part?'on':''}">${hesc(typeof partLabel==='function'?partLabel(p):p)}</button>`).join('')}</div><div class="pw-add-list">${list||'<p class="pw-small">Nothing logged for this body part yet.</p>'}</div>`;
+  if(bodyOnly) return q?pwAddResultsHTML(s,q,day,inPlan):browse;
+  /* v4.6.181: SEARCH, IN THE SHEET. Typing an exercise used to leave for the
+     paste-a-routine screen: a native menu of the whole catalog in catalog
+     order, a text box expecting the paste format, then a Preview. The name is
+     typed here now, results are yours-first, and one tap adds. */
+  return `<div class="pw-add-scrim" data-pw="add-close"></div><div class="pw-add-sheet${q?' pw-add-tall':''}" role="dialog" aria-modal="true" aria-labelledby="pw-add-title"><div class="pw-add-grab" aria-hidden="true"></div><div class="pw-add-head"><h3 id="pw-add-title">Add to ${hesc(new Date(s.active+'T12:00').toLocaleDateString('en-US',{weekday:'long'}))}</h3>${pwButton('add-close','×','pw-add-close','aria-label="Close without adding"')}</div><label class="pw-add-search">${PW_MAG}<input id="pw-add-q" type="search" enterkeyhint="search" autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false" placeholder="Search or type an exercise" aria-label="Search or type an exercise" value="${hesc(s.addQ||'')}"><button type="button" class="pw-add-clear" data-add-clear aria-label="Clear the search"${q?'':' hidden'}>×</button></label><div class="pw-add-body">${q?pwAddResultsHTML(s,q,day,inPlan):browse}</div></div>`;
 }
 /* v4.6.158: Escape closes the sheet, like its × and the scrim */
 document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;const s=typeof pw==='function'?pw():null;if(!s||!s.addOpen)return;s.addOpen=false;pwPersist();pwRender();});
@@ -676,11 +736,24 @@ function pwHandle(e){
     else if(a==='adjust-cancel'){s.adjustBase=null;s.adjustRows=null;s.addOpen=false;s.step='edit';}
     /* v4.6.156: Add exercise -- a pick joins the plan being adjusted (base and
        live rows), so +/- treat it like any planned exercise */
-    else if(a==='add-open'){s.addOpen=true;s.addPart=null;s.addCtx=el.dataset.ctx==='edit'?'edit':'adjust';}
-    else if(a==='add-close'){s.addOpen=false;}
+    else if(a==='add-open'){s.addOpen=true;s.addPart=null;s.addQ='';s.addNewOpen=false;s.addNewPart=null;s.addCtx=el.dataset.ctx==='edit'?'edit':'adjust';}
+    else if(a==='add-close'){s.addOpen=false;s.addQ='';s.addNewOpen=false;}
+    /* v4.6.181: an exercise with no history of yours -- from the catalog, or a
+       name you just typed (which becomes one of your own, under the body part
+       you chose). It starts by feel; the weight is set in the plan row. */
+    else if(a==='add-new'){
+      const ex=el.dataset.ex,part=el.dataset.part||pwDayParts(s.addCtx==='edit'?b:s.adjustBase)[0]||'Chest';
+      if(el.dataset.new&&!pwAllExercises().some(x=>canonKey(x)===canonKey(ex))){DB.settings.custom={...customs(),[ex]:{part,equip:'barbell'}};DB.settingsAt=Date.now();save(true);}
+      const r=pwRead(`${ex}\n  by feel × 10 10 10`)[0];
+      if(r&&r.kind==='ex'&&r.ex){
+        if(s.addCtx==='edit'&&b){pwUndoPoint(b);b.rows.push(r);b.source='Your draft';pwAddedToDay(b);}
+        else if(s.adjustBase){r.added='new';s.adjustBase.rows.push(pwCopy(r));s.adjustRows.push(r);s.adjustSkip=(s.adjustSkip||[]).filter(x=>x!==r.ex);}
+      }
+      s.addOpen=false;s.addQ='';s.addNewOpen=false;
+    }
     else if(a==='add-part'){s.addPart=el.dataset.part;}
-    else if(a==='add-pick'&&s.addCtx==='edit'){const r=pwExerciseRow(el.dataset.ex,pwTypicalSets(el.dataset.ex));if(r&&b){delete r.added;pwUndoPoint(b);b.rows.push(r);b.source='Your draft';pwAddedToDay(b);}s.addOpen=false;}
-    else if(a==='add-pick'){const r=pwExerciseRow(el.dataset.ex,pwTypicalSets(el.dataset.ex),'new');if(r){s.adjustBase.rows.push(pwCopy(r));s.adjustRows.push(r);s.adjustSkip=(s.adjustSkip||[]).filter(x=>x!==r.ex);}s.addOpen=false;}
+    else if(a==='add-pick'&&s.addCtx==='edit'){const r=pwExerciseRow(el.dataset.ex,pwTypicalSets(el.dataset.ex));if(r&&b){delete r.added;pwUndoPoint(b);b.rows.push(r);b.source='Your draft';pwAddedToDay(b);}s.addOpen=false;s.addQ='';}
+    else if(a==='add-pick'){const r=pwExerciseRow(el.dataset.ex,pwTypicalSets(el.dataset.ex),'new');if(r){s.adjustBase.rows.push(pwCopy(r));s.adjustRows.push(r);s.adjustSkip=(s.adjustSkip||[]).filter(x=>x!==r.ex);}s.addOpen=false;s.addQ='';}
     else if(a==='add-remove'){const r=s.adjustRows[i];if(r){
       if(r.added==='new'){const k=s.adjustBase.rows.findIndex(x=>x.added==='new'&&x.ex===r.ex);if(k>=0)s.adjustBase.rows.splice(k,1);s.adjustRows.splice(i,1);}
       else{s.adjustSkip=[...(s.adjustSkip||[]),r.ex];s.adjustRows=pwAllocateSets(s.adjustBase,pwCounts(s.adjustRows).total-pwCounts([r]).total,s.adjustSkip);}}}
@@ -797,3 +870,29 @@ function pwReorderFocus(index,message){
     if(pwApplyOrder(order))pwReorderFocus(j,`${name} moved to position ${j+1}.`);
   });
 })();
+
+/* v4.6.181: the Add sheet's search updates IN PLACE. A full pwRender() on each
+   keystroke would rebuild the input under the cursor (focus and the keyboard
+   gone). Only the results under the box are replaced; the sheet stands tall
+   while you search so the box and the first results clear the keyboard. */
+function pwAddRefresh(){
+  const s=pw(),sh=document.querySelector('.pw-add-sheet'),body=sh&&sh.querySelector('.pw-add-body');if(!body)return;
+  const q=String(s.addQ||'').trim(),inp=sh.querySelector('#pw-add-q');
+  body.innerHTML=pwAddSheetHTML(s,true);
+  sh.classList.toggle('pw-add-tall',!!q||document.activeElement===inp);
+  const clr=sh.querySelector('.pw-add-clear');if(clr)clr.hidden=!q;
+}
+document.addEventListener('input',e=>{if(e.target.id!=='pw-add-q')return;const s=pw();s.addQ=e.target.value;s.addNewOpen=false;pwAddRefresh();const sh=e.target.closest('.pw-add-sheet');if(sh)sh.scrollTop=0;});
+document.addEventListener('focusin',e=>{if(e.target.id==='pw-add-q')e.target.closest('.pw-add-sheet')?.classList.add('pw-add-tall');});
+document.addEventListener('focusout',e=>{if(e.target.id==='pw-add-q'&&!String(pw().addQ||'').trim())setTimeout(()=>{const sh=document.querySelector('.pw-add-sheet');if(sh&&document.activeElement?.id!=='pw-add-q'&&!String(pw().addQ||'').trim())sh.classList.remove('pw-add-tall');},120);});
+document.addEventListener('click',e=>{
+  const t=e.target.closest&&e.target.closest('[data-add-clear],[data-add-newpart],[data-add-newopen]');if(!t)return;
+  const s=pw();
+  if(t.hasAttribute('data-add-clear')){s.addQ='';s.addNewOpen=false;const i=document.getElementById('pw-add-q');if(i){i.value='';i.focus();}}
+  else if(t.hasAttribute('data-add-newpart'))s.addNewPart=t.dataset.addNewpart;
+  else s.addNewOpen=true;
+  pwAddRefresh();
+});
+document.addEventListener('keydown',e=>{if(e.key!=='Enter'||e.target.id!=='pw-add-q')return;e.preventDefault();const first=document.querySelector('.pw-add-results .pw-add-pick:not([disabled]):not(.pw-add-asnew), .pw-add-results .pw-add-go');if(first)first.click();});
+/* the keyboard's height, so the tall sheet ends where the keyboard begins */
+if(window.visualViewport){const kb=()=>document.documentElement.style.setProperty('--kb',Math.max(0,Math.round(innerHeight-visualViewport.height-visualViewport.offsetTop))+'px');visualViewport.addEventListener('resize',kb);visualViewport.addEventListener('scroll',kb);}
