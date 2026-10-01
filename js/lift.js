@@ -759,7 +759,7 @@ function renderLift(){
        .tight trims the padding the caption used to justify. */
     /* v4.6.174: an avoided exercise says so where you open it -- quietly, and
        logging is untouched: you may still do it, and the sets count */
-    if(isAvoided(ex)) h+=`<div class="xp-banner" role="status">${XP_ICON}<span><b>Avoided.</b> Left out of plans and suggestions. Your sets still count.</span><button type="button" data-expref="include">Include</button></div>`;
+    if(isAvoided(ex)) h+=xpBannerHTML();
     h+=`<div class="zone prime tight">
         <div class="wsel"><button data-w="-1">−</button>
         <div class="val${isBody(ex)?' bwval':''}">${isBody(ex)?`<span class="bwtag">Bodyweight +</span>`:''}<input id="wv" type="number" inputmode="decimal" step="${wStep(ex)}" value="${wDisp(lift.weight)}"><span class="unit">${U()}</span></div>
@@ -1008,9 +1008,11 @@ function renderLift(){
        once and rarely; logging stays where it is. Cardio is not programmed. */
     if(!isCardioEx(ex)){
       const av=isAvoided(ex);
-      h+=`<div class="xp-row"><span>Plans &amp; suggestions</span><div class="xp-seg" role="group" aria-label="Plans and suggestions">
-          <button type="button" data-expref="include" aria-pressed="${!av}" class="${av?'':'on'}">Include</button>
-          <button type="button" data-expref="avoid" aria-pressed="${av}" class="${av?'on avoid':''}">${XP_ICON}Avoid</button></div></div>`;
+      /* v4.6.177: one track, one thumb that SLIDES between the two (the thumb is
+         .xp-seg::before; data-state moves it and sets its colour) */
+      h+=`<div class="xp-row"><span>Plans &amp; suggestions</span><div class="xp-seg" role="group" aria-label="Plans and suggestions" data-state="${av?'avoid':'include'}">
+          <button type="button" data-expref="include" aria-pressed="${!av}">${XP_CHECK}Include</button>
+          <button type="button" data-expref="avoid" aria-pressed="${av}">${XP_ICON}Avoid</button></div></div>`;
     }
     /* v3.3.158 (C9-12, the first runner user's cluster): a MONTHLY goal —
        "no one plans a year, people plan a month" — with the distance left
@@ -1877,12 +1879,28 @@ function lbGrow(){
 /* v4.6.174: the avoid mark. One glyph everywhere it appears (the exercise
    screen, Train's list, a plan row, Settings). */
 const XP_ICON='<svg class="xp-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg>';
+const XP_CHECK='<svg class="xp-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+const xpBannerHTML=()=>`<div class="xp-banner" role="status">${XP_ICON}<span><b>Avoided.</b> Left out of plans and suggestions. Your sets still count.</span><button type="button" data-expref="include">Include</button></div>`;
+/* v4.6.177: NOTHING MOVES WHEN YOU CHOOSE. The switch used to re-render the
+   whole exercise screen, and the Avoided note appearing at the top pushed
+   everything under it down -- the switch jumped 77px under your finger. Now
+   only the switch changes: its thumb slides, the note is added or removed
+   at the top, and the scroll is moved by exactly the note's height so what
+   you are looking at stays where it is. */
 document.addEventListener('click',e=>{
   const b=e.target.closest&&e.target.closest('[data-expref]');if(!b||!lift.ex||view!=='lift')return;
   const want=b.dataset.expref==='avoid'?'avoid':null;if((isAvoided(lift.ex)?'avoid':null)===want)return;
   setExPref(lift.ex,want);save(true);
-  toast(want?`${lift.ex} avoided — left out of plans and suggestions`:`${lift.ex} included again`);
-  renderLift();
+  const seg=document.querySelector('#view .xp-seg');
+  if(seg){seg.dataset.state=want?'avoid':'include';seg.querySelectorAll('[data-expref]').forEach(x=>x.setAttribute('aria-pressed',String((x.dataset.expref==='avoid')===!!want)));}
+  /* hold what was tapped where it is: measure, change, then put it back --
+     whatever the browser's own scroll anchoring did (Chrome does, Safari not) */
+  const anchor=b.closest('.xp-banner')?null:(seg||b),before=anchor&&anchor.getBoundingClientRect().top;
+  const zone=document.querySelector('#view .zone'),old=document.querySelector('#view .xp-banner');
+  if(want&&!old&&zone) zone.insertAdjacentHTML('beforebegin',xpBannerHTML());
+  else if(!want&&old) old.remove();
+  if(anchor&&anchor.isConnected){const d=anchor.getBoundingClientRect().top-before;if(Math.abs(d)>.5)window.scrollBy(0,d);}
+  if(!seg) renderLift();
 });
 
 /* v4.6.176: opened from a History session, the exercise screen lands on its

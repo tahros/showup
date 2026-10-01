@@ -4315,10 +4315,19 @@ html body #nav #gearBtn:not(.on){background:transparent;box-shadow:none}
 .xp-ic{width:15px;height:15px;flex:0 0 auto;vertical-align:-2px}
 .xp-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:14px 0 4px;padding:12px 14px 12px 16px;border-radius:18px;background:var(--surface);border:1px solid var(--line)}
 .xp-row>span{font:400 13px var(--mono);color:var(--muted);letter-spacing:.02em}
-.xp-seg{display:flex;flex:0 0 auto;padding:3px;border-radius:21px;background:color-mix(in srgb,var(--chalk) 6%,transparent)}
-.xp-seg button{display:flex;align-items:center;gap:6px;height:34px;min-height:0;margin:0;padding:0 14px;border:0;border-radius:17px;background:none;color:var(--muted);font:500 14px var(--body);cursor:pointer}
-.xp-seg button.on{background:var(--surface);color:var(--chalk);box-shadow:0 1px 3px rgba(0,0,0,.12)}
-.xp-seg button.on.avoid{background:var(--chalk);color:var(--surface)}
+.xp-seg{--xp-in:var(--accent);--xp-out:#2C2C2C;--xp-out-ink:#fff;position:relative;display:grid;grid-template-columns:1fr 1fr;flex:0 0 auto;width:196px;padding:3px;border-radius:21px;background:color-mix(in srgb,var(--chalk) 7%,transparent);isolation:isolate}
+:root[data-theme="dark"] .xp-seg{--xp-out:#E6E7EC;--xp-out-ink:#191B24}
+/* v4.6.177: the thumb. It slides (transform only -- nothing else on the page
+   reflows) with the app's settle curve, and takes the colour of the choice:
+   brand blue for Include, soft charcoal for Avoid (a light slate in dark). */
+.xp-seg::before{content:"";position:absolute;z-index:0;top:3px;bottom:3px;left:3px;width:calc(50% - 3px);border-radius:17px;background:var(--xp-in);box-shadow:0 1px 3px rgba(0,0,0,.16),0 2px 8px color-mix(in srgb,var(--xp-in) 30%,transparent);
+  transition:transform var(--dur-arrive,.42s) var(--settle,cubic-bezier(.34,1.3,.64,1)),background-color var(--dur-quick,.16s) ease,box-shadow var(--dur-quick,.16s) ease}
+.xp-seg[data-state="avoid"]::before{transform:translateX(100%);background:var(--xp-out);box-shadow:0 1px 3px rgba(0,0,0,.18)}
+.xp-seg button{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:6px;height:34px;min-height:0;margin:0;padding:0 10px;border:0;border-radius:17px;background:none;color:var(--muted);font:500 14px var(--body);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:color var(--dur-quick,.16s) ease}
+.xp-seg button .xp-ic{width:14px;height:14px}
+.xp-seg[data-state="include"] [data-expref="include"]{color:#fff}
+.xp-seg[data-state="avoid"] [data-expref="avoid"]{color:var(--xp-out-ink)}
+@media (prefers-reduced-motion:reduce){.xp-seg::before{transition:none}}
 .xp-banner{display:flex;align-items:center;gap:10px;margin:0 0 12px;padding:11px 12px 11px 14px;border-radius:14px;background:color-mix(in srgb,var(--chalk) 6%,transparent);font:400 13px/1.35 var(--body);color:var(--muted)}
 .xp-banner b{color:var(--chalk);font-weight:600}.xp-banner .xp-ic{color:var(--chalk);width:16px;height:16px}
 .xp-banner button{margin-left:auto;flex:0 0 auto;min-height:0;height:auto;padding:6px 4px;border:0;background:none;color:var(--accent);font:600 13px var(--body);cursor:pointer}
