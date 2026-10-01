@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.178 (2026-10-01) — "↑ top" stays above the tab bar
+
+- **Reported:** on the plan's Edit page, scrolled to the end, the "↑ top" button floated halfway up the screen, over "Add exercise".
+- **Why:** the button sits just above whatever occupies the bottom of the screen, and it counted the page's Save row as that. On the Edit page the Save row scrolls with the page, so at the end of a plan it was in the lower half and the button climbed on top of it.
+- **Now:** only bars pinned to the screen count (the tab bar, a pinned save bar, a bottom live bar). Content that scrolls with the page is never treated as chrome, so the button stays just above the tab bar.
+- Tests: `tools/check-top-btn.cjs` (Chromium, light and dark, 320 and 402px): the maker's case, a pinned bar still lifting it, and an ordinary long screen. On v4.6.177 the first fails exactly as reported (the button over "Add exercise").
+
 ## v4.6.177 (2026-10-01) — The Include / Avoid switch slides and holds still
 
 - **Reported:** the switch felt clunky: every change made the screen jitter, and the choice snapped instead of moving. Shown as a recorded demo first and approved.

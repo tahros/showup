@@ -707,7 +707,12 @@ function syncTopBtn(){
      it put the button up beside the header. Only elements in the lower half
      count now, and the tab bar always does. */
   const els=[document.querySelector('.pw-save-dock'),document.getElementById('liveWorkoutBar'),document.getElementById('nav')];
-  const low=els.filter(el=>el&&!el.hidden&&el.getClientRects().length).map(el=>el.getBoundingClientRect()).filter(r=>r.height&&r.top>innerHeight/2);
+  /* v4.6.178: and only what is PINNED to the screen. The planner's Edit page
+     reuses .pw-save-dock for a Save row that scrolls with the page; at the end
+     of the plan that row is in the lower half, and the button climbed up to sit
+     on top of it, beside "Add exercise". In-flow content is never chrome. */
+  const pinned=el=>/^(fixed|sticky)$/.test(getComputedStyle(el).position);
+  const low=els.filter(el=>el&&!el.hidden&&el.getClientRects().length&&pinned(el)).map(el=>el.getBoundingClientRect()).filter(r=>r.height&&r.top>innerHeight/2);
   if(low.length)b.style.bottom=Math.max(0,...low.map(r=>innerHeight-r.top+12))+'px';
   else b.style.removeProperty('bottom');
 }
