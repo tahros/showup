@@ -122,6 +122,15 @@ and some of it changes the web build too. Landed and planned:
   real Postgres by tools/test-metrics-sql.js (needs @electric-sql/pglite;
   skips without it). New events: add the name in THREE places -- the SQL
   check, CLIENT_NAMES in track, and the caller -- or the server drops it.
+- v4.6.175 — brand kit (done): the approved ShowUppp / Lifted p trio kit lives
+  in brand/ShowUppp-Lifted-Trio-Brand-Kit-2026-10-01/ (read its
+  00-START-HERE.txt). It is the master for any logo, icon, social or store
+  artwork; nothing in brand/ ships in the app (build-dist copies only what the
+  app references). Web and iOS icons are derived from it: 04-web/blue (favicon,
+  180/192/512), 05-app-store/blue + dark (assets/ios/AppIcon-1024*.png), and
+  the maskable 512 composed from 05-app-store/blue/layers at 90% so the mascot
+  sits inside the 0.40 safe circle. The in-app mascot stills (assets/mascot-*)
+  are the same approved renders on the app's padded 720x440 canvas; keep them.
 
 If you touch `index.html`'s head, `sw.js`'s SHELL, `css/fonts.css`, or the
 sign-in/settings flow, say so here first — those are the files this track is

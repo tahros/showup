@@ -1,0 +1,88 @@
+SHOWUPPP / LIFTED P TRIO BRAND KIT
+2026-10-01
+
+THE DEFAULT
+Use 02-lockups/light/showuppp-horizontal.svg on light backgrounds.
+For simple drag-and-drop use its -4096.png transparent companion.
+Use dark or blue folders on those backgrounds. The dark/blue transparent
+lockups are deliberately white lettering + white mascot; their background
+is not baked in. Preview files show the intended background.
+
+01-wordmark       Exact approved outlined lettering, SVG + 1024/2048/4096 PNG.
+02-lockups        Mascot + lettering, horizontal and vertical. Four 3D themes.
+                  one-color/ contains fully vector flat lockups, four colors.
+03-mascot         Body-only transparent, grounded stills, and flat-vector versions.
+04-web            Optimized WebP lockups, favicon SVG/ICO/PNG, 180/192/512 icons.
+05-app-store      1024 square PNG, 512 Play icon, 1024x500 feature graphic,
+                  separate foreground/background artwork layers.
+06-social         Avatar 1080; square 1080; portrait 1080x1350;
+                  story 1080x1920; link preview 1200x630; wide 1500x500.
+07-print          Multi-page PDF: vector wordmarks, mixed-media 3D lockups,
+                  and fully vector one-color versions.
+08-motion         Open light.html, dark.html, blue.html or charcoal.html.
+                  Click Replay. Original approved one-shot choreography.
+                  No workout data, no network requests, no autoplay loop.
+09-source         Approved lettering, original Three.js model, native renders,
+                  crop coordinates and production scripts.
+
+QUALITY / IMPORTANT DISTINCTIONS
+The wordmark is real vector outlines. No font installation is required.
+The flat mascot is a vector trace of the approved renderer's resting silhouette,
+with transparent face knockouts and no fine structural seams. It is a one-ink production derivative,
+not a replacement 3D model. Inspect a physical proof for very small embroidery.
+The 3D mascot was freshly rendered at 8192x5006 pixels, then cropped to a
+4432x2657 body and downsampled for delivery. No old small PNG was enlarged.
+3D lockup SVGs embed this high-resolution PNG; their lettering remains vector.
+Do not describe the 3D portion as resolution-independent vector artwork.
+4096px at 300ppi supports approximately 13.65 inches / 34.68cm of width.
+For substantially larger close-view print, rerender the supplied 3D source.
+Flat vector artwork can scale without pixel-resolution limits.
+
+PRIMARY PROPORTIONS
+App-approved columns: mascot 96.6 units, gap 14, wordmark 100.44.
+Outer artboard padding is additional. Do not stretch letters or flatten the p trio.
+The exact eight letter contours and p offsets are copied from the approved asset.
+Primary is mascot at left + stacked Show/Uppp. Vertical is a secondary layout.
+Use mascot-only icons at small sizes; never squeeze the full logo into a favicon.
+Recommended starting minima: lockup 212px wide, wordmark 100px, mascot 48px.
+16px favicons cannot retain all facial/structural detail; this is expected.
+Keep at least one capital-stroke width of clear space from unrelated content.
+
+COLOR
+Brand blue #3049DC (48,73,220)
+Soft charcoal #2C2C2C (44,44,44)
+White #FFFFFF; dark surface #191B24; warm paper #F6F3EC.
+All supplied files are RGB/sRGB intent. PDF is not CMYK/PDF-X certified.
+Your print vendor must convert to their press/paper ICC profile and proof blue.
+For one-ink printing, vinyl cutting, or embroidery choose one-color SVGs.
+No chrome mascot is included in the delivered artwork.
+
+SHADOW / MOTION
+Body-only renders contain no baked floor shadow. Use one separate ground shadow
+when animating them. Grounded PNGs already contain the physical floor shadow:
+do not add another. The animated lockup uses body-only + one animated ground.
+Motion files preserve the approved letter and mascot motion, return to the
+Lifted p trio rest pose, and respect prefers-reduced-motion. Replay is optional.
+These are browser HTML/JS assets, not GIF/MP4 files. All static fallbacks are included.
+
+PLATFORM NOTES
+Store icons are full square canvases, no pre-rounded corners. PNG1024 is opaque.
+512 Play icons are under 1MB. Foreground/background layers are source artwork,
+not a finished Apple Icon Composer file or Android adaptive-icon XML package.
+Preview under each platform's masks before submission; no store upload was made.
+Social artwork is logo-only; no invented product claims, URL, or QR code.
+
+Official sizing references checked 2026-10-01:
+https://developer.apple.com/design/human-interface-guidelines/app-icons/
+https://developer.apple.com/documentation/xcode/configuring-your-app-icon
+https://support.google.com/googleplay/android-developer/answer/9866151?hl=en
+https://developer.android.com/distribute/google-play/resources/icon-design-specifications
+
+SOURCE / REBUILD
+The model is procedural Three.js source, not a BLEND/GLB export. Vendor license
+is included. Source files may contain earlier material options; no chrome output
+is part of this package. The export override changes only pixel density to 1.
+Render.html requires a local HTTP server; the motion HTML works directly offline.
+Build scripts record this Windows production environment and need local paths
+adapted before reuse elsewhere. Prefer native-renders + approved-lifted-trio.svg
+as the portable master sources. ASSET-MANIFEST.json includes dimensions and hashes.

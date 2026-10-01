@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v4.6.175 (2026-10-01) — The ShowUppp brand kit: saved, and the icons from it
+
+- **Asked for:** save the new ShowUppp / Lifted p trio brand kit and apply it where needed.
+- **Saved:** the whole kit is in `brand/ShowUppp-Lifted-Trio-Brand-Kit-2026-10-01/` (wordmark, lockups in four themes, mascot renders and flat vectors, web and store icons, social, print, motion, source). It is the master for logos and icons from now on. None of it ships inside the app: the build copies only what the app uses.
+- **Applied:** the home-screen and browser icons (favicon, Apple touch icon, the 192/512 install icons) and the iOS app icon sources (light and dark) are now the kit's. The maskable install icon is composed from the kit's own background and mascot layers, with the mascot inside the safe circle a phone may crop to.
+- **Left as is, on purpose:** the mascot and lettering inside the app are already the same approved artwork; the app's copies are laid out on its own canvas, so swapping files would only move things.
+- **iOS:** the new app icon reaches the iPhone with the next Mac build (`npm run sync:ios`), not by an over-the-air update.
+
 ## v4.6.174 (2026-10-01) — Include / Avoid, and Claude is told
 
 - **Asked for:** a way to mark exercises you will not do (Romanian Deadlift, calf raises), shown first as mocks and approved: Include / Avoid rather than Like / Avoid (Go-to already says what you reach for), an Avoided list in Settings, and Remove offered on every avoided plan row. And: the app should *tell* Claude what to avoid, not just hide it.

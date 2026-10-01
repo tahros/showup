@@ -1,0 +1,8 @@
+<!doctype html><meta charset="utf-8"><title>ShowUppp native-resolution asset renderer</title>
+<style>body{font:16px Arial;margin:32px;background:#f4f2ed;color:#292929}button{padding:16px;font-size:18px}#stage{width:8192px;height:5006px;transform:scale(.08);transform-origin:top left}#viewport{height:440px;overflow:hidden}canvas{display:block}#status{white-space:pre-wrap}</style>
+<h1>Lifted p trio / original mascot</h1><p>Native 8192px canvas. No screenshot enlargement. Original geometry and materials.</p><button id="export">Export original mascot masters</button><pre id="status">Ready</pre><div id="viewport"><div id="stage"></div></div>
+<script type="module">
+import {createMascot} from './js/mascot-renderer-export.js';
+const stage=document.querySelector('#stage'),status=document.querySelector('#status');
+document.querySelector('button').onclick=async()=>{try{for(const tone of ['blue','charcoal','white'])for(const shadow of [false,true]){status.textContent='Rendering '+tone+' / '+(shadow?'grounded':'body only');await new Promise(r=>setTimeout(r,30));const m=createMascot(stage,{theme:tone==='white'?'dark':'light',tone,still:true,mode:'hello',shadow});const canvas=m.captureFrame(0);const blob=await new Promise(r=>canvas.toBlob(r,'image/png'));if(!blob||canvas.width!==8192)throw Error('Unexpected render dimensions');const name='mascot-'+tone+(shadow?'-grounded':'-body')+'-native.png';const result=await fetch('/save/'+name,{method:'POST',body:blob});if(!result.ok)throw Error(await result.text());m.dispose();}status.textContent='Done: six native-resolution masters saved.';}catch(e){status.textContent='ERROR: '+e.stack;}};
+</script>
