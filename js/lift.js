@@ -504,9 +504,9 @@ function renderLift(){
     // Anything currently OPEN today already sits in the "· today" list above —
     // it only returns to its tier once you complete it.
     const openSet=new Set(t.w.filter(s=>s.part===lift.part&&!dayMeta().doneEx.includes(s.ex)).map(s=>s.ex));
-    const list=catFor(lift.part).map(ex=>({ex,last:exLastFor(ex),tier:exTier(ex),freq:exFreq(ex)}))
+    let list=catFor(lift.part).map(ex=>({ex,last:exLastFor(ex),tier:exTier(ex),freq:exFreq(ex)}))
       .filter(x=>!openSet.has(x.ex));
-    const row=({ex,last,freq},big)=>{
+    const row=({ex,last,freq,avoided},big)=>{
       const when=last?(daysAgo(last)===0?'✓ done today':agoLabel(daysAgo(last))):'never logged';
       const meta=big&&!refinedFlow()?`${when} · ${freq}× this year`:when;
       /* v3.3.329: the per-side line is GONE. It restated the same weight in a
@@ -519,14 +519,14 @@ function renderLift(){
       const eq=EQUIP_LABEL[equipOf(ex)]||'';
       if(refinedFlow()) return `<div class="item logrow ${big?'goto':''}${_enter?' enter':''}" style="--i:${Math.min(_ei++,6)}">
           <button class="logmain" data-ex="${ex}">
-            <span class="flow-exname"><b>${ex}</b><span class="sub">${meta}${mine?` · yours · ${eq.toLowerCase()}`:''}</span></span>
+            <span class="flow-exname"><b>${ex}</b><span class="sub">${meta}${mine?` · yours · ${eq.toLowerCase()}`:''}${avoided?`<span class="xp-tag">${XP_ICON}avoided</span>`:''}</span></span>
             <span class="pr-cell"><span class="pr-top">${cardioTrainTxt(ex)??(w=>w?(ex==='Run'?dDisp(w)+' '+DU():trainListWeight(w)+' '+U()):'<i class="pr-nil" aria-label="no weight logged"></i>')(nextWFor(ex))}</span></span>
             <span class="flow-exchev" aria-hidden="true">${icon('chevron',ICON_SZ.sm)}</span>
           </button>${(mine&&!last)?`<button class="xbtn" data-delex="${ex}" aria-label="Delete ${ex}">${icon('trash',ICON_SZ.sm)}</button>`:''}
         </div>`;
       return `<div class="item logrow ${big?'goto':''}${_enter?' enter':''}" style="--i:${Math.min(_ei++,10)};${big?'':'padding:10px 10px 10px 14px'}">
             <button class="logmain" data-ex="${ex}">
-              <b>${ex}</b><div class="sub">${meta}${mine?` · yours · ${eq.toLowerCase()}`:''}</div>
+              <b>${ex}</b><div class="sub">${meta}${mine?` · yours · ${eq.toLowerCase()}`:''}${avoided?`<span class="xp-tag">${XP_ICON}avoided</span>`:''}</div>
             </button>
             <span class="pr-cell">
               <span class="pr-top">${cardioTrainTxt(ex)??(w=>w?(ex==='Run'?dDisp(w)+' '+DU():trainListWeight(w)+' '+U()):'<i class="pr-nil" aria-label="no weight logged"></i>')(nextWFor(ex))}</span>
@@ -541,6 +541,11 @@ function renderLift(){
        the staple you switched to, purely on accumulated history. The maker
        hit exactly this: Smith incline, 49 sessions but 39 days cold, sat
        above the barbell incline he actually runs now. */
+    /* v4.6.174: an avoided exercise leaves Go-to, Sometimes and Never tried --
+       avoid outranks the habit -- and waits, dimmed, at the very bottom. It
+       still opens and logs: you may do it anyway, and that set counts. */
+    const avoided=list.filter(x=>isAvoided(x.ex)).map(x=>({...x,avoided:true})).sort((a,b)=>(b.last||'').localeCompare(a.last||'')||a.ex.localeCompare(b.ex));
+    list=list.filter(x=>!isAvoided(x.ex));
     const goto=list.filter(x=>x.tier==='goto').sort((a,b)=>(b.last||'').localeCompare(a.last||'')||b.freq-a.freq);
     const some=list.filter(x=>x.tier==='sometimes').sort((a,b)=>(b.last||'').localeCompare(a.last||''));
     const fresh=list.filter(x=>x.tier==='new').sort((a,b)=>a.ex.localeCompare(b.ex));
@@ -578,6 +583,12 @@ function renderLift(){
           </div>`;
     }else{
       h+=`<button class="btn ghost" id="addEx" style="margin-top:14px">+ Add your own exercise</button>`;
+    }
+    if(avoided.length){
+      h+=`<h2 class="quiet">Avoided</h2>`;
+      h+=`<div class="${refinedFlow()?'flow-exgroup ':''}xp-dim">`;
+      avoided.forEach(x=>h+=row(x,false));
+      h+=`</div>`;
     }
     h+=dayCloseHTML();   // v3.3.457: the day closes from where you train
     $('#view').innerHTML=h; return;
@@ -746,6 +757,9 @@ function renderLift(){
        Add button do not need naming, and the zone border already groups
        them (the v3.3.130 argument, applied to a header instead of an icon).
        .tight trims the padding the caption used to justify. */
+    /* v4.6.174: an avoided exercise says so where you open it -- quietly, and
+       logging is untouched: you may still do it, and the sets count */
+    if(isAvoided(ex)) h+=`<div class="xp-banner" role="status">${XP_ICON}<span><b>Avoided.</b> Left out of plans and suggestions. Your sets still count.</span><button type="button" data-expref="include">Include</button></div>`;
     h+=`<div class="zone prime tight">
         <div class="wsel"><button data-w="-1">−</button>
         <div class="val${isBody(ex)?' bwval':''}">${isBody(ex)?`<span class="bwtag">Bodyweight +</span>`:''}<input id="wv" type="number" inputmode="decimal" step="${wStep(ex)}" value="${wDisp(lift.weight)}"><span class="unit">${U()}</span></div>
@@ -987,6 +1001,16 @@ function renderLift(){
       const home=homePartOf(ex), other=DUAL[ex].find(p=>p!==home)||DUAL[ex][0];
       h+=`<div class="tot dualrow" style="margin-top:12px"><span class="mono muted" style="font-size:11px">Counts as ${home.toUpperCase()}</span>
           <button class="ago" id="dualMove" data-dex="${ex}" data-dto="${other}">move to ${other}</button></div>`;
+    }
+    /* v4.6.174: INCLUDE / AVOID. Whether this exercise goes into plans and
+       suggestions -- the person's call, kept by id (core.js exPref). It sits
+       with the other per-exercise settings, at the bottom, because it is set
+       once and rarely; logging stays where it is. Cardio is not programmed. */
+    if(!isCardioEx(ex)){
+      const av=isAvoided(ex);
+      h+=`<div class="xp-row"><span>Plans &amp; suggestions</span><div class="xp-seg" role="group" aria-label="Plans and suggestions">
+          <button type="button" data-expref="include" aria-pressed="${!av}" class="${av?'':'on'}">Include</button>
+          <button type="button" data-expref="avoid" aria-pressed="${av}" class="${av?'on avoid':''}">${XP_ICON}Avoid</button></div></div>`;
     }
     /* v3.3.158 (C9-12, the first runner user's cluster): a MONTHLY goal —
        "no one plans a year, people plan a month" — with the distance left
@@ -1849,3 +1873,14 @@ function lbGrow(){
     r.style.transform='scaleY(1)';
   });});
 }
+
+/* v4.6.174: the avoid mark. One glyph everywhere it appears (the exercise
+   screen, Train's list, a plan row, Settings). */
+const XP_ICON='<svg class="xp-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg>';
+document.addEventListener('click',e=>{
+  const b=e.target.closest&&e.target.closest('[data-expref]');if(!b||!lift.ex||view!=='lift')return;
+  const want=b.dataset.expref==='avoid'?'avoid':null;if((isAvoided(lift.ex)?'avoid':null)===want)return;
+  setExPref(lift.ex,want);save(true);
+  toast(want?`${lift.ex} avoided — left out of plans and suggestions`:`${lift.ex} included again`);
+  renderLift();
+});

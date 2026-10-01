@@ -1,5 +1,16 @@
 # ShowUp — changelog
 
+## v4.6.174 (2026-10-01) — Include / Avoid, and Claude is told
+
+- **Asked for:** a way to mark exercises you will not do (Romanian Deadlift, calf raises), shown first as mocks and approved: Include / Avoid rather than Like / Avoid (Go-to already says what you reach for), an Avoided list in Settings, and Remove offered on every avoided plan row. And: the app should *tell* Claude what to avoid, not just hide it.
+- **The exercise screen:** a "Plans & suggestions" switch, Include or Avoid, with the other per-exercise settings at the bottom. An avoided exercise says so at the top ("Avoided. Left out of plans and suggestions. Your sets still count.") with Include to undo. Logging is untouched: do it anyway and the set counts.
+- **A saved plan:** an avoided row is set apart, not changed. It offers up to two lifts for the same muscle (ones you have done first, then the day's own body part; never another avoided one), and Remove from this day, always. Swap puts in your last working sets, or the same sets by feel for a lift you have not done; "swapped from … · Undo" puts the original back.
+- **Settings:** an "Avoided exercises" card after Planning, each with its body part, muscle and since-when, and Include. Shown once something is avoided.
+- **Train:** an avoided exercise leaves Go-to, Sometimes and Never tried and waits, dimmed and tagged, in an Avoided section at the bottom. The Add exercise sheet lists it last, tagged.
+- **Claude (the plan writer):** every request now names what you avoid, each with its body part and muscle, and Claude's instructions say: do not schedule these, even from your history or a role like the leg-day calf slot; use another lift for the same muscle, a new one if needed, or leave the muscle out. Your history still goes in whole (those sets happened and count toward coverage). Every answer is checked on the device: an avoided exercise that comes back anyway is removed and named ("Romanian Deadlift: you avoid it — removed"), on every path, not only the planner.
+- **Data:** avoid only. Include is the absence of an entry; a "like" from v4.6.173 is cleared on load. The planner's legacy avoid list still counts, for a device on an older version.
+- Tests: `test-expref.js` (33 checks: storage, migration, the payload's avoid list, the server rule, the device check, swap options and order, Swap/Undo, by-feel for a new lift, Settings, Train, the exercise screen); `tools/check-avoid.cjs` (Chromium, light and dark, 320 and 402px, 52 checks).
+
 ## v4.6.173 (2026-10-01) — Body parts, muscles and exercises: one structure, and your verdict on each exercise
 
 - **Asked for:** exercises, body parts and muscles tracked by fixed IDs that map to each other, with a way to say an exercise is not for you ("I hate Romanian Deadlift and Calf Raises").

@@ -262,6 +262,25 @@ function writerRecentWeeks(sessions){
   return Object.keys(weeks).sort().reverse().slice(0,6).map(week_of=>({week_of,days:weeks[week_of].sort((a,b)=>a.date<b.date?-1:1)}));
 }
 
+/* v4.6.174: WHAT YOU AVOID IS SAID, NOT HIDDEN. v4.6.173 only took avoided
+   exercises off the writer's menu -- but the history it reads still holds
+   every Romanian Deadlift you ever did, so it could copy one straight out of
+   a recent session and nothing told it not to. The person's rule goes out in
+   words (payload.avoid, with the part and muscle each one works, so the
+   writer knows what to replace it with), and every answer is checked on the
+   device regardless (writerCheck). The legacy planner list still counts, for
+   a device on an older version. */
+function writerAvoids(ex){
+  if(!ex) return false;
+  if(typeof isAvoided==='function'&&isAvoided(ex)) return true;
+  const legacy=((DB.settings.plannerPreferences||{}).avoid)||[];
+  return legacy.some(n=>canonKey(n)===canonKey(ex));
+}
+function writerAvoidList(){
+  const names=new Set([...(typeof exPrefNames==='function'?exPrefNames('avoid'):[]),...(((DB.settings.plannerPreferences||{}).avoid)||[]).filter(n=>String(n||'').trim())]);
+  return [...names].map(ex=>{const part=homePartOf(ex)||(SEED.ex2part||{})[ex]||null;return {exercise:ex,part,muscle:part?exMuscle(ex,part):null};});
+}
+
 /* ---- what leaves the device ---- */
 function writerPayload(o){
   const from=writeDateISO();
@@ -273,8 +292,7 @@ function writerPayload(o){
      muscle map it receives (heads, below) offers only what you will do for
      each muscle -- avoiding Romanian Deadlift leaves the leg curls for the
      hamstrings. Your history still counts toward coverage: those sets happened. */
-  const legacyAvoid=new Set((((DB.settings.plannerPreferences||{}).avoid)||[]).map(canonKey));
-  const ok=ex=>(typeof exPref!=='function'||exPref(ex)!=='avoid')&&!(legacyAvoid.has(canonKey(ex))&&exPref(ex)!=='like');
+  const ok=ex=>!writerAvoids(ex);
   for(const p of Object.keys(SEED.catalog)) if(p!=='Run'&&myp.has(p)) catalog[p]=[...SEED.catalog[p], ...Object.keys(customs()).filter(x=>(customs()[x]||{}).part===p)].filter(ok);
   const cut=new Date(todayISO+'T00:00'); cut.setDate(cut.getDate()-WRITER_HISTORY_DAYS); const cutISO=cut.toLocaleDateString('en-CA');
   const history=[];
@@ -400,6 +418,7 @@ function writerPayload(o){
     focus:o.scope==='week'?(o.focus?[...o.focus]:[]):[],
     rotation:{pick:P.pick, addon:P.addon, ranking},
     objective:o.objective, note:(o.note||'').trim().slice(0,400),
+    avoid:writerAvoidList(),   // v4.6.174: named, with the muscle each one works
     catalog, heads, history, recent_sessions, recent_weeks, usual, week_context, best, last, steps, next, verdict, load, want, because, coverage,
     new_days:WRITER_HISTORY_DAYS, band:WRITER_LOAD_BAND, step:U()==='lb'?5:WRITER_STEP_KG, new_max:WRITER_NEW_MAX
   };
@@ -477,6 +496,15 @@ function writerCheck(resp, ctx){
     if(payload.scope==='day'&&!payload.part&&part&&part!==payload.rotation.pick&&!(resp.reason&&resp.reason.text)) throw {refused:'the part changed without a reason'};
     /* the text, read exactly as a paste */
     let rows=parsePlan(String(d.text||''));
+    /* v4.6.174: an exercise you avoid does not survive the answer, whatever the
+       writer was told. Removed outright (not kept as a note -- you said no),
+       and the read-back names it. A day left short is then a normal shape
+       violation, and the one repair below rewrites it. */
+    rows=rows.filter(r=>{
+      const ex=(r.kind==='ex'||r.kind==='exnote')&&(r.ex||r.name);
+      if(ex&&writerAvoids(ex)){ notes.push(`${ex}: you avoid it — removed`); return false; }
+      return true;
+    });
     /* v3.3.422: ONE UNREADABLE EXERCISE IS A NOTE, NOT A REFUSAL. This threw
        away a three-session week because one plank's line did not parse. The
        guardrail's purpose -- the writer may not hand back names without
@@ -894,6 +922,7 @@ async function writerGenerateChecked(payload, cancelled=()=>false){
         'REWRITE ONLY THESE DAYS, leaving every other day exactly as written:',
         ...chk.violations.map(v=>`${v.date}: ${v.why.join('; ')}.`),
         attempt?'This is the second attempt; the first still left a selected part with no exercise. Add one from payload.catalog for that part even if it is new.':'',
+        'Leave out every exercise in payload.avoid; use another exercise for the same muscle from payload.heads.',
         'Respect payload.skeleton: never use a part listed as resting, and give each day at least payload.shape.min exercises outside core. A selected part outranks payload.usual: if usual lists nothing for it, take an exercise from payload.catalog.'
       ].filter(Boolean).join('\n');
       const p2={...payload, note:fixNote.slice(0,1100), days:payload.days.filter(d=>bad.has(d))};

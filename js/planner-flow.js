@@ -43,7 +43,7 @@ function pfBack(){
 function pfMatch(){return JSON.stringify(pfDates())===JSON.stringify([...pfState().anchor].sort());}
 /* v4.6.173: the avoid list is READ from the per-exercise verdicts (core.js
    exPref), which are the one source; the copy in plannerPreferences is legacy, still honoured for a device on an older version */
-function pfPrefs(){const p=pwCopy(DB.settings.plannerPreferences||{frequency:5,mode:'time',minutes:45,minSets:20,maxSets:25,emphasis:{},avoid:[],split:'auto'});const legacy=(p.avoid||[]).filter(n=>String(n||'').trim()&&exPref(n)!=='like');p.avoid=[...new Set([...exPrefNames('avoid'),...legacy])];p.like=exPrefNames('like');return p;}   /* a device on an older version may still write the legacy list: both count */
+function pfPrefs(){const p=pwCopy(DB.settings.plannerPreferences||{frequency:5,mode:'time',minutes:45,minSets:20,maxSets:25,emphasis:{},avoid:[],split:'auto'});const legacy=(p.avoid||[]).filter(n=>String(n||'').trim());p.avoid=[...new Set([...exPrefNames('avoid'),...legacy])];return p;}   /* a device on an older version may still write the legacy list: both count */
 function pfSummary(p=pfPrefs()){const more=Object.keys(p.emphasis).filter(k=>p.emphasis[k]>0);return `${p.frequency==='varies'?'Flexible':p.frequency+' days'} · ${p.mode==='time'?p.minutes+' min':p.minSets+'–'+p.maxSets+' sets'}${more.length?' · More '+more.join(', '):''} · ${p.avoid.length} exercises avoided`;}
 function pfShort(d){return new Date(d+'T12:00').toLocaleDateString('en-US',{weekday:'short',month:'numeric',day:'numeric'});}
 /* v4.6.81: pfCompactPrefs() DELETED. The dates card opened with a summary of
@@ -237,7 +237,43 @@ function pfExerciseHTML(r,i){
  if(last)last.groups.forEach((g,k)=>lines.push(pfSpineLine(g.load,g.reps,'pe-last',null,k===last.groups.length-1?`<span class="pe-d">${hesc(pfMD(last.d))}</span>`:'')));
  const toggle=pwButton('pf-row-toggle',open?icon('check',ICON_SZ.sm)+' Done':icon('edit',ICON_SZ.sm),'pf-row-toggle pe-toggle'+(open?' primary':''),`data-index="${i}" aria-expanded="${open}" aria-label="${open?'Done editing':'Edit'} ${hesc(r.ex)}"`);
  const actions=open?`<div class="pe-actions">${pwButton('pf-add-line',icon('clear',ICON_SZ.sm,45)+' Add a line','pe-btn',`data-index="${i}"`)}${pwButton('pf-remove-ex',icon('trash',ICON_SZ.sm)+' Remove exercise','pe-btn pe-danger',`data-index="${i}"`)}</div>`:'';
- return `<article class="pw-exercise pw-editable pe-ex${open?' pe-open':''}" data-pw-row="${i}"><button class="pw-btn pw-grip" data-pw-grip="${i}" aria-label="Reorder ${hesc(r.ex)}; drag or use arrow keys">${icon('grip',ICON_SZ.sm)}</button><div class="pf-ex-summary"><div><strong>${hesc(r.ex)}</strong></div>${toggle}</div><div class="pe-lines">${lines.join('')}</div>${actions}</article>`;
+ return `<article class="pw-exercise pw-editable pe-ex${open?' pe-open':''}${!open&&isAvoided(r.ex)?' xp-avoided':''}" data-pw-row="${i}"><button class="pw-btn pw-grip" data-pw-grip="${i}" aria-label="Reorder ${hesc(r.ex)}; drag or use arrow keys">${icon('grip',ICON_SZ.sm)}</button><div class="pf-ex-summary"><div><strong>${hesc(r.ex)}</strong></div>${toggle}</div><div class="pe-lines">${lines.join('')}</div>${actions}${!open&&isAvoided(r.ex)?pfAvoidFlag(b,r,i):''}${b.swapped&&b.swapped.row===i&&b.swapped.to===r.ex?`<span class="xp-was">swapped from ${hesc(b.swapped.from.ex)}${pwButton('pf-xp-undo','Undo','xp-undo',`data-index="${i}"`)}</span>`:''}</article>`;
+}
+/* v4.6.174: AN AVOIDED EXERCISE IN A PLAN. A saved plan is something you
+   approved, so the app does not rewrite it on its own: the row is set apart
+   and offers the swap. Up to two lifts for the SAME primary muscle (the ones
+   you have done first, most recent first; then any you have not), never
+   another avoided one or one already in the day -- and Remove, always,
+   because skipping that muscle today is a real choice too. */
+function pfSwapOptions(b,r){
+ const part=homePartOf(r.ex)||(SEED.ex2part||{})[r.ex]||'',mus=exMuscle(r.ex,part);if(!mus||mus==='unassigned')return [];
+ const have=new Set(b.rows.map(x=>x.ex).filter(Boolean)),seen=new Set(),all=[];
+ for(const [p,list] of Object.entries(SEED.catalog||{}))if(p!=='Run')for(const ex of list)if(!seen.has(ex)){seen.add(ex);all.push([ex,p]);}
+ for(const ex of Object.keys((typeof customs==='function'&&customs())||{}))if(!seen.has(ex)){seen.add(ex);all.push([ex,homePartOf(ex)||'']);}
+ const fit=all.filter(([ex,p])=>ex!==r.ex&&!have.has(ex)&&!isAvoided(ex)&&exMuscle(ex,p)===mus).map(([ex])=>ex);
+ /* done first (most recent first), then the day's own body part first --
+    Deadlift works the hamstrings too, but it lives on Back */
+ const same=ex=>(homePartOf(ex)||'')===part?0:1,isDone=ex=>SEED.lastSess?.[ex]&&pwLastLine(ex)?0:1;
+ return fit.sort((a,c)=>isDone(a)-isDone(c)||same(a)-same(c)||(SEED.exLast[c]||'').localeCompare(SEED.exLast[a]||'')||a.localeCompare(c)).slice(0,2);
+}
+const pfMuscleWord=m=>(MUSCLE_LABEL[m]||m).replace(/^mid \/ lower /,'');
+/* "another hamstring lift", not "another hamstrings lift" */
+const pfMuscleAdj=m=>({hamstrings:'hamstring',calves:'calf',quads:'quad',glutes:'glute',lats:'lat',obliques:'oblique'})[m]||pfMuscleWord(m);
+function pfAvoidFlag(b,r,i){
+ const part=homePartOf(r.ex)||'',mus=exMuscle(r.ex,part),word=pfMuscleWord(mus),adj=pfMuscleAdj(mus),opts=pfSwapOptions(b,r);
+ const short=d=>new Date(d+'T12:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+ const day=new Date(pw().active+'T12:00').toLocaleDateString('en-US',{weekday:'long'});
+ const lead=!opts.length?`No other ${hesc(adj)} lift to swap in.`:opts.every(ex=>!SEED.lastSess?.[ex])?`The only other ${hesc(adj)} lift${opts.length>1?'s are':' is'} new to you.`:`Swap for another ${hesc(adj)} lift:`;
+ const btn=(ex,k)=>{const l=SEED.lastSess?.[ex]&&pwLastLine(ex);return `<button type="button" class="pw-btn xp-swap${k?'':' first'}" data-pw="pf-xp-swap" data-index="${i}" data-ex="${hesc(ex)}"><span><strong>${hesc(ex)}</strong><small>${l?hesc(l.load+' × '+l.reps.join(' '))+' · last '+short(SEED.exLast[ex]):'never logged · starts by feel'}</small></span><i>Swap</i></button>`;};
+ return `<div class="xp-flag"><p><b>Avoided.</b> ${lead}</p><div class="xp-swaps">${opts.map(btn).join('')}<button type="button" class="pw-btn xp-swap ghost" data-pw="pf-remove-ex" data-index="${i}"><span><strong>Remove from this day</strong><small>no ${hesc(word)} on ${hesc(day)}</small></span><i>Remove</i></button></div></div>`;
+}
+/* the row a swap puts in: your last working sets, or, for a lift you have not
+   done, the same number of sets by feel at the reps the avoided one asked for */
+function pfSwapRow(old,ex){
+ const n=(old.lines||[]).filter(l=>!/warm/i.test((l.qual||'')+(l.tag||''))).reduce((a,l)=>a+(l.reps||[]).length,0)||3;
+ const own=SEED.lastSess?.[ex]&&pwExerciseRow(ex,n);if(own){delete own.added;return own;}
+ const reps=((old.lines||[]).at(-1)||{}).reps||[10];
+ return pwRead(`${ex}\n  by feel × ${Array.from({length:n},(_,k)=>reps[Math.min(k,reps.length-1)]).join(' ')}`)[0];
 }
 function pfEditRows(){const b=pwDay(pw().active),strip=b.strip&&b.strip.line==null?b.strip:null;return '<div class="pw-exercises">'+b.rows.map((r,i)=>{
  const before=strip&&strip.row===i?pfStripHTML(strip.text):'';
@@ -245,7 +281,7 @@ function pfEditRows(){const b=pwDay(pw().active),strip=b.strip&&b.strip.line==nu
  return before+pfExerciseHTML(r,i);
  }).join('')+(strip&&strip.row>=b.rows.length?pfStripHTML(strip.text):'')+'</div>';}
 /* one gesture = one undo point, and a strip only ever describes the LAST one */
-function pfChange(b){delete b.strip;pwUndoPoint(b);b.source='Your draft';b.target=null;}
+function pfChange(b){delete b.strip;delete b.swapped;pwUndoPoint(b);b.source='Your draft';b.target=null;}
 function pfSetGroup(b,i,g,line){
  pfChange(b);delete line.raw;if(line.w>0)delete line.nw;
  const reps=line.reps,lines=Array.from({length:Math.ceil(reps.length/12)},(_,k)=>({...line,reps:reps.slice(k*12,k*12+12)}));
@@ -284,6 +320,8 @@ function pfRoutineHandle(a,el,b,j){
  else if(a==='pf-add-rep'){pfChipClose(true);if(!g)return;const line=pwCopy(g.line);line.reps.push(line.reps.at(-1)||8);pfSetGroup(b,i,g,line);}
  else if(a==='pf-del-line'){pfChipClose(true);if(!g)return;const text=pfLoadText(g.line)+' × '+g.line.reps.join(' ');pfChange(b);r.lines=r.lines.filter((_,x)=>!g.indices.includes(x));b.strip={row:i,line:k,text};if(!b.locks.includes(i))b.locks.push(i);}
  else if(a==='pf-add-line'){if(!r)return;pfChipClose(true);const from=r.lines.at(-1)||{w:0,unit:U(),reps:[8]},line={w:0,unit:from.unit||U(),reps:[from.reps.at(-1)||8]};if(from.su)line.su=from.su;if(from.bw)line.bw=true;pfChange(b);r.lines.push(line);if(!b.locks.includes(i))b.locks.push(i);j.chip={row:i,line:pfGroups(r).length-1,field:'w',rep:0,fresh:{w:+Number(from.w||0).toFixed(4)}};}
+ else if(a==='pf-xp-swap'){pfChipClose(false);if(!r)return;const ex=el.dataset.ex,nr=ex&&pfSwapRow(r,ex);if(!nr||nr.kind!=='ex')return;pfChange(b);b.swapped={row:i,from:pwCopy(r),to:ex};b.rows[i]=nr;const pt=homePartOf(ex);if(pt&&Array.isArray(b.parts)&&!b.parts.includes(pt))b.parts.push(pt);}   /* v4.6.174 */
+ else if(a==='pf-xp-undo'){pfChipClose(false);const w=b.swapped;if(!w||w.row!==i)return;pfChange(b);b.rows[i]=w.from;}
  else if(a==='pf-remove-ex'){pfChipClose(false);if(!r)return;pfChange(b);b.rows.splice(i,1);b.locks=b.locks.filter(x=>x!==i).map(x=>x>i?x-1:x);b.strip={row:i,text:r.ex||'exercise'};const o=j.routineOpen?.[pw().active];if(o){const n={};for(const [key,v] of Object.entries(o)){const x=+key;if(x<i)n[x]=v;else if(x>i)n[x-1]=v;}j.routineOpen[pw().active]=n;}}
 }
 document.addEventListener('pointerdown',e=>{
@@ -441,7 +479,7 @@ function pfRender(){pfTrackScreen();renderHeader();const s=pw(),j=pfState(),pane
 pwRender=function(){return pfOn()?pfRender():pfLegacy.render();};
 pwOpen=function(d,step){if(!pfOn())return pfLegacy.open(d,step);const s=pw(),j=pfState();j.history=[];j.lastScreen=null;j.returnView=view==='sync'?'sync':'today';if(s.busy){pwRequest++;lift.writeAbort?.abort();s.busy=false;}if(d){s.dates=[d];s.active=d;s.month=d.slice(0,7)+'-01';pwDay(d);}else pwFreshenDates();/* v4.6.61: same rule as the legacy open, from the same helper */j.page=step==='dates'?'dates':d&&pwSaved(d)?'edit':d?'dates':j.page;j.prefOrigin=null;if(d&&pwSaved(d))pfAnchor();lift.plan='workspace';view='today';s.step='edit';pwPersist();render({soft:true});};
 pwApply=function(add=false){if(!pfOn())return pfLegacy.apply(add);const c=pw().candidate;if(!c)return;const generated=c.type==='generate',adjust=c.type==='adjust';if(c.type==='paste'&&c.index===undefined&&pfState().pasteAll){const one=Object.values(c.days)[0];c.days=Object.fromEntries(pfDates().map(d=>[d,pwCopy(one)]));}pfLegacy.apply(add);for(const d of Object.keys(c.days)){pwDay(d).target=null;}pfAnchor();pfMotion={kind:'arrive'};pfNavigate(generated?'days':'edit');};
-pwPayload=function(dates,action){const p=pfLegacy.payload(dates,action);if(!pfOn())return p;const prefs=pfPrefs();p.workspace.preferences=prefs;p.note=[p.note,'Confirmed planning preferences: '+JSON.stringify(prefs),"Respect avoided exercises: leave them out; when one would have been chosen, pick another exercise for the same muscle. Prefer liked exercises when choosing between options. Frequency describes the usual week; only generate the explicitly selected dates. Time is an approximate budget, not a promise.",prefs.mode==='sets'?`Each selected day must total between ${prefs.minSets} and ${prefs.maxSets} sets, counting every set including warm-ups.`:''].filter(Boolean).join('\n');return p;};
+pwPayload=function(dates,action){const p=pfLegacy.payload(dates,action);if(!pfOn())return p;const prefs=pfPrefs();p.workspace.preferences=prefs;p.note=[p.note,'Confirmed planning preferences: '+JSON.stringify(prefs),"Respect avoided exercises: leave them out; when one would have been chosen, pick another exercise for the same muscle. Prefer the exercises the person returns to most (their Go-to) when choosing between options. Frequency describes the usual week; only generate the explicitly selected dates. Time is an approximate budget, not a promise.",prefs.mode==='sets'?`Each selected day must total between ${prefs.minSets} and ${prefs.maxSets} sets, counting every set including warm-ups.`:''].filter(Boolean).join('\n');return p;};
 function pfMoveDay(from,to){const ds=pfDates(),a=ds.indexOf(from),b=ds.indexOf(to);if(a<0||b<0||a===b)return;const bundles=ds.map(d=>pwCopy(pwDay(d))),[moved]=bundles.splice(a,1);bundles.splice(b,0,moved);ds.forEach((d,i)=>{const old=pwDay(d);pw().book[d]={...bundles[i],base:old.base,source:'Your draft'};});pwPersist();pwRender();}
 function pfSave(confirm=false){const s=pw(),j=pfState();if(!pfMatch())throw Error('Restore the editing dates, or generate a new draft first.');if(pfPending())throw Error('Regenerate the changed total sets before saving.');const empty=s.dates.filter(d=>!pwSetCount(pwDay(d).rows));if(empty.length&&!confirm){j.emptyConfirm=true;pwRender();return;}
  const dates=[...new Set([...s.dates,...j.removed.map(x=>x.date)])];if(!dates.length)throw Error('Choose at least one date.');
@@ -464,7 +502,7 @@ function pfHandle(a,el){const s=pw(),j=pfState(),d=el.dataset.date,i=+el.dataset
  if(a==='pf-frequency'){j.prefs.frequency=el.dataset.value==='varies'?'varies':+el.dataset.value;}
  else if(a==='pf-size')j.prefs.mode=el.dataset.value;
  else if(a==='pf-unavoid')j.prefs.avoid.splice(i,1);
- else if(a==='pf-prefs-save'){const p=j.prefs;if(!p||!Number.isInteger(p.minutes)||p.minutes<10||p.minutes>180||!Number.isInteger(p.minSets)||!Number.isInteger(p.maxSets)||p.minSets<1||p.maxSets>100||p.minSets>p.maxSets)throw Error('Use valid whole numbers. Minimum sets cannot exceed maximum.');const want=new Set(p.avoid.map(n=>canonId(n,true)));for(const n of exPrefNames('avoid'))if(!want.has(canonId(n,true)))setExPref(n,null);for(const n of p.avoid)if(exPref(n)!=='avoid')setExPref(n,'avoid');const keep=pwCopy(p);delete keep.like;DB.settings.plannerPreferences=keep;DB.settingsAt=Date.now();save(true);if(j.prefOrigin==='settings'){j.prefOrigin=null;lift.plan=null;view='sync';render();return;}pfNavigate(j.prefOrigin||'dates');return;}
+ else if(a==='pf-prefs-save'){const p=j.prefs;if(!p||!Number.isInteger(p.minutes)||p.minutes<10||p.minutes>180||!Number.isInteger(p.minSets)||!Number.isInteger(p.maxSets)||p.minSets<1||p.maxSets>100||p.minSets>p.maxSets)throw Error('Use valid whole numbers. Minimum sets cannot exceed maximum.');const want=new Set(p.avoid.map(n=>canonId(n,true)));for(const n of exPrefNames('avoid'))if(!want.has(canonId(n,true)))setExPref(n,null);for(const n of p.avoid)if(exPref(n)!=='avoid')setExPref(n,'avoid');DB.settings.plannerPreferences=pwCopy(p);DB.settingsAt=Date.now();save(true);if(j.prefOrigin==='settings'){j.prefOrigin=null;lift.plan=null;view='sync';render();return;}pfNavigate(j.prefOrigin||'dates');return;}
  else if(a==='pf-dates'){pfNavigate('dates');return;}
  else if(a==='pf-resume-drafts'){if(!pfSelectSubset(pfDateKinds().drafts))return;pfAnchor();pfMotion={kind:'arrive'};pfNavigate('days');return;}
  else if(a==='pf-edit-selected'){if(!pfSelectSubset(pfDateKinds().saved))return;pfAnchor();pfMotion={kind:'arrive'};pfNavigate('days');return;}
@@ -479,7 +517,7 @@ function pfHandle(a,el){const s=pw(),j=pfState(),d=el.dataset.date,i=+el.dataset
  }
  else if(a==='pf-edit-day'||a==='pf-edit-first'){s.active=d||pfDates()[0];pfMotion={kind:'arrive'};pfNavigate('edit');return;}
  else if(a==='pf-row-toggle'){pfChipClose(true);j.routineOpen=j.routineOpen||{};const open=j.routineOpen[s.active]||(j.routineOpen[s.active]={});open[i]=!open[i];}
- else if(['pf-chip','pf-add-rep','pf-del-line','pf-add-line','pf-remove-ex'].includes(a)){if(!b)return;pfRoutineHandle(a,el,b,j);}
+ else if(['pf-chip','pf-add-rep','pf-del-line','pf-add-line','pf-remove-ex','pf-xp-swap','pf-xp-undo'].includes(a)){if(!b)return;pfRoutineHandle(a,el,b,j);}
  else if(a==='pf-clear'){j.clear=true;}
  else if(a==='pf-clear-cancel'){j.clear=false;j.emptyConfirm=false;}
  else if(a==='pf-empty-day'){pwUndoPoint(b);b.rows=[];b.parts=[];delete b.partsPick;b.locks=[];b.target=null;b.cleared=true;b.source='Your draft';j.clear=false;}

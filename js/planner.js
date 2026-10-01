@@ -373,11 +373,8 @@ function pwDoneFor(parts){
 }
 function pwAddCandidates(day,skip=[]){
   const have=new Set((day.rows||[]).map(r=>r.ex));
-  /* v4.6.173: what the app adds on its own skips what you avoid, and what you
-     like goes first (recency still orders each group) */
-  const pref=ex=>typeof exPref==='function'?exPref(ex):null;
-  const list=pwDoneFor(pwDayParts(day)).filter(ex=>!have.has(ex)&&!skip.includes(ex)&&pwLastLine(ex)&&pref(ex)!=='avoid');
-  return [...list.filter(ex=>pref(ex)==='like'),...list.filter(ex=>pref(ex)!=='like')];
+  /* v4.6.173: what the app adds on its own skips what you avoid */
+  return pwDoneFor(pwDayParts(day)).filter(ex=>!have.has(ex)&&!skip.includes(ex)&&pwLastLine(ex)&&!(typeof isAvoided==='function'&&isAvoided(ex)));
 }
 function pwSetLimits(day,skip=[]){
   const slots=[],rowN={};
@@ -437,8 +434,11 @@ function pwAddSheetHTML(s){
   const parts=[...own,...Object.keys(SEED.catalog).filter(p=>p!=='Run'&&!own.includes(p)&&done(p))];
   const part=parts.includes(s.addPart)?s.addPart:parts[0];
   const inPlan=new Set(now.map(r=>r.ex)),short=d=>new Date(d+'T12:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
-  const list=part?pwDoneFor([part]).map(ex=>{const l=pwLastLine(ex),on=inPlan.has(ex);
-    return `<button type="button" class="pw-add-pick" data-pw="add-pick" data-ex="${hesc(ex)}" ${on?'disabled':''}><span><strong>${hesc(ex)}</strong><small>${on?'In this plan':hesc(l.load+' × '+l.reps.join(' '))}</small></span><i>${on?'':short(SEED.exLast[ex])}</i></button>`;}).join(''):'';
+  /* v4.6.174: an avoided exercise is still yours to pick here -- you asked --
+     but it sinks to the bottom and says so */
+  const av=ex=>typeof isAvoided==='function'&&isAvoided(ex),ordered=part?[...pwDoneFor([part]).filter(ex=>!av(ex)),...pwDoneFor([part]).filter(av)]:[];
+  const list=ordered.map(ex=>{const l=pwLastLine(ex),on=inPlan.has(ex),a=av(ex);
+    return `<button type="button" class="pw-add-pick${a?' xp-dim':''}" data-pw="add-pick" data-ex="${hesc(ex)}" ${on?'disabled':''}><span><strong>${hesc(ex)}</strong><small>${on?'In this plan':hesc(l.load+' × '+l.reps.join(' '))}${a?`<span class="xp-tag">${XP_ICON}avoided</span>`:''}</small></span><i>${on?'':short(SEED.exLast[ex])}</i></button>`;}).join('');
   return `<div class="pw-add-scrim" data-pw="add-close"></div><div class="pw-add-sheet" role="dialog" aria-modal="true" aria-labelledby="pw-add-title"><div class="pw-add-grab" aria-hidden="true"></div><div class="pw-add-head"><h3 id="pw-add-title">Add to ${hesc(new Date(s.active+'T12:00').toLocaleDateString('en-US',{weekday:'long'}))}</h3>${pwButton('add-close','×','pw-add-close','aria-label="Close without adding"')}</div><p class="pw-small">Most recent first · last time you did each</p><div class="pw-add-parts" role="tablist">${parts.map(p=>`<button type="button" role="tab" data-pw="add-part" data-part="${hesc(p)}" aria-selected="${p===part}" class="${p===part?'on':''}">${hesc(typeof partLabel==='function'?partLabel(p):p)}</button>`).join('')}</div><div class="pw-add-list">${list||'<p class="pw-small">Nothing logged for this body part yet.</p>'}${edit?pwButton('add','<span><strong>Type an exercise…</strong><small>For one you have not logged</small></span>','pw-add-pick pw-add-type'):''}</div></div>`;
 }
 /* v4.6.158: Escape closes the sheet, like its × and the scrim */

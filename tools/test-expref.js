@@ -12,6 +12,7 @@ w.fetch=()=>Promise.reject(Error('offline'));w.matchMedia=()=>({matches:false,ad
 w.HTMLCanvasElement.prototype.getContext=()=>new Proxy({measureText:()=>({width:10})},{get:(o,k)=>o[k]||(()=>({}))});
 for(const m of html.matchAll(/src="(js\/[^?"]+)\?v=/g))vm.runInContext(fs.readFileSync(path.join(dir,m[1]),'utf8'),ctx,{filename:m[1]});
 const run=s=>vm.runInContext(s,ctx);
+ctx.SRV=fs.readFileSync(path.join(dir,'supabase/functions/write-session/index.ts'),'utf8');
 let checks=0;
 function test(name,code){assert(run(code),name);console.log('PASS '+name);checks++;}
 
@@ -27,28 +28,61 @@ migrateCanon();migrateAvoidToPrefs();SEED=deriveAll();`);
 
 test('the planner avoid list moves into verdicts, by id',`exPref('Standing Calf Raise')==='avoid'&&DB.settings.exPref['standing-calf-raise'].v==='avoid'&&DB.settings.exPrefFrom===1`);
 test('...once: removing it later is not undone by the migration',`(()=>{setExPref('Standing Calf Raise',null);migrateAvoidToPrefs();const ok=exPref('Standing Calf Raise')===null;setExPref('Standing Calf Raise','avoid');return ok;})()`);
-run(`setExPref('Romanian Deadlift','avoid');setExPref('Leg Extension','like');`);
-test('a verdict is stored by id with its time',`DB.settings.exPref['romanian-deadlift'].v==='avoid'&&DB.settings.exPref['romanian-deadlift'].at>0`);
-test('neutral is the absence of an entry',`exPref('Squat')===null&&!('squat' in DB.settings.exPref)`);
-test('a rename keeps the verdict (same id)',`(()=>{const c=DB.settings.canon['romanian-deadlift'];const old=c.name;c.name='RDL';c.al=[old];const ok=exPref('RDL')==='avoid'&&exPref('Romanian Deadlift')==='avoid';c.name=old;c.al=[];return ok;})()`);
-test('a verdict does not touch the log',`JSON.stringify(Object.fromEntries(Object.entries(DB.days).map(([d,v])=>[d,{...v,w:v.w.map(s=>{const {cid,...r}=s;return r;})}])))===logBefore`);
+run(`setExPref('Romanian Deadlift','avoid');`);
+test('an avoid is stored by id with its time',`DB.settings.exPref['romanian-deadlift'].v==='avoid'&&DB.settings.exPref['romanian-deadlift'].at>0`);
+test('Include is the absence of an entry',`exPref('Squat')===null&&!('squat' in DB.settings.exPref)&&!isAvoided('Squat')`);
+test('there is no "like" any more: it is not stored, and a v4.6.173 one is cleared on load',`(()=>{setExPref('Leg Extension','like');const a=!('leg-extension' in DB.settings.exPref);DB.settings.exPref['leg-extension']={v:'like',at:1};migrateAvoidToPrefs();return a&&!('leg-extension' in DB.settings.exPref)&&exPref('Leg Extension')===null;})()`);
+test('a rename keeps the avoid (same id)',`(()=>{const c=DB.settings.canon['romanian-deadlift'];const old=c.name;c.name='RDL';c.al=[old];const ok=isAvoided('RDL')&&isAvoided('Romanian Deadlift');c.name=old;c.al=[];return ok;})()`);
+test('avoiding does not touch the log',`JSON.stringify(Object.fromEntries(Object.entries(DB.days).map(([d,v])=>[d,{...v,w:v.w.map(s=>{const {cid,...r}=s;return r;})}])))===logBefore`);
 
 /* the planner's own picks: Set target + and Add candidates */
-run(`var day={rows:pwRead('Squat\\n  245 lb × 6 6 6 6'),parts:['Legs']};var cands=pwAddCandidates(day);`);
-test('what the app adds on its own skips what you avoid',`!cands.includes('Romanian Deadlift')&&!cands.includes('Standing Calf Raise')`);
-test('...and what you like comes first',`cands[0]==='Leg Extension'&&cands.includes('Lying Leg Curl')`);
+run(`var cday={rows:pwRead('Squat\\n  245 lb × 6 6 6 6'),parts:['Legs']};var cands=pwAddCandidates(cday);`);
+test('what the app adds on its own skips what you avoid',`!cands.includes('Romanian Deadlift')&&!cands.includes('Standing Calf Raise')&&cands.includes('Lying Leg Curl')`);
 
-/* the writer's menu */
+/* Claude: told, not just kept in the dark */
 run(`var pay;try{pay=writerPayload({});}catch(e){pay={err:e.message};}`);
 test('the writer payload builds',`!pay.err&&!!pay.catalog`);
-test('avoided exercises are off the writer menu',`!pay.catalog.Legs.includes('Romanian Deadlift')&&!pay.catalog.Legs.includes('Standing Calf Raise')`);
+test('the avoid list goes to Claude by name, with part and muscle',`(()=>{const a=pay.avoid||[],r=a.find(x=>x.exercise==='Romanian Deadlift'),c=a.find(x=>x.exercise==='Standing Calf Raise');return !!r&&r.part==='Legs'&&r.muscle==='hamstrings'&&!!c&&c.muscle==='calves';})()`);
+test('...and they are off the menu too',`!pay.catalog.Legs.includes('Romanian Deadlift')&&!pay.catalog.Legs.includes('Standing Calf Raise')`);
 test('...the muscle map still offers the hamstrings a lift (leg curls)',`(pay.heads.Legs.hamstrings||[]).includes('Lying Leg Curl')&&!(pay.heads.Legs.hamstrings||[]).includes('Romanian Deadlift')`);
-test('...and calves have nothing left, so the writer is not handed one',`!(pay.heads.Legs.calves||[]).some(e=>e==='Standing Calf Raise')`);
 test('your past Romanian Deadlift sets still count toward hamstring coverage',`pay.coverage.Legs.hamstrings>=6`);
+test('...and still reach Claude in the history (an honest record)',`pay.history.some(h=>h[2]==='Romanian Deadlift')`);
+run(`var chk,chkErr;try{chk=writerCheck({days:[{date:pay.days[0],part:'Legs',title:'Legs',text:'Squat\\n  245 lb × 6 6 6 6\\nRomanian Deadlift\\n  185 lb × 8 8 8\\nLying Leg Curl\\n  90 lb × 12 12 12'}],reason:{head:'Legs',text:'Legs are due.'}},{payload:pay});}catch(e){chkErr=e;}`);
+test('an avoided exercise in Claude\'s answer is removed on the device, and named',`(()=>{if(chkErr)return false;const d=(chk.days||chk.out||[])[0]||chk.sessions?.[0];const txt=JSON.stringify(chk);return !/"ex":"Romanian Deadlift"/.test(JSON.stringify(d||chk))&&/Romanian Deadlift: you avoid it/.test(txt)&&/Lying Leg Curl/.test(txt);})()`);
+test('the server rule is in Claude\'s instructions and its request',`/AVOIDED EXERCISES: payload\\.avoid/.test(SRV)&&/payload\\.avoid \\|\\| \\[\\]/.test(SRV)`);
 
-/* planning preferences read and write the same verdicts */
-test('Planning preferences list the avoided exercises',`(()=>{const p=pfPrefs();return p.avoid.includes('Romanian Deadlift')&&p.avoid.includes('Standing Calf Raise')&&p.like.includes('Leg Extension');})()`);
-test('...a device on an older version writing the legacy list still counts',`(()=>{DB.settings.plannerPreferences.avoid=['Leg Press'];const p=pfPrefs();return p.avoid.includes('Leg Press')&&p.avoid.includes('Romanian Deadlift');})()`);
-run(`DB.settings.plannerPreferences.avoid=[];`);
+/* planning preferences read and write the same list */
+test('Planning preferences list the avoided exercises',`(()=>{const p=pfPrefs();return p.avoid.includes('Romanian Deadlift')&&p.avoid.includes('Standing Calf Raise')&&!('like' in p);})()`);
+test('...a device on an older version writing the legacy list still counts',`(()=>{DB.settings.plannerPreferences.avoid=['Leg Press'];const p=pfPrefs();const ok=p.avoid.includes('Leg Press')&&p.avoid.includes('Romanian Deadlift')&&writerAvoids('Leg Press');DB.settings.plannerPreferences.avoid=[];return ok;})()`);
 test('a plan row you avoid comes out of a generated day; the rest stays',`(()=>{const c={type:'generate',days:{'2026-10-02':{rows:pwRead('Romanian Deadlift\\n185 lb × 8 8 8\\nLying Leg Curl\\n90 lb × 12 12 12'),notes:[]}}};try{pfValidateCandidate(c,['2026-10-02']);}catch(e){}const rows=c.days['2026-10-02'].rows.map(r=>r.ex);return !rows.includes('Romanian Deadlift')&&rows.includes('Lying Leg Curl');})()`);
+
+/* a saved plan: the row is flagged, the swap is offered, nothing moves alone */
+run(`var D='2026-10-02';pwOpen(D);var ps=pw();ps.dates=[D];var pd=pwDay(D);
+pd.rows=pwRead('Squat\\n  245 lb × 6 6 6 6\\nRomanian Deadlift\\n  185 lb × 8 8 8\\nStanding Calf Raise\\n  45 lb × 12 12 12');pd.parts=['Legs'];pd.locks=[];ps.active=D;ps.step='edit';pfState().page='edit';
+var before=pwText(pd.rows);var html=pfEditRows();`);
+test('an avoided row in a saved plan is flagged, not changed',`/xp-avoided/.test(html)&&/<b>Avoided\\.<\\/b> Swap for another hamstring lift/.test(html)&&pwText(pd.rows)===before`);
+test('swaps: a done lift first, then the day\'s own body part (Seated Leg Curl before Deadlift)',`pfSwapOptions(pd,pd.rows[1]).join()==='Lying Leg Curl,Seated Leg Curl'`);
+test('Remove from this day is always offered',`(html.match(/data-pw="pf-remove-ex"/g)||[]).length>=2&&/no hamstrings on Thursday|no hamstrings on Friday/.test(html)`);
+test('calves: the only other calf lift is new to you',`pfSwapOptions(pd,pd.rows[2]).join()==='Seated Calf Raise'&&/The only other calf lift is new to you/.test(html)`);
+run(`pfRoutineHandle('pf-xp-swap',{dataset:{index:'1',ex:'Lying Leg Curl'}},pd,pfState());`);
+test('Swap puts in your last Lying Leg Curl sets; the rest of the day stays',`pd.rows[1].ex==='Lying Leg Curl'&&/90 lb × 12 12 12/.test(pwText([pd.rows[1]]))&&pd.rows[0].ex==='Squat'&&pd.rows[2].ex==='Standing Calf Raise'`);
+test('...and says what it replaced, with Undo',`/swapped from Romanian Deadlift/.test(pfEditRows())&&/pf-xp-undo/.test(pfEditRows())`);
+run(`pfRoutineHandle('pf-xp-undo',{dataset:{index:'1'}},pd,pfState());`);
+test('Undo brings the original row back exactly',`pwText(pd.rows)===before`);
+run(`pfRoutineHandle('pf-xp-swap',{dataset:{index:'2',ex:'Seated Calf Raise'}},pd,pfState());`);
+test('a lift you have not done starts by feel, same sets and reps',`pd.rows[2].ex==='Seated Calf Raise'&&/by feel × 12 12 12/.test(pwText([pd.rows[2]]))`);
+
+/* Settings and Train */
+run(`view='sync';render();`);
+test('Settings lists only avoided exercises, each with Include',`(()=>{const t=document.getElementById('view').textContent;return /Avoided exercises/.test(t)&&/Romanian Deadlift/.test(t)&&/Standing Calf Raise/.test(t)&&document.querySelectorAll('[data-xp-include]').length===2&&!/Leg Extension/.test(document.querySelector('.xp-list').textContent);})()`);
+run(`document.querySelector('[data-xp-include="Standing Calf Raise"]').click();`);
+test('...Include brings it back and the row leaves the list',`!isAvoided('Standing Calf Raise')&&document.querySelectorAll('[data-xp-include]').length===1`);
+run(`setExPref('Standing Calf Raise','avoid');view='lift';lift={part:'Legs',ex:null};render();`);
+test('Train: avoided exercises leave Go-to and wait at the bottom, tagged',`(()=>{const hs=[...document.querySelectorAll('#view h2')],last=hs[hs.length-1];const goto=document.querySelector('#view .gotohead');const tagged=[...document.querySelectorAll('#view .xp-tag')].length;return last&&last.textContent==='Avoided'&&tagged===2&&!/Romanian Deadlift/.test((goto&&goto.nextElementSibling||{}).textContent||'');})()`);
+run(`lift={part:'Legs',ex:'Romanian Deadlift',weight:84};render();`);
+test('the exercise screen says Avoided, with Include, and logging is untouched',`!!document.querySelector('#view .xp-banner')&&document.querySelector('[data-expref="avoid"]').getAttribute('aria-pressed')==='true'&&!!document.querySelector('#view .zone')`);
+run(`document.querySelector('.xp-banner [data-expref="include"]').click();`);
+test('...Include there clears it',`!isAvoided('Romanian Deadlift')&&!document.querySelector('#view .xp-banner')`);
+run(`document.querySelector('[data-expref="avoid"]').click();`);
+test('...and Avoid sets it again',`isAvoided('Romanian Deadlift')&&!!document.querySelector('#view .xp-banner')`);
 console.log(checks+' exercise-preference checks passed');dom.window.close();process.exit(0);

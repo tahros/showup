@@ -64,6 +64,7 @@ function renderSync(){
       <p class="note">${hesc(pfSummary())}</p>
       <!-- v4.6.164: the Planning interface switch is gone -- Workspace only. -->
     </div>
+    ${avoidedCardHTML()}
     ${typeof remPlugin==='function'&&remPlugin()?(()=>{ const rp=remPrefs(); return `
     <!-- v4.6.118: reminders, iOS app only (a website cannot schedule them). -->
     <h2>Reminders</h2>
@@ -320,4 +321,23 @@ document.addEventListener('change',e=>{
   if(e.target.id==='impFile'&&e.target.files&&e.target.files[0]){
     restoreBackup(e.target.files[0]); e.target.value='';
   }
+});
+
+/* v4.6.174: AVOIDED EXERCISES, the review list. Only what you avoid -- Go-to
+   already shows what you reach for. Shown once there is something in it;
+   each row says where the exercise lives and what it works, and Include
+   brings it back. */
+function avoidedCardHTML(){
+  const all=(DB.settings.exPref)||{},rows=Object.entries(all).filter(([,e])=>e&&e.v==='avoid')
+    .map(([id,e])=>{const ex=canonName(id),part=homePartOf(ex)||(SEED.ex2part||{})[ex]||'',m=part?exMuscle(ex,part):'';return {ex,part,m,at:e.at||0};})
+    .sort((a,b)=>b.at-a.at||a.ex.localeCompare(b.ex));
+  if(!rows.length) return '';
+  const since=t=>t?' · since '+new Date(t).toLocaleDateString('en-US',{month:'short',day:'numeric'}):'';
+  return `<h2>Avoided exercises</h2>
+    <div class="card xp-list">${rows.map(r=>`<div class="xp-item"><span><strong>${XP_ICON}${hesc(r.ex)}</strong><small>${hesc([partLabel(r.part),r.m&&r.m!=='unassigned'?(MUSCLE_LABEL[r.m]||r.m).replace(/^mid \/ lower /,''):''].filter(Boolean).join(' · '))}${since(r.at)}</small></span><button type="button" class="btn ghost" data-xp-include="${hesc(r.ex)}">Include</button></div>`).join('')}
+      <p class="note">They stay in your history and keep counting. Plans and suggestions leave them out and pick another lift for the same muscle. Avoid any exercise from its own screen in Train.</p></div>`;
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest&&e.target.closest('[data-xp-include]');if(!b)return;
+  setExPref(b.dataset.xpInclude,null);save(true);toast(`${b.dataset.xpInclude} included again`);renderSync();
 });
