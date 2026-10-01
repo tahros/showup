@@ -1,5 +1,11 @@
 # ShowUp — changelog
 
+## v4.6.171 (2026-09-30) — smaller Lifted p trio
+
+- Replaced completion lettering with the exact approved Lifted p trio vector paths and spacing from the preview. The lettering is 100.44px wide (124px × 90% × 90%); the 96.6px mascot and 14px Open gap are unchanged.
+- Preserved the existing Pop Celebration, single natural ground shadow, dark theme, reduced-motion fallbacks and immediate dismissal. Welcome and share branding, workout logging and saved data are unchanged.
+- Brand regression checks the lifted letter offsets, smaller size, separated rows, all eight moving letters, static fallbacks, offline assets and unchanged workout records.
+
 ## v4.6.170 (2026-09-30) — approved Pop Celebration only
 
 - Completion now uses the approved Show / Uppp vector lettering with the p trio level at rest and the tighter poster spacing. Existing welcome branding and share experiences are unchanged; rejected concepts are not included.

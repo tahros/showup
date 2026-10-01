@@ -42,14 +42,16 @@ const types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg
    assert.equal(await p.locator('#dayDone .showuppp-lettering [data-letter]').count(),8);
    const resting=await p.locator('#dayDone [data-letter]').evaluateAll(es=>es.map(e=>({letter:e.dataset.letter,rect:e.getBoundingClientRect().toJSON()})));
    const ps=resting.filter(e=>e.letter.startsWith('p')).map(e=>e.rect.bottom);
-   assert(Math.max(...ps)-Math.min(...ps)<1,'approved p trio rests level, without ascension');
+   assert(ps[0]>ps[1]&&ps[1]>ps[2],'approved Lifted p trio rises at rest');
+   const offsets=await p.locator('#dayDone [data-letter] path').evaluateAll(es=>es.map(e=>e.getAttribute('transform')));
+   assert.deepEqual(offsets,['translate(0 0)','translate(0 0)','translate(0 0)','translate(0 0)','translate(0 0)','translate(0 -8)','translate(0 -1)','translate(0 6)'],'exact approved Lifted p trio offsets');
    assert(Math.max(...resting.slice(0,4).map(e=>e.rect.bottom))<Math.min(...resting.slice(4).map(e=>e.rect.top)),'two distinct rows at rest');
    assert.equal(await p.locator('#dayDone .showuppp-burst').count(),0,'no particles in static mode');
    assert.equal(await p.locator('#dayDone .su-mascot canvas').count(),0,'Still is a static PNG');
    assert.equal(await p.locator('#dayDone .ddbrand').evaluate(el=>getComputedStyle(el).animationName),'none');
    const g=await p.locator('#dayDone .showuppp-lockup').boundingBox();assert(g.x>=0&&g.x+g.width<=width);
    const sizing=await p.locator('#dayDone .showuppp-lockup').evaluate(el=>({mascot:el.querySelector('.showuppp-character').getBoundingClientRect().width,letters:el.querySelector('.showuppp-lettering').getBoundingClientRect().width,gap:parseFloat(getComputedStyle(el).gap)}));
-   assert(Math.abs(sizing.mascot-96.6)<.1&&Math.abs(sizing.letters-124)<.1&&sizing.gap===14,'approved Compact / Open sizes');
+   assert(Math.abs(sizing.mascot-96.6)<.1&&Math.abs(sizing.letters-100.44)<.1&&sizing.gap===14,'approved twice-reduced lettering / unchanged Compact mascot and Open gap');
    assert(await p.locator('#dayDone [data-dd="done"]').isVisible());
    if(width===393)await snap('complete-'+theme);
    await p.locator('#dayDone [data-dd="done"]').click();await p.locator('#dayDone').waitFor({state:'detached'});
