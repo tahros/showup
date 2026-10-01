@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.180 (2026-10-01) — The Add sheet stays on the bottom edge
+
+- **Reported:** with "Add to Friday" open, dragging inside it made the sheet let go of the bottom of the screen and ride up; the header lost its dimming and the tab bar showed under the sheet.
+- **Why:** two of the app's own gestures move the page while your finger is down: pull-to-refresh (a downward drag at the top) and the rubber band (an upward drag at the end). Both shift the page with a transform, and a transformed page becomes what its pop-up is measured from, so the sheet and its backdrop followed the page instead of the screen. v4.6.179 made this easy to hit: it pins the page behind a pop-up, which reads as "at the top", so any downward drag in the sheet armed pull-to-refresh.
+- **Now:** neither gesture starts while a pop-up is open, and opening one clears any shift already in progress. A drag on the sheet moves the sheet's own list and nothing else.
+- Tests: `tools/check-modal-lock.cjs` now drags with real touch input (down and up inside the sheet, and on the backdrop) and measures mid-drag: the page has no transform, the sheet's bottom is the screen's bottom, the backdrop covers the screen. 60 checks. On v4.6.179 the downward drag fails as in the screenshot (page shifted 110px, sheet off the edge, backdrop top at -514px).
+
 ## v4.6.179 (2026-10-01) — A pop-up holds the page still
 
 - **Reported:** with "Add to Friday" open, scrolling moved the plan behind the sheet, and the "↑ top" button showed over the sheet.

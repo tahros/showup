@@ -19,6 +19,11 @@
   const rubber=d=>{ const H=innerHeight||800; return (1-1/(d*0.55/H+1))*H; };   // UIScrollView's curve
   addEventListener('touchstart',e=>{
     if(e.touches.length!==1){y0=null;return;}
+    /* v4.6.180: not while a pop-up is up. The band moves the page with a
+       transform, and a transformed #view becomes the box its position:fixed
+       children are measured from -- the planner's Add sheet let go of the
+       screen and rode up with the page. A drag on a pop-up is the pop-up's. */
+    if(typeof modalOpen==='function'&&modalOpen()){y0=null;return;}
     y0=e.touches[0].clientY; band=0; active=false;
   },{passive:true});
   addEventListener('touchmove',e=>{
@@ -84,6 +89,10 @@
   let y0=null, pulling=false, dist=0, fired=false;
   addEventListener('touchstart',e=>{
     if(fired) return;
+    /* v4.6.180: nor does a pop-up pull to refresh. Since v4.6.179 the page is
+       pinned behind one, so scrollY reads 0 and every downward drag inside the
+       sheet armed the refresh and shifted the page under it (see the band, above). */
+    if(typeof modalOpen==='function'&&modalOpen()){y0=null;return;}
     if(scrollY>0){y0=null;return;}
     // v3.3.140: same hole as the tab-swipe had — dragging DOWN on an open
     // overlay would pull-to-refresh the page behind it
@@ -2740,6 +2749,10 @@ function syncModalLock(){
   const on=modalOpen();if(on===_modalOn)return;_modalOn=on;
   const de=document.documentElement,bs=document.body.style;
   if(on){
+    /* v4.6.180: and nothing may be mid-shift: a transform left on #view would
+       re-anchor the pop-up's fixed parts to the page */
+    if(typeof pageShift==='function') pageShift('');
+    document.body.classList.remove('pulling','banding');
     _modalY=window.scrollY||0;de.classList.add('modal-open');
     bs.position='fixed';bs.top=(-_modalY)+'px';bs.left='0';bs.right='0';bs.width='100%';
   }else{

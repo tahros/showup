@@ -15,7 +15,7 @@ const PORT=process.env.PORT||8784,wait=ms=>new Promise(r=>setTimeout(r,ms));
   try{
   for(const theme of ['light','dark'])for(const width of [320,402]){
     const tag=`${theme} ${width}:`;
-    const p=await b.newPage({viewport:{width,height:874},serviceWorkers:'block'});const errors=[];p.on('pageerror',e=>errors.push(e.message));
+    const p=await b.newPage({viewport:{width,height:874},serviceWorkers:'block',hasTouch:true});const errors=[];p.on('pageerror',e=>errors.push(e.message));
     await p.route('**/*',r=>r.request().url().startsWith(`http://127.0.0.1:${PORT}/`)?r.continue():r.abort());
     await p.goto(`http://127.0.0.1:${PORT}/?theme=${theme}`);await p.waitForLoadState('networkidle');await p.waitForTimeout(1200);
     /* the page's own position: scrollY normally, -body.top while pinned */
@@ -39,6 +39,30 @@ const PORT=process.env.PORT||8784,wait=ms=>new Promise(r=>setTimeout(r,ms));
     await p.mouse.move(width/2,120);for(let i=0;i<4;i++){await p.mouse.wheel(0,-500);await wait(60);}await wait(300);
     r=await st();
     ok(`${tag} scrolling on the dimmed backdrop moves nothing`,r.at===700&&!r.btn,JSON.stringify(r));
+    /* v4.6.180: A FINGER DRAG ON THE SHEET MOVES NOTHING BUT THE SHEET'S LIST.
+       Real touch input (not wheel): the app's own gestures -- pull-to-refresh
+       on a downward drag, the rubber band on an upward one -- shift #view with
+       a transform, and a transformed #view re-anchors its position:fixed
+       children: the sheet left the bottom edge and rode up the screen. Measured
+       MID-DRAG, finger still down. */
+    const cdp=await p.context().newCDPSession(p);
+    const drag=async(x,y0,y1)=>{
+      const pt=y=>[{x,y,id:1,radiusX:8,radiusY:8,force:1}];
+      await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:pt(y0)});
+      for(let i=1;i<=8;i++){await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:pt(y0+(y1-y0)*i/8)});await wait(25);}
+      const mid=await p.evaluate(()=>{const v=document.getElementById('view'),sh=document.querySelector('.pw-add-sheet'),sc=document.querySelector('.pw-add-scrim');
+        return {tf:getComputedStyle(v).transform,sheetBottom:Math.round(sh.getBoundingClientRect().bottom),scrimTop:Math.round(sc.getBoundingClientRect().top),scrimBottom:Math.round(sc.getBoundingClientRect().bottom),h:innerHeight,cls:document.body.className};});
+      await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await wait(350);
+      return mid;};
+    const still=m=>m.tf==='none'&&m.sheetBottom===m.h&&m.scrimTop===0&&m.scrimBottom===m.h&&!/pulling|banding/.test(m.cls);
+    let m=await drag(width/2,560,800);
+    ok(`${tag} finger drags DOWN on the sheet: it stays on the bottom edge (no pull-to-refresh)`,still(m),JSON.stringify(m));
+    m=await drag(width/2,800,420);
+    ok(`${tag} finger drags UP on the sheet: it stays on the bottom edge (no rubber band)`,still(m),JSON.stringify(m));
+    m=await drag(width/2,120,330);
+    ok(`${tag} finger drags on the backdrop: nothing shifts`,still(m)&&await p.evaluate(()=>!!document.querySelector('.pw-add-sheet')),JSON.stringify(m));
+    r=await st();
+    ok(`${tag} ...and the page behind is where it was`,r.lock&&r.at===700,JSON.stringify(r));
     await p.evaluate(()=>document.querySelector('.pw-add-close').click());await wait(400);
     r=await st();
     ok(`${tag} closed by ×: back at the same place, button back`,!r.lock&&r.at===700&&r.btn,JSON.stringify(r));
