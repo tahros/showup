@@ -4342,3 +4342,7 @@ html body #nav #gearBtn:not(.on){background:transparent;box-shadow:none}
 .exgrp.hx-open{cursor:pointer;-webkit-tap-highlight-color:transparent;border-radius:12px;transition:background-color var(--dur-quick,.16s)}
 .exgrp.hx-open:active{background:color-mix(in srgb,var(--accent) 7%,transparent)}
 .exgrp.hx-open:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* v4.6.179: while a pop-up is up, its own scrolling stays its own, and the
+   "↑ top" button (a layer above it) steps away -- see syncModalLock() */
+.pw-add-sheet,#repOv{overscroll-behavior:contain}
+html.modal-open .calreturn{display:none!important}

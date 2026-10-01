@@ -939,7 +939,7 @@ async function showCard(drawFn,label,fromCarousel,reveal){
        the carousel. The milestone card is drawn outside the registry, so a
        swipe there would teleport you from "day 900" to an unrelated chart. */
     _repFromCarousel=!!fromCarousel;
-    repOvEl().style.display='flex';
+    repOvEl().style.display='flex';syncModalLock();
     const _img=document.getElementById('repImg');
     _img.classList.toggle('revealing',!!reveal);
     _img.src=cv.toDataURL('image/png');
@@ -1111,7 +1111,7 @@ document.addEventListener('click',e=>{
     if(at) showCard(at.card.draw, at.card.file(), true);   // v3.3.139: swipeable
     return;
   }
-  if(hit('repClose')){ if(typeof plateExportCleanup==='function')plateExportCleanup();repOvEl().style.display='none'; return; }
+  if(hit('repClose')){ if(typeof plateExportCleanup==='function')plateExportCleanup();repOvEl().style.display='none';syncModalLock(); return; }
   if(hit('repDo')&&_repCv){
     if(_repCv.gifBlob||_repCv.videoBlob){
       const video=!!_repCv.videoBlob,blob=_repCv.videoBlob||_repCv.gifBlob,name=String(_repCv.label)+(video?'.mp4':'.gif'),file=new File([blob],name,{type:video?'video/mp4':'image/gif'});

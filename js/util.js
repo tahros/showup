@@ -2722,3 +2722,37 @@ document.addEventListener('click',e=>{
   view='lift'; lift.part=f.part; lift.ex=f.ex; lift.copy=null; lift.ret=lift.ret||'today';   // v3.3.434
   render();
 });
+
+/* v4.6.179: A POP-UP HOLDS THE PAGE STILL. With the Add exercise sheet open,
+   a scroll that ran past the sheet's own list moved the plan behind it, and
+   the "↑ top" button (a layer above the sheet) appeared over it. While any
+   pop-up is up -- the planner's Add sheet, the share preview, a <dialog> --
+   the page is pinned where it was (body position:fixed at -scrollY: the one
+   lock iOS honours, where overflow:hidden alone does not) and html.modal-open
+   hides the button. Closing puts the page back at the same spot. One rule,
+   decided from what is on screen, so no close path can leave it locked. */
+let _modalY=0,_modalOn=false;
+function modalOpen(){
+  const ov=document.getElementById('repOv');
+  return !!(document.querySelector('.pw-add-sheet')||(ov&&ov.style.display!=='none'&&ov.getClientRects().length)||document.querySelector('body > dialog[open]'));
+}
+function syncModalLock(){
+  const on=modalOpen();if(on===_modalOn)return;_modalOn=on;
+  const de=document.documentElement,bs=document.body.style;
+  if(on){
+    _modalY=window.scrollY||0;de.classList.add('modal-open');
+    bs.position='fixed';bs.top=(-_modalY)+'px';bs.left='0';bs.right='0';bs.width='100%';
+  }else{
+    de.classList.remove('modal-open');
+    bs.position='';bs.top='';bs.left='';bs.right='';bs.width='';
+    window.scrollTo({top:_modalY,left:0,behavior:'instant'});
+  }
+  if(typeof syncTopBtn==='function') syncTopBtn();
+}
+/* body's own children (a <dialog>, the share overlay) and #view's (every
+   render replaces them -- the Add sheet lives in the planner's markup) */
+if(typeof MutationObserver==='function'&&document.body){
+  const mo=new MutationObserver(()=>syncModalLock());
+  mo.observe(document.body,{childList:true});
+  const v=document.getElementById('view');if(v)mo.observe(v,{childList:true,subtree:false});
+}

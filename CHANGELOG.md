@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.179 (2026-10-01) — A pop-up holds the page still
+
+- **Reported:** with "Add to Friday" open, scrolling moved the plan behind the sheet, and the "↑ top" button showed over the sheet.
+- **Why:** nothing held the page while a pop-up was up, so a scroll that ran past the sheet's own list (or landed on the dimmed backdrop) went to the page behind it, and the button, which sits on a higher layer, reacted to that scroll and appeared on top.
+- **Now:** while any pop-up is open (the planner's Add sheet, the share preview, the Complete-workout and move-plan dialogs) the page is pinned exactly where it was, the sheet scrolls only itself, and "↑ top" steps away. Closing it, by ×, the backdrop or a choice, puts the page back at the same spot. One rule, decided from what is on screen, so no way of closing can leave the page stuck. On iPhone the pin is the one that works there (the page is fixed in place, not just told not to scroll).
+- Tests: `tools/check-modal-lock.cjs` (Chromium, light and dark, 320 and 402px, 44 checks). On v4.6.178 it fails as reported: the plan moved from 700 to 781 behind the sheet with the button showing, and a scroll on the backdrop sent it to the top.
+
 ## v4.6.178 (2026-10-01) — "↑ top" stays above the tab bar
 
 - **Reported:** on the plan's Edit page, scrolled to the end, the "↑ top" button floated halfway up the screen, over "Add exercise".
