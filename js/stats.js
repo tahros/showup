@@ -455,8 +455,9 @@ function gaAllSessions(){
    The taxonomy remains the fallback, and still owns Muscle coverage, where
    internal muscles are the point. */
 function gaGroupForRow(r){
+  /* v4.6.173: groups ARE body parts now -- the home part is the answer */
   const home=homePartOf(r[1])||r[0];
-  return PART_VISIBLE[home]||MUSCLE_VISIBLE[exMuscle(r[1],r[0])]||home;
+  return BODY_PARTS.includes(home)?home:MUSCLE_PART[exMuscle(r[1],r[0])]||home;
 }
 /* One entry per canonical exercise, with one session per actual training day.
    Folded sheet rows and one-row-per-set app data become the same point list. */
@@ -564,7 +565,7 @@ function gaPR(ex){
 }
 function growthAuditData(){
   const exMap=gaExerciseSessions();
-  const groups=Object.fromEntries(VISIBLE_GROUPS.map(g=>[g,{name:g,sets:0,days:new Set(),ex:[]}]))
+  const groups=Object.fromEntries(BODY_PARTS.map(g=>[g,{name:g,sets:0,days:new Set(),ex:[]}]))
   for(const [iso,rows] of gaAllSessions()){
     for(const r of rows){
       if(r[1]==='Run'||!(r[3]||[]).length) continue;
@@ -584,7 +585,7 @@ function growthAuditData(){
     /* a group is going up when any lift trained recently holds a live PR */
     g.signal=!g.sets?'empty':activeEx.some(e=>e.live)?'up':'flat';
   }
-  const order=VISIBLE_GROUPS.slice().sort((a,b)=>groups[a].ago-groups[b].ago||a.localeCompare(b));
+  const order=BODY_PARTS.slice().sort((a,b)=>groups[a].ago-groups[b].ago||a.localeCompare(b));
   return {groups,order};
 }
 function growthAuditSection(){
@@ -707,7 +708,7 @@ function muscleCard(){
      each cell -- cells are centre-aligned and each drew its own top edge, so
      the rule came out as offset dashes. One before every row but the first. */
   const line='<i class="mcline" aria-hidden="true"></i>';
-  const body=VISIBLE_GROUPS.map((v,vi)=>{
+  const body=BODY_PARTS.map((v,vi)=>{
     const gg=groups[v];
     const open=_mcOpen===v;
     let inner='';
@@ -720,7 +721,7 @@ function muscleCard(){
          Ordering is by days trained, then by the roster's own order, so an
          untrained muscle always sinks to the bottom of its group and the
          list does not reshuffle as the week fills in. */
-      const order=(GROUP_MUSCLES[v]||[]);
+      const order=(PART_MUSCLES[v]||[]);
       const rows=Object.entries(gg.mus).sort((a,b)=>
         b[1].days.size-a[1].days.size || order.indexOf(a[0])-order.indexOf(b[0]));
       inner=`<div class="mcinner">${rows.length?rows.map(([m,st])=>{

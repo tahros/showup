@@ -373,7 +373,11 @@ function pwDoneFor(parts){
 }
 function pwAddCandidates(day,skip=[]){
   const have=new Set((day.rows||[]).map(r=>r.ex));
-  return pwDoneFor(pwDayParts(day)).filter(ex=>!have.has(ex)&&!skip.includes(ex)&&pwLastLine(ex));
+  /* v4.6.173: what the app adds on its own skips what you avoid, and what you
+     like goes first (recency still orders each group) */
+  const pref=ex=>typeof exPref==='function'?exPref(ex):null;
+  const list=pwDoneFor(pwDayParts(day)).filter(ex=>!have.has(ex)&&!skip.includes(ex)&&pwLastLine(ex)&&pref(ex)!=='avoid');
+  return [...list.filter(ex=>pref(ex)==='like'),...list.filter(ex=>pref(ex)!=='like')];
 }
 function pwSetLimits(day,skip=[]){
   const slots=[],rowN={};

@@ -43,9 +43,22 @@ check("every catalog exercise maps to a primary muscle",
       `Object.keys(SEED0.ex2part).filter(e=>!isCardioEx(e)&&!EX_MUSCLE[e]).length`, 0);
 check("...and every cardio exercise is deliberately outside that map",
       `Object.keys(CARDIO_EX).filter(e=>EX_MUSCLE[e]).length`, 0);
-check("every mapped muscle rolls up to a visible group",
-      `[...new Set(Object.values(EX_MUSCLE))].filter(m=>!MUSCLE_VISIBLE[m]).length`, 0);
-check("six visible groups, as specced", `VISIBLE_GROUPS.length`, 6);
+/* v4.6.173: ONE VOCABULARY -- the groups ARE the Train body parts */
+check("every mapped muscle rolls up to a body part",
+      `[...new Set(Object.values(EX_MUSCLE))].filter(m=>!BODY_PARTS.includes(MUSCLE_PART[m])).length`, 0);
+check("seven body parts with muscles, the Train tabs (Cardio has none)", `BODY_PARTS.join()`, "Chest,Back,Shoulder,Legs,Biceps,Triceps,Sixpack");
+check("every muscle belongs to exactly one body part", `Object.keys(MUSCLE_PART).length===Object.values(PART_MUSCLES).flat().length`, true);
+check("core is two muscles: abs and obliques", `PART_MUSCLES.Sixpack.join()`, "abs,obliques");
+check("...Cable Crunch works the abs, Russian Twist and Side Plank the obliques",
+      `[exMuscle('Cable Crunch','Sixpack'),exMuscle('Russian Twist','Sixpack'),exMuscle('Side Plank','Sixpack')].join()`, "abs,obliques,obliques");
+check("every secondary muscle is a real muscle (Barbell Bench Press said 'shoulders')",
+      `Object.values(EX_MUSCLE_2ND).flat().filter(m=>!MUSCLE_PART[m]).length`, 0);
+check("...bench's secondaries are triceps and front delts", `exSecondary('Barbell Bench Press').join()`, "triceps,front-delts");
+check("the muscle map is keyed by exercise id", `EX_MUSCLE_ID['romanian-deadlift']+','+EX_MUSCLE_ID['standing-calf-raise']`, "hamstrings,calves");
+check("a renamed exercise keeps its muscle (the id does not change)",
+      `(function(){const c=DB.settings.canon=DB.settings.canon||{};c['leg-extension']={name:'Quad Extension',al:['Leg Extension']};const m=exMuscle('Quad Extension','Legs');delete c['leg-extension'];return m;})()`, "quads");
+check("an exercise you made carries its own muscle, which wins",
+      `(function(){const c=DB.settings.canon=DB.settings.canon||{};c['nordic-curl']={name:'Nordic Curl',al:[],m:'hamstrings'};const a=exMuscle('Nordic Curl','Legs');delete c['nordic-curl'];return a+','+exMuscle('Nordic Curl','Legs');})()`, "hamstrings,unassigned");
 
 // ---- fixture: 3 days inside the window, 1 outside; Run present
 run(`(function(){
@@ -75,7 +88,7 @@ check("the run credited nothing",
       `(function(){const c=muscleCoverage();
         return Object.values(c.groups).every(g=>!g.mus['run']);})()`, true);
 check("a set outside the 7-day window is not counted",
-      `(function(){const c=muscleCoverage();return c.groups['Arms'].sets;})()`, 0);
+      `(function(){const c=muscleCoverage();return c.groups['Biceps'].sets;})()`, 0);
 
 // ---- 2. rollup: lats vs upper-back both land in Back
 run(`(function(){
@@ -87,8 +100,8 @@ check("lats and upper-back roll up into one visible Back",
         return b.days.size===2 && !!b.mus['lats'] && !!b.mus['upper-back'];})()`, true);
 
 // ---- 3. the card: 7 dots per row, trained days on, counts days-first
-check("six rows render, one per visible group",
-      `document.querySelectorAll('.mccard .mcrow').length`, 6);
+check("seven rows render, one per body part",
+      `document.querySelectorAll('.mccard .mcrow').length`, 7);
 check("each row carries exactly 7 dots",
       `[...document.querySelectorAll('.mccard .mcrow')].every(r=>r.querySelectorAll('.mcdots i').length===7)`, true);
 check("Legs row lights two dots (Deadlift and Hip Thrust days)",
@@ -104,7 +117,7 @@ check("overview shows day counts only",
       `(function(){const r=[...document.querySelectorAll('.mcrow')].find(x=>x.querySelector('.mcname').textContent==='Legs');
         return /\\d+\\s*days?/.test(r.textContent.replace(/\\s+/g,' ')) && !r.querySelector('.mcs') && !document.querySelector('.mchead small');})()`, true);
 check("an untrained group states 0 days in the same voice",
-      `(function(){const r=[...document.querySelectorAll('.mcrow')].find(x=>x.querySelector('.mcname').textContent==='Arms');
+      `(function(){const r=[...document.querySelectorAll('.mcrow')].find(x=>x.querySelector('.mcname').textContent==='Triceps');
         return r.querySelector('.mcv').textContent;})()`, 0);
 
 /* v3.3.350: the card is one MATRIX with a shared axis. Each of these is a
@@ -256,16 +269,16 @@ check("...and did NOT get guessed into quads",
    the whole point -- the card could only ever show what you DID. */
 check("every group carries its whole roster, trained or not",
       `(function(){const c=muscleCoverage();
-        return Object.keys(c.groups['Shoulders'].mus).sort().join(',');})()`,
+        return Object.keys(c.groups['Shoulder'].mus).sort().join(',');})()`,
       "front-delts,rear-delts,side-delts");
 check("...and an untrained muscle is present, at zero",
-      `(function(){const c=muscleCoverage();const r=c.groups['Shoulders'].mus['rear-delts'];
+      `(function(){const c=muscleCoverage();const r=c.groups['Shoulder'].mus['rear-delts'];
         return !!r && r.sets===0 && r.days.size===0;})()`, true);
-/* the roster is MUSCLE_VISIBLE read backwards, so a muscle can never be
-   listed in a group it does not roll up to */
+/* the roster is MUSCLE_PART read backwards, so a muscle can never be
+   listed in a body part it does not roll up to */
 check("...and the roster agrees with the rollup, both ways",
-      `(function(){return Object.entries(GROUP_MUSCLES).every(([g,ms])=>
-         ms.every(m=>MUSCLE_VISIBLE[m]===g));})()`, true);
+      `(function(){return Object.entries(PART_MUSCLES).every(([g,ms])=>
+         ms.every(m=>MUSCLE_PART[m]===g));})()`, true);
 
 /* the split itself: incline presses up into the clavicular head, flat does
    not, and a press is not a lateral raise */
@@ -283,7 +296,7 @@ check("...a press the front, and a face pull the rear",
    number: the sub-muscles must still sum to the parent. */
 check("splitting a group leaves its totals untouched",
       `(function(){const c=muscleCoverage();
-        return ['Chest','Shoulders','Legs','Back','Arms','Core'].every(g=>{
+        return BODY_PARTS.every(g=>{
           const gg=c.groups[g];
           return Object.values(gg.mus).reduce((a,m)=>a+m.sets,0)===gg.sets;});})()`, true);
 
@@ -291,7 +304,7 @@ check("splitting a group leaves its totals untouched",
    stacked up read as a score, and a seven-day window is not a verdict */
 check("an untrained muscle says so in words, and counts nothing",
       `(function(){[...document.querySelectorAll('.mcrow')]
-         .find(x=>x.querySelector('.mcname').textContent==='Shoulders').click();
+         .find(x=>x.querySelector('.mcname').textContent==='Shoulder').click();
         const none=document.querySelector('.mcinner .mcirow.mcinone');
         return !!none && /not this week/.test(none.textContent)
             && !/\\d/.test(none.querySelector('.mciwhen').textContent);})()`, true);
@@ -302,7 +315,7 @@ for(const [date,start,index,left] of [
  ['2026-09-13','sunday',0,6],['2026-09-19','sunday',6,0],
  ['2026-09-20','monday',6,0],['2027-01-01','sunday',5,1]]){
  run(`todayISO='${date}';DB.settings.weekStart='${start}';document.querySelector('.mccard').innerHTML=muscleCard();`);
- check(`${date} ${start}: one today column`, `document.querySelectorAll('.mccard .mc-today').length`,7);
+ check(`${date} ${start}: one today column`, `document.querySelectorAll('.mccard .mc-today').length`,8);   // the header + one per body part (seven rows since v4.6.173)
  check('today header aligns with actual date', `Array.from(document.querySelectorAll('.mchead .mccell')).findIndex(e=>e.classList.contains('mc-today'))`,index);
  check('remaining days caption', `document.querySelector('.mc-key').textContent.includes('${left?left+' day':'Last day'}')`,true);
  check('future marks have upcoming labels', `[...document.querySelectorAll('.mc-future')].every(e=>e.parentElement.getAttribute('aria-label').includes('upcoming'))`,true);

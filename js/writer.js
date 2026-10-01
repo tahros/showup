@@ -269,7 +269,13 @@ function writerPayload(o){
   const ranking=Object.keys(P.info).filter(p=>p!=='Run').map(p=>({part:p, since:P.info[p].sinceF, gap:+P.info[p].gapF.toFixed(1), live:!!P.info[p].live}))
     .sort((a,b)=>(b.since/b.gap)-(a.since/a.gap));
   const myp=myPartsSet(); const catalog={};
-  for(const p of Object.keys(SEED.catalog)) if(p!=='Run'&&myp.has(p)) catalog[p]=[...SEED.catalog[p], ...Object.keys(customs()).filter(x=>(customs()[x]||{}).part===p)];
+  /* v4.6.173: an exercise you avoid is not on the writer's menu at all, so the
+     muscle map it receives (heads, below) offers only what you will do for
+     each muscle -- avoiding Romanian Deadlift leaves the leg curls for the
+     hamstrings. Your history still counts toward coverage: those sets happened. */
+  const legacyAvoid=new Set((((DB.settings.plannerPreferences||{}).avoid)||[]).map(canonKey));
+  const ok=ex=>(typeof exPref!=='function'||exPref(ex)!=='avoid')&&!(legacyAvoid.has(canonKey(ex))&&exPref(ex)!=='like');
+  for(const p of Object.keys(SEED.catalog)) if(p!=='Run'&&myp.has(p)) catalog[p]=[...SEED.catalog[p], ...Object.keys(customs()).filter(x=>(customs()[x]||{}).part===p)].filter(ok);
   const cut=new Date(todayISO+'T00:00'); cut.setDate(cut.getDate()-WRITER_HISTORY_DAYS); const cutISO=cut.toLocaleDateString('en-CA');
   const history=[];
   for(const d of Object.keys(DB.days).sort()) if(d>=cutISO) for(const s of (DB.days[d].w||[])){

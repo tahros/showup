@@ -1,5 +1,16 @@
 # ShowUp — changelog
 
+## v4.6.173 (2026-10-01) — Body parts, muscles and exercises: one structure, and your verdict on each exercise
+
+- **Asked for:** exercises, body parts and muscles tracked by fixed IDs that map to each other, with a way to say an exercise is not for you ("I hate Romanian Deadlift and Calf Raises").
+- **The structure:** three levels. **Body part** (the eight Train tabs; the ID is the key every logged set already carries, so no record changes). **Muscle** (16, each belonging to exactly one body part). **Exercise** (its canonical ID; filed under one body part, crediting one primary muscle, with secondaries recorded but not counted). An exercise's body part and its muscle's body part can differ on purpose: Deadlift is filed under Back and works the hamstrings.
+- **One vocabulary:** Stats spoke in six groups (Arms, Core) while Train spoke in body parts. The groups are gone. The muscle card on Progress now has a row per body part (Biceps and Triceps apart, Sixpack instead of Core), and so does "Are you growing?".
+- **Core is two muscles:** abs (Cable Crunch, Hanging Leg Raise, Plank, ...) and obliques (Russian Twist, Bicycle Crunch, Side Plank).
+- **Muscles by ID:** the muscle map is keyed by exercise ID, so a renamed exercise keeps its muscle. An exercise can carry its own muscle, which is how one you create will get one (the screen that asks comes with the next step).
+- **Fixed:** Barbell Bench Press listed "shoulders" as a secondary muscle, which is not a muscle; it is front delts.
+- **Your verdict (`exPref`):** each exercise can be liked or avoided, by ID, stored apart from the catalog; neutral is no entry. The avoid list in Settings › Planning preferences moved into it once and reads from it now. What it changes: the plan writer does not see avoided exercises (so it picks another for the same muscle) and is asked to prefer liked ones; Set target + and other picks the app makes on its own skip avoided ones and take liked ones first; a generated day drops an avoided row. What it leaves alone: your logged history. The buttons to mark an exercise come next, after the mocks.
+- Tests: `test-expref.js` (16 checks, with the maker's Romanian Deadlift and Calf Raise); `test-muscle-coverage.js` moved to body parts and adds checks for abs/obliques, the bench fix, ID-keyed muscles surviving a rename, and an exercise's own muscle.
+
 ## v4.6.172 (2026-10-01) — "Done with" hands the header back to the workout
 
 - **Reported:** after "Done with Hanging Leg Raise", the live header still read Hanging Leg Raise with its rest clock (0:12), instead of going back to the whole workout.

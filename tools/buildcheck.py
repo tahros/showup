@@ -927,11 +927,12 @@ for _cls in _need_css:
 # -- Muscle taxonomy (v3.3.194): three structural laws. (1) Every catalog
 #    exercise except Run maps to a primary muscle — an unmapped one silently
 #    falls to a part fallback and the coverage card under-reports. (2) Every
-#    mapped muscle belongs to exactly one visible group. (3) Register: the
+#    mapped muscle belongs to exactly one body part (v4.6.173: the visible
+#    groups were retired; muscles roll up to the Train body parts). (3) Register: the
 #    coverage card states days; targets, warnings and prescriptions are out.
 _dv = (d/"js/derive.js").read_text()
 _exm = dict(_re.findall(r"'([^']+)':'([a-z-]+)'", _dv[_dv.find("const EX_MUSCLE="):_dv.find("const EX_MUSCLE_2ND")]))
-_mv  = dict(_re.findall(r"'?([a-z-]+)'?:'([A-Za-z]+)'", _dv[_dv.find("const MUSCLE_VISIBLE="):_dv.find("const EX_MUSCLE=")]))
+_mv  = dict(_re.findall(r"'?([a-z-]+)'?:'([A-Za-z]+)'", _dv[_dv.find("const MUSCLE_PART="):_dv.find("const MUSCLE_LABEL=")]))
 _cat = _re.findall(r'"([^"]+)":"(?:Chest|Back|Shoulder|Legs|Biceps|Triceps|Sixpack)"', core)
 _missing = [e for e in _cat if e not in _exm]
 if _missing:
@@ -939,13 +940,17 @@ if _missing:
                 + ", ".join(_missing[:4]) + ("…" if len(_missing)>4 else "") + " (v3.3.194)")
 _badm = sorted({m for m in _exm.values() if m not in _mv})
 if _badm:
-    fail.append("muscle taxonomy: primary muscle(s) with no visible group: "
+    fail.append("muscle taxonomy: primary muscle(s) with no body part: "
                 + ",".join(_badm) + " (v3.3.194)")
-_vgm = _re.search(r"const VISIBLE_GROUPS=\[([^\]]+)\]", _dv)
+_vgm = _re.search(r"const BODY_PARTS=\[([^\]]+)\]", _dv)
 _visible = _re.findall(r"'([^']+)'", _vgm.group(1)) if _vgm else []
-if _visible != ["Chest", "Back", "Shoulders", "Arms", "Legs", "Core"]:
-    fail.append("muscle taxonomy: visible groups must be Chest, Back, Shoulders, "
-                "Arms, Legs, Core — Glutes stays internal (v3.3.210)")
+if _visible != ["Chest", "Back", "Shoulder", "Legs", "Biceps", "Triceps", "Sixpack"]:
+    fail.append("muscle taxonomy: body parts must be the Train tabs Chest, Back, Shoulder, "
+                "Legs, Biceps, Triceps, Sixpack — one vocabulary (v4.6.173)")
+_offpart = sorted({m for m, pt in _mv.items() if pt not in _visible})
+if _offpart:
+    fail.append("muscle taxonomy: muscle(s) rolling up to something that is not a body part: "
+                + ",".join(_offpart) + " (v4.6.173)")
 _mcsec = _stats[_stats.rfind("/*",0,_stats.find("v3.3.194 — muscle coverage")):_stats.find("function currentRhythmSection")]
 _mctip = _re.search(r"hActs\('mc','([^']*)'", _stats)
 _mcsec += "\n" + (_mctip.group(1) if _mctip else "")

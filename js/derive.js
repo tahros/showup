@@ -12,11 +12,20 @@
    app's real catalog rather than injected as new selectable names: entries
    like "Pull-Up or Lat Pulldown" name two DISTINCT lifts in the ledger, and
    folding them is the merge Phase 1 exists to forbid. */
-const VISIBLE_GROUPS=['Chest','Back','Shoulders','Arms','Legs','Core'];
-/* v3.3.196: catalog part → visible group. One map, used by every surface
-   that speaks in groups; the ledger keeps storing the underlying part. */
-const PART_VISIBLE={Chest:'Chest',Back:'Back',Shoulder:'Shoulders',Legs:'Legs',
-  Biceps:'Arms',Triceps:'Arms',Sixpack:'Core',Run:'Run'};
+/* v4.6.173: ONE VOCABULARY. Train spoke in body parts (Biceps, Triceps,
+   Sixpack) while Stats spoke in six "visible groups" (Arms, Core) -- two names
+   for the same idea, and the maker agreed to keep only the one he trains by.
+   The hierarchy is now three levels, each with fixed IDs:
+     BODY PART  the eight Train tabs; the ID is the key every logged set has
+                always carried in s.part ('Chest' ... 'Sixpack', 'Run'), so no
+                stored record changes
+     MUSCLE     anatomy; each muscle belongs to exactly ONE body part
+     EXERCISE   the canonical id (core.js canonId); filed under one body part,
+                credits ONE primary muscle (counted) and any secondaries
+                (recorded, never counted)
+   An exercise's body part and its primary muscle's body part can differ on
+   purpose: Deadlift is filed under Back and works the hamstrings. */
+const BODY_PARTS=['Chest','Back','Shoulder','Legs','Biceps','Triceps','Sixpack'];   // Run (Cardio) has no muscles
 /* v3.3.357: Chest and Shoulders were single muscles, so expanding either one
    repeated its parent row and could never show a gap.
    CHEST splits by the pec's two heads: the clavicular (upper) and the
@@ -30,22 +39,21 @@ const PART_VISIBLE={Chest:'Chest',Back:'Back',Shoulder:'Shoulders',Legs:'Legs',
    posterior -- which genuinely can be trained apart, and which is the point:
    the rear delt is the muscle a pressing-heavy programme misses, and it is
    exactly what this card could not say before. */
-const MUSCLE_VISIBLE={'upper-chest':'Chest', chest:'Chest', 'lower-chest':'Chest',   /* v4.3.10 */
+/* muscle -> its body part, in on-screen order within each part. v4.6.173:
+   core is two muscles now -- abs and obliques -- so avoiding one Sixpack
+   exercise can be swapped for another that works the same muscle. */
+const MUSCLE_PART={'upper-chest':'Chest', chest:'Chest', 'lower-chest':'Chest',   /* v4.3.10 */
   lats:'Back','upper-back':'Back',
-  'front-delts':'Shoulders','side-delts':'Shoulders','rear-delts':'Shoulders',
-  biceps:'Arms',triceps:'Arms',quads:'Legs',hamstrings:'Legs',calves:'Legs',
-  glutes:'Legs',core:'Core'};
+  'front-delts':'Shoulder','side-delts':'Shoulder','rear-delts':'Shoulder',
+  quads:'Legs',hamstrings:'Legs',glutes:'Legs',calves:'Legs',
+  biceps:'Biceps',triceps:'Triceps',abs:'Sixpack',obliques:'Sixpack'};
 /* the label a muscle wears on screen. Only where the key is not already the
    words a person would use; everything else prints its own key. */
 const MUSCLE_LABEL={'upper-chest':'upper chest', chest:'mid / lower chest',
   'upper-back':'upper back', 'front-delts':'front delts',
-  'side-delts':'side delts', 'rear-delts':'rear delts'};
-/* v3.3.357: THE ROSTER. Coverage used to build this list from the sets you
-   logged, so a muscle you skipped did not exist in the data and could not be
-   drawn -- the card could only ever show what you DID. Seeded from
-   MUSCLE_VISIBLE so a group's roster is its rollup read backwards and the two
-   cannot drift; the order here is the order on screen. */
-const GROUP_MUSCLES=Object.entries(MUSCLE_VISIBLE)
+  'side-delts':'side delts', 'rear-delts':'rear delts', unassigned:'muscle not set'};
+/* v3.3.357: THE ROSTER, read back from MUSCLE_PART so the two cannot drift. */
+const PART_MUSCLES=Object.entries(MUSCLE_PART)
   .reduce((a,[m,v])=>((a[v]=a[v]||[]).push(m),a),{});
 /* v4.3.10: LOWER CHEST EXISTS. The map had two chest heads, chest and
    upper-chest, and every lower-chest movement -- dips, decline presses, the
@@ -101,13 +109,13 @@ const EX_MUSCLE={
   'Bench Dip':'triceps','Dumbbell Kickback':'triceps','Overhead Cable Extension':'triceps',
   'Diamond Push Up':'triceps',
   /* Core */
-  'Hanging Leg Raise':'core','Leg Raise':'core','Plank':'core','Cable Crunch':'core',
-  'Russian Twist':'core','Ab Wheel Rollout':'core','Bicycle Crunch':'core','Sit Up':'core',
-  'Decline Sit Up':'core','Mountain Climber':'core','Side Plank':'core'};
+  'Hanging Leg Raise':'abs','Leg Raise':'abs','Plank':'abs','Cable Crunch':'abs',
+  'Ab Wheel Rollout':'abs','Sit Up':'abs','Decline Sit Up':'abs','Mountain Climber':'abs',
+  'Russian Twist':'obliques','Bicycle Crunch':'obliques','Side Plank':'obliques'};
 /* recorded, never counted */
-const EX_MUSCLE_2ND={'Deadlift':['glutes','upper-back'],'Squat':['glutes','core'],
+const EX_MUSCLE_2ND={'Deadlift':['glutes','upper-back'],'Squat':['glutes','abs'],
   'Romanian Deadlift':['glutes'],'Hip Thrust':['hamstrings'],'Dip':['triceps'],
-  'Barbell Bench Press':['triceps','shoulders'],'Pull Up':['biceps'],
+  'Barbell Bench Press':['triceps','front-delts'],   /* v4.6.173: was 'shoulders', not a muscle */'Pull Up':['biceps'],
   'Bent-Over Row':['lats','biceps'],'Overhead Barbell Press':['triceps'],
   'Bulgarian Split Squat':['glutes'],'Dumbbell Lunge':['glutes'],'Walking Lunge':['glutes']};
 /* v3.3.357: an unmapped Shoulder exercise lands on the front head -- the one
@@ -115,10 +123,31 @@ const EX_MUSCLE_2ND={'Deadlift':['glutes','upper-back'],'Squat':['glutes','core'
    is. It is a guess, and it is the reason a new exercise should get a real
    EX_MUSCLE entry rather than riding the fallback. */
 const PART_FALLBACK={Chest:'chest',Back:'upper-back',Shoulder:'front-delts',
-  Biceps:'biceps',Triceps:'triceps',Sixpack:'core'};   // Legs deliberately absent
-function exMuscle(ex,part){
-  return EX_MUSCLE[ex]||PART_FALLBACK[part]||'unassigned';
+  Biceps:'biceps',Triceps:'triceps',Sixpack:'abs'};   // Legs deliberately absent: four muscles, no honest guess
+/* v4.6.173: THE MUSCLE MAP IS KEYED BY EXERCISE ID. Keyed by name, a renamed
+   exercise lost its muscle; the id is minted once and never changes, so the
+   rename keeps it. The table above stays readable by name and is converted
+   once here. An exercise's own canon entry can carry its muscle (`m`), which
+   is how an exercise you created gets one; that wins over the table. */
+const exSlug=str=>canonKey(str).replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'')||'ex';
+const EX_MUSCLE_ID=Object.fromEntries(Object.entries(EX_MUSCLE).map(([n,m])=>[exSlug(n),m]));
+const EX_MUSCLE_2ND_ID=Object.fromEntries(Object.entries(EX_MUSCLE_2ND).map(([n,m])=>[exSlug(n),m]));
+let _exIdIx=null;
+/* name -> id without minting; an index rebuilt when the canon changes */
+function exIdOf(ex){
+  const c=(DB.settings&&DB.settings.canon)||{},sig=Object.keys(c).length+'|'+Object.values(c).map(e=>e.name+(e.al||[]).join()).join().length;
+  if(!_exIdIx||_exIdIx.c!==c||_exIdIx.sig!==sig){
+    const map=new Map();
+    for(const [id,e] of Object.entries(c)){map.set(canonKey(e.name),id);for(const a of e.al||[])if(!map.has(canonKey(a)))map.set(canonKey(a),id);}
+    _exIdIx={c,sig,map};
+  }
+  return _exIdIx.map.get(canonKey(ex))||exSlug(ex);
 }
+function exMuscle(ex,part){
+  const id=exIdOf(ex),own=(((DB.settings||{}).canon||{})[id]||{}).m;
+  return (own&&MUSCLE_PART[own]?own:null)||EX_MUSCLE_ID[id]||PART_FALLBACK[part]||'unassigned';
+}
+const exSecondary=ex=>EX_MUSCLE_2ND_ID[exIdOf(ex)]||[];
 /* last-7-days coverage: per visible group, the distinct DAYS (first — days
    over volume) and completed sets; per internal muscle the same, plus the
    per-day dot strip. Reads the canonical merge every other reader uses. */
@@ -128,9 +157,9 @@ function muscleCoverage(){
   const days=weekDays();
   /* v3.3.357: seeded with the FULL roster at zero, so a muscle you did not
      train is a row that says so instead of a row that does not exist. */
-  const g={}; for(const v of VISIBLE_GROUPS){
+  const g={}; for(const v of BODY_PARTS){
     g[v]={days:new Set(),sets:0,dots:days.map(()=>false),mus:{}};
-    for(const m of (GROUP_MUSCLES[v]||[])) g[v].mus[m]={days:new Set(),sets:0};
+    for(const m of (PART_MUSCLES[v]||[])) g[v].mus[m]={days:new Set(),sets:0};
   }
   days.forEach((iso,di)=>{
     const rows=iso===todayISO
@@ -139,7 +168,7 @@ function muscleCoverage(){
     for(const r of rows){
       if(r[1]==='Run'||!(r[3]||[]).length) continue;
       const m=exMuscle(r[1],r[0]);
-      const vis=MUSCLE_VISIBLE[m]||({Legs:'Legs'})[r[0]]||MUSCLE_VISIBLE[PART_FALLBACK[r[0]]]||'Core';
+      const vis=MUSCLE_PART[m]||r[0];   // a muscle not yet set counts toward the set's own body part
       const gg=g[vis]; if(!gg) continue;
       gg.days.add(iso); gg.sets+=r[3].length; gg.dots[di]=true;
       gg.mus[m]=gg.mus[m]||{days:new Set(),sets:0};   // a stray key still counts
