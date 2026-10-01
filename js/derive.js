@@ -412,17 +412,26 @@ function tickRest(){
      been marked done; the 30-minute guard already says "you left".
      lastSetAt is null until something is logged today, so a rest day and an
      unwritten morning still show nothing. */
-  const show = !!lastSetAt && Math.floor((Date.now()-lastSetAt)/1000)<=1800;
-  el.classList.toggle('on',show);          // visibility is the timer's own, not the header's
-  el.classList.toggle('done',show&&!isLive());
-  if(!show){ el.textContent=''; return; }
-  const s=Math.max(0,Math.floor((Date.now()-lastSetAt)/1000));
   // The viewed exercise and the last-set timestamp are independent facts.
   // Keep these nodes alive: recreating the colon every second restarts its animation.
   const t=day(todayISO), rows=typeof sessionRows==='function'?sessionRows(t):(t.w||[]);
   const done=t.doneEx||[], last=rows[rows.length-1];
   const opened=typeof lift!=='undefined'&&view==='lift'&&!lift.copy&&!lift.plan&&lift.ex;
   const ex=opened&&!done.includes(opened)?opened:last&&!done.includes(last.ex)?last.ex:null;
+  /* v4.6.172: BETWEEN EXERCISES THE CLOCK IS THE WORKOUT'S. "Done with Hanging
+     Leg Raise" left the header on that exercise's rest clock: nothing is resting
+     once the exercise is done. With no exercise open, the portrait header counts
+     the workout itself, from its first set; the next logged set hands the clock
+     back to that exercise's rest. Landscape stays the rest stage it was approved
+     as (tickBigDigits keeps it on the last set). */
+  const stamps=rows.map(z=>+z.at).filter(x=>x>0),start=stamps.length?Math.min(...stamps):null;
+  const whole=!ex&&!!start&&isLive()&&!document.documentElement.classList.contains('bigtimer');
+  const show = whole || (!!lastSetAt && Math.floor((Date.now()-lastSetAt)/1000)<=1800);
+  el.classList.toggle('on',show);          // visibility is the timer's own, not the header's
+  el.classList.toggle('done',show&&!isLive());
+  el.classList.toggle('whole',show&&whole);
+  if(!show){ el.textContent=''; return; }
+  const s=Math.max(0,Math.floor((Date.now()-(whole?start:lastSetAt))/1000));
   let detail='';
   if(ex){
     const own=rows.filter(z=>z.ex===ex), previous=own[own.length-1];
@@ -440,7 +449,7 @@ function tickRest(){
     if(!n){n=document.createElement('span');n.className=cls;el.appendChild(n);}
     return n;
   }
-  node('rt-ctx').textContent=ex||'Between exercises';
+  node('rt-ctx').textContent=ex||(whole?'Workout':'Between exercises');
   const clock=node('rt-time');
   if(!clock.querySelector('.rt-colon')){
     clock.textContent='';

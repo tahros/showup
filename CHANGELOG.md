@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v4.6.172 (2026-10-01) — "Done with" hands the header back to the workout
+
+- **Reported:** after "Done with Hanging Leg Raise", the live header still read Hanging Leg Raise with its rest clock (0:12), instead of going back to the whole workout.
+- **Why:** with no exercise open, the header named the last exercise logged and kept counting from its last set, whether or not that exercise was marked done.
+- **Now, in portrait:** inside an exercise, the header is that exercise and its rest clock, as before. Once it is done, the header reads **Workout** and the clock counts the workout from its first set. The next set you log, in any exercise, takes the header back to that exercise with a fresh rest clock. Leaving an exercise without marking it done keeps its rest clock, as before.
+- **Landscape** keeps the full-screen rest timer as approved ("Between exercises", time since your last set).
+- Tests: `tools/check-done-workout-clock.cjs` (Chromium, light and dark, 16 checks: the maker's case, the next set, Done again, landscape, back to portrait, a finished workout); `test-resttimer.js` now expects Workout and the workout clock after Done.
+
 ## v4.6.171 (2026-09-30) — smaller Lifted p trio
 
 - Replaced completion lettering with the exact approved Lifted p trio vector paths and spacing from the preview. The lettering is 100.44px wide (124px × 90% × 90%); the 96.6px mascot and 14px Open gap are unchanged.

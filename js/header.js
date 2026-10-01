@@ -29,8 +29,10 @@ function renderHeader(){
   }
   $('#hDate').textContent=inPlan?'Plan':wd(todayISO);
   if(live&&!inPlan){
-    const rows=(DB.days[todayISO]||{}).w||[];
-    $('#hDate').textContent=rows.length?rows[rows.length-1].ex:'Workout';
+    /* v4.6.172: a finished exercise no longer names the live header -- "Done with"
+       hands it back to the workout, the same moment the clock does (tickRest) */
+    const rows=(DB.days[todayISO]||{}).w||[],last=rows[rows.length-1],done=(DB.days[todayISO]||{}).doneEx||[];
+    $('#hDate').textContent=last&&!done.includes(last.ex)?last.ex:'Workout';
   }
   /* the sets/parts/distance assembly that fed the old subtitle went with it
      -- dead computation on every render is rent. */

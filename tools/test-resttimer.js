@@ -261,9 +261,11 @@ console.log(fail ? "\n" + fail + " FAILED" : "\nALL PASS");
   ok("...with the clock and the session line beside it",
      /^\d+:\d\d$/.test(timeTxt()) && /2 sets/.test(subTxt2()), timeTxt()+" | "+subTxt2());
   seed(['Dip']);
-  ok("completing Dip shows Between exercises", ctxTxt()==='Between exercises', ctxTxt());
-  /* v3.3.149 stands: the clock is time-since-last-set, whatever is marked done */
-  ok("...but the clock keeps running (v3.3.149)", /^\d+:\d\d$/.test(timeTxt()), timeTxt());
+  /* v4.6.172: Done hands the portrait header to the WORKOUT -- its name and its
+     own clock from the first set (20:00 here); landscape keeps "Between
+     exercises" on the rest clock (tools/check-done-workout-clock.cjs) */
+  ok("completing Dip hands the clock to the Workout", ctxTxt()==='Workout', ctxTxt());
+  ok("...which counts the workout from its first set", /^20:0\d$/.test(timeTxt()), timeTxt());
   ok("...and the session line stays, because it describes the DAY not the lift",
      /2 sets/.test(subTxt2()) && /min in/.test(subTxt2()), subTxt2());
   ok("...and the timer is still on screen at all", run(`document.getElementById('hTimer').classList.contains('on')`));
@@ -275,7 +277,7 @@ console.log(fail ? "\n" + fail + " FAILED" : "\nALL PASS");
   /* completing the LAST open thing still leaves a readable screen */
   run(`(function(){DB.days[todayISO].doneEx=['Dip','Cable Fly Up']; SEED=deriveAll(); tickRest();})()`);
   ok("...and closing that one too leaves the clock and the day, not a blank",
-     ctxTxt()==='Between exercises' && /^\d+:\d\d$/.test(timeTxt()) && /3 sets/.test(subTxt2()),
+     ctxTxt()==='Workout' && /^20:0\d$/.test(timeTxt()) && /3 sets/.test(subTxt2()),
      ctxTxt()+" | "+timeTxt()+" | "+subTxt2());
 }
 
