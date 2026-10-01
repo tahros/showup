@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v4.6.177 (2026-10-01) — The Include / Avoid switch slides and holds still
+
+- **Reported:** the switch felt clunky: every change made the screen jitter, and the choice snapped instead of moving. Shown as a recorded demo first and approved.
+- **Why it jumped:** a tap re-rendered the whole exercise screen, and the "Avoided" note appearing at the top pushed everything under it down, so the switch moved 77px under your finger.
+- **Now:** only the switch changes. The note is added or removed at the top and the switch's position is restored, so nothing you are looking at moves (within a pixel, in Chrome and Safari alike). The toast on toggle is gone: the switch and the note already say it.
+- **Motion:** one thumb slides between the two choices on the app's settle curve; with reduced motion it switches instantly.
+- **Colour, from the brand kit:** Include is brand blue (#3049DC) with a check; Avoid is soft charcoal (#2C2C2C) with the ⊘, a light slate in dark mode where charcoal would vanish. Red stays the colour of a live workout only.
+- Tests: `tools/check-avoid.cjs` adds: the switch holds still both ways with no re-render, and the thumb is a transform that slides and turns charcoal (slate in dark). 64 checks.
+
 ## v4.6.176 (2026-10-01) — From History to an exercise's charts in one tap
 
 - **Asked for:** tapping an exercise, or any of its reps, in a History session should open that exercise in Train and scroll to its history charts.
