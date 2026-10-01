@@ -40,6 +40,11 @@ const types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg
    await p.setViewportSize({width,height:852});
    await p.evaluate(theme=>{DB.settings.theme=theme;applyTheme();celebrateDayDone(true,12,0,true);},theme);
    assert.equal(await p.locator('#dayDone .showuppp-lettering [data-letter]').count(),8);
+   const resting=await p.locator('#dayDone [data-letter]').evaluateAll(es=>es.map(e=>({letter:e.dataset.letter,rect:e.getBoundingClientRect().toJSON()})));
+   const ps=resting.filter(e=>e.letter.startsWith('p')).map(e=>e.rect.bottom);
+   assert(Math.max(...ps)-Math.min(...ps)<1,'approved p trio rests level, without ascension');
+   assert(Math.max(...resting.slice(0,4).map(e=>e.rect.bottom))<Math.min(...resting.slice(4).map(e=>e.rect.top)),'two distinct rows at rest');
+   assert.equal(await p.locator('#dayDone .showuppp-burst').count(),0,'no particles in static mode');
    assert.equal(await p.locator('#dayDone .su-mascot canvas').count(),0,'Still is a static PNG');
    assert.equal(await p.locator('#dayDone .ddbrand').evaluate(el=>getComputedStyle(el).animationName),'none');
    const g=await p.locator('#dayDone .showuppp-lockup').boundingBox();assert(g.x>=0&&g.x+g.width<=width);
@@ -79,14 +84,33 @@ const types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg
   const transforms=await p.locator('#dayDone [data-letter]').evaluateAll(es=>es.slice(0,4).map(e=>getComputedStyle(e).transform));
   assert(new Set(transforms).size===4,'Show is a stagger, not one moving word');
   await snap('complete-animated');
-  await p.waitForTimeout(1700);
+  // Sample the real one-shot at its blue-accent beat without altering timelines.
+  await p.waitForTimeout(1200);
+  assert.equal(await p.locator('#dayDone .showuppp-burst').count(),8);
+  assert.notEqual(await p.locator('#dayDone [data-letter="p3"]').evaluate(e=>getComputedStyle(e).color),'rgb(44, 44, 44)','ppp receives the blue accent');
+  assert.notEqual(await p.locator('#dayDone .showuppp-lettering').evaluate(e=>getComputedStyle(e).transform),'none','whole lockup adds a gentle pop');
+  await snap('complete-pop-blue');
+  await p.waitForFunction(()=>document.querySelectorAll('#dayDone .showuppp-burst').length===0);
   assert(await p.locator('#dayDone [data-letter]').evaluateAll(es=>es.every(e=>e.getAnimations().length===0&&getComputedStyle(e).transform==='none')),'settles once without looping');
+  assert.equal(await p.locator('#dayDone .showuppp-burst').count(),0,'one-shot particles are removed');
+  assert.equal(await p.locator('#dayDone .showuppp-c').evaluate(e=>e.getAnimations({subtree:true}).length),0,'all timelines settle');
   await p.evaluate(()=>showupppAnimate(document.querySelector('#dayDone')));
   await p.emulateMedia({reducedMotion:'reduce'});
   await p.waitForFunction(()=>[...document.querySelectorAll('#dayDone [data-letter]')].every(e=>e.getAnimations().length===0));
   assert(await p.locator('#dayDone [data-letter]').evaluateAll(es=>es.every(e=>e.getAnimations().length===0)),'live reduced-motion change cancels motion');
+  assert.equal(await p.locator('#dayDone .showuppp-burst').count(),0,'reduced motion clears the burst');
   await p.emulateMedia({reducedMotion:'no-preference'});
   await p.locator('#dayDone [data-dd="done"]').click();await p.locator('#dayDone').waitFor({state:'detached'});
+  await p.evaluate(()=>{DB.settings.theme='dark';applyTheme();celebrateDayDone(true,12,0,true);});
+  await p.waitForTimeout(1650);
+  assert.equal(await p.locator('#dayDone .showuppp-lettering').evaluate(e=>getComputedStyle(e).filter),'none','dark theme retains blue accents');
+  assert.notEqual(await p.locator('#dayDone [data-letter="p3"]').evaluate(e=>getComputedStyle(e).color),'rgb(255, 255, 255)','dark theme p trio receives the accent');
+  await snap('complete-pop-dark');
+  await p.evaluate(()=>{DB.settings.mascotMotion='still';document.dispatchEvent(new Event('mascotsettingschange'));});
+  assert.equal(await p.locator('#dayDone .showuppp-c').evaluate(e=>e.getAnimations({subtree:true}).length),0,'live Still change cancels the whole pop');
+  assert.equal(await p.locator('#dayDone .showuppp-burst').count(),0);
+  await p.locator('#dayDone [data-dd="done"]').click();await p.locator('#dayDone').waitFor({state:'detached'});
+  await p.evaluate(()=>{DB.settings.theme='light';DB.settings.mascotMotion='animated';applyTheme();});
   // Exercise the existing connected ink flight with the new two-part hero.
   await p.evaluate(()=>{const source=document.createElement('div');source.id='brand-flight-source';source.style.cssText='position:fixed;left:40px;top:300px;width:180px';source.innerHTML=mascotHTML('cool','','blue')+'<b class="dcn">12</b>';document.body.append(source);celebrateDayDone(true,12,0,true,source);});
   assert.equal(await p.locator('#dayDone.dd-inked').count(),1);
@@ -96,9 +120,13 @@ const types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg
   await p.waitForFunction(()=>[...document.querySelectorAll('#dayDone [data-letter]')].every(e=>e.getAnimations().length===1));
   assert.equal(await p.locator('#dayDone .showuppp-lettering').evaluate(e=>getComputedStyle(e).visibility),'visible');
   assert.equal(await p.locator('#dayDone .su-mascot').getAttribute('data-mascot-tone'),'blue');
-  await p.evaluate(()=>{window.brandAnimationRefs=[...document.querySelectorAll('#dayDone [data-letter]')].flatMap(e=>e.getAnimations());});
+  // Replaying cancels the old timelines rather than accumulating duplicate jumps.
+  await p.evaluate(()=>{showupppAnimate(document.querySelector('#dayDone'));showupppAnimate(document.querySelector('#dayDone'));});
+  assert.equal(await p.locator('#dayDone .showuppp-burst').count(),8,'replay has one burst only');
+  await p.evaluate(()=>{window.brandAnimationRefs=document.querySelector('#dayDone .showuppp-c').getAnimations({subtree:true}).filter(a=>!a.effect.target.matches('.su-mascot'));});
   await p.locator('#dayDone [data-dd="done"]').click();await p.locator('#dayDone').waitFor({state:'detached'});
-  assert(await p.evaluate(()=>window.brandAnimationRefs.every(a=>a.playState==='idle')),'dismissal cancels all logo animations');
+  const remaining=await p.evaluate(()=>window.brandAnimationRefs.filter(a=>a.playState!=='idle').map(a=>({target:a.effect.target.getAttribute('class'),letter:a.effect.target.dataset.letter,state:a.playState})));
+  assert.deepEqual(remaining,[],'dismissal cancels all logo animations: '+JSON.stringify(remaining));
   await p.locator('#brand-flight-source').evaluate(e=>e.remove());
   // Off leaves the welcome lettering, and keeps the existing no-mascot ceremony.
   await p.evaluate(()=>{DB.settings.mascotMotion='off';document.dispatchEvent(new Event('mascotsettingschange'));const host=document.createElement('div');host.id='brand-off-test';host.innerHTML=showupppLogoHTML('a');document.body.append(host);celebrateDayDone(true,12,0,true);});

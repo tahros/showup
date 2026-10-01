@@ -143,11 +143,14 @@ html.gym-tour-open,html.gym-tour-open body{overflow:hidden}
 @media(prefers-reduced-motion:reduce){#dayDone .ddbrand{animation:none;transform:none;opacity:1}}
 /* Approved Compact mascot / Open gap. Letter size stays independent. */
 #dayDone .ddhero.ddbrand{width:234.6px;animation:none;transform:none;opacity:1}
-.showuppp-c{display:flex;gap:14px;align-items:center;justify-content:center;max-width:234.6px}
+.showuppp-c{position:relative;display:flex;gap:14px;align-items:center;justify-content:center;max-width:234.6px}
 .showuppp-c .showuppp-character{width:96.6px;height:59.892px;aspect-ratio:auto;flex:none;isolation:isolate}
 #dayDone .ddbrand .showuppp-c .su-mascot{width:184.615%;left:-42.308%;top:-43.83%;pointer-events:none}
 .showuppp-c .su-mascot img{transform-origin:50% 77%}
-.showuppp-c .showuppp-lettering{width:124px;flex:none;overflow:visible}
+.showuppp-c .showuppp-lettering{width:124px;flex:none;overflow:visible;color:#2c2c2c;transform-origin:50% 60%}
+:root[data-theme="dark"] .showuppp-c .showuppp-lettering{filter:none;color:#fff}
+.showuppp-burst{position:absolute;width:4px;height:9px;border-radius:2px;background:var(--accent-ink);opacity:0;pointer-events:none}
+.showuppp-burst:nth-of-type(even){height:4px;border-radius:50%;background:#84a0ff}
 .showuppp-c [data-letter]{transform-box:fill-box;transform-origin:50% 100%}
 .showuppp-ground{position:absolute;left:0;right:0;bottom:0;height:5px;border-radius:50%;background:radial-gradient(ellipse,#0003 0%,#00000014 48%,#0000 74%);filter:blur(.5px);z-index:-1}
 :root[data-theme="dark"] .showuppp-ground{background:radial-gradient(ellipse,#0008 0%,#0003 48%,#0000 74%)}

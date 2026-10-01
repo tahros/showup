@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.170 (2026-09-30) — approved Pop Celebration only
+
+- Completion now uses the approved Show / Uppp vector lettering with the p trio level at rest and the tighter poster spacing. Existing welcome branding and share experiences are unchanged; rejected concepts are not included.
+- Ported the approved one-shot Pop Celebration: independently bouncing/tilting letters, stronger staggered Uppp blue accents, a gentle whole-wordmark pop and eight small local particles. Motion settles after 3.5 seconds, with immediate dismissal, Still/Off and OS reduced-motion fallbacks.
+- Kept the compact mascot, Open gap and single grounded shadow. Replays cancel their previous timelines; particles and motion clean up on dismissal or preference/visibility changes. No workout logging or saved-data changes.
+- Browser coverage checks level lettering, individual motion, light/dark accent visibility, replay cleanup, static fallbacks, unchanged welcome, offline availability and unchanged workout records.
+
 ## v4.6.169 (2026-09-30) — one grounded mascot shadow
 
 - Removed the baked-in floor/contact shadow from completion posters by exporting the existing 3D model with its ground hidden. Original mascot assets and other screens are unchanged.
