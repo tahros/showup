@@ -1884,3 +1884,18 @@ document.addEventListener('click',e=>{
   toast(want?`${lift.ex} avoided — left out of plans and suggestions`:`${lift.ex} included again`);
   renderLift();
 });
+
+/* v4.6.176: opened from a History session, the exercise screen lands on its
+   history charts (Progression), which paint a beat after the screen. Waits
+   for them, then jumps once -- no animation: this is where it opens, not a
+   tour. If the exercise has no charts (cardio), it stays at the top. */
+function liftScrollToCharts(){
+  if(!lift.toCharts) return; lift.toCharts=false;
+  let n=0;const go=()=>{
+    const el=view==='lift'&&document.querySelector('#view .progression-section');
+    if(!el){ if(++n<30) setTimeout(go,60); return; }
+    const hdr=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hdr-h'))||76;
+    window.scrollTo(0,Math.max(0,el.getBoundingClientRect().top+scrollY-hdr-12));
+  };
+  requestAnimationFrame(go);
+}

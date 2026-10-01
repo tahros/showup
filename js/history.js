@@ -365,7 +365,11 @@ function renderHistory(){
         const n=g.sets.reduce((a,s)=>a+((g.ex==='Run'||(isCardioEx(g.ex)&&!(s[1]||[]).length))?1:(s[1]||[]).length),0);
         if(!n) return;
         shownSets+=n;
-        h+=`<div class="exgrp"><div class="lasthead"><span>${g.ex}</span>`
+        /* v4.6.176: an exercise in a session opens it in Train, scrolled to its
+           history charts -- the name or any rep. Not while editing the day:
+           then the rows are the editor's. */
+        const open=!editing?` hx-open" data-ex="${hesc(g.ex)}" data-part="${hesc(homePartOf(g.ex)||g.part||'')}" data-hcharts="1" role="button" tabindex="0" aria-label="Open ${hesc(g.ex)} in Train, at its history`:'';
+        h+=`<div class="exgrp${open}"><div class="lasthead"><span>${g.ex}</span>`
           +`<span class="ago">${n} set${n>1?'s':''}</span></div>`;
         if(!editing){
           const folded=foldSets(g.sets,g.ex);
@@ -567,3 +571,7 @@ function showCalReturn(){
     _calRetIO.observe(cal);
   }
 }
+/* v4.6.176: the session's exercise blocks are buttons to a keyboard too */
+document.addEventListener('keydown',e=>{
+  if((e.key==='Enter'||e.key===' ')&&e.target.classList&&e.target.classList.contains('hx-open')){e.preventDefault();e.target.click();}
+});

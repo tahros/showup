@@ -341,9 +341,12 @@ document.addEventListener('click',e=>{
   if(ex){
     lift.part=ex.dataset.part||lift.part; lift.ex=ex.dataset.ex;
     lift.ret=view==='lift'?null:view;               // v3.3.434: only a jump from elsewhere returns
+    /* v4.6.176: from History, land on the exercise's charts; back returns to the
+       same place in History */
+    lift.retY=lift.ret?scrollY:null; lift.toCharts=!!ex.dataset.hcharts;
     lift.weight=0; lift.editBar=false; lift.copy=false; lift.suggestOpen=null; lift.info=false; lift.editSet=null; lift.editToday=false;
     view='lift';                                   // <- was missing: Today stayed on Today
-    return render();
+    render(); if(typeof liftScrollToCharts==='function') liftScrollToCharts(); return;
   }
   if(e.target.closest('.back')){
     if(lift.copy){ lift.copy=false; return renderLift(); }
@@ -355,7 +358,9 @@ document.addEventListener('click',e=>{
        one job: return to the screen that opened this one.
        lift.ret is set by every jump that arrives from OUTSIDE Train, and is
        consumed here, once -- so a second back still unwinds Train normally. */
-    if(lift.ex&&lift.ret){ const r=lift.ret; lift.ret=null; lift.ex=null; view=r; return render(); }
+    if(lift.ex&&lift.ret){ const r=lift.ret,y=lift.retY; lift.ret=null; lift.retY=null; lift.ex=null; view=r; render();
+      if(y!=null) requestAnimationFrame(()=>requestAnimationFrame(()=>window.scrollTo(0,y)));   // v4.6.176
+      return; }
     if(lift.ex)lift.ex=null;else lift.part=null;
     return render();
   }

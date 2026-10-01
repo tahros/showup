@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.176 (2026-10-01) — From History to an exercise's charts in one tap
+
+- **Asked for:** tapping an exercise, or any of its reps, in a History session should open that exercise in Train and scroll to its history charts.
+- **Now:** each exercise in a session card (its name and its weight and rep rows) opens that exercise in Train, landing on Progression with the charts just under the header. Back returns to History at the same spot you left.
+- While a day is being edited, its rows stay the editor's and do not navigate. A cardio entry opens its own screen at the top (it has no Progression charts).
+- Tests: `tools/check-history-open.cjs` (Chromium, light and dark, 320 and 402px, 28 checks: a rep, the name, the landing position, Back to the same place, edit mode).
+
 ## v4.6.175 (2026-10-01) — The ShowUppp brand kit: saved, and the icons from it
 
 - **Asked for:** save the new ShowUppp / Lifted p trio brand kit and apply it where needed.
