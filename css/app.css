@@ -166,7 +166,7 @@
 @media(max-width:350px){.progression-card .pg-modes button{font-size:11px}}
 @media(max-width:359px){.progression-card .pg-period-main{font-size:13px}.progression-card .pg-read-value{font-size:16px}}
 @media(prefers-reduced-motion:reduce){.progression-card button{transition:none}}
-:root{--rest-top:color-mix(in srgb,var(--rest) 22%,var(--ground));--sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px);--kb:0px;
+:root{--rest-top:color-mix(in srgb,var(--rest) 22%,var(--ground));--sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px);--kb:0px;--sheen-mask:linear-gradient(transparent,transparent);--sheen-w:100%;--sheen-h:100%;--sheen-x:0px;--sheen-clip:0px;
     /* v3.3.270 — THE MOTION VOICE. One settle curve, three speeds, spoken
        everywhere something arrives or changes state. The curve starts fast
        and lands long — things settle like architecture, they do not snap.
@@ -2204,6 +2204,14 @@
     background:linear-gradient(105deg,transparent 44%,rgba(255,255,255,.5) 50%,transparent 56%);
     background-size:300% 100%}
   .vs .vsrow:first-child .bar i::after{animation-duration:5s;animation-delay:.8s}
+  /* v4.6.191: the two grid sheens are seen only through their trained cells
+     (js/util.js syncSheenMasks cuts the mask); with no mask yet, nothing shows */
+  .cal::after,.heatframe::after{
+    -webkit-mask-image:var(--sheen-mask,linear-gradient(transparent,transparent));mask-image:var(--sheen-mask,linear-gradient(transparent,transparent));
+    -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+    -webkit-mask-size:var(--sheen-w,100%) var(--sheen-h,100%);mask-size:var(--sheen-w,100%) var(--sheen-h,100%);
+    -webkit-mask-position:var(--sheen-x,0px) 0;mask-position:var(--sheen-x,0px) 0}
+  .heatframe::after{clip-path:inset(0 0 0 var(--sheen-clip,0px))}
   @keyframes sheen{0%{background-position:100% 0}70%{background-position:0% 0}100%{background-position:0% 0}}
   @media (prefers-reduced-motion:reduce){
     .strip::after,.chip.on:not(.livego)::after,.btn:not(.ghost):not(.livego)::after,

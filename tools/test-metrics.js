@@ -75,7 +75,7 @@ async function client(){
     ok("today's first set: one day_logged, day_n = the record's logged days (3)", dl.length===1 && dl[0].day_n===3, JSON.stringify(dl));
     ok('not the record\'s first day: no first_set', !b.q().some(e=>e.name==='first_set'));
     const body=JSON.stringify(b.run('JSON.stringify(mBody(mQueue()))'));
-    ok('the request never carries workout content', !/Bench|Chest|225|"w"|"reps"|"ex"|"part"/.test(body), body);
+    ok('the request never carries workout content', !/Bench|Chest|\b225\b|"w"|"reps"|"ex"|"part"/.test(body)   /* v4.6.191: 225 as a number of its own -- a timestamp such as 1790922504364 contains the digits and failed this at random */, body);
     const bo=JSON.parse(b.run('JSON.stringify(mBody(mQueue()))'));
     ok('the request has exactly the named fields', Object.keys(bo).sort().join()==='app_version,device_id,events,platform,ref' &&
       bo.events.every(e=>Object.keys(e).every(k=>['name','at','day_n'].includes(k))), JSON.stringify(Object.keys(bo)));

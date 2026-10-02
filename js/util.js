@@ -2769,3 +2769,55 @@ if(typeof MutationObserver==='function'&&document.body){
   mo.observe(document.body,{childList:true});
   const v=document.getElementById('view');if(v)mo.observe(v,{childList:true,subtree:false});
 }
+/* v4.6.191: THE SHEEN LANDS ON THE BLUE CELLS ONLY. The month calendar in
+   History and the heat map in Stats each had one highlight sweeping across
+   the whole grid (.cal::after, .heatframe::after), so the band of light also
+   crossed the grey days, the weekday letters and the gaps between cells --
+   light on surfaces that are not lit. The sweep stays one sweep (a per-cell
+   animation would break it into flickers, and 1,800 of them on the heat map),
+   but it is now seen through a mask cut to the trained cells: an SVG of their
+   rectangles, measured from the page and handed to the ::after as
+   --sheen-mask. Until a mask exists the sheen is not drawn at all.
+   The heat map scrolls under a fixed window, so its mask is as wide as the
+   whole grid and slides with the scroll (--sheen-x); the weekday rail on its
+   left is clipped out (--sheen-clip). Recomputed when the grid's own content
+   or width changes, and never while it is unchanged (a signature of which
+   cells are on -- no layout is read to decide). */
+const SHEEN_GRIDS=[['.cal','.cd','.cd.on',null],['.heatframe','.hc','.hc.on','.heatwrap']];
+function syncSheenMasks(){
+  for(const [boxSel,cellSel,onSel,scrollSel] of SHEEN_GRIDS) for(const box of document.querySelectorAll(boxSel)){
+    const all=box.querySelectorAll(cellSel); let sig=box.clientWidth+'|'+all.length+'|';
+    all.forEach((c,i)=>{ if(c.matches(onSel)) sig+=i.toString(36)+','; });
+    if(box._sheenSig===sig) continue;
+    const R=box.getBoundingClientRect(); if(!R.width||!R.height) continue;
+    box._sheenSig=sig;
+    const sc=scrollSel?box.querySelector(scrollSel):null, on=box.querySelectorAll(onSel);
+    const rad=on.length?(parseFloat(getComputedStyle(on[0]).borderTopLeftRadius)||0):0;
+    let W=R.width, rects='';
+    /* LAYOUT positions (offset*), not painted ones: a cell caught mid-entrance
+       is drawn scaled or shifted, and a mask cut from that would be wrong for
+       the rest of its life. Offsets also ignore the scroll, which is what the
+       mask wants: where each cell sits at scroll 0. */
+    on.forEach(c=>{ const cw=c.offsetWidth, ch=c.offsetHeight; if(!cw||!ch) return;
+      let x=0,y=0,e=c; while(e&&e!==box){ x+=e.offsetLeft; y+=e.offsetTop; e=e.offsetParent; }
+      if(e!==box) return; W=Math.max(W,x+cw);
+      rects+=`%3Crect x='${x}' y='${y}' width='${cw}' height='${ch}' rx='${Math.min(rad,cw/2).toFixed(1)}'/%3E`; });
+    const w=Math.ceil(W), h=Math.ceil(R.height);
+    box.style.setProperty('--sheen-mask',`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}' viewBox='0 0 ${w} ${h}'%3E${rects}%3C/svg%3E")`);
+    box.style.setProperty('--sheen-w',w+'px'); box.style.setProperty('--sheen-h',h+'px');
+    if(sc){
+      let cl=0,e=sc; while(e&&e!==box){ cl+=e.offsetLeft; e=e.offsetParent; }
+      box.style.setProperty('--sheen-clip',Math.max(0,cl)+'px');
+      const slide=()=>box.style.setProperty('--sheen-x',(-sc.scrollLeft)+'px'); slide();
+      if(!sc._sheenScroll){ sc._sheenScroll=true; sc.addEventListener('scroll',slide,{passive:true}); }
+    }
+  }
+}
+let _sheenQueued=false;
+function queueSheenMasks(){ if(_sheenQueued) return; _sheenQueued=true;
+  (window.requestAnimationFrame||setTimeout)(()=>{ _sheenQueued=false; try{ syncSheenMasks(); }catch(_e){} }); }
+if(typeof MutationObserver==='function'&&document.body){
+  const v=document.getElementById('view');
+  if(v) new MutationObserver(queueSheenMasks).observe(v,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
+  window.addEventListener('resize',queueSheenMasks);
+}

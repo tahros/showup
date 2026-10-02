@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v4.6.191 (2026-10-02) — The shimmer lands on the blue cells only
+
+- **Reported:** in History's month calendar the shimmer swept across the whole grid: the grey days, the weekday letters and the gaps lit up along with the trained (blue) days. It should be on the blue cells only.
+- **Why:** the highlight was one layer laid over the whole calendar (`.cal::after`). The heat map in Stats had the same layer over its whole window.
+- **Now:** both sweeps are seen through a mask cut to the trained cells, built from their positions on the page (`syncSheenMasks`, js/util.js). It is still one sweep, so the motion is unchanged; it simply no longer shows anywhere that is not a blue cell. The heat map's mask slides with its scroll and leaves the weekday rail alone. Until a mask exists nothing is drawn, and reduced motion still shows no shimmer.
+- Tests: new `tools/check-sheen-mask.cjs` (45 checks): the sweep is frozen over the grid and the page compared, pixel by pixel, with and without it. On v4.6.190 27 of them fail.
+- Also: `tools/test-metrics.js` failed at random, whenever the clock's timestamp happened to contain the digits 225 (it looks for the test's 225 lb in the request). It now looks for 225 as a number of its own.
+
 ## v4.6.190 (2026-10-02) — "Pace over time" and "Your data" leave Stats
 
 - **Asked:** remove the "Pace over time" graph and the "Your data" section, both near the bottom of Trends in Stats.
