@@ -236,10 +236,15 @@ header.planmode .hback::after{content:'';position:absolute;inset:-3px -6px}
 .pe-del{position:absolute;left:calc(-3px - var(--pad));top:50%;transform:translateY(-50%);width:26px;height:26px;padding:0;border:1px dotted color-mix(in srgb,var(--live) 45%,var(--line));border-radius:8px;background:transparent;color:var(--live);display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
 .pe-del svg{width:13px;height:13px}
 .pe-del::after{content:'';position:absolute;inset:-9px}
-.pe-actions{display:flex;gap:8px;margin:12px 0 2px}
-.pe-actions .pe-btn{min-height:40px;padding:0 12px;border-radius:12px;font-size:12px;gap:6px;background:var(--surface)}
-.pe-actions .pe-btn svg{width:13px;height:13px}
+.pe-actions{display:flex;align-items:center;gap:2px;margin:14px 0 2px;padding-top:10px;border-top:1px solid var(--line)}
+.pe-actions .pe-btn{min-height:40px;padding:0 10px;border:0;border-radius:12px;background:none;box-shadow:none;font:500 14px/1 var(--body);gap:7px;color:var(--chalk);white-space:nowrap}
+.pe-actions .pe-btn svg{width:16px;height:16px;flex:0 0 auto}
+.pe-actions .pe-add{padding-left:0}
+.pe-actions .pe-gap{flex:1}
+.pe-actions .pe-div{width:1px;height:18px;background:var(--line)}
 .pe-actions .pe-danger{color:var(--live)}
+.pe-actions .pe-avoid{color:var(--muted);padding-right:0}
+@media(max-width:360px){.pe-actions .pe-btn{font-size:13px;padding:0 7px;gap:5px}.pe-actions .pe-btn svg{width:14px;height:14px}}
 .pe-removed{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;font:400 13px/1.4 var(--body);color:var(--faint)}
 .pe-removed b{font-weight:500;color:var(--chalk)}
 .pe-removed .pe-undo{min-height:36px;padding:0 12px;border-radius:10px;font-size:12px;color:var(--accent)}
@@ -394,19 +399,22 @@ header.planmode .hback::after{content:'';position:absolute;inset:-3px -6px}
 .pf-chip.selected .pf-dot{background:var(--accent)}
 
 /* v4.6.174 — an avoided exercise in a plan: set apart, with the swap */
-.pe-ex.xp-avoided .pf-ex-summary strong,.pe-ex.xp-avoided .pe-lines{opacity:.45}
-.xp-flag{margin:10px 0 2px;padding:12px 14px;border-radius:14px;background:color-mix(in srgb,var(--chalk) 5%,transparent);border:1px dashed color-mix(in srgb,var(--chalk) 22%,transparent)}
-.xp-flag p{margin:0 0 9px;font:400 13px/1.4 var(--body);color:var(--muted)}.xp-flag p b{color:var(--chalk);font-weight:600}
-.xp-swaps{display:flex;flex-direction:column;gap:7px}
-.pw-btn.xp-swap{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:0;height:auto;margin:0;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--surface);box-shadow:none;text-align:left;color:var(--chalk);font:inherit}
+/* v4.6.185: the avoided row and its panel, redesigned (one surface, plain rows) */
+.pf-routine-page .pe-ex.xp-avoided .pf-ex-summary strong{color:var(--muted);font-weight:500}
+.pf-mtag.xp-avtag{display:inline-flex;align-items:center;gap:5px;padding-left:6px}.pf-mtag.xp-avtag .xp-ic{width:11px;height:11px}
+.xp-flag{margin:6px 0 10px;border-radius:16px;background:color-mix(in srgb,var(--chalk) 5%,transparent);overflow:hidden}
+.xp-flag-h{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px 4px}
+.xp-flag-h p{margin:0;font:400 12px/1.4 var(--body);color:var(--muted)}
+.xp-flag-h .pw-btn.xp-include{min-height:0;height:auto;margin:0;padding:0;border:0;background:none;box-shadow:none;border-radius:0;color:var(--muted);font:500 12px/1.4 var(--body);text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
+.pw-btn.xp-swap{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:0;height:auto;margin:0;padding:12px 16px;border:0;border-radius:0;background:none;box-shadow:none;text-align:left;color:var(--chalk);font:inherit}
+.pw-btn.xp-swap+.pw-btn.xp-swap{border-top:1px solid var(--line)}
 .pw-btn.xp-swap>span{min-width:0}
-.pw-btn.xp-swap strong{display:block;font:600 15px var(--body)}
-.pw-btn.xp-swap small{display:block;margin-top:2px;font:400 12px var(--mono);color:var(--muted)}
-.pw-btn.xp-swap i{flex:0 0 auto;font-style:normal;font:600 13px var(--body);color:var(--accent);white-space:nowrap}
-.pw-btn.xp-swap.first{border-color:var(--accent)}
-.pw-btn.xp-swap.first i{color:#fff;background:var(--accent);padding:6px 12px;border-radius:14px}
-.pw-btn.xp-swap.ghost i{color:var(--muted);font-weight:500}
-.xp-was{display:flex;align-items:center;gap:6px;margin:6px 0 0;font:400 12px var(--mono);color:var(--muted)}
+.pw-btn.xp-swap strong{display:block;font:600 15px/1.35 var(--body)}
+.pw-btn.xp-swap small{display:block;margin-top:2px;font:400 12px/1.4 var(--body);color:var(--muted)}
+.pw-btn.xp-swap i{flex:0 0 auto;font:600 13px/1 var(--body);font-style:normal;color:var(--accent);white-space:nowrap}
+.pw-btn.xp-swap.first i{padding:9px 14px;border-radius:999px;background:color-mix(in srgb,var(--accent) 16%,transparent)}
+.pw-btn.xp-swap.ghost strong{font-weight:500}.pw-btn.xp-swap.ghost i{color:var(--muted)}
+.xp-was{display:flex;align-items:center;gap:6px;margin:6px 0 0;font:400 12px var(--body);color:var(--muted)}
 .xp-was .pw-btn.xp-undo{min-height:0;height:auto;margin:0;padding:2px 4px;border:0;background:none;box-shadow:none;color:var(--accent);font:600 12px var(--body)}
 /* v4.6.183: focus rows (a body part's muscles, one row per part), the muscle
    tag beside an exercise name, and the auto set target */

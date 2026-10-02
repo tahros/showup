@@ -236,8 +236,13 @@ function pfExerciseHTML(r,i){
  if(strip&&strip.line>=groups.length)lines.push(pfStripHTML(strip.text));
  if(last)last.groups.forEach((g,k)=>lines.push(pfSpineLine(g.load,g.reps,'pe-last',null,k===last.groups.length-1?`<span class="pe-d">${hesc(pfMD(last.d))}</span>`:'')));
  const toggle=pwButton('pf-row-toggle',open?icon('check',ICON_SZ.sm)+' Done':icon('edit',ICON_SZ.sm),'pf-row-toggle pe-toggle'+(open?' primary':''),`data-index="${i}" aria-expanded="${open}" aria-label="${open?'Done editing':'Edit'} ${hesc(r.ex)}"`);
- const actions=open?`<div class="pe-actions">${pwButton('pf-add-line',icon('clear',ICON_SZ.sm,45)+' Add a line','pe-btn',`data-index="${i}"`)}${pwButton('pf-remove-ex',icon('trash',ICON_SZ.sm)+' Remove exercise','pe-btn pe-danger',`data-index="${i}"`)}</div>`:'';
- return `<article class="pw-exercise pw-editable pe-ex${open?' pe-open':''}${!open&&isAvoided(r.ex)?' xp-avoided':''}" data-pw-row="${i}"><button class="pw-btn pw-grip" data-pw-grip="${i}" aria-label="Reorder ${hesc(r.ex)}; drag or use arrow keys">${icon('grip',ICON_SZ.sm)}</button><div class="pf-ex-summary"><div><strong>${hesc(r.ex)}</strong>${pfMuscleTag(b,r.ex)}</div>${toggle}</div><div class="pe-lines">${lines.join('')}</div>${actions}${!open&&isAvoided(r.ex)?pfAvoidFlag(b,r,i):''}${b.swapped&&b.swapped.row===i&&b.swapped.to===r.ex?`<span class="xp-was">swapped from ${hesc(b.swapped.from.ex)}${pwButton('pf-xp-undo','Undo','xp-undo',`data-index="${i}"`)}</span>`:''}</article>`;
+ /* v4.6.185: one quiet line. Add a line on the left; Remove and Avoid on the
+    right, apart from the editing action, single words, no boxes. */
+ const actions=open?`<div class="pe-actions">${pwButton('pf-add-line',icon('clear',ICON_SZ.sm,45)+' Add a line','pe-btn pe-add',`data-index="${i}"`)}<span class="pe-gap"></span>${pwButton('pf-remove-ex',icon('trash',ICON_SZ.sm)+' Remove','pe-btn pe-danger',`data-index="${i}" aria-label="Remove ${hesc(r.ex)} from this day"`)}<i class="pe-div" aria-hidden="true"></i>${pwButton('pf-xp-avoid',XP_ICON+' Avoid','pe-btn pe-avoid',`data-index="${i}" aria-label="Avoid ${hesc(r.ex)} from now on"`)}</div>`:'';
+ /* an avoided exercise is not edited, it is decided: its name, dimmed, the
+    Avoided tag, and the panel */
+ if(isAvoided(r.ex))return `<article class="pw-exercise pw-editable pe-ex xp-avoided" data-pw-row="${i}"><button class="pw-btn pw-grip" data-pw-grip="${i}" aria-label="Reorder ${hesc(r.ex)}; drag or use arrow keys">${icon('grip',ICON_SZ.sm)}</button><div class="pf-ex-summary"><div><strong>${hesc(r.ex)}</strong><span class="pf-mtag xp-avtag">${XP_ICON}Avoided</span></div></div>${pfAvoidFlag(b,r,i)}</article>`;
+ return `<article class="pw-exercise pw-editable pe-ex${open?' pe-open':''}" data-pw-row="${i}"><button class="pw-btn pw-grip" data-pw-grip="${i}" aria-label="Reorder ${hesc(r.ex)}; drag or use arrow keys">${icon('grip',ICON_SZ.sm)}</button><div class="pf-ex-summary"><div><strong>${hesc(r.ex)}</strong>${pfMuscleTag(b,r.ex)}</div>${toggle}</div><div class="pe-lines">${lines.join('')}</div>${actions}${b.swapped&&b.swapped.row===i&&b.swapped.to===r.ex?`<span class="xp-was">swapped from ${hesc(b.swapped.from.ex)}${pwButton('pf-xp-undo','Undo','xp-undo',`data-index="${i}"`)}</span>`:''}</article>`;
 }
 /* v4.6.174: AN AVOIDED EXERCISE IN A PLAN. A saved plan is something you
    approved, so the app does not rewrite it on its own: the row is set apart
@@ -259,13 +264,21 @@ function pfSwapOptions(b,r){
 const pfMuscleWord=m=>(MUSCLE_LABEL[m]||m).replace(/^mid /,'');
 /* "another hamstring lift", not "another hamstrings lift" */
 const pfMuscleAdj=m=>({hamstrings:'hamstring',calves:'calf',quads:'quad',glutes:'glute',lats:'lat',obliques:'oblique'})[m]||pfMuscleWord(m);
+/* v4.6.185: one soft panel, two kinds of row. The dashed box of nested cards
+   it replaces read as an error; this reads as a choice. Swap rows first (the
+   first carries the only accent), then Leave it out, which says what still
+   trains that muscle today -- or that nothing does. The header undoes the
+   avoid: "Undo avoid" when it was set on this page a moment ago, "Include
+   again" for one you avoided before. */
 function pfAvoidFlag(b,r,i){
- const part=homePartOf(r.ex)||'',mus=exMuscle(r.ex,part),word=pfMuscleWord(mus),adj=pfMuscleAdj(mus),opts=pfSwapOptions(b,r);
+ const part=homePartOf(r.ex)||'',mus=exMuscle(r.ex,part),word=MUSCLE_LABEL[mus]||mus,opts=pfSwapOptions(b,r);
  const short=d=>new Date(d+'T12:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
  const day=new Date(pw().active+'T12:00').toLocaleDateString('en-US',{weekday:'long'});
- const lead=!opts.length?`No other ${hesc(adj)} lift to swap in.`:opts.every(ex=>!SEED.lastSess?.[ex])?`The only other ${hesc(adj)} lift${opts.length>1?'s are':' is'} new to you.`:`Swap for another ${hesc(adj)} lift:`;
- const btn=(ex,k)=>{const l=SEED.lastSess?.[ex]&&pwLastLine(ex);return `<button type="button" class="pw-btn xp-swap${k?'':' first'}" data-pw="pf-xp-swap" data-index="${i}" data-ex="${hesc(ex)}"><span><strong>${hesc(ex)}</strong><small>${l?hesc(l.load+' × '+l.reps.join(' '))+' · last '+short(SEED.exLast[ex]):'never logged · starts by feel'}</small></span><i>Swap</i></button>`;};
- return `<div class="xp-flag"><p><b>Avoided.</b> ${lead}</p><div class="xp-swaps">${opts.map(btn).join('')}<button type="button" class="pw-btn xp-swap ghost" data-pw="pf-remove-ex" data-index="${i}"><span><strong>Remove from this day</strong><small>no ${hesc(word)} on ${hesc(day)}</small></span><i>Remove</i></button></div></div>`;
+ const cover=pwExercises(b.rows).filter(x=>x!==r&&x.ex!==r.ex&&!isAvoided(x.ex)&&mus&&mus!=='unassigned'&&exMuscle(x.ex,homePartOf(x.ex)||'')===mus).map(x=>x.ex);
+ const names=cover.length>2?cover.slice(0,-1).join(', ')+' and '+cover.at(-1):cover.join(' and ');
+ const left=mus==='unassigned'||!mus?`Not on ${day}`:cover.length?`${names} cover${cover.length===1?'s':''} ${word}`:`No ${word} on ${day}`;
+ const btn=(ex,k)=>{const l=SEED.lastSess?.[ex]&&pwLastLine(ex);return `<button type="button" class="pw-btn xp-swap${k?'':' first'}" data-pw="pf-xp-swap" data-index="${i}" data-ex="${hesc(ex)}"><span><strong>${hesc(ex)}</strong><small>${l?hesc(l.load+' × '+l.reps.join(' '))+' · last '+short(SEED.exLast[ex]):'New to you · starts by feel'}</small></span><i>Swap</i></button>`;};
+ return `<div class="xp-flag"><div class="xp-flag-h"><p>${opts.length?'Replace it on '+hesc(day):'No other '+hesc(word)+' exercise to swap in'}</p>${pwButton('pf-xp-include',pfState().xpNow===exIdOf(r.ex)?'Undo avoid':'Include again','xp-include',`data-index="${i}"`)}</div>${opts.map(btn).join('')}<button type="button" class="pw-btn xp-swap ghost" data-pw="pf-remove-ex" data-index="${i}"><span><strong>Leave it out</strong><small>${hesc(left)}</small></span><i>Remove</i></button></div>`;
 }
 /* the row a swap puts in: your last working sets, or, for a lift you have not
    done, the same number of sets by feel at the reps the avoided one asked for */
@@ -321,6 +334,11 @@ function pfRoutineHandle(a,el,b,j){
  else if(a==='pf-del-line'){pfChipClose(true);if(!g)return;const text=pfLoadText(g.line)+' × '+g.line.reps.join(' ');pfChange(b);r.lines=r.lines.filter((_,x)=>!g.indices.includes(x));b.strip={row:i,line:k,text};if(!b.locks.includes(i))b.locks.push(i);}
  else if(a==='pf-add-line'){if(!r)return;pfChipClose(true);const from=r.lines.at(-1)||{w:0,unit:U(),reps:[8]},line={w:0,unit:from.unit||U(),reps:[from.reps.at(-1)||8]};if(from.su)line.su=from.su;if(from.bw)line.bw=true;pfChange(b);r.lines.push(line);if(!b.locks.includes(i))b.locks.push(i);j.chip={row:i,line:pfGroups(r).length-1,field:'w',rep:0,fresh:{w:+Number(from.w||0).toFixed(4)}};}
  else if(a==='pf-xp-swap'){pfChipClose(false);if(!r)return;const ex=el.dataset.ex,nr=ex&&pfSwapRow(r,ex);if(!nr||nr.kind!=='ex')return;pfChange(b);b.swapped={row:i,from:pwCopy(r),to:ex};b.rows[i]=nr;const pt=homePartOf(ex);if(pt&&Array.isArray(b.parts)&&!b.parts.includes(pt))b.parts.push(pt);}   /* v4.6.174 */
+ /* v4.6.185: Avoid, from the plan. The same verdict as the switch on the exercise's
+    page (setExPref): the writer and the app's own picks leave it out from now
+    on. The day is not touched -- the row turns into the panel that asks. */
+ else if(a==='pf-xp-avoid'){pfChipClose(true);if(!r||!r.ex)return;setExPref(r.ex,'avoid');j.xpNow=exIdOf(r.ex);const o=j.routineOpen?.[pw().active];if(o)delete o[i];}
+ else if(a==='pf-xp-include'){if(!r||!r.ex)return;setExPref(r.ex,null);if(j.xpNow===exIdOf(r.ex))delete j.xpNow;}
  else if(a==='pf-xp-undo'){pfChipClose(false);const w=b.swapped;if(!w||w.row!==i)return;pfChange(b);b.rows[i]=w.from;}
  else if(a==='pf-remove-ex'){pfChipClose(false);if(!r)return;pfChange(b);b.rows.splice(i,1);b.locks=b.locks.filter(x=>x!==i).map(x=>x>i?x-1:x);b.strip={row:i,text:r.ex||'exercise'};const o=j.routineOpen?.[pw().active];if(o){const n={};for(const [key,v] of Object.entries(o)){const x=+key;if(x<i)n[x]=v;else if(x>i)n[x-1]=v;}j.routineOpen[pw().active]=n;}}
 }
@@ -621,7 +639,7 @@ function pfHandle(a,el){const s=pw(),j=pfState(),d=el.dataset.date,i=+el.dataset
  }
  else if(a==='pf-edit-day'||a==='pf-edit-first'){s.active=d||pfDates()[0];pfMotion={kind:'arrive'};pfNavigate('edit');return;}
  else if(a==='pf-row-toggle'){pfChipClose(true);j.routineOpen=j.routineOpen||{};const open=j.routineOpen[s.active]||(j.routineOpen[s.active]={});open[i]=!open[i];}
- else if(['pf-chip','pf-add-rep','pf-del-line','pf-add-line','pf-remove-ex','pf-xp-swap','pf-xp-undo'].includes(a)){if(!b)return;pfRoutineHandle(a,el,b,j);}
+ else if(['pf-chip','pf-add-rep','pf-del-line','pf-add-line','pf-remove-ex','pf-xp-swap','pf-xp-undo','pf-xp-avoid','pf-xp-include'].includes(a)){if(!b)return;pfRoutineHandle(a,el,b,j);}
  else if(a==='pf-clear'){j.clear=true;}
  else if(a==='pf-clear-cancel'){j.clear=false;j.emptyConfirm=false;}
  else if(a==='pf-empty-day'){pwUndoPoint(b);b.rows=[];b.parts=[];delete b.partsPick;b.locks=[];b.target=null;b.cleared=true;b.source='Your draft';j.clear=false;}

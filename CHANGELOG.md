@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v4.6.185 (2026-10-01) — Avoid an exercise from the plan, and a redesigned avoided panel
+
+- **Asked:** Regenerate brought in Decline Dumbbell Bench Press; the maker wanted not only to delete it from the day but to avoid it, from that screen. The first mock (three boxed buttons, the dashed card) was rejected as badly designed; the redesign was approved.
+- **The open row:** one quiet line under a hairline. "Add a line" on the left; "Remove" and "Avoid" on the right, single words, no boxes, only Remove in red.
+- **Avoid:** sets the same verdict as the Include / Avoid switch on the exercise's page, so the writer and the app's own picks leave it out from now on. The day's rows are not touched. The row becomes its name, dimmed, with an "Avoided" tag, and a panel that asks what to do with the slot.
+- **The panel (replaces the dashed card everywhere an avoided exercise is in a plan):** one soft surface with plain rows. Up to two exercises for the same muscle to swap in (the first carries the only accent), then "Leave it out", which says what still covers that muscle that day ("Dip and Cable Fly Down cover lower chest") or that nothing does. The header undoes it: "Undo avoid" when it was set on this page, "Include again" for one avoided earlier.
+- Tests: `tools/check-avoid.cjs` (88 checks), `tools/test-expref.js`.
+
 ## v4.6.184 (2026-10-01) — The focus is decided by the app, not left to the writer
 
 - **Reported:** with Mid and Lower chest selected, the day came back as Dip plus three incline movements: "3 of 14 Chest sets on mid chest and lower chest".

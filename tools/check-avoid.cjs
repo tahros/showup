@@ -52,8 +52,8 @@ const wait=ms=>new Promise(r=>setTimeout(r,ms));
     await p.evaluate(async()=>{view='today';render();await new Promise(r=>setTimeout(r,300));const d='2026-10-02';pwOpen(d);const s=pw();s.dates=[d];const x=pwDay(d);
       x.rows=pwRead('Squat\n  245 lb × 6 6 6 6\nRomanian Deadlift\n  185 lb × 8 8 8\nStanding Calf Raise\n  45 lb × 12 12 12\nHanging Leg Raise\n  BW × 15 15 15');x.parts=['Legs','Sixpack'];x.locks=[];x.source='Saved plan';s.active=d;s.step='edit';pfState().page='edit';pwRender();await new Promise(r=>setTimeout(r,500));});
     r=await p.evaluate(()=>{const f=[...document.querySelectorAll('.xp-flag')];return {flags:f.length,rdl:f[0]&&[...f[0].querySelectorAll('.xp-swap strong')].map(e=>e.textContent),calf:f[1]&&[...f[1].querySelectorAll('.xp-swap strong')].map(e=>e.textContent),lead:f.map(x=>x.querySelector('p').textContent)};});
-    ok(`${tag} plan: both avoided rows flagged; RDL → Lying Leg Curl, Seated Leg Curl, Remove`,r.flags===2&&JSON.stringify(r.rdl)===JSON.stringify(['Lying Leg Curl','Seated Leg Curl','Remove from this day']),JSON.stringify(r));
-    ok(`${tag} ...calves → Seated Calf Raise (new to you), Remove`,JSON.stringify(r.calf)===JSON.stringify(['Seated Calf Raise','Remove from this day'])&&/only other calf lift is new to you/.test(r.lead[1]),JSON.stringify(r));
+    ok(`${tag} plan: both avoided rows flagged; RDL → Lying Leg Curl, Seated Leg Curl, Remove`,r.flags===2&&JSON.stringify(r.rdl)===JSON.stringify(['Lying Leg Curl','Seated Leg Curl','Leave it out']),JSON.stringify(r));
+    ok(`${tag} ...calves → Seated Calf Raise (new to you), Remove`,JSON.stringify(r.calf)===JSON.stringify(['Seated Calf Raise','Leave it out'])&&/Replace it on/.test(r.lead[1]),JSON.stringify(r));
     ok(`${tag} ...fits`,await fits());
     if(shots){await p.evaluate(()=>{document.getElementById('toast')?.classList.remove('show');const t=document.getElementById('toast');if(t)t.style.opacity='0';const a=document.querySelectorAll('article.pw-exercise')[1];window.scrollTo(0,a.getBoundingClientRect().top+scrollY-150);});await wait(300);await p.screenshot({path:'../avoid-2-plan.png'});}
     await p.evaluate(()=>document.querySelector('.xp-flag .xp-swap.first').click());await wait(400);
@@ -62,6 +62,23 @@ const wait=ms=>new Promise(r=>setTimeout(r,ms));
     if(shots){await p.evaluate(()=>{const a=document.querySelectorAll('article.pw-exercise')[1];window.scrollTo(0,a.getBoundingClientRect().top+scrollY-150);});await wait(300);await p.screenshot({path:'../avoid-2-plan-swapped.png'});}
     await p.evaluate(()=>document.querySelector('.xp-was .xp-undo').click());await wait(300);
     ok(`${tag} Undo puts Romanian Deadlift back`,await p.evaluate(()=>pwDay(pw().active).rows[1].ex==='Romanian Deadlift'&&!!document.querySelectorAll('.xp-flag').length));
+    /* 2b. v4.6.185: Avoid from the plan itself. The open row carries Add a line,
+       Remove and Avoid on one line; Avoid sets the verdict, leaves the day's rows
+       alone and turns the row into the panel; Undo avoid takes it back. */
+    await p.evaluate(()=>document.querySelector('[data-pw-row="0"] [data-pw="pf-row-toggle"]').click());await wait(350);
+    r=await p.evaluate(()=>{const a=[...document.querySelectorAll('[data-pw-row="0"] .pe-actions .pe-btn')],R=e=>e.getBoundingClientRect();return {labels:a.map(e=>e.textContent.trim()),oneLine:a.every(e=>Math.abs(R(e).top-R(a[0]).top)<1&&R(e).height<=44),inside:a.every(e=>R(e).right<=innerWidth-8&&R(e).left>=0),noWrap:a.every(e=>R(e).height<46)};});
+    ok(`${tag} open row: Add a line · Remove · Avoid, on one line`,JSON.stringify(r.labels)===JSON.stringify(['Add a line','Remove','Avoid'])&&r.oneLine&&r.inside,JSON.stringify(r));
+    if(shots){await p.evaluate(()=>{const a=document.querySelector('[data-pw-row="0"]');window.scrollTo(0,a.getBoundingClientRect().top+scrollY-150);});await wait(300);await p.screenshot({path:'../avoid-5-row-actions.png'});}
+    const rowsBefore=await p.evaluate(()=>pwText(pwDay(pw().active).rows));
+    await p.evaluate(()=>document.querySelector('[data-pw-row="0"] [data-pw="pf-xp-avoid"]').click());await wait(400);
+    r=await p.evaluate(()=>{const a=document.querySelector('[data-pw-row="0"]');return {avoided:isAvoided('Squat'),cls:a.classList.contains('xp-avoided')&&!a.classList.contains('pe-open'),tag:a.querySelector('.xp-avtag')?.textContent.trim(),lines:!!a.querySelector('.pe-lines'),toggle:!!a.querySelector('.pe-toggle'),undo:a.querySelector('.xp-include')?.textContent,head:a.querySelector('.xp-flag-h p')?.textContent,opts:[...a.querySelectorAll('.xp-swap strong')].map(e=>e.textContent),pills:a.querySelectorAll('.xp-swap.first').length,rows:pwText(pwDay(pw().active).rows),dashed:getComputedStyle(a.querySelector('.xp-flag')).borderStyle};});
+    ok(`${tag} Avoid: Squat is avoided, the day's rows are untouched`,r.avoided&&r.rows===rowsBefore,JSON.stringify(r));
+    ok(`${tag} ...the row becomes its name, an Avoided tag and the panel (no sets, no pencil, no dashed box)`,r.cls&&r.tag==='Avoided'&&!r.lines&&!r.toggle&&r.dashed==='none'&&/^Replace it on /.test(r.head)&&r.opts.at(-1)==='Leave it out'&&r.pills===1,JSON.stringify(r));
+    ok(`${tag} ...the panel offers Undo avoid, and fits`,r.undo==='Undo avoid'&&await fits(),JSON.stringify(r));
+    if(shots){await p.evaluate(()=>{const a=document.querySelector('[data-pw-row="0"]');window.scrollTo(0,a.getBoundingClientRect().top+scrollY-150);});await wait(300);await p.screenshot({path:'../avoid-6-panel.png'});}
+    ok(`${tag} ...one avoided before this visit says Include again`,await p.evaluate(()=>document.querySelector('[data-pw-row="1"] .xp-include').textContent==='Include again'));
+    await p.evaluate(()=>document.querySelector('[data-pw-row="0"] .xp-include').click());await wait(350);
+    ok(`${tag} Undo avoid: Squat is included again and the row is a normal row`,await p.evaluate(()=>{const a=document.querySelector('[data-pw-row="0"]');return !isAvoided('Squat')&&!a.classList.contains('xp-avoided')&&!!a.querySelector('.pe-lines')&&pwDay(pw().active).rows[0].ex==='Squat';}));
     /* 3. Settings */
     await p.evaluate(async()=>{lift.plan=null;view='sync';render();await new Promise(r=>setTimeout(r,500));const h=[...document.querySelectorAll('#view h2')].find(h=>/Avoided exercises/.test(h.textContent));window.scrollTo(0,h.getBoundingClientRect().top+scrollY-140);});await wait(300);
     r=await p.evaluate(()=>({rows:[...document.querySelectorAll('.xp-list .xp-item strong')].map(e=>e.textContent),subs:[...document.querySelectorAll('.xp-list .xp-item small')].map(e=>e.textContent),sum:document.getElementById('view').textContent.includes('2 exercises avoided')}));

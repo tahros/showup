@@ -60,10 +60,10 @@ test('a plan row you avoid comes out of a generated day; the rest stays',`(()=>{
 run(`var D='2026-10-02';pwOpen(D);var ps=pw();ps.dates=[D];var pd=pwDay(D);
 pd.rows=pwRead('Squat\\n  245 lb × 6 6 6 6\\nRomanian Deadlift\\n  185 lb × 8 8 8\\nStanding Calf Raise\\n  45 lb × 12 12 12');pd.parts=['Legs'];pd.locks=[];ps.active=D;ps.step='edit';pfState().page='edit';
 var before=pwText(pd.rows);var html=pfEditRows();`);
-test('an avoided row in a saved plan is flagged, not changed',`/xp-avoided/.test(html)&&/<b>Avoided\\.<\\/b> Swap for another hamstring lift/.test(html)&&pwText(pd.rows)===before`);
+test('an avoided row in a saved plan is flagged, not changed',`/xp-avoided/.test(html)&&/Replace it on (Thursday|Friday)/.test(html)&&/xp-avtag/.test(html)&&pwText(pd.rows)===before`);
 test('swaps: a done lift first, then the day\'s own body part (Seated Leg Curl before Deadlift)',`pfSwapOptions(pd,pd.rows[1]).join()==='Lying Leg Curl,Seated Leg Curl'`);
-test('Remove from this day is always offered',`(html.match(/data-pw="pf-remove-ex"/g)||[]).length>=2&&/no hamstrings on Thursday|no hamstrings on Friday/.test(html)`);
-test('calves: the only other calf lift is new to you',`pfSwapOptions(pd,pd.rows[2]).join()==='Seated Calf Raise'&&/The only other calf lift is new to you/.test(html)`);
+test('Remove from this day is always offered',`(html.match(/data-pw="pf-remove-ex"/g)||[]).length>=2&&/No hamstrings on (Thursday|Friday)|covers? hamstrings/.test(html)`);
+test('calves: the only other calf lift is new to you',`pfSwapOptions(pd,pd.rows[2]).join()==='Seated Calf Raise'&&/New to you · starts by feel/.test(html)`);
 run(`pfRoutineHandle('pf-xp-swap',{dataset:{index:'1',ex:'Lying Leg Curl'}},pd,pfState());`);
 test('Swap puts in your last Lying Leg Curl sets; the rest of the day stays',`pd.rows[1].ex==='Lying Leg Curl'&&/90 lb × 12 12 12/.test(pwText([pd.rows[1]]))&&pd.rows[0].ex==='Squat'&&pd.rows[2].ex==='Standing Calf Raise'`);
 test('...and says what it replaced, with Undo',`/swapped from Romanian Deadlift/.test(pfEditRows())&&/pf-xp-undo/.test(pfEditRows())`);
