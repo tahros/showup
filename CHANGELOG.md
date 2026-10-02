@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.192 (2026-10-02) — A weight on a bodyweight exercise reads "BW+"
+
+- **Reported:** in the plan, Dip showed "50 lb" where it should show "BW+50 lb" (its last time, right under it, read "BW+45 lb").
+- **Why:** the writer answered with a plain "50 lb" line, and the plan kept it as written. A bodyweight exercise logs added weight only, so the two lines meant the same thing and one was labelled wrong.
+- **Now:** a plain weight on a bodyweight exercise is treated as weight added to the body wherever a plan is read or accepted: the writer's answer, a pasted routine, a saved plan, and a draft kept from before this fix (put right when the day is opened). It shows as "BW+50 lb" and is saved that way. By-feel lines, lines already marked BW, timed holds and every non-bodyweight exercise are unchanged.
+- Tests: new `tools/test-bw-plan.js` (12 checks).
+
 ## v4.6.191 (2026-10-02) — The shimmer lands on the blue cells only
 
 - **Reported:** in History's month calendar the shimmer swept across the whole grid: the grey days, the weekday letters and the gaps lit up along with the trained (blue) days. It should be on the blue cells only.

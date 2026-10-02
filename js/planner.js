@@ -78,7 +78,19 @@ function planShift(dates,delta){
 function planRunFrom(d){const run=[];for(let x=d;pwSaved(x)?.items?.length;x=pwShiftISO(x,1))run.push(x);return run;}
 
 function pwFingerprint(d){return JSON.stringify(pwSaved(d));}
-function pwRead(text){return parsePlan(text).map(r=>r.kind==='ex'&&!r.ex?{kind:'note',raw:planTextFromRows([r]).trim()}:{...r,...(r.lines?{lines:r.lines.flatMap(l=>Array.from({length:Math.ceil(l.reps.length/12)},(_,i)=>({...l,unit:l.unit||U(),reps:l.reps.slice(i*12,i*12+12)})))}:{})});}
+/* v4.6.192: A WEIGHT ON A BODYWEIGHT EXERCISE IS WEIGHT ADDED TO THE BODY. The
+   writer answered "Dip / 50 lb x 10 10 10 10" and the plan showed "50 lb"
+   under a last time of "BW+45 lb" -- the same thing said two ways, one of them
+   wrong: nobody dips 50 lb. A bodyweight exercise logs added weight only, so a
+   plain weight on one is marked as what it is (bw) wherever plan rows are read
+   or accepted; it then reads "BW+50 lb" on every surface and saves that way.
+   By-feel lines and lines already marked BW are left alone. */
+function pwBodyFix(rows){
+  for(const r of rows||[]) if(r&&r.kind==='ex'&&r.ex&&isBody(r.ex)) for(const l of r.lines||[]) if(!l.nw&&!l.bw) l.bw=true;
+  return rows;
+}
+function pwRead(text){return pwBodyFix(pwReadRaw(text));}
+function pwReadRaw(text){return parsePlan(text).map(r=>r.kind==='ex'&&!r.ex?{kind:'note',raw:planTextFromRows([r]).trim()}:{...r,...(r.lines?{lines:r.lines.flatMap(l=>Array.from({length:Math.ceil(l.reps.length/12)},(_,i)=>({...l,unit:l.unit||U(),reps:l.reps.slice(i*12,i*12+12)})))}:{})});}
 function pwText(rows){
   // Numeric rows are the truth after checks/adjustment. Old raw text can still
   // describe a pre-clamp weight or the old number of sets.
@@ -122,7 +134,8 @@ function pwPersist(){const s=pw();try{localStorage.setItem(pwKey(),JSON.stringif
 function pwDay(d){
   const s=pw();if(!s.book[d]){const saved=pwSaved(d),rows=saved?pwRead(planText(saved)):[];
     s.book[d]={rows,parts:pwParts(rows),title:saved?.title||'',base:pwFingerprint(d),source:saved?'Saved plan':'Your draft',notes:[],locks:[],target:null};
-  }return s.book[d];
+  }pwBodyFix(s.book[d].rows);   // v4.6.192: a draft kept from before the fix is put right when it is opened
+  return s.book[d];
 }
 /* v4.6.61: A SELECTED DATE THAT HAS PASSED IS STALE. The planner's state persists
    in localStorage under a key carrying no date, so a day picked on Wednesday was
@@ -654,6 +667,7 @@ function pwApply(add=false){
     if(c.index!==undefined){dst.rows.splice(c.index,1,...pwCopy(b.rows));dst.locks=dst.locks.filter(i=>i!==c.index).map(i=>i>c.index?i+b.rows.length-1:i);b.rows.forEach((r,i)=>{if(r.kind==='ex')dst.locks.push(c.index+i);});}
     else if(add)dst.rows.push(...pwCopy(b.rows));
     else{dst.rows=pwCopy(b.rows);dst.locks=c.type==='paste'?[]:dst.locks;}
+    pwBodyFix(dst.rows);   // v4.6.192: the writer's rows arrive without passing pwRead
     dst.cleared=false;dst.parts=pwParts(dst.rows);delete dst.partsPick;if(c.type==='generate'){dst.focus=pwFocus(dst);dst.focusGen=dst.focus.slice();delete dst.focusPick;}dst.source=c.type==='paste'?'Your routine · not rewritten':c.type==='adjust'?'Writer-adjusted set count':'Written from your training';dst.notes=b.notes||[];
   }s.candidate=null;s.setupOpen=false;pwGo('edit');
 }
