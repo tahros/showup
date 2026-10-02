@@ -67,15 +67,17 @@ const PLAN='Deadlift\n  135 lb × 8 (warm-up)\n  235 lb × 6 6 6 6\nBent-Over Ro
     await click('[data-pw="add-open"]');
     const sheet=await p.evaluate(()=>({title:document.querySelector('#pw-add-title')?.textContent,
       parts:[...document.querySelectorAll('.pw-add-parts button')].map(b=>b.textContent+(b.classList.contains('on')?'*':'')).join(' '),
-      list:[...document.querySelectorAll('.pw-add-pick')].map(b=>b.querySelector('strong').textContent+(b.disabled?'(in plan)':'')+' '+b.querySelector('i').textContent).join(' / ')}));
+      list:[...document.querySelectorAll('.pw-add-pick')].map(b=>b.querySelector('strong').textContent+(b.disabled?'(in plan)':'')+' '+b.querySelector('i').textContent).join(' / '),
+      heads:[...document.querySelectorAll('.pw-add-mh b')].map(e=>e.textContent).join(' / '),inPlan:[...document.querySelectorAll('.pw-add-in')].map(e=>e.textContent).join(' / ')}));
     ok(`${theme}: Add exercise opens "Add to Tuesday", Back first`, sheet.title==='Add to Tuesday'&&/^Back\*/.test(sheet.parts), sheet.title+' · '+sheet.parts);
-    ok(`${theme}: ...every Back exercise you have done, most recent first, in-plan ones disabled`,
-      sheet.list==='Seated Cable Row Sep 25 / Lat Pulldown Sep 21 / Bent-Over Row(in plan)  / Deadlift(in plan)  / Pull Up(in plan)  / Chest-Supported Row Sep 10', sheet.list);
+    /* v4.6.186: grouped by muscle; in each, done (most recent first) then not tried up to three rows; in-plan ones as one line */
+    ok(`${theme}: ...Back by muscle: what you have done first, then not tried, in-plan ones on one line per group`,
+      sheet.list==='Lat Pulldown Sep 21 / Chin Up  / Close-Grip Lat Pulldown  / Seated Cable Row Sep 25 / Chest-Supported Row Sep 10 / Barbell Shrug '&&sheet.heads==='lats / upper back / Other'&&sheet.inPlan==='In this plan · Pull Up / In this plan · Bent-Over Row / In this plan · Deadlift', JSON.stringify(sheet));
     const fit=await p.evaluate(()=>{const r=document.querySelector('.pw-add-sheet').getBoundingClientRect();return r.left>=0&&r.right<=innerWidth&&document.documentElement.scrollWidth<=innerWidth;});
     ok(`${theme}: ...the sheet fits the screen`, fit);
     await click('[data-pw="add-part"][data-part="Biceps"]');
     const bi=await p.evaluate(()=>[...document.querySelectorAll('.pw-add-pick strong')].map(e=>e.textContent).join(','));
-    ok(`${theme}: another body part's chip lists its exercises`, bi==='Barbell Curl', bi);
+    ok(`${theme}: another body part's chip lists its exercises (one muscle: no headers)`, bi==='Barbell Curl,Cable Curl,Cable Hammer Curl'&&!(await p.$('.pw-add-mh')), bi);
     await click('[data-pw="add-part"][data-part="Back"]');
     const was=(await state()).rows;await click('.pw-add-close');
     ok(`${theme}: × on Total sets closes the sheet and changes nothing`, !(await p.$('.pw-add-sheet'))&&(await state()).rows===was);
@@ -94,7 +96,7 @@ const PLAN='Deadlift\n  135 lb × 8 (warm-up)\n  235 lb × 6 6 6 6\nBent-Over Ro
   ok('no history: + still adds a set (fits the ask; nothing to add, so the plan grows)', s.total===15&&!/added/.test(s.rows), s.rows);
   await click('[data-pw="add-open"]');
   const empty=await p.textContent('.pw-add-list');
-  ok('no history: the sheet says so instead of an empty list', /Nothing logged for this body part yet/.test(empty), empty);
+  ok('no history: the sheet offers what you have not tried, by muscle', /Chin UpNew to you · starts by feel/.test(empty)&&/more you haven’t tried/.test(empty), empty);
   /* v4.6.157: the Edit page (Set target + Regenerate) -- its Add exercise opens
      the same sheet, with a search box (v4.6.181); Set target changes the
      routine live by the same rule, and - takes added exercises away first. */
@@ -108,7 +110,7 @@ const PLAN='Deadlift\n  135 lb × 8 (warm-up)\n  235 lb × 6 6 6 6\nBent-Over Ro
       list:[...document.querySelectorAll('.pw-add-pick')].map(b=>b.querySelector('strong').textContent).join(' / '),last:document.querySelector('.pw-add-list > :last-child')?.dataset.pw}));
     ok(`${theme} Edit: Add exercise opens the same sheet (not the text box)`, sh.ctx==='edit'&&sh.title==='Add to Tuesday'&&!(await p.$('.pw-input-panel')), sh.title);
     /* v4.6.181: "Type an exercise…" is gone -- the sheet has a search box instead */
-    ok(`${theme} Edit: ...most recent first, under a search box (no "Type an exercise…" row)`, sh.list==='Seated Cable Row / Lat Pulldown / Bent-Over Row / Deadlift / Pull Up / Chest-Supported Row'&&!!(await p.$('#pw-add-q'))&&!(await p.$('.pw-add-type')), sh.list);
+    ok(`${theme} Edit: ...most recent first, under a search box (no "Type an exercise…" row)`, sh.list==='Lat Pulldown / Chin Up / Close-Grip Lat Pulldown / Seated Cable Row / Chest-Supported Row / Barbell Shrug'&&!!(await p.$('#pw-add-q'))&&!(await p.$('.pw-add-type')), sh.list);
     /* v4.6.158: the sheet closes without adding -- its ×, the scrim, Escape */
     const before=await rows();
     await click('.pw-add-close');

@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.186 (2026-10-02) — The Add sheet lists exercises by muscle
+
+- **Asked:** "When adding exercise, I would want to see muscle groups", as the first step of showing exercises by body part and then muscle throughout the app. Mocked first and approved.
+- **Was:** a body part's exercises came as one list, most recent first; exercises already in the plan took the top rows as disabled "In this plan" entries; and only exercises you had logged were listed, so Decline Barbell Bench Press was not there at all.
+- **Now:** inside a body part there is one group per muscle (Mid chest, Lower chest, Upper chest), the day's focus muscles first and tagged "Focus". In a group: what you have done, most recent first; then what you have not tried (enough to make three rows, the rest behind "N more you haven't tried", which opens in place); then avoided ones; and what is already in the plan as one quiet line. A body part with one muscle (Biceps, Triceps) has no headers. A not-tried row adds the exercise by feel.
+- Tests: new `tools/check-add-muscles.cjs` (44 checks); `tools/check-add-exercise.cjs` updated (65).
+
 ## v4.6.185 (2026-10-01) — Avoid an exercise from the plan, and a redesigned avoided panel
 
 - **Asked:** Regenerate brought in Decline Dumbbell Bench Press; the maker wanted not only to delete it from the day but to avoid it, from that screen. The first mock (three boxed buttons, the dashed card) was rejected as badly designed; the redesign was approved.

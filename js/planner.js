@@ -528,11 +528,38 @@ function pwAddSheetHTML(s,bodyOnly){
   const part=parts.includes(s.addPart)?s.addPart:parts[0];
   const inPlan=new Set(now.map(r=>r.ex)),short=d=>new Date(d+'T12:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
   /* v4.6.174: an avoided exercise is still yours to pick here -- you asked --
-     but it sinks to the bottom and says so */
-  const av=ex=>typeof isAvoided==='function'&&isAvoided(ex),foc=pwFocus(day),inF=ex=>foc.includes(exMuscle(ex,homePartOf(ex))),ordered=part?[...pwDoneFor([part]).filter(ex=>!av(ex)&&inF(ex)),...pwDoneFor([part]).filter(ex=>!av(ex)&&!inF(ex)),...pwDoneFor([part]).filter(av)]:[];
-  const list=ordered.map(ex=>{const l=pwLastLine(ex),on=inPlan.has(ex),a=av(ex);
-    return `<button type="button" class="pw-add-pick${a?' xp-dim':''}" data-pw="add-pick" data-ex="${hesc(ex)}" ${on?'disabled':''}><span><strong>${hesc(ex)}</strong><small>${on?'In this plan':hesc(l.load+' × '+l.reps.join(' '))}${a?`<span class="xp-tag">${XP_ICON}avoided</span>`:''}</small></span><i>${on?'':short(SEED.exLast[ex])}</i></button>`;}).join('');
-  const browse=`<p class="pw-small">Or browse by body part · most recent first</p><div class="pw-add-parts" role="tablist">${parts.map(p=>`<button type="button" role="tab" data-pw="add-part" data-part="${hesc(p)}" aria-selected="${p===part}" class="${p===part?'on':''}">${hesc(typeof partLabel==='function'?partLabel(p):p)}</button>`).join('')}</div><div class="pw-add-list">${list||'<p class="pw-small">Nothing logged for this body part yet.</p>'}</div>`;
+     but it sinks to the bottom and says so.
+     v4.6.186: THE LIST IS GROUPED BY MUSCLE. A body part's exercises came as one
+     list, most recent first, so nothing said which trained lower chest -- and
+     only exercises you had logged were listed, so Decline Barbell Bench Press
+     was not there at all. Inside a body part: one group per muscle, the day's
+     focus muscles first (tagged Focus), then the rest in the part's own order.
+     In a group: what you have done, most recent first; then what you have not
+     (enough to make three rows, the rest behind "N more you haven't tried");
+     then avoided ones; and what is already in the plan as ONE quiet line, not
+     as disabled rows at the top. A body part with one muscle has no headers. */
+  const av=ex=>typeof isAvoided==='function'&&isAvoided(ex),foc=pwFocus(day),did=ex=>!!(SEED.lastSess?.[ex]&&pwLastLine(ex));
+  const avTag=`<span class="xp-tag">${typeof XP_ICON==='string'?XP_ICON:''}avoided</span>`;
+  const rowDone=ex=>{const l=pwLastLine(ex),a=av(ex);return `<button type="button" class="pw-add-pick${a?' xp-dim':''}" data-pw="add-pick" data-ex="${hesc(ex)}"><span><strong>${hesc(ex)}</strong><small>${hesc(l.load+' × '+l.reps.join(' '))}${a?avTag:''}</small></span><i>${short(SEED.exLast[ex])}</i></button>`;};
+  const rowNew=ex=>{const a=av(ex);return `<button type="button" class="pw-add-pick pw-add-fresh${a?' xp-dim':''}" data-pw="add-new" data-ex="${hesc(ex)}" data-part="${hesc(part||'')}"><span><strong>${hesc(ex)}</strong><small>New to you · starts by feel${a?avTag:''}</small></span><i></i></button>`;};
+  let list='';
+  if(part){
+    const all=pwAllExercises().filter(ex=>homePartOf(ex)===part),byRecent=(a,b)=>(SEED.exLast[b]||'').localeCompare(SEED.exLast[a]||'')||a.localeCompare(b);
+    const known=PART_MUSCLES[part]||[],mOf=ex=>{const m=exMuscle(ex,part);return known.includes(m)?m:'';};
+    const order=[...known.filter(m=>foc.includes(m)),...known.filter(m=>!foc.includes(m)),''],heads=known.length>1;
+    for(const m of order){
+      const g=all.filter(ex=>mOf(ex)===m);if(!g.length)continue;
+      const mine=g.filter(ex=>did(ex)&&!inPlan.has(ex)&&!av(ex)).sort(byRecent),fresh=g.filter(ex=>!did(ex)&&!inPlan.has(ex)&&!av(ex)).sort((a,b)=>a.localeCompare(b));
+      const avd=g.filter(ex=>av(ex)&&!inPlan.has(ex)),inp=[...new Set(now.map(r=>r.ex))].filter(ex=>g.includes(ex)),key=part+'|'+m,open=!!(s.addMore&&s.addMore[key]);
+      const show=open?fresh.length:Math.min(fresh.length,Math.max(0,3-mine.length)),more=fresh.length-show;
+      list+=`<div class="pw-add-group">`+(heads?`<div class="pw-add-mh"><b>${hesc(m?(MUSCLE_LABEL[m]||m):'Other')}</b>${m&&foc.includes(m)?'<span>Focus</span>':''}<i></i></div>`:'')
+        +mine.map(rowDone).join('')+fresh.slice(0,show).map(rowNew).join('')
+        +(more>0?`<button type="button" class="pw-add-morebtn" data-add-more="${hesc(key)}">${more} more you haven’t tried</button>`:'')
+        +avd.map(ex=>did(ex)?rowDone(ex):rowNew(ex)).join('')
+        +(inp.length?`<p class="pw-add-in">In this plan · <b>${hesc(inp.join(', '))}</b></p>`:'')+`</div>`;
+    }
+  }
+  const browse=`<p class="pw-small">Browse by body part</p><div class="pw-add-parts" role="tablist">${parts.map(p=>`<button type="button" role="tab" data-pw="add-part" data-part="${hesc(p)}" aria-selected="${p===part}" class="${p===part?'on':''}">${hesc(typeof partLabel==='function'?partLabel(p):p)}</button>`).join('')}</div><div class="pw-add-list">${list||'<p class="pw-small">Nothing for this body part yet.</p>'}</div>`;
   if(bodyOnly) return q?pwAddResultsHTML(s,q,day,inPlan):browse;
   /* v4.6.181: SEARCH, IN THE SHEET. Typing an exercise used to leave for the
      paste-a-routine screen: a native menu of the whole catalog in catalog
@@ -775,7 +802,7 @@ function pwHandle(e){
     else if(a==='adjust-cancel'){s.adjustBase=null;s.adjustRows=null;s.addOpen=false;s.step='edit';}
     /* v4.6.156: Add exercise -- a pick joins the plan being adjusted (base and
        live rows), so +/- treat it like any planned exercise */
-    else if(a==='add-open'){s.addOpen=true;s.addPart=null;s.addQ='';s.addNewOpen=false;s.addNewPart=null;s.addCtx=el.dataset.ctx==='edit'?'edit':'adjust';}
+    else if(a==='add-open'){s.addOpen=true;s.addPart=null;s.addMore={};s.addQ='';s.addNewOpen=false;s.addNewPart=null;s.addCtx=el.dataset.ctx==='edit'?'edit':'adjust';}
     else if(a==='add-close'){s.addOpen=false;s.addQ='';s.addNewOpen=false;}
     /* v4.6.181: an exercise with no history of yours -- from the catalog, or a
        name you just typed (which becomes one of your own, under the body part
@@ -925,8 +952,9 @@ document.addEventListener('input',e=>{if(e.target.id!=='pw-add-q')return;const s
 document.addEventListener('focusin',e=>{if(e.target.id==='pw-add-q')e.target.closest('.pw-add-sheet')?.classList.add('pw-add-tall');});
 document.addEventListener('focusout',e=>{if(e.target.id==='pw-add-q'&&!String(pw().addQ||'').trim())setTimeout(()=>{const sh=document.querySelector('.pw-add-sheet');if(sh&&document.activeElement?.id!=='pw-add-q'&&!String(pw().addQ||'').trim())sh.classList.remove('pw-add-tall');},120);});
 document.addEventListener('click',e=>{
-  const t=e.target.closest&&e.target.closest('[data-add-clear],[data-add-newpart],[data-add-newopen]');if(!t)return;
+  const t=e.target.closest&&e.target.closest('[data-add-clear],[data-add-newpart],[data-add-newopen],[data-add-more]');if(!t)return;
   const s=pw();
+  if(t.hasAttribute('data-add-more')){(s.addMore=s.addMore||{})[t.dataset.addMore]=true;pwAddRefresh();return;}
   if(t.hasAttribute('data-add-clear')){s.addQ='';s.addNewOpen=false;const i=document.getElementById('pw-add-q');if(i){i.value='';i.focus();}}
   else if(t.hasAttribute('data-add-newpart'))s.addNewPart=t.dataset.addNewpart;
   else s.addNewOpen=true;
