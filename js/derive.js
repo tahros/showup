@@ -52,6 +52,9 @@ const MUSCLE_PART={'upper-chest':'Chest', chest:'Chest', 'lower-chest':'Chest', 
 const MUSCLE_LABEL={'upper-chest':'upper chest', chest:'mid chest', 'lower-chest':'lower chest',
   'upper-back':'upper back', 'front-delts':'front delts',
   'side-delts':'side delts', 'rear-delts':'rear delts', unassigned:'muscle not set'};
+/* v4.6.187: the short name a muscle wears INSIDE its body part (a tag beside an
+   exercise, a filter chip under the Chest tab): the part is already said. */
+const MUSCLE_SHORT={'upper-chest':'Upper',chest:'Mid','lower-chest':'Lower',lats:'Lats','upper-back':'Upper back','front-delts':'Front','side-delts':'Side','rear-delts':'Rear',quads:'Quads',hamstrings:'Hamstrings',glutes:'Glutes',calves:'Calves',abs:'Abs',obliques:'Obliques'};
 /* v3.3.357: THE ROSTER, read back from MUSCLE_PART so the two cannot drift. */
 const PART_MUSCLES=Object.entries(MUSCLE_PART)
   .reduce((a,[m,v])=>((a[v]=a[v]||[]).push(m),a),{});

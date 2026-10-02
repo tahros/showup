@@ -385,7 +385,7 @@ function pfPartsPending(b){return !!b.partsPick&&b.parts.slice().sort().join()!=
    row of that part's muscles; a tapped muscle leads the part on the next
    Regenerate. Every exercise carries its muscle as a small tag (accent when it
    is a focus), so the balance of a day can be read down the names. */
-const PF_MUSCLE_SHORT={'upper-chest':'Upper',chest:'Mid','lower-chest':'Lower',lats:'Lats','upper-back':'Upper back','front-delts':'Front','side-delts':'Side','rear-delts':'Rear',quads:'Quads',hamstrings:'Hamstrings',glutes:'Glutes',calves:'Calves',abs:'Abs',obliques:'Obliques'};
+const PF_MUSCLE_SHORT=MUSCLE_SHORT;
 function pfFocus(b){const parts=pfPartsSel(b);return (b.focus||[]).filter(m=>parts.includes(MUSCLE_PART[m]));}
 function pfFocusPending(b){return !!b.focusPick&&pfFocus(b).slice().sort().join()!==(b.focusGen||[]).slice().sort().join();}
 function pfMuscleTag(b,ex){const p=homePartOf(ex);if(!p||(PART_MUSCLES[p]||[]).length<2)return '';const m=exMuscle(ex,p);if(!PF_MUSCLE_SHORT[m])return '';

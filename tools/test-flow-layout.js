@@ -57,7 +57,7 @@ run(`DB.days={};for(const n of [2,4,6]){const d=new Date(todayISO+'T00:00');d.se
 ok('Train retains all body-part choices',w.document.querySelectorAll('.partcard').length===run(`Object.keys(SEED.catalog).length`));
 ok('Train groups readable exercises, without an extra plan',!!w.document.querySelector('.flow-exgroup .logmain')&&!w.document.querySelector('.plancard'));
 ok('Body-part heading has a dedicated contrast hook',!!w.document.querySelector('h2.flow-bodyhead'));
-ok('Go-to metadata is recency only, not yearly frequency',!w.document.querySelector('.flow-goto').textContent.includes('this year')&&w.document.querySelector('.flow-goto .sub').textContent==='2d ago');
+ok('Go-to metadata is recency only, not yearly frequency',!w.document.querySelector('.flow-goto').textContent.includes('this year')&&(e=>{const c=e.cloneNode(true);c.querySelectorAll('.mtag').forEach(t=>t.remove());return c.textContent;})(w.document.querySelector('.flow-goto .sub'))==='2d ago');   // v4.6.187: the muscle tag shares the line and is not metadata
 ok('Go-to does not repeat the selected body part',w.document.querySelector('.gotohead').textContent.trim()==='go-to'&&!w.document.querySelector('.gotohead .scopepill'));
 const last=w.document.querySelector('[data-flow-lastbody]'),part=w.document.querySelector('.partgrid');
 ok('Last time starts quietly folded',!!last&&last.hasAttribute('inert'));

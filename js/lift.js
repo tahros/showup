@@ -506,8 +506,22 @@ function renderLift(){
     const openSet=new Set(t.w.filter(s=>s.part===lift.part&&!dayMeta().doneEx.includes(s.ex)).map(s=>s.ex));
     let list=catFor(lift.part).map(ex=>({ex,last:exLastFor(ex),tier:exTier(ex),freq:exFreq(ex)}))
       .filter(x=>!openSet.has(x.ex));
+    /* v4.6.187: MUSCLES IN TRAIN. Body part stays the first level (the tabs);
+       the muscle is the second. Every row of a body part with more than one
+       muscle wears its muscle as a small tag on its second line (beside
+       "yesterday" -- long names already wrap, so not beside the name), and a
+       filter row above Go-to (All / Upper / Mid / Lower) narrows the same
+       sections to one muscle. Go-to, Sometimes, Never tried and Avoided stay:
+       in the gym you choose by habit, the filter is for when you choose by
+       muscle. The filter belongs to its body part and is dropped on leaving it. */
+    const partMs=(PART_MUSCLES[lift.part]||[]),multi=partMs.length>1&&lift.part!=='Run';
+    const mf=multi&&lift.mf&&lift.mf.part===lift.part&&partMs.includes(lift.mf.m)?lift.mf.m:'';
+    const mOf=ex=>exMuscle(ex,lift.part);
+    if(mf) list=list.filter(x=>mOf(x.ex)===mf);
+    const mtag=ex=>multi&&MUSCLE_SHORT[mOf(ex)]?`<span class="mtag">${MUSCLE_SHORT[mOf(ex)]}</span>`:'';
+    if(multi) h+=`<div class="mf-row" role="group" aria-label="Show one muscle of ${lift.part}">${[['','All'],...partMs.map(m=>[m,MUSCLE_SHORT[m]||MUSCLE_LABEL[m]||m])].map(([m,l])=>`<button type="button" class="mf-chip${m===mf?' on':''}" data-mf="${m}" aria-pressed="${m===mf}">${l}</button>`).join('')}</div>`;
     const row=({ex,last,freq,avoided},big)=>{
-      const when=last?(daysAgo(last)===0?'✓ done today':agoLabel(daysAgo(last))):'never logged';
+      const when=mtag(ex)+(last?(daysAgo(last)===0?'✓ done today':agoLabel(daysAgo(last))):'never logged');
       const meta=big&&!refinedFlow()?`${when} · ${freq}× this year`:when;
       /* v3.3.329: the per-side line is GONE. It restated the same weight in a
          second arithmetic on the row that already carries the total, and it
@@ -567,6 +581,7 @@ function renderLift(){
       fresh.forEach(x=>h+=row(x,false));
       if(refinedFlow()) h+=`</div>`;
     }
+    if(mf&&!goto.length&&!some.length&&!fresh.length&&!avoided.length) h+=`<p class="note" style="margin-top:14px">Nothing for ${MUSCLE_LABEL[mf]||mf} here yet.</p>`;
     if(lift.adding){
       h+=`<h2>Add an exercise to ${lift.part}</h2>
           <div class="card">

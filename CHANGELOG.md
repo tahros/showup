@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.187 (2026-10-02) — Muscles in Train: a tag on every row and a filter
+
+- **Asked:** the second step of showing exercises by body part and then muscle throughout the app. Mocked with the Add sheet and approved.
+- **Now:** in Train, each exercise row of a body part with more than one muscle wears its muscle as a small tag on its second line (beside "yesterday"), and a filter row above Go-to (All · Upper · Mid · Lower) narrows the same sections to one muscle. Go-to, Sometimes, Never tried and Avoided are unchanged; sections left empty by the filter are not shown. A body part with one muscle (Biceps, Triceps) has neither chips nor tags, and leaving a body part drops its filter.
+- The short muscle names (Upper, Mid, Lower, Lats…) are now one table, `MUSCLE_SHORT` in js/derive.js, shared with Plan → Edit.
+- Tests: new `tools/check-train-muscles.cjs` (44 checks).
+
 ## v4.6.186 (2026-10-02) — The Add sheet lists exercises by muscle
 
 - **Asked:** "When adding exercise, I would want to see muscle groups", as the first step of showing exercises by body part and then muscle throughout the app. Mocked first and approved.

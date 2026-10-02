@@ -336,7 +336,9 @@ document.addEventListener('click',e=>{
     return render();
   }
   const pt=e.target.closest('[data-part]:not([data-ex])');
-  if(pt){lift.part=pt.dataset.part;lift.ex=null;lift.weight=0;lift.enterAnim=true;return render();}   // v3.3.57: the arriving list gets its one entrance
+  /* v4.6.187: Train's muscle filter -- same list, one muscle */
+  {const mfc=e.target.closest('[data-mf]');if(mfc&&view==='lift'){lift.mf=mfc.dataset.mf?{part:lift.part,m:mfc.dataset.mf}:null;return render();}}
+  if(pt){lift.part=pt.dataset.part;lift.ex=null;lift.weight=0;lift.mf=null;lift.enterAnim=true;return render();}   // v3.3.57: the arriving list gets its one entrance
   const ex=e.target.closest('[data-ex]');
   if(ex){
     lift.part=ex.dataset.part||lift.part; lift.ex=ex.dataset.ex;
