@@ -65,7 +65,7 @@ const PORT=process.env.PORT||8784,wait=ms=>new Promise(r=>setTimeout(r,ms));
     ok(`${tag} the writer is sent the focus and the target as fields of their own`,JSON.stringify(sent.focus)==='[{"part":"Chest","muscle":"lower-chest"}]'&&sent.target===15&&sent.usual.Chest===12&&sent.usual.Sixpack===3,sent);
     ok(`${tag} ...and the answer needed no repair`,sent.n===1,sent.n);
     s=await st();
-    ok(`${tag} the day comes back all lower chest: the incline lift the writer kept is swapped out`,s.tags.join(',')==='Decline Dumbbell Bench Press|Lower*,Decline Barbell Bench Press|Lower*,Cable Fly Down|Lower*,Dip|Lower*,Hanging Leg Raise|Abs',s.tags);
+    ok(`${tag} the day comes back all lower chest: the incline lift the writer kept is swapped out`,s.tags.join(',')==='Decline Barbell Bench Press|Lower*,Decline Dumbbell Bench Press|Lower*,Dip|Lower*,Cable Fly Down|Lower*,Hanging Leg Raise|Abs',s.tags);
     ok(`${tag} ...fitted to the 15 it was asked for, and counted`,s.out==='15'&&s.auto==='Auto'&&/^15 sets · 5 exercises · 12 of 12 Chest sets on lower chest$/.test(s.hint)&&!s.beam,s);
     ok(`${tag} ...with Lower still selected`,s.rows[0]==='Chest: Upper Mid Lower*',s.rows);
     ok(`${tag} nothing overflows after the rebuild`,!s.wide&&!s.clip,s);

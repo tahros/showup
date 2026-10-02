@@ -588,6 +588,49 @@ document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;const s=typeo
    writer. Its body part joins the day's parts (a Sixpack exercise on a Back
    day made the parts read as changed, "Regenerate to rebuild this day"), and
    no set target is left pending -- a stale one kept Save disabled. */
+/* v4.6.193: A SOUND ORDER. A suggested day came out as Dip, Barbell Bench Press,
+   Cable Fly Down, Russian Twist, Chest Fly: the bodyweight lift ahead of the
+   heavy bar, and a chest fly after the core work, because whatever the app
+   added was pushed onto the end. The order a session wants is a fact about
+   the lifts, so the app holds it:
+     0  free-bar compound lifts (barbell, Smith): the heaviest, done fresh
+     1  other compound lifts (dumbbell presses, dips, pull-ups, machines)
+     2  isolation and cable work (fly, raise, curl, extension, pushdown...)
+     3  core
+     4  cardio
+   Inside a tier the given order stands. Used to order what the writer returns
+   and to place whatever the app or the Add sheet brings in; rows you fixed
+   and the order you drag things into are yours. */
+const PW_ISO=/\b(fly|flye|crossover|raise|curl|extension|pushdown|push-down|kickback|pullover|squeeze|shrug|face pull|pec deck|adduction|abduction|rear delt|skull crusher|svend)\b/i;
+function pwTier(ex){
+  const p=homePartOf(ex)||'';
+  if((typeof isCardioEx==='function'&&isCardioEx(ex))||p==='Run') return 4;
+  if(p==='Sixpack') return 3;
+  if(PW_ISO.test(String(ex||''))) return 2;
+  return ['barbell','smith'].includes(equipOf(ex))?0:1;
+}
+/* where a new row belongs in rows: ahead of the first exercise of a later tier */
+function pwPlaceIndex(rows,ex){
+  const t=pwTier(ex);
+  for(let i=0;i<rows.length;i++){const r=rows[i];if(r&&r.kind==='ex'&&r.ex&&pwTier(r.ex)>t)return i;}
+  return rows.length;
+}
+/* put a row into a day there, keeping the fixed rows and the open rows pointing at the same exercises */
+function pwInsertRow(b,row){
+  const idx=pwPlaceIndex(b.rows,row.ex);b.rows.splice(idx,0,row);
+  b.locks=(b.locks||[]).map(i=>i>=idx?i+1:i);
+  if(b.swapped&&b.swapped.row>=idx)b.swapped.row++;
+  const o=typeof pfState==='function'&&pfState().routineOpen?.[pw().active];
+  if(o&&b===pwDay(pw().active)){const n={};for(const [k,v] of Object.entries(o)){const x=+k;n[x>=idx?x+1:x]=v;}pfState().routineOpen[pw().active]=n;}
+  return idx;
+}
+/* a whole day in that order: unfixed exercises only, each tier in the order given (lead first, when a focus says so) */
+function pwOrderRows(rows,fixed=new Set(),lead=()=>false){
+  const at=rows.map((r,i)=>r&&r.kind==='ex'&&r.ex&&!fixed.has(i)?i:-1).filter(i=>i>=0);
+  const sorted=at.map((i,k)=>({r:rows[i],k,t:pwTier(rows[i].ex),l:lead(rows[i])?0:1})).sort((a,b)=>a.t-b.t||a.l-b.l||a.k-b.k);
+  at.forEach((i,k)=>{rows[i]=sorted[k].r;});
+  return rows;
+}
 function pwAddedToDay(b){
   b.target=null;
   if(b.partsPick&&b.parts){const have=pwParts(b.rows).filter(p=>p!=='Run'||b.parts.includes('Run'));b.parts=[...new Set([...b.parts,...have])];}
@@ -828,13 +871,13 @@ function pwHandle(e){
       if(el.dataset.new&&!pwAllExercises().some(x=>canonKey(x)===canonKey(ex))){DB.settings.custom={...customs(),[ex]:{part,equip:'barbell'}};if(el.dataset.muscle&&MUSCLE_PART[el.dataset.muscle]===part)setExMuscle(ex,el.dataset.muscle);DB.settingsAt=Date.now();save(true);}
       const r=pwRead(`${ex}\n  by feel × 10 10 10`)[0];
       if(r&&r.kind==='ex'&&r.ex){
-        if(s.addCtx==='edit'&&b){pwUndoPoint(b);b.rows.push(r);b.source='Your draft';pwAddedToDay(b);}
+        if(s.addCtx==='edit'&&b){pwUndoPoint(b);pwInsertRow(b,r);b.source='Your draft';pwAddedToDay(b);}
         else if(s.adjustBase){r.added='new';s.adjustBase.rows.push(pwCopy(r));s.adjustRows.push(r);s.adjustSkip=(s.adjustSkip||[]).filter(x=>x!==r.ex);}
       }
       s.addOpen=false;s.addQ='';s.addNewOpen=false;
     }
     else if(a==='add-part'){s.addPart=el.dataset.part;}
-    else if(a==='add-pick'&&s.addCtx==='edit'){const r=pwExerciseRow(el.dataset.ex,pwTypicalSets(el.dataset.ex));if(r&&b){delete r.added;pwUndoPoint(b);b.rows.push(r);b.source='Your draft';pwAddedToDay(b);}s.addOpen=false;s.addQ='';}
+    else if(a==='add-pick'&&s.addCtx==='edit'){const r=pwExerciseRow(el.dataset.ex,pwTypicalSets(el.dataset.ex));if(r&&b){delete r.added;pwUndoPoint(b);pwInsertRow(b,r);b.source='Your draft';pwAddedToDay(b);}s.addOpen=false;s.addQ='';}
     else if(a==='add-pick'){const r=pwExerciseRow(el.dataset.ex,pwTypicalSets(el.dataset.ex),'new');if(r){s.adjustBase.rows.push(pwCopy(r));s.adjustRows.push(r);s.adjustSkip=(s.adjustSkip||[]).filter(x=>x!==r.ex);}s.addOpen=false;s.addQ='';}
     else if(a==='add-remove'){const r=s.adjustRows[i];if(r){
       if(r.added==='new'){const k=s.adjustBase.rows.findIndex(x=>x.added==='new'&&x.ex===r.ex);if(k>=0)s.adjustBase.rows.splice(k,1);s.adjustRows.splice(i,1);}

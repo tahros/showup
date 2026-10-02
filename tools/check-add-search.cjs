@@ -62,7 +62,7 @@ const PORT=process.env.PORT||8784,wait=ms=>new Promise(r=>setTimeout(r,ms));
     /* a catalog exercise you have not done */
     await open();await p.click('#pw-add-q');await p.keyboard.type('cable cu',{delay:15});await wait(200);
     await p.click('.pw-add-results [data-pw="add-new"][data-ex="Cable Curl"]');await wait(400);
-    r=await p.evaluate(()=>({last:pwText([pwDay(pw().active).rows.at(-1)]),custom:Object.keys(DB.settings.custom||{}).length}));
+    r=await p.evaluate(()=>({last:pwText(pwDay(pw().active).rows.filter(x=>x.ex==='Cable Curl')),custom:Object.keys(DB.settings.custom||{}).length}));
     ok(`${tag} a not-tried exercise starts by feel and is not turned into a custom one`,/Cable Curl\n\s+by feel × 10 10 10/.test(r.last)&&r.custom===0,JSON.stringify(r));
     /* a name the app does not know */
     await open();await p.click('#pw-add-q');await p.keyboard.type('zercher squat',{delay:10});await wait(200);
@@ -73,8 +73,9 @@ const PORT=process.env.PORT||8784,wait=ms=>new Promise(r=>setTimeout(r,ms));
     ok(`${tag} choosing Legs changes only the choice (the typed name stays)`,r.on==='Legs'&&r.q==='zercher squat'&&r.go==='Legs',JSON.stringify(r));
     if(shots)await p.screenshot({path:'../add-search-3.png'});
     await p.click('.pw-add-go');await wait(400);
-    r=await p.evaluate(()=>({last:pwText([pwDay(pw().active).rows.at(-1)]),c:DB.settings.custom&&DB.settings.custom['Zercher Squat'],home:homePartOf('Zercher Squat'),known:pwRead('Zercher Squat\n  100 lb × 5')[0].ex,sheet:!!document.querySelector('.pw-add-sheet')}));
-    ok(`${tag} it becomes one of your exercises under Legs and joins the plan by feel`,/Zercher Squat\n\s+by feel × 10 10 10/.test(r.last)&&r.c&&r.c.part==='Legs'&&r.home==='Legs'&&r.known==='Zercher Squat'&&!r.sheet,JSON.stringify(r));
+    /* v4.6.193: an added exercise is placed in a sound order, not appended -- a barbell squat leads the day */
+    r=await p.evaluate(()=>({last:pwText(pwDay(pw().active).rows.filter(x=>x.ex==='Zercher Squat')),first:pwDay(pw().active).rows[0].ex,c:DB.settings.custom&&DB.settings.custom['Zercher Squat'],home:homePartOf('Zercher Squat'),known:pwRead('Zercher Squat\n  100 lb × 5')[0].ex,sheet:!!document.querySelector('.pw-add-sheet')}));
+    ok(`${tag} it becomes one of your exercises under Legs and joins the plan by feel`,/Zercher Squat\n\s+by feel × 10 10 10/.test(r.last)&&r.first==='Zercher Squat'&&r.c&&r.c.part==='Legs'&&r.home==='Legs'&&r.known==='Zercher Squat'&&!r.sheet,JSON.stringify(r));
     /* found again next time, now as known; the clear button; Enter */
     await open();await p.click('#pw-add-q');await p.keyboard.type('zercher',{delay:10});await wait(200);
     r=await res();

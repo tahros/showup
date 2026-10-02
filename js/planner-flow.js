@@ -510,6 +510,16 @@ function pfFocusSwap(day,focus,locked=[]){
   });
  }
 }
+/* v4.6.193: the stepper's rows, with what it brings in PLACED, not appended: an
+   added chest fly goes with the chest work, ahead of the core, where it would
+   be done. st.base is the day as the stepping began and st.locks its fixed
+   rows as they were then, so the fixed rows follow their exercises. */
+function pfAllocate(b,st,target){
+ const baseLocks=st.locks||b.locks||[],out=pwAllocateSets({...b,rows:pwCopy(st.base),locks:baseLocks},target);
+ const rows=out.filter(r=>!r.added);let locks=baseLocks.slice();
+ for(const r of out.filter(r=>r.added)){const idx=pwPlaceIndex(rows,r.ex);rows.splice(idx,0,r);locks=locks.map(i=>i>=idx?i+1:i);}
+ b.rows=rows.map(r=>{delete r.added;return r;});b.locks=locks;
+}
 function pfValidateCandidate(candidate,dates){
  const p=pfPrefs();
  /* v4.6.147: a day the writer added that you did not pick is dropped; a day it
@@ -540,13 +550,16 @@ function pfValidateCandidate(candidate,dates){
   if(candidate.type==='generate'){
    const f=pwFocus({...src,rows:day.rows,parts:src.partsPick&&src.parts.length?src.parts:pwParts(day.rows)});
    if(f.length)pfFocusSwap(day,f,(src.locks||[]).map(i=>pwText([src.rows[i]])));
-   if(f.length&&!(src.locks||[]).length){
-    for(const p of new Set(f.map(m=>MUSCLE_PART[m]))){
-     const at=day.rows.map((r,i)=>r.kind==='ex'&&homePartOf(r.ex)===p?i:-1).filter(i=>i>=0),rs=at.map(i=>day.rows[i]),lead=r=>f.includes(exMuscle(r.ex,p));
-     const sorted=[...rs.filter(lead),...rs.filter(r=>!lead(r))];at.forEach((i,k)=>{day.rows[i]=sorted[k];});
-     if(!rs.some(lead))(day.notes=day.notes||[]).push('The writer wrote no '+f.filter(m=>MUSCLE_PART[m]===p).map(m=>MUSCLE_LABEL[m]||m).join(' or ')+' exercise for this day. Add one with Add exercise, or Regenerate.');
-    }
+   for(const p of new Set(f.map(m=>MUSCLE_PART[m]))){
+    const rs=day.rows.filter(r=>r.kind==='ex'&&homePartOf(r.ex)===p);
+    if(rs.length&&!rs.some(r=>f.includes(exMuscle(r.ex,p))))(day.notes=day.notes||[]).push('The writer wrote no '+f.filter(m=>MUSCLE_PART[m]===p).map(m=>MUSCLE_LABEL[m]||m).join(' or ')+' exercise for this day. Add one with Add exercise, or Regenerate.');
    }
+   /* v4.6.193: the day in a sound order (pwTier): the free bar first, then the
+      other compound lifts, then isolation and cable work, core last. Inside a
+      tier the writer's order stands, a focus muscle's lifts ahead of the rest.
+      Exercises you fixed keep their places. */
+   {const lockedText=(src.locks||[]).map(i=>pwText([src.rows[i]])),fixed=new Set(day.rows.map((r,i)=>lockedText.includes(pwText([r]))?i:-1).filter(i=>i>=0));
+    pwOrderRows(day.rows,fixed,r=>f.includes(exMuscle(r.ex,homePartOf(r.ex)||'')));}
    const mine=!!src.rows.length&&!!pfAuto(src)?.mine,au=pfAutoFor(src.partsPick&&src.parts.length?src.parts:pwParts(day.rows)),goal=src.target!=null?null:mine?pwSetCount(src.rows):au?.total;
    if(goal&&pwSetCount(day.rows)&&pwSetCount(day.rows)!==goal){const fit=pfFitSets(day.rows,goal,goal,(src.locks||[]).map(i=>pwText([src.rows[i]])));day.rows=fit.rows;(day.notes=day.notes||[]).push('Set count fitted to your '+(mine?'target':'usual')+': '+fit.from+' → '+fit.to+' sets'+(fit.dropped.length?' (removed '+fit.dropped.join(', ')+')':'')+'.');}
   }
@@ -651,9 +664,8 @@ function pfHandle(a,el){const s=pw(),j=pfState(),d=el.dataset.date,i=+el.dataset
     exercises away first; any other edit to the day starts a fresh base. */
  else if(a==='pf-plus'||a==='pf-minus'){
   j.stepBase=j.stepBase||{};let st=j.stepBase[s.active];
-  if(!st||JSON.stringify(st.out)!==JSON.stringify(b.rows)){pwUndoPoint(b);st={base:pwCopy(b.rows)};}
-  const base={...b,rows:st.base},total=pwSetCount(b.rows);
-  b.rows=pwAllocateSets(base,total+(a==='pf-plus'?1:-1)).map(r=>{delete r.added;return r;});
+  if(!st||JSON.stringify(st.out)!==JSON.stringify(b.rows)){pwUndoPoint(b);st={base:pwCopy(b.rows),locks:(b.locks||[]).slice()};}
+  pfAllocate(b,st,pwSetCount(b.rows)+(a==='pf-plus'?1:-1));
   b.target=null;b.source='Your draft';st.out=pwCopy(b.rows);j.stepBase[s.active]=st;
   /* v4.6.183: stepping away from the auto number makes the count yours */
   const au=pfAutoFor(pfPartsSel(b));b.setsMine=!!au&&au.total!=null&&pwSetCount(b.rows)!==au.total;}
@@ -663,7 +675,7 @@ function pfHandle(a,el){const s=pw(),j=pfState(),d=el.dataset.date,i=+el.dataset
  else if(a==='pf-auto'){delete b.setsMine;const au=pfAutoFor(pfPartsSel(b));
   if(au&&au.total!=null&&b.rows.length&&!pfPartsPending(b)&&pwSetCount(b.rows)!==au.total){const st=j.stepBase?.[s.active],same=st&&JSON.stringify(st.out)===JSON.stringify(b.rows);pwUndoPoint(b);
    /* from the rows the stepping started at, so an exercise + brought in leaves again */
-   b.rows=pwAllocateSets({...b,rows:pwCopy(same?st.base:b.rows)},au.total).map(r=>{delete r.added;return r;});b.target=null;b.source='Your draft';if(same)st.out=pwCopy(b.rows);else delete j.stepBase?.[s.active];
+   pfAllocate(b,same?st:{base:pwCopy(b.rows),locks:(b.locks||[]).slice()},au.total);b.target=null;b.source='Your draft';if(same)st.out=pwCopy(b.rows);else delete j.stepBase?.[s.active];
    if(pwSetCount(b.rows)!==au.total)toast('This day’s exercises reach '+pwSetCount(b.rows)+' sets; Regenerate builds to '+au.total+'.');}}
  else if(a==='pf-part'){const p=el.dataset.part,cur=pfPartsSel(b);b.parts=cur.includes(p)?cur.filter(v=>v!==p):[...cur,p];b.partsPick=true;
   /* v4.6.183: the count follows the body parts again, and a focus leaves with its part */

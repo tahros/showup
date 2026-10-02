@@ -1,5 +1,16 @@
 # ShowUp — changelog
 
+## v4.6.193 (2026-10-02) — Suggested days come in a sound order
+
+- **Reported:** a suggested day read Dip, Barbell Bench Press, Cable Fly Down, Russian Twist, Chest Fly: the bodyweight lift ahead of the heavy bar, and a chest fly after the core work.
+- **Why:** the order was whatever the writer returned, and anything the app brought in afterwards (Set target +, the Add sheet) was pushed onto the end of the day, after the core.
+- **Now:** the app holds the order. Free-bar compound lifts first (barbell, Smith), then the other compound lifts (dumbbell presses, dips, pull-ups, machines), then isolation and cable work (flies, raises, curls, extensions, pushdowns), core last, cardio after. Inside each group the given order stands, a focus muscle's lifts ahead of the rest.
+  - A generated day is put in that order when it arrives; exercises you fixed keep their places.
+  - Set target +, Back to auto and the Add sheet place what they bring in where it belongs (a chest fly goes with the chest work, ahead of the core). − takes it away again and leaves the day as it was.
+  - The order you drag exercises into is yours and is not touched.
+  - The writer's prompt asks for the same order (new section ORDER WITHIN A DAY).
+- Tests: new `tools/test-order.js` (15 checks); `tools/test-focus.js` and `tools/check-focus.cjs` follow the new order.
+
 ## v4.6.192 (2026-10-02) — A weight on a bodyweight exercise reads "BW+"
 
 - **Reported:** in the plan, Dip showed "50 lb" where it should show "BW+50 lb" (its last time, right under it, read "BW+45 lb").
