@@ -863,12 +863,19 @@ document.addEventListener('click',e=>{
   if(e.target.closest('#cancelEx')){ lift.adding=false; return renderLift(); }
   const ne=e.target.closest('[data-newequip]');
   if(ne){ lift.newEquip=ne.dataset.newequip; return renderLift(); }
+  /* v4.6.188: the new exercise's muscle -- chosen in place, so the typed name stays */
+  const nm=e.target.closest('[data-newmuscle]');
+  if(nm){ lift.newMuscle=nm.dataset.newmuscle; nm.parentElement.querySelectorAll('[data-newmuscle]').forEach(b=>b.classList.toggle('on',b===nm)); return; }
+  /* ...and an existing exercise's, on its page: saved at once, nothing re-renders */
+  const xm=e.target.closest('[data-exmuscle]');
+  if(xm&&lift.ex){ if(setExMuscle(lift.ex,xm.dataset.exmuscle)){ xm.parentElement.querySelectorAll('[data-exmuscle]').forEach(b=>{b.classList.toggle('on',b===xm);b.setAttribute('aria-pressed',b===xm);}); const n=document.getElementById('xmNow'); if(n)n.textContent=xm.dataset.xmpart+' · '+(MUSCLE_SHORT[xm.dataset.exmuscle]||xm.dataset.exmuscle); save(true); } return; }
   if(e.target.closest('#saveEx')){
     const name=($('#newExName').value||'').trim();
     if(!name) return toast('Name it first');
     if(SEED.equip[name]||customs()[name]) return toast('That exercise already exists');
     DB.settings.custom={...customs(), [name]:{part:lift.part, equip:lift.newEquip||'barbell'}};
-    lift.adding=false;
+    {const ms=PART_MUSCLES[lift.part]||[];if(ms.length>1)setExMuscle(name,ms.includes(lift.newMuscle)?lift.newMuscle:exMuscleDefault(lift.part,lift.mf&&lift.mf.part===lift.part?lift.mf.m:null));}
+    lift.adding=false;lift.newMuscle=null;
     save(true); toast(`${name} added to ${lift.part}`);
     lift.ex=name; lift.weight=0;
     return renderLift();

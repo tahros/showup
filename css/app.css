@@ -4352,3 +4352,10 @@ html.modal-open .calreturn{display:none!important}
 .mf-chip{padding:8px 14px;border:0;border-radius:999px;font:500 13px/1 var(--body);color:var(--muted);background:color-mix(in srgb,var(--chalk) 6%,transparent);cursor:pointer}
 .mf-chip.on{background:var(--accent);color:#fff}
 .mtag{display:inline-block;margin-right:8px;padding:2px 7px;border-radius:9px;background:color-mix(in srgb,var(--chalk) 8%,transparent);color:var(--muted);font:600 10px/1.3 var(--mono);letter-spacing:.06em;text-transform:uppercase;vertical-align:1px;white-space:nowrap}
+/* v4.6.188: the exercise page's Muscle card */
+.xm-card{margin:14px 0 4px;padding:12px 14px 14px 16px;border-radius:18px;background:var(--surface);border:1px solid var(--line)}
+.xm-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.xm-top span{font:400 13px var(--mono);color:var(--muted);letter-spacing:.02em}
+.xm-top b{font:600 14px var(--body);color:var(--chalk)}
+.xm-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.xm-card small{display:block;margin-top:10px;font:400 12px/1.4 var(--body);color:var(--muted)}

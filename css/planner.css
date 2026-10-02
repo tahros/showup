@@ -414,3 +414,6 @@ p.pw-small{margin:10px 0 16px}.pw-workspace p:not(.pw-small){font:400 14px/1.6 v
 .pw-add-in b{font-weight:500;color:color-mix(in srgb,var(--chalk) 70%,transparent)}
 .pw-add-morebtn{display:block;width:100%;padding:12px 0;border:0;border-top:1px solid var(--line);background:none;text-align:left;font:500 13px/1.4 var(--body);color:var(--accent);cursor:pointer}
 .pw-add-group:first-child>.pw-add-pick:first-child{border-top:1px solid var(--line)}
+/* v4.6.188: labels for the new-exercise card's two chip rows */
+.pw-add-newlab{display:block;margin:14px 0 6px;font:400 12px/1.4 var(--body);color:var(--muted)}
+.pw-add-new>small{margin-bottom:0}

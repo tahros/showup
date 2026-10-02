@@ -1,5 +1,15 @@
 # ShowUp — changelog
 
+## v4.6.188 (2026-10-02) — An exercise's muscle is yours to set
+
+- **Asked:** the third step of showing exercises by body part and then muscle throughout the app. Mocked first and approved.
+- **Was:** an exercise you created took its body part's default muscle (every new chest exercise was "mid chest"), so its tag, the day's focus, the filters and the swaps were wrong for it; and nothing let you overrule the app's own mapping.
+- **Train's "Add your own exercise" form:** a Muscle row between Name and Equipment. It starts on Train's muscle filter if one is on, else the body part's first muscle; choosing one keeps the name you typed.
+- **The exercise page:** a Muscle card above "Plans & suggestions" (Chest · Lower, with that body part's muscles as chips). A tap saves at once, in place. It is there for built-in exercises too.
+- **The Add sheet's new-exercise card:** Muscle under Body part. It starts on the day's focus in that body part and follows the body part you pick.
+- A body part with one muscle shows none of these. The muscle is stored on the exercise's id (`setExMuscle`, js/core.js), so a rename keeps it; it says where the exercise's sets count from now on and edits no logged set.
+- Tests: new `tools/check-muscle-pick.cjs` (68 checks) and `tools/test-exmuscle.js` (9).
+
 ## v4.6.187 (2026-10-02) — Muscles in Train: a tag on every row and a filter
 
 - **Asked:** the second step of showing exercises by body part and then muscle throughout the app. Mocked with the Add sheet and approved.

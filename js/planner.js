@@ -509,7 +509,9 @@ function pwAddResultsHTML(s,q,day,inPlan){
   const name=pwTitleCase(q),none=!mine.length&&!fresh.length;
   if(!exact&&name.length>=2&&(none||s.addNewOpen)){
     const parts=Object.keys(SEED.catalog||{}).filter(p=>p!=='Run'),pick=parts.includes(s.addNewPart)?s.addNewPart:(pwDayParts(day)[0]||parts[0]);
-    h+=`${none?'<div class="pw-add-h">No match</div>':''}<div class="pw-add-new"><strong>Add “${hesc(name)}”</strong><small>A new exercise of yours. Starts by feel × 10 10 10; set the weight in the plan.</small><div class="pw-add-newparts" role="group" aria-label="Body part">${parts.map(p=>`<button type="button" data-add-newpart="${hesc(p)}" aria-pressed="${p===pick}" class="${p===pick?'on':''}">${hesc(partLabel(p))}</button>`).join('')}</div>${pwButton('add-new','Add to '+hesc(day0),'primary pw-add-go',`data-ex="${hesc(name)}" data-part="${hesc(pick)}" data-new="1"`)}</div>`;
+    /* v4.6.188: the new exercise's muscle, under its body part; it starts on the day's focus in that part */
+    const pms=PART_MUSCLES[pick]||[],pm=pms.includes(s.addNewMuscle)?s.addNewMuscle:exMuscleDefault(pick,pwFocus(day));
+    h+=`${none?'<div class="pw-add-h">No match</div>':''}<div class="pw-add-new"><strong>Add “${hesc(name)}”</strong><small>A new exercise of yours. Starts by feel × 10 10 10; set the weight in the plan.</small><span class="pw-add-newlab">Body part</span><div class="pw-add-newparts" role="group" aria-label="Body part">${parts.map(p=>`<button type="button" data-add-newpart="${hesc(p)}" aria-pressed="${p===pick}" class="${p===pick?'on':''}">${hesc(partLabel(p))}</button>`).join('')}</div>${pms.length>1?`<span class="pw-add-newlab">Muscle</span><div class="pw-add-newparts" role="group" aria-label="Muscle">${pms.map(m=>`<button type="button" data-add-newmuscle="${hesc(m)}" aria-pressed="${m===pm}" class="${m===pm?'on':''}">${hesc(MUSCLE_SHORT[m]||MUSCLE_LABEL[m]||m)}</button>`).join('')}</div>`:''}${pwButton('add-new','Add to '+hesc(day0),'primary pw-add-go',`data-ex="${hesc(name)}" data-part="${hesc(pick)}" data-muscle="${hesc(pms.length>1?pm:'')}" data-new="1"`)}</div>`;
   }else if(!exact&&name.length>=4&&!none){
     h+=`<button type="button" class="pw-add-pick pw-add-asnew" data-add-newopen><span><strong>Add “${hesc(name)}” as a new exercise</strong><small>if none of these is it</small></span><i></i></button>`;
   }
@@ -802,14 +804,14 @@ function pwHandle(e){
     else if(a==='adjust-cancel'){s.adjustBase=null;s.adjustRows=null;s.addOpen=false;s.step='edit';}
     /* v4.6.156: Add exercise -- a pick joins the plan being adjusted (base and
        live rows), so +/- treat it like any planned exercise */
-    else if(a==='add-open'){s.addOpen=true;s.addPart=null;s.addMore={};s.addQ='';s.addNewOpen=false;s.addNewPart=null;s.addCtx=el.dataset.ctx==='edit'?'edit':'adjust';}
+    else if(a==='add-open'){s.addOpen=true;s.addPart=null;s.addMore={};s.addNewMuscle=null;s.addQ='';s.addNewOpen=false;s.addNewPart=null;s.addCtx=el.dataset.ctx==='edit'?'edit':'adjust';}
     else if(a==='add-close'){s.addOpen=false;s.addQ='';s.addNewOpen=false;}
     /* v4.6.181: an exercise with no history of yours -- from the catalog, or a
        name you just typed (which becomes one of your own, under the body part
        you chose). It starts by feel; the weight is set in the plan row. */
     else if(a==='add-new'){
       const ex=el.dataset.ex,part=el.dataset.part||pwDayParts(s.addCtx==='edit'?b:s.adjustBase)[0]||'Chest';
-      if(el.dataset.new&&!pwAllExercises().some(x=>canonKey(x)===canonKey(ex))){DB.settings.custom={...customs(),[ex]:{part,equip:'barbell'}};DB.settingsAt=Date.now();save(true);}
+      if(el.dataset.new&&!pwAllExercises().some(x=>canonKey(x)===canonKey(ex))){DB.settings.custom={...customs(),[ex]:{part,equip:'barbell'}};if(el.dataset.muscle&&MUSCLE_PART[el.dataset.muscle]===part)setExMuscle(ex,el.dataset.muscle);DB.settingsAt=Date.now();save(true);}
       const r=pwRead(`${ex}\n  by feel × 10 10 10`)[0];
       if(r&&r.kind==='ex'&&r.ex){
         if(s.addCtx==='edit'&&b){pwUndoPoint(b);b.rows.push(r);b.source='Your draft';pwAddedToDay(b);}
@@ -952,11 +954,12 @@ document.addEventListener('input',e=>{if(e.target.id!=='pw-add-q')return;const s
 document.addEventListener('focusin',e=>{if(e.target.id==='pw-add-q')e.target.closest('.pw-add-sheet')?.classList.add('pw-add-tall');});
 document.addEventListener('focusout',e=>{if(e.target.id==='pw-add-q'&&!String(pw().addQ||'').trim())setTimeout(()=>{const sh=document.querySelector('.pw-add-sheet');if(sh&&document.activeElement?.id!=='pw-add-q'&&!String(pw().addQ||'').trim())sh.classList.remove('pw-add-tall');},120);});
 document.addEventListener('click',e=>{
-  const t=e.target.closest&&e.target.closest('[data-add-clear],[data-add-newpart],[data-add-newopen],[data-add-more]');if(!t)return;
+  const t=e.target.closest&&e.target.closest('[data-add-clear],[data-add-newpart],[data-add-newmuscle],[data-add-newopen],[data-add-more]');if(!t)return;
   const s=pw();
   if(t.hasAttribute('data-add-more')){(s.addMore=s.addMore||{})[t.dataset.addMore]=true;pwAddRefresh();return;}
   if(t.hasAttribute('data-add-clear')){s.addQ='';s.addNewOpen=false;const i=document.getElementById('pw-add-q');if(i){i.value='';i.focus();}}
-  else if(t.hasAttribute('data-add-newpart'))s.addNewPart=t.dataset.addNewpart;
+  else if(t.hasAttribute('data-add-newpart')){s.addNewPart=t.dataset.addNewpart;s.addNewMuscle=null;}
+  else if(t.hasAttribute('data-add-newmuscle'))s.addNewMuscle=t.dataset.addNewmuscle;
   else s.addNewOpen=true;
   pwAddRefresh();
 });

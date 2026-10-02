@@ -587,6 +587,9 @@ function renderLift(){
           <div class="card">
             <div class="fld text" style="margin-bottom:10px"><label>Name</label>
               <input id="newExName" type="text" placeholder="e.g. Incline Machine Press"></div>
+${(PART_MUSCLES[lift.part]||[]).length>1?`<label class="mono muted" style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:6px">Muscle</label>
+            <div class="chips" style="margin-bottom:12px" role="group" aria-label="Muscle">${PART_MUSCLES[lift.part].map(m=>
+              `<button type="button" class="chip ${(lift.newMuscle&&PART_MUSCLES[lift.part].includes(lift.newMuscle)?lift.newMuscle:exMuscleDefault(lift.part,mf))===m?'on':''}" data-newmuscle="${m}">${MUSCLE_SHORT[m]||MUSCLE_LABEL[m]||m}</button>`).join('')}</div>`:''}
             <label class="mono muted" style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:6px">Equipment</label>
             <div class="chips">${Object.entries(EQUIP_LABEL).map(([k,v])=>
               `<button class="chip ${(lift.newEquip||'barbell')===k?'on':''}" data-newequip="${k}">${v}</button>`).join('')}</div>
@@ -1025,6 +1028,11 @@ function renderLift(){
       const av=isAvoided(ex);
       /* v4.6.177: one track, one thumb that SLIDES between the two (the thumb is
          .xp-seg::before; data-state moves it and sets its colour) */
+      /* v4.6.188: the exercise's muscle, shown and changeable. Only where the body
+         part has more than one; the chips are that part's muscles. */
+      {const mp=homePartOf(ex)||lift.part,ms=PART_MUSCLES[mp]||[];
+       if(ms.length>1){const cur=exMuscle(ex,mp);
+        h+=`<div class="xm-card"><div class="xm-top"><span>Muscle</span><b id="xmNow">${mp} · ${MUSCLE_SHORT[cur]||MUSCLE_LABEL[cur]||'not set'}</b></div><div class="xm-chips" role="group" aria-label="Muscle">${ms.map(m=>`<button type="button" class="mf-chip${m===cur?' on':''}" data-exmuscle="${m}" data-xmpart="${mp}" aria-pressed="${m===cur}">${MUSCLE_SHORT[m]||MUSCLE_LABEL[m]||m}</button>`).join('')}</div><small>Used for the tags, the day’s focus and what gets swapped in.</small></div>`;}}
       h+=`<div class="xp-row"><span>Plans &amp; suggestions</span><div class="xp-seg" role="group" aria-label="Plans and suggestions" data-state="${av?'avoid':'include'}">
           <button type="button" data-expref="include" aria-pressed="${!av}">${XP_CHECK}Include</button>
           <button type="button" data-expref="avoid" aria-pressed="${av}">${XP_ICON}Avoid</button></div></div>`;
