@@ -49,7 +49,7 @@ const MUSCLE_PART={'upper-chest':'Chest', chest:'Chest', 'lower-chest':'Chest', 
   biceps:'Biceps',triceps:'Triceps',abs:'Sixpack',obliques:'Sixpack'};
 /* the label a muscle wears on screen. Only where the key is not already the
    words a person would use; everything else prints its own key. */
-const MUSCLE_LABEL={'upper-chest':'upper chest', chest:'mid / lower chest',
+const MUSCLE_LABEL={'upper-chest':'upper chest', chest:'mid chest', 'lower-chest':'lower chest',
   'upper-back':'upper back', 'front-delts':'front delts',
   'side-delts':'side delts', 'rear-delts':'rear delts', unassigned:'muscle not set'};
 /* v3.3.357: THE ROSTER, read back from MUSCLE_PART so the two cannot drift. */

@@ -1,5 +1,15 @@
 # ShowUp — changelog
 
+## v4.6.183 (2026-10-01) — Muscle focus, muscle tags, and a set target that calculates itself
+
+- **Asked:** planning a Saturday chest day, the plan came back as three incline movements and there was no way to ask for lower chest ("I wish there were Muscle Groups within body parts"); and "15 sets" said nothing about whether 15 was right for Chest + Sixpack. Shown as mocks first and approved.
+- **Focus:** on Plan → Edit, each selected body part with more than one muscle gets its own row of that part's muscles (Chest: Upper · Mid · Lower; Sixpack: Abs · Obliques; none for Biceps or Triceps). Tapping one makes it lead that part on the next Regenerate. It is saved with the day, and leaves when its body part is deselected.
+- **Tags:** every exercise of such a part carries its muscle beside its name (UPPER, LOWER, ABS), grey by default and accent when it is the day's focus, so the balance of a day reads down the names.
+- **Set target:** Auto is the sum of what you usually do for each selected body part: the median sets you logged for it on the days that trained it over eight weeks (every set, warm-ups included, because that is what the target counts). The line under the stepper names each part's number. Step it and it is Yours, with "Back to auto"; change body parts and it follows them. A part with fewer than three logged days has no usual, and the page says so. In the sets-range preference the auto number stays inside your range.
+- **The writer:** the focus and the target go to Claude as fields of their own, per date (`workspace.schedule[].focus`, `drafts[].target_total_sets`, `workspace.usual_sets`), with new prompt sections MUSCLE FOCUS and SET TARGETS. On the device: focus exercises new to you are kept and do not spend the new-movement allowance; a day that gives the focus less than half of its part's sets is sent back once; the answer is put focus-first inside its part and fitted to the target, with a note under Checks.
+- **Also:** "Set target +" and the Add sheet (browse and search) lead with the focus muscle. The middle chest muscle is labelled "mid chest" (it read "mid / lower chest" beside a separate "lower chest").
+- Tests: `tools/test-focus.js` (33 checks), `tools/check-focus.cjs` (84 checks: light and dark, 320 and 402px, the writer stubbed).
+
 ## v4.6.182 (2026-10-01) — The Add sheet runs behind the keyboard
 
 - **Reported:** with the keyboard up in "Add to Friday", the background of the keyboard's top bar (the ‹ › ✓ strip) looked out of place.

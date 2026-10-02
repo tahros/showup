@@ -518,6 +518,7 @@ function writerCheck(resp, ctx){
     if(!readable.length&&unread.length) throw {refused:`${unread[0].ex||unread[0].name} has no sets, reps, or time, and nothing else in ${d.date} could be read`};
     for(const u of unread) notes.push(`${u.ex}: its line could not be read — kept as a note`);
     let newCount=0;
+    const dayFocus=((payload.workspace?.schedule||[]).find(x=>x.date===d.date)||{}).focus||[];
     rows=rows.map(r=>{
       if(r.kind!=='ex') return r;
       if(!r.ex){ notes.push(`${r.name}: not in your exercises, kept as a note`); return {kind:'note', raw:r.raw}; }   // guardrail 1
@@ -530,9 +531,13 @@ function writerCheck(resp, ctx){
            out of three. Words did not hold; the device does. */
         const head=exMuscle(r.ex, part);
         const headWork=((payload.coverage||{})[part]||{})[head]||0;
+        /* v4.6.183: a muscle you made the day's focus IS the ask. Its exercises
+           are wanted even when new to you and even when the head has work, and
+           they do not spend the new-movement allowance. */
+        const wanted=dayFocus.some(f=>f.muscle===exMuscle(r.ex, homePartOf(r.ex)));
         const asked=(payload.note||'').toLowerCase().includes(r.ex.toLowerCase());
-        if(headWork&&!asked){ notes.push(`${r.ex}: new, and ${head} already has work — left out (ask for it in the note if you want it)`); return {kind:'note', raw:r.raw}; }   // guardrail 15
-        newCount++; if(newCount>WRITER_NEW_MAX){ notes.push(`${r.ex}: a third new movement, kept as a note`); return {kind:'note', raw:r.raw}; }   // guardrail 7
+        if(!wanted&&headWork&&!asked){ notes.push(`${r.ex}: new, and ${head} already has work — left out (ask for it in the note if you want it)`); return {kind:'note', raw:r.raw}; }   // guardrail 15
+        if(!wanted) newCount++; if(!wanted&&newCount>WRITER_NEW_MAX){ notes.push(`${r.ex}: a third new movement, kept as a note`); return {kind:'note', raw:r.raw}; }   // guardrail 7
       }
       const best=writerBest(r.ex);
       r.lines=(r.lines||[]).map(l=>{
@@ -683,6 +688,20 @@ function writerCheck(resp, ctx){
       for(const p of choice.parts) if(!dayParts.includes(p)) violations.push(`${p} was selected but has no exercise`);
       for(const p of dayParts) if(!choice.parts.includes(p)) violations.push(`${p} was not selected for this day`);
     }
+    /* v4.6.183: THE FOCUS IS KEPT, OR THE DAY GOES BACK. For each body part with
+       a focus: the focus muscles need an exercise, and at least half of that
+       part's sets. A count the app can make, so the app makes it; one repair,
+       like the rules above. A focus with nothing on the menu (every exercise
+       for it avoided) cannot be kept and is not held against the day. */
+    for(const p of new Set(dayFocus.map(f=>f.part))){
+      const ms=dayFocus.filter(f=>f.part===p).map(f=>f.muscle), label=ms.map(m=>MUSCLE_LABEL[m]||m).join(' and ');
+      if(!ms.some(m=>(((payload.heads||{})[p]||{})[m]||[]).length)) continue;
+      const n=x=>x.reduce((a,r)=>a+(r.lines||[]).reduce((b,l)=>b+(l.reps||[]).length,0),0);
+      const pr=rows.filter(r=>r.kind==='ex'&&r.ex&&homePartOf(r.ex)===p), fr=pr.filter(r=>ms.includes(exMuscle(r.ex,p)));
+      if(!pr.length) continue;
+      if(!fr.length) violations.push(`${label} is this day's focus and has no exercise`);
+      else if(n(fr)*2<n(pr)) violations.push(`${label} is this day's focus and holds ${n(fr)} of ${n(pr)} ${p} sets — give it at least half`);
+    }
 
     /* RULE 11 -- THE USUAL BEFORE THE NEW. If the day's main part has usual
        exercises (payload.usual) and the day OMITS one of them while ADDING a
@@ -697,6 +716,7 @@ function writerCheck(resp, ctx){
       const known=new Set((payload.history||[]).map(h=>h[2]));
       const noteL=(payload.note||'').toLowerCase();
       for(const mp of dayMajor){
+        if(dayFocus.some(f=>f.part===mp)) continue;   // v4.6.183: a focus you chose outranks the habit it displaces
         const us=(payload.usual[mp]||[]).map(u=>u.exercise);
         if(!us.length) continue;
         const omitted=us.filter(x=>!dayEx.has(x));
@@ -923,6 +943,7 @@ async function writerGenerateChecked(payload, cancelled=()=>false){
         ...chk.violations.map(v=>`${v.date}: ${v.why.join('; ')}.`),
         attempt?'This is the second attempt; the first still left a selected part with no exercise. Add one from payload.catalog for that part even if it is new.':'',
         'Leave out every exercise in payload.avoid; use another exercise for the same muscle from payload.heads.',
+        'Where workspace.schedule gives a date a focus, build that part from payload.heads for the focus muscle first: at least half of the part’s sets.',
         'Respect payload.skeleton: never use a part listed as resting, and give each day at least payload.shape.min exercises outside core. A selected part outranks payload.usual: if usual lists nothing for it, take an exercise from payload.catalog.'
       ].filter(Boolean).join('\n');
       const p2={...payload, note:fixNote.slice(0,1100), days:payload.days.filter(d=>bad.has(d))};

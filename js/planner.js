@@ -374,7 +374,46 @@ function pwDoneFor(parts){
 function pwAddCandidates(day,skip=[]){
   const have=new Set((day.rows||[]).map(r=>r.ex));
   /* v4.6.173: what the app adds on its own skips what you avoid */
-  return pwDoneFor(pwDayParts(day)).filter(ex=>!have.has(ex)&&!skip.includes(ex)&&pwLastLine(ex)&&!(typeof isAvoided==='function'&&isAvoided(ex)));
+  const out=pwDoneFor(pwDayParts(day)).filter(ex=>!have.has(ex)&&!skip.includes(ex)&&pwLastLine(ex)&&!(typeof isAvoided==='function'&&isAvoided(ex)));
+  /* v4.6.183: the day's focus muscles first, each group still most recent first */
+  const f=pwFocus(day);return f.length?[...out.filter(ex=>f.includes(exMuscle(ex,homePartOf(ex)))),...out.filter(ex=>!f.includes(exMuscle(ex,homePartOf(ex))))]:out;
+}
+/* v4.6.183: A DAY'S FOCUS. Body parts say what the day trains; the focus says
+   which muscle inside a part leads it (Chest -> lower chest). It is the day's
+   own (day.focus, muscle ids from MUSCLE_PART), and a muscle whose body part
+   is no longer on the day is not a focus. */
+function pwFocus(day){const parts=pwDayParts(day);return (day.focus||[]).filter(m=>parts.includes(MUSCLE_PART[m]));}
+/* v4.6.183: YOUR USUAL SETS FOR A BODY PART. The Set target was only a count of
+   whatever rows the day held, so nothing said whether 15 was right for Chest +
+   Sixpack. The usual is read from the record: for each day in the last eight
+   weeks that trained the part, every set logged for it (the unit the Set target
+   counts in, warm-ups included); the median of those days. Three days before
+   anything is a habit -- fewer and the part has no usual, and the app says so
+   instead of inventing a number. Today is left out: a session in progress is
+   not yet a whole day. */
+const PW_USUAL_DAYS=56,PW_USUAL_MIN=3;
+let pwUsualMemo=null;
+function pwUsualSets(part){
+  if(!pwUsualMemo||pwUsualMemo.seed!==SEED||pwUsualMemo.today!==todayISO){
+    const cut=new Date(todayISO+'T12:00');cut.setDate(cut.getDate()-PW_USUAL_DAYS);const from=pwISO(cut),by={};
+    const put=(d,p,ex,reps)=>{if(!ex||!(reps||[]).length||(typeof isCardioEx==='function'&&isCardioEx(ex)))return;const hp=homePartOf(ex)||p;if(!hp||hp==='Run')return;(by[hp]=by[hp]||{})[d]=((by[hp]||{})[d]||0)+reps.length;};
+    for(const d of new Set([...Object.keys(DB.days||{}),...Object.keys(SEED.sessions||{})])){
+      if(d<from||d>=todayISO)continue;
+      if(DB.days?.[d])for(const s of DB.days[d].w||[])put(d,s.part,s.ex,s.reps);
+      else for(const r of SEED.sessions[d]||[])put(d,r[0],r[1],r[3]);
+    }
+    const v={};
+    for(const [p,days] of Object.entries(by)){const n=Object.values(days).sort((a,b)=>a-b);if(n.length>=PW_USUAL_MIN)v[p]={sets:Math.round((n[(n.length-1)>>1]+n[n.length>>1])/2),days:n.length};}
+    pwUsualMemo={seed:SEED,today:todayISO,v};
+  }
+  return pwUsualMemo.v[part]?.sets??null;
+}
+/* the day's auto target: each strength part's usual, added up. total is null
+   while any chosen part has no usual yet (missing names them). */
+function pwAutoTarget(parts){
+  const per=(parts||[]).filter(p=>p!=='Run').map(p=>[p,pwUsualSets(p)]);if(!per.length)return null;
+  const missing=per.filter(x=>x[1]==null).map(x=>x[0]);
+  return {per,missing,total:missing.length?null:per.reduce((a,x)=>a+x[1],0)};
 }
 function pwSetLimits(day,skip=[]){
   const slots=[],rowN={};
@@ -443,8 +482,8 @@ function pwAddSearch(q,day,inPlan=new Set()){
   const starts=ex=>{const n=canonKey(ex),t=toks[0]||'';return n.startsWith(t)?0:n.split(' ').some(w=>w.startsWith(t))?1:2;};
   const av=ex=>typeof isAvoided==='function'&&isAvoided(ex)?1:0,done=ex=>!!(SEED.lastSess?.[ex]&&pwLastLine(ex));
   /* ...and within the day's parts, what you can still add before what is already in the plan */
-  const all=pwAllExercises().filter(hit),key=ex=>[av(ex),own.has(homePartOf(ex))?0:1,inPlan.has(ex)?1:0,starts(ex)];
-  const cmp=(a,b,tie)=>{const x=key(a),y=key(b);for(let i=0;i<4;i++)if(x[i]!==y[i])return x[i]-y[i];return tie(a,b);};
+  const all=pwAllExercises().filter(hit),foc=pwFocus(day),key=ex=>[av(ex),own.has(homePartOf(ex))?0:1,foc.includes(exMuscle(ex,homePartOf(ex)))?0:1,inPlan.has(ex)?1:0,starts(ex)];
+  const cmp=(a,b,tie)=>{const x=key(a),y=key(b);for(let i=0;i<5;i++)if(x[i]!==y[i])return x[i]-y[i];return tie(a,b);};
   const mine=all.filter(done).sort((a,b)=>cmp(a,b,(a,b)=>(SEED.exLast[b]||'').localeCompare(SEED.exLast[a]||'')||a.localeCompare(b)));
   const fresh=all.filter(ex=>!done(ex)).sort((a,b)=>cmp(a,b,(a,b)=>a.localeCompare(b)));
   return {mine,fresh,exact:all.some(ex=>canonKey(ex)===canonKey(q))};
@@ -490,7 +529,7 @@ function pwAddSheetHTML(s,bodyOnly){
   const inPlan=new Set(now.map(r=>r.ex)),short=d=>new Date(d+'T12:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
   /* v4.6.174: an avoided exercise is still yours to pick here -- you asked --
      but it sinks to the bottom and says so */
-  const av=ex=>typeof isAvoided==='function'&&isAvoided(ex),ordered=part?[...pwDoneFor([part]).filter(ex=>!av(ex)),...pwDoneFor([part]).filter(av)]:[];
+  const av=ex=>typeof isAvoided==='function'&&isAvoided(ex),foc=pwFocus(day),inF=ex=>foc.includes(exMuscle(ex,homePartOf(ex))),ordered=part?[...pwDoneFor([part]).filter(ex=>!av(ex)&&inF(ex)),...pwDoneFor([part]).filter(ex=>!av(ex)&&!inF(ex)),...pwDoneFor([part]).filter(av)]:[];
   const list=ordered.map(ex=>{const l=pwLastLine(ex),on=inPlan.has(ex),a=av(ex);
     return `<button type="button" class="pw-add-pick${a?' xp-dim':''}" data-pw="add-pick" data-ex="${hesc(ex)}" ${on?'disabled':''}><span><strong>${hesc(ex)}</strong><small>${on?'In this plan':hesc(l.load+' × '+l.reps.join(' '))}${a?`<span class="xp-tag">${XP_ICON}avoided</span>`:''}</small></span><i>${on?'':short(SEED.exLast[ex])}</i></button>`;}).join('');
   const browse=`<p class="pw-small">Or browse by body part · most recent first</p><div class="pw-add-parts" role="tablist">${parts.map(p=>`<button type="button" role="tab" data-pw="add-part" data-part="${hesc(p)}" aria-selected="${p===part}" class="${p===part?'on':''}">${hesc(typeof partLabel==='function'?partLabel(p):p)}</button>`).join('')}</div><div class="pw-add-list">${list||'<p class="pw-small">Nothing logged for this body part yet.</p>'}</div>`;
@@ -586,7 +625,7 @@ function pwApply(add=false){
     if(c.index!==undefined){dst.rows.splice(c.index,1,...pwCopy(b.rows));dst.locks=dst.locks.filter(i=>i!==c.index).map(i=>i>c.index?i+b.rows.length-1:i);b.rows.forEach((r,i)=>{if(r.kind==='ex')dst.locks.push(c.index+i);});}
     else if(add)dst.rows.push(...pwCopy(b.rows));
     else{dst.rows=pwCopy(b.rows);dst.locks=c.type==='paste'?[]:dst.locks;}
-    dst.cleared=false;dst.parts=pwParts(dst.rows);delete dst.partsPick;dst.source=c.type==='paste'?'Your routine · not rewritten':c.type==='adjust'?'Writer-adjusted set count':'Written from your training';dst.notes=b.notes||[];
+    dst.cleared=false;dst.parts=pwParts(dst.rows);delete dst.partsPick;if(c.type==='generate'){dst.focus=pwFocus(dst);dst.focusGen=dst.focus.slice();delete dst.focusPick;}dst.source=c.type==='paste'?'Your routine · not rewritten':c.type==='adjust'?'Writer-adjusted set count':'Written from your training';dst.notes=b.notes||[];
   }s.candidate=null;s.setupOpen=false;pwGo('edit');
 }
 function pwValidateAdjustment(rows,day){

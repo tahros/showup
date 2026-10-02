@@ -237,7 +237,7 @@ function pfExerciseHTML(r,i){
  if(last)last.groups.forEach((g,k)=>lines.push(pfSpineLine(g.load,g.reps,'pe-last',null,k===last.groups.length-1?`<span class="pe-d">${hesc(pfMD(last.d))}</span>`:'')));
  const toggle=pwButton('pf-row-toggle',open?icon('check',ICON_SZ.sm)+' Done':icon('edit',ICON_SZ.sm),'pf-row-toggle pe-toggle'+(open?' primary':''),`data-index="${i}" aria-expanded="${open}" aria-label="${open?'Done editing':'Edit'} ${hesc(r.ex)}"`);
  const actions=open?`<div class="pe-actions">${pwButton('pf-add-line',icon('clear',ICON_SZ.sm,45)+' Add a line','pe-btn',`data-index="${i}"`)}${pwButton('pf-remove-ex',icon('trash',ICON_SZ.sm)+' Remove exercise','pe-btn pe-danger',`data-index="${i}"`)}</div>`:'';
- return `<article class="pw-exercise pw-editable pe-ex${open?' pe-open':''}${!open&&isAvoided(r.ex)?' xp-avoided':''}" data-pw-row="${i}"><button class="pw-btn pw-grip" data-pw-grip="${i}" aria-label="Reorder ${hesc(r.ex)}; drag or use arrow keys">${icon('grip',ICON_SZ.sm)}</button><div class="pf-ex-summary"><div><strong>${hesc(r.ex)}</strong></div>${toggle}</div><div class="pe-lines">${lines.join('')}</div>${actions}${!open&&isAvoided(r.ex)?pfAvoidFlag(b,r,i):''}${b.swapped&&b.swapped.row===i&&b.swapped.to===r.ex?`<span class="xp-was">swapped from ${hesc(b.swapped.from.ex)}${pwButton('pf-xp-undo','Undo','xp-undo',`data-index="${i}"`)}</span>`:''}</article>`;
+ return `<article class="pw-exercise pw-editable pe-ex${open?' pe-open':''}${!open&&isAvoided(r.ex)?' xp-avoided':''}" data-pw-row="${i}"><button class="pw-btn pw-grip" data-pw-grip="${i}" aria-label="Reorder ${hesc(r.ex)}; drag or use arrow keys">${icon('grip',ICON_SZ.sm)}</button><div class="pf-ex-summary"><div><strong>${hesc(r.ex)}</strong>${pfMuscleTag(b,r.ex)}</div>${toggle}</div><div class="pe-lines">${lines.join('')}</div>${actions}${!open&&isAvoided(r.ex)?pfAvoidFlag(b,r,i):''}${b.swapped&&b.swapped.row===i&&b.swapped.to===r.ex?`<span class="xp-was">swapped from ${hesc(b.swapped.from.ex)}${pwButton('pf-xp-undo','Undo','xp-undo',`data-index="${i}"`)}</span>`:''}</article>`;
 }
 /* v4.6.174: AN AVOIDED EXERCISE IN A PLAN. A saved plan is something you
    approved, so the app does not rewrite it on its own: the row is set apart
@@ -256,7 +256,7 @@ function pfSwapOptions(b,r){
  const same=ex=>(homePartOf(ex)||'')===part?0:1,isDone=ex=>SEED.lastSess?.[ex]&&pwLastLine(ex)?0:1;
  return fit.sort((a,c)=>isDone(a)-isDone(c)||same(a)-same(c)||(SEED.exLast[c]||'').localeCompare(SEED.exLast[a]||'')||a.localeCompare(c)).slice(0,2);
 }
-const pfMuscleWord=m=>(MUSCLE_LABEL[m]||m).replace(/^mid \/ lower /,'');
+const pfMuscleWord=m=>(MUSCLE_LABEL[m]||m).replace(/^mid /,'');
 /* "another hamstring lift", not "another hamstrings lift" */
 const pfMuscleAdj=m=>({hamstrings:'hamstring',calves:'calf',quads:'quad',glutes:'glute',lats:'lat',obliques:'oblique'})[m]||pfMuscleWord(m);
 function pfAvoidFlag(b,r,i){
@@ -361,10 +361,54 @@ function pfDayHTML(){return pfWeekStrip()+`<div class="pf-day-body">${pfDayBodyH
 function pfPartList(){return Object.keys(SEED.catalog).filter(x=>x==='Run'||myPartsSet().has(x));}
 function pfPartsSel(b){return b.partsPick||b.parts.length?b.parts:pwParts(b.rows);}
 function pfPartsPending(b){return !!b.partsPick&&b.parts.slice().sort().join()!==pwParts(b.rows).slice().sort().join();}
+/* v4.6.183: THE FOCUS ROWS AND THE MUSCLE TAGS. A chest day came back as three
+   incline movements and nothing on the page said so, or let the maker ask for
+   lower chest. Each selected body part with more than one muscle gets its own
+   row of that part's muscles; a tapped muscle leads the part on the next
+   Regenerate. Every exercise carries its muscle as a small tag (accent when it
+   is a focus), so the balance of a day can be read down the names. */
+const PF_MUSCLE_SHORT={'upper-chest':'Upper',chest:'Mid','lower-chest':'Lower',lats:'Lats','upper-back':'Upper back','front-delts':'Front','side-delts':'Side','rear-delts':'Rear',quads:'Quads',hamstrings:'Hamstrings',glutes:'Glutes',calves:'Calves',abs:'Abs',obliques:'Obliques'};
+function pfFocus(b){const parts=pfPartsSel(b);return (b.focus||[]).filter(m=>parts.includes(MUSCLE_PART[m]));}
+function pfFocusPending(b){return !!b.focusPick&&pfFocus(b).slice().sort().join()!==(b.focusGen||[]).slice().sort().join();}
+function pfMuscleTag(b,ex){const p=homePartOf(ex);if(!p||(PART_MUSCLES[p]||[]).length<2)return '';const m=exMuscle(ex,p);if(!PF_MUSCLE_SHORT[m])return '';
+ return `<span class="pf-mtag${pfFocus(b).includes(m)?' on':''}">${hesc(PF_MUSCLE_SHORT[m])}</span>`;}
+function pfFocusHTML(b){const sel=pfPartsSel(b),f=pfFocus(b),parts=pfPartList().filter(p=>sel.includes(p)&&(PART_MUSCLES[p]||[]).length>1);if(!parts.length)return '';
+ return `<div class="pf-focus" role="group" aria-labelledby="pfFocusLabel"><span class="pf-parts-label" id="pfFocusLabel">Focus · optional</span>${parts.map(p=>`<div class="pf-focus-row"><b>${hesc(partLabel(p))}</b><div class="pf-focus-chips">${PART_MUSCLES[p].map(m=>pwButton('pf-focus',hesc(PF_MUSCLE_SHORT[m]||MUSCLE_LABEL[m]||m),'pf-focus-chip'+(f.includes(m)?' selected':''),`data-muscle="${hesc(m)}" aria-pressed="${f.includes(m)}" aria-label="${hesc(MUSCLE_LABEL[m]||m)} first"`)).join('')}</div></div>`).join('')}</div>`;}
+/* "Chest · lower chest first + Sixpack" */
+function pfPartsText(b){const f=pfFocus(b);return pfPartsSel(b).map(p=>{const m=f.filter(x=>MUSCLE_PART[x]===p).map(x=>MUSCLE_LABEL[x]||x);return p+(m.length?' · '+m.join(' and ')+' first':'');}).join(' + ');}
+/* "9 of 11 Chest sets on lower chest", for a day built with a focus */
+function pfFocusStat(b){const f=pfFocus(b);if(!f.length||pfFocusPending(b))return '';
+ return [...new Set(f.map(m=>MUSCLE_PART[m]))].map(p=>{const rows=pwExercises(b.rows).filter(r=>homePartOf(r.ex)===p),mine=f.filter(m=>MUSCLE_PART[m]===p),on=rows.filter(r=>mine.includes(exMuscle(r.ex,p)));
+  return rows.length?` · ${pwSetCount(on)} of ${pwSetCount(rows)} ${p} sets on ${mine.map(m=>MUSCLE_LABEL[m]||m).join(' and ')}`:'';}).join('');}
+/* v4.6.183: THE SET TARGET CALCULATES ITSELF. Auto is the sum of what you usually
+   do for each selected body part (pwUsualSets); in the sets-range preference it
+   stays inside your range. The day is "yours" once you step it away from that,
+   and stays so until Back to auto or a change of body parts. target is what the
+   next Regenerate builds to. */
+function pfAutoFor(parts){
+ const a=pwAutoTarget(parts);if(!a)return null;const p=pfPrefs();
+ if(a.total!=null&&p.mode==='sets'){const t=Math.max(p.minSets,Math.min(p.maxSets,a.total));if(t!==a.total){a.range=p.minSets+'–'+p.maxSets;a.total=t;}}
+ return a;
+}
+function pfAuto(b){
+ const a=pfAutoFor(pfPartsSel(b));if(!a)return null;
+ const total=pwSetCount(b.rows),pending=pfPartsPending(b);
+ a.mine=a.total!=null&&(!!b.setsMine||(!pending&&total>0&&total!==a.total));
+ a.target=a.total==null||a.mine?(total||null):a.total;
+ return a;
+}
+function pfAutoHTML(b,a){
+ if(!a)return '';const names=a.per.map(x=>x[0]);
+ if(a.total==null)return `<p class="pf-auto-line" role="status">No usual yet for ${hesc(a.missing.join(' + '))}: fewer than three logged days in eight weeks, so the count is yours to set.</p>`;
+ const per=a.per.map(x=>`<b>${hesc(x[0])} ${x[1]}</b>`).join(' + '),range=a.range?` · kept inside your ${a.range} range`:'';
+ return a.mine?`<p class="pf-auto-line" role="status">Your usual is <b>${a.total}</b>${a.per.length>1?' · '+a.per.map(x=>hesc(x[0])+' '+x[1]).join(' + '):''}${range} · ${pwButton('pf-auto','Back to auto','pf-auto-back')}</p>`
+  :`<p class="pf-auto-line" role="status">${per} · what you usually do on ${names.length>1?'these days':'a '+hesc(names[0])+' day'}${range}</p>`;
+}
 function pfPartsHTML(b){const sel=pfPartsSel(b);
  return `<div class="pf-parts" role="group" aria-labelledby="pfPartsLabel"><span class="pf-parts-label" id="pfPartsLabel">Body parts</span><div class="pf-parts-chips">${pfPartList().map(x=>pwButton('pf-part',hesc(x),'pf-part'+(sel.includes(x)?' selected':''),`data-part="${hesc(x)}" aria-pressed="${sel.includes(x)}"`)).join('')}</div></div>`;}
-function pfDayBodyHTML(){pfDropStaleTargets();const s=pw(),b=pwDay(s.active),j=pfState(),total=pwSetCount(b.rows),changed=b.target!=null&&b.target!==total,parts=pfPartsPending(b);
- return pfPartsHTML(b)+`<div class="pf-routine-controls"><div class="pf-total"><span>Set target</span><div class="pw-stepper">${pwButton('pf-minus','\u2212','','aria-label="Decrease total sets"'+(!b.rows.length?' disabled':''))}<output class="${changed?'pf-changed':''}">${b.target??total}</output>${pwButton('pf-plus','+','','aria-label="Increase total sets"'+(!b.rows.length?' disabled':''))}</div></div><div class="pf-tools">${pwAction('pf-regenerate','Regenerate','sparkle','pf-quiet-regenerate'+(changed||parts?' pf-beam pf-target-pending':''))}${pwButton('paste',icon('paste',ICON_SZ.sm),'pw-icon pf-tool','aria-label="Paste a routine" title="Paste"')}${pwButton('pf-clear',icon('clear',ICON_SZ.sm),'pw-icon pf-tool','aria-label="Clear this day" title="Clear"')}</div></div><p class="pf-target-hint" role="status">${parts?(b.parts.length?hesc(b.parts.join(' + ')):'No parts chosen: the writer picks')+(changed?' \u00b7 '+b.target+' sets':'')+' \u00b7 Regenerate to rebuild this day':changed?total+' current \u2192 '+b.target+' target \u00b7 Regenerate to apply':total+' sets \u00b7 '+pwExercises(b.rows).length+' exercises'}</p><div class="card pf-routine-card">${b.rows.length?pfEditRows():'<p>No exercises yet.</p>'}</div><div class="pf-add-summary">${pwButton('add-open',icon('clear',ICON_SZ.sm,45)+' Add exercise','pf-add-button','data-ctx="edit"')}</div>${b.undo&&!b.strip?pwButton('undo','Undo','pw-text'):''}${s.addOpen&&s.addCtx==='edit'?pwAddSheetHTML(s):''}`;
+function pfDayBodyHTML(){pfDropStaleTargets();const s=pw(),b=pwDay(s.active),j=pfState(),total=pwSetCount(b.rows),auto=pfAuto(b),parts=pfPartsPending(b)||pfFocusPending(b),
+  want=b.target!=null?b.target:parts&&auto?.target?auto.target:total,changed=want!==total;
+ return pfPartsHTML(b)+pfFocusHTML(b)+`<div class="pf-routine-controls"><div class="pf-total"><span class="pf-total-label">Set target${auto&&auto.total!=null?`<i class="pf-auto-tag${auto.mine?' mine':''}">${auto.mine?'Yours':'Auto'}</i>`:''}</span><div class="pw-stepper">${pwButton('pf-minus','\u2212','','aria-label="Decrease total sets"'+(!b.rows.length?' disabled':''))}<output class="${changed?'pf-changed':''}">${want}</output>${pwButton('pf-plus','+','','aria-label="Increase total sets"'+(!b.rows.length?' disabled':''))}</div></div><div class="pf-tools">${pwAction('pf-regenerate','Regenerate','sparkle','pf-quiet-regenerate'+(changed||parts?' pf-beam pf-target-pending':''))}${pwButton('paste',icon('paste',ICON_SZ.sm),'pw-icon pf-tool','aria-label="Paste a routine" title="Paste"')}${pwButton('pf-clear',icon('clear',ICON_SZ.sm),'pw-icon pf-tool','aria-label="Clear this day" title="Clear"')}</div></div>${pfAutoHTML(b,auto)}<p class="pf-target-hint" role="status">${parts?(pfPartsSel(b).length?hesc(pfPartsText(b)):'No parts chosen: the writer picks')+(changed?' \u00b7 '+want+' sets':'')+' \u00b7 Regenerate to rebuild this day':changed?total+' current \u2192 '+want+' target \u00b7 Regenerate to apply':total+' sets \u00b7 '+pwExercises(b.rows).length+' exercises'+hesc(pfFocusStat(b))}</p><div class="card pf-routine-card">${b.rows.length?pfEditRows():'<p>No exercises yet.</p>'}</div><div class="pf-add-summary">${pwButton('add-open',icon('clear',ICON_SZ.sm,45)+' Add exercise','pf-add-button','data-ctx="edit"')}</div>${b.undo&&!b.strip?pwButton('undo','Undo','pw-text'):''}${s.addOpen&&s.addCtx==='edit'?pwAddSheetHTML(s):''}`;
 }
 /* v4.6.77: PICKING A DAY IS NOT A NAVIGATION. Every chip tap ran pfNavigate,
    which rebuilt the whole workspace, played the 'arrive' motion -- the page
@@ -436,6 +480,23 @@ function pfValidateCandidate(candidate,dates){
    /* a set target changed alongside the parts: one Regenerate applies both */
    if(src.target!=null&&pwSetCount(day.rows)!==src.target){const fit=pfFitSets(day.rows,src.target,src.target,(src.locks||[]).map(i=>pwText([src.rows[i]])));day.rows=fit.rows;(day.notes=day.notes||[]).push('Set count fitted to your target: '+fit.from+' → '+fit.to+' sets'+(fit.dropped.length?' (removed '+fit.dropped.join(', ')+')':'')+'.');}
   }
+  /* v4.6.183: THE FOCUS LEADS ITS PART, AND THE DAY LANDS ON ITS TARGET. Both are
+     arithmetic, so the app does them. Inside each body part's exercises the
+     focus muscles' come first, in the writer's order (a day with fixed
+     exercises is left in place -- their positions are yours). Then the count:
+     the number you set, or your usual for the day's parts. */
+  if(candidate.type==='generate'){
+   const f=pwFocus({...src,rows:day.rows,parts:src.partsPick&&src.parts.length?src.parts:pwParts(day.rows)});
+   if(f.length&&!(src.locks||[]).length){
+    for(const p of new Set(f.map(m=>MUSCLE_PART[m]))){
+     const at=day.rows.map((r,i)=>r.kind==='ex'&&homePartOf(r.ex)===p?i:-1).filter(i=>i>=0),rs=at.map(i=>day.rows[i]),lead=r=>f.includes(exMuscle(r.ex,p));
+     const sorted=[...rs.filter(lead),...rs.filter(r=>!lead(r))];at.forEach((i,k)=>{day.rows[i]=sorted[k];});
+     if(!rs.some(lead))(day.notes=day.notes||[]).push('The writer wrote no '+f.filter(m=>MUSCLE_PART[m]===p).map(m=>MUSCLE_LABEL[m]||m).join(' or ')+' exercise for this day. Add one with Add exercise, or Regenerate.');
+    }
+   }
+   const mine=!!src.rows.length&&!!pfAuto(src)?.mine,au=pfAutoFor(src.partsPick&&src.parts.length?src.parts:pwParts(day.rows)),goal=src.target!=null?null:mine?pwSetCount(src.rows):au?.total;
+   if(goal&&pwSetCount(day.rows)&&pwSetCount(day.rows)!==goal){const fit=pfFitSets(day.rows,goal,goal,(src.locks||[]).map(i=>pwText([src.rows[i]])));day.rows=fit.rows;(day.notes=day.notes||[]).push('Set count fitted to your '+(mine?'target':'usual')+': '+fit.from+' → '+fit.to+' sets'+(fit.dropped.length?' (removed '+fit.dropped.join(', ')+')':'')+'.');}
+  }
   const total=pwSetCount(day.rows);
   if(!total){delete candidate.days[date];continue;}
   if(candidate.type!=='adjust'&&p.mode==='sets'&&(total<p.minSets||total>p.maxSets)){
@@ -479,7 +540,15 @@ function pfRender(){pfTrackScreen();renderHeader();const s=pw(),j=pfState(),pane
 pwRender=function(){return pfOn()?pfRender():pfLegacy.render();};
 pwOpen=function(d,step){if(!pfOn())return pfLegacy.open(d,step);const s=pw(),j=pfState();j.history=[];j.lastScreen=null;j.returnView=view==='sync'?'sync':'today';if(s.busy){pwRequest++;lift.writeAbort?.abort();s.busy=false;}if(d){s.dates=[d];s.active=d;s.month=d.slice(0,7)+'-01';pwDay(d);}else pwFreshenDates();/* v4.6.61: same rule as the legacy open, from the same helper */j.page=step==='dates'?'dates':d&&pwSaved(d)?'edit':d?'dates':j.page;j.prefOrigin=null;if(d&&pwSaved(d))pfAnchor();lift.plan='workspace';view='today';s.step='edit';pwPersist();render({soft:true});};
 pwApply=function(add=false){if(!pfOn())return pfLegacy.apply(add);const c=pw().candidate;if(!c)return;const generated=c.type==='generate',adjust=c.type==='adjust';if(c.type==='paste'&&c.index===undefined&&pfState().pasteAll){const one=Object.values(c.days)[0];c.days=Object.fromEntries(pfDates().map(d=>[d,pwCopy(one)]));}pfLegacy.apply(add);for(const d of Object.keys(c.days)){pwDay(d).target=null;}pfAnchor();pfMotion={kind:'arrive'};pfNavigate(generated?'days':'edit');};
-pwPayload=function(dates,action){const p=pfLegacy.payload(dates,action);if(!pfOn())return p;const prefs=pfPrefs();p.workspace.preferences=prefs;p.note=[p.note,'Confirmed planning preferences: '+JSON.stringify(prefs),"Respect avoided exercises: leave them out; when one would have been chosen, pick another exercise for the same muscle. Prefer the exercises the person returns to most (their Go-to) when choosing between options. Frequency describes the usual week; only generate the explicitly selected dates. Time is an approximate budget, not a promise.",prefs.mode==='sets'?`Each selected day must total between ${prefs.minSets} and ${prefs.maxSets} sets, counting every set including warm-ups.`:''].filter(Boolean).join('\n');return p;};
+pwPayload=function(dates,action){const p=pfLegacy.payload(dates,action);if(!pfOn())return p;const prefs=pfPrefs();p.workspace.preferences=prefs;
+ /* v4.6.183: the day's focus muscles and its set target go to the writer as
+    their own fields, per date -- said outright, like payload.avoid, not left
+    for it to infer from a note. usual_sets is every part's usual, for days
+    whose parts the writer chooses itself. */
+ for(const x of p.workspace.schedule){const f=pfFocus(pwDay(x.date));if(f.length)x.focus=f.map(m=>({part:MUSCLE_PART[m],muscle:m}));}
+ if(action==='generate')for(const x of p.workspace.drafts){const b=pwDay(x.date),a=pfAuto(b);if(a?.target&&b.target==null)x.target_total_sets=a.target;}
+ p.workspace.usual_sets=Object.fromEntries(pfPartList().filter(x=>x!=='Run').map(x=>[x,pwUsualSets(x)]).filter(x=>x[1]!=null));
+ p.note=[p.note,'Confirmed planning preferences: '+JSON.stringify(prefs),"Respect avoided exercises: leave them out; when one would have been chosen, pick another exercise for the same muscle. Prefer the exercises the person returns to most (their Go-to) when choosing between options. Frequency describes the usual week; only generate the explicitly selected dates. Time is an approximate budget, not a promise.",prefs.mode==='sets'?`Each selected day must total between ${prefs.minSets} and ${prefs.maxSets} sets, counting every set including warm-ups.`:''].filter(Boolean).join('\n');return p;};
 function pfMoveDay(from,to){const ds=pfDates(),a=ds.indexOf(from),b=ds.indexOf(to);if(a<0||b<0||a===b)return;const bundles=ds.map(d=>pwCopy(pwDay(d))),[moved]=bundles.splice(a,1);bundles.splice(b,0,moved);ds.forEach((d,i)=>{const old=pwDay(d);pw().book[d]={...bundles[i],base:old.base,source:'Your draft'};});pwPersist();pwRender();}
 function pfSave(confirm=false){const s=pw(),j=pfState();if(!pfMatch())throw Error('Restore the editing dates, or generate a new draft first.');if(pfPending())throw Error('Regenerate the changed total sets before saving.');const empty=s.dates.filter(d=>!pwSetCount(pwDay(d).rows));if(empty.length&&!confirm){j.emptyConfirm=true;pwRender();return;}
  const dates=[...new Set([...s.dates,...j.removed.map(x=>x.date)])];if(!dates.length)throw Error('Choose at least one date.');
@@ -532,9 +601,22 @@ function pfHandle(a,el){const s=pw(),j=pfState(),d=el.dataset.date,i=+el.dataset
   if(!st||JSON.stringify(st.out)!==JSON.stringify(b.rows)){pwUndoPoint(b);st={base:pwCopy(b.rows)};}
   const base={...b,rows:st.base},total=pwSetCount(b.rows);
   b.rows=pwAllocateSets(base,total+(a==='pf-plus'?1:-1)).map(r=>{delete r.added;return r;});
-  b.target=null;b.source='Your draft';st.out=pwCopy(b.rows);j.stepBase[s.active]=st;}
- else if(a==='pf-part'){const p=el.dataset.part,cur=pfPartsSel(b);b.parts=cur.includes(p)?cur.filter(v=>v!==p):[...cur,p];b.partsPick=true;}
- else if(a==='pf-regenerate'){pwGenerate(!pfPartsPending(b)&&b.target!=null&&b.target!==pwSetCount(b.rows),true);return;}
+  b.target=null;b.source='Your draft';st.out=pwCopy(b.rows);j.stepBase[s.active]=st;
+  /* v4.6.183: stepping away from the auto number makes the count yours */
+  const au=pfAutoFor(pfPartsSel(b));b.setsMine=!!au&&au.total!=null&&pwSetCount(b.rows)!==au.total;}
+ /* v4.6.183: Back to auto. The day's rows go to your usual total by the same
+    rule as + and - (when the day is waiting on Regenerate, only the number
+    changes: Regenerate builds to it). */
+ else if(a==='pf-auto'){delete b.setsMine;const au=pfAutoFor(pfPartsSel(b));
+  if(au&&au.total!=null&&b.rows.length&&!pfPartsPending(b)&&pwSetCount(b.rows)!==au.total){const st=j.stepBase?.[s.active],same=st&&JSON.stringify(st.out)===JSON.stringify(b.rows);pwUndoPoint(b);
+   /* from the rows the stepping started at, so an exercise + brought in leaves again */
+   b.rows=pwAllocateSets({...b,rows:pwCopy(same?st.base:b.rows)},au.total).map(r=>{delete r.added;return r;});b.target=null;b.source='Your draft';if(same)st.out=pwCopy(b.rows);else delete j.stepBase?.[s.active];
+   if(pwSetCount(b.rows)!==au.total)toast('This day’s exercises reach '+pwSetCount(b.rows)+' sets; Regenerate builds to '+au.total+'.');}}
+ else if(a==='pf-part'){const p=el.dataset.part,cur=pfPartsSel(b);b.parts=cur.includes(p)?cur.filter(v=>v!==p):[...cur,p];b.partsPick=true;
+  /* v4.6.183: the count follows the body parts again, and a focus leaves with its part */
+  delete b.setsMine;if(b.focus?.length){b.focus=b.focus.filter(m=>b.parts.includes(MUSCLE_PART[m]));b.focusPick=true;}}
+ else if(a==='pf-focus'){const m=el.dataset.muscle,cur=pfFocus(b);b.focus=cur.includes(m)?cur.filter(v=>v!==m):[...cur,m];b.focusPick=true;}
+ else if(a==='pf-regenerate'){pwGenerate(!pfPartsPending(b)&&!pfFocusPending(b)&&b.target!=null&&b.target!==pwSetCount(b.rows),true);return;}
  else if(a==='pf-save'||a==='pf-confirm-save'){pfSave(a==='pf-confirm-save');return;}
  pwPersist();pwRender();
 }
