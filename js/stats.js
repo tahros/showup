@@ -1641,9 +1641,10 @@ function renderStats(){
   /* v3.3.271: the if(false) Records tables DELETED — switched off long ago,
      never re-enabled. prFor() stays alive in the Train tab's go-to rows and
      the progression chart. */
-  h+=`<h2>Settings</h2>
-      <button class="btn ghost" id="settingsBtn">⚙︎ Settings, account &amp; sync</button>
-      <div class="note" style="text-align:center">${session?`Signed in as ${session.user.email||'—'}`:'Not signed in — data is on this device only'} · ${APP_VERSION}</div>`;
+  /* v4.6.190: the "Your data" section (a Settings button and the signed-in line)
+     is gone from the foot of Stats on the maker's call. Settings is its own tab
+     in the bar, one tap away from here; the account line and the version live
+     there. */
   $('#view').innerHTML=h;
   bindPaceAll();   // v3.3.236: the pace chart reads by touch
   bindPlateStats();

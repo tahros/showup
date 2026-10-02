@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v4.6.190 (2026-10-02) — "Pace over time" and "Your data" leave Stats
+
+- **Asked:** remove the "Pace over time" graph and the "Your data" section, both near the bottom of Trends in Stats.
+- **Pace over time:** no longer shown. Run by run (pace or distance, a year at a time) and Distance over time stay. The chart's builder is kept, switched off, and the Pace share card is unchanged.
+- **Your data:** the Settings button and the "Signed in as … · version" line at the foot of Stats are gone. Settings is its own tab in the bar; the account and the version are shown there.
+- Stats now ends on Distance over time.
+- Tests: `tools/test-runcharts.js` and `tools/test-stats-217.js` check that both are absent.
+
 ## v4.6.189 (2026-10-02) — Run by run: one year at a time, on an axis that holds the runs
 
 - **Reported:** the pace line sat flat along the bottom of the chart: September and October runs at 9'37"–9'53" on an axis whose floor was 11'00". Asked: the axis should adapt, and a year should be selectable with the axis labels switching to match.

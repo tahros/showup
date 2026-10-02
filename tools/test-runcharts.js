@@ -56,60 +56,13 @@ check("...with every label inside the viewBox",
         const vb=svg.getAttribute('viewBox').split(/\\s+/).map(Number);
         return [...svg.querySelectorAll('text')].every(t=>+t.getAttribute('y')<=vb[3]);})()`, true);
 
-// ---- 2. Pace: nine months, every value above its point, mono-tone marks
-check("pace shows nine months, not six",
-      `document.querySelectorAll('.pacepoint').length`, 9);
-check("...more months than the chart used to hold", `PACE_MONTHS > 6`, true);
-check("every point prints a value inline",
-      `document.querySelectorAll('.paceval').length === document.querySelectorAll('.pacepoint').length`, true);
-check("every value sits centered directly above its own point",
-      `(function(){const ps=[...document.querySelectorAll('.pacepoint')],vs=[...document.querySelectorAll('.paceval')];
-        return ps.every((p,i)=>+vs[i].getAttribute('x')===+p.getAttribute('cx')
-          && +vs[i].getAttribute('y')<+p.getAttribute('cy')
-          && vs[i].getAttribute('text-anchor')==='middle');})()`, true);
-check("all pace points use one blue mark colour, with no red exception",
-      `[...document.querySelectorAll('.pacepoint')].every(p=>p.getAttribute('fill')==='var(--accent)')
-       && ![...document.querySelectorAll('.pacepoint')].some(p=>p.classList.contains('fastest'))`, true);
-check("the month row uses the same J F M A initials as the other charts",
-      `(function(){const ps=[...document.querySelectorAll('.pacepoint')],ms=[...document.querySelectorAll('.pacemonth')];
-        return ms.length===ps.length && ms.every((t,i)=>t.textContent==='JFMAMJJASOND'[+ps[i].dataset.pm.slice(5)-1]);})()`, true);
-check("every point carries its month and pace for the readout",
-      `[...document.querySelectorAll('.pacepoint')].every(p=>/^\\d{4}-\\d{2}$/.test(p.dataset.pm) && +p.dataset.pp>0)`, true);
-
-// ---- the drag itself
-check("the readout starts empty but holds its height",
-      `document.querySelector('[data-pacecap]').textContent.trim()`, "");
-check("the plot has a transparent backdrop, so gaps between points are live",
-      `(function(){const r=document.querySelector('.pacepad');
-        return !!r && +r.getAttribute('width')>0;})()`, true);
-run(`(function(){
-  const svg=document.querySelector('.pacescrub');
-  svg.getBoundingClientRect=()=>({left:0,top:0,width:330,height:142,right:330,bottom:142});
-  const ev=new window.Event('pointerdown',{bubbles:true});
-  ev.clientX=0; ev.clientY=60; ev.isPrimary=true; ev.pointerId=1;
-  svg.dispatchEvent(ev);})()`);
-check("dragging names a month and its pace",
-      `/[A-Z][a-z]{2} \\d{4}.*\\d+'\\d{2}"/.test(
-        document.querySelector('[data-pacecap]').textContent.replace(/\\s+/g,' '))`, true);
-check("...and rings the point it read",
-      `document.querySelector('.pacehalo').getAttribute('opacity')`, 1);
-check("...on the leftmost point, since the press was at the left edge",
-      `(function(){const halo=document.querySelector('.pacehalo');
-        const first=document.querySelector('.pacepoint');
-        return halo.getAttribute('cx')===first.getAttribute('cx');})()`, true);
-check("the readout matches that point's own data",
-      `(function(){const halo=document.querySelector('.pacehalo');
-        const p=[...document.querySelectorAll('.pacepoint')].find(x=>x.getAttribute('cx')===halo.getAttribute('cx'));
-        return document.querySelector('[data-pacecap]').textContent.indexOf(paceStr(+p.dataset.pp))>-1;})()`, true);
-check("the reading survives releasing the finger",
-      `(function(){const svg=document.querySelector('.pacescrub');
-        const up=new window.Event('pointerup',{bubbles:true}); up.pointerId=1;
-        svg.dispatchEvent(up);
-        return svg.querySelector('.pacehalo').getAttribute('opacity');})()`, 1);
-/* v3.3.356: the tab-swipe is gone. What matters locally is that the scrubber
-   still declares the axis its own. */
-check("the pace scrubber still claims its own axis",
-      `${/touch-action:\s*none/.test(fs.readFileSync(path.join(dir,"css/app.css"),"utf8"))}`, "true");
+// ---- 2. Pace over time: retired in v4.6.190 (Run by run carries pace now)
+check("the monthly Pace chart is no longer on Stats",
+      `document.querySelectorAll('.pacecard,.pacescrub,.pacepoint').length`, 0);
+check("...nor its heading",
+      `[...document.querySelectorAll('#view h2')].some(h=>/^Pace( over time)?$/.test(h.firstChild.textContent.trim()))`, false);
+check("...while Run by run is still there to show pace",
+      `!!document.querySelector('.drcard [data-drunmode]')`, true);
 
 // ---- 3. Every week: the tallest bar's value clears the card caption
 check("the tallest weekly value label sits clear of the year caption",

@@ -10,7 +10,7 @@ w.document.dispatchEvent(new w.Event('DOMContentLoaded',{bubbles:true}));const r
 function ok(name,value,detail=''){console.log(value?'PASS':'FAIL',name,detail);if(!value)fail++;}
 run(`(function(){DB.days={};const md=todayISO.slice(5);for(const y of [2024,2025,2026]){const d=y+'-'+md;DB.days[d]={w:[{part:'Legs',ex:'Squat',w:80,reps:[8,8],at:1},{part:'Run',ex:'Run',w:3,mins:27,secs:0,at:2}],upd:1,doneAll:y===2026};}SEED=deriveAll();view='stats';render();})()`);
 const titles=run(`[...document.querySelectorAll('#view h2')].map(h=>h.firstChild.textContent.trim())`);
-const ordered=['Workout complete','This week','Your strength progress','You keep showing up','Year over year','Your running story','Run by run','Distance over time','Pace over time','Your data'];
+const ordered=['Workout complete','This week','Your strength progress','You keep showing up','Year over year','Your running story','Run by run','Distance over time'];
 ok('Stats tells the approved story in order',ordered.every((t,i)=>titles.indexOf(t)>(i?titles.indexOf(ordered[i-1]):-1)),titles.join(' / '));
 ok('retired summaries stay absent',!titles.some(t=>/Woven|growing|Monthly pace|Every week|^Weight$/i.test(t)));
 ok('Workout complete retains Share',run(`!!document.querySelector('.plate-card .stats-share')`));
@@ -19,8 +19,8 @@ ok('year and distance comparisons each expose years',run(`document.querySelector
 ok('recorded prior years are selectable',run(`document.querySelectorAll('.comparison-years button[data-add="2024"]').length===2`));
 ok('both historical comparisons retain scrubbers',run(`document.querySelectorAll('.conrace>input[type="range"]').length===2`));
 ok('current comparison lines use signature blue',run(`document.querySelectorAll('.comparison-plot polyline[stroke="var(--accent)"]').length===2`));
-ok('running distance and pace use signature blue',run(`(document.querySelector('.drcard .drline')||document.querySelector('.drcard .drdot')).getAttribute('stroke')==='var(--accent)'&&/* v4.6.189: one year at a time, and this fixture has one run a year -- a dot, no line */document.querySelector('.pacecard polyline').getAttribute('stroke')==='var(--accent)'`));
-ok('pace labels stay restrained',run(`[...document.querySelectorAll('.paceval')].every(x=>x.getAttribute('font-size')==='6.5')`));
+ok('running distance and pace use signature blue',run(`(document.querySelector('.drcard .drline')||document.querySelector('.drcard .drdot')).getAttribute('stroke')==='var(--accent)'&&/* v4.6.189: one year at a time, and this fixture has one run a year -- a dot, no line */true`));
+ok('v4.6.190: Pace over time and Your data are retired from Stats',run(`!document.querySelector('.pacecard')&&!document.getElementById('settingsBtn')`)&&!titles.includes('Pace over time')&&!titles.includes('Your data')&&!titles.includes('Settings')&&titles.at(-1)==='Distance over time',titles.at(-1));
 ok('personal Weight is absent from Stats',run(`!document.getElementById('secWeight')`));
 run(`view='sync';render();`);
 ok('v4.6.164: Settings has no Weight history section; the weight is entered under You',run(`!document.getElementById('secWeight')&&!!document.getElementById('youBw')`));

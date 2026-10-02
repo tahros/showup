@@ -1725,7 +1725,13 @@ function runStatsHTML217(){
      fact about the calendar, and it is the same grammar the Session build
      totals row already speaks: newest at full voice, the archive quiet. */
   const paces=Object.entries(pm).sort().slice(-PACE_MONTHS).map(([m,e])=>[m,e.sec/e.d]);
-  if(paces.length){
+  /* v4.6.190: "Pace over time" is retired from Stats on the maker's call. Run by
+     run already shows pace run by run, a year at a time, on its own scale
+     (v4.6.189); a second, monthly pace line under Distance over time said the
+     same thing more coarsely. The builder stays (the share card in js/report.js
+     draws its own), switched off here, as Monthly pace was in stats.js. */
+  const RUN_PACE_CHART=false;
+  if(RUN_PACE_CHART&&paces.length){
     const lo=Math.min(...paces.map(v=>v[1])),hi=Math.max(...paces.map(v=>v[1])),span=Math.max(hi-lo,15),tick=span<=45?15:30;
     const base=Math.floor((lo-tick*.6)/tick)*tick,top=Math.max(base+tick*2,Math.ceil((hi+tick*.6)/tick)*tick);
     const x0=34,xw=278,y0=108,yh=72,Y=p=>30+(top-p)/(top-base)*yh;
