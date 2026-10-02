@@ -27,7 +27,7 @@ var bkD=(base,k)=>{const t=new Date(base+'T12:00');t.setDate(t.getDate()-7*k);re
 for(let k=0;k<8;k++)for(const base of ['2026-09-28','2026-09-24']){const d=bkD(base,k);
   mk(d,'Chest','Incline Barbell Bench Press',95,[10]);mk(d,'Chest','Incline Barbell Bench Press',115,[10]);mk(d,'Chest','Incline Barbell Bench Press',175,[8,8,8,8]);
   mk(d,'Chest','Incline Dumbbell Bench Press',65,[8,8,8]);mk(d,'Chest','Cable Fly Up',30,[12,12,12]);mk(d,'Sixpack','Hanging Leg Raise',0,[12,12,12]);}
-mk('2026-09-10','Chest','Cable Fly Down',35,[12,12]);
+mk('2026-09-10','Chest','Cable Fly Down',35,[12,12]);mk('2026-09-10','Chest','Barbell Bench Press',185,[8,8,8,8]);
 mk('2026-09-29','Biceps','Dumbbell Curl',30,[10,10,10]);mk('2026-09-22','Biceps','Dumbbell Curl',30,[10,10,10]);
 mk('2026-07-01','Legs','Squat',225,[5,5,5]);mk('2026-07-03','Legs','Squat',225,[5,5,5]);mk('2026-07-05','Legs','Squat',225,[5,5,5]);
 mk('2026-10-01','Chest','Incline Barbell Bench Press',175,[8]);
@@ -76,10 +76,19 @@ test('a focus whose every exercise you avoid is not held against the day',`(()=>
 
 /* the device: focus first inside its part, then the count */
 run(`var cand={type:'generate',days:{'2026-10-03':{rows:pwRead('Incline Barbell Bench Press\\n  175 lb × 8 8 8\\nDecline Barbell Bench Press\\n  by feel × 10 10 10 10\\nCable Fly Down\\n  35 lb × 12 12 12\\nDip\\n  BW × 10 10\\nHanging Leg Raise\\n  BW × 12 12 12 12'),notes:[]}}};pfValidateCandidate(cand,['2026-10-03']);var outD=cand.days['2026-10-03'];`);
-test('the answer is put focus-first inside its body part',`pwExercises(outD.rows).map(r=>r.ex).join()==='Decline Barbell Bench Press,Cable Fly Down,Dip,Incline Barbell Bench Press,Hanging Leg Raise'`);
+test('an exercise off the focus is swapped for its closest counterpart on it',`pwExercises(outD.rows).map(r=>r.ex).join()==='Decline Dumbbell Bench Press,Decline Barbell Bench Press,Cable Fly Down,Dip,Hanging Leg Raise'&&outD.notes.some(n=>/^Decline Dumbbell Bench Press: in for Incline Barbell Bench Press — lower chest is this day’s focus, new to you, so it starts by feel\\.$/.test(n))`);
+test('...one new to you starts by feel, at the reps of the exercise it replaced',`/by feel × 8 8/.test(pwText([outD.rows[0]]).toLowerCase().replace(/\\s+/g,' '))`);
 test('...and fitted to the target, with a note saying so',`pwSetCount(outD.rows)===15&&outD.notes.some(n=>/Set count fitted to your usual: 16 → 15 sets/.test(n))`);
-test('applying it records the focus the day was built with',`(()=>{S.candidate=cand;pwApply();const b=pwDay('2026-10-03');return b.focus.join()==='lower-chest'&&b.focusGen.join()==='lower-chest'&&!b.focusPick&&!pfFocusPending(b)&&/9 of 12 Chest sets on lower chest/.test(pfFocusStat(b));})()`);
+test('applying it records the focus the day was built with',`(()=>{S.candidate=cand;pwApply();const b=pwDay('2026-10-03');return b.focus.join()==='lower-chest'&&b.focusGen.join()==='lower-chest'&&!b.focusPick&&!pfFocusPending(b)&&/ (\\d+) of \\1 Chest sets on lower chest/.test(pfFocusStat(b));})()`);
 
-test('the server prompt carries the focus rule and the set-target rule',`/MUSCLE FOCUS: a workspace\\.schedule entry may carry focus/.test(SRV)&&/at least half of that part's sets/.test(SRV)&&/SET TARGETS: for action=generate, a draft with target_total_sets must total exactly/.test(SRV)&&/usual_sets/.test(SRV)`);
+/* the maker's Saturday: Mid + Lower chest and Obliques, answered with Dip and three incline movements */
+run(`Object.assign(pwDay('2026-10-03'),{focus:['chest','lower-chest','obliques'],focusPick:true,locks:[]});
+var c2={type:'generate',days:{'2026-10-03':{rows:pwRead('Dip\\n  BW +50 lb × 8 8 8\\nIncline Barbell Bench Press\\n  95 lb × 10\\n  115 lb × 10\\n  175 lb × 8 8 8\\nIncline Dumbbell Bench Press\\n  65 lb × 8 8 8\\nCable Fly Up\\n  40 lb × 12 12 12\\nRussian Twist\\n  by feel × 15 15 15'),notes:[]}}};pfValidateCandidate(c2,['2026-10-03']);var o2=c2.days['2026-10-03'];`);
+test('Mid + Lower: every chest exercise ends on a focus muscle, mid filled first by the nearest lift',`(()=>{const ex=pwExercises(o2.rows).map(r=>r.ex);return ex.join()==='Dip,Barbell Bench Press,Decline Dumbbell Bench Press,Cable Fly Down,Russian Twist'&&ex.filter(x=>homePartOf(x)==='Chest').every(x=>['chest','lower-chest'].includes(exMuscle(x,'Chest')));})()`);
+test('...an exercise you have done arrives with your last working sets',`/185 lb × 8 8 8 8/.test(pwText([o2.rows[1]]))`);
+test('...the count still lands on the target, and Checks names each swap',`pwSetCount(o2.rows)===15&&o2.notes.filter(n=>/ in for /.test(n)).length===3`);
+test('an exercise you fixed is not swapped',`(()=>{const b=pwDay('2026-10-03'),keep=b.rows,kl=b.locks;b.rows=pwRead('Incline Barbell Bench Press\\n  175 lb × 8 8 8');b.locks=[0];const c={type:'generate',days:{'2026-10-03':{rows:pwRead('Incline Barbell Bench Press\\n  175 lb × 8 8 8\\nCable Fly Up\\n  40 lb × 12 12 12'),notes:[]}}};pfValidateCandidate(c,['2026-10-03']);const ex=pwExercises(c.days['2026-10-03'].rows).map(r=>r.ex);b.rows=keep;b.locks=kl;return ex.includes('Incline Barbell Bench Press')&&!ex.includes('Cable Fly Up');})()`);
+test('an avoided exercise is not brought in',`(()=>{setExPref('Cable Fly Down','avoid');const c={type:'generate',days:{'2026-10-03':{rows:pwRead('Cable Fly Up\\n  40 lb × 12 12 12'),notes:[]}}};pfValidateCandidate(c,['2026-10-03']);setExPref('Cable Fly Down',null);const ex=pwExercises(c.days['2026-10-03'].rows).map(r=>r.ex);return ex.length===1&&ex[0]!=='Cable Fly Down'&&ex[0]!=='Cable Fly Up';})()`);
+test('the server prompt carries the focus rule and the set-target rule',`/MUSCLE FOCUS: a workspace\\.schedule entry may carry focus/.test(SRV)&&/Every exercise you write for that part comes from payload\\.heads\\[part\\]\\[muscle\\]/.test(SRV)&&/SET TARGETS: for action=generate, a draft with target_total_sets must total exactly/.test(SRV)&&/usual_sets/.test(SRV)`);
 console.log(checks+' checks');
 process.exit(0);

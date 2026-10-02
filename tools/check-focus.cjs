@@ -7,8 +7,8 @@
    tag on every exercise of such a part; Auto = the sum of your usual sets per
    part, Yours after a step, Back to auto; a focus tap lights Regenerate; the
    writer is sent the focus and the target as their own fields; its answer is
-   reordered focus-first and fitted to the target on the device; an answer
-   that ignores the focus is a violation. The writer is stubbed -- nothing
+   swapped onto the focus muscles, put focus-first and fitted to the target on
+   the device (v4.6.184); an answer that ignores the focus is a violation. The writer is stubbed -- nothing
    leaves the page. Serve the repo on 127.0.0.1:8784 first. */
 const {chromium}=require('playwright'),fs=require('fs');
 const CHROME=[process.env.PW_CHROME,'C:/Users/sungj/AppData/Local/ms-playwright/chromium-1217/chrome-win64/chrome.exe','/opt/pw-browsers/chromium-1194/chrome-linux/chrome'].find(p=>p&&fs.existsSync(p));
@@ -65,8 +65,8 @@ const PORT=process.env.PORT||8784,wait=ms=>new Promise(r=>setTimeout(r,ms));
     ok(`${tag} the writer is sent the focus and the target as fields of their own`,JSON.stringify(sent.focus)==='[{"part":"Chest","muscle":"lower-chest"}]'&&sent.target===15&&sent.usual.Chest===12&&sent.usual.Sixpack===3,sent);
     ok(`${tag} ...and the answer needed no repair`,sent.n===1,sent.n);
     s=await st();
-    ok(`${tag} the day comes back lower chest first, lit, the rest after`,s.tags.join(',')==='Decline Barbell Bench Press|Lower*,Cable Fly Down|Lower*,Dip|Lower*,Incline Barbell Bench Press|Upper,Hanging Leg Raise|Abs',s.tags);
-    ok(`${tag} ...fitted to the 15 it was asked for, and counted`,s.out==='15'&&s.auto==='Auto'&&/^15 sets · 5 exercises · 9 of 12 Chest sets on lower chest$/.test(s.hint)&&!s.beam,s);
+    ok(`${tag} the day comes back all lower chest: the incline lift the writer kept is swapped out`,s.tags.join(',')==='Decline Dumbbell Bench Press|Lower*,Decline Barbell Bench Press|Lower*,Cable Fly Down|Lower*,Dip|Lower*,Hanging Leg Raise|Abs',s.tags);
+    ok(`${tag} ...fitted to the 15 it was asked for, and counted`,s.out==='15'&&s.auto==='Auto'&&/^15 sets · 5 exercises · 12 of 12 Chest sets on lower chest$/.test(s.hint)&&!s.beam,s);
     ok(`${tag} ...with Lower still selected`,s.rows[0]==='Chest: Upper Mid Lower*',s.rows);
     ok(`${tag} nothing overflows after the rebuild`,!s.wide&&!s.clip,s);
     if(shots){await p.evaluate(()=>scrollTo(0,0));await p.screenshot({path:`../focus-built-${theme}.png`});}

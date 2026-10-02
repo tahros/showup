@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.184 (2026-10-01) — The focus is decided by the app, not left to the writer
+
+- **Reported:** with Mid and Lower chest selected, the day came back as Dip plus three incline movements: "3 of 14 Chest sets on mid chest and lower chest".
+- **Why:** v4.6.183 told the writer the focus, sent a short answer back once, and then let the day stand as written. The choice of exercise was still the model's.
+- **Now:** which muscle an exercise trains is a fact the app holds, so the app decides. In a body part with a focus, every exercise that is not on a focus muscle is swapped on the device for one that is: the closest counterpart by name (Incline Barbell Bench Press → Barbell Bench Press, Cable Fly Up → Cable Fly Down), a focus muscle with nothing yet first, what you have done before what you have not. A swapped-in exercise you have done takes your last working sets; one new to you starts by feel. Exercises you fixed stay, avoided ones are not brought in, and each swap is named under Checks. The writer's prompt now asks for the same thing, so its own answer should need fewer swaps.
+- Tests: `tools/test-focus.js` (39 checks, including that Saturday's exact answer), `tools/check-focus.cjs` (84 checks).
+
 ## v4.6.183 (2026-10-01) — Muscle focus, muscle tags, and a set target that calculates itself
 
 - **Asked:** planning a Saturday chest day, the plan came back as three incline movements and there was no way to ask for lower chest ("I wish there were Muscle Groups within body parts"); and "15 sets" said nothing about whether 15 was right for Chest + Sixpack. Shown as mocks first and approved.

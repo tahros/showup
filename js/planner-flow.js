@@ -458,6 +458,40 @@ function pfFitSets(rows,min,max,locked=[]){
  }
  return {rows:rs,from,to:total,dropped:gone.map(x=>x.r.ex)};
 }
+/* v4.6.184: THE FOCUS IS NOT LEFT TO THE WRITER. v4.6.183 told the writer the
+   day's focus, sent a short answer back once, and then let the day stand as
+   written -- so Mid + Lower chest came back as Dip and three incline movements,
+   "3 of 14 Chest sets on mid chest and lower chest". Which muscle an exercise
+   trains is a fact the app holds (exMuscle), so the app decides: in a body part
+   with a focus, every exercise that is not on a focus muscle is swapped for one
+   that is. The counterpart is the closest by name (Incline Barbell Bench Press
+   -> Barbell Bench Press, Cable Fly Up -> Cable Fly Down), a focus muscle with
+   nothing yet goes first, and what you have done comes before what you have
+   not. A swapped-in exercise you have done takes your last working sets; one
+   new to you starts by feel. Exercises you fixed stay, avoided ones are never
+   brought in, and a row with no counterpart left is kept. Checks names each swap. */
+const PF_SWAP_STOP=new Set(['incline','decline','flat','up','down','low','high','upper','lower','machine']);
+function pfFocusSwap(day,focus,locked=[]){
+ const tok=ex=>new Set(canonKey(ex).split(' ').filter(t=>t&&!PF_SWAP_STOP.has(t))),sim=(a,b)=>{const x=tok(a),y=tok(b),n=[...x].filter(t=>y.has(t)).length;return n/Math.max(1,new Set([...x,...y]).size);};
+ const done=ex=>!!(SEED.lastSess?.[ex]&&pwLastLine(ex)),warm=l=>/warm|prep/i.test((l.qual||'')+(l.tag||''));
+ for(const p of new Set(focus.map(m=>MUSCLE_PART[m]))){
+  const ms=focus.filter(m=>MUSCLE_PART[m]===p),have=new Set(pwExercises(day.rows).map(r=>r.ex));
+  const pool=pwAllExercises().filter(ex=>homePartOf(ex)===p&&ms.includes(exMuscle(ex,p))&&!isAvoided(ex)&&!pfPrefs().avoid.some(a=>canonKey(a)===canonKey(ex)));
+  const count=m=>pwExercises(day.rows).filter(r=>homePartOf(r.ex)===p&&exMuscle(r.ex,p)===m).length;
+  day.rows.forEach((r,i)=>{
+   if(r.kind!=='ex'||!r.ex||homePartOf(r.ex)!==p||ms.includes(exMuscle(r.ex,p))||locked.includes(pwText([r])))return;
+   const cands=pool.filter(ex=>!have.has(ex));if(!cands.length)return;
+   const key=ex=>[count(exMuscle(ex,p))?1:0,-sim(r.ex,ex),done(ex)?0:1];
+   cands.sort((a,b)=>{const x=key(a),y=key(b);for(let k=0;k<3;k++)if(x[k]!==y[k])return x[k]-y[k];return (SEED.exLast?.[b]||'').localeCompare(SEED.exLast?.[a]||'')||a.localeCompare(b);});
+   const ex=cands[0],work=(r.lines||[]).filter(l=>!warm(l)),sets=work.reduce((a,l)=>a+(l.reps||[]).length,0)||3,last=work[work.length-1]?.reps||[10];
+   const n=Math.max(1,Math.min(sets,done(ex)?pwTypicalSets(ex):sets,6));
+   const row=done(ex)?pwExerciseRow(ex,n):pwRead(`${ex}\n  by feel × ${Array.from({length:n},()=>last[last.length-1]||10).join(' ')}`)[0];
+   if(!row||row.kind!=='ex')return;delete row.added;
+   (day.notes=day.notes||[]).push(`${ex}: in for ${r.ex} — ${MUSCLE_LABEL[exMuscle(ex,p)]||exMuscle(ex,p)} is this day’s focus`+(done(ex)?'':', new to you, so it starts by feel')+'.');
+   day.rows[i]=row;have.add(ex);
+  });
+ }
+}
 function pfValidateCandidate(candidate,dates){
  const p=pfPrefs();
  /* v4.6.147: a day the writer added that you did not pick is dropped; a day it
@@ -487,6 +521,7 @@ function pfValidateCandidate(candidate,dates){
      the number you set, or your usual for the day's parts. */
   if(candidate.type==='generate'){
    const f=pwFocus({...src,rows:day.rows,parts:src.partsPick&&src.parts.length?src.parts:pwParts(day.rows)});
+   if(f.length)pfFocusSwap(day,f,(src.locks||[]).map(i=>pwText([src.rows[i]])));
    if(f.length&&!(src.locks||[]).length){
     for(const p of new Set(f.map(m=>MUSCLE_PART[m]))){
      const at=day.rows.map((r,i)=>r.kind==='ex'&&homePartOf(r.ex)===p?i:-1).filter(i=>i>=0),rs=at.map(i=>day.rows[i]),lead=r=>f.includes(exMuscle(r.ex,p));
