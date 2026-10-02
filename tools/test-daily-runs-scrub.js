@@ -9,11 +9,12 @@ w.HTMLCanvasElement.prototype.toDataURL=()=>"data:image/png;base64,";
 for(const s of order)vm.runInContext(fs.readFileSync(path.join(dir,s),'utf8'),ctx,{filename:s});
 w.document.dispatchEvent(new w.Event('DOMContentLoaded',{bubbles:true}));
 // Known physical distances/times. No conversion helpers in expected values.
+// v4.6.189: the card shows one year at a time, so the fixture sits inside one year.
 run(`runDays=()=>[
- {d:'2025-12-30',km:5,sec:1800,timed:5},
- {d:'2025-12-31',km:3,sec:0,timed:0},
- {d:'2026-01-01',km:6,sec:1800,timed:5},
- {d:'2026-01-02',km:5,sec:1799,timed:5}
+ {d:'2026-01-01',km:5,sec:1800,timed:5},
+ {d:'2026-01-02',km:3,sec:0,timed:0},
+ {d:'2026-01-03',km:6,sec:1800,timed:5},
+ {d:'2026-01-04',km:5,sec:1799,timed:5}
 ];`);
 function mount(unit){run(`DB.settings.unit='${unit}';DB.settings.runMode='dist';document.getElementById('view').innerHTML=dailyRunsSection();bindDrun();`);geometry();}
 function geometry(){run(`(function(){const box=document.getElementById('drWrap'),svg=box.querySelector('svg');
@@ -30,7 +31,7 @@ for(const unit of ['kg','lb']){
  check(`${u}: scaled/scrolled mouse selection, date, distance and pace`,()=>{
   run(`document.getElementById('drWrap').scrollLeft=12;`);mouse('mousedown',0);
   assert(read().includes(`${distance} ${u}`),read());assert(read().includes(`${pace} /${u}`),read());
-  assert(read().includes('2025'),read());mouse('mouseup',0);
+  assert(read().includes('2026'),read());mouse('mouseup',0);
  });
  check(`${u}: scrubbing works immediately after each real mode toggle`,()=>{
   for(const mode of ['pace','dist','pace']){
@@ -57,9 +58,9 @@ check('pace rounds once and carries 60 seconds into the next minute',()=>{
  assert.strictEqual(run(`paceStr(359.8)`),`6'00"`);assert.strictEqual(run(`paceStr(599.9)`),`10'00"`);assert.strictEqual(run(`paceStr(0)`),'—');
 });
 check('an outlier at the chart rim reads its actual pace, not the axis limit',()=>{
- run(`const normalRunDays=runDays;runDays=()=>normalRunDays().concat({d:'2026-01-03',km:5,sec:12300,timed:5});`);
+ run(`const normalRunDays=runDays;runDays=()=>normalRunDays().concat({d:'2026-01-05',km:5,sec:12300,timed:5});`);
  mount('kg');run(`document.querySelector('[data-drunmode]').click();`);geometry();
- assert(run(`document.querySelector('.drdot[data-d="2026-01-03"]').classList.contains('out')`));
+ assert(run(`document.querySelector('.drdot[data-d="2026-01-05"]').classList.contains('out')`));
  mouse('mousedown',3);assert(read().includes(`41'00" /km`),read());mouse('mouseup',3);
 });
 check('without any timed runs the mode switch keeps a usable distance chart',()=>{

@@ -1156,11 +1156,23 @@ function drunAxis(max){
    now the 5th-95th percentile of the paces, padded; anything outside is
    drawn at the rim, hollow, so it is still there but does not own the axis.
    Steps are the ones a runner reads -- 15s, 30s, 1', 2', 5' -- not 10'15". */
+/* v4.6.189: ...AND TO THE YEAR ON SCREEN, AND IT NEVER STRANDS A NEW RUN.
+   The axis was calibrated on every run ever logged, so a runner who got
+   faster ran off the bottom of it: the maker's September and October runs
+   (9'37", 9'53") sat on an 11'00" floor, a flat line along the rim. The
+   values are now one year's (dailyRunsSection), in date order, and:
+   - the FAST end is the fastest run -- a faster run is the news, so it is
+     never clipped, short of a glitch (under 60% of the median pace);
+   - the SLOW end is still the 95th percentile, so one walked run does not
+     own the axis, but it stretches to hold the ten most recent runs;
+   - a little padding either side, so the line does not ride an edge. */
 function drunPaceAxis(vals){
   const v=[...vals].sort((a,b)=>a-b); if(!v.length) return {step:60,n:3,bot:0};
   const q=p=>v[Math.min(v.length-1,Math.max(0,Math.floor(p*(v.length-1))))];
-  const lo=q(0.05), hi=q(0.95);
-  const pad=Math.max(15,(hi-lo)*0.3);
+  const med=q(0.5), lo=v.find(x=>x>=med*0.6)??v[0];
+  const recent=vals.slice(-10).filter(x=>x<=med*1.6);
+  const hi=Math.max(q(0.95),lo,...recent);
+  const pad=Math.max(10,(hi-lo)*0.15);
   const rawBot=Math.max(0,lo-pad), rawTop=hi+pad;
   const steps=[15,30,60,120,300,600];
   let step=steps[steps.length-1];
@@ -1168,6 +1180,16 @@ function drunPaceAxis(vals){
   const bot=Math.floor(rawBot/step)*step; const n=Math.max(3,Math.ceil((rawTop-bot)/step));
   return {step,n,bot,clip:true};
 }
+/* v4.6.189: ONE YEAR AT A TIME. The card drew every run since the first, on one
+   axis. A year is chosen from the row of years that have runs (the latest by
+   default); the line, the axis labels and the footer are that year's. */
+let DRUN_YEAR=null;
+function drunYears(rows){ return [...new Set(rows.map(r=>r.d.slice(0,4)))].sort(); }
+/* the latest year opens -- unless it holds a single run so far (the first week
+   of January): one dot is not a line, so the latest year with two or more does */
+function drunYear(rows){ const ys=drunYears(rows); if(ys.includes(DRUN_YEAR)) return DRUN_YEAR;
+  const n=y=>rows.filter(r=>r.d.startsWith(y)).length;
+  return [...ys].reverse().find(y=>n(y)>1)||ys[ys.length-1]||null; }
 function drunRows(u,mode){
   const days=runDays(); if(!days.length) return [];
   const conv=km=>u==='mi'?km*MI:km;
@@ -1216,9 +1238,15 @@ function dailyRunsSvg(rows,u,mode,ax){
      did labels every day. In PACE only the newest and each new best are --
      1,700 paces in one row is noise, and the ones that mean something are
      "now" and "the day it got faster". */
+  /* v4.6.189: a year that keeps getting faster makes every run a new best, and
+     their labels piled onto each other. The newest is always labelled; an
+     earlier best only if it is three columns clear of the next label kept. */
+  const bestAt=new Set();
+  if(mode==='pace'){ let b=Infinity; const c=[]; rows.forEach((r,i)=>{ if(r.v<b){ b=r.v; c.push(i); } });
+    let last=rows.length-1; for(let k=c.length-1;k>=0;k--) if(last-c[k]>=3){ bestAt.add(c[k]); last=c[k]; } }
   let best=Infinity;
   rows.forEach((r,i)=>{
-    const newest=i===rows.length-1, isBest=mode==='pace'&&r.v<best;
+    const newest=i===rows.length-1, isBest=bestAt.has(i);
     if(mode==='pace'&&r.v<best) best=r.v;
     const out=ax.clip&&!inRange(r.v);
     s+=`<circle class="drdot${newest?' newest':''}${out?' out':''}" data-i="${i}" data-d="${r.d}" data-v="${drunFmt(r.v,mode)}" cx="${cx(i).toFixed(1)}" cy="${Y(r.v).toFixed(1)}" r="${newest?3.4:2.4}"
@@ -1235,8 +1263,9 @@ function dailyRunsSvg(rows,u,mode,ax){
   return s+'</svg>';
 }
 function dailyRunsSection(){
-  const u=runUnit(), mode=drunMode(), rows=drunRows(u,mode);
-  if(!rows.length) return '';
+  const u=runUnit(), mode=drunMode(), all=drunRows(u,mode);
+  if(!all.length) return '';
+  const years=drunYears(all), year=drunYear(all), rows=all.filter(r=>r.d.startsWith(year)), thisYear=year===todayISO.slice(0,4);
   const vals=rows.map(r=>r.v);
   const ax=mode==='pace'?drunPaceAxis(vals):drunAxis(Math.max(0.1,...vals));
   const labs=[]; for(let i=ax.n;i>=0;i--){ const v=ax.bot+i*ax.step; labs.push(`<span>${drunFmt(v,mode)}</span>`); }
@@ -1246,22 +1275,30 @@ function dailyRunsSection(){
   const monthName=new Date(todayISO+'T00:00').toLocaleDateString('en-US',{month:'short'});   /* v4.5.3 */
   const f=v=>(Math.round(v*100)/100).toFixed(2);
   let foot;
-  if(mode==='pace'){
+  /* a year that is over has no "this month": its footer is the year's */
+  if(!thisYear&&mode==='pace'){
+    const avg=rows.reduce((a,r)=>a+r.v,0)/rows.length;
+    foot=`<span><b>${paceStr(avg)}</b> per ${u} in ${year}</span><span>best ${paceStr(Math.min(...rows.map(r=>r.v)))}</span>`;
+  }else if(!thisYear){
+    const tot=rows.reduce((a,r)=>a+r.v,0);
+    foot=`<span><b>${f(tot)}</b> ${u} in ${year}</span><span>${rows.length} run${rows.length===1?'':'s'} \u00b7 ${f(tot/rows.length)} ${u} each</span>`;
+  }else if(mode==='pace'){
     const avg=mrows.length?mrows.reduce((a,r)=>a+r.v,0)/mrows.length:0;
     foot=`<span><b>${mrows.length?paceStr(avg):'\u2014'}</b> per ${u} in ${monthName}</span><span>${mrows.length?`best ${paceStr(Math.min(...mrows.map(r=>r.v)))}`:'no timed runs yet'}</span>`;
   }else{
     const tot=mrows.reduce((a,r)=>a+r.v,0), avg=mrows.length?tot/mrows.length:0;
     foot=`<span><b>${f(tot)}</b> ${u} in ${monthName}</span><span>${mrows.length} run${mrows.length===1?'':'s'}${mrows.length?` \u00b7 ${f(avg)} ${u} each`:''}</span>`;
   }
-  return `<h2>Daily runs${hActs('dailyruns','One point per run day, oldest first. Units follow Settings: kg uses km; lb uses miles. Drag to scroll; hold briefly, then drag to scrub (mouse: press and drag). The readout shows the selected date, total distance and pace over timed distance only. Switch dist/pace to change the line. Lower pace is faster; points at the rim still show their actual pace when scrubbed. The footer counts this month only.','About Daily runs')}</h2>
+  return `<h2>Daily runs${hActs('dailyruns','One point per run day in the chosen year, oldest first; pick a year to see it on its own scale. Units follow Settings: kg uses km; lb uses miles. Drag to scroll; hold briefly, then drag to scrub (mouse: press and drag). The readout shows the selected date, total distance and pace over timed distance only. Switch dist/pace to change the line. Lower pace is faster; points at the rim still show their actual pace when scrubbed. The footer counts this month, or the whole year for a past one.','About Daily runs')}</h2>
     <div class="card drcard">
       <div class="pmixhead">
         <span class="drunit mono" data-drcap>${mode==='pace'?'min / '+u:u+' / run'}</span>
         <span class="drread mono" data-drread hidden></span>
         <button type="button" class="pmixmode" data-drunmode aria-label="Show ${mode==='dist'?'pace':'distance'} instead"><span class="${mode==='dist'?'on':''}">dist</span><span class="${mode==='pace'?'on':''}">pace</span></button>
       </div>
+      ${years.length>1?`<div class="dryears" role="group" aria-label="Year">${years.map(y=>`<button type="button" class="dry${y===year?' on':''}" data-drunyear="${y}" aria-pressed="${y===year}">${y}</button>`).join('')}</div>`:''}
       <div class="drrow">
-        <div class="draxis"><span class="dryr" data-dryr data-dryr0="${rows[0].d.slice(0,4)}">${rows[0].d.slice(0,4)}</span>${labs.join('')}</div>
+        <div class="draxis">${labs.join('')}</div>
         <div class="pmixwrap drwrap" id="drWrap" data-drun-mode="${mode}" data-drun-unit="${u}">${dailyRunsSvg(rows,u,mode,ax)}</div>
       </div>
       <div class="tot">${foot}</div></div>`;

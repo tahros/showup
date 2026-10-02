@@ -767,6 +767,14 @@ document.addEventListener('click',e=>{
   /* v3.3.476: two controls, one per corner of the card head -- the caption
      switches mi/km, the pill switches distance/pace. Both patch the card in
      place through the same path. */
+  /* v4.6.189: the year. The card is patched in place and lands on the newest run of that year. */
+  {const yb=e.target.closest&&e.target.closest('[data-drunyear]');
+   if(yb){ DRUN_YEAR=yb.dataset.drunyear;
+    const cur=document.querySelector('.drcard'),tmp=document.createElement('div'); tmp.innerHTML=dailyRunsSection();
+    const nc=tmp.querySelector('.drcard');
+    if(cur&&nc){ cur.replaceWith(nc); bindDrun(true); const yr=nc.querySelector('.dryears'),on=yr&&yr.querySelector('.on'); if(on&&yr.scrollWidth>yr.clientWidth) yr.scrollLeft=on.offsetLeft-yr.clientWidth/2; }
+    else render();
+    return; }}
   if(e.target.closest&&e.target.closest('[data-drunmode]')){
     /* v3.3.481: only the mode switches here now; the unit is the app's */
     if(drunMode()==='dist'&&!drunRows(runUnit(),'pace').length){ toast('No timed runs to show pace yet'); return; }

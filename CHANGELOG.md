@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v4.6.189 (2026-10-02) — Run by run: one year at a time, on an axis that holds the runs
+
+- **Reported:** the pace line sat flat along the bottom of the chart: September and October runs at 9'37"–9'53" on an axis whose floor was 11'00". Asked: the axis should adapt, and a year should be selectable with the axis labels switching to match.
+- **Why:** the pace axis was calibrated on the 5th–95th percentile of every run ever logged. Getting faster than most of that history ran the line off the bottom, where it was drawn at the rim.
+- **Year:** a row of the years that have runs sits in the card (the latest chosen). The line, the axis labels and the footer are that year's; a past year's footer gives the year's average and best (or total distance and runs). A tap patches the card in place and lands on that year’s newest run. With runs in one year only there is no row; a new year opens on the previous one until it has two runs.
+- **Axis:** the fast end is the year's fastest run, so a new best is never clipped (short of a glitch under 60% of the median pace). The slow end is still the 95th percentile, so one walked run does not own the axis, but it stretches to hold the ten most recent runs. A walked run is still drawn at the rim, hollow, and reads its real pace when scrubbed.
+- **Labels:** in a year that keeps getting faster every run is a new best, and their labels piled up. The newest is always labelled; an earlier best only when it is three columns clear of the next.
+- Tests: new `tools/test-daily-runs-year.js` (14 checks); `tools/test-daily-runs-scrub.js` now keeps its fixture inside one year.
+
 ## v4.6.188 (2026-10-02) — An exercise's muscle is yours to set
 
 - **Asked:** the third step of showing exercises by body part and then muscle throughout the app. Mocked first and approved.

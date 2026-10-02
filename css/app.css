@@ -4359,3 +4359,8 @@ html.modal-open .calreturn{display:none!important}
 .xm-top b{font:600 14px var(--body);color:var(--chalk)}
 .xm-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
 .xm-card small{display:block;margin-top:10px;font:400 12px/1.4 var(--body);color:var(--muted)}
+/* v4.6.189: Daily runs -- the row of years */
+.dryears{display:flex;gap:4px;margin:2px 0 10px;overflow-x:auto;scrollbar-width:none}
+.dryears::-webkit-scrollbar{display:none}
+.dry{flex:0 0 auto;min-height:30px;padding:0 11px;border:0;border-radius:999px;background:none;font:400 12px/1 var(--mono);color:var(--faint);cursor:pointer}
+.dry.on{background:color-mix(in srgb,var(--chalk) 8%,transparent);color:var(--chalk);font-weight:700}

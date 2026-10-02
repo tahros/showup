@@ -19,7 +19,7 @@ ok('year and distance comparisons each expose years',run(`document.querySelector
 ok('recorded prior years are selectable',run(`document.querySelectorAll('.comparison-years button[data-add="2024"]').length===2`));
 ok('both historical comparisons retain scrubbers',run(`document.querySelectorAll('.conrace>input[type="range"]').length===2`));
 ok('current comparison lines use signature blue',run(`document.querySelectorAll('.comparison-plot polyline[stroke="var(--accent)"]').length===2`));
-ok('running distance and pace use signature blue',run(`document.querySelector('.drcard .drline').getAttribute('stroke')==='var(--accent)'&&document.querySelector('.pacecard polyline').getAttribute('stroke')==='var(--accent)'`));
+ok('running distance and pace use signature blue',run(`(document.querySelector('.drcard .drline')||document.querySelector('.drcard .drdot')).getAttribute('stroke')==='var(--accent)'&&/* v4.6.189: one year at a time, and this fixture has one run a year -- a dot, no line */document.querySelector('.pacecard polyline').getAttribute('stroke')==='var(--accent)'`));
 ok('pace labels stay restrained',run(`[...document.querySelectorAll('.paceval')].every(x=>x.getAttribute('font-size')==='6.5')`));
 ok('personal Weight is absent from Stats',run(`!document.getElementById('secWeight')`));
 run(`view='sync';render();`);
