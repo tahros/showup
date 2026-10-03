@@ -682,7 +682,23 @@ document.addEventListener('click',e=>{
   d._pwAnimation.onfinish=finish;
 },true);
 
-function pwPositionDock(){const dock=document.querySelector('.pw-save-dock'),nav=document.getElementById('nav'),live=document.getElementById('liveWorkoutBar');const anchor=live&&!live.hidden?live:nav;if(dock&&anchor)dock.style.bottom=Math.max(78,innerHeight-anchor.getBoundingClientRect().top+8)+'px';const rail=document.querySelector('.pw-days'),selected=rail?.querySelector('.selected');if(selected){const r=rail.getBoundingClientRect(),b=selected.getBoundingClientRect();if(b.left<r.left)rail.scrollLeft-=r.left-b.left;else if(b.right>r.right)rail.scrollLeft+=b.right-r.right;}if(typeof syncTopBtn==='function')syncTopBtn();}
+/* v4.6.195: THE DOCK SITS ABOVE WHAT IS AT THE BOTTOM OF THE SCREEN, AND ONLY
+   THAT. It was anchored to "the live workout bar, if one is showing, else the
+   tab bar" -- written when that bar sat above the tab bar. The live workout
+   lives in the HEADER now, so during a workout the anchor was at the top of
+   the screen and the dock was parked under the header, over the step tabs
+   ("Plans saved · Done" floating at the top, reported more than once).
+   The tab bar is the anchor. Anything else is counted only if it is really
+   down there: showing, and wholly in the lower half of the screen. Nothing at
+   the top can ever move the dock again, whatever is added to the header. */
+function pwDockAnchorTop(){
+  const nav=document.getElementById('nav');let top=nav?nav.getBoundingClientRect().top:innerHeight-88;
+  if(!(top>innerHeight/2))top=innerHeight-88;
+  const live=document.getElementById('liveWorkoutBar');
+  if(live&&!live.hidden){const r=live.getBoundingClientRect();if(r.height>0&&r.top>innerHeight/2&&r.top<top)top=r.top;}
+  return top;
+}
+function pwPositionDock(){const dock=document.querySelector('.pw-save-dock');if(dock&&getComputedStyle(dock).position==='fixed')dock.style.bottom=Math.max(78,Math.min(innerHeight/2,innerHeight-pwDockAnchorTop()+8))+'px';else if(dock)dock.style.bottom='';const rail=document.querySelector('.pw-days'),selected=rail?.querySelector('.selected');if(selected){const r=rail.getBoundingClientRect(),b=selected.getBoundingClientRect();if(b.left<r.left)rail.scrollLeft-=r.left-b.left;else if(b.right>r.right)rail.scrollLeft+=b.right-r.right;}if(typeof syncTopBtn==='function')syncTopBtn();}
 window.addEventListener('resize',pwPositionDock,{passive:true});
 
 

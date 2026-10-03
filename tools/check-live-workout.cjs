@@ -40,6 +40,7 @@ const ORIGIN='http://127.0.0.1:'+(process.env.PW_PORT||'8784')+'/';
  await p.screenshot({path:'../live-workout-implemented.png',fullPage:false});
  await p.evaluate(()=>{pwOpen('2026-09-17');pw().dates=['2026-09-17'];const d=pwDay('2026-09-17');d.rows=pwRead('Squat\n195 lb × 8 8 8');d.parts=['Legs'];pw().active='2026-09-17';pfAnchor();pfNavigate('days');});
  await p.waitForTimeout(150);
- const spacing=await p.evaluate(()=>({dock:document.querySelector('.pw-save-dock').getBoundingClientRect().bottom,bar:document.querySelector('#nav').getBoundingClientRect().top}));assert(spacing.dock<=spacing.bar);
+ /* v4.6.195: this lands on the Edit page, whose dock is in the page flow (not fixed) since v4.6.157, so the old assertion compared a scrolling element with the tab bar and failed. A FIXED dock must sit in the lower half, above the tab bar; tools/check-save-dock.cjs covers every page. */
+ const spacing=await p.evaluate(()=>{const d=document.querySelector('.pw-save-dock'),r=d.getBoundingClientRect();return {fixed:getComputedStyle(d).position==='fixed',dock:r.bottom,top:r.top,bar:document.querySelector('#nav').getBoundingClientRect().top,h:innerHeight};});assert(!spacing.fixed||(spacing.dock<=spacing.bar&&spacing.top>spacing.h/2));
  assert.deepEqual(errors,[]);console.log('PASS no-plan, empty, grouped sets, 24 mobile tab/theme layouts, single control, cancel/Escape, completion, reopen, unknown duration, reduced motion, no runtime errors');
 }finally{await b.close();}})().catch(e=>{console.error(e);process.exitCode=1});

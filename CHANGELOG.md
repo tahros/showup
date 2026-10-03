@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.195 (2026-10-03) — "Plans saved · Done" stays at the bottom, workout or not
+
+- **Reported:** with a workout running, the "Plans saved · Done" button floated at the top of the Plan screen, under the header and over the step tabs. Not for the first time.
+- **Why:** the dock was positioned from "the live workout bar, if one is showing, otherwise the tab bar". That was written when the live workout bar sat above the tab bar. The live workout is in the header now, so during a workout the dock anchored itself to the top of the screen.
+- **Now:** the tab bar is the anchor. Another element is counted only if it is showing and wholly in the lower half of the screen, and the result is bounded to the lower half, so nothing at the top can move the dock, whatever the header becomes. The same goes for the Save dock on the planner's other pages.
+- Tests: new `tools/check-save-dock.cjs` (100 checks): every planner page that docks a button, with and without a workout running, two screen sizes, light and dark, after scrolling, after a resize, and when a workout starts or ends with the page open. On v4.6.194 41 of them fail. The stale dock assertion in `check-live-workout.cjs` (it compared an in-flow dock with the tab bar and failed) is corrected; that check passes again.
+
 ## v4.6.194 (2026-10-03) — Hold a weight
 
 - **Asked:** alongside Avoid, a way to say which exercises should keep growing and which should stay as they are: no heavier weights on the flat barbell bench because of pain, while the incline bench keeps going up. Mocked first and approved.
