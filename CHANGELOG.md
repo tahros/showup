@@ -1,5 +1,11 @@
 # ShowUp — changelog
 
+## v4.6.199 (2026-10-03) — One load, one line
+
+- **Reported:** a saved day printed "155 lb × 12 / 155 lb × 12 / 155 lb × 12 12" and "235 lb × 3" four times: one block of sets on three or four lines, taking too much room.
+- **Now:** on the plan card (today's plan, the later days under "N more plans", the week), neighbouring lines at the same load print as one: "235 lb × 3 3 3 3", "60 lb × 8 8 8 8". The saved plan is not changed; on today's card each numeral still dims from its own set. Timed holds and lines at different loads stay separate.
+- Tests: new `tools/test-plan-one-line.js` (9 checks).
+
 ## v4.6.198 (2026-10-03) — Regenerate, checked against the record printed under it
 
 - **Reported:** a Regenerate on v4.6.197 gave Cable Fly Down ≈16.5 lb × 14 14 14 14 directly above "35 lb × 12 12 12 12 · 10/3", Dip with four sets, and the day still at four exercises.

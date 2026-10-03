@@ -54,12 +54,25 @@ function planCardHTML(_pl, live){
       return `<i class="rp${spent>=l.reps.length?' rspent':''}">${_rtx(l)}</i>`;
     return l.reps.map((r,k)=>`<i class="rp${k<spent?' rspent':''}">${r}</i>`).join(' ');
   };
-  const _ln=(_pl.items||[]).reduce((a,i)=>a.concat(i.lines||[]),[]);
+  /* v4.6.199: ONE LOAD, ONE LINE. A plan saved as "155 lb × 12 / 155 lb × 12 /
+     155 lb × 12 12" printed three lines for one block of sets, and a five-
+     exercise day ran off the screen. Neighbouring lines at the same load are
+     shown as one ("155 lb × 12 12 12 12"); the saved plan is not changed, and
+     each numeral still dims from its own line's spend. Holds, and lines that
+     differ in anything the weight column prints, stay apart. */
+  const _merge=(lines,sp)=>{const out=[];
+    lines.forEach((l,li)=>{const fl=(l.reps||[]).map((r,k)=>k<(sp[li]||0)),prev=out[out.length-1];
+      if(prev&&!isHold(l.su)&&!isHold(prev.l.su)&&_wtx(prev.l)===_wtx(l)){prev.l={...prev.l,reps:prev.l.reps.concat(l.reps||[])};prev.fl=prev.fl.concat(fl);}
+      else out.push({l:{...l,reps:(l.reps||[]).slice()},fl,sp:sp[li]||0});});
+    return out;};
+  const _rows=(_pl.items||[]).map(i=>_merge(i.lines||[],live?planSpentMap(i):(i.lines||[]).map(()=>0)));
+  const _ln=_rows.reduce((a,r)=>a.concat(r.map(x=>x.l)),[]);
   const _cw=(f,min)=>Math.max(min,..._ln.map(l=>f(l).length));
+  const _mhtml=x=>isHold(x.l.su)?_rhtml(x.l,x.sp):x.l.reps.map((r,k)=>`<i class="rp${x.fl[k]?' rspent':''}">${r}</i>`).join(' ');
   return `<div class="card plancard${live?'':' dayplan'}" style="--planw:${_cw(_wtx,2)}ch;--planr:${_cw(_rtx,1)}ch">
-    ${(_pl.items||[]).map(i=>{const _sp=live?planSpentMap(i):i.lines.map(()=>0); const _dn=live&&planLoggedToday(i.ex); return `<button class="planrow${_dn?' pdone':''}" data-planex="${i.ex}">
+    ${(_pl.items||[]).map((i,ii)=>{const _dn=live&&planLoggedToday(i.ex); return `<button class="planrow${_dn?' pdone':''}" data-planex="${i.ex}">
         <span class="pn">${i.ex}<i class="pk">${_dn?'\u2713':(exIsNew(i.ex)?'<span class="ptag">NEW</span>':'')}${refinedFlow()&&!_dn?icon('chevron',ICON_SZ.sm):''}</i></span>
-        <span class="pl">${i.lines.map((l,li)=>`<span class="pv pw mono">${_wtx(l)}</span><span class="px mono" aria-hidden="true">×</span><span class="pr mono">${_rhtml(l,_sp[li])}</span>`).join('')}</span>
+        <span class="pl">${_rows[ii].map(x=>`<span class="pv pw mono">${_wtx(x.l)}</span><span class="px mono" aria-hidden="true">×</span><span class="pr mono">${_mhtml(x)}</span>`).join('')}</span>
       </button>`;}).join('')}
     ${_pl.note?planNoteHTML(_pl.note):''}
   </div>`;
