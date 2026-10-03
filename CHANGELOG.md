@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v4.6.197 (2026-10-03) — The plan recommends an exercise, and reaches 8 reps honestly
+
+- **Reported:** v4.6.196 stopped a Chest + Sixpack day at 16 sets with a note; it should have recommended another exercise from the day's focus, history and preferences. And it wrote Dip at BW+50 × 8 8 8 after a session of 4, 6, 6 at that weight.
+- **Recommend, don't stop.** Short of the Set target, the app adds one more exercise (two at most): for the muscle the day covers least, a focus muscle where the day has a focus, strength before more core, an isolation lift once the part already has two compound lifts, yours before one you have not done, never one you avoid. It comes in as three sets (from your record, or by feel if new), placed in order, and the sets it overshoots by come off the exercises carrying the most (the accessory before the main lift on a tie, none below three). Checks names it: "Chest Fly: recommended for mid chest to reach your 17 sets".
+- **The rep floor follows the record.** If one of your last three sessions has a set of 8 or more at that load or heavier, the load stands and the reps go to 8. If not, the load comes down to where your last session says 8 is in reach (the whole load counts, body weight included for a bodyweight lift), on the exercise's own rack steps: Dip BW+50 after 4, 6, 6 becomes BW+35 × 8 8 8, and Checks says so. Plain bodyweight with nothing to take off is left as written. The same rule now applies to exercises the app brings in itself, not only the writer's.
+- A Check that counted reps before the sets were fitted is dropped when it no longer describes the day. The writer's prompt asks for both behaviours.
+- The reported day now lands as: Barbell Bench Press 95 × 10 warm-up + 135 × 8 8 8 8, Dip BW+35 × 8 8 8, Cable Fly Down × 12 12 12, Chest Fly × 12 12 12, Hanging Leg Raise BW × 15 15 15 — 17 sets, five exercises.
+- Tests: `tools/test-sound-plan.js` grows to 27 checks.
+
 ## v4.6.196 (2026-10-03) — A generated plan is sound
 
 - **Reported:** a suggested Chest + Sixpack day came back as six sets of Barbell Bench Press, Dip at 6 6 6 6 6, "Cable Fly Down" as a line of text with an Edit text button, and five sets of Hanging Leg Raise: 17 sets from three exercises.

@@ -520,6 +520,38 @@ function pfAllocate(b,st,target){
  for(const r of out.filter(r=>r.added)){const idx=pwPlaceIndex(rows,r.ex);rows.splice(idx,0,r);locks=locks.map(i=>i>=idx?i+1:i);}
  b.rows=rows.map(r=>{delete r.added;return r;});b.locks=locks;
 }
+/* v4.6.197: the exercises the app recommends to close a gap to the set target.
+   Mutates day.rows; returns the rows it added. */
+function pfRecommend(day,parts,focus,lockedText,goal){
+ const added=[],warm=l=>/warm|prep/i.test((l.qual||'')+(l.tag||'')),work=r=>(r.lines||[]).filter(l=>!warm(l)),nWork=r=>work(r).reduce((a,l)=>a+(l.reps||[]).length,0);
+ const fl=(typeof WRITER_REP_FLOOR!=='undefined'&&WRITER_REP_FLOOR[pw().objective])||0;
+ for(let pass=0;pass<2;pass++){
+  const gap=goal-pwSetCount(day.rows);if(gap<=0)break;
+  const exs=pwExercises(day.rows),have=new Set(exs.map(r=>r.ex)),free=exs.filter(r=>!lockedText.includes(pwText([r]))&&homePartOf(r.ex)!=='Run');
+  if(3-gap>free.reduce((a,r)=>a+Math.max(0,nWork(r)-3),0))break;      /* three more would overshoot and nothing can give */
+  const fParts=new Set(focus.map(m=>MUSCLE_PART[m])),strength=parts.filter(p=>p!=='Run');
+  const pool=pwAllExercises().filter(ex=>{const p=homePartOf(ex);return strength.includes(p)&&!have.has(ex)&&!isAvoided(ex)&&!pfPrefs().avoid.some(a=>canonKey(a)===canonKey(ex))&&(!fParts.has(p)||focus.includes(exMuscle(ex,p)));});
+  if(!pool.length)break;
+  const done=ex=>!!(SEED.lastSess?.[ex]&&pwLastLine(ex)),mCount=ex=>exs.filter(r=>exMuscle(r.ex,homePartOf(r.ex))===exMuscle(ex,homePartOf(ex))).length,pCount=p=>exs.filter(r=>homePartOf(r.ex)===p).length;
+  /* the part the day covers least first (a day of Chest + Sixpack is short on chest long before core); then the muscle with the least; an isolation lift once the part has two compounds; yours before new */
+  const comp=p=>exs.filter(r=>homePartOf(r.ex)===p&&pwTier(r.ex)<2).length,wantIso=ex=>comp(homePartOf(ex))>=2;
+  const key=ex=>{const p=homePartOf(ex);return [p==='Sixpack'?1:0,mCount(ex),(pwTier(ex)>=2)===wantIso(ex)?0:1,done(ex)?0:1,pCount(p)];};
+  const idx=new Map(pool.map((ex,i)=>[ex,i]));
+  pool.sort((x,y)=>{const a=key(x),b=key(y);for(let k=0;k<a.length;k++)if(a[k]!==b[k])return a[k]-b[k];return (SEED.exLast?.[y]||'').localeCompare(SEED.exLast?.[x]||'')||idx.get(x)-idx.get(y);});
+  const ex=pool[0],n=3,reps=Math.max(fl,pwTier(ex)>=2?12:10);
+  const row=done(ex)?pwExerciseRow(ex,n):pwRead(`${ex}\n  by feel × ${Array.from({length:n},()=>reps).join(' ')}`)[0];
+  if(!row||row.kind!=='ex')break;delete row.added;
+  day.rows.splice(pwPlaceIndex(day.rows,ex),0,row);added.push(row);
+  const m=exMuscle(ex,homePartOf(ex));
+  (day.notes=day.notes||[]).push(`${ex}: recommended for ${MUSCLE_LABEL[m]||m||homePartOf(ex)} to reach your ${goal} sets`+(done(ex)?'':' — new to you, so it starts by feel')+'.');
+  /* what it overshoots by comes off the exercises carrying the most */
+  for(let over=pwSetCount(day.rows)-goal;over>0;over--){
+   const big=free.filter(r=>nWork(r)>3).sort((a,b)=>nWork(b)-nWork(a)||pwTier(b.ex)-pwTier(a.ex))[0];if(!big)break;   /* a tie: the accessory gives before the main lift */
+   const l=work(big).filter(l=>(l.reps||[]).length>1).pop();if(!l)break;l.reps.pop();
+  }
+ }
+ return added;
+}
 function pfValidateCandidate(candidate,dates){
  const p=pfPrefs();
  /* v4.6.147: a day the writer added that you did not pick is dropped; a day it
@@ -588,10 +620,26 @@ function pfValidateCandidate(candidate,dates){
     const out=pwAllocateSets(tmp,eff,skip),rows=out.filter(r=>!r.added),added=out.filter(r=>r.added&&pwSetCount([r])>=Math.min(3,pwTypicalSets(r.ex)));
     for(const r of added){rows.splice(pwPlaceIndex(rows,r.ex),0,r);delete r.added;}
     day.rows=rows;
+    /* v4.6.197: SHORT OF THE TARGET, THE APP RECOMMENDS. The day used to stop
+       ("holds 16 sets; the target is 17") when the record had nothing left to
+       add in full. A coach would add a movement: one more exercise for the
+       muscle the day covers least (a focus muscle where there is a focus),
+       yours first, then one you have not done, by feel; never one you avoid.
+       It comes in as a block of three, and the sets it overshoots by come off
+       the exercises carrying the most, never below three. */
+    for(const rec of pfRecommend(day,tmp.parts,f,lockedText,goal))added.push(rec);
     const to=pwSetCount(day.rows);
     if(to!==from)(day.notes=day.notes||[]).push('Set count fitted to your '+(mine?'target':'usual')+': '+from+' → '+to+' sets'+(added.length?' (added '+added.map(r=>r.ex).join(', ')+')':'')+'.');
     if(to!==goal)(day.notes=day.notes||[]).push('The day holds '+to+' sets at your usual sets per exercise; the target is '+goal+'. Add an exercise, or use + to go past it.');
    }
+   /* v4.6.197: what the app brought in itself meets the rep floor the same way
+      the writer's lines do: from the record, lowering the load when it has to */
+   {const fl=(typeof WRITER_REP_FLOOR!=='undefined'&&WRITER_REP_FLOOR[pw().objective])||0,lockedT=(src.locks||[]).map(i=>pwText([src.rows[i]]));
+    if(fl)for(const r of day.rows){if(r.kind!=='ex'||!r.ex||lockedT.includes(pwText([r])))continue;
+     const fit=writerFloorFit(r.ex,r.lines,fl,pw().objective);r.lines=fit.lines;for(const n of fit.notes)if(!(day.notes=day.notes||[]).includes(n))day.notes.push(n);}}
+   /* a Check that counted reps before the sets were fitted no longer describes the day */
+   if(day.notes)day.notes=day.notes.filter(n=>{const m=/^(.+): same .+ for (\d+) total reps, under your last (\d+)/.exec(n);if(!m)return true;const r=day.rows.find(x=>x.ex===m[1]);
+    return !r||r.lines.filter(l=>!/warm|prep/i.test((l.qual||'')+(l.tag||''))).reduce((a,l)=>a+l.reps.reduce((x,y)=>x+y,0),0)===+m[2];});
   }
   const total=pwSetCount(day.rows);
   if(!total){delete candidate.days[date];continue;}

@@ -58,6 +58,54 @@ const WRITER_REP_FLOOR={grow:8,lose:12,keep:0,strength:0};
 const OBJECTIVES=[['grow','Grow'],['lose','Lose weight'],['strength','Strength']];
 const WEEKDAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
+/* v4.6.197: THE FLOOR IS REACHED HONESTLY. v4.6.196 raised a working set
+   written under the floor to the floor AT THE SAME WEIGHT, which turned a Dip
+   the maker got 4, 6, 6 on at BW+50 into "BW+50 x 8 8 8": a number, not a
+   plan. The record decides now. If one of your last three sessions has a set
+   of floor-or-more reps at this load or heavier, the load stands and the reps
+   go to the floor. Otherwise the load comes down to what your last session
+   says the floor is in reach at (Epley, on the whole load -- body weight
+   included for a bodyweight lift), on the exercise's own rack grid. Plain
+   bodyweight with nothing to take off is left as written. One function, used
+   on what the writer returns and on what the app brings in itself. */
+function exRecentSets(ex,n){
+  const by={};
+  for(const [d,v] of Object.entries(DB.days||{})) for(const x of (v.w||[])) if(x.ex===ex&&(x.reps||[]).length&&x.su!=='s') (by[d]=by[d]||[]).push([x.w||0,x.reps]);
+  for(const [d,rows] of Object.entries((SEED&&SEED.sessions)||{})) if(!DB.days[d]) for(const r of rows) if(r[1]===ex&&(r[3]||[]).length) (by[d]=by[d]||[]).push([r[2]||0,r[3]]);
+  return Object.keys(by).sort().reverse().slice(0,n||3).map(d=>by[d]);
+}
+function writerFloorFit(ex,lines,floor,objective){
+  const notes=[]; let cut=false;
+  if(!floor||!ex||isCardioEx(ex)) return {lines,notes,cut};
+  const warm=l=>/warm|prep/i.test((l.qual||'')+(l.tag||''));
+  const kgL=l=>l.unit==='kg'?l.w:l.unit==='lb'?l.w/LB:toKg(l.w);
+  const rec=exRecentSets(ex,3), last=rec[0]||[], body=isBody(ex), bodyKg=body?(bwNow()||70):0;
+  const label=(OBJECTIVES.find(o=>o[0]===objective)||[0,'Grow'])[1];
+  let raised=false;
+  const out=(lines||[]).map(l=>{
+    if(isHold(l.su)||warm(l)||!(l.reps||[]).some(n=>n<floor)) return l;
+    const reps=l.reps.map(n=>Math.max(n,floor));
+    if(l.nw||!rec.length){ raised=true; return {...l,reps}; }
+    const kg=l.w>0?kgL(l):0;
+    const proven=Math.max(0,...rec.flatMap(day=>day.filter(x=>x[0]>=kg-0.3).flatMap(x=>x[1])));
+    if(proven>=floor){ raised=true; return {...l,reps}; }
+    let est=0,ref=null; for(const x of last){ const e=(bodyKg+x[0])*(1+Math.max(...x[1])/30); if(e>est){est=e;ref=x;} }
+    const want=est/(1+floor/30)-bodyKg;
+    if(!ref||want>=kg-0.3){ raised=true; return {...l,reps}; }
+    const {s,a}=wLaw(ex); let face=a+Math.floor((toU(Math.max(want,0))-a)/s+1e-6)*s; if(body) face=Math.max(0,face);
+    const newKg=toKg(face);
+    if(!(newKg<kg-0.3)||(!body&&!(face>0))) return l;          /* nothing to take off: left as written */
+    cut=true;
+    const shown=l.unit==='kg'?newKg:l.unit==='lb'?newKg*LB:(isLb()?newKg*LB:newKg);
+    const {est:_e,raw:_r,...rest}=l;
+    const txt=k=>body&&k<=0.01?'BW':wLabel(ex,k)+' '+U();
+    notes.push(`${ex}: ${txt(kg)} lowered to ${txt(newKg)} so ${floor} reps are in reach — your last at ${txt(ref[0])} was ${ref[1].join(', ')}`);
+    return {...rest, w:+shown.toFixed(1), reps};
+  });
+  if(raised) notes.push(`${ex}: sets written under ${floor} reps raised to ${floor} — the floor for ${label}`);
+  return {lines:out,notes:[...new Set(notes)],cut};
+}
+
 /* ---- state: lift.write ---- */
 function writerState(){
   if(lift.write) return lift.write;
@@ -624,10 +672,8 @@ function writerCheck(resp, ctx){
          same weight (reps before load), and the read-back says so. Warm-ups,
          timed holds and cardio are not working sets. Other objectives keep
          their own ranges (strength is meant to be low). */
-      {const floor=WRITER_REP_FLOOR[payload.objective]||0;
-       if(floor&&!isCardioEx(r.ex)){let raised=false;
-        r.lines=(r.lines||[]).map(l=>{ if(isHold(l.su)||isWarm(l)||!(l.reps||[]).some(n=>n<floor)) return l; raised=true; return {...l, reps:l.reps.map(n=>Math.max(n,floor))}; });
-        if(raised) notes.push(`${r.ex}: sets written under ${floor} reps raised to ${floor} — the floor for Grow`);}}
+      const floorFit=writerFloorFit(r.ex, r.lines, WRITER_REP_FLOOR[payload.objective]||0, payload.objective);
+      r.lines=floorFit.lines; notes.push(...floorFit.notes);
       /* v4.6.194: A HELD EXERCISE DOES NOT GO UP, WHATEVER CAME BACK. Any line
          heavier than the held weight is brought down to it (warm-ups under it
          are left alone), and the step-up and stand-still rules below do not
@@ -650,7 +696,7 @@ function writerCheck(resp, ctx){
         const kgOf=l=>l.unit==='kg'?l.w:l.unit==='lb'?l.w/LB:toKg(l.w);
         const top=Math.max(...work.map(kgOf)), lastTop=Math.max(...ls.rows.map(x=>+x[0]||0));
         const noteNames=(payload.note||'').toLowerCase().includes(r.ex.toLowerCase());
-        const reasoned=(r.lines||[]).some(l=>l.qual&&!isWarm(l))||noteNames;   // "(warm-up)" is not a reason
+        const reasoned=(r.lines||[]).some(l=>l.qual&&!isWarm(l))||noteNames||floorFit.cut;   // "(warm-up)" is not a reason
         const nextTop=lastTop>0?nextFaceAbove(lastTop,r.ex):0;
         /* v3.3.417: A PARTIAL STEP IS NOT A STEP. The writer was still given
            the generic 5 lb pin/dumbbell increment and returned 200 after a

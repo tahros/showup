@@ -1,4 +1,4 @@
-// v4.6.196: a generated plan is sound. The maker's Saturday came back as: six
+// v4.6.196 / v4.6.197: a generated plan is sound. The maker's Saturday came back as: six
 // sets of Barbell Bench Press, Dip at 6 6 6 6 6, "Cable Fly Down" as a line of
 // text with an Edit button, and five sets of Hanging Leg Raise -- 17 sets from
 // three exercises.
@@ -41,11 +41,22 @@ test('the answer was applied without an error',`!S.error&&B.rows.length>0`);
 test('Cable Fly Down is an exercise in the plan, with its sets',`exs.includes('Cable Fly Down')&&nSets(rowOf('Cable Fly Down'))>=3&&/11 lb/.test(pwText([rowOf('Cable Fly Down')]))`);
 test('nothing in the plan is a line of text',`B.rows.every(r=>r.kind==='ex'&&r.ex&&r.lines.length)`);
 test('...and the page shows no "Edit text" button',`(()=>{pwRender();return !/Edit text/.test(document.getElementById('view').textContent);})()`);
-test('no working set is under 8 reps: Dip 6 6 6 became 8s at the same weight',`B.rows.every(r=>homePartOf(r.ex)==='Run'||work(r).every(l=>l.reps.every(n=>n>=8)))&&/BW \\+50 lb × 8 8 8/.test(pwText([rowOf('Dip')]))`);
-test('...and the Checks say so',`B.notes.some(n=>/^Dip: sets written under 8 reps raised to 8 — the floor for Grow$/.test(n))`);
+test('no working set is under 8 reps',`B.rows.every(r=>homePartOf(r.ex)==='Run'||work(r).every(l=>l.reps.every(n=>n>=8)))`);
+/* v4.6.197: the floor is reached from the record. Dip was 4, 6, 6 at BW+50 last time: 8s there is a number, not a plan */
+test('Dip: 8s at a load the record supports -- BW+50 came down to BW+35',`/BW \\+35 lb × 8 8 8/.test(pwText([rowOf('Dip')]))`);
+test('...and the Checks say why, with the last session',`B.notes.some(n=>/^Dip: BW\\+50 lb lowered to BW\\+35 lb so 8 reps are in reach — your last at BW\\+50 lb was 4, 6, 6$/.test(n))`);
+test('Bench keeps 135: 8s at 135 are on record within the last three sessions',`/135 lb × 8 8 8 8(?! 8)/.test(pwText([rowOf('Barbell Bench Press')]))`);
 test('no exercise carries more than five working sets',`B.rows.every(r=>nSets(r)<=5)`);
-test('four exercises carry the day at the maker’s usual sets each; it stops at 16 rather than stack a 17th, and says so',`exs.length>=4&&pwSetCount(B.rows)===16&&B.notes.some(n=>/^The day holds 16 sets at your usual sets per exercise; the target is 17\\./.test(n))`);
+/* v4.6.197: short of the target the app recommends an exercise instead of stopping at 16 */
+test('the day reaches 17 with a fifth exercise: Chest Fly, recommended for mid chest',`pwSetCount(B.rows)===17&&exs.length===5&&exs.includes('Chest Fly')&&exMuscle('Chest Fly','Chest')==='chest'`);
+test('...never logged, so it starts by feel, three sets of 12, and Checks says so',`/by feel × 12 12 12/.test(pwText([rowOf('Chest Fly')]))&&B.notes.some(n=>/^Chest Fly: recommended for mid chest to reach your 17 sets — new to you, so it starts by feel\\.$/.test(n))`);
+test('...the sets it overshoots by came off the exercises carrying the most, none under three',`nSets(rowOf('Barbell Bench Press'))===4&&nSets(rowOf('Cable Fly Down'))===3&&B.rows.every(r=>nSets(r)>=3)`);
+test('...and no "the day holds" note',`!B.notes.some(n=>/The day holds/.test(n))`);
+test('it sits with the chest work, ahead of the core',`exs.indexOf('Chest Fly')<exs.indexOf('Hanging Leg Raise')`);
 test('...what was added is on a focus muscle, and in a sound order',`(()=>{const chest=exs.filter(x=>homePartOf(x)==='Chest');return chest.every(x=>['chest','lower-chest'].includes(exMuscle(x,'Chest')))&&exs.map(pwTier).every((t,i,a)=>!i||a[i-1]<=t);})()`);
+run(`setExPref('Chest Fly','avoid');Object.assign(pwDay(D),{rows:[],locks:[]});`);await run(`pwGenerate(false,true)`);run(`B=pwDay(D);exs=pwExercises(B.rows).map(r=>r.ex);`);
+test('an avoided exercise is never the recommendation',`!exs.includes('Chest Fly')&&!exs.some(x=>isAvoided(x))&&pwSetCount(B.rows)===17&&exs.length===5`);
+run(`setExPref('Chest Fly',null);Object.assign(pwDay(D),{rows:[],locks:[]});`);await run(`pwGenerate(false,true)`);run(`B=pwDay(D);exs=pwExercises(B.rows).map(r=>r.ex);`);
 test('the weights are not above what was last lifted (bench 135, dip +50)',`Math.max(...rowOf('Barbell Bench Press').lines.map(l=>l.w))<=135.5&&Math.max(...rowOf('Dip').lines.map(l=>l.w))<=50.5`);
 
 /* a movement with NO record is still held to the old rules, but leaves no text behind */
@@ -60,8 +71,10 @@ test('...and leaves no text row behind',`B.rows.every(r=>r.kind==='ex'&&r.ex&&r.
 run(`var PL=pwPayload([D],'generate');var chk=o=>writerCheck({days:[{date:D,part:'Chest',title:'Chest',text:'Barbell Bench Press\\n  135 lb × 5 5 5 5\\n\\nDip\\n  BW +50 lb × 6 6 6\\n\\nIncline Barbell Bench Press\\n  175 lb × 8 8 8 8\\n\\nIncline Dumbbell Bench Press\\n  65 lb × 8 8 8\\n\\nHanging Leg Raise\\n  BW × 15 15 15'}],reason:null},{payload:{...PL,objective:o}});
 var reps=(c,ex)=>c.rows.find(r=>r.ex===ex).lines.flatMap(l=>l.reps);`);
 test('Grow raises 5s and 6s to 8',`reps(chk('grow'),'Barbell Bench Press').every(n=>n===8)&&reps(chk('grow'),'Dip').every(n=>n===8)`);
+test('...Bench at its weight (proven), Dip at a lower one (not)',`chk('grow').rows.find(r=>r.ex==='Barbell Bench Press').lines[0].w===135&&chk('grow').rows.find(r=>r.ex==='Dip').lines[0].w===35`);
+test('plain bodyweight under the floor has nothing to take off and is left as written',`(()=>{DB.days['2026-10-01']={w:[{part:'Back',ex:'Pull Up',w:0,bw:true,reps:[6,5,5],at:1}]};SEED=deriveAll();const f=writerFloorFit('Pull Up',pwRead('Pull Up\\n  BW × 6 6 6')[0].lines,8,'grow');return f.lines[0].reps.join()==='6,6,6'&&!f.notes.length;})()`);
 test('Strength leaves them as written',`reps(chk('strength'),'Barbell Bench Press').every(n=>n===5)&&reps(chk('strength'),'Dip').every(n=>n===6)`);
 test('a warm-up line is not a working set and is left alone',`(()=>{const c=writerCheck({days:[{date:D,part:'Chest',title:'Chest',text:'Barbell Bench Press\\n  95 lb × 5 (warm-up)\\n  135 lb × 8 8 8 8\\n\\nDip\\n  BW +50 lb × 8 8 8\\n\\nIncline Barbell Bench Press\\n  175 lb × 8 8 8 8\\n\\nIncline Dumbbell Bench Press\\n  65 lb × 8 8 8'}],reason:null},{payload:{...PL,objective:'grow'}});return c.rows.find(r=>r.ex==='Barbell Bench Press').lines[0].reps.join()==='5';})()`);
-test('the server prompt asks for the same: 8 or more for grow, logged means not new, no stacking',`/NEVER write a working set under 8 reps for grow/.test(SRV)&&/NEW MEANS NEVER LOGGED/.test(SRV)&&/never more than 5 on one exercise/.test(SRV)`);
+test('the server prompt asks for the same: 8 or more for grow, logged means not new, no stacking',`/NEVER write a working set under 8 reps for grow/.test(SRV)&&/LOWER the load to one where 8 is in reach/.test(SRV)&&/add a recommended exercise/.test(SRV)&&/NEW MEANS NEVER LOGGED/.test(SRV)&&/never more than 5 on one exercise/.test(SRV)`);
 console.log(checks+' checks');process.exit(0);
 })().catch(e=>{console.error(e);process.exit(1);});
