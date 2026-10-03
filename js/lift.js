@@ -521,7 +521,7 @@ function renderLift(){
     const mtag=ex=>multi&&MUSCLE_SHORT[mOf(ex)]?`<span class="mtag">${MUSCLE_SHORT[mOf(ex)]}</span>`:'';
     if(multi) h+=`<div class="mf-row" role="group" aria-label="Show one muscle of ${lift.part}">${[['','All'],...partMs.map(m=>[m,MUSCLE_SHORT[m]||MUSCLE_LABEL[m]||m])].map(([m,l])=>`<button type="button" class="mf-chip${m===mf?' on':''}" data-mf="${m}" aria-pressed="${m===mf}">${l}</button>`).join('')}</div>`;
     const row=({ex,last,freq,avoided},big)=>{
-      const when=mtag(ex)+(last?(daysAgo(last)===0?'✓ done today':agoLabel(daysAgo(last))):'never logged');
+      const when=mtag(ex)+xhTag(ex)+(last?(daysAgo(last)===0?'✓ done today':agoLabel(daysAgo(last))):'never logged');
       const meta=big&&!refinedFlow()?`${when} · ${freq}× this year`:when;
       /* v3.3.329: the per-side line is GONE. It restated the same weight in a
          second arithmetic on the row that already carries the total, and it
@@ -908,7 +908,8 @@ ${(PART_MUSCLES[lift.part]||[]).length>1?`<label class="mono muted" style="font-
         <button class="btn ghost nudgego" id="nudgeGo" data-nr="${nud.nextR}">${nud.nextR} reps →</button>
         <button class="lsx nudgex" data-nudgex="r${nud.topR}" aria-label="Dismiss">✕</button>
       </div>`;
-    else if(nud) h+=`<div class="nudge">
+    /* v4.6.194: no "try a heavier weight" on an exercise you hold (the reps nudge above still stands) */
+    else if(nud&&!isHeld(ex)) h+=`<div class="nudge">
         <span>Same <b>${wDisp(nud.top)} ${U()}</b> for <b>${nud.n}</b> sessions — try ${wDisp(nud.next)}?</span>
         <button class="btn ghost nudgego" id="nudgeGo" data-nw="${nud.next}">${wDisp(nud.next)} ${U()} →</button>
         <button class="lsx nudgex" data-nudgex="${nud.top}" aria-label="Dismiss">✕</button>
@@ -1033,6 +1034,12 @@ ${(PART_MUSCLES[lift.part]||[]).length>1?`<label class="mono muted" style="font-
       {const mp=homePartOf(ex)||lift.part,ms=PART_MUSCLES[mp]||[];
        if(ms.length>1){const cur=exMuscle(ex,mp);
         h+=`<div class="xm-card"><div class="xm-top"><span>Muscle</span><b id="xmNow">${mp} · ${MUSCLE_SHORT[cur]||MUSCLE_LABEL[cur]||'not set'}</b></div><div class="xm-chips" role="group" aria-label="Muscle">${ms.map(m=>`<button type="button" class="mf-chip${m===cur?' on':''}" data-exmuscle="${m}" data-xmpart="${mp}" aria-pressed="${m===cur}">${MUSCLE_SHORT[m]||MUSCLE_LABEL[m]||m}</button>`).join('')}</div><small>Used for the tags, the day’s focus and what gets swapped in.</small></div>`;}}
+      /* v4.6.194: Weight -- Progress (the default: plans step it up when the
+         record says so) or Hold (it stays where it is). Same control as below. */
+      {const hd=isHeld(ex);
+       h+=`<div class="xp-row"><span>Weight</span><div class="xp-seg xh-seg" role="group" aria-label="Weight" data-state="${hd?'hold':'progress'}">
+          <button type="button" data-exhold="progress" aria-pressed="${!hd}">${XH_UP}Progress</button>
+          <button type="button" data-exhold="hold" aria-pressed="${hd}">${XH_ICON}Hold</button></div></div><p class="xh-note" id="xhNote"${hd?'':' hidden'}>${xhNoteHTML(ex)}</p>`;}
       h+=`<div class="xp-row"><span>Plans &amp; suggestions</span><div class="xp-seg" role="group" aria-label="Plans and suggestions" data-state="${av?'avoid':'include'}">
           <button type="button" data-expref="include" aria-pressed="${!av}">${XP_CHECK}Include</button>
           <button type="button" data-expref="avoid" aria-pressed="${av}">${XP_ICON}Avoid</button></div></div>`;
@@ -1907,6 +1914,28 @@ function lbGrow(){
 
 /* v4.6.174: the avoid mark. One glyph everywhere it appears (the exercise
    screen, Train's list, a plan row, Settings). */
+/* v4.6.194: Hold -- the icons, the tag, and the line under the switch */
+const XH_ICON='<svg class="xp-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M5 9h14M5 15h14"/></svg>';
+const XH_UP='<svg class="xp-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17l6-6 4 4 6-7"/><path d="M15 8h5v5"/></svg>';
+const xhTag=ex=>typeof isHeld==='function'&&isHeld(ex)?`<span class="xh-tag">${XH_ICON}Hold</span>`:'';
+function xhNoteHTML(ex){
+  if(!isHeld(ex)) return '';
+  const hw=heldW(ex),at=hw==null?'the weight of your next session':hw>0?`<b>${isBody(ex)?'BW+':''}${trainListWeight(hw)} ${U()}</b>`:'<b>bodyweight</b>';
+  return `Holding at ${at}. Plans and the next-set suggestion stay at this weight; reps can still move.`;
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest&&e.target.closest('[data-exhold]');if(!b||!lift.ex||view!=='lift')return;
+  const on=b.dataset.exhold==='hold';if(on===isHeld(lift.ex))return;
+  setExHold(lift.ex,on);save(true);
+  /* in place: the thumb slides, the line under it appears or goes; nothing re-renders */
+  const seg=b.closest('.xh-seg');
+  if(seg){seg.dataset.state=on?'hold':'progress';seg.querySelectorAll('[data-exhold]').forEach(x=>x.setAttribute('aria-pressed',String((x.dataset.exhold==='hold')===on)));}
+  const n=document.getElementById('xhNote');if(n){n.innerHTML=xhNoteHTML(lift.ex);n.hidden=!on;}
+  /* a "try a heavier weight" nudge already on the page goes when Hold comes on;
+     the switch is kept where the finger is (measure, change, put it back) */
+  const nud=on&&document.querySelector('#view .nudge [data-nw]');
+  if(nud&&seg){const y0=seg.getBoundingClientRect().top;nud.closest('.nudge').remove();const dy=seg.getBoundingClientRect().top-y0;if(Math.abs(dy)>0.5)window.scrollBy(0,dy);}
+});
 const XP_ICON='<svg class="xp-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg>';
 const XP_CHECK='<svg class="xp-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 const xpBannerHTML=()=>`<div class="xp-banner" role="status">${XP_ICON}<span><b>Avoided.</b> Left out of plans and suggestions. Your sets still count.</span><button type="button" data-expref="include">Include</button></div>`;
@@ -1920,7 +1949,7 @@ document.addEventListener('click',e=>{
   const b=e.target.closest&&e.target.closest('[data-expref]');if(!b||!lift.ex||view!=='lift')return;
   const want=b.dataset.expref==='avoid'?'avoid':null;if((isAvoided(lift.ex)?'avoid':null)===want)return;
   setExPref(lift.ex,want);save(true);
-  const seg=document.querySelector('#view .xp-seg');
+  const seg=document.querySelector('#view .xp-seg:not(.xh-seg)');
   if(seg){seg.dataset.state=want?'avoid':'include';seg.querySelectorAll('[data-expref]').forEach(x=>x.setAttribute('aria-pressed',String((x.dataset.expref==='avoid')===!!want)));}
   /* hold what was tapped where it is: measure, change, then put it back --
      whatever the browser's own scroll anchoring did (Chrome does, Safari not) */

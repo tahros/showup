@@ -69,6 +69,8 @@ VARIETY: payload.coverage lists, per part, the sets logged in eight weeks for ea
 
 CORE: core is the exception to the recovery spacing rule. It may ride along on consecutive training days — even every planned day — and one or two short core exercises need not consume the day's main-part slot. But high frequency is not identical repetition: inspect both recent_sessions and future planned entries in week_context, rotate the exact movement or pattern only among movements the RECORD already contains (payload.history, payload.usual) -- the catalog alone is not permission to introduce a core movement the person has never done. When payload.usual lists core for the day's part, those are the day's core; write them.
 
+HELD EXERCISES: payload.hold lists exercises the person has chosen to keep at their current weight, each with that weight (null when nothing is on record yet; bodyweight:true means the weight is added to bodyweight). For each one the session-top working load is EXACTLY that weight: never raise it, whatever the record, the verdict rules, STEP, or the objective would otherwise ask for, and do not count it as one of the lifts that must step up. Reps may rise by one where last time's sets were all made; warm-up lines under the weight are fine. Do not drop the exercise because it is held, and do not comment on why. The app enforces this and brings any heavier line back down.
+
 AVOIDED EXERCISES: payload.avoid lists exercises the person has said they will not do, each with its part and the muscle it works. Do not schedule any of them, on any day, even when they appear in history, recent_sessions, last or a role contract (the LEG DAY CONTRACT's hinge or calf slot included). Fill that role with another catalog exercise for the same muscle from payload.heads. If the person has done none for that muscle, use one new to them (it counts toward new_max). If none fits, leave that muscle out of the day. The person's history keeps the avoided exercises' sets: they count toward coverage, they are just not to be prescribed.
 
 MUSCLE FOCUS: a workspace.schedule entry may carry focus: [{part, muscle}] -- the person chose, for that date, the muscle inside a body part that the day is built around. It is an explicit instruction and outranks SESSION SHAPE, payload.usual, REGIONS' emphasis and VARIETY for that part on that date. Every exercise you write for that part comes from payload.heads[part][muscle] for the focus muscle(s); with two focus muscles, each gets at least one exercise. Use another muscle's exercise for that part only when those lists are used up. The person's usual exercises for that part on OTHER muscles are left out that day -- the app swaps any you include for a focus counterpart. Use exercises the person has done for that muscle before ones they have not; ones new to them are welcome here, do not count toward new_max, and are written "by feel" unless a comparable lift in the record lets you scale a ≈ load. Do not exceed the day's set target to make room: the focus changes where the sets go, not how many. The app counts this and sends the day back.
@@ -123,13 +125,14 @@ The schedule gives separate selected body parts per date. When nonempty, include
 For action=generate, compose using the full coaching rules and the person's goal and note. If a draft exists, respect locked_exercises exactly.
 For action=adjust, do NOT re-coach or progress the draft. Preserve every exercise, note, exercise order, load, rep target, unit, qualifier and weight line. Change ONLY the number of sets on unlocked, non-warm-up lines to reach target_total_sets INCLUDING warm-ups. Keep at least one set per line, no more than 12. Trim from the end or repeat that line's last rep value when adding. Keep all marked warm-up lines and locked_exercises exactly unchanged. Return the complete adjusted draft, not a delta. If impossible, return the unchanged draft; the app will explain that it could not fit the requested total.\n` : ''}
 AVOID (do not schedule; replace with another exercise for the same muscle): ${JSON.stringify(payload.avoid || [])}
+HOLD (keep at exactly this weight; never raise): ${JSON.stringify(payload.hold || [])}
 catalog: ${JSON.stringify(payload.catalog)}
 load step by exercise (${payload.unit}): ${JSON.stringify(payload.steps || {})}
-next loadable weight after last (\${payload.unit}; use this exact number for STEP): \${JSON.stringify(payload.next || {})}
-VERDICT per exercise, computed from the record and BINDING: \${JSON.stringify(payload.verdict || {})}
-  the load it requires (\${payload.unit}): \${JSON.stringify(payload.load || {})}
-  the reps it asks for: \${JSON.stringify(payload.want || {})}
-  why, in the person's own numbers: \${JSON.stringify(payload.because || {})}
+next loadable weight after last (${payload.unit}; use this exact number for STEP): ${JSON.stringify(payload.next || {})}
+VERDICT per exercise, computed from the record and BINDING: ${JSON.stringify(payload.verdict || {})}
+  the load it requires (${payload.unit}): ${JSON.stringify(payload.load || {})}
+  the reps it asks for: ${JSON.stringify(payload.want || {})}
+  why, in the person's own numbers: ${JSON.stringify(payload.because || {})}
 heads (which muscle head each catalog exercise trains): ${JSON.stringify(payload.heads || {})}
 best (${payload.unit}): ${JSON.stringify(payload.best || {})}
 last (${payload.unit}; per exercise: [date, [[load, [reps per set]], ...]] — the most recent session, progress from THIS): ${JSON.stringify(payload.last || {})}

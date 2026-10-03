@@ -362,6 +362,18 @@ function writerPayload(o){
     want[ex]=v.reps;
     because[ex]=v.why;
   }
+  /* v4.6.194: HOLD OUTRANKS THE VERDICT. An exercise the person holds is "hold"
+     at its held weight whatever the record would have earned, and the reason
+     says whose decision it is. payload.hold names them outright, like avoid. */
+  const hold=[];
+  for(const ex of (typeof exHoldNames==='function'?exHoldNames():[])){
+    if(isCardioEx(ex)) continue;
+    const hw=heldW(ex);
+    verdict[ex]='hold';
+    if(hw!=null){ load[ex]=inU(hw); }
+    because[ex]='held at your request — the weight stays';
+    hold.push({exercise:ex, weight:hw==null?null:Math.round(inU(hw)*10)/10, unit:U(), bodyweight:!!(typeof isBody==='function'&&isBody(ex))});
+  }
   /* the eight-week best per exercise, precomputed: the band the loads must
      sit in is a number the writer should not have to derive from raw rows */
   /* v3.3.435: since v3.3.401 this read `h[3]>best[h[2]]` with best[] empty,
@@ -419,7 +431,7 @@ function writerPayload(o){
     rotation:{pick:P.pick, addon:P.addon, ranking},
     objective:o.objective, note:(o.note||'').trim().slice(0,400),
     avoid:writerAvoidList(),   // v4.6.174: named, with the muscle each one works
-    catalog, heads, history, recent_sessions, recent_weeks, usual, week_context, best, last, steps, next, verdict, load, want, because, coverage,
+    catalog, heads, history, recent_sessions, recent_weeks, usual, week_context, best, last, steps, next, verdict, load, want, because, hold, coverage,
     new_days:WRITER_HISTORY_DAYS, band:WRITER_LOAD_BAND, step:U()==='lb'?5:WRITER_STEP_KG, new_max:WRITER_NEW_MAX
   };
 }
@@ -595,8 +607,25 @@ function writerCheck(resp, ctx){
          so through guardrail 3's note.) A repeat is never silent again, and the
          next screenshot is a diagnosis rather than a report. */
       const isWarm=l=>/warm/i.test((l.qual||'')+(l.tag||''));
+      /* v4.6.194: A HELD EXERCISE DOES NOT GO UP, WHATEVER CAME BACK. Any line
+         heavier than the held weight is brought down to it (warm-ups under it
+         are left alone), and the step-up and stand-still rules below do not
+         run for it: standing still is the point. One line in the read-back. */
+      const heldKg=(typeof isHeld==='function'&&isHeld(r.ex))?heldW(r.ex):undefined;
+      if(heldKg!==undefined){
+        if(heldKg!=null){
+          const kgL=l=>l.unit==='kg'?l.w:l.unit==='lb'?l.w/LB:toKg(l.w);
+          let cut=false;
+          r.lines=(r.lines||[]).map(l=>{
+            if(l.nw||isHold(l.su)||!(l.w>0)||kgL(l)<=heldKg+0.3) return l;
+            cut=true; const shown=l.unit==='kg'?heldKg:l.unit==='lb'?heldKg*LB:(isLb()?heldKg*LB:heldKg);
+            const {est:_e,...rest}=l; return {...rest, w:+shown.toFixed(1)};
+          });
+          notes.push(`${r.ex}: held at ${heldKg>0?wDisp(heldKg)+' '+U():'bodyweight'} — you set it to Hold`+(cut?' (the writer asked for more)':''));
+        }else notes.push(`${r.ex}: on Hold — nothing logged yet to hold it at`);
+      }
       const work=(r.lines||[]).filter(l=>!l.nw&&!l.bw&&!isHold(l.su)&&l.w>0&&!isWarm(l));
-      if(ls&&ls.rows&&ls.rows.length&&work.length){
+      if(heldKg===undefined&&ls&&ls.rows&&ls.rows.length&&work.length){
         const kgOf=l=>l.unit==='kg'?l.w:l.unit==='lb'?l.w/LB:toKg(l.w);
         const top=Math.max(...work.map(kgOf)), lastTop=Math.max(...ls.rows.map(x=>+x[0]||0));
         const noteNames=(payload.note||'').toLowerCase().includes(r.ex.toLowerCase());
@@ -943,6 +972,7 @@ async function writerGenerateChecked(payload, cancelled=()=>false){
         ...chk.violations.map(v=>`${v.date}: ${v.why.join('; ')}.`),
         attempt?'This is the second attempt; the first still left a selected part with no exercise. Add one from payload.catalog for that part even if it is new.':'',
         'Leave out every exercise in payload.avoid; use another exercise for the same muscle from payload.heads.',
+        'Every exercise in payload.hold stays at the weight given there; do not raise it.',
         'Where workspace.schedule gives a date a focus, build that part from payload.heads for the focus muscle first: at least half of the part’s sets.',
         'Respect payload.skeleton: never use a part listed as resting, and give each day at least payload.shape.min exercises outside core. A selected part outranks payload.usual: if usual lists nothing for it, take an exercise from payload.catalog.'
       ].filter(Boolean).join('\n');

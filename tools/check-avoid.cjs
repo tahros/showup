@@ -36,18 +36,18 @@ const wait=ms=>new Promise(r=>setTimeout(r,ms));
     /* v4.6.177: the switch holds still -- no re-render, the note's height is
        given back -- and its thumb slides (a transform transition, not a jump) */
     await p.evaluate(()=>{const m=document.querySelector('.xp-row');window.scrollTo(0,m.getBoundingClientRect().top+scrollY-480);});await wait(200);
-    const hold=async sel=>{const a=await p.evaluate(()=>document.querySelector('.xp-seg').getBoundingClientRect().top);const same=await p.evaluate(s=>{const seg=document.querySelector('.xp-seg');seg.__k=1;document.querySelector(s).click();return document.querySelector('.xp-seg').__k===1;},sel);await wait(500);const z=await p.evaluate(()=>document.querySelector('.xp-seg').getBoundingClientRect().top);return {moved:Math.round(Math.abs(z-a)*10)/10,same};};
+    const hold=async sel=>{const a=await p.evaluate(()=>document.querySelector('.xp-seg:not(.xh-seg)').getBoundingClientRect().top);const same=await p.evaluate(s=>{const seg=document.querySelector('.xp-seg:not(.xh-seg)');seg.__k=1;document.querySelector(s).click();return document.querySelector('.xp-seg:not(.xh-seg)').__k===1;},sel);await wait(500);const z=await p.evaluate(()=>document.querySelector('.xp-seg:not(.xh-seg)').getBoundingClientRect().top);return {moved:Math.round(Math.abs(z-a)*10)/10,same};};
     let h1=await hold('.xp-row [data-expref="include"]');
     ok(`${tag} Include from the switch: it holds still (no re-render)`,h1.moved<=1&&h1.same&&await p.evaluate(()=>!isAvoided('Romanian Deadlift')&&!document.querySelector('#view .xp-banner')),JSON.stringify(h1));
     let h2=await hold('.xp-row [data-expref="avoid"]');
     ok(`${tag} Avoid from the switch: it holds still while the note appears`,h2.moved<=1&&h2.same&&await p.evaluate(()=>isAvoided('Romanian Deadlift')&&!!document.querySelector('#view .xp-banner')),JSON.stringify(h2));
-    r=await p.evaluate(()=>{const seg=document.querySelector('.xp-seg'),cs=getComputedStyle(seg,'::before');return {state:seg.dataset.state,tr:cs.transitionProperty,tf:cs.transform,bg:cs.backgroundColor};});
+    r=await p.evaluate(()=>{const seg=document.querySelector('.xp-seg:not(.xh-seg)'),cs=getComputedStyle(seg,'::before');return {state:seg.dataset.state,tr:cs.transitionProperty,tf:cs.transform,bg:cs.backgroundColor};});
     ok(`${tag} the thumb slides and turns charcoal (or slate in dark)`,r.state==='avoid'&&/transform/.test(r.tr)&&r.tf!=='none'&&(theme==='light'?r.bg==='rgb(44, 44, 44)':r.bg==='rgb(230, 231, 236)'),JSON.stringify(r));
     await p.evaluate(()=>window.scrollTo(0,0));await wait(150);
     await p.evaluate(()=>document.querySelector('.xp-banner [data-expref="include"]').click());await wait(200);
-    ok(`${tag} Include clears it in place`,await p.evaluate(()=>!isAvoided('Romanian Deadlift')&&!document.querySelector('#view .xp-banner')&&document.querySelector('.xp-seg').dataset.state==='include'&&document.querySelector('.xp-seg [data-expref="include"]').getAttribute('aria-pressed')==='true'));
+    ok(`${tag} Include clears it in place`,await p.evaluate(()=>!isAvoided('Romanian Deadlift')&&!document.querySelector('#view .xp-banner')&&document.querySelector('.xp-seg:not(.xh-seg)').dataset.state==='include'&&document.querySelector('.xp-seg:not(.xh-seg) [data-expref="include"]').getAttribute('aria-pressed')==='true'));
     await p.evaluate(()=>document.querySelector('[data-expref="avoid"]').click());await wait(200);
-    ok(`${tag} Avoid sets it again`,await p.evaluate(()=>isAvoided('Romanian Deadlift')&&!!document.querySelector('#view .xp-banner')&&document.querySelector('.xp-seg').dataset.state==='avoid'));
+    ok(`${tag} Avoid sets it again`,await p.evaluate(()=>isAvoided('Romanian Deadlift')&&!!document.querySelector('#view .xp-banner')&&document.querySelector('.xp-seg:not(.xh-seg)').dataset.state==='avoid'));
     /* 2. a saved plan */
     await p.evaluate(async()=>{view='today';render();await new Promise(r=>setTimeout(r,300));const d='2026-10-02';pwOpen(d);const s=pw();s.dates=[d];const x=pwDay(d);
       x.rows=pwRead('Squat\n  245 lb × 6 6 6 6\nRomanian Deadlift\n  185 lb × 8 8 8\nStanding Calf Raise\n  45 lb × 12 12 12\nHanging Leg Raise\n  BW × 15 15 15');x.parts=['Legs','Sixpack'];x.locks=[];x.source='Saved plan';s.active=d;s.step='edit';pfState().page='edit';pwRender();await new Promise(r=>setTimeout(r,500));});

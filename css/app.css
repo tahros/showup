@@ -4372,3 +4372,12 @@ html.modal-open .calreturn{display:none!important}
 .dryears::-webkit-scrollbar{display:none}
 .dry{flex:0 0 auto;min-height:30px;padding:0 11px;border:0;border-radius:999px;background:none;font:400 12px/1 var(--mono);color:var(--faint);cursor:pointer}
 .dry.on{background:color-mix(in srgb,var(--chalk) 8%,transparent);color:var(--chalk);font-weight:700}
+/* v4.6.194: Hold -- the switch (the Include / Avoid control, its own states), the line under it, the tag */
+.xh-seg[data-state="hold"]::before{transform:translateX(100%);background:var(--xp-out);box-shadow:0 1px 3px rgba(0,0,0,.18)}
+.xh-seg[data-state="progress"] [data-exhold="progress"]{color:#fff}
+.xh-seg[data-state="hold"] [data-exhold="hold"]{color:var(--xp-out-ink)}
+.xh-note{margin:2px 0 6px;padding:0 16px;font:400 12px/1.5 var(--body);color:var(--muted)}
+.xh-note b{color:var(--chalk);font-weight:600}
+.xh-tag{display:inline-flex;align-items:center;gap:4px;margin:0 8px 0 0;padding:2px 7px 2px 6px;border-radius:9px;background:color-mix(in srgb,var(--chalk) 8%,transparent);color:var(--muted);font:600 10px/1.3 var(--mono);letter-spacing:.06em;text-transform:uppercase;vertical-align:1px;white-space:nowrap}
+.xh-tag .xp-ic{width:10px;height:10px}
+.pf-ex-summary .xh-tag{margin:0 0 0 6px;vertical-align:2px}

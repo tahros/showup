@@ -1,5 +1,15 @@
 # ShowUp — changelog
 
+## v4.6.194 (2026-10-03) — Hold a weight
+
+- **Asked:** alongside Avoid, a way to say which exercises should keep growing and which should stay as they are: no heavier weights on the flat barbell bench because of pain, while the incline bench keeps going up. Mocked first and approved.
+- **Shape:** one switch per exercise with two positions. Progress is the default and is what the app already does (plans step an exercise up when the record says so). Hold is new.
+- **The exercise page:** a Weight switch (Progress / Hold) above Plans & suggestions, the same sliding control. On Hold a line under it states the weight ("Holding at 135 lb"). It changes in place.
+- **What Hold does:** plans keep that weight (reps can still move); the writer is told (`payload.hold`, and the exercise's verdict becomes "hold" at that weight); on the device any heavier line that comes back is brought down to it and the step-up correction does not run; the next-set prefill and the Train list offer the held weight; the "try a heavier weight" nudge is not shown. The held weight is the last working weight when Hold is set; it follows the record down and not up. Logging is never refused.
+- **Where you see it:** a small Hold tag on the exercise in Plan and in Train, and a "Holding weight" list in Settings (above Avoided exercises) with the weight, since when, and a Progress button.
+- **Also fixed:** five lines of the writer's prompt (the per-exercise verdict, the load it requires, the reps, the reason, and the next loadable weight) were sent to the model as literal `${...}` text since v4.5.4, so it never saw those numbers; the phone corrected the loads afterwards. They are sent as values now.
+- Tests: new `tools/test-hold.js` (25 checks) and `tools/check-hold.cjs` (56 checks).
+
 ## v4.6.193 (2026-10-02) — Suggested days come in a sound order
 
 - **Reported:** a suggested day read Dip, Barbell Bench Press, Cable Fly Down, Russian Twist, Chest Fly: the bodyweight lift ahead of the heavy bar, and a chest fly after the core work.

@@ -64,6 +64,7 @@ function renderSync(){
       <p class="note">${hesc(pfSummary())}</p>
       <!-- v4.6.164: the Planning interface switch is gone -- Workspace only. -->
     </div>
+    ${holdingCardHTML()}
     ${avoidedCardHTML()}
     ${typeof remPlugin==='function'&&remPlugin()?(()=>{ const rp=remPrefs(); return `
     <!-- v4.6.118: reminders, iOS app only (a website cannot schedule them). -->
@@ -327,6 +328,21 @@ document.addEventListener('change',e=>{
    already shows what you reach for. Shown once there is something in it;
    each row says where the exercise lives and what it works, and Include
    brings it back. */
+/* v4.6.194: the exercises whose weight you hold, with the weight and since when; Progress releases one */
+function holdingCardHTML(){
+  const rows=Object.entries(DB.settings.exHold||{}).map(([id,e])=>{const ex=canonName(id),part=homePartOf(ex)||(SEED.ex2part||{})[ex]||'',m=part?exMuscle(ex,part):'',hw=heldW(ex);
+      return {ex,part,m,hw,at:(e&&e.at)||0};}).sort((a,b)=>b.at-a.at||a.ex.localeCompare(b.ex));
+  if(!rows.length) return '';
+  const since=t=>t?' · since '+new Date(t).toLocaleDateString('en-US',{month:'short',day:'numeric'}):'';
+  const at=r=>r.hw==null?'':r.hw>0?` · at ${isBody(r.ex)?'BW+':''}${trainListWeight(r.hw)} ${U()}`:' · at bodyweight';
+  return `<h2>Holding weight</h2>
+    <div class="card xp-list">${rows.map(r=>`<div class="xp-item"><span><strong>${XH_ICON}${hesc(r.ex)}</strong><small>${hesc([partLabel(r.part),r.m&&r.m!=='unassigned'?(MUSCLE_LABEL[r.m]||r.m):''].filter(Boolean).join(' · ')+at(r))}${since(r.at)}</small></span><button type="button" class="btn ghost" data-xh-progress="${hesc(r.ex)}">Progress</button></div>`).join('')}
+      <p class="note">Plans and suggestions keep these at the weight shown. Release one here, or from its own screen in Train.</p></div>`;
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest&&e.target.closest('[data-xh-progress]');if(!b)return;
+  setExHold(b.dataset.xhProgress,false);save(true);toast(`${b.dataset.xhProgress} progresses again`);renderSync();
+});
 function avoidedCardHTML(){
   const all=(DB.settings.exPref)||{},rows=Object.entries(all).filter(([,e])=>e&&e.v==='avoid')
     .map(([id,e])=>{const ex=canonName(id),part=homePartOf(ex)||(SEED.ex2part||{})[ex]||'',m=part?exMuscle(ex,part):'';return {ex,part,m,at:e.at||0};})

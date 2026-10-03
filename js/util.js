@@ -1091,6 +1091,8 @@ function lastFor(ex){
    dashed line on Progression. */
 function nextWFor(ex){
   if(ex==='Run') return prFor(ex).mw;
+  /* v4.6.194: a held exercise is offered at its held weight, whatever was last dialled in */
+  if(typeof isHeld==='function'&&isHeld(ex)){ const hw=heldW(ex); if(hw!=null&&hw>0) return hw; }
   const saved=(DB.settings.exW||{})[ex];
   if(saved!=null) return saved;
   const l=lastFor(ex);
