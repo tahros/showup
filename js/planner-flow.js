@@ -595,9 +595,9 @@ function pfValidateCandidate(candidate,dates){
    /* v4.6.196: no exercise carries more working sets than five, or than you usually do if that is more */
    {const lockedT=(src.locks||[]).map(i=>pwText([src.rows[i]])),warm=l=>/warm|prep/i.test((l.qual||'')+(l.tag||''));
     for(const r of day.rows){if(r.kind!=='ex'||!r.ex||lockedT.includes(pwText([r]))||homePartOf(r.ex)==='Run')continue;
-     const cap=Math.max(5,pwTypicalSets(r.ex));let n=(r.lines||[]).filter(l=>!warm(l)).reduce((a,l)=>a+(l.reps||[]).length,0);if(n<=cap)continue;const was=n;
+     const usual=SEED.exSets?.[r.ex]?.length?pwTypicalSets(r.ex):0,cap=usual?(usual>5?usual:Math.max(3,usual)):5;   /* v4.6.198: your usual for THIS exercise (3 to 5, more only if that is your habit); five when there is no record */let n=(r.lines||[]).filter(l=>!warm(l)).reduce((a,l)=>a+(l.reps||[]).length,0);if(n<=cap)continue;const was=n;
      for(let k=r.lines.length-1;k>=0&&n>cap;k--){const l=r.lines[k];if(warm(l))continue;while(l.reps.length>1&&n>cap){l.reps.pop();n--;}}
-     if(n<was)(day.notes=day.notes||[]).push(`${r.ex}: ${was} working sets written, kept to ${n}.`);}}
+     if(n<was)(day.notes=day.notes||[]).push(`${r.ex}: ${was} working sets written, kept to ${n}`+(usual&&cap===Math.max(3,usual)&&cap<5?' — your usual':'')+'.');}}
    const mine=!!src.rows.length&&!!pfAuto(src)?.mine,au=pfAutoFor(src.partsPick&&src.parts.length?src.parts:pwParts(day.rows)),goal=src.target!=null?null:mine?pwSetCount(src.rows):au?.total;
    /* v4.6.196: THE COUNT IS REACHED THE WAY + REACHES IT, NOT BY PADDING. Short
       of the target, the day used to get sets piled onto whatever it had (six

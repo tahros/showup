@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v4.6.198 (2026-10-03) — Regenerate, checked against the record printed under it
+
+- **Reported:** a Regenerate on v4.6.197 gave Cable Fly Down ≈16.5 lb × 14 14 14 14 directly above "35 lb × 12 12 12 12 · 10/3", Dip with four sets, and the day still at four exercises.
+- **≈16.5 lb:** the ceiling on a written load ("never more than a step over your best") read the best up to yesterday. The 35 lb session was done today, so the best it knew was an older 15 lb, and the plan's 35 was cut to 15 + 10% and marked as a guess. The best now counts today, and is never below your last session's top load.
+- **Four sets of Dip, four exercises:** the per-exercise limit was a flat five, so the writer's own 17 (five of bench, four of dips) passed and nothing was recommended. The limit is now your usual for that exercise (three to five; more only if that is your habit; five when there is no record). What that frees is filled by a recommended exercise, as v4.6.197 does.
+- The reported day now lands as: Barbell Bench Press 95 × 10 + 135 × 8 8 8 8, Dip BW+35 × 8 8 8, Cable Fly Down 35 × 14 14 14, Chest Fly × 12 12 12 (recommended), Hanging Leg Raise BW × 15 15 15 — 17 sets, five exercises.
+- Tests: new `tools/test-sound-plan-2.js` (11 checks) replays that Regenerate with the record from the screenshot.
+
 ## v4.6.197 (2026-10-03) — The plan recommends an exercise, and reaches 8 reps honestly
 
 - **Reported:** v4.6.196 stopped a Chest + Sixpack day at 16 sets with a note; it should have recommended another exercise from the day's focus, history and preferences. And it wrote Dip at BW+50 × 8 8 8 after a session of 4, 6, 6 at that weight.

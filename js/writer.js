@@ -527,7 +527,7 @@ function writerCancel(){
 function writerBest(ex){
   const cut=new Date(todayISO+'T00:00'); cut.setDate(cut.getDate()-WRITER_HISTORY_DAYS); const cutISO=cut.toLocaleDateString('en-CA');
   let best=0;
-  for(const [d,v] of Object.entries(DB.days)) if(d>=cutISO&&d<todayISO) for(const s of (v.w||[])) if(s.ex===ex&&(s.reps||[]).length&&s.su!=='s') best=Math.max(best,s.w||0);
+  for(const [d,v] of Object.entries(DB.days)) if(d>=cutISO&&d<=todayISO) for(const s of (v.w||[])) if(s.ex===ex&&(s.reps||[]).length&&s.su!=='s') best=Math.max(best,s.w||0);
   for(const [d,rows] of Object.entries(SEED.sessions||{})) if(d>=cutISO&&!DB.days[d]) for(const r of rows) if(r[1]===ex&&(r[3]||[]).length) best=Math.max(best,r[2]||0);
   return best;
 }
@@ -610,7 +610,12 @@ function writerCheck(resp, ctx){
         if(!wanted) newCount++; if(!wanted&&newCount>WRITER_NEW_MAX){ notes.push(`${r.ex}: a third new movement, kept as a note`); return {kind:'note', raw:r.raw, name:r.ex}; }   // guardrail 7
       }
       /* v4.6.196: an exercise last done more than eight weeks ago still has a number: its last top weight */
-      const best=writerBest(r.ex)||(typeof exLastTopKg==='function'?(exLastTopKg(r.ex)||0):0);
+      /* v4.6.198: YOUR LAST SESSION IS PART OF YOUR BEST, TODAY'S INCLUDED. writerBest
+         stopped at yesterday, so a Cable Fly Down done at 35 lb this morning was
+         unknown to the ceiling below: the plan's 35 was "more than a step over
+         your 15 lb best", cut to ≈16.5 lb and marked as a guess, under the very
+         session the page printed beneath it. */
+      const best=Math.max(writerBest(r.ex),(typeof exLastTopKg==='function'?(exLastTopKg(r.ex)||0):0));
       r.lines=(r.lines||[]).map(l=>{
         if(l.nw||l.bw||isHold(l.su)||!(l.w>0)) return l;
         const kg=l.unit==='kg'?l.w:l.unit==='lb'?l.w/LB:toKg(l.w);
