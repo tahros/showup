@@ -560,8 +560,38 @@ function pfValidateCandidate(candidate,dates){
       Exercises you fixed keep their places. */
    {const lockedText=(src.locks||[]).map(i=>pwText([src.rows[i]])),fixed=new Set(day.rows.map((r,i)=>lockedText.includes(pwText([r]))?i:-1).filter(i=>i>=0));
     pwOrderRows(day.rows,fixed,r=>f.includes(exMuscle(r.ex,homePartOf(r.ex)||'')));}
+   /* v4.6.196: no exercise carries more working sets than five, or than you usually do if that is more */
+   {const lockedT=(src.locks||[]).map(i=>pwText([src.rows[i]])),warm=l=>/warm|prep/i.test((l.qual||'')+(l.tag||''));
+    for(const r of day.rows){if(r.kind!=='ex'||!r.ex||lockedT.includes(pwText([r]))||homePartOf(r.ex)==='Run')continue;
+     const cap=Math.max(5,pwTypicalSets(r.ex));let n=(r.lines||[]).filter(l=>!warm(l)).reduce((a,l)=>a+(l.reps||[]).length,0);if(n<=cap)continue;const was=n;
+     for(let k=r.lines.length-1;k>=0&&n>cap;k--){const l=r.lines[k];if(warm(l))continue;while(l.reps.length>1&&n>cap){l.reps.pop();n--;}}
+     if(n<was)(day.notes=day.notes||[]).push(`${r.ex}: ${was} working sets written, kept to ${n}.`);}}
    const mine=!!src.rows.length&&!!pfAuto(src)?.mine,au=pfAutoFor(src.partsPick&&src.parts.length?src.parts:pwParts(day.rows)),goal=src.target!=null?null:mine?pwSetCount(src.rows):au?.total;
-   if(goal&&pwSetCount(day.rows)&&pwSetCount(day.rows)!==goal){const fit=pfFitSets(day.rows,goal,goal,(src.locks||[]).map(i=>pwText([src.rows[i]])));day.rows=fit.rows;(day.notes=day.notes||[]).push('Set count fitted to your '+(mine?'target':'usual')+': '+fit.from+' → '+fit.to+' sets'+(fit.dropped.length?' (removed '+fit.dropped.join(', ')+')':'')+'.');}
+   /* v4.6.196: THE COUNT IS REACHED THE WAY + REACHES IT, NOT BY PADDING. Short
+      of the target, the day used to get sets piled onto whatever it had (six
+      sets of bench, five of dips, to make 17 from three exercises). It now
+      goes through pwAllocateSets: each exercise up to your usual working sets
+      and no further, then another exercise for the day's parts (a focus
+      muscle's first), placed in order. Over the target, sets come off the
+      exercise carrying the most. Rows that are not exercises are out first,
+      so the count is of real sets. */
+   if(goal&&pwSetCount(day.rows)&&pwSetCount(day.rows)!==goal){
+    const lockedText=(src.locks||[]).map(i=>pwText([src.rows[i]])),from=pwSetCount(day.rows);
+    const exRows=day.rows.filter(r=>r.kind==='ex'&&r.ex&&(r.lines||[]).some(l=>(l.reps||[]).length));
+    const tmp={rows:exRows,locks:exRows.map((r,k)=>lockedText.includes(pwText([r]))?k:-1).filter(k=>k>=0),parts:src.partsPick&&src.parts.length?src.parts:pwParts(exRows),focus:f};
+    /* your usual is not a reason to stack sets: without a number you set yourself, the day stops at each exercise's usual sets plus what can be added */
+    /* in a body part with a focus, what is added is on a focus muscle too -- the swap above just took the others out */
+    const fParts=new Set(f.map(m=>MUSCLE_PART[m])),skip=pwAddCandidates(tmp).filter(ex=>{const p=homePartOf(ex);return fParts.has(p)&&!f.includes(exMuscle(ex,p));});
+    const lim=pwSetLimits(tmp,skip),eff=mine?goal:Math.min(goal,Math.max(lim.full+lim.extra,lim.min));
+    /* v4.6.196: an exercise brought in to fill the count comes with a real block of
+       sets or not at all -- one leftover set of Incline Bench is not an exercise */
+    const out=pwAllocateSets(tmp,eff,skip),rows=out.filter(r=>!r.added),added=out.filter(r=>r.added&&pwSetCount([r])>=Math.min(3,pwTypicalSets(r.ex)));
+    for(const r of added){rows.splice(pwPlaceIndex(rows,r.ex),0,r);delete r.added;}
+    day.rows=rows;
+    const to=pwSetCount(day.rows);
+    if(to!==from)(day.notes=day.notes||[]).push('Set count fitted to your '+(mine?'target':'usual')+': '+from+' → '+to+' sets'+(added.length?' (added '+added.map(r=>r.ex).join(', ')+')':'')+'.');
+    if(to!==goal)(day.notes=day.notes||[]).push('The day holds '+to+' sets at your usual sets per exercise; the target is '+goal+'. Add an exercise, or use + to go past it.');
+   }
   }
   const total=pwSetCount(day.rows);
   if(!total){delete candidate.days[date];continue;}

@@ -1,5 +1,17 @@
 # ShowUp — changelog
 
+## v4.6.196 (2026-10-03) — A generated plan is sound
+
+- **Reported:** a suggested Chest + Sixpack day came back as six sets of Barbell Bench Press, Dip at 6 6 6 6 6, "Cable Fly Down" as a line of text with an Edit text button, and five sets of Hanging Leg Raise: 17 sets from three exercises.
+- **Why, in order:** (1) Cable Fly Down is on record but not within eight weeks, so the device check treated it as a NEW movement and left it out because lower chest already had Dip. (2) What it left out was handed back as a note row, which the planner showed as unread text. (3) The day's 17 sets were then padded onto the three exercises that remained. (4) Nothing stopped a Grow plan asking for 6 reps.
+- **Now:**
+  - New means never logged. An exercise with any record is yours and is planned from that record, however long ago.
+  - A generated day holds exercises only. Anything the check leaves out is gone from the day, and its reason stays in Checks.
+  - Rep floor by objective: Grow never plans a working set under 8, Lose never under 12 (Strength and Maintain are untouched). Lower reps that come back are raised at the same weight, and Checks says so. Warm-up lines are left alone.
+  - No stacking: an exercise carries at most five working sets, or your own usual if that is more. The Set target is reached by bringing in exercises on the day's focus muscles at your usual sets each, placed in order. If the record cannot fill the target soundly the day stops short and says so, rather than add sets or a single leftover set of another exercise.
+  - The writer's prompt asks for the same (8 or more for Grow, never more than 5 sets on one exercise, NEW MEANS NEVER LOGGED).
+- Tests: new `tools/test-sound-plan.js` (18 checks) runs the reported answer through the whole path; `tools/test-planner-flow.js` and `tools/test-focus.js` follow.
+
 ## v4.6.195 (2026-10-03) — "Plans saved · Done" stays at the bottom, workout or not
 
 - **Reported:** with a workout running, the "Plans saved · Done" button floated at the top of the Plan screen, under the header and over the step tabs. Not for the first time.

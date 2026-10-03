@@ -727,6 +727,17 @@ function pwApply(add=false){
     else if(add)dst.rows.push(...pwCopy(b.rows));
     else{dst.rows=pwCopy(b.rows);dst.locks=c.type==='paste'?[]:dst.locks;}
     pwBodyFix(dst.rows);   // v4.6.192: the writer's rows arrive without passing pwRead
+    /* v4.6.196: A GENERATED DAY IS EXERCISES, NOT LEFTOVER TEXT. When the device
+       check declines an exercise it hands back the exercise's heading as a
+       note row; in the plan that became a line of text with an "Edit text"
+       button, which reads as the app failing to read its own answer. The
+       reason is already in the day's Checks. Rows that are not exercises with
+       sets are dropped from a generated day, and fixed rows keep pointing at
+       their exercises. (A pasted routine keeps its notes: those are yours.) */
+    if(c.type==='generate'&&c.index===undefined&&!add){
+      const keep=dst.rows.map((r,i)=>r&&r.kind==='ex'&&r.ex&&(r.lines||[]).some(l=>(l.reps||[]).length)?i:-1).filter(i=>i>=0);
+      if(keep.length&&keep.length!==dst.rows.length){dst.locks=(dst.locks||[]).filter(i=>keep.includes(i)).map(i=>keep.indexOf(i));dst.rows=keep.map(i=>dst.rows[i]);}
+    }
     dst.cleared=false;dst.parts=pwParts(dst.rows);delete dst.partsPick;if(c.type==='generate'){dst.focus=pwFocus(dst);dst.focusGen=dst.focus.slice();delete dst.focusPick;}dst.source=c.type==='paste'?'Your routine · not rewritten':c.type==='adjust'?'Writer-adjusted set count':'Written from your training';dst.notes=b.notes||[];
   }s.candidate=null;s.setupOpen=false;pwGo('edit');
 }
@@ -776,7 +787,9 @@ async function pwGenerate(adjust=false,rewrite=false){
          Each note names its exercise before the colon, which is what assigns it. */
       for(const r of chk.rows){if(r.kind==='day'){date=r.iso;days[date]={rows:[],notes:[]};}else if(date)days[date].rows.push(r);}
       for(const doc of Object.values(days)){
-        const mine=new Set(doc.rows.map(r=>r.ex).filter(Boolean));
+        /* v4.6.196: an exercise the check left out has no row to name it any more, only
+           the heading it was written under -- its note still belongs to this day */
+        const mine=new Set(doc.rows.map(r=>r.ex||r.name).filter(Boolean));
         doc.notes=(chk.notes||[]).filter(n=>mine.has(String(n).split(':')[0].trim()));
       }
       if(!Object.keys(days).length)throw Error('No readable days came back. Your draft is unchanged.');

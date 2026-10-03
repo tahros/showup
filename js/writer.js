@@ -50,6 +50,8 @@ const WRITER_LOAD_BAND=0.10;     // the CEILING over the eight-week best; below 
    band and one step: 2.5 kg, which is a 5 lb pin or a 2.5 on each side. */
 const WRITER_STEP_KG=2.5;
 const WRITER_NEW_MAX=2;
+/* v4.6.196: the fewest reps a working set is written at, by objective (0 = no floor) */
+const WRITER_REP_FLOOR={grow:8,lose:12,keep:0,strength:0};
 /* v3.3.444: "Keep going" is gone from the row. It was the objective of having
    no objective, and the maker never chose it; a stored 'keep' from before
    this release reads as Grow, the default, so no one lands with nothing lit. */
@@ -533,8 +535,16 @@ function writerCheck(resp, ctx){
     const dayFocus=((payload.workspace?.schedule||[]).find(x=>x.date===d.date)||{}).focus||[];
     rows=rows.map(r=>{
       if(r.kind!=='ex') return r;
-      if(!r.ex){ notes.push(`${r.name}: not in your exercises, kept as a note`); return {kind:'note', raw:r.raw}; }   // guardrail 1
-      if(exIsNew(r.ex)){
+      if(!r.ex){ notes.push(`${r.name}: not in your exercises, kept as a note`); return {kind:'note', raw:r.raw, name:r.name}; }   // guardrail 1
+      /* v4.6.196: "NEW" MEANS NEVER LOGGED, WHERE NEW GETS AN EXERCISE REMOVED.
+         exIsNew() is "not in the last eight weeks". By that test Cable Fly Down
+         -- logged, and in the maker's plans all week -- was "new", was cut
+         because lower chest already had Dip, and came back as a line of text
+         with an Edit button; the day's sets were then padded onto what was
+         left (six sets of bench). An exercise you have logged at any time is
+         yours, and stays. Only a movement with no record at all is held to
+         the empty-head rule and the new-movement allowance. */
+      if(exIsNew(r.ex)&&!(SEED.exLast&&SEED.exLast[r.ex])){
         /* v3.3.410: NEW IS FOR AN EMPTY HEAD. A movement you have not done in
            eight weeks earns its place one way: the muscle head it trains has
            nothing on record (VARIETY), or you asked for it in the note. The
@@ -548,10 +558,11 @@ function writerCheck(resp, ctx){
            they do not spend the new-movement allowance. */
         const wanted=dayFocus.some(f=>f.muscle===exMuscle(r.ex, homePartOf(r.ex)));
         const asked=(payload.note||'').toLowerCase().includes(r.ex.toLowerCase());
-        if(!wanted&&headWork&&!asked){ notes.push(`${r.ex}: new, and ${head} already has work — left out (ask for it in the note if you want it)`); return {kind:'note', raw:r.raw}; }   // guardrail 15
-        if(!wanted) newCount++; if(!wanted&&newCount>WRITER_NEW_MAX){ notes.push(`${r.ex}: a third new movement, kept as a note`); return {kind:'note', raw:r.raw}; }   // guardrail 7
+        if(!wanted&&headWork&&!asked){ notes.push(`${r.ex}: new, and ${head} already has work — left out (ask for it in the note if you want it)`); return {kind:'note', raw:r.raw, name:r.ex}; }   // guardrail 15
+        if(!wanted) newCount++; if(!wanted&&newCount>WRITER_NEW_MAX){ notes.push(`${r.ex}: a third new movement, kept as a note`); return {kind:'note', raw:r.raw, name:r.ex}; }   // guardrail 7
       }
-      const best=writerBest(r.ex);
+      /* v4.6.196: an exercise last done more than eight weeks ago still has a number: its last top weight */
+      const best=writerBest(r.ex)||(typeof exLastTopKg==='function'?(exLastTopKg(r.ex)||0):0);
       r.lines=(r.lines||[]).map(l=>{
         if(l.nw||l.bw||isHold(l.su)||!(l.w>0)) return l;
         const kg=l.unit==='kg'?l.w:l.unit==='lb'?l.w/LB:toKg(l.w);
@@ -607,6 +618,16 @@ function writerCheck(resp, ctx){
          so through guardrail 3's note.) A repeat is never silent again, and the
          next screenshot is a diagnosis rather than a report. */
       const isWarm=l=>/warm/i.test((l.qual||'')+(l.tag||''));
+      /* v4.6.196: THE REP FLOOR. A Grow plan came back asking for Dip at 6 6 6
+         6 6, and the maker's answer was "no way". For Grow, a working set is
+         written at 8 reps or more: a set written lower is raised to 8 at the
+         same weight (reps before load), and the read-back says so. Warm-ups,
+         timed holds and cardio are not working sets. Other objectives keep
+         their own ranges (strength is meant to be low). */
+      {const floor=WRITER_REP_FLOOR[payload.objective]||0;
+       if(floor&&!isCardioEx(r.ex)){let raised=false;
+        r.lines=(r.lines||[]).map(l=>{ if(isHold(l.su)||isWarm(l)||!(l.reps||[]).some(n=>n<floor)) return l; raised=true; return {...l, reps:l.reps.map(n=>Math.max(n,floor))}; });
+        if(raised) notes.push(`${r.ex}: sets written under ${floor} reps raised to ${floor} — the floor for Grow`);}}
       /* v4.6.194: A HELD EXERCISE DOES NOT GO UP, WHATEVER CAME BACK. Any line
          heavier than the held weight is brought down to it (warm-ups under it
          are left alone), and the step-up and stand-still rules below do not
