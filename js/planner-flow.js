@@ -111,7 +111,7 @@ function pfDateFooter(){
  const changes=drafts.filter(d=>pwSaved(d)?.items?.length);
  const resume=drafts.length&&!s.busy?'<div class="pf-draft-resume">'+action('pf-resume-drafts','Resume '+plural(drafts.length,'draft'),'edit')+'</div>':'';
  const secondary=!s.busy?'<div class="pf-date-secondary">'+action('pf-generate','Generate instead','sparkle',false,n?'':'disabled')+action('pf-paste-dates','Paste','paste',false,n?'':'disabled')+'</div>':'';
- return '<div class="pf-selection" aria-live="polite"><strong>'+(n?'<span class="pf-count">'+n+'</span> '+(n===1?'day':'days')+' selected':'Choose dates above')+'</strong><span>'+pfDateRange()+'</span></div><p class="pf-date-breakdown">'+(summary||'Select dates to create, edit or resume.')+'</p>'+(changes.length?'<p class="pf-draft-detail">'+changes.map(d=>hesc(pwDate(d))).join(' · ')+': unsaved changes to saved '+(changes.length===1?'plan':'plans')+'</p>':'')+resume+'<div class="pf-date-actions">'+main+'</div>'+secondary+'<p class="pf-date-help">Logged workouts stay untouched.</p>'+(s.busy?pwButton('pf-back','Cancel','pw-text'):'');
+ return '<div class="pf-selection" aria-live="polite"><strong>'+(n?'<span class="pf-count">'+n+'</span> '+(n===1?'day':'days')+' selected<span class="pf-range">· '+pfDateRange()+'</span>':'Choose dates above')+'</strong>'+(n&&!s.busy?pwButton('pf-unselect','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>Unselect all','pf-unselect'):'')+'</div><p class="pf-date-breakdown">'+(summary||'Select dates to create, edit or resume.')+'</p>'+(changes.length?'<p class="pf-draft-detail">'+changes.map(d=>hesc(pwDate(d))).join(' · ')+': unsaved changes to saved '+(changes.length===1?'plan':'plans')+'</p>':'')+resume+'<div class="pf-date-actions">'+main+'</div>'+secondary+'<p class="pf-date-help">Logged workouts stay untouched.</p>'+(s.busy?pwButton('pf-back','Cancel','pw-text'):'');
 }
 let pfMotion=null;
 function pfPlayMotion(){const m=pfMotion;pfMotion=null;if(!m)return;const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -134,7 +134,7 @@ function pfPlayMotion(){const m=pfMotion;pfMotion=null;if(!m)return;const reduce
    button.addEventListener('animationend',()=>button.classList.remove(cls),{once:true});
   }
   if(m.before!==pw().dates.length)animate(document.querySelector('.pf-count'),[{transform:`translateY(${pw().dates.length>m.before?'-100%':'100%'})`,opacity:0},{transform:'translateY(0)',opacity:1}]);
-  animate(document.querySelector('.pf-selection>span'),[{opacity:.35},{opacity:1}],180);
+  animate(document.querySelector('.pf-selection .pf-range,.pf-selection>span'),[{opacity:.35},{opacity:1}],180);
  }
  if(m.kind==='month')for(const el of document.querySelectorAll('.pf-calendar,.pf-date-sheet .pw-month'))animate(el,[{transform:`translateX(${m.dir*16}px)`,opacity:0},{transform:'translateX(0)',opacity:1}]);
  if(m.kind==='arrive')animate(document.querySelector('.pf-workspace'),[{transform:'translateY(12px)',opacity:0},{transform:'translateY(0)',opacity:1}],360);
@@ -717,6 +717,10 @@ function pfHandle(a,el){const s=pw(),j=pfState(),d=el.dataset.date,i=+el.dataset
  else if(a==='pf-unavoid')j.prefs.avoid.splice(i,1);
  else if(a==='pf-prefs-save'){const p=j.prefs;if(!p||!Number.isInteger(p.minutes)||p.minutes<10||p.minutes>180||!Number.isInteger(p.minSets)||!Number.isInteger(p.maxSets)||p.minSets<1||p.maxSets>100||p.minSets>p.maxSets)throw Error('Use valid whole numbers. Minimum sets cannot exceed maximum.');const want=new Set(p.avoid.map(n=>canonId(n,true)));for(const n of exPrefNames('avoid'))if(!want.has(canonId(n,true)))setExPref(n,null);for(const n of p.avoid)if(exPref(n)!=='avoid')setExPref(n,'avoid');DB.settings.plannerPreferences=pwCopy(p);DB.settingsAt=Date.now();save(true);if(j.prefOrigin==='settings'){j.prefOrigin=null;lift.plan=null;view='sync';render();return;}pfNavigate(j.prefOrigin||'dates');return;}
  else if(a==='pf-dates'){pfNavigate('dates');return;}
+ /* v4.6.200: UNSELECT ALL. Six days picked meant six taps to start over. One
+    control clears the selection, exactly as tapping each day off would:
+    saved plans and drafts are not touched, only which days are picked. */
+ else if(a==='pf-unselect'){if(!s.dates.length)return;s.dates=[];s.active=null;pwPersist();pwRender();return;}
  else if(a==='pf-resume-drafts'){if(!pfSelectSubset(pfDateKinds().drafts))return;pfAnchor();pfMotion={kind:'arrive'};pfNavigate('days');return;}
  else if(a==='pf-edit-selected'){if(!pfSelectSubset(pfDateKinds().saved))return;pfAnchor();pfMotion={kind:'arrive'};pfNavigate('days');return;}
  else if(a==='pf-generate'){if(!s.dates.length)return;if(el.dataset.subset==='fresh'&&!pfSelectSubset(pfDateKinds().fresh))return;j.anchorBefore=pwCopy(j.anchor);pwGenerate();return;}

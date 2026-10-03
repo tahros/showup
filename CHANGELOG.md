@@ -1,5 +1,11 @@
 # ShowUp — changelog
 
+## v4.6.200 (2026-10-03) — Unselect all on the Dates step
+
+- **Asked:** with six days picked, a way to unselect them all at once. Mocked first and approved.
+- **Now:** an "Unselect all" control at the right end of the "N days selected" line; the date range sits beside the count. One tap clears the selection, exactly as tapping each day off would. Saved plans and drafts are not touched. It shows only while a day is selected.
+- Tests: new `tools/check-unselect-all.cjs` (36 checks: light and dark, 402 and 320 wide).
+
 ## v4.6.199 (2026-10-03) — One load, one line
 
 - **Reported:** a saved day printed "155 lb × 12 / 155 lb × 12 / 155 lb × 12 12" and "235 lb × 3" four times: one block of sets on three or four lines, taking too much room.
