@@ -81,7 +81,7 @@ const wait=ms=>new Promise(r=>setTimeout(r,ms));
     ok(`${tag} Undo avoid: Squat is included again and the row is a normal row`,await p.evaluate(()=>{const a=document.querySelector('[data-pw-row="0"]');return !isAvoided('Squat')&&!a.classList.contains('xp-avoided')&&!!a.querySelector('.pe-lines')&&pwDay(pw().active).rows[0].ex==='Squat';}));
     /* 3. Settings */
     await p.evaluate(async()=>{lift.plan=null;view='sync';render();await new Promise(r=>setTimeout(r,500));const h=[...document.querySelectorAll('#view h2')].find(h=>/Avoided exercises/.test(h.textContent));window.scrollTo(0,h.getBoundingClientRect().top+scrollY-140);});await wait(300);
-    r=await p.evaluate(()=>({rows:[...document.querySelectorAll('.xp-list .xp-item strong')].map(e=>e.textContent),subs:[...document.querySelectorAll('.xp-list .xp-item small')].map(e=>e.textContent),sum:document.getElementById('view').textContent.includes('2 exercises avoided')}));
+    r=await p.evaluate(()=>({rows:[...document.querySelectorAll('.xp-list .xp-item strong')].map(e=>e.textContent),subs:[...document.querySelectorAll('.xp-list .xp-item small')].map(e=>e.textContent),sum:document.getElementById('view').textContent.includes('2 avoided')}));
     ok(`${tag} Settings: two avoided, with body part and muscle; summary agrees`,r.rows.length===2&&r.subs.every(s=>/^Legs · (hamstrings|calves) · since/.test(s))&&r.sum,JSON.stringify(r));
     ok(`${tag} ...fits`,await fits());
     if(shots){await wait(1500);await p.screenshot({path:'../avoid-3-settings.png'});}

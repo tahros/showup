@@ -11,10 +11,12 @@ function test(name,code){assert(run(code),name);console.log('PASS '+name);checks
 function ok2(name,value){assert(value,name);console.log('PASS '+name);checks++;}
 run(`DB={days:{},settings:{unit:'lb',name:'Sungjee',sex:'M',onboarded:true}};todayISO='2026-09-13';checkDate=()=>false;pwState=null;lift={part:'Legs',ex:'Squat'};pwOpen('2026-09-14');`);
 test('new date opens calendar, not a fake saved plan',`pfState().page==='dates'&&!DB.week&&!(DB.days[todayISO]?.w||[]).length`);
-run(`pfState().prefs=pfPrefs();pfNavigate('prefs');`);
-test('one through seven days and every body-part slider',`document.querySelector('[data-value="1"]')&&document.querySelector('[data-value="7"]')&&document.querySelectorAll('[data-pf-emphasis]').length===Object.keys(SEED.catalog).filter(p=>p!=='Run').length`);
-run(`pfState().prefs.emphasis.Chest=1;pfHandle('pf-prefs-save',{dataset:{}});`);
-test('preference save preserves profile',`DB.settings.plannerPreferences.emphasis.Chest===1&&DB.settings.name==='Sungjee'&&DB.settings.sex==='M'`);
+run(`pfState().prefs=null;pfNavigate('prefs');`);
+/* v4.6.201: the page asks what changes a plan -- goal, week, size, warm-up, avoid, hold -- and no longer days a week, minutes, sliders or split */
+test('the page: goal, week start, seven weekdays, size, warm-up, avoid and hold; no sliders, minutes or split',`document.querySelectorAll('[data-pw="pf-goal"]').length===3&&document.querySelectorAll('[data-pw="pf-weekstart"]').length===2&&document.querySelectorAll('[data-pw="pf-trainday"]').length===7&&document.querySelectorAll('[data-pw="pf-size"]').length===2&&document.querySelector('[data-pw="pf-warmup"]')&&document.querySelector('[data-pf-avoid]')&&document.querySelector('[data-pf-hold]')&&!document.querySelector('[data-pf-emphasis],[data-pw="pf-frequency"],[data-pf-pref="minutes"],[data-pf-pref="split"]')`);
+run(`pfHandle('pf-goal',{dataset:{value:'strength'}});pfHandle('pf-trainday',{dataset:{value:'1'}});pfHandle('pf-trainday',{dataset:{value:'3'}});pfHandle('pf-weekstart',{dataset:{value:'monday'}});pfHandle('pf-prefs-save',{dataset:{}});`);
+test('preference save preserves profile, and stores goal, week start and training days',`DB.settings.plannerPreferences.trainDays.join()==='1,3'&&DB.settings.objective==='strength'&&pw().objective==='strength'&&DB.settings.weekStart==='monday'&&DB.settings.name==='Sungjee'&&DB.settings.sex==='M'`);
+run(`pw().objective='grow';DB.settings.objective='grow';DB.settings.weekStart='sunday';DB.settings.plannerPreferences.trainDays=null;`);
 run(`var rows=pwRead('Squat\\n135 lb × 10 (warm-up)\\n225 lb × 8 8 8 8');var b=pwDay(pw().active);b.rows=pwCopy(rows);b.parts=['Legs'];pfAnchor();pfNavigate('days');`);
 /* v4.6.75: 'days' lands on the routine page with the week strip */
 test('the week is a strip above the routine, with Paste and Clear as buttons and no More',`pfState().page==='edit'&&document.querySelectorAll('.pf-strip .pf-chip').length===1&&document.querySelector('.pf-strip .pf-chip.selected')&&document.querySelector('.pf-tools [data-pw="paste"]')&&document.querySelector('.pf-tools [data-pw="pf-clear"]')&&!document.querySelector('.pf-routine-more,.pf-day-navigation')&&document.querySelector('[data-pw="pf-save"]')`);
@@ -94,8 +96,9 @@ test('29 sets with six and eight sets an exercise: each kept to five, 21 in all,
 test('...from the exercises with the most sets, warm-up kept, every exercise kept', `(()=>{const r=cand.days['2026-09-29'].rows;return r.filter(x=>x.ex).length===4&&/warm/.test(pwText(r))&&r.every(x=>!x.ex||x.lines.some(l=>l.reps.length));})()`);
 test('...and the Checks say what moved', `cand.days['2026-09-29'].notes.some(n=>/^Leg Press: 8 working sets written, kept to 5\\.$/.test(n))`);
 run(`var small=pwRead('Squat\\n225 lb × 5 5 5\\nLeg Press\\n300 lb × 10 10');var c2={type:'generate',days:{'2026-09-30':{rows:small,notes:[]}}};pfValidateCandidate(c2,['2026-09-30']);`);
-test('5 sets against 15–25: sets added to the lightest exercises, up to 15', `pwSetCount(c2.days['2026-09-30'].rows)===15&&/215 lb × 8 8 8 8 8 8 8 8/.test(pwText(c2.days['2026-09-30'].rows))   /* v4.6.197: and Grow's floor: the 5s are 8s, at 215 -- the record is 8, 8 just under 225, so 225 for 8 is not in reach yet */`);
-test('the writer is told the range in plain words', `/must total between 15 and 25 sets/.test(pwPayload(['2026-09-29'],'generate').note)`);
+/* v4.6.201: the range is a limit now: a short day is not padded up to a minimum */
+test('5 sets under a limit of 25: nothing is padded; the first lift gets its warm-up', `pwSetCount(c2.days['2026-09-30'].rows)===6&&/145 lb × 10 \\(warm-up\\)\\s+215 lb × 8 8 8\\n/.test(pwText(c2.days['2026-09-30'].rows)+'\\n')&&/300 lb × 10 10(?! 10)/.test(pwText(c2.days['2026-09-30'].rows))`);
+test('the writer is told the limit, the warm-up rule and to keep to the day’s parts, in plain words', `(()=>{const n=pwPayload(['2026-09-29'],'generate').note;return /must total at most 25 sets/.test(n)&&/ONE lighter warm-up line on its first exercise/.test(n)&&/do not add core, or any other part, on your own/.test(n)&&!/Frequency|Time is an approximate/.test(n);})()`);
 run(`var many=Array.from({length:30},(_,i)=>({kind:'ex',ex:'Lift '+i,lines:[{w:45,reps:[10]}]}));var c3={type:'generate',days:{'2026-10-01':{rows:many,notes:[]}}};var err3=null;try{pfValidateCandidate(c3,['2026-10-01']);}catch(e){err3=e.message;}`);
 test('more exercises than the maximum: whole exercises come out, last first, and the plan is kept', `!err3&&pwSetCount(c3.days['2026-10-01'].rows)===25&&c3.days['2026-10-01'].notes.some(n=>n.includes('30 → 25 sets (removed '))`);
 run(`DB.settings.plannerPreferences={...pfPrefs(),mode:'time',avoid:[]};`);

@@ -1,5 +1,19 @@
 # ShowUp — changelog
 
+## v4.6.201 (2026-10-03) — Plan → Preferences, rebuilt around what changes a plan
+
+- **Why:** the page asked for days a week, minutes per workout, seven Less/Balanced/More sliders and a split. All four reached the writer as a line in a note and decided nothing; they predate body parts and muscles per day, the auto Set target, Avoid and Hold. The sets range was also the last place that padded sets onto a short day. Reviewed, mocked and approved.
+- **The page now:**
+  - **What are you training for?** Grow / Lose weight / Strength, with what that means for reps. It had no control in the planner.
+  - **Your week.** Week starts on (the same setting as in Settings; either changes both), and Days you train: the Dates step opens with those weekdays picked across the next seven days when nothing is selected. Until you save some, the page offers the weekdays you have trained on in at least half of the last eight weeks, and Dates opens on one day as before.
+  - **Each session.** Size: Auto (your usual for the day's body parts) or Set a limit (never more than N sets; it only lowers, nothing is padded up). Warm-up set on the first lift: on, the day's first exercise opens with one lighter set (about two thirds of its top weight, on the rack's own steps) and no other exercise carries one; off, none are written. A number you set yourself still holds with the warm-up in it.
+  - **Exercises.** Avoid and Hold the weight together, each with a picker grouped by body part and muscle.
+  - **How every plan is built.** The rules the planner follows, as a list.
+- **Gone:** days a week, Time, the focus sliders, the minimum of the sets range, Your split. A stored sets range reads as a limit at its maximum; a stored time preference as Auto. Old keys stay in storage untouched.
+- **The writer** is told the limit, the warm-up rule, and to write only for the body parts set for each date (no core added on its own); the prompt's CORE section says the same.
+- Nothing is stored until Save preferences. The Settings line under Planning preferences speaks the new set.
+- Tests: new `tools/test-plan-prefs.js` (15 checks) and `tools/check-plan-prefs.cjs` (88 checks: light and dark, 402 and 320 wide, real taps); `tools/test-planner-flow.js`, `tools/test-focus.js` and the browser journey follow.
+
 ## v4.6.200 (2026-10-03) — Unselect all on the Dates step
 
 - **Asked:** with six days picked, a way to unselect them all at once. Mocked first and approved.

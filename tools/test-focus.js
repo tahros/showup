@@ -47,7 +47,7 @@ var D13=mkDay('Incline Barbell Bench Press\\n  175 lb × 8 8 8 8\\nIncline Dumbb
 test('a day at your usual is Auto',`(()=>{const a=pfAuto(D15);return a.total===15&&!a.mine&&a.target===15;})()`);
 test('a day away from it is yours, and Regenerate keeps your number',`(()=>{const a=pfAuto(D13);return a.mine&&a.target===13;})()`);
 test('changed body parts: the target is the new parts’ usual',`(()=>{const a=pfAuto({...D13,parts:['Sixpack'],partsPick:true});return !a.mine&&a.target===3;})()`);
-test('the sets-range preference bounds the auto number, and says so',`(()=>{DB.settings.plannerPreferences={frequency:5,mode:'sets',minutes:45,minSets:20,maxSets:25,emphasis:{},avoid:[],split:'auto'};const a=pfAuto(D15);DB.settings.plannerPreferences.mode='time';return a.total===20&&a.range==='20–25'&&/kept inside your 20–25 range/.test(pfAutoHTML(D15,a));})()`);
+test('a set limit lowers the auto number, never raises it, and says so',`(()=>{DB.settings.plannerPreferences={mode:'limit',maxSets:12,avoid:[]};const a=pfAuto(D15);DB.settings.plannerPreferences={mode:'limit',maxSets:40,avoid:[]};const hi=pfAuto(D15);DB.settings.plannerPreferences={mode:'sets',minSets:30,maxSets:40,avoid:[]};const old=pfAuto(D15);DB.settings.plannerPreferences={mode:'auto',warmup:false,avoid:[]};return a.total===12&&a.range==='12'&&/kept to your limit of 12/.test(pfAutoHTML(D15,a))&&!hi.range&&hi.total===old.total&&!old.range;})()`);
 test('the line under the stepper names each part’s usual',`/Chest 12<\\/b> \\+ <b>Sixpack 3<\\/b> · what you usually do on these days/.test(pfAutoHTML(D15,pfAuto(D15)))`);
 test('...and offers Back to auto once the count is yours',`/Your usual is <b>15<\\/b>/.test(pfAutoHTML(D13,pfAuto(D13)))&&/data-pw="pf-auto"/.test(pfAutoHTML(D13,pfAuto(D13)))`);
 

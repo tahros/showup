@@ -31,7 +31,7 @@ const {chromium}=require('playwright'),assert=require('assert'),fs=require('fs')
    await page.screenshot({path:path.join(out,theme+'-'+width+'-'+label+'.png'),fullPage:true});
   };
   await verify('dates');await page.locator('[data-pw="pf-prefs"]').click();await verify('preferences');
-  await page.locator('[data-value="7"]').click();await page.locator('[data-pw="pf-prefs-save"]').click();
+  await page.locator('[data-pw="pf-goal"][data-value="grow"]').click();await page.locator('[data-pw="pf-prefs-save"]').click();
   await page.evaluate(()=>{
    for(const d of ['2026-09-14','2026-09-15']){
     const b=pwDay(d);b.rows=pwRead('Squat\n135 lb × 10 (warm-up)\n225 lb × 8 8 8 8\nHanging Leg Raise\nBW × 12 12 12');b.parts=['Legs','Sixpack'];
