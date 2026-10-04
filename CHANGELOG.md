@@ -1,5 +1,17 @@
 # ShowUp — changelog
 
+## v4.6.206 (2026-10-04) — The exercise picker is the app's own sheet
+
+- **Reported:** "+ Add" under Avoid and Hold on Plan → Preferences opened the phone's dropdown: system chrome over the page, every exercise in one column, no search, one pick and it shut. Mocked and approved.
+- **Now:** a bottom sheet in the app's style, like Add exercise on the Edit step.
+  - Search across every exercise; a chip for each body part you train; exercises grouped by muscle, yours first and most recent first.
+  - Tap to tick as many as you like; one button says what it will do ("Avoid 2 exercises", "Hold 1 exercise") and waits until something is chosen.
+  - **Avoid** rows say when you last did the exercise, or "Not done yet" with a NEW tag. **Hold** offers only exercises you have logged and says the weight it would hold at; with nothing logged it explains why it is empty.
+  - What is already on the list shows ticked and greyed and cannot be picked twice.
+  - Close with ✕, a tap outside, a pull down from the top, or Escape; closing without the button adds nothing. The page behind does not scroll.
+- It adds to the page's staged lists, as before: nothing is stored until Save preferences.
+- Tests: `tools/test-plan-prefs.js` (36 checks) and `tools/check-plan-prefs.cjs` (136 checks, real taps and typing) cover the sheet.
+
 ## v4.6.205 (2026-10-04) — Preferences shows the Avoid and Hold lists as they are now
 
 - **Reported:** exercises already avoided were not showing under Exercises → Avoid on Plan → Preferences.

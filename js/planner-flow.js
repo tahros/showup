@@ -220,9 +220,7 @@ function pfStepbar(){const j=pfState(),current={prefs:0,dates:1,days:2,edit:2,do
 function pfPrefHTML(){const j=pfState(),p=(j.prefs&&j.prefs.avoidAdd&&j.prefs.trainDays&&j.prefs.rotation&&j.prefs.parts)?j.prefs:(j.prefs=pfStagePrefs());
  const seg=(act,opts,cur,cls='')=>`<div class="pf-seg ${cls}" role="group" style="--n:${opts.length};--i:${Math.max(0,opts.findIndex(o=>o[0]===cur))}">${opts.map(([v,t])=>`<button type="button" class="pf-segb${cur===v?' on':''}" data-pw="${act}" data-value="${v}" aria-pressed="${cur===v}">${t}</button>`).join('')}</div>`;
  const X='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',OK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
- /* every strength exercise, grouped body part -> muscle, as everywhere else in the app */
- const picker=(attr,label,skip)=>{const groups=[];for(const part of BODY_PARTS.filter(x=>x!=='Run'))for(const m of (PART_MUSCLES[part]||[])){const list=pwAllExercises().filter(ex=>homePartOf(ex)===part&&exMuscle(ex,part)===m&&!skip.some(x=>canonKey(x)===canonKey(ex)));if(list.length)groups.push(`<optgroup label="${hesc(part)} · ${hesc(MUSCLE_LABEL[m]||m)}">${list.map(ex=>`<option>${hesc(ex)}</option>`).join('')}</optgroup>`);}
-  return `<label class="pf-xchip pf-xchip-add">+ Add<select ${attr} aria-label="${label}"><option value="">Choose exercise</option>${groups.join('')}</select></label>`;};
+ const picker=(kind,label)=>`<button type="button" class="pf-xchip pf-xchip-add" data-pw="pf-xpick-open" data-kind="${kind}" aria-haspopup="dialog" aria-label="${label}">+ Add</button>`;
  const heldTxt=ex=>{const w=isHeld(ex)?heldW(ex):exLastTopKg(ex);return w==null?'':`<em>${hesc(isBody(ex)?(w>0.01?'BW+'+wDisp(w)+' '+U():'BW'):wDisp(w)+' '+U())}</em>`;};
  const goal=PF_GOALS.find(g=>g[0]===p.goal)||PF_GOALS[0],avoid=pfShown(p,'avoid'),hold=pfShown(p,'hold');
  return `<div class="pf-prefs">
@@ -237,8 +235,8 @@ ${pfSplitCardHTML(p,j)}
  ${p.mode==='limit'?`<div class="pf-pref-row pf-pref-limit"><label for="pf-max">Most sets in a session</label><input id="pf-max" type="number" inputmode="numeric" min="1" max="100" data-pf-pref="maxSets" value="${p.maxSets}"></div>`:''}
  <div class="pf-pref-row"><span>Warm-up set on the first lift<small>A lighter set before the heaviest exercise.</small></span><button type="button" class="pf-switch${p.warmup?' on':''}" data-pw="pf-warmup" role="switch" aria-checked="${!!p.warmup}" aria-label="Warm-up set on the first lift"></button></div></div>
 <div class="card"><h3>Exercises</h3>
- <div class="pf-pref-grp"><span>Avoid<small>left out of every plan</small></span><div class="pf-xchips">${avoid.map((ex,i)=>`<button type="button" class="pf-xchip" data-pw="pf-unavoid" data-index="${i}" aria-label="Stop avoiding ${hesc(ex)}">${hesc(ex)} ${X}</button>`).join('')}${picker('data-pf-avoid','Avoid an exercise',avoid)}</div></div>
- <div class="pf-pref-grp"><span>Hold the weight<small>reps can move, the load does not go up</small></span><div class="pf-xchips">${hold.map((ex,i)=>`<button type="button" class="pf-xchip" data-pw="pf-unhold" data-index="${i}" aria-label="Stop holding ${hesc(ex)}">${hesc(ex)} ${heldTxt(ex)} ${X}</button>`).join('')}${picker('data-pf-hold','Hold an exercise',hold)}</div></div></div>
+ <div class="pf-pref-grp"><span>Avoid<small>left out of every plan</small></span><div class="pf-xchips">${avoid.map((ex,i)=>`<button type="button" class="pf-xchip" data-pw="pf-unavoid" data-index="${i}" aria-label="Stop avoiding ${hesc(ex)}">${hesc(ex)} ${X}</button>`).join('')}${picker('avoid','Avoid an exercise')}</div></div>
+ <div class="pf-pref-grp"><span>Hold the weight<small>reps can move, the load does not go up</small></span><div class="pf-xchips">${hold.map((ex,i)=>`<button type="button" class="pf-xchip" data-pw="pf-unhold" data-index="${i}" aria-label="Stop holding ${hesc(ex)}">${hesc(ex)} ${heldTxt(ex)} ${X}</button>`).join('')}${picker('hold','Hold the weight of an exercise')}</div></div></div>
 <div class="card pf-rules"><span class="pf-rules-h">How every plan is built</span><ul>${['Only the body parts you set for the day. Nothing is added on its own.','Exercises hit the muscles you chose for the day.','Heaviest lifts first, core last.','No more sets on an exercise than you usually do.','Short of the target, an exercise is recommended. Sets are never stacked.','If the reps are not in reach, the weight comes down.'].map(t=>`<li>${OK}<span>${t}</span></li>`).join('')}</ul></div>
 </div>`;}
 /* v4.6.202: bring the page in line with the staged copy WITHOUT replacing it:
@@ -285,6 +283,41 @@ function pfSplitRefresh(){const live=document.querySelector('.pf-workspace .pf-p
 /* any edit to a preset makes it yours */
 function pfRotTouch(r){r.preset='own';r.own=pwCopy(r.sessions);}
 /* the page edits a copy; nothing changes until Save */
+/* v4.6.206: THE EXERCISE PICKER IS THE APP'S OWN SHEET. "+ Add" under Avoid and
+   Hold opened the phone's dropdown: system chrome over the page, a hundred
+   names in one column, no search, one pick and it shut. It is a bottom sheet
+   now, like Add exercise on the Edit step: search, a chip for each body part
+   you train, exercises grouped by muscle with yours first, as many ticked as
+   you like, and one button that says what it will do. Avoid tells you when you
+   last did each one; Hold tells you the weight it would hold at and offers only
+   what you have logged, because there is nothing to hold otherwise. It adds to
+   the page's staged lists; nothing is stored until Save preferences. */
+const PF_PICK={avoid:['Avoid an exercise','Left out of every plan. Your log is kept.','Avoid','Already avoided'],hold:['Hold the weight','Reps can move. The load does not go up.','Hold','Already held']};
+function pfPickList(){const j=pfState(),k=j.pick,p=j.prefs,hold=k.kind==='hold',have=pfShown(p,k.kind),q=canonKey(k.q||''),same=(a,b)=>canonKey(a)===canonKey(b);
+ const all=pwAllExercises().filter(ex=>p.parts.includes(homePartOf(ex))&&(!hold||exLastTopKg(ex)!=null));
+ const parts=p.parts.filter(pt=>all.some(ex=>homePartOf(ex)===pt)),part=parts.includes(k.part)?k.part:parts[0];k.part=part||null;
+ const pool=q?all.filter(ex=>canonKey(ex).includes(q)):all.filter(ex=>homePartOf(ex)===part),groups=[];
+ for(const pt of q?parts:[part])for(const m of (PART_MUSCLES[pt]||[])){const list=pool.filter(ex=>homePartOf(ex)===pt&&exMuscle(ex,pt)===m);if(!list.length)continue;
+  list.sort((a,b)=>(SEED.exLast?.[b]||'').localeCompare(SEED.exLast?.[a]||''));   /* yours first, most recent first; the rest keep the catalog's order */
+  groups.push({label:(q?pt+' · ':'')+(MUSCLE_LABEL[m]||m),list});}
+ return {parts,part,groups,have,same,q,hold};}
+function pfPickSub(ex,d){const isHave=d.have.some(x=>d.same(x,ex)),last=SEED.exLast?.[ex];if(isHave)return d.hold?'Already held':'Already avoided';
+ if(d.hold){const w=exLastTopKg(ex);return 'Would hold at '+(isBody(ex)?(w>0.01?'BW+'+wDisp(w)+' '+U():'BW'):wDisp(w)+' '+U());}
+ if(!last)return 'Not done yet';const dt=new Date(last+'T12:00'),days=Math.round((new Date(todayISO+'T12:00')-dt)/864e5);
+ return 'Last done '+dt.toLocaleDateString('en-US',days<7?{weekday:'short',month:'short',day:'numeric'}:dt.getFullYear()===+todayISO.slice(0,4)?{month:'short',day:'numeric'}:{month:'short',day:'numeric',year:'numeric'});}
+function pfPickListHTML(d){const k=pfState().pick,OK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+ if(!d.groups.length)return `<p class="pf-pick-empty">${d.q?'No exercise matches “'+hesc(k.q)+'”.':d.hold?'Nothing logged yet. Hold needs a weight on record, so log the exercise once first.':'Nothing to show for these body parts.'}</p>`;
+ return d.groups.map(g=>`<div class="pf-pick-mh"><span>${hesc(g.label)}</span><span>${g.list.length}</span></div>`+g.list.map(ex=>{const isHave=d.have.some(x=>d.same(x,ex)),on=k.sel.some(x=>d.same(x,ex)),nw=!d.hold&&!isHave&&!SEED.exLast?.[ex];
+  return `<button type="button" class="pf-pick-row${isHave?' have':on?' on':''}" data-pw="pf-xpick-toggle" data-ex="${hesc(ex)}" role="checkbox" aria-checked="${isHave||on}" ${isHave?'aria-disabled="true"':''}><span><b>${hesc(ex)}${nw?'<span class="pf-pick-new">NEW</span>':''}</b><small>${hesc(pfPickSub(ex,d))}</small></span><i class="pf-pick-ck">${OK}</i></button>`;}).join('')).join('');}
+function pfPickGoText(){const k=pfState().pick,n=k.sel.length,t=PF_PICK[k.kind];return n?`${t[2]} ${n} ${n===1?'exercise':'exercises'}`:'Choose exercises';}
+function pfPickHTML(){const k=pfState().pick,t=PF_PICK[k.kind],d=pfPickList();
+ return `<div class="pw-add-scrim pf-pick-scrim" data-pw="pf-xpick-close"></div><div class="pw-add-sheet pf-pick" role="dialog" aria-modal="true" aria-labelledby="pfPickTitle"><div class="pf-pick-top"><div class="pf-pick-grab" aria-hidden="true"></div><div class="pw-add-head"><div><h3 id="pfPickTitle">${t[0]}</h3><p class="pf-pick-sub">${t[1]}</p></div><button type="button" class="pw-add-close" data-pw="pf-xpick-close" aria-label="Close">×</button></div>
+ <label class="pw-add-search">${typeof PW_MAG!=='undefined'?PW_MAG:''}<input type="search" data-pf-pick-q placeholder="Search exercises" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search" aria-label="Search exercises" value="${hesc(k.q||'')}"></label>
+ <div class="pf-pick-parts" role="group" aria-label="Body part">${d.parts.map(pt=>`<button type="button" class="pf-pick-part${!d.q&&pt===d.part?' on':''}" data-pw="pf-xpick-part" data-part="${hesc(pt)}" aria-pressed="${!d.q&&pt===d.part}">${hesc(pt)}</button>`).join('')}</div></div>
+ <div class="pf-pick-list">${pfPickListHTML(d)}</div><div class="pf-pick-foot"><button type="button" class="pf-pick-go" data-pw="pf-xpick-go" ${k.sel.length?'':'disabled'}>${pfPickGoText()}</button></div></div>`;}
+function pfPickMount(){let h=document.getElementById('pfPick');if(!h){h=document.createElement('div');h.id='pfPick';h.className='pf-workspace pf-pick-host';document.body.append(h);}h.innerHTML=pfPickHTML();document.documentElement.classList.add('pf-xpick-open');}
+function pfPickClose(now){const j=pfState(),h=document.getElementById('pfPick');j.pick=null;document.documentElement.classList.remove('pf-xpick-open');if(!h)return;if(now||matchMedia('(prefers-reduced-motion: reduce)').matches){h.remove();return;}h.classList.add('out');setTimeout(()=>h.remove(),220);}
+function pfPickRefreshList(){const h=document.getElementById('pfPick');if(!h)return;const d=pfPickList(),l=h.querySelector('.pf-pick-list');l.innerHTML=pfPickListHTML(d);l.scrollTop=0;h.querySelectorAll('.pf-pick-part').forEach(e=>{const on=!d.q&&e.dataset.part===d.part;e.classList.toggle('on',on);e.setAttribute('aria-pressed',on);});}
 /* v4.6.205: AVOID AND HOLD ARE READ LIVE; THE PAGE KEEPS ONLY WHAT YOU CHANGED ON IT.
    The page edited a COPY of both lists, taken when it was first opened and kept
    with the draft. Avoid an exercise from the Plan or its own page after that
@@ -843,7 +876,7 @@ function pfDoneHTML(){
   return `<section class="pf-day pf-done-day"><div class="pf-day-date">${hesc(pfShort(x.date))}</div><div class="card">${x.sets?`<details data-pf-saved-fold="${x.date}" ${j.doneOpen?.[x.date]?'open':''}><summary><span class="pf-done-label"><strong>${hesc(x.parts.join(' + ')||'Workout')}</strong><span>${x.sets} sets · ${count} exercises</span></span></summary>${pfRoutine(rows)}</details>`:'<div class="pf-no-plan">No plan</div>'}</div></section>`;
  }).join('')}</div>`;
 }
-function pfRender(){pfTrackScreen();renderHeader();pfSplitFill();const s=pw(),j=pfState(),panel=['paste','editrow','adjust','candidate','busy'].includes(s.step)&&!(s.step==='busy'&&j.page==='dates');if(panel){pfLegacy.render();const box=document.querySelector('.pw-workspace');if(box){box.classList.add('pf-workspace');box.querySelector('.pw-editor-head')?.remove();box.insertAdjacentHTML('afterbegin',pfStepbar());if(s.step==='paste'&&!s.editAll)box.querySelector('.pw-input-panel')?.insertAdjacentHTML('beforeend',`<label class="pw-small"><input type="checkbox" data-pf-paste-all ${j.pasteAll?'checked':''}> Use this routine for all selected days</label>`);}return;}let body='',footer='',heading={dates:'Choose your dates',prefs:'Your preferences',days:'Edit your plan',edit:'Edit your routine',done:'Your dates are updated'}[j.page];
+function pfRender(){pfTrackScreen();renderHeader();pfSplitFill();if(document.getElementById('pfPick')&&pfState().page!=='prefs')pfPickClose(true);const s=pw(),j=pfState(),panel=['paste','editrow','adjust','candidate','busy'].includes(s.step)&&!(s.step==='busy'&&j.page==='dates');if(panel){pfLegacy.render();const box=document.querySelector('.pw-workspace');if(box){box.classList.add('pf-workspace');box.querySelector('.pw-editor-head')?.remove();box.insertAdjacentHTML('afterbegin',pfStepbar());if(s.step==='paste'&&!s.editAll)box.querySelector('.pw-input-panel')?.insertAdjacentHTML('beforeend',`<label class="pw-small"><input type="checkbox" data-pf-paste-all ${j.pasteAll?'checked':''}> Use this routine for all selected days</label>`);}return;}let body='',footer='',heading={dates:'Choose your dates',prefs:'Your preferences',days:'Edit your plan',edit:'Edit your routine',done:'Your dates are updated'}[j.page];
  if(j.page==='prefs'){body=pfPrefHTML();footer=pwButton('pf-prefs-save','Save preferences','primary');}
  else if(j.page==='dates'){body=pfCalendar();footer=pfDateFooter();}
  else if(j.page==='days'){body=pfDaysHTML();footer='<div class="pf-primary-row">'+pwButton('pf-edit-first','Edit first day →','primary',s.dates.length?'':'disabled')+pfSaveButton()+'</div><p class="pw-small">Saves every routine above to its date.</p>';}
@@ -893,7 +926,7 @@ function pfHandle(a,el){const s=pw(),j=pfState(),d=el.dataset.date,i=+el.dataset
  if(a==='pf-back'){pfBack();return;}
  if(a==='pf-stage'){j.prefOrigin=null;const n=+el.dataset.stage;if(n===2&&pfSavedSelection()){s.dates.forEach(d=>pwDay(d));if(!s.dates.includes(s.active))s.active=pfDates()[0];pfAnchor();}else if(n>j.furthest||n>=2&&!pfMatch())return;if(n===0&&j.page!=='prefs')j.prefs=null;   /* v4.6.205: coming back to Preferences starts from what is saved, not from a copy left behind */
   pfNavigate(['prefs','dates','days','done'][n]);return;}
- if(a.startsWith('pf-')&&['pf-goal','pf-weekstart','pf-trainday','pf-size','pf-warmup','pf-unavoid','pf-unhold','pf-prefs-save','pf-split','pf-rot-open','pf-rot-part','pf-rot-remove','pf-rot-add','pf-mypart'].includes(a)&&!(j.prefs&&j.prefs.avoidAdd&&j.prefs.trainDays&&j.prefs.rotation&&j.prefs.parts))j.prefs=pfStagePrefs();
+ if(a.startsWith('pf-')&&['pf-goal','pf-weekstart','pf-trainday','pf-size','pf-warmup','pf-unavoid','pf-unhold','pf-prefs-save','pf-split','pf-rot-open','pf-rot-part','pf-rot-remove','pf-rot-add','pf-mypart','pf-xpick-open'].includes(a)&&!(j.prefs&&j.prefs.avoidAdd&&j.prefs.trainDays&&j.prefs.rotation&&j.prefs.parts))j.prefs=pfStagePrefs();
  /* v4.6.202: THE SWITCHES MOVE. Every tap on this page re-rendered it, so a
     toggle jumped from one state to the other: there was no element left to
     animate. These five now change the staged copy and patch the page in place
@@ -903,6 +936,14 @@ function pfHandle(a,el){const s=pw(),j=pfState(),d=el.dataset.date,i=+el.dataset
   else if(a==='pf-trainday'){const n=+v,t=p.trainDays;p.trainDays=t.includes(n)?t.filter(x=>x!==n):[...t,n].sort();}
   else if(a==='pf-size')p.mode=v==='limit'?'limit':'auto';else p.warmup=!p.warmup;
   pwPersist();if(!pfPrefPatch())pwRender();else if(a==='pf-trainday'||a==='pf-weekstart')pfSplitRefresh();return;}
+ if(a==='pf-xpick-open'){j.pick={kind:el.dataset.kind==='hold'?'hold':'avoid',part:null,q:'',sel:[]};pfPickMount();return;}
+ if(a==='pf-xpick-close'){pfPickClose();return;}
+ if(a.startsWith('pf-xpick-')){const k=j.pick,h=document.getElementById('pfPick');if(!k||!j.prefs||!h){pfPickClose(true);return;}
+  if(a==='pf-xpick-part'){k.part=el.dataset.part;if(k.q){k.q='';const inp=h.querySelector('[data-pf-pick-q]');if(inp)inp.value='';}pfPickRefreshList();}
+  else if(a==='pf-xpick-toggle'){const ex=el.dataset.ex,same=x=>canonKey(x)===canonKey(ex);if(pfShown(j.prefs,k.kind).some(same))return;const at=k.sel.findIndex(same);if(at>=0)k.sel.splice(at,1);else k.sel.push(ex);
+   el.classList.toggle('on',at<0);el.setAttribute('aria-checked',at<0);const go=h.querySelector('.pf-pick-go');go.textContent=pfPickGoText();go.disabled=!k.sel.length;}
+  else if(a==='pf-xpick-go'){if(!k.sel.length)return;for(const ex of k.sel)pfListEdit(j.prefs,k.kind,ex,true);pfPickClose();pwPersist();pwRender();}
+  return;}
  /* v4.6.204: a body part switched off leaves the split too: a preset is rebuilt from what is left, your own sessions lose that part (and a session left with nothing goes) */
  if(a==='pf-mypart'){const p=j.prefs,t=el.dataset.part,r=p.rotation;if(p.parts.includes(t)){if(p.parts.length<=1)return;p.parts=p.parts.filter(x=>x!==t);}else p.parts=BODY_PARTS.filter(x=>x===t||p.parts.includes(x));
   if(r.preset&&r.preset!=='own')r.sessions=pfRotPreset(r.preset,p.parts);else if(r.preset==='own'){r.sessions=r.sessions.map(x=>({...x,parts:x.parts.filter(z=>p.parts.includes(z))})).filter(x=>x.parts.length);r.own=pwCopy(r.sessions);if(!r.sessions.length){r.preset=null;r.own=null;}}
@@ -977,7 +1018,7 @@ function pfHandle(a,el){const s=pw(),j=pfState(),d=el.dataset.date,i=+el.dataset
  pwPersist();pwRender();
 }
 pwHandle=function(e){if(e.target.closest('[data-pw="pf-settings"]')){pfHandle('pf-settings',e.target.closest('[data-pw]'));return true;}if(!pfOn())return pfLegacy.handle(e);const el=e.target.closest('[data-pw]');if(!el)return false;const a=el.dataset.pw,s=pw(),j=pfState();try{if(s.busy&&a!=='pf-back'&&a!=='pf-leave')return true;if(a==='date'||a==='month')pfMotion={kind:a,date:el.dataset.date,dir:+el.dataset.delta||1,before:s.dates.length};if(a.startsWith('pf-')){pfHandle(a,el);return true;}if(a==='date'){const result=pfLegacy.handle(e);j.removed=j.removed.filter(x=>!s.dates.includes(x.date));pwPersist();return result;}if(a==='load-newer'||a==='replace-newer'){const d=s.conflict,result=pfLegacy.handle(e);if(d){if(a==='load-newer')j.removed=j.removed.filter(x=>x.date!==d);else j.removed.forEach(x=>{if(x.date===d)x.base=pwFingerprint(d);});s.step='edit';pwPersist();pwRender();}return result;}if(a==='save'){pfSave();return true;}if(a==='dates-toggle'){pfNavigate('dates');return true;}if(a==='day'){s.active=el.dataset.date;pfNavigate('edit');return true;}if(a==='back'&&['paste','editrow','candidate'].includes(s.step)){s.candidate=null;pfNavigate(pfMatch()?'edit':'dates');return true;}if(a==='edit'){s.candidate=null;pfNavigate(pfMatch()?'edit':'dates');return true;}return pfLegacy.handle(e);}catch(err){s.error=err.message;pwRender();return true;}};
-document.addEventListener('input',e=>{if(!pfOn())return;const key=e.target.dataset.pfPref,part=e.target.dataset.pfEmphasis;if(!key&&!part)return;const p=pfState().prefs;if(!p)return;if(part){p.emphasis[part]=+e.target.value;e.target.setAttribute('aria-valuetext',['Less','Balanced','More'][+e.target.value+1]);}else p[key]=key==='split'?e.target.value:+e.target.value;pwPersist();});
+document.addEventListener('input',e=>{if(!pfOn())return;if(e.target.matches?.('[data-pf-pick-q]')){const k=pfState().pick;if(k){k.q=e.target.value;pfPickRefreshList();}return;}const key=e.target.dataset.pfPref,part=e.target.dataset.pfEmphasis;if(!key&&!part)return;const p=pfState().prefs;if(!p)return;if(part){p.emphasis[part]=+e.target.value;e.target.setAttribute('aria-valuetext',['Less','Balanced','More'][+e.target.value+1]);}else p[key]=key==='split'?e.target.value:+e.target.value;pwPersist();});
 document.addEventListener('change',e=>{if(!pfOn())return;if(e.target.matches('[data-pf-paste-all]')){pfState().pasteAll=e.target.checked;pwPersist();return;}const hold=e.target.matches('[data-pf-hold]');if(!hold&&!e.target.matches('[data-pf-avoid]'))return;const p=pfState().prefs,ex=e.target.value;if(ex&&p&&p.avoidAdd){pfListEdit(p,hold?'hold':'avoid',ex,true);pwPersist();pwRender();}});
 document.addEventListener('toggle',e=>{if(!pfOn()||!e.target.isConnected)return;const j=pfState();if(e.target.matches?.('[data-pf-saved-fold]')){j.doneOpen=j.doneOpen||{};j.doneOpen[e.target.dataset.pfSavedFold]=e.target.open;pwPersist();return;}if(!e.target.matches?.('[data-pf-fold]'))return;j.open=j.open||{};j.open[e.target.dataset.pfFold]=e.target.open;pwPersist();},true);
 (()=>{
@@ -1022,4 +1063,12 @@ document.addEventListener('toggle',e=>{if(!pfOn()||!e.target.isConnected)return;
  document.addEventListener('pointermove',e=>{if(!d||e.pointerId!==d.id)return;clear();const t=rowAt(e);if(t&&t!==d.row)t.classList.add('pf-drop');e.preventDefault();});
  document.addEventListener('pointerup',e=>end(e));document.addEventListener('pointercancel',e=>end(e,true));
  document.addEventListener('keydown',e=>{const g=e.target.closest?.('[data-pf-rot-grip]');if(!g||!['ArrowUp','ArrowDown'].includes(e.key))return;e.preventDefault();const i=+g.dataset.pfRotGrip,to=i+(e.key==='ArrowUp'?-1:1);move(i,to);document.querySelector(`[data-pf-rot-grip="${to}"]`)?.focus();});
+})();
+/* v4.6.206: the picker sheet closes on Escape, and on a pull down from its top */
+(()=>{let t=null;
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('pfPick')){e.preventDefault();pfPickClose();}});
+ document.addEventListener('touchstart',e=>{const top=e.target.closest?.('.pf-pick-top');if(!top||e.target.closest('input,button'))return;t={y:e.touches[0].clientY,sheet:top.closest('.pf-pick'),dy:0};},{passive:true});
+ document.addEventListener('touchmove',e=>{if(!t)return;t.dy=Math.max(0,e.touches[0].clientY-t.y);t.sheet.style.transition='none';t.sheet.style.transform=`translateY(${t.dy}px)`;},{passive:true});
+ const end=()=>{if(!t)return;const x=t;t=null;x.sheet.style.transition='';if(x.dy>90)pfPickClose();else x.sheet.style.transform='';};
+ document.addEventListener('touchend',end);document.addEventListener('touchcancel',end);
 })();

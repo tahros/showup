@@ -545,3 +545,38 @@ header.planmode .hback::after{content:'';position:absolute;inset:-3px -6px}
 :root .pf-workspace .pf-mypart.on{background:var(--accent);color:#fff}
 :root .pf-workspace .pf-mypart:active{transform:scale(.96)}
 @media(prefers-reduced-motion:reduce){:root .pf-workspace .pf-mypart{transition:none}}
+
+/* v4.6.206: the exercise picker sheet (Avoid, Hold) */
+:root.pf-xpick-open,:root.pf-xpick-open body{overflow:hidden}
+.pf-pick-host .pf-pick-scrim{animation:pf-pick-fade var(--dur-move,.26s) ease both}
+.pf-pick-host .pw-add-sheet.pf-pick{display:flex;flex-direction:column;max-height:86vh;height:86vh;overflow:hidden;padding:10px 0 0;transition:transform var(--dur-move,.26s) var(--settle);animation:pf-pick-in var(--dur-arrive,.42s) var(--settle) both}
+.pf-pick-host.out .pf-pick-scrim{animation:pf-pick-fade .2s ease reverse both}
+.pf-pick-host.out .pw-add-sheet.pf-pick{animation:pf-pick-in .2s ease reverse both}
+@keyframes pf-pick-in{from{transform:translateY(100%)}to{transform:none}}
+@keyframes pf-pick-fade{from{opacity:0}to{opacity:1}}
+.pf-pick-host .pf-pick-top{flex:none;padding:0 20px;touch-action:none}
+.pf-pick-host .pf-pick-grab{width:38px;height:5px;margin:0 auto 12px;border-radius:3px;background:color-mix(in srgb,var(--chalk) 16%,transparent)}
+.pf-pick-host .pf-pick-sub{margin:2px 0 0;font:400 13px/1.4 var(--body);color:var(--muted)}
+.pf-pick-host .pf-pick-parts{display:flex;gap:6px;overflow-x:auto;margin:0 -20px;padding:0 20px 12px;scrollbar-width:none;touch-action:pan-x;-webkit-overflow-scrolling:touch}
+.pf-pick-host .pf-pick-parts::-webkit-scrollbar{display:none}
+.pf-pick-host .pf-pick-part{flex:none;display:inline-flex;align-items:center;width:auto;min-width:0;height:32px;min-height:0;margin:0;padding:0 13px;border:0;border-radius:16px;box-shadow:none;background:color-mix(in srgb,var(--chalk) 7%,transparent);font:500 13px var(--body);color:var(--muted);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background-color var(--dur-move,.26s) ease,color var(--dur-move,.26s) ease}
+.pf-pick-host .pf-pick-part.on{background:var(--chalk);color:var(--surface)}
+.pf-pick-host .pf-pick-list{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:0 20px 12px;border-top:1px solid color-mix(in srgb,var(--chalk) 8%,transparent)}
+.pf-pick-host .pf-pick-mh{display:flex;align-items:baseline;justify-content:space-between;margin:16px 0 4px;font:600 10.5px/1 var(--mono);letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.pf-pick-host .pf-pick-row{display:grid;grid-template-columns:1fr 26px;align-items:center;gap:12px;width:100%;min-height:54px;margin:0;padding:6px 0;border:0;border-bottom:1px solid color-mix(in srgb,var(--chalk) 7%,transparent);border-radius:0;box-shadow:none;background:none;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.pf-pick-host .pf-pick-row b{display:block;font:500 15px/1.3 var(--body);color:var(--chalk)}
+.pf-pick-host .pf-pick-row small{display:block;margin-top:1px;font:400 12px/1.3 var(--body);color:var(--muted)}
+.pf-pick-host .pf-pick-ck{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;border:1.5px solid color-mix(in srgb,var(--chalk) 22%,transparent);color:#fff;transition:background-color var(--dur-quick,.16s) ease,border-color var(--dur-quick,.16s) ease,transform var(--dur-move,.26s) var(--settle)}
+.pf-pick-host .pf-pick-ck svg{width:13px;height:13px;opacity:0;transition:opacity var(--dur-quick,.16s) ease}
+.pf-pick-host .pf-pick-row.on .pf-pick-ck{background:var(--accent);border-color:var(--accent);transform:scale(1.06)}
+.pf-pick-host .pf-pick-row.on .pf-pick-ck svg,.pf-pick-host .pf-pick-row.have .pf-pick-ck svg{opacity:1}
+.pf-pick-host .pf-pick-row.have{cursor:default}
+.pf-pick-host .pf-pick-row.have b{color:var(--muted)}
+.pf-pick-host .pf-pick-row.have .pf-pick-ck{border-color:transparent;background:color-mix(in srgb,var(--chalk) 8%,transparent);color:var(--muted)}
+.pf-pick-host .pf-pick-new{margin-left:6px;font:600 9.5px/1 var(--mono);letter-spacing:.08em;color:var(--muted);vertical-align:1px}
+.pf-pick-host .pf-pick-empty{margin:28px 4px;font:400 14px/1.5 var(--body);color:var(--muted);text-align:center}
+.pf-pick-host .pf-pick-foot{flex:none;padding:12px 20px calc(16px + env(safe-area-inset-bottom,0px));background:var(--surface);border-top:1px solid color-mix(in srgb,var(--chalk) 8%,transparent)}
+.pf-pick-host .pf-pick-go{display:flex;align-items:center;justify-content:center;width:100%;height:52px;min-height:0;margin:0;padding:0;border:0;border-radius:18px;box-shadow:none;background:var(--accent);color:#fff;font:600 15px var(--body);cursor:pointer;transition:background-color var(--dur-move,.26s) ease,color var(--dur-move,.26s) ease}
+.pf-pick-host .pf-pick-go:disabled{background:color-mix(in srgb,var(--chalk) 8%,transparent);color:var(--muted);cursor:default}
+@media(prefers-reduced-motion:reduce){.pf-pick-host .pf-pick-scrim,.pf-pick-host .pw-add-sheet.pf-pick{animation:none;transition:none}.pf-pick-host .pf-pick-ck,.pf-pick-host .pf-pick-ck svg,.pf-pick-host .pf-pick-part,.pf-pick-host .pf-pick-go{transition:none}}
+.pf-pick-host .pw-add-sheet.pf-pick h3{margin:0;font:600 20px/1.25 var(--body);color:var(--chalk)}

@@ -24,7 +24,7 @@ try{for(const [w,h] of [[402,874],[320,640]])for(const theme of ['light','dark']
  await p.evaluate(()=>{pfHandle('pf-prefs',{dataset:{}});});await p.waitForTimeout(600);
  const dom=()=>p.evaluate(()=>{const q=s=>[...document.querySelectorAll(s)],on=s=>q(s).filter(e=>e.classList.contains('on')).map(e=>e.dataset.value);
   return {h3:q('.pf-prefs h3').map(e=>e.textContent),goal:on('[data-pw="pf-goal"]'),cap:document.querySelector('.pf-pref-cap')?.textContent,ws:on('[data-pw="pf-weekstart"]'),dow:q('[data-pw="pf-trainday"]').map(e=>e.textContent+(e.classList.contains('on')?'*':'')).join(' '),size:on('[data-pw="pf-size"]'),max:!!document.querySelector('[data-pf-pref="maxSets"]'),warm:document.querySelector('[data-pw="pf-warmup"]')?.getAttribute('aria-checked'),
-   avoid:q('[data-pw="pf-unavoid"]').map(e=>e.textContent.trim()),hold:q('[data-pw="pf-unhold"]').map(e=>e.textContent.replace(/\s+/g,' ').trim()),groups:q('[data-pf-avoid] optgroup').map(e=>e.label),rules:q('.pf-rules li').length,old:q('[data-pf-emphasis],[data-pw="pf-frequency"],[data-pf-pref="minutes"],[data-pf-pref="split"],[data-pf-pref="minSets"]').length,
+   avoid:q('[data-pw="pf-unavoid"]').map(e=>e.textContent.trim()),hold:q('[data-pw="pf-unhold"]').map(e=>e.textContent.replace(/\s+/g,' ').trim()),selects:q('.pf-prefs select').length,adds:q('[data-pw="pf-xpick-open"]').length,rules:q('.pf-rules li').length,old:q('[data-pf-emphasis],[data-pw="pf-frequency"],[data-pf-pref="minutes"],[data-pf-pref="split"],[data-pf-pref="minSets"]').length,
    over:q('.pf-prefs .card *').filter(e=>{const r=e.getBoundingClientRect(),c=e.closest('.card').getBoundingClientRect();return r.width&&e.tagName!=='SELECT'&&e.tagName!=='OPTION'&&e.tagName!=='OPTGROUP'&&(r.right>c.right+0.5||r.left<c.left-0.5);}).map(e=>e.className||e.tagName).slice(0,4),
    segH:q('.pf-segb').map(e=>Math.round(e.getBoundingClientRect().height)),dowW:q('.pf-dowb').map(e=>Math.round(e.getBoundingClientRect().width)),sw:document.documentElement.scrollWidth,vw:innerWidth};});
  let d=await dom();
@@ -33,7 +33,7 @@ try{for(const [w,h] of [[402,874],[320,640]])for(const theme of ['light','dark']
  ok(`${tag} it opens on what is true now: Grow, Monday, Auto, warm-up on`,d.goal.join()==='grow'&&d.ws.join()==='monday'&&d.size.join()==='auto'&&d.warm==='true'&&!d.max&&/8 to 12 reps/.test(d.cap),d);
  ok(`${tag} the weekdays you have trained on are offered, week starting Monday`,d.dow==='M* T* W* T* F* S S',d.dow);
  ok(`${tag} Avoid and Hold list what is already set, Hold with its weight`,d.avoid.join()==='Romanian Deadlift'&&d.hold.length===1&&/^Barbell Bench Press 135 lb$/.test(d.hold[0]),d);
- ok(`${tag} the picker is grouped body part · muscle`,d.groups.length>=10&&d.groups[0]==='Chest · upper chest'&&d.groups.some(g=>/^Legs · /.test(g)),d.groups.slice(0,4));
+ ok(`${tag} no system dropdown on the page: two + Add buttons`,d.selects===0&&d.adds===2,d);
  ok(`${tag} nothing overflows a card or the screen`,!d.over.length&&d.sw<=d.vw,d);
  ok(`${tag} controls are tappable sizes`,d.segH.every(n=>n>=32)&&d.dowW.every(n=>n>=30),d);
  if(SHOT&&w===402){await p.evaluate(()=>{const dk=document.querySelector('.pw-save-dock'),nv=document.getElementById('nav');window.__vis=[dk,nv];});await p.screenshot({path:`${SHOT}/prefs-built-${theme}.png`,fullPage:false});await p.setViewportSize({width:402,height:1790});await p.waitForTimeout(300);await p.screenshot({path:`${SHOT}/prefs-built-full-${theme}.png`});await p.setViewportSize({width:w,height:h});await p.waitForTimeout(200);}
@@ -61,8 +61,38 @@ try{for(const [w,h] of [[402,874],[320,640]])for(const theme of ['light','dark']
  await p.tap('[data-pw="pf-warmup"]');await p.waitForTimeout(450);d=await dom();
  ok(`${tag} ...and the page was never rebuilt under the taps`,await p.evaluate(()=>{const k=window.__keep;return k.card.isConnected&&k.sw.isConnected&&k.dow.isConnected&&k.seg.isConnected;}));
  ok(`${tag} tap the warm-up switch: off, and the limit typed is kept`,d.warm==='false'&&await p.inputValue('[data-pf-pref="maxSets"]')==='18',d.warm);
- await p.selectOption('[data-pf-avoid]','Standing Calf Raise');await p.waitForTimeout(300);
- await p.selectOption('[data-pf-hold]','Dip');await p.waitForTimeout(300);d=await dom();
+ /* v4.6.206: the picker is the app's own sheet */
+ const sheet=()=>p.evaluate(()=>{const h=document.getElementById('pfPick');if(!h)return null;const R=e=>e.getBoundingClientRect(),sh=h.querySelector('.pf-pick'),r=R(sh),list=h.querySelector('.pf-pick-list'),go=h.querySelector('.pf-pick-go'),nav=R(document.getElementById('nav')),top=document.elementFromPoint(innerWidth/2,R(go).top+R(go).height/2);
+  return {title:h.querySelector('h3').textContent,top:Math.round(r.top),bottom:Math.round(r.bottom),vh:innerHeight,w:Math.round(r.width),vw:innerWidth,parts:[...h.querySelectorAll('.pf-pick-part')].map(e=>e.dataset.part+(e.classList.contains('on')?'*':'')).join(' '),heads:[...h.querySelectorAll('.pf-pick-mh')].map(e=>e.firstChild.textContent),rows:h.querySelectorAll('.pf-pick-row').length,on:[...h.querySelectorAll('.pf-pick-row.on')].map(e=>e.dataset.ex),have:[...h.querySelectorAll('.pf-pick-row.have')].map(e=>e.dataset.ex),go:go.textContent,goDisabled:go.disabled,goOnTop:top===go,goH:Math.round(R(go).height),scrolls:list.scrollHeight>list.clientHeight,listOverflowY:getComputedStyle(list).overflowY,rowH:Math.min(...[...h.querySelectorAll('.pf-pick-row')].map(e=>Math.round(R(e).height))),sw:document.documentElement.scrollWidth,pageLocked:document.documentElement.classList.contains('pf-xpick-open')&&/hidden/.test(getComputedStyle(document.documentElement).overflowY+getComputedStyle(document.body).overflowY),ov:getComputedStyle(document.documentElement).overflow+'|'+getComputedStyle(document.body).overflow+'|'+document.documentElement.className,subs:[...h.querySelectorAll('.pf-pick-row small')].slice(0,3).map(e=>e.textContent)};});
+ await p.evaluate(()=>document.querySelector('[data-pw="pf-xpick-open"][data-kind="avoid"]').scrollIntoView({block:'center'}));
+ await p.tap('[data-pw="pf-xpick-open"][data-kind="avoid"]');await p.waitForTimeout(700);let sh=await sheet();
+ ok(`${tag} + Add under Avoid opens a bottom sheet over the page: full width, at the bottom edge, the page behind held still`,!!sh&&sh.title==='Avoid an exercise'&&sh.bottom===sh.vh&&sh.w===sh.vw&&sh.top>20&&sh.top<sh.vh*0.3&&sh.pageLocked&&sh.sw<=sh.vw,sh);
+ ok(`${tag} a chip for each body part you train, Chest lit; rows grouped by muscle`,sh.parts==='Chest* Back Shoulder Legs Biceps Triceps Sixpack'&&sh.heads.join()==='upper chest,mid chest,lower chest'&&sh.rows>=15,sh);
+ ok(`${tag} the list scrolls inside the sheet; the button stays on top of everything, waiting`,sh.scrolls&&sh.listOverflowY==='auto'&&sh.goOnTop&&sh.goDisabled&&sh.go==='Choose exercises'&&sh.goH>=48&&sh.rowH>=50,sh);
+ if(SHOT&&w===402)await p.screenshot({path:`${SHOT}/pick-built-avoid-${theme}.png`});
+ await p.tap('#pfPick .pf-pick-part[data-part="Legs"]');await p.waitForTimeout(350);
+ const ck=await p.evaluateHandle(()=>document.querySelector('#pfPick [data-ex="Standing Calf Raise"]'));
+ await p.evaluate(()=>document.querySelector('#pfPick [data-ex="Standing Calf Raise"]').scrollIntoView({block:'center'}));
+ await p.tap('#pfPick [data-ex="Standing Calf Raise"]');await p.waitForTimeout(100);
+ const midway=await ck.evaluate(e=>({on:e.classList.contains('on'),dur:parseFloat(getComputedStyle(e.querySelector('.pf-pick-ck')).transitionDuration)}));
+ await p.evaluate(()=>document.querySelector('#pfPick [data-ex="Leg Extension"]').scrollIntoView({block:'center'}));await p.tap('#pfPick [data-ex="Leg Extension"]');await p.waitForTimeout(350);sh=await sheet();
+ ok(`${tag} tap Legs, tick two: the same rows, ticked with a transition; the button counts them`,midway.on&&midway.dur>=0.1&&sh.on.slice().sort().join()==='Leg Extension,Standing Calf Raise'&&sh.go==='Avoid 2 exercises'&&!sh.goDisabled&&sh.have.join()==='Romanian Deadlift',{midway,sh});
+ await p.tap('#pfPick [data-ex="Leg Extension"]');await p.waitForTimeout(250);
+ await p.fill('#pfPick [data-pf-pick-q]','calf');await p.waitForTimeout(350);sh=await sheet();
+ ok(`${tag} type "calf": only calf exercises, the tick kept`,sh.rows>=2&&sh.on.join()==='Standing Calf Raise'&&sh.go==='Avoid 1 exercise',sh);
+ if(SHOT&&w===402)await p.screenshot({path:`${SHOT}/pick-built-search-${theme}.png`});
+ await p.tap('#pfPick .pf-pick-go');await p.waitForTimeout(600);
+ ok(`${tag} the button adds it and the sheet leaves`,await p.evaluate(()=>!document.getElementById('pfPick')&&!document.documentElement.classList.contains('pf-xpick-open')));
+ await p.evaluate(()=>document.querySelector('[data-pw="pf-xpick-open"][data-kind="hold"]').scrollIntoView({block:'center'}));
+ await p.tap('[data-pw="pf-xpick-open"][data-kind="hold"]');await p.waitForTimeout(700);sh=await sheet();
+ ok(`${tag} + Add under Hold: only what is logged, each with the weight it would hold at, the held one already ticked`,sh.title==='Hold the weight'&&sh.parts==='Chest*'&&sh.rows===2&&sh.have.join()==='Barbell Bench Press'&&sh.subs.includes('Would hold at BW+25 lb')&&sh.subs.includes('Already held'),sh);
+ if(SHOT&&w===402)await p.screenshot({path:`${SHOT}/pick-built-hold-${theme}.png`});
+ await p.tap('#pfPick [data-ex="Dip"]');await p.tap('#pfPick .pf-pick-go');await p.waitForTimeout(600);
+ /* closing without the button adds nothing */
+ await p.tap('[data-pw="pf-xpick-open"][data-kind="avoid"]');await p.waitForTimeout(600);await p.tap('#pfPick .pf-pick-row:not(.have)');await p.tap('#pfPick .pw-add-close');await p.waitForTimeout(500);
+ await p.tap('[data-pw="pf-xpick-open"][data-kind="avoid"]');await p.waitForTimeout(600);await p.keyboard.press('Escape');await p.waitForTimeout(500);
+ ok(`${tag} ✕ and Escape close it without adding`,await p.evaluate(()=>!document.getElementById('pfPick')));
+ d=await dom();
  ok(`${tag} add to Avoid and to Hold from the pickers`,d.avoid.join()==='Romanian Deadlift,Standing Calf Raise'&&d.hold.length===2&&/^Dip BW\+25 lb$/.test(d.hold[1]),d);
  await p.tap('[data-pw="pf-unavoid"][data-index="0"]');await p.waitForTimeout(250);
  x=await st();
