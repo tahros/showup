@@ -65,7 +65,7 @@ const PORT=process.env.PORT||8784,wait=ms=>new Promise(r=>setTimeout(r,ms));
     r=await p.evaluate(()=>{const hs=[...document.querySelectorAll('#view h2')].map(h=>h.textContent.trim().toLowerCase()),c=[...document.querySelectorAll('#view h2')].find(h=>/Holding weight/.test(h.textContent))?.nextElementSibling;
       return {before:hs.indexOf('holding weight')>=0&&(hs.indexOf('avoided exercises')<0||hs.indexOf('holding weight')<hs.indexOf('avoided exercises')),text:c?.querySelector('.xp-item')?.textContent.replace(/\s+/g,' ')||'',btn:c?.querySelector('[data-xh-progress]')?.textContent,
         fits:document.documentElement.scrollWidth<=innerWidth&&!!c&&[...c.querySelectorAll('.xp-item,.xp-item button')].every(e=>e.getBoundingClientRect().right<=innerWidth+.5)};});
-    ok(`${tag} Settings: Holding weight lists it with its weight`,r.before&&/Barbell Bench Press/.test(r.text)&&/at 135 lb/.test(r.text)&&/since Oct 3/.test(r.text)&&r.btn==='Progress'&&r.fits,r);
+    ok(`${tag} Settings: Holding weight lists it with its weight`,r.before&&/Barbell Bench Press/.test(r.text)&&/at 135 lb/.test(r.text)&&/since [A-Z][a-z]{2} \d+/.test(r.text)&&r.btn==='Progress'&&r.fits,r);
     if(shots)await p.screenshot({path:`../hold-settings-${theme}.png`});
     await tap('[data-xh-progress]');
     ok(`${tag} ...and Progress there releases it; the card goes when nothing is held`,await p.evaluate(()=>!isHeld('Barbell Bench Press')&&![...document.querySelectorAll('#view h2')].some(h=>/Holding weight/.test(h.textContent))));

@@ -1,5 +1,18 @@
 # ShowUp — changelog
 
+## v4.6.203 (2026-10-04) — Your split: the order you train in
+
+- **Asked:** would the planner work for someone on a 3-day split, and how would a split be set at all. Mocked twice; the first mock pinned body parts to weekdays, and the maker's point stood: he may skip Thursday and Friday, and Shoulder may land on a Wednesday. A split is an order, not a calendar.
+- **Plan → Preferences → Your split** (between Your week and Each session):
+  - Pick a starting point: Body part, Push / Pull / Legs, Upper / Lower, Full body, or My own. A preset fills the list; any edit makes it yours, and My own keeps your sessions if you try a preset and come back.
+  - **The order you train in:** numbered sessions with their body parts. Tap one to change its parts or remove it; drag the handle (or use the arrow keys) to reorder; + Add a session.
+  - **Next up** is read from the log: the recent days are laid against the order, newest weighing most, so two sessions with the same parts (Chest twice in six) are told apart by what came before.
+  - **Coming up** shows the order on your next training days.
+- **What it does:** an empty day you select takes its session's body parts, in order from Next up; a plan already saved on a day in between takes its turn. Unselect a day and the rest slide. A day whose parts you changed yourself, or that has exercises or a saved plan, is never touched. On the Dates step these are still new days (not drafts), and a line names what each one is. The parts go to the writer per date, as before.
+- **No history yet:** with a split saved, a body part with fewer than three logged days gets a starting size instead of "the count is yours to set": about ten sets a week for Chest, Back, Shoulder and Legs, six for arms and core, divided by how often the split trains the part, never under three, the starters sharing twenty sets in a session (a Push day starts at Chest 7 + Shoulder 7 + Triceps 4). The weekly figure is the low end of the published dose-response range; the twenty-set session ceiling is a judgement, not a study's number. Your own usual replaces it part by part.
+- Nothing changes until Save, and nothing changes at all for someone who never sets a split.
+- Tests: new `tools/test-split.js` (31 checks) and `tools/check-split.cjs` (56 checks: light and dark, 402 and 320 wide, real taps and a real drag).
+
 ## v4.6.202 (2026-10-03) — Preferences: the toggles move, and larger step tabs
 
 - **Asked:** every toggle on Plan → Preferences animated smoothly, and the tab text (Preferences, Dates, Edit, Done) a bit larger.
