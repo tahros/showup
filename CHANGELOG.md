@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v4.6.205 (2026-10-04) — Preferences shows the Avoid and Hold lists as they are now
+
+- **Reported:** exercises already avoided were not showing under Exercises → Avoid on Plan → Preferences.
+- **Why:** the page edited a copy of both lists, taken when Preferences was opened and kept with the draft. Leave the page without saving, avoid an exercise from the Plan or its own page, come back by the Preferences tab: the copy did not know, so the list showed without it. Worse, Save made the real lists match the copy, so a Save from a stale copy REMOVED an Avoid (or a Hold) set after the copy was taken. Reproduced on v4.6.204.
+- **Now:** Avoid and Hold on the page are read live. The page keeps only what you changed on it (added here, taken off here), and Save applies exactly those taps and nothing else. Coming back to Preferences by its tab starts from what is saved, not from a copy left behind.
+- An Avoid that a stale Save already removed is not in the record any more and has to be set again; Settings → Avoided exercises shows what is currently stored.
+- Tests: `tools/test-plan-prefs.js` grows to 22 checks (the first new one fails on v4.6.204).
+
 ## v4.6.204 (2026-10-04) — Body parts you train, and tiles that count sessions
 
 - **Asked:** a section on Preferences to choose which body parts you train; and why the Body part tile said "5 days" when there could be more parts.

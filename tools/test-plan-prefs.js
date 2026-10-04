@@ -40,4 +40,19 @@ test('the weekdays offered are the ones trained in at least half of the last eig
 /* the Settings line and the server */
 test('the Settings summary speaks the new preferences',`(()=>{DB.settings.plannerPreferences={avoid:[],mode:'limit',maxSets:18,warmup:false,trainDays:[1,2,3,4,5]};DB.settings.weekStart='monday';return pfSummary()==='Grow · Mon Tue Wed Thu Fri · up to 18 sets · no warm-up · 0 avoided';})()`);
 test('the server prompt: only the parts named for a date, no core added on its own',`/write ONLY for those parts: do not add a core exercise/.test(SRV)`);
+/* v4.6.205: Avoid and Hold on the page are what is true now, not a copy from when it was opened */
+run(`DB.settings.plannerPreferences={avoid:[]};DB.settings.exPref={};pfState().prefs=null;pfNavigate('prefs');var av=()=>[...document.querySelectorAll('[data-pw="pf-unavoid"]')].map(e=>e.textContent.trim()).join(),ho=()=>[...document.querySelectorAll('[data-pw="pf-unhold"]')].map(e=>e.textContent.replace(/\\s+/g,' ').trim().split(' 1')[0]).join();`);
+test('open Preferences with nothing avoided: the list is empty',`av()===''`);
+run(`pfNavigate('dates');setExPref('Decline Dumbbell Bench Press','avoid');setExHold('Barbell Bench Press',true);pfNavigate('prefs');`);
+test('avoid an exercise elsewhere, and hold another: coming back, the page shows both (the copy left behind is not what is shown)',`av()==='Decline Dumbbell Bench Press'&&/^Barbell Bench Press/.test(ho())`);
+run(`pfHandle('pf-warmup',{dataset:{}});pfHandle('pf-prefs-save',{dataset:{}});`);
+test('Save after changing something else does NOT remove them',`exPrefNames('avoid').join()==='Decline Dumbbell Bench Press'&&isHeld('Barbell Bench Press')`);
+run(`pfHandle('pf-prefs',{dataset:{}});setExPref('Romanian Deadlift','avoid');pwRender();`);
+test('one avoided while the page is open appears on the next render',`av()==='Decline Dumbbell Bench Press,Romanian Deadlift'||av()==='Romanian Deadlift,Decline Dumbbell Bench Press'`);
+run(`var ix=[...document.querySelectorAll('[data-pw="pf-unavoid"]')].findIndex(e=>/Romanian/.test(e.textContent));pfHandle('pf-unavoid',{dataset:{index:String(ix)}});document.querySelector('[data-pf-avoid]').value='Standing Calf Raise';document.querySelector('[data-pf-avoid]').dispatchEvent(new window.Event('change',{bubbles:true}));`);
+test('take one off and add one here: shown at once, stored only on Save',`av()==='Decline Dumbbell Bench Press,Standing Calf Raise'&&exPrefNames('avoid').slice().sort().join()==='Decline Dumbbell Bench Press,Romanian Deadlift'`);
+run(`pfHandle('pf-prefs-save',{dataset:{}});`);
+test('Save applies exactly those two taps',`exPrefNames('avoid').slice().sort().join()==='Decline Dumbbell Bench Press,Standing Calf Raise'&&DB.settings.plannerPreferences.avoid.slice().sort().join()==='Decline Dumbbell Bench Press,Standing Calf Raise'&&!('avoidAdd' in DB.settings.plannerPreferences)&&!('hold' in DB.settings.plannerPreferences)`);
+run(`pfHandle('pf-prefs',{dataset:{}});pfHandle('pf-goal',{dataset:{value:'strength'}});pfNavigate('dates');document.querySelector('[data-pw="pf-stage"][data-stage="0"]')&&pfHandle('pf-stage',{dataset:{stage:'0'}});`);
+test('leave without saving and come back by the tab: the page starts from what is saved',`document.querySelector('[data-pw="pf-goal"].on').dataset.value==='grow'`);
 console.log(checks+' checks');process.exit(0);
