@@ -1,5 +1,19 @@
 # ShowUp — changelog
 
+## v4.6.207 (2026-10-04) — Sessions are built by moving body-part chips; Cardio is one of them
+
+- **The dilemma:** not every body part is a day. The maker does Biceps and Triceps in one session and Cardio before every session; for someone else Cardio is a session of its own. A Before/After switch was mocked first; the maker's better idea was to move the chips themselves. Mocked and approved.
+- **Your split:** a strip of chips (Cardio, then the body parts you train) sits above the sessions, and each session is a box that holds chips.
+  - Drag a chip from the strip onto a session, or tap a chip to pick it up and tap the sessions it belongs in (each session without it shows "+ Sixpack"; tap the chip again to put it down). A chip can sit in as many sessions as you like.
+  - Each chip in a session has an ✕. Drag a chip to another session to move it, to another place in its session to reorder it, or back onto the strip to take it out. Let go on empty space and nothing changes.
+  - Under a finger a session chip is picked up by a short hold, so a swipe that starts on one still scrolls the page; while a chip is held from the strip, a tap anywhere in a session places it and never lands on an ✕.
+  - The strip stays pinned under the header while you scroll the sessions. The handle still reorders sessions; an empty session can be removed. The tap-to-open session editor is gone.
+- **The order of chips in a session is the order you do them.** Cardio tapped into a session goes first; drag it to the end for cardio after lifting.
+- **Cardio in a plan:** a day whose parts include Cardio gets one cardio line, written by the app, not the writer: your most recent cardio entry as logged (same exercise, distance and time), never an invented number; "by feel" when nothing is logged. First when Cardio is first of the day's parts, last otherwise. It has no sets, so it does not count toward the Set target. On the Edit step it is a row of its own tagged Cardio; it is saved with the plan. The writer is told to leave cardio to the app.
+- Next up counts cardio logged that day, so a Cardio-only session is recognised. The day's body-part chip reads "Cardio" (was "Run"), and a day in the week strip is named by what it trains.
+- **Not yet:** on Today's plan card the cardio line shows with the plan's notes, under the exercises, not as a tappable row; a day planned as Cardio only depends on the writer returning that date.
+- Tests: `tools/test-split.js` (59 checks) and `tools/check-split.cjs` (116 checks: light and dark, 402 and 320 wide, real taps, mouse drags and touch gestures).
+
 ## v4.6.206 (2026-10-04) — The exercise picker is the app's own sheet
 
 - **Reported:** "+ Add" under Avoid and Hold on Plan → Preferences opened the phone's dropdown: system chrome over the page, every exercise in one column, no search, one pick and it shut. Mocked and approved.

@@ -106,7 +106,10 @@ function pwText(rows){
 }
 function pwCounts(rows){let total=0,warm=0;for(const r of rows||[])for(const l of r.lines||[]){total+=l.reps.length;if(/warm/i.test((l.qual||'')+(l.tag||'')))warm+=l.reps.length;}return {total,warm,work:total-warm};}
 function pwExercises(rows){return (rows||[]).filter(r=>r.kind==='ex'&&r.ex);}
-function pwParts(rows){return [...new Set(pwExercises(rows).map(r=>homePartOf(r.ex)).filter(Boolean))];}
+function pwParts(rows){const out=[...new Set(pwExercises(rows).map(r=>homePartOf(r.ex)).filter(Boolean))];
+  /* v4.6.207: the day's cardio line is not an exercise with sets, but Cardio is one of the day's parts -- first if the line opens the day */
+  if(typeof pfIsCardioRow==='function'&&!out.includes('Run')){const i=(rows||[]).findIndex(pfIsCardioRow);if(i===0)out.unshift('Run');else if(i>0)out.push('Run');}
+  return out;}
 /* v4.5.27: a day's set count for the preview heading. One rep entry is one set, and
    WARM-UPS COUNT -- v3.3.280 settled that a plan holds the session as written and a
    paste saying "6 sets" must not display 4. Rows the parser could not read carry no
@@ -735,7 +738,7 @@ function pwApply(add=false){
        sets are dropped from a generated day, and fixed rows keep pointing at
        their exercises. (A pasted routine keeps its notes: those are yours.) */
     if(c.type==='generate'&&c.index===undefined&&!add){
-      const keep=dst.rows.map((r,i)=>r&&r.kind==='ex'&&r.ex&&(r.lines||[]).some(l=>(l.reps||[]).length)?i:-1).filter(i=>i>=0);
+      const keep=dst.rows.map((r,i)=>(r&&r.kind==='ex'&&r.ex&&(r.lines||[]).some(l=>(l.reps||[]).length))||(typeof pfIsCardioRow==='function'&&pfIsCardioRow(r))?i:-1).filter(i=>i>=0);   /* v4.6.207: the day's cardio line is not an exercise with sets, and stays */
       if(keep.length&&keep.length!==dst.rows.length){dst.locks=(dst.locks||[]).filter(i=>keep.includes(i)).map(i=>keep.indexOf(i));dst.rows=keep.map(i=>dst.rows[i]);}
     }
     dst.cleared=false;dst.parts=pwParts(dst.rows);delete dst.partsPick;if(c.type==='generate'){dst.focus=pwFocus(dst);dst.focusGen=dst.focus.slice();delete dst.focusPick;}dst.source=c.type==='paste'?'Your routine · not rewritten':c.type==='adjust'?'Writer-adjusted set count':'Written from your training';dst.notes=b.notes||[];

@@ -71,7 +71,7 @@ const PF_SPLITS=[['body','Body part','',null],
  ['ul','Upper / Lower','',[['Upper',['Chest','Back','Shoulder','Biceps','Triceps']],['Lower',['Legs','Sixpack']]]],
  ['full','Full body','Everything, every session',[['Full body',['Chest','Back','Shoulder','Legs','Sixpack']]]],
  ['own','My own','Set each session yourself',null]];
-function pfRotClean(r){if(!r||!Array.isArray(r.sessions))return null;const mine=myPartsSet(),ok=x=>BODY_PARTS.includes(x)&&x!=='Run'&&mine.has(x),ses=r.sessions.map(x=>({name:String(x?.name||'').slice(0,24),parts:[...new Set((x?.parts||[]).filter(ok))]})).filter(x=>x.parts.length);
+function pfRotClean(r){if(!r||!Array.isArray(r.sessions))return null;const mine=myPartsSet(),ok=x=>x==='Run'||(BODY_PARTS.includes(x)&&mine.has(x)),ses=r.sessions.map(x=>({name:String(x?.name||'').slice(0,24),parts:[...new Set((x?.parts||[]).filter(ok))]})).filter(x=>x.parts.length);
  return ses.length?{preset:PF_SPLITS.some(z=>z[0]===r.preset)?r.preset:'own',sessions:ses}:null;}
 function pfMyParts(){const m=myPartsSet();return BODY_PARTS.filter(x=>x!=='Run'&&m.has(x));}
 function pfRotPreset(k,mine=pfMyParts()){if(k==='body')return mine.map(x=>({name:'',parts:[x]}));const d=PF_SPLITS.find(z=>z[0]===k);return d&&d[3]?d[3].map(([name,parts])=>({name,parts:parts.filter(x=>mine.includes(x))})).filter(x=>x.parts.some(z=>z!=='Sixpack')||x.name==='Core'):null;}   /* a Legs day with the legs switched off is not kept as a day of core */
@@ -80,7 +80,7 @@ function pfSplitSub(k,mine){if(k==='own')return 'Set each session yourself';if(k
    day weighing most, so two sessions with the same parts (Chest twice in six)
    are told apart by what came before them */
 function pfRotNext(sessions){const n=sessions.length;if(!n)return 0;const hist=[];
- for(const d of Object.keys(DB.days).filter(d=>d<=todayISO).sort().reverse()){const ps=[...new Set((DB.days[d].w||[]).filter(x=>(x.reps||[]).length).map(x=>homePartOf(x.ex)||x.part).filter(x=>x&&x!=='Run'))];if(ps.length)hist.push(ps);if(hist.length>=Math.max(n,3))break;}
+ for(const d of Object.keys(DB.days).filter(d=>d<=todayISO).sort().reverse()){const ps=[...new Set((DB.days[d].w||[]).filter(x=>(x.reps||[]).length||x.km>0||x.min>0).map(x=>homePartOf(x.ex)||x.part).filter(Boolean))];if(ps.length)hist.push(ps);if(hist.length>=Math.max(n,3))break;}
  if(!hist.length)return 0;
  const sim=(a,b)=>{const B=new Set(b),i=a.filter(x=>B.has(x)).length;return i/((a.length+B.size-i)||1);};
  let best=0,top=0;for(let i=0;i<n;i++){let sc=0;hist.forEach((h,j)=>{sc+=sim(h,sessions[((i-j)%n+n)%n].parts)/(j+1);});if(sc>top+1e-9){top=sc;best=i;}}
@@ -152,7 +152,7 @@ function pfDateKinds(){const dates=pfDates(),drafts=dates.filter(pfCalendarDraft
 function pfSelectSubset(dates){if(!dates.length)return false;pw().dates=[...dates];if(!dates.includes(pw().active))pw().active=dates[0];dates.forEach(d=>pwDay(d));return true;}
 /* v4.6.203: what your split has put on the empty days you picked, said on the Dates step */
 function pfSplitLine(){const r=pfPrefs().rotation;if(!r)return '';const ds=pfDates().filter(d=>{const b=pw().book?.[d];return b&&b.splitFill&&!b.rows.length;});if(!ds.length)return '';
- return '<p class="pf-date-breakdown pf-split-line">'+ds.map(d=>{const b=pw().book[d],x=r.sessions.find(z=>z.parts.join()===b.parts.join());return '<span><b>'+hesc(new Date(d+'T12:00').toLocaleDateString('en-US',{weekday:'short'}))+'</b> '+hesc((x&&x.name)||b.parts.join(' + '))+'</span>';}).join('')+'</p>';}
+ return '<p class="pf-date-breakdown pf-split-line">'+ds.map(d=>{const b=pw().book[d],x=r.sessions.find(z=>z.parts.join()===b.parts.join());return '<span><b>'+hesc(new Date(d+'T12:00').toLocaleDateString('en-US',{weekday:'short'}))+'</b> '+hesc((x&&x.name)||b.parts.map(partLabel).join(' + '))+'</span>';}).join('')+'</p>';}
 function pfDateFooter(){
  const s=pw(),{dates,saved,fresh,drafts}=pfDateKinds(),n=dates.length;
  const plural=(n,one)=>n+' '+one+(n===1?'':'s');
@@ -260,26 +260,34 @@ function pfPrefPatch(){
   &&pair('.pf-pref-cap,.pf-pref-row>span>small',(e,n)=>{if(e.innerHTML!==n.innerHTML)e.innerHTML=n.innerHTML;});
  return ok;
 }
-function pfSplitCardHTML(p,j){const r=p.rotation,ses=r.sessions,GR='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 9h14M5 15h14"/></svg>';
- const next=ses.some(x=>x.parts.length)?pfRotNext(ses):-1,open=Number.isInteger(j.rotOpen)&&j.rotOpen<ses.length?j.rotOpen:-1;
- const tags=(x,i)=>(x.name?`<span class="pf-rot-name">${hesc(x.name)}</span>`:'')+(x.parts.length?x.parts.map(t=>`<span class="pf-rot-tag">${hesc(t)}</span>`).join(''):'<em>Tap to set body parts</em>')+(i===next&&ses.length>1?'<span class="pf-rot-next">Next up</span>':'');
- const rows=ses.map((x,i)=>`<div class="pf-rot${i===next&&ses.length>1?' next':''}${i===open?' open':''}" data-pf-rot="${i}"><button type="button" class="pf-rot-main" data-pw="pf-rot-open" data-index="${i}" aria-expanded="${i===open}"><i class="pf-rot-n">${i+1}</i><span class="pf-rot-tags">${tags(x,i)}</span></button><button type="button" class="pf-rot-grip" data-pf-rot-grip="${i}" aria-label="Reorder session ${i+1}: drag, or use the arrow keys">${GR}</button>${i===open?`<div class="pf-rot-edit"><div class="pf-rot-parts" role="group" aria-label="Body parts for session ${i+1}">${p.parts.map(t=>`<button type="button" class="pf-rot-part${x.parts.includes(t)?' on':''}" data-pw="pf-rot-part" data-index="${i}" data-part="${hesc(t)}" aria-pressed="${x.parts.includes(t)}">${hesc(t)}</button>`).join('')}</div><button type="button" class="pf-rot-remove" data-pw="pf-rot-remove" data-index="${i}">Remove this session</button></div>`:''}</div>`).join('');
+/* v4.6.207: SESSIONS ARE BUILT BY MOVING BODY PARTS INTO THEM. A session was
+   edited by opening it and ticking parts: fine for one, but it hid the shape of
+   the whole split, and it had no place for Cardio -- which is not a session for
+   the maker (he does it before every one) and IS a session for someone else.
+   So the parts are chips in a strip, Cardio among them, and each session is a
+   box that holds chips. Drag a chip onto a session, or tap a chip to pick it
+   up and tap the sessions it belongs in. A chip can sit in as many sessions as
+   you like. The order of the chips in a session is the order you do them:
+   Cardio first means cardio before lifting. */
+function pfSplitCardHTML(p,j){const r=p.rotation,ses=r.sessions,GR='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 9h14M5 15h14"/></svg>',X='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+ const pal=['Run',...p.parts],held=pal.includes(j.rotHeld)?j.rotHeld:null,next=ses.some(x=>x.parts.length)?pfRotNext(ses):-1;
+ const rows=ses.map((x,i)=>{const has=held&&x.parts.includes(held);
+  return `<div class="pf-ses${i===next&&ses.length>1?' next':''}${held&&!has?' can':''}" data-pf-rot="${i}"${held&&!has?` data-pw="pf-rot-put" data-index="${i}" role="button" tabindex="0" aria-label="Add ${hesc(partLabel(held))} to session ${i+1}"`:''}><i class="pf-rot-n">${i+1}</i><div class="pf-ses-in">${x.name?`<span class="pf-rot-name">${hesc(x.name)}</span>`:''}${x.parts.map((t,k)=>`<span class="pf-rot-tag${t==='Run'?' cardio':''}${t===held?' hit':''}" data-pf-chip="${hesc(t)}" data-ses="${i}" data-k="${k}">${hesc(partLabel(t))}<button type="button" class="pf-rot-x" data-pw="pf-rot-x" data-index="${i}" data-k="${k}" aria-label="Take ${hesc(partLabel(t))} out of session ${i+1}">${X}</button></span>`).join('')}${held&&!has?`<span class="pf-rot-ghost">+ ${hesc(partLabel(held))}</span>`:''}${!x.parts.length&&!held?`<em>Drop a body part here</em><button type="button" class="pf-rot-remove" data-pw="pf-rot-remove" data-index="${i}">Remove</button>`:''}${i===next&&ses.length>1&&!held?'<span class="pf-rot-next">Next up</span>':''}</div><button type="button" class="pf-rot-grip" data-pf-rot-grip="${i}" aria-label="Reorder session ${i+1}: drag, or use the arrow keys">${GR}</button></div>`;}).join('');
  const real=ses.filter(x=>x.parts.length),dates=pfTrainDates(p.trainDays),map=real.length?pfRotAssign(real,dates):{};
- const up=real.length&&dates.length?`<span class="pf-split-h">Coming up</span><div class="pf-up">${dates.map(d=>{const x=real[map[d]];return x?`<span><b>${hesc(pfShort(d))}</b>${hesc(x.name||x.parts.join(' + '))}</span>`:'';}).join('')}</div>`:'';
+ const up=real.length&&dates.length?`<span class="pf-split-h">Coming up</span><div class="pf-up">${dates.map(d=>{const x=real[map[d]];return x?`<span><b>${hesc(pfShort(d))}</b>${hesc(x.name||x.parts.map(partLabel).join(' + '))}</span>`:'';}).join('')}</div>`:'';
  const st=real.length?(()=>{const x=real[pfRotNext(real)]||real[0],a=pwAutoTarget(x.parts);if(!a||!a.missing.length)return '';const known=a.per.reduce((t,y)=>t+(y[1]||0),0),n=pfStarterSets(a.missing,known,{sessions:real});return ` No history yet for ${hesc(a.missing.join(', '))}, so ${a.missing.length>1?'they start':'it starts'} at <strong>${a.missing.map((m,k)=>hesc(m)+' '+n[k]).join(' · ')}</strong> sets; your own numbers take over after three logged days.`;})():'';
+ const strip=`<div class="pf-pal"><div class="pf-pal-h"><span>Body parts</span><em>${held?'Tap the sessions '+hesc(partLabel(held))+' belongs in':'Drag onto a session, or tap one'}</em></div><div class="pf-pal-chips" role="group" aria-label="Body parts to place">${pal.map(t=>`<button type="button" class="pf-pal-chip${t===held?' held':''}" data-pf-chip="${hesc(t)}" data-pal="1" aria-pressed="${t===held}">${hesc(partLabel(t))}</button>`).join('')}</div></div>`;
  return `<div class="card pf-split"><h3>Your split</h3><div class="pf-tiles" role="group" aria-label="Your split">${PF_SPLITS.map(([k,t])=>`<button type="button" class="pf-tile${k==='own'?' wide':''}${r.preset===k?' on':''}" data-pw="pf-split" data-value="${k}" aria-pressed="${r.preset===k}"><b>${t}</b><small>${pfSplitSub(k,p.parts)}</small></button>`).join('')}</div>
- <div class="pf-split-body">${ses.length?`<span class="pf-split-h">The order you train in</span><div class="pf-rots">${rows}</div><button type="button" class="pf-rot-add" data-pw="pf-rot-add">+ Add a session</button>${up}<p class="pf-pref-cap pf-split-note">Next up follows the last session you logged, so a skipped day never breaks the order. The dates you pick are filled in this order; any day can still be changed in the plan.${st}</p>`:'<p class="pf-pref-cap pf-split-note">Pick one to set the order you train in. Leave it, and you choose body parts day by day, as now.</p>'}</div></div>`;}
-/* the split card changes shape (rows come and go), so it is replaced on its own; the tiles and part chips are kept so they can animate */
+ <div class="pf-split-body">${ses.length?`${strip}<span class="pf-split-h">The order you train in</span><div class="pf-rots${held?' holding':''}">${rows}</div><button type="button" class="pf-rot-add" data-pw="pf-rot-add">+ Add a session</button>${up}<p class="pf-pref-cap pf-split-note">The order of the chips in a session is the order you do them: Cardio first means cardio before lifting, and it does not count toward the Set target. Next up follows the last session you logged, so a skipped day never breaks the order.${st}</p>`:'<p class="pf-pref-cap pf-split-note">Pick one to set the order you train in. Leave it, and you choose body parts day by day, as now.</p>'}</div></div>`;}
+/* the split card changes shape (chips and sessions come and go), so its body is replaced on its own; the tiles are kept so they can animate */
 function pfSplitRefresh(){const live=document.querySelector('.pf-workspace .pf-prefs .pf-split');if(!live)return false;const j=pfState(),t=document.createElement('template');t.innerHTML=pfSplitCardHTML(j.prefs,j);const next=t.content.firstElementChild;
  const lt=[...live.querySelectorAll('.pf-tile')],nt=[...next.querySelectorAll('.pf-tile')];lt.forEach((e,i)=>{e.classList.toggle('on',nt[i].classList.contains('on'));e.setAttribute('aria-pressed',nt[i].getAttribute('aria-pressed'));const a=e.querySelector('small'),b=nt[i].querySelector('small');if(a.textContent!==b.textContent)a.textContent=b.textContent;});
- const lb=live.querySelector('.pf-split-body'),nb=next.querySelector('.pf-split-body'),lo=live.querySelector('.pf-rot.open'),no=nb.querySelector('.pf-rot.open');
- /* the same session open before and after, the same number of rows: keep its chips, refresh the rest around them */
- if(lo&&no&&lo.dataset.pfRot===no.dataset.pfRot&&live.querySelectorAll('.pf-rot').length===nb.querySelectorAll('.pf-rot').length&&lo.querySelectorAll('.pf-rot-part').length===no.querySelectorAll('.pf-rot-part').length){
-  const lc=[...lo.querySelectorAll('.pf-rot-part')],nc=[...no.querySelectorAll('.pf-rot-part')];lc.forEach((e,i)=>{e.classList.toggle('on',nc[i].classList.contains('on'));e.setAttribute('aria-pressed',nc[i].getAttribute('aria-pressed'));});
-  const lr=[...live.querySelectorAll('.pf-rot')],nr=[...nb.querySelectorAll('.pf-rot')];lr.forEach((e,i)=>{e.classList.toggle('next',nr[i].classList.contains('next'));e.querySelector('.pf-rot-tags').innerHTML=nr[i].querySelector('.pf-rot-tags').innerHTML;});
-  for(const sel of ['.pf-up','.pf-split-note']){const a=lb.querySelector(sel),b=nb.querySelector(sel);if(a&&b)a.innerHTML=b.innerHTML;else if(a||b){lb.innerHTML=nb.innerHTML;break;}}
-  return true;}
- lb.innerHTML=nb.innerHTML;return true;}
+ live.querySelector('.pf-split-body').innerHTML=next.querySelector('.pf-split-body').innerHTML;pfPalTop();return true;}
+/* the strip of chips stays in reach while you scroll through the sessions: it sticks just under the header */
+function pfPalTop(){const h=document.querySelector('header'),w=document.querySelector('.pf-workspace');if(h&&w)w.style.setProperty('--pf-pal-top',Math.round(h.getBoundingClientRect().bottom+8)+'px');}
+/* put a part into a session (at a place, or where it belongs: Cardio first, the rest last), or take one out */
+function pfRotPut(r,i,t,at){const x=r.sessions[i];if(!x||x.parts.includes(t))return false;const k=at==null?(t==='Run'?0:x.parts.length):Math.max(0,Math.min(x.parts.length,at));x.parts.splice(k,0,t);x.name='';pfRotTouch(r);return true;}
+function pfRotTake(r,i,k){const x=r.sessions[i];if(!x||x.parts[k]==null)return false;x.parts.splice(k,1);x.name='';pfRotTouch(r);return true;}
 /* any edit to a preset makes it yours */
 function pfRotTouch(r){r.preset='own';r.own=pwCopy(r.sessions);}
 /* the page edits a copy; nothing changes until Save */
@@ -330,7 +338,7 @@ function pfShown(p,kind){const live=kind==='hold'?(typeof exHoldNames==='functio
  return [...live.filter(n=>!del.some(d=>same(d,n))),...add.filter(n=>!live.some(l=>same(l,n)))];}
 function pfListEdit(p,kind,ex,on){const add=p[kind+'Add'],del=p[kind+'Del'],same=x=>canonKey(x)===canonKey(ex),drop=a=>{const i=a.findIndex(same);if(i>=0)a.splice(i,1);return i>=0;};
  if(on){if(!drop(del)&&!pfShown(p,kind).some(same))add.push(ex);}else if(!drop(add))del.push(ex);}
-function pfStagePrefs(){const p=pfPrefs();p.goal=['grow','lose','strength'].includes(pw().objective)?pw().objective:'grow';p.weekStart=weekStartDow()===1?'monday':'sunday';if(!p.trainDays)p.trainDays=pfUsualDays();p.avoidAdd=[];p.avoidDel=[];p.holdAdd=[];p.holdDel=[];p.parts=pfMyParts();p.rotation=p.rotation?{preset:p.rotation.preset,sessions:pwCopy(p.rotation.sessions),own:p.rotation.preset==='own'?pwCopy(p.rotation.sessions):null}:{preset:null,sessions:[],own:null};pfState().rotOpen=null;return p;}
+function pfStagePrefs(){const p=pfPrefs();p.goal=['grow','lose','strength'].includes(pw().objective)?pw().objective:'grow';p.weekStart=weekStartDow()===1?'monday':'sunday';if(!p.trainDays)p.trainDays=pfUsualDays();p.avoidAdd=[];p.avoidDel=[];p.holdAdd=[];p.holdDel=[];p.parts=pfMyParts();p.rotation=p.rotation?{preset:p.rotation.preset,sessions:pwCopy(p.rotation.sessions),own:p.rotation.preset==='own'?pwCopy(p.rotation.sessions):null}:{preset:null,sessions:[],own:null};pfState().rotHeld=null;return p;}
 function pfCalendar(){const s=pw(),j=pfState(),landing=new Set(j.move?planShiftable(pfDateKinds().saved,j.move.delta).moves.map(m=>m.to):[]),base=new Date((s.month||todayISO.slice(0,7)+'-01')+'T12:00'),first=weekStartDow(),offset=(base.getDay()-first+7)%7,n=new Date(base.getFullYear(),base.getMonth()+1,0).getDate(),trained=workoutDates(),seen={done:false,trained:false};return `<div class="card pf-date-sheet"><div class="pw-month">${pwButton('month',icon('chevron',ICON_SZ.sm,180),'pw-icon','data-delta="-1" aria-label="Previous month"')}<strong>${base.toLocaleDateString('en-US',{month:'long',year:'numeric'})}</strong>${pwButton('month',icon('chevron',ICON_SZ.sm),'pw-icon','data-delta="1" aria-label="Next month"')}</div><div class="pw-calendar pf-calendar">${Array.from({length:7},(_,i)=>`<span>${['S','M','T','W','T','F','S'][(first+i)%7]}</span>`).join('')}${'<span></span>'.repeat(offset)}${Array.from({length:n},(_,i)=>{const date=new Date(base);date.setDate(i+1);const d=pwISO(date),selected=s.dates.includes(d),draft=pfCalendarDraft(d),planned=!!pwSaved(d)?.items?.length,saved=d>=todayISO&&planned;const lands=landing.has(d);const done=!draft&&pfDone(d,trained),mark=done?(planned?'done':'trained'):null;if(mark)seen[mark]=true;const status=mark?pfStatusIcon(mark):d<todayISO?'':draft?pfStatusIcon('draft'):saved?pfStatusIcon('saved'):lands?pfStatusIcon('lands'):'';const said=mark==='done'?'plan done':mark==='trained'?'trained':d<todayISO?'past date':draft?(saved?'draft, unsaved changes to saved plan':'new unsaved draft'):saved?'plan saved':'no plan';return pwButton('date',`<span>${i+1}</span><small class="pf-day-status" aria-hidden="true">${status}</small>`,`${selected?'selected':''} ${draft?'pf-has-draft':''} ${lands&&!selected?'pf-lands':''} ${mark?'pf-is-'+mark:''}`,`data-date="${d}" aria-pressed="${selected}" aria-label="${hesc(pwDate(d,true))}, ${said}" ${d<todayISO?'disabled':''}`);}).join('')}</div><div class="pf-calendar-key"><span class="pf-keys"><span><i class="pf-key-selected" aria-hidden="true"></i> Selected</span><span>${pfStatusIcon('saved')} Saved plan</span>${j.move&&!pfDateKinds().drafts.length?'':`<span>${pfStatusIcon('draft')} Draft</span>`}${j.move?`<span>${pfStatusIcon('lands')} Lands here</span>`:''}${seen.done?`<span class="pf-key-done">${pfStatusIcon('done')} Done</span>`:''}${seen.trained?`<span>${pfStatusIcon('trained')} Trained</span>`:''}</span><span>Up to 7 days</span></div></div>`;}
 function pfRoutine(rows){return pwRowsHTML(rows).replace(/<pre class="pw-prescription">([\s\S]*?)<\/pre>/g,(_,text)=>`<pre class="pw-prescription">${text.split('\n').map(x=>x.trim()).join('\n')}</pre>`);}
 function pfDaysHTML(){const s=pw(),j=pfState(),days=pfDates(),all=days.length&&days.every(d=>j.open?.[d]);return `<div class="pf-right">${pwButton('pf-expand',icon(all?'collapse':'expand',ICON_SZ.sm)+(all?' Collapse All':' Expand All'),'pw-text')}</div>${days.map(d=>{const b=pwDay(d);return `<section class="pf-day" data-pf-day="${d}"><div class="pf-day-date">${hesc(pfShort(d))}</div><div class="card"><button class="pw-btn pf-day-grip" data-pf-day-grip="${d}" aria-label="Reorder workout for ${hesc(pfShort(d))}; drag or use arrow keys">${icon('grip',ICON_SZ.sm)}</button><details data-pf-fold="${d}" ${j.open?.[d]?'open':''}><summary><strong>${hesc((b.parts.length?b.parts:pwParts(b.rows)).join(' + ')||'Choose body parts')}</strong></summary>${pfRoutine(b.rows)}</details><div class="pw-card-heading"><span class="pw-small">${pwSetCount(b.rows)} sets · ${pwExercises(b.rows).length} exercises</span>${pwAction('pf-edit-day','Edit','edit','pw-text',`data-date="${d}"`)}</div></div></section>`;}).join('')}`;}
@@ -474,6 +482,7 @@ function pfSwapRow(old,ex){
 }
 function pfEditRows(){const b=pwDay(pw().active),strip=b.strip&&b.strip.line==null?b.strip:null;return '<div class="pw-exercises">'+b.rows.map((r,i)=>{
  const before=strip&&strip.row===i?pfStripHTML(strip.text):'';
+ if(pfIsCardioRow(r)){const [nm,...rest]=String(r.raw||r.ex||'').split(/\s+[\u2014\u2013]\s+/);return before+'<article class="pw-exercise pf-cardio" data-pw-row="'+i+'"><div class="pf-ex-summary"><div><strong>'+hesc(nm.trim())+'</strong><span class="pf-mtag">Cardio</span></div><p class="pf-cardio-line">'+hesc(rest.join(' \u2014 ').trim()||'by feel')+'</p></div>'+pwButton('editrow',icon('edit',ICON_SZ.sm),'pf-cardio-edit',`data-index="${i}" aria-label="Edit ${hesc(nm.trim())}"`)+'</article>';}
  if(r.kind!=='ex'||!r.ex)return before+'<div data-pw-row="'+i+'" class="pw-unread"><pre>'+hesc(r.raw||'')+'</pre>'+pwButton('editrow','Edit text','',`data-index="${i}"`)+'</div>';
  return before+pfExerciseHTML(r,i);
  }).join('')+(strip&&strip.row>=b.rows.length?pfStripHTML(strip.text):'')+'</div>';}
@@ -556,7 +565,7 @@ function pfHistoryHTML(compact=false){const s=pw(),parts=s.active?(pwDay(s.activ
    no saved plan behind it counts as unsaved too: it is, until Save runs. */
 function pfDirty(d){const b=pw().book?.[d];return !!b&&(b.source!=='Saved plan'||!pwSaved(d)?.items?.length);}
 function pfDirtyDates(){return pfDates().filter(pfDirty);}
-function pfWeekStrip(){const s=pw();return `<div class="pf-strip" role="tablist" aria-label="Planned days">${pfDates().map(d=>{const b=pwDay(d),part=(b.parts.length?b.parts:pwParts(b.rows))[0]||'\u2014',on=d===s.active,dirty=pfDirty(d);return pwButton('pf-pick-day',`<b>${hesc(new Date(d+'T12:00').toLocaleDateString('en-US',{weekday:'short'}))}</b><s>${hesc(pfMD(d))}</s><u>${hesc(part)}</u>${dirty?'<em class="pf-dot" aria-hidden="true"></em>':''}`,'pf-chip'+(on?' selected':'')+(dirty?' pf-edited':''),`data-date="${d}" role="tab" aria-selected="${on}" aria-label="${hesc(pfShort(d))}${dirty?', unsaved changes':''}"`);}).join('')}</div>`;}
+function pfWeekStrip(){const s=pw();return `<div class="pf-strip" role="tablist" aria-label="Planned days">${pfDates().map(d=>{const b=pwDay(d),ps=(b.parts.length?b.parts:pwParts(b.rows)),part=partLabel(ps.find(x=>x!=='Run')||ps[0]||'')||'\u2014'   /* v4.6.207: a day is named by what it trains; Cardio only when that is all it is */,on=d===s.active,dirty=pfDirty(d);return pwButton('pf-pick-day',`<b>${hesc(new Date(d+'T12:00').toLocaleDateString('en-US',{weekday:'short'}))}</b><s>${hesc(pfMD(d))}</s><u>${hesc(part)}</u>${dirty?'<em class="pf-dot" aria-hidden="true"></em>':''}`,'pf-chip'+(on?' selected':'')+(dirty?' pf-edited':''),`data-date="${d}" role="tab" aria-selected="${on}" aria-label="${hesc(pfShort(d))}${dirty?', unsaved changes':''}"`);}).join('')}</div>`;}
 function pfDayHTML(){return pfWeekStrip()+`<div class="pf-day-body">${pfDayBodyHTML()}</div>`;}
 /* body parts for the day you are editing: the chips show what the day trains;
    choosing different ones marks Regenerate, which rewrites the day for them */
@@ -609,7 +618,7 @@ function pfAutoHTML(b,a){
   :`<p class="pf-auto-line" role="status">${per} · what you usually do on ${names.length>1?'these days':'a '+hesc(names[0])+' day'}${range}</p>`;
 }
 function pfPartsHTML(b){const sel=pfPartsSel(b);
- return `<div class="pf-parts" role="group" aria-labelledby="pfPartsLabel"><span class="pf-parts-label" id="pfPartsLabel">Body parts</span><div class="pf-parts-chips">${pfPartList().map(x=>pwButton('pf-part',hesc(x),'pf-part'+(sel.includes(x)?' selected':''),`data-part="${hesc(x)}" aria-pressed="${sel.includes(x)}"`)).join('')}</div></div>`;}
+ return `<div class="pf-parts" role="group" aria-labelledby="pfPartsLabel"><span class="pf-parts-label" id="pfPartsLabel">Body parts</span><div class="pf-parts-chips">${pfPartList().map(x=>pwButton('pf-part',hesc(partLabel(x)),'pf-part'+(sel.includes(x)?' selected':''),`data-part="${hesc(x)}" aria-pressed="${sel.includes(x)}"`)).join('')}</div></div>`;}
 function pfDayBodyHTML(){pfDropStaleTargets();const s=pw(),b=pwDay(s.active),j=pfState(),total=pwSetCount(b.rows),auto=pfAuto(b),parts=pfPartsPending(b)||pfFocusPending(b),
   want=b.target!=null?b.target:parts&&auto?.target?auto.target:total,changed=want!==total;
  return pfPartsHTML(b)+pfFocusHTML(b)+`<div class="pf-routine-controls"><div class="pf-total"><span class="pf-total-label">Set target${auto&&auto.total!=null?`<i class="pf-auto-tag${auto.mine?' mine':''}">${auto.mine?'Yours':'Auto'}</i>`:''}</span><div class="pw-stepper">${pwButton('pf-minus','\u2212','','aria-label="Decrease total sets"'+(!b.rows.length?' disabled':''))}<output class="${changed?'pf-changed':''}">${want}</output>${pwButton('pf-plus','+','','aria-label="Increase total sets"'+(!b.rows.length?' disabled':''))}</div></div><div class="pf-tools">${pwAction('pf-regenerate','Regenerate','sparkle','pf-quiet-regenerate'+(changed||parts?' pf-beam pf-target-pending':''))}${pwButton('paste',icon('paste',ICON_SZ.sm),'pw-icon pf-tool','aria-label="Paste a routine" title="Paste"')}${pwButton('pf-clear',icon('clear',ICON_SZ.sm),'pw-icon pf-tool','aria-label="Clear this day" title="Clear"')}</div></div>${pfAutoHTML(b,auto)}<p class="pf-target-hint" role="status">${parts?(pfPartsSel(b).length?hesc(pfPartsText(b)):'No parts chosen: the writer picks')+(changed?' \u00b7 '+want+' sets':'')+' \u00b7 Regenerate to rebuild this day':changed?total+' current \u2192 '+want+' target \u00b7 Regenerate to apply':total+' sets \u00b7 '+pwExercises(b.rows).length+' exercises'+hesc(pfFocusStat(b))}</p><div class="card pf-routine-card">${b.rows.length?pfEditRows():'<p>No exercises yet.</p>'}</div><div class="pf-add-summary">${pwButton('add-open',icon('clear',ICON_SZ.sm,45)+' Add exercise','pf-add-button','data-ctx="edit"')}</div>${b.undo&&!b.strip?pwButton('undo','Undo','pw-text'):''}${s.addOpen&&s.addCtx==='edit'?pwAddSheetHTML(s):''}`;
@@ -756,6 +765,27 @@ function pfWarmup(day,on,lockedText=[]){
  const line=pwRead(`${first.ex}\n  ${wDisp(toKg(face))} ${U()} × 10 (warm-up)`)[0]?.lines?.[0];if(!line)return;
  first.lines.unshift(line);(day.notes=day.notes||[]).push(`${first.ex}: warm-up set added at ${wDisp(toKg(face))} ${U()}.`);
 }
+/* v4.6.207: THE DAY'S CARDIO. A day whose body parts include Cardio gets one
+   cardio line, and the app writes it, not the writer: your most recent cardio
+   entry, as you logged it (same exercise, same distance and time), never an
+   invented number. It goes first when Cardio is the first of the day's parts
+   and last otherwise. It has no sets, so it never counts toward the Set
+   target. A plan line is cardio by what it names, whatever kind the parser
+   gave it. */
+function pfIsCardioRow(r){if(!r)return false;if(r.cardio)return true;if(r.kind==='ex'&&(r.lines||[]).some(l=>(l.reps||[]).length))return false;
+ const head=String(r.ex||r.name||r.raw||'').split(/\s+[—–-]\s+|\n/)[0].trim();return !!head&&(isCardioEx(head)||(!!r.ex&&isCardioEx(r.ex)));}
+function pfCardioLine(){
+ for(const d of Object.keys(DB.days||{}).filter(d=>d<=todayISO).sort().reverse())for(const x of [...(DB.days[d].w||[])].reverse())if(x.ex&&isCardioEx(x.ex)&&!(x.reps||[]).length&&(x.km>0||x.min>0))
+  return x.ex+' — '+[x.km>0?dDisp(x.km).replace(/\.?0+$/,'')+' '+DU():'',x.min>0?Math.round(x.min)+' min':''].filter(Boolean).join(' · ');
+ return 'Run — by feel';}
+function pfCardio(day,src){
+ const want=!!src.partsPick&&(src.parts||[]).includes('Run'),had=day.rows.some(pfIsCardioRow);if(!want&&!had)return;
+ day.rows=day.rows.filter(r=>!pfIsCardioRow(r));
+ if(day.notes)day.notes=day.notes.filter(n=>!(/could not be read/.test(n)&&isCardioEx(String(n).split(':')[0].trim())));
+ if(!want)return;
+ const row={kind:'note',raw:pfCardioLine(),cardio:true};
+ if(src.parts[0]==='Run')day.rows.unshift(row);else day.rows.push(row);
+}
 function pfValidateCandidate(candidate,dates){
  const p=pfPrefs();
  /* v4.6.147: a day the writer added that you did not pick is dropped; a day it
@@ -838,6 +868,7 @@ function pfValidateCandidate(candidate,dates){
     if(to!==from)(day.notes=day.notes||[]).push('Set count '+(mine?'fitted to your target':au?.range&&to<from?'kept to your limit of '+au.range:'fitted to your usual')+': '+from+' → '+to+' sets'+(added.length?' (added '+added.map(r=>r.ex).join(', ')+')':'')+'.');
     if(to!==goal)(day.notes=day.notes||[]).push('The day holds '+to+' sets at your usual sets per exercise; the target is '+goal+'. Add an exercise, or use + to go past it.');
    }
+   pfCardio(day,src);
    /* v4.6.197: what the app brought in itself meets the rep floor the same way
       the writer's lines do: from the record, lowering the load when it has to */
    {const fl=(typeof WRITER_REP_FLOOR!=='undefined'&&WRITER_REP_FLOOR[pw().objective])||0,lockedT=(src.locks||[]).map(i=>pwText([src.rows[i]]));
@@ -848,7 +879,7 @@ function pfValidateCandidate(candidate,dates){
     return !r||r.lines.filter(l=>!/warm|prep/i.test((l.qual||'')+(l.tag||''))).reduce((a,l)=>a+l.reps.reduce((x,y)=>x+y,0),0)===+m[2];});
   }
   const total=pwSetCount(day.rows);
-  if(!total){delete candidate.days[date];continue;}
+  if(!total&&!day.rows.some(pfIsCardioRow)){delete candidate.days[date];continue;}
   if(candidate.type!=='adjust'&&p.mode==='limit'&&total>p.maxSets){
    /* v4.6.147: a writer answer a few sets outside the range used to throw away
       the WHOLE draft ("outside your 15-25 set range. Your draft is
@@ -876,7 +907,7 @@ function pfDoneHTML(){
   return `<section class="pf-day pf-done-day"><div class="pf-day-date">${hesc(pfShort(x.date))}</div><div class="card">${x.sets?`<details data-pf-saved-fold="${x.date}" ${j.doneOpen?.[x.date]?'open':''}><summary><span class="pf-done-label"><strong>${hesc(x.parts.join(' + ')||'Workout')}</strong><span>${x.sets} sets · ${count} exercises</span></span></summary>${pfRoutine(rows)}</details>`:'<div class="pf-no-plan">No plan</div>'}</div></section>`;
  }).join('')}</div>`;
 }
-function pfRender(){pfTrackScreen();renderHeader();pfSplitFill();if(document.getElementById('pfPick')&&pfState().page!=='prefs')pfPickClose(true);const s=pw(),j=pfState(),panel=['paste','editrow','adjust','candidate','busy'].includes(s.step)&&!(s.step==='busy'&&j.page==='dates');if(panel){pfLegacy.render();const box=document.querySelector('.pw-workspace');if(box){box.classList.add('pf-workspace');box.querySelector('.pw-editor-head')?.remove();box.insertAdjacentHTML('afterbegin',pfStepbar());if(s.step==='paste'&&!s.editAll)box.querySelector('.pw-input-panel')?.insertAdjacentHTML('beforeend',`<label class="pw-small"><input type="checkbox" data-pf-paste-all ${j.pasteAll?'checked':''}> Use this routine for all selected days</label>`);}return;}let body='',footer='',heading={dates:'Choose your dates',prefs:'Your preferences',days:'Edit your plan',edit:'Edit your routine',done:'Your dates are updated'}[j.page];
+function pfRender(){pfTrackScreen();renderHeader();pfSplitFill();requestAnimationFrame(pfPalTop);if(document.getElementById('pfPick')&&pfState().page!=='prefs')pfPickClose(true);const s=pw(),j=pfState(),panel=['paste','editrow','adjust','candidate','busy'].includes(s.step)&&!(s.step==='busy'&&j.page==='dates');if(panel){pfLegacy.render();const box=document.querySelector('.pw-workspace');if(box){box.classList.add('pf-workspace');box.querySelector('.pw-editor-head')?.remove();box.insertAdjacentHTML('afterbegin',pfStepbar());if(s.step==='paste'&&!s.editAll)box.querySelector('.pw-input-panel')?.insertAdjacentHTML('beforeend',`<label class="pw-small"><input type="checkbox" data-pf-paste-all ${j.pasteAll?'checked':''}> Use this routine for all selected days</label>`);}return;}let body='',footer='',heading={dates:'Choose your dates',prefs:'Your preferences',days:'Edit your plan',edit:'Edit your routine',done:'Your dates are updated'}[j.page];
  if(j.page==='prefs'){body=pfPrefHTML();footer=pwButton('pf-prefs-save','Save preferences','primary');}
  else if(j.page==='dates'){body=pfCalendar();footer=pfDateFooter();}
  else if(j.page==='days'){body=pfDaysHTML();footer='<div class="pf-primary-row">'+pwButton('pf-edit-first','Edit first day →','primary',s.dates.length?'':'disabled')+pfSaveButton()+'</div><p class="pw-small">Saves every routine above to its date.</p>';}
@@ -905,7 +936,7 @@ pwPayload=function(dates,action){const p=pfLegacy.payload(dates,action);if(!pfOn
  for(const x of p.workspace.schedule){const f=pfFocus(pwDay(x.date));if(f.length)x.focus=f.map(m=>({part:MUSCLE_PART[m],muscle:m}));}
  if(action==='generate')for(const x of p.workspace.drafts){const b=pwDay(x.date),a=pfAuto(b);if(a?.target&&b.target==null)x.target_total_sets=a.target;}
  p.workspace.usual_sets=Object.fromEntries(pfPartList().filter(x=>x!=='Run').map(x=>[x,pwUsualSets(x)]).filter(x=>x[1]!=null));
- p.note=[p.note,'Planning preferences: '+JSON.stringify({size:prefs.mode==='limit'?{max_sets:prefs.maxSets}:'auto',warm_up:prefs.warmup,avoid:prefs.avoid}),"Respect avoided exercises: leave them out; when one would have been chosen, pick another exercise for the same muscle. Prefer the exercises the person returns to most (their Go-to) when choosing between options. Only generate the explicitly selected dates. Write only for the body parts set for each date: do not add core, or any other part, on your own.",prefs.warmup?'Open each day with ONE lighter warm-up line on its first exercise (about two thirds of the working weight, marked "(warm-up)"); no other warm-up lines.':'Do not write warm-up lines.',prefs.mode==='limit'?`Each selected day must total at most ${prefs.maxSets} sets, counting every set including warm-ups.`:''].filter(Boolean).join('\n');return p;};
+ p.note=[p.note,'Planning preferences: '+JSON.stringify({size:prefs.mode==='limit'?{max_sets:prefs.maxSets}:'auto',warm_up:prefs.warmup,avoid:prefs.avoid}),"Respect avoided exercises: leave them out; when one would have been chosen, pick another exercise for the same muscle. Prefer the exercises the person returns to most (their Go-to) when choosing between options. Only generate the explicitly selected dates. Write only for the body parts set for each date: do not add core, or any other part, on your own. Do not write cardio lines, even for a date whose parts include Run: the app adds that day's cardio itself.",prefs.warmup?'Open each day with ONE lighter warm-up line on its first exercise (about two thirds of the working weight, marked "(warm-up)"); no other warm-up lines.':'Do not write warm-up lines.',prefs.mode==='limit'?`Each selected day must total at most ${prefs.maxSets} sets, counting every set including warm-ups.`:''].filter(Boolean).join('\n');return p;};
 function pfMoveDay(from,to){const ds=pfDates(),a=ds.indexOf(from),b=ds.indexOf(to);if(a<0||b<0||a===b)return;const bundles=ds.map(d=>pwCopy(pwDay(d))),[moved]=bundles.splice(a,1);bundles.splice(b,0,moved);ds.forEach((d,i)=>{const old=pwDay(d);pw().book[d]={...bundles[i],base:old.base,source:'Your draft'};});pwPersist();pwRender();}
 function pfSave(confirm=false){const s=pw(),j=pfState();if(!pfMatch())throw Error('Restore the editing dates, or generate a new draft first.');if(pfPending())throw Error('Regenerate the changed total sets before saving.');const empty=s.dates.filter(d=>!pwSetCount(pwDay(d).rows));if(empty.length&&!confirm){j.emptyConfirm=true;pwRender();return;}
  const dates=[...new Set([...s.dates,...j.removed.map(x=>x.date)])];if(!dates.length)throw Error('Choose at least one date.');
@@ -926,7 +957,7 @@ function pfHandle(a,el){const s=pw(),j=pfState(),d=el.dataset.date,i=+el.dataset
  if(a==='pf-back'){pfBack();return;}
  if(a==='pf-stage'){j.prefOrigin=null;const n=+el.dataset.stage;if(n===2&&pfSavedSelection()){s.dates.forEach(d=>pwDay(d));if(!s.dates.includes(s.active))s.active=pfDates()[0];pfAnchor();}else if(n>j.furthest||n>=2&&!pfMatch())return;if(n===0&&j.page!=='prefs')j.prefs=null;   /* v4.6.205: coming back to Preferences starts from what is saved, not from a copy left behind */
   pfNavigate(['prefs','dates','days','done'][n]);return;}
- if(a.startsWith('pf-')&&['pf-goal','pf-weekstart','pf-trainday','pf-size','pf-warmup','pf-unavoid','pf-unhold','pf-prefs-save','pf-split','pf-rot-open','pf-rot-part','pf-rot-remove','pf-rot-add','pf-mypart','pf-xpick-open'].includes(a)&&!(j.prefs&&j.prefs.avoidAdd&&j.prefs.trainDays&&j.prefs.rotation&&j.prefs.parts))j.prefs=pfStagePrefs();
+ if(a.startsWith('pf-')&&['pf-goal','pf-weekstart','pf-trainday','pf-size','pf-warmup','pf-unavoid','pf-unhold','pf-prefs-save','pf-split','pf-rot-put','pf-rot-x','pf-rot-remove','pf-rot-add','pf-mypart','pf-xpick-open'].includes(a)&&!(j.prefs&&j.prefs.avoidAdd&&j.prefs.trainDays&&j.prefs.rotation&&j.prefs.parts))j.prefs=pfStagePrefs();
  /* v4.6.202: THE SWITCHES MOVE. Every tap on this page re-rendered it, so a
     toggle jumped from one state to the other: there was no element left to
     animate. These five now change the staged copy and patch the page in place
@@ -946,16 +977,16 @@ function pfHandle(a,el){const s=pw(),j=pfState(),d=el.dataset.date,i=+el.dataset
   return;}
  /* v4.6.204: a body part switched off leaves the split too: a preset is rebuilt from what is left, your own sessions lose that part (and a session left with nothing goes) */
  if(a==='pf-mypart'){const p=j.prefs,t=el.dataset.part,r=p.rotation;if(p.parts.includes(t)){if(p.parts.length<=1)return;p.parts=p.parts.filter(x=>x!==t);}else p.parts=BODY_PARTS.filter(x=>x===t||p.parts.includes(x));
-  if(r.preset&&r.preset!=='own')r.sessions=pfRotPreset(r.preset,p.parts);else if(r.preset==='own'){r.sessions=r.sessions.map(x=>({...x,parts:x.parts.filter(z=>p.parts.includes(z))})).filter(x=>x.parts.length);r.own=pwCopy(r.sessions);if(!r.sessions.length){r.preset=null;r.own=null;}}
-  if(r.own)r.own=r.own.map(x=>({...x,parts:x.parts.filter(z=>p.parts.includes(z))})).filter(x=>x.parts.length);j.rotOpen=null;
+  if(r.preset&&r.preset!=='own')r.sessions=pfRotPreset(r.preset,p.parts);else if(r.preset==='own'){r.sessions=r.sessions.map(x=>({...x,parts:x.parts.filter(z=>z==='Run'||p.parts.includes(z))})).filter(x=>x.parts.length);r.own=pwCopy(r.sessions);if(!r.sessions.length){r.preset=null;r.own=null;}}
+  if(r.own)r.own=r.own.map(x=>({...x,parts:x.parts.filter(z=>z==='Run'||p.parts.includes(z))})).filter(x=>x.parts.length);j.rotHeld=null;
   pwPersist();const live=document.querySelector('.pf-workspace .pf-prefs .pf-myparts');if(!live){pwRender();return;}
   live.querySelectorAll('.pf-mypart').forEach(e=>{const on=p.parts.includes(e.dataset.part);e.classList.toggle('on',on);e.setAttribute('aria-pressed',on);});if(!pfSplitRefresh())pwRender();return;}
- if(['pf-split','pf-rot-open','pf-rot-part','pf-rot-remove','pf-rot-add'].includes(a)){const r=j.prefs.rotation,v=el.dataset.value;
-  if(a==='pf-split'){if(r.preset==='own')r.own=pwCopy(r.sessions);if(r.preset===v&&v!=='own'){r.preset=null;r.sessions=[];}else{r.preset=v;r.sessions=v==='own'?(r.own&&r.own.length?pwCopy(r.own):[{name:'',parts:[]}]):pfRotPreset(v,j.prefs.parts);}j.rotOpen=v==='own'&&r.sessions.length===1&&!r.sessions[0].parts.length?0:null;}
-  else if(a==='pf-rot-open')j.rotOpen=j.rotOpen===i?null:i;
-  else if(a==='pf-rot-part'){const x=r.sessions[i],t=el.dataset.part;if(!x)return;x.parts=x.parts.includes(t)?x.parts.filter(z=>z!==t):BODY_PARTS.filter(z=>z===t||x.parts.includes(z));x.name='';pfRotTouch(r);}
-  else if(a==='pf-rot-remove'){r.sessions.splice(i,1);j.rotOpen=null;pfRotTouch(r);if(!r.sessions.length){r.preset=null;r.own=null;}}
-  else{r.sessions.push({name:'',parts:[]});j.rotOpen=r.sessions.length-1;pfRotTouch(r);}
+ if(['pf-split','pf-rot-put','pf-rot-x','pf-rot-remove','pf-rot-add'].includes(a)){const r=j.prefs.rotation,v=el.dataset.value;
+  if(a==='pf-split'){if(r.preset==='own')r.own=pwCopy(r.sessions);if(r.preset===v&&v!=='own'){r.preset=null;r.sessions=[];}else{r.preset=v;r.sessions=v==='own'?(r.own&&r.own.length?pwCopy(r.own):[{name:'',parts:[]}]):pfRotPreset(v,j.prefs.parts);}j.rotHeld=null;}
+  else if(a==='pf-rot-put'){if(j.rotHeld)pfRotPut(r,i,j.rotHeld);}
+  else if(a==='pf-rot-x'){if(j.rotHeld)pfRotPut(r,i,j.rotHeld);else pfRotTake(r,i,+el.dataset.k);}   /* while a chip is held, a tap anywhere in a session places it: it never lands on an x and takes something out */
+  else if(a==='pf-rot-remove'){r.sessions.splice(i,1);pfRotTouch(r);if(!r.sessions.length){r.preset=null;r.own=null;}}
+  else{r.sessions.push({name:'',parts:[]});pfRotTouch(r);}
   pwPersist();if(!pfSplitRefresh())pwRender();return;}
  if(false){}
  else if(a==='pf-unavoid'){const ex=pfShown(j.prefs,'avoid')[i];if(ex)pfListEdit(j.prefs,'avoid',ex,false);}
@@ -1056,10 +1087,10 @@ document.addEventListener('toggle',e=>{if(!pfOn()||!e.target.isConnected)return;
 })();
 /* v4.6.203: sessions in Your split are reordered by their handle: drag, or the arrow keys */
 (()=>{let d=null;
- const rowAt=e=>document.elementFromPoint(e.clientX,e.clientY)?.closest('.pf-rot'),clear=()=>document.querySelectorAll('.pf-rot.pf-drop').forEach(x=>x.classList.remove('pf-drop'));
- const move=(from,to)=>{const j=pfState(),r=j.prefs?.rotation;if(!r||from===to||!r.sessions[from]||!r.sessions[to])return;const [x]=r.sessions.splice(from,1);r.sessions.splice(to,0,x);j.rotOpen=null;pfRotTouch(r);pwPersist();if(!pfSplitRefresh())pwRender();};
+ const rowAt=e=>document.elementFromPoint(e.clientX,e.clientY)?.closest('.pf-ses'),clear=()=>document.querySelectorAll('.pf-ses.pf-drop').forEach(x=>x.classList.remove('pf-drop'));
+ const move=(from,to)=>{const j=pfState(),r=j.prefs?.rotation;if(!r||from===to||!r.sessions[from]||!r.sessions[to])return;const [x]=r.sessions.splice(from,1);r.sessions.splice(to,0,x);j.rotHeld=null;pfRotTouch(r);pwPersist();if(!pfSplitRefresh())pwRender();};
  const end=(e,cancel)=>{if(!d||(e?.pointerId!=null&&e.pointerId!==d.id))return;const from=d;d=null;from.row.classList.remove('pf-dragging');const t=!cancel&&e?rowAt(e):null;clear();try{from.grip.releasePointerCapture(from.id);}catch(_){}if(t)move(from.i,+t.dataset.pfRot);};
- document.addEventListener('pointerdown',e=>{const g=e.target.closest?.('[data-pf-rot-grip]');if(!g||e.button!==0||d||!pfOn())return;d={i:+g.dataset.pfRotGrip,id:e.pointerId,grip:g,row:g.closest('.pf-rot')};d.row.classList.add('pf-dragging');try{g.setPointerCapture(e.pointerId);}catch(_){}e.preventDefault();});
+ document.addEventListener('pointerdown',e=>{const g=e.target.closest?.('[data-pf-rot-grip]');if(!g||e.button!==0||d||!pfOn())return;d={i:+g.dataset.pfRotGrip,id:e.pointerId,grip:g,row:g.closest('.pf-ses')};d.row.classList.add('pf-dragging');try{g.setPointerCapture(e.pointerId);}catch(_){}e.preventDefault();});
  document.addEventListener('pointermove',e=>{if(!d||e.pointerId!==d.id)return;clear();const t=rowAt(e);if(t&&t!==d.row)t.classList.add('pf-drop');e.preventDefault();});
  document.addEventListener('pointerup',e=>end(e));document.addEventListener('pointercancel',e=>end(e,true));
  document.addEventListener('keydown',e=>{const g=e.target.closest?.('[data-pf-rot-grip]');if(!g||!['ArrowUp','ArrowDown'].includes(e.key))return;e.preventDefault();const i=+g.dataset.pfRotGrip,to=i+(e.key==='ArrowUp'?-1:1);move(i,to);document.querySelector(`[data-pf-rot-grip="${to}"]`)?.focus();});
@@ -1071,4 +1102,43 @@ document.addEventListener('toggle',e=>{if(!pfOn()||!e.target.isConnected)return;
  document.addEventListener('touchmove',e=>{if(!t)return;t.dy=Math.max(0,e.touches[0].clientY-t.y);t.sheet.style.transition='none';t.sheet.style.transform=`translateY(${t.dy}px)`;},{passive:true});
  const end=()=>{if(!t)return;const x=t;t=null;x.sheet.style.transition='';if(x.dy>90)pfPickClose();else x.sheet.style.transform='';};
  document.addEventListener('touchend',end);document.addEventListener('touchcancel',end);
+})();
+/* v4.6.207: body-part chips are moved into sessions. A press that does not
+   travel is a tap (a chip in the strip is picked up or put down); one that
+   travels is a drag: from the strip onto a session, between sessions, to
+   another place in the same session, or out of every session to take it away. */
+(()=>{let d=null,raf=0;
+ const sesAt=(x,y)=>document.elementFromPoint(x,y)?.closest('.pf-ses');
+ const indexAt=(ses,x,y,skip)=>{let k=0;for(const c of ses.querySelectorAll('.pf-rot-tag')){if(c===skip)continue;const r=c.getBoundingClientRect();if(y>r.bottom||(y>=r.top&&x>r.left+r.width/2))k++;}return k;};
+ const clear=()=>document.querySelectorAll('.pf-ses.pf-drop').forEach(x=>x.classList.remove('pf-drop'));
+ const okOn=t=>{if(!t||!d)return false;const r=pfState().prefs?.rotation,ti=+t.dataset.pfRot;return !!r?.sessions[ti]&&((!d.pal&&ti===d.ses)||!r.sessions[ti].parts.includes(d.part));};
+ const paint=()=>{if(!d||!d.fly)return;d.fly.style.left=Math.round(d.x-d.fly.offsetWidth/2)+'px';d.fly.style.top=Math.round(d.y-d.fly.offsetHeight-16)+'px';clear();const t=sesAt(d.x,d.y);if(okOn(t))t.classList.add('pf-drop');};
+ const tick=()=>{if(!d||!d.moved)return;const hb=document.querySelector('header')?.getBoundingClientRect().bottom||0;if(d.y<hb+6)scrollBy(0,-8);else if(d.y>innerHeight-150)scrollBy(0,8);paint();raf=requestAnimationFrame(tick);};   /* the page follows the chip: up when it is carried over the header, down when it nears the dock */
+ const stop=()=>{if(!d)return;clearTimeout(d.hold);cancelAnimationFrame(raf);d.fly?.remove();d.src.classList.remove('pf-lift');clear();document.documentElement.classList.remove('pf-chip-drag');try{d.src.releasePointerCapture(d.id);}catch(_){}d=null;};
+ const done=()=>{pwPersist();if(!pfSplitRefresh())pwRender();};
+ document.addEventListener('pointerdown',e=>{const c=e.target.closest?.('[data-pf-chip]');if(!c||e.button!==0||d||e.target.closest('.pf-rot-x')||!pfOn()||!pfState().prefs?.rotation)return;
+  d={id:e.pointerId,src:c,part:c.dataset.pfChip,pal:!!c.dataset.pal,ses:+c.dataset.ses,k:+c.dataset.k,x0:e.clientX,y0:e.clientY,x:e.clientX,y:e.clientY,moved:false,fly:null,armed:true,hold:0};
+  /* A chip INSIDE a session sits where a thumb lands to scroll the page, and a
+     drag that ends outside every session takes the chip away. So under a finger
+     it is picked up by a short hold, not by a swipe: move first and the page
+     scrolls as usual; hold, feel it lift, then move. A mouse drags at once, and
+     so does a chip in the strip, where there is nothing to lose. */
+  if(!d.pal&&e.pointerType==='touch'){d.armed=false;const mine=d;d.hold=setTimeout(()=>{if(d!==mine)return;mine.armed=true;mine.src.classList.add('pf-lift');try{navigator.vibrate?.(8);}catch(_){}},220);}
+  try{c.setPointerCapture(e.pointerId);}catch(_){}});
+ document.addEventListener('touchmove',e=>{if(d&&d.armed&&(d.moved||!d.pal))e.preventDefault();},{passive:false});
+ document.addEventListener('pointermove',e=>{if(!d||e.pointerId!==d.id)return;d.x=e.clientX;d.y=e.clientY;
+  if(!d.armed){if(Math.hypot(d.x-d.x0,d.y-d.y0)>=8)stop();return;}
+  if(!d.moved){if(Math.hypot(d.x-d.x0,d.y-d.y0)<8)return;d.moved=true;d.fly=document.createElement('span');d.fly.className='pf-fly';d.fly.textContent=partLabel(d.part);document.body.append(d.fly);d.src.classList.add('pf-lift');document.documentElement.classList.add('pf-chip-drag');raf=requestAnimationFrame(tick);}
+  paint();e.preventDefault();},{passive:false});
+ document.addEventListener('pointerup',e=>{if(!d||e.pointerId!==d.id)return;const j=pfState(),r=j.prefs?.rotation,cur=d;
+  if(!cur.moved){stop();if(cur.pal&&r){j.rotHeld=j.rotHeld===cur.part?null:cur.part;done();}return;}
+  const t=sesAt(e.clientX,e.clientY),good=okOn(t),over=!!document.elementFromPoint(e.clientX,e.clientY)?.closest('.pf-pal');let at=0,ti=-1;if(good){ti=+t.dataset.pfRot;at=indexAt(t,e.clientX,e.clientY,!cur.pal&&ti===cur.ses?cur.src:null);}
+  stop();if(!r)return;
+  if(cur.pal){if(good)pfRotPut(r,ti,cur.part,at);}
+  else if(good){const a=r.sessions[cur.ses].parts;a.splice(cur.k,1);r.sessions[ti].parts.splice(Math.min(r.sessions[ti].parts.length,at),0,cur.part);r.sessions[cur.ses].name='';r.sessions[ti].name='';pfRotTouch(r);}
+  else if(!t&&over)pfRotTake(r,cur.ses,cur.k);   /* carried back to the strip: taken out. Let go anywhere else and nothing changes */
+  j.rotHeld=null;done();});
+ document.addEventListener('pointercancel',e=>{if(d&&e.pointerId===d.id)stop();});
+ window.addEventListener('blur',stop);
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&d)stop();if((e.key==='Enter'||e.key===' ')&&e.target.matches?.('.pf-ses[data-pw="pf-rot-put"]')){e.preventDefault();pfHandle('pf-rot-put',e.target);}});
 })();
