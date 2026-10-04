@@ -18,14 +18,19 @@ try{for(const [w,h] of [[402,874],[320,640]])for(const theme of ['light','dark']
   view='today';render();await new Promise(r=>setTimeout(r,400));pw().dates=[];pw().active=null;pwOpen(null,'dates');pfHandle('pf-prefs',{dataset:{}});await new Promise(r=>setTimeout(r,600));
  },theme);
  const dom=()=>p.evaluate(()=>{const q=s=>[...document.querySelectorAll(s)],card=document.querySelector('.pf-split'),cr=card.getBoundingClientRect();
-  return {tiles:q('.pf-tile').map(e=>e.dataset.value+(e.classList.contains('on')?'*':'')).join(' '),rows:q('.pf-rot').map(r=>[...r.querySelectorAll('.pf-rot-tags>*')].map(e=>e.textContent.trim()).join(' ')),next:q('.pf-rot.next').map(r=>+r.dataset.pfRot+1),up:q('.pf-up span').map(x=>x.textContent),note:document.querySelector('.pf-split-note')?.textContent||'',open:q('.pf-rot.open').length,
+  return {tiles:q('.pf-tile').map(e=>e.dataset.value+(e.classList.contains('on')?'*':'')).join(' '),subs:q('.pf-tile small').map(e=>e.textContent),parts:q('.pf-mypart').map(e=>e.dataset.part+(e.classList.contains('on')?'*':'')).join(' '),rows:q('.pf-rot').map(r=>[...r.querySelectorAll('.pf-rot-tags>*')].map(e=>e.textContent.trim()).join(' ')),next:q('.pf-rot.next').map(r=>+r.dataset.pfRot+1),up:q('.pf-up span').map(x=>x.textContent),note:document.querySelector('.pf-split-note')?.textContent||'',open:q('.pf-rot.open').length,
    over:q('.pf-split *').filter(e=>{const r=e.getBoundingClientRect();return r.width&&(r.right>cr.right+0.5||r.left<cr.left-0.5);}).map(e=>e.className||e.tagName).slice(0,4),sw:document.documentElement.scrollWidth,vw:innerWidth,
    order:q('.pf-prefs>.card>h3').map(e=>e.textContent).join('|'),grip:q('.pf-rot-grip').map(e=>Math.round(e.getBoundingClientRect().height)),tileH:q('.pf-tile').map(e=>Math.round(e.getBoundingClientRect().height))};});
  let d=await dom();
- ok(`${tag} Your split sits between Your week and Each session`,d.order==='What are you training for?|Your week|Your split|Each session|Exercises',d.order);
+ ok(`${tag} Body parts you train, then Your split, sit between Your week and Each session`,d.order==='What are you training for?|Your week|Body parts you train|Your split|Each session|Exercises',d.order);
  ok(`${tag} with nothing saved: five choices, none lit, no sessions`,d.tiles==='body ppl ul full own'&&!d.rows.length&&/day by day/.test(d.note),d);
  await p.tap('.pf-tile[data-value="body"]');await p.waitForTimeout(350);d=await dom();
- ok(`${tag} tap Body part: five sessions, the tile lit`,d.tiles==='body* ppl ul full own'&&d.rows.length===5&&d.rows[0].startsWith('Chest'),d.rows);
+ ok(`${tag} tap Body part: seven sessions, one for each part, the tile lit and counting them`,d.tiles==='body* ppl ul full own'&&d.rows.length===7&&d.rows[0].startsWith('Chest')&&d.subs[0]==='7 sessions · one part each'&&!d.subs.some(x=>/day/i.test(x)),d);
+ const chipEl=await p.evaluateHandle(()=>document.querySelector('.pf-mypart[data-part="Legs"]'));
+ await p.evaluate(()=>document.querySelector('.pf-mypart[data-part="Legs"]').scrollIntoView({block:'center'}));await p.tap('.pf-mypart[data-part="Legs"]');await p.waitForTimeout(400);d=await dom();
+ ok(`${tag} tap Legs off in Body parts you train: same chip, now out; the split is six and says so`,await chipEl.evaluate(e=>e.isConnected&&!e.classList.contains('on')&&parseFloat(getComputedStyle(e).transitionDuration)>=0.15)&&d.rows.length===6&&d.subs[0]==='6 sessions · one part each'&&d.subs[1]==='2 sessions',d);
+ await p.tap('.pf-mypart[data-part="Legs"]');await p.waitForTimeout(400);d=await dom();
+ ok(`${tag} ...and back on: seven again`,d.rows.length===7&&d.subs[0]==='7 sessions · one part each'&&d.parts==='Chest* Back* Shoulder* Legs* Biceps* Triceps* Sixpack*',d);
  /* build the maker's own six from it */
  await p.evaluate(()=>{const r=pfState().prefs.rotation;r.sessions=[['Shoulder','Sixpack'],['Back','Biceps'],['Chest','Sixpack'],['Legs','Sixpack'],['Biceps','Triceps','Sixpack']].map(parts=>({name:'',parts}));r.preset='own';r.own=null;pfSplitRefresh();});
  await p.tap('[data-pw="pf-rot-add"]');await p.waitForTimeout(350);d=await dom();

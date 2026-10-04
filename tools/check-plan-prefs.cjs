@@ -28,7 +28,7 @@ try{for(const [w,h] of [[402,874],[320,640]])for(const theme of ['light','dark']
    over:q('.pf-prefs .card *').filter(e=>{const r=e.getBoundingClientRect(),c=e.closest('.card').getBoundingClientRect();return r.width&&e.tagName!=='SELECT'&&e.tagName!=='OPTION'&&e.tagName!=='OPTGROUP'&&(r.right>c.right+0.5||r.left<c.left-0.5);}).map(e=>e.className||e.tagName).slice(0,4),
    segH:q('.pf-segb').map(e=>Math.round(e.getBoundingClientRect().height)),dowW:q('.pf-dowb').map(e=>Math.round(e.getBoundingClientRect().width)),sw:document.documentElement.scrollWidth,vw:innerWidth};});
  let d=await dom();
- ok(`${tag} five cards: goal, week, split, session, exercises -- and the rules`,d.h3.join('|')==='What are you training for?|Your week|Your split|Each session|Exercises'&&d.rules===6,d.h3);
+ ok(`${tag} six cards: goal, week, body parts, split, session, exercises -- and the rules`,d.h3.join('|')==='What are you training for?|Your week|Body parts you train|Your split|Each session|Exercises'&&d.rules===6,d.h3);
  ok(`${tag} days a week, minutes, sliders, the sets range and split are gone`,d.old===0,d.old);
  ok(`${tag} it opens on what is true now: Grow, Monday, Auto, warm-up on`,d.goal.join()==='grow'&&d.ws.join()==='monday'&&d.size.join()==='auto'&&d.warm==='true'&&!d.max&&/8 to 12 reps/.test(d.cap),d);
  ok(`${tag} the weekdays you have trained on are offered, week starting Monday`,d.dow==='M* T* W* T* F* S S',d.dow);

@@ -33,7 +33,7 @@ test('a plan already saved on a day in between takes its turn',`(()=>{DB.week={d
 /* stored shape */
 test('nothing saved: no split, and planning is as before',`pfPrefs().rotation===null`);
 test('a stored split is cleaned: unknown parts and empty sessions dropped',`(()=>{DB.settings.plannerPreferences={avoid:[],rotation:{preset:'zzz',sessions:[{name:'A',parts:['Chest','Nope','Run']},{parts:[]},{parts:['Legs']}]}};const r=pfPrefs().rotation;return r.preset==='own'&&r.sessions.length===2&&r.sessions[0].parts.join()==='Chest'&&r.sessions[0].name==='A';})()`);
-test('presets: body part 5, push/pull/legs 3, upper/lower 2, full body 1',`pfRotPreset('body').length===5&&pfRotPreset('ppl').map(x=>x.name).join()==='Push,Pull,Legs'&&pfRotPreset('ul').length===2&&pfRotPreset('full').length===1&&pfRotPreset('own')===null`);
+test('presets: body part is one session for each part you train (7), push/pull/legs 3, upper/lower 2, full body 1',`pfRotPreset('body').length===7&&pfRotPreset('body').every(x=>x.parts.length===1)&&pfRotPreset('ppl').map(x=>x.name).join()==='Push,Pull,Legs'&&pfRotPreset('ul').length===2&&pfRotPreset('full').length===1&&pfRotPreset('own')===null`);
 /* filling the dates you pick */
 run(`DB.settings.plannerPreferences={avoid:[],trainDays:[1,2,3,4,5],rotation:{preset:'own',sessions:SIX}};pw().dates=[];pw().active=null;pwOpen(null,'dates');`);
 test('Dates opens on Mon to Fri, each empty day carrying its session’s body parts, from Next up',`(()=>{const s=pw();return s.dates.join()==='2026-10-05,2026-10-06,2026-10-07,2026-10-08,2026-10-09'&&s.dates.map(d=>pwDay(d).parts.join('+')).join(' | ')==='Legs+Sixpack | Biceps+Triceps+Sixpack | Chest+Sixpack | Shoulder+Sixpack | Back+Biceps'&&s.dates.every(d=>pwDay(d).partsPick&&pwDay(d).splitFill);})()`);
@@ -72,4 +72,23 @@ test('try a preset and come back: My own still holds your sessions',`pfState().p
 test('nothing is stored until Save',`!DB.settings.plannerPreferences.rotation`);
 run(`pfHandle('pf-prefs-save',{dataset:{}});`);
 test('Save stores the order, and the Settings line names it',`DB.settings.plannerPreferences.rotation.preset==='own'&&DB.settings.plannerPreferences.rotation.sessions.length===3&&!('own' in DB.settings.plannerPreferences.rotation)&&/3-session split/.test(pfSummary())`);
+/* v4.6.204: Body parts you train, and tiles that count sessions, not days */
+run(`DB.settings.plannerPreferences={avoid:[],trainDays:[1,3,5]};delete DB.settings.myParts;pfState().prefs=null;pfHandle('pf-prefs',{dataset:{}});var sub=k=>document.querySelector('.pf-tile[data-value="'+k+'"] small').textContent,chips=()=>[...document.querySelectorAll('.pf-mypart')].map(e=>e.dataset.part+(e.classList.contains('on')?'*':'')).join(' ');`);
+test('the page has Body parts you train: the seven, all on, above Your split',`chips()==='Chest* Back* Shoulder* Legs* Biceps* Triceps* Sixpack*'&&[...document.querySelectorAll('.pf-prefs>.card>h3')].map(e=>e.textContent).join('|')==='What are you training for?|Your week|Body parts you train|Your split|Each session|Exercises'`);
+test('no tile speaks of days: Body part counts one session for each part you train',`sub('body')==='7 sessions · one part each'&&sub('ppl')==='3 sessions'&&sub('ul')==='2 sessions'&&sub('full')==='Everything, every session'&&sub('own')==='Set each session yourself'&&!/day/i.test([...document.querySelectorAll('.pf-tile')].map(e=>e.textContent).join(' '))`);
+run(`pfHandle('pf-split',{dataset:{value:'body'}});`);
+test('Body part builds seven sessions, one part each, in the order of the chips',`[...document.querySelectorAll('.pf-rot')].map(r=>r.querySelector('.pf-rot-tag').textContent).join()==='Chest,Back,Shoulder,Legs,Biceps,Triceps,Sixpack'`);
+run(`pfHandle('pf-mypart',{dataset:{part:'Legs'}});`);
+test('switch Legs off: the chip goes out, the split is one session shorter, the tile counts six',`chips()==='Chest* Back* Shoulder* Legs Biceps* Triceps* Sixpack*'&&document.querySelectorAll('.pf-rot').length===6&&!/Legs/.test(document.querySelector('.pf-rots').textContent)&&sub('body')==='6 sessions · one part each'`);
+test('...and the other presets follow: Push / Pull / Legs is down to two, Upper / Lower to one',`sub('ppl')==='2 sessions'&&sub('ul')==='1 session'`);
+run(`pfHandle('pf-rot-open',{dataset:{index:'0'}});`);
+test('a session’s editor offers only the parts you train',`[...document.querySelectorAll('.pf-rot.open .pf-rot-part')].map(e=>e.dataset.part).join()==='Chest,Back,Shoulder,Biceps,Triceps,Sixpack'`);
+run(`pfHandle('pf-rot-part',{dataset:{index:'0',part:'Sixpack'}});pfHandle('pf-mypart',{dataset:{part:'Sixpack'}});`);
+test('your own sessions lose a part you switch off; one left with nothing goes',`(()=>{const r=pfState().prefs.rotation;return r.preset==='own'&&r.sessions.map(x=>x.parts.join('+')).join()==='Chest,Back,Shoulder,Biceps,Triceps';})()`);
+test('the last part cannot be switched off',`(()=>{const p=pfState().prefs,keep=p.parts.slice();p.parts=['Chest'];pfHandle('pf-mypart',{dataset:{part:'Chest'}});const ok=p.parts.join()==='Chest';p.parts=keep;return ok;})()`);
+test('nothing is stored until Save',`!DB.settings.myParts`);
+run(`pfHandle('pf-prefs-save',{dataset:{}});`);
+test('Save writes What you train (the same setting as Settings), and the split with it',`DB.settings.myParts.join()==='Chest,Back,Shoulder,Biceps,Triceps'&&[...myPartsSet()].length===5&&DB.settings.plannerPreferences.rotation.sessions.length===5&&!('parts' in DB.settings.plannerPreferences)`);
+test('the day’s body-part choices in the plan follow it',`!pfPartList().includes('Legs')&&!pfPartList().includes('Sixpack')&&pfPartList().includes('Chest')`);
+test('a part switched off later, in Settings, drops out of the stored split when it is read',`(()=>{toggleMyPart('Triceps');const r=pfPrefs().rotation;toggleMyPart('Triceps');return r.sessions.length===4&&!r.sessions.some(x=>x.parts.includes('Triceps'));})()`);
 console.log(checks+' checks');process.exit(0);

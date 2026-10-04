@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v4.6.204 (2026-10-04) — Body parts you train, and tiles that count sessions
+
+- **Asked:** a section on Preferences to choose which body parts you train; and why the Body part tile said "5 days" when there could be more parts.
+- **Body parts you train** (new card, above Your split): one chip per body part. It is the same setting as What you train in Settings (it already bounded Train, Today, the writer and the day's body-part choices; it just had no door here). A part you switch off leaves the split presets, the session editor and each day's choices; its logged sets are kept. The last part cannot be switched off. Stored on Save.
+- **The tiles no longer speak of days.** A split has no days since v4.6.203, and "5 days" was a hard-coded count that was wrong for anyone training seven parts. Body part is now one session for each part you train, in chip order, and its tile counts them ("7 sessions · one part each"); Push / Pull / Legs and Upper / Lower show their live session count; Full body reads "Everything, every session".
+- Switching a part off rebuilds a preset from what is left (a Legs day with Legs off is not kept as a day of core); your own sessions lose that part, and a session left with nothing goes. A part switched off later in Settings drops out of the stored split when it is read.
+- Tests: `tools/test-split.js` (43 checks), `tools/check-split.cjs` (68 checks) and `tools/check-plan-prefs.cjs` follow.
+
 ## v4.6.203 (2026-10-04) — Your split: the order you train in
 
 - **Asked:** would the planner work for someone on a 3-day split, and how would a split be set at all. Mocked twice; the first mock pinned body parts to weekdays, and the maker's point stood: he may skip Thursday and Friday, and Shoulder may land on a Wednesday. A split is an order, not a calendar.
