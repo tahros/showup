@@ -37,7 +37,18 @@ try{for(const [w,h] of [[402,874],[320,640]])for(const theme of ['light','dark']
  ok(`${tag} nothing overflows a card or the screen`,!d.over.length&&d.sw<=d.vw,d);
  ok(`${tag} controls are tappable sizes`,d.segH.every(n=>n>=32)&&d.dowW.every(n=>n>=30),d);
  if(SHOT&&w===402){await p.evaluate(()=>{const dk=document.querySelector('.pw-save-dock'),nv=document.getElementById('nav');window.__vis=[dk,nv];});await p.screenshot({path:`${SHOT}/prefs-built-${theme}.png`,fullPage:false});await p.setViewportSize({width:402,height:1790});await p.waitForTimeout(300);await p.screenshot({path:`${SHOT}/prefs-built-full-${theme}.png`});await p.setViewportSize({width:w,height:h});await p.waitForTimeout(200);}
+ /* v4.6.202: the toggles animate -- the element tapped survives the tap, and has a transition to run */
+ await p.evaluate(()=>{window.__keep={goal:document.querySelector('[data-pw="pf-goal"][data-value="lose"]'),seg:document.querySelector('[data-pw="pf-goal"]').parentNode,dow:document.querySelector('[data-pw="pf-trainday"][data-value="2"]'),sw:document.querySelector('[data-pw="pf-warmup"]'),card:document.querySelector('.pf-prefs')};});
+ const mo=await p.evaluate(()=>{const cs=(e,ps)=>getComputedStyle(e,ps),sec=v=>Math.max(...String(v).split(',').map(x=>parseFloat(x)||0));const k=window.__keep;
+  return {thumb:sec(cs(k.seg,'::before').transitionDuration),thumbProp:cs(k.seg,'::before').transitionProperty,label:sec(cs(k.goal).transitionDuration),dow:sec(cs(k.dow).transitionDuration),sw:sec(cs(k.sw).transitionDuration),knob:sec(cs(k.sw,'::after').transitionDuration),i:k.seg.style.getPropertyValue('--i'),n:k.seg.style.getPropertyValue('--n')};});
+ ok(`${tag} every toggle has a transition: thumb, labels, weekday circles, switch and its knob`,mo.thumb>=0.2&&/transform/.test(mo.thumbProp)&&mo.label>=0.15&&mo.dow>=0.15&&mo.sw>=0.15&&mo.knob>=0.2&&mo.i==='0'&&mo.n==='3',mo);
+ const tabs=await p.evaluate(()=>[...document.querySelectorAll('.pf-steps .pw-btn')].map(e=>({t:e.textContent.replace(/^\d/,'').trim(),f:getComputedStyle(e).fontSize,fits:e.scrollWidth<=Math.ceil(e.getBoundingClientRect().width)+1,lines:Math.round(e.getBoundingClientRect().height)})));
+ ok(`${tag} the step tabs read at 13px, each on one line inside its tab`,tabs.length===4&&tabs.every(x=>x.f==='13px'&&x.fits&&x.lines<=48),tabs);
  /* taps */
+ await p.tap('[data-pw="pf-goal"][data-value="lose"]');
+ const mid=await p.evaluate(async()=>{const k=window.__keep,x0=new DOMMatrix(getComputedStyle(k.seg,'::before').transform).m41;await new Promise(r=>setTimeout(r,90));const x1=new DOMMatrix(getComputedStyle(k.seg,'::before').transform).m41;await new Promise(r=>setTimeout(r,500));const x2=new DOMMatrix(getComputedStyle(k.seg,'::before').transform).m41;return {x0,x1,x2,w:k.seg.getBoundingClientRect().width,same:k.goal.isConnected&&k.card.isConnected&&k.goal.classList.contains('on')};});
+ ok(`${tag} tapping a segment slides the thumb: caught part-way, then at rest one segment over, same elements`,mid.same&&mid.x1>0.5&&mid.x1<mid.x2-0.5&&Math.abs(mid.x2-(mid.w-6)/3)<1.5,mid);
+ await p.tap('[data-pw="pf-goal"][data-value="grow"]');await p.waitForTimeout(450);
  await p.tap('[data-pw="pf-goal"][data-value="lose"]');await p.waitForTimeout(250);d=await dom();
  ok(`${tag} tap Lose weight: it lights and the line under it changes`,d.goal.join()==='lose'&&/12 to 15 reps/.test(d.cap),d.cap);
  await p.tap('[data-pw="pf-weekstart"][data-value="sunday"]');await p.waitForTimeout(250);d=await dom();
@@ -47,7 +58,8 @@ try{for(const [w,h] of [[402,874],[320,640]])for(const theme of ['light','dark']
  await p.tap('[data-pw="pf-size"][data-value="limit"]');await p.waitForTimeout(250);d=await dom();
  ok(`${tag} tap Set a limit: a number field appears`,d.size.join()==='limit'&&d.max,d);
  await p.fill('[data-pf-pref="maxSets"]','18');
- await p.tap('[data-pw="pf-warmup"]');await p.waitForTimeout(250);d=await dom();
+ await p.tap('[data-pw="pf-warmup"]');await p.waitForTimeout(450);d=await dom();
+ ok(`${tag} ...and the page was never rebuilt under the taps`,await p.evaluate(()=>{const k=window.__keep;return k.card.isConnected&&k.sw.isConnected&&k.dow.isConnected&&k.seg.isConnected;}));
  ok(`${tag} tap the warm-up switch: off, and the limit typed is kept`,d.warm==='false'&&await p.inputValue('[data-pf-pref="maxSets"]')==='18',d.warm);
  await p.selectOption('[data-pf-avoid]','Standing Calf Raise');await p.waitForTimeout(300);
  await p.selectOption('[data-pf-hold]','Dip');await p.waitForTimeout(300);d=await dom();

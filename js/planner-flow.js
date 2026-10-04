@@ -165,7 +165,7 @@ function pfAnchor(){const j=pfState();if(!pfMatch()){j.furthest=2;j.saved=[];}j.
 function pfNavigate(page){const s=pw(),j=pfState();if(page==='days'){page=s.dates.length?'edit':'dates';if(!s.dates.includes(s.active))s.active=pfDates()[0]||null;}if(['days','edit','done'].includes(page)&&!pfMatch())page='dates';j.page=page;s.step='edit';s.datesOpen=false;s.error='';j.clear=false;j.emptyConfirm=false;j.group=null;pwPersist();pwRender();window.scrollTo(0,0);}
 function pfStepbar(){const j=pfState(),current={prefs:0,dates:1,days:2,edit:2,done:3}[j.page]??2;return `<div role="navigation" class="pf-steps" aria-label="Planning steps">${['Preferences','Dates','Edit','Done'].map((label,i)=>{const allowed=(i===2&&pfSavedSelection())||(i<=j.furthest&&(i<2||pfMatch()));return pwButton('pf-stage',`<b>${i}</b><span>${label}</span>`,`${i===current?'pf-current':''} ${i<current?'pf-passed':''}`,`data-stage="${i}" ${allowed?'':'disabled'} ${i===current?'aria-current="step"':''}`);}).join('')}</div>`;}
 function pfPrefHTML(){const j=pfState(),p=(j.prefs&&j.prefs.hold&&j.prefs.trainDays)?j.prefs:(j.prefs=pfStagePrefs());
- const seg=(act,opts,cur,cls='')=>`<div class="pf-seg ${cls}" role="group">${opts.map(([v,t])=>`<button type="button" class="pf-segb${cur===v?' on':''}" data-pw="${act}" data-value="${v}" aria-pressed="${cur===v}">${t}</button>`).join('')}</div>`;
+ const seg=(act,opts,cur,cls='')=>`<div class="pf-seg ${cls}" role="group" style="--n:${opts.length};--i:${Math.max(0,opts.findIndex(o=>o[0]===cur))}">${opts.map(([v,t])=>`<button type="button" class="pf-segb${cur===v?' on':''}" data-pw="${act}" data-value="${v}" aria-pressed="${cur===v}">${t}</button>`).join('')}</div>`;
  const X='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',OK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
  /* every strength exercise, grouped body part -> muscle, as everywhere else in the app */
  const picker=(attr,label,skip)=>{const groups=[];for(const part of BODY_PARTS.filter(x=>x!=='Run'))for(const m of (PART_MUSCLES[part]||[])){const list=pwAllExercises().filter(ex=>homePartOf(ex)===part&&exMuscle(ex,part)===m&&!skip.some(x=>canonKey(x)===canonKey(ex)));if(list.length)groups.push(`<optgroup label="${hesc(part)} · ${hesc(MUSCLE_LABEL[m]||m)}">${list.map(ex=>`<option>${hesc(ex)}</option>`).join('')}</optgroup>`);}
@@ -186,6 +186,27 @@ function pfPrefHTML(){const j=pfState(),p=(j.prefs&&j.prefs.hold&&j.prefs.trainD
  <div class="pf-pref-grp"><span>Hold the weight<small>reps can move, the load does not go up</small></span><div class="pf-xchips">${p.hold.map((ex,i)=>`<button type="button" class="pf-xchip" data-pw="pf-unhold" data-index="${i}" aria-label="Stop holding ${hesc(ex)}">${hesc(ex)} ${heldTxt(ex)} ${X}</button>`).join('')}${picker('data-pf-hold','Hold an exercise',p.hold)}</div></div></div>
 <div class="card pf-rules"><span class="pf-rules-h">How every plan is built</span><ul>${['Only the body parts you set for the day. Nothing is added on its own.','Exercises hit the muscles you chose for the day.','Heaviest lifts first, core last.','No more sets on an exercise than you usually do.','Short of the target, an exercise is recommended. Sets are never stacked.','If the reps are not in reach, the weight comes down.'].map(t=>`<li>${OK}<span>${t}</span></li>`).join('')}</ul></div>
 </div>`;}
+/* v4.6.202: bring the page in line with the staged copy WITHOUT replacing it:
+   the same markup is built off-screen and only what differs is carried over --
+   classes and pressed states on the controls, the thumb's position, the
+   caption, the limit row, the weekday order. Returns false if the page is not
+   the one on screen (then the caller renders). */
+function pfPrefPatch(){
+ const live=document.querySelector('.pf-workspace .pf-prefs');if(!live)return false;
+ const t=document.createElement('template');t.innerHTML=pfPrefHTML();const next=t.content.querySelector('.pf-prefs');if(!next)return false;
+ /* the weekday row re-orders when the week's first day changes */
+ const ld=live.querySelector('.pf-dow'),nd=next.querySelector('.pf-dow'),order=e=>[...e.querySelectorAll('.pf-dowb')].map(x=>x.dataset.value).join();
+ if(ld&&nd&&order(ld)!==order(nd))for(const v of order(nd).split(',')){const e=ld.querySelector(`.pf-dowb[data-value="${v}"]`);if(e)ld.append(e);}   /* moved, not rebuilt */
+ /* the limit row comes and goes with Size */
+ const ll=live.querySelector('.pf-pref-limit'),nl=next.querySelector('.pf-pref-limit');
+ if(nl&&!ll){const after=live.querySelector('[data-pw="pf-size"]')?.closest('.pf-pref-row');if(!after)return false;nl.classList.add('pf-reveal');after.after(nl.cloneNode(true));}
+ else if(ll&&!nl)ll.remove();
+ const pair=(sel,fn)=>{const a=[...live.querySelectorAll(sel)],b=[...next.querySelectorAll(sel)];if(a.length!==b.length)return false;a.forEach((e,i)=>fn(e,b[i]));return true;};
+ const ok=pair('.pf-seg',(e,n)=>{e.style.setProperty('--i',n.style.getPropertyValue('--i'));})
+  &&pair('.pf-segb,.pf-dowb,.pf-switch',(e,n)=>{e.classList.toggle('on',n.classList.contains('on'));for(const k of ['aria-pressed','aria-checked'])if(n.hasAttribute(k))e.setAttribute(k,n.getAttribute(k));})
+  &&pair('.pf-pref-cap,.pf-pref-row>span>small',(e,n)=>{if(e.innerHTML!==n.innerHTML)e.innerHTML=n.innerHTML;});
+ return ok;
+}
 /* the page edits a copy; nothing changes until Save */
 function pfStagePrefs(){const p=pfPrefs();p.goal=['grow','lose','strength'].includes(pw().objective)?pw().objective:'grow';p.weekStart=weekStartDow()===1?'monday':'sunday';if(!p.trainDays)p.trainDays=pfUsualDays();p.hold=typeof exHoldNames==='function'?exHoldNames():[];return p;}
 function pfCalendar(){const s=pw(),j=pfState(),landing=new Set(j.move?planShiftable(pfDateKinds().saved,j.move.delta).moves.map(m=>m.to):[]),base=new Date((s.month||todayISO.slice(0,7)+'-01')+'T12:00'),first=weekStartDow(),offset=(base.getDay()-first+7)%7,n=new Date(base.getFullYear(),base.getMonth()+1,0).getDate(),trained=workoutDates(),seen={done:false,trained:false};return `<div class="card pf-date-sheet"><div class="pw-month">${pwButton('month',icon('chevron',ICON_SZ.sm,180),'pw-icon','data-delta="-1" aria-label="Previous month"')}<strong>${base.toLocaleDateString('en-US',{month:'long',year:'numeric'})}</strong>${pwButton('month',icon('chevron',ICON_SZ.sm),'pw-icon','data-delta="1" aria-label="Next month"')}</div><div class="pw-calendar pf-calendar">${Array.from({length:7},(_,i)=>`<span>${['S','M','T','W','T','F','S'][(first+i)%7]}</span>`).join('')}${'<span></span>'.repeat(offset)}${Array.from({length:n},(_,i)=>{const date=new Date(base);date.setDate(i+1);const d=pwISO(date),selected=s.dates.includes(d),draft=pfCalendarDraft(d),planned=!!pwSaved(d)?.items?.length,saved=d>=todayISO&&planned;const lands=landing.has(d);const done=!draft&&pfDone(d,trained),mark=done?(planned?'done':'trained'):null;if(mark)seen[mark]=true;const status=mark?pfStatusIcon(mark):d<todayISO?'':draft?pfStatusIcon('draft'):saved?pfStatusIcon('saved'):lands?pfStatusIcon('lands'):'';const said=mark==='done'?'plan done':mark==='trained'?'trained':d<todayISO?'past date':draft?(saved?'draft, unsaved changes to saved plan':'new unsaved draft'):saved?'plan saved':'no plan';return pwButton('date',`<span>${i+1}</span><small class="pf-day-status" aria-hidden="true">${status}</small>`,`${selected?'selected':''} ${draft?'pf-has-draft':''} ${lands&&!selected?'pf-lands':''} ${mark?'pf-is-'+mark:''}`,`data-date="${d}" aria-pressed="${selected}" aria-label="${hesc(pwDate(d,true))}, ${said}" ${d<todayISO?'disabled':''}`);}).join('')}</div><div class="pf-calendar-key"><span class="pf-keys"><span><i class="pf-key-selected" aria-hidden="true"></i> Selected</span><span>${pfStatusIcon('saved')} Saved plan</span>${j.move&&!pfDateKinds().drafts.length?'':`<span>${pfStatusIcon('draft')} Draft</span>`}${j.move?`<span>${pfStatusIcon('lands')} Lands here</span>`:''}${seen.done?`<span class="pf-key-done">${pfStatusIcon('done')} Done</span>`:''}${seen.trained?`<span>${pfStatusIcon('trained')} Trained</span>`:''}</span><span>Up to 7 days</span></div></div>`;}
@@ -781,11 +802,16 @@ function pfHandle(a,el){const s=pw(),j=pfState(),d=el.dataset.date,i=+el.dataset
  if(a==='pf-back'){pfBack();return;}
  if(a==='pf-stage'){j.prefOrigin=null;const n=+el.dataset.stage;if(n===2&&pfSavedSelection()){s.dates.forEach(d=>pwDay(d));if(!s.dates.includes(s.active))s.active=pfDates()[0];pfAnchor();}else if(n>j.furthest||n>=2&&!pfMatch())return;pfNavigate(['prefs','dates','days','done'][n]);return;}
  if(a.startsWith('pf-')&&['pf-goal','pf-weekstart','pf-trainday','pf-size','pf-warmup','pf-unavoid','pf-unhold','pf-prefs-save'].includes(a)&&!(j.prefs&&j.prefs.hold&&j.prefs.trainDays))j.prefs=pfStagePrefs();
- if(a==='pf-goal'){j.prefs.goal=el.dataset.value;}
- else if(a==='pf-weekstart')j.prefs.weekStart=el.dataset.value==='monday'?'monday':'sunday';
- else if(a==='pf-trainday'){const n=+el.dataset.value,t=j.prefs.trainDays;j.prefs.trainDays=t.includes(n)?t.filter(x=>x!==n):[...t,n].sort();}
- else if(a==='pf-size')j.prefs.mode=el.dataset.value==='limit'?'limit':'auto';
- else if(a==='pf-warmup')j.prefs.warmup=!j.prefs.warmup;
+ /* v4.6.202: THE SWITCHES MOVE. Every tap on this page re-rendered it, so a
+    toggle jumped from one state to the other: there was no element left to
+    animate. These five now change the staged copy and patch the page in place
+    (pfPrefPatch), so the thumb slides and the colours cross-fade. */
+ if(['pf-goal','pf-weekstart','pf-trainday','pf-size','pf-warmup'].includes(a)){const p=j.prefs,v=el.dataset.value;
+  if(a==='pf-goal')p.goal=v;else if(a==='pf-weekstart')p.weekStart=v==='monday'?'monday':'sunday';
+  else if(a==='pf-trainday'){const n=+v,t=p.trainDays;p.trainDays=t.includes(n)?t.filter(x=>x!==n):[...t,n].sort();}
+  else if(a==='pf-size')p.mode=v==='limit'?'limit':'auto';else p.warmup=!p.warmup;
+  pwPersist();if(!pfPrefPatch())pwRender();return;}
+ if(false){}
  else if(a==='pf-unavoid')j.prefs.avoid.splice(i,1);
  else if(a==='pf-unhold')j.prefs.hold.splice(i,1);
  else if(a==='pf-prefs-save'){const p=j.prefs;if(!p||(p.mode==='limit'&&(!Number.isInteger(p.maxSets)||p.maxSets<1||p.maxSets>100)))throw Error('Use a whole number of sets from 1 to 100.');

@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v4.6.202 (2026-10-03) — Preferences: the toggles move, and larger step tabs
+
+- **Asked:** every toggle on Plan → Preferences animated smoothly, and the tab text (Preferences, Dates, Edit, Done) a bit larger.
+- **Why they jumped:** every tap re-rendered the whole page, so the control you tapped was replaced by a new one in its end state and there was nothing left to animate.
+- **Now:** the five controls (goal, week start, days you train, size, warm-up) change the staged copy and patch the page in place. Each segmented control has one thumb that slides to the chosen segment; labels, weekday circles and the switch cross-fade; the limit field eases in when you choose Set a limit; changing the week's first day moves the weekday circles instead of rebuilding them. Reduced-motion is respected.
+- The step tabs are 13px (were 11px), still one line each at 320 wide.
+- Tests: `tools/check-plan-prefs.cjs` grows to 104 checks: the thumb is caught part-way through its slide, and the tapped elements are the same elements afterwards.
+
 ## v4.6.201 (2026-10-03) — Plan → Preferences, rebuilt around what changes a plan
 
 - **Why:** the page asked for days a week, minutes per workout, seven Less/Balanced/More sliders and a split. All four reached the writer as a line in a note and decided nothing; they predate body parts and muscles per day, the auto Set target, Avoid and Hold. The sets range was also the last place that padded sets onto a short day. Reviewed, mocked and approved.
