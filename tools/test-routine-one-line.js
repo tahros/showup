@@ -1,3 +1,4 @@
+// v4.6.211: the clear-day question is one line and two buttons.
 // v4.6.210: the planner's routine text puts sets at one load on one line; the newer-plan buttons have a gap.
 const fs=require('fs'),vm=require('vm'),assert=require('assert');
 const src=fs.readFileSync(__dirname+'/../js/planner-flow.js','utf8'),m=/function pfOneLine[\s\S]*?\n/.exec(src);assert(m,'pfOneLine exists');
@@ -8,4 +9,5 @@ t('a different load starts a new line',c.f(['95 lb × 10 (warm-up)','135 lb × 8
 t('by feel joins too, and different reps stay in order',c.f(['by feel × 15','by feel × 15','by feel × 12']),['by feel × 15 15 12']);
 t('a line that is not sets is left alone',c.f(['Run — 1.99 mi · 20 min','','60 lb × 8']),['Run — 1.99 mi · 20 min','','60 lb × 8']);
 assert(/class="pf-conflict-actions">\$\{pwButton\('load-newer'/.test(src));assert(/\.pf-conflict-actions\{display:flex;flex-wrap:wrap;gap:10px/.test(fs.readFileSync(__dirname+'/../css/planner-flow.css','utf8')));console.log('PASS the newer-plan buttons sit in a row with a gap');n++;
+{const l=/ if\(j\.clear\)\{body=.*/.exec(src)[0];assert(/Remove the plan for /.test(l)&&/It goes when you save\. Your log stays\./.test(l)&&(l.match(/pwButton\(/g)||[]).length===2&&l.includes("${pwButton('pf-clear-cancel','Cancel')}${pwButton('pf-remove-day','Remove plan','primary')}")&&!/pf-empty-day/.test(l));console.log('PASS v4.6.211: clearing a day asks one question with one line: Cancel or Remove plan');n++;}
 console.log(n+' checks');process.exit(0);

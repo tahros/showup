@@ -643,3 +643,7 @@ html.pf-chip-drag,html.pf-chip-drag body{user-select:none;-webkit-user-select:no
 /* v4.6.210: the two answers to a newer plan stand apart, sharing the row */
 :root .pf-workspace .pf-conflict-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
 :root .pf-workspace .pf-conflict-actions .pw-btn{flex:1 1 140px;min-height:44px;margin:0}
+/* v4.6.211: one question, one line, two equal buttons */
+:root .pf-workspace .pf-ask h3{margin:0}
+:root .pf-workspace .pf-ask-note{margin:6px 0 0;font:400 13px/1.45 var(--body);color:var(--muted)}
+:root .pf-workspace .pf-ask .pf-conflict-actions .pw-btn{flex:1 1 0;min-width:0}

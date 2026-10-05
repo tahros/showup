@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.211 (2026-10-05) — Clearing a day is one question with two buttons
+
+- **Reported from the phone:** "Clear Sun, 10/11?" had three buttons of three widths and two lines of explanation, and two of the buttons both removed the day's content.
+- Now: "Remove the plan for Sun, 10/11?", one line ("It goes when you save. Your log stays."), and two equal buttons side by side: Cancel and Remove plan.
+- "Keep day, empty routine" is gone from the screen. An empty day could not be saved anyway (Save turns it into No plan), so it was the same outcome by a longer road. To rebuild a day by hand, remove its exercises on Edit.
+- Test: `tools/test-routine-one-line.js` (7).
+
 ## v4.6.210 (2026-10-05) — Planner routines read one line per load; the newer-plan buttons stand apart
 
 - **Reported from the phone:** on "Newer plan" the sets at one load ran down the card a line each ("35 lb × 14 14", "35 lb × 14", "35 lb × 14"), and Use newer plan / Keep my draft touched each other.
