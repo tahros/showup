@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v4.6.213 (2026-10-05) — A day you stepped round is not picked for you
+
+- **Asked:** Dates opened on Mon to Sat although today's plan had been pushed on, leaving the plans on Tue to Sat. Should it open on Tue to Sat? Yes.
+- **Why it mattered:** selecting today offered "Plan 1 new day" for the day just cleared, and the split gave it the next session, putting the days after it out of step with what was saved.
+- **Rule:** a training day is left out of the opening selection (and of Coming up on Preferences) when it is marked a Rest day, or when it has no plan and nothing logged and either its plan was pushed forward (`planShift` notes the days it vacates in the planner's state; undo takes the note back) or it is today and tomorrow is already planned. The last clause covers pushes made before this version, which left no note.
+- The day can still be tapped. Planning it yourself, or logging on it, makes it an ordinary day again.
+- Test: `tools/test-skip-day.js` (15).
+
 ## v4.6.212 (2026-10-05) — Remove plan removes it, there and then
 
 - **Reported from the phone:** after Remove plan on Sunday the calendar still showed the Draft pencil on it, and there was no way to save the removal.

@@ -93,8 +93,19 @@ function pfRotAssign(sessions,dates){const n=sessions.length,out={},ds=[...dates
   if(sel.has(iso)){out[iso]=cur;cur=(cur+1)%n;}else if(pwSaved(iso)?.items?.length)cur=(cur+1)%n;}
  return out;}
 /* the dates the planner opens on: your training weekdays across seven days from the day it would open on */
+/* v4.6.213: A DAY YOU STEPPED ROUND IS NOT PICKED FOR YOU. Dates opened with
+   every training day of the next seven selected, today included -- even when
+   you had just pushed today's plan on to tomorrow, so the page offered to plan
+   the very day you had cleared, and the split handed it the next session and
+   put every day after it out of step. A training day is now left out of the
+   opening selection (and of Coming up) when you marked it a Rest day, or when
+   it has no plan and nothing logged and either you pushed its plan forward
+   (planShift notes the days it vacates) or it is today and tomorrow is already
+   planned. It can still be tapped. */
+function pfSkipDay(d){if(DB.days?.[d]?.rest)return true;if(pwSaved(d)?.items?.length||(DB.days?.[d]?.w||[]).length)return false;
+ if((pw().skip||[]).includes(d))return true;return d===todayISO&&!!pwSaved(pwShiftISO(d,1))?.items?.length;}
 function pfTrainDates(t){if(!t||!t.length)return [];const start=dayClosed()?tomorrowISO():writeDateISO(),out=[],d0=new Date(start+'T12:00');
- for(let k=0;k<7;k++){const d=new Date(d0);d.setDate(d0.getDate()+k);if(t.includes(d.getDay()))out.push(d.toLocaleDateString('en-CA'));}return out;}
+ for(let k=0;k<7;k++){const d=new Date(d0);d.setDate(d0.getDate()+k);const iso=d.toLocaleDateString('en-CA');if(t.includes(d.getDay())&&!pfSkipDay(iso))out.push(iso);}return out;}
 /* an empty day you have selected takes its session's body parts; one you set yourself, drafted or saved is never touched */
 function pfSplitFill(){const r=pfPrefs().rotation;if(!r)return;const s=pw(),map=pfRotAssign(r.sessions,s.dates);
  for(const d of s.dates){const b=pwDay(d),ses=r.sessions[map[d]];if(!ses||b.rows.length||pwSaved(d)?.items?.length||(b.partsPick&&!b.splitFill))continue;
@@ -967,7 +978,7 @@ pwRender=function(){return pfOn()?pfRender():pfLegacy.render();};
    it opens with those picked across the next seven days, from the day it
    would have opened on. */
 function pfPickTrainDays(){const s=pw(),t=pfPrefs().trainDays;if(!t||!t.length||!s.active)return;const out=[],d0=new Date(s.active+'T12:00');
- for(let k=0;k<7;k++){const d=new Date(d0);d.setDate(d0.getDate()+k);if(t.includes(d.getDay()))out.push(d.toLocaleDateString('en-CA'));}
+ for(let k=0;k<7;k++){const d=new Date(d0);d.setDate(d0.getDate()+k);const iso=d.toLocaleDateString('en-CA');if(t.includes(d.getDay())&&!pfSkipDay(iso))out.push(iso);}
  if(!out.length)return;s.dates=out;s.active=out[0];s.month=out[0].slice(0,7)+'-01';out.forEach(x=>pwDay(x));}
 pwOpen=function(d,step){if(!pfOn())return pfLegacy.open(d,step);const s=pw(),j=pfState();j.history=[];j.lastScreen=null;j.returnView=view==='sync'?'sync':'today';if(s.busy){pwRequest++;lift.writeAbort?.abort();s.busy=false;}if(d){s.dates=[d];s.active=d;s.month=d.slice(0,7)+'-01';pwDay(d);}else{const had=s.dates.some(x=>x>=todayISO);pwFreshenDates();if(!had)pfPickTrainDays();}/* v4.6.61: same rule as the legacy open, from the same helper */j.page=step==='dates'?'dates':d&&pwSaved(d)?'edit':d?'dates':j.page;j.prefOrigin=null;if(d&&pwSaved(d))pfAnchor();lift.plan='workspace';view='today';s.step='edit';pwPersist();render({soft:true});};
 pwApply=function(add=false){if(!pfOn())return pfLegacy.apply(add);const c=pw().candidate;if(!c)return;const generated=c.type==='generate',adjust=c.type==='adjust';if(c.type==='paste'&&c.index===undefined&&pfState().pasteAll){const one=Object.values(c.days)[0];c.days=Object.fromEntries(pfDates().map(d=>[d,pwCopy(one)]));}pfLegacy.apply(add);for(const d of Object.keys(c.days)){pwDay(d).target=null;}pfAnchor();pfMotion={kind:'arrive'};pfNavigate(generated?'days':'edit');};

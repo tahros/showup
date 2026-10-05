@@ -67,10 +67,12 @@ function planShift(dates,delta){
   for(const {from} of plan.moves){if(from in book){held[from]=book[from];delete book[from];}}
   for(const {from,to} of plan.moves){if(from in held)book[to]=held[from];else delete book[to];}
   s.book=book;s.dates=s.dates.map(d=>plan.moves.find(x=>x.from===d)?.to||d);
+  /* v4.6.213: the days a push leaves empty are days you stepped round; Dates does not pick them for you (pfSkipDay) */
+  {const landed=new Set(plan.moves.map(m=>m.to)),was=s.skip||[];s.skip=[...new Set([...was.filter(d=>d>=todayISO&&!landed.has(d)),...plan.moves.map(m=>m.from).filter(d=>!landed.has(d))])];before.skip=was;}
   if(s.active&&!s.dates.includes(s.active))s.active=s.dates[0]||null;
   pwPersist();planRailRefresh();DB.planAt=Date.now();save(true);
   return {...plan,undo(){const st=pw();DB.week=before.week;DB.plan=before.plan;DB.weekAt=DB.planAt=Date.now();
-    st.book=before.book;st.dates=before.dates;st.active=before.active;
+    st.book=before.book;st.dates=before.dates;st.active=before.active;st.skip=before.skip;
     pwPersist();planRailRefresh();save(true);}};
 }
 /* the run Push moves: today and every planned day after it, up to the first
