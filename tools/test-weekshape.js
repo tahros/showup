@@ -114,15 +114,16 @@ build("dow=>((dow*2654435761)%97)>24");
    -- and the definite forms are named too, because "is it hedged" is only worth
    asserting if "is it definite" can fail. */
 ok("a record with no rhythm is not given one",
-   /evenly|most on|leans? to|lean toward|likeliest|No weekday carries|spread flat|takes a turn/.test(line()), line());
+   /evenly|No set rest day|^Mostly |^Leans to /.test(line()), line());
 ok("...and it never states a rest day outright",
-   !/are your rest day|Rest lands on|are when you stop|takes \w+days off|^You rest on \w+days\.$/.test(line().trim()), line());
+   !/days off\.$|^Off on |^Rest: /.test(line().trim()), line());
 
 // ---- nothing is a target
 ok("the shape sets no goal, grades nothing and names no ideal",
    !/goal|target|ideal|should|score|streak|better|worse|👏|🎉/i.test(card()), card().slice(0,110));
-ok("...and the long run stays a fact in the footer",
-   /longest run \d+/.test(card()));
+/* v4.6.218: the sub-line and the footer are gone; the line is short */
+ok("...and nothing sits under the line or the columns: no sub-line, no footer",
+   run(`!document.querySelector('.restweek .rwsub,.restweek .rwfoot')`)&&!/longest run|by weekday|across/.test(card()), card());
 
 // ---- the counters it sits under are untouched
 /* ---- v3.3.513: the columns grow in ----
@@ -200,9 +201,9 @@ ok("...only on an arrival, never on an in-place repaint",
    /#view:not\(\.norise\) \.restweek\.grown \.rwbar i::after/.test(fs.readFileSync(path.join(dir,"css/app.css"),"utf8")));
 run(`(function(){const s=document.getElementById('__csstmp'); if(s) s.remove();})()`);
 
-ok("the card still leads with the count and the share",
+ok("the card still leads with the count (v4.6.218: the share line is gone)",
    run(`(function(){const c=document.querySelector('.crcard.resting');
-     return /days rested/.test(c.textContent) && /% of days since/.test(c.textContent);})()`));
+     return /days rested/.test(c.textContent) && !/% of days since/.test(c.textContent);})()`));
 // ---- the attendance card does NOT get it: it is a rest reading
 ok("the attendance card gets no week shape — it is a rest reading",
    run(`(function(){view='stats'; render();

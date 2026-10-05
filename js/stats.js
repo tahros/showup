@@ -900,15 +900,15 @@ function currentRhythmSection(inverse){
     lifetime=`${pct}% of days since ${since}`;   // v3.3.470: "of every day" -> "of days", both cards
   }
   const head=inverse
-    ?`<h2 id="secRest">Rest — that's the other half${hActs('restrhythm','Every day since your first, one square each; the days you did not train are green. It opens on today.','About Rest')}</h2>`
+    ?`<h2 id="secRest">Rest${hActs('restrhythm','Every day since your first, one square each; the days you did not train are green. It opens on today.','About Rest')}</h2>`
     :`<h2 id="secDays">Show up — that's the whole game${hActs('rhythm','Every day since your first, one square each. Scroll back through the years; it opens on today.','About Show up')}</h2>`;
   return `${head}
     <div class="card crcard${inverse?' resting':''}">
       <div class="crhead">
         <span class="crtotal"><b>${fmt(total)}</b><small>${inverse?'days rested':'days in'}</small></span>
-        <span class="crstreak">${inverse?`<span>resting ${streak} day${streak===1?'':'s'}</span><span>longest ${best}</span>`:`<span>streak ${streak} day${streak===1?'':'s'}</span><span>best ${best}</span>`}</span>
+        ${inverse?'':`<span class="crstreak"><span>streak ${streak} day${streak===1?'':'s'}</span><span>best ${best}</span></span>`}
       </div>
-      ${lifetime?`<div class="crsince"><span>${lifetime}</span>${inverse?'':'<span class="heat-acts"><button type="button" class="heat-replay" aria-label="Replay every day you showed up">↻ <span>Replay</span></button><button type="button" class="heat-share" aria-label="Share every day you showed up">'+ICO_SHARE+'</button></span>'}</div>`:''}
+      ${lifetime&&!inverse?`<div class="crsince"><span>${lifetime}</span>${inverse?'':'<span class="heat-acts"><button type="button" class="heat-replay" aria-label="Replay every day you showed up">↻ <span>Replay</span></button><button type="button" class="heat-share" aria-label="Share every day you showed up">'+ICO_SHARE+'</button></span>'}</div>`:''}
       <!-- v3.3.332: the month row lives INSIDE the scroller, beside the grid.
            It used to be a sibling of .heatwrap, so the two resolved their 35
            columns against DIFFERENT widths: the grid carries min-width:100%
@@ -983,31 +983,25 @@ function weekShape(R){
     let h=0; for(const ch of (todayISO||'')) h=(h*31+ch.charCodeAt(0))>>>0;
     return list[h%list.length];
   };
+  /* v4.6.218: THE REST CARD SAYS LESS. The maker struck the heading's tail, the
+     run and share lines, the sentence's sub-line and the footer, and asked for a
+     shorter sentence. What is left is the count, the grid, one short line and the
+     seven columns. The line still rotates by date and still only says what its
+     branch found. */
   let line;
   if(top.rate>=.5&&top.rate-second.rate>=.12)
-    line=pick([`You rest on ${top.name}.`,
-               `${top.name} are your rest day.`,
-               `Your week takes ${top.name} off.`,
-               `Rest lands on ${top.name}.`,
-               `${top.name} are when you stop.`]);
+    line=pick([`${top.name} off.`,
+               `Off on ${top.name}.`,
+               `Rest: ${top.name}.`]);
   else if(spread<.15)
-    line=pick([`You rest evenly across the week.`,
-               `No weekday carries your rest.`,
-               `Your rest is spread flat across the week.`,
-               `Every weekday takes a turn resting.`]);
+    line=pick([`No set rest day.`,
+               `Rest, evenly spread.`]);
   else if(top.rate-sorted[2].rate>=.12)
-    line=pick([`You rest on ${top.name} and ${second.name}.`,
-               `${top.name} and ${second.name} are your rest days.`,
-               `Rest lands on ${top.name} and ${second.name}.`,
-               `Your week takes ${top.name} and ${second.name} off.`]);
+    line=pick([`${top.name} and ${second.name} off.`,
+               `Off on ${top.name} and ${second.name}.`]);
   else
-    line=pick([`You rest most on ${top.name}.`,
-               `${top.name} lean toward rest.`,
-               `Rest leans to ${top.name}.`,
-               `${top.name} are your likeliest rest day.`]);
-  const sub=(top.rate>=.5&&top.rate-second.rate>=.12)
-    ? `${Math.round(top.rate*100)}% of them, across ${fmt(R.daysIn)} days.`
-    : `across ${fmt(R.daysIn)} days.`;
+    line=pick([`Mostly ${top.name}.`,
+               `Leans to ${top.name}.`]);
   const bars=cols.map((c,i)=>{
     const pct=Math.round(c.rate*100), lead=c===top&&spread>=.15;
     /* --j is the column's place in the week, so the growth staggers across it */
@@ -1018,9 +1012,7 @@ function weekShape(R){
   }).join('');
   return `<div class="restweek">
     <p class="rwline">${line}</p>
-    <p class="rwsub mono">${sub}</p>
     <div class="rwbars">${bars}</div>
-    <div class="rwfoot mono"><span>rest days by weekday</span><span>longest run ${fmt(R.longest||0)}</span></div>
   </div>`;
 }
 function consistencyRaceSection(){

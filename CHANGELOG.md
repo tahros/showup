@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.218 (2026-10-05) — The Rest card says less
+
+- **Marked on a screenshot:** the heading is "Rest" (no "that's the other half"); the card drops "resting N days / longest N", "N% of days since…", the sub-line under the weekday sentence, and the footer ("rest days by weekday / longest run").
+- **The weekday sentence is short:** "Sundays off.", "Off on Sundays." or "Rest: Sundays." for a clear rest day; "Mostly Sundays." when it only leans; "Sundays and Saturdays off." for two; "No set rest day." when flat. It still rotates by date and only says what the data found.
+- The Show up card is unchanged.
+- Tests: `tools/test-weekshape.js`, `tools/test-rest.js`.
+
 ## v4.6.217 (2026-10-05) — Pip morphs into Rest
 
 - Keeps the same live Pip when entering or leaving Rest: position and Compact size ease together over 850ms, while the current pose blends into the nap instead of flashing a fresh renderer.

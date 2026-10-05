@@ -1041,14 +1041,14 @@ ok("the status-bar style no longer puts content under the status bar",
       DB.days[D(n)]={w:[{part:'Chest',ex:'Dip',w:40,bw:true,reps:[8],at:1}],upd:1}; }
     DB.days[todayISO]={w:[],rest:1,upd:1}; SEED=deriveAll(); view='today'; render(); })()`);
   const T=run(`$('#view').innerHTML`);
-  ok("Today carries the inverse attendance card while resting", run(`!!document.querySelector('#view .crcard.resting')`) && /Rest — that/.test(T));
+  ok("Today carries the inverse attendance card while resting", run(`!!document.querySelector('#view .crcard.resting')`) && /Rest/.test(T) && !/the other half/.test(T));
   ok("...it is the SAME markup as the original: crhead, crtotal, crstreak, heatframe, wdrail, heatyears, heatgrid, heatticks",
-     run(`(function(){const c=document.querySelector('.crcard.resting'); return ['.crhead','.crtotal','.crstreak','.heatframe','.wdrail','.heatyears','.heatgrid','.heatticks'].every(q=>!!c.querySelector(q));})()`));
+     run(`(function(){const c=document.querySelector('.crcard.resting'); return ['.crhead','.crtotal','.heatframe','.wdrail','.heatyears','.heatgrid','.heatticks'].every(q=>!!c.querySelector(q));})()`));
   ok("...the number is days rested: 5", run(`document.querySelector('.crcard.resting .crtotal b').textContent`)==='5' && /days rested/.test(T));
-  ok("...the run line is the rest analogue in TWO lines: resting 1 day / longest 1",
-     run(`[...document.querySelectorAll('.crcard.resting .crstreak > span')].map(x=>x.textContent).join('|')`)==='resting 1 day|longest 1'
-     && /\.crcard(?:\.resting)? \.crstreak\{display:flex;flex-direction:column/.test(fs.readFileSync(path.join(dir,"css/app.css"),"utf8")),   /* v4.5.11: the rule widened to .crcard -- the attendance card stacks too now, and that selector still covers .crcard.resting */
-     run(`document.querySelector('.crcard.resting .crstreak').textContent`));
+  /* v4.6.218: the rest card carries the count and the grid only: no run line, no share-of-days line */
+  ok("...and it carries no run line and no share-of-days line",
+     run(`!document.querySelector('.crcard.resting .crstreak,.crcard.resting .crsince')`) && !/resting \d+ day|longest|% of days/.test(run(`document.querySelector('.crcard.resting').textContent`)),
+     run(`document.querySelector('.crcard.resting .crhead').textContent`));
   const lit=run(`document.querySelectorAll('.crcard.resting .heatgrid .hc.on').length`);
   ok("...exactly the five rest days are lit, and nothing before the ledger began", lit===5, lit);
   ok("...today is lit and ringed (it is a rest day)", run(`!!document.querySelector('.crcard.resting .hc.on.tod')`));
@@ -1056,7 +1056,7 @@ ok("the status-bar style no longer puts content under the status bar",
      /\.crcard\.resting \.heatgrid \.hc\.tod::after\{border-color:var\(--rest-ink\)\}/.test(fs.readFileSync(path.join(dir,"css/app.css"),"utf8")));
   ok("...lit cells say 'rested', unlit say 'trained'", run(`document.querySelector('.crcard.resting .hc.on').getAttribute('aria-label')`).endsWith('rested') &&
      run(`[...document.querySelectorAll('.crcard.resting .hc')].find(c=>!c.classList.contains('on')&&!c.classList.contains('fut')).getAttribute('aria-label')`).endsWith('trained'));
-  ok("...and the share counts today's rest: 5 of 28 days -> 18%, in the shorter wording", /18% of days since/.test(T) && !/of every day/.test(T), (T.match(/\d+% of days since/)||[])[0]);
+  ok("...and no share-of-days line rides on the rest card (v4.6.218)", !/% of days since/.test(run(`document.querySelector('.crcard.resting').textContent`)) && !/of every day/.test(T));
   const cssR=fs.readFileSync(path.join(dir,"css/app.css"),"utf8");
   ok("...lit cells are the rest green, in the same cell rule as the original", /\.crcard\.resting \.heatgrid \.hc\.on\{background-color:var\(--rest\)\}/.test(cssR));
   // the surfaces reverted
