@@ -55,7 +55,7 @@ test('a body-part day with no history: ten',`(()=>{DB.settings.plannerPreference
 test('never under three for a part, never past the session’s twenty when it can be helped',`(()=>{const n=pfStarterSets(['Chest','Back','Shoulder','Biceps','Triceps'],0,{sessions:pfRotPreset('ul')});return n.every(x=>x>=3)&&n.reduce((a,x)=>a+x,0)<=20;})()`);
 /* the page */
 run(`DB.settings.plannerPreferences={avoid:[],trainDays:[1,3,5]};pfHandle('pf-prefs',{dataset:{}});var rowsTxt=()=>[...document.querySelectorAll('.pf-ses')].map(r=>[...r.querySelectorAll('.pf-rot-name,.pf-rot-tag,.pf-rot-next,.pf-ses-in>em')].map(e=>e.textContent.trim()).join(' ')).join(' | ');`);
-test('the page has the split card: five choices, none lit, and a line saying what leaving it means',`document.querySelectorAll('.pf-split .pf-tile').length===5&&!document.querySelector('.pf-split .pf-tile.on')&&!document.querySelector('.pf-ses')&&/you choose body parts day by day/.test(document.querySelector('.pf-split-note').textContent)`);
+test('the page has the split card: six choices, No split lit, and a line saying what that means',`document.querySelectorAll('.pf-split .pf-tile').length===6&&[...document.querySelectorAll('.pf-split .pf-tile.on')].map(e=>e.dataset.value).join()==='none'&&!document.querySelector('.pf-ses')&&/you choose body parts for each day/.test(document.querySelector('.pf-split-note').textContent)`);
 run(`pfHandle('pf-split',{dataset:{value:'ppl'}});`);
 test('Push / Pull / Legs: three sessions in order, named, with a Coming up on your training days',`rowsTxt()==='Push Chest Shoulder Triceps Next up | Pull Back Biceps | Legs Legs Sixpack'&&[...document.querySelectorAll('.pf-up span')].map(x=>x.textContent).join(' | ')==='Mon, 10/5Push | Wed, 10/7Pull | Fri, 10/9Legs'`);
 test('a strip of chips sits above the sessions: Cardio and the parts you train, with how to use them',`[...document.querySelectorAll('.pf-pal-chip')].map(e=>e.textContent).join()==='Cardio,Chest,Back,Shoulder,Legs,Biceps,Triceps,Sixpack'&&/Drag onto a session, or tap one/.test(document.querySelector('.pf-pal-h').textContent)`);
@@ -86,7 +86,7 @@ test('Save stores the order, and the Settings line names it',`DB.settings.planne
 /* v4.6.204: Body parts you train, and tiles that count sessions, not days */
 run(`DB.settings.plannerPreferences={avoid:[],trainDays:[1,3,5]};delete DB.settings.myParts;pfState().prefs=null;pfHandle('pf-prefs',{dataset:{}});var sub=k=>document.querySelector('.pf-tile[data-value="'+k+'"] small').textContent,chips=()=>[...document.querySelectorAll('.pf-mypart')].map(e=>e.dataset.part+(e.classList.contains('on')?'*':'')).join(' ');`);
 test('the page has Body parts you train: the seven, all on, above Your split',`chips()==='Chest* Back* Shoulder* Legs* Biceps* Triceps* Sixpack*'&&[...document.querySelectorAll('.pf-prefs>.card>h3')].map(e=>e.textContent).join('|')==='What are you training for?|Your week|Body parts you train|Your split|Each session|Exercises'`);
-test('no tile speaks of days: Body part counts one session for each part you train',`sub('body')==='7 sessions · one part each'&&sub('ppl')==='3 sessions'&&sub('ul')==='2 sessions'&&sub('full')==='Everything, every session'&&sub('own')==='Set each session yourself'&&!/day/i.test([...document.querySelectorAll('.pf-tile')].map(e=>e.textContent).join(' '))`);
+test('no tile speaks of days: Body part counts one session for each part you train',`sub('body')==='7 sessions · one part each'&&sub('ppl')==='3 sessions'&&sub('ul')==='2 sessions'&&sub('full')==='Everything, every session'&&sub('own')==='Set each session yourself'&&sub('none')==='Choose body parts day by day'&&!/day/i.test([...document.querySelectorAll('.pf-tile:not([data-value="none"])')].map(e=>e.textContent).join(' '))`);
 run(`pfHandle('pf-split',{dataset:{value:'body'}});`);
 test('Body part builds seven sessions, one part each, in the order of the chips',`[...document.querySelectorAll('.pf-ses')].map(r=>r.querySelector('.pf-rot-tag').textContent).join()==='Chest,Back,Shoulder,Legs,Biceps,Triceps,Sixpack'`);
 run(`pfHandle('pf-mypart',{dataset:{part:'Legs'}});`);
@@ -124,5 +124,52 @@ test('on the Edit step it is a row of its own, tagged Cardio, with its detail an
 test('the writer is told to leave cardio to the app',`/Do not write cardio lines/.test(pwPayload([D1],'generate').note)`);
 run(`pfSave();`);
 test('it is saved with the plan',`/Run — /.test(pwSaved(D1).raw||'')&&pwSaved(D1).items.length===2`);
+/* v4.6.209: select sessions, add to all of them, No split, Fill for me */
+run(`DB.days={};SEED=deriveAll();DB.settings.plannerPreferences={avoid:[],trainDays:[1,2,3,4,5]};delete DB.settings.myParts;pfState().prefs=null;pfHandle('pf-prefs',{dataset:{}});pfHandle('pf-split',{dataset:{value:'body'}});var SES=()=>pfState().prefs.rotation.sessions.map(x=>x.parts.join('+')).join(' | '),Q1=s=>document.querySelector(s),QA=s=>[...document.querySelectorAll(s)];`);
+test('every session number is a button that says it is not selected',`QA('.pf-ses>button.pf-rot-n').length===7&&QA('.pf-rot-n').every(e=>e.dataset.pw==='pf-rot-sel'&&e.getAttribute('aria-pressed')==='false')&&!Q1('.pf-selbar')`);
+run(`pfHandle('pf-rot-sel',{dataset:{index:'0'}});pfHandle('pf-rot-sel',{dataset:{index:'2'}});pfHandle('pf-rot-sel',{dataset:{index:'3'}});`);
+test('tap 1, 3 and 4: three are selected, the strip says so and offers Unselect all',`QA('.pf-ses.sel').map(e=>+e.dataset.pfRot+1).join()==='1,3,4'&&Q1('.pf-selbar b').textContent==='3 selected'&&/Unselect all/.test(Q1('.pf-unsel').textContent)&&/Tap a body part to add it/.test(Q1('.pf-pal-h').textContent)&&QA('.pf-rot-n[aria-pressed="true"]').length===3`);
+test('Next up is a label on the session, not a colour on its number: only selected sessions carry .sel',`QA('.pf-ses.next').length===1&&!!Q1('.pf-ses.next .pf-rot-next')&&QA('.pf-ses.sel').length===3`);
+run(`pfPalTap('Sixpack');pfSplitRefresh();`);
+test('tap Sixpack: it goes into all three, at the end, and the selection stays for the next part',`SES()==='Chest+Sixpack | Back | Shoulder+Sixpack | Legs+Sixpack | Biceps | Triceps | Sixpack'&&pfState().rotSel.join()==='0,2,3'&&Q1('.pf-tile.on').dataset.value==='own'`);
+test('...and its chip is lit, with the hint saying a lit one comes out',`Q1('.pf-pal-chip.all').textContent==='Sixpack'&&QA('.pf-pal-chip.all').length===1&&/Tap a lit one to take it out/.test(Q1('.pf-pal-h').textContent)`);
+run(`pfPalTap('Run');pfSplitRefresh();`);
+test('tap Cardio: first in each selected session',`SES()==='Run+Chest+Sixpack | Back | Run+Shoulder+Sixpack | Run+Legs+Sixpack | Biceps | Triceps | Sixpack'`);
+run(`pfHandle('pf-rot-sel',{dataset:{index:'1'}});pfPalTap('Sixpack');pfSplitRefresh();`);
+test('add a session that lacks it to the selection: the tap adds to that one, and takes nothing from the others',`SES().split(' | ')[1]==='Back+Sixpack'&&SES().split(' | ')[0]==='Run+Chest+Sixpack'`);
+run(`pfPalTap('Sixpack');pfSplitRefresh();`);
+test('when every selected session has it, the tap takes it out of them all',`SES()==='Run+Chest | Back | Run+Shoulder | Run+Legs | Biceps | Triceps | Sixpack'`);
+run(`pfHandle('pf-rot-sel',{dataset:{index:'1'}});`);
+test('tap a selected number again: that one is unselected',`pfState().rotSel.join()==='0,2,3'&&Q1('.pf-selbar b').textContent==='3 selected'`);
+run(`pfHandle('pf-rot-unsel',{dataset:{}});`);
+test('Unselect all: nothing selected, the strip goes back to Body parts, and no session changed',`!Q1('.pf-ses.sel')&&!Q1('.pf-selbar')&&/Body parts/.test(Q1('.pf-pal-h').textContent)&&SES()==='Run+Chest | Back | Run+Shoulder | Run+Legs | Biceps | Triceps | Sixpack'`);
+run(`pfPalTap('Triceps');pfSplitRefresh();`);
+test('with nothing selected a tap on a body part picks it up, as before',`pfState().rotHeld==='Triceps'&&Q1('.pf-pal-chip.held').textContent==='Triceps'`);
+run(`pfState().rotHeld=null;pfHandle('pf-rot-sel',{dataset:{index:'6'}});pfHandle('pf-rot-remove',{dataset:{index:'6'}});`);
+test('removing a session drops the selection (the numbers have moved)',`pfState().rotSel.length===0&&pfState().prefs.rotation.sessions.length===6`);
+/* No split */
+run(`var OWN=SES();pfHandle('pf-split',{dataset:{value:'none'}});`);
+test('No split: the tile is lit, the sessions are gone, and the page says your own are kept',`Q1('.pf-tile.on').dataset.value==='none'&&QA('.pf-tile.on').length===1&&!Q1('.pf-ses')&&pfState().prefs.rotation.preset===null&&/Your own sessions are kept under My own/.test(Q1('.pf-split-note').textContent)`);
+run(`pfHandle('pf-prefs-save',{dataset:{}});`);
+test('saved: no rotation is stored, so the plan is back to choosing parts day by day; the sessions are kept aside',`!DB.settings.plannerPreferences.rotation&&DB.settings.plannerPreferences.rotOwn.map(x=>x.parts.join('+')).join(' | ')===OWN`);
+run(`pfState().prefs=null;pfHandle('pf-prefs',{dataset:{}});pfHandle('pf-split',{dataset:{value:'own'}});`);
+test('My own afterwards brings them back as they were',`SES()===OWN&&Q1('.pf-tile.on').dataset.value==='own'`);
+/* Fill for me, with no log */
+run(`pfHandle('pf-split',{dataset:{value:'none'}});pfHandle('pf-split',{dataset:{value:'body'}});var BEFORE=SES();`);
+test('the order has a Fill for me button beside its heading',`/Fill for me/.test(Q1('.pf-ordh .pf-fill').textContent)&&Q1('.pf-fill').dataset.pw==='pf-rot-fill'&&!Q1('.pf-did')`);
+run(`pfHandle('pf-rot-fill',{dataset:{}});`);
+test('no log: filled from the body parts you train -- the big four a session each, arms together, core on alternate sessions',`SES()==='Chest+Sixpack | Back | Shoulder+Sixpack | Legs | Biceps+Triceps+Sixpack'&&Q1('.pf-tile.on').dataset.value==='own'`);
+test('...it says where that came from, and the button is now Undo',`/^Filled from the body parts you train\\. Change anything with the chips\\.$/.test(Q1('.pf-did').textContent.trim())&&Q1('.pf-fill.undo').dataset.pw==='pf-rot-undo'&&/Undo/.test(Q1('.pf-fill').textContent)`);
+run(`pfHandle('pf-rot-undo',{dataset:{}});`);
+test('Undo puts back what was there, split and all',`SES()===BEFORE&&Q1('.pf-tile.on').dataset.value==='body'&&!Q1('.pf-did')&&/Fill for me/.test(Q1('.pf-fill').textContent)`);
+run(`pfHandle('pf-rot-fill',{dataset:{}});pfHandle('pf-rot-sel',{dataset:{index:'1'}});pfPalTap('Sixpack');pfSplitRefresh();`);
+test('once you change the filled order, it is yours: the message and Undo go, Fill for me returns',`!Q1('.pf-did')&&!Q1('.pf-fill.undo')&&SES().split(' | ')[1]==='Back+Sixpack'`);
+/* Fill for me, from the log: the maker's six, Mon to Sat, cardio before each, eight weeks, one skipped day */
+run(`(()=>{const days={},six=[['Shoulder','Sixpack'],['Back','Biceps'],['Chest','Sixpack'],['Legs','Sixpack'],['Biceps','Triceps','Sixpack'],['Chest','Sixpack']],EX={Shoulder:'Lateral Raise',Back:'Lat Pulldown',Chest:'Barbell Bench Press',Legs:'Squat',Biceps:'EZ Bar Curl',Triceps:'Triceps Pushdown',Sixpack:'Hanging Leg Raise'},t=new Date(todayISO+'T12:00');
+ for(let k=56;k>=1;k--){const d=new Date(t);d.setDate(t.getDate()-k);const dow=d.getDay();if(dow===0||k===17)continue;const iso=d.toLocaleDateString('en-CA'),w=[{part:'Run',ex:'Run',km:3.2,min:20,at:Date.parse(iso+'T07:00')}];six[dow-1].forEach((pt,n)=>w.push({part:pt,ex:EX[pt],w:20,reps:[10,10,10],at:Date.parse(iso+'T18:00')+n}));days[iso]={w};}
+ DB.days=days;SEED=deriveAll();DB.settings.weekStart='monday';pfState().prefs=null;pfHandle('pf-prefs',{dataset:{}});pfHandle('pf-split',{dataset:{value:'own'}});pfHandle('pf-rot-fill',{dataset:{}});})();`);
+test('from the log: six sessions come back as six, Chest twice, cardio first in each, starting where the week starts',`SES()==='Run+Shoulder+Sixpack | Run+Back+Biceps | Run+Chest+Sixpack | Run+Legs+Sixpack | Run+Biceps+Triceps+Sixpack | Run+Chest+Sixpack'`);
+test('...and the line says what it read',`/^Filled from your last 8 weeks: 6 sessions, cardio before each\\. Change anything with the chips\\.$/.test(Q1('.pf-did').textContent.trim())`);
+test('a body part you do not train is left out of the fill',`(()=>{const p=pwCopy(pfState().prefs);p.parts=p.parts.filter(t=>t!=='Sixpack');return pfRotAutoFill(p).sessions.every(x=>!x.parts.includes('Sixpack'));})()`);
 console.log(checks+' checks');process.exit(0);
 })().catch(e=>{console.error(e);process.exit(1);});

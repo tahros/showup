@@ -1,3 +1,4 @@
+// v4.6.209: select sessions, add to all, No split, Fill for me.
 // v4.6.207: Your split on Plan -> Preferences: sessions built by moving body-part chips.
 // Real Chromium, real taps and real drags.
 const {chromium}=require('playwright'),fs=require('fs');
@@ -31,15 +32,50 @@ try{for(const [w,h] of [[402,874],[320,640]])for(const theme of ['light','dark']
  const drag=async(from,to,probe)=>{await p.mouse.move(from.x,from.y);await p.mouse.down();await p.mouse.move(from.x+6,from.y+12,{steps:3});await p.mouse.move(to.x,to.y,{steps:10});await p.waitForTimeout(80);const m=probe?await p.evaluate(()=>({fly:document.querySelector('.pf-fly')?.textContent||'',drop:[...document.querySelectorAll('.pf-ses.pf-drop')].map(e=>+e.dataset.pfRot+1).join(),lift:document.querySelectorAll('.pf-lift').length})):null;await p.mouse.up();await p.waitForTimeout(300);return m;};
  let d=await dom();
  ok(`${tag} Body parts you train, then Your split, sit between Your week and Each session`,d.order==='What are you training for?|Your week|Body parts you train|Your split|Each session|Exercises',d.order);
- ok(`${tag} with nothing saved: five choices, none lit, no sessions and no chip strip yet`,d.tiles==='body ppl ul full own'&&!d.rows.length&&!d.pal&&/day by day/.test(d.note),d);
+ ok(`${tag} with nothing saved: six choices, No split lit, no sessions and no chip strip yet`,d.tiles==='body ppl ul full own none*'&&!d.rows.length&&!d.pal&&/for each day/.test(d.note),d);
  await tapSel('.pf-tile[data-value="body"]');d=await dom();
- ok(`${tag} tap Body part: seven sessions, the tile counting them, and the strip of chips with Cardio first`,d.tiles==='body* ppl ul full own'&&d.rows.join('|')==='Chest|Back|Shoulder|Legs|Biceps|Triceps|Sixpack'&&d.subs[0]==='7 sessions · one part each'&&d.pal==='Cardio Chest Back Shoulder Legs Biceps Triceps Sixpack'&&/Drag onto a session, or tap one/.test(d.hint),d);
+ ok(`${tag} tap Body part: seven sessions, the tile counting them, and the strip of chips with Cardio first`,d.tiles==='body* ppl ul full own none'&&d.rows.join('|')==='Chest|Back|Shoulder|Legs|Biceps|Triceps|Sixpack'&&d.subs[0]==='7 sessions · one part each'&&d.pal==='Cardio Chest Back Shoulder Legs Biceps Triceps Sixpack'&&/Drag onto a session, or tap one/.test(d.hint),d);
  await tapSel('.pf-mypart[data-part="Legs"]');d=await dom();
  ok(`${tag} Legs off in Body parts you train: it leaves the strip and the split`,d.rows.length===6&&!/Legs/.test(d.pal)&&d.subs[0]==='6 sessions · one part each',d);
  await tapSel('.pf-mypart[data-part="Legs"]');
+ /* v4.6.209: select sessions by their number, then a body part goes into all of them */
+ const look=()=>p.evaluate(()=>{const q=s=>[...document.querySelectorAll(s)],bg=e=>getComputedStyle(e).backgroundColor,pr=document.createElement('i');pr.style.cssText='position:absolute;background:var(--accent)';document.body.append(pr);const acc=bg(pr);pr.remove();
+  const tiles=q('.pf-tile').map(e=>e.getBoundingClientRect()),nx=document.querySelector('.pf-ses.next'),lab=nx&&nx.querySelector('.pf-rot-next'),un=document.querySelector('.pf-unsel'),fl=document.querySelector('.pf-fill');
+  return {acc,sel:q('.pf-ses.sel').map(r=>+r.dataset.pfRot+1).join(),selBg:q('.pf-ses.sel>.pf-rot-n').map(bg),restBg:q('.pf-ses:not(.sel)>.pf-rot-n').map(bg),nextSel:nx?nx.classList.contains('sel'):null,label:lab?lab.textContent.trim():'',labelBg:lab?bg(lab):'',
+   bar:document.querySelector('.pf-selbar b')?.textContent||'',unH:un?Math.round(un.getBoundingClientRect().height):0,all:q('.pf-pal-chip.all').map(e=>e.textContent).join(),nH:q('.pf-rot-n').map(e=>{const r=e.getBoundingClientRect();return Math.round(Math.min(r.width,r.height));}),
+   tileW:[...new Set(tiles.map(r=>Math.round(r.width)))].length,tileRows:[...new Set(tiles.map(r=>Math.round(r.top)))].length,fill:fl?fl.textContent.trim():'',fillH:fl?Math.round(fl.getBoundingClientRect().height):0,did:document.querySelector('.pf-did')?.textContent.trim()||'',
+   fillIn:fl?(()=>{const a=fl.getBoundingClientRect(),c=document.querySelector('.pf-split').getBoundingClientRect();return a.right<=c.right+0.5&&a.left>=c.left;})():false};});
+ let L=await look();
+ ok(`${tag} six tiles of one size in three rows; Next up is a label on its session, and no number is filled blue until you select one`,L.tileW===1&&L.tileRows===3&&L.label==='Next up'&&L.labelBg!==L.acc&&!L.selBg.length&&L.restBg.every(c=>c!==L.acc)&&L.nH.every(n=>n>=28),L);
+ await tapSel('.pf-ses[data-pf-rot="0"] .pf-rot-n');await tapSel('.pf-ses[data-pf-rot="2"] .pf-rot-n');await tapSel('.pf-ses[data-pf-rot="3"] .pf-rot-n');L=await look();d=await dom();
+ ok(`${tag} tap 1, 3 and 4: those three are selected and filled blue, the others are not, and the strip says "3 selected" with Unselect all`,L.sel==='1,3,4'&&L.selBg.length===3&&L.selBg.every(c=>c===L.acc)&&L.restBg.every(c=>c!==L.acc)&&L.bar==='3 selected'&&L.unH>=28&&/Tap a body part to add it/.test(d.hint)&&!d.over.length&&d.sw<=d.vw,{L,hint:d.hint,over:d.over});
+ await tapSel('.pf-pal-chip[data-pf-chip="Sixpack"]');L=await look();d=await dom();
+ ok(`${tag} tap Sixpack: it is in all three, its chip is lit, and they stay selected`,d.rows.join('|')==='Chest Sixpack|Back|Shoulder Sixpack|Legs Sixpack|Biceps|Triceps|Sixpack'&&L.all==='Sixpack'&&L.sel==='1,3,4'&&d.tiles==='body ppl ul full own* none',{rows:d.rows,L});
+ await tapSel('.pf-pal-chip[data-pf-chip="Run"]');d=await dom();
+ ok(`${tag} tap Cardio: first in each of the three`,d.rows[0]==='Cardio Chest Sixpack'&&d.rows[2]==='Cardio Shoulder Sixpack'&&d.rows[3]==='Cardio Legs Sixpack'&&d.rows[1]==='Back',d.rows);
+ if(SHOT&&w===402){await p.evaluate(()=>{document.querySelector('.pf-split').scrollIntoView({block:'start'});scrollBy(0,-110);});await p.waitForTimeout(250);await p.screenshot({path:`${SHOT}/split-selected-${theme}.png`});}
+ await tapSel('.pf-pal-chip[data-pf-chip="Sixpack"]');d=await dom();
+ ok(`${tag} tap the lit Sixpack: out of all three`,d.rows[0]==='Cardio Chest'&&d.rows[2]==='Cardio Shoulder'&&d.rows[3]==='Cardio Legs'&&d.rows[6]==='Sixpack',d.rows);
+ await tapSel('.pf-unsel');L=await look();d=await dom();
+ ok(`${tag} Unselect all: none selected, no blue number, the strip is back to Body parts, and the sessions are as they were`,L.sel===''&&!L.bar&&!L.selBg.length&&L.restBg.every(c=>c!==L.acc)&&/Drag onto a session, or tap one/.test(d.hint)&&d.rows[0]==='Cardio Chest',{L,hint:d.hint});
+ /* Fill for me: from the log */
+ const was=d.rows.join('|');L=await look();
+ ok(`${tag} Fill for me sits beside "The order you train in", inside the card`,L.fill==='Fill for me'&&L.fillH>=30&&L.fillIn,L);
+ await tapSel('.pf-fill');L=await look();d=await dom();
+ ok(`${tag} tap it: the six sessions come back from the log, Chest twice, cardio first, starting on Monday's Shoulder`,d.rows.join('|')==='Cardio Shoulder Sixpack|Cardio Back Biceps|Cardio Chest Sixpack|Cardio Legs Sixpack|Cardio Biceps Triceps Sixpack|Cardio Chest Sixpack',d.rows);
+ ok(`${tag} ...it says what it read, and the button is Undo`,/^Filled from your last \d weeks: 6 sessions, cardio before each\. Change anything with the chips\.$/.test(L.did)&&L.fill==='Undo'&&!d.over.length&&d.sw<=d.vw,L);
+ if(SHOT&&w===402){await p.evaluate(()=>{document.querySelector('.pf-split').scrollIntoView({block:'start'});scrollBy(0,-110);});await p.setViewportSize({width:402,height:1400});await p.waitForTimeout(250);await p.screenshot({path:`${SHOT}/split-filled-${theme}.png`});await p.setViewportSize({width:w,height:h});await p.waitForTimeout(200);}
+ await tapSel('.pf-fill');L=await look();d=await dom();
+ ok(`${tag} Undo: back to what was there, and Fill for me is offered again`,d.rows.join('|')===was&&L.fill==='Fill for me'&&!L.did,{rows:d.rows,L});
+ /* No split */
+ await tapSel('.pf-tile[data-value="none"]');d=await dom();
+ ok(`${tag} tap No split: it is lit, the sessions and the strip are gone, and your own sessions are kept`,d.tiles==='body ppl ul full own none*'&&!d.rows.length&&!d.pal&&/Your own sessions are kept under My own/.test(d.note),d);
+ await tapSel('.pf-tile[data-value="own"]');d=await dom();
+ ok(`${tag} ...and My own brings them back`,d.rows.join('|')===was&&d.tiles==='body ppl ul full own* none',d.rows);
+ await p.evaluate(()=>{const j=pfState(),r=j.prefs.rotation;r.preset=null;r.sessions=[];r.own=null;j.rotSel=[];pfSplitRefresh();});
  /* My own, from nothing, by hand */
  await tapSel('.pf-tile[data-value="own"]');d=await dom();
- ok(`${tag} My own starts with one empty box asking for a body part`,d.tiles==='body ppl ul full own*'&&d.rows.length===1&&d.rows[0]===''&&d.empty===1,d);
+ ok(`${tag} My own starts with one empty box asking for a body part`,d.tiles==='body ppl ul full own* none'&&d.rows.length===1&&d.rows[0]===''&&d.empty===1,d);
  /* tap to pick up, tap where it belongs */
  await tapSel('.pf-pal-chip[data-pf-chip="Shoulder"]');d=await dom();
  ok(`${tag} tap Shoulder in the strip: it is held, the hint changes, the box offers "+ Shoulder"`,/Shoulder\*/.test(d.pal)&&/Tap the sessions Shoulder belongs in/.test(d.hint)&&d.ghost==='1',d);

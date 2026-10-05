@@ -1,5 +1,14 @@
 # ShowUp — changelog
 
+## v4.6.209 (2026-10-05) — Select sessions and add to all of them; No split; Fill for me
+
+- **Asked for:** select session numbers (several at once, with Unselect all), tap a body part to add it to the selected ones, a way to unselect Your split and go back to autopilot, and a button that fills the sessions in one tap. Mocked and approved.
+- **Select:** each session's number is a button. Tap 1, 3 and 4 and they are selected; the strip above says "3 selected" with **Unselect all**. Tap a body part and it goes into every selected session (Cardio first, the rest last). When all of them already have it the chip is lit, and a tap takes it out of them all. The selection stays until you clear it, so several parts can go in one after another. With nothing selected the chips work as before: tap to pick one up, or drag.
+- **Blue means selected, and only that.** "Next up" used to fill the session's number blue, the same look. It is now a small label on the session; the number is plain until you select it.
+- **No split** is a sixth tile, lit when no split is set. Tap it and the plan is back to choosing body parts day by day. Sessions you built are kept under My own and come back when you tap it, also after Save (`rotOwn`).
+- **Fill for me** sits beside "The order you train in". With a log it reads the last eight weeks, day by day, and takes the cycle that repeats: the maker's six come back as six, Chest twice, cardio first, starting on the weekday your week starts. A skipped day does not break it. Without enough of a log it lays the order out from the body parts you train: the big four a session each, arms together, core on alternate sessions. A line says where the order came from, and the button becomes **Undo** until you change something.
+- Tests: `tools/test-split.js` (82) and `tools/check-split.cjs` (164, real taps in Chromium, light and dark, 402 and 320 wide). Codex's v4.6.208 Rest glow and header are untouched; `tools/check-rest-glow.cjs` passes.
+
 ## v4.6.208 (2026-10-05) — Rest glow, centered on the header
 
 - Brighter emerald / fresh-green radial light in dark / light Rest Home, centered behind the floating top bar with a tighter falloff above the mascot.
