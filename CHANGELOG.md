@@ -1,5 +1,10 @@
 # ShowUp — changelog
 
+## v4.6.216 (2026-10-05) — Compact Pip on Rest Day
+
+- Applies the approved Compact variant: Pip renders another 20% smaller in Rest mode, in both themes and in the static fallback.
+- Keeps the same surrounding spacing, 12-second nap loop and tap-to-wake behavior. Other screens and saved records are unchanged.
+
 ## v4.6.215 (2026-10-05) — Dates: a shorter calendar key; Edit is off with nothing selected
 
 - **Marked on a screenshot:** the key reads "Saved" instead of "Saved plan", and "Up to 7 days" is gone from it. The limit itself is unchanged: an eighth day still says so when tapped.
