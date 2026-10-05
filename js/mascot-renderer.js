@@ -250,7 +250,14 @@ export function createMascot(stage, options={}) {
       };
     }
     function pose(frames,t){let i=1;while(i<frames.length-1&&t>frames[i].t)i++;const a=frames[i-1],b=frames[i],q=Math.max(0,Math.min(1,(t-a.t)/(b.t-a.t))),e=q*q*(3-2*q),p={};for(const name of Object.keys(rest))p[name]=a[name]+(b[name]-a[name])*e;return p;}
+    let lastPose={...rest},morphFrom=null;
     function draw(p){
+      if(morphFrom&&!still){
+        const q=Math.min(1,elapsed/850),e=q*q*(3-2*q);
+        p=Object.fromEntries(Object.keys(rest).map(key=>[key,morphFrom[key]+(p[key]-morphFrom[key])*e]));
+        if(q===1)morphFrom=null;
+      }
+      lastPose={...p};
       rig.rotation.set(0,p.yaw,p.roll);rig.scale.set(1+(1-p.squash)*.35,p.squash,1);rig.position.set(p.x,p.lift+Math.abs(Math.sin(p.roll))*3.98,0);
       eyes.forEach((eye,index)=>{
         const positions=eye.geometry.attributes.position;
@@ -311,7 +318,9 @@ export function createMascot(stage, options={}) {
   }
   function pause(){paused=true;cancelAnimationFrame(raf);previous=0;}
   function resume(){if(disposed||lost)return;pause();paused=false;paint();if(!still)raf=requestAnimationFrame(frame);}
-  function update(next={}){if(disposed||lost)return;if(typeof next.tone==='string')tone=next.tone;theme=next.theme||theme;still=next.still??still;paint();resume();}
+  function update(next={}){if(disposed||lost)return;
+    if(next.mode&&next.mode!==mode){morphFrom={...lastPose};mode=next.mode;elapsed=0;previous=0;restWake=false;}
+    if(typeof next.tone==='string')tone=next.tone;theme=next.theme||theme;still=next.still??still;paint();resume();}
   const observer=new ResizeObserver(resize);observer.observe(stage);
   renderer.domElement.addEventListener('webglcontextlost',()=>{lost=true;pause();stage.classList.remove('su-ready');});
   function dispose(){

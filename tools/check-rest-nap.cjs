@@ -5,11 +5,30 @@ const p=await b.newPage({viewport:{width:393,height:852},serviceWorkers:'block'}
 p.on('pageerror',e=>errors.push(e.message));const origin='http://127.0.0.1:'+(process.env.PW_PORT||8795)+'/';await p.route('**/*',r=>r.request().url().startsWith(origin)?r.continue():r.abort());await p.goto(origin);
 await p.evaluate(()=>{document.querySelector('#onb')?.remove();DB.settings.onboarded=true;DB.settings.mascotMotion='animated';DB.days[todayISO]={w:[],rest:true};view='today';render({inplace:true});});
 await p.waitForSelector('.su-mascot.su-ready canvas');
+// Actual button flow: one live canvas survives both directions, never a poster
+// flash or two snapshot ghosts. Sample the in-flight geometry, not just the end.
+await p.evaluate(()=>{SEED.totals.sessions=10;window.savedPip=document.querySelector('.su-hello-row .su-mascot');window.savedCanvas=savedPip.querySelector('canvas');});
+for(const mode of ['hello','rest']){
+await p.locator('#restBtn').click();
+await p.waitForTimeout(120);
+assert(await p.evaluate(()=>document.querySelector('.su-hello-row .su-mascot')===savedPip&&savedPip.querySelector('canvas')===savedCanvas&&savedPip.classList.contains('su-ready')),'same live renderer through morph');
+assert(await p.evaluate(()=>savedPip.getAnimations().some(a=>a.playState==='running')),'geometry is morphing');
+assert.equal(await p.locator('.su-hello-row .su-mascot').getAttribute('data-mascot'),mode);
+if(mode==='rest')await p.screenshot({path:path.join(os.tmpdir(),'pip-rest-morph-midpoint.png')});
+await p.waitForTimeout(950);
+assert.equal(await p.evaluate(()=>savedPip.getAnimations().length),0,'no residual transform');
+}
 for(const theme of ['light','dark']){
 await p.evaluate(theme=>{DB.settings.theme=theme;applyTheme();},theme);
 for(const target of ['canvas','img']){const scale=await p.locator('.su-hello-row '+target).evaluate(c=>getComputedStyle(c).transform);assert.equal(scale,'matrix(0.64, 0, 0, 0.64, 0, 0)');}
 assert.equal(await p.locator('.su-hello-row .su-mascot').evaluate(e=>e.getBoundingClientRect().width),224);
-await p.locator('.su-hello-row .su-mascot').click();await p.waitForTimeout(500);await p.screenshot({path:path.join(os.tmpdir(),'pip-rest-'+theme+'-216.png')});
+await p.locator('.su-hello-row .su-mascot').click();await p.waitForTimeout(500);await p.screenshot({path:path.join(os.tmpdir(),'pip-rest-'+theme+'-217.png')});
 }
+// OS reduced motion: no positional morph, no live canvas, rest stays usable.
+await p.emulateMedia({reducedMotion:'reduce'});
+await p.waitForTimeout(100);
+await p.locator('#restBtn').click();await p.waitForTimeout(100);
+assert.equal(await p.locator('.su-hello-row canvas').count(),0);
+assert.equal(await p.locator('.su-hello-row .su-mascot').evaluate(el=>el.getAnimations().length),0);
 const result=await p.evaluate(async()=>{const {createMascot}=await import('./js/mascot-renderer.js');const el=document.createElement('div');el.style.cssText='width:224px;height:137px';document.body.append(el);const m=createMascot(el,{mode:'rest',theme:'dark'});const frame=t=>m.captureFrame(t).toDataURL();const a=frame(0),c=frame(3200),d=frame(12000);m.update({still:true});const e=frame(0),f=frame(6000);m.dispose();el.remove();return {changes:a!==c,seam:a===d,static:e===f};});assert(result.changes&&result.seam&&result.static);assert.deepEqual(errors,[]);console.log('PASS actual Rest canvas scale, both themes, tap, changing poses, seamless loop, static fallback, no page errors');
 }finally{await b.close();}})().catch(e=>{console.error(e);process.exitCode=1;});

@@ -2395,7 +2395,10 @@ function render(opts){
     renderHeader(); paint({inplace:inplace||restMorph});
     if(restMorph)window.scrollTo({top:0,behavior:'instant'});
   };
-  if(MOTION_OK && document.startViewTransition && ((lastView!==null && lastView!==view) || soft)){
+  if(restMorph && MOTION_OK && !isRetro() && typeof mascotRestMorph==='function' && document.querySelector('.su-hello-row .su-mascot')?.animate){
+    lastView=view;
+    mascotRestMorph(both);
+  } else if(MOTION_OK && document.startViewTransition && ((lastView!==null && lastView!==view) || soft)){
     lastView=view;
     if(restMorph)document.documentElement.classList.add('rest-morph');
     const transition=document.startViewTransition(both);

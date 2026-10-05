@@ -1,5 +1,10 @@
 # ShowUp — changelog
 
+## v4.6.217 (2026-10-05) — Pip morphs into Rest
+
+- Keeps the same live Pip when entering or leaving Rest: position and Compact size ease together over 850ms, while the current pose blends into the nap instead of flashing a fresh renderer.
+- Preserves the nap loop, tap-to-wake, static/reduced-motion fallbacks and saved workout data. No header layout changes.
+
 ## v4.6.216 (2026-10-05) — Compact Pip on Rest Day
 
 - Applies the approved Compact variant: Pip renders another 20% smaller in Rest mode, in both themes and in the static fallback.

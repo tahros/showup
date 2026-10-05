@@ -1,6 +1,32 @@
 /* ShowUp mascot integration. Decorative, optional, lazy and entirely local.
    No workout data is sent to the renderer. */
 function mascotMode(){return ['still','off'].includes(DB.settings.mascotMotion)?DB.settings.mascotMotion:'animated';}
+/* Keep one live canvas across Today/Rest. A snapshot cross-fade cannot morph
+   its pose and used to flash the poster before the new renderer mounted. */
+function mascotRestMorph(paint){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches){paint();return;}
+  const pip=document.querySelector('.su-hello-row .su-mascot');
+  if(!pip||!pip.animate){paint();return;}
+  const before=pip.getBoundingClientRect();
+  const art=[...pip.querySelectorAll('canvas,img')];
+  const transforms=art.map(el=>getComputedStyle(el).transform);
+  pip.getAnimations().forEach(a=>a.cancel());
+  art.forEach(el=>el.getAnimations().forEach(a=>a.cancel()));
+  paint();
+  const target=document.querySelector('.su-hello-row .su-mascot');
+  if(!target)return;
+  pip.dataset.mascot=target.dataset.mascot;
+  target.replaceWith(pip); // synchronous: lifecycle never sees a detached Pip
+  pip.dispatchEvent(new CustomEvent('mascotmode',{detail:pip.dataset.mascot}));
+  const after=pip.getBoundingClientRect();
+  if(!before.width||!after.width)return;
+  const timing={duration:850,easing:'cubic-bezier(.22,1,.36,1)'};
+  pip.animate([
+    {transformOrigin:'0 0',transform:`translate(${before.left-after.left}px,${before.top-after.top}px) scale(${before.width/after.width},${before.height/after.height})`},
+    {transformOrigin:'0 0',transform:'none'}
+  ],timing);
+  art.forEach((el,i)=>el.animate([{transform:transforms[i]},{transform:getComputedStyle(el).transform}],timing));
+}
 /* v4.2.4: TONE IS NOT A MOTION. Blue was only reachable as mode 'cool', and
    mode also chooses the animation -- so asking for a blue mascot meant giving
    up whatever it was doing. The completion moment wants blue AND its jump,
@@ -273,6 +299,7 @@ for(const tone of ['white','chrome']){
         el.dataset.tapBound='1';
         // Plate replay restarts the approved jump without simulating a user tap.
         el.addEventListener('mascotreplay',()=>live.get(el)?.replay());
+        el.addEventListener('mascotmode',e=>live.get(el)?.update({mode:e.detail}));
         /* v4.6.99: and its TONE can change mid-show. The ink entrance floods
            the screen with ShowUp Blue, and a blue mascot inside blue is a
            mascot you cannot see -- it turns white for the crossing, which is
@@ -363,4 +390,3 @@ for(const tone of ['white','chrome']){
   },{capture:true,passive:true});
   window.gymTour={play,close,get open(){return open;}};
 })();
-
