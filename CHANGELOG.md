@@ -1,5 +1,11 @@
 # ShowUp — changelog
 
+## v4.6.214 (2026-10-05) — Pip fights a nap
+
+- Rest Day uses the approved 12-second sleepy loop: nod off, catch, peek, settle and breathe. Tap Pip to briefly wake him, then return smoothly to the loop.
+- Matches the approved preview's 20% smaller mascot rendering, preserving its surrounding space. Existing tones, geometry, other mascot modes and saved records are unchanged.
+- Reduced motion / Still keeps the existing static mascot fallback; Off remains off. Existing offscreen and background-tab pause behavior is retained.
+
 ## v4.6.213 (2026-10-05) — A day you stepped round is not picked for you
 
 - **Asked:** Dates opened on Mon to Sat although today's plan had been pushed on, leaving the plans on Tue to Sat. Should it open on Tue to Sat? Yes.

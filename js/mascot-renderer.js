@@ -193,6 +193,22 @@ export function createMascot(stage, options={}) {
        a glance, not a swivel.
        The reach ramps in over 900ms after a show so the hand-back is not
        a jolt -- shows end ON rest, and idle at t=0 is rest, so the two meet. */
+    // Rest-only twelve-second loop: nod, catch, peek, then give in.
+    function napPose(t,still,wake=false){
+      if(still)return {...rest,roll:-.07,blink:.12};
+      if(wake&&t<1800){
+        const k=Math.sin(Math.PI*t/1800);
+        return {...rest,roll:-.035*k,blink:.65+.45*k,squash:1+.025*k};
+      }
+      const elapsed=wake?t-1800:t,cycle=elapsed%12000;
+      const keys=[[0,0,.65,1],[1700,.015,.24,1],[3200,.13,.10,1],
+        [3580,-.035,1,1],[4100,0,.9,.2],[4800,0,.55,1],
+        [6500,-.10,.10,1],[9000,-.10,.10,1],[11000,-.025,.25,1],[12000,0,.65,1]];
+      let i=1;while(i<keys.length-1&&cycle>keys[i][0])i++;
+      const a=keys[i-1],b=keys[i],q=(cycle-a[0])/(b[0]-a[0]),e=q*q*(3-2*q);
+      return {...rest,roll:a[1]+(b[1]-a[1])*e,blink:a[2]+(b[2]-a[2])*e,
+        wink:a[3]+(b[3]-a[3])*e,squash:1+Math.sin(elapsed/3000*Math.PI*2)*.016};
+    }
     function idlePose(t,ramp){
       const k=Math.max(0,Math.min(1,ramp));
       const breathe=Math.sin(t/3400)*.5+Math.sin(t/5200+2.1)*.5;
@@ -251,7 +267,7 @@ export function createMascot(stage, options={}) {
      on its own -- the completion moment is blue while it jumps and dances. */
   let tone=options.tone||'';
   const isBlue=()=>tone==='blue'||(!tone&&mode==='cool');
-  let raf=0, elapsed=0, previous=0, paused=true, disposed=false, lost=false;
+  let raf=0, elapsed=0, previous=0, paused=true, disposed=false, lost=false, restWake=false;
   const keys=['dark','mid','light'];
   function paint(t=elapsed) {
     const whiteBody=!isBlue()&&(tone==='white'||theme==='dark');
@@ -275,10 +291,7 @@ export function createMascot(stage, options={}) {
        old behaviour exactly: one pose, no loop. */
     const showing=!still&&motion&&(mode==='active'||t<end);
     if(mode==='rest'){
-      // A slow exhale; tapping restarts one small stretch, never a celebration.
-      const breathe=still?0:Math.sin(t/5200*Math.PI*2);
-      const stretch=!still&&t<1800?Math.sin(t/1800*Math.PI):0;
-      draw({...rest,roll:-.045+stretch*.08,squash:1+breathe*.012+stretch*.045,blink:.22+stretch*.78});return;
+      draw(napPose(t,still,restWake));return;
     }
     draw(showing?pose(motion.frames,mode==='active'?t%end:t)
         :still?rest:idlePose(t,end?(t-end)/900:t/900));
@@ -313,7 +326,7 @@ export function createMascot(stage, options={}) {
   /* v4.1.2: a tap replays the show from the top and hands back to the idle
      when it ends -- the same path a fresh mount takes, so there is one
      sequence to get right rather than two. */
-  function replay(next){if(disposed||lost||still)return;if(next)mode=next;elapsed=0;previous=0;resume();}
+  function replay(next){if(disposed||lost||still)return;if(next)mode=next;restWake=mode==='rest';elapsed=0;previous=0;resume();}
   // Export uses the same geometry and pose clock, sampled without real-time drift.
   function captureFrame(t){pause();elapsed=Math.max(0,t);paint(elapsed);return renderer.domElement;}
   return {pause,resume,update,dispose,replay,captureFrame,capture:()=>{paint(0);return renderer.domElement.toDataURL('image/png');}};

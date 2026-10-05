@@ -15,7 +15,9 @@ body.rest-home::before{content:"";position:fixed;top:0;left:0;right:0;height:cal
 @media(prefers-reduced-motion:reduce){body.rest-home::before{animation:none;opacity:.93;transform:none}}
 /* Rest uses the shared glass header; never expose sharp scrolling text behind it. */
 .rest-home .su-hello-row{flex-direction:column-reverse;gap:4px;padding:16px 0 22px}
-.rest-home .su-hello-row .su-mascot{width:172px;max-width:55vw}
+.rest-home .su-hello-row .su-mascot{width:224px;max-width:100%}
+/* Approved preview: 80% of its 224px stage; keep the quiet surrounding space. */
+.rest-home .su-hello-row .su-mascot img,.rest-home .su-hello-row .su-mascot canvas{transform:scale(.8);transform-origin:center}
 .rest-home .hello{display:flex;flex-direction:column;align-items:center;gap:6px;margin:0;text-align:center}
 .rest-home .hello .hi{font-size:27px;line-height:1.2}
 .rest-home .hello .hisub{font-size:12px;margin:0;color:var(--muted)}
