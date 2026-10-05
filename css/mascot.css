@@ -3,6 +3,16 @@
 :root[data-header-mode="rest"]{background-color:var(--rest-top)}
 :root[data-header-mode="live"]{background-color:var(--live)}
 body.rest-home,body.rest-home #app{background:linear-gradient(180deg,var(--rest-top),var(--ground) 440px) fixed}
+/* v4.6.208: a bounded, compositor-animated glow anchored to the floating
+   header, not the mascot. Preserve the base wash/status tint and glass. */
+body.rest-home{isolation:isolate}
+:root[data-theme="light"] body.rest-home{--rest-glow-core:#72cd8a;--rest-glow-mid:#a5dfb4;--rest-glow-edge:#c7e9d0}
+body.rest-home #app{background:transparent}
+body.rest-home::before{content:"";position:fixed;top:0;left:0;right:0;height:calc(var(--rest-glow-y) + 290px);z-index:-1;pointer-events:none;
+  background:radial-gradient(ellipse 95% 250px at 50% var(--rest-glow-y),var(--rest-glow-core) 0%,var(--rest-glow-mid) 24%,var(--rest-glow-edge) 48%,transparent 88%);
+  transform-origin:50% var(--rest-glow-y);animation:rest-header-breathe 2.4s ease-in-out infinite}
+@keyframes rest-header-breathe{0%,100%{opacity:.45;transform:scale(.96)}50%{opacity:1;transform:scale(1.07)}}
+@media(prefers-reduced-motion:reduce){body.rest-home::before{animation:none;opacity:.93;transform:none}}
 /* Rest uses the shared glass header; never expose sharp scrolling text behind it. */
 .rest-home .su-hello-row{flex-direction:column-reverse;gap:4px;padding:16px 0 22px}
 .rest-home .su-hello-row .su-mascot{width:172px;max-width:55vw}

@@ -1,5 +1,11 @@
 # ShowUp — changelog
 
+## v4.6.208 (2026-10-05) — Rest glow, centered on the header
+
+- Brighter emerald / fresh-green radial light in dark / light Rest Home, centered behind the floating top bar with a tighter falloff above the mascot.
+- A visible 2.4-second breathing pulse; static for reduced motion. The existing glass header, safe-area base color, planner and workout records are unchanged.
+- Chromium regression checks cover both palettes, header alignment, pulse range, reduced motion and removal outside Rest Home.
+
 ## v4.6.207 (2026-10-04) — Sessions are built by moving body-part chips; Cardio is one of them
 
 - **The dilemma:** not every body part is a day. The maker does Biceps and Triceps in one session and Cardio before every session; for someone else Cardio is a session of its own. A Before/After switch was mocked first; the maker's better idea was to move the chips themselves. Mocked and approved.

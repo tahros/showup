@@ -4171,6 +4171,7 @@
      no safe area (desktop, home-button iPhones), where "into" would be off-screen.
      Everything that sits against a bar reads these two tokens. */
   --bar-top:max(12px,calc(env(safe-area-inset-top,0px) - 4px));
+  --rest-glow-core:#148447;--rest-glow-mid:#0b6035;--rest-glow-edge:#0b3320;--rest-glow-y:calc(var(--bar-top) + 32px);
   --bar-bot:max(10px,calc(env(safe-area-inset-bottom,0px) - 12px));
 }
 :root[data-bar="dark"]{
