@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.219 (2026-10-05) — The Rest card's line is about today; the rest streak is back
+
+- **Feedback on v4.6.218:** the card looked too empty, and "Off on Sundays." meant nothing on a Monday. Ideas were offered first; the maker chose the today-based line and a one-line streak.
+- **Top right:** "resting N days" is back, as one line. "longest" stays out.
+- **The line reads today's weekday:** "A rare Monday off." under a quarter, "4 in 10 Mondays off." in the middle, "Mondays are usually off." from six in ten. The column marked dark is today's, not the tallest.
+- Tests: `tools/test-weekshape.js`, `tools/test-rest.js`, `tools/test-restcolor.js`.
+
 ## v4.6.218 (2026-10-05) — The Rest card says less
 
 - **Marked on a screenshot:** the heading is "Rest" (no "that's the other half"); the card drops "resting N days / longest N", "N% of days since…", the sub-line under the weekday sentence, and the footer ("rest days by weekday / longest run").

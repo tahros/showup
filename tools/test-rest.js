@@ -1045,9 +1045,10 @@ ok("the status-bar style no longer puts content under the status bar",
   ok("...it is the SAME markup as the original: crhead, crtotal, crstreak, heatframe, wdrail, heatyears, heatgrid, heatticks",
      run(`(function(){const c=document.querySelector('.crcard.resting'); return ['.crhead','.crtotal','.heatframe','.wdrail','.heatyears','.heatgrid','.heatticks'].every(q=>!!c.querySelector(q));})()`));
   ok("...the number is days rested: 5", run(`document.querySelector('.crcard.resting .crtotal b').textContent`)==='5' && /days rested/.test(T));
-  /* v4.6.218: the rest card carries the count and the grid only: no run line, no share-of-days line */
-  ok("...and it carries no run line and no share-of-days line",
-     run(`!document.querySelector('.crcard.resting .crstreak,.crcard.resting .crsince')`) && !/resting \d+ day|longest|% of days/.test(run(`document.querySelector('.crcard.resting').textContent`)),
+  /* v4.6.219: the rest streak is back, as ONE line; no "longest", no share-of-days line */
+  ok("...and it carries the rest streak as one line: resting 1 day -- no longest, no share of days",
+     run(`[...document.querySelectorAll('.crcard.resting .crstreak > span')].map(x=>x.textContent).join('|')`)==='resting 1 day'
+     && run(`!document.querySelector('.crcard.resting .crsince')`) && !/longest|% of days/.test(run(`document.querySelector('.crcard.resting').textContent`)),
      run(`document.querySelector('.crcard.resting .crhead').textContent`));
   const lit=run(`document.querySelectorAll('.crcard.resting .heatgrid .hc.on').length`);
   ok("...exactly the five rest days are lit, and nothing before the ledger began", lit===5, lit);

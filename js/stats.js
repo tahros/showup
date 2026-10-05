@@ -906,7 +906,7 @@ function currentRhythmSection(inverse){
     <div class="card crcard${inverse?' resting':''}">
       <div class="crhead">
         <span class="crtotal"><b>${fmt(total)}</b><small>${inverse?'days rested':'days in'}</small></span>
-        ${inverse?'':`<span class="crstreak"><span>streak ${streak} day${streak===1?'':'s'}</span><span>best ${best}</span></span>`}
+        <span class="crstreak">${inverse?`<span>resting ${streak} day${streak===1?'':'s'}</span>`:`<span>streak ${streak} day${streak===1?'':'s'}</span><span>best ${best}</span>`}</span>
       </div>
       ${lifetime&&!inverse?`<div class="crsince"><span>${lifetime}</span>${inverse?'':'<span class="heat-acts"><button type="button" class="heat-replay" aria-label="Replay every day you showed up">↻ <span>Replay</span></button><button type="button" class="heat-share" aria-label="Share every day you showed up">'+ICO_SHARE+'</button></span>'}</div>`:''}
       <!-- v3.3.332: the month row lives INSIDE the scroller, beside the grid.
@@ -968,42 +968,20 @@ function weekShape(R){
     rate:(R.dowTotal[d]||0)?(R.dow[d]||0)/R.dowTotal[d]:0}));
   /* not enough of any weekday yet to say anything honest about a rhythm */
   if(Math.min(...cols.map(c=>c.of))<4) return '';
-  const sorted=[...cols].sort((a,b)=>b.rate-a.rate);
-  const top=sorted[0], second=sorted[1];
-  const spread=top.rate-sorted[sorted.length-1].rate;
-  /* v4.5.14: THE SAME FINDING, NOT THE SAME SENTENCE. The branches below are
-     unchanged -- which one fires is still decided by the data, and every phrasing
-     inside a branch says exactly what that branch found. What changed is that a
-     branch now holds several true wordings and picks one by the DATE, so a rhythm
-     that has been stable for two years stops reading like a stuck label. By the
-     date and not at random: it is steady all day, and it is the same sentence on
-     the same day on every device, which a random pick could not promise. Nothing
-     here praises, targets or escalates -- a rest day is a fact, not a score. */
-  const pick=list=>{
-    let h=0; for(const ch of (todayISO||'')) h=(h*31+ch.charCodeAt(0))>>>0;
-    return list[h%list.length];
-  };
-  /* v4.6.218: THE REST CARD SAYS LESS. The maker struck the heading's tail, the
-     run and share lines, the sentence's sub-line and the footer, and asked for a
-     shorter sentence. What is left is the count, the grid, one short line and the
-     seven columns. The line still rotates by date and still only says what its
-     branch found. */
-  let line;
-  if(top.rate>=.5&&top.rate-second.rate>=.12)
-    line=pick([`${top.name} off.`,
-               `Off on ${top.name}.`,
-               `Rest: ${top.name}.`]);
-  else if(spread<.15)
-    line=pick([`No set rest day.`,
-               `Rest, evenly spread.`]);
-  else if(top.rate-sorted[2].rate>=.12)
-    line=pick([`${top.name} and ${second.name} off.`,
-               `Off on ${top.name} and ${second.name}.`]);
-  else
-    line=pick([`Mostly ${top.name}.`,
-               `Leans to ${top.name}.`]);
+  /* v4.6.219: THE LINE IS ABOUT TODAY. It used to name the weekday you rest on
+     most ("Off on Sundays."), which is a fact about Sunday and says nothing on a
+     Monday -- and the card is only ever on screen on a day you are resting. So
+     it reads today's own column now: how usual it is to rest on this weekday.
+     Three bands and no more; the column beside it carries the exact figure.
+     Today's column is the one marked, not the tallest. Still only what the
+     data found, and nothing to chase. */
+  const cur=cols.find(c=>c.d===new Date(todayISO+'T12:00').getDay())||cols[0];
+  const day=cur.name.slice(0,-1), tenth=Math.max(1,Math.min(9,Math.round(cur.rate*10)));
+  const line=cur.rate<.25?`A rare ${day} off.`
+    :cur.rate<.6?`${tenth} in 10 ${cur.name} off.`
+    :`${cur.name} are usually off.`;
   const bars=cols.map((c,i)=>{
-    const pct=Math.round(c.rate*100), lead=c===top&&spread>=.15;
+    const pct=Math.round(c.rate*100), lead=c===cur;
     /* --j is the column's place in the week, so the growth staggers across it */
     return `<span class="rwbar${lead?' lead':''}" role="img"
       aria-label="${c.name}: rested ${c.n} of ${c.of}, ${pct}%">

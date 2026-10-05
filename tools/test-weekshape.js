@@ -83,14 +83,16 @@ ok("the shape appears under the rest grid",
    pinned the calendar too. The claim was never the phrasing -- it is that the
    sentence NAMES the day the data found, and states it outright rather than
    hedging. Both halves are asserted; the wording is free to vary. */
-ok("...and names the day, because the data names it",
-   /\bSundays\b/.test(line())&&!/most on|evenly|leans?|likeliest/.test(line()), line());
+/* v4.6.219: the line is about TODAY's weekday, whatever day the suite runs on */
+const TD=run(`new Date(todayISO+'T12:00').getDay()`),TN=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][TD];
+ok("...and the line is about today's weekday: usual on a Sunday, rare on any other day for a Sunday rester",
+   TD===0?line()==='Sundays are usually off.':line()===`A rare ${TN} off.`, line());
 ok("...with seven columns, Monday first",
    run(`[...document.querySelectorAll('.restweek .rwbar b')].map(b=>b.textContent).join('')`)==="MTWTFSS",
    run(`[...document.querySelectorAll('.restweek .rwbar b')].map(b=>b.textContent).join('')`));
-ok("...and Sunday is the one marked as leading",
+ok("...and TODAY's column is the one marked, not the tallest",
    run(`(function(){const b=[...document.querySelectorAll('.restweek .rwbar')];
-     return b.filter(x=>x.classList.contains('lead')).length===1 && b[6].classList.contains('lead');})()`));
+     return b.filter(x=>x.classList.contains('lead')).length===1 && b[(${TD}+6)%7].classList.contains('lead');})()`));
 /* today is itself a declared rest in this fixture, so its own weekday reads
    one rest out of a year -- 2%, not 0%. Sunday must be 100% and every other
    column near zero; pinning all seven to exact strings would break on the day
@@ -100,23 +102,15 @@ ok("...reading 100% for Sunday and near zero for the rest",
      return v.length===7 && v[6]===100 && v.slice(0,6).every(n=>n<=3);})()`),
    run(`[...document.querySelectorAll('.restweek .rwbar small')].map(s=>s.textContent).join(' ')`));
 
-// ---- RATE, not count: rest every Sunday AND every Monday, but the record
-//      starts on a Monday so there is one more Monday than Sunday
-build("dow=>dow!==0&&dow!==1");
-ok("two rest days are named as two, not crowned as one",
-   /Sundays and Mondays|Mondays and Sundays/.test(line()), line());
-
-// ---- a flat record says so rather than crowning the tallest column
-let seed=1; const rnd=()=>((seed=seed*1103515245+12345&0x7fffffff)/0x7fffffff);
-build("dow=>((dow*2654435761)%97)>24");
-/* v4.5.14: the claim is that a flat record is HEDGED, not that it uses two
-   particular words. The wordings rotate now, so the accepted hedges are listed
-   -- and the definite forms are named too, because "is it hedged" is only worth
-   asserting if "is it definite" can fail. */
-ok("a record with no rhythm is not given one",
-   /evenly|No set rest day|^Mostly |^Leans to /.test(line()), line());
-ok("...and it never states a rest day outright",
-   !/days off\.$|^Off on |^Rest: /.test(line().trim()), line());
+// ---- three bands, read from today's own column (called directly, so the band is the only variable)
+const band=r=>run(`(function(){const dow={},tot={};for(let d=0;d<7;d++){tot[d]=50;dow[d]=d===${TD}?Math.round(50*${r}):25;}
+  const t=document.createElement('div');t.innerHTML=weekShape({dow,dowTotal:tot});return t.querySelector('.rwline').textContent;})()`);
+ok("under a quarter: a rare one", band(.1)===`A rare ${TN} off.`&&band(.24)===`A rare ${TN} off.`, band(.1));
+ok("in the middle: so many in ten", band(.4)===`4 in 10 ${TN}s off.`&&band(.26)===`3 in 10 ${TN}s off.`&&band(.58)===`6 in 10 ${TN}s off.`, band(.4));
+ok("most of them: usually off", band(.6)===`${TN}s are usually off.`&&band(1)===`${TN}s are usually off.`, band(.6));
+ok("the line never names another weekday, however tall its column",
+   run(`(function(){const dow={},tot={};for(let d=0;d<7;d++){tot[d]=50;dow[d]=d===${TD}?5:50;}const t=document.createElement('div');t.innerHTML=weekShape({dow,dowTotal:tot});
+     return t.querySelector('.rwline').textContent+'|'+[...t.querySelectorAll('.rwbar.lead')].length;})()`)===`A rare ${TN} off.|1`);
 
 // ---- nothing is a target
 ok("the shape sets no goal, grades nothing and names no ideal",

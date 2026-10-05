@@ -88,8 +88,8 @@ run(`todayISO='2026-09-12';checkDate=()=>false;DB.settings.unit='lb';DB.settings
   }
   ok('the weekday sentence is not the same string for ever', seen.size>1,
      [...seen].join(' / '));
-  ok('...and every wording names the day the data actually found',
-     [...seen].every(l=>/Sunday/.test(l)), [...seen].join(' / '));
+  ok('...and every wording names a weekday (v4.6.219: the day it is, not the day you rest most)',
+     [...seen].every(l=>/(Mon|Tues|Wednes|Thurs|Fri|Satur|Sun)day/.test(l))&&seen.size===7, [...seen].join(' / '));
   ok('...none of them praises, scores or sets a target',
      [...seen].every(l=>!/good|great|well done|keep|should|goal|target|streak|best/i.test(l)));
 
