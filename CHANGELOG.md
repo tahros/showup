@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.210 (2026-10-05) — Planner routines read one line per load; the newer-plan buttons stand apart
+
+- **Reported from the phone:** on "Newer plan" the sets at one load ran down the card a line each ("35 lb × 14 14", "35 lb × 14", "35 lb × 14"), and Use newer plan / Keep my draft touched each other.
+- The planner's routine text now joins sets at the same load onto one line ("35 lb × 14 14 14 14"), as Today's plan card has done since v4.6.199. A warm-up keeps its own line. This covers Newer plan, the day previews on Dates and the Done step (`pfOneLine`). Display only: the saved plan is unchanged.
+- The two buttons sit in a row with a gap, equal width, 44px tall.
+- Test: `tools/test-routine-one-line.js` (6).
+
 ## v4.6.209 (2026-10-05) — Select sessions and add to all of them; No split; Fill for me
 
 - **Asked for:** select session numbers (several at once, with Unselect all), tap a body part to add it to the selected ones, a way to unselect Your split and go back to autopilot, and a button that fills the sessions in one tap. Mocked and approved.

@@ -639,3 +639,7 @@ html.pf-chip-drag,html.pf-chip-drag body{user-select:none;-webkit-user-select:no
 :root .pf-workspace .pf-did svg{flex:none;width:14px;height:14px;margin-top:2px;color:var(--accent-ink,var(--accent))}
 @media(max-width:360px){:root .pf-workspace .pf-pal-h{flex-wrap:wrap}}
 @media(prefers-reduced-motion:reduce){:root .pf-workspace .pf-ses>.pf-rot-n{transition:none}:root .pf-workspace .pf-did{animation:none}}
+
+/* v4.6.210: the two answers to a newer plan stand apart, sharing the row */
+:root .pf-workspace .pf-conflict-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+:root .pf-workspace .pf-conflict-actions .pw-btn{flex:1 1 140px;min-height:44px;margin:0}
