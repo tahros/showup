@@ -932,6 +932,16 @@ function pfValidateCandidate(candidate,dates){
  candidate.missing=dates.filter(d=>!candidate.days[d]).sort();
  if(!Object.keys(candidate.days).length)throw Error('The writer did not return a usable plan. Your draft is unchanged. Tap Plan to try again.');
 }
+/* v4.6.212: REMOVE PLAN REMOVES IT, THERE AND THEN. It used to only mark the
+   day "to be removed when you save" and drop it from the selection -- but its
+   draft stayed in the book, so the calendar still drew the Draft pencil, and
+   with the day no longer selected there was no Save that would carry the
+   removal out. Now the saved plan and the draft for that day both go at once,
+   and the toast offers Undo. The log is never touched. */
+function pfRemoveDayNow(d){const s=pw(),j=pfState();if(!d)return;const at=Date.now(),snap={week:pwCopy(DB.week||null),plan:pwCopy(DB.plan||null),book:s.book&&s.book[d]?pwCopy(s.book[d]):null};
+ if(pwSaved(d)){const days=pwCopy(DB.week?.days||{});delete days[d];if(DB.plan?.d===d){DB.plan=null;DB.planAt=at;}const all=Object.keys(days).sort();DB.week=all.length?{from:all[0],to:all.at(-1),days,raw:'',at}:null;DB.weekAt=at;planRailRefresh();save(true);}
+ if(s.book)delete s.book[d];s.dates=s.dates.filter(x=>x!==d);j.anchor=(j.anchor||[]).filter(x=>x!==d);j.removed=(j.removed||[]).filter(x=>x.date!==d);if(j.open)delete j.open[d];s.active=s.dates[0]||null;j.clear=false;pwPersist();pfNavigate('days');
+ toastUndo('Plan removed · '+pfShort(d),()=>{const t=Date.now();DB.week=snap.week;DB.weekAt=t;if(snap.plan&&snap.plan.d===d){DB.plan=snap.plan;DB.planAt=t;}if(snap.book){pw().book=pw().book||{};pw().book[d]=snap.book;}planRailRefresh();save(true);pwPersist();pwRender();});}
 function pfSaveButton(){return pwButton('pf-save',pw().dates.length?`Save ${pw().dates.length} ${pw().dates.length===1?'day':'days'}`:'Save changes','primary',(!pw().dates.length&&!pfState().removed.length)||pfPending()?'disabled':'');}
 function pfDoneHTML(){
  const j=pfState(),saved=j.saved||[],planned=saved.filter(x=>x.sets),all=planned.length&&planned.every(x=>j.doneOpen?.[x.date]);
@@ -946,7 +956,7 @@ function pfRender(){pfTrackScreen();renderHeader();pfSplitFill();requestAnimatio
  else if(j.page==='days'){body=pfDaysHTML();footer='<div class="pf-primary-row">'+pwButton('pf-edit-first','Edit first day →','primary',s.dates.length?'':'disabled')+pfSaveButton()+'</div><p class="pw-small">Saves every routine above to its date.</p>';}
  else if(j.page==='edit'&&s.active){body=pfDayHTML();const dirty=pfDirtyDates().length;footer='<div class="pf-compact-save"><div><strong>'+s.dates.length+' planned '+(s.dates.length===1?'day':'days')+'</strong><p>'+(dirty?dirty+(dirty===1?' day has':' days have')+' unsaved changes.':'Everything here is saved.')+'</p></div>'+pwAction('pf-save','Save','check','primary',pfPending()?'disabled':'')+'</div>';}
  else if(j.page==='done'){body=pfDoneHTML();footer=pwButton('close','Plans saved · Done','primary');}
- if(j.clear){body=`<div class="card pf-ask" role="alert"><h3>Remove the plan for ${hesc(pfShort(s.active))}?</h3><p class="pf-ask-note">It goes when you save. Your log stays.</p><div class="pf-conflict-actions">${pwButton('pf-clear-cancel','Cancel')}${pwButton('pf-remove-day','Remove plan','primary')}</div></div>`;footer='';}
+ if(j.clear){body=`<div class="card pf-ask" role="alert"><h3>Remove the plan for ${hesc(pfShort(s.active))}?</h3><p class="pf-ask-note">Your logged workouts stay.</p><div class="pf-conflict-actions">${pwButton('pf-clear-cancel','Cancel')}${pwButton('pf-remove-day','Remove plan','primary')}</div></div>`;footer='';}
  if(j.emptyConfirm){const empty=pfDates().filter(d=>!pwSetCount(pwDay(d).rows)),valid=s.dates.length-empty.length;body=`<div class="card" role="alert"><h3>Empty days won’t be saved</h3>${empty.map(d=>`<p><strong>${hesc(pwDate(d))}</strong><br>0 planned sets · No plan</p>`).join('')}<p class="pw-small">These dates will become No plan. Any existing saved plan on these dates will be removed. Logged workouts stay untouched.</p>${pwButton('pf-confirm-save',valid?'Save '+valid+' days & clear empty days':'Set dates to No plan','primary')}${pwButton('pf-clear-cancel','Back to editing')}</div>`;footer='';}
  if(s.conflict){body=`<div class="card" role="alert"><h3>Newer plan · ${hesc(pwDate(s.conflict))}</h3>${pfRoutine(pwRead(planText(pwSaved(s.conflict))))}<div class="pf-conflict-actions">${pwButton('load-newer','Use newer plan')}${pwButton('replace-newer','Keep my draft')}</div></div>`;footer='';}
  $('#view').innerHTML=pwFoldMarkup(`<section class="pw-workspace pf-workspace${j.page==='dates'?' pf-dates-page':j.page==='edit'?' pf-routine-page':j.page==='days'?' pf-overview-page':''}" aria-label="Planning workspace">${j.prefOrigin==='settings'&&j.page==='prefs'?'':pfStepbar()}${s.error?`<p class="pw-message" role="alert">${hesc(s.error)}</p>`:''}${body}<span id="pw-reorder-help" class="pw-sr-only">Drag or use arrow keys to reorder.</span><span id="pw-reorder-status" role="status" class="pw-sr-only"></span>${footer?`<div class="pw-save-dock pf-dock">${footer}</div>`:''}</section>`);if(s.busy)document.querySelectorAll('.pf-date-sheet button,.pf-steps button').forEach(b=>b.disabled=true);pfPlayMotion();requestAnimationFrame(pwPositionDock);pfFocusChip();
@@ -1058,7 +1068,7 @@ function pfHandle(a,el){const s=pw(),j=pfState(),d=el.dataset.date,i=+el.dataset
  else if(a==='pf-clear'){j.clear=true;}
  else if(a==='pf-clear-cancel'){j.clear=false;j.emptyConfirm=false;}
  else if(a==='pf-empty-day'){pwUndoPoint(b);b.rows=[];b.parts=[];delete b.partsPick;b.locks=[];b.target=null;b.cleared=true;b.source='Your draft';j.clear=false;}
- else if(a==='pf-remove-day'){j.removed.push({date:s.active,base:b.base});s.dates=s.dates.filter(x=>x!==s.active);j.anchor=j.anchor.filter(x=>x!==s.active);s.active=s.dates[0]||null;pfNavigate('days');return;}
+ else if(a==='pf-remove-day'){pfRemoveDayNow(s.active);return;}
  /* v4.6.157: Set target changes the routine LIVE, by the same rule as Total sets
     (pwAllocateSets): each exercise to your usual working sets, then the day's
     most recent exercise not in the plan. It used to only set a number for

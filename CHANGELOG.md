@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v4.6.212 (2026-10-05) — Remove plan removes it, there and then
+
+- **Reported from the phone:** after Remove plan on Sunday the calendar still showed the Draft pencil on it, and there was no way to save the removal.
+- **Why:** Remove only marked the day "to be removed when you save" and dropped it from the selection. Its draft stayed, so the pencil stayed; and with the day unselected, no Save button carried the removal out.
+- **Now:** Remove plan deletes that day's saved plan and its draft at once and stores it. The calendar shows the day empty. A toast says "Plan removed · Sun, 10/11 · undo"; tapping it puts both back. The question's line is now just "Your logged workouts stay."
+- **Also found:** undo toasts could not be tapped at all (the toast ignores the pointer so it never blocks the page). An undo toast on screen now takes the tap; this fixes the app's other undo toasts too.
+- Check: `tools/check-remove-plan.cjs` (9, real taps in Chromium).
+
 ## v4.6.211 (2026-10-05) — Clearing a day is one question with two buttons
 
 - **Reported from the phone:** "Clear Sun, 10/11?" had three buttons of three widths and two lines of explanation, and two of the buttons both removed the day's content.
