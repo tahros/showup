@@ -52,9 +52,9 @@ ok2('the day cell is taller than the 44 it was',/\.pf-dates-page \.pf-date-sheet
    appears with the ring and leaves with it -- a legend for a mark that is
    not on screen is its own confusion. */
 run(`window.__anchorWas=pfState().anchor.slice();pfState().anchor=[...pw().dates];pwRender();`);
-test('selection and filled statuses have separate keys',`!document.querySelector('.pf-calendar .pf-editing')&&!!document.querySelector('.pf-key-selected')&&/Draft/.test(document.querySelector('.pf-calendar-key').textContent)&&/Saved plan/.test(document.querySelector('.pf-calendar-key').textContent)`);
+test('selection and filled statuses have separate keys',`!document.querySelector('.pf-calendar .pf-editing')&&!!document.querySelector('.pf-key-selected')&&/Draft/.test(document.querySelector('.pf-calendar-key').textContent)&&/Saved/.test(document.querySelector('.pf-calendar-key').textContent)&&!/Saved plan|Up to 7 days/.test(document.querySelector('.pf-calendar-key').textContent)`);
 run(`pfState().anchor=[];pwRender();`);
-test('with nothing drafted the key drops the ring',`!document.querySelector('.pf-calendar .pf-editing')&&!document.querySelector('.pf-key-ring')&&/Saved plan/.test(document.querySelector('.pf-calendar-key').textContent)`);
+test('with nothing drafted the key drops the ring',`!document.querySelector('.pf-calendar .pf-editing')&&!document.querySelector('.pf-key-ring')&&/Saved/.test(document.querySelector('.pf-calendar-key').textContent)&&!/Saved plan|Up to 7 days/.test(document.querySelector('.pf-calendar-key').textContent)`);
 run(`pfState().anchor=window.__anchorWas;pwRender();`);
 test('calendar uses filled icons rather than dots or editing rings',`!document.querySelector('.pf-calendar .pf-plan-dot,.pf-calendar .pf-editing')&&document.querySelectorAll('.pf-calendar-key svg[fill="currentColor"]').length===2`);
 test('returning to Dates retains completed steps',`!document.querySelector('[data-stage="2"]').disabled&&!document.querySelector('[data-stage="3"]').disabled`);

@@ -1,5 +1,11 @@
 # ShowUp — changelog
 
+## v4.6.215 (2026-10-05) — Dates: a shorter calendar key; Edit is off with nothing selected
+
+- **Marked on a screenshot:** the key reads "Saved" instead of "Saved plan", and "Up to 7 days" is gone from it. The limit itself is unchanged: an eighth day still says so when tapped.
+- **Edit was tappable with no date selected.** The step tabs only checked that you had been to Edit before. With nothing selected there is nothing to edit, so Edit and Done are now disabled until a date is picked.
+- Tests: `tools/test-skip-day.js` (17), `tools/test-planner-flow.js`.
+
 ## v4.6.214 (2026-10-05) — Pip fights a nap
 
 - Rest Day uses the approved 12-second sleepy loop: nod off, catch, peek, settle and breathe. Tap Pip to briefly wake him, then return smoothly to the loop.

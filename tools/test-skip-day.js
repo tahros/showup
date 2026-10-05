@@ -39,5 +39,8 @@ test('plan Thursday yourself afterwards: it is a planned day again and is picked
 /* rest */
 test('a day marked Rest is left out, planned or not noted',`(()=>{DB.week=null;pw().skip=[];DB.days['2026-10-05']={w:[],rest:true};const r=open();delete DB.days['2026-10-05'];return r==='06 07 08 09 10';})()`);
 test('notes for days gone by are dropped at the next push',`(()=>{plan(W);pw().skip=['2026-09-30'];planShift(planRunFrom('2026-10-09'),1);return pw().skip.join()==='2026-10-09';})()`);
+/* v4.6.215: nothing selected, nothing to edit */
+test('with no date selected, Edit and Done are disabled even after you have been there; Preferences and Dates are not',`(()=>{plan(W);open();pfAnchor();pfState().furthest=3;pwRender();const on=()=>[...document.querySelectorAll('.pf-steps [data-stage]')].map(b=>b.disabled?0:1).join('');const a=on();pw().dates=[];pw().active=null;pfAnchor();pwRender();return a==='1111'&&on()==='1100';})()`);
+test('the calendar key says Saved, and no longer "Up to 7 days"',`(()=>{const t=document.querySelector('.pf-calendar-key').textContent;return /Saved/.test(t)&&!/Saved plan|Up to 7 days/.test(t);})()`);
 console.log(checks+' checks');process.exit(0);
 })().catch(e=>{console.error(e);process.exit(1);});
