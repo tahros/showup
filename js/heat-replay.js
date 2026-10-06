@@ -1,7 +1,9 @@
 /* Attendance: Today pulse → reverse chronological reveal → whole-history view.
    Presentation only. No saved-data, Rest-card or header changes. UTC day indices
    avoid DST gaps; training dates are deduplicated before counting. The on-screen
-   replay and branded exports share one deterministic camera and renderer. */
+   replay and animated exports share one deterministic camera and renderer.
+   Still-image sharing has its own horizontal year ledger; never feed that
+   taller canvas to the fixed-size video/GIF encoder. */
 (()=>{
 'use strict';
 const DAY=86400000, END=9550, ZOOM=7950, MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -121,9 +123,33 @@ function play(card){
  const hide=()=>{if(document.hidden)finish();};document.addEventListener('visibilitychange',hide);window.addEventListener('resize',finish,{once:true});
  live={state:S,finish,seek(t){paused=true;cancelAnimationFrame(raf);paint(clamp(t,0,duration));}};paint(0);raf=requestAnimationFrame(tick);return true;
 }
+// Share-only calendar geometry. Keep weeks across and weekdays down, with the
+// same January origin for every year (including partial first/last years).
+// A leap year with six leading days can occupy 54 weeks, not always 53.
+function ledgerGeometry(M){
+ const width=1080,pad=70,top=430,rowHeight=205;
+ const rows=M.years.map(y=>{const jan=stamp(y+'-01-01'),next=stamp((y+1)+'-01-01'),offset=(weekday(jan)-M.dow+7)%7;return {year:y,jan,offset,weeks:Math.ceil((next-jan+offset)/7),first:Math.max(jan,M.start),last:Math.min(next-1,M.end)};});
+ const pitch=(width-2*pad)/Math.max(...rows.map(r=>r.weeks)),size=pitch-4,height=Math.max(1080,top+rows.length*rowHeight+120);
+ const cell=d=>{const i=year(d.n)-M.years[0],r=rows[i],index=d.n-r.jan+r.offset;return {x:pad+Math.floor(index/7)*pitch+2,y:top+i*rowHeight+43+(index%7)*pitch,w:size,h:size};};
+ return {width,height,pad,top,rowHeight,rows,pitch,size,cell};
+}
+function drawLedger(M,part,col,pip,word,dark){
+ const G=ledgerGeometry(M),cv=document.createElement('canvas');cv.width=G.width;cv.height=G.height;const x=cv.getContext('2d');if(!x)return null;
+ x.fillStyle=col.surface;x.fillRect(0,0,cv.width,cv.height);
+ x.drawImage(pip,14,85,485,292,70,82,103,62);x.save();if(dark)x.filter='brightness(0) invert(1)';x.drawImage(word,187,71,109,73);x.restore();
+ const text=(s,X,Y,size,color,align='left',weight=400,mono=false,max=940)=>{x.fillStyle=color;x.font=weight+' '+size+'px '+(mono?'"IBM Plex Mono",monospace':'"ShowUp Export Plex","IBM Plex Sans",sans-serif');x.textAlign=align;x.textBaseline='alphabetic';x.fillText(s,X,Y,max);};
+ text(M.name,1010,116,27,col.muted,'right',400,false,570);
+ const value=fmt(M.total);let size=184;x.font='500 '+size+'px "ShowUp Export Plex"';while(x.measureText(value).width>720&&size>80){size-=2;x.font='500 '+size+'px "ShowUp Export Plex"';}const nw=x.measureText(value).width;
+ text(value,70,344,size,col.blue,'left',500);text('days in',94+nw,344,35,col.ink);
+ if(part!=='All workouts')text(part+' · '+dayCount(M.days.filter(d=>d.on&&matches(d,part)).length),70,393,26,col.muted);
+ G.rows.forEach((r,i)=>{const y=G.top+i*G.rowHeight;const f=n=>new Date(n*DAY).toLocaleDateString('en-US',{month:'short',...(n===M.end?{day:'numeric'}:{}),timeZone:'UTC'});const a=f(r.first),b=f(r.last);text(String(r.year),70,y+17,29,col.ink,'left',500,true);text(a===b?a:a+' — '+b,1010,y+17,24,col.muted,'right',400,true);});
+ for(const d of M.days){const r=G.cell(d);x.fillStyle=d.on?col.blue:col.empty;x.globalAlpha=d.on&&!matches(d,part)?.24:1;round(x,r,2.5);x.fill();x.globalAlpha=1;if(d.n===M.end){x.strokeStyle=col.blue;x.lineWidth=1.5;round(x,{x:r.x-2,y:r.y-2,w:r.w+4,h:r.h+4},3.5);x.stroke();}}
+ const line=G.height-112;x.fillStyle=col.line;x.fillRect(70,line,940,1);text(range(M),70,line+61,25,col.muted);text('One square. One day.',1010,line+61,25,col.muted,'right');
+ return cv;
+}
 async function share(card){
  if(!card?._attendance)return;if(live)live.finish();const S=card._attendance,M=S.M,col=palette(),dark=document.documentElement.dataset.theme==='dark';
- const [gifModule,videoModule]=await Promise.all([import('./plate-gif.js'),import('./plate-video.js')]);await gifModule.loadExportFonts();
+ const [gifModule,videoModule]=await Promise.all([import('./plate-gif.js'),import('./plate-video.js')]);await Promise.all([gifModule.loadExportFonts(),document.fonts.load('500 29px "IBM Plex Mono"'),document.fonts.load('400 24px "IBM Plex Mono"')]);
  const load=async src=>{const i=new Image();i.src=src;await i.decode();return i;};
  // Fail visibly if either half of the approved lockup is unavailable: never
  // silently export a wordmark without Pip, or substitute a typeface for it.
@@ -141,7 +167,7 @@ async function share(card){
   x.fillStyle=col.line;x.fillRect(70,1145,940,1);text(P.overview>=1?range(M):String(year(P.cursor)),70,1205,27,col.muted);text(P.overview>=1?'One square. One day.':dateLabel(P.cursor),1010,1205,27,col.muted,'right');
   return cv;
  };
- await showCard(()=>render(),'showuppp-attendance-'+todayISO,false);
+ await showCard(()=>drawLedger(M,part,col,pip,word,dark),'showuppp-attendance-'+todayISO,false);
  bindPlateExport(data,null,gifModule,videoModule,{render,label:'Your training history · ShowUppp and Pip',duration:mode==='Today pulse'?1700:mode==='Off'?500:END});
 }
 async function seeAll(){document.querySelector('nav button[data-v="stats"]')?.click();let card;for(let i=0;i<30&&!card;i++){await new Promise(r=>setTimeout(r,50));card=document.querySelector('.attendance-card');}if(!card)return false;card.scrollIntoView({block:'center',behavior:reduced()?'auto':'smooth'});await new Promise(r=>setTimeout(r,reduced()?0:650));return card.isConnected&&play(card);}
@@ -150,5 +176,5 @@ const mq=matchMedia('(prefers-reduced-motion: reduce)');mq.addEventListener?.('c
 window.addEventListener('resize',()=>{document.querySelectorAll('.attendance-card').forEach(c=>{if(c._attendance)layoutOverview(c._attendance);});});
 window.heatReplay={play,share,seeAll,get live(){return live;},finish(){live?.finish();},duration:()=>END,exportEnd:END};
 // Pure data/camera contract for regression checks; no saved state is exposed.
-window.attendanceView={model,phase,geometry};
+window.attendanceView={model,phase,geometry,ledgerGeometry};
 })();

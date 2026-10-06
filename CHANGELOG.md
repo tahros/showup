@@ -1,5 +1,11 @@
 # ShowUp — changelog
 
+## v4.6.221 (2026-10-06) — A clearer history to share
+
+- The attendance share image now uses the approved year ledger: one horizontal calendar strip per year, with your total, name, and ShowUppp + Pip branding.
+- Uses your actual logged dates and keeps body-part highlights. Light and dark themes are supported; longer histories get a taller image instead of smaller squares.
+- This is a sharing-only change. The in-app calendar, replay, video/GIF animation, floating header, Rest screen and saved records stay unchanged.
+
 ## v4.6.220 (2026-10-06) — Your whole history, one day at a time
 
 - The attendance card is now a vertical calendar with a year picker, your name and a quieter date footer. Scroll through the years without leaving the card.
