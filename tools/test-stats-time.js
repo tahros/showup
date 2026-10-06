@@ -67,7 +67,7 @@ run(`view='stats'; render();`);
 /* v3.3.307: today is a heatmap cell now — .tod for the ring, .on for
    trained. Same claim: log a set and today fills. */
 ok("the attendance heatmap renders today as trained",
-   run(`(function(){const t=document.querySelector('.heatgrid .tod');
+   run(`(function(){const t=document.querySelector('.at-calendar .today');
      return !!t && t.classList.contains('on');})()`));
 /* v3.3.215 tied this card to History's calendar geometry, on the principle
    that they were two views of ONE calendar. v3.3.307 ENDS that relationship

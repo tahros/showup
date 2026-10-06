@@ -86,92 +86,13 @@ ok("the hint is no longer absolutely positioned over the plot",
      fs.readFileSync(path.join(dir,"css/app.css"),"utf8")),
    "position:absolute gone");
 
-// ---- 3. The new day-level view is compact and structurally clear -----------
-/* v3.3.307 RESTATES: weekdays are now ROWS of a year heatmap rather than a
-   labelled header over a month. Seven of them either way, and exactly one
-   today either way. */
-/* v3.3.335 RESTATES the UNIT, not the count. Seven rows is the property and
-   it is untouched; 1fr is not. A 1fr row takes its height from the cells,
-   which take theirs from the column width via aspect-ratio -- so on a screen
-   wide enough to stretch the columns, the rows grew too, and a STATIC weekday
-   rail beside the grid cannot stretch with them. Rows are now the same
-   --hcell token the columns and the rail read, so the three cannot drift. */
-ok("the attendance grid keeps seven weekday rows",
-   /\.heatgrid\{[^}]*grid-template-rows:repeat\(7,var\(--hcell\)\)/.test(
-     fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\r?\n\s*/g, "")));
-ok("...and contains exactly one today", run(`document.querySelectorAll('.heatgrid .tod').length`) === 1);
-/* v3.3.308: two reported bugs, both about things LOOKING joined that are not.
-   (1) Month labels collided — DEC at column 0 and JAN at column 1 printed on
-   top of each other, because the rule fired on the first column AND on any
-   Monday in a month's first week. (2) The grid used one gap for both axes,
-   so two cells side by side — a WEEK apart — sat as close as two stacked
-   consecutive days, and a row of Mondays read as a continuous run directly
-   under the words "streak 1". */
-{
-  const cols = run(`[...document.querySelectorAll('.heatticks span')].map(s=>+s.style.getPropertyValue('--c'))`);
-  const labels = run(`[...document.querySelectorAll('.heatticks span')].map(s=>s.textContent)`);
-  let closest = 99;
-  for (let i = 1; i < cols.length; i++) closest = Math.min(closest, cols[i] - cols[i-1]);
-  ok("month labels never sit on top of each other", cols.length < 2 || closest >= 4,
-     "closest " + closest + " columns");
-  /* v3.3.337 RESTATES v3.3.308. That release fixed DEC and JAN colliding one
-     column apart, and pinned it as "no month is printed twice" -- true of a
-     35-week window, where a repeated label could only mean the same month
-     labelled twice. The grid now spans five years and each label is one
-     letter, so J appears every January, June and July BY DESIGN: the row is a
-     ruler, not a list. The real property is unchanged and is the line above --
-     labels never collide. What replaces the duplicate check: no month may be
-     labelled twice IN THE SAME YEAR, which is the bug v3.3.308 actually
-     caught, expressed so it survives a multi-year grid. */
-  {
-    const cells = run(`[...document.querySelectorAll('.heatgrid .hc')].map(e=>e.getAttribute('aria-label').slice(0,7))`);
-    const stamped = cols.map(c => cells[c*7]);            // YYYY-MM per label
-    ok("...and no month is labelled twice within a year",
-       new Set(stamped).size === stamped.length, stamped.join(" "));
-  }
-  const cssG = fs.readFileSync(path.join(dir, "css/app.css"), "utf8").replace(/\r?\n\s*/g, "");
-  const colGap = +(cssG.match(/\.heatgrid\{[^}]*column-gap:(\d+)px/) || [0,0])[1];
-  /* v3.3.314: with the join gone the gap lives back on the track, so read it
-     from there again — the property (weeks further apart than the days
-     inside them) never changed, only where the number is written. */
-  const rowGap = +(cssG.match(/\.heatgrid\{[^}]*row-gap:(\d+)px/) || [0,0])[1];
-/* v3.3.310: the join must not MOVE anything. Negative margins closed the
-   row-gap, but rows are repeat(7,1fr) on a grid with no explicit height —
-   1fr resolved from the items, the tracks shrank by the margin, and cells
-   went on painting at their aspect-ratio height, overflowing ~4px each and
-   bleeding into their neighbours until a run read as one solid block. The
-   gap is now PAINTED: row-gap 0, 1px of transparent padding per cell,
-   background clipped to the content box, and a joined edge drops its
-   padding. */
-{
-  const cssJ = fs.readFileSync(path.join(dir, "css/app.css"), "utf8");
-  const heat = cssJ.slice(cssJ.indexOf(".heatgrid{"), cssJ.indexOf(".heatticks{")).replace(/\r?\n\s*/g, "");
-  /* v3.3.314 RESTATES the v3.3.310 block. Those assertions defended the
-     MECHANISM that joined consecutive days — painted padding, dropped edges,
-     a zero row track. The maker compared both on device and chose the plain
-     grid, so the join is gone and its machinery with it. What survives is the
-     lesson underneath: nothing may be pulled out of its track, because that
-     is what made cells overflow and bleed into each other. */
-  ok("no cell is pulled out of its track", !/margin-(top|bottom):\s*-/.test(heat));
-  ok("...every day is its own square, none joined to another",
-     !/\.hc\.ju/.test(heat) && !/\.hc\.jd/.test(heat));
-  ok("...and the grid keeps the gap on the track, where it cannot displace anything",
-     /row-gap:2px/.test(heat) && !/\.heatgrid \.hc\{[^}]*padding/.test(heat));
-}
-/* the streak line must name its unit — days is the only thing this app
-   counts, and it is the whole point of the section */
-ok("the streak line says what it is counting",
-   /streak \d+ days?/.test(run(`document.querySelector('.crstreak').textContent`)),
-   run(`document.querySelector('.crstreak').textContent`));
-  ok("weeks are pushed further apart than the days within them",
-     colGap > rowGap && rowGap > 0, `column ${colGap}px vs row ${rowGap}px`);
-  ok("...so only a real run can look like one",
-     !/\.heatgrid\{[^}]*gap:\d+px/.test(cssG.replace(/column-gap|row-gap/g, "x")));
-}
-ok("...with every day of the window present, none blank",
-   run(`document.querySelectorAll('.heatgrid .hc').length`) === 35*7,
-   run(`document.querySelectorAll('.heatgrid .hc').length`) + " cells");
-ok("the retired Weekdays plot is gone", run(`document.querySelectorAll('.wd-col').length`) === 0);
+// ---- 3. Vertical calendar: real dates and a seven-day week -----------------
+ok("the attendance timeline has seven weekday columns", run(`document.querySelectorAll('.at-weekdays span').length`)===7);
+ok("exactly one Today in the timeline", run(`document.querySelectorAll('.at-calendar .today').length`)===1);
+ok("one miniature per actual calendar day", run(`document.querySelectorAll('.at-mini').length===attendanceView.model().days.length`));
+ok("timeline and overview agree on trained days", run(`document.querySelectorAll('.at-cell.on').length===document.querySelectorAll('.at-mini.on').length`));
+ok("streak values name their unit", /streak \d+ days/.test(run(`document.querySelector('.at-streak').textContent`)));
+ok("the retired Weekdays plot is gone", run(`document.querySelectorAll('.wd-col').length`)===0);
 
 // ---- 4. Consistency: verdict plus graph ------------------------------------
 ok("Consistency leads with two exact day totals", run(`document.querySelectorAll('.conrace:not(.runrace) .comparison-values strong').length`) === 2);

@@ -49,7 +49,7 @@ check('...and the ONLY setting it may write is the remembered comparison years',
   const moved=[...new Set([...Object.keys(a),...Object.keys(b)])].filter(k=>JSON.stringify(a[k])!==JSON.stringify(b[k]));
   return moved.length===0||(moved.length===1&&moved[0]==='comparisonYears');})()`);
 check('whole-number plate units are consistent in kilograms and pounds',`plateLedger({w:[{part:'Legs',ex:'Squat',w:100,reps:[10]}]},250).length===4&&plateLedger({w:[{part:'Legs',ex:'Squat',w:1000/LB,reps:[1]}]},500/LB).length===2`);
-check('month row directly precedes attendance cells',`document.querySelector('.heatgrid').previousElementSibling.classList.contains('heatticks')`);
+check('vertical attendance has month labels alongside its cells',`!!document.querySelector('.at-calendar .at-month')&&!!document.querySelector('.at-calendar .at-cell')`);
 run(`DB.settings.weekStart=1;view='stats';render();`);
 check('selection survives leaving and rendering Stats',`document.querySelector('.plate-date').textContent.includes('2024')`);
 // A leap day must not count the previous year's February 28 twice.

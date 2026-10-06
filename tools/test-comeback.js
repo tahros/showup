@@ -97,7 +97,7 @@ ok("...even though the derivation still finds them (2, longest 13)",
    card became a year heatmap — same two facts, one element instead of a
    stacked cluster, still no comeback copy. */
 ok("...and the unified attendance hero carries streak + best without comeback copy",
-   run(`(function(){const s=document.querySelector('.crstreak');
+   run(`(function(){const s=document.querySelector('.at-streak');
      return !!s && /streak/.test(s.textContent) && /best/.test(s.textContent)
        && !/comeback/.test(document.querySelector('.crcard').textContent);})()`));
 

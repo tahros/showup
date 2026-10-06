@@ -24,7 +24,7 @@ ok('only the four approved Share actions remain -- plate, progression, and the t
        &&all.filter(b=>b.classList.contains('comparison-share')).length===2;})()`));
 ok('chevrons use one control treatment',run(`[...document.querySelectorAll('.pg-range-nav button,.pg-pages button')].every(b=>b.classList.contains('stats-chevron'))`));
 ok('the repeated What you did summary is gone',run(`!document.querySelector('.pmixsum')`));
-ok('the completion total is the only oversized workout takeaway',run(`!!document.querySelector('.plate-total')&&!!document.querySelector('.crtotal')`));
+ok('the completion total is the only oversized workout takeaway',run(`!!document.querySelector('.plate-total')&&!!document.querySelector('.at-total')`));
 const src=fs.readFileSync(path.join(dir,'js/stats-story.js'),'utf8');
 ok('one width, radius, and spacing rhythm are tokenized',/--stats-radius:22px/.test(src)&&/--stats-section:30px/.test(src)&&/\.stats-card\{[^}]*width:calc/.test(src));
 ok('signature blue is performance color, not a body-part category',/\.heatgrid \.hc\.on\{background-color:var\(--accent\)/.test(src)&&!/PART_COLORS[^\n]*accent/.test(src));

@@ -1,69 +1,27 @@
-/* check-heat-replay.cjs — v4.6.128: Replay on "You keep showing up".
- * Needs a local server on :8784 (python3 -m http.server 8784 from the repo) and
- * Chromium; PW_CHROME overrides the Windows path below.
- * 1. Nothing plays without a tap: no canvas after render, re-render, scrolling.
- * 2. After Replay finishes the canvas is gone, the DOM heatmap is unchanged and
- *    pixel-identical to the render before it, and the scroller is on today.
- * 3. The replay's last frame matches the DOM it hands over to: identical pixels
- *    once aligned, and aligned within one device pixel (0.33pt at 3x). Today's
- *    ring is held still (same clock on both sides) and masked from the pixel
- *    comparison -- a stroked ring and a CSS border anti-alias differently -- and
- *    the frame's sheen is hidden on both sides. Exact device-pixel snapping is the engine's (Blink
- *    and WebKit round the scroller differently); one device pixel is the bound.
- * 4. A tap anywhere during the replay jumps to the end.
- * 5. Reduced motion: no button, and no canvas ever appears, even when forced. */
-const {chromium}=require('playwright'),assert=require('assert');
-const EXE=process.env.PW_CHROME||'C:/Users/sungj/AppData/Local/ms-playwright/chromium-1217/chrome-win64/chrome.exe';
-const SEED=`(()=>{document.querySelector('#onb')?.remove();todayISO='2026-09-25';checkDate=()=>false;DB.settings={...DB.settings,theme:window.__theme,onboarded:true};DB.days={};
-let s=7;const r=()=>{s=(s*16807)%2147483647;return s/2147483647};
-for(let d=new Date('2021-12-06T12:00');d<=new Date('2026-09-24T12:00');d.setDate(d.getDate()+1)){const iso=d.toLocaleDateString('en-CA');if(r()<(d.getDay()?0.85:0.25))DB.days[iso]={w:[{ex:'Squat',part:'Legs',w:90,reps:[8],at:+d}],upd:1};}
-SEED=deriveAll();applyTheme();view='stats';render();})()`;
-(async()=>{const b=await chromium.launch({executablePath:EXE});let n=0;const pass=m=>{console.log('PASS',m);n++;};
+/* Serve repo on :8784. Vertical attendance, branded share and camera contract. */
+const {chromium}=require('playwright'),assert=require('assert'),fs=require('fs');
+const origin=process.env.ATTENDANCE_ORIGIN||'http://127.0.0.1:'+(process.env.PW_PORT||8784)+'/',out=process.env.QA_DIR||'../attendance-qa';fs.mkdirSync(out,{recursive:true});
+(async()=>{const browser=await chromium.launch({executablePath:process.env.PW_CHROME||'C:/Users/sungj/AppData/Local/ms-playwright/chromium-1217/chrome-win64/chrome.exe'});
 try{for(const theme of ['light','dark']){
- const p=await b.newPage({viewport:{width:390,height:844},deviceScaleFactor:3,serviceWorkers:'block'});
- const errs=[];p.on('pageerror',e=>errs.push(e.message));
- await p.route('**/*',r=>r.request().url().startsWith('http://127.0.0.1:8784/')?r.continue():r.abort());
- await p.goto('http://127.0.0.1:8784/');await p.waitForTimeout(1000);await p.evaluate(t=>window.__theme=t,theme);await p.evaluate(SEED);await p.waitForTimeout(600);
- await p.locator('.crcard').first().evaluate(e=>e.scrollIntoView({block:'center'}));await p.waitForTimeout(1500);
- /* 1 */
- await p.evaluate(()=>render());await p.waitForTimeout(400);await p.mouse.wheel(0,200);await p.waitForTimeout(300);
- await p.locator('.crcard').first().evaluate(e=>e.scrollIntoView({block:'center'}));await p.waitForTimeout(600);
- assert.equal(await p.locator('.heat-replay-canvas').count(),0);pass(theme+': no canvas without a tap (render, re-render, scroll)');
- assert.equal(await p.locator('.crcard.resting .heat-replay').count(),0);
- const clip=await p.evaluate(()=>{const cs=[...document.querySelectorAll('.crcard:not(.resting) .hc')].map(c=>c.getBoundingClientRect()),w=document.querySelector('.crcard:not(.resting) .heatwrap').getBoundingClientRect();
-   return {x:w.left,y:Math.min(...cs.map(c=>c.top))-4,width:w.width,height:Math.max(...cs.map(c=>c.bottom))-Math.min(...cs.map(c=>c.top))+8};});
- const dom=()=>p.evaluate(()=>{const g=document.querySelector('.crcard:not(.resting) .heatgrid');return {html:g.innerHTML,scroll:g.closest('.heatwrap').scrollLeft,max:g.closest('.heatwrap').scrollWidth-g.closest('.heatwrap').clientWidth,num:document.querySelector('.crcard:not(.resting) .crtotal').innerHTML};});
- await p.evaluate(()=>{document.getAnimations().forEach(a=>a.pause());const st=document.createElement('style');st.id='hr-check';st.textContent='.heatframe::after{visibility:hidden!important}';document.head.append(st);});
- const d0=await dom(),s0=await p.screenshot({clip});
- /* 3 */
- await p.click('.heat-replay');await p.waitForTimeout(40);
- assert.equal(await p.locator('.heat-replay-canvas').count(),1);pass(theme+': a tap on Replay starts it');
- await p.evaluate(()=>{document.getAnimations().forEach(a=>a.pause());heatReplay.live.seek(heatReplay.duration());});
- const last=await p.screenshot({clip});if(process.env.DUMP)require('fs').writeFileSync(process.env.DUMP+'-last-'+theme+'.png',last);
- await p.evaluate(()=>heatReplay.finish());await p.waitForTimeout(600);
- const s1=await p.screenshot({clip}),d1=await dom();if(process.env.DUMP)require('fs').writeFileSync(process.env.DUMP+'-dom-'+theme+'.png',s1);
- /* 2 */
- assert.equal(await p.locator('.heat-replay-canvas').count(),0);pass(theme+': the canvas is gone after the replay');
- assert.deepEqual(d1,d0);assert(Math.abs(d1.scroll-d1.max)<=1);pass(theme+': DOM heatmap, count and scroll position unchanged (on today)');
- assert(s1.equals(s0),'pixel-identical to the no-replay render');pass(theme+': pixel-identical to the no-replay render');
- const diff=await p.evaluate(async([a,b,cl])=>{const im=async s=>{const i=new Image();i.src='data:image/png;base64,'+s;await i.decode();const c=document.createElement('canvas');c.width=i.width;c.height=i.height;const x=c.getContext('2d');x.drawImage(i,0,0);return {d:x.getImageData(0,0,c.width,c.height).data,w:c.width,h:c.height};};
-   const A=await im(a),B=await im(b);let best=null;const T=document.querySelector('.crcard:not(.resting) .hc.tod').getBoundingClientRect(),R=[(T.left-cl.x-5)*3,(T.top-cl.y-5)*3,(T.right-cl.x+5)*3,(T.bottom-cl.y+5)*3];
-   for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){let n=0,m=0,px=0;for(let y=4;y<A.h-4;y++)for(let x=4;x<A.w-4;x++){const i=(y*A.w+x)*4,j=((y+dy)*A.w+x+dx)*4;if(x>=R[0]&&x<=R[2]&&y>=R[1]&&y<=R[3])continue;px++;const d=Math.max(Math.abs(A.d[i]-B.d[j]),Math.abs(A.d[i+1]-B.d[j+1]),Math.abs(A.d[i+2]-B.d[j+2]));if(d>8)n++;if(d>m)m=d;}
-     if(!best||n<best.n)best={n,m,px,dx,dy};}
-   return best;},[last.toString('base64'),s1.toString('base64'),clip]);
- assert(diff.n/diff.px<0.002,JSON.stringify(diff));pass(theme+`: last frame vs DOM: offset (${diff.dx},${diff.dy}) device px; then ${diff.n} of ${diff.px} px differ by more than 8/255`);
- await p.evaluate(()=>document.getElementById('hr-check')?.remove());
- /* 4 */
- await p.evaluate(()=>document.getAnimations().forEach(a=>a.play()));
- await p.click('.heat-replay');await p.waitForTimeout(600);
- assert.equal(await p.locator('.heat-replay-canvas').count(),1);
- await p.mouse.click(200,120);await p.waitForTimeout(60);
- assert.equal(await p.locator('.heat-replay-canvas').count(),0);assert.deepEqual((await dom()).html,d0.html);assert.equal((await dom()).num,d0.num);
- pass(theme+': a tap anywhere mid-replay jumps to the end');
- /* 5 */
- await p.emulateMedia({reducedMotion:'reduce'});await p.waitForTimeout(100);
- assert(!(await p.locator('.heat-replay').isVisible()));
- await p.evaluate(()=>{const c=document.querySelector('.crcard:not(.resting)');heatReplay.play(c);c.querySelector('.heat-replay').click();});await p.waitForTimeout(300);
- assert.equal(await p.locator('.heat-replay-canvas').count(),0);pass(theme+': reduced motion: no button, no canvas even when forced');
- assert.deepEqual(errs,[]);await p.close();
-}console.log(`\n${n} passed`);}finally{await b.close();}})().catch(e=>{console.error(e);process.exitCode=1;});
+ const p=await browser.newPage({viewport:{width:390,height:950},deviceScaleFactor:2,serviceWorkers:'block'}),errors=[];p.on('pageerror',e=>errors.push(e.message));
+ await p.route('**/*',r=>r.request().url().startsWith(origin)?r.continue():r.abort());await p.goto(origin);
+ await p.evaluate(theme=>{document.querySelector('#onb')?.remove();todayISO='2026-10-06';checkDate=()=>false;DB.settings={...DB.settings,onboarded:true,name:'Sungjee Yoo',theme,bar:theme};DB.days={};for(let n=Date.UTC(2021,11,1),i=0;n<=Date.UTC(2026,9,6);n+=86400000,i++){if(i%7<4){const d=new Date(n).toISOString().slice(0,10);DB.days[d]={w:[{part:i%2?'Shoulder':'Legs',ex:i%2?'Overhead Press':'Squat',w:50,reps:[8,8],at:n}]};}}DB.days[todayISO]={w:[{part:'Run',ex:'Run',w:5,mins:30,reps:[1]}]};SEED=deriveAll();applyTheme();view='stats';render();},theme);
+ await p.waitForTimeout(4000);const c=p.locator('.attendance-card');await c.scrollIntoViewIfNeeded();await p.waitForTimeout(1200);assert.equal(await p.locator('.at-replay-canvas').count(),0);
+ const count=await p.evaluate(()=>attendanceView.model().total);assert.equal(Number((await c.locator('.at-total').innerText()).replace(/,/g,'')),count);await c.screenshot({path:out+'/timeline-'+theme+'.png'});
+ await c.locator('.at-year').selectOption('2024');await p.waitForTimeout(1200);assert.equal(await c.locator('.at-year').inputValue(),'2024');assert.equal(await c.getAttribute('data-current-date'),'2024-01-01');await c.locator('.at-year').selectOption('2026');await p.waitForTimeout(1200);
+ const db=await p.evaluate(()=>JSON.stringify(DB));await c.locator('.heat-replay').click();let last=0,years=[];
+ for(const t of [0,765,1700,2400,3500,4500,5500,6500,7549,8500,9550]){await p.evaluate(t=>heatReplay.live.seek(t),t);const s=await p.evaluate(()=>({n:+document.querySelector('.attendance-card').dataset.revealed,d:document.querySelector('.attendance-card').dataset.currentDate}));assert(s.n>=last);last=s.n;years.push(s.d.slice(0,4));if([765,4500,9550].includes(t))await c.screenshot({path:out+'/frame-'+t+'-'+theme+'.png'});}
+ assert.equal(last,count);assert.equal(years[0],'2026');assert.equal(years.at(-1),'2021');await p.evaluate(()=>heatReplay.finish());assert.equal(await c.getAttribute('data-overview'),'true');assert.equal(await c.locator('.at-mini.on').count(),count);await c.screenshot({path:out+'/overview-'+theme+'.png'});
+ await c.locator('.at-part').selectOption('Shoulder');assert((await c.locator('.at-mini.dim').count())>0);assert((await c.locator('.at-mini.on:not(.dim)').count())>0);{const a=JSON.parse(db),b=await p.evaluate(()=>DB);const diff=(a,b,p='')=>[...new Set([...Object.keys(a||{}),...Object.keys(b||{})])].flatMap(k=>JSON.stringify(a?.[k])===JSON.stringify(b?.[k])?[]:typeof a?.[k]==='object'&&typeof b?.[k]==='object'?diff(a[k],b[k],p+k+'.'):[p+k+': '+JSON.stringify(a?.[k])+' → '+JSON.stringify(b?.[k])]);assert.deepEqual(diff(a,b),[]);}
+ await p.evaluate(()=>{const original=bindPlateExport;bindPlateExport=(...args)=>{window.attendanceExport=args[4];return original(...args);};});await c.locator('.heat-share').click();await p.locator('#repImg').waitFor({state:'visible'});await p.waitForTimeout(400);const image=await p.evaluate(()=>_repCv.cv.toDataURL());fs.writeFileSync(out+'/share-'+theme+'.png',Buffer.from(image.split(',')[1],'base64'));assert.equal(await p.evaluate(()=>_repCv.cv.width),1080);assert.equal(await p.evaluate(()=>_repCv.cv.height),1280);
+ // The approved logo lockup is identical on the first, pulse, rewind and final frames.
+ const brands=await p.evaluate(()=>[0,765,4500,9550].map(t=>{const c=attendanceExport.render(t),x=document.createElement('canvas');x.width=230;x.height=90;x.getContext('2d').drawImage(c,70,65,230,90,0,0,230,90);return x.toDataURL();}));assert(brands.every(x=>x===brands[0]));
+ if(process.env.ENCODE==='1'&&theme==='light'){
+  for(const format of ['mp4','gif']){const button=p.locator('[data-format="'+format+'"]');if(await button.isDisabled()){console.log('SKIP '+format+' unsupported');continue;}await button.click();await p.waitForFunction(f=>f==='mp4'?!!_repCv?.videoBlob:!!_repCv?.gifBlob,format,{timeout:240000});const b64=await p.evaluate(async f=>{const blob=f==='mp4'?_repCv.videoBlob:_repCv.gifBlob;const bytes=new Uint8Array(await blob.arrayBuffer());let s='';for(let i=0;i<bytes.length;i+=32768)s+=String.fromCharCode(...bytes.subarray(i,i+32768));return btoa(s);},format);const bytes=Buffer.from(b64,'base64');assert(bytes.length>1000);fs.writeFileSync(out+'/attendance.'+format,bytes);console.log('PASS actual '+format+' export '+bytes.length+' bytes');}
+ }
+ await p.keyboard.press('Escape');await p.evaluate(()=>{if(typeof plateExportCleanup==='function')plateExportCleanup();document.querySelector('#repOv')?.remove();view='stats';render();});
+ await p.setViewportSize({width:320,height:900});await p.locator('.attendance-card').scrollIntoViewIfNeeded();assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await p.locator('.attendance-card').screenshot({path:out+'/narrow-'+theme+'.png'});
+ await p.emulateMedia({reducedMotion:'reduce'});await p.evaluate(()=>{view='stats';render();heatReplay.play(document.querySelector('.attendance-card'));});assert.equal(await p.locator('.at-replay-canvas').count(),0);assert.equal(await p.locator('.attendance-card').getAttribute('data-overview'),'true');
+ await p.setViewportSize({width:736,height:1000});await p.waitForTimeout(100);assert(await p.evaluate(()=>{const r=document.querySelector('.at-overview').getBoundingClientRect();return [...document.querySelectorAll('.at-mini')].every(e=>{const b=e.getBoundingClientRect();return b.left>=r.left-1&&b.right<=r.right+1&&b.top>=r.top&&b.bottom<=r.bottom+1;});}));await p.locator('.attendance-card').screenshot({path:out+'/wide-'+theme+'.png'});
+ assert.deepEqual(errors,[]);await p.close();console.log('PASS '+theme+': reverse count, full history, focus, branded share, narrow/wide and reduced motion');
+} }finally{await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1;});

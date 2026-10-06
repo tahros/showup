@@ -24,13 +24,9 @@ run(`todayISO='2026-09-11';checkDate=()=>false;DB.settings.unit='lb';DB.settings
 const story=fs.readFileSync(path.join(dir,'js/stats-story.js'),'utf8');
 const monthOf=iso=>new Date(iso+'T00:00').toLocaleDateString('en-US',{month:'short'});
 
-// ---- the attendance card on Stats
-ok('Stats draws the attendance card with one rail, a child of .heatframe, NOT inside .heatwrap -- inside, it scrolls away with the grid',
-   run(`(function(){const f=document.querySelector('#view .crcard .heatframe');const r=f&&f.querySelectorAll('.heat-periods');
-     return !!r&&r.length===1&&r[0].parentElement===f&&!r[0].closest('.heatwrap');})()`));
-ok('...its year is bare, its month sentence case',
-   run(`(function(){const r=document.querySelector('#view .crcard .heat-periods');const y=r.querySelector('.yr').textContent,m=r.querySelector('.mo').textContent;
-     return /^\\d{4}$/.test(y)&&/^[A-Z][a-z]{2}$/.test(m);})()`), run(`document.querySelector('#view .crcard .heat-periods').textContent`));
+// Normal attendance now has a fixed year picker above a vertical calendar.
+ok('Stats uses the vertical attendance calendar',run(`!!document.querySelector('.at-scroll .at-calendar')`));
+ok('year control stays outside the scrolling calendar',run(`!!document.querySelector('.at-year')&&!document.querySelector('.at-year').closest('.at-scroll')`));
 
 // ---- the rest card on TODAY (test-rest's own fixture: a declared rest today)
 run(`(function(){const D=n=>{const t=new Date(todayISO+'T00:00');t.setDate(t.getDate()-n);return t.toLocaleDateString('en-CA');};
@@ -95,15 +91,9 @@ ok('no second rule in stats-story sets .wdrail padding-top',
 // ---- v4.5.11: the three things the maker circled
 const cssA=fs.readFileSync(path.join(dir,'css/app.css'),'utf8');
 
-// (1) streak and best on two lines, on BOTH cards
-run(`view='stats';render();`);
-ok('the attendance card puts streak and best in two elements, not one nowrap string',
-   run(`document.querySelectorAll('#view .crcard:not(.resting) .crstreak > span').length`)===2,
-   run(`[...document.querySelectorAll('#view .crcard:not(.resting) .crstreak > span')].map(s=>s.textContent).join(' | ')`));
-ok('...best is the SECOND one, so it lands on the lower line',
-   /^best /.test(run(`document.querySelectorAll('#view .crcard:not(.resting) .crstreak > span')[1].textContent`)));
-ok('...and the stacking rule is no longer scoped to .resting',
-   /\.crcard \.crstreak\{[^}]*flex-direction:column/.test(cssA) && !/\.crcard\.resting \.crstreak\{[^}]*flex-direction:column/.test(cssA));
+// Horizontal Rest-card geometry remains unchanged. Normal attendance is
+// covered separately by test-attendance and the Chromium replay check.
+ok('Rest still uses its horizontal calendar',run(`!!document.querySelector('.crcard.resting .heatframe')`));
 
 // (2) today's halo has a gutter to breathe into. The ring reaches inset:-3.5px,
 //     so anything less than 3.5px of padding still clips it.

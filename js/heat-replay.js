@@ -1,323 +1,154 @@
-/* ShowUp — heat-replay.js (v4.6.128): REPLAY on "You keep showing up".
-   Classic script, loaded after stats-story.js.
-
-   One camera pull-back from today's square out to the whole ledger, then back
-   down onto the strip you actually scroll. The same motion as 13–21s of the
-   "One Square" teaser, drawn with the card's own vocabulary and nothing else:
-   the square is a day, trained is --accent, missed is --surface2, ahead is the
-   .fut outline, today wears its breathing ring. No new colours, no confetti,
-   no sound, no score; a grey day stays grey and nothing is hidden.
-
-   THE GEOMETRY. The card's heatmap is a single strip, one column per week,
-   opening on today. The replay lays that same ledger out as CALENDAR-YEAR ROWS
-   (the oldest year at the top, this year at the bottom), each column still a
-   week. This year's row holds today's week at the same horizontal pitch the
-   strip uses, so the last beat -- the camera diving back into this year's row
-   -- lands on the strip's opening view square for square, and the handover to
-   the real DOM is invisible. Early in a year, when the strip's window reaches
-   back past January, the previous year's tail slides in beside this year as
-   the camera lands, so the last frame still matches.
-
-   THE BEATS (ms): hold on today 400 · to the week 1000 (past days 90ms apart)
-   · to the year 1200 (cells by sqrt of age) · to every year 1300 (cells by
-   age^0.75, newest first, speeding up) · hold 200 · land on the strip 600.
-   One transform, scale interpolated in log space, easeInOutCubic.
-
-   RULES. Plays only on a tap of Replay; never on render. prefers-reduced-motion
-   hides the button, so the card is always in its end state. A tap anywhere
-   while it runs jumps to the end. Cell positions are READ from the DOM the
-   builder made (never recomputed), so the last frame cannot disagree with it. */
-(function(){
-const HR_T={hold:400,week:1000,year:1200,all:1300,rest:200,land:600};
-const HR_ARRIVE=350, HR_FLASH=180, HR_GAP=90;
-const easeIO=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
-const easeOut=t=>1-Math.pow(1-t,3);
-const clamp=(x,a=0,b=1)=>x<a?a:x>b?b:x;
-const lerp=(a,b,t)=>a+(b-a)*t;
-/* --settle, cubic-bezier(.22,1,.36,1): the ring's own curve, so the canvas ring
-   breathes in step with the DOM one it hands over to */
-function bez(x1,y1,x2,y2){
-  const cx=3*x1,bx=3*(x2-x1)-cx,ax=1-cx-bx,cy=3*y1,by=3*(y2-y1)-cy,ay=1-cy-by;
-  const X=t=>((ax*t+bx)*t+cx)*t,Y=t=>((ay*t+by)*t+cy)*t,dX=t=>(3*ax*t+2*bx)*t+cx;
-  return x=>{let t=x;for(let i=0;i<8;i++){const d=dX(t);if(Math.abs(d)<1e-6)break;t-=(X(t)-x)/d;}return Y(clamp(t));};
-}
-const settle=bez(.22,1,.36,1);
-function ringAt(ms){  /* todbreath: 0% .85/1.5/4 · 60% .30/3.5/6 · 100% .85/1.5/4 */
-  const p=((ms%3200)+3200)%3200/3200;
-  const A={o:.85,i:1.5,r:4},B={o:.30,i:3.5,r:6};
-  const [f,t,u]=p<.6?[A,B,settle(p/.6)]:[B,A,settle((p-.6)/.4)];
-  return {o:lerp(f.o,t.o,u),i:lerp(f.i,t.i,u),r:lerp(f.r,t.r,u)};
-}
+/* Attendance: Today pulse → reverse chronological reveal → whole-history view.
+   Presentation only. No saved-data, Rest-card or header changes. UTC day indices
+   avoid DST gaps; training dates are deduplicated before counting. The on-screen
+   replay and branded exports share one deterministic camera and renderer. */
+(()=>{
+'use strict';
+const DAY=86400000, END=9550, ZOOM=7950, MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const clamp=(n,a=0,b=1)=>Math.max(a,Math.min(b,n)),mix=(a,b,p)=>a+(b-a)*p,ease=p=>1-Math.pow(1-clamp(p),3);
+const iso=n=>new Date(n*DAY).toISOString().slice(0,10),stamp=s=>Math.floor(Date.parse(s+'T00:00:00Z')/DAY);
+const valid=s=>/^\d{4}-\d{2}-\d{2}$/.test(s)&&Number.isFinite(stamp(s))&&iso(stamp(s))===s;
+const weekday=n=>new Date(n*DAY).getUTCDay(),year=n=>new Date(n*DAY).getUTCFullYear();
 const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
-let live=null;
-
-function mix(c,w){  /* rgb(a) string toward white by w */
-  const m=c.match(/[\d.]+/g);if(!m)return c;const [r,g,b]=m.map(Number),a=m[3]!=null?+m[3]:1;
-  return `rgba(${Math.round(r+(255-r)*w)},${Math.round(g+(255-g)*w)},${Math.round(b+(255-b)*w)},${a})`;
+const choices=['All workouts','Chest','Back','Shoulder','Legs','Biceps','Triceps','Sixpack','Run'];
+const dayCount=n=>n+' '+(n===1?'day':'days');
+let focus='All workouts',motion='Full journey',live=null;
+function model(){
+ const end=stamp(todayISO),records=allDays(),dates=[...workoutDates()].filter(d=>valid(d)&&stamp(d)<=end).sort();
+ const trained=new Set(dates.map(stamp)),start=dates.length?stamp(dates[0]):end,dow=weekStartDow();
+ const firstWeek=start-(weekday(start)-dow+7)%7,parts=new Map();
+ for(const d of dates){const set=new Set();for(const r of records[d]||[]){if(r.part==='Run'){if(r.ex==='Run')set.add('Run');}else if(r.part)set.add(r.part);}parts.set(stamp(d),set);}
+ const years=[];for(let y=year(start);y<=year(end);y++)years.push(y);
+ const days=[];for(let n=start;n<=end;n++)days.push({n,on:trained.has(n),parts:parts.get(n)||new Set(),col:(weekday(n)-dow+7)%7,row:Math.floor((n-firstWeek)/7)});
+ return {start,end,firstWeek,dow,years,days,trained,total:trained.size,parts,dates,name:String(DB.settings?.name||'').trim()};
 }
-function rr(p,x,y,w,h,r){ if(w<2.2||!p.roundRect){p.rect(x,y,w,h);return;} p.roundRect(x,y,w,h,Math.min(r,w/2,h/2)); }
-
-function build(card){
-  const frame=card.querySelector('.heatframe'),wrap=frame?.querySelector('.heatwrap'),grid=frame?.querySelector('.heatgrid');
-  if(!grid) return null;
-  const els=[...grid.querySelectorAll('.hc')];if(els.length<7)return null;
-  const tIdx=els.findIndex(e=>e.classList.contains('tod'));if(tIdx<0)return null;
-  const r0=els[0].getBoundingClientRect(),r1=els[1].getBoundingClientRect(),r7=els[7]?.getBoundingClientRect();
-  const cs=r0.width,py=r1.top-r0.top,px=r7?r7.left-r0.left:cs+4;
-  const bandH=6*py+cs;
-  const cst=getComputedStyle(els[tIdx]),rad=parseFloat(cst.borderTopLeftRadius)/(cst.borderTopLeftRadius.endsWith('%')?100/cs:1);
-  const pick=sel=>els.find(e=>e.matches(sel));
-  const onEl=pick('.on:not(.tod)')||pick('.on'),offEl=pick(':not(.on):not(.fut):not(.tod)'),futEl=pick('.fut');
-  const col={on:onEl?getComputedStyle(onEl).backgroundColor:'#888',off:offEl?getComputedStyle(offEl).backgroundColor:'#eee'};
-  if(futEl){const f=getComputedStyle(futEl);col.fut=(f.boxShadow.match(/rgba?\([^)]*\)/)||['#ccc'])[0];col.futA=+f.opacity;}
-  else{col.fut=getComputedStyle(card).getPropertyValue('--line').trim()||'#ccc';col.futA=.5;}
-  const ra=getComputedStyle(els[tIdx],'::after');col.ring=ra.borderTopColor;const ringW=parseFloat(ra.borderTopWidth)||1.4;
-  const ringAnim=()=>(document.getAnimations?.()||[]).find(a=>a.animationName==='todbreath'&&a.effect?.target===els[tIdx]);
-  /* the canvas covers the since-line and the frame; the camera frames that */
-  const since=card.querySelector('.crsince');
-  const cr=card.getBoundingClientRect(),fr=frame.getBoundingClientRect(),wr=wrap.getBoundingClientRect();
-  const top=(since||frame).getBoundingClientRect().top;
-  const box={x:fr.left-cr.left,y:top-cr.top,w:fr.width,h:fr.bottom-top};
-  const rel=r=>({x:r.left-cr.left-box.x,y:r.top-cr.top-box.y});
-  const clipEnd={x:wr.left-cr.left-box.x,y:0,w:wr.width,h:box.h};
-  const todayISO_=els[tIdx].getAttribute('aria-label').slice(0,10);
-  const todayCol=Math.floor(tIdx/7),todayRow=tIdx%7;
-  const year0=+todayISO_.slice(0,4);
-  /* each year's row starts at the column holding its Jan 1 */
-  const yStart={};els.forEach((e,k)=>{const y=+e.getAttribute('aria-label').slice(0,4);const c=Math.floor(k/7);if(yStart[y]==null||c<yStart[y])yStart[y]=c;});
-  const years=Object.keys(yStart).map(Number).sort((a,b)=>a-b);
-  const nb=years.length,G=Math.max(8,py*.7);
-  const rowY=y=>(years.indexOf(y)-(nb-1))*(bandH+G);
-  const T=(()=>{let t=0;const o={};for(const k of ['hold','week','year','all','rest','land']){o[k]=t;t+=HR_T[k];}o.end=t;return o;})();
-  /* the strip's window as it stands (scrolled to today) */
-  const todR=rel(els[tIdx].getBoundingClientRect());
-  const cells=els.map((e,k)=>{
-    const iso=e.getAttribute('aria-label').slice(0,10),y=+iso.slice(0,4),c=Math.floor(k/7),r=k%7;
-    const kind=e.classList.contains('fut')?'fut':e.classList.contains('on')?'on':'off';
-    /* world: this year's row is laid in STRIP coordinates, so the landing is exact */
-    const wx=(c-yStart[y])*px, wy=rowY(y)+r*py;
-    /* where the cell sits in the strip, relative to today, for the landing */
-    const sx=(c-todayCol)*px, sy=(r-todayRow)*py;
-    const age=(Date.parse(todayISO_)-Date.parse(iso))/864e5;
-    return {k,iso,y,c,r,kind,wx,wy,sx,sy,age,tod:k===tIdx,t0:0};
-  });
-  const tod=cells[tIdx];
-  /* arrival times */
-  const weekCells=cells.filter(c=>c.c===todayCol&&c.y===year0);
-  const yearCells=cells.filter(c=>c.y===year0&&c.c!==todayCol);
-  const older=cells.filter(c=>c.y!==year0);
-  weekCells.forEach(c=>{ if(c.tod)c.t0=-1e9; else if(c.age>0)c.t0=T.week+HR_GAP*(c.age-1)+260; else c.t0=T.week+60; });
-  const yMax=Math.max(1,...yearCells.map(c=>Math.abs(c.age)));
-  yearCells.forEach(c=>{c.t0=T.year+80+(HR_T.year-420)*Math.sqrt(Math.abs(c.age)/yMax);});
-  const oMin=Math.min(...older.map(c=>c.age),1e9),oMax=Math.max(...older.map(c=>c.age),1);
-  older.forEach(c=>{c.t0=T.all+60+(HR_T.all-400)*Math.pow((c.age-oMin)/Math.max(1,oMax-oMin),.75);});
-  const onTotal=cells.filter(c=>c.kind==='on').length;
-  const M={card,frame,wrap,grid,els,since,box,clipEnd,cells,tod,T,cs,px,py,rad,ringW,col,ringAnim,years,rowY,bandH,year0,onTotal,todR};
-  M.K=frames(M,box,34);
-  M.K.land={c:[tod.wx,tod.wy],s:1,a:[todR.x,todR.y]};
-  return M;
+const matches=(d,part)=>part==='All workouts'||d.parts.has(part);
+function phase(M,time,mode='Full journey'){
+ const t=clamp(time,0,END),pulseOnly=mode==='Today pulse',off=mode==='Off';
+ const recent=Math.max(M.start,M.end-140);
+ const cursor=off?M.start:pulseOnly?M.end:t<1750?M.end:t<3050?Math.round(mix(M.end,recent,ease((t-1750)/1300))):Math.round(mix(recent,M.start,ease((t-3050)/4500)));
+ const overview=off?1:pulseOnly?0:ease((t-ZOOM)/(END-ZOOM));
+ let zoom=1;if(t<1700&&!off){const p=t/1700;zoom=p<.45?mix(1,6.5,ease(p/.45)):mix(6.5,1,ease((p-.45)/.55));}
+ const revealed=d=>off||pulseOnly||d.n>=cursor;
+ return {t,cursor,overview,zoom,count:M.days.filter(d=>d.on&&revealed(d)).length,focused:part=>M.days.filter(d=>d.on&&revealed(d)&&matches(d,part)).length,revealed};
 }
-/* camera keyframes for a box: {c:[x,y] world focus, s, a:[x,y] screen anchor}.
-   labelW is the room kept on the left for the year labels. */
-function frames(M,box,labelW){
-  const {cells,cs,tod,rowY,bandH,year0,years}=M,mid=[box.w/2,box.h/2];
-  const yearW=Math.max(...cells.filter(c=>c.y===year0).map(c=>c.wx))+cs;
-  const allW=Math.max(...cells.map(c=>c.wx))+cs, allTop=rowY(years[0]), allH=bandH-allTop;
-  return {
-    day:{c:[tod.wx+cs/2,tod.wy+cs/2],s:box.h*.5/cs,a:mid},
-    week:{c:[tod.wx+cs/2,rowY(year0)+bandH/2],s:Math.min(box.h*.78/bandH,box.w*.5/cs),a:mid},
-    year:{c:[yearW/2,rowY(year0)+bandH/2],s:Math.min((box.w*.96-labelW)/yearW,box.h*.8/bandH),a:[mid[0]+labelW/2,mid[1]]},
-    all:{c:[allW/2,allTop+allH/2],s:Math.min((box.w*.96-labelW)/allW,box.h*.94/allH),a:[mid[0]+labelW/2,mid[1]]},
-  };
+function palette(){const c=getComputedStyle(document.documentElement),get=(k,f)=>c.getPropertyValue(k).trim()||f;return {surface:get('--surface','#fff'),ink:get('--chalk','#222'),muted:get('--muted','#777'),empty:get('--surface2','#f3f3f3'),blue:document.documentElement.dataset.theme==='dark'?'#7188ff':'#3049dc',line:get('--line','#ddd')};}
+function geometry(M,w,h,exported=false){
+ const scale=exported?w/340:1,reserve=exported?0:100,cols=Math.min(6,M.years.length),bands=Math.ceil(M.years.length/cols),gap=10*scale,cw=(w-gap*(cols-1))/cols,bh=(h-reserve)/bands,step=(bh-28*scale)/54,unit=Math.min((cw-3)/7,step);
+ const tw=Math.min(164*scale,w*.57),left=w-tw,pitch=16*scale,cell=Math.min(12*scale,(tw-30*scale)/7-3*scale),tx=left+28*scale;
+ function timeline(d,cursor){const cr=Math.floor((cursor-M.firstWeek)/7),max=Math.max(0,(Math.floor((M.end-M.firstWeek)/7)+1)*pitch-h),scroll=clamp(cr*pitch-h*.68,0,max);return {x:tx+d.col*(tw-28*scale)/7,y:d.row*pitch-scroll+4*scale,w:cell,h:cell};}
+ function overview(d){const yi=year(d.n)-M.years[0],first=Math.max(M.start,stamp(year(d.n)+'-01-01')),row=Math.floor((d.n-first+(weekday(first)-M.dow+7)%7)/7);return {x:(yi%cols)*(cw+gap)+(cw-unit*7)/2+d.col*unit,y:reserve+Math.floor(yi/cols)*bh+27*scale+row*step,w:Math.max(1,unit-1.5*scale),h:Math.max(1,Math.min(unit,step)-1.5*scale)};}
+ return {timeline,overview,cols,bands,cw,bh,step,left,tw,tx,reserve,scale,gap,unit};
 }
-
-function camAt(M,t){
-  const {K,T}=M;
-  const seg=t<T.week?['day','day',0]:t<T.year?['day','week',(t-T.week)/HR_T.week]:t<T.all?['week','year',(t-T.year)/HR_T.year]
-    :t<T.rest?['year','all',(t-T.all)/HR_T.all]:t<T.land?['all','all',0]:['all','land',(t-T.land)/HR_T.land];
-  if(!K.land&&seg[1]==='land')seg[0]=seg[1]='all';
-  const A=K[seg[0]],B=K[seg[1]],e=easeIO(clamp(seg[2]));
-  return {s:Math.exp(lerp(Math.log(A.s),Math.log(B.s),e)),c:[lerp(A.c[0],B.c[0],e),lerp(A.c[1],B.c[1],e)],a:[lerp(A.a[0],B.a[0],e),lerp(A.a[1],B.a[1],e)],
-          land:seg[1]==='land'?e:0};
+function round(x,b,r){x.beginPath();x.roundRect(b.x,b.y,b.w,b.h,Math.min(r,b.w/2,b.h/2));}
+function draw(M,x,w,h,time,part,mode,col,clear=true,exported=false){
+ const P=phase(M,time,mode),G=geometry(M,w,h,exported),today=G.timeline(M.days[M.days.length-1],M.end),cx=today.x+today.w/2,cy=today.y+today.h/2;
+ if(clear)x.clearRect(0,0,w,h);x.save();x.beginPath();const clipLeft=G.left*(1-P.overview);x.rect(clipLeft,0,w-clipLeft,h);x.clip();
+ const pulse=clamp((P.zoom-1)/5.5),shiftX=(G.left+G.tw/2-cx)*pulse,shiftY=(h*.55-cy)*pulse;
+ for(const d of M.days){const a=G.timeline(d,P.cursor),b=G.overview(d),p=P.overview;
+  const r={x:mix(cx+(a.x-cx)*P.zoom+shiftX,b.x,p),y:mix(cy+(a.y-cy)*P.zoom+shiftY,b.y,p),w:mix(a.w*P.zoom,b.w,p),h:mix(a.h*P.zoom,b.h,p)};
+  if(r.y+r.h<0||r.y>h)continue;
+  const filled=d.on&&P.revealed(d);x.globalAlpha=filled&&!matches(d,part)?.24:1;x.fillStyle=filled?col.blue:col.empty;round(x,r,mix(2*P.zoom,G.scale,p));x.fill();x.globalAlpha=1;
+  if(d.n===M.end){x.strokeStyle=col.blue;x.lineWidth=mix(1.4,1,p);round(x,{x:r.x-2,y:r.y-2,w:r.w+4,h:r.h+4},3);x.stroke();}
+ }
+ x.font=(11*G.scale)+'px "IBM Plex Mono",monospace';x.textBaseline='top';x.textAlign='left';x.fillStyle=col.muted;
+ if(P.overview>0){x.globalAlpha=P.overview;M.years.forEach((y,i)=>x.fillText(String(y),(i%G.cols)*(G.cw+G.gap),G.reserve+Math.floor(i/G.cols)*G.bh));}
+ else if(P.zoom<1.1){let previous=-1;for(const d of M.days){if(d.col!==0&&d.n!==M.start)continue;const dt=new Date(d.n*DAY),m=dt.getUTCMonth(),r=G.timeline(d,P.cursor);if(m!==previous&&r.y>10&&r.y<h-16)x.fillText(MONTHS[m],G.left,r.y);previous=m;}}
+ x.restore();return P;
 }
-
-function snap(M,x,y,w,h,k){
-  /* Chrome snaps the scroller's layer to the grid, then each square within it:
-     round(origin) + round(offset), which is not always round(origin+offset) */
-  const d=M.org.d,wx=M.org.wx,wy=M.org.wy;
-  const X=v=>(Math.round(wx*d)+Math.round((v+M.org.x-wx)*d))/d-M.org.x,Y=v=>(Math.round(wy*d)+Math.round((v+M.org.y-wy)*d))/d-M.org.y;
-  const x0=X(x),x1=X(x+w),y0=Y(y),y1=Y(y+h);
-  return [lerp(x,x0,k),lerp(y,y0,k),lerp(w,x1-x0,k),lerp(h,y1-y0,k)];
+const sourceSection=currentRhythmSection;
+currentRhythmSection=function(inverse){
+ if(inverse)return sourceSection(inverse);
+ const M=model(),part=choices.includes(focus)?focus:'All workouts';
+ return `<h2 id="secDays">You keep showing up${hActs('rhythm','One square per day. Blue means you trained. Scroll through the years, or replay your history from today. Body-part focus dims other training days without removing them.','About your attendance')}</h2>
+ <div class="card crcard attendance-card" data-overview="false">
+  <div class="at-owner">${hesc(M.name)}</div>
+  <div class="at-composition"><div class="at-story"><div class="at-total">${fmt(M.total)}</div><div class="at-unit">days in</div><div class="at-focus"${part==='All workouts'?' hidden':''}><b></b><span>${hesc(part)}</span></div><div class="at-streak">streak ${dayCount(currentStreak())}<br>best ${dayCount(longestStreak())}</div></div>
+   <div class="at-timeline"><label class="at-year-label"><span class="sr-only">Calendar year</span><select class="at-year">${M.years.map(y=>`<option value="${y}">${y}</option>`).join('')}</select></label><div class="at-weekdays" aria-hidden="true">${Array.from({length:7},(_,i)=>'<span>'+['S','M','T','W','T','F','S'][(i+M.dow)%7]+'</span>').join('')}</div><div class="at-scroll" tabindex="0" aria-label="Training calendar. Scroll vertically through your history."><div class="at-calendar"></div></div></div>
+   <div class="at-overview" role="img"></div>
+  </div>
+  <div class="at-date"><strong>${year(M.end)}</strong><span></span></div><div class="at-range" hidden><span></span><button type="button" class="at-return">Timeline ↗</button></div>
+  <div class="at-actions"><button type="button" class="heat-replay">↻ <span>Replay</span></button><button type="button" class="heat-share">${ICO_SHARE}<span>Share</span></button></div>
+  <div class="at-options"><label>Highlight<select class="at-part">${choices.map(p=>`<option${p===part?' selected':''}>${p}</option>`).join('')}</select></label><label>Animation<select class="at-motion">${['Full journey','Today pulse','Off'].map(p=>`<option${p===motion?' selected':''}>${p}</option>`).join('')}</select></label></div><div class="at-status sr-only" role="status" aria-live="polite"></div>
+ </div>`;
+};
+const renderBefore=renderStats;
+renderStats=function(){if(live)live.finish();renderBefore();document.querySelectorAll('.attendance-card').forEach(bind);};
+function bind(card){
+ const M=model(),cal=card.querySelector('.at-calendar'),scroller=card.querySelector('.at-scroll'),picker=card.querySelector('.at-year'),overview=card.querySelector('.at-overview');
+ const state={M,part:focus,mode:motion,card,scroller,overview,cols:[],mini:[],scroll:0};card._attendance=state;
+ const weeks=Math.floor((M.end-M.firstWeek)/7)+1;cal.style.height=(weeks*16+8)+'px';
+ const frag=document.createDocumentFragment();let prev=-1;
+ for(const d of M.days){const el=document.createElement('span');el.className='at-cell'+(d.on?' on':'')+(d.n===M.end?' today':'');el.dataset.date=iso(d.n);el.title=iso(d.n)+(d.on?' · trained':' · no workout logged');el.setAttribute('aria-label',el.title);el.style.cssText=`left:calc(28px + ${d.col} * (100% - 28px) / 7);top:${d.row*16+4}px`;frag.append(el);state.cols.push([el,d]);const month=new Date(d.n*DAY).getUTCMonth();if((d.col===0||d.n===M.start)&&month!==prev){const label=document.createElement('small');label.className='at-month';label.style.top=(d.row*16+4)+'px';label.textContent=MONTHS[month];frag.append(label);prev=month;}}
+ cal.append(frag);
+ const ncols=Math.min(6,M.years.length);overview.style.setProperty('--at-columns',ncols);
+ for(const y of M.years){const section=document.createElement('div');section.className='at-mini-year';const label=document.createElement('span');label.textContent=String(y);section.append(label);const grid=document.createElement('div');grid.className='at-mini-grid';section.append(grid);const first=M.days.find(d=>year(d.n)===y);for(const d of M.days.filter(d=>year(d.n)===y)){const el=document.createElement('span');el.className='at-mini'+(d.on?' on':'')+(d.n===M.end?' today':'');el.title=iso(d.n)+(d.on?' · trained':' · no workout logged');if(d===first)el.style.gridColumn=String(d.col+1);grid.append(el);state.mini.push([el,d]);}overview.append(section);}
+ overview.setAttribute('aria-label',`${M.total} training days, ${iso(M.start)} to ${iso(M.end)}. Each column is one year.`);
+ card.querySelector('.at-range span').textContent=range(M);
+ function readDate(n,animate=false){const el=card.querySelector('.at-date strong'),y=String(year(n));if(el.textContent!==y){el.textContent=y;if(animate&&!reduced()&&el.animate)el.animate([{opacity:.3,transform:'translateY(7px)'},{opacity:1,transform:'translateY(0)'}],{duration:450});}card.querySelector('.at-date span').textContent=dateLabel(n);picker.value=y;card.dataset.currentDate=iso(n);}
+ state.readDate=readDate;
+ state.paintFocus=()=>{for(const [el,d]of [...state.cols,...state.mini])el.classList.toggle('dim',d.on&&!matches(d,state.part));card.querySelector('.at-focus').hidden=state.part==='All workouts';card.querySelector('.at-focus span').textContent=state.part;card.querySelector('.at-focus b').textContent=dayCount(M.days.filter(d=>d.on&&matches(d,state.part)).length);};state.paintFocus();
+ const sync=()=>{if(live?.state===state)return;const atEnd=scroller.scrollHeight-scroller.clientHeight-scroller.scrollTop<8;readDate(state.jumpDate??(atEnd?M.end:clamp(M.firstWeek+Math.floor(scroller.scrollTop/16)*7,M.start,M.end)),true);};
+ scroller.addEventListener('scroll',sync,{passive:true});
+ const stop=()=>{state.jumpDate=null;if(live?.state===state)live.finish();};card.addEventListener('wheel',stop,{passive:true});card.addEventListener('pointerdown',e=>{if(!e.target.closest('.heat-replay'))stop();});scroller.addEventListener('touchstart',stop,{passive:true});scroller.addEventListener('keydown',stop);
+ picker.onchange=()=>{const y=+picker.value;stop();timeline(state);const n=Math.max(M.start,stamp(y+'-01-01'));state.jumpDate=n;readDate(n,true);scroller.scrollTo({top:Math.floor((n-M.firstWeek)/7)*16,behavior:reduced()?'auto':'smooth'});};
+ card.querySelector('.at-return').onclick=()=>{stop();timeline(state);scroller.scrollTop=scroller.scrollHeight;readDate(M.end);};
+ card.querySelector('.at-part').onchange=e=>{stop();focus=state.part=e.target.value;state.paintFocus();};
+ card.querySelector('.at-motion').onchange=e=>{stop();motion=state.mode=e.target.value;card.querySelector('.heat-replay').disabled=motion==='Off'||!M.total;if(motion==='Off')finishView(state);};
+ card.querySelector('.heat-replay').disabled=motion==='Off'||!M.total;
+ state.readDate(M.end);requestAnimationFrame(()=>{if(card.isConnected)scroller.scrollTop=scroller.scrollHeight;});
+ if(reduced()||motion==='Off')finishView(state);
 }
-function draw(M,ctx,t){
-  const {box,cells,cs,rad,col,T}=M,cam=camAt(M,t),L=cam.land;
-  ctx.clearRect(0,0,box.w,box.h);
-  /* the clip narrows onto the strip's scroller as the camera lands */
-  const cx=L?lerp(0,M.clipEnd.x,L):0,cw=L?lerp(box.w,M.clipEnd.w,L):box.w;
-  ctx.save();ctx.beginPath();ctx.rect(cx,0,cw,box.h);ctx.clip();
-  const groups=new Map(),add=(key,style,alpha,stroke)=>{let g=groups.get(key);if(!g){g={p:new Path2D(),style,alpha,stroke};groups.set(key,g);}return g.p;};
-  let landedOn=0;
-  /* the DOM paints each square on the device-pixel grid; so does the landing */
-  const K=L>=1?1:L>.85?Math.pow((L-.85)/.15,3):0;
-  for(const c of cells){
-    const a=clamp((t-c.t0)/HR_ARRIVE);if(a<=0)continue;
-    const ea=easeOut(a);
-    if(c.kind==='on'&&a>=1)landedOn++;
-    else if(c.kind==='on')landedOn+=ea;
-    /* other years, and this year's months outside the strip's window, fade as it lands */
-    let fade=1,wx=c.wx,wy=c.wy;
-    if(L>0){
-      if(c.y!==M.year0){
-        /* the previous year's tail that the strip shows in its window slides in beside this year */
-        const inWin=c.sx+cs>M.clipEnd.x-M.todR.x&&c.sx<=0;
-        if(inWin){const tx=M.tod.wx+c.sx,ty=M.tod.wy+c.sy;wx=lerp(wx,tx,L);wy=lerp(wy,ty,L);}
-        else fade=1-L;
-      }
-    }
-    if(fade<=0)continue;
-    const s=cam.s*(.6+.4*ea),w=cs*s;
-    let x=(wx+cs/2-cam.c[0])*cam.s+cam.a[0]-w/2,y=(wy+cs/2-cam.c[1])*cam.s+cam.a[1]-w/2,ww=w,hh=w;
-    if(x>cx+cw||x+w<cx||y>box.h||y+w<0)continue;
-    const al=Math.round(ea*fade*10);if(!al)continue;
-    if(K>0)[x,y,ww,hh]=snap(M,x,y,w,w,K);
-    const r=rad*s;
-    if(c.kind==='fut'){ const lw=Math.max(.5,cam.s*(.6+.4*ea));const p=add('f'+al,col.fut,col.futA*al/10,lw);
-      const h=lw/2;rr(p,x+h,y+h,ww-lw,hh-lw,Math.max(0,r-h)); }
-    else{
-      const fl=c.kind==='on'?Math.round(clamp(1-(t-c.t0)/HR_FLASH)*4):0;
-      rr(add(c.kind+al+'_'+fl,fl?mix(col.on,fl*.07):col[c.kind],al/10),x,y,ww,hh,r);
-    }
-  }
-  for(const g of groups.values()){ctx.globalAlpha=g.alpha;
-    if(g.stroke){ctx.strokeStyle=g.style;ctx.lineWidth=g.stroke;ctx.stroke(g.p);}else{ctx.fillStyle=g.style;ctx.fill(g.p);}}
-  ctx.globalAlpha=1;
-  /* today's ring: the DOM animation's own clock, so the handover does not skip a breath */
-  const an=M.ringAnim(),ring=ringAt(an&&an.currentTime!=null?+an.currentTime:t),tc=M.tod;
-  {const x=(tc.wx-cam.c[0])*cam.s+cam.a[0],y=(tc.wy-cam.c[1])*cam.s+cam.a[1],i=ring.i*cam.s,lw=M.ringW*cam.s;
-   let [rx,ry,rw,rh]=[x-i,y-i,cs*cam.s+2*i,cs*cam.s+2*i];if(K>0)[rx,ry,rw,rh]=snap(M,rx,ry,rw,rh,K);
-   ctx.globalAlpha=ring.o;ctx.strokeStyle=col.ring;ctx.lineWidth=lw;const p=new Path2D();
-   rr(p,rx+lw/2,ry+lw/2,rw-lw,rh-lw,Math.max(0,ring.r*cam.s-lw/2));ctx.stroke(p);ctx.globalAlpha=1;}
-  ctx.restore();
-  /* year labels: fade in once the year (this one) and all (the rest) views arrive */
-  const lblA=y=>{const since=y===M.year0?T.all-150:T.rest-150;return clamp((t-since)/300)*(1-L);};
-  ctx.font=M.font;
-  ctx.textAlign='right';ctx.textBaseline='middle';ctx.fillStyle=M.col.label;
-  for(const y of M.years){const a=lblA(y);if(a<=0)continue;
-    const x=(-cam.c[0])*cam.s+cam.a[0]-(M.labelGap||6),yy=(M.rowY(y)+M.bandH/2-cam.c[1])*cam.s+cam.a[1];
-    ctx.globalAlpha=a;ctx.fillText(String(y),x,yy);}
-  ctx.globalAlpha=1;
-  return landedOn;
+function dateLabel(n){return new Date(n*DAY).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',timeZone:'UTC'});}
+function range(M){const f=n=>new Date(n*DAY).toLocaleDateString('en-US',{month:'short',year:'numeric',timeZone:'UTC'});return f(M.start)+' — '+f(M.end);}
+function timeline(S){S.card.dataset.overview='false';S.card.querySelector('.at-range').hidden=true;S.card.querySelector('.at-date').hidden=false;}
+function layoutOverview(S){
+ const comp=S.card.querySelector('.at-composition'),G=geometry(S.M,comp.clientWidth||320,430);
+ [...S.overview.children].forEach((el,i)=>{el.style.cssText=`position:absolute;left:${(i%G.cols)*(G.cw+G.gap)}px;top:${Math.floor(i/G.cols)*G.bh}px;width:${G.cw}px;height:${G.bh}px`;});
+ for(const [el,d]of S.mini){const p=G.overview(d),i=year(d.n)-S.M.years[0];el.style.cssText=`position:absolute;left:${p.x-(i%G.cols)*(G.cw+G.gap)}px;top:${p.y-G.reserve-Math.floor(i/G.cols)*G.bh-27}px;width:${p.w}px;height:${p.h}px`;}
 }
-
+function finishView(S){S.card.dataset.overview='true';S.card.querySelector('.at-range').hidden=false;S.card.querySelector('.at-date').hidden=true;S.card.querySelector('.at-total').textContent=fmt(S.M.total);S.paintFocus();layoutOverview(S);}
 function play(card){
-  if(live||reduced())return false;
-  const wrap=card.querySelector('.heatwrap');if(!wrap)return false;
-  wrap.scrollLeft=wrap.scrollWidth;                    /* the strip opens on today; so does the landing */
-  wrap.dispatchEvent(new Event('scroll'));
-  const M=build(card);if(!M)return false;
-  M.col.label=getComputedStyle(card).getPropertyValue('--muted').trim()||'#888';
-  M.font='600 9px '+(getComputedStyle(card).getPropertyValue('--mono').trim()||'monospace');
-  const cv=document.createElement('canvas');cv.className='heat-replay-canvas';cv.setAttribute('aria-hidden','true');
-  const dpr=window.devicePixelRatio||1;cv.width=Math.round(M.box.w*dpr);cv.height=Math.round(M.box.h*dpr);
-  cv.style.cssText=`left:${M.box.x-card.clientLeft}px;top:${M.box.y-card.clientTop}px;width:${M.box.w}px;height:${M.box.h}px`;
-  const ctx=cv.getContext('2d');if(!ctx)return false;
-  const num=card.querySelector('.crtotal b'),numHTML=num?.innerHTML,total=num?+num.textContent.replace(/\D/g,''):0;
-  card.classList.add('heat-replaying');card.append(cv);
-  /* the canvas's backing store must sit on the device-pixel grid, or the whole
-     image is resampled by a fraction of a pixel and every edge goes soft. Nudge
-     the element onto the grid and draw back by the same amount, so the squares
-     land at the DOM's own (fractional) positions and anti-alias the same way. */
-  {const r=cv.getBoundingClientRect(),fx=(Math.round(r.left*dpr)-r.left*dpr)/dpr,fy=(Math.round(r.top*dpr)-r.top*dpr)/dpr;
-   cv.style.left=(M.box.x-card.clientLeft+fx)+'px';cv.style.top=(M.box.y-card.clientTop+fy)+'px';
-   ctx.setTransform(dpr,0,0,dpr,-fx*dpr,-fy*dpr);
-   const r2=cv.getBoundingClientRect();const w2=M.wrap.getBoundingClientRect();M.org={x:r2.left-fx,y:r2.top-fy,d:dpr,wx:w2.left,wy:w2.top};}
-  const t0=performance.now();let raf=0,paused=null;
-  const frame=(now)=>{
-    if(!cv.isConnected){cleanup(false);return;}
-    const t=paused!=null?paused:now-t0;
-    if(t>=M.T.end){finish();return;}
-    const landed=draw(M,ctx,t);
-    if(num)num.textContent=fmt(Math.min(total,Math.round(total*landed/Math.max(1,M.onTotal))));
-    raf=requestAnimationFrame(frame);
-  };
-  const onTap=e=>{if(e.target.closest?.('.heat-replay'))return;finish();};
-  const onHide=()=>{if(document.hidden)finish();};
-  function cleanup(reveal){
-    cancelAnimationFrame(raf);document.removeEventListener('pointerdown',onTap,true);document.removeEventListener('visibilitychange',onHide);
-    if(num&&numHTML!=null)num.innerHTML=numHTML;
-    cv.remove();card.classList.remove('heat-replaying');
-    if(reveal){card.classList.add('heat-replayed');setTimeout(()=>card.classList.remove('heat-replayed'),400);}
-    live=null;
-  }
-  function finish(){cleanup(true);}
-  setTimeout(()=>document.addEventListener('pointerdown',onTap,true),0);
-  document.addEventListener('visibilitychange',onHide);
-  live={finish,M,
-    /* for the checks: stop the clock at t ms and draw that frame */
-    seek(t){paused=t;cancelAnimationFrame(raf);const landed=draw(M,ctx,Math.min(t,M.T.end-0.001));if(num)num.textContent=fmt(Math.min(total,Math.round(total*landed/Math.max(1,M.onTotal))));},
-    resume(){paused=null;raf=requestAnimationFrame(frame);}};
-  raf=requestAnimationFrame(frame);
-  return true;
+ if(!card?._attendance)return false;if(live){const same=live.state.card===card;live.finish();if(same)return true;}
+ const S=card._attendance,M=S.M;if(!M.total||S.mode==='Off'||reduced()){finishView(S);return false;}
+ timeline(S);const comp=card.querySelector('.at-composition'),cv=document.createElement('canvas');cv.className='at-replay-canvas';cv.setAttribute('aria-hidden','true');
+ const w=comp.clientWidth,h=comp.clientHeight,ratio=Math.min(devicePixelRatio||1,3);cv.width=Math.round(w*ratio);cv.height=Math.round(h*ratio);const x=cv.getContext('2d');if(!x)return false;x.scale(ratio,ratio);comp.append(cv);card.classList.add('at-playing');
+ const col=palette(),label=card.querySelector('.heat-replay span'),status=card.querySelector('.at-status');label.textContent='Stop';status.textContent='Replaying training history from today.';let raf=0,paused=false;
+ const duration=S.mode==='Today pulse'?1700:END,began=performance.now();
+ function paint(t){const P=draw(M,x,w,h,t,S.part,S.mode,col);card.querySelector('.at-total').textContent=fmt(P.count);card.querySelector('.at-focus b').textContent=dayCount(P.focused(S.part));S.readDate(P.cursor,true);card.dataset.phase=P.overview>0?'overview':t<1750?'pulse':'rewind';card.dataset.revealed=String(P.count);card.style.setProperty('--at-story-opacity',String(1-P.overview));}
+ function finish(){cancelAnimationFrame(raf);cv.remove();card.classList.remove('at-playing');card.style.removeProperty('--at-story-opacity');label.textContent='Replay';if(S.mode==='Today pulse'){timeline(S);card.querySelector('.at-total').textContent=fmt(M.total);S.paintFocus();S.scroller.scrollTop=S.scroller.scrollHeight;S.readDate(M.end);}else finishView(S);card.dataset.phase='complete';status.textContent=`${M.total} training days. ${S.mode==='Today pulse'?'Today.':'Entire history shown.'}`;document.removeEventListener('visibilitychange',hide);window.removeEventListener('resize',finish);live=null;}
+ function tick(now){if(!card.isConnected||now-began>=duration){finish();return;}paint(now-began);if(!paused)raf=requestAnimationFrame(tick);}
+ const hide=()=>{if(document.hidden)finish();};document.addEventListener('visibilitychange',hide);window.addEventListener('resize',finish,{once:true});
+ live={state:S,finish,seek(t){paused=true;cancelAnimationFrame(raf);paint(clamp(t,0,duration));}};paint(0);raf=requestAnimationFrame(tick);return true;
 }
-/* v4.6.128: SHARE IT. The same replay, drawn into the plate share's 1080x1280
-   frame with the plate share's footer, through the same sheet and the same
-   Image / Video / GIF exporters. It does NOT land back on the strip: the strip
-   is a place to scroll, and a video cannot be scrolled. It ends on every year
-   at once, which is the picture worth sending -- and the still image is that
-   last frame. Nothing is recomputed: the model is read from the card's cells. */
-const HR_EXPORT_END=HR_T.hold+HR_T.week+HR_T.year+HR_T.all+HR_T.rest+300;
 async function share(card){
-  if(live)live.finish();
-  const M0=build(card);if(!M0)return;
-  const css=getComputedStyle(document.documentElement),read=(k,f)=>css.getPropertyValue(k).trim()||f;
-  const dark=document.documentElement.dataset.theme==='dark';
-  const data={surface:read('--surface','#fff'),ink:read('--chalk','#1c1c1c'),muted:read('--muted','#686868'),line:read('--line','#ededed'),
-    accent:read('--accent','#2F4BD8'),name:(typeof firstName==='function'&&firstName())||'',logo:null,dark};
-  let gifModule,videoModule;
-  try{[gifModule,videoModule]=await Promise.all([import('./plate-gif.js'),import('./plate-video.js')]);await gifModule.loadExportFonts();}catch(_e){}
-  try{const logo=new Image();logo.src='assets/mascot-mark-'+(dark?'white':'chrome')+'.png';await logo.decode();data.logo=logo;}catch(_e){}
-  const sans='"ShowUp Export Plex", "IBM Plex Sans",sans-serif';
-  const box={x:0,y:0,w:940,h:720},BX=70,BY=380;
-  const M=Object.assign({},M0,{box,labelGap:18,font:'600 24px '+sans,ringAnim:()=>null});
-  M.col={...M0.col,label:data.muted};
-  M.K=frames(M,box,96);
-  const total=+(card.querySelector('.crtotal b')?.textContent||'0').replace(/\D/g,'');
-  const since=(card.querySelector('.crsince>span')?.textContent||'').trim();
-  const sub=document.createElement('canvas');sub.width=box.w;sub.height=box.h;const sx=sub.getContext('2d');
-  const render=(time,canvas)=>{
-    const cv=canvas||document.createElement('canvas');cv.width=1080;cv.height=1280;const x=cv.getContext('2d');if(!x)return null;
-    const t=Number.isFinite(time)?clamp(time,0,HR_EXPORT_END):HR_EXPORT_END;
-    x.fillStyle=data.surface;x.fillRect(0,0,1080,1280);
-    const text=(s,X,Y,font,c,align='center')=>{x.font=font;x.fillStyle=c;x.textAlign=align;x.textBaseline='alphabetic';x.fillText(s,X,Y);};
-    text('YOU KEEP SHOWING UP',540,98,'500 25px '+sans,data.muted);
-    const landed=draw(M,sx,t),n=fmt(Math.min(total,Math.round(total*landed/Math.max(1,M.onTotal))));
-    x.font='700 132px '+sans;const nw=x.measureText(n).width;x.font='400 34px '+sans;const uw=x.measureText(' days in').width;
-    const left=540-(nw+uw)/2;text(n,left,262,'700 132px '+sans,data.accent,'left');text(' days in',left+nw,262,'400 34px '+sans,data.muted,'left');
-    if(since)text(since,540,318,'400 26px '+sans,data.muted);
-    x.drawImage(sub,BX,BY);
-    if(typeof drawShareFooter==='function')drawShareFooter(x,data,sans);
-    return cv;
-  };
-  await showCard(()=>render(),'showup-every-day-'+todayISO,false);
-  if(gifModule&&videoModule&&typeof bindPlateExport==='function')bindPlateExport(data,null,gifModule,videoModule,{render,label:'Replay video preview',duration:HR_EXPORT_END});
+ if(!card?._attendance)return;if(live)live.finish();const S=card._attendance,M=S.M,col=palette(),dark=document.documentElement.dataset.theme==='dark';
+ const [gifModule,videoModule]=await Promise.all([import('./plate-gif.js'),import('./plate-video.js')]);await gifModule.loadExportFonts();
+ const load=async src=>{const i=new Image();i.src=src;await i.decode();return i;};
+ // Fail visibly if either half of the approved lockup is unavailable: never
+ // silently export a wordmark without Pip, or substitute a typeface for it.
+ const [pip,word]=await Promise.all([load('assets/mascot-mark-'+(dark?'white':'chrome')+'.png'),load('assets/showuppp-a.svg')]);
+ const data={...col,dark,name:M.name},part=S.part,mode=reduced()?'Off':S.mode;
+ const render=(time,canvas)=>{
+  const cv=canvas||document.createElement('canvas');cv.width=1080;cv.height=1280;const x=cv.getContext('2d'),t=Number.isFinite(time)?Math.max(0,time):END,actualMode=Number.isFinite(time)?mode:'Off',P=phase(M,t,actualMode);
+  x.fillStyle=col.surface;x.fillRect(0,0,1080,1280);
+  x.drawImage(pip,14,85,485,292,70,82,103,62);x.save();if(dark)x.filter='brightness(0) invert(1)';x.drawImage(word,187,71,109,73);x.restore();
+  const text=(s,X,Y,size,color,align='left',weight=400)=>{x.fillStyle=color;x.font=weight+' '+size+'px "ShowUp Export Plex", "IBM Plex Sans",sans-serif';x.textAlign=align;x.textBaseline='alphabetic';x.fillText(s,X,Y,align==='right'?570:940);};
+  text(M.name,1010,116,27,col.muted,'right');x.fillStyle=col.line;x.fillRect(70,177,940,1);
+  text(fmt(P.count),70,318,112,col.blue,'left',500);x.font='500 112px "ShowUp Export Plex"';const nw=x.measureText(fmt(P.count)).width;text('days in',88+nw,318,31,col.muted);
+  if(part!=='All workouts')text(part+' · '+P.focused(part)+' days',70,375,26,col.muted);
+  x.save();x.translate(70,419);draw(M,x,940,685,t,part,actualMode,col,false,true);x.restore();
+  x.fillStyle=col.line;x.fillRect(70,1145,940,1);text(P.overview>=1?range(M):String(year(P.cursor)),70,1205,27,col.muted);text(P.overview>=1?'One square. One day.':dateLabel(P.cursor),1010,1205,27,col.muted,'right');
+  return cv;
+ };
+ await showCard(()=>render(),'showuppp-attendance-'+todayISO,false);
+ bindPlateExport(data,null,gifModule,videoModule,{render,label:'Your training history · ShowUppp and Pip',duration:mode==='Today pulse'?1700:mode==='Off'?500:END});
 }
-/* v4.6.128: FROM THE FINISH SCREEN. "See it all" leaves the ceremony, opens
-   Stats on this card, and plays the replay from the square you just filled.
-   Reduced motion: it opens the card and stops there -- the end state. */
-async function seeAll(){
-  document.querySelector('nav button[data-v="stats"]')?.click();
-  let card=null;for(let i=0;i<30&&!card;i++){await new Promise(r=>setTimeout(r,50));card=document.querySelector('#view .crcard:not(.resting)');}
-  if(!card)return false;
-  card.scrollIntoView({block:'center',behavior:reduced()?'auto':'smooth'});
-  if(reduced())return true;
-  await new Promise(r=>setTimeout(r,650));
-  return card.isConnected&&play(card);
-}
-document.addEventListener('click',e=>{
-  const b=e.target.closest?.('.heat-replay,.heat-share');if(!b)return;
-  const card=b.closest('.crcard');if(!card)return;
-  if(b.classList.contains('heat-share')){b.disabled=true;share(card).catch(()=>toast('Could not prepare the export. Please try again.')).finally(()=>{b.disabled=false;});}
-  else play(card);
-});
-window.heatReplay={play,share,seeAll,get live(){return live;},finish(){live?.finish();},duration:()=>Object.values(HR_T).reduce((a,b)=>a+b,0),exportEnd:HR_EXPORT_END};
+async function seeAll(){document.querySelector('nav button[data-v="stats"]')?.click();let card;for(let i=0;i<30&&!card;i++){await new Promise(r=>setTimeout(r,50));card=document.querySelector('.attendance-card');}if(!card)return false;card.scrollIntoView({block:'center',behavior:reduced()?'auto':'smooth'});await new Promise(r=>setTimeout(r,reduced()?0:650));return card.isConnected&&play(card);}
+document.addEventListener('click',e=>{const b=e.target.closest?.('.heat-replay,.heat-share'),card=b?.closest('.attendance-card');if(!card)return;if(b.classList.contains('heat-share')){b.disabled=true;share(card).catch(()=>toast('Could not prepare the export. Please try again.')).finally(()=>{b.disabled=false;});}else play(card);});
+const mq=matchMedia('(prefers-reduced-motion: reduce)');mq.addEventListener?.('change',()=>{live?.finish();if(mq.matches)document.querySelectorAll('.attendance-card').forEach(c=>{if(c._attendance)finishView(c._attendance);});});
+window.addEventListener('resize',()=>{document.querySelectorAll('.attendance-card').forEach(c=>{if(c._attendance)layoutOverview(c._attendance);});});
+window.heatReplay={play,share,seeAll,get live(){return live;},finish(){live?.finish();},duration:()=>END,exportEnd:END};
+// Pure data/camera contract for regression checks; no saved state is exposed.
+window.attendanceView={model,phase,geometry};
 })();

@@ -1,5 +1,13 @@
 # ShowUp — changelog
 
+## v4.6.220 (2026-10-06) — Your whole history, one day at a time
+
+- The attendance card is now a vertical calendar with a year picker, your name and a quieter date footer. Scroll through the years without leaving the card.
+- Replay starts with a large pulse on Today, travels back through your actual logged days, then zooms out to reveal every year. The day count rises with the revealed training days; an untrained Today never adds a day.
+- Highlight a body part or running: matching days stay blue and other training days dim. Choose the full journey, just Today's pulse, or no animation. Reduced-motion settings are respected.
+- Share the whole history as an image, or choose video/GIF. The approved ShowUppp lettering and Pip stay together on every frame, alongside your name. MP4 availability depends on the browser; image and GIF remain available.
+- Keeps the floating header, latest Rest card, profile, plans and saved workouts unchanged.
+
 ## v4.6.219 (2026-10-05) — The Rest card's line is about today; the rest streak is back
 
 - **Feedback on v4.6.218:** the card looked too empty, and "Off on Sundays." meant nothing on a Monday. Ideas were offered first; the maker chose the today-based line and a one-line streak.
