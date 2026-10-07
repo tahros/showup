@@ -74,7 +74,32 @@ function dayReviewContext(record){
   const valid=w&&typeof w.c==='number'&&Number.isFinite(w.c)&&w.c>=-100&&w.c<=70&&typeof w.symbol==='string';
   const symbol=valid?w.symbol.replace(/_(day|night|polartwilight)$/,''):'';
   const condition=symbol.includes('thunder')?'Thunder':symbol.includes('snow')?'Snow':symbol.includes('sleet')?'Sleet':symbol.includes('rain')?'Rain':symbol==='clearsky'?'Clear':symbol==='fair'?'Mostly clear':symbol==='partlycloudy'?'Partly cloudy':symbol==='cloudy'?'Cloudy':symbol==='fog'?'Fog':'';
-  return {location,weather:valid?`${Math.round(isLb()?w.c*9/5+32:w.c)}°${isLb()?'F':'C'}${condition?' · '+condition:''}`:'',capturedAt:Number(v.capturedAt)||0};
+  const temperature=valid?`${Math.round(isLb()?w.c*9/5+32:w.c)}°${isLb()?'F':'C'}`:'';
+  const night=valid&&w.symbol.endsWith('_night');
+  const icon=condition==='Thunder'?'thunder':condition==='Snow'?'snow':condition==='Sleet'?'sleet':condition==='Rain'?'rain':condition==='Clear'?(night?'moon':'sun'):condition==='Mostly clear'||condition==='Partly cloudy'?(night?'moon-cloud':'sun-cloud'):condition==='Cloudy'?'cloud':condition==='Fog'?'fog':null;
+  return {location,weather:temperature+(condition?' · '+condition:''),temperature,condition,icon,capturedAt:Number(v.capturedAt)||0};
+}
+// Original filled geometry, shared by inline SVG and canvas exports. No font
+// glyphs, external image requests or third-party icon assets are required.
+function dayReviewWeatherPaths(kind){
+  const sun='M12 6a6 6 0 1 0 0 12 6 6 0 0 0 0-12Z M11 0h2v4h-2Z M11 20h2v4h-2Z M0 11h4v2H0Z M20 11h4v2h-4Z M3 1.6 5.8 4.4 4.4 5.8 1.6 3Z M18.2 19.6 19.6 18.2 22.4 21 21 22.4Z M18.2 4.4 21 1.6 22.4 3 19.6 5.8Z M1.6 21 4.4 18.2 5.8 19.6 3 22.4Z';
+  const moon='M17 1A11 11 0 1 0 23 17 10 10 0 0 1 17 1Z';
+  const cloud='M6 18a5 5 0 0 1-.5-10 6.5 6.5 0 0 1 12.4-.7A5.4 5.4 0 0 1 19 18Z';
+  const rain='M7 19h2l-2 5H5Z M13 19h2l-2 5h-2Z M19 19h2l-2 5h-2Z';
+  const snow='M7 19h2v1h1v2H9v1H7v-1H6v-2h1Z M16 19h2v1h1v2h-1v1h-2v-1h-1v-2h1Z';
+  if(kind==='sun'||kind==='moon')return [kind==='sun'?sun:moon];
+  if(kind==='sun-cloud'||kind==='moon-cloud')return [kind==='sun-cloud'?'M9 0a7 7 0 1 0 0 14A7 7 0 0 0 9 0Z':'M11 0A7 7 0 1 0 16 10 7 7 0 0 1 11 0Z','M8 23a5 5 0 0 1-.5-10 6.5 6.5 0 0 1 12.4-.7A5.4 5.4 0 0 1 19 23Z'];
+  if(kind==='cloud')return [cloud];
+  if(kind==='rain')return [cloud,rain];
+  if(kind==='snow')return [cloud,snow];
+  if(kind==='sleet')return [cloud,'M7 19h2l-2 5H5Z M16 19h2v1h1v2h-1v1h-2v-1h-1v-2h1Z'];
+  if(kind==='thunder')return [cloud,'M12 15h5l-4 5h3l-7 4 2-6H8Z'];
+  if(kind==='fog')return [cloud,'M2 20h20v1.5H2Z M5 23h14v1H5Z'];
+  return [];
+}
+function dayReviewWeatherHTML(context){
+  const paths=dayReviewWeatherPaths(context.icon);
+  return `<span class="dr-weather" role="img" aria-label="${hesc(context.weather)}" title="${hesc(context.weather)}"><span aria-hidden="true">${hesc(context.temperature)}</span>${paths.length?`<svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">${paths.map(d=>`<path d="${d}"/>`).join('')}</svg>`:''}</span>`;
 }
 function dayReviewContextControls(m){
  const added=m.context&&(m.context.location||m.context.weather);
@@ -154,7 +179,7 @@ function dayReviewSection(){
     return `<div class="dr-value"><span class="dr-weight${g.gain?' dr-gain':''}"${actual?' data-dr-reveal':''}>${hesc(g.load)}</span><span class="dr-reps">${g.chips.map(c=>`<span class="dr-rep${c.gain?' dr-gain':''}"${actual?' data-dr-reveal':''}>${hesc(c.label)}</span>`).join('')}</span>${g.qualifier?`<small>${hesc(g.qualifier)}</small>`:''}</div>`;
   };
   return `<section class="card day-review" aria-label="Whole-day workout comparison">
-    <div class="dr-heading"><h3>${hesc(m.title)}</h3>${m.context?.weather?`<span class="dr-weather">${hesc(m.context.weather)}</span>`:''}</div>
+    <div class="dr-heading"><h3>${hesc(m.title)}</h3>${m.context?.weather?dayReviewWeatherHTML(m.context):''}</div>
     <p class="dr-parts">${[m.context?.location,...m.parts].filter(Boolean).map(hesc).join(' · ')||'Your day, one set at a time.'}</p>
     <table aria-label="${m.planned?'Plan':'Last session'} compared with today"><colgroup><col><col><col></colgroup><thead><tr><th scope="col">${m.unit} · reps</th><th scope="col">${m.planned?'Plan':'Last'}</th><th scope="col"><span data-dr-reveal>Today</span></th></tr></thead><tbody>
     ${m.rows.map(r=>{const lanes=dayReviewLanes(r,m.planned);return lanes.map((l,i)=>`<tr class="${i?'dr-continuation':'dr-exercise'}${i===lanes.length-1?' dr-last-lane':''}">${!i?`<th scope="rowgroup" rowspan="${lanes.length}"><div class="dr-exercise-label">${hesc(r.ex)}${r.note?`<small class="dr-note">${hesc(r.note)}</small>`:''}${r.delta.length?`<span class="dr-delta" data-dr-reveal>${r.delta.map(hesc).join(' · ')}</span>`:''}</div></th>`:''}<td${!l.ref?' class="dr-missing"':''}>${cell(l.ref,false)}</td><td class="dr-actual${!l.actual?' dr-missing':''}">${cell(l.actual,true)}</td></tr>`).join('');}).join('')}
@@ -221,7 +246,11 @@ function drawDayReview(data,time,canvas){
   // Name wraps rather than colliding with the approved lockup.
   wrap(data.name,215,11).slice(0,2).forEach((s,i)=>text(s,369,42+i*14,11,C.muted,'right'));rule(76);
   text(data.title,24,113,23,C.ink,'left',sans,500);
-  if(data.context?.weather){const lines=wrap(data.context.weather,118,11).slice(0,2);lines.forEach((s,i)=>text(s,369,(lines.length===1?108:100)+i*15,11,C.muted,'right'));}
+  if(data.context?.weather){
+    const paths=dayReviewWeatherPaths(data.context.icon);
+    text(data.context.temperature,paths.length?345:369,108,11,C.muted,'right');
+    if(paths.length){ctx.save();ctx.translate(353,96);ctx.scale(16/24,16/24);ctx.fillStyle=C.muted;paths.forEach(d=>ctx.fill(new Path2D(d)));ctx.restore();}
+  }
   meta.forEach((line,i)=>text(line,24,135+i*19,13,C.muted));
   text(data.unit+' · reps',24,top-14,11,C.muted);text(data.planned?'Plan':'Last',204,top-14,12,C.muted,'center');
   reveal(180,()=>text('Today',318,top-14,12,C.blueText,'center',sans,500));
@@ -229,10 +258,10 @@ function drawDayReview(data,time,canvas){
   const group=(g,cx,actual,delay,gy,height)=>{
     if(!g){const paint=()=>{ctx.save();ctx.textBaseline='middle';text('—',cx,gy+height/2,13,C.muted,'center');ctx.restore();};actual?reveal(delay,paint):paint();return;}
     let j=0;
-      const at=gy+14,load=()=>{if(actual&&g.gain){ctx.font='400 14px '+mono;const w=ctx.measureText(g.load).width+12;ctx.fillStyle=C.blue;ctx.beginPath();ctx.roundRect(cx-w/2,at-16,w,23,6);ctx.fill();}text(g.load,cx,at,14,actual?(g.gain?(data.dark?'#111529':'#fff'):C.blueText):C.muted,'center',mono);};
+      const at=gy+13.5,load=()=>{if(actual&&g.gain){ctx.font='400 13px '+mono;const w=ctx.measureText(g.load).width+12;ctx.fillStyle=C.blue;ctx.beginPath();ctx.roundRect(cx-w/2,gy-2,w,23,6);ctx.fill();}text(g.load,cx,at,13,actual?(g.gain?(data.dark?'#111529':'#fff'):C.blueText):C.muted,'center',mono);};
       actual?reveal(delay+j++*35,load):load();gy+=23;
       if(g.chips.length)chips(g).forEach(line=>{let x=cx-line.reduce((s,c)=>s+c.w+3,0)/2;const cy=gy;
-        line.forEach(c=>{const left=x,paint=()=>{ctx.fillStyle=actual?(c.gain?C.blue:C.soft):C.chip;ctx.beginPath();ctx.roundRect(left,cy,c.w,21,5);ctx.fill();text(c.label,left+c.w/2,cy+15,12,actual?(c.gain?(data.dark?'#111529':'#fff'):C.blueText):C.muted,'center',sans,500);};actual?reveal(delay+j++*35,paint):paint();x+=c.w+3;});gy+=25;
+        line.forEach(c=>{const left=x,paint=()=>{ctx.fillStyle=actual?(c.gain?C.blue:C.soft):C.chip;ctx.beginPath();ctx.roundRect(left,cy,c.w,21,5);ctx.fill();text(c.label,left+c.w/2,cy+14.5,11,actual?(c.gain?(data.dark?'#111529':'#fff'):C.blueText):C.muted,'center',sans,500);};actual?reveal(delay+j++*35,paint):paint();x+=c.w+3;});gy+=25;
       });
       if(g.qualifier)wrap(g.qualifier,96,10).forEach(line=>{text(line,cx,gy+10,10,C.muted,'center');gy+=13;});
   };

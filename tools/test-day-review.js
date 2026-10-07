@@ -51,6 +51,8 @@ test('warmup label hidden without deleting planned warmup sets',`dayReviewGroups
 test('skipped warmup cannot shift today under the wrong load',`lanes.length===2&&lanes[0].actual===null&&lanes[1].actual.load===dayReviewGroups([b],'Deadlift')[0].load`);
 test('context colors/units and plain strings are formatted from saved facts',`dayReviewContext({dayContext:{location:'Princeton, NJ',weather:{c:20,symbol:'clearsky_day'},capturedAt:1}}).weather==='68°F · Clear'`);
 test('removed context never appears',`dayReviewContext({dayContext:{removed:true,location:'Princeton'}})===null`);
+test('weather maps saved conditions to original day/night icons',`[['clearsky_day','sun'],['clearsky_night','moon'],['fair_day','sun-cloud'],['partlycloudy_night','moon-cloud'],['cloudy','cloud'],['lightrain','rain'],['snow','snow'],['sleet','sleet'],['rainandthunder','thunder'],['fog','fog']].every(([symbol,icon])=>{const c=dayReviewContext({dayContext:{weather:{c:20,symbol}}});return c.icon===icon&&c.temperature==='68°F'&&dayReviewWeatherPaths(icon).length>0;})`);
+test('unknown conditions keep temperature without a misleading icon',`dayReviewContext({dayContext:{weather:{c:20,symbol:'unknown'}}}).icon===null&&dayReviewWeatherPaths(null).length===0`);
 run(`var local={w:[{ex:'Squat',reps:[8]}],dayContext:{location:'Princeton',updatedAt:1}},remote={w:[],dayContext:{removed:true,updatedAt:2}};unionDay(local,remote);`);
 test('sync union preserves removal tombstone without touching workout',`local.dayContext.removed&&local.w.length===1`);
 console.log('PASS whole-day review complete');process.exit(0);

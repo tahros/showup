@@ -1,10 +1,16 @@
-# Whole-day comparison — v4.6.239
+# Whole-day comparison — v4.6.240
 
 Compact spacing: 12px above/below exercise groups, 16px between load lanes,
-14px below the location/body-parts line. Text and rep-chip sizes are unchanged.
+14px below the location/body-parts line. The type refinement uses 13px
+weights (12px below 359px wide) and 11px reps; line and chip heights stay fixed.
 Exercise labels (including their small note/delta) are centered within the whole
 exercise group. Dividers separate exercises only, never individual load lanes.
 Image/video use the same 12px row inset and 16px lane gap; header chrome is untouched.
+
+Weather uses original filled SVG geometry alongside temperature, with the same
+paths painted into image/video exports. Condition descriptions remain in the
+accessible label and tooltip. Unknown symbols show temperature only; saved
+weather data and location consent are unchanged.
 
 `js/day-review.js` renders a read-only projection. `stats.js` places it immediately
 after `currentRhythmSection()`. Styles are scoped to `.day-review` in planner.css.

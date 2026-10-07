@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.240 (2026-10-07) — Quieter numbers and weather icons
+
+- Replaces visible weather-condition text with original monochrome weather icons next to the temperature, shared by the app and image/video exports. Full condition descriptions remain available to screen readers and hover text; saved weather/location data is unchanged.
+
+- Reduces daily comparison weight numbers by 1px and rep-chip text from 12px to 11px, including image/video exports. Keeps exercise labels, row insets, line heights, chip heights and the centered layout unchanged.
+
 ## v4.6.239 (2026-10-07) — A tighter daily comparison
 
 - Reduces space below the location/body-part line and around each exercise, keeping equal top/bottom padding and matched Plan/Last and Today lanes. Typography, chip sizes and button touch targets stay unchanged.

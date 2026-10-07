@@ -29,11 +29,13 @@ const origin=process.env.DAY_REVIEW_ORIGIN||'http://127.0.0.1:'+(process.env.PW_
     bottomRoom:[...c.querySelectorAll('.dr-last-lane td .dr-value')].every(v=>rect(v.parentElement).bottom-rect(v).bottom>=11.5)};
   });
   assert(!align.warm&&!align.overflow&&align.aligned&&align.padding&&align.centered&&align.noInnerLines&&align.laneGap&&align.bottomRoom,JSON.stringify(align));
+  assert.equal(await p.locator('.dr-weight').first().evaluate(e=>getComputedStyle(e).fontSize),width<359?'12px':'13px');
+  assert.equal(await p.locator('.dr-rep').first().evaluate(e=>getComputedStyle(e).fontSize),'11px');
  }
  await p.setViewportSize({width:393,height:852});await p.evaluate(()=>{DB.settings.theme='light';DB.settings.bar='light';applyTheme();render();});
  await p.locator('[data-dr-location]').click();await p.locator('[data-cancel]').click();assert.equal(await p.evaluate(()=>geoCalls),0);assert.equal(requests.length,0);
  await p.locator('[data-dr-location]').click();await p.locator('[data-allow]').click();await p.waitForFunction(()=>!!DB.days[todayISO].dayContext?.location);
- assert.deepEqual(requests,[{consent:true,lat:40.36,lon:-74.67}]);assert.equal(await p.locator('.dr-weather').innerText(),'64°F · Clear');assert((await p.locator('.dr-parts').innerText()).startsWith('Princeton, NJ · Back'));
+ assert.deepEqual(requests,[{consent:true,lat:40.36,lon:-74.67}]);assert.equal(await p.locator('.dr-weather').innerText(),'64°F');assert.equal(await p.locator('.dr-weather').getAttribute('aria-label'),'64°F · Clear');assert.equal(await p.locator('.dr-weather svg').count(),1);assert((await p.locator('.dr-parts').innerText()).startsWith('Princeton, NJ · Back'));
  const stored=await p.evaluate(()=>JSON.stringify(DB.days[todayISO].dayContext));assert(!/latitude|longitude|40\.36|74\.67/.test(stored));
  assert(JSON.parse(stored).capturedAt>0,'capture metadata is preserved');
  assert.equal(await p.locator('.dr-context-status').innerText(),'');
@@ -48,7 +50,7 @@ const origin=process.env.DAY_REVIEW_ORIGIN||'http://127.0.0.1:'+(process.env.PW_
   await p.evaluate(theme=>{DB.settings.theme=theme;DB.settings.bar=theme;applyTheme();window.drawn=[];},theme);
   await p.evaluate(()=>shareDayReview(document.querySelector('[data-dr-share]')));
   const pic=await p.evaluate(()=>_repCv.cv.toDataURL());fs.writeFileSync(out+'/aligned-context-share-'+theme+'.png',Buffer.from(pic.split(',')[1],'base64'));
-  const texts=await p.evaluate(()=>drawn);assert(!texts.some(t=>t.s==='warm-up'));assert(texts.some(t=>t.s==='64°F · Clear'));assert(texts.some(t=>t.s.startsWith('Princeton, NJ')));
+  const texts=await p.evaluate(()=>drawn);assert(!texts.some(t=>t.s==='warm-up'));assert(texts.some(t=>t.s==='64°F'));assert(!texts.some(t=>t.s.includes('Clear')));assert(texts.some(t=>t.s.startsWith('Princeton, NJ')));
   assert(!texts.some(t=>/Captured|Conditions estimate/.test(t.s)));assert(texts.some(t=>t.s==='CC BY 4.0'),'source credit retained');
   for(const load of ['135','235','155']){const pair=texts.filter(t=>t.s===load);assert.equal(pair.length,2);assert.equal(pair[0].y,pair[1].y);}
   await p.locator('#repClose').click();
