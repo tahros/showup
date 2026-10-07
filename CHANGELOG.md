@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.234 (2026-10-07) — Six years, uninterrupted
+
+- Replaces the six-year gallery with the approved Continuous composition: six full-year columns, oldest first, with aligned year headings and no half-year split or extra labels. Partial years keep their actual calendar positions.
+- Uses the same layout in the interactive overview, replay, image, MP4 and GIF shares. Preserves the opening pulse, smooth pullback, shared shimmer, body-part highlighting and saved year selections.
+- Other year-count layouts, the floating header, profile and workout records are unchanged. Checks cover narrow screens, both themes and week starts, leap years, exports and replay continuity. Retains the preceding workout-feedback release.
+
 ## v4.6.233 (2026-10-07) — A little weight behind every set
 
 - Uses the approved A / Pin click sound on the rep ruler, with damped metallic feedback when changing weight and a short landing sound when saving a set. Keeps native scrolling, notch throttling and immediate saves; audio is gesture-unlocked and never delays logging.

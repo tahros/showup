@@ -68,7 +68,7 @@ function palette(){const c=getComputedStyle(document.documentElement),get=(k,f)=
 const layouts=new WeakMap();
 function atlas(M){
  if(layouts.has(M))return layouts.get(M);
- const n=M.years.length,points=new Map(),labels=[],background=[],rules=[],names=['Calendar','Diptych','Seasons','Quadrants','Ledger','Gallery','Spotlight','Facing pages','Atlas','Decade'];
+ const n=M.years.length,points=new Map(),labels=[],background=[],rules=[],names=['Calendar','Diptych','Seasons','Quadrants','Ledger','Continuous','Spotlight','Facing pages','Atlas','Decade'];
  const byYear=new Map(M.years.map(y=>[y,M.days.filter(d=>year(d.n)===y)])),yearOf=d=>year(d.n),monthOf=d=>new Date(d.n*DAY).getUTCMonth();
  const label=(text,x,y,size=20,kind='month')=>labels.push({text:String(text),x,y,size,kind});
  const put=(d,x,y,s,group,number=false)=>points.set(d.n,{x,y,w:s,h:s,group,number});
@@ -82,7 +82,14 @@ function atlas(M){
  if(n===3)M.years.forEach((y,i)=>{const x=i*326;head(y,x,0);for(let q=0;q<4;q++){const yy=60+q*181;label('Q'+(q+1),x,yy,15);for(let m=0;m<3;m++)month(y,q*3+m,x+m*101,yy+28,90,136);}});
  if(n===4)M.years.forEach((y,i)=>{const x=i%2*502,yy=Math.floor(i/2)*405;head(y,x,yy);matrix(y,x,yy+58,446,310);});
  if(n===5)M.years.forEach((y,i)=>{const yy=i*158;head(y,0,yy+52);ribbon(y,162,yy+34,786,true);});
- if(n===6)M.years.forEach((y,i)=>{const x=i%3*326,yy=Math.floor(i/3)*405;head(y,x,yy);for(let half=0;half<2;half++){const xx=x+half*100,start=stamp(y+(half?'-07-01':'-01-01')),offset=(weekday(start)-M.dow+7)%7;label(half?'Jul–Dec':'Jan–Jun',xx,yy+43,17);for(const d of byYear.get(y)||[])if(Math.floor(monthOf(d)/6)===half)put(d,xx+d.col*10.2,yy+75+Math.floor((d.n-start+offset)/7)*10.2,8.3,y+'-'+half);}});
+ if(n===6){
+  // Six unbroken January-to-December columns. Partial years retain their real
+  // calendar positions; no half-year reset, invented days or compressed gaps.
+  const gap=40,cw=(948-5*gap)/6,dx=cw/7;
+  const starts=M.years.map(y=>stamp(y+'-01-01')),offsets=starts.map(s=>(weekday(s)-M.dow+7)%7);
+  const weeks=Math.max(...M.years.map((y,i)=>Math.ceil((stamp((y+1)+'-01-01')-starts[i]+offsets[i])/7))),dy=740/weeks;
+  M.years.forEach((y,i)=>{const x=i*(cw+gap);head(y,x,0);for(const d of byYear.get(y)||[])points.set(d.n,{x:x+d.col*dx,y:50+Math.floor((d.n-starts[i]+offsets[i])/7)*dy,w:dx*.79,h:dy*.79,group:y,number:false});});
+ }
  if(n===7){const latest=M.years.at(-1);head(latest,0,0);monthly(latest,0,54,948,360,6,false,true);M.years.slice(0,-1).forEach((y,i)=>{const x=i%2*502,yy=449+Math.floor(i/2)*113;head(y,x,yy);ribbon(y,x,yy+43,446,false,false);});}
  if(n===8)for(let chapter=0;chapter<2;chapter++)M.years.slice(chapter*4,chapter*4+4).forEach((y,i)=>{const x=chapter*502,yy=i*198;head(y,x,yy);ribbon(y,x,yy+69,446);});
  if(n===9)M.years.forEach((y,i)=>{const x=i%3*326,yy=Math.floor(i/3)*267;head(y,x,yy);matrix(y,x,yy+56,296,188,true);});
@@ -94,7 +101,7 @@ function atlas(M){
  const A={points,labels,background,rules,groups,name:n<=10?names[n-1]:'Paged atlas'};layouts.set(M,A);return A;
 }
 function geometry(M,w,h,exported=false){
- const scale=exported?w/340:1,reserve=exported?0:84,A=atlas(M),sx=w/948,sy=(h-reserve)/790,cols=M.years.length===6?3:Math.min(M.years.length,5),bands=Math.ceil(M.years.length/cols),gap=10*scale,cw=(w-gap*(cols-1))/cols,bh=(h-reserve)/bands,step=sy*12,unit=Math.min(sx,sy)*10;
+ const scale=exported?w/340:1,reserve=exported?0:84,A=atlas(M),sx=w/948,sy=(h-reserve)/790,cols=M.years.length===6?6:Math.min(M.years.length,5),bands=Math.ceil(M.years.length/cols),gap=10*scale,cw=(w-gap*(cols-1))/cols,bh=(h-reserve)/bands,step=sy*12,unit=Math.min(sx,sy)*10;
  const tw=Math.min(164*scale,w*.57),left=w-tw,pitch=16*scale,cell=Math.min(12*scale,(tw-30*scale)/7-3*scale),tx=left+28*scale;
  function timeline(d,cursor){const cr=(cursor-M.firstWeek)/7,max=Math.max(0,(Math.floor((M.end-M.firstWeek)/7)+1)*pitch-h*.72),scroll=clamp(cr*pitch-h*.68,0,max);return {x:tx+d.col*(tw-28*scale)/7,y:d.row*pitch-scroll+4*scale,w:cell,h:cell};}
  function overview(d){const r=A.points.get(d.n),s=Math.min(r.w*sx,r.h*sy);return {x:r.x*sx,y:reserve+r.y*sy,w:s,h:s};}
