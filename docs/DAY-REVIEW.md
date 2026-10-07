@@ -1,8 +1,10 @@
-# Whole-day comparison — v4.6.236
+# Whole-day comparison — v4.6.238
 
-`js/day-review.js` is a read-only projection. `stats.js` places it immediately
+`js/day-review.js` renders a read-only projection. `stats.js` places it immediately
 after `currentRhythmSection()`. Styles are scoped to `.day-review` in planner.css.
-It does not change the header, logging, persistence, plan parser or authentication.
+An explicit location action may save optional dayContext metadata through the
+existing durable save path. It does not change the header, workout logging,
+plan parser or authentication.
 
 ## Data contract
 
@@ -23,8 +25,47 @@ It does not change the header, logging, persistence, plan parser or authenticati
   displays a dash. All-day set/exercise counts still include every log.
 - `isCardio` determines row shape. Run-only distance is kept separate from other
   cardio. Imperial/metric conversion never changes stored values.
-- Date and performed body parts are real. Location/weather are currently absent
-  from the data model, so the preview's examples are deliberately not shipped.
+- Corresponding reference/Today load groups share vertical lanes. Plan lanes
+  match original target IDs; Last lanes use original set order. Missing targets
+  stay blank, unlinked additions stay separate. The warm-up label is hidden,
+  not the set or its qualifier in storage/comparison logic.
+
+## Optional city and weather
+
+- Allow location opens a disclosure and then the device permission. Never runs
+  during rendering, sharing, launch, or in the background. One current fix per
+  explicit action; use it while still at the workout location, not for history.
+- Coordinates are rounded to two decimals on-device; POST contains only those
+  coordinates and consent:true. No account identity/workout facts are forwarded
+  to providers. The existing public function gateway key is not a secret.
+- `supabase/functions/day-context` proxies Photon and MET Norway with an
+  identifying User-Agent, timeout, per-instance throttling, single-flight and
+  bounded transient cache that respects upstream expiry. No database writes,
+  request-body logs, global GPS store, signup or paid API subscription.
+- Saves city/region, nearest-hour conditions estimate and capture timestamp;
+  no street address/GPS. Shows city before performed parts, weather at top
+  right, and attribution/capture time. No stale or invented historical weather.
+  A failed provider can leave its own field absent without blocking workouts.
+- Record path: `DB.days[date].dayContext`; Remove saves an updatedAt tombstone.
+  The normal newest-day merge carries metadata, and sign-in union respects
+  newer context/removal. Account/date/navigation/removal races cancel writes.
+- Backup/cloud sync includes saved metadata. Existing exports/backups aren't
+  erased by Remove. Privacy policy and permission text disclose this.
+- Photon public API is best effort at reasonable volume; replace with a private
+  instance/service before scaling. MET Norway data is CC BY 4.0. Sources:
+  https://github.com/komoot/photon and https://api.met.no/doc/TermsOfService.
+
+### iPhone rollout
+
+`tools/ios-config.py` adds a local ShowUpLocation plugin and the when-in-use
+purpose string. Run `npm run sync:ios` and rebuild in Xcode. Old binaries keep
+taking OTA and show an explicit rebuild-needed message, not a doomed native
+permission call. No new npm plugin/OTA requirement blocks existing devices.
+Windows fixtures check generation/idempotency; real permission approval/denial
+and location retrieval must also be checked on an iPhone after rebuilding.
+Before App Store submission, review the privacy answers for optional coarse
+location linked to the user through synced workout metadata (app functionality,
+not tracking), and make sure they match this policy and provider processing.
 
 ## Motion and export
 
@@ -50,3 +91,6 @@ existing 1080x1280 exports keep their size, while tall daily cards are not cropp
   reduced motion, placement, branded image and decoded full-height MP4.
 - Existing floating-header, attendance-share, session-comparison, full behavioral
   suite, distribution and OTA integrity checks remain release gates.
+- `test-day-context.js` and `check-day-context.cjs`: provider/cache/validation,
+  matched rows, both themes, 320/393/736px, no GPS on load/cancel, explicit
+  consent, coarse payload, denial/offline preservation and persistent removal.

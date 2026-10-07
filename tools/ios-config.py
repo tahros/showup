@@ -80,6 +80,7 @@ pl["CFBundleDisplayName"] = APP_NAME
 pl["NSHealthUpdateUsageDescription"] = HEALTH_WHY
 pl.pop("NSHealthShareUsageDescription", None)
 pl["NSPhotoLibraryAddUsageDescription"] = PHOTOS_ADD_WHY      # v4.6.154, add-only
+pl["NSLocationWhenInUseUsageDescription"] = "ShowUppp uses your location only when you tap Allow location to add your city and weather to a workout card. No background tracking."
 # v4.6.145: the app asks this at launch (ShowUpApple.status) before it shows the button
 pl["ShowUpAppleSignIn"] = APPLE_SIGNIN
 if plistlib.dumps(pl) != before:
@@ -139,6 +140,7 @@ class ShowUpViewController: CAPBridgeViewController {
         bridge?.registerPluginInstance(ShowUpChromePlugin())
         bridge?.registerPluginInstance(ShowUpApplePlugin())
         bridge?.registerPluginInstance(ShowUpSharePlugin())
+        bridge?.registerPluginInstance(ShowUpLocationPlugin())
         enableShowUpBounce()
     }
 
@@ -454,6 +456,47 @@ public class ShowUpSharePlugin: CAPPlugin, CAPBridgedPlugin {
         }
     }
 }
+// One explicit request, reduced accuracy sufficient. Never monitors location.
+@objc(ShowUpLocationPlugin)
+public class ShowUpLocationPlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDelegate {
+    public let identifier = "ShowUpLocationPlugin"
+    public let jsName = "ShowUpLocation"
+    public let pluginMethods: [CAPPluginMethod] = [CAPPluginMethod(name: "current", returnType: CAPPluginReturnPromise)]
+    private var manager: CLLocationManager?
+    private var pending: CAPPluginCall?
+    private var timeout: Timer?
+    @objc func current(_ call: CAPPluginCall) {
+        DispatchQueue.main.async {
+            guard self.pending == nil else { call.reject("Location request already in progress"); return }
+            guard CLLocationManager.locationServicesEnabled() else { call.reject("Location services are disabled"); return }
+            self.pending = call
+            let manager = CLLocationManager(); self.manager = manager
+            manager.delegate = self; manager.desiredAccuracy = kCLLocationAccuracyKilometer
+            self.timeout = Timer.scheduledTimer(withTimeInterval: 20, repeats: false) { [weak self] _ in self?.fail("Location timed out") }
+            self.requestIfAuthorized(manager)
+        }
+    }
+    private func requestIfAuthorized(_ manager: CLLocationManager) {
+        switch manager.authorizationStatus {
+        case .notDetermined: manager.requestWhenInUseAuthorization()
+        case .authorizedAlways, .authorizedWhenInUse: manager.requestLocation()
+        default: fail("Location permission denied")
+        }
+    }
+    public func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        guard pending != nil, manager.authorizationStatus != .notDetermined else { return }
+        requestIfAuthorized(manager)
+    }
+    public func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        guard let location = locations.last, location.horizontalAccuracy >= 0,
+              abs(location.timestamp.timeIntervalSinceNow) < 120 else { fail("Location unavailable"); return }
+        let call = pending; clear()
+        call?.resolve(["latitude": location.coordinate.latitude, "longitude": location.coordinate.longitude])
+    }
+    public func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) { fail("Location unavailable: " + error.localizedDescription) }
+    private func fail(_ message: String) { let call = pending; clear(); call?.reject(message) }
+    private func clear() { timeout?.invalidate(); timeout = nil; manager?.stopUpdatingLocation(); manager?.delegate = nil; manager = nil; pending = nil }
+}
 // End ShowUp: ShowUpHealthPlugin
 """
 ad = d / "ios/App/App/AppDelegate.swift"
@@ -521,6 +564,8 @@ if not re.search(r"^import HealthKit\s*$", src2, re.M):
     src2 = re.sub(r"^(import Capacitor\s*)$", r"\1\nimport HealthKit", src2, count=1, flags=re.M)
 if not re.search(r"^import AuthenticationServices\s*$", src2, re.M):
     src2 = re.sub(r"^(import HealthKit\s*)$", r"\1\nimport AuthenticationServices", src2, count=1, flags=re.M)
+if not re.search(r"^import CoreLocation\s*$", src2, re.M):
+    src2 = re.sub(r"^(import HealthKit\s*)$", r"\1\nimport CoreLocation", src2, count=1, flags=re.M)
 if src2 != src:
     ad.write_text(src2)
 if s2 != s:

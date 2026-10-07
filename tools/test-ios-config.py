@@ -72,6 +72,19 @@ class BounceInstall(unittest.TestCase):
         self.install()
         self.assertEqual(self.sb.read_bytes(), before)
 
+    def test_location_is_explicit_one_shot(self):
+        self.install()
+        pl = plistlib.loads((self.app / "Info.plist").read_bytes())
+        self.assertIn("Allow location", pl["NSLocationWhenInUseUsageDescription"])
+        self.assertNotIn("NSLocationAlwaysAndWhenInUseUsageDescription", pl)
+        src = self.ad.read_text()
+        self.assertIn("import CoreLocation", src)
+        self.assertIn("registerPluginInstance(ShowUpLocationPlugin())", src)
+        self.assertIn("manager.requestWhenInUseAuthorization()", src)
+        self.assertIn("manager.requestLocation()", src)
+        self.assertNotIn("startUpdatingLocation()", src)
+        self.assertNotIn("requestAlwaysAuthorization()", src)
+
     def test_repairs_tag_broken_by_4_6_132(self):
         # the exact tag v4.6.120-v4.6.132 wrote on the Mac; cap sync never regenerates it
         self.sb.write_text('<document><scenes><scene><objects><viewController id="BYZ-38-t0r" sceneMemberID="viewController"/ '

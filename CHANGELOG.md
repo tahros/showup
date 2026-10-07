@@ -1,5 +1,13 @@
 # ShowUppp — changelog
 
+## v4.6.238 (2026-10-07) — Aligned sets, a sense of place
+
+- Removes the warm-up caption from the daily comparison without removing warm-up sets. Plan/Last and Today now share load-group lanes, with matched weight/rep baselines and balanced row padding in the app, image and video. Skipped planned loads stay in their own lanes.
+- Adds an explicit Allow location disclosure and device permission for a one-shot current city/weather snapshot. Shows city/region before body parts and weather beside the date, with capture time and provider attribution. No guessed historical weather, exact address, background tracking or saved GPS coordinates.
+- A new cached server lookup uses Photon/OpenStreetMap and MET Norway without forwarding account/workout details. Decline, offline, timeouts and partial results degrade safely. Saved metadata syncs with the day; Remove uses a tombstone so sign-in cannot resurrect it.
+- Adds the iPhone when-in-use purpose string and local ShowUpLocation bridge. Requires an Xcode rebuild after sync:ios for native location; old binaries continue taking OTA and explain this limitation. Web location works through the browser permission. Native permission/device QA and App Store privacy-answer review remain rollout steps.
+- Preserves the floating header, workout logging, original plan provenance and existing records. Updates privacy disclosures and regression coverage.
+
 ## v4.6.237 (2026-10-07) — Years centered over your streaks
 
 - Centers all six year headings over their seven-day streak columns in the interactive overview and replay, matching the share cards. Alignment stays stable with body-part filters, either week start and different screen widths.

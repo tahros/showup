@@ -22,6 +22,7 @@ jobs:
       - run: supabase functions deploy write-session --project-ref "$REF"
       - run: supabase functions deploy delete-account --project-ref "$REF"
       - run: supabase functions deploy track --project-ref "$REF"
+      - run: supabase functions deploy day-context --project-ref "$REF"
       - run: supabase functions deploy apple-link --project-ref "$REF"
       # v4.6.145: Sign in with Apple token revocation. Pushed only once the repo has
       # the secrets (from the paid developer account's key); until then the two

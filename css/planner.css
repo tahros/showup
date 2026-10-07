@@ -420,6 +420,9 @@ p.pw-small{margin:10px 0 16px}.pw-workspace p:not(.pw-small){font:400 14px/1.6 v
 /* Whole-day comparison. Scoped: header, training table and other cards stay intact. */
 #view .day-review{padding:22px 22px 20px;border-radius:25px;background:var(--surface);color:var(--chalk);margin-top:16px}
 .day-review *{box-sizing:border-box}
+.day-review .dr-heading{display:flex;align-items:center;justify-content:space-between;gap:15px}
+.day-review .dr-heading h3{min-width:0}
+.day-review .dr-weather{flex:0 1 112px;text-align:right;font:400 11px/1.4 var(--body);color:var(--muted)}
 .day-review .dr-heading h3{font:500 23px/1.2 var(--body);letter-spacing:-.65px;margin:0;color:var(--chalk)}
 .day-review .dr-parts{font:400 13px/1.5 var(--body);margin:10px 0 25px;color:var(--muted)}
 .day-review table{border-collapse:collapse;width:100%;table-layout:fixed;font-variant-numeric:tabular-nums}
@@ -428,7 +431,11 @@ p.pw-small{margin:10px 0 16px}.pw-workspace p:not(.pw-small){font:400 14px/1.6 v
 .day-review thead th{padding:0 3px 14px;text-align:center;color:var(--muted);font:500 12px/1.4 var(--body)}
 .day-review thead th:first-child{text-align:left;font-weight:400;font-size:11px;padding-left:0}
 .day-review thead th:last-child{color:var(--accent-ink)}
-.day-review tbody th,.day-review td{padding:17px 3px;border-top:1px solid var(--line);vertical-align:middle}
+.day-review tbody th,.day-review td{padding:17px 3px 10px;border-top:1px solid var(--line);vertical-align:top}
+.day-review tbody th{padding-bottom:17px}
+.day-review tr.dr-continuation td{border-top:0;padding-top:0}
+.day-review tr.dr-last-lane td{padding-bottom:17px}
+.day-review td.dr-missing{vertical-align:middle}
 .day-review tbody th{text-align:left;padding-left:0;padding-right:11px;font:500 14.5px/1.3 var(--body);overflow-wrap:anywhere;color:var(--chalk)}
 .day-review .dr-note{display:block;margin-top:5px;color:var(--muted);font:400 11px/1.35 var(--body)}
 .day-review .dr-value{display:flex;flex-direction:column;gap:7px;align-items:center;justify-content:center;min-height:42px;color:var(--muted)}
@@ -456,5 +463,11 @@ p.pw-small{margin:10px 0 16px}.pw-workspace p:not(.pw-small){font:400 14px/1.6 v
 .day-review .dr-actions button:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 .day-review [data-dr-reveal]{display:inline-block}.day-review .dr-delta[data-dr-reveal],.day-review .dr-empty[data-dr-reveal],.day-review .dr-totals>[data-dr-reveal]{display:block}
 .day-review.dr-pending [data-dr-reveal]{opacity:0}
+.day-review .dr-context{margin-top:16px;color:var(--muted);font:400 11px/1.5 var(--body)}
+.day-review .dr-context button{font:500 12px/1.4 var(--body);border:0;background:var(--surface2);color:var(--chalk);padding:9px 12px;border-radius:10px;min-height:44px;margin-right:6px;cursor:pointer}
+.day-review .dr-context p{margin:7px 0}.day-review .dr-context a{color:inherit}.day-review .dr-context small{font-size:10px}
+.dr-consent{max-width:min(390px,calc(100vw - 32px));border:1px solid var(--line);border-radius:22px;padding:24px;color:var(--chalk);background:var(--surface);font:400 14px/1.5 var(--body)}
+.dr-consent::backdrop{background:#0008}.dr-consent h3{font:500 21px/1.2 var(--body);margin:0 0 15px}.dr-consent p{margin:12px 0}.dr-consent>div{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+.dr-consent button{font:500 14px var(--body);padding:12px;border-radius:12px;background:var(--surface2);color:var(--chalk);border:0;min-height:44px;cursor:pointer}.dr-consent [data-allow]{background:var(--accent);color:var(--ground)}
 @media(max-width:359px){#view .day-review{padding:17px 13px 18px}.day-review tbody th{font-size:13.5px;padding-right:7px}.day-review .dr-rep{min-width:15px;padding:4px 1px}.day-review .dr-reps{gap:2px}.day-review td{padding-left:2px;padding-right:2px}.day-review .dr-weight{font-size:13px}}
 @media(prefers-reduced-motion:reduce){.day-review.dr-pending [data-dr-reveal]{opacity:1}}

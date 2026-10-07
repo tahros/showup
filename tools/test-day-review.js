@@ -46,4 +46,11 @@ test('DOM has only Exercise, reference and Today columns',`(()=>{document.queryS
 test('no old values in reveal targets or failure labels',`!document.querySelector('.day-review').textContent.match(/missed|failed|Changes vs/i)`);
 run(`var data=dayReviewExportModel();var cv=drawDayReview(data);`);
 test('export canvas reserves full content and even dimensions',`cv.width===1080&&cv.height>700&&cv.height%2===0`);
+run(`var a={id:'a',w:60,r:8,qualifier:'warm-up'},b={id:'b',w:100,r:3},x={w:100,r:4,source:{planRef:{setId:'b'}}};var lanes=dayReviewLanes({ex:'Deadlift',ref:[a,b],actual:[x]},true);`);
+test('warmup label hidden without deleting planned warmup sets',`dayReviewGroups([a],'Deadlift')[0].qualifier===''&&dayReviewGroups([a],'Deadlift')[0].chips[0].label==='8'`);
+test('skipped warmup cannot shift today under the wrong load',`lanes.length===2&&lanes[0].actual===null&&lanes[1].actual.load===dayReviewGroups([b],'Deadlift')[0].load`);
+test('context colors/units and plain strings are formatted from saved facts',`dayReviewContext({dayContext:{location:'Princeton, NJ',weather:{c:20,symbol:'clearsky_day'},capturedAt:1}}).weather==='68°F · Clear'`);
+test('removed context never appears',`dayReviewContext({dayContext:{removed:true,location:'Princeton'}})===null`);
+run(`var local={w:[{ex:'Squat',reps:[8]}],dayContext:{location:'Princeton',updatedAt:1}},remote={w:[],dayContext:{removed:true,updatedAt:2}};unionDay(local,remote);`);
+test('sync union preserves removal tombstone without touching workout',`local.dayContext.removed&&local.w.length===1`);
 console.log('PASS whole-day review complete');process.exit(0);

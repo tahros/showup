@@ -1,0 +1,45 @@
+// Isolated fixture and mocked GPS/providers: never accesses real location.
+const {chromium}=require('playwright'),assert=require('assert'),fs=require('fs');
+const origin=process.env.DAY_REVIEW_ORIGIN||'http://127.0.0.1:'+(process.env.PW_PORT||8858)+'/',out=process.env.QA_DIR||'../day-review-context-qa';fs.mkdirSync(out,{recursive:true});
+(async()=>{const b=await chromium.launch({executablePath:process.env.PW_CHROME||'C:/Users/sungj/AppData/Local/ms-playwright/chromium-1217/chrome-win64/chrome.exe'});try{
+ const p=await b.newPage({viewport:{width:393,height:852},serviceWorkers:'block'}),errors=[],requests=[];p.on('pageerror',e=>errors.push(e.message));let fail=false;
+ await p.route('**/*',async r=>{if(r.request().url().endsWith('/functions/v1/day-context')){requests.push(r.request().postDataJSON());return r.fulfill({status:fail?503:200,contentType:'application/json',body:JSON.stringify({location:'Princeton, NJ',weather:{c:18,symbol:'clearsky_day',at:Date.now()},capturedAt:Date.now()})});}return r.request().url().startsWith(origin)?r.continue():r.abort();});
+ await p.goto(origin);await p.waitForTimeout(3000);await p.emulateMedia({reducedMotion:'reduce'});
+ await p.evaluate(()=>{
+  document.querySelector('#onb')?.remove();todayISO='2026-10-07';checkDate=()=>false;loadedOK=true;
+  DB={days:{},settings:{unit:'lb',name:'Sungjee Yoo',onboarded:true,theme:'light',bar:'light'}};SEED=deriveAll();
+  DB.plan={d:todayISO,items:[{ex:'Deadlift',lines:[{w:135/LB,reps:[8],qualifier:'warm-up'},{w:235/LB,reps:[3,3,3]}]},{ex:'Bent-Over Row',lines:[{w:155/LB,reps:[12,12,12,12]}]},{ex:'Pull Up',lines:[{w:25/LB,reps:[6,6,6],bw:true}]}]};plCapture();lift={ex:'Deadlift',part:'Back'};
+  plLog({part:'Back',ex:'Deadlift',w:135/LB,reps:[8],at:Date.now()-3600000});[4,3,3].forEach(r=>plLog({part:'Back',ex:'Deadlift',w:235/LB,reps:[r],at:Date.now()-3500000}));
+  lift.ex='Bent-Over Row';[12,12,12,12].forEach(r=>plLog({part:'Back',ex:'Bent-Over Row',w:155/LB,reps:[r],at:Date.now()-3400000}));
+  DB.days[todayISO].completedAt=Date.now();SEED=deriveAll();view='stats';applyTheme();render();window.geoCalls=0;window.geoDeny=false;
+  Object.defineProperty(navigator,'geolocation',{configurable:true,value:{getCurrentPosition(ok,no){geoCalls++;geoDeny?no({code:1}):ok({coords:{latitude:40.357124,longitude:-74.667221}});}}});
+ });
+ assert.equal(await p.evaluate(()=>geoCalls),0);assert.equal(requests.length,0);
+ for(const theme of ['light','dark'])for(const width of [320,393,736]){
+  await p.setViewportSize({width,height:852});await p.evaluate(theme=>{DB.settings.theme=theme;DB.settings.bar=theme;applyTheme();render();},theme);
+  const align=await p.evaluate(()=>{const c=document.querySelector('.day-review'),rows=[...c.querySelectorAll('tbody tr')];return {warm:c.textContent.includes('warm-up'),overflow:c.scrollWidth>c.clientWidth,aligned:rows.every(row=>{const ds=[...row.querySelectorAll('td .dr-weight')];return ds.length<2||Math.abs(ds[0].getBoundingClientRect().y-ds[1].getBoundingClientRect().y)<.5;}),padding:rows.filter(r=>r.classList.contains('dr-last-lane')).every(r=>getComputedStyle(r.querySelector('td')).paddingBottom==='17px')};});
+  assert(!align.warm&&!align.overflow&&align.aligned&&align.padding,JSON.stringify(align));
+ }
+ await p.setViewportSize({width:393,height:852});await p.evaluate(()=>{DB.settings.theme='light';DB.settings.bar='light';applyTheme();render();});
+ await p.locator('[data-dr-location]').click();await p.locator('[data-cancel]').click();assert.equal(await p.evaluate(()=>geoCalls),0);assert.equal(requests.length,0);
+ await p.locator('[data-dr-location]').click();await p.locator('[data-allow]').click();await p.waitForFunction(()=>!!DB.days[todayISO].dayContext?.location);
+ assert.deepEqual(requests,[{consent:true,lat:40.36,lon:-74.67}]);assert.equal(await p.locator('.dr-weather').innerText(),'64°F · Clear');assert((await p.locator('.dr-parts').innerText()).startsWith('Princeton, NJ · Back'));
+ const stored=await p.evaluate(()=>JSON.stringify(DB.days[todayISO].dayContext));assert(!/latitude|longitude|40\.36|74\.67/.test(stored));
+ await p.locator('.day-review').screenshot({path:out+'/aligned-context-app.png',style:'header,nav,#calReturn,#progressSwitch{visibility:hidden!important}'});
+ await p.evaluate(()=>{
+  const text=CanvasRenderingContext2D.prototype.fillText;window.drawn=[];
+  CanvasRenderingContext2D.prototype.fillText=function(s,x,y,...rest){drawn.push({s:String(s),x,y});return text.call(this,s,x,y,...rest);};
+ });
+ for(const theme of ['light','dark']){
+  await p.evaluate(theme=>{DB.settings.theme=theme;DB.settings.bar=theme;applyTheme();window.drawn=[];},theme);
+  await p.evaluate(()=>shareDayReview(document.querySelector('[data-dr-share]')));
+  const pic=await p.evaluate(()=>_repCv.cv.toDataURL());fs.writeFileSync(out+'/aligned-context-share-'+theme+'.png',Buffer.from(pic.split(',')[1],'base64'));
+  const texts=await p.evaluate(()=>drawn);assert(!texts.some(t=>t.s==='warm-up'));assert(texts.some(t=>t.s==='64°F · Clear'));assert(texts.some(t=>t.s.startsWith('Princeton, NJ')));
+  for(const load of ['135','235','155']){const pair=texts.filter(t=>t.s===load);assert.equal(pair.length,2);assert.equal(pair[0].y,pair[1].y);}
+  await p.locator('#repClose').click();
+ }
+ await p.evaluate(()=>{window.geoDeny=true;});await p.locator('[data-dr-location]').click();await p.locator('[data-allow]').click();await p.waitForFunction(()=>document.querySelector('.dr-context-status').textContent.includes('wasn’t allowed'));assert.equal(requests.length,1);assert.equal(await p.evaluate(()=>JSON.stringify(DB.days[todayISO].dayContext)),stored);
+ await p.evaluate(()=>{window.geoDeny=false;});fail=true;await p.locator('[data-dr-location]').click();await p.locator('[data-allow]').click();await p.waitForFunction(()=>document.querySelector('.dr-context-status').textContent.includes('unavailable'));assert.equal(await p.evaluate(()=>JSON.stringify(DB.days[todayISO].dayContext)),stored);
+ await p.locator('[data-dr-context-remove]').click();assert.equal(await p.locator('.dr-weather').count(),0);assert(await p.evaluate(()=>DB.days[todayISO].dayContext.removed));await p.evaluate(()=>render());assert.equal(await p.locator('.dr-weather').count(),0);
+ assert.deepEqual(errors,[]);console.log('PASS light/dark three widths, warmup hidden, matched load baselines, equal padding, consent/cancel/no silent GPS, coarse request only, persisted snapshot, share, denial/offline preserve data, removal');
+}finally{await b.close();}})().catch(e=>{console.error(e);process.exit(1);});
