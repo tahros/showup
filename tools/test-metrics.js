@@ -19,6 +19,14 @@ const order=[...html.matchAll(/src="(js\/[^?"]+)\?v=/g)].map(m=>m[1]);
 const srcs=Object.fromEntries(order.map(s=>[s,fs.readFileSync(path.join(dir,s),'utf8')]));
 const settle=async(n=30)=>{for(let i=0;i<n;i++)await new Promise(r=>setTimeout(r,0));};
 const TODAY='2026-10-15';
+// Inspect typed values, not digit fragments in version strings/device IDs.
+// A timestamp containing 225 and app_version 4.6.225 are not workout weights.
+function carriesWorkoutContent(value){
+  if(typeof value==='number')return value===225||value===225/2.2046;
+  if(typeof value==='string')return /Bench|Chest/.test(value);
+  if(Array.isArray(value))return value.some(carriesWorkoutContent);
+  return !!value&&typeof value==='object'&&Object.entries(value).some(([key,v])=>['w','reps','ex','part'].includes(key)||carriesWorkoutContent(v));
+}
 
 async function boot({url='https://tahros.github.io/showup/',store={},shell=false,webdriver=false,respond=()=>({status:200,body:{accepted:1}}),days={}}={}){
   const dom=new JSDOM(html.replace(/<script[^>]*src=[^>]*><\/script>/g,''),{url,runScripts:'outside-only',pretendToBeVisual:true});
@@ -74,9 +82,10 @@ async function client(){
     const dl=b.q().filter(e=>e.name==='day_logged');
     ok("today's first set: one day_logged, day_n = the record's logged days (3)", dl.length===1 && dl[0].day_n===3, JSON.stringify(dl));
     ok('not the record\'s first day: no first_set', !b.q().some(e=>e.name==='first_set'));
-    const body=JSON.stringify(b.run('JSON.stringify(mBody(mQueue()))'));
-    ok('the request never carries workout content', !/Bench|Chest|\b225\b|"w"|"reps"|"ex"|"part"/.test(body)   /* v4.6.191: 225 as a number of its own -- a timestamp such as 1790922504364 contains the digits and failed this at random */, body);
     const bo=JSON.parse(b.run('JSON.stringify(mBody(mQueue()))'));
+    ok('privacy check permits version/device/timestamp digit matches', !carriesWorkoutContent({app_version:'4.6.225',device_id:'00000225-0000-4000-8000-000000000000',events:[{at:1790922504364}]}));
+    ok('privacy check rejects nested workout fields, names and exact weights', [{events:[{w:102}]},{events:[{reps:[8]}]},{events:[{extra:225}]},{events:[{extra:225/2.2046}]},{events:[{extra:'Barbell Bench Press'}]},{events:[{extra:'Chest'}]}].every(carriesWorkoutContent));
+    ok('the request never carries workout content', !carriesWorkoutContent(bo), JSON.stringify(bo));
     ok('the request has exactly the named fields', Object.keys(bo).sort().join()==='app_version,device_id,events,platform,ref' &&
       bo.events.every(e=>Object.keys(e).every(k=>['name','at','day_n'].includes(k))), JSON.stringify(Object.keys(bo)));
   }

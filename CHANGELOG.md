@@ -1,5 +1,11 @@
 # ShowUp — changelog
 
+## v4.6.225 (2026-10-06) — Keep the vertical history when sharing
+
+- Attendance share images now keep the vertical year columns from the in-app whole-history view, rather than changing to horizontal year strips.
+- Keeps your total, name, selected body-part highlights and ShowUppp + Pip logo, with white lettering in dark mode. Still images always show the full history, even when Today pulse is selected.
+- No changes to the in-app animation, header, profile or saved workouts.
+
 ## v4.6.224 (2026-10-06) — One quieter light, across your history
 
 - Streak squares have softer corners. Today's opening pulse gently breathes in place, without the sideways movement, and the year labels line up with their calendar grids.
