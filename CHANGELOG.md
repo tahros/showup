@@ -1,5 +1,11 @@
 # ShowUp — changelog
 
+## v4.6.223 (2026-10-06) — A smoother journey through your history
+
+- Today opens with a larger, softer pulse and three fading ripples. The calendar glides back through your actual training days, then gently opens into the whole-history view without replacing the picture at the end.
+- Blue days keep shimmering throughout the replay and after it settles. Animation Off and reduced-motion settings keep it still; offscreen animations pause to save power.
+- Video and GIF shares use the same smooth motion, with a shimmering final hold. The still-image year ledger, white dark-theme wordmark, Pip, floating header, profile and saved workouts stay unchanged.
+
 ## v4.6.222 (2026-10-06) — White lettering on dark shares
 
 - Fixes the ShowUppp wordmark appearing dark on dark attendance shares on devices that ignore canvas filters. The lettering now uses a white image mask in the image, video and GIF exports.

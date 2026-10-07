@@ -19,9 +19,16 @@ ok('profile is safely rendered as text',`document.querySelector('.at-owner').tex
 ok('share ledger puts six years in distinct horizontal strips',`(()=>{const g=attendanceView.ledgerGeometry(M);return g.width===1080&&g.rows.length===6&&g.height>1280&&g.rows.every((r,i)=>r.year===2021+i)&&g.cell(M.days[7]).x>g.cell(M.days[0]).x&&g.cell(M.days[7]).y===g.cell(M.days[0]).y})()`);
 ok('ledger keeps every day within its year strip and clear of footer',`(()=>{const g=attendanceView.ledgerGeometry(M);return M.days.every(d=>{const r=g.cell(d),i=new Date(d.n*86400000).getUTCFullYear()-2021;return r.x>=g.pad&&r.x+r.w<=g.width-g.pad&&r.y>=g.top+i*g.rowHeight+40&&r.y+r.h<g.top+(i+1)*g.rowHeight&&r.y+r.h<g.height-112;})})()`);
 ok('partial first year retains its real December position',`attendanceView.ledgerGeometry(M).cell(M.days[0]).x>800`);
-ok('Today pulse counts the actual Today mark',`attendanceView.phase(M,0).count===1&&attendanceView.phase(M,765).zoom>6`);
-ok('rewind is monotonic, actual counted days exactly match revealed marks',`(()=>{let prev=0,cursor=M.end;for(let t=0;t<=9550;t+=50){const p=attendanceView.phase(M,t);if(p.count<prev||p.cursor>cursor||p.count!==M.days.filter(d=>d.on&&d.n>=p.cursor).length)return false;prev=p.count;cursor=p.cursor;}return prev===4})()`);
-ok('final camera contains every year and every training day',`attendanceView.phase(M,9550).overview===1&&attendanceView.phase(M,9550).count===4&&document.querySelectorAll('.at-mini.on').length===4`);
+ok('Today pulse counts the actual Today mark',`attendanceView.phase(M,0).count===1&&attendanceView.phase(M,1330).zoom>3.6`);
+ok('rewind is monotonic, actual counted days exactly match revealed marks',`(()=>{let prev=0,cursor=M.end;for(let t=0;t<=heatReplay.duration();t+=50){const p=attendanceView.phase(M,t);if(p.count<prev||p.cursor>cursor||p.count!==M.days.filter(d=>d.on&&d.n>=p.cursor).length)return false;prev=p.count;cursor=p.cursor;}return prev===4})()`);
+ok('final camera contains every year and every training day',`attendanceView.phase(M,heatReplay.duration()).overview===1&&attendanceView.phase(M,heatReplay.duration()).count===4&&document.querySelectorAll('.at-mini.on').length===4`);
+ok('camera is fractional rather than stepping whole days or weeks',`!Number.isInteger(attendanceView.phase(M,5000).cursor)&&(()=>{const g=attendanceView.geometry(M,320,430),d=M.days[500],a=g.timeline(d,M.days[500].n),b=g.timeline(d,M.days[500].n+.1);return Math.abs(a.y-b.y)>0&&Math.abs(a.y-b.y)<1;})()`);
+ok('camera stays continuous at every phase boundary and ends at overview coordinates',`(()=>{const g=attendanceView.geometry(M,320,430);for(const t of [2660,8540,8680,8820,11900,14000])for(const d of M.days){const a=g.position(d,attendanceView.phase(M,t-.001)),b=g.position(d,attendanceView.phase(M,t+.001));if(Math.hypot(a.x-b.x,a.y-b.y)>1)return false;}return M.days.every(d=>{const a=g.position(d,attendanceView.phase(M,14000)),b=g.overview(d);return ['x','y','w','h'].every(k=>Math.abs(a[k]-b[k])<.0001);});})()`);
+ok('shimmer changes after the journey ends, without changing counts',`attendanceView.shimmerAt(14000,{x:100,y:200})!==attendanceView.shimmerAt(15000,{x:100,y:200})&&attendanceView.phase(M,15000).count===4`);
+ok('Today has ripple space on every weekday, even at narrow widths',`(()=>{const g=attendanceView.geometry(M,232,430),p=attendanceView.phase(M,1330);return Array.from({length:7},(_,col)=>({...M.days[M.days.length-1],col})).every(d=>{const r=g.position(d,p),cx=r.x+r.w/2,cy=r.y+r.h/2;return cx>=80&&cx<=232-80&&cy>=80&&cy<=430-80;});})()`);
+run(`window.ac=document.querySelector('.attendance-card');heatReplay.play(ac);window.scene=ac._attendance.scene;window.replayCanvas=ac.querySelector('canvas');scene.seek(heatReplay.duration());`);
+ok('natural completion retains the identical canvas for persistent shimmer',`ac.querySelector('canvas')===replayCanvas&&ac._attendance.scene===scene&&ac.dataset.phase==='complete'&&!heatReplay.live`);
+run(`scene.finish();`);
 run(`document.querySelector('.at-part').value='Shoulder';document.querySelector('.at-part').dispatchEvent(new Event('change'));`);
 ok('focus highlights one matching date, dims the other training dates blue',`document.querySelectorAll('.at-cell.on:not(.dim)').length===1&&document.querySelectorAll('.at-cell.on.dim').length===3&&document.querySelector('.at-focus b').textContent==='1 day'`);
 run(`document.querySelector('.at-motion').value='Off';document.querySelector('.at-motion').dispatchEvent(new Event('change'));`);
@@ -30,7 +37,7 @@ ok('preferences, profile and records remain byte-identical',`JSON.stringify(DB)=
 run(`delete DB.days[todayISO];SEED=deriveAll();M=attendanceView.model();`);
 ok('a rest Today does not invent a workout',`attendanceView.phase(M,0).count===0&&!M.trained.has(M.end)`);
 run(`DB.days={};SEED=deriveAll();M=attendanceView.model();`);
-ok('empty history is a safe zero, no sample data',`M.total===0&&M.days.length===1&&attendanceView.phase(M,9550).count===0`);
+ok('empty history is a safe zero, no sample data',`M.total===0&&M.days.length===1&&attendanceView.phase(M,heatReplay.duration()).count===0`);
 ok('empty share ledger remains finite without invented days',`attendanceView.ledgerGeometry(M).height>=1080&&Object.values(attendanceView.ledgerGeometry(M).cell(M.days[0])).every(Number.isFinite)`);
 run(`DB.days={[todayISO]:{w:[{part:'Shoulder',ex:'Overhead Press',w:10,reps:[8]}]}};SEED=deriveAll();M=attendanceView.model();`);
 ok('first workout has one day and finite camera positions',`M.total===1&&M.years.length===1&&Object.values(attendanceView.geometry(M,280,430).overview(M.days[0])).every(Number.isFinite)`);

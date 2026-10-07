@@ -5,7 +5,9 @@ try{const p=await b.newPage({viewport:{width:393,height:852},serviceWorkers:'blo
 await p.route('**/*',r=>r.request().url().startsWith('http://127.0.0.1:8784/')?r.continue():r.abort());await p.goto('http://127.0.0.1:8784/');await p.waitForTimeout(1200);
 await p.evaluate(()=>{document.querySelector('#onb')?.remove();todayISO='2026-09-14';checkDate=()=>false;DB.settings.onboarded=true;DB.days={};for(const yr of [2026,2025,2024])for(let m=1;m<=9;m++)for(const day of [1,8]){DB.days[`${yr}-${String(m).padStart(2,'0')}-${String(day).padStart(2,'0')}`]={w:[{ex:'Squat',part:'Legs',w:80,reps:[8],at:1},{ex:'Run',part:'Run',w:5,reps:[1],at:1}]};}SEED=deriveAll();view='stats';render();});
 await p.waitForSelector('.runrace.comparison-card');const cards=p.locator('.comparison-card');assert(await cards.count()>=2);
-const before=await p.evaluate(()=>JSON.stringify(DB));
+// The synthetic DB replaces a new-user profile. Allow the app's existing
+// delayed founding-date migration to finish before the no-write comparison.
+await p.waitForTimeout(4000);const before=await p.evaluate(()=>JSON.stringify(DB));
 await p.evaluate(()=>{const bind=bindPlateExport;bindPlateExport=(data,mascot,gif,video,options)=>{
  window.exportFrames=[0,1500,3500].map(time=>{const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d'),texts=[],moves=[];
  const text=ctx.fillText.bind(ctx),move=ctx.moveTo.bind(ctx);ctx.fillText=(...args)=>{texts.push(String(args[0]));text(...args);};ctx.moveTo=(...args)=>{if(ctx.getLineDash().join(',')==='6,6')moves.push(args);move(...args);};options.render(time,canvas);return {texts,cursor:moves.at(-1)[0]};});return bind(data,mascot,gif,video,options);
