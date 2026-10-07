@@ -26,13 +26,13 @@ const origin=process.env.ATTENDANCE_ORIGIN||'http://127.0.0.1:'+(process.env.PW_
    await p.evaluate(part=>colorCard.querySelector('[data-attendance-part="'+part+'"]').click(),part);await p.evaluate(()=>heatReplay.share(colorCard));
    const frames=await p.evaluate(()=>[undefined,0,4500,14000].map(t=>{
     const calls=[],proto=CanvasRenderingContext2D.prototype,original=proto.fillText;
-    proto.fillText=function(s,x,y,...rest){if(this.canvas.width===1080&&(y===318||y===375))calls.push({text:String(s),x,y,color:this.fillStyle,font:this.font});return original.call(this,s,x,y,...rest);};
+    proto.fillText=function(s,x,y,...rest){if(this.canvas.width===1080&&(y===318||(y>330&&y<410)))calls.push({text:String(s),x,y,color:this.fillStyle,font:this.font});return original.call(this,s,x,y,...rest);};
     let cv;try{cv=colorExport.render(t);}finally{proto.fillText=original;}
     const data=cv.getContext('2d').getImageData(70,330,940,60).data,blue=document.documentElement.dataset.theme==='dark'?[113,136,255]:[48,73,220];let bluePixels=0;for(let i=0;i<data.length;i+=4)if(blue.every((v,c)=>Math.abs(v-data[i+c])<3))bluePixels++;
     return {calls,bluePixels};
    }));
-   for(const {calls,bluePixels} of frames){const total=calls.find(c=>c.y===318&&c.x===70),label=calls.filter(c=>c.y===375),blue=theme==='dark'?'#7188ff':'#3049dc';if(part==='All workouts'){assert.equal(total.color,blue);assert.equal(label.length,0);assert.equal(bluePixels,0);}else{assert.notEqual(total.color,blue);assert.equal(label.length,3);assert.equal(label[0].color,total.color);assert.equal(label[1].color,blue);assert.equal(label[2].color,total.color);assert(label.every(c=>c.font.startsWith('500 40px')));assert(bluePixels>20);assert(label[1].x>label[0].x&&label[2].x>label[1].x);}}
-   if(part==='Run')assert.equal(frames[0].calls.filter(c=>c.y===375).at(-1).text,' day');
+   for(const {calls,bluePixels} of frames){const total=calls.find(c=>c.y===318&&c.x===70),label=calls.filter(c=>c.y>330&&c.y<410),blue=theme==='dark'?'#7188ff':'#3049dc';if(part==='All workouts'){assert.equal(total.color,blue);assert.equal(label.length,0);assert.equal(bluePixels,0);}else{assert.notEqual(total.color,blue);assert.equal(label.length,3);assert.equal(label[0].color,total.color);assert.equal(label[1].color,blue);assert.equal(label[2].color,total.color);assert(label.every(c=>c.font.startsWith('500 40px')));assert(bluePixels>20);assert(label[1].x>label[0].x&&label[2].x>label[1].x);}}
+   if(part==='Run')assert.equal(frames[0].calls.filter(c=>c.y>330&&c.y<410).at(-1).text,' day');
    if(part==='Shoulder'&&process.env.QA_DIR){fs.mkdirSync(process.env.QA_DIR,{recursive:true});const png=await p.evaluate(()=>_repCv.cv.toDataURL());fs.writeFileSync(process.env.QA_DIR+'/focus-'+theme+'.png',Buffer.from(png.split(',')[1],'base64'));}
    await p.evaluate(()=>{plateExportCleanup?.();document.querySelector('#repOv')?.remove();});
   }

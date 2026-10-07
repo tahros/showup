@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.230 (2026-10-07) — A layout for every chapter
+
+- Attendance overviews and shares adapt to one through ten years: month calendars, diptychs, seasonal columns, quadrants, ledgers, galleries, a latest-year spotlight, facing pages, an atlas and a decade grid. Archive years stay oldest-first, with the approved abbreviated month labels.
+- Replay starts with a soft pulse, travels back through actual training days, then pulls smoothly into the final composition. Date squares keep their positions throughout; the counter follows revealed training days and one shared shimmer continues after the pullback. Reduced motion stays still.
+- Longer histories split into balanced, consecutive cards with their own counts and date ranges. Browse or share individual cards, or share all images together. Image, MP4 and GIF retain the official ShowUppp + Pip lockup, theme and body-part highlighting.
+- Centers the selected body-part line between the total and calendar in exports. Preserves the compact app footprint, floating header, profile and saved workouts.
+
 ## v4.6.229 (2026-10-07) — Room for the whole streak
 
 - Tightens the gaps below the body-part tabs and above the overview years, with a more compact date footer. Recovers about 50 px vertically while preserving the overview's 330 px graph and square sizes.
