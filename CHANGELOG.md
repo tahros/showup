@@ -1,5 +1,12 @@
 # ShowUppp — changelog
 
+## v4.6.233 (2026-10-07) — A little weight behind every set
+
+- Uses the approved A / Pin click sound on the rep ruler, with damped metallic feedback when changing weight and a short landing sound when saving a set. Keeps native scrolling, notch throttling and immediate saves; audio is gesture-unlocked and never delays logging.
+- Adds a restrained shimmer to the blue barbell plates and the small plate stack, alongside the existing blue-button shimmer. Light and Dark retain the current layout; reduced motion disables the shimmer and button compression.
+- Adds separate Sound and Touch switches under Settings → Workout feedback. Preferences stay on this device, with touch feedback best-effort on supported hardware. Audio stops when the app is hidden; programmatic updates stay quiet.
+- Preserves profile, history, workout calculations, attendance-year choices and the existing retro set cue. Regression checks cover the approved waveform, saved totals, plate-icon survival after logging, mute controls and six phone-width/theme combinations.
+
 ## v4.6.232 (2026-10-07) — Remember the years you want to see
 
 - Adds a Years displayed picker to attendance, with individual years ordered oldest-first and no preset shortcuts. Apply saves the choice through the existing settings save path; reopening the app restores it. Closing without Apply discards the draft, and at least one year must remain selected.

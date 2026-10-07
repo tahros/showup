@@ -10,6 +10,17 @@ document.addEventListener('click',e=>{
   if(checkDate()) return;   // v3.3.158: the day rolled mid-tap — re-render, next tap lands right
   if(pwHandle(e)) return;
   if(plHandle(e)) return;
+  const loggerPick=e.target.closest('[data-logger-feedback]');
+  if(loggerPick){
+    const key=loggerPick.dataset.loggerFeedback;
+    if(key!=='sound'&&key!=='touch')return;
+    loggerPrefs[key]=!loggerPrefs[key];
+    try{localStorage.setItem(LOGGER_FEEDBACK_KEY,JSON.stringify(loggerPrefs));}catch(_e){}
+    if(!loggerPrefs.sound)loggerStopAudio();
+    loggerPick.setAttribute('aria-pressed',String(loggerPrefs[key]));
+    loggerPick.textContent=(key==='sound'?'Sound':'Touch')+': '+(loggerPrefs[key]?'On':'Off');
+    return;
+  }
   const progressPick=e.target.closest('[data-progress-view]');
   if(progressPick){
     const next=progressPick.dataset.progressView;
@@ -409,7 +420,7 @@ document.addEventListener('click',e=>{
     const wvEl=$('#wv');
     wvEl.value=Math.round(shown*10)/10;
     wvEl.classList.remove('wflash'); void wvEl.offsetWidth; wvEl.classList.add('wflash');
-    refreshLoad();return;
+    refreshLoad();if(Math.abs(shown-cur)>.001)loggerFeedback('plate');return;
   }
   /* v3.3.286: on the ruler, a tap on the CENTRED notch logs; a tap on any
      other notch centres it. A thumb landing mid-scroll can never write a set
@@ -428,7 +439,7 @@ document.addEventListener('click',e=>{
     plLog({part:lift.part,ex:lift.ex,w:lift.weight,reps:[+rb.dataset.rep],at:Date.now()});
     undoInvalidate();   // v3.3.143: new work makes an older snapshot unsafe to restore
     reopen(lift.ex,lift.part);
-    lift.justSaved=true;save();renderHeader();setToast(lift.ex,lift.weight,+rb.dataset.rep);return renderLift();
+    lift.justSaved=true;save();loggerFeedback('set');renderHeader();setToast(lift.ex,lift.weight,+rb.dataset.rep);return renderLift();
   }
   if(e.target.closest('#addrep')){
     const r=repRulerValue();   // v3.3.286: the ruler is the field now
@@ -443,7 +454,7 @@ document.addEventListener('click',e=>{
     plLog({part:lift.part,ex:lift.ex,w:lift.weight,reps:[r],...(su?{su}:{}),at:Date.now()});
     undoInvalidate();   // v3.3.143
     reopen(lift.ex,lift.part);
-    lift.justSaved=true;save();renderHeader();setToast(lift.ex,lift.weight,r);return renderLift();
+    lift.justSaved=true;save();loggerFeedback('set');renderHeader();setToast(lift.ex,lift.weight,r);return renderLift();
   }
   const _su=e.target.closest&&e.target.closest('[data-setunit]');
   if(_su){
@@ -471,7 +482,7 @@ document.addEventListener('click',e=>{
     reopen(lift.ex,lift.part);
     lift.weight=w;
     saveExW(lift.ex,w);
-    lift.justSaved=true;save();renderHeader();setToast(lift.ex,w,r);return renderLift();
+    lift.justSaved=true;save();loggerFeedback('set');renderHeader();setToast(lift.ex,w,r);return renderLift();
   }
   /* ---- v3.3.278: today's plan. Every step is explicit; nothing auto-applies. */
   if(e.target.closest&&e.target.closest('[data-planpaste]')){
@@ -1156,13 +1167,19 @@ function barViz(ex,totalKg){
        has never implemented it, and a PWA on iOS gets nothing, so on the
        maker's own phone this line is a no-op. Said plainly rather than
        shipped as a promise.
-     · a 9ms square blip through WebAudio — this DOES work on iOS, and is
-       what actually carries the feedback there. Quiet (gain .035), far below
-       whatever music is playing, and only ever fired by a finger.
+     · WebAudio — originally a square blip; now the approved A / Pin click
+       with short, damped metallic modes. It is user-gesture unlocked, cached
+       and device-mutable. Set/weight feedback shares that same context.
    The AudioContext is created lazily inside a real gesture, because iOS
    refuses to start one otherwise, and is reused after that. */
 let _tickCtx=null, _tickOn=true;
+// Device-local preferences: no workout, profile or cloud settings are rewritten.
+const LOGGER_FEEDBACK_KEY='showup:logger-feedback.v1';
+let loggerPrefs={sound:true,touch:true};
+try{const p=JSON.parse(localStorage.getItem(LOGGER_FEEDBACK_KEY)||'{}');for(const key of ['sound','touch'])if(typeof p?.[key]==='boolean')loggerPrefs[key]=p[key];}catch(_e){}
+const _loggerBuffers=new Map(),_loggerVoices=[];
 function repTickInit(){
+  if(!_tickOn||!loggerPrefs.sound||document.hidden)return;
   try{ const C=window.AudioContext||window.webkitAudioContext; if(!_tickCtx&&C) _tickCtx=new C(); }catch(_e){}
   if(_tickCtx&&_tickCtx.state==='suspended') _tickCtx.resume().catch(()=>{});
 }
@@ -1187,34 +1204,57 @@ function repHapticEl(){
   }catch(_e){}
   return _hapEl;
 }
-function repTick(){
-  if(!_tickOn) return;
+function repTick(){loggerFeedback('rep');}
+function loggerStopAudio(){
+  for(const source of _loggerVoices.splice(0)){try{source.stop();}catch(_e){}}
+}
+// Approved A / Pin click: deterministic, short metallic modes, cached once.
+// Audio is decorative: failure must never stop a notch or a recorded set.
+function loggerBuffer(c,kind){
+  const key=kind+':'+c.sampleRate;if(_loggerBuffers.has(key))return _loggerBuffers.get(key);
+  const b=c.createBuffer(1,Math.ceil(c.sampleRate*.18),c.sampleRate),d=b.getChannelData(0);
+  const modes=kind==='rep'?[[1900,.017,.30],[3167,.012,.17],[713,.011,.22],[240,.008,.34]]:
+    kind==='plate'?[[880,.024,.30],[1430,.016,.16],[210,.014,.28]]:[[155,.026,.6],[410,.015,.14],[85,.024,.3]];
+  let seed=1927,low=0,peak=0;
+  for(let i=0;i<d.length;i++){
+    const t=i/c.sampleRate;seed=(Math.imul(seed,1664525)+1013904223)>>>0;
+    const n=seed/2147483648-1;low+=.32*(n-low);
+    let v=modes.reduce((s,[f,decay,a])=>s+a*Math.sin(2*Math.PI*f*t)*Math.exp(-t/decay),0);
+    v+=(kind==='rep'?n*.24:low*.65)*Math.exp(-t/.004);
+    v*=Math.min(1,t/.0006)*Math.min(1,(.18-t)/.008);d[i]=v;peak=Math.max(peak,Math.abs(v));
+  }
+  for(let i=0;i<d.length;i++)d[i]*=.55/(peak||1);
+  _loggerBuffers.set(key,b);return b;
+}
+function loggerFeedback(kind){
+  if(!_tickOn||document.hidden)return;
   /* a flick can cross notches faster than a taptic engine can answer;
      without this the queue backs up and the feel smears */
   const now=Date.now();
-  if(now-_hapAt < 45) return;
-  _hapAt=now;
+  if(kind==='rep'&&now-_hapAt < 45)return;
+  if(kind==='rep')_hapAt=now;
   let felt=false;
-  try{ if(navigator.vibrate) felt=navigator.vibrate(8)===true; }catch(_e){}
-  if(!felt){
+  try{ if(loggerPrefs.touch&&navigator.vibrate) felt=navigator.vibrate(kind==='set'?[12,22,7]:kind==='plate'?9:5)===true; }catch(_e){}
+  if(loggerPrefs.touch&&!felt){
     const el=repHapticEl();                                                     // iOS 17.4+
     if(el){ try{ el.click(); felt=true; }catch(_e){} }
   }
   // A switch click is only a best-effort haptic, not proof the phone vibrated.
   // Keep the quiet audio tick available; web APIs cannot detect Silent Mode.
-  if(!_tickCtx||_tickCtx.state!=='running') return;
+  if(!loggerPrefs.sound||!_tickCtx||_tickCtx.state!=='running')return;
+  // Retro has its own optional set cue; do not layer two sounds on one log.
+  if(kind==='set'&&typeof isRetro==='function'&&isRetro())return;
   try{
-    const t=_tickCtx.currentTime, o=_tickCtx.createOscillator(), g=_tickCtx.createGain();
-    o.type='square'; o.frequency.setValueAtTime(2100,t);
-    g.gain.setValueAtTime(0.035,t);
-    g.gain.exponentialRampToValueAtTime(0.0001,t+0.009);
-    o.connect(g); g.connect(_tickCtx.destination);
-    o.onended=()=>{o.disconnect();g.disconnect();};
-    o.start(t); o.stop(t+0.012);
+    const c=_tickCtx,s=c.createBufferSource(),g=c.createGain();s.buffer=loggerBuffer(c,kind);g.gain.value=.45;
+    s.connect(g);g.connect(c.destination);_loggerVoices.push(s);
+    if(_loggerVoices.length>5){try{_loggerVoices.shift().stop();}catch(_e){}}
+    s.onended=()=>{s.disconnect();g.disconnect();const i=_loggerVoices.indexOf(s);if(i>=0)_loggerVoices.splice(i,1);};s.start();
   }catch(_e){}
 }
 document.addEventListener('pointerdown',repTickInit,{passive:true});
 document.addEventListener('touchstart',repTickInit,{passive:true});
+document.addEventListener('keydown',e=>{if(['Enter',' ','ArrowLeft','ArrowRight'].includes(e.key))repTickInit();},{passive:true});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){loggerStopAudio();try{_tickCtx?.suspend().catch(()=>{});}catch(_e){}}});
 /* v3.3.289: the scroll handler does the CHEAP thing per notch and the
    expensive thing once you stop.
 

@@ -174,8 +174,9 @@ check("...which is the LAST chip, the set just logged",
 
 // ---- v3.3.104: every log path confirms, at the point of action -----------
 const appSrc104 = fs.readFileSync(path.join(dir, "js/app.js"), "utf8");
-const logPaths = (appSrc104.match(/lift\.justSaved=true;save\(\);renderHeader\(\);/g) || []).length;
-const toasted = (appSrc104.match(/lift\.justSaved=true;save\(\);renderHeader\(\);setToast\(/g) || []).length;
+// Optional post-save feedback must not weaken the existing confirmation contract.
+const logPaths = (appSrc104.match(/lift\.justSaved=true;save\(\);(?:loggerFeedback\('set'\);)?renderHeader\(\);/g) || []).length;
+const toasted = (appSrc104.match(/lift\.justSaved=true;save\(\);(?:loggerFeedback\('set'\);)?renderHeader\(\);setToast\(/g) || []).length;
 /* v3.3.143: floor 3 -> 2. It counted the log paths that existed at v3.3.104
    — rep tile, custom entry, and the Suggested chip — and the chip path was
    deleted with the chips. The invariant under test is logPaths === toasted,

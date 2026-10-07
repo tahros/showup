@@ -41,6 +41,13 @@ function renderSync(){
          it is the maker's to choose. A viewing choice only: no record moves,
          the heatmap and Stats are untouched, and the same week counts the same
          under either setting. -->
+    <h2>Workout feedback</h2>
+    <div class="card">
+      <span class="seg" style="display:flex" role="group" aria-label="Workout feedback">
+        ${['sound','touch'].map(key=>`<button type="button" data-logger-feedback="${key}" aria-pressed="${loggerPrefs[key]}">${key==='sound'?'Sound':'Touch'}: ${loggerPrefs[key]?'On':'Off'}</button>`).join('')}
+      </span>
+      <div class="note" style="margin-top:8px">Pin click for the rep ruler. A soft clunk when you change weight or log a set. Saved on this device; touch feedback depends on your device.</div>
+    </div>
     <h2>Body-part colors</h2>
     <div class="card body-palette-settings">
       <span class="seg" style="display:flex" role="group" aria-label="Body-part colors">

@@ -173,15 +173,15 @@ function bindPlateExport(data,mascot,module,videoModule,options={}){
   if(!supported)status.textContent='MP4 is unavailable in this browser. Image and GIF are available.';
 }
 function plateMark(x,y,w,h){return `<path d="M${x} ${y-h}a${w/2} 7 0 0 1 ${w} 0v${h}a${w/2} 7 0 0 1 -${w} 0z" fill="var(--plate-side)"/><ellipse cx="${x+w/2}" cy="${y-h}" rx="${w/2}" ry="7" fill="var(--plate-top)"/><ellipse cx="${x+w/2}" cy="${y-h}" rx="5" ry="2" fill="var(--plate-hole)"/>`;}
-function plateMiniHTML(){const m=plateCurrent();return `<div class="plate-mini" aria-live="polite"><svg viewBox="0 0 48 42" aria-hidden="true">${[0,1,2].map(i=>`<g>${plateMark(6,32-i*8,34,5)}</g>`).join('')}</svg><span>${plateNumber(m.kg)} ${U()} moved today</span></div>`;}
+function plateMiniHTML(){const m=plateCurrent();return `<div class="plate-mini" aria-live="polite"><span class="plate-mini-mark" aria-hidden="true"><svg viewBox="0 0 48 42" aria-hidden="true">${[0,1,2].map(i=>`<g>${plateMark(6,32-i*8,34,5)}</g>`).join('')}</svg></span><span>${plateNumber(m.kg)} ${U()} moved today</span></div>`;}
 let plateTrainingLast=null;
 function bindPlateMini(saved){
   const m=plateCurrent(),el=document.querySelector('.plate-mini');
   const before=plateTrainingLast?.day===todayISO?plateTrainingLast.kg:m.kg;
   plateTrainingLast={day:todayISO,kg:m.kg};
   if(!el||!saved)return;
-  el.querySelector('span').textContent=(m.kg>before?'+'+plateNumber(m.kg-before)+' '+U():'Set saved')+' · '+plateNumber(m.kg)+' today';
+  el.querySelector(':scope > span:last-child').textContent=(m.kg>before?'+'+plateNumber(m.kg-before)+' '+U():'Set saved')+' · '+plateNumber(m.kg)+' today';
   const p=el.querySelector('g:last-child');
   if(p?.animate&&!matchMedia('(prefers-reduced-motion: reduce)').matches)p.animate([{transform:'translateY(-28px)'},{transform:'translateY(2px)',offset:.7},{transform:'translateY(0)'}],{duration:650,easing:'ease-out'});
-  setTimeout(()=>{if(el.isConnected)el.querySelector('span').textContent=plateNumber(plateCurrent().kg)+' '+U()+' moved today';},3500);
+  setTimeout(()=>{if(el.isConnected)el.querySelector(':scope > span:last-child').textContent=plateNumber(plateCurrent().kg)+' '+U()+' moved today';},3500);
 }
