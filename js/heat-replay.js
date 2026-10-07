@@ -4,7 +4,8 @@
    replay and animated exports share one deterministic camera and renderer.
    Still-image sharing uses the same vertical whole-history composition as
    the final replay frame, with no shimmer in the static export. Blue labels
-   always count the highlighted days; a filtered lifetime total stays neutral. */
+   always count the highlighted days; a filtered lifetime total stays neutral.
+   Share branding uses the approved 2026-10-01 Lifted P Trio + Pip lockup. */
 (()=>{
 'use strict';
 const DAY=86400000, END=14000, PULSE=2660, MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -191,30 +192,23 @@ function play(card){
  const scene={state:S,finish,dispose,refresh(){painted=-1;paint();},seek(t){paused=true;elapsed=clamp(t,0,duration);paint();if(elapsed>=duration&&!complete)settle();wake();},get ambient(){return ambient;},get elapsed(){return elapsed;},get baseBuilds(){return frames.get(x)?.builds||0;}};
  live=S.scene=scene;document.addEventListener('visibilitychange',wake);io?.observe(comp);ro?.observe(comp);resize();wake();return true;
 }
-function exportWordmark(image,dark){
- if(!dark)return image;
- // iOS canvas implementations may ignore filter. Recolour only the decoded
- // lettering's alpha mask; source-in is supported without altering its paths.
- const cv=document.createElement('canvas');cv.width=image.naturalWidth;cv.height=image.naturalHeight;const x=cv.getContext('2d');
- if(!x)throw Error('Wordmark canvas unavailable');
- x.drawImage(image,0,0);x.globalCompositeOperation='source-in';x.fillStyle='#fff';x.fillRect(0,0,cv.width,cv.height);x.globalCompositeOperation='source-over';return cv;
-}
 async function share(card){
  if(!card?._attendance)return;if(live)live.finish();const S=card._attendance,M=S.M,col=palette(),dark=document.documentElement.dataset.theme==='dark';
  const [gifModule,videoModule]=await Promise.all([import('./plate-gif.js'),import('./plate-video.js')]);await Promise.all([gifModule.loadExportFonts(),document.fonts.load('500 29px "IBM Plex Mono"'),document.fonts.load('400 24px "IBM Plex Mono"')]);
  const load=async src=>{const i=new Image();i.src=src;await i.decode();return i;};
- // Fail visibly if either half of the approved lockup is unavailable: never
- // silently export a wordmark without Pip, or substitute a typeface for it.
- const [pip,lettering]=await Promise.all([load('assets/mascot-mark-'+(dark?'white':'chrome')+'.png'),load('assets/showuppp-a.svg')]);
- const word=exportWordmark(lettering,dark);
+ // Exact PNG companions from the approved brand kit's 02-lockups/{theme}/
+ // showuppp-horizontal-1024.png. Pip and lettering stay one inseparable asset;
+ // no re-typesetting, independent transforms, or canvas-filter recolouring.
+ const brand=await load('assets/showuppp-lifted-lockup-'+(dark?'dark':'light')+'.png');
  const data={...col,dark,name:M.name},part=S.part,mode=reduced()?'Off':S.mode;
  const render=(time,canvas)=>{
   const cv=canvas||document.createElement('canvas');cv.width=1080;cv.height=1280;const x=cv.getContext('2d'),t=Number.isFinite(time)?Math.max(0,time):END,actualMode=Number.isFinite(time)?mode:'Off',P=phase(M,t,actualMode);
   x.fillStyle=col.surface;x.fillRect(0,0,1080,1280);
-  // Centre the cropped mascot on the lettering's visible ink, not its padded
-  // SVG artboard. This same lockup is used by still, MP4 and GIF frames.
-  const brandCenterY=109.5;
-  x.drawImage(pip,14,85,485,292,70,brandCenterY-62/2,103,62);x.drawImage(word,187,71,109,73);
+  // Trim only transparent artboard padding (identical in both themes), and
+  // scale uniformly. Preserve the master's proportions and visible centre.
+  // This same lockup is used by still, MP4 and GIF frames.
+  const brandHeight=226*260/910;
+  x.drawImage(brand,52,66,910,260,70,109.5-brandHeight/2,226,brandHeight);
   const text=(s,X,Y,size,color,align='left',weight=400)=>{x.fillStyle=color;x.font=weight+' '+size+'px "ShowUp Export Plex", "IBM Plex Sans",sans-serif';x.textAlign=align;x.textBaseline='alphabetic';x.fillText(s,X,Y,align==='right'?570:940);};
   text(M.name,1010,116,27,col.muted,'right');x.fillStyle=col.line;x.fillRect(70,177,940,1);
   text(fmt(P.count),70,318,112,part==='All workouts'?col.blue:col.ink,'left',500);x.font='500 112px "ShowUp Export Plex"';const nw=x.measureText(fmt(P.count)).width;text('days in',88+nw,318,31,col.muted);

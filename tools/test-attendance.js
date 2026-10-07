@@ -51,8 +51,13 @@ assert.match(fs.readFileSync(path.join(dir,'js/heat-replay.js'),'utf8'),/showCar
 assert.match(fs.readFileSync(path.join(dir,'js/heat-replay.js'),'utf8'),/bindPlateExport\(data,null,gifModule,videoModule,\{render,/);
 console.log('PASS still image shares the vertical renderer with animated exports');
 const shareSource=fs.readFileSync(path.join(dir,'js/heat-replay.js'),'utf8');
-assert.match(shareSource,/globalCompositeOperation='source-in'/);
 assert.doesNotMatch(shareSource,/\.filter\s*=/);
-assert.match(shareSource,/const word=exportWordmark\(lettering,dark\)/);
-console.log('PASS theme-aware wordmark is prepared without canvas filters');
+assert.doesNotMatch(shareSource,/showuppp-a\.svg/);
+assert.match(shareSource,/showuppp-lifted-lockup-/);
+for(const theme of ['dark','light']){
+ const asset='assets/showuppp-lifted-lockup-'+theme+'.png';
+ assert(fs.readFileSync(path.join(dir,asset)).equals(fs.readFileSync(path.join(dir,'brand/ShowUppp-Lifted-Trio-Brand-Kit-2026-10-01/02-lockups',theme,'showuppp-horizontal-1024.png'))),'lockup must be the exact approved brand asset');
+ assert(fs.readFileSync(path.join(dir,'sw.js'),'utf8').includes(asset),'approved lockup must work offline');
+}
+console.log('PASS exact approved Lifted P Trio + Pip assets, both themes, cached offline');
 console.log('ALL PASS');process.exit(0);

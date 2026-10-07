@@ -1,5 +1,11 @@
 # ShowUp — changelog
 
+## v4.6.228 (2026-10-07) — The approved rising p trio
+
+- Replaces the older flat lettering in attendance share images with the official October 1 Lifted P Trio + Pip lockup. Uses the exact approved artwork and proportions, with white lettering in dark mode and charcoal in light mode.
+- The shared MP4/GIF renderer uses the same corrected logo. Both theme assets are cached for offline use and included in the native update bundle.
+- No changes to the app header, graph, profile, or saved workouts.
+
 ## v4.6.227 (2026-10-07) — Blue counts what is highlighted
 
 - Selecting a body part makes the lifetime training total neutral and keeps only the matching day count blue. Returning to All restores the blue total. In-app text colors transition smoothly, using the same 300 ms easing as calendar highlighting, and respect reduced motion.
