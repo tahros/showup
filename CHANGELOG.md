@@ -1,5 +1,10 @@
 # ShowUppp — changelog
 
+## v4.6.237 (2026-10-07) — Years centered over your streaks
+
+- Centers all six year headings over their seven-day streak columns in the interactive overview and replay, matching the share cards. Alignment stays stable with body-part filters, either week start and different screen widths.
+- Keeps streak squares, share-card spacing, other year-count layouts, the floating header and saved records unchanged.
+
 ## v4.6.236 (2026-10-07) — Your day, set by set
 
 - Adds the approved whole-day comparison directly below You keep showing up. Uses the original saved plan, or the previous session for each exercise when the workout began without a plan. Planned-but-unlogged exercises remain neutral; extra exercises say Added today.

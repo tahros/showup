@@ -8,8 +8,8 @@
    with no shimmer in the static export. Blue labels
    always count the highlighted days; a filtered lifetime total stays neutral.
    Share branding uses the approved 2026-10-01 Lifted P Trio + Pip lockup.
-   Six-year exports center headings over the full weekday grid and leave
-   extra room below them; the interactive app's spacing is unchanged. */
+   Six-year headings center over the full weekday grid in the app and exports;
+   exports retain extra room below them. Square positions stay unchanged. */
 (()=>{
 'use strict';
 const DAY=86400000, END=14000, PULSE=2660, MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -113,6 +113,13 @@ function geometry(M,w,h,exported=false){
   const y=exported&&M.years.length===6?76+(r.y-50)*714/740:r.y;
   return {x:r.x*sx,y:reserve+y*sy,w:s,h:s};
  }
+ function heading(l){
+  const center=M.years.length===6&&l.kind==='year';
+  if(!center)return {x:l.x*sx,center:false};
+  const day=M.days.find(d=>year(d.n)===Number(l.text)),r=A.points.get(day.n);
+  // Full seven-weekday span, independent of partial years and body-part masks.
+  return {x:l.x*sx+(6*r.w/.79*sx+Math.min(r.w*sx,r.h*sy))/2,center:true};
+ }
  let lastPhase,lastCamera;
  function camera(P){
   if(lastPhase===P)return lastCamera;
@@ -133,7 +140,7 @@ function geometry(M,w,h,exported=false){
   if(d.n===M.end&&P.pulse){const extra=r.w*(P.zoom-1);r.x-=extra/2;r.y-=extra/2;r.w+=extra;r.h+=extra;}
   return r;
  }
- return {timeline,overview,position,camera,atlas:A,sx,sy,cols,bands,cw,bh,step,left,tw,tx,reserve,scale,gap,unit};
+ return {timeline,overview,heading,position,camera,atlas:A,sx,sy,cols,bands,cw,bh,step,left,tw,tx,reserve,scale,gap,unit};
 }
 function round(x,b,r){x.beginPath();x.roundRect(b.x,b.y,b.w,b.h,Math.min(r,b.w/2,b.h/2));}
 // One broad, feathered light field for the entire calendar. Base/mask bitmaps
@@ -165,16 +172,10 @@ function drawBase(M,x,mask,w,h,P,G,part,mode,col){
  }
  const cam=G.camera(P);x.textBaseline='top';x.textAlign='left';x.fillStyle=col.muted;
  for(const l of G.atlas.labels){
-  const X=l.x*G.sx*cam.z+cam.x,Y=(G.reserve+l.y*G.sy)*cam.z+cam.y,base=G.reserve?Math.max(l.kind==='year'?11:6,l.size*G.sx):l.size*G.sx,size=base*cam.z;
+  const heading=G.heading(l),X=heading.x*cam.z+cam.x,Y=(G.reserve+l.y*G.sy)*cam.z+cam.y,base=G.reserve?Math.max(l.kind==='year'?11:6,l.size*G.sx):l.size*G.sx,size=base*cam.z;
   if(Y<G.reserve||Y+size>h||X<0||X>w)continue;
   x.font=size+'px "IBM Plex Mono",monospace';
-  if(!G.reserve&&M.years.length===6&&l.kind==='year'){
-   const day=M.days.find(d=>year(d.n)===Number(l.text)),r=G.atlas.points.get(day.n);
-   // Use the visible seven-square span, not the wider column slot. Partial
-   // years and body-part filters retain the same stable calendar centre.
-   const half=(6*r.w/.79*G.sx+Math.min(r.w*G.sx,r.h*G.sy))/2;
-   x.textAlign='center';x.fillText(l.text,X+half*cam.z,Y);
-  }else{x.textAlign='left';x.fillText(l.text,X,Y);}
+  x.textAlign=heading.center?'center':'left';x.fillText(l.text,X,Y);
  }
  mask.restore();x.restore();
 }
@@ -271,7 +272,7 @@ function range(M){if(M.gapped)return M.years.length+' selected years';const f=n=
 function timeline(S){S.card.dataset.overview='false';S.card.querySelector('.at-range').hidden=true;S.card.querySelector('.at-date').hidden=false;S.refreshMask?.();}
 function layoutOverview(S){
  const comp=S.card.querySelector('.at-composition'),G=geometry(S.M,comp.clientWidth||320,comp.clientHeight||414);
- [...S.overview.querySelectorAll('.at-atlas-label')].forEach((el,i)=>{const l=G.atlas.labels[i];el.style.cssText=`position:absolute;left:${l.x*G.sx}px;top:${l.y*G.sy}px;font-size:${Math.max(l.kind==='year'?11:6,l.size*G.sx)}px`;});
+ [...S.overview.querySelectorAll('.at-atlas-label')].forEach((el,i)=>{const l=G.atlas.labels[i],heading=G.heading(l);el.style.cssText=`position:absolute;left:${heading.x}px;top:${l.y*G.sy}px;font-size:${Math.max(l.kind==='year'?11:6,l.size*G.sx)}px;transform:${heading.center?'translateX(-50%)':'none'}`;});
  [...S.overview.querySelectorAll('.at-blank')].forEach((el,i)=>{const b=G.atlas.background[i],size=Math.min(b.w*G.sx,b.h*G.sy);el.style.cssText=`position:absolute;left:${b.x*G.sx}px;top:${b.y*G.sy}px;width:${size}px;height:${size}px`;});
  for(const [el,d]of S.mini){const p=G.overview(d);el.style.cssText=`position:absolute;left:${p.x}px;top:${p.y-G.reserve}px;width:${p.w}px;height:${p.h}px`;}
 }
