@@ -4396,20 +4396,21 @@ html.modal-open .calreturn{display:none!important}
 .at-focus b,.at-focus span{display:block}.at-focus b{font-weight:500;color:var(--at-blue)}
 .at-streak{margin-top:36px;font:400 11px/1.8 var(--mono);color:var(--muted)}
 .at-timeline{position:absolute;right:0;top:0;width:57%;max-width:164px}
-.at-year-label{display:block;height:38px;text-align:right}
+.at-year-label{display:block;position:relative;width:fit-content;height:38px;text-align:left;margin-left:28px}
+.at-year-label::after{content:"";position:absolute;right:3px;top:13px;width:6px;height:6px;border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);transform:rotate(45deg);pointer-events:none}
 .attendance-card select{font:500 12px/1.4 var(--body);color:var(--chalk);background:var(--surface);border:1px solid var(--line);border-radius:9px;max-width:100%;min-height:36px;padding:5px 9px}
-.attendance-card .at-year{font:500 14px var(--mono);border:0;padding:0 8px;height:36px;min-height:36px}
+.attendance-card .at-year{appearance:none;-webkit-appearance:none;font:500 14px var(--mono);border:0;padding:0 20px 0 0;text-indent:0;height:36px;min-height:36px}
 .at-weekdays{display:grid;grid-template-columns:repeat(7,1fr);margin-left:28px;height:24px;align-items:center;font:400 9px var(--mono);color:var(--muted);text-align:center}
 .at-scroll{height:368px;overflow:auto;scrollbar-width:none;overscroll-behavior-y:contain;padding:0 4px 4px 0;scroll-behavior:auto;mask-image:linear-gradient(transparent,#000 9px,#000 calc(100% - 5px),transparent)}
 .at-scroll::-webkit-scrollbar{display:none}.at-calendar{position:relative}
-.at-cell{position:absolute;width:calc((100% - 28px)/7 - 3px);max-width:12px;height:12px;border-radius:3px;background:var(--surface2)}
+.at-cell{position:absolute;width:calc((100% - 28px)/7 - 3px);max-width:12px;height:12px;border-radius:30%;background:var(--surface2)}
 .at-cell.on,.at-mini.on{background:var(--at-blue)}.at-cell.dim,.at-mini.dim{opacity:.24}
 .at-cell.today,.at-mini.today{outline:1.5px solid var(--at-blue);outline-offset:2px}
 .at-month{position:absolute;left:0;font:400 9px/12px var(--mono);color:var(--muted)}
 .at-overview{display:none;position:absolute;left:0;right:0;top:100px;height:330px;overflow:visible}
 .at-mini-year>span{display:block;font:400 11px/20px var(--mono);margin-bottom:7px;color:var(--muted)}
 .at-mini-grid{position:absolute;left:0;right:0;top:27px}
-.at-mini{border-radius:1px;background:var(--surface2);min-width:0}
+.at-mini{border-radius:30%;background:var(--surface2);min-width:0}
 .attendance-card[data-overview="true"] .at-timeline{display:none}
 .attendance-card[data-overview="true"] .at-overview{display:grid}
 .attendance-card[data-overview="true"] .at-story{top:0;max-width:100%;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
@@ -4424,7 +4425,7 @@ html.modal-open .calreturn{display:none!important}
 .at-actions{display:flex;gap:10px;margin-top:12px}
 .attendance-card .at-actions button{display:flex;align-items:center;justify-content:center;gap:7px;min-height:44px;border:1px solid var(--line);background:var(--surface2);color:var(--chalk);border-radius:24px;font:500 13px var(--body);padding:8px 16px}
 .at-actions svg{width:17px;height:17px}.at-actions button:disabled{opacity:.4}
-.at-options{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:22px;padding-top:16px;border-top:1px solid var(--line)}
+.at-options{display:grid;grid-template-columns:1fr;gap:12px;margin-top:22px;padding-top:16px;border-top:1px solid var(--line)}
 .at-options label{font:400 11px/1.5 var(--body);color:var(--muted);min-width:0}.at-options select{display:block;width:100%;margin-top:5px}
 .attendance-card .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .at-replay-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}
@@ -4432,16 +4433,19 @@ html.modal-open .calreturn{display:none!important}
 .at-playing .at-story{transform:translateY(calc(-60px * (1 - var(--at-story-opacity,1))))}
 .at-playing .at-streak{opacity:var(--at-story-opacity,1)}
 .at-playing .at-total{font-size:calc(50px + 10px * var(--at-story-opacity,1))}
-/* The light never stops at the end of a journey. Static calendar views use
-   the same quiet sheen; Off, reduced motion and offscreen cards stay still. */
-.attendance-card:not([data-animation="Off"]):not([data-visible="false"]) .at-cell.on,
-.attendance-card:not([data-animation="Off"]):not([data-visible="false"]) .at-mini.on{background-image:linear-gradient(115deg,transparent 20%,#ffffff70 48%,transparent 76%);background-size:350% 100%;animation:at-sheen 4.8s linear infinite}
-.at-cell.on:nth-child(7n+1),.at-mini.on:nth-child(7n+1){animation-delay:-.7s!important}
-.at-cell.on:nth-child(7n+3),.at-mini.on:nth-child(7n+3){animation-delay:-1.4s!important}
-.at-cell.on:nth-child(7n+5),.at-mini.on:nth-child(7n+5){animation-delay:-2.1s!important}
-.at-playing .at-cell.on,.at-playing .at-mini.on{animation:none!important}
+/* One masked, composited light sheet. Day marks themselves never animate. */
+.at-group-sheen{position:absolute;inset:0;pointer-events:none;z-index:1;mask-size:100% 100%;-webkit-mask-size:100% 100%;overflow:hidden}
+.at-group-sheen i{display:block;position:absolute;inset:0 auto 0 0;width:320%;background:linear-gradient(90deg,#ffffff0e 0%,#ffffff22 25%,#ffffff50 50%,#ffffff22 75%,#ffffff0e 100%);background-size:50% 100%;animation:at-group-light 6s linear infinite;will-change:transform}
+.at-playing .at-group-sheen,.attendance-card[data-animation="Off"] .at-group-sheen{display:none}
+.attendance-card[data-visible="false"] .at-group-sheen i{animation-play-state:paused}
+.at-parts{position:relative;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;scroll-snap-type:x proximity;margin:0 0 20px;padding:2px 0 8px;overscroll-behavior-x:contain}
+.at-parts::-webkit-scrollbar{display:none}
+.attendance-card .at-parts button{flex:0 0 auto;min-height:40px;scroll-snap-align:center;border:0;border-radius:20px;padding:8px 13px;background:transparent;color:var(--muted);font:500 12px var(--body);white-space:nowrap;transition:color .22s,background-color .22s}
+.attendance-card .at-parts button[aria-pressed="true"]{background:color-mix(in srgb,var(--at-blue) 10%,transparent);color:var(--at-blue)}
+.attendance-card .at-parts button:focus-visible{outline:2px solid var(--at-blue);outline-offset:-2px}
+.at-cell,.at-mini{transition:opacity .3s ease}
 .at-playing .at-focus{margin-top:6px;font-size:11px}.at-playing .at-focus b,.at-playing .at-focus span{display:inline}.at-playing .at-focus span{margin-left:5px}
-@keyframes at-sheen{from{background-position:160% 0}to{background-position:-60% 0}}
-@media(prefers-reduced-motion:reduce){.attendance-card .at-cell.on,.attendance-card .at-mini.on{animation:none!important;background-image:none!important}}
+@keyframes at-group-light{from{transform:translate3d(-50%,0,0)}to{transform:translate3d(0,0,0)}}
+@media(prefers-reduced-motion:reduce){.at-group-sheen{display:none}.attendance-card .at-parts button,.at-cell,.at-mini{transition:none}}
 @media(max-width:360px){.attendance-card{padding:22px 18px 16px}.at-total{font-size:46px}.at-options{gap:8px}.at-date span{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.attendance-card .heat-replay{display:none}.attendance-card *{scroll-behavior:auto!important}}

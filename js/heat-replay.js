@@ -30,7 +30,8 @@ function phase(M,time,mode='Full journey'){
  // Fractional dates drive the camera; only the visible date label is rounded.
  const cursor=off?M.start:pulseOnly?M.end:mix(M.end,M.start,ease((t/END-.19)/.43));
  const overview=off?1:pulseOnly?0:ease((t/END-.63)/.37),pull=off?1:pulseOnly?0:ease((t/END-.61)/.24);
- const pulse=off?0:Math.sin(Math.PI*ease(t/PULSE))**2,zoom=1+2.7*pulse;
+ // A gentle inhale/exhale at a fixed anchor: no sideways trip or size snap.
+ const pulse=off?0:Math.sin(Math.PI*ease(t/PULSE))**2,zoom=1+.65*pulse;
  const revealed=d=>off||pulseOnly||d.n>=cursor;
  return {t,cursor,overview,pull,pulse,zoom,count:M.days.filter(d=>d.on&&revealed(d)).length,focused:part=>M.days.filter(d=>d.on&&revealed(d)&&matches(d,part)).length,revealed};
 }
@@ -44,36 +45,56 @@ function geometry(M,w,h,exported=false){
   const a=timeline(d,P.cursor),b=overview(d),rows=Math.floor((M.end-M.firstWeek)/7)+1,fit=Math.min(1,(h-reserve-35*scale)/(rows*pitch)),center=left+tw/2;
   const x=mix(a.x,center+(a.x-center)*fit,P.pull),y=mix(a.y,reserve+(h-reserve)/2+(d.row-(rows-1)/2)*pitch*fit,P.pull),size=mix(cell,cell*fit,P.pull);
   const r={x:mix(x,b.x,P.overview),y:mix(y,b.y,P.overview),w:mix(size,b.w,P.overview),h:mix(size,b.h,P.overview)};
-  if(d.n===M.end&&P.pulse){const extra=cell*(P.zoom-1);r.x-=extra/2;r.y-=extra/2;r.w+=extra;r.h+=extra;
-   // Saturdays/right-edge marks need room for the same uncut ripple as Tuesday.
-   const pad=Math.min(84*scale,w*.45,h*.25),cx=r.x+r.w/2,cy=r.y+r.h/2,travel=Math.sqrt(P.pulse);
-   r.x+=(clamp(cx,pad,w-pad)-cx)*travel;r.y+=(clamp(cy,pad,h-pad)-cy)*travel;
-  }
+  if(d.n===M.end&&P.pulse){const extra=cell*(P.zoom-1);r.x-=extra/2;r.y-=extra/2;r.w+=extra;r.h+=extra;}
   return r;
  }
  return {timeline,overview,position,cols,bands,cw,bh,step,left,tw,tx,reserve,scale,gap,unit};
 }
 function round(x,b,r){x.beginPath();x.roundRect(b.x,b.y,b.w,b.h,Math.min(r,b.w/2,b.h/2));}
-function shimmerAt(ms,r){const t=ms/1000;return .65*(.06+.62*Math.pow((Math.sin(t*1.35+r.x*.016-r.y*.024)+1)/2,5)+.2*Math.pow((Math.sin(t*1.8-r.x*.023-r.y*.014)+1)/2,10));}
-function draw(M,x,w,h,time,part,mode,col,clear=true,exported=false,ambient=time){
- const P=phase(M,time,mode),G=geometry(M,w,h,exported),today=G.position(M.days[M.days.length-1],P),cx=today.x+today.w/2,cy=today.y+today.h/2,animated=mode!=='Off';
- if(clear)x.clearRect(0,0,w,h);x.save();x.beginPath();x.rect(0,0,w,h);x.clip();
+// One broad, feathered light field for the entire calendar. Base/mask bitmaps
+// are reused during the final hold: no per-day animation or per-day sine math.
+const frames=new WeakMap();
+const sweepAt=ms=>((ms%6000)+6000)%6000/6000;
+const corner=r=>Math.min(r.w,r.h)*.3;
+function drawBase(M,x,mask,w,h,P,G,part,mode,col){
+ const today=G.position(M.days[M.days.length-1],P),cx=today.x+today.w/2,cy=today.y+today.h/2,animated=mode!=='Off';
+ x.save();x.beginPath();x.rect(0,0,w,h);x.clip();
  for(const d of M.days){const r=G.position(d,P),p=P.overview;
   if(r.y+r.h<0||r.y>h)continue;
-  const filled=d.on&&P.revealed(d),alpha=(filled&&!matches(d,part)?.24:1)*clamp(Math.min((r.y+r.h)/(9*G.scale),(h-r.y)/(9*G.scale)));x.globalAlpha=alpha;x.fillStyle=filled?col.blue:col.empty;round(x,r,mix(2*G.scale,G.scale,p));x.fill();
-  if(filled&&animated){x.globalAlpha=alpha*shimmerAt(ambient,{x:r.x/G.scale,y:r.y/G.scale});x.fillStyle='#fff';x.fill();}x.globalAlpha=1;
-  if(d.n===M.end){x.strokeStyle=col.blue;x.lineWidth=mix(1.4,1,p);round(x,{x:r.x-2,y:r.y-2,w:r.w+4,h:r.h+4},3);x.stroke();}
+  const filled=d.on&&P.revealed(d),alpha=(filled&&!matches(d,part)?.24:1)*clamp(Math.min((r.y+r.h)/(9*G.scale),(h-r.y)/(9*G.scale)));x.globalAlpha=alpha;x.fillStyle=filled?col.blue:col.empty;round(x,r,corner(r));x.fill();
+  if(filled&&matches(d,part)){mask.globalAlpha=alpha;round(mask,r,corner(r));mask.fill();}x.globalAlpha=1;
+  if(d.n===M.end){x.strokeStyle=col.blue;x.lineWidth=mix(1.4,1,p);round(x,{x:r.x-2,y:r.y-2,w:r.w+4,h:r.h+4},corner(r)+2);x.stroke();}
  }
- // Layered circular ripples, above the calendar so squares never cut the rings.
+ // A soft bloom and two low-contrast rings share the square's fixed centre.
+ // The available edge distance limits the rings; the bloom has no hard edge.
  if(P.t<PULSE&&animated){const p=P.t/PULSE,s=G.scale;
-  x.save();x.fillStyle=col.blue;x.globalAlpha=P.pulse*.1;x.shadowColor=col.blue;x.shadowBlur=28*s;x.beginPath();x.arc(cx,cy,26*s,0,Math.PI*2);x.fill();
-  const limit=Math.max(0,Math.min(80*s,cx-4*s,w-cx-4*s,cy-4*s,h-cy-4*s));
-  for(let i=0;i<3;i++){const q=(p-.06-i*.12)/(.84-i*.12);if(q<=0||q>=1)continue;const radius=mix(Math.min(18*s,limit*.35),limit,1-Math.pow(1-q,2));x.globalAlpha=Math.pow(Math.sin(Math.PI*q),1.5)*(.42-i*.065);x.strokeStyle=col.blue;x.lineWidth=mix(2.2,.7,q)*s;x.shadowBlur=8*s;x.beginPath();x.arc(cx,cy,radius,0,Math.PI*2);x.stroke();}x.restore();
+  x.save();const radius=(18+28*P.pulse)*s,halo=x.createRadialGradient(cx,cy,0,cx,cy,radius);halo.addColorStop(0,col.blue+'30');halo.addColorStop(.35,col.blue+'18');halo.addColorStop(1,col.blue+'00');x.fillStyle=halo;x.globalAlpha=P.pulse;x.fillRect(cx-radius,cy-radius,2*radius,2*radius);
+  const limit=Math.max(today.w*.6,Math.min(42*s,cx-2*s,w-cx-2*s,cy-2*s,h-cy-2*s));
+  for(let i=0;i<2;i++){const q=clamp((p-i*.16)/(.9-i*.16)),radius=mix(today.w*.55,limit,ease(q));x.globalAlpha=Math.sin(Math.PI*q)**2*(.22-i*.05);x.strokeStyle=col.blue;x.lineWidth=1.1*s;x.beginPath();x.arc(cx,cy,radius,0,Math.PI*2);x.stroke();}x.restore();
  }
  x.font=(11*G.scale)+'px "IBM Plex Mono",monospace';x.textBaseline='top';x.textAlign='left';x.fillStyle=col.muted;
- if(P.overview>.8){x.globalAlpha=ease((P.overview-.8)/.2);M.years.forEach((y,i)=>x.fillText(String(y),(i%G.cols)*(G.cw+G.gap),G.reserve+Math.floor(i/G.cols)*G.bh));}
+ if(P.overview>.8){x.globalAlpha=ease((P.overview-.8)/.2);M.years.forEach((y,i)=>x.fillText(String(y),(i%G.cols)*(G.cw+G.gap)+(G.cw-G.unit*7)/2,G.reserve+Math.floor(i/G.cols)*G.bh));}
  else if(P.zoom<1.1&&P.pull<.1){let previous=-1;for(const d of M.days){if(d.col!==0&&d.n!==M.start)continue;const dt=new Date(d.n*DAY),m=dt.getUTCMonth(),r=G.timeline(d,P.cursor);if(m!==previous&&r.y>10&&r.y<h-16)x.fillText(MONTHS[m],G.left,r.y);previous=m;}}
- x.restore();return P;
+ x.restore();
+}
+function draw(M,x,w,h,time,part,mode,col,clear=true,exported=false,ambient=time){
+ const t=clamp(time,0,END),ratio=Math.min(2,x.getTransform?.().a||1),key=[w,h,t,part,mode,col.blue,col.empty,col.muted,exported,ratio].join('|');
+ let F=frames.get(x);
+ if(!F||F.M!==M||F.key!==key){
+  const builds=(F?.builds||0)+1;
+  if(!F||F.w!==w||F.h!==h||F.ratio!==ratio){const layer=()=>{const c=document.createElement('canvas');c.width=Math.ceil(w*ratio);c.height=Math.ceil(h*ratio);const ctx=c.getContext('2d');ctx.setTransform(ratio,0,0,ratio,0,0);return {c,x:ctx};};F={base:layer(),mask:layer(),light:layer()};}
+  Object.assign(F,{M,key,w,h,ratio,builds,P:phase(M,t,mode)});F.base.x.clearRect(0,0,w,h);F.mask.x.clearRect(0,0,w,h);F.mask.x.fillStyle='#fff';
+  drawBase(M,F.base.x,F.mask.x,w,h,F.P,geometry(M,w,h,exported),part,mode,col);frames.set(x,F);
+ }
+ if(clear)x.clearRect(0,0,w,h);x.drawImage(F.base.c,0,0,w,h);
+ if(mode!=='Off'){
+  const lx=F.light.x,period=w*1.6,left=-period+sweepAt(ambient)*period,g=lx.createLinearGradient(left,0,left+3*period,0);
+  // Repeating broad lobes join with identical endpoints, so the sheet never
+  // goes dark or snaps back at the loop boundary.
+  for(let i=0;i<=12;i++)g.addColorStop(i/12,i%4===2?'#ffffff50':i%2?'#ffffff22':'#ffffff0e');
+  lx.clearRect(0,0,w,h);lx.globalCompositeOperation='source-over';lx.fillStyle=g;lx.fillRect(0,0,w,h);lx.globalCompositeOperation='destination-in';lx.drawImage(F.mask.c,0,0,w,h);lx.globalCompositeOperation='source-over';x.drawImage(F.light.c,0,0,w,h);
+ }
+ return F.P;
 }
 const sourceSection=currentRhythmSection;
 currentRhythmSection=function(inverse){
@@ -82,13 +103,14 @@ currentRhythmSection=function(inverse){
  return `<h2 id="secDays">You keep showing up${hActs('rhythm','One square per day. Blue means you trained. Scroll through the years, or replay your history from today. Body-part focus dims other training days without removing them.','About your attendance')}</h2>
  <div class="card crcard attendance-card" data-overview="false">
   <div class="at-owner">${hesc(M.name)}</div>
+  <div class="at-parts" role="group" aria-label="Highlight body part">${choices.map(p=>`<button type="button" data-attendance-part="${p}" aria-pressed="${p===part}">${p==='All workouts'?'All':p}</button>`).join('')}</div>
   <div class="at-composition"><div class="at-story"><div class="at-total">${fmt(M.total)}</div><div class="at-unit">days in</div><div class="at-focus"${part==='All workouts'?' hidden':''}><b></b><span>${hesc(part)}</span></div><div class="at-streak">streak ${dayCount(currentStreak())}<br>best ${dayCount(longestStreak())}</div></div>
    <div class="at-timeline"><label class="at-year-label"><span class="sr-only">Calendar year</span><select class="at-year">${M.years.map(y=>`<option value="${y}">${y}</option>`).join('')}</select></label><div class="at-weekdays" aria-hidden="true">${Array.from({length:7},(_,i)=>'<span>'+['S','M','T','W','T','F','S'][(i+M.dow)%7]+'</span>').join('')}</div><div class="at-scroll" tabindex="0" aria-label="Training calendar. Scroll vertically through your history."><div class="at-calendar"></div></div></div>
    <div class="at-overview" role="img"></div>
   </div>
   <div class="at-date"><strong>${year(M.end)}</strong><span></span></div><div class="at-range" hidden><span></span><button type="button" class="at-return">Timeline ↗</button></div>
   <div class="at-actions"><button type="button" class="heat-replay">↻ <span>Replay</span></button><button type="button" class="heat-share">${ICO_SHARE}<span>Share</span></button></div>
-  <div class="at-options"><label>Highlight<select class="at-part">${choices.map(p=>`<option${p===part?' selected':''}>${p}</option>`).join('')}</select></label><label>Animation<select class="at-motion">${['Full journey','Today pulse','Off'].map(p=>`<option${p===motion?' selected':''}>${p}</option>`).join('')}</select></label></div><div class="at-status sr-only" role="status" aria-live="polite"></div>
+  <div class="at-options"><label>Animation<select class="at-motion">${['Full journey','Today pulse','Off'].map(p=>`<option${p===motion?' selected':''}>${p}</option>`).join('')}</select></label></div><div class="at-status sr-only" role="status" aria-live="polite"></div>
  </div>`;
 };
 const renderBefore=renderStats;
@@ -98,7 +120,7 @@ function bind(card){
  const state={M,part:focus,mode:motion,card,scroller,overview,cols:[],mini:[],scroll:0};card._attendance=state;
  card.dataset.animation=state.mode;
  const visibility=typeof IntersectionObserver==='function'?new IntersectionObserver(entries=>{card.dataset.visible=String(entries[0].isIntersecting);if(!card.isConnected)state.cleanup();}):null;
- visibility?.observe(card);state.cleanup=()=>{state.scene?.dispose();visibility?.disconnect();};
+ visibility?.observe(card);
  const weeks=Math.floor((M.end-M.firstWeek)/7)+1;cal.style.height=(weeks*16+8)+'px';
  const frag=document.createDocumentFragment();let prev=-1;
  for(const d of M.days){const el=document.createElement('span');el.className='at-cell'+(d.on?' on':'')+(d.n===M.end?' today':'');el.dataset.date=iso(d.n);el.title=iso(d.n)+(d.on?' · trained':' · no workout logged');el.setAttribute('aria-label',el.title);el.style.cssText=`left:calc(28px + ${d.col} * (100% - 28px) / 7);top:${d.row*16+4}px`;frag.append(el);state.cols.push([el,d]);const month=new Date(d.n*DAY).getUTCMonth();if((d.col===0||d.n===M.start)&&month!==prev){const label=document.createElement('small');label.className='at-month';label.style.top=(d.row*16+4)+'px';label.textContent=MONTHS[month];frag.append(label);prev=month;}}
@@ -109,13 +131,22 @@ function bind(card){
  card.querySelector('.at-range span').textContent=range(M);
  function readDate(n,animate=false){const el=card.querySelector('.at-date strong'),y=String(year(n));if(el.textContent!==y){el.textContent=y;if(animate&&!reduced()&&el.animate)el.animate([{opacity:.3,transform:'translateY(7px)'},{opacity:1,transform:'translateY(0)'}],{duration:450});}card.querySelector('.at-date span').textContent=dateLabel(n);picker.value=y;card.dataset.currentDate=iso(n);}
  state.readDate=readDate;
- state.paintFocus=()=>{for(const [el,d]of [...state.cols,...state.mini])el.classList.toggle('dim',d.on&&!matches(d,state.part));card.querySelector('.at-focus').hidden=state.part==='All workouts';card.querySelector('.at-focus span').textContent=state.part;card.querySelector('.at-focus b').textContent=dayCount(M.days.filter(d=>d.on&&matches(d,state.part)).length);};state.paintFocus();
+ const comp=card.querySelector('.at-composition'),sheen=document.createElement('div');sheen.className='at-group-sheen';sheen.setAttribute('aria-hidden','true');sheen.append(document.createElement('i'));comp.append(sheen);
+ let maskFrame=0;
+ state.refreshMask=()=>{if(maskFrame)return;maskFrame=requestAnimationFrame(()=>{maskFrame=0;if(!card.isConnected)return;const w=comp.clientWidth,h=comp.clientHeight;if(!w||!h)return;const G=geometry(M,w,h),over=card.dataset.overview==='true',cw=cal.clientWidth;
+  const rects=[];for(const d of M.days){if(!d.on||!matches(d,state.part))continue;const r=over?G.overview(d):{x:card.querySelector('.at-timeline').offsetLeft+28+d.col*(cw-28)/7,y:62+d.row*16+4-scroller.scrollTop,w:Math.min(12,(cw-28)/7-3),h:12};if(r.y<(over?0:66)||r.y+r.h>h-5)continue;rects.push(`<rect x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" rx="${corner(r)}"/>`);}
+  const url=`url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}"><g fill="white">${rects.join('')}</g></svg>`)}")`;sheen.style.maskImage=url;sheen.style.webkitMaskImage=url;
+ });};
+ const resizeObserver=typeof ResizeObserver==='function'?new ResizeObserver(()=>{layoutOverview(state);state.refreshMask();}):null;resizeObserver?.observe(comp);
+ state.cleanup=()=>{state.scene?.dispose();visibility?.disconnect();resizeObserver?.disconnect();cancelAnimationFrame(maskFrame);};
+ state.paintFocus=()=>{for(const [el,d]of [...state.cols,...state.mini])el.classList.toggle('dim',d.on&&!matches(d,state.part));card.querySelectorAll('.at-parts button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.attendancePart===state.part)));card.querySelector('.at-focus').hidden=state.part==='All workouts';card.querySelector('.at-focus span').textContent=state.part;card.querySelector('.at-focus b').textContent=dayCount(M.days.filter(d=>d.on&&matches(d,state.part)).length);state.refreshMask();};state.paintFocus();
  const sync=()=>{if(live?.state===state)return;const atEnd=scroller.scrollHeight-scroller.clientHeight-scroller.scrollTop<8;readDate(state.jumpDate??(atEnd?M.end:clamp(M.firstWeek+Math.floor(scroller.scrollTop/16)*7,M.start,M.end)),true);};
- scroller.addEventListener('scroll',sync,{passive:true});
- const stop=()=>{state.jumpDate=null;if(state.scene)state.scene.finish();};card.addEventListener('wheel',stop,{passive:true});card.addEventListener('pointerdown',e=>{if(!e.target.closest('.heat-replay'))stop();});scroller.addEventListener('touchstart',stop,{passive:true});scroller.addEventListener('keydown',stop);
+ scroller.addEventListener('scroll',()=>{sync();state.refreshMask();},{passive:true});
+ const stop=()=>{state.jumpDate=null;if(state.scene)state.scene.finish();};card.addEventListener('wheel',e=>{if(!e.target.closest('.at-parts'))stop();},{passive:true});card.addEventListener('pointerdown',e=>{if(!e.target.closest('.heat-replay,.at-parts'))stop();});scroller.addEventListener('touchstart',stop,{passive:true});scroller.addEventListener('keydown',stop);
  picker.onchange=()=>{const y=+picker.value;stop();timeline(state);const n=Math.max(M.start,stamp(y+'-01-01'));state.jumpDate=n;readDate(n,true);scroller.scrollTo({top:Math.floor((n-M.firstWeek)/7)*16,behavior:reduced()?'auto':'smooth'});};
  card.querySelector('.at-return').onclick=()=>{stop();timeline(state);scroller.scrollTop=scroller.scrollHeight;readDate(M.end);};
- card.querySelector('.at-part').onchange=e=>{stop();focus=state.part=e.target.value;state.paintFocus();};
+ const rail=card.querySelector('.at-parts');rail.onclick=e=>{const b=e.target.closest('button[data-attendance-part]');if(!b)return;focus=state.part=b.dataset.attendancePart;state.paintFocus();state.scene?.refresh();const left=b.offsetLeft-(rail.clientWidth-b.offsetWidth)/2;rail.scrollTo({left,behavior:reduced()?'auto':'smooth'});};
+ rail.onkeydown=e=>{const buttons=[...rail.querySelectorAll('button')],i=buttons.indexOf(document.activeElement);if(i<0||!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();const n=e.key==='Home'?0:e.key==='End'?buttons.length-1:clamp(i+(e.key==='ArrowRight'?1:-1),0,buttons.length-1);buttons[n].focus({preventScroll:true});buttons[n].click();};
  card.querySelector('.at-motion').onchange=e=>{stop();motion=state.mode=e.target.value;card.dataset.animation=motion;card.querySelector('.heat-replay').disabled=motion==='Off'||!M.total;if(motion==='Off')finishView(state);};
  card.querySelector('.heat-replay').disabled=motion==='Off'||!M.total;
  state.readDate(M.end);requestAnimationFrame(()=>{if(card.isConnected)scroller.scrollTop=scroller.scrollHeight;});
@@ -123,10 +154,10 @@ function bind(card){
 }
 function dateLabel(n){return new Date(Math.round(n)*DAY).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',timeZone:'UTC'});}
 function range(M){const f=n=>new Date(n*DAY).toLocaleDateString('en-US',{month:'short',year:'numeric',timeZone:'UTC'});return f(M.start)+' — '+f(M.end);}
-function timeline(S){S.card.dataset.overview='false';S.card.querySelector('.at-range').hidden=true;S.card.querySelector('.at-date').hidden=false;}
+function timeline(S){S.card.dataset.overview='false';S.card.querySelector('.at-range').hidden=true;S.card.querySelector('.at-date').hidden=false;S.refreshMask?.();}
 function layoutOverview(S){
  const comp=S.card.querySelector('.at-composition'),G=geometry(S.M,comp.clientWidth||320,comp.clientHeight||430);
- [...S.overview.children].forEach((el,i)=>{el.style.cssText=`position:absolute;left:${(i%G.cols)*(G.cw+G.gap)}px;top:${Math.floor(i/G.cols)*G.bh}px;width:${G.cw}px;height:${G.bh}px`;});
+ [...S.overview.children].forEach((el,i)=>{el.style.cssText=`position:absolute;left:${(i%G.cols)*(G.cw+G.gap)}px;top:${Math.floor(i/G.cols)*G.bh}px;width:${G.cw}px;height:${G.bh}px`;el.firstElementChild.style.marginLeft=(G.cw-G.unit*7)/2+'px';});
  for(const [el,d]of S.mini){const p=G.overview(d),i=year(d.n)-S.M.years[0];el.style.cssText=`position:absolute;left:${p.x-(i%G.cols)*(G.cw+G.gap)}px;top:${p.y-G.reserve-Math.floor(i/G.cols)*G.bh-27}px;width:${p.w}px;height:${p.h}px`;}
 }
 function finishView(S){S.card.dataset.overview='true';S.card.querySelector('.at-range').hidden=false;S.card.querySelector('.at-date').hidden=true;S.card.querySelector('.at-total').textContent=fmt(S.M.total);S.paintFocus();layoutOverview(S);}
@@ -154,7 +185,7 @@ function play(card){
  const io=typeof IntersectionObserver==='function'?new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;if(!card.isConnected)dispose();else wake();}):null;
  const ro=typeof ResizeObserver==='function'?new ResizeObserver(resize):null;
  const themeObserver=new MutationObserver(()=>{col=palette();paint();});themeObserver.observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
- const scene={state:S,finish,dispose,seek(t){paused=true;elapsed=clamp(t,0,duration);paint();if(elapsed>=duration&&!complete)settle();wake();},get ambient(){return ambient;},get elapsed(){return elapsed;}};
+ const scene={state:S,finish,dispose,refresh(){painted=-1;paint();},seek(t){paused=true;elapsed=clamp(t,0,duration);paint();if(elapsed>=duration&&!complete)settle();wake();},get ambient(){return ambient;},get elapsed(){return elapsed;},get baseBuilds(){return frames.get(x)?.builds||0;}};
  live=S.scene=scene;document.addEventListener('visibilitychange',wake);io?.observe(comp);ro?.observe(comp);resize();wake();return true;
 }
 // Share-only calendar geometry. Keep weeks across and weekdays down, with the
@@ -185,7 +216,7 @@ function drawLedger(M,part,col,pip,word){
  text(value,70,344,size,col.blue,'left',500);text('days in',94+nw,344,35,col.ink);
  if(part!=='All workouts')text(part+' · '+dayCount(M.days.filter(d=>d.on&&matches(d,part)).length),70,393,26,col.muted);
  G.rows.forEach((r,i)=>{const y=G.top+i*G.rowHeight;const f=n=>new Date(n*DAY).toLocaleDateString('en-US',{month:'short',...(n===M.end?{day:'numeric'}:{}),timeZone:'UTC'});const a=f(r.first),b=f(r.last);text(String(r.year),70,y+17,29,col.ink,'left',500,true);text(a===b?a:a+' — '+b,1010,y+17,24,col.muted,'right',400,true);});
- for(const d of M.days){const r=G.cell(d);x.fillStyle=d.on?col.blue:col.empty;x.globalAlpha=d.on&&!matches(d,part)?.24:1;round(x,r,2.5);x.fill();x.globalAlpha=1;if(d.n===M.end){x.strokeStyle=col.blue;x.lineWidth=1.5;round(x,{x:r.x-2,y:r.y-2,w:r.w+4,h:r.h+4},3.5);x.stroke();}}
+ for(const d of M.days){const r=G.cell(d);x.fillStyle=d.on?col.blue:col.empty;x.globalAlpha=d.on&&!matches(d,part)?.24:1;round(x,r,corner(r));x.fill();x.globalAlpha=1;if(d.n===M.end){x.strokeStyle=col.blue;x.lineWidth=1.5;round(x,{x:r.x-2,y:r.y-2,w:r.w+4,h:r.h+4},corner(r)+2);x.stroke();}}
  const line=G.height-112;x.fillStyle=col.line;x.fillRect(70,line,940,1);text(range(M),70,line+61,25,col.muted);text('One square. One day.',1010,line+61,25,col.muted,'right');
  return cv;
 }
@@ -219,5 +250,5 @@ const mq=matchMedia('(prefers-reduced-motion: reduce)');mq.addEventListener?.('c
 window.addEventListener('resize',()=>{document.querySelectorAll('.attendance-card').forEach(c=>{if(c._attendance)layoutOverview(c._attendance);});});
 window.heatReplay={play,share,seeAll,get live(){return live;},finish(){live?.finish();},duration:()=>END,exportEnd:END};
 // Pure data/camera contract for regression checks; no saved state is exposed.
-window.attendanceView={model,phase,geometry,ledgerGeometry,shimmerAt};
+window.attendanceView={model,phase,geometry,ledgerGeometry,sweepAt};
 })();

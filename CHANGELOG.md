@@ -1,5 +1,12 @@
 # ShowUp — changelog
 
+## v4.6.224 (2026-10-06) — One quieter light, across your history
+
+- Streak squares have softer corners. Today's opening pulse gently breathes in place, without the sideways movement, and the year labels line up with their calendar grids.
+- Shimmer is now one continuous light sheet across the matching days, not hundreds of individual animations. The finished replay reuses a cached graph while the light moves; offscreen and reduced-motion safeguards remain.
+- Swipe through body parts and running at the top of the card. Tap one to highlight its days and dim the others, without restarting the replay or leaving the view. All restores the full history.
+- Carries the rounded marks and shared light into animated exports while preserving the year-ledger share layout, ShowUppp + Pip branding, floating header, profile and saved workouts.
+
 ## v4.6.223 (2026-10-06) — A smoother journey through your history
 
 - Today opens with a larger, softer pulse and three fading ripples. The calendar glides back through your actual training days, then gently opens into the whole-history view without replacing the picture at the end.
