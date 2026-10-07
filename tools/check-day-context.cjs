@@ -8,16 +8,17 @@ const origin=process.env.DAY_REVIEW_ORIGIN||'http://127.0.0.1:'+(process.env.PW_
  await p.evaluate(()=>{
   document.querySelector('#onb')?.remove();todayISO='2026-10-07';checkDate=()=>false;loadedOK=true;
   DB={days:{},settings:{unit:'lb',name:'Sungjee Yoo',onboarded:true,theme:'light',bar:'light'}};SEED=deriveAll();
-  DB.plan={d:todayISO,items:[{ex:'Deadlift',lines:[{w:135/LB,reps:[8],qualifier:'warm-up'},{w:235/LB,reps:[3,3,3]}]},{ex:'Bent-Over Row',lines:[{w:155/LB,reps:[12,12,12,12]}]},{ex:'Pull Up',lines:[{w:25/LB,reps:[6,6,6],bw:true}]}]};plCapture();lift={ex:'Deadlift',part:'Back'};
+  DB.plan={d:todayISO,items:[{ex:'Deadlift',lines:[{w:135/LB,reps:[8],qualifier:'warm-up'},{w:235/LB,reps:[3,3,3]}]},{ex:'Bent-Over Row',lines:[{w:155/LB,reps:[12,12,12,12]}]},{ex:'Pull Up',lines:[{w:25/LB,reps:[6,6,6],bw:true}]},{ex:'Single-Arm Dumbbell Row',lines:[{w:60/LB,reps:[8,8,8,8]}]},{ex:'EZ Bar Curl',lines:[{w:65/LB,reps:[14,14,14]}]}]};plCapture();lift={ex:'Deadlift',part:'Back'};
   plLog({part:'Back',ex:'Deadlift',w:135/LB,reps:[8],at:Date.now()-3600000});[4,3,3].forEach(r=>plLog({part:'Back',ex:'Deadlift',w:235/LB,reps:[r],at:Date.now()-3500000}));
   lift.ex='Bent-Over Row';[12,12,12,12].forEach(r=>plLog({part:'Back',ex:'Bent-Over Row',w:155/LB,reps:[r],at:Date.now()-3400000}));
+  lift={ex:'Run',part:'Run'};plLog({part:'Run',ex:'Run',w:3.3/MI,reps:[],mins:33,secs:0,at:Date.now()-60000});
   DB.days[todayISO].completedAt=Date.now();SEED=deriveAll();view='stats';applyTheme();render();window.geoCalls=0;window.geoDeny=false;
   Object.defineProperty(navigator,'geolocation',{configurable:true,value:{getCurrentPosition(ok,no){geoCalls++;geoDeny?no({code:1}):ok({coords:{latitude:40.357124,longitude:-74.667221}});}}});
  });
  assert.equal(await p.evaluate(()=>geoCalls),0);assert.equal(requests.length,0);
  for(const theme of ['light','dark'])for(const width of [320,393,736]){
   await p.setViewportSize({width,height:852});await p.evaluate(theme=>{DB.settings.theme=theme;DB.settings.bar=theme;applyTheme();render();},theme);
-  const align=await p.evaluate(()=>{const c=document.querySelector('.day-review'),rows=[...c.querySelectorAll('tbody tr')];return {warm:c.textContent.includes('warm-up'),overflow:c.scrollWidth>c.clientWidth,aligned:rows.every(row=>{const ds=[...row.querySelectorAll('td .dr-weight')];return ds.length<2||Math.abs(ds[0].getBoundingClientRect().y-ds[1].getBoundingClientRect().y)<.5;}),padding:rows.filter(r=>r.classList.contains('dr-last-lane')).every(r=>getComputedStyle(r.querySelector('td')).paddingBottom==='17px')};});
+  const align=await p.evaluate(()=>{const c=document.querySelector('.day-review'),rows=[...c.querySelectorAll('tbody tr')];return {warm:c.textContent.includes('warm-up'),overflow:c.scrollWidth>c.clientWidth,aligned:rows.every(row=>{const ds=[...row.querySelectorAll('td .dr-weight')];return ds.length<2||Math.abs(ds[0].getBoundingClientRect().y-ds[1].getBoundingClientRect().y)<.5;}),padding:rows.filter(r=>r.classList.contains('dr-last-lane')).every(r=>getComputedStyle(r.querySelector('td')).paddingBottom==='11px')&&getComputedStyle(c.querySelector('tbody th')).paddingTop==='11px'&&getComputedStyle(c.querySelector('.dr-parts')).marginBottom==='14px'};});
   assert(!align.warm&&!align.overflow&&align.aligned&&align.padding,JSON.stringify(align));
  }
  await p.setViewportSize({width:393,height:852});await p.evaluate(()=>{DB.settings.theme='light';DB.settings.bar='light';applyTheme();render();});

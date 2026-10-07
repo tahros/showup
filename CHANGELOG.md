@@ -1,5 +1,10 @@
 # ShowUppp — changelog
 
+## v4.6.239 (2026-10-07) — A tighter daily comparison
+
+- Reduces space below the location/body-part line and around each exercise, keeping equal top/bottom padding and matched Plan/Last and Today lanes. Typography, chip sizes and button touch targets stay unchanged.
+- Applies the same compact rhythm to shared images and videos, with less space above the totals. Preserves the floating header, location permissions, animations and all workout data.
+
 ## v4.6.238 (2026-10-07) — Aligned sets, a sense of place
 
 - Removes the warm-up caption from the daily comparison without removing warm-up sets. Plan/Last and Today now share load-group lanes, with matched weight/rep baselines and balanced row padding in the app, image and video. Skipped planned loads stay in their own lanes.

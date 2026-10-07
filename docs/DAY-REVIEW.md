@@ -1,4 +1,8 @@
-# Whole-day comparison — v4.6.238
+# Whole-day comparison — v4.6.239
+
+Compact spacing: 11px above/below exercise groups, 8px between load lanes,
+14px below the location/body-parts line. Text and rep-chip sizes are unchanged.
+Image/video use the same 11px row inset and 8px lane gap; header chrome is untouched.
 
 `js/day-review.js` renders a read-only projection. `stats.js` places it immediately
 after `currentRhythmSection()`. Styles are scoped to `.day-review` in planner.css.

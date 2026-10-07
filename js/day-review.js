@@ -205,12 +205,12 @@ function drawDayReview(data,time,canvas){
   const ctx=cv.getContext('2d'),sans='"ShowUp Export Plex", "IBM Plex Sans", sans-serif',mono='"IBM Plex Mono", monospace',C=data.colors;
   const wrap=(s,width,size=14.5)=>{ctx.font='500 '+size+'px '+sans;const lines=[];let line='';for(const word of String(s).split(/\s+/)){if(line&&ctx.measureText(line+' '+word).width>width){lines.push(line);line=word;}else line+=(line?' ':'')+word;}if(line)lines.push(line);return lines;};
   const chips=g=>{const lines=[[]];let used=0;ctx.font='500 12px '+sans;for(const chip of g.chips){const w=Math.max(17,ctx.measureText(chip.label).width+7);if(used+w>96&&lines.at(-1).length){lines.push([]);used=0;}lines.at(-1).push({...chip,w});used+=w+3;}return lines;};
-  const groupHeight=g=>!g?18:18+(g.chips.length?7+chips(g).length*25-4:0)+(g.qualifier?4+wrap(g.qualifier,96,10).length*13:0);
+  const groupHeight=g=>!g?18:18+(g.chips.length?5+chips(g).length*25-4:0)+(g.qualifier?4+wrap(g.qualifier,96,10).length*13:0);
   const laneHeight=l=>Math.max(groupHeight(l.ref),groupHeight(l.actual));
-  const rowHeight=r=>32+Math.max(wrap(r.ex,112).length*19+(r.note?wrap(r.note,112,11).length*14+4:0)+r.delta.length*15,
-    r.lanes.reduce((s,l)=>s+laneHeight(l),0)+10*(r.lanes.length-1));
-  const meta=wrap([data.context?.location,...data.parts].filter(Boolean).join(' · '),345,13),top=158+meta.length*19,heights=data.rows.map(rowHeight),bottom=top+heights.reduce((a,b)=>a+b,0);
-  const hasContext=data.context&&(data.context.location||data.context.weather),h=bottom+(hasContext?128:102),height=Math.ceil(h*scale/2)*2;
+  const rowHeight=r=>22+Math.max(wrap(r.ex,112).length*19+(r.note?wrap(r.note,112,11).length*14+4:0)+r.delta.length*15,
+    r.lanes.reduce((s,l)=>s+laneHeight(l),0)+8*(r.lanes.length-1));
+  const meta=wrap([data.context?.location,...data.parts].filter(Boolean).join(' · '),345,13),top=152+meta.length*19,heights=data.rows.map(rowHeight),bottom=top+heights.reduce((a,b)=>a+b,0);
+  const hasContext=data.context&&(data.context.location||data.context.weather),h=bottom+(hasContext?122:96),height=Math.ceil(h*scale/2)*2;
   if(cv.height!==height)cv.height=height;
   ctx.setTransform(scale,0,0,scale,0,0);ctx.fillStyle=C.paper;ctx.fillRect(0,0,393,h+1);
   const text=(s,x,y,size=14,color=C.ink,align='left',font=sans,weight=400)=>{ctx.font=weight+' '+size+'px '+font;ctx.fillStyle=color;ctx.textAlign=align;ctx.fillText(s,x,y);};
@@ -221,7 +221,7 @@ function drawDayReview(data,time,canvas){
   wrap(data.name,215,11).slice(0,2).forEach((s,i)=>text(s,369,42+i*14,11,C.muted,'right'));rule(76);
   text(data.title,24,113,23,C.ink,'left',sans,500);
   if(data.context?.weather){const lines=wrap(data.context.weather,118,11).slice(0,2);lines.forEach((s,i)=>text(s,369,(lines.length===1?108:100)+i*15,11,C.muted,'right'));}
-  meta.forEach((line,i)=>text(line,24,139+i*19,13,C.muted));
+  meta.forEach((line,i)=>text(line,24,135+i*19,13,C.muted));
   text(data.unit+' · reps',24,top-14,11,C.muted);text(data.planned?'Plan':'Last',204,top-14,12,C.muted,'center');
   reveal(180,()=>text('Today',318,top-14,12,C.blueText,'center',sans,500));
   let y=top;
@@ -229,20 +229,20 @@ function drawDayReview(data,time,canvas){
     if(!g){const paint=()=>{ctx.save();ctx.textBaseline='middle';text('—',cx,gy+height/2,13,C.muted,'center');ctx.restore();};actual?reveal(delay,paint):paint();return;}
     let j=0;
       const at=gy+14,load=()=>{if(actual&&g.gain){ctx.font='400 14px '+mono;const w=ctx.measureText(g.load).width+12;ctx.fillStyle=C.blue;ctx.beginPath();ctx.roundRect(cx-w/2,at-16,w,23,6);ctx.fill();}text(g.load,cx,at,14,actual?(g.gain?(data.dark?'#111529':'#fff'):C.blueText):C.muted,'center',mono);};
-      actual?reveal(delay+j++*35,load):load();gy+=25;
+      actual?reveal(delay+j++*35,load):load();gy+=23;
       if(g.chips.length)chips(g).forEach(line=>{let x=cx-line.reduce((s,c)=>s+c.w+3,0)/2;const cy=gy;
         line.forEach(c=>{const left=x,paint=()=>{ctx.fillStyle=actual?(c.gain?C.blue:C.soft):C.chip;ctx.beginPath();ctx.roundRect(left,cy,c.w,21,5);ctx.fill();text(c.label,left+c.w/2,cy+15,12,actual?(c.gain?(data.dark?'#111529':'#fff'):C.blueText):C.muted,'center',sans,500);};actual?reveal(delay+j++*35,paint):paint();x+=c.w+3;});gy+=25;
       });
       if(g.qualifier)wrap(g.qualifier,96,10).forEach(line=>{text(line,cx,gy+10,10,C.muted,'center');gy+=13;});
   };
   let rowIndex=0;
-  data.rows.forEach((r,i)=>{rule(y);let ty=y+30;wrap(r.ex,112).forEach(line=>{text(line,24,ty,14.5,C.ink,'left',sans,500);ty+=19;});
+  data.rows.forEach((r,i)=>{rule(y);let ty=y+25;wrap(r.ex,112).forEach(line=>{text(line,24,ty,14.5,C.ink,'left',sans,500);ty+=19;});
     if(r.note){ty+=2;wrap(r.note,112,11).forEach(line=>{text(line,24,ty,11,C.muted);ty+=14;});}
     r.delta.forEach((line,j)=>{const yy=ty+5+j*15;reveal(420+rowIndex*260+300,()=>text(line,24,yy,11,C.blueText,'left',sans,500));});
-    let ly=y+16;r.lanes.forEach(l=>{const height=laneHeight(l);group(l.ref,204,false,0,ly,height);group(l.actual,318,true,420+rowIndex++*260,ly,height);ly+=height+10;});y+=heights[i];
+    let ly=y+11;r.lanes.forEach(l=>{const height=laneHeight(l);group(l.ref,204,false,0,ly,height);group(l.actual,318,true,420+rowIndex++*260,ly,height);ly+=height+8;});y+=heights[i];
   });
-  rule(bottom);data.values.forEach((v,i)=>reveal(540+rowIndex*260+i*70,()=>{const x=24+(i+.5)*345/4;text(v,x,bottom+42,23,C.ink,'center',sans,500);text(data.labels[i],x,bottom+64,12,C.ink,'center');}));
-  if(hasContext){text('Location: © OpenStreetMap / Photon · Weather: MET Norway',24,bottom+91,8,C.muted);text('CC BY 4.0 · Conditions estimate at '+new Date(data.context.capturedAt).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}),24,bottom+104,8,C.muted);}
+  rule(bottom);data.values.forEach((v,i)=>reveal(540+rowIndex*260+i*70,()=>{const x=24+(i+.5)*345/4;text(v,x,bottom+36,23,C.ink,'center',sans,500);text(data.labels[i],x,bottom+58,12,C.ink,'center');}));
+  if(hasContext){text('Location: © OpenStreetMap / Photon · Weather: MET Norway',24,bottom+85,8,C.muted);text('CC BY 4.0 · Conditions estimate at '+new Date(data.context.capturedAt).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}),24,bottom+98,8,C.muted);}
   return cv;
 }
 async function shareDayReview(button){
