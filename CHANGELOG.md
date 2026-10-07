@@ -1,5 +1,10 @@
 # ShowUppp — changelog
 
+## v4.6.242 (2026-10-07) — More legible daily shares
+
+- Applies the approved +2px typography to daily-review Share Image and Video, with larger exercise names, weights, reps, headings and centered summary text.
+- Recalculates text wrapping and row heights to preserve aligned comparisons. Keeps logo/Pip sizes, source credits, animation timing, in-app typography and saved workouts unchanged.
+
 ## v4.6.241 (2026-10-07) — Centered editorial day shares
 
 - Applies the approved editorial layout to daily-review images and videos: small official wordmark, real unpadded DAY count, location/body parts and weather, smaller bold date, and tighter comparison rows with bolder weight/rep values.

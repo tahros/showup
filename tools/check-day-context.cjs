@@ -61,6 +61,10 @@ const origin=process.env.DAY_REVIEW_ORIGIN||'http://127.0.0.1:'+(process.env.PW_
   assert(labels.every(t=>t&&t.align==='center'));assert.deepEqual(labels.map(t=>t.x),[88,216,344,472]);
   assert(labels[0].y>texts.find(t=>t.s==='Run').y,'summary follows exercise list');
   assert(texts.filter(t=>['135','235','155'].includes(t.s)).every(t=>t.font.includes('600')),'bold weights');
+  assert(texts.filter(t=>['135','235','155'].includes(t.s)).every(t=>t.font.includes('15px')),'approved +2px share weights');
+  assert(texts.filter(t=>t.s==='12').every(t=>t.font.includes('13px')),'approved +2px share reps');
+  assert(labels.every(t=>t.font.includes('13px')),'approved +2px centered summary labels');
+  assert(texts.find(t=>t.s==='Deadlift').font.includes('16px'),'approved +2px exercise names');
   for(const load of ['135','235','155']){const pair=texts.filter(t=>t.s===load);assert.equal(pair.length,2);assert.equal(pair[0].y,pair[1].y);}
   await p.locator('#repClose').click();
  }

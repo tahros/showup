@@ -1,4 +1,4 @@
-# Whole-day comparison — v4.6.241
+# Whole-day comparison — v4.6.242
 
 Share images/videos use the approved 560-unit editorial grid, rendered at 1080px:
 28-unit margins, 57.375-unit official wordmark centered against DAY/count,
@@ -105,6 +105,12 @@ check. `plate-video.js` now takes capture dimensions from the source canvas;
 existing 1080x1280 exports keep their size, while tall daily cards are not cropped.
 
 ## Verification
+
+Share Image and Video use the approved +2px typography scale (logical 560px
+layout): 16px exercise names, 15px weights, 13px reps/summary labels, 38px
+summary numbers. Wrapping and row heights use the enlarged measurements.
+The logo, Pip, credits, four equal centered summary columns, and in-app
+comparison typography remain unchanged.
 
 - `node tools/test-day-review.js .`: provenance, mixed data, timing, units,
   extra/missing exercises, honest deltas and no record mutation.
