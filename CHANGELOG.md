@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.232 (2026-10-07) — Remember the years you want to see
+
+- Adds a Years displayed picker to attendance, with individual years ordered oldest-first and no preset shortcuts. Apply saves the choice through the existing settings save path; reopening the app restores it. Closing without Apply discards the draft, and at least one year must remain selected.
+- Selected years determine the adaptive layout, day counts, timeline, replay and image/MP4/GIF shares. Nonconsecutive selections skip omitted years without blank timeline space or replaying their dates. Longer selections retain balanced multi-card sharing.
+- Keeps the calendar size and touch targets, with Replay/Share clear of the bottom bar. Preserves the ShowUppp naming update, floating header, profile and workout records.
+
 ## v4.6.231 (2026-10-07) — The name is ShowUppp
 
 - **Asked for:** change the name, officially, to ShowUppp.

@@ -1,5 +1,6 @@
 /* Attendance: Today pulse → reverse chronological reveal → whole-history view.
-   Presentation only. No saved-data, Rest-card or header changes. UTC day indices
+   Presentation only; attendanceYears uses the existing settings save path.
+   No workout-data, Rest-card or header changes. UTC day indices
    avoid DST gaps; training dates are deduplicated before counting. The on-screen
    replay and animated exports share one deterministic camera and renderer.
    Oldest-first layouts adapt to 1–10 years; longer records use balanced cards.
@@ -28,23 +29,40 @@ function model(){
  return {start,end,firstWeek,dow,years,days,trained,total:trained.size,parts,dates,name:String(DB.settings?.name||'').trim()};
 }
 const matches=(d,part)=>part==='All workouts'||d.parts.has(part);
+function chosenYears(M,raw=DB.settings?.attendanceYears){
+ const chosen=Array.isArray(raw)?M.years.filter(y=>raw.includes(y)):[];
+ return chosen.length?chosen:M.years.slice();
+}
+function sliceYears(M,years){
+ const keep=new Set(years),weeks=new Map();let days=M.days.filter(d=>keep.has(year(d.n)));
+ const start=days[0].n,end=days.at(-1).n,firstWeek=start-(weekday(start)-M.dow+7)%7;
+ days=days.map(d=>{const week=d.n-d.col;if(!weeks.has(week))weeks.set(week,weeks.size);return {...d,row:weeks.get(week)};});
+ const trained=new Set(days.filter(d=>d.on).map(d=>d.n));
+ return {...M,start,end,firstWeek,years,days,trained,total:trained.size,dates:M.dates.filter(d=>keep.has(year(stamp(d)))),gapped:years.some((y,i)=>i&&y!==years[i-1]+1)};
+}
+function selectedModel(M=model()){
+ const years=chosenYears(M),selected=sliceYears(M,years);
+ return {...selected,availableYears:M.years,selectedYears:years,filtered:years.length!==M.years.length,actualToday:M.end,lifetime:M.total};
+}
+const unitLabel=M=>M.filtered?(M.years.length===1?'days in '+M.years[0]:'days in '+M.years.length+' years'):'days in';
 // At most ten years on a card. Balance the groups: 11 -> 6+5, 21 -> 7+7+7.
 // These are views over real dates, never new saved records or generated data.
 function pages(M){
  const count=Math.ceil(M.years.length/10),size=Math.floor(M.years.length/count),extra=M.years.length%count,out=[];let offset=0;
- for(let i=0;i<count;i++){const years=M.years.slice(offset,offset+size+(i<extra?1:0));offset+=years.length;let days=M.days.filter(d=>year(d.n)>=years[0]&&year(d.n)<=years.at(-1));const start=days[0].n,end=days.at(-1).n,firstWeek=start-(weekday(start)-M.dow+7)%7,trained=new Set(days.filter(d=>d.on).map(d=>d.n));days=days.map(d=>({...d,row:Math.floor((d.n-firstWeek)/7)}));out.push({...M,start,end,firstWeek,years,days,trained,total:trained.size,dates:M.dates.filter(d=>stamp(d)>=start&&stamp(d)<=end),page:i,pageCount:count,lifetime:M.total,actualToday:M.end});}
+ for(let i=0;i<count;i++){const years=M.years.slice(offset,offset+size+(i<extra?1:0));offset+=years.length;out.push({...sliceYears(M,years),page:i,pageCount:count,lifetime:M.lifetime??M.total,actualToday:M.actualToday??M.end});}
  return out;
 }
-const currentModel=()=>{const all=pages(model());historyPage=clamp(historyPage,0,all.length-1);return all[historyPage];};
+const currentModel=()=>{const all=pages(selectedModel());historyPage=clamp(historyPage,0,all.length-1);return all[historyPage];};
 function phase(M,time,mode='Full journey'){
  const t=clamp(time,0,END),pulseOnly=mode==='Today pulse',off=mode==='Off';
  // Fractional dates drive the camera; only the visible date label is rounded.
- const cursor=off?M.start:pulseOnly?M.end:mix(M.end,M.start,ease((t/END-.19)/.43));
+ const progress=off?1:pulseOnly?0:ease((t/END-.19)/.43),dayIndex=mix(M.days.length-1,0,progress),lo=Math.floor(dayIndex);
+ const cursor=M.gapped?mix(M.days[lo].n,M.days[Math.min(lo+1,M.days.length-1)].n,dayIndex-lo):mix(M.end,M.start,progress);
  const overview=off?1:pulseOnly?0:ease((t/END-.63)/.37),pull=off?1:pulseOnly?0:ease((t/END-.61)/.24);
  // A gentle inhale/exhale at a fixed anchor: no sideways trip or size snap.
  const pulse=off?0:Math.sin(Math.PI*ease(t/PULSE))**2,zoom=1+.65*pulse;
  const revealed=d=>off||pulseOnly||d.n>=cursor;
- return {t,cursor,overview,pull,pulse,zoom,mode,count:M.days.filter(d=>d.on&&revealed(d)).length,focused:part=>M.days.filter(d=>d.on&&revealed(d)&&matches(d,part)).length,revealed};
+ return {t,cursor,dateCursor:M.gapped?M.days[Math.round(dayIndex)].n:cursor,dayIndex,overview,pull,pulse,zoom,mode,count:M.days.filter(d=>d.on&&revealed(d)).length,focused:part=>M.days.filter(d=>d.on&&revealed(d)&&matches(d,part)).length,revealed};
 }
 function palette(){const c=getComputedStyle(document.documentElement),get=(k,f)=>c.getPropertyValue(k).trim()||f;return {surface:get('--surface','#fff'),ink:get('--chalk','#222'),muted:get('--muted','#777'),empty:get('--surface2','#f3f3f3'),blue:document.documentElement.dataset.theme==='dark'?'#7188ff':'#3049dc',line:get('--line','#ddd')};}
 const layouts=new WeakMap();
@@ -72,7 +90,7 @@ function atlas(M){
  // A full-model diagnostic can exceed ten years. The UI/export use pages();
  // preserve every date here as vertically stacked, balanced page compositions.
  if(n>10){const groups=pages(M);groups.forEach((part,i)=>{const A=atlas(part),sy=1/groups.length;for(const [key,r]of A.points)points.set(key,{...r,y:(i*790+r.y)*sy,h:r.h*sy,group:i+':'+r.group});for(const l of A.labels)labels.push({...l,y:(i*790+l.y)*sy,size:l.size*sy});});}
- const groups=[];for(const d of M.days){const r=points.get(d.n);let g=groups.at(-1);if(!g||g.key!==r.group){g={key:r.group,start:d.n,end:d.n,x:r.x,y:r.y,right:r.x+r.w,bottom:r.y+r.h};groups.push(g);}g.end=d.n;g.x=Math.min(g.x,r.x);g.y=Math.min(g.y,r.y);g.right=Math.max(g.right,r.x+r.w);g.bottom=Math.max(g.bottom,r.y+r.h);}
+ const groups=[];for(const [index,d] of M.days.entries()){const r=points.get(d.n);let g=groups.at(-1);if(!g||g.key!==r.group){g={key:r.group,start:d.n,end:d.n,startIndex:index,endIndex:index,x:r.x,y:r.y,right:r.x+r.w,bottom:r.y+r.h};groups.push(g);}g.end=d.n;g.endIndex=index;g.x=Math.min(g.x,r.x);g.y=Math.min(g.y,r.y);g.right=Math.max(g.right,r.x+r.w);g.bottom=Math.max(g.bottom,r.y+r.h);}
  const A={points,labels,background,rules,groups,name:n<=10?names[n-1]:'Paged atlas'};layouts.set(M,A);return A;
 }
 function geometry(M,w,h,exported=false){
@@ -89,7 +107,8 @@ function geometry(M,w,h,exported=false){
   if(P.overview===1||P.mode==='Off')return {z:1,x:0,y:0};
   const today=overview(M.days.at(-1)),center={x:w/2,y:reserve+(h-reserve)/2};
   const shot=g=>{const bw=(g.right-g.x)*sx,bh=(g.bottom-g.y)*sy;return {x:(g.x+g.right)/2*sx,y:reserve+(g.y+g.bottom)/2*sy,z:clamp(Math.min(w*.82/Math.max(bw,1),(h-reserve)*.76/Math.max(bh,1)),1,7)};};
-  let gi=A.groups.findIndex(g=>P.cursor<=g.end+.999&&P.cursor>=g.start);if(gi<0)gi=0;const group=A.groups[gi],a=shot(group),b=shot(A.groups[Math.max(0,gi-1)]),blend=gi?ease(1-(P.cursor-group.start)/((group.end-group.start+1)*.45)):0;
+  const position=M.gapped?P.dayIndex:P.cursor,startKey=M.gapped?'startIndex':'start',endKey=M.gapped?'endIndex':'end';
+  let gi=A.groups.findIndex(g=>position<=g[endKey]+.999&&position>=g[startKey]);if(gi<0)gi=0;const group=A.groups[gi],a=shot(group),b=shot(A.groups[Math.max(0,gi-1)]),blend=gi?ease(1-(position-group[startKey])/((group[endKey]-group[startKey]+1)*.45)):0;
   const z=mix(a.z,b.z,blend),cx=mix(a.x,b.x,blend),cy=mix(a.y,b.y,blend),intro=P.mode==='Today pulse'?0:ease((P.t-PULSE)/700),close=Math.min(12,22*scale/Math.max(1,today.w));
   const zoom=mix(close,z,intro),anchorX=mix(today.x+today.w/2,cx,intro),anchorY=mix(today.y+today.h/2,cy,intro),final=P.overview;
   return {z:mix(zoom,1,final),x:mix(center.x-anchorX*zoom,0,final),y:mix(center.y-anchorY*zoom,0,final)};
@@ -158,9 +177,11 @@ currentRhythmSection=function(inverse){
  const M=currentModel(),part=choices.includes(focus)?focus:'All workouts';
  return `<h2 id="secDays">You keep showing up${hActs('rhythm','One square per day. Blue means you trained. Scroll through the years, or replay your history from today. Body-part focus dims other training days without removing them.','About your attendance')}</h2>
  <div class="card crcard attendance-card" data-overview="false" data-focused="${part!=='All workouts'}">
-  <div class="at-owner">${hesc(M.name)}</div>${M.pageCount>1?`<div class="at-pages" aria-label="History cards"><button type="button" data-at-page="${M.page-1}"${M.page===0?' disabled':''} aria-label="Previous history card">‹</button><span>Card ${M.page+1} of ${M.pageCount} · ${M.years[0]}–${M.years.at(-1)}</span><button type="button" data-at-page="${M.page+1}"${M.page===M.pageCount-1?' disabled':''} aria-label="Next history card">›</button></div>`:''}
+  <div class="at-heading"><div class="at-owner">${hesc(M.name)}</div><button type="button" class="at-years-toggle" aria-expanded="false" aria-controls="attendance-years-panel">${M.selectedYears.length===M.availableYears.length?'All '+M.selectedYears.length+' '+(M.selectedYears.length===1?'year':'years'):M.selectedYears.length===1?M.selectedYears[0]:M.selectedYears.length+' years'} <span aria-hidden="true">⌄</span></button></div>
+  <div class="at-years-panel" id="attendance-years-panel" hidden><strong>Years displayed</strong><div class="at-years-grid" role="group" aria-label="Choose years"></div><div class="at-years-bottom"><span class="at-years-summary" aria-live="polite"></span><button type="button" class="at-years-apply">Apply</button></div></div>
+  ${M.pageCount>1?`<div class="at-pages" aria-label="History cards"><button type="button" data-at-page="${M.page-1}"${M.page===0?' disabled':''} aria-label="Previous history card">‹</button><span>Card ${M.page+1} of ${M.pageCount} · ${M.years[0]}–${M.years.at(-1)}</span><button type="button" data-at-page="${M.page+1}"${M.page===M.pageCount-1?' disabled':''} aria-label="Next history card">›</button></div>`:''}
   <div class="at-parts" role="group" aria-label="Highlight body part">${choices.map(p=>`<button type="button" data-attendance-part="${p}" aria-pressed="${p===part}">${p==='All workouts'?'All':p}</button>`).join('')}</div>
-  <div class="at-composition"><div class="at-story"><div class="at-total">${fmt(M.total)}</div><div class="at-unit">days in</div><div class="at-focus"${part==='All workouts'?' hidden':''}><b><span class="at-focus-count"></span><span class="at-focus-days"></span></b><span class="at-focus-part">${hesc(part)}</span></div><div class="at-streak">streak ${dayCount(currentStreak())}<br>best ${dayCount(longestStreak())}</div></div>
+  <div class="at-composition"><div class="at-story"><div class="at-total">${fmt(M.total)}</div><div class="at-unit">${unitLabel(M)}</div><div class="at-focus"${part==='All workouts'?' hidden':''}><b><span class="at-focus-count"></span><span class="at-focus-days"></span></b><span class="at-focus-part">${hesc(part)}</span></div><div class="at-streak">streak ${dayCount(currentStreak())}<br>best ${dayCount(longestStreak())}</div></div>
    <div class="at-timeline"><label class="at-year-label"><span class="sr-only">Calendar year</span><select class="at-year">${M.years.map(y=>`<option value="${y}">${y}</option>`).join('')}</select></label><div class="at-weekdays" aria-hidden="true">${Array.from({length:7},(_,i)=>'<span>'+['S','M','T','W','T','F','S'][(i+M.dow)%7]+'</span>').join('')}</div><div class="at-scroll" tabindex="0" aria-label="Training calendar. Scroll vertically through your history."><div class="at-calendar"></div></div></div>
    <div class="at-overview" role="img"></div>
   </div>
@@ -177,7 +198,7 @@ function bind(card){
  card.dataset.animation=state.mode;
  const visibility=typeof IntersectionObserver==='function'?new IntersectionObserver(entries=>{card.dataset.visible=String(entries[0].isIntersecting);if(!card.isConnected)state.cleanup();}):null;
  visibility?.observe(card);
- const weeks=Math.floor((M.end-M.firstWeek)/7)+1;cal.style.height=(weeks*16+8)+'px';
+ const weeks=M.days.at(-1).row+1;cal.style.height=(weeks*16+8)+'px';
  const frag=document.createDocumentFragment();let prev=-1;
  for(const d of M.days){const el=document.createElement('span');el.className='at-cell'+(d.on?' on':'')+(d.n===M.end?' today':'');el.dataset.date=iso(d.n);el.title=iso(d.n)+(d.on?' · trained':' · no workout logged');el.setAttribute('aria-label',el.title);el.style.cssText=`left:calc(28px + ${d.col} * (100% - 28px) / 7);top:${d.row*16+4}px`;frag.append(el);state.cols.push([el,d]);const month=new Date(d.n*DAY).getUTCMonth();if((d.col===0||d.n===M.start)&&month!==prev){const label=document.createElement('small');label.className='at-month';label.style.top=(d.row*16+4)+'px';label.textContent=MONTHS[month];frag.append(label);prev=month;}}
  cal.append(frag);
@@ -186,7 +207,14 @@ function bind(card){
  for(const d of M.days){const el=document.createElement('span');el.className='at-mini'+(d.on?' on':'')+(d.n===M.end?' today':'');el.title=iso(d.n)+(d.on?' · trained':' · no workout logged');el.setAttribute('aria-label',el.title);overview.append(el);state.mini.push([el,d]);}
  overview.setAttribute('aria-label',`${M.total} training days, ${iso(M.start)} to ${iso(M.end)}. ${atlas(M).name}, oldest year first. One square per day.`);
  card.querySelector('.at-range span').textContent=range(M);
- card.querySelectorAll('[data-at-page]').forEach(button=>button.onclick=()=>{state.cleanup();historyPage=+button.dataset.atPage;const template=document.createElement('template');template.innerHTML=currentRhythmSection(false);const next=template.content.querySelector('.attendance-card');card.replaceWith(next);bind(next);finishView(next._attendance);});
+ const replaceCard=()=>{state.cleanup();const template=document.createElement('template');template.innerHTML=currentRhythmSection(false);const next=template.content.querySelector('.attendance-card');card.replaceWith(next);bind(next);finishView(next._attendance);return next;};
+ card.querySelectorAll('[data-at-page]').forEach(button=>button.onclick=()=>{historyPage=+button.dataset.atPage;replaceCard();});
+ const yearPanel=card.querySelector('.at-years-panel'),yearToggle=card.querySelector('.at-years-toggle'),yearApply=card.querySelector('.at-years-apply');let draft=M.selectedYears.slice();
+ function paintYears(){card.querySelector('.at-years-grid').innerHTML=M.availableYears.map(y=>`<button type="button" data-at-year="${y}" aria-pressed="${draft.includes(y)}">${y}<span aria-hidden="true">${draft.includes(y)?'✓':'+'}</span></button>`).join('');card.querySelector('.at-years-summary').textContent=draft.length+' '+(draft.length===1?'year':'years')+' selected';yearApply.disabled=!draft.length;}
+ yearToggle.onclick=()=>{yearPanel.hidden=!yearPanel.hidden;yearToggle.setAttribute('aria-expanded',String(!yearPanel.hidden));draft=M.selectedYears.slice();paintYears();};
+ yearPanel.onclick=e=>{const b=e.target.closest('[data-at-year]');if(!b)return;const y=+b.dataset.atYear;draft=draft.includes(y)?draft.filter(v=>v!==y):[...draft,y].sort((a,b)=>a-b);paintYears();yearPanel.querySelector(`[data-at-year="${y}"]`)?.focus({preventScroll:true});};
+ yearPanel.onkeydown=e=>{if(e.key==='Escape'){yearPanel.hidden=true;yearToggle.setAttribute('aria-expanded','false');yearToggle.focus({preventScroll:true});}};
+ yearApply.onclick=()=>{if(!draft.length)return;DB.settings.attendanceYears=draft.slice();save(true);flushSave();if(saveDirty)toast('Could not save your year selection. Please try again.');historyPage=0;const next=replaceCard();next.querySelector('.at-years-toggle').focus({preventScroll:true});next.querySelector('.at-status').textContent=saveDirty?'Year selection could not be saved.':'Displayed years saved.';};
  function readDate(n,animate=false){const el=card.querySelector('.at-date strong'),y=String(year(n));if(el.textContent!==y){el.textContent=y;if(animate&&!reduced()&&el.animate)el.animate([{opacity:.3,transform:'translateY(7px)'},{opacity:1,transform:'translateY(0)'}],{duration:450});}card.querySelector('.at-date span').textContent=dateLabel(n);picker.value=y;card.dataset.currentDate=iso(n);}
  state.readDate=readDate;
  const comp=card.querySelector('.at-composition'),sheen=document.createElement('div');sheen.className='at-group-sheen';sheen.setAttribute('aria-hidden','true');sheen.append(document.createElement('i'));comp.append(sheen);
@@ -200,20 +228,20 @@ function bind(card){
  const focusCount=card.querySelector('.at-focus-count'),focusDays=card.querySelector('.at-focus-days');
  state.paintCount=n=>{focusCount.textContent=fmt(n);focusDays.textContent=n===1?' day':' days';};
  state.paintFocus=()=>{for(const [el,d]of [...state.cols,...state.mini])el.classList.toggle('dim',d.on&&!matches(d,state.part));card.dataset.focused=String(state.part!=='All workouts');card.querySelectorAll('.at-parts button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.attendancePart===state.part)));card.querySelector('.at-focus').hidden=state.part==='All workouts';card.querySelector('.at-focus-part').textContent=state.part;state.paintCount(M.days.filter(d=>d.on&&matches(d,state.part)).length);state.refreshMask();};state.paintFocus();
- const sync=()=>{if(live?.state===state)return;const atEnd=scroller.scrollHeight-scroller.clientHeight-scroller.scrollTop<8;readDate(state.jumpDate??(atEnd?M.end:clamp(M.firstWeek+Math.floor(scroller.scrollTop/16)*7,M.start,M.end)),true);};
+ const sync=()=>{if(live?.state===state)return;const atEnd=scroller.scrollHeight-scroller.clientHeight-scroller.scrollTop<8;readDate(state.jumpDate??(atEnd?M.end:(M.days.find(d=>d.row>=Math.floor(scroller.scrollTop/16))||M.days.at(-1)).n),true);};
  scroller.addEventListener('scroll',()=>{sync();state.refreshMask();},{passive:true});
  const stop=()=>{state.jumpDate=null;if(state.scene)state.scene.finish();};card.addEventListener('wheel',e=>{if(!e.target.closest('.at-parts'))stop();},{passive:true});card.addEventListener('pointerdown',e=>{if(!e.target.closest('.heat-replay,.at-parts'))stop();});scroller.addEventListener('touchstart',stop,{passive:true});scroller.addEventListener('keydown',stop);
- picker.onchange=()=>{const y=+picker.value;stop();timeline(state);const n=Math.max(M.start,stamp(y+'-01-01'));state.jumpDate=n;readDate(n,true);scroller.scrollTo({top:Math.floor((n-M.firstWeek)/7)*16,behavior:reduced()?'auto':'smooth'});};
+ picker.onchange=()=>{const y=+picker.value;stop();timeline(state);const d=M.days.find(d=>year(d.n)===y);state.jumpDate=d.n;readDate(d.n,true);scroller.scrollTo({top:d.row*16,behavior:reduced()?'auto':'smooth'});};
  card.querySelector('.at-return').onclick=()=>{stop();timeline(state);scroller.scrollTop=scroller.scrollHeight;readDate(M.end);};
  const rail=card.querySelector('.at-parts');rail.onclick=e=>{const b=e.target.closest('button[data-attendance-part]');if(!b)return;focus=state.part=b.dataset.attendancePart;state.paintFocus();state.scene?.refresh();const left=b.offsetLeft-(rail.clientWidth-b.offsetWidth)/2;rail.scrollTo({left,behavior:reduced()?'auto':'smooth'});};
  rail.onkeydown=e=>{const buttons=[...rail.querySelectorAll('button')],i=buttons.indexOf(document.activeElement);if(i<0||!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();const n=e.key==='Home'?0:e.key==='End'?buttons.length-1:clamp(i+(e.key==='ArrowRight'?1:-1),0,buttons.length-1);buttons[n].focus({preventScroll:true});buttons[n].click();};
  card.querySelector('.at-motion').onchange=e=>{stop();motion=state.mode=e.target.value;card.dataset.animation=motion;card.querySelector('.heat-replay').disabled=motion==='Off'||!M.total;if(motion==='Off')finishView(state);};
  card.querySelector('.heat-replay').disabled=motion==='Off'||!M.total;
  state.readDate(M.end);requestAnimationFrame(()=>{if(card.isConnected)scroller.scrollTop=scroller.scrollHeight;});
- if(reduced()||motion==='Off')finishView(state);
+ if(reduced()||motion==='Off'||Array.isArray(DB.settings?.attendanceYears))finishView(state);
 }
 function dateLabel(n){return new Date(Math.round(n)*DAY).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',timeZone:'UTC'});}
-function range(M){const f=n=>new Date(n*DAY).toLocaleDateString('en-US',{month:'short',year:'numeric',timeZone:'UTC'});return f(M.start)+' — '+f(M.end);}
+function range(M){if(M.gapped)return M.years.length+' selected years';const f=n=>new Date(n*DAY).toLocaleDateString('en-US',{month:'short',year:'numeric',timeZone:'UTC'});return f(M.start)+' — '+f(M.end);}
 function timeline(S){S.card.dataset.overview='false';S.card.querySelector('.at-range').hidden=true;S.card.querySelector('.at-date').hidden=false;S.refreshMask?.();}
 function layoutOverview(S){
  const comp=S.card.querySelector('.at-composition'),G=geometry(S.M,comp.clientWidth||320,comp.clientHeight||414);
@@ -232,7 +260,7 @@ function play(card){
  const duration=S.mode==='Today pulse'?PULSE:END;
  function paint(){
   const P=draw(M,x,w,h,elapsed,S.part,S.mode,col,true,false,ambient);
-  if(painted!==elapsed){painted=elapsed;card.querySelector('.at-total').textContent=fmt(P.count);S.paintCount(P.focused(S.part));S.readDate(Math.round(P.cursor),true);card.dataset.phase=P.overview>0?'overview':elapsed<PULSE?'pulse':'rewind';card.dataset.revealed=String(P.count);card.style.setProperty('--at-story-opacity',String(1-P.overview));}
+  if(painted!==elapsed){painted=elapsed;card.querySelector('.at-total').textContent=fmt(P.count);S.paintCount(P.focused(S.part));S.readDate(Math.round(P.dateCursor),true);card.dataset.phase=P.overview>0?'overview':elapsed<PULSE?'pulse':'rewind';card.dataset.revealed=String(P.count);card.style.setProperty('--at-story-opacity',String(1-P.overview));}
   if(complete)card.dataset.phase='complete';
  }
  // Natural completion keeps the exact same canvas and geometry alive. Only
@@ -270,8 +298,8 @@ async function share(card){
   x.drawImage(brand,52,66,910,260,70,109.5-brandHeight/2,226,brandHeight);
   const text=(s,X,Y,size,color,align='left',weight=400)=>{x.fillStyle=color;x.font=weight+' '+size+'px "ShowUp Export Plex", "IBM Plex Sans",sans-serif';x.textAlign=align;x.textBaseline='alphabetic';x.fillText(s,X,Y,align==='right'?570:940);};
   text(M.name,1010,116,27,col.muted,'right');x.fillStyle=col.line;x.fillRect(70,177,940,1);
-  text(fmt(P.count),70,318,112,part==='All workouts'?col.blue:col.ink,'left',500);x.font='500 112px "ShowUp Export Plex"';const nw=x.measureText(fmt(P.count)).width;text('days in',88+nw,318,31,col.muted);
-  text(M.years.length===1?String(M.years[0]):M.years[0]+' – '+M.years.at(-1),1010,292,M.years.length===1?61:32,col.muted,'right');
+  text(fmt(P.count),70,318,112,part==='All workouts'?col.blue:col.ink,'left',500);x.font='500 112px "ShowUp Export Plex"';const nw=x.measureText(fmt(P.count)).width;text(unitLabel(M),88+nw,318,M.filtered?25:31,col.muted);
+  text(M.years.length===1?String(M.years[0]):M.gapped?M.years.length+' selected years':M.years[0]+' – '+M.years.at(-1),1010,292,M.years.length===1?61:32,col.muted,'right');
   if(part!=='All workouts'){
    const prefix=part+' · ',n=P.focused(part),amount=fmt(n);
    x.font='500 112px "ShowUp Export Plex"';const bottom=318+(x.measureText(fmt(P.count)).actualBoundingBoxDescent||0);x.font='500 40px "ShowUp Export Plex"';const measure=x.measureText(prefix+amount+' days'),baseline=(bottom+419)/2+((measure.actualBoundingBoxAscent||30)-(measure.actualBoundingBoxDescent||0))/2;
@@ -280,12 +308,12 @@ async function share(card){
    text(n===1?' day':' days',unitX,baseline,40,col.ink,'left',500);
   }
   x.save();x.translate(70,419);draw(M,x,940,685,t,part,actualMode,col,false,true);x.restore();
-  x.fillStyle=col.line;x.fillRect(70,1145,940,1);text(P.overview>=1?range(M):String(year(P.cursor)),70,1205,27,col.muted);text(P.overview>=1?(M.pageCount>1?`Card ${M.page+1} of ${M.pageCount} · One square. One day.`:'One square. One day.'):dateLabel(P.cursor),1010,1205,M.pageCount>1?22:27,col.muted,'right');
+  x.fillStyle=col.line;x.fillRect(70,1145,940,1);text(P.overview>=1?range(M):String(year(P.dateCursor)),70,1205,27,col.muted);text(P.overview>=1?(M.pageCount>1?`Card ${M.page+1} of ${M.pageCount} · One square. One day.`:'One square. One day.'):dateLabel(P.dateCursor),1010,1205,M.pageCount>1?22:27,col.muted,'right');
   return cv;
  };
  // No timestamp means the complete, still vertical overview, even when the
  // selected animation is Today pulse. Image/MP4/GIF retain one composition.
- const cards=pages(model());
+ const cards=pages(selectedModel());
  async function showPage(index){
   const M=cards[index],render=renderFor(M);
   await showCard(()=>render(),'showuppp-attendance-'+todayISO+(cards.length>1?'-'+(index+1):''),false);
@@ -300,5 +328,5 @@ const mq=matchMedia('(prefers-reduced-motion: reduce)');mq.addEventListener?.('c
 window.addEventListener('resize',()=>{document.querySelectorAll('.attendance-card').forEach(c=>{if(c._attendance)layoutOverview(c._attendance);});});
 window.heatReplay={play,share,seeAll,get live(){return live;},finish(){live?.finish();},duration:()=>END,exportEnd:END};
 // Pure data/camera contract for regression checks; no saved state is exposed.
-window.attendanceView={model,pages,atlas,phase,geometry,sweepAt};
+window.attendanceView={model,chosenYears,selectedModel,pages,atlas,phase,geometry,sweepAt};
 })();

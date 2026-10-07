@@ -1,0 +1,31 @@
+/* Actual saved-setting path, reload, scoped replay/share, no workout edits.
+   Serve repo on PW_PORT=8784 or provide ATTENDANCE_ORIGIN. */
+const {chromium}=require('playwright'),assert=require('assert'),fs=require('fs');
+const origin=process.env.ATTENDANCE_ORIGIN||'http://127.0.0.1:'+(process.env.PW_PORT||8784)+'/';
+(async()=>{const browser=await chromium.launch({executablePath:process.env.PW_CHROME||'C:/Users/sungj/AppData/Local/ms-playwright/chromium-1217/chrome-win64/chrome.exe'});try{
+ for(const theme of ['light','dark']){
+  const p=await browser.newPage({viewport:{width:393,height:852},serviceWorkers:'block'}),errors=[];p.on('pageerror',e=>errors.push(e.message));await p.clock.setFixedTime(new Date('2026-10-07T12:00:00Z'));
+  await p.route('**/*',r=>r.request().url().startsWith(origin)?r.continue():r.abort());await p.goto(origin);await p.waitForTimeout(2000);
+  await p.evaluate(theme=>{document.querySelector('#onb')?.remove();DB.settings={...DB.settings,onboarded:true,name:'Year selection QA',theme,bar:theme};delete DB.settings.attendanceYears;DB.days={};for(let t=Date.UTC(2021,11,1),i=0;t<=Date.UTC(2026,9,7);t+=86400000,i++)if(i%7<4)DB.days[new Date(t).toISOString().slice(0,10)]={doneAll:true,w:[{part:i%2?'Shoulder':'Legs',ex:'Squat',w:50,reps:[8]}]};settingsBaseline();SEED=deriveAll();view='stats';applyTheme();render();save(true);flushSave();window.originalYearsData=JSON.stringify(DB.days);},theme);
+  // Seed records in their already-migrated shape, as a real loaded account is.
+  await p.evaluate(()=>{dayMeta();for(const [date,d]of Object.entries(DB.days)){d.upd=Date.parse(date+'T17:00:00Z');for(const s of d.w)s.cid='squat';}save(true);flushSave();});
+  const original=await p.evaluate(()=>JSON.stringify(DB.days)),name=await p.evaluate(()=>DB.settings.name);
+  await p.locator('.at-years-toggle').click();assert.deepEqual(await p.locator('[data-at-year]').evaluateAll(es=>es.map(e=>+e.dataset.atYear)),[2021,2022,2023,2024,2025,2026]);assert(!/This year|Last 3|All 6/.test(await p.locator('.at-years-panel').innerText()));
+  for(let i=0;i<5;i++)await p.locator('[data-at-year]').nth(i).click();assert.equal(await p.evaluate(()=>DB.settings.attendanceYears),undefined);await p.locator('.at-years-apply').click();
+  assert.deepEqual(await p.evaluate(()=>JSON.parse(localStorage.getItem(KEY)).settings.attendanceYears),[2026]);assert.equal(await p.evaluate(()=>JSON.stringify(DB.days)),original);assert.equal(await p.evaluate(()=>document.querySelector('.attendance-card')._attendance.M.years.join(',')),'2026');assert.equal(await p.locator('.attendance-card').getAttribute('data-overview'),'true');
+  assert((await p.locator('.at-unit').innerText()).includes('2026'));await p.reload();await p.waitForTimeout(2000);await p.evaluate(()=>{view='stats';render()});assert.deepEqual(await p.evaluate(()=>DB.settings.attendanceYears),[2026]);
+  const after=await p.evaluate(()=>DB.days),before=JSON.parse(original),diff=[...new Set([...Object.keys(before),...Object.keys(after)])].filter(k=>JSON.stringify(before[k])!==JSON.stringify(after[k]));assert.deepEqual(diff.slice(0,3).map(k=>({date:k,before:before[k],after:after[k]})),[]);
+  assert.equal(await p.evaluate(()=>DB.settings.name),name);assert.equal(await p.locator('.attendance-card').getAttribute('data-overview'),'true');
+  // Drafts, empty selection, and closing without Apply never replace the save.
+  await p.locator('.at-years-toggle').click();await p.locator('[data-at-year]').last().click();assert(await p.locator('.at-years-apply').isDisabled());await p.locator('.at-years-toggle').click();assert.deepEqual(await p.evaluate(()=>DB.settings.attendanceYears),[2026]);
+  await p.locator('.at-years-toggle').click();await p.locator('[data-at-year]').first().click();await p.locator('.at-years-apply').click();assert.deepEqual(await p.evaluate(()=>DB.settings.attendanceYears),[2021,2026]);
+  const checked=await p.evaluate(()=>{const M=document.querySelector('.attendance-card')._attendance.M;return {years:M.years,total:M.total,actual:M.days.filter(d=>d.on).length,rows:[...new Set(M.days.map(d=>d.row))]};});assert.deepEqual(checked.years,[2021,2026]);assert.equal(checked.total,checked.actual);assert(checked.rows.every((v,i)=>v===i));
+  await p.locator('.heat-replay').click();for(const t of [0,2660,4000,6000,8500,11000,14000]){const date=await p.evaluate(t=>{heatReplay.live.seek(t);return document.querySelector('.attendance-card').dataset.currentDate},t);assert([2021,2026].includes(+date.slice(0,4)));}await p.evaluate(()=>heatReplay.finish());
+  await p.evaluate(()=>{const original=bindPlateExport;bindPlateExport=(...args)=>{window.yearExport=args[4];return original(...args)};});await p.locator('.heat-share').click();await p.locator('#repImg').waitFor({state:'visible'});assert.equal(await p.evaluate(()=>yearExport.render().toDataURL()),await p.evaluate(()=>_repCv.cv.toDataURL()));
+  const text=await p.evaluate(()=>{const prototype=CanvasRenderingContext2D.prototype,old=prototype.fillText,seen=[];prototype.fillText=function(s,...args){seen.push(String(s));return old.call(this,s,...args)};try{yearExport.render();return seen}finally{prototype.fillText=old}});assert(text.includes('2021')&&text.includes('2026'));assert(!text.includes('2024'));assert(text.includes('2 selected years'));
+  if(process.env.QA_DIR){fs.mkdirSync(process.env.QA_DIR,{recursive:true});const png=await p.evaluate(()=>_repCv.cv.toDataURL());fs.writeFileSync(process.env.QA_DIR+'/years-share-'+theme+'.png',Buffer.from(png.split(',')[1],'base64'));}
+  await p.evaluate(()=>{plateExportCleanup();document.querySelector('#repOv').style.display='none';syncModalLock();});await p.setViewportSize({width:320,height:852});await p.locator('.at-years-toggle').click();assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+  if(process.env.QA_DIR)await p.locator('.attendance-card').screenshot({path:process.env.QA_DIR+'/years-picker-'+theme+'.png'});
+  assert.equal(await p.evaluate(()=>JSON.stringify(DB.days)),original);assert.deepEqual(errors,[]);await p.close();console.log('PASS '+theme+': Apply persisted through reload, no presets, oldest-first, draft/empty guards, gapped replay, selected share and 320px');
+ }
+}finally{await browser.close()}})().catch(e=>{console.error(e);process.exitCode=1});

@@ -4388,6 +4388,18 @@ html.modal-open .calreturn{display:none!important}
 .attendance-card{padding:26px 24px 18px;overflow:hidden;--at-blue:#3049dc;--at-story-opacity:1}
 [data-theme="dark"] .attendance-card{--at-blue:#7188ff}
 .attendance-card .at-owner{font:400 12px/1.5 var(--body);color:var(--muted);margin-bottom:20px;min-height:18px}
+.at-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:0}
+.attendance-card .at-heading .at-owner{margin:0;min-width:0;overflow-wrap:anywhere}
+.at-years-toggle{display:flex;align-items:center;gap:8px;white-space:nowrap;min-height:44px;padding:8px 12px;border:1px solid var(--line);border-radius:14px;background:var(--surface2);color:var(--chalk);font:500 13px var(--body)}
+.at-years-panel{padding:16px;margin:0 0 18px;border:1px solid var(--line);border-radius:20px;background:var(--surface)}
+.at-years-panel[hidden]{display:none}
+.at-years-panel>strong{font:500 15px var(--body)}
+.at-years-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:14px}
+.at-years-grid button{display:flex;align-items:center;justify-content:space-between;gap:4px;min-height:44px;padding:8px 10px;border:1px solid var(--line);border-radius:12px;background:var(--surface2);color:var(--chalk);font:400 13px var(--mono)}
+.at-years-grid button[aria-pressed="true"]{border-color:var(--at-blue);color:var(--at-blue);background:color-mix(in srgb,var(--at-blue) 9%,var(--surface))}
+.at-years-bottom{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;color:var(--muted);font:400 12px var(--body)}
+.at-years-apply{min-height:44px;padding:8px 20px;border:0;border-radius:14px;background:var(--at-blue);color:#fff;font:500 14px var(--body)}
+.at-years-apply:disabled{opacity:.45}
 .at-composition{position:relative;height:414px;isolation:isolate}
 .at-story{position:absolute;left:0;top:60px;z-index:2;pointer-events:none;max-width:44%}
 .at-total{font:500 clamp(42px,13vw,60px)/1 var(--body);letter-spacing:-.055em;color:var(--at-blue);font-variant-numeric:tabular-nums;transition:color .3s ease}
@@ -4430,7 +4442,7 @@ html.modal-open .calreturn{display:none!important}
 .at-date strong{font:400 24px var(--mono);color:var(--chalk)}.at-date span,.at-range span{font:400 11px/1.6 var(--mono)}
 .at-return{border:0;background:transparent;color:var(--at-blue);font:400 12px var(--body);min-height:44px;white-space:nowrap;padding:0}
 .attendance-card [hidden]{display:none}
-.at-actions{display:flex;gap:10px;margin-top:12px}
+.at-actions{display:flex;gap:10px;margin-top:6px}
 .attendance-card .at-actions button{display:flex;align-items:center;justify-content:center;gap:7px;min-height:44px;border:1px solid var(--line);background:var(--surface2);color:var(--chalk);border-radius:24px;font:500 13px var(--body);padding:8px 16px}
 .at-actions svg{width:17px;height:17px}.at-actions button:disabled{opacity:.4}
 .at-options{display:grid;grid-template-columns:1fr;gap:12px;margin-top:22px;padding-top:16px;border-top:1px solid var(--line)}
