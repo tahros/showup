@@ -3,7 +3,8 @@
    avoid DST gaps; training dates are deduplicated before counting. The on-screen
    replay and animated exports share one deterministic camera and renderer.
    Still-image sharing uses the same vertical whole-history composition as
-   the final replay frame, with no shimmer in the static export. */
+   the final replay frame, with no shimmer in the static export. Blue labels
+   always count the highlighted days; a filtered lifetime total stays neutral. */
 (()=>{
 'use strict';
 const DAY=86400000, END=14000, PULSE=2660, MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -101,10 +102,10 @@ currentRhythmSection=function(inverse){
  if(inverse)return sourceSection(inverse);
  const M=model(),part=choices.includes(focus)?focus:'All workouts';
  return `<h2 id="secDays">You keep showing up${hActs('rhythm','One square per day. Blue means you trained. Scroll through the years, or replay your history from today. Body-part focus dims other training days without removing them.','About your attendance')}</h2>
- <div class="card crcard attendance-card" data-overview="false">
+ <div class="card crcard attendance-card" data-overview="false" data-focused="${part!=='All workouts'}">
   <div class="at-owner">${hesc(M.name)}</div>
   <div class="at-parts" role="group" aria-label="Highlight body part">${choices.map(p=>`<button type="button" data-attendance-part="${p}" aria-pressed="${p===part}">${p==='All workouts'?'All':p}</button>`).join('')}</div>
-  <div class="at-composition"><div class="at-story"><div class="at-total">${fmt(M.total)}</div><div class="at-unit">days in</div><div class="at-focus"${part==='All workouts'?' hidden':''}><b></b><span>${hesc(part)}</span></div><div class="at-streak">streak ${dayCount(currentStreak())}<br>best ${dayCount(longestStreak())}</div></div>
+  <div class="at-composition"><div class="at-story"><div class="at-total">${fmt(M.total)}</div><div class="at-unit">days in</div><div class="at-focus"${part==='All workouts'?' hidden':''}><b><span class="at-focus-count"></span><span class="at-focus-days"></span></b><span class="at-focus-part">${hesc(part)}</span></div><div class="at-streak">streak ${dayCount(currentStreak())}<br>best ${dayCount(longestStreak())}</div></div>
    <div class="at-timeline"><label class="at-year-label"><span class="sr-only">Calendar year</span><select class="at-year">${M.years.map(y=>`<option value="${y}">${y}</option>`).join('')}</select></label><div class="at-weekdays" aria-hidden="true">${Array.from({length:7},(_,i)=>'<span>'+['S','M','T','W','T','F','S'][(i+M.dow)%7]+'</span>').join('')}</div><div class="at-scroll" tabindex="0" aria-label="Training calendar. Scroll vertically through your history."><div class="at-calendar"></div></div></div>
    <div class="at-overview" role="img"></div>
   </div>
@@ -139,7 +140,9 @@ function bind(card){
  });};
  const resizeObserver=typeof ResizeObserver==='function'?new ResizeObserver(()=>{layoutOverview(state);state.refreshMask();}):null;resizeObserver?.observe(comp);
  state.cleanup=()=>{state.scene?.dispose();visibility?.disconnect();resizeObserver?.disconnect();cancelAnimationFrame(maskFrame);};
- state.paintFocus=()=>{for(const [el,d]of [...state.cols,...state.mini])el.classList.toggle('dim',d.on&&!matches(d,state.part));card.querySelectorAll('.at-parts button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.attendancePart===state.part)));card.querySelector('.at-focus').hidden=state.part==='All workouts';card.querySelector('.at-focus span').textContent=state.part;card.querySelector('.at-focus b').textContent=dayCount(M.days.filter(d=>d.on&&matches(d,state.part)).length);state.refreshMask();};state.paintFocus();
+ const focusCount=card.querySelector('.at-focus-count'),focusDays=card.querySelector('.at-focus-days');
+ state.paintCount=n=>{focusCount.textContent=fmt(n);focusDays.textContent=n===1?' day':' days';};
+ state.paintFocus=()=>{for(const [el,d]of [...state.cols,...state.mini])el.classList.toggle('dim',d.on&&!matches(d,state.part));card.dataset.focused=String(state.part!=='All workouts');card.querySelectorAll('.at-parts button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.attendancePart===state.part)));card.querySelector('.at-focus').hidden=state.part==='All workouts';card.querySelector('.at-focus-part').textContent=state.part;state.paintCount(M.days.filter(d=>d.on&&matches(d,state.part)).length);state.refreshMask();};state.paintFocus();
  const sync=()=>{if(live?.state===state)return;const atEnd=scroller.scrollHeight-scroller.clientHeight-scroller.scrollTop<8;readDate(state.jumpDate??(atEnd?M.end:clamp(M.firstWeek+Math.floor(scroller.scrollTop/16)*7,M.start,M.end)),true);};
  scroller.addEventListener('scroll',()=>{sync();state.refreshMask();},{passive:true});
  const stop=()=>{state.jumpDate=null;if(state.scene)state.scene.finish();};card.addEventListener('wheel',e=>{if(!e.target.closest('.at-parts'))stop();},{passive:true});card.addEventListener('pointerdown',e=>{if(!e.target.closest('.heat-replay,.at-parts'))stop();});scroller.addEventListener('touchstart',stop,{passive:true});scroller.addEventListener('keydown',stop);
@@ -171,7 +174,7 @@ function play(card){
  const duration=S.mode==='Today pulse'?PULSE:END;
  function paint(){
   const P=draw(M,x,w,h,elapsed,S.part,S.mode,col,true,false,ambient);
-  if(painted!==elapsed){painted=elapsed;card.querySelector('.at-total').textContent=fmt(P.count);card.querySelector('.at-focus b').textContent=dayCount(P.focused(S.part));S.readDate(Math.round(P.cursor),true);card.dataset.phase=P.overview>0?'overview':elapsed<PULSE?'pulse':'rewind';card.dataset.revealed=String(P.count);card.style.setProperty('--at-story-opacity',String(1-P.overview));}
+  if(painted!==elapsed){painted=elapsed;card.querySelector('.at-total').textContent=fmt(P.count);S.paintCount(P.focused(S.part));S.readDate(Math.round(P.cursor),true);card.dataset.phase=P.overview>0?'overview':elapsed<PULSE?'pulse':'rewind';card.dataset.revealed=String(P.count);card.style.setProperty('--at-story-opacity',String(1-P.overview));}
   if(complete)card.dataset.phase='complete';
  }
  // Natural completion keeps the exact same canvas and geometry alive. Only
@@ -214,8 +217,13 @@ async function share(card){
   x.drawImage(pip,14,85,485,292,70,brandCenterY-62/2,103,62);x.drawImage(word,187,71,109,73);
   const text=(s,X,Y,size,color,align='left',weight=400)=>{x.fillStyle=color;x.font=weight+' '+size+'px "ShowUp Export Plex", "IBM Plex Sans",sans-serif';x.textAlign=align;x.textBaseline='alphabetic';x.fillText(s,X,Y,align==='right'?570:940);};
   text(M.name,1010,116,27,col.muted,'right');x.fillStyle=col.line;x.fillRect(70,177,940,1);
-  text(fmt(P.count),70,318,112,col.blue,'left',500);x.font='500 112px "ShowUp Export Plex"';const nw=x.measureText(fmt(P.count)).width;text('days in',88+nw,318,31,col.muted);
-  if(part!=='All workouts')text(part+' · '+P.focused(part)+' days',70,375,26,col.muted);
+  text(fmt(P.count),70,318,112,part==='All workouts'?col.blue:col.ink,'left',500);x.font='500 112px "ShowUp Export Plex"';const nw=x.measureText(fmt(P.count)).width;text('days in',88+nw,318,31,col.muted);
+  if(part!=='All workouts'){
+   const prefix=part+' · ',n=P.focused(part),amount=fmt(n);
+   text(prefix,70,375,40,col.ink,'left',500);const numberX=70+x.measureText(prefix).width;
+   text(amount,numberX,375,40,col.blue,'left',500);const unitX=numberX+x.measureText(amount).width;
+   text(n===1?' day':' days',unitX,375,40,col.ink,'left',500);
+  }
   x.save();x.translate(70,419);draw(M,x,940,685,t,part,actualMode,col,false,true);x.restore();
   x.fillStyle=col.line;x.fillRect(70,1145,940,1);text(P.overview>=1?range(M):String(year(P.cursor)),70,1205,27,col.muted);text(P.overview>=1?'One square. One day.':dateLabel(P.cursor),1010,1205,27,col.muted,'right');
   return cv;

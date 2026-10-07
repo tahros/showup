@@ -1,5 +1,11 @@
 # ShowUp — changelog
 
+## v4.6.227 (2026-10-07) — Blue counts what is highlighted
+
+- Selecting a body part makes the lifetime training total neutral and keeps only the matching day count blue. Returning to All restores the blue total. In-app text colors transition smoothly, using the same 300 ms easing as calendar highlighting, and respect reduced motion.
+- Attendance share images, MP4 and GIF exports use the same color meaning, with a larger, higher-contrast body-part label. Light mode uses charcoal; dark mode uses white.
+- Preserves the logo alignment, replay, header, profile and saved workouts.
+
 ## v4.6.226 (2026-10-07) — A balanced share logo
 
 - Vertically centers Pip with the visible ShowUppp lettering in attendance share images, MP4 and GIF frames, in both light and dark themes.

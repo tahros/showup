@@ -4390,10 +4390,12 @@ html.modal-open .calreturn{display:none!important}
 .attendance-card .at-owner{font:400 12px/1.5 var(--body);color:var(--muted);margin-bottom:20px;min-height:18px}
 .at-composition{position:relative;height:430px;isolation:isolate}
 .at-story{position:absolute;left:0;top:60px;z-index:2;pointer-events:none;max-width:44%}
-.at-total{font:500 clamp(42px,13vw,60px)/1 var(--body);letter-spacing:-.055em;color:var(--at-blue);font-variant-numeric:tabular-nums}
+.at-total{font:500 clamp(42px,13vw,60px)/1 var(--body);letter-spacing:-.055em;color:var(--at-blue);font-variant-numeric:tabular-nums;transition:color .3s ease}
+.attendance-card[data-focused="true"] .at-total{color:var(--chalk)}
 .at-unit{font:400 15px/1.5 var(--body);color:var(--muted);margin-top:8px}
-.at-focus{margin-top:26px;font:400 12px/1.6 var(--body);color:var(--muted)}
-.at-focus b,.at-focus span{display:block}.at-focus b{font-weight:500;color:var(--at-blue)}
+.at-focus{margin-top:26px;font:500 14px/1.6 var(--body);color:var(--chalk);transition:color .3s ease}
+.at-focus>b,.at-focus>.at-focus-part{display:block}.at-focus b{font-weight:500;white-space:nowrap}
+.at-focus-count{color:var(--at-blue);transition:color .3s ease}.at-focus-days{color:var(--chalk);transition:color .3s ease}
 .at-streak{margin-top:36px;font:400 11px/1.8 var(--mono);color:var(--muted)}
 .at-timeline{position:absolute;right:0;top:0;width:57%;max-width:164px}
 .at-year-label{display:block;position:relative;width:fit-content;height:38px;text-align:left;margin-left:28px}
@@ -4444,8 +4446,8 @@ html.modal-open .calreturn{display:none!important}
 .attendance-card .at-parts button[aria-pressed="true"]{background:color-mix(in srgb,var(--at-blue) 10%,transparent);color:var(--at-blue)}
 .attendance-card .at-parts button:focus-visible{outline:2px solid var(--at-blue);outline-offset:-2px}
 .at-cell,.at-mini{transition:opacity .3s ease}
-.at-playing .at-focus{margin-top:6px;font-size:11px}.at-playing .at-focus b,.at-playing .at-focus span{display:inline}.at-playing .at-focus span{margin-left:5px}
+.at-playing .at-focus{margin-top:6px;font-size:13px}.at-playing .at-focus>b,.at-playing .at-focus>.at-focus-part{display:inline}.at-playing .at-focus>.at-focus-part{margin-left:5px}
 @keyframes at-group-light{from{transform:translate3d(-50%,0,0)}to{transform:translate3d(0,0,0)}}
-@media(prefers-reduced-motion:reduce){.at-group-sheen{display:none}.attendance-card .at-parts button,.at-cell,.at-mini{transition:none}}
+@media(prefers-reduced-motion:reduce){.at-group-sheen{display:none}.attendance-card .at-parts button,.at-cell,.at-mini,.at-total,.at-focus,.at-focus-count,.at-focus-days{transition:none}}
 @media(max-width:360px){.attendance-card{padding:22px 18px 16px}.at-total{font-size:46px}.at-options{gap:8px}.at-date span{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.attendance-card .heat-replay{display:none}.attendance-card *{scroll-behavior:auto!important}}
