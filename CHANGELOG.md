@@ -1,5 +1,10 @@
 # ShowUppp — changelog
 
+## v4.6.243 (2026-10-07) — Larger share details, same summary
+
+- Increases daily Share Image/Video text to the approved +3px scale, while keeping the minutes, sets, exercises and miles summary at +2px.
+- Updates wrapping and row sizing for larger exercise names, weights and reps. Preserves centered summary columns, logo/Pip sizes, animation timing and in-app typography.
+
 ## v4.6.242 (2026-10-07) — More legible daily shares
 
 - Applies the approved +2px typography to daily-review Share Image and Video, with larger exercise names, weights, reps, headings and centered summary text.
