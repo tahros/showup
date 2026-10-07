@@ -11,9 +11,12 @@ try{for(const theme of ['dark','light']){
  await p.waitForTimeout(500);await p.evaluate(()=>heatReplay.share(document.querySelector('.attendance-card')));
  const result=await p.evaluate(()=>{
   function pixels(cv){const data=cv.getContext('2d').getImageData(187,71,109,73).data;let white=0,charcoal=0;for(let i=0;i<data.length;i+=4){if(data[i]>245&&data[i+1]>245&&data[i+2]>245)white++;if(Math.abs(data[i]-44)<3&&Math.abs(data[i+1]-44)<3&&Math.abs(data[i+2]-44)<3)charcoal++;}return {white,charcoal};}
-  return {filter:document.createElement('canvas').getContext('2d').filter,still:pixels(_repCv.cv),frames:[0,765,4500,9550,undefined].map(t=>pixels(attendanceExport.render(t)))};
+  function centers(cv){const x=cv.getContext('2d'),bg=x.getImageData(60,60,1,1).data;return [[70,60,103,95],[187,60,109,95]].map(([left,top,w,h])=>{const d=x.getImageData(left,top,w,h).data;let lo=h,hi=-1;for(let y=0;y<h;y++)for(let col=0;col<w;col++){const i=(y*w+col)*4;if(Math.max(...[0,1,2].map(c=>Math.abs(d[i+c]-bg[c])))>32){lo=Math.min(lo,y);hi=Math.max(hi,y);}}if(hi<0)throw Error('Missing visible logo artwork');return top+(lo+hi)/2;});}
+  const canvases=[_repCv.cv,...[0,765,4500,9550,14000,15000,undefined].map(t=>attendanceExport.render(t))];
+  return {filter:document.createElement('canvas').getContext('2d').filter,still:pixels(canvases[0]),frames:canvases.slice(1).map(pixels),centers:canvases.map(centers)};
  });
  assert.equal(result.filter,'none');for(const pixels of [result.still,...result.frames]){if(theme==='dark'){assert(pixels.white>1600&&pixels.white<4000,'dark wordmark must be white with transparent counters even without canvas filters: '+JSON.stringify(pixels));assert(pixels.charcoal<50,'only antialiased edges may blend to charcoal');}else assert(pixels.charcoal>1600,'light wordmark stays charcoal');}
+ for(const [pip,word] of result.centers)assert(Math.abs(pip-word)<=1,'Pip and lettering visible centerlines must match within 1px: '+JSON.stringify({theme,pip,word}));
  if(process.env.QA_DIR){fs.mkdirSync(process.env.QA_DIR,{recursive:true});const url=await p.evaluate(()=>_repCv.cv.toDataURL());fs.writeFileSync(process.env.QA_DIR+'/wordmark-'+theme+'.png',Buffer.from(url.split(',')[1],'base64'));}
  assert.deepEqual(errors,[]);console.log('PASS '+theme+': still and all animation frames, canvas filters disabled');await p.close();
 }}finally{await b.close();}})().catch(e=>{console.error(e);process.exitCode=1;});

@@ -1,5 +1,10 @@
 # ShowUp — changelog
 
+## v4.6.226 (2026-10-07) — A balanced share logo
+
+- Vertically centers Pip with the visible ShowUppp lettering in attendance share images, MP4 and GIF frames, in both light and dark themes.
+- Preserves the approved artwork, logo sizes, graph, header and saved workouts. Adds a pixel-level alignment check for still and animated exports.
+
 ## v4.6.225 (2026-10-06) — Keep the vertical history when sharing
 
 - Attendance share images now keep the vertical year columns from the in-app whole-history view, rather than changing to horizontal year strips.

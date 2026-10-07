@@ -208,7 +208,10 @@ async function share(card){
  const render=(time,canvas)=>{
   const cv=canvas||document.createElement('canvas');cv.width=1080;cv.height=1280;const x=cv.getContext('2d'),t=Number.isFinite(time)?Math.max(0,time):END,actualMode=Number.isFinite(time)?mode:'Off',P=phase(M,t,actualMode);
   x.fillStyle=col.surface;x.fillRect(0,0,1080,1280);
-  x.drawImage(pip,14,85,485,292,70,82,103,62);x.drawImage(word,187,71,109,73);
+  // Centre the cropped mascot on the lettering's visible ink, not its padded
+  // SVG artboard. This same lockup is used by still, MP4 and GIF frames.
+  const brandCenterY=109.5;
+  x.drawImage(pip,14,85,485,292,70,brandCenterY-62/2,103,62);x.drawImage(word,187,71,109,73);
   const text=(s,X,Y,size,color,align='left',weight=400)=>{x.fillStyle=color;x.font=weight+' '+size+'px "ShowUp Export Plex", "IBM Plex Sans",sans-serif';x.textAlign=align;x.textBaseline='alphabetic';x.fillText(s,X,Y,align==='right'?570:940);};
   text(M.name,1010,116,27,col.muted,'right');x.fillStyle=col.line;x.fillRect(70,177,940,1);
   text(fmt(P.count),70,318,112,col.blue,'left',500);x.font='500 112px "ShowUp Export Plex"';const nw=x.measureText(fmt(P.count)).width;text('days in',88+nw,318,31,col.muted);

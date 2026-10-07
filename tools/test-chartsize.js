@@ -91,7 +91,8 @@ ok("the attendance timeline has seven weekday columns", run(`document.querySelec
 ok("exactly one Today in the timeline", run(`document.querySelectorAll('.at-calendar .today').length`)===1);
 ok("one miniature per actual calendar day", run(`document.querySelectorAll('.at-mini').length===attendanceView.model().days.length`));
 ok("timeline and overview agree on trained days", run(`document.querySelectorAll('.at-cell.on').length===document.querySelectorAll('.at-mini.on').length`));
-ok("streak values name their unit", /streak \d+ days/.test(run(`document.querySelector('.at-streak').textContent`)));
+// The fixture follows today's date, so its streak can legitimately be one day.
+ok("streak values name their unit", run(`document.querySelector('.at-streak').textContent === 'streak '+currentStreak()+' '+(currentStreak()===1?'day':'days')+'best '+longestStreak()+' '+(longestStreak()===1?'day':'days')`));
 ok("the retired Weekdays plot is gone", run(`document.querySelectorAll('.wd-col').length`)===0);
 
 // ---- 4. Consistency: verdict plus graph ------------------------------------
