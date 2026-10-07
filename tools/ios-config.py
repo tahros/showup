@@ -41,12 +41,18 @@ It never touches the bundle identifier: that is chosen per signing account
 import json, pathlib, plistlib, re, shutil, sys
 
 SCHEME = "co.yooooooooo.showup"          # must equal AUTH_SCHEME in js/core.js
+# v4.6.231: the product is ShowUppp. This is the name under the icon and in
+# iOS Settings; it must equal appName in capacitor.config.json (buildcheck).
+# Identifiers keep the old spelling on purpose: the bundle id, the URL
+# scheme and the ShowUp* plugin names are not user-facing and renaming them
+# would orphan installed builds.
+APP_NAME = "ShowUppp"
 # v4.6.154: Save Image in the share sheet writes to Photos; iOS requires this
 # purpose string for add-only access, and ends the app without one.
-PHOTOS_ADD_WHY = "ShowUp saves a card you share to your Photos when you choose Save Image."
-HEALTH_WHY = ("ShowUp saves each workout you finish to Apple Health, if you turn this on in Settings: "
+PHOTOS_ADD_WHY = "ShowUppp saves a card you share to your Photos when you choose Save Image."
+HEALTH_WHY = ("ShowUppp saves each workout you finish to Apple Health, if you turn this on in Settings: "
               "strength sessions, and runs, rides, rows, swims and walks with their time and distance. "
-              "ShowUp never reads your Health data.")
+              "ShowUppp never reads your Health data.")
 d = pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else ".").resolve()
 # v4.6.145: switches that need the paid developer account. Absent file = all off.
 flags_f = d / "ios-flags.json"
@@ -70,6 +76,7 @@ pl["UISupportedInterfaceOrientations"] = [
 pl.pop("UISupportedInterfaceOrientations~ipad", None)
 # v4.6.132: Apple Health. Specific, because a vague purpose string is its own
 # rejection (5.1.1). Write only: ShowUp asks to share workouts, never to read.
+pl["CFBundleDisplayName"] = APP_NAME
 pl["NSHealthUpdateUsageDescription"] = HEALTH_WHY
 pl.pop("NSHealthShareUsageDescription", None)
 pl["NSPhotoLibraryAddUsageDescription"] = PHOTOS_ADD_WHY      # v4.6.154, add-only

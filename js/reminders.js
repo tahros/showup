@@ -116,7 +116,7 @@ async function remToggle(on){
   const pr=remPrefs();
   if(on){
     let st=null; try{ st=await P.requestPermissions(); }catch(e){}
-    if(!st||st.display!=='granted'){ remSetPrefs({...pr,on:false}); toast('Notifications are off for ShowUp. Turn them on in iOS Settings.'); return 'denied'; }
+    if(!st||st.display!=='granted'){ remSetPrefs({...pr,on:false}); toast('Notifications are off for ShowUppp. Turn them on in iOS Settings.'); return 'denied'; }
   }
   remSetPrefs({...pr,on:!!on});
   const r=await remApply(true);

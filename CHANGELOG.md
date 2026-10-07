@@ -1,4 +1,14 @@
-# ShowUp — changelog
+# ShowUppp — changelog
+
+## v4.6.231 (2026-10-07) — The name is ShowUppp
+
+- **Asked for:** change the name, officially, to ShowUppp.
+- **Web app (PWA):** the browser tab and the installed app's name read ShowUppp.
+- **In the app:** every place the app names itself reads ShowUppp: the welcome line, the first-run cards, the Settings version line, the Apple Health and notification messages, the account-deletion confirmation, the backup error, the copied History text and the name on share cards.
+- **Privacy and Support pages:** ShowUppp throughout. Nothing else in either page changed, so the privacy policy keeps its September 26 effective date.
+- **iOS test app (Xcode build):** `tools/ios-config.py` now writes the name under the icon (CFBundleDisplayName) and the Apple Health and Photos permission text as ShowUppp. These reach the phone at the next Mac rebuild (`npm run sync:ios`, then Run); until then the installed build keeps the old name under its icon and in those two prompts, while everything inside the app updates over the air.
+- **Unchanged on purpose:** the bundle ID `co.yooooooooo.showup`, the sign-in URL scheme, storage keys, backup and share file names, the repo and web address, and the `ShowUp*` native plugin names. None is shown to a person, and renaming them would cut installed builds off from their data or their updates.
+- **Guarded:** buildcheck fails if the tab title, the web manifest, the Capacitor app name, the iOS display name or either public page drifts from ShowUppp.
 
 ## v4.6.230 (2026-10-07) — A layout for every chapter
 

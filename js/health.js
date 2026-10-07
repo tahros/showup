@@ -101,7 +101,7 @@ async function healthToggle(on){
     let st=null; try{ st=await P.requestAuthorization(); }catch(e){}
     const s=st&&st.status;
     if(s==='unavailable'){ toast('Apple Health is not available on this device.'); return 'unavailable'; }
-    if(s!=='authorized'){ hlSetPrefs({...hlPrefs(),on:false}); toast('ShowUp is not allowed to write to Apple Health. In the Health app, tap your picture → Apps → ShowUp.'); return 'denied'; }
+    if(s!=='authorized'){ hlSetPrefs({...hlPrefs(),on:false}); toast('ShowUppp is not allowed to write to Apple Health. In the Health app, tap your picture → Apps → ShowUppp.'); return 'denied'; }
   }
   hlSetPrefs({...hlPrefs(),on:!!on});
   toast(on?'Workouts will be saved to Apple Health':'Apple Health off');

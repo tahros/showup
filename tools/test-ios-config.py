@@ -124,6 +124,8 @@ class KeepCustomCode { let untouched = true }
 
     def health(self, ent_rel="App/App.entitlements"):
         pl = plistlib.loads((self.app / "Info.plist").read_bytes())
+        self.assertEqual(pl["CFBundleDisplayName"], "ShowUppp")                                          # v4.6.231
+        self.assertTrue(pl["NSHealthUpdateUsageDescription"].startswith("ShowUppp "))
         self.assertIn("never reads", pl["NSHealthUpdateUsageDescription"])
         self.assertNotIn("NSHealthShareUsageDescription", pl)
         ent = plistlib.loads((self.root / "ios/App" / ent_rel).read_bytes())

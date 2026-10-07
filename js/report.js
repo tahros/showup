@@ -67,7 +67,7 @@ function drawGrid(gd){
   x.fillStyle=V('--muted'); x.font='500 40px '+MONO;
   x.fillText('of '+spanDays.toLocaleString()+' days',P+tw+20,P+126);
   x.textAlign='right'; x.font='500 34px '+MONO;
-  x.fillText('ShowUp',S-P,P+54);
+  x.fillText('ShowUppp',S-P,P+54);
   x.textAlign='left'; x.fillStyle=V('--faint'); x.font='500 28px '+MONO;
   x.fillText('SHOWING UP, EVERY MONTH',P,P+188);
 
@@ -159,7 +159,7 @@ function drawYoy(curves,o){
     x.fillText(o.sub||('of '+thisYear+', trained'),P+tw+18,P+96);
   }
   x.textAlign='right'; x.fillStyle=V('--muted'); x.font='500 34px '+MONO;
-  x.fillText('ShowUp',S-P,P+50);
+  x.fillText('ShowUppp',S-P,P+50);
   x.textAlign='left'; x.fillStyle=V('--faint'); x.font='500 28px '+MONO;
   x.fillText(kicker,P,P+152);
 

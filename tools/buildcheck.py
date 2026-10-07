@@ -897,9 +897,33 @@ if not all(_credit in _settings for _credit in (
 # meant scrolling the whole page. The guard follows it: the version must come
 # BEFORE the Display section, and the credits must still be carried in full.
 _set = (d/"js/settings.js").read_text()
-_v, _c, _h = _set.find("ShowUp ${APP_VERSION}"), _set.find("assetcredits"), _set.find("<h2>Display</h2>")
+_v, _c, _h = _set.find("ShowUppp ${APP_VERSION}"), _set.find("assetcredits"), _set.find("<h2>Display</h2>")
 if _v < 0 or _c < 0 or _h < 0 or not (_v < _h and _v < _c):
     fail.append("settings: the app version must be the first thing on the page, above Display and the credits (v3.3.513)")
+
+# v4.6.231: THE PRODUCT IS NAMED ShowUppp. One name in every place a person
+# reads it: the browser tab, the installed web app, the name under the iOS
+# icon (capacitor.config.json at `cap add`, CFBundleDisplayName written by
+# tools/ios-config.py on every sync), and the two public pages Apple links to.
+# Identifiers keep the old spelling on purpose and are NOT covered here: the
+# bundle id, the URL scheme, storage keys, file names and the ShowUp* native
+# plugin names.
+import json as _json_nm, re as _re_nm
+_NAME = "ShowUppp"
+_cap_nm = _json_nm.loads((d/"capacitor.config.json").read_text()).get("appName")
+_man_nm = _json_nm.loads((d/"manifest.webmanifest").read_text())
+_ios_nm = _re_nm.search(r'^APP_NAME = "([^"]*)"', (d/"tools/ios-config.py").read_text(), _re_nm.M)
+if _cap_nm != _NAME:
+    fail.append(f"name: capacitor.config.json appName is {_cap_nm!r}, not {_NAME!r} (v4.6.231)")
+if _man_nm.get("name") != _NAME or _man_nm.get("short_name") != _NAME:
+    fail.append(f"name: manifest.webmanifest name/short_name must both be {_NAME!r} (v4.6.231)")
+if not _ios_nm or _ios_nm.group(1) != _NAME or 'pl["CFBundleDisplayName"] = APP_NAME' not in (d/"tools/ios-config.py").read_text():
+    fail.append(f"name: tools/ios-config.py must write CFBundleDisplayName = {_NAME!r} (v4.6.231)")
+if f"<title>{_NAME}</title>" not in (d/"index.html").read_text():
+    fail.append(f"name: index.html <title> must be {_NAME} (v4.6.231)")
+for _pg in ("privacy.html", "support.html"):
+    if _re_nm.search(r"ShowUp(?!p)", (d/_pg).read_text()):
+        fail.append(f"name: {_pg} still says ShowUp; the product is {_NAME} (v4.6.231)")
 
 if any(_old in _stats for _old in ("Stated, not trained", "INTENT_GAP_DAYS",
         "intentGaps", "intentGapCard", "data-igretire")):

@@ -370,8 +370,8 @@ for(const tone of ['white','chrome']){
   async function play(){
     if(open)return;
     const el=document.createElement('div');el.id='gymTour';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');
-    el.setAttribute('aria-label','ShowUp gym film. Tap anywhere to close.');
-    el.innerHTML='<canvas id="gymTourScreen" role="img" aria-label="Pixel-art ShowUp dumbbell mascot jumping through twelve US gyms, one per month."></canvas>';
+    el.setAttribute('aria-label','ShowUppp gym film. Tap anywhere to close.');
+    el.innerHTML='<canvas id="gymTourScreen" role="img" aria-label="Pixel-art ShowUppp dumbbell mascot jumping through twelve US gyms, one per month."></canvas>';
     const key=e=>{if(e.key==='Escape'||e.key==='Enter'||e.key===' '){e.preventDefault();close();}};
     open={el,key,player:null};document.body.append(el);document.documentElement.classList.add('gym-tour-open');
     document.addEventListener('keydown',key,true);

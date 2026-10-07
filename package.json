@@ -1,8 +1,8 @@
 {
   "name": "showup",
-  "version": "4.6.230",
+  "version": "4.6.231",
   "private": true,
-  "description": "ShowUp \u2014 habits and workouts. A static PWA; this manifest exists only for the iOS shell.",
+  "description": "ShowUppp \u2014 habits and workouts. A static PWA; this manifest exists only for the iOS shell.",
   "scripts": {
     "build:dist": "python3 tools/build-dist.py .",
     "check:dist": "node tools/check-dist.cjs .",

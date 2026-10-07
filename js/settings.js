@@ -11,7 +11,7 @@ function renderSync(){
          mid-debug: which build is this. It is a fact about the app, not a
          footnote to the controls, so it goes where you land. The credits keep
          the foot to themselves. -->
-    <div class="vertag mono" id="verTag">ShowUp ${APP_VERSION}</div>
+    <div class="vertag mono" id="verTag">ShowUppp ${APP_VERSION}</div>
     ${typeof membershipRowHTML==='function'?membershipRowHTML():''}
     ${typeof ownerEntryHTML==='function'?ownerEntryHTML():''}
     ${!session&&Object.keys(DB.days).some(d=>DB.days[d].w&&DB.days[d].w.length)?`
@@ -86,7 +86,7 @@ function renderSync(){
         <button data-hl="off" class="${hp.on?'':'sel'}" aria-pressed="${!hp.on}">Off</button>
         <button data-hl="on" class="${hp.on?'sel':''}" aria-pressed="${hp.on}">On</button>
       </span>
-      <div class="note" style="margin-top:10px">When you press Finish, the workout is saved to Apple Health: your lifting as strength training, and each run, ride, row, swim or walk as its own workout with its time and distance. From now on only; nothing earlier is sent. ShowUp never reads your Health data.</div>
+      <div class="note" style="margin-top:10px">When you press Finish, the workout is saved to Apple Health: your lifting as strength training, and each run, ride, row, swim or walk as its own workout with its time and distance. From now on only; nothing earlier is sent. ShowUppp never reads your Health data.</div>
     </div>`; })():''}
     <h2>Account & cloud sync</h2>
     <div class="card">
@@ -283,7 +283,7 @@ function restoreBackup(file){
       DB=doc; save();
       toast('Restored — reloading');
       setTimeout(()=>{ try{location.reload();}catch(e){} },600);
-    }catch(e){ toast('Not a ShowUp backup file'); }
+    }catch(e){ toast('Not a ShowUppp backup file'); }
   };
   rd.readAsText(file);
 }

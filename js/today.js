@@ -116,7 +116,7 @@ function onbRender(){
       <button class="onbbtn ghost" data-onbact="skip">Skip</button></div>`;
   }else if(onbStep===4){
     b=`<div class="onbcard">
-      <h3>How to ShowUp</h3>
+      <h3>How to ShowUppp</h3>
       <div class="onbges"><span class="gi">‹</span><span><b>Swipe right</b> inside an exercise<span class="muted">back to the part list</span></span></div>
       <div class="onbges"><span class="gi">⊙</span><span><b>Hold a logged set</b><span class="muted">edit it — tap once to delete</span></span></div>
       <div class="onbges"><span class="gi">▮</span><span><b>Tap the header when it's red</b><span class="muted">jump straight to your active exercise</span></span></div>
@@ -218,7 +218,7 @@ function dayOneHTML(){
       ${mascotHTML('hello','su-first-day')}
       <i class="d1sq" aria-hidden="true"></i>
       <h3 class="d1h">One set is day one.</h3>
-      <p class="muted d1p">ShowUp counts days, not perfection.</p>
+      <p class="muted d1p">ShowUppp counts days, not perfection.</p>
       <button class="onbbtn pri" data-d1="start">Log your first set</button>
       ${refinedFlow()&&!d1.preview?(planningWorkspace()?`<div class="pw-actions">${pwAction('open','Plan','sparkle')}${pwAction('paste-open','Paste','paste','',`data-date="${todayISO}"`)}</div>`:`<div class="flow-dayone-plan"><span class="mono muted">Have a routine?</span><span class="planedge"><button class="pedge" data-planpaste>${icon('paste',ICON_SZ.sm)}Paste</button><button class="pedge pwrite" data-planwrite>${icon('sparkle',ICON_SZ.sm)}Write</button></span></div>`):''}
       <button class="onbbtn d1soon" data-d1="soon" aria-disabled="true">Bring my logs over \u00b7 soon</button>
@@ -234,7 +234,7 @@ function emptyHero(which){
   if(which==='history') return `<div class="card emptyhero"><h3>No history yet</h3>
     <p class="muted">Every day you train lands here, forever. That can start today.</p>${cta}</div>`;
   return `<div class="card emptyhero"><h3>Your first day starts with one set</h3>
-    <p class="muted">ShowUp counts days, not perfection. Log one set and today turns blue — the streak takes care of itself.</p>${cta}</div>`;
+    <p class="muted">ShowUppp counts days, not perfection. Log one set and today turns blue — the streak takes care of itself.</p>${cta}</div>`;
 }
 document.addEventListener('click',e=>{
   const chip=e.target.closest('[data-onbp]');
@@ -373,7 +373,7 @@ function focusedTodayHTML(){
   const next=nextPlanItem(),sets=items.reduce((n,it)=>n+(it.lines||[]).reduce((s,l)=>s+(l.reps||[]).length,0),0);
   const future=[...new Set([...(DB.plan?.d>todayISO?[DB.plan.d]:[]),...Object.keys(DB.week?.days||{}).filter(d=>d>todayISO)])].filter(d=>pwSaved(d)?.items?.length).sort();
   const parts=items.length?pwParts(pwRead(planText(now))).join(' + '):'';
-  let h=`<section class="today-focus"><div class="su-hello-row">${fresh?'<div class="hello"><span class="hi">Welcome to ShowUp.</span></div>':helloCard()}${mascotHTML('hello')}</div><div class="card today-focus-card"><div class="today-focus-kicker">${items.length?'Today’s workout':'Today'}</div>${items.length?'':`<h3>${fresh?'Start with one set.':'What’s today’s workout?'}</h3>`}`;
+  let h=`<section class="today-focus"><div class="su-hello-row">${fresh?'<div class="hello"><span class="hi">Welcome to ShowUppp.</span></div>':helloCard()}${mascotHTML('hello')}</div><div class="card today-focus-card"><div class="today-focus-kicker">${items.length?'Today’s workout':'Today'}</div>${items.length?'':`<h3>${fresh?'Start with one set.':'What’s today’s workout?'}</h3>`}`;
   if(items.length){
     h+=`<details class="today-focus-plan" data-pw-fold="focus:${todayISO}" ${pwFoldOpen('focus:'+todayISO)?'open':'' }><summary><div class="today-focus-title"><h3>${hesc(parts||'Your workout')}</h3>${icon('chevron',ICON_SZ.md)}</div><div class="mono muted today-focus-meta">${sets} ${sets===1?'set':'sets'} · ${items.length} ${items.length===1?'exercise':'exercises'}</div></summary><div class="today-focus-plan-content">${planCardHTML(now,false)}</div></details><div class="today-focus-next"><div><small>Run first</small><b>Run</b></div><button class="btn" data-ex="Run" data-part="Run">Start →</button></div>`;
   }else h+=`<p class="today-focus-copy">Choose an exercise and log what you do.${fresh?' No plan needed.':''}</p><button class="btn" id="goLift">Choose exercise →</button>`;

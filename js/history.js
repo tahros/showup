@@ -143,7 +143,7 @@ function periodText(y,m){
     }
     lines.push('');
   }
-  const head=`ShowUp \u2014 ${periodName}${firstName()?` (${firstName()})`:''}\n`
+  const head=`ShowUppp \u2014 ${periodName}${firstName()?` (${firstName()})`:''}\n`
     +`${days.length} day${days.length===1?'':'s'} trained \u00b7 ${fmt(msets)} sets`
     +`${mv?` \u00b7 ${fmt(Math.round(toU(mv)))} ${U()}`:''}${mkm?` \u00b7 ${dDisp(mkm)} ${DU()}`:''}\n`;
   return head+'\n'+lines.join('\n').trimEnd()+'\n';

@@ -132,6 +132,14 @@ and some of it changes the web build too. Landed and planned:
   sits inside the 0.40 safe circle. The in-app mascot stills (assets/mascot-*)
   are the same approved renders on the app's padded 720x440 canvas; keep them.
 
+- v4.6.231 — the name is ShowUppp (done). Anything a person reads says
+  ShowUppp: UI strings, share cards, privacy.html, support.html, the web
+  manifest, the iOS display name and permission strings (tools/ios-config.py,
+  APP_NAME). Write new copy that way. Identifiers stay as they are and must
+  not be renamed: the bundle id, the `co.yooooooooo.showup` scheme, storage
+  keys, file names, the repo, and the ShowUp* plugin names. buildcheck guards
+  the user-facing set. The App Store listing copy lives in the runbook doc.
+
 If you touch `index.html`'s head, `sw.js`'s SHELL, `css/fonts.css`, or the
 sign-in/settings flow, say so here first — those are the files this track is
 standing on.

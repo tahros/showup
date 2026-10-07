@@ -209,14 +209,14 @@ run(`(function(){
   const iso=window._headISO;                      /* the seeded 3-part day */
   hist.y=+iso.slice(0,4); hist.m=+iso.slice(5,7); /* view ITS month */
   window._mt=monthText();})()`);
-check("month text opens with the ShowUp header + month name",
-      `/^ShowUp \u2014 [A-Z][a-z]+ 20\\d\\d/.test(window._mt)`, true);
+check("month text opens with the ShowUppp header + month name",
+      `/^ShowUppp \u2014 [A-Z][a-z]+ 20\\d\\d/.test(window._mt)`, true);
 check("the seeded day is present, exercise-grouped",
       `window._mt.includes('Deadlift: 80kg\u00d72/3/3/2 (4 sets)')`, true);
 check("the run line carries distance and time",
       `/Run: 3\.48 km in 27'17/.test(window._mt)`, true);
 check("chronological: header line precedes its exercises",
-      `window._mt.indexOf('Deadlift:') > window._mt.indexOf('ShowUp')`, true);
+      `window._mt.indexOf('Deadlift:') > window._mt.indexOf('ShowUppp')`, true);
 check("only the viewed month: no other month's dates leak in",
       `(function(){const m=new Date(hist.y,hist.m-1,1).toLocaleDateString('en-US',{month:'short'});
         return [...window._mt.matchAll(/^[A-Z][a-z]{2}, ([A-Z][a-z]{2}) /gm)].every(x=>x[1]===m);})()`, true);
@@ -227,7 +227,7 @@ check("the part filter does NOT filter the export",
 // document grammar and filter-independent promise as Copy month.
 run(`window._yt=yearText();`);
 check("year text opens with the selected year",
-      `window._yt.startsWith('ShowUp \u2014 '+hist.y+'\\n')`, true);
+      `window._yt.startsWith('ShowUppp \u2014 '+hist.y+'\\n')`, true);
 check("year text includes sessions from another month",
       `window._yt.includes('Squat: 60kg\u00d78/8/8 (3 sets)')`, true);
 check("year text includes the viewed month's sessions too",
