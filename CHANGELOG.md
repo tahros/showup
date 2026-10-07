@@ -1,5 +1,14 @@
 # ShowUppp — changelog
 
+## v4.6.236 (2026-10-07) — Your day, set by set
+
+- Adds the approved whole-day comparison directly below You keep showing up. Uses the original saved plan, or the previous session for each exercise when the workout began without a plan. Planned-but-unlogged exercises remain neutral; extra exercises say Added today.
+- Keeps exercise names beside two value columns, with grouped weight/repetition chips and factual load, same-load rep and extra-set differences. No scores, negative verdicts or retroactive plan linkage.
+- Today's values emerge from blank space from top to bottom, with Replay and a static reduced-motion fallback. Compact footer shows recorded minutes, sets, exercises and running distance; unknown duration stays unknown. Multiple completed sessions are counted without including time between them.
+- Adds image and MP4 sharing using the existing on-device export/share flow, IBM Plex typography and the official lifted ShowUppp/Pip lockup. The MP4 canvas follows the card's full dimensions so tall days are not cropped.
+- Shows the date and actually logged body parts. Weather and location are omitted because those facts are not currently stored; no sample details or new location permissions are introduced. Header, workout logging, saved plans, profile and history remain unchanged.
+
+
 ## v4.6.235 (2026-10-07) — Centered years, room to breathe
 
 - Centers each year heading over its seven-day streak column in six-year share cards, with a larger gap above the squares. Preserves column widths, square sizes and the card's lower margin.

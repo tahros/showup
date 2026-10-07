@@ -62,6 +62,8 @@ after boot.) Keep the order in index.html as-is unless you have a reason.
 - Logger / set chips / suggestions → `lift.js`
 - Anything on the Today screen → `today.js` (fire chart maths: same file)
 - Charts, grid, drift → `stats.js`; the shareable image → `report.js`
+- Whole-day Plan/Last vs Today → `js/day-review.js`, immediately after attendance;
+  read-only model, DOM reveal and Image/MP4 export. See `docs/DAY-REVIEW.md`.
 - Red-header / streak / rest timer → `header.js`
 - Colors, spacing, any visual token → `css/app.css`
 - A new button's click handler → usually `app.js` (delegated), unless the
