@@ -1,5 +1,10 @@
 # ShowUp — changelog
 
+## v4.6.222 (2026-10-06) — White lettering on dark shares
+
+- Fixes the ShowUppp wordmark appearing dark on dark attendance shares on devices that ignore canvas filters. The lettering now uses a white image mask in the image, video and GIF exports.
+- Keeps Pip, the approved logo outlines, light-theme lettering, year-ledger layout and in-app experience unchanged.
+
 ## v4.6.221 (2026-10-06) — A clearer history to share
 
 - The attendance share image now uses the approved year ledger: one horizontal calendar strip per year, with your total, name, and ShowUppp + Pip branding.

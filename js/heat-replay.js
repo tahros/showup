@@ -133,10 +133,18 @@ function ledgerGeometry(M){
  const cell=d=>{const i=year(d.n)-M.years[0],r=rows[i],index=d.n-r.jan+r.offset;return {x:pad+Math.floor(index/7)*pitch+2,y:top+i*rowHeight+43+(index%7)*pitch,w:size,h:size};};
  return {width,height,pad,top,rowHeight,rows,pitch,size,cell};
 }
-function drawLedger(M,part,col,pip,word,dark){
+function exportWordmark(image,dark){
+ if(!dark)return image;
+ // iOS canvas implementations may ignore filter. Recolour only the decoded
+ // lettering's alpha mask; source-in is supported without altering its paths.
+ const cv=document.createElement('canvas');cv.width=image.naturalWidth;cv.height=image.naturalHeight;const x=cv.getContext('2d');
+ if(!x)throw Error('Wordmark canvas unavailable');
+ x.drawImage(image,0,0);x.globalCompositeOperation='source-in';x.fillStyle='#fff';x.fillRect(0,0,cv.width,cv.height);x.globalCompositeOperation='source-over';return cv;
+}
+function drawLedger(M,part,col,pip,word){
  const G=ledgerGeometry(M),cv=document.createElement('canvas');cv.width=G.width;cv.height=G.height;const x=cv.getContext('2d');if(!x)return null;
  x.fillStyle=col.surface;x.fillRect(0,0,cv.width,cv.height);
- x.drawImage(pip,14,85,485,292,70,82,103,62);x.save();if(dark)x.filter='brightness(0) invert(1)';x.drawImage(word,187,71,109,73);x.restore();
+ x.drawImage(pip,14,85,485,292,70,82,103,62);x.drawImage(word,187,71,109,73);
  const text=(s,X,Y,size,color,align='left',weight=400,mono=false,max=940)=>{x.fillStyle=color;x.font=weight+' '+size+'px '+(mono?'"IBM Plex Mono",monospace':'"ShowUp Export Plex","IBM Plex Sans",sans-serif');x.textAlign=align;x.textBaseline='alphabetic';x.fillText(s,X,Y,max);};
  text(M.name,1010,116,27,col.muted,'right',400,false,570);
  const value=fmt(M.total);let size=184;x.font='500 '+size+'px "ShowUp Export Plex"';while(x.measureText(value).width>720&&size>80){size-=2;x.font='500 '+size+'px "ShowUp Export Plex"';}const nw=x.measureText(value).width;
@@ -153,12 +161,13 @@ async function share(card){
  const load=async src=>{const i=new Image();i.src=src;await i.decode();return i;};
  // Fail visibly if either half of the approved lockup is unavailable: never
  // silently export a wordmark without Pip, or substitute a typeface for it.
- const [pip,word]=await Promise.all([load('assets/mascot-mark-'+(dark?'white':'chrome')+'.png'),load('assets/showuppp-a.svg')]);
+ const [pip,lettering]=await Promise.all([load('assets/mascot-mark-'+(dark?'white':'chrome')+'.png'),load('assets/showuppp-a.svg')]);
+ const word=exportWordmark(lettering,dark);
  const data={...col,dark,name:M.name},part=S.part,mode=reduced()?'Off':S.mode;
  const render=(time,canvas)=>{
   const cv=canvas||document.createElement('canvas');cv.width=1080;cv.height=1280;const x=cv.getContext('2d'),t=Number.isFinite(time)?Math.max(0,time):END,actualMode=Number.isFinite(time)?mode:'Off',P=phase(M,t,actualMode);
   x.fillStyle=col.surface;x.fillRect(0,0,1080,1280);
-  x.drawImage(pip,14,85,485,292,70,82,103,62);x.save();if(dark)x.filter='brightness(0) invert(1)';x.drawImage(word,187,71,109,73);x.restore();
+  x.drawImage(pip,14,85,485,292,70,82,103,62);x.drawImage(word,187,71,109,73);
   const text=(s,X,Y,size,color,align='left',weight=400)=>{x.fillStyle=color;x.font=weight+' '+size+'px "ShowUp Export Plex", "IBM Plex Sans",sans-serif';x.textAlign=align;x.textBaseline='alphabetic';x.fillText(s,X,Y,align==='right'?570:940);};
   text(M.name,1010,116,27,col.muted,'right');x.fillStyle=col.line;x.fillRect(70,177,940,1);
   text(fmt(P.count),70,318,112,col.blue,'left',500);x.font='500 112px "ShowUp Export Plex"';const nw=x.measureText(fmt(P.count)).width;text('days in',88+nw,318,31,col.muted);
@@ -167,7 +176,7 @@ async function share(card){
   x.fillStyle=col.line;x.fillRect(70,1145,940,1);text(P.overview>=1?range(M):String(year(P.cursor)),70,1205,27,col.muted);text(P.overview>=1?'One square. One day.':dateLabel(P.cursor),1010,1205,27,col.muted,'right');
   return cv;
  };
- await showCard(()=>drawLedger(M,part,col,pip,word,dark),'showuppp-attendance-'+todayISO,false);
+ await showCard(()=>drawLedger(M,part,col,pip,word),'showuppp-attendance-'+todayISO,false);
  bindPlateExport(data,null,gifModule,videoModule,{render,label:'Your training history · ShowUppp and Pip',duration:mode==='Today pulse'?1700:mode==='Off'?500:END});
 }
 async function seeAll(){document.querySelector('nav button[data-v="stats"]')?.click();let card;for(let i=0;i<30&&!card;i++){await new Promise(r=>setTimeout(r,50));card=document.querySelector('.attendance-card');}if(!card)return false;card.scrollIntoView({block:'center',behavior:reduced()?'auto':'smooth'});await new Promise(r=>setTimeout(r,reduced()?0:650));return card.isConnected&&play(card);}

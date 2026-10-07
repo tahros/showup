@@ -42,4 +42,9 @@ ok('54-week leap-year layout never clips the final December cell',`(()=>{const g
 assert.match(fs.readFileSync(path.join(dir,'js/heat-replay.js'),'utf8'),/showCard\(\(\)=>drawLedger\(/);
 assert.match(fs.readFileSync(path.join(dir,'js/heat-replay.js'),'utf8'),/bindPlateExport\(data,null,gifModule,videoModule,\{render,/);
 console.log('PASS still image and animated export have separate renderers');
+const shareSource=fs.readFileSync(path.join(dir,'js/heat-replay.js'),'utf8');
+assert.match(shareSource,/globalCompositeOperation='source-in'/);
+assert.doesNotMatch(shareSource,/\.filter\s*=/);
+assert.match(shareSource,/const word=exportWordmark\(lettering,dark\)/);
+console.log('PASS theme-aware wordmark is prepared without canvas filters');
 console.log('ALL PASS');process.exit(0);
