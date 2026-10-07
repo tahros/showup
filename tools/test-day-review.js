@@ -45,6 +45,7 @@ test('holds retain units and bodyweight retains BW',`dayReviewGroups(m.rows[0].a
 test('DOM has only Exercise, reference and Today columns',`(()=>{document.querySelector('#view').innerHTML=dayReviewSection();return document.querySelectorAll('.day-review thead th').length===3&&document.querySelectorAll('.dr-totals>div').length===4;})()`);
 test('no old values in reveal targets or failure labels',`!document.querySelector('.day-review').textContent.match(/missed|failed|Changes vs/i)`);
 run(`var data=dayReviewExportModel();var cv=drawDayReview(data);`);
+test('export freezes real day count and first name without changing stored name',`data.dayCount===msLiveTotal()&&data.firstName==='QA'&&DB.settings.name==='QA'`);
 test('export canvas reserves full content and even dimensions',`cv.width===1080&&cv.height>700&&cv.height%2===0`);
 run(`var a={id:'a',w:60,r:8,qualifier:'warm-up'},b={id:'b',w:100,r:3},x={w:100,r:4,source:{planRef:{setId:'b'}}};var lanes=dayReviewLanes({ex:'Deadlift',ref:[a,b],actual:[x]},true);`);
 test('warmup label hidden without deleting planned warmup sets',`dayReviewGroups([a],'Deadlift')[0].qualifier===''&&dayReviewGroups([a],'Deadlift')[0].chips[0].label==='8'`);

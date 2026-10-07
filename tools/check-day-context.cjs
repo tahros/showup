@@ -2,7 +2,10 @@
 const {chromium}=require('playwright'),assert=require('assert'),fs=require('fs');
 const origin=process.env.DAY_REVIEW_ORIGIN||'http://127.0.0.1:'+(process.env.PW_PORT||8858)+'/',out=process.env.QA_DIR||'../day-review-context-qa';fs.mkdirSync(out,{recursive:true});
 (async()=>{const b=await chromium.launch({executablePath:process.env.PW_CHROME||'C:/Users/sungj/AppData/Local/ms-playwright/chromium-1217/chrome-win64/chrome.exe'});try{
- const p=await b.newPage({viewport:{width:393,height:852},serviceWorkers:'block'}),errors=[],requests=[];p.on('pageerror',e=>errors.push(e.message));let fail=false;
+ // Layout/consent checks require reduced motion from navigation: MOTION_OK is
+ // captured at boot. Switching later races rapid theme changes with Chromium
+ // view transitions. Motion itself is covered by check-day-review.cjs.
+ const p=await b.newPage({viewport:{width:393,height:852},serviceWorkers:'block',reducedMotion:'reduce'}),errors=[],requests=[];p.on('pageerror',e=>errors.push(e.message));let fail=false;
  await p.route('**/*',async r=>{if(r.request().url().endsWith('/functions/v1/day-context')){requests.push(r.request().postDataJSON());return r.fulfill({status:fail?503:200,contentType:'application/json',body:JSON.stringify({location:'Princeton, NJ',weather:{c:18,symbol:'clearsky_day',at:Date.now()},capturedAt:Date.now()})});}return r.request().url().startsWith(origin)?r.continue():r.abort();});
  await p.goto(origin);await p.waitForTimeout(3000);await p.emulateMedia({reducedMotion:'reduce'});
  await p.evaluate(()=>{
@@ -44,14 +47,20 @@ const origin=process.env.DAY_REVIEW_ORIGIN||'http://127.0.0.1:'+(process.env.PW_
  await p.locator('.day-review').screenshot({path:out+'/aligned-context-app.png',style:'header,nav,#calReturn,#progressSwitch,#ptr{visibility:hidden!important}'});
  await p.evaluate(()=>{
   const text=CanvasRenderingContext2D.prototype.fillText;window.drawn=[];
-  CanvasRenderingContext2D.prototype.fillText=function(s,x,y,...rest){drawn.push({s:String(s),x,y});return text.call(this,s,x,y,...rest);};
+  CanvasRenderingContext2D.prototype.fillText=function(s,x,y,...rest){drawn.push({s:String(s),x,y,font:this.font,align:this.textAlign});return text.call(this,s,x,y,...rest);};
  });
  for(const theme of ['light','dark']){
   await p.evaluate(theme=>{DB.settings.theme=theme;DB.settings.bar=theme;applyTheme();window.drawn=[];},theme);
   await p.evaluate(()=>shareDayReview(document.querySelector('[data-dr-share]')));
   const pic=await p.evaluate(()=>_repCv.cv.toDataURL());fs.writeFileSync(out+'/aligned-context-share-'+theme+'.png',Buffer.from(pic.split(',')[1],'base64'));
   const texts=await p.evaluate(()=>drawn);assert(!texts.some(t=>t.s==='warm-up'));assert(texts.some(t=>t.s==='64°F'));assert(!texts.some(t=>t.s.includes('Clear')));assert(texts.some(t=>t.s.startsWith('Princeton, NJ')));
-  assert(!texts.some(t=>/Captured|Conditions estimate/.test(t.s)));assert(texts.some(t=>t.s==='CC BY 4.0'),'source credit retained');
+  assert(!texts.some(t=>/Captured|Conditions estimate/.test(t.s)));assert(texts.some(t=>t.s.includes('CC BY 4.0')),'source credit retained');
+  assert(texts.some(t=>t.s==='Sungjee')&&!texts.some(t=>t.s==='Sungjee Yoo'),'first name only');
+  assert(texts.some(t=>t.s==='DAY'),'day label');
+  const labels=['minutes','sets','exercises','miles run'].map(s=>texts.find(t=>t.s===s));
+  assert(labels.every(t=>t&&t.align==='center'));assert.deepEqual(labels.map(t=>t.x),[88,216,344,472]);
+  assert(labels[0].y>texts.find(t=>t.s==='Run').y,'summary follows exercise list');
+  assert(texts.filter(t=>['135','235','155'].includes(t.s)).every(t=>t.font.includes('600')),'bold weights');
   for(const load of ['135','235','155']){const pair=texts.filter(t=>t.s===load);assert.equal(pair.length,2);assert.equal(pair[0].y,pair[1].y);}
   await p.locator('#repClose').click();
  }

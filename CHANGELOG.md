@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.241 (2026-10-07) — Centered editorial day shares
+
+- Applies the approved editorial layout to daily-review images and videos: small official wordmark, real unpadded DAY count, location/body parts and weather, smaller bold date, and tighter comparison rows with bolder weight/rep values.
+- Centers all four summary values and labels in equal-width columns beneath the exercise list. Places small Pip bottom left and the user's first name bottom right, vertically aligned.
+- Preserves original saved workout values, comparison logic, reveal animation, accessibility settings, weather credits and the in-app card/header. Ships original light/dark wordmarks for offline export.
+
 ## v4.6.240 (2026-10-07) — Quieter numbers and weather icons
 
 - Replaces visible weather-condition text with original monochrome weather icons next to the temperature, shared by the app and image/video exports. Full condition descriptions remain available to screen readers and hover text; saved weather/location data is unchanged.

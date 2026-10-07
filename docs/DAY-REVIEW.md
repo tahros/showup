@@ -1,11 +1,19 @@
-# Whole-day comparison — v4.6.240
+# Whole-day comparison — v4.6.241
+
+Share images/videos use the approved 560-unit editorial grid, rendered at 1080px:
+28-unit margins, 57.375-unit official wordmark centered against DAY/count,
+real msLiveTotal() without zero padding, smaller date, semibold load/reps,
+22-unit row insets and 12-unit load gaps. Bottom summary has four 120-unit
+columns separated by 8-unit gaps, center-aligned values and labels. First name
+and cropped-to-visible-art Pip share a footer centerline. The UI below is unchanged.
 
 Compact spacing: 12px above/below exercise groups, 16px between load lanes,
 14px below the location/body-parts line. The type refinement uses 13px
 weights (12px below 359px wide) and 11px reps; line and chip heights stay fixed.
 Exercise labels (including their small note/delta) are centered within the whole
 exercise group. Dividers separate exercises only, never individual load lanes.
-Image/video use the same 12px row inset and 16px lane gap; header chrome is untouched.
+The in-app comparison retains this spacing; image/video use the editorial grid above.
+Header chrome is untouched.
 
 Weather uses original filled SVG geometry alongside temperature, with the same
 paths painted into image/video exports. Condition descriptions remain in the
