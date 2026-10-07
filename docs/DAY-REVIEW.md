@@ -1,8 +1,10 @@
 # Whole-day comparison — v4.6.239
 
-Compact spacing: 11px above/below exercise groups, 8px between load lanes,
+Compact spacing: 12px above/below exercise groups, 16px between load lanes,
 14px below the location/body-parts line. Text and rep-chip sizes are unchanged.
-Image/video use the same 11px row inset and 8px lane gap; header chrome is untouched.
+Exercise labels (including their small note/delta) are centered within the whole
+exercise group. Dividers separate exercises only, never individual load lanes.
+Image/video use the same 12px row inset and 16px lane gap; header chrome is untouched.
 
 `js/day-review.js` renders a read-only projection. `stats.js` places it immediately
 after `currentRhythmSection()`. Styles are scoped to `.day-review` in planner.css.
@@ -48,7 +50,9 @@ plan parser or authentication.
   request-body logs, global GPS store, signup or paid API subscription.
 - Saves city/region, nearest-hour conditions estimate and capture timestamp;
   no street address/GPS. Shows city before performed parts, weather at top
-  right, and attribution/capture time. No stale or invented historical weather.
+  right, and provider attribution. Capture timestamps remain saved internally;
+  the Captured/conditions timestamp copy is omitted from the card and exports.
+  Consent still explains that this is a current snapshot, not a historical lookup.
   A failed provider can leave its own field absent without blocking workouts.
 - Record path: `DB.days[date].dayContext`; Remove saves an updatedAt tombstone.
   The normal newest-day merge carries metadata, and sign-in union respects

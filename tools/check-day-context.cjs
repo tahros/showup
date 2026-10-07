@@ -18,15 +18,28 @@ const origin=process.env.DAY_REVIEW_ORIGIN||'http://127.0.0.1:'+(process.env.PW_
  assert.equal(await p.evaluate(()=>geoCalls),0);assert.equal(requests.length,0);
  for(const theme of ['light','dark'])for(const width of [320,393,736]){
   await p.setViewportSize({width,height:852});await p.evaluate(theme=>{DB.settings.theme=theme;DB.settings.bar=theme;applyTheme();render();},theme);
-  const align=await p.evaluate(()=>{const c=document.querySelector('.day-review'),rows=[...c.querySelectorAll('tbody tr')];return {warm:c.textContent.includes('warm-up'),overflow:c.scrollWidth>c.clientWidth,aligned:rows.every(row=>{const ds=[...row.querySelectorAll('td .dr-weight')];return ds.length<2||Math.abs(ds[0].getBoundingClientRect().y-ds[1].getBoundingClientRect().y)<.5;}),padding:rows.filter(r=>r.classList.contains('dr-last-lane')).every(r=>getComputedStyle(r.querySelector('td')).paddingBottom==='11px')&&getComputedStyle(c.querySelector('tbody th')).paddingTop==='11px'&&getComputedStyle(c.querySelector('.dr-parts')).marginBottom==='14px'};});
-  assert(!align.warm&&!align.overflow&&align.aligned&&align.padding,JSON.stringify(align));
+  const align=await p.evaluate(()=>{
+   const c=document.querySelector('.day-review'),rows=[...c.querySelectorAll('tbody tr')],rect=e=>e.getBoundingClientRect();
+   return {warm:c.textContent.includes('warm-up'),overflow:c.scrollWidth>c.clientWidth,
+    aligned:rows.every(row=>{const ds=[...row.querySelectorAll('td .dr-weight')];return ds.length<2||Math.abs(rect(ds[0]).y-rect(ds[1]).y)<.5;}),
+    padding:rows.filter(r=>r.classList.contains('dr-last-lane')).every(r=>getComputedStyle(r.querySelector('td')).paddingBottom==='12px')&&getComputedStyle(c.querySelector('tbody th')).paddingTop==='12px',
+    centered:[...c.querySelectorAll('tbody th')].every(th=>{const a=rect(th),b=rect(th.querySelector('.dr-exercise-label'));return Math.abs((a.top+a.bottom-b.top-b.bottom)/2)<1;}),
+    noInnerLines:[...c.querySelectorAll('table td,table th')].every(td=>getComputedStyle(td).borderBottomWidth==='0px')&&[...c.querySelectorAll('.dr-continuation td')].every(td=>getComputedStyle(td).borderTopWidth==='0px'),
+    laneGap:[...c.querySelectorAll('.dr-continuation')].every(row=>[...row.querySelectorAll('td')].every((td,i)=>{const prev=row.previousElementSibling.querySelectorAll('td')[i];return rect(td.firstElementChild).top-rect(prev.firstElementChild).bottom>=15.5;})),
+    bottomRoom:[...c.querySelectorAll('.dr-last-lane td .dr-value')].every(v=>rect(v.parentElement).bottom-rect(v).bottom>=11.5)};
+  });
+  assert(!align.warm&&!align.overflow&&align.aligned&&align.padding&&align.centered&&align.noInnerLines&&align.laneGap&&align.bottomRoom,JSON.stringify(align));
  }
  await p.setViewportSize({width:393,height:852});await p.evaluate(()=>{DB.settings.theme='light';DB.settings.bar='light';applyTheme();render();});
  await p.locator('[data-dr-location]').click();await p.locator('[data-cancel]').click();assert.equal(await p.evaluate(()=>geoCalls),0);assert.equal(requests.length,0);
  await p.locator('[data-dr-location]').click();await p.locator('[data-allow]').click();await p.waitForFunction(()=>!!DB.days[todayISO].dayContext?.location);
  assert.deepEqual(requests,[{consent:true,lat:40.36,lon:-74.67}]);assert.equal(await p.locator('.dr-weather').innerText(),'64°F · Clear');assert((await p.locator('.dr-parts').innerText()).startsWith('Princeton, NJ · Back'));
  const stored=await p.evaluate(()=>JSON.stringify(DB.days[todayISO].dayContext));assert(!/latitude|longitude|40\.36|74\.67/.test(stored));
- await p.locator('.day-review').screenshot({path:out+'/aligned-context-app.png',style:'header,nav,#calReturn,#progressSwitch{visibility:hidden!important}'});
+ assert(JSON.parse(stored).capturedAt>0,'capture metadata is preserved');
+ assert.equal(await p.locator('.dr-context-status').innerText(),'');
+ assert.equal(await p.locator('.dr-context-status').evaluate(e=>getComputedStyle(e).display),'none');
+ assert(!(await p.locator('.day-review').innerText()).includes('Captured '));
+ await p.locator('.day-review').screenshot({path:out+'/aligned-context-app.png',style:'header,nav,#calReturn,#progressSwitch,#ptr{visibility:hidden!important}'});
  await p.evaluate(()=>{
   const text=CanvasRenderingContext2D.prototype.fillText;window.drawn=[];
   CanvasRenderingContext2D.prototype.fillText=function(s,x,y,...rest){drawn.push({s:String(s),x,y});return text.call(this,s,x,y,...rest);};
@@ -36,6 +49,7 @@ const origin=process.env.DAY_REVIEW_ORIGIN||'http://127.0.0.1:'+(process.env.PW_
   await p.evaluate(()=>shareDayReview(document.querySelector('[data-dr-share]')));
   const pic=await p.evaluate(()=>_repCv.cv.toDataURL());fs.writeFileSync(out+'/aligned-context-share-'+theme+'.png',Buffer.from(pic.split(',')[1],'base64'));
   const texts=await p.evaluate(()=>drawn);assert(!texts.some(t=>t.s==='warm-up'));assert(texts.some(t=>t.s==='64°F · Clear'));assert(texts.some(t=>t.s.startsWith('Princeton, NJ')));
+  assert(!texts.some(t=>/Captured|Conditions estimate/.test(t.s)));assert(texts.some(t=>t.s==='CC BY 4.0'),'source credit retained');
   for(const load of ['135','235','155']){const pair=texts.filter(t=>t.s===load);assert.equal(pair.length,2);assert.equal(pair[0].y,pair[1].y);}
   await p.locator('#repClose').click();
  }

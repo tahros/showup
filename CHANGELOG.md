@@ -3,6 +3,8 @@
 ## v4.6.239 (2026-10-07) — A tighter daily comparison
 
 - Reduces space below the location/body-part line and around each exercise, keeping equal top/bottom padding and matched Plan/Last and Today lanes. Typography, chip sizes and button touch targets stay unchanged.
+- Centers exercise labels across their entire group, removes inherited dividers between weight groups, and preserves 12px outer insets plus a 16px gap between loads in both app and exports.
+- Removes the Captured/conditions timestamp copy from the card and shared image/video, while retaining source credits, consent disclosure, saved timestamps and useful loading/error messages.
 - Applies the same compact rhythm to shared images and videos, with less space above the totals. Preserves the floating header, location permissions, animations and all workout data.
 
 ## v4.6.238 (2026-10-07) — Aligned sets, a sense of place
