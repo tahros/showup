@@ -1,5 +1,10 @@
 # ShowUp — changelog
 
+## v4.6.229 (2026-10-07) — Room for the whole streak
+
+- Tightens the gaps below the body-part tabs and above the overview years, with a more compact date footer. Recovers about 50 px vertically while preserving the overview's 330 px graph and square sizes.
+- Keeps the in-app replay and static overview aligned, with space for filtered counts and 44 px Replay/Share buttons. Share-image layout, branding, header and saved history are unchanged.
+
 ## v4.6.228 (2026-10-07) — The approved rising p trio
 
 - Replaces the older flat lettering in attendance share images with the official October 1 Lifted P Trio + Pip lockup. Uses the exact approved artwork and proportions, with white lettering in dark mode and charcoal in light mode.

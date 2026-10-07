@@ -39,7 +39,7 @@ function phase(M,time,mode='Full journey'){
 }
 function palette(){const c=getComputedStyle(document.documentElement),get=(k,f)=>c.getPropertyValue(k).trim()||f;return {surface:get('--surface','#fff'),ink:get('--chalk','#222'),muted:get('--muted','#777'),empty:get('--surface2','#f3f3f3'),blue:document.documentElement.dataset.theme==='dark'?'#7188ff':'#3049dc',line:get('--line','#ddd')};}
 function geometry(M,w,h,exported=false){
- const scale=exported?w/340:1,reserve=exported?0:100,cols=Math.min(6,M.years.length),bands=Math.ceil(M.years.length/cols),gap=10*scale,cw=(w-gap*(cols-1))/cols,bh=(h-reserve)/bands,step=(bh-28*scale)/54,unit=Math.min((cw-3)/7,step);
+ const scale=exported?w/340:1,reserve=exported?0:84,cols=Math.min(6,M.years.length),bands=Math.ceil(M.years.length/cols),gap=10*scale,cw=(w-gap*(cols-1))/cols,bh=(h-reserve)/bands,step=(bh-28*scale)/54,unit=Math.min((cw-3)/7,step);
  const tw=Math.min(164*scale,w*.57),left=w-tw,pitch=16*scale,cell=Math.min(12*scale,(tw-30*scale)/7-3*scale),tx=left+28*scale;
  function timeline(d,cursor){const cr=(cursor-M.firstWeek)/7,max=Math.max(0,(Math.floor((M.end-M.firstWeek)/7)+1)*pitch-h*.72),scroll=clamp(cr*pitch-h*.68,0,max);return {x:tx+d.col*(tw-28*scale)/7,y:d.row*pitch-scroll+4*scale,w:cell,h:cell};}
  function overview(d){const yi=year(d.n)-M.years[0],first=Math.max(M.start,stamp(year(d.n)+'-01-01')),row=Math.floor((d.n-first+(weekday(first)-M.dow+7)%7)/7);return {x:(yi%cols)*(cw+gap)+(cw-unit*7)/2+d.col*unit,y:reserve+Math.floor(yi/cols)*bh+27*scale+row*step,w:Math.max(1,unit-1.5*scale),h:Math.max(1,Math.min(unit,step)-1.5*scale)};}
@@ -160,7 +160,7 @@ function dateLabel(n){return new Date(Math.round(n)*DAY).toLocaleDateString('en-
 function range(M){const f=n=>new Date(n*DAY).toLocaleDateString('en-US',{month:'short',year:'numeric',timeZone:'UTC'});return f(M.start)+' — '+f(M.end);}
 function timeline(S){S.card.dataset.overview='false';S.card.querySelector('.at-range').hidden=true;S.card.querySelector('.at-date').hidden=false;S.refreshMask?.();}
 function layoutOverview(S){
- const comp=S.card.querySelector('.at-composition'),G=geometry(S.M,comp.clientWidth||320,comp.clientHeight||430);
+ const comp=S.card.querySelector('.at-composition'),G=geometry(S.M,comp.clientWidth||320,comp.clientHeight||414);
  [...S.overview.children].forEach((el,i)=>{el.style.cssText=`position:absolute;left:${(i%G.cols)*(G.cw+G.gap)}px;top:${Math.floor(i/G.cols)*G.bh}px;width:${G.cw}px;height:${G.bh}px`;el.firstElementChild.style.marginLeft=(G.cw-G.unit*7)/2+'px';});
  for(const [el,d]of S.mini){const p=G.overview(d),i=year(d.n)-S.M.years[0];el.style.cssText=`position:absolute;left:${p.x-(i%G.cols)*(G.cw+G.gap)}px;top:${p.y-G.reserve-Math.floor(i/G.cols)*G.bh-27}px;width:${p.w}px;height:${p.h}px`;}
 }
