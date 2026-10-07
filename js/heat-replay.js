@@ -7,7 +7,9 @@
    Still-image sharing uses the same composition as the final replay frame,
    with no shimmer in the static export. Blue labels
    always count the highlighted days; a filtered lifetime total stays neutral.
-   Share branding uses the approved 2026-10-01 Lifted P Trio + Pip lockup. */
+   Share branding uses the approved 2026-10-01 Lifted P Trio + Pip lockup.
+   Six-year exports center headings over the full weekday grid and leave
+   extra room below them; the interactive app's spacing is unchanged. */
 (()=>{
 'use strict';
 const DAY=86400000, END=14000, PULSE=2660, MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -104,7 +106,13 @@ function geometry(M,w,h,exported=false){
  const scale=exported?w/340:1,reserve=exported?0:84,A=atlas(M),sx=w/948,sy=(h-reserve)/790,cols=M.years.length===6?6:Math.min(M.years.length,5),bands=Math.ceil(M.years.length/cols),gap=10*scale,cw=(w-gap*(cols-1))/cols,bh=(h-reserve)/bands,step=sy*12,unit=Math.min(sx,sy)*10;
  const tw=Math.min(164*scale,w*.57),left=w-tw,pitch=16*scale,cell=Math.min(12*scale,(tw-30*scale)/7-3*scale),tx=left+28*scale;
  function timeline(d,cursor){const cr=(cursor-M.firstWeek)/7,max=Math.max(0,(Math.floor((M.end-M.firstWeek)/7)+1)*pitch-h*.72),scroll=clamp(cr*pitch-h*.68,0,max);return {x:tx+d.col*(tw-28*scale)/7,y:d.row*pitch-scroll+4*scale,w:cell,h:cell};}
- function overview(d){const r=A.points.get(d.n),s=Math.min(r.w*sx,r.h*sy);return {x:r.x*sx,y:reserve+r.y*sy,w:s,h:s};}
+ function overview(d){
+  const r=A.points.get(d.n),s=Math.min(r.w*sx,r.h*sy);
+  // Share-only breathing room: move the calendar's top down by 26 atlas
+  // units, compressing row pitch to keep its bottom and square size intact.
+  const y=exported&&M.years.length===6?76+(r.y-50)*714/740:r.y;
+  return {x:r.x*sx,y:reserve+y*sy,w:s,h:s};
+ }
  let lastPhase,lastCamera;
  function camera(P){
   if(lastPhase===P)return lastCamera;
@@ -156,7 +164,18 @@ function drawBase(M,x,mask,w,h,P,G,part,mode,col){
   for(let i=0;i<2;i++){const q=clamp((p-i*.16)/(.9-i*.16)),radius=mix(today.w*.55,limit,ease(q));x.globalAlpha=Math.sin(Math.PI*q)**2*(.22-i*.05);x.strokeStyle=col.blue;x.lineWidth=1.1*s;x.beginPath();x.arc(cx,cy,radius,0,Math.PI*2);x.stroke();}x.restore();
  }
  const cam=G.camera(P);x.textBaseline='top';x.textAlign='left';x.fillStyle=col.muted;
- for(const l of G.atlas.labels){const X=l.x*G.sx*cam.z+cam.x,Y=(G.reserve+l.y*G.sy)*cam.z+cam.y,base=G.reserve?Math.max(l.kind==='year'?11:6,l.size*G.sx):l.size*G.sx,size=base*cam.z;if(Y<G.reserve||Y+size>h||X<0||X>w)continue;x.font=size+'px "IBM Plex Mono",monospace';x.fillText(l.text,X,Y);}
+ for(const l of G.atlas.labels){
+  const X=l.x*G.sx*cam.z+cam.x,Y=(G.reserve+l.y*G.sy)*cam.z+cam.y,base=G.reserve?Math.max(l.kind==='year'?11:6,l.size*G.sx):l.size*G.sx,size=base*cam.z;
+  if(Y<G.reserve||Y+size>h||X<0||X>w)continue;
+  x.font=size+'px "IBM Plex Mono",monospace';
+  if(!G.reserve&&M.years.length===6&&l.kind==='year'){
+   const day=M.days.find(d=>year(d.n)===Number(l.text)),r=G.atlas.points.get(day.n);
+   // Use the visible seven-square span, not the wider column slot. Partial
+   // years and body-part filters retain the same stable calendar centre.
+   const half=(6*r.w/.79*G.sx+Math.min(r.w*G.sx,r.h*G.sy))/2;
+   x.textAlign='center';x.fillText(l.text,X+half*cam.z,Y);
+  }else{x.textAlign='left';x.fillText(l.text,X,Y);}
+ }
  mask.restore();x.restore();
 }
 function draw(M,x,w,h,time,part,mode,col,clear=true,exported=false,ambient=time){

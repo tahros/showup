@@ -1,5 +1,10 @@
 # ShowUppp — changelog
 
+## v4.6.235 (2026-10-07) — Centered years, room to breathe
+
+- Centers each year heading over its seven-day streak column in six-year share cards, with a larger gap above the squares. Preserves column widths, square sizes and the card's lower margin.
+- Still images and animated exports use the same refined composition in both themes and with body-part highlighting. Other year-count layouts, the interactive app, floating header, profile and workout records are unchanged.
+
 ## v4.6.234 (2026-10-07) — Six years, uninterrupted
 
 - Replaces the six-year gallery with the approved Continuous composition: six full-year columns, oldest first, with aligned year headings and no half-year split or extra labels. Partial years keep their actual calendar positions.
