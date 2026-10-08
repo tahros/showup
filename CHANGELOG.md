@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.251 (2026-10-08) — A living attendance chart
+
+- Today's square now carries a continuous soft pulse in the timeline and saved-year overview, without needing Replay. The retained replay canvas continues the pulse after its opening sequence; past-only year selections do not pretend their last day is today.
+- Strengthens the continuous grouped shimmer across recorded days, including a proportionately dimmed sheen on non-focused body parts. Keeps one masked light sheet and one Today indicator instead of per-square animations or repeated full-grid redraws.
+- Respects Animation Off and reduced motion; background/offscreen effects pause. Empty days stay empty, exports keep static images still, and counts/history are unchanged. Adds a saved-single-year regression for live shimmer, pulse and exact Today alignment.
+
 ## v4.6.250 (2026-10-08) — Browse your days quietly
 
 - Adds the approved Quiet date selector to the daily comparison: tappable date with an inline month calendar, previous/next-day chevrons, and a Today shortcut. Future days are disabled; only the review card updates, not the page or workout date.

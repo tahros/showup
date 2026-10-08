@@ -4464,7 +4464,13 @@ html.modal-open .calreturn{display:none!important}
 .at-playing .at-total{font-size:50px}
 /* One masked, composited light sheet. Day marks themselves never animate. */
 .at-group-sheen{position:absolute;inset:0;pointer-events:none;z-index:1;mask-size:100% 100%;-webkit-mask-size:100% 100%;overflow:hidden}
-.at-group-sheen i{display:block;position:absolute;inset:0 auto 0 0;width:320%;background:linear-gradient(90deg,#ffffff0e 0%,#ffffff22 25%,#ffffff50 50%,#ffffff22 75%,#ffffff0e 100%);background-size:50% 100%;animation:at-group-light 6s linear infinite;will-change:transform}
+.at-group-sheen i{display:block;position:absolute;inset:0 auto 0 0;width:320%;background:linear-gradient(90deg,#ffffff0a 0%,#ffffff38 25%,#ffffff8a 50%,#ffffff38 75%,#ffffff0a 100%);background-size:50% 100%;animation:at-group-light 6s linear infinite;will-change:transform}
+.at-today-beacon{position:absolute;pointer-events:none;z-index:2;border-radius:30%}
+.at-today-beacon::after{content:"";position:absolute;inset:-3px;border:1.5px solid var(--at-blue);border-radius:30%;box-shadow:0 0 9px color-mix(in srgb,var(--at-blue) 40%,transparent);animation:at-ambient-pulse 2.8s ease-in-out infinite;will-change:transform,opacity}
+.at-playing .at-today-beacon,.attendance-card[data-animation="Off"] .at-today-beacon{display:none}
+.attendance-card[data-visible="false"] .at-today-beacon::after,.at-document-hidden .at-today-beacon::after,.at-document-hidden .at-group-sheen i{animation-play-state:paused}
+@keyframes at-ambient-pulse{0%,100%{transform:scale(1);opacity:.8}50%{transform:scale(1.7);opacity:.18}}
+@media(prefers-reduced-motion:reduce){.at-today-beacon{display:none}}
 .at-playing .at-group-sheen,.attendance-card[data-animation="Off"] .at-group-sheen{display:none}
 .attendance-card[data-visible="false"] .at-group-sheen i{animation-play-state:paused}
 .at-parts{position:relative;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;scroll-snap-type:x proximity;margin:0 0 6px;padding:2px 0 4px;overscroll-behavior-x:contain}

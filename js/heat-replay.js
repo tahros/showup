@@ -159,7 +159,7 @@ function drawBase(M,x,mask,w,h,P,G,part,mode,col){
  for(const d of M.days){const r=G.position(d,P),p=P.overview;
   if(r.y+r.h<G.reserve||r.y>h||r.x+r.w<0||r.x>w)continue;
   const filled=d.on&&P.revealed(d),alpha=(filled&&!matches(d,part)?.24:1)*clamp(Math.min((r.y+r.h)/(9*G.scale),(h-r.y)/(9*G.scale)));x.globalAlpha=alpha;x.fillStyle=filled?col.blue:col.empty;round(x,r,corner(r));x.fill();
-  if(filled&&matches(d,part)){mask.globalAlpha=alpha;round(mask,r,corner(r));mask.fill();}x.globalAlpha=1;
+  if(filled){mask.globalAlpha=alpha;round(mask,r,corner(r));mask.fill();}x.globalAlpha=1;
   if(G.reserve===0&&G.atlas.points.get(d.n).number&&r.w>=13){x.fillStyle=filled?'#fff':col.muted;x.font=(r.w*.58)+'px "IBM Plex Mono",monospace';x.textAlign='center';x.textBaseline='middle';x.fillText(String(new Date(d.n*DAY).getUTCDate()),r.x+r.w/2,r.y+r.h/2);}
   if(d.n===M.end){x.strokeStyle=col.blue;x.lineWidth=mix(1.4,1,p);round(x,{x:r.x-2,y:r.y-2,w:r.w+4,h:r.h+4},corner(r)+2);x.stroke();}
  }
@@ -193,8 +193,14 @@ function draw(M,x,w,h,time,part,mode,col,clear=true,exported=false,ambient=time)
   const lx=F.light.x,period=w*1.6,left=-period+sweepAt(ambient)*period,g=lx.createLinearGradient(left,0,left+3*period,0);
   // Repeating broad lobes join with identical endpoints, so the sheet never
   // goes dark or snaps back at the loop boundary.
-  for(let i=0;i<=12;i++)g.addColorStop(i/12,i%4===2?'#ffffff50':i%2?'#ffffff22':'#ffffff0e');
+  for(let i=0;i<=12;i++)g.addColorStop(i/12,i%4===2?'#ffffff8a':i%2?'#ffffff38':'#ffffff0a');
   lx.clearRect(0,0,w,h);lx.globalCompositeOperation='source-over';lx.fillStyle=g;lx.fillRect(0,0,w,h);lx.globalCompositeOperation='destination-in';lx.drawImage(F.mask.c,0,0,w,h);lx.globalCompositeOperation='source-over';x.drawImage(F.light.c,0,0,w,h);
+  // Ambient Today ring is separate from the cached grid and initial camera
+  // pulse. It never fills an unlogged day or animates thousands of marks.
+  if(t>=PULSE&&M.end===(M.actualToday??M.end)){
+   const r=geometry(M,w,h,exported).position(M.days.at(-1),F.P),q=(ambient%2800)/2800,p=Math.sin(Math.PI*q)**2,pad=2+Math.min(r.w,12)*.6*p;
+   x.save();x.strokeStyle=col.blue;x.globalAlpha=.75*(1-p*.65);x.lineWidth=1.5;x.shadowColor=col.blue;x.shadowBlur=10*p;round(x,{x:r.x-pad,y:r.y-pad,w:r.w+pad*2,h:r.h+pad*2},corner(r)+pad);x.stroke();x.restore();
+  }
  }
  return F.P;
 }
@@ -245,9 +251,13 @@ function bind(card){
  function readDate(n,animate=false){const el=card.querySelector('.at-date strong'),y=String(year(n));if(el.textContent!==y){el.textContent=y;if(animate&&!reduced()&&el.animate)el.animate([{opacity:.3,transform:'translateY(7px)'},{opacity:1,transform:'translateY(0)'}],{duration:450});}card.querySelector('.at-date span').textContent=dateLabel(n);picker.value=y;card.dataset.currentDate=iso(n);}
  state.readDate=readDate;
  const comp=card.querySelector('.at-composition'),sheen=document.createElement('div');sheen.className='at-group-sheen';sheen.setAttribute('aria-hidden','true');sheen.append(document.createElement('i'));comp.append(sheen);
+ const beacon=document.createElement('span');beacon.className='at-today-beacon';beacon.setAttribute('aria-hidden','true');beacon.hidden=true;comp.append(beacon);
  let maskFrame=0;
  state.refreshMask=()=>{if(maskFrame)return;maskFrame=requestAnimationFrame(()=>{maskFrame=0;if(!card.isConnected)return;const w=comp.clientWidth,h=comp.clientHeight;if(!w||!h)return;const G=geometry(M,w,h),over=card.dataset.overview==='true',cw=cal.clientWidth;
-  const rects=[];for(const d of M.days){if(!d.on||!matches(d,state.part))continue;const r=over?G.overview(d):{x:card.querySelector('.at-timeline').offsetLeft+28+d.col*(cw-28)/7,y:62+d.row*16+4-scroller.scrollTop,w:Math.min(12,(cw-28)/7-3),h:12};if(r.y<(over?0:66)||r.y+r.h>h-5)continue;rects.push(`<rect x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" rx="${corner(r)}"/>`);}
+  beacon.hidden=true;
+  const rects=[];for(const d of M.days){const r=over?G.overview(d):{x:card.querySelector('.at-timeline').offsetLeft+28+d.col*(cw-28)/7,y:62+d.row*16+4-scroller.scrollTop,w:Math.min(12,(cw-28)/7-3),h:12};if(r.y<(over?0:66)||r.y+r.h>h-5)continue;
+   if(d.n===M.actualToday){beacon.hidden=false;beacon.style.left=r.x+'px';beacon.style.top=r.y+'px';beacon.style.width=r.w+'px';beacon.style.height=r.h+'px';}
+   if(d.on)rects.push(`<rect x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" rx="${corner(r)}" opacity="${matches(d,state.part)?1:.24}"/>`);}
   const url=`url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}"><g fill="white">${rects.join('')}</g></svg>`)}")`;sheen.style.maskImage=url;sheen.style.webkitMaskImage=url;
  });};
  const resizeObserver=typeof ResizeObserver==='function'?new ResizeObserver(()=>{layoutOverview(state);state.refreshMask();}):null;resizeObserver?.observe(comp);
@@ -352,6 +362,7 @@ async function share(card){
 async function seeAll(){document.querySelector('nav button[data-v="stats"]')?.click();let card;for(let i=0;i<30&&!card;i++){await new Promise(r=>setTimeout(r,50));card=document.querySelector('.attendance-card');}if(!card)return false;card.scrollIntoView({block:'center',behavior:reduced()?'auto':'smooth'});await new Promise(r=>setTimeout(r,reduced()?0:650));return card.isConnected&&play(card);}
 document.addEventListener('click',e=>{const b=e.target.closest?.('.heat-replay,.heat-share'),card=b?.closest('.attendance-card');if(!card)return;if(b.classList.contains('heat-share')){b.disabled=true;share(card).catch(()=>toast('Could not prepare the export. Please try again.')).finally(()=>{b.disabled=false;});}else play(card);});
 const mq=matchMedia('(prefers-reduced-motion: reduce)');mq.addEventListener?.('change',()=>{document.querySelectorAll('.attendance-card').forEach(c=>{c._attendance?.scene?.finish();if(mq.matches&&c._attendance)finishView(c._attendance);});});
+const ambientVisibility=()=>document.documentElement.classList.toggle('at-document-hidden',document.hidden);document.addEventListener('visibilitychange',ambientVisibility);ambientVisibility();
 window.addEventListener('resize',()=>{document.querySelectorAll('.attendance-card').forEach(c=>{if(c._attendance)layoutOverview(c._attendance);});});
 window.heatReplay={play,share,seeAll,get live(){return live;},finish(){live?.finish();},duration:()=>END,exportEnd:END};
 // Pure data/camera contract for regression checks; no saved state is exposed.
