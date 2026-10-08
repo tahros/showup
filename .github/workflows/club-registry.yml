@@ -1,0 +1,19 @@
+name: provision club registry
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: club-registry
+  cancel-in-progress: false
+jobs:
+  provision:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply reviewed registry migration and verify invariants
+        run: node tools/deploy-club-registry.cjs

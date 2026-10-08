@@ -1,7 +1,7 @@
 # Showing Up Club profile
 
 Settings opens with the approved ShowUppp mark, a blue 2.5D avatar, the existing
-display name, a cosmetic member number, join month, and distinct logged days.
+display name, a permanent member number, join month, and distinct logged days.
 Existing controls are grouped, not recreated: Profile, Appearance, Training,
 Connections (when available), and Account & data. No workout writer changed.
 
@@ -9,14 +9,24 @@ Connections (when available), and Account & data. No workout writer changed.
 
 - `settings.clubAvatar`: one of the nine allowlisted icon keys, synced and backed
   up through the existing per-key settings clocks. Invalid keys safely fall back.
-- Accounts derive their default icon and display number from the auth user ID.
-  The 10-digit number is a stable cosmetic fingerprint, NOT a sequential member
-  count, globally unique key, authentication credential, or entitlement.
+- Accounts still derive their default icon from the auth user ID. Member numbers
+  now come exclusively from `club_membership()` in the shared registry.
+  Number 0 belongs to the verified founder account; other existing accounts are
+  backfilled by creation time, then new accounts receive increasing numbers.
+  Numbers are display identity, never an authentication credential or entitlement.
+  Sequence gaps are possible after rolled-back signups; numbers are never reused.
 - Signed-out profiles get `settings.clubGuest = {id, since}` once storage has
   loaded. A cryptographic random ID stays stable on later visits. The card says
-  Guest no. and Club since. Demo rendering does not initialize persistent data.
+  Membership: Guest and Club since. Guests have no global member number.
+  Demo rendering does not initialize persistent data.
 - Account Member since uses auth `created_at` only. Missing/invalid dates display
-  an em dash. Imported workout dates are never presented as a join date.
+  an em dash. Founder member 0 reads `v1.0`, not an invented launch date.
+  Imported workout dates are never presented as a join date.
+- Registry responses are validated and cached in memory per backend/account.
+  Missing/offline membership reads show an em dash, never a made-up number;
+  reopening Settings retries. Late responses cannot paint another account's card.
+- Settings has no redundant Back action or tagline. The avatar's existing button
+  has a corner edit badge and retains its large accessible tap target.
 - Days trained uses the established `loggedDays()` definition: distinct dates
   with workout rows, including imports; no duplicate count for multiple sets or
   sessions on a date. Rest/empty dates do not count. It links to History.
@@ -43,6 +53,15 @@ The ball hops, bell sways, bottle tips, band stretches, plate rocks, roller
 rolls, bag compresses, mat rocks, and headphones pulse. No sound/haptics.
 
 ## Checks
+
+- `node tools/test-club-registry.js .`: real PostgreSQL via PGlite, founder,
+  backfill, signup trigger, idempotency, retirement and access restrictions.
+- Provision via the manual `provision club registry` GitHub workflow on main.
+  It runs only the reviewed migration, then checks aggregate invariants without
+  logging personal information. No other SQL setup sections are executed.
+  Deletion nulls the registry's user ID and retains only the retired number;
+  number 0 is never silently reassigned after account deletion.
+  The table has RLS and no client grants. Only the caller's row is exposed by RPC.
 
 - `node tools/test-club-profile.js .`: stable identity, sync, date provenance,
   invalid selection, nine-icon allowlist, unchanged profile and workout data.

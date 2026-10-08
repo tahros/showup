@@ -1,5 +1,13 @@
 # ShowUppp — changelog
 
+## v4.6.246 (2026-10-07) — A permanent place in the club
+
+- Removes the redundant Settings Back button and profile tagline. Moves avatar editing to a small pencil badge on the icon, retaining the full accessible tap target.
+- Replaces cosmetic account fingerprints with a private shared registry: founder member 0, then sequential numbers for other accounts, permanently retired on deletion. Existing accounts are assigned in creation order; the founder's card reads Member since v1.0.
+- Membership reads are account-scoped and cannot overwrite workout data or flash another account's number. Offline/unavailable records show a dash instead of a fabricated number; guests are clearly labeled Guest.
+- Adds PostgreSQL identity/access/deletion tests and browser checks. The registry is provisioned through a dedicated, reviewed migration; no other database setup is rerun.
+- Closes the existing metrics test database before process exit to avoid a Windows test-runner shutdown crash; no metrics behavior changes.
+
 ## v4.6.245 (2026-10-07) — Your place in the club
 
 - Settings now opens with a Showing Up Club profile card: existing name, stable cosmetic member number, honest join month, and distinct logged training days linked to History. Guest cards are clearly labeled; imported workouts never become a join date.

@@ -80,5 +80,7 @@ const atp=(await db.query(`select count(*)::int n from pg_policies where tablena
 ok('v4.6.145 apple_tokens: row-level security on, no policies (service role only)', at?.r===true && atp===0);
 await db.exec(section);
 ok('the section runs twice without error (safe to paste again)', true);
-console.log(fails?`\n${fails} FAILED`:'\nall passed'); process.exit(fails?1:0);
+// Close the WASM database before Node exits (avoids a Windows libuv abort).
+await db.close();
+console.log(fails?`\n${fails} FAILED`:'\nall passed'); process.exitCode=fails?1:0;
 })().catch(e=>{console.error(e);process.exit(1);});

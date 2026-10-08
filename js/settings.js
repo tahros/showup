@@ -5,7 +5,6 @@
 function renderSync(){
   clubEnsureIdentity();
   $('#view').innerHTML=`
-    <button class="back">← Back</button>
     <!-- v3.3.513: the version rides at the TOP. It sat under a full screen of
          settings and a paragraph of icon credits, which meant scrolling the
          whole page to answer the one question you open Settings to answer
@@ -204,18 +203,46 @@ function renderSync(){
     </div>
     <div class="note assetcredits" style="text-align:center;margin-top:6px;opacity:.7">Status icons: <a href="https://thenounproject.com/icon/minus-8363736/" target="_blank" rel="noopener">Minus</a> by ARIPATUT DASUKI · <a href="https://thenounproject.com/icon/trend-2344331/" target="_blank" rel="noopener">Trend</a> by Travis Avery · <a href="https://thenounproject.com/icon/share-2438501/" target="_blank" rel="noopener">Share</a> and <a href="https://thenounproject.com/icon/edit-1751206/" target="_blank" rel="noopener">Edit</a> by Timur Minvaleev · <a href="https://thenounproject.com/icon/ai-7262146/" target="_blank" rel="noopener">Sparkle</a> by Eliricon · <a href="https://thenounproject.com/icon/arrow-1342814/" target="_blank" rel="noopener">Chevron</a> by Barracuda · <a href="https://thenounproject.com/icon/expand-7584001/" target="_blank" rel="noopener">Expand</a> and <a href="https://thenounproject.com/icon/collapse-7584005/" target="_blank" rel="noopener">Collapse</a> by LAFS · Copy by maria icon · Pencil by Alvida Black · Noun Project</div>`;
   clubArrangeSettings();
+  void clubLoadMembership();
 }
 
 
 /* ---------- Showing Up Club: cosmetic identity, never authentication ----------
-   Account numbers are stable display fingerprints, not sequential IDs or claims
-   of global uniqueness. Guests get a saved random identity. Account creation is
+   Account numbers come only from the private server registry. Guests get a
+   saved random avatar identity, never a member number. Account creation is
    the only account-since source; an imported workout is NOT a join date.
    clubAvatar/clubGuest use the existing per-key settings sync and backup path.
    Rendering only initializes a missing guest identity after storage has loaded.
    Days follow the app's existing logged-day definition (including imports). */
 const CLUB_ICONS=[['band','Resistance band',1,0],['plate','Weight plate',1,50],['bell','Kettlebell',0,50],['roller','Foam roller',1,100],['bottle','Water bottle',0,100],['bag','Gym bag',2,0],['ball','Medicine ball',0,0],['mat','Rolled mat',2,50],['headphones','Headphones',2,100]];
 const clubOpenGroups=new Set();
+// Session-memory cache only: no membership records enter workout sync/backups.
+// Key includes backend + user, so switching accounts cannot show another number.
+const clubMembershipCache=new Map(),clubMembershipRequests=new Map();
+function clubMembershipKey(){return session?.user?.id?cloudCfg().url+'|'+session.user.id:'';}
+function clubMembershipFacts(){
+  const user=session?.user,m=clubMembershipCache.get(clubMembershipKey());
+  const raw=m?.joined_at||user?.created_at||(!user?DB.settings.clubGuest?.since:null),date=raw?new Date(raw):null;
+  return {number:user?(m?.member_no??'—'):'Guest',since:m?.member_no==='0'?'v1.0':date&&Number.isFinite(date.getTime())?date.toLocaleDateString('en-US',{month:'short',year:'numeric'}):'—'};
+}
+async function clubLoadMembership(){
+  const key=clubMembershipKey();if(!key||!session?.access_token||DB.settings.demo)return;
+  const paint=()=>{if(key!==clubMembershipKey())return;const f=clubMembershipFacts(),n=document.querySelector('.club-number'),s=document.querySelector('.club-since');if(n)n.textContent=f.number;if(s)s.textContent=f.since;};
+  if(clubMembershipCache.has(key)){paint();return;}
+  if(clubMembershipRequests.has(key)){await clubMembershipRequests.get(key);paint();return;}
+  const cfg=cloudCfg(),token=session.access_token;
+  const request=(async()=>{
+    const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),10000);
+    try{
+      const r=await fetch(cfg.url+'/rest/v1/rpc/club_membership',{method:'POST',headers:{apikey:cfg.anon,Authorization:'Bearer '+token,'Content-Type':'application/json'},body:'{}',signal:controller.signal});
+      if(!r.ok)return;
+      const rows=await r.json(),m=Array.isArray(rows)&&rows.length===1?rows[0]:null;
+      if(m&&typeof m.member_no==='string'&&/^(0|[1-9]\d*)$/.test(m.member_no))clubMembershipCache.set(key,{member_no:m.member_no,joined_at:Number.isFinite(Date.parse(m.joined_at))?m.joined_at:null});
+    }catch(_){}finally{clearTimeout(timeout);}
+  })();
+  clubMembershipRequests.set(key,request);
+  try{await request;paint();}finally{clubMembershipRequests.delete(key);}
+}
 function clubHash(str){let n=2166136261;for(const c of String(str)) n=Math.imul(n^c.charCodeAt(0),16777619);return n>>>0;}
 function clubEnsureIdentity(){
   if(session?.user?.id||DB.settings.clubGuest||!loadedOK||DB.settings.demo)return;
@@ -225,16 +252,14 @@ function clubEnsureIdentity(){
 function clubIdentity(){return session?.user?.id||DB.settings.clubGuest?.id||(DB.settings.demo?'demo-member':'guest');}
 function clubAvatar(){const k=DB.settings.clubAvatar;return CLUB_ICONS.find(x=>x[0]===k)||CLUB_ICONS[clubHash(clubIdentity())%CLUB_ICONS.length];}
 function clubIconHTML(item,animated=false){return `<span class="club-avatar club-${item[0]}${animated?' club-animate':''}" aria-hidden="true"><span class="club-shadow"></span><span class="club-sprite" style="background-image:url('assets/club-icons-${item[2]}.webp');background-position:${item[3]}% 0"></span></span>`;}
+function clubAvatarEditHTML(item){return clubIconHTML(item,true)+`<span class="club-avatar-edit" aria-hidden="true">${icon('edit',14)}</span>`;}
 function clubCardHTML(){
-  const avatar=clubAvatar(),user=session?.user,raw=user?.created_at||(!user?DB.settings.clubGuest?.since:null),date=raw?new Date(raw):null;
-  const since=date&&Number.isFinite(date.getTime())?date.toLocaleDateString('en-US',{month:'short',year:'numeric'}):'—';
-  const number=String(clubHash(clubIdentity())).padStart(10,'0');
+  const avatar=clubAvatar(),user=session?.user,{number:displayNumber,since}=clubMembershipFacts();
   const dark=document.documentElement.dataset.theme==='dark';
   return `<section class="card club-card" aria-label="Your Showing Up Club profile">
     <div class="club-brand"><img src="assets/showuppp-wordmark-${dark?'dark':'light'}.svg" alt="ShowUppp"><span>SHOWING UP CLUB</span></div>
-    <div class="club-person"><button type="button" class="club-avatar-button" data-club-picker aria-label="Change profile icon" aria-expanded="false">${clubIconHTML(avatar,true)}</button><div><h2>${hesc(DB.settings.name||'Your place in the club')}</h2><button type="button" class="club-text-button" data-club-edit>Edit profile</button></div></div>
-    <div class="club-facts"><div><span>${user?'Member no.':'Guest no.'}</span><strong class="club-number">${number.slice(0,5)} ${number.slice(5)}</strong></div><div><span>${user?'Member since':'Club since'}</span><strong>${since}</strong></div><button type="button" data-club-history aria-label="View your logged workout days"><span>Days trained</span><strong>${fmt(loggedDays())}</strong></button></div>
-    <div class="club-bottom"><span>Here for the long run.</span><button type="button" class="club-text-button" data-club-picker>Change icon</button></div>
+    <div class="club-person"><button type="button" class="club-avatar-button" data-club-picker aria-label="Edit profile icon" aria-expanded="false">${clubAvatarEditHTML(avatar)}</button><div><h2>${hesc(DB.settings.name||'Your place in the club')}</h2><button type="button" class="club-text-button" data-club-edit>Edit profile</button></div></div>
+    <div class="club-facts"><div><span>${user?'Member no.':'Membership'}</span><strong class="club-number">${displayNumber}</strong></div><div><span>${user?'Member since':'Club since'}</span><strong class="club-since">${since}</strong></div><button type="button" data-club-history aria-label="View your logged workout days"><span>Days trained</span><strong>${fmt(loggedDays())}</strong></button></div>
     <div class="club-picker" hidden><div class="club-picker-heading"><b>Make it yours.</b><button type="button" class="club-text-button" data-club-close>Done</button></div><div class="club-icon-grid" role="group" aria-label="Profile icons">${CLUB_ICONS.map(i=>`<button type="button" data-club-icon="${i[0]}" aria-pressed="${i[0]===avatar[0]}">${clubIconHTML(i,i[0]===avatar[0])}<span>${i[1]}</span></button>`).join('')}</div><p class="note">One little companion. Your choice stays with your profile.</p></div>
   </section>`;
 }
@@ -261,7 +286,7 @@ document.addEventListener('click',e=>{
   const b=e.target.closest?.('[data-club-picker],[data-club-close],[data-club-icon],[data-club-edit],[data-club-history]');if(!b)return;
   const card=b.closest('.club-card'),picker=card?.querySelector('.club-picker');
   if(b.hasAttribute('data-club-picker')||b.hasAttribute('data-club-close')){picker.hidden=b.hasAttribute('data-club-close')||!picker.hidden;card.querySelector('.club-avatar-button').setAttribute('aria-expanded',String(!picker.hidden));if(!picker.hidden)picker.querySelector('[aria-pressed=true]').focus();else card.querySelector('.club-avatar-button').focus();return;}
-  if(b.dataset.clubIcon){const item=CLUB_ICONS.find(x=>x[0]===b.dataset.clubIcon);if(!item)return;DB.settings.clubAvatar=item[0];save(true);card.querySelector('.club-avatar-button').innerHTML=clubIconHTML(item,true);picker.querySelectorAll('[data-club-icon]').forEach(x=>{const on=x.dataset.clubIcon===item[0];x.setAttribute('aria-pressed',String(on));x.querySelector('.club-avatar').classList.toggle('club-animate',on)});clubObserveMotion();return;}
+  if(b.dataset.clubIcon){const item=CLUB_ICONS.find(x=>x[0]===b.dataset.clubIcon);if(!item)return;DB.settings.clubAvatar=item[0];save(true);card.querySelector('.club-avatar-button').innerHTML=clubAvatarEditHTML(item);picker.querySelectorAll('[data-club-icon]').forEach(x=>{const on=x.dataset.clubIcon===item[0];x.setAttribute('aria-pressed',String(on));x.querySelector('.club-avatar').classList.toggle('club-animate',on)});clubObserveMotion();return;}
   if(b.hasAttribute('data-club-edit')){const g=document.querySelector('[data-club-group="profile"]');if(g){g.open=true;clubOpenGroups.add('profile');document.getElementById('youName')?.focus()}return;}
   if(b.hasAttribute('data-club-history')){view='history';lastView=null;render();}
 });
