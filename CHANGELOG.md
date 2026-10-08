@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.248 (2026-10-07) — Membership identity
+
+- Applies the Membership Identity handoff within the existing Settings card: MEMBER Nº with six-digit minimum formatting and a copyable SUP reference; founder zero displays as 000000. Larger numbers retain every digit.
+- Shows SHOWING UP SINCE with the verified account join month in UTC, including the founder. Guests are clearly device-local; unavailable identities remain honest placeholders.
+- Keeps permanent registry assignments, avatar/profile controls, distinct days trained and workout data unchanged. Adds formatting, UTC boundary, copy and light/dark phone-layout checks.
+
 ## v4.6.247 (2026-10-07) — The training receipt
 
 - Applies the approved Training Receipt design to Share Image and Video: gray wordmark and inline DAY, date/body-part stack, right-aligned location/weather, compact comparison rows, centered equal-width totals, and first name beside grayscale Pip at bottom right.

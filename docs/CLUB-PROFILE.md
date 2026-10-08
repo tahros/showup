@@ -17,11 +17,16 @@ Connections (when available), and Account & data. No workout writer changed.
   Sequence gaps are possible after rolled-back signups; numbers are never reused.
 - Signed-out profiles get `settings.clubGuest = {id, since}` once storage has
   loaded. A cryptographic random ID stays stable on later visits. The card says
-  Membership: Guest and Club since. Guests have no global member number.
+  LOCAL PROFILE: Guest and ON THIS DEVICE SINCE. Guests have no global member number.
   Demo rendering does not initialize persistent data.
-- Account Member since uses auth `created_at` only. Missing/invalid dates display
-  an em dash. Founder member 0 reads `v1.0`, not an invented launch date.
+- Account SHOWING UP SINCE uses verified auth `created_at` only, formatted as
+  uppercase month/year in UTC. Missing/invalid dates display an em dash.
+  This includes the founder; no invented launch date or sample month is used.
   Imported workout dates are never presented as a join date.
+- MEMBER Nº uses a six-digit minimum width (founder `000000`) without changing
+  registry identity. Longer numbers expand without truncation or numeric coercion.
+  Tapping copies the ASCII reference `SUP-000000`; badge formatting uses `SUP–000000`.
+  Pending/offline and guest identities cannot copy a fabricated reference.
 - Registry responses are validated and cached in memory per backend/account.
   Missing/offline membership reads show an em dash, never a made-up number;
   reopening Settings retries. Late responses cannot paint another account's card.

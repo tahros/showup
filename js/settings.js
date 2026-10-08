@@ -220,14 +220,29 @@ const clubOpenGroups=new Set();
 // Key includes backend + user, so switching accounts cannot show another number.
 const clubMembershipCache=new Map(),clubMembershipRequests=new Map();
 function clubMembershipKey(){return session?.user?.id?cloudCfg().url+'|'+session.user.id:'';}
+function clubNumberFormats(raw){
+  if(typeof raw!=='string'||!/^(0|[1-9]\d*)$/.test(raw))return null;
+  const number=raw.padStart(6,'0');return {number,reference:'SUP-'+number,badge:'SUP–'+number};
+}
 function clubMembershipFacts(){
   const user=session?.user,m=clubMembershipCache.get(clubMembershipKey());
   const raw=m?.joined_at||user?.created_at||(!user?DB.settings.clubGuest?.since:null),date=raw?new Date(raw):null;
-  return {number:user?(m?.member_no??'—'):'Guest',since:m?.member_no==='0'?'v1.0':date&&Number.isFinite(date.getTime())?date.toLocaleDateString('en-US',{month:'short',year:'numeric'}):'—'};
+  const id=user?clubNumberFormats(m?.member_no):null;
+  return {number:user?(id?.number??'—'):'Guest',reference:id?.reference||'',since:date&&Number.isFinite(date.getTime())?date.toLocaleDateString('en-US',{month:'short',year:'numeric',timeZone:'UTC'}).toUpperCase():'—'};
+}
+function clubPaintMembership(){
+  const f=clubMembershipFacts(),n=document.querySelector('.club-number'),s=document.querySelector('.club-since'),b=document.querySelector('[data-club-copy]');
+  if(n)n.textContent=f.number;if(s)s.textContent=f.since;
+  if(b){b.disabled=!f.reference;b.setAttribute('aria-label',f.reference?'Copy member reference '+f.reference:'Member number unavailable');b.title=f.reference?'Copy '+f.reference:'Connect to load your member number';}
+}
+async function clubCopyMembership(){
+  const f=clubMembershipFacts();if(!f.reference)return;
+  try{await navigator.clipboard.writeText(f.reference);toast('Copied '+f.reference);}
+  catch(_){toast('Your member reference: '+f.reference);}
 }
 async function clubLoadMembership(){
   const key=clubMembershipKey();if(!key||!session?.access_token||DB.settings.demo)return;
-  const paint=()=>{if(key!==clubMembershipKey())return;const f=clubMembershipFacts(),n=document.querySelector('.club-number'),s=document.querySelector('.club-since');if(n)n.textContent=f.number;if(s)s.textContent=f.since;};
+  const paint=()=>{if(key===clubMembershipKey())clubPaintMembership();};
   if(clubMembershipCache.has(key)){paint();return;}
   if(clubMembershipRequests.has(key)){await clubMembershipRequests.get(key);paint();return;}
   const cfg=cloudCfg(),token=session.access_token;
@@ -254,12 +269,13 @@ function clubAvatar(){const k=DB.settings.clubAvatar;return CLUB_ICONS.find(x=>x
 function clubIconHTML(item,animated=false){return `<span class="club-avatar club-${item[0]}${animated?' club-animate':''}" aria-hidden="true"><span class="club-shadow"></span><span class="club-sprite" style="background-image:url('assets/club-icons-${item[2]}.webp');background-position:${item[3]}% 0"></span></span>`;}
 function clubAvatarEditHTML(item){return clubIconHTML(item,true)+`<span class="club-avatar-edit" aria-hidden="true">${icon('edit',14)}</span>`;}
 function clubCardHTML(){
-  const avatar=clubAvatar(),user=session?.user,{number:displayNumber,since}=clubMembershipFacts();
+  const avatar=clubAvatar(),user=session?.user,{number:displayNumber,since,reference}=clubMembershipFacts();
   const dark=document.documentElement.dataset.theme==='dark';
   return `<section class="card club-card" aria-label="Your Showing Up Club profile">
     <div class="club-brand"><img src="assets/showuppp-wordmark-${dark?'dark':'light'}.svg" alt="ShowUppp"><span>SHOWING UP CLUB</span></div>
     <div class="club-person"><button type="button" class="club-avatar-button" data-club-picker aria-label="Edit profile icon" aria-expanded="false">${clubAvatarEditHTML(avatar)}</button><div><h2>${hesc(DB.settings.name||'Your place in the club')}</h2><button type="button" class="club-text-button" data-club-edit>Edit profile</button></div></div>
-    <div class="club-facts"><div><span>${user?'Member no.':'Membership'}</span><strong class="club-number">${displayNumber}</strong></div><div><span>${user?'Member since':'Club since'}</span><strong class="club-since">${since}</strong></div><button type="button" data-club-history aria-label="View your logged workout days"><span>Days trained</span><strong>${fmt(loggedDays())}</strong></button></div>
+    <div class="club-membership"><button type="button" class="club-member-id" data-club-copy ${reference?'':'disabled'} aria-label="${reference?'Copy member reference '+reference:'Member number unavailable'}" title="${reference?'Copy '+reference:'Connect to load your member number'}"><span>${user?'MEMBER Nº':'LOCAL PROFILE'}</span><strong class="club-number">${displayNumber}</strong>${user?`<span class="club-copy-icon" aria-hidden="true">${icon('copy',14)}</span>`:''}</button>
+    <div class="club-facts"><div><span>${user?'SHOWING UP SINCE':'ON THIS DEVICE SINCE'}</span><strong class="club-since">${since}</strong></div><button type="button" data-club-history aria-label="View your logged workout days"><span>DAYS TRAINED</span><strong>${fmt(loggedDays())}</strong></button></div></div>
     <div class="club-picker" hidden><div class="club-picker-heading"><b>Make it yours.</b><button type="button" class="club-text-button" data-club-close>Done</button></div><div class="club-icon-grid" role="group" aria-label="Profile icons">${CLUB_ICONS.map(i=>`<button type="button" data-club-icon="${i[0]}" aria-pressed="${i[0]===avatar[0]}">${clubIconHTML(i,i[0]===avatar[0])}<span>${i[1]}</span></button>`).join('')}</div><p class="note">One little companion. Your choice stays with your profile.</p></div>
   </section>`;
 }
@@ -283,7 +299,8 @@ function clubObserveMotion(){
 }
 document.addEventListener('visibilitychange',()=>document.documentElement.classList.toggle('club-page-hidden',document.hidden));
 document.addEventListener('click',e=>{
-  const b=e.target.closest?.('[data-club-picker],[data-club-close],[data-club-icon],[data-club-edit],[data-club-history]');if(!b)return;
+  const b=e.target.closest?.('[data-club-picker],[data-club-close],[data-club-icon],[data-club-edit],[data-club-history],[data-club-copy]');if(!b)return;
+  if(b.hasAttribute('data-club-copy')){void clubCopyMembership();return;}
   const card=b.closest('.club-card'),picker=card?.querySelector('.club-picker');
   if(b.hasAttribute('data-club-picker')||b.hasAttribute('data-club-close')){picker.hidden=b.hasAttribute('data-club-close')||!picker.hidden;card.querySelector('.club-avatar-button').setAttribute('aria-expanded',String(!picker.hidden));if(!picker.hidden)picker.querySelector('[aria-pressed=true]').focus();else card.querySelector('.club-avatar-button').focus();return;}
   if(b.dataset.clubIcon){const item=CLUB_ICONS.find(x=>x[0]===b.dataset.clubIcon);if(!item)return;DB.settings.clubAvatar=item[0];save(true);card.querySelector('.club-avatar-button').innerHTML=clubAvatarEditHTML(item);picker.querySelectorAll('[data-club-icon]').forEach(x=>{const on=x.dataset.clubIcon===item[0];x.setAttribute('aria-pressed',String(on));x.querySelector('.club-avatar').classList.toggle('club-animate',on)});clubObserveMotion();return;}
