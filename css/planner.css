@@ -426,6 +426,18 @@ p.pw-small{margin:10px 0 16px}.pw-workspace p:not(.pw-small){font:400 14px/1.6 v
 .day-review .dr-weather svg{width:16px;height:16px;fill:currentColor;flex:none}
 .day-review .dr-heading h3{font:500 23px/1.2 var(--body);letter-spacing:-.65px;margin:0;color:var(--chalk)}
 .day-review .dr-parts{font:400 13px/1.5 var(--body);margin:8px 0 14px;color:var(--muted)}
+.day-review .dr-heading{gap:4px}.day-review .dr-heading h3{flex:1}
+.day-review [data-dr-calendar]{display:flex;align-items:center;gap:7px;min-height:44px;padding:0;border:0;background:none;font:inherit;color:inherit;text-align:left;cursor:pointer}
+.day-review .dr-down{display:inline-flex;transform:rotate(90deg);color:var(--muted);flex-shrink:0}.day-review [aria-expanded=true] .dr-down{transform:rotate(-90deg)}
+.dr-date-arrows{display:flex;flex-shrink:0}.day-review .dr-date-arrows button,.day-review .dr-month button{display:flex;align-items:center;justify-content:center;width:44px;height:44px;padding:0;border:0;background:none;color:var(--muted);cursor:pointer}
+.day-review [data-dr-step="-1"] svg,.day-review [data-dr-month="-1"] svg{transform:rotate(180deg)}
+.day-review .dr-parts{display:flex;align-items:center;gap:8px;margin:0 0 12px;flex-wrap:wrap}.day-review .dr-parts>span:first-child{flex:1;min-width:90px}
+.day-review [data-dr-today]{padding:0 3px;min-height:44px;border:0;background:none;font:500 12px var(--body);color:var(--accent-ink);cursor:pointer;margin-left:auto}
+.day-review button:disabled{opacity:.35;cursor:default}.day-review button:focus-visible{outline:2px solid var(--accent-ink);outline-offset:2px;border-radius:8px}
+.dr-calendar{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:8px 0 12px;margin-bottom:14px}.dr-month{display:flex;align-items:center;justify-content:space-between;font:500 14px var(--body)}
+.dr-calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));text-align:center;gap:2px 0}.dr-calendar-grid>span{font:400 11px var(--mono);padding:8px 0;color:var(--muted)}
+.day-review .dr-calendar-grid button{min-width:0;height:44px;border:0;border-radius:12px;background:none;color:var(--chalk);padding:0;font:400 13px var(--mono);cursor:pointer}
+.day-review .dr-calendar-grid button[aria-pressed=true]{background:var(--accent);color:#fff}.day-review .dr-calendar-grid button[aria-current=date]:not([aria-pressed=true]){color:var(--accent-ink);box-shadow:inset 0 0 0 1px var(--line)}
 .day-review table{border-collapse:collapse;width:100%;table-layout:fixed;font-variant-numeric:tabular-nums}
 .day-review table th{text-transform:none;letter-spacing:normal}
 .day-review table th,.day-review table td{border-bottom:0}

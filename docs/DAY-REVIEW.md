@@ -1,4 +1,19 @@
-# Whole-day comparison — v4.6.247
+# Whole-day comparison — v4.6.250
+
+## Quiet date navigation
+
+The date heading opens an inline calendar; chevrons browse adjacent dates and
+Today restores the live day. Calendar arithmetic uses UTC noon to avoid DST
+drift, while stored local ISO day keys stay unchanged. Future dates are disabled.
+Selection is transient, scoped to the current DB/account, and never changes
+todayISO, the logger, plan or saved history. Only this card is replaced; keyboard
+focus returns to its controls and Escape closes the calendar.
+
+Historical cards and exports use dayReviewModel(selectedDate), including frozen
+plan/Last references and saved weather. Their actual column says Logged; the
+export day count includes only workout dates through that date. Date controls
+do not appear in exports. Current location/weather actions are restricted to
+today and are canceled if the selected card changes during a lookup.
 
 Share images/videos use the approved 560-unit editorial grid, rendered at 1080px:
 28-unit horizontal margins, equal 30-unit top/bottom padding, gray 57-unit

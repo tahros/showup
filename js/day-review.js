@@ -5,6 +5,30 @@
    from blank space; references stay still. All encoding stays on-device. */
 // equipOf() creates an override bag on legacy profiles; this view must not.
 const dayReviewBody=ex=>(DB.settings.equipOv?.[ex]||DB.settings.custom?.[ex]?.equip||(EZ_NAME.test(ex||'')?'ezbar':null)||SEED.equip[ex]||'machine')==='body';
+// Browsing a receipt never changes the logger's date or persists account data.
+let drSelection=null,drSelectionDB=null,drSelectionUser=null,drCalendarMonth=null;
+function dayReviewDate(){
+  if(drSelectionDB!==DB||drSelectionUser!==session?.user?.id){drSelection=null;drCalendarMonth=null;drSelectionDB=DB;drSelectionUser=session?.user?.id;}
+  return drSelection&&drSelection<=todayISO?drSelection:todayISO;
+}
+function dayReviewValidDate(s){return typeof s==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(s)&&s>='1900-01-01'&&s<=todayISO&&!Number.isNaN(Date.parse(s+'T12:00:00Z'))&&new Date(s+'T12:00:00Z').toISOString().slice(0,10)===s;}
+function dayReviewShift(date,n){const d=new Date(date+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10);}
+function dayReviewCalendar(date){
+  if(!drCalendarMonth)return '';
+  const d=new Date(drCalendarMonth+'T12:00:00Z'),year=d.getUTCFullYear(),month=d.getUTCMonth(),days=new Date(Date.UTC(year,month+1,0)).getUTCDate();
+  return `<div class="dr-calendar" id="drCalendar" aria-label="Choose review date"><div class="dr-month"><button type="button" data-dr-month="-1" aria-label="Previous month"${drCalendarMonth<='1900-01-01'?' disabled':''}>${icon('chevron',16)}</button><span>${d.toLocaleDateString('en-US',{month:'long',year:'numeric',timeZone:'UTC'})}</span><button type="button" data-dr-month="1" aria-label="Next month"${drCalendarMonth>=todayISO.slice(0,8)+'01'?' disabled':''}>${icon('chevron',16)}</button></div><div class="dr-calendar-grid">${['S','M','T','W','T','F','S'].map(s=>`<span aria-hidden="true">${s}</span>`).join('')}${'<span></span>'.repeat(d.getUTCDay())}${Array.from({length:days},(_,i)=>{const s=drCalendarMonth.slice(0,8)+String(i+1).padStart(2,'0');return `<button type="button" data-dr-date="${s}" aria-label="${hesc(pretty(s))}" aria-pressed="${s===date}"${s===todayISO?' aria-current="date"':''}${s>todayISO?' disabled':''}>${i+1}</button>`;}).join('')}</div></div>`;
+}
+function dayReviewNavigate(card,date,focus='[data-dr-calendar]'){
+  dayReviewDate();if(!dayReviewValidDate(date))return;
+  drSelection=date===todayISO?null:date;drCalendarMonth=null;dayReviewReplace(card,focus);
+}
+function dayReviewReplace(card,focus){
+  if(!card?.isConnected)return;
+  dayReviewObserver?.disconnect();dayReviewObserver=null;
+  const top=card.getBoundingClientRect().top,t=document.createElement('template');t.innerHTML=dayReviewSection();const next=t.content.firstElementChild;card.replaceWith(next);
+  window.scrollBy?.(0,next.getBoundingClientRect().top-top);
+  const target=next.querySelector(focus);(target&&!target.disabled?target:next.querySelector('[data-dr-calendar]'))?.focus({preventScroll:true});
+}
 function dayReviewTotals(record){
   const rows=record?.w||[];
   // Completion's timing rules apply to EACH recorded session, not a whole-day
@@ -60,7 +84,7 @@ function dayReviewModel(date=todayISO){
     if(weightGain)delta.push('+'+wDisp(weightGain)+' '+U());
     if(repGain)delta.push('+'+repGain+' reps');
     if(ref.length&&addedSets)delta.push('+'+addedSets+' '+(addedSets===1?'set':'sets'));
-    const note=planned?(!inPlan&&actual.length?'Added today':!ref.length&&inPlan?'No set targets':''):(lastDate?new Date(lastDate+'T12:00').toLocaleDateString('en-US',{month:'short',day:'numeric',...(lastDate.slice(0,4)!==date.slice(0,4)?{year:'numeric'}:{})}):'First session');
+    const note=planned?(!inPlan&&actual.length?(date===todayISO?'Added today':'Added that day'):!ref.length&&inPlan?'No set targets':''):(lastDate?new Date(lastDate+'T12:00').toLocaleDateString('en-US',{month:'short',day:'numeric',...(lastDate.slice(0,4)!==date.slice(0,4)?{year:'numeric'}:{})}):'First session');
     return {ex,ref,actual,note,delta};
   });
   const totals=dayReviewTotals(record),parts=[...new Set(work.map(r=>r.part==='Run'?(r.ex==='Run'?'Run':partLabel(r.part)):r.part).filter(Boolean))];
@@ -103,6 +127,7 @@ function dayReviewWeatherHTML(context){
 }
 function dayReviewContextControls(m){
  const added=m.context&&(m.context.location||m.context.weather);
+ if(m.date!==todayISO)return `<div class="dr-context">${added?'<small>Location: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap</a> via Photon · Weather: <a href="https://www.met.no/en/free-meteorological-data/Licensing-and-crediting" target="_blank" rel="noopener">MET Norway / CC BY 4.0</a></small>':''}</div>`;
  return `<div class="dr-context"><button type="button" data-dr-location>${added?'Update location & weather':'Allow location'}</button>${added?'<button type="button" data-dr-context-remove>Remove</button>':''}<p class="dr-context-status" role="status">${added?'':'Optional: add your current city and weather to this day and its share card.'}</p>${added?'<small>Location: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap</a> via Photon · Weather: <a href="https://www.met.no/en/free-meteorological-data/Licensing-and-crediting" target="_blank" rel="noopener">MET Norway / CC BY 4.0</a></small>':''}</div>`;
 }
 function dayReviewLocationConsent(){
@@ -115,9 +140,10 @@ function dayReviewLocationConsent(){
 }
 let dayReviewLocating=false;
 async function dayReviewAddLocation(button){
+ if(dayReviewDate()!==todayISO)return;
  if(dayReviewLocating)return;dayReviewLocating=true;
  const card=button.closest('.day-review'),account=DB,user=session?.user?.id,date=todayISO,contextAt=DB.days[date]?.dayContext?.updatedAt;
- const same=()=>DB===account&&session?.user?.id===user&&todayISO===date&&card.isConnected&&DB.days[date]?.dayContext?.updatedAt===contextAt;
+ const same=()=>DB===account&&session?.user?.id===user&&todayISO===date&&dayReviewDate()===date&&card.isConnected&&DB.days[date]?.dayContext?.updatedAt===contextAt;
  const status=message=>{if(card.isConnected)card.querySelector('.dr-context-status').textContent=message;};
  try{
   if(!await dayReviewLocationConsent()||!same())return;
@@ -173,17 +199,18 @@ function dayReviewLanes(row,planned){
   return lanes.length?lanes:[{ref:null,actual:null}];
 }
 function dayReviewSection(){
-  const m=dayReviewModel();
+  const date=dayReviewDate(),m=dayReviewModel(date),current=date===todayISO;
   const cell=(g,actual)=>{
     if(!g)return '<span class="dr-empty"'+(actual?' data-dr-reveal':'')+'>—</span>';
     return `<div class="dr-value"><span class="dr-weight${g.gain?' dr-gain':''}"${actual?' data-dr-reveal':''}>${hesc(g.load)}</span><span class="dr-reps">${g.chips.map(c=>`<span class="dr-rep${c.gain?' dr-gain':''}"${actual?' data-dr-reveal':''}>${hesc(c.label)}</span>`).join('')}</span>${g.qualifier?`<small>${hesc(g.qualifier)}</small>`:''}</div>`;
   };
-  return `<section class="card day-review" aria-label="Whole-day workout comparison">
-    <div class="dr-heading"><h3>${hesc(m.title)}</h3>${m.context?.weather?dayReviewWeatherHTML(m.context):''}</div>
-    <p class="dr-parts">${[m.context?.location,...m.parts].filter(Boolean).map(hesc).join(' · ')||'Your day, one set at a time.'}</p>
-    <table aria-label="${m.planned?'Plan':'Last session'} compared with today"><colgroup><col><col><col></colgroup><thead><tr><th scope="col">${m.unit} · reps</th><th scope="col">${m.planned?'Plan':'Last'}</th><th scope="col"><span data-dr-reveal>Today</span></th></tr></thead><tbody>
+  return `<section class="card day-review" data-dr-selected="${date}" aria-label="Whole-day workout comparison">
+    <div class="dr-heading"><h3><button type="button" data-dr-calendar aria-label="Choose date, ${hesc(m.title)}" aria-expanded="${!!drCalendarMonth}" aria-controls="drCalendar">${hesc(m.title)}<span class="dr-down">${icon('chevron',14)}</span></button></h3><div class="dr-date-arrows"><button type="button" data-dr-step="-1" aria-label="Previous day"${date==='1900-01-01'?' disabled':''}>${icon('chevron',16)}</button><button type="button" data-dr-step="1" aria-label="Next day"${current?' disabled':''}>${icon('chevron',16)}</button></div></div>
+    <div class="dr-parts"><span>${[m.context?.location,...m.parts].filter(Boolean).map(hesc).join(' · ')||'Your day, one set at a time.'}</span>${m.context?.weather?dayReviewWeatherHTML(m.context):''}<button type="button" data-dr-today${current?' disabled':''}>Today</button></div>
+    ${dayReviewCalendar(date)}
+    <table aria-label="${m.planned?'Plan':'Last session'} compared with ${current?'today':hesc(m.title)}"><colgroup><col><col><col></colgroup><thead><tr><th scope="col">${m.unit} · reps</th><th scope="col">${m.planned?'Plan':'Last'}</th><th scope="col"><span data-dr-reveal>${current?'Today':'Logged'}</span></th></tr></thead><tbody>
     ${m.rows.map(r=>{const lanes=dayReviewLanes(r,m.planned);return lanes.map((l,i)=>`<tr class="${i?'dr-continuation':'dr-exercise'}${i===lanes.length-1?' dr-last-lane':''}">${!i?`<th scope="rowgroup" rowspan="${lanes.length}"><div class="dr-exercise-label">${hesc(r.ex)}${r.note?`<small class="dr-note">${hesc(r.note)}</small>`:''}${r.delta.length?`<span class="dr-delta" data-dr-reveal>${r.delta.map(hesc).join(' · ')}</span>`:''}</div></th>`:''}<td${!l.ref?' class="dr-missing"':''}>${cell(l.ref,false)}</td><td class="dr-actual${!l.actual?' dr-missing':''}">${cell(l.actual,true)}</td></tr>`).join('');}).join('')}
-    </tbody></table>${!m.rows.length?'<p class="dr-empty-day">Your logged sets will appear here.</p>':''}
+    </tbody></table>${!m.rows.length?`<p class="dr-empty-day">${current?'Your logged sets will appear here.':'No workout logged on this day.'}</p>`:''}
     <div class="dr-totals">${m.values.map((n,i)=>`<div data-dr-reveal${i===0&&n==='—'?' title="Duration unavailable until a timed session is completed"':''}><b>${n}</b><span>${m.labels[i]}</span></div>`).join('')}</div>
     <div class="dr-actions"><button type="button" data-dr-replay><span aria-hidden="true">↻</span> Replay</button><button type="button" class="dr-share" data-dr-share${!m.totals.sets?' disabled':''}>${ICO_SHARE} Share</button></div>
     ${m.totals.sets?dayReviewContextControls(m):'<div class="dr-context"></div>'}
@@ -209,19 +236,27 @@ function bindDayReview(){
   }
 }
 document.addEventListener('click',e=>{
+  const nav=e.target.closest('[data-dr-calendar],[data-dr-step],[data-dr-date],[data-dr-month],[data-dr-today]');
+  if(nav&&!nav.disabled){const card=nav.closest('.day-review'),date=dayReviewDate();
+    if(nav.hasAttribute('data-dr-calendar')){drCalendarMonth=drCalendarMonth?null:date.slice(0,8)+'01';dayReviewReplace(card,drCalendarMonth?'[data-dr-date="'+date+'"]':'[data-dr-calendar]');}
+    else if(nav.dataset.drMonth&&drCalendarMonth){const d=new Date(drCalendarMonth+'T12:00:00Z');d.setUTCMonth(d.getUTCMonth()+Number(nav.dataset.drMonth));const month=d.toISOString().slice(0,10);if(month>='1900-01-01'&&month<=todayISO){drCalendarMonth=month;dayReviewReplace(card,'[data-dr-month="'+nav.dataset.drMonth+'"]');}}
+    else dayReviewNavigate(card,nav.hasAttribute('data-dr-today')?todayISO:nav.dataset.drDate||dayReviewShift(date,Number(nav.dataset.drStep)));
+    return;
+  }
   const replay=e.target.closest('[data-dr-replay]'),share=e.target.closest('[data-dr-share]');
   if(replay)dayReviewReplay(replay.closest('.day-review'));
   if(share&&!share.disabled)shareDayReview(share);
   const locate=e.target.closest('[data-dr-location]'),remove=e.target.closest('[data-dr-context-remove]');
   if(locate)dayReviewAddLocation(locate);
-  if(remove&&!checkDate()){const record=DB.days[todayISO];if(record){record.dayContext={removed:true,updatedAt:Date.now()};record.upd=Date.now();save();dayReviewRefreshContext(remove.closest('.day-review'));}}
+  if(remove&&dayReviewDate()===todayISO&&!checkDate()){const record=DB.days[todayISO];if(record){record.dayContext={removed:true,updatedAt:Date.now()};record.upd=Date.now();save();dayReviewRefreshContext(remove.closest('.day-review'));}}
 });
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&drCalendarMonth&&e.target.closest('.day-review')){drCalendarMonth=null;dayReviewReplace(e.target.closest('.day-review'),'[data-dr-calendar]');}});
 
 /* The export uses the same formatted values as the DOM, but lays text out
    explicitly so it stays sharp and never depends on screenshot libraries. */
 function dayReviewExportModel(){
-  const m=dayReviewModel(),css=getComputedStyle(document.documentElement),read=(key,fallback)=>css.getPropertyValue(key).trim()||fallback;
-  return {...m,firstName:m.name.trim().split(/\s+/)[0]||'',dayCount:msLiveTotal(),rows:m.rows.map(r=>({...r,lanes:dayReviewLanes(r,m.planned)})),dark:document.documentElement.dataset.theme==='dark',
+  const m=dayReviewModel(dayReviewDate()),css=getComputedStyle(document.documentElement),read=(key,fallback)=>css.getPropertyValue(key).trim()||fallback;
+  return {...m,actualLabel:m.date===todayISO?'Today':'Logged',firstName:m.name.trim().split(/\s+/)[0]||'',dayCount:m.date===todayISO?msLiveTotal():[...workoutDates()].filter(d=>d<=m.date).length,rows:m.rows.map(r=>({...r,lanes:dayReviewLanes(r,m.planned)})),dark:document.documentElement.dataset.theme==='dark',
     colors:{paper:read('--surface','#fff'),ink:read('--chalk','#202124'),muted:read('--muted','#727272'),line:read('--line','#ededed'),chip:read('--surface2','#f5f5f5'),blue:read('--accent','#3546d8'),blueText:read('--accent-ink','#3546d8'),soft:'color-mix(in srgb, '+read('--accent','#3546d8')+' 11%, '+read('--surface','#fff')+')'}};
 }
 function drawDayReview(data,time,canvas){
@@ -282,7 +317,7 @@ function drawDayReview(data,time,canvas){
     if(paths.length){ctx.save();ctx.translate(515,yy+2);ctx.scale(18/24,18/24);ctx.fillStyle=C.muted;paths.forEach(d=>ctx.fill(new Path2D(d)));ctx.restore();}}
   const refX=307.72,actualX=453.88;
   text(data.unit+' · reps',28,top-13,14,C.muted);text(data.planned?'Plan':'Last',refX,top-13,14,C.muted,'center');
-  reveal(180,()=>text('Today',actualX,top-13,14,C.accent,'center'));
+  reveal(180,()=>text(data.actualLabel||'Today',actualX,top-13,14,C.accent,'center'));
   const group=(g,cx,actual,delay,gy,height,nLoads)=>{
     if(!g){const paint=()=>ink('—',cx,gy+height/2,18,C.quiet,'center');actual?reveal(delay,paint):paint();return;}
     let j=0;const start=gy;

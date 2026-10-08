@@ -56,4 +56,6 @@ test('weather maps saved conditions to original day/night icons',`[['clearsky_da
 test('unknown conditions keep temperature without a misleading icon',`dayReviewContext({dayContext:{weather:{c:20,symbol:'unknown'}}}).icon===null&&dayReviewWeatherPaths(null).length===0`);
 run(`var local={w:[{ex:'Squat',reps:[8]}],dayContext:{location:'Princeton',updatedAt:1}},remote={w:[],dayContext:{removed:true,updatedAt:2}};unionDay(local,remote);`);
 test('sync union preserves removal tombstone without touching workout',`local.dayContext.removed&&local.w.length===1`);
+test('date selection follows today until explicitly browsing and resets for another account',`(()=>{dayReviewDate();drSelection='2026-10-02';if(dayReviewDate()!=='2026-10-02')return false;const old=DB;DB={...DB};const reset=dayReviewDate()===todayISO;DB=old;dayReviewDate();return reset;})()`);
+test('calendar handles leap years and local DST without date drift',`dayReviewValidDate('2024-02-29')&&!dayReviewValidDate('2025-02-29')&&!dayReviewValidDate('2026-10-08')&&dayReviewShift('2026-03-09',-1)==='2026-03-08'&&dayReviewShift('2026-01-01',-1)==='2025-12-31'`);
 console.log('PASS whole-day review complete');process.exit(0);

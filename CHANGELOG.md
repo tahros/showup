@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.250 (2026-10-08) — Browse your days quietly
+
+- Adds the approved Quiet date selector to the daily comparison: tappable date with an inline month calendar, previous/next-day chevrons, and a Today shortcut. Future days are disabled; only the review card updates, not the page or workout date.
+- Historical reviews and Image/Video exports use the selected day's real plan, logs, totals and saved context, labeled Logged rather than Today. Empty days remain explicit, with sharing disabled. Historical share day counts reflect attendance through that date.
+- Date browsing is session-local and read-only, resets across account/data replacement, and cannot attach current location/weather to old records. Keeps keyboard focus, narrow light/dark layouts, reduced motion and existing replay/export behavior.
+
 ## v4.6.249 (2026-10-08) — A more compact membership card
 
 - Moves the member identity directly beneath the name, number first, with slightly smaller 21px IBM Plex Mono digits and a restrained MEMBER Nº label. Keeps tap-to-copy without a separate copy glyph.

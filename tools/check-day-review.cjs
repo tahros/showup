@@ -51,5 +51,26 @@ for(const theme of ['light','dark']){
 await p.evaluate(()=>{DB.days[todayISO].planBasis={revision:null};DB.days['2026-10-02']={w:[{part:'Legs',ex:'Squat',w:185/LB,reps:[8,8,8,8]}]};SEED=deriveAll();render();});
 await p.locator('.day-review').scrollIntoViewIfNeeded();await p.waitForTimeout(3500);assert.equal(await p.locator('.day-review thead th').nth(1).innerText(),'Last');assert.equal(await p.locator('.day-review tbody tr').count(),5);
 await p.locator('.day-review').screenshot({path:path.join(out,'no-plan.png')});
+await p.evaluate(()=>{window.dateNavBefore=JSON.stringify(DB);window.attendanceBefore=document.querySelector('.attendance-card');});
+await p.locator('[data-dr-step="-1"]').click();
+assert.equal(await p.locator('.day-review').getAttribute('data-dr-selected'),'2026-10-06');
+assert.equal(await p.locator('.day-review thead th').nth(2).innerText(),'Logged');
+assert.equal(await p.locator('.dr-empty-day').innerText(),'No workout logged on this day.');
+assert(await p.locator('[data-dr-share]').isDisabled());
+assert(await p.evaluate(()=>todayISO==='2026-10-07'&&attendanceBefore===document.querySelector('.attendance-card')),'no global date or page rerender');
+await p.locator('[data-dr-calendar]').click();assert(await p.locator('#drCalendar').isVisible());
+assert(await p.locator('[data-dr-date="2026-10-08"]').isDisabled());
+await p.locator('[data-dr-date="2026-10-02"]').click();
+assert.equal(await p.locator('#drCalendar').count(),0);assert.equal(await p.locator('.day-review tbody th').first().innerText(),'Squat\nFirst session');
+assert.equal(await p.locator('[data-dr-location]').count(),0,'no current weather on a historical workout');
+const historical=await p.evaluate(()=>dayReviewExportModel());assert.equal(historical.date,'2026-10-02');assert.equal(historical.actualLabel,'Logged');assert.equal(historical.dayCount,1);assert.equal(historical.totals.sets,4);
+assert(await p.evaluate(()=>JSON.stringify(DB)===dateNavBefore),'date navigation and historical export are read only');
+await p.locator('[data-dr-today]').click();assert(await p.locator('[data-dr-step="1"]').isDisabled());assert.equal(await p.locator('.day-review').getAttribute('data-dr-selected'),'2026-10-07');
+await p.locator('[data-dr-calendar]').click();await p.locator('[data-dr-month="-1"]').click();assert((await p.locator('.dr-month').innerText()).includes('September 2026'));
+await p.keyboard.press('Escape');assert.equal(await p.locator('#drCalendar').count(),0);
+assert(await p.locator('[data-dr-calendar]').evaluate(e=>e===document.activeElement));
+assert(await p.evaluate(()=>dayReviewValidDate('2024-02-29')&&!dayReviewValidDate('2025-02-29')&&!dayReviewValidDate('2026-10-08')&&dayReviewShift('2026-03-09',-1)==='2026-03-08'&&dayReviewShift('2026-01-01',-1)==='2025-12-31'));
+for(const width of [320,393]){await p.setViewportSize({width,height:852});await p.locator('[data-dr-calendar]').click();assert(await p.locator('.day-review').evaluate(e=>e.scrollWidth<=e.clientWidth));await p.locator('.day-review').screenshot({path:path.join(out,`date-calendar-${width}.png`),style:'header,nav,#calReturn,#progressSwitch{visibility:hidden!important}'});await p.keyboard.press('Escape');}
+console.log('PASS selected-date records, historical export, calendar, rollover, future guard, read-only navigation and narrow layouts');
 assert.deepEqual(errors,[]);console.log('PASS placement, motion, share, reduced motion, no-plan, no runtime errors');
 }finally{await browser.close();}})().catch(e=>{console.error(e);process.exit(1);});
