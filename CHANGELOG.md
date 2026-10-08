@@ -1,5 +1,12 @@
 # ShowUppp — changelog
 
+## v4.6.247 (2026-10-07) — The training receipt
+
+- Applies the approved Training Receipt design to Share Image and Video: gray wordmark and inline DAY, date/body-part stack, right-aligned location/weather, compact comparison rows, centered equal-width totals, and first name beside grayscale Pip at bottom right.
+- Uses neutral Today values and plain reps, reserving blue highlights for existing detected improvements. Omits gain captions from exports without changing their calculations or accessible in-app descriptions. Keeps unlogged exercises visible and provider credits complete on two lines.
+- Preserves light/dark choice, units, qualifiers, all individual reps, real totals, and workout data. Export height grows with long content; paired comparison lanes stay aligned. Video reveals use opacity and small movement and finish on the same geometry as the still image.
+- Tests approved sample styling, long names/rep lists, empty exports, paired alignment, still/video equality, narrow-screen app behavior and decoded MP4 output.
+
 ## v4.6.246 (2026-10-07) — A permanent place in the club
 
 - Removes the redundant Settings Back button and profile tagline. Moves avatar editing to a small pencil badge on the icon, retaining the full accessible tap target.

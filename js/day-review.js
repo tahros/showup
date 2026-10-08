@@ -227,71 +227,87 @@ function dayReviewExportModel(){
 function drawDayReview(data,time,canvas){
   const cv=canvas||document.createElement('canvas'),scale=1080/560;
   if(cv.width!==1080)cv.width=1080;
-  const ctx=cv.getContext('2d'),sans='"ShowUp Export Plex", "IBM Plex Sans", sans-serif',mono='"IBM Plex Mono", monospace',C=data.colors;
-  // Reference export (81ca848) used a 393-unit grid. Transfer only its TYPE
-  // proportions to this 560-unit grid, not its layout. Summary stays 38/13.
-  const ref=560/393,T={title:23*ref,context:13*ref,heading:12*ref,small:11*ref,
-    exercise:14.5*ref,load:14*ref,rep:12*ref,qualifier:10*ref};
-  const wrap=(s,width,size=T.exercise,weight=600)=>{ctx.font=weight+' '+size+'px '+sans;const lines=[];let line='';for(const word of String(s).split(/\s+/)){if(line&&ctx.measureText(line+' '+word).width>width){lines.push(line);line=word;}else line+=(line?' ':'')+word;}if(line)lines.push(line);return lines;};
-  const chips=g=>{const lines=[[]];let used=0;ctx.font='600 '+T.rep+'px '+sans;for(const chip of g.chips){const w=Math.max(17,ctx.measureText(chip.label).width+6);if(used+w>138&&lines.at(-1).length){lines.push([]);used=0;}lines.at(-1).push({...chip,w});used+=w+3;}return lines;};
-  const groupHeight=g=>!g?24:24+(g.chips.length?5+chips(g).length*34-4:0)+(g.qualifier?4+wrap(g.qualifier,96,T.qualifier,400).length*18:0);
-  const laneHeight=l=>Math.max(groupHeight(l.ref),groupHeight(l.actual));
-  const labelHeight=r=>wrap(r.ex,185).length*28+(r.note?wrap(r.note,185,T.small,400).length*20+4:0)+(r.delta.length?6+r.delta.length*21:0);
-  const rowHeight=r=>22+Math.max(labelHeight(r),
-    r.lanes.reduce((s,l)=>s+laneHeight(l),0)+12*(r.lanes.length-1));
-  const meta=wrap([data.context?.location,...data.parts].filter(Boolean).join(' · '),data.context?.weather?390:504,T.context,400),top=198+Math.max(1,meta.length)*24,heights=data.rows.map(rowHeight),bottom=top+heights.reduce((a,b)=>a+b,0);
-  const hasContext=data.context&&(data.context.location||data.context.weather),h=bottom+(hasContext?164:144),height=Math.ceil(h*scale/2)*2;
-  if(cv.height!==height)cv.height=height;
+  const ctx=cv.getContext('2d'),sans='"ShowUp Export Plex", "IBM Plex Sans", sans-serif',mono='"IBM Plex Mono", monospace';
+  const C=data.dark?{paper:'#1b1b1b',ink:'#f4f3f0',muted:'#a1a3a7',quiet:'#77797e',line:'#303033',blue:'#526fe0',accent:'#99adff'}:
+    {paper:'#fff',ink:'#202124',muted:'#62656b',quiet:'#77797e',line:'#e5e5e8',blue:'#3546d8',accent:'#3546d8'};
+  const T={title:33,context:14,heading:14,small:13,exercise:20,load:19,rep:17,qualifier:12};
+  // One 560-unit layout drives stills and every video frame. No data rewriting.
+  const wrap=(s,width,size=T.exercise,weight=600,font=sans)=>{
+    ctx.font=weight+' '+size+'px '+font;const lines=[];let line='';
+    for(const word of String(s||'').split(/\s+/)){
+      if(!word)continue;
+      if(line&&ctx.measureText(line+' '+word).width>width){lines.push(line);line='';}
+      for(const ch of word){if(line&&ctx.measureText(line+ch).width>width){lines.push(line);line='';}line+=ch;}
+      line+=' ';
+    }
+    if(line.trim())lines.push(line.trim());return lines.map(s=>s.trim());
+  };
+  const chips=g=>{const lines=[[]];let used=0;ctx.font='400 '+T.rep+'px '+sans;
+    for(const chip of g.chips){const w=Math.max(17,ctx.measureText(chip.label).width+8);
+      if(used+w>128&&lines.at(-1).length){lines.push([]);used=0;}lines.at(-1).push({...chip,w});used+=w+3;}return lines;};
+  const loadLines=g=>wrap(g.load,126,T.load,600,mono);
+  const loadRows=l=>Math.max(l.ref?loadLines(l.ref).length:0,l.actual?loadLines(l.actual).length:0);
+  const groupHeight=(g,n)=>!g?25:n*26+(g.chips.length?1+chips(g).length*25:0)+(g.qualifier?4+wrap(g.qualifier,126,T.qualifier,400).length*17:0);
+  const laneHeight=l=>Math.max(groupHeight(l.ref,loadRows(l)),groupHeight(l.actual,loadRows(l)));
+  const labelHeight=r=>wrap(r.ex,196).length*26+(r.note?wrap(r.note,196,T.small,400).length*18+4:0);
+  const rowHeight=r=>22+Math.max(labelHeight(r),r.lanes.reduce((s,l)=>s+laneHeight(l),0)+9*Math.max(0,r.lanes.length-1));
+  const dates=wrap(data.title,298,T.title),focus=wrap(data.parts.join(' · '),298,20);
+  const location=wrap(data.context?.location,186,T.context,400),hasWeather=!!data.context?.weather;
+  const leftHeight=dates.length*38+(focus.length?5+focus.length*26:0),rightHeight=location.length*20+(hasWeather?23:0);
+  const contextY=107,contextHeight=Math.max(leftHeight,rightHeight),top=contextY+contextHeight+29+30;
+  const heights=data.rows.map(rowHeight),bottom=top+heights.reduce((a,b)=>a+b,0),footerY=bottom+93;
+  const hasContext=!!(data.context?.location||data.context?.weather);
+  const credits=hasContext?['Location: © OpenStreetMap / Photon','Weather: MET Norway / CC BY 4.0']:[];
+  const names=wrap(data.firstName,175,14,400);
+  const pipHeight=data.pipBounds?38*data.pipBounds.h/data.pipBounds.w:24;
+  const footerHeight=Math.max(pipHeight,names.length*18,credits.length*12),h=footerY+20+footerHeight+30;
+  const height=Math.ceil(h*scale/2)*2;if(cv.height!==height)cv.height=height;
   ctx.setTransform(scale,0,0,scale,0,0);ctx.fillStyle=C.paper;ctx.fillRect(0,0,560,h+1);
   const text=(s,x,y,size=T.small,color=C.ink,align='left',font=sans,weight=400)=>{ctx.font=weight+' '+size+'px '+font;ctx.fillStyle=color;ctx.textAlign=align;ctx.fillText(s,x,y);};
+  const ink=(s,x,cy,size,color,align='left',font=sans,weight=400)=>{
+    ctx.font=weight+' '+size+'px '+font;const m=ctx.measureText(s);
+    text(s,x,cy+((m.actualBoundingBoxAscent||size*.75)-(m.actualBoundingBoxDescent||0))/2,size,color,align,font,weight);
+  };
   const rule=y=>{ctx.strokeStyle=C.line;ctx.lineWidth=.7;ctx.beginPath();ctx.moveTo(28,y);ctx.lineTo(532,y);ctx.stroke();};
   const reveal=(delay,paint)=>{const p=Number.isFinite(time)?Math.max(0,Math.min(1,(time-delay)/540)):1;ctx.save();ctx.globalAlpha=p;ctx.translate(0,8*Math.pow(1-p,3));paint();ctx.restore();};
-  // Approved wordmark and DAY block share the same 58px vertical center.
-  if(data.wordmark){const w=57.375,h=w*data.wordmark.height/data.wordmark.width;ctx.drawImage(data.wordmark,28,58-h/2,w,h);}
-  text('DAY',532,45,15,C.muted,'right',mono);
-  text(String(data.dayCount),532,80,29,C.ink,'right',mono,600);
-  const dateY=162+(Math.max(1,meta.length)-1)*24;
-  const dateLines=wrap(data.title,504,T.title);
-  text(data.title,28,dateY,dateLines.length>1?27:T.title,C.ink,'left',sans,600);
-  if(data.context?.weather){
-    const paths=dayReviewWeatherPaths(data.context.icon);
-    text(data.context.temperature,paths.length?510:532,124,T.small,C.muted,'right');
-    if(paths.length){ctx.save();ctx.translate(516,112);ctx.scale(16/24,16/24);ctx.fillStyle=C.muted;paths.forEach(d=>ctx.fill(new Path2D(d)));ctx.restore();}
-  }
-  meta.forEach((line,i)=>text(line,28,124+i*24,T.context,C.muted));
-  text(data.unit+' · reps',28,top-14,T.small,C.muted);text(data.planned?'Plan':'Last',305.2,top-14,T.heading,C.muted,'center');
-  reveal(180,()=>text('Today',456.4,top-14,T.heading,C.blueText,'center',sans,500));
-  let y=top;
-  const group=(g,cx,actual,delay,gy,height)=>{
-    if(!g){const paint=()=>{ctx.save();ctx.textBaseline='middle';text('—',cx,gy+height/2,13*ref,C.muted,'center');ctx.restore();};actual?reveal(delay,paint):paint();return;}
-    let j=0;
-      const at=gy+20.5,load=()=>{if(actual&&g.gain){ctx.font='600 '+T.load+'px '+mono;const w=ctx.measureText(g.load).width+12;ctx.fillStyle=C.blue;ctx.beginPath();ctx.roundRect(cx-w/2,gy-2,w,29,6);ctx.fill();}text(g.load,cx,at,T.load,actual?(g.gain?(data.dark?'#111529':'#fff'):C.blueText):C.muted,'center',mono,600);};
-      actual?reveal(delay+j++*35,load):load();gy+=29;
-      if(g.chips.length)chips(g).forEach(line=>{let x=cx-(line.reduce((s,c)=>s+c.w,0)+3*(line.length-1))/2;const cy=gy;
-        line.forEach(c=>{const left=x,paint=()=>{ctx.fillStyle=actual?(c.gain?C.blue:C.soft):C.chip;ctx.beginPath();ctx.roundRect(left,cy,c.w,30,5);ctx.fill();text(c.label,left+c.w/2,cy+21.5,T.rep,actual?(c.gain?(data.dark?'#111529':'#fff'):C.blueText):C.muted,'center',sans,600);};actual?reveal(delay+j++*35,paint):paint();x+=c.w+3;});gy+=34;
-      });
-      if(g.qualifier)wrap(g.qualifier,96,T.qualifier,400).forEach(line=>{text(line,cx,gy+15,T.qualifier,C.muted,'center');gy+=18;});
+  if(data.wordmark){const w=57,wh=w*data.wordmark.height/data.wordmark.width;ctx.save();ctx.filter='brightness(0) saturate(100%) invert(63%)';ctx.drawImage(data.wordmark,28,30,w,wh);ctx.restore();}
+  ctx.font='600 24px '+mono;const dayWidth=ctx.measureText(String(data.dayCount)).width;
+  text('DAY',532-dayWidth-10,58,13,C.muted,'right',mono);text(String(data.dayCount),532,58,24,C.muted,'right',mono,600);
+  let yy=contextY+(contextHeight-leftHeight)/2;
+  dates.forEach(s=>{ink(s,28,yy+19,T.title,C.ink,'left',sans,600);yy+=38;});
+  if(focus.length)yy+=5;focus.forEach(s=>{ink(s,28,yy+13,20,C.ink,'left',sans,600);yy+=26;});
+  yy=contextY+(contextHeight-rightHeight)/2;
+  location.forEach(s=>{ink(s,532,yy+10,14,C.muted,'right');yy+=20;});
+  if(hasWeather){const paths=dayReviewWeatherPaths(data.context.icon);ink(data.context.temperature,paths.length?508:532,yy+11.5,14,C.muted,'right');
+    if(paths.length){ctx.save();ctx.translate(515,yy+2);ctx.scale(18/24,18/24);ctx.fillStyle=C.muted;paths.forEach(d=>ctx.fill(new Path2D(d)));ctx.restore();}}
+  const refX=307.72,actualX=453.88;
+  text(data.unit+' · reps',28,top-13,14,C.muted);text(data.planned?'Plan':'Last',refX,top-13,14,C.muted,'center');
+  reveal(180,()=>text('Today',actualX,top-13,14,C.accent,'center'));
+  const group=(g,cx,actual,delay,gy,height,nLoads)=>{
+    if(!g){const paint=()=>ink('—',cx,gy+height/2,18,C.quiet,'center');actual?reveal(delay,paint):paint();return;}
+    let j=0;const start=gy;
+    loadLines(g).forEach(line=>{const cy=gy+13,paint=()=>{
+      if(actual&&g.gain){ctx.font='600 19px '+mono;const w=ctx.measureText(line).width+10;ctx.fillStyle=C.blue;ctx.beginPath();ctx.roundRect(cx-w/2,cy-12,w,25,4);ctx.fill();}
+      ink(line,cx,cy,19,actual?(g.gain?'#fff':C.ink):C.quiet,'center',mono,600);
+    };actual?reveal(delay+Math.min(j++*35,180),paint):paint();gy+=26;});
+    gy=start+nLoads*26;
+    if(g.chips.length){gy+=1;chips(g).forEach(line=>{let x=cx-(line.reduce((s,c)=>s+c.w,0)+3*(line.length-1))/2;const cy=gy+12.5;
+      line.forEach(c=>{const left=x,isTime=!!g.sets?.[0]?.cardio,highlight=actual&&c.gain&&!isTime,paint=()=>{if(highlight){ctx.fillStyle=C.blue;ctx.beginPath();ctx.roundRect(left,cy-12.5,c.w,25,4);ctx.fill();}
+        ink(c.label,left+c.w/2,cy,17,actual?(highlight?'#fff':C.ink):C.quiet,'center',isTime?mono:sans,400);
+      };actual?reveal(delay+Math.min(j++*35,180),paint):paint();x+=c.w+3;});gy+=25;});}
+    if(g.qualifier){gy+=4;wrap(g.qualifier,126,12,400).forEach(line=>{const cy=gy+8.5,paint=()=>ink(line,cx,cy,12,actual?C.muted:C.quiet,'center');actual?reveal(delay+Math.min(j++*35,180),paint):paint();gy+=17;});}
   };
-  let rowIndex=0;
-  data.rows.forEach((r,i)=>{rule(y);let ty=y+(heights[i]-labelHeight(r))/2;
-    const label=(line,size,lineHeight,color,weight=400,animated=false)=>{
-      ctx.font=weight+' '+size+'px '+sans;const metrics=ctx.measureText(line);
-      const yy=ty+(lineHeight+(metrics.actualBoundingBoxAscent??size*.75)-(metrics.actualBoundingBoxDescent??size*.2))/2;
-      const paint=()=>text(line,28,yy,size,color,'left',sans,weight);
-      animated?reveal(420+rowIndex*260+300,paint):paint();ty+=lineHeight;
-    };
-    wrap(r.ex,185).forEach(line=>label(line,T.exercise,28,C.ink,600));
-    if(r.note){ty+=4;wrap(r.note,185,T.small,400).forEach(line=>label(line,T.small,20,C.muted));}
-    if(r.delta.length)ty+=6;r.delta.forEach(line=>label(line,T.small,21,C.blueText,500,true));
-    let ly=y+11;r.lanes.forEach(l=>{const height=laneHeight(l);group(l.ref,305.2,false,0,ly,height);group(l.actual,456.4,true,420+rowIndex++*260,ly,height);ly+=height+12;});y+=heights[i];
+  let y=top,rowIndex=0;
+  data.rows.forEach((r,i)=>{rule(y);let ly=y+(heights[i]-labelHeight(r))/2;
+    wrap(r.ex,196).forEach(line=>{ink(line,28,ly+13,20,r.actual.length?C.ink:C.quiet,'left',sans,600);ly+=26;});
+    if(r.note){ly+=4;wrap(r.note,196,13,400).forEach(line=>{ink(line,28,ly+9,13,C.muted);ly+=18;});}
+    ly=y+11;r.lanes.forEach(l=>{const lh=laneHeight(l),n=loadRows(l);group(l.ref,refX,false,0,ly,lh,n);group(l.actual,actualX,true,420+rowIndex++*260,ly,lh,n);ly+=lh+9;});y+=heights[i];
   });
-  rule(bottom);data.values.forEach((v,i)=>reveal(540+rowIndex*260+i*70,()=>{const x=28+i*128+60;text(v,x,bottom+48,38,C.ink,'center',sans,600);text(data.labels[i],x,bottom+72,13,C.muted,'center',mono);}));
-  rule(bottom+92);
-  // Trim transparent mascot padding once at load time, not in every video frame.
-  if(data.pip&&data.pipBounds){const b=data.pipBounds,w=42,h=w*b.h/b.w;ctx.drawImage(data.pip,b.x,b.y,b.w,b.h,28,bottom+116-h/2,w,h);}
-  ctx.save();ctx.textBaseline='middle';let nameSize=T.small;ctx.font=nameSize+'px '+sans;while(ctx.measureText(data.firstName).width>400&&nameSize>8){nameSize--;ctx.font=nameSize+'px '+sans;}text(data.firstName,532,bottom+116,nameSize,C.muted,'right');ctx.restore();
-  // Provider credit is unchanged, as in the approved size comparison.
-  if(hasContext)text('Location: © OpenStreetMap / Photon · Weather: MET Norway / CC BY 4.0',28,bottom+150,8,C.muted);
+  rule(bottom);data.values.forEach((v,i)=>reveal(540+rowIndex*260+i*70,()=>{const x=28+(i+.5)*126;ink(v,x,bottom+39,30,C.ink,'center',sans,600);ink(data.labels[i],x,bottom+69,11,C.muted,'center',mono);}));
+  rule(footerY);const mid=footerY+20+footerHeight/2;
+  credits.forEach((s,i)=>ink(s,28,mid+(i-(credits.length-1)/2)*12,8,C.muted));
+  names.forEach((s,i)=>ink(s,485,mid+(i-(names.length-1)/2)*18,14,C.muted,'right'));
+  if(data.pip&&data.pipBounds){const b=data.pipBounds;ctx.save();ctx.filter='grayscale(1) brightness(.72)';ctx.drawImage(data.pip,b.x,b.y,b.w,b.h,494,mid-pipHeight/2,38,pipHeight);ctx.restore();}
   return cv;
 }
 async function shareDayReview(button){

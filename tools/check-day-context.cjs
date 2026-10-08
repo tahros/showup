@@ -58,18 +58,18 @@ const origin=process.env.DAY_REVIEW_ORIGIN||'http://127.0.0.1:'+(process.env.PW_
   assert(texts.some(t=>t.s==='Sungjee')&&!texts.some(t=>t.s==='Sungjee Yoo'),'first name only');
   assert(texts.some(t=>t.s==='DAY'),'day label');
   const labels=['minutes','sets','exercises','miles run'].map(s=>texts.find(t=>t.s===s));
-  assert(labels.every(t=>t&&t.align==='center'));assert.deepEqual(labels.map(t=>t.x),[88,216,344,472]);
+  assert(labels.every(t=>t&&t.align==='center'));assert.deepEqual(labels.map(t=>t.x),[91,217,343,469]);
   assert(labels[0].y>texts.find(t=>t.s==='Run').y,'summary follows exercise list');
   assert(texts.filter(t=>['135','235','155'].includes(t.s)).every(t=>t.font.includes('600')),'bold weights');
-  const size=t=>Number(t.font.match(/([\d.]+)px/)[1]),ref=560/393;
-  assert(texts.filter(t=>['135','235','155'].includes(t.s)).every(t=>Math.abs(size(t)-14*ref)<.01),'reference-sized weights');
-  assert(texts.filter(t=>t.s==='12').every(t=>Math.abs(size(t)-12*ref)<.01),'reference-sized reps');
-  assert(Math.abs(size(texts.find(t=>t.s==='Plan'))-12*ref)<.01,'reference-sized column headings');
-  assert(Math.abs(size(texts.find(t=>t.s.startsWith('Princeton, NJ')))-13*ref)<.01,'reference-sized context');
-  assert(labels.every(t=>t.font.includes('13px')),'summary labels stay at +2px');
-  const summaryNumbers=texts.filter(t=>t.y===labels[0].y-24);
-  assert.equal(summaryNumbers.length,4);assert(summaryNumbers.every(t=>t.font.includes('38px')&&t.align==='center'),'summary numbers stay at +2px');
-  assert(Math.abs(size(texts.find(t=>t.s==='Deadlift'))-14.5*ref)<.01,'reference-sized exercise names');
+  const size=t=>Number(t.font.match(/([\d.]+)px/)[1]);
+  assert(texts.filter(t=>['135','235','155'].includes(t.s)).every(t=>size(t)===19),'receipt weights');
+  assert(texts.filter(t=>t.s==='12').every(t=>size(t)===17),'receipt reps');
+  assert.equal(size(texts.find(t=>t.s==='Plan')),14,'receipt column headings');
+  assert.equal(size(texts.find(t=>t.s.startsWith('Princeton, NJ'))),14,'receipt context');
+  assert(labels.every(t=>size(t)===11),'receipt summary labels');
+  const summaryNumbers=texts.filter(t=>size(t)===30);
+  assert.equal(summaryNumbers.length,4);assert(summaryNumbers.every(t=>t.align==='center'),'receipt summary numbers');
+  assert.equal(size(texts.find(t=>t.s==='Deadlift')),20,'receipt exercise names');
   for(const load of ['135','235','155']){const pair=texts.filter(t=>t.s===load);assert.equal(pair.length,2);assert.equal(pair[0].y,pair[1].y);}
   await p.locator('#repClose').click();
  }

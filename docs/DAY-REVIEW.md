@@ -1,11 +1,15 @@
-# Whole-day comparison — v4.6.244
+# Whole-day comparison — v4.6.247
 
 Share images/videos use the approved 560-unit editorial grid, rendered at 1080px:
-28-unit margins, 57.375-unit official wordmark centered against DAY/count,
-real msLiveTotal() without zero padding, smaller date, semibold load/reps,
-22-unit row insets and 12-unit load gaps. Bottom summary has four 120-unit
-columns separated by 8-unit gaps, center-aligned values and labels. First name
-and cropped-to-visible-art Pip share a footer centerline. The UI below is unchanged.
+28-unit horizontal margins, equal 30-unit top/bottom padding, gray 57-unit
+official wordmark and inline DAY/count (real msLiveTotal, no zero padding).
+Date/body parts form the left stack; location/weather are centered at the right.
+Rows have 11-unit top/bottom padding and 9-unit load gaps. Plain neutral Today
+numbers replace ordinary chips; only existing gains keep blue backgrounds.
+Gain captions are omitted from exports, not from data or accessible app text.
+Four 126-unit summary columns are center-aligned. Complete two-line attribution
+is at bottom left; first name and 38-unit grayscale Pip sit at bottom right.
+Visible artwork and text ink share a centerline. The interactive UI is unchanged.
 
 Compact spacing: 12px above/below exercise groups, 16px between load lanes,
 14px below the location/body-parts line. The type refinement uses 13px
@@ -97,7 +101,7 @@ No whole-page rerender or scroll jump is needed for Replay or Share.
 
 `dayReviewExportModel` freezes formatted values, units and theme before awaiting
 fonts. `drawDayReview` paints both static image and video frames. It uses the
-official lifted-P-trio/Pip lockup, white in dark mode, and self-hosted IBM Plex.
+official lifted-P-trio wordmark and Pip, rendered neutral, and self-hosted IBM Plex.
 No external render service receives workout data. Existing `showCard` and
 `bindPlateExport` provide Image/MP4, preview, cancellation and sharing; GIF is not
 offered for this card. MP4 availability follows the existing browser capability
@@ -106,15 +110,17 @@ existing 1080x1280 exports keep their size, while tall daily cards are not cropp
 
 ## Verification
 
-Share Image and Video inherit the reference export's type proportions
-(81ca848, 393-unit canvas) on the current 560-unit layout: multiply the
-original date 23, context 13, column headings/reps 12, exercise names 14.5,
-weights 14, and supporting text 11 by 560/393. These are explicit role sizes,
-not a blanket offset. Font families/weights and the editorial layout stay.
-The bottom summary remains 38px numbers / 13px labels. Wrapping and row
-heights use the actual painted measurements.
-The logo, Pip, credits, four equal centered summary columns, and in-app
-comparison typography remain unchanged.
+The approved Training-Receipt-Design package supplies the export sizes:
+33 date, 20 body parts/exercises, 19 semibold Mono loads, 17 regular reps,
+14 context/headings, 30 totals and 11 Mono total labels. Wrapping and row
+heights use actual painted measurements; long words and rep lists are retained.
+Paired lanes reserve the taller load/rep/qualifier block. Reveal staggering is
+bounded so all values finish before the exported video ends. The final frame
+matches the still, including long-data fixtures. Theme choice is preserved.
+
+- `node tools/check-training-receipt.cjs`: exact reference fixture, one gain chip,
+  neutral Today values, no delta caption, paired baselines, equal totals,
+  long names/locations/reps, empty data and still/video pixel equality.
 
 - `node tools/test-day-review.js .`: provenance, mixed data, timing, units,
   extra/missing exercises, honest deltas and no record mutation.
