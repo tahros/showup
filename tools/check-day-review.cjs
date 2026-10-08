@@ -49,7 +49,10 @@ for(const theme of ['light','dark']){
  await p.locator('#repClose').click();
 }
 await p.evaluate(()=>{DB.days[todayISO].planBasis={revision:null};DB.days['2026-10-02']={w:[{part:'Legs',ex:'Squat',w:185/LB,reps:[8,8,8,8]}]};SEED=deriveAll();render();});
-await p.locator('.day-review').scrollIntoViewIfNeeded();await p.waitForTimeout(3500);assert.equal(await p.locator('.day-review thead th').nth(1).innerText(),'Last');assert.equal(await p.locator('.day-review tbody tr').count(),5);
+await p.locator('.day-review').scrollIntoViewIfNeeded();await p.waitForTimeout(3500);assert.equal(await p.locator('.day-review thead th').nth(1).innerText(),'Last');assert.equal(await p.locator('.day-review tbody tr').count(),6);
+assert((await p.locator('.day-review tbody').innerText()).includes('New load'));
+await p.locator('.dr-original summary').click();assert(await p.locator('.dr-original').evaluate(e=>e.open));
+await p.locator('.dr-original summary').click();
 await p.locator('.day-review').screenshot({path:path.join(out,'no-plan.png')});
 await p.evaluate(()=>{window.dateNavBefore=JSON.stringify(DB);window.attendanceBefore=document.querySelector('.attendance-card');});
 await p.locator('[data-dr-step="-1"]').click();
@@ -72,5 +75,27 @@ assert(await p.locator('[data-dr-calendar]').evaluate(e=>e===document.activeElem
 assert(await p.evaluate(()=>dayReviewValidDate('2024-02-29')&&!dayReviewValidDate('2025-02-29')&&!dayReviewValidDate('2026-10-08')&&dayReviewShift('2026-03-09',-1)==='2026-03-08'&&dayReviewShift('2026-01-01',-1)==='2025-12-31'));
 for(const width of [320,393]){await p.setViewportSize({width,height:852});await p.locator('[data-dr-calendar]').click();assert(await p.locator('.day-review').evaluate(e=>e.scrollWidth<=e.clientWidth));await p.locator('.day-review').screenshot({path:path.join(out,`date-calendar-${width}.png`),style:'header,nav,#calReturn,#progressSwitch{visibility:hidden!important}'});await p.keyboard.press('Escape');}
 console.log('PASS selected-date records, historical export, calendar, rollover, future guard, read-only navigation and narrow layouts');
+await p.evaluate(()=>{
+ const row=(w,reps)=>({part:'Shoulder',ex:'Dumbbell Shoulder Press',w,reps});
+ DB.days['2026-08-03']={w:[row(16,[30,30,30,25]),row(20,[20]),row(22,[12,10,10]),row(22,[12]),row(12,[25,20,20]),row(12,[20])]};
+ DB.days['2026-07-27']={w:[row(16,[35,30,16,30]),row(20,[15,20,15,16]),row(12,[20,20,30,30])]};
+ SEED=deriveAll();drSelection='2026-08-03';window.matchBefore=JSON.stringify(DB);render();
+});
+await p.emulateMedia({reducedMotion:'reduce'});
+for(const theme of ['light','dark'])for(const width of [320,393]){
+ await p.setViewportSize({width,height:852});await p.evaluate(theme=>{DB.settings.theme=theme;DB.settings.bar=theme;applyTheme();render();},theme);
+ await p.locator('.day-review').scrollIntoViewIfNeeded();
+ assert.equal(await p.locator('.day-review tbody tr').count(),4);
+ assert.equal(await p.locator('.day-review .dr-actual .dr-rep').count(),13);
+ assert.equal(await p.locator('.day-review .dr-gain').count(),0);
+ assert(await p.locator('.day-review').evaluate(e=>e.scrollWidth<=e.clientWidth));
+ const aligned=await p.locator('.day-review tbody tr').evaluateAll(rows=>rows.slice(0,3).every(r=>{const w=r.querySelectorAll('.dr-weight');return w.length===2&&w[0].textContent===w[1].textContent&&Math.abs(w[0].getBoundingClientRect().y-w[1].getBoundingClientRect().y)<1;}));assert(aligned);
+ await p.locator('.day-review').screenshot({path:path.join(out,`matched-${theme}-${width}.png`),style:'header,nav,#calReturn,#progressSwitch{visibility:hidden!important}'});
+ const result=await p.evaluate(()=>{const data=dayReviewExportModel();return {count:data.rows[0].lanes.length,png:drawDayReview(data).toDataURL()};});assert.equal(result.count,4);
+ fs.writeFileSync(path.join(out,`matched-share-${theme}.png`),Buffer.from(result.png.split(',')[1],'base64'));
+}
+await p.locator('.dr-original summary').click();assert((await p.locator('.dr-original p').first().innerText()).startsWith('35.3'));
+assert(await p.evaluate(()=>JSON.stringify(DB.days)===JSON.stringify(JSON.parse(matchBefore).days)),'matched rendering preserves records');
+console.log('PASS matched weights, original order, alignment, all reps, narrow themes and shared canvas');
 assert.deepEqual(errors,[]);console.log('PASS placement, motion, share, reduced motion, no-plan, no runtime errors');
 }finally{await browser.close();}})().catch(e=>{console.error(e);process.exit(1);});

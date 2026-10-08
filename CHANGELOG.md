@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.252 (2026-10-08) — Matched weights, clearer past sessions
+
+- Unplanned daily reviews and shared images/videos group repeated identical lifting loads into ascending, aligned Last/Logged lanes. Keep every rep, separate different units and load kinds, and preserve individual cardio records.
+- Removes misleading position-based weight/rep gain highlights from unplanned comparisons; genuinely absent loads read New load. Planned comparisons retain explicit target matching and their existing highlights.
+- Adds a quiet View original logged order disclosure for unplanned days. Display-only grouping leaves recorded workouts and their sequence unchanged; includes regressions for split loads, preserved reps, cardio and read-only rendering.
+
 ## v4.6.251 (2026-10-08) — A living attendance chart
 
 - Today's square now carries a continuous soft pulse in the timeline and saved-year overview, without needing Replay. The retained replay canvas continues the pulse after its opening sequence; past-only year selections do not pretend their last day is today.

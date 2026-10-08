@@ -71,14 +71,14 @@ function dayReviewModel(date=todayISO){
     actual.forEach((a,i)=>{
       // Plan matches are ID-based only. Unlinked legacy rows remain facts,
       // never falsely attributed to a target by ordinal or weight.
-      const b=planned?ref.find(t=>a.source.planRef?.setId===t.id):ref[i];
+      const b=planned?ref.find(t=>a.source.planRef?.setId===t.id):null;
       if(comparable(a,b)){
         a.weightGain=a.w>b.w+.00001;
         a.repGain=Math.abs(a.w-b.w)<.00001&&a.r>b.r;
         if(a.weightGain)weightGain=Math.max(weightGain,a.w-b.w);
         if(a.repGain)repGain+=a.r-b.r;
       }
-      a.extra=ref.length>0&&i>=ref.length;
+      a.extra=planned&&ref.length>0&&i>=ref.length;
     });
     const delta=[];
     if(weightGain)delta.push('+'+wDisp(weightGain)+' '+U());
@@ -187,6 +187,7 @@ function dayReviewGroups(sets,ex){
 // Shared lanes keep corresponding loads/reps aligned, even when a planned
 // load was skipped. Never invent a plan association for an unlinked log.
 function dayReviewLanes(row,planned){
+  if(!planned)return dayReviewMatchedLanes(row);
   const used=new Set(),lanes=[];
   for(const ref of dayReviewGroups(row.ref,row.ex)){
     const actual=row.actual.filter((s,i)=>planned?ref.sets.some(t=>s.source.planRef?.setId===t.id):ref.sets.includes(row.ref[i]));
@@ -197,6 +198,34 @@ function dayReviewLanes(row,planned){
   }
   dayReviewGroups(row.actual.filter(s=>!used.has(s)),row.ex).forEach(actual=>lanes.push({ref:null,actual}));
   return lanes.length?lanes:[{ref:null,actual:null}];
+}
+// No plan means no set-to-set correspondence. Compare identical load/kind
+// buckets, not ordinal positions or rounded display labels. Never mutate logs.
+function dayReviewMatchedLanes(row){
+  const buckets=new Map(),cardio={ref:[],actual:[]};
+  for(const side of ['ref','actual'])for(const s of row[side]){
+    if(s.cardio){cardio[side].push(s);continue;}
+    const key=JSON.stringify([s.nw?null:s.w,!!s.nw,!!s.est,!!s.bw,s.su||'',s.qualifier||'']);
+    if(!buckets.has(key))buckets.set(key,{w:s.w,ref:[],actual:[]});
+    buckets.get(key)[side].push({...s,weightGain:false,repGain:false,extra:false});
+  }
+  const lanes=[];
+  // Cardio entries remain individual distance/time records in recorded order.
+  for(let i=0;i<Math.max(cardio.ref.length,cardio.actual.length);i++)lanes.push({
+    ref:cardio.ref[i]?dayReviewGroups([cardio.ref[i]],row.ex)[0]:null,
+    actual:cardio.actual[i]?dayReviewGroups([cardio.actual[i]],row.ex)[0]:null});
+  for(const bucket of [...buckets.values()].sort((a,b)=>a.w-b.w)){
+    const ref=dayReviewGroups(bucket.ref,row.ex)[0]||null;
+    const actual=dayReviewGroups(bucket.actual,row.ex)[0]||null;
+    if(actual&&!ref&&row.ref.some(s=>!s.cardio)&&!bucket.actual[0].nw)
+      actual.qualifier=[actual.qualifier,'New load'].filter(Boolean).join(' · ');
+    lanes.push({ref,actual});
+  }
+  return lanes.length?lanes:[{ref:null,actual:null}];
+}
+function dayReviewOriginalOrder(m){
+  if(m.planned||!m.rows.some(r=>r.actual.length))return '';
+  return `<details class="dr-original"><summary>View original logged order</summary>${m.rows.filter(r=>r.actual.length).map(r=>`<div><strong>${hesc(r.ex)}</strong>${dayReviewGroups(r.actual,r.ex).map(g=>`<p>${hesc(g.load)} · ${g.chips.map(c=>hesc(c.label)).join(' / ')}${g.qualifier?' · '+hesc(g.qualifier):''}</p>`).join('')}</div>`).join('')}</details>`;
 }
 function dayReviewSection(){
   const date=dayReviewDate(),m=dayReviewModel(date),current=date===todayISO;
@@ -211,6 +240,7 @@ function dayReviewSection(){
     <table aria-label="${m.planned?'Plan':'Last session'} compared with ${current?'today':hesc(m.title)}"><colgroup><col><col><col></colgroup><thead><tr><th scope="col">${m.unit} · reps</th><th scope="col">${m.planned?'Plan':'Last'}</th><th scope="col"><span data-dr-reveal>${current?'Today':'Logged'}</span></th></tr></thead><tbody>
     ${m.rows.map(r=>{const lanes=dayReviewLanes(r,m.planned);return lanes.map((l,i)=>`<tr class="${i?'dr-continuation':'dr-exercise'}${i===lanes.length-1?' dr-last-lane':''}">${!i?`<th scope="rowgroup" rowspan="${lanes.length}"><div class="dr-exercise-label">${hesc(r.ex)}${r.note?`<small class="dr-note">${hesc(r.note)}</small>`:''}${r.delta.length?`<span class="dr-delta" data-dr-reveal>${r.delta.map(hesc).join(' · ')}</span>`:''}</div></th>`:''}<td${!l.ref?' class="dr-missing"':''}>${cell(l.ref,false)}</td><td class="dr-actual${!l.actual?' dr-missing':''}">${cell(l.actual,true)}</td></tr>`).join('');}).join('')}
     </tbody></table>${!m.rows.length?`<p class="dr-empty-day">${current?'Your logged sets will appear here.':'No workout logged on this day.'}</p>`:''}
+    ${dayReviewOriginalOrder(m)}
     <div class="dr-totals">${m.values.map((n,i)=>`<div data-dr-reveal${i===0&&n==='—'?' title="Duration unavailable until a timed session is completed"':''}><b>${n}</b><span>${m.labels[i]}</span></div>`).join('')}</div>
     <div class="dr-actions"><button type="button" data-dr-replay><span aria-hidden="true">↻</span> Replay</button><button type="button" class="dr-share" data-dr-share${!m.totals.sets?' disabled':''}>${ICO_SHARE} Share</button></div>
     ${m.totals.sets?dayReviewContextControls(m):'<div class="dr-context"></div>'}
