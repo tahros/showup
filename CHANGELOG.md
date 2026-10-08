@@ -1,5 +1,12 @@
 # ShowUppp — changelog
 
+## v4.6.245 (2026-10-07) — Your place in the club
+
+- Settings now opens with a Showing Up Club profile card: existing name, stable cosmetic member number, honest join month, and distinct logged training days linked to History. Guest cards are clearly labeled; imported workouts never become a join date.
+- Adds nine approved blue 2.5D profile icons with gentle individual loops. Avatar choices use the existing per-key settings sync and backups. Only the selected picker icon animates; offscreen/hidden-page motion pauses, and reduced motion or Mascot Still/Off keeps it still.
+- Groups existing Settings controls into Profile, Appearance, Training, Connections when available, and Account & data. Keeps sign-in, feedback, planning, body details, backup/restore, and account deletion behavior intact.
+- Preserves workout logging and saved records. Adds unit and real-browser checks for identity, synced selection, unchanged history/profile fields, light/dark phone layouts, reduced motion, and asset loading.
+
 ## v4.6.244 (2026-10-07) — Reference-sized share typography
 
 - Transfers the original reference card's text-size proportions to the current editorial Share Image/Video layout, replacing the blanket +3px offset with explicit sizes for each text role.

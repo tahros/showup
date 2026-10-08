@@ -3,6 +3,7 @@
    shares one global scope with its siblings, loaded in order by index.html. */
 /* ---------- Sync (GitHub) ---------- */
 function renderSync(){
+  clubEnsureIdentity();
   $('#view').innerHTML=`
     <button class="back">← Back</button>
     <!-- v3.3.513: the version rides at the TOP. It sat under a full screen of
@@ -12,6 +13,7 @@ function renderSync(){
          footnote to the controls, so it goes where you land. The credits keep
          the foot to themselves. -->
     <div class="vertag mono" id="verTag">ShowUppp ${APP_VERSION}</div>
+    ${clubCardHTML()}
     ${typeof membershipRowHTML==='function'?membershipRowHTML():''}
     ${typeof ownerEntryHTML==='function'?ownerEntryHTML():''}
     ${!session&&Object.keys(DB.days).some(d=>DB.days[d].w&&DB.days[d].w.length)?`
@@ -201,8 +203,69 @@ function renderSync(){
       <input type="file" id="impFile" accept=".json,application/json" hidden>
     </div>
     <div class="note assetcredits" style="text-align:center;margin-top:6px;opacity:.7">Status icons: <a href="https://thenounproject.com/icon/minus-8363736/" target="_blank" rel="noopener">Minus</a> by ARIPATUT DASUKI · <a href="https://thenounproject.com/icon/trend-2344331/" target="_blank" rel="noopener">Trend</a> by Travis Avery · <a href="https://thenounproject.com/icon/share-2438501/" target="_blank" rel="noopener">Share</a> and <a href="https://thenounproject.com/icon/edit-1751206/" target="_blank" rel="noopener">Edit</a> by Timur Minvaleev · <a href="https://thenounproject.com/icon/ai-7262146/" target="_blank" rel="noopener">Sparkle</a> by Eliricon · <a href="https://thenounproject.com/icon/arrow-1342814/" target="_blank" rel="noopener">Chevron</a> by Barracuda · <a href="https://thenounproject.com/icon/expand-7584001/" target="_blank" rel="noopener">Expand</a> and <a href="https://thenounproject.com/icon/collapse-7584005/" target="_blank" rel="noopener">Collapse</a> by LAFS · Copy by maria icon · Pencil by Alvida Black · Noun Project</div>`;
+  clubArrangeSettings();
 }
 
+
+/* ---------- Showing Up Club: cosmetic identity, never authentication ----------
+   Account numbers are stable display fingerprints, not sequential IDs or claims
+   of global uniqueness. Guests get a saved random identity. Account creation is
+   the only account-since source; an imported workout is NOT a join date.
+   clubAvatar/clubGuest use the existing per-key settings sync and backup path.
+   Rendering only initializes a missing guest identity after storage has loaded.
+   Days follow the app's existing logged-day definition (including imports). */
+const CLUB_ICONS=[['band','Resistance band',1,0],['plate','Weight plate',1,50],['bell','Kettlebell',0,50],['roller','Foam roller',1,100],['bottle','Water bottle',0,100],['bag','Gym bag',2,0],['ball','Medicine ball',0,0],['mat','Rolled mat',2,50],['headphones','Headphones',2,100]];
+const clubOpenGroups=new Set();
+function clubHash(str){let n=2166136261;for(const c of String(str)) n=Math.imul(n^c.charCodeAt(0),16777619);return n>>>0;}
+function clubEnsureIdentity(){
+  if(session?.user?.id||DB.settings.clubGuest||!loadedOK||DB.settings.demo)return;
+  const a=new Uint32Array(3);crypto.getRandomValues(a);
+  DB.settings.clubGuest={id:Array.from(a,x=>x.toString(16).padStart(8,'0')).join(''),since:new Date().toISOString()};save(true);
+}
+function clubIdentity(){return session?.user?.id||DB.settings.clubGuest?.id||(DB.settings.demo?'demo-member':'guest');}
+function clubAvatar(){const k=DB.settings.clubAvatar;return CLUB_ICONS.find(x=>x[0]===k)||CLUB_ICONS[clubHash(clubIdentity())%CLUB_ICONS.length];}
+function clubIconHTML(item,animated=false){return `<span class="club-avatar club-${item[0]}${animated?' club-animate':''}" aria-hidden="true"><span class="club-shadow"></span><span class="club-sprite" style="background-image:url('assets/club-icons-${item[2]}.webp');background-position:${item[3]}% 0"></span></span>`;}
+function clubCardHTML(){
+  const avatar=clubAvatar(),user=session?.user,raw=user?.created_at||(!user?DB.settings.clubGuest?.since:null),date=raw?new Date(raw):null;
+  const since=date&&Number.isFinite(date.getTime())?date.toLocaleDateString('en-US',{month:'short',year:'numeric'}):'—';
+  const number=String(clubHash(clubIdentity())).padStart(10,'0');
+  const dark=document.documentElement.dataset.theme==='dark';
+  return `<section class="card club-card" aria-label="Your Showing Up Club profile">
+    <div class="club-brand"><img src="assets/showuppp-wordmark-${dark?'dark':'light'}.svg" alt="ShowUppp"><span>SHOWING UP CLUB</span></div>
+    <div class="club-person"><button type="button" class="club-avatar-button" data-club-picker aria-label="Change profile icon" aria-expanded="false">${clubIconHTML(avatar,true)}</button><div><h2>${hesc(DB.settings.name||'Your place in the club')}</h2><button type="button" class="club-text-button" data-club-edit>Edit profile</button></div></div>
+    <div class="club-facts"><div><span>${user?'Member no.':'Guest no.'}</span><strong class="club-number">${number.slice(0,5)} ${number.slice(5)}</strong></div><div><span>${user?'Member since':'Club since'}</span><strong>${since}</strong></div><button type="button" data-club-history aria-label="View your logged workout days"><span>Days trained</span><strong>${fmt(loggedDays())}</strong></button></div>
+    <div class="club-bottom"><span>Here for the long run.</span><button type="button" class="club-text-button" data-club-picker>Change icon</button></div>
+    <div class="club-picker" hidden><div class="club-picker-heading"><b>Make it yours.</b><button type="button" class="club-text-button" data-club-close>Done</button></div><div class="club-icon-grid" role="group" aria-label="Profile icons">${CLUB_ICONS.map(i=>`<button type="button" data-club-icon="${i[0]}" aria-pressed="${i[0]===avatar[0]}">${clubIconHTML(i,i[0]===avatar[0])}<span>${i[1]}</span></button>`).join('')}</div><p class="note">One little companion. Your choice stays with your profile.</p></div>
+  </section>`;
+}
+/* Move existing nodes, not copies: every established control, ID and handler
+   survives. Unknown/new Settings sections stay visible rather than disappearing. */
+function clubArrangeSettings(){
+  const host=document.getElementById('view');if(!host||!host.querySelector('.club-card')||host.querySelector('.club-settings-groups'))return;
+  const groups=[['profile','Profile','Name & body details',['You']],['appearance','Appearance','Theme, units & colors',['Display','Body-part colors','Week starts on','Mascot']],['training','Training','Feedback & planning',['Workout feedback','Planning','Holding weight','Avoided exercises','What you train','Bars','Same exercise, two names']],['connections','Connections','Health & reminders',['Reminders','Apple Health']],['account','Account & data','Sign-in, sync & backups',['Account & cloud sync','Your data']]];
+  const wrap=document.createElement('div');wrap.className='club-settings-groups';host.querySelector('.club-card').after(wrap);
+  for(const [key,title,sub,headings] of groups){const nodes=[];for(const h of Array.from(host.children).filter(n=>n.tagName==='H2'&&headings.includes(n.textContent.trim()))){nodes.push(h);let n=h.nextElementSibling;while(n&&n.tagName!=='H2'&&!n.classList.contains('assetcredits')){const next=n.nextElementSibling;nodes.push(n);n=next;}}
+    if(!nodes.length)continue;const d=document.createElement('details');d.className='club-settings-group';d.dataset.clubGroup=key;d.open=clubOpenGroups.has(key);const s=document.createElement('summary');s.innerHTML=`<span><b>${title}</b><small>${sub}</small></span><span aria-hidden="true">+</span>`;d.append(s);const content=document.createElement('div');content.className='club-group-content';nodes.forEach(n=>content.append(n));d.append(content);d.addEventListener('toggle',()=>{if(d.open)clubOpenGroups.add(key);else clubOpenGroups.delete(key)});wrap.append(d);
+  }
+  clubObserveMotion();
+}
+let clubMotionObserver;
+function clubObserveMotion(){
+  clubMotionObserver?.disconnect();if(typeof IntersectionObserver==='undefined')return;
+  clubMotionObserver=new IntersectionObserver(entries=>entries.forEach(e=>e.target.classList.toggle('club-visible',e.isIntersecting)),{threshold:.1});document.querySelectorAll('.club-avatar').forEach(e=>clubMotionObserver.observe(e));
+  document.documentElement.classList.toggle('club-page-hidden',document.hidden);
+  document.querySelector('.club-card')?.classList.toggle('club-still',typeof mascotMode==='function'&&mascotMode()!=='animated');
+}
+document.addEventListener('visibilitychange',()=>document.documentElement.classList.toggle('club-page-hidden',document.hidden));
+document.addEventListener('click',e=>{
+  const b=e.target.closest?.('[data-club-picker],[data-club-close],[data-club-icon],[data-club-edit],[data-club-history]');if(!b)return;
+  const card=b.closest('.club-card'),picker=card?.querySelector('.club-picker');
+  if(b.hasAttribute('data-club-picker')||b.hasAttribute('data-club-close')){picker.hidden=b.hasAttribute('data-club-close')||!picker.hidden;card.querySelector('.club-avatar-button').setAttribute('aria-expanded',String(!picker.hidden));if(!picker.hidden)picker.querySelector('[aria-pressed=true]').focus();else card.querySelector('.club-avatar-button').focus();return;}
+  if(b.dataset.clubIcon){const item=CLUB_ICONS.find(x=>x[0]===b.dataset.clubIcon);if(!item)return;DB.settings.clubAvatar=item[0];save(true);card.querySelector('.club-avatar-button').innerHTML=clubIconHTML(item,true);picker.querySelectorAll('[data-club-icon]').forEach(x=>{const on=x.dataset.clubIcon===item[0];x.setAttribute('aria-pressed',String(on));x.querySelector('.club-avatar').classList.toggle('club-animate',on)});clubObserveMotion();return;}
+  if(b.hasAttribute('data-club-edit')){const g=document.querySelector('[data-club-group="profile"]');if(g){g.open=true;clubOpenGroups.add('profile');document.getElementById('youName')?.focus()}return;}
+  if(b.hasAttribute('data-club-history')){view='history';lastView=null;render();}
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){const card=document.querySelector('.club-card'),p=card?.querySelector('.club-picker');if(p&&!p.hidden){p.hidden=true;card.querySelector('.club-avatar-button').setAttribute('aria-expanded','false');card.querySelector('.club-avatar-button').focus()}}});
 
 /* ---------- v3.3: data out ---------- */
 const EXP_HEAD=['date','part','exercise','weight_kg','reps','set_no','mins','secs','distance_km'];

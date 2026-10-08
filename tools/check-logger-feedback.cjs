@@ -25,7 +25,7 @@ for(const width of [320,393,520])for(const theme of ['light','dark']){
  assert.equal(await p.locator('.plate-mini-mark svg').count(),1);assert.match(await p.locator('.plate-mini > span:last-child').innerText(),/today/);
  await p.waitForTimeout(3600);assert.equal(await p.locator('.plate-mini-mark svg').count(),1);assert.match(await p.locator('.plate-mini > span:last-child').innerText(),/moved today/);
  await p.evaluate(()=>{flushSave();view='sync';lastView=null;render();});const db=await p.evaluate(()=>JSON.stringify(DB));
- await p.locator('[data-logger-feedback="sound"]').click();await p.locator('[data-logger-feedback="touch"]').click();assert.equal(await p.evaluate(()=>JSON.stringify(DB)),db);
+ await p.locator('[data-club-group="training"] summary').click();await p.locator('[data-logger-feedback="sound"]').click();await p.locator('[data-logger-feedback="touch"]').click();assert.equal(await p.evaluate(()=>JSON.stringify(DB)),db);
  assert.deepEqual(await p.evaluate(()=>JSON.parse(localStorage.getItem(LOGGER_FEEDBACK_KEY))),{sound:false,touch:false});
  const sounds=await p.evaluate(()=>__sounds);await p.evaluate(()=>{view='lift';lastView=null;render();});await p.locator('#addrep').click();assert.equal(await p.evaluate(()=>__sounds),sounds);assert.equal(await p.evaluate(()=>DB.days[todayISO].w.length),2);
  await p.emulateMedia({reducedMotion:'reduce'});for(const s of ['#addrep','.barviz .pl','.plate-mini-mark'])assert.equal(await p.locator(s).first().evaluate(e=>getComputedStyle(e,'::after').animationName),'none');
