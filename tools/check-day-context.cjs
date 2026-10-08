@@ -61,12 +61,15 @@ const origin=process.env.DAY_REVIEW_ORIGIN||'http://127.0.0.1:'+(process.env.PW_
   assert(labels.every(t=>t&&t.align==='center'));assert.deepEqual(labels.map(t=>t.x),[88,216,344,472]);
   assert(labels[0].y>texts.find(t=>t.s==='Run').y,'summary follows exercise list');
   assert(texts.filter(t=>['135','235','155'].includes(t.s)).every(t=>t.font.includes('600')),'bold weights');
-  assert(texts.filter(t=>['135','235','155'].includes(t.s)).every(t=>t.font.includes('16px')),'approved +3px share weights');
-  assert(texts.filter(t=>t.s==='12').every(t=>t.font.includes('14px')),'approved +3px share reps');
+  const size=t=>Number(t.font.match(/([\d.]+)px/)[1]),ref=560/393;
+  assert(texts.filter(t=>['135','235','155'].includes(t.s)).every(t=>Math.abs(size(t)-14*ref)<.01),'reference-sized weights');
+  assert(texts.filter(t=>t.s==='12').every(t=>Math.abs(size(t)-12*ref)<.01),'reference-sized reps');
+  assert(Math.abs(size(texts.find(t=>t.s==='Plan'))-12*ref)<.01,'reference-sized column headings');
+  assert(Math.abs(size(texts.find(t=>t.s.startsWith('Princeton, NJ')))-13*ref)<.01,'reference-sized context');
   assert(labels.every(t=>t.font.includes('13px')),'summary labels stay at +2px');
   const summaryNumbers=texts.filter(t=>t.y===labels[0].y-24);
   assert.equal(summaryNumbers.length,4);assert(summaryNumbers.every(t=>t.font.includes('38px')&&t.align==='center'),'summary numbers stay at +2px');
-  assert(texts.find(t=>t.s==='Deadlift').font.includes('17px'),'approved +3px exercise names');
+  assert(Math.abs(size(texts.find(t=>t.s==='Deadlift'))-14.5*ref)<.01,'reference-sized exercise names');
   for(const load of ['135','235','155']){const pair=texts.filter(t=>t.s===load);assert.equal(pair.length,2);assert.equal(pair[0].y,pair[1].y);}
   await p.locator('#repClose').click();
  }
