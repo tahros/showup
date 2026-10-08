@@ -1,4 +1,4 @@
-# Whole-day comparison — v4.6.243
+# Whole-day comparison — v4.6.244
 
 Share images/videos use the approved 560-unit editorial grid, rendered at 1080px:
 28-unit margins, 57.375-unit official wordmark centered against DAY/count,
@@ -106,10 +106,13 @@ existing 1080x1280 exports keep their size, while tall daily cards are not cropp
 
 ## Verification
 
-Share Image and Video use +3px typography (logical 560px layout): 17px
-exercise names, 16px weights and 14px reps. The bottom summary is held at
-the approved +2px scale: 38px numbers and 13px labels. Wrapping and row
-heights use the enlarged measurements.
+Share Image and Video inherit the reference export's type proportions
+(81ca848, 393-unit canvas) on the current 560-unit layout: multiply the
+original date 23, context 13, column headings/reps 12, exercise names 14.5,
+weights 14, and supporting text 11 by 560/393. These are explicit role sizes,
+not a blanket offset. Font families/weights and the editorial layout stay.
+The bottom summary remains 38px numbers / 13px labels. Wrapping and row
+heights use the actual painted measurements.
 The logo, Pip, credits, four equal centered summary columns, and in-app
 comparison typography remain unchanged.
 

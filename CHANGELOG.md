@@ -1,5 +1,10 @@
 # ShowUppp — changelog
 
+## v4.6.244 (2026-10-07) — Reference-sized share typography
+
+- Transfers the original reference card's text-size proportions to the current editorial Share Image/Video layout, replacing the blanket +3px offset with explicit sizes for each text role.
+- Keeps the approved summary numbers/labels, centered columns, logo/Pip sizes, current layout and animation. Reflows larger exercise names and rep chips without changing workout data or in-app typography.
+
 ## v4.6.243 (2026-10-07) — Larger share details, same summary
 
 - Increases daily Share Image/Video text to the approved +3px scale, while keeping the minutes, sets, exercises and miles summary at +2px.
