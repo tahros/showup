@@ -1,5 +1,67 @@
 # ShowUppp — changelog
 
+## v4.6.243 (2026-10-07) — Larger share details, same summary
+
+- Increases daily Share Image/Video text to the approved +3px scale, while keeping the minutes, sets, exercises and miles summary at +2px.
+- Updates wrapping and row sizing for larger exercise names, weights and reps. Preserves centered summary columns, logo/Pip sizes, animation timing and in-app typography.
+
+## v4.6.242 (2026-10-07) — More legible daily shares
+
+- Applies the approved +2px typography to daily-review Share Image and Video, with larger exercise names, weights, reps, headings and centered summary text.
+- Recalculates text wrapping and row heights to preserve aligned comparisons. Keeps logo/Pip sizes, source credits, animation timing, in-app typography and saved workouts unchanged.
+
+## v4.6.241 (2026-10-07) — Centered editorial day shares
+
+- Applies the approved editorial layout to daily-review images and videos: small official wordmark, real unpadded DAY count, location/body parts and weather, smaller bold date, and tighter comparison rows with bolder weight/rep values.
+- Centers all four summary values and labels in equal-width columns beneath the exercise list. Places small Pip bottom left and the user's first name bottom right, vertically aligned.
+- Preserves original saved workout values, comparison logic, reveal animation, accessibility settings, weather credits and the in-app card/header. Ships original light/dark wordmarks for offline export.
+
+## v4.6.240 (2026-10-07) — Quieter numbers and weather icons
+
+- Replaces visible weather-condition text with original monochrome weather icons next to the temperature, shared by the app and image/video exports. Full condition descriptions remain available to screen readers and hover text; saved weather/location data is unchanged.
+
+- Reduces daily comparison weight numbers by 1px and rep-chip text from 12px to 11px, including image/video exports. Keeps exercise labels, row insets, line heights, chip heights and the centered layout unchanged.
+
+## v4.6.239 (2026-10-07) — A tighter daily comparison
+
+- Reduces space below the location/body-part line and around each exercise, keeping equal top/bottom padding and matched Plan/Last and Today lanes. Typography, chip sizes and button touch targets stay unchanged.
+- Centers exercise labels across their entire group, removes inherited dividers between weight groups, and preserves 12px outer insets plus a 16px gap between loads in both app and exports.
+- Removes the Captured/conditions timestamp copy from the card and shared image/video, while retaining source credits, consent disclosure, saved timestamps and useful loading/error messages.
+- Applies the same compact rhythm to shared images and videos, with less space above the totals. Preserves the floating header, location permissions, animations and all workout data.
+
+## v4.6.238 (2026-10-07) — Aligned sets, a sense of place
+
+- Removes the warm-up caption from the daily comparison without removing warm-up sets. Plan/Last and Today now share load-group lanes, with matched weight/rep baselines and balanced row padding in the app, image and video. Skipped planned loads stay in their own lanes.
+- Adds an explicit Allow location disclosure and device permission for a one-shot current city/weather snapshot. Shows city/region before body parts and weather beside the date, with capture time and provider attribution. No guessed historical weather, exact address, background tracking or saved GPS coordinates.
+- A new cached server lookup uses Photon/OpenStreetMap and MET Norway without forwarding account/workout details. Decline, offline, timeouts and partial results degrade safely. Saved metadata syncs with the day; Remove uses a tombstone so sign-in cannot resurrect it.
+- Adds the iPhone when-in-use purpose string and local ShowUpLocation bridge. Requires an Xcode rebuild after sync:ios for native location; old binaries continue taking OTA and explain this limitation. Web location works through the browser permission. Native permission/device QA and App Store privacy-answer review remain rollout steps.
+- Preserves the floating header, workout logging, original plan provenance and existing records. Updates privacy disclosures and regression coverage.
+
+## v4.6.237 (2026-10-07) — Years centered over your streaks
+
+- Centers all six year headings over their seven-day streak columns in the interactive overview and replay, matching the share cards. Alignment stays stable with body-part filters, either week start and different screen widths.
+- Keeps streak squares, share-card spacing, other year-count layouts, the floating header and saved records unchanged.
+
+## v4.6.236 (2026-10-07) — Your day, set by set
+
+- Adds the approved whole-day comparison directly below You keep showing up. Uses the original saved plan, or the previous session for each exercise when the workout began without a plan. Planned-but-unlogged exercises remain neutral; extra exercises say Added today.
+- Keeps exercise names beside two value columns, with grouped weight/repetition chips and factual load, same-load rep and extra-set differences. No scores, negative verdicts or retroactive plan linkage.
+- Today's values emerge from blank space from top to bottom, with Replay and a static reduced-motion fallback. Compact footer shows recorded minutes, sets, exercises and running distance; unknown duration stays unknown. Multiple completed sessions are counted without including time between them.
+- Adds image and MP4 sharing using the existing on-device export/share flow, IBM Plex typography and the official lifted ShowUppp/Pip lockup. The MP4 canvas follows the card's full dimensions so tall days are not cropped.
+- Shows the date and actually logged body parts. Weather and location are omitted because those facts are not currently stored; no sample details or new location permissions are introduced. Header, workout logging, saved plans, profile and history remain unchanged.
+
+
+## v4.6.235 (2026-10-07) — Centered years, room to breathe
+
+- Centers each year heading over its seven-day streak column in six-year share cards, with a larger gap above the squares. Preserves column widths, square sizes and the card's lower margin.
+- Still images and animated exports use the same refined composition in both themes and with body-part highlighting. Other year-count layouts, the interactive app, floating header, profile and workout records are unchanged.
+
+## v4.6.234 (2026-10-07) — Six years, uninterrupted
+
+- Replaces the six-year gallery with the approved Continuous composition: six full-year columns, oldest first, with aligned year headings and no half-year split or extra labels. Partial years keep their actual calendar positions.
+- Uses the same layout in the interactive overview, replay, image, MP4 and GIF shares. Preserves the opening pulse, smooth pullback, shared shimmer, body-part highlighting and saved year selections.
+- Other year-count layouts, the floating header, profile and workout records are unchanged. Checks cover narrow screens, both themes and week starts, leap years, exports and replay continuity. Retains the preceding workout-feedback release.
+
 ## v4.6.233 (2026-10-07) — A little weight behind every set
 
 - Uses the approved A / Pin click sound on the rep ruler, with damped metallic feedback when changing weight and a short landing sound when saving a set. Keeps native scrolling, notch throttling and immediate saves; audio is gesture-unlocked and never delays logging.

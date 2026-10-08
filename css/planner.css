@@ -417,3 +417,62 @@ p.pw-small{margin:10px 0 16px}.pw-workspace p:not(.pw-small){font:400 14px/1.6 v
 /* v4.6.188: labels for the new-exercise card's two chip rows */
 .pw-add-newlab{display:block;margin:14px 0 6px;font:400 12px/1.4 var(--body);color:var(--muted)}
 .pw-add-new>small{margin-bottom:0}
+/* Whole-day comparison. Scoped: header, training table and other cards stay intact. */
+#view .day-review{padding:18px 22px 18px;border-radius:25px;background:var(--surface);color:var(--chalk);margin-top:16px}
+.day-review *{box-sizing:border-box}
+.day-review .dr-heading{display:flex;align-items:center;justify-content:space-between;gap:15px}
+.day-review .dr-heading h3{min-width:0}
+.day-review .dr-weather{display:inline-flex;align-items:center;justify-content:flex-end;gap:7px;flex:0 0 auto;white-space:nowrap;font:400 11px/1.4 var(--body);color:var(--muted)}
+.day-review .dr-weather svg{width:16px;height:16px;fill:currentColor;flex:none}
+.day-review .dr-heading h3{font:500 23px/1.2 var(--body);letter-spacing:-.65px;margin:0;color:var(--chalk)}
+.day-review .dr-parts{font:400 13px/1.5 var(--body);margin:8px 0 14px;color:var(--muted)}
+.day-review table{border-collapse:collapse;width:100%;table-layout:fixed;font-variant-numeric:tabular-nums}
+.day-review table th{text-transform:none;letter-spacing:normal}
+.day-review table th,.day-review table td{border-bottom:0}
+.day-review col:first-child{width:36%}.day-review col:not(:first-child){width:32%}
+.day-review thead th{padding:0 3px 10px;text-align:center;color:var(--muted);font:500 12px/1.4 var(--body)}
+.day-review thead th:first-child{text-align:left;font-weight:400;font-size:11px;padding-left:0}
+.day-review thead th:last-child{color:var(--accent-ink)}
+.day-review tbody th,.day-review td{padding:12px 3px 8px;border-top:1px solid var(--line);vertical-align:top}
+.day-review tbody th{padding-bottom:12px;vertical-align:middle}
+.day-review tr.dr-continuation td{border-top:0;padding-top:8px}
+.day-review tr.dr-last-lane td{padding-bottom:12px}
+.day-review .dr-exercise-label{display:block}
+.day-review td.dr-missing{vertical-align:middle}
+.day-review tbody th{text-align:left;padding-left:0;padding-right:11px;font:500 14.5px/1.3 var(--body);overflow-wrap:anywhere;color:var(--chalk)}
+.day-review .dr-note{display:block;margin-top:5px;color:var(--muted);font:400 11px/1.35 var(--body)}
+.day-review .dr-value{display:flex;flex-direction:column;gap:5px;align-items:center;justify-content:center;min-height:42px;color:var(--muted)}
+.day-review .dr-value+.dr-value{margin-top:13px}
+.day-review .dr-value small{font:400 10px/1.3 var(--body);overflow-wrap:anywhere}
+.day-review .dr-weight{font:400 13px/18px var(--mono);letter-spacing:-.45px;text-align:center;overflow-wrap:anywhere;max-width:100%}
+.day-review .dr-reps{display:flex;justify-content:center;gap:3px;flex-wrap:wrap}
+.day-review .dr-rep{font:500 11px/12px var(--body);min-width:17px;padding:4px 2px;text-align:center;border-radius:5px;background:var(--surface2)}
+.day-review .dr-actual .dr-value{color:var(--accent-ink)}
+.day-review .dr-actual .dr-rep{background:color-mix(in srgb,var(--accent) 11%,var(--surface))}
+.day-review .dr-actual .dr-gain{background:var(--accent);color:var(--ground)}
+.day-review .dr-actual .dr-weight.dr-gain{padding:3px 6px;margin:-3px -6px;border-radius:6px}
+.day-review .dr-delta{display:block;color:var(--accent-ink);font:500 11px/1.4 var(--body);margin-top:6px}
+.day-review .dr-empty{display:block;color:var(--muted);font:400 13px/1.4 var(--body);text-align:center}
+.day-review .dr-empty-day{font:400 14px/1.5 var(--body);color:var(--muted);padding:16px 0}
+.day-review .dr-totals{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;border-top:1px solid var(--line);padding-top:14px;margin-top:0;color:var(--chalk);text-align:center}
+.day-review .dr-totals>div{min-width:0}
+.day-review .dr-totals b{display:block;margin-bottom:4px;font:500 23px/1.2 var(--body);letter-spacing:-.5px;font-variant-numeric:tabular-nums}
+.day-review .dr-totals span{font:400 12px/1.4 var(--body)}
+.day-review .dr-actions{display:flex;justify-content:space-between;gap:12px;border-top:1px solid var(--line);margin-top:16px;padding-top:12px}
+.day-review .dr-actions button{display:flex;align-items:center;justify-content:center;gap:6px;font:500 14px/1.4 var(--body);min-height:44px;padding:9px 18px;border-radius:13px;border:0;background:var(--surface2);color:var(--chalk);cursor:pointer}
+.day-review .dr-actions .dr-share{background:var(--accent);color:var(--ground)}
+.day-review .dr-actions svg{width:16px;height:16px;flex-shrink:0}
+.day-review .dr-actions button:disabled{opacity:.4;cursor:default}
+.day-review .dr-actions button:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.day-review [data-dr-reveal]{display:inline-block}.day-review .dr-delta[data-dr-reveal],.day-review .dr-empty[data-dr-reveal],.day-review .dr-totals>[data-dr-reveal]{display:block}
+.day-review.dr-pending [data-dr-reveal]{opacity:0}
+.day-review .dr-context{margin-top:16px;color:var(--muted);font:400 11px/1.5 var(--body)}
+.day-review .dr-context button{font:500 12px/1.4 var(--body);border:0;background:var(--surface2);color:var(--chalk);padding:9px 12px;border-radius:10px;min-height:44px;margin-right:6px;cursor:pointer}
+.day-review .dr-context p{margin:7px 0}.day-review .dr-context a{color:inherit}.day-review .dr-context small{font-size:10px}
+.day-review .dr-context-status:empty{display:none}
+.day-review .dr-context>small{display:block;margin-top:7px}
+.dr-consent{max-width:min(390px,calc(100vw - 32px));border:1px solid var(--line);border-radius:22px;padding:24px;color:var(--chalk);background:var(--surface);font:400 14px/1.5 var(--body)}
+.dr-consent::backdrop{background:#0008}.dr-consent h3{font:500 21px/1.2 var(--body);margin:0 0 15px}.dr-consent p{margin:12px 0}.dr-consent>div{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+.dr-consent button{font:500 14px var(--body);padding:12px;border-radius:12px;background:var(--surface2);color:var(--chalk);border:0;min-height:44px;cursor:pointer}.dr-consent [data-allow]{background:var(--accent);color:var(--ground)}
+@media(max-width:359px){#view .day-review{padding:17px 13px 18px}.day-review tbody th{font-size:13.5px;padding-right:7px}.day-review .dr-rep{min-width:15px;padding:4px 1px}.day-review .dr-reps{gap:2px}.day-review td{padding-left:2px;padding-right:2px}.day-review .dr-weight{font-size:12px}}
+@media(prefers-reduced-motion:reduce){.day-review.dr-pending [data-dr-reveal]{opacity:1}}

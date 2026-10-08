@@ -139,6 +139,8 @@ function bindPlateExport(data,mascot,module,videoModule,options={}){
   const current=_repCv,ov=repOvEl(),img=ov.querySelector('#repImg'),share=ov.querySelector('#repDo');
   const row=document.createElement('div');row.className='plate-export-options';
   row.innerHTML='<button type="button" class="btn ghost" data-format="image">Image</button><button type="button" class="btn ghost" data-format="mp4">Video · MP4</button><button type="button" class="btn ghost" data-format="gif">GIF</button><span role="status" aria-live="polite"></span>';
+  const hasGif=options.gif!==false;
+  if(!hasGif)row.querySelector('[data-format="gif"]').remove();
   const video=document.createElement('video');video.className='plate-export-video';video.controls=true;video.muted=true;video.loop=true;video.playsInline=true;video.hidden=true;video.setAttribute('aria-label','Workout video preview');
   ov.insertBefore(row,img);img.after(video);let controller=null,closed=false;const blobs={},urls={};
   const buttons=[...row.querySelectorAll('button')],status=row.querySelector('[role="status"]'),supported=!!videoModule.mp4Type();
@@ -160,7 +162,7 @@ function bindPlateExport(data,mascot,module,videoModule,options={}){
       if(closed||task.signal.aborted||controller!==task||_repCv!==current)return;
       if(!result?.size)throw Error('Empty export');
       blobs[format]=result;preview(format);
-    }catch(e){if(!closed&&!task.signal.aborted&&controller===task&&_repCv===current){image();status.textContent=format==='mp4'?'Video unavailable. Try again with this screen open, or choose GIF.':'GIF unavailable. You can still share the image.';}}
+    }catch(e){if(!closed&&!task.signal.aborted&&controller===task&&_repCv===current){image();status.textContent=format==='mp4'?(hasGif?'Video unavailable. Try again with this screen open, or choose GIF.':'Video unavailable. Try again with this screen open, or share the image.'):'GIF unavailable. You can still share the image.';}}
     finally{if(controller===task)controller=null;}
   }
   buttons.forEach(b=>b.onclick=()=>b.dataset.format==='image'?image():generate(b.dataset.format));
@@ -170,7 +172,7 @@ function bindPlateExport(data,mascot,module,videoModule,options={}){
      One owner and one completion path keep the selected format and UI in sync. */
   image();
   if(options.label)video.setAttribute('aria-label',options.label);
-  if(!supported)status.textContent='MP4 is unavailable in this browser. Image and GIF are available.';
+  if(!supported)status.textContent=hasGif?'MP4 is unavailable in this browser. Image and GIF are available.':'MP4 is unavailable in this browser. You can still share the image.';
 }
 function plateMark(x,y,w,h){return `<path d="M${x} ${y-h}a${w/2} 7 0 0 1 ${w} 0v${h}a${w/2} 7 0 0 1 -${w} 0z" fill="var(--plate-side)"/><ellipse cx="${x+w/2}" cy="${y-h}" rx="${w/2}" ry="7" fill="var(--plate-top)"/><ellipse cx="${x+w/2}" cy="${y-h}" rx="5" ry="2" fill="var(--plate-hole)"/>`;}
 function plateMiniHTML(){const m=plateCurrent();return `<div class="plate-mini" aria-live="polite"><span class="plate-mini-mark" aria-hidden="true"><svg viewBox="0 0 48 42" aria-hidden="true">${[0,1,2].map(i=>`<g>${plateMark(6,32-i*8,34,5)}</g>`).join('')}</svg></span><span>${plateNumber(m.kg)} ${U()} moved today</span></div>`;}

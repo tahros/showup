@@ -12,7 +12,9 @@ export async function createPlateVideo({render,signal,onProgress,dark,withMascot
   try{
     if(withMascot){mascot=createMascot(stage,{mode:'jump',tone:'blue',theme:dark?'dark':'light'});mascot.pause();}
     const scene=document.createElement('canvas');render(-200,scene,mascot?.captureFrame(0));
-    const canvas=document.createElement('canvas');canvas.width=1080;canvas.height=1280;
+    // Existing cards stay 1080x1280; whole-day reviews can be taller. Never
+    // crop the last exercise/totals or resize the capture canvas mid-recording.
+    const canvas=document.createElement('canvas');canvas.width=scene.width;canvas.height=scene.height;
     const output=canvas.getContext('2d');output.drawImage(scene,0,0);
     stream=canvas.captureStream(50);
     recorder=new MediaRecorder(stream,{mimeType,videoBitsPerSecond:8000000});

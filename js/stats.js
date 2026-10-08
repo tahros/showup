@@ -1543,6 +1543,7 @@ function renderStats(){
 
   // v3.3.230: lifetime total + current rhythm are one attendance hero.
   let h=currentRhythmSection();   // v3.3.469: the v3.3.468 rest lead was reverted at the maker's word
+  h+=dayReviewSection();          // Read-only whole-day comparison, directly after attendance.
   cut('kpis');
   /* v3.3.208: Session Build keeps the honest part mix and the live-growing
      skyline, but every unit is now one completed set — never mixed tonnage. */
@@ -1620,6 +1621,7 @@ function renderStats(){
   bindPlateStats();
   bindWoven();
   bindProgression();
+  bindDayReview();
 
 }
 
