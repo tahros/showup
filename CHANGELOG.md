@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.249 (2026-10-08) — A more compact membership card
+
+- Moves the member identity directly beneath the name, number first, with slightly smaller 21px IBM Plex Mono digits and a restrained MEMBER Nº label. Keeps tap-to-copy without a separate copy glyph.
+- Replaces the Edit profile text with an accessible pencil beside the name, retaining a 44px tap target. Tightens the card and isolates the name from inherited graph-heading margins so the pencil remains centered.
+- Keeps the avatar editor, join date, days trained, permanent registry identity and all profile/workout data unchanged. Checks alignment, ordering, light/dark phone sizes and large member numbers in Chromium.
+
 ## v4.6.248 (2026-10-07) — Membership identity
 
 - Applies the Membership Identity handoff within the existing Settings card: MEMBER Nº with six-digit minimum formatting and a copyable SUP reference; founder zero displays as 000000. Larger numbers retain every digit.

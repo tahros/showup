@@ -32,6 +32,9 @@ Connections (when available), and Account & data. No workout writer changed.
   reopening Settings retries. Late responses cannot paint another account's card.
 - Settings has no redundant Back action or tagline. The avatar's existing button
   has a corner edit badge and retains its large accessible tap target.
+- Profile editing is a 44px pencil target beside the name. Membership sits
+  directly beneath it, number first in 21px Mono, followed by MEMBER Nº.
+  The whole membership row remains tap-to-copy; no extra copy glyph is needed.
 - Days trained uses the established `loggedDays()` definition: distinct dates
   with workout rows, including imports; no duplicate count for multiple sets or
   sessions on a date. Rest/empty dates do not count. It links to History.
