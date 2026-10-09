@@ -1,5 +1,10 @@
 # ShowUppp — changelog
 
+## v4.6.254 (2026-10-09) — Clearer exercise sections
+
+- Applies the approved Section Bands to muscle groups in the planner's Add exercise picker: softly tinted blue headers, larger IBM Plex Sans labels and a quiet right-aligned Focus label in both themes.
+- Keeps all exercise groups visible, with existing ordering, search, selection and saved plans unchanged. Verifies narrow layouts and add-exercise behavior in both themes.
+
 ## v4.6.253 (2026-10-08) — Balanced membership identity
 
 - Top-aligns the member label with its number and gives the small raised o its own underline. Centers the compact name-and-number block against the profile icon while retaining accessible edit/copy targets.
