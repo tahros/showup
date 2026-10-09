@@ -1,5 +1,10 @@
 # ShowUppp — changelog
 
+## v4.6.253 (2026-10-08) — Balanced membership identity
+
+- Top-aligns the member label with its number and gives the small raised o its own underline. Centers the compact name-and-number block against the profile icon while retaining accessible edit/copy targets.
+- Keeps membership numbers, join dates, profile editing and all stored records unchanged. Checks alignment in both themes at phone and wider sizes.
+
 ## v4.6.252 (2026-10-08) — Matched weights, clearer past sessions
 
 - Unplanned daily reviews and shared images/videos group repeated identical lifting loads into ascending, aligned Last/Logged lanes. Keep every rep, separate different units and load kinds, and preserve individual cardio records.

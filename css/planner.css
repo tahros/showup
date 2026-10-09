@@ -522,4 +522,11 @@ p.pw-small{margin:10px 0 16px}.pw-workspace p:not(.pw-small){font:400 14px/1.6 v
 @media(prefers-reduced-motion:reduce){.club-sprite{animation:none!important}.club-settings-group>summary>span:last-child{transition:none}}
 #view .club-card .club-person .club-name-row h2:first-child{margin:0;width:auto;display:block;text-transform:none;color:var(--chalk);opacity:1}
 .club-card .club-person h2::after{display:none}
+/* Center the visible identity, without counting excess button padding. */
+.club-identity{display:flex;flex-direction:column;gap:8px}
+.club-name-row .club-profile-edit{margin-block:-8px}
+.club-member-id{align-items:flex-start;padding:0;min-height:26px;position:relative}
+.club-member-id::before{content:"";position:absolute;inset:-9px 0}
+.club-member-label{padding-top:3px;line-height:1.2}
+.club-number-o{display:inline-block;vertical-align:top;font-size:.8em;line-height:1.05;border-bottom:1px solid currentColor;letter-spacing:0;margin-left:1px;padding-bottom:1px}
 #view>.club-card.card{margin-top:16px}
