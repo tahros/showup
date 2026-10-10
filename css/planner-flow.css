@@ -694,3 +694,20 @@ html.pf-chip-drag,html.pf-chip-drag body{user-select:none;-webkit-user-select:no
 .pf-order-host .pf-from-b.on{border-color:var(--accent);color:var(--accent-ink,var(--accent))}
 .pf-order-host .pf-split .pf-pal{margin-left:-20px;margin-right:-20px;padding-left:20px;padding-right:20px}
 @media(prefers-reduced-motion:reduce){.pf-order-host .pf-pick-scrim,.pf-order-host .pw-add-sheet.pf-order-sheet{animation:none}}
+/* v4.6.256: a day chip is a ticket -- day and date, a perforation, the stub that names what it trains; the stub tears off to move the day's routine */
+.pf-strip{position:relative}
+.pf-strip .pw-btn.pf-chip{padding-bottom:0;overflow:visible;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none}
+.pf-strip .pf-chip s{align-self:stretch;margin:1px 5px 0;padding-bottom:5px;border-bottom:1.5px dashed color-mix(in srgb,var(--chalk) 20%,transparent)}
+.pf-strip .pf-chip.selected s{border-bottom-color:color-mix(in srgb,var(--accent) 45%,transparent)}
+.pf-strip .pf-chip u{align-self:stretch;margin:0;padding:6px 2px 8px;text-align:center;touch-action:pan-x;transition:transform var(--dur-move,.26s) var(--settle)}
+.pf-strip.tearing .pf-chip:not(.pf-tear-src) u{animation:pf-jiggle .27s ease-in-out infinite}
+.pf-strip.tearing .pf-chip:nth-child(2n) u{animation-delay:-.13s;animation-duration:.31s}
+.pf-strip.tearing .pf-chip.pf-tear-src u{visibility:hidden}
+@keyframes pf-jiggle{0%{rotate:-2.4deg}50%{rotate:2.4deg}100%{rotate:-2.4deg}}
+.pf-tear-hint{position:absolute;left:50%;top:-38px;z-index:5;transform:translateX(-50%);margin:0;padding:7px 13px;border-radius:999px;background:var(--surface);box-shadow:0 4px 14px rgba(0,0,0,.14);white-space:nowrap;font:500 12.5px/18px var(--body);color:var(--accent-ink,var(--accent));pointer-events:none}
+.pf-stub-fly{position:fixed;z-index:70;display:grid;place-items:center;min-height:34px;padding:6px 4px 8px;box-sizing:border-box;border:1px solid var(--accent);border-top:2px dashed color-mix(in srgb,var(--accent) 55%,transparent);border-radius:4px 4px 14px 14px;background:var(--surface);color:var(--accent-ink,var(--accent));font:600 11px/1.2 var(--body);white-space:nowrap;box-shadow:0 14px 28px rgba(0,0,0,.22);transform:rotate(-4deg) scale(1.08);pointer-events:none}
+/* the day's routine sits inside a blue outline: the day you are editing */
+/* the outline reaches out into the page gutter by as much as it pads in, so everything inside keeps the width it had */
+:root .pf-workspace .pf-day-body{margin:0 -9px;border:1.5px solid var(--accent);border-radius:22px;padding:13px 7.5px 4px;background:color-mix(in srgb,var(--accent) 4%,var(--ground))}
+@media(prefers-reduced-motion:reduce){.pf-strip.tearing .pf-chip u{animation:none}.pf-strip .pf-chip u{transition:none}}
+@media(max-width:360px){:root .pf-workspace .pf-day-body .pf-routine-controls{flex-wrap:wrap;row-gap:10px}}

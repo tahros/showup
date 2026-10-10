@@ -644,6 +644,23 @@ function pfHistoryHTML(compact=false){const s=pw(),parts=s.active?(pwDay(s.activ
    no saved plan behind it counts as unsaved too: it is, until Save runs. */
 function pfDirty(d){const b=pw().book?.[d];return !!b&&(b.source!=='Saved plan'||!pwSaved(d)?.items?.length);}
 function pfDirtyDates(){return pfDates().filter(pfDirty);}
+/* v4.6.256: MOVE A DAY'S ROUTINE BY TEARING ITS STUB OFF. A day chip is a ticket:
+   the day and date on top, a perforation, and below it the stub that names what
+   the day trains. Hold a stub and it tears off at the perforation; the other
+   stubs jiggle; carry it along the row and the stub under your finger slides
+   across into the gap, so the swap shows before you let go ("Under Fri: Back
+   goes to Wed"). Let go and the two days swap their whole routines (exercises,
+   sets, target, body parts); the day you moved becomes the one you are editing,
+   and the toast offers undo. A planned day swaps rather than being overwritten,
+   so a move never loses a plan. Nothing is stored until Save, as with any
+   other edit. A tap on a chip still just switches day; a swipe still scrolls. */
+function pfSwapDates(a,b){const s=pw();if(!a||!b||a===b||!s.dates.includes(a)||!s.dates.includes(b))return false;
+ const A=pwCopy(pwDay(a)),B=pwCopy(pwDay(b)),before={a:pwCopy(s.book[a]),b:pwCopy(s.book[b]),active:s.active};
+ s.book[a]={...B,base:A.base,source:'Your draft',splitFill:false,partsPick:true};s.book[b]={...A,base:B.base,source:'Your draft',splitFill:false,partsPick:true};
+ s.active=b;pwPersist();pwRender();
+ const name=x=>{const ps=x.parts&&x.parts.length?x.parts:pwParts(x.rows||[]);return partLabel(ps.find(t=>t!=='Run')||ps[0]||'')||'Nothing';},wd=d=>new Date(d+'T12:00').toLocaleDateString('en-US',{weekday:'short'});
+ toastUndo(`${name(A)} → ${wd(b)} · ${name(B)} → ${wd(a)}`,()=>{const t=pw();t.book[a]=before.a;t.book[b]=before.b;t.active=before.active;pwPersist();pwRender();});
+ return true;}
 function pfWeekStrip(){const s=pw();return `<div class="pf-strip" role="tablist" aria-label="Planned days">${pfDates().map(d=>{const b=pwDay(d),ps=(b.parts.length?b.parts:pwParts(b.rows)),part=partLabel(ps.find(x=>x!=='Run')||ps[0]||'')||'\u2014'   /* v4.6.207: a day is named by what it trains; Cardio only when that is all it is */,on=d===s.active,dirty=pfDirty(d);return pwButton('pf-pick-day',`<b>${hesc(new Date(d+'T12:00').toLocaleDateString('en-US',{weekday:'short'}))}</b><s>${hesc(pfMD(d))}</s><u>${hesc(part)}</u>${dirty?'<em class="pf-dot" aria-hidden="true"></em>':''}`,'pf-chip'+(on?' selected':'')+(dirty?' pf-edited':''),`data-date="${d}" role="tab" aria-selected="${on}" aria-label="${hesc(pfShort(d))}${dirty?', unsaved changes':''}"`);}).join('')}</div>`;}
 function pfDayHTML(){return pfWeekStrip()+`<div class="pf-day-body">${pfDayBodyHTML()}</div>`;}
 /* body parts for the day you are editing: the chips show what the day trains;
@@ -1241,3 +1258,26 @@ document.addEventListener('toggle',e=>{if(!pfOn()||!e.target.isConnected)return;
  window.addEventListener('blur',stop);
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&d)stop();if((e.key==='Enter'||e.key===' ')&&e.target.matches?.('.pf-ses[data-pw="pf-rot-put"]')){e.preventDefault();pfHandle('pf-rot-put',e.target);}});
 })();
+
+/* v4.6.256: tear a day's stub off and carry it to another day (see pfSwapDates) */
+(()=>{let d=null,hold=null,eat=0;
+ const chips=()=>[...document.querySelectorAll('.pf-strip .pf-chip')];
+ const at=x=>{let best=-1,bd=1e9;chips().forEach((c,i)=>{const r=c.getBoundingClientRect(),dd=Math.abs(r.left+r.width/2-x);if(dd<bd){bd=dd;best=i;}});return best;};
+ const day=c=>new Date(c.dataset.date+'T12:00').toLocaleDateString('en-US',{weekday:'short'});
+ const stop=()=>{clearTimeout(hold);hold=null;if(!d)return;d.fly?.remove();const st=document.querySelector('.pf-strip');st?.classList.remove('tearing');st?.querySelector('.pf-tear-hint')?.remove();chips().forEach(c=>{c.classList.remove('pf-tear-src');const u=c.querySelector('u');if(u)u.style.transform='';});d=null;};
+ const preview=j=>{const cs=chips(),src=cs[d.i],sr=src.getBoundingClientRect();cs.forEach((c,k)=>{const u=c.querySelector('u');if(!u||k===d.i)return;u.style.transform=k===j&&j!==d.i?`translateX(${Math.round(sr.left-c.getBoundingClientRect().left)}px)`:'';});
+  const h=document.querySelector('.pf-strip .pf-tear-hint');if(h)h.textContent=j===d.i||j<0?'Carry it under another day':`Under ${day(cs[j])}: ${cs[j].querySelector('u')?.textContent||'nothing'} goes to ${day(src)}`;d.j=j;};
+ const lift=()=>{const cs=chips(),c=cs[d.i],u=c&&c.querySelector('u');if(!u)return stop();const r=u.getBoundingClientRect(),st=c.parentElement;
+  d.dx=d.x-r.left;d.dy=d.y-r.top;const f=document.createElement('div');f.className='pf-stub-fly';f.textContent=u.textContent;f.style.width=Math.round(c.getBoundingClientRect().width)+'px';document.body.append(f);d.fly=f;
+  st.classList.add('tearing');c.classList.add('pf-tear-src');st.insertAdjacentHTML('afterbegin','<p class="pf-tear-hint" aria-live="polite"></p>');d.on=true;navigator.vibrate?.(8);move();preview(d.i);};
+ const move=()=>{if(!d||!d.fly)return;d.fly.style.left=(d.x-d.dx)+'px';d.fly.style.top=(d.y-d.dy)+'px';};
+ document.addEventListener('pointerdown',e=>{const u=e.target.closest?.('.pf-strip .pf-chip u');if(!u||e.button!==0||d||!pfOn())return;const c=u.closest('.pf-chip'),i=chips().indexOf(c);if(i<0||pw().dates.length<2)return;
+  d={i,j:i,x:e.clientX,y:e.clientY,x0:e.clientX,y0:e.clientY,id:e.pointerId,on:false};hold=setTimeout(()=>{if(d&&!d.on)lift();},320);});
+ document.addEventListener('pointermove',e=>{if(!d||e.pointerId!==d.id)return;d.x=e.clientX;d.y=e.clientY;if(!d.on){if(Math.hypot(d.x-d.x0,d.y-d.y0)>8)stop();return;}move();const j=at(d.x);if(j!==d.j)preview(j);});
+ document.addEventListener('touchmove',e=>{if(d&&d.on)e.preventDefault();},{passive:false});
+ document.addEventListener('pointerup',e=>{if(!d||e.pointerId!==d.id)return;if(!d.on){stop();return;}const cs=chips(),a=cs[d.i]?.dataset.date,b=cs[d.j]?.dataset.date;eat=Date.now();stop();if(a&&b&&a!==b)pfSwapDates(a,b);});
+ document.addEventListener('pointercancel',e=>{if(d&&e.pointerId===d.id)stop();});
+ /* the click that ends a carry is not a tap on a day */
+ document.addEventListener('click',e=>{if(Date.now()-eat<450&&e.target.closest?.('.pf-strip')){e.stopPropagation();e.preventDefault();}},true);
+ document.addEventListener('contextmenu',e=>{if(e.target.closest?.('.pf-strip .pf-chip'))e.preventDefault();});
+ window.addEventListener('blur',stop);document.addEventListener('keydown',e=>{if(e.key==='Escape'&&d)stop();});})();

@@ -83,7 +83,8 @@ const PORT=process.env.PORT||8784,wait=ms=>new Promise(r=>setTimeout(r,ms));
     await tap('[data-pw="pf-part"][data-part="Chest"]');s=await st();
     ok(`${tag} deselecting Chest drops its row and its focus; the target follows the parts`,s.rows.join()==='Sixpack: Abs Obliques'&&/Sixpack 3/.test(s.line)&&!/Chest/.test(s.line)&&s.out==='3'&&s.beam&&(await p.evaluate(()=>pwDay(pw().active).focus.length===0)),s);
     await tap('[data-pw="pf-part"][data-part="Biceps"]');s=await st();
-    ok(`${tag} a part with too little history has no usual, and says so`,s.auto===''&&/No usual yet for Biceps/.test(s.line)&&s.rows.join()==='Sixpack: Abs Obliques',s);
+    /* v4.6.255: this log repeats, so Your order is read from it, and an order gives a part with no history a starting size (as a split always has); with no order it has no usual and says so */
+    {const kind=await p.evaluate(()=>pfOrderInfo().kind);ok(`${tag} a part with too little history has no usual, or a starting size when Your order is read from the log, and says so`,(kind==='log'||kind==='changed'?/a starting size for Biceps until three days are logged/.test(s.line):s.auto===''&&/No usual yet for Biceps/.test(s.line))&&s.rows.join()==='Sixpack: Abs Obliques',{kind,s});}
     await tap('[data-pw="pf-part"][data-part="Legs"]');s=await st();
     ok(`${tag} four Legs muscles wrap inside the box`,s.rows.some(r=>r==='Legs: Quads Hamstrings Glutes Calves')&&!s.wide&&!s.clip,s);
     ok(`${tag} no page errors`,!errors.length,errors);

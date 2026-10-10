@@ -1,5 +1,16 @@
 # ShowUppp — changelog
 
+## v4.6.256 (2026-10-10) — Move a day's routine by tearing its stub off
+
+- **Asked:** a way to move one day's plan to another day ("move Biceps to Friday"). A Move button was mocked first and turned down; then dragging the routine; then the maker's idea: a line between the date and the body part, the body parts jiggling like the iPhone home screen, physically moved around. Mocked and recorded twice before building.
+- **Each day chip is a ticket:** the day and date on top, a dashed perforation, and the stub below naming what the day trains. The chip design is otherwise unchanged.
+- **Hold a stub** (about a third of a second) and it tears off at the perforation and rides under your finger; its own stub is left empty and the other stubs jiggle. Carry it along the row and the stub under your finger slides across into the gap, so the swap shows before you let go; a pill above the row says it ("Under Fri: Back goes to Wed").
+- **Let go** and the two days swap their whole routines: exercises, sets, set target and body parts. The day you moved becomes the one you are editing, and the toast offers undo ("Biceps → Fri · Back → Wed · undo"). A planned day swaps rather than being overwritten, so a move loses nothing. Nothing is stored until Save. Let go on its own day and nothing changes.
+- A tap on a chip still switches day, and a quick swipe across the stubs still scrolls; only a hold tears.
+- **The day's routine sits inside a blue outline,** under the strip. The outline reaches into the page margin as far as it pads in, so nothing inside it gets narrower. At 320pt wide the Set target row wraps inside it.
+- `tools/check-focus.cjs` follows v4.6.255: when Your order is read from the log, a body part with no history gets a starting size, as it always did under a split.
+- Check: `tools/check-tear-move.cjs` (real mouse and finger drags in Chromium, light and dark, 402 and 320).
+
 ## v4.6.255 (2026-10-10) — Your order is read from your log
 
 - **Asked:** were "Your split" and "The order you train in" needed at all? The maker trains a fixed six-session routine and has 900+ days of log; the order is a fact the record already holds. Mocked, the copy reworked, and the three states mocked before building.
