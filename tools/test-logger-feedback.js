@@ -4,7 +4,8 @@ const src=fs.readFileSync(path.join(process.argv[2]||'.','js/app.js'),'utf8');
 const code=src.slice(src.indexOf('let _tickCtx=null'),src.indexOf('/* v3.3.289: the scroll handler'));
 let fail=0;
 function harness(stored){
- const h={console,Date,Math,Map,Float32Array,HTMLInputElement:function(){},events:{},document:{hidden:false,addEventListener(n,f){h.events[n]=f;}},localStorage:{getItem(){return stored||null;}},navigator:{vibrate(p){h.taps.push(p);return true;}},taps:[],starts:[],buffers:[],gains:[],isRetro:()=>false};
+ const h={console,Date:class extends Date{static now(){return 1.7e12;}},Math,   /* v4.6.255: a frozen clock, so the throttle is not decided by how loaded the machine running the suite is */
+ Map,Float32Array,HTMLInputElement:function(){},events:{},document:{hidden:false,addEventListener(n,f){h.events[n]=f;}},localStorage:{getItem(){return stored||null;}},navigator:{vibrate(p){h.taps.push(p);return true;}},taps:[],starts:[],buffers:[],gains:[],isRetro:()=>false};
  h.window=h;h.AudioContext=class{constructor(){this.state='running';this.sampleRate=48000;this.destination={};}resume(){this.state='running';return Promise.resolve();}suspend(){this.state='suspended';return Promise.resolve();}createBuffer(_,n){const a=new Float32Array(n),b={getChannelData:()=>a};h.buffers.push(b);return b;}createBufferSource(){const s={connect(){},disconnect(){},start(){h.starts.push(s);},stop(){s.stopped=true;s.onended?.();}};return s;}createGain(){const g={gain:{value:0},connect(){},disconnect(){}};h.gains.push(g);return g;}};
  vm.createContext(h);vm.runInContext(code,h);h.run=x=>vm.runInContext(x,h);return h;
 }

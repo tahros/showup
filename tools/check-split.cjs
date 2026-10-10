@@ -1,4 +1,5 @@
-// v4.6.209: select sessions, add to all, No split, Fill for me.
+// v4.6.255: Your order -- one card read from the log; Change opens a sheet (From your log / Set my own) holding the chip editor.
+// v4.6.209: select sessions, add to all.
 // v4.6.207: Your split on Plan -> Preferences: sessions built by moving body-part chips.
 // Real Chromium, real taps and real drags.
 const {chromium}=require('playwright'),fs=require('fs');
@@ -19,63 +20,59 @@ try{for(const [w,h] of [[402,874],[320,640]])for(const theme of ['light','dark']
   document.querySelector('#onb')?.remove();migrateCanon();SEED=deriveAll();applyTheme();save=()=>{};
   view='today';render();await new Promise(r=>setTimeout(r,400));pw().dates=[];pw().active=null;pwOpen(null,'dates');pfHandle('pf-prefs',{dataset:{}});await new Promise(r=>setTimeout(r,600));
  },theme);
- const dom=()=>p.evaluate(()=>{const q=s=>[...document.querySelectorAll(s)],card=document.querySelector('.pf-split'),cr=card.getBoundingClientRect();
-  return {tiles:q('.pf-tile').map(e=>e.dataset.value+(e.classList.contains('on')?'*':'')).join(' '),subs:q('.pf-tile small').map(e=>e.textContent),parts:q('.pf-mypart').map(e=>e.dataset.part+(e.classList.contains('on')?'*':'')).join(' '),
+ const dom=()=>p.evaluate(()=>{const q=s=>[...document.querySelectorAll(s)],box=document.querySelector('#pfOrder .pf-order-sheet')||document.querySelector('.pf-order'),cr=box.getBoundingClientRect(),cd=document.querySelector('.pf-order');
+  return {parts:q('.pf-mypart').map(e=>e.dataset.part+(e.classList.contains('on')?'*':'')).join(' '),
+   card:cd?cd.textContent.replace(/\s+/g,' ').trim():'',cardSeq:q('.pf-order .pf-os').map(e=>e.textContent.replace(/^\d+/,'')).join('|'),cardNx:q('.pf-order .pf-os.nx').map(e=>+e.querySelector('i').textContent),
+   sheet:!!document.querySelector('#pfOrder:not(.out)'),mode:document.querySelector('#pfOrder .pf-segb.on')?.dataset.value||'',logRows:q('#pfOrder .pf-orow').map(e=>e.textContent.replace(/^\d+/,'').trim()),
    pal:q('.pf-pal-chip').map(e=>e.textContent+(e.classList.contains('held')?'*':'')).join(' '),hint:document.querySelector('.pf-pal-h em')?.textContent||'',
    rows:q('.pf-ses').map(r=>[...r.querySelectorAll('.pf-rot-tag')].map(e=>e.textContent.trim()).join(' ')),ghost:q('.pf-ses').map(r=>r.querySelector('.pf-rot-ghost')?1:0).join(''),hit:q('.pf-ses').map(r=>r.querySelector('.pf-rot-tag.hit')?1:0).join(''),
-   next:q('.pf-ses.next').map(r=>+r.dataset.pfRot+1),up:q('.pf-up span').map(x=>x.textContent),note:document.querySelector('.pf-split-note')?.textContent||'',empty:q('.pf-ses-in>em').length,
-   over:q('.pf-split *').filter(e=>{const r=e.getBoundingClientRect();return r.width&&(r.right>cr.right+0.5||r.left<cr.left-0.5);}).map(e=>e.className||e.tagName).slice(0,4),sw:document.documentElement.scrollWidth,vw:innerWidth,
-   order:q('.pf-prefs>.card>h3').map(e=>e.textContent).join('|'),grip:q('.pf-rot-grip').map(e=>Math.round(e.getBoundingClientRect().height)),chipH:q('.pf-pal-chip').map(e=>Math.round(e.getBoundingClientRect().height)),xW:q('.pf-rot-x').map(e=>Math.round(e.getBoundingClientRect().width))};});
+   next:q('.pf-ses.next').map(r=>+r.dataset.pfRot+1),empty:q('.pf-ses-in>em').length,
+   over:q('#pfOrder .pf-order-scroll *,.pf-order *').filter(e=>{const r=e.getBoundingClientRect();return r.width&&(r.right>cr.right+0.5||r.left<cr.left-0.5);}).map(e=>e.className||e.tagName).slice(0,4),sw:document.documentElement.scrollWidth,vw:innerWidth,
+   order:q('.pf-prefs>.card>h3,.pf-prefs>.card>.pf-ohead>h3').map(e=>e.textContent).join('|'),grip:q('.pf-rot-grip').map(e=>Math.round(e.getBoundingClientRect().height)),chipH:q('.pf-pal-chip').map(e=>Math.round(e.getBoundingClientRect().height)),xW:q('.pf-rot-x').map(e=>Math.round(e.getBoundingClientRect().width))};});
  const see=sel=>p.evaluate(sel=>document.querySelector(sel).scrollIntoView({block:'center'}),sel);
  const mid=sel=>p.evaluate(sel=>{const r=document.querySelector(sel).getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2,l:r.left,r:r.right,t:r.top,b:r.bottom};},sel);
  const tapSel=async sel=>{await see(sel);await p.waitForTimeout(60);await p.tap(sel);await p.waitForTimeout(260);};
  const drag=async(from,to,probe)=>{await p.mouse.move(from.x,from.y);await p.mouse.down();await p.mouse.move(from.x+6,from.y+12,{steps:3});await p.mouse.move(to.x,to.y,{steps:10});await p.waitForTimeout(80);const m=probe?await p.evaluate(()=>({fly:document.querySelector('.pf-fly')?.textContent||'',drop:[...document.querySelectorAll('.pf-ses.pf-drop')].map(e=>+e.dataset.pfRot+1).join(),lift:document.querySelectorAll('.pf-lift').length})):null;await p.mouse.up();await p.waitForTimeout(300);return m;};
- let d=await dom();
- ok(`${tag} Body parts you train, then Your split, sit between Your week and Each session`,d.order==='What are you training for?|Your week|Body parts you train|Your split|Each session|Exercises',d.order);
- ok(`${tag} with nothing saved: six choices, No split lit, no sessions and no chip strip yet`,d.tiles==='body ppl ul full own none*'&&!d.rows.length&&!d.pal&&/for each day/.test(d.note),d);
- await tapSel('.pf-tile[data-value="body"]');d=await dom();
- ok(`${tag} tap Body part: seven sessions, the tile counting them, and the strip of chips with Cardio first`,d.tiles==='body* ppl ul full own none'&&d.rows.join('|')==='Chest|Back|Shoulder|Legs|Biceps|Triceps|Sixpack'&&d.subs[0]==='7 sessions · one part each'&&d.pal==='Cardio Chest Back Shoulder Legs Biceps Triceps Sixpack'&&/Drag onto a session, or tap one/.test(d.hint),d);
- await tapSel('.pf-mypart[data-part="Legs"]');d=await dom();
- ok(`${tag} Legs off in Body parts you train: it leaves the strip and the split`,d.rows.length===6&&!/Legs/.test(d.pal)&&d.subs[0]==='6 sessions · one part each',d);
- await tapSel('.pf-mypart[data-part="Legs"]');
- /* v4.6.209: select sessions by their number, then a body part goes into all of them */
- const look=()=>p.evaluate(()=>{const q=s=>[...document.querySelectorAll(s)],bg=e=>getComputedStyle(e).backgroundColor,pr=document.createElement('i');pr.style.cssText='position:absolute;background:var(--accent)';document.body.append(pr);const acc=bg(pr);pr.remove();
-  const tiles=q('.pf-tile').map(e=>e.getBoundingClientRect()),nx=document.querySelector('.pf-ses.next'),lab=nx&&nx.querySelector('.pf-rot-next'),un=document.querySelector('.pf-unsel'),fl=document.querySelector('.pf-fill');
-  return {acc,sel:q('.pf-ses.sel').map(r=>+r.dataset.pfRot+1).join(),selBg:q('.pf-ses.sel>.pf-rot-n').map(bg),restBg:q('.pf-ses:not(.sel)>.pf-rot-n').map(bg),nextSel:nx?nx.classList.contains('sel'):null,label:lab?lab.textContent.trim():'',labelBg:lab?bg(lab):'',
-   bar:document.querySelector('.pf-selbar b')?.textContent||'',unH:un?Math.round(un.getBoundingClientRect().height):0,all:q('.pf-pal-chip.all').map(e=>e.textContent).join(),nH:q('.pf-rot-n').map(e=>{const r=e.getBoundingClientRect();return Math.round(Math.min(r.width,r.height));}),
-   tileW:[...new Set(tiles.map(r=>Math.round(r.width)))].length,tileRows:[...new Set(tiles.map(r=>Math.round(r.top)))].length,fill:fl?fl.textContent.trim():'',fillH:fl?Math.round(fl.getBoundingClientRect().height):0,did:document.querySelector('.pf-did')?.textContent.trim()||'',
-   fillIn:fl?(()=>{const a=fl.getBoundingClientRect(),c=document.querySelector('.pf-split').getBoundingClientRect();return a.right<=c.right+0.5&&a.left>=c.left;})():false};});
- let L=await look();
- ok(`${tag} six tiles of one size in three rows; Next up is a label on its session, and no number is filled blue until you select one`,L.tileW===1&&L.tileRows===3&&L.label==='Next up'&&L.labelBg!==L.acc&&!L.selBg.length&&L.restBg.every(c=>c!==L.acc)&&L.nH.every(n=>n>=28),L);
- await tapSel('.pf-ses[data-pf-rot="0"] .pf-rot-n');await tapSel('.pf-ses[data-pf-rot="2"] .pf-rot-n');await tapSel('.pf-ses[data-pf-rot="3"] .pf-rot-n');L=await look();d=await dom();
- ok(`${tag} tap 1, 3 and 4: those three are selected and filled blue, the others are not, and the strip says "3 selected" with Unselect all`,L.sel==='1,3,4'&&L.selBg.length===3&&L.selBg.every(c=>c===L.acc)&&L.restBg.every(c=>c!==L.acc)&&L.bar==='3 selected'&&L.unH>=28&&/Tap a body part to add it/.test(d.hint)&&!d.over.length&&d.sw<=d.vw,{L,hint:d.hint,over:d.over});
- await tapSel('.pf-pal-chip[data-pf-chip="Sixpack"]');L=await look();d=await dom();
- ok(`${tag} tap Sixpack: it is in all three, its chip is lit, and they stay selected`,d.rows.join('|')==='Chest Sixpack|Back|Shoulder Sixpack|Legs Sixpack|Biceps|Triceps|Sixpack'&&L.all==='Sixpack'&&L.sel==='1,3,4'&&d.tiles==='body ppl ul full own* none',{rows:d.rows,L});
- await tapSel('.pf-pal-chip[data-pf-chip="Run"]');d=await dom();
- ok(`${tag} tap Cardio: first in each of the three`,d.rows[0]==='Cardio Chest Sixpack'&&d.rows[2]==='Cardio Shoulder Sixpack'&&d.rows[3]==='Cardio Legs Sixpack'&&d.rows[1]==='Back',d.rows);
- if(SHOT&&w===402){await p.evaluate(()=>{document.querySelector('.pf-split').scrollIntoView({block:'start'});scrollBy(0,-110);});await p.waitForTimeout(250);await p.screenshot({path:`${SHOT}/split-selected-${theme}.png`});}
- await tapSel('.pf-pal-chip[data-pf-chip="Sixpack"]');d=await dom();
- ok(`${tag} tap the lit Sixpack: out of all three`,d.rows[0]==='Cardio Chest'&&d.rows[2]==='Cardio Shoulder'&&d.rows[3]==='Cardio Legs'&&d.rows[6]==='Sixpack',d.rows);
- await tapSel('.pf-unsel');L=await look();d=await dom();
- ok(`${tag} Unselect all: none selected, no blue number, the strip is back to Body parts, and the sessions are as they were`,L.sel===''&&!L.bar&&!L.selBg.length&&L.restBg.every(c=>c!==L.acc)&&/Drag onto a session, or tap one/.test(d.hint)&&d.rows[0]==='Cardio Chest',{L,hint:d.hint});
- /* Fill for me: from the log */
- const was=d.rows.join('|');L=await look();
- ok(`${tag} Fill for me sits beside "The order you train in", inside the card`,L.fill==='Fill for me'&&L.fillH>=30&&L.fillIn,L);
- await tapSel('.pf-fill');L=await look();d=await dom();
- ok(`${tag} tap it: the six sessions come back from the log, Chest twice, cardio first, starting on Monday's Shoulder`,d.rows.join('|')==='Cardio Shoulder Sixpack|Cardio Back Biceps|Cardio Chest Sixpack|Cardio Legs Sixpack|Cardio Biceps Triceps Sixpack|Cardio Chest Sixpack',d.rows);
- ok(`${tag} ...it says what it read, and the button is Undo`,/^Filled from your last \d weeks: 6 sessions, cardio before each\. Change anything with the chips\.$/.test(L.did)&&L.fill==='Undo'&&!d.over.length&&d.sw<=d.vw,L);
- if(SHOT&&w===402){await p.evaluate(()=>{document.querySelector('.pf-split').scrollIntoView({block:'start'});scrollBy(0,-110);});await p.setViewportSize({width:402,height:1400});await p.waitForTimeout(250);await p.screenshot({path:`${SHOT}/split-filled-${theme}.png`});await p.setViewportSize({width:w,height:h});await p.waitForTimeout(200);}
- await tapSel('.pf-fill');L=await look();d=await dom();
- ok(`${tag} Undo: back to what was there, and Fill for me is offered again`,d.rows.join('|')===was&&L.fill==='Fill for me'&&!L.did,{rows:d.rows,L});
- /* No split */
- await tapSel('.pf-tile[data-value="none"]');d=await dom();
- ok(`${tag} tap No split: it is lit, the sessions and the strip are gone, and your own sessions are kept`,d.tiles==='body ppl ul full own none*'&&!d.rows.length&&!d.pal&&/Your own sessions are kept under My own/.test(d.note),d);
- await tapSel('.pf-tile[data-value="own"]');d=await dom();
- ok(`${tag} ...and My own brings them back`,d.rows.join('|')===was&&d.tiles==='body ppl ul full own* none',d.rows);
- await p.evaluate(()=>{const j=pfState(),r=j.prefs.rotation;r.preset=null;r.sessions=[];r.own=null;j.rotSel=[];pfSplitRefresh();});
- /* My own, from nothing, by hand */
- await tapSel('.pf-tile[data-value="own"]');d=await dom();
- ok(`${tag} My own starts with one empty box asking for a body part`,d.tiles==='body ppl ul full own* none'&&d.rows.length===1&&d.rows[0]===''&&d.empty===1,d);
+  let d=await dom();
+  ok(`${tag} Body parts you train, then Your order, sit between Your week and Each session`,d.order==='What are you training for?|Your week|Body parts you train|Your order|Each session|Exercises',d.order);
+  /* v4.6.255: the card, read from the log */
+  ok(`${tag} Your order is one card read from the log: the six in order, Arms named as Arms, Next up marked, and what it is based on in workouts and rounds`,d.cardSeq==='Shoulder|Back + Biceps|Chest|Legs|Arms|Chest'&&d.cardNx.join()==='2'&&/Based on your last \d+ workouts\. You did this routine \d+ times in a row\./.test(d.card)&&!d.sheet&&!d.rows.length&&!d.over.length&&d.sw<=d.vw,d);
+  if(SHOT&&w===402){await see('.pf-order');await p.waitForTimeout(150);await p.screenshot({path:`${SHOT}/order-card-${theme}.png`});}
+  await tapSel('.pf-mypart[data-part="Legs"]');d=await dom();
+  ok(`${tag} Legs off in Body parts you train: the order is read again without it`,!/Legs/.test(d.cardSeq)&&d.cardSeq.length>0,d.cardSeq);
+  await tapSel('.pf-mypart[data-part="Legs"]');d=await dom();
+  ok(`${tag} ...and back on, it is back`,d.cardSeq==='Shoulder|Back + Biceps|Chest|Legs|Arms|Chest',d.cardSeq);
+  await tapSel('.pf-order .pf-ochange');await p.waitForTimeout(500);d=await dom();
+  ok(`${tag} Change opens the sheet on From your log: each session in full, Next up on the second, nothing editable`,d.sheet&&d.mode==='log'&&d.logRows.length===6&&d.logRows[0]==='Cardio + Shoulder + Sixpack'&&d.logRows[1]==='Cardio + Back + BicepsNext up'&&!d.rows.length&&!d.over.length,d);
+  if(SHOT&&w===402)await p.screenshot({path:`${SHOT}/order-sheet-log-${theme}.png`});
+  await tapSel('#pfOrder [data-pw="pf-order-mode"][data-value="own"]');await p.waitForTimeout(300);d=await dom();
+  ok(`${tag} Set my own: the editor, seeded with the order read from the log, Cardio first in each`,d.mode==='own'&&d.rows.length===6&&d.rows[0]==='Cardio Shoulder Sixpack'&&d.rows[4]==='Cardio Biceps Triceps Sixpack'&&d.pal==='Cardio Chest Back Shoulder Legs Biceps Triceps Sixpack'&&/Drag onto a session, or tap one/.test(d.hint),d);
+  const look=()=>p.evaluate(()=>{const q=s=>[...document.querySelectorAll(s)],bg=e=>getComputedStyle(e).backgroundColor,pr=document.createElement('i');pr.style.cssText='position:absolute;background:var(--accent)';document.body.append(pr);const acc=bg(pr);pr.remove();
+   const nx=document.querySelector('.pf-ses.next'),lab=nx&&nx.querySelector('.pf-rot-next'),un=document.querySelector('.pf-unsel');
+   return {acc,sel:q('.pf-ses.sel').map(r=>+r.dataset.pfRot+1).join(),selBg:q('.pf-ses.sel>.pf-rot-n').map(bg),restBg:q('.pf-ses:not(.sel)>.pf-rot-n').map(bg),label:lab?lab.textContent.trim():'',labelBg:lab?bg(lab):'',
+    bar:document.querySelector('.pf-selbar b')?.textContent||'',unH:un?Math.round(un.getBoundingClientRect().height):0,all:q('.pf-pal-chip.all').map(e=>e.textContent).join(),nH:q('.pf-rot-n').map(e=>{const r=e.getBoundingClientRect();return Math.round(Math.min(r.width,r.height));})};});
+  let L=await look();
+  ok(`${tag} Next up is a label on its session, and no number is filled blue until you select one`,L.label==='Next up'&&L.labelBg!==L.acc&&!L.selBg.length&&L.restBg.every(c=>c!==L.acc)&&L.nH.every(n=>n>=28),L);
+  await tapSel('#pfOrder .pf-from-b[data-value="body"]');d=await dom();
+  ok(`${tag} Start from Body part: seven sessions, one part each`,d.rows.join('|')==='Chest|Back|Shoulder|Legs|Biceps|Triceps|Sixpack',d.rows);
+  await tapSel('.pf-ses[data-pf-rot="0"] .pf-rot-n');await tapSel('.pf-ses[data-pf-rot="2"] .pf-rot-n');await tapSel('.pf-ses[data-pf-rot="3"] .pf-rot-n');L=await look();d=await dom();
+  ok(`${tag} tap 1, 3 and 4: those three are selected and filled blue, the others are not, and the strip says "3 selected" with Unselect all`,L.sel==='1,3,4'&&L.selBg.length===3&&L.selBg.every(c=>c===L.acc)&&L.restBg.every(c=>c!==L.acc)&&L.bar==='3 selected'&&L.unH>=28&&/Tap a body part to add it/.test(d.hint)&&!d.over.length&&d.sw<=d.vw,{L,hint:d.hint,over:d.over});
+  await tapSel('.pf-pal-chip[data-pf-chip="Sixpack"]');L=await look();d=await dom();
+  ok(`${tag} tap Sixpack: it is in all three, its chip is lit, and they stay selected`,d.rows.join('|')==='Chest Sixpack|Back|Shoulder Sixpack|Legs Sixpack|Biceps|Triceps|Sixpack'&&L.all==='Sixpack'&&L.sel==='1,3,4',{rows:d.rows,L});
+  await tapSel('.pf-pal-chip[data-pf-chip="Run"]');d=await dom();
+  ok(`${tag} tap Cardio: first in each of the three`,d.rows[0]==='Cardio Chest Sixpack'&&d.rows[2]==='Cardio Shoulder Sixpack'&&d.rows[3]==='Cardio Legs Sixpack'&&d.rows[1]==='Back',d.rows);
+  if(SHOT&&w===402)await p.screenshot({path:`${SHOT}/order-sheet-own-${theme}.png`});
+  await tapSel('.pf-pal-chip[data-pf-chip="Sixpack"]');d=await dom();
+  ok(`${tag} tap the lit Sixpack: out of all three`,d.rows[0]==='Cardio Chest'&&d.rows[2]==='Cardio Shoulder'&&d.rows[3]==='Cardio Legs'&&d.rows[6]==='Sixpack',d.rows);
+  await tapSel('.pf-unsel');L=await look();d=await dom();
+  ok(`${tag} Unselect all: none selected, no blue number, the strip is back to Body parts, and the sessions are as they were`,L.sel===''&&!L.bar&&!L.selBg.length&&/Drag onto a session, or tap one/.test(d.hint)&&d.rows[0]==='Cardio Chest',{L,hint:d.hint});
+  const was=d.rows.join('|');
+  await tapSel('#pfOrder [data-pw="pf-order-mode"][data-value="log"]');d=await dom();
+  ok(`${tag} back to From your log: the order read from the log, no editor`,d.mode==='log'&&d.logRows.length===6&&!d.rows.length,d);
+  await tapSel('#pfOrder [data-pw="pf-order-mode"][data-value="own"]');d=await dom();
+  ok(`${tag} ...and Set my own again brings your sessions back as they were`,d.rows.join('|')===was,d.rows);
+  await p.evaluate(()=>{const j=pfState(),r=j.prefs.rotation;r.sessions=[{name:'',parts:[]}];j.rotSel=[];pfSplitRefresh();});d=await dom();
+  ok(`${tag} an empty session is one box asking for a body part`,d.rows.length===1&&d.rows[0]===''&&d.empty===1,d);
  /* tap to pick up, tap where it belongs */
  await tapSel('.pf-pal-chip[data-pf-chip="Shoulder"]');d=await dom();
  ok(`${tag} tap Shoulder in the strip: it is held, the hint changes, the box offers "+ Shoulder"`,/Shoulder\*/.test(d.pal)&&/Tap the sessions Shoulder belongs in/.test(d.hint)&&d.ghost==='1',d);
@@ -103,11 +100,11 @@ try{for(const [w,h] of [[402,874],[320,640]])for(const theme of ['light','dark']
  d=await dom();ok(`${tag} drag Cardio onto the left of session 1's first chip: it goes in FIRST`,d.rows[0]==='Cardio Shoulder Sixpack',d.rows);
  await tapSel('.pf-pal-chip[data-pf-chip="Run"]');for(const i of [1,2,3,4,5])await tapSel(`.pf-ses[data-pf-rot="${i}"]`);await tapSel('.pf-pal-chip[data-pf-chip="Run"]');d=await dom();
  ok(`${tag} hold Cardio and tap the other five: it goes first in each (before lifting)`,d.rows.every(x=>x.startsWith('Cardio '))&&d.rows[4]==='Cardio Biceps Triceps Sixpack',d.rows);
- ok(`${tag} Next up is read from the log, cardio and all (Shoulder was last, so Back + Biceps), and Coming up says Cardio`,d.next.join()==='2'&&d.up[0]==='Mon, 10/5Cardio + Back + Biceps'&&d.up.length===5&&!/Run/.test(d.up.join()),d);
+ ok(`${tag} Next up is read from the log, cardio and all (Shoulder was last, so Back + Biceps)`,d.next.join()==='2',d.next);
  ok(`${tag} nothing overflows the card or the screen; chips, handles and the x are tappable sizes`,!d.over.length&&d.sw<=d.vw&&d.grip.every(n=>n>=30)&&d.chipH.every(n=>n>=32)&&d.xW.every(n=>n>=24),d);
- /* the strip stays in reach */
- const stick=await p.evaluate(async()=>{document.querySelector('.pf-ses[data-pf-rot="5"]').scrollIntoView({block:'center'});await new Promise(r=>setTimeout(r,250));const pr=document.querySelector('.pf-pal').getBoundingClientRect(),hb=document.querySelector('header').getBoundingClientRect().bottom,s6=document.querySelector('.pf-ses[data-pf-rot="5"]').getBoundingClientRect(),first=document.querySelector('.pf-tiles').getBoundingClientRect();return {top:Math.round(pr.top),hb:Math.round(hb),bottom:Math.round(pr.bottom),s6:Math.round(s6.top),tilesGone:first.bottom<hb,h:innerHeight};});
- ok(`${tag} scrolled down to session 6, the strip is pinned just under the header, above it, on screen`,stick.top>=stick.hb&&stick.top<=stick.hb+24&&stick.bottom<=stick.h*0.42&&stick.tilesGone,stick);
+ /* the strip stays in reach: pinned to the top of the sheet while the sessions scroll under it */
+ const stick=await p.evaluate(async()=>{const sc=document.querySelector('#pfOrder .pf-order-scroll');document.querySelector('.pf-ses[data-pf-rot="5"]').scrollIntoView({block:'center'});await new Promise(r=>setTimeout(r,250));const pr=document.querySelector('#pfOrder .pf-pal').getBoundingClientRect(),st=sc.getBoundingClientRect(),from=document.querySelector('#pfOrder .pf-from').getBoundingClientRect();return {top:Math.round(pr.top),st:Math.round(st.top),bottom:Math.round(pr.bottom),h:innerHeight,scrolled:sc.scrollTop>40,fromGone:from.bottom<st.top+2};});
+ ok(`${tag} scrolled down to session 6, the strip stays pinned at the top of the sheet`,stick.top>=stick.st-1&&stick.top<=stick.st+6&&stick.scrolled&&stick.fromGone&&stick.bottom<=stick.h*0.75,stick);
  if(SHOT&&w===402)await p.screenshot({path:`${SHOT}/split-pinned-${theme}.png`});
  /* the x, a drag between sessions, a drag out */
  await tapSel('.pf-ses[data-pf-rot="5"] .pf-rot-tag[data-pf-chip="Sixpack"] .pf-rot-x');d=await dom();
@@ -121,12 +118,12 @@ try{for(const [w,h] of [[402,874],[320,640]])for(const theme of ['light','dark']
  await p.evaluate(()=>{const r=pfState().prefs.rotation;pfRotPut(r,4,'Sixpack');pfRotPut(r,5,'Sixpack');pfSplitRefresh();});
  /* under a finger: a swipe that starts on a session chip scrolls the page and moves nothing; a short hold picks the chip up */
  {const cdp=await p.context().newCDPSession(p);await see('.pf-ses[data-pf-rot="2"]');await p.waitForTimeout(150);
-  const before=(await dom()).rows.join('|'),c=await mid('.pf-ses[data-pf-rot="2"] .pf-rot-tag[data-pf-chip="Sixpack"]'),y0=await p.evaluate(()=>scrollY);
+  const SC='#pfOrder .pf-order-scroll';await p.evaluate(sc=>{document.querySelector(sc).scrollTop=0;},SC);await see('.pf-ses[data-pf-rot="2"]');await p.waitForTimeout(150);const before=(await dom()).rows.join('|'),c=await mid('.pf-ses[data-pf-rot="2"] .pf-rot-tag[data-pf-chip="Sixpack"]'),y0=await p.evaluate(sc=>document.querySelector(sc).scrollTop,SC);
   const T=(type,x,y)=>cdp.send('Input.dispatchTouchEvent',{type,touchPoints:type==='touchEnd'?[]:[{x,y,id:1}]});
   await T('touchStart',c.x,c.y);for(let k=1;k<=8;k++){await T('touchMove',c.x,c.y-12*k);await p.waitForTimeout(16);}await T('touchEnd');await p.waitForTimeout(400);
-  const sw=await p.evaluate(()=>({y:scrollY,fly:document.querySelectorAll('.pf-fly').length}));d=await dom();
-  ok(`${tag} a finger swipe that starts on a session chip scrolls the page and moves nothing`,d.rows.join('|')===before&&sw.fly===0&&sw.y>y0+20,{sw,y0,rows:d.rows});
-  await p.evaluate(()=>{const e=document.querySelector('.pf-ses[data-pf-rot="1"]'),pb=document.querySelector('.pf-pal').getBoundingClientRect().bottom;scrollBy(0,e.getBoundingClientRect().top-pb-14);});await p.waitForTimeout(200);
+  const sw=await p.evaluate(sc=>({y:document.querySelector(sc).scrollTop,fly:document.querySelectorAll('.pf-fly').length}),SC);d=await dom();
+  ok(`${tag} a finger swipe that starts on a session chip scrolls the sheet and moves nothing`,d.rows.join('|')===before&&sw.fly===0&&sw.y>y0+20,{sw,y0,rows:d.rows});
+  await p.evaluate(sc=>{const e=document.querySelector('.pf-ses[data-pf-rot="1"]'),pb=document.querySelector('#pfOrder .pf-pal').getBoundingClientRect().bottom;document.querySelector(sc).scrollBy(0,e.getBoundingClientRect().top-pb-14);},SC);await p.waitForTimeout(200);
   const c2=await mid('.pf-ses[data-pf-rot="2"] .pf-rot-tag[data-pf-chip="Sixpack"]'),t2=await mid('.pf-ses[data-pf-rot="1"] .pf-rot-n');
   await T('touchStart',c2.x,c2.y);await p.waitForTimeout(320);const lifted=await p.evaluate(()=>document.querySelectorAll('.pf-ses .pf-rot-tag.pf-lift').length);
   for(let k=1;k<=8;k++){await T('touchMove',c2.x+(t2.x-c2.x)*k/8,c2.y+(t2.y-c2.y)*k/8);await p.waitForTimeout(16);}await p.waitForTimeout(80);const fly=await p.evaluate(()=>document.querySelector('.pf-fly')?.textContent||'');await T('touchEnd');await p.waitForTimeout(350);d=await dom();
@@ -137,13 +134,13 @@ try{for(const [w,h] of [[402,874],[320,640]])for(const theme of ['light','dark']
  {const t=await mid('.pf-ses[data-pf-rot="4"]'),g=await mid('[data-pf-rot-grip="5"]');await drag(g,{x:t.l+22,y:t.y});}d=await dom();
  ok(`${tag} drag a session by its handle: it lands where it was dropped`,d.rows[4]==='Cardio Chest Sixpack'&&d.rows[5]==='Cardio Biceps Triceps Sixpack',d.rows);
  await p.evaluate(()=>{const r=pfState().prefs.rotation;const [x]=r.sessions.splice(4,1);r.sessions.push(x);pfRotTouch(r);pfSplitRefresh();});
- if(SHOT&&w===402){await p.evaluate(()=>{document.querySelector('.pf-split').scrollIntoView({block:'start'});scrollBy(0,-110);});await p.setViewportSize({width:402,height:1500});await p.evaluate(()=>{const dk=document.querySelector('.pw-save-dock');if(dk)dk.style.visibility='hidden';document.getElementById('nav').style.visibility='hidden';});await p.waitForTimeout(300);await p.screenshot({path:`${SHOT}/split-built-${theme}.png`});
-  await p.tap('.pf-pal-chip[data-pf-chip="Triceps"]');await p.waitForTimeout(300);await p.screenshot({path:`${SHOT}/split-held-${theme}.png`});await p.tap('.pf-pal-chip[data-pf-chip="Triceps"]');await p.waitForTimeout(200);
-  await p.evaluate(()=>{const dk=document.querySelector('.pw-save-dock');if(dk)dk.style.visibility='';document.getElementById('nav').style.visibility='';});await p.setViewportSize({width:w,height:h});await p.waitForTimeout(200);}
- /* save, Dates, and a generated day */
+ if(SHOT&&w===402){await p.tap('#pfOrder .pf-pal-chip[data-pf-chip="Triceps"]');await p.waitForTimeout(300);await p.screenshot({path:`${SHOT}/split-held-${theme}.png`});await p.tap('#pfOrder .pf-pal-chip[data-pf-chip="Triceps"]');await p.waitForTimeout(200);}
+ /* Done, the card, save, Dates, and a generated day */
+ await tapSel('#pfOrder .pf-odone');await p.waitForTimeout(400);d=await dom();
+ ok(`${tag} Done closes the sheet; the card shows your own order, set by you`,!d.sheet&&/Set by you\. Planned days follow this order\./.test(d.card)&&d.cardSeq==='Shoulder|Back + Biceps|Chest|Legs|Arms|Chest',d);
  await tapSel('[data-pw="pf-prefs-save"]');await p.waitForTimeout(400);
- const st=await p.evaluate(async()=>{pw().dates=[];pw().active=null;pwOpen(null,'dates');await new Promise(r=>setTimeout(r,500));return {rot:DB.settings.plannerPreferences.rotation,days:pw().dates.map(d=>d.slice(5)+' '+pwDay(d).parts.join('+')).join(' | '),line:(document.querySelector('.pf-split-line')?.textContent||'').replace(/\s+/g,' '),brk:document.querySelector('.pf-date-breakdown').textContent};});
- ok(`${tag} Save stores the six with Cardio first in each; Dates opens with each day carrying its parts in that order`,st.rot&&st.rot.sessions.length===6&&st.rot.sessions.every(x=>x.parts[0]==='Run')&&st.days==='10-05 Run+Back+Biceps | 10-06 Run+Chest+Sixpack | 10-07 Run+Legs+Sixpack | 10-08 Run+Biceps+Triceps+Sixpack | 10-09 Run+Chest+Sixpack',st);
+ const st=await p.evaluate(async()=>{pw().dates=[];pw().active=null;pwOpen(null,'dates');await new Promise(r=>setTimeout(r,500));return {mode:DB.settings.plannerPreferences.orderMode,rot:DB.settings.plannerPreferences.rotation,days:pw().dates.map(d=>d.slice(5)+' '+pwDay(d).parts.join('+')).join(' | '),line:(document.querySelector('.pf-split-line')?.textContent||'').replace(/\s+/g,' '),brk:document.querySelector('.pf-date-breakdown').textContent};});
+ ok(`${tag} Save stores the six with Cardio first in each; Dates opens with each day carrying its parts in that order`,st.mode==='own'&&st.rot&&st.rot.sessions.length===6&&st.rot.sessions.every(x=>x.parts[0]==='Run')&&st.days==='10-05 Run+Back+Biceps | 10-06 Run+Chest+Sixpack | 10-07 Run+Legs+Sixpack | 10-08 Run+Biceps+Triceps+Sixpack | 10-09 Run+Chest+Sixpack',st);
  ok(`${tag} ...as new days, with a line naming each, Cardio included`,/^5 new days$/.test(st.brk)&&/^Mon Cardio \+ Back \+ Biceps/.test(st.line),st);
  await p.evaluate(()=>{window.__pl=null;writerWaitStart=()=>{};writeSession=async pl=>{window.__pl=pl;return {days:pw().dates.map(d=>({date:d,part:'Back',title:'x',text:'Lat Pulldown\n  50 lb × 10 10 10 10\n\nEZ Bar Curl\n  50 lb × 10 10 10'})),reason:null};};});
  await p.getByText('Plan 5 new days').tap();await p.waitForTimeout(1500);

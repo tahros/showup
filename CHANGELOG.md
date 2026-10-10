@@ -1,5 +1,18 @@
 # ShowUppp — changelog
 
+## v4.6.255 (2026-10-10) — Your order is read from your log
+
+- **Asked:** were "Your split" and "The order you train in" needed at all? The maker trains a fixed six-session routine and has 900+ days of log; the order is a fact the record already holds. Mocked, the copy reworked, and the three states mocked before building.
+- **Plan → Preferences** now has one card, **Your order**, in place of the six tiles and the chip editor:
+  - **Read from your log** (the default): the sessions in order, Arms named as Arms, Next up marked, and one line in plain words: "Based on your last 48 workouts. You did this routine 8 times in a row." A small square for each round.
+  - **Still learning your routine** with a count of workouts logged, until the routine has repeated twice; meanwhile planning uses a **Starter order** built from the body parts you train, labelled as such. With 20+ workouts and no repeat: "No set order in your recent workouts".
+  - **Your routine looks different lately**: when the last few workouts stop matching, the old order stays, dated ("Based on 42 workouts up to Oct 5"), until the new one repeats twice.
+- **Rounds, not weeks.** The fixed 8 calendar weeks is gone. The last 60 workouts are read; the routine is the shortest cycle that repeats in the last three rounds at least three times in four, and it counts once it has run twice back to back. Each session is what you did there most often across the matching rounds, so one swapped day does not rename it.
+- **Change** opens a sheet: **From your log** (what was read, each session in full, Next up marked) or **Set my own** (the chip editor as before: select, tap, drag, reorder, with Start from Body part / Push / Pull / Legs / Upper / Lower / Full body). Set my own starts from the order read from your log. Fill for me and No split are gone: From your log does what they did.
+- **Stored:** `orderMode` ('log' by default, 'own'); a rotation is stored only when you set your own, and the sessions you made are kept for Set my own. A rotation saved by v4.6.203–254 now reads as From your log until you choose Set my own.
+- Starting sizes for body parts with no history still come only from an order you set or one read from your log, not from the starter.
+- Tests: `tools/test-split.js` (83), `tools/check-split.cjs` (164, real taps and drags in the sheet, light and dark, 402 and 320). `tools/test-logger-feedback.js` gets a frozen clock: its throttle check failed when the suite ran under load (two real `Date.now()` reads too far apart), and passed alone.
+
 ## v4.6.254 (2026-10-09) — Clearer exercise sections
 
 - Applies the approved Section Bands to muscle groups in the planner's Add exercise picker: softly tinted blue headers, larger IBM Plex Sans labels and a quiet right-aligned Focus label in both themes.
