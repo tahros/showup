@@ -711,3 +711,9 @@ html.pf-chip-drag,html.pf-chip-drag body{user-select:none;-webkit-user-select:no
 :root .pf-workspace .pf-day-body{margin:0 -9px;border:1.5px solid var(--accent);border-radius:22px;padding:13px 7.5px 4px;background:color-mix(in srgb,var(--accent) 4%,var(--ground))}
 @media(prefers-reduced-motion:reduce){.pf-strip.tearing .pf-chip u{animation:none}.pf-strip .pf-chip u{transition:none}}
 @media(max-width:360px){:root .pf-workspace .pf-day-body .pf-routine-controls{flex-wrap:wrap;row-gap:10px}}
+/* v4.6.257: the ticket's notches -- a half-circle cut into each side of the chip at the perforation, so the stub reads as something that tears off */
+.pf-strip .pf-chip s{position:relative}
+.pf-strip .pf-chip s:before,.pf-strip .pf-chip s:after{content:'';position:absolute;bottom:-7px;width:12px;height:12px;box-sizing:border-box;border-radius:50%;background:var(--ground);border:1px solid var(--line);pointer-events:none}
+.pf-strip .pf-chip s:before{left:-14px;clip-path:inset(0 0 0 50%)}
+.pf-strip .pf-chip s:after{right:-14px;clip-path:inset(0 50% 0 0)}
+.pf-strip .pf-chip.selected s:before,.pf-strip .pf-chip.selected s:after{border-color:var(--accent)}

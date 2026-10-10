@@ -1,4 +1,4 @@
-// v4.6.256: hold a day's stub, it tears off; carry it under another day and the two days swap routines. Real Chromium, real drags.
+// v4.6.257: the notches. v4.6.256: hold a day's stub, it tears off; carry it under another day and the two days swap routines. Real Chromium, real drags.
 const {chromium}=require('playwright'),fs=require('fs');
 const CHROME=[process.env.PW_CHROME,'C:/Users/sungj/AppData/Local/ms-playwright/chromium-1217/chrome-win64/chrome.exe','/opt/pw-browsers/chromium-1194/chrome-linux/chrome'].find(p=>p&&fs.existsSync(p));
 const PORT=process.env.PORT||8784,SHOT=process.env.SHOT;
@@ -20,13 +20,13 @@ try{for(const [w,h] of [[402,874],[320,640]])for(const theme of ['light','dark']
    wed:pwDay('2026-10-14').rows.filter(r=>r.kind==='ex').map(r=>r.ex).join('+'),fri:pwDay('2026-10-16').rows.filter(r=>r.kind==='ex').map(r=>r.ex).join('+'),wedParts:pwDay('2026-10-14').parts.join('+'),friParts:pwDay('2026-10-16').parts.join('+'),
    tearing:!!document.querySelector('.pf-strip.tearing'),fly:document.querySelector('.pf-stub-fly')?.textContent||'',hint:document.querySelector('.pf-tear-hint')?.textContent||'',
    jiggle:q('.pf-strip .pf-chip:not(.pf-tear-src) u').map(u=>getComputedStyle(u).animationName).filter(n=>n==='pf-jiggle').length,srcHidden:getComputedStyle(document.querySelector('.pf-tear-src u')||document.body).visibility,
-   outline:getComputedStyle(body).borderTopStyle+' '+(()=>{const i=document.createElement('i');i.style.color='var(--accent)';document.body.append(i);const c=getComputedStyle(i).color;i.remove();return getComputedStyle(body).borderTopColor===c;})(),perf:getComputedStyle(document.querySelector('.pf-strip .pf-chip s')).borderBottomStyle,
+   outline:getComputedStyle(body).borderTopStyle+' '+(()=>{const i=document.createElement('i');i.style.color='var(--accent)';document.body.append(i);const c=getComputedStyle(i).color;i.remove();return getComputedStyle(body).borderTopColor===c;})(),perf:getComputedStyle(document.querySelector('.pf-strip .pf-chip s')).borderBottomStyle,notch:(()=>{const e=document.querySelector('.pf-strip .pf-chip s'),c=e.closest('.pf-chip').getBoundingClientRect(),a=getComputedStyle(e,'::before'),b=getComputedStyle(e,'::after'),r=e.getBoundingClientRect(),cy=r.bottom-7+6;return a.content!=='none'&&b.content!=='none'&&a.borderRadius==='50%'&&Math.abs(r.left+parseFloat(a.left)+6-c.left)<=1.5&&Math.abs(r.right-parseFloat(b.right)-6-c.right)<=1.5&&Math.abs(cy-r.bottom)<=1.5;})(),
    over:q('.pf-day-body *').filter(e=>{const r=e.getBoundingClientRect();return r.width&&(r.right>br.right+0.5||r.left<br.left-0.5);}).map(e=>e.className||e.tagName).slice(0,4),sw:document.documentElement.scrollWidth,vw:innerWidth,
    saved:!!DB.week,toast:document.querySelector('#toast').textContent};});
  const mid=sel=>p.evaluate(sel=>{const r=document.querySelector(sel).getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};},sel);
  const stub=i=>mid(`.pf-strip .pf-chip:nth-child(${i}) u`);
  let d=await st();
- ok(`${tag} each chip is a ticket: a dashed perforation between the date and the stub; the day's routine sits in a blue outline, nothing spilling out`,d.stubs==='Shoulder|Legs|Biceps|Chest|Back|Shoulder'&&d.perf==='dashed'&&d.outline==='solid true'&&!d.over.length&&d.sw<=d.vw,d);
+ ok(`${tag} each chip is a ticket: a dashed perforation between the date and the stub, with a notch cut into each side at it; the day's routine sits in a blue outline, nothing spilling out`,d.stubs==='Shoulder|Legs|Biceps|Chest|Back|Shoulder'&&d.perf==='dashed'&&d.notch&&d.outline==='solid true'&&!d.over.length&&d.sw<=d.vw,d);
  /* a tap on a stub still switches day */
  await p.tap('.pf-strip .pf-chip:nth-child(4) u');await p.waitForTimeout(300);d=await st();
  ok(`${tag} a tap on a stub switches day, as before`,d.active==='2026-10-15'&&!d.tearing,d.active);

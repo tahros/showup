@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.257 (2026-10-10) — The day chips look like tickets
+
+- **Asked:** a much more explicit cue that the stubs tear off. Three ideas were mocked (ticket notches, an already-torn edge, scissors with a pull tab); the maker chose the ticket.
+- Each day chip now has a half-circle notch cut into both sides at the perforation, like a ticket stub. The selected day's notches take its blue edge. Nothing else about the chips or the tear-and-move changed.
+- Check: `tools/check-tear-move.cjs` now also checks the two notches sit on the chip's edges at the perforation.
+
 ## v4.6.256 (2026-10-10) — Move a day's routine by tearing its stub off
 
 - **Asked:** a way to move one day's plan to another day ("move Biceps to Friday"). A Move button was mocked first and turned down; then dragging the routine; then the maker's idea: a line between the date and the body part, the body parts jiggling like the iPhone home screen, physically moved around. Mocked and recorded twice before building.
