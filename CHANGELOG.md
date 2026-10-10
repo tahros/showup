@@ -1,5 +1,10 @@
 # ShowUppp — changelog
 
+## v4.6.259 (2026-10-10) — A clearer Hold icon
+
+- Replaces the equals sign with the approved outlined lock beside Hold, consistently in exercise badges and the Hold control. Retains the label and existing weight-hold behavior.
+- Keeps the floating header unchanged; verifies header layouts and Hold behavior in both themes.
+
 ## v4.6.258 (2026-10-10) — Writing keeps the page
 
 - **Asked:** the screen jumped to the old planner layout (pill date bar, "Sixpack + Chest >" header) while a plan was being written. It should stay the same throughout.

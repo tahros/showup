@@ -1928,7 +1928,7 @@ function lbGrow(){
 /* v4.6.174: the avoid mark. One glyph everywhere it appears (the exercise
    screen, Train's list, a plan row, Settings). */
 /* v4.6.194: Hold -- the icons, the tag, and the line under the switch */
-const XH_ICON='<svg class="xp-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M5 9h14M5 15h14"/></svg>';
+const XH_ICON='<svg class="xp-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>';
 const XH_UP='<svg class="xp-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17l6-6 4 4 6-7"/><path d="M15 8h5v5"/></svg>';
 const xhTag=ex=>typeof isHeld==='function'&&isHeld(ex)?`<span class="xh-tag">${XH_ICON}Hold</span>`:'';
 function xhNoteHTML(ex){

@@ -4391,7 +4391,7 @@ html.modal-open .calreturn{display:none!important}
 .xh-note{margin:2px 0 6px;padding:0 16px;font:400 12px/1.5 var(--body);color:var(--muted)}
 .xh-note b{color:var(--chalk);font-weight:600}
 .xh-tag{display:inline-flex;align-items:center;gap:4px;margin:0 8px 0 0;padding:2px 7px 2px 6px;border-radius:9px;background:color-mix(in srgb,var(--chalk) 8%,transparent);color:var(--muted);font:600 10px/1.3 var(--mono);letter-spacing:.06em;text-transform:uppercase;vertical-align:1px;white-space:nowrap}
-.xh-tag .xp-ic{width:10px;height:10px}
+.xh-tag .xp-ic{width:12px;height:12px;flex-shrink:0}
 .pf-ex-summary .xh-tag{margin:0 0 0 6px;vertical-align:2px}
 /* v4.6.220 — vertical attendance. Isolated from Rest and the floating header. */
 .attendance-card{padding:26px 24px 18px;overflow:hidden;--at-blue:#3049dc;--at-story-opacity:1}
