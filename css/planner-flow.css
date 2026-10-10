@@ -717,3 +717,8 @@ html.pf-chip-drag,html.pf-chip-drag body{user-select:none;-webkit-user-select:no
 .pf-strip .pf-chip s:before{left:-14px;clip-path:inset(0 0 0 50%)}
 .pf-strip .pf-chip s:after{right:-14px;clip-path:inset(0 50% 0 0)}
 .pf-strip .pf-chip.selected s:before,.pf-strip .pf-chip.selected s:after{border-color:var(--accent)}
+/* v4.6.258: while a plan is written, the day keeps its place: chips held still, the writing panel inside the day's outline */
+:root .pf-workspace .pf-day-body.pf-writing{min-height:360px;display:flex;flex-direction:column;justify-content:center;padding-top:18px;padding-bottom:18px}
+.pf-strip .pw-btn.pf-chip:disabled{opacity:1;cursor:default}
+:root .pf-workspace .pf-writing .writing{min-height:0;gap:20px;padding:8px 0}
+@media(max-height:700px){:root .pf-workspace .pf-day-body.pf-writing{min-height:300px}:root .pf-workspace .pf-writing .writing{gap:14px;padding:0}:root .pf-workspace .pf-writing .wgrid{grid-template-columns:repeat(7,12px);gap:4px}:root .pf-workspace .pf-writing .wsq{width:12px;height:12px}}

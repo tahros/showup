@@ -1,5 +1,13 @@
 # ShowUppp — changelog
 
+## v4.6.258 (2026-10-10) — Writing keeps the page
+
+- **Asked:** the screen jumped to the old planner layout (pill date bar, "Sixpack + Chest >" header) while a plan was being written. It should stay the same throughout.
+- While Regenerate (or Generate from the day overview) is writing, the Edit page stays: the step tabs, the ticket chips in place (held still, the day still selected), and the writing panel inside that day's blue outline. When it finishes, the routine comes back in the same spot. Cancel returns to the routine on the same page.
+- Writing starts with the page at its top so the chips and the whole panel, Cancel included, are in view; on short screens the panel's grid is smaller.
+- Fixed: Cancel did nothing while writing in the new planner (the busy guard swallowed it).
+- Check: `tools/check-writing-page.cjs` (402 and 320, light and dark).
+
 ## v4.6.257 (2026-10-10) — The day chips look like tickets
 
 - **Asked:** a much more explicit cue that the stubs tear off. Three ideas were mocked (ticket notches, an already-torn edge, scissors with a pull tab); the maker chose the ticket.
