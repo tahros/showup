@@ -38,7 +38,7 @@ try{for(const [w,h] of [[402,874],[320,640]])for(const theme of ['dark','light']
  f=await fits();ok(`${tag} step 3 fits`,f.sw<=f.vw&&!f.over,f);
  await p.click('[data-onbact="toStep4"]');await p.waitForTimeout(2200);
  d=await p.evaluate(()=>{const o=document.getElementById('onb');return {step:o.dataset.step,in:o.querySelector('.ob-in')?.textContent,cards:[...o.querySelectorAll('.ob-card b')].map(x=>x.textContent)};});
- ok(`${tag} You're in, Jason -- three ways to start`,d.step==='4'&&d.in==="You're in, Jason."&&d.cards.join('|')==="I'm training now|Plan my next workout|Just looking around",d);
+ ok(`${tag} You're in, Jason -- four ways to start (v4.6.274: Bring my past workouts)`,d.step==='4'&&d.in==="You're in, Jason."&&d.cards.join('|')==="I'm training now|Plan my next workout|Bring my past workouts|Just looking around",d);
  f=await fits();ok(`${tag} step 4 fits`,f.sw<=f.vw&&!f.over,f);
  if(SHOT&&go==='train')await p.screenshot({path:`${SHOT}/ob-4-${theme}-${w}.png`});
  await p.click(`[data-onbact="go"][data-onbgo="${go}"]`);await p.waitForTimeout(900);

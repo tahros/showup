@@ -98,6 +98,7 @@ const ONB_APPLE='<svg class="ob-lg" viewBox="0 0 24 24" fill="currentColor" aria
 const ONB_GOOGLE='<svg class="ob-lg" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>';
 const ONB_PLUS='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
 const ONB_CAL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M8 3v4M16 3v4M4 10h16M8 14h2M12 14h2M8 17h2M12 17h2"/></svg>';
+const ONB_IMPORT='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5"/><path d="M5 19h14"/></svg>';
 const ONB_EYE='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 5C6.5 5 2.7 9.4 1.5 12c1.2 2.6 5 7 10.5 7s9.3-4.4 10.5-7C21.3 9.4 17.5 5 12 5zm0 11.2A4.2 4.2 0 1 1 12 7.8a4.2 4.2 0 0 1 0 8.4z"/><circle cx="12" cy="12" r="2.2"/></svg>';
 /* the approved animated lockup (Lifted p trio + Pip), white on the blue door whatever the theme */
 function onbLockup(){
@@ -160,8 +161,9 @@ function onbRender(){
       <div class="ob-jump">${typeof mascotHTML==='function'?mascotHTML('hello','ob-pip'):''}<svg class="ob-lines" viewBox="0 0 30 30" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 12l4-9M12 17l12-6M14 25h10"/></svg></div>
       <button type="button" class="ob-card pri ob-rise" ${d(1.1)} data-onbact="go" data-onbgo="train"><span class="ob-ic">${ONB_PLUS}</span><span class="ob-ct"><b>I'm training now</b><span>Choose your first exercise</span></span>${ONB_AR}</button>
       <button type="button" class="ob-card ob-rise" ${d(1.25)} data-onbact="go" data-onbgo="plan"><span class="ob-ic">${ONB_CAL}</span><span class="ob-ct"><b>Plan my next workout</b><span>Make room for your next session</span></span>${ONB_AR}</button>
-      <button type="button" class="ob-card plain ob-rise" ${d(1.4)} data-onbact="go" data-onbgo="look"><span class="ob-ic">${ONB_EYE}</span><span class="ob-ct"><b>Just looking around</b></span>${ONB_AR}</button>
-      <div class="ob-sp"></div><p class="ob-foot ob-rise" ${d(1.6)}>Start anywhere. You can change your mind.</p></div>`;
+      <button type="button" class="ob-card ob-rise" ${d(1.4)} data-onbact="go" data-onbgo="import"><span class="ob-ic">${ONB_IMPORT}</span><span class="ob-ct"><b>Bring my past workouts</b><span>From Strong, Hevy or a spreadsheet</span></span>${ONB_AR}</button>
+      <button type="button" class="ob-card plain ob-rise" ${d(1.55)} data-onbact="go" data-onbgo="look"><span class="ob-ic">${ONB_EYE}</span><span class="ob-ct"><b>Just looking around</b></span>${ONB_AR}</button>
+      <div class="ob-sp"></div><p class="ob-foot ob-rise" ${d(1.75)}>Start anywhere. You can change your mind.</p></div>`;
   }
   el.dataset.step=onbStep;
   el.classList.toggle('ob-still',!replay);
@@ -188,6 +190,7 @@ function onbFinish(skip,go){
   save(true); onbEl().hidden=true; onbShown=0;
   if(go==='train'&&typeof liftEnter==='function'){ liftEnter({}); view='lift'; }
   else if(go==='plan'&&typeof pwOpen==='function'){ view='today'; render(); pwOpen(null,'dates'); return; }
+  else if(go==='import'&&typeof impOpen==='function'){ view='today'; render(); impOpen('onboarding'); return; }   // v4.6.274
   else view='today';
   render();
 }
@@ -274,7 +277,7 @@ function dayOneHTML(){
       <p class="muted d1p">ShowUppp counts days, not perfection.</p>
       <button class="onbbtn pri" data-d1="start">Log your first set</button>
       ${refinedFlow()&&!d1.preview?(planningWorkspace()?`<div class="pw-actions">${pwAction('open','Plan','sparkle')}${pwAction('paste-open','Paste','paste','',`data-date="${todayISO}"`)}</div>`:`<div class="flow-dayone-plan"><span class="mono muted">Have a routine?</span><span class="planedge"><button class="pedge" data-planpaste>${icon('paste',ICON_SZ.sm)}Paste</button><button class="pedge pwrite" data-planwrite>${icon('sparkle',ICON_SZ.sm)}Write</button></span></div>`):''}
-      <button class="onbbtn d1soon" data-d1="soon" aria-disabled="true">Bring my logs over \u00b7 soon</button>
+      <button class="onbbtn" data-imp-open="dayone">Bring my logs over</button>
       ${d1.preview?`<button class="d1link" data-d1="moment">See the moment</button>`
                   :`<button class="d1link" data-onbact="demo">Explore with sample data</button>`}
     </div>`;

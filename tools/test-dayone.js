@@ -34,9 +34,9 @@ run(`(function(){DB.days={}; DB.settings.unit='lb'; delete DB.settings.dayDone;
   d1={step:0,part:null,preview:false}; SEED=deriveAll(); view='today'; render();})()`);
 ok("day one opens on one question, not the full app",
    /One set is day one/.test(txt()) && !/Body part/.test(txt()));
-ok("...and offers to bring old logs, plainly disabled for now",
-   run(`(function(){const b=document.querySelector('[data-d1="soon"]');
-     return !!b && b.getAttribute('aria-disabled')==='true';})()`));
+ok("...and offers to bring old logs -- live since v4.6.274: it opens the importer",
+   run(`(function(){const b=document.querySelector('[data-imp-open="dayone"]');
+     return !!b && !b.getAttribute('aria-disabled') && /Bring my logs over/.test(b.textContent);})()`));
 
 tap('[data-d1="start"]');
 ok("the first question is what you trained", /What did you train/.test(txt()));

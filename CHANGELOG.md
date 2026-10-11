@@ -1,5 +1,21 @@
 # ShowUppp — changelog
 
+## v4.6.274 (2026-10-11) — Bring your workouts: Strong and Hevy
+
+- **Asked:** a way for a new member to bring the workouts they already logged, starting with Strong and Hevy, following the maker's four-screen mock (choose source, review, confirm, your history).
+- **Where:** first run (a fourth way to start: Bring my past workouts), day one ("Bring my logs over", which used to say "soon"), and Settings → Account & data → Bring past workouts.
+- **Upload a CSV:** reads Strong's export (comma or semicolon) and Hevy's export, plus a ShowUppp template (Date, Exercise, Weight, Unit, Reps, Body part) for spreadsheets and notebooks. "How to export" says where each app keeps its export.
+- **Review:** what was found (workouts, months, source). If the file doesn't say kg or lb (Strong), it asks. Only what can't be decided is asked:
+  - a near-miss name, shown with its best guess and Confirm match or Change (other close exercises, or keep it under its own name);
+  - a new exercise with no telling which body part it belongs to;
+  - a possible duplicate (a date you already logged), with Keep existing or Import another.
+  Continue waits until every item is resolved. Nothing is saved before Import.
+- **Matching:** exact names, a table of common Strong and Hevy names (Bench Press (Barbell) → Barbell Bench Press, Overhead Press (Barbell) → Overhead Barbell Press, Running (Treadmill) → Run and so on), and equipment-aware word matching. Unknown lifts join your own exercises, so nothing is dropped.
+- **Stored as ShowUppp stores it:** one set per row, weights in kg, cardio as distance (km) and time, timed holds as seconds (the exercise then counts seconds). Rest-timer and empty rows are skipped.
+- **Confirm → Import → Your history:** the count, the date range, a strip of the imported days, then View my progress or Log a workout.
+- **One batch, one undo:** every imported set is tagged with its batch. Undo this import (on the done screen, or the latest import in Settings) removes exactly those sets. Days you logged yourself are never changed.
+- Tests: `tools/test-import.js` (38 checks, with Strong and Hevy sample files in `tools/fixtures/`) and `tools/check-import.cjs` (the whole flow at 402 and 320, light and dark, plus the first-run entry).
+
 ## v4.6.273 (2026-10-11) — Member numbers without the leading zeros
 
 - **Asked:** six digits felt like too much. Letters were considered (four characters of Crockford Base32 would cover a million members); the maker chose to drop the zero padding instead, so the number says your place in the club.

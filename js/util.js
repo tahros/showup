@@ -96,7 +96,7 @@
     if(scrollY>0){y0=null;return;}
     // v3.3.140: same hole as the tab-swipe had — dragging DOWN on an open
     // overlay would pull-to-refresh the page behind it
-    if(e.target.closest('[data-zoom]')||e.target.closest('#repOv,#onb,#msOv,#portraitveil,#dayDone')){y0=null;return;}
+    if(e.target.closest('[data-zoom]')||e.target.closest('#repOv,#onb,#imp,#msOv,#portraitveil,#dayDone')){y0=null;return;}
     /* v3.3.451: a drag that starts inside a text field belongs to the field.
        The paste screen sits at scrollY 0, so every downward drag inside its
        box armed the refresh, preventDefault()ed the move and dragged the

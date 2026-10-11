@@ -200,6 +200,7 @@ function renderSync(){
         <button class="btn ghost" id="impJson" style="flex:1;margin:0">Restore…</button>
       </div>
       <input type="file" id="impFile" accept=".json,application/json" hidden>
+      ${typeof impSettingsHTML==='function'?impSettingsHTML():''}
     </div>
     <div class="note assetcredits" style="text-align:center;margin-top:6px;opacity:.7">Status icons: <a href="https://thenounproject.com/icon/minus-8363736/" target="_blank" rel="noopener">Minus</a> by ARIPATUT DASUKI · <a href="https://thenounproject.com/icon/trend-2344331/" target="_blank" rel="noopener">Trend</a> by Travis Avery · <a href="https://thenounproject.com/icon/share-2438501/" target="_blank" rel="noopener">Share</a> and <a href="https://thenounproject.com/icon/edit-1751206/" target="_blank" rel="noopener">Edit</a> by Timur Minvaleev · <a href="https://thenounproject.com/icon/ai-7262146/" target="_blank" rel="noopener">Sparkle</a> by Eliricon · <a href="https://thenounproject.com/icon/arrow-1342814/" target="_blank" rel="noopener">Chevron</a> by Barracuda · <a href="https://thenounproject.com/icon/expand-7584001/" target="_blank" rel="noopener">Expand</a> and <a href="https://thenounproject.com/icon/collapse-7584005/" target="_blank" rel="noopener">Collapse</a> by LAFS · Copy by maria icon · Pencil by Alvida Black · Noun Project</div>`;
   clubArrangeSettings();
@@ -509,3 +510,273 @@ document.addEventListener('click',e=>{
   const b=e.target.closest&&e.target.closest('[data-xp-include]');if(!b)return;
   setExPref(b.dataset.xpInclude,null);save(true);toast(`${b.dataset.xpInclude} included again`);renderSync();
 });
+
+/* ================= v4.6.274: BRING YOUR WORKOUTS =====================================
+   A new member who logged somewhere else should not start from zero. This reads
+   the CSV that Strong and Hevy export (and ShowUppp's own one-row-per-set
+   template), shows what it found, asks only about what it cannot decide, and
+   writes nothing until Import. Four rules:
+   1. NOTHING IS SAVED BEFORE IMPORT. Parsing, matching and review live in `imp`.
+   2. EXISTING DAYS STAY. A date you already logged is a "possible duplicate":
+      keep yours (default) or add the imported workout beside it.
+   3. ONE BATCH, ONE UNDO. Every imported set carries imp:<batch id>; Undo removes
+      exactly those sets and nothing else, from the done screen or Settings.
+   4. NAMES MATCH OR ASK. An exact or unambiguous name lands on the catalog
+      exercise; a near miss is shown with its best guess to confirm or change;
+      anything else is kept under its own name in the body part it most likely
+      belongs to (asked when there is no telling). Imported exercises join your
+      own exercises, so nothing is ever dropped.
+   Weights are stored in kg as everywhere (lb / LB); distances in km. */
+let imp=null;
+const IMP_EQUIP=new Set(['barbell','dumbbell','cable','machine','smith','bodyweight','band','ez','bar','kettlebell','plate','lever','weighted','assisted','straight','rope','flat','seated','standing']);
+const IMP_ALIAS={
+ 'bench press (smith machine)':'Flat Smith Machine Bench Press','incline bench press (smith machine)':'Incline Smith Machine Bench Press',
+ 'chest press (machine)':'Machine Chest Press','chest dip':'Dip','triceps dip':'Bench Dip','bench dip':'Bench Dip','dips':'Dip',
+ 'bent over row (barbell)':'Bent-Over Row','barbell row':'Bent-Over Row','seated row (cable)':'Seated Cable Row','seated cable row - v grip (cable)':'Seated Cable Row',
+ 'bent over one arm row (dumbbell)':'Single-Arm Dumbbell Row','dumbbell row':'Single-Arm Dumbbell Row','single arm row (dumbbell)':'Single-Arm Dumbbell Row',
+ 'shrug (barbell)':'Barbell Shrug','t bar row':'T-Bar Row','straight arm pulldown (cable)':'Straight-Arm Pulldown',
+ 'overhead press (barbell)':'Overhead Barbell Press','shoulder press (barbell)':'Overhead Barbell Press','strict military press (barbell)':'Overhead Barbell Press','military press':'Overhead Barbell Press',
+ 'overhead press (dumbbell)':'Dumbbell Shoulder Press','shoulder press (dumbbell)':'Dumbbell Shoulder Press','seated overhead press (dumbbell)':'Dumbbell Shoulder Press',
+ 'shoulder press (machine)':'Machine Shoulder Press','overhead press (machine)':'Machine Shoulder Press','lateral raise (cable)':'Cable Lateral Raise',
+ 'front raise (dumbbell)':'Dumbbell Front Raise','reverse fly (dumbbell)':'Rear Deltoids','rear delt reverse fly (dumbbell)':'Rear Deltoids','reverse fly (machine)':'Reverse Pec Deck','rear delt reverse fly (machine)':'Reverse Pec Deck',
+ 'lunge (dumbbell)':'Dumbbell Lunge','lunge':'Dumbbell Lunge','romanian deadlift (dumbbell)':'Romanian Deadlift','calf raise (standing)':'Standing Calf Raise','calf raise (seated)':'Seated Calf Raise',
+ 'bicep curl (barbell)':'Barbell Curl','bicep curl (dumbbell)':'Dumbbell Curl','bicep curl (cable)':'Cable Curl','bicep curl (ez bar)':'EZ Bar Curl','ez bar biceps curl':'EZ Bar Curl','incline curl (dumbbell)':'Incline Dumbbell Curl',
+ 'triceps pushdown (cable - straight bar)':'Triceps Pushdown','triceps pushdown':'Triceps Pushdown','triceps rope pushdown':'Rope Pushdown','skullcrusher (barbell)':'Skull Crusher','skullcrusher (dumbbell)':'Skull Crusher','skullcrusher (ez bar)':'Skull Crusher',
+ 'triceps extension (dumbbell)':'Overhead Triceps Extension','overhead triceps extension (cable)':'Overhead Cable Extension','triceps extension (cable)':'Overhead Cable Extension','triceps kickback (dumbbell)':'Dumbbell Kickback','close grip bench press (barbell)':'Close Grip Bench Press',
+ 'crunch (cable)':'Cable Crunch','cable crunch':'Cable Crunch','ab wheel':'Ab Wheel Rollout','hanging knee raise':'Hanging Leg Raise','lying leg raise':'Leg Raise',
+ 'running':'Run','running (treadmill)':'Run','treadmill':'Run','outdoor run':'Run','walking':'Walk','cycling':'Cycling','cycling (indoor)':'Cycling','stationary bike':'Cycling','bike':'Cycling',
+ 'rowing (machine)':'Rowing','rowing machine':'Rowing','elliptical (machine)':'Elliptical','elliptical trainer':'Elliptical','stair machine':'Stair Climber','stairmaster':'Stair Climber','stair climber (machine)':'Stair Climber','swimming':'Swimming','jump rope':'Jump Rope','skipping':'Jump Rope'
+};
+const IMP_PART_WORDS=[['Run',/\b(run|jog|walk|cycl|bike|row(ing)? machine|elliptical|stair|swim|rope|treadmill|cardio)/],['Sixpack',/\b(ab|abs|crunch|plank|sit ?up|core|oblique|leg raise|knee raise|twist|hollow|v up)/],
+ ['Biceps',/\bcurl\b(?!.*leg)/],['Triceps',/(tricep|pushdown|skull|kickback|dip\b|extension(?!.*leg))/],['Legs',/(squat|lunge|leg|calf|hip thrust|glute|deadlift|step up|hamstring|quad|adduct|abduct)/],
+ ['Back',/(row|pull ?up|chin ?up|pulldown|lat\b|shrug|back ext|rack pull|good morning|pullover)/],['Shoulder',/(shoulder|lateral|front raise|rear delt|overhead press|military|arnold|face pull|upright row|delt)/],
+ ['Chest',/(bench|chest|fly|flye|push ?up|pec|crossover)/]];
+function impTokens(name){
+  const s=' '+String(name||'').toLowerCase().replace(/\bdb\b/g,'dumbbell').replace(/\bbb\b/g,'barbell').replace(/e-?z[\s-]*bar/g,'ez').replace(/pull[\s-]?ups?\b/g,'pull up').replace(/chin[\s-]?ups?\b/g,'chin up').replace(/push[\s-]?ups?\b/g,'push up').replace(/sit[\s-]?ups?\b/g,'sit up').replace(/skull ?crushers?/g,'skull crusher').replace(/\bbiceps?\b/g,' ').replace(/\btriceps?\b/g,'triceps').replace(/[^a-z0-9 ]+/g,' ')+' ';
+  return s.split(/\s+/).filter(Boolean).map(t=>t.length>3&&/(ss|sh|ch|x)es$/.test(t)?t.slice(0,-2):t.length>3&&/[^s]s$/.test(t)?t.slice(0,-1):t);
+}
+function impKnown(){
+  const out=new Map();
+  for(const [p,l] of Object.entries(SEED0.catalog))for(const ex of l)out.set(ex,p);
+  for(const [ex,v] of Object.entries(typeof customs==='function'?customs():{}))if(v&&v.part)out.set(ex,v.part);
+  for(const d of Object.values(DB.days||{}))for(const e of (d&&d.w)||[])if(e.ex&&e.part&&!out.has(e.ex))out.set(e.ex,e.part);
+  return [...out].map(([ex,part])=>({ex,part,t:impTokens(ex)}));
+}
+function impGuessPart(name){const s=String(name).toLowerCase();for(const [p,re] of IMP_PART_WORDS)if(re.test(s))return p;return null;}
+/* -> {ex,part,state:'sure'|'ask'|'new',alts:[ex...]} */
+function impMatch(name,known){
+  const key=canonKey(name);
+  const exact=known.find(k=>canonKey(k.ex)===key);if(exact)return {ex:exact.ex,part:exact.part,state:'sure',alts:[]};
+  const al=IMP_ALIAS[key];if(al){const k=known.find(x=>x.ex===al);if(k)return {ex:k.ex,part:k.part,state:'sure',alts:[]};}
+  const t=impTokens(name),T=new Set(t),core=t.filter(x=>!IMP_EQUIP.has(x)).sort().join(' '),eqp=t.filter(x=>IMP_EQUIP.has(x));
+  const same=known.filter(k=>k.t.length===T.size&&k.t.every(x=>T.has(x)));
+  if(same.length===1)return {ex:same[0].ex,part:same[0].part,state:'sure',alts:[]};
+  const coreHit=known.filter(k=>k.t.filter(x=>!IMP_EQUIP.has(x)).sort().join(' ')===core&&k.t.filter(x=>IMP_EQUIP.has(x)).every(x=>eqp.includes(x)));
+  if(coreHit.length===1&&core)return {ex:coreHit[0].ex,part:coreHit[0].part,state:'sure',alts:[]};
+  const scored=known.map(k=>{const K=new Set(k.t),inter=k.t.filter(x=>T.has(x)).length,uni=new Set([...k.t,...t]).size,coreOv=k.t.filter(x=>!IMP_EQUIP.has(x)&&T.has(x)).length;return {k,s:coreOv?inter/uni+(core==='press'&&/shoulder|overhead/i.test(k.ex)?0.2:0):0};}).filter(x=>x.s>=0.34).sort((a,b)=>b.s-a.s);   // a bare "press" is a shoulder press far more often than a bench
+  if(scored.length)return {ex:scored[0].k.ex,part:scored[0].k.part,state:'ask',alts:scored.slice(1,5).map(x=>x.k.ex)};
+  return {ex:null,part:impGuessPart(name),state:'new',alts:[]};
+}
+function impCSV(text){
+  text=String(text||'').replace(/^﻿/,'');
+  const first=text.split(/\r?\n/)[0]||'',delim=(first.match(/;/g)||[]).length>(first.match(/,/g)||[]).length?';':',';
+  const rows=[];let row=[],f='',q=false;
+  for(let i=0;i<text.length;i++){const c=text[i];
+    if(q){if(c==='"'){if(text[i+1]==='"'){f+='"';i++;}else q=false;}else f+=c;}
+    else if(c==='"')q=true;else if(c===delim){row.push(f);f='';}else if(c==='\n'||c==='\r'){if(c==='\r'&&text[i+1]==='\n')i++;row.push(f);f='';if(row.some(x=>x!==''))rows.push(row);row=[];}else f+=c;}
+  row.push(f);if(row.some(x=>x!==''))rows.push(row);return rows;
+}
+const IMP_MON={jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
+function impDate(s){
+  s=String(s||'').trim();let m;
+  if((m=s.match(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{1,2}):(\d{2})(?::(\d{2}))?)?/)))return new Date(+m[1],+m[2]-1,+m[3],+(m[4]||12),+(m[5]||0),+(m[6]||0));
+  if((m=s.match(/^(\d{1,2}) ([A-Za-z]{3})[a-z]* (\d{4}),? (\d{1,2}):(\d{2})/)))return new Date(+m[3],IMP_MON[m[2].toLowerCase()],+m[1],+m[4],+m[5]);
+  if((m=s.match(/^([A-Za-z]{3})[a-z]* (\d{1,2}),? (\d{4})(?:,? (\d{1,2}):(\d{2})\s*([AP]M)?)?/i))){let h=+(m[4]||12);if(m[6]){h=h%12+(/p/i.test(m[6])?12:0);}return new Date(+m[3],IMP_MON[m[1].toLowerCase()],+m[2],h,+(m[5]||0));}
+  if((m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/)))return new Date(+m[3],+m[1]-1,+m[2],12);
+  const t=Date.parse(s);return Number.isFinite(t)?new Date(t):null;
+}
+const impISO=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const impNum=v=>{const n=parseFloat(String(v??'').replace(',','.'));return Number.isFinite(n)?n:0;};
+/* -> {src,sets:[{iso,t,wk,name,w,unit,reps,secs,dist,dunit}],unitKnown} or {error} */
+function impParse(text){
+  const rows=impCSV(text);if(rows.length<2)return {error:'This file has no workouts in it.'};
+  const H=rows[0].map(h=>h.trim().toLowerCase()),col=n=>H.indexOf(n),has=(...n)=>n.every(x=>col(x)>=0);
+  const sets=[];let src,unitKnown=false;
+  if(has('exercise_title','start_time')){src='Hevy';unitKnown=true;
+    const wk=col('weight_kg'),wl=col('weight_lbs'),dk=col('distance_km'),dm=col('distance_miles');
+    for(const r of rows.slice(1)){const d=impDate(r[col('start_time')]);if(!d)continue;
+      sets.push({iso:impISO(d),t:d.getTime(),wk:r[col('start_time')]+'|'+(r[col('title')]||''),name:r[col('exercise_title')],idx:impNum(r[col('set_index')]),
+        w:wk>=0?impNum(r[wk]):impNum(r[wl]),unit:wk>=0?'kg':'lb',reps:impNum(r[col('reps')]),secs:impNum(r[col('duration_seconds')]),dist:dk>=0?impNum(r[dk]):impNum(r[dm]),dunit:dk>=0?'km':'mi'});}}
+  else if(has('date','exercise name','reps')){src='Strong';
+    /* Strong names the unit in the header ("Weight (kg)", "Distance (km)") in current exports, in a
+       column ("Weight Unit") in some older ones, and not at all in others -- then the review asks */
+    const wc=H.findIndex(h=>/^weight\b(?! unit)/.test(h)),dc=H.findIndex(h=>/^distance\b(?! unit)/.test(h)),hu=(H[wc]||'').match(/\((kg|lbs?)\)/),hd=(H[dc]||'').match(/\((km|mi|miles|m)\)/);
+    const wu=col('weight unit'),du=col('distance unit');unitKnown=wu>=0||!!hu;
+    for(const r of rows.slice(1)){const d=impDate(r[col('date')]);const name=(r[col('exercise name')]||'').trim();if(!d||!name||/rest timer/i.test(name))continue;
+      const u=wu>=0?(/lb/i.test(r[wu])?'lb':'kg'):hu?(/lb/.test(hu[1])?'lb':'kg'):null;
+      const dist=impNum(r[dc]),dunit=du>=0?(/mi/i.test(r[du])?'mi':'km'):hd?(/^mi/.test(hd[1])?'mi':hd[1]==='m'?'m':'km'):(u==='lb'?'mi':u?'km':null);
+      sets.push({iso:impISO(d),t:d.getTime(),wk:r[col('date')]+'|'+(r[col('workout name')]||''),name,idx:impNum(r[col('set order')]),
+        w:impNum(r[wc]),unit:u,reps:impNum(r[col('reps')]),secs:impNum(r[col('seconds')]),dist:dunit==='m'?dist/1000:dist,dunit:dunit==='m'?'km':dunit});}}
+  else if(has('date','exercise')&&(col('reps')>=0||col('weight')>=0)){src='your spreadsheet';
+    const u=col('unit');unitKnown=u>=0;
+    for(const r of rows.slice(1)){const d=impDate(r[col('date')]);const name=(r[col('exercise')]||'').trim();if(!d||!name)continue;
+      const un=u>=0?(/lb/i.test(r[u])?'lb':'kg'):null;
+      sets.push({iso:impISO(d),t:d.getTime(),wk:impISO(d),name,idx:sets.length,w:impNum(r[col('weight')]),unit:un,reps:impNum(r[col('reps')]),secs:impNum(r[col('seconds')]),dist:impNum(r[col('distance')]),dunit:un==='lb'?'mi':un?'km':null,part:col('body part')>=0?r[col('body part')]:''});}}
+  else return {error:'This doesn’t look like a Strong or Hevy export. Use the export from either app, or the ShowUppp template.'};
+  const real=sets.filter(s=>s.reps>0||s.w>0||s.secs>0||s.dist>0);
+  if(!real.length)return {error:'No sets with weight, reps, time or distance were found.'};
+  return {src,sets:real,unitKnown};
+}
+function impOpen(from){
+  imp={step:'source',from:from||'settings'};impRender();
+}
+function impClose(){document.getElementById('imp')?.remove();imp=null;}
+function impLoadText(text,fileName){
+  const p=impParse(text);
+  if(p.error){imp.error=p.error;impRender();return;}
+  const known=impKnown(),names={};
+  for(const s of p.sets)if(!names[s.name]){const m=impMatch(s.name,known);
+    const cardioRows=p.sets.filter(x=>x.name===s.name);
+    names[s.name]={...m,choice:m.state==='sure'?m.ex:null,part:m.part||null,done:m.state==='sure'||(m.state==='new'&&!!m.part),cardioLike:cardioRows.every(x=>!x.reps&&(x.dist||x.secs))};}
+  const dates=[...new Set(p.sets.map(s=>s.iso))].sort();
+  const dups={};for(const d of dates){const day=DB.days[d];if(day&&(day.w||[]).length)dups[d]='ask';}
+  imp={...imp,step:'review',file:fileName||'',src:p.src,sets:p.sets,unitKnown:p.unitKnown,unit:p.unitKnown?null:(DB.settings.unit==='lb'?'lb':'kg'),names,dups,dates,workouts:new Set(p.sets.map(s=>s.wk)).size,error:null,open:null};
+  impRender();
+}
+function impPick(){
+  const inp=document.createElement('input');inp.type='file';inp.accept='.csv,text/csv,text/plain';
+  inp.onchange=()=>{const f=inp.files&&inp.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>impLoadText(String(rd.result||''),f.name);rd.onerror=()=>{imp.error='That file couldn’t be read.';impRender();};rd.readAsText(f);};
+  inp.click();
+}
+const impPending=()=>imp?Object.values(imp.names).filter(n=>!n.done).length+Object.values(imp.dups).filter(v=>v==='ask').length:0;
+const impIncluded=()=>imp.dates.filter(d=>imp.dups[d]!=='keep');
+function impCommit(){
+  const id='imp-'+Date.now().toString(36),at=Date.now(),keep=new Set(Object.keys(imp.dups).filter(d=>imp.dups[d]==='keep'));
+  const toKgW=(v,u)=>(u||imp.unit)==='lb'?v/LB:v, toKm=(v,u)=>(u||(imp.unit==='lb'?'mi':'km'))==='mi'?v/MI:v;
+  const byDay={};let sets=0;
+  const ordered=imp.sets.slice().sort((a,b)=>a.t-b.t||a.idx-b.idx);
+  const seq={};
+  for(const s of ordered){if(keep.has(s.iso))continue;const n=imp.names[s.name];const ex=n.choice||s.name,part=n.part||homePartOf(ex)||'Chest';
+    const k=s.wk;seq[k]=(seq[k]||0)+1;const t=s.t+seq[k]*60000;
+    let e;
+    if(isCardioEx(ex)&&!s.reps){const sec=Math.round(s.secs||0);e={part:'Run',ex,w:+toKm(s.dist||0,s.dunit).toFixed(3),reps:[],mins:Math.floor(sec/60),secs:sec%60,at:t,imp:id};}
+    else if(!s.reps&&s.secs>0){e={part,ex,w:+toKgW(s.w||0,s.unit).toFixed(3),reps:[Math.round(s.secs)],at:t,imp:id};if(unitOf(ex)!==SET_SEC)unitOv()[ex]=SET_SEC;}
+    else e={part,ex,w:/\bassist/i.test(s.name)?0:+toKgW(s.w||0,s.unit).toFixed(3),reps:[Math.round(s.reps)],at:t,imp:id};   // an assisted machine's number is help, not load: kept as bodyweight
+    (byDay[s.iso]=byDay[s.iso]||[]).push(e);sets++;}
+  const days=Object.keys(byDay).sort();
+  for(const d of days){const day=DB.days[d]||{w:[]};day.w=[...(day.w||[]),...byDay[d]].sort((a,b)=>(a.at||0)-(b.at||0));day.lastAt=Math.max(...day.w.map(e=>e.at||0));day.upd=at;DB.days[d]=day;}
+  const cust={...customs()};
+  for(const [name,n] of Object.entries(imp.names)){const ex=n.choice||name;if(!n.choice&&!cust[ex]&&!SEED0.ex2part[ex]&&!isCardioEx(ex))cust[ex]={part:n.part||'Chest',equip:/dumbbell|\bdb\b/i.test(ex)?'dumbbell':/cable/i.test(ex)?'cable':/machine/i.test(ex)?'machine':/push ?up|pull ?up|chin ?up|plank|dip|sit ?up|crunch|bodyweight/i.test(ex)?'body':'barbell'};}
+  DB.settings.custom=cust;
+  DB.settings.imports=[...(DB.settings.imports||[]),{id,at,src:imp.src,days:days.length,sets,first:days[0],last:days.at(-1)}];
+  DB.settingsAt=at;save(true);SEED=deriveAll();if(typeof _fireDist!=='undefined')_fireDist=null;
+  imp={...imp,step:'done',batch:id,doneDays:days,doneSets:sets};impRender();render();
+}
+function impUndo(id){
+  const at=Date.now();let n=0;
+  for(const [d,day] of Object.entries(DB.days)){if(!day||!(day.w||[]).some(e=>e.imp===id))continue;const before=day.w.length;day.w=day.w.filter(e=>e.imp!==id);n+=before-day.w.length;day.upd=at;day.lastAt=day.w.length?Math.max(...day.w.map(e=>e.at||0)):undefined;}
+  DB.settings.imports=(DB.settings.imports||[]).filter(x=>x.id!==id);DB.settingsAt=at;
+  allowEmptySave=true;save(true);SEED=deriveAll();if(typeof _fireDist!=='undefined')_fireDist=null;
+  return n;
+}
+function impHeat(days){
+  const set=new Set(days),last=new Date(days.at(-1)+'T12:00'),first=new Date(days[0]+'T12:00');
+  const end=new Date(last);end.setDate(end.getDate()+(6-end.getDay()));
+  let start=new Date(first);start.setDate(start.getDate()-start.getDay());
+  const maxW=26,weeks=Math.max(8,Math.min(maxW,Math.ceil((end-start)/864e5/7)));
+  start=new Date(end);start.setDate(start.getDate()-weeks*7+1);
+  let h='';for(let w=0;w<weeks;w++){h+='<span class="im-wk">';for(let i=0;i<7;i++){const d=new Date(start);d.setDate(d.getDate()+w*7+i);h+=`<i class="${set.has(impISO(d))?'on':''}"></i>`;}h+='</span>';}
+  return `<div class="im-heat" aria-hidden="true">${h}</div>`;
+}
+const impRange=ds=>{if(!ds.length)return '';const f=d=>new Date(d+'T12:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}),y=d=>d.slice(0,4);return f(ds[0])+(y(ds[0])!==y(ds.at(-1))?', '+y(ds[0]):'')+' – '+f(ds.at(-1))+', '+y(ds.at(-1));};
+const impMonths=ds=>{if(!ds.length)return '';const f=d=>new Date(d+'T12:00').toLocaleDateString('en-US',{month:'short',year:'numeric'});const a=f(ds[0]),b=f(ds.at(-1));return a===b?a:a.split(' ')[1]===b.split(' ')[1]?a.split(' ')[0]+'–'+b:a+' – '+b;};
+const IMP_ICON={cal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M8 3v4M16 3v4M4 10h16"/></svg>',
+ file:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>',
+ chev:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>',
+ link:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1"/><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"/></svg>',
+ ok:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+ warn:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/><path d="M12 7v6M12 16.5v.5" stroke="#000" stroke-width="2.4" stroke-linecap="round"/></svg>'};
+function impRender(){
+  let el=document.getElementById('imp');
+  if(!el){el=document.createElement('div');el.id='imp';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');document.body.appendChild(el);}
+  const I=imp,pip=typeof mascotHTML==='function'?mascotHTML('hello','im-pip'):'',lines='<svg class="im-lines" viewBox="0 0 30 30" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 12l4-9M12 17l12-6M14 25h10"/></svg>';
+  const top=(t,back=true)=>`<div class="im-top">${back?`<button type="button" class="im-back" data-imp="back" aria-label="Back">‹</button>`:'<span class="im-back"></span>'}<span>${t}</span></div>`;
+  let b='';
+  if(I.step==='source'){
+    b=`${top('Import')}<h1 class="im-h">You’re not starting from zero.</h1><div class="im-pipwrap">${pip}${lines}</div><p class="im-sub">Bring the workouts you already did.</p>
+      ${I.error?`<p class="im-err" role="alert">${hesc(I.error)}</p>`:''}
+      <button type="button" class="im-src" data-imp="file"><span class="im-ic">${IMP_ICON.file}</span><span class="im-ct"><b>Upload a CSV</b><span>Your Strong or Hevy export, or our template</span></span>${IMP_ICON.chev}</button>
+      <details class="im-how"><summary>How to export</summary><p><b>Strong</b> · Settings → Export Strong Data</p><p><b>Hevy</b> · Profile → Settings → Export &amp; Import Data → Export Workouts</p><p>Save the file to your phone, then choose it here.</p></details>
+      <button type="button" class="im-link" data-imp="template">Download the CSV template</button>
+      <div class="im-sp"></div><p class="im-foot">You’ll review everything before it’s saved.</p><button type="button" class="im-link" data-imp="later">${I.from==='onboarding'?'Do this later':'Not now'}</button>`;
+  }else if(I.step==='review'){
+    const pend=impPending(),asks=Object.entries(I.names).filter(([,n])=>n.state==='ask'||(n.state==='new'&&!n.part)||n.reopen),dupList=Object.keys(I.dups),ready=impIncluded().length;
+    const parts=['Chest','Back','Shoulder','Legs','Biceps','Triceps','Sixpack','Run'];
+    const nameCard=([name,n])=>{const k=hesc(name);
+      if(n.done&&!n.reopen)return `<div class="im-item im-ok"><span class="im-dot ok">${IMP_ICON.ok}</span><span class="im-it"><b>${n.choice?'Exercise match':'New exercise'}</b><span>${k} → ${hesc(n.choice||name)}${n.choice?'':' · '+hesc(partLabel(n.part))}</span></span><button type="button" class="im-mini" data-imp="reopen" data-name="${k}">Change</button></div>`;
+      if(n.state==='new'||n.choice===null&&n.part===null)return `<div class="im-item"><span class="im-dot ask">${IMP_ICON.link}</span><span class="im-it"><b>New exercise</b><span>${k} · which body part?</span><span class="im-chips">${parts.map(p=>`<button type="button" class="${n.part===p?'on':''}" data-imp="part" data-name="${k}" data-part="${p}">${hesc(partLabel(p))}</button>`).join('')}</span></span></div>`;
+      const opts=[n.ex,...n.alts].filter(Boolean);
+      return `<div class="im-item"><span class="im-dot ask">${IMP_ICON.link}</span><span class="im-it"><b>Exercise match</b><span>${k} → ${hesc(n.pick||n.ex)}</span>${n.open?`<span class="im-chips im-col">${opts.map(o=>`<button type="button" class="${(n.pick||n.ex)===o?'on':''}" data-imp="alt" data-name="${k}" data-ex="${hesc(o)}">${hesc(o)}</button>`).join('')}<button type="button" class="${n.pick===''?'on':''}" data-imp="own" data-name="${k}">Keep “${k}” as its own</button></span>`:''}
+        <span class="im-btns"><button type="button" class="im-b pri" data-imp="confirm" data-name="${k}">${n.open?'Use this':'Confirm match'}</button>${n.open?'':`<button type="button" class="im-b" data-imp="change" data-name="${k}">Change</button>`}</span></span></div>`;};
+    const dupCard=d=>{const day=DB.days[d],ps=[...new Set((day.w||[]).map(e=>partLabel(e.part)))].join(' + '),v=I.dups[d];
+      if(v!=='ask')return `<div class="im-item im-ok"><span class="im-dot ok">${IMP_ICON.ok}</span><span class="im-it"><b>${v==='keep'?'Kept your workout':'Both kept'}</b><span>${hesc(pwDate?pwDate(d):d)} · ${hesc(ps)}</span></span><button type="button" class="im-mini" data-imp="dupre" data-date="${d}">Change</button></div>`;
+      return `<div class="im-item"><span class="im-dot bad">${IMP_ICON.warn}</span><span class="im-it"><b>Possible duplicate</b><span>${hesc(typeof pwDate==='function'?pwDate(d):d)} · you already logged ${hesc(ps)}</span><span class="im-btns"><button type="button" class="im-b pri" data-imp="keep" data-date="${d}">Keep existing</button><button type="button" class="im-b" data-imp="both" data-date="${d}">Import another</button></span></span></div>`;};
+    const nAsk=Object.values(I.names).filter(n=>!n.done&&n.state==='ask').length;
+    b=`${top('Review import')}<h1 class="im-h">Here’s what we found.</h1><p class="im-sub2">${fmt(I.workouts)} workouts · ${hesc(impMonths(I.dates))} · from ${hesc(I.src)}</p>
+      ${I.unitKnown?'':`<div class="im-unit"><span>Weights in this file are</span><span class="im-seg" role="group" aria-label="Weight unit"><button type="button" class="${I.unit==='kg'?'on':''}" data-imp="unit" data-u="kg">kg</button><button type="button" class="${I.unit==='lb'?'on':''}" data-imp="unit" data-u="lb">lb</button></span></div>`}
+      ${pend?`<div class="im-att"><span class="im-dot warn">!</span>${pend} item${pend===1?' needs':'s need'} attention${nAsk>2?`<button type="button" class="im-mini" data-imp="confirmall">Confirm all ${nAsk} matches</button>`:''}</div>`:''}
+      <div class="im-list">${Object.entries(I.names).filter(([,n])=>!n.done||n.reopen).map(nameCard).join('')}${dupList.filter(d=>I.dups[d]==='ask').map(dupCard).join('')}
+      ${Object.entries(I.names).filter(([,n])=>n.done&&!n.reopen&&n.state!=='sure').map(nameCard).join('')}${dupList.filter(d=>I.dups[d]!=='ask').map(dupCard).join('')}</div>
+      <div class="im-item im-ready"><span class="im-dot ok">${IMP_ICON.ok}</span><span class="im-it"><b>${fmt(ready)} day${ready===1?'':'s'} ready</b><span>${fmt(Object.values(I.names).filter(n=>n.state==='sure').length)} exercise names matched on their own</span></span></div>
+      <div class="im-sp"></div><button type="button" class="im-go" data-imp="toconfirm" ${pend||!ready?'disabled':''}>${pend?`Resolve ${pend} item${pend===1?'':'s'} to continue`:'Continue'}</button><p class="im-foot">Nothing has been saved yet.</p>`;
+  }else if(I.step==='confirm'){
+    const inc=impIncluded(),wk=new Set(I.sets.filter(s=>inc.includes(s.iso)).map(s=>s.wk)).size,kept=Object.values(I.dups).filter(v=>v==='keep').length,newN=Object.values(I.names).filter(n=>!n.choice).length;
+    b=`${top('Confirm import')}<h1 class="im-h">Ready when you are.</h1><div class="im-big"><span><b>${fmt(wk)}</b>workouts</span><em>${hesc(impRange(inc))}</em></div>
+      <div class="im-checks"><p><span class="im-dot ok">${IMP_ICON.ok}</span>Exercise names confirmed${newN?` · ${newN} new`:''}</p><p><span class="im-dot ok">${IMP_ICON.ok}</span>Weights in ${I.unitKnown?'the file’s own units':hesc(I.unit)}</p>${kept?`<p><span class="im-dot ok">${IMP_ICON.ok}</span>${kept} duplicate${kept===1?'':'s'} excluded</p>`:''}<p><span class="im-dot ok">${IMP_ICON.ok}</span>Existing workouts unchanged</p></div>
+      <div class="im-sp"></div><button type="button" class="im-go" data-imp="commit">Import ${fmt(wk)} workout${wk===1?'':'s'}</button><p class="im-foot">You can undo this import as a batch.</p>`;
+  }else if(I.step==='done'){
+    const wk=new Set(I.sets.filter(s=>I.doneDays.includes(s.iso)).map(s=>s.wk)).size;
+    b=`<div class="im-top"><span class="im-back"></span><span>Import complete</span></div><div class="im-pipwrap">${pip}${lines}</div><h1 class="im-h im-c">Your work came with you.</h1><div class="im-count"><b>${fmt(wk)}</b><span>workouts imported</span></div>
+      ${I.doneDays.length?impHeat(I.doneDays):''}<p class="im-sub im-c">Your past sets are ready for comparison.</p><div class="im-sp"></div>
+      <button type="button" class="im-go" data-imp="progress">View my progress</button><button type="button" class="im-go2" data-imp="log">Log a workout</button>
+      <button type="button" class="im-link" data-imp="undo">Undo this import</button><p class="im-foot">Batch · imported just now</p>`;
+  }
+  el.innerHTML=`<div class="im im-${I.step}">${b}</div>`;
+  el.scrollTop=0;
+}
+function impTemplate(){
+  const csv='Date,Exercise,Weight,Unit,Reps,Body part\n2026-09-01,Barbell Bench Press,135,lb,8,Chest\n2026-09-01,Barbell Bench Press,135,lb,8,Chest\n2026-09-01,Pull Up,0,lb,10,Back\n2026-09-03,Squat,100,kg,5,Legs\n';
+  if(typeof dlFile==='function')dlFile('showuppp-import-template.csv','text/csv',csv);
+}
+document.addEventListener('click',e=>{
+  const open=e.target.closest&&e.target.closest('[data-imp-open]');if(open){e.preventDefault();impOpen(open.dataset.impOpen);return;}
+  const b=e.target.closest&&e.target.closest('#imp [data-imp]');if(!b||!imp)return;
+  const a=b.dataset.imp,I=imp,n=b.dataset.name?I.names[b.dataset.name]:null;
+  if(a==='back'){if(I.step==='review'||I.step==='source'&&true){if(I.step==='source'){impClose();return;}imp={step:'source',from:I.from};}else if(I.step==='confirm')I.step='review';impRender();return;}
+  if(a==='later'){impClose();return;}
+  if(a==='file'){I.error=null;impPick();return;}
+  if(a==='template'){impTemplate();return;}
+  if(a==='unit'){I.unit=b.dataset.u;}
+  else if(a==='confirm'&&n){if(n.pick===''){n.choice=null;n.part=n.part||impGuessPart(b.dataset.name)||homePartOf(n.ex);}else{n.choice=n.pick||n.ex;n.part=homePartOf(n.choice)||n.part;}n.done=true;n.open=false;n.reopen=false;if(n.choice===null&&!n.part){n.done=false;n.state='new';}}
+  else if(a==='change'&&n){n.open=true;}
+  else if(a==='alt'&&n){n.pick=b.dataset.ex;}
+  else if(a==='own'&&n){n.pick='';}
+  else if(a==='part'&&n){n.part=b.dataset.part;n.choice=null;n.done=true;n.reopen=false;}
+  else if(a==='reopen'&&n){n.reopen=true;n.done=false;if(n.state==='sure')n.state='ask';n.open=true;n.alts=n.alts||[];}
+  else if(a==='confirmall'){for(const x of Object.values(I.names))if(!x.done&&x.state==='ask'){x.choice=x.ex;x.part=homePartOf(x.ex)||x.part;x.done=true;}}
+  else if(a==='keep'){I.dups[b.dataset.date]='keep';}
+  else if(a==='both'){I.dups[b.dataset.date]='both';}
+  else if(a==='dupre'){I.dups[b.dataset.date]='ask';}
+  else if(a==='toconfirm'){if(!impPending())I.step='confirm';}
+  else if(a==='commit'){impCommit();return;}
+  else if(a==='undo'){const k=impUndo(I.batch);impClose();render();toast(`Import undone · ${fmt(k)} sets removed`);return;}
+  else if(a==='progress'){impClose();view='stats';render();return;}
+  else if(a==='log'){impClose();if(typeof liftEnter==='function')liftEnter({});view='lift';render();return;}
+  impRender();
+});
+/* Settings: the latest import can be undone here too */
+function impSettingsHTML(){
+  const l=(DB.settings.imports||[]).at(-1);
+  return `<button class="btn ghost" data-imp-open="settings" style="margin:8px 0 0">Bring past workouts</button>`+(l?`<p class="note" style="margin-top:6px">Last import: ${fmt(l.sets)} sets from ${hesc(l.src)}, ${hesc(impRange([l.first,l.last]))}. <button type="button" class="linkbtn" data-imp-undo="${hesc(l.id)}">Undo</button></p>`:'');
+}
+document.addEventListener('click',e=>{const u=e.target.closest&&e.target.closest('[data-imp-undo]');if(!u)return;const k=impUndo(u.dataset.impUndo);render();if(typeof renderSync==='function'&&view==='sync')renderSync();toast(`Import undone · ${fmt(k)} sets removed`);});
