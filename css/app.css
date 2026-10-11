@@ -4619,3 +4619,12 @@ html.modal-open .calreturn{display:none!important}
 /* v4.6.266: a toast during the first run sat under it (z-index 40 vs 90); it shows above, at the top, clear of the buttons */
 body:has(#onb:not([hidden])) #toast{z-index:95;top:calc(env(safe-area-inset-top,0px) + 14px);bottom:auto;transform:translateX(-50%) translateY(-12px)}
 body:has(#onb:not([hidden])) #toast.on{transform:translateX(-50%)}
+/* v4.6.266: the door's lower half, quieter -- a smaller line, slimmer buttons, softer shadows */
+#onb .ob-motto{font:700 24px/1.18 var(--body);letter-spacing:-.4px}
+#onb .ob-hero{padding-bottom:30px}
+#onb .ob-btn{height:50px;margin-top:10px;border-radius:14px;font:600 15.5px var(--body);letter-spacing:-.1px;box-shadow:0 1px 2px rgba(10,20,90,.25),0 4px 12px rgba(10,20,90,.18)}
+#onb .ob-btn .ob-lg{width:19px;height:19px;margin-top:-9.5px;left:18px}
+#onb .ob-local{background:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.38);font-weight:500}
+#onb .ob-note{margin-top:16px;font:400 12.5px/1.6 var(--body);color:rgba(255,255,255,.72)}
+#onb .ob-note .ob-link{font-weight:500;text-underline-offset:3px}
+@media(max-width:360px){#onb .ob-btn{font-size:15px}#onb .ob-motto{font-size:22px}}
