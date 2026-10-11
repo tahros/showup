@@ -1,5 +1,10 @@
 # ShowUppp — changelog
 
+## v4.6.272 (2026-10-11) — The membership card sits tighter under the logo
+
+- **Asked:** less space between ShowUppp and the profile icon on the membership card. Three spacings were mocked; the maker chose A.
+- The gap from the wordmark to the icon is now 20px, the same as the gap from the icon to the divider (it was 28px). The logo row is as tall as the 60px coin, with the 44px wordmark centred in it, so the old 20px margin read as 28px. Nothing else on the card moved.
+
 ## v4.6.271 (2026-10-11) — Dates: one button per thing it does
 
 - **Asked:** "Plan 1 new day" and "Generate instead" looked like the same thing, and "1 new day" under "1 day selected" repeated the count.
