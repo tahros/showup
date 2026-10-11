@@ -14,7 +14,7 @@
 - **Stored as ShowUppp stores it:** one set per row, weights in kg, cardio as distance (km) and time, timed holds as seconds (the exercise then counts seconds). Rest-timer and empty rows are skipped.
 - **Confirm → Import → Your history:** the count, the date range, a strip of the imported days, then View my progress or Log a workout.
 - **One batch, one undo:** every imported set is tagged with its batch. Undo this import (on the done screen, or the latest import in Settings) removes exactly those sets. Days you logged yourself are never changed.
-- Tests: `tools/test-import.js` (38 checks, with Strong and Hevy sample files in `tools/fixtures/`) and `tools/check-import.cjs` (the whole flow at 402 and 320, light and dark, plus the first-run entry).
+- Tests: `tools/test-import-csv.js` (41 checks, with Strong and Hevy sample files in `tools/fixtures/`) and `tools/check-import.cjs` (the whole flow at 402 and 320, light and dark, plus the first-run entry).
 
 ## v4.6.273 (2026-10-11) — Member numbers without the leading zeros
 

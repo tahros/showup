@@ -1,57 +1,120 @@
-// v4.6.274: Bring your workouts -- Strong and Hevy CSVs, matching, duplicates, the batch and its undo.
-const {JSDOM}=require('jsdom'),fs=require('fs'),path=require('path'),vm=require('vm'),assert=require('assert');
-const dir=process.argv[2]||'.',html=fs.readFileSync(path.join(dir,'index.html'),'utf8');
-const order=[...html.matchAll(/src="(js\/[^?"]+)\?v=/g)].map(m=>m[1]);const dom=new JSDOM(html.replace(/<script[^>]*src=[^>]*><\/script>/g,''),{url:'https://tahros.github.io/showup/',runScripts:'outside-only',pretendToBeVisual:true}),w=dom.window,ctx=dom.getInternalVMContext();w.fetch=()=>Promise.reject(Error('offline'));w.matchMedia=()=>({matches:false,addEventListener(){},removeEventListener(){}});w.scrollTo=()=>{};w.HTMLCanvasElement.prototype.getContext=()=>new Proxy({},{get:()=>()=>({})});for(const s of order)vm.runInContext(fs.readFileSync(path.join(dir,s),'utf8'),ctx,{filename:s});const run=s=>vm.runInContext(s,ctx);
-const strong=fs.readFileSync(path.join(dir,'tools/fixtures/strong-sample.csv'),'utf8'),hevy=fs.readFileSync(path.join(dir,'tools/fixtures/hevy-sample.csv'),'utf8');
-let n=0;const ok=(name,c)=>{assert(c,name);n++;};
-w.__strong=strong;w.__hevy=hevy;
-run(`DB={days:{'2026-09-28':{w:[{part:'Shoulder',ex:'Lateral Raise',w:9,reps:[12],at:1}],upd:1}},settings:{unit:'lb',onboarded:true}};loadedOK=true;storedDays=1;todayISO='2026-10-11';SEED=deriveAll();save=()=>{};render=()=>{};`);
-const before=run(`JSON.stringify(DB.days['2026-09-28'])`);
-/* parsing */
-let p=JSON.parse(run(`JSON.stringify(impParse(__strong))`));
-ok('Strong is recognised',p.src==='Strong'&&!p.unitKnown);
-ok('rest timers and empty rows are skipped',!p.sets.some(s=>/rest timer/i.test(s.name))&&p.sets.length===10);
-ok('Strong dates read as local days',p.sets[0].iso==='2026-03-02'&&p.sets.at(-1).iso==='2026-09-28');
-p=JSON.parse(run(`JSON.stringify(impParse(__hevy))`));
-ok('Hevy is recognised, with its unit',p.src==='Hevy'&&p.unitKnown&&p.sets[0].unit==='kg'&&p.sets[0].iso==='2026-03-02');
-ok('a semicolon file parses too',JSON.parse(run(`JSON.stringify(impParse(__strong.replace(/","/g,'";"')))`)).sets.length===10);
-ok('anything else is refused, kindly',/Strong or Hevy/.test(run(`impParse('a,b\\n1,2').error`)));
-/* matching */
-const m=x=>JSON.parse(run(`JSON.stringify(impMatch(${JSON.stringify(x)},impKnown()))`));
-for(const [ext,ex] of [['Bench Press (Barbell)','Barbell Bench Press'],['Squat (Barbell)','Squat'],['Lat Pulldown (Cable)','Lat Pulldown'],['Lateral Raise (Dumbbell)','Lateral Raise'],['Bicep Curl (Dumbbell)','Dumbbell Curl'],['Overhead Press (Barbell)','Overhead Barbell Press'],['Running (Treadmill)','Run'],['Pull Up','Pull Up'],['Leg Press','Leg Press'],['Plank','Plank'],['Cycling','Cycling'],['Incline Bench Press (Dumbbell)','Incline Dumbbell Bench Press'],['Triceps Pushdown (Cable - Straight Bar)','Triceps Pushdown']])
-  ok(`${ext} → ${ex}`,(r=>r.state==='sure'&&r.ex===ex)(m(ext)));
-ok('DB press is a guess to confirm: Dumbbell Shoulder Press first',(r=>r.state==='ask'&&r.ex==='Dumbbell Shoulder Press')(m('DB press')));
-ok('an unknown lift is kept as new, with its likely part',(r=>r.state==='new')(m('Zercher Carry')));
-ok('a new curl variant is guessed as Biceps',m('Bayesian Curl').part==='Biceps'||m('Bayesian Curl').state==='ask');
-/* the review state */
-run(`imp={step:'source',from:'test'};document.body.innerHTML+='';impLoadText(__strong,'strong.csv')`);
-ok('review opens with the duplicate asked',run(`imp.step`)==='review'&&run(`imp.dups['2026-09-28']`)==='ask');
-ok('pending items block Continue',run('impPending()')>0&&!!w.document.querySelector('#imp [data-imp="toconfirm"][disabled]'));
-run(`imp.unit='lb';imp.dups['2026-09-28']='keep';for(const [k,v] of Object.entries(imp.names))if(!v.done){if(v.state==='ask'){v.choice=v.ex;v.part=homePartOf(v.ex);}else{v.part=v.part||'Back';v.choice=null;}v.done=true;}`);
-ok('all resolved: nothing pending',run('impPending()')===0);
-ok('nothing saved before Import',run(`Object.keys(DB.days).length`)===1);
-run(`imp.step='confirm';impCommit()`);
-ok('imported days written',run(`!!DB.days['2026-03-02']&&!!DB.days['2026-03-04']`));
-ok('the kept duplicate is untouched, byte for byte',run(`JSON.stringify(DB.days['2026-09-28'])`)===before);
-ok('lb converted to kg',Math.abs(run(`DB.days['2026-03-02'].w.find(e=>e.ex==='Barbell Bench Press').w`)-135/2.20462)<0.01);
-ok('one set per row, reps kept',run(`DB.days['2026-03-02'].w.filter(e=>e.ex==='Barbell Bench Press').map(e=>e.reps[0]).join()`)==='8,8');
-ok('a timed hold becomes seconds, and the exercise counts seconds',run(`DB.days['2026-03-02'].w.find(e=>e.ex==='Plank').reps[0]`)===60&&run(`unitOf('Plank')`)==='s');
-ok('a treadmill run becomes cardio: miles to km, time kept',(r=>r.part==='Run'&&Math.abs(r.w-3.1/0.621371)<0.01&&r.mins===25&&r.secs===0)(JSON.parse(run(`JSON.stringify(DB.days['2026-03-04'].w.find(e=>e.ex==='Run'))`))));
-ok('an unknown lift joins your exercises',!!run(`DB.settings.custom['Zercher Carry']`));
-ok('every imported set carries the batch',run(`Object.values(DB.days).flatMap(d=>d.w).filter(e=>e.imp).length`)===9);
-ok('the batch is recorded',run(`DB.settings.imports.length`)===1&&run(`DB.settings.imports[0].src`)==='Strong');
-const id=run(`DB.settings.imports[0].id`);
-ok('undo removes exactly the batch',run(`impUndo('${id}')`)===9&&run(`Object.values(DB.days).flatMap(d=>d.w||[]).filter(e=>e.imp).length`)===0&&run(`JSON.stringify(DB.days['2026-09-28'])`)===before&&run(`(DB.settings.imports||[]).length`)===0);
-/* Hevy end to end, with import-another on a duplicate */
-run(`DB.days['2026-03-02']={w:[{part:'Chest',ex:'Dip',w:0,reps:[10],at:5}],upd:1};imp={step:'source',from:'test'};impLoadText(__hevy,'hevy.csv');imp.dups['2026-03-02']='both';for(const v of Object.values(imp.names))if(!v.done){v.choice=v.ex;v.part=homePartOf(v.ex)||'Back';v.done=true;}impCommit()`);
-ok('Hevy: kg stays kg, both workouts kept on the shared day',run(`DB.days['2026-03-02'].w.length`)===5&&run(`DB.days['2026-03-02'].w.find(e=>e.ex==='Lat Pulldown').w`)===60&&run(`DB.days['2026-03-02'].w.some(e=>e.ex==='Dip'&&!e.imp)`));
-ok('Hevy: a ride in km with its time',(r=>r.ex==='Cycling'&&r.w===15.2&&r.mins===40)(JSON.parse(run(`JSON.stringify(DB.days['2026-03-05'].w[0])`))));
-/* the real-world sample exports kept in tools/fixtures since v4.5.4 */
-w.__rs=fs.readFileSync(path.join(dir,'tools/fixtures/strong_sample.csv'),'utf8');w.__rh=fs.readFileSync(path.join(dir,'tools/fixtures/hevy_sample.csv'),'utf8');
-let r=JSON.parse(run(`JSON.stringify(impParse(__rs))`));
-ok('a real Strong export (semicolons, "Weight (kg)") reads with its unit known',r.src==='Strong'&&r.unitKnown&&r.sets.length>0&&r.sets[0].unit==='kg'&&r.sets[0].w===60&&r.sets[0].reps===8);
-r=JSON.parse(run(`JSON.stringify(impParse(__rh))`));
-ok('a real Hevy export reads, assisted pull-ups and warm-ups included',r.src==='Hevy'&&r.sets.length>0&&r.sets[0].name==='Pull Up (Assisted)'&&r.sets[0].iso==='2025-12-22');
-run(`DB={days:{},settings:{unit:'kg',onboarded:true}};imp={step:'source'};impLoadText(__rh,'h.csv');for(const v of Object.values(imp.names))if(!v.done){v.choice=v.ex||null;v.part=v.part||'Back';v.done=true;}impCommit()`);
-ok('an assisted pull-up imports as bodyweight, never as added load',run(`Object.values(DB.days).flatMap(d=>d.w).filter(e=>e.ex==='Pull Up').every(e=>e.w===0)`));
-console.log(`PASS import: ${n} checks`);process.exit(0);
+// test-import.js DIR — v3.3.88: the import pipeline, end to end.
+// Runs the REAL python converters on fixture CSVs, feeds the JSON through
+// the same door Restore uses (doc adoption + upd stamping), then asserts
+// what deriveAll() concludes — because the only truth that matters is what
+// the app itself derives from the imported archive.
+const { JSDOM } = require("jsdom");
+const { execSync } = require("child_process");
+const fs = require("fs"), path = require("path"), vm = require("vm");
+const dir = process.argv[2] || "stage88";
+// resolve() is load-bearing: with cwd:"/tmp" below, a relative T made
+// python fail to OPEN the script — exiting 2, which coincidentally matched
+// the bail code and produced a false PASS. Absolute paths or nothing.
+const T = path.resolve(dir, "tools");
+
+let fail = 0;
+const ok = (name, cond, extra) => {
+  console.log((cond ? "PASS" : "FAIL"), name, extra === undefined ? "" : "\u2192 " + extra);
+  if (!cond) fail++;
+};
+
+// ---- 0. the converters refuse to guess ------------------------------------
+let code = 0, err = "";
+try { execSync(`python3 ${T}/convert_strong.py ${T}/fixtures/strong_sample.csv -o /tmp/ti_s0.json`, {cwd:"/tmp", stdio:["pipe","pipe","pipe"]}); }
+catch (e) { code = e.status; err = (e.stderr||"").toString(); }
+ok("strong converter STOPS on an unknown exercise (exit 2, and SAYS so)",
+   code === 2 && /UNMAPPED/.test(err), `${code} ${err.split("\n")[0]}`);
+ok("...and writes mapping_todo.json for the operator",
+   fs.existsSync("/tmp/mapping_todo.json"));
+const todo = JSON.parse(fs.readFileSync("/tmp/mapping_todo.json", "utf8"));
+ok("...listing exactly the unknown name", Object.keys(todo).join() === "mystery machine thing");
+
+// ---- 1. convert both fixtures with mappings --------------------------------
+fs.writeFileSync("/tmp/ti_map_s.json", JSON.stringify({"mystery machine thing":"Back"}));
+fs.writeFileSync("/tmp/ti_map_h.json", JSON.stringify({"weird cable contraption":"Chest"}));
+execSync(`python3 ${T}/convert_strong.py ${T}/fixtures/strong_sample.csv -m /tmp/ti_map_s.json -o /tmp/ti_s.json`);
+execSync(`python3 ${T}/convert_hevy.py ${T}/fixtures/hevy_sample.csv -m /tmp/ti_map_h.json -o /tmp/ti_h.json`);
+execSync(`python3 ${T}/import_validate.py /tmp/ti_s.json --strict`);
+execSync(`python3 ${T}/import_validate.py /tmp/ti_h.json --strict`);
+console.log("PASS both conversions validate --strict");
+
+// ---- validator teeth: it must actually bite a marker row -------------------
+const bad = JSON.parse(fs.readFileSync("/tmp/ti_s.json", "utf8"));
+bad.doc.days["2024-03-04"].w.push({part:"Chest",ex:"Ghost",w:10,reps:[]});
+fs.writeFileSync("/tmp/ti_bad.json", JSON.stringify(bad));
+let vcode = 0, vout = "";
+try { vout = execSync(`python3 ${T}/import_validate.py /tmp/ti_bad.json`).toString(); }
+catch (e) { vcode = e.status; vout = e.stdout.toString(); }
+ok("validator rejects a reps:[] marker row (the v3.3.61 scar)",
+   vcode === 1 && /marker-rows/.test(vout));
+
+// ---- 2. restore the Strong conversion into the live app --------------------
+const html = fs.readFileSync(path.join(dir, "index.html"), "utf8");
+const order = [...html.matchAll(/src="(js\/[^?"]+)\?v=/g)].map(m => m[1]);
+const dom = new JSDOM(html.replace(/<script[^>]*src=[^>]*><\/script>/g, ""), {
+  url: "https://tahros.github.io/showup/", runScripts: "outside-only", pretendToBeVisual: true });
+const w = dom.window, ctx = dom.getInternalVMContext();
+w.fetch = () => Promise.reject(new Error("offline"));
+w.matchMedia = w.matchMedia || (() => ({ matches:false, addEventListener(){}, removeEventListener(){} }));
+w.navigator.vibrate = () => {}; w.scrollTo = () => {};
+w.HTMLCanvasElement.prototype.getContext = function(){ return new Proxy({}, { get: () => () => ({}) }); };
+for (const s of order) vm.runInContext(fs.readFileSync(path.join(dir, s), "utf8"), ctx, { filename: s });
+w.document.dispatchEvent(new w.Event("DOMContentLoaded", { bubbles: true }));
+const run = c => vm.runInContext(c, ctx);
+
+const restore = (file) => {
+  const j = JSON.parse(fs.readFileSync(file, "utf8"));
+  // the exact core of restoreBackup(): adopt doc, stamp every day
+  run(`(function(doc){
+    const now=Date.now();
+    for(const d of Object.keys(doc.days)) doc.days[d].upd=now;
+    DB=doc; SEED=deriveAll();
+  })(${JSON.stringify(j.doc)})`);
+};
+
+restore("/tmp/ti_s.json");
+ok("Strong: 3 training days derived from 3 workout dates",
+   run(`SEED.totals.sessions`) === 3, run(`SEED.totals.sessions`));
+ok("...the warm-up counted as a set (days>volume: showing up is showing up)",
+   run(`DB.days['2024-03-04'].w.filter(s=>s.ex==='Bench Press (Barbell)').length`) === 3);
+ok("...weights landed in kg untouched",
+   run(`DB.days['2024-03-04'].w[0].w`) === 60);
+ok("...Lateral Raise mapped to Shoulder by the exact table",
+   run(`DB.days['2024-03-04'].w.find(s=>s.ex.startsWith('Lateral')).part`) === "Shoulder");
+ok("...the user mapping decided Mystery Machine Thing \u2192 Back",
+   run(`DB.days['2024-03-08'].w.find(s=>s.ex==='Mystery Machine Thing').part`) === "Back");
+ok("...the cardio row became a real Run entry (3.2km, 20:00)",
+   run(`JSON.stringify((DB.days['2024-03-06'].w.find(s=>s.ex==='Run')||{}))`).includes('"w":3.2') &&
+   run(`DB.days['2024-03-06'].w.find(s=>s.ex==='Run').mins`) === 20);
+ok("...the zero-rep row was skipped, not smuggled in as a marker",
+   run(`DB.days['2024-03-08'].w.filter(s=>s.ex.startsWith('Bent Over')).length`) === 0);
+ok("...no reps:[] non-run row exists anywhere in the archive",
+   run(`Object.values(DB.days).every(d=>(d.w||[]).every(s=>s.ex==='Run'||((s.reps||[]).length>0)))`));
+ok("...every imported day carries an upd stamp",
+   run(`Object.values(DB.days).every(d=>d.upd>0)`));
+
+// ---- 3. and the Hevy conversion -------------------------------------------
+restore("/tmp/ti_h.json");
+ok("Hevy: 3 training days derived", run(`SEED.totals.sessions`) === 3, run(`SEED.totals.sessions`));
+ok("...both start_time formats parsed onto the right days",
+   run(`!!DB.days['2025-12-22'] && !!DB.days['2025-12-23'] && !!DB.days['2025-12-24']`));
+ok("...weight_kg passed through untouched",
+   run(`DB.days['2025-12-24'].w.find(s=>s.ex.startsWith('Bench')).w`) === 26);
+ok("...the 5.1km / 35:00 run survived with its time",
+   run(`(DB.days['2025-12-23'].w[0]||{}).w`) === 5.1 &&
+   run(`(DB.days['2025-12-23'].w[0]||{}).mins`) === 35);
+ok("...Hevy's warmup set_type is still a set",
+   run(`DB.days['2025-12-22'].w.filter(s=>s.ex.startsWith('Pull Up')).length`) === 2);
+
+// ---- 4. the round-trip: what Backup writes, Restore accepts ---------------
+const exported = run(`JSON.stringify({app:'showup',v:APP_VERSION,exported:new Date().toISOString(),doc:DB})`);
+fs.writeFileSync("/tmp/ti_rt.json", exported);
+execSync(`python3 ${T}/import_validate.py /tmp/ti_rt.json --strict`);
+console.log("PASS the app's own Backup validates --strict (round-trip closed)");
+
+// ---- 5. the settings router lesson, enforced at the source ----------------
+const setSrc = fs.readFileSync(path.join(dir, "js/settings.js"), "utf8");
+ok("settings.js click router no longer uses e.target.id===",
+   !/e\.target\.id===/.test(setSrc.split("addEventListener('click'")[1].split("addEventListener")[0]));
+
+process.exit(fail ? 1 : 0);
