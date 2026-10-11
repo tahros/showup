@@ -10,13 +10,13 @@ run(`session.user.created_at='invalid'`);assert(run('clubCardHTML()').includes('
 run(`session={user:{id:'owner-fixture',email:'sungjee.u@gmail.com',created_at:'2026-09-01'}}`);
 assert(run('clubCardHTML()').includes('class="club-number">—</strong>'));
 run(`clubMembershipCache.set(clubMembershipKey(),{member_no:'0',joined_at:'2026-09-01'})`);
-assert(run('clubCardHTML()').includes('class="club-number">000000</strong>'));assert(run('clubCardHTML()').includes('class="club-since">SEP 2026</strong>'));
+assert(run('clubCardHTML()').includes('class="club-number">0</strong>'));assert(run('clubCardHTML()').includes('class="club-since">SEP 2026</strong>'));
 assert(!run('clubCardHTML()').includes('Here for the long run.'));assert(!run('clubCardHTML()').includes('Change icon'));assert(run('clubAvatarEditHTML(clubAvatar())').includes('club-avatar-edit'));
-run(`session.user.id='another-account';session.user.email='sungjee.u@gmail.com';DB.settings.name='Sungjee Yoo'`);assert(!run('clubCardHTML()').includes('class="club-number">000000</strong>'));assert(!run('clubCardHTML()').includes('>v1.0</strong>'));console.log('PASS founder identity requires server record, not email or display name; avatar edit survives rendering');
+run(`session.user.id='another-account';session.user.email='sungjee.u@gmail.com';DB.settings.name='Sungjee Yoo'`);assert(!run('clubCardHTML()').includes('class="club-number">0</strong>'));assert(!run('clubCardHTML()').includes('>v1.0</strong>'));console.log('PASS founder identity requires server record, not email or display name; avatar edit survives rendering');
 assert.equal(run('CLUB_ICONS.length'),9);assert.equal(new Set(JSON.parse(run('JSON.stringify(CLUB_ICONS.map(i=>i[0]))'))).size,9);console.log('PASS exactly nine unique icons');
 (async()=>{
- for(const [n,display] of [['0','000000'],['1','000001'],['28','000028'],['980','000980'],['12486','012486'],['1000000','1000000'],['9223372036854775807','9223372036854775807']]){
-  const f=JSON.parse(run(`JSON.stringify(clubNumberFormats('${n}'))`));assert.equal(f.number,display);assert.equal(f.reference,'SUP-'+display);assert.equal(f.badge,'SUP–'+display);
+ for(const [n,display,plain] of [['0','0','0'],['1','1','1'],['28','28','28'],['980','980','980'],['1284','1,284','1284'],['12486','12,486','12486'],['1000000','1,000,000','1000000'],['9223372036854775807','9,223,372,036,854,775,807','9223372036854775807']]){   // v4.6.273: no leading zeros
+  const f=JSON.parse(run(`JSON.stringify(clubNumberFormats('${n}'))`));assert.equal(f.number,display);assert.equal(f.reference,'SUP-'+plain);assert.equal(f.badge,'SUP–'+plain);
  }
  assert.equal(run(`clubNumberFormats('not-a-number')`),null);
  assert(run(`clubCoinHTML('000028')`).includes('assets/club-seal.webp'));
@@ -36,10 +36,10 @@ assert.equal(run('CLUB_ICONS.length'),9);assert.equal(new Set(JSON.parse(run('JS
  resolve({ok:true,json:async()=>[{member_no:'37',joined_at:'2026-03-11'}]});await request;await second;
  assert.equal(w.document.querySelector('.club-number').textContent,'—');
  run(`session.user.id='late-account';document.querySelector('#view').innerHTML=clubCardHTML()`);
- assert.equal(w.document.querySelector('.club-number').textContent,'000037');assert.equal(run('JSON.stringify(DB.days)'),asyncDays);
+ assert.equal(w.document.querySelector('.club-number').textContent,'37');assert.equal(run('JSON.stringify(DB.days)'),asyncDays);
  console.log('PASS deduplicated registry fetch, account switching and unchanged workout history');
  run(`session.user.id='unavailable';document.querySelector('#view').innerHTML=clubCardHTML()`);w.fetch=async()=>{throw Error('offline')};await run('clubLoadMembership()');assert.equal(w.document.querySelector('.club-number').textContent,'—');
  w.fetch=async()=>({ok:true,json:async()=>[{member_no:'<img>',joined_at:'2026-03-11'}]});await run('clubLoadMembership()');assert.equal(w.document.querySelector('.club-number').textContent,'—');
- w.fetch=async()=>({ok:true,json:async()=>[{member_no:'42',joined_at:'2026-03-11'}]});await run('clubLoadMembership()');assert.equal(w.document.querySelector('.club-number').textContent,'000042');
+ w.fetch=async()=>({ok:true,json:async()=>[{member_no:'42',joined_at:'2026-03-11'}]});await run('clubLoadMembership()');assert.equal(w.document.querySelector('.club-number').textContent,'42');
  console.log('PASS offline and malformed response safe; retry recovers server number');process.exit(0);
 })().catch(e=>{console.error(e);process.exit(1)});

@@ -222,7 +222,11 @@ const clubMembershipCache=new Map(),clubMembershipRequests=new Map();
 function clubMembershipKey(){return session?.user?.id?cloudCfg().url+'|'+session.user.id:'';}
 function clubNumberFormats(raw){
   if(typeof raw!=='string'||!/^(0|[1-9]\d*)$/.test(raw))return null;
-  const number=raw.padStart(6,'0');return {number,reference:'SUP-'+number,badge:'SUP–'+number};
+  /* v4.6.273: the number as it is -- No 12, not 000012. Your place in the club is the
+     point, and an early number is worth showing. Thousands get commas (1,284); the
+     copied reference keeps plain digits (SUP-1284). Strings throughout: member_no is a
+     bigint and must never pass through Number. */
+  const digits=raw.replace(/^0+(?=\d)/,''),number=digits.replace(/\B(?=(\d{3})+(?!\d))/g,',');return {number,reference:'SUP-'+digits,badge:'SUP–'+digits};
 }
 function clubMembershipFacts(){
   const user=session?.user,m=clubMembershipCache.get(clubMembershipKey());
@@ -306,7 +310,7 @@ function clubCardHTML(){
   const avatar=clubAvatar(),user=session?.user,{number:displayNumber,since,reference}=clubMembershipFacts();
   const dark=document.documentElement.dataset.theme==='dark';
   return `<section class="card club-card" aria-label="Your Showing Up Club profile">
-    <div class="club-brand"><img src="assets/showuppp-wordmark-${dark?'dark':'light'}.svg" alt="ShowUppp">${clubCoinHTML(displayNumber)}</div>
+    <div class="club-brand"><img src="assets/showuppp-wordmark-${dark?'dark':'light'}.svg" alt="ShowUppp">${clubCoinHTML(String(displayNumber).replace(/,/g,''))}</div>
     <div class="club-person"><button type="button" class="club-avatar-button" data-club-picker aria-label="Edit profile icon" aria-expanded="false">${clubAvatarEditHTML(avatar)}</button><div class="club-identity"><div class="club-name-row"><h2>${hesc(DB.settings.name||'Your place in the club')}</h2><button type="button" class="club-profile-edit" data-club-edit aria-label="Edit profile" title="Edit profile">${icon('edit',16)}</button></div>
     <button type="button" class="club-member-id" data-club-copy ${reference?'':'disabled'} aria-label="${reference?'Copy member reference '+reference:'Member number unavailable'}" title="${reference?'Copy '+reference:'Connect to load your member number'}"><span class="club-member-label">${user?'MEMBER N<span class="club-number-o">o</span>':'LOCAL PROFILE'}</span><strong class="club-number">${displayNumber}</strong></button></div></div>
     <div class="club-membership">

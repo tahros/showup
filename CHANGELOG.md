@@ -1,5 +1,12 @@
 # ShowUppp — changelog
 
+## v4.6.273 (2026-10-11) — Member numbers without the leading zeros
+
+- **Asked:** six digits felt like too much. Letters were considered (four characters of Crockford Base32 would cover a million members); the maker chose to drop the zero padding instead, so the number says your place in the club.
+- The card shows **No 12** instead of 000012; from 1,000 up it reads 1,284. The coin's back shows the same digits without the comma. The copied reference is SUP-12.
+- The number itself is unchanged: the same registry number, handled as a string throughout so very large numbers stay exact.
+- Tests: `test-club-profile.js` and `check-club-profile.cjs` expect the unpadded number.
+
 ## v4.6.272 (2026-10-11) — The membership card sits tighter under the logo
 
 - **Asked:** less space between ShowUppp and the profile icon on the membership card. Three spacings were mocked; the maker chose A.
