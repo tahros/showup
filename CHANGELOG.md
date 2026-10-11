@@ -1,5 +1,10 @@
 # ShowUppp — changelog
 
+## v4.6.269 (2026-10-11) — Sharper club coin lettering
+
+- Replaces the filtered bitmap seal with scalable vector outlines, removing the raster-filter step that softened the front lettering.
+- Preserves the approved seal design, Soft pewter color, silver finish, card layout and motion.
+
 ## v4.6.268 (2026-10-11) — True Soft pewter lettering
 
 - The club seal, reverse logo and member number now use Soft pewter. Direct masking preserves the lighter color instead of darkening it against the silver.

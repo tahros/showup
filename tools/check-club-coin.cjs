@@ -2,7 +2,7 @@
 const {chromium}=require('playwright'),assert=require('assert'),path=require('path');
 (async()=>{const browser=await chromium.launch({headless:true,...(process.env.PW_CHROME?{executablePath:process.env.PW_CHROME}:{})});try{
  for(const theme of ['light','dark'])for(const width of [320,393]){
-  const page=await browser.newPage({viewport:{width,height:1000},serviceWorkers:'block'}),errors=[];
+  const page=await browser.newPage({viewport:{width,height:1000},deviceScaleFactor:3,serviceWorkers:'block'}),errors=[];
   page.on('pageerror',e=>errors.push(e.message));const origin=process.env.PW_ORIGIN||'http://127.0.0.1:'+(process.env.PW_PORT||8806)+'/';
   await page.route('**/*',r=>r.request().url().startsWith(origin)?r.continue():r.abort());await page.goto(origin);await page.waitForTimeout(500);
   await page.evaluate(theme=>{DB={days:{},settings:{name:'Sungjee Yoo',onboarded:true,theme,unit:'lb',skin:'minimal',mascotMotion:'animated',clubAvatar:'roller'}};loadedOK=true;settingsBaseline();session={user:{id:'coin-fixture',created_at:'2026-07-13'}};clubMembershipCache.set(clubMembershipKey(),{member_no:'0',joined_at:'2026-07-13'});document.querySelector('#onb')?.remove();SEED=deriveAll();view='sync';lastView=null;applyTheme();render();},theme);
