@@ -11,7 +11,13 @@ const {chromium}=require('playwright'),assert=require('assert'),path=require('pa
   const geometry=await page.evaluate(()=>{const a=document.querySelector('.club-brand>img').getBoundingClientRect(),b=document.querySelector('[data-club-coin]').getBoundingClientRect();return {delta:Math.abs(a.y+a.height/2-b.y-b.height/2),size:b.width,overflow:document.documentElement.scrollWidth>innerWidth,font:getComputedStyle(document.querySelector('.club-coin-number>span')).fontFamily,weight:getComputedStyle(document.querySelector('.club-coin-number>span')).fontWeight}});
   assert(geometry.delta<1);assert(geometry.size>=44);assert(!geometry.overflow);assert(geometry.font.includes('IBM Plex Sans'));assert.equal(geometry.weight,'700');
   const before=await page.evaluate(()=>JSON.stringify(DB));
+  const idleStart=Number(await coin.getAttribute('data-angle'));await page.waitForTimeout(500);const idleEnd=Number(await coin.getAttribute('data-angle'));assert(idleEnd>idleStart+2&&idleEnd<idleStart+12,'slow unattended rotation');
+  assert((await coin.locator('.club-coin-face').first().evaluate(e=>getComputedStyle(e).clipPath)).startsWith('circle('),'circular clip contains shimmer');
+  assert.notEqual(await coin.evaluate(e=>getComputedStyle(e,'::before').filter),'none','soft shadow beneath coin');
+  await coin.evaluate(e=>e.style.top='2000px');await page.waitForTimeout(200);const paused=await coin.getAttribute('data-angle');await page.waitForTimeout(200);assert.equal(await coin.getAttribute('data-angle'),paused,'offscreen coin pauses');
+  await coin.evaluate(e=>e.style.top='');await page.waitForTimeout(500);assert(Number(await coin.getAttribute('data-angle'))>Number(paused),'visible coin resumes idle turn');
   await page.emulateMedia({reducedMotion:'reduce'});await coin.click();assert.equal(await coin.getAttribute('data-angle'),'180');
+  await page.waitForTimeout(200);assert.equal(await coin.getAttribute('data-angle'),'180','reduced motion stops idle spin');
   assert.equal(await coin.locator('.club-coin-rotor').evaluate(e=>getComputedStyle(e).transformStyle),'preserve-3d');
   assert.equal(await coin.locator('.club-coin-back img').getAttribute('src'),'assets/showuppp-wordmark-light.svg');
   if(process.env.PW_SHOTS&&width===393)await page.screenshot({path:path.join(process.env.PW_SHOTS,'coin-back-'+theme+'.png'),fullPage:true});

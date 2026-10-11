@@ -280,25 +280,27 @@ let clubCoinDispose=()=>{};
 function clubBindCoin(){
   clubCoinDispose();const el=document.querySelector('[data-club-coin]');if(!el)return;
   const rotor=el.querySelector('.club-coin-rotor'),media=matchMedia('(prefers-reduced-motion: reduce)');
-  let angle=0,speed=0,frame=0,lastFrame=0,drag=false,lastX=0,lastTime=0,travel=0,suppressClick=false,visible=true;
+  let angle=0,speed=0,frame=0,lastFrame=0,drag=false,lastX=0,lastTime=0,travel=0,suppressClick=false,visible=true,idle=true;
   const still=()=>media.matches||(typeof mascotMode==='function'&&mascotMode()!=='animated');
   function paint(){rotor.style.transform=`rotateY(${angle}deg)`;el.dataset.angle=String(angle);el.style.setProperty('--coin-light',`${125+Math.sin(angle*Math.PI/180)*60}deg`);el.style.setProperty('--coin-reflection',`${Math.sin(angle*Math.PI/180)*55}%`);}
   function stop(){cancelAnimationFrame(frame);frame=0;speed=0;drag=false;angle=Math.round(angle/180)*180;paint();}
-  function tick(now){frame=0;if(!el.isConnected||document.hidden||!visible){stop();return;}const dt=Math.min(32,now-lastFrame);lastFrame=now;
+  function tick(now){frame=0;if(!el.isConnected||document.hidden||!visible||still()){stop();return;}const dt=Math.min(32,now-lastFrame);lastFrame=now;
+    if(idle){angle+=.015*dt;paint();frame=requestAnimationFrame(tick);return;}
     angle+=speed*dt;speed*=Math.pow(.975,dt/16.67);
-    if(Math.abs(speed)<.012){const target=Math.round(angle/180)*180;angle+=(target-angle)*Math.min(1,dt/110);if(Math.abs(target-angle)<.1){angle=target;paint();return;}}
+    if(Math.abs(speed)<.012){const target=Math.round(angle/180)*180;angle+=(target-angle)*Math.min(1,dt/110);if(Math.abs(target-angle)<.1){angle=target;idle=true;}}
     paint();frame=requestAnimationFrame(tick);
   }
   function start(){if(still()){stop();return;}if(!frame){lastFrame=performance.now();frame=requestAnimationFrame(tick);}}
-  el.addEventListener('pointerdown',e=>{if(e.isPrimary===false||e.button>0)return;cancelAnimationFrame(frame);frame=0;drag=true;speed=0;travel=0;suppressClick=false;lastX=e.clientX;lastTime=performance.now();el.setPointerCapture(e.pointerId);});
+  el.addEventListener('pointerdown',e=>{if(e.isPrimary===false||e.button>0)return;cancelAnimationFrame(frame);frame=0;idle=false;drag=true;speed=0;travel=0;suppressClick=false;lastX=e.clientX;lastTime=performance.now();el.setPointerCapture(e.pointerId);});
   el.addEventListener('pointermove',e=>{if(!drag)return;const now=performance.now(),dx=e.clientX-lastX,dt=Math.max(8,now-lastTime);travel+=Math.abs(dx);angle+=dx*2;speed=Math.max(-3.5,Math.min(3.5,.45*speed+.55*dx*2/dt));lastX=e.clientX;lastTime=now;paint();});
   function release(cancelled=false){if(!drag)return;drag=false;suppressClick=travel>4||cancelled;if(cancelled||performance.now()-lastTime>100)speed=0;if(suppressClick)start();}
   el.addEventListener('pointerup',()=>release());el.addEventListener('pointercancel',()=>release(true));el.addEventListener('lostpointercapture',()=>release(true));
-  el.addEventListener('click',()=>{if(suppressClick){suppressClick=false;return;}if(still()){angle=Math.round(angle/180)*180+180;paint();}else{speed=.28;start();}});
-  el.addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();const dir=e.key==='ArrowLeft'?-1:1;if(still()){angle=Math.round(angle/180)*180+dir*180;paint();}else{speed=dir*.28;start();}}});
-  const visibility=()=>{if(document.hidden)stop();};document.addEventListener('visibilitychange',visibility);media.addEventListener('change',stop);
-  const observer=typeof IntersectionObserver==='undefined'?null:new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;el.classList.toggle('club-coin-visible',visible);if(!visible)stop();});observer?.observe(el);el.classList.add('club-coin-visible');
-  clubCoinDispose=()=>{stop();observer?.disconnect();document.removeEventListener('visibilitychange',visibility);media.removeEventListener?.('change',stop);};paint();
+  el.addEventListener('click',()=>{if(suppressClick){suppressClick=false;return;}idle=false;if(still()){angle=Math.round(angle/180)*180+180;paint();}else{speed=.28;start();}});
+  el.addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();idle=false;const dir=e.key==='ArrowLeft'?-1:1;if(still()){angle=Math.round(angle/180)*180+dir*180;paint();}else{speed=dir*.28;start();}}});
+  const resume=()=>{if(document.hidden||!visible||still())stop();else if(!drag){idle=true;start();}};
+  document.addEventListener('visibilitychange',resume);media.addEventListener('change',resume);
+  const observer=typeof IntersectionObserver==='undefined'?null:new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;el.classList.toggle('club-coin-visible',visible);resume();});observer?.observe(el);el.classList.add('club-coin-visible');
+  clubCoinDispose=()=>{stop();observer?.disconnect();document.removeEventListener('visibilitychange',resume);media.removeEventListener?.('change',resume);};paint();resume();
 }
 function clubCardHTML(){
   const avatar=clubAvatar(),user=session?.user,{number:displayNumber,since,reference}=clubMembershipFacts();

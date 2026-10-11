@@ -539,10 +539,11 @@ p.pw-small{margin:10px 0 16px}.pw-workspace p:not(.pw-small){font:400 14px/1.6 v
 .club-brand>.club-coin-button{position:relative;display:block;flex:0 0 60px;width:60px;height:60px;min-height:60px;padding:0;border:0;border-radius:50%;background:none;perspective:500px;touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:grab;isolation:auto;overflow:visible}
 .club-coin-button{--coin-light:125deg;--coin-reflection:0%;--depth:0px}
 .club-coin-button:active{cursor:grabbing}
+.club-coin-button:before{content:'';position:absolute;left:17%;right:17%;bottom:-5px;height:7px;border-radius:50%;background:#0003;filter:blur(3px);pointer-events:none}
 .club-coin-rotor{position:absolute;inset:0;display:block;transform-style:preserve-3d;transform:rotateY(0deg)}
 .club-coin-face,.club-coin-rim{position:absolute;inset:0;display:block;border-radius:50%;background:linear-gradient(var(--coin-light,125deg),#626b75,#dce2e8 20%,#fff 29%,#9ba4ae 44%,#e4e9ee 62%,#fafcff 76%,#7d8791);border:1px solid #dde3e9;box-shadow:inset 0 0 0 1px #9aa3ad,inset 0 0 0 2px #eef3f8}
 .club-coin-rim{transform:translateZ(var(--depth));background:linear-gradient(var(--coin-light,125deg),#4d5863,#f1f6fb 35%,#78838d 65%,#d1dbe5)}
-.club-coin-face{backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden;transform:translateZ(2.5px)}
+.club-coin-face{backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden;clip-path:circle(50% at 50% 50%);transform:translateZ(2.5px)}
 .club-coin-back{transform:rotateY(180deg) translateZ(2.5px);container-type:inline-size}
 .club-brand .club-coin-front img{position:absolute;inset:-7%;width:114%;height:114%;max-width:none;filter:grayscale(1) contrast(4);mix-blend-mode:multiply;pointer-events:none}
 .club-brand .club-coin-back .club-coin-wordmark{position:absolute;left:26%;top:25%;width:48%;height:31%;object-fit:contain;pointer-events:none}

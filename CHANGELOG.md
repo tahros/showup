@@ -1,5 +1,10 @@
 # ShowUppp — changelog
 
+## v4.6.265 (2026-10-11) — A little more life in the coin
+
+- The club coin turns slowly on its own, with a soft shadow underneath. Swipes still control its spin before it returns to the gentle idle turn.
+- Keeps the shine inside the circular coin faces, including while turning. Reduced motion and Still/Off preferences stop automatic rotation; hidden coins pause too.
+
 ## v4.6.264 (2026-10-11) — Your club coin
 
 - Refines the Settings membership card with the approved Option A layout: a quiet MEMBER Nº label before the spaced number, balanced date/day columns, and vertically centered brand marks.

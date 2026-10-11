@@ -52,7 +52,10 @@ encoding of the approved seal; it is cached offline and included in the OTA bund
 
 Tap/Enter/Space flips; horizontal pointer drag turns either way, and release
 velocity controls inertial spin. Arrow keys turn either way. Vertical swipes can
-still scroll. It stays upright, snaps to a readable face, and does not auto-spin.
+still scroll. It stays upright, settles after a flick, then resumes a slow idle
+turn (one revolution per 24 seconds). Idle motion pauses offscreen or when hidden.
+Each face is explicitly circle-clipped to contain its shine. A separate soft
+shadow sits underneath without flattening the 3D rotor.
 Moving reflections and a quiet three-second shine use CSS layers, not WebGL.
 Reduced motion / Mascot Still or Off skips momentum and automatic shine, while
 keeping instantaneous flips available. Hidden/offscreen/detached coins stop.
