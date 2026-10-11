@@ -30,8 +30,8 @@
    Settings. */
 const PAYWALL_ON=false;                      // flip on launch day (spec 6.7)
 const TRIAL_DAYS=20, GRACE_MS=7*864e5;
-const MB_PRICES=[{plan:'yearly',label:'Yearly',price:'$29.99',per:'a year',note:'$2.50 a month'},
-                 {plan:'monthly',label:'Monthly',price:'$4.99',per:'a month',note:''}];
+const MB_PRICES=[{plan:'yearly',label:'Yearly',price:'$29.99',per:'a year',note:'$2.50 a month, billed yearly',badge:'Save 50%'},
+                 {plan:'monthly',label:'Monthly',price:'$4.99',per:'a month',note:'Cancel anytime'}];
 const MB_TERMS='https://www.apple.com/legal/internet-services/itunes/dev/stdeula/';
 const mbGet=k=>{try{return localStorage.getItem(k);}catch(e){return null;}};
 const mbSet=(k,v)=>{try{localStorage.setItem(k,v);}catch(e){}};
@@ -79,27 +79,41 @@ function paywallOpen(why){
   if(mbGet('showup:ev-paywall')!==todayISO){ mbSet('showup:ev-paywall',todayISO); if(typeof mTrack==='function') mTrack('paywall_seen'); }
 }
 function paywallClose(){ document.getElementById('paywall')?.remove(); }
+/* v4.6.278: the coin is a member's. The paywall shows it as what membership adds; Settings shows
+   it only to members (founding or entitled). */
+function isMember(){ return memberFounding()||memberEntitled(); }
+function mbBuyLabel(plan){ const p=MB_PRICES.find(x=>x.plan===plan)||MB_PRICES[0]; return `Continue · ${p.price} ${p.per}`; }
 function paywallHTML(){
   const days=Object.keys(DB.days||{}).filter(d=>(DB.days[d].w||[]).length).sort();
   const first=days.slice(0,TRIAL_DAYS);
-  const squares=first.map(d=>`<i title="${d}"></i>`).join('');
+  const squares=first.map((d,i)=>`<i title="${d}" style="--i:${i}"></i>`).join('');
   const since=first.length?new Date(first[0]+'T12:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}):'';
-  const opts=MB_PRICES.map(p=>`<button type="button" class="mb-opt" data-mb-plan="${p.plan}" aria-pressed="${_mbPick===p.plan}">
-      <span class="mb-opt-l">${p.label}${p.note?`<small>${p.note}</small>`:''}</span><span class="mb-opt-p"><b>${p.price}</b> ${p.per}</span></button>`).join('');
+  const num=typeof clubMembershipFacts==='function'?String(clubMembershipFacts().number).replace(/,/g,''):'';
+  const coin=typeof clubCoinHTML==='function'?`<div class="club-brand mb-coin" aria-hidden="true">${clubCoinHTML(num)}</div>`:'';
+  const opts=MB_PRICES.map(p=>`<button type="button" class="mb-opt" data-mb-plan="${p.plan}" aria-pressed="${_mbPick===p.plan}">${p.badge?`<span class="mb-badge">${p.badge}</span>`:''}<span class="mb-rd" aria-hidden="true"></span>
+      <span class="mb-opt-l">${p.label}${p.note?`<small>${p.note}</small>`:''}</span><span class="mb-opt-p"><b>${p.price}</b><small>${p.per}</small></span></button>`).join('');
   return `<div class="mb-card">
-    <div class="mb-grid" aria-label="${first.length} logged days">${squares}</div>
-    <p class="mb-since">${days.length} days logged${since?' since '+since:''}</p>
-    <h2 id="pwTitle">Twenty days on the record.</h2>
-    <p class="mb-line">Everything you logged stays yours: history, editing and export are free, always. Starting a new day and the plan writer are part of membership.</p>
+    <div class="mb-top"><span class="mb-kick">ShowUppp Member</span><button type="button" class="mb-x" data-mb-later>Not now</button></div>
+    <div class="mb-hero">${coin}<div><div class="mb-grid" aria-label="${first.length} logged days">${squares}</div>
+    <p class="mb-since">${days.length} days logged${since?' since '+since:''}</p></div></div>
+    <h2 id="pwTitle">Twenty days.<br>You’re a regular now.</h2>
+    <p class="mb-line">Membership keeps every new day open.</p>
+    <ul class="mb-gets">
+      <li><span class="mb-ic">＋</span><span>Log every new day<small>Day 21 and every day after.</small></span></li>
+      <li><span class="mb-ic">✦</span><span>The plan writer<small>Plans built from your own record.</small></span></li>
+      <li><span class="mb-ic mb-ic-coin" aria-hidden="true"></span><span>Your member coin<small>With your number, in Settings.</small></span></li>
+      <li class="mb-free"><span class="mb-ic">✓</span><span>Free for everyone<small>History, editing and export are free, always. Your record stays yours.</small></span></li>
+    </ul>
     <div class="mb-opts" role="group" aria-label="Membership">${opts}</div>
-    <button type="button" class="btn mb-buy" data-mb-buy>Become a member</button>
-    <div class="mb-links"><button type="button" class="btn ghost" data-mb-export>Export my data</button><button type="button" class="btn ghost" data-mb-restore>Restore purchases</button><button type="button" class="btn ghost mb-later" data-mb-later>Not now</button></div>
+    <button type="button" class="btn mb-buy" data-mb-buy><span>${mbBuyLabel(_mbPick)}</span></button>
+    <p class="mb-cancel">Cancel anytime in your Apple ID settings.</p>
+    <div class="mb-links"><button type="button" class="mb-link" data-mb-export>Export my data</button><button type="button" class="mb-link" data-mb-restore>Restore purchases</button></div>
     <p class="mb-fine">Payment is charged to your Apple ID. Membership renews automatically unless cancelled at least 24 hours before the end of the period; manage or cancel it in Settings → your name → Subscriptions. <a href="${MB_TERMS}" target="_blank" rel="noopener">Terms of Use</a> · <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a></p>
   </div>`;
 }
 function paywallClick(e){
   const b=e.target.closest('button'); if(!b) return;
-  if(b.dataset.mbPlan){ _mbPick=b.dataset.mbPlan; document.querySelectorAll('#paywall [data-mb-plan]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.mbPlan===_mbPick)); return; }
+  if(b.dataset.mbPlan){ _mbPick=b.dataset.mbPlan; document.querySelectorAll('#paywall [data-mb-plan]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.mbPlan===_mbPick)); const l=document.querySelector('#paywall .mb-buy span'); if(l){ l.textContent=mbBuyLabel(_mbPick); l.classList.remove('mb-swap'); void l.offsetWidth; l.classList.add('mb-swap'); } return; }
   if(b.hasAttribute('data-mb-later')){ paywallClose(); return; }
   if(b.hasAttribute('data-mb-export')){
     dlFile('showup-backup-'+todayISO+'.json','application/json',JSON.stringify({app:'showup',v:APP_VERSION,exported:new Date().toISOString(),doc:DB}));
@@ -113,6 +127,14 @@ function paywallClick(e){
 async function memberBuy(plan){ toast('Membership opens with the App Store version.'); return 'unavailable'; }
 async function memberRestore(){ toast('Nothing to restore yet.'); return 'unavailable'; }
 
+/* v4.6.278: the free days, on Today (Sungjee's call, 2026-10-11: visible, not Settings only). It counts
+   UP in your own squares -- no "days left", no urgency. Non-members during and after the trial only. */
+function trialCardHTML(){
+  if(!paywallLive()||isMember()) return '';
+  const n=Math.min(loggedDays(),TRIAL_DAYS),sq=Array.from({length:TRIAL_DAYS},(_,i)=>`<i class="${i<n?'on':''}"></i>`).join('');
+  const sub=n<TRIAL_DAYS?'Every day you log counts. Nothing else does.':'Your record stays yours. <button type="button" class="linkbtn" data-mb-open>Membership</button>';
+  return `<div class="mb-trial" id="mbTrial"><div class="mb-trial-g" aria-hidden="true">${sq}</div><div class="mb-trial-t">${n} of ${TRIAL_DAYS} free days<small>${sub}</small></div></div>`;
+}
 /* ---- the one Settings row (never elsewhere: no countdown, no badge) ---- */
 function membershipRowHTML(){
   if(!paywallLive()) return '';
@@ -127,24 +149,60 @@ document.addEventListener('click',e=>{ if(e.target.closest&&e.target.closest('[d
 
 (function(){
   const s=document.createElement('style');s.id='mbStyle';
-  s.textContent=`#paywall{position:fixed;inset:0;z-index:8500;overflow:auto;background:var(--ground);color:var(--chalk);display:flex;justify-content:center;align-items:flex-start;padding:calc(env(safe-area-inset-top) + 40px) 22px calc(env(safe-area-inset-bottom) + 28px)}
+  s.textContent=`#paywall{position:fixed;inset:0;z-index:8500;overflow:auto;background:var(--ground);color:var(--chalk);display:flex;justify-content:center;align-items:flex-start;padding:calc(env(safe-area-inset-top) + 22px) 22px calc(env(safe-area-inset-bottom) + 28px);animation:mbUp .55s cubic-bezier(.3,1.6,.5,1) both}
 #paywall .mb-card{width:100%;max-width:420px}
-#paywall .mb-grid{display:grid;grid-template-columns:repeat(10,1fr);gap:6px;max-width:260px}
-#paywall .mb-grid i{aspect-ratio:1;border-radius:4px;background:var(--accent)}
-#paywall .mb-since{font:400 12px var(--mono);color:var(--muted);margin:10px 0 26px}
-#paywall h2{font:600 26px/1.2 var(--body);letter-spacing:-.4px;margin:0 0 10px;text-transform:none;color:var(--chalk);opacity:1;display:block}
+#paywall .mb-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
+#paywall .mb-kick{font:700 12px/1 var(--mono);letter-spacing:2px;text-transform:uppercase;color:var(--muted)}
+#paywall .mb-x{all:unset;cursor:pointer;font:600 15px var(--body);color:var(--muted);padding:8px 2px}
+#paywall .mb-hero{display:flex;align-items:center;gap:18px;margin-bottom:22px}
+#paywall .mb-coin{flex:none;width:84px;height:84px;display:block;margin:0}
+#paywall .mb-coin>.club-coin-button{position:relative;display:block;width:84px;height:84px;padding:0;border:0;border-radius:50%;background:none;perspective:500px;pointer-events:none}
+#paywall .mb-coin .club-coin-rotor{animation:mbCoinIn 1.2s cubic-bezier(.3,1.6,.5,1) .15s both,mbCoinTurn 9s linear 1.35s infinite}
+#paywall .mb-grid{display:grid;grid-template-columns:repeat(10,1fr);gap:5px;width:100%;max-width:230px}
+#paywall .mb-grid i{aspect-ratio:1;border-radius:4px;background:var(--accent);animation:mbPop .45s cubic-bezier(.3,1.6,.5,1) both;animation-delay:calc(var(--i,0)*35ms + 300ms)}
+#paywall .mb-since{font:400 12px var(--mono);color:var(--muted);margin:10px 0 0}
+#paywall h2{font:700 30px/1.15 var(--body);letter-spacing:-.6px;margin:0 0 8px;text-transform:none;color:var(--chalk);opacity:1;display:block}
 #paywall h2::after{display:none}
-#paywall .mb-line{font:400 15px/1.55 var(--body);color:var(--muted);margin:0 0 22px}
-#paywall .mb-opts{display:grid;gap:10px}
-#paywall .mb-opt{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;text-align:left;border:1.5px solid var(--line);background:var(--surface);color:var(--chalk);border-radius:14px;padding:14px 16px;font:500 15px var(--body);cursor:pointer;min-height:56px}
-#paywall .mb-opt[aria-pressed=true]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
-#paywall .mb-opt small{display:block;font:400 12px var(--body);color:var(--muted);margin-top:2px}
-#paywall .mb-opt-p{color:var(--muted);font-size:14px;white-space:nowrap}#paywall .mb-opt-p b{color:var(--chalk);font-weight:600;font-size:16px}
-#paywall .mb-buy{width:100%;margin:18px 0 8px;font:600 16px var(--body);min-height:52px}
-#paywall .mb-links{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-#paywall .mb-links .btn{width:100%;margin:0;padding:12px 10px;min-height:48px;font:500 14px var(--body);color:var(--chalk);background:var(--surface);border:1px solid var(--line);border-radius:12px;display:flex;align-items:center;justify-content:center}
-#paywall .mb-links .mb-later{grid-column:1/-1;background:none;color:var(--muted)}
-#paywall .mb-fine{font:400 11px/1.5 var(--body);color:var(--faint);margin:18px 0 0}#paywall .mb-fine a{color:var(--muted)}
+#paywall .mb-line{font:400 16px/1.45 var(--body);color:var(--muted);margin:0 0 20px}
+#paywall .mb-gets{list-style:none;margin:0 0 22px;padding:0;display:grid;gap:12px}
+#paywall .mb-gets li{display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:start;font:500 15.5px/1.35 var(--body);color:var(--chalk)}
+#paywall .mb-gets small{display:block;font:400 13.5px/1.35 var(--body);color:var(--muted);margin-top:2px}
+#paywall .mb-ic{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent);font:700 14px var(--body)}
+#paywall .mb-ic-coin{background:linear-gradient(135deg,#c8d0d6,#8c99a4 55%,#dfe5e9);border-radius:50%;box-shadow:inset 0 0 0 1.5px #eef3f8,inset 0 0 0 2.5px #9aa3ad}
+#paywall .mb-free .mb-ic{background:var(--surface2);color:var(--muted)}
+#paywall .mb-opts{display:grid;gap:10px;margin-bottom:14px}
+#paywall .mb-opt{position:relative;display:grid;grid-template-columns:20px 1fr auto;gap:12px;align-items:center;width:100%;text-align:left;padding:16px;border-radius:16px;border:2px solid var(--line);background:var(--surface);color:var(--chalk);font:inherit;cursor:pointer;transition:border-color .2s,background .2s,transform .15s}
+#paywall .mb-opt:active{transform:scale(.98)}
+#paywall .mb-opt[aria-pressed=true]{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 7%,var(--surface))}
+#paywall .mb-rd{width:20px;height:20px;border-radius:50%;border:2px solid var(--line);box-sizing:border-box;transition:border-width .25s cubic-bezier(.3,1.6,.5,1),border-color .2s}
+#paywall .mb-opt[aria-pressed=true] .mb-rd{border:6px solid var(--accent)}
+#paywall .mb-opt-l{font:700 16.5px/1.2 var(--body)}
+#paywall .mb-opt small{display:block;font:400 13px/1.3 var(--body);color:var(--muted);margin-top:3px}
+#paywall .mb-opt-p{text-align:right;white-space:nowrap}#paywall .mb-opt-p b{font:700 17px/1.2 var(--body);color:var(--chalk)}
+#paywall .mb-badge{position:absolute;top:-10px;right:14px;background:var(--accent);color:#fff;font:700 11px/1 var(--body);letter-spacing:.4px;padding:5px 9px;border-radius:999px;text-transform:uppercase;animation:mbBadge .5s cubic-bezier(.3,1.6,.5,1) 2.2s both}
+#paywall .mb-buy{width:100%;margin:0;min-height:56px;border-radius:16px;font:700 17px var(--body)}
+#paywall .mb-buy span{display:inline-block}#paywall .mb-buy span.mb-swap{animation:mbSwap .3s ease-out}
+#paywall .mb-cancel{text-align:center;font:400 13px/1.4 var(--body);color:var(--muted);margin:10px 0 16px}
+#paywall .mb-links{display:flex;justify-content:center;gap:22px;margin-bottom:16px}
+#paywall .mb-link{all:unset;cursor:pointer;font:600 14px var(--body);color:var(--chalk);padding:6px 2px}
+#paywall .mb-fine{font:400 11px/1.5 var(--body);color:var(--faint);margin:0;text-align:center}#paywall .mb-fine a{color:var(--muted)}
+#paywall .mb-top,#paywall .mb-since,#paywall h2,#paywall .mb-line,#paywall .mb-gets li,#paywall .mb-opt,#paywall .mb-buy,#paywall .mb-cancel,#paywall .mb-links,#paywall .mb-fine{animation:mbRise .5s ease-out both}
+#paywall .mb-top{animation-delay:.1s}#paywall .mb-since{animation-delay:1.05s}#paywall h2{animation-delay:1.15s}#paywall .mb-line{animation-delay:1.3s}
+#paywall .mb-gets li:nth-child(1){animation-delay:1.4s}#paywall .mb-gets li:nth-child(2){animation-delay:1.5s}#paywall .mb-gets li:nth-child(3){animation-delay:1.6s}#paywall .mb-gets li:nth-child(4){animation-delay:1.7s}
+#paywall .mb-opt:nth-child(1){animation-delay:1.8s}#paywall .mb-opt:nth-child(2){animation-delay:1.9s}#paywall .mb-buy{animation-delay:2.05s}#paywall .mb-cancel,#paywall .mb-links,#paywall .mb-fine{animation-delay:2.15s}
+@keyframes mbUp{from{transform:translateY(100%)}to{transform:none}}
+@keyframes mbRise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes mbPop{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:none}}
+@keyframes mbBadge{from{opacity:0;transform:scale(.5) rotate(-8deg)}to{opacity:1;transform:none}}
+@keyframes mbSwap{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes mbCoinIn{from{opacity:0;transform:translateY(-30px) rotateY(-540deg)}to{opacity:1;transform:rotateY(0)}}
+@keyframes mbCoinTurn{from{transform:rotateY(0)}to{transform:rotateY(360deg)}}
+@media (prefers-reduced-motion:reduce){#paywall,#paywall *{animation:none!important}}
+.mb-trial{display:flex;align-items:center;gap:14px;margin:0 0 16px;padding:12px 16px;border-radius:16px;background:var(--surface)}
+.mb-trial-g{display:grid;grid-template-columns:repeat(10,9px);grid-auto-rows:9px;gap:3px;flex:none}
+.mb-trial-g i{border-radius:2.5px;background:var(--line);opacity:.55}.mb-trial-g i.on{background:var(--accent);opacity:1}
+.mb-trial-t{font:600 14px/1.3 var(--body);color:var(--chalk)}.mb-trial-t small{display:block;font:400 12px/1.35 var(--mono);color:var(--muted);margin-top:2px}
+.mb-trial .linkbtn{border:0;background:none;color:var(--accent);font:600 12px var(--body);padding:0;cursor:pointer}
 .mb-row{font-size:12px;color:var(--muted);margin:2px 0 10px;text-align:center}.mb-row .linkbtn{border:0;background:none;color:var(--accent-ink);font:inherit;padding:0;cursor:pointer}`;
   document.head.appendChild(s);
 })();

@@ -1,5 +1,18 @@
 # ShowUppp — changelog
 
+## v4.6.278 — The coin is a member's; the Subscribe screen; free days on Today
+
+- **Got it on every tip.** All three first-set tips now have Got it, which closes that tip; the next still shows when you reach it. The set-screen tip reads "Swipe for reps, then tap Add set."
+- **The coin is for members only.** Settings shows the club coin to members (founding or paying) and leaves it out for everyone else. Non-members' number reads **No** instead of **MEMBER No**. Before launch every record with a logged day is a founding member, so current users keep their coins.
+- **A new Subscribe screen** (still behind the paywall switch, off until launch). It slides up at the first set on day 21:
+  - your coin drops in spinning and keeps turning, beside your 20 squares, which pop in one by one;
+  - "Twenty days. You're a regular now." with what membership adds (every new day, the plan writer, your member coin) and what is free for everyone (history, editing, export);
+  - Yearly first and chosen, $29.99 ($2.50 a month, Save 50%), then Monthly $4.99; the button names the price and changes with the pick;
+  - Not now, Export my data, Restore purchases and Apple's terms are always on it. Motion only on open; Reduce Motion turns it off.
+- **Free days on Today** (Sungjee's call: visible, not Settings only). Non-members see a small card under the greeting: 20 squares filling as they log, "7 of 20 free days · Every day you log counts. Nothing else does." At 20 it reads "Your record stays yours" with a Membership link. It counts up; no "days left". Members never see it.
+- Prices unchanged: $4.99 a month, $29.99 a year.
+- Tests: test-membership gains the coin, the "No" label, the Today card, the paywall coin and the price relabel (each confirmed red with the gate broken). check-club-coin: the fixture is a founding member, and two stale zero-padded number expectations from v4.6.273 now read the unpadded number.
+
 ## v4.6.277 — First-set tips
 
 - A new user now gets three short tips, each one when it's needed and never again:

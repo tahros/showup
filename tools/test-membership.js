@@ -89,7 +89,7 @@ async function trainLog(b){
    await trainLog(b);
    ok('paywall_seen: once a day, however often it shows', b.q().filter(e=>e.name==='paywall_seen').length===1 && b.wall());
    const t=b.d.getElementById('paywall').textContent;
-   ok('the paywall shows your own days and says what stays free', b.d.querySelectorAll('#paywall .mb-grid i').length===20 && /history, editing and export are free, always/.test(t), t.slice(0,160));
+   ok('the paywall shows your own days and says what stays free', b.d.querySelectorAll('#paywall .mb-grid i').length===20 && /history, editing and export are free, always/i.test(t), t.slice(0,160));
    ok('yearly first, then monthly, yearly chosen', /Yearly[\s\S]*\$29\.99[\s\S]*Monthly[\s\S]*\$4\.99/.test(t) && b.d.querySelector('[data-mb-plan="yearly"]').getAttribute('aria-pressed')==='true');
    ok('Apple\'s subscription terms and both links are on it', /renews automatically/.test(t) && !!b.d.querySelector('#paywall a[href*="stdeula"]') && !!b.d.querySelector('#paywall a[href="privacy.html"]'));
    ok('no countdown, no urgency words', !/left!|hurry|only \d+ days|expires in/i.test(t));
@@ -144,6 +144,37 @@ async function trainLog(b){
    ok('7. expired 8 days ago: past grace, the paywall returns', b.run('memberEntitled()')===false && (await trainLog(b),b.wall()));
  }
  /* the owner's preview */
+ /* v4.6.278: the coin is a member's; the free days show on Today for non-members; the paywall shows the coin */
+ { const b=await boot({live:true,days:record(7)});
+   b.run(`session={user:{id:'u1',email:'a@b.co',created_at:'2026-09-01T00:00:00Z'}};view='sync';render();`);
+   ok('a non-member: no coin in Settings', !b.d.querySelector('.club-card [data-club-coin]'));
+   ok('a non-member: the number reads "No", not "MEMBER No"', /^No$/.test((b.d.querySelector('.club-member-label')?.textContent||'').trim()), b.d.querySelector('.club-member-label')?.textContent);
+   b.run(`view='today';render();`);
+   const c=b.d.getElementById('mbTrial');
+   ok('a non-member: Today shows "7 of 20 free days" in squares', !!c && /7 of 20 free days/.test(c.textContent) && c.querySelectorAll('.mb-trial-g i.on').length===7 && c.querySelectorAll('.mb-trial-g i').length===20, c?.textContent);
+   ok('...and counts up, no "left"', !/left|remaining|hurry/i.test(c?.textContent||''));
+ }
+ { const b=await boot({live:true,days:record(20)});
+   b.run(`view='today';render();`);
+   ok('after the trial, the Today card offers Membership', /20 of 20 free days/.test(b.d.getElementById('mbTrial')?.textContent||'') && !!b.d.querySelector('#mbTrial [data-mb-open]'));
+   b.run(`paywallOpen('test')`);
+   ok('the paywall shows the coin and says what membership adds', !!b.d.querySelector('#paywall .mb-coin [data-club-coin]') && /Your member coin/.test(b.d.getElementById('paywall').textContent));
+   b.click('[data-mb-plan="monthly"]');
+   ok('picking Monthly relabels the button', /Continue · \$4\.99 a month/.test(b.d.querySelector('#paywall .mb-buy').textContent));
+   b.click('[data-mb-plan="yearly"]');
+   ok('picking Yearly relabels it back; yearly shows Save 50%', /Continue · \$29\.99 a year/.test(b.d.querySelector('#paywall .mb-buy').textContent) && /Save 50%/.test(b.d.getElementById('paywall').textContent));
+   b.click('[data-mb-later]');
+ }
+ { const b=await boot({live:true,days:record(7),settings:{founding:'2026-09-26'}});
+   b.run(`session={user:{id:'u1',email:'a@b.co',created_at:'2026-09-01T00:00:00Z'}};view='sync';render();`);
+   ok('a founding member: the coin and "MEMBER No"', !!b.d.querySelector('.club-card [data-club-coin]') && /MEMBER/.test(b.d.querySelector('.club-member-label')?.textContent||''));
+   b.run(`view='today';render();`);
+   ok('a founding member: no free-days card', !b.d.getElementById('mbTrial'));
+ }
+ { const b=await boot({days:record(7)});
+   b.run(`view='today';render();`);
+   ok('flag off: no free-days card for anyone', !b.d.getElementById('mbTrial'));
+ }
  { const b=await boot({preview:true,days:record(40),settings:{founding:'2026-09-26'}});
    ok('preview (flag off): acts as a new user on this device, founding ignored', await trainLog(b)==='clicked' && b.wall() && b.today()===0);
  }

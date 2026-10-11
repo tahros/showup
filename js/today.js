@@ -434,7 +434,7 @@ function focusedTodayHTML(){
   const next=nextPlanItem(),sets=items.reduce((n,it)=>n+(it.lines||[]).reduce((s,l)=>s+(l.reps||[]).length,0),0);
   const future=[...new Set([...(DB.plan?.d>todayISO?[DB.plan.d]:[]),...Object.keys(DB.week?.days||{}).filter(d=>d>todayISO)])].filter(d=>pwSaved(d)?.items?.length).sort();
   const parts=items.length?pwParts(pwRead(planText(now))).map(partLabel).join(' + '):'';
-  let h=`<section class="today-focus"><div class="su-hello-row">${fresh?'<div class="hello"><span class="hi">Welcome to ShowUppp.</span></div>':helloCard()}${mascotHTML('hello')}</div><div class="card today-focus-card"><div class="today-focus-kicker">${items.length?'Today’s workout':'Today'}</div>${items.length?'':`<h3>${fresh?'Start with one set.':'What’s today’s workout?'}</h3>`}`;
+  let h=`<section class="today-focus"><div class="su-hello-row">${fresh?'<div class="hello"><span class="hi">Welcome to ShowUppp.</span></div>':helloCard()}${mascotHTML('hello')}</div>${typeof trialCardHTML==='function'?trialCardHTML():''}<div class="card today-focus-card"><div class="today-focus-kicker">${items.length?'Today’s workout':'Today'}</div>${items.length?'':`<h3>${fresh?'Start with one set.':'What’s today’s workout?'}</h3>`}`;
   if(items.length){
     h+=`<details class="today-focus-plan" data-pw-fold="focus:${todayISO}" ${pwFoldOpen('focus:'+todayISO)?'open':'' }><summary><div class="today-focus-title"><h3>${hesc(parts||'Your workout')}</h3>${icon('chevron',ICON_SZ.md)}</div><div class="mono muted today-focus-meta">${sets} ${sets===1?'set':'sets'} · ${items.length} ${items.length===1?'exercise':'exercises'}</div></summary><div class="today-focus-plan-content">${planCardHTML(now,false)}</div></details><div class="today-focus-next"><div><small>Run first</small><b>Run</b></div><button class="btn" data-ex="Run" data-part="Run">Start →</button></div>`;
   }else h+=`<p class="today-focus-copy">Choose an exercise and log what you do.${fresh?' No plan needed.':''}</p><button class="btn" id="goLift">Choose exercise →</button>`;
@@ -510,7 +510,7 @@ function renderToday(){
   }
   if(!logged){
     // ---- before the gym: what should I train
-    h+=`<div class="su-hello-row">${helloCard()}${mascotHTML(restingToday()?'rest':'hello')}</div>`;
+    h+=`<div class="su-hello-row">${helloCard()}${mascotHTML(restingToday()?'rest':'hello')}</div>${typeof trialCardHTML==='function'?trialCardHTML():''}`;
     /* v3.3.319: before the gym, the plan is what you came to read — the same
        section the mid-session branch leads with, so Today shows one thing in
        both states. Rhythm left with it; it restated the streak and the day
@@ -956,8 +956,8 @@ function msMoment(hit){
    Hidden while any dialog, the first run or a text field is up. State: DB.settings.tips =
    {on:1, ex:1, set:1, fin:1}. Motion follows the mascot setting and reduced motion. */
 const TIP_TEXT={
-  ex:{sel:'#view [data-ex]',t:'Tap any exercise to log it',dir:'down',ax:.14,r:20},
-  set:{sel:'#addrep',t:'Swipe the numbers for reps,<br>then Add set',s:'One set is a day shown up.',dir:'up',ax:.5,r:18},
+  ex:{sel:'#view [data-ex]',t:'Tap any exercise to log it',dir:'down',ax:.14,r:20,btn:'Got it'},
+  set:{sel:'#addrep',t:'Swipe for reps, then tap Add set',s:'One set is a day shown up.',dir:'up',ax:.5,r:18,btn:'Got it'},
   fin:{sel:'#liveWorkoutFinish',t:'Tap Finish when you’re done',s:'Or keep adding sets and exercises.',dir:'up',ax:.5,r:999,btn:'Got it'}
 };
 let tipCur=null,tipQ=0;
@@ -1013,7 +1013,7 @@ function tipCheck(){
 function tipQueue(){if(tipQ||(!tipCur&&!tipsState()?.on))return;tipQ=setTimeout(tipCheck,350);}
 document.addEventListener('click',e=>{
   const t=tipsState();if(!t||!t.on)return;
-  if(e.target.closest('[data-tip-ok]')){tipDone('fin');return;}
+  if(e.target.closest('[data-tip-ok]')){tipDone(e.target.closest('.tipn')?.dataset.tip||'fin');return;}
   if(!t.ex&&e.target.closest('#view [data-ex]'))tipDone('ex');
   else if(!t.set&&e.target.closest('#addrep')){tipDone('set');if(!t.ex)tipDone('ex');}
   else if(!t.fin&&e.target.closest('#liveWorkoutFinish'))tipDone('fin');

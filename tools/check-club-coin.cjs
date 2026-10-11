@@ -1,13 +1,14 @@
 // PW_PORT=8806 NODE_PATH=<playwright modules> node tools/check-club-coin.cjs
+// v4.6.278: the coin is a member's -- the fixture is a founding member.
 const {chromium}=require('playwright'),assert=require('assert'),path=require('path');
 (async()=>{const browser=await chromium.launch({headless:true,...(process.env.PW_CHROME?{executablePath:process.env.PW_CHROME}:{})});try{
  for(const theme of ['light','dark'])for(const width of [320,393]){
   const page=await browser.newPage({viewport:{width,height:1000},deviceScaleFactor:3,serviceWorkers:'block'}),errors=[];
   page.on('pageerror',e=>errors.push(e.message));const origin=process.env.PW_ORIGIN||'http://127.0.0.1:'+(process.env.PW_PORT||8806)+'/';
   await page.route('**/*',r=>r.request().url().startsWith(origin)?r.continue():r.abort());await page.goto(origin);await page.waitForTimeout(500);
-  await page.evaluate(theme=>{DB={days:{},settings:{name:'Sungjee Yoo',onboarded:true,theme,unit:'lb',skin:'minimal',mascotMotion:'animated',clubAvatar:'roller'}};loadedOK=true;settingsBaseline();session={user:{id:'coin-fixture',created_at:'2026-07-13'}};clubMembershipCache.set(clubMembershipKey(),{member_no:'0',joined_at:'2026-07-13'});document.querySelector('#onb')?.remove();SEED=deriveAll();view='sync';lastView=null;applyTheme();render();},theme);
+  await page.evaluate(theme=>{DB={days:{},settings:{name:'Sungjee Yoo',onboarded:true,founding:'2026-09-26',theme,unit:'lb',skin:'minimal',mascotMotion:'animated',clubAvatar:'roller'}};loadedOK=true;settingsBaseline();session={user:{id:'coin-fixture',created_at:'2026-07-13'}};clubMembershipCache.set(clubMembershipKey(),{member_no:'0',joined_at:'2026-07-13'});document.querySelector('#onb')?.remove();SEED=deriveAll();view='sync';lastView=null;applyTheme();render();},theme);
   const coin=page.locator('[data-club-coin]');await coin.waitFor();await page.evaluate(()=>document.fonts.ready);await page.waitForTimeout(500);
-  assert.equal(await coin.locator('.club-coin-number').textContent(),'000000');
+  assert.equal(await coin.locator('.club-coin-number').textContent(),'0'); // v4.6.273 drops leading zeros
   const geometry=await page.evaluate(()=>{const a=document.querySelector('.club-brand>img').getBoundingClientRect(),b=document.querySelector('[data-club-coin]').getBoundingClientRect();return {delta:Math.abs(a.y+a.height/2-b.y-b.height/2),size:b.width,overflow:document.documentElement.scrollWidth>innerWidth,font:getComputedStyle(document.querySelector('.club-coin-number>span')).fontFamily,weight:getComputedStyle(document.querySelector('.club-coin-number>span')).fontWeight}});
   assert(geometry.delta<1);assert(geometry.size>=44);assert(!geometry.overflow);assert(geometry.font.includes('IBM Plex Sans'));assert.equal(geometry.weight,'700');
   const before=await page.evaluate(()=>JSON.stringify(DB));
@@ -37,7 +38,7 @@ const {chromium}=require('playwright'),assert=require('assert'),path=require('pa
   await page.evaluate(()=>{DB.settings.mascotMotion='still';clubObserveMotion();clubBindCoin()});const stillAngle=Number(await coin.getAttribute('data-angle'));await coin.click();assert.equal(Number(await coin.getAttribute('data-angle')),stillAngle-180);
   assert.equal(await page.evaluate(()=>JSON.stringify(DB.days)),JSON.stringify(JSON.parse(before).days));
   await page.evaluate(()=>{DB.settings.mascotMotion='animated'});assert.equal(await page.evaluate(()=>JSON.stringify(DB)),before);
-  await page.evaluate(()=>{clubMembershipCache.set(clubMembershipKey(),{member_no:'28',joined_at:'2026-07-13'});clubPaintMembership()});assert.equal(await coin.locator('.club-coin-number').textContent(),'000028');
+  await page.evaluate(()=>{clubMembershipCache.set(clubMembershipKey(),{member_no:'28',joined_at:'2026-07-13'});clubPaintMembership()});assert.equal(await coin.locator('.club-coin-number').textContent(),'28');
   assert.deepEqual(errors,[]);console.log('PASS coin registry, geometry, reduced motion, keyboard, swipe speed and direction '+width+' '+theme);await page.close();
  }
 }finally{await browser.close()}})().catch(e=>{console.error(e);process.exitCode=1});

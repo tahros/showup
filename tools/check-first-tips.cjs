@@ -20,7 +20,7 @@ try{for(const [w,h] of [[402,874],[320,640]])for(const theme of ['light','dark']
  if(theme==='light')ok(`${tag} the pill is ink (black on light)`,t&&t.bg==='rgb(27, 27, 27)',t?.bg);else ok(`${tag} the pill is ink (white on dark)`,t&&t.bg==='rgb(251, 251, 251)',t?.bg);
  if(SHOT)await p.screenshot({path:`${SHOT}/tip-ex-${theme}-${w}.png`});
  await p.click('#view [data-ex]');await p.waitForTimeout(1400);
- t=await tip();ok(`${tag} the set screen: swipe for reps, then Add set`,t&&t.k==='set'&&/Swipe the numbers/.test(t.text)&&t.inView&&t.onTop,t);
+ t=await tip();ok(`${tag} the set screen: swipe for reps, then Add set`,t&&t.k==='set'&&/Swipe for reps/.test(t.text)&&t.inView&&t.onTop,t);
  if(SHOT)await p.screenshot({path:`${SHOT}/tip-set-${theme}-${w}.png`});
  await p.click('#addrep');await p.waitForTimeout(1500);
  t=await tip();ok(`${tag} the celebration plays with no tip over it`,t===null,t);
