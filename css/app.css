@@ -4497,8 +4497,8 @@ html.modal-open .calreturn{display:none!important}
 #onb.ob-still .ob-rise,#onb.ob-still .ob-days i,#onb.ob-still .ob-lock,#onb.ob-still .ob-motto span,#onb.ob-still .ob-door-btns,#onb.ob-still .ob-jump .su-mascot,#onb.ob-still .ob-lines,#onb.ob-still .ob-bubble{animation:none!important;opacity:1!important;transform:none!important}
 #onb.ob-still .ob-lock{transform:scale(1.4)!important}
 /* the door */
-#onb .ob-days{display:grid;grid-template-columns:repeat(7,34px);grid-auto-rows:34px;gap:9px;justify-content:center;margin-top:48px;-webkit-mask:linear-gradient(#000 55%,transparent 100%);mask:linear-gradient(#000 55%,transparent 100%)}
-#onb .ob-days i{border-radius:9px;background:rgba(255,255,255,.12);opacity:0;animation:obDay .5s ease-out calc(var(--i)*40ms + 200ms) forwards}
+#onb .ob-days{display:grid;grid-template-columns:repeat(7,26px);grid-auto-rows:26px;gap:7px;justify-content:center;margin-top:48px;-webkit-mask:linear-gradient(#000 55%,transparent 100%);mask:linear-gradient(#000 55%,transparent 100%)}
+#onb .ob-days i{border-radius:7px;background:rgba(255,255,255,.12);opacity:0;animation:obDay .5s ease-out calc(var(--i)*40ms + 200ms) forwards}
 #onb .ob-days i.on{animation-name:obDayOn}
 @keyframes obDay{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
 @keyframes obDayOn{0%{opacity:0;transform:scale(.6);background:rgba(255,255,255,.12)}60%{transform:scale(1.08)}100%{opacity:1;transform:none;background:rgba(255,255,255,.92)}}
@@ -4591,7 +4591,7 @@ html.modal-open .calreturn{display:none!important}
 #onb .ob-card.plain{background:none;border-color:transparent}
 #onb .ob-card.plain .ob-ic{background:none}
 #onb .ob-foot{text-align:center;font:400 15px var(--body);color:var(--chalk);opacity:.8;margin:0}
-@media(max-height:700px){#onb .ob-days{grid-template-columns:repeat(7,26px);grid-auto-rows:26px;gap:7px;margin-top:28px}#onb .ob-lock{transform:scale(1.2);margin-bottom:34px}@keyframes obLock{from{opacity:0;transform:translateY(14px) scale(1.2)}to{opacity:1;transform:scale(1.2)}}#onb .ob-motto{font-size:26px}#onb .ob-hero{padding-bottom:22px;min-height:180px}#onb .ob-h,#onb .ob-in{font-size:28px;margin-top:20px}#onb .ob-part{height:52px}#onb .ob-jump{height:96px}#onb .ob-jump .su-mascot{width:136px}#onb .ob-card{padding:14px}}
+@media(max-height:700px){#onb .ob-days{grid-template-columns:repeat(7,20px);grid-auto-rows:20px;gap:5px;margin-top:28px}#onb .ob-days i{border-radius:5px}#onb .ob-lock{transform:scale(1.2);margin-bottom:34px}@keyframes obLock{from{opacity:0;transform:translateY(14px) scale(1.2)}to{opacity:1;transform:scale(1.2)}}#onb .ob-motto{font-size:26px}#onb .ob-hero{padding-bottom:22px;min-height:180px}#onb .ob-h,#onb .ob-in{font-size:28px;margin-top:20px}#onb .ob-part{height:52px}#onb .ob-jump{height:96px}#onb .ob-jump .su-mascot{width:136px}#onb .ob-card{padding:14px}}
 @media(prefers-reduced-motion:reduce){#onb .ob-rise,#onb .ob-days i,#onb .ob-lock,#onb .ob-motto span,#onb .ob-door-btns,#onb .ob-jump .su-mascot,#onb .ob-lines,#onb .ob-bubble,#onb .ob-hello .su-mascot,#onb .ob-card.pri .ob-ar{animation:none!important;opacity:1!important}#onb .ob-days i.on{background:rgba(255,255,255,.92)}}
 #onb .ob-field input::-webkit-outer-spin-button,#onb .ob-field input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 #onb .ob-field input[type=number]{-moz-appearance:textfield;appearance:textfield}
@@ -4616,3 +4616,6 @@ html.modal-open .calreturn{display:none!important}
  #onb .ob-q{font-size:16px}#onb .ob-jump{margin:8px 0 6px}
 }
 #onb .ob-local{padding:0 16px}
+/* v4.6.266: a toast during the first run sat under it (z-index 40 vs 90); it shows above, at the top, clear of the buttons */
+body:has(#onb:not([hidden])) #toast{z-index:95;top:calc(env(safe-area-inset-top,0px) + 14px);bottom:auto;transform:translateX(-50%) translateY(-12px)}
+body:has(#onb:not([hidden])) #toast.on{transform:translateX(-50%)}
