@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.276 — The test bar moves down
+
+- In test mode, the yellow "Test mode · new user" bar covered the header (the date and week squares). It now sits just above the tab bar.
+- On the first run there's no tab bar, so the bar stays at the top there, clear of the sign-in buttons.
+- check-test-mode checks both positions.
+
 ## v4.6.275 — Upload a CSV answers on iPhone
 
 - Choosing a CSV after tapping **Upload a CSV** did nothing on iPhone. The file picker was a detached input made on the fly, and iOS's web view drops the change event for those, so the chosen file never arrived. The picker now lives in the import screen (the same way Restore works) and a page-level listener reads the file.

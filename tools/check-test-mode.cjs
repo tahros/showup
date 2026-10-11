@@ -33,10 +33,16 @@ try{
   const SNAP=r.db,real30=x=>Object.values(JSON.parse(x).days).filter(v=>v&&(v.w||[]).length).length===30;
   ok(`${tag} test mode: the real record (30 days) and the owner's sign-in are still there`,real30(r.db)&&JSON.parse(r.sess).user.email===OWNER&&r.flag==='1',{flag:r.flag});
   if(SHOT&&w===402)await p.screenshot({path:`${SHOT}/tm-firstrun.png`});
+  /* v4.6.276: on the first run the bar sits at the top; in the app, just above the tab bar, clear of the header */
+  const pos=()=>p.evaluate(()=>{const a=document.getElementById('sbxBar').getBoundingClientRect(),n=document.getElementById('nav').getBoundingClientRect(),h=document.querySelector('header').getBoundingClientRect();return {top:a.top,bottom:a.bottom,navTop:n.top,headerBottom:h.bottom,vh:innerHeight};});
+  let ps=await pos();ok(`${tag} first run: the test bar is at the top`,ps.top<60,ps);
   /* use it: sample data goes to the test keys only */
   await p.click('[data-onbact="demo"]');await p.waitForTimeout(800);
   d=await look();r=await raw();
   ok(`${tag} sample data in test mode lands in the test keys; the real record still byte-identical`,d.days>0&&r.db===SNAP&&r.sbx>0,{days:d.days,sbx:r.sbx,same:r.db===SNAP});
+  await p.waitForTimeout(700);ps=await pos();
+  ok(`${tag} in the app: the test bar sits just above the tab bar, clear of the header`,ps.bottom<=ps.navTop&&ps.navTop-ps.bottom<=14&&ps.top>ps.headerBottom,ps);
+  if(SHOT&&w===402)await p.screenshot({path:`${SHOT}/tm-app.png`});
   /* the owner's own account is refused in test mode */
   const refused=await p.evaluate(async O=>{await saveSession({access_token:'a',refresh_token:'b',expires_at:Date.now()+36e5,user:{id:'u1',email:O}});return {s:session,stored:localStorage.getItem('tracker-session'),pushed:await cloudPushNow()};},OWNER);
   ok(`${tag} signing in with the owner's account in test mode is refused (no session kept, nothing pushed)`,refused.s===null&&!refused.stored&&refused.pushed===false,refused);
