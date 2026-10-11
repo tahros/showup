@@ -19,14 +19,15 @@ const {chromium}=require('playwright'),assert=require('assert'),path=require('pa
   await page.emulateMedia({reducedMotion:'reduce'});await coin.click();assert.equal(await coin.getAttribute('data-angle'),'180');
   await page.waitForTimeout(200);assert.equal(await coin.getAttribute('data-angle'),'180','reduced motion stops idle spin');
   assert.equal(await coin.locator('.club-coin-rotor').evaluate(e=>getComputedStyle(e).transformStyle),'preserve-3d');
-  assert.equal(await coin.locator('.club-coin-back img').getAttribute('src'),'assets/showuppp-wordmark-light.svg');
+  assert((await coin.locator('.club-coin-wordmark').evaluate(e=>getComputedStyle(e).maskImage)).includes('showuppp-wordmark-light.svg'));
   if(process.env.PW_SHOTS&&width===393)await page.screenshot({path:path.join(process.env.PW_SHOTS,'coin-back-'+theme+'.png'),fullPage:true});
   await coin.press('ArrowLeft');assert.equal(await coin.getAttribute('data-angle'),'0');
   if(process.env.PW_SHOTS&&width===393)await page.screenshot({path:path.join(process.env.PW_SHOTS,'coin-front-'+theme+'.png'),fullPage:true});
   await page.emulateMedia({reducedMotion:'no-preference'});
   async function flick(dir,delay){await page.evaluate(()=>clubBindCoin());const b=await coin.boundingBox(),x=b.x+b.width/2,y=b.y+b.height/2;await page.mouse.move(x,y);await page.mouse.down();for(let i=1;i<=3;i++){await page.waitForTimeout(delay);await page.mouse.move(x+dir*i*8,y);}await page.mouse.up();const start=Number(await coin.getAttribute('data-angle'));await page.waitForTimeout(140);return {start,end:Number(await coin.getAttribute('data-angle'))};}
   const slow=await flick(1,100),fast=await flick(1,12),left=await flick(-1,12);assert(fast.end-fast.start>slow.end-slow.start,'faster swipe has more momentum');assert(left.end<left.start,'left flick continues left');
-  await page.evaluate(()=>{DB.settings.mascotMotion='still';clubObserveMotion();clubBindCoin()});await coin.click();assert.equal(await coin.getAttribute('data-angle'),'180');
+  const continuity=await page.evaluate(()=>{const a=Number(document.querySelector('[data-club-coin]').dataset.angle);DB.settings.theme=DB.settings.theme==='dark'?'light':'dark';applyTheme();render();const b=Number(document.querySelector('[data-club-coin]').dataset.angle);DB.settings.theme=DB.settings.theme==='dark'?'light':'dark';applyTheme();render();return {a,b,c:Number(document.querySelector('[data-club-coin]').dataset.angle),speed:clubCoinMotion.speed}});assert.equal(continuity.a,continuity.b,'theme retains angle');assert.equal(continuity.b,continuity.c,'round trip retains angle');assert(continuity.speed<0,'theme retains leftward momentum');
+  await page.evaluate(()=>{DB.settings.mascotMotion='still';clubObserveMotion();clubBindCoin()});const stillAngle=Number(await coin.getAttribute('data-angle'));await coin.click();assert.equal(Number(await coin.getAttribute('data-angle')),stillAngle+180);
   assert.equal(await page.evaluate(()=>JSON.stringify(DB.days)),JSON.stringify(JSON.parse(before).days));
   await page.evaluate(()=>{DB.settings.mascotMotion='animated'});assert.equal(await page.evaluate(()=>JSON.stringify(DB)),before);
   await page.evaluate(()=>{clubMembershipCache.set(clubMembershipKey(),{member_no:'28',joined_at:'2026-07-13'});clubPaintMembership()});assert.equal(await coin.locator('.club-coin-number').textContent(),'000028');

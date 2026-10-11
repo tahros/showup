@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.267 (2026-10-11) — A softer silver club coin
+
+- Keeps the approved membership card layout, with Soft polished silver, Light slate lettering and Classic coin thickness.
+- A smaller, subtle 15% ground shadow follows the coin as it turns. Reflections stay inside the coin.
+- Switching between Light and Dark keeps the coin's angle and spinning momentum instead of resetting it.
+
 ## v4.6.266 (2026-10-11) — The welcome screen: Apple back, a quieter lower half
 
 - **Asked:** bring back Apple login, make the background day squares 25% smaller, and make everything below the logo smaller and more refined.

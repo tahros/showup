@@ -274,15 +274,15 @@ function clubCoinNumberHTML(number){
   return chars.map((c,i)=>{const a=chars.length===1?0:-38+i*76/(chars.length-1),r=a*Math.PI/180;return `<span style="left:${50+Math.sin(r)*33}%;top:${50+Math.cos(r)*33}%;transform:translate(-50%,-50%) rotate(${-a}deg);font-size:${size}cqw">${hesc(c)}</span>`}).join('');
 }
 function clubCoinHTML(number){
-  return `<button type="button" class="club-coin-button" data-club-coin aria-label="Flip club coin. Member ${hesc(number)}. Drag left or right to spin." title="Tap to flip · swipe to spin"><span class="club-coin-rotor"><span class="club-coin-rim" style="--depth:-2px"></span><span class="club-coin-rim" style="--depth:0px"></span><span class="club-coin-rim" style="--depth:2px"></span><span class="club-coin-face club-coin-front"><img src="assets/club-seal.webp" alt="The Show Up Club" draggable="false"></span><span class="club-coin-face club-coin-back"><img class="club-coin-wordmark" src="assets/showuppp-wordmark-light.svg" alt="ShowUppp" draggable="false"><span class="club-coin-number" aria-hidden="true">${clubCoinNumberHTML(number)}</span></span></span></button>`;
+return `<button type="button" class="club-coin-button" data-club-coin aria-label="Flip club coin. Member ${hesc(number)}. Drag left or right to spin." title="Tap to flip · swipe to spin"><span class="club-coin-rotor"><span class="club-coin-rim" style="--depth:-2px"></span><span class="club-coin-rim" style="--depth:0px"></span><span class="club-coin-rim" style="--depth:2px"></span><span class="club-coin-face club-coin-front"><span class="club-coin-seal"><img src="assets/club-seal.webp" alt="The Show Up Club" draggable="false"></span></span><span class="club-coin-face club-coin-back"><span class="club-coin-wordmark" role="img" aria-label="ShowUppp"></span><span class="club-coin-number" aria-hidden="true">${clubCoinNumberHTML(number)}</span></span></span></button>`;
 }
-let clubCoinDispose=()=>{};
+let clubCoinDispose=()=>{},clubCoinMotion={angle:0,speed:0,idle:true};
 function clubBindCoin(){
   clubCoinDispose();const el=document.querySelector('[data-club-coin]');if(!el)return;
   const rotor=el.querySelector('.club-coin-rotor'),media=matchMedia('(prefers-reduced-motion: reduce)');
-  let angle=0,speed=0,frame=0,lastFrame=0,drag=false,lastX=0,lastTime=0,travel=0,suppressClick=false,visible=true,idle=true;
+  let {angle,speed,idle}=clubCoinMotion;let frame=0,lastFrame=0,drag=false,lastX=0,lastTime=0,travel=0,suppressClick=false,visible=true;
   const still=()=>media.matches||(typeof mascotMode==='function'&&mascotMode()!=='animated');
-  function paint(){rotor.style.transform=`rotateY(${angle}deg)`;el.dataset.angle=String(angle);el.style.setProperty('--coin-light',`${125+Math.sin(angle*Math.PI/180)*60}deg`);el.style.setProperty('--coin-reflection',`${Math.sin(angle*Math.PI/180)*55}%`);}
+function paint(){el.style.setProperty('--coin-shadow-width',Math.max(.08,Math.abs(Math.cos(angle*Math.PI/180))+.08*Math.abs(Math.sin(angle*Math.PI/180))));rotor.style.transform=`rotateY(${angle}deg)`;el.dataset.angle=String(angle);el.style.setProperty('--coin-light',`${125+Math.sin(angle*Math.PI/180)*60}deg`);el.style.setProperty('--coin-reflection',`${Math.sin(angle*Math.PI/180)*55}%`);}
   function stop(){cancelAnimationFrame(frame);frame=0;speed=0;drag=false;angle=Math.round(angle/180)*180;paint();}
   function tick(now){frame=0;if(!el.isConnected||document.hidden||!visible||still()){stop();return;}const dt=Math.min(32,now-lastFrame);lastFrame=now;
     if(idle){angle+=.015*dt;paint();frame=requestAnimationFrame(tick);return;}
@@ -297,10 +297,10 @@ function clubBindCoin(){
   el.addEventListener('pointerup',()=>release());el.addEventListener('pointercancel',()=>release(true));el.addEventListener('lostpointercapture',()=>release(true));
   el.addEventListener('click',()=>{if(suppressClick){suppressClick=false;return;}idle=false;if(still()){angle=Math.round(angle/180)*180+180;paint();}else{speed=.28;start();}});
   el.addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();idle=false;const dir=e.key==='ArrowLeft'?-1:1;if(still()){angle=Math.round(angle/180)*180+dir*180;paint();}else{speed=dir*.28;start();}}});
-  const resume=()=>{if(document.hidden||!visible||still())stop();else if(!drag){idle=true;start();}};
+  const resume=()=>{if(document.hidden||!visible||still())stop();else if(!drag){start();}};
   document.addEventListener('visibilitychange',resume);media.addEventListener('change',resume);
   const observer=typeof IntersectionObserver==='undefined'?null:new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;el.classList.toggle('club-coin-visible',visible);resume();});observer?.observe(el);el.classList.add('club-coin-visible');
-  clubCoinDispose=()=>{stop();observer?.disconnect();document.removeEventListener('visibilitychange',resume);media.removeEventListener?.('change',resume);};paint();resume();
+  clubCoinDispose=()=>{clubCoinMotion={angle,speed,idle};cancelAnimationFrame(frame);frame=0;observer?.disconnect();document.removeEventListener('visibilitychange',resume);media.removeEventListener?.('change',resume);};paint();resume();
 }
 function clubCardHTML(){
   const avatar=clubAvatar(),user=session?.user,{number:displayNumber,since,reference}=clubMembershipFacts();
