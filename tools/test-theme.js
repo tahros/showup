@@ -70,7 +70,7 @@ osFlip(true);
 ok("...and tracks the resolution after a flip", stored() === "light", stored());
 // index.html's boot line must keep reading that key with a dark fallback
 ok("index.html still paints from the resolved key before scripts run",
-   /localStorage\.getItem\('showup-theme'\)\s*\|\|\s*'dark'/.test(html));
+   /(localStorage\.getItem|L)\('showup-theme'\)\s*\|\|\s*'dark'/.test(html));   // v4.6.261: L() reads the test-mode keys when test mode is on
 
 // ---- the status bar follows too -------------------------------------------
 // jsdom does not resolve stylesheet custom properties. Supply the browser

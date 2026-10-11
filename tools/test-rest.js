@@ -1085,7 +1085,7 @@ ok("the status-bar style no longer puts content under the status bar",
      /:root\[data-skin="minimal"\]\[data-bar="light"\]\{[^}]*--pill:#FFFFFF/.test(cssB) &&
      !/\[data-theme="light"\]\{[^}]*--pill:/.test(cssB));
   ok("...and index.html paints data-bar before any CSS, so a cold start cannot flash the other one",
-     /_de\.dataset\.bar=localStorage\.getItem\('showup-bar'\)\|\|_de\.dataset\.theme/.test(idx));
+     /_de\.dataset\.bar=(localStorage\.getItem|L)\('showup-bar'\)\|\|_de\.dataset\.theme/.test(idx));   // v4.6.261: L() reads the test-mode keys when test mode is on
   const bar=()=>run(`document.documentElement.dataset.bar`);
   run(`DB.settings.theme='light'; delete DB.settings.barTheme; applyTheme();`);
   ok("Match (the default) follows the app: light theme -> light bar", bar()==='light');

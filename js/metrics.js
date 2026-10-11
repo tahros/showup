@@ -47,6 +47,7 @@ function mBoot(){
 }
 function mEnabled(){
   try{
+    if(typeof SANDBOX!=='undefined'&&SANDBOX) return false;   // v4.6.261: test mode is not a user
     if(navigator.webdriver) return false;
     if(location.protocol==='capacitor:') return true;
     if(location.protocol!=='https:') return false;
@@ -118,8 +119,11 @@ function ownerIs(){ return typeof session!=='undefined'&&!!session&&String(sessi
 function ownerEntryHTML(){
   if(!ownerIs()) return '';
   const m=typeof mascotHTML==='function'?mascotHTML('hello','oe-mascot'):'';
-  return `<a class="owner-entry" id="ownerLink" href="#owner"><span class="oe-label">Owner dashboard</span><span class="oe-sub">Opens, loggers and the funnel</span>${m}</a>`;
+  return `<a class="owner-entry" id="ownerLink" href="#owner"><span class="oe-label">Owner dashboard</span><span class="oe-sub">Opens, loggers and the funnel</span>${m}</a>`
+    +`<button type="button" class="owner-newuser" id="sbxStart"><span class="oe-label">Start as a new user</span><span class="oe-sub">See the first run on an empty app. Your training stays put; Exit brings it back.</span></button>`;
 }
+/* v4.6.261: test mode (js/core.js) -- owner only, because only the owner's door shows it */
+document.addEventListener('click',e=>{ if(e.target.closest&&e.target.closest('#sbxStart')&&ownerIs()&&typeof sbxEnter==='function'){ e.preventDefault(); sbxEnter(); } });
 function ownerRoute(){
   if(location.hash==='#owner'&&ownerIs()) ownerOpen();
   else document.getElementById('ownerDash')?.remove();
@@ -239,6 +243,10 @@ function ownerChart(days,from,to){
 .owner-entry .oe-label{font:600 17px var(--body);letter-spacing:-.2px}
 .owner-entry .oe-sub{font:400 12px var(--mono);color:var(--muted)}
 .owner-entry .su-mascot.oe-mascot{width:156px;margin-top:6px}
+.owner-newuser{display:flex;flex-direction:column;align-items:center;gap:4px;width:auto;min-height:0;margin:-8px auto 22px;max-width:320px;padding:14px 20px;border-radius:22px;background:none;border:1px dashed color-mix(in srgb,var(--chalk) 22%,transparent);box-shadow:none;color:var(--chalk);text-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.owner-newuser:active{transform:scale(.98)}
+.owner-newuser .oe-label{font:600 15px var(--body);letter-spacing:-.1px}
+.owner-newuser .oe-sub{font:400 12px/1.45 var(--body);color:var(--muted)}
 @media(prefers-reduced-motion:reduce){.owner-entry{transition:none}}`;
   document.head.appendChild(s);
 })();

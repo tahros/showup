@@ -1,13 +1,62 @@
 /* ShowUp — core.js
    Extracted verbatim from index.html (v3.2.5 refactor). Classic script:
    shares one global scope with its siblings, loaded in order by index.html. */
-const APP_VERSION = 'v4.6.260';
+const APP_VERSION = 'v4.6.261';
 const SEED0 = {catalog:{"Chest":["Incline Smith Machine Bench Press","Flat Smith Machine Bench Press","Incline Dumbbell Bench Press","Chest Press","Chest Fly","Cable Fly Up","Cable Fly Down","Chest Squeeze","Dip","Barbell Bench Press","Incline Barbell Bench Press","Decline Barbell Bench Press","Dumbbell Bench Press","Decline Dumbbell Bench Press","Machine Chest Press","Cable Crossover","Incline Cable Fly","Low Cable Fly","Dumbbell Pullover","Landmine Press","Svend Press","Push Up","Weighted Push Up"],"Back":["Pull Up","Lat Pulldown","Bent-Over Row","Deadlift","Chin Up","Weighted Pull Up","Seated Cable Row","Single-Arm Dumbbell Row","T-Bar Row","Pendlay Row","Barbell Shrug","Rack Pull","Straight-Arm Pulldown","Close-Grip Lat Pulldown","Inverted Row","Chest-Supported Row","Machine Row"],"Shoulder":["Dumbbell Shoulder Press","Lateral Raise","Dumbbell Front Raise","Dumbbell Combination","Dumbbell Bent Over Side Raise","Rear Deltoids","Overhead Barbell Press","Arnold Press","Machine Shoulder Press","Cable Lateral Raise","Face Pull","Upright Row","Reverse Pec Deck","Landmine Lateral Raise","Cable Rear Delt Fly"],"Legs":["Squat","Dumbbell Lunge","Front Squat","Hack Squat","Leg Press","Romanian Deadlift","Bulgarian Split Squat","Walking Lunge","Leg Extension","Lying Leg Curl","Seated Leg Curl","Hip Thrust","Goblet Squat","Standing Calf Raise","Seated Calf Raise","Step Up"],"Biceps":["Barbell Curl","Dumbbell Curl","Hammer Curl","EZ Bar Curl","Preacher Curl","Cable Curl","Incline Dumbbell Curl","Concentration Curl","Spider Curl","Reverse Curl","Cable Hammer Curl"],"Triceps":["Overhead Triceps Extension","Close Grip Bench Press","Triceps Pushdown","Rope Pushdown","Skull Crusher","Bench Dip","Dumbbell Kickback","Overhead Cable Extension","Diamond Push Up"],"Sixpack":["Hanging Leg Raise","Leg Raise","Plank","Cable Crunch","Russian Twist","Ab Wheel Rollout","Bicycle Crunch","Sit Up","Decline Sit Up","Mountain Climber","Side Plank"],"Run":["Run","Walk","Cycling","Rowing","Elliptical","Stair Climber","Swimming","Jump Rope"]},ex2part:{"Incline Smith Machine Bench Press":"Chest","Flat Smith Machine Bench Press":"Chest","Incline Dumbbell Bench Press":"Chest","Chest Press":"Chest","Chest Fly":"Chest","Cable Fly Up":"Chest","Cable Fly Down":"Chest","Chest Squeeze":"Chest","Dip":"Chest","Barbell Bench Press":"Chest","Incline Barbell Bench Press":"Chest","Decline Barbell Bench Press":"Chest","Dumbbell Bench Press":"Chest","Decline Dumbbell Bench Press":"Chest","Machine Chest Press":"Chest","Cable Crossover":"Chest","Incline Cable Fly":"Chest","Low Cable Fly":"Chest","Dumbbell Pullover":"Chest","Landmine Press":"Chest","Svend Press":"Chest","Push Up":"Chest","Weighted Push Up":"Chest","Pull Up":"Back","Lat Pulldown":"Back","Bent-Over Row":"Back","Deadlift":"Back","Chin Up":"Back","Weighted Pull Up":"Back","Seated Cable Row":"Back","Single-Arm Dumbbell Row":"Back","T-Bar Row":"Back","Pendlay Row":"Back","Barbell Shrug":"Back","Rack Pull":"Back","Straight-Arm Pulldown":"Back","Close-Grip Lat Pulldown":"Back","Inverted Row":"Back","Chest-Supported Row":"Back","Machine Row":"Back","Dumbbell Shoulder Press":"Shoulder","Lateral Raise":"Shoulder","Dumbbell Front Raise":"Shoulder","Dumbbell Combination":"Shoulder","Dumbbell Bent Over Side Raise":"Shoulder","Rear Deltoids":"Shoulder","Overhead Barbell Press":"Shoulder","Arnold Press":"Shoulder","Machine Shoulder Press":"Shoulder","Cable Lateral Raise":"Shoulder","Face Pull":"Shoulder","Upright Row":"Shoulder","Reverse Pec Deck":"Shoulder","Landmine Lateral Raise":"Shoulder","Cable Rear Delt Fly":"Shoulder","Squat":"Legs","Dumbbell Lunge":"Legs","Front Squat":"Legs","Hack Squat":"Legs","Leg Press":"Legs","Romanian Deadlift":"Legs","Bulgarian Split Squat":"Legs","Walking Lunge":"Legs","Leg Extension":"Legs","Lying Leg Curl":"Legs","Seated Leg Curl":"Legs","Hip Thrust":"Legs","Goblet Squat":"Legs","Standing Calf Raise":"Legs","Seated Calf Raise":"Legs","Step Up":"Legs","Barbell Curl":"Biceps","Dumbbell Curl":"Biceps","Hammer Curl":"Biceps","EZ Bar Curl":"Biceps","Preacher Curl":"Biceps","Cable Curl":"Biceps","Incline Dumbbell Curl":"Biceps","Concentration Curl":"Biceps","Spider Curl":"Biceps","Reverse Curl":"Biceps","Cable Hammer Curl":"Biceps","Overhead Triceps Extension":"Triceps","Close Grip Bench Press":"Triceps","Triceps Pushdown":"Triceps","Rope Pushdown":"Triceps","Skull Crusher":"Triceps","Bench Dip":"Triceps","Dumbbell Kickback":"Triceps","Overhead Cable Extension":"Triceps","Diamond Push Up":"Triceps","Hanging Leg Raise":"Sixpack","Leg Raise":"Sixpack","Plank":"Sixpack","Cable Crunch":"Sixpack","Russian Twist":"Sixpack","Ab Wheel Rollout":"Sixpack","Bicycle Crunch":"Sixpack","Sit Up":"Sixpack","Decline Sit Up":"Sixpack","Mountain Climber":"Sixpack","Side Plank":"Sixpack","Run":"Run","Walk":"Run","Cycling":"Run","Rowing":"Run","Elliptical":"Run","Stair Climber":"Run","Swimming":"Run","Jump Rope":"Run"},equip:{"Incline Smith Machine Bench Press":"smith","Flat Smith Machine Bench Press":"smith","Incline Dumbbell Bench Press":"dumbbell","Chest Press":"machine","Chest Fly":"machine","Cable Fly Up":"cable","Cable Fly Down":"cable","Chest Squeeze":"body","Dip":"body","Barbell Bench Press":"barbell","Incline Barbell Bench Press":"barbell","Decline Barbell Bench Press":"barbell","Dumbbell Bench Press":"dumbbell","Decline Dumbbell Bench Press":"dumbbell","Machine Chest Press":"machine","Cable Crossover":"cable","Incline Cable Fly":"cable","Low Cable Fly":"cable","Dumbbell Pullover":"dumbbell","Landmine Press":"barbell","Svend Press":"dumbbell","Push Up":"body","Weighted Push Up":"body","Pull Up":"body","Lat Pulldown":"cable","Bent-Over Row":"barbell","Deadlift":"barbell","Chin Up":"body","Weighted Pull Up":"body","Seated Cable Row":"cable","Single-Arm Dumbbell Row":"dumbbell","T-Bar Row":"barbell","Pendlay Row":"barbell","Barbell Shrug":"barbell","Rack Pull":"barbell","Straight-Arm Pulldown":"cable","Close-Grip Lat Pulldown":"cable","Inverted Row":"body","Chest-Supported Row":"cable","Machine Row":"cable","Dumbbell Shoulder Press":"dumbbell","Lateral Raise":"dumbbell","Dumbbell Front Raise":"dumbbell","Dumbbell Combination":"dumbbell","Dumbbell Bent Over Side Raise":"dumbbell","Rear Deltoids":"machine","Overhead Barbell Press":"barbell","Arnold Press":"dumbbell","Machine Shoulder Press":"machine","Cable Lateral Raise":"cable","Face Pull":"cable","Upright Row":"barbell","Reverse Pec Deck":"machine","Landmine Lateral Raise":"cable","Cable Rear Delt Fly":"cable","Squat":"barbell","Dumbbell Lunge":"dumbbell","Front Squat":"barbell","Hack Squat":"plate","Leg Press":"plate","Romanian Deadlift":"barbell","Bulgarian Split Squat":"dumbbell","Walking Lunge":"dumbbell","Leg Extension":"machine","Lying Leg Curl":"machine","Seated Leg Curl":"machine","Hip Thrust":"barbell","Goblet Squat":"barbell","Standing Calf Raise":"machine","Seated Calf Raise":"machine","Step Up":"dumbbell","Barbell Curl":"barbell","Dumbbell Curl":"dumbbell","Hammer Curl":"dumbbell","EZ Bar Curl":"barbell","Preacher Curl":"barbell","Cable Curl":"cable","Incline Dumbbell Curl":"dumbbell","Concentration Curl":"dumbbell","Spider Curl":"dumbbell","Reverse Curl":"barbell","Cable Hammer Curl":"cable","Overhead Triceps Extension":"machine","Close Grip Bench Press":"barbell","Triceps Pushdown":"cable","Rope Pushdown":"cable","Skull Crusher":"barbell","Bench Dip":"body","Dumbbell Kickback":"dumbbell","Overhead Cable Extension":"cable","Diamond Push Up":"body","Hanging Leg Raise":"body","Leg Raise":"body","Plank":"body","Cable Crunch":"cable","Russian Twist":"body","Ab Wheel Rollout":"body","Bicycle Crunch":"body","Sit Up":"body","Decline Sit Up":"body","Mountain Climber":"body","Side Plank":"body","Run":"run"},sessions:{},dates:[],monthly:{},pr:{},hist:{},last:{},lastSess:{},repFreq:{},exFreq:{},exLast:{},partCount:{},partLast:{},partDays:{},totals:{sessions:0,first:null,last:'0000-00-00',km:0,vol:0}};
 /* v3.2.1: the 918-day seed literal is GONE (~75% of this file). History lives
    in doc.days (Supabase + localStorage). Full seed preserved forever in git
    tag v3.2-last-seed for disaster recovery. Fresh installs boot empty or
    restore from the cloud on sign-in. */
 
+
+/* ================= v4.6.261: TEST MODE -- start as a new user (owner only) =================
+   The owner needs to see the first run without touching 900+ days of real
+   training. Signing out would erase this device and re-download everything,
+   so instead the whole app runs on a second, empty set of storage keys:
+   every localStorage read and write is moved under "sbx:" while the flag is
+   set, before any other script has read anything. What stays untouched:
+   - the real record (tracker-v1), the real sign-in, backups -- all un-prefixed;
+   - the iOS durable slots, Apple Health and reminders: their plugins read as
+     absent in test mode, so nothing native is written, scheduled or deleted;
+   - the cloud: test mode starts signed out, the owner's own account is refused
+     at sign-in, and nothing is pushed for it; metrics are off.
+   Leaving deletes every sbx: key and reloads into the real record. */
+const SANDBOX_FLAG='showup:sandbox';
+const SANDBOX=(()=>{ try{ return localStorage.getItem(SANDBOX_FLAG)==='1'; }catch(e){ return false; } })();
+const SBX_RAW=(()=>{ try{ const P=Storage.prototype; return {get:P.getItem,set:P.setItem,del:P.removeItem}; }catch(e){ return null; } })();
+/* the wipe runs at the NEXT boot, before anything reads: a page on its way out
+   still saves on pagehide, and that write must not survive into the next run */
+const SBX_WIPE='showup:sandbox-wipe';
+try{ if(localStorage.getItem(SBX_WIPE)){ for(const k of Object.keys(localStorage)) if(k.startsWith('sbx:')) localStorage.removeItem(k); localStorage.removeItem(SBX_WIPE); } }catch(e){}
+if(SANDBOX&&SBX_RAW){ try{
+  const P=Storage.prototype,ls=localStorage,m=k=>{k=String(k);return k===SANDBOX_FLAG||k===SBX_WIPE?k:'sbx:'+k;};
+  P.getItem=function(k){ return SBX_RAW.get.call(this,this===ls?m(k):k); };
+  P.setItem=function(k,v){ return SBX_RAW.set.call(this,this===ls?m(k):k,v); };
+  P.removeItem=function(k){ return SBX_RAW.del.call(this,this===ls?m(k):k); };
+}catch(e){} }
+/* every test-mode key, straight from the real store */
+function sbxWipe(){ try{ SBX_RAW.set.call(localStorage,SBX_WIPE,'1'); sessionStorage.clear(); }catch(e){} }
+const SBX_OWNER='sungjee.u@gmail.com';
+const sbxOwner=s=>!!(SANDBOX&&s&&String(s.user?.email||'').toLowerCase()===SBX_OWNER);
+async function sbxEnter(){
+  try{ if(typeof save==='function') save(); }catch(e){}           // the real record is on disk before we step away
+  await new Promise(r=>setTimeout(r,350));
+  sbxWipe();
+  try{ SBX_RAW.set.call(localStorage,SANDBOX_FLAG,'1'); }catch(e){ return; }
+  location.replace(location.pathname);
+}
+function sbxRestart(){ sbxWipe(); location.replace(location.pathname); }
+function sbxExit(){ sbxWipe(); try{ SBX_RAW.del.call(localStorage,SANDBOX_FLAG); }catch(e){} location.replace(location.pathname); }
+function sbxBar(){
+  if(!SANDBOX||document.getElementById('sbxBar')) return;
+  const el=document.createElement('div'); el.id='sbxBar'; el.setAttribute('role','status');
+  el.style.cssText='position:fixed;z-index:200;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 6px);display:flex;align-items:center;gap:4px;padding:4px 4px 4px 12px;border-radius:999px;background:#ffb020;color:#1a1200;font:600 12px/1 var(--body,system-ui);box-shadow:0 2px 10px rgba(0,0,0,.3);white-space:nowrap';
+  el.innerHTML='<span>Test mode · new user</span><button type="button" data-sbx="restart">Start over</button><button type="button" data-sbx="exit">Exit</button>';
+  el.querySelectorAll('button').forEach(b=>b.style.cssText='all:unset;cursor:pointer;padding:6px 10px;border-radius:999px;background:rgba(0,0,0,.14);font:600 12px/1 var(--body,system-ui)');
+  el.addEventListener('click',e=>{ const b=e.target.closest('[data-sbx]'); if(!b) return; b.dataset.sbx==='exit'?sbxExit():sbxRestart(); });
+  document.body.appendChild(el);
+}
+if(SANDBOX){ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',sbxBar); else sbxBar(); }
 
 /* v4.6.105: is this the iOS app shell rather than a browser?
    Capacitor serves the bundle from capacitor://localhost, so the protocol
@@ -154,7 +203,13 @@ const cloudReady=()=>!!(cloudCfg().url&&cloudCfg().anon);
 let session=null;                             // {access_token,refresh_token,expires_at,user:{id,email}}
 const SKEY='tracker-session';
 async function loadSession(){ try{const r=await store.get(SKEY); session=r?JSON.parse(r):null;}catch(e){session=null;} }
-async function saveSession(s){ session=s; await store.set(SKEY, s?JSON.stringify(s):''); }
+async function saveSession(s){
+  if(sbxOwner(s)){   // v4.6.261: test mode never holds the account with the real training
+    session=null; await store.set(SKEY,'');
+    setTimeout(()=>toast('Test mode: use a different account. This one holds your real training.'),700);
+    return;
+  }
+  session=s; await store.set(SKEY, s?JSON.stringify(s):''); }
 
 /* after Google redirects back, the tokens arrive in the URL hash */
 async function captureOAuth(){
@@ -616,6 +671,7 @@ function buildArchive(){
 let cloudTimer=null;
 async function cloudPushNow(keepalive){
   if(DB.settings.demo) return false;               // demo data never leaves the device
+  if(sbxOwner(session)) return false;              // v4.6.261: test mode never writes the owner's cloud
   const tok=await freshToken(); if(!tok){ syncState('signedout'); return false; }
   if(!pulledOK) return false;   // a device that hasn't restored yet never overwrites the cloud
   try{
@@ -689,7 +745,7 @@ let loadedOK=false, storedDays=0, allowEmptySave=false, _durSlot=0;
 const daysWithWork=d=>Object.values((d&&d.days)||{}).filter(v=>v&&v.w&&v.w.length).length;
 const _fsMissing=e=>/not exist|does not exist|0008|ENOENT|no such/i.test(String(e&&(e.message||e.code||e)));
 const durable={
-  fs(){ try{ return (typeof window!=='undefined' && window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Filesystem)||null; }catch(e){ return null; } },
+  fs(){ if(SANDBOX) return null; try{ return (typeof window!=='undefined' && window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Filesystem)||null; }catch(e){ return null; } },
   available(){ return NATIVE_SHELL && !!this.fs(); },
   /* -> {ok, raw} per slot: ok:false only for a bridge/read ERROR; absent is ok with raw:null */
   async read(path){

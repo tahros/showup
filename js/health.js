@@ -33,6 +33,7 @@ const HL_KEY='showup:health', HL_MAX_SENT=400, HL_MIN_MS=60e3, HL_MAX_MS=6*3600e
 const HL_KIND={Run:'running',Walk:'walking',Cycling:'cycling',Rowing:'rowing',Swimming:'swimming',
   Elliptical:'elliptical','Stair Climber':'stairs','Jump Rope':'jumprope'};
 function hlPlugin(){
+  if(typeof SANDBOX!=='undefined'&&SANDBOX) return null;   // v4.6.261: test mode never writes Apple Health
   try{
     if(!NATIVE_SHELL) return null;
     const cap=window.Capacitor; if(!cap) return null;

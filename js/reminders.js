@@ -34,7 +34,7 @@
    asks for permission only when you turn it on. */
 const REM_KEY='showup:reminders';
 const REM_ID0=7100, REM_DAYS=7, REM_AFTER=30, REM_EARLIEST=6*60, REM_LATEST=21*60+30;
-const remPlugin=()=>{ try{ return NATIVE_SHELL?(window.Capacitor?.Plugins?.LocalNotifications||null):null; }catch(e){ return null; } };
+const remPlugin=()=>{ try{ return NATIVE_SHELL&&!(typeof SANDBOX!=='undefined'&&SANDBOX)?(window.Capacitor?.Plugins?.LocalNotifications||null):null; }catch(e){ return null; } };
 function remPrefs(){
   let p={}; try{ p=JSON.parse(localStorage.getItem(REM_KEY)||'{}')||{}; }catch(e){}
   const m=/^([01]\d|2[0-3]):([0-5]\d)$/.test(p.morning||'')?p.morning:'07:00';

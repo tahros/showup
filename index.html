@@ -1,7 +1,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <script>/* pre-paint: apply the saved theme before any CSS renders */
-try{var _de=document.documentElement,_qp=new URLSearchParams(location.search);_de.dataset.theme=/^(light|dark)$/.test(_qp.get('theme')||'')?_qp.get('theme'):(localStorage.getItem('showup-theme')||'dark');_de.dataset.bodyPalette=localStorage.getItem('showup-body-palette')==='neon'?'neon':'normal';_de.dataset.appearance=localStorage.getItem('showup-skin')||'minimal';_de.dataset.skin=_de.dataset.appearance==='retro'?'minimal':_de.dataset.appearance;_de.dataset.bar=localStorage.getItem('showup-bar')||_de.dataset.theme;if(_qp.get('design')==='modern')_de.dataset.designPreview='modern';}catch(e){}</script>
+try{var _de=document.documentElement,_qp=new URLSearchParams(location.search),_s=localStorage,_x=_s.getItem('showup:sandbox')=='1'?'sbx:':'',L=k=>_s.getItem(_x+k);_de.dataset.theme=/^(light|dark)$/.test(_qp.get('theme')||'')?_qp.get('theme'):(L('showup-theme')||'dark');_de.dataset.bodyPalette=L('showup-body-palette')==='neon'?'neon':'normal';_de.dataset.appearance=L('showup-skin')||'minimal';_de.dataset.skin=_de.dataset.appearance==='retro'?'minimal':_de.dataset.appearance;_de.dataset.bar=L('showup-bar')||_de.dataset.theme;if(_qp.get('design')==='modern')_de.dataset.designPreview='modern';}catch(e){}</script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="favicon-blue-32.png" sizes="32x32">
 <link rel="apple-touch-icon" href="apple-touch-icon-blue.png" sizes="180x180">
@@ -13,10 +13,10 @@ try{var _de=document.documentElement,_qp=new URLSearchParams(location.search);_d
 <meta name="theme-color" content="#F2F3F6">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="assets/fonts/web/ibm-plex-sans-latin-400-normal.woff2">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="assets/fonts/web/ibm-plex-sans-latin-600-normal.woff2">
-<link rel="stylesheet" href="css/fonts.css?v=4.6.260">
+<link rel="stylesheet" href="css/fonts.css?v=4.6.261">
 
-<link rel="stylesheet" href="css/app.css?v=4.6.260"><link rel="stylesheet" href="css/planner.css?v=4.6.260"><link rel="stylesheet" href="css/mascot.css?v=4.6.260"><link rel="stylesheet" href="css/plates.css?v=4.6.260">
-<link rel="stylesheet" href="css/planner-flow.css?v=4.6.260"><link rel="stylesheet" href="css/retro.css?v=4.6.260">
+<link rel="stylesheet" href="css/app.css?v=4.6.261"><link rel="stylesheet" href="css/planner.css?v=4.6.261"><link rel="stylesheet" href="css/mascot.css?v=4.6.261"><link rel="stylesheet" href="css/plates.css?v=4.6.261">
+<link rel="stylesheet" href="css/planner-flow.css?v=4.6.261"><link rel="stylesheet" href="css/retro.css?v=4.6.261">
 
 
 <div id="app">
@@ -84,30 +84,30 @@ try{var _de=document.documentElement,_qp=new URLSearchParams(location.search);_d
   <path d="M12 4v13M6 12l6 6 6-6"/></svg></div>
 </div>
 
-  <script src="js/core.js?v=4.6.260"></script>
-  <script src="js/ota.js?v=4.6.260"></script>
-  <script src="js/derive.js?v=4.6.260"></script>
-  <script src="js/util.js?v=4.6.260"></script>
-  <script src="js/planlink.js?v=4.6.260"></script>
-  <script src="js/realset.js?v=4.6.260"></script>
-  <script src="js/reprange.js?v=4.6.260"></script>
-  <script src="js/verdict.js?v=4.6.260"></script>
-  <script src="js/header.js?v=4.6.260"></script>
-  <script src="js/retro.js?v=4.6.260"></script><script src="js/mascot.js?v=4.6.260"></script>
-  <script src="js/plates.js?v=4.6.260"></script>
-  <script src="js/plate-canvas.js?v=4.6.260"></script>
-  <script src="js/report.js?v=4.6.260"></script>
-  <script src="js/today.js?v=4.6.260"></script>
-  <script src="js/progression.js?v=4.6.260"></script>
-  <script src="js/lift.js?v=4.6.260"></script><script src="js/writer.js?v=4.6.260"></script><script src="js/reminders.js?v=4.6.260"></script><script src="js/health.js?v=4.6.260"></script>
-  <script src="js/planner.js?v=4.6.260"></script>
-  <script src="js/planner-flow.js?v=4.6.260"></script>
-  <script src="js/stats.js?v=4.6.260"></script>
-  <script src="js/history.js?v=4.6.260"></script>
-  <script src="js/settings.js?v=4.6.260"></script>
-  <script src="js/stats-story.js?v=4.6.260"></script>
-  <script src="js/heat-replay.js?v=4.6.260"></script>
-  <script src="js/day-review.js?v=4.6.260"></script>
-  <script src="js/app.js?v=4.6.260"></script>
-  <script src="js/membership.js?v=4.6.260"></script>
-  <script src="js/metrics.js?v=4.6.260"></script>
+  <script src="js/core.js?v=4.6.261"></script>
+  <script src="js/ota.js?v=4.6.261"></script>
+  <script src="js/derive.js?v=4.6.261"></script>
+  <script src="js/util.js?v=4.6.261"></script>
+  <script src="js/planlink.js?v=4.6.261"></script>
+  <script src="js/realset.js?v=4.6.261"></script>
+  <script src="js/reprange.js?v=4.6.261"></script>
+  <script src="js/verdict.js?v=4.6.261"></script>
+  <script src="js/header.js?v=4.6.261"></script>
+  <script src="js/retro.js?v=4.6.261"></script><script src="js/mascot.js?v=4.6.261"></script>
+  <script src="js/plates.js?v=4.6.261"></script>
+  <script src="js/plate-canvas.js?v=4.6.261"></script>
+  <script src="js/report.js?v=4.6.261"></script>
+  <script src="js/today.js?v=4.6.261"></script>
+  <script src="js/progression.js?v=4.6.261"></script>
+  <script src="js/lift.js?v=4.6.261"></script><script src="js/writer.js?v=4.6.261"></script><script src="js/reminders.js?v=4.6.261"></script><script src="js/health.js?v=4.6.261"></script>
+  <script src="js/planner.js?v=4.6.261"></script>
+  <script src="js/planner-flow.js?v=4.6.261"></script>
+  <script src="js/stats.js?v=4.6.261"></script>
+  <script src="js/history.js?v=4.6.261"></script>
+  <script src="js/settings.js?v=4.6.261"></script>
+  <script src="js/stats-story.js?v=4.6.261"></script>
+  <script src="js/heat-replay.js?v=4.6.261"></script>
+  <script src="js/day-review.js?v=4.6.261"></script>
+  <script src="js/app.js?v=4.6.261"></script>
+  <script src="js/membership.js?v=4.6.261"></script>
+  <script src="js/metrics.js?v=4.6.261"></script>

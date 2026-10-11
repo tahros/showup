@@ -1,5 +1,13 @@
 # ShowUppp — changelog
 
+## v4.6.261 (2026-10-10) — Start as a new user (owner only)
+
+- **Asked:** a way for the owner to see ShowUppp as a brand-new user, without signing out of the real account each time.
+- Settings → under Owner dashboard → **Start as a new user**. The app reloads empty and signed out, on the first-run screen, with an amber "Test mode · new user" bar: **Start over** wipes the test and runs the first run again; **Exit** wipes it and reloads your real app.
+- How it stays safe: test mode runs on its own set of storage keys (sbx:), so the real record, the real sign-in and the backups are never read or written. In the iPhone app the durable record files, Apple Health and reminders read as absent in test mode, so nothing native is written, scheduled or deleted. Signing in with the owner's account inside test mode is refused, and nothing is pushed for it, so the real cloud record can't be touched. A spare Google or Apple account works to test a new sign-up. Metrics are off in test mode.
+- Only the owner's account sees the button.
+- Check: `tools/check-test-mode.cjs` (enter, sample data, owner sign-in refused, Start over, Exit, non-owner).
+
 ## v4.6.260 (2026-10-10) — Preferences in ink, not blue
 
 - **Asked:** too much blue on Preferences; make it more elegant. Three ideas were mocked (Quiet gray, Ink, soft Tint); the maker chose Ink.
