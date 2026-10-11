@@ -32,14 +32,35 @@ Connections (when available), and Account & data. No workout writer changed.
   reopening Settings retries. Late responses cannot paint another account's card.
 - Settings has no redundant Back action or tagline. The avatar's existing button
   has a corner edit badge and retains its large accessible tap target.
-- Profile editing is a 44px pencil target beside the name. Membership sits
-  directly beneath it, number first in 21px Mono, followed by MEMBER Nº.
+- Profile editing is a 44px pencil target beside the name. Option A puts
+  MEMBER Nº before the lightly spaced 21px Mono number beneath the name.
   The whole membership row remains tap-to-copy; no extra copy glyph is needed.
 - Days trained uses the established `loggedDays()` definition: distinct dates
   with workout rows, including imports; no duplicate count for multiple sets or
   sessions on a date. Rest/empty dates do not count. It links to History.
 
 ## Artwork and motion
+
+The top-right club coin replaces the club caption, while the official wordmark
+stays top left. Both share a vertical center. The silver coin has black lettering:
+approved retro seal on the front, official ShowUppp vector wordmark and the real
+registry number along the lower arc on the reverse (Minted signature). Guests
+show Guest and unavailable numbers show an em dash; neither invents a number.
+The number updates with the guarded registry response, not with a sample identity.
+Its digits use local IBM Plex Sans Bold. `assets/club-seal.webp` is a 512px
+encoding of the approved seal; it is cached offline and included in the OTA bundle.
+
+Tap/Enter/Space flips; horizontal pointer drag turns either way, and release
+velocity controls inertial spin. Arrow keys turn either way. Vertical swipes can
+still scroll. It stays upright, snaps to a readable face, and does not auto-spin.
+Moving reflections and a quiet three-second shine use CSS layers, not WebGL.
+Reduced motion / Mascot Still or Off skips momentum and automatic shine, while
+keeping instantaneous flips available. Hidden/offscreen/detached coins stop.
+Coin interaction never writes profile identity or workouts.
+
+`tools/check-club-coin.cjs` covers both themes at 320/393px, centering, fonts,
+registry updates, keyboard/reduced-motion flips, direction, velocity and unchanged
+records. It uses a synthetic registry fixture, never the signed-in account.
 
 The approved three-icon preview is retained in `assets/club-icons-0.webp`.
 The remaining two transparent three-cell atlases are `club-icons-1.webp` and

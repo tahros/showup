@@ -530,3 +530,27 @@ p.pw-small{margin:10px 0 16px}.pw-workspace p:not(.pw-small){font:400 14px/1.6 v
 .club-member-label{padding-top:3px;line-height:1.2}
 .club-number-o{display:inline-block;vertical-align:top;font-size:.8em;line-height:1.05;border-bottom:1px solid currentColor;letter-spacing:0;margin-left:1px;padding-bottom:1px}
 #view>.club-card.card{margin-top:16px}
+/* Option A: quiet membership ledger, centered brand marks, silver club coin. */
+.club-card .club-member-id{align-items:center;gap:6px 12px}
+.club-card .club-member-label{padding-top:0;letter-spacing:1.1px}
+.club-card .club-member-id .club-number{font-weight:400;letter-spacing:1.5px}
+.club-card .club-facts{grid-template-columns:1fr 1fr;gap:20px;padding-top:8px}
+.club-card .club-facts>button{border-left:1px solid var(--line);padding-left:20px}
+.club-brand>.club-coin-button{position:relative;display:block;flex:0 0 60px;width:60px;height:60px;min-height:60px;padding:0;border:0;border-radius:50%;background:none;perspective:500px;touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:grab;isolation:auto;overflow:visible}
+.club-coin-button{--coin-light:125deg;--coin-reflection:0%;--depth:0px}
+.club-coin-button:active{cursor:grabbing}
+.club-coin-rotor{position:absolute;inset:0;display:block;transform-style:preserve-3d;transform:rotateY(0deg)}
+.club-coin-face,.club-coin-rim{position:absolute;inset:0;display:block;border-radius:50%;background:linear-gradient(var(--coin-light,125deg),#626b75,#dce2e8 20%,#fff 29%,#9ba4ae 44%,#e4e9ee 62%,#fafcff 76%,#7d8791);border:1px solid #dde3e9;box-shadow:inset 0 0 0 1px #9aa3ad,inset 0 0 0 2px #eef3f8}
+.club-coin-rim{transform:translateZ(var(--depth));background:linear-gradient(var(--coin-light,125deg),#4d5863,#f1f6fb 35%,#78838d 65%,#d1dbe5)}
+.club-coin-face{backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden;transform:translateZ(2.5px)}
+.club-coin-back{transform:rotateY(180deg) translateZ(2.5px);container-type:inline-size}
+.club-brand .club-coin-front img{position:absolute;inset:-7%;width:114%;height:114%;max-width:none;filter:grayscale(1) contrast(4);mix-blend-mode:multiply;pointer-events:none}
+.club-brand .club-coin-back .club-coin-wordmark{position:absolute;left:26%;top:25%;width:48%;height:31%;object-fit:contain;pointer-events:none}
+.club-coin-number{position:absolute;inset:0;display:block;color:#20262a}
+.club-coin-number>span{position:absolute;font:700 10cqw/1 var(--body);text-align:center}
+.club-coin-back:before{content:'';position:absolute;inset:7%;border:1px solid #75818b88;border-radius:50%;box-shadow:0 1px 0 #fff8}
+.club-coin-face:after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(105deg,transparent 20%,#ffffff08 35%,#ffffffaa 47%,#ffffff22 51%,transparent 63%);transform:translateX(var(--coin-reflection,0%));opacity:.35;mix-blend-mode:screen}
+.club-coin-visible .club-coin-face:after{animation:club-coin-shine 3s ease-in-out infinite}
+@keyframes club-coin-shine{0%,65%,100%{opacity:.15}78%{opacity:.65}88%{opacity:.3}}
+.club-page-hidden .club-coin-face:after,.club-still .club-coin-face:after{animation:none!important}
+@media(prefers-reduced-motion:reduce){.club-coin-face:after{animation:none!important}}

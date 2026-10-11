@@ -1,0 +1,29 @@
+// PW_PORT=8806 NODE_PATH=<playwright modules> node tools/check-club-coin.cjs
+const {chromium}=require('playwright'),assert=require('assert'),path=require('path');
+(async()=>{const browser=await chromium.launch({headless:true,...(process.env.PW_CHROME?{executablePath:process.env.PW_CHROME}:{})});try{
+ for(const theme of ['light','dark'])for(const width of [320,393]){
+  const page=await browser.newPage({viewport:{width,height:1000},serviceWorkers:'block'}),errors=[];
+  page.on('pageerror',e=>errors.push(e.message));const origin=process.env.PW_ORIGIN||'http://127.0.0.1:'+(process.env.PW_PORT||8806)+'/';
+  await page.route('**/*',r=>r.request().url().startsWith(origin)?r.continue():r.abort());await page.goto(origin);await page.waitForTimeout(500);
+  await page.evaluate(theme=>{DB={days:{},settings:{name:'Sungjee Yoo',onboarded:true,theme,unit:'lb',skin:'minimal',mascotMotion:'animated',clubAvatar:'roller'}};loadedOK=true;settingsBaseline();session={user:{id:'coin-fixture',created_at:'2026-07-13'}};clubMembershipCache.set(clubMembershipKey(),{member_no:'0',joined_at:'2026-07-13'});document.querySelector('#onb')?.remove();SEED=deriveAll();view='sync';lastView=null;applyTheme();render();},theme);
+  const coin=page.locator('[data-club-coin]');await coin.waitFor();await page.evaluate(()=>document.fonts.ready);await page.waitForTimeout(500);
+  assert.equal(await coin.locator('.club-coin-number').textContent(),'000000');
+  const geometry=await page.evaluate(()=>{const a=document.querySelector('.club-brand>img').getBoundingClientRect(),b=document.querySelector('[data-club-coin]').getBoundingClientRect();return {delta:Math.abs(a.y+a.height/2-b.y-b.height/2),size:b.width,overflow:document.documentElement.scrollWidth>innerWidth,font:getComputedStyle(document.querySelector('.club-coin-number>span')).fontFamily,weight:getComputedStyle(document.querySelector('.club-coin-number>span')).fontWeight}});
+  assert(geometry.delta<1);assert(geometry.size>=44);assert(!geometry.overflow);assert(geometry.font.includes('IBM Plex Sans'));assert.equal(geometry.weight,'700');
+  const before=await page.evaluate(()=>JSON.stringify(DB));
+  await page.emulateMedia({reducedMotion:'reduce'});await coin.click();assert.equal(await coin.getAttribute('data-angle'),'180');
+  assert.equal(await coin.locator('.club-coin-rotor').evaluate(e=>getComputedStyle(e).transformStyle),'preserve-3d');
+  assert.equal(await coin.locator('.club-coin-back img').getAttribute('src'),'assets/showuppp-wordmark-light.svg');
+  if(process.env.PW_SHOTS&&width===393)await page.screenshot({path:path.join(process.env.PW_SHOTS,'coin-back-'+theme+'.png'),fullPage:true});
+  await coin.press('ArrowLeft');assert.equal(await coin.getAttribute('data-angle'),'0');
+  if(process.env.PW_SHOTS&&width===393)await page.screenshot({path:path.join(process.env.PW_SHOTS,'coin-front-'+theme+'.png'),fullPage:true});
+  await page.emulateMedia({reducedMotion:'no-preference'});
+  async function flick(dir,delay){await page.evaluate(()=>clubBindCoin());const b=await coin.boundingBox(),x=b.x+b.width/2,y=b.y+b.height/2;await page.mouse.move(x,y);await page.mouse.down();for(let i=1;i<=3;i++){await page.waitForTimeout(delay);await page.mouse.move(x+dir*i*8,y);}await page.mouse.up();const start=Number(await coin.getAttribute('data-angle'));await page.waitForTimeout(140);return {start,end:Number(await coin.getAttribute('data-angle'))};}
+  const slow=await flick(1,100),fast=await flick(1,12),left=await flick(-1,12);assert(fast.end-fast.start>slow.end-slow.start,'faster swipe has more momentum');assert(left.end<left.start,'left flick continues left');
+  await page.evaluate(()=>{DB.settings.mascotMotion='still';clubObserveMotion();clubBindCoin()});await coin.click();assert.equal(await coin.getAttribute('data-angle'),'180');
+  assert.equal(await page.evaluate(()=>JSON.stringify(DB.days)),JSON.stringify(JSON.parse(before).days));
+  await page.evaluate(()=>{DB.settings.mascotMotion='animated'});assert.equal(await page.evaluate(()=>JSON.stringify(DB)),before);
+  await page.evaluate(()=>{clubMembershipCache.set(clubMembershipKey(),{member_no:'28',joined_at:'2026-07-13'});clubPaintMembership()});assert.equal(await coin.locator('.club-coin-number').textContent(),'000028');
+  assert.deepEqual(errors,[]);console.log('PASS coin registry, geometry, reduced motion, keyboard, swipe speed and direction '+width+' '+theme);await page.close();
+ }
+}finally{await browser.close()}})().catch(e=>{console.error(e);process.exitCode=1});

@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.264 (2026-10-11) — Your club coin
+
+- Refines the Settings membership card with the approved Option A layout: a quiet MEMBER Nº label before the spaced number, balanced date/day columns, and vertically centered brand marks.
+- Adds the silver Show Up Club coin with black lettering. Flip it to see the official ShowUppp wordmark and your member number curved along the lower edge. Tap to flip or swipe either way; faster flicks spin faster before settling on a readable face.
+- Adds moving metallic highlights and a subtle shine, with keyboard controls and reduced-motion support. Keeps the original avatar controls, real membership registry, profile data, workouts, and latest floating header unchanged. Coin artwork is available offline.
+
 ## v4.6.263 (2026-10-11) — The first run lets go
 
 - **Found by the maker:** after "I'm training now" on the last first-run screen, nothing moved on. The first run had finished and saved, and Train was open underneath, but the finished screen stayed drawn on top and caught every tap. The same happened after Plan my next workout and Just looking around.

@@ -59,7 +59,7 @@ RUNTIME = {"--i", "--len", "--sat", "--planw", "--planr", "--h", "--j", "--f"}  
 # --j: v3.3.513, that column's place in the week, for the growth stagger
 # --f: v3.3.534, a plan row's fill, written inline as done/planned for that row
 used = set(re.findall(r"var\((--[A-Za-z0-9-]+)", css+(d/"css/planner.css").read_text()+(d/"css/mascot.css").read_text()))
-defined = set(re.findall(r"(--[A-Za-z0-9-]+)\s*:", css))
+defined = set(re.findall(r"(--[A-Za-z0-9-]+)\s*:", css+(d/"css/planner.css").read_text()+(d/"css/mascot.css").read_text()))
 undef = used - defined - RUNTIME
 for v in sorted(undef): fail.append(f"CSS var used but never defined: {v}")
 

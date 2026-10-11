@@ -233,6 +233,7 @@ function clubMembershipFacts(){
 function clubPaintMembership(){
   const f=clubMembershipFacts(),n=document.querySelector('.club-number'),s=document.querySelector('.club-since'),b=document.querySelector('[data-club-copy]');
   if(n)n.textContent=f.number;if(s)s.textContent=f.since;
+  const coin=document.querySelector('[data-club-coin]');if(coin){coin.querySelector('.club-coin-number').innerHTML=clubCoinNumberHTML(f.number);coin.setAttribute('aria-label','Flip club coin. Member '+f.number+'. Drag left or right to spin.');}
   if(b){b.disabled=!f.reference;b.setAttribute('aria-label',f.reference?'Copy member reference '+f.reference:'Member number unavailable');b.title=f.reference?'Copy '+f.reference:'Connect to load your member number';}
 }
 async function clubCopyMembership(){
@@ -268,13 +269,44 @@ function clubIdentity(){return session?.user?.id||DB.settings.clubGuest?.id||(DB
 function clubAvatar(){const k=DB.settings.clubAvatar;return CLUB_ICONS.find(x=>x[0]===k)||CLUB_ICONS[clubHash(clubIdentity())%CLUB_ICONS.length];}
 function clubIconHTML(item,animated=false){return `<span class="club-avatar club-${item[0]}${animated?' club-animate':''}" aria-hidden="true"><span class="club-shadow"></span><span class="club-sprite" style="background-image:url('assets/club-icons-${item[2]}.webp');background-position:${item[3]}% 0"></span></span>`;}
 function clubAvatarEditHTML(item){return clubIconHTML(item,true)+`<span class="club-avatar-edit" aria-hidden="true">${icon('edit',14)}</span>`;}
+function clubCoinNumberHTML(number){
+  const chars=Array.from(String(number)),size=Math.min(10,70/Math.max(6,chars.length));
+  return chars.map((c,i)=>{const a=chars.length===1?0:-38+i*76/(chars.length-1),r=a*Math.PI/180;return `<span style="left:${50+Math.sin(r)*33}%;top:${50+Math.cos(r)*33}%;transform:translate(-50%,-50%) rotate(${-a}deg);font-size:${size}cqw">${hesc(c)}</span>`}).join('');
+}
+function clubCoinHTML(number){
+  return `<button type="button" class="club-coin-button" data-club-coin aria-label="Flip club coin. Member ${hesc(number)}. Drag left or right to spin." title="Tap to flip · swipe to spin"><span class="club-coin-rotor"><span class="club-coin-rim" style="--depth:-2px"></span><span class="club-coin-rim" style="--depth:0px"></span><span class="club-coin-rim" style="--depth:2px"></span><span class="club-coin-face club-coin-front"><img src="assets/club-seal.webp" alt="The Show Up Club" draggable="false"></span><span class="club-coin-face club-coin-back"><img class="club-coin-wordmark" src="assets/showuppp-wordmark-light.svg" alt="ShowUppp" draggable="false"><span class="club-coin-number" aria-hidden="true">${clubCoinNumberHTML(number)}</span></span></span></button>`;
+}
+let clubCoinDispose=()=>{};
+function clubBindCoin(){
+  clubCoinDispose();const el=document.querySelector('[data-club-coin]');if(!el)return;
+  const rotor=el.querySelector('.club-coin-rotor'),media=matchMedia('(prefers-reduced-motion: reduce)');
+  let angle=0,speed=0,frame=0,lastFrame=0,drag=false,lastX=0,lastTime=0,travel=0,suppressClick=false,visible=true;
+  const still=()=>media.matches||(typeof mascotMode==='function'&&mascotMode()!=='animated');
+  function paint(){rotor.style.transform=`rotateY(${angle}deg)`;el.dataset.angle=String(angle);el.style.setProperty('--coin-light',`${125+Math.sin(angle*Math.PI/180)*60}deg`);el.style.setProperty('--coin-reflection',`${Math.sin(angle*Math.PI/180)*55}%`);}
+  function stop(){cancelAnimationFrame(frame);frame=0;speed=0;drag=false;angle=Math.round(angle/180)*180;paint();}
+  function tick(now){frame=0;if(!el.isConnected||document.hidden||!visible){stop();return;}const dt=Math.min(32,now-lastFrame);lastFrame=now;
+    angle+=speed*dt;speed*=Math.pow(.975,dt/16.67);
+    if(Math.abs(speed)<.012){const target=Math.round(angle/180)*180;angle+=(target-angle)*Math.min(1,dt/110);if(Math.abs(target-angle)<.1){angle=target;paint();return;}}
+    paint();frame=requestAnimationFrame(tick);
+  }
+  function start(){if(still()){stop();return;}if(!frame){lastFrame=performance.now();frame=requestAnimationFrame(tick);}}
+  el.addEventListener('pointerdown',e=>{if(e.isPrimary===false||e.button>0)return;cancelAnimationFrame(frame);frame=0;drag=true;speed=0;travel=0;suppressClick=false;lastX=e.clientX;lastTime=performance.now();el.setPointerCapture(e.pointerId);});
+  el.addEventListener('pointermove',e=>{if(!drag)return;const now=performance.now(),dx=e.clientX-lastX,dt=Math.max(8,now-lastTime);travel+=Math.abs(dx);angle+=dx*2;speed=Math.max(-3.5,Math.min(3.5,.45*speed+.55*dx*2/dt));lastX=e.clientX;lastTime=now;paint();});
+  function release(cancelled=false){if(!drag)return;drag=false;suppressClick=travel>4||cancelled;if(cancelled||performance.now()-lastTime>100)speed=0;if(suppressClick)start();}
+  el.addEventListener('pointerup',()=>release());el.addEventListener('pointercancel',()=>release(true));el.addEventListener('lostpointercapture',()=>release(true));
+  el.addEventListener('click',()=>{if(suppressClick){suppressClick=false;return;}if(still()){angle=Math.round(angle/180)*180+180;paint();}else{speed=.28;start();}});
+  el.addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();const dir=e.key==='ArrowLeft'?-1:1;if(still()){angle=Math.round(angle/180)*180+dir*180;paint();}else{speed=dir*.28;start();}}});
+  const visibility=()=>{if(document.hidden)stop();};document.addEventListener('visibilitychange',visibility);media.addEventListener('change',stop);
+  const observer=typeof IntersectionObserver==='undefined'?null:new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;el.classList.toggle('club-coin-visible',visible);if(!visible)stop();});observer?.observe(el);el.classList.add('club-coin-visible');
+  clubCoinDispose=()=>{stop();observer?.disconnect();document.removeEventListener('visibilitychange',visibility);media.removeEventListener?.('change',stop);};paint();
+}
 function clubCardHTML(){
   const avatar=clubAvatar(),user=session?.user,{number:displayNumber,since,reference}=clubMembershipFacts();
   const dark=document.documentElement.dataset.theme==='dark';
   return `<section class="card club-card" aria-label="Your Showing Up Club profile">
-    <div class="club-brand"><img src="assets/showuppp-wordmark-${dark?'dark':'light'}.svg" alt="ShowUppp"><span>SHOWING UP CLUB</span></div>
+    <div class="club-brand"><img src="assets/showuppp-wordmark-${dark?'dark':'light'}.svg" alt="ShowUppp">${clubCoinHTML(displayNumber)}</div>
     <div class="club-person"><button type="button" class="club-avatar-button" data-club-picker aria-label="Edit profile icon" aria-expanded="false">${clubAvatarEditHTML(avatar)}</button><div class="club-identity"><div class="club-name-row"><h2>${hesc(DB.settings.name||'Your place in the club')}</h2><button type="button" class="club-profile-edit" data-club-edit aria-label="Edit profile" title="Edit profile">${icon('edit',16)}</button></div>
-    <button type="button" class="club-member-id" data-club-copy ${reference?'':'disabled'} aria-label="${reference?'Copy member reference '+reference:'Member number unavailable'}" title="${reference?'Copy '+reference:'Connect to load your member number'}"><strong class="club-number">${displayNumber}</strong><span class="club-member-label">${user?'MEMBER N<span class="club-number-o">o</span>':'LOCAL PROFILE'}</span></button></div></div>
+    <button type="button" class="club-member-id" data-club-copy ${reference?'':'disabled'} aria-label="${reference?'Copy member reference '+reference:'Member number unavailable'}" title="${reference?'Copy '+reference:'Connect to load your member number'}"><span class="club-member-label">${user?'MEMBER N<span class="club-number-o">o</span>':'LOCAL PROFILE'}</span><strong class="club-number">${displayNumber}</strong></button></div></div>
     <div class="club-membership">
     <div class="club-facts"><div><span>${user?'SHOWING UP SINCE':'ON THIS DEVICE SINCE'}</span><strong class="club-since">${since}</strong></div><button type="button" data-club-history aria-label="View your logged workout days"><span>DAYS TRAINED</span><strong>${fmt(loggedDays())}</strong></button></div></div>
     <div class="club-picker" hidden><div class="club-picker-heading"><b>Make it yours.</b><button type="button" class="club-text-button" data-club-close>Done</button></div><div class="club-icon-grid" role="group" aria-label="Profile icons">${CLUB_ICONS.map(i=>`<button type="button" data-club-icon="${i[0]}" aria-pressed="${i[0]===avatar[0]}">${clubIconHTML(i,i[0]===avatar[0])}<span>${i[1]}</span></button>`).join('')}</div><p class="note">One little companion. Your choice stays with your profile.</p></div>
@@ -290,6 +322,7 @@ function clubArrangeSettings(){
     if(!nodes.length)continue;const d=document.createElement('details');d.className='club-settings-group';d.dataset.clubGroup=key;d.open=clubOpenGroups.has(key);const s=document.createElement('summary');s.innerHTML=`<span><b>${title}</b><small>${sub}</small></span><span aria-hidden="true">+</span>`;d.append(s);const content=document.createElement('div');content.className='club-group-content';nodes.forEach(n=>content.append(n));d.append(content);d.addEventListener('toggle',()=>{if(d.open)clubOpenGroups.add(key);else clubOpenGroups.delete(key)});wrap.append(d);
   }
   clubObserveMotion();
+  clubBindCoin();
 }
 let clubMotionObserver;
 function clubObserveMotion(){

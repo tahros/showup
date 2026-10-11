@@ -19,6 +19,12 @@ assert.equal(run('CLUB_ICONS.length'),9);assert.equal(new Set(JSON.parse(run('JS
   const f=JSON.parse(run(`JSON.stringify(clubNumberFormats('${n}'))`));assert.equal(f.number,display);assert.equal(f.reference,'SUP-'+display);assert.equal(f.badge,'SUP–'+display);
  }
  assert.equal(run(`clubNumberFormats('not-a-number')`),null);
+ assert(run(`clubCoinHTML('000028')`).includes('assets/club-seal.webp'));
+ assert(!run(`clubCoinHTML('000028')`).includes('Sungjee'));
+ const coinMarkup=run(`clubCoinNumberHTML('000028')`);assert.equal((coinMarkup.match(/<span/g)||[]).length,6);assert(coinMarkup.includes('>8</span>'));
+ assert(!run(`clubCoinNumberHTML('<img>')`).includes('<img>'));
+ assert.equal((run(`clubCoinNumberHTML('9223372036854775807')`).match(/<span/g)||[]).length,19);
+ assert(run('clubCardHTML()').indexOf('club-member-label')<run('clubCardHTML()').indexOf('class="club-number"'));
  run(`session={user:{id:'utc-test',created_at:'2026-10-01T00:30:00Z'}}`);assert.equal(run('clubMembershipFacts().since'),'OCT 2026');
  console.log('PASS six-digit minimum, lossless bigint, badge/reference punctuation and UTC month');
  await new Promise(r=>setTimeout(r,100));
