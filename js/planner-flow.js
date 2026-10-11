@@ -173,7 +173,14 @@ function pfDateFooter(){
     plan, and "Plan new days" was sitting there disabled as the primary. The
     two things you can do with saved plans take the row instead: Edit, Move. */
  const allSaved=!s.busy&&saved.length&&!fresh.length&&!drafts.length;
- let main=s.busy?action('pf-generate','Creating your draft','sparkle',true):allSaved?action('pf-edit-selected','Edit '+plural(saved.length,'plan'),'edit',true)+action('pf-move','Move '+plural(saved.length,'plan'),'move'):action('pf-generate',fresh.length?'Plan '+plural(fresh.length,'new day'):'Plan new days','sparkle',true,fresh.length?'data-subset="fresh"':'disabled')+action('pf-edit-selected',saved.length?'Edit '+plural(saved.length,'plan'):'Edit saved plans','edit',false,saved.length?'':'disabled');
+ /* v4.6.268: ONE BUTTON PER THING IT DOES. "Generate instead" wrote every
+    selected day; with only new days selected that is exactly what "Plan N new
+    days" does, so the two sat side by side meaning the same. It now appears
+    only when a selected day already has a saved plan, named for what it adds:
+    replacing those plans. With no saved day, Paste takes the second slot and
+    the always-disabled "Edit saved plans" is gone. */
+ const pasteBtn=action('pf-paste-dates','Paste','paste',false,n?'':'disabled');
+ let main=s.busy?action('pf-generate','Creating your draft','sparkle',true):allSaved?action('pf-edit-selected','Edit '+plural(saved.length,'plan'),'edit',true)+action('pf-move','Move '+plural(saved.length,'plan'),'move'):action('pf-generate',fresh.length?'Plan '+plural(fresh.length,'new day'):'Plan new days','sparkle',true,fresh.length?'data-subset="fresh"':'disabled')+(saved.length?action('pf-edit-selected','Edit '+plural(saved.length,'plan'),'edit'):pasteBtn);
  /* v4.6.101: MOVE. Saved plans among the selected days can be shifted by N
     days; the calendar shows where they land while you step. It sits with
     Generate and Paste, and takes the footer over while it is open so the
@@ -190,11 +197,14 @@ function pfDateFooter(){
    +(problem?'<p class="pf-move-note pf-move-problem">'+problem+'</p>':replaces?'<p class="pf-move-note">'+replaces+'</p>':'<p class="pf-move-note">Logged workouts stay untouched. Drafts move with their days.</p>')
    +'<div class="pf-date-actions">'+pwButton('pf-move-cancel','Cancel')+pwButton('pf-move-go',plan.ok?'Move '+plural(n,'plan'):'Move','primary',plan.ok?'':'disabled')+'</div>';
  }
- const summary=[fresh.length?plural(fresh.length,'new day'):'',saved.length?plural(saved.length,'saved plan'):'',drafts.length?plural(drafts.length,'draft'):''].filter(Boolean).join(' · ');
+ const kinds=[fresh.length?plural(fresh.length,'new day'):'',saved.length?plural(saved.length,'saved plan'):'',drafts.length?plural(drafts.length,'draft'):''].filter(Boolean);
+ /* v4.6.268: the breakdown only says something when the selection is a mix; one kind repeats the count above it */
+ const summary=kinds.length>1?kinds.join(' · '):'';
  const changes=drafts.filter(d=>pwSaved(d)?.items?.length);
  const resume=drafts.length&&!s.busy?'<div class="pf-draft-resume">'+action('pf-resume-drafts','Resume '+plural(drafts.length,'draft'),'edit')+'</div>':'';
- const secondary=!s.busy?'<div class="pf-date-secondary">'+action('pf-generate','Generate instead','sparkle',false,n?'':'disabled')+action('pf-paste-dates','Paste','paste',false,n?'':'disabled')+'</div>':'';
- return '<div class="pf-selection" aria-live="polite"><strong>'+(n?'<span class="pf-count">'+n+'</span> '+(n===1?'day':'days')+' selected<span class="pf-range">· '+pfDateRange()+'</span>':'Choose dates above')+'</strong>'+(n&&!s.busy?pwButton('pf-unselect','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>Unselect all','pf-unselect'):'')+'</div><p class="pf-date-breakdown">'+(summary||'Select dates to create, edit or resume.')+'</p>'+pfSplitLine()+(changes.length?'<p class="pf-draft-detail">'+changes.map(d=>hesc(pwDate(d))).join(' · ')+': unsaved changes to saved '+(changes.length===1?'plan':'plans')+'</p>':'')+resume+'<div class="pf-date-actions">'+main+'</div>'+secondary+'<p class="pf-date-help">Logged workouts stay untouched.</p>'+(s.busy?pwButton('pf-back','Cancel','pw-text'):'');
+ const replace=saved.length?action('pf-generate',fresh.length||drafts.length?'Plan all '+n+', replacing '+saved.length:'Replace '+plural(saved.length,'saved plan'),'sparkle'):'';
+ const secondary=!s.busy&&(saved.length||allSaved)?'<div class="pf-date-secondary">'+replace+pasteBtn+'</div>':'';
+ return '<div class="pf-selection" aria-live="polite"><strong>'+(n?'<span class="pf-count">'+n+'</span> '+(n===1?'day':'days')+' selected<span class="pf-range">· '+pfDateRange()+'</span>':'Choose dates above')+'</strong>'+(n&&!s.busy?pwButton('pf-unselect','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>Unselect all','pf-unselect'):'')+'</div>'+(summary?'<p class="pf-date-breakdown">'+summary+'</p>':n?'':'<p class="pf-date-breakdown">Select dates to create, edit or resume.</p>')+pfSplitLine()+(changes.length?'<p class="pf-draft-detail">'+changes.map(d=>hesc(pwDate(d))).join(' · ')+': unsaved changes to saved '+(changes.length===1?'plan':'plans')+'</p>':'')+resume+'<div class="pf-date-actions">'+main+'</div>'+secondary+'<p class="pf-date-help">Logged workouts stay untouched.</p>'+(s.busy?pwButton('pf-back','Cancel','pw-text'):'');
 }
 let pfMotion=null;
 function pfPlayMotion(){const m=pfMotion;pfMotion=null;if(!m)return;const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
