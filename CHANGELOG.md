@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.263 (2026-10-11) — The first run lets go
+
+- **Found by the maker:** after "I'm training now" on the last first-run screen, nothing moved on. The first run had finished and saved, and Train was open underneath, but the finished screen stayed drawn on top and caught every tap. The same happened after Plan my next workout and Just looking around.
+- **Cause:** v4.6.262's layout rule for the new screens (`#onb[data-step]{display:block}`) had the same CSS specificity as the older `#onb[hidden]{display:none}` and came later in the file, so it won. Hidden now always wins.
+- Check: `tools/check-onboarding.cjs` now also confirms nothing of the first run is left over the app after each of the three choices, and that tapping Chest in Train opens it.
+
 ## v4.6.262 (2026-10-10) — A new first run
 
 - **Asked:** the first-run screens had small type and didn't hold attention; redesigned over several mocks to the owner's revised four-screen flow, animated.

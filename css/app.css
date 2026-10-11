@@ -4487,6 +4487,8 @@ html.modal-open .calreturn{display:none!important}
 
 /* ============ v4.6.262: the first run (js/today.js onbRender) ============ */
 #onb[data-step]{display:block;align-items:initial;justify-content:initial;--ob-d:0s}
+/* v4.6.263: the line above outranked #onb[hidden] (same specificity, later), so a finished first run stayed on screen over Train */
+#onb[hidden]{display:none!important}
 #onb[data-step="1"]{background:#3049DC;color:#fff}
 #onb .ob{min-height:100%;width:100%;max-width:520px;margin:0 auto;box-sizing:border-box;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top,0px) + 18px) 24px calc(env(safe-area-inset-bottom,0px) + 22px);font-family:var(--body);color:inherit;position:relative;isolation:isolate}
 #onb .ob button{-webkit-tap-highlight-color:transparent;font-family:var(--body)}

@@ -44,6 +44,13 @@ try{for(const [w,h] of [[402,874],[320,640]])for(const theme of ['dark','light']
  await p.click(`[data-onbact="go"][data-onbgo="${go}"]`);await p.waitForTimeout(900);
  d=await p.evaluate(()=>({hidden:document.getElementById('onb').hidden,view,onb:!!DB.settings.onboarded,name:DB.settings.name,unit:DB.settings.unit,kg:DB.settings.bodyKg,parts:(DB.settings.myParts||[]).join(),bar:DB.settings.barKg,plan:!!document.querySelector('.pf-workspace,.pw-workspace')}));
  const where=go==='train'?d.view==='lift':go==='plan'?d.plan:d.view==='today'&&!d.plan;
+ const gone=await p.evaluate(()=>{const o=document.getElementById('onb'),hit=document.elementFromPoint(innerWidth/2,innerHeight/2);return {display:getComputedStyle(o).display,covered:!!hit?.closest('#onb')};});
+ ok(`${tag} the first run is really gone: nothing of it left over the app`,gone.display==='none'&&!gone.covered,gone);
+ if(go==='train'){const t=await p.evaluate(()=>{const b=document.querySelector('#view button[data-part],#view .ptile,#view [data-p]');return b?b.outerHTML.slice(0,80):null;});
+  const sel=await p.evaluate(()=>{const c=[...document.querySelectorAll('#view button')].find(b=>/Chest/.test(b.textContent));if(!c)return null;c.setAttribute('data-test-chest','1');return true;});
+  if(sel){await p.click('[data-test-chest]');await p.waitForTimeout(600);}
+  const moved=await p.evaluate(()=>({view,part:typeof lift!=='undefined'?lift.part:null}));
+  ok(`${tag} Train answers: tapping Chest opens it`,sel&&moved.view==='lift'&&moved.part==='Chest',{sel,moved});}
  ok(`${tag} finishing saves name, lb, bodyweight in kg, the picked parts, and lands where asked`,d.hidden&&d.onb&&d.name==='Jason'&&d.unit==='lb'&&Math.abs(d.kg-79.8)<0.1&&!d.parts.includes('Triceps')&&d.parts.includes('Sixpack')&&where,d);
  ok(`${tag} no page errors`,!errors.length,errors);await ctx.close();}
  /* Skip and Not now */
