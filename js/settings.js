@@ -154,11 +154,11 @@ function renderSync(){
         ever logged, and switching it back on brings the history with it.</div>
       <div class="onbchips" id="myPartsChips">${Object.keys(SEED.catalog).filter(p=>p!=='Run').map(p=>{
         const on=myPartsSet().has(p), n=(trainingPlan().info[p]||{}).days||0;
-        return `<button class="onbchip ${on?'sel':''}" data-myp="${p}">${p}${
+        return `<button class="onbchip ${on?'sel':''}" data-myp="${p}">${partLabel(p)}${
           n?`<small> · ${n}d</small>`:''}</button>`;}).join('')}</div>
       <div class="note" id="myPartsNote" style="margin-top:10px">${
         (()=>{const off=Object.keys(SEED.catalog).filter(p=>p!=='Run'&&!myPartsSet().has(p));
-          return off.length? `Hidden from Train: <b>${off.join(', ')}</b>.`
+          return off.length? `Hidden from Train: <b>${off.map(partLabel).join(', ')}</b>.`
                            : 'Every part is in your rotation.';})()}</div>
     </div>
     <h2>Bars</h2>

@@ -1,5 +1,17 @@
 # ShowUppp — changelog
 
+## v4.6.262 (2026-10-10) — A new first run
+
+- **Asked:** the first-run screens had small type and didn't hold attention; redesigned over several mocks to the owner's revised four-screen flow, animated.
+- **1 · Welcome:** brand blue. Five weeks of day squares pop in and fill, with a few left empty (life happens). Then the approved Lifted p trio lockup rises and plays its one-shot bounce, followed by "Life happens. Show up anyway." and the sign-in buttons. The buttons are real buttons with the Apple and Google logos: Continue with Apple (shown when Apple sign-in is available on the device), Continue with Google, and Continue without an account. Underneath: "Sign in to sync. Or keep it on this device." and Explore with sample data. The old flat lettering is gone from this screen.
+- **2 · What's in your training?** Eight large tiles, all picked to start, popping in one by one, with "All selected to start. Tap to adjust."
+- **3 · About you:** Pip bobs beside a large blue speech bubble ("Hi there! I'm Pip. Who are you?") that answers the name as it is typed ("Hi, Jason! Nice to meet you."). Then units, an optional bodyweight field, and "Not now". The barbell question is gone: the standard bar stays the default and can be changed on the plate line and in Settings.
+- **4 · You're in, Jason.** Pip jumps in, and three ways to start follow: I'm training now (opens Train), Plan my next workout (opens Plan), Just looking around (opens Today). "Start anywhere. You can change your mind."
+- Each screen plays its entrance once. Tapping a part or a unit doesn't replay it. Reduced motion shows everything at rest. Skip keeps what was picked and goes to You're in.
+- **Core:** the Sixpack body part now reads as **Core** across the app: Train, Plan, Preferences, Settings, History, the attendance card and day one. Saved workouts keep their stored name, so nothing in the record changes.
+- **Test mode:** the amber bar steps aside while a field has focus, since the iPhone keyboard was pushing it up over the clock.
+- Check: `tools/check-onboarding.cjs` (402 and 320, light and dark, each of the three destinations, Skip and Not now).
+
 ## v4.6.261 (2026-10-10) — Start as a new user (owner only)
 
 - **Asked:** a way for the owner to see ShowUppp as a brand-new user, without signing out of the real account each time.

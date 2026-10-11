@@ -26,9 +26,10 @@ const types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg
   for(const theme of ['light','dark'])for(const width of [320,393,768]){
    await p.setViewportSize({width,height:852});
    await p.evaluate(theme=>{DB.settings.theme=theme;DB.settings.mascotMotion='still';applyTheme();onbStep=1;onbRender();},theme);
-   await p.locator('.onblogo .showuppp-lettering').evaluate(img=>img.decode());
-   assert.equal(await p.locator('.onblogo [aria-label="ShowUppp"]').count(),1);
-   assert((await p.locator('.onblogo .showuppp-lettering').getAttribute('src')).endsWith('showuppp-a.svg'));
+   // v4.6.262: the welcome door carries the approved Lifted p trio (vector letters), white on brand blue
+   await p.locator('.ob-lock .showuppp-lettering').waitFor();
+   assert.equal(await p.locator('.ob-lock [aria-label="ShowUppp"]').count(),1);
+   assert.equal(await p.locator('.ob-lock .showuppp-lettering [data-letter]').count(),8);
    assert.equal(await p.locator('[data-onbact]').count(),3,'onboarding choices unchanged');
    assert(await p.locator('[data-onbact="local"]').isVisible());
    assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'no horizontal overflow');
@@ -141,8 +142,9 @@ const types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg
   await fallback.addInitScript(()=>{const get=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(kind,...args){return /webgl/i.test(kind)?null:get.call(this,kind,...args);};});
   await fallback.route('**/*',r=>r.request().url().startsWith(origin)?r.continue():r.abort());
   await fallback.goto(origin,{waitUntil:'networkidle'});await fallback.waitForTimeout(700);
-  assert(await fallback.locator('.onblogo .su-mascot img').isVisible());
-  assert(await fallback.locator('.onblogo .su-mascot img').evaluate(i=>i.complete&&i.naturalWidth>0));
+  await fallback.waitForTimeout(4200);   // the door's entrance
+  assert(await fallback.locator('.ob-lock .su-mascot img').isVisible());
+  assert(await fallback.locator('.ob-lock .su-mascot img').evaluate(i=>i.complete&&i.naturalWidth>0));
   await fallback.close();
   const offline=await browser.newContext({reducedMotion:'reduce'}),op=await offline.newPage();
   await op.goto(origin,{waitUntil:'networkidle'});
@@ -152,7 +154,7 @@ const types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg
   for(const name of ['a','c'])assert(await op.evaluate(async name=>!!(await caches.match('assets/showuppp-'+name+'.svg')),name),'lettering is precached');
   for(const tone of ['blue','white'])assert(await op.evaluate(async tone=>!!(await caches.match('assets/mascot-'+tone+'-body.png')),tone),'shadow-free posters are precached');
   await offline.setOffline(true);await op.reload();
-  await op.locator('.onblogo .showuppp-lettering').evaluate(i=>i.decode());
+  await op.locator('.ob-lock .showuppp-lettering').waitFor();
   await op.evaluate(()=>{document.querySelector('#onb')?.remove();celebrateDayDone(true,12,0,true);});
   assert.equal(await op.locator('#dayDone .showuppp-lettering [data-letter]').count(),8,'offline vector available');
   await op.locator('#dayDone .su-mascot img').evaluate(i=>i.decode());

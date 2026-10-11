@@ -79,64 +79,117 @@ function maybeOnboard(){
   if(signedIn&&!pulledOK) return;                  // cloud may still hold their history — wait for the verdict
   onbStep=signedIn?2:1; onbRender();
 }
+/* ============ v4.6.262: THE FIRST RUN, REDESIGNED ============================
+   Four screens, one look: a blue front door, then three short steps on the
+   app's own ground. Each screen plays its entrance ONCE and settles; a
+   re-render of the same screen (a unit tap, a part toggle) does not replay it.
+   1 Welcome   -- brand blue, five weeks of day squares filling in (a few stay
+                  empty: life happens), the approved animated lockup, the line.
+   2 Training  -- every part picked to start; Sixpack reads as Core, Run as Cardio.
+   3 About you -- Pip answers the name as it is typed; bodyweight is optional.
+   4 You're in -- where to start: Train, Plan, or Today. All three finish onboarding.
+   The barbell question is gone: the standard bar is the default and lives on
+   the plate line and in Settings. */
+let onbName='', onbBw='', onbShown=0;
+const ONB_DAYS=[1,1,1,0,1,1,0, 1,1,1,1,1,1,0, 1,1,1,0,1,1,0, 1,1,1,1,0,1,0, 1,1,1,1,1,1,0];
+const ONB_CK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+const ONB_AR='<svg class="ob-ar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+const ONB_APPLE='<svg class="ob-lg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.37 12.73c-.02-2.3 1.88-3.4 1.96-3.46-1.07-1.56-2.73-1.78-3.32-1.8-1.41-.14-2.76.83-3.48.83-.72 0-1.82-.81-3-.79-1.54.02-2.96.9-3.76 2.28-1.6 2.78-.41 6.9 1.15 9.16.76 1.1 1.67 2.34 2.86 2.3 1.15-.05 1.58-.74 2.97-.74 1.38 0 1.77.74 2.98.72 1.23-.02 2.01-1.12 2.76-2.23.87-1.28 1.23-2.52 1.25-2.58-.03-.01-2.4-.92-2.42-3.65zM14.1 5.98c.63-.77 1.06-1.83.94-2.89-.91.04-2.01.61-2.66 1.37-.58.67-1.09 1.76-.95 2.8 1.01.08 2.04-.51 2.67-1.28z"/></svg>';
+const ONB_GOOGLE='<svg class="ob-lg" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>';
+const ONB_PLUS='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
+const ONB_CAL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M8 3v4M16 3v4M4 10h16M8 14h2M12 14h2M8 17h2M12 17h2"/></svg>';
+const ONB_EYE='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 5C6.5 5 2.7 9.4 1.5 12c1.2 2.6 5 7 10.5 7s9.3-4.4 10.5-7C21.3 9.4 17.5 5 12 5zm0 11.2A4.2 4.2 0 1 1 12 7.8a4.2 4.2 0 0 1 0 8.4z"/><circle cx="12" cy="12" r="2.2"/></svg>';
+/* the approved animated lockup (Lifted p trio + Pip), white on the blue door whatever the theme */
+function onbLockup(){
+  const m=typeof mascotHTML==='function'?mascotHTML('hello','','white').replace('.png',typeof isRetro==='function'&&isRetro()?'.png':'-body.png'):'';
+  return '<div class="showuppp-lockup showuppp-c'+(m?'':' showuppp-word-only')+'" role="img" aria-label="ShowUppp">'+
+    (m?'<span class="showuppp-character"><i class="showuppp-ground" aria-hidden="true"></i>'+m+'</span>':'')+showupppCompletionLettersHTML()+'</div>';
+}
+function onbTop(cur){
+  return `<div class="ob-top"><button type="button" class="ob-back" data-onbact="back" aria-label="Back" style="visibility:${cur>1?'visible':'hidden'}">‹</button>`+
+    `<div class="ob-prog" aria-label="Step ${cur} of 3">${[1,2,3].map(i=>`<i class="${i===cur||cur===3?'on':''}"></i>`).join('')}</div>`+
+    `<button type="button" class="ob-skip" data-onbact="skip" style="visibility:${cur<3?'visible':'hidden'}">Skip</button></div>`;
+}
+function onbBubble(){
+  const n=onbName.trim();
+  return n?`<span class="ob-hi">Hi, ${hesc(n)}!</span><span class="ob-hi2">Nice to meet you.</span>`:`<span class="ob-hi">Hi there!</span><span class="ob-hi2">I'm Pip. Who are you?</span>`;
+}
 function onbRender(){
   const el=onbEl(); el.hidden=false;
   if(!onbSel) onbSel=new Set(Object.keys(SEED0.catalog));
+  const replay=onbShown!==onbStep; onbShown=onbStep;
+  const d=s=>`style="--ob-d:${s}s"`;
   let b='';
   if(onbStep===1){
-    b=`<div class="onbcard">
-      <div class="onblogo">${showupppLogoHTML('a')}</div>
-      <p class="onbtag">Show up. The rest is bookkeeping.<br><span class="muted">A training log that celebrates days, not numbers.</span></p>
-      <button class="onbbtn pri" data-onbact="signin">Sign in with Google</button>
-      <button class="onbbtn" data-onbact="local">Continue on this device</button>
-      <button class="onbbtn ghost" data-onbact="demo">Explore with sample data</button>
-      <div class="onbnote">Sign in or not — your training stays on your device and stays yours. Export everything from Settings, anytime. The demo never syncs and clears with one tap.</div>
-      <p class="onbnote">Sign-in syncs across devices. Local works fully offline — you can sign in later.</p></div>`;
+    const apple=typeof appleReady==='function'&&appleReady();
+    b=`<div class="ob ob-door">
+      <div class="ob-days" aria-hidden="true">${ONB_DAYS.map((on,i)=>`<i class="${on?'on':''}" style="--i:${i}"></i>`).join('')}</div>
+      <div class="ob-hero"><div class="ob-lock">${onbLockup()}</div>
+        <p class="ob-motto"><span>Life happens.</span><span>Show up anyway.</span></p></div>
+      <div class="ob-door-btns">
+        ${apple?`<button type="button" class="ob-btn ob-apple" data-onbact="apple">${ONB_APPLE}Continue with Apple</button>`:''}
+        <button type="button" class="ob-btn ob-google" data-onbact="signin">${ONB_GOOGLE}Continue with Google</button>
+        <button type="button" class="ob-btn ob-local" data-onbact="local">Continue without an account</button>
+        <p class="ob-note">Sign in to sync. Or keep it on this device.<br><button type="button" class="ob-link" data-onbact="demo">Explore with sample data</button></p>
+      </div></div>`;
   }else if(onbStep===2){
-    b=`<div class="onbcard">
-      <h3>What do you train?</h3>
-      <p class="onbnote">Tap to toggle. Everything stays available — this just shapes your suggestions, and you can change it any time in Settings.</p>
-      <div class="onbchips">${Object.keys(SEED0.catalog).map(p=>
-        `<button class="onbchip ${onbSel.has(p)?'sel':''}" data-onbp="${p}">${p}</button>`).join('')}</div>
-      <button class="onbbtn pri" data-onbact="toStep3">Continue</button>
-      <button class="onbbtn ghost" data-onbact="skip">Skip — it's all in Settings anyway</button></div>`;
+    const keys=Object.keys(SEED0.catalog), all=keys.every(p=>onbSel.has(p));
+    b=`<div class="ob ob-step">${onbTop(1)}
+      <h1 class="ob-h ob-rise" ${d(.05)}>What's in your<br>training?</h1>
+      <p class="ob-sub ob-rise" ${d(.15)}>We'll tailor your suggestions. Change it anytime.</p>
+      <div class="ob-parts">${keys.map((p,i)=>`<button type="button" class="ob-part ob-rise${onbSel.has(p)?' on':''}" ${d((.3+i*.07).toFixed(2))} data-onbp="${hesc(p)}" aria-pressed="${onbSel.has(p)}">${hesc(partLabel(p))}${onbSel.has(p)?ONB_CK:''}</button>`).join('')}</div>
+      <p class="ob-count ob-rise" ${d(.95)}>${all?'All selected to start. Tap to adjust.':`${onbSel.size} of ${keys.length} picked`}</p>
+      <div class="ob-sp"></div><button type="button" class="ob-go" data-onbact="toStep3">Continue</button></div>`;
   }else if(onbStep===3){
     const lb=onbUnit==='lb';
-    b=`<div class="onbcard">
-      <h3>About you</h3>
-      <div class="onbrow"><span>Name <span class="muted">(so the app can say hello)</span></span>
-        <input id="onbName" type="text" autocapitalize="words" maxlength="40" placeholder="—"></div>
-      <div class="onbrow"><span>Units</span>
-        <span class="onbseg"><button class="${lb?'':'sel'}" data-onbu="kg">kg</button><button class="${lb?'sel':''}" data-onbu="lb">lb</button></span></div>
-      <div class="onbrow"><span>Bodyweight <span class="muted">(for pull-ups, dips)</span></span>
-        <input id="onbBw" type="number" inputmode="decimal" placeholder="${lb?'154':'70'}"></div>
-      <div class="onbrow"><span>Barbell bar</span>
-        <input id="onbBar" type="number" inputmode="decimal" value="${lb?'45':'20'}"></div>
-      <button class="onbbtn pri" data-onbact="toStep4">Continue</button>
-      <button class="onbbtn ghost" data-onbact="skip">Skip</button></div>`;
+    b=`<div class="ob ob-step ob-about">${onbTop(2)}
+      <div class="ob-hello">${typeof mascotHTML==='function'?mascotHTML('hello','ob-pip'):''}<div class="ob-bubble" id="onbBubble" aria-live="polite">${onbBubble()}</div></div>
+      <label class="ob-lbl ob-rise" ${d(.6)} for="onbName">What should we call you?</label>
+      <input class="ob-name ob-rise${onbName?' filled':''}" ${d(.7)} id="onbName" type="text" autocapitalize="words" autocomplete="given-name" maxlength="40" placeholder="Your first name" value="${hesc(onbName)}">
+      <div class="ob-row ob-rise" ${d(.8)}><span class="ob-lbl">Your units</span><span class="ob-seg" role="group" aria-label="Units"><button type="button" class="${lb?'':'on'}" data-onbu="kg" aria-pressed="${!lb}">kg</button><button type="button" class="${lb?'on':''}" data-onbu="lb" aria-pressed="${lb}">lb</button></span></div>
+      <label class="ob-opt ob-rise" ${d(.9)} for="onbBw">Bodyweight <span>· Optional</span></label>
+      <div class="ob-field ob-rise" ${d(.95)}><input id="onbBw" type="number" inputmode="decimal" placeholder="Enter weight" value="${hesc(onbBw)}"><b>${lb?'lb':'kg'}</b></div>
+      <p class="ob-why ob-rise" ${d(1)}>Used for bodyweight exercise calculations.</p>
+      <button type="button" class="ob-link ob-notnow ob-rise" ${d(1.05)} data-onbact="notnow">Not now</button>
+      <div class="ob-sp"></div><button type="button" class="ob-go" data-onbact="toStep4">Continue</button></div>`;
   }else if(onbStep===4){
-    b=`<div class="onbcard">
-      <h3>How to ShowUppp</h3>
-      <div class="onbges"><span class="gi">‹</span><span><b>Swipe right</b> inside an exercise<span class="muted">back to the part list</span></span></div>
-      <div class="onbges"><span class="gi">⊙</span><span><b>Hold a logged set</b><span class="muted">edit it — tap once to delete</span></span></div>
-      <div class="onbges"><span class="gi">▮</span><span><b>Tap the header when it's red</b><span class="muted">jump straight to your active exercise</span></span></div>
-      <button class="onbbtn pri" data-onbact="finish">Start showing up</button></div>`;
+    const n=onbName.trim();
+    b=`<div class="ob ob-step ob-goal">${onbTop(3)}
+      <p class="ob-in ob-rise" ${d(.05)}>You're in${n?', '+hesc(n):''}.</p>
+      <p class="ob-q ob-rise" ${d(.15)}>What brings you here today?</p>
+      <div class="ob-jump">${typeof mascotHTML==='function'?mascotHTML('hello','ob-pip'):''}<svg class="ob-lines" viewBox="0 0 30 30" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 12l4-9M12 17l12-6M14 25h10"/></svg></div>
+      <button type="button" class="ob-card pri ob-rise" ${d(1.1)} data-onbact="go" data-onbgo="train"><span class="ob-ic">${ONB_PLUS}</span><span class="ob-ct"><b>I'm training now</b><span>Choose your first exercise</span></span>${ONB_AR}</button>
+      <button type="button" class="ob-card ob-rise" ${d(1.25)} data-onbact="go" data-onbgo="plan"><span class="ob-ic">${ONB_CAL}</span><span class="ob-ct"><b>Plan my next workout</b><span>Make room for your next session</span></span>${ONB_AR}</button>
+      <button type="button" class="ob-card plain ob-rise" ${d(1.4)} data-onbact="go" data-onbgo="look"><span class="ob-ic">${ONB_EYE}</span><span class="ob-ct"><b>Just looking around</b></span>${ONB_AR}</button>
+      <div class="ob-sp"></div><p class="ob-foot ob-rise" ${d(1.6)}>Start anywhere. You can change your mind.</p></div>`;
   }
-  el.innerHTML=`<div class="onbwrap">${b}</div>`;
+  el.dataset.step=onbStep;
+  el.classList.toggle('ob-still',!replay);
+  el.innerHTML=b;
+  if(onbStep===1&&replay&&typeof showupppAnimate==='function'){
+    const host=el.querySelector('.ob-lock');setTimeout(()=>{ if(host&&host.isConnected) showupppAnimate(host); },1500);
+  }
+  if(onbStep===3){
+    const nm=el.querySelector('#onbName'), bw=el.querySelector('#onbBw'), bb=el.querySelector('#onbBubble');
+    nm?.addEventListener('input',()=>{ onbName=nm.value.slice(0,40); nm.classList.toggle('filled',!!onbName); if(bb){ bb.innerHTML=onbBubble(); bb.classList.remove('bump'); void bb.offsetWidth; bb.classList.add('bump'); } });
+    bw?.addEventListener('input',()=>{ onbBw=bw.value; });
+  }
 }
-function onbFinish(skip){
+function onbFinish(skip,go){
   if(!skip){
     DB.settings.myParts=[...onbSel];
     DB.settings.unit=onbUnit;
-    const nm=(document.getElementById('onbName')?.value||'').trim().slice(0,40);
+    const nm=onbName.trim().slice(0,40);
     if(nm) DB.settings.name=nm;
-    const bw=parseFloat(document.getElementById('onbBw')?.value);
+    const bw=parseFloat(onbBw);
     if(bw>0) DB.settings.bodyKg=onbUnit==='lb'?+(bw*0.45359237).toFixed(1):bw;
-    const bar=parseFloat(document.getElementById('onbBar')?.value);
-    if(bar>0) DB.settings.barKg=onbUnit==='lb'?+(bar*0.45359237).toFixed(1):bar;
   }
   DB.settings.onboarded=APP_VERSION; DB.settingsAt=Date.now();
-  save(true); onbEl().hidden=true; render();
+  save(true); onbEl().hidden=true; onbShown=0;
+  if(go==='train'&&typeof liftEnter==='function'){ liftEnter({}); view='lift'; }
+  else if(go==='plan'&&typeof pwOpen==='function'){ view='today'; render(); pwOpen(null,'dates'); return; }
+  else view='today';
+  render();
 }
 /* ---- demo: 70 days of clearly-borrowed life ---- */
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
@@ -202,7 +255,7 @@ function dayOneHTML(){
       <button class="d1back" data-d1="back" aria-label="Back">\u2190</button>
       <h3 class="d1q">What did you train?</h3>
       <div class="d1grid">${d1Parts().map(p=>
-        `<button class="d1tile" data-d1part="${esc(p)}">${esc(p)}</button>`).join('')}</div>
+        `<button class="d1tile" data-d1part="${esc(p)}">${esc(partLabel(p))}</button>`).join('')}</div>
     </div>`;
   if(d1.step===2){
     const list=(SEED.catalog[d1.part]||[]).slice(0,8);
@@ -287,10 +340,14 @@ document.addEventListener('click',e=>{
   if(!a) return;
   const act=a.dataset.onbact;
   if(act==='signin') signInGoogle();
+  else if(act==='apple'){ if(typeof signInApple==='function') signInApple().then(r=>{ if(r==='unavailable') toast('Sign in with Apple needs the iPhone app'); }); }
   else if(act==='local'){ onbStep=2; onbRender(); }
   else if(act==='toStep3'){ onbStep=3; onbRender(); }
   else if(act==='toStep4'){ onbStep=4; onbRender(); }
-  else if(act==='skip') onbFinish(true);
+  else if(act==='notnow'){ onbBw=''; onbStep=4; onbRender(); }
+  else if(act==='back'){ if(onbStep>2){ onbStep--; onbRender(); } }
+  else if(act==='skip'){ onbStep=4; onbRender(); }          // v4.6.262: skip keeps what you picked and lands on "You're in"
+  else if(act==='go') onbFinish(false,a.dataset.onbgo);
   else if(act==='finish') onbFinish(false);
   else if(act==='demo') demoLoad();
   else if(act==='democlear') demoClear();
@@ -372,7 +429,7 @@ function focusedTodayHTML(){
   const now=planNow(),items=(now?.items||[]).map(planItemShape),fresh=SEED.totals.sessions===0;
   const next=nextPlanItem(),sets=items.reduce((n,it)=>n+(it.lines||[]).reduce((s,l)=>s+(l.reps||[]).length,0),0);
   const future=[...new Set([...(DB.plan?.d>todayISO?[DB.plan.d]:[]),...Object.keys(DB.week?.days||{}).filter(d=>d>todayISO)])].filter(d=>pwSaved(d)?.items?.length).sort();
-  const parts=items.length?pwParts(pwRead(planText(now))).join(' + '):'';
+  const parts=items.length?pwParts(pwRead(planText(now))).map(partLabel).join(' + '):'';
   let h=`<section class="today-focus"><div class="su-hello-row">${fresh?'<div class="hello"><span class="hi">Welcome to ShowUppp.</span></div>':helloCard()}${mascotHTML('hello')}</div><div class="card today-focus-card"><div class="today-focus-kicker">${items.length?'Today’s workout':'Today'}</div>${items.length?'':`<h3>${fresh?'Start with one set.':'What’s today’s workout?'}</h3>`}`;
   if(items.length){
     h+=`<details class="today-focus-plan" data-pw-fold="focus:${todayISO}" ${pwFoldOpen('focus:'+todayISO)?'open':'' }><summary><div class="today-focus-title"><h3>${hesc(parts||'Your workout')}</h3>${icon('chevron',ICON_SZ.md)}</div><div class="mono muted today-focus-meta">${sets} ${sets===1?'set':'sets'} · ${items.length} ${items.length===1?'exercise':'exercises'}</div></summary><div class="today-focus-plan-content">${planCardHTML(now,false)}</div></details><div class="today-focus-next"><div><small>Run first</small><b>Run</b></div><button class="btn" data-ex="Run" data-part="Run">Start →</button></div>`;
@@ -384,7 +441,7 @@ function focusedTodayHTML(){
        keeps its own row; two or more fold into a single line that names the
        count and the next day, and opens to every day, tomorrow first. */
     if(future.length===1){let firstHTML=later(first);if(!items.length&&first===tomorrowISO()&&pwFoldOpen('later:'+first,true))firstHTML=firstHTML.replace('<details ','<details open ');h+=`<div class="today-focus-upcoming">${firstHTML}</div>`;}
-    else{const nx=pwSaved(first),nxParts=nx?pwParts(pwRead(planText(nx))).join(' + '):'';
+    else{const nx=pwSaved(first),nxParts=nx?pwParts(pwRead(planText(nx))).map(partLabel).join(' + '):'';
       h+=`<details class="today-focus-more" data-pw-fold="future" ${pwFoldOpen('future')?'open':''}><summary><span class="tfm-count">${future.length} planned days</span><span class="tfm-next">${first===tomorrowISO()?'Tomorrow':hesc(pwDate(first))}${nxParts?' · '+hesc(nxParts):''}</span>${icon('chevron',ICON_SZ.sm)}</summary>${future.map(later).join('')}</details>`;}
   }
   h+=`<div class="today-focus-tools">${items.length?pwAction('open-date','Edit plan','edit','',`data-date="${todayISO}"`):pwAction('open','Plan','sparkle')}${pwAction('paste-open','Paste','paste','',`data-date="${items.length?todayISO:future[0]||todayISO}"`)}${pwDatesButton()}</div>`;
@@ -651,7 +708,7 @@ function renderToday(){
     const activeSets=workoutCompletionMetrics({...t,completedAt:Date.now()}).sets;   // v4.6.69: the session you are in, not the day
     h+=`<div class="su-active-row"><div><strong>You're in.</strong><span class="mono muted">${activeSets} set${activeSets===1?'':'s'} logged</span></div>${mascotHTML('active')}</div>`;
   }
-  if(doneLift.length) h+=`<div class="todaypartsline mono">${doneLift.join(' · ')}</div>`;
+  if(doneLift.length) h+=`<div class="todaypartsline mono">${doneLift.map(partLabel).join(' · ')}</div>`;
   const byPart={};
   t.w.forEach(s=>{(byPart[s.part]=byPart[s.part]||[]).push(s);});
   for(const [part,sets] of Object.entries(byPart)){

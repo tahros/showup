@@ -193,7 +193,7 @@ function pwPlanTotals(plan){
   return `<span class="pw-plan-totals"><strong>${sets} ${sets===1?'set':'sets'}</strong><small>${items.length} ${items.length===1?'exercise':'exercises'}</small></span>`;
 }
 function pwPlanHeading(label,plan){
-  return `<span class="pw-future-label"><span>${hesc(label)}</span><strong>${hesc(pwParts(pwRead(planText(plan))).join(' + ')||'Your workout')}</strong></span>${pwPlanTotals(plan)}`;
+  return `<span class="pw-future-label"><span>${hesc(label)}</span><strong>${hesc(pwParts(pwRead(planText(plan))).map(partLabel).join(' + ')||'Your workout')}</strong></span>${pwPlanTotals(plan)}`;
 }
 /* v4.6.95: THE NEXT WORKOUT IS PINNED; EVERYTHING BEHIND IT FOLDS. v4.6.94
    pinned tomorrow as well, which double-pinned it: when today is unplanned or
@@ -302,7 +302,7 @@ function pwRender(){
   if(s.datesOpen)html+=pwCalendarHTML();
   if(day&&!s.datesOpen){
     const open=!panel&&(s.setupOpen??!hasRows);
-    html+=`<details class="pw-setup" data-pw-setup ${open?'open':''}><summary><span>${hesc((day.parts.length?day.parts:pwParts(day.rows)).join(' + ')||'Body parts & goal')}</span>${icon('chevron',ICON_SZ.sm)}</summary><div class="pw-setup-body"><h3>Select each day's body parts.</h3><p class="pw-small">Leave it and the app will auto-select for you.</p><div class="pw-parts">${Object.keys(SEED.catalog).filter(x=>x==='Run'||myPartsSet().has(x)).map(x=>pwButton('part',hesc(x),day.parts.includes(x)?'selected':'',`data-date="${s.active}" data-part="${hesc(x)}" aria-pressed="${day.parts.includes(x)}"`)).join('')}</div>${pwFields()}</div></details>`;
+    html+=`<details class="pw-setup" data-pw-setup ${open?'open':''}><summary><span>${hesc((day.parts.length?day.parts:pwParts(day.rows)).map(partLabel).join(' + ')||'Body parts & goal')}</span>${icon('chevron',ICON_SZ.sm)}</summary><div class="pw-setup-body"><h3>Select each day's body parts.</h3><p class="pw-small">Leave it and the app will auto-select for you.</p><div class="pw-parts">${Object.keys(SEED.catalog).filter(x=>x==='Run'||myPartsSet().has(x)).map(x=>pwButton('part',hesc(x),day.parts.includes(x)?'selected':'',`data-date="${s.active}" data-part="${hesc(x)}" aria-pressed="${day.parts.includes(x)}"`)).join('')}</div>${pwFields()}</div></details>`;
     if(hasRows&&day.parts.length&&day.parts.slice().sort().join()!==pwParts(day.rows).sort().join())html+='<p class="pw-small">Use Plan to rebuild for these body parts.</p>';
   }
   html+='</fieldset>';
@@ -823,7 +823,7 @@ function pwSave(){
 function planPushSheet(){
   if(document.getElementById('planMoveDialog'))return;
   const run=planRunFrom(todayISO),plan=planShiftable(run,1);if(!plan.ok)return;
-  const label=d=>{const p=pwSaved(d);return p?hesc(pwParts(pwRead(planText(p))).join(' + ')||'Plan'):'';};
+  const label=d=>{const p=pwSaved(d);return p?hesc(pwParts(pwRead(planText(p))).map(partLabel).join(' + ')||'Plan'):'';};
   const short=d=>{const x=new Date(d+'T12:00');return x.toLocaleDateString('en-US',{weekday:'short'})+' '+x.getDate();};
   const leaving=new Set(plan.moves.map(m=>m.from));
   const rows=plan.moves.map(({from,to})=>{const was=leaving.has(to)?'was '+label(to):pwSaved(to)?.items?.length?'replaces '+label(to):'free';

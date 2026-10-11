@@ -141,7 +141,7 @@ check("the three-part day renders a session head", `!!${HEAD}`, true);
 check("the head has exactly two columns", `${HEAD}.children.length`, 2);
 check("all three parts land in the LEFT column",
       `(function(){const l=${HEAD}.firstElementChild.textContent;
-        return ['Run','Back','Biceps'].every(p=>l.includes(p));})()`, true);
+        return ['Cardio','Back','Biceps'].every(p=>l.includes(p));})()`, true);   // v4.6.262: parts read by their labels (Run is Cardio)
 /* v3.3.361 RESTATES. The right column used to carry the day's volume AND the
    two controls; the volume is gone -- it was the widest thing in the row, it
    pushed the parts to a second line and a control to a third, and the sets it

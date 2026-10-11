@@ -316,7 +316,7 @@ function renderHistory(){
       /* v3.3.62: a part whose only entry is an empty legacy marker isn't a
          part you trained — don't name it in the summary. */
       const parts=[...new Set(list.filter(s=>isCardio(s)||(s.reps||[]).length)
-                                  .map(s=>s.part).filter(Boolean))].join(' · ');
+                                  .map(s=>s.part).filter(Boolean))].map(partLabel).join(' · ');
       /* v3.3.361: the per-session TOTALS are gone from the header. A day's
          tonnage and distance were computed here and printed opposite the
          date, where they were the widest thing in the row -- they pushed the

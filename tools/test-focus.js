@@ -55,7 +55,7 @@ test('a focus row for each selected part with more than one muscle, none for Bic
 test('no focus box at all for parts with one muscle',`pfFocusHTML({...D15,parts:['Biceps','Triceps']})===''`);
 test('a focus belongs to its body part: off the day, it is not a focus',`pfFocus({...D15,focus:['lower-chest','abs'],parts:['Sixpack'],partsPick:true}).join()==='abs'&&pwFocus({rows:[],parts:['Sixpack'],focus:['lower-chest','abs']}).join()==='abs'`);
 test('a tapped focus waits on Regenerate; the same focus the day was built with does not',`pfFocusPending({...D15,focus:['lower-chest'],focusPick:true})&&!pfFocusPending({...D15,focus:['lower-chest'],focusPick:true,focusGen:['lower-chest']})`);
-test('the hint names the focus beside its part',`pfPartsText({...D15,focus:['lower-chest']})==='Chest · lower chest first + Sixpack'`);
+test('the hint names the focus beside its part',`pfPartsText({...D15,focus:['lower-chest']})==='Chest · lower chest first + Core'`);
 test('every exercise of a multi-muscle part carries its muscle; the focus is lit',`/pf-mtag">Upper</.test(pfMuscleTag(D15,'Incline Barbell Bench Press'))&&/pf-mtag on">Lower</.test(pfMuscleTag({...D15,focus:['lower-chest']},'Dip'))&&pfMuscleTag(D15,'Dumbbell Curl')===''`);
 test('the planner’s own picks lead with the focus muscle',`pwAddCandidates({rows:[],parts:['Chest'],focus:['lower-chest']})[0]==='Cable Fly Down'&&pwAddCandidates({rows:[],parts:['Chest']})[0]!=='Cable Fly Down'`);
 test('the search leads with it too, done and not tried',`pwAddSearch('fly',{rows:[],parts:['Chest'],focus:['lower-chest']}).mine[0]==='Cable Fly Down'&&/^Decline/.test(pwAddSearch('press',{rows:[],parts:['Chest'],focus:['lower-chest']}).fresh[0])`);
