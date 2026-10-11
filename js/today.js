@@ -121,7 +121,7 @@ function onbRender(){
   const d=s=>`style="--ob-d:${s}s"`;
   let b='';
   if(onbStep===1){
-    const apple=typeof appleReady==='function'&&appleReady();
+    const apple=true;   // v4.6.266: always on the door; until the App Store build turns it on, a tap says so
     b=`<div class="ob ob-door">
       <div class="ob-days" aria-hidden="true">${ONB_DAYS.map((on,i)=>`<i class="${on?'on':''}" style="--i:${i}"></i>`).join('')}</div>
       <div class="ob-hero"><div class="ob-lock">${onbLockup()}</div>
@@ -340,7 +340,7 @@ document.addEventListener('click',e=>{
   if(!a) return;
   const act=a.dataset.onbact;
   if(act==='signin') signInGoogle();
-  else if(act==='apple'){ if(typeof signInApple==='function') signInApple().then(r=>{ if(r==='unavailable') toast('Sign in with Apple needs the iPhone app'); }); }
+  else if(act==='apple'){ if(typeof appleReady==='function'&&appleReady()&&typeof signInApple==='function') signInApple(); else toast('Apple sign-in arrives with the App Store app'); }
   else if(act==='local'){ onbStep=2; onbRender(); }
   else if(act==='toStep3'){ onbStep=3; onbRender(); }
   else if(act==='toStep4'){ onbStep=4; onbRender(); }

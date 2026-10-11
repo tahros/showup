@@ -1,5 +1,14 @@
 # ShowUppp — changelog
 
+## v4.6.266 (2026-10-11) — The welcome screen: Apple back, a quieter lower half
+
+- **Asked:** bring back Apple login, make the background day squares 25% smaller, and make everything below the logo smaller and more refined.
+- **Continue with Apple** is always the first button. It had disappeared because the screen only showed it when Apple sign-in works on the device, and that stays switched off (`ios-flags.json`) until the paid developer account. Until then a tap says "Apple sign-in arrives with the App Store app"; once the flag is on, the same button signs in.
+- **Day squares** are 26px instead of 34px, with gaps and corners to match (20px on short screens).
+- **Below the logo:** the line is 24px instead of 30px. The buttons are 50px tall with 15.5px text, smaller logos and softer shadows. Continue without an account is now a thin white outline. The note is smaller and lighter.
+- **Messages during the first run** (sign-in errors, the Apple note) were drawn under it. They now show at the top, above it.
+- Check: `tools/check-onboarding.cjs` now expects Apple first on the welcome screen.
+
 ## v4.6.265 (2026-10-11) — A little more life in the coin
 
 - The club coin turns slowly on its own, with a soft shadow underneath. Swipes still control its spin before it returns to the gentle idle turn.
