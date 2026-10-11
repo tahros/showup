@@ -1,5 +1,10 @@
 # ShowUppp — changelog
 
+## v4.6.268 (2026-10-11) — True Soft pewter lettering
+
+- The club seal, reverse logo and member number now use Soft pewter. Direct masking preserves the lighter color instead of darkening it against the silver.
+- Keeps the approved card layout, coin finish, rotation and ground shadow unchanged.
+
 ## v4.6.267 (2026-10-11) — A softer silver club coin
 
 - Keeps the approved membership card layout, with Soft polished silver, Light slate lettering and Classic coin thickness.

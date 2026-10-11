@@ -11,6 +11,9 @@ const {chromium}=require('playwright'),assert=require('assert'),path=require('pa
   const geometry=await page.evaluate(()=>{const a=document.querySelector('.club-brand>img').getBoundingClientRect(),b=document.querySelector('[data-club-coin]').getBoundingClientRect();return {delta:Math.abs(a.y+a.height/2-b.y-b.height/2),size:b.width,overflow:document.documentElement.scrollWidth>innerWidth,font:getComputedStyle(document.querySelector('.club-coin-number>span')).fontFamily,weight:getComputedStyle(document.querySelector('.club-coin-number>span')).fontWeight}});
   assert(geometry.delta<1);assert(geometry.size>=44);assert(!geometry.overflow);assert(geometry.font.includes('IBM Plex Sans'));assert.equal(geometry.weight,'700');
   const before=await page.evaluate(()=>JSON.stringify(DB));
+  const inks=await coin.evaluate(e=>['.club-coin-seal','.club-coin-wordmark','.club-coin-number>span'].map(s=>{const c=getComputedStyle(e.querySelector(s));return {ink:c.backgroundImage,blend:c.mixBlendMode,mask:c.maskImage}}));
+  for(const ink of inks){assert(ink.ink.includes('155, 164, 172')&&ink.ink.includes('123, 133, 142'),'Soft pewter gradient on both faces');assert.equal(ink.blend,'normal','lettering is not darkened by multiply blending');}
+  assert(inks[0].mask.includes('club-seal-mask.svg'),'front uses a direct alpha mask');
   const idleStart=Number(await coin.getAttribute('data-angle'));await page.waitForTimeout(500);const idleEnd=Number(await coin.getAttribute('data-angle'));assert(idleEnd>idleStart+2&&idleEnd<idleStart+12,'slow unattended rotation');
   assert((await coin.locator('.club-coin-face').first().evaluate(e=>getComputedStyle(e).clipPath)).startsWith('circle('),'circular clip contains shimmer');
   assert.notEqual(await coin.evaluate(e=>getComputedStyle(e,'::before').filter),'none','soft shadow beneath coin');

@@ -546,11 +546,11 @@ p.pw-small{margin:10px 0 16px}.pw-workspace p:not(.pw-small){font:400 14px/1.6 v
 .club-coin-rim{transform:translateZ(var(--depth));background:linear-gradient(var(--coin-light,125deg),#65727c,#b1bbc3 25%,#8c99a4 45%,#c3cbd1 70%,#727f8a)}
 .club-coin-face{backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden;clip-path:circle(50% at 50% 50%);transform:translateZ(2.4px)}
 .club-coin-back{transform:rotateY(180deg) translateZ(2.4px);container-type:inline-size}
-.club-coin-seal{position:absolute;inset:-7%;width:114%;height:114%;background:linear-gradient(135deg,#8b969f,#68747e 46%,#9ca5ad 76%,#68747e);mix-blend-mode:multiply;isolation:isolate}
-.club-brand .club-coin-front img{width:100%;height:100%;max-width:none;filter:grayscale(1) contrast(4);mix-blend-mode:screen;pointer-events:none}
-.club-brand .club-coin-back .club-coin-wordmark{position:absolute;left:26%;top:25%;width:48%;height:31%;background:linear-gradient(135deg,#8b969f,#68747e 46%,#9ca5ad 76%,#68747e);mask:url('../assets/showuppp-wordmark-light.svg') center/contain no-repeat;-webkit-mask:url('../assets/showuppp-wordmark-light.svg') center/contain no-repeat;pointer-events:none}
+.club-coin-seal{position:absolute;inset:-7%;width:114%;height:114%;background:linear-gradient(135deg,#9ba4ac,#7b858e 46%,#adb5bc 76%,#7b858e);mask:url('../assets/club-seal-mask.svg') center/contain no-repeat;-webkit-mask:url('../assets/club-seal-mask.svg') center/contain no-repeat}
+.club-brand .club-coin-front img{opacity:0;width:100%;height:100%;pointer-events:none}
+.club-brand .club-coin-back .club-coin-wordmark{position:absolute;left:26%;top:25%;width:48%;height:31%;background:linear-gradient(135deg,#9ba4ac,#7b858e 46%,#adb5bc 76%,#7b858e);mask:url('../assets/showuppp-wordmark-light.svg') center/contain no-repeat;-webkit-mask:url('../assets/showuppp-wordmark-light.svg') center/contain no-repeat;pointer-events:none}
 .club-coin-number{position:absolute;inset:0;display:block;color:#20262a}
-.club-coin-number>span{position:absolute;font:700 10cqw/1 var(--body);text-align:center;background:linear-gradient(135deg,#8b969f,#68747e 46%,#9ca5ad 76%,#68747e);background-clip:text;-webkit-background-clip:text;color:transparent}
+.club-coin-number>span{position:absolute;font:700 10cqw/1 var(--body);text-align:center;background:linear-gradient(135deg,#9ba4ac,#7b858e 46%,#adb5bc 76%,#7b858e);background-clip:text;-webkit-background-clip:text;color:transparent}
 .club-coin-back:before{content:'';position:absolute;inset:7%;border:1px solid #75818b88;border-radius:50%;box-shadow:0 1px 0 #fff8}
 .club-coin-face:after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(105deg,transparent 20%,#ffffff08 35%,#ffffffaa 47%,#ffffff22 51%,transparent 63%);transform:translateX(var(--coin-reflection,0%));opacity:.19;mix-blend-mode:screen}
 .club-coin-visible .club-coin-face:after{animation:club-coin-shine 3s ease-in-out infinite}
