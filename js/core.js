@@ -50,11 +50,18 @@ function sbxExit(){ sbxWipe(); try{ SBX_RAW.del.call(localStorage,SANDBOX_FLAG);
 function sbxBar(){
   if(!SANDBOX||document.getElementById('sbxBar')) return;
   const el=document.createElement('div'); el.id='sbxBar'; el.setAttribute('role','status');
-  el.style.cssText='position:fixed;z-index:200;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 6px);display:flex;align-items:center;gap:4px;padding:4px 4px 4px 12px;border-radius:999px;background:#ffb020;color:#1a1200;font:600 12px/1 var(--body,system-ui);box-shadow:0 2px 10px rgba(0,0,0,.3);white-space:nowrap';
+  el.style.cssText='position:fixed;z-index:200;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 12px);display:flex;align-items:center;gap:4px;padding:4px 4px 4px 12px;border-radius:999px;background:#ffb020;color:#1a1200;font:600 12px/1 var(--body,system-ui);box-shadow:0 2px 10px rgba(0,0,0,.3);white-space:nowrap';
   el.innerHTML='<span>Test mode · new user</span><button type="button" data-sbx="restart">Start over</button><button type="button" data-sbx="exit">Exit</button>';
   el.querySelectorAll('button').forEach(b=>b.style.cssText='all:unset;cursor:pointer;padding:6px 10px;border-radius:999px;background:rgba(0,0,0,.14);font:600 12px/1 var(--body,system-ui)');
   el.addEventListener('click',e=>{ const b=e.target.closest('[data-sbx]'); if(!b) return; b.dataset.sbx==='exit'?sbxExit():sbxRestart(); });
   document.body.appendChild(el);
+  /* v4.6.276: the bar sits just above the tab bar, clear of the header. On the first run
+     (no header there) it stays at the top; elsewhere without a tab bar it rests at the bottom edge. */
+  const place=()=>{ const n=document.getElementById('nav'),r=n&&n.getBoundingClientRect(),on=r&&r.height>0&&r.top<innerHeight&&getComputedStyle(n).visibility!=='hidden';
+    const onb=document.querySelector('#onb:not([hidden])');
+    if(onb){ el.style.bottom='auto'; el.style.top='calc(env(safe-area-inset-top,0px) + 6px)'; return; }
+    el.style.top='auto'; el.style.bottom=on?(innerHeight-r.top+8)+'px':'calc(env(safe-area-inset-bottom,0px) + 12px)'; };
+  place(); addEventListener('resize',place); setInterval(place,500);
   /* v4.6.262: with the keyboard up iOS scrolls the layout viewport, carrying a
      fixed bar up over the clock. The bar steps aside while a field has focus. */
   document.addEventListener('focusin',e=>{ if(e.target.matches?.('input,textarea,select,[contenteditable]')) el.style.visibility='hidden'; });
