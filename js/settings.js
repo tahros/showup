@@ -312,7 +312,7 @@ function clubCardHTML(){
   const avatar=clubAvatar(),user=session?.user,{number:displayNumber,since,reference}=clubMembershipFacts();
   const dark=document.documentElement.dataset.theme==='dark';
   return `<section class="card club-card" aria-label="Your Showing Up Club profile">
-    <div class="club-brand"><img src="assets/showuppp-wordmark-${dark?'dark':'light'}.svg" alt="ShowUppp">${clubCoinHTML(String(displayNumber).replace(/,/g,''))}</div>
+    <div class="club-brand"><img src="assets/showuppp-wordmark-${dark?'dark':'light'}.svg" alt="ShowUppp">${typeof isMember!=='function'||isMember()?clubCoinHTML(String(displayNumber).replace(/,/g,'')):''}</div>
     <div class="club-person"><button type="button" class="club-avatar-button" data-club-picker aria-label="Edit profile icon" aria-expanded="false">${clubAvatarEditHTML(avatar)}</button><div class="club-identity"><div class="club-name-row"><h2>${hesc(DB.settings.name||'Your place in the club')}</h2><button type="button" class="club-profile-edit" data-club-edit aria-label="Edit profile" title="Edit profile">${icon('edit',16)}</button></div>
     <button type="button" class="club-member-id" data-club-copy ${reference?'':'disabled'} aria-label="${reference?'Copy member reference '+reference:'Member number unavailable'}" title="${reference?'Copy '+reference:'Connect to load your member number'}"><span class="club-member-label">${user?'MEMBER N<span class="club-number-o">o</span>':'LOCAL PROFILE'}</span><strong class="club-number">${displayNumber}</strong></button></div></div>
     <div class="club-membership">
