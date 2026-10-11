@@ -448,7 +448,8 @@ header.planmode .hback::after{content:'';position:absolute;inset:-3px -6px}
 :root .pf-workspace .pf-prefs h3{margin:0 0 12px;font:600 15px/1.3 var(--body);color:var(--chalk);letter-spacing:-.01em}
 :root .pf-workspace .pf-seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;padding:3px;border-radius:21px;background:color-mix(in srgb,var(--chalk) 7%,transparent)}
 :root .pf-workspace .pf-segb{display:flex;align-items:center;justify-content:center;width:auto;min-width:0;height:36px;min-height:0;margin:0;padding:0 6px;border:0;border-radius:18px;background:none;box-shadow:none;font:500 14px var(--body);color:var(--muted);white-space:nowrap;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background-color .18s,color .18s}
-:root .pf-workspace .pf-segb.on{color:#fff}
+/* v4.6.260 INK: what you picked is solid chalk on ground; blue is kept for actions (Save) */
+:root .pf-workspace .pf-segb.on{color:var(--ground);font-weight:600}
 :root .pf-workspace .pf-seg-sm{width:176px;flex:none}
 :root .pf-workspace .pf-seg-sm .pf-segb{height:32px;font-size:13px}
 :root .pf-workspace .pf-pref-cap{margin:10px 2px 0;font:400 12.5px/1.5 var(--body);color:var(--muted)}
@@ -461,8 +462,8 @@ header.planmode .hback::after{content:'';position:absolute;inset:-3px -6px}
 :root .pf-workspace .pf-pref-row>span small{display:block;margin-top:2px;font:400 12px/1.4 var(--body);color:var(--muted)}
 :root .pf-workspace .pf-pref-limit input{width:84px;min-height:40px;box-sizing:border-box;padding:0 12px;border:0;border-radius:12px;background:color-mix(in srgb,var(--chalk) 7%,transparent);color:var(--chalk);font:500 16px var(--body);text-align:center;font-variant-numeric:tabular-nums}
 :root .pf-workspace .pf-dow{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:10px}
-:root .pf-workspace .pf-dowb{display:flex;align-items:center;justify-content:center;width:auto;min-width:0;min-height:0;aspect-ratio:1;margin:0;padding:0;border:0;border-radius:50%;box-shadow:none;font:600 13px var(--body);color:var(--muted);background:color-mix(in srgb,var(--chalk) 6%,transparent);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background-color .18s,color .18s}
-:root .pf-workspace .pf-dowb.on{background:var(--accent);color:#fff}
+:root .pf-workspace .pf-dowb{display:flex;align-items:center;justify-content:center;width:auto;min-width:0;min-height:0;aspect-ratio:1;margin:0;padding:0;border:0;border-radius:50%;box-shadow:none;font:600 13px var(--body);color:var(--muted);background:none;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--chalk) 16%,transparent);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background-color .18s,color .18s}
+:root .pf-workspace .pf-dowb.on{background:var(--chalk);color:var(--ground);box-shadow:none}
 :root .pf-workspace .pf-switch{position:relative;flex:none;width:46px;min-width:46px;height:28px;min-height:0;margin:0;padding:0;border:0;border-radius:14px;box-shadow:none;background:color-mix(in srgb,var(--chalk) 16%,transparent);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background-color .2s}
 :root .pf-workspace .pf-switch::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .2s}
 :root .pf-workspace .pf-switch.on{background:var(--accent)}
@@ -489,7 +490,7 @@ header.planmode .hback::after{content:'';position:absolute;inset:-3px -6px}
    cross-fade. The page is patched in place (pfPrefPatch), so there is an
    element left to animate. */
 :root .pf-workspace .pf-seg{position:relative;isolation:isolate}
-:root .pf-workspace .pf-seg::before{content:"";position:absolute;z-index:0;top:3px;bottom:3px;left:3px;width:calc((100% - 6px)/var(--n,2));border-radius:18px;background:var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.16),0 2px 8px color-mix(in srgb,var(--accent) 30%,transparent);transform:translateX(calc(var(--i,0)*100%));transition:transform var(--dur-move,.26s) var(--settle)}
+:root .pf-workspace .pf-seg::before{content:"";position:absolute;z-index:0;top:3px;bottom:3px;left:3px;width:calc((100% - 6px)/var(--n,2));border-radius:18px;background:var(--chalk);box-shadow:none;transform:translateX(calc(var(--i,0)*100%));transition:transform var(--dur-move,.26s) var(--settle)}
 :root .pf-workspace .pf-segb{position:relative;z-index:1;transition:color var(--dur-move,.26s) ease}
 :root .pf-workspace .pf-dowb{transition:background-color var(--dur-move,.26s) ease,color var(--dur-move,.26s) ease,transform var(--dur-quick,.16s) ease}
 :root .pf-workspace .pf-dowb:active{transform:scale(.92)}
@@ -541,8 +542,8 @@ header.planmode .hback::after{content:'';position:absolute;inset:-3px -6px}
 
 /* v4.6.204: Body parts you train */
 :root .pf-workspace .pf-mypart-chips{display:flex;flex-wrap:wrap;gap:8px}
-:root .pf-workspace .pf-mypart{display:inline-flex;align-items:center;justify-content:center;width:auto;min-width:0;height:38px;min-height:0;margin:0;padding:0 16px;border:0;border-radius:19px;box-shadow:none;background:color-mix(in srgb,var(--chalk) 6%,transparent);font:500 14px var(--body);color:var(--muted);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background-color var(--dur-move,.26s) ease,color var(--dur-move,.26s) ease,transform var(--dur-quick,.16s) ease}
-:root .pf-workspace .pf-mypart.on{background:var(--accent);color:#fff}
+:root .pf-workspace .pf-mypart{display:inline-flex;align-items:center;justify-content:center;width:auto;min-width:0;height:38px;min-height:0;margin:0;padding:0 16px;border:0;border-radius:19px;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--chalk) 16%,transparent);background:none;font:500 14px var(--body);color:var(--muted);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background-color var(--dur-move,.26s) ease,color var(--dur-move,.26s) ease,transform var(--dur-quick,.16s) ease}
+:root .pf-workspace .pf-mypart.on{background:var(--chalk);color:var(--ground);box-shadow:none}
 :root .pf-workspace .pf-mypart:active{transform:scale(.96)}
 @media(prefers-reduced-motion:reduce){:root .pf-workspace .pf-mypart{transition:none}}
 

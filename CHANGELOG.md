@@ -1,5 +1,10 @@
 # ShowUppp — changelog
 
+## v4.6.260 (2026-10-10) — Preferences in ink, not blue
+
+- **Asked:** too much blue on Preferences; make it more elegant. Three ideas were mocked (Quiet gray, Ink, soft Tint); the maker chose Ink.
+- What you picked is now solid ink: white on dark, near-black on light, with the text in the page colour. What you didn't pick is a thin outline. This covers the training-for and week-start switches, the days you train, the body parts and the order switch. Blue is left for actions, so Save preferences is the one blue thing on the page.
+
 ## v4.6.259 (2026-10-10) — A clearer Hold icon
 
 - Replaces the equals sign with the approved outlined lock beside Hold, consistently in exercise badges and the Hold control. Retains the label and existing weight-hold behavior.
