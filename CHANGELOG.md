@@ -1,5 +1,16 @@
 # ShowUppp — changelog
 
+## v4.6.277 — First-set tips
+
+- A new user now gets three short tips, each one when it's needed and never again:
+  - the exercise list: "Tap any exercise to log it";
+  - the set screen: "Swipe the numbers for reps, then Add set. One set is a day shown up.";
+  - after the first set's celebration: "Tap Finish when you're done. Or keep adding sets and exercises." (Got it).
+- Each tip disappears when you do what it says. Pip waves in, two rings pulse round the thing meant, and nothing is blocked. Tips hide while a dialog, the first run or a text field is open.
+- The pill is ink: black on light, white on dark. Pip takes the other tone so he shows. Motion follows the mascot setting and Reduce Motion.
+- Only people who finish the new first run get them; existing users don't. **Settings → Show tips again** turns them back on (handy in test mode).
+- New `tools/check-first-tips.cjs`: the full first-set path in light and dark at 402 and 320, no tip over the celebration, never twice, Settings brings them back, existing users never see them.
+
 ## v4.6.276 — The test bar moves down
 
 - In test mode, the yellow "Test mode · new user" bar covered the header (the date and week squares). It now sits just above the tab bar.

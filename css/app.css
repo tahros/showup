@@ -4688,3 +4688,27 @@ body:has(#imp) #toast.on{transform:translateX(-50%)}
 #imp .im-heat{display:flex;justify-content:center;gap:3px;margin:6px 0 8px}#imp .im-wk{display:flex;flex-direction:column;gap:3px}#imp .im-wk i{width:9px;height:9px;border-radius:2.5px;background:color-mix(in srgb,var(--chalk) 12%,transparent)}#imp .im-wk i.on{background:var(--accent)}
 @media(max-width:360px){#imp .im{padding-left:18px;padding-right:18px}#imp .im-h{font-size:26px}#imp .im-wk i{width:7px;height:7px}#imp .im-big b,#imp .im-count b{font-size:52px}}
 .note [data-imp-undo]{display:inline;width:auto;min-height:0;margin:0;padding:0;border:0;background:none;box-shadow:none;color:var(--accent-ink,var(--accent));font:inherit;text-decoration:underline;cursor:pointer}
+
+/* v4.6.277: first-run tips (js/today.js). Ink pill: black on light, white on dark. */
+.tipn{--tip-ax:40px;position:fixed;z-index:180;display:flex;gap:6px;align-items:center;max-width:min(330px,calc(100vw - 28px));padding:8px 16px 8px 6px;border-radius:18px;
+  background:var(--chalk);color:var(--ground);font:600 15.5px/1.3 var(--body,system-ui);box-shadow:0 12px 28px rgba(0,0,0,.28);
+  animation:tipIn .52s cubic-bezier(.3,1.6,.5,1) both}
+.tipn.out{animation:tipOut .26s ease-in both}
+.tipn:after{content:'';position:absolute;left:var(--tip-ax,40px);width:14px;height:14px;background:var(--chalk);border-radius:2px;transform:rotate(45deg)}
+.tipn.up:after{top:-6px}.tipn.down:after{bottom:-6px}
+.tipn .tipt{animation:tipTxt .4s ease-out .18s both}
+.tipn small{display:block;margin-top:2px;font-weight:500;font-size:13px;opacity:.68}
+.tipn .tip-pip{display:block;flex:none;width:60px;height:auto;margin:-10px -6px -10px -4px;transform-origin:50% 80%;animation:tipWave 1.1s ease-in-out .35s both,tipBob 2.6s ease-in-out 1.6s infinite}
+.tipn button{all:unset;cursor:pointer;margin-left:6px;padding:8px 13px;border-radius:999px;white-space:nowrap;background:color-mix(in srgb,var(--ground) 16%,transparent);font:600 13px/1 var(--body,system-ui)}
+.tipr{--tip-r:20px;position:fixed;z-index:179;pointer-events:none;border-radius:var(--tip-r,20px)}
+.tipr:before,.tipr:after{content:'';position:absolute;inset:-2px;border-radius:inherit;border:2.5px solid var(--accent);animation:tipRing 1.8s ease-out infinite}
+.tipr:after{animation-delay:.9s}
+.tipr.out{opacity:0;transition:opacity .2s}
+@keyframes tipIn{0%{opacity:0;transform:scale(.82)}100%{opacity:1;transform:none}}
+@keyframes tipOut{to{opacity:0;transform:scale(.9)}}
+@keyframes tipTxt{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:none}}
+@keyframes tipWave{0%,100%{transform:rotate(0)}20%{transform:rotate(-14deg)}40%{transform:rotate(12deg)}60%{transform:rotate(-8deg)}80%{transform:rotate(5deg)}}
+@keyframes tipBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@keyframes tipRing{0%{inset:-2px;opacity:.95}100%{inset:-14px;opacity:0}}
+:root[data-mascot-motion="still"] .tipn .tip-pip{animation:none}
+@media (prefers-reduced-motion:reduce){.tipn,.tipn .tipt,.tipn .tip-pip{animation:none}.tipr:after{display:none}.tipr:before{animation:none;inset:-4px}}

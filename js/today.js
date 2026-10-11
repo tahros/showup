@@ -187,6 +187,7 @@ function onbFinish(skip,go){
     if(bw>0) DB.settings.bodyKg=onbUnit==='lb'?+(bw*0.45359237).toFixed(1):bw;
   }
   DB.settings.onboarded=APP_VERSION; DB.settingsAt=Date.now();
+  tipsStart(); /* v4.6.277: a new user gets the three first-set tips */
   save(true); onbEl().hidden=true; onbShown=0;
   if(go==='train'&&typeof liftEnter==='function'){ liftEnter({}); view='lift'; }
   else if(go==='plan'&&typeof pwOpen==='function'){ view='today'; render(); pwOpen(null,'dates'); return; }
@@ -945,3 +946,82 @@ function msMoment(hit){
   </div>`;
   ov.style.display='flex';
 }
+
+/* v4.6.277: first-run tips. Three nudges, each at the moment it's needed, for a new user only
+   (the first run turns them on; Settings → Show tips again turns them back on):
+     ex  -- the exercise list: "Tap any exercise to log it."      gone on that tap
+     set -- the set screen: "Swipe the numbers for reps…"         gone on Add set
+     fin -- after the first set: "Tap Finish when you're done"    gone on Got it or Finish
+   Each shows once. Pip waves in, two rings pulse round the thing meant; nothing is blocked.
+   Hidden while any dialog, the first run or a text field is up. State: DB.settings.tips =
+   {on:1, ex:1, set:1, fin:1}. Motion follows the mascot setting and reduced motion. */
+const TIP_TEXT={
+  ex:{sel:'#view [data-ex]',t:'Tap any exercise to log it',dir:'down',ax:.14,r:20},
+  set:{sel:'#addrep',t:'Swipe the numbers for reps,<br>then Add set',s:'One set is a day shown up.',dir:'up',ax:.5,r:18},
+  fin:{sel:'#liveWorkoutFinish',t:'Tap Finish when you’re done',s:'Or keep adding sets and exercises.',dir:'up',ax:.5,r:999,btn:'Got it'}
+};
+let tipCur=null,tipQ=0;
+function tipsState(){const t=DB.settings.tips;return t&&typeof t==='object'?t:null;}
+function tipsStart(){DB.settings.tips={on:1};DB.settingsAt=Date.now();}
+function tipDone(k){const t=tipsState();if(!t||t[k])return;t[k]=1;if(t.ex&&t.set&&t.fin)t.on=0;DB.settingsAt=Date.now();save(true);tipHide();tipQueue();}
+function tipVisible(el){if(!el)return false;const r=el.getBoundingClientRect();return r.width>0&&r.height>0&&r.bottom>0&&r.top<innerHeight&&getComputedStyle(el).visibility!=='hidden';}
+function tipBlocked(){
+  if(document.querySelector('#onb:not([hidden])'))return true;
+  const a=document.activeElement;if(a&&a.matches&&a.matches('input,textarea,select,[contenteditable]'))return true;
+  return [...document.querySelectorAll('[aria-modal="true"],#imp')].some(x=>!x.hidden&&x.getClientRects().length>0&&getComputedStyle(x).visibility!=='hidden'&&+getComputedStyle(x).opacity>0);
+}
+function tipWhich(){
+  const t=tipsState();if(!t||!t.on||tipBlocked())return null;
+  if(!t.set&&document.getElementById('addrep')&&tipVisible(document.getElementById('addrep')))return 'set';
+  if(!t.ex&&view==='lift'&&!document.getElementById('addrep')&&tipVisible(document.querySelector(TIP_TEXT.ex.sel)))return 'ex';
+  if(!t.fin&&(t.set||(t.ex&&!document.getElementById('addrep')))&&tipVisible(document.getElementById('liveWorkoutFinish')))return 'fin';
+  return null;
+}
+function tipHide(now){
+  if(!tipCur)return;const {n,ring}=tipCur;tipCur=null;
+  if(now||!n.isConnected){n.remove();ring.remove();return;}
+  n.classList.add('out');ring.classList.add('out');setTimeout(()=>{n.remove();ring.remove();},300);
+}
+function tipPlace(){
+  if(!tipCur)return;const {n,ring,k}=tipCur,c=TIP_TEXT[k],el=document.querySelector(c.sel);
+  if(!tipVisible(el)){tipHide(true);return;}
+  const r=el.getBoundingClientRect();
+  Object.assign(ring.style,{left:r.left+'px',top:r.top+'px',width:r.width+'px',height:r.height+'px'});
+  const w=n.offsetWidth,h=n.offsetHeight,left=Math.max(14,Math.min(innerWidth-14-w,r.left+r.width*c.ax-w/2));
+  let dir=c.dir;if(dir==='down'&&r.top-h-14<8)dir='up';if(dir==='up'&&r.bottom+16+h>innerHeight-8)dir='down';
+  n.classList.toggle('up',dir==='up');n.classList.toggle('down',dir==='down');
+  n.style.left=left+'px';n.style.top=(dir==='down'?r.top-h-14:r.bottom+16)+'px';
+  const ax=Math.max(18,Math.min(w-32,r.left+r.width*c.ax-left-7));
+  n.style.setProperty('--tip-ax',ax+'px');n.style.transformOrigin=`${ax+7}px ${dir==='down'?'100%':'0%'}`;
+}
+/* A still PNG, not the 3D Pip: the pill is ink, so Pip takes the opposite tone (white on black,
+   charcoal on white), and a tip shouldn't spin up a WebGL scene. */
+function tipPip(){if(typeof mascotMode==='function'&&mascotMode()==='off')return '';return `<img class="tip-pip" src="assets/mascot-${document.documentElement.dataset.theme==='dark'?'charcoal':'white'}.png" alt="" width="360" height="220" aria-hidden="true">`;}
+function tipShow(k){
+  const c=TIP_TEXT[k];tipHide(true);
+  const n=document.createElement('div');n.className='tipn';n.setAttribute('role','status');n.dataset.tip=k;
+  n.innerHTML=tipPip()+`<span class="tipt">${c.t}${c.s?`<small>${c.s}</small>`:''}</span>`+(c.btn?`<button type="button" data-tip-ok>${c.btn}</button>`:'');
+  const ring=document.createElement('div');ring.className='tipr';ring.style.setProperty('--tip-r',c.r+'px');ring.setAttribute('aria-hidden','true');
+  document.body.append(ring,n);tipCur={n,ring,k};tipPlace();
+}
+function tipCheck(){
+  tipQ=0;const k=tipWhich();
+  if(!k){if(tipCur)tipHide(true);return;}
+  if(tipCur&&tipCur.k===k){tipPlace();return;}
+  tipShow(k);
+}
+function tipQueue(){if(tipQ||(!tipCur&&!tipsState()?.on))return;tipQ=setTimeout(tipCheck,350);}
+document.addEventListener('click',e=>{
+  const t=tipsState();if(!t||!t.on)return;
+  if(e.target.closest('[data-tip-ok]')){tipDone('fin');return;}
+  if(!t.ex&&e.target.closest('#view [data-ex]'))tipDone('ex');
+  else if(!t.set&&e.target.closest('#addrep')){tipDone('set');if(!t.ex)tipDone('ex');}
+  else if(!t.fin&&e.target.closest('#liveWorkoutFinish'))tipDone('fin');
+  else tipQueue();
+},true);
+addEventListener('scroll',()=>{if(tipCur)tipPlace();},{passive:true,capture:true});
+addEventListener('resize',()=>tipQueue());
+document.addEventListener('focusin',()=>tipQueue());document.addEventListener('focusout',()=>tipQueue());
+new MutationObserver(()=>{const t=tipsState();if(t&&t.on)tipQueue();}).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden']});
+function tipsSettingsHTML(){return `<button class="btn ghost" data-tips-again style="margin:8px 0 0">Show tips again</button>`;}
+document.addEventListener('click',e=>{if(!e.target.closest('[data-tips-again]'))return;tipsStart();save(true);toast('Tips are back. Try logging a set.');});

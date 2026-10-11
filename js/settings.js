@@ -201,6 +201,7 @@ function renderSync(){
       </div>
       <input type="file" id="impFile" accept=".json,application/json" hidden>
       ${typeof impSettingsHTML==='function'?impSettingsHTML():''}
+      ${typeof tipsSettingsHTML==='function'?tipsSettingsHTML():''}
     </div>
     <div class="note assetcredits" style="text-align:center;margin-top:6px;opacity:.7">Status icons: <a href="https://thenounproject.com/icon/minus-8363736/" target="_blank" rel="noopener">Minus</a> by ARIPATUT DASUKI · <a href="https://thenounproject.com/icon/trend-2344331/" target="_blank" rel="noopener">Trend</a> by Travis Avery · <a href="https://thenounproject.com/icon/share-2438501/" target="_blank" rel="noopener">Share</a> and <a href="https://thenounproject.com/icon/edit-1751206/" target="_blank" rel="noopener">Edit</a> by Timur Minvaleev · <a href="https://thenounproject.com/icon/ai-7262146/" target="_blank" rel="noopener">Sparkle</a> by Eliricon · <a href="https://thenounproject.com/icon/arrow-1342814/" target="_blank" rel="noopener">Chevron</a> by Barracuda · <a href="https://thenounproject.com/icon/expand-7584001/" target="_blank" rel="noopener">Expand</a> and <a href="https://thenounproject.com/icon/collapse-7584005/" target="_blank" rel="noopener">Collapse</a> by LAFS · Copy by maria icon · Pencil by Alvida Black · Noun Project</div>`;
   clubArrangeSettings();
