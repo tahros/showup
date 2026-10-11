@@ -1,5 +1,13 @@
 # ShowUppp — changelog
 
+## v4.6.271 (2026-10-11) — Dates: one button per thing it does
+
+- **Asked:** "Plan 1 new day" and "Generate instead" looked like the same thing, and "1 new day" under "1 day selected" repeated the count.
+- They were the same whenever only new days were selected: Generate instead writes every selected day, which with no saved plans among them is exactly Plan N new days. It now shows only when a selected day already has a saved plan, named for what it adds: **Replace N saved plans** (all saved) or **Plan all N, replacing M** (a mix).
+- With no saved day selected, **Paste** takes the second slot next to Plan, and the always-disabled "Edit saved plans" is gone. Edit N plans shows when there are saved plans to edit.
+- The breakdown line (new days · saved plans · drafts) shows only when the selection mixes kinds; one kind would repeat the count above it.
+- Check: `tools/check-unselect-all.cjs` reads the breakdown only when it is there.
+
 ## v4.6.270 (2026-10-11) — A weightier, more responsive coin
 
 - The coin's automatic turn is 1.5× faster: one revolution every 16 seconds instead of 24.

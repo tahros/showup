@@ -21,7 +21,7 @@ try{for(const [w,h] of [[402,874],[320,640]])for(const theme of ['light','dark']
  },theme);
  const m=()=>p.evaluate(()=>{const R=e=>e.getBoundingClientRect(),row=document.querySelector('.pf-selection'),u=document.querySelector('[data-pw="pf-unselect"]'),st=row.querySelector('strong');
   return {text:row.textContent.replace(/\s+/g,' ').trim(),btn:u?{l:R(u).left,r:R(u).right,h:R(u).height,label:u.textContent.trim()}:null,row:{l:R(row).left,r:R(row).right,h:R(row).height},strongR:R(st).right,sel:document.querySelectorAll('.pf-calendar .selected').length,dates:pw().dates.length,
-   breakdown:document.querySelector('.pf-date-breakdown').textContent,disabled:[...document.querySelectorAll('.pf-date-actions .pw-btn,.pf-date-secondary .pw-btn')].filter(x=>x.disabled).length,vw:innerWidth,sw:document.documentElement.scrollWidth,saved:JSON.stringify(DB.week)===window.__saved};});
+   breakdown:document.querySelector('.pf-date-breakdown')?.textContent||'',disabled:[...document.querySelectorAll('.pf-date-actions .pw-btn,.pf-date-secondary .pw-btn')].filter(x=>x.disabled).length,vw:innerWidth,sw:document.documentElement.scrollWidth,saved:JSON.stringify(DB.week)===window.__saved};});
  let x=await m();
  ok(`${tag} six days selected: the line reads count, range, Unselect all`,/^6 days selected· Oct 5 – Oct 10Unselect all$/.test(x.text)&&x.sel===6,x);
  ok(`${tag} the control sits at the right end of the line, inside it, clear of the text`,!!x.btn&&x.btn.r<=x.row.r+0.5&&x.btn.l>=x.strongR-0.5&&x.btn.h>=28,x);
