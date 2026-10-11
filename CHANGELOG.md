@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.270 (2026-10-11) — A weightier, more responsive coin
+
+- The coin's automatic turn is 1.5× faster: one revolution every 16 seconds instead of 24.
+- A left or right swipe sets its continuing direction, including after momentum settles and when switching themes.
+- The coin is 1.5× thicker, with a filled 7.2px edge. Soft pewter lettering and the card layout stay unchanged.
+
 ## v4.6.269 (2026-10-11) — Sharper club coin lettering
 
 - Replaces the filtered bitmap seal with scalable vector outlines, removing the raster-filter step that softened the front lettering.
