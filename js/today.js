@@ -956,8 +956,8 @@ function msMoment(hit){
    Hidden while any dialog, the first run or a text field is up. State: DB.settings.tips =
    {on:1, ex:1, set:1, fin:1}. Motion follows the mascot setting and reduced motion. */
 const TIP_TEXT={
-  ex:{sel:'#view [data-ex]',t:'Tap any exercise to log it',dir:'down',ax:.14,r:20},
-  set:{sel:'#addrep',t:'Swipe the numbers for reps,<br>then Add set',s:'One set is a day shown up.',dir:'up',ax:.5,r:18},
+  ex:{sel:'#view [data-ex]',t:'Tap any exercise to log it',dir:'down',ax:.14,r:20,btn:'Got it'},
+  set:{sel:'#addrep',t:'Swipe for reps, then tap Add set',s:'One set is a day shown up.',dir:'up',ax:.5,r:18,btn:'Got it'},
   fin:{sel:'#liveWorkoutFinish',t:'Tap Finish when you’re done',s:'Or keep adding sets and exercises.',dir:'up',ax:.5,r:999,btn:'Got it'}
 };
 let tipCur=null,tipQ=0;
@@ -1013,7 +1013,7 @@ function tipCheck(){
 function tipQueue(){if(tipQ||(!tipCur&&!tipsState()?.on))return;tipQ=setTimeout(tipCheck,350);}
 document.addEventListener('click',e=>{
   const t=tipsState();if(!t||!t.on)return;
-  if(e.target.closest('[data-tip-ok]')){tipDone('fin');return;}
+  if(e.target.closest('[data-tip-ok]')){tipDone(e.target.closest('.tipn')?.dataset.tip||'fin');return;}
   if(!t.ex&&e.target.closest('#view [data-ex]'))tipDone('ex');
   else if(!t.set&&e.target.closest('#addrep')){tipDone('set');if(!t.ex)tipDone('ex');}
   else if(!t.fin&&e.target.closest('#liveWorkoutFinish'))tipDone('fin');
