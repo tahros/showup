@@ -16,7 +16,13 @@ try{for(const [w,h] of [[402,874],[320,640]])for(const theme of ['dark','light']
  ok(`${tag} source: "You’re not starting from zero.", Upload a CSV, the template`,d.h==='You’re not starting from zero.'&&d.src&&d.tpl,d);
  let f=await fit();ok(`${tag} source fits`,f.sw<=f.vw&&!f.over,f);
  if(SHOT&&w===402)await p.screenshot({path:`${SHOT}/imp-1-${theme}.png`});
- await p.evaluate(t=>impLoadText(t,'strong.csv'),strong);await p.waitForTimeout(200);
+ /* v4.6.275: the real picker path -- a file input that lives in the page (iOS drops change events on a detached one) */
+ const inp=await p.evaluate(()=>{const i=document.getElementById('impCsv');return {inDoc:!!i&&document.contains(i),type:i?.type};});
+ ok(`${tag} the CSV input is in the page, not a detached element`,inp.inDoc&&inp.type==='file',inp);
+ const [chooser]=await Promise.all([p.waitForEvent('filechooser',{timeout:3000}).catch(()=>null),p.click('#imp [data-imp="file"]')]);
+ ok(`${tag} Upload a CSV opens the file picker`,!!chooser);
+ if(chooser)await chooser.setFiles(path.join(__dirname,'fixtures/strong-sample.csv'));else await p.setInputFiles('#impCsv',path.join(__dirname,'fixtures/strong-sample.csv'));
+ await p.waitForFunction(()=>document.querySelector('#imp .im-h')?.textContent==='Here’s what we found.',null,{timeout:4000}).catch(()=>{});
  d=await p.evaluate(()=>({h:document.querySelector('#imp .im-h')?.textContent,sub:document.querySelector('#imp .im-sub2')?.textContent,att:document.querySelector('#imp .im-att')?.textContent||'',unit:!!document.querySelector('#imp .im-unit'),dis:document.querySelector('#imp [data-imp="toconfirm"]').disabled}));
  ok(`${tag} review: what was found, the unit asked (Strong), items needing attention, Continue held`,d.h==='Here’s what we found.'&&/3 workouts/.test(d.sub)&&/Strong/.test(d.sub)&&d.unit&&/need attention/.test(d.att)&&d.dis,d);
  f=await fit();ok(`${tag} review fits`,f.sw<=f.vw&&!f.over,f);

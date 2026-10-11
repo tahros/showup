@@ -643,11 +643,20 @@ function impLoadText(text,fileName){
   imp={...imp,step:'review',file:fileName||'',src:p.src,sets:p.sets,unitKnown:p.unitKnown,unit:p.unitKnown?null:(DB.settings.unit==='lb'?'lb':'kg'),names,dups,dates,workouts:new Set(p.sets.map(s=>s.wk)).size,error:null,open:null};
   impRender();
 }
-function impPick(){
-  const inp=document.createElement('input');inp.type='file';inp.accept='.csv,text/csv,text/plain';
-  inp.onchange=()=>{const f=inp.files&&inp.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>impLoadText(String(rd.result||''),f.name);rd.onerror=()=>{imp.error='That file couldn’t be read.';impRender();};rd.readAsText(f);};
-  inp.click();
+/* v4.6.275: the picker is a REAL input living in the screen, read from a document-level
+   change listener -- the same shape Restore has used since v3.3.88. A detached input made
+   with createElement opened the iPhone's file sheet, but WKWebView dropped it before the
+   choice came back, so the change event never arrived and nothing happened. */
+function impPick(){const i=document.getElementById('impCsv');if(i){i.value='';i.click();}}
+function impReadFile(f){
+  if(!f||!imp)return;
+  imp.error=null;imp.reading=f.name||'your file';impRender();
+  const rd=new FileReader();
+  rd.onload=()=>{imp.reading=null;impLoadText(String(rd.result||''),f.name);};
+  rd.onerror=()=>{imp.reading=null;imp.error='That file couldn’t be read. Try saving it to Files first, then choose it again.';impRender();};
+  rd.readAsText(f);
 }
+document.addEventListener('change',e=>{if(e.target&&e.target.id==='impCsv'&&e.target.files&&e.target.files[0])impReadFile(e.target.files[0]);});
 const impPending=()=>imp?Object.values(imp.names).filter(n=>!n.done).length+Object.values(imp.dups).filter(v=>v==='ask').length:0;
 const impIncluded=()=>imp.dates.filter(d=>imp.dups[d]!=='keep');
 function impCommit(){
@@ -705,7 +714,8 @@ function impRender(){
   if(I.step==='source'){
     b=`${top('Import')}<h1 class="im-h">You’re not starting from zero.</h1><div class="im-pipwrap">${pip}${lines}</div><p class="im-sub">Bring the workouts you already did.</p>
       ${I.error?`<p class="im-err" role="alert">${hesc(I.error)}</p>`:''}
-      <button type="button" class="im-src" data-imp="file"><span class="im-ic">${IMP_ICON.file}</span><span class="im-ct"><b>Upload a CSV</b><span>Your Strong or Hevy export, or our template</span></span>${IMP_ICON.chev}</button>
+      <button type="button" class="im-src" data-imp="file" ${I.reading?'disabled':''}><span class="im-ic">${IMP_ICON.file}</span><span class="im-ct"><b>${I.reading?'Reading '+hesc(I.reading)+'…':'Upload a CSV'}</b><span>Your Strong or Hevy export, or our template</span></span>${IMP_ICON.chev}</button>
+      <input type="file" id="impCsv" accept=".csv,text/csv,text/comma-separated-values,text/plain" hidden>
       <details class="im-how"><summary>How to export</summary><p><b>Strong</b> · Settings → Export Strong Data</p><p><b>Hevy</b> · Profile → Settings → Export &amp; Import Data → Export Workouts</p><p>Save the file to your phone, then choose it here.</p></details>
       <button type="button" class="im-link" data-imp="template">Download the CSV template</button>
       <div class="im-sp"></div><p class="im-foot">You’ll review everything before it’s saved.</p><button type="button" class="im-link" data-imp="later">${I.from==='onboarding'?'Do this later':'Not now'}</button>`;

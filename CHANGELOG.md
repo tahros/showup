@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.275 — Upload a CSV answers on iPhone
+
+- Choosing a CSV after tapping **Upload a CSV** did nothing on iPhone. The file picker was a detached input made on the fly, and iOS's web view drops the change event for those, so the chosen file never arrived. The picker now lives in the import screen (the same way Restore works) and a page-level listener reads the file.
+- While the file is read, the button says "Reading <file>…"; if it can't be read, a plain message says to save it to Files and choose it again.
+- check-import now taps Upload a CSV, picks the file through the real chooser, and lands on the review.
+
 ## v4.6.274 (2026-10-11) — Bring your workouts: Strong and Hevy
 
 - **Asked:** a way for a new member to bring the workouts they already logged, starting with Strong and Hevy, following the maker's four-screen mock (choose source, review, confirm, your history).
