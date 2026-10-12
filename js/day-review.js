@@ -312,20 +312,23 @@ function drawDayReview(data,time,canvas){
       if(used+w>128&&lines.at(-1).length){lines.push([]);used=0;}lines.at(-1).push({...chip,w});used+=w+3;}return lines;};
   const loadLines=g=>wrap(g.load,126,T.load,600,mono);
   const loadRows=l=>Math.max(l.ref?loadLines(l.ref).length:0,l.actual?loadLines(l.actual).length:0);
-  const groupHeight=(g,n)=>!g?25:n*26+(g.chips.length?1+chips(g).length*25:0)+(g.qualifier?4+wrap(g.qualifier,126,T.qualifier,400).length*17:0);
+  // Share-only spacing: image and video use the same measured geometry.
+  // Keep type, chip hit/paint sizes and column positions unchanged.
+  const S={load:24,rowPad:8,laneGap:5,contextY:90,headingGap:17,summary:78,footerPad:14,bottomPad:22};
+  const groupHeight=(g,n)=>!g?25:n*S.load+(g.chips.length?1+chips(g).length*25:0)+(g.qualifier?4+wrap(g.qualifier,126,T.qualifier,400).length*17:0);
   const laneHeight=l=>Math.max(groupHeight(l.ref,loadRows(l)),groupHeight(l.actual,loadRows(l)));
   const labelHeight=r=>wrap(r.ex,196).length*26+(r.note?wrap(r.note,196,T.small,400).length*18+4:0);
-  const rowHeight=r=>22+Math.max(labelHeight(r),r.lanes.reduce((s,l)=>s+laneHeight(l),0)+9*Math.max(0,r.lanes.length-1));
+  const rowHeight=r=>2*S.rowPad+Math.max(labelHeight(r),r.lanes.reduce((s,l)=>s+laneHeight(l),0)+S.laneGap*Math.max(0,r.lanes.length-1));
   const dates=wrap(data.title,298,T.title),focus=wrap(data.parts.join(' · '),298,20);
   const location=wrap(data.context?.location,186,T.context,400),hasWeather=!!data.context?.weather;
   const leftHeight=dates.length*38+(focus.length?5+focus.length*26:0),rightHeight=location.length*20+(hasWeather?23:0);
-  const contextY=107,contextHeight=Math.max(leftHeight,rightHeight),top=contextY+contextHeight+29+30;
-  const heights=data.rows.map(rowHeight),bottom=top+heights.reduce((a,b)=>a+b,0),footerY=bottom+93;
+  const contextY=S.contextY,contextHeight=Math.max(leftHeight,rightHeight),top=contextY+contextHeight+S.headingGap+30;
+  const heights=data.rows.map(rowHeight),bottom=top+heights.reduce((a,b)=>a+b,0),footerY=bottom+S.summary;
   const hasContext=!!(data.context?.location||data.context?.weather);
   const credits=hasContext?['Location: © OpenStreetMap / Photon','Weather: MET Norway / CC BY 4.0']:[];
   const names=wrap(data.firstName,175,14,400);
   const pipHeight=data.pipBounds?38*data.pipBounds.h/data.pipBounds.w:24;
-  const footerHeight=Math.max(pipHeight,names.length*18,credits.length*12),h=footerY+20+footerHeight+30;
+  const footerHeight=Math.max(pipHeight,names.length*18,credits.length*12),h=footerY+S.footerPad+footerHeight+S.bottomPad;
   const height=Math.ceil(h*scale/2)*2;if(cv.height!==height)cv.height=height;
   ctx.setTransform(scale,0,0,scale,0,0);ctx.fillStyle=C.paper;ctx.fillRect(0,0,560,h+1);
   const text=(s,x,y,size=T.small,color=C.ink,align='left',font=sans,weight=400)=>{ctx.font=weight+' '+size+'px '+font;ctx.fillStyle=color;ctx.textAlign=align;ctx.fillText(s,x,y);};
@@ -354,8 +357,8 @@ function drawDayReview(data,time,canvas){
     loadLines(g).forEach(line=>{const cy=gy+13,paint=()=>{
       if(actual&&g.gain){ctx.font='600 19px '+mono;const w=ctx.measureText(line).width+10;ctx.fillStyle=C.blue;ctx.beginPath();ctx.roundRect(cx-w/2,cy-12,w,25,4);ctx.fill();}
       ink(line,cx,cy,19,actual?(g.gain?'#fff':C.ink):C.quiet,'center',mono,600);
-    };actual?reveal(delay+Math.min(j++*35,180),paint):paint();gy+=26;});
-    gy=start+nLoads*26;
+    };actual?reveal(delay+Math.min(j++*35,180),paint):paint();gy+=S.load;});
+    gy=start+nLoads*S.load;
     if(g.chips.length){gy+=1;chips(g).forEach(line=>{let x=cx-(line.reduce((s,c)=>s+c.w,0)+3*(line.length-1))/2;const cy=gy+12.5;
       line.forEach(c=>{const left=x,isTime=!!g.sets?.[0]?.cardio,highlight=actual&&c.gain&&!isTime,paint=()=>{if(highlight){ctx.fillStyle=C.blue;ctx.beginPath();ctx.roundRect(left,cy-12.5,c.w,25,4);ctx.fill();}
         ink(c.label,left+c.w/2,cy,17,actual?(highlight?'#fff':C.ink):C.quiet,'center',isTime?mono:sans,400);
@@ -366,10 +369,10 @@ function drawDayReview(data,time,canvas){
   data.rows.forEach((r,i)=>{rule(y);let ly=y+(heights[i]-labelHeight(r))/2;
     wrap(r.ex,196).forEach(line=>{ink(line,28,ly+13,20,r.actual.length?C.ink:C.quiet,'left',sans,600);ly+=26;});
     if(r.note){ly+=4;wrap(r.note,196,13,400).forEach(line=>{ink(line,28,ly+9,13,C.muted);ly+=18;});}
-    ly=y+11;r.lanes.forEach(l=>{const lh=laneHeight(l),n=loadRows(l);group(l.ref,refX,false,0,ly,lh,n);group(l.actual,actualX,true,420+rowIndex++*260,ly,lh,n);ly+=lh+9;});y+=heights[i];
+    ly=y+S.rowPad;r.lanes.forEach(l=>{const lh=laneHeight(l),n=loadRows(l);group(l.ref,refX,false,0,ly,lh,n);group(l.actual,actualX,true,420+rowIndex++*260,ly,lh,n);ly+=lh+S.laneGap;});y+=heights[i];
   });
-  rule(bottom);data.values.forEach((v,i)=>reveal(540+rowIndex*260+i*70,()=>{const x=28+(i+.5)*126;ink(v,x,bottom+39,30,C.ink,'center',sans,600);ink(data.labels[i],x,bottom+69,11,C.muted,'center',mono);}));
-  rule(footerY);const mid=footerY+20+footerHeight/2;
+  rule(bottom);data.values.forEach((v,i)=>reveal(540+rowIndex*260+i*70,()=>{const x=28+(i+.5)*126;ink(v,x,bottom+32,30,C.ink,'center',sans,600);ink(data.labels[i],x,bottom+58,11,C.muted,'center',mono);}));
+  rule(footerY);const mid=footerY+S.footerPad+footerHeight/2;
   credits.forEach((s,i)=>ink(s,28,mid+(i-(credits.length-1)/2)*12,8,C.muted));
   names.forEach((s,i)=>ink(s,485,mid+(i-(names.length-1)/2)*18,14,C.muted,'right'));
   if(data.pip&&data.pipBounds){const b=data.pipBounds;ctx.save();ctx.filter='grayscale(1) brightness(.72)';ctx.drawImage(data.pip,b.x,b.y,b.w,b.h,494,mid-pipHeight/2,38,pipHeight);ctx.restore();}

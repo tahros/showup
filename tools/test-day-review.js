@@ -47,6 +47,14 @@ test('no old values in reveal targets or failure labels',`!document.querySelecto
 run(`var data=dayReviewExportModel();var cv=drawDayReview(data);`);
 test('export freezes real day count and first name without changing stored name',`data.dayCount===msLiveTotal()&&data.firstName==='QA'&&DB.settings.name==='QA'`);
 test('export canvas reserves full content and even dimensions',`cv.width===1080&&cv.height>700&&cv.height%2===0`);
+test('compact export changes spacing without shrinking typography or columns',`(()=>{
+ const src=drawDayReview.toString();
+ const previous=src.replace('load:24,rowPad:8,laneGap:5,contextY:90,headingGap:17,summary:78,footerPad:14,bottomPad:22','load:26,rowPad:11,laneGap:9,contextY:107,headingGap:29,summary:93,footerPad:20,bottomPad:30').replace('bottom+32','bottom+39').replace('bottom+58','bottom+69');
+ const original=(0,eval)('('+previous+')');
+ const capture=fn=>{const calls=[],canvas=document.createElement('canvas');canvas.getContext=()=>new Proxy({measureText:s=>({width:String(s).length*7}),fillText:function(s,x,y){calls.push([s,x,this.font,y]);}},{get:(o,k)=>o[k]||(()=>({}))});fn(data,Infinity,canvas);return {canvas,calls};};
+ const before=capture(original),after=capture(drawDayReview);
+ return after.canvas.height<before.canvas.height&&after.canvas.height>before.canvas.height*.75&&JSON.stringify(after.calls.map(c=>c.slice(0,3)))===JSON.stringify(before.calls.map(c=>c.slice(0,3)))&&after.calls.every(c=>c[3]>0&&c[3]<after.canvas.height/(1080/560));
+})()`);
 run(`var a={id:'a',w:60,r:8,qualifier:'warm-up'},b={id:'b',w:100,r:3},x={w:100,r:4,source:{planRef:{setId:'b'}}};var lanes=dayReviewLanes({ex:'Deadlift',ref:[a,b],actual:[x]},true);`);
 test('warmup label hidden without deleting planned warmup sets',`dayReviewGroups([a],'Deadlift')[0].qualifier===''&&dayReviewGroups([a],'Deadlift')[0].chips[0].label==='8'`);
 test('skipped warmup cannot shift today under the wrong load',`lanes.length===2&&lanes[0].actual===null&&lanes[1].actual.load===dayReviewGroups([b],'Deadlift')[0].load`);

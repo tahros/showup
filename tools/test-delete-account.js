@@ -128,12 +128,15 @@ async function app({confirmAns=true,typed='DELETE',status=200,throwNet=false,exp
   return {w,run,calls,asked,del,kept,toast,after:()=>calls.slice(mark),fnCalls:()=>calls.filter(c=>c.u.includes('delete-account'))};
 }
 async function client(){
-  { const a=await app(); const r=await a.del(); const c=a.fnCalls()[0];
+  { const a=await app(); a.run('save(true)'); const r=await a.del(); const c=a.fnCalls()[0];
     ok('app: confirm, type DELETE -> deleted', r==='deleted', r);
     ok('app: one POST to /functions/v1/delete-account', a.fnCalls().length===1&&c.o.method==='POST'&&c.u===SB+'/functions/v1/delete-account');
     ok('app: it carries the user\'s token, not just the anon key', c.o.headers.Authorization==='Bearer AT'&&c.o.headers.apikey===ANON);
     ok('app: body {"confirm":"DELETE"}', c.o.body==='{"confirm":"DELETE"}');
-    ok('app: the device is then wiped: record, backups, session', !a.w.localStorage.getItem('tracker-v1')&&!a.w.localStorage.getItem('showup:bak:2026-09-20')&&a.run('session===null')&&a.run('window.__forgot===1'));
+    ok('app: the device is then wiped: record, backups, session', !a.w.localStorage.getItem('tracker-v1')&&!a.w.localStorage.getItem('showup:bak:2026-09-20')&&a.run('session===null')&&a.run('window.__forgot===1'),JSON.stringify({record:!!a.w.localStorage.getItem('tracker-v1'),backup:!!a.w.localStorage.getItem('showup:bak:2026-09-20'),session:a.run('session!==null'),forgot:a.run('window.__forgot')}));
+    a.run('save(true); dbWrite()');
+    await new Promise(r=>setTimeout(r,450));
+    ok('app: queued autosave and late flush cannot restore a deleted record',!a.w.localStorage.getItem('tracker-v1')&&!a.w.localStorage.getItem('showup:bak:2026-09-20')&&a.run('saveTimer===null&&!saveDirty&&deviceForgetting'));
     ok('app: the confirm names what is erased and what is not', /Erased now/.test(a.asked[0])&&/other devices/.test(a.asked[0])&&/cannot be undone/.test(a.asked[0])&&/Backup/.test(a.asked[0]));
     ok('app: nothing was pushed to the cloud first', !a.after().some(c=>c.u.includes('/rest/v1/app_state')));
   }

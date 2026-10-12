@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.292 — More compact workout share receipt
+
+- Tighten header, set-group, row and footer spacing for shared images and videos. Preserve all type sizes, workout values, blue highlights, column positions, and vertically centered exercise labels. The interactive day-review card is unchanged.
+- Add a regression check comparing compact and prior spacing: identical text, fonts and horizontal positions; smaller canvas with all text inside its bounds.
+- Fix a pre-existing account-deletion/sign-out race: cancel the queued autosave before clearing the device and block stale save/flush callbacks until reload, so the departing account record cannot be written back. Regression coverage explicitly queues a save before deletion and waits beyond the debounce afterward.
+
 ## v4.6.291 — Member No and Showing up since stop going blank
 
 - Settings sometimes showed "MEMBER No —" and "SHOWING UP SINCE —" until a pull-to-refresh. The number is asked for from the server with the sign-in token as stored; tokens last an hour and the iOS app often wakes after longer, so the request went out expired, was refused, and the card stayed blank. Pull-to-refresh runs sync, which renews the token first -- so the next visit worked.
