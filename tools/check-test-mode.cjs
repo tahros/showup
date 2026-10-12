@@ -47,13 +47,52 @@ try{
   const refused=await p.evaluate(async O=>{await saveSession({access_token:'a',refresh_token:'b',expires_at:Date.now()+36e5,user:{id:'u1',email:O}});return {s:session,stored:localStorage.getItem('tracker-session'),pushed:await cloudPushNow()};},OWNER);
   ok(`${tag} signing in with the owner's account in test mode is refused (no session kept, nothing pushed)`,refused.s===null&&!refused.stored&&refused.pushed===false,refused);
   /* Start over */
-  await Promise.all([p.waitForNavigation(),p.click('#sbxBar [data-sbx="restart"]')]);await boot();
+  await p.click('#sbxBar [data-sbx="tools"]');await Promise.all([p.waitForNavigation(),p.click('#sbxBar [data-sbx="restart"]')]);await boot();
   d=await look();
   ok(`${tag} Start over: back to an empty first run, still in test mode`,d.sandbox&&d.bar&&d.onb&&d.days===0,d);
+  /* v4.6.283: the bar's tools -- fill to 20, the paywall on day 21, a free test purchase, fold, move */
+  await p.click('[data-onbact="local"]');await p.waitForTimeout(600);await p.click('[data-onbact="skip"]');await p.waitForTimeout(700);await p.click('[data-onbact="go"][data-onbgo="look"]');await p.waitForTimeout(1200);
+  await p.evaluate(()=>{const t=DB.settings.tips;if(t)t.on=0;document.querySelectorAll('.tipn,.tipr').forEach(e=>e.remove());});
+  await p.click('#sbxBar [data-sbx="tools"]');await p.waitForTimeout(200);
+  if(SHOT&&w===402)await p.screenshot({path:`${SHOT}/tm-tools.png`});
+  await p.click('#sbxBar [data-sbx="fill"]');await p.waitForTimeout(500);
+  let t=await p.evaluate(()=>({days:loggedDays(),today:(DB.days[todayISO]?.w||[]).length,card:document.getElementById('mbTrial')?.textContent||'',panel:document.querySelector('#sbxBar .sx-panel').textContent,founding:!!DB.settings.founding}));
+  ok(`${tag} Fill to 20: 20 logged days before today, the Today card reads 20 of 20, no founding mark`,t.days===20&&t.today===0&&/20 of 20 free days/.test(t.card)&&/Logged days: 20/.test(t.panel)&&!t.founding,t);
+  if(SHOT&&w===402)await p.screenshot({path:`${SHOT}/tm-filled.png`});
+  await p.evaluate(()=>{liftEnter({});view='lift';lift.part='Legs';lift.ex='Squat';render();});await p.waitForTimeout(500);
+  await p.evaluate(()=>document.getElementById('addrep').click());await p.waitForTimeout(800);
+  t=await p.evaluate(()=>({wall:!!document.getElementById('paywall'),today:(DB.days[todayISO]?.w||[]).length}));
+  ok(`${tag} the first set on day 21 opens the paywall and writes nothing`,t.wall&&t.today===0,t);
+  if(SHOT&&w===402)await p.screenshot({path:`${SHOT}/tm-paywall.png`});
+  await p.click('#paywall [data-mb-buy]');await p.waitForTimeout(600);
+  t=await p.evaluate(()=>({wall:!!document.getElementById('paywall'),member:isMember(),ent:JSON.parse(localStorage.getItem('showup:entitlement')||'null'),realEnt:SBX_RAW.get.call(localStorage,'showup:entitlement')}));
+  ok(`${tag} Continue in test mode: a free test membership (yearly), kept in the test keys only`,!t.wall&&t.member&&t.ent?.test&&t.ent.plan==='yearly'&&!t.realEnt,t);
+  await p.evaluate(()=>document.getElementById('addrep').click());await p.waitForTimeout(600);
+  t=await p.evaluate(()=>({wall:!!document.getElementById('paywall'),today:(DB.days[todayISO]?.w||[]).length}));
+  ok(`${tag} as a member, day 21 logs`,!t.wall&&t.today===1,t);
+  await p.click('#sbxBar [data-sbx="unmember"]');await p.waitForTimeout(300);
+  ok(`${tag} Cancel: not a member any more`,!(await p.evaluate(()=>isMember())));
+  /* fold, then move the dot */
+  await p.click('#sbxBar [data-sbx="fold"]');await p.waitForTimeout(200);
+  let b0=await p.evaluate(()=>{const r=document.getElementById('sbxBar').getBoundingClientRect();return {w:r.width,x:r.left+r.width/2,y:r.top+r.height/2,folded:document.getElementById('sbxBar').classList.contains('sx-folded')};});
+  ok(`${tag} Fold: a small dot`,b0.folded&&b0.w<=40,b0);
+  await p.mouse.move(b0.x,b0.y);await p.mouse.down();await p.mouse.move(b0.x-120,b0.y-300,{steps:8});await p.mouse.up();await p.waitForTimeout(200);
+  let b1=await p.evaluate(()=>{const r=document.getElementById('sbxBar').getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2,folded:document.getElementById('sbxBar').classList.contains('sx-folded')};});
+  ok(`${tag} dragging the dot moves it and doesn't open it`,Math.abs(b1.x-(b0.x-120))<4&&Math.abs(b1.y-(b0.y-300))<4&&b1.folded,{b0,b1});
+  if(SHOT&&w===402)await p.screenshot({path:`${SHOT}/tm-folded.png`});
+  await p.click('#sbxBar [data-sbx="unfold"]');await p.waitForTimeout(200);
+  ok(`${tag} tapping the dot opens the bar where it is`,!(await p.evaluate(()=>document.getElementById('sbxBar').classList.contains('sx-folded'))));
+  await p.reload();await boot();
+  let b2=await p.evaluate(()=>{const r=document.getElementById('sbxBar').getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};});
+  ok(`${tag} the place is remembered after a reload`,Math.abs(b2.y-b1.y)<6,{b1,b2});
+  await p.click('#sbxBar [data-sbx="tools"]');await p.click('#sbxBar [data-sbx="home"]');await p.waitForTimeout(700);
+  ps=await pos();ok(`${tag} Reset position: back above the tab bar`,ps.bottom<=ps.navTop&&ps.navTop-ps.bottom<=14,ps);
   /* Exit */
+  await p.evaluate(()=>{const pn=document.querySelector('#sbxBar .sx-panel');if(pn.hidden)document.querySelector('#sbxBar [data-sbx="tools"]').click();});await p.waitForTimeout(200);
   await Promise.all([p.waitForNavigation(),p.click('#sbxBar [data-sbx="exit"]')]);await boot();
   d=await look();r=await raw();
-  ok(`${tag} Exit: the real app is back -- 30 days, owner signed in, no bar, no test keys left`,!d.sandbox&&!d.bar&&!d.onb&&d.days===30&&d.email===OWNER&&!r.flag&&r.sbx===0&&real30(r.db),{d,r:{flag:r.flag,sbx:r.sbx}});
+  ok(`${tag} Exit: the real app is back -- 30 days, owner signed in, no bar, no test keys left, no test membership`,!d.sandbox&&!d.bar&&!d.onb&&d.days===30&&d.email===OWNER&&!r.flag&&r.sbx===0&&real30(r.db)&&!(await p.evaluate(()=>localStorage.getItem('showup:entitlement'))),{d,r:{flag:r.flag,sbx:r.sbx}});
+  await p.evaluate(()=>SBX_RAW.del.call(localStorage,'showup:sandbox-ui'));
   /* not the owner: no door */
   await p.evaluate(()=>{session.user.email='someone@else.com';prevView=view;view='sync';render();});await p.waitForTimeout(400);
   ok(`${tag} anyone else: no "Start as a new user"`,!(await p.$('#sbxStart')));

@@ -47,21 +47,120 @@ async function sbxEnter(){
 }
 function sbxRestart(){ sbxWipe(); location.replace(location.pathname); }
 function sbxExit(){ sbxWipe(); try{ SBX_RAW.del.call(localStorage,SANDBOX_FLAG); }catch(e){} location.replace(location.pathname); }
+/* v4.6.283: the test bar is a small tool. Drag it by its grip anywhere (it remembers where);
+   fold it to a dot; Tools opens: fill the record to 20 logged days (so the next new day meets the
+   paywall), become a test member without paying, or stop being one; Start over; Exit. Test mode
+   acts as a new user after launch: the paywall is live here (membership.js), founding is not given. */
+const SBX_UI='showup:sandbox-ui';
+function sbxUI(){ try{ return JSON.parse(SBX_RAW.get.call(localStorage,SBX_UI)||'{}')||{}; }catch(e){ return {}; } }
+function sbxUISet(o){ try{ SBX_RAW.set.call(localStorage,SBX_UI,JSON.stringify({...sbxUI(),...o})); }catch(e){} }
+const SBX_DAYS=[
+  ['Chest',[['Barbell Bench Press',60,8],['Incline Dumbbell Bench Press',22,10],['Cable Fly Down',15,12]]],
+  ['Back',[['Lat Pulldown',55,10],['Bent-Over Row',50,8],['Pull Up',0,6]]],
+  ['Legs',[['Squat',80,6],['Romanian Deadlift',70,8],['Leg Press',140,10]]],
+  ['Shoulder',[['Dumbbell Shoulder Press',20,10],['Lateral Raise',8,14],['Rear Deltoids',30,12]]],
+  ['Biceps',[['Barbell Curl',30,10],['Hammer Curl',14,12]]],
+  ['Triceps',[['Triceps Pushdown',25,12],['Skull Crusher',25,10]]]
+];
+/* fill the test record to 20 logged days, before today, so the first set today is day 21 */
+function sbxFill20(){
+  if(!SANDBOX||typeof DB!=='object') return 0;
+  const logged=d=>(DB.days[d]?.w||[]).length>0, have=Object.keys(DB.days||{}).filter(logged).length;
+  let need=20-have, added=0, back=1, i=0;
+  const today=typeof todayISO==='string'?todayISO:new Date().toLocaleDateString('en-CA');
+  while(need>0&&back<400){
+    const dt=new Date(today+'T12:00'); dt.setDate(dt.getDate()-back); const iso=dt.toLocaleDateString('en-CA');
+    back+=(i%3===2)?2:1;
+    if(logged(iso)) continue;
+    const [part,list]=SBX_DAYS[i%SBX_DAYS.length], at=dt.getTime()-3*36e5;
+    DB.days[iso]={w:list.flatMap(([ex,w,r],k)=>[0,1,2].map(j=>({part,ex,w,reps:[Math.max(1,r-(j>1?1:0))],at:at+(k*3+j)*15e4}))),upd:Date.now(),lastAt:at+3e6};
+    i++; need--; added++;
+  }
+  if(added){ try{ if(typeof SEED!=='undefined'&&typeof deriveAll==='function') SEED=deriveAll(); }catch(e){} save(true); render(); }
+  return added;
+}
+function sbxMember(){ try{ const e=JSON.parse(localStorage.getItem('showup:entitlement')||'null'); return !!e&&e.test; }catch(e){ return false; } }
+function sbxMemberSet(plan){
+  if(!SANDBOX) return;
+  if(plan) localStorage.setItem('showup:entitlement',JSON.stringify({status:'active',until:Date.now()+(plan==='yearly'?365:30)*864e5,plan,test:1}));
+  else localStorage.removeItem('showup:entitlement');
+  try{ document.getElementById('paywall')?.remove(); }catch(e){}
+  render(); if(view==='sync'&&typeof renderSync==='function') renderSync();
+}
 function sbxBar(){
   if(!SANDBOX||document.getElementById('sbxBar')) return;
-  const el=document.createElement('div'); el.id='sbxBar'; el.setAttribute('role','status');
-  el.style.cssText='position:fixed;z-index:200;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 12px);display:flex;align-items:center;gap:4px;padding:4px 4px 4px 12px;border-radius:999px;background:#ffb020;color:#1a1200;font:600 12px/1 var(--body,system-ui);box-shadow:0 2px 10px rgba(0,0,0,.3);white-space:nowrap';
-  el.innerHTML='<span>Test mode · new user</span><button type="button" data-sbx="restart">Start over</button><button type="button" data-sbx="exit">Exit</button>';
-  el.querySelectorAll('button').forEach(b=>b.style.cssText='all:unset;cursor:pointer;padding:6px 10px;border-radius:999px;background:rgba(0,0,0,.14);font:600 12px/1 var(--body,system-ui)');
-  el.addEventListener('click',e=>{ const b=e.target.closest('[data-sbx]'); if(!b) return; b.dataset.sbx==='exit'?sbxExit():sbxRestart(); });
+  const st=document.createElement('style'); st.id='sbxStyle';
+  st.textContent=`#sbxBar{position:fixed;z-index:200;left:0;top:0;font:600 12px/1 var(--body,system-ui);color:#1a1200;touch-action:none;user-select:none;-webkit-user-select:none}
+#sbxBar .sx-pill{display:flex;align-items:center;gap:4px;padding:4px;border-radius:999px;background:#ffb020;box-shadow:0 2px 10px rgba(0,0,0,.3);white-space:nowrap}
+#sbxBar button{all:unset;cursor:pointer;padding:6px 10px;border-radius:999px;background:rgba(0,0,0,.14);font:600 12px/1 var(--body,system-ui)}
+#sbxBar .sx-grip{padding:6px 6px 6px 8px;background:none;cursor:grab;font-size:14px;letter-spacing:-2px;opacity:.7}
+#sbxBar .sx-name{padding:0 4px}
+#sbxBar .sx-fold{padding:6px 9px}
+#sbxBar .sx-panel{position:absolute;left:0;min-width:248px;padding:12px;border-radius:16px;background:#fff8e6;color:#1a1200;box-shadow:0 10px 30px rgba(0,0,0,.28);display:grid;gap:8px}
+#sbxBar .sx-panel[hidden]{display:none}
+#sbxBar .sx-panel.up{bottom:calc(100% + 8px)}#sbxBar .sx-panel.down{top:calc(100% + 8px)}
+#sbxBar .sx-row{display:flex;align-items:center;justify-content:space-between;gap:10px;font:500 13px/1.3 var(--body,system-ui)}
+#sbxBar .sx-row b{font-weight:700}
+#sbxBar .sx-panel button{background:#ffb020;padding:8px 12px}
+#sbxBar .sx-panel .sx-quiet{background:rgba(0,0,0,.08)}
+#sbxBar .sx-line{height:1px;background:rgba(0,0,0,.1);margin:2px 0}
+#sbxBar.sx-folded .sx-pill{padding:0;width:34px;height:34px;justify-content:center}
+#sbxBar.sx-folded .sx-pill>*:not(.sx-dot){display:none}
+#sbxBar .sx-dot{display:none;width:34px;height:34px;padding:0;border-radius:50%;background:none;font:800 13px/34px var(--body,system-ui);text-align:center}
+#sbxBar.sx-folded .sx-dot{display:block}`;
+  document.head.appendChild(st);
+  const el=document.createElement('div'); el.id='sbxBar'; el.setAttribute('role','region'); el.setAttribute('aria-label','Test mode');
+  el.innerHTML=`<div class="sx-pill"><button type="button" class="sx-dot" data-sbx="unfold" aria-label="Open the test bar">T</button><button type="button" class="sx-grip" aria-label="Move the test bar">⋮⋮</button><span class="sx-name">Test mode</span><button type="button" data-sbx="tools" aria-expanded="false">Tools</button><button type="button" class="sx-fold" data-sbx="fold" aria-label="Fold the test bar">–</button></div>
+<div class="sx-panel" hidden></div>`;
   document.body.appendChild(el);
-  /* v4.6.276: the bar sits just above the tab bar, clear of the header. On the first run
-     (no header there) it stays at the top; elsewhere without a tab bar it rests at the bottom edge. */
-  const place=()=>{ const n=document.getElementById('nav'),r=n&&n.getBoundingClientRect(),on=r&&r.height>0&&r.top<innerHeight&&getComputedStyle(n).visibility!=='hidden';
-    const onb=document.querySelector('#onb:not([hidden])');
-    if(onb){ el.style.bottom='auto'; el.style.top='calc(env(safe-area-inset-top,0px) + 6px)'; return; }
-    el.style.top='auto'; el.style.bottom=on?(innerHeight-r.top+8)+'px':'calc(env(safe-area-inset-bottom,0px) + 12px)'; };
-  place(); addEventListener('resize',place); setInterval(place,500);
+  const panel=el.querySelector('.sx-panel');
+  /* the safe areas, read once from a probe (transform can't use env()) */
+  const probe=document.createElement('div');probe.style.cssText='position:fixed;visibility:hidden;pointer-events:none;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)';document.body.appendChild(probe);
+  const sat=k=>parseFloat(getComputedStyle(probe)[k==='top'?'paddingTop':'paddingBottom'])||0;
+  let painted='';
+  const paint=()=>{ const days=Object.values(DB?.days||{}).filter(d=>d&&(d.w||[]).length).length, mem=sbxMember(), sig=days+'|'+mem+'|'+!!sbxUI().pos;
+    if(sig===painted) return; painted=sig;
+    panel.innerHTML=`<div class="sx-row"><span>Logged days: <b>${days}</b></span>${days<20?`<button type="button" data-sbx="fill">Fill to 20</button>`:`<span>trial used</span>`}</div>
+<div class="sx-row"><span>Membership: <b>${mem?'Member (test)':'Not a member'}</b></span>${mem?`<button type="button" class="sx-quiet" data-sbx="unmember">Cancel</button>`:`<button type="button" data-sbx="member">Become member</button>`}</div>
+<div class="sx-row" style="font-size:12px;opacity:.7"><span>Test purchases are free: Continue on the paywall works here.</span></div>
+<div class="sx-line"></div>
+<div class="sx-row"><button type="button" class="sx-quiet" data-sbx="restart">Start over</button>${sbxUI().pos?`<button type="button" class="sx-quiet" data-sbx="home">Reset position</button>`:''}<button type="button" class="sx-quiet" data-sbx="exit">Exit</button></div>`; };
+  let ui=sbxUI();
+  el.classList.toggle('sx-folded',!!ui.folded);
+  /* where it sits: wherever it was dragged, else just above the tab bar (top on the first run) */
+  const place=()=>{ const w=el.offsetWidth,h=el.offsetHeight,pos=sbxUI().pos;
+    let x,y;
+    if(pos){ x=pos.x*innerWidth-w/2; y=pos.y*innerHeight-h/2; }
+    else{ const n=document.getElementById('nav'),r=n&&n.getBoundingClientRect(),on=r&&r.height>0&&r.top<innerHeight&&getComputedStyle(n).visibility!=='hidden';
+      const onb=document.querySelector('#onb:not([hidden])');
+      x=(innerWidth-w)/2; y=onb?sat('top')+6:on?r.top-8-h:innerHeight-12-h-sat('bottom'); }
+    x=Math.max(6,Math.min(innerWidth-w-6,x)); y=Math.max(6,Math.min(innerHeight-h-6,y));
+    el.style.transform=`translate(${Math.round(x)}px,${Math.round(y)}px)`;
+    panel.classList.toggle('up',y>innerHeight/2); panel.classList.toggle('down',y<=innerHeight/2);
+    const pr=panel.getBoundingClientRect(); if(!panel.hidden&&pr.width){ const over=x+pr.width-(innerWidth-6); panel.style.left=(over>0?-over:0)+'px'; } };
+  /* drag by the grip, or the folded dot; a short press on the dot opens it */
+  let drag=null;
+  el.addEventListener('pointerdown',e=>{ const g=e.target.closest('.sx-grip,.sx-dot'); if(!g) return;
+    const r=el.getBoundingClientRect(); drag={dx:e.clientX-r.left,dy:e.clientY-r.top,moved:false,sx:e.clientX,sy:e.clientY,dot:g.classList.contains('sx-dot')}; el.setPointerCapture?.(e.pointerId); e.preventDefault(); });
+  el.addEventListener('pointermove',e=>{ if(!drag) return; if(Math.abs(e.clientX-drag.sx)+Math.abs(e.clientY-drag.sy)>6) drag.moved=true; if(!drag.moved) return;
+    const w=el.offsetWidth,h=el.offsetHeight,x=e.clientX-drag.dx,y=e.clientY-drag.dy;
+    sbxUISet({pos:{x:(x+w/2)/innerWidth,y:(y+h/2)/innerHeight}}); place(); });
+  el.addEventListener('pointerup',e=>{ if(!drag) return; const {moved,dot}=drag; drag=null;
+    /* captured pointers send the click to the bar, not the dot: open it here on a plain tap */
+    if(!moved&&dot){ sbxUISet({folded:false}); el.classList.remove('sx-folded'); requestAnimationFrame(place); }
+    el.dataset.justDragged='1'; setTimeout(()=>delete el.dataset.justDragged,50); });
+  el.addEventListener('pointercancel',()=>{ drag=null; });
+  el.addEventListener('click',e=>{ const b=e.target.closest('[data-sbx]'); if(!b||el.dataset.justDragged) return; const a=b.dataset.sbx;
+    if(a==='exit') return sbxExit(); if(a==='restart') return sbxRestart();
+    if(a==='fold'){ sbxUISet({folded:true}); el.classList.add('sx-folded'); panel.hidden=true; }
+    else if(a==='unfold'){ sbxUISet({folded:false}); el.classList.remove('sx-folded'); }
+    else if(a==='tools'){ panel.hidden=!panel.hidden; b.setAttribute('aria-expanded',String(!panel.hidden)); if(!panel.hidden){ painted=''; paint(); } }
+    else if(a==='fill'){ const n=sbxFill20(); toast(n?`Added ${n} logged days. The next new day meets the paywall.`:'Already 20 logged days.'); paint(); }
+    else if(a==='member'){ sbxMemberSet('yearly'); toast('Test member (yearly). No charge.'); paint(); }
+    else if(a==='unmember'){ sbxMemberSet(null); toast('Not a member any more (test).'); paint(); }
+    else if(a==='home'){ sbxUISet({pos:null}); paint(); }
+    requestAnimationFrame(place); });
+  place(); addEventListener('resize',place); setInterval(()=>{ if(drag) return; if(!panel.hidden) paint(); place(); },500);
   /* v4.6.262: with the keyboard up iOS scrolls the layout viewport, carrying a
      fixed bar up over the clock. The bar steps aside while a field has focus. */
   document.addEventListener('focusin',e=>{ if(e.target.matches?.('input,textarea,select,[contenteditable]')) el.style.visibility='hidden'; });
