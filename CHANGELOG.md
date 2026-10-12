@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.290 — No Extra set switch
+
+- Under the set table sat a line and a button: "Next: set 3 · 35 × 14" (or "Next: extra set · targets remain above") and **Extra set**. The button flipped the next log into an unplanned set that wouldn't use up a target -- which is what logging past the plan does anyway. Sungjee: if I log an extra set, I just log an extra set.
+- The line and the button are gone from the set table. A set logged mid-plan takes the next target; sets past the plan are extras, as before. Tapping a Plan cell still picks a target. (The older plan card keeps its tappable "Next: set N" line, without the switch.)
+- test-planlink: no Extra set button or Next line under the table; the next set takes the next target; a stale "extra" choice is ignored.
+
 ## v4.6.289 — Each set on one line
 
 - The set table's cells stacked the weight above its reps, so a logged "60 × 6" took two lines (three with a second run under it). Weight and reps now sit on one line -- "60 × 6", "35 × 10 10" -- in Last, Plan and Logged, and wrap only when a long run of reps can't fit the column.

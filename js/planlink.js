@@ -127,7 +127,7 @@ function plChoice(ex,su=''){
   const key=todayISO+'|'+ex+'|'+plStable(basis?.content||null),choice=lift.linkChoice;
   const available=targets.filter(t=>!plActual(todayISO,t.id).length);
   if(choice?.key===key){
-    if(choice.slot===-1)return {target:null,key,targets};
+    /* v4.6.290: no Extra set switch any more -- a set past the plan is simply an extra */
     const chosen=available.find(t=>t.ordinal===choice.slot);
     if(chosen)return {target:chosen,key,targets,method:'explicit'};
   }
@@ -197,23 +197,14 @@ function plHTML(ex){
   return `<section class="zone mini plan-link" aria-label="Planned and logged sets">
     <div class="lasthead"><span>Planned · Logged</span><span class="ago">${frozen?'Started plan':'Saved plan'}</span></div>
     ${changed?'<p class="pl-context">Plan edited since you started. These targets stay with this workout. <button type="button" class="linkbtn pl-adopt" data-pl-adopt>Use the edited plan</button></p>':''}
-    <div class="pl-next">${selected
-      ? /* v4.6.11: the Next line IS the target, so it is tappable. Selecting a set
-           loaded its weight and reps all along -- but only from inside the collapsed
-           "View targets & results". The one planned set you can actually see was the
-           one you could not tap, so the obvious gesture did nothing and the values
-           had to be dialled by hand. Same handler, same data-link-slot; it just
-           stops being a span. */
-        `<button type="button" class="pl-next-target" data-link-slot="${selected.ordinal}" aria-pressed="${true}">Next: set ${selected.ordinal} · ${hesc(plTargetText(selected))}</button>`
-      : `<span>Next: extra set</span>`}
-      <button type="button" class="pl-extra" data-link-slot="-1" aria-pressed="${!selected}">Extra set</button></div>
+    <div class="pl-next">${selected?`<button type="button" class="pl-next-target" data-link-slot="${selected.ordinal}" aria-pressed="true">Next: set ${selected.ordinal} · ${hesc(plTargetText(selected))}</button>`:'<span>All targets logged</span>'}</div>
     <details class="pl-details"><summary><span>View targets &amp; results</span>${icon('chevron',ICON_SZ.sm)}</summary>
     <div class="pl-columns" aria-hidden="true"><span>Set</span><span>Planned</span><span>Logged</span></div>
     ${targets.map(t=>{const actual=plActual(todayISO,t.id);return `<button type="button" class="pl-result" data-link-slot="${t.ordinal}" ${actual.length?'disabled':''} aria-pressed="${selected?.id===t.id}">
       <span>${t.ordinal}</span><span>${hesc(plTargetText(t))}${t.qualifier?'<small>'+hesc(t.qualifier)+'</small>':''}</span>
       <span>${actual.length?actual.map(s=>hesc(plActualText(s))).join(' / '):'—'}</span></button>`;}).join('')}
     ${old?'<p class="pl-context">'+old+' logged '+(old===1?'entry':'entries')+' without a plan link.</p>':''}
-    <p class="pl-context">Tap an unlogged target to choose it. Extra sets stay separate.</p></details></section>`;
+    <p class="pl-context">Tap an unlogged target to choose it. Sets past the plan are extras.</p></details></section>`;
 }
 function plRepFeedback(reps){
   if(!(reps>0)||reps===repRulerValue())return;
@@ -512,7 +503,7 @@ function plSessionHTML(ex,last,today){
     ${!hasLast&&hasPlan&&!preview?'<p class="pl-context">Today becomes your reference next time.</p>':''}
     ${isLive()&&exOpen(ex)&&!editing&&!editingPlan&&!preview?`<button type="button" class="btn done sc-finish" id="doneExBtn">\u2713 Done with ${hesc(ex)}</button>`:''}
     ${actual.length?`<div class="sc-volume"><span>${isHold(unitOf(ex))?'Sets logged':'Volume so far'}</span><strong>${isHold(unitOf(ex))?actual.length:`<span id="volNum" data-kg="${today.reduce((sum,s)=>sum+volOf(s),0)}">${vDisp(today.reduce((sum,s)=>sum+volOf(s),0))}</span> ${U()}`}</strong></div>`:''}
-    ${editing||editingPlan?'':preview?'<p class="pl-context">Upcoming plan · today’s sets are logged separately.</p>':hasPlan?`<div class="pl-next">${choice.target?`<button type="button" class="pl-next-target" data-link-slot="${choice.target.ordinal}">Next: set ${choice.target.ordinal} · ${hesc(plTargetText(choice.target))}</button>`:`<span>${done===targets.length?'All targets logged · extra sets welcome':'Next: extra set · targets remain above'}</span>`}<button type="button" class="pl-extra" data-link-slot="-1" aria-pressed="${!choice.target}">Extra set</button></div>`:'<p class="pl-context">No set target · go at your own pace.</p>'}
+    ${editing||editingPlan?'':preview?'<p class="pl-context">Upcoming plan · today’s sets are logged separately.</p>':hasPlan?'':'<p class="pl-context">No set target · go at your own pace.</p>'}
     ${!editing&&!editingPlan&&hasPlan&&!preview&&rows.some(r=>r.unlinked)?'<p class="pl-context">Unlinked sets count too. They are not assigned to a plan target.</p>':''}</section>`;
 }
 document.addEventListener('click',e=>{
