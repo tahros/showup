@@ -1,5 +1,10 @@
 # ShowUppp — changelog
 
+## v4.6.281 (2026-10-12) — A clearer rep clink
+
+- The rep selector now plays the approved middle-pitch metallic clink, with a clear attack and gentle ringing tail.
+- Weight and set-completion sounds, touch feedback, mute preferences and workout logging remain unchanged. The sound is generated locally, so it works offline without loading an audio file.
+
 ## v4.6.280 — The tip ring pulses smoothly on the phone
 
 - The ring round a tip's target looked spotty on iPhone. Three causes:

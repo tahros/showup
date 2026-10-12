@@ -10,7 +10,23 @@ function harness(stored){
  vm.createContext(h);vm.runInContext(code,h);h.run=x=>vm.runInContext(x,h);return h;
 }
 function test(name,f){try{f();console.log('PASS',name);}catch(e){fail++;console.log('FAIL',name,e.message);}}
-test('approved A modes match the preview sample for sample',()=>{const h=harness();h.run('repTickInit();repTick()');const a=h.buffers[0].getChannelData(0);assert.equal(a.length,8640);let seed=1927,peak=0;const expected=new Float32Array(a.length);for(let i=0;i<a.length;i++){const t=i/48000;seed=(Math.imul(seed,1664525)+1013904223)>>>0;let v=[[1900,.017,.30],[3167,.012,.17],[713,.011,.22],[240,.008,.34]].reduce((s,[f,d,g])=>s+g*Math.sin(2*Math.PI*f*t)*Math.exp(-t/d),0);v+=(seed/2147483648-1)*.24*Math.exp(-t/.004);v*=Math.min(1,t/.0006)*Math.min(1,(.18-t)/.008);expected[i]=v;peak=Math.max(peak,Math.abs(v));}for(let i=0;i<a.length;i++)assert(Math.abs(a[i]-expected[i]*.55/peak)<1e-7);assert.equal(h.gains[0].gain.value,.45);assert.equal(a[0],0);assert(Math.abs(a.at(-1))<.00001);});
+test('approved middle-pitch clink matches approved WAV',()=>{
+ const h=harness();h.run('repTickInit();repTick()');const a=h.buffers[0].getChannelData(0);
+ const wav=fs.readFileSync(path.join(process.argv[2]||'.','tools/fixtures/approved-rep-clink.wav'));
+ assert.equal(a.length,24960);assert.equal(h.gains[0].gain.value,1);
+ for(let i=0;i<a.length;i++)assert(Math.abs(a[i]-wav.readInt16LE(44+i*2)/32767)<.000016,'sample '+i);
+ assert.equal(a[0],0);assert(Math.abs(a.at(-1))<.00001);
+});
+test('plate and set signals retain their original samples and gain',()=>{
+ for(const kind of ['plate','set']){
+ const h=harness();h.run('repTickInit();loggerFeedback("'+kind+'")');const a=h.buffers[0].getChannelData(0);
+ assert.equal(a.length,8640);assert.equal(h.gains[0].gain.value,.45);
+ const modes=kind==='plate'?[[880,.024,.30],[1430,.016,.16],[210,.014,.28]]:[[155,.026,.6],[410,.015,.14],[85,.024,.3]];
+ const expected=new Float32Array(a.length);let seed=1927,low=0,peak=0;
+ for(let i=0;i<a.length;i++){const t=i/48000;seed=(Math.imul(seed,1664525)+1013904223)>>>0;low+=.32*(seed/2147483648-1-low);let v=modes.reduce((s,[f,d,g])=>s+g*Math.sin(2*Math.PI*f*t)*Math.exp(-t/d),0)+low*.65*Math.exp(-t/.004);v*=Math.min(1,t/.0006)*Math.min(1,(.18-t)/.008);expected[i]=v;peak=Math.max(peak,Math.abs(v));}
+ for(let i=0;i<a.length;i++)assert(Math.abs(a[i]-expected[i]*.55/peak)<1e-7);
+ }
+});
 test('one cached rep buffer, throttled notches, bounded voices',()=>{const h=harness();h.run('repTickInit();repTick();repTick()');assert.equal(h.starts.length,1);for(let i=0;i<8;i++)h.run('_hapAt=0;repTick()');assert.equal(h.buffers.length,1);assert.equal(h.run('_loggerVoices.length'),5);assert(h.starts[0].stopped);});
 test('sound and touch independently off, malformed preference safe',()=>{const h=harness('{broken');h.run('repTickInit();loggerPrefs.sound=false;loggerFeedback("set")');assert.equal(h.starts.length,0);assert.equal(h.taps.length,1);h.run('loggerPrefs.sound=true;loggerPrefs.touch=false;loggerFeedback("plate")');assert.equal(h.starts.length,1);assert.equal(h.taps.length,1);const off=harness('{"sound":false,"touch":false}');off.run('repTickInit();loggerFeedback("set")');assert.equal(off.starts.length+off.taps.length,0);});
 test('background stops voices and never queues a replay',()=>{const h=harness();h.run('repTickInit();loggerFeedback("set")');h.document.hidden=true;h.events.visibilitychange();assert(h.starts[0].stopped);h.run('loggerFeedback("set")');assert.equal(h.starts.length,1);assert.equal(h.taps.length,1);assert.equal(h.run('_tickCtx.state'),'suspended');});

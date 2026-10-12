@@ -1208,10 +1208,24 @@ function repTick(){loggerFeedback('rep');}
 function loggerStopAudio(){
   for(const source of _loggerVoices.splice(0)){try{source.stop();}catch(_e){}}
 }
-// Approved A / Pin click: deterministic, short metallic modes, cached once.
+// Approved middle-pitch ringing clink for reps; original plate/set cues unchanged.
 // Audio is decorative: failure must never stop a notch or a recorded set.
 function loggerBuffer(c,kind){
   const key=kind+':'+c.sampleRate;if(_loggerBuffers.has(key))return _loggerBuffers.get(key);
+  if(kind==='rep'){
+    const duration=.52,b=c.createBuffer(1,Math.ceil(c.sampleRate*duration),c.sampleRate),d=b.getChannelData(0);
+    const pitch=Math.sqrt(1840/2620),modes=[[2620*pitch,.092,.48],[2632*pitch,.076,.12],[4170*pitch,.056,.19],[5840*pitch,.023,.045]];
+    let seed=713,low=0,peak=0;
+    for(let i=0;i<d.length;i++){
+      const t=i/c.sampleRate;seed=(Math.imul(seed,1664525)+1013904223)>>>0;
+      const noise=seed/2147483648-1;low+=.22*(noise-low);
+      let v=modes.reduce((s,[f,decay,a])=>s+a*Math.sin(2*Math.PI*f*t)*Math.exp(-t/decay),0);
+      v+=(noise-low)*.025*Math.exp(-t/.0015);
+      v*=(1-Math.exp(-t/.00024))*Math.min(1,(duration-t)/.015);d[i]=v;peak=Math.max(peak,Math.abs(v));
+    }
+    for(let i=0;i<d.length;i++)d[i]*=.25/(peak||1);
+    _loggerBuffers.set(key,b);return b;
+  }
   const b=c.createBuffer(1,Math.ceil(c.sampleRate*.18),c.sampleRate),d=b.getChannelData(0);
   const modes=kind==='rep'?[[1900,.017,.30],[3167,.012,.17],[713,.011,.22],[240,.008,.34]]:
     kind==='plate'?[[880,.024,.30],[1430,.016,.16],[210,.014,.28]]:[[155,.026,.6],[410,.015,.14],[85,.024,.3]];
@@ -1245,7 +1259,7 @@ function loggerFeedback(kind){
   // Retro has its own optional set cue; do not layer two sounds on one log.
   if(kind==='set'&&typeof isRetro==='function'&&isRetro())return;
   try{
-    const c=_tickCtx,s=c.createBufferSource(),g=c.createGain();s.buffer=loggerBuffer(c,kind);g.gain.value=.45;
+    const c=_tickCtx,s=c.createBufferSource(),g=c.createGain();s.buffer=loggerBuffer(c,kind);g.gain.value=kind==='rep'?1:.45;
     s.connect(g);g.connect(c.destination);_loggerVoices.push(s);
     if(_loggerVoices.length>5){try{_loggerVoices.shift().stop();}catch(_e){}}
     s.onended=()=>{s.disconnect();g.disconnect();const i=_loggerVoices.indexOf(s);if(i>=0)_loggerVoices.splice(i,1);};s.start();
