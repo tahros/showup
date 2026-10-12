@@ -93,6 +93,7 @@ async function trainLog(b){
    ok('yearly first, then monthly, yearly chosen', /Yearly[\s\S]*\$29\.99[\s\S]*Monthly[\s\S]*\$4\.99/.test(t) && b.d.querySelector('[data-mb-plan="yearly"]').getAttribute('aria-pressed')==='true');
    ok('Apple\'s subscription terms and both links are on it', /renews automatically/.test(t) && !!b.d.querySelector('#paywall a[href*="stdeula"]') && !!b.d.querySelector('#paywall a[href="privacy.html"]'));
    ok('no countdown, no urgency words', !/left!|hurry|only \d+ days|expires in/i.test(t));
+   ok('v4.6.293: the header is the official wordmark and a round close named "Not now" -- no typed brand name', !!b.d.querySelector('#paywall .mb-top img.mb-wm[src*="showuppp-wordmark"]') && b.d.querySelector('#paywall .mb-top [data-mb-later]')?.getAttribute('aria-label')==='Not now' && !/ShowUppp Member/i.test(t));
    b.run(`dlFile=(n,m,t)=>{window.__dl=n;}`);b.click('[data-mb-export]');
    ok('4. Export my data works from the paywall, no membership needed', /^showup-backup-/.test(b.run('window.__dl||""')));
    b.click('[data-mb-later]');

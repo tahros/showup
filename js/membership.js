@@ -94,7 +94,7 @@ function paywallHTML(){
   const opts=MB_PRICES.map(p=>`<button type="button" class="mb-opt" data-mb-plan="${p.plan}" aria-pressed="${_mbPick===p.plan}">${p.badge?`<span class="mb-badge">${p.badge}</span>`:''}<span class="mb-rd" aria-hidden="true"></span>
       <span class="mb-opt-l">${p.label}${p.note?`<small>${p.note}</small>`:''}</span><span class="mb-opt-p"><b>${p.price}</b><small>${p.per}</small></span></button>`).join('');
   return `<div class="mb-card">
-    <div class="mb-top"><span class="mb-kick">ShowUppp Member</span><button type="button" class="mb-x" data-mb-later>Not now</button></div>
+    <div class="mb-top"><img class="mb-wm" src="assets/showuppp-wordmark-${document.documentElement.dataset.theme==='dark'?'dark':'light'}.svg" alt="ShowUppp"><button type="button" class="mb-x" data-mb-later aria-label="Not now"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
     <div class="mb-hero">${coin}${first.length?`<div><div class="mb-grid" aria-label="${first.length} logged days">${squares}</div>
     <p class="mb-since">${days.length} ${days.length===1?'day':'days'} logged${since?' since '+since:''}</p></div>`:''}</div>
     ${days.length>=TRIAL_DAYS?`<h2 id="pwTitle">Twenty days.<br>You’re a regular now.</h2>
@@ -161,8 +161,10 @@ document.addEventListener('click',e=>{ if(e.target.closest&&e.target.closest('[d
   s.textContent=`#paywall{position:fixed;inset:0;z-index:8500;overflow:auto;background:var(--ground);color:var(--chalk);display:flex;justify-content:center;align-items:flex-start;padding:calc(env(safe-area-inset-top) + 22px) 22px calc(env(safe-area-inset-bottom) + 28px);animation:mbUp .55s cubic-bezier(.3,1.6,.5,1) both}
 #paywall .mb-card{width:100%;max-width:420px}
 #paywall .mb-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
-#paywall .mb-kick{font:700 12px/1 var(--mono);letter-spacing:2px;text-transform:uppercase;color:var(--muted)}
-#paywall .mb-x{all:unset;cursor:pointer;font:600 15px var(--body);color:var(--muted);padding:8px 2px}
+/* v4.6.293: the official wordmark (Sungjee: 30% under the card's size) and a round close, not typed-out text */
+#paywall .mb-wm{display:block;width:73px;height:auto}
+#paywall .mb-x{all:unset;cursor:pointer;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:color-mix(in srgb,var(--chalk) 8%,transparent);color:var(--muted)}
+#paywall .mb-x:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 #paywall .mb-hero{display:flex;align-items:center;gap:18px;margin-bottom:22px}
 #paywall .mb-coin{flex:none;width:84px;height:84px;display:block;margin:0}
 #paywall .mb-coin>.club-coin-button{position:relative;display:block;width:84px;height:84px;padding:0;border:0;border-radius:50%;background:none;perspective:500px;pointer-events:none}

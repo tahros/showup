@@ -1,5 +1,10 @@
 # ShowUppp — changelog
 
+## v4.6.293 — The Subscribe screen wears the real wordmark
+
+- The Subscribe screen's header typed the name out ("SHOWUPPP MEMBER", spaced mono capitals) with a "Not now" text link -- off brand. It is now the official Show/Uppp wordmark (the same approved artwork as the membership card, light or dark with the theme) at 73px wide -- Sungjee's pick, 30% under the card's size and under the brand kit's 100px minimum on purpose -- and a round × close, named "Not now" for screen readers.
+- test-membership: the header is the wordmark image and the round close; no typed brand name.
+
 ## v4.6.292 — More compact workout share receipt
 
 - Tighten header, set-group, row and footer spacing for shared images and videos. Preserve all type sizes, workout values, blue highlights, column positions, and vertically centered exercise labels. The interactive day-review card is unchanged.
