@@ -4700,15 +4700,20 @@ body:has(#imp) #toast.on{transform:translateX(-50%)}
 .tipn small{display:block;margin-top:2px;font-weight:500;font-size:13px;opacity:.68}
 .tipn .tip-pip{display:block;flex:none;width:60px;height:auto;margin:-10px -6px -10px -4px;transform-origin:50% 80%;animation:tipWave 1.1s ease-in-out .35s both,tipBob 2.6s ease-in-out 1.6s infinite}
 .tipn button{all:unset;cursor:pointer;margin-left:6px;padding:8px 13px;border-radius:999px;white-space:nowrap;background:color-mix(in srgb,var(--ground) 16%,transparent);font:600 13px/1 var(--body,system-ui)}
-.tipr{--tip-r:20px;position:fixed;z-index:179;pointer-events:none;border-radius:var(--tip-r,20px)}
-.tipr:before,.tipr:after{content:'';position:absolute;inset:-2px;border-radius:inherit;border:2.5px solid var(--accent);animation:tipRing 1.8s ease-out infinite}
-.tipr:after{animation-delay:.9s}
+.tipr{--tip-r:20px;--tip-sx:1.06;--tip-sy:1.2;position:fixed;z-index:179;pointer-events:none;border-radius:var(--tip-r,20px)}
+/* v4.6.280: smooth on the phone. A steady outline holds the target; two rings ripple out from it.
+   Only transform and opacity move (the GPU's job; animating `inset` re-laid out every frame and
+   stuttered on iOS), each ring fades in so a loop's restart can't be seen, and the second waits
+   invisibly (fill both) instead of sitting still for its delay and then jumping. */
+.tipr{outline:2px solid var(--accent);outline-offset:2px}
+.tipr:before,.tipr:after{content:'';position:absolute;inset:-4px;border-radius:calc(var(--tip-r,20px) + 4px);border:2px solid var(--accent);opacity:0;will-change:transform,opacity;animation:tipRing 2.4s ease-out infinite both}
+.tipr:after{animation-delay:1.2s}
 .tipr.out{opacity:0;transition:opacity .2s}
 @keyframes tipIn{0%{opacity:0;transform:scale(.82)}100%{opacity:1;transform:none}}
 @keyframes tipOut{to{opacity:0;transform:scale(.9)}}
 @keyframes tipTxt{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:none}}
 @keyframes tipWave{0%,100%{transform:rotate(0)}20%{transform:rotate(-14deg)}40%{transform:rotate(12deg)}60%{transform:rotate(-8deg)}80%{transform:rotate(5deg)}}
 @keyframes tipBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
-@keyframes tipRing{0%{inset:-2px;opacity:.95}100%{inset:-14px;opacity:0}}
+@keyframes tipRing{0%{transform:scale(1);opacity:0}12%{opacity:.6}100%{transform:scale(var(--tip-sx,1.06),var(--tip-sy,1.2));opacity:0}}
 :root[data-mascot-motion="still"] .tipn .tip-pip{animation:none}
-@media (prefers-reduced-motion:reduce){.tipn,.tipn .tipt,.tipn .tip-pip{animation:none}.tipr:after{display:none}.tipr:before{animation:none;inset:-4px}}
+@media (prefers-reduced-motion:reduce){.tipn,.tipn .tipt,.tipn .tip-pip{animation:none}.tipr:before,.tipr:after{animation:none;opacity:0}}

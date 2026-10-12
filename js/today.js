@@ -1004,6 +1004,8 @@ function tipPlace(){
   if(!tipVisible(el)){tipHide(true);return;}
   const r=el.getBoundingClientRect();
   Object.assign(ring.style,{left:r.left+'px',top:r.top+'px',width:r.width+'px',height:r.height+'px'});
+  /* the rings grow ~10px each side whatever the target's size: scale per axis */
+  ring.style.setProperty('--tip-sx',((r.width+28)/(r.width+8)).toFixed(4));ring.style.setProperty('--tip-sy',((r.height+28)/(r.height+8)).toFixed(4));
   const w=n.offsetWidth,h=n.offsetHeight,left=Math.max(14,Math.min(innerWidth-14-w,r.left+r.width*c.ax-w/2));
   let dir=c.dir;if(dir==='down'&&r.top-h-14<8)dir='up';if(dir==='up'&&r.bottom+16+h>innerHeight-8)dir='down';
   n.classList.toggle('up',dir==='up');n.classList.toggle('down',dir==='down');
