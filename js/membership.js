@@ -39,7 +39,8 @@ const mbSet=(k,v)=>{try{localStorage.setItem(k,v);}catch(e){}};
    user on this device (founding ignored), so the gates can be tried for real */
 function paywallPreview(){ return (typeof SANDBOX!=='undefined'&&SANDBOX)||mbGet('showup:paywall-preview')==='1'; }  /* v4.6.283: test mode is a new user after launch */
 function paywallLive(){ return PAYWALL_ON||paywallPreview(); }
-function loggedDays(){ return Object.values(DB.days||{}).filter(d=>d&&(d.w||[]).length).length; }
+/* v4.6.287: sample data is not a record -- it counts toward neither the free days nor founding */
+function loggedDays(){ if(DB?.settings?.demo) return 0; return Object.values(DB.days||{}).filter(d=>d&&(d.w||[]).length).length; }
 function memberEntitled(now=Date.now()){
   try{
     const e=JSON.parse(mbGet('showup:entitlement')||'null');
@@ -60,7 +61,7 @@ function writerGate(){
 }
 /* D7: mark the record a founding member while the paywall is not live */
 function foundingMark(){
-  if(PAYWALL_ON||(typeof SANDBOX!=='undefined'&&SANDBOX)||!DB?.settings||DB.settings.founding||!loggedDays()) return false;
+  if(PAYWALL_ON||(typeof SANDBOX!=='undefined'&&SANDBOX)||!DB?.settings||DB.settings.demo||DB.settings.founding||!loggedDays()) return false;
   DB.settings.founding=todayISO; DB.settingsAt=Date.now(); save(true); return true;
 }
 setTimeout(()=>{ try{ foundingMark(); }catch(e){} },3000);
@@ -136,7 +137,7 @@ async function memberRestore(){ toast('Nothing to restore yet.'); return 'unavai
 /* v4.6.285: "Nothing else does." is gone; Join the club -- the coin, a picture of what membership
    brings -- opens the Subscribe screen at any point, not only at day 21. */
 function trialCardHTML(){
-  if(!paywallLive()||isMember()) return '';
+  if(!paywallLive()||isMember()||DB.settings.demo) return '';
   const n=Math.min(loggedDays(),TRIAL_DAYS),sq=Array.from({length:TRIAL_DAYS},(_,i)=>`<i class="${i<n?'on':''}"></i>`).join('');
   const sub=n<TRIAL_DAYS?'Every day you log counts.':'Your record stays yours.';
   /* the coin as a picture, not its own button: no flip handler, nothing nested in the Join button */

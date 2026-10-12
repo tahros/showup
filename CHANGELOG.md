@@ -1,5 +1,13 @@
 # ShowUppp — changelog
 
+## v4.6.287 — Sample data moves to "Just looking around", and counts for nothing
+
+- **The first screen no longer offers sample data.** It is Apple, Google, Continue without an account, and "Sign in to sync. Or keep it on this device."
+- **"Just looking around"** lands on Today with a quiet "See it with sample data" link under Plan / Paste / Dates, until a day is logged. The empty Stats and History screens still offer it.
+- **Sample data counts for nothing.** It is not a record: it uses none of the 20 free days (no free-days card, no Subscribe screen), makes no one a founding member (it did before: any record with a logged day was marked, sample days included), and sends no usage events.
+- **The sample-data bar shows again.** The red "DEMO DATA" strip lived inside the header and sat hidden behind the glass header. It is now a small red pill above the tab bar, "Sample data · Use for real", above the owner's test bar when both are there.
+- check-test-mode: no sample data on the first screen; the look path's link loads a lived-in record that counts as no logged days, its pill visible and clear of the test bar; no founding mark.
+
 ## v4.6.286 — The Join coin turns
 
 - The coin on the free-days card turns now, like the one in Settings: the same 3D coin with its edge, one slow turn every 16 seconds. Reduce Motion holds it still.
