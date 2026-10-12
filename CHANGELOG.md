@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.291 — Member No and Showing up since stop going blank
+
+- Settings sometimes showed "MEMBER No —" and "SHOWING UP SINCE —" until a pull-to-refresh. The number is asked for from the server with the sign-in token as stored; tokens last an hour and the iOS app often wakes after longer, so the request went out expired, was refused, and the card stayed blank. Pull-to-refresh runs sync, which renews the token first -- so the next visit worked.
+- Now the token is renewed before asking (the same freshToken sync uses); the last number and date this device saw for your account paint at once, offline too (a small per-account note on the device, not in the workout record, sync or backups; another account never sees it); and Settings asks again when the app comes back to the foreground.
+- test-club-profile: an expired token is renewed and the card fills in; the remembered number shows offline; another account never sees it; the fetch stays deduplicated.
+
 ## v4.6.290 — No Extra set switch
 
 - Under the set table sat a line and a button: "Next: set 3 · 35 × 14" (or "Next: extra set · targets remain above") and **Extra set**. The button flipped the next log into an unplanned set that wouldn't use up a target -- which is what logging past the plan does anyway. Sungjee: if I log an extra set, I just log an extra set.

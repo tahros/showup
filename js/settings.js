@@ -247,24 +247,40 @@ async function clubCopyMembership(){
   try{await navigator.clipboard.writeText(f.reference);toast('Copied '+f.reference);}
   catch(_){toast('Your member reference: '+f.reference);}
 }
-async function clubLoadMembership(){
+/* v4.6.291: WHY "MEMBER No —" AND "SHOWING UP SINCE —" CAME BACK BLANK. The number was fetched
+   with the stored access token as it stood. Tokens last an hour, and the iOS app often wakes
+   after longer, so the request went out expired, was refused, and the card stayed blank until a
+   pull-to-refresh (which renews the token first) and a new visit to Settings. Now: the token is
+   renewed before asking (freshToken, as sync does); the last number this device saw for this
+   account paints at once and offline (a small per-account note on this device -- not workout
+   data, not in sync or backups); and the app asks again when it comes back to the foreground. */
+const CLUB_MEM_KEY='showup:club-membership';
+function clubMemRemembered(key){try{const o=JSON.parse(localStorage.getItem(CLUB_MEM_KEY)||'null');return o&&o.key===key&&typeof o.member_no==='string'?o:null;}catch(_){return null;}}
+function clubMemRemember(key,m){try{localStorage.setItem(CLUB_MEM_KEY,JSON.stringify({key,member_no:m.member_no,joined_at:m.joined_at||null}));}catch(_){}}
+async function clubLoadMembership(force){
   const key=clubMembershipKey();if(!key||!session?.access_token||DB.settings.demo)return;
   const paint=()=>{if(key===clubMembershipKey())clubPaintMembership();};
-  if(clubMembershipCache.has(key)){paint();return;}
+  if(!clubMembershipCache.has(key)){const r=clubMemRemembered(key);if(r){clubMembershipCache.set(key,{member_no:r.member_no,joined_at:r.joined_at,remembered:true});paint();}}
+  if(clubMembershipCache.has(key)&&!clubMembershipCache.get(key).remembered&&!force){paint();return;}
   if(clubMembershipRequests.has(key)){await clubMembershipRequests.get(key);paint();return;}
-  const cfg=cloudCfg(),token=session.access_token;
+  const cfg=cloudCfg();
   const request=(async()=>{
+    /* renewed first when it is about to expire (a session without an expiry is used as is) */
+    const token=session?.expires_at&&typeof freshToken==='function'?await freshToken():session?.access_token;
+    if(!token||key!==clubMembershipKey())return;
     const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),10000);
     try{
       const r=await fetch(cfg.url+'/rest/v1/rpc/club_membership',{method:'POST',headers:{apikey:cfg.anon,Authorization:'Bearer '+token,'Content-Type':'application/json'},body:'{}',signal:controller.signal});
       if(!r.ok)return;
       const rows=await r.json(),m=Array.isArray(rows)&&rows.length===1?rows[0]:null;
-      if(m&&typeof m.member_no==='string'&&/^(0|[1-9]\d*)$/.test(m.member_no))clubMembershipCache.set(key,{member_no:m.member_no,joined_at:Number.isFinite(Date.parse(m.joined_at))?m.joined_at:null});
+      if(m&&typeof m.member_no==='string'&&/^(0|[1-9]\d*)$/.test(m.member_no)){const v={member_no:m.member_no,joined_at:Number.isFinite(Date.parse(m.joined_at))?m.joined_at:null};clubMembershipCache.set(key,v);clubMemRemember(key,v);}
     }catch(_){}finally{clearTimeout(timeout);}
   })();
   clubMembershipRequests.set(key,request);
   try{await request;paint();}finally{clubMembershipRequests.delete(key);}
 }
+/* back in the foreground with the card still blank (or only remembered): ask again */
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState!=='visible'||typeof view==='undefined'||view!=='sync')return;const m=clubMembershipCache.get(clubMembershipKey());if(!m||m.remembered)void clubLoadMembership();});
 function clubHash(str){let n=2166136261;for(const c of String(str)) n=Math.imul(n^c.charCodeAt(0),16777619);return n>>>0;}
 function clubEnsureIdentity(){
   if(session?.user?.id||DB.settings.clubGuest||!loadedOK||DB.settings.demo)return;

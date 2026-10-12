@@ -41,5 +41,21 @@ assert.equal(run('CLUB_ICONS.length'),9);assert.equal(new Set(JSON.parse(run('JS
  run(`session.user.id='unavailable';document.querySelector('#view').innerHTML=clubCardHTML()`);w.fetch=async()=>{throw Error('offline')};await run('clubLoadMembership()');assert.equal(w.document.querySelector('.club-number').textContent,'—');
  w.fetch=async()=>({ok:true,json:async()=>[{member_no:'<img>',joined_at:'2026-03-11'}]});await run('clubLoadMembership()');assert.equal(w.document.querySelector('.club-number').textContent,'—');
  w.fetch=async()=>({ok:true,json:async()=>[{member_no:'42',joined_at:'2026-03-11'}]});await run('clubLoadMembership()');assert.equal(w.document.querySelector('.club-number').textContent,'42');
- console.log('PASS offline and malformed response safe; retry recovers server number');process.exit(0);
+ console.log('PASS offline and malformed response safe; retry recovers server number');
+ /* v4.6.291: an expired token is renewed before asking -- it went out expired and the card stayed blank */
+ run(`clubMembershipCache.clear();localStorage.removeItem('showup:club-membership');session={access_token:'old',refresh_token:'r1',expires_at:Date.now()-1000,user:{id:'expired-account'}};saveSession=async s=>{session=s;};document.querySelector('#view').innerHTML=clubCardHTML()`);
+ const seen=[];w.fetch=async(u,o)=>{seen.push([String(u),o?.headers?.Authorization||'']);if(String(u).includes('/auth/v1/token'))return {ok:true,json:async()=>({access_token:'new',refresh_token:'r2',expires_in:3600})};return o?.headers?.Authorization==='Bearer new'?{ok:true,json:async()=>[{member_no:'1284',joined_at:'2026-02-03'}]}:{ok:false,status:401};};
+ await run('clubLoadMembership()');
+ assert(seen[0][0].includes('/auth/v1/token'),'renews first');assert.equal(seen[1][1],'Bearer new');
+ assert.equal(w.document.querySelector('.club-number').textContent,'1,284');assert.equal(w.document.querySelector('.club-since').textContent,'FEB 2026');
+ console.log('PASS an expired token is renewed before asking, so the number and date fill in');
+ /* the last number seen paints at once on the next launch, offline included */
+ run(`clubMembershipCache.clear();document.querySelector('#view').innerHTML=clubCardHTML()`);w.fetch=async()=>{throw Error('offline')};
+ await run('clubLoadMembership()');
+ assert.equal(w.document.querySelector('.club-number').textContent,'1,284');assert.equal(w.document.querySelector('.club-since').textContent,'FEB 2026');
+ assert(!run('JSON.stringify(DB)').includes('1284'),'not in the workout record');
+ console.log('PASS the last number seen shows at once and offline, kept outside the workout record');
+ run(`clubMembershipCache.clear();session={access_token:'x',expires_at:Date.now()+36e5,user:{id:'someone-else'}};document.querySelector('#view').innerHTML=clubCardHTML()`);
+ await run('clubLoadMembership()');assert.equal(w.document.querySelector('.club-number').textContent,'—');
+ console.log('PASS another account never sees the remembered number');process.exit(0);
 })().catch(e=>{console.error(e);process.exit(1)});
