@@ -37,7 +37,14 @@ try{
   const pos=()=>p.evaluate(()=>{const a=document.getElementById('sbxBar').getBoundingClientRect(),n=document.getElementById('nav').getBoundingClientRect(),h=document.querySelector('header').getBoundingClientRect();return {top:a.top,bottom:a.bottom,navTop:n.top,headerBottom:h.bottom,vh:innerHeight};});
   let ps=await pos();ok(`${tag} first run: the test bar is at the top`,ps.top<60,ps);
   /* use it: sample data goes to the test keys only */
-  await p.click('[data-onbact="demo"]');await p.waitForTimeout(800);
+  /* v4.6.287: sample data is offered on the "Just looking around" path, not the first screen */
+  ok(`${tag} the first screen offers no sample data`,!(await p.$('#onb [data-onbact="demo"]')));
+  await p.click('[data-onbact="local"]');await p.waitForTimeout(600);await p.click('[data-onbact="skip"]');await p.waitForTimeout(700);await p.click('[data-onbact="go"][data-onbgo="look"]');await p.waitForTimeout(1200);
+  await p.evaluate(()=>document.querySelector('.today-sample').click());await p.waitForTimeout(1600);
+  let sd=await p.evaluate(()=>({demo:!!DB.settings.demo,days:Object.values(DB.days).filter(v=>v&&(v.w||[]).length).length,logged:loggedDays(),card:!!document.getElementById('mbTrial'),bar:(()=>{const b=document.getElementById('demoBar'),n=document.getElementById('nav'),t=document.getElementById('sbxBar');if(!b||b.hidden)return null;const r=b.getBoundingClientRect(),q=t.getBoundingClientRect();return {visible:r.height>0&&r.bottom<=n.getBoundingClientRect().top,clear:r.bottom<=q.top||r.top>=q.bottom,text:b.textContent};})()}));
+  ok(`${tag} sample data: a lived-in record that counts as no logged days (no free-days card), its pill visible above the tab bar and clear of the test bar`,sd.demo&&sd.days>20&&sd.logged===0&&!sd.card&&sd.bar?.visible&&sd.bar.clear&&/Sample data/.test(sd.bar.text),sd);
+  await p.waitForTimeout(3300);
+  ok(`${tag} sample data never makes a founding member`,!(await p.evaluate(()=>DB.settings.founding)));
   d=await look();r=await raw();
   ok(`${tag} sample data in test mode lands in the test keys; the real record still byte-identical`,d.days>0&&r.db===SNAP&&r.sbx>0,{days:d.days,sbx:r.sbx,same:r.db===SNAP});
   await p.waitForTimeout(700);ps=await pos();

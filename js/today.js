@@ -131,7 +131,7 @@ function onbRender(){
         ${apple?`<button type="button" class="ob-btn ob-apple" data-onbact="apple">${ONB_APPLE}Continue with Apple</button>`:''}
         <button type="button" class="ob-btn ob-google" data-onbact="signin">${ONB_GOOGLE}Continue with Google</button>
         <button type="button" class="ob-btn ob-local" data-onbact="local">Continue without an account</button>
-        <p class="ob-note">Sign in to sync. Or keep it on this device.<br><button type="button" class="ob-link" data-onbact="demo">Explore with sample data</button></p>
+        <p class="ob-note">Sign in to sync. Or keep it on this device.</p>
       </div></div>`;
   }else if(onbStep===2){
     const keys=Object.keys(SEED0.catalog), all=keys.every(p=>onbSel.has(p));
@@ -192,7 +192,7 @@ function onbFinish(skip,go){
   if(go==='train'&&typeof liftEnter==='function'){ liftEnter({}); view='lift'; }
   else if(go==='plan'&&typeof pwOpen==='function'){ view='today'; render(); pwOpen(null,'dates'); return; }
   else if(go==='import'&&typeof impOpen==='function'){ view='today'; render(); impOpen('onboarding'); return; }   // v4.6.274
-  else view='today';
+  else{ view='today'; DB.settings.lookAround=1; }   // v4.6.287: sample data is offered on this path only
   render();
 }
 /* ---- demo: 70 days of clearly-borrowed life ---- */
@@ -229,10 +229,14 @@ function demoClear(){
 }
 function demoBarSync(){
   const el=demoEl();
+  /* v4.6.287: the header became a floating glass pill and hid the red strip behind it. The bar
+     is now its own small pill, just above the tab bar, on every tab. */
+  if(el.parentElement!==document.body) document.body.appendChild(el);
+  if(!demoBarSync.placed){ demoBarSync.placed=1; const place=()=>{ const b=document.getElementById('demoBar'); if(!b||b.hidden) return; const n=document.getElementById('nav'),r=n&&n.getBoundingClientRect(); const t=document.getElementById('sbxBar'),tr=t&&t.getBoundingClientRect(),stack=tr&&r&&tr.bottom>r.top-60&&tr.top<r.top?tr.height+8:0; b.style.bottom=(r&&r.height>0?innerHeight-r.top+8+stack:16)+'px'; };   /* above the owner's test bar when that sits there too */ addEventListener('resize',place); setInterval(place,600); requestAnimationFrame(place); }
   el.hidden=!DB.settings.demo;
   document.body.style.paddingTop='';                 // clear any offset from older builds
   if(DB.settings.demo)
-    el.innerHTML=`<span>DEMO DATA — explore freely</span><button data-onbact="democlear">Use for real</button>`;
+    el.innerHTML=`<span>Sample data</span><button data-onbact="democlear">Use for real</button>`;
 }
 /* ============ v3.3.372 — DAY ONE ============================================
    What a new user met before: a card saying "Log your first set", whose button
@@ -438,6 +442,8 @@ function focusedTodayHTML(){
   if(items.length){
     h+=`<details class="today-focus-plan" data-pw-fold="focus:${todayISO}" ${pwFoldOpen('focus:'+todayISO)?'open':'' }><summary><div class="today-focus-title"><h3>${hesc(parts||'Your workout')}</h3>${icon('chevron',ICON_SZ.md)}</div><div class="mono muted today-focus-meta">${sets} ${sets===1?'set':'sets'} · ${items.length} ${items.length===1?'exercise':'exercises'}</div></summary><div class="today-focus-plan-content">${planCardHTML(now,false)}</div></details><div class="today-focus-next"><div><small>Run first</small><b>Run</b></div><button class="btn" data-ex="Run" data-part="Run">Start →</button></div>`;
   }else h+=`<p class="today-focus-copy">Choose an exercise and log what you do.${fresh?' No plan needed.':''}</p><button class="btn" id="goLift">Choose exercise →</button>`;
+  /* v4.6.287: "Just looking around" -- sample data lives here now, not on the first screen */
+  const sampleLink=fresh&&DB.settings.lookAround&&!DB.settings.demo?`<button type="button" class="today-sample" data-onbact="demo">See it with sample data</button>`:'';
   h+='</div>';
   if(future.length){
     const first=future[0];const later=d=>pwLaterDayHTML(d).replace('</summary>',`${icon('chevron',ICON_SZ.sm)}</summary>`).replace('class="pw-later-day"','class="pw-later-day today-focus-later"');/* v4.6.148: ONE LINE FOR THE FUTURE. Tomorrow's row plus an "N more planned
@@ -453,6 +459,7 @@ function focusedTodayHTML(){
   // Keep rescheduling available without putting a second call-to-action card on Today.
   if(items.length&&planShiftable(planRunFrom(todayISO),1).ok)h+=`<div class="pw-home"><button type="button" class="pw-push" data-pw="plan-push-ask"><span>Can’t train today?</span><b>Push the week ${icon('chevron',ICON_SZ.sm)}</b></button></div>`;
   if(!fresh)h+='<button class="btn ghost restbtn today-focus-rest" id="restBtn">Rest day</button>';
+  h+=sampleLink;
   const template=document.createElement('template');template.innerHTML=h+'</section>';
   template.content.querySelectorAll('details').forEach(d=>{const s=d.querySelector(':scope > summary');if(s){s.classList.add('pw-fold-summary');s.setAttribute('aria-expanded',String(d.open));}});
   return template.innerHTML;

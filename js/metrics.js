@@ -48,6 +48,7 @@ function mBoot(){
 function mEnabled(){
   try{
     if(typeof SANDBOX!=='undefined'&&SANDBOX) return false;   // v4.6.261: test mode is not a user
+    if(typeof DB!=='undefined'&&DB?.settings?.demo) return false;   // v4.6.287: nor is sample data
     if(navigator.webdriver) return false;
     if(location.protocol==='capacitor:') return true;
     if(location.protocol!=='https:') return false;
