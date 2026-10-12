@@ -1208,13 +1208,13 @@ function repTick(){loggerFeedback('rep');}
 function loggerStopAudio(){
   for(const source of _loggerVoices.splice(0)){try{source.stop();}catch(_e){}}
 }
-// Approved middle-pitch ringing clink for reps; original plate/set cues unchanged.
+// Approved lower-pitch ringing clink for reps; original plate/set cues unchanged.
 // Audio is decorative: failure must never stop a notch or a recorded set.
 function loggerBuffer(c,kind){
   const key=kind+':'+c.sampleRate;if(_loggerBuffers.has(key))return _loggerBuffers.get(key);
   if(kind==='rep'){
     const duration=.52,b=c.createBuffer(1,Math.ceil(c.sampleRate*duration),c.sampleRate),d=b.getChannelData(0);
-    const pitch=Math.sqrt(1840/2620),modes=[[2620*pitch,.092,.48],[2632*pitch,.076,.12],[4170*pitch,.056,.19],[5840*pitch,.023,.045]];
+    const pitch=Math.sqrt(1840/2620)*Math.pow(2,-2/12),modes=[[2620*pitch,.092,.48],[2632*pitch,.076,.12],[4170*pitch,.056,.19],[5840*pitch,.023,.045]];
     let seed=713,low=0,peak=0;
     for(let i=0;i<d.length;i++){
       const t=i/c.sampleRate;seed=(Math.imul(seed,1664525)+1013904223)>>>0;

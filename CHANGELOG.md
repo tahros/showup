@@ -1,5 +1,10 @@
 # ShowUppp — changelog
 
+## v4.6.282 (2026-10-12) — A slightly lower rep clink
+
+- Lowers the rep-selector clink by two semitones to match the approved preview, keeping its clear attack, ringing tail and volume.
+- Other sounds, haptics and logging behavior are unchanged.
+
 ## v4.6.281 (2026-10-12) — A clearer rep clink
 
 - The rep selector now plays the approved middle-pitch metallic clink, with a clear attack and gentle ringing tail.
