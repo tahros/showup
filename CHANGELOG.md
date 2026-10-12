@@ -1,5 +1,15 @@
 # ShowUppp — changelog
 
+## v4.6.283 — The test bar becomes a tool
+
+- **Move it.** Drag the test bar by its grip (⋮⋮) anywhere; it remembers where. Tools → Reset position puts it back above the tab bar.
+- **Fold it.** "–" folds it to a small yellow dot (T), which can be dragged too; tap it to open the bar again.
+- **Fill to 20.** Tools → Fill to 20 adds believable logged days (a rotation of body parts, three sets each) on the days before today, up to 20, so the first set today is day 21 and meets the Subscribe screen.
+- **Test membership, no payment.** In test mode, Continue on the Subscribe screen makes a free test member (the plan you picked); Tools also has Become member and Cancel. Nothing is charged.
+- Test mode now acts as a new user after launch: the paywall, the free-days card and the members-only coin behave as they will, though the paywall is still off for everyone else. No founding mark is given in test mode.
+- Start over and Exit live in Tools. Test days and test membership sit in the test keys only, so Exit removes them; the real record and account are untouched.
+- check-test-mode: Fill to 20, the day-21 paywall writing nothing, Continue → test member → day 21 logs, Cancel, fold, drag the dot, the place remembered after reload, Reset position, and no test membership left after Exit.
+
 ## v4.6.282 (2026-10-12) — A slightly lower rep clink
 
 - Lowers the rep-selector clink by two semitones to match the approved preview, keeping its clear attack, ringing tail and volume.

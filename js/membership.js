@@ -37,7 +37,7 @@ const mbGet=k=>{try{return localStorage.getItem(k);}catch(e){return null;}};
 const mbSet=(k,v)=>{try{localStorage.setItem(k,v);}catch(e){}};
 /* the owner's preview: localStorage showup:paywall-preview = "1" acts as a NEW
    user on this device (founding ignored), so the gates can be tried for real */
-function paywallPreview(){ return mbGet('showup:paywall-preview')==='1'; }
+function paywallPreview(){ return (typeof SANDBOX!=='undefined'&&SANDBOX)||mbGet('showup:paywall-preview')==='1'; }  /* v4.6.283: test mode is a new user after launch */
 function paywallLive(){ return PAYWALL_ON||paywallPreview(); }
 function loggedDays(){ return Object.values(DB.days||{}).filter(d=>d&&(d.w||[]).length).length; }
 function memberEntitled(now=Date.now()){
@@ -60,7 +60,7 @@ function writerGate(){
 }
 /* D7: mark the record a founding member while the paywall is not live */
 function foundingMark(){
-  if(PAYWALL_ON||!DB?.settings||DB.settings.founding||!loggedDays()) return false;
+  if(PAYWALL_ON||(typeof SANDBOX!=='undefined'&&SANDBOX)||!DB?.settings||DB.settings.founding||!loggedDays()) return false;
   DB.settings.founding=todayISO; DB.settingsAt=Date.now(); save(true); return true;
 }
 setTimeout(()=>{ try{ foundingMark(); }catch(e){} },3000);
@@ -124,7 +124,10 @@ function paywallClick(e){
   if(b.hasAttribute('data-mb-restore')){ memberRestore(); return; }
 }
 /* 9.8 replaces these two with RevenueCat's purchase and restore */
-async function memberBuy(plan){ toast('Membership opens with the App Store version.'); return 'unavailable'; }
+async function memberBuy(plan){
+  /* v4.6.283: in test mode Continue makes a free test membership, so the paid side can be tried */
+  if(typeof SANDBOX!=='undefined'&&SANDBOX&&typeof sbxMemberSet==='function'){ sbxMemberSet(plan); toast(`Test member (${plan}). No charge.`); return 'test'; }
+  toast('Membership opens with the App Store version.'); return 'unavailable'; }
 async function memberRestore(){ toast('Nothing to restore yet.'); return 'unavailable'; }
 
 /* v4.6.278: the free days, on Today (Sungjee's call, 2026-10-11: visible, not Settings only). It counts
