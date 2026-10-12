@@ -94,10 +94,11 @@ function paywallHTML(){
       <span class="mb-opt-l">${p.label}${p.note?`<small>${p.note}</small>`:''}</span><span class="mb-opt-p"><b>${p.price}</b><small>${p.per}</small></span></button>`).join('');
   return `<div class="mb-card">
     <div class="mb-top"><span class="mb-kick">ShowUppp Member</span><button type="button" class="mb-x" data-mb-later>Not now</button></div>
-    <div class="mb-hero">${coin}<div><div class="mb-grid" aria-label="${first.length} logged days">${squares}</div>
-    <p class="mb-since">${days.length} days logged${since?' since '+since:''}</p></div></div>
-    <h2 id="pwTitle">Twenty days.<br>You’re a regular now.</h2>
-    <p class="mb-line">Membership keeps every new day open.</p>
+    <div class="mb-hero">${coin}${first.length?`<div><div class="mb-grid" aria-label="${first.length} logged days">${squares}</div>
+    <p class="mb-since">${days.length} ${days.length===1?'day':'days'} logged${since?' since '+since:''}</p></div>`:''}</div>
+    ${days.length>=TRIAL_DAYS?`<h2 id="pwTitle">Twenty days.<br>You’re a regular now.</h2>
+    <p class="mb-line">Membership keeps every new day open.</p>`:`<h2 id="pwTitle">Join the club.</h2>
+    <p class="mb-line">Members log every day, plan with the writer and carry the coin.</p>`}
     <ul class="mb-gets">
       <li><span class="mb-ic">＋</span><span>Log every new day<small>Day 21 and every day after.</small></span></li>
       <li><span class="mb-ic">✦</span><span>The plan writer<small>Plans built from your own record.</small></span></li>
@@ -135,8 +136,12 @@ async function memberRestore(){ toast('Nothing to restore yet.'); return 'unavai
 function trialCardHTML(){
   if(!paywallLive()||isMember()) return '';
   const n=Math.min(loggedDays(),TRIAL_DAYS),sq=Array.from({length:TRIAL_DAYS},(_,i)=>`<i class="${i<n?'on':''}"></i>`).join('');
-  const sub=n<TRIAL_DAYS?'Every day you log counts. Nothing else does.':'Your record stays yours. <button type="button" class="linkbtn" data-mb-open>Membership</button>';
-  return `<div class="mb-trial" id="mbTrial"><div class="mb-trial-g" aria-hidden="true">${sq}</div><div class="mb-trial-t">${n} of ${TRIAL_DAYS} free days<small>${sub}</small></div></div>`;
+  const sub=n<TRIAL_DAYS?'Every day you log counts.':'Your record stays yours.';
+  const v=window.__tv||'B';
+  if(v==='A') return `<div class="mb-trial" id="mbTrial"><div class="mb-trial-g" aria-hidden="true">${sq}</div><div class="mb-trial-t">${n} of ${TRIAL_DAYS} free days<small>${sub}</small><button type="button" class="mb-join-link" data-mb-open>Join the club <span aria-hidden="true">›</span></button></div></div>`;
+  /* the coin as a picture, not its own button: no flip handler, nothing nested in the Join button */
+  const coin=typeof clubCoinHTML==='function'?`<span class="club-brand mb-join-coin" aria-hidden="true">${clubCoinHTML('').replace(/^<button[^>]*>/,'<span class="club-coin-button">').replace(/<\/button>$/,'</span>')}</span>`:'';
+  return `<div class="mb-trial" id="mbTrial"><div class="mb-trial-g" aria-hidden="true">${sq}</div><div class="mb-trial-t">${n} of ${TRIAL_DAYS} free days<small>${sub}</small></div><button type="button" class="mb-join" data-mb-open aria-label="Join the club">${coin}<span>Join the club</span></button></div>`;
 }
 /* ---- the one Settings row (never elsewhere: no countdown, no badge) ---- */
 function membershipRowHTML(){
@@ -205,6 +210,15 @@ document.addEventListener('click',e=>{ if(e.target.closest&&e.target.closest('[d
 .mb-trial-g{display:grid;grid-template-columns:repeat(10,9px);grid-auto-rows:9px;gap:3px;flex:none}
 .mb-trial-g i{border-radius:2.5px;background:var(--line);opacity:.55}.mb-trial-g i.on{background:var(--accent);opacity:1}
 .mb-trial-t{font:600 14px/1.3 var(--body);color:var(--chalk)}.mb-trial-t small{display:block;font:400 12px/1.35 var(--mono);color:var(--muted);margin-top:2px}
+.mb-trial{position:relative}
+.mb-trial-t{flex:1;min-width:0}
+.mb-join-link{all:unset;cursor:pointer;display:inline-block;margin-top:6px;font:600 12.5px/1 var(--body);color:var(--accent)}
+.mb-join{all:unset;cursor:pointer;flex:none;display:flex;flex-direction:column;align-items:center;gap:6px;font:600 11.5px/1 var(--body);color:var(--accent);white-space:nowrap;padding:2px 2px 0}
+.mb-join-coin{position:relative;display:block;width:36px;height:36px;margin:0;flex:none}
+.mb-join-coin .club-coin-button{position:absolute;inset:0;display:block;width:36px;height:36px;min-height:0;flex:none;padding:0;border:0;border-radius:50%;background:none;pointer-events:none;overflow:visible}
+.mb-join-coin .club-coin-rotor{transform:none}
+@media (max-width:379px){.mb-trial{display:grid;grid-template-columns:1fr auto;grid-template-areas:'t j' 'g j';gap:8px 12px}.mb-trial-t{grid-area:t}.mb-trial-g{grid-area:g;grid-template-columns:repeat(20,7px);grid-auto-rows:7px;gap:2px}.mb-join{grid-area:j;align-self:center}}
+
 .mb-trial .linkbtn{border:0;background:none;color:var(--accent);font:600 12px var(--body);padding:0;cursor:pointer}
 .mb-row{font-size:12px;color:var(--muted);margin:2px 0 10px;text-align:center}.mb-row .linkbtn{border:0;background:none;color:var(--accent-ink);font:inherit;padding:0;cursor:pointer}`;
   document.head.appendChild(s);
