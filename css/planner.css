@@ -44,7 +44,8 @@
 .sc-warm-mark,.sc-warm-key>span{font:500 9px/16px var(--body);color:var(--muted);background:var(--surface2);border-radius:4px;text-align:center;width:17px}
 .sc-warm-mark{display:block;margin-top:3px}
 .sc-warm-key{display:flex;align-items:center;gap:6px;margin:10px 0 4px;color:var(--muted);font:400 11px/1.4 var(--body)}
-.sc-group-value{display:flex;flex-direction:column;gap:3px;width:100%;min-height:44px;padding:3px 0}
+/* v4.6.289: weight and reps on ONE line ("60 × 6"), wrapping only when a long run of reps can't fit */
+.sc-group-value{display:flex;flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:center;gap:3px 4px;width:100%;min-height:44px;padding:3px 0}
 .sc-group-value .sc-weight{font-size:13px;line-height:16px}
 .sc-reps{display:flex;justify-content:center;gap:1px;flex-wrap:wrap;max-width:100%}
 .sc-table:not(:has(thead th:nth-child(4))) .sc-reps{gap:4px}

@@ -1,5 +1,9 @@
 # ShowUppp — changelog
 
+## v4.6.289 — Each set on one line
+
+- The set table's cells stacked the weight above its reps, so a logged "60 × 6" took two lines (three with a second run under it). Weight and reps now sit on one line -- "60 × 6", "35 × 10 10" -- in Last, Plan and Logged, and wrap only when a long run of reps can't fit the column.
+
 ## v4.6.288 — Editing today's plan mid-workout updates the workout
 
 - Sungjee changed today's Dumbbell Shoulder Press warm-up from 40 lb to 35 lb in the planner after starting the day with a run. Today showed 35; Train kept 40 with "Plan edited since you started. These targets stay with this workout."
