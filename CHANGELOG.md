@@ -1,5 +1,9 @@
 # ShowUppp — changelog
 
+## v4.6.286 — The Join coin turns
+
+- The coin on the free-days card turns now, like the one in Settings: the same 3D coin with its edge, one slow turn every 16 seconds. Reduce Motion holds it still.
+
 ## v4.6.285 — Join the club
 
 - The free-days card on Today drops "Nothing else does." and reads "Every day you log counts."

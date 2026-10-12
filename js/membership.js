@@ -215,7 +215,10 @@ document.addEventListener('click',e=>{ if(e.target.closest&&e.target.closest('[d
 .mb-join{all:unset;cursor:pointer;flex:none;display:flex;flex-direction:column;align-items:center;gap:6px;font:600 11.5px/1 var(--body);color:var(--accent);white-space:nowrap;padding:2px 2px 0}
 .mb-join-coin{position:relative;display:block;width:36px;height:36px;margin:0;flex:none}
 .mb-join-coin .club-coin-button{position:absolute;inset:0;display:block;width:36px;height:36px;min-height:0;flex:none;padding:0;border:0;border-radius:50%;background:none;pointer-events:none;overflow:visible}
-.mb-join-coin .club-coin-rotor{transform:none}
+/* v4.6.286: it turns, like the coin in Settings: one turn in 16s, the same 3D coin with its edge */
+.mb-join-coin .club-coin-button{perspective:300px}
+.mb-join-coin .club-coin-rotor{animation:mbCoinTurn 16s linear infinite}
+@media (prefers-reduced-motion:reduce){.mb-join-coin .club-coin-rotor{animation:none}}
 @media (max-width:379px){.mb-trial{display:grid;grid-template-columns:1fr auto;grid-template-areas:'t j' 'g j';gap:8px 12px}.mb-trial-t{grid-area:t}.mb-trial-g{grid-area:g;grid-template-columns:repeat(20,7px);grid-auto-rows:7px;gap:2px}.mb-join{grid-area:j;align-self:center}}
 
 .mb-trial .linkbtn{border:0;background:none;color:var(--accent);font:600 12px var(--body);padding:0;cursor:pointer}
