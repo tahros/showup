@@ -65,8 +65,16 @@ test('real Add set handler stores chosen target and actual result',`day(todayISO
 test('result row preserves both numbers and allows copying without reusing the target',`!document.querySelector('.sc-session .sc-plan[data-link-slot="3"]')&&document.querySelectorAll('.sc-session .sc-plan')[2].closest('tr').textContent.includes('210')&&!document.querySelectorAll('.sc-session .sc-plan')[2].disabled`);
 run(`document.querySelector('[data-link-slot="-1"]').click();document.getElementById('addrep').click();`);
 test('Extra set button logs without consuming target',`!day(todayISO).w[1].planRef&&plChoice('Squat').target.ordinal===1`);
-run(`planSave([{ex:'Squat',lines:[{w:120,reps:[10]}]}],'','',todayISO);render();`);
-test('mid-session revision explains why started targets stay',`document.querySelectorAll('.sc-plan').length===3&&document.querySelector('.plan-link').textContent.includes('Plan edited since you started')`);
+/* v4.6.288: a plan that changes under a started workout without the person saving it (another
+   device, say) keeps the started targets and says so -- with a way to take the edit */
+run(`var savedPlan=plCopy(DB.plan);DB.plan.items[0].lines=[{w:120,reps:[10]}];plCapture();render();`);
+test('mid-session revision explains why started targets stay',`document.querySelectorAll('.sc-plan').length===3&&document.querySelector('.plan-link').textContent.includes('Plan edited since you started')&&!!document.querySelector('[data-pl-adopt]')`);
+run(`var keepRef=JSON.stringify(day(todayISO).w[0].planRef.target);document.querySelector('[data-pl-adopt]').click();`);
+test('"Use the edited plan" moves the workout onto the edit; a logged set keeps the target it was logged against',`!document.querySelector('[data-pl-adopt]')&&plBasis(todayISO).targets.length===1&&plBasis(todayISO).targets[0].reps===10`);
+test('...and that logged set still counts, now against a set of the edited plan',`JSON.stringify(day(todayISO).w[0].planRef.target)===keepRef&&day(todayISO).w[0].planRef.setId===plBasis(todayISO).targets[0].id&&plActual(todayISO,plBasis(todayISO).targets[0].id).length===1`);
+/* the person's own save of today's plan, mid-workout, is intent: the workout follows it at once */
+run(`DB.plan=savedPlan;planSave(savedPlan.items,'','',todayISO);render();`);
+test('saving today\'s plan yourself mid-workout: the workout follows it, no notice',`plStable(plBasis(todayISO).content)===plStable(plCurrent(todayISO).content)&&!document.querySelector('.plan-link')?.textContent.includes('Plan edited since you started')`);
 run(`var edit=day(todayISO).w[0],originalId=edit.setId,originalRef=JSON.stringify(edit.planRef);edit.reps=[5,4,3];plSplitEditedSet(day(todayISO),edit);`);
 test('multi-set edit preserves original identity and gives extras distinct IDs',`edit.setId===originalId&&JSON.stringify(edit.planRef)===originalRef&&edit.reps.length===1&&new Set(day(todayISO).w.map(s=>s.setId)).size===day(todayISO).w.length`);
 run(`var moved=plMovedSet(edit,'Romanian Deadlift','Legs');`);

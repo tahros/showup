@@ -1583,6 +1583,7 @@ function planSave(items,note,raw,d){
      put tomorrow's sets on today's chips; planWake() feeds them at 00:00. */
   planRailRefresh();
   DB.planAt=Date.now(); save(true);
+  if(d===todayISO&&typeof plRebaseToday==='function'&&plRebaseToday()) save(true);   // v4.6.288: today's own edit, mid-workout, is intent
 }
 function planClear(){
   for(const [ex,o] of Object.entries(sugOv())) if(o&&o.from==='plan') delete sugOv()[ex];

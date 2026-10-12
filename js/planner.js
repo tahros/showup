@@ -813,6 +813,7 @@ function pwSave(){
   const days=pwCopy(DB.week?.days||{}),at=Date.now();
   for(const d of s.dates){const b=pwDay(d);if(b.cleared&&!b.rows.length){delete days[d];if(DB.plan?.d===d){DB.plan=null;DB.planAt=at;}continue;}const doc={...planItemsFrom(b.rows),raw:pwText(b.rows),title:pwParts(b.rows).join(' + ')};days[d]=doc;if(DB.plan?.d===d){DB.plan={d,...doc};DB.planAt=at;}}
   const all=Object.keys(days).sort();DB.week=all.length?{from:all[0],to:all[all.length-1],days,raw:'',at}:null;DB.weekAt=at;planRailRefresh();save(true);
+  if(s.dates.includes(todayISO)&&typeof plRebaseToday==='function'&&plRebaseToday())save(true);   // v4.6.288
   for(const d of s.dates){const b=pwDay(d);b.base=pwFingerprint(d);b.source='Saved plan';delete b.undo;}
   s.step='edit';pwPersist();lift.plan=null;view='today';toast('Plan saved');render({soft:true});
 }

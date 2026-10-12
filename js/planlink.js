@@ -89,6 +89,33 @@ function plBasis(d){
   const day=DB.days?.[d];
   return day&&Object.prototype.hasOwnProperty.call(day,'planBasis')?day.planBasis.revision:plCurrent(d);
 }
+/* v4.6.288: AN EDIT TO TODAY'S PLAN, MID-WORKOUT, IS INTENT. Today's planBasis is frozen at the
+   first log so "a plan saved later must not rewrite this workout" -- a sync from another device,
+   a plan written for other days. But when the person saves today's plan themselves (the planner's
+   Save, Paste, Edit), the change is what they mean to do now: the workout follows it, as an
+   in-place target edit already did (v4.6.67). Sets already logged keep the target they were
+   logged against (planRef.target); each moves to the new plan's set of the same exercise -- the same
+   place in order, else the next free one -- so it still counts as done; nothing logged changes otherwise. */
+function plRebaseToday(){
+  const day=DB.days?.[todayISO];
+  if(!day||!Object.prototype.hasOwnProperty.call(day,'planBasis'))return false;
+  plCapture();
+  const cur=plCurrent(todayISO),old=day.planBasis.revision;
+  if(plStable(cur?.content||null)===plStable(old?.content||null))return false;
+  const fresh=cur?plCopy(cur):null,taken=new Set();
+  /* the same place in order first; then the next free set of that exercise */
+  const linked=(day.w||[]).filter(x=>x.planRef),left=[];
+  for(const set of linked){
+    const ref=set.planRef,t=(fresh?.targets||[]).find(t=>!taken.has(t.id)&&plSameExercise(t,set.ex)&&t.ordinal===ref.target?.ordinal);
+    if(t){taken.add(t.id);ref.revisionId=fresh.id;ref.setId=t.id;}else left.push(set);
+  }
+  for(const set of left){
+    const ref=set.planRef,t=(fresh?.targets||[]).find(t=>!taken.has(t.id)&&plSameExercise(t,set.ex)&&isHold(t.su)===isHold(set.su||''));
+    if(t){taken.add(t.id);ref.revisionId=fresh.id;ref.setId=t.id;}
+  }
+  day.planBasis={startedAt:day.planBasis.startedAt,revision:fresh,rebasedAt:Date.now()};
+  return true;
+}
 function plSameExercise(target,ex){
   return target.ex===ex||target.exerciseId===plExerciseId(ex);
 }
@@ -169,7 +196,7 @@ function plHTML(ex){
   const old=(DB.days?.[todayISO]?.w||[]).filter(s=>s.ex===ex&&!s.planRef).length;
   return `<section class="zone mini plan-link" aria-label="Planned and logged sets">
     <div class="lasthead"><span>Planned · Logged</span><span class="ago">${frozen?'Started plan':'Saved plan'}</span></div>
-    ${changed?'<p class="pl-context">Plan edited since you started. These targets stay with this workout.</p>':''}
+    ${changed?'<p class="pl-context">Plan edited since you started. These targets stay with this workout. <button type="button" class="linkbtn pl-adopt" data-pl-adopt>Use the edited plan</button></p>':''}
     <div class="pl-next">${selected
       ? /* v4.6.11: the Next line IS the target, so it is tappable. Selecting a set
            loaded its weight and reps all along -- but only from inside the collapsed
@@ -475,7 +502,7 @@ function plSessionHTML(ex,last,today){
   const editingPlan=!editing&&!!lift.editPlan&&hasPlan;
   const done=targets.filter(t=>plActual(todayISO,t.id).length).length,groups=plSessionGroups(rows),canCompact=rows.length>4&&groups.length<rows.length,compact=canCompact&&lift.scDetails!==ex;
   return `<section class="lastcard sc-session plan-link${compact?' sc-compact':''}${compact&&groups.length>6?' sc-dense':''}" aria-label="Your sets comparison"><div class="sc-head"><strong>Your sets</strong><span>${actual.length} set${actual.length===1?'':'s'} logged</span></div><div class="sc-toolbar"><span>${U()} · ${isHold(unitOf(ex))?'seconds':'reps'}</span><div class="sc-tools">${hasPlan?`<button type="button" class="${editingPlan?'sc-on':''}" data-sc-edit-plan="${displayPlan.date}" aria-pressed="${editingPlan}">${icon(editingPlan?'check':'edit',ICON_SZ.sm)} ${editingPlan?'Done':'Edit Plan'}</button>`:''}${today.length?`<button type="button" class="sessedit${editing?' sc-on':''}" id="sessEdit" aria-pressed="${editing}">${icon(editing?'check':'edit',ICON_SZ.sm)} ${editing?'Done':'Edit Logged'}</button>`:''}${canCompact?`<button type="button" data-sc-details aria-expanded="${!compact}">${icon(compact?'expand':'collapse',ICON_SZ.sm)} ${compact?'Expand':'Collapse'}</button>`:''}</div></div>
-    ${changed&&!preview&&!editingPlan?'<p class="pl-context">Plan edited since you started. These targets stay with this workout.</p>':''}
+    ${changed&&!preview&&!editingPlan?'<p class="pl-context">Plan edited since you started. These targets stay with this workout. <button type="button" class="linkbtn pl-adopt" data-pl-adopt>Use the edited plan</button></p>':''}
     ${editingPlan?`<p class="pl-context">Tap a value to change today&rsquo;s plan.</p><table class="sc-table sc-editing sc-editing-plan"><thead><tr><th scope="col">Set</th><th scope="col">Plan<small>${hesc(wd(displayPlan.date))}</small></th><th scope="col"><span class="pw-sr-only">Edit</span></th></tr></thead><tbody>${plPlanEditBody(ex,targets)}</tbody></table>
       <div class="lw-actions"><button type="button" class="btn ghost" data-pl-planner="${displayPlan.date}">Add or remove sets in the planner &rarr;</button></div>`
       :editing?`<p class="pl-context">Tap a value to change it.</p><table class="sc-table sc-editing"><thead><tr><th scope="col">Set</th><th scope="col">Logged<small>Today</small></th><th scope="col"><span class="pw-sr-only">Remove</span></th></tr></thead><tbody>${plEditBody(ex,rows)}</tbody></table>
@@ -507,3 +534,6 @@ document.addEventListener('click',e=>{
   if(hasR)plRepFeedback(reps);
   plArrive(lift.ex,w,hasR?reps:0);                             // v4.6.107: glide up, then load
 });
+
+/* v4.6.288: the notice can be answered -- take the edited plan for the rest of this workout */
+document.addEventListener('click',e=>{ if(!e.target.closest?.('[data-pl-adopt]')) return; if(plRebaseToday()){ save(true); render(); toast('This workout now follows the edited plan'); } });

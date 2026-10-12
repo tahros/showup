@@ -1,5 +1,13 @@
 # ShowUppp — changelog
 
+## v4.6.288 — Editing today's plan mid-workout updates the workout
+
+- Sungjee changed today's Dumbbell Shoulder Press warm-up from 40 lb to 35 lb in the planner after starting the day with a run. Today showed 35; Train kept 40 with "Plan edited since you started. These targets stay with this workout."
+- Why: today's targets freeze at the day's first log (planBasis), so that a plan saved later -- another device's sync, say -- cannot rewrite a workout in progress. An edit the person saves themselves is not that: it's what they mean to do now (the same reasoning as v4.6.67's in-place target edits).
+- Now: saving today's plan yourself -- the planner's Save, Paste, or the legacy planner -- moves the workout onto it at once. Sets already logged keep the target they were logged against, and each is matched to the edited plan's set of the same exercise (same place in order, else the next free one), so it still counts as done.
+- A plan that changes under a workout without your save still keeps the started targets, and the notice now has **Use the edited plan**, which does the same move.
+- test-planlink: the notice and its button; a logged set keeps its target and still counts after the move; your own mid-workout save is followed with no notice. Reproduced in the browser: before the fix 40 lb and the notice, after it 35 × 10 and none.
+
 ## v4.6.287 — Sample data moves to "Just looking around", and counts for nothing
 
 - **The first screen no longer offers sample data.** It is Apple, Google, Continue without an account, and "Sign in to sync. Or keep it on this device."
