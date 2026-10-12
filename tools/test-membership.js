@@ -153,6 +153,12 @@ async function trainLog(b){
    const c=b.d.getElementById('mbTrial');
    ok('a non-member: Today shows "7 of 20 free days" in squares', !!c && /7 of 20 free days/.test(c.textContent) && c.querySelectorAll('.mb-trial-g i.on').length===7 && c.querySelectorAll('.mb-trial-g i').length===20, c?.textContent);
    ok('...and counts up, no "left"', !/left|remaining|hurry/i.test(c?.textContent||''));
+   ok('v4.6.285: the card reads "Every day you log counts." and nothing more', /Every day you log counts\.$/.test(c?.querySelector('small')?.textContent||'') && !/Nothing else/.test(c?.textContent||''), c?.querySelector('small')?.textContent);
+   const j=c?.querySelector('.mb-join[data-mb-open]');
+   ok('Join the club: a coin picture with its label, one button (no button inside it)', !!j && /Join the club/.test(j.textContent) && !!j.querySelector('.club-coin-face') && !j.querySelector('button'));
+   b.click(j);
+   ok('Join the club opens the Subscribe screen, headed "Join the club." before day 20', b.wall() && /Join the club\./.test(b.d.getElementById('pwTitle')?.textContent||''), b.d.getElementById('pwTitle')?.textContent);
+   b.click('[data-mb-later]');
  }
  { const b=await boot({live:true,days:record(20)});
    b.run(`view='today';render();`);

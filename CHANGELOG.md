@@ -1,5 +1,12 @@
 # ShowUppp — changelog
 
+## v4.6.285 — Join the club
+
+- The free-days card on Today drops "Nothing else does." and reads "Every day you log counts."
+- **Join the club**: a small silver club coin with "Join the club" under it sits at the right of the card. It opens the Subscribe screen at any point, not only at day 21. On phones under 380px wide the squares become a thin strip under the text.
+- Opened before day 20 the Subscribe screen is headed "Join the club." ("Members log every day, plan with the writer and carry the coin."), shows the days logged so far (just the coin at zero); at day 20 it still reads "Twenty days. You're a regular now."
+- test-membership: the card's line, the Join button (one button, the coin a picture inside it), and the pre-trial heading.
+
 ## v4.6.284 — No DAY 20 card; the free days show after training too
 
 - **The early milestone cards are gone from Today.** DAY 10, 20, 30 and 50 ("Twenty days. The habit is winning.", Share as image, Carry on) no longer appear. They fall inside the 20-day trial, where the free-days card already counts, and DAY 20 sat right on top of the paywall moment. They are acknowledged quietly so none comes back later. DAY 100 and up are unchanged.
