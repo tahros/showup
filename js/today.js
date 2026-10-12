@@ -947,34 +947,51 @@ function msMoment(hit){
   ov.style.display='flex';
 }
 
-/* v4.6.277: first-run tips. Three nudges, each at the moment it's needed, for a new user only
-   (the first run turns them on; Settings → Show tips again turns them back on):
-     ex  -- the exercise list: "Tap any exercise to log it."      gone on that tap
-     set -- the set screen: "Swipe the numbers for reps…"         gone on Add set
-     fin -- after the first set: "Tap Finish when you're done"    gone on Got it or Finish
-   Each shows once. Pip waves in, two rings pulse round the thing meant; nothing is blocked.
-   Hidden while any dialog, the first run or a text field is up. State: DB.settings.tips =
-   {on:1, ex:1, set:1, fin:1}. Motion follows the mascot setting and reduced motion. */
-const TIP_TEXT={
-  ex:{sel:'#view [data-ex]',t:'Tap any exercise to log it',dir:'down',ax:.14,r:20,btn:'Got it'},
-  set:{sel:'#addrep',t:'Swipe for reps, then tap Add set',s:'One set is a day shown up.',dir:'up',ax:.5,r:18,btn:'Got it'},
-  fin:{sel:'#liveWorkoutFinish',t:'Tap Finish when you’re done',s:'Or keep adding sets and exercises.',dir:'up',ax:.5,r:999,btn:'Got it'}
-};
+/* v4.6.277: first-run tips; v4.6.279: one for every way in. Each tip shows once, at the moment it's
+   needed, for a new user only (the first run turns them on; Settings → Show tips again turns them
+   back on). A tip goes on its own when you do what it says, or on Got it. Pip waves in, two rings
+   pulse round the thing meant; nothing is blocked. Hidden while a dialog, the first run or a text
+   field is up -- unless the tip's own target is inside that screen (the importer).
+     Train   ex  the exercise list       set  the set screen       fin  Finish, after the first set
+     Plan    pd  the Dates calendar      pp   Plan / Paste         pe   ✎ on the Edit page    pt  Start, on Today
+     Import  i1  Upload a CSV            i2   the items to check   i3   View my progress
+     Look    l1  Choose exercise         l2   the Stats tab        l3   the Settings tab
+   State: DB.settings.tips = {on:1, <key>:1 …}; `on` drops when every key is done. */
+const TIPS=[
+  {k:'set',sel:'#addrep',t:'Swipe for reps, then tap Add set',s:'One set is a day shown up.',dir:'up',ax:.5,r:18,done:'#addrep',also:['ex']},
+  {k:'ex',sel:'#view [data-ex]',when:()=>view==='lift'&&!document.getElementById('addrep'),t:'Tap any exercise to log it',dir:'down',ax:.14,r:20,done:'#view [data-ex]'},
+  {k:'fin',sel:'#liveWorkoutFinish',when:t=>t.set||(t.ex&&!document.getElementById('addrep')),t:'Tap Finish when you’re done',s:'Or keep adding sets and exercises.',dir:'up',ax:.5,r:999,done:'#liveWorkoutFinish'},
+  {k:'pd',sel:()=>`.pf-dates-page [data-pw="date"][data-date="${todayISO}"]`,t:'Tap the days you’ll train',s:'Today is picked. Tap more days to add them.',dir:'down',ax:.5,r:12,done:'.pf-dates-page [data-pw="date"]'},
+  {k:'pp',sel:'.pf-dates-page [data-pw="pf-generate"]',when:t=>t.pd,t:'Tap Plan and we’ll write the workouts',s:'Or Paste one from a coach.',dir:'down',ax:.5,r:16,done:'[data-pw="pf-generate"],[data-pw="paste"],[data-pw="paste-open"]'},
+  {k:'pe',sel:'.pf-routine-page [data-pw="pf-row-toggle"]',t:'Tap ✎ to change weights or reps',s:'Happy with it? Save at the bottom.',dir:'down',ax:.5,r:12,done:'[data-pw="pf-row-toggle"],[data-pw="pf-save"]'},
+  {k:'pt',sel:'#view .today-focus-card .btn[data-ex]',when:()=>view==='today',t:'Your plan waits here',s:'Tap Start when you’re at the gym.',dir:'up',ax:.5,r:14,done:'#view .today-focus-card .btn[data-ex]'},
+  {k:'i1',sel:'#imp [data-imp="file"]',when:()=>!document.querySelector('#imp .im-item'),t:'Export from Strong or Hevy, then upload it here',s:'The steps are under How to export.',dir:'up',ax:.5,r:20,done:'#imp [data-imp="file"]'},
+  {k:'i2',sel:'#imp .im-item:not(.im-ok):not(.im-ready)',t:'Check the items marked for you',s:'Nothing is saved until you tap Import.',dir:'up',ax:.5,r:18,done:'#imp [data-imp="confirm"],#imp [data-imp="part"],#imp [data-imp="keep"],#imp [data-imp="toconfirm"]'},
+  {k:'i3',sel:'#imp [data-imp="progress"]',t:'Your past days count now',s:'See them in your progress.',dir:'down',ax:.5,r:16,done:'#imp [data-imp="progress"],#imp [data-imp="log"],#imp [data-imp="undo"]'},
+  {k:'l1',sel:'#goLift',when:()=>view==='today'&&tipLogged()===0,t:'Ready when you are',s:'Choose an exercise to log your first set.',dir:'up',ax:.5,r:12,done:'#goLift'},
+  {k:'l2',sel:'#nav [data-v="stats"]',when:t=>view==='today'&&(t.l1||t.pt||tipLogged()>0),t:'Your progress lives in Stats',s:'It fills in as you log.',dir:'down',ax:.5,r:20,done:'#nav [data-v="stats"]'},
+  {k:'l3',sel:'#nav [data-v="sync"]',when:t=>view==='today'&&t.l2,t:'Everything you set up is in Settings',s:'Units, body parts, and these tips.',dir:'down',ax:.5,r:20,done:'#nav [data-v="sync"]'}
+];
+const TIP_BY=Object.fromEntries(TIPS.map(x=>[x.k,x]));
 let tipCur=null,tipQ=0;
+function tipLogged(){return typeof loggedDays==='function'?loggedDays():Object.values(DB.days||{}).filter(d=>d&&(d.w||[]).length).length;}
+function tipSel(c){return typeof c.sel==='function'?c.sel():c.sel;}
 function tipsState(){const t=DB.settings.tips;return t&&typeof t==='object'?t:null;}
 function tipsStart(){DB.settings.tips={on:1};DB.settingsAt=Date.now();}
-function tipDone(k){const t=tipsState();if(!t||t[k])return;t[k]=1;if(t.ex&&t.set&&t.fin)t.on=0;DB.settingsAt=Date.now();save(true);tipHide();tipQueue();}
+function tipDone(k){const t=tipsState();if(!t||t[k])return;t[k]=1;(TIP_BY[k]?.also||[]).forEach(x=>t[x]=1);if(TIPS.every(x=>t[x.k]))t.on=0;DB.settingsAt=Date.now();save(true);if(tipCur?.k===k)tipHide();tipQueue();}
 function tipVisible(el){if(!el)return false;const r=el.getBoundingClientRect();return r.width>0&&r.height>0&&r.bottom>0&&r.top<innerHeight&&getComputedStyle(el).visibility!=='hidden';}
-function tipBlocked(){
+function tipBlocked(el){
   if(document.querySelector('#onb:not([hidden])'))return true;
   const a=document.activeElement;if(a&&a.matches&&a.matches('input,textarea,select,[contenteditable]'))return true;
-  return [...document.querySelectorAll('[aria-modal="true"],#imp')].some(x=>!x.hidden&&x.getClientRects().length>0&&getComputedStyle(x).visibility!=='hidden'&&+getComputedStyle(x).opacity>0);
+  return [...document.querySelectorAll('[aria-modal="true"],#imp')].some(x=>!x.hidden&&!x.contains(el)&&x.getClientRects().length>0&&getComputedStyle(x).visibility!=='hidden'&&+getComputedStyle(x).opacity>0);
 }
 function tipWhich(){
-  const t=tipsState();if(!t||!t.on||tipBlocked())return null;
-  if(!t.set&&document.getElementById('addrep')&&tipVisible(document.getElementById('addrep')))return 'set';
-  if(!t.ex&&view==='lift'&&!document.getElementById('addrep')&&tipVisible(document.querySelector(TIP_TEXT.ex.sel)))return 'ex';
-  if(!t.fin&&(t.set||(t.ex&&!document.getElementById('addrep')))&&tipVisible(document.getElementById('liveWorkoutFinish')))return 'fin';
+  const t=tipsState();if(!t||!t.on)return null;
+  for(const c of TIPS){
+    if(t[c.k]||(c.when&&!c.when(t)))continue;
+    const el=document.querySelector(tipSel(c));
+    if(tipVisible(el)&&!tipBlocked(el))return c.k;
+  }
   return null;
 }
 function tipHide(now){
@@ -983,7 +1000,7 @@ function tipHide(now){
   n.classList.add('out');ring.classList.add('out');setTimeout(()=>{n.remove();ring.remove();},300);
 }
 function tipPlace(){
-  if(!tipCur)return;const {n,ring,k}=tipCur,c=TIP_TEXT[k],el=document.querySelector(c.sel);
+  if(!tipCur)return;const {n,ring,k}=tipCur,c=TIP_BY[k],el=document.querySelector(tipSel(c));
   if(!tipVisible(el)){tipHide(true);return;}
   const r=el.getBoundingClientRect();
   Object.assign(ring.style,{left:r.left+'px',top:r.top+'px',width:r.width+'px',height:r.height+'px'});
@@ -998,9 +1015,9 @@ function tipPlace(){
    charcoal on white), and a tip shouldn't spin up a WebGL scene. */
 function tipPip(){if(typeof mascotMode==='function'&&mascotMode()==='off')return '';return `<img class="tip-pip" src="assets/mascot-${document.documentElement.dataset.theme==='dark'?'charcoal':'white'}.png" alt="" width="360" height="220" aria-hidden="true">`;}
 function tipShow(k){
-  const c=TIP_TEXT[k];tipHide(true);
+  const c=TIP_BY[k];tipHide(true);
   const n=document.createElement('div');n.className='tipn';n.setAttribute('role','status');n.dataset.tip=k;
-  n.innerHTML=tipPip()+`<span class="tipt">${c.t}${c.s?`<small>${c.s}</small>`:''}</span>`+(c.btn?`<button type="button" data-tip-ok>${c.btn}</button>`:'');
+  n.innerHTML=tipPip()+`<span class="tipt">${c.t}${c.s?`<small>${c.s}</small>`:''}</span><button type="button" data-tip-ok>Got it</button>`;
   const ring=document.createElement('div');ring.className='tipr';ring.style.setProperty('--tip-r',c.r+'px');ring.setAttribute('aria-hidden','true');
   document.body.append(ring,n);tipCur={n,ring,k};tipPlace();
 }
@@ -1013,15 +1030,13 @@ function tipCheck(){
 function tipQueue(){if(tipQ||(!tipCur&&!tipsState()?.on))return;tipQ=setTimeout(tipCheck,350);}
 document.addEventListener('click',e=>{
   const t=tipsState();if(!t||!t.on)return;
-  if(e.target.closest('[data-tip-ok]')){tipDone(e.target.closest('.tipn')?.dataset.tip||'fin');return;}
-  if(!t.ex&&e.target.closest('#view [data-ex]'))tipDone('ex');
-  else if(!t.set&&e.target.closest('#addrep')){tipDone('set');if(!t.ex)tipDone('ex');}
-  else if(!t.fin&&e.target.closest('#liveWorkoutFinish'))tipDone('fin');
-  else tipQueue();
+  if(e.target.closest('[data-tip-ok]')){tipDone(e.target.closest('.tipn')?.dataset.tip);return;}
+  const hit=TIPS.find(c=>!t[c.k]&&e.target.closest(c.done));
+  if(hit)tipDone(hit.k);else tipQueue();
 },true);
 addEventListener('scroll',()=>{if(tipCur)tipPlace();},{passive:true,capture:true});
 addEventListener('resize',()=>tipQueue());
 document.addEventListener('focusin',()=>tipQueue());document.addEventListener('focusout',()=>tipQueue());
 new MutationObserver(()=>{const t=tipsState();if(t&&t.on)tipQueue();}).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden']});
 function tipsSettingsHTML(){return `<button class="btn ghost" data-tips-again style="margin:8px 0 0">Show tips again</button>`;}
-document.addEventListener('click',e=>{if(!e.target.closest('[data-tips-again]'))return;tipsStart();save(true);toast('Tips are back. Try logging a set.');});
+document.addEventListener('click',e=>{if(!e.target.closest('[data-tips-again]'))return;tipsStart();save(true);toast('Tips are back.');});

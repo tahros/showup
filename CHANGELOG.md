@@ -1,5 +1,15 @@
 # ShowUppp — changelog
 
+## v4.6.279 — A tip for every way in
+
+- The first-set tips now cover every choice on the first run's last screen, not only "I'm training now". Each shows once, at the moment it's needed, with Got it, and goes on its own when you do what it says:
+  - **Plan my next workout:** the calendar ("Tap the days you'll train", over the past week so it covers no day you'd pick), the Plan button ("Tap Plan and we'll write the workouts · Or Paste one from a coach"), ✎ on the Edit page ("Tap ✎ to change weights or reps · Happy with it? Save at the bottom"), and Start on Today ("Your plan waits here").
+  - **Bring my past workouts:** Upload a CSV ("Export from Strong or Hevy, then upload it here"), the review ("Check the items marked for you · Nothing is saved until you tap Import"), and the done screen ("Your past days count now").
+  - **Just looking around:** Choose exercise ("Ready when you are"), the Stats tab ("Your progress lives in Stats"), the Settings tab ("Everything you set up is in Settings").
+- A tip appears wherever a new user first reaches its screen, whichever card they picked. The Stats and Settings tips come once someone has logged a day or made a plan.
+- The tips are one table in js/today.js now (key, target, when, text, what finishes it). Tips inside the importer show over it; every other tip still hides under a dialog.
+- check-first-tips walks Plan, Import and Look in light and dark, besides Train.
+
 ## v4.6.278 — The coin is a member's; the Subscribe screen; free days on Today
 
 - **Got it on every tip.** All three first-set tips now have Got it, which closes that tip; the next still shows when you reach it. The set-screen tip reads "Swipe for reps, then tap Add set."
