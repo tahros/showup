@@ -1,5 +1,14 @@
 # ShowUppp — changelog
 
+## v4.6.280 — The tip ring pulses smoothly on the phone
+
+- The ring round a tip's target looked spotty on iPhone. Three causes:
+  - it grew by animating `inset`, which re-lays out every frame; iOS dropped frames, worse with the 3D Pip and the workout timer running;
+  - the second ring sat still at full strength for its 0.9s delay, then jumped into motion;
+  - every loop restarted with the ring popping back at full strength.
+- Now only transform and opacity move (the GPU's work). A steady 2px outline holds the target, two rings ripple out from it, each fading in and out so a restart can't be seen, one every 1.2s. Each ring's scale is set per axis from the target's size, so they grow about 10px on every side.
+- Reduce Motion: the steady outline only.
+
 ## v4.6.279 — A tip for every way in
 
 - The first-set tips now cover every choice on the first run's last screen, not only "I'm training now". Each shows once, at the moment it's needed, with Got it, and goes on its own when you do what it says:
