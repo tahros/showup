@@ -72,6 +72,11 @@ try{
   ok(`${tag} as a member, day 21 logs`,!t.wall&&t.today===1,t);
   await p.click('#sbxBar [data-sbx="unmember"]');await p.waitForTimeout(300);
   ok(`${tag} Cancel: not a member any more`,!(await p.evaluate(()=>isMember())));
+  /* v4.6.284: after training today, a non-member still sees the free days; no DAY 20 card */
+  await p.evaluate(()=>{view='today';render();});await p.waitForTimeout(500);
+  t=await p.evaluate(()=>({card:document.getElementById('mbTrial')?.textContent||'',ms:!!document.querySelector('#view .msmoment'),trained:(DB.days[todayISO]?.w||[]).length}));
+  ok(`${tag} Today after training: the free-days card (20 of 20), no DAY 20 card`,t.trained>0&&/20 of 20 free days/.test(t.card)&&!t.ms,t);
+  if(SHOT&&w===402)await p.screenshot({path:`${SHOT}/tm-today-trained.png`});
   /* fold, then move the dot */
   await p.click('#sbxBar [data-sbx="fold"]');await p.waitForTimeout(200);
   let b0=await p.evaluate(()=>{const r=document.getElementById('sbxBar').getBoundingClientRect();return {w:r.width,x:r.left+r.width/2,y:r.top+r.height/2,folded:document.getElementById('sbxBar').classList.contains('sx-folded')};});

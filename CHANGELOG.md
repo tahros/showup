@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.284 — No DAY 20 card; the free days show after training too
+
+- **The early milestone cards are gone from Today.** DAY 10, 20, 30 and 50 ("Twenty days. The habit is winning.", Share as image, Carry on) no longer appear. They fall inside the 20-day trial, where the free-days card already counts, and DAY 20 sat right on top of the paywall moment. They are acknowledged quietly so none comes back later. DAY 100 and up are unchanged.
+- **The free-days card shows after training too.** A non-member who had trained today saw no "N of 20 free days" card: Today after training is a different layout, and the card was only in the before-training ones. It now leads Today after training as well.
+- Tests: test-milestone covers the quiet early rungs (red with the change removed); check-test-mode checks Today after training in test mode: the 20-of-20 card, no DAY card.
+
 ## v4.6.283 — The test bar becomes a tool
 
 - **Move it.** Drag the test bar by its grip (⋮⋮) anywhere; it remembers where. Tools → Reset position puts it back above the tab bar.

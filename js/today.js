@@ -482,7 +482,13 @@ function renderToday(){
   const pct=cur?Math.round(cur.curve[cur.end-1]*100):0;
 
   let h='';
-  if(msN){
+  /* v4.6.284: no Today card for the early rungs (10, 20, 30, 50). They land inside the 20-day
+     trial, where the free-days card already counts the days, and DAY 20 sat on top of the
+     moment the paywall arrives. They are acknowledged quietly, so none returns later. */
+  if(msN&&msN<100){ DB.settings.msAck=Math.max(DB.settings.msAck||0,msN); save(true); }
+  /* v4.6.284: the free-days card shows after training too (non-members, paywall live) */
+  if(logged&&typeof trialCardHTML==='function') h+=trialCardHTML();
+  if(msN&&msN>=100){
     const tier=msTier(msN);
     /* thousand tier: the record itself is the spectacle — the month grid
        cascades in square by square and the number lands on top. No

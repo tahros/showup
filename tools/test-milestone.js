@@ -61,6 +61,12 @@ ok("first run initialises the floor to the current total \u2014 nothing fires",
    run(`DB.settings.msFloor`) === 97 && run(`msPending()`) === 0 &&
    !/msmoment/.test(run(`$('#view').innerHTML`)));
 
+// ---- v4.6.284: the early rungs (under 100) show no Today card; they are acknowledged quietly --
+run(`(function(){ const keep=DB.settings.msFloor; DB.settings.msFloor=15; DB.settings.msAck=15; const n=msLiveTotal(); view='today'; render();
+  window.__early={html:$('#view').innerHTML,ack:DB.settings.msAck}; DB.settings.msFloor=keep; DB.settings.msAck=keep; render(); })()`);
+ok("an early rung (crossed 20, 30, 50 here) shows no DAY card", !/msmoment/.test(run(`window.__early.html`)));
+ok("...and is acknowledged, so it does not come back", run(`window.__early.ack`) >= 50 && run(`window.__early.ack`) < 100, run(`window.__early.ack`));
+
 // ---- crossing live fires \u2014 once, largest only -------------------------------
 run(`(function(){ // log 3 more days by past-edit + today \u2014 crosses 100
   const t=new Date(todayISO+'T00:00');
