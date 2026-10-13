@@ -1,5 +1,10 @@
 # ShowUppp — changelog
 
+## v4.6.297 — Keep the welcome coin round
+
+- Removed an inherited 60px flex basis that squeezed the 84px-tall welcome coin horizontally. Its unprojected width and height now stay equal throughout the enlargement and landing.
+- Browser regression checks assert square coin geometry alongside full rotations, moving shine, cleanup and reduced motion. Billing and the member-number reveal are unchanged.
+
 ## v4.6.296 — A full spin, moving silver light
 
 - Fixed the welcome coin taking a short partial turn: matching rotation keyframes now preserve its starting pose and perform at least two full turns before landing number-side forward.

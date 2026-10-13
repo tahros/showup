@@ -240,7 +240,7 @@ document.addEventListener('click',e=>{ if(e.target.closest&&e.target.closest('[d
 #memberWelcome{position:fixed;inset:0;z-index:8600;isolation:isolate;color:var(--chalk)}
 #memberWelcome .mw-ground{position:absolute;inset:0;background:var(--ground)}
 #memberWelcome .mw-flight{position:absolute;margin:0;perspective:900px;transform-origin:center}
-#memberWelcome .mw-flight>.club-coin-button{width:100%;height:100%;min-height:0;pointer-events:none}
+#memberWelcome .mw-flight>.club-coin-button{flex:none;width:100%;height:100%;min-height:0;pointer-events:none}
 #memberWelcome .mw-spinning .club-coin-face:after{animation:mwCoinShine .95s ease-in-out infinite;opacity:.6}
 @keyframes mwCoinShine{0%{transform:translateX(-75%);opacity:.12}45%{opacity:.7}100%{transform:translateX(75%);opacity:.12}}
 #memberWelcome .mw-caption{position:absolute;bottom:calc(env(safe-area-inset-bottom) + 80px);left:20px;right:20px;text-align:center;font:400 13px var(--body);color:var(--muted)}
