@@ -88,6 +88,18 @@ try{
   /* v4.6.294: a reload (pull-to-refresh) keeps the card -- the first draw came before membership.js */
   await p.reload();await boot();
   ok(`${tag} after a reload the free-days card is still there`,await p.evaluate(()=>!!document.getElementById('mbTrial')));
+  /* v4.6.298: a preview member number, to see the card and the coin's engraving */
+  await p.evaluate(()=>{const pn=document.querySelector('#sbxBar .sx-panel');if(pn.hidden)document.querySelector('#sbxBar [data-sbx="tools"]').click();});await p.waitForTimeout(250);
+  await p.fill('#sbxBar .sx-no','120');await p.click('#sbxBar [data-sbx="no"]');await p.waitForTimeout(300);
+  await p.click('#sbxBar [data-sbx="member"]');await p.waitForTimeout(400);
+  await p.evaluate(()=>{view='sync';render();scrollTo(0,0);});await p.waitForTimeout(800);
+  let pv=await p.evaluate(()=>({label:document.querySelector('.club-member-label')?.textContent,no:document.querySelector('.club-number')?.textContent,coin:document.querySelector('.club-card [data-club-coin] .club-coin-number')?.textContent,real:SBX_RAW.get.call(localStorage,'showup:sbx-member-no')}));
+  ok(`${tag} Preview member No 120: the card reads MEMBER No 120 and the coin is engraved 120, in the test keys only`,/MEMBER/.test(pv.label)&&pv.no==='120'&&pv.coin==='120'&&!pv.real,pv);
+  if(SHOT&&w===402)await p.screenshot({path:`${SHOT}/tm-memberno.png`,clip:{x:0,y:0,width:402,height:520}});
+  await p.evaluate(()=>{const pn=document.querySelector('#sbxBar .sx-panel');if(pn.hidden)document.querySelector('#sbxBar [data-sbx="tools"]').click();});await p.waitForTimeout(250);
+  await p.click('#sbxBar [data-sbx="noclear"]');await p.click('#sbxBar [data-sbx="unmember"]');await p.waitForTimeout(300);
+  ok(`${tag} Clear: the preview number is gone`,await p.evaluate(()=>!sbxMemberNo()&&clubMembershipFacts().number!=='120'));
+  await p.evaluate(()=>{view='today';render();});await p.waitForTimeout(300);
   /* fold, then move the dot */
   await p.click('#sbxBar [data-sbx="fold"]');await p.waitForTimeout(200);
   let b0=await p.evaluate(()=>{const r=document.getElementById('sbxBar').getBoundingClientRect();return {w:r.width,x:r.left+r.width/2,y:r.top+r.height/2,folded:document.getElementById('sbxBar').classList.contains('sx-folded')};});

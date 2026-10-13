@@ -231,6 +231,9 @@ function clubNumberFormats(raw){
   const digits=raw.replace(/^0+(?=\d)/,''),number=digits.replace(/\B(?=(\d{3})+(?!\d))/g,',');return {number,reference:'SUP-'+digits,badge:'SUP–'+digits};
 }
 function clubMembershipFacts(){
+  /* v4.6.298: test mode can preview a member number (Tools), so the card and the coin's engraving can be seen */
+  const pv=typeof sbxMemberNo==='function'?sbxMemberNo():null;
+  if(pv){const id=clubNumberFormats(pv),raw=DB.settings.clubGuest?.since,date=raw?new Date(raw):new Date();return {number:id.number,reference:id.reference,since:Number.isFinite(date.getTime())?date.toLocaleDateString('en-US',{month:'short',year:'numeric',timeZone:'UTC'}).toUpperCase():'—',preview:true};}
   const user=session?.user,m=clubMembershipCache.get(clubMembershipKey());
   const raw=m?.joined_at||user?.created_at||(!user?DB.settings.clubGuest?.since:null),date=raw?new Date(raw):null;
   const id=user?clubNumberFormats(m?.member_no):null;
@@ -330,9 +333,9 @@ function clubCardHTML(){
   return `<section class="card club-card" aria-label="Your Showing Up Club profile">
     <div class="club-brand"><img src="assets/showuppp-wordmark-${dark?'dark':'light'}.svg" alt="ShowUppp">${typeof isMember!=='function'||isMember()?clubCoinHTML(String(displayNumber).replace(/,/g,'')):''}</div>
     <div class="club-person"><button type="button" class="club-avatar-button" data-club-picker aria-label="Edit profile icon" aria-expanded="false">${clubAvatarEditHTML(avatar)}</button><div class="club-identity"><div class="club-name-row"><h2>${hesc(DB.settings.name||'Your place in the club')}</h2><button type="button" class="club-profile-edit" data-club-edit aria-label="Edit profile" title="Edit profile">${icon('edit',16)}</button></div>
-    <button type="button" class="club-member-id" data-club-copy ${reference?'':'disabled'} aria-label="${reference?'Copy member reference '+reference:'Member number unavailable'}" title="${reference?'Copy '+reference:'Connect to load your member number'}"><span class="club-member-label">${user?(typeof isMember!=='function'||isMember()?'MEMBER ':'')+'N<span class="club-number-o">o</span>':'LOCAL PROFILE'}</span><strong class="club-number">${displayNumber}</strong></button></div></div>
+    <button type="button" class="club-member-id" data-club-copy ${reference?'':'disabled'} aria-label="${reference?'Copy member reference '+reference:'Member number unavailable'}" title="${reference?'Copy '+reference:'Connect to load your member number'}"><span class="club-member-label">${user||(typeof sbxMemberNo==='function'&&sbxMemberNo())?(typeof isMember!=='function'||isMember()?'MEMBER ':'')+'N<span class="club-number-o">o</span>':'LOCAL PROFILE'}</span><strong class="club-number">${displayNumber}</strong></button></div></div>
     <div class="club-membership">
-    <div class="club-facts"><div><span>${user?'SHOWING UP SINCE':'ON THIS DEVICE SINCE'}</span><strong class="club-since">${since}</strong></div><button type="button" data-club-history aria-label="View your logged workout days"><span>DAYS TRAINED</span><strong>${fmt(loggedDays())}</strong></button></div></div>
+    <div class="club-facts"><div><span>${user||(typeof sbxMemberNo==='function'&&sbxMemberNo())?'SHOWING UP SINCE':'ON THIS DEVICE SINCE'}</span><strong class="club-since">${since}</strong></div><button type="button" data-club-history aria-label="View your logged workout days"><span>DAYS TRAINED</span><strong>${fmt(loggedDays())}</strong></button></div></div>
     <div class="club-picker" hidden><div class="club-picker-heading"><b>Make it yours.</b><button type="button" class="club-text-button" data-club-close>Done</button></div><div class="club-icon-grid" role="group" aria-label="Profile icons">${CLUB_ICONS.map(i=>`<button type="button" data-club-icon="${i[0]}" aria-pressed="${i[0]===avatar[0]}">${clubIconHTML(i,i[0]===avatar[0])}<span>${i[1]}</span></button>`).join('')}</div><p class="note">One little companion. Your choice stays with your profile.</p></div>
   </section>`;
 }

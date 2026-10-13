@@ -1,5 +1,12 @@
 # ShowUppp — changelog
 
+## v4.6.298 — Preview a member number in test mode
+
+- Test mode's Tools gain **Member No**: type a number (say 120) and Preview. The membership card then reads MEMBER No 120 with "Showing up since", the coin is engraved 120 (shown once you're a test member), and the Subscribe screen's coin and the welcome after a test purchase use it too. Clear turns it off.
+- Test mode is signed out, so it had only "Guest" to engrave. The preview lives in the test keys only: Exit removes it, the real account and the registry are untouched, and no real number is invented.
+- The test bar no longer hides itself while you type in its own field.
+- check-test-mode: Preview 120 → MEMBER No 120 and a coin engraved 120, nothing in the real keys; Clear removes it.
+
 ## v4.6.297 — Keep the welcome coin round
 
 - Removed an inherited 60px flex basis that squeezed the 84px-tall welcome coin horizontally. Its unprojected width and height now stay equal throughout the enlargement and landing.
