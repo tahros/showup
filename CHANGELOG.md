@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.296 — A full spin, moving silver light
+
+- Fixed the welcome coin taking a short partial turn: matching rotation keyframes now preserve its starting pose and perform at least two full turns before landing number-side forward.
+- Added a brighter traveling reflection and reduced the stationary pause before flight. Member-number reveal, reduced-motion behavior and test-only billing boundaries remain unchanged.
+- Added browser regression measurements for rotation distance and moving shine, in addition to landing and cleanup checks.
+
 ## v4.6.295 — Your coin, your member number (test subscriptions)
 
 - Monthly and Yearly no-charge test subscriptions now lift the existing coin from Join the club, enlarge and spin it, engrave the registry number, and carry it into the Settings profile. The profile number reveals from blank space, followed by one light sweep.

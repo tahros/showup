@@ -179,10 +179,16 @@ async function memberWelcome({wall,rect,angle,key}){
     else{
       void play(layer.querySelector('.mw-ground'),[{opacity:0},{opacity:1}],{duration:450});
       if(cover)void play(cover,[{opacity:1},{opacity:0}],{duration:450});
-      const spin=play(rotor,[{transform:angle==='none'?'rotateY(0deg)':angle},{transform:'rotateY(900deg)'}],{duration:1950,easing:'cubic-bezier(.15,.35,.18,1)'});
+      // Matrix interpolation takes the shortest arc and discards whole turns.
+      // Use matching rotateY functions, preserving the source pose and at least two turns.
+      const matrix=new DOMMatrix(angle&&angle!=='none'?angle:undefined);
+      const startAngle=Math.atan2(matrix.m31,matrix.m11)*180/Math.PI;
+      const endAngle=180+360*Math.ceil((startAngle+720-180)/360);
+      flight.classList.add('mw-spinning');
+      const spin=play(rotor,[{transform:`rotateY(${startAngle}deg)`},{transform:`rotateY(${endAngle}deg)`}],{duration:1950,easing:'cubic-bezier(.3,0,.3,1)'});
       await play(flight,[{transform:'none'},{transform:middle}],{duration:750,easing:'cubic-bezier(.4,0,.2,1)'});await sleep(550);
       if(facts.reference)void play(engraving,[{opacity:0,filter:'blur(2px)'},{opacity:1,filter:'blur(0)'}],{duration:600});
-      await spin;await sleep(350);cover?.remove();
+      await spin;await sleep(100);cover?.remove();
       void play(layer.querySelector('.mw-ground'),[{opacity:1},{opacity:0}],{duration:600});
       await play(flight,[{transform:middle},{transform:landing}],{duration:950,easing:'cubic-bezier(.4,0,.2,1)'});
     }
@@ -235,6 +241,8 @@ document.addEventListener('click',e=>{ if(e.target.closest&&e.target.closest('[d
 #memberWelcome .mw-ground{position:absolute;inset:0;background:var(--ground)}
 #memberWelcome .mw-flight{position:absolute;margin:0;perspective:900px;transform-origin:center}
 #memberWelcome .mw-flight>.club-coin-button{width:100%;height:100%;min-height:0;pointer-events:none}
+#memberWelcome .mw-spinning .club-coin-face:after{animation:mwCoinShine .95s ease-in-out infinite;opacity:.6}
+@keyframes mwCoinShine{0%{transform:translateX(-75%);opacity:.12}45%{opacity:.7}100%{transform:translateX(75%);opacity:.12}}
 #memberWelcome .mw-caption{position:absolute;bottom:calc(env(safe-area-inset-bottom) + 80px);left:20px;right:20px;text-align:center;font:400 13px var(--body);color:var(--muted)}
 #memberWelcome .mw-skip{position:absolute;bottom:calc(env(safe-area-inset-bottom) + 22px);left:50%;transform:translateX(-50%);min-height:44px;padding:10px 18px;border:1px solid var(--line);border-radius:16px;background:var(--surface);color:var(--chalk);font:500 14px var(--body)}
 .club-number .mw-digit{display:inline-block}.club-number.mw-number-shine{position:relative}
