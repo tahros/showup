@@ -1,5 +1,10 @@
 # ShowUppp — changelog
 
+## v4.6.304 — Founding members see their membership
+- Before launch, a founding member now sees Settings → Account & data → Membership: "Founding member · Free for good". The screen shows the coin, Plan Founding, Member No, member since, "Free, for good" and "None needed" for renewal, with no plan switch, cancel, restore or Apple billing text.
+- Everyone else still sees nothing about membership until launch.
+- Tests: test-membership.js (founding before launch: the row, the screen, no free-days line or Join).
+
 ## v4.6.303 — Membership in Settings
 - Settings → Account & data now opens with a Membership row (plan, price, "Renews …" or "Ends …"), which opens one Membership screen: a status badge (Active, Ends, Payment issue), plan, price, member since, renews or ends on, billed through Apple ID.
 - Change plan: both plans, the current one marked. Yearly → Monthly starts when the year ends (shown as "Then Monthly", with Keep Yearly); Monthly → Yearly starts today.

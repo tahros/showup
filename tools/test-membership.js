@@ -225,5 +225,13 @@ async function trainLog(b){
  { const b=await boot({days:record(40)});b.run(`view='sync';render();`);await settle();
    ok('flag off: no Membership row in Settings',!b.d.querySelector('.mbm-entry'));
  }
+ /* v4.6.304: before launch a founding member sees theirs -- true, and nothing to sell */
+ { const b=await boot({days:record(40),settings:{founding:'2026-09-02'}});b.run(`view='sync';render();`);await settle();
+   const e=b.d.querySelector('.mbm-entry');
+   ok('flag off, founding: the Membership row shows Founding member, free for good',!!e&&/Founding member/.test(e.textContent)&&/Free for good/.test(e.textContent),e&&e.textContent.trim());
+   b.click(e);await settle();const m=b.d.getElementById('mbManage');
+   ok('flag off, founding: the screen says free for good, with nothing to buy, restore or cancel',!!m&&/Free, for good/.test(m.textContent)&&!m.querySelector('[data-mbm-plan],[data-mbm-cancel],[data-mb-restore],[data-mbm-apple]')&&!/Apple ID/.test(m.textContent));
+   ok('flag off, founding: still no free-days line or Join anywhere',!b.d.getElementById('mbRow')&&!b.d.querySelector('[data-mb-open]'));
+ }
  console.log(fails?`\n${fails} FAILED`:'\nall passed'); process.exit(fails?1:0);
 })().catch(e=>{console.error(e);process.exit(1);});
