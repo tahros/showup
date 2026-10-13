@@ -96,6 +96,7 @@ function renderSync(){
       </span>
       <div class="note" style="margin-top:10px">When you press Finish, the workout is saved to Apple Health: your lifting as strength training, and each run, ride, row, swim or walk as its own workout with its time and distance. From now on only; nothing earlier is sent. ShowUppp never reads your Health data.</div>
     </div>`; })():''}
+    ${typeof membershipSettingsHTML==='function'?membershipSettingsHTML():''}
     <h2>Account & cloud sync</h2>
     <div class="card">
       ${session?`
@@ -343,7 +344,7 @@ function clubCardHTML(){
    survives. Unknown/new Settings sections stay visible rather than disappearing. */
 function clubArrangeSettings(){
   const host=document.getElementById('view');if(!host||!host.querySelector('.club-card')||host.querySelector('.club-settings-groups'))return;
-  const groups=[['profile','Profile','Name & body details',['You']],['appearance','Appearance','Theme, units & colors',['Display','Body-part colors','Week starts on','Mascot']],['training','Training','Feedback & planning',['Workout feedback','Planning','Holding weight','Avoided exercises','What you train','Bars','Same exercise, two names']],['connections','Connections','Health & reminders',['Reminders','Apple Health']],['account','Account & data','Sign-in, sync & backups',['Account & cloud sync','Your data']]];
+  const groups=[['profile','Profile','Name & body details',['You']],['appearance','Appearance','Theme, units & colors',['Display','Body-part colors','Week starts on','Mascot']],['training','Training','Feedback & planning',['Workout feedback','Planning','Holding weight','Avoided exercises','What you train','Bars','Same exercise, two names']],['connections','Connections','Health & reminders',['Reminders','Apple Health']],['account','Account & data','Membership, sign-in & backups',['Membership','Account & cloud sync','Your data']]];
   const wrap=document.createElement('div');wrap.className='club-settings-groups';host.querySelector('.club-card').after(wrap);
   for(const [key,title,sub,headings] of groups){const nodes=[];for(const h of Array.from(host.children).filter(n=>n.tagName==='H2'&&headings.includes(n.textContent.trim()))){nodes.push(h);let n=h.nextElementSibling;while(n&&n.tagName!=='H2'&&!n.classList.contains('assetcredits')){const next=n.nextElementSibling;nodes.push(n);n=next;}}
     if(!nodes.length)continue;const d=document.createElement('details');d.className='club-settings-group';d.dataset.clubGroup=key;d.open=clubOpenGroups.has(key);const s=document.createElement('summary');s.innerHTML=`<span><b>${title}</b><small>${sub}</small></span><span aria-hidden="true">+</span>`;d.append(s);const content=document.createElement('div');content.className='club-group-content';nodes.forEach(n=>content.append(n));d.append(content);d.addEventListener('toggle',()=>{if(d.open)clubOpenGroups.add(key);else clubOpenGroups.delete(key)});wrap.append(d);
