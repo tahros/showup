@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.309 — Grow keeps your free-weight load at 6 reps
+- The plan writer's Grow minimum is now 6 reps on barbell, EZ-bar, Smith and dumbbell lifts (8 before). Incline Barbell at 175 × 6 6 6 4 now plans 175 × 6s instead of dropping to 165 × 8; Incline Dumbbell at 65 × 6 7 6 keeps 65. The weight climbs by the reps.
+- Dips, cables, machines and bodyweight keep the 8 minimum (the "no way" to Dip 6 6 6 6 6 stands). Lose weight (12) and Strength (none) are unchanged.
+- The server's instructions to the writer say the same (barbell and dumbbell compounds 6–10; keep a weight that gave 6+ and add a rep), so the Edge Function redeploys.
+- Tests: test-sound-plan.js covers the 175 × 6 case and which lifts get 6.
+
 ## v4.6.308 — Tips under the bars; the coin lands from Settings
 - A tip in the page now passes under the header and the tab bar as it scrolls, like the page does. A tip whose target sits just under the header opens below it rather than behind the header. Tips on the bars themselves, or in a pop-up, stay on top.
 - Fix: joining from Settings while scrolled down flew the coin off the top of the screen and then dropped the page back to the bottom. The pop-up lock (v4.6.301) still held the page at the old scroll; the welcome now moves it to the top first, so the coin lands on the club card in view and the page stays there.

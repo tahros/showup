@@ -52,6 +52,16 @@ const WRITER_STEP_KG=2.5;
 const WRITER_NEW_MAX=2;
 /* v4.6.196: the fewest reps a working set is written at, by objective (0 = no floor) */
 const WRITER_REP_FLOOR={grow:8,lose:12,keep:0,strength:0};
+/* v4.6.309: GROW ALLOWS 6 ON FREE WEIGHTS. 175 x 6 6 6 4 on incline barbell came back as 165 x 8:
+   the 8 floor took 10 lb off a weight the maker had just earned, and 6s build muscle about as well
+   as 8s. On a barbell, EZ bar, Smith or dumbbells the Grow floor is 6, so the load stands and
+   climbs by the reps. Dips, cables, machines and bodyweight keep 8 -- the maker's "no way" to
+   Dip 6 6 6 6 6 (v4.6.196) stands. */
+const WRITER_FREE_KIT=['barbell','ezbar','smith','dumbbell'],WRITER_GROW_FREE_FLOOR=6;
+function writerRepFloor(objective,ex){
+  const f=WRITER_REP_FLOOR[objective]||0;
+  return objective==='grow'&&ex&&typeof equipOf==='function'&&WRITER_FREE_KIT.includes(equipOf(ex))?Math.min(f,WRITER_GROW_FREE_FLOOR):f;
+}
 /* v3.3.444: "Keep going" is gone from the row. It was the objective of having
    no objective, and the maker never chose it; a stored 'keep' from before
    this release reads as Grow, the default, so no one lands with nothing lit. */
@@ -677,7 +687,7 @@ function writerCheck(resp, ctx){
          same weight (reps before load), and the read-back says so. Warm-ups,
          timed holds and cardio are not working sets. Other objectives keep
          their own ranges (strength is meant to be low). */
-      const floorFit=writerFloorFit(r.ex, r.lines, WRITER_REP_FLOOR[payload.objective]||0, payload.objective);
+      const floorFit=writerFloorFit(r.ex, r.lines, writerRepFloor(payload.objective,r.ex), payload.objective);
       r.lines=floorFit.lines; notes.push(...floorFit.notes);
       /* v4.6.194: A HELD EXERCISE DOES NOT GO UP, WHATEVER CAME BACK. Any line
          heavier than the held weight is brought down to it (warm-ups under it

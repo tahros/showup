@@ -38,7 +38,7 @@ test('Dip: BW+35 for 8s, and three sets -- the usual -- not four',`/BW \\+35 lb 
 test('five exercises, 17 sets: the fifth is recommended from the record',`exs.length===5&&pwSetCount(B.rows)===17&&exs.includes('Chest Fly')&&/100 lb × 12 12 12/.test(txt('Chest Fly'))`);
 test('...and Checks names it',`B.notes.some(n=>/^Chest Fly: recommended for mid chest to reach your 17 sets\\.$/.test(n))`);
 test('Bench: 135 stays, four working sets after the warm-up',`/95 lb × 10/.test(txt('Barbell Bench Press'))&&/135 lb × 8 8 8 8(?! 8)/.test(txt('Barbell Bench Press'))`);
-test('every exercise has three to five working sets, none under 8 reps',`B.rows.every(r=>nSets(r)>=3&&nSets(r)<=5&&work(r).every(l=>l.reps.every(n=>n>=8)))`);
+test('every exercise has three to five working sets, none under its floor (8; 6 on free weights)',`B.rows.every(r=>nSets(r)>=3&&nSets(r)<=5&&work(r).every(l=>l.reps.every(n=>n>=writerRepFloor('grow',r.ex))))`);
 test('order: bar, dip, the flies, core last',`exs.join()==='Barbell Bench Press,Dip,Cable Fly Down,Chest Fly,Hanging Leg Raise'||exs.join()==='Barbell Bench Press,Dip,Chest Fly,Cable Fly Down,Hanging Leg Raise'`);
 run(`console.log(pwText(B.rows));console.log(JSON.stringify(B.notes,null,1))`);
 console.log(checks+' checks');process.exit(0);

@@ -839,7 +839,7 @@ function pfRecommend(day,parts,focus,lockedText,goal){
   const key=ex=>{const p=homePartOf(ex);return [p==='Sixpack'?1:0,mCount(ex),(pwTier(ex)>=2)===wantIso(ex)?0:1,done(ex)?0:1,pCount(p)];};
   const idx=new Map(pool.map((ex,i)=>[ex,i]));
   pool.sort((x,y)=>{const a=key(x),b=key(y);for(let k=0;k<a.length;k++)if(a[k]!==b[k])return a[k]-b[k];return (SEED.exLast?.[y]||'').localeCompare(SEED.exLast?.[x]||'')||idx.get(x)-idx.get(y);});
-  const ex=pool[0],n=3,reps=Math.max(fl,pwTier(ex)>=2?12:10);
+  const ex=pool[0],n=3,reps=Math.max(typeof writerRepFloor==='function'?writerRepFloor(pw().objective,ex):fl,pwTier(ex)>=2?12:10);
   const row=done(ex)?pwExerciseRow(ex,n):pwRead(`${ex}\n  by feel × ${Array.from({length:n},()=>reps).join(' ')}`)[0];
   if(!row||row.kind!=='ex')break;delete row.added;
   day.rows.splice(pwPlaceIndex(day.rows,ex),0,row);added.push(row);
@@ -979,7 +979,7 @@ function pfValidateCandidate(candidate,dates){
       the writer's lines do: from the record, lowering the load when it has to */
    {const fl=(typeof WRITER_REP_FLOOR!=='undefined'&&WRITER_REP_FLOOR[pw().objective])||0,lockedT=(src.locks||[]).map(i=>pwText([src.rows[i]]));
     if(fl)for(const r of day.rows){if(r.kind!=='ex'||!r.ex||lockedT.includes(pwText([r])))continue;
-     const fit=writerFloorFit(r.ex,r.lines,fl,pw().objective);r.lines=fit.lines;for(const n of fit.notes)if(!(day.notes=day.notes||[]).includes(n))day.notes.push(n);}}
+     const fit=writerFloorFit(r.ex,r.lines,typeof writerRepFloor==='function'?writerRepFloor(pw().objective,r.ex):fl,pw().objective);r.lines=fit.lines;for(const n of fit.notes)if(!(day.notes=day.notes||[]).includes(n))day.notes.push(n);}}
    /* a Check that counted reps before the sets were fitted no longer describes the day */
    if(day.notes)day.notes=day.notes.filter(n=>{const m=/^(.+): same .+ for (\d+) total reps, under your last (\d+)/.exec(n);if(!m)return true;const r=day.rows.find(x=>x.ex===m[1]);
     return !r||r.lines.filter(l=>!/warm|prep/i.test((l.qual||'')+(l.tag||''))).reduce((a,l)=>a+l.reps.reduce((x,y)=>x+y,0),0)===+m[2];});
