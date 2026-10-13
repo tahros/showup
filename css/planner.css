@@ -47,6 +47,10 @@
 /* v4.6.289: weight and reps on ONE line ("60 × 6"), wrapping only when a long run of reps can't fit */
 .sc-group-value{display:flex;flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:center;gap:3px 4px;width:100%;min-height:44px;padding:3px 0}
 .sc-group-value .sc-weight{font-size:13px;line-height:16px}
+/* v4.6.302: a run of reps sits UNDER its weight ("205 ×" over "8 8 8 8"). Side by side, a
+   four-rep Last and a four-rep Plan grew until they touched and read as one line. A single
+   rep stays on one line ("135 × 8"). */
+.sc-group-value:has(.sc-rep+.sc-rep){flex-direction:column;flex-wrap:nowrap;gap:2px}
 .sc-reps{display:flex;justify-content:center;gap:1px;flex-wrap:wrap;max-width:100%}
 .sc-table:not(:has(thead th:nth-child(4))) .sc-reps{gap:4px}
 .sc-group-value .sc-rep{font-size:12px;min-width:14px;padding:3px 1px;border-radius:5px}

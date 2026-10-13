@@ -1,5 +1,9 @@
 # ShowUppp — changelog
 
+## v4.6.302 — Reps sit under their weight
+- In the grouped set table, a run of reps now sits under its weight ("205 ×" over "8 8 8 8"). Side by side, a four-rep Last and a four-rep Plan grew until they touched and read as one line. A single rep stays on one line ("135 × 8").
+- New tools/check-set-runs.cjs at 320/402/430, light and dark.
+
 ## v4.6.301 — Join the club scrolls back up
 - Fix: on the Join the club screen, dragging down to scroll back up froze and the page behind slid (sometimes reloading). The pull-to-refresh and the bottom band ran underneath the paywall, because it wasn't counted as a pop-up. It now is (with the welcome animation and the owner dashboard), so the page behind is held still and the paywall scrolls on its own.
 - The paywall keeps its overscroll to itself.
