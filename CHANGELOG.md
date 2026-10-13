@@ -1,5 +1,9 @@
 # ShowUppp — changelog
 
+## v4.6.305 — A warmer welcome, in both themes
+- The welcome animation now says “Welcome to the club.” with more breathing room between Pip and the coin.
+- Pip is white in dark mode and blue in light mode. The silver coin, sound, and arrival into the membership card stay intact.
+
 ## v4.6.304 — Founding members see their membership
 - Before launch, a founding member now sees Settings → Account & data → Membership: "Founding member · Free for good". The screen shows the coin, Plan Founding, Member No, member since, "Free, for good" and "None needed" for renewal, with no plan switch, cancel, restore or Apple billing text.
 - Everyone else still sees nothing about membership until launch.
