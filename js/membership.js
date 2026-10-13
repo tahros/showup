@@ -228,3 +228,8 @@ document.addEventListener('click',e=>{ if(e.target.closest&&e.target.closest('[d
 .mb-row{font-size:12px;color:var(--muted);margin:2px 0 10px;text-align:center}.mb-row .linkbtn{border:0;background:none;color:var(--accent-ink);font:inherit;padding:0;cursor:pointer}`;
   document.head.appendChild(s);
 })();
+
+/* v4.6.294: this file loads after app.js, whose boot draws Today before trialCardHTML exists -- so
+   after a reload (pull-to-refresh) the free-days card was missing until something else redrew.
+   Once loaded, draw Today again if the card belongs there. */
+try{ if(typeof view!=='undefined'&&view==='today'&&typeof render==='function'&&document.getElementById('view')&&!document.getElementById('mbTrial')&&trialCardHTML()) render({soft:true}); }catch(e){}

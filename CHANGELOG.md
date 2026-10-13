@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.294 — The free-days card survives pull-to-refresh
+
+- After a pull-to-refresh (a reload) the "N of 20 free days" card was sometimes missing from Today. The card is built by membership.js, which loads after app.js -- and app.js draws Today on boot before membership.js has run, so that first draw had no card. It appeared only when something else redrew Today.
+- membership.js now redraws Today once, as it loads, when the card belongs there and is missing.
+- check-test-mode: after a reload the card is still there (red without the fix).
+
 ## v4.6.293 — The Subscribe screen wears the real wordmark
 
 - The Subscribe screen's header typed the name out ("SHOWUPPP MEMBER", spaced mono capitals) with a "Not now" text link -- off brand. It is now the official Show/Uppp wordmark (the same approved artwork as the membership card, light or dark with the theme) at 73px wide -- Sungjee's pick, 30% under the card's size and under the brand kit's 100px minimum on purpose -- and a round × close, named "Not now" for screen readers.

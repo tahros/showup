@@ -84,6 +84,9 @@ try{
   t=await p.evaluate(()=>({card:document.getElementById('mbTrial')?.textContent||'',ms:!!document.querySelector('#view .msmoment'),trained:(DB.days[todayISO]?.w||[]).length}));
   ok(`${tag} Today after training: the free-days card (20 of 20), no DAY 20 card`,t.trained>0&&/20 of 20 free days/.test(t.card)&&!t.ms,t);
   if(SHOT&&w===402)await p.screenshot({path:`${SHOT}/tm-today-trained.png`});
+  /* v4.6.294: a reload (pull-to-refresh) keeps the card -- the first draw came before membership.js */
+  await p.reload();await boot();
+  ok(`${tag} after a reload the free-days card is still there`,await p.evaluate(()=>!!document.getElementById('mbTrial')));
   /* fold, then move the dot */
   await p.click('#sbxBar [data-sbx="fold"]');await p.waitForTimeout(200);
   let b0=await p.evaluate(()=>{const r=document.getElementById('sbxBar').getBoundingClientRect();return {w:r.width,x:r.left+r.width/2,y:r.top+r.height/2,folded:document.getElementById('sbxBar').classList.contains('sx-folded')};});
