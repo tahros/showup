@@ -140,7 +140,7 @@ async function memberBuy(plan){
       const wall=document.getElementById('paywall'),source=wall?.querySelector('[data-club-coin]'),rect=source?.getBoundingClientRect(),angle=source?getComputedStyle(source.querySelector('.club-coin-rotor')).transform:'none';
       wall?.remove();
       sbxMemberSet(plan);
-      view='sync';lastView='sync';render();window.scrollTo(0,0); // our overlay owns the transition
+      view='sync';lastView='sync';render();window.scrollTo(0,0);if(typeof modalLockScroll==='function')modalLockScroll(0); // our overlay owns the transition
       await memberWelcome({wall,rect,angle,key});
       toast(`Test member (${plan}). No charge.`);return 'test';
     }finally{mbBuying=false;}
@@ -179,7 +179,8 @@ async function memberWelcome({wall,rect,angle,key}){
     const rotor=flight.querySelector('.club-coin-rotor'),engraving=flight.querySelector('.club-coin-number');engraving.style.opacity='0';
     if(wall){cover=wall;cover.inert=true;cover.setAttribute('aria-hidden','true');cover.style.animation='none';document.body.appendChild(cover);}
     document.body.appendChild(layer);layer.querySelector('.mw-skip').onclick=cancel;layer.querySelector('.mw-skip').focus({preventScroll:true});
-    const start=rect&&rect.width?rect:{left:innerWidth/2-42,top:120,width:84},size=start.width;
+    /* v4.6.308: the paywall's coin may be scrolled out of sight (small screens, buy button at the foot): then the coin enters from the top of the view, not from off screen */
+    const start=rect&&rect.width&&rect.bottom>0&&rect.top<innerHeight?rect:{left:innerWidth/2-42,top:Math.max(24,Math.min(120,innerHeight*.15)),width:rect&&rect.width||84},size=start.width;
     Object.assign(flight.style,{left:start.left+'px',top:start.top+'px',width:size+'px',height:size+'px'});
     const centerY=Math.min(innerHeight*.25,210),end=target.getBoundingClientRect(),midX=innerWidth/2-start.left-size/2,midY=centerY-start.top-size/2;
     layer.style.setProperty('--mw-center',centerY+'px');

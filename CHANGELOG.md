@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.308 — Tips under the bars; the coin lands from Settings
+- A tip in the page now passes under the header and the tab bar as it scrolls, like the page does. A tip whose target sits just under the header opens below it rather than behind the header. Tips on the bars themselves, or in a pop-up, stay on top.
+- Fix: joining from Settings while scrolled down flew the coin off the top of the screen and then dropped the page back to the bottom. The pop-up lock (v4.6.301) still held the page at the old scroll; the welcome now moves it to the top first, so the coin lands on the club card in view and the page stays there.
+- On a small screen, when the paywall's coin is scrolled out of sight, the coin now enters from the top of the view.
+- New tools/check-join-landing.cjs; check-tip-scroll.cjs covers the layering and the side a tip opens on.
+
 ## v4.6.307 — Member numbers fit the coin
 - Short member numbers now sit together at the bottom center of the coin. Longer numbers gradually widen along the arc and scale down to fit.
 - Your member number stays exactly as assigned, with no added zeros or removed digits. The silver finish and spinning behavior are unchanged.

@@ -2752,6 +2752,11 @@ function modalOpen(){
      drag down to scroll the paywall back up was taken as a pull and froze. */
   return !!(document.querySelector('.pw-add-sheet,#paywall,#mbManage,#memberWelcome,#ownerDash')||(ov&&ov.style.display!=='none'&&ov.getClientRects().length)||document.querySelector('body > dialog[open]'));
 }
+/* v4.6.308: where the page should be when the pop-up lets go. Joining from Settings scrolled
+   down: the welcome flies the coin to the club card at the TOP, but the lock still held the page
+   at the old scroll, so the card sat off screen above, the coin flew off the top to meet it, and
+   letting go put the page back at the bottom. The welcome moves the held page to the top first. */
+function modalLockScroll(y){_modalY=y;if(_modalOn)document.body.style.top=(-y)+'px';else window.scrollTo({top:y,left:0,behavior:'instant'});}
 function syncModalLock(){
   const on=modalOpen();if(on===_modalOn)return;_modalOn=on;
   const de=document.documentElement,bs=document.body.style;

@@ -1033,6 +1033,9 @@ function tipPlace(fresh){
   const r=el.getBoundingClientRect(),{host,mode}=tipHost(el);
   if(n.parentNode!==host){host.append(ring,n);}
   const pos=mode==='fixed'?'fixed':'absolute';n.style.position=ring.style.position=pos;
+  /* v4.6.308: a tip in the page passes UNDER the header and the tab bar (z 20/30) as it scrolls,
+     like the page itself; one on the bars or in a pop-up stays on top */
+  const under=mode==='page';n.style.zIndex=under?'19':'';ring.style.zIndex=under?'18':'';
   let ox=0,oy=0;
   if(mode==='page'){ox=scrollX;oy=scrollY;}
   else if(mode==='in'){const h=host.getBoundingClientRect();ox=host.scrollLeft-h.left-host.clientLeft;oy=host.scrollTop-h.top-host.clientTop;}
@@ -1042,7 +1045,10 @@ function tipPlace(fresh){
   ring.style.setProperty('--tip-sx',((r.width+28)/(r.width+8)).toFixed(4));ring.style.setProperty('--tip-sy',((r.height+28)/(r.height+8)).toFixed(4));
   const w=n.offsetWidth,h=n.offsetHeight,left=Math.max(14,Math.min(innerWidth-14-w,r.left+r.width*c.ax-w/2));
   let dir=tipCur.dir;
-  if(fresh||!dir){dir=c.dir;if(dir==='down'&&r.top-h-14<8)dir='up';if(dir==='up'&&r.bottom+16+h>innerHeight-8)dir='down';tipCur.dir=dir;}
+  if(fresh||!dir){
+    /* the room above ends at the header and below at the tab bar, not the screen's edges */
+    const top=under?(document.querySelector('header')?.getBoundingClientRect().bottom||0):0,bottom=under?(document.getElementById('nav')?.getBoundingClientRect().top||innerHeight):innerHeight;
+    dir=c.dir;if(dir==='down'&&r.top-h-14<top+8)dir='up';if(dir==='up'&&r.bottom+16+h>bottom-8)dir='down';tipCur.dir=dir;}
   n.classList.toggle('up',dir==='up');n.classList.toggle('down',dir==='down');
   n.style.left=px(left+ox);n.style.top=px((dir==='down'?r.top-h-14:r.bottom+16)+oy);
   const ax=Math.max(18,Math.min(w-32,r.left+r.width*c.ax-left-7));

@@ -28,6 +28,16 @@ try{for(const [w,h] of [[402,874],[320,640]]){const tag=`${w}:`;
  ok(`${tag} while the page scrolls, the bubble and ring hold their place against Add set every frame`,f.length>20&&moved>3&&spread(0)<=1&&spread(1)<=1,{frames:f.length,scrolls:moved,bubble:spread(0),ring:spread(1)});
  s=await p.evaluate(()=>{const n=document.querySelector('.tipn'),r=n.getBoundingClientRect(),a=document.getElementById('addrep').getBoundingClientRect();return {k:n.dataset.tip,below:r.top>=a.bottom,under:document.elementFromPoint(r.left+r.width/2,r.top+r.height/2)?.closest('.tipn')!=null};});
  ok(`${tag} still the same tip, still under the button, still on top`,s.k==='set'&&s.below&&s.under,s);
+ /* v4.6.308: a page tip passes under the header and the tab bar; it opens below a target near the header */
+ const z=await p.evaluate(()=>{const n=document.querySelector('.tipn'),r=document.querySelector('.tipr');return {n:+getComputedStyle(n).zIndex,r:+getComputedStyle(r).zIndex,hd:+getComputedStyle(document.querySelector('header')).zIndex,nav:+getComputedStyle(document.getElementById('nav')).zIndex};});
+ ok(`${tag} the bubble and ring sit under the header and the tab bar`,z.n<z.hd&&z.r<z.hd&&z.n<z.nav,z);
+ await p.evaluate(()=>{const a=document.getElementById('addrep'),hb=document.querySelector('header').getBoundingClientRect().bottom;scrollBy(0,a.getBoundingClientRect().top-hb-10);});await p.waitForTimeout(200);
+ const hit=await p.evaluate(()=>{const n=document.querySelector('.tipn').getBoundingClientRect(),hd=document.querySelector('header').getBoundingClientRect();const el=document.elementFromPoint(n.left+n.width/2,Math.max(1,hd.top+hd.height/2));return {covered:n.top<hd.bottom,headerOnTop:!!el?.closest('header')};});
+ ok(`${tag} scrolled under the header, the header covers the tip, not the other way round`,!hit.covered||hit.headerOnTop,hit);
+ await p.evaluate(()=>{tipCur.dir=null;TIP_BY.set.dir='down';tipPlace(true);});
+ const d=await p.evaluate(()=>{const n=document.querySelector('.tipn').getBoundingClientRect();return {dir:tipCur.dir,top:n.top,hb:document.querySelector('header').getBoundingClientRect().bottom};});
+ await p.evaluate(()=>{TIP_BY.set.dir='up';tipPlace(true);});
+ ok(`${tag} a tip that would open above a target right under the header opens below it instead`,d.dir==='up'&&d.top>=d.hb,d);
  /* a tab-bar target stays fixed */
  const fx=await p.evaluate(()=>{const n=document.createElement('span');document.getElementById('nav').append(n);return tipHost(n).mode;});
  ok(`${tag} a target on the tab bar keeps a fixed tip`,fx==='fixed',fx);
