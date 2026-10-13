@@ -1,5 +1,14 @@
 # ShowUppp — changelog
 
+## v4.6.303 — Membership in Settings
+- Settings → Account & data now opens with a Membership row (plan, price, "Renews …" or "Ends …"), which opens one Membership screen: a status badge (Active, Ends, Payment issue), plan, price, member since, renews or ends on, billed through Apple ID.
+- Change plan: both plans, the current one marked. Yearly → Monthly starts when the year ends (shown as "Then Monthly", with Keep Yearly); Monthly → Yearly starts today.
+- Cancel membership asks first and says what stays: a member until the end date, and everything logged stays theirs. Once cancelled, the end date replaces the renewal date and Resume membership appears.
+- Founding members see "Free for good" with nothing to cancel; non-members see their free days and Join the club.
+- Apple owns the subscription: in the App Store version Switch, Cancel and Resume open Apple's subscription sheet. Test mode acts them out with no charge.
+- The "Member" line at the top of Settings links to the screen; the screen counts as a pop-up for page gestures.
+- Tests: test-membership.js (row, screen, hand-off, cancelled, founding, non-member, flag off); new tools/check-membership-screen.cjs (test-mode flows at 320/402/430).
+
 ## v4.6.302 — Reps sit under their weight
 - In the grouped set table, a run of reps now sits under its weight ("205 ×" over "8 8 8 8"). Side by side, a four-rep Last and a four-rep Plan grew until they touched and read as one line. A single rep stays on one line ("135 × 8").
 - New tools/check-set-runs.cjs at 320/402/430, light and dark.

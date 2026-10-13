@@ -185,5 +185,45 @@ async function trainLog(b){
  { const b=await boot({preview:true,days:record(40),settings:{founding:'2026-09-26'}});
    ok('preview (flag off): acts as a new user on this device, founding ignored', await trainLog(b)==='clicked' && b.wall() && b.today()===0);
  }
+ /* v4.6.303: Settings → Account & data → Membership: the plan, the price, renews or ends, change plan, cancel */
+ { const now=Date.now(),until=now+200*864e5;
+   const b=await boot({live:true,days:record(40),store:{'showup:entitlement':JSON.stringify({status:'active',until,plan:'yearly',since:now-165*864e5,renews:true})}});
+   b.run(`view='sync';render();`);await settle();
+   const grp=b.d.querySelector('[data-club-group=account]'),entry=b.d.querySelector('[data-mbm-open].mbm-entry');
+   ok('member: the Membership row sits first in Account & data, with plan, price and the renewal date',!!entry&&!!grp&&grp.contains(entry)&&/Yearly · \$29\.99 a year/.test(entry.textContent)&&/Renews /.test(entry.textContent),entry&&entry.textContent.trim());
+   b.click(entry);await settle();
+   const m=b.d.getElementById('mbManage'),rows=m?[...m.querySelectorAll('.mbm-row')].map(r=>r.textContent.trim()):[];
+   ok('member: the screen shows plan, price, member since, renews, billed through Apple ID',!!m&&['Plan','Price','Member since','Renews','Billed through'].every(k=>rows.some(r=>r.startsWith(k)))&&/Active/i.test(m.querySelector('.mbm-pill').textContent),JSON.stringify(rows));
+   ok('member: Change plan offers both plans with the current one marked, and Cancel membership',m.querySelectorAll('[data-mbm-plan]').length===2&&/Current/.test(m.querySelector('[data-mbm-plan=yearly]').textContent)&&!!m.querySelector('[data-mbm-cancel]'));
+   b.click('[data-mbm-plan=monthly]');await settle();
+   ok('member: picking Monthly says when it starts (when the year ends) and names the price on the button',/when this year ends/.test(b.d.querySelector('.mbm-when').textContent)&&/Switch to Monthly · \$4\.99 a month/.test(b.d.querySelector('[data-mbm-switch]').textContent));
+   const before=b.w.localStorage.getItem('showup:entitlement');b.click('[data-mbm-switch]');b.click('[data-mbm-cancel]');await settle();
+   ok('outside test mode, Switch and Cancel hand off to Apple and change nothing here',b.w.localStorage.getItem('showup:entitlement')===before&&!b.d.querySelector('.mbm-confirm'));
+   ok('the membership screen counts as a pop-up (no page gestures under it)',b.run('modalOpen()')===true);
+   b.click('[data-mbm-close]');await settle();
+   ok('Close removes it and the page is free again',!b.d.getElementById('mbManage')&&b.run('modalOpen()')===false);
+ }
+ { const now=Date.now();
+   const b=await boot({live:true,days:record(40),store:{'showup:entitlement':JSON.stringify({status:'active',until:now+20*864e5,plan:'monthly',renews:false})}});
+   b.run(`view='sync';render();`);await settle();
+   ok('cancelled: the Settings row says Ends, not Renews',/Ends /.test(b.d.querySelector('.mbm-entry').textContent)&&!/Renews/.test(b.d.querySelector('.mbm-entry').textContent));
+   b.click('.mbm-entry');await settle();
+   ok('cancelled: the screen shows the end date, Resume membership, and no Change plan or Cancel',/Ends /.test(b.d.querySelector('.mbm-pill').textContent)&&!!b.d.querySelector('[data-mbm-resume]')&&!b.d.querySelector('[data-mbm-plan]')&&!b.d.querySelector('[data-mbm-cancel]'));
+ }
+ { const b=await boot({live:true,days:record(40),settings:{founding:'2026-09-01'}});
+   b.run(`view='sync';render();`);await settle();
+   ok('founding (owner preview off, flag live): Founding member, free for good',/Founding member/.test(b.d.querySelector('.mbm-entry')?.textContent||''));
+   b.click('.mbm-entry');await settle();
+   ok('founding: no price to pay and nothing to cancel',/Free/.test(b.d.getElementById('mbManage').textContent)&&!b.d.querySelector('[data-mbm-cancel]')&&!b.d.querySelector('[data-mbm-plan]'));
+ }
+ { const b=await boot({live:true,days:record(12)});
+   b.run(`view='sync';render();`);await settle();
+   ok('non-member: the row shows the free days',/Free logged days: 12 of 20/.test(b.d.querySelector('.mbm-entry').textContent));
+   b.click('.mbm-entry');await settle();b.click('[data-mbm-join]');await settle();
+   ok('non-member: Join the club opens the Subscribe screen',!b.d.getElementById('mbManage')&&b.wall());
+ }
+ { const b=await boot({days:record(40)});b.run(`view='sync';render();`);await settle();
+   ok('flag off: no Membership row in Settings',!b.d.querySelector('.mbm-entry'));
+ }
  console.log(fails?`\n${fails} FAILED`:'\nall passed'); process.exit(fails?1:0);
 })().catch(e=>{console.error(e);process.exit(1);});
