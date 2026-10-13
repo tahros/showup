@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.299 — A warmer welcome to the club
+
+- The membership welcome now brings Pip along: a little hop, blue squares, a gentle chime and “You’re one of us.” The silver coin spins, then settles into your existing membership card.
+- The coin stays round throughout. Skip, reduced motion, sound preferences and cancellation remain supported.
+- Available through the existing test membership flow. Purchases remain unchanged and no real member numbers are created by the animation.
+
 ## v4.6.298 — Preview a member number in test mode
 
 - Test mode's Tools gain **Member No**: type a number (say 120) and Preview. The membership card then reads MEMBER No 120 with "Showing up since", the coin is engraved 120 (shown once you're a test member), and the Subscribe screen's coin and the welcome after a test purchase use it too. Clear turns it off.

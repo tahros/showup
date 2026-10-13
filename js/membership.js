@@ -131,6 +131,7 @@ async function memberBuy(plan){
   /* v4.6.283: in test mode Continue makes a free test membership, so the paid side can be tried */
   if(typeof SANDBOX!=='undefined'&&SANDBOX&&typeof sbxMemberSet==='function'){
     if(mbBuying||!MB_PRICES.some(p=>p.plan===plan))return 'busy';
+    if(typeof repTickInit==='function')repTickInit();
     mbBuying=true;
     try{
       const key=typeof clubMembershipKey==='function'?clubMembershipKey():'';
@@ -154,9 +155,15 @@ async function memberWelcome({wall,rect,angle,key}){
   const target=document.querySelector('.club-card [data-club-coin]'),number=document.querySelector('.club-card .club-number');
   if(!target||!number||!Element.prototype.animate){wall?.remove();return;}
   const facts=clubMembershipFacts(),motion=matchMedia('(prefers-reduced-motion: reduce)').matches||(typeof mascotMode==='function'&&mascotMode()!=='animated');
-  const animations=[],controller=new AbortController();let layer,cover;
+  const animations=[],voices=[],controller=new AbortController();let layer,cover;
   const valid=()=>key===clubMembershipKey()&&target.isConnected&&view==='sync'&&!document.hidden;
-  const cancel=()=>{controller.abort();animations.forEach(a=>a.cancel());};
+  const cancel=()=>{controller.abort();animations.forEach(a=>a.cancel());voices.forEach(s=>{try{s.stop();}catch(_e){}});};
+  const chime=(hz,delay,gain)=>{
+    if(motion||controller.signal.aborted||!loggerPrefs.sound||!_tickOn||!_tickCtx||_tickCtx.state!=='running')return;
+    try{const c=_tickCtx,t=c.currentTime+delay;for(const [ratio,level] of [[1,1],[1.006,.16],[1.59,.24]]){
+      const s=c.createOscillator(),g=c.createGain();s.frequency.value=hz*ratio;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(gain*level,t+.002);g.gain.exponentialRampToValueAtTime(.00001,t+.6);s.connect(g);g.connect(c.destination);s.onended=()=>{s.disconnect();g.disconnect();};voices.push(s);s.start(t);s.stop(t+.62);
+    }}catch(_e){}
+  };
   const sleep=ms=>new Promise(resolve=>{if(controller.signal.aborted){resolve();return;}const t=setTimeout(resolve,ms);controller.signal.addEventListener('abort',()=>{clearTimeout(t);resolve();},{once:true});});
   const play=(el,frames,options)=>{if(controller.signal.aborted)return Promise.resolve();const a=el.animate(frames,{fill:'forwards',...options});animations.push(a);return a.finished.catch(()=>{});};
   const change=()=>{if(!valid())cancel();};
@@ -166,14 +173,15 @@ async function memberWelcome({wall,rect,angle,key}){
     clubCoinDispose();
     target.style.visibility='hidden';if(facts.reference)number.style.visibility='hidden';
     layer=document.createElement('div');layer.id='memberWelcome';layer.setAttribute('role','dialog');layer.setAttribute('aria-modal','true');layer.setAttribute('aria-label','Your membership');
-    layer.innerHTML='<div class="mw-ground"></div><div class="club-brand mw-flight"></div><div class="mw-caption" role="status">Test membership · no charge</div><button type="button" class="mw-skip">Skip animation</button>';
+    layer.innerHTML='<div class="mw-ground"></div><div class="mw-party" aria-hidden="true"><img class="mw-pip" src="assets/mascot-blue.png" alt=""><div class="mw-squares"></div></div><div class="mw-copy"><small>THE SHOW UP CLUB</small><h2>You’re one of us.</h2><p>Life happens.<br>We show up.</p></div><div class="club-brand mw-flight"></div><div class="mw-caption" role="status">Test membership · no charge</div><button type="button" class="mw-skip">Skip animation</button>';
     const flight=layer.querySelector('.mw-flight');flight.innerHTML=clubCoinHTML(facts.reference?facts.number:'');flight.querySelector('button').tabIndex=-1;flight.setAttribute('aria-hidden','true');
     const rotor=flight.querySelector('.club-coin-rotor'),engraving=flight.querySelector('.club-coin-number');engraving.style.opacity='0';
     if(wall){cover=wall;cover.inert=true;cover.setAttribute('aria-hidden','true');cover.style.animation='none';document.body.appendChild(cover);}
     document.body.appendChild(layer);layer.querySelector('.mw-skip').onclick=cancel;layer.querySelector('.mw-skip').focus({preventScroll:true});
     const start=rect&&rect.width?rect:{left:innerWidth/2-42,top:120,width:84},size=start.width;
     Object.assign(flight.style,{left:start.left+'px',top:start.top+'px',width:size+'px',height:size+'px'});
-    const end=target.getBoundingClientRect(),midX=innerWidth/2-start.left-size/2,midY=Math.min(innerHeight*.4,320)-start.top-size/2;
+    const centerY=Math.min(innerHeight*.25,210),end=target.getBoundingClientRect(),midX=innerWidth/2-start.left-size/2,midY=centerY-start.top-size/2;
+    layer.style.setProperty('--mw-center',centerY+'px');
     const middle=`translate(${midX}px,${midY}px) scale(${Math.min(190,innerWidth*.55)/size})`,landing=`translate(${end.left-start.left+(end.width-size)/2}px,${end.top-start.top+(end.height-size)/2}px) scale(${end.width/size})`;
     if(motion){cover?.remove();layer.querySelector('.mw-ground').style.opacity='0';rotor.style.transform='rotateY(180deg)';flight.style.transform=landing;engraving.style.opacity='1';await sleep(120);}
     else{
@@ -185,12 +193,22 @@ async function memberWelcome({wall,rect,angle,key}){
       const startAngle=Math.atan2(matrix.m31,matrix.m11)*180/Math.PI;
       const endAngle=180+360*Math.ceil((startAngle+720-180)/360);
       flight.classList.add('mw-spinning');
-      const spin=play(rotor,[{transform:`rotateY(${startAngle}deg)`},{transform:`rotateY(${endAngle}deg)`}],{duration:1950,easing:'cubic-bezier(.3,0,.3,1)'});
-      await play(flight,[{transform:'none'},{transform:middle}],{duration:750,easing:'cubic-bezier(.4,0,.2,1)'});await sleep(550);
+      const spin=play(rotor,[{transform:`rotateY(${startAngle}deg)`},{transform:`rotateY(${endAngle}deg)`}],{duration:2400,easing:'cubic-bezier(.25,0,.18,1)'});
+      const pip=layer.querySelector('.mw-pip'),copy=layer.querySelector('.mw-copy');
+      void play(pip,[{opacity:0,transform:'translateY(45px) scale(.8)'},{offset:.28,opacity:1,transform:'translateY(15px) scale(1.08,.86)'},{offset:.55,opacity:1,transform:'translateY(-43px) rotate(9deg)'},{offset:.8,opacity:1,transform:'translateY(4px) scale(1.06,.94)'},{opacity:1,transform:'none'}],{duration:1550,delay:230,easing:'ease-in-out'});
+      void play(copy,[{opacity:0,transform:'translateY(14px)'},{opacity:1,transform:'none'}],{duration:500,delay:1450});
+      for(let i=0;i<22;i++){const square=document.createElement('i'),a=i*Math.PI*2/22;layer.querySelector('.mw-squares').appendChild(square);
+        void play(square,[{opacity:0,transform:'scale(.2)'},{offset:.15,opacity:1,transform:`translate(${Math.cos(a)*45}px,${Math.sin(a)*35}px) rotate(25deg)`},{opacity:0,transform:`translate(${Math.cos(a)*(105+i%4*10)}px,${Math.sin(a)*106+35}px) rotate(150deg) scale(.5)`}],{duration:1000,delay:1300});
+      }
+      chime(1380,.5,.032);chime(1840,1.35,.04);chime(2310,1.48,.022);
+      await play(flight,[{transform:'none'},{transform:middle}],{duration:1000,easing:'cubic-bezier(.2,.8,.25,1)'});await sleep(300);
       if(facts.reference)void play(engraving,[{opacity:0,filter:'blur(2px)'},{opacity:1,filter:'blur(0)'}],{duration:600});
-      await spin;await sleep(100);cover?.remove();
-      void play(layer.querySelector('.mw-ground'),[{opacity:1},{opacity:0}],{duration:600});
-      await play(flight,[{transform:middle},{transform:landing}],{duration:950,easing:'cubic-bezier(.4,0,.2,1)'});
+      await spin;await sleep(450);cover?.remove();
+      void play(pip,[{opacity:1,transform:'none'},{opacity:0,transform:'translateY(30px) scale(.9)'}],{duration:430});
+      void play(copy,[{opacity:1},{opacity:0}],{duration:380});
+      void play(layer.querySelector('.mw-ground'),[{opacity:1},{opacity:0}],{duration:850});
+      await play(flight,[{transform:middle},{transform:landing}],{duration:1100,easing:'cubic-bezier(.4,0,.16,1)'});
+      chime(1550,0,.025);
     }
     if(!valid()||controller.signal.aborted)return;
     if(facts.reference){
@@ -238,9 +256,18 @@ document.addEventListener('click',e=>{ if(e.target.closest&&e.target.closest('[d
   const s=document.createElement('style');s.id='mbStyle';
   s.textContent=`#paywall{position:fixed;inset:0;z-index:8500;overflow:auto;background:var(--ground);color:var(--chalk);display:flex;justify-content:center;align-items:flex-start;padding:calc(env(safe-area-inset-top) + 22px) 22px calc(env(safe-area-inset-bottom) + 28px);animation:mbUp .55s cubic-bezier(.3,1.6,.5,1) both}
 #memberWelcome{position:fixed;inset:0;z-index:8600;isolation:isolate;color:var(--chalk)}
-#memberWelcome .mw-ground{position:absolute;inset:0;background:var(--ground)}
-#memberWelcome .mw-flight{position:absolute;margin:0;perspective:900px;transform-origin:center}
-#memberWelcome .mw-flight>.club-coin-button{flex:none;width:100%;height:100%;min-height:0;pointer-events:none}
+#memberWelcome .mw-ground{position:absolute;inset:0;background:color-mix(in srgb,var(--ground) 94%,transparent);backdrop-filter:blur(6px)}
+#memberWelcome .mw-flight{position:absolute;display:block;margin:0;aspect-ratio:1;perspective:900px;transform-origin:center}
+#memberWelcome .mw-flight>.club-coin-button{position:absolute;inset:0;flex:none;width:100%;height:100%;min-width:0;min-height:0;aspect-ratio:1;box-sizing:border-box;pointer-events:none}
+#memberWelcome .mw-party{position:absolute;top:calc(var(--mw-center) + 65px);left:50%;width:240px;height:150px;transform:translateX(-50%);pointer-events:none}
+#memberWelcome .mw-pip{display:block;width:240px;height:auto;opacity:0}
+#memberWelcome .mw-squares{position:absolute;left:50%;top:50%}
+#memberWelcome .mw-squares i{position:absolute;width:7px;height:7px;border-radius:2px;background:#4a60ed;opacity:0}
+#memberWelcome .mw-copy{position:absolute;top:calc(var(--mw-center) + 205px);left:16px;right:16px;text-align:center;opacity:0}
+#memberWelcome .mw-copy small{font:500 10px var(--mono);letter-spacing:2px;color:var(--muted)}
+#memberWelcome .mw-copy h2{font:600 clamp(26px,7vw,36px)/1.15 var(--body);margin:12px 0;text-transform:none;letter-spacing:-.5px}
+#memberWelcome .mw-copy p{font:400 17px/1.5 var(--body);color:var(--muted);margin:0}
+@media(max-height:650px){#memberWelcome .mw-party{top:calc(var(--mw-center) + 45px);width:180px;height:110px}#memberWelcome .mw-pip{width:180px}#memberWelcome .mw-copy{top:calc(var(--mw-center) + 145px)}#memberWelcome .mw-copy h2{margin:6px 0}#memberWelcome .mw-copy p{font-size:14px}}
 #memberWelcome .mw-spinning .club-coin-face:after{animation:mwCoinShine .95s ease-in-out infinite;opacity:.6}
 @keyframes mwCoinShine{0%{transform:translateX(-75%);opacity:.12}45%{opacity:.7}100%{transform:translateX(75%);opacity:.12}}
 #memberWelcome .mw-caption{position:absolute;bottom:calc(env(safe-area-inset-bottom) + 80px);left:20px;right:20px;text-align:center;font:400 13px var(--body);color:var(--muted)}
@@ -257,7 +284,7 @@ document.addEventListener('click',e=>{ if(e.target.closest&&e.target.closest('[d
 #paywall .mb-x:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 #paywall .mb-hero{display:flex;align-items:center;gap:18px;margin-bottom:22px}
 #paywall .mb-coin{flex:none;width:84px;height:84px;display:block;margin:0}
-#paywall .mb-coin>.club-coin-button{position:relative;display:block;width:84px;height:84px;padding:0;border:0;border-radius:50%;background:none;perspective:500px;pointer-events:none}
+#paywall .mb-coin>.club-coin-button{position:relative;display:block;flex:none;aspect-ratio:1;box-sizing:border-box;width:84px;height:84px;padding:0;border:0;border-radius:50%;background:none;perspective:500px;pointer-events:none}
 #paywall .mb-coin .club-coin-rotor{animation:mbCoinIn 1.2s cubic-bezier(.3,1.6,.5,1) .15s both,mbCoinTurn 9s linear 1.35s infinite}
 #paywall .mb-grid{display:grid;grid-template-columns:repeat(10,1fr);gap:5px;width:100%;max-width:230px}
 #paywall .mb-grid i{aspect-ratio:1;border-radius:4px;background:var(--accent);animation:mbPop .45s cubic-bezier(.3,1.6,.5,1) both;animation-delay:calc(var(--i,0)*35ms + 300ms)}
