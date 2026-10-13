@@ -2750,7 +2750,7 @@ function modalOpen(){
      <body> are pop-ups too. Without them here the pull-to-refresh and the
      bottom band ran under Join the club: the page behind sat at the top, so a
      drag down to scroll the paywall back up was taken as a pull and froze. */
-  return !!(document.querySelector('.pw-add-sheet,#paywall,#memberWelcome,#ownerDash')||(ov&&ov.style.display!=='none'&&ov.getClientRects().length)||document.querySelector('body > dialog[open]'));
+  return !!(document.querySelector('.pw-add-sheet,#paywall,#mbManage,#memberWelcome,#ownerDash')||(ov&&ov.style.display!=='none'&&ov.getClientRects().length)||document.querySelector('body > dialog[open]'));
 }
 function syncModalLock(){
   const on=modalOpen();if(on===_modalOn)return;_modalOn=on;

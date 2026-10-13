@@ -84,7 +84,7 @@ function sbxMemberNo(){ if(!SANDBOX) return null; try{ const v=localStorage.getI
 function sbxMember(){ try{ const e=JSON.parse(localStorage.getItem('showup:entitlement')||'null'); return !!e&&e.test; }catch(e){ return false; } }
 function sbxMemberSet(plan){
   if(!SANDBOX) return;
-  if(plan) localStorage.setItem('showup:entitlement',JSON.stringify({status:'active',until:Date.now()+(plan==='yearly'?365:30)*864e5,plan,test:1}));
+  if(plan) localStorage.setItem('showup:entitlement',JSON.stringify({status:'active',until:Date.now()+(plan==='yearly'?365:30)*864e5,plan,since:Date.now(),renews:true,test:1}));
   else localStorage.removeItem('showup:entitlement');
   try{ document.getElementById('paywall')?.remove(); }catch(e){}
   render(); if(view==='sync'&&typeof renderSync==='function') renderSync();

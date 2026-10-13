@@ -245,16 +245,98 @@ function membershipRowHTML(){
   if(!paywallLive()) return '';
   let body;
   if(memberFounding()) body='Founding member · free for good';
-  else if(memberEntitled()) body='Member';
+  else if(memberEntitled()) body='Member · <button type="button" class="linkbtn" data-mbm-open>Membership</button>';
   else if(loggedDays()<TRIAL_DAYS) body=`Free logged days: ${loggedDays()} of ${TRIAL_DAYS}`;
   else body='Free logged days: 20 of 20 · <button type="button" class="linkbtn" data-mb-open>Membership options</button>';
   return `<div class="mb-row mono" id="mbRow">${body}</div>`;
 }
 document.addEventListener('click',e=>{ if(e.target.closest&&e.target.closest('[data-mb-open]')) paywallOpen('settings'); });
 
+/* ---- v4.6.303: MANAGE MEMBERSHIP. Settings → Account → Membership opens one screen with
+   the plan, the price, when it renews (or ends), changing plan and cancelling.
+   Apple owns the subscription: in the App Store version Change and Cancel hand off to
+   Apple's own subscription sheet (StoreKit showManageSubscriptions) and this screen shows
+   what came back. Test mode acts it out on the test entitlement, with no charge. */
+function mbSub(){
+  let e=null;try{e=JSON.parse(mbGet('showup:entitlement')||'null');}catch(x){}
+  if(memberFounding())return {kind:'founding',since:DB.settings.founding};
+  if(!memberEntitled()||!e)return {kind:'none'};
+  const plan=MB_PRICES.find(p=>p.plan===e.plan)||MB_PRICES[0];
+  return {kind:'member',plan,until:+e.until,since:e.since||null,renews:e.renews!==false,next:e.next?MB_PRICES.find(p=>p.plan===e.next):null,grace:e.status==='grace'||Date.now()>+e.until,test:!!e.test};
+}
+const mbDate=t=>new Date(t).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+function mbSubWrite(f){ try{const e=JSON.parse(mbGet('showup:entitlement')||'null');if(!e)return;f(e);mbSet('showup:entitlement',JSON.stringify(e));}catch(x){} }
+function membershipSettingsHTML(){
+  if(!paywallLive())return '';
+  const s=mbSub();
+  const line=s.kind==='founding'?['Founding member','Free for good']
+    :s.kind==='member'?[`${s.plan.label} · ${s.plan.price} ${s.plan.per}`,s.renews?`Renews ${mbDate(s.until)}`:`Ends ${mbDate(s.until)}`]
+    :[`Free logged days: ${Math.min(loggedDays(),TRIAL_DAYS)} of ${TRIAL_DAYS}`,'Not a member'];
+  return `<h2>Membership</h2><div class="card"><button type="button" class="mbm-entry" data-mbm-open><span><b>${line[0]}</b><small class="${s.kind==='member'&&!s.renews?'mbm-ends':''}">${line[1]}</small></span><span class="mbm-chev" aria-hidden="true">›</span></button></div>`;
+}
+let _mbmPick=null,_mbmConfirm=false;
+function mbManageOpen(){
+  if(document.getElementById('mbManage'))return;
+  _mbmPick=null;_mbmConfirm=false;
+  const el=document.createElement('div');el.id='mbManage';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-labelledby','mbmTitle');
+  document.body.appendChild(el);el.addEventListener('click',mbManageClick);mbManagePaint();
+}
+function mbManagePaint(){
+  const el=document.getElementById('mbManage');if(!el)return;const s=mbSub();
+  const x=`<button type="button" class="mb-x" data-mbm-close aria-label="Close"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>`;
+  const num=typeof clubMembershipFacts==='function'?String(clubMembershipFacts().number||'').replace(/,/g,''):'';
+  const coin=s.kind!=='none'&&typeof clubCoinHTML==='function'?`<div class="club-brand mbm-coin" aria-hidden="true">${clubCoinHTML(num).replace(/^<button[^>]*>/,'<span class="club-coin-button">').replace(/<\/button>$/,'</span>')}</div>`:'';
+  const row=(k,v,cls='')=>`<div class="mbm-row ${cls}"><span>${k}</span><b>${v}</b></div>`;
+  let body='';
+  if(s.kind==='founding'){
+    body=`<div class="mbm-hero">${coin}<div><span class="mbm-pill">Founding member</span><p class="mbm-lead">You were here before the club opened. Membership is yours, free for good.</p></div></div>
+    <div class="mbm-card">${row('Plan','Founding')}${row('Price','Free')}${s.since?row('Member since',mbDate(s.since+'T12:00')):''}${row('Renews','Never needs to')}</div>`;
+  }else if(s.kind==='none'){
+    body=`<p class="mbm-lead">You’re not a member yet. ${Math.min(loggedDays(),TRIAL_DAYS)} of ${TRIAL_DAYS} free logged days used.</p>
+    <button type="button" class="btn mb-buy" data-mbm-join><span>Join the club</span></button>`;
+  }else{
+    const other=MB_PRICES.find(p=>p.plan!==s.plan.plan),pick=_mbmPick&&_mbmPick!==s.plan.plan?other:null;
+    const status=s.grace?'<span class="mbm-pill warn">Payment issue</span>':s.renews?'<span class="mbm-pill">Active</span>':`<span class="mbm-pill ends">Ends ${mbDate(s.until)}</span>`;
+    const opts=MB_PRICES.map(p=>{const cur=p.plan===s.plan.plan,sel=pick?p.plan===pick.plan:cur;return `<button type="button" class="mb-opt" data-mbm-plan="${p.plan}" aria-pressed="${sel}">${cur?'<span class="mb-badge mbm-cur">Current</span>':''}<span class="mb-rd" aria-hidden="true"></span><span class="mb-opt-l">${p.label}${p.note?`<small>${p.note}</small>`:''}</span><span class="mb-opt-p"><b>${p.price}</b><small>${p.per}</small></span></button>`;}).join('');
+    const when=pick?(pick.plan==='yearly'?`Starts today. Apple refunds the unused part of this month.`:`Starts ${mbDate(s.until)}, when this year ends. Nothing changes until then.`):'';
+    body=`<div class="mbm-hero">${coin}<div>${status}<p class="mbm-lead">${s.renews?`Your ${s.plan.label.toLowerCase()} membership renews on ${mbDate(s.until)}.`:`Your membership ends on ${mbDate(s.until)}. You’re a member until then.`}</p></div></div>
+    <div class="mbm-card">${row('Plan',s.plan.label)}${row('Price',`${s.plan.price} ${s.plan.per}`)}${s.since?row('Member since',mbDate(s.since)):''}${s.renews?row('Renews',mbDate(s.until)):row('Ends',mbDate(s.until),'mbm-endrow')}${s.next?row('Then',`${s.next.label} · ${s.next.price} ${s.next.per}`):''}${row('Billed through','Apple ID')}</div>
+    ${s.renews?`<h3 class="mbm-h">Change plan</h3>
+    <div class="mb-opts" role="group" aria-label="Change plan">${opts}</div>
+    ${pick?`<p class="mbm-when">${when}</p><button type="button" class="btn mb-buy" data-mbm-switch><span>Switch to ${pick.label} · ${pick.price} ${pick.per}</span></button>`:''}
+    ${s.next?`<p class="mbm-when">Switching to ${s.next.label} on ${mbDate(s.until)}. <button type="button" class="mbm-inline" data-mbm-undo>Keep ${s.plan.label}</button></p>`:''}
+    ${_mbmConfirm?`<div class="mbm-confirm" role="alertdialog" aria-labelledby="mbmCx"><b id="mbmCx">Cancel membership?</b><p>You stay a member until ${mbDate(s.until)}. After that, new days need membership again. Everything you’ve logged stays yours: history, editing and export are free.</p><div class="mbm-cx-btns"><button type="button" class="btn ghost" data-mbm-keep>Keep membership</button><button type="button" class="btn ghost danger" data-mbm-cancel-yes>Cancel membership</button></div></div>`
+      :`<button type="button" class="mbm-cancel" data-mbm-cancel>Cancel membership</button>`}`
+    :`<button type="button" class="btn mb-buy" data-mbm-resume><span>Resume membership</span></button><p class="mbm-when">Renews ${mbDate(s.until)} at ${s.plan.price} ${s.plan.per}. Nothing is charged before then.</p>`}`;
+  }
+  el.innerHTML=`<div class="mb-card"><div class="mb-top"><img class="mb-wm" src="assets/showuppp-wordmark-${document.documentElement.dataset.theme==='dark'?'dark':'light'}.svg" alt="ShowUppp">${x}</div>
+    <h2 id="mbmTitle">Membership</h2>${body}
+    <div class="mb-links"><button type="button" class="mb-link" data-mb-restore>Restore purchases</button><button type="button" class="mb-link" data-mbm-apple>Apple subscriptions</button></div>
+    <p class="mb-fine">${s.kind==='member'&&s.test?'Test membership: no charge. ':''}Payment is charged to your Apple ID. Changing or cancelling opens Apple’s subscription settings; cancel at least 24 hours before the renewal date to avoid the next charge.</p></div>`;
+}
+function mbManageClick(e){
+  const b=e.target.closest('button');if(!b)return;const s=mbSub();
+  if(b.hasAttribute('data-mbm-close')){document.getElementById('mbManage')?.remove();if(view==='sync'&&typeof renderSync==='function')renderSync();return;}
+  if(b.dataset.mbmPlan){_mbmPick=b.dataset.mbmPlan;_mbmConfirm=false;mbManagePaint();return;}
+  if(b.hasAttribute('data-mbm-join')){document.getElementById('mbManage')?.remove();paywallOpen('settings');return;}
+  if(b.hasAttribute('data-mb-restore')){memberRestore();return;}
+  const sandbox=typeof SANDBOX!=='undefined'&&SANDBOX;
+  if(b.hasAttribute('data-mbm-apple')||!sandbox&&b.matches('[data-mbm-switch],[data-mbm-cancel],[data-mbm-resume],[data-mbm-undo]')){toast('Opens Apple’s subscription settings in the App Store version.');return;}
+  if(b.hasAttribute('data-mbm-cancel')){_mbmConfirm=true;mbManagePaint();return;}
+  if(b.hasAttribute('data-mbm-keep')){_mbmConfirm=false;mbManagePaint();return;}
+  if(b.hasAttribute('data-mbm-cancel-yes')){mbSubWrite(e=>{e.renews=false;delete e.next;});_mbmConfirm=false;mbManagePaint();toast('Cancelled (test). You’re a member until '+mbDate(s.until)+'.');return;}
+  if(b.hasAttribute('data-mbm-resume')){mbSubWrite(e=>{e.renews=true;});mbManagePaint();toast('Membership resumed (test).');return;}
+  if(b.hasAttribute('data-mbm-undo')){mbSubWrite(e=>{delete e.next;});mbManagePaint();return;}
+  if(b.hasAttribute('data-mbm-switch')&&_mbmPick){const to=_mbmPick;_mbmPick=null;
+    if(to==='yearly')mbSubWrite(e=>{e.plan='yearly';e.until=Date.now()+365*864e5;delete e.next;});else mbSubWrite(e=>{e.next=to;});
+    mbManagePaint();toast(to==='yearly'?'Switched to Yearly (test). No charge.':'Monthly starts when this year ends (test).');return;}
+}
+document.addEventListener('click',e=>{ if(e.target.closest&&e.target.closest('[data-mbm-open]')) mbManageOpen(); });
+
 (function(){
   const s=document.createElement('style');s.id='mbStyle';
-  s.textContent=`#paywall{position:fixed;inset:0;z-index:8500;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;background:var(--ground);color:var(--chalk);display:flex;justify-content:center;align-items:flex-start;padding:calc(env(safe-area-inset-top) + 22px) 22px calc(env(safe-area-inset-bottom) + 28px);animation:mbUp .55s cubic-bezier(.3,1.6,.5,1) both}
+  s.textContent=`#mbManage{position:fixed;inset:0;z-index:8500;overflow:auto;overscroll-behavior:contain;background:var(--ground);color:var(--chalk);display:flex;justify-content:center;align-items:flex-start;padding:calc(env(safe-area-inset-top) + 22px) 22px calc(env(safe-area-inset-bottom) + 28px);animation:mbUp .45s cubic-bezier(.3,1.6,.5,1) both}
+#paywall{position:fixed;inset:0;z-index:8500;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;background:var(--ground);color:var(--chalk);display:flex;justify-content:center;align-items:flex-start;padding:calc(env(safe-area-inset-top) + 22px) 22px calc(env(safe-area-inset-bottom) + 28px);animation:mbUp .55s cubic-bezier(.3,1.6,.5,1) both}
 #memberWelcome{position:fixed;inset:0;z-index:8600;isolation:isolate;color:var(--chalk)}
 #memberWelcome .mw-ground{position:absolute;inset:0;background:color-mix(in srgb,var(--ground) 94%,transparent);backdrop-filter:blur(6px)}
 #memberWelcome .mw-flight{position:absolute;display:block;margin:0;aspect-ratio:1;perspective:900px;transform-origin:center}
@@ -341,6 +423,55 @@ document.addEventListener('click',e=>{ if(e.target.closest&&e.target.closest('[d
 @media (max-width:379px){.mb-trial{display:grid;grid-template-columns:1fr auto;grid-template-areas:'t j' 'g j';gap:8px 12px}.mb-trial-t{grid-area:t}.mb-trial-g{grid-area:g;grid-template-columns:repeat(20,7px);grid-auto-rows:7px;gap:2px}.mb-join{grid-area:j;align-self:center}}
 
 .mb-trial .linkbtn{border:0;background:none;color:var(--accent);font:600 12px var(--body);padding:0;cursor:pointer}
+#mbManage .mb-card{width:100%;max-width:420px}
+#mbManage .mb-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
+#mbManage .mb-wm{display:block;width:73px;height:auto}
+#mbManage .mb-x{all:unset;cursor:pointer;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:color-mix(in srgb,var(--chalk) 8%,transparent);color:var(--muted)}
+#mbManage .mb-x:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#mbManage h2{font:700 30px/1.15 var(--body);letter-spacing:-.6px;margin:0 0 8px;text-transform:none;color:var(--chalk);opacity:1;display:block}
+#mbManage h2::after{display:none}
+#mbManage .mb-opts{display:grid;gap:10px;margin-bottom:14px}
+#mbManage .mb-opt{position:relative;display:grid;grid-template-columns:20px 1fr auto;gap:12px;align-items:center;width:100%;text-align:left;padding:16px;border-radius:16px;border:2px solid var(--line);background:var(--surface);color:var(--chalk);font:inherit;cursor:pointer;transition:border-color .2s,background .2s,transform .15s}
+#mbManage .mb-opt:active{transform:scale(.98)}
+#mbManage .mb-opt[aria-pressed=true]{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 7%,var(--surface))}
+#mbManage .mb-rd{width:20px;height:20px;border-radius:50%;border:2px solid var(--line);box-sizing:border-box;transition:border-width .25s cubic-bezier(.3,1.6,.5,1),border-color .2s}
+#mbManage .mb-opt[aria-pressed=true] .mb-rd{border:6px solid var(--accent)}
+#mbManage .mb-opt-l{font:700 16.5px/1.2 var(--body)}
+#mbManage .mb-opt small{display:block;font:400 13px/1.3 var(--body);color:var(--muted);margin-top:3px}
+#mbManage .mb-opt-p{text-align:right;white-space:nowrap}
+#mbManage .mb-badge{position:absolute;top:-10px;right:14px;background:var(--accent);color:#fff;font:700 11px/1 var(--body);letter-spacing:.4px;padding:5px 9px;border-radius:999px;text-transform:uppercase}
+#mbManage .mb-buy{width:100%;margin:0;min-height:56px;border-radius:16px;font:700 17px var(--body)}
+#mbManage .mb-links{display:flex;justify-content:center;gap:22px;margin-bottom:16px}
+#mbManage .mb-link{all:unset;cursor:pointer;font:600 14px var(--body);color:var(--chalk);padding:6px 2px}
+#mbManage .mb-fine{font:400 11px/1.5 var(--body);color:var(--faint);margin:0;text-align:center}
+#mbManage .mb-opt-p b{font:700 17px/1.2 var(--body);color:var(--chalk)}
+#mbManage h2{margin-bottom:18px}
+#mbManage .mbm-hero{display:flex;align-items:center;gap:16px;margin-bottom:18px}
+#mbManage .mbm-coin{flex:none;width:64px;height:64px;display:block;margin:0}
+#mbManage .mbm-coin>.club-coin-button{position:relative;display:block;width:64px;height:64px;min-height:0;padding:0;border:0;border-radius:50%;background:none;perspective:400px;pointer-events:none}
+#mbManage .mbm-coin .club-coin-rotor{animation:mbCoinTurn 16s linear infinite}
+#mbManage .mbm-pill{display:inline-block;font:700 11px/1 var(--body);letter-spacing:.4px;text-transform:uppercase;padding:5px 9px;border-radius:999px;background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent)}
+#mbManage .mbm-pill.ends{background:color-mix(in srgb,var(--chalk) 9%,transparent);color:var(--chalk)}
+#mbManage .mbm-pill.warn{background:color-mix(in srgb,var(--record) 16%,transparent);color:var(--record)}
+#mbManage .mbm-lead{font:400 15px/1.45 var(--body);color:var(--muted);margin:8px 0 0}
+#mbManage>.mb-card>.mbm-lead{margin:0 0 18px}
+#mbManage .mbm-card{background:var(--surface);border-radius:16px;padding:4px 16px;margin-bottom:24px}
+#mbManage .mbm-row{display:flex;justify-content:space-between;gap:12px;padding:13px 0;font:400 15px var(--body);color:var(--muted)}
+#mbManage .mbm-row+.mbm-row{border-top:1px solid var(--line)}
+#mbManage .mbm-row b{font-weight:600;color:var(--chalk);text-align:right}
+#mbManage .mbm-endrow b{color:var(--accent)}
+#mbManage .mbm-h{font:700 13px var(--body);letter-spacing:.4px;text-transform:uppercase;color:var(--muted);margin:0 0 12px}
+#mbManage .mbm-cur{background:var(--chalk);color:var(--ground)}
+#mbManage .mbm-when{font:400 13.5px/1.45 var(--body);color:var(--muted);margin:2px 0 14px;text-align:center}
+#mbManage .mbm-inline{all:unset;cursor:pointer;color:var(--accent-ink);font-weight:600}
+#mbManage .mbm-cancel{all:unset;cursor:pointer;display:block;width:100%;text-align:center;font:600 15px var(--body);color:var(--record);padding:14px 0;margin:6px 0 14px}
+#mbManage .mbm-confirm{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;margin:6px 0 18px;animation:mbRise .3s ease-out both}
+#mbManage .mbm-confirm b{font:700 16px var(--body)}#mbManage .mbm-confirm p{font:400 14px/1.45 var(--body);color:var(--muted);margin:6px 0 14px}
+#mbManage .mbm-cx-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}#mbManage .mbm-cx-btns .btn{margin:0;font:600 14.5px var(--body);min-height:48px;min-width:0;width:100%;padding:10px 6px;box-sizing:border-box}
+.mbm-entry{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%}
+.mbm-entry b{display:block;font:600 15px var(--body);color:var(--chalk)}.mbm-entry small{display:block;font:400 13px var(--mono);color:var(--muted);margin-top:3px}.mbm-entry small.mbm-ends{color:var(--accent)}
+.mbm-chev{font:400 22px/1 var(--body);color:var(--muted)}
+@media (prefers-reduced-motion:reduce){#mbManage,#mbManage *{animation:none!important}}
 .mb-row{font-size:12px;color:var(--muted);margin:2px 0 10px;text-align:center}.mb-row .linkbtn{border:0;background:none;color:var(--accent-ink);font:inherit;padding:0;cursor:pointer}`;
   document.head.appendChild(s);
 })();
