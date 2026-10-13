@@ -173,7 +173,7 @@ async function memberWelcome({wall,rect,angle,key}){
     clubCoinDispose();
     target.style.visibility='hidden';if(facts.reference)number.style.visibility='hidden';
     layer=document.createElement('div');layer.id='memberWelcome';layer.setAttribute('role','dialog');layer.setAttribute('aria-modal','true');layer.setAttribute('aria-label','Your membership');
-    layer.innerHTML='<div class="mw-ground"></div><div class="mw-party" aria-hidden="true"><img class="mw-pip" src="assets/mascot-blue.png" alt=""><div class="mw-squares"></div></div><div class="mw-copy"><small>THE SHOW UP CLUB</small><h2>You’re one of us.</h2><p>Life happens.<br>We show up.</p></div><div class="club-brand mw-flight"></div><div class="mw-caption" role="status">Test membership · no charge</div><button type="button" class="mw-skip">Skip animation</button>';
+    layer.innerHTML='<div class="mw-ground"></div><div class="mw-party" aria-hidden="true"><img class="mw-pip" src="assets/mascot-blue.png" alt=""><div class="mw-squares"></div></div><div class="mw-copy"><h2>You’re one of us.</h2></div><div class="club-brand mw-flight"></div><div class="mw-caption" role="status">Test membership · no charge</div><button type="button" class="mw-skip">Skip animation</button>';
     const flight=layer.querySelector('.mw-flight');flight.innerHTML=clubCoinHTML(facts.reference?facts.number:'');flight.querySelector('button').tabIndex=-1;flight.setAttribute('aria-hidden','true');
     const rotor=flight.querySelector('.club-coin-rotor'),engraving=flight.querySelector('.club-coin-number');engraving.style.opacity='0';
     if(wall){cover=wall;cover.inert=true;cover.setAttribute('aria-hidden','true');cover.style.animation='none';document.body.appendChild(cover);}
@@ -264,10 +264,9 @@ document.addEventListener('click',e=>{ if(e.target.closest&&e.target.closest('[d
 #memberWelcome .mw-squares{position:absolute;left:50%;top:50%}
 #memberWelcome .mw-squares i{position:absolute;width:7px;height:7px;border-radius:2px;background:#4a60ed;opacity:0}
 #memberWelcome .mw-copy{position:absolute;top:calc(var(--mw-center) + 205px);left:16px;right:16px;text-align:center;opacity:0}
-#memberWelcome .mw-copy small{font:500 10px var(--mono);letter-spacing:2px;color:var(--muted)}
-#memberWelcome .mw-copy h2{font:600 clamp(26px,7vw,36px)/1.15 var(--body);margin:12px 0;text-transform:none;letter-spacing:-.5px}
-#memberWelcome .mw-copy p{font:400 17px/1.5 var(--body);color:var(--muted);margin:0}
-@media(max-height:650px){#memberWelcome .mw-party{top:calc(var(--mw-center) + 45px);width:180px;height:110px}#memberWelcome .mw-pip{width:180px}#memberWelcome .mw-copy{top:calc(var(--mw-center) + 145px)}#memberWelcome .mw-copy h2{margin:6px 0}#memberWelcome .mw-copy p{font-size:14px}}
+#memberWelcome .mw-copy h2{display:block;width:100%;text-align:center;opacity:1;color:var(--chalk);font:600 clamp(26px,7vw,36px)/1.15 var(--body);margin:12px 0;text-transform:none;letter-spacing:-.5px}
+#memberWelcome .mw-copy h2::before,#memberWelcome .mw-copy h2::after{content:none;display:none}
+@media(max-height:650px){#memberWelcome .mw-party{top:calc(var(--mw-center) + 45px);width:180px;height:110px}#memberWelcome .mw-pip{width:180px}#memberWelcome .mw-copy{top:calc(var(--mw-center) + 145px)}#memberWelcome .mw-copy h2{margin:6px 0}}
 #memberWelcome .mw-spinning .club-coin-face:after{animation:mwCoinShine .95s ease-in-out infinite;opacity:.6}
 @keyframes mwCoinShine{0%{transform:translateX(-75%);opacity:.12}45%{opacity:.7}100%{transform:translateX(75%);opacity:.12}}
 #memberWelcome .mw-caption{position:absolute;bottom:calc(env(safe-area-inset-bottom) + 80px);left:20px;right:20px;text-align:center;font:400 13px var(--body);color:var(--muted)}

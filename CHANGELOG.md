@@ -1,5 +1,10 @@
 # ShowUppp — changelog
 
+## v4.6.300 — A simpler, centered welcome
+
+- The welcome now says only “You’re one of us.” beneath Pip. Removed the club label and the extra two-line message.
+- Centered the headline and removed the stray divider inherited from ordinary section headings. The coin, Pip, sound and animation stay unchanged.
+
 ## v4.6.299 — A warmer welcome to the club
 
 - The membership welcome now brings Pip along: a little hop, blue squares, a gentle chime and “You’re one of us.” The silver coin spins, then settles into your existing membership card.

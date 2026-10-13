@@ -26,6 +26,9 @@ const start=source.indexOf('async function memberWelcome('),reveal=source.slice(
   if(!reduced){
    assert(frames.some(x=>x.el.matches('.mw-pip')));
    assert(frames.some(x=>x.el.matches('.mw-copy')&&x.el.textContent.includes('You’re one of us.')));
+   const copy=frames.find(x=>x.el.matches('.mw-copy')).el;
+   assert.equal(copy.textContent,'You’re one of us.','minimal welcome contains only the approved headline');
+   assert.equal(copy.querySelectorAll('small,p').length,0);
    assert.equal(frames.filter(x=>x.el.matches('.mw-squares i')).length,22);
    const travel=frames.filter(x=>x.el.matches('.mw-flight'));
    assert.equal(travel.length,2);
