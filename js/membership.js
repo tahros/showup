@@ -267,7 +267,8 @@ function mbSub(){
 const mbDate=t=>new Date(t).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
 function mbSubWrite(f){ try{const e=JSON.parse(mbGet('showup:entitlement')||'null');if(!e)return;f(e);mbSet('showup:entitlement',JSON.stringify(e));}catch(x){} }
 function membershipSettingsHTML(){
-  if(!paywallLive())return '';
+  /* v4.6.304: a founding member sees theirs before launch too -- true, and nothing to sell */
+  if(!paywallLive()&&!memberFounding())return '';
   const s=mbSub();
   const line=s.kind==='founding'?['Founding member','Free for good']
     :s.kind==='member'?[`${s.plan.label} · ${s.plan.price} ${s.plan.per}`,s.renews?`Renews ${mbDate(s.until)}`:`Ends ${mbDate(s.until)}`]
@@ -290,7 +291,7 @@ function mbManagePaint(){
   let body='';
   if(s.kind==='founding'){
     body=`<div class="mbm-hero">${coin}<div><span class="mbm-pill">Founding member</span><p class="mbm-lead">You were here before the club opened. Membership is yours, free for good.</p></div></div>
-    <div class="mbm-card">${row('Plan','Founding')}${row('Price','Free')}${s.since?row('Member since',mbDate(s.since+'T12:00')):''}${row('Renews','Never needs to')}</div>`;
+    <div class="mbm-card">${row('Plan','Founding')}${num?row('Member No',num):''}${s.since?row('Member since',mbDate(s.since+'T12:00')):''}${row('Price','Free, for good')}${row('Renewal','None needed')}</div>`;
   }else if(s.kind==='none'){
     body=`<p class="mbm-lead">You’re not a member yet. ${Math.min(loggedDays(),TRIAL_DAYS)} of ${TRIAL_DAYS} free logged days used.</p>
     <button type="button" class="btn mb-buy" data-mbm-join><span>Join the club</span></button>`;
@@ -311,8 +312,9 @@ function mbManagePaint(){
   }
   el.innerHTML=`<div class="mb-card"><div class="mb-top"><img class="mb-wm" src="assets/showuppp-wordmark-${document.documentElement.dataset.theme==='dark'?'dark':'light'}.svg" alt="ShowUppp">${x}</div>
     <h2 id="mbmTitle">Membership</h2>${body}
-    <div class="mb-links"><button type="button" class="mb-link" data-mb-restore>Restore purchases</button><button type="button" class="mb-link" data-mbm-apple>Apple subscriptions</button></div>
-    <p class="mb-fine">${s.kind==='member'&&s.test?'Test membership: no charge. ':''}Payment is charged to your Apple ID. Changing or cancelling opens Apple’s subscription settings; cancel at least 24 hours before the renewal date to avoid the next charge.</p></div>`;
+    ${s.kind==='founding'?`<p class="mb-fine">Founding membership belongs to your account and follows you to every device you sign in on. Nothing to renew, nothing to cancel.</p></div>`
+    :`<div class="mb-links"><button type="button" class="mb-link" data-mb-restore>Restore purchases</button><button type="button" class="mb-link" data-mbm-apple>Apple subscriptions</button></div>
+    <p class="mb-fine">${s.kind==='member'&&s.test?'Test membership: no charge. ':''}Payment is charged to your Apple ID. Changing or cancelling opens Apple’s subscription settings; cancel at least 24 hours before the renewal date to avoid the next charge.</p></div>`}`;
 }
 function mbManageClick(e){
   const b=e.target.closest('button');if(!b)return;const s=mbSub();
