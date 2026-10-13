@@ -1012,17 +1012,39 @@ function tipHide(now){
   if(now||!n.isConnected){n.remove();ring.remove();return;}
   n.classList.add('out');ring.classList.add('out');setTimeout(()=>{n.remove();ring.remove();},300);
 }
-function tipPlace(){
+/* v4.6.306: THE TIP RIDES WITH THE PAGE. It was position:fixed and re-placed on every scroll
+   event; iOS scrolls on the compositor and fires scroll late, so the bubble and the ring trailed
+   the button a frame behind and jittered. Now they sit in the same layer as their target: in the
+   page (absolute, page coordinates), inside a scrolling pop-up (absolute, in that pop-up), or
+   fixed only when the target itself is fixed (the tab bar, the header). Scrolling moves them with
+   the target natively, and a scroll only rechecks, writing the same numbers. The side (above or
+   below) is chosen when the tip appears, so it can't flip mid-scroll. */
+function tipHost(el){
+  for(let a=el.parentElement;a&&a!==document.body;a=a.parentElement){
+    const cs=getComputedStyle(a);
+    if(/(auto|scroll)/.test(cs.overflowY)&&a.scrollHeight>a.clientHeight+1&&cs.position!=='static')return {host:a,mode:'in'};
+    if(cs.position==='fixed'||cs.position==='sticky')return {host:document.body,mode:'fixed'};
+  }
+  return {host:document.body,mode:'page'};
+}
+function tipPlace(fresh){
   if(!tipCur)return;const {n,ring,k}=tipCur,c=TIP_BY[k],el=document.querySelector(tipSel(c));
   if(!tipVisible(el)){tipHide(true);return;}
-  const r=el.getBoundingClientRect();
-  Object.assign(ring.style,{left:r.left+'px',top:r.top+'px',width:r.width+'px',height:r.height+'px'});
+  const r=el.getBoundingClientRect(),{host,mode}=tipHost(el);
+  if(n.parentNode!==host){host.append(ring,n);}
+  const pos=mode==='fixed'?'fixed':'absolute';n.style.position=ring.style.position=pos;
+  let ox=0,oy=0;
+  if(mode==='page'){ox=scrollX;oy=scrollY;}
+  else if(mode==='in'){const h=host.getBoundingClientRect();ox=host.scrollLeft-h.left-host.clientLeft;oy=host.scrollTop-h.top-host.clientTop;}
+  const px=v=>Math.round(v*2)/2+'px';
+  Object.assign(ring.style,{left:px(r.left+ox),top:px(r.top+oy),width:px(r.width),height:px(r.height)});
   /* the rings grow ~10px each side whatever the target's size: scale per axis */
   ring.style.setProperty('--tip-sx',((r.width+28)/(r.width+8)).toFixed(4));ring.style.setProperty('--tip-sy',((r.height+28)/(r.height+8)).toFixed(4));
   const w=n.offsetWidth,h=n.offsetHeight,left=Math.max(14,Math.min(innerWidth-14-w,r.left+r.width*c.ax-w/2));
-  let dir=c.dir;if(dir==='down'&&r.top-h-14<8)dir='up';if(dir==='up'&&r.bottom+16+h>innerHeight-8)dir='down';
+  let dir=tipCur.dir;
+  if(fresh||!dir){dir=c.dir;if(dir==='down'&&r.top-h-14<8)dir='up';if(dir==='up'&&r.bottom+16+h>innerHeight-8)dir='down';tipCur.dir=dir;}
   n.classList.toggle('up',dir==='up');n.classList.toggle('down',dir==='down');
-  n.style.left=left+'px';n.style.top=(dir==='down'?r.top-h-14:r.bottom+16)+'px';
+  n.style.left=px(left+ox);n.style.top=px((dir==='down'?r.top-h-14:r.bottom+16)+oy);
   const ax=Math.max(18,Math.min(w-32,r.left+r.width*c.ax-left-7));
   n.style.setProperty('--tip-ax',ax+'px');n.style.transformOrigin=`${ax+7}px ${dir==='down'?'100%':'0%'}`;
 }
@@ -1034,7 +1056,7 @@ function tipShow(k){
   const n=document.createElement('div');n.className='tipn';n.setAttribute('role','status');n.dataset.tip=k;
   n.innerHTML=tipPip()+`<span class="tipt">${c.t}${c.s?`<small>${c.s}</small>`:''}</span><button type="button" data-tip-ok>Got it</button>`;
   const ring=document.createElement('div');ring.className='tipr';ring.style.setProperty('--tip-r',c.r+'px');ring.setAttribute('aria-hidden','true');
-  document.body.append(ring,n);tipCur={n,ring,k};tipPlace();
+  document.body.append(ring,n);tipCur={n,ring,k};tipPlace(true);
 }
 function tipCheck(){
   tipQ=0;const k=tipWhich();
@@ -1049,8 +1071,8 @@ document.addEventListener('click',e=>{
   const hit=TIPS.find(c=>!t[c.k]&&e.target.closest(c.done));
   if(hit)tipDone(hit.k);else tipQueue();
 },true);
-addEventListener('scroll',()=>{if(tipCur)tipPlace();},{passive:true,capture:true});
-addEventListener('resize',()=>tipQueue());
+let tipRaf=0;addEventListener('scroll',()=>{if(tipCur&&!tipRaf)tipRaf=requestAnimationFrame(()=>{tipRaf=0;tipPlace();});},{passive:true,capture:true});
+addEventListener('resize',()=>{if(tipCur)tipCur.dir=null;tipQueue();});
 document.addEventListener('focusin',()=>tipQueue());document.addEventListener('focusout',()=>tipQueue());
 new MutationObserver(()=>{const t=tipsState();if(t&&t.on)tipQueue();}).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden']});
 function tipsSettingsHTML(){return `<button class="btn ghost" data-tips-again style="margin:8px 0 0">Show tips again</button>`;}

@@ -1,5 +1,9 @@
 # ShowUppp — changelog
 
+## v4.6.306 — Tips ride with the page
+- Fix: while scrolling with a tip showing, the bubble and the ring around its button jittered. They were fixed to the screen and moved by script on each scroll event, which iOS delivers a frame late. They now sit in the same layer as their target (in the page, inside a scrolling pop-up, or fixed only when the target is on the tab bar or header), so scrolling carries them natively. Above or below is chosen when the tip appears, so it no longer flips mid-scroll.
+- New tools/check-tip-scroll.cjs: the bubble and ring hold their offset to Add set on every frame of a touch scroll; a tab-bar target stays fixed.
+
 ## v4.6.305 — A warmer welcome, in both themes
 - The welcome animation now says “Welcome to the club.” with more breathing room between Pip and the coin.
 - Pip is white in dark mode and blue in light mode. The silver coin, sound, and arrival into the membership card stay intact.
