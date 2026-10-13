@@ -266,7 +266,10 @@ if len(_margins) == 2 and len(set(_margins.values())) != 1:
 #    position:fixed;inset:0 overlay is a modal by definition, so every one of
 #    them must appear in both blocklists. Catches the NEXT one, not this one.
 _util = (d/"js/util.js").read_text()
-for _m in _re.finditer(r"#([A-Za-z][\w-]*)\{[^}]*position:fixed[^}]*inset:0[^}]*\}", css):
+# v4.6.301: overlays whose CSS is injected from JS count too -- #paywall
+# slipped past this rule because its style lives in membership.js.
+_jscss = "".join(p.read_text() for p in sorted((d/"js").glob("*.js")))
+for _m in _re.finditer(r"#([A-Za-z][\w-]*)\{[^}]*position:fixed[^}]*inset:0[^}]*\}", css + _jscss):
     _id = _m.group(1)
     _hits = _util.count("#" + _id)
     # v3.3.356: ONE blocklist now, not two. The tab swipe is gone and its list

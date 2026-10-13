@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.301 — Join the club scrolls back up
+- Fix: on the Join the club screen, dragging down to scroll back up froze and the page behind slid (sometimes reloading). The pull-to-refresh and the bottom band ran underneath the paywall, because it wasn't counted as a pop-up. It now is (with the welcome animation and the owner dashboard), so the page behind is held still and the paywall scrolls on its own.
+- The paywall keeps its overscroll to itself.
+- buildcheck now also reads full-screen overlays whose CSS is injected from JS, so the next one cannot slip past.
+- New tools/check-paywall-scroll.cjs drives real touch drags both ways at 402 and 320 wide.
+
 ## v4.6.300 — A simpler, centered welcome
 
 - The welcome now says only “You’re one of us.” beneath Pip. Removed the club label and the extra two-line message.

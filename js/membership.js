@@ -254,7 +254,7 @@ document.addEventListener('click',e=>{ if(e.target.closest&&e.target.closest('[d
 
 (function(){
   const s=document.createElement('style');s.id='mbStyle';
-  s.textContent=`#paywall{position:fixed;inset:0;z-index:8500;overflow:auto;background:var(--ground);color:var(--chalk);display:flex;justify-content:center;align-items:flex-start;padding:calc(env(safe-area-inset-top) + 22px) 22px calc(env(safe-area-inset-bottom) + 28px);animation:mbUp .55s cubic-bezier(.3,1.6,.5,1) both}
+  s.textContent=`#paywall{position:fixed;inset:0;z-index:8500;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;background:var(--ground);color:var(--chalk);display:flex;justify-content:center;align-items:flex-start;padding:calc(env(safe-area-inset-top) + 22px) 22px calc(env(safe-area-inset-bottom) + 28px);animation:mbUp .55s cubic-bezier(.3,1.6,.5,1) both}
 #memberWelcome{position:fixed;inset:0;z-index:8600;isolation:isolate;color:var(--chalk)}
 #memberWelcome .mw-ground{position:absolute;inset:0;background:color-mix(in srgb,var(--ground) 94%,transparent);backdrop-filter:blur(6px)}
 #memberWelcome .mw-flight{position:absolute;display:block;margin:0;aspect-ratio:1;perspective:900px;transform-origin:center}

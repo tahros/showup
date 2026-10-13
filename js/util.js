@@ -2746,7 +2746,11 @@ document.addEventListener('click',e=>{
 let _modalY=0,_modalOn=false;
 function modalOpen(){
   const ov=document.getElementById('repOv');
-  return !!(document.querySelector('.pw-add-sheet')||(ov&&ov.style.display!=='none'&&ov.getClientRects().length)||document.querySelector('body > dialog[open]'));
+  /* v4.6.301: the full-screen pages membership.js and metrics.js mount on
+     <body> are pop-ups too. Without them here the pull-to-refresh and the
+     bottom band ran under Join the club: the page behind sat at the top, so a
+     drag down to scroll the paywall back up was taken as a pull and froze. */
+  return !!(document.querySelector('.pw-add-sheet,#paywall,#memberWelcome,#ownerDash')||(ov&&ov.style.display!=='none'&&ov.getClientRects().length)||document.querySelector('body > dialog[open]'));
 }
 function syncModalLock(){
   const on=modalOpen();if(on===_modalOn)return;_modalOn=on;
