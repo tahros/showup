@@ -1,5 +1,12 @@
 # ShowUppp — changelog
 
+## v4.6.295 — Your coin, your member number (test subscriptions)
+
+- Monthly and Yearly no-charge test subscriptions now lift the existing coin from Join the club, enlarge and spin it, engrave the registry number, and carry it into the Settings profile. The profile number reveals from blank space, followed by one light sweep.
+- No generated identity: signed-out or unavailable registry numbers skip engraving and the number celebration. Existing member numbers remain unchanged.
+- Reduced motion and Still/Off use an instant landing; Skip, viewport changes, hidden pages and navigation clean up the reveal. Test membership stays explicitly labeled. No RevenueCat SDK, real billing, purchase restoration or launch gates enabled.
+- Browser checks cover both plans, light/dark, narrow screens, registry identity, guest/reduced motion and unchanged workout records.
+
 ## v4.6.294 — The free-days card survives pull-to-refresh
 
 - After a pull-to-refresh (a reload) the "N of 20 free days" card was sometimes missing from Today. The card is built by membership.js, which loads after app.js -- and app.js draws Today on boot before membership.js has run, so that first draw had no card. It appeared only when something else redrew Today.

@@ -126,11 +126,83 @@ function paywallClick(e){
   if(b.hasAttribute('data-mb-restore')){ memberRestore(); return; }
 }
 /* 9.8 replaces these two with RevenueCat's purchase and restore */
+let mbBuying=false;
 async function memberBuy(plan){
   /* v4.6.283: in test mode Continue makes a free test membership, so the paid side can be tried */
-  if(typeof SANDBOX!=='undefined'&&SANDBOX&&typeof sbxMemberSet==='function'){ sbxMemberSet(plan); toast(`Test member (${plan}). No charge.`); return 'test'; }
+  if(typeof SANDBOX!=='undefined'&&SANDBOX&&typeof sbxMemberSet==='function'){
+    if(mbBuying||!MB_PRICES.some(p=>p.plan===plan))return 'busy';
+    mbBuying=true;
+    try{
+      const key=typeof clubMembershipKey==='function'?clubMembershipKey():'';
+      if(key&&typeof clubLoadMembership==='function'&&!clubMembershipFacts().reference)await clubLoadMembership();
+      if(key!==(typeof clubMembershipKey==='function'?clubMembershipKey():''))return 'cancelled';
+      const wall=document.getElementById('paywall'),source=wall?.querySelector('[data-club-coin]'),rect=source?.getBoundingClientRect(),angle=source?getComputedStyle(source.querySelector('.club-coin-rotor')).transform:'none';
+      wall?.remove();
+      sbxMemberSet(plan);
+      view='sync';lastView='sync';render();window.scrollTo(0,0); // our overlay owns the transition
+      await memberWelcome({wall,rect,angle,key});
+      toast(`Test member (${plan}). No charge.`);return 'test';
+    }finally{mbBuying=false;}
+  }
   toast('Membership opens with the App Store version.'); return 'unavailable'; }
 async function memberRestore(){ toast('Nothing to restore yet.'); return 'unavailable'; }
+
+/* One presentation path, no entitlement or identity writes. Called only after the test grant.
+   A future verified store purchase can call this same reveal; restore/renewal must not.
+   Registry numbers are never invented, padded or reassigned for the celebration. */
+async function memberWelcome({wall,rect,angle,key}){
+  const target=document.querySelector('.club-card [data-club-coin]'),number=document.querySelector('.club-card .club-number');
+  if(!target||!number||!Element.prototype.animate){wall?.remove();return;}
+  const facts=clubMembershipFacts(),motion=matchMedia('(prefers-reduced-motion: reduce)').matches||(typeof mascotMode==='function'&&mascotMode()!=='animated');
+  const animations=[],controller=new AbortController();let layer,cover;
+  const valid=()=>key===clubMembershipKey()&&target.isConnected&&view==='sync'&&!document.hidden;
+  const cancel=()=>{controller.abort();animations.forEach(a=>a.cancel());};
+  const sleep=ms=>new Promise(resolve=>{if(controller.signal.aborted){resolve();return;}const t=setTimeout(resolve,ms);controller.signal.addEventListener('abort',()=>{clearTimeout(t);resolve();},{once:true});});
+  const play=(el,frames,options)=>{if(controller.signal.aborted)return Promise.resolve();const a=el.animate(frames,{fill:'forwards',...options});animations.push(a);return a.finished.catch(()=>{});};
+  const change=()=>{if(!valid())cancel();};
+  document.addEventListener('visibilitychange',change);window.addEventListener('resize',cancel);
+  const observer=new MutationObserver(change);observer.observe(document.getElementById('view'),{childList:true});
+  try{
+    clubCoinDispose();
+    target.style.visibility='hidden';if(facts.reference)number.style.visibility='hidden';
+    layer=document.createElement('div');layer.id='memberWelcome';layer.setAttribute('role','dialog');layer.setAttribute('aria-modal','true');layer.setAttribute('aria-label','Your membership');
+    layer.innerHTML='<div class="mw-ground"></div><div class="club-brand mw-flight"></div><div class="mw-caption" role="status">Test membership · no charge</div><button type="button" class="mw-skip">Skip animation</button>';
+    const flight=layer.querySelector('.mw-flight');flight.innerHTML=clubCoinHTML(facts.reference?facts.number:'');flight.querySelector('button').tabIndex=-1;flight.setAttribute('aria-hidden','true');
+    const rotor=flight.querySelector('.club-coin-rotor'),engraving=flight.querySelector('.club-coin-number');engraving.style.opacity='0';
+    if(wall){cover=wall;cover.inert=true;cover.setAttribute('aria-hidden','true');cover.style.animation='none';document.body.appendChild(cover);}
+    document.body.appendChild(layer);layer.querySelector('.mw-skip').onclick=cancel;layer.querySelector('.mw-skip').focus({preventScroll:true});
+    const start=rect&&rect.width?rect:{left:innerWidth/2-42,top:120,width:84},size=start.width;
+    Object.assign(flight.style,{left:start.left+'px',top:start.top+'px',width:size+'px',height:size+'px'});
+    const end=target.getBoundingClientRect(),midX=innerWidth/2-start.left-size/2,midY=Math.min(innerHeight*.4,320)-start.top-size/2;
+    const middle=`translate(${midX}px,${midY}px) scale(${Math.min(190,innerWidth*.55)/size})`,landing=`translate(${end.left-start.left+(end.width-size)/2}px,${end.top-start.top+(end.height-size)/2}px) scale(${end.width/size})`;
+    if(motion){cover?.remove();layer.querySelector('.mw-ground').style.opacity='0';rotor.style.transform='rotateY(180deg)';flight.style.transform=landing;engraving.style.opacity='1';await sleep(120);}
+    else{
+      void play(layer.querySelector('.mw-ground'),[{opacity:0},{opacity:1}],{duration:450});
+      if(cover)void play(cover,[{opacity:1},{opacity:0}],{duration:450});
+      const spin=play(rotor,[{transform:angle==='none'?'rotateY(0deg)':angle},{transform:'rotateY(900deg)'}],{duration:1950,easing:'cubic-bezier(.15,.35,.18,1)'});
+      await play(flight,[{transform:'none'},{transform:middle}],{duration:750,easing:'cubic-bezier(.4,0,.2,1)'});await sleep(550);
+      if(facts.reference)void play(engraving,[{opacity:0,filter:'blur(2px)'},{opacity:1,filter:'blur(0)'}],{duration:600});
+      await spin;await sleep(350);cover?.remove();
+      void play(layer.querySelector('.mw-ground'),[{opacity:1},{opacity:0}],{duration:600});
+      await play(flight,[{transform:middle},{transform:landing}],{duration:950,easing:'cubic-bezier(.4,0,.2,1)'});
+    }
+    if(!valid()||controller.signal.aborted)return;
+    if(facts.reference){
+      number.textContent='';number.setAttribute('aria-label',facts.number);number.style.visibility='';
+      const digits=Array.from(facts.number,c=>{const s=document.createElement('span');s.textContent=c;s.className='mw-digit';s.setAttribute('aria-hidden','true');number.appendChild(s);return s;});
+      await Promise.all(digits.map((d,i)=>play(d,[{opacity:0,transform:'translateY(100%)'},{opacity:1,transform:'translateY(0)'}],{duration:motion?1:480,delay:motion?0:i*75,easing:'cubic-bezier(.2,.7,.2,1)'})));
+      if(!motion&&!controller.signal.aborted){number.dataset.mwNumber=facts.number;number.classList.add('mw-number-shine');await sleep(850);}
+    }
+  }catch(e){console.warn('Membership reveal unavailable');}
+  finally{
+    cancel();observer.disconnect();document.removeEventListener('visibilitychange',change);window.removeEventListener('resize',cancel);cover?.remove();layer?.remove();
+    target.style.visibility='';number.style.visibility='';number.classList.remove('mw-number-shine');number.removeAttribute('aria-label');delete number.dataset.mwNumber;
+    if(target.isConnected&&key===clubMembershipKey()){
+      clubPaintMembership();clubCoinMotion={angle:180,speed:0,idle:true,direction:1};clubCoinDispose=()=>{};clubBindCoin();
+      document.querySelector('[data-club-copy]')?.focus({preventScroll:true});
+    }
+  }
+}
 
 /* v4.6.278: the free days, on Today (Sungjee's call, 2026-10-11: visible, not Settings only). It counts
    UP in your own squares -- no "days left", no urgency. Non-members during and after the trial only. */
@@ -159,6 +231,16 @@ document.addEventListener('click',e=>{ if(e.target.closest&&e.target.closest('[d
 (function(){
   const s=document.createElement('style');s.id='mbStyle';
   s.textContent=`#paywall{position:fixed;inset:0;z-index:8500;overflow:auto;background:var(--ground);color:var(--chalk);display:flex;justify-content:center;align-items:flex-start;padding:calc(env(safe-area-inset-top) + 22px) 22px calc(env(safe-area-inset-bottom) + 28px);animation:mbUp .55s cubic-bezier(.3,1.6,.5,1) both}
+#memberWelcome{position:fixed;inset:0;z-index:8600;isolation:isolate;color:var(--chalk)}
+#memberWelcome .mw-ground{position:absolute;inset:0;background:var(--ground)}
+#memberWelcome .mw-flight{position:absolute;margin:0;perspective:900px;transform-origin:center}
+#memberWelcome .mw-flight>.club-coin-button{width:100%;height:100%;min-height:0;pointer-events:none}
+#memberWelcome .mw-caption{position:absolute;bottom:calc(env(safe-area-inset-bottom) + 80px);left:20px;right:20px;text-align:center;font:400 13px var(--body);color:var(--muted)}
+#memberWelcome .mw-skip{position:absolute;bottom:calc(env(safe-area-inset-bottom) + 22px);left:50%;transform:translateX(-50%);min-height:44px;padding:10px 18px;border:1px solid var(--line);border-radius:16px;background:var(--surface);color:var(--chalk);font:500 14px var(--body)}
+.club-number .mw-digit{display:inline-block}.club-number.mw-number-shine{position:relative}
+.club-number.mw-number-shine:after{content:attr(data-mw-number);position:absolute;inset:0;color:transparent;background:linear-gradient(105deg,transparent 30%,var(--accent-ink) 48%,transparent 66%);background-size:300% 100%;background-clip:text;-webkit-background-clip:text;pointer-events:none;animation:mwNumberShine .85s ease-in-out both}
+@keyframes mwNumberShine{0%{opacity:0;background-position:150% 0}25%{opacity:.9}100%{opacity:0;background-position:-50% 0}}
+@media(prefers-reduced-motion:reduce){.club-number.mw-number-shine{animation:none}}
 #paywall .mb-card{width:100%;max-width:420px}
 #paywall .mb-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
 /* v4.6.293: the official wordmark (Sungjee: 30% under the card's size) and a round close, not typed-out text */

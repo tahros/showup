@@ -71,9 +71,10 @@ try{
   t=await p.evaluate(()=>({wall:!!document.getElementById('paywall'),today:(DB.days[todayISO]?.w||[]).length}));
   ok(`${tag} the first set on day 21 opens the paywall and writes nothing`,t.wall&&t.today===0,t);
   if(SHOT&&w===402)await p.screenshot({path:`${SHOT}/tm-paywall.png`});
-  await p.click('#paywall [data-mb-buy]');await p.waitForTimeout(600);
+  await p.click('#paywall [data-mb-buy]');await p.waitForFunction(()=>!mbBuying&&!document.getElementById('memberWelcome'));
   t=await p.evaluate(()=>({wall:!!document.getElementById('paywall'),member:isMember(),ent:JSON.parse(localStorage.getItem('showup:entitlement')||'null'),realEnt:SBX_RAW.get.call(localStorage,'showup:entitlement')}));
   ok(`${tag} Continue in test mode: a free test membership (yearly), kept in the test keys only`,!t.wall&&t.member&&t.ent?.test&&t.ent.plan==='yearly'&&!t.realEnt,t);
+  await p.evaluate(()=>{view='lift';render();});await p.waitForTimeout(500);
   await p.evaluate(()=>document.getElementById('addrep').click());await p.waitForTimeout(600);
   t=await p.evaluate(()=>({wall:!!document.getElementById('paywall'),today:(DB.days[todayISO]?.w||[]).length}));
   ok(`${tag} as a member, day 21 logs`,!t.wall&&t.today===1,t);
