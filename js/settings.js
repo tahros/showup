@@ -243,7 +243,7 @@ function clubMembershipFacts(){
 function clubPaintMembership(){
   const f=clubMembershipFacts(),n=document.querySelector('.club-number'),s=document.querySelector('.club-since'),b=document.querySelector('[data-club-copy]');
   if(n)n.textContent=f.number;if(s)s.textContent=f.since;
-  const coin=document.querySelector('[data-club-coin]');if(coin){coin.querySelector('.club-coin-number').innerHTML=clubCoinNumberHTML(f.number);coin.setAttribute('aria-label','Flip club coin. Member '+f.number+'. Drag left or right to spin.');}
+  const coin=document.querySelector('[data-club-coin]');if(coin){coin.querySelector('.club-coin-number').innerHTML=clubCoinNumberHTML(String(f.number).replace(/,/g,''));coin.setAttribute('aria-label','Flip club coin. Member '+f.number+'. Drag left or right to spin.');}
   if(b){b.disabled=!f.reference;b.setAttribute('aria-label',f.reference?'Copy member reference '+f.reference:'Member number unavailable');b.title=f.reference?'Copy '+f.reference:'Connect to load your member number';}
 }
 async function clubCopyMembership(){
@@ -296,8 +296,10 @@ function clubAvatar(){const k=DB.settings.clubAvatar;return CLUB_ICONS.find(x=>x
 function clubIconHTML(item,animated=false){return `<span class="club-avatar club-${item[0]}${animated?' club-animate':''}" aria-hidden="true"><span class="club-shadow"></span><span class="club-sprite" style="background-image:url('assets/club-icons-${item[2]}.webp');background-position:${item[3]}% 0"></span></span>`;}
 function clubAvatarEditHTML(item){return clubIconHTML(item,true)+`<span class="club-avatar-edit" aria-hidden="true">${icon('edit',14)}</span>`;}
 function clubCoinNumberHTML(number){
-  const chars=Array.from(String(number)),size=Math.min(10,70/Math.max(6,chars.length));
-  return chars.map((c,i)=>{const a=chars.length===1?0:-38+i*76/(chars.length-1),r=a*Math.PI/180;return `<span style="left:${50+Math.sin(r)*33}%;top:${50+Math.cos(r)*33}%;transform:translate(-50%,-50%) rotate(${-a}deg);font-size:${size}cqw">${hesc(c)}</span>`}).join('');
+  const chars=Array.from(String(number)),size=Math.min(10,74/Math.max(6,chars.length));
+  // Keep short numbers together; grow the centered arc only as digits need it.
+  const step=Math.min(14,76/Math.max(1,chars.length-1));
+  return chars.map((c,i)=>{const a=(i-(chars.length-1)/2)*step,r=a*Math.PI/180;return `<span style="left:${50+Math.sin(r)*33}%;top:${50+Math.cos(r)*33}%;transform:translate(-50%,-50%) rotate(${-a}deg);font-size:${size}cqw">${hesc(c)}</span>`}).join('');
 }
 function clubCoinHTML(number){
 return `<button type="button" class="club-coin-button" data-club-coin aria-label="Flip club coin. Member ${hesc(number)}. Drag left or right to spin." title="Tap to flip · swipe to spin"><span class="club-coin-rotor">${Array.from({length:13},(_,i)=>`<span class="club-coin-rim" style="--depth:${(i-6)*.6}px"></span>`).join('')}<span class="club-coin-face club-coin-front"><span class="club-coin-seal"><img src="assets/club-seal.webp" alt="The Show Up Club" draggable="false"></span></span><span class="club-coin-face club-coin-back"><span class="club-coin-wordmark" role="img" aria-label="ShowUppp"></span><span class="club-coin-number" aria-hidden="true">${clubCoinNumberHTML(number)}</span></span></span></button>`;

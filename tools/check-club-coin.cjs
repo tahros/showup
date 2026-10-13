@@ -39,6 +39,10 @@ const {chromium}=require('playwright'),assert=require('assert'),path=require('pa
   assert.equal(await page.evaluate(()=>JSON.stringify(DB.days)),JSON.stringify(JSON.parse(before).days));
   await page.evaluate(()=>{DB.settings.mascotMotion='animated'});assert.equal(await page.evaluate(()=>JSON.stringify(DB)),before);
   await page.evaluate(()=>{clubMembershipCache.set(clubMembershipKey(),{member_no:'28',joined_at:'2026-07-13'});clubPaintMembership()});assert.equal(await coin.locator('.club-coin-number').textContent(),'28');
-  assert.deepEqual(errors,[]);console.log('PASS coin registry, geometry, reduced motion, keyboard, swipe speed and direction '+width+' '+theme);await page.close();
+  for(const n of ['1','15','127','2048','123456','123456789','123456789012']){
+    const fit=await page.evaluate(n=>{clubMembershipCache.set(clubMembershipKey(),{member_no:n,joined_at:'2026-07-13'});clubPaintMembership();clubCoinDispose();document.querySelector('.club-coin-rotor').style.transform='rotateY(180deg)';const el=document.querySelector('.club-coin-number'),box=el.getBoundingClientRect(),digits=[...el.children];return {text:el.textContent,inside:digits.every(d=>{const r=d.getBoundingClientRect();return r.left>=box.left&&r.right<=box.right&&r.bottom<=box.bottom}),spread:digits.length>1?parseFloat(digits.at(-1).style.left)-parseFloat(digits[0].style.left):0};},n);
+    assert.equal(fit.text,n);assert(fit.inside,'number stays inside coin: '+n);if(n==='15')assert(fit.spread<10,'15 stays together');
+  }
+  assert.deepEqual(errors,[]);console.log('PASS coin registry, number fit, geometry, reduced motion, keyboard, swipe speed and direction '+width+' '+theme);await page.close();
  }
 }finally{await browser.close()}})().catch(e=>{console.error(e);process.exitCode=1});
