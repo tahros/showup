@@ -1,5 +1,12 @@
 # ShowUppp — changelog
 
+## v4.6.312 — Together, the crew, the pins
+- Together since: the profile card says "With Kettle · 70 days together" -- the logged days that fell while that companion was with you. Your first companion counts from your first logged day.
+- The crew: tapping your avatar opens Your crew. Companions you have had show their name and days; switching asks when there is history ("Kettle has been with you 70 days. Switch to Plato? Kettle keeps every day."), and switching back picks the count up again. Rename sits under the grid. A switch on the same day takes today with it.
+- Pins mark days together, never streaks: a sweatband at 7, bronze at 25, silver at 50, gold at 100, a star at 250, the crown at a year. The highest sits on your avatar; the day one is earned it drops onto the companion on the day-done screen, with a line under "You showed up."
+- Non-members still keep the one they chose; the shelf is how members use the rest.
+- New tools/check-crew.cjs.
+
 ## v4.6.311 — Your companion, in Pip's place
 - One character per screen. The companion you chose stands where Pip stood in your own moments: Today's hello row (resting on rest days, active while you train), the live workout, the done-for-the-day card and the tip bubble. On the day-done screen the logo shows the wordmark alone and the companion hops in beside your day count. Pip stays the app's face on the first-run screens, the first-day welcome, the club welcome and shared images.
 - Setup gains a step (now four): after Pip says hello, "Sungjee, someone wants to come along." Pick one of the nine, name it (a suggestion per character: Snap, Plato, Kettle, Rolly, Sip, Duffy, Bounce, Matty, Beats), and it comes along; it does the jump on "You're in". Skip goes past it.
