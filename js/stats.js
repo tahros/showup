@@ -1730,7 +1730,7 @@ function psBody(){
 }
 function partShelfSection(){
   setTimeout(psArm,0);
-  return `<h2>Every part, showing up${typeof hActs==='function'?hActs('ps','Days, sets or weight moved for each body part, by each set’s primary muscle. The stronger the colour, the more that part did. Cardio counts run days, runs and distance.','About every part'):''}</h2><div class="card ps-card" id="psCard">${psBody()}</div>`;
+  return `<h2>Every part, showing up${typeof hActs==='function'?hActs('ps','Days, sets or weight moved for each body part, by each set’s primary muscle. Tap a part for its muscles, as shares. Cardio counts run days, runs and distance.','About every part'):''}</h2><div class="card ps-card" id="psCard">${psBody()}</div>`;
 }
 document.addEventListener('click',e=>{
   const b=e.target.closest?.('[data-ps]');if(!b)return;const card=b.closest('.ps-card');if(!card)return;
