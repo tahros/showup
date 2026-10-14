@@ -1,5 +1,12 @@
 # ShowUppp — changelog
 
+## v4.6.316 — Your companion in what you share
+- Every shared image now carries the companion you chose: on Share this day it takes Pip's top-left spot beside your name and top medal; on the plates card it stands by the plates; on the heat-map replay, year over year and the day review it sits beside your name.
+- Each image signs with the official wordmark at 100px (the brand kit's minimum). The logo with Pip in it stays whole or is not used -- the replay's lockup gives way to the wordmark alone.
+- Share this day gains air under the top row and above the foot (Sungjee, 2026-10-14).
+- Pip as your companion, or none chosen, leaves every image exactly as it was.
+- New tools/check-share-companion.cjs.
+
 ## v4.6.315 — Your medals; the crew by name; blue Pip
 - Medals are yours, not a companion's: they count your logged days (the same number as Days trained and the day-done count), so switching never costs anything. Seven: 10, 25, 50, 100, 250, 500, 1,000 (sweatband, bronze, silver, gold, star, crown, diamond). The profile card shows the row under the facts -- earned in colour, the rest faint -- with "N days to the next" beneath, and the highest by your name.
 - The day one is earned, it drops onto your day count on the day-done screen with "You earned the gold medal: 100 days of showing up." On 100, 500 and 1,000 -- hundredth days -- the century screen stays exactly as it is (day 1,000 gets what day 100 gets, v3.3.424); the medal is on your profile.

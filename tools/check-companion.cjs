@@ -54,7 +54,7 @@ try{
   await p.evaluate(()=>celebrateDayDone(true,48,0,true));await p.waitForTimeout(1500);
   d=await p.evaluate(()=>{const o=document.getElementById('dayDone');return {pip:!!o.querySelector('.ddbrand .su-mascot'),word:!!o.querySelector('.showuppp-word-only'),comp:o.querySelectorAll('.su-companion').length};});
   ok('Pip chosen: day done keeps Pip in the logo',d.pip&&!d.word&&d.comp===0,d);
-  await p.evaluate(()=>{document.getElementById('dayDone')?.remove();view='sync';render();});await p.waitForTimeout(700);
+  await p.evaluate(()=>{document.getElementById('dayDone')?.remove();view='sync';render();});await p.waitForSelector('.club-card .club-avatar-button',{timeout:8000});await p.waitForTimeout(300);
   d=await p.evaluate(()=>({tile:!!document.querySelector('.club-avatar-button .club-pip'),first:document.querySelector('.club-icon-grid button')?.dataset.clubIcon,t:document.querySelector('[data-club-icon="pip"]')?.textContent.replace(/\s+/g,' ')}));
   ok('Pip chosen: his still on the profile, first on the shelf, With you',d.tile&&d.first==='pip'&&/Pip\s*With you/.test(d.t||''),d);
   ok('no page errors',!errors.length,errors);await ctx.close();}
