@@ -733,7 +733,7 @@ function muscleCard(){
         :`<div class="note">No sets in the last 7 days.</div>`}</div>`;
     }
     return `${vi?line:''}<div class="mcrow ${open?'open':''}" data-mcg="${v}">
-      <span class="mcname">${v}</span>
+      <span class="mcname">${typeof partLabel==='function'?partLabel(v):v}</span>
       <span class="mcdots">${gg.dots.map((on,i)=>`<span class="${cellClass(i)}" aria-label="${days[i]}${i===current?', today':''}: ${on?'trained':days[i]>todayISO?'upcoming':'no training'}"><i class="${on?'on':days[i]>todayISO?'mc-future':''}" aria-hidden="true"></i></span>`).join('')}</span>
       <span class="mcsummary"><b class="mcv">${gg.days.size}</b>
       <span class="mcu">day${gg.days.size===1?'':'s'}</span></span>
@@ -1553,7 +1553,7 @@ function renderStats(){
       <div class="card">
         <div class="pmixhead"><div class="pmix-measures" role="group" aria-label="Chart measure"><button type="button" data-pmixmode="sets" aria-pressed="${PMIX_MODE==='sets'}">Sets</button><button type="button" data-pmixmode="weight" aria-pressed="${PMIX_MODE==='weight'}" aria-label="Weight in ${isLb()?'pounds':'kilograms'}">Weight</button></div></div>
         <div class="pmixlgdwrap"><div class="pmixlgd" role="group" aria-label="Follow a body part">${Object.keys(SEED.catalog).filter(p=>p!=='Run').map(p=>
-          `<button type="button" data-pt="${p}" aria-pressed="${PMIX_FOCUS===p}" style="--pmix-part:${PART_COLORS[p]||'var(--muted)'}"><i></i><span>${p}</span></button>`).join('')}</div></div>
+          `<button type="button" data-pt="${p}" aria-pressed="${PMIX_FOCUS===p}" style="--pmix-part:${PART_COLORS[p]||'var(--muted)'}"><i></i><span>${typeof partLabel==='function'?partLabel(p):p}</span></button>`).join('')}</div></div>
         <div class="pmixbox">
           <span class="pmixyr" id="pmixYr"></span>
           ${pmixAxisSvg(partMix(PMIX_DAYS))}
@@ -1570,6 +1570,8 @@ function renderStats(){
   h+=`<h2>The last 7 days${hActs('mc','Days each group trained in the last 7, by each set\u2019s primary muscle. Tap a group for detail. Runs excluded.','About the last 7 days')}</h2>
       <div class="card mccard">${muscleCard()}</div>`;
   cut('mc');
+  h+=partShelfSection();   /* v4.6.318 */
+  cut('ps');
   h+=growthAuditSection();
   h+=bestLiftsSection();   /* v4.6.163 */
   if(!liveProgression)h+=progressionStatsSection();
@@ -1594,7 +1596,7 @@ function renderStats(){
   // the session just built leads (the page opens on what you did), then this
   // week's coverage, then the audit's verdict, then the attendance hero, then
   // pace and the year story.
-  h = _S.pmix + wovenSection() + _S.mc + _S.rz + _S.kpis + _S.mpace + _S.consrace;
+  h = _S.pmix + wovenSection() + _S.mc + _S.ps + _S.rz + _S.kpis + _S.mpace + _S.consrace;
   h = liveProgression + h;
   h = plateStatsHTML() + h;
 
@@ -1659,3 +1661,161 @@ document.addEventListener('click',e=>{
     marks.forEach(m=>m.classList.toggle('selY',m.dataset.yr===yr));
   }
 });
+
+/* v4.6.318: THE PART SHELF. One lean, flat figure per body part, the same figure on every tile; only
+   the part it stands for takes its colour (Cardio lights the heart). Under it, one number: days trained
+   or weight moved, this month or this year. Parts are counted the way "This week" counts them -- by each
+   set's primary muscle -- so the two cards beside each other never disagree. Order is the body's own
+   (fixed places you learn) or most first (Sungjee, 2026-10-14). */
+const PS_PARTS=['Chest','Back','Shoulder','Legs','Biceps','Triceps','Sixpack','Run'];
+function psState(){const s=DB.settings.partShelf||{};return {m:s.m==='w'?'w':'d',p:s.p==='m'?'m':'y',o:s.o==='most'?'most':'body'};}
+function psData(per){
+  const t=new Date(todayISO+'T00:00'),from=per==='m'?todayISO.slice(0,8)+'01':todayISO.slice(0,5)+'01-01';
+  const g={};PS_PARTS.forEach(p=>g[p]={days:new Set(),kg:0,km:0});
+  for(const iso of Object.keys(DB.days||{})){if(iso<from||iso>todayISO)continue;
+    const rows=iso===todayISO?((DB.days[iso]||{}).w||[]).filter(s=>s.completed!==false).map(s=>[s.part,s.ex,s.w,s.reps||[]]):(SEED.sessions[iso]||[]);
+    for(const r of rows){
+      if(r[1]==='Run'||r[0]==='Run'){g.Run.days.add(iso);g.Run.km+=+r[2]||0;continue;}
+      if(!(r[3]||[]).length)continue;
+      const m=typeof exMuscle==='function'?exMuscle(r[1],r[0]):null,vis=(m&&MUSCLE_PART[m])||r[0],gg=g[vis];if(!gg)continue;
+      gg.days.add(iso);gg.kg+=(+r[2]||0)*r[3].reduce((a,b)=>a+(+b||0),0);}
+  }
+  return {from,parts:PS_PARTS.map(p=>({p,days:g[p].days.size,kg:g[p].kg,km:g[p].km}))};
+}
+/* the figure's drawing; part=null draws it all quiet */
+function psDraw(part){
+  const C=k=>part&&part===k?(PART_COLORS[k]||'var(--muted)'):'var(--ps-off)',N='var(--ps-off)';
+  const seg=(x1,y1,x2,y2,w,c)=>`<path d="M${x1} ${y1}L${x2} ${y2}" stroke="${c}" stroke-width="${w}" stroke-linecap="round"/>`;
+  const back=part==='Back'||part==='Triceps';let g='';
+  for(const s of [-1,1]){const x=50+s*6.3;g+=seg(x,90,x+s*.6,120,12.4,C('Legs'))+seg(x+s*.6,121,x+s*.4,146,8.8,C('Legs'))+`<ellipse cx="${x+s*1.6}" cy="150" rx="6.2" ry="3.2" fill="${C('Legs')}"/>`;}
+  for(const s of [-1,1]){const x=50+s*16.6;g+=seg(x,46,x+s*2.4,69,8.8,back?C('Triceps'):C('Biceps'))+seg(x+s*2.4,70,x+s*3.4,92,7.2,N)+`<ellipse cx="${x+s*3.6}" cy="97" rx="3.8" ry="4.6" fill="${N}"/>`;}
+  g+=`<path d="M38.7 79.6Q50 84.4 61.3 79.6L62.8 92.5Q56.5 96.5 50 93.8Q43.5 96.5 37.2 92.5Z" fill="${N}"/>`;
+  g+=`<path d="${PS_TORSO}" fill="${back?C('Back'):N}"/>`;
+  if(part==='Back')g+=`<path d="M50 41V78" stroke="var(--surface)" stroke-opacity=".6" stroke-width="1.1"/>`;
+  if(part==='Chest')g+=`<path d="${PS_PECS}" fill="${C('Chest')}"/>`;
+  if(part==='Sixpack')g+=`<path d="${PS_ABS}" fill="${C('Sixpack')}"/><path d="M50 60.6V78.6M42.4 65.4H57.6M42.9 71.4H57.1" stroke="var(--surface)" stroke-width="1.1"/>`;
+  if(part==='Shoulder')g+=`<path d="${psDelts()}" fill="${C('Shoulder')}"/>`;
+  g+=`<rect x="45.5" y="28" width="9" height="11" rx="4" fill="${N}"/><ellipse cx="50" cy="19" rx="11.4" ry="13" fill="${N}"/>`;
+  if(part==='Run')g+=`<path transform="translate(56.5 51) scale(1.55) translate(-56.5 -51)" d="M56.5 45.5c-2.6-3.6-8.4-2.4-8.4 2.2 0 4.4 5.2 7.6 8.4 10.4 3.2-2.8 8.4-6 8.4-10.4 0-4.6-5.8-5.8-8.4-2.2Z" fill="${PART_COLORS.Run||'var(--muted)'}"/>`;
+  return g;
+}
+const PS_TORSO='M50 36.5C58 36.5 65.5 37.5 68 41.5C69.6 44.2 68.6 48.6 66.8 51L61.3 79.6Q50 84.4 38.7 79.6L33.2 51C31.4 48.6 30.4 44.2 32 41.5C34.5 37.5 42 36.5 50 36.5Z';
+const PS_PECS='M36.5 43.5Q43 40.5 49.2 42.3V55.2Q43 58.6 37.6 55.2Q35 49.8 36.5 43.5ZM63.5 43.5Q57 40.5 50.8 42.3V55.2Q57 58.6 62.4 55.2Q65 49.8 63.5 43.5Z';
+const PS_ABS='M41.6 59.2Q50 61.2 58.4 59.2L57.3 77Q50 80.6 42.7 77Z';
+function psDelts(){let d='';for(const s of [-1,1])d+=`M${50+s*18.1} 41.5C${50+s*16.2} 38.4 ${50+s*11.2} 37.6 ${50+s*9.8} 38.7L${50+s*11} 48C${50+s*13.5} 50.6 ${50+s*17.4} 50.4 ${50+s*19} 47.4C${50+s*19.6} 45.5 ${50+s*19.2} 43.2 ${50+s*18.1} 41.5Z`;return d;}
+/* a tile: the quiet figure, and over it the lit one behind a clip that the entrance raises from the floor */
+let psUid=0;
+function psFigure(part){const id='psc'+(psUid++);
+  return `<svg class="ps-fig" viewBox="0 0 100 160" aria-hidden="true"><defs><clipPath id="${id}"><rect class="ps-clip" x="-10" y="0" width="120" height="170"/></clipPath></defs><g>${psDraw(null)}</g><g class="ps-lit" clip-path="url(#${id})">${psDraw(part)}</g></svg>`;}
+function psBody(){
+  const st=psState(),{parts}=psData(st.p),w=st.m==='w';
+  const val=x=>w?(x.p==='Run'?toD(x.km):x.p==='Sixpack'&&!x.kg?null:toU(x.kg)):x.days;
+  const show=n=>n==null?'—':n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e4?Math.round(n/1e3)+'k':fmt(Math.round(n));
+  const unit=x=>w?(x.p==='Run'?DU():x.p==='Sixpack'&&!x.kg?'body weight':U()):(x.days===1?'day':'days');
+  const rank=x=>{const v=val(x);return w&&x.p==='Run'?-1:v==null?-2:v;};   /* weight: miles and body weight cannot outrank pounds */
+  const list=st.o==='most'?[...parts].sort((a,b)=>rank(b)-rank(a)):parts;
+  const pool=parts.filter(x=>val(x)!=null&&!(w&&x.p==='Run')),hi=[...pool].sort((a,b)=>val(b)-val(a))[0],lo=[...pool].sort((a,b)=>val(a)-val(b))[0];
+  const when=st.p==='m'?new Date(todayISO+'T00:00').toLocaleDateString('en-US',{month:'long',year:'numeric'}):todayISO.slice(0,4)+' so far';
+  const nm=p=>p==='Shoulder'?'Shoulders':(typeof partLabel==='function'?partLabel(p):p);
+  const btn=(k,v,on,label)=>`<button type="button" data-ps="${k}" value="${v}" aria-pressed="${on}">${label}</button>`;
+  return `<div class="ps-seg" role="group" aria-label="Measure">${btn('m','d',!w,'Days')}${btn('m','w',w,'Weight moved')}</div>
+    <div class="ps-row"><span class="ps-pill" role="group" aria-label="Period">${btn('p','m',st.p==='m','This month')}${btn('p','y',st.p==='y','This year')}</span>
+      <span class="ps-pill" role="group" aria-label="Order">${btn('o','body',st.o==='body','Body')}${btn('o','most',st.o==='most','Most')}</span></div>
+    <div class="ps-shelf">${list.map(x=>{const v=val(x);return `<button type="button" class="ps-t${(w?!v:!x.days)?' ps-zero':''}${psToday().has(x.p)?' ps-today':''}" data-part="${x.p}" data-v="${v??''}" aria-label="${nm(x.p)}: ${show(v)} ${unit(x)}. Open muscles">${psFigure(x.p)}<b>${show(v)}</b><small>${unit(x)}</small><span>${nm(x.p)}</span></button>`;}).join('')}</div>
+    <div class="ps-foot"><span>${when}</span>${hi&&val(hi)?`<span>Most <i>${nm(hi.p)}</i> ${show(val(hi))} · Least <i>${nm(lo.p)}</i> ${show(val(lo))}</span>`:''}</div>`;
+}
+function partShelfSection(){
+  setTimeout(psArm,0);
+  return `<h2>Every part, showing up${typeof hActs==='function'?hActs('ps','Days each body part was trained, or the weight it moved, by each set’s primary muscle. Cardio counts run days and distance.','About every part'):''}</h2><div class="card ps-card" id="psCard">${psBody()}</div>`;
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest?.('[data-ps]');if(!b)return;const card=b.closest('.ps-card');if(!card)return;
+  const s=DB.settings.partShelf={...(DB.settings.partShelf||{}),[b.dataset.ps]:b.value};DB.settingsAt=Date.now();save(true);
+  /* reorder by moving each tile from where it was (FLIP), so "Most" visibly sorts */
+  const before={};card.querySelectorAll('.ps-t').forEach(t=>before[t.dataset.part]=t.getBoundingClientRect());
+  card.innerHTML=psBody();if(b.dataset.ps!=='o'&&!matchMedia('(prefers-reduced-motion: reduce)').matches)psCount(card);
+  if(b.dataset.ps==='o'&&!matchMedia('(prefers-reduced-motion: reduce)').matches)card.querySelectorAll('.ps-t').forEach(t=>{const a=before[t.dataset.part];if(!a)return;const r=t.getBoundingClientRect(),dx=a.left-r.left,dy=a.top-r.top;if(dx||dy)t.animate?.([{transform:`translate(${dx}px,${dy}px)`},{transform:'none'}],{duration:420,easing:'cubic-bezier(.2,.8,.2,1)'});});
+  card.querySelector(`[data-ps="${b.dataset.ps}"][value="${b.value}"]`)?.focus({preventScroll:true});
+});
+/* parts trained today, counted the same way */
+function psToday(){const set=new Set();
+  for(const s of ((DB.days?.[todayISO]||{}).w||[])){if(s.completed===false)continue;if(s.ex==='Run'||s.part==='Run'){set.add('Run');continue;}if(!(s.reps||[]).length)continue;
+    const m=typeof exMuscle==='function'?exMuscle(s.ex,s.part):null;set.add((m&&MUSCLE_PART[m])||s.part);}
+  return set;}
+/* THE ENTRANCE. The first time the card comes into view, every lit part fills from the floor up,
+   tile after tile, while its number counts up; parts trained today glow once. Switching the
+   measure or the period counts the numbers again. Still for reduced motion. */
+function psCount(card){
+  card.querySelectorAll('.ps-t b').forEach((b,i)=>{const t=b.textContent,m=t.match(/^([\d,.]+)(\D*)$/);if(!m)return;
+    const end=+m[1].replace(/,/g,''),dec=(m[1].split('.')[1]||'').length,suf=m[2],t0=performance.now()+i*70;
+    const step=now=>{const k=Math.min(1,Math.max(0,(now-t0)/750)),e=1-Math.pow(1-k,3),v=end*e;
+      b.textContent=(dec?v.toFixed(dec):Math.round(v).toLocaleString('en-US'))+suf;if(k<1)requestAnimationFrame(step);else b.textContent=t;};
+    b.textContent=(dec?(0).toFixed(dec):'0')+suf;requestAnimationFrame(step);});}
+function psPlay(card){
+  if(card.classList.contains('ps-played'))return;card.classList.add('ps-played');
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  card.querySelectorAll('.ps-t').forEach((t,i)=>{
+    t.querySelector('.ps-clip')?.animate?.([{transform:'translateY(170px)'},{transform:'translateY(0)'}],{duration:760,delay:120+i*90,easing:'cubic-bezier(.3,.7,.2,1)',fill:'backwards'});
+    if(t.classList.contains('ps-today'))t.querySelector('.ps-lit')?.animate?.([{filter:'none'},{filter:'drop-shadow(0 0 6px var(--ps-glow))'},{filter:'none'}],{duration:1100,delay:120+i*90+700,easing:'ease-in-out'});});
+  psCount(card);}
+function psArm(){
+  const card=document.getElementById('psCard');if(!card||card._psArmed)return;card._psArmed=true;
+  if(!('IntersectionObserver' in window)){card.classList.add('ps-played');return;}
+  const io=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){io.disconnect();psPlay(card);}},{threshold:.35});io.observe(card);}
+/* THE SHEET. Tap a part: the body front and back, each muscle in that part lit by how often it was
+   trained, then one row per muscle -- days, when last, and the exercises that got it there. */
+function psMuscleSVG(view,fill){
+  const N='var(--ps-off)',F=m=>fill(m)||N,u='psm'+(psUid++),back=view==='b';
+  const seg=(x1,y1,x2,y2,w,c)=>`<path d="M${x1} ${y1}L${x2} ${y2}" stroke="${c}" stroke-width="${w}" stroke-linecap="round"/>`;
+  const clip=(id,rects)=>`<clipPath id="${u}${id}">${rects.map(r=>`<rect x="${r[0]}" y="${r[1]}" width="${r[2]}" height="${r[3]}"/>`).join('')}</clipPath>`;
+  let d=`<defs>${clip('up',[[0,0,100,46.6]])}${clip('mid',[[0,46.6,100,5]])}${clip('lo',[[0,51.6,100,20]])}${clip('in',[[32.7,0,34.6,100]])}${clip('out',[[0,0,32.7,100],[67.3,0,40,100]])}${clip('ub',[[0,0,100,56]])}${clip('lb',[[0,56,100,60]])}</defs>`,g='';
+  for(const s of [-1,1]){const x=50+s*6.3;g+=seg(x,90,x+s*.6,120,12.4,back?F('hamstrings'):F('quads'))+seg(x+s*.6,121,x+s*.4,146,8.8,back?F('calves'):N)+`<ellipse cx="${x+s*1.6}" cy="150" rx="6.2" ry="3.2" fill="${N}"/>`;}
+  for(const s of [-1,1]){const x=50+s*16.6;g+=seg(x,46,x+s*2.4,69,8.8,back?F('triceps'):F('biceps'))+seg(x+s*2.4,70,x+s*3.4,92,7.2,N)+`<ellipse cx="${x+s*3.6}" cy="97" rx="3.8" ry="4.6" fill="${N}"/>`;}
+  g+=`<path d="M38.7 79.6Q50 84.4 61.3 79.6L62.8 92.5Q56.5 96.5 50 93.8Q43.5 96.5 37.2 92.5Z" fill="${back?F('glutes'):N}"/>`;
+  if(back){g+=`<path d="${PS_TORSO}" fill="${F('upper-back')}" clip-path="url(#${u}ub)"/><path d="${PS_TORSO}" fill="${F('lats')}" clip-path="url(#${u}lb)"/>`+(fill('lats')||fill('upper-back')?`<path d="M50 41V78M37 56H63" stroke="var(--surface)" stroke-width="1.1"/>`:'');
+    g+=`<path d="${psDelts()}" fill="${F('rear-delts')}"/>`;}
+  else{g+=`<path d="${PS_TORSO}" fill="${N}"/>`;
+    g+=`<path d="${PS_PECS}" fill="${F('upper-chest')}" clip-path="url(#${u}up)"/><path d="${PS_PECS}" fill="${F('chest')}" clip-path="url(#${u}mid)"/><path d="${PS_PECS}" fill="${F('lower-chest')}" clip-path="url(#${u}lo)"/>`;
+    g+=`<path d="M34.6 58L41 59.3L42.3 77.2L38.3 77.8ZM65.4 58L59 59.3L57.7 77.2L61.7 77.8Z" fill="${F('obliques')}"/><path d="${PS_ABS}" fill="${F('abs')}"/>`;
+    g+=`<path d="${psDelts()}" fill="${F('front-delts')}" clip-path="url(#${u}in)"/><path d="${psDelts()}" fill="${F('side-delts')}" clip-path="url(#${u}out)"/>`;
+    if(fill('front-delts')||fill('side-delts'))g+=`<path d="M32.7 38V51M67.3 38V51" stroke="var(--surface)" stroke-width=".9"/>`;
+    if(fill('abs')||fill('obliques'))g+=`<path d="M41.4 59.2L42.6 77.4M58.6 59.2L57.4 77.4" stroke="var(--surface)" stroke-width=".9"/>`;
+    if(fill('chest')||fill('upper-chest')||fill('lower-chest'))g+=`<path d="M37 46.6H49.2M50.8 46.6H63M37.4 51.6H49.2M50.8 51.6H62.6" stroke="var(--surface)" stroke-width=".9"/>`;}
+  g+=`<rect x="45.5" y="28" width="9" height="11" rx="4" fill="${N}"/><ellipse cx="50" cy="19" rx="11.4" ry="13" fill="${N}"/>`;
+  return `<svg class="ps-big" viewBox="0 0 100 160" aria-hidden="true">${d}${g}</svg>`;}
+function psMuscles(part,per){
+  const from=per==='m'?todayISO.slice(0,8)+'01':todayISO.slice(0,5)+'01-01',mus={};
+  (PART_MUSCLES[part]||[]).forEach(m=>mus[m]={days:new Set(),sets:0,last:'',ex:{}});
+  for(const iso of Object.keys(DB.days||{}).sort()){if(iso>todayISO)continue;
+    const rows=iso===todayISO?((DB.days[iso]||{}).w||[]).filter(s=>s.completed!==false).map(s=>[s.part,s.ex,s.w,s.reps||[]]):(SEED.sessions[iso]||[]);
+    for(const r of rows){if(r[1]==='Run'||!(r[3]||[]).length)continue;
+      const m=typeof exMuscle==='function'?exMuscle(r[1],r[0]):null,vis=(m&&MUSCLE_PART[m])||r[0];if(vis!==part)continue;
+      const k=m&&MUSCLE_PART[m]?m:'unassigned',x=mus[k]=mus[k]||{days:new Set(),sets:0,last:'',ex:{}};x.last=iso;
+      if(iso>=from){x.days.add(iso);x.sets+=r[3].length;x.ex[r[1]]=(x.ex[r[1]]||0)+r[3].length;}}}
+  return mus;}
+function psAgo(iso){if(!iso)return '';const n=Math.round((new Date(todayISO+'T00:00')-new Date(iso+'T00:00'))/864e5);return n===0?'today':n===1?'yesterday':n+' days ago';}
+function psSheet(part){
+  const st=psState(),per=st.p==='m'?'this month':'this year',nm=part==='Shoulder'?'Shoulders':(typeof partLabel==='function'?partLabel(part):part);
+  const col=PART_COLORS[part]||'var(--muted)';let body='';
+  if(part==='Run'){const {parts}=psData(st.p),r=parts.find(x=>x.p==='Run');let last='';for(const iso of Object.keys(DB.days||{}))if(iso<=todayISO&&(DB.days[iso].w||[]).some(s=>s.ex==='Run'||s.part==='Run')&&iso>last)last=iso;
+    body=`<div class="ps-figs"><svg class="ps-big" viewBox="0 0 100 160" aria-hidden="true">${psDraw('Run')}</svg></div>
+      <div class="ps-mrow"><i style="background:${col}"></i><span><b>Run days</b><small>${last?'Last run '+psAgo(last):'No runs yet'}</small></span><em>${r.days}<small> ${r.days===1?'day':'days'}</small></em></div>
+      <div class="ps-mrow"><i style="background:${col}"></i><span><b>Distance</b><small>${per}</small></span><em>${fmt(Math.round(toD(r.km)*10)/10)}<small> ${DU()}</small></em></div>`;}
+  else{const mus=psMuscles(part,st.p),keys=Object.keys(mus),mx=Math.max(1,...keys.map(k=>mus[k].days.size));
+    const shade=m=>{const x=mus[m];if(!x||!x.days.size)return null;return `color-mix(in srgb,${col} ${Math.round(35+65*x.days.size/mx)}%,var(--ps-off))`;};
+    const front=keys.some(m=>!['lats','upper-back','rear-delts','triceps','hamstrings','glutes','calves'].includes(m)),backv=keys.some(m=>['lats','upper-back','rear-delts','triceps','hamstrings','glutes','calves'].includes(m));
+    body=`<div class="ps-figs">${front?`<figure>${psMuscleSVG('f',shade)}<figcaption>Front</figcaption></figure>`:''}${backv?`<figure>${psMuscleSVG('b',shade)}<figcaption>Back</figcaption></figure>`:''}</div>`;
+    body+=keys.map(m=>{const x=mus[m],n=x.days.size,top=Object.entries(x.ex).sort((a,b)=>b[1]-a[1]).slice(0,2).map(e=>e[0]).join(' · ');
+      const lbl=(MUSCLE_LABEL[m]||m).replace(/^./,c=>c.toUpperCase());
+      return `<div class="ps-mrow${n?'':' ps-mzero'}"><i style="background:${shade(m)||'var(--ps-off)'}"></i><span><b>${lbl}</b><small>${n?(top||'')+(x.last?' · '+psAgo(x.last):''):(x.last?'Last trained '+psAgo(x.last):'Not trained yet')}</small></span><em>${n}<small> ${n===1?'day':'days'}</small></em></div>`;}).join('');}
+  const dlg=document.createElement('dialog');dlg.className='ps-sheet ps-card';dlg.setAttribute('aria-label',nm);
+  dlg.innerHTML=`<div class="ps-grab"></div><div class="ps-head"><div><h3>${nm}</h3><p>${per[0].toUpperCase()+per.slice(1)}</p></div><button type="button" class="ps-x" aria-label="Close">×</button></div>${body}`;
+  document.body.appendChild(dlg);
+  const close=()=>{if(!dlg.open)return;const a=dlg.animate?.([{transform:'none'},{transform:'translateY(100%)'}],{duration:220,easing:'ease-in'});const done=()=>{dlg.close();dlg.remove();syncModalLock?.();};a?a.onfinish=done:done();};
+  dlg.addEventListener('click',e=>{if(e.target===dlg||e.target.closest('.ps-x'))close();});
+  dlg.addEventListener('cancel',e=>{e.preventDefault();close();});
+  dlg.showModal();syncModalLock?.();
+  if(!matchMedia('(prefers-reduced-motion: reduce)').matches){dlg.animate?.([{transform:'translateY(100%)'},{transform:'none'}],{duration:340,easing:'cubic-bezier(.2,.8,.2,1)'});
+    dlg.querySelectorAll('.ps-big').forEach(svg=>svg.animate?.([{opacity:0,transform:'scale(.96)'},{opacity:1,transform:'none'}],{duration:420,delay:120,easing:'ease-out',fill:'backwards'}));}
+}
+document.addEventListener('click',e=>{const t=e.target.closest?.('.ps-t');if(t&&t.closest('#psCard'))psSheet(t.dataset.part);});
