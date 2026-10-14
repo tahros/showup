@@ -292,7 +292,12 @@ function clubEnsureIdentity(){
   DB.settings.clubGuest={id:Array.from(a,x=>x.toString(16).padStart(8,'0')).join(''),since:new Date().toISOString()};save(true);
 }
 function clubIdentity(){return session?.user?.id||DB.settings.clubGuest?.id||(DB.settings.demo?'demo-member':'guest');}
-function clubAvatar(){const k=DB.settings.clubAvatar;return CLUB_ICONS.find(x=>x[0]===k)||CLUB_ICONS[clubHash(clubIdentity())%CLUB_ICONS.length];}
+/* v4.6.310: ONE ICON IS YOURS; THE REST COME WITH MEMBERSHIP. A non-member (once the paywall is
+   live) keeps the companion the app dealt them and sees the others locked; tapping one opens Join
+   the club. A choice made as a member is kept, not erased, and comes back when they rejoin. */
+function clubFreeIcon(){return CLUB_ICONS[clubHash(clubIdentity())%CLUB_ICONS.length];}
+function clubIconsLocked(){return typeof paywallLive==='function'&&paywallLive()&&typeof isMember==='function'&&!isMember();}
+function clubAvatar(){if(clubIconsLocked())return clubFreeIcon();const k=DB.settings.clubAvatar;return CLUB_ICONS.find(x=>x[0]===k)||clubFreeIcon();}
 function clubIconHTML(item,animated=false){return `<span class="club-avatar club-${item[0]}${animated?' club-animate':''}" aria-hidden="true"><span class="club-shadow"></span><span class="club-sprite" style="background-image:url('assets/club-icons-${item[2]}.webp');background-position:${item[3]}% 0"></span></span>`;}
 function clubAvatarEditHTML(item){return clubIconHTML(item,true)+`<span class="club-avatar-edit" aria-hidden="true">${icon('edit',14)}</span>`;}
 function clubCoinNumberHTML(number){
@@ -339,7 +344,7 @@ function clubCardHTML(){
     <button type="button" class="club-member-id" data-club-copy ${reference?'':'disabled'} aria-label="${reference?'Copy member reference '+reference:'Member number unavailable'}" title="${reference?'Copy '+reference:'Connect to load your member number'}"><span class="club-member-label">${user||(typeof sbxMemberNo==='function'&&sbxMemberNo())?(typeof isMember!=='function'||isMember()?'MEMBER ':'')+'N<span class="club-number-o">o</span>':'LOCAL PROFILE'}</span><strong class="club-number">${displayNumber}</strong></button></div></div>
     <div class="club-membership">
     <div class="club-facts"><div><span>${user||(typeof sbxMemberNo==='function'&&sbxMemberNo())?'SHOWING UP SINCE':'ON THIS DEVICE SINCE'}</span><strong class="club-since">${since}</strong></div><button type="button" data-club-history aria-label="View your logged workout days"><span>DAYS TRAINED</span><strong>${fmt(loggedDays())}</strong></button></div></div>
-    <div class="club-picker" hidden><div class="club-picker-heading"><b>Make it yours.</b><button type="button" class="club-text-button" data-club-close>Done</button></div><div class="club-icon-grid" role="group" aria-label="Profile icons">${CLUB_ICONS.map(i=>`<button type="button" data-club-icon="${i[0]}" aria-pressed="${i[0]===avatar[0]}">${clubIconHTML(i,i[0]===avatar[0])}<span>${i[1]}</span></button>`).join('')}</div><p class="note">One little companion. Your choice stays with your profile.</p></div>
+    <div class="club-picker" hidden><div class="club-picker-heading"><b>Make it yours.</b><button type="button" class="club-text-button" data-club-close>Done</button></div><div class="club-icon-grid" role="group" aria-label="Profile icons">${(()=>{const lockAll=clubIconsLocked(),free=clubFreeIcon()[0];return CLUB_ICONS.map(i=>{const locked=lockAll&&i[0]!==free;return `<button type="button" data-club-icon="${i[0]}" aria-pressed="${i[0]===avatar[0]}"${locked?` class="club-locked" aria-label="${i[1]}, for members"`:''}>${clubIconHTML(i,i[0]===avatar[0])}<span>${i[1]}</span>${locked?`<i class="club-lock" aria-hidden="true"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></i>`:''}</button>`;}).join('');})()}</div>${clubIconsLocked()?`<p class="note club-lock-note">The ${hesc(clubFreeIcon()[1].toLowerCase())} is yours. Members pick any of the ${({9:'nine',10:'ten',11:'eleven',12:'twelve'})[CLUB_ICONS.length]||CLUB_ICONS.length}. <button type="button" class="club-text-button" data-mb-open>Join the club</button></p>`:'<p class="note">One little companion. Your choice stays with your profile.</p>'}</div>
   </section>`;
 }
 /* Move existing nodes, not copies: every established control, ID and handler
@@ -367,6 +372,7 @@ document.addEventListener('click',e=>{
   if(b.hasAttribute('data-club-copy')){void clubCopyMembership();return;}
   const card=b.closest('.club-card'),picker=card?.querySelector('.club-picker');
   if(b.hasAttribute('data-club-picker')||b.hasAttribute('data-club-close')){picker.hidden=b.hasAttribute('data-club-close')||!picker.hidden;card.querySelector('.club-avatar-button').setAttribute('aria-expanded',String(!picker.hidden));if(!picker.hidden)picker.querySelector('[aria-pressed=true]').focus();else card.querySelector('.club-avatar-button').focus();return;}
+  if(b.dataset.clubIcon&&b.classList.contains('club-locked')){if(typeof paywallOpen==='function')paywallOpen('icon');return;}
   if(b.dataset.clubIcon){const item=CLUB_ICONS.find(x=>x[0]===b.dataset.clubIcon);if(!item)return;DB.settings.clubAvatar=item[0];save(true);card.querySelector('.club-avatar-button').innerHTML=clubAvatarEditHTML(item);picker.querySelectorAll('[data-club-icon]').forEach(x=>{const on=x.dataset.clubIcon===item[0];x.setAttribute('aria-pressed',String(on));x.querySelector('.club-avatar').classList.toggle('club-animate',on)});clubObserveMotion();return;}
   if(b.hasAttribute('data-club-edit')){const g=document.querySelector('[data-club-group="profile"]');if(g){g.open=true;clubOpenGroups.add('profile');document.getElementById('youName')?.focus()}return;}
   if(b.hasAttribute('data-club-history')){view='history';lastView=null;render();}
