@@ -914,25 +914,30 @@ function sharePipImg(){return shareImg('assets/mascot-blue.png');}
 /* src: the card as it draws itself; band: its data's top and bottom in src pixels */
 function shareFrame(src,band,meta){
   if(!src)return src;
-  const out=document.createElement('canvas');out.width=SHARE_W;out.height=SHARE_H;const x=out.getContext('2d');
+  const out=document.createElement('canvas');out.width=SHARE_W;out.height=SHARE_H;
   const sx=src.getContext('2d',{willReadFrequently:true}),t=Math.max(0,Math.round(band?.t??0)),b=Math.min(src.height,Math.round(band?.b??src.height));
   const bl=Math.max(0,Math.round(band?.l??0)),br=Math.min(src.width,Math.round(band?.r??src.width));
   const bgPx=sx.getImageData(bl+4,Math.min(src.height-1,t+4),1,1).data,bg=`rgb(${bgPx[0]},${bgPx[1]},${bgPx[2]})`;
   const dark=(bgPx[0]+bgPx[1]+bgPx[2])/3<128,css=getComputedStyle(document.documentElement);
   const ink=dark?'#f4f3f0':'#1c1c1c',muted=dark?'#a1a3a7':'#686868',line=dark?'#303033':'#e5e5e8';
-  x.fillStyle=bg;x.fillRect(0,0,SHARE_W,SHARE_H);
   /* trim the data's own whitespace */
   const w=src.width,h=b-t,px=sx.getImageData(0,t,w,h).data,diff=i=>Math.abs(px[i]-bgPx[0])+Math.abs(px[i+1]-bgPx[1])+Math.abs(px[i+2]-bgPx[2])>24;
   let x0=w,y0=h,x1=-1,y1=-1;for(let yy=0;yy<h;yy+=1)for(let xx=bl;xx<br;xx+=2){if(diff((yy*w+xx)*4)){if(xx<x0)x0=xx;if(xx>x1)x1=xx;if(yy<y0)y0=yy;if(yy>y1)y1=yy;}}
+  /* v4.6.317: a list too long for 4:5 switches the canvas to 9:16 (1920) so its type never shrinks;
+     everything else stays 4:5 and fits by scaling down */
+  const HH=meta.grow&&y1>=0&&y1-y0+1>882?1920:SHARE_H;   /* two sizes only: 4:5 or 9:16 */
+  out.height=HH;const x=out.getContext('2d');
+  x.fillStyle=bg;x.fillRect(0,0,SHARE_W,HH);
   /* header */
   const C=SHARE_W/2;let y=SHARE_M;
   x.textAlign='center';x.textBaseline='alphabetic';
   x.fillStyle=muted;x.font='500 26px '+SHARE_MONO;if('letterSpacing' in x)x.letterSpacing='3px';x.fillText(String(meta.label||'').toUpperCase(),C,y+20,936);if('letterSpacing' in x)x.letterSpacing='0px';
-  x.fillStyle=ink;x.font='600 56px '+SHARE_SANS;x.fillText(meta.title||'',C,y+20+72,936);
-  x.fillStyle=muted;x.font='400 30px '+SHARE_SANS;if(meta.sub)x.fillText(meta.sub,C,y+20+72+48,936);
-  const bandTop=y+20+72+48+8+40;            /* 260 */
+  /* v4.6.317: title 48 (Sungjee, 2026-10-14) */
+  x.fillStyle=ink;x.font='600 48px '+SHARE_SANS;x.fillText(meta.title||'',C,y+20+64,936);
+  x.fillStyle=muted;x.font='400 30px '+SHARE_SANS;if(meta.sub)x.fillText(meta.sub,C,y+20+64+46,936);
+  const bandTop=y+20+64+46+8+40;            /* 250 */
   /* footer */
-  const wm=shareWordmarkImg(dark),wh=100*232/350,rowMid=SHARE_H-SHARE_M-wh/2,rule=rowMid-wh/2-40;
+  const wm=shareWordmarkImg(dark),wh=100*232/350,rowMid=HH-SHARE_M-wh/2,rule=rowMid-wh/2-40;
   x.fillStyle=line;x.fillRect(SHARE_M,Math.round(rule),SHARE_W-SHARE_M*2,2);
   if(shareReady(wm))x.drawImage(wm,SHARE_M,rowMid-wh/2,100,wh);
   const name=(typeof firstName==='function'&&firstName())||'';x.textAlign='right';x.fillStyle=muted;x.font='400 30px '+SHARE_SANS;
@@ -940,9 +945,11 @@ function shareFrame(src,band,meta){
   const nw=name?x.measureText(name).width+16:0,mx=SHARE_W-SHARE_M-nw-48;
   if(!shareDrawCompanion(x,mx,rowMid-24,48)){const pip=sharePipImg();if(shareReady(pip)){const ph=48*pip.naturalHeight/pip.naturalWidth*1.5,pw=ph*pip.naturalWidth/pip.naturalHeight;x.drawImage(pip,SHARE_W-SHARE_M-nw-pw,rowMid-ph/2,pw,ph);}}
   const bandBot=rule-40,bw=SHARE_W-SHARE_M*2,bh=bandBot-bandTop;
-  /* the data, never enlarged, centred in the band */
+  /* the data, never enlarged, placed in the band per meta.valign */
   if(x1>=0){const cw=x1-x0+2,ch=y1-y0+1,k=Math.min(1,bw/cw,bh/ch),dw=cw*k,dh=ch*k;
-    x.drawImage(src,x0,t+y0,cw,ch,(SHARE_W-dw)/2,bandTop+(bh-dh)/2,dw,dh);}
+    /* lists hang from the top, objects stand on the floor, charts sit centred */
+    const dy=meta.valign==='top'?0:meta.valign==='bottom'?bh-dh:(bh-dh)/2;
+    x.drawImage(src,x0,t+y0,cw,ch,(SHARE_W-dw)/2,bandTop+dy,dw,dh);}
   return out;
 }
 function crewSwitch(k){
