@@ -2146,11 +2146,7 @@ function celebrateDayDone(nowrite, forceCount, forceMile, forceShow, sourceCard)
      same day, and looking at it again should show the same thing. */
   const toCard=()=>{
       if(typeof showCard!=='function'||typeof drawDayCard!=='function') return;
-      showCard(()=>{
-        const cv=document.createElement('canvas'); cv.width=cv.height=1080;
-        const cx=cv.getContext('2d'); if(!cx) return null;
-        drawDayCard(cx,1080,todayISO); return cv;
-      },'showup-'+todayISO,false,true);
+      showCard(()=>shareDayCardFramed(todayISO),'showup-'+todayISO,false,true);
   };
   /* v3.3.502: the photo card. Same rule as the receipt above -- WHAT YOU
      WATCH APPEAR IS WHAT YOU SHARE: one canvas, painted by drawPhotoCard,

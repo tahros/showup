@@ -44,6 +44,7 @@
 .plate-share svg{width:18px;height:18px}
 .plate-mascot-button{position:absolute;right:0;bottom:3px;width:94px;height:94px;padding:0;border:0;background:transparent;cursor:pointer}
 .plate-mascot-button .su-mascot{bottom:0}
+.plate-mascot-button .plate-comp{position:absolute;right:8px;bottom:6px;width:76px;height:76px}
 .plate-mascot-button:focus-visible,.plate-share:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:16px}
 .plate-legend{display:flex;justify-content:center;flex-wrap:wrap;gap:6px 12px;margin-top:12px;font:10px var(--mono);color:var(--muted)}
 .plate-legend span{display:inline-flex;gap:5px;align-items:center}
