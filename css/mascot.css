@@ -186,3 +186,8 @@ html.gym-tour-open,html.gym-tour-open body{overflow:hidden}
 #onb .ob-adopt .ad-in{padding-top:6px}
 #onb .ob-adopt .ad-pip{width:96px;margin-bottom:10px}
 #onb .ob-jump .ob-comp{width:120px;height:120px;opacity:0;animation:obJump .9s .25s cubic-bezier(.3,1.6,.5,1) forwards}
+#dayDone .dd-crew{display:flex;align-items:center;justify-content:center;gap:8px;max-width:290px;margin:-4px auto 10px;text-align:left;font:400 14.5px/1.35 var(--body);color:var(--muted);animation:compIn .6s 2.1s cubic-bezier(.3,1.6,.5,1) both}#dayDone .dd-crew b{color:inherit;font-weight:600}
+#dayDone .dd-crew svg{flex:none}
+#dayDone .dd-companion{position:relative}
+#dayDone .dd-comp-pin{position:absolute;right:-6px;top:-4px;width:36px;height:36px;border-radius:50%;background:var(--ground);display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.18);animation:ddPin .7s 2.2s cubic-bezier(.3,1.6,.5,1) both}
+@keyframes ddPin{0%{opacity:0;transform:translateY(-60px) scale(1.8) rotate(-30deg)}70%{opacity:1;transform:translateY(2px) scale(.9) rotate(6deg)}100%{opacity:1;transform:none}}
