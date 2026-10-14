@@ -28,6 +28,7 @@ try{
  const logs=await p.evaluate(()=>['2026-10-11','2026-10-14','2026-10-13'].map(d=>{const cv=shareDayCardFramed(d);return {w:cv.width,h:cv.height,meta:__frames.at(-1)};}));
  ok('workout log, 3 sets: 4:5, from the top, "Wed"-style date title',logs[0].w===1080&&logs[0].h===1350&&logs[0].meta.valign==='top'&&logs[0].meta.label==='Workout log'&&logs[0].meta.title==='Sun, Oct 11, 2026',logs[0]);
  ok('workout log: Sixpack reads as Core in the subtitle',/Core/.test(logs[1].meta.sub)&&!/Sixpack/.test(logs[1].meta.sub),logs[1].meta.sub);
+ ok('workout log: the subtitle is just the parts; the totals close the list (v4.6.321)',logs.every(l=>!/sets|lb/.test(l.meta.sub)),logs.map(l=>l.meta.sub));
  ok('workout log, 25 sets: switches to 9:16 rather than shrinking',logs[2].w===1080&&logs[2].h===1920,logs[2]);
  /* every Stats share goes through the frame */
  await p.evaluate(async()=>{view='stats';render();await new Promise(r=>setTimeout(r,2000));});
