@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.320 — Room to breathe in what you share
+
+- Every shared image now has 80px between the subtitle and the content, the same space the footer rule has above and below it, so the header no longer crowds the data.
+- "Last vs today" follows the workout log's rule: when a long day would have to shrink to fit 4:5, it switches to 9:16 (1080×1920) and keeps its full-size text.
+- tools/check-share-frame.cjs covers both.
+
 ## v4.6.319 — Sets on the shelf; shares when you tap
 
 - "Every part, showing up" now offers Days · Sets · Weight. In Sets, Cardio counts runs and is never ranked against sets.
