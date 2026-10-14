@@ -182,3 +182,7 @@ html.gym-tour-open,html.gym-tour-open body{overflow:hidden}
 @media (prefers-reduced-motion:reduce){.su-hello-row .su-hello-comp,.tipn .tip-comp,#dayDone .dd-numrow>.dd-companion{animation:none}}
 :root[data-mascot-motion="still"] .su-companion{animation:none}
 .su-comp-active .club-sprite{animation-duration:2.9s!important}
+/* v4.6.312: the companion in setup */
+#onb .ob-adopt .ad-in{padding-top:6px}
+#onb .ob-adopt .ad-pip{width:96px;margin-bottom:10px}
+#onb .ob-jump .ob-comp{width:120px;height:120px;opacity:0;animation:obJump .9s .25s cubic-bezier(.3,1.6,.5,1) forwards}

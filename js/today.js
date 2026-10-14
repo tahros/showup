@@ -108,8 +108,8 @@ function onbLockup(){
 }
 function onbTop(cur){
   return `<div class="ob-top"><button type="button" class="ob-back" data-onbact="back" aria-label="Back" style="visibility:${cur>1?'visible':'hidden'}">‹</button>`+
-    `<div class="ob-prog" aria-label="Step ${cur} of 3">${[1,2,3].map(i=>`<i class="${i===cur||cur===3?'on':''}"></i>`).join('')}</div>`+
-    `<button type="button" class="ob-skip" data-onbact="skip" style="visibility:${cur<3?'visible':'hidden'}">Skip</button></div>`;
+    `<div class="ob-prog" aria-label="Step ${cur} of 4">${[1,2,3,4].map(i=>`<i class="${i===cur||cur===4?'on':''}"></i>`).join('')}</div>`+
+    `<button type="button" class="ob-skip" data-onbact="skip" style="visibility:${cur<4?'visible':'hidden'}">Skip</button></div>`;
 }
 function onbBubble(){
   const n=onbName.trim();
@@ -154,11 +154,16 @@ function onbRender(){
       <button type="button" class="ob-link ob-notnow ob-rise" ${d(1.05)} data-onbact="notnow">Not now</button>
       <div class="ob-sp"></div><button type="button" class="ob-go" data-onbact="toStep4">Continue</button></div>`;
   }else if(onbStep===4){
+    /* v4.6.312: THE COMPANION, IN SETUP. Pip has met you; now one of the crew comes along. A member
+       (or anyone before launch) picks; a new user is picked by the one they were dealt. Named here. */
     const n=onbName.trim();
-    b=`<div class="ob ob-step ob-goal">${onbTop(3)}
+    b=`<div class="ob ob-step ob-adopt ad-root">${onbTop(3)}${typeof adoptMarkup==='function'?adoptMarkup(n?`${hesc(n)}, someone wants to come along.`:'Someone wants to come along.'):''}</div>`;
+  }else if(onbStep===5){
+    const n=onbName.trim();
+    b=`<div class="ob ob-step ob-goal">${onbTop(4)}
       <p class="ob-in ob-rise" ${d(.05)}>You're in${n?', '+hesc(n):''}.</p>
       <p class="ob-q ob-rise" ${d(.15)}>What brings you here today?</p>
-      <div class="ob-jump">${typeof mascotHTML==='function'?mascotHTML('hello','ob-pip'):''}<svg class="ob-lines" viewBox="0 0 30 30" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 12l4-9M12 17l12-6M14 25h10"/></svg></div>
+      <div class="ob-jump">${typeof companionHTML==='function'&&DB.settings.companionName?companionHTML('ob-comp'):typeof mascotHTML==='function'?mascotHTML('hello','ob-pip'):''}<svg class="ob-lines" viewBox="0 0 30 30" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 12l4-9M12 17l12-6M14 25h10"/></svg></div>
       <button type="button" class="ob-card pri ob-rise" ${d(1.1)} data-onbact="go" data-onbgo="train"><span class="ob-ic">${ONB_PLUS}</span><span class="ob-ct"><b>I'm training now</b><span>Choose your first exercise</span></span>${ONB_AR}</button>
       <button type="button" class="ob-card ob-rise" ${d(1.25)} data-onbact="go" data-onbgo="plan"><span class="ob-ic">${ONB_CAL}</span><span class="ob-ct"><b>Plan my next workout</b><span>Make room for your next session</span></span>${ONB_AR}</button>
       <button type="button" class="ob-card ob-rise" ${d(1.4)} data-onbact="go" data-onbgo="import"><span class="ob-ic">${ONB_IMPORT}</span><span class="ob-ct"><b>Bring my past workouts</b><span>From Strong, Hevy or a spreadsheet</span></span>${ONB_AR}</button>
@@ -168,6 +173,7 @@ function onbRender(){
   el.dataset.step=onbStep;
   el.classList.toggle('ob-still',!replay);
   el.innerHTML=b;
+  if(onbStep===4&&typeof adoptBind==='function'){const r=el.querySelector('.ob-adopt');if(r)adoptBind(r,()=>{onbStep=5;onbRender();});}
   if(onbStep===1&&replay&&typeof showupppAnimate==='function'){
     const host=el.querySelector('.ob-lock');setTimeout(()=>{ if(host&&host.isConnected) showupppAnimate(host); },1500);
   }
@@ -354,7 +360,7 @@ document.addEventListener('click',e=>{
   else if(act==='toStep4'){ onbStep=4; onbRender(); }
   else if(act==='notnow'){ onbBw=''; onbStep=4; onbRender(); }
   else if(act==='back'){ if(onbStep>2){ onbStep--; onbRender(); } }
-  else if(act==='skip'){ onbStep=4; onbRender(); }          // v4.6.262: skip keeps what you picked and lands on "You're in"
+  else if(act==='skip'){ onbStep=onbStep<4?4:5; onbRender(); }          // v4.6.262: skip keeps what you picked and lands on "You're in"
   else if(act==='go') onbFinish(false,a.dataset.onbgo);
   else if(act==='finish') onbFinish(false);
   else if(act==='demo') demoLoad();
