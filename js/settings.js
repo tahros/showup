@@ -355,12 +355,12 @@ function clubCardHTML(){
   const dark=document.documentElement.dataset.theme==='dark';
   return `<section class="card club-card" aria-label="Your Showing Up Club profile">
     <div class="club-brand"><img src="assets/showuppp-wordmark-${dark?'dark':'light'}.svg" alt="ShowUppp">${typeof isMember!=='function'||isMember()?clubCoinHTML(String(displayNumber).replace(/,/g,'')):''}</div>
-    <div class="club-person"><button type="button" class="club-avatar-button" data-club-picker aria-label="Edit profile icon" aria-expanded="false">${clubAvatarEditHTML(avatar)}${(()=>{const t=crewState()&&crewPins(crewDays(avatar[0])).at(-1);return t?`<span class="club-avatar-pin">${crewPinSVG(t[1],24)}</span>`:'';})()}</button><div class="club-identity"><div class="club-name-row"><h2>${hesc(DB.settings.name||'Your place in the club')}</h2><button type="button" class="club-profile-edit" data-club-edit aria-label="Edit profile" title="Edit profile">${icon('edit',16)}</button></div>
+    <div class="club-person"><button type="button" class="club-avatar-button" data-club-picker aria-label="Edit profile icon" aria-expanded="false">${clubAvatarEditHTML(avatar)}</button><div class="club-identity"><div class="club-name-row"><h2>${hesc(DB.settings.name||'Your place in the club')}</h2>${(()=>{const t=userMedals().at(-1);return t?`<span class="club-name-medal" title="${t[2]}">${medalSVG(t[1],22)}</span>`:'';})()}<button type="button" class="club-profile-edit" data-club-edit aria-label="Edit profile" title="Edit profile">${icon('edit',16)}</button></div>
     <button type="button" class="club-member-id" data-club-copy ${reference?'':'disabled'} aria-label="${reference?'Copy member reference '+reference:'Member number unavailable'}" title="${reference?'Copy '+reference:'Connect to load your member number'}"><span class="club-member-label">${user||(typeof sbxMemberNo==='function'&&sbxMemberNo())?(typeof isMember!=='function'||isMember()?'MEMBER ':'')+'N<span class="club-number-o">o</span>':'LOCAL PROFILE'}</span><strong class="club-number">${displayNumber}</strong></button></div></div>
-    ${crewTogetherHTML()}
     <div class="club-membership">
     <div class="club-facts"><div><span>${user||(typeof sbxMemberNo==='function'&&sbxMemberNo())?'SHOWING UP SINCE':'ON THIS DEVICE SINCE'}</span><strong class="club-since">${since}</strong></div><button type="button" data-club-history aria-label="View your logged workout days"><span>DAYS TRAINED</span><strong>${fmt(loggedDays())}</strong></button></div></div>
-    <div class="club-picker" hidden><div class="club-picker-heading"><b>${crewState()?'Your crew':'Make it yours.'}</b><button type="button" class="club-text-button" data-club-close>Done</button></div><div class="club-icon-grid" role="group" aria-label="Profile icons">${(()=>{const lockAll=clubIconsLocked(),free=clubFreeIcon()[0];return clubChoices().map(i=>{const locked=lockAll&&i[0]!==free;return `<button type="button" data-club-icon="${i[0]}" aria-pressed="${i[0]===avatar[0]}"${locked?` class="club-locked" aria-label="${i[1]}, for members"`:''}>${clubIconHTML(i,i[0]===avatar[0])}${(()=>{const cr=crewState(),m=cr&&cr[i[0]];if(!m)return `<span>${i[1]}</span>`;const n=crewDays(i[0]),pins=crewPins(n);return `<span class="crew-name">${hesc(m.name)}</span><small class="crew-days">${i[0]===avatar[0]?'With you · ':''}${fmt(n)} ${n===1?'day':'days'}</small>${pins.length?`<i class="crew-tile-pin">${crewPinSVG(pins.at(-1)[1],18)}</i>`:''}`;})()}${locked?`<i class="club-lock" aria-hidden="true"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></i>`:''}</button>`;}).join('');})()}</div>${clubIconsLocked()?`<p class="note club-lock-note">The ${hesc(clubFreeIcon()[1].toLowerCase())} is yours. Members pick any of the ${({9:'nine',10:'ten',11:'eleven',12:'twelve'})[clubChoices().length]||clubChoices().length}. <button type="button" class="club-text-button" data-mb-open>Join the club</button></p>`:crewState()?`<div class="crew-confirm" hidden></div><p class="note">Every companion keeps its days. Switch back anytime and pick up where you left off. <button type="button" class="club-text-button" data-crew-rename>Rename ${hesc(companionName())}</button></p>`:'<p class="note">One little companion. Your choice stays with your profile.</p>'}</div>
+    ${userMedalsHTML()}
+    <div class="club-picker" hidden><div class="club-picker-heading"><b>${crewState()?'Your crew':'Make it yours.'}</b><button type="button" class="club-text-button" data-club-close>Done</button></div><div class="club-icon-grid" role="group" aria-label="Profile icons">${(()=>{const lockAll=clubIconsLocked(),free=clubFreeIcon()[0];return clubChoices().map(i=>{const locked=lockAll&&i[0]!==free;return `<button type="button" data-club-icon="${i[0]}" aria-pressed="${i[0]===avatar[0]}"${locked?` class="club-locked" aria-label="${i[1]}, for members"`:''}>${clubIconHTML(i,i[0]===avatar[0])}${(()=>{const cr=crewState(),m=cr&&cr[i[0]];if(!m)return `<span>${i[1]}</span>`;return `<span class="crew-name">${hesc(m.name)}</span>${i[0]===avatar[0]?'<small class="crew-days">With you</small>':''}`;})()}${locked?`<i class="club-lock" aria-hidden="true"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></i>`:''}</button>`;}).join('');})()}</div>${clubIconsLocked()?`<p class="note club-lock-note">The ${hesc(clubFreeIcon()[1].toLowerCase())} is yours. Members pick any of the ${({9:'nine',10:'ten',11:'eleven',12:'twelve'})[clubChoices().length]||clubChoices().length}. <button type="button" class="club-text-button" data-mb-open>Join the club</button></p>`:crewState()?`<div class="crew-confirm" hidden></div><p class="note">Your crew keeps their names. Your medals are yours, whoever comes along. <button type="button" class="club-text-button" data-crew-rename>Rename ${hesc(companionName())}</button></p>`:'<p class="note">One little companion. Your choice stays with your profile.</p>'}</div>
   </section>`;
 }
 /* Move existing nodes, not copies: every established control, ID and handler
@@ -398,11 +398,7 @@ document.addEventListener('click',e=>{
   const card=b.closest('.club-card'),picker=card?.querySelector('.club-picker');
   if(b.hasAttribute('data-club-picker')||b.hasAttribute('data-club-close')){picker.hidden=b.hasAttribute('data-club-close')||!picker.hidden;card.querySelector('.club-avatar-button').setAttribute('aria-expanded',String(!picker.hidden));if(!picker.hidden)picker.querySelector('[aria-pressed=true]').focus();else card.querySelector('.club-avatar-button').focus();return;}
   if(b.dataset.clubIcon&&b.classList.contains('club-locked')){if(typeof paywallOpen==='function')paywallOpen('icon');return;}
-  if(b.dataset.clubIcon&&crewState()&&b.dataset.clubIcon!==clubAvatar()[0]){
-    const k=b.dataset.clubIcon,cur=clubAvatar()[0],n=crewDays(cur),cname=crewState()[cur]?.name||companionName(),next=crewState()[k]?.name||COMPANION_NAMES[k],box=picker.querySelector('.crew-confirm');
-    if(n<1){crewSwitch(k);renderSync();return;}
-    box.innerHTML=`<p><b>${hesc(cname)}</b> has been with you ${fmt(n)} ${n===1?'day':'days'}. Switch to <b>${hesc(next)}</b>? ${hesc(cname)} keeps every day.</p><div class="crew-confirm-btns"><button type="button" class="btn ghost" data-crew-stay>Stay with ${hesc(cname)}</button><button type="button" class="btn" data-crew-go="${k}">Switch to ${hesc(next)}</button></div>`;
-    box.hidden=false;box.scrollIntoView({block:'nearest',behavior:'smooth'});return;}
+  if(b.dataset.clubIcon&&crewState()&&b.dataset.clubIcon!==clubAvatar()[0]&&!b.classList.contains('club-locked')){crewSwitch(b.dataset.clubIcon);clubKeepPicker=true;renderSync();return;}
   if(b.dataset.clubIcon){const item=clubChoices().find(x=>x[0]===b.dataset.clubIcon);if(!item)return;DB.settings.clubAvatar=item[0];save(true);card.querySelector('.club-avatar-button').innerHTML=clubAvatarEditHTML(item);picker.querySelectorAll('[data-club-icon]').forEach(x=>{const on=x.dataset.clubIcon===item[0];x.setAttribute('aria-pressed',String(on));x.querySelector('.club-avatar').classList.toggle('club-animate',on)});clubObserveMotion();return;}
   if(b.hasAttribute('data-club-edit')){const g=document.querySelector('[data-club-group="profile"]');if(g){g.open=true;clubOpenGroups.add('profile');document.getElementById('youName')?.focus()}return;}
   if(b.hasAttribute('data-club-history')){view='history';lastView=null;render();}
@@ -855,48 +851,41 @@ document.addEventListener('click',e=>{const u=e.target.closest&&e.target.closest
    ("This one picked you"). Name it -- a suggestion per character, editable -- and it hops in. */
 const COMPANION_NAMES={pip:'Pip',band:'Snap',plate:'Plato',bell:'Kettle',roller:'Rolly',bottle:'Sip',bag:'Duffy',ball:'Bounce',mat:'Matty',headphones:'Beats'};
 function companionName(){return DB.settings.companionName||COMPANION_NAMES[clubAvatar()[0]]||'Buddy';}
-/* ---- v4.6.312 (mock): TOGETHER, THE CREW, THE PINS.
-   Each companion keeps its own days: the logged days that fell while it was with you. The first one
-   counts from your first logged day -- it was watching all along. Switching closes its span and
-   opens another; switching back picks the count up again. Pins mark days together, never streaks. */
-const COMPANION_PINS=[[7,'band','First week'],[25,'bronze','25 days'],[50,'silver','50 days'],[100,'gold','100 days'],[250,'star','250 days'],[365,'crown','A year']];
+/* ---- v4.6.315: YOUR MEDALS; THE CREW BY NAME.
+   Medals are yours, not a companion's (Sungjee, 2026-10-14): they count your logged days -- the same
+   number as Days trained and the day-done count -- so switching companions never costs anything.
+   The crew is the companions you have named; switching is a plain choice. */
+const USER_MEDALS=[[10,'band','Sweatband'],[25,'bronze','Bronze'],[50,'silver','Silver'],[100,'gold','Gold'],[250,'star','Star'],[500,'crown','Crown'],[1000,'diamond','Diamond']];
 function crewState(){
   const st=DB.settings;if(!st.companionName)return null;
-  if(!st.crew){const first=Object.keys(DB.days||{}).filter(d=>(DB.days[d].w||[]).length).sort()[0]||st.companionSince||todayISO;
-    st.crew={[clubAvatar()[0]]:{name:st.companionName,spans:[[first,null]]}};}
+  if(!st.crew||Object.values(st.crew).some(c=>c.spans))st.crew=Object.fromEntries(Object.entries(st.crew||{[clubAvatar()[0]]:{name:st.companionName}}).map(([k,c])=>[k,{name:c.name}]));
+  if(!st.crew[clubAvatar()[0]])st.crew[clubAvatar()[0]]={name:st.companionName};
   return st.crew;
 }
-function crewDays(k){
-  const c=crewState()?.[k];if(!c)return 0;
-  const days=Object.keys(DB.days||{}).filter(d=>(DB.days[d].w||[]).length);
-  return days.filter(d=>c.spans.some(([f,t])=>d>=f&&(!t||d<t))).length;
-}
-function crewPins(n){return COMPANION_PINS.filter(p=>n>=p[0]);}
-function crewPinSVG(kind,sz=22){
+function userMedals(n=loggedDays()){return USER_MEDALS.filter(m=>n>=m[0]);}
+function medalSVG(kind,sz=22){
   const ring=(fill,edge)=>`<circle cx="12" cy="14" r="7" fill="${fill}" stroke="${edge}" stroke-width="1.4"/><path d="M8.5 3h7l-2 5h-3z" fill="#3047d8"/>`;
   const body={band:`<rect x="3" y="9" width="18" height="7" rx="3.5" fill="#3047d8"/><path d="M6 12.5h12" stroke="#fff" stroke-width="1.4" stroke-dasharray="2 2"/>`,
     bronze:ring('#d9965b','#a8673a'),silver:ring('#dfe5ea','#8f9aa5'),gold:ring('#f3c443','#b58a12'),
     star:`<path d="M12 3l2.6 5.6 6.1.6-4.6 4.1 1.3 6-5.4-3.1-5.4 3.1 1.3-6L3.3 9.2l6.1-.6z" fill="#f3c443" stroke="#b58a12" stroke-width="1.2" stroke-linejoin="round"/>`,
-    crown:`<path d="M4 17l-1-9 5 4 4-7 4 7 5-4-1 9z" fill="#f3c443" stroke="#b58a12" stroke-width="1.2" stroke-linejoin="round"/><rect x="4" y="17" width="16" height="3" rx="1" fill="#b58a12"/>`}[kind];
-  return `<svg class="crew-pin crew-pin-${kind}" viewBox="0 0 24 24" width="${sz}" height="${sz}" aria-hidden="true">${body}</svg>`;
+    crown:`<path d="M4 17l-1-9 5 4 4-7 4 7 5-4-1 9z" fill="#f3c443" stroke="#b58a12" stroke-width="1.2" stroke-linejoin="round"/><rect x="4" y="17" width="16" height="3" rx="1" fill="#b58a12"/>`,
+    diamond:`<path d="M7 4h10l4 5-9 12L3 9z" fill="#9fd8ff" stroke="#3047d8" stroke-width="1.3" stroke-linejoin="round"/><path d="M3 9h18M9 4l3 17 3-17" stroke="#3047d8" stroke-width="1" fill="none" stroke-linejoin="round"/>`}[kind];
+  return `<svg class="crew-pin medal medal-${kind}" viewBox="0 0 24 24" width="${sz}" height="${sz}" aria-hidden="true">${body}</svg>`;
 }
-function crewTogetherHTML(){
-  const c=crewState();if(!c)return '';const k=clubAvatar()[0],n=crewDays(k),pins=crewPins(n),top=pins.at(-1);
-  return `<div class="club-together"><span class="club-together-l">With <b>${hesc(c[k]?.name||companionName())}</b></span><span class="club-together-n">${fmt(n)} ${n===1?'day':'days'} together</span>${pins.length?`<span class="club-pins" aria-label="${pins.map(p=>p[2]).join(', ')}">${pins.map(p=>crewPinSVG(p[1],20)).join('')}</span>`:''}</div>`;
+const crewPinSVG=medalSVG;
+function userMedalsHTML(){
+  const n=loggedDays(),got=userMedals(n),next=USER_MEDALS.find(m=>n<m[0]);
+  return `<div class="club-medals" aria-label="Medals: ${got.length?got.map(m=>m[2]).join(', '):'none yet'}"><div class="club-medal-row">${USER_MEDALS.map(m=>`<span class="club-medal${n>=m[0]?' on':''}" title="${m[2]} · ${fmt(m[0])} days">${medalSVG(m[1],26)}<small>${fmt(m[0])}</small></span>`).join('')}</div><p class="club-medals-next">${next?`${fmt(next[0]-n)} ${next[0]-n===1?'day':'days'} to the ${next[2].toLowerCase()}${next[1]==='band'?'':' medal'}.`:'Every medal. You keep showing up.'}</p></div>`;
 }
-/* the day a pin is earned, the day-done screen says so, once, under "You showed up." */
-function crewMilestoneHit(){const c=crewState();if(!c||(typeof mascotMode==='function'&&mascotMode()==='off'))return null;return COMPANION_PINS.find(p=>p[0]===crewDays(clubAvatar()[0]))||null;}
-function crewMilestoneHTML(){
-  const c=crewState(),hit=crewMilestoneHit();if(!hit)return '';
-  const k=clubAvatar()[0],n=crewDays(k);
-  const what={band:'a sweatband',bronze:'the bronze medal',silver:'the silver medal',gold:'the gold medal',star:'a star',crown:'the crown'}[hit[1]];
-  return `<p class="dd-crew">${crewPinSVG(hit[1],26)}<span><b>${hesc(c[k].name)}</b> earned ${what}: ${hit[0]===365?'a year':fmt(n)+' days'} together.</span></p>`;
+/* the day a medal is earned, the day-done screen says so, once, under "You showed up." */
+function userMedalHit(n=loggedDays()){return USER_MEDALS.find(m=>m[0]===n)||null;}
+function userMedalLineHTML(hit){
+  if(!hit)return '';const what={band:'a sweatband',bronze:'the bronze medal',silver:'the silver medal',gold:'the gold medal',star:'a star',crown:'the crown',diamond:'the diamond'}[hit[1]];
+  return `<p class="dd-crew">${medalSVG(hit[1],26)}<span>You earned ${what}: ${fmt(hit[0])} days of showing up.</span></p>`;
 }
 function crewSwitch(k){
   const st=DB.settings,c=crewState(),cur=clubAvatar()[0];if(!c||k===cur)return;
-  const open=c[cur]?.spans.find(sp=>!sp[1]);if(open)open[1]=todayISO;
-  (c[k]=c[k]||{name:COMPANION_NAMES[k],spans:[]}).spans.push([todayISO,null]);
-  st.clubAvatar=k;st.companionName=c[k].name;DB.settingsAt=Date.now();save(true);
+  c[k]=c[k]||{name:COMPANION_NAMES[k]};st.clubAvatar=k;st.companionName=c[k].name;DB.settingsAt=Date.now();save(true);
 }
 /* the ceremony's body, shared by first-run (step 4 of setup) and the one-time overlay for people
    who set up before companions existed */

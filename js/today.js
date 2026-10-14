@@ -1064,7 +1064,7 @@ function tipPlace(fresh){
 }
 /* A still PNG, not the 3D Pip: the pill is ink, so Pip takes the opposite tone (white on black,
    charcoal on white), and a tip shouldn't spin up a WebGL scene. */
-function tipPip(){if(typeof mascotMode==='function'&&mascotMode()==='off')return '';const comp=typeof companionHTML==='function'?companionHTML('tip-pip tip-comp'):'';if(comp)return comp;return `<img class="tip-pip" src="assets/mascot-${document.documentElement.dataset.theme==='dark'?'charcoal':'white'}.png" alt="" width="360" height="220" aria-hidden="true">`;}
+function tipPip(){if(typeof mascotMode==='function'&&mascotMode()==='off')return '';const comp=typeof companionHTML==='function'?companionHTML('tip-pip tip-comp'):'';if(comp)return comp;return `<img class="tip-pip" src="assets/mascot-${DB.settings.companionName&&DB.settings.clubAvatar==='pip'?'blue':document.documentElement.dataset.theme==='dark'?'charcoal':'white'}.png" alt="" width="360" height="220" aria-hidden="true">`;}
 function tipShow(k){
   const c=TIP_BY[k];tipHide(true);
   const n=document.createElement('div');n.className='tipn';n.setAttribute('role','status');n.dataset.tip=k;
