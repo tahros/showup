@@ -1,5 +1,9 @@
 # ShowUppp — changelog
 
+## v4.6.313 — Your companion welcomes you to the club
+- The club welcome's party now belongs to your companion: it bounces up under the spinning coin with the burst of squares. Someone who has not named one yet still gets Pip.
+- check-join-landing.cjs covers both.
+
 ## v4.6.312 — Together, the crew, the pins
 - Together since: the profile card says "With Kettle · 70 days together" -- the logged days that fell while that companion was with you. Your first companion counts from your first logged day.
 - The crew: tapping your avatar opens Your crew. Companions you have had show their name and days; switching asks when there is history ("Kettle has been with you 70 days. Switch to Plato? Kettle keeps every day."), and switching back picks the count up again. Rename sits under the grid. A switch on the same day takes today with it.

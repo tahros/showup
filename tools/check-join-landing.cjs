@@ -7,7 +7,7 @@ const PORT=process.env.PORT||8784,BASE=`http://127.0.0.1:${PORT}/`;
 (async()=>{const b=await chromium.launch(CHROME?{executablePath:CHROME}:{});let bad=0;const ok=(n,c,g)=>{console.log((c?'OK   ':'FAIL ')+n+(c||g===undefined?'':' → '+JSON.stringify(g)));if(!c)bad++;};
 try{for(const [w,h,from] of [[402,874,'membership'],[320,640,'row']]){const tag=`${w} via ${from}:`;
  const ctx=await b.newContext({viewport:{width:w,height:h},serviceWorkers:'block'});
- const db={days:{},settings:{onboarded:true,unit:'lb',theme:'light'}};for(let i=1;i<=24;i++){const d=new Date(Date.UTC(2026,8,i)).toISOString().slice(0,10);db.days[d]={w:[{part:'Chest',ex:'Dip',w:0,reps:[10],at:1}],upd:1};}
+ const db={days:{},settings:{onboarded:true,unit:'lb',theme:'light',...(from==='membership'?{clubAvatar:'bell',companionFree:'bell',companionName:'Kettle',companionAsked:'x'}:{})}};for(let i=1;i<=24;i++){const d=new Date(Date.UTC(2026,8,i)).toISOString().slice(0,10);db.days[d]={w:[{part:'Chest',ex:'Dip',w:0,reps:[10],at:1}],upd:1};}
  await ctx.addInitScript(D=>{if(location.protocol==='http:'&&window.name!=='seeded'){window.name='seeded';localStorage.clear();localStorage.setItem('showup:sandbox','1');localStorage.setItem('sbx:tracker-v1',D);}},JSON.stringify(db));
  const p=await ctx.newPage();const errors=[];p.on('pageerror',e=>errors.push(e.message));
  await p.route('**/*',r=>r.request().url().startsWith(BASE)?r.continue():r.abort());
@@ -18,7 +18,11 @@ try{for(const [w,h,from] of [[402,874,'membership'],[320,640,'row']]){const tag=
  await p.waitForTimeout(2600);
  const sy=await p.evaluate(()=>_modalY);ok(`${tag} Settings was scrolled down when the paywall opened`,sy>200,sy);
  await p.evaluate(()=>{window.__s=[];const f=()=>{const fl=document.querySelector('#memberWelcome .mw-flight'),t=document.querySelector('.club-card [data-club-coin]');if(fl&&t){const a=fl.getBoundingClientRect(),c=t.getBoundingClientRect();__s.push([a.left,a.top,a.width,c.left,c.top,c.width]);}if(__s.length<2000)window.__r=requestAnimationFrame(f);};f();});
- await p.click('[data-mb-buy]');await p.waitForFunction(()=>!document.getElementById('memberWelcome'),null,{timeout:15000});await p.waitForTimeout(300);
+ await p.click('[data-mb-buy]');await p.waitForTimeout(900);
+ /* v4.6.313: the party belongs to your companion once you have one; Pip otherwise */
+ const party=await p.evaluate(()=>({comp:document.querySelector('#memberWelcome .mw-comp .su-companion')?.dataset.companion||null,pip:!!document.querySelector('#memberWelcome img.mw-pip'),want:DB.settings.companionName?clubAvatar()[0]:null}));
+ ok(`${tag} the welcome party is ${from==='membership'?'your companion':'Pip (no companion yet)'}`,party.want?party.comp===party.want&&!party.pip:party.pip&&!party.comp,party);
+ await p.waitForFunction(()=>!document.getElementById('memberWelcome'),null,{timeout:15000});await p.waitForTimeout(300);
  const s=await p.evaluate(()=>{cancelAnimationFrame(__r);return __s;}),last=s.at(-1),offTop=s.some(x=>x[1]<-x[2]);
  ok(`${tag} the coin flies within the screen and lands on the club card's coin`,s.length>30&&!offTop&&Math.abs(last[0]-last[3])<=2&&Math.abs(last[1]-last[4])<=2&&Math.abs(last[2]-last[5])<=2&&last[4]>0&&last[4]<h,{last,offTop});
  const a=await p.evaluate(()=>({sy:scrollY,locked:document.documentElement.classList.contains('modal-open'),coin:document.querySelector('.club-card [data-club-coin]').getBoundingClientRect().top}));

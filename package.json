@@ -1,6 +1,6 @@
 {
   "name": "showup",
-  "version": "4.6.312",
+  "version": "4.6.313",
   "private": true,
   "description": "ShowUppp \u2014 habits and workouts. A static PWA; this manifest exists only for the iOS shell.",
   "scripts": {
