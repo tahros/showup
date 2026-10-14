@@ -1668,23 +1668,23 @@ document.addEventListener('click',e=>{
    set's primary muscle -- so the two cards beside each other never disagree. Order is the body's own
    (fixed places you learn) or most first (Sungjee, 2026-10-14). */
 const PS_PARTS=['Chest','Back','Shoulder','Legs','Biceps','Triceps','Sixpack','Run'];
-function psState(){const s=DB.settings.partShelf||{};return {m:s.m==='w'?'w':'d',p:s.p==='m'?'m':'y',o:s.o==='most'?'most':'body'};}
+function psState(){const s=DB.settings.partShelf||{};return {m:s.m==='w'||s.m==='s'?s.m:'d',p:s.p==='m'?'m':'y',o:s.o==='most'?'most':'body'};}
 function psData(per){
   const t=new Date(todayISO+'T00:00'),from=per==='m'?todayISO.slice(0,8)+'01':todayISO.slice(0,5)+'01-01';
-  const g={};PS_PARTS.forEach(p=>g[p]={days:new Set(),kg:0,km:0});
+  const g={};PS_PARTS.forEach(p=>g[p]={days:new Set(),kg:0,km:0,sets:0});
   for(const iso of Object.keys(DB.days||{})){if(iso<from||iso>todayISO)continue;
     const rows=iso===todayISO?((DB.days[iso]||{}).w||[]).filter(s=>s.completed!==false).map(s=>[s.part,s.ex,s.w,s.reps||[]]):(SEED.sessions[iso]||[]);
     for(const r of rows){
-      if(r[1]==='Run'||r[0]==='Run'){g.Run.days.add(iso);g.Run.km+=+r[2]||0;continue;}
+      if(r[1]==='Run'||r[0]==='Run'){g.Run.days.add(iso);g.Run.km+=+r[2]||0;g.Run.sets++;continue;}
       if(!(r[3]||[]).length)continue;
       const m=typeof exMuscle==='function'?exMuscle(r[1],r[0]):null,vis=(m&&MUSCLE_PART[m])||r[0],gg=g[vis];if(!gg)continue;
-      gg.days.add(iso);gg.kg+=(+r[2]||0)*r[3].reduce((a,b)=>a+(+b||0),0);}
+      gg.days.add(iso);gg.sets+=r[3].length;gg.kg+=(+r[2]||0)*r[3].reduce((a,b)=>a+(+b||0),0);}
   }
-  return {from,parts:PS_PARTS.map(p=>({p,days:g[p].days.size,kg:g[p].kg,km:g[p].km}))};
+  return {from,parts:PS_PARTS.map(p=>({p,days:g[p].days.size,kg:g[p].kg,km:g[p].km,sets:g[p].sets}))};
 }
 /* the figure's drawing; part=null draws it all quiet */
-function psDraw(part){
-  const C=k=>part&&part===k?(PART_COLORS[k]||'var(--muted)'):'var(--ps-off)',N='var(--ps-off)';
+function psDraw(part,col){
+  const L=col||(part&&PART_COLORS[part])||'var(--muted)',C=k=>part&&part===k?L:'var(--ps-off)',N='var(--ps-off)';
   const seg=(x1,y1,x2,y2,w,c)=>`<path d="M${x1} ${y1}L${x2} ${y2}" stroke="${c}" stroke-width="${w}" stroke-linecap="round"/>`;
   const back=part==='Back'||part==='Triceps';let g='';
   for(const s of [-1,1]){const x=50+s*6.3;g+=seg(x,90,x+s*.6,120,12.4,C('Legs'))+seg(x+s*.6,121,x+s*.4,146,8.8,C('Legs'))+`<ellipse cx="${x+s*1.6}" cy="150" rx="6.2" ry="3.2" fill="${C('Legs')}"/>`;}
@@ -1696,7 +1696,7 @@ function psDraw(part){
   if(part==='Sixpack')g+=`<path d="${PS_ABS}" fill="${C('Sixpack')}"/><path d="M50 60.6V78.6M42.4 65.4H57.6M42.9 71.4H57.1" stroke="var(--surface)" stroke-width="1.1"/>`;
   if(part==='Shoulder')g+=`<path d="${psDelts()}" fill="${C('Shoulder')}"/>`;
   g+=`<rect x="45.5" y="28" width="9" height="11" rx="4" fill="${N}"/><ellipse cx="50" cy="19" rx="11.4" ry="13" fill="${N}"/>`;
-  if(part==='Run')g+=`<path transform="translate(56.5 51) scale(1.55) translate(-56.5 -51)" d="M56.5 45.5c-2.6-3.6-8.4-2.4-8.4 2.2 0 4.4 5.2 7.6 8.4 10.4 3.2-2.8 8.4-6 8.4-10.4 0-4.6-5.8-5.8-8.4-2.2Z" fill="${PART_COLORS.Run||'var(--muted)'}"/>`;
+  if(part==='Run')g+=`<path transform="translate(56.5 51) scale(1.55) translate(-56.5 -51)" d="M56.5 45.5c-2.6-3.6-8.4-2.4-8.4 2.2 0 4.4 5.2 7.6 8.4 10.4 3.2-2.8 8.4-6 8.4-10.4 0-4.6-5.8-5.8-8.4-2.2Z" fill="${L}"/>`;
   return g;
 }
 const PS_TORSO='M50 36.5C58 36.5 65.5 37.5 68 41.5C69.6 44.2 68.6 48.6 66.8 51L61.3 79.6Q50 84.4 38.7 79.6L33.2 51C31.4 48.6 30.4 44.2 32 41.5C34.5 37.5 42 36.5 50 36.5Z';
@@ -1705,28 +1705,32 @@ const PS_ABS='M41.6 59.2Q50 61.2 58.4 59.2L57.3 77Q50 80.6 42.7 77Z';
 function psDelts(){let d='';for(const s of [-1,1])d+=`M${50+s*18.1} 41.5C${50+s*16.2} 38.4 ${50+s*11.2} 37.6 ${50+s*9.8} 38.7L${50+s*11} 48C${50+s*13.5} 50.6 ${50+s*17.4} 50.4 ${50+s*19} 47.4C${50+s*19.6} 45.5 ${50+s*19.2} 43.2 ${50+s*18.1} 41.5Z`;return d;}
 /* a tile: the quiet figure, and over it the lit one behind a clip that the entrance raises from the floor */
 let psUid=0;
-function psFigure(part){const id='psc'+(psUid++);
-  return `<svg class="ps-fig" viewBox="0 0 100 160" aria-hidden="true"><defs><clipPath id="${id}"><rect class="ps-clip" x="-10" y="0" width="120" height="160"/></clipPath></defs><g>${psDraw(null)}</g><g class="ps-lit" clip-path="url(#${id})">${psDraw(part)}</g></svg>`;}
+function psFigure(part,col){const id='psc'+(psUid++);
+  return `<svg class="ps-fig" viewBox="0 0 100 160" aria-hidden="true"><defs><clipPath id="${id}"><rect class="ps-clip" x="-10" y="0" width="120" height="160"/></clipPath></defs><g>${psDraw(null)}</g><g class="ps-lit" clip-path="url(#${id})">${psDraw(part,col)}</g></svg>`;}
 function psBody(){
-  const st=psState(),{parts}=psData(st.p),w=st.m==='w';
-  const val=x=>w?(x.p==='Run'?toD(x.km):x.p==='Sixpack'&&!x.kg?null:toU(x.kg)):x.days;
+  const st=psState(),{parts,from}=psData(st.p),w=st.m==='w',ss=st.m==='s';
+  const val=x=>w?(x.p==='Run'?toD(x.km):x.p==='Sixpack'&&!x.kg?null:toU(x.kg)):ss?x.sets:x.days;
   const show=n=>n==null?'—':n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e4?Math.round(n/1e3)+'k':fmt(Math.round(n));
-  const unit=x=>w?(x.p==='Run'?DU():x.p==='Sixpack'&&!x.kg?'body weight':U()):(x.days===1?'day':'days');
-  const rank=x=>{const v=val(x);return w&&x.p==='Run'?-1:v==null?-2:v;};   /* weight: miles and body weight cannot outrank pounds */
+  /* the unit is said once, above the shelf; only a tile in a different unit carries its own */
+  const odd=x=>(w||ss)&&x.p==='Run'?(w?DU():(x.sets===1?'run':'runs')):x.p==='Sixpack'&&w&&!x.kg?'BW':'';
+  const cap=w?'Weight moved, '+U():ss?'Sets':'Days trained';
+  const peer=x=>!((w||ss)&&x.p==='Run');
+  const rank=x=>{const v=val(x);return peer(x)?(v==null?-2:v):-1;};   /* miles, runs and body weight cannot outrank pounds or sets */
   const list=st.o==='most'?[...parts].sort((a,b)=>rank(b)-rank(a)):parts;
-  const pool=parts.filter(x=>val(x)!=null&&!(w&&x.p==='Run')),hi=[...pool].sort((a,b)=>val(b)-val(a))[0],lo=[...pool].sort((a,b)=>val(a)-val(b))[0];
+  const pool=parts.filter(x=>peer(x)&&val(x)!=null),hi=[...pool].sort((a,b)=>val(b)-val(a))[0],lo=[...pool].sort((a,b)=>val(a)-val(b))[0];
   const when=st.p==='m'?new Date(todayISO+'T00:00').toLocaleDateString('en-US',{month:'long',year:'numeric'}):todayISO.slice(0,4)+' so far';
   const nm=p=>p==='Shoulder'?'Shoulders':(typeof partLabel==='function'?partLabel(p):p);
   const btn=(k,v,on,label)=>`<button type="button" data-ps="${k}" value="${v}" aria-pressed="${on}">${label}</button>`;
-  return `<div class="ps-seg" role="group" aria-label="Measure">${btn('m','d',!w,'Days')}${btn('m','w',w,'Weight moved')}</div>
+  return `<div class="ps-seg" role="group" aria-label="Measure">${btn('m','d',st.m==='d','Days')}${btn('m','s',ss,'Sets')}${btn('m','w',w,'Weight')}</div>
     <div class="ps-row"><span class="ps-pill" role="group" aria-label="Period">${btn('p','m',st.p==='m','This month')}${btn('p','y',st.p==='y','This year')}</span>
       <span class="ps-pill" role="group" aria-label="Order">${btn('o','body',st.o==='body','Body')}${btn('o','most',st.o==='most','Most')}</span></div>
-    <div class="ps-shelf">${list.map(x=>{const v=val(x);return `<button type="button" class="ps-t${(w?!v:!x.days)?' ps-zero':''}${psToday().has(x.p)?' ps-today':''}" data-part="${x.p}" data-v="${v??''}" aria-label="${nm(x.p)}: ${show(v)} ${unit(x)}. Open muscles">${psFigure(x.p)}<b>${show(v)}</b><small>${unit(x)}</small><span>${nm(x.p)}</span></button>`;}).join('')}</div>
-    <div class="ps-foot"><span>${when}</span>${hi&&val(hi)?`<span>Most <i>${nm(hi.p)}</i> ${show(val(hi))} · Least <i>${nm(lo.p)}</i> ${show(val(lo))}</span>`:''}</div>`;
+    <div class="ps-cap"><b>${cap}</b> · ${when}</div>
+    <div class="ps-shelf">${list.map(x=>{const v=val(x),o=odd(x);return `<button type="button" class="ps-t${!v?' ps-zero':''}${psToday().has(x.p)?' ps-today':''}" data-part="${x.p}" aria-label="${nm(x.p)}: ${show(v)} ${o==='BW'?'body weight':o||cap.toLowerCase()}. Open muscles">${psFigure(x.p)}<b><i class="ps-n">${o==='BW'?'BW':show(v)}</i>${o&&o!=='BW'?`<small> ${o}</small>`:''}</b><span>${nm(x.p)}</span></button>`;}).join('')}</div>
+    ${hi&&val(hi)?`<div class="ps-foot"><span>Most <i>${nm(hi.p)}</i> ${show(val(hi))}</span><span>Least <i>${nm(lo.p)}</i> ${show(val(lo))}</span></div>`:''}`;
 }
 function partShelfSection(){
   setTimeout(psArm,0);
-  return `<h2>Every part, showing up${typeof hActs==='function'?hActs('ps','Days each body part was trained, or the weight it moved, by each set’s primary muscle. Cardio counts run days and distance.','About every part'):''}</h2><div class="card ps-card" id="psCard">${psBody()}</div>`;
+  return `<h2>Every part, showing up${typeof hActs==='function'?hActs('ps','Days, sets or weight moved for each body part, by each set’s primary muscle. Tap a part for its muscles, as shares. Cardio counts run days, runs and distance.','About every part'):''}</h2><div class="card ps-card" id="psCard">${psBody()}</div>`;
 }
 document.addEventListener('click',e=>{
   const b=e.target.closest?.('[data-ps]');if(!b)return;const card=b.closest('.ps-card');if(!card)return;
@@ -1746,7 +1750,7 @@ function psToday(){const set=new Set();
    tile after tile, while its number counts up; parts trained today glow once. Switching the
    measure or the period counts the numbers again. Still for reduced motion. */
 function psCount(card){
-  card.querySelectorAll('.ps-t b').forEach((b,i)=>{const t=b.textContent,m=t.match(/^([\d,.]+)(\D*)$/);if(!m)return;
+  card.querySelectorAll('.ps-t .ps-n').forEach((b,i)=>{const t=b.textContent,m=t.match(/^([\d,.]+)(\D*)$/);if(!m)return;
     const end=+m[1].replace(/,/g,''),dec=(m[1].split('.')[1]||'').length,suf=m[2],t0=performance.now()+i*70;
     const step=now=>{const k=Math.min(1,Math.max(0,(now-t0)/750)),e=1-Math.pow(1-k,3),v=end*e;
       b.textContent=(dec?v.toFixed(dec):Math.round(v).toLocaleString('en-US'))+suf;if(k<1)requestAnimationFrame(step);else b.textContent=t;};
@@ -1784,15 +1788,15 @@ function psMuscleSVG(view,fill){
   g+=`<rect x="45.5" y="28" width="9" height="11" rx="4" fill="${N}"/><ellipse cx="50" cy="19" rx="11.4" ry="13" fill="${N}"/>`;
   return `<svg class="ps-big" viewBox="0 0 100 160" aria-hidden="true">${d}${g}</svg>`;}
 function psMuscles(part,per){
-  const from=per==='m'?todayISO.slice(0,8)+'01':todayISO.slice(0,5)+'01-01',mus={};
-  (PART_MUSCLES[part]||[]).forEach(m=>mus[m]={days:new Set(),sets:0,last:'',ex:{}});
+  const from=per==='m'?todayISO.slice(0,8)+'01':todayISO.slice(0,5)+'01-01',mus={},pdays=new Set();
+  (PART_MUSCLES[part]||[]).forEach(m=>mus[m]={days:new Set(),sets:0,kg:0,last:'',ex:{}});
   for(const iso of Object.keys(DB.days||{}).sort()){if(iso>todayISO)continue;
     const rows=iso===todayISO?((DB.days[iso]||{}).w||[]).filter(s=>s.completed!==false).map(s=>[s.part,s.ex,s.w,s.reps||[]]):(SEED.sessions[iso]||[]);
     for(const r of rows){if(r[1]==='Run'||!(r[3]||[]).length)continue;
       const m=typeof exMuscle==='function'?exMuscle(r[1],r[0]):null,vis=(m&&MUSCLE_PART[m])||r[0];if(vis!==part)continue;
-      const k=m&&MUSCLE_PART[m]?m:'unassigned',x=mus[k]=mus[k]||{days:new Set(),sets:0,last:'',ex:{}};x.last=iso;
-      if(iso>=from){x.days.add(iso);x.sets+=r[3].length;x.ex[r[1]]=(x.ex[r[1]]||0)+r[3].length;}}}
-  return mus;}
+      const k=m&&MUSCLE_PART[m]?m:'unassigned',x=mus[k]=mus[k]||{days:new Set(),sets:0,kg:0,last:'',ex:{}};x.last=iso;
+      if(iso>=from){pdays.add(iso);x.days.add(iso);x.sets+=r[3].length;x.kg+=(+r[2]||0)*r[3].reduce((a,b)=>a+(+b||0),0);x.ex[r[1]]=(x.ex[r[1]]||0)+r[3].length;}}}
+  Object.defineProperty(mus,'_days',{value:pdays.size});return mus;}
 function psAgo(iso){if(!iso)return '';const n=Math.round((new Date(todayISO+'T00:00')-new Date(iso+'T00:00'))/864e5);return n===0?'today':n===1?'yesterday':n+' days ago';}
 function psSheet(part){
   const st=psState(),per=st.p==='m'?'this month':'this year',nm=part==='Shoulder'?'Shoulders':(typeof partLabel==='function'?partLabel(part):part);
@@ -1801,13 +1805,26 @@ function psSheet(part){
     body=`<div class="ps-figs"><svg class="ps-big" viewBox="0 0 100 160" aria-hidden="true">${psDraw('Run')}</svg></div>
       <div class="ps-mrow"><i style="background:${col}"></i><span><b>Run days</b><small>${last?'Last run '+psAgo(last):'No runs yet'}</small></span><em>${r.days}<small> ${r.days===1?'day':'days'}</small></em></div>
       <div class="ps-mrow"><i style="background:${col}"></i><span><b>Distance</b><small>${per}</small></span><em>${fmt(Math.round(toD(r.km)*10)/10)}<small> ${DU()}</small></em></div>`;}
-  else{const mus=psMuscles(part,st.p),keys=Object.keys(mus),mx=Math.max(1,...keys.map(k=>mus[k].days.size));
-    const shade=m=>{const x=mus[m];if(!x||!x.days.size)return null;return `color-mix(in srgb,${col} ${Math.round(35+65*x.days.size/mx)}%,var(--ps-off))`;};
+  else{const mus=psMuscles(part,st.p),keys=Object.keys(mus);
+    const mv=m=>{const x=mus[m];return st.m==='s'?x.sets:st.m==='w'?toU(x.kg):x.days.size;},mx=Math.max(1,...keys.map(mv));
+    const mshow=n=>n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e4?Math.round(n/1e3)+'k':fmt(Math.round(n)),munit=n=>st.m==='s'?(n===1?'set':'sets'):st.m==='w'?U():(n===1?'day':'days');
+    const shade=m=>{const x=mus[m];if(!x||!mv(m))return null;return `color-mix(in srgb,${col} ${Math.round(28+72*mv(m)/mx)}%,var(--ps-off))`;};
     const front=keys.some(m=>!['lats','upper-back','rear-delts','triceps','hamstrings','glutes','calves'].includes(m)),backv=keys.some(m=>['lats','upper-back','rear-delts','triceps','hamstrings','glutes','calves'].includes(m));
     body=`<div class="ps-figs">${front?`<figure>${psMuscleSVG('f',shade)}<figcaption>Front</figcaption></figure>`:''}${backv?`<figure>${psMuscleSVG('b',shade)}<figcaption>Back</figcaption></figure>`:''}</div>`;
-    body+=keys.map(m=>{const x=mus[m],n=x.days.size,top=Object.entries(x.ex).sort((a,b)=>b[1]-a[1]).slice(0,2).map(e=>e[0]).join(' · ');
+    /* v4.6.319: the sheet answers "how balanced", so each muscle leads with a percentage and its count follows.
+       Sets and weight are shares of the part (they add to 100); days are the share of this part's days
+       that reached the muscle (a day can reach several, so they need not add up) (Sungjee, 2026-10-14) */
+    const base=st.m==='d'?mus._days:keys.reduce((a,k)=>a+mv(k),0),pct=n=>base?Math.round(n/base*100):0;
+    const {parts}=psData(st.p),me=parts.find(x=>x.p===part),allDays=new Set();
+    for(const iso of Object.keys(DB.days||{}))if(iso<=todayISO&&iso>=(st.p==='m'?todayISO.slice(0,8)+'01':todayISO.slice(0,5)+'01-01')&&(DB.days[iso].w||[]).length)allDays.add(iso);
+    const whole=st.m==='d'?allDays.size:parts.filter(x=>x.p!=='Run').reduce((a,x)=>a+(st.m==='s'?x.sets:x.kg),0),mine=st.m==='d'?me.days:st.m==='s'?me.sets:me.kg;
+    const lead=whole?Math.round(mine/whole*100):0;
+    body=`<p class="ps-share"><b>${lead}%</b> ${st.m==='d'?`of your training days ${per}`:st.m==='s'?`of all your sets ${per}`:`of all the weight you moved ${per}`}</p>`+body;
+    body+=keys.map(m=>{const x=mus[m],n=mv(m),top=Object.entries(x.ex).sort((a,b)=>b[1]-a[1]).slice(0,2).map(e=>e[0]).join(' · ');
       const lbl=(MUSCLE_LABEL[m]||m).replace(/^./,c=>c.toUpperCase());
-      return `<div class="ps-mrow${n?'':' ps-mzero'}"><i style="background:${shade(m)||'var(--ps-off)'}"></i><span><b>${lbl}</b><small>${n?(top||'')+(x.last?' · '+psAgo(x.last):''):(x.last?'Last trained '+psAgo(x.last):'Not trained yet')}</small></span><em>${n}<small> ${n===1?'day':'days'}</small></em></div>`;}).join('');}
+      return `<div class="ps-mrow${n?'':' ps-mzero'}"><i style="background:${shade(m)||'var(--ps-off)'}"></i><span><b>${lbl}</b><small>${n?(top||'')+(x.last?' · '+psAgo(x.last):''):(x.last?'Last trained '+psAgo(x.last):'Not trained yet')}</small></span><em>${pct(n)}%<small>${mshow(n)} ${munit(n)}</small></em></div>`;}).join('');
+    const one={Shoulder:'shoulder',Legs:'leg',Sixpack:'core'}[part]||nm.toLowerCase();
+    body+=`<p class="ps-note">${st.m==='d'?`Share of your ${mus._days} ${one} days that reached each muscle. One day can reach several.`:`Share of your ${one} ${st.m==='s'?'sets':'weight'} that went to each muscle.`}</p>`;}
   const dlg=document.createElement('dialog');dlg.className='ps-sheet ps-card';dlg.setAttribute('aria-label',nm);
   dlg.innerHTML=`<div class="ps-grab"></div><div class="ps-head"><div><h3>${nm}</h3><p>${per[0].toUpperCase()+per.slice(1)}</p></div><button type="button" class="ps-x" aria-label="Close">×</button></div>${body}`;
   document.body.appendChild(dlg);
