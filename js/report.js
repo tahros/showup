@@ -530,7 +530,9 @@ function drawDayCard(x,S,d){
   const TOP=FRAME+CARD_AIR, ICON=52;
   const NAMEY=TOP+ICON/2+9, DATEY=NAMEY+68, PARTY=DATEY+48;
   const HEAD=PARTY+RULE_AIR+6;    /* +6: the parts line's descender */
-  const FOOT=CARD_AIR+DESC+44;    /* frame air + descender + footer baseline lift */
+  /* v4.6.316: your companion on a shared receipt moves the brand to the foot: room for the wordmark */
+  const compOn=!isRetro()&&mascotMode()!=='off'&&typeof shareCompanionImg==='function'&&shareReady(shareCompanionImg())&&shareReady(shareWordmarkImg(document.documentElement.dataset.theme==='dark'));
+  const FOOT=CARD_AIR+DESC+44+(compOn?44:0);    /* frame air + descender + footer baseline lift (+ the wordmark) */
   const H=Math.max(640,HEAD+(km?GH(1):0)+cardio.reduce((a,c)=>a+GH(c.rows.length),0)+groups.reduce((a,g)=>a+GH(g.subs.length),0)+FOOT);
   const cv2=x.canvas; if(cv2&&cv2.height!==H) cv2.height=H;
 
@@ -541,14 +543,19 @@ function drawDayCard(x,S,d){
   /* Theme-aware transparent mascot + name, in the existing top-left slot.
      Off uses the previous app mark; missing artwork never blocks a receipt. */
   let ix=L;
-  const receiptMark=mascotMode()==='off'?_dayIcon:mascotReceiptMark();
-  if(receiptMark){
+  /* v4.6.316: your companion in Pip's slot; the wordmark then signs the foot (below) */
+  const sharedComp=compOn&&shareDrawCompanion(x,L-6,TOP-6,ICON+12);
+  const receiptMark=sharedComp?null:mascotMode()==='off'?_dayIcon:mascotReceiptMark();
+  if(sharedComp)ix=L+ICON+16;
+  else if(receiptMark){
     x.save();if(isRetro())x.imageSmoothingEnabled=false;
     x.drawImage(receiptMark,L,TOP,ICON,ICON); x.restore();
     ix=L+ICON+16;
   }
   const nm=(typeof firstName==='function'&&firstName())?firstName().toUpperCase():'';
-  if(nm){ x.fillStyle=V('--muted'); x.font='600 26px '+MONO; x.fillText(nm,ix,NAMEY); }
+  if(nm){ x.fillStyle=V('--muted'); x.font='600 26px '+MONO; x.fillText(nm,ix,NAMEY);
+    const medal=typeof shareMedalImg==='function'?shareMedalImg():null;
+    if(shareReady?.(medal)) x.drawImage(medal,ix+x.measureText(nm).width+12,NAMEY-27,34,34); }
 
   const dt=new Date(d+'T00:00');
   x.fillStyle=V('--chalk'); x.font='700 38px '+SANS;
@@ -627,6 +634,9 @@ function drawDayCard(x,S,d){
   x.fillStyle=V('--chalk'); x.font='700 36px '+MONO;
   x.fillText(String(sets),R-sw-14,H-(CARD_AIR+DESC+44));
   x.textAlign='left';
+  /* v4.6.316: with your companion up top, the official wordmark signs the bottom-left corner */
+  if(sharedComp){const wm=shareWordmarkImg(document.documentElement.dataset.theme==='dark');
+    if(shareReady(wm)){const ww=104,wh=ww*232/350;x.drawImage(wm,L,H-(CARD_AIR+DESC+44)+8-wh,ww,wh);}}
 }
 let _dayIcon=null;
 function ensureDayIcon(){

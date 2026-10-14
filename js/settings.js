@@ -883,6 +883,23 @@ function userMedalLineHTML(hit){
   if(!hit)return '';const what={band:'a sweatband',bronze:'the bronze medal',silver:'the silver medal',gold:'the gold medal',star:'a star',crown:'the crown',diamond:'the diamond'}[hit[1]];
   return `<p class="dd-crew">${medalSVG(hit[1],26)}<span>You earned ${what}: ${fmt(hit[0])} days of showing up.</span></p>`;
 }
+/* ---- v4.6.316: YOUR COMPANION IN WHAT YOU SHARE. On the day receipt and the plates card your
+   companion takes Pip's spot; since Pip was the receipt's only brand mark, the official wordmark
+   moves into its corner so a shared image still says where it came from. Your top medal sits by
+   your name. Pip as your companion (or none chosen) leaves both cards exactly as they were. */
+const _shareImgs={};
+function shareImg(src){if(!_shareImgs[src]){const i=new Image();i.src=src;_shareImgs[src]=i;}return _shareImgs[src];}
+const shareReady=i=>!!(i&&i.complete&&i.naturalWidth);
+function shareCompanionImg(){if(typeof companionIsPip!=='function'||companionIsPip())return null;const c=clubAvatar();return c[2]>=0?shareImg(`assets/club-icons-${c[2]}.webp`):null;}
+function shareWordmarkImg(dark){return shareImg(`assets/showuppp-wordmark-${dark?'dark':'light'}.svg`);}
+function shareMedalImg(){const t=userMedals().at(-1);return t?shareImg('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(medalSVG(t[1],64).replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" '))):null;}
+/* draws your companion (one 400x400 frame of its sheet) into a square; false if Pip plays or the art isn't in */
+function shareDrawCompanion(x,dx,dy,size){
+  const img=shareCompanionImg();if(!shareReady(img))return false;const c=clubAvatar(),fw=img.naturalWidth/3,col=Math.round(c[3]/50);
+  x.drawImage(img,col*fw,0,fw,img.naturalHeight,dx,dy,size,size);return true;
+}
+function sharePreload(){const d=document.documentElement.dataset.theme==='dark';const l=[shareCompanionImg(),shareWordmarkImg(d),shareMedalImg()].filter(Boolean);return Promise.all(l.map(i=>i.decode?i.decode().catch(()=>{}):null));}
+setTimeout(()=>{try{sharePreload();}catch(e){}},2500);
 function crewSwitch(k){
   const st=DB.settings,c=crewState(),cur=clubAvatar()[0];if(!c||k===cur)return;
   c[k]=c[k]||{name:COMPANION_NAMES[k]};st.clubAvatar=k;st.companionName=c[k].name;DB.settingsAt=Date.now();save(true);
