@@ -3,6 +3,7 @@
 // your name) and the data placed per card: lists from the top, the plates on the floor, charts centred.
 // A workout log too long for 4:5 switches to 9:16 (1920) so its type never shrinks. The labels are the
 // ones Sungjee chose. The year-by-year charts always run Jan 1 to Dec 31.
+// v4.6.320: 80px between the header and the content; Last vs today switches to 9:16 like the workout log.
 const {chromium}=require('playwright'),fs=require('fs');
 const CHROME=[process.env.PW_CHROME,'/opt/pw-browsers/chromium-1194/chrome-linux/chrome','C:/Users/sungj/AppData/Local/ms-playwright/chromium-1217/chrome-win64/chrome.exe'].find(p=>p&&fs.existsSync(p));
 const PORT=process.env.PORT||8784,BASE=`http://127.0.0.1:${PORT}/`;
@@ -21,7 +22,7 @@ const p=await ctx.newPage();const errors=[];p.on('pageerror',e=>errors.push(e.me
 try{
  await p.route('**/*',r=>r.request().url().startsWith(BASE)?r.continue():r.abort());await p.goto(BASE);await p.waitForLoadState('networkidle').catch(()=>{});await p.waitForTimeout(3500);
  await p.evaluate(async()=>{todayISO='2026-10-14';SEED=deriveAll();await sharePreload();await document.fonts.ready;
-  window.__frames=[];const orig=shareFrame;window.shareFrame=(src,band,meta)=>{const out=orig(src,band,meta);__frames.push({label:meta.label,valign:meta.valign||'centre',title:meta.title,sub:meta.sub,w:out.width,h:out.height});return out;};
+  window.__frames=[];const orig=shareFrame;window.shareFrame=(src,band,meta)=>{const out=orig(src,band,meta);__frames.push({label:meta.label,valign:meta.valign||'centre',grow:!!meta.grow,title:meta.title,sub:meta.sub,w:out.width,h:out.height});return out;};
   window.__comp=0;const oc=shareDrawCompanion;window.shareDrawCompanion=(...a)=>{const r=oc(...a);if(r&&a[3]===48)__comp++;return r;};});
  /* the workout log: 3, 4 and 25 lines */
  const logs=await p.evaluate(()=>['2026-10-11','2026-10-14','2026-10-13'].map(d=>{const cv=shareDayCardFramed(d);return {w:cv.width,h:cv.height,meta:__frames.at(-1)};}));
@@ -35,11 +36,13 @@ try{
   const r=await p.evaluate(async sel=>{__frames=[];__comp=0;const btn=document.querySelector(sel);if(!btn)return {missing:true};btn.scrollIntoView();btn.click();
    for(let i=0;i<50;i++){await new Promise(r=>setTimeout(r,200));const im=document.getElementById('repImg');if(im&&im.src&&im.src.startsWith('data:'))break;}
    const im=document.getElementById('repImg'),o=document.getElementById('repOv');const res={w:im?.naturalWidth,h:im?.naturalHeight,meta:__frames.at(-1),comp:__comp};if(o)o.style.display='none';im?.removeAttribute('src');syncModalLock?.();return res;},sel);
+  if(sel==='.dr-share')ok('Last vs today may switch to 9:16 when it would shrink',r.meta?.grow===true,r.meta);
   ok(`${label}: 1080x1350, "${label}" label, ${valign}, Snap left of the name`,!r.missing&&r.w===1080&&r.h===1350&&r.meta?.label===label&&r.meta?.valign===valign&&r.comp>=1,r);
  }
  const dist=await p.evaluate(async()=>{__frames=[];const btns=[...document.querySelectorAll('.comparison-share')];const btn=btns[1];if(!btn)return null;btn.scrollIntoView();btn.click();
   for(let i=0;i<50;i++){await new Promise(r=>setTimeout(r,200));const im=document.getElementById('repImg');if(im&&im.src&&im.src.startsWith('data:'))break;}
   const o=document.getElementById('repOv');if(o)o.style.display='none';document.getElementById('repImg')?.removeAttribute('src');return __frames.at(-1)?.label;});
+ ok('the header has 80px of air above the content (Sungjee, 2026-10-14)',await p.evaluate(()=>SHARE_BAND===282));
  ok('distance chart: "Distance, year by year"',dist==='Distance, year by year',dist);
  /* the year-by-year axis is the whole year */
  const ticks=await p.evaluate(()=>[...document.querySelectorAll('.comparison-plot text')].map(t=>t.textContent).filter(t=>/^[A-Z][a-z]{2} \d+$/.test(t)));

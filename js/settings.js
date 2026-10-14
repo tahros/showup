@@ -907,7 +907,7 @@ setTimeout(()=>{try{sharePreload();}catch(e){}},2500);
    companion + first name right, 72 from the bottom. Each card supplies only its data; the frame
    places it in the band between, never larger than drawn, centred. Dates: "Tue, Oct 13, 2026";
    ranges "Sep 10 – Sep 30, 2026". */
-const SHARE_W=1080,SHARE_H=1350,SHARE_M=72,SHARE_SANS='"ShowUp Export Plex", "IBM Plex Sans", sans-serif',SHARE_MONO='"IBM Plex Mono", monospace';
+const SHARE_BAND=282,SHARE_W=1080,SHARE_H=1350,SHARE_M=72,SHARE_SANS='"ShowUp Export Plex", "IBM Plex Sans", sans-serif',SHARE_MONO='"IBM Plex Mono", monospace';
 function shareDay(iso){const d=new Date(iso+'T12:00');return d.toLocaleDateString('en-US',{weekday:'short'})+', '+d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
 function shareRange(a,b){const A=new Date(a+'T12:00'),B=new Date(b+'T12:00'),md=d=>d.toLocaleDateString('en-US',{month:'short',day:'numeric'});return A.getFullYear()===B.getFullYear()?`${md(A)} – ${md(B)}, ${B.getFullYear()}`:`${md(A)}, ${A.getFullYear()} – ${md(B)}, ${B.getFullYear()}`;}
 function sharePipImg(){return shareImg('assets/mascot-blue.png');}
@@ -927,7 +927,7 @@ function shareFrameDraw(src,band,meta){
   let x0=w,y0=h,x1=-1,y1=-1;for(let yy=0;yy<h;yy+=1)for(let xx=bl;xx<br;xx+=2){if(diff((yy*w+xx)*4)){if(xx<x0)x0=xx;if(xx>x1)x1=xx;if(yy<y0)y0=yy;if(yy>y1)y1=yy;}}
   /* v4.6.317: a list too long for 4:5 switches the canvas to 9:16 (1920) so its type never shrinks;
      everything else stays 4:5 and fits by scaling down */
-  const HH=meta.grow&&y1>=0&&y1-y0+1>882?1920:SHARE_H;   /* two sizes only: 4:5 or 9:16 */
+  const HH=meta.grow&&y1>=0&&y1-y0+1>SHARE_H-SHARE_M-232*100/350-80-SHARE_BAND?1920:SHARE_H;   /* two sizes only: 4:5 or 9:16 */
   out.height=HH;const x=out.getContext('2d');
   x.fillStyle=bg;x.fillRect(0,0,SHARE_W,HH);
   /* header */
@@ -937,7 +937,7 @@ function shareFrameDraw(src,band,meta){
   /* v4.6.317: title 48 (Sungjee, 2026-10-14) */
   x.fillStyle=ink;x.font='600 48px '+SHARE_SANS;x.fillText(meta.title||'',C,y+20+64,936);
   x.fillStyle=muted;x.font='400 30px '+SHARE_SANS;if(meta.sub)x.fillText(meta.sub,C,y+20+64+46,936);
-  const bandTop=y+20+64+46+8+40;            /* 250 */
+  const bandTop=SHARE_BAND;            /* v4.6.320: 80 below the subtitle's baseline, matching the air around the footer rule (Sungjee, 2026-10-14) */
   /* footer */
   const wm=shareWordmarkImg(dark),wh=100*232/350,rowMid=HH-SHARE_M-wh/2,rule=rowMid-wh/2-40;
   x.fillStyle=line;x.fillRect(SHARE_M,Math.round(rule),SHARE_W-SHARE_M*2,2);
