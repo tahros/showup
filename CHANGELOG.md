@@ -1,5 +1,13 @@
 # ShowUppp — changelog
 
+## v4.6.319 — Sets on the shelf; shares when you tap
+
+- "Every part, showing up" now offers Days · Sets · Weight. In Sets, Cardio counts runs and is never ranked against sets.
+- The unit is said once, above the shelf (for example "Days trained · 2026 so far"), so each tile is just figure, number and name. Only Cardio ("runs" or "mi") carries its own unit, and Core reads "BW" when its work is all body weight.
+- The footer splits into "Most … / Least …".
+- Tapping a part now leads with percentages. One line gives the part's share of your training days, sets or weight. Each muscle row shows a big percentage with its count underneath: share of the part's sets or weight (these add up to 100), or the share of the part's days that reached that muscle (a day can reach several), with a one-line note explaining which.
+- tools/check-part-shelf.cjs covers Sets and the percentages.
+
 ## v4.6.318 — Every part, showing up
 
 - New Stats card under "This week": eight flat figures, one per body part. Each lights its own part in its colour; Cardio lights the heart.
