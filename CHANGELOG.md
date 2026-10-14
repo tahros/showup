@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.321 — The day's totals close the workout log
+
+- The shared workout log's subtitle is now just the body parts.
+- The day's totals move under the list, below one solid rule: weight and distance on the left ("8,306 lb | 3.31 mi"), total sets on the right ("16 sets"). They use the receipt's own big-number, small-unit style.
+- tools/check-share-frame.cjs checks the subtitle.
+
 ## v4.6.320 — Room to breathe in what you share
 
 - Every shared image now has 80px between the subtitle and the content, the same space the footer rule has above and below it, so the header no longer crowds the data.

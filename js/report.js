@@ -1164,7 +1164,7 @@ function shareDayCardFramed(d,grow=true){
      total sets on the right, under one solid rule, in the receipt's own number-and-unit
      grammar (Sungjee, 2026-10-14) */
   let src=cv;const right=[m.vol,m.km].filter(Boolean);
-  if(m.sets&&band.b){
+  if(m.sets&&band.b)try{
     const S=1080,L=96,R=S-96,top=Math.round(band.b),add=150,out=document.createElement('canvas');out.width=S;out.height=top+add+40;
     const o=out.getContext('2d');o.drawImage(cv,0,0,S,top,0,0,S,top);
     const px=x.getImageData(Math.round((band.l||0)+6),top-6,1,1).data;o.fillStyle=`rgb(${px[0]},${px[1]},${px[2]})`;o.fillRect(0,top,S,add+40);
@@ -1178,6 +1178,6 @@ function shareDayCardFramed(d,grow=true){
     const ls=right.map(t=>piece(...parts(t))),gap=36;let xl=L;
     ls.forEach((pc,i)=>{draw(pc,xl);xl+=pc.w+gap;if(i<ls.length-1){o.fillStyle=V('--line');o.fillRect(xl-gap/2-1,y-34,2,40);}});
     const sp=piece(String(m.sets),m.sets===1?'set':'sets');draw(sp,R-sp.w);
-    src=out;band.b=top+add;}
+    src=out;band.b=top+add;}catch(e){src=cv;band.b=(window.__shareBand||{}).b;}   /* no pixel access (a test canvas): the log as drawn */
   return typeof shareFrame==='function'?shareFrame(src,band,{label:'Workout log',valign:'top',grow,title:shareDay(d),sub:m.parts||''}):src;
 }
