@@ -4522,7 +4522,7 @@ html.modal-open .calreturn{display:none!important}
 #onb .ob-top{display:flex;align-items:center;gap:14px;height:32px;margin-top:22px}
 #onb .ob-back,#onb .ob-skip{width:auto;min-width:28px;min-height:0;margin:0;padding:4px 0;border:0;background:none;box-shadow:none;color:var(--chalk);font:400 26px/1 var(--body);cursor:pointer}
 #onb .ob-skip{font:500 15px var(--body);color:var(--muted)}
-#onb .ob-prog{flex:1;display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+#onb .ob-prog{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:6px}  /* v4.6.314: four steps since v4.6.311, one row */
 #onb .ob-prog i{height:3px;border-radius:2px;background:color-mix(in srgb,var(--chalk) 14%,transparent)}
 #onb .ob-prog i.on{background:var(--chalk)}
 #onb .ob-h{font:700 32px/1.12 var(--body);letter-spacing:-.8px;margin:28px 0 8px}

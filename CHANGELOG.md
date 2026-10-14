@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.314 — Pip is a choice; setup progress on one row
+- Pip joins the line-up, first, as a wide tile above the nine. Choosing him brings his own moments back: the 3D Pip on Today and in the live workout, his jump in the logo on day done. He keeps days together, pins and a place on the crew shelf like any companion, and can be a non-member's one free pick.
+- Skip in setup now keeps Pip rather than a dealt companion. Pip is kept apart from the original nine, so anyone's dealt companion does not move.
+- Fix: setup's progress showed three bars and a fourth on its own row since setup gained its fourth step (v4.6.311). Now four bars, one row.
+- Tests: check-companion.cjs covers choosing Pip; check-onboarding.cjs covers the one-row progress and Skip keeping Pip; test-daydone and test-mascot expect Pip again when no companion is chosen, and the companion when one is.
+
 ## v4.6.313 — Your companion welcomes you to the club
 - The club welcome's party now belongs to your companion: it bounces up under the spinning coin with the burst of squares. Someone who has not named one yet still gets Pip.
 - check-join-landing.cjs covers both.

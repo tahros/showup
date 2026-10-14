@@ -36,7 +36,7 @@ try{
   ok('an existing user without a companion is due the meeting (not opened by itself under automation)',await p.evaluate(()=>adoptDue()&&!adoptAuto()&&!document.getElementById('adopt')));
   await p.evaluate(()=>adoptOpen());await p.waitForTimeout(2600);
   let d=await p.evaluate(()=>({t:document.querySelector('#adopt .ad-t')?.textContent,n:document.querySelectorAll('#adopt .ad-c:not(.ad-dim)').length,later:!!document.querySelector('#adopt [data-ad-later]'),modal:modalOpen()}));
-  ok('the meeting: "Someone wants to come along.", nine to choose, Not now offered, a pop-up',d.t==='Someone wants to come along.'&&d.n===9&&d.later&&d.modal,d);
+  ok('the meeting: "Someone wants to come along.", Pip and the nine to choose, Not now offered, a pop-up',d.t==='Someone wants to come along.'&&d.n===10&&d.later&&d.modal,d);
   await p.click('#adopt [data-ad="roller"]');await p.waitForTimeout(700);await p.click('#adopt .ad-go');await p.waitForTimeout(3200);
   d=await p.evaluate(()=>({gone:!document.getElementById('adopt'),a:DB.settings.clubAvatar,free:DB.settings.companionFree,n:DB.settings.companionName,comp:document.querySelector('#view .su-companion')?.dataset.companion,due:adoptDue()}));
   ok('Rolly comes along: kept as the free one, on Today, never asked again',d.gone&&d.a==='roller'&&d.free==='roller'&&d.n==='Rolly'&&d.comp==='roller'&&!d.due,d);
@@ -46,11 +46,23 @@ try{
   const d=await p.evaluate(()=>({gone:!document.getElementById('adopt'),asked:!!DB.settings.companionAsked,due:adoptDue(),n:DB.settings.companionName||null}));
   ok('Not now: closes, no name kept, and it does not come back',d.gone&&d.asked&&!d.due&&!d.n,d);
   ok('no page errors',!errors.length,errors);await ctx.close();}
+ /* v4.6.314: Pip is a choice -- choosing him brings his own moments back */
+ {const {ctx,p,errors}=await open({clubAvatar:'pip',companionFree:'pip',companionName:'Pip'});
+  await p.evaluate(()=>{view='today';render();});await p.waitForTimeout(800);
+  let d=await p.evaluate(()=>({pip:!!document.querySelector('#view .su-hello-row .su-mascot'),comp:document.querySelectorAll('#view .su-companion').length}));
+  ok('Pip chosen: Pip on Today, no other companion',d.pip&&d.comp===0,d);
+  await p.evaluate(()=>celebrateDayDone(true,48,0,true));await p.waitForTimeout(1500);
+  d=await p.evaluate(()=>{const o=document.getElementById('dayDone');return {pip:!!o.querySelector('.ddbrand .su-mascot'),word:!!o.querySelector('.showuppp-word-only'),comp:o.querySelectorAll('.su-companion').length};});
+  ok('Pip chosen: day done keeps Pip in the logo',d.pip&&!d.word&&d.comp===0,d);
+  await p.evaluate(()=>{document.getElementById('dayDone')?.remove();view='sync';render();});await p.waitForTimeout(700);
+  d=await p.evaluate(()=>({tile:!!document.querySelector('.club-avatar-button .club-pip'),first:document.querySelector('.club-icon-grid button')?.dataset.clubIcon,t:document.querySelector('.club-together')?.textContent.replace(/\s+/g,' ')}));
+  ok('Pip chosen: his still on the profile, first on the shelf, With Pip',d.tile&&d.first==='pip'&&/With Pip/.test(d.t||''),d);
+  ok('no page errors',!errors.length,errors);await ctx.close();}
  /* after launch: the first pick is free; the rest are a member's */
  {const {ctx,p,errors}=await open({clubAvatar:'mat',companionFree:'mat',companionName:'Matty'},true);
   await p.evaluate(()=>{document.getElementById('sbxBar')?.remove();view='sync';render();});await p.waitForTimeout(800);
   const d=await p.evaluate(()=>({live:paywallLive(),free:clubFreeIcon()[0],locked:[...document.querySelectorAll('[data-club-icon].club-locked')].map(x=>x.dataset.clubIcon),note:document.querySelector('.club-lock-note')?.textContent}));
-  ok('non-member after launch: the one chosen at setup stays open, the other eight locked',d.live&&d.free==='mat'&&d.locked.length===8&&!d.locked.includes('mat')&&/rolled mat is yours/.test(d.note||''),d);
+  ok('non-member after launch: the one chosen at setup stays open, the other nine (Pip too) locked',d.live&&d.free==='mat'&&d.locked.length===9&&!d.locked.includes('mat')&&/rolled mat is yours/.test(d.note||''),d);
   ok('no page errors',!errors.length,errors);await ctx.close();}
 }catch(e){console.log('CRASH '+e.stack);bad++;}
 await b.close();console.log(bad?`FAILED ${bad}`:'ALL OK');process.exit(bad?1:0);})();

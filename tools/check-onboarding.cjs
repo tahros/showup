@@ -39,7 +39,9 @@ try{for(const [w,h] of [[402,874],[320,640]])for(const theme of ['dark','light']
  await p.click('[data-onbact="toStep4"]');await p.waitForTimeout(2600);
  /* v4.6.311: step 3 of 4 is the companion -- nine to choose from, named, then it comes along */
  d=await p.evaluate(()=>{const o=document.getElementById('onb');return {step:o.dataset.step,t:o.querySelector('.ad-t')?.textContent,n:o.querySelectorAll('.ad-c').length,dim:o.querySelectorAll('.ad-dim').length};});
- ok(`${tag} then a companion comes along: "Jason, someone wants to come along.", nine to choose, none locked`,d.step==='4'&&d.t==='Jason, someone wants to come along.'&&d.n===9&&d.dim===0,d);
+ const bars=await p.evaluate(()=>[...document.querySelectorAll('#onb .ob-prog i')].map(i=>Math.round(i.getBoundingClientRect().top)));
+ ok(`${tag} the progress is four bars on one row`,bars.length===4&&new Set(bars).size===1,bars);
+ ok(`${tag} then a companion comes along: "Jason, someone wants to come along.", Pip and the nine to choose, none locked`,d.step==='4'&&d.t==='Jason, someone wants to come along.'&&d.n===10&&d.dim===0,d);
  f=await fits();ok(`${tag} the companion step fits`,f.sw<=f.vw&&!f.over,f);
  await p.click('#onb [data-ad="plate"]');await p.waitForTimeout(900);
  d=await p.evaluate(()=>({name:document.getElementById('adName').value,go:document.querySelector('#onb .ad-go').textContent}));
@@ -68,7 +70,7 @@ try{for(const [w,h] of [[402,874],[320,640]])for(const theme of ['dark','light']
   await p.route('**/*',r=>r.request().url().startsWith(BASE)?r.continue():r.abort());await p.goto(BASE);await p.waitForTimeout(4000);
   await p.click('[data-onbact="local"]');await p.waitForTimeout(600);await p.click('[data-onbp="Legs"]');await p.click('[data-onbact="skip"]');await p.waitForTimeout(600);
   let d=await p.evaluate(()=>({step:document.getElementById('onb').dataset.step,in:document.querySelector('#onb .ob-in')?.textContent}));
-  ok('Skip lands on You\'re in (no name yet), past the companion; no prompt for one later',d.step==='5'&&d.in==="You're in."&&!!(await p.evaluate(()=>DB.settings.companionAsked)),d);
+  ok('Skip lands on You\'re in (no name yet), past the companion, keeping Pip; no prompt for one later',d.step==='5'&&d.in==="You're in."&&!!(await p.evaluate(()=>DB.settings.companionAsked&&DB.settings.clubAvatar==='pip'&&companionIsPip())),d);
   await p.click('[data-onbact="back"]');await p.waitForTimeout(400);
   d=await p.evaluate(()=>document.getElementById('onb').dataset.step);ok('Back from You\'re in returns to the companion',d==='4',d);
   await p.click('[data-onbact="back"]');await p.waitForTimeout(400);await p.fill('#onbBw','80');await p.click('[data-onbact="notnow"]');await p.waitForTimeout(400);

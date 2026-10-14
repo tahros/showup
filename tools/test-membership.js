@@ -237,7 +237,7 @@ async function trainLog(b){
  { const b=await boot({live:true,days:record(12),settings:{clubAvatar:'headphones'}});
    b.run(`view='sync';render();`);await settle();
    const free=b.run('clubFreeIcon()[0]'),locked=[...b.d.querySelectorAll('[data-club-icon].club-locked')].map(x=>x.dataset.clubIcon);
-   ok('non-member: eight icons locked, the dealt one open',locked.length===8&&!locked.includes(free)&&!!b.d.querySelector(`[data-club-icon="${free}"]:not(.club-locked)`),free+' / '+locked.join());
+   ok('non-member: nine locked (Pip too, v4.6.314), the dealt one open',locked.length===9&&!locked.includes(free)&&!!b.d.querySelector(`[data-club-icon="${free}"]:not(.club-locked)`),free+' / '+locked.join());
    ok('non-member: a pick made as a member is kept, but the dealt icon shows',b.run('DB.settings.clubAvatar')==='headphones'&&b.run('clubAvatar()[0]')===free);
    ok('non-member: the note names their icon and offers Join the club',new RegExp('The '+b.run('clubFreeIcon()[1].toLowerCase()')+' is yours').test(b.d.querySelector('.club-lock-note').textContent)&&!!b.d.querySelector('.club-lock-note [data-mb-open]'));
    const other=locked[0];b.click(`[data-club-icon="${other}"]`);await settle();
