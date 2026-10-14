@@ -375,7 +375,9 @@ function drawDayReview(data,time,canvas){
   rule(footerY);const mid=footerY+S.footerPad+footerHeight/2;
   credits.forEach((s,i)=>ink(s,28,mid+(i-(credits.length-1)/2)*12,8,C.muted));
   names.forEach((s,i)=>ink(s,485,mid+(i-(names.length-1)/2)*18,14,C.muted,'right'));
-  if(data.pip&&data.pipBounds){const b=data.pipBounds;ctx.save();ctx.filter='grayscale(1) brightness(.72)';ctx.drawImage(data.pip,b.x,b.y,b.w,b.h,494,mid-pipHeight/2,38,pipHeight);ctx.restore();}
+  /* v4.6.316: your companion signs beside your name; Pip (chosen or by default) keeps his quiet grey mark */
+  if(typeof shareCompanionImg==='function'&&shareReady(shareCompanionImg()))shareDrawCompanion(ctx,496,mid-19,38);
+  else if(data.pip&&data.pipBounds){const b=data.pipBounds;ctx.save();ctx.filter='grayscale(1) brightness(.72)';ctx.drawImage(data.pip,b.x,b.y,b.w,b.h,494,mid-pipHeight/2,38,pipHeight);ctx.restore();}
   return cv;
 }
 async function shareDayReview(button){
@@ -385,7 +387,7 @@ async function shareDayReview(button){
   try{
     const module=await import('./plate-gif.js'),video=await import('./plate-video.js');
     const wordmark=new Image(),pip=new Image();wordmark.src='assets/showuppp-wordmark-'+(data.dark?'dark':'light')+'.svg';pip.src='assets/mascot-'+(data.dark?'white':'blue')+'.png';
-    await Promise.all([wordmark.decode(),pip.decode(),module.loadExportFonts(),document.fonts.load('600 14px "IBM Plex Mono"')]);data.wordmark=wordmark;data.pip=pip;
+    await Promise.all([wordmark.decode(),pip.decode(),module.loadExportFonts(),document.fonts.load('600 14px "IBM Plex Mono"'),typeof sharePreload==='function'?sharePreload():null]);data.wordmark=wordmark;data.pip=pip;
     const trim=document.createElement('canvas');trim.width=pip.width;trim.height=pip.height;const tx=trim.getContext('2d');tx.drawImage(pip,0,0);const pixels=tx.getImageData(0,0,pip.width,pip.height).data;let x0=pip.width,y0=pip.height,x1=0,y1=0;
     for(let y=0;y<pip.height;y++)for(let x=0;x<pip.width;x++)if(pixels[(y*pip.width+x)*4+3]>16){x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y);}
     data.pipBounds={x:x0,y:y0,w:Math.max(1,x1-x0+1),h:Math.max(1,y1-y0+1)};

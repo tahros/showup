@@ -322,6 +322,7 @@ async function share(card){
  // showuppp-horizontal-1024.png. Pip and lettering stay one inseparable asset;
  // no re-typesetting, independent transforms, or canvas-filter recolouring.
  const brand=await load('assets/showuppp-lifted-lockup-'+(dark?'dark':'light')+'.png');
+ try{if(typeof sharePreload==='function')await sharePreload();}catch(_e){}
  const data={...col,dark,name:M.name},part=S.part,mode=reduced()?'Off':S.mode;
  const renderFor=M=>(time,canvas)=>{
   // GIF encoding repeatedly reads pixels. Start exports on the readback path
@@ -332,9 +333,13 @@ async function share(card){
   // scale uniformly. Preserve the master's proportions and visible centre.
   // This same lockup is used by still, MP4 and GIF frames.
   const brandHeight=226*260/910;
-  x.drawImage(brand,52,66,910,260,70,109.5-brandHeight/2,226,brandHeight);
+  /* v4.6.316: with your companion, the wordmark alone (the logo with Pip stays whole, or not at all)
+     and the companion beside your name */
+  const comp=typeof shareCompanionImg==='function'&&shareReady(shareCompanionImg())&&shareReady(shareWordmarkImg(dark));
+  if(comp)x.drawImage(shareWordmarkImg(dark),70,109.5-33,100,66);
+  else x.drawImage(brand,52,66,910,260,70,109.5-brandHeight/2,226,brandHeight);
   const text=(s,X,Y,size,color,align='left',weight=400)=>{x.fillStyle=color;x.font=weight+' '+size+'px "ShowUp Export Plex", "IBM Plex Sans",sans-serif';x.textAlign=align;x.textBaseline='alphabetic';x.fillText(s,X,Y,align==='right'?570:940);};
-  text(M.name,1010,116,27,col.muted,'right');x.fillStyle=col.line;x.fillRect(70,177,940,1);
+  text(M.name,1010,116,27,col.muted,'right');if(comp&&M.name){x.font='400 27px "ShowUp Export Plex", "IBM Plex Sans",sans-serif';shareDrawCompanion(x,1010-x.measureText(M.name).width-62,80,54);}x.fillStyle=col.line;x.fillRect(70,177,940,1);
   text(fmt(P.count),70,318,112,part==='All workouts'?col.blue:col.ink,'left',500);x.font='500 112px "ShowUp Export Plex"';const nw=x.measureText(fmt(P.count)).width;text(unitLabel(M),88+nw,318,M.filtered?25:31,col.muted);
   text(M.years.length===1?String(M.years[0]):M.gapped?M.years.length+' selected years':M.years[0]+' – '+M.years.at(-1),1010,292,M.years.length===1?61:32,col.muted,'right');
   if(part!=='All workouts'){

@@ -65,7 +65,12 @@ const SHARE_RULE_Y=SHARE_NAME_Y-50;                        /* 1140 — as before
 function drawShareFooter(x,data,sans){
   x.strokeStyle=data.line;x.lineWidth=1;x.beginPath();x.moveTo(SHARE_EDGE,SHARE_RULE_Y);x.lineTo(1080-SHARE_EDGE,SHARE_RULE_Y);x.stroke();
   x.fillStyle=data.muted;x.font='400 28px '+sans;x.textAlign='right';x.fillText(data.name,1080-SHARE_EDGE,SHARE_NAME_Y,680);
-  if(data.logo){x.save();if(data.retro){x.imageSmoothingEnabled=false;x.drawImage(data.logo,SHARE_EDGE,SHARE_MARK_Y,49,49);}else x.drawImage(data.logo,14,85,485,292,SHARE_EDGE,SHARE_MARK_Y,82,SHARE_MARK_H);x.restore();}
+  /* v4.6.316: with your companion, every shared card signs with the wordmark (100px, the brand kit's
+     minimum) and puts the companion beside your name -- unless it already stands on the card */
+  const wm=typeof shareWordmarkImg==='function'&&!data.retro&&typeof shareCompanionImg==='function'&&shareReady(shareCompanionImg())?shareWordmarkImg(data.dark):null;
+  if(shareReady?.(wm)){x.drawImage(wm,SHARE_EDGE,SHARE_NAME_Y+10-100*232/350,100,100*232/350);
+    if(!data.companion&&data.name){x.font='400 28px '+sans;const nw=x.measureText(data.name).width;shareDrawCompanion(x,1080-SHARE_EDGE-nw-62,SHARE_NAME_Y-42,54);}}
+  else if(data.logo){x.save();if(data.retro){x.imageSmoothingEnabled=false;x.drawImage(data.logo,SHARE_EDGE,SHARE_MARK_Y,49,49);}else x.drawImage(data.logo,14,85,485,292,SHARE_EDGE,SHARE_MARK_Y,82,SHARE_MARK_H);x.restore();}
 }
 async function sharePlateCard(){
   const date=todayISO,record=JSON.parse(JSON.stringify(DB.days?.[date]||{}));
@@ -77,7 +82,9 @@ async function sharePlateCard(){
     const mascot=new Image();mascot.src=data.retro?retroStill('hello','blue'):'assets/mascot-blue.png';
     const logo=new Image();logo.src=data.retro?retroMark().toDataURL():'assets/mascot-mark-'+(data.dark?'white':'chrome')+'.png';
     const module=await import('./plate-gif.js');
-    await Promise.all([mascot.decode(),logo.decode(),module.loadExportFonts()]);data.logo=logo;
+    await Promise.all([mascot.decode(),logo.decode(),module.loadExportFonts(),typeof sharePreload==='function'?sharePreload():null]);data.logo=logo;
+    /* v4.6.316: your companion stands by the plates; Pip (chosen or by default) stays as he was */
+    if(!data.retro&&typeof shareCompanionImg==='function'&&shareReady(shareCompanionImg()))data.companion=true;
     await showCard(()=>drawPlateShare(data,mascot),'showup-stacked-'+date,false);
     bindPlateExport(data,mascot,module,await import('./plate-video.js'));
   }catch(e){toast('Could not prepare the stacked image. Please try again.');}
@@ -114,7 +121,8 @@ function drawPlateShare(data,mascot,frame={}){
     if(frame.dust!==false&&age>=340&&age<680){const v=(age-340)/340;for(const d of [-1,1])shadow(cx+d*(plateRX*.74+v*36),end+4-v*15,15+v*35,6+v*12);}
   }
   x.restore();
-  if(!frame.mascot&&!data.retro)shadow(891,778,80,13);x.save();if(data.retro)x.imageSmoothingEnabled=false;x.drawImage(frame.mascot||mascot,783,659,216,132);x.restore();
+  if(data.companion){const bob=Number.isFinite(frame.time)?Math.max(0,Math.sin(frame.time/260))*-8:0;shadow(891,780,64,12);shareDrawCompanion(x,816,628+bob,150);}
+  else{if(!frame.mascot&&!data.retro)shadow(891,778,80,13);x.save();if(data.retro)x.imageSmoothingEnabled=false;x.drawImage(frame.mascot||mascot,783,659,216,132);x.restore();}
   const shown=animated?Math.round(data.unit==='lb'?total*LB:total).toLocaleString():data.total;
   x.font='700 112px '+sans;const numberWidth=x.measureText(shown).width;
   x.font='400 34px '+mono;const unitText=data.unit+' moved',unitWidth=x.measureText(unitText).width;

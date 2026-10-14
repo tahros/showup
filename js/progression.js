@@ -403,7 +403,7 @@ function progressionShare(card){
      races: after 1.2s the card is drawn with whatever arrived. Slightly plainer
      beats silently nothing. */
   const capped=p=>Promise.race([p,new Promise(r=>setTimeout(r,1200))]);
-  return Promise.all([capped(ready(mark).then(()=>{snapshot.logo=mark;},()=>{})),capped(settleFonts())])
+  return Promise.all([capped(ready(mark).then(()=>{snapshot.logo=mark;},()=>{})),capped(settleFonts()),typeof sharePreload==='function'?capped(sharePreload()):null])
     .then(()=>showCard(()=>drawProgressionCard(snapshot),label));
 }
 /* v4.5.19: THE PROGRESSION SHARE, REDRAWN.
