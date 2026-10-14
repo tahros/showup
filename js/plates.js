@@ -85,7 +85,7 @@ async function sharePlateCard(){
     await Promise.all([mascot.decode(),logo.decode(),module.loadExportFonts(),typeof sharePreload==='function'?sharePreload():null]);data.logo=logo;
     /* v4.6.316: your companion stands by the plates; Pip (chosen or by default) stays as he was */
     if(!data.retro&&typeof shareCompanionImg==='function'&&shareReady(shareCompanionImg()))data.companion=true;
-    await showCard(()=>typeof shareFrame==='function'?shareFrame(drawPlateShare(data,mascot),{t:175,b:1125},{label:data.record.doneAll?'Workout complete':'Your workout',valign:'bottom',title:shareDay(date),sub:[...new Set((data.record.w||[]).map(s=>typeof partLabel==='function'?partLabel(s.part):s.part))].join(' \u00b7 ')}):drawPlateShare(data,mascot),'showup-stacked-'+date,false);
+    await showCard(()=>typeof shareFrame==='function'?shareFrame(drawPlateShare(data,mascot),{t:175,b:1125},{label:'Weights moved',valign:'bottom',title:shareDay(date),sub:[...new Set((data.record.w||[]).map(s=>typeof partLabel==='function'?partLabel(s.part):s.part))].join(' \u00b7 ')}):drawPlateShare(data,mascot),'showup-stacked-'+date,false);
     bindPlateExport(data,mascot,module,await import('./plate-video.js'));
   }catch(e){toast('Could not prepare the stacked image. Please try again.');}
 }

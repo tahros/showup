@@ -432,6 +432,8 @@ function comparisonCard(card,kind){
  const available=[...new Set(records.map(d=>+d.slice(0,4)))].sort((a,b)=>b-a);
  if(!available.length){card.innerHTML='<p>No records to compare yet.</p>';return;}
  const dates=[];for(let d=new Date(current,0,1);d<=new Date(todayISO+'T00:00');d.setDate(d.getDate()+1))dates.push([d.getMonth(),d.getDate()]);
+ /* v4.6.317: the x-axis is always the whole year, Jan 1 to Dec 31; the lines stop at today (Sungjee, 2026-10-14) */
+ const YD=Math.round((Date.UTC(current+1,0,1)-Date.UTC(current,0,1))/864e5),doy=(m,d)=>Math.round((Date.UTC(current,m,d)-Date.UTC(current,0,1))/864e5),YTICKS=[[0,1],[3,1],[6,1],[9,1],[11,31]];
  const saved=comparisonSavedYears(kind);
  const memory=comparisonMemory.get(kind)||{years:(saved&&saved.filter(y=>available.includes(y)).length?saved:available.slice(0,2)),index:dates.length-1,pct:false};comparisonMemory.set(kind,memory);
  memory.years=memory.years.filter(y=>available.includes(y));if(!memory.years.length)memory.years=[available[0]];
@@ -468,7 +470,7 @@ function comparisonCard(card,kind){
  const difference=document.createElement('p');difference.className='comparison-delta';values.after(difference);
  const node=(tag,attrs,text)=>{const e=document.createElementNS('http://www.w3.org/2000/svg',tag);Object.entries(attrs).forEach(([k,v])=>e.setAttribute(k,v));if(text!==undefined)e.textContent=text;svg.append(e);return e;};
  let maximum=1;
- const x=i=>32+i/Math.max(1,dates.length-1)*296,y=v=>178-v/maximum*158;
+ const x=i=>32+i/(YD-1)*296,y=v=>178-v/maximum*158;
  /* v4.5.13: TAP A NUMBER TO SEE THE SHARE. The denominator is days ELAPSED in
     that year up to the scrubbed calendar date -- not the whole year, and not
     today -- so scrubbing to March compares March against March. Leap years are
@@ -496,7 +498,7 @@ function comparisonCard(card,kind){
  row.querySelector('details').hidden=memory.years.length===available.length;
  row.querySelectorAll('[data-year]').forEach(b=>{b.disabled=memory.years.length===1;b.onclick=()=>{memory.years=memory.years.filter(yr=>yr!==+b.dataset.year);comparisonSaveYears(kind,memory.years);draw();};});row.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{memory.years.push(+b.dataset.add);memory.years.sort((a,b)=>b-a);comparisonSaveYears(kind,memory.years);draw();});
  maximum=Math.max(1,...memory.years.map(yr=>series.get(yr).at(-1)));maximum=Math.ceil(maximum/4)*4;svg.replaceChildren();for(let n=0;n<=4;n++){const value=maximum*n/4;node('line',{x1:32,x2:328,y1:y(value),y2:y(value),stroke:'var(--line)','stroke-dasharray':'2 4'});node('text',{x:26,y:y(value)+3,'text-anchor':'end',fill:'var(--muted)','font-size':8},Math.round(value));}
- [0,Math.floor((dates.length-1)/3),Math.floor((dates.length-1)*2/3),dates.length-1].forEach(i=>{const [m,d]=dates[i];node('text',{x:x(i),y:199,'text-anchor':i===0?'start':i===dates.length-1?'end':'middle',fill:'var(--muted)','font-size':8},new Date(current,m,d).toLocaleDateString('en-US',{month:'short',day:'numeric'}));});
+ YTICKS.forEach(([m,d],k)=>{const i=doy(m,d);node('text',{x:x(i),y:199,'text-anchor':k===0?'start':k===YTICKS.length-1?'end':'middle',fill:'var(--muted)','font-size':8},new Date(current,m,d).toLocaleDateString('en-US',{month:'short',day:'numeric'}));});
  memory.years.forEach(yr=>node('polyline',{'data-year':yr,points:series.get(yr).map((v,i)=>x(i)+','+y(v)).join(' '),fill:'none',stroke:color(yr),'stroke-width':2.4,'stroke-dasharray':available.indexOf(yr)?['5 3','2 4','8 3 2 3'][(available.indexOf(yr)-1)%3]:'none','stroke-linejoin':'round'}));show(memory.index);}
  /* v4.5.13: the flip. Tapping ONE number flips them all -- half the row in days
     and half in percent would be two scales side by side pretending to compare.
@@ -586,13 +588,13 @@ function comparisonCard(card,kind){
       BELOW the footer rule once it moved up for the wider bottom margin. */
    const top=Y+40,bottom=SHARE_RULE_Y-70,left=130,right=1080-SHARE_EDGE;
    const maxV=Math.ceil(Math.max(1,...yrs.map(yr=>series.get(yr).at(-1)))/4)*4;
-   const px=i=>left+i/Math.max(1,dates.length-1)*(right-left),py=v=>bottom-v/maxV*(bottom-top);
+   const px=i=>left+i/(YD-1)*(right-left),py=v=>bottom-v/maxV*(bottom-top);
    x.strokeStyle=data.line;x.lineWidth=1;x.setLineDash([3,6]);
    for(let n=0;n<=4;n++){const v=maxV*n/4;x.beginPath();x.moveTo(left,py(v));x.lineTo(right,py(v));x.stroke();
     text(kind==='distance'?Math.round(v).toString():Math.round(v).toString(),left-18,py(v)+7,'400 20px '+mono,data.muted,'right');}
    x.setLineDash([]);
-   [0,Math.floor((dates.length-1)/3),Math.floor((dates.length-1)*2/3),dates.length-1].forEach(i=>{const [m,d]=dates[i];
-    text(new Date(current,m,d).toLocaleDateString('en-US',{month:'short',day:'numeric'}),px(i),bottom+34,'400 20px '+mono,data.muted,i===0?'left':i===dates.length-1?'right':'center');});
+   YTICKS.forEach(([m,d],k)=>{const i=doy(m,d);
+    text(new Date(current,m,d).toLocaleDateString('en-US',{month:'short',day:'numeric'}),px(i),bottom+34,'400 20px '+mono,data.muted,k===0?'left':k===YTICKS.length-1?'right':'center');});
    x.lineWidth=5;x.lineJoin='round';x.lineCap='round';
    yrs.forEach(yr=>{x.strokeStyle=col(yr);const idx=available.indexOf(yr);x.setLineDash(idx?[[15,9],[6,12],[24,9,6,9]][(idx-1)%3]:[]);x.beginPath();series.get(yr).slice(0,index+1).forEach((v,i)=>{i?x.lineTo(px(i),py(v)):x.moveTo(px(i),py(v));});x.stroke();});
    x.strokeStyle=data.muted;x.lineWidth=2;x.setLineDash([6,6]);x.beginPath();x.moveTo(px(index),top-10);x.lineTo(px(index),bottom);x.stroke();x.setLineDash([]);
@@ -601,13 +603,13 @@ function comparisonCard(card,kind){
    drawShareFooter(x,data,sans);
    return cv;
   };
-  await showCard(()=>{const cv=render();return typeof shareFrame==='function'?shareFrame(cv,{t:175,b:1125},{label:kind==='distance'?'Distance over time':'Year over year',title:shareDay(new Date(current,mm,dd).toLocaleDateString('en-CA')),sub:kind==='distance'?'Distance run since Jan 1, year by year':'Days showing up since Jan 1, year by year'}):cv;},'showup-'+(kind==='distance'?'distance':'days')+'-compare-'+current+'-'+String(mm+1).padStart(2,'0')+String(dd).padStart(2,'0'),false);
+  await showCard(()=>{const cv=render();return typeof shareFrame==='function'?shareFrame(cv,{t:175,b:1125},{label:kind==='distance'?'Distance over time':'Cumulative progress',title:shareDay(new Date(current,mm,dd).toLocaleDateString('en-CA')),sub:kind==='distance'?'Distance run since Jan 1, year by year':'Days showing up since Jan 1, year by year'}):cv;},'showup-'+(kind==='distance'?'distance':'days')+'-compare-'+current+'-'+String(mm+1).padStart(2,'0')+String(dd).padStart(2,'0'),false);
   if(gifModule&&videoModule)bindPlateExport(data,null,gifModule,videoModule,{render,label:'Year comparison video preview'});
  }
  const shareBtn=card.querySelector('.comparison-share');if(shareBtn)shareBtn.onclick=async()=>{shareBtn.disabled=true;try{await share();}catch(_e){toast('Could not prepare the export. Please try again.');}finally{shareBtn.disabled=false;}};
  values.addEventListener('click',e=>{if(e.target.closest('.comparison-flip'))flip();});
  slider.oninput=()=>{stopReplay(false);paintLines();show(+slider.value);};card.querySelector('.comparison-latest').onclick=()=>{stopReplay(false);paintLines();show(dates.length-1);};
- const scrub=e=>{stopReplay(false);paintLines();const r=svg.getBoundingClientRect();show(Math.round(((e.clientX-r.left)/r.width*340-32)/296*(dates.length-1)));};
+ const scrub=e=>{stopReplay(false);paintLines();const r=svg.getBoundingClientRect();show(Math.round(((e.clientX-r.left)/r.width*340-32)/296*(YD-1)));};
  let pointer=null;svg.addEventListener('pointerdown',e=>{pointer=e.pointerId;svg.setPointerCapture?.(e.pointerId);scrub(e);});svg.addEventListener('pointermove',e=>{if(pointer!==null&&pointer===e.pointerId)scrub(e);});svg.addEventListener('pointerup',e=>{if(pointer===e.pointerId){scrub(e);svg.releasePointerCapture?.(e.pointerId);pointer=null;}});svg.addEventListener('pointercancel',()=>{pointer=null;});draw();
 }
 const compactStyle=document.createElement('style');compactStyle.textContent=`

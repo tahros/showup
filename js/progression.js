@@ -404,7 +404,7 @@ function progressionShare(card){
      beats silently nothing. */
   const capped=p=>Promise.race([p,new Promise(r=>setTimeout(r,1200))]);
   return Promise.all([capped(ready(mark).then(()=>{snapshot.logo=mark;},()=>{})),capped(settleFonts()),typeof sharePreload==='function'?capped(sharePreload()):null])
-    .then(()=>showCard(()=>{const cv=drawProgressionCard(snapshot);return typeof shareFrame==='function'?shareFrame(cv,window.__shareBand,{label:'Strength progress',title:snapshot.ex,sub:[snapshot.rangeISO?shareRange(...snapshot.rangeISO):snapshot.range,snapshot.count+' sessions'].join(' \u00b7 ')}):cv;},label));
+    .then(()=>showCard(()=>{const cv=drawProgressionCard(snapshot);return typeof shareFrame==='function'?shareFrame(cv,window.__shareBand,{label:'Session progress',title:snapshot.ex,sub:[snapshot.rangeISO?shareRange(...snapshot.rangeISO):snapshot.range,snapshot.count+' sessions'].join(' \u00b7 ')}):cv;},label));
 }
 /* v4.5.19: THE PROGRESSION SHARE, REDRAWN.
    Out: the "SHOWUP / PROGRESSION" slug at the top and the "showup · date — date"
