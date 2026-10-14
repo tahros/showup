@@ -57,7 +57,7 @@ ok('selected timeline has no blank rows for excluded years',`(()=>{const rows=[.
 ok('gapped replay progresses only through selected days with a continuous camera',`(()=>{const m=selectedAttendance,g=attendanceView.geometry(m,320,414);let count=0;for(let t=0;t<=14000;t+=50){const p=attendanceView.phase(m,t),cam=g.camera(p);if(p.count<count||!Object.values(cam).every(Number.isFinite))return false;count=p.count;}return count===m.total})()`);
 ok('saved selection is presentation-only until Apply',`selectedAttendance.total===selectedAttendance.days.filter(d=>d.on).length&&attendanceView.model().years.length===27`);
 run(`delete DB.settings.attendanceYears;`);
-assert.match(fs.readFileSync(path.join(dir,'js/heat-replay.js'),'utf8'),/showCard\(\(\)=>render\(\)/);
+assert.match(fs.readFileSync(path.join(dir,'js/heat-replay.js'),'utf8'),/showCard\(\(\)=>(?:render\(\)|\{const cv=render\(\);[\s\S]{0,120}shareFrame)/);
 assert.match(fs.readFileSync(path.join(dir,'js/heat-replay.js'),'utf8'),/bindPlateExport\(data,null,gifModule,videoModule,\{render,/);
 console.log('PASS still image shares the vertical renderer with animated exports');
 const shareSource=fs.readFileSync(path.join(dir,'js/heat-replay.js'),'utf8');

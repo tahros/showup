@@ -1,5 +1,17 @@
 # ShowUppp — changelog
 
+## v4.6.317 — One frame for everything you share
+
+- Every shared image now uses one 1080×1350 (4:5) frame. The 72px margins and the centred header are the same on all of them: a small label, a 48px title and a subtitle with the facts. Dates are written one way everywhere: "Wed, Oct 14, 2026" for a day, "Oct 5 – Oct 14, 2026" for a span.
+- The footer is the same on every image: a rule with 40px of space on each side, the 100px wordmark bottom-left, and your companion to the left of your name.
+- Where the data sits: lists from the top (Workout log, Last vs today), the plates on the floor (Weight moved), charts and the attendance map centred.
+- A workout log too long for 4:5 switches to 9:16 (1080×1920), so its text never shrinks.
+- New labels: Workout log, Weight moved, Lift progress, Attendance, Last vs today, Days, year by year, Distance, year by year.
+- The year-by-year charts always run from Jan 1 to Dec 31, and the lines stop at today.
+- Your companion replaces Pip on the Stats plate card, and its share button uses the new frame.
+- Sixpack reads as Core in every subtitle.
+- New tools/check-share-frame.cjs.
+
 ## v4.6.316 — Your companion in what you share
 - Every shared image now carries the companion you chose: on Share this day it takes Pip's top-left spot beside your name and top medal; on the plates card it stands by the plates; on the heat-map replay, year over year and the day review it sits beside your name.
 - Each image signs with the official wordmark at 100px (the brand kit's minimum). The logo with Pip in it stays whole or is not used -- the replay's lockup gives way to the wordmark alone.

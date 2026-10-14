@@ -47,8 +47,9 @@ const monthLetters = `[...document.querySelectorAll('.runrace text')]
   .map(t=>t.textContent).filter(t=>/^[A-Z][a-z]{2} \\d/.test(t)).join('|')`;
 check("the distance chart labels its months",
       `${monthLetters}.length > 0`, true);
-check("...four readable calendar anchors, starting at January 1",
-      `${monthLetters}.split('|').length===4&&${monthLetters}.startsWith('Jan 1|')`, true);
+/* v4.6.317: the axis is the whole year (Sungjee, 2026-10-14) */
+check("...five readable calendar anchors, January 1 to December 31",
+      `${monthLetters}.split('|').length===5&&${monthLetters}.startsWith('Jan 1|')&&${monthLetters}.endsWith('|Dec 31')`, true);
 check("...and the parse that broke it is gone",
       `${!/\+todayISO\.slice\(5\)-1/.test(fs.readFileSync(path.join(dir,"js/lift.js"),"utf8"))}`, "true");
 check("...with every label inside the viewBox",

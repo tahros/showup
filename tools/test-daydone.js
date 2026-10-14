@@ -293,9 +293,9 @@ ok('...and a chosen companion rests in his place',run(`(()=>{DB.settings.compani
   /* the handover itself, and that Share is fed the SAME canvas */
   const appSrc=fs.readFileSync(path.join(dir,"js/app.js"),"utf8");
   ok("the ceremony hands over to the day's card",
-     /showCard\(\(\)=>\{[\s\S]{0,200}drawDayCard\(cx,1080,todayISO\)/.test(appSrc));
+     /showCard\(\(\)=>shareDayCardFramed\(todayISO\)/.test(appSrc));   /* v4.6.317: through the shared frame */
   ok("...and does not draw a second picture of its own",
-     (appSrc.match(/drawDayCard\(/g)||[]).length === 1);
+     (appSrc.match(/drawDayCard\(/g)||[]).length === 0);   /* v4.6.317: report.js's shareDayCardFramed draws it */
 }
 
 /* v3.3.424: THE CENTURY. Every hundredth day the square opens and the mark

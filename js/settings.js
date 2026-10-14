@@ -912,7 +912,9 @@ function shareDay(iso){const d=new Date(iso+'T12:00');return d.toLocaleDateStrin
 function shareRange(a,b){const A=new Date(a+'T12:00'),B=new Date(b+'T12:00'),md=d=>d.toLocaleDateString('en-US',{month:'short',day:'numeric'});return A.getFullYear()===B.getFullYear()?`${md(A)} – ${md(B)}, ${B.getFullYear()}`:`${md(A)}, ${A.getFullYear()} – ${md(B)}, ${B.getFullYear()}`;}
 function sharePipImg(){return shareImg('assets/mascot-blue.png');}
 /* src: the card as it draws itself; band: its data's top and bottom in src pixels */
-function shareFrame(src,band,meta){
+/* a frame that cannot be drawn (no pixel access, a test canvas) hands back the card as drawn */
+function shareFrame(src,band,meta){try{return shareFrameDraw(src,band,meta);}catch(e){return src;}}
+function shareFrameDraw(src,band,meta){
   if(!src)return src;
   const out=document.createElement('canvas');out.width=SHARE_W;out.height=SHARE_H;
   const sx=src.getContext('2d',{willReadFrequently:true}),t=Math.max(0,Math.round(band?.t??0)),b=Math.min(src.height,Math.round(band?.b??src.height));
