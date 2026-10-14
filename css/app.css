@@ -4766,3 +4766,8 @@ dialog.ps-sheet::backdrop{background:rgba(0,0,0,.36)}
 .ps-cap b{font-weight:600;color:var(--chalk)}
 .ps-t b small{font-size:11px;font-weight:500;color:var(--faint)}
 .ps-t .ps-n{font-style:normal}
+.ps-share{margin:6px 0 2px;font-size:13px;color:var(--muted)}
+.ps-share b{font-size:15px;color:var(--chalk);font-weight:600}
+.ps-mrow em{text-align:right}
+.ps-mrow em small{display:block;font-size:11px!important;margin-top:1px}
+.ps-note{font-size:11px;color:var(--faint);margin:12px 0 0;line-height:1.4}

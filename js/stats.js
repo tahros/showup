@@ -1709,14 +1709,11 @@ function psFigure(part,col){const id='psc'+(psUid++);
   return `<svg class="ps-fig" viewBox="0 0 100 160" aria-hidden="true"><defs><clipPath id="${id}"><rect class="ps-clip" x="-10" y="0" width="120" height="160"/></clipPath></defs><g>${psDraw(null)}</g><g class="ps-lit" clip-path="url(#${id})">${psDraw(part,col)}</g></svg>`;}
 function psBody(){
   const st=psState(),{parts,from}=psData(st.p),w=st.m==='w',ss=st.m==='s';
-  /* v4.6.319: days read as a rate -- times a week over the weeks so far -- so a month and a year
-     speak the same small number instead of a total that only grows (Sungjee, 2026-10-14) */
-  const weeks=Math.max(1,(new Date(todayISO+'T00:00')-new Date(from+'T00:00'))/864e5+1)/7;
-  const val=x=>w?(x.p==='Run'?toD(x.km):x.p==='Sixpack'&&!x.kg?null:toU(x.kg)):ss?x.sets:Math.round(x.days/weeks*10)/10;
-  const show=n=>n==null?'—':st.m==='d'?n.toFixed(1):n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e4?Math.round(n/1e3)+'k':fmt(Math.round(n));
+  const val=x=>w?(x.p==='Run'?toD(x.km):x.p==='Sixpack'&&!x.kg?null:toU(x.kg)):ss?x.sets:x.days;
+  const show=n=>n==null?'—':n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e4?Math.round(n/1e3)+'k':fmt(Math.round(n));
   /* the unit is said once, above the shelf; only a tile in a different unit carries its own */
   const odd=x=>(w||ss)&&x.p==='Run'?(w?DU():(x.sets===1?'run':'runs')):x.p==='Sixpack'&&w&&!x.kg?'BW':'';
-  const cap=w?'Weight moved, '+U():ss?'Sets':'Days a week';
+  const cap=w?'Weight moved, '+U():ss?'Sets':'Days trained';
   const peer=x=>!((w||ss)&&x.p==='Run');
   const rank=x=>{const v=val(x);return peer(x)?(v==null?-2:v):-1;};   /* miles, runs and body weight cannot outrank pounds or sets */
   const list=st.o==='most'?[...parts].sort((a,b)=>rank(b)-rank(a)):parts;
@@ -1791,15 +1788,15 @@ function psMuscleSVG(view,fill){
   g+=`<rect x="45.5" y="28" width="9" height="11" rx="4" fill="${N}"/><ellipse cx="50" cy="19" rx="11.4" ry="13" fill="${N}"/>`;
   return `<svg class="ps-big" viewBox="0 0 100 160" aria-hidden="true">${d}${g}</svg>`;}
 function psMuscles(part,per){
-  const from=per==='m'?todayISO.slice(0,8)+'01':todayISO.slice(0,5)+'01-01',mus={};
+  const from=per==='m'?todayISO.slice(0,8)+'01':todayISO.slice(0,5)+'01-01',mus={},pdays=new Set();
   (PART_MUSCLES[part]||[]).forEach(m=>mus[m]={days:new Set(),sets:0,kg:0,last:'',ex:{}});
   for(const iso of Object.keys(DB.days||{}).sort()){if(iso>todayISO)continue;
     const rows=iso===todayISO?((DB.days[iso]||{}).w||[]).filter(s=>s.completed!==false).map(s=>[s.part,s.ex,s.w,s.reps||[]]):(SEED.sessions[iso]||[]);
     for(const r of rows){if(r[1]==='Run'||!(r[3]||[]).length)continue;
       const m=typeof exMuscle==='function'?exMuscle(r[1],r[0]):null,vis=(m&&MUSCLE_PART[m])||r[0];if(vis!==part)continue;
       const k=m&&MUSCLE_PART[m]?m:'unassigned',x=mus[k]=mus[k]||{days:new Set(),sets:0,kg:0,last:'',ex:{}};x.last=iso;
-      if(iso>=from){x.days.add(iso);x.sets+=r[3].length;x.kg+=(+r[2]||0)*r[3].reduce((a,b)=>a+(+b||0),0);x.ex[r[1]]=(x.ex[r[1]]||0)+r[3].length;}}}
-  return mus;}
+      if(iso>=from){pdays.add(iso);x.days.add(iso);x.sets+=r[3].length;x.kg+=(+r[2]||0)*r[3].reduce((a,b)=>a+(+b||0),0);x.ex[r[1]]=(x.ex[r[1]]||0)+r[3].length;}}}
+  Object.defineProperty(mus,'_days',{value:pdays.size});return mus;}
 function psAgo(iso){if(!iso)return '';const n=Math.round((new Date(todayISO+'T00:00')-new Date(iso+'T00:00'))/864e5);return n===0?'today':n===1?'yesterday':n+' days ago';}
 function psSheet(part){
   const st=psState(),per=st.p==='m'?'this month':'this year',nm=part==='Shoulder'?'Shoulders':(typeof partLabel==='function'?partLabel(part):part);
@@ -1814,9 +1811,20 @@ function psSheet(part){
     const shade=m=>{const x=mus[m];if(!x||!mv(m))return null;return `color-mix(in srgb,${col} ${Math.round(28+72*mv(m)/mx)}%,var(--ps-off))`;};
     const front=keys.some(m=>!['lats','upper-back','rear-delts','triceps','hamstrings','glutes','calves'].includes(m)),backv=keys.some(m=>['lats','upper-back','rear-delts','triceps','hamstrings','glutes','calves'].includes(m));
     body=`<div class="ps-figs">${front?`<figure>${psMuscleSVG('f',shade)}<figcaption>Front</figcaption></figure>`:''}${backv?`<figure>${psMuscleSVG('b',shade)}<figcaption>Back</figcaption></figure>`:''}</div>`;
+    /* v4.6.319: the sheet answers "how balanced", so each muscle leads with a percentage and its count follows.
+       Sets and weight are shares of the part (they add to 100); days are the share of this part's days
+       that reached the muscle (a day can reach several, so they need not add up) (Sungjee, 2026-10-14) */
+    const base=st.m==='d'?mus._days:keys.reduce((a,k)=>a+mv(k),0),pct=n=>base?Math.round(n/base*100):0;
+    const {parts}=psData(st.p),me=parts.find(x=>x.p===part),allDays=new Set();
+    for(const iso of Object.keys(DB.days||{}))if(iso<=todayISO&&iso>=(st.p==='m'?todayISO.slice(0,8)+'01':todayISO.slice(0,5)+'01-01')&&(DB.days[iso].w||[]).length)allDays.add(iso);
+    const whole=st.m==='d'?allDays.size:parts.filter(x=>x.p!=='Run').reduce((a,x)=>a+(st.m==='s'?x.sets:x.kg),0),mine=st.m==='d'?me.days:st.m==='s'?me.sets:me.kg;
+    const lead=whole?Math.round(mine/whole*100):0;
+    body=`<p class="ps-share"><b>${lead}%</b> ${st.m==='d'?`of your training days ${per}`:st.m==='s'?`of all your sets ${per}`:`of all the weight you moved ${per}`}</p>`+body;
     body+=keys.map(m=>{const x=mus[m],n=mv(m),top=Object.entries(x.ex).sort((a,b)=>b[1]-a[1]).slice(0,2).map(e=>e[0]).join(' · ');
       const lbl=(MUSCLE_LABEL[m]||m).replace(/^./,c=>c.toUpperCase());
-      return `<div class="ps-mrow${n?'':' ps-mzero'}"><i style="background:${shade(m)||'var(--ps-off)'}"></i><span><b>${lbl}</b><small>${n?(top||'')+(x.last?' · '+psAgo(x.last):''):(x.last?'Last trained '+psAgo(x.last):'Not trained yet')}</small></span><em>${mshow(n)}<small> ${munit(n)}</small></em></div>`;}).join('');}
+      return `<div class="ps-mrow${n?'':' ps-mzero'}"><i style="background:${shade(m)||'var(--ps-off)'}"></i><span><b>${lbl}</b><small>${n?(top||'')+(x.last?' · '+psAgo(x.last):''):(x.last?'Last trained '+psAgo(x.last):'Not trained yet')}</small></span><em>${pct(n)}%<small>${mshow(n)} ${munit(n)}</small></em></div>`;}).join('');
+    const one={Shoulder:'shoulder',Legs:'leg',Sixpack:'core'}[part]||nm.toLowerCase();
+    body+=`<p class="ps-note">${st.m==='d'?`Share of your ${mus._days} ${one} days that reached each muscle. One day can reach several.`:`Share of your ${one} ${st.m==='s'?'sets':'weight'} that went to each muscle.`}</p>`;}
   const dlg=document.createElement('dialog');dlg.className='ps-sheet ps-card';dlg.setAttribute('aria-label',nm);
   dlg.innerHTML=`<div class="ps-grab"></div><div class="ps-head"><div><h3>${nm}</h3><p>${per[0].toUpperCase()+per.slice(1)}</p></div><button type="button" class="ps-x" aria-label="Close">×</button></div>${body}`;
   document.body.appendChild(dlg);
