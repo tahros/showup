@@ -217,6 +217,9 @@ function renderSync(){
    clubAvatar/clubGuest use the existing per-key settings sync and backup path.
    Rendering only initializes a missing guest identity after storage has loaded.
    Days follow the app's existing logged-day definition (including imports). */
+/* v4.6.314: Pip is a choice too -- first in the line-up, kept apart from the nine so the companion
+   dealt to anyone who never chose (a hash over the nine) does not move */
+const CLUB_PIP=['pip','Pip',-1,0];
 const CLUB_ICONS=[['band','Resistance band',1,0],['plate','Weight plate',1,50],['bell','Kettlebell',0,50],['roller','Foam roller',1,100],['bottle','Water bottle',0,100],['bag','Gym bag',2,0],['ball','Medicine ball',0,0],['mat','Rolled mat',2,50],['headphones','Headphones',2,100]];
 const clubOpenGroups=new Set();
 // Session-memory cache only: no membership records enter workout sync/backups.
@@ -295,19 +298,22 @@ function clubIdentity(){return session?.user?.id||DB.settings.clubGuest?.id||(DB
 /* v4.6.310: ONE ICON IS YOURS; THE REST COME WITH MEMBERSHIP. A non-member (once the paywall is
    live) keeps the companion the app dealt them and sees the others locked; tapping one opens Join
    the club. A choice made as a member is kept, not erased, and comes back when they rejoin. */
-function clubFreeIcon(){return CLUB_ICONS.find(x=>x[0]===DB.settings.companionFree)||CLUB_ICONS[clubHash(clubIdentity())%CLUB_ICONS.length];}  /* v4.6.311: the one you chose at setup, else the one dealt */
+const clubChoices=()=>[CLUB_PIP,...CLUB_ICONS];
+function clubFreeIcon(){return clubChoices().find(x=>x[0]===DB.settings.companionFree)||CLUB_ICONS[clubHash(clubIdentity())%CLUB_ICONS.length];}  /* v4.6.311: the one you chose at setup, else the one dealt */
 function clubIconsLocked(){return typeof paywallLive==='function'&&paywallLive()&&typeof isMember==='function'&&!isMember();}
 /* v4.6.311: YOUR COMPANION IN PIP'S PLACE. In your own moments -- Today's hello, tips, the day-done
    count -- the companion you picked stands where Pip stood; one character per screen. Pip stays the
    app's face where it speaks for itself: first run, the icon, the club welcome, shared images.
    Follows the Mascot setting: animated plays the idle, still holds, off shows nothing. */
+function companionIsPip(){return !DB.settings.companionName||clubAvatar()[0]==='pip';}
 function companionHTML(cls=''){
   if(typeof mascotMode==='function'&&mascotMode()==='off')return '';
+  if(companionIsPip())return '';   /* the caller shows Pip, as before */
   const c=clubAvatar(),anim=typeof mascotMode!=='function'||mascotMode()==='animated';
   return `<span class="su-companion ${cls}" data-companion="${c[0]}" aria-hidden="true">${clubIconHTML(c,anim).replace('club-avatar ','club-avatar club-visible ')}</span>`;
 }
-function clubAvatar(){if(clubIconsLocked())return clubFreeIcon();const k=DB.settings.clubAvatar;return CLUB_ICONS.find(x=>x[0]===k)||clubFreeIcon();}
-function clubIconHTML(item,animated=false){return `<span class="club-avatar club-${item[0]}${animated?' club-animate':''}" aria-hidden="true"><span class="club-shadow"></span><span class="club-sprite" style="background-image:url('assets/club-icons-${item[2]}.webp');background-position:${item[3]}% 0"></span></span>`;}
+function clubAvatar(){if(clubIconsLocked())return clubFreeIcon();const k=DB.settings.clubAvatar;return clubChoices().find(x=>x[0]===k)||clubFreeIcon();}
+function clubIconHTML(item,animated=false){if(item[0]==='pip'){const t=typeof mascotTone==='function'?mascotTone('hello'):'chrome';return `<span class="club-avatar club-pip${animated?' club-animate':''}" aria-hidden="true"><span class="club-shadow"></span><img class="club-pip-img" src="assets/mascot-${t}.png" alt=""></span>`;}return `<span class="club-avatar club-${item[0]}${animated?' club-animate':''}" aria-hidden="true"><span class="club-shadow"></span><span class="club-sprite" style="background-image:url('assets/club-icons-${item[2]}.webp');background-position:${item[3]}% 0"></span></span>`;}
 function clubAvatarEditHTML(item){return clubIconHTML(item,true)+`<span class="club-avatar-edit" aria-hidden="true">${icon('edit',14)}</span>`;}
 function clubCoinNumberHTML(number){
   const chars=Array.from(String(number)),size=Math.min(10,74/Math.max(6,chars.length));
@@ -354,7 +360,7 @@ function clubCardHTML(){
     ${crewTogetherHTML()}
     <div class="club-membership">
     <div class="club-facts"><div><span>${user||(typeof sbxMemberNo==='function'&&sbxMemberNo())?'SHOWING UP SINCE':'ON THIS DEVICE SINCE'}</span><strong class="club-since">${since}</strong></div><button type="button" data-club-history aria-label="View your logged workout days"><span>DAYS TRAINED</span><strong>${fmt(loggedDays())}</strong></button></div></div>
-    <div class="club-picker" hidden><div class="club-picker-heading"><b>${crewState()?'Your crew':'Make it yours.'}</b><button type="button" class="club-text-button" data-club-close>Done</button></div><div class="club-icon-grid" role="group" aria-label="Profile icons">${(()=>{const lockAll=clubIconsLocked(),free=clubFreeIcon()[0];return CLUB_ICONS.map(i=>{const locked=lockAll&&i[0]!==free;return `<button type="button" data-club-icon="${i[0]}" aria-pressed="${i[0]===avatar[0]}"${locked?` class="club-locked" aria-label="${i[1]}, for members"`:''}>${clubIconHTML(i,i[0]===avatar[0])}${(()=>{const cr=crewState(),m=cr&&cr[i[0]];if(!m)return `<span>${i[1]}</span>`;const n=crewDays(i[0]),pins=crewPins(n);return `<span class="crew-name">${hesc(m.name)}</span><small class="crew-days">${i[0]===avatar[0]?'With you · ':''}${fmt(n)} ${n===1?'day':'days'}</small>${pins.length?`<i class="crew-tile-pin">${crewPinSVG(pins.at(-1)[1],18)}</i>`:''}`;})()}${locked?`<i class="club-lock" aria-hidden="true"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></i>`:''}</button>`;}).join('');})()}</div>${clubIconsLocked()?`<p class="note club-lock-note">The ${hesc(clubFreeIcon()[1].toLowerCase())} is yours. Members pick any of the ${({9:'nine',10:'ten',11:'eleven',12:'twelve'})[CLUB_ICONS.length]||CLUB_ICONS.length}. <button type="button" class="club-text-button" data-mb-open>Join the club</button></p>`:crewState()?`<div class="crew-confirm" hidden></div><p class="note">Every companion keeps its days. Switch back anytime and pick up where you left off. <button type="button" class="club-text-button" data-crew-rename>Rename ${hesc(companionName())}</button></p>`:'<p class="note">One little companion. Your choice stays with your profile.</p>'}</div>
+    <div class="club-picker" hidden><div class="club-picker-heading"><b>${crewState()?'Your crew':'Make it yours.'}</b><button type="button" class="club-text-button" data-club-close>Done</button></div><div class="club-icon-grid" role="group" aria-label="Profile icons">${(()=>{const lockAll=clubIconsLocked(),free=clubFreeIcon()[0];return clubChoices().map(i=>{const locked=lockAll&&i[0]!==free;return `<button type="button" data-club-icon="${i[0]}" aria-pressed="${i[0]===avatar[0]}"${locked?` class="club-locked" aria-label="${i[1]}, for members"`:''}>${clubIconHTML(i,i[0]===avatar[0])}${(()=>{const cr=crewState(),m=cr&&cr[i[0]];if(!m)return `<span>${i[1]}</span>`;const n=crewDays(i[0]),pins=crewPins(n);return `<span class="crew-name">${hesc(m.name)}</span><small class="crew-days">${i[0]===avatar[0]?'With you · ':''}${fmt(n)} ${n===1?'day':'days'}</small>${pins.length?`<i class="crew-tile-pin">${crewPinSVG(pins.at(-1)[1],18)}</i>`:''}`;})()}${locked?`<i class="club-lock" aria-hidden="true"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></i>`:''}</button>`;}).join('');})()}</div>${clubIconsLocked()?`<p class="note club-lock-note">The ${hesc(clubFreeIcon()[1].toLowerCase())} is yours. Members pick any of the ${({9:'nine',10:'ten',11:'eleven',12:'twelve'})[clubChoices().length]||clubChoices().length}. <button type="button" class="club-text-button" data-mb-open>Join the club</button></p>`:crewState()?`<div class="crew-confirm" hidden></div><p class="note">Every companion keeps its days. Switch back anytime and pick up where you left off. <button type="button" class="club-text-button" data-crew-rename>Rename ${hesc(companionName())}</button></p>`:'<p class="note">One little companion. Your choice stays with your profile.</p>'}</div>
   </section>`;
 }
 /* Move existing nodes, not copies: every established control, ID and handler
@@ -397,7 +403,7 @@ document.addEventListener('click',e=>{
     if(n<1){crewSwitch(k);renderSync();return;}
     box.innerHTML=`<p><b>${hesc(cname)}</b> has been with you ${fmt(n)} ${n===1?'day':'days'}. Switch to <b>${hesc(next)}</b>? ${hesc(cname)} keeps every day.</p><div class="crew-confirm-btns"><button type="button" class="btn ghost" data-crew-stay>Stay with ${hesc(cname)}</button><button type="button" class="btn" data-crew-go="${k}">Switch to ${hesc(next)}</button></div>`;
     box.hidden=false;box.scrollIntoView({block:'nearest',behavior:'smooth'});return;}
-  if(b.dataset.clubIcon){const item=CLUB_ICONS.find(x=>x[0]===b.dataset.clubIcon);if(!item)return;DB.settings.clubAvatar=item[0];save(true);card.querySelector('.club-avatar-button').innerHTML=clubAvatarEditHTML(item);picker.querySelectorAll('[data-club-icon]').forEach(x=>{const on=x.dataset.clubIcon===item[0];x.setAttribute('aria-pressed',String(on));x.querySelector('.club-avatar').classList.toggle('club-animate',on)});clubObserveMotion();return;}
+  if(b.dataset.clubIcon){const item=clubChoices().find(x=>x[0]===b.dataset.clubIcon);if(!item)return;DB.settings.clubAvatar=item[0];save(true);card.querySelector('.club-avatar-button').innerHTML=clubAvatarEditHTML(item);picker.querySelectorAll('[data-club-icon]').forEach(x=>{const on=x.dataset.clubIcon===item[0];x.setAttribute('aria-pressed',String(on));x.querySelector('.club-avatar').classList.toggle('club-animate',on)});clubObserveMotion();return;}
   if(b.hasAttribute('data-club-edit')){const g=document.querySelector('[data-club-group="profile"]');if(g){g.open=true;clubOpenGroups.add('profile');document.getElementById('youName')?.focus()}return;}
   if(b.hasAttribute('data-club-history')){view='history';lastView=null;render();}
 });
@@ -847,7 +853,7 @@ document.addEventListener('click',e=>{const u=e.target.closest&&e.target.closest
 /* ---- v4.6.312 (mock): THE ADOPTION. After the first logged day, once: Pip hands over to the
    companion you'll keep. A member picks from the line-up; a non-member's dealt one steps forward
    ("This one picked you"). Name it -- a suggestion per character, editable -- and it hops in. */
-const COMPANION_NAMES={band:'Snap',plate:'Plato',bell:'Kettle',roller:'Rolly',bottle:'Sip',bag:'Duffy',ball:'Bounce',mat:'Matty',headphones:'Beats'};
+const COMPANION_NAMES={pip:'Pip',band:'Snap',plate:'Plato',bell:'Kettle',roller:'Rolly',bottle:'Sip',bag:'Duffy',ball:'Bounce',mat:'Matty',headphones:'Beats'};
 function companionName(){return DB.settings.companionName||COMPANION_NAMES[clubAvatar()[0]]||'Buddy';}
 /* ---- v4.6.312 (mock): TOGETHER, THE CREW, THE PINS.
    Each companion keeps its own days: the logged days that fell while it was with you. The first one
@@ -900,13 +906,13 @@ function adoptMarkup(intro,later){
   const pip=`<img class="ad-pip" src="assets/mascot-${document.documentElement.dataset.theme==='dark'?'white':'chrome'}.png" alt="" aria-hidden="true">`;
   return `<div class="ad-in">${later?'<button type="button" class="ad-later" data-ad-later>Not now</button>':''}${pip}<h2 id="adTitle" class="ad-t">${intro||'Someone’s been watching you show up.'}</h2>
     <p class="ad-s">${locked?'One of them has picked you.':'Pick the one that comes along.'}</p>
-    <div class="ad-grid">${CLUB_ICONS.map((i,n)=>`<button type="button" class="ad-c${locked&&i[0]!==free?' ad-dim':''}" data-ad="${i[0]}" style="--n:${n}" ${locked&&i[0]!==free?'tabindex="-1" aria-hidden="true"':''}>${clubIconHTML(i,true).replace('club-avatar ','club-avatar club-visible ')}<span>${i[1]}</span></button>`).join('')}</div>
+    <div class="ad-grid">${clubChoices().map((i,n)=>`<button type="button" class="ad-c${locked&&i[0]!==free?' ad-dim':''}" data-ad="${i[0]}" style="--n:${n}" ${locked&&i[0]!==free?'tabindex="-1" aria-hidden="true"':''}>${clubIconHTML(i,true).replace('club-avatar ','club-avatar club-visible ')}<span>${i[1]}</span></button>`).join('')}</div>
     <div class="ad-name" hidden><div class="ad-hero"></div><p class="ad-s ad-pickline"></p><label class="ad-lab" for="adName">Name</label><input id="adName" maxlength="16" autocomplete="off" spellcheck="false"><button type="button" class="btn ad-go"></button></div></div>`;
 }
 function adoptBind(el,done){
   const locked=false;let pick=null;
   if(locked)setTimeout(()=>el.classList.add('ad-picked'),2300);
-  const choose=k=>{pick=k;const i=CLUB_ICONS.find(x=>x[0]===k);el.classList.add('ad-naming');
+  const choose=k=>{pick=k;const i=clubChoices().find(x=>x[0]===k);el.classList.add('ad-naming');el.classList.toggle('ad-pippick',k==='pip');
     el.querySelector('.ad-hero').innerHTML=clubIconHTML(i,true).replace('club-avatar ','club-avatar club-visible ');
     el.querySelector('.ad-pickline').textContent=locked?'This one picked you.':'Good choice.';
     const inp=el.querySelector('#adName');inp.value=COMPANION_NAMES[k]||'';el.querySelector('.ad-name').hidden=false;
@@ -938,6 +944,8 @@ function adoptAuto(){return !navigator.webdriver&&!/jsdom/i.test(navigator.userA
 .ad-root .ad-in{width:100%;max-width:400px;text-align:center;position:relative}
 .ad-root .ad-later{all:unset;cursor:pointer;position:absolute;top:-24px;right:0;font:500 14px var(--body);color:var(--muted);padding:8px 4px}
 .ad-root .ad-pip{display:block;width:120px;margin:0 auto 14px;animation:adPip 1.1s .2s cubic-bezier(.3,1.6,.5,1) both}
+.ad-root.ad-pippick .ad-pip{display:none}
+.ad-root .ad-c[data-ad="pip"] .club-avatar{width:110px;height:84px}
 .ad-root.ad-naming .ad-pip{animation:adPipWave .9s ease-in-out both}
 .ad-root.ad-arrive .ad-pip{animation:adPipOff .7s .2s ease-in both}
 .ad-root .ad-t{font:700 26px/1.2 var(--body);letter-spacing:-.4px;margin:0 0 8px;text-transform:none;color:var(--chalk);opacity:1;display:block;animation:adRise .6s .7s ease-out both}

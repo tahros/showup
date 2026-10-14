@@ -163,7 +163,7 @@ function onbRender(){
     b=`<div class="ob ob-step ob-goal">${onbTop(4)}
       <p class="ob-in ob-rise" ${d(.05)}>You're in${n?', '+hesc(n):''}.</p>
       <p class="ob-q ob-rise" ${d(.15)}>What brings you here today?</p>
-      <div class="ob-jump">${typeof companionHTML==='function'&&DB.settings.companionName?companionHTML('ob-comp'):typeof mascotHTML==='function'?mascotHTML('hello','ob-pip'):''}<svg class="ob-lines" viewBox="0 0 30 30" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 12l4-9M12 17l12-6M14 25h10"/></svg></div>
+      <div class="ob-jump">${(typeof companionHTML==='function'&&companionHTML('ob-comp'))||(typeof mascotHTML==='function'?mascotHTML('hello','ob-pip'):'')}<svg class="ob-lines" viewBox="0 0 30 30" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 12l4-9M12 17l12-6M14 25h10"/></svg></div>
       <button type="button" class="ob-card pri ob-rise" ${d(1.1)} data-onbact="go" data-onbgo="train"><span class="ob-ic">${ONB_PLUS}</span><span class="ob-ct"><b>I'm training now</b><span>Choose your first exercise</span></span>${ONB_AR}</button>
       <button type="button" class="ob-card ob-rise" ${d(1.25)} data-onbact="go" data-onbgo="plan"><span class="ob-ic">${ONB_CAL}</span><span class="ob-ct"><b>Plan my next workout</b><span>Make room for your next session</span></span>${ONB_AR}</button>
       <button type="button" class="ob-card ob-rise" ${d(1.4)} data-onbact="go" data-onbgo="import"><span class="ob-ic">${ONB_IMPORT}</span><span class="ob-ct"><b>Bring my past workouts</b><span>From Strong, Hevy or a spreadsheet</span></span>${ONB_AR}</button>
@@ -360,7 +360,7 @@ document.addEventListener('click',e=>{
   else if(act==='toStep4'){ onbStep=4; onbRender(); }
   else if(act==='notnow'){ onbBw=''; onbStep=4; onbRender(); }
   else if(act==='back'){ if(onbStep>2){ onbStep--; onbRender(); } }
-  else if(act==='skip'){ DB.settings.companionAsked=todayISO; onbStep=5; onbRender(); }          // v4.6.311: skip goes past the companion too; the dealt one comes along, no prompt later          // v4.6.262: skip keeps what you picked and lands on "You're in"
+  else if(act==='skip'){ DB.settings.companionAsked=todayISO; if(!DB.settings.companionName){DB.settings.clubAvatar='pip';DB.settings.companionFree='pip';} onbStep=5; onbRender(); }          // v4.6.311: skip goes past the companion too; the dealt one comes along, no prompt later          // v4.6.262: skip keeps what you picked and lands on "You're in"
   else if(act==='go') onbFinish(false,a.dataset.onbgo);
   else if(act==='finish') onbFinish(false);
   else if(act==='demo') demoLoad();
@@ -444,7 +444,7 @@ function focusedTodayHTML(){
   const next=nextPlanItem(),sets=items.reduce((n,it)=>n+(it.lines||[]).reduce((s,l)=>s+(l.reps||[]).length,0),0);
   const future=[...new Set([...(DB.plan?.d>todayISO?[DB.plan.d]:[]),...Object.keys(DB.week?.days||{}).filter(d=>d>todayISO)])].filter(d=>pwSaved(d)?.items?.length).sort();
   const parts=items.length?pwParts(pwRead(planText(now))).map(partLabel).join(' + '):'';
-  let h=`<section class="today-focus"><div class="su-hello-row">${fresh?'<div class="hello"><span class="hi">Welcome to ShowUppp.</span></div>':helloCard()}${typeof companionHTML==='function'?companionHTML('su-hello-comp'):mascotHTML('hello')}</div>${typeof trialCardHTML==='function'?trialCardHTML():''}<div class="card today-focus-card"><div class="today-focus-kicker">${items.length?'Today’s workout':'Today'}</div>${items.length?'':`<h3>${fresh?'Start with one set.':'What’s today’s workout?'}</h3>`}`;
+  let h=`<section class="today-focus"><div class="su-hello-row">${fresh?'<div class="hello"><span class="hi">Welcome to ShowUppp.</span></div>':helloCard()}${(typeof companionHTML==='function'&&companionHTML('su-hello-comp'))||mascotHTML('hello')}</div>${typeof trialCardHTML==='function'?trialCardHTML():''}<div class="card today-focus-card"><div class="today-focus-kicker">${items.length?'Today’s workout':'Today'}</div>${items.length?'':`<h3>${fresh?'Start with one set.':'What’s today’s workout?'}</h3>`}`;
   if(items.length){
     h+=`<details class="today-focus-plan" data-pw-fold="focus:${todayISO}" ${pwFoldOpen('focus:'+todayISO)?'open':'' }><summary><div class="today-focus-title"><h3>${hesc(parts||'Your workout')}</h3>${icon('chevron',ICON_SZ.md)}</div><div class="mono muted today-focus-meta">${sets} ${sets===1?'set':'sets'} · ${items.length} ${items.length===1?'exercise':'exercises'}</div></summary><div class="today-focus-plan-content">${planCardHTML(now,false)}</div></details><div class="today-focus-next"><div><small>Run first</small><b>Run</b></div><button class="btn" data-ex="Run" data-part="Run">Start →</button></div>`;
   }else h+=`<p class="today-focus-copy">Choose an exercise and log what you do.${fresh?' No plan needed.':''}</p><button class="btn" id="goLift">Choose exercise →</button>`;
@@ -531,7 +531,7 @@ function renderToday(){
   }
   if(!logged){
     // ---- before the gym: what should I train
-    h+=`<div class="su-hello-row">${helloCard()}${typeof companionHTML==='function'?companionHTML('su-hello-comp'+(restingToday()?' su-comp-rest':'')):mascotHTML(restingToday()?'rest':'hello')}</div>${typeof trialCardHTML==='function'?trialCardHTML():''}`;
+    h+=`<div class="su-hello-row">${helloCard()}${(typeof companionHTML==='function'&&companionHTML('su-hello-comp'+(restingToday()?' su-comp-rest':'')))||mascotHTML(restingToday()?'rest':'hello')}</div>${typeof trialCardHTML==='function'?trialCardHTML():''}`;
     /* v3.3.319: before the gym, the plan is what you came to read — the same
        section the mid-session branch leads with, so Today shows one thing in
        both states. Rhythm left with it; it restated the streak and the day
@@ -697,7 +697,7 @@ function renderToday(){
        still carries the state and the invitation for anyone who cannot see
        the card do it visually. */
     return `<button class="card dayclosed" data-replayday="1" aria-label="Day ${fmt(_n)}, ${pretty(todayISO)}. Today is complete; logging another set reopens it. Tap to see it again.">
-          ${typeof companionHTML==='function'?companionHTML('su-hello-comp su-comp-rest'):mascotHTML('cool')}
+          ${(typeof companionHTML==='function'&&companionHTML('su-hello-comp su-comp-rest'))||mascotHTML('cool')}
           <b class="dcn">${fmt(_n)}</b>
           <span class="dcm">${_n===1?'day':'days'} of showing up</span>
         </button>`;
@@ -731,7 +731,7 @@ function renderToday(){
   h+=`<h2>${_closed&&planningWorkspace()?'Trained today':'Training today'}</h2>`;
   if(!_closed&&isLive()&&mascotMode()!=='off'){
     const activeSets=workoutCompletionMetrics({...t,completedAt:Date.now()}).sets;   // v4.6.69: the session you are in, not the day
-    h+=`<div class="su-active-row"><div><strong>You're in.</strong><span class="mono muted">${activeSets} set${activeSets===1?'':'s'} logged</span></div>${typeof companionHTML==='function'?companionHTML('su-hello-comp su-comp-active'):mascotHTML('active')}</div>`;
+    h+=`<div class="su-active-row"><div><strong>You're in.</strong><span class="mono muted">${activeSets} set${activeSets===1?'':'s'} logged</span></div>${(typeof companionHTML==='function'&&companionHTML('su-hello-comp su-comp-active'))||mascotHTML('active')}</div>`;
   }
   if(doneLift.length) h+=`<div class="todaypartsline mono">${doneLift.map(partLabel).join(' · ')}</div>`;
   const byPart={};
@@ -1064,7 +1064,7 @@ function tipPlace(fresh){
 }
 /* A still PNG, not the 3D Pip: the pill is ink, so Pip takes the opposite tone (white on black,
    charcoal on white), and a tip shouldn't spin up a WebGL scene. */
-function tipPip(){if(typeof mascotMode==='function'&&mascotMode()==='off')return '';if(typeof companionHTML==='function')return companionHTML('tip-pip tip-comp');return `<img class="tip-pip" src="assets/mascot-${document.documentElement.dataset.theme==='dark'?'charcoal':'white'}.png" alt="" width="360" height="220" aria-hidden="true">`;}
+function tipPip(){if(typeof mascotMode==='function'&&mascotMode()==='off')return '';const comp=typeof companionHTML==='function'?companionHTML('tip-pip tip-comp'):'';if(comp)return comp;return `<img class="tip-pip" src="assets/mascot-${document.documentElement.dataset.theme==='dark'?'charcoal':'white'}.png" alt="" width="360" height="220" aria-hidden="true">`;}
 function tipShow(k){
   const c=TIP_BY[k];tipHide(true);
   const n=document.createElement('div');n.className='tipn';n.setAttribute('role','status');n.dataset.tip=k;
