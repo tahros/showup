@@ -568,3 +568,17 @@ p.pw-small{margin:10px 0 16px}.pw-workspace p:not(.pw-small){font:400 14px/1.6 v
 .club-icon-grid button{position:relative}.club-icon-grid .club-locked .club-avatar{opacity:.38;filter:grayscale(.7)}.club-icon-grid .club-locked>span:not(.club-avatar){color:var(--muted)}
 .club-lock{position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:var(--surface);color:var(--muted);box-shadow:0 1px 3px rgba(0,0,0,.12)}
 .club-lock-note .club-text-button{font:inherit;font-weight:600;color:var(--accent-ink);padding:0;margin-left:2px;min-height:0}
+/* v4.6.312 (mock): together, the crew, the pins */
+.club-together{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:-8px 0 18px;padding:10px 12px;border-radius:14px;background:var(--surface2);font:400 13px var(--body);color:var(--muted)}
+.club-together b{color:var(--chalk);font-weight:600}.club-together-n{font-family:var(--mono);color:var(--chalk)}
+.club-together-n::before{content:'·';margin-right:8px;color:var(--muted)}
+.club-pins{display:inline-flex;gap:2px;margin-left:auto}
+.club-avatar-button .club-avatar-pin{position:absolute;left:-6px;top:-6px;width:30px;height:30px;border-radius:50%;background:var(--surface);border:1px solid var(--line);display:grid;place-items:center;pointer-events:none;animation:crewPin .6s .3s cubic-bezier(.3,1.6,.5,1) both}
+.club-icon-grid .crew-name{font:600 12px var(--body)!important;display:block;margin-top:4px}
+.club-icon-grid .crew-days{display:block;font:400 10.5px var(--mono);color:var(--muted);margin-top:1px}
+.club-icon-grid .crew-tile-pin{position:absolute;top:5px;left:6px}
+.crew-confirm{margin:12px 0 4px;padding:14px;border-radius:14px;background:var(--surface2);animation:crewPin .35s ease-out both}
+.crew-confirm p{margin:0 0 12px;font:400 14px/1.45 var(--body);color:var(--chalk)}
+.crew-confirm-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}.crew-confirm-btns .btn{margin:0;min-height:44px;font:600 14px var(--body);padding:8px 6px}
+.crew-rename-in{width:100%;box-sizing:border-box;margin:0 0 12px;padding:10px 12px;border-radius:12px;border:2px solid var(--line);background:var(--surface);color:var(--chalk);font:700 20px var(--body);text-align:center}
+@keyframes crewPin{from{opacity:0;transform:scale(.5)}to{opacity:1;transform:none}}
