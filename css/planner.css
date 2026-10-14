@@ -564,3 +564,7 @@ p.pw-small{margin:10px 0 16px}.pw-workspace p:not(.pw-small){font:400 14px/1.6 v
 @media(prefers-reduced-motion:reduce){.club-coin-face:after{animation:none!important}}
 
 /* v4.6.272: the logo row is as tall as the coin (60px) with the 44px wordmark centred in it, so a 20px top margin read as 28px. 12px makes the gap under the wordmark equal the 20px under the icon. */
+/* v4.6.310: the other icons are a member's: dimmed, with a small lock; the note offers Join the club */
+.club-icon-grid button{position:relative}.club-icon-grid .club-locked .club-avatar{opacity:.38;filter:grayscale(.7)}.club-icon-grid .club-locked>span:not(.club-avatar){color:var(--muted)}
+.club-lock{position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:var(--surface);color:var(--muted);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.club-lock-note .club-text-button{font:inherit;font-weight:600;color:var(--accent-ink);padding:0;margin-left:2px;min-height:0}
