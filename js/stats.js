@@ -733,7 +733,7 @@ function muscleCard(){
         :`<div class="note">No sets in the last 7 days.</div>`}</div>`;
     }
     return `${vi?line:''}<div class="mcrow ${open?'open':''}" data-mcg="${v}">
-      <span class="mcname">${v}</span>
+      <span class="mcname">${typeof partLabel==='function'?partLabel(v):v}</span>
       <span class="mcdots">${gg.dots.map((on,i)=>`<span class="${cellClass(i)}" aria-label="${days[i]}${i===current?', today':''}: ${on?'trained':days[i]>todayISO?'upcoming':'no training'}"><i class="${on?'on':days[i]>todayISO?'mc-future':''}" aria-hidden="true"></i></span>`).join('')}</span>
       <span class="mcsummary"><b class="mcv">${gg.days.size}</b>
       <span class="mcu">day${gg.days.size===1?'':'s'}</span></span>
@@ -1553,7 +1553,7 @@ function renderStats(){
       <div class="card">
         <div class="pmixhead"><div class="pmix-measures" role="group" aria-label="Chart measure"><button type="button" data-pmixmode="sets" aria-pressed="${PMIX_MODE==='sets'}">Sets</button><button type="button" data-pmixmode="weight" aria-pressed="${PMIX_MODE==='weight'}" aria-label="Weight in ${isLb()?'pounds':'kilograms'}">Weight</button></div></div>
         <div class="pmixlgdwrap"><div class="pmixlgd" role="group" aria-label="Follow a body part">${Object.keys(SEED.catalog).filter(p=>p!=='Run').map(p=>
-          `<button type="button" data-pt="${p}" aria-pressed="${PMIX_FOCUS===p}" style="--pmix-part:${PART_COLORS[p]||'var(--muted)'}"><i></i><span>${p}</span></button>`).join('')}</div></div>
+          `<button type="button" data-pt="${p}" aria-pressed="${PMIX_FOCUS===p}" style="--pmix-part:${PART_COLORS[p]||'var(--muted)'}"><i></i><span>${typeof partLabel==='function'?partLabel(p):p}</span></button>`).join('')}</div></div>
         <div class="pmixbox">
           <span class="pmixyr" id="pmixYr"></span>
           ${pmixAxisSvg(partMix(PMIX_DAYS))}
@@ -1722,7 +1722,7 @@ function psBody(){
     <div class="ps-row"><span class="ps-pill" role="group" aria-label="Period">${btn('p','m',st.p==='m','This month')}${btn('p','y',st.p==='y','This year')}</span>
       <span class="ps-pill" role="group" aria-label="Order">${btn('o','body',st.o==='body','Body')}${btn('o','most',st.o==='most','Most')}</span></div>
     <div class="ps-shelf">${list.map(x=>{const v=val(x);return `<button type="button" class="ps-t${(w?!v:!x.days)?' ps-zero':''}${psToday().has(x.p)?' ps-today':''}" data-part="${x.p}" data-v="${v??''}" aria-label="${nm(x.p)}: ${show(v)} ${unit(x)}. Open muscles">${psFigure(x.p)}<b>${show(v)}</b><small>${unit(x)}</small><span>${nm(x.p)}</span></button>`;}).join('')}</div>
-    <div class="ps-foot"><span>${when}</span>${hi&&val(hi)?`<span>Most: <i>${nm(hi.p)}</i> · ${show(val(hi))} · Least: <i>${nm(lo.p)}</i> · ${show(val(lo))}</span>`:''}</div>`;
+    <div class="ps-foot"><span>${when}</span>${hi&&val(hi)?`<span>Most <i>${nm(hi.p)}</i> ${show(val(hi))} · Least <i>${nm(lo.p)}</i> ${show(val(lo))}</span>`:''}</div>`;
 }
 function partShelfSection(){
   setTimeout(psArm,0);
