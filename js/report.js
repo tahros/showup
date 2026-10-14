@@ -1160,8 +1160,8 @@ document.addEventListener('toggle',e=>{
 function shareDayCardFramed(d,grow=true){
   const cv=document.createElement('canvas');cv.width=cv.height=1080;const x=cv.getContext('2d');if(!x)return null;
   drawDayCard(x,1080,d);const m=window.__shareMeta||{},band={...(window.__shareBand||{})};
-  /* v4.6.321: the day's totals close the list instead of crowding the subtitle -- sets on the left,
-     weight and distance on the right, under one solid rule, in the receipt's own number-and-unit
+  /* v4.6.321: the day's totals close the list instead of crowding the subtitle -- weight and distance on the left,
+     total sets on the right, under one solid rule, in the receipt's own number-and-unit
      grammar (Sungjee, 2026-10-14) */
   let src=cv;const right=[m.vol,m.km].filter(Boolean);
   if(m.sets&&band.b){
@@ -1174,9 +1174,10 @@ function shareDayCardFramed(d,grow=true){
     const y=top+112,parts=t=>{const k=String(t).match(/^([\d.,]+)\s*(.*)$/);return k?[k[1],k[2]]:[t,''];};
     const piece=(num,unit)=>{o.font='700 44px '+SANS;const a=o.measureText(num).width;o.font='500 28px '+MONO;const b=unit?o.measureText(' '+unit).width:0;return {num,unit,w:a+b,a};};
     const draw=(pc,x0)=>{o.textAlign='left';o.fillStyle=V('--chalk');o.font='700 44px '+SANS;o.fillText(pc.num,x0,y);if(pc.unit){o.fillStyle=V('--muted');o.font='500 28px '+MONO;o.fillText(' '+pc.unit,x0+pc.a,y);}};
-    draw(piece(String(m.sets),m.sets===1?'set':'sets'),L);
-    const rs=right.map(t=>piece(...parts(t))),gap=36;let xr=R-rs.reduce((a,p)=>a+p.w,0)-gap*Math.max(0,rs.length-1);
-    rs.forEach((pc,i)=>{draw(pc,xr);xr+=pc.w+gap;if(i<rs.length-1){o.fillStyle=V('--line');o.fillRect(xr-gap/2-1,y-34,2,40);}});
+    /* weight and distance on the left, total sets on the right (as Sungjee drew it) */
+    const ls=right.map(t=>piece(...parts(t))),gap=36;let xl=L;
+    ls.forEach((pc,i)=>{draw(pc,xl);xl+=pc.w+gap;if(i<ls.length-1){o.fillStyle=V('--line');o.fillRect(xl-gap/2-1,y-34,2,40);}});
+    const sp=piece(String(m.sets),m.sets===1?'set':'sets');draw(sp,R-sp.w);
     src=out;band.b=top+add;}
   return typeof shareFrame==='function'?shareFrame(src,band,{label:'Workout log',valign:'top',grow,title:shareDay(d),sub:m.parts||''}):src;
 }
