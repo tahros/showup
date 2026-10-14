@@ -554,6 +554,7 @@ function comparisonCard(card,kind){
   let gifModule,videoModule;
   try{[gifModule,videoModule]=await Promise.all([import('./plate-gif.js'),import('./plate-video.js')]);await gifModule.loadExportFonts();}catch(_e){/* Image remains available when animation modules cannot load. */}
   try{const logo=new Image();logo.src='assets/mascot-mark-'+(dark?'white':'chrome')+'.png';await logo.decode();data.logo=logo;}catch(_e){}
+  try{if(typeof sharePreload==='function')await sharePreload();}catch(_e){}
   const [mm,dd]=dates[snapshot.index];
   const render=(time,canvas)=>{
    const cv=canvas||document.createElement('canvas');cv.width=1080;cv.height=1280;const x=cv.getContext('2d');if(!x)return null;

@@ -528,11 +528,12 @@ function drawDayCard(x,S,d){
      the first rule stops running away from the footer block below. */
   const CARD_AIR=44, DESC=8;
   const TOP=FRAME+CARD_AIR, ICON=52;
-  const NAMEY=TOP+ICON/2+9, DATEY=NAMEY+68, PARTY=DATEY+48;
-  const HEAD=PARTY+RULE_AIR+6;    /* +6: the parts line's descender */
-  /* v4.6.316: your companion on a shared receipt moves the brand to the foot: room for the wordmark */
+  /* v4.6.316: your companion on a shared receipt moves the brand to the foot: room for the wordmark,
+     and a little more air under the companion row and above the foot (Sungjee, 2026-10-14) */
   const compOn=!isRetro()&&mascotMode()!=='off'&&typeof shareCompanionImg==='function'&&shareReady(shareCompanionImg())&&shareReady(shareWordmarkImg(document.documentElement.dataset.theme==='dark'));
-  const FOOT=CARD_AIR+DESC+44+(compOn?44:0);    /* frame air + descender + footer baseline lift (+ the wordmark) */
+  const NAMEY=TOP+ICON/2+9, DATEY=NAMEY+68+(compOn?22:0), PARTY=DATEY+48;
+  const HEAD=PARTY+RULE_AIR+6;    /* +6: the parts line's descender */
+  const FOOT=CARD_AIR+DESC+44+(compOn?72:0);    /* frame air + descender + footer baseline lift (+ the wordmark) */
   const H=Math.max(640,HEAD+(km?GH(1):0)+cardio.reduce((a,c)=>a+GH(c.rows.length),0)+groups.reduce((a,g)=>a+GH(g.subs.length),0)+FOOT);
   const cv2=x.canvas; if(cv2&&cv2.height!==H) cv2.height=H;
 

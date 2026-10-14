@@ -65,7 +65,11 @@ const SHARE_RULE_Y=SHARE_NAME_Y-50;                        /* 1140 — as before
 function drawShareFooter(x,data,sans){
   x.strokeStyle=data.line;x.lineWidth=1;x.beginPath();x.moveTo(SHARE_EDGE,SHARE_RULE_Y);x.lineTo(1080-SHARE_EDGE,SHARE_RULE_Y);x.stroke();
   x.fillStyle=data.muted;x.font='400 28px '+sans;x.textAlign='right';x.fillText(data.name,1080-SHARE_EDGE,SHARE_NAME_Y,680);
-  if(data.wordmark){x.drawImage(data.wordmark,SHARE_EDGE,SHARE_MARK_Y-8,86,86*232/350);}   /* v4.6.316: with your companion on the card, the wordmark signs it */
+  /* v4.6.316: with your companion, every shared card signs with the wordmark (100px, the brand kit's
+     minimum) and puts the companion beside your name -- unless it already stands on the card */
+  const wm=typeof shareWordmarkImg==='function'&&!data.retro&&typeof shareCompanionImg==='function'&&shareReady(shareCompanionImg())?shareWordmarkImg(data.dark):null;
+  if(shareReady?.(wm)){x.drawImage(wm,SHARE_EDGE,SHARE_NAME_Y+10-100*232/350,100,100*232/350);
+    if(!data.companion&&data.name){x.font='400 28px '+sans;const nw=x.measureText(data.name).width;shareDrawCompanion(x,1080-SHARE_EDGE-nw-62,SHARE_NAME_Y-42,54);}}
   else if(data.logo){x.save();if(data.retro){x.imageSmoothingEnabled=false;x.drawImage(data.logo,SHARE_EDGE,SHARE_MARK_Y,49,49);}else x.drawImage(data.logo,14,85,485,292,SHARE_EDGE,SHARE_MARK_Y,82,SHARE_MARK_H);x.restore();}
 }
 async function sharePlateCard(){
@@ -80,7 +84,7 @@ async function sharePlateCard(){
     const module=await import('./plate-gif.js');
     await Promise.all([mascot.decode(),logo.decode(),module.loadExportFonts(),typeof sharePreload==='function'?sharePreload():null]);data.logo=logo;
     /* v4.6.316: your companion stands by the plates; Pip (chosen or by default) stays as he was */
-    if(!data.retro&&typeof shareCompanionImg==='function'&&shareReady(shareCompanionImg())){data.companion=true;data.wordmark=shareWordmarkImg(data.dark);if(!shareReady(data.wordmark))data.wordmark=null;}
+    if(!data.retro&&typeof shareCompanionImg==='function'&&shareReady(shareCompanionImg()))data.companion=true;
     await showCard(()=>drawPlateShare(data,mascot),'showup-stacked-'+date,false);
     bindPlateExport(data,mascot,module,await import('./plate-video.js'));
   }catch(e){toast('Could not prepare the stacked image. Please try again.');}
