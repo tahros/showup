@@ -191,3 +191,4 @@ html.gym-tour-open,html.gym-tour-open body{overflow:hidden}
 #dayDone .dd-companion{position:relative}
 #dayDone .dd-comp-pin{position:absolute;right:-6px;top:-4px;width:36px;height:36px;border-radius:50%;background:var(--ground);display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.18);animation:ddPin .7s 2.2s cubic-bezier(.3,1.6,.5,1) both}
 @keyframes ddPin{0%{opacity:0;transform:translateY(-60px) scale(1.8) rotate(-30deg)}70%{opacity:1;transform:translateY(2px) scale(.9) rotate(6deg)}100%{opacity:1;transform:none}}
+#dayDone .dd-num-medal{flex:none;align-self:flex-start;margin:-6px -28px 0 -12px;position:relative;z-index:1;width:40px;height:40px;border-radius:50%;background:var(--ground);display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.18);animation:ddPin .7s 1.9s cubic-bezier(.3,1.6,.5,1) both}

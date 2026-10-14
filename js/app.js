@@ -1976,8 +1976,8 @@ function celebrateDayDone(nowrite, forceCount, forceMile, forceShow, sourceCard)
   /* v4.6.311: your companion takes Pip's jump; the lockup shows the wordmark alone */
   let comp=withMascot&&!mile&&typeof companionHTML==='function'?companionHTML('dd-companion'):'';
   /* v4.6.312: the day a pin is earned it lands on the companion */
-  const pinHit=comp&&typeof crewMilestoneHit==='function'?crewMilestoneHit():null;
-  if(pinHit)comp=comp.replace(/<\/span>$/,`<i class="dd-comp-pin">${crewPinSVG(pinHit[1],30)}</i></span>`);
+  /* v4.6.315: medals are yours -- the day one is earned it lands on your count, not the companion */
+  const medalHit=typeof userMedalHit!=='function'?null:forceCount!=null?userMedalHit(forceCount):nowrite?null:userMedalHit();   /* 100, 500, 1,000 are century days too: the medal joins that screen */
   const is25=withMascot&&forceCount==null&&DB.settings.mascot25Date===todayISO;
   if(withMascot)o.classList.add('su-celebration');
   if(withMascot&&!mile&&mascotMode()==='animated'&&!connected)o.dataset.entrance=ddNextEntrance();
@@ -2007,8 +2007,8 @@ function celebrateDayDone(nowrite, forceCount, forceMile, forceShow, sourceCard)
        and takes about a second to watch. countUpEl reads data-from/data-to
        and has existed since the Today card -- the ceremony never gave it
        either, so nothing here is new machinery. */
-    `<span class="dd-numrow"><b class="ddn${count>=1000?' ddlarge':''}" data-from="0" data-to="${count}">${fmt(count)}</b>${comp}</span><span class="ddu">${count===1?'day':'days'} of showing up</span>`+
-    `<h2 class="ddyou" id="ddHeading">You showed up.</h2>`+(withMascot&&!mile&&typeof crewMilestoneHTML==='function'?crewMilestoneHTML():'')+
+    `<span class="dd-numrow"><b class="ddn${count>=1000?' ddlarge':''}" data-from="0" data-to="${count}">${fmt(count)}</b>${medalHit?`<i class="dd-num-medal">${medalSVG(medalHit[1],34)}</i>`:''}${comp}</span><span class="ddu">${count===1?'day':'days'} of showing up</span>`+
+    `<h2 class="ddyou" id="ddHeading">You showed up.</h2>`+(medalHit&&typeof userMedalLineHTML==='function'?userMedalLineHTML(medalHit):'')+
     `<div class="ddsummary">${withMascot&&forceCount==null?completionMetricsHTML(DB.days[todayISO]):summary}</div></div>`+
     /* v3.3.506: the photo option is gone from the ceremony -- the maker judged
        it not ready. The compositor, the picker and their suite go with it

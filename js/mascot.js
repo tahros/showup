@@ -49,6 +49,8 @@ function mascotTint(el,tone){
 function mascotTone(mode,tone){
   if(tone)return tone;
   if(mode==='cool')return 'blue';
+  /* v4.6.315: Pip as your companion wears the crew's blue */
+  if(typeof DB!=='undefined'&&DB.settings?.companionName&&DB.settings.clubAvatar==='pip'&&!(typeof clubIconsLocked==='function'&&clubIconsLocked()&&DB.settings.companionFree!=='pip'))return 'blue';
   /* Light uses silver with ultra-soft moving reflections. Dark uses matte white
      with very-light body shading. PNGs are sampled from the same 3D material. */
   return document.documentElement.dataset.theme==='dark'?'white':'chrome';
