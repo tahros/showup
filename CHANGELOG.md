@@ -1,5 +1,10 @@
 # ShowUppp — changelog
 
+## v4.6.310 — One companion free; the rest are a member's
+- Once the paywall is live, a non-member keeps the profile icon the app dealt them; the other eight are dimmed with a lock, and tapping one opens Join the club. The note under the grid names their icon: "The medicine ball is yours. Members pick any of the nine. Join the club".
+- A pick made as a member is kept, not erased: a lapsed member sees their dealt icon, and their pick returns when they rejoin. Members see all nine, as before. Nothing changes before launch.
+- Tests: test-membership.js (locked set, kept pick, the note, tapping a locked icon, member, flag off).
+
 ## v4.6.309 — Grow keeps your free-weight load at 6 reps
 - The plan writer's Grow minimum is now 6 reps on barbell, EZ-bar, Smith and dumbbell lifts (8 before). Incline Barbell at 175 × 6 6 6 4 now plans 175 × 6s instead of dropping to 165 × 8; Incline Dumbbell at 65 × 6 7 6 keeps 65. The weight climbs by the reps.
 - Dips, cables, machines and bodyweight keep the 8 minimum (the "no way" to Dip 6 6 6 6 6 stands). Lose weight (12) and Strength (none) are unchanged.

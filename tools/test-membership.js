@@ -233,5 +233,22 @@ async function trainLog(b){
    ok('flag off, founding: the screen says free for good, with nothing to buy, restore or cancel',!!m&&/Free, for good/.test(m.textContent)&&!m.querySelector('[data-mbm-plan],[data-mbm-cancel],[data-mb-restore],[data-mbm-apple]')&&!/Apple ID/.test(m.textContent));
    ok('flag off, founding: still no free-days line or Join anywhere',!b.d.getElementById('mbRow')&&!b.d.querySelector('[data-mb-open]'));
  }
+ /* v4.6.310: one profile icon for a non-member (the one dealt), the rest a member's */
+ { const b=await boot({live:true,days:record(12),settings:{clubAvatar:'headphones'}});
+   b.run(`view='sync';render();`);await settle();
+   const free=b.run('clubFreeIcon()[0]'),locked=[...b.d.querySelectorAll('[data-club-icon].club-locked')].map(x=>x.dataset.clubIcon);
+   ok('non-member: eight icons locked, the dealt one open',locked.length===8&&!locked.includes(free)&&!!b.d.querySelector(`[data-club-icon="${free}"]:not(.club-locked)`),free+' / '+locked.join());
+   ok('non-member: a pick made as a member is kept, but the dealt icon shows',b.run('DB.settings.clubAvatar')==='headphones'&&b.run('clubAvatar()[0]')===free);
+   ok('non-member: the note names their icon and offers Join the club',new RegExp('The '+b.run('clubFreeIcon()[1].toLowerCase()')+' is yours').test(b.d.querySelector('.club-lock-note').textContent)&&!!b.d.querySelector('.club-lock-note [data-mb-open]'));
+   const other=locked[0];b.click(`[data-club-icon="${other}"]`);await settle();
+   ok('non-member: tapping a locked icon opens Join the club and changes nothing',b.wall()&&b.run('DB.settings.clubAvatar')==='headphones'&&b.run('clubAvatar()[0]')===free);
+ }
+ { const now=Date.now();const b=await boot({live:true,days:record(40),settings:{clubAvatar:'headphones'},store:{'showup:entitlement':JSON.stringify({status:'active',until:now+30*864e5,plan:'yearly'})}});
+   b.run(`view='sync';render();`);await settle();
+   ok('member: nothing locked, and their pick is back',!b.d.querySelector('.club-locked')&&b.run('clubAvatar()[0]')==='headphones'&&!b.d.querySelector('.club-lock-note'));
+ }
+ { const b=await boot({days:record(12)});b.run(`view='sync';render();`);await settle();
+   ok('flag off: nobody has locked icons',!b.d.querySelector('.club-locked'));
+ }
  console.log(fails?`\n${fails} FAILED`:'\nall passed'); process.exit(fails?1:0);
 })().catch(e=>{console.error(e);process.exit(1);});
