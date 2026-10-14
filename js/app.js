@@ -1977,7 +1977,7 @@ function celebrateDayDone(nowrite, forceCount, forceMile, forceShow, sourceCard)
   let comp=withMascot&&!mile&&typeof companionHTML==='function'?companionHTML('dd-companion'):'';
   /* v4.6.312: the day a pin is earned it lands on the companion */
   /* v4.6.315: medals are yours -- the day one is earned it lands on your count, not the companion */
-  const medalHit=typeof userMedalHit!=='function'?null:forceCount!=null?userMedalHit(forceCount):nowrite?null:userMedalHit();   /* 100, 500, 1,000 are century days too: the medal joins that screen */
+  const medalHit=mile||typeof userMedalHit!=='function'?null:forceCount!=null?userMedalHit(forceCount):nowrite?null:userMedalHit();   /* never on a century screen: day 1,000 gets exactly what day 100 gets (v3.3.424) -- the medal waits on the profile */
   const is25=withMascot&&forceCount==null&&DB.settings.mascot25Date===todayISO;
   if(withMascot)o.classList.add('su-celebration');
   if(withMascot&&!mile&&mascotMode()==='animated'&&!connected)o.dataset.entrance=ddNextEntrance();

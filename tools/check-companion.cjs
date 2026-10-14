@@ -55,8 +55,8 @@ try{
   d=await p.evaluate(()=>{const o=document.getElementById('dayDone');return {pip:!!o.querySelector('.ddbrand .su-mascot'),word:!!o.querySelector('.showuppp-word-only'),comp:o.querySelectorAll('.su-companion').length};});
   ok('Pip chosen: day done keeps Pip in the logo',d.pip&&!d.word&&d.comp===0,d);
   await p.evaluate(()=>{document.getElementById('dayDone')?.remove();view='sync';render();});await p.waitForTimeout(700);
-  d=await p.evaluate(()=>({tile:!!document.querySelector('.club-avatar-button .club-pip'),first:document.querySelector('.club-icon-grid button')?.dataset.clubIcon,t:document.querySelector('.club-together')?.textContent.replace(/\s+/g,' ')}));
-  ok('Pip chosen: his still on the profile, first on the shelf, With Pip',d.tile&&d.first==='pip'&&/With Pip/.test(d.t||''),d);
+  d=await p.evaluate(()=>({tile:!!document.querySelector('.club-avatar-button .club-pip'),first:document.querySelector('.club-icon-grid button')?.dataset.clubIcon,t:document.querySelector('[data-club-icon="pip"]')?.textContent.replace(/\s+/g,' ')}));
+  ok('Pip chosen: his still on the profile, first on the shelf, With you',d.tile&&d.first==='pip'&&/Pip\s*With you/.test(d.t||''),d);
   ok('no page errors',!errors.length,errors);await ctx.close();}
  /* after launch: the first pick is free; the rest are a member's */
  {const {ctx,p,errors}=await open({clubAvatar:'mat',companionFree:'mat',companionName:'Matty'},true);

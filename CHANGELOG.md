@@ -1,5 +1,12 @@
 # ShowUppp — changelog
 
+## v4.6.315 — Your medals; the crew by name; blue Pip
+- Medals are yours, not a companion's: they count your logged days (the same number as Days trained and the day-done count), so switching never costs anything. Seven: 10, 25, 50, 100, 250, 500, 1,000 (sweatband, bronze, silver, gold, star, crown, diamond). The profile card shows the row under the facts -- earned in colour, the rest faint -- with "N days to the next" beneath, and the highest by your name.
+- The day one is earned, it drops onto your day count on the day-done screen with "You earned the gold medal: 100 days of showing up." On 100, 500 and 1,000 -- hundredth days -- the century screen stays exactly as it is (day 1,000 gets what day 100 gets, v3.3.424); the medal is on your profile.
+- The crew is your companions by name; switching is a plain choice, no prompt. v4.6.312's per-companion days are gone (stored spans fold into names).
+- Pip as your companion wears the crew's blue (Today, live workout, tips, profile tile, shelf); white Pip stays on the blue first-run door.
+- Tests: tools/check-crew.cjs rewritten for medals, the crew and blue Pip; check-companion.cjs follows.
+
 ## v4.6.314 — Pip is a choice; setup progress on one row
 - Pip joins the line-up, first, as a wide tile above the nine. Choosing him brings his own moments back: the 3D Pip on Today and in the live workout, his jump in the logo on day done. He keeps days together, pins and a place on the crew shelf like any companion, and can be a non-member's one free pick.
 - Skip in setup now keeps Pip rather than a dealt companion. Pip is kept apart from the original nine, so anyone's dealt companion does not move.
