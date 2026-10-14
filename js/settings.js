@@ -297,6 +297,15 @@ function clubIdentity(){return session?.user?.id||DB.settings.clubGuest?.id||(DB
    the club. A choice made as a member is kept, not erased, and comes back when they rejoin. */
 function clubFreeIcon(){return CLUB_ICONS[clubHash(clubIdentity())%CLUB_ICONS.length];}
 function clubIconsLocked(){return typeof paywallLive==='function'&&paywallLive()&&typeof isMember==='function'&&!isMember();}
+/* v4.6.311: YOUR COMPANION IN PIP'S PLACE. In your own moments -- Today's hello, tips, the day-done
+   count -- the companion you picked stands where Pip stood; one character per screen. Pip stays the
+   app's face where it speaks for itself: first run, the icon, the club welcome, shared images.
+   Follows the Mascot setting: animated plays the idle, still holds, off shows nothing. */
+function companionHTML(cls=''){
+  if(typeof mascotMode==='function'&&mascotMode()==='off')return '';
+  const c=clubAvatar(),anim=typeof mascotMode!=='function'||mascotMode()==='animated';
+  return `<span class="su-companion ${cls}" data-companion="${c[0]}" aria-hidden="true">${clubIconHTML(c,anim).replace('club-avatar ','club-avatar club-visible ')}</span>`;
+}
 function clubAvatar(){if(clubIconsLocked())return clubFreeIcon();const k=DB.settings.clubAvatar;return CLUB_ICONS.find(x=>x[0]===k)||clubFreeIcon();}
 function clubIconHTML(item,animated=false){return `<span class="club-avatar club-${item[0]}${animated?' club-animate':''}" aria-hidden="true"><span class="club-shadow"></span><span class="club-sprite" style="background-image:url('assets/club-icons-${item[2]}.webp');background-position:${item[3]}% 0"></span></span>`;}
 function clubAvatarEditHTML(item){return clubIconHTML(item,true)+`<span class="club-avatar-edit" aria-hidden="true">${icon('edit',14)}</span>`;}
@@ -819,3 +828,74 @@ function impSettingsHTML(){
   return `<button class="btn ghost" data-imp-open="settings" style="margin:8px 0 0">Bring past workouts</button>`+(l?`<p class="note" style="margin-top:6px">Last import: ${fmt(l.sets)} sets from ${hesc(l.src)}, ${hesc(impRange([l.first,l.last]))}. <button type="button" class="linkbtn" data-imp-undo="${hesc(l.id)}">Undo</button></p>`:'');
 }
 document.addEventListener('click',e=>{const u=e.target.closest&&e.target.closest('[data-imp-undo]');if(!u)return;const k=impUndo(u.dataset.impUndo);render();if(typeof renderSync==='function'&&view==='sync')renderSync();toast(`Import undone · ${fmt(k)} sets removed`);});
+
+/* ---- v4.6.312 (mock): THE ADOPTION. After the first logged day, once: Pip hands over to the
+   companion you'll keep. A member picks from the line-up; a non-member's dealt one steps forward
+   ("This one picked you"). Name it -- a suggestion per character, editable -- and it hops in. */
+const COMPANION_NAMES={band:'Snap',plate:'Plato',bell:'Kettle',roller:'Rolly',bottle:'Sip',bag:'Duffy',ball:'Bounce',mat:'Matty',headphones:'Beats'};
+function companionName(){return DB.settings.companionName||COMPANION_NAMES[clubAvatar()[0]]||'Buddy';}
+/* the ceremony's body, shared by first-run (step 4 of setup) and the one-time overlay for people
+   who set up before companions existed */
+function adoptMarkup(intro){
+  const locked=clubIconsLocked(),free=clubFreeIcon()[0];
+  const pip=`<img class="ad-pip" src="assets/mascot-${document.documentElement.dataset.theme==='dark'?'white':'chrome'}.png" alt="" aria-hidden="true">`;
+  return `<div class="ad-in">${pip}<h2 id="adTitle" class="ad-t">${intro||'Someone’s been watching you show up.'}</h2>
+    <p class="ad-s">${locked?'One of them has picked you.':'Pick the one that comes along.'}</p>
+    <div class="ad-grid">${CLUB_ICONS.map((i,n)=>`<button type="button" class="ad-c${locked&&i[0]!==free?' ad-dim':''}" data-ad="${i[0]}" style="--n:${n}" ${locked&&i[0]!==free?'tabindex="-1" aria-hidden="true"':''}>${clubIconHTML(i,true).replace('club-avatar ','club-avatar club-visible ')}<span>${i[1]}</span></button>`).join('')}</div>
+    <div class="ad-name" hidden><div class="ad-hero"></div><p class="ad-s ad-pickline"></p><label class="ad-lab" for="adName">Name</label><input id="adName" maxlength="16" autocomplete="off" spellcheck="false"><button type="button" class="btn ad-go"></button></div></div>`;
+}
+function adoptBind(el,done){
+  const locked=clubIconsLocked();let pick=locked?clubFreeIcon()[0]:null;
+  if(locked)setTimeout(()=>el.classList.add('ad-picked'),2300);
+  const choose=k=>{pick=k;const i=CLUB_ICONS.find(x=>x[0]===k);el.classList.add('ad-naming');
+    el.querySelector('.ad-hero').innerHTML=clubIconHTML(i,true).replace('club-avatar ','club-avatar club-visible ');
+    el.querySelector('.ad-pickline').textContent=locked?'This one picked you.':'Good choice.';
+    const inp=el.querySelector('#adName');inp.value=COMPANION_NAMES[k]||'';el.querySelector('.ad-name').hidden=false;
+    const go=el.querySelector('.ad-go');const lab=()=>go.textContent='Welcome, '+(inp.value.trim()||COMPANION_NAMES[k]);lab();inp.oninput=lab;};
+  el.addEventListener('click',e=>{const c=e.target.closest('[data-ad]');
+    if(c&&!c.classList.contains('ad-dim')){if(locked&&!el.classList.contains('ad-picked'))el.classList.add('ad-picked');choose(c.dataset.ad);return;}
+    if(e.target.closest('.ad-go')){const name=el.querySelector('#adName').value.trim()||COMPANION_NAMES[pick];
+      if(!locked)DB.settings.clubAvatar=pick;DB.settings.companionName=name;DB.settings.companionSince=todayISO;DB.settingsAt=Date.now();save(true);
+      el.querySelector('.ad-pickline').textContent=`${name}’s with you now.`;el.classList.add('ad-arrive');
+      setTimeout(done,2200);}});
+}
+function adoptOpen(){
+  if(document.getElementById('adopt'))return;
+  const el=document.createElement('div');el.id='adopt';el.className='ad-root';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-labelledby','adTitle');
+  el.innerHTML=adoptMarkup();document.body.appendChild(el);
+  adoptBind(el,()=>{el.classList.add('ad-out');setTimeout(()=>{el.remove();render();},500);});
+}
+(function(){const s=document.createElement('style');s.textContent=`
+#adopt{position:fixed;inset:0;z-index:8700;overflow:auto;overscroll-behavior:contain;background:var(--ground);color:var(--chalk);display:flex;justify-content:center;padding:calc(env(safe-area-inset-top) + 40px) 22px calc(env(safe-area-inset-bottom) + 28px);animation:adFade .5s ease-out both}
+#adopt.ad-out{animation:adFade .5s ease-in reverse both}
+.ad-root .ad-in{width:100%;max-width:400px;text-align:center;position:relative}
+.ad-root .ad-pip{display:block;width:120px;margin:0 auto 14px;animation:adPip 1.1s .2s cubic-bezier(.3,1.6,.5,1) both}
+.ad-root.ad-naming .ad-pip{animation:adPipWave .9s ease-in-out both}
+.ad-root.ad-arrive .ad-pip{animation:adPipOff .7s .2s ease-in both}
+.ad-root .ad-t{font:700 26px/1.2 var(--body);letter-spacing:-.4px;margin:0 0 8px;text-transform:none;color:var(--chalk);opacity:1;display:block;animation:adRise .6s .7s ease-out both}
+.ad-root .ad-t::after{display:none}
+.ad-root .ad-s{font:400 15.5px/1.45 var(--body);color:var(--muted);margin:0 0 22px;animation:adRise .6s 1.1s ease-out both}
+.ad-root .ad-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;transition:opacity .4s,transform .4s}
+.ad-root .ad-c{border:0;border-radius:18px;background:var(--surface);color:var(--chalk);padding:10px 4px 8px;cursor:pointer;font:500 12px var(--body);animation:adPop .55s cubic-bezier(.3,1.6,.5,1) both;animation-delay:calc(1.3s + var(--n)*70ms);transition:opacity .5s,transform .5s,filter .5s}
+.ad-root .ad-c .club-avatar{width:72px;height:72px;margin:0 auto 4px}
+.ad-root.ad-picked .ad-dim{opacity:.18;filter:grayscale(1);transform:scale(.9)}
+.ad-root.ad-picked .ad-c:not(.ad-dim){transform:scale(1.12);box-shadow:0 0 0 2px var(--accent);z-index:1;position:relative}
+.ad-root.ad-naming .ad-grid,.ad-root.ad-naming .ad-t,.ad-root.ad-naming .ad-in>.ad-s{display:none}
+.ad-root .ad-name{animation:adRise .5s ease-out both}
+.ad-root .ad-hero{width:150px;height:150px;margin:6px auto 4px;animation:adHero .8s cubic-bezier(.3,1.6,.5,1) both}
+.ad-root .ad-hero .club-avatar{width:100%;height:100%}
+.ad-root .ad-lab{display:block;font:600 12px var(--body);letter-spacing:.6px;text-transform:uppercase;color:var(--muted);margin:4px 0 8px}
+.ad-root #adName{width:100%;box-sizing:border-box;text-align:center;font:700 28px var(--body);color:var(--chalk);background:var(--surface);border:2px solid var(--line);border-radius:16px;padding:12px;margin:0 0 16px}
+.ad-root #adName:focus{outline:none;border-color:var(--accent)}
+.ad-root .ad-go{width:100%;min-height:56px;border-radius:16px;margin:0;font:700 17px var(--body)}
+.ad-root.ad-arrive .ad-hero{animation:adArrive 1.4s cubic-bezier(.3,1.6,.5,1) both}
+.ad-root.ad-arrive .ad-lab,.ad-root.ad-arrive #adName,.ad-root.ad-arrive .ad-go{opacity:0;transition:opacity .3s}
+@keyframes adFade{from{opacity:0}to{opacity:1}}
+@keyframes adRise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes adPip{from{opacity:0;transform:translateY(-30px) scale(.8)}to{opacity:1;transform:none}}
+@keyframes adPipWave{0%,100%{transform:none}25%{transform:rotate(-10deg)}50%{transform:rotate(8deg)}75%{transform:rotate(-4deg)}}
+@keyframes adPipOff{to{opacity:0;transform:translateX(120px) rotate(14deg)}}
+@keyframes adPop{from{opacity:0;transform:translateY(24px) scale(.6)}to{opacity:1;transform:none}}
+@keyframes adHero{from{opacity:0;transform:scale(.5) translateY(40px)}to{opacity:1;transform:none}}
+@keyframes adArrive{0%{transform:none}30%{transform:translateY(-36px) scale(1.08)}55%{transform:translateY(6px) scale(1.12,.9)}75%{transform:translateY(-8px)}100%{transform:none}}
+@media (prefers-reduced-motion:reduce){#adopt,.ad-root *{animation:none!important;transition:none!important}}`;document.head.appendChild(s);})();
