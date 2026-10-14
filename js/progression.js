@@ -373,7 +373,7 @@ function progressionShare(card){
        load chart the numbers down the left ARE weights, so say so once. */
     unit:state.kind==='load'?'('+U()+')':'',
     name:(typeof firstName==='function'&&firstName())||'',
-    range:layout.dates[0]+' — '+layout.dates.at(-1),logo:null,retro:isRetro(),
+    range:layout.dates[0]+' — '+layout.dates.at(-1),rangeISO:[scope[0].d,scope.at(-1).d],logo:null,retro:isRetro(),
     /* drawShareFooter reads line/muted/name/logo off the top level, so mirror them there */
     line:color('--line'),muted:color('--muted'),
     colors:{paper:color('--surface'),ink:color('--chalk'),muted:color('--muted'),line:color('--line'),blue:color('--accent-ink'),soft:color('--surface2')},
@@ -404,7 +404,7 @@ function progressionShare(card){
      beats silently nothing. */
   const capped=p=>Promise.race([p,new Promise(r=>setTimeout(r,1200))]);
   return Promise.all([capped(ready(mark).then(()=>{snapshot.logo=mark;},()=>{})),capped(settleFonts()),typeof sharePreload==='function'?capped(sharePreload()):null])
-    .then(()=>showCard(()=>drawProgressionCard(snapshot),label));
+    .then(()=>showCard(()=>{const cv=drawProgressionCard(snapshot);return typeof shareFrame==='function'?shareFrame(cv,window.__shareBand,{label:'Strength progress',title:snapshot.ex,sub:[snapshot.rangeISO?shareRange(...snapshot.rangeISO):snapshot.range,snapshot.count+' sessions'].join(' \u00b7 ')}):cv;},label));
 }
 /* v4.5.19: THE PROGRESSION SHARE, REDRAWN.
    Out: the "SHOWUP / PROGRESSION" slug at the top and the "showup · date — date"
@@ -458,6 +458,7 @@ function drawProgressionCard(s){
   x.fillText(s.count+' Sessions'+(m.dates.length<s.count?' · '+m.dates.length+' in this range':''),pad,y+22);
   if(s.axis){x.textAlign='right';x.fillText(s.axis,W-pad,y+22);x.textAlign='left';}
   y+=22;
+  const bandTop0=y+10;
 
   /* the readout, centred */
   const read=wrap(s.read.value,'500 16px '+sans,W-pad*2);
@@ -469,6 +470,7 @@ function drawProgressionCard(s){
 
   /* the footer lives at the foot, one pad from the bottom, as on every other card */
   const footRule=H-pad-30, markH=17, markY=H-pad-markH;
+  window.__shareBand={t:(bandTop0)*scale,b:(footRule-4)*scale};
   /* the plot fills what is left, its own units stretched to the band */
   const axisY=Math.max(...m.ticks.map(t=>t.y));
   const top=y+18, band=footRule-30-top;   /* 30: the date row under the axis, and air before the rule */

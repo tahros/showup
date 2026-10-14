@@ -898,8 +898,53 @@ function shareDrawCompanion(x,dx,dy,size){
   const img=shareCompanionImg();if(!shareReady(img))return false;const c=clubAvatar(),fw=img.naturalWidth/3,col=Math.round(c[3]/50);
   x.drawImage(img,col*fw,0,fw,img.naturalHeight,dx,dy,size,size);return true;
 }
-function sharePreload(){const d=document.documentElement.dataset.theme==='dark';const l=[shareCompanionImg(),shareWordmarkImg(d),shareMedalImg()].filter(Boolean);return Promise.all(l.map(i=>i.decode?i.decode().catch(()=>{}):null));}
+function sharePreload(){const d=document.documentElement.dataset.theme==='dark';const l=[shareCompanionImg(),shareWordmarkImg(d),shareWordmarkImg(!d),shareMedalImg(),sharePipImg()].filter(Boolean);return Promise.all(l.map(i=>i.decode?i.decode().catch(()=>{}):null));}
 setTimeout(()=>{try{sharePreload();}catch(e){}},2500);
+/* ---- v4.6.317 (mock): ONE FRAME FOR EVERYTHING YOU SHARE (Sungjee, 2026-10-14).
+   1080 x 1350 (4:5). 72 margins on all four sides, one 936 column, gaps on an 8 grid.
+   Header, centred, three rows: LABEL (mono caps 26, grey), Title (sans 56, ink), subtitle (sans 30, grey).
+   Footer, identical everywhere: rule, 40 of air, then the wordmark (100 wide) left and your
+   companion + first name right, 72 from the bottom. Each card supplies only its data; the frame
+   places it in the band between, never larger than drawn, centred. Dates: "Tue, Oct 13, 2026";
+   ranges "Sep 10 – Sep 30, 2026". */
+const SHARE_W=1080,SHARE_H=1350,SHARE_M=72,SHARE_SANS='"ShowUp Export Plex", "IBM Plex Sans", sans-serif',SHARE_MONO='"IBM Plex Mono", monospace';
+function shareDay(iso){const d=new Date(iso+'T12:00');return d.toLocaleDateString('en-US',{weekday:'short'})+', '+d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
+function shareRange(a,b){const A=new Date(a+'T12:00'),B=new Date(b+'T12:00'),md=d=>d.toLocaleDateString('en-US',{month:'short',day:'numeric'});return A.getFullYear()===B.getFullYear()?`${md(A)} – ${md(B)}, ${B.getFullYear()}`:`${md(A)}, ${A.getFullYear()} – ${md(B)}, ${B.getFullYear()}`;}
+function sharePipImg(){return shareImg('assets/mascot-blue.png');}
+/* src: the card as it draws itself; band: its data's top and bottom in src pixels */
+function shareFrame(src,band,meta){
+  if(!src)return src;
+  const out=document.createElement('canvas');out.width=SHARE_W;out.height=SHARE_H;const x=out.getContext('2d');
+  const sx=src.getContext('2d',{willReadFrequently:true}),t=Math.max(0,Math.round(band?.t??0)),b=Math.min(src.height,Math.round(band?.b??src.height));
+  const bl=Math.max(0,Math.round(band?.l??0)),br=Math.min(src.width,Math.round(band?.r??src.width));
+  const bgPx=sx.getImageData(bl+4,Math.min(src.height-1,t+4),1,1).data,bg=`rgb(${bgPx[0]},${bgPx[1]},${bgPx[2]})`;
+  const dark=(bgPx[0]+bgPx[1]+bgPx[2])/3<128,css=getComputedStyle(document.documentElement);
+  const ink=dark?'#f4f3f0':'#1c1c1c',muted=dark?'#a1a3a7':'#686868',line=dark?'#303033':'#e5e5e8';
+  x.fillStyle=bg;x.fillRect(0,0,SHARE_W,SHARE_H);
+  /* trim the data's own whitespace */
+  const w=src.width,h=b-t,px=sx.getImageData(0,t,w,h).data,diff=i=>Math.abs(px[i]-bgPx[0])+Math.abs(px[i+1]-bgPx[1])+Math.abs(px[i+2]-bgPx[2])>24;
+  let x0=w,y0=h,x1=-1,y1=-1;for(let yy=0;yy<h;yy+=1)for(let xx=bl;xx<br;xx+=2){if(diff((yy*w+xx)*4)){if(xx<x0)x0=xx;if(xx>x1)x1=xx;if(yy<y0)y0=yy;if(yy>y1)y1=yy;}}
+  /* header */
+  const C=SHARE_W/2;let y=SHARE_M;
+  x.textAlign='center';x.textBaseline='alphabetic';
+  x.fillStyle=muted;x.font='500 26px '+SHARE_MONO;if('letterSpacing' in x)x.letterSpacing='3px';x.fillText(String(meta.label||'').toUpperCase(),C,y+20,936);if('letterSpacing' in x)x.letterSpacing='0px';
+  x.fillStyle=ink;x.font='600 56px '+SHARE_SANS;x.fillText(meta.title||'',C,y+20+72,936);
+  x.fillStyle=muted;x.font='400 30px '+SHARE_SANS;if(meta.sub)x.fillText(meta.sub,C,y+20+72+48,936);
+  const bandTop=y+20+72+48+8+40;            /* 260 */
+  /* footer */
+  const wm=shareWordmarkImg(dark),wh=100*232/350,rowMid=SHARE_H-SHARE_M-wh/2,rule=rowMid-wh/2-40;
+  x.fillStyle=line;x.fillRect(SHARE_M,Math.round(rule),SHARE_W-SHARE_M*2,2);
+  if(shareReady(wm))x.drawImage(wm,SHARE_M,rowMid-wh/2,100,wh);
+  const name=(typeof firstName==='function'&&firstName())||'';x.textAlign='right';x.fillStyle=muted;x.font='400 30px '+SHARE_SANS;
+  if(name)x.fillText(name,SHARE_W-SHARE_M,rowMid+10);
+  const nw=name?x.measureText(name).width+16:0,mx=SHARE_W-SHARE_M-nw-48;
+  if(!shareDrawCompanion(x,mx,rowMid-24,48)){const pip=sharePipImg();if(shareReady(pip)){const ph=48*pip.naturalHeight/pip.naturalWidth*1.5,pw=ph*pip.naturalWidth/pip.naturalHeight;x.drawImage(pip,SHARE_W-SHARE_M-nw-pw,rowMid-ph/2,pw,ph);}}
+  const bandBot=rule-40,bw=SHARE_W-SHARE_M*2,bh=bandBot-bandTop;
+  /* the data, never enlarged, centred in the band */
+  if(x1>=0){const cw=x1-x0+2,ch=y1-y0+1,k=Math.min(1,bw/cw,bh/ch),dw=cw*k,dh=ch*k;
+    x.drawImage(src,x0,t+y0,cw,ch,(SHARE_W-dw)/2,bandTop+(bh-dh)/2,dw,dh);}
+  return out;
+}
 function crewSwitch(k){
   const st=DB.settings,c=crewState(),cur=clubAvatar()[0];if(!c||k===cur)return;
   c[k]=c[k]||{name:COMPANION_NAMES[k]};st.clubAvatar=k;st.companionName=c[k].name;DB.settingsAt=Date.now();save(true);

@@ -567,6 +567,8 @@ function drawDayCard(x,S,d){
   x.textAlign='left';
   x.font='500 28px '+MONO; x.fillText(parts.join(' \u00b7 '),L,PARTY);
 
+  /* v4.6.317: the data's band and the header's facts, for the shared frame */
+  window.__shareBand={t:HEAD+3,b:Math.min(H-FOOT+4,H-FRAME-24),l:FRAME+2,r:S-FRAME-2};window.__shareMeta={parts:parts.join(' \u00b7 '),sets,vol:vol?fmt(Math.round(toU(vol)))+' '+U():'',km:km?dDisp(km)+' '+DU():''};
   let ry=HEAD;      /* ry walks the SOLID rules; each block advances it */
   const block=(name,nSets,subDraws)=>{
     x.save();x.strokeStyle=V('--line');x.lineWidth=2;x.beginPath();x.moveTo(L,ry);x.lineTo(R,ry);x.stroke();x.restore();
@@ -1154,3 +1156,9 @@ document.addEventListener('toggle',e=>{
    Restore point: 8bbe7b0 (v3.3.504). drawPhotoCard, _photoCard,
    loadPickedImage, celebrateDayDone's photoSession/photoCard/picker wiring and
    tools/test-photocard.js are all whole and green there. */
+/* v4.6.317: Share this day in the shared frame */
+function shareDayCardFramed(d){
+  const cv=document.createElement('canvas');cv.width=cv.height=1080;const x=cv.getContext('2d');if(!x)return null;
+  drawDayCard(x,1080,d);const m=window.__shareMeta||{};
+  return typeof shareFrame==='function'?shareFrame(cv,window.__shareBand,{label:'Workout log',title:shareDay(d),sub:[m.parts,m.sets?m.sets+' sets':'',m.vol,m.km].filter(Boolean).join(' \u00b7 ')}):cv;
+}

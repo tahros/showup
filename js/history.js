@@ -459,11 +459,7 @@ document.addEventListener('click',e=>{
   if(e.target.closest('[data-ycopy]')){ copyYear(); return; }
   const sh=e.target.closest('[data-dshare]');
   if(sh){ const d=sh.dataset.dshare;
-    showCard(()=>{                 // showCard wants a canvas MAKER, not a painter
-      const cv=document.createElement('canvas'); cv.width=cv.height=1080;
-      const x=cv.getContext('2d'); if(!x) return null;
-      drawDayCard(x,1080,d); return cv;
-    },'showup-'+d,false);
+    showCard(()=>shareDayCardFramed(d),'showup-'+d,false);   // showCard wants a canvas MAKER
     return; }
   const ed=e.target.closest('[data-hedit]');
   if(ed){ const d=ed.dataset.hedit;

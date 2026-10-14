@@ -372,6 +372,7 @@ function drawDayReview(data,time,canvas){
     ly=y+S.rowPad;r.lanes.forEach(l=>{const lh=laneHeight(l),n=loadRows(l);group(l.ref,refX,false,0,ly,lh,n);group(l.actual,actualX,true,420+rowIndex++*260,ly,lh,n);ly+=lh+S.laneGap;});y+=heights[i];
   });
   rule(bottom);data.values.forEach((v,i)=>reveal(540+rowIndex*260+i*70,()=>{const x=28+(i+.5)*126;ink(v,x,bottom+32,30,C.ink,'center',sans,600);ink(data.labels[i],x,bottom+58,11,C.muted,'center',mono);}));
+  window.__shareBand={t:(contextY+contextHeight+S.headingGap-6)*scale,b:(footerY-2)*scale};
   rule(footerY);const mid=footerY+S.footerPad+footerHeight/2;
   credits.forEach((s,i)=>ink(s,28,mid+(i-(credits.length-1)/2)*12,8,C.muted));
   names.forEach((s,i)=>ink(s,485,mid+(i-(names.length-1)/2)*18,14,C.muted,'right'));
@@ -392,7 +393,7 @@ async function shareDayReview(button){
     for(let y=0;y<pip.height;y++)for(let x=0;x<pip.width;x++)if(pixels[(y*pip.width+x)*4+3]>16){x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y);}
     data.pipBounds={x:x0,y:y0,w:Math.max(1,x1-x0+1),h:Math.max(1,y1-y0+1)};
     if(!button.isConnected)return; // Do not reopen a share after leaving this day/account.
-    await showCard(()=>drawDayReview(data),'showuppp-your-day-'+data.date,false);
+    await showCard(()=>{const cv=drawDayReview(data);return typeof shareFrame==='function'?shareFrame(cv,window.__shareBand,{label:'Your day',title:shareDay(data.date),sub:[data.parts.join(' \u00b7 '),data.dayCount?'Day '+fmt(data.dayCount):''].filter(Boolean).join(' \u00b7 ')}):cv;},'showuppp-your-day-'+data.date,false);
     bindPlateExport(data,null,module,video,{gif:false,render:(t,c)=>drawDayReview(data,matchMedia('(prefers-reduced-motion: reduce)').matches?undefined:t,c),duration:Math.max(3500,1800+data.rows.reduce((n,r)=>n+r.lanes.length,0)*260),label:'Your day, set by set'});
   }catch(e){toast('Could not prepare your day. Please try again.');}
   finally{if(button.isConnected)button.disabled=false;}
